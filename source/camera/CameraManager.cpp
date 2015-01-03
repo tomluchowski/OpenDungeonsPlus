@@ -55,7 +55,7 @@ CameraManager::CameraManager(Ogre::SceneManager* tmpSceneManager, GameMap* gm, O
     mActiveCameraNode(nullptr),
     mGameMap(gm),
     mCameraIsFlying(false),
-    mMoveSpeed(2.0),
+    mMoveSpeed(0.5),
     //NOTE: when changing, also change it in the terminal command 'movespeed'.
     mMoveSpeedAccel(static_cast<Ogre::Real>(2.0f) * mMoveSpeed),
     mCameraFlightSpeed(70.0),

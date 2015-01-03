@@ -363,6 +363,26 @@ void GameMode::handleMouseWheel(const OIS::MouseEvent& arg)
     {
         frameListener.cameraStopZoom();
     }
+    if (!mModeManager->getInputManager()->mDirectionKeyPressed)
+    {
+	if (arg.state.X.abs == 0)
+	    frameListener.moveCamera(CameraManager::moveLeft);
+	else
+	    frameListener.moveCamera(CameraManager::stopLeft);
+	if (arg.state.X.abs == arg.state.width)
+	    frameListener.moveCamera(CameraManager::moveRight);
+	else
+	    frameListener.moveCamera(CameraManager::stopRight);
+	if (arg.state.Y.abs == 0)
+	    frameListener.moveCamera(CameraManager::moveForward);
+	else
+	    frameListener.moveCamera(CameraManager::stopForward);
+	if (arg.state.Y.abs == arg.state.height)
+	    frameListener.moveCamera(CameraManager::moveBackward);
+	else
+	    frameListener.moveCamera(CameraManager::stopBackward);
+    } 
+
 }
 
 bool GameMode::mousePressed(const OIS::MouseEvent &arg, OIS::MouseButtonID id)

@@ -107,6 +107,7 @@ private:
         InputModeNormal,
         InputModeChat
     };
+    bool directionKeyPressed;
     //! \brief Sets whether a tile must marked or unmarked for digging.
     //! this value is based on the first marked flag tile selected.
     bool mDigSetBool;
