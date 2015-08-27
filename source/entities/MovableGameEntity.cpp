@@ -38,7 +38,8 @@ MovableGameEntity::MovableGameEntity(GameMap* gameMap, float opacity) :
     mDestinationAnimationState("Idle"),
     mWalkDirection(Ogre::Vector3::ZERO),
     mAnimationTime(0.0),
-    mOpacity(opacity)
+    mOpacity(opacity),
+    parkedSceneNode(nullptr)
 {
 }
 

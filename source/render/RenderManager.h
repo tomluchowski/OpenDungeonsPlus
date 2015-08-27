@@ -51,7 +51,7 @@ class AnimationState;
     class ShaderGenerator;
 }*/
 } //End namespace Ogre
-
+/* extern std::ofstream mydebug; */
 class RenderManager: public Ogre::Singleton<RenderManager>
 {
 public:

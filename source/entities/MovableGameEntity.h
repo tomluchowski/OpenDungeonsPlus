@@ -120,7 +120,7 @@ public:
     //! be dead on the ground for example).
     //! Note that this function is to be called on client side only
     virtual void restoreEntityState();
-
+    Ogre::SceneNode* parkedSceneNode;
 protected:
     //! \brief Called while moving the entity to add it to the tile it gets on
     virtual bool addEntityToTile(Tile* tile);

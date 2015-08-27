@@ -23,6 +23,8 @@
 
 #include "entities/Creature.h"
 #include "utils/Vector3i.h"
+#include "utils/LogManager.h"
+
 
 #include <algorithm>
 
@@ -42,10 +44,11 @@ CullingManager::CullingManager(CameraManager* cameraManager):
     mPreviousVisibleCreatures(&mCreaturesSet[1]),
     mFirstIter(false),
     mCm(cameraManager),
-    mCullCreaturesFlag(false),
+    mCullCreaturesFlag(true),
     mCullTilesFlag(false),
     mDebug(false)
 {
+    mydebug.open("mydebug.txt");
     mMyplanes[0]=(Ogre::Plane(0, 0, 1, 0));
     mMyplanes[1]=(Ogre::Plane(0, 0, -1, 20));
     mMyplanes[2]=(Ogre::Plane(0, 1, 0, -1));
@@ -54,7 +57,7 @@ CullingManager::CullingManager(CameraManager* cameraManager):
     mMyplanes[5]=(Ogre::Plane(-1, 0, 0, 395));
     mMyCullingQuad.setRadius(256);
     mMyCullingQuad.setCenter(200, 200);
-
+    mydebug << "hello from CullingManger "  << endl ;
     // init the Ogre vector
     for (unsigned int i = 0; i < 4; ++i)
     {
@@ -81,7 +84,7 @@ void CullingManager::cullTiles()
     // sort(mMiddleRight, mTop, false);
     // sort(mBottom, mMiddleLeft, false);
     // sort(mMiddleLeft, mMiddleRight, true);
-
+    
     oldWalk = mWalk;
     mWalk.myArray[0] =  Vector3i(mOgreVectorsArray[0]);
     mWalk.myArray[1] =  Vector3i(mOgreVectorsArray[1]);
@@ -98,6 +101,11 @@ void CullingManager::cullTiles()
 void CullingManager::startCreatureCulling()
 {
     mCullCreaturesFlag = true;
+    Ogre::SceneNode::ChildNodeIterator ii = RenderManager::getSingletonPtr()->getSceneManager()->getSceneNode("Creature_scene_node")->getChildIterator();
+    while(ii.hasMoreElements())
+    {
+        RenderManager::getSingletonPtr()->getSceneManager()->getSceneNode("Creature_scene_node")->removeChild(  static_cast<Ogre::SceneNode*>(ii.getNext()));        
+    }
 }
 
 void CullingManager::startTileCulling()
@@ -219,17 +227,33 @@ int CullingManager::cullCreatures()
                         intersection.begin(), intersection.end(),
                         std::inserter(descendingCreatures, descendingCreatures.end()));
 
-    std::set_difference(mPreviousVisibleCreatures->begin(), mPreviousVisibleCreatures->end(),
-                        intersection.begin(), intersection.end(),
-                        std::inserter(descendingCreatures, descendingCreatures.end()));
-
     for(std::vector<Creature*>::iterator it = tmpQuad.mMortuaryQuad.begin(); it != tmpQuad.mMortuaryQuad.end(); ++it)
         descendingCreatures.erase(*it);
 
-    //cerr << "ascendingCreatures  " << ascendingCreatures.size() <<endl;
-    //cerr << "descendingCreatures " << descendingCreatures.size()<<endl;
+    LogManager::getSingleton().logMessage( "Creatures visible in the Quad" );
+    for(auto ii: *mCurrentVisibleCreatures)
+        LogManager::getSingleton().logMessage( ii->getName() );
+    LogManager::getSingleton().logMessage( "END OF Creatures visible in the Quad" );
 
-    // sort the new tiles to form the proper diamod
+    LogManager::getSingleton().logMessage( "Ascending creatures" );
+    for (auto ii : ascendingCreatures)
+        LogManager::getSingleton().logMessage( (ii)->getName());
+
+   
+    LogManager::getSingleton().logMessage( "Descending creatures" );
+    for (auto ii : descendingCreatures)   
+        LogManager::getSingleton().logMessage( (ii)->getName());
+
+    Ogre::SceneNode::ChildNodeIterator ii = RenderManager::getSingletonPtr()->getSceneManager()->getSceneNode("Creature_scene_node")->getChildIterator();
+    LogManager::getSingleton().logMessage( "Nodes of Creature_scene_Node" ) ;
+    while(ii.hasMoreElements())
+    {
+
+        LogManager::getSingleton().logMessage( static_cast<Ogre::SceneNode*>(ii.getNext())->getName() );
+        
+    }
+    LogManager::getSingleton().logMessage( "End of nodes Creature_scene_node" ); 
+
     for(std::set<Creature*>::iterator it = ascendingCreatures.begin(); it != ascendingCreatures.end(); ++it)
         (*it)->show();
 

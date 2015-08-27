@@ -27,9 +27,13 @@
 #include <OgreRay.h>
 #include <OgrePlane.h>
 #include <set>
+#include <fstream>
+
 
 class CameraManager;
 class GameMap;
+
+
 
 class CullingManager
 {
@@ -71,7 +75,6 @@ private:
     std::set<Creature*> mCreaturesSet[2];
 
     SlopeWalk mWalk, oldWalk;
-
     MortuaryQuad mMyCullingQuad;
     Ogre::Vector3 mOgreVectorsArray[4];
     Vector3i mTop, mBottom, mMiddleLeft, mMiddleRight;
@@ -80,6 +83,8 @@ private:
     bool mFirstIter;
     CameraManager* mCm;
 
+
+    std::ofstream mydebug;
     Ogre::Plane mMyplanes[6];
     Ogre::Ray mMyRay[4];
 

@@ -59,6 +59,7 @@
 #include <RTShaderSystem/OgreShaderExPerPixelLighting.h>
 #include <RTShaderSystem/OgreShaderExNormalMapLighting.h>
 #include <sstream>
+#include <fstream>
 
 using std::stringstream;
 
@@ -72,8 +73,9 @@ RenderManager::RenderManager(Ogre::OverlaySystem* overlaySystem) :
     mShaderGenerator(nullptr),
     mInitialized(false)
 {
+    // mydebug << "hello from RenderManager " << std::endl ;
     // Use Ogre::SceneType enum instead of string to identify the scene manager type; this is more robust!
-    mSceneManager = Ogre::Root::getSingleton().createSceneManager(Ogre::ST_INTERIOR, "SceneManager");
+    mSceneManager = Ogre::Root::getSingleton().createSceneManager(Ogre::ST_GENERIC, "SceneManager");
     mSceneManager->addRenderQueueListener(overlaySystem);
 
     mCreatureSceneNode = mSceneManager->getRootSceneNode()->createChildSceneNode("Creature_scene_node");
@@ -385,13 +387,17 @@ void RenderManager::rrTemporalMarkTile(Tile* curTile)
 void RenderManager::rrDetachEntity(GameEntity* curEntity)
 {
     Ogre::SceneNode* node = mSceneManager->getSceneNode(curEntity->getOgreNamePrefix() + curEntity->getName() + "_node");
-    curEntity->getParentSceneNode()->removeChild(node);
+    mCreatureSceneNode->removeChild(node);
+    LogManager::getSingleton().logMessage("rrDetachEntity" );
+    // mydebug << "rrDetachEntity" << std::endl; 
 }
 
 void RenderManager::rrAttachEntity(GameEntity* curEntity)
 {
     Ogre::SceneNode* entityNode = mSceneManager->getSceneNode(curEntity->getOgreNamePrefix() + curEntity->getName() + "_node");
-    curEntity->getParentSceneNode()->addChild(entityNode);
+    mCreatureSceneNode->addChild(entityNode);
+    LogManager::getSingleton().logMessage("rrAttachEntity" );
+
 }
 
 void RenderManager::rrCreateRenderedMovableEntity(RenderedMovableEntity* renderedMovableEntity)
@@ -493,6 +499,7 @@ void RenderManager::rrCreateCreature(Creature* curCreature)
     //colourizeEntity(ent, curCreature->color);
     Ogre::SceneNode* node = mCreatureSceneNode->createChildSceneNode(creatureName + "_node");
     curCreature->setEntityNode(node);
+    mCreatureSceneNode->removeChild(node);
     node->setPosition(curCreature->getPosition());
     node->setScale(scale);
     node->attachObject(ent);
@@ -646,22 +653,25 @@ void RenderManager::rrPickUpEntity(MovableGameEntity* curEntity, Player* localPl
 {
     // Detach the entity from its scene node
     Ogre::SceneNode* curEntityNode = mSceneManager->getSceneNode(curEntity->getOgreNamePrefix() + curEntity->getName() + "_node");
-    curEntity->getParentSceneNode()->removeChild(curEntityNode);
-
-    // Attach the creature to the hand scene node
-    mSceneManager->getSceneNode("Hand_node")->addChild(curEntityNode);
-    Ogre::Vector3 scale = curEntity->getScale();
-    scale *= 0.33;
-    curEntityNode->setScale(scale);
-
-    // Move the other creatures in the player's hand to make room for the one just picked up.
-    int i = 0;
-    const std::vector<MovableGameEntity*>& objectsInHand = localPlayer->getObjectsInHand();
-    for (MovableGameEntity* tmpEntity : objectsInHand)
+    curEntity->parkedSceneNode = curEntityNode->getParentSceneNode();
+    if(curEntity->parkedSceneNode != nullptr)
     {
-        Ogre::SceneNode* tmpEntityNode = mSceneManager->getSceneNode(tmpEntity->getOgreNamePrefix() + tmpEntity->getName() + "_node");
-        tmpEntityNode->setPosition((Ogre::Real)(i % 6 + 1), (Ogre::Real)(i / (int)6), (Ogre::Real)0.0);
-        ++i;
+        curEntityNode->getParentSceneNode()->removeChild(curEntityNode);
+        // Attach the creature to the hand scene node
+        mSceneManager->getSceneNode("Hand_node")->addChild(curEntityNode);
+        Ogre::Vector3 scale = curEntity->getScale();
+        scale *= 0.33;
+        curEntityNode->setScale(scale);
+
+        // Move the other creatures in the player's hand to make room for the one just picked up.
+        int i = 0;
+        const std::vector<MovableGameEntity*>& objectsInHand = localPlayer->getObjectsInHand();
+        for (MovableGameEntity* tmpEntity : objectsInHand)
+        {
+            Ogre::SceneNode* tmpEntityNode = mSceneManager->getSceneNode(tmpEntity->getOgreNamePrefix() + tmpEntity->getName() + "_node");
+            tmpEntityNode->setPosition((Ogre::Real)(i % 6 + 1), (Ogre::Real)(i / (int)6), (Ogre::Real)0.0);
+            ++i;
+        }
     }
 }
 
@@ -672,18 +682,21 @@ void RenderManager::rrDropHand(MovableGameEntity* curEntity, Player* localPlayer
     mSceneManager->getSceneNode("Hand_node")->removeChild(curEntityNode);
 
     // Attach the creature from the creature scene node
-    curEntity->getParentSceneNode()->addChild(curEntityNode);
-    curEntityNode->setPosition(curEntity->getPosition());
-    curEntityNode->setScale(curEntity->getScale());;
-
-    // Move the other creatures in the player's hand to replace the dropped one
-    int i = 0;
-    const std::vector<MovableGameEntity*>& objectsInHand = localPlayer->getObjectsInHand();
-    for (MovableGameEntity* tmpEntity : objectsInHand)
+    if(curEntity->parkedSceneNode!=nullptr)
     {
-        Ogre::SceneNode* tmpEntityNode = mSceneManager->getSceneNode(tmpEntity->getOgreNamePrefix() + tmpEntity->getName() + "_node");
-        tmpEntityNode->setPosition((Ogre::Real)(i % 6 + 1), (Ogre::Real)(i / (int)6), (Ogre::Real)0.0);
-        ++i;
+        curEntity->parkedSceneNode->addChild(curEntityNode);
+        curEntityNode->setPosition(curEntity->getPosition());
+        curEntityNode->setScale(curEntity->getScale());;
+
+        // Move the other creatures in the player's hand to replace the dropped one
+        int i = 0;
+        const std::vector<MovableGameEntity*>& objectsInHand = localPlayer->getObjectsInHand();
+        for (MovableGameEntity* tmpEntity : objectsInHand)
+        {
+            Ogre::SceneNode* tmpEntityNode = mSceneManager->getSceneNode(tmpEntity->getOgreNamePrefix() + tmpEntity->getName() + "_node");
+            tmpEntityNode->setPosition((Ogre::Real)(i % 6 + 1), (Ogre::Real)(i / (int)6), (Ogre::Real)0.0);
+            ++i;
+        }
     }
 }
 
