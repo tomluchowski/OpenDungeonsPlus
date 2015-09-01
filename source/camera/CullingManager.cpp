@@ -215,6 +215,28 @@ int CullingManager::cullCreatures()
     std::set<Creature*> intersection;
     std::set<Creature*> ascendingCreatures;
     std::set<Creature*> descendingCreatures;
+    std::set<Creature*> ascendingCreaturesNoHand;
+    std::set<Creature*> descendingCreaturesNoHand;
+    std::set<Creature*> creatureInHand;
+    vector<MovableGameEntity*> vv ;
+    if(mCm!=nullptr) 
+        if(mCm->mGameMap != nullptr )
+            if(mCm->mGameMap->getLocalPlayer()!=nullptr)
+                vv = mCm->mGameMap->getLocalPlayer()->getObjectsInHand();
+    
+
+    for (auto ii : vv)
+    {
+        if(ii->getObjectType() == MovableGameEntity::creature)
+            creatureInHand.insert(static_cast<Creature*>(ii));
+
+    }
+
+
+    for(auto kk : creatureInHand)
+        LogManager::getSingleton().logMessage((kk)->getName());
+
+
     std::set_intersection(mPreviousVisibleCreatures->begin(), mPreviousVisibleCreatures->end(),
                           mCurrentVisibleCreatures->begin(), mCurrentVisibleCreatures->end(),
                           std::inserter(intersection, intersection.end()));
@@ -227,8 +249,19 @@ int CullingManager::cullCreatures()
                         intersection.begin(), intersection.end(),
                         std::inserter(descendingCreatures, descendingCreatures.end()));
 
+
+    std::set_difference(ascendingCreatures.begin(), ascendingCreatures.end(),
+                        creatureInHand.begin(), creatureInHand.end(),
+                        std::inserter(ascendingCreaturesNoHand, ascendingCreaturesNoHand.end()));
+
+    std::set_difference(descendingCreatures.begin(), descendingCreatures.end(),
+                        creatureInHand.begin(), creatureInHand.end(),
+                        std::inserter(descendingCreaturesNoHand, descendingCreaturesNoHand.end()));
+
+
+
     for(std::vector<Creature*>::iterator it = tmpQuad.mMortuaryQuad.begin(); it != tmpQuad.mMortuaryQuad.end(); ++it)
-        descendingCreatures.erase(*it);
+        descendingCreaturesNoHand.erase(*it);
 
     LogManager::getSingleton().logMessage( "Creatures visible in the Quad" );
     for(auto ii: *mCurrentVisibleCreatures)
@@ -236,12 +269,12 @@ int CullingManager::cullCreatures()
     LogManager::getSingleton().logMessage( "END OF Creatures visible in the Quad" );
 
     LogManager::getSingleton().logMessage( "Ascending creatures" );
-    for (auto ii : ascendingCreatures)
+    for (auto ii : ascendingCreaturesNoHand)
         LogManager::getSingleton().logMessage( (ii)->getName());
 
    
     LogManager::getSingleton().logMessage( "Descending creatures" );
-    for (auto ii : descendingCreatures)   
+    for (auto ii : descendingCreaturesNoHand)   
         LogManager::getSingleton().logMessage( (ii)->getName());
 
     Ogre::SceneNode::ChildNodeIterator ii = RenderManager::getSingletonPtr()->getSceneManager()->getSceneNode("Creature_scene_node")->getChildIterator();
@@ -254,10 +287,10 @@ int CullingManager::cullCreatures()
     }
     LogManager::getSingleton().logMessage( "End of nodes Creature_scene_node" ); 
 
-    for(std::set<Creature*>::iterator it = ascendingCreatures.begin(); it != ascendingCreatures.end(); ++it)
+    for(std::set<Creature*>::iterator it = ascendingCreaturesNoHand.begin(); it != ascendingCreaturesNoHand.end(); ++it)
         (*it)->show();
 
-    for(std::set<Creature*>::iterator it = descendingCreatures.begin(); it != descendingCreatures.end(); ++it)
+    for(std::set<Creature*>::iterator it = descendingCreaturesNoHand.begin(); it != descendingCreaturesNoHand.end(); ++it)
         (*it)->hide();
 
     return 1;
