@@ -28,6 +28,16 @@ Vector3i& Vector3i::operator+(Vector3i& vv)
     return *this;
 }
 
+Vector3i& Vector3i::operator-(Vector3i& vv)
+{
+    x -= vv.x;
+    y -= vv.y;
+    z -= vv.z;
+    return *this;
+}
+
+
+
 Vector3i& Vector3i::operator/(int ii)
 {
     x /= ii;
@@ -35,6 +45,16 @@ Vector3i& Vector3i::operator/(int ii)
     z /= ii;
     return *this;
 }
+
+Vector3i& Vector3i::operator*(double zz)
+{
+    x *= zz;
+    y *= zz;
+    z *= zz;
+    return *this;
+}
+
+
 
 std::ostream& operator<<(std::ostream& ss,Vector3i& vv)
 {

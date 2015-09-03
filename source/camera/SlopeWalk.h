@@ -58,6 +58,7 @@ private:
 
 public:
     void printState();
+    // A place for raw points
     DummyArrayClass myArray;
     bool notifyOnMoveDown(long long);
     void prepareWalk();

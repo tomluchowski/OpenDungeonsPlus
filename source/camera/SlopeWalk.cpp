@@ -30,6 +30,7 @@ using std::cout;
 void SlopeWalk::buildSlopes(){
     int ii;
     myArray.sort();
+    myArray.zoom(1.5);
     rightSlopes.clear();
     leftSlopes.clear();
     rightVertices.clear();
@@ -42,24 +43,28 @@ void SlopeWalk::buildSlopes(){
 
     // top_left_index = minMaxL.second - myArray.myArray.begin() ;
     // down_left_index = minMaxL.first - myArray.myArray.begin() ;
+
+    // find minimal and maximal values of y coordinate at left and right path
     findMinMaxLeft(myArray.mMyArray);
     findMinMaxRight(myArray.mMyArray);
 
-    cout << top_left_index  << endl;
-    cout << down_left_index << endl;
+    // cout << top_left_index  << endl;
+    // cout << down_left_index << endl;
     // for (auto jj = myArray.myArray.begin(); jj != myArray.myArray.end(); jj++){
     // 	cout << *jj << endl;
     // }
     // top_right_index = myArray.myArray.size() - (minMaxR.second - myArray.myArray.rbegin())  - 1;
     // down_right_index = myArray.myArray.size() - (minMaxR.first - myArray.myArray.rbegin())  - 1;
 
-    cout << top_right_index  << endl;
-    cout << down_right_index << endl;
+    // cout << top_right_index  << endl;
+    // cout << down_right_index << endl;
 
 
+    // for each pair of consecutive vertexes on right path create a slope value , which is equal to 'a' as in equation ax + b = 0
+    // also put slopes of value 0 at the begging and the end of path
 
     rightSlopes.push_back(0);
-    for(ii = top_right_index; ii != down_right_index ; ++ii, ii%=4  ){
+    for(ii = top_right_index; ii != down_right_index ; ++ii,ii%=4  ){
 	rightSlopes.push_back((myArray[ii].x - myArray[ii+1].x) * Unit / (myArray[ii].y - myArray[ii+1].y ));
 	rightVertices.push_back(ii);
 
@@ -67,6 +72,8 @@ void SlopeWalk::buildSlopes(){
     rightSlopes.push_back(0);
     rightVertices.push_back(ii);
 
+    // for each pair of consecutive vertexes on left path create a slope value , which is equal to 'a' as in equation ax + b = 0
+    // also put slopes of value 0 at the begging and the end of path
 
     leftSlopes.push_back(0);
     for(ii = top_left_index; ii != down_left_index ; ii+=3, ii%=4  ){
@@ -77,7 +84,7 @@ void SlopeWalk::buildSlopes(){
     leftVertices.push_back(ii);
 }
 
-
+// reset indexes to the begginging of containers 
 void SlopeWalk::prepareWalk(){
     leftSlopeIndex =  leftSlopes.begin();
     rightSlopeIndex = rightSlopes.begin();
@@ -86,13 +93,14 @@ void SlopeWalk::prepareWalk(){
 
 }
 
-
+// What to do when passing one Vertex down on the Left Path 
 bool SlopeWalk::passLeftVertex(){
     leftVerticesIndex++;
     leftSlopeIndex++;
     return leftVerticesIndex == leftVertices.end();
 }
 
+// What to do when passing one Vertex down on the Right Path 
 bool SlopeWalk::passRightVertex(){
     rightVerticesIndex++;
     rightSlopeIndex++;
@@ -100,6 +108,7 @@ bool SlopeWalk::passRightVertex(){
 
 }
 
+// Check whether we pass a new Vertex on the left or right path, if so notify about it 
 bool SlopeWalk::notifyOnMoveDown(long long newy_index){
 
     bool bb = true;
@@ -110,25 +119,28 @@ bool SlopeWalk::notifyOnMoveDown(long long newy_index){
     return bb ;
 }
 
-
+// Get vertex pointed currently  by index on the Left  path
 Vector3i SlopeWalk::getCurrentLeftVertex(){
     int ii = *leftVerticesIndex;
     return myArray[ii];
 
 
 }
+
+// Get vertex pointed currently  by index on the Right path
 Vector3i SlopeWalk::getCurrentRightVertex(){
     int ii = *rightVerticesIndex;
     return myArray[ii];
 
 }
 
+// get the value of slope currently pointed by index on the left path
 long long SlopeWalk::getCurrentDxLeft(){
     return *leftSlopeIndex;
 
 }
 
-
+// get the value of slope currently pointed by index on the right path
 long long SlopeWalk::getCurrentDxRight(){
     return *rightSlopeIndex;
 

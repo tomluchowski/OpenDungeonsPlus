@@ -34,7 +34,7 @@ public:
     Vector3i& operator[](int ii) ;
     void sort();
     void sortByPhi(std::vector<Vector3i> &ll, Vector3i& cc);
-
+    void zoom(double);
     std::array<Vector3i, 4>  mMyArray;
 };
 

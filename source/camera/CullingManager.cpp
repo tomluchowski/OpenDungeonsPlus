@@ -23,7 +23,8 @@
 
 #include "entities/Creature.h"
 #include "utils/Vector3i.h"
-
+#include "utils/LogManager.h"
+#include <sstream>
 #include <algorithm>
 
 using  std::set; using std::swap; using std::max; using std::min;
@@ -87,8 +88,11 @@ void CullingManager::cullTiles()
     mWalk.myArray[1] =  Vector3i(mOgreVectorsArray[1]);
     mWalk.myArray[2] =  Vector3i(mOgreVectorsArray[2]);
     mWalk.myArray[3] =  Vector3i(mOgreVectorsArray[3]);
+
+    // create a slope -- a set of left and rigth path
     mWalk.buildSlopes();
 
+    // reset index pointers to the begging of collections
     oldWalk.prepareWalk();
     mWalk.prepareWalk();
 
@@ -278,9 +282,9 @@ void CullingManager::newBashAndSplashTiles(int64_t mode){
             {
                 // Nothing
             }
-            else if (gm && bash && (mode & HIDE))
+            else if (gm && bash && (mode & HIDE) && xx>=0 && yy>= 0 && xx<mCm->mGameMap->getMapSizeX()*Unit && yy < mCm->mGameMap->getMapSizeY()*Unit)
                 gm->getTile(xx >> mPrecisionDigits, yy >> mPrecisionDigits)->hide();
-            else if (gm && splash && (mode & SHOW))
+            else if (gm && splash && (mode & SHOW) && xx>=0 && yy>= 0 && xx<mCm->mGameMap->getMapSizeX()*Unit && yy < mCm->mGameMap->getMapSizeY()*Unit )
                 gm->getTile(xx >> mPrecisionDigits, yy >> mPrecisionDigits)->show();
 	}
 

@@ -24,8 +24,10 @@ void DummyArrayClass::sort()
     std::vector<Vector3i> ll[4];
     Vector3i cc(0, 0, 0);
 
+    // find the center of points stored in mMyArray
     cc = (cc + mMyArray[0] + mMyArray[1] + mMyArray[2] + mMyArray[3]) / 4;
 
+    //Place the points into the appropriate quadrants of the (2D) Cartesian coordinate system
     for(int ii = 0; ii < 4; ++ii)
     {
         if(mMyArray[ii].x > cc.x && mMyArray[ii].y > cc.y)
@@ -47,6 +49,7 @@ void DummyArrayClass::sort()
     }
 
     int kk = 0;
+    // sort each quadrant by tangens of angle of point in polar representation
     for(int ii = 0; ii < 4; ++ii)
     {
         sortByPhi(ll[ii], cc);
@@ -58,6 +61,18 @@ void DummyArrayClass::sort()
         }
     }
 }
+
+void DummyArrayClass::zoom(double zz){
+    std::vector<Vector3i> ll[4];
+    Vector3i cc(0, 0, 0);
+    cc = (cc + mMyArray[0] + mMyArray[1] + mMyArray[2] + mMyArray[3]) / 4;
+
+    for (int ii = 0 ; ii < 4 ; ii++){
+        mMyArray[ii] = cc + (mMyArray[ii] - cc)*zz;
+        
+    }
+}
+
 
 void DummyArrayClass::sortByPhi(std::vector<Vector3i> &ll, Vector3i& cc)
 {
