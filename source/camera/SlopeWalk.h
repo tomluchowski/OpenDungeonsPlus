@@ -15,6 +15,18 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+
+/* Currently I try to impment the most general polygon rasterizing algorithm , that is : 
+ * 1. We choose the max and min points due to their Y value . 
+ * 2. We sort all the points by the angle value in it's polar representation ( that is going , by visiting them clockwise due to the center of the polygon ) 
+ * 3. Now we have two paths from which we can walk from top to down vertices : call them left and right . 
+ * 4. Between each following pair of vertices we can establish a >> slope << , which is just the the "a" in the eq. of linear form y = ax + b 
+ * 5. Now start drawing our polygon Row by Row From top to bottom . Each Row has given the most left and rightmost tile due to use of both paths prepared before -- Left path for tracing the most Leftmost Tile , Right path teh most Rightmost Tile in each  
+*/
+
+
+
+
 #ifndef SLOPEWALK_H_
 #define SLOPEWALK_H_
 
