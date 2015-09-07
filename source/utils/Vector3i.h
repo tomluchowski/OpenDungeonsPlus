@@ -35,7 +35,7 @@ public:
         z(0)
     {}
 
-    Vector3i(double nx, double ny , double nz):
+    Vector3i(int64_t nx, int64_t ny , int64_t nz):
         x(nx * Unit),
         y(ny * Unit),
         z(nz * Unit)

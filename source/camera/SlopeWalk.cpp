@@ -30,7 +30,7 @@ using std::cout;
 void SlopeWalk::buildSlopes(){
     int ii;
     myArray.sort();
-    myArray.zoom(1.5);
+    myArray.zoom(1.6);
     rightSlopes.clear();
     leftSlopes.clear();
     rightVertices.clear();
@@ -182,7 +182,7 @@ void SlopeWalk::findMinMaxLeft(std::array<Vector3i,4> &aa)
     for(auto ii = aa.begin(); ii !=aa.end(); ii++ ){
 	if(ii->y <= min->y)
 	    min = ii;
-	if(ii->y >= max->y)
+	if(ii->y > max->y)
 	    max = ii;
 
     }
@@ -199,7 +199,7 @@ void SlopeWalk::findMinMaxRight(std::array<Vector3i,4> &aa)
     for(auto ii = aa.begin(); ii !=aa.end(); ii++ ){
 	if(ii->y < min->y)
 	    min = ii;
-	if(ii->y > max->y)
+	if(ii->y >= max->y)
 	    max = ii;
 
     }
