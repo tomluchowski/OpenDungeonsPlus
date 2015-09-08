@@ -180,9 +180,9 @@ void SlopeWalk::findMinMaxLeft(std::array<Vector3i,4> &aa)
     auto min = aa.begin();
     auto max = aa.begin();
     for(auto ii = aa.begin(); ii !=aa.end(); ii++ ){
-	if(ii->y <= min->y)
+	if(ii->y < min->y)
 	    min = ii;
-	if(ii->y > max->y)
+	if(ii->y >= max->y)
 	    max = ii;
 
     }
@@ -197,9 +197,9 @@ void SlopeWalk::findMinMaxRight(std::array<Vector3i,4> &aa)
     auto min = aa.begin();
     auto max = aa.begin();
     for(auto ii = aa.begin(); ii !=aa.end(); ii++ ){
-	if(ii->y < min->y)
+	if(ii->y <= min->y)
 	    min = ii;
-	if(ii->y >= max->y)
+	if(ii->y > max->y)
 	    max = ii;
 
     }
