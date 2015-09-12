@@ -295,6 +295,8 @@ void ODFrameListener::refreshChat()
         chatSS << "\ntriangleCount: " << mWindow->getStatistics().triangleCount;
         chatSS << "\nBatches: " << mWindow->getStatistics().batchCount;
         chatSS << "\nTurn number:  " <<  static_cast<int32_t>(mGameMap->getTurnNumber());
+        chatSS << "\nSelectorPositon " << RenderManager::getSingleton().getSceneManager()->getSceneNode("SquareSelectorNode")->getPosition().x << " " << RenderManager::getSingleton().getSceneManager()->getSceneNode("SquareSelectorNode")->getPosition().y ;
+
         if(ODClient::getSingleton().isConnected())
         {
             int32_t gameTime = ODClient::getSingleton().getGameTimeMillis() / 1000;

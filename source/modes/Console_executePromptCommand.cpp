@@ -131,7 +131,12 @@ bool Console::executePromptCommand(const std::string& command, std::string argum
                     += "ERROR:  Cannot load a level if you are a client, only the sever can load new levels.";
         }
     }
+    else if (command.compare("cullingdebug") == 0)
+    {
+        frameListener->getCameraManager()->mCullingManager->mDebug = true;
 
+
+    }
     // Set the ambient light color
     else if (command.compare("ambientlight") == 0)
     {

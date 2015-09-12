@@ -19,18 +19,31 @@
 
 #include <algorithm>
 #include <iostream>
+#include <sstream>
 
 extern const int mPrecisionDigits = 20;
 extern const int Unit = (1 << mPrecisionDigits);
 using std::cerr;
 using std::endl;
 using std::cout;
+using std::stringstream;
+
+
+
+SlopeWalk::SlopeWalk():
+    rightVertexPassed(false),
+    leftVertexPassed(false)
+{
+    
+
+
+}
 
 
 void SlopeWalk::buildSlopes(){
     int ii;
     myArray.sort();
-    myArray.zoom(1.6);
+    myArray.zoom(1.2785);
     rightSlopes.clear();
     leftSlopes.clear();
     rightVertices.clear();
@@ -112,37 +125,69 @@ bool SlopeWalk::passRightVertex(){
 bool SlopeWalk::notifyOnMoveDown(long long newy_index){
 
     bool bb = true;
-    if(leftVerticesIndex != leftVertices.end() && newy_index < getCurrentLeftVertex().y)
-	bb = bb && passLeftVertex();
-    if(rightVerticesIndex != rightVertices.end() && newy_index < getCurrentRightVertex().y)
-	bb=  bb && passRightVertex();
-    return bb ;
+    while(leftVerticesIndex != leftVertices.end() && newy_index < getCurrentLeftVertex().y)
+    {
+        leftVertexPassed = true;
+        bb = passLeftVertex();
+    }
+    bool kk = true;
+    while(rightVerticesIndex != rightVertices.end() && newy_index < getCurrentRightVertex().y)
+    {
+        kk=  passRightVertex();
+        rightVertexPassed = true;
+    }
+    return bb || kk ;
 }
 
 // Get vertex pointed currently  by index on the Left  path
 Vector3i SlopeWalk::getCurrentLeftVertex(){
     int ii = *leftVerticesIndex;
     return myArray[ii];
-
-
 }
 
 // Get vertex pointed currently  by index on the Right path
 Vector3i SlopeWalk::getCurrentRightVertex(){
     int ii = *rightVerticesIndex;
     return myArray[ii];
-
 }
+
+// Get vertex pointed previously  by index on the Left  path
+Vector3i SlopeWalk::getPreviousLeftVertex(){
+    int ii = *(leftVerticesIndex - 1);
+    return myArray[ii];
+}
+
+// Get vertex pointed previously  by index on the Right path
+Vector3i SlopeWalk::getPreviousRightVertex(){
+    int ii = *(rightVerticesIndex -1);
+    return myArray[ii];
+}
+
 
 // get the value of slope currently pointed by index on the left path
-long long SlopeWalk::getCurrentDxLeft(){
-    return *leftSlopeIndex;
+long long SlopeWalk::getCurrentDxLeft(int64_t yy){
+    if(leftVertexPassed && leftSlopeIndex != leftSlopes.begin())
+    {
+        leftVertexPassed = false;
+        int64_t pivot = (double)(getPreviousLeftVertex().y - yy)/Unit;
+        return *leftSlopeIndex * (pivot) +
+            *(leftSlopeIndex-1)*(1-pivot);
+    }
+    else
+        return *leftSlopeIndex;
 
 }
-
 // get the value of slope currently pointed by index on the right path
-long long SlopeWalk::getCurrentDxRight(){
-    return *rightSlopeIndex;
+long long SlopeWalk::getCurrentDxRight(int64_t yy){
+    if(rightVertexPassed && rightSlopeIndex != rightSlopes.begin())
+    {
+        rightVertexPassed = false;
+        double pivot = (double)(getPreviousRightVertex().y - yy)/Unit;
+        return *rightSlopeIndex * (pivot) +
+            *(rightSlopeIndex-1)*(1-pivot);
+    }
+    else
+        return *rightSlopeIndex;
 
 }
 
@@ -206,4 +251,38 @@ void SlopeWalk::findMinMaxRight(std::array<Vector3i,4> &aa)
     top_right_index = max - aa.begin();
     down_right_index = min - aa.begin();
 
+}
+
+
+string SlopeWalk::debug(){
+
+    stringstream ss;
+    ss << "top_left_index " << top_left_index << " top_right_index " << top_right_index << " down_left_index " << down_left_index << " down_right_index" << down_right_index << endl;
+    
+    for (int ii = 0 ; ii < 4 ; ii++ ){
+        Vector3i foobar = myArray[ii];
+        ss<< ii << " " <<double(foobar.x)/Unit << " " << double(foobar.y)/Unit <<  endl;
+    }
+ 
+    ss << "leftVertices" << endl;
+
+    for(auto ii : leftVertices)
+        ss << ii << " " ;
+    ss << endl ;
+    ss << "rightVertices" << endl;
+
+    for(auto ii : rightVertices)
+        ss << ii << " " ;    
+    ss << endl ; 
+
+    ss<< "rightSlopes " << endl;
+    for(auto ii : rightSlopes)
+        ss << double(ii)/Unit << endl;
+    ss << endl; 
+
+    ss<< "leftSlopes " << endl;    
+    for(auto ii : leftSlopes)
+        ss << double(ii)/Unit << endl;
+
+    return ss.str();
 }

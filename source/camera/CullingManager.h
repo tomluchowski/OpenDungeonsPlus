@@ -62,7 +62,8 @@ public:
 
     void sort(Vector3i& p1, Vector3i& p2, bool sortByX);
 
-
+    //! \brief Activate/deactivate debug output.
+    bool mDebug;
 
 private:
     std::set<Creature*>*  mCurrentVisibleCreatures;
@@ -86,8 +87,7 @@ private:
     bool mCullCreaturesFlag;
     bool mCullTilesFlag;
 
-    //! \brief Activate/deactivate debug output.
-    bool mDebug;
+
 };
 
 #endif // CULLINGMANAGER_H_

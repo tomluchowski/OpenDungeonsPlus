@@ -8,6 +8,7 @@ catmullspline
 chat
 chathelp
 circlearound
+cullingdebug
 connect
 disconnect
 echo

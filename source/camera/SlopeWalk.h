@@ -36,10 +36,11 @@
 
 #include <deque>
 #include <array>
-
+#include <string>
 
 using std::deque;
 using std::array;
+using std::string;
 
 class SlopeWalk
 {
@@ -65,28 +66,32 @@ private:
     int top_right_index;
     int down_left_index;
     int top_left_index;
-
+    bool leftVertexPassed;
+    bool rightVertexPassed;
 
 
 public:
+    SlopeWalk();
     void printState();
     // A place for raw points
     DummyArrayClass myArray;
     bool notifyOnMoveDown(long long);
     void prepareWalk();
 
-    long long getCurrentDxLeft();
-    long long getCurrentDxRight();
+    long long getCurrentDxLeft(int64_t yy);
+    long long getCurrentDxRight(int64_t yy);
 
     Vector3i getCurrentLeftVertex();
     Vector3i getCurrentRightVertex();
+    Vector3i getPreviousLeftVertex();
+    Vector3i getPreviousRightVertex();
     Vector3i& getTopLeftVertex();
     Vector3i& getBottomLeftVertex();
     Vector3i& getTopRightVertex();
     Vector3i& getBottomRightVertex();
     void findMinMaxLeft(std::array<Vector3i,4>& );
     void findMinMaxRight(std::array<Vector3i,4>& );
-
+    string debug();
     void buildSlopes();
 
 };

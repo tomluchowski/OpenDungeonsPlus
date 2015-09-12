@@ -89,14 +89,23 @@ void CullingManager::cullTiles()
     mWalk.myArray[2] =  Vector3i(mOgreVectorsArray[2]);
     mWalk.myArray[3] =  Vector3i(mOgreVectorsArray[3]);
 
+    
     // create a slope -- a set of left and rigth path
     mWalk.buildSlopes();
+
+    if(mDebug)
+    {
+        LogManager::getSingleton().logMessage(oldWalk.debug());
+        LogManager::getSingleton().logMessage(mWalk.debug());
+        
+    }
 
     // reset index pointers to the begging of collections
     oldWalk.prepareWalk();
     mWalk.prepareWalk();
 
     newBashAndSplashTiles(SHOW | HIDE);
+    mDebug = false;
 }
 
 void CullingManager::startCreatureCulling()
@@ -249,34 +258,43 @@ void CullingManager::newBashAndSplashTiles(int64_t mode){
     int64_t xxRightOld= oldWalk.getTopRightVertex().x;
     int64_t xxLeft = mWalk.getTopLeftVertex().x;
     int64_t xxRight= mWalk.getTopRightVertex().x;
+    int64_t DxRight, DxLeft;
+    std::stringstream ss;
+    int64_t bb = (( std::min(mWalk.getBottomLeftVertex().y , oldWalk.getBottomRightVertex().y) >> mPrecisionDigits) - 2) << mPrecisionDigits;
 
-    if(mDebug)
+    for (int64_t yy = ((std::max(mWalk.getTopLeftVertex().y , oldWalk.getTopRightVertex().y  ) >> mPrecisionDigits) + 2) << mPrecisionDigits;  yy >= bb; yy -= Unit)
     {
-        mWalk.printState();
-        mDebug = false;
-    }
-    int64_t bb = (( std::min(mWalk.getBottomLeftVertex().y , oldWalk.getBottomLeftVertex().y) >> mPrecisionDigits) - 2) << mPrecisionDigits;
-
-    for (int64_t yy = ((std::max(mWalk.getTopLeftVertex().y , oldWalk.getTopLeftVertex().y  ) >> mPrecisionDigits) + 2) << mPrecisionDigits;  yy >= bb; yy -= Unit)
-    {
-	mWalk.notifyOnMoveDown(yy);
 	oldWalk.notifyOnMoveDown(yy);
-	xxLeft -= mWalk.getCurrentDxLeft();
-	xxLeftOld -= oldWalk.getCurrentDxLeft();
-	xxRight -= mWalk.getCurrentDxRight();
-	xxRightOld -= oldWalk.getCurrentDxRight();
+	mWalk.notifyOnMoveDown(yy);
+	DxLeft = mWalk.getCurrentDxLeft(yy);
+	xxLeft -= DxLeft;
+    xxLeftOld -= oldWalk.getCurrentDxLeft(yy);
+	DxRight = mWalk.getCurrentDxRight(yy);
+    xxRight -= DxRight;
+	xxRightOld -= oldWalk.getCurrentDxRight(yy);
+    
 
-	// cerr << (xxLeft  >> mPrecisionDigits )<< " " << (xxLeftOld  >> mPrecisionDigits )<< " " << (xxRight  >> mPrecisionDigits )<< " " << (xxRightOld  >> mPrecisionDigits )<< " " <<endl ;
-	// cerr << "DxLeft, DxRight: " << mWalk.getCurrentDxLeft() << " " << mWalk.getCurrentDxRight() << " " << endl;
+    if(mDebug){
 
+        ss << endl;
+        ss << "DxLeft, DxRight: " << double(DxLeft)/Unit << " " << double(DxRight)/Unit << " " ;
+        LogManager::getSingleton().logMessage( ss.str());
+        ss.str("");
+        ss << "xxLeft " << (xxLeft  >> mPrecisionDigits) << "xxRight " << (xxRight  >> mPrecisionDigits );
+        LogManager::getSingleton().logMessage( ss.str());
+        ss.str("");
+    }
+    
 	int64_t mm = ((std::min(xxLeft, xxLeftOld) >> mPrecisionDigits) << mPrecisionDigits) ;
 	if(std::min(xxLeft, xxLeftOld) < max(xxRight,xxRightOld) )
         for (int64_t xx = mm ; xx <= max(xxRight,xxRightOld) ; xx+= Unit){
             bool bash = (xx >= xxLeftOld && xx <= xxRightOld && (yy >= oldWalk.getBottomLeftVertex().y) && yy <= oldWalk.getTopLeftVertex().y);
             bool splash = (xx >= xxLeft && xx <= xxRight && (yy >= mWalk.getBottomLeftVertex().y) && yy <= mWalk.getTopLeftVertex().y);
 
-
-	    // cerr<<"CullingManager "   << " x" <<  (xx >> mPrecisionDigits )<< " y" << (yy >> mPrecisionDigits ) << " " << (splash && (mode & SHOW)) << (bash && (mode & HIDE)) << endl;
+            if (mDebug){
+                ss<< " x " <<  (xx >> mPrecisionDigits )<< " y " << (yy >> mPrecisionDigits ) << " " << (splash && (mode & SHOW)) << (bash && (mode & HIDE)) << endl;
+            
+            }
             GameMap* gm = mCm->mGameMap;
             if(bash && splash && (mode & HIDE) && (mode & SHOW))
             {
@@ -286,7 +304,7 @@ void CullingManager::newBashAndSplashTiles(int64_t mode){
                 gm->getTile(xx >> mPrecisionDigits, yy >> mPrecisionDigits)->hide();
             else if (gm && splash && (mode & SHOW) && xx>=0 && yy>= 0 && xx<mCm->mGameMap->getMapSizeX()*Unit && yy < mCm->mGameMap->getMapSizeY()*Unit )
                 gm->getTile(xx >> mPrecisionDigits, yy >> mPrecisionDigits)->show();
-	}
+        }
 
     }
 }
