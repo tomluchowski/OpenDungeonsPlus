@@ -78,8 +78,8 @@ public:
     bool notifyOnMoveDown(long long);
     void prepareWalk();
 
-    long long getCurrentDxLeft(int64_t yy);
-    long long getCurrentDxRight(int64_t yy);
+    long long getCurrentXLeft(int64_t yy);
+    long long getCurrentXRight(int64_t yy);
 
     Vector3i getCurrentLeftVertex();
     Vector3i getCurrentRightVertex();

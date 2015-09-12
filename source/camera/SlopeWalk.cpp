@@ -165,29 +165,23 @@ Vector3i SlopeWalk::getPreviousRightVertex(){
 
 
 // get the value of slope currently pointed by index on the left path
-long long SlopeWalk::getCurrentDxLeft(int64_t yy){
-    if(leftVertexPassed && leftSlopeIndex != leftSlopes.begin())
+long long SlopeWalk::getCurrentXLeft(int64_t yy){
+    if(leftSlopeIndex != leftSlopes.begin())
     {
-        leftVertexPassed = false;
-        int64_t pivot = (double)(getPreviousLeftVertex().y - yy)/Unit;
-        return *leftSlopeIndex * (pivot) +
-            *(leftSlopeIndex-1)*(1-pivot);
+        return getPreviousLeftVertex().x + ((*leftSlopeIndex) * (yy - getPreviousLeftVertex().y))/Unit ;
     }
     else
-        return *leftSlopeIndex;
+        return getCurrentLeftVertex().x;
 
 }
 // get the value of slope currently pointed by index on the right path
-long long SlopeWalk::getCurrentDxRight(int64_t yy){
-    if(rightVertexPassed && rightSlopeIndex != rightSlopes.begin())
+long long SlopeWalk::getCurrentXRight(int64_t yy){
+    if(rightSlopeIndex != rightSlopes.begin())
     {
-        rightVertexPassed = false;
-        double pivot = (double)(getPreviousRightVertex().y - yy)/Unit;
-        return *rightSlopeIndex * (pivot) +
-            *(rightSlopeIndex-1)*(1-pivot);
+        return getPreviousRightVertex().x + ((*rightSlopeIndex) * (yy - getPreviousRightVertex().y))/Unit ;
     }
     else
-        return *rightSlopeIndex;
+        return getCurrentRightVertex().x;
 
 }
 

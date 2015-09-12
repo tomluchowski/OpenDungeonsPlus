@@ -266,12 +266,12 @@ void CullingManager::newBashAndSplashTiles(int64_t mode){
     {
 	oldWalk.notifyOnMoveDown(yy);
 	mWalk.notifyOnMoveDown(yy);
-	DxLeft = mWalk.getCurrentDxLeft(yy);
-	xxLeft -= DxLeft;
-    xxLeftOld -= oldWalk.getCurrentDxLeft(yy);
-	DxRight = mWalk.getCurrentDxRight(yy);
-    xxRight -= DxRight;
-	xxRightOld -= oldWalk.getCurrentDxRight(yy);
+	DxLeft = mWalk.getCurrentXLeft(yy);
+	xxLeft = DxLeft;
+    xxLeftOld = oldWalk.getCurrentXLeft(yy);
+	DxRight = mWalk.getCurrentXRight(yy);
+    xxRight = DxRight;
+	xxRightOld = oldWalk.getCurrentXRight(yy);
     
 
     if(mDebug){
