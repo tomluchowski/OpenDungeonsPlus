@@ -92,7 +92,6 @@ class ODPacket
         ODPacket& operator >>(wchar_t*      data);
         ODPacket& operator >>(std::wstring& data);
         ODPacket& operator >>(Ogre::Vector3& data);
-
         /*! \brief Import data operators
          * The behaviour is the same as standard C++ streams
          */
@@ -112,7 +111,6 @@ class ODPacket
         ODPacket& operator <<(const wchar_t*        data);
         ODPacket& operator <<(const std::wstring&   data);
         ODPacket& operator <<(const Ogre::Vector3&   data);
-
         /*! \brief Return true if there were no error exporting data (operator >>).
          * This behaviour is the same as standard C++ streams :
          * If we try to export data while the packet is empty or from incompatible types,

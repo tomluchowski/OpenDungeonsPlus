@@ -2350,6 +2350,40 @@ bool Creature::setDestination(Tile* tile)
     return true;
 }
 
+bool Creature::parkToWallTile(Tile* wallTile, Tile* nTile)
+{
+    if(nTile == nullptr || wallTile == nullptr)
+        return false;
+
+    Tile *posTile = getPositionTile();
+    if(posTile == nullptr)
+        return false;
+
+    Ogre::Vector3 parkingPoint;
+    parkingPoint = (wallTile->getPosition() - nTile->getPosition())*0.4 + nTile->getPosition() ;
+    std::stringstream ss;
+    ss << "parking point: " << parkingPoint;
+    ss << "wallTile->getPosition(): " << wallTile->getPosition();
+    ss << "nTile->getPosition(): " << nTile->getPosition();
+    
+    std::list<Tile*> result = getGameMap()->path(this, nTile);
+
+    std::vector<Ogre::Vector3> path;
+    tileToVector3(result, path, true, 0.0);
+
+
+
+    
+    OD_LOG_ERR(ss.str());
+    path.pop_back();
+    path.push_back(parkingPoint);
+    
+    setWalkPath(EntityAnimation::walk_anim, EntityAnimation::idle_anim, true, true, path);
+    pushAction(Utils::make_unique<CreatureActionWalkToTile>(*this));
+    return true;
+}
+
+
 bool Creature::wanderRandomly(const std::string& animationState)
 {
     // We pick randomly a visible tile far away (at the end of visible tiles)

@@ -129,6 +129,8 @@ ODPacket& ODPacket::operator >>(Ogre::Vector3& data)
     mPacket >> data.x >> data.y >> data.z;
     return *this;
 }
+
+
 ODPacket& ODPacket::operator <<(bool data)
 {
     mPacket<<data;

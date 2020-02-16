@@ -277,8 +277,8 @@ void MovableGameEntity::setPosition(const Ogre::Vector3& v)
         OD_ASSERT_TRUE_MSG(oldTile != nullptr, "entityName=" + getName() + ", oldPos=" + Helper::toString(getPosition()));
     }
 
-    int newX = Helper::round(v.x);
-    int newY = Helper::round(v.y);
+    // int newX = Helper::round(v.x);
+    // int newY = Helper::round(v.y);
     Tile* newTile = getGameMap()->getTile(newX, newY);
     if(newTile == nullptr)
     {

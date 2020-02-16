@@ -203,6 +203,8 @@ public:
     virtual void update(Ogre::Real timeSinceLastFrame) override;
 
     bool setDestination(Tile* tile);
+    
+    bool parkToWallTile(Tile* wallTile, Tile* nTile);
 
     //! \brief Picks a destination far away in the visible tiles and goes there
     //! Returns true if a valid Tile was found. The creature will go there

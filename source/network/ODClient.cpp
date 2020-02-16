@@ -495,7 +495,7 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
                 --nbDest;
                 Ogre::Vector3 dest;
                 OD_ASSERT_TRUE(packetReceived >> dest);
-                tempAnimatedObject->correctEntityMovePosition(dest);
+                //tempAnimatedObject->correctEntityMovePosition(dest);
                 path.push_back(dest);
             }
             tempAnimatedObject->setWalkPath(walkAnim, endAnim, loopEndAnim, playIdleWhenAnimationEnds, path);
