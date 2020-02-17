@@ -128,6 +128,8 @@ CreatureParticleEffect::~CreatureParticleEffect()
 
 Creature::Creature(GameMap* gameMap, const CreatureDefinition* definition, Seat* seat, Ogre::Vector3 position) :
     MovableGameEntity        (gameMap),
+    parkingBit               (false),
+    parkedBit                (false),
     mPhysicalDefense         (3.0),
     mMagicalDefense          (1.5),
     mElementDefense          (0.0),
@@ -172,7 +174,6 @@ Creature::Creature(GameMap* gameMap, const CreatureDefinition* definition, Seat*
     mNbTurnsTorture          (0),
     mNbTurnsPrison           (0),
     mActiveSlapsCount        (0)
-
 {
     //TODO: This should be set in initialiser list in parent classes
     setSeat(seat);
@@ -2352,13 +2353,14 @@ bool Creature::setDestination(Tile* tile)
 
 bool Creature::parkToWallTile(Tile* wallTile, Tile* nTile)
 {
-    if(nTile == nullptr || wallTile == nullptr)
+    if(nTile == nullptr || wallTile == nullptr || nTile->getPosition()==Ogre::Vector3::ZERO || wallTile->getPosition()==Ogre::Vector3::ZERO)
         return false;
 
     Tile *posTile = getPositionTile();
     if(posTile == nullptr)
         return false;
 
+    parkingBit = true;
     Ogre::Vector3 parkingPoint;
     parkingPoint = (wallTile->getPosition() - nTile->getPosition())*0.4 + nTile->getPosition() ;
     std::stringstream ss;
@@ -2369,13 +2371,12 @@ bool Creature::parkToWallTile(Tile* wallTile, Tile* nTile)
     std::list<Tile*> result = getGameMap()->path(this, nTile);
 
     std::vector<Ogre::Vector3> path;
-    tileToVector3(result, path, true, 0.0);
+    tileToVector3(result, path, false, 0.0);
 
 
 
     
     OD_LOG_ERR(ss.str());
-    path.pop_back();
     path.push_back(parkingPoint);
     
     setWalkPath(EntityAnimation::walk_anim, EntityAnimation::idle_anim, true, true, path);
@@ -3270,3 +3271,19 @@ void Creature::changeSeat(Seat* newSeat)
         home->releaseTileForSleeping(getHomeTile(), this);
     }
 }
+
+void Creature::stopWalking()
+{
+    parkedBit = true;
+    MovableGameEntity::stopWalking();
+}
+
+
+
+
+
+
+
+
+
+

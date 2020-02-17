@@ -42,6 +42,8 @@ CreatureActionDigTile::CreatureActionDigTile(Creature& creature, Tile& tileDig, 
 
 CreatureActionDigTile::~CreatureActionDigTile()
 {
+    mCreature.parkingBit = false;
+    mCreature.parkedBit = false;
     mTileDig.removeWorkerDigging(mCreature, mTilePos);
 }
 
@@ -68,17 +70,20 @@ bool CreatureActionDigTile::handleDigTile(Creature& creature, Tile& tileDig, Til
         creature.popAction();
         return true;
     }
-
+   
     // We go to the tile we locked
-    if(&tilePos != myTile)
+    if(!creature.parkingBit)
     {
         if(!creature.parkToWallTile(&tileDig, &tilePos))
         {
             OD_LOG_ERR("creature=" + creature.getName() + ", myTile=" + Tile::displayAsString(myTile) + ", tileDig=" + Tile::displayAsString(&tileDig) + ", tilePos=" + Tile::displayAsString(&tilePos));
             creature.popAction();
         }
-        return true;
     }
+
+    if(!creature.parkedBit )
+        return true;
+
 
     // Dig out the tile by decreasing the tile's fullness.
     const Ogre::Vector3& pos = creature.getPosition();

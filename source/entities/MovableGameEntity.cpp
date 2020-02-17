@@ -234,6 +234,10 @@ void MovableGameEntity::update(Ogre::Real timeSinceLastFrame)
                       * timeSinceLastFrame;
     Ogre::Vector3 newPosition = getPosition();
     Ogre::Vector3 nextDest = mWalkQueue.front();
+    std::stringstream ss;
+    ss << " Ogre::Vector3 nextDest = mWalkQueue.front(); ";
+    ss << nextDest << std::endl;
+    OD_LOG_INF(ss.str());
     Ogre::Vector3 walkDirection = nextDest - newPosition;
     walkDirection.normalise();
 
@@ -259,6 +263,11 @@ void MovableGameEntity::update(Ogre::Real timeSinceLastFrame)
             }
 
             nextDest = mWalkQueue.front();
+            std::stringstream rr;
+            rr << " nextDest = mWalkQueue.front(); ";
+            rr << nextDest << std::endl;
+            OD_LOG_INF(rr.str());
+            
             walkDirection = nextDest - newPosition;
             walkDirection.normalise();
         }
@@ -277,8 +286,8 @@ void MovableGameEntity::setPosition(const Ogre::Vector3& v)
         OD_ASSERT_TRUE_MSG(oldTile != nullptr, "entityName=" + getName() + ", oldPos=" + Helper::toString(getPosition()));
     }
 
-    // int newX = Helper::round(v.x);
-    // int newY = Helper::round(v.y);
+    int newX = Helper::round(v.x);
+    int newY = Helper::round(v.y);
     Tile* newTile = getGameMap()->getTile(newX, newY);
     if(newTile == nullptr)
     {
