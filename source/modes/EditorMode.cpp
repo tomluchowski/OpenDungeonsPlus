@@ -52,6 +52,8 @@
 
 #include <CEGUI/widgets/FrameWindow.h>
 #include <CEGUI/widgets/PushButton.h>
+#include <CEGUI/Window.h>
+#include <CEGUI/WindowManager.h>
 
 #include <algorithm>
 #include <vector>
@@ -106,7 +108,23 @@ EditorMode::EditorMode(ModeManager* modeManager):
             CEGUI::Window::EventMouseClick,
             CEGUI::Event::Subscriber(&EditorMode::onClickYesQuitMenu, this)
     ));
-
+    addEventConnection(
+        mRootWindow->getChild("Menubar")->getChild("File")->getChild("PopupMenu1")->getChild("Quit")->subscribeEvent(
+            CEGUI::Window::EventMouseClick,
+            CEGUI::Event::Subscriber(&EditorMode::onClickYesQuitMenu, this)
+    ));
+    for(uint ii = 0 ;  ii < mGameMap->numClassDescriptions()   ; ii++ ){
+        mGameMap->getClassDescription(ii);
+        CEGUI::Window* ww = CEGUI::WindowManager::getSingletonPtr()->createWindow("OD/MenuItem");
+        ww->setText(mGameMap->getClassDescription(ii)->getClassName());
+        ww->setName(mGameMap->getClassDescription(ii)->getClassName());
+        mRootWindow->getChild("Menubar")->getChild("Creatures")->getChild("PopupMenu2")->addChild(ww);
+        addEventConnection(
+        ww->subscribeEvent(
+            CEGUI::Window::EventMouseClick,
+            CEGUI::Event::Subscriber([&] (const CEGUI::EventArgs& ea) { this->selectCreature(ii,ea); })
+        ));
+    }
     // The options menu handlers
     addEventConnection(
         mRootWindow->getChild("OptionsButton")->subscribeEvent(
@@ -931,6 +949,12 @@ bool EditorMode::onClickYesQuitMenu(const CEGUI::EventArgs& /*arg*/)
 {
     mModeManager->requestMode(AbstractModeManager::MENU_MAIN);
     return true;
+}
+
+void EditorMode::selectCreature( unsigned ii, CEGUI::EventArgs args)
+{
+    mCurrentCreatureIndex = ii;
+    // updateCursorText();
 }
 
 void EditorMode::refreshGuiSkill()

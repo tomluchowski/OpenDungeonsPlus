@@ -65,6 +65,7 @@ public:
     //! \brief Quit menu functions
     bool showQuitMenu(const CEGUI::EventArgs& arg = {});
     bool hideQuitMenu(const CEGUI::EventArgs& arg = {});
+    void selectCreature(unsigned ii, CEGUI::EventArgs args /*arg*/);
     bool onClickYesQuitMenu(const CEGUI::EventArgs& arg = {});
     void setTileVisual(TileVisual tileVisual)
     { mCurrentTileVisual = tileVisual; }

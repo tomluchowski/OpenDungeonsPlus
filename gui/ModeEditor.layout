@@ -5,11 +5,12 @@
         <Property name="Area" value="{{0,-1},{0,-1},{1,-1},{1,-1}}" />
         <Property name="MaxSize" value="{{1,0},{1,0}}" />
         <Window  type="OD/Menubar" name="Menubar">
-            <Property name="Area" value="{{0,0},{0,400},{1,0},{0,410}}" />
+            <Property name="Area" value="{{0,0},{0,11},{1,0},{0,23}}" />
+
             <Window type="OD/MenuItem" name="File">
                 <Property name="Text" value="File"/>
                 <Property name="Area" value="{{0,0},{0,10},{0,0},{0,20}}" />
-                <Window type="OD/PopupMenu" name="PopupMenu">
+                <Window type="OD/PopupMenu" name="PopupMenu1">
                     <Window type="OD/MenuItem" name="New">
                         <Property name="Text" value="New"/>     
                     </Window>
@@ -19,43 +20,32 @@
                     <Window type="OD/MenuItem" name="Save">
                         <Property name="Text" value="Save"/>     
                     </Window>
+                    <Window type="OD/MenuItem" name="Quit">
+                        <Property name="Text" value="Quit"/>     
+                    </Window>
                 </Window>
             </Window>
             <Window type="OD/MenuItem" name="Creatures">
                 <Property name="Text" value="Creatures"/>
                 <Property name="Area" value="{{0,0},{0,10},{0,0},{0,20}}" />
-                <Window type="OD/PopupMenu" name="PopupMenu">
-                    <Window type="OD/MenuItem" name="Monster">
-                        <Property name="Text" value="Monster"/>
-                        <Window type="OD/PopupMenu">
-                            <Window type="OD/MenuItem" name="Dwarf">
-                                <Property name="Text" value="Dwarf"/>
-                            </Window>
-                            <Window type="OD/MenuItem" name="Kobol">
-                                <Property name="Text" value="Kobol"/>
-                            </Window>                            
-                        </Window>
-                    </Window>
-                    <Window type="OD/MenuItem" name="Load">
-                        <Property name="Text" value="Load"/>     
-                    </Window>
-                    <Window type="OD/MenuItem" name="Save">
-                        <Property name="Text" value="Save"/>     
-                    </Window>
+                <Window type="OD/PopupMenu" name="PopupMenu2">
                 </Window>
             </Window>
+            <Window type="OD/MenuItem" name="Seat">
+                <Property name="Text" value="Seat"/>
+                <Property name="Area" value="{{0,0},{0,10},{0,0},{0,20}}" />
+                <Window type="OD/PopupMenu" name="PopupMenu3">
+                </Window>
+            </Window>
+
+
+            
             <Window type="OD/MenuItem" name="Help">
                 <Property name="Text" value="Help"/>
                 <Property name="Area" value="{{0,0},{0,10},{0,0},{0,20}}" />
                 <Window type="OD/PopupMenu" name="PopupMenu">
                     <Window type="OD/MenuItem" name="About">
                         <Property name="Text" value="About"/>     
-                    </Window>
-                    <Window type="OD/MenuItem" name="Load">
-                        <Property name="Text" value="Load"/>     
-                    </Window>
-                    <Window type="OD/MenuItem" name="Save">
-                        <Property name="Text" value="Save"/>     
                     </Window>
                 </Window>
             </Window>
@@ -65,7 +55,7 @@
             
         </Window>
         <Window type="OD/StaticImage" name="HorizontalPipe" >
-            <Property name="Area" value="{{0,0},{0,11},{1,0},{0,23}}" />
+            <Property name="Area" value="{{0,0},{0,200},{1,0},{0,210}}" />
             <Property name="Image" value="OpenDungeonsSkin/HorizontalPipe" />
             <Property name="MaxSize" value="{{1,0},{1,0}}" />
             <Property name="FrameEnabled" value="False" />
