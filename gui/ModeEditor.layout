@@ -31,8 +31,8 @@
                 <Window type="OD/PopupMenu" name="PopupMenu2">
                 </Window>
             </Window>
-            <Window type="OD/MenuItem" name="Seat">
-                <Property name="Text" value="Seat"/>
+            <Window type="OD/MenuItem" name="Seats">
+                <Property name="Text" value="Seats"/>
                 <Property name="Area" value="{{0,0},{0,10},{0,0},{0,20}}" />
                 <Window type="OD/PopupMenu" name="PopupMenu3">
                 </Window>

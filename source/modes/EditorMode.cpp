@@ -122,7 +122,23 @@ EditorMode::EditorMode(ModeManager* modeManager):
         addEventConnection(
         ww->subscribeEvent(
             CEGUI::Window::EventMouseClick,
-            CEGUI::Event::Subscriber([&] (const CEGUI::EventArgs& ea) { this->selectCreature(ii,ea); })
+            CEGUI::Event::Subscriber([&, ii ] (const CEGUI::EventArgs& ea) { this->selectCreature(ii,ea); })
+        ));
+    }
+    for(Seat* seat : mGameMap->getSeats()){
+        CEGUI::Window* ww = CEGUI::WindowManager::getSingletonPtr()->createWindow("OD/MenuItem");
+        std::stringstream ss;
+        ss <<  "[colour='" ;
+        ss <<  std::hex << seat->getColorValue().getAsARGB();
+        ss << "']" ;
+        ss << " a kuku ! " ;
+        ww->setText(ss.str());
+        ww->setName(ss.str());
+        mRootWindow->getChild("Menubar")->getChild("Seats")->getChild("PopupMenu3")->addChild(ww);
+        addEventConnection(
+        ww->subscribeEvent(
+            CEGUI::Window::EventMouseClick,
+            CEGUI::Event::Subscriber([&] (const CEGUI::EventArgs& ea) { ; })
         ));
     }
     // The options menu handlers
@@ -954,7 +970,7 @@ bool EditorMode::onClickYesQuitMenu(const CEGUI::EventArgs& /*arg*/)
 void EditorMode::selectCreature( unsigned ii, CEGUI::EventArgs args)
 {
     mCurrentCreatureIndex = ii;
-    // updateCursorText();
+    updateCursorText();
 }
 
 void EditorMode::refreshGuiSkill()
