@@ -131,14 +131,18 @@ EditorMode::EditorMode(ModeManager* modeManager):
         ss <<  "[colour='" ;
         ss <<  std::hex << seat->getColorValue().getAsARGB();
         ss << "']" ;
-        ss << " a kuku ! " ;
+        ss << "Seat" ;
+        ss << seat->getId();
         ww->setText(ss.str());
         ww->setName(ss.str());
         mRootWindow->getChild("Menubar")->getChild("Seats")->getChild("PopupMenu3")->addChild(ww);
         addEventConnection(
         ww->subscribeEvent(
             CEGUI::Window::EventMouseClick,
-            CEGUI::Event::Subscriber([&] (const CEGUI::EventArgs& ea) { ; })
+            CEGUI::Event::Subscriber([&, seat] (const CEGUI::EventArgs& ea) {
+                getModeManager().getInputManager().mSeatIdSelected = seat->getId();
+                updateCursorText();
+                updateFlagColor(); })
         ));
     }
     // The options menu handlers
