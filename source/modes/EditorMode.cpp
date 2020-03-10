@@ -113,6 +113,13 @@ EditorMode::EditorMode(ModeManager* modeManager):
             CEGUI::Window::EventMouseClick,
             CEGUI::Event::Subscriber(&EditorMode::onClickYesQuitMenu, this)
     ));
+    addEventConnection(
+        mRootWindow->getChild("Menubar")->getChild("File")->getChild("PopupMenu1")->getChild("Load")->subscribeEvent(
+            CEGUI::Window::EventMouseClick,
+            CEGUI::Event::Subscriber([&](const CEGUI::EventArgs& ea){
+                    mModeManager->requestMode(AbstractModeManager::MENU_EDITOR_LOAD);
+                })
+    ));
     for(uint ii = 0 ;  ii < mGameMap->numClassDescriptions()   ; ii++ ){
         mGameMap->getClassDescription(ii);
         CEGUI::Window* ww = CEGUI::WindowManager::getSingletonPtr()->createWindow("OD/MenuItem");
@@ -122,7 +129,20 @@ EditorMode::EditorMode(ModeManager* modeManager):
         addEventConnection(
         ww->subscribeEvent(
             CEGUI::Window::EventMouseClick,
-            CEGUI::Event::Subscriber([&, ii ] (const CEGUI::EventArgs& ea) { this->selectCreature(ii,ea); })
+            CEGUI::Event::Subscriber([&, ii ] (const CEGUI::EventArgs& ea) {
+                    this->selectCreature(ii,ea);
+                    const CreatureDefinition* def = mGameMap->getClassDescription(mCurrentCreatureIndex);
+                    if(def == nullptr)
+                    {
+                        OD_LOG_ERR("unexpected null CreatureDefinition mCurrentCreatureIndex=" + Helper::toString(mCurrentCreatureIndex));
+                        return;
+                    }
+                    ClientNotification *clientNotification = new ClientNotification(
+                        ClientNotificationType::editorCreateFighter);
+                    clientNotification->mPacket << getModeManager().getInputManager().mSeatIdSelected;
+                    clientNotification->mPacket << def->getClassName();
+                    ODClient::getSingleton().queueClientNotification(clientNotification);
+                })
         ));
     }
     for(Seat* seat : mGameMap->getSeats()){
