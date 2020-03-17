@@ -65,8 +65,14 @@ public:
     //! \brief Quit menu functions
     bool showQuitMenu(const CEGUI::EventArgs& arg = {});
     bool hideQuitMenu(const CEGUI::EventArgs& arg = {});
+    bool showEditorLoadMenu(const CEGUI::EventArgs& arg = {});
+    bool hideEditorLoadMenu(const CEGUI::EventArgs& arg = {});
     void selectCreature(unsigned ii, CEGUI::EventArgs args /*arg*/);
+    bool editBoxTextChanged(const CEGUI::EventArgs& /*arg*/);
+    bool levelSelectSelected(const CEGUI::EventArgs& /*arg*/);
     bool onClickYesQuitMenu(const CEGUI::EventArgs& arg = {});
+    bool hideConfirmMenu(const CEGUI::EventArgs& /*arg*/);
+    bool onYesConfirmMenu(const CEGUI::EventArgs& /*arg*/);
     void setTileVisual(TileVisual tileVisual)
     { mCurrentTileVisual = tileVisual; }
 

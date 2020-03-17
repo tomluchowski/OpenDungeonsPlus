@@ -52,13 +52,22 @@
 
 #include <CEGUI/widgets/FrameWindow.h>
 #include <CEGUI/widgets/PushButton.h>
+#include <CEGUI/widgets/Editbox.h>
+#include <CEGUI/widgets/ListboxTextItem.h>
+#include <CEGUI/widgets/Listbox.h>
 #include <CEGUI/Window.h>
 #include <CEGUI/WindowManager.h>
 
+
+#include <iostream>
 #include <algorithm>
 #include <vector>
 #include <string>
 #include <cstdio>
+
+#include <boost/filesystem.hpp>
+
+using namespace boost::filesystem;
 
 namespace
 {
@@ -109,6 +118,19 @@ EditorMode::EditorMode(ModeManager* modeManager):
             CEGUI::Event::Subscriber(&EditorMode::onClickYesQuitMenu, this)
     ));
     addEventConnection(
+        mRootWindow->getChild("ConfirmLoad/NoOption")->subscribeEvent(
+            CEGUI::Window::EventMouseClick,
+            CEGUI::Event::Subscriber(&EditorMode::hideConfirmMenu, this)
+    ));
+    addEventConnection(
+        mRootWindow->getChild("ConfirmLoad/YesOption")->subscribeEvent(
+            CEGUI::Window::EventMouseClick,
+            CEGUI::Event::Subscriber(&EditorMode::onYesConfirmMenu, this)
+    ));
+
+
+    
+    addEventConnection(
         mRootWindow->getChild("Menubar")->getChild("File")->getChild("PopupMenu1")->getChild("Quit")->subscribeEvent(
             CEGUI::Window::EventMouseClick,
             CEGUI::Event::Subscriber(&EditorMode::onClickYesQuitMenu, this)
@@ -116,10 +138,29 @@ EditorMode::EditorMode(ModeManager* modeManager):
     addEventConnection(
         mRootWindow->getChild("Menubar")->getChild("File")->getChild("PopupMenu1")->getChild("Load")->subscribeEvent(
             CEGUI::Window::EventMouseClick,
-            CEGUI::Event::Subscriber([&](const CEGUI::EventArgs& ea){
-                    mModeManager->requestMode(AbstractModeManager::MENU_EDITOR_LOAD);
-                })
+            CEGUI::Event::Subscriber(&EditorMode::showEditorLoadMenu, this)
+    ));    
+    addEventConnection(
+        mRootWindow->getChild("MenuEditorLoad")->getChild("LevelWindowFrame")->getChild("BackButton")->subscribeEvent(
+            CEGUI::Window::EventMouseClick,
+            CEGUI::Event::Subscriber(&EditorMode::hideEditorLoadMenu, this)
     ));
+    addEventConnection(
+        mRootWindow->getChild("MenuEditorLoad")->getChild("LevelWindowFrame")->subscribeEvent(
+            CEGUI::FrameWindow::EventCloseClicked,
+            CEGUI::Event::Subscriber(&EditorMode::hideEditorLoadMenu, this)
+    ));
+    addEventConnection(
+        mRootWindow->getChild("MenuEditorLoad")->getChild("LevelWindowFrame")->getChild("FilePath")->subscribeEvent(
+            CEGUI::Editbox::EventTextAccepted,
+            CEGUI::Event::Subscriber(&EditorMode::editBoxTextChanged, this)
+    ));  
+    addEventConnection(
+        mRootWindow->getChild("MenuEditorLoad")->getChild("LevelWindowFrame")->getChild("LevelSelect")->subscribeEvent(
+            CEGUI::Editbox::EventMouseClick,
+            CEGUI::Event::Subscriber(&EditorMode::levelSelectSelected, this)
+    ));
+    
     for(uint ii = 0 ;  ii < mGameMap->numClassDescriptions()   ; ii++ ){
         mGameMap->getClassDescription(ii);
         CEGUI::Window* ww = CEGUI::WindowManager::getSingletonPtr()->createWindow("OD/MenuItem");
@@ -151,7 +192,7 @@ EditorMode::EditorMode(ModeManager* modeManager):
         ss <<  "[colour='" ;
         ss <<  std::hex << seat->getColorValue().getAsARGB();
         ss << "']" ;
-        ss << "Seat" ;
+        ss << "Seat";
         ss << seat->getId();
         ww->setText(ss.str());
         ww->setName(ss.str());
@@ -176,6 +217,11 @@ EditorMode::EditorMode(ModeManager* modeManager):
             CEGUI::FrameWindow::EventCloseClicked,
             CEGUI::Event::Subscriber(&EditorMode::toggleOptionsWindow, this)
     ));
+    addEventConnection(
+        mRootWindow->getChild("EditorOptionsWindow")->subscribeEvent(
+            CEGUI::FrameWindow::EventCloseClicked,
+            CEGUI::Event::Subscriber(&EditorMode::toggleOptionsWindow, this)
+    ));    
     addEventConnection(
         mRootWindow->getChild("EditorOptionsWindow/SaveLevelButton")->subscribeEvent(
             CEGUI::Window::EventMouseClick,
@@ -238,9 +284,11 @@ void EditorMode::activate()
     CEGUI::Window* guiSheet = mRootWindow;
     guiSheet->getChild("EditorOptionsWindow")->hide();
     guiSheet->getChild("ConfirmExit")->hide();
+    guiSheet->getChild("ConfirmLoad")->hide();
     // Hide also the Replay check-box as it doesn't make sense for the editor
     guiSheet->getChild("ConfirmExit/SaveReplayCheckbox")->hide();
     guiSheet->getChild("GameChatWindow/GameChatEditBox")->hide();
+    guiSheet->getChild("MenuEditorLoad")->hide();
 
     giveFocus();
 
@@ -985,11 +1033,130 @@ bool EditorMode::hideQuitMenu(const CEGUI::EventArgs& /*arg*/)
     return true;
 }
 
+bool EditorMode::hideConfirmMenu(const CEGUI::EventArgs& /*arg*/)
+{
+    mRootWindow->getChild("ConfirmLoad")->hide();
+    return true;
+}
+
+bool EditorMode::onYesConfirmMenu(const CEGUI::EventArgs& /*arg*/)
+{
+    mRootWindow->getChild("ConfirmLoad")->hide();
+    return true;
+}
+
+
+bool EditorMode::showEditorLoadMenu(const CEGUI::EventArgs& /*arg*/)
+{
+    //TODO: Test whether the level was modified and ask accordingly.
+    mRootWindow->getChild("MenuEditorLoad")->show();
+    return true;
+}
+
+bool EditorMode::hideEditorLoadMenu(const CEGUI::EventArgs& /*arg*/)
+{
+    mRootWindow->getChild("MenuEditorLoad")->hide();
+    return true;
+}
+
+
 bool EditorMode::onClickYesQuitMenu(const CEGUI::EventArgs& /*arg*/)
 {
     mModeManager->requestMode(AbstractModeManager::MENU_MAIN);
     return true;
 }
+
+bool EditorMode::editBoxTextChanged(const CEGUI::EventArgs& /*arg*/)
+{
+
+    CEGUI::String ss = mRootWindow->getChild("MenuEditorLoad")->getChild("LevelWindowFrame")->getChild("FilePath")->getText();
+    CEGUI::Listbox* levelSelectList = static_cast<CEGUI::Listbox*>(mRootWindow->getChild("MenuEditorLoad")->getChild("LevelWindowFrame")->getChild("LevelSelect"));
+
+
+    path p (ss.c_str());
+
+    try
+    {
+        if (exists(p))
+        {
+            if (is_directory(p))
+            {
+                std::cout << p << " is a directory containing:\n";
+                levelSelectList->resetList();
+                
+                CEGUI::ListboxTextItem* item = new CEGUI::ListboxTextItem("../");
+                item->setID(00);
+                item->setSelectionBrushImage("OpenDungeonsSkin/SelectionBrush");
+                levelSelectList->addItem(item);
+                int nn = 1;
+                for (directory_entry& x : directory_iterator(p))
+                {
+                    CEGUI::ListboxTextItem* item = new CEGUI::ListboxTextItem(x.path().c_str());
+                    if(x.path().has_extension() && x.path().extension().compare(".level") == 0)
+                    {
+                        item->setTextColours(CEGUI::Colour(1,0.64,0));
+                    }
+                    
+                    else if(is_regular_file(x.path()))
+                    {
+                        item->setTextColours(CEGUI::Colour(0,1,0));
+                    }
+                    else if(is_directory(x.path()))
+                    {
+                        item->setTextColours(CEGUI::Colour(0,0,1));
+                    }                    
+                    else
+                    {
+                        item->setTextColours(CEGUI::Colour(1,0,0));
+                    }
+                    item->setText(x.path().leaf().c_str());
+
+                    item->setID(nn);
+                    item->setSelectionBrushImage("OpenDungeonsSkin/SelectionBrush");
+                    levelSelectList->addItem(item);
+                    nn++;
+                }
+            }
+        }
+    }
+
+    catch (const filesystem_error& ex)
+    {
+        std::cout << ex.what() << '\n';
+    }    
+    std::cout << ss ;
+    return true;
+}
+
+bool EditorMode::levelSelectSelected(const CEGUI::EventArgs& /*arg*/)
+{
+    CEGUI::Listbox* levelSelectList = static_cast<CEGUI::Listbox*>(mRootWindow->getChild("MenuEditorLoad")->getChild("LevelWindowFrame")->getChild("LevelSelect"));
+    CEGUI::Editbox* levelEditBox = static_cast<CEGUI::Editbox*>(mRootWindow->getChild("MenuEditorLoad")->getChild("LevelWindowFrame")->getChild("FilePath"));
+    CEGUI::EventArgs args;
+    CEGUI::String ss = mRootWindow->getChild("MenuEditorLoad")->getChild("LevelWindowFrame")->getChild("FilePath")->getText();
+
+    path ll (levelEditBox->getText().c_str());
+    path pp (levelSelectList->getFirstSelectedItem()->getText().c_str());
+    if(levelSelectList->getFirstSelectedItem()->getID() == 0)
+    {
+        levelEditBox->setText(ll.parent_path().c_str());
+        levelEditBox->fireEvent(CEGUI::Editbox::EventTextAccepted,args);               
+    }
+
+    else if(pp.has_extension() && pp.extension().compare(".level")==0)
+    {
+        mRootWindow->getChild("ConfirmLoad")->show();
+    }
+    
+    else if(is_directory(path((levelEditBox->getText() + "/" + levelSelectList->getFirstSelectedItem()->getText()).c_str())))
+    {
+        levelEditBox->setText(levelEditBox->getText() + "/" + levelSelectList->getFirstSelectedItem()->getText());
+        levelEditBox->fireEvent(CEGUI::Editbox::EventTextAccepted,args);
+    }
+    
+    return true;
+}
+
 
 void EditorMode::selectCreature( unsigned ii, CEGUI::EventArgs args)
 {
@@ -1078,7 +1245,7 @@ void EditorMode::checkInputCommand()
 
     switch(mPlayerSelection.getCurrentAction())
     {
-        case SelectedAction::none:
+         case SelectedAction::none:
             handlePlayerActionNone();
             return;
         case SelectedAction::changeTile:

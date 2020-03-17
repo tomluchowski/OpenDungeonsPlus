@@ -12,6 +12,7 @@
     <WindowRendererSet filename="CEGUICoreWindowRendererSet" />
     <FalagardMapping lookNFeel="OD/Button" renderer="Core/Button" targetType="CEGUI/PushButton" windowType="OD/Button" />
     <FalagardMapping lookNFeel="OD/Button" renderer="Core/Button" targetType="CEGUI/PushButton" windowType="OD/SystemButton" />
+    <FalagardMapping lookNFeel="OD/CommonFileDialogInput" renderer="Core/CommonFileDialogInput" targetType="CEGUI/CommonFileDialogInput" windowType="OD/CommonFileDialogInput" />    
     <FalagardMapping lookNFeel="OD/ImageButton" renderer="Core/Button" targetType="CEGUI/PushButton" windowType="OD/ImageButton" />
     <FalagardMapping lookNFeel="OD/IconButton" renderer="Core/Button" targetType="CEGUI/PushButton" windowType="OD/IconButton" />
     <FalagardMapping lookNFeel="OD/GameTabButton" renderer="Core/Button" targetType="CEGUI/PushButton" windowType="OD/GameTabButton" />

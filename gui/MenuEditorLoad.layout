@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <GUILayout version="4" >
-    <Window type="DefaultWindow" name="Root" >
+    <Window type="DefaultWindow" name="MenuEditorLoad" >
         <Property name="Area" value="{{0,0},{0,0},{1,0},{1,0}}" />
         <Property name="MaxSize" value="{{1,0},{1,0}}" />
         <Window type="OD/StaticText" name="LoadingText" >
@@ -27,7 +27,7 @@
             <Property name="BackgroundEnabled" value="False" />
         </Window>
         <Window type="OD/FrameWindow" name="LevelWindowFrame" >
-            <Property name="Area" value="{{0.5,-315},{0.5,-180},{0.5,315},{0.5,240}}" />
+             <Property name="Area" value="{{0.5,-315},{0.5,-180},{0.5,315},{0.5,240}}" />
             <Property name="Text" value="Please choose a Level..." />
             <Property name="MaxSize" value="{{0,790},{0,470}}" />
             <Property name="MinSize" value="{{0,630},{0,420}}" />
