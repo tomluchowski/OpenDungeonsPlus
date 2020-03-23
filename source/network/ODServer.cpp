@@ -544,7 +544,7 @@ void ODServer::processServerNotifications()
             continue;
         }
 
-        OD_LOG_DBG("processServerNotifications type=" + ServerNotification::typeString(event->mType));
+        OD_LOG_INF("processServerNotifications type=" + ServerNotification::typeString(event->mType));
         switch (event->mType)
         {
             case ServerNotificationType::turnStarted:
@@ -649,7 +649,7 @@ bool ODServer::processClientNotifications(ODSocketClient* clientSocket)
     ClientNotificationType clientCommand;
     OD_ASSERT_TRUE(packetReceived >> clientCommand);
 
-    OD_LOG_DBG("processClientNotifications type=" + ClientNotification::typeString(clientCommand));
+    OD_LOG_INF("processClientNotifications type=" + ClientNotification::typeString(clientCommand));
     switch(clientCommand)
     {
         case ClientNotificationType::hello:

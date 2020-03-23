@@ -79,7 +79,7 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
     if (!gameMap)
         return false;
 
-    OD_LOG_DBG("processMessage type=" + ServerNotification::typeString(cmd));
+    OD_LOG_INF("processMessage type=" + ServerNotification::typeString(cmd));
     switch(cmd)
     {
         case ServerNotificationType::loadLevel:

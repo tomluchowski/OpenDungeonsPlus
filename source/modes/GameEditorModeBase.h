@@ -121,7 +121,9 @@ protected:
     {
         InputModeNormal,
         InputModeChat,
-        InputModeConsole
+        InputModeConsole,
+        InputModeLoad,
+        InputModeSave
     };
 
     //! \brief The current input mode.
@@ -173,16 +175,18 @@ protected:
     //! \brief Get the console component.
     GameEditorModeConsole* getConsole()
     { return mConsole.get(); }
-private:
     //! \brief The game event messages in queue.
     std::vector<EventMessage*> mEventMessages;
+    std::vector<Ogre::Vector3> mCameraTilesIntersections;
+ 
+private:
+
 
     //! \brief The console instance.
     std::unique_ptr<GameEditorModeConsole> mConsole;
 
     // Array of Vector3's for keeping the intersection points of camera viewfrustrum
     // and the XY plane. It should contain 4 vectors corresponding to the 4 corners
-    std::vector<Ogre::Vector3> mCameraTilesIntersections;
 
     //! \brief Minimap click event handler
     bool onMinimapClick(const CEGUI::EventArgs& arg);

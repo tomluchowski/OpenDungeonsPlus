@@ -70,6 +70,7 @@ public:
     void selectCreature(unsigned ii, CEGUI::EventArgs args /*arg*/);
     bool editBoxTextChanged(const CEGUI::EventArgs& /*arg*/);
     bool levelSelectSelected(const CEGUI::EventArgs& /*arg*/);
+    bool levelSelectDoubleClicked(const CEGUI::EventArgs& /*arg*/);
     bool onClickYesQuitMenu(const CEGUI::EventArgs& arg = {});
     bool hideConfirmMenu(const CEGUI::EventArgs& /*arg*/);
     bool onYesConfirmMenu(const CEGUI::EventArgs& /*arg*/);
@@ -81,7 +82,8 @@ public:
     void unselectAllTiles() override;
 
     void displayText(const Ogre::ColourValue& txtColour, const std::string& txt) override;
-
+    bool updateDescription(const CEGUI::EventArgs& e = {});
+    std::string GetEnv( const std::string & var );
 private:
     void connectTileSelect(const std::string& buttonName, TileVisual tileVisual);
 
@@ -127,6 +129,9 @@ private:
     void checkInputCommand();
     void handlePlayerActionNone();
     void handlePlayerActionChangeTile();
+
+    //! \brief file path to currently choosen file via load / save menu 
+    std::string dialogFullPath;
 };
 
 #endif // EDITORMODE_H

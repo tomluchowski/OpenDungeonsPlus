@@ -18,6 +18,7 @@
 #include "modes/EditorMode.h"
 
 #include "camera/CameraManager.h"
+#include "camera/CullingManager.h"
 #include "entities/Creature.h"
 #include "entities/CreatureDefinition.h"
 #include "entities/GameEntityType.h"
@@ -29,10 +30,13 @@
 #include "game/Seat.h"
 #include "gamemap/GameMap.h"
 #include "gamemap/MapHandler.h"
+#include "gamemap/MiniMap.h"
 #include "gamemap/Pathfinding.h"
 #include "modes/GameEditorModeConsole.h"
+#include "network/ChatEventMessage.h"
 #include "network/ODClient.h"
 #include "network/ODServer.h"
+#include "network/ServerMode.h"
 #include "render/Gui.h"
 #include "render/ODFrameListener.h"
 #include "render/RenderManager.h"
@@ -41,6 +45,7 @@
 #include "rooms/RoomType.h"
 #include "sound/MusicPlayer.h"
 #include "traps/TrapManager.h"
+#include "utils/ConfigManager.h"
 #include "utils/LogManager.h"
 #include "utils/ResourceManager.h"
 #include "utils/Helper.h"
@@ -126,10 +131,7 @@ EditorMode::EditorMode(ModeManager* modeManager):
         mRootWindow->getChild("ConfirmLoad/YesOption")->subscribeEvent(
             CEGUI::Window::EventMouseClick,
             CEGUI::Event::Subscriber(&EditorMode::onYesConfirmMenu, this)
-    ));
-
-
-    
+    ));    
     addEventConnection(
         mRootWindow->getChild("Menubar")->getChild("File")->getChild("PopupMenu1")->getChild("Quit")->subscribeEvent(
             CEGUI::Window::EventMouseClick,
@@ -160,6 +162,11 @@ EditorMode::EditorMode(ModeManager* modeManager):
             CEGUI::Editbox::EventMouseClick,
             CEGUI::Event::Subscriber(&EditorMode::levelSelectSelected, this)
     ));
+    addEventConnection(
+        mRootWindow->getChild("MenuEditorLoad")->getChild("LevelWindowFrame")->getChild("LevelSelect")->subscribeEvent(
+            CEGUI::Editbox::EventMouseDoubleClick,
+            CEGUI::Event::Subscriber(&EditorMode::levelSelectDoubleClicked, this)
+            ));
     
     for(uint ii = 0 ;  ii < mGameMap->numClassDescriptions()   ; ii++ ){
         mGameMap->getClassDescription(ii);
@@ -289,7 +296,7 @@ void EditorMode::activate()
     guiSheet->getChild("ConfirmExit/SaveReplayCheckbox")->hide();
     guiSheet->getChild("GameChatWindow/GameChatEditBox")->hide();
     guiSheet->getChild("MenuEditorLoad")->hide();
-
+    guiSheet->getChild("MenuEditorLoad")->getChild("LevelWindowFrame")->getChild("FilePath")->setText(GetEnv("HOME"));
     giveFocus();
 
     // Stop the game music.
@@ -301,7 +308,6 @@ void EditorMode::activate()
 
     refreshGuiSkill();
 
-    mGameMap->setGamePaused(false);
 }
 
 bool EditorMode::mouseMoved(const OIS::MouseEvent &arg)
@@ -311,6 +317,9 @@ bool EditorMode::mouseMoved(const OIS::MouseEvent &arg)
     if (!isConnected())
         return true;
 
+    if (mCurrentInputMode == InputModeChat || mCurrentInputMode == InputModeSave || mCurrentInputMode == InputModeLoad)
+        return true;
+    
     InputManager& inputManager = mModeManager->getInputManager();
     inputManager.mCommandState = (inputManager.mLMouseDown ? InputCommandState::building : InputCommandState::infoOnly);
 
@@ -718,7 +727,7 @@ bool EditorMode::keyPressed(const OIS::KeyEvent &arg)
     CEGUI::System::getSingleton().getDefaultGUIContext().injectKeyDown(static_cast<CEGUI::Key::Scan>(arg.key));
     CEGUI::System::getSingleton().getDefaultGUIContext().injectChar(arg.text);
 
-    if (mCurrentInputMode == InputModeChat)
+    if (mCurrentInputMode == InputModeChat || mCurrentInputMode == InputModeSave || mCurrentInputMode == InputModeLoad)
         return true;
 
     if (mCurrentInputMode == InputModeConsole)
@@ -1041,7 +1050,61 @@ bool EditorMode::hideConfirmMenu(const CEGUI::EventArgs& /*arg*/)
 
 bool EditorMode::onYesConfirmMenu(const CEGUI::EventArgs& /*arg*/)
 {
+    
+    // Note that we don't stop culling because the gamemap has already been
+    // cleared when we are here
+    mMainCullingManager->stopTileCulling(mCameraTilesIntersections);
+    // eliminating the race condition
+    MiniMap* mm;
+    mm = mMiniMap;
+    mMiniMap = nullptr;
+    delete mm;
+
+    CullingManager* cc;
+    cc = mMainCullingManager;
+    mMainCullingManager = nullptr;
+    delete cc;
+    // delete mMainCullingManager;
+    // Delete the potential pending event messages
+    for (EventMessage* message : mEventMessages)
+        delete message;
+
+    if(ODClient::getSingleton().isConnected())
+        ODClient::getSingleton().disconnect(mKeepReplayAtDisconnect);
+    if(ODServer::getSingleton().isConnected())
+        ODServer::getSingleton().stopServer();
+
+    // Now that the server is stopped, we can clear the client game map
+    mGameMap->clearAll();
+    // MapHandler::readGameMapFromFile( dialogFullPath, *mGameMap);
+    ConfigManager& config = ConfigManager::getSingleton();    
+    std::string nickname = config.getGameValue(Config::NICKNAME, std::string(), false);
+    if(!ODServer::getSingleton().startServer(nickname, dialogFullPath, ServerMode::ModeEditor, false))
+    {
+        OD_LOG_ERR("Could not start server for editor !!!");
+        return true;
+    }
+
+    int port = ODServer::getSingleton().getNetworkPort();
+    uint32_t timeout = ConfigManager::getSingleton().getClientConnectionTimeout();
+    std::string replayFilename = ResourceManager::getSingleton().getReplayDataPath()
+        + ResourceManager::getSingleton().buildReplayFilename();
+    // We connect ourself
+    if(!ODClient::getSingleton().connect("localhost", port, timeout, replayFilename))
+    {
+        OD_LOG_ERR("Could not connect to server for editor !!!");
+        return true;
+    }
+    ODClient::getSingleton().processClientSocketMessages();
+    ODClient::getSingleton().processClientNotifications();
+    mGameMap = ODFrameListener::getSingletonPtr()->getClientGameMap();
+    // mMiniMap = MiniMap::createMiniMap(mRootWindow->getChild(Gui::MINIMAP));
+    mMainCullingManager = new CullingManager(mGameMap, CullingType::SHOW_MAIN_WINDOW);
+    mMainCullingManager->startTileCulling(ODFrameListener::getSingleton().getCameraManager()->getActiveCamera(), mCameraTilesIntersections);
     mRootWindow->getChild("ConfirmLoad")->hide();
+    mRootWindow->getChild("MenuEditorLoad")->getChild("LevelWindowFrame")->getChild("FilePath")->hide();
+    mRootWindow->getChild("MenuEditorLoad")->getChild("LevelWindowFrame")->getChild("FilePath")->deactivate();
+    mCurrentInputMode = InputModeNormal;
     return true;
 }
 
@@ -1050,12 +1113,16 @@ bool EditorMode::showEditorLoadMenu(const CEGUI::EventArgs& /*arg*/)
 {
     //TODO: Test whether the level was modified and ask accordingly.
     mRootWindow->getChild("MenuEditorLoad")->show();
+    mRootWindow->getChild("MenuEditorLoad")->getChild("LevelWindowFrame")->getChild("FilePath")->activate();
+    mCurrentInputMode = InputModeLoad;
     return true;
 }
 
 bool EditorMode::hideEditorLoadMenu(const CEGUI::EventArgs& /*arg*/)
 {
     mRootWindow->getChild("MenuEditorLoad")->hide();
+    mRootWindow->getChild("MenuEditorLoad")->getChild("LevelWindowFrame")->getChild("FilePath")->deactivate();
+    mCurrentInputMode = InputModeNormal;
     return true;
 }
 
@@ -1124,7 +1191,6 @@ bool EditorMode::editBoxTextChanged(const CEGUI::EventArgs& /*arg*/)
     {
         std::cout << ex.what() << '\n';
     }    
-    std::cout << ss ;
     return true;
 }
 
@@ -1145,7 +1211,13 @@ bool EditorMode::levelSelectSelected(const CEGUI::EventArgs& /*arg*/)
 
     else if(pp.has_extension() && pp.extension().compare(".level")==0)
     {
-        mRootWindow->getChild("ConfirmLoad")->show();
+        CEGUI::Window* descTxt =  mRootWindow->getChild("MenuEditorLoad")->getChild("LevelWindowFrame/MapDescriptionText");
+        LevelInfo levelInfo;
+        std::string fullPath = (levelEditBox->getText() + "/" + levelSelectList->getFirstSelectedItem()->getText()).c_str();
+        if(MapHandler::getMapInfo( fullPath , levelInfo))
+            descTxt->setText(levelInfo.mLevelDescription);
+        else
+            descTxt->setText("Invalid map");        
     }
     
     else if(is_directory(path((levelEditBox->getText() + "/" + levelSelectList->getFirstSelectedItem()->getText()).c_str())))
@@ -1157,6 +1229,21 @@ bool EditorMode::levelSelectSelected(const CEGUI::EventArgs& /*arg*/)
     return true;
 }
 
+
+bool EditorMode::levelSelectDoubleClicked(const CEGUI::EventArgs& /*arg*/)
+{
+    CEGUI::Listbox* levelSelectList = static_cast<CEGUI::Listbox*>(mRootWindow->getChild("MenuEditorLoad")->getChild("LevelWindowFrame")->getChild("LevelSelect"));
+    CEGUI::Editbox* levelEditBox = static_cast<CEGUI::Editbox*>(mRootWindow->getChild("MenuEditorLoad")->getChild("LevelWindowFrame")->getChild("FilePath"));
+    CEGUI::EventArgs args;
+    path pp (levelSelectList->getFirstSelectedItem()->getText().c_str());
+    if(pp.has_extension() && pp.extension().compare(".level")==0)
+    {
+        dialogFullPath = (levelEditBox->getText() + "/" + levelSelectList->getFirstSelectedItem()->getText()).c_str();
+        
+        mRootWindow->getChild("ConfirmLoad")->show();
+    }
+    return true;
+}
 
 void EditorMode::selectCreature( unsigned ii, CEGUI::EventArgs args)
 {
@@ -1349,4 +1436,21 @@ void EditorMode::handlePlayerActionNone()
 
     selectSquaredTiles(inputManager.mXPos, inputManager.mYPos, inputManager.mXPos,
         inputManager.mYPos);
+}
+
+bool EditorMode::updateDescription(const CEGUI::EventArgs&)
+{
+
+    return true;
+}
+
+std::string EditorMode::GetEnv( const std::string & var )
+{
+    const char * val = std::getenv( var.c_str() );
+    if ( val == nullptr ) { // invalid to assign nullptr to std::string
+        return "";
+    }
+    else {
+        return val;
+    }
 }
