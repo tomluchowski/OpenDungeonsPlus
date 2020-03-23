@@ -1076,7 +1076,6 @@ bool EditorMode::onYesConfirmMenu(const CEGUI::EventArgs& /*arg*/)
 
     // Now that the server is stopped, we can clear the client game map
     mGameMap->clearAll();
-    // MapHandler::readGameMapFromFile( dialogFullPath, *mGameMap);
     ConfigManager& config = ConfigManager::getSingleton();    
     std::string nickname = config.getGameValue(Config::NICKNAME, std::string(), false);
     if(!ODServer::getSingleton().startServer(nickname, dialogFullPath, ServerMode::ModeEditor, false))
@@ -1095,10 +1094,10 @@ bool EditorMode::onYesConfirmMenu(const CEGUI::EventArgs& /*arg*/)
         OD_LOG_ERR("Could not connect to server for editor !!!");
         return true;
     }
-    ODClient::getSingleton().processClientSocketMessages();
+    ODClient::getSingleton().processClientSocketMessages(75);
     ODClient::getSingleton().processClientNotifications();
     mGameMap = ODFrameListener::getSingletonPtr()->getClientGameMap();
-    // mMiniMap = MiniMap::createMiniMap(mRootWindow->getChild(Gui::MINIMAP));
+    mMiniMap = MiniMap::createMiniMap(mRootWindow->getChild(Gui::MINIMAP));
     mMainCullingManager = new CullingManager(mGameMap, CullingType::SHOW_MAIN_WINDOW);
     mMainCullingManager->startTileCulling(ODFrameListener::getSingleton().getCameraManager()->getActiveCamera(), mCameraTilesIntersections);
     mRootWindow->getChild("ConfirmLoad")->hide();

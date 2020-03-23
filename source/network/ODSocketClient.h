@@ -63,14 +63,14 @@ class ODSocketClient
 
         /*! \brief This function should be called periodically. It will
          */
-        void processClientSocketMessages();
+        void processClientSocketMessages(int miliseconds=5);
 
         Player* getPlayer() { return mPlayer; }
         void setPlayer(Player* player) { mPlayer = player; }
         int64_t getLastTurnAck() { return mLastTurnAck; }
         void setLastTurnAck(int64_t lastTurnAck) { mLastTurnAck = lastTurnAck; }
         const std::string& getState() {return mState;}
-        bool isDataAvailable();
+        bool isDataAvailable(int miliseconds=5);
         int32_t getGameTimeMillis()
         { return mGameClock.getElapsedTime().asMilliseconds(); }
 
@@ -109,7 +109,7 @@ class ODSocketClient
         {}
 
     private :
-        bool processOneClientSocketMessage();
+        bool processOneClientSocketMessage(int miliseconds=5);
 
         ODSource mSource;
         sf::SocketSelector mSockSelector;

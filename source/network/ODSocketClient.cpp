@@ -95,7 +95,7 @@ void ODSocketClient::disconnect(bool keepReplay)
     mOutputReplayFilename.clear();
 }
 
-bool ODSocketClient::isDataAvailable()
+bool ODSocketClient::isDataAvailable(int miliseconds)
 {
     switch(mSource)
     {
@@ -107,7 +107,7 @@ bool ODSocketClient::isDataAvailable()
         {
             // There is only 1 socket in the selector so it should be ready if
             // wait returns true but it doesn't hurt to return isReady...
-            if(!mSockSelector.wait(sf::milliseconds(5)))
+            if(!mSockSelector.wait(sf::milliseconds(miliseconds)))
                 return false;
             return mSockSelector.isReady(mSockClient);
         }
@@ -201,17 +201,17 @@ bool ODSocketClient::isConnected()
     return mSource != ODSource::none;
 }
 
-void ODSocketClient::processClientSocketMessages()
+void ODSocketClient::processClientSocketMessages(int miliseconds)
 {
     // If we receive message for a new turn, after processing every message,
     // we will refresh what is needed
     // We loop until no more data is available
-    while(isConnected() && processOneClientSocketMessage());
+    while(isConnected() && processOneClientSocketMessage(miliseconds));
 }
 
-bool ODSocketClient::processOneClientSocketMessage()
+bool ODSocketClient::processOneClientSocketMessage(int miliseconds)
 {
-    if(!isDataAvailable())
+    if(!isDataAvailable(miliseconds))
         return false;
 
     ODPacket packetReceived;
