@@ -296,7 +296,7 @@ void EditorMode::activate()
     guiSheet->getChild("ConfirmExit/SaveReplayCheckbox")->hide();
     guiSheet->getChild("GameChatWindow/GameChatEditBox")->hide();
     guiSheet->getChild("MenuEditorLoad")->hide();
-    guiSheet->getChild("MenuEditorLoad")->getChild("LevelWindowFrame")->getChild("FilePath")->setText(GetEnv("HOME"));
+    guiSheet->getChild("MenuEditorLoad")->getChild("LevelWindowFrame")->getChild("FilePath")->setText(getEnv("HOME"));
     giveFocus();
 
     // Stop the game music.
@@ -1064,7 +1064,7 @@ bool EditorMode::onYesConfirmMenu(const CEGUI::EventArgs& /*arg*/)
     cc = mMainCullingManager;
     mMainCullingManager = nullptr;
     delete cc;
-    // delete mMainCullingManager;
+    
     // Delete the potential pending event messages
     for (EventMessage* message : mEventMessages)
         delete message;
@@ -1101,9 +1101,6 @@ bool EditorMode::onYesConfirmMenu(const CEGUI::EventArgs& /*arg*/)
     mMainCullingManager = new CullingManager(mGameMap, CullingType::SHOW_MAIN_WINDOW);
     mMainCullingManager->startTileCulling(ODFrameListener::getSingleton().getCameraManager()->getActiveCamera(), mCameraTilesIntersections);
     mRootWindow->getChild("ConfirmLoad")->hide();
-    mRootWindow->getChild("MenuEditorLoad")->getChild("LevelWindowFrame")->getChild("FilePath")->hide();
-    mRootWindow->getChild("MenuEditorLoad")->getChild("LevelWindowFrame")->getChild("FilePath")->deactivate();
-    mCurrentInputMode = InputModeNormal;
     return true;
 }
 
@@ -1120,7 +1117,6 @@ bool EditorMode::showEditorLoadMenu(const CEGUI::EventArgs& /*arg*/)
 bool EditorMode::hideEditorLoadMenu(const CEGUI::EventArgs& /*arg*/)
 {
     mRootWindow->getChild("MenuEditorLoad")->hide();
-    mRootWindow->getChild("MenuEditorLoad")->getChild("LevelWindowFrame")->getChild("FilePath")->deactivate();
     mCurrentInputMode = InputModeNormal;
     return true;
 }
@@ -1147,7 +1143,6 @@ bool EditorMode::editBoxTextChanged(const CEGUI::EventArgs& /*arg*/)
         {
             if (is_directory(p))
             {
-                std::cout << p << " is a directory containing:\n";
                 levelSelectList->resetList();
                 
                 CEGUI::ListboxTextItem* item = new CEGUI::ListboxTextItem("../");
@@ -1201,31 +1196,37 @@ bool EditorMode::levelSelectSelected(const CEGUI::EventArgs& /*arg*/)
     CEGUI::String ss = mRootWindow->getChild("MenuEditorLoad")->getChild("LevelWindowFrame")->getChild("FilePath")->getText();
 
     path ll (levelEditBox->getText().c_str());
-    path pp (levelSelectList->getFirstSelectedItem()->getText().c_str());
-    if(levelSelectList->getFirstSelectedItem()->getID() == 0)
-    {
-        levelEditBox->setText(ll.parent_path().c_str());
-        levelEditBox->fireEvent(CEGUI::Editbox::EventTextAccepted,args);               
-    }
 
-    else if(pp.has_extension() && pp.extension().compare(".level")==0)
+    levelSelectList->getFirstSelectedItem();
+    if(levelSelectList->getFirstSelectedItem())
     {
-        CEGUI::Window* descTxt =  mRootWindow->getChild("MenuEditorLoad")->getChild("LevelWindowFrame/MapDescriptionText");
-        LevelInfo levelInfo;
-        std::string fullPath = (levelEditBox->getText() + "/" + levelSelectList->getFirstSelectedItem()->getText()).c_str();
-        if(MapHandler::getMapInfo( fullPath , levelInfo))
-            descTxt->setText(levelInfo.mLevelDescription);
-        else
-            descTxt->setText("Invalid map");        
-    }
+        path pp (levelSelectList->getFirstSelectedItem()->getText().c_str());
+        if(levelSelectList->getFirstSelectedItem()->getID() ==0)
+        {
+            levelEditBox->setText(ll.parent_path().c_str());
+            levelEditBox->fireEvent(CEGUI::Editbox::EventTextAccepted,args);               
+        }
+
+        else if(pp.has_extension() && pp.extension().compare(".level")==0)
+        {
+            CEGUI::Window* descTxt =  mRootWindow->getChild("MenuEditorLoad")->getChild("LevelWindowFrame/MapDescriptionText");
+            LevelInfo levelInfo;
+            std::string fullPath = (levelEditBox->getText() + "/" + levelSelectList->getFirstSelectedItem()->getText()).c_str();
+            if(MapHandler::getMapInfo( fullPath , levelInfo))
+                descTxt->setText(levelInfo.mLevelDescription);
+            else
+                descTxt->setText("Invalid map");        
+        }
     
-    else if(is_directory(path((levelEditBox->getText() + "/" + levelSelectList->getFirstSelectedItem()->getText()).c_str())))
-    {
-        levelEditBox->setText(levelEditBox->getText() + "/" + levelSelectList->getFirstSelectedItem()->getText());
-        levelEditBox->fireEvent(CEGUI::Editbox::EventTextAccepted,args);
+        else if(is_directory(path((levelEditBox->getText() + "/" + levelSelectList->getFirstSelectedItem()->getText()).c_str())))
+        {
+            levelEditBox->setText(levelEditBox->getText() + "/" + levelSelectList->getFirstSelectedItem()->getText());
+            levelEditBox->fireEvent(CEGUI::Editbox::EventTextAccepted,args);
+        }
+        return true;        
     }
-    
-    return true;
+    else
+        return false;
 }
 
 
@@ -1234,14 +1235,19 @@ bool EditorMode::levelSelectDoubleClicked(const CEGUI::EventArgs& /*arg*/)
     CEGUI::Listbox* levelSelectList = static_cast<CEGUI::Listbox*>(mRootWindow->getChild("MenuEditorLoad")->getChild("LevelWindowFrame")->getChild("LevelSelect"));
     CEGUI::Editbox* levelEditBox = static_cast<CEGUI::Editbox*>(mRootWindow->getChild("MenuEditorLoad")->getChild("LevelWindowFrame")->getChild("FilePath"));
     CEGUI::EventArgs args;
-    path pp (levelSelectList->getFirstSelectedItem()->getText().c_str());
-    if(pp.has_extension() && pp.extension().compare(".level")==0)
+    if(levelSelectList->getFirstSelectedItem())
     {
-        dialogFullPath = (levelEditBox->getText() + "/" + levelSelectList->getFirstSelectedItem()->getText()).c_str();
+        path pp (levelSelectList->getFirstSelectedItem()->getText().c_str());
+        if(pp.has_extension() && pp.extension().compare(".level")==0)
+        {
+            dialogFullPath = (levelEditBox->getText() + "/" + levelSelectList->getFirstSelectedItem()->getText()).c_str();
         
-        mRootWindow->getChild("ConfirmLoad")->show();
+            mRootWindow->getChild("ConfirmLoad")->show();
+        }
+        return true;        
     }
-    return true;
+    else
+        return false;
 }
 
 void EditorMode::selectCreature( unsigned ii, CEGUI::EventArgs args)
@@ -1443,7 +1449,7 @@ bool EditorMode::updateDescription(const CEGUI::EventArgs&)
     return true;
 }
 
-std::string EditorMode::GetEnv( const std::string & var )
+std::string EditorMode::getEnv( const std::string & var )
 {
     const char * val = std::getenv( var.c_str() );
     if ( val == nullptr ) { // invalid to assign nullptr to std::string
