@@ -129,6 +129,8 @@ private:
     void checkInputCommand();
     void handlePlayerActionNone();
     void handlePlayerActionChangeTile();
+    void installSeatsMenuButtons();
+    void uninstallSeatsMenuButtons();
 
     //! \brief file path to currently choosen file via load / save menu 
     std::string dialogFullPath;

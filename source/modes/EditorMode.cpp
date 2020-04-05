@@ -168,7 +168,7 @@ EditorMode::EditorMode(ModeManager* modeManager):
             CEGUI::Event::Subscriber(&EditorMode::levelSelectDoubleClicked, this)
             ));
     
-    for(uint ii = 0 ;  ii < mGameMap->numClassDescriptions()   ; ii++ ){
+    for(uint ii = 0 ;  ii < mGameMap->numClassDescriptions()   ; ++ii ){
         mGameMap->getClassDescription(ii);
         CEGUI::Window* ww = CEGUI::WindowManager::getSingletonPtr()->createWindow("OD/MenuItem");
         ww->setText(mGameMap->getClassDescription(ii)->getClassName());
@@ -193,26 +193,28 @@ EditorMode::EditorMode(ModeManager* modeManager):
                 })
         ));
     }
-    for(Seat* seat : mGameMap->getSeats()){
-        CEGUI::Window* ww = CEGUI::WindowManager::getSingletonPtr()->createWindow("OD/MenuItem");
-        std::stringstream ss;
-        ss <<  "[colour='" ;
-        ss <<  std::hex << seat->getColorValue().getAsARGB();
-        ss << "']" ;
-        ss << "Seat";
-        ss << seat->getId();
-        ww->setText(ss.str());
-        ww->setName(ss.str());
-        mRootWindow->getChild("Menubar")->getChild("Seats")->getChild("PopupMenu3")->addChild(ww);
-        addEventConnection(
-        ww->subscribeEvent(
-            CEGUI::Window::EventMouseClick,
-            CEGUI::Event::Subscriber([&, seat] (const CEGUI::EventArgs& ea) {
-                getModeManager().getInputManager().mSeatIdSelected = seat->getId();
-                updateCursorText();
-                updateFlagColor(); })
-        ));
-    }
+
+    installSeatsMenuButtons();    
+    // for(Seat* seat : mGameMap->getSeats()){
+    //     CEGUI::Window* ww = CEGUI::WindowManager::getSingletonPtr()->createWindow("OD/MenuItem");
+    //     std::stringstream ss;
+    //     ss <<  "[colour='" ;
+    //     ss <<  std::hex << seat->getColorValue().getAsARGB();
+    //     ss << "']" ;
+    //     ss << "Seat";
+    //     ss << seat->getId();
+    //     ww->setText(ss.str());
+    //     ww->setName(ss.str());
+    //     mRootWindow->getChild("Menubar")->getChild("Seats")->getChild("PopupMenu3")->addChild(ww);
+    //     addEventConnection(
+    //     ww->subscribeEvent(
+    //         CEGUI::Window::EventMouseClick,
+    //         CEGUI::Event::Subscriber([&, seat] (const CEGUI::EventArgs& ea) {
+    //             getModeManager().getInputManager().mSeatIdSelected = seat->getId();
+    //             updateCursorText();
+    //             updateFlagColor(); })
+    //     ));
+    // }
     // The options menu handlers
     addEventConnection(
         mRootWindow->getChild("OptionsButton")->subscribeEvent(
@@ -1096,6 +1098,8 @@ bool EditorMode::onYesConfirmMenu(const CEGUI::EventArgs& /*arg*/)
     }
     ODClient::getSingleton().processClientSocketMessages(75);
     ODClient::getSingleton().processClientNotifications();
+    uninstallSeatsMenuButtons();
+    installSeatsMenuButtons();
     mGameMap = ODFrameListener::getSingletonPtr()->getClientGameMap();
     mMiniMap = MiniMap::createMiniMap(mRootWindow->getChild(Gui::MINIMAP));
     mMainCullingManager = new CullingManager(mGameMap, CullingType::SHOW_MAIN_WINDOW);
@@ -1458,4 +1462,39 @@ std::string EditorMode::getEnv( const std::string & var )
     else {
         return val;
     }
+}
+
+void EditorMode::uninstallSeatsMenuButtons()
+{
+    CEGUI::Window *pm = mRootWindow->getChild("Menubar")->getChild("Seats")->getChild("PopupMenu3");
+    while(pm->getChildCount() > 0)
+        pm->removeChild(pm->getChildAtIdx(0));
+
+}
+
+void EditorMode::installSeatsMenuButtons()
+{
+    for(Seat* seat : mGameMap->getSeats()){
+        CEGUI::Window* ww = CEGUI::WindowManager::getSingletonPtr()->createWindow("OD/MenuItem");
+        std::stringstream ss;
+        ss <<  "[colour='" ;
+        ss <<  std::hex << seat->getColorValue().getAsARGB();
+        ss << "']" ;
+        ss << "Seat";
+        ss << seat->getId();
+        ww->setText(ss.str());
+        ww->setName(ss.str());
+        mRootWindow->getChild("Menubar")->getChild("Seats")->getChild("PopupMenu3")->addChild(ww);
+        addEventConnection(
+            ww->subscribeEvent(
+                CEGUI::Window::EventMouseClick,
+                CEGUI::Event::Subscriber([&, seat] (const CEGUI::EventArgs& ea) {
+                        getModeManager().getInputManager().mSeatIdSelected = seat->getId();
+                        updateCursorText();
+                        updateFlagColor();   
+                    })
+                ));
+
+    }
+
 }
