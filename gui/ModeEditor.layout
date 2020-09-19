@@ -23,6 +23,11 @@
                     <Window type="OD/MenuItem" name="SaveAs">
                         <Property name="Text" value="Save As ..."/>     
                     </Window>
+                    <Window type="OD/MenuItem" name="RecentlyUsed">
+                        <Property name="Text" value="Recently Used Files"/>     
+                	<Window type="OD/PopupMenu" name="PopupMenu2">
+                    	</Window>
+                    </Window>
                     <Window type="OD/MenuItem" name="Quit">
                         <Property name="Text" value="Quit"/>     
                     </Window>

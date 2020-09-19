@@ -51,12 +51,17 @@
 #include "utils/Helper.h"
 #include "ODApplication.h"
 
+
+#if OGRE_PLATFORM == OGRE_PLATFORM_WIN32
+#include <fileapi.h>
+#endif
+
 #include <OgreEntity.h>
 #include <OgreRoot.h>
 #include <OgreRenderWindow.h>
 
 #include <CEGUI/widgets/FrameWindow.h>
-#include <CEGUI/widgets/Combobox.h>
+#include <CEGUI/widgets/ToggleButton.h>
 #include <CEGUI/widgets/PushButton.h>
 #include <CEGUI/widgets/Editbox.h>
 #include <CEGUI/widgets/ListboxTextItem.h>
@@ -65,13 +70,11 @@
 #include <CEGUI/WindowManager.h>
 #include <CEGUI/ImageManager.h>
 
-#include <iostream>
 #include <algorithm>
 #include <vector>
 #include <string>
 #include <cstdio>
-
-#include <boost/filesystem.hpp>
+#include <fstream>
 
 using namespace boost::filesystem;
 
@@ -107,6 +110,9 @@ EditorMode::EditorMode(ModeManager* modeManager):
 
     ODFrameListener::getSingleton().getCameraManager()->setDefaultView();
 
+    ifstream ff ("akuku.txt");
+    ff >> recentlyUsedLevels;
+    
     // The Quit menu handlers
     addEventConnection(
         mRootWindow->getChild("ConfirmExit")->subscribeEvent(
@@ -144,6 +150,11 @@ EditorMode::EditorMode(ModeManager* modeManager):
             CEGUI::Event::Subscriber(&EditorMode::showEditorLoadMenu, this)
     ));
     addEventConnection(
+        mRootWindow->getChild("Menubar")->getChild("File")->getChild("PopupMenu1")->getChild("Save")->subscribeEvent(
+            CEGUI::Window::EventMouseClick,
+            CEGUI::Event::Subscriber(&EditorMode::justSavePopUpMenu, this)
+    ));      
+    addEventConnection(
         mRootWindow->getChild("Menubar")->getChild("File")->getChild("PopupMenu1")->getChild("SaveAs")->subscribeEvent(
             CEGUI::Window::EventMouseClick,
             CEGUI::Event::Subscriber(&EditorMode::showEditorSaveMenu, this)
@@ -162,13 +173,8 @@ EditorMode::EditorMode(ModeManager* modeManager):
     addEventConnection(
         mRootWindow->getChild("MenuEditorLoad")->getChild("LevelWindowFrame")->getChild("FilePath")->subscribeEvent(
             CEGUI::Editbox::EventTextAccepted,
-            CEGUI::Event::Subscriber(&EditorMode::loadMenuFilePathTextChanged, this)
-    ));  
-    addEventConnection(
-        mRootWindow->getChild("MenuEditorLoad")->getChild("LevelWindowFrame")->getChild("LevelSelect")->subscribeEvent(
-            CEGUI::Editbox::EventMouseClick,
-            CEGUI::Event::Subscriber(&EditorMode::loadMenuLevelSelectSelected, this)
-    ));
+            CEGUI::Event::Subscriber(&EditorMode::saveMenuFilePathTextChanged, this)
+    ));    
     addEventConnection(
         mRootWindow->getChild("MenuEditorLoad")->getChild("LevelWindowFrame")->getChild("LevelSelect")->subscribeEvent(
             CEGUI::Editbox::EventMouseDoubleClick,
@@ -179,6 +185,14 @@ EditorMode::EditorMode(ModeManager* modeManager):
             CEGUI::Window::EventMouseClick,
             CEGUI::Event::Subscriber(&EditorMode::hideEditorSaveMenu, this)
     ));
+
+    addEventConnection(
+        mRootWindow->getChild("MenuEditorSave")->getChild("LevelWindowFrame")->getChild("SaveButton")->subscribeEvent(
+            CEGUI::Window::EventMouseClick,
+            CEGUI::Event::Subscriber(&EditorMode::saveMenuSaveButtonClicked, this)
+    ));
+
+    
     addEventConnection(
         mRootWindow->getChild("MenuEditorSave")->getChild("LevelWindowFrame")->subscribeEvent(
             CEGUI::FrameWindow::EventCloseClicked,
@@ -206,43 +220,59 @@ EditorMode::EditorMode(ModeManager* modeManager):
             ));
 
     
-    for(uint ii = 0 ;  ii < mGameMap->numClassDescriptions()   ; ++ii ){
+    for(uint ii = 0 ;  ii < mGameMap->numClassDescriptions()   ; ++ii )
+    {
         mGameMap->getClassDescription(ii);
         CEGUI::Window* ww = CEGUI::WindowManager::getSingletonPtr()->createWindow("OD/MenuItem");
         ww->setText(mGameMap->getClassDescription(ii)->getClassName());
         ww->setName(mGameMap->getClassDescription(ii)->getClassName());
         mRootWindow->getChild("Menubar")->getChild("Creatures")->getChild("PopupMenu2")->addChild(ww);
         addEventConnection(
+            ww->subscribeEvent(
+                CEGUI::Window::EventMouseClick,
+                CEGUI::Event::Subscriber([&, ii ] (const CEGUI::EventArgs& ea) {
+                        this->selectCreature(ii,ea);
+                        const CreatureDefinition* def = mGameMap->getClassDescription(mCurrentCreatureIndex);
+                        if(def == nullptr)
+                        {
+                            OD_LOG_ERR("unexpected null CreatureDefinition mCurrentCreatureIndex=" + Helper::toString(mCurrentCreatureIndex));
+                            return;
+                        }
+                        ClientNotification *clientNotification = new ClientNotification(
+                            ClientNotificationType::editorCreateFighter);
+                        clientNotification->mPacket << getModeManager().getInputManager().mSeatIdSelected;
+                        clientNotification->mPacket << def->getClassName();
+                        ODClient::getSingleton().queueClientNotification(clientNotification);
+                    })
+                ));
+    }
+    for(auto &ii : recentlyUsedLevels)
+    {
+        CEGUI::Window* ww = CEGUI::WindowManager::getSingletonPtr()->createWindow("OD/MenuItem");
+        ww->setText(ii.c_str());
+        ww->setName(ii.c_str());        
+        mRootWindow->getChild("Menubar")->getChild("File")->getChild("PopupMenu1")->getChild("RecentlyUsed")->getChild("PopupMenu2")->addChild(ww);
         ww->subscribeEvent(
             CEGUI::Window::EventMouseClick,
             CEGUI::Event::Subscriber([&, ii ] (const CEGUI::EventArgs& ea) {
-                    this->selectCreature(ii,ea);
-                    const CreatureDefinition* def = mGameMap->getClassDescription(mCurrentCreatureIndex);
-                    if(def == nullptr)
-                    {
-                        OD_LOG_ERR("unexpected null CreatureDefinition mCurrentCreatureIndex=" + Helper::toString(mCurrentCreatureIndex));
-                        return;
-                    }
-                    ClientNotification *clientNotification = new ClientNotification(
-                        ClientNotificationType::editorCreateFighter);
-                    clientNotification->mPacket << getModeManager().getInputManager().mSeatIdSelected;
-                    clientNotification->mPacket << def->getClassName();
-                    ODClient::getSingleton().queueClientNotification(clientNotification);
+                    dialogFullPath = ii.c_str();
+                    this->onYesConfirmMenu(ea);
                 })
-        ));
-    }    
+            );
+    }
+    
     installSeatsMenuButtons();
     const CEGUI::Image* selImg = &CEGUI::ImageManager::getSingleton().get("OpenDungeonsSkin/SelectionBrush");
-    CEGUI::Combobox* es = static_cast<CEGUI::Combobox*> (mRootWindow->getChild("MenuEditorSave")->getChild("LevelWindowFrame")->getChild("ExtensionSelect"));
-    es->resetList();
+    // CEGUI::Combobox* es = static_cast<CEGUI::Combobox*> (mRootWindow->getChild("MenuEditorSave")->getChild("LevelWindowFrame")->getChild("ExtensionSelect"));
+    // es->resetList();
     CEGUI::ListboxTextItem* any = new CEGUI::ListboxTextItem("any",0);
-    any->setText("any");
+    any->setText("anyExtension");
     any->setSelectionBrushImage(selImg);
-    CEGUI::ListboxTextItem* star = new CEGUI::ListboxTextItem("star",1);
-    star->setText("*.*");
+    CEGUI::ListboxTextItem* star = new CEGUI::ListboxTextItem("level",1);
+    star->setText("*.level");
     star->setSelectionBrushImage(selImg);    
-    es->addItem(any);
-    es->addItem(star);
+    // es->addItem(any);
+    // es->addItem(star);
     addEventConnection(
         mRootWindow->getChild("OptionsButton")->subscribeEvent(
             CEGUI::Window::EventMouseClick,
@@ -1139,6 +1169,16 @@ bool EditorMode::onYesConfirmMenu(const CEGUI::EventArgs& /*arg*/)
 }
 
 
+bool EditorMode::justSavePopUpMenu(const CEGUI::EventArgs& /*arg*/)
+{
+    if(ODClient::getSingleton().isConnected())
+    {
+        // Send a message to the server telling it we want to drop the creature
+        ODClient::getSingleton().queueClientNotification(ClientNotificationType::askSaveMap);
+    }
+    return true;
+}
+
 bool EditorMode::showEditorLoadMenu(const CEGUI::EventArgs& /*arg*/)
 {
     //TODO: Test whether the level was modified and ask accordingly.
@@ -1150,7 +1190,6 @@ bool EditorMode::showEditorLoadMenu(const CEGUI::EventArgs& /*arg*/)
 
 bool EditorMode::showEditorSaveMenu(const CEGUI::EventArgs& /*arg*/)
 {
-    //TODO: Test whether the level was modified and ask accordingly.
     mRootWindow->getChild("MenuEditorSave")->show();
     mRootWindow->getChild("MenuEditorSave")->getChild("LevelWindowFrame")->getChild("FilePath")->activate();
     // mRootWindow->getChild("MenuEditorSave")->getChild("LevelWindowFrame")->getChild("FilePath")->activate();    
@@ -1181,11 +1220,11 @@ bool EditorMode::onClickYesQuitMenu(const CEGUI::EventArgs& /*arg*/)
     return true;
 }
 
-bool EditorMode::loadMenuFilePathTextChanged(const CEGUI::EventArgs& /*arg*/)
+bool EditorMode::loadMenuFilePathTextChanged(const std::string FrameWindowName, const CEGUI::EventArgs& /*arg*/)
 {
 
-    CEGUI::String ss = mRootWindow->getChild("MenuEditorLoad")->getChild("LevelWindowFrame")->getChild("FilePath")->getText();
-    CEGUI::Listbox* levelSelectList = static_cast<CEGUI::Listbox*>(mRootWindow->getChild("MenuEditorLoad")->getChild("LevelWindowFrame")->getChild("LevelSelect"));
+    CEGUI::String ss = mRootWindow->getChild(FrameWindowName)->getChild("LevelWindowFrame")->getChild("FilePath")->getText();
+    CEGUI::Listbox* levelSelectList = static_cast<CEGUI::Listbox*>(mRootWindow->getChild(FrameWindowName)->getChild("LevelWindowFrame")->getChild("LevelSelect"));
 
 
     path p (ss.c_str());
@@ -1203,32 +1242,28 @@ bool EditorMode::loadMenuFilePathTextChanged(const CEGUI::EventArgs& /*arg*/)
                 item->setSelectionBrushImage("OpenDungeonsSkin/SelectionBrush");
                 levelSelectList->addItem(item);
                 int nn = 1;
-                for (directory_entry& x : directory_iterator(p))
+                for (directory_entry& xx : directory_iterator(p))
                 {
-                    CEGUI::ListboxTextItem* item = new CEGUI::ListboxTextItem(x.path().c_str());
-                    if(x.path().has_extension() && x.path().extension().compare(".level") == 0)
+                    if(!(isFileHidden(xx.path().leaf().c_str()) && !isCheckboxSelected(FrameWindowName + "/LevelWindowFrame/HiddenFiles")))
                     {
-                        item->setTextColours(CEGUI::Colour(1,0.64,0));
-                    }
+                        if(xx.path().has_extension() && xx.path().extension().compare(".level") == 0)
+                        {
+                            addPathNameToList(xx, levelSelectList, CEGUI::Colour(1,0.64,0), nn);
+                        }
                     
-                    else if(is_regular_file(x.path()))
-                    {
-                        item->setTextColours(CEGUI::Colour(0,1,0));
+                        else if(is_regular_file(xx.path()) &&  !isCheckboxSelected(FrameWindowName + "/LevelWindowFrame/OnlyLevel") )
+                        {
+                            addPathNameToList(xx, levelSelectList, CEGUI::Colour(0,1,0), nn);
+                        }
+                        else if(is_directory(xx.path()))
+                        {
+                            addPathNameToList(xx, levelSelectList, CEGUI::Colour(0,0,1), nn);
+                        }                    
+                        else if(!isCheckboxSelected(FrameWindowName + "/LevelWindowFrame/OnlyLevel"))
+                        {
+                            addPathNameToList(xx, levelSelectList, CEGUI::Colour(1,0,0), nn);
+                        }
                     }
-                    else if(is_directory(x.path()))
-                    {
-                        item->setTextColours(CEGUI::Colour(0,0,1));
-                    }                    
-                    else
-                    {
-                        item->setTextColours(CEGUI::Colour(1,0,0));
-                    }
-                    item->setText(x.path().leaf().c_str());
-
-                    item->setID(nn);
-                    item->setSelectionBrushImage("OpenDungeonsSkin/SelectionBrush");
-                    levelSelectList->addItem(item);
-                    nn++;
                 }
             }
         }
@@ -1236,7 +1271,7 @@ bool EditorMode::loadMenuFilePathTextChanged(const CEGUI::EventArgs& /*arg*/)
 
     catch (const filesystem_error& ex)
     {
-        std::cout << ex.what() << '\n';
+        std::cerr << ex.what() << '\n';
     }    
     return true;
 }
@@ -1303,12 +1338,25 @@ bool EditorMode::loadMenuLevelSelectDoubleClicked(const CEGUI::EventArgs& /*arg*
         return false;
 }
 
+bool EditorMode::saveMenuSaveButtonClicked(const CEGUI::EventArgs& /*arg*/)
+{
+
+    std::string filePath  = mRootWindow->getChild("MenuEditorSave")->getChild("LevelWindowFrame")->getChild("FilePath")->getText().c_str();
+    std::string fileName = mRootWindow->getChild("MenuEditorSave")->getChild("LevelWindowFrame")->getChild("FileName")->getText().c_str();
+    path pp (filePath.c_str());
+    if(ODClient::getSingleton().isConnected() && exists(pp))
+    {
+        // Send a message to the server telling it we want to drop the creature
+        ODClient::getSingleton().queueClientNotification(ClientNotificationType::askSaveMap,filePath, fileName);
+    }
+    return true;
+}
 
 bool EditorMode::saveMenuFilePathTextChanged(const CEGUI::EventArgs& /*arg*/)
 {
 
-    CEGUI::String ss = mRootWindow->getChild("MenuEditor")->getChild("LevelWindowFrame")->getChild("FilePath")->getText();
-    CEGUI::Listbox* levelSelectList = static_cast<CEGUI::Listbox*>(mRootWindow->getChild("MenuEditorLoad")->getChild("LevelWindowFrame")->getChild("LevelSelect"));
+    CEGUI::String ss = mRootWindow->getChild("MenuEditorSave")->getChild("LevelWindowFrame")->getChild("FilePath")->getText();
+    CEGUI::Listbox* levelSelectList = static_cast<CEGUI::Listbox*>(mRootWindow->getChild("MenuEditorSave")->getChild("LevelWindowFrame")->getChild("LevelSelect"));
 
 
     path p (ss.c_str());
@@ -1326,32 +1374,28 @@ bool EditorMode::saveMenuFilePathTextChanged(const CEGUI::EventArgs& /*arg*/)
                 item->setSelectionBrushImage("OpenDungeonsSkin/SelectionBrush");
                 levelSelectList->addItem(item);
                 int nn = 1;
-                for (directory_entry& x : directory_iterator(p))
+                for (directory_entry& xx : directory_iterator(p))
                 {
-                    CEGUI::ListboxTextItem* item = new CEGUI::ListboxTextItem(x.path().c_str());
-                    if(x.path().has_extension() && x.path().extension().compare(".level") == 0)
+                    if(!(isFileHidden(xx.path().leaf().c_str()) && !isCheckboxSelected("MenuEditorSave/LevelWindowFrame/HiddenFiles")))
                     {
-                        item->setTextColours(CEGUI::Colour(1,0.64,0));
-                    }
+                        if(xx.path().has_extension() && xx.path().extension().compare(".level") == 0)
+                        {
+                            addPathNameToList(xx, levelSelectList, CEGUI::Colour(1,0.64,0), nn);
+                        }
                     
-                    else if(is_regular_file(x.path()))
-                    {
-                        item->setTextColours(CEGUI::Colour(0,1,0));
+                        else if(is_regular_file(xx.path()) &&  !isCheckboxSelected("MenuEditorSave/LevelWindowFrame/OnlyLevel") )
+                        {
+                            addPathNameToList(xx, levelSelectList, CEGUI::Colour(0,1,0), nn);
+                        }
+                        else if(is_directory(xx.path()))
+                        {
+                            addPathNameToList(xx, levelSelectList, CEGUI::Colour(0,0,1), nn);
+                        }                    
+                        else if(!isCheckboxSelected("MenuEditorSave/LevelWindowFrame/OnlyLevel"))
+                        {
+                            addPathNameToList(xx, levelSelectList, CEGUI::Colour(1,0,0), nn);
+                        }
                     }
-                    else if(is_directory(x.path()))
-                    {
-                        item->setTextColours(CEGUI::Colour(0,0,1));
-                    }                    
-                    else
-                    {
-                        item->setTextColours(CEGUI::Colour(1,0,0));
-                    }
-                    item->setText(x.path().leaf().c_str());
-
-                    item->setID(nn);
-                    item->setSelectionBrushImage("OpenDungeonsSkin/SelectionBrush");
-                    levelSelectList->addItem(item);
-                    nn++;
                 }
             }
         }
@@ -1359,7 +1403,7 @@ bool EditorMode::saveMenuFilePathTextChanged(const CEGUI::EventArgs& /*arg*/)
 
     catch (const filesystem_error& ex)
     {
-        std::cout << ex.what() << '\n';
+        std::cerr << ex.what() << '\n';
     }    
     return true;
 }
@@ -1374,7 +1418,7 @@ bool EditorMode::saveMenuLevelSelectSelected(const CEGUI::EventArgs& /*arg*/)
 {
     CEGUI::Listbox* levelSelectList = static_cast<CEGUI::Listbox*>(mRootWindow->getChild("MenuEditorSave")->getChild("LevelWindowFrame")->getChild("LevelSelect"));
     CEGUI::Editbox* levelPathEditBox = static_cast<CEGUI::Editbox*>(mRootWindow->getChild("MenuEditorSave")->getChild("LevelWindowFrame")->getChild("FilePath"));
-    CEGUI::Editbox* levelNameEditBox = static_cast<CEGUI::Editbox*>(mRootWindow->getChild("MenuEditorSave")->getChild("LevelWindowFrame")->getChild("FilePath"));    
+    CEGUI::Editbox* levelNameEditBox = static_cast<CEGUI::Editbox*>(mRootWindow->getChild("MenuEditorSave")->getChild("LevelWindowFrame")->getChild("FileName"));    
     CEGUI::EventArgs args;
     CEGUI::String ss = mRootWindow->getChild("MenuEditorSave")->getChild("LevelWindowFrame")->getChild("FilePath")->getText();
 
@@ -1671,4 +1715,77 @@ void EditorMode::installSeatsMenuButtons()
 
     }
 
+}
+
+bool EditorMode::isCheckboxSelected(const CEGUI::String& checkbox)
+{
+    // Check
+    if (mRootWindow->isChild(checkbox))
+    {
+        CEGUI::ToggleButton* button = static_cast<CEGUI::ToggleButton*>(mRootWindow->getChild(checkbox));
+        return button->isSelected();
+    }
+    return false;
+}
+
+
+bool EditorMode::isFileHidden(const char* path)
+{
+#if OGRE_PLATFORM == OGRE_PLATFORM_WIN32
+    
+    DWORD attributes = GetFileAttributes(path);
+    return (attributes & FILE_ATTRIBUTE_HIDDEN);
+#else
+    return (path[0] == '.');
+#endif    
+}
+
+
+void EditorMode::addPathNameToList(directory_entry& xx, CEGUI::Listbox* levelSelectList, CEGUI::Colour cc, int& nn )
+{
+    CEGUI::ListboxTextItem* item = new CEGUI::ListboxTextItem(xx.path().c_str());
+    item->setTextColours(cc);
+    item->setText(xx.path().leaf().c_str());
+    item->setID(nn);
+    item->setSelectionBrushImage("OpenDungeonsSkin/SelectionBrush");
+    levelSelectList->addItem(item);
+    nn++;
+}
+
+
+EditorMode::~EditorMode()
+{
+    ofstream oo ("akuku.txt");
+    oo << recentlyUsedLevels;
+    
+}
+
+std::istream& operator>>(std::istream& is, boost::circular_buffer<boost::filesystem::path>& cb)
+{
+    boost::circular_buffer<boost::filesystem::path>::capacity_type capacity;
+    boost::circular_buffer<boost::filesystem::path>::size_type size;
+    is >> capacity;
+    cb.set_capacity(capacity);
+    is >> size;
+    cb.clear();
+    boost::filesystem::path pp;
+    while (size > 0) {
+        --size;
+        is >> pp;
+        cb.push_front(pp);
+    }
+    return is;
+}
+
+std::ostream& operator<<(std::ostream& os, const boost::circular_buffer<boost::filesystem::path>& cb)
+{
+    boost::circular_buffer<boost::filesystem::path>::size_type size = cb.size();
+    os << cb.capacity() << std::endl;
+    os << cb.size() << std::endl;
+    boost::filesystem::path pp;
+    while (size > 0) {
+        --size;
+        os << cb[size] << std::endl;
+    }
+    return os;
 }

@@ -1448,7 +1448,10 @@ bool ODServer::processClientNotifications(ODSocketClient* clientSocket)
                 break;
             if(!ODClient::getSingleton().isConnected())
                 break;
-
+            std::string receivedFilePath;
+            std::string receivedFileLevel;
+            OD_ASSERT_TRUE(packetReceived >>receivedFilePath);
+            OD_ASSERT_TRUE(packetReceived >>receivedFileLevel);    
             const boost::filesystem::path levelPath(gameMap->getLevelFileName());
             std::string fileLevel = levelPath.filename().string();
             // In editor mode, we don't allow a player to have creatures in hand while saving map
@@ -1466,21 +1469,29 @@ bool ODServer::processClientNotifications(ODSocketClient* clientSocket)
             boost::filesystem::path levelSave;
             if(mServerMode == ServerMode::ModeEditor)
             {
-                // In editor mode, we save in the original folder
-                levelSave = levelPath;
+                if(receivedFilePath=="" && receivedFileLevel=="")
+                {
+                    // In editor mode, we save in the original folder
+                    levelSave = levelPath;
 
-                // If the level was not a custom one, we save it as a custom one now.
-                // Note: We don't compare for official levels path, as they may be relative and unreliable.
-                std::string levelStr = levelSave.string();
-                ResourceManager& resMgr = ResourceManager::getSingleton();
-                bool skirmishLevelType = (levelStr.find("skirmish") != std::string::npos);
-                if (skirmishLevelType) {
-                    if (levelStr.find(resMgr.getUserLevelPathSkirmish()) == std::string::npos) {
-                        levelSave = boost::filesystem::path(resMgr.getUserLevelPathSkirmish() + fileLevel);
-                    }
+                    // // If the level was not a custom one, we save it as a custom one now.
+                    // // Note: We don't compare for official levels path, as they may be relative and unreliable.
+                    // std::string levelStr = levelSave.string();
+                    // ResourceManager& resMgr = ResourceManager::getSingleton();
+                    // bool skirmishLevelType = (levelStr.find("skirmish") != std::string::npos);
+                    // if (skirmishLevelType) {
+                    //     if (levelStr.find(resMgr.getUserLevelPathSkirmish()) == std::string::npos) {
+                    //         levelSave = boost::filesystem::path(resMgr.getUserLevelPathSkirmish() + fileLevel);
+                    //     }
+                    // }
+                    // else if (levelStr.find(resMgr.getUserLevelPathMultiplayer()) == std::string::npos) {
+                    //     levelSave = boost::filesystem::path(resMgr.getUserLevelPathMultiplayer() + fileLevel);
+                    // }
                 }
-                else if (levelStr.find(resMgr.getUserLevelPathMultiplayer()) == std::string::npos) {
-                    levelSave = boost::filesystem::path(resMgr.getUserLevelPathMultiplayer() + fileLevel);
+                else
+                {
+                    levelSave = boost::filesystem::path(receivedFilePath) /  receivedFileLevel;
+
                 }
                 std::cout << levelSave.string() << std::endl;
             }

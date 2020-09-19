@@ -23,6 +23,10 @@
 #include "modes/InputCommand.h"
 #include "modes/SettingsWindow.h"
 
+#include <boost/filesystem.hpp>
+#include <boost/circular_buffer.hpp>
+#include <iostream>
+
 class GameMap;
 class Gui; // Used to change the Current tile type
 
@@ -30,11 +34,12 @@ enum class TileVisual;
 
 class EditorMode final: public GameEditorModeBase, public InputCommand
 {
+    
 public:
     EditorMode(ModeManager* modeManager);
 
-    virtual ~EditorMode()
-    {}
+    virtual ~EditorMode();
+   
 
     virtual bool mouseMoved     (const OIS::MouseEvent &arg) override;
     virtual bool mousePressed   (const OIS::MouseEvent &arg, OIS::MouseButtonID id) override;
@@ -66,13 +71,15 @@ public:
     bool showQuitMenu(const CEGUI::EventArgs& arg = {});
     bool hideQuitMenu(const CEGUI::EventArgs& arg = {});
     bool showEditorLoadMenu(const CEGUI::EventArgs& arg = {});
+    bool justSavePopUpMenu(const CEGUI::EventArgs& arg = {});    
     bool showEditorSaveMenu(const CEGUI::EventArgs& arg = {});    
     bool hideEditorLoadMenu(const CEGUI::EventArgs& arg = {});
     bool hideEditorSaveMenu(const CEGUI::EventArgs& arg = {});
     void selectCreature(unsigned ii, CEGUI::EventArgs args /*arg*/);
-    bool loadMenuFilePathTextChanged(const CEGUI::EventArgs& /*arg*/);
+    bool loadMenuFilePathTextChanged(std::string, const CEGUI::EventArgs& /*arg*/);
     bool loadMenuLevelSelectSelected(const CEGUI::EventArgs& /*arg*/);
     bool loadMenuLevelSelectDoubleClicked(const CEGUI::EventArgs& /*arg*/);
+    bool saveMenuSaveButtonClicked(const CEGUI::EventArgs& /*arg*/);
     bool saveMenuFilePathTextChanged(const CEGUI::EventArgs& /*arg*/);
     bool saveMenuFileNameTextChanged(const CEGUI::EventArgs& /*arg*/);   
     bool saveMenuLevelSelectSelected(const CEGUI::EventArgs& /*arg*/);
@@ -90,7 +97,9 @@ public:
     void displayText(const Ogre::ColourValue& txtColour, const std::string& txt) override;
     bool updateDescription(const CEGUI::EventArgs& e = {});
     std::string getEnv( const std::string & var );
+    bool isCheckboxSelected(const CEGUI::String& checkbox);
 private:
+
     void connectTileSelect(const std::string& buttonName, TileVisual tileVisual);
 
     //! \brief Tile type (Dirt, Lava, Claimed, ...)
@@ -138,8 +147,19 @@ private:
     void installSeatsMenuButtons();
     void uninstallSeatsMenuButtons();
 
-    //! \brief file path to currently choosen file via load / save menu 
+    //! \brief file path to currently choosen file via load / save menu
+    bool isFileHidden(const char* path);
+    void addPathNameToList(boost::filesystem::directory_entry& xx, CEGUI::Listbox* levelSelectList, CEGUI::Colour cc, int& nn );
     std::string dialogFullPath;
+
+    boost::circular_buffer<boost::filesystem::path> recentlyUsedLevels;
+    
+    
 };
+
+
+std::istream& operator>>(std::istream&, boost::circular_buffer<boost::filesystem::path>& );
+std::ostream& operator<<(std::ostream&, const boost::circular_buffer<boost::filesystem::path>& );
+
 
 #endif // EDITORMODE_H
