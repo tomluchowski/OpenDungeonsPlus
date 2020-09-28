@@ -57,7 +57,8 @@ InputManager::InputManager(Ogre::RenderWindow* renderWindow):
     for (int i = 0; i < 10; ++i)
     {
         mHotkeyLocationIsValid[i] = false;
-        mHotkeyLocation[i] = Ogre::Vector3::ZERO;
+        mHotkeyLocation[i].vv = Ogre::Vector3::ZERO;
+        mHotkeyLocation[i].qq = Ogre::Quaternion::IDENTITY;
     }
 
 #ifndef OD_USE_SFML_WINDOW

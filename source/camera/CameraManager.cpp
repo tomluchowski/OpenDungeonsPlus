@@ -649,6 +649,27 @@ bool CameraManager::onFrameStarted()
      return true;
 }
 
+// bool CameraManager::saveCameraHistory(unsigned int ii)
+// {
+//     mCameraHistory.insert(std::pair<unsigned int, PosWithOrient>
+//                           (ii,PosWithOrient{getActiveCameraPosition(),getActiveCameraOrientation()}));
+//     return true;
+// }
+    
+// bool CameraManager::restorePreviousCameraPosition(unsigned int ii)
+// {
+//     try
+//     {
+//         CameraManager::getActiveCamera()->setPosition( mCameraHistory.at(ii).vv );
+//         CameraManager::getActiveCamera()->setOrientation( mCameraHistory.at(ii).qq );
+//     }
+//     catch(std::out_of_range& oor)
+//     {
+//         return false;
+//     }
+//     return true;
+// }
+
 bool CameraManager::isCameraMovingAtAll() const
 {
     // FIXME: Don't compare floating point for equality!

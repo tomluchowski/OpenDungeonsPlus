@@ -21,7 +21,11 @@
 #include <OgreSingleton.h>
 #include <OgreColourValue.h>
 
+#include <boost/filesystem.hpp>
+#include <boost/circular_buffer.hpp>
+
 #include <cstdint>
+
 
 class CreatureDefinition;
 class Weapon;
@@ -236,13 +240,20 @@ public:
 
     //! \brief Save the user configuration file.
     bool saveUserConfig();
+    //! \brief Save the editor configuration file.
+    bool saveEditorSettings();
 
+    
     //! \brief Tries to restore the previous video config
     //! To be called at startup once the user config has been loaded.
     bool initVideoConfig(Ogre::Root& ogreRoot);
 
     const std::vector<std::string>& getKeeperVoices() const
     { return mKeeperVoices; }
+
+
+    boost::circular_buffer<boost::filesystem::path>& getRecentlyUsedFiles()
+    { return recentlyUsedLevels; }
 
 private:
     //! \brief Function used to load the global configuration. They should return true if the configuration
@@ -261,7 +272,7 @@ private:
     bool loadSkills(const std::string& fileName);
     bool loadTilesets(const std::string& fileName);
     bool loadTilesetValues(std::istream& defFile, TileVisual tileVisual, std::vector<TileSetValue>& tileValues);
-
+    bool loadEditorSettings(const std::string& fileName);
     //! \brief Loads the user configuration values, and use default ones if it cannot do it.
     void loadUserConfig(const std::string& fileName);
 
@@ -276,6 +287,7 @@ private:
     std::map<std::string, Ogre::ColourValue> mSeatColors;
     std::map<std::string, CreatureDefinition*> mCreatureDefs;
     std::vector<const Weapon*> mWeapons;
+    std::string mConfigPath;
     std::string mFilenameCreatureDefinition;
     std::string mFilenameEquipmentDefinition;
     std::string mFilenameSpawnConditions;
@@ -285,6 +297,7 @@ private:
     std::string mFilenameSpells;
     std::string mFilenameSkills;
     std::string mFilenameTilesets;
+    std::string mFilenameEditor;
     std::string mFilenameUserCfg;
     uint32_t mNetworkPort;
     uint32_t mClientConnectionTimeout;
@@ -338,6 +351,9 @@ private:
 
     //! \brief List of the found keeper voices (in the relative sound folder)
     std::vector<std::string> mKeeperVoices;
+    
+    //! \brief Last opened file levels in editor mode
+    boost::circular_buffer<boost::filesystem::path> recentlyUsedLevels;
 };
 
 #endif //CONFIGMANAGER_H

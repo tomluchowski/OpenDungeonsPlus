@@ -39,7 +39,7 @@
                 <Property name="Area" value="{{0.5,-199},{0.75,0},{0.5,-35},{0.75,80}}" />
                 <Property name="Text" value="Back" />
             </Window>
-            <Window type="OD/MainMenuButton" name="LaunchEditorButton" >
+            <Window type="OD/MainMenuButton" name="LoadButton" >
                 <Property name="Area" value="{{0.5,12},{0.75,0},{0.5,176},{0.75,80}}" />
                 <Property name="Text" value="Load" />
             </Window>
@@ -48,7 +48,7 @@
                 <Property name="Text" value="Show Only Level Files" />
                 <Property name="TooltipText" value="Filter by the extension *.level" />
                 <Property name="MaxSize" value="{{1,0},{1,0}}" />
-                <Property name="Selected" value="True" />
+                <Property name="Selected" value="False" />
             </Window>
             <Window type="OD/Checkbox" name="HiddenFiles" >
                 <Property name="Area" value="{{0.5,12},{0.75,85},{0.5,200},{0.75,95}}" />      

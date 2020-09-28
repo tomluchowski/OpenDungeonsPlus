@@ -42,6 +42,7 @@ template<> ConfigManager* Ogre::Singleton<ConfigManager>::msSingleton = nullptr;
 
 ConfigManager::ConfigManager(const std::string& configPath, const std::string& userConfigPath,
         const std::string& soundPath) :
+    mConfigPath(configPath),
     mNetworkPort(0),
     mClientConnectionTimeout(5000),
     mBaseSpawnPoint(10),
@@ -129,6 +130,12 @@ ConfigManager::ConfigManager(const std::string& configPath, const std::string& u
         OD_LOG_ERR("Couldn't read loadTilesets");
         exit(1);
     }
+    fileName = configPath + mFilenameEditor;    
+    if(!loadEditorSettings(fileName))
+    {
+        OD_LOG_ERR("Couldn't read loadEditorSettings");
+        exit(1);
+    }
 
     // Reserve space in any case.
     mUserConfig.resize(Config::Ctg::TOTAL);
@@ -169,6 +176,7 @@ ConfigManager::~ConfigManager()
         delete p.second;
     }
     mTileSets.clear();
+    recentlyUsedLevels.clear();
 }
 
 bool ConfigManager::loadGlobalConfig(const std::string& configPath)
@@ -322,9 +330,14 @@ bool ConfigManager::loadGlobalConfigDefinitionFiles(std::stringstream& configFil
             mFilenameTilesets = fileName;
             filesOk |= 0x100;
         }
+        else if(type == "EditorSettings")
+        {
+            mFilenameEditor = fileName;
+            filesOk |= 0x200;
+        }    
     }
 
-    if(filesOk != 0x1FF)
+    if(filesOk != 0x3FF)
     {
         OD_LOG_ERR("Missing parameter file filesOk=" + Helper::toString(filesOk));
         return false;
@@ -1207,6 +1220,75 @@ bool ConfigManager::loadTilesetValues(std::istream& defFile, TileVisual tileVisu
         tileValues[index] = TileSetValue(meshName, materialName, rotX, rotY, rotZ);
     }
 }
+
+bool ConfigManager::loadEditorSettings(const std::string& fileName)
+{
+    OD_LOG_INF("Load EditorSettings file:" + fileName);
+    std::stringstream editorFile;
+    std::string nextParam;
+    boost::circular_buffer<boost::filesystem::path>::capacity_type capacity;
+    
+    if(!Helper::readFileWithoutComments(fileName, editorFile))
+    {
+        OD_LOG_ERR("Couldn't read " + fileName);
+        return false;
+    }
+    editorFile >> nextParam;
+    if (nextParam != "[Capacity]")
+    {
+        OD_LOG_ERR("Invalid EditorSettings start format. Expected [Capacity] Line was " + nextParam);
+        return false;
+    }
+    editorFile >> capacity;
+    editorFile >> nextParam;    
+    if (nextParam != "[/Capacity]")
+    {
+        OD_LOG_ERR("Invalid EditorSettings start format. Expected [/Capacity] Line was " + nextParam);
+        return false;
+    }
+    
+    recentlyUsedLevels.clear();
+    recentlyUsedLevels.set_capacity(capacity);
+    boost::filesystem::path pp;
+
+    editorFile >> nextParam;
+    if (nextParam != "[FilePath]")
+    {
+        OD_LOG_ERR("Invalid EditorSettings start format. Expected [FilePath] Line was " + nextParam);
+        return false;
+    }
+    
+    while(editorFile.good())
+    {
+        if (!(editorFile >> nextParam))
+        {
+            break;
+        }
+        else if (nextParam == "[/FilePath]")
+        {
+            break;
+        }        
+        recentlyUsedLevels.push_front(nextParam);
+    }
+    return true;
+}
+
+bool ConfigManager::saveEditorSettings()
+{
+    std::ofstream editorFile (mConfigPath + mFilenameEditor);
+    editorFile << "[Capacity]" << std::endl;
+    editorFile<<recentlyUsedLevels.capacity()  << std::endl;
+    editorFile << "[/Capacity]" << std::endl;
+    editorFile << "[FilePath]" << std::endl;
+    boost::circular_buffer<boost::filesystem::path>::size_type size = recentlyUsedLevels.size();
+    while(size--)
+    {
+        editorFile<<recentlyUsedLevels[size].c_str() << std::endl;
+    }
+    editorFile << "[/FilePath]";
+    return true;
+}
+
 
 void ConfigManager::loadUserConfig(const std::string& fileName)
 {

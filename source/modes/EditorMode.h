@@ -71,22 +71,25 @@ public:
     bool showQuitMenu(const CEGUI::EventArgs& arg = {});
     bool hideQuitMenu(const CEGUI::EventArgs& arg = {});
     bool showEditorLoadMenu(const CEGUI::EventArgs& arg = {});
-    bool justSavePopUpMenu(const CEGUI::EventArgs& arg = {});    
+    bool quickSavePopUpMenu(const CEGUI::EventArgs& arg = {});    
     bool showEditorSaveMenu(const CEGUI::EventArgs& arg = {});    
     bool hideEditorLoadMenu(const CEGUI::EventArgs& arg = {});
     bool hideEditorSaveMenu(const CEGUI::EventArgs& arg = {});
     void selectCreature(unsigned ii, CEGUI::EventArgs args /*arg*/);
-    bool loadMenuFilePathTextChanged(std::string, const CEGUI::EventArgs& /*arg*/);
+    bool showNewLevelDialog(const CEGUI::EventArgs& /*arg*/);
+    bool hideNewLevelDialog(const CEGUI::EventArgs& /*arg*/);
+    bool loadMenuFilePathTextChanged(const CEGUI::EventArgs& /*arg*/);
     bool loadMenuLevelSelectSelected(const CEGUI::EventArgs& /*arg*/);
-    bool loadMenuLevelSelectDoubleClicked(const CEGUI::EventArgs& /*arg*/);
+    bool loadMenuLevelDoubleClicked(const CEGUI::EventArgs& /*arg*/);
+    void loadMenuAskForConfirmation(const std::string&);
     bool saveMenuSaveButtonClicked(const CEGUI::EventArgs& /*arg*/);
     bool saveMenuFilePathTextChanged(const CEGUI::EventArgs& /*arg*/);
     bool saveMenuFileNameTextChanged(const CEGUI::EventArgs& /*arg*/);   
     bool saveMenuLevelSelectSelected(const CEGUI::EventArgs& /*arg*/);
-    bool saveMenuLevelSelectDoubleClicked(const CEGUI::EventArgs& /*arg*/);   
     bool onClickYesQuitMenu(const CEGUI::EventArgs& arg = {});
     bool hideConfirmMenu(const CEGUI::EventArgs& /*arg*/);
     bool onYesConfirmMenu(const CEGUI::EventArgs& /*arg*/);
+    bool launchNewLevelPressed(const CEGUI::EventArgs&);
     void setTileVisual(TileVisual tileVisual)
     { mCurrentTileVisual = tileVisual; }
 
@@ -144,22 +147,25 @@ private:
     void checkInputCommand();
     void handlePlayerActionNone();
     void handlePlayerActionChangeTile();
+    void installRecentlyUsedFilesButtons();
+    void uninstallRecentlyUsedFilesButtons();
     void installSeatsMenuButtons();
     void uninstallSeatsMenuButtons();
 
+    // void configureMenu(CEGUI::Window*);
+    // bool onMouseEntersMenuItem(const CEGUI::EventArgs& e);
+    // bool onMouseLeavesMenuItem(const CEGUI::EventArgs& e);
+    
+    bool loadLevelFromFile(const std::string&);
     //! \brief file path to currently choosen file via load / save menu
     bool isFileHidden(const char* path);
     void addPathNameToList(boost::filesystem::directory_entry& xx, CEGUI::Listbox* levelSelectList, CEGUI::Colour cc, int& nn );
     std::string dialogFullPath;
 
     boost::circular_buffer<boost::filesystem::path> recentlyUsedLevels;
-    
+
+    bool mModifiedMapBit; 
     
 };
-
-
-std::istream& operator>>(std::istream&, boost::circular_buffer<boost::filesystem::path>& );
-std::ostream& operator<<(std::ostream&, const boost::circular_buffer<boost::filesystem::path>& );
-
 
 #endif // EDITORMODE_H

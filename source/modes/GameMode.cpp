@@ -59,6 +59,8 @@
 
 #include <OgreRoot.h>
 #include <OgreRenderWindow.h>
+#include <OgreSceneNode.h>
+
 
 #include <algorithm>
 #include <vector>
@@ -1121,11 +1123,15 @@ void GameMode::handleHotkeys(OIS::KeyCode keycode)
     if (getKeyboard()->isModifierDown(OIS::Keyboard::Shift))
     {
         inputManager.mHotkeyLocationIsValid[keynumber] = true;
-        inputManager.mHotkeyLocation[keynumber] = frameListener.getCameraViewTarget();
+        inputManager.mHotkeyLocation[keynumber].vv  = frameListener.getCameraManager()->getActiveCameraNode()->getPosition();
+        inputManager.mHotkeyLocation[keynumber].qq  = frameListener.getCameraManager()->getActiveCameraNode()->getOrientation();
+        inputManager.mHotkeyLocation[keynumber].qq2  = frameListener.getCameraManager()->getActiveCameraNode()->getChild(0)->getOrientation();        
     }
     else if (inputManager.mHotkeyLocationIsValid[keynumber])
     {
-        frameListener.cameraFlyTo(inputManager.mHotkeyLocation[keynumber]);
+        frameListener.getCameraManager()->getActiveCameraNode()->setPosition(inputManager.mHotkeyLocation[keynumber].vv);
+        frameListener.getCameraManager()->getActiveCameraNode()->setOrientation(  inputManager.mHotkeyLocation[keynumber].qq);
+        frameListener.getCameraManager()->getActiveCameraNode()->getChild(0)->setOrientation(  inputManager.mHotkeyLocation[keynumber].qq2);                
     }
 }
 

@@ -31,6 +31,7 @@
 
 #include <cstdint>
 #include <set>
+#include <vector>
 
 class TileContainer;
 class GameMap;
@@ -63,6 +64,7 @@ public:
         randomRotateY, zeroRandomRotateY,
         fullStop
     };
+
 
     CameraManager(Ogre::SceneManager* sceneManager, GameMap* gameMap, Ogre::RenderWindow* renderWindow);
     virtual ~CameraManager();
@@ -190,7 +192,7 @@ private:
     Ogre::Camera* mActiveCamera;
     Ogre::SceneNode* mActiveCameraNode;
 
-
+    // std::map<unsigned int, PosWithOrient> mCameraHistory;
     GameMap* mGameMap;
 
     //! \brief Is true when a camera is flying to a given position.
@@ -228,6 +230,11 @@ private:
     //! \brief setup the viewport
     void createViewport(Ogre::RenderWindow* renderWindow);
 
+    // //! \brief save the current active camera position and orientation
+    // bool saveCameraHistory(unsigned int);
+
+    // //! \brief restore camera postion saved by saveCameraHistory
+    // bool restorePreviousCameraPosition(unsigned int);
     //! \brief Checks if the camera is moving at all by evaluating all momentums
     //! This permits to avoid useless computations when the camera doesn't move.
     bool isCameraMovingAtAll() const;

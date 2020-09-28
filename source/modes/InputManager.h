@@ -54,6 +54,15 @@ enum class InputCommandState
 class InputManager
 {
 public:
+
+    struct PosWithOrient
+    {
+        Ogre::Vector3 vv;
+        Ogre::Quaternion qq;
+        Ogre::Quaternion qq2;
+    };
+
+    
     InputManager(Ogre::RenderWindow* renderWindow);
     ~InputManager();
 
@@ -65,7 +74,7 @@ public:
 
 
     bool                mHotkeyLocationIsValid[10];
-    Ogre::Vector3       mHotkeyLocation[10];
+    PosWithOrient       mHotkeyLocation[10];
     std::unique_ptr<Keyboard>           mKeyboard;
 
     //! \brief mouse handling related member

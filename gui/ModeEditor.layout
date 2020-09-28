@@ -246,5 +246,6 @@
         <LayoutImport type="DefaultWindow" filename="WindowChat.layout" name="ChatWindowImport" />
         <LayoutImport type="DefaultWindow" filename="EditorLoad.layout" name="EditorLoadImport" />
         <LayoutImport type="DefaultWindow" filename="EditorSave.layout" name="EditorSaveImport" />
+        <LayoutImport type="DefaultWindow" filename="EditorNew.layout" name="EditorNewImport" />
     </Window>
 </GUILayout>

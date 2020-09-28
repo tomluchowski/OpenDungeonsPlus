@@ -2,18 +2,25 @@
 
 <GUILayout version="4" >
     <Window type="OD/FrameWindow" name="ConfirmLoad" >
-        <Property name="Area" value="{{0.5,-200},{0.5,-100},{0.5,200},{0.5,39}}" />
-        <Property name="Text" value="Are you sure ? \n You have an unsaved changes, your work will be lost, \n do you really want to load a new level?" />
+        <Property name="Area" value="{{0.5,-300},{0.5,-200},{0.5,300},{0.5,100}}" />
         <Property name="Alpha" value="0.8" />
         <Property name="AlwaysOnTop" value="True" />
+        <Property name="Text" value="Are you sure ?" /> 
+        <Property name="AlwaysOnTop" value="True" />
+        <Window type="OD/StaticText" name="Message" >
+       	    <Property name="Text" value="  You have an unsaved changes, your work will be lost,
+  Do you really want to load a new level?" />
+            <Property name="InheritsAlpha" value="False" />
+	    <Property name="Area" value="{{0.5,-220},{0.5,-100},{0.5,220},{0.5,0}}" />
+        </Window>
         <Window type="OD/Button" name="YesOption" >
-            <Property name="Area" value="{{0.3,-48},{0.6,-39},{0.3,44},{0.6,-1}}" />
+            <Property name="Area" value="{{0.3,-48},{0.8,-39},{0.3,44},{0.8,-1}}" />
             <Property name="Text" value="Yes" />
             <Property name="TooltipText" value="Confirm exit" />
             <Property name="InheritsAlpha" value="False" />
         </Window>
         <Window type="OD/Button" name="NoOption" >
-            <Property name="Area" value="{{0.7,-47},{0.6,-39},{0.7,45},{0.6,-1}}" />
+            <Property name="Area" value="{{0.7,-47},{0.8,-39},{0.7,45},{0.8,-1}}" />
             <Property name="Text" value="No" />
             <Property name="TooltipText" value="Cancel exit" />
             <Property name="InheritsAlpha" value="False" />

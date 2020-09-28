@@ -17,6 +17,7 @@
             <Property name="MaxSize" value="{{0,1000},{0,1000}}" />
             <Property name="MinSize" value="{{0,800},{0,600}}" />
             <Property name="AlwaysOnTop" value="True" />
+
             <Window type="OD/Editbox" name="FilePath" >
                 <Property name="Area" value="{{0,20},{0,35},{1.0,-25},{0,70}}" />
             </Window>
@@ -37,7 +38,7 @@
                 <Property name="Text" value="Show Only Level Files" />
                 <Property name="TooltipText" value="Filter by the extension *.level" />
                 <Property name="MaxSize" value="{{1,0},{1,0}}" />
-                <Property name="Selected" value="False" />
+                <Property name="Selected" value="True" />
             </Window>
             <Window type="OD/MainMenuButton" name="SaveButton" >
                 <Property name="Area" value="{{0.5,12},{0.75,0},{0.5,176},{0.75,80}}" />

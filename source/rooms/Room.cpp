@@ -572,8 +572,6 @@ void Room::restoreInitialEntityState()
     std::map<Seat*, std::vector<Tile*>> tiles;
     for(std::pair<Tile* const, TileData*>& p : mTileData)
     {
-        if(p.second->mSeatsVision.empty())
-            continue;
         for(Seat* seat : p.second->mSeatsVision)
         {
             seat->setVisibleBuildingOnTile(this, p.first);

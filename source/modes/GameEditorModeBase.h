@@ -123,7 +123,8 @@ protected:
         InputModeChat,
         InputModeConsole,
         InputModeLoad,
-        InputModeSave
+        InputModeSave,
+        InputModeNew
     };
 
     //! \brief The current input mode.
