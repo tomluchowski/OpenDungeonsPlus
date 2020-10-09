@@ -151,7 +151,7 @@ private:
     void uninstallRecentlyUsedFilesButtons();
     void installSeatsMenuButtons();
     void uninstallSeatsMenuButtons();
-
+    void addToRecentlyUsed(const std::string&);
     // void configureMenu(CEGUI::Window*);
     // bool onMouseEntersMenuItem(const CEGUI::EventArgs& e);
     // bool onMouseLeavesMenuItem(const CEGUI::EventArgs& e);

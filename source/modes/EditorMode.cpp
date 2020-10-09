@@ -69,9 +69,6 @@
 #include <CEGUI/widgets/Listbox.h>
 #include <CEGUI/widgets/Combobox.h>
 #include <CEGUI/widgets/MultiLineEditbox.h>
-// #include <CEGUI/widgets/MenuItem.h>
-// #include <CEGUI/widgets/Menubar.h>
-// #include <CEGUI/widgets/PopupMenu.h>
 #include <CEGUI/Window.h>
 #include <CEGUI/WindowManager.h>
 #include <CEGUI/ImageManager.h>
@@ -1185,13 +1182,9 @@ bool EditorMode::hideConfirmMenu(const CEGUI::EventArgs& /*arg*/)
 }
 bool EditorMode::onYesConfirmMenu(const CEGUI::EventArgs& /*arg*/)
 {
-    boost::filesystem::path pp (dialogFullPath.c_str());
-    if(std::find(ConfigManager::getSingleton().getRecentlyUsedFiles().begin(), ConfigManager::getSingleton().getRecentlyUsedFiles().end(),pp)==ConfigManager::getSingleton().getRecentlyUsedFiles().end())    
-    {
-        ConfigManager::getSingleton().getRecentlyUsedFiles().push_back(pp);
-    }
     uninstallRecentlyUsedFilesButtons();
     installRecentlyUsedFilesButtons();
+    addToRecentlyUsed(dialogFullPath);
     return loadLevelFromFile(dialogFullPath);
 }
 
@@ -1423,13 +1416,28 @@ bool EditorMode::loadMenuLevelDoubleClicked(const CEGUI::EventArgs& /*arg*/)
         return false;
 }
 
+void EditorMode::addToRecentlyUsed(const std::string& fileName)
+{
+    boost::filesystem::path pp (fileName.c_str());
+    if(std::find(ConfigManager::getSingleton().getRecentlyUsedFiles().begin(), ConfigManager::getSingleton().getRecentlyUsedFiles().end(),pp)==ConfigManager::getSingleton().getRecentlyUsedFiles().end())    
+    {
+        ConfigManager::getSingleton().getRecentlyUsedFiles().push_back(pp);
+    }
+
+}
+
 void EditorMode::loadMenuAskForConfirmation(const std::string& fileName)
 {
     dialogFullPath = fileName;
     if(mModifiedMapBit)
         mRootWindow->getChild("ConfirmLoad")->show();
     else
+    {
+        addToRecentlyUsed(dialogFullPath);
+        uninstallRecentlyUsedFilesButtons();
+        installRecentlyUsedFilesButtons();
         loadLevelFromFile(dialogFullPath);
+    }
 }
 
 bool EditorMode::saveMenuSaveButtonClicked(const CEGUI::EventArgs& /*arg*/)
@@ -1874,71 +1882,6 @@ EditorMode::~EditorMode()
     ConfigManager::getSingleton().saveEditorSettings();
 }
 
-// void EditorMode::configureMenu(CEGUI::Window* pParent) 
-// {
-//     // Recursively subscribe every menu item to the mouse enters/leaves/clicked events
-//     size_t childCount = pParent->getChildCount(); 
-//     for(size_t childIdx = 0; childIdx < childCount; childIdx++) 
-//     {
-//         if(dynamic_cast<CEGUI::MenuItem*>(pParent->getChildAtIdx(childIdx)) != nullptr )
-//         { 
-//             pParent->getChildAtIdx(childIdx)->subscribeEvent(CEGUI::MenuItem::EventMouseEntersSurface,   CEGUI::Event::Subscriber(&EditorMode::onMouseEntersMenuItem, this)); 
-
-//         }
-//         if (dynamic_cast<CEGUI::MenuItem*>(pParent->getChildAtIdx(childIdx)) != nullptr)
-//         {
-
-//             pParent->getChildAtIdx(childIdx)->subscribeEvent(CEGUI::MenuItem::EventMouseLeavesSurface,CEGUI::Event::Subscriber(&EditorMode::onMouseLeavesMenuItem, this));
-                                                             
-
-//         }
-//         configureMenu(pParent->getChildAtIdx(childIdx)); 
-//     } 
-// } 
- 
-// bool EditorMode::onMouseEntersMenuItem(const CEGUI::EventArgs& e)
-// {
-//     // Open or close a submenu
-//     const CEGUI::WindowEventArgs& we = dynamic_cast<const CEGUI::WindowEventArgs&>(e);
-//     CEGUI::MenuItem* menuItem = dynamic_cast<CEGUI::MenuItem*>(we.window);
-//     if(menuItem!=nullptr)
-//     {
-//         // setStatusText( menuItem->getTooltipText() );
-//         if( menuItem->getPopupMenu() != nullptr)
-//         {
-//             if( !menuItem->getPopupMenu()->isPopupMenuOpen() )
-//                 menuItem->getPopupMenu()->openPopupMenu();
-//         }
-//     }
-//     else
-//     {
-//         // setStatusText( "" );
-//     }
-//     return true;
-// }
- 
-// bool EditorMode::onMouseLeavesMenuItem(const CEGUI::EventArgs& e)
-// {
-//     // Open or close a submenu
-//     const CEGUI::WindowEventArgs& we = dynamic_cast<const CEGUI::WindowEventArgs&>(e);
-//     CEGUI::MenuItem* menuItem = dynamic_cast<CEGUI::MenuItem*>(we.window);
-//     // CEGUI::Window* parent = menuItem->getParent();
-//     // CEGUI::Menubar* menuBar = dynamic_cast<CEGUI::Menubar*>(parent);
-//     if(menuItem!=nullptr )
-//     {
-//         // setStatusText( menuItem->getTooltipText() );
-//         // if( menuItem->getPopupMenu() != nullptr)
-//         // {
-//         //     if( menuItem->getPopupMenu()->isPopupMenuOpen() )
-//         //         menuItem->getPopupMenu()->closePopupMenu();
-//         // }
-//     }
-//     else
-//     {
-//         // setStatusText( "" );
-//     }
-//     return true;
-// }
 bool EditorMode::launchNewLevelPressed(const CEGUI::EventArgs&)
 {
     // Creating the filename
