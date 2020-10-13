@@ -27,8 +27,11 @@
 #include <boost/circular_buffer.hpp>
 #include <iostream>
 
+
+class DraggableTileContainer;
 class GameMap;
 class Gui; // Used to change the Current tile type
+
 
 enum class TileVisual;
 
@@ -103,6 +106,8 @@ public:
     bool isCheckboxSelected(const CEGUI::String& checkbox);
 private:
 
+    DraggableTileContainer* dtc;
+    
     void connectTileSelect(const std::string& buttonName, TileVisual tileVisual);
 
     //! \brief Tile type (Dirt, Lava, Claimed, ...)

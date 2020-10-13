@@ -34,6 +34,14 @@ class SceneNode;
 class ParticleSystem;
 } //End namespace Ogre
 
+enum class NodeType
+{
+    MDTC_NODE,
+    MTILES_NODE
+
+};
+
+
 class Creature;
 class GameEntity;
 class GameMap;
@@ -216,7 +224,7 @@ class GameEntity
     { mEntityNode = sceneNode; }
 
     //! \brief Function that calls the mesh creation. If the mesh is already created, does nothing
-    void createMesh();
+    void createMesh(NodeType nt =  NodeType::MTILES_NODE);
     //! \brief Function that calls the mesh destruction. If the mesh is not created, does nothing
     void destroyMesh();
 
@@ -414,7 +422,7 @@ class GameEntity
     virtual void importFromPacket(ODPacket& is);
 
     //! \brief Function that implements the mesh creation
-    virtual void createMeshLocal()
+    virtual void createMeshLocal(NodeType nt = NodeType::MTILES_NODE)
     {}
 
     //! \brief Function that implements the mesh deletion

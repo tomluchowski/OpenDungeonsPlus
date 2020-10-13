@@ -31,6 +31,7 @@
 #include "entities/Weapon.h"
 #include "game/Player.h"
 #include "game/Seat.h"
+#include "gamemap/DraggableTileContainer.h"
 #include "gamemap/GameMap.h"
 #include "gamemap/TileSet.h"
 #include "render/CreatureOverlayStatus.h"
@@ -95,11 +96,13 @@ RenderManager::RenderManager(Ogre::OverlaySystem* overlaySystem) :
     mSceneManager = Ogre::Root::getSingleton().createSceneManager("OctreeSceneManager", "SceneManager");
     mSceneManager->addRenderQueueListener(overlaySystem);
 
+    mDraggableSceneNode = mSceneManager->getRootSceneNode()->createChildSceneNode("Draggable_scene_node");
     mCreatureSceneNode = mSceneManager->getRootSceneNode()->createChildSceneNode("Creature_scene_node");
     mTileSceneNode = mSceneManager->getRootSceneNode()->createChildSceneNode("Tile_scene_node");
     mRoomSceneNode = mSceneManager->getRootSceneNode()->createChildSceneNode("Room_scene_node");
     mLightSceneNode = mSceneManager->getRootSceneNode()->createChildSceneNode("Light_scene_node");
     mMainMenuSceneNode = mSceneManager->getRootSceneNode()->createChildSceneNode("MainMenu_scene_node");
+    mDraggableSceneNode->setPosition(5.0,5.0,3.0);
 }
 
 RenderManager::~RenderManager()
@@ -447,7 +450,7 @@ void RenderManager::updateRenderAnimations(Ogre::Real timeSinceLastFrame)
     }
 }
 
-void RenderManager::rrRefreshTile(const Tile& tile, const GameMap& gameMap, const Player& localPlayer)
+void RenderManager::rrRefreshTile(const Tile& tile, const DraggableTileContainer& draggableTileContainer, const Player& localPlayer,NodeType nt)
 {
     if (tile.getEntityNode() == nullptr)
         return;
@@ -469,9 +472,8 @@ void RenderManager::rrRefreshTile(const Tile& tile, const GameMap& gameMap, cons
         default:
             break;
     }
-
     bool isMarked = tile.getMarkedForDigging(&localPlayer);
-    const TileSetValue& tileSetValue = gameMap.getMeshForTile(&tile);
+    const TileSetValue& tileSetValue = draggableTileContainer.getMeshForTile(&tile);
 
     // We display the tile mesh if needed
     if(displayTilesetMesh)
@@ -559,7 +561,7 @@ void RenderManager::rrRefreshTile(const Tile& tile, const GameMap& gameMap, cons
         if(customMeshEnt->getMesh()->getName().compare(meshName) != 0)
         {
             // Unlink and delete the old mesh
-            mSceneManager->getSceneNode(customMeshName + "_node")->detachObject(customMeshEnt);
+            mSceneManager->getSceneNode(customMeshName + (static_cast<bool>(nt) ?  "_node" : "_dtc_node"))->detachObject(customMeshEnt);
             mSceneManager->destroyEntity(customMeshEnt);
             customMeshEnt = nullptr;
         }
@@ -568,7 +570,7 @@ void RenderManager::rrRefreshTile(const Tile& tile, const GameMap& gameMap, cons
     if((customMeshEnt == nullptr) && !meshName.empty())
     {
         // If the node does not exist, we create it
-        std::string customMeshNodeName = customMeshName + "_node";
+        std::string customMeshNodeName = customMeshName + (static_cast<bool>(nt) ?  "_node" : "_dtc_node");
         Ogre::SceneNode* customMeshNode;
         if(!mSceneManager->hasSceneNode(customMeshNodeName))
             customMeshNode = tile.getEntityNode()->createChildSceneNode(customMeshNodeName);
@@ -598,15 +600,19 @@ void RenderManager::rrRefreshTile(const Tile& tile, const GameMap& gameMap, cons
     }
 }
 
-void RenderManager::rrCreateTile(Tile& tile, const GameMap& gameMap, const Player& localPlayer)
+void RenderManager::rrCreateTile(Tile& tile, const DraggableTileContainer& dtc, const Player& localPlayer, NodeType nt)
 {
     std::string tileName = tile.getOgreNamePrefix() + tile.getName();
-    Ogre::SceneNode* node = mTileSceneNode->createChildSceneNode(tileName + "_node");
+    Ogre::SceneNode* node ;   
+    if(nt == NodeType::MTILES_NODE)
+        node = mTileSceneNode->createChildSceneNode(tileName + "_node");
+    else
+        node = mDraggableSceneNode->createChildSceneNode(tileName + "_dtc_node");
     tile.setParentSceneNode(node->getParentSceneNode());
     tile.setEntityNode(node);
     node->setPosition(static_cast<Ogre::Real>(tile.getX()), static_cast<Ogre::Real>(tile.getY()), 0);
 
-    rrRefreshTile(tile, gameMap, localPlayer);
+    rrRefreshTile(tile, dtc, localPlayer,nt);
 }
 
 void RenderManager::rrDestroyTile(Tile& tile)

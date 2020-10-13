@@ -257,9 +257,9 @@ Creature::~Creature()
 {
 }
 
-void Creature::createMeshLocal()
+void Creature::createMeshLocal(NodeType nt)
 {
-    MovableGameEntity::createMeshLocal();
+    MovableGameEntity::createMeshLocal(nt);
     if(!getIsOnServerMap())
     {
         RenderManager::getSingleton().rrCreateCreature(this);
@@ -2705,7 +2705,7 @@ void Creature::fireChatMsgFurious()
     ODServer::getSingleton().queueServerNotification(serverNotification);
 }
 
-void Creature::setupDefinition(GameMap& gameMap, const CreatureDefinition& defaultWorkerCreatureDefinition)
+void Creature::setupDefinition(DraggableTileContainer& dtc, const CreatureDefinition& defaultWorkerCreatureDefinition)
 {
     bool setHpToStrHp = false;
     if(mDefinition == nullptr)
@@ -2714,13 +2714,13 @@ void Creature::setupDefinition(GameMap& gameMap, const CreatureDefinition& defau
         // the dedicated class. The correct one will be set after the seat is initialized
         if(!mDefinitionString.empty() &&  mDefinitionString.compare(ConfigManager::DefaultWorkerCreatureDefinition) != 0)
         {
-            mDefinition = gameMap.getClassDescription(mDefinitionString);
+            mDefinition = dtc.getClassDescription(mDefinitionString);
         }
         else
         {
             // If we are in editor mode, we take the default worker class. Otherwise, we take
             // the default worker from the seat faction
-            if(gameMap.isInEditorMode() || !mSeat)
+            if(dtc.isInEditorMode() || !mSeat)
                 mDefinition = &defaultWorkerCreatureDefinition;
             else
                 mDefinition = getSeat()->getWorkerClassToSpawn();

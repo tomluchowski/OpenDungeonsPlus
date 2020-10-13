@@ -96,7 +96,9 @@ public:
     //! \brief Returns the tiles visible from the given start tile within radius. The tiles are ordered from the closest to
     //! the furthest
     std::vector<Tile*> visibleTiles(int x, int y, int radius);
-
+    //! \brief Set the map size and memory
+    bool allocateMapMemory(int xSize, int ySize);
+    
 protected:
     //! \brief The map size
     int mMapSizeX;
@@ -104,10 +106,11 @@ protected:
 
     int mRr;
 
-    //! \brief Set the map size and memory
-    bool allocateMapMemory(int xSize, int ySize);
-private:
+
     Tile*** mTiles;
+    
+private:
+
 
     //! \brief Fills mTileDistance that will help to compute a vector with sorted Tiles more efficiently
     void buildTileDistance(int distance);

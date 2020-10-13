@@ -21,6 +21,7 @@
 #include "camera/CullingManager.h"
 #include "entities/Creature.h"
 #include "entities/CreatureDefinition.h"
+#include "entities/GameEntity.h"
 #include "entities/GameEntityType.h"
 #include "entities/MapLight.h"
 #include "entities/RenderedMovableEntity.h"
@@ -28,6 +29,7 @@
 #include "game/SkillManager.h"
 #include "game/Player.h"
 #include "game/Seat.h"
+#include "gamemap/DraggableTileContainer.h"
 #include "gamemap/GameMap.h"
 #include "gamemap/MapHandler.h"
 #include "gamemap/MiniMap.h"
@@ -109,6 +111,23 @@ EditorMode::EditorMode(ModeManager* modeManager):
     mSettings(SettingsWindow(mRootWindow)),
     mModifiedMapBit(false)
 {
+
+    dtc = new DraggableTileContainer (0, false);
+    
+    dtc->allocateMapMemory(10,10);
+    for (int jj = 0; jj < 10; ++jj)
+    {
+        for (int ii = 0; ii < 10; ++ii)
+        {
+            Tile* tile = new Tile(mGameMap, ii, jj);
+            tile->setName(Tile::buildName(ii, jj));
+            tile->setType(TileType::dirt);
+            dtc->addTile(tile);
+        }
+    }
+    dtc->createAllEntities(NodeType::MDTC_NODE);
+
+    
     // Set per default the input on the map
     mModeManager->getInputManager().mMouseDownOnCEGUIWindow = false;
 
@@ -421,6 +440,7 @@ void EditorMode::activate()
     getModeManager().getInputManager().mSeatIdSelected = player->getSeat()->getId();
 
     refreshGuiSkill();
+
 
 }
 
@@ -1880,6 +1900,7 @@ void EditorMode::addPathNameToList(directory_entry& xx, CEGUI::Listbox* levelSel
 EditorMode::~EditorMode()
 {
     ConfigManager::getSingleton().saveEditorSettings();
+    delete dtc;
 }
 
 bool EditorMode::launchNewLevelPressed(const CEGUI::EventArgs&)

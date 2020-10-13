@@ -61,9 +61,9 @@ GameEntityType MapLight::getObjectType() const
 }
 
 
-void MapLight::createMeshLocal()
+void MapLight::createMeshLocal(NodeType nt)
 {
-    MovableGameEntity::createMeshLocal();
+    MovableGameEntity::createMeshLocal(nt);
 
     if(getIsOnServerMap())
         return;

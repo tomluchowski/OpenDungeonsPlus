@@ -18,7 +18,7 @@
 #ifndef GAMEMAP_H
 #define GAMEMAP_H
 
-#include "gamemap/TileContainer.h"
+#include "gamemap/DraggableTileContainer.h"
 
 #include "ai/AIManager.h"
 
@@ -31,7 +31,6 @@
 #include <cstdint>
 #include <map>
 #include <memory>
-#include <string>
 
 #include <OgreVector3.h>
 
@@ -94,7 +93,7 @@ enum class SelectionEntityWanted
  * sortest path between two tiles" or "what creatures are in some particular
  * tile".
  */
-class GameMap : public TileContainer
+class GameMap : public DraggableTileContainer
 {
 
 friend class RenderManager;
@@ -105,13 +104,6 @@ public:
     ~GameMap();
 
     std::string serverStr();
-
-    //! \brief Tells whether the game map is currently used for the map editor mode
-    //! or for a standard game session.
-    //! \note This function has got the noticeable role to keep the separation between the client
-    //! and the server game maps clean, by not calling client related code when acting
-    //! as a server game and vice versa.
-    bool isInEditorMode() const;
 
     //! \brief Load a level file (Part of the resource paths)
     //! \returns whether the file loaded correctly
@@ -126,11 +118,6 @@ public:
     //! Used when loading a map to setup the initial tile state.
     void setAllFullnessAndNeighbors();
 
-    //! \brief Creates meshes for all the tiles, creatures, rooms, traps and lights stored in this GameMap.
-    void createAllEntities();
-
-    //! \brief Destroyes meshes for all the tiles, creatures, rooms, traps and lights stored in this GameMap.
-    void destroyAllEntities();
 
     //! \brief Clears the mesh and deletes the data structure for all the tiles, creatures, classes, and players in the GameMap.
     void clearAll();
@@ -195,9 +182,7 @@ public:
      */
     void addClassDescription(const CreatureDefinition *c);
 
-    //! \brief Returns a pointer to the first class description whose 'name' or index parameter matches the query.
-    const CreatureDefinition* getClassDescription(int index);
-    const CreatureDefinition* getClassDescription(const std::string& className);
+
     CreatureDefinition* getClassDescriptionForTuning(const std::string& name);
 
     //! \brief Returns the total number of class descriptions stored in this game map.
@@ -291,7 +276,7 @@ public:
     void clearAiManager();
 
     Seat* getSeatById(int id) const;
-
+    
     inline Seat* getSeatRogue() const
     { return getSeatById(0); }
 
@@ -425,9 +410,6 @@ public:
     inline void setTurnNumber(int64_t turnNumber)
     { mTurnNumber = turnNumber; }
 
-    inline bool isServerGameMap() const
-    { return mIsServerGameMap; }
-
     inline bool getGamePaused() const
     { return mIsPaused; }
 
@@ -499,17 +481,11 @@ public:
     inline const std::vector<RenderedMovableEntity*>& getRenderedMovableEntities() const
     { return mRenderedMovableEntities; }
 
-    inline void setTileSetName(const std::string& tileSetName)
-    { mTileSetName = tileSetName; }
-
-    inline const std::string& getTileSetName() const
-    { return mTileSetName; }
 
     //! \brief getMeshForDefaultTile returns a mesh for some default dirt tile. This
     //! is used as a workaround to avoid lightning issues
     const std::string& getMeshForDefaultTile() const;
-    //! \brief get the tileset infos for the given tile
-    const TileSetValue& getMeshForTile(const Tile* tile) const;
+
 
     void playerSelects(std::vector<GameEntity*>& entities, int tileX1, int tileY1, int tileX2,
         int tileY2, SelectionTileAllowed tileAllowed, SelectionEntityWanted entityWanted, Player* player);
@@ -540,9 +516,7 @@ public:
     void fireRelativeSound(const std::vector<Seat*>& seats, const std::string& soundFamily);
 
 private:
-    //! \brief Tells whether this game map instance is used as a reference by the server-side,
-    //! or as a standard client game map.
-    bool mIsServerGameMap;
+
 
     //! \brief the Local player reference. The local player will also be in the player list so this pointer
     //! should not be deleted as it will be handled like every other in the list.
@@ -576,22 +550,10 @@ private:
     std::string mMapInfoMusicFile;
     std::string mMapInfoFightMusicFile;
 
-    std::vector<Creature*> mCreatures;
-
-    //! \brief The creature definition data. We use a pair to be able to make the difference between the original
-    //! data from the global creature definition file and the specific data from the level file. With this trick,
-    //! we will be able to compare and write the differences in the level file.
-    //! It is the same for weapons.
-    std::vector<std::pair<const CreatureDefinition*,CreatureDefinition*> > mClassDescriptions;
     std::vector<std::pair<const Weapon*,Weapon*> > mWeapons;
 
     //Mutable to allow locking in const functions.
     std::vector<MovableGameEntity*> mAnimatedObjects;
-
-    //! \brief Map Entities
-    std::vector<Room*> mRooms;
-    std::vector<Trap*> mTraps;
-    std::vector<MapLight*> mMapLights;
 
     //! \brief Players and available game player slots (Seats)
     std::vector<Player*> mPlayers;
@@ -618,18 +580,10 @@ private:
     //! \brief Debug member used to know how many call to pathfinding has been made within the same turn.
     unsigned int mNumCallsTo_path;
 
-    std::vector<RenderedMovableEntity*> mRenderedMovableEntities;
-
-    std::vector<Spell*> mSpells;
-
     std::vector<int> mTeamIds;
 
     //! AI Handling manager
     AIManager mAiManager;
-
-    //! Map tileset
-    const TileSet* mTileSet;
-    std::string mTileSetName;
 
     //! \brief Updates different entities states.
     //! Updates active objects (creatures, rooms, ...), goals, count each team Workers, gold, mana and claimed tiles.

@@ -26,7 +26,9 @@
 #include <OgreSingleton.h>
 #include <OgreMath.h>
 #include <cstdint>
+#include "entities/GameEntity.h"
 
+class DraggableTileContainer;
 class GameMap;
 class Building;
 class Seat;
@@ -51,6 +53,7 @@ namespace RTShader {
     class ShaderGenerator;
 }
 } //End namespace Ogre
+
 
 class RenderManager: public Ogre::Singleton<RenderManager>
 {
@@ -96,8 +99,8 @@ public:
     static std::string consoleListAnimationsForMesh(const std::string& meshName);
 
     //Render request functions
-    void rrRefreshTile(const Tile& tile, const GameMap& gameMap, const Player& localPlayer);
-    void rrCreateTile(Tile& tile, const GameMap& gameMap, const Player& localPlayer);
+    void rrRefreshTile(const Tile& tile, const DraggableTileContainer& draggableTileContainer, const Player& localPlayer, NodeType nt = NodeType::MDTC_NODE);
+    void rrCreateTile(Tile& tile, const DraggableTileContainer& dtc, const Player& localPlayer, NodeType nt = NodeType::MTILES_NODE);
     void rrDestroyTile(Tile& tile);
     void rrTemporalMarkTile(Tile* curTile);
     void rrDetachEntity(GameEntity* curEntity);
@@ -204,6 +207,7 @@ private:
     Ogre::SceneManager* mSceneManager;
 
     //! \brief Reference to the Ogre sub scene nodes. Don't delete them.
+    Ogre::SceneNode* mDraggableSceneNode;
     Ogre::SceneNode* mTileSceneNode;
     Ogre::SceneNode* mRoomSceneNode;
     Ogre::SceneNode* mCreatureSceneNode;

@@ -572,13 +572,13 @@ std::string GameEntity::getOgreNamePrefix() const
     return Helper::toString(static_cast<int32_t>(getObjectType())) + "-";
 }
 
-void GameEntity::createMesh()
+void GameEntity::createMesh(NodeType nt)
 {
     if (mMeshExists)
         return;
 
     mMeshExists = true;
-    createMeshLocal();
+    createMeshLocal(nt);
 }
 
 void GameEntity::destroyMesh()

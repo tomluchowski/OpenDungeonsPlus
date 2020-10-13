@@ -37,6 +37,7 @@ class CreatureEffect;
 class CreatureDefinition;
 class CreatureOverlayStatus;
 class CreatureSkill;
+class DraggableTileContainer;
 class GameMap;
 class ODPacket;
 class Room;
@@ -485,7 +486,7 @@ public:
     //! but is now split out since this is needed on the server, while the mesh isn't.
     //! This is normally called by the constructor, but creatures loaded from the map files
     //! use a different constructor, and this is then called by the gameMap when other details have been loaded.
-    void setupDefinition(GameMap& gameMap, const CreatureDefinition& defaultWorkerCreatureDefinition);
+    void setupDefinition(DraggableTileContainer& dtc, const CreatureDefinition& defaultWorkerCreatureDefinition);
 
     //! Called on server side to add an effect (spell, slap, ...) to this creature
     void addCreatureEffect(CreatureEffect* effect);
@@ -594,7 +595,7 @@ protected:
     virtual void exportToStream(std::ostream& os) const override;
     virtual bool importFromStream(std::istream& is) override;
 
-    virtual void createMeshLocal() override;
+    virtual void createMeshLocal(NodeType nt = NodeType::MTILES_NODE) override;
     virtual void destroyMeshLocal() override;
     virtual void fireAddEntity(Seat* seat, bool async) override;
     virtual void fireRemoveEntity(Seat* seat) override;

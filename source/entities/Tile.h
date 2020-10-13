@@ -18,6 +18,8 @@
 #ifndef TILE_H
 #define TILE_H
 
+
+
 #include "entities/GameEntity.h"
 
 #include <OgreVector3.h>
@@ -478,7 +480,7 @@ protected:
     virtual void importFromPacket(ODPacket& is) override
     {}
 
-    virtual void createMeshLocal() override;
+    virtual void createMeshLocal(NodeType nt = NodeType::MTILES_NODE) override;
     virtual void destroyMeshLocal() override;
 private:
     //! \brief The tile position

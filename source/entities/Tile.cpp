@@ -922,14 +922,14 @@ void Tile::setFullness(double f)
     }
 }
 
-void Tile::createMeshLocal()
+void Tile::createMeshLocal(NodeType nt)
 {
     GameEntity::createMeshLocal();
 
     if(getIsOnServerMap())
         return;
 
-    RenderManager::getSingleton().rrCreateTile(*this, *getGameMap(), *getGameMap()->getLocalPlayer());
+    RenderManager::getSingleton().rrCreateTile(*this, *getGameMap(), *getGameMap()->getLocalPlayer(),nt);
 }
 
 void Tile::destroyMeshLocal()

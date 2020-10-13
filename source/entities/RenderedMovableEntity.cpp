@@ -63,7 +63,7 @@ RenderedMovableEntity::RenderedMovableEntity(GameMap* gameMap) :
 {
 }
 
-void RenderedMovableEntity::createMeshLocal()
+void RenderedMovableEntity::createMeshLocal(NodeType nt)
 {
     MovableGameEntity::createMeshLocal();
 

@@ -125,7 +125,7 @@ protected:
     virtual void exportToPacket(ODPacket& os, const Seat* seat) const override;
     virtual void importFromPacket(ODPacket& is) override;
 
-    virtual void createMeshLocal() override;
+    virtual void createMeshLocal(NodeType nt = NodeType::MTILES_NODE) override;
     virtual void destroyMeshLocal() override;
     virtual void fireAddEntity(Seat* seat, bool async) override;
     virtual void fireRemoveEntity(Seat* seat) override;
