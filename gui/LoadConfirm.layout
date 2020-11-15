@@ -8,8 +8,8 @@
         <Property name="Text" value="Are you sure ?" /> 
         <Property name="AlwaysOnTop" value="True" />
         <Window type="OD/StaticText" name="Message" >
-       	    <Property name="Text" value="  You have an unsaved changes, your work will be lost,
-  Do you really want to load a new level?" />
+       	    <Property name="Text" value="  You have an unsaved changes, your work will be lost, &#0010;
+      Do you really want to load a new level?" />
             <Property name="InheritsAlpha" value="False" />
 	    <Property name="Area" value="{{0.5,-220},{0.5,-100},{0.5,220},{0.5,0}}" />
         </Window>
