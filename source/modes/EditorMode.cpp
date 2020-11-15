@@ -29,16 +29,17 @@
 #include "game/SkillManager.h"
 #include "game/Player.h"
 #include "game/Seat.h"
-#include "gamemap/DraggableTileContainer.h"
 #include "gamemap/GameMap.h"
 #include "gamemap/MapHandler.h"
 #include "gamemap/MiniMap.h"
 #include "gamemap/Pathfinding.h"
+#include "gamemap/TileMarker.h"
 #include "modes/GameEditorModeConsole.h"
 #include "network/ChatEventMessage.h"
 #include "network/ODClient.h"
 #include "network/ODServer.h"
 #include "network/ServerMode.h"
+#include "render/DebugDrawer.h"
 #include "render/Gui.h"
 #include "render/ODFrameListener.h"
 #include "render/RenderManager.h"
@@ -62,6 +63,7 @@
 #include <OgreSceneNode.h>
 #include <OgreRoot.h>
 #include <OgreRenderWindow.h>
+#include <OgreAxisAlignedBox.h>
 
 #include <CEGUI/widgets/FrameWindow.h>
 #include <CEGUI/widgets/ToggleButton.h>
@@ -75,11 +77,14 @@
 #include <CEGUI/WindowManager.h>
 #include <CEGUI/ImageManager.h>
 
+
 #include <algorithm>
-#include <vector>
-#include <string>
 #include <cstdio>
 #include <fstream>
+#include <string>
+#include <vector>
+
+
 
 using namespace boost::filesystem;
 
@@ -103,6 +108,7 @@ namespace
 
 EditorMode::EditorMode(ModeManager* modeManager):
     GameEditorModeBase(modeManager, ModeManager::EDITOR, modeManager->getGui().getGuiSheet(Gui::guiSheet::editorModeGui)),
+    draggableTileContainer(nullptr),
     mCurrentTileVisual(TileVisual::nullTileVisual),
     mCurrentFullness(100.0),
     mCurrentCreatureIndex(0),
@@ -112,22 +118,6 @@ EditorMode::EditorMode(ModeManager* modeManager):
     mModifiedMapBit(false)
 {
 
-    dtc = new DraggableTileContainer (0, false);
-    
-    dtc->allocateMapMemory(10,10);
-    for (int jj = 0; jj < 10; ++jj)
-    {
-        for (int ii = 0; ii < 10; ++ii)
-        {
-            Tile* tile = new Tile(mGameMap, ii, jj);
-            tile->setName(Tile::buildName(ii, jj));
-            tile->setType(TileType::dirt);
-            dtc->addTile(tile);
-        }
-    }
-    dtc->createAllEntities(NodeType::MDTC_NODE);
-
-    
     // Set per default the input on the map
     mModeManager->getInputManager().mMouseDownOnCEGUIWindow = false;
 
@@ -168,30 +158,54 @@ EditorMode::EditorMode(ModeManager* modeManager):
     );
     
     addEventConnection(
-        mRootWindow->getChild("Menubar")->getChild("File")->getChild("PopupMenu1")->getChild("New")->subscribeEvent(
+        mRootWindow->getChild("Menubar")->getChild("File")->getChild("PopupMenu1")
+        ->getChild("New")->subscribeEvent(
             CEGUI::Window::EventMouseClick,
             CEGUI::Event::Subscriber(&EditorMode::showNewLevelDialog, this)
-            ));
+    ));
     addEventConnection(
-        mRootWindow->getChild("Menubar")->getChild("File")->getChild("PopupMenu1")->getChild("Quit")->subscribeEvent(
+        mRootWindow->getChild("Menubar")->getChild("File")->getChild("PopupMenu1")
+        ->getChild("Quit")->subscribeEvent(
             CEGUI::Window::EventMouseClick,
             CEGUI::Event::Subscriber(&EditorMode::onClickYesQuitMenu, this)
     ));
     addEventConnection(
-        mRootWindow->getChild("Menubar")->getChild("File")->getChild("PopupMenu1")->getChild("Load")->subscribeEvent(
+        mRootWindow->getChild("Menubar")->getChild("File")->getChild("PopupMenu1")
+        ->getChild("Load")->subscribeEvent(
             CEGUI::Window::EventMouseClick,
             CEGUI::Event::Subscriber(&EditorMode::showEditorLoadMenu, this)
     ));
     addEventConnection(
-        mRootWindow->getChild("Menubar")->getChild("File")->getChild("PopupMenu1")->getChild("Save")->subscribeEvent(
+        mRootWindow->getChild("Menubar")->getChild("File")->getChild("PopupMenu1")
+        ->getChild("Save")->subscribeEvent(
             CEGUI::Window::EventMouseClick,
             CEGUI::Event::Subscriber(&EditorMode::quickSavePopUpMenu, this)
     ));      
     addEventConnection(
-        mRootWindow->getChild("Menubar")->getChild("File")->getChild("PopupMenu1")->getChild("SaveAs")->subscribeEvent(
+        mRootWindow->getChild("Menubar")->getChild("File")->getChild("PopupMenu1")
+        ->getChild("SaveAs")->subscribeEvent(
             CEGUI::Window::EventMouseClick,
             CEGUI::Event::Subscriber(&EditorMode::showEditorSaveMenu, this)
+    ));
+    addEventConnection(
+        mRootWindow->getChild("Menubar")->getChild("Edit")->getChild("PopupMenu3")
+        ->getChild("Copy")->subscribeEvent(
+            CEGUI::Window::EventMouseClick,
+            CEGUI::Event::Subscriber(&EditorMode::onEditCopy, this)
+    ));
+    addEventConnection(
+        mRootWindow->getChild("Menubar")->getChild("Edit")->getChild("PopupMenu3")
+        ->getChild("Paste")->subscribeEvent(
+            CEGUI::Window::EventMouseClick,
+            CEGUI::Event::Subscriber(&EditorMode::onEditPaste, this)
     ));    
+    addEventConnection(
+        mRootWindow->getChild("Menubar")->getChild("Edit")->getChild("PopupMenu3")
+        ->getChild("Delete")->subscribeEvent(
+            CEGUI::Window::EventMouseClick,
+            CEGUI::Event::Subscriber(&EditorMode::onEditDelete, this)
+    ));
+    
     addEventConnection(
         mRootWindow->getChild("LevelWindowFrame")->subscribeEvent(
             CEGUI::FrameWindow::EventCloseClicked,
@@ -199,7 +213,8 @@ EditorMode::EditorMode(ModeManager* modeManager):
     ));
    
     addEventConnection(
-        mRootWindow->getChild("MenuEditorLoad")->getChild("LevelWindowFrame")->getChild("BackButton")->subscribeEvent(
+        mRootWindow->getChild("MenuEditorLoad")->getChild("LevelWindowFrame")
+        ->getChild("BackButton")->subscribeEvent(
             CEGUI::Window::EventMouseClick,
             CEGUI::Event::Subscriber(&EditorMode::hideEditorLoadMenu, this)
     ));
@@ -209,69 +224,82 @@ EditorMode::EditorMode(ModeManager* modeManager):
             CEGUI::Event::Subscriber(&EditorMode::hideEditorLoadMenu, this)
     ));
     addEventConnection(
-        mRootWindow->getChild("MenuEditorLoad")->getChild("LevelWindowFrame")->getChild("FilePath")->subscribeEvent(
+        mRootWindow->getChild("MenuEditorLoad")->getChild("LevelWindowFrame")
+        ->getChild("FilePath")->subscribeEvent(
             CEGUI::Editbox::EventTextAccepted,
             CEGUI::Event::Subscriber(&EditorMode::loadMenuFilePathTextChanged, this)
     ));    
     addEventConnection(
-        mRootWindow->getChild("MenuEditorLoad")->getChild("LevelWindowFrame")->getChild("LevelSelect")->subscribeEvent(
+        mRootWindow->getChild("MenuEditorLoad")->getChild("LevelWindowFrame")
+        ->getChild("LevelSelect")->subscribeEvent(
             CEGUI::Editbox::EventMouseClick,
             CEGUI::Event::Subscriber(&EditorMode::loadMenuLevelSelectSelected, this)
             ));
     addEventConnection(
-        mRootWindow->getChild("MenuEditorLoad")->getChild("LevelWindowFrame")->getChild("LevelSelect")->subscribeEvent(
+        mRootWindow->getChild("MenuEditorLoad")->getChild("LevelWindowFrame")
+        ->getChild("LevelSelect")->subscribeEvent(
             CEGUI::Editbox::EventMouseDoubleClick,
             CEGUI::Event::Subscriber(&EditorMode::loadMenuLevelDoubleClicked, this)
             ));    
     addEventConnection(
-        mRootWindow->getChild("MenuEditorSave")->getChild("LevelWindowFrame")->getChild("BackButton")->subscribeEvent(
+        mRootWindow->getChild("MenuEditorSave")->getChild("LevelWindowFrame")
+        ->getChild("BackButton")->subscribeEvent(
             CEGUI::Window::EventMouseClick,
             CEGUI::Event::Subscriber(&EditorMode::hideEditorSaveMenu, this)
     ));
 
     addEventConnection(
-        mRootWindow->getChild("MenuEditorSave")->getChild("LevelWindowFrame")->getChild("SaveButton")->subscribeEvent(
+        mRootWindow->getChild("MenuEditorSave")->getChild("LevelWindowFrame")
+        ->getChild("SaveButton")->subscribeEvent(
             CEGUI::Window::EventMouseClick,
             CEGUI::Event::Subscriber(&EditorMode::saveMenuSaveButtonClicked, this)
     ));
     addEventConnection(
-        mRootWindow->getChild("MenuEditorLoad")->getChild("LevelWindowFrame")->getChild("LoadButton")->subscribeEvent(
+        mRootWindow->getChild("MenuEditorLoad")->getChild("LevelWindowFrame")
+        ->getChild("LoadButton")->subscribeEvent(
             CEGUI::Window::EventMouseClick,
             CEGUI::Event::Subscriber(&EditorMode::loadMenuLevelDoubleClicked, this)
     ));
     
     addEventConnection(
-        mRootWindow->getChild("MenuEditorSave")->getChild("LevelWindowFrame")->subscribeEvent(
+        mRootWindow->getChild("MenuEditorSave")->getChild("LevelWindowFrame")
+        ->subscribeEvent(
             CEGUI::FrameWindow::EventCloseClicked,
             CEGUI::Event::Subscriber(&EditorMode::hideEditorSaveMenu, this)
     ));
     addEventConnection(
-        mRootWindow->getChild("MenuEditorSave")->getChild("LevelWindowFrame")->getChild("FilePath")->subscribeEvent(
+        mRootWindow->getChild("MenuEditorSave")->getChild("LevelWindowFrame")
+        ->getChild("FilePath")->subscribeEvent(
             CEGUI::Editbox::EventTextAccepted,
             CEGUI::Event::Subscriber(&EditorMode::saveMenuFilePathTextChanged, this)
     ));
     addEventConnection(
-        mRootWindow->getChild("MenuEditorSave")->getChild("LevelWindowFrame")->getChild("FileName")->subscribeEvent(
+        mRootWindow->getChild("MenuEditorSave")->getChild("LevelWindowFrame")
+        ->getChild("FileName")->subscribeEvent(
             CEGUI::Editbox::EventTextAccepted,
             CEGUI::Event::Subscriber(&EditorMode::saveMenuFileNameTextChanged, this)
     ));     
     addEventConnection(
-        mRootWindow->getChild("MenuEditorSave")->getChild("LevelWindowFrame")->getChild("LevelSelect")->subscribeEvent(
+        mRootWindow->getChild("MenuEditorSave")->getChild("LevelWindowFrame")
+        ->getChild("LevelSelect")->subscribeEvent(
             CEGUI::Editbox::EventMouseClick,
             CEGUI::Event::Subscriber(&EditorMode::saveMenuLevelSelectSelected, this)
     ));
     addEventConnection(
-        mRootWindow->getChild("MenuEditorSave")->getChild("LevelWindowFrame")->getChild("LevelSelect")->subscribeEvent(
+        mRootWindow->getChild("MenuEditorSave")->getChild("LevelWindowFrame")
+        ->getChild("LevelSelect")->subscribeEvent(
             CEGUI::Editbox::EventMouseDoubleClick,
             CEGUI::Event::Subscriber(&EditorMode::saveMenuSaveButtonClicked, this)
-            ));
+    ));
+    
     for(uint ii = 0 ;  ii < mGameMap->numClassDescriptions()   ; ++ii )
     {
         mGameMap->getClassDescription(ii);
         CEGUI::Window* ww = CEGUI::WindowManager::getSingletonPtr()->createWindow("OD/MenuItem");
         ww->setText(mGameMap->getClassDescription(ii)->getClassName());
         ww->setName(mGameMap->getClassDescription(ii)->getClassName());
-        mRootWindow->getChild("Menubar")->getChild("Creatures")->getChild("PopupMenu2")->addChild(ww);
+        mRootWindow->getChild("Menubar")->getChild("Creatures")
+        ->getChild("PopupMenu4")->addChild(ww);
         addEventConnection(
             ww->subscribeEvent(
                 CEGUI::Window::EventMouseClick,
@@ -310,44 +338,52 @@ EditorMode::EditorMode(ModeManager* modeManager):
             CEGUI::Event::Subscriber(&EditorMode::toggleOptionsWindow, this)
     ));    
     addEventConnection(
-        mRootWindow->getChild("EditorOptionsWindow/SaveLevelButton")->subscribeEvent(
+        mRootWindow->getChild("EditorOptionsWindow/SaveLevelButton")
+        ->subscribeEvent(
             CEGUI::Window::EventMouseClick,
             CEGUI::Event::Subscriber(&EditorMode::onSaveButtonClickFromOptions, this)
     ));
     addEventConnection(
-        mRootWindow->getChild("EditorOptionsWindow/SettingsButton")->subscribeEvent(
+        mRootWindow->getChild("EditorOptionsWindow/SettingsButton")
+        ->subscribeEvent(
             CEGUI::PushButton::EventClicked,
             CEGUI::Event::Subscriber(&EditorMode::showSettingsFromOptions, this)
         )
     );
     addEventConnection(
-        mRootWindow->getChild("EditorOptionsWindow/QuitEditorButton")->subscribeEvent(
+        mRootWindow->getChild("EditorOptionsWindow/QuitEditorButton")
+        ->subscribeEvent(
             CEGUI::Window::EventMouseClick,
             CEGUI::Event::Subscriber(&EditorMode::showQuitMenuFromOptions, this)
     ));
 
     addEventConnection(
-        mRootWindow->getChild("EditorOptionsWindow/QuitEditorButton")->subscribeEvent(
+        mRootWindow->getChild("EditorOptionsWindow/QuitEditorButton")
+        ->subscribeEvent(
             CEGUI::Window::EventMouseClick,
             CEGUI::Event::Subscriber(&EditorMode::showQuitMenuFromOptions, this)
     ));
     addEventConnection(
-        mRootWindow->getChild("MenuEditorSave")->getChild("LevelWindowFrame")->getChild("OnlyLevel")->subscribeEvent(
+        mRootWindow->getChild("MenuEditorSave")->getChild("LevelWindowFrame")
+        ->getChild("OnlyLevel")->subscribeEvent(
             CEGUI::Window::EventMouseClick,
             CEGUI::Event::Subscriber(&EditorMode::saveMenuFilePathTextChanged, this)
     ));
     addEventConnection(
-        mRootWindow->getChild("MenuEditorLoad")->getChild("LevelWindowFrame")->getChild("OnlyLevel")->subscribeEvent(
+        mRootWindow->getChild("MenuEditorLoad")->getChild("LevelWindowFrame")
+        ->getChild("OnlyLevel")->subscribeEvent(
             CEGUI::Window::EventMouseClick,
             CEGUI::Event::Subscriber(&EditorMode::loadMenuFilePathTextChanged, this)
     ));
     addEventConnection(
-        mRootWindow->getChild("MenuEditorSave")->getChild("LevelWindowFrame")->getChild("HiddenFiles")->subscribeEvent(
+        mRootWindow->getChild("MenuEditorSave")->getChild("LevelWindowFrame")
+        ->getChild("HiddenFiles")->subscribeEvent(
             CEGUI::Window::EventMouseClick,
             CEGUI::Event::Subscriber(&EditorMode::saveMenuFilePathTextChanged, this)
     ));
     addEventConnection(
-        mRootWindow->getChild("MenuEditorLoad")->getChild("LevelWindowFrame")->getChild("HiddenFiles")->subscribeEvent(
+        mRootWindow->getChild("MenuEditorLoad")->getChild("LevelWindowFrame")
+        ->getChild("HiddenFiles")->subscribeEvent(
             CEGUI::Window::EventMouseClick,
             CEGUI::Event::Subscriber(&EditorMode::loadMenuFilePathTextChanged, this)
     ));
@@ -383,11 +419,14 @@ EditorMode::EditorMode(ModeManager* modeManager):
     );
 
     // Fills the Level type combo box with the available level types.
-    const CEGUI::Image* selImg = &CEGUI::ImageManager::getSingleton().get("OpenDungeonsSkin/SelectionBrush");
-    CEGUI::Combobox* levelTypeCb = static_cast<CEGUI::Combobox*>(mRootWindow->getChild("LevelWindowFrame/LevelTypeSelect"));
+    const CEGUI::Image* selImg = &CEGUI::ImageManager
+    ::getSingleton().get("OpenDungeonsSkin/SelectionBrush");
+    CEGUI::Combobox* levelTypeCb = static_cast<CEGUI::Combobox*>
+    (mRootWindow->getChild("LevelWindowFrame/LevelTypeSelect"));
     levelTypeCb->resetList();
 
-    CEGUI::ListboxTextItem* item = new CEGUI::ListboxTextItem("Skirmish Level", 0);
+    CEGUI::ListboxTextItem* item =
+    new CEGUI::ListboxTextItem("Skirmish Level", 0);
     item->setSelectionBrushImage(selImg);
     levelTypeCb->addItem(item);
 
@@ -422,12 +461,17 @@ void EditorMode::activate()
     guiSheet->getChild("ConfirmExit/SaveReplayCheckbox")->hide();
     guiSheet->getChild("GameChatWindow/GameChatEditBox")->hide();
     guiSheet->getChild("MenuEditorLoad")->hide();
-    guiSheet->getChild("MenuEditorLoad")->getChild("LevelWindowFrame")->getChild("FilePath")->setText(getEnv("HOME"));
-    guiSheet->getChild("MenuEditorLoad")->getChild("LevelWindowFrame")->getChild("FilePath")->fireEvent(CEGUI::Editbox::EventTextAccepted,args); 
+    guiSheet->getChild("MenuEditorLoad")->getChild("LevelWindowFrame")
+    ->getChild("FilePath")->setText(getEnv("HOME"));
+    guiSheet->getChild("MenuEditorLoad")->getChild("LevelWindowFrame")
+    ->getChild("FilePath")->fireEvent(CEGUI::Editbox::EventTextAccepted,args); 
     guiSheet->getChild("MenuEditorSave")->hide();
-    guiSheet->getChild("MenuEditorSave")->getChild("LevelWindowFrame")->getChild("FilePath")->setText(getEnv("HOME"));
-    guiSheet->getChild("MenuEditorSave")->getChild("LevelWindowFrame")->getChild("FilePath")->fireEvent(CEGUI::Editbox::EventTextAccepted,args);     
-    CEGUI::Combobox* levelTypeCb = static_cast<CEGUI::Combobox*>(mRootWindow->getChild("LevelWindowFrame/LevelTypeSelect"));
+    guiSheet->getChild("MenuEditorSave")->getChild("LevelWindowFrame")
+    ->getChild("FilePath")->setText(getEnv("HOME"));
+    guiSheet->getChild("MenuEditorSave")->getChild("LevelWindowFrame")
+    ->getChild("FilePath")->fireEvent(CEGUI::Editbox::EventTextAccepted,args);     
+    CEGUI::Combobox* levelTypeCb = static_cast<CEGUI::Combobox*>
+    (mRootWindow->getChild("LevelWindowFrame/LevelTypeSelect"));
     levelTypeCb->setItemSelectState(static_cast<size_t>(0), true);
     
     giveFocus();
@@ -441,7 +485,6 @@ void EditorMode::activate()
 
     refreshGuiSkill();
 
-
 }
 
 bool EditorMode::mouseMoved(const OIS::MouseEvent &arg)
@@ -451,12 +494,25 @@ bool EditorMode::mouseMoved(const OIS::MouseEvent &arg)
     if (!isConnected())
         return true;
 
-    if (mCurrentInputMode == InputModeChat || mCurrentInputMode == InputModeSave || mCurrentInputMode == InputModeLoad || mCurrentInputMode == InputModeNew)
+    if (mCurrentInputMode == InputModeChat || mCurrentInputMode == InputModeSave
+        || mCurrentInputMode == InputModeLoad || mCurrentInputMode == InputModeNew)
         return true;
     
     InputManager& inputManager = mModeManager->getInputManager();
-    inputManager.mCommandState = (inputManager.mLMouseDown ? InputCommandState::building : InputCommandState::infoOnly);
+    inputManager.mCommandState = (inputManager.mLMouseDown ? InputCommandState::building
+                                  : InputCommandState::infoOnly);
 
+
+    if(inputManager.mMouseDownOnDraggableTileContainer)
+    {
+        Ogre::Vector3 mKeeperHandPosOverBlock2;
+        if(ODFrameListener::getSingleton().findWorldPositionFromMouse(
+               arg,mKeeperHandPosOverBlock2,inputManager.mKeeperHandPosOverBlock.z))
+        {
+            draggableTileContainer->setRoundedPosition(
+                Ogre::Vector2(mKeeperHandPosOverBlock2.x,mKeeperHandPosOverBlock2.y), inputManager.offsetDraggableTileContainer);
+        }
+    }
     // If we have a room/trap/spell selected, show it
     // TODO: This should be changed, or combined with an icon or something later.
     TextRenderer& textRenderer = TextRenderer::getSingleton();
@@ -471,7 +527,8 @@ bool EditorMode::mouseMoved(const OIS::MouseEvent &arg)
     // Since this is a tile selection query we loop over the result set
     // and look for the first object which is actually a tile.
     Ogre::Vector3 keeperHandPos;
-    if(!ODFrameListener::getSingleton().findWorldPositionFromMouse(arg, keeperHandPos))
+    if(!ODFrameListener::getSingleton().findWorldPositionFromMouse(
+           arg, keeperHandPos,RenderManager::KEEPER_HAND_WORLD_Z))
         return true;
 
     RenderManager::getSingleton().moveWorldCoords(keeperHandPos.x, keeperHandPos.y);
@@ -483,7 +540,8 @@ bool EditorMode::mouseMoved(const OIS::MouseEvent &arg)
         return true;
 
     std::vector<GameEntity*> entities;
-    tileClicked->fillWithEntities(entities, SelectionEntityWanted::creatureAlive, mGameMap->getLocalPlayer());
+    tileClicked->fillWithEntities(entities, SelectionEntityWanted::creatureAlive,
+                                  mGameMap->getLocalPlayer());
     // We search the closest creature alive
     Creature* closestCreature = nullptr;
     double closestDist = 0;
@@ -524,7 +582,12 @@ bool EditorMode::mouseMoved(const OIS::MouseEvent &arg)
         mMouseY = inputManager.mYPos;
         updateCursorText();
     }
+    if(mTileMarker.isExtensible)
+    {
+        mTileMarker.setPoint( Ogre::Vector2( inputManager.mXPos, inputManager.mYPos  ));
+    }
 
+    
     return true;
 }
 
@@ -602,9 +665,16 @@ bool EditorMode::mousePressed(const OIS::MouseEvent &arg, OIS::MouseButtonID id)
     }
 
     Ogre::Vector3 keeperHandPos;
-    if(!ODFrameListener::getSingleton().findWorldPositionFromMouse(arg, keeperHandPos))
+    if(!ODFrameListener::getSingleton().findWorldPositionFromMouse(
+           arg, keeperHandPos,RenderManager::KEEPER_HAND_WORLD_Z))
+        return true;
+    
+    if(!ODFrameListener::getSingleton().findWorldPositionFromMouse(
+           arg, keeperHandPos,RenderManager::getSingletonPtr()
+           ->getSceneManager()->getRootSceneNode()->getChild("Draggable_scene_node")->getPosition().z))
         return true;
 
+            
     RenderManager::getSingleton().moveWorldCoords(keeperHandPos.x, keeperHandPos.y);
 
     int tileX = Helper::round(keeperHandPos.x);
@@ -615,6 +685,7 @@ bool EditorMode::mousePressed(const OIS::MouseEvent &arg, OIS::MouseButtonID id)
 
     if (id == OIS::MB_Middle)
     {
+        mTileMarker.isVisible = false;
         // See if the mouse is over any entity that might display a stats window
         std::vector<GameEntity*> entities;
         tileClicked->fillWithEntities(entities, SelectionEntityWanted::any, mGameMap->getLocalPlayer());
@@ -653,6 +724,7 @@ bool EditorMode::mousePressed(const OIS::MouseEvent &arg, OIS::MouseButtonID id)
     // Right mouse button down
     if (id == OIS::MB_Right)
     {
+        mTileMarker.isVisible = false;
         inputManager.mRMouseDown = true;
         inputManager.mRStartDragX = inputManager.mXPos;
         inputManager.mRStartDragY = inputManager.mYPos;
@@ -741,11 +813,31 @@ bool EditorMode::mousePressed(const OIS::MouseEvent &arg, OIS::MouseButtonID id)
     if (id != OIS::MB_Left)
         return true;
 
+
+    if(draggableTileContainer)
+        if(ODFrameListener::getSingleton().rayIntersectionGameMap(
+               arg, inputManager.mKeeperHandPosOverBlock, draggableTileContainer))
+        {
+            inputManager.mMouseDownOnDraggableTileContainer = true;
+            inputManager.offsetDraggableTileContainer =
+            draggableTileContainer->getPosition() - Ogre::Vector2(
+                inputManager.mKeeperHandPosOverBlock.x,inputManager.mKeeperHandPosOverBlock.y) ;
+            return true;
+        }
+
+
+    
     // Left mouse button down
     inputManager.mLMouseDown = true;
     inputManager.mLStartDragX = inputManager.mXPos;
     inputManager.mLStartDragY = inputManager.mYPos;
 
+    mTileMarker.isVisible = true;
+    mTileMarker.isExtensible = true;
+    mTileMarker.setMark(Ogre::Vector2(inputManager.mLStartDragX,inputManager.mLStartDragY));
+    mTileMarker.setPoint(Ogre::Vector2(inputManager.mLStartDragX,inputManager.mLStartDragY));
+
+    
     // Check whether the player is already placing rooms or traps.
     if (mPlayerSelection.getCurrentAction() != SelectedAction::none)
     {
@@ -789,6 +881,11 @@ bool EditorMode::mousePressed(const OIS::MouseEvent &arg, OIS::MouseButtonID id)
         return true;
     }
 
+    // If we are doing nothing and we click on a tile, it is a tile selection
+    if(mPlayerSelection.getCurrentAction() == SelectedAction::none)
+        mPlayerSelection.setCurrentAction(SelectedAction::selectTile);
+
+
     return true;
 }
 
@@ -815,9 +912,13 @@ bool EditorMode::mouseReleased(const OIS::MouseEvent& arg, OIS::MouseButtonID id
     // Left mouse button up
     inputManager.mLMouseDown = false;
 
+    inputManager.mMouseDownOnDraggableTileContainer = false;
+    
     // We notify current selection input
     checkInputCommand();
 
+    // mTileMarker.isVisible = false;
+    mTileMarker.isExtensible = false;
     return true;
 }
 
@@ -948,13 +1049,27 @@ bool EditorMode::keyPressed(const OIS::KeyEvent &arg)
 
     //Toggle mCurrentCreatureIndex
     case OIS::KC_C:
-        if(++mCurrentCreatureIndex >= mGameMap->numClassDescriptions())
+        if( getKeyboard()->isModifierDown(OIS::Keyboard::Ctrl))
+        {
+            onEditCopy();
+        }
+        else if(++mCurrentCreatureIndex >= mGameMap->numClassDescriptions())
         {
             mCurrentCreatureIndex = 0;
         }
         updateCursorText();
         break;
 
+    case OIS::KC_V:
+        if( getKeyboard()->isModifierDown(OIS::Keyboard::Ctrl))
+        {
+            onEditPaste();
+        }
+        break;
+
+    case OIS::KC_DELETE:
+        onEditDelete();
+        break;
     // Quit the Editor Mode
     case OIS::KC_ESCAPE:
         showQuitMenu();
@@ -1052,31 +1167,117 @@ void EditorMode::handleHotkeys(OIS::KeyCode keycode)
     ODFrameListener& frameListener = ODFrameListener::getSingleton();
     InputManager& inputManager = mModeManager->getInputManager();
 
-    //keycode minus two because the codes are shifted by two against the actual number
+    // keycode minus two because the codes are shifted by two against the actual number
     unsigned int keynumber = keycode - 2;
 
     if (getKeyboard()->isModifierDown(OIS::Keyboard::Shift))
     {
         inputManager.mHotkeyLocationIsValid[keynumber] = true;
-        inputManager.mHotkeyLocation[keynumber].vv  = frameListener.getCameraManager()->getActiveCameraNode()->getPosition();
-        inputManager.mHotkeyLocation[keynumber].qq  = frameListener.getCameraManager()->getActiveCameraNode()->getOrientation();
-        inputManager.mHotkeyLocation[keynumber].qq2  = frameListener.getCameraManager()->getActiveCameraNode()->getChild(0)->getOrientation();        
+        inputManager.mHotkeyLocation[keynumber].vv  = frameListener.getCameraManager()
+        ->getActiveCameraNode()->getPosition();
+        inputManager.mHotkeyLocation[keynumber].qq  = frameListener.getCameraManager()
+        ->getActiveCameraNode()->getOrientation();
+        inputManager.mHotkeyLocation[keynumber].qq2  = frameListener.getCameraManager()
+        ->getActiveCameraNode()->getChild(0)->getOrientation();        
     }
     else if (inputManager.mHotkeyLocationIsValid[keynumber])
     {
-        frameListener.getCameraManager()->getActiveCameraNode()->setPosition(inputManager.mHotkeyLocation[keynumber].vv);
-        frameListener.getCameraManager()->getActiveCameraNode()->setOrientation(  inputManager.mHotkeyLocation[keynumber].qq);
-        frameListener.getCameraManager()->getActiveCameraNode()->getChild(0)->setOrientation(  inputManager.mHotkeyLocation[keynumber].qq2);                
+        frameListener.getCameraManager()->getActiveCameraNode()
+        ->setPosition(inputManager.mHotkeyLocation[keynumber].vv);
+        frameListener.getCameraManager()->getActiveCameraNode()
+        ->setOrientation(  inputManager.mHotkeyLocation[keynumber].qq);
+        frameListener.getCameraManager()->getActiveCameraNode()
+        ->getChild(0)->setOrientation(  inputManager.mHotkeyLocation[keynumber].qq2);                
     }
 }
+
+void EditorMode::onEditCopy()
+{
+    if(draggableTileContainer==nullptr)
+    {
+        // we create another Gamemap which will be visible and hover over the orignal
+        draggableTileContainer = new GameMap(0);
+    
+        draggableTileContainer->allocateMapMemory(
+            mTileMarker.getMaxX() - mTileMarker.getMinX() + 1, mTileMarker.getMaxY() - mTileMarker.getMinY() + 1);
+
+        draggableTileContainer->setTileSetName("Default");
+        for (int jj = 0; jj < draggableTileContainer->getMapSizeY(); ++jj)
+        {
+            for (int ii = 0; ii < draggableTileContainer->getMapSizeX(); ++ii)
+            {
+                Tile* tile = new Tile(draggableTileContainer, ii, jj);
+                tile->setParentSceneNode( dynamic_cast<Ogre::SceneNode*>(RenderManager::getSingletonPtr()->getSceneManager()->getRootSceneNode()->getChild("Draggable_scene_node")));
+                std::stringstream tileName("");
+                tileName << Tile::TILE_PREFIX << tile->getX() << "_" << tile->getY();
+                tile->setName(tileName.str());
+                // Maybe we should also setup the tile's position, however this
+                // doesn't have a smallest influence on how draggableTileContainer work
+                draggableTileContainer->addTile(tile);
+            }
+        }
+
+        draggableTileContainer->setPosition(Ogre::Vector2(std::min(mTileMarker.mark.x,mTileMarker.point.x), std::min(mTileMarker.mark.y,mTileMarker.point.y) ));
+        // query server what is the content of tiles we hover over in orginal map
+        // only server side has the revelant info 
+        ClientNotification* notif = new ClientNotification(ClientNotificationType::editorAskRevealTiles);
+        notif->mPacket << static_cast<unsigned int> ( mTileMarker.getMinX())
+                       << static_cast<unsigned int> ( mTileMarker.getMinY())
+                       << static_cast<unsigned int> ( mTileMarker.getMinX()
+                                                      + draggableTileContainer->getMapSizeX() - 1)
+                       << static_cast<unsigned int> ( mTileMarker.getMinY()
+                                                      + draggableTileContainer->getMapSizeY() - 1);
+
+        ODClient::getSingleton().queueClientNotification(notif);
+        draggableTileContainer->createAllEntities(NodeType::MDTC_NODE);
+    }
+}
+
+
+void EditorMode::onEditPaste()
+{
+    if(draggableTileContainer!=nullptr)
+    {
+        mGameMap->askServerCopyTilesWithOffsetFrom(*draggableTileContainer,0,0,
+                                                   draggableTileContainer->getMapSizeX(),draggableTileContainer->getMapSizeY(),
+                                                   draggableTileContainer->getPosition().x, draggableTileContainer->getPosition().y );
+        mModifiedMapBit = true;
+    }
+}
+
+void EditorMode::onEditDelete()
+{
+    if(draggableTileContainer!=nullptr)
+    {
+        draggableTileContainer->clearAll(NodeType::MDTC_NODE);
+        delete draggableTileContainer;
+        draggableTileContainer=nullptr;
+    }
+}
+
 //! Rendering methods
 void EditorMode::onFrameStarted(const Ogre::FrameEvent& evt)
-{
+{   
+    if(draggableTileContainer){
+        Ogre::ColourValue cv;
+        cv.setAsRGBA(0x33337700);
+        DebugDrawer::getSingleton().drawCuboid(draggableTileContainer->getAABB()
+                                               .getAllCorners().data(), cv, true);
+    }
+    if( mTileMarker.isVisible ){
+        Ogre::ColourValue cv;
+        cv.setAsRGBA(0x77333300);
+        DebugDrawer::getSingleton().drawCuboid(mTileMarker.getAABB()
+                                               .getAllCorners().data(), cv, true);
+
+    }
+    DebugDrawer::getSingleton().build();
     GameEditorModeBase::onFrameStarted(evt);
 }
 
 void EditorMode::onFrameEnded(const Ogre::FrameEvent& evt)
 {
+    DebugDrawer::getSingleton().clear();
 }
 
 void EditorMode::notifyGuiAction(GuiAction guiAction)
@@ -1283,7 +1484,8 @@ bool EditorMode::showEditorLoadMenu(const CEGUI::EventArgs& /*arg*/)
 {
     //TODO: Test whether the level was modified and ask accordingly.
     mRootWindow->getChild("MenuEditorLoad")->show();
-    mRootWindow->getChild("MenuEditorLoad")->getChild("LevelWindowFrame")->getChild("FilePath")->activate();
+    mRootWindow->getChild("MenuEditorLoad")->getChild("LevelWindowFrame")
+    ->getChild("FilePath")->activate();
     mCurrentInputMode = InputModeLoad;
     return true;
 }
@@ -1291,9 +1493,9 @@ bool EditorMode::showEditorLoadMenu(const CEGUI::EventArgs& /*arg*/)
 bool EditorMode::showEditorSaveMenu(const CEGUI::EventArgs& /*arg*/)
 {
     mRootWindow->getChild("MenuEditorSave")->show();
-    mRootWindow->getChild("MenuEditorSave")->getChild("LevelWindowFrame")->getChild("FilePath")->activate();
-    // mRootWindow->getChild("MenuEditorSave")->getChild("LevelWindowFrame")->getChild("FilePath")->activate();    
-    mCurrentInputMode = InputModeLoad;
+    mRootWindow->getChild("MenuEditorSave")->getChild("LevelWindowFrame")
+    ->getChild("FilePath")->activate();
+    mCurrentInputMode = InputModeSave;
     return true;
 }
 
@@ -1323,8 +1525,10 @@ bool EditorMode::onClickYesQuitMenu(const CEGUI::EventArgs& /*arg*/)
 bool EditorMode::loadMenuFilePathTextChanged( const CEGUI::EventArgs& /*arg*/)
 {
 
-    CEGUI::String ss = mRootWindow->getChild("MenuEditorLoad")->getChild("LevelWindowFrame")->getChild("FilePath")->getText();
-    CEGUI::Listbox* levelSelectList = static_cast<CEGUI::Listbox*>(mRootWindow->getChild("MenuEditorLoad")->getChild("LevelWindowFrame")->getChild("LevelSelect"));
+    CEGUI::String ss = mRootWindow->getChild("MenuEditorLoad")
+    ->getChild("LevelWindowFrame")->getChild("FilePath")->getText();
+    CEGUI::Listbox* levelSelectList = static_cast<CEGUI::Listbox*>
+    (mRootWindow->getChild("MenuEditorLoad")->getChild("LevelWindowFrame")->getChild("LevelSelect"));
 
 
     path pp (ss.c_str());
@@ -1344,14 +1548,16 @@ bool EditorMode::loadMenuFilePathTextChanged( const CEGUI::EventArgs& /*arg*/)
                 int nn = 1;
                 for (directory_entry& xx : directory_iterator(pp))
                 {
-                    if(!(isFileHidden(xx.path().leaf().c_str()) && !isCheckboxSelected("MenuEditorLoad/LevelWindowFrame/HiddenFiles")))
+                    if(!(isFileHidden(xx.path().leaf().c_str())
+                         && !isCheckboxSelected("MenuEditorLoad/LevelWindowFrame/HiddenFiles")))
                     {
                         if(xx.path().has_extension() && xx.path().extension().compare(".level") == 0)
                         {
                             addPathNameToList(xx, levelSelectList, CEGUI::Colour(1,0.64,0), nn);
                         }
                     
-                        else if(is_regular_file(xx.path()) &&  !isCheckboxSelected("MenuEditorLoad/LevelWindowFrame/OnlyLevel") )
+                        else if(is_regular_file(xx.path())
+                                && !isCheckboxSelected("MenuEditorLoad/LevelWindowFrame/OnlyLevel") )
                         {
                             addPathNameToList(xx, levelSelectList, CEGUI::Colour(0,1,0), nn);
                         }
@@ -1539,11 +1745,15 @@ bool EditorMode::saveMenuFileNameTextChanged(const CEGUI::EventArgs& /*arg*/)
 
 bool EditorMode::saveMenuLevelSelectSelected(const CEGUI::EventArgs& /*arg*/)
 {
-    CEGUI::Listbox* levelSelectList = static_cast<CEGUI::Listbox*>(mRootWindow->getChild("MenuEditorSave")->getChild("LevelWindowFrame")->getChild("LevelSelect"));
-    CEGUI::Editbox* levelPathEditBox = static_cast<CEGUI::Editbox*>(mRootWindow->getChild("MenuEditorSave")->getChild("LevelWindowFrame")->getChild("FilePath"));
-    CEGUI::Editbox* levelNameEditBox = static_cast<CEGUI::Editbox*>(mRootWindow->getChild("MenuEditorSave")->getChild("LevelWindowFrame")->getChild("FileName"));    
+    CEGUI::Listbox* levelSelectList = static_cast<CEGUI::Listbox*>
+        (mRootWindow->getChild("MenuEditorSave")->getChild("LevelWindowFrame")->getChild("LevelSelect"));
+    CEGUI::Editbox* levelPathEditBox = static_cast<CEGUI::Editbox*>
+        (mRootWindow->getChild("MenuEditorSave")->getChild("LevelWindowFrame")->getChild("FilePath"));
+    CEGUI::Editbox* levelNameEditBox = static_cast<CEGUI::Editbox*>
+        (mRootWindow->getChild("MenuEditorSave")->getChild("LevelWindowFrame")->getChild("FileName"));    
     CEGUI::EventArgs args;
-    CEGUI::String ss = mRootWindow->getChild("MenuEditorSave")->getChild("LevelWindowFrame")->getChild("FilePath")->getText();
+    CEGUI::String ss = mRootWindow->getChild("MenuEditorSave")->getChild("LevelWindowFrame")
+        ->getChild("FilePath")->getText();
 
     path ll (levelPathEditBox->getText().c_str());
 
@@ -1665,6 +1875,9 @@ void EditorMode::checkInputCommand()
         case SelectedAction::none:
             handlePlayerActionNone();
             return;
+        case SelectedAction::selectTile:
+            handlePlayerActionSelectTile();
+            return;            
         case SelectedAction::changeTile:
             handlePlayerActionChangeTile();
             mModifiedMapBit = true;
@@ -1759,6 +1972,26 @@ void EditorMode::handlePlayerActionChangeTile()
     ODClient::getSingleton().queueClientNotification(clientNotification);
 }
 
+void EditorMode::handlePlayerActionSelectTile()
+{
+    const InputManager& inputManager = mModeManager->getInputManager();
+    if(inputManager.mCommandState == InputCommandState::infoOnly)
+    {
+        selectSquaredTiles(inputManager.mXPos, inputManager.mYPos, inputManager.mXPos,
+                           inputManager.mYPos);
+        return;
+    }
+
+    if(inputManager.mCommandState == InputCommandState::building)
+    {
+        selectSquaredTiles(inputManager.mXPos, inputManager.mYPos, inputManager.mLStartDragX,
+                           inputManager.mLStartDragY);
+        return;
+    }
+
+    unselectAllTiles();
+}
+
 void EditorMode::handlePlayerActionNone()
 {
     const InputManager& inputManager = mModeManager->getInputManager();
@@ -1781,9 +2014,9 @@ bool EditorMode::updateDescription(const CEGUI::EventArgs&)
 
 std::string EditorMode::getEnv( const std::string & var )
 {
-
     // WINDOWS:
-    // "you could look at HOMEDRIVE, HOMEPATH or USERPROFILE env variables on windows. or i guess SHGetFolderPathA()"
+    // "you could look at HOMEDRIVE, HOMEPATH or USERPROFILE
+    // env variables on windows. or i guess SHGetFolderPathA()"
     const char * val = std::getenv( var.c_str() );
     if ( val == nullptr )
     { // invalid to assign nullptr to std::string
@@ -1815,7 +2048,9 @@ void EditorMode::installRecentlyUsedFilesButtons()
         ww->subscribeEvent(
             CEGUI::Window::EventMouseClick,
             CEGUI::Event::Subscriber([&, ii ] (const CEGUI::EventArgs& ea) {
-                    ConfigManager::getSingleton().getRecentlyUsedFiles().erase(find(ConfigManager::getSingleton().getRecentlyUsedFiles().begin(),ConfigManager::getSingleton().getRecentlyUsedFiles().end(), ii));
+                    ConfigManager::getSingleton().getRecentlyUsedFiles().erase(
+                        find(ConfigManager::getSingleton().getRecentlyUsedFiles().begin(),
+                             ConfigManager::getSingleton().getRecentlyUsedFiles().end(), ii));
                     ConfigManager::getSingleton().getRecentlyUsedFiles().linearize();
                     ConfigManager::getSingleton().getRecentlyUsedFiles().push_back(ii);
                     this->loadMenuAskForConfirmation(ii.c_str());
@@ -1829,7 +2064,7 @@ void EditorMode::installRecentlyUsedFilesButtons()
 
 void EditorMode::uninstallSeatsMenuButtons()
 {
-    CEGUI::Window *pm = mRootWindow->getChild("Menubar")->getChild("Seats")->getChild("PopupMenu3");
+    CEGUI::Window *pm = mRootWindow->getChild("Menubar")->getChild("Seats")->getChild("PopupMenu5");
     while(pm->getChildCount() > 0)
         pm->removeChild(pm->getChildAtIdx(0));
 }
@@ -1846,7 +2081,7 @@ void EditorMode::installSeatsMenuButtons()
         ss << seat->getId();
         ww->setText(ss.str());
         ww->setName(ss.str());
-        mRootWindow->getChild("Menubar")->getChild("Seats")->getChild("PopupMenu3")->addChild(ww);
+        mRootWindow->getChild("Menubar")->getChild("Seats")->getChild("PopupMenu5")->addChild(ww);
         addEventConnection(
             ww->subscribeEvent(
                 CEGUI::Window::EventMouseClick,
@@ -1900,14 +2135,19 @@ void EditorMode::addPathNameToList(directory_entry& xx, CEGUI::Listbox* levelSel
 EditorMode::~EditorMode()
 {
     ConfigManager::getSingleton().saveEditorSettings();
-    delete dtc;
+    if(draggableTileContainer!=nullptr)
+    {
+        draggableTileContainer->clearAll(NodeType::MDTC_NODE);
+        delete draggableTileContainer;
+    }
 }
 
 bool EditorMode::launchNewLevelPressed(const CEGUI::EventArgs&)
 {
     // Creating the filename
     
-    CEGUI::Combobox* levelTypeCb = static_cast<CEGUI::Combobox*>(mRootWindow->getChild("LevelWindowFrame/LevelTypeSelect"));
+    CEGUI::Combobox* levelTypeCb = static_cast<CEGUI::Combobox*>
+        (mRootWindow->getChild("LevelWindowFrame/LevelTypeSelect"));
     std::string levelPath;
     size_t selection = levelTypeCb->getItemIndex(levelTypeCb->getSelectedItem());
     switch (selection)
@@ -1920,17 +2160,20 @@ bool EditorMode::launchNewLevelPressed(const CEGUI::EventArgs&)
             levelPath = ResourceManager::getSingleton().getUserLevelPathMultiplayer();
             break;
     }
-    CEGUI::Editbox* editWin = static_cast<CEGUI::Editbox*>(mRootWindow->getChild("LevelWindowFrame/LevelFilenameEdit"));
+    CEGUI::Editbox* editWin = static_cast<CEGUI::Editbox*>
+        (mRootWindow->getChild("LevelWindowFrame/LevelFilenameEdit"));
     std::string level = editWin->getText().c_str();
     Helper::trim(level);
     if (level.empty()) {
-        mRootWindow->getChild("LevelWindowFrame/LevelTypeText")->setText("Please set a level filename.");
+        mRootWindow->getChild("LevelWindowFrame/LevelTypeText")
+            ->setText("Please set a level filename.");
         return true;
     }
 
     level = levelPath + "/" + level;
     if (boost::filesystem::exists(level)) {
-        mRootWindow->getChild("LevelWindowFrame/LevelTypeText")->setText("The level filename already exists.\nPlease set a different filename.");
+        mRootWindow->getChild("LevelWindowFrame/LevelTypeText")
+            ->setText("The level filename already exists.\nPlease set a different filename.");
         return true;
     }
     if (boost::filesystem::extension(level) != ".level") {
@@ -2011,7 +2254,8 @@ bool EditorMode::launchNewLevelPressed(const CEGUI::EventArgs&)
 
     if (!MapHandler::writeGameMapToFile(level, *gameMap)) {
         OD_LOG_WRN("Couldn't write new map before loading: " + level);
-        mRootWindow->getChild("LevelWindowFrame/LevelTypeText")->setText("Couldn't write new map before loading.\nPlease check logs.");
+        mRootWindow->getChild("LevelWindowFrame/LevelTypeText")
+            ->setText("Couldn't write new map before loading.\nPlease check logs.");
         return true;
     }
 
@@ -2022,7 +2266,8 @@ bool EditorMode::launchNewLevelPressed(const CEGUI::EventArgs&)
     if(!ODServer::getSingleton().startServer(nickname, level, ServerMode::ModeEditor, false))
     {
         OD_LOG_ERR("Could not start server for editor!");
-        mRootWindow->getChild("LevelWindowFrame/LevelTypeText")->setText("ERROR: Could not start server for editor!");
+        mRootWindow->getChild("LevelWindowFrame/LevelTypeText")
+            ->setText("ERROR: Could not start server for editor!");
         return true;
     }
 
@@ -2033,10 +2278,12 @@ bool EditorMode::launchNewLevelPressed(const CEGUI::EventArgs&)
     if(!ODClient::getSingleton().connect("localhost", port, timeout, replayFilename))
     {
         OD_LOG_ERR("Could not connect to server for editor!");
-        mRootWindow->getChild("LevelWindowFrame/LevelTypeText")->setText("Error: Couldn't connect to local server!");
+        mRootWindow->getChild("LevelWindowFrame/LevelTypeText")
+            ->setText("Error: Couldn't connect to local server!");
         return true;
     }
-    mRootWindow->getChild("LevelWindowFrame/LevelTypeText")->setText("The level was created successfully.");
+    mRootWindow->getChild("LevelWindowFrame/LevelTypeText")
+        ->setText("The level was created successfully.");
 
     ODClient::getSingleton().processClientSocketMessages(75);
     ODClient::getSingleton().processClientNotifications();

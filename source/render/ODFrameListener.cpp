@@ -29,6 +29,7 @@
 #include "modes/ModeManager.h"
 #include "network/ODServer.h"
 #include "network/ODClient.h"
+#include "render/DebugDrawer.h"
 #include "render/Gui.h"
 #include "render/RenderManager.h"
 #include "render/TextRenderer.h"
@@ -216,10 +217,24 @@ bool ODFrameListener::frameRenderingQueued(const Ogre::FrameEvent& evt)
 
 bool ODFrameListener::frameEnded(const Ogre::FrameEvent& evt)
 {
+
     AbstractApplicationMode* currentMode = mModeManager->getCurrentMode();
-    currentMode->onFrameEnded(evt);
+    if(currentMode)
+        currentMode->onFrameEnded(evt);
 
     mCameraManager.onFrameEnded();
+
+    return true;
+}
+
+bool ODFrameListener::frameStarted(const Ogre::FrameEvent& evt)
+{
+    AbstractApplicationMode* currentMode = mModeManager->getCurrentMode();
+    if(currentMode)
+        currentMode->onFrameStarted(evt);
+    
+
+
 
     return true;
 }
@@ -245,14 +260,17 @@ bool ODFrameListener::quit(const CEGUI::EventArgs &)
     return true;
 }
 
-bool ODFrameListener::findWorldPositionFromMouse(const OIS::MouseEvent &arg, Ogre::Vector3& keeperHand3DPos)
+bool ODFrameListener::findWorldPositionFromMouse(const OIS::MouseEvent &arg, Ogre::Vector3& keeperHand3DPos, Ogre::Real height)
 {
     // Setup the ray scene query, use CEGUI's mouse position
     CEGUI::Vector2<float> mousePos = CEGUI::System::getSingleton().getDefaultGUIContext().getMouseCursor().getPosition();// * mMouseScale;
     Ogre::Ray mouseRay = mCameraManager.getActiveCamera()->getCameraToViewportRay(mousePos.d_x / float(
             arg.state.width), mousePos.d_y / float(arg.state.height));
 
-    Ogre::Plane groundPlane(Ogre::Vector3::UNIT_Z, RenderManager::KEEPER_HAND_WORLD_Z);
+
+    Ogre::Plane groundPlane(Ogre::Vector3::UNIT_Z, height);
+
+
     std::pair<bool, Ogre::Real> p = mouseRay.intersects(groundPlane);
     if(p.first)
     {
@@ -262,6 +280,23 @@ bool ODFrameListener::findWorldPositionFromMouse(const OIS::MouseEvent &arg, Ogr
 
     return false;
 
+}
+
+
+bool ODFrameListener::rayIntersectionGameMap(const OIS::MouseEvent &arg, Ogre::Vector3& keeperHand3DPos, GameMap* draggableTileContainer)
+{
+    CEGUI::Vector2<float> mousePos = CEGUI::System::getSingleton().getDefaultGUIContext().getMouseCursor().getPosition();// * mMouseScale;
+    Ogre::Ray mouseRay = mCameraManager.getActiveCamera()->getCameraToViewportRay(mousePos.d_x / float(
+            arg.state.width), mousePos.d_y / float(arg.state.height));
+    Ogre::AxisAlignedBox aab = draggableTileContainer->getAABB();
+    
+    std::pair<bool, Ogre::Real> p = mouseRay.intersects(aab);
+    if(p.first)
+    {
+        keeperHand3DPos = mouseRay.getPoint(p.second);
+        return true;
+    }
+    return false;
 }
 
 void ODFrameListener::printDebugInfo()

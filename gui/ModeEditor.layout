@@ -33,25 +33,37 @@
                     </Window>
                 </Window>
             </Window>
+            <Window type="OD/MenuItem" name="Edit">
+                <Property name="Text" value="Edit"/>
+                <Property name="Area" value="{{0,0},{0,10},{0,0},{0,20}}" />
+                <Window type="OD/PopupMenu" name="PopupMenu3">
+                    <Window type="OD/MenuItem" name="Copy">
+                        <Property name="Text" value="Copy"/>     
+                    </Window>
+                    <Window type="OD/MenuItem" name="Paste">
+                        <Property name="Text" value="Paste"/>     
+                    </Window>
+                    <Window type="OD/MenuItem" name="Delete">
+                        <Property name="Text" value="Delete"/>     
+                    </Window>
+                </Window>
+            </Window>
             <Window type="OD/MenuItem" name="Creatures">
                 <Property name="Text" value="Creatures"/>
                 <Property name="Area" value="{{0,0},{0,10},{0,0},{0,20}}" />
-                <Window type="OD/PopupMenu" name="PopupMenu2">
+                <Window type="OD/PopupMenu" name="PopupMenu4">
                 </Window>
             </Window>
             <Window type="OD/MenuItem" name="Seats">
                 <Property name="Text" value="Seats"/>
                 <Property name="Area" value="{{0,0},{0,10},{0,0},{0,20}}" />
-                <Window type="OD/PopupMenu" name="PopupMenu3">
+                <Window type="OD/PopupMenu" name="PopupMenu5">
                 </Window>
             </Window>
-
-
-            
             <Window type="OD/MenuItem" name="Help">
                 <Property name="Text" value="Help"/>
                 <Property name="Area" value="{{0,0},{0,10},{0,0},{0,20}}" />
-                <Window type="OD/PopupMenu" name="PopupMenu4">
+                <Window type="OD/PopupMenu" name="PopupMenu6">
                     <Window type="OD/MenuItem" name="About">
                         <Property name="Text" value="About"/>     
                     </Window>

@@ -18,6 +18,7 @@
 #ifndef TILECONTAINER_H
 #define TILECONTAINER_H
 
+#include "entities/GameEntity.h"
 #include <cassert>
 #include <list>
 #include <vector>
@@ -35,7 +36,7 @@ public:
     virtual ~TileContainer();
 
     //! \brief Clears the mesh and deletes the data structure for all the tiles in the TileContainer.
-    void clearTiles();
+    void clearTiles(NodeType nt = NodeType::MTILES_NODE);
 
     //! \brief Adds the given tile on map. The tile coordinates members must be ready.
     //! \returns true if added.

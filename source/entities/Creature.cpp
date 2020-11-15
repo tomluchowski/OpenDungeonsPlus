@@ -271,7 +271,7 @@ void Creature::createMeshLocal(NodeType nt)
     createMeshWeapons();
 }
 
-void Creature::destroyMeshLocal()
+void Creature::destroyMeshLocal(NodeType nt)
 {
     destroyMeshWeapons();
     MovableGameEntity::destroyMeshLocal();
@@ -2705,7 +2705,7 @@ void Creature::fireChatMsgFurious()
     ODServer::getSingleton().queueServerNotification(serverNotification);
 }
 
-void Creature::setupDefinition(DraggableTileContainer& dtc, const CreatureDefinition& defaultWorkerCreatureDefinition)
+void Creature::setupDefinition(GameMap& dtc, const CreatureDefinition& defaultWorkerCreatureDefinition)
 {
     bool setHpToStrHp = false;
     if(mDefinition == nullptr)

@@ -18,7 +18,7 @@
 #ifndef INPUTMANAGER_H
 #define INPUTMANAGER_H
 
-#include <OgreVector3.h>
+#include <OgreVector.h>
 
 #include <memory>
 
@@ -48,7 +48,7 @@ enum class InputCommandState
 {
     infoOnly, // When the player is only moving mouse (but not building)
     building, // When the player is building (but has not validated he build)
-    validated // When the player is happy with the build and wants to build
+    validated, // When the player is happy with the build and wants to build
 };
 
 class InputManager
@@ -81,12 +81,15 @@ public:
     bool                mLMouseDown, mRMouseDown, mMMouseDown;
     bool                mMouseDownOnCEGUIWindow;
 
+    bool                mMouseDownOnDraggableTileContainer;
     Ogre::Vector3       mKeeperHandPos;
+    Ogre::Vector3       mKeeperHandPosOverBlock;
     int                 mXPos, mYPos;
     int                 mLStartDragX, mLStartDragY;
     int                 mRStartDragX, mRStartDragY;
     //! \brief In editor mode, it contains the selected seat Id. In gamemode, it is not used
     int                 mSeatIdSelected;
+    Ogre::Vector2       offsetDraggableTileContainer;
     InputCommandState   mCommandState;
     OIS::Mouse*         mMouse;
 

@@ -108,7 +108,7 @@ CameraManager::CameraManager(Ogre::SceneManager* sceneManager, GameMap* gm, Ogre
     // Attach background to the scene
     Ogre::SceneNode* node = mSceneManager->getRootSceneNode()->createChildSceneNode("Background");
     node->attachObject(rect);
-
+    node->showBoundingBox(true);
     OD_LOG_INF("Created camera manager");
 }
 

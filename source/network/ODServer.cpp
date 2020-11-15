@@ -715,6 +715,8 @@ bool ODServer::processClientNotifications(ODSocketClient* clientSocket)
             std::vector<Tile*> goldTiles;
             std::vector<Tile*> rockTiles;
             std::vector<Tile*> gemTiles;
+            std::vector<Tile*> waterTiles;
+            std::vector<Tile*> lavaTiles;
             for (int xxx = 0; xxx < mapSizeX; ++xxx)
             {
                 for (int yyy = 0; yyy < mapSizeY; ++yyy)
@@ -731,6 +733,14 @@ bool ODServer::processClientNotifications(ODSocketClient* clientSocket)
                         case TileType::gem:
                             gemTiles.push_back(tile);
                             break;
+                        case TileType::water:
+                            waterTiles.push_back(tile);
+                            break;
+                        case TileType::lava:
+                            lavaTiles.push_back(tile);
+                            break;
+
+                            
                         default:
                             // Per default, tiles are dirt and don't need to be notified
                             break;
@@ -758,7 +768,21 @@ bool ODServer::processClientNotifications(ODSocketClient* clientSocket)
             {
                 gameMap->tileToPacket(packet, tile);
             }
+            nb = waterTiles.size();
+            packet << nb;
+            for(Tile* tile : waterTiles)
+            {
+                gameMap->tileToPacket(packet, tile);
+            }
+            nb = lavaTiles.size();
+            packet << nb;
+            for(Tile* tile : lavaTiles)
+            {
+                gameMap->tileToPacket(packet, tile);
+            }
 
+
+            
             clientSocket->send(packet);
             break;
         }
@@ -1579,6 +1603,59 @@ bool ODServer::processClientNotifications(ODSocketClient* clientSocket)
             break;
         }
 
+        case ClientNotificationType::editorAskChangeTile:
+        {
+            if(mServerMode != ServerMode::ModeEditor)
+            {
+                OD_LOG_ERR("Received editor command while wrong mode mode" + Helper::toString(static_cast<int>(mServerMode)));
+                break;
+            }
+            int x1, y1;
+            TileType tileType;
+            double tileFullness;
+            int seatId;
+
+            OD_ASSERT_TRUE(packetReceived >> x1 >> y1 >> tileType >> tileFullness >> seatId);
+            Tile* selectedTile = gameMap->getTile(x1,y1);
+            Seat* seat = nullptr;
+            if(seatId != -1)
+                seat = gameMap->getSeatById(seatId);
+
+            // We do not change tile where there is something
+            if((selectedTile->numEntitiesInTile() > 0) &&
+               ((tileFullness > 0.0) || (tileType == TileType::lava) || (tileType == TileType::water)))
+                break;
+            if(selectedTile->getCoveringBuilding() != nullptr)
+                break;
+            {            
+                selectedTile->setType(tileType);
+                selectedTile->setFullness(tileFullness);
+                if(seat != nullptr)
+                    selectedTile->claimTile(seat);
+                else
+                    selectedTile->unclaimTile();
+
+                selectedTile->computeTileVisual();
+ 
+                const std::vector<Seat*>& seats = gameMap->getSeats();
+                for(Seat* seat : seats)
+                {
+                    if(seat->getPlayer() == nullptr)
+                        continue;
+                    if(!seat->getPlayer()->getIsHuman())
+                        continue;
+
+                    ServerNotification notif(ServerNotificationType::refreshTiles, seat->getPlayer());
+                    notif.mPacket << 1;
+                    gameMap->tileToPacket(notif.mPacket, selectedTile);
+                    seat->updateTileStateForSeat(selectedTile, false);
+                    selectedTile->exportToPacketForUpdate(notif.mPacket, seat);
+                
+                    sendAsyncMsg(notif);
+                }
+            }
+            break;
+        }
         case ClientNotificationType::editorAskChangeTiles:
         {
             if(mServerMode != ServerMode::ModeEditor)
@@ -1642,7 +1719,7 @@ bool ODServer::processClientNotifications(ODSocketClient* clientSocket)
             }
             break;
         }
-
+        
         case ClientNotificationType::editorAskBuildRoom:
         {
             if(mServerMode != ServerMode::ModeEditor)
@@ -1687,6 +1764,44 @@ bool ODServer::processClientNotifications(ODSocketClient* clientSocket)
             break;
         }
 
+        case ClientNotificationType::editorAskRevealTiles:
+        {
+            if(mServerMode != ServerMode::ModeEditor)
+            {
+                OD_LOG_ERR("Received editor command while wrong mode mode"
+                           + Helper::toString(static_cast<int>(mServerMode)));
+                break;
+            }
+            unsigned int x1, y1, x2, y2;
+            
+            OD_ASSERT_TRUE(packetReceived >> x1 >> y1 >> x2 >> y2);
+           
+            std::vector<Tile*> affectedTiles = gameMap->rectangularRegion(x1, y1, x2, y2);
+
+            if(!affectedTiles.empty())
+            {
+                uint32_t nbTiles = affectedTiles.size();
+                const std::vector<Seat*>& seats = gameMap->getSeats();
+                for(Seat* seat : seats)
+                {
+                    if(seat->getPlayer() == nullptr)
+                        continue;
+                    if(!seat->getPlayer()->getIsHuman())
+                        continue;
+
+                    ServerNotification notif(ServerNotificationType::revealTiles, seat->getPlayer());
+                    notif.mPacket << nbTiles;
+                    for(Tile* tile : affectedTiles)
+                    {
+                        gameMap->tileToPacket(notif.mPacket, tile);
+                        notif.mPacket << tile->getType() << tile->getFullness() << ((tile->getSeat() == nullptr) ? -1 : tile->getSeat()->getId()) << tile->getTileVisual();
+                    }
+                    sendAsyncMsg(notif);
+                }
+            }            
+            break;
+        }
+        
         case ClientNotificationType::editorCreateWorker:
         {
             if(mServerMode != ServerMode::ModeEditor)

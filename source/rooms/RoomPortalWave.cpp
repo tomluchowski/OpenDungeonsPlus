@@ -249,7 +249,7 @@ void RoomPortalWave::updatePortalPosition()
     mPortalObject->setAnimationState("Idle");
 }
 
-void RoomPortalWave::destroyMeshLocal()
+void RoomPortalWave::destroyMeshLocal(NodeType nt)
 {
     Room::destroyMeshLocal();
     mPortalObject = nullptr;

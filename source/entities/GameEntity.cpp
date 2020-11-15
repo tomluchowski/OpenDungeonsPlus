@@ -111,6 +111,17 @@ GameEntity::~GameEntity()
     };
 }
 
+
+GameEntity& GameEntity::operator=(const GameEntity& gg)
+{
+
+    // mName = gg.mName;
+    mMeshName = gg.mMeshName;
+    mSeat = gg.mSeat;
+
+    return *this;
+}
+
 void GameEntity::deleteYourself()
 {
     destroyMesh();
@@ -449,7 +460,7 @@ bool GameEntity::importFromStream(std::istream& is)
     return true;
 }
 
-void GameEntity::destroyMeshLocal()
+void GameEntity::destroyMeshLocal(NodeType nt)
 {
     if(!getIsOnServerMap())
     {
@@ -581,14 +592,14 @@ void GameEntity::createMesh(NodeType nt)
     createMeshLocal(nt);
 }
 
-void GameEntity::destroyMesh()
+void GameEntity::destroyMesh(NodeType nt)
 {
     if(!mMeshExists)
         return;
 
     mMeshExists = false;
 
-    destroyMeshLocal();
+    destroyMeshLocal(nt);
 }
 
 void GameEntity::exportToPacketForUpdate(ODPacket& os, const Seat* seat) const

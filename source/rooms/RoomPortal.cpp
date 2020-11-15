@@ -200,7 +200,7 @@ void RoomPortal::updatePortalPosition()
     addBuildingObject(centralTile, mPortalObject);
 }
 
-void RoomPortal::destroyMeshLocal()
+void RoomPortal::destroyMeshLocal(NodeType nt)
 {
     Room::destroyMeshLocal();
     mPortalObject = nullptr;

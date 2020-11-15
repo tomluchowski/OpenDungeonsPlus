@@ -35,6 +35,7 @@ class GameEntity;
 class Player;
 class Room;
 class MapLight;
+class DraggableTileContainer;
 class GameMap;
 class CreatureDefinition;
 class Trap;
@@ -96,6 +97,8 @@ enum class TileVisual
     countTileVisual
 };
 
+
+
 ODPacket& operator<<(ODPacket& os, const TileVisual& type);
 ODPacket& operator>>(ODPacket& is, TileVisual& type);
 std::ostream& operator<<(std::ostream& os, const TileVisual& type);
@@ -131,6 +134,8 @@ class Tile : public GameEntity
 public:
     Tile(GameMap* gameMap, int x = 0, int y = 0, TileType type = TileType::dirt, double fullness = 100.0);
 
+    Tile& operator=(const Tile& tt);
+    
     virtual ~Tile();
 
     static const uint32_t NO_FLOODFILL;
@@ -217,7 +222,7 @@ public:
     static int nextTileFullness(int f);
 
     //! \brief This function puts a message in the renderQueue to change the mesh for this tile.
-    void refreshMesh();
+    void refreshMesh(NodeType nt = NodeType::MTILES_NODE);
 
     //! \brief Marks the tile as being selected through a mouse click or drag.
     void setSelected(bool ss, const Player* pp);
@@ -462,6 +467,7 @@ public:
 
     virtual void exportToPacketForUpdate(ODPacket& os, const Seat* seat) const override;
     virtual void updateFromPacket(ODPacket& is) override;
+    void updateFullnessFromPacket(ODPacket& is);
     void exportToPacketForUpdate(ODPacket& os, const Seat* seat, bool hideSeatId) const;
 
     bool addTileStateListener(TileStateListener& listener);
@@ -481,7 +487,7 @@ protected:
     {}
 
     virtual void createMeshLocal(NodeType nt = NodeType::MTILES_NODE) override;
-    virtual void destroyMeshLocal() override;
+    virtual void destroyMeshLocal(NodeType nt = NodeType::MTILES_NODE) override;
 private:
     //! \brief The tile position
     int mX, mY;

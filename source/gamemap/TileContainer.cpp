@@ -343,7 +343,7 @@ TileContainer::~TileContainer()
     clearTiles();
 }
 
-void TileContainer::clearTiles()
+void TileContainer::clearTiles(NodeType nt)
 {
     if (mTiles)
     {
@@ -351,7 +351,7 @@ void TileContainer::clearTiles()
         {
             for (int jj = 0; jj < mMapSizeY; ++jj)
             {
-                mTiles[ii][jj]->destroyMesh();
+                mTiles[ii][jj]->destroyMesh(nt);
                 delete mTiles[ii][jj];
             }
             delete[] mTiles[ii];

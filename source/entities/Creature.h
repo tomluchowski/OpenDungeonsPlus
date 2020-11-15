@@ -486,7 +486,7 @@ public:
     //! but is now split out since this is needed on the server, while the mesh isn't.
     //! This is normally called by the constructor, but creatures loaded from the map files
     //! use a different constructor, and this is then called by the gameMap when other details have been loaded.
-    void setupDefinition(DraggableTileContainer& dtc, const CreatureDefinition& defaultWorkerCreatureDefinition);
+    void setupDefinition(GameMap& dtc, const CreatureDefinition& defaultWorkerCreatureDefinition);
 
     //! Called on server side to add an effect (spell, slap, ...) to this creature
     void addCreatureEffect(CreatureEffect* effect);
@@ -596,7 +596,7 @@ protected:
     virtual bool importFromStream(std::istream& is) override;
 
     virtual void createMeshLocal(NodeType nt = NodeType::MTILES_NODE) override;
-    virtual void destroyMeshLocal() override;
+    virtual void destroyMeshLocal(NodeType nt = NodeType::MTILES_NODE) override;
     virtual void fireAddEntity(Seat* seat, bool async) override;
     virtual void fireRemoveEntity(Seat* seat) override;
 private:

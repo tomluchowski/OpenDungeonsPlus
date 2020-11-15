@@ -80,6 +80,33 @@ Tile::~Tile()
     }
 }
 
+Tile& Tile::operator=(const Tile& tt)
+{
+    GameEntity::operator=(tt);
+
+    mType = tt.mType;              
+    mTileVisual  = tt.mTileVisual;       
+    mSelected  = tt.mSelected;         
+    mFullness = tt.mFullness;         
+    mRefundPriceRoom = tt.mRefundPriceRoom;   
+    mRefundPriceTrap = tt.mRefundPriceTrap;
+    // mNeighbors = tt.mNeighbors;
+    mCoveringBuilding = tt.mCoveringBuilding;  
+    mClaimedPercentage = tt.mClaimedPercentage; 
+    mIsRoom = tt.mIsRoom;            
+    mIsTrap = tt.mIsTrap;            
+    mDisplayTileMesh = tt.mDisplayTileMesh;    
+    mColorCustomMesh = tt.mColorCustomMesh;  
+    mHasBridge = tt.mHasBridge;         
+    mLocalPlayerHasVision = tt.mLocalPlayerHasVision; 
+    // mTileCulling = tt.mTileCulling;       
+    // mNbWorkersClaiming = tt.mNbWorkersClaiming;
+    
+    return *this;
+
+}
+
+
 GameEntityType Tile::getObjectType() const
 {
     return GameEntityType::tile;
@@ -932,14 +959,14 @@ void Tile::createMeshLocal(NodeType nt)
     RenderManager::getSingleton().rrCreateTile(*this, *getGameMap(), *getGameMap()->getLocalPlayer(),nt);
 }
 
-void Tile::destroyMeshLocal()
+void Tile::destroyMeshLocal(NodeType nt)
 {
     GameEntity::destroyMeshLocal();
 
     if(getIsOnServerMap())
         return;
 
-    RenderManager::getSingleton().rrDestroyTile(*this);
+    RenderManager::getSingleton().rrDestroyTile(*this, nt);
 }
 
 bool Tile::isBuildableUpon(Seat* seat) const
@@ -1090,6 +1117,12 @@ void Tile::updateFromPacket(ODPacket& is)
     fireTileStateChanged();
 }
 
+void Tile::updateFullnessFromPacket(ODPacket& is)
+{
+    OD_ASSERT_TRUE(is >> mFullness);
+
+}
+
 void Tile::loadFromLine(const std::string& line, Tile *t)
 {
     std::vector<std::string> elems = Helper::split(line, '\t');
@@ -1155,7 +1188,7 @@ void Tile::loadFromLine(const std::string& line, Tile *t)
     t->mClaimedPercentage = 1.0;
 }
 
-void Tile::refreshMesh()
+void Tile::refreshMesh(NodeType nt)
 {
     if (!isMeshExisting())
         return;
@@ -1163,7 +1196,7 @@ void Tile::refreshMesh()
     if(getIsOnServerMap())
         return;
 
-    RenderManager::getSingleton().rrRefreshTile(*this, *getGameMap(), *getGameMap()->getLocalPlayer());
+    RenderManager::getSingleton().rrRefreshTile(*this, *getGameMap(), *getGameMap()->getLocalPlayer(),nt);
 }
 
 void Tile::setSelected(bool ss, const Player* pp)

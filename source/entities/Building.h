@@ -24,7 +24,6 @@
 #define BUILDING_H_
 
 #include "entities/GameEntity.h"
-#include "gamemap/DraggableTileContainer.h"
 #include "gamemap/GameMap.h"
 
 

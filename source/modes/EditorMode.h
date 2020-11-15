@@ -20,6 +20,7 @@
 
 #include "GameEditorModeBase.h"
 
+#include "gamemap/TileMarker.h"
 #include "modes/InputCommand.h"
 #include "modes/SettingsWindow.h"
 
@@ -32,11 +33,22 @@ class DraggableTileContainer;
 class GameMap;
 class Gui; // Used to change the Current tile type
 
-
 enum class TileVisual;
+
+// static bool operator<=(const Ogre::Vector2 &a, const Ogre::Vector2 &b){
+//     if (a.x != b.x)
+//         return a.x <= b.x;
+//     else
+//         return a.y <= b.y;
+// }
+
+
+
+
 
 class EditorMode final: public GameEditorModeBase, public InputCommand
 {
+friend class ODClient;
     
 public:
     EditorMode(ModeManager* modeManager);
@@ -106,10 +118,15 @@ public:
     bool isCheckboxSelected(const CEGUI::String& checkbox);
 private:
 
-    DraggableTileContainer* dtc;
+    GameMap* draggableTileContainer;
     
     void connectTileSelect(const std::string& buttonName, TileVisual tileVisual);
 
+
+    //! \brief Tile area marker, the two points both to the first and third corner
+    TileMarker mTileMarker;
+
+    
     //! \brief Tile type (Dirt, Lava, Claimed, ...)
     TileVisual mCurrentTileVisual;
 
@@ -147,11 +164,15 @@ private:
 
     //! \brief Updates the flag icon color when switching seats.
     void updateFlagColor();
-
+    void onEditCopy();
+    void onEditPaste();
+    void onEditDelete();
+    
     //! \brief Called when there is a mouse input change
     void checkInputCommand();
     void handlePlayerActionNone();
     void handlePlayerActionChangeTile();
+    void handlePlayerActionSelectTile();
     void installRecentlyUsedFilesButtons();
     void uninstallRecentlyUsedFilesButtons();
     void installSeatsMenuButtons();

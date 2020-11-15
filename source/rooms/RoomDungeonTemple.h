@@ -41,7 +41,7 @@ public:
     static const RoomType mRoomType;
 
 protected:
-    virtual void destroyMeshLocal() override;
+    virtual void destroyMeshLocal(NodeType nt = NodeType::MTILES_NODE) override;
 
     void notifyActiveSpotRemoved(ActiveSpotPlace place, Tile* tile) override
     {

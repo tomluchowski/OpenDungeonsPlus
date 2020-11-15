@@ -73,7 +73,7 @@ void RenderedMovableEntity::createMeshLocal(NodeType nt)
     RenderManager::getSingleton().rrCreateRenderedMovableEntity(this);
 }
 
-void RenderedMovableEntity::destroyMeshLocal()
+void RenderedMovableEntity::destroyMeshLocal(NodeType nt)
 {
     MovableGameEntity::destroyMeshLocal();
 

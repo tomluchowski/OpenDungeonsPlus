@@ -72,7 +72,7 @@ void MapLight::createMeshLocal(NodeType nt)
     RenderManager::getSingleton().rrCreateMapLight(this, getGameMap()->isInEditorMode());
 }
 
-void MapLight::destroyMeshLocal()
+void MapLight::destroyMeshLocal(NodeType nt)
 {
     MovableGameEntity::destroyMeshLocal();
 

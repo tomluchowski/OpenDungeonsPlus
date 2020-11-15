@@ -31,14 +31,15 @@
 #include "entities/Weapon.h"
 #include "game/Player.h"
 #include "game/Seat.h"
-#include "gamemap/DraggableTileContainer.h"
 #include "gamemap/GameMap.h"
 #include "gamemap/TileSet.h"
 #include "render/CreatureOverlayStatus.h"
+#include "render/DebugDrawer.h"
 #include "rooms/Room.h"
 #include "utils/Helper.h"
 #include "utils/LogManager.h"
 #include "utils/ResourceManager.h"
+
 
 #include <OgreBone.h>
 #include <OgreCamera.h>
@@ -102,11 +103,12 @@ RenderManager::RenderManager(Ogre::OverlaySystem* overlaySystem) :
     mRoomSceneNode = mSceneManager->getRootSceneNode()->createChildSceneNode("Room_scene_node");
     mLightSceneNode = mSceneManager->getRootSceneNode()->createChildSceneNode("Light_scene_node");
     mMainMenuSceneNode = mSceneManager->getRootSceneNode()->createChildSceneNode("MainMenu_scene_node");
-    mDraggableSceneNode->setPosition(5.0,5.0,3.0);
+    mDraggableSceneNode->setPosition(0.0,0.0,3.0);
 }
 
 RenderManager::~RenderManager()
 {
+    delete DebugDrawer::getSingletonPtr();
 }
 
 void RenderManager::initGameRenderer(GameMap* gameMap)
@@ -196,9 +198,10 @@ void RenderManager::triggerCompositor(const std::string& compositorName)
 void RenderManager::createScene(Ogre::Viewport* nViewport)
 {
     OD_LOG_INF("Creating scene...");
-
+    
     mViewport = nViewport;
 
+    
     //Set up the shader generator
     mShaderGenerator = Ogre::RTShader::ShaderGenerator::getSingletonPtr();
     //shaderGenerator->setTargetLanguage("glsl");
@@ -244,6 +247,8 @@ void RenderManager::createScene(Ogre::Viewport* nViewport)
     handKeeperOverlay->show();
 
     mHandKeeperNode->setVisible(mHandKeeperHandVisibility == 0);
+    new DebugDrawer(mSceneManager, 0.1f);
+
 }
 
 void RenderManager::setWorldAmbientLightingFactor(float lightFactor)
@@ -450,7 +455,7 @@ void RenderManager::updateRenderAnimations(Ogre::Real timeSinceLastFrame)
     }
 }
 
-void RenderManager::rrRefreshTile(const Tile& tile, const DraggableTileContainer& draggableTileContainer, const Player& localPlayer,NodeType nt)
+void RenderManager::rrRefreshTile(const Tile& tile, const GameMap& draggableTileContainer, const Player& localPlayer, NodeType nt)
 {
     if (tile.getEntityNode() == nullptr)
         return;
@@ -483,21 +488,21 @@ void RenderManager::rrRefreshTile(const Tile& tile, const DraggableTileContainer
     }
 
     Ogre::Entity* tileMeshEnt = nullptr;
-    const std::string tileMeshName = tileName + "_tileMesh";
+    const std::string tileMeshName = tileName + (static_cast<bool>(nt) ?  "" : "_dtc" ) + "_tileMesh";
     if(mSceneManager->hasEntity(tileMeshName))
     {
         tileMeshEnt = mSceneManager->getEntity(tileMeshName);
         if(tileMeshEnt->getMesh()->getName().compare(meshName) != 0)
         {
             // Unlink and delete the old mesh
-            mSceneManager->getSceneNode(tileMeshName + "_node")->detachObject(tileMeshEnt);
+            mSceneManager->getSceneNode(tileMeshName + (static_cast<bool>(nt) ?  "" : "_dtc" ) + "_node")->detachObject(tileMeshEnt);
             mSceneManager->destroyEntity(tileMeshEnt);
             tileMeshEnt = nullptr;
         }
     }
 
     Ogre::SceneNode* tileMeshNode = nullptr;
-    std::string tileMeshNodeName = tileMeshName + "_node";
+    std::string tileMeshNodeName = tileMeshName + (static_cast<bool>(nt) ?  "" : "_dtc" ) + "_node";
     if(mSceneManager->hasSceneNode(tileMeshNodeName))
         tileMeshNode = mSceneManager->getSceneNode(tileMeshNodeName);
 
@@ -552,7 +557,7 @@ void RenderManager::rrRefreshTile(const Tile& tile, const DraggableTileContainer
     }
 
     // We display the custom mesh if there is one
-    const std::string customMeshName = tileName + "_customMesh";
+    const std::string customMeshName = tileName + (static_cast<bool>(nt) ?  "" : "_dtc" ) + "_customMesh";
     meshName = tile.getMeshName();
     Ogre::Entity* customMeshEnt = nullptr;
     if(mSceneManager->hasEntity(customMeshName))
@@ -561,7 +566,7 @@ void RenderManager::rrRefreshTile(const Tile& tile, const DraggableTileContainer
         if(customMeshEnt->getMesh()->getName().compare(meshName) != 0)
         {
             // Unlink and delete the old mesh
-            mSceneManager->getSceneNode(customMeshName + (static_cast<bool>(nt) ?  "_node" : "_dtc_node"))->detachObject(customMeshEnt);
+            mSceneManager->getSceneNode(customMeshName + (static_cast<bool>(nt) ?  "" : "_dtc" ) + "_node")->detachObject(customMeshEnt);
             mSceneManager->destroyEntity(customMeshEnt);
             customMeshEnt = nullptr;
         }
@@ -570,7 +575,7 @@ void RenderManager::rrRefreshTile(const Tile& tile, const DraggableTileContainer
     if((customMeshEnt == nullptr) && !meshName.empty())
     {
         // If the node does not exist, we create it
-        std::string customMeshNodeName = customMeshName + (static_cast<bool>(nt) ?  "_node" : "_dtc_node");
+        std::string customMeshNodeName = customMeshName + (static_cast<bool>(nt) ?  "" : "_dtc" ) + "_node";
         Ogre::SceneNode* customMeshNode;
         if(!mSceneManager->hasSceneNode(customMeshNodeName))
             customMeshNode = tile.getEntityNode()->createChildSceneNode(customMeshNodeName);
@@ -600,13 +605,13 @@ void RenderManager::rrRefreshTile(const Tile& tile, const DraggableTileContainer
     }
 }
 
-void RenderManager::rrCreateTile(Tile& tile, const DraggableTileContainer& dtc, const Player& localPlayer, NodeType nt)
+void RenderManager::rrCreateTile(Tile& tile, const GameMap& dtc, const Player& localPlayer, NodeType nt)
 {
     std::string tileName = tile.getOgreNamePrefix() + tile.getName();
     Ogre::SceneNode* node ;   
     if(nt == NodeType::MTILES_NODE)
         node = mTileSceneNode->createChildSceneNode(tileName + "_node");
-    else
+    else if(nt == NodeType::MDTC_NODE)
         node = mDraggableSceneNode->createChildSceneNode(tileName + "_dtc_node");
     tile.setParentSceneNode(node->getParentSceneNode());
     tile.setEntityNode(node);
@@ -615,7 +620,7 @@ void RenderManager::rrCreateTile(Tile& tile, const DraggableTileContainer& dtc, 
     rrRefreshTile(tile, dtc, localPlayer,nt);
 }
 
-void RenderManager::rrDestroyTile(Tile& tile)
+void RenderManager::rrDestroyTile(Tile& tile, NodeType nt)
 {
     if (tile.getEntityNode() == nullptr)
         return;
@@ -632,10 +637,10 @@ void RenderManager::rrDestroyTile(Tile& tile)
         mSceneManager->destroyEntity(selectorEnt);
     }
 
-    const std::string tileMeshName = tileName + "_tileMesh";
-    if(mSceneManager->hasSceneNode(tileMeshName + "_node"))
+    const std::string tileMeshName = tileName + (static_cast<bool>(nt) ?  "" : "_dtc" ) + "_tileMesh";
+    if(mSceneManager->hasSceneNode(tileMeshName + (static_cast<bool>(nt) ?  "" : "_dtc" ) + "_node"))
     {
-        Ogre::SceneNode* tileMeshNode = mSceneManager->getSceneNode(tileMeshName + "_node");
+        Ogre::SceneNode* tileMeshNode = mSceneManager->getSceneNode(tileMeshName + (static_cast<bool>(nt) ?  "" : "_dtc" ) + "_node");
         if(mSceneManager->hasEntity(tileMeshName))
         {
             Ogre::Entity* ent = mSceneManager->getEntity(tileMeshName);
@@ -646,10 +651,10 @@ void RenderManager::rrDestroyTile(Tile& tile)
         mSceneManager->destroySceneNode(tileMeshNode);
     }
 
-    const std::string customMeshName = tileName + "_customMesh";
-    if(mSceneManager->hasSceneNode(customMeshName + "_node"))
+    const std::string customMeshName = tileName + (static_cast<bool>(nt) ?  "" : "_dtc" ) + "_customMesh";
+    if(mSceneManager->hasSceneNode(customMeshName + (static_cast<bool>(nt) ?  "" : "_dtc" ) + "_node"))
     {
-        Ogre::SceneNode* customMeshNode = mSceneManager->getSceneNode(customMeshName + "_node");
+        Ogre::SceneNode* customMeshNode = mSceneManager->getSceneNode(customMeshName + (static_cast<bool>(nt) ?  "" : "_dtc" ) + "_node");
         if(mSceneManager->hasEntity(customMeshName))
         {
             Ogre::Entity* ent = mSceneManager->getEntity(customMeshName);

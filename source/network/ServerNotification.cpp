@@ -102,6 +102,8 @@ std::string ServerNotification::typeString(ServerNotificationType type)
             return "refreshTiles";
         case ServerNotificationType::refreshVisibleTiles:
             return "refreshVisibleTiles";
+        case ServerNotificationType::revealTiles:
+            return "revealTiles";
         case ServerNotificationType::carryEntity:
             return "carryEntity";
         case ServerNotificationType::releaseCarriedEntity:

@@ -36,7 +36,9 @@ InputManager::InputManager(Ogre::RenderWindow* renderWindow):
     mRMouseDown(false),
     mMMouseDown(false),
     mMouseDownOnCEGUIWindow(false),
+    mMouseDownOnDraggableTileContainer(false),
     mKeeperHandPos(Ogre::Vector3::ZERO),
+    mKeeperHandPosOverBlock(Ogre::Vector3::ZERO),   
     mXPos(0),
     mYPos(0),
     mLStartDragX(0),
@@ -44,6 +46,7 @@ InputManager::InputManager(Ogre::RenderWindow* renderWindow):
     mRStartDragX(0),
     mRStartDragY(0),
     mSeatIdSelected(0),
+    offsetDraggableTileContainer(Ogre::Vector2(Ogre::Vector2::ZERO)),
     mCommandState(InputCommandState::infoOnly),
     mMouse(nullptr),
     mCurrentAMode(nullptr)

@@ -30,6 +30,7 @@
 #include "game/Skill.h"
 #include "game/SkillType.h"
 #include "gamemap/GameMap.h"
+#include "modes/EditorMode.h"
 #include "modes/GameMode.h"
 #include "modes/MenuModeConfigureSeats.h"
 #include "modes/ModeManager.h"
@@ -76,6 +77,7 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
     ODFrameListener* frameListener = ODFrameListener::getSingletonPtr();
 
     GameMap* gameMap = frameListener->getClientGameMap();
+
     if (!gameMap)
         return false;
 
@@ -175,6 +177,26 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
                 tile->setType(TileType::gem);
                 tile->setTileVisual(TileVisual::gemFull);
             }
+            // Water
+            OD_ASSERT_TRUE(packetReceived >> nb);
+            while(nb > 0)
+            {
+                --nb;
+                Tile* tile = gameMap->tileFromPacket(packetReceived);
+                tile->setType(TileType::water);
+                tile->setTileVisual(TileVisual::waterGround);
+            }
+            // Lava
+            OD_ASSERT_TRUE(packetReceived >> nb);
+            while(nb > 0)
+            {
+                --nb;
+                Tile* tile = gameMap->tileFromPacket(packetReceived);
+                tile->setType(TileType::lava);
+                tile->setTileVisual(TileVisual::lavaGround);
+            }
+
+            
             gameMap->setAllFullnessAndNeighbors();
 
             ODPacket packSend;
@@ -819,7 +841,55 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
             gameMap->refreshBorderingTilesOf(tiles);
             break;
         }
-
+        case ServerNotificationType::revealTiles:
+        {
+            if(frameListener->getModeManager()->getCurrentModeType() != ModeManager::ModeType::EDITOR)
+            {
+                OD_LOG_ERR("Wrong mode " + Helper::toString(frameListener->getModeManager()->getCurrentModeType()));
+                break;
+            }
+            GameMap* draggableTileContainer = (dynamic_cast<EditorMode*>(frameListener->getModeManager()->getCurrentMode())->draggableTileContainer);
+        
+            if(draggableTileContainer!=nullptr)
+            {
+                uint32_t nbTiles;
+                OD_ASSERT_TRUE(packetReceived >> nbTiles);
+                std::vector<Tile*> tiles;
+                TileType tileType;
+                TileVisual tileVisual;
+                double tileFullness;
+                int seatId;
+                Seat* seatPtr;
+                int xx, yy;
+                while(nbTiles > 0)
+                {
+                
+                    --nbTiles;
+                    Tile* gameTile = gameMap->tileFromPacket(packetReceived);
+                    if(gameTile == nullptr)
+                        continue;
+                    xx = gameTile->getX();
+                    yy = gameTile->getY();
+                    OD_ASSERT_TRUE( packetReceived >> tileType >> tileFullness >> seatId >> tileVisual  ); 
+                    if(seatId != -1)
+                        seatPtr = gameMap->getSeatById(seatId);
+                    else
+                        seatPtr = nullptr;
+                
+                    xx = xx - draggableTileContainer->getPosition().x;
+                    yy = yy - draggableTileContainer->getPosition().y;
+                    Tile* draggableTileContainerTile = draggableTileContainer->getTile(xx,yy);
+                    draggableTileContainerTile->setType(tileType);
+                    draggableTileContainerTile->setFullness(tileFullness);
+                    draggableTileContainerTile->setSeat(seatPtr);
+                    draggableTileContainerTile->setTileVisual(tileVisual);
+                }
+                draggableTileContainer->refreshTilesBlock(0, 0, draggableTileContainer->getMapSizeX() - 1, draggableTileContainer->getMapSizeY() - 1, NodeType::MDTC_NODE);
+            }
+            
+            break;
+        }
+        
         case ServerNotificationType::markTiles:
         {
             bool digSet;

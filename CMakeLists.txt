@@ -338,7 +338,6 @@ set(OD_SOURCEFILES
     ${SRC}/game/Seat.cpp
     ${SRC}/game/SeatData.cpp
 
-    ${SRC}/gamemap/DraggableTileContainer.cpp
     ${SRC}/gamemap/GameMap.cpp
     ${SRC}/gamemap/MapHandler.cpp
     ${SRC}/gamemap/MiniMap.cpp
@@ -394,6 +393,7 @@ set(OD_SOURCEFILES
     ${SRC}/network/ServerNotification.cpp
 
     ${SRC}/render/CreatureOverlayStatus.cpp
+    ${SRC}/render/DebugDrawer.cpp    
     ${SRC}/render/Gui.cpp
     ${SRC}/render/MovableTextOverlay.cpp
     ${SRC}/render/ODFrameListener.cpp

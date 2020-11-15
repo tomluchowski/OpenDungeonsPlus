@@ -148,7 +148,7 @@ void RoomDungeonTemple::updateTemplePosition()
     addBuildingObject(centralTile, mTempleObject);
 }
 
-void RoomDungeonTemple::destroyMeshLocal()
+void RoomDungeonTemple::destroyMeshLocal(NodeType nt)
 {
     Room::destroyMeshLocal();
     mTempleObject = nullptr;

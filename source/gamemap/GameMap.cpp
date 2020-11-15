@@ -31,7 +31,7 @@
 #include "entities/CreatureDefinition.h"
 #include "entities/GameEntityType.h"
 #include "entities/MapLight.h"
-// #include "entities/RenderedMovableEntity.h"
+#include "entities/RenderedMovableEntity.h"
 #include "entities/Tile.h"
 #include "entities/Weapon.h"
 #include "game/Player.h"
@@ -43,6 +43,7 @@
 #include "gamemap/TileSet.h"
 #include "goals/Goal.h"
 #include "modes/ModeManager.h"
+#include "network/ODClient.h"
 #include "network/ODServer.h"
 #include "network/ServerMode.h"
 #include "network/ServerNotification.h"
@@ -61,7 +62,12 @@
 #include "utils/LogManager.h"
 #include "utils/ResourceManager.h"
 
+
+#include <OgreAxisAlignedBox.h>
+#include <OgreEntity.h>
+#include <OgreSceneNode.h>
 #include <OgreTimer.h>
+
 
 #include <algorithm>
 #include <cassert>
@@ -151,7 +157,8 @@ private:
 
 
 GameMap::GameMap(bool isServerGameMap) :
-    DraggableTileContainer(isServerGameMap ? 15 : 0, isServerGameMap),
+        TileContainer(isServerGameMap ? 15 : 0),
+        mIsServerGameMap(isServerGameMap),
         mLocalPlayer(nullptr),
         mLocalPlayerNick(DEFAULT_NICK),
         mTurnNumber(-1),
@@ -160,7 +167,8 @@ GameMap::GameMap(bool isServerGameMap) :
         mFloodFillEnabled(false),
         mIsFOWActivated(true),
         mNumCallsTo_path(0),
-        mAiManager(*this)
+        mAiManager(*this),
+        mTileSet(nullptr)
 {
     resetUniqueNumbers();
 }
@@ -176,6 +184,14 @@ std::string GameMap::serverStr()
         return std::string("SERVER - ");
 
     return std::string("CLIENT (" + getLocalPlayerNick() + ") - ");
+}
+
+bool GameMap::isInEditorMode() const
+{
+    if (isServerGameMap())
+        return (ODServer::getSingleton().getServerMode() == ServerMode::ModeEditor);
+
+    return (ODFrameListener::getSingleton().getModeManager()->getCurrentModeType() == ModeManager::EDITOR);
 }
 
 bool GameMap::loadLevel(const std::string& levelFilepath)
@@ -245,7 +261,7 @@ void GameMap::setAllFullnessAndNeighbors()
     }
 }
 
-void GameMap::clearAll()
+void GameMap::clearAll(NodeType nt)
 {
     clearCreatures();
     clearClasses();
@@ -260,7 +276,7 @@ void GameMap::clearAll()
 
     processDeletionQueues();
 
-    clearTiles();
+    clearTiles(nt);
     processDeletionQueues();
 
     clearGoalsForAllSeats();
@@ -499,6 +515,22 @@ void GameMap::removeCreature(Creature *c)
 void GameMap::queueEntityForDeletion(GameEntity *ge)
 {
     mEntitiesToDelete.push_back(ge);
+}
+
+const CreatureDefinition* GameMap::getClassDescription(const string &className)
+{
+    for (std::pair<const CreatureDefinition*,CreatureDefinition*>& def : mClassDescriptions)
+    {
+        if (def.second != nullptr)
+        {
+            if(def.second->getClassName().compare(className) == 0)
+                return def.second;
+        }
+        else if(def.first->getClassName().compare(className) == 0)
+            return def.first;
+    }
+
+    return nullptr;
 }
 
 CreatureDefinition* GameMap::getClassDescriptionForTuning(const std::string& name)
@@ -871,6 +903,170 @@ void GameMap::saveLevelClassDescriptions(std::ofstream& levelFile)
             continue;
 
         CreatureDefinition::writeCreatureDefinitionDiff(def.first, def.second, levelFile, ConfigManager::getSingleton().getCreatureDefinitions());
+    }
+}
+
+const CreatureDefinition* GameMap::getClassDescription(int index)
+{
+    std::pair<const CreatureDefinition*,CreatureDefinition*>& def = mClassDescriptions[index];
+    if(def.second != nullptr)
+        return def.second;
+    else
+        return def.first;
+}
+
+
+void GameMap::createAllEntities(NodeType nt)
+{
+    mTileSet = ConfigManager::getSingleton().getTileSet(mTileSetName);
+
+    if(isServerGameMap())
+    {
+        // Set positions and update active spots
+        for (RenderedMovableEntity* rendered : mRenderedMovableEntities)
+        {
+            rendered->setPosition(rendered->getPosition());
+        }
+
+        for (Room* room : mRooms)
+        {
+            room->updateActiveSpots();
+        }
+
+        for (Spell* spell : mSpells)
+        {
+            spell->setPosition(spell->getPosition());
+        }
+
+        for (Trap* trap : mTraps)
+        {
+            trap->updateActiveSpots();
+        }
+
+        for (Creature* creature : mCreatures)
+        {
+            //Set up definition for creature. This was previously done in createMesh for some reason.
+            creature->setupDefinition(*this, *ConfigManager::getSingleton().getCreatureDefinitionDefaultWorker());
+            //Set position to update info on what tile the creature is in.
+            creature->setPosition(creature->getPosition());
+            //Doesn't do anything currently.
+            //creature->restoreInitialEntityState();
+        }
+    }
+    else 
+    {
+        // On client we create meshes
+        // Create OGRE entities for map tiles
+        for (int jj = 0; jj < getMapSizeY(); ++jj)
+        {
+            for (int ii = 0; ii < getMapSizeX(); ++ii)
+            {
+                getTile(ii,jj)->createMesh(nt);
+            }
+        }
+
+        // Create OGRE entities for rendered entities
+        for (RenderedMovableEntity* rendered : mRenderedMovableEntities)
+        {
+            rendered->createMesh();
+            rendered->setPosition(rendered->getPosition());
+        }
+
+        // Create OGRE entities for the creatures
+        for (Creature* creature : mCreatures)
+        {
+            creature->setupDefinition(*this, *ConfigManager::getSingleton().getCreatureDefinitionDefaultWorker());
+            creature->createMesh();
+            creature->setPosition(creature->getPosition());
+        }
+
+        // Create OGRE entities for the map lights.
+        for (MapLight* mapLight: mMapLights)
+        {
+            mapLight->createMesh();
+            mapLight->setPosition(mapLight->getPosition());
+        }
+
+        // Create OGRE entities for the rooms
+        for (Room* room : mRooms)
+        {
+            room->createMesh();
+        }
+
+        // Create OGRE entities for the rooms
+        for (Trap* trap : mTraps)
+        {
+            trap->createMesh();
+        }
+
+        // Create OGRE entities for spells
+        for (Spell* spell : mSpells)
+        {
+            spell->createMesh();
+            spell->setPosition(spell->getPosition());
+        }
+    }
+
+    for (Room* room : mRooms)
+    {
+        room->restoreInitialEntityState();
+    }
+
+    for (Trap* trap : mTraps)
+    {
+        trap->restoreInitialEntityState();
+    }
+
+    //Doesn't do anything currently
+    /*
+    for (Spell* spell : mSpells)
+    {
+        spell->restoreInitialEntityState();
+    }
+
+    for (RenderedMovableEntity* rendered : mRenderedMovableEntities)
+    {
+        rendered->restoreInitialEntityState();
+    }*/
+
+    OD_LOG_INF("entities created");
+}
+
+
+void GameMap::destroyAllEntities()
+{
+    // Destroy OGRE entities for map tiles
+    for (int jj = 0; jj < getMapSizeY(); ++jj)
+    {
+        for (int ii = 0; ii < getMapSizeX(); ++ii)
+        {
+            Tile* tile = getTile(ii,jj);
+            tile->destroyMesh();
+        }
+    }
+
+    // Destroy OGRE entities for the creatures
+    for (Creature* creature : mCreatures)
+    {
+        creature->destroyMesh();
+    }
+
+    // Destroy OGRE entities for the map lights.
+    for (MapLight* mapLight : mMapLights)
+    {
+        mapLight->destroyMesh();
+    }
+
+    // Destroy OGRE entities for the rooms
+    for (Room *currentRoom : mRooms)
+    {
+        currentRoom->destroyMesh();
+    }
+
+    // Destroy OGRE entities for the traps
+    for (Trap* trap : mTraps)
+    {
+        trap->destroyMesh();
     }
 }
 
@@ -1753,18 +1949,6 @@ Room* GameMap::getRoomByName(const std::string& name)
     return nullptr;
 }
 
-Seat* GameMap::getSeatById(int id) const
-{
-    for (Seat* seat : mSeats)
-    {
-        if (seat->getId() == id)
-            return seat;
-    }
-
-    return nullptr;
-}
-
-
 Trap* GameMap::getTrapByName(const std::string& name)
 {
     for (Trap* trap : mTraps)
@@ -1915,7 +2099,16 @@ bool GameMap::addSeat(Seat *s)
     return true;
 }
 
+Seat* GameMap::getSeatById(int id) const
+{
+    for (Seat* seat : mSeats)
+    {
+        if (seat->getId() == id)
+            return seat;
+    }
 
+    return nullptr;
+}
 
 void GameMap::addWinningSeat(Seat *s)
 {
@@ -2708,6 +2901,44 @@ const std::string& GameMap::getMeshForDefaultTile() const
     return mTileSet->getTileValues(TileVisual::dirtFull).at(0).getMeshName();
 }
 
+const TileSetValue& GameMap::getMeshForTile(const Tile* tile) const
+{
+    int index = 0;
+    for(int i = 0; i < 4; ++i)
+    {
+        int diffX;
+        int diffY;
+        switch(i)
+        {
+            case 0:
+                diffX = 0;
+                diffY = -1;
+                break;
+            case 1:
+                diffX = 1;
+                diffY = 0;
+                break;
+            case 2:
+                diffX = 0;
+                diffY = 1;
+                break;
+            case 3:
+            default:
+                diffX = -1;
+                diffY = 0;
+                break;
+        }
+        const Tile* t = getTile(tile->getX() + diffX, tile->getY() + diffY);
+        if(t == nullptr)
+            continue;
+
+        if(mTileSet->areLinked(tile, t))
+            index |= (1 << i);
+    }
+
+    return mTileSet->getTileValues(tile->getTileVisual()).at(index);
+}
+
 uint32_t GameMap::getMaxNumberCreatures(Seat* seat) const
 {
     uint32_t nbCreatures = ConfigManager::getSingleton().getMaxCreaturesPerSeatDefault();
@@ -3057,4 +3288,124 @@ void GameMap::fireRelativeSound(const std::vector<Seat*>& seats, const std::stri
         serverNotification->mPacket << soundFamily;
         ODServer::getSingleton().queueServerNotification(serverNotification);
     }
+}
+
+Ogre::AxisAlignedBox GameMap::getAABB()
+{
+    Ogre::AxisAlignedBox aabb(Ogre::AxisAlignedBox::Extent::EXTENT_FINITE);
+    aabb = dynamic_cast<Ogre::SceneNode*>(mTiles[0][0]->getEntityNode()->getChild(0))->getAttachedObject(0)->getWorldBoundingBox(true);
+    aabb.merge(static_cast<Ogre::SceneNode*>(mTiles[getMapSizeX()-1][getMapSizeY()-1]->getEntityNode()->getChild(0))->getAttachedObject(0)->getWorldBoundingBox(true));
+    return aabb;
+}
+
+void GameMap::moveDelta(Ogre::Vector2 delta)
+{
+    Ogre::Vector3 vv = getParentSceneNode()->getPosition();
+    vv.x += delta.x;
+    vv.y += delta.y;
+    getParentSceneNode()->setPosition(vv);
+}
+
+void GameMap::setPosition(Ogre::Vector2 position)
+{
+    getParentSceneNode()->setPosition(position.x, position.y,  getParentSceneNode()->getPosition().z);
+}
+
+void GameMap::setPosition(Ogre::Vector2 position, Ogre::Vector2 offset )
+{
+    getParentSceneNode()->setPosition(position.x + offset.x, position.y + offset.y,  getParentSceneNode()->getPosition().z);
+}
+
+void GameMap::setRoundedPosition(Ogre::Vector2 position, Ogre::Vector2 offset )
+{
+    getParentSceneNode()->setPosition(std::round(position.x + offset.x), std::round( position.y + offset.y),  getParentSceneNode()->getPosition().z);
+}
+
+Ogre::Vector2 GameMap::getPosition()
+{
+    Ogre::Vector3 vv = getParentSceneNode()->getPosition();
+    return Ogre::Vector2( vv.x, vv.y);
+}
+
+Ogre::SceneNode* GameMap::getParentSceneNode()
+{
+    return mTiles[0][0]->getParentSceneNode();
+
+}
+
+
+bool GameMap::askServerCopyTilesWithOffsetFrom(const GameMap& dtc, unsigned int xx, unsigned yy,  unsigned int length, unsigned int width, unsigned int offsetX, unsigned int offsetY)
+{
+    bool isNull = false;
+    for(unsigned int pp =0 ; pp < length ;  pp++)
+        for(unsigned int qq =0  ; qq < width;  qq++)
+        {
+            Tile* lhs;
+            Tile* rhs;
+            lhs = getTile(pp + offsetX,qq + offsetY);
+            rhs = dtc.getTile( xx+pp, yy+qq);
+            if(lhs!=nullptr && rhs!=nullptr){
+                ClientNotification *clientNotification = new ClientNotification(
+                    ClientNotificationType::editorAskChangeTile);
+                clientNotification->mPacket << lhs->getX() << lhs->getY();
+                clientNotification->mPacket << rhs->getType();
+                clientNotification->mPacket << rhs->getFullness();
+                clientNotification->mPacket << ((rhs->getSeat()==nullptr ) ? -1 : rhs->getSeat()->getId());
+                ODClient::getSingleton().queueClientNotification(clientNotification);
+            }
+            else
+                isNull = true;
+        }
+    
+    return isNull;
+}
+
+bool GameMap::copyTilesWithOffsetFrom(const GameMap& dtc, unsigned int xx, unsigned yy,  unsigned int length, unsigned int width, unsigned int offsetX, unsigned int offsetY)
+{
+    bool isNull = false;
+    for(unsigned int pp =0 ; pp < length ;  pp++)
+        for(unsigned int qq =0  ; qq < width;  qq++)
+        {
+            Tile* lhs;
+            Tile* rhs;
+            lhs = getTile(pp + offsetX,qq + offsetY);
+            rhs = dtc.getTile( xx+pp, yy+qq);
+            if(lhs!=nullptr && rhs!=nullptr){
+                *lhs=*rhs;
+            }
+            else
+                isNull = true;
+        }
+    
+    return isNull;
+}
+
+bool GameMap::copyTilesFrom(const GameMap& dtc, unsigned int xx, unsigned yy,  unsigned int length, unsigned int width)
+{
+    return copyTilesWithOffsetFrom(dtc, xx, yy, length, width, 0, 0);
+}
+
+
+bool GameMap::copyFullyTilesFrom(const GameMap& dtc, unsigned int xx, unsigned yy)
+{
+
+    return copyTilesFrom(dtc,xx,yy,mMapSizeX,mMapSizeY);
+}
+
+
+bool GameMap::refreshTilesBlock(unsigned int startX, unsigned int startY, unsigned int endX, unsigned int endY, NodeType nt)
+{
+    bool isNull = false;
+    
+    for(unsigned int ii  = startX; ii <= endX ; ++ii)
+        for(unsigned int jj = startY; jj <= endY ; ++jj)
+        {
+            Tile* lhs;
+            lhs = getTile(ii, jj);
+            if(lhs!=nullptr )
+                lhs->refreshMesh(nt);
+            else
+                isNull = true;         
+        }
+    return isNull;
 }

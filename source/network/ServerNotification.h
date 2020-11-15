@@ -75,6 +75,7 @@ enum class ServerNotificationType
     markTiles,
     refreshTiles,
     refreshVisibleTiles,
+    revealTiles,
     carryEntity,
     releaseCarriedEntity,
 

@@ -41,6 +41,7 @@ class Gui;
 class ModeManager;
 class RenderManager;
 class RenderSceneMenu;
+class DraggableTileContainer;
 
 namespace CEGUI
 {
@@ -107,6 +108,8 @@ public:
     //! \brief Triggered once a frame rendering has ended.
     bool frameEnded(const Ogre::FrameEvent& evt) override;
 
+    bool frameStarted(const Ogre::FrameEvent& evt) override;
+    
     //! \brief From Ogre::RenderQueueListener
     void renderQueueStarted(Ogre::uint8 queueGroupId, const Ogre::String& invocation,
         bool& skipThisInvocation) override;
@@ -117,8 +120,9 @@ public:
     //! \brief This permits to get the keeperHand world coordinates from the cursor position
     //! returns true if the keeper hand position was successfully computed and false otherwise.
     //! If it returns false, keeperHand3DPos will stay unchanged
-    bool findWorldPositionFromMouse(const OIS::MouseEvent &arg, Ogre::Vector3& keeperHand3DPos);
-
+    bool findWorldPositionFromMouse(const OIS::MouseEvent &arg, Ogre::Vector3& keeperHand3DPos, Ogre::Real height);
+    bool rayIntersectionGameMap(const OIS::MouseEvent &arg,Ogre::Vector3& keeperHand3DPos, GameMap* draggableTileContainer);
+    
     /*! \brief Print a string in the upper right corner of the screen.
      *  Usually used for system or debug info
      */

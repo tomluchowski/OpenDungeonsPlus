@@ -45,6 +45,7 @@ enum class NodeType
 class Creature;
 class GameEntity;
 class GameMap;
+class DraggableTileContainer;
 class ODPacket;
 class Player;
 class Seat;
@@ -162,7 +163,7 @@ class GameEntity
   public:
     //! \brief Default constructor with default values
     GameEntity(
-          GameMap*        gameMap,
+          GameMap*   mGameMap,
           std::string     name       = std::string(),
           std::string     meshName   = std::string(),
           Seat*           seat        = nullptr
@@ -170,6 +171,7 @@ class GameEntity
 
     virtual ~GameEntity();
 
+    GameEntity& operator=(const GameEntity& gg) ;
     std::string getOgreNamePrefix() const;
 
     //! \brief Get the name of the object
@@ -226,7 +228,7 @@ class GameEntity
     //! \brief Function that calls the mesh creation. If the mesh is already created, does nothing
     void createMesh(NodeType nt =  NodeType::MTILES_NODE);
     //! \brief Function that calls the mesh destruction. If the mesh is not created, does nothing
-    void destroyMesh();
+    void destroyMesh(NodeType nt =  NodeType::MTILES_NODE);
 
     //! \brief Get the type of this object
     virtual GameEntityType getObjectType() const = 0;
@@ -426,7 +428,7 @@ class GameEntity
     {}
 
     //! \brief Function that implements the mesh deletion
-    virtual void destroyMeshLocal();
+    virtual void destroyMeshLocal(NodeType nt = NodeType::MTILES_NODE);
 
     //! \brief The position of this object
     Ogre::Vector3 mPosition;

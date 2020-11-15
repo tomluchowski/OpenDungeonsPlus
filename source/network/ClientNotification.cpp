@@ -81,12 +81,16 @@ std::string ClientNotification::typeString(ClientNotificationType type)
             return "askSaveMap";
         case ClientNotificationType::askExecuteConsoleCommand:
             return "askExecuteConsoleCommand";
+        case ClientNotificationType::editorAskChangeTile:
+            return "editorAskChangeTile";
         case ClientNotificationType::editorAskChangeTiles:
             return "editorAskChangeTiles";
         case ClientNotificationType::editorAskBuildRoom:
             return "editorAskBuildRoom";
         case ClientNotificationType::editorAskBuildTrap:
             return "editorAskBuildTrap";
+        case ClientNotificationType::editorAskRevealTiles:
+            return "editorAskRevealTiles";
         case ClientNotificationType::editorCreateWorker:
             return "editorCreateWorker";
         case ClientNotificationType::editorCreateFighter:

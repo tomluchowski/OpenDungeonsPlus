@@ -112,7 +112,7 @@ protected:
     virtual void exportToStream(std::ostream& os) const override;
     virtual bool importFromStream(std::istream& is) override;
 
-    void destroyMeshLocal() override;
+    void destroyMeshLocal(NodeType nt = NodeType::MTILES_NODE) override;
 
     void notifyActiveSpotRemoved(ActiveSpotPlace place, Tile* tile) override
     {
