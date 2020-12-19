@@ -611,7 +611,7 @@ void RenderManager::rrCreateTile(Tile& tile, const GameMap& dtc, const Player& l
     Ogre::SceneNode* node ;   
     if(nt == NodeType::MTILES_NODE)
         node = mTileSceneNode->createChildSceneNode(tileName + "_node");
-    else if(nt == NodeType::MDTC_NODE)
+    else // if(nt == NodeType::MDTC_NODE)
         node = mDraggableSceneNode->createChildSceneNode(tileName + "_dtc_node");
     tile.setParentSceneNode(node->getParentSceneNode());
     tile.setEntityNode(node);

@@ -60,13 +60,26 @@ void FFP_Transform(in mat4 m,
 	vOut = (m * v).xyz;
 }
 
+#if !defined(OGRE_GLSLES) || OGRE_GLSLES > 100
 //-----------------------------------------------------------------------------
-void FFP_Transform(in mat3x4 m, 
-				   in vec3 v, 
+void FFP_Transform(in mat3x4 m,
+				   in vec4 v,
 				   out vec3 vOut)
 {
-	vOut = mat3(m) * v;
+/* transpose non-square uniform matrix for correct row-major > column-major mapping
+ * to keep the indexing inside the shader so mat[0] returns the same data in both GLSL and HLSL
+ * although it will be the first row in HLSL and the first column in GLSL
+ */
+	vOut = v * m;
 }
+
+void FFP_Transform(in mat3x4 m,
+				   in vec3 v,
+				   out vec3 vOut)
+{
+	vOut = v * mat3(m);
+}
+#endif
 
 //-----------------------------------------------------------------------------
 void FFP_Transform(in mat4 m, 
