@@ -52,6 +52,7 @@ int main(int argc, char** argv)
 
     try
     {
+        std::ios::sync_with_stdio(false);
         boost::program_options::options_description desc("Allowed options");
         // By default, we only add help option. The rest will be added by ConfigManager
         // to make sure it is done at the same location
