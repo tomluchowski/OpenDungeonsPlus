@@ -1,22 +1,52 @@
 // Gold genrated by blender2ogre 0.6.0
 import RTSS/NormalMapping_MultiPass from "RTShaderSystem.material"
-material Gold : RTSS/NormalMapping_MultiPass
+
+vertex_program myVertexShader glsl
 {
-    receive_shadows on
+  source distortion.vert
+    default_params
+    {
+        param_named_auto projectionMatrix projection_matrix
+        param_named_auto viewMatrix view_matrix
+        param_named_auto worldMatrix world_matrix
+    }
+  
+}
+
+fragment_program myFragmentShader glsl
+{
+  source distortion.frag
+//       default_params
+//     {
+//         param_named_auto diffuseMap int 0
+//     }
+}
+
+
+
+material Gold /*: RTSS/NormalMapping_MultiPass*/
+{
+//     receive_shadows on
 
     technique
     {
+/*
         pass lighting
         {
-            // Override the normal map.
+
+            Override the normal map.
             rtshader_system
             {
                 lighting_stage normal_map GoldNormal.png tangent_space 0 bilinear 1 -1.0
             }
+            
+            
         }
+        
 
         pass decal
         {
+
             ambient 0.8 0.8 0.8 1.0
             diffuse 0.8 0.8 0.8 1.0
             specular 0.2 0.2 0.2 0.0 2.0
@@ -29,6 +59,32 @@ material Gold : RTSS/NormalMapping_MultiPass
                 scale 1.0 1.0
                 colour_op modulate
             }
+            
+
+
+        }*/
+        pass zero
+        {
+            
+            vertex_program_ref myVertexShader
+            {
+                
+            }
+            fragment_program_ref myFragmentShader
+            {
+
+            }
+ 
+            texture_unit decalmap
+            {
+                texture Gold.png
+                tex_address_mode wrap
+                scale 1.0 1.0
+                colour_op modulate
+            }
+            
+            
         }
+
     }
 }
