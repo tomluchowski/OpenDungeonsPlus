@@ -16,10 +16,10 @@ vertex_program myVertexShader glsl
 fragment_program myFragmentShader glsl
 {
   source distortion.frag
-//       default_params
-//     {
-//         param_named_auto diffuseMap int 0
-//     }
+    default_params
+    {
+         param_named_auto surfaceAmbient surface_ambient_colour 
+    }
 }
 
 
