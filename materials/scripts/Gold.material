@@ -1,5 +1,5 @@
 // Gold genrated by blender2ogre 0.6.0
-import RTSS/NormalMapping_MultiPass from "RTShaderSystem.material"
+ import RTSS/NormalMapping_MultiPass from "RTShaderSystem.material"
 
 vertex_program myVertexShader glsl
 {
