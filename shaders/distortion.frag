@@ -1,33 +1,31 @@
-#version 330 core  
-#extension GL_ARB_separate_shader_objects: enable
-#extension GL_ARB_texture_rectangle: enable
+#version 330  core
 
-uniform sampler2D myTexture;
-uniform sampler2D m_NormalMap;
+
+uniform sampler2D decalmap;
+uniform sampler2D normalmap;
+
 uniform vec4 surfaceAmbient;
-uniform vec3 lightColour; 
-uniform vec3 lightPos;
+uniform vec4 lightColour; 
+uniform vec4 lightPos;
 in vec2 out_UV0;
 in vec2 out_UV1;
-in vec3 FragPos;  
+in vec3 FragPos;
+in mat3 TBN;
+ 
 out vec4 color;
-
-in VS_OUT {
-    mat3 TBN;
-} fs_in;
 
 void main (void)  
 {  
-    vec4 texelColor = texture(myTexture, out_UV0);
-    vec4 Normal = texture(m_NormalMap, out_UV1);
-    vec3 norm = Normal.xyz;
-    norm.xy = 2 * Normal.xy - (1.0,1.0);
-    norm = normalize(fs_in.TBN * norm); 
-    
-    vec3 lightDir = normalize(lightPos - FragPos); 
-    float diff = max(dot(norm, lightDir), 0.0);
-    vec3 diffuse = diff * lightColour; 
-    vec3 result = (diffuse /* + surfaceAmbient  */) * texelColor.rgb;
+    vec3 texelColor = texture(decalmap, out_UV0.st).rgb;
+    vec3 Normal = texture(normalmap, out_UV1.st).rgb;
+
+    Normal.xy = 2 * Normal.xy - (1.0,1.0);
+    Normal = normalize(TBN * Normal); 
+          
+    vec3 lightDir = normalize(lightPos.xyz - FragPos); 
+    float diff = max(dot(Normal, lightDir), 0.0);
+    vec3 diffuse = diff * lightColour.rgb; 
+    vec3 result = ( diffuse + surfaceAmbient.rgb) *texelColor ;
     color = vec4(result.xyz, 1.0);
        
 }    
