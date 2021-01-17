@@ -41,10 +41,10 @@ public:
              Ogre::Real            specRed     = 0.2,
              Ogre::Real            specGreen   = 0.2,
              Ogre::Real            specBlue    = 0.2,
-             Ogre::Real            attenRange  = 20.0,
+             Ogre::Real            attenRange  = 200.0,
              Ogre::Real            attenConst  = 1.0,
-             Ogre::Real            attenLin    = 0.0,
-             Ogre::Real            attenQuad   = 0.02);
+             Ogre::Real            attenLin    = 0.022,
+             Ogre::Real            attenQuad   = 0.019);
 
     virtual ~MapLight()
     {}

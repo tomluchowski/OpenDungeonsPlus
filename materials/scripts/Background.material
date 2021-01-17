@@ -6,6 +6,7 @@ material Background
     {
         pass
         {
+            depth_write off
             ambient 0.0 0.0 0.0 1.0
             diffuse 0.8 0.8 0.8 1.0
             specular 0.0 0.0 0.0 1.0 2.0

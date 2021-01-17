@@ -5,8 +5,10 @@ uniform sampler2D decalmap;
 uniform sampler2D normalmap;
 
 uniform vec4 surfaceAmbient;
-uniform vec4 lightColour; 
+uniform vec4 lightDiffuseColour; 
+uniform vec4 lightSpecularColour;
 uniform vec4 lightPos;
+uniform vec4 cameraPosition;
 in vec2 out_UV0;
 in vec2 out_UV1;
 in vec3 FragPos;
@@ -17,15 +19,29 @@ out vec4 color;
 void main (void)  
 {  
     vec3 texelColor = texture(decalmap, out_UV0.st).rgb;
+    // compute Normal
     vec3 Normal = texture(normalmap, out_UV1.st).rgb;
+    Normal.xyz = 2 * Normal.xyz - (1.0,1.0,1.0);
+    Normal =  normalize(TBN * Normal); 
+    
+    
+    // compute lightDir
+    vec3 lightDir =  normalize(lightPos.xyz - FragPos*lightPos.w);
+    
+    
+    // compute Specular
+    vec3 viewDirection =  normalize( cameraPosition.xyz - FragPos);
+    vec3 reflectedLightDirection =  normalize(reflect(-1.0*lightDir.xyz,Normal));
+    float spec =  max(dot(reflectedLightDirection, viewDirection ), 0.0) ;
+    spec = pow(spec,16);    
+    vec3 specular = spec * lightSpecularColour.rgb; 
+    
+    
+    // compute Diffuse
+    float diff = max(dot(lightDir,Normal), 0.0);
+    vec3 diffuse = diff * lightDiffuseColour.rgb;
 
-    Normal.xy = 2 * Normal.xy - (1.0,1.0);
-    Normal = normalize(TBN * Normal); 
-          
-    vec3 lightDir = normalize(lightPos.xyz - FragPos); 
-    float diff = max(dot(Normal, lightDir), 0.0);
-    vec3 diffuse = diff * lightColour.rgb; 
-    vec3 result = ( diffuse + surfaceAmbient.rgb) *texelColor ;
-    color = vec4(result.xyz, 1.0);
+    vec3 result =  (diffuse + spec + surfaceAmbient.rgb/4.0 )* texelColor;
+    color = vec4(result.xyz,  1.0);
        
 }    

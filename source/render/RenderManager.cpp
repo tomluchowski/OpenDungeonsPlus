@@ -124,7 +124,7 @@ void RenderManager::initGameRenderer(GameMap* gameMap)
         mHandLight->setType(Ogre::Light::LT_POINT);
         mHandLight->setDiffuseColour(Ogre::ColourValue(0.65f, 0.65f, 0.45f));
         mHandLight->setSpecularColour(Ogre::ColourValue(0.65f, 0.65f, 0.45f));
-        mHandLight->setAttenuation(7, 1.0, 0.00, 0.3f);
+        mHandLight->setAttenuation(50, 1.0, 0.09, 0.032);
         if(mHandLightNode == nullptr)
         {
             mHandLightNode = mLightSceneNode->createChildSceneNode(); //mSceneManager->createSceneNode();
@@ -255,8 +255,8 @@ void RenderManager::setWorldAmbientLightingFactor(float lightFactor)
 {
     Ogre::ColourValue factoredLighting(BASE_AMBIENT_VALUE * lightFactor);
     mSceneManager->setAmbientLight(factoredLighting);
-    // Ogre::MaterialPtr goldPtr = Ogre::MaterialManager::getSingleton().getByName("Gold");
-    // goldPtr->getTechnique(0)->getPass(0)->getFragmentProgramParameters()->setNamedConstant("surfaceAmbient",factoredLighting);
+    Ogre::MaterialPtr goldPtr = Ogre::MaterialManager::getSingleton().getByName("Gold");
+    goldPtr->getTechnique(0)->getPass(0)->getFragmentProgramParameters()->setNamedConstant("surfaceAmbient",factoredLighting);
 }
 
 Ogre::Light* RenderManager::addPointLightMenu(const std::string& name, const Ogre::Vector3& pos,
@@ -1574,7 +1574,7 @@ void RenderManager::moveWorldCoords(Ogre::Real x, Ogre::Real y)
 {
     if(mHandLightNode != nullptr)
     {
-        mHandLightNode->setPosition(x, y, KEEPER_HAND_WORLD_Z);
+        mHandLightNode->setPosition(x, y,  KEEPER_HAND_WORLD_Z);
     }
 }
 
