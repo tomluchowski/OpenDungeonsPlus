@@ -1,25 +1,62 @@
-// Lava
-material Lava
+vertex_program myLavaVertexShader glsl
 {
-    receive_shadows on
+  source LavaDistortion.vert
+    default_params
+    {
+        param_named_auto projectionMatrix projection_matrix
+        param_named_auto viewMatrix view_matrix
+        param_named_auto worldMatrix world_matrix
+        param_named_auto time1 time 
+    }
+  
+}
+
+fragment_program myLavaFragmentShader glsl
+{
+  source LavaDistortion.frag
+    default_params
+    {
+        param_named_auto time2 time 
+    }
+}
+
+
+
+material Lava //: RTSS/NormalMapping_MultiPass
+{
+//     receive_shadows on
+
     technique
     {
         pass
-        {
-            ambient 0.0 0.0 0.0 1.0
-            diffuse 0.8 0.8 0.8 1.0
-            specular 0.0 0.0 0.0 1.0 2.0
-            emissive 1.0 1.0 1.0 1.0
-            texture_unit
+        {      
+            vertex_program_ref myLavaVertexShader
+            {
+                
+            }
+            fragment_program_ref myLavaFragmentShader
+            { 
+                param_named iChannel0 int 0
+                param_named iChannel1 int 0
+            }
+ 
+            texture_unit 
             {
                 texture Lava.png
-                wave_xform scroll_x sine 0.1 0.2 0.0 0.1
-                wave_xform scroll_y sine 0.01 0.22 0.0 0.18
-                scroll_anim 0.1 0.2
-                //scale_anim 0.7 0.9
-                tex_address_mode wrap
-                filtering trilinear
+
             }
+
+            
+            
         }
+
     }
-}
+}    
+    
+    
+    
+    
+    
+    
+    
+    

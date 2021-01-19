@@ -3,7 +3,7 @@
 
 vertex_program myVertexShader glsl
 {
-  source distortion.vert
+  source GoldDistortion.vert
     default_params
     {
         param_named_auto projectionMatrix projection_matrix
@@ -15,7 +15,7 @@ vertex_program myVertexShader glsl
 
 fragment_program myFragmentShader glsl
 {
-  source distortion.frag
+  source GoldDistortion.frag
     default_params
     {
         param_named_auto surfaceAmbient  surfaceAmbient 1.0 1.0 1.0 1.0 
