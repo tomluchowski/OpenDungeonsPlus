@@ -255,8 +255,6 @@ void RenderManager::setWorldAmbientLightingFactor(float lightFactor)
 {
     Ogre::ColourValue factoredLighting(BASE_AMBIENT_VALUE * lightFactor);
     mSceneManager->setAmbientLight(factoredLighting);
-    Ogre::MaterialPtr goldPtr = Ogre::MaterialManager::getSingleton().getByName("Gold");
-    goldPtr->getTechnique(0)->getPass(0)->getFragmentProgramParameters()->setNamedConstant("surfaceAmbient",factoredLighting);
 }
 
 Ogre::Light* RenderManager::addPointLightMenu(const std::string& name, const Ogre::Vector3& pos,

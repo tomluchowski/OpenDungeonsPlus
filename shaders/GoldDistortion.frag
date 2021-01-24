@@ -4,7 +4,7 @@
 uniform sampler2D decalmap;
 uniform sampler2D normalmap;
 
-uniform vec4 surfaceAmbient;
+uniform vec4 ambientLightColour;
 uniform vec4 lightDiffuseColour; 
 uniform vec4 lightSpecularColour;
 uniform vec4 lightPos;
@@ -41,7 +41,7 @@ void main (void)
     float diff = max(dot(lightDir,Normal), 0.0);
     vec3 diffuse = diff * lightDiffuseColour.rgb;
 
-    vec3 result =  (diffuse + spec + surfaceAmbient.rgb/4.0 )* texelColor;
+    vec3 result =  (diffuse + spec + ambientLightColour.rgb/2.0 )* texelColor;
     color = vec4(result.xyz,  1.0);
        
 }    
