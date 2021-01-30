@@ -12,19 +12,20 @@ layout (location = 2)  in vec3 aNormal;
 layout (location = 14) in vec3 aTangent;
  
 layout (location = 8) in vec2 uv_0;
-layout (location = 9) in vec2 uv_1;
+layout (location = 8) in vec2 uv_1;
+
 out vec2 out_UV0;
-out vec2 out_UV1; 
+out vec2 out_UV1;
+
 out vec3 FragPos;
  
 out mat3 TBN;
  
-float freq = 3.1415;  
+float freq = 3.1415; 
  
 vec3 deform(vec3 pos) {
     pos.x += perlin(pos.x,pos.y);
     pos.y += perlin(pos.y,pos.x);
-    pos.z *= (1 + sin((pos.x + 2*pos.y ) * freq)/6.0);
     return pos;
 }
  

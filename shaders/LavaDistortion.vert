@@ -1,6 +1,9 @@
 #version 330 core
 #extension GL_ARB_explicit_uniform_location : enable
- 
+#extension GL_ARB_shading_language_include : enable
+
+#include "PerlinNoise.glsl" 
+
 uniform    mat4 projectionMatrix;
 uniform    mat4 viewMatrix;
 uniform    mat4 worldMatrix;
@@ -16,6 +19,8 @@ out vec3 FragPos;
 #define PI 3.1415926538
 
 vec3 deform(vec3 pos) {
+    pos.x += perlin(pos.x,pos.y);
+    pos.y += perlin(pos.y,pos.x);
     pos.z = sin(time1/10.0 + (pos.x  ) * PI)/12.0 + cos(2*PI*cos(time1/10.0 + 2*pos.y ))/12.0;
     return pos;
 }
