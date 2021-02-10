@@ -116,7 +116,7 @@ void RenderManager::initGameRenderer(GameMap* gameMap)
     OD_ASSERT_TRUE(gameMap);
     OD_ASSERT_TRUE(mHandKeeperNode);
     mCreatureTextOverlayDisplayed = false;
-
+    
     // Create the light which follows the single tile selection mesh
     if(mHandLight == nullptr)
     {
@@ -245,10 +245,12 @@ void RenderManager::createScene(Ogre::Viewport* nViewport)
     mHandKeeperNode->setPosition(0.0f, 0.0f, -KEEPER_HAND_POS_Z);
     handKeeperOverlay->add3D(mHandKeeperNode);
     handKeeperOverlay->show();
-
+    // mSceneManager->setShadowTechnique(Ogre::ShadowTechnique::SHADOWTYPE_TEXTURE_MODULATIVE);
     mHandKeeperNode->setVisible(mHandKeeperHandVisibility == 0);
     new DebugDrawer(mSceneManager, 0.1f);
 
+
+     
 }
 
 void RenderManager::setWorldAmbientLightingFactor(float lightFactor)
@@ -1390,13 +1392,10 @@ std::string RenderManager::colourizeMaterial(const std::string& materialName, co
         }
         if (seat != nullptr)
         {
-            // Color the material with the Seat's color.
-            Ogre::Pass* pass = technique->getPass(technique->getNumPasses() - 1);
             Ogre::ColourValue color = seat->getColorValue();
-            color.a = 1.0;
-            pass->setAmbient(color);
-            pass->setDiffuse(color);
-            pass->setSpecular(color);
+            color.a = 1.0;            
+            // Color the material with the Seat's color.
+            technique->getPass(technique->getNumPasses() - 1)->getFragmentProgramParameters()->setNamedConstant("seatColor", color) ;
         }
     }
 

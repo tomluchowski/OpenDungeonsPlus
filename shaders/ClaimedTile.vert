@@ -12,8 +12,9 @@ layout (location = 2)  in vec3 aNormal;
 layout (location = 14) in vec3 aTangent;
  
 layout (location = 8) in vec2 uv_0;
-
 out vec2 out_UV0;
+out vec2 out_UV1;
+out vec2 out_UV2;
 
 out vec3 FragPos;
  
@@ -49,4 +50,6 @@ void main() {
     FragPos = P;
  
     out_UV0 = uv_0;
+    out_UV1 = uv_0;
+    out_UV2 = uv_0;
 }  

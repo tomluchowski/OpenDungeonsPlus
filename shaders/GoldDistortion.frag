@@ -9,6 +9,7 @@ uniform vec4 lightDiffuseColour;
 uniform vec4 lightSpecularColour;
 uniform vec4 lightPos;
 uniform vec4 cameraPosition;
+uniform vec4 diffuseSurface;
 in vec2 out_UV0;
 in vec2 out_UV1;
 in vec3 FragPos;
@@ -40,8 +41,16 @@ void main (void)
     // compute Diffuse
     float diff = max(dot(lightDir,Normal), 0.0);
     vec3 diffuse = diff * lightDiffuseColour.rgb;
-
-    vec3 result =  (diffuse + spec + ambientLightColour.rgb/2.0 )* texelColor;
+    vec3 result;
+    
+    
+    // precompute the lighting term
+    vec3 lightingTerm =  (diffuse + spec + ambientLightColour.rgb/2.0 );
+    
+    if(diffuseSurface.rgb != vec3(1.0,1.0,1.0))
+        result =  lightingTerm * mix(texelColor, diffuseSurface.rgb,0.5);
+    else
+        result =  lightingTerm * texelColor;
     color = vec4(result.xyz,  1.0);
        
 }    
