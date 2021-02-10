@@ -608,26 +608,60 @@ void RenderManager::rrRefreshTile(const Tile& tile, const GameMap& draggableTile
     if(tile.getTileVisual() == TileVisual::claimedFull)
     {
 
-        for(unsigned int neighbor = 0 ; neighbor < 4 ; ++neigbor)
-            if(tile.getNeighbor[neighbor] == TileVisual::claimedGround)
+        if((tile.getX() + tile.getY())%2 == 0)
+        {
+            // check for south - north neighbourhood
+            Tile* n1 = draggableTileContainer.getTile(tile.getX() , tile.getY() - 1);
+            Tile* n2 = draggableTileContainer.getTile(tile.getX() , tile.getY() + 1);            
+            if(n1 != nullptr && n1->getTileVisual()  == TileVisual::claimedGround)
             {
-                if((tile.getNeighbor[neighbor].getX() + tile.getNeighbor[neighbor].getY())%2== 0)
-                {
-                    static_cast<double>(tile.getX() + tile.getNeighbor[neighbor].getX())/2.0
-                        static_cast<double>(tile.getY() + tile.getNeighbor[neighbor].getY())/2.0 
-                }
-                else
-                {
+                rrDecorateWithLamp(&tile,n1);
 
-
-
-                }
+                
             }
+            if(n2 != nullptr && n2->getTileVisual()  == TileVisual::claimedGround)
+            {
+                rrDecorateWithLamp(&tile,n2);                
+            }
+        }
+        else
+        {
+             // check for east - west neighbourhood
+            Tile* n3 = draggableTileContainer.getTile(tile.getX() - 1 , tile.getY() );
+            Tile* n4 = draggableTileContainer.getTile(tile.getX() + 1 , tile.getY() );            
+            if(n3 != nullptr && n3->getTileVisual()  == TileVisual::claimedGround)
+            {
+                rrDecorateWithLamp(&tile,n3);
+
+                
+            }
+            if(n4 != nullptr && n4->getTileVisual()  == TileVisual::claimedGround)
+            {
+                rrDecorateWithLamp(&tile,n4);                
+            }           
+
+
+
+        }
     }
-
-
     
 }
+
+void RenderManager::rrDecorateWithLamp(const Tile* Wall, const Tile* Ground)
+{
+    if(!mSceneManager->hasSceneNode("Light_of_" + Wall->getName() +"and" + Ground->getName()  +  "_node"))
+    {
+        Ogre::SceneNode* sc = Wall->getEntityNode()->createChildSceneNode("Light_of_" + Wall->getName() +"and" + Ground->getName()  +  "_node");;
+        Ogre::Light* mTorchLight = mSceneManager->createLight("Light_of_" + Wall->getName()  +"and" + Ground->getName());
+        mTorchLight->setType(Ogre::Light::LT_POINT);
+        mTorchLight->setDiffuseColour(Ogre::ColourValue(0.65f, 0.65f, 0.45f));
+        mTorchLight->setSpecularColour(Ogre::ColourValue(0.65f, 0.65f, 0.45f));
+        mTorchLight->setAttenuation(7, 1.0, 0.7, 1.8);
+        sc->setPosition( static_cast<double>(Wall->getX() - Ground->getX()/2.0),static_cast<double>( Wall->getY() - Wall->getY()/2.0) ,0.0);
+        sc->attachObject(mTorchLight);
+    }
+}
+
 
 void RenderManager::rrCreateTile(Tile& tile, const GameMap& dtc, const Player& localPlayer, NodeType nt)
 {

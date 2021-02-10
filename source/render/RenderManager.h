@@ -100,6 +100,7 @@ public:
 
     //Render request functions
     void rrRefreshTile(const Tile& tile, const GameMap& draggableTileContainer, const Player& localPlayer, NodeType nt = NodeType::MTILES_NODE);
+    void rrDecorateWithLamp(const Tile* Wall, const Tile* Ground);
     void rrCreateTile(Tile& tile, const GameMap& dtc, const Player& localPlayer, NodeType nt = NodeType::MTILES_NODE);
     void rrDestroyTile(Tile& tile, NodeType nt = NodeType::MTILES_NODE);
     void rrTemporalMarkTile(Tile* curTile);
