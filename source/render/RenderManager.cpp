@@ -656,8 +656,10 @@ void RenderManager::rrDecorateWithLamp(const Tile* Wall, const Tile* Ground)
         mTorchLight->setType(Ogre::Light::LT_POINT);
         mTorchLight->setDiffuseColour(Ogre::ColourValue(0.65f, 0.65f, 0.45f));
         mTorchLight->setSpecularColour(Ogre::ColourValue(0.65f, 0.65f, 0.45f));
-        mTorchLight->setAttenuation(7, 1.0, 0.7, 1.8);
-        sc->setPosition( static_cast<double>(Wall->getX() - Ground->getX()/2.0),static_cast<double>( Wall->getY() - Wall->getY()/2.0) ,0.0);
+        mTorchLight->setAttenuation(2.0, 1.0, 2.25, 19.8);
+        sc->setPosition(0,0,1.0);
+        Ogre::Entity* ee =  mSceneManager->createEntity("CelticCross.mesh");
+        sc->attachObject(ee);
         sc->attachObject(mTorchLight);
     }
 }
