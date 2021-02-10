@@ -603,6 +603,30 @@ void RenderManager::rrRefreshTile(const Tile& tile, const GameMap& draggableTile
 
         colourizeEntity(customMeshEnt, seatColor, isMarked, vision);
     }
+
+
+    if(tile.getTileVisual() == TileVisual::claimedFull)
+    {
+
+        for(unsigned int neighbor = 0 ; neighbor < 4 ; ++neigbor)
+            if(tile.getNeighbor[neighbor] == TileVisual::claimedGround)
+            {
+                if((tile.getNeighbor[neighbor].getX() + tile.getNeighbor[neighbor].getY())%2== 0)
+                {
+                    static_cast<double>(tile.getX() + tile.getNeighbor[neighbor].getX())/2.0
+                        static_cast<double>(tile.getY() + tile.getNeighbor[neighbor].getY())/2.0 
+                }
+                else
+                {
+
+
+
+                }
+            }
+    }
+
+
+    
 }
 
 void RenderManager::rrCreateTile(Tile& tile, const GameMap& dtc, const Player& localPlayer, NodeType nt)
