@@ -66,6 +66,7 @@
 #include <RTShaderSystem/OgreShaderGenerator.h>
 
 #include <sstream>
+#include <string>
 
 template<> RenderManager* Ogre::Singleton<RenderManager>::msSingleton = nullptr;
 
@@ -79,7 +80,7 @@ const Ogre::Real RenderManager::KEEPER_HAND_WORLD_Z = KEEPER_HAND_POS_Z / Render
 const Ogre::Real KEEPER_HAND_CREATURE_PICKED_OFFSET = 0.05f;
 const Ogre::Real KEEPER_HAND_CREATURE_PICKED_SCALE = 0.05f;
 
-const Ogre::ColourValue BASE_AMBIENT_VALUE = Ogre::ColourValue(0.3f, 0.3f, 0.3f);
+const Ogre::ColourValue BASE_AMBIENT_VALUE = Ogre::ColourValue(0.0f, 0.0f, 0.0f);
 
 RenderManager::RenderManager(Ogre::OverlaySystem* overlaySystem) :
     mHandAnimationState(nullptr),
@@ -94,7 +95,16 @@ RenderManager::RenderManager(Ogre::OverlaySystem* overlaySystem) :
     mCreatureTextOverlayDisplayed(false),
     mHandKeeperHandVisibility(0)
 {
+  
+
     mSceneManager = Ogre::Root::getSingleton().createSceneManager("OctreeSceneManager", "SceneManager");
+    mSceneManager->setShadowTechnique(Ogre::ShadowTechnique::SHADOWTYPE_TEXTURE_ADDITIVE_INTEGRATED);
+    mSceneManager->setShadowFarDistance(30);
+    mSceneManager->setShadowTextureConfig(0,1000,1000,Ogre::PixelFormat::PF_FLOAT32_RGBA);
+    // mSceneManager->setShadowCasterRenderBackFaces(false);
+    mSceneManager->setShadowTextureSelfShadow(false);
+    
+         
     mSceneManager->addRenderQueueListener(overlaySystem);
 
     mDraggableSceneNode = mSceneManager->getRootSceneNode()->createChildSceneNode("Draggable_scene_node");
@@ -104,6 +114,8 @@ RenderManager::RenderManager(Ogre::OverlaySystem* overlaySystem) :
     mLightSceneNode = mSceneManager->getRootSceneNode()->createChildSceneNode("Light_scene_node");
     mMainMenuSceneNode = mSceneManager->getRootSceneNode()->createChildSceneNode("MainMenu_scene_node");
     mDraggableSceneNode->setPosition(0.0,0.0,3.0);
+
+
 }
 
 RenderManager::~RenderManager()
@@ -116,7 +128,7 @@ void RenderManager::initGameRenderer(GameMap* gameMap)
     OD_ASSERT_TRUE(gameMap);
     OD_ASSERT_TRUE(mHandKeeperNode);
     mCreatureTextOverlayDisplayed = false;
-    
+
     // Create the light which follows the single tile selection mesh
     if(mHandLight == nullptr)
     {
@@ -245,12 +257,10 @@ void RenderManager::createScene(Ogre::Viewport* nViewport)
     mHandKeeperNode->setPosition(0.0f, 0.0f, -KEEPER_HAND_POS_Z);
     handKeeperOverlay->add3D(mHandKeeperNode);
     handKeeperOverlay->show();
-    // mSceneManager->setShadowTechnique(Ogre::ShadowTechnique::SHADOWTYPE_TEXTURE_MODULATIVE);
+
     mHandKeeperNode->setVisible(mHandKeeperHandVisibility == 0);
     new DebugDrawer(mSceneManager, 0.1f);
 
-
-     
 }
 
 void RenderManager::setWorldAmbientLightingFactor(float lightFactor)
@@ -547,6 +557,7 @@ void RenderManager::rrRefreshTile(const Tile& tile, const GameMap& draggableTile
 
     if(tileMeshEnt != nullptr)
     {
+        tileMeshEnt->setCastShadows(false);
         // We replace the material if required by the tileset
         if(!tileSetValue.getMaterialName().empty())
             tileMeshEnt->setMaterialName(tileSetValue.getMaterialName());
@@ -1392,10 +1403,13 @@ std::string RenderManager::colourizeMaterial(const std::string& materialName, co
         }
         if (seat != nullptr)
         {
-            Ogre::ColourValue color = seat->getColorValue();
-            color.a = 1.0;            
             // Color the material with the Seat's color.
-            technique->getPass(technique->getNumPasses() - 1)->getFragmentProgramParameters()->setNamedConstant("seatColor", color) ;
+            Ogre::Pass* pass = technique->getPass(technique->getNumPasses() - 1);
+            Ogre::ColourValue color = seat->getColorValue();
+            color.a = 1.0;
+            pass->setAmbient(color);
+            pass->setDiffuse(color);
+            pass->setSpecular(color);
         }
     }
 

@@ -7,6 +7,7 @@
 uniform    mat4 projectionMatrix;
 uniform    mat4 viewMatrix;
 uniform    mat4 worldMatrix;
+uniform    mat4 lightMatrix;
 layout (location = 0) in vec4 aPos;
 layout (location = 2)  in vec3 aNormal;
 layout (location = 14) in vec3 aTangent;
@@ -17,7 +18,7 @@ out vec2 out_UV1;
 out vec2 out_UV2;
 
 out vec3 FragPos;
- 
+out vec4 VertexPos; 
 out mat3 TBN;
  
 float freq = 3.1415; 
@@ -31,7 +32,8 @@ vec3 deform(vec3 pos) {
  
 void main() {
     // compute world space position, tangent, bitangent
-    vec3 P = (worldMatrix * aPos).xyz;
+    vec4 P4 = (worldMatrix * aPos);
+    vec3 P = P4.xyz;
     vec3 T = normalize(vec3(worldMatrix * vec4(aTangent, 0.0)));
     vec3 B = normalize(vec3(worldMatrix * vec4(cross(aTangent, aNormal), 0.0))); 
  
@@ -47,7 +49,12 @@ void main() {
     TBN = mat3(T, B, N);
  
     gl_Position = projectionMatrix * viewMatrix * vec4(P, 1.0);
+    
     FragPos = P;
+    
+    vec4 P_prim = inverse(worldMatrix) * P4;
+    VertexPos = lightMatrix * P_prim;
+ 
  
     out_UV0 = uv_0;
     out_UV1 = uv_0;

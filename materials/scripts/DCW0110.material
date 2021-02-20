@@ -10,6 +10,8 @@ vertex_program myDCW0110TileVertexShader glsl
         param_named_auto projectionMatrix projection_matrix
         param_named_auto viewMatrix view_matrix
         param_named_auto worldMatrix world_matrix
+        param_named_auto lightMatrix texture_worldviewproj_matrix 0
+        
     }
   
 }
@@ -47,7 +49,8 @@ material DCW0110 //: RTSS/NormalMapping_MultiPass
             { 
                 param_named decalmap int 0
                 param_named normalmap int 1    
-                param_named crossmap int 2                    
+                param_named crossmap int 2
+                param_named shadowmap int 3    
 
             }            
             
@@ -64,7 +67,14 @@ material DCW0110 //: RTSS/NormalMapping_MultiPass
             texture_unit crossmap
             {
                 texture DungeonClaimedWallMask.png
-            }              
+            }
+            texture_unit shadowmap
+            {
+                content_type shadow
+                tex_address_mode clamp
+                filtering bilinear              
+                
+            }
         }
 
 

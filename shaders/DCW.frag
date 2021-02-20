@@ -4,6 +4,8 @@
 uniform sampler2D decalmap;
 uniform sampler2D normalmap;
 uniform sampler2D crossmap;
+uniform sampler2D shadowmap;
+
 uniform vec4 ambientLightColour;
 uniform vec4 lightDiffuseColour; 
 uniform vec4 lightSpecularColour;
@@ -15,6 +17,7 @@ in vec2 out_UV0;
 in vec2 out_UV1;
 in vec2 out_UV2;
 in vec3 FragPos;
+in vec4 VertexPos;
 in mat3 TBN;
  
 out vec4 color;
@@ -28,6 +31,14 @@ void main (void)
     Normal =  normalize(TBN * Normal); 
     
     
+    vec4 shadow = vec4(1.0, 1.0, 1.0,1.0);
+    vec4 tmpVertexPos = VertexPos;
+    
+    // compute shadowmap
+    if(tmpVertexPos.z > 0 ){
+        tmpVertexPos /= tmpVertexPos.w;
+        shadow = texture(shadowmap, tmpVertexPos.xy); 
+    }
     // compute lightDir
     vec3 lightDir =  normalize(lightPos.xyz - FragPos*lightPos.w);
     
@@ -42,15 +53,15 @@ void main (void)
     
     // compute Diffuse
     float diff = max(dot(lightDir,Normal), 0.0);
-    vec3 diffuse = diff * lightDiffuseColour.rgb;
+    vec3 diffuse = diff * lightDiffuseColour.rgb ;
     
     vec3 result;
         
     // precompute the lighting term
-    vec3 lightingTerm =  (diffuse + spec + ambientLightColour.rgb/2.0 );
+    vec3 lightingTerm =  (diffuse + spec + ambientLightColour.rgb/2.0 ) * shadow.rgb;
     
     vec4 crossMap = texture(crossmap, out_UV2.st);   
-    if((crossMap.r < 0.05))
+    if(crossMap.r < 0.00005)
     {
         vec3 texelColor = texture(decalmap, out_UV0.st).rgb;
         if(diffuseSurface==vec4(1.0,1.0,1.0,1.0))
@@ -65,7 +76,7 @@ void main (void)
             result =  lightingTerm * mix( crossMap.rgb * seatColor.rgb,diffuseSurface.rgb,0.5);        
 
     }
-    color  = vec4(result.xyz,  1.0);
+    color  = vec4( result.xyz,  1.0);
 
        
 }    
