@@ -53,6 +53,7 @@
 #include <OgreQuaternion.h>
 #include <OgreSceneManager.h>
 #include <OgreSceneNode.h>
+#include <OgreShadowCameraSetupLiSPSM.h>
 #include <OgreSkeleton.h>
 #include <OgreSkeletonInstance.h>
 #include <OgreSubEntity.h>
@@ -137,6 +138,8 @@ void RenderManager::initGameRenderer(GameMap* gameMap)
         mHandLight->setDiffuseColour(Ogre::ColourValue(0.65f, 0.65f, 0.45f));
         mHandLight->setSpecularColour(Ogre::ColourValue(0.65f, 0.65f, 0.45f));
         mHandLight->setAttenuation(50, 1.0, 0.09, 0.032);
+        mHandLight->setCustomShadowCameraSetup( Ogre::LiSPSMShadowCameraSetup::create());
+        mHandLight->setShadowNearClipDistance(0.0001);
         if(mHandLightNode == nullptr)
         {
             mHandLightNode = mLightSceneNode->createChildSceneNode(); //mSceneManager->createSceneNode();
