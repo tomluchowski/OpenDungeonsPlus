@@ -75,7 +75,7 @@ const uint8_t RenderManager::OD_RENDER_QUEUE_ID_GUI = 101;
 
 const Ogre::Real RenderManager::BLENDER_UNITS_PER_OGRE_UNIT = 10.0f;
 
-const Ogre::Real KEEPER_HAND_POS_Z = 20.0;
+const Ogre::Real KEEPER_HAND_POS_Z = 60.0;
 const Ogre::Real RenderManager::KEEPER_HAND_WORLD_Z = KEEPER_HAND_POS_Z / RenderManager::BLENDER_UNITS_PER_OGRE_UNIT;
 
 const Ogre::Real KEEPER_HAND_CREATURE_PICKED_OFFSET = 0.05f;
@@ -88,8 +88,10 @@ RenderManager::RenderManager(Ogre::OverlaySystem* overlaySystem) :
     mViewport(nullptr),
     mShaderGenerator(nullptr),
     mHandKeeperNode(nullptr),
+    mDummyNode(nullptr),
     mHandLight(nullptr),
     mHandLightNode(nullptr),
+    mShadowCam(nullptr),
     mCurrentFOVy(0.0f),
     mFactorWidth(0.0f),
     mFactorHeight(0.0f),
@@ -97,17 +99,17 @@ RenderManager::RenderManager(Ogre::OverlaySystem* overlaySystem) :
     mHandKeeperHandVisibility(0)
 {
   
-
+    
     mSceneManager = Ogre::Root::getSingleton().createSceneManager("OctreeSceneManager", "SceneManager");
     mSceneManager->setShadowTechnique(Ogre::ShadowTechnique::SHADOWTYPE_TEXTURE_ADDITIVE_INTEGRATED);
-    mSceneManager->setShadowFarDistance(30);
-    mSceneManager->setShadowTextureConfig(0,1000,1000,Ogre::PixelFormat::PF_FLOAT32_RGBA);
+    mSceneManager->setShadowCameraSetup(Ogre::LiSPSMShadowCameraSetup::create());
+    mSceneManager->setShadowTextureConfig(0,1024,1024,Ogre::PixelFormat::PF_FLOAT32_RGBA,2);
+    mSceneManager->setShadowFarDistance(100.0);
     // mSceneManager->setShadowCasterRenderBackFaces(false);
-    mSceneManager->setShadowTextureSelfShadow(false);
-    
-         
+    // mSceneManager->setShadowTextureSelfShadow(false);
+    ddd.setStatic(true);
+    mSceneManager->addListener(&ddd);
     mSceneManager->addRenderQueueListener(overlaySystem);
-
     mDraggableSceneNode = mSceneManager->getRootSceneNode()->createChildSceneNode("Draggable_scene_node");
     mCreatureSceneNode = mSceneManager->getRootSceneNode()->createChildSceneNode("Creature_scene_node");
     mTileSceneNode = mSceneManager->getRootSceneNode()->createChildSceneNode("Tile_scene_node");
@@ -138,16 +140,47 @@ void RenderManager::initGameRenderer(GameMap* gameMap)
         mHandLight->setDiffuseColour(Ogre::ColourValue(0.65f, 0.65f, 0.45f));
         mHandLight->setSpecularColour(Ogre::ColourValue(0.65f, 0.65f, 0.45f));
         mHandLight->setAttenuation(50, 1.0, 0.09, 0.032);
-        mHandLight->setCustomShadowCameraSetup( Ogre::LiSPSMShadowCameraSetup::create());
-        mHandLight->setShadowNearClipDistance(0.0001);
+        
+        // mHandLight->setSpotlightRange(Ogre::Degree(100),Ogre::Degree(100));
+        
+
+        // Ogre::Camera shadowCam("ShadowCameraSetupCam", 0);
+
+        // shadowCam._notifyAttached(&dummyNode);
+        // shadowCam._notifyViewport(mViewport);
+
+
+        // dynamic_cast<Ogre::LiSPSMShadowCameraSetup*>(mSceneManager->getShadowCameraSetup().getPointer())->setOptimalAdjustFactor(0.5f);
+
+       
+        // mHandLight->setShadowNearClipDistance(1);
+        // mHandLight->setShadowFarClipDistance(100); 
+        
         if(mHandLightNode == nullptr)
         {
             mHandLightNode = mLightSceneNode->createChildSceneNode(); //mSceneManager->createSceneNode();
         }
-
+        
         mHandLightNode->attachObject(mHandLight);
     }
 
+        
+    // shadowCam.setNearClipDistance(10.0);
+    // // Ogre::ShadowCameraSetupPtr mLiSP=  Ogre::FocusedShadowCameraSetup::create(true);
+    // // dynamic_cast<Ogre::LiSPSMShadowCameraSetup*>(mLiSP.getPointer())->setOptimalAdjustFactor(0.1f);
+    // // mSceneManager->setShadowCameraSetup(mLiSP);
+    // mShadowCam = mSceneManager->createCamera("ShadowCameraSetupCam");
+    // mDummyNode = mSceneManager->createSceneNode("ShadowCameraNode");
+    // mDummyNode->attachObject(mShadowCam);
+    // mShadowCam->setPosition(0,0,120.0f);
+    // mShadowCam->setNearClipDistance(2.0f);
+    // mShadowCam->setFarClipDistance(100.0f);
+    // mShadowCam->setFOVy(Ogre::Degree(120));
+    // mSceneManager->getShadowCameraSetup()->getShadowCamera(mSceneManager,  mViewport->getCamera(),mViewport, mHandLight, mShadowCam, 1);
+
+
+
+    // ddd.drawFrustum(mShadowCam);
     //Add a too small to be visible dummy dirt tile to the hand node
     //so that there will always be a dirt tile "visible"
     //This is an ugly workaround for issue where destroying some entities messes
@@ -1407,12 +1440,12 @@ std::string RenderManager::colourizeMaterial(const std::string& materialName, co
         if (seat != nullptr)
         {
             // Color the material with the Seat's color.
-            Ogre::Pass* pass = technique->getPass(technique->getNumPasses() - 1);
             Ogre::ColourValue color = seat->getColorValue();
             color.a = 1.0;
-            pass->setAmbient(color);
-            pass->setDiffuse(color);
-            pass->setSpecular(color);
+            technique->getPass(technique->getNumPasses() - 1)->getFragmentProgramParameters()->setNamedConstant("seatColor", color) ;
+
+            
+
         }
     }
 

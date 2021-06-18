@@ -84,6 +84,13 @@ namespace Helper
         return number;
     }
 
+    bool toBool(const std::string& text)
+    {
+        std::stringstream ss(text);
+        bool value = 0;
+        ss >> value;
+        return value;
+    }
     int round(double d)
     {
         return static_cast<int>(d + 0.5);

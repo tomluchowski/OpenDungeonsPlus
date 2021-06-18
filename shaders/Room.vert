@@ -7,6 +7,7 @@
 uniform    mat4 projectionMatrix;
 uniform    mat4 viewMatrix;
 uniform    mat4 worldMatrix;
+uniform    mat4 lightMatrix;
 layout (location = 0) in vec4 aPos;
 layout (location = 2)  in vec3 aNormal;
 layout (location = 14) in vec3 aTangent;
@@ -16,7 +17,8 @@ layout (location = 8) in vec2 uv_1;
 out vec2 out_UV0;
 out vec2 out_UV1;
 out vec3 FragPos;
- 
+out vec4 VertexPos; 
+
 out mat3 TBN;
  
 float freq = 3.1415; 
@@ -50,4 +52,5 @@ void main() {
  
     out_UV0 = uv_0;
     out_UV1 = uv_1;
+    VertexPos = lightMatrix * aPos;
 }  

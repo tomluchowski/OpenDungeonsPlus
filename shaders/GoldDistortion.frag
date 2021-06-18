@@ -45,7 +45,7 @@ void main (void)
     
     
     // precompute the lighting term
-    vec3 lightingTerm =  (diffuse + spec + ambientLightColour.rgb/2.0 );
+    vec3 lightingTerm =  (diffuse + specular + ambientLightColour.rgb/2.0 );
     
     if(diffuseSurface.rgb != vec3(1.0,1.0,1.0))
         result =  lightingTerm * mix(texelColor, diffuseSurface.rgb,0.5);

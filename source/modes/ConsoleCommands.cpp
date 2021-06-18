@@ -19,7 +19,8 @@
 #include <OgreCamera.h>
 #include <OgreSceneManager.h>
 #include <OgreSceneNode.h>
-
+#include <OgreViewport.h>
+#include <OgreShadowCameraSetupLiSPSM.h>
 #include <boost/algorithm/string/join.hpp>
 
 #include <functional>
@@ -132,6 +133,118 @@ Command::Result cAmbientLight(const Command::ArgumentList_t& args, ConsoleInterf
         return Command::Result::INVALID_ARGUMENT;
     }
     return Command::Result::SUCCESS;
+}
+
+Command::Result cShadowFarClipDistance(const Command::ArgumentList_t& args, ConsoleInterface& c, AbstractModeManager&)
+{
+    if (args.size() < 2)
+    {
+        // Display the current shadow far clip distance
+        c.print("Current shadow far clip distance is" + Helper::toString(RenderManager::getSingletonPtr()->mHandLight->getShadowFarClipDistance()));
+        return Command::Result::SUCCESS;
+    }
+    else if(args.size() >= 2)
+    {
+        RenderManager::getSingletonPtr()->mHandLight->setShadowFarClipDistance(Helper::toFloat(args[1]));
+        c.print("Shadow far clip distance is equal to " + Helper::toString(RenderManager::getSingletonPtr()->mHandLight->getShadowFarClipDistance()));
+        return Command::Result::SUCCESS;  
+    }
+
+}
+
+Command::Result cShadowNearClipDistance(const Command::ArgumentList_t& args, ConsoleInterface& c, AbstractModeManager&)
+{
+    if (args.size() < 2)
+    {
+        // Display the current shadow near clip distance
+        c.print("Current shadow near clip distance is" + Helper::toString(RenderManager::getSingletonPtr()->mHandLight->getShadowNearClipDistance()));
+        return Command::Result::SUCCESS;
+    }
+    else if(args.size() >= 2)
+    {
+        RenderManager::getSingletonPtr()->mHandLight->setShadowNearClipDistance(Helper::toFloat(args[1]));
+        c.print("Shadow near clip distance is equal to " + Helper::toString(RenderManager::getSingletonPtr()->mHandLight->getShadowNearClipDistance()));
+        return Command::Result::SUCCESS;  
+    }
+
+}
+
+
+Command::Result cSetOptimalAdjustFactor(const Command::ArgumentList_t& args, ConsoleInterface& c, AbstractModeManager&)
+{
+    if (args.size() < 2)
+    {
+        // Display the current shadow near clip distance
+        c.print("Current optimal adjust factor parameter n is " + Helper::toString(dynamic_cast<Ogre::LiSPSMShadowCameraSetup*>(RenderManager::getSingletonPtr()->getSceneManager()->getShadowCameraSetup().getPointer())->getOptimalAdjustFactor() ));
+        return Command::Result::SUCCESS;
+    }
+    else if(args.size() >= 2)
+    {
+        dynamic_cast<Ogre::LiSPSMShadowCameraSetup*>(RenderManager::getSingletonPtr()->getSceneManager()->getShadowCameraSetup().getPointer())->setOptimalAdjustFactor(Helper::toFloat(args[1]));
+
+        
+        return Command::Result::SUCCESS;  
+    }
+
+}
+
+Command::Result cSetUseSimpleOptimalAdjust(const Command::ArgumentList_t& args, ConsoleInterface& c, AbstractModeManager&)
+{
+    Ogre::SceneManager* mSceneMgr = RenderManager::getSingletonPtr()->getSceneManager();
+
+    if (args.size() < 2)
+    {
+        c.print("Current usage of simple optimal adjust is " + Helper::toString(dynamic_cast<Ogre::LiSPSMShadowCameraSetup*>(RenderManager::getSingletonPtr()->getSceneManager()->getShadowCameraSetup().getPointer())->getUseSimpleOptimalAdjust() )) ;
+        return Command::Result::SUCCESS;        
+    }
+    else
+    {
+        dynamic_cast<Ogre::LiSPSMShadowCameraSetup*>(RenderManager::getSingletonPtr()->getSceneManager()->getShadowCameraSetup().getPointer())->setUseSimpleOptimalAdjust(Helper::toBool(args[1]));
+        return Command::Result::SUCCESS; 
+    }
+
+}
+
+Command::Result cSetCameraLightDirectionThreshold(const Command::ArgumentList_t& args, ConsoleInterface& c, AbstractModeManager&)
+{
+    Ogre::SceneManager* mSceneMgr = RenderManager::getSingletonPtr()->getSceneManager();
+
+    if (args.size() < 2)
+    {
+        c.print("Current camera light direction threshold is " + Helper::toString(dynamic_cast<Ogre::LiSPSMShadowCameraSetup*>(RenderManager::getSingletonPtr()->getSceneManager()->getShadowCameraSetup().getPointer())->getCameraLightDirectionThreshold().valueDegrees())) ;
+        return Command::Result::SUCCESS;        
+    }
+    else
+    {
+        dynamic_cast<Ogre::LiSPSMShadowCameraSetup*>(RenderManager::getSingletonPtr()->getSceneManager()->getShadowCameraSetup().getPointer())->setCameraLightDirectionThreshold(Ogre::Degree(Helper::toInt(args[1])));
+        return Command::Result::SUCCESS; 
+    }
+
+}
+
+Command::Result cSetShadowCameraFovY(const Command::ArgumentList_t& args, ConsoleInterface& c, AbstractModeManager&)
+{
+        Ogre::Camera* mShadowCam = RenderManager::getSingletonPtr()->getSceneManager()->createCamera("mShadowCam");
+        RenderManager::getSingletonPtr()->mHandLight->setSpotlightRange( Ogre::Degree(145),Ogre::Degree(145));       
+        RenderManager::getSingletonPtr()->getSceneManager()->getShadowCameraSetup()->getShadowCamera(RenderManager::getSingletonPtr()->getSceneManager(), RenderManager::getSingletonPtr()->getViewport()->getCamera(), RenderManager::getSingletonPtr()->getViewport(), RenderManager::getSingletonPtr()->mHandLight, mShadowCam, 0);
+        
+        // mShadowCam->setFOVy(Ogre::Degree(90)); 
+
+
+        
+    if (args.size() < 2)
+    {
+
+        c.print("Current shadow light camera FOVy is " + Helper::toString(mShadowCam->getFOVy().valueDegrees())) ;
+        return Command::Result::SUCCESS;        
+    }
+    else
+    {
+        Ogre::Radian rr;
+        rr = Ogre::Degree(Helper::toFloat(args[1]));
+        return Command::Result::SUCCESS; 
+    }
+
 }
 
 Command::Result cFPS(const Command::ArgumentList_t& args, ConsoleInterface& c, AbstractModeManager&)
@@ -548,6 +661,37 @@ void addConsoleCommands(ConsoleInterface& cl)
     cl.addCommand("printnodes",
                   "prints all the scene nodes ",
                   cPrintNodes,
+                  Command::cStubServer,
+                  {AbstractModeManager::ModeType::GAME, AbstractModeManager::ModeType::EDITOR});
+    cl.addCommand("setShadowFarClipDistance",
+                  "sets the camera shadow far clip distance ",
+                  cShadowFarClipDistance,
+                  Command::cStubServer,
+                  {AbstractModeManager::ModeType::GAME, AbstractModeManager::ModeType::EDITOR});
+    cl.addCommand("setShadowNearClipDistance",
+                  "sets the camera shadow near clip distance ",
+                  cShadowNearClipDistance,
+                  Command::cStubServer,
+                  {AbstractModeManager::ModeType::GAME, AbstractModeManager::ModeType::EDITOR});
+    cl.addCommand("setoptimaladjustfactor",
+                  "Adjusts the parameter n to produce optimal shadows ",
+                  cSetOptimalAdjustFactor,
+                  Command::cStubServer,
+                  {AbstractModeManager::ModeType::GAME, AbstractModeManager::ModeType::EDITOR});
+    cl.addCommand("setuseoptimaladjust",
+                  "Sets whether or not to use a slightly simpler version of the camera near point derivation (default is true) ",
+                  cSetUseSimpleOptimalAdjust,
+                  Command::cStubServer,
+                  {AbstractModeManager::ModeType::GAME, AbstractModeManager::ModeType::EDITOR});
+    cl.addCommand("setcameralightdirectionthreshold",
+                  "Sets the threshold between the camera and the light direction below which the LiSPSM projection is 'flattened', since coincident light and camera projections cause problems with the perspective skew. ",
+                  cSetCameraLightDirectionThreshold,
+                  Command::cStubServer,
+                  {AbstractModeManager::ModeType::GAME, AbstractModeManager::ModeType::EDITOR});
+
+    cl.addCommand("setshadowcamerafovy",
+                  "sets shadow camera field of view height in degreee",
+                  cSetShadowCameraFovY,
                   Command::cStubServer,
                   {AbstractModeManager::ModeType::GAME, AbstractModeManager::ModeType::EDITOR});    
     cl.addCommand("nearclip",

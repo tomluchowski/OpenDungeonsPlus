@@ -25,6 +25,7 @@
 #include <string>
 #include <OgreSingleton.h>
 #include <OgreMath.h>
+#include <OgreDefaultDebugDrawer.h>>
 #include <cstdint>
 #include "entities/GameEntity.h"
 
@@ -61,6 +62,8 @@ public:
     RenderManager(Ogre::OverlaySystem* overlaySystem);
     ~RenderManager();
 
+    Ogre::Light* mHandLight;
+    
     static const uint8_t OD_RENDER_QUEUE_ID_GUI;
 
     inline Ogre::SceneManager* getSceneManager() const
@@ -173,12 +176,15 @@ public:
     void removeEntityParticleEffectBoneMenu(const std::string& entityName,
         Ogre::ParticleSystem* particleSystem);
     Ogre::Quaternion getNodeOrientation(Ogre::SceneNode* node);
+    Ogre::Viewport* getViewport(){return mViewport;}
     void setProgressiveNodeOrientation(Ogre::SceneNode* node, Ogre::Real progress,
         const Ogre::Quaternion& angleSrc, const Ogre::Quaternion& angleDest);
     void setScaleMenuEntity(Ogre::SceneNode* node, const Ogre::Vector3& absSize);
     const Ogre::Vector3& getMenuEntityScale(Ogre::SceneNode* node);
 
 private:
+    Ogre::DefaultDebugDrawer ddd;
+    
     //! \brief Correctly places entities in hand next to the keeper hand
     void changeRenderQueueRecursive(Ogre::SceneNode* node, uint8_t renderQueueId);
 
@@ -221,8 +227,9 @@ private:
 
     //! For the keeper hand
     Ogre::SceneNode* mHandKeeperNode;
-    Ogre::Light* mHandLight;
+    Ogre::SceneNode* mDummyNode;
     Ogre::SceneNode* mHandLightNode;
+    Ogre::Camera* mShadowCam;
     Ogre::Radian mCurrentFOVy;
     Ogre::Real mFactorWidth;
     Ogre::Real mFactorHeight;

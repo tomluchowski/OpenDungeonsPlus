@@ -159,7 +159,9 @@ bool GameEditorModeConsole::characterEntered(const CEGUI::EventArgs& e)
         return false;
     if(kea.codepoint == ' ')
         return false;
-
+    if(kea.codepoint == '.')
+        return false;
+    
     return true;
 }
 

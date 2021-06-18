@@ -35,7 +35,7 @@ void main (void)
     vec4 tmpVertexPos = VertexPos;
     
     // compute shadowmap
-    if(tmpVertexPos.z > 0 ){
+    if(tmpVertexPos.z > 0.00001 ){
         tmpVertexPos /= tmpVertexPos.w;
         shadow = texture(shadowmap, tmpVertexPos.xy); 
     }
@@ -60,7 +60,7 @@ void main (void)
     vec3 result;
         
     // precompute the lighting term
-    vec3 lightingTerm =  (diffuse + spec + ambientLightColour.rgb/2.0 ) *shadow.rgb;
+    vec3 lightingTerm =  (diffuse + specular + ambientLightColour.rgb/2.0 ) *shadow.rgb;
     
     vec4 crossMap = texture(crossmap, out_UV2.st);   
     if(crossMap.r < 0.05)

@@ -1,38 +1,81 @@
-// WoodBridge genrated by blender2ogre 0.6.0
-import RTSS/NormalMapping_MultiPass from "RTShaderSystem.material"
-material WoodBridge : RTSS/NormalMapping_MultiPass
+// WoodBridge
+
+
+
+vertex_program myWoodBridgeTileVertexShader glsl
 {
+  source ClaimedTile.vert
+    default_params
+    {
+        param_named_auto projectionMatrix projection_matrix
+        param_named_auto viewMatrix view_matrix
+        param_named_auto worldMatrix world_matrix
+        param_named_auto lightMatrix texture_worldviewproj_matrix
+    }
+  
+}
+
+fragment_program myWoodBridgeTileFragmentShader glsl
+{
+  source ClaimedTile.frag
+    default_params
+    {
+        param_named_auto ambientLightColour ambient_light_colour
+        param_named_auto lightDiffuseColour light_diffuse_colour 0.0 
+        param_named_auto lightSpecularColour light_specular_colour 0.0 
+        param_named_auto lightPos light_position  0.0 0.0 0.0 0.0
+        param_named_auto cameraPosition camera_position        
+        param_named_auto diffuseSurface surface_diffuse_colour 1.0 
+        param_named seatColor  float4 1.0 1.0 1.0 1.0 
+    }
+}
+
+
+material WoodBridge //: RTSS/NormalMapping_MultiPass
+{
+    
     technique
     {
-        pass lighting
+
+        pass 
         {
-            // Override the normal map.
-            rtshader_system
+            diffuse 1.0 1.0 1.0 1.0  
+            vertex_program_ref myClaimedTileVertexShader
             {
-                lighting_stage normal_map WoodBridgeNormal.png tangent_space 0 bilinear 1 -1.0
+                
             }
-        }
-        pass decal
-        {
-            lighting off
+            fragment_program_ref myClaimedTileFragmentShader
+            { 
+                param_named decalmap int 0
+                param_named normalmap int 1
+                param_named crossmap int 2
+                param_named shadowmap int 3
+            }            
+            
+            
             // We use blending, so that we can see the underlying texture.
             texture_unit decalmap
             {
                 texture WoodBridge.png
             }
-        }
-        pass last
-        {
-            ambient 0.0 0.0 0.0 1.0
-            diffuse 0.65 0.65 0.65 0.0
-
-            scene_blend add
-            depth_write off
-            depth_bias 1
-            texture_unit
+        
+            texture_unit normalmap
+            {
+                texture WoodBridgeNormal.png
+            }
+            texture_unit crossmap
             {
                 texture WoodBridgeMask.png
             }
+            texture_unit shadowmap
+            {
+                content_type shadow
+                tex_address_mode clamp
+                filtering bilinear              
+                
+            }            
         }
+
     }
 }
+
