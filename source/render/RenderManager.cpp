@@ -75,7 +75,7 @@ const uint8_t RenderManager::OD_RENDER_QUEUE_ID_GUI = 101;
 
 const Ogre::Real RenderManager::BLENDER_UNITS_PER_OGRE_UNIT = 10.0f;
 
-const Ogre::Real KEEPER_HAND_POS_Z = 60.0;
+const Ogre::Real KEEPER_HAND_POS_Z = 30.0;
 const Ogre::Real RenderManager::KEEPER_HAND_WORLD_Z = KEEPER_HAND_POS_Z / RenderManager::BLENDER_UNITS_PER_OGRE_UNIT;
 
 const Ogre::Real KEEPER_HAND_CREATURE_PICKED_OFFSET = 0.05f;
@@ -101,10 +101,10 @@ RenderManager::RenderManager(Ogre::OverlaySystem* overlaySystem) :
   
     
     mSceneManager = Ogre::Root::getSingleton().createSceneManager("OctreeSceneManager", "SceneManager");
-    mSceneManager->setShadowTechnique(Ogre::ShadowTechnique::SHADOWTYPE_TEXTURE_ADDITIVE_INTEGRATED);
-    mSceneManager->setShadowCameraSetup(Ogre::LiSPSMShadowCameraSetup::create());
-    mSceneManager->setShadowTextureConfig(0,1024,1024,Ogre::PixelFormat::PF_FLOAT32_RGBA,2);
-    mSceneManager->setShadowFarDistance(100.0);
+    // mSceneManager->setShadowTechnique(Ogre::ShadowTechnique::SHADOWTYPE_TEXTURE_ADDITIVE_INTEGRATED);
+    // mSceneManager->setShadowCameraSetup(Ogre::LiSPSMShadowCameraSetup::create());
+    // mSceneManager->setShadowTextureConfig(0,1024,1024,Ogre::PixelFormat::PF_FLOAT32_RGBA,2);
+    // mSceneManager->setShadowFarDistance(100.0);
     // mSceneManager->setShadowCasterRenderBackFaces(false);
     // mSceneManager->setShadowTextureSelfShadow(false);
     ddd.setStatic(true);
