@@ -36,6 +36,7 @@
 #include "render/CreatureOverlayStatus.h"
 #include "render/DebugDrawer.h"
 #include "rooms/Room.h"
+#include "utils/ConfigManager.h"
 #include "utils/Helper.h"
 #include "utils/LogManager.h"
 #include "utils/ResourceManager.h"
@@ -101,12 +102,36 @@ RenderManager::RenderManager(Ogre::OverlaySystem* overlaySystem) :
   
     
     mSceneManager = Ogre::Root::getSingleton().createSceneManager("OctreeSceneManager", "SceneManager");
-    // mSceneManager->setShadowTechnique(Ogre::ShadowTechnique::SHADOWTYPE_TEXTURE_ADDITIVE_INTEGRATED);
-    // mSceneManager->setShadowCameraSetup(Ogre::LiSPSMShadowCameraSetup::create());
-    // mSceneManager->setShadowTextureConfig(0,1024,1024,Ogre::PixelFormat::PF_FLOAT32_RGBA,2);
-    // mSceneManager->setShadowFarDistance(100.0);
-    // mSceneManager->setShadowCasterRenderBackFaces(false);
-    // mSceneManager->setShadowTextureSelfShadow(false);
+    if(ConfigManager::getSingleton().getAudioValue(Config::SHADOWS)=="Yes")
+    {
+        mSceneManager->setShadowTechnique(Ogre::ShadowTechnique::SHADOWTYPE_TEXTURE_ADDITIVE_INTEGRATED);
+        mSceneManager->setShadowCameraSetup(Ogre::LiSPSMShadowCameraSetup::create());
+        mSceneManager->setShadowTextureConfig(0,1024,1024,Ogre::PixelFormat::PF_FLOAT32_RGBA,2);
+        mSceneManager->setShadowFarDistance(100.0);
+
+        // donno if the below should be here -- paul424 :
+        auto myIter = Ogre::MaterialManager::getSingleton().getResourceIterator();
+        while(myIter.hasMoreElements())
+        {
+            auto myPointer = myIter.peekNextValue();
+            Ogre::SharedPtr<Ogre::Material> myCastPointer = std::dynamic_pointer_cast<Ogre::Material> (myPointer);
+            Ogre::Technique* technique;
+            technique = myCastPointer->getTechnique(0);
+
+            if( technique->getPass(technique->getNumPasses() - 1)->hasFragmentProgram())
+            {
+                if(technique->getPass(technique->getNumPasses() - 1)->getFragmentProgramParameters()->hasNamedParameters())
+                {
+                    const Ogre::GpuNamedConstants& gnc = technique->getPass(technique->getNumPasses() - 1)->getFragmentProgramParameters()->getConstantDefinitions();
+                    auto it = gnc.map.find("shadowingEnabled");
+                    if(it!=  gnc.map.end())
+                        technique->getPass(technique->getNumPasses() - 1)->getFragmentProgramParameters()->setNamedConstant("shadowingEnabled",true);
+                }
+            }
+            myIter.getNext();
+        }  
+        
+    }
     ddd.setStatic(true);
     mSceneManager->addListener(&ddd);
     mSceneManager->addRenderQueueListener(overlaySystem);

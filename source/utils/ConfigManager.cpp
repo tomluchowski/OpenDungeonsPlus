@@ -1403,12 +1403,14 @@ void ConfigManager::loadUserConfig(const std::string& fileName)
             }
 
             mUserConfig[ category ][ elements[0] ] = elements[1];
+            OD_LOG_WRN("Parameter set in " +  Helper::toString( category)  + " KNOWN category. "
+                       + elements[0] + ": " + elements[1]);
         }
         else
         {
             continue;
         }
-    }
+    } 
 }
 
 bool ConfigManager::saveUserConfig()

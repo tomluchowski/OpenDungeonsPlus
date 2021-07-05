@@ -39,9 +39,13 @@
                         <Property name="ReadOnly" value="True" />
                     </Window>
                     <Window type="OD/Checkbox" name="FullscreenCheckbox" >
-                        <Property name="Area" value="{{0,222},{0,42},{0,342},{0,68}}" />
+                        <Property name="Area" value="{{0,202},{0,42},{0,302},{0,68}}" />
                         <Property name="Text" value="Fullscreen" />
                     </Window>
+                    <Window type="OD/Checkbox" name="DynamicShadowsCheckbox" >
+                        <Property name="Area" value="{{0,342},{0,42},{0,542},{0,68}}" />
+                        <Property name="Text" value="Dynamic Shadows" />
+                    </Window>                   
                     <Window type="OD/StaticText" name="RendererText" >
                         <Property name="Area" value="{{0,22},{0,78},{0,184},{0,90}}" />
                         <Property name="MaxSize" value="{{1,0},{1,0}}" />

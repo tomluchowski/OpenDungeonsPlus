@@ -231,6 +231,8 @@ void SettingsWindow::initConfig()
     Ogre::RenderSystem* renderer = ogreRoot->getRenderSystem();
     const Ogre::ConfigOptionMap& options = renderer->getConfigOptions();
 
+
+    
     // Get the video settings.
 
     // Available renderers
@@ -258,6 +260,10 @@ void SettingsWindow::initConfig()
     }
 
     // Resolution
+
+    CEGUI::ToggleButton* vsCheckBox = static_cast<CEGUI::ToggleButton*>(
+        mRootWindow->getChild("SettingsWindow/MainTabControl/Video/VideoSP/DynamicShadowsCheckbox"));
+    vsCheckBox->setSelected( config.getUserValue(Config::Ctg::AUDIO,Config::SHADOWS,"",false) == "Yes");
     Ogre::ConfigOptionMap::const_iterator it = options.find(Config::VIDEO_MODE);
     if (it != options.end())
     {
@@ -291,7 +297,7 @@ void SettingsWindow::initConfig()
             mRootWindow->getChild("SettingsWindow/MainTabControl/Video/VideoSP/FullscreenCheckbox"));
         fsCheckBox->setSelected((fullscreen.currentValue == "Yes"));
     }
-
+    
     it = options.find(Config::VSYNC);
     if (it != options.end())
     {
@@ -418,6 +424,10 @@ void SettingsWindow::saveConfig()
             mRootWindow->getChild("SettingsWindow/MainTabControl/Audio/AudioSP/MusicSlider"));
     config.setAudioValue(Config::MUSIC_VOLUME, Helper::toString(volumeSlider->getCurrentValue()));
 
+    CEGUI::ToggleButton* dynamicShadowsCheckBox = static_cast<CEGUI::ToggleButton*>(
+        mRootWindow->getChild("SettingsWindow/MainTabControl/Video/VideoSP/DynamicShadowsCheckbox"));
+    config.setAudioValue(Config::SHADOWS, dynamicShadowsCheckBox->isSelected() ? "Yes" : "No");
+    
     // Video
     Ogre::RenderSystem* renderer = ogreRoot->getRenderSystem();
 

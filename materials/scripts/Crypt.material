@@ -24,7 +24,8 @@ fragment_program myCryptFragmentShader glsl
         param_named_auto lightDiffuseColour light_diffuse_colour 0.0 
         param_named_auto lightSpecularColour light_specular_colour 0.0 
         param_named_auto lightPos light_position  0.0 0.0 0.0 0.0
-        param_named_auto cameraPosition camera_position        
+        param_named_auto cameraPosition camera_position
+        param_named shadowingEnabled bool false                 
     }
 }
 

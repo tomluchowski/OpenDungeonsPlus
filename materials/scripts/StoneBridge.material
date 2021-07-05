@@ -25,7 +25,8 @@ fragment_program myStoneBridgeTileFragmentShader glsl
         param_named_auto lightPos light_position  0.0 0.0 0.0 0.0
         param_named_auto cameraPosition camera_position        
         param_named_auto diffuseSurface surface_diffuse_colour 1.0 
-        param_named seatColor  float4 1.0 1.0 1.0 1.0 
+        param_named seatColor  float4 1.0 1.0 1.0 1.0
+        param_named shadowingEnabled bool false          
     }
 }
 
@@ -39,16 +40,17 @@ material StoneBridge //: RTSS/NormalMapping_MultiPass
         pass 
         {
             diffuse 1.0 1.0 1.0 1.0  
-            vertex_program_ref myClaimedTileVertexShader
+            vertex_program_ref myStoneBridgeTileVertexShader
             {
                 
             }
-            fragment_program_ref myClaimedTileFragmentShader
+            fragment_program_ref myStoneBridgeTileFragmentShader
             { 
                 param_named decalmap int 0
                 param_named normalmap int 1
                 param_named crossmap int 2
                 param_named shadowmap int 3
+                param_named shadowingEnabled bool false                
             }            
             
             

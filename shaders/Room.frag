@@ -10,6 +10,7 @@ uniform vec4 lightDiffuseColour;
 uniform vec4 lightSpecularColour;
 uniform vec4 lightPos;
 uniform vec4 cameraPosition;
+uniform bool shadowingEnabled;
 in vec2 out_UV0;
 in vec2 out_UV1;
 in vec3 FragPos;
@@ -30,9 +31,11 @@ void main (void)
     vec4 tmpVertexPos = VertexPos;
     
     // compute shadowmap
-    if(tmpVertexPos.z > epsilon ){
-        tmpVertexPos /= tmpVertexPos.w;
-        shadow = texture(shadowmap, tmpVertexPos.xy); 
+    if(shadowingEnabled){
+		if(tmpVertexPos.z > epsilon ){
+		    tmpVertexPos /= tmpVertexPos.w;
+		    shadow = texture(shadowmap, tmpVertexPos.xy); 
+		}
     }
     
     

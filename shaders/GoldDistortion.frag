@@ -10,6 +10,7 @@ uniform vec4 lightSpecularColour;
 uniform vec4 lightPos;
 uniform vec4 cameraPosition;
 uniform vec4 diffuseSurface;
+uniform bool shadowingEnabled;
 in vec2 out_UV0;
 in vec2 out_UV1;
 in vec3 FragPos;

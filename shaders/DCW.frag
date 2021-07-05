@@ -13,6 +13,7 @@ uniform vec4 lightPos;
 uniform vec4 cameraPosition;
 uniform vec4 diffuseSurface;
 uniform vec4 seatColor;
+uniform bool shadowingEnabled;
 in vec2 out_UV0;
 in vec2 out_UV1;
 in vec2 out_UV2;
@@ -35,9 +36,11 @@ void main (void)
     vec4 tmpVertexPos = VertexPos;
     
     // compute shadowmap
-    if(tmpVertexPos.z > 0 ){
-        tmpVertexPos /= tmpVertexPos.w;
-        shadow = texture(shadowmap, tmpVertexPos.xy); 
+    if(shadowingEnabled){
+		if(tmpVertexPos.z > 0 ){
+		    tmpVertexPos /= tmpVertexPos.w;
+		    shadow = texture(shadowmap, tmpVertexPos.xy); 
+		}
     }
     // compute lightDir
     vec3 lightDir =  normalize(lightPos.xyz - FragPos*lightPos.w);

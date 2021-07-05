@@ -27,6 +27,8 @@ fragment_program myWoodBridgeTileFragmentShader glsl
         param_named_auto cameraPosition camera_position        
         param_named_auto diffuseSurface surface_diffuse_colour 1.0 
         param_named seatColor  float4 1.0 1.0 1.0 1.0 
+        param_named shadowingEnabled bool false
+        param_named shadowingEnabled bool false         
     }
 }
 
@@ -40,11 +42,11 @@ material WoodBridge //: RTSS/NormalMapping_MultiPass
         pass 
         {
             diffuse 1.0 1.0 1.0 1.0  
-            vertex_program_ref myClaimedTileVertexShader
+            vertex_program_ref myWoodBridgeTileVertexShader
             {
                 
             }
-            fragment_program_ref myClaimedTileFragmentShader
+            fragment_program_ref myWoodBridgeTileFragmentShader
             { 
                 param_named decalmap int 0
                 param_named normalmap int 1

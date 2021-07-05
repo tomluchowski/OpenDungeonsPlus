@@ -55,6 +55,7 @@ const std::string RENDERER = "Renderer";
 const std::string VIDEO_MODE = "Video Mode";
 const std::string VSYNC = "VSync";
 const std::string FULL_SCREEN = "Full Screen";
+const std::string SHADOWS = "Dynamic Shadows";    
 // Audio
 const std::string MUSIC_VOLUME = "Music Volume";
 // Input
@@ -72,6 +73,7 @@ const std::string LIGHT_FACTOR = "LightFactor";
 //! It should NOT be used to load level specific stuff. For that, there is GameMap.
 class ConfigManager : public Ogre::Singleton<ConfigManager>
 {
+    friend class SettingsWindow;
 public:
     //! \brief Loads the game configuration files.
     //! \param configPath The system configuration path.

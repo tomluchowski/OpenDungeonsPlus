@@ -28,7 +28,7 @@ source DCW.frag
         param_named_auto cameraPosition camera_position        
         param_named_auto diffuseSurface surface_diffuse_colour
         param_named seatColor  float4 1.0 1.0 1.0 1.0           
-        
+        param_named shadowingEnabled bool false         
     }
 }
 

@@ -25,7 +25,7 @@
 #include <string>
 #include <OgreSingleton.h>
 #include <OgreMath.h>
-#include <OgreDefaultDebugDrawer.h>>
+#include <OgreDefaultDebugDrawer.h>
 #include <cstdint>
 #include "entities/GameEntity.h"
 
