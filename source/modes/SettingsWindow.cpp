@@ -24,6 +24,7 @@
 #include "utils/Helper.h"
 
 #include <CEGUI/CEGUI.h>
+#include <CEGUI/widgets/ToggleButton.h>
 #include <CEGUI/widgets/Combobox.h>
 #include <CEGUI/widgets/ToggleButton.h>
 #include <CEGUI/widgets/PushButton.h>
@@ -37,7 +38,8 @@
 SettingsWindow::SettingsWindow(CEGUI::Window* rootWindow):
     mSettingsWindow(nullptr),
     mApplyWindow(nullptr),
-    mRootWindow(rootWindow)
+    mRootWindow(rootWindow),
+    dynamicShadowsChanged(false)
 {
     if (rootWindow == nullptr)
     {
@@ -124,6 +126,14 @@ SettingsWindow::SettingsWindow(CEGUI::Window* rootWindow):
             CEGUI::Event::Subscriber(&SettingsWindow::onPopupApplySettings, this)
         )
     );
+
+    addEventConnection(
+        mSettingsWindow->getChild("MainTabControl/Video/VideoSP/DynamicShadowsCheckbox")->subscribeEvent(
+            CEGUI::ToggleButton::EventSelectStateChanged,
+            CEGUI::Event::Subscriber(&SettingsWindow::onTriggerDynamicShadows, this)
+        )
+    );
+    
 
     initConfig();
 }
@@ -261,9 +271,9 @@ void SettingsWindow::initConfig()
 
     // Resolution
 
-    CEGUI::ToggleButton* vsCheckBox = static_cast<CEGUI::ToggleButton*>(
+    CEGUI::ToggleButton* dynamicShadowsCheckBox = static_cast<CEGUI::ToggleButton*>(
         mRootWindow->getChild("SettingsWindow/MainTabControl/Video/VideoSP/DynamicShadowsCheckbox"));
-    vsCheckBox->setSelected( config.getUserValue(Config::Ctg::AUDIO,Config::SHADOWS,"",false) == "Yes");
+    dynamicShadowsCheckBox->setSelected( config.getUserValue(Config::Ctg::AUDIO,Config::SHADOWS,"",false) == "Yes");
     Ogre::ConfigOptionMap::const_iterator it = options.find(Config::VIDEO_MODE);
     if (it != options.end())
     {
@@ -435,7 +445,7 @@ void SettingsWindow::saveConfig()
     CEGUI::Combobox* rdrCb = static_cast<CEGUI::Combobox*>(
     mRootWindow->getChild("SettingsWindow/MainTabControl/Video/VideoSP/RendererCombobox"));
     std::string rendererName = rdrCb->getSelectedItem()->getText().c_str();
-    if (rendererName != renderer->getName())
+    if (rendererName != renderer->getName() || dynamicShadowsChanged)
     {
         renderer = ogreRoot->getRenderSystemByName(rendererName);
         if (renderer == nullptr)
@@ -456,9 +466,14 @@ void SettingsWindow::saveConfig()
         // If render changed, we need to restart game.
         // Note that we do not change values according to the others inputs. The reason
         // is that we don't know if the given values are acceptable for the selected renderer
-        OD_LOG_INF("Changed Ogre renderer to " + rendererName + ". We need to restart");
+        if(rendererName != renderer->getName())
+            OD_LOG_INF("Changed Ogre renderer to " + rendererName + ". We need to restart");
+        else
+            OD_LOG_INF("Changed Ogre dynamic shadows. We need to restart.");
         exit(0);
     }
+
+    
     config.setVideoValue(Config::RENDERER, renderer->getName());
 
     // Set renderer-dependent options now we know it didn't change.
@@ -636,6 +651,12 @@ bool SettingsWindow::onLightFactorChanged(const CEGUI::EventArgs&)
         mRootWindow->getChild("SettingsWindow/MainTabControl/Game/GameSP/LightSlider"));
     setLightFactorValue(lightSlider->getCurrentValue());
     return true;
+}
+
+
+void SettingsWindow::onTriggerDynamicShadows(const CEGUI::EventArgs&)
+{
+    dynamicShadowsChanged = !dynamicShadowsChanged;
 }
 
 void SettingsWindow::setLightFactorValue(float lightFactor)

@@ -50,6 +50,7 @@ public:
     //! \brief Called when pushing the cancel button on the settings window.
     bool onCancelSettings(const CEGUI::EventArgs& e = {});
 
+    void onTriggerDynamicShadows(const CEGUI::EventArgs& );
 private:
     //! \brief Vector of cegui event bindings to be cleared on exiting the mode
     std::vector<CEGUI::Event::Connection> mEventConnections;
@@ -99,6 +100,8 @@ private:
 
     //! \brief Set the volume value in the ambient light factor setting text and slider.
     void setLightFactorValue(float lightFactor);
+
+    bool dynamicShadowsChanged;
 };
 
 #endif // SETTINGSWINDOW_H

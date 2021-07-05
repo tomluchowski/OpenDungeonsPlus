@@ -189,23 +189,6 @@ void RenderManager::initGameRenderer(GameMap* gameMap)
         mHandLightNode->attachObject(mHandLight);
     }
 
-        
-    // shadowCam.setNearClipDistance(10.0);
-    // // Ogre::ShadowCameraSetupPtr mLiSP=  Ogre::FocusedShadowCameraSetup::create(true);
-    // // dynamic_cast<Ogre::LiSPSMShadowCameraSetup*>(mLiSP.getPointer())->setOptimalAdjustFactor(0.1f);
-    // // mSceneManager->setShadowCameraSetup(mLiSP);
-    // mShadowCam = mSceneManager->createCamera("ShadowCameraSetupCam");
-    // mDummyNode = mSceneManager->createSceneNode("ShadowCameraNode");
-    // mDummyNode->attachObject(mShadowCam);
-    // mShadowCam->setPosition(0,0,120.0f);
-    // mShadowCam->setNearClipDistance(2.0f);
-    // mShadowCam->setFarClipDistance(100.0f);
-    // mShadowCam->setFOVy(Ogre::Degree(120));
-    // mSceneManager->getShadowCameraSetup()->getShadowCamera(mSceneManager,  mViewport->getCamera(),mViewport, mHandLight, mShadowCam, 1);
-
-
-
-    // ddd.drawFrustum(mShadowCam);
     //Add a too small to be visible dummy dirt tile to the hand node
     //so that there will always be a dirt tile "visible"
     //This is an ugly workaround for issue where destroying some entities messes
