@@ -274,6 +274,7 @@ void SettingsWindow::initConfig()
     CEGUI::ToggleButton* dynamicShadowsCheckBox = static_cast<CEGUI::ToggleButton*>(
         mRootWindow->getChild("SettingsWindow/MainTabControl/Video/VideoSP/DynamicShadowsCheckbox"));
     dynamicShadowsCheckBox->setSelected( config.getUserValue(Config::Ctg::AUDIO,Config::SHADOWS,"",false) == "Yes");
+    dynamicShadowsChanged = false;
     Ogre::ConfigOptionMap::const_iterator it = options.find(Config::VIDEO_MODE);
     if (it != options.end())
     {
