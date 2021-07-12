@@ -141,15 +141,14 @@ Command::Result cShadowFarClipDistance(const Command::ArgumentList_t& args, Cons
     {
         // Display the current shadow far clip distance
         c.print("Current shadow far clip distance is" + Helper::toString(RenderManager::getSingletonPtr()->mHandLight->getShadowFarClipDistance()));
-        return Command::Result::SUCCESS;
     }
     else if(args.size() >= 2)
     {
         RenderManager::getSingletonPtr()->mHandLight->setShadowFarClipDistance(Helper::toFloat(args[1]));
         c.print("Shadow far clip distance is equal to " + Helper::toString(RenderManager::getSingletonPtr()->mHandLight->getShadowFarClipDistance()));
-        return Command::Result::SUCCESS;  
+  
     }
-
+        return Command::Result::SUCCESS;
 }
 
 Command::Result cShadowNearClipDistance(const Command::ArgumentList_t& args, ConsoleInterface& c, AbstractModeManager&)
@@ -164,9 +163,9 @@ Command::Result cShadowNearClipDistance(const Command::ArgumentList_t& args, Con
     {
         RenderManager::getSingletonPtr()->mHandLight->setShadowNearClipDistance(Helper::toFloat(args[1]));
         c.print("Shadow near clip distance is equal to " + Helper::toString(RenderManager::getSingletonPtr()->mHandLight->getShadowNearClipDistance()));
-        return Command::Result::SUCCESS;  
-    }
 
+    }
+        return Command::Result::SUCCESS;  
 }
 
 
@@ -175,31 +174,29 @@ Command::Result cSetOptimalAdjustFactor(const Command::ArgumentList_t& args, Con
     if (args.size() < 2)
     {
         // Display the current shadow near clip distance
-        c.print("Current optimal adjust factor parameter n is " + Helper::toString(dynamic_cast<Ogre::LiSPSMShadowCameraSetup*>(RenderManager::getSingletonPtr()->getSceneManager()->getShadowCameraSetup().getPointer())->getOptimalAdjustFactor() ));
+        c.print("Current optimal adjust factor parameter n is " + Helper::toString(dynamic_cast<Ogre::LiSPSMShadowCameraSetup*>(RenderManager::getSingletonPtr()->getSceneManager()->getShadowCameraSetup().get())->getOptimalAdjustFactor() ));
         return Command::Result::SUCCESS;
     }
     else if(args.size() >= 2)
     {
-        dynamic_cast<Ogre::LiSPSMShadowCameraSetup*>(RenderManager::getSingletonPtr()->getSceneManager()->getShadowCameraSetup().getPointer())->setOptimalAdjustFactor(Helper::toFloat(args[1]));
+        dynamic_cast<Ogre::LiSPSMShadowCameraSetup*>(RenderManager::getSingletonPtr()->getSceneManager()->getShadowCameraSetup().get())->setOptimalAdjustFactor(Helper::toFloat(args[1]));
 
         
-        return Command::Result::SUCCESS;  
+ 
     }
-
+        return Command::Result::SUCCESS; 
 }
 
 Command::Result cSetUseSimpleOptimalAdjust(const Command::ArgumentList_t& args, ConsoleInterface& c, AbstractModeManager&)
 {
-    Ogre::SceneManager* mSceneMgr = RenderManager::getSingletonPtr()->getSceneManager();
-
     if (args.size() < 2)
     {
-        c.print("Current usage of simple optimal adjust is " + Helper::toString(dynamic_cast<Ogre::LiSPSMShadowCameraSetup*>(RenderManager::getSingletonPtr()->getSceneManager()->getShadowCameraSetup().getPointer())->getUseSimpleOptimalAdjust() )) ;
+        c.print("Current usage of simple optimal adjust is " + Helper::toString(dynamic_cast<Ogre::LiSPSMShadowCameraSetup*>(RenderManager::getSingletonPtr()->getSceneManager()->getShadowCameraSetup().get())->getUseSimpleOptimalAdjust() )) ;
         return Command::Result::SUCCESS;        
     }
     else
     {
-        dynamic_cast<Ogre::LiSPSMShadowCameraSetup*>(RenderManager::getSingletonPtr()->getSceneManager()->getShadowCameraSetup().getPointer())->setUseSimpleOptimalAdjust(Helper::toBool(args[1]));
+        dynamic_cast<Ogre::LiSPSMShadowCameraSetup*>(RenderManager::getSingletonPtr()->getSceneManager()->getShadowCameraSetup().get())->setUseSimpleOptimalAdjust(Helper::toBool(args[1]));
         return Command::Result::SUCCESS; 
     }
 
@@ -207,16 +204,15 @@ Command::Result cSetUseSimpleOptimalAdjust(const Command::ArgumentList_t& args, 
 
 Command::Result cSetCameraLightDirectionThreshold(const Command::ArgumentList_t& args, ConsoleInterface& c, AbstractModeManager&)
 {
-    Ogre::SceneManager* mSceneMgr = RenderManager::getSingletonPtr()->getSceneManager();
 
     if (args.size() < 2)
     {
-        c.print("Current camera light direction threshold is " + Helper::toString(dynamic_cast<Ogre::LiSPSMShadowCameraSetup*>(RenderManager::getSingletonPtr()->getSceneManager()->getShadowCameraSetup().getPointer())->getCameraLightDirectionThreshold().valueDegrees())) ;
+        c.print("Current camera light direction threshold is " + Helper::toString(dynamic_cast<Ogre::LiSPSMShadowCameraSetup*>(RenderManager::getSingletonPtr()->getSceneManager()->getShadowCameraSetup().get())->getCameraLightDirectionThreshold().valueDegrees())) ;
         return Command::Result::SUCCESS;        
     }
     else
     {
-        dynamic_cast<Ogre::LiSPSMShadowCameraSetup*>(RenderManager::getSingletonPtr()->getSceneManager()->getShadowCameraSetup().getPointer())->setCameraLightDirectionThreshold(Ogre::Degree(Helper::toInt(args[1])));
+        dynamic_cast<Ogre::LiSPSMShadowCameraSetup*>(RenderManager::getSingletonPtr()->getSceneManager()->getShadowCameraSetup().get())->setCameraLightDirectionThreshold(Ogre::Degree(Helper::toInt(args[1])));
         return Command::Result::SUCCESS; 
     }
 
