@@ -1,7 +1,8 @@
-font MedievalSharp
+MedievalSharp
 {
     type        truetype
     source      MedievalSharp-Bold.ttf
     size        16
     resolution  72
+    code_points 9-166
 }
