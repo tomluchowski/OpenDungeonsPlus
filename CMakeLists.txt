@@ -4,13 +4,13 @@ cmake_minimum_required(VERSION 2.8)
 #### Project settings ############
 ##################################
 
-project(opendungeons)
+project(opendungeons-plus)
 
 # Set a capitalized exe name on Windows
 if(WIN32)
-    set(PROJECT_BINARY_NAME "OpenDungeons")
+    set(PROJECT_BINARY_NAME "opendungeons-plus")
 else()
-    set(PROJECT_BINARY_NAME "opendungeons")
+    set(PROJECT_BINARY_NAME "opendungeons-plus")
 endif()
 
 # Project version
@@ -734,8 +734,8 @@ if(CMAKE_INSTALL_PREFIX STREQUAL "/usr")
 else()
     set(OD_ICON_FULLPATH ${OD_SHARE_PATH}/icons/hicolor/scalable/apps/opendungeons.svg)
 endif()
-configure_file(${CMAKE_CONFIG_DIR}/opendungeons.desktop.in ${CMAKE_BINARY_DIR}/opendungeons.desktop)
-configure_file(${CMAKE_CONFIG_DIR}/opendungeons.6.in ${CMAKE_BINARY_DIR}/opendungeons.6)
+configure_file(${CMAKE_CONFIG_DIR}/opendungeons.desktop.in ${CMAKE_BINARY_DIR}/opendungeons-plus.desktop)
+configure_file(${CMAKE_CONFIG_DIR}/opendungeons.6.in ${CMAKE_BINARY_DIR}/opendungeons-plus.6)
 
 ##################################
 ### Run-in-place customisation ###
@@ -796,11 +796,11 @@ if(UNIX)
             DESTINATION ${OD_DATA_PATH})
 
     # Additional distribution content (desktop file, icons, man page, doc)
-    install(FILES ${CMAKE_SOURCE_DIR}/dist/opendungeons.appdata.xml
+    install(FILES ${CMAKE_SOURCE_DIR}/dist/opendungeons-plus.appdata.xml
             DESTINATION ${OD_SHARE_PATH}/appdata)
-    install(FILES ${CMAKE_BINARY_DIR}/opendungeons.desktop
+    install(FILES ${CMAKE_BINARY_DIR}/opendungeons-plus.desktop
             DESTINATION ${OD_SHARE_PATH}/applications)
-    install(FILES ${CMAKE_BINARY_DIR}/opendungeons.6
+    install(FILES ${CMAKE_BINARY_DIR}/opendungeons-plus.6
             DESTINATION ${OD_MAN_PATH}/man6)
     install(FILES ${OD_DOC}
             DESTINATION ${OD_SHARE_PATH}/doc/${PROJECT_NAME})
