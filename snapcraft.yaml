@@ -95,8 +95,8 @@ parts:
             - -DOD_TREAT_WARNINGS_AS_ERRORS=OFF
         override-build: |
             snapcraftctl build
-            sed -i -e 's|/.*/stage||g' $SNAPCRAFT_PART_INSTALL/etc/opendungeons/plugins.cfg # drop stage prefix
-            sed -i -e 's|/.*/stage||g' $SNAPCRAFT_PART_INSTALL/usr/share/games/opendungeons/resources.cfg # drop stage prefix
+            sed -i -e 's|/.*/stage||g' $SNAPCRAFT_PART_INSTALL/etc/opendungeons-plus/plugins.cfg # drop stage prefix
+            sed -i -e 's|/.*/stage||g' $SNAPCRAFT_PART_INSTALL/usr/share/games/opendungeons-plus/resources.cfg # drop stage prefix
         build-packages:
             - libsfml-dev
             - libois-dev
