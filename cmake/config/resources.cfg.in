@@ -3,10 +3,12 @@ FileSystem=@RTSHADER_DIR@/GLSL
 FileSystem=@RTSHADER_DIR@/HLSL
 FileSystem=@RTSHADER_DIR@/HLSL_Cg
 FileSystem=@RTSHADER_DIR@/materials
+FileSystem=@RTSHADER_DIR@/../ShadowVolume
 FileSystem=materials/scripts
 FileSystem=materials/textures
 FileSystem=models
 FileSystem=particles
+FileSystem=shaders
 
 [GUI]
 FileSystem=gui
