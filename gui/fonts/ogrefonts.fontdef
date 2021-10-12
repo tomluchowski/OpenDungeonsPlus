@@ -1,4 +1,4 @@
-MedievalSharp
+font MedievalSharp 
 {
     type        truetype
     source      MedievalSharp-Bold.ttf
