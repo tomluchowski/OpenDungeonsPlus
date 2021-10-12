@@ -6,12 +6,12 @@ base: core18
 description: Open source game inspired by Dungeon Keeper - Dark, damp and dangerous.
 
 apps:
-    opendungeons:
-        command: desktop-launch $SNAP/usr/games/opendungeons
+    opendungeons-plus:
+        command: desktop-launch $SNAP/usr/games/opendungeons-plus
         environment:
             CEGUI_MODULE_DIR: $SNAP/usr/lib/cegui-0.9999
         plugs: [opengl, x11, pulseaudio, network, network-bind]
-        desktop: usr/share/applications/opendungeons.desktop
+        desktop: usr/share/applications/opendungeons-plus.desktop
 parts:
     desktop-glib-only:
         source: https://github.com/ubuntu/snapcraft-desktop-helpers.git
@@ -81,7 +81,7 @@ parts:
             snapcraftctl pull
             sed -i -e 's|target_compile_features|\#target_compile_features|g' cegui/src/RendererModules/Ogre/CMakeLists.txt
         after: [ogre]
-    opendungeons:
+    opendungeons-plus:
         plugin: cmake
         source: https://github.com/tomluchowski/OpenDungeons.git
         source-tag: shaders-improvement
@@ -95,8 +95,8 @@ parts:
             - -DOD_TREAT_WARNINGS_AS_ERRORS=OFF
         override-build: |
             snapcraftctl build
-            sed -i -e 's|/.*/stage||g' $SNAPCRAFT_PART_INSTALL/etc/opendungeons/plugins.cfg # drop stage prefix
-            sed -i -e 's|/.*/stage||g' $SNAPCRAFT_PART_INSTALL/usr/share/games/opendungeons/resources.cfg # drop stage prefix
+            sed -i -e 's|/.*/stage||g' $SNAPCRAFT_PART_INSTALL/etc/opendungeons-plus/plugins.cfg # drop stage prefix
+            sed -i -e 's|/.*/stage||g' $SNAPCRAFT_PART_INSTALL/usr/share/games/opendungeons-plus/resources.cfg # drop stage prefix
         build-packages:
             - libsfml-dev
             - libois-dev
