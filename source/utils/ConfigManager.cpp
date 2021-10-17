@@ -1719,9 +1719,10 @@ bool ConfigManager::initVideoConfig(Ogre::Root& ogreRoot)
     // Also creates the config entry if it doesn't exist in config yet.
     std::string rendererName = getVideoValue(Config::RENDERER, std::string(), false);
     // Try the default OpenGL renderer first, if empty.
-    if (rendererName.empty())
-        rendererName = "OpenGL Rendering Subsystem";
-
+    if (rendererName.empty()){
+        rendererName = "OpenGL 3+ Rendering Subsystem";
+        ogreRoot.getRenderSystemByName(rendererName)->setConfigOption("Separate Shader Objects", "true");
+    }
     Ogre::RenderSystem* renderSystem = ogreRoot.getRenderSystemByName(rendererName);
     bool sameRenderer = true;
     if (renderSystem == nullptr)

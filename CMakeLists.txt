@@ -32,11 +32,14 @@ else()
     # Set binary and data install locations if we want to use the installer
     set(OD_BIN_PATH ${CMAKE_INSTALL_PREFIX}/games CACHE PATH "Absolute path to the game binary directory")
     set(OD_DATA_PATH ${CMAKE_INSTALL_PREFIX}/share/games/${PROJECT_NAME} CACHE PATH "Absolute path to the game data directory")
+    set(OD_DATA_PATH ${CMAKE_INSTALL_PREFIX}/share/games/${PROJECT_NAME} CACHE PATH "Absolute path to the game data directory")   
     set(OD_SHARE_PATH ${CMAKE_INSTALL_PREFIX}/share CACHE PATH "Absolute path to the shared data directory (desktop file, icons, etc.)")
     set(OD_MAN_PATH ${OD_SHARE_PATH}/man CACHE PATH "Absolute path to the manpages directory")
+    set(OD_CONFIGFILE_PATH $ENV{HOME}/.config/${PROJECT_NAME} CACHE PATH "Absolute path to the .config directory")
     # Set the plugins.cfg file path to a common but architecture-dependent location.
     # Because the plugins.cfg Ogre plugins path path may vary depending on the architecture used.
     set(OD_PLUGINS_CFG_PATH /etc/${PROJECT_NAME} CACHE PATH "Absolute path to the Ogre plugins.cfg file")
+    
 endif()
 
 if(NOT MSVC)
@@ -745,7 +748,7 @@ configure_file(${CMAKE_CONFIG_DIR}/opendungeons.6.in ${CMAKE_BINARY_DIR}/opendun
 # pointing to the game resources so that the game can be run in place
 # NOTE: This won't work on FAT filesystems
 if(NOT CMAKE_BINARY_DIR STREQUAL CMAKE_SOURCE_DIR)
-    foreach(RES config gui levels materials models music particles scripts sounds)
+    foreach(RES config gui levels materials models music particles scripts shaders sounds)
         if(NOT EXISTS ${CMAKE_BINARY_DIR}/${RES})
             message(STATUS "Creating symlink to ${CMAKE_SOURCE_DIR}/${RES} in ${CMAKE_BINARY_DIR}")
             if(UNIX)
@@ -767,6 +770,8 @@ if(UNIX)
     set(OD_PLUGINSCFGFILE ${CMAKE_BINARY_DIR}/plugins.cfg)
 
     set(OD_RESOURCESFILE ${CMAKE_BINARY_DIR}/resources.cfg)
+    
+    set(OD_CONFIGFILE ${CMAKE_SOURCE_DIR}/global_config/config.cfg)    
 
     set(OD_RESOURCES   ${CMAKE_SOURCE_DIR}/config
                        ${CMAKE_SOURCE_DIR}/gui
@@ -776,6 +781,7 @@ if(UNIX)
                        ${CMAKE_SOURCE_DIR}/music
                        ${CMAKE_SOURCE_DIR}/particles
                        ${CMAKE_SOURCE_DIR}/scripts
+                       ${CMAKE_SOURCE_DIR}/shaders
                        ${CMAKE_SOURCE_DIR}/sounds)
 
     set(OD_DOC         ${CMAKE_SOURCE_DIR}/AUTHORS
@@ -794,6 +800,8 @@ if(UNIX)
             DESTINATION ${OD_DATA_PATH})
     install(DIRECTORY ${OD_RESOURCES}
             DESTINATION ${OD_DATA_PATH})
+    install(FILES ${OD_CONFIGFILE}
+            DESTINATION ${OD_CONFIGFILE_PATH})            
 
     # Additional distribution content (desktop file, icons, man page, doc)
     install(FILES ${CMAKE_SOURCE_DIR}/dist/opendungeons-plus.appdata.xml
@@ -880,6 +888,7 @@ elseif(WIN32)
                        ${CMAKE_SOURCE_DIR}/music
                        ${CMAKE_SOURCE_DIR}/particles
                        ${CMAKE_SOURCE_DIR}/scripts
+                       ${CMAKE_SOURCE_DIR}/shaders
                        ${CMAKE_SOURCE_DIR}/sounds)
 
     set(OD_DOC         ${CMAKE_SOURCE_DIR}/AUTHORS
