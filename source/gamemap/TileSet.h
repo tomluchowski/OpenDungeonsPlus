@@ -18,7 +18,7 @@
 #ifndef TILESET_H
 #define TILESET_H
 
-#include <OgreVector3.h>
+#include <Ogre.h>
 
 #include <cstdint>
 #include <string>

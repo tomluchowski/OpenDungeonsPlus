@@ -20,7 +20,7 @@
 
 #include <cstdint>
 #include <iosfwd>
-#include <OgreVector3.h>
+#include <Ogre.h>
 
 //! \brief A custom vector used commonly between the CameraManager and the CullingManager classes
 class VectorInt64

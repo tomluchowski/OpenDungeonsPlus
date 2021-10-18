@@ -19,7 +19,7 @@
 #define SEATDATA_H
 
 
-#include <OgreVector3.h>
+#include <Ogre.h>
 #include <OgreColourValue.h>
 #include <string>
 #include <vector>

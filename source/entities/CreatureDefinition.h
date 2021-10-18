@@ -18,7 +18,7 @@
 #ifndef CREATUREDEFINITION_H
 #define CREATUREDEFINITION_H
 
-#include <OgreVector3.h>
+#include <Ogre.h>
 
 #include <string>
 #include <iosfwd>

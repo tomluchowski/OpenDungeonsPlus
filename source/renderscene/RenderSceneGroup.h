@@ -19,7 +19,7 @@
 #define RENDERSCENEGROUP_H
 
 #include <OgrePrerequisites.h>
-#include <OgreVector3.h>
+#include <Ogre.h>
 
 #include <cstdint>
 #include <iosfwd>

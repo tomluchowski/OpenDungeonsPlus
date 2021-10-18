@@ -19,7 +19,7 @@
 #define SOUNDEFFECTSMANAGER_H_
 
 #include <OgreSingleton.h>
-#include <OgreVector3.h>
+#include <Ogre.h>
 #include <SFML/Audio.hpp>
 #include <vector>
 #include <map>

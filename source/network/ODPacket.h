@@ -18,7 +18,7 @@
 #ifndef ODPACKET_H
 #define ODPACKET_H
 
-#include <OgreVector3.h>
+#include <Ogre.h>
 #include <SFML/Network.hpp>
 
 #include <string>

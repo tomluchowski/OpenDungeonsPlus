@@ -21,7 +21,7 @@
 #include "network/ODPacket.h"
 
 #include <string>
-#include <OgreVector3.h>
+#include <Ogre.h>
 
 class Tile;
 class Creature;

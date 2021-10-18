@@ -76,13 +76,13 @@ const uint8_t RenderManager::OD_RENDER_QUEUE_ID_GUI = 101;
 
 const Ogre::Real RenderManager::BLENDER_UNITS_PER_OGRE_UNIT = 10.0f;
 
-const Ogre::Real KEEPER_HAND_POS_Z = 30.0;
+const Ogre::Real KEEPER_HAND_POS_Z = 20.0;
 const Ogre::Real RenderManager::KEEPER_HAND_WORLD_Z = KEEPER_HAND_POS_Z / RenderManager::BLENDER_UNITS_PER_OGRE_UNIT;
 
 const Ogre::Real KEEPER_HAND_CREATURE_PICKED_OFFSET = 0.05f;
 const Ogre::Real KEEPER_HAND_CREATURE_PICKED_SCALE = 0.05f;
 
-const Ogre::ColourValue BASE_AMBIENT_VALUE = Ogre::ColourValue(0.0f, 0.0f, 0.0f);
+const Ogre::ColourValue BASE_AMBIENT_VALUE = Ogre::ColourValue(0.3f, 0.3f, 0.3f);
 
 RenderManager::RenderManager(Ogre::OverlaySystem* overlaySystem) :
     mHandLight(nullptr),
@@ -164,22 +164,9 @@ void RenderManager::initGameRenderer(GameMap* gameMap)
         mHandLight->setType(Ogre::Light::LT_POINT);
         mHandLight->setDiffuseColour(Ogre::ColourValue(0.65f, 0.65f, 0.45f));
         mHandLight->setSpecularColour(Ogre::ColourValue(0.65f, 0.65f, 0.45f));
-        mHandLight->setAttenuation(50, 1.0, 0.09, 0.032);
-        
-        // mHandLight->setSpotlightRange(Ogre::Degree(100),Ogre::Degree(100));
-        
 
-        // Ogre::Camera shadowCam("ShadowCameraSetupCam", 0);
-
-        // shadowCam._notifyAttached(&dummyNode);
-        // shadowCam._notifyViewport(mViewport);
-
-
-        // dynamic_cast<Ogre::LiSPSMShadowCameraSetup*>(mSceneManager->getShadowCameraSetup().getPointer())->setOptimalAdjustFactor(0.5f);
-
-       
-        // mHandLight->setShadowNearClipDistance(1);
-        // mHandLight->setShadowFarClipDistance(100); 
+        // the value borrowed from https://wiki.ogre3d.org/-Point+Light+Attenuation
+        mHandLight->setAttenuation(50, 1.0, 0.09, 0.032);       
         
         if(mHandLightNode == nullptr)
         {

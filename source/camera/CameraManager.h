@@ -26,7 +26,7 @@
 #include "camera/HermiteCatmullSpline.h"
 
 #include <OgrePrerequisites.h>
-#include <OgreVector3.h>
+#include <Ogre.h>
 #include <OgreString.h>
 
 #include <cstdint>

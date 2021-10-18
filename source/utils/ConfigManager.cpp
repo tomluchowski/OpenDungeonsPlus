@@ -400,7 +400,7 @@ bool ConfigManager::loadGlobalConfigSeatColors(std::stringstream& configFile)
             if(nextParam == "ColorG")
             {
                 configFile >> nextParam;
-				float v = Helper::toFloat(nextParam);
+		float v = Helper::toFloat(nextParam);
                 if(v < 0.0 || v > 1.0)
                 {
                     OD_LOG_ERR("Wrong parameter read nextParam=" + nextParam);
@@ -1329,6 +1329,7 @@ void ConfigManager::loadUserConfig(const std::string& fileName)
     std::stringstream defFile;
     if(!Helper::readFileWithoutComments(fileName, defFile))
     {
+        
         OD_LOG_INF("Couldn't read " + fileName);
         return;
     }

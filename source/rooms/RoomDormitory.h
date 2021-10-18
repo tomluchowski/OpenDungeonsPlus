@@ -21,7 +21,7 @@
 #include "rooms/Room.h"
 #include "rooms/RoomType.h"
 
-#include <OgreVector3.h>
+#include <Ogre.h>
 
 class RoomDormitoryTileData : public TileData
 {

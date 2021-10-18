@@ -20,7 +20,7 @@
 
 #include "entities/GameEntity.h"
 
-#include <OgreVector3.h>
+#include <Ogre.h>
 
 #include <deque>
 #include <list>

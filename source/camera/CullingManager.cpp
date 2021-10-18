@@ -22,7 +22,7 @@
 #include "utils/VectorInt64.h"
 #include "utils/LogManager.h"
 
-#include <OgreVector3.h>
+#include <Ogre.h>
 #include <OgreCamera.h>
 #include <OgreRay.h>
 

@@ -22,8 +22,8 @@
 
 #include <OgreRenderTargetListener.h>
 #include <OgreTexture.h>
-#include <OgreVector2.h>
-#include <OgreVector3.h>
+#include <Ogre.h>
+#include <Ogre.h>
 
 #include <vector>
 

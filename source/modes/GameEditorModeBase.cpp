@@ -31,7 +31,7 @@
 #include "utils/Helper.h"
 #include "utils/MakeUnique.h"
 
-#include <OgreVector2.h>
+#include <Ogre.h>
 
 #include <CEGUI/widgets/PushButton.h>
 #include <CEGUI/widgets/Scrollbar.h>

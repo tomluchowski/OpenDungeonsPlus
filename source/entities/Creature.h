@@ -23,8 +23,8 @@
 
 #include "entities/MovableGameEntity.h"
 
-#include <OgreVector2.h>
-#include <OgreVector3.h>
+#include <Ogre.h>
+#include <Ogre.h>
 #include <CEGUI/EventArgs.h>
 
 #include <memory>

@@ -23,7 +23,7 @@
 #ifndef GAMEENTITY_H
 #define GAMEENTITY_H
 
-#include <OgreVector3.h>
+#include <Ogre.h>
 #include <string>
 #include <vector>
 #include <cstdint>

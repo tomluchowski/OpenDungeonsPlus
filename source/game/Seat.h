@@ -20,7 +20,7 @@
 
 #include "game/SeatData.h"
 
-#include <OgreVector3.h>
+#include <Ogre.h>
 #include <OgreColourValue.h>
 #include <string>
 #include <vector>

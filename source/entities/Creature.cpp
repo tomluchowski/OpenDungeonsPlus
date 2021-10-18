@@ -86,8 +86,8 @@
 #include <CEGUI/widgets/PushButton.h>
 
 #include <OgreQuaternion.h>
-#include <OgreVector3.h>
-#include <OgreVector2.h>
+#include <Ogre.h>
+#include <Ogre.h>
 
 #include <cmath>
 #include <algorithm>

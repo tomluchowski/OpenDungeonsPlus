@@ -21,7 +21,7 @@
 #include "entities/MovableGameEntity.h"
 
 #include <OgrePrerequisites.h>
-#include <OgreVector3.h>
+#include <Ogre.h>
 #include <OgreColourValue.h>
 
 #include <iosfwd>
