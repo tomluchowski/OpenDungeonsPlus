@@ -12,6 +12,11 @@ apps:
             CEGUI_MODULE_DIR: $SNAP/usr/lib/cegui-0.9999
         plugs: [opengl, x11, pulseaudio, network, network-bind]
         desktop: usr/share/applications/opendungeons-plus.desktop
+        
+architectures:
+  - build-on: amd64
+  - build-on: i386        
+  
 parts:
     desktop-glib-only:
         source: https://github.com/ubuntu/snapcraft-desktop-helpers.git
