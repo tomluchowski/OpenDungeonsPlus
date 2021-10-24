@@ -1719,10 +1719,14 @@ bool ConfigManager::initVideoConfig(Ogre::Root& ogreRoot)
 {
     // Also creates the config entry if it doesn't exist in config yet.
     std::string rendererName = getVideoValue(Config::RENDERER, std::string(), false);
-    // Try the default OpenGL renderer first, if empty.
+    // Try the default OpenGL 3+ renderer first, if empty.
+    // also I set resolution and Separate Shader Objects here, this is ad-hoc solution so the game starts up
+    // when no config.cfg file is present ( for example at first run ). This should be done in diffrent way,
+    // e.g. -- when no file config.cfg is detected a default file config.cfg should be created . 
     if (rendererName.empty()){
         rendererName = "OpenGL 3+ Rendering Subsystem";
         ogreRoot.getRenderSystemByName(rendererName)->setConfigOption("Separate Shader Objects", "true");
+        ogreRoot.getRenderSystemByName(rendererName)->setConfigOption("Video Mode", "1280 x 1024");
     }
     Ogre::RenderSystem* renderSystem = ogreRoot.getRenderSystemByName(rendererName);
     bool sameRenderer = true;
