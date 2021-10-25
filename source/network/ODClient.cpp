@@ -646,6 +646,13 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
             OD_ASSERT_TRUE(packetReceived >> vv);            
 
             MovableGameEntity* entity = gameMap->getRenderedMovableEntity(entityName);
+            if(entity == nullptr)
+            {
+                OD_LOG_ERR("MovableGameEntity pointer equal to nullptr: entityName=" + entityName);
+                break;
+            }
+
+            
             RenderManager::getSingleton().rrOrientEntityToward(entity,vv);
             
 

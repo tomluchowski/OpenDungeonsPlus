@@ -1327,91 +1327,101 @@ void ConfigManager::loadUserConfig(const std::string& fileName)
 
     OD_LOG_INF("Load user config file: " + fileName);
     std::stringstream defFile;
-    if(!Helper::readFileWithoutComments(fileName, defFile))
+    
+    if(!boost::filesystem::exists(fileName))
     {
+        loadDefaultValuesForUserConfig();
+        saveUserConfig();
+    }
+    else
+    {
+    
+        if(!Helper::readFileWithoutComments(fileName, defFile))
+        {
         
-        OD_LOG_INF("Couldn't read " + fileName);
-        return;
-    }
+            OD_LOG_INF("Couldn't read " + fileName);
+            return;
+        }
 
-    mUserConfig.clear();
-    mUserConfig.resize(Config::Ctg::TOTAL);
+        mUserConfig.clear();
+        mUserConfig.resize(Config::Ctg::TOTAL);
 
-    std::string nextParam;
-    defFile >> nextParam;
-    if (nextParam != "[Configuration]")
-    {
-        OD_LOG_WRN("Invalid User configuration start format. Line was " + nextParam);
-        return;
-    }
+        std::string nextParam;
+        defFile >> nextParam;
+        if (nextParam != "[Configuration]")
+        {
+            OD_LOG_WRN("Invalid User configuration start format. Line was " + nextParam);
+            return;
+        }
 
-    std::string value;
-    Config::Ctg category = Config::Ctg::NONE;
-    while(defFile.good())
-    {
-        if (!(defFile >> nextParam))
+        std::string value;
+        Config::Ctg category = Config::Ctg::NONE;
+        while(defFile.good())
         {
-            break;
-        }
-        else if (nextParam == "[/Configuration]")
-        {
-            break;
-        }
-        else if (nextParam == "[Audio]")
-        {
-            category = Config::Ctg::AUDIO;
-            continue;
-        }
-        else if (nextParam == "[Video]")
-        {
-            category = Config::Ctg::VIDEO;
-            continue;
-        }
-        else if (nextParam == "[Input]")
-        {
-            category = Config::Ctg::INPUT;
-            continue;
-        }
-        else if (nextParam == "[Game]")
-        {
-            category = Config::Ctg::GAME;
-            continue;
-        }
-        else if (nextParam == "[/Audio]" || nextParam == "[/Video]" || nextParam == "[/Input]"
-                 || nextParam == "[/Game]")
-        {
-            category = Config::Ctg::NONE;
-            continue;
-        }
-        else if (!nextParam.empty())
-        {
-            std::string line;
-            std::getline(defFile, line);
-            // Make sure to cut the line only when encountering a tab.
-            line = nextParam + line;
-            std::vector<std::string> elements = Helper::split(line, '\t');
-            if (elements.size() != 2)
+            if (!(defFile >> nextParam))
             {
-                OD_LOG_WRN("Invalid parameter line: " + line);
+                break;
+            }
+            else if (nextParam == "[/Configuration]")
+            {
+                break;
+            }
+            else if (nextParam == "[Audio]")
+            {
+                category = Config::Ctg::AUDIO;
                 continue;
             }
-
-            if (category == Config::Ctg::NONE)
+            else if (nextParam == "[Video]")
             {
-                OD_LOG_WRN("Parameter set in unknown category. Will be ignored: "
-                            + elements[0] + ": " + elements[1]);
+                category = Config::Ctg::VIDEO;
                 continue;
             }
+            else if (nextParam == "[Input]")
+            {
+                category = Config::Ctg::INPUT;
+                continue;
+            }
+            else if (nextParam == "[Game]")
+            {
+                category = Config::Ctg::GAME;
+                continue;
+            }
+            else if (nextParam == "[/Audio]" || nextParam == "[/Video]" || nextParam == "[/Input]"
+                     || nextParam == "[/Game]")
+            {
+                category = Config::Ctg::NONE;
+                continue;
+            }
+            else if (!nextParam.empty())
+            {
+                std::string line;
+                std::getline(defFile, line);
+                // Make sure to cut the line only when encountering a tab.
+                line = nextParam + line;
+                std::vector<std::string> elements = Helper::split(line, '\t');
+                if (elements.size() != 2)
+                {
+                    OD_LOG_WRN("Invalid parameter line: " + line);
+                    continue;
+                }
 
-            mUserConfig[ category ][ elements[0] ] = elements[1];
-            OD_LOG_WRN("Parameter set in " +  Helper::toString( category)  + " KNOWN category. "
-                       + elements[0] + ": " + elements[1]);
+                if (category == Config::Ctg::NONE)
+                {
+                    OD_LOG_WRN("Parameter set in unknown category. Will be ignored: "
+                               + elements[0] + ": " + elements[1]);
+                    continue;
+                }
+
+                mUserConfig[ category ][ elements[0] ] = elements[1];
+                OD_LOG_WRN("Parameter set in " +  Helper::toString( category)  + " KNOWN category. "
+                           + elements[0] + ": " + elements[1]);
+            }
+            else
+            {
+                continue;
+            }
         }
-        else
-        {
-            continue;
-        }
-    } 
+    }
 }
 
 bool ConfigManager::saveUserConfig()
@@ -1720,13 +1730,12 @@ bool ConfigManager::initVideoConfig(Ogre::Root& ogreRoot)
     // Also creates the config entry if it doesn't exist in config yet.
     std::string rendererName = getVideoValue(Config::RENDERER, std::string(), false);
     // Try the default OpenGL 3+ renderer first, if empty.
-    // also I set resolution and Separate Shader Objects here, this is ad-hoc solution so the game starts up
-    // when no config.cfg file is present ( for example at first run ). This should be done in diffrent way,
-    // e.g. -- when no file config.cfg is detected a default file config.cfg should be created . 
+    // also I set  Separate Shader Objects here, this is ad-hoc solution so the game starts up
+    // when no config.cfg file is present ( that should never happen , because currently the game checks
+    // for the config.cfg and if no present it creates one )
     if (rendererName.empty()){
         rendererName = "OpenGL 3+ Rendering Subsystem";
         ogreRoot.getRenderSystemByName(rendererName)->setConfigOption("Separate Shader Objects", "true");
-        ogreRoot.getRenderSystemByName(rendererName)->setConfigOption("Video Mode", "1280 x 1024");
     }
     Ogre::RenderSystem* renderSystem = ogreRoot.getRenderSystemByName(rendererName);
     bool sameRenderer = true;
@@ -1832,4 +1841,28 @@ void ConfigManager::loadKeeperVoices(const std::string& soundPath)
     {
         OD_LOG_ERR("No default keeper voice found");
     }
+}
+
+
+void ConfigManager::loadDefaultValuesForUserConfig(void)
+{
+    setAudioValue("Dynamic Shadows" , "No");
+    setAudioValue("Music Volume", "100");
+    setVideoValue("Debug Layer", "Off");
+    setVideoValue("FSAA",  "0");
+    setVideoValue("Full Screen", "No");
+    setVideoValue("Renderer",  "OpenGL 3+ Rendering Subsystem");
+    setVideoValue("Reversed Z-Buffer", "No");
+    setVideoValue("Separate Shader Objects", "Yes");
+    setVideoValue("VSync", "Yes");
+    setVideoValue("VSync Interval", "1");
+    setVideoValue("Video Mode",	"1280 x 1024");
+    setVideoValue("sRGB Gamma Conversion", "No");
+    setInputValue("Autoscroll",	"Yes");
+    setInputValue("Keyboard Grab","Yes");
+    setInputValue("Mouse Grab",	"Yes");
+    setGameValue("KeeperVoice",	"Default");
+    setGameValue("LightFactor",	"100");
+    setGameValue("MinimapType",	"MiniMapDrawn");
+    setGameValue("Nickname", "Player");
 }

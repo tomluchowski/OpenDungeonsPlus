@@ -280,6 +280,10 @@ private:
 
     void loadKeeperVoices(const std::string& soundPath);
 
+   //! \brief Loads Default values for user config file    
+    void loadDefaultValuesForUserConfig(void);
+
+    
     //! \brief Get a config value.
     const std::string getUserValue(Config::Ctg category,
                                     const std::string& param,
