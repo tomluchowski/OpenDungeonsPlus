@@ -61,7 +61,7 @@ vec3 textureNoTile( in vec2 x, float v )
 
 void main(  )
 {
-	vec2 uv = FragPos.xy/4.0 ;
+	vec2 uv = FragPos.xy/2.0 ;
 	
 	float f = smoothstep( -1.0, 1.0, sin(time2/50.0)    );
 

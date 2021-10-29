@@ -168,7 +168,8 @@ GameMap::GameMap(bool isServerGameMap) :
         mIsFOWActivated(true),
         mNumCallsTo_path(0),
         mAiManager(*this),
-        mTileSet(nullptr)
+        mTileSet(nullptr),
+        generator(0)
 {
     resetUniqueNumbers();
 }
@@ -2915,7 +2916,7 @@ const std::string& GameMap::getMeshForDefaultTile() const
     return mTileSet->getTileValues(TileVisual::dirtFull).at(0).at(0).getMeshName();
 }
 
-const TileSetValue& GameMap::getMeshForTile(const Tile* tile) const
+const TileSetValue& GameMap::getMeshForTile(const Tile* tile)
 {
     int index = 0;
     for(int i = 0; i < 4; ++i)
@@ -2950,7 +2951,11 @@ const TileSetValue& GameMap::getMeshForTile(const Tile* tile) const
             index |= (1 << i);
     }
 
-    return mTileSet->getTileValues(tile->getTileVisual()).at(index).at((tile->getX()/3 + tile->getY()/5 -tile->getX() - tile->getY()) % mTileSet->getTileValues(tile->getTileVisual()).at(index).size()) ;
+    int upper_bound = mTileSet->getTileValues(tile->getTileVisual()).at(index).size() - 1;
+    std::uniform_int_distribution<int> distribution(0 , upper_bound);
+
+    int number = distribution(generator);
+    return mTileSet->getTileValues(tile->getTileVisual()).at(index).at(number) ;
 }
 
 uint32_t GameMap::getMaxNumberCreatures(Seat* seat) const

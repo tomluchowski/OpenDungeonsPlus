@@ -37,15 +37,19 @@ material Lava //: RTSS/NormalMapping_MultiPass
             fragment_program_ref myLavaFragmentShader
             { 
                 param_named iChannel0 int 0
-                param_named iChannel1 int 0
+                param_named iChannel1 int 1
             }
  
             texture_unit 
             {
-                texture Lava.png
+                texture Lava.png 2d
 
             }
+            texture_unit 
+            {
+                texture Channel0.png 2d
 
+            }
             
             
         }

@@ -498,7 +498,7 @@ void RenderManager::updateRenderAnimations(Ogre::Real timeSinceLastFrame)
     }
 }
 
-void RenderManager::rrRefreshTile(const Tile& tile, const GameMap& draggableTileContainer, const Player& localPlayer, NodeType nt)
+void RenderManager::rrRefreshTile(const Tile& tile, GameMap& draggableTileContainer, const Player& localPlayer, NodeType nt)
 {
     if (tile.getEntityNode() == nullptr)
         return;
@@ -649,7 +649,7 @@ void RenderManager::rrRefreshTile(const Tile& tile, const GameMap& draggableTile
     }
 }
 
-void RenderManager::rrCreateTile(Tile& tile, const GameMap& dtc, const Player& localPlayer, NodeType nt)
+void RenderManager::rrCreateTile(Tile& tile, GameMap& dtc, const Player& localPlayer, NodeType nt)
 {
     std::string tileName = tile.getOgreNamePrefix() + tile.getName();
     Ogre::SceneNode* node ;   

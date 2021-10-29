@@ -102,8 +102,8 @@ public:
     static std::string consoleListAnimationsForMesh(const std::string& meshName);
 
     //Render request functions
-    void rrRefreshTile(const Tile& tile, const GameMap& draggableTileContainer, const Player& localPlayer, NodeType nt = NodeType::MTILES_NODE);
-    void rrCreateTile(Tile& tile, const GameMap& dtc, const Player& localPlayer, NodeType nt = NodeType::MTILES_NODE);
+    void rrRefreshTile(const Tile& tile, GameMap& draggableTileContainer, const Player& localPlayer, NodeType nt = NodeType::MTILES_NODE);
+    void rrCreateTile(Tile& tile, GameMap& dtc, const Player& localPlayer, NodeType nt = NodeType::MTILES_NODE);
     void rrDestroyTile(Tile& tile, NodeType nt = NodeType::MTILES_NODE);
     void rrTemporalMarkTile(Tile* curTile);
     void rrDetachEntity(GameEntity* curEntity);

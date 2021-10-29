@@ -32,6 +32,7 @@
 #include <cstdint>
 #include <map>
 #include <memory>
+#include <random>
 #include <string>
 
 #include <Ogre.h>
@@ -525,7 +526,7 @@ public:
     //! is used as a workaround to avoid lightning issues
     const std::string& getMeshForDefaultTile() const;
     //! \brief get the tileset infos for the given tile
-    const TileSetValue& getMeshForTile(const Tile* tile) const;
+    const TileSetValue& getMeshForTile(const Tile* tile) ;
 
     void playerSelects(std::vector<GameEntity*>& entities, int tileX1, int tileY1, int tileX2,
         int tileY2, SelectionTileAllowed tileAllowed, SelectionEntityWanted entityWanted, Player* player);
@@ -656,6 +657,8 @@ private:
     const TileSet* mTileSet;
     std::string mTileSetName;
 
+    // random number generator for Tile's faces
+    std::mt19937 generator;   
     //! \brief Updates different entities states.
     //! Updates active objects (creatures, rooms, ...), goals, count each team Workers, gold, mana and claimed tiles.
     unsigned long int doMiscUpkeep(double timeSinceLastTurn);
