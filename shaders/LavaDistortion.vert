@@ -21,7 +21,7 @@ out vec3 FragPos;
 vec3 deform(vec3 pos) {
     pos.x += perlin(pos.x,pos.y);
     pos.y += perlin(pos.y,pos.x);
-    pos.z = sin(time1/10.0 + (pos.x  ) * PI)/12.0 + cos(2*PI*cos(time1/10.0 + 2*pos.y ))/12.0;
+    pos.z = pos.z + sin(time1/10.0 + (pos.x  ) * PI)/12.0 + cos(2*PI*cos(time1/10.0 + 2*pos.y ))/12.0;
     return pos;
 }
  
