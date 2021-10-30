@@ -1405,7 +1405,6 @@ bool EditorMode::onYesConfirmMenu(const CEGUI::EventArgs& /*arg*/)
 {
     uninstallRecentlyUsedFilesButtons();
     installRecentlyUsedFilesButtons();
-    addToRecentlyUsed(dialogFullPath);
     return loadLevelFromFile(dialogFullPath);
 }
 
@@ -1465,6 +1464,9 @@ bool EditorMode::loadLevelFromFile(const std::string& fileName)
     mMainCullingManager->startTileCulling(ODFrameListener::getSingleton().getCameraManager()->getActiveCamera(), mCameraTilesIntersections);
     mRootWindow->getChild("ConfirmLoad")->hide();
     mModifiedMapBit = false;
+    addToRecentlyUsed(fileName);
+    uninstallRecentlyUsedFilesButtons();
+    installRecentlyUsedFilesButtons();
     return true;
 }
 
@@ -1659,9 +1661,6 @@ void EditorMode::loadMenuAskForConfirmation(const std::string& fileName)
         mRootWindow->getChild("ConfirmLoad")->show();
     else
     {
-        addToRecentlyUsed(dialogFullPath);
-        uninstallRecentlyUsedFilesButtons();
-        installRecentlyUsedFilesButtons();
         loadLevelFromFile(dialogFullPath);
     }
 }
@@ -2140,6 +2139,8 @@ EditorMode::~EditorMode()
         draggableTileContainer->clearAll(NodeType::MDTC_NODE);
         delete draggableTileContainer;
     }
+    DebugDrawer::getSingleton().clear();    
+    delete DebugDrawer::getSingletonPtr();
 }
 
 bool EditorMode::launchNewLevelPressed(const CEGUI::EventArgs&)
