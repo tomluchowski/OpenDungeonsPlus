@@ -82,10 +82,12 @@ GameEntityType Trap::getObjectType() const
     return GameEntityType::trap;
 }
 
-void Trap::addToGameMap()
+void Trap::addToGameMap(GameMap* gameMap)
 {
-    getGameMap()->addTrap(this);
-    getGameMap()->addActiveObject(this);
+    if(gameMap == nullptr)
+        gameMap = getGameMap();
+    gameMap->addTrap(this);
+    gameMap->addActiveObject(this);
 }
 
 void Trap::removeFromGameMap()
@@ -184,7 +186,7 @@ bool Trap::removeCoveredTile(Tile* t)
     return true;
 }
 
-void Trap::updateActiveSpots()
+void Trap::updateActiveSpots(GameMap* gameMap)
 {
     // For a trap, by default, every tile is an active spot
     for(std::pair<Tile* const, TileData*>& p : mTileData)
@@ -196,7 +198,7 @@ void Trap::updateActiveSpots()
             if(obj == nullptr)
                 continue;
 
-            addBuildingObject(p.first, obj);
+            addBuildingObject(p.first, obj,gameMap);
             continue;
         }
 

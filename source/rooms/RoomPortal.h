@@ -57,7 +57,7 @@ public:
     { return true; }
 
     //! \brief Updates the portal position when in editor mode.
-    void updateActiveSpots() override;
+    void updateActiveSpots(GameMap* gameMap= nullptr) override;
 
     virtual void setupRoom(const std::string& name, Seat* seat, const std::vector<Tile*>& tiles) override;
 

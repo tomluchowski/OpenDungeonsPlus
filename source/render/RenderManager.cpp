@@ -744,23 +744,38 @@ void RenderManager::rrTemporalMarkTile(Tile* curTile)
 
 void RenderManager::rrDetachEntity(GameEntity* entity)
 {
-    Ogre::SceneNode* node = entity->getEntityNode();
-    entity->getParentSceneNode()->removeChild(node);
+    //TODO : reorganize the way culling starts for gameEntities
+    // so the nullptr check wouldn't be necessery
+    // this is ad hoc solution:  
+    Ogre::SceneNode* entityNode = entity->getEntityNode();
+    OD_ASSERT_TRUE(entityNode!=nullptr);
+    if(entityNode!=nullptr)
+        entity->getParentSceneNode()->removeChild(entityNode);
 }
 
 void RenderManager::rrAttachEntity(GameEntity* entity)
 {
+    //TODO : reorganize the way culling starts for gameEntities
+    // so the nullptr check wouldn't be necessery
+    // this is ad hoc solution:      
     Ogre::SceneNode* entityNode = entity->getEntityNode();
-    entity->getParentSceneNode()->addChild(entityNode);
+    OD_ASSERT_TRUE(entityNode!=nullptr);    
+    if(entityNode!=nullptr)    
+        entity->getParentSceneNode()->addChild(entityNode);
 }
 
-void RenderManager::rrCreateRenderedMovableEntity(RenderedMovableEntity* renderedMovableEntity)
+void RenderManager::rrCreateRenderedMovableEntity(RenderedMovableEntity* renderedMovableEntity, NodeType nt)
 {
     std::string meshName = renderedMovableEntity->getMeshName();
     std::string tempString = renderedMovableEntity->getOgreNamePrefix() + renderedMovableEntity->getName();
 
-    Ogre::SceneNode* node = mRoomSceneNode->createChildSceneNode(tempString + "_node");
+    Ogre::SceneNode* node;
 
+    if(nt == NodeType::MTILES_NODE)
+        node = mRoomSceneNode->createChildSceneNode(tempString + "_node");
+    else
+        node = mDraggableSceneNode->createChildSceneNode(tempString + "_dtc_node");
+    
     node->setPosition(renderedMovableEntity->getPosition());
     node->roll(Ogre::Degree(renderedMovableEntity->getRotationAngle()));
     Ogre::Entity* ent = nullptr;
@@ -793,7 +808,7 @@ void RenderManager::rrCreateRenderedMovableEntity(RenderedMovableEntity* rendere
         setEntityOpacity(ent, renderedMovableEntity->getOpacity());
 }
 
-void RenderManager::rrDestroyRenderedMovableEntity(RenderedMovableEntity* curRenderedMovableEntity)
+void RenderManager::rrDestroyRenderedMovableEntity(RenderedMovableEntity* curRenderedMovableEntity, NodeType nt)
 {
     std::string tempString = curRenderedMovableEntity->getOgreNamePrefix()
                              + curRenderedMovableEntity->getName();

@@ -95,15 +95,21 @@ class TrapBoulderFactory : public TrapFactory
         return trap;
     }
 
-    bool buildTrapOnTiles(GameMap* gameMap, Player* player, const std::vector<Tile*>& tiles) const override
+    bool buildTrapOnTiles(GameMap* gameMap, Player* player, const std::vector<Tile*>& tiles, bool noFee = false) const override
+    {        
+        buildTrapOnTiles(gameMap, player->getSeat(), tiles, noFee);
+    }
+    
+    bool buildTrapOnTiles(GameMap* gameMap, Seat* seatPtr, const std::vector<Tile*>& tiles, bool noFee = false) const 
     {
         int32_t pricePerTarget = TrapManager::costPerTile(TrapType::boulder);
         int32_t price = static_cast<int32_t>(tiles.size()) * pricePerTarget;
-        if(!gameMap->withdrawFromTreasuries(price, player->getSeat()))
-            return false;
+        if(!noFee)
+            if(!gameMap->withdrawFromTreasuries(price, seatPtr))
+                return false;
 
         TrapBoulder* trap = new TrapBoulder(gameMap);
-        return buildTrapDefault(gameMap, trap, player->getSeat(), tiles);
+        return buildTrapDefault(gameMap, trap, seatPtr, tiles);
     }
 };
 

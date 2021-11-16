@@ -84,7 +84,7 @@ void MapLight::destroyMeshLocal(NodeType nt)
     RenderManager::getSingleton().rrDestroyMapLight(this);
 }
 
-void MapLight::addToGameMap()
+void MapLight::addToGameMap(GameMap* gameMap)
 {
     getGameMap()->addMapLight(this);
     getGameMap()->addAnimatedObject(this);

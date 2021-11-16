@@ -45,7 +45,7 @@ public:
 
     virtual SpellType getSpellType() const = 0;
 
-    virtual void addToGameMap() override;
+    virtual void addToGameMap(GameMap* gameMap = nullptr) override;
     virtual void removeFromGameMap() override;
 
     //! \brief Some spells can be cast where the caster do not have vision. In this case, we

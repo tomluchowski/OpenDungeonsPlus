@@ -201,7 +201,7 @@ void RoomPortalWave::claimForSeat(Seat* seat, Tile* tile, double danceRate)
         p.second->mHP = 0.0;
 }
 
-void RoomPortalWave::updateActiveSpots()
+void RoomPortalWave::updateActiveSpots(GameMap* gameMap)
 {
     // Room::updateActiveSpots(); <<-- Disabled on purpose.
     // We don't update the active spots the same way as only the central tile is needed.

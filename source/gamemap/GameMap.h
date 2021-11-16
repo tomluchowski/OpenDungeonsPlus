@@ -107,17 +107,13 @@ public:
     ~GameMap();
 
     Ogre::AxisAlignedBox getAABB();
-    Ogre::SceneNode* getParentSceneNode();
+    Ogre::SceneNode* getParentSceneNode() const;
     void setPosition(Ogre::Vector2 position);
     void setRoundedPosition(Ogre::Vector2 position, Ogre::Vector2 offset );
     void setPosition(Ogre::Vector2 position, Ogre::Vector2 offset );
-    Ogre::Vector2 getPosition();
+    Ogre::Vector2 getPosition() const;
     void moveDelta(Ogre::Vector2 delta);
     std::string serverStr();
-    bool askServerCopyTilesWithOffsetFrom(const DraggableTileContainer& dtc, unsigned int xx, unsigned yy,  unsigned int length, unsigned int width, unsigned int offsetX, unsigned int offsetY);
-    bool copyTilesWithOffsetFrom(const DraggableTileContainer& dtc, unsigned int xx, unsigned yy,  unsigned int length, unsigned int width, unsigned int offsetX, unsigned int offsetY);
-    bool copyTilesFrom(const DraggableTileContainer& , unsigned int, unsigned int,  unsigned int , unsigned int );
-    bool copyFullyTilesFrom(const DraggableTileContainer& , unsigned int, unsigned int) ;
 
     bool refreshTilesBlock(unsigned int, unsigned int, unsigned int, unsigned int, NodeType);
     //! \brief Tells whether the game map is currently used for the map editor mode
@@ -556,8 +552,11 @@ public:
     //! \brief Convenience function to send a relative sound to the human seats in the given list
     void fireRelativeSound(const std::vector<Seat*>& seats, const std::string& soundFamily);
     //! \brief Methods to copy from/onto other gamemaps
-    //! \brief Ask server to Copy the tiles from the given source gamemap, it's length number of x Tiles  starting at offsetX,  width number of y Tiles starting at offsetY, to this gamemap position of point ( xx , yy)  
+    //! \brief Ask server to Copy the tiles from the given source gamemap -- in most cases the draggableTileContainer, it's length number of x Tiles  starting at offsetX,  width number of y Tiles starting at offsetY, to this gamemap position of point ( xx , yy)  
     bool askServerCopyTilesWithOffsetFrom(const GameMap& dtc, unsigned int xx, unsigned yy,  unsigned int length, unsigned int width, unsigned int offsetX, unsigned int offsetY);
+    //! \brief Ask server to copy the traps from the given source gamemap -- in most cases teh draggableTileContainer, it's length number of x Tiles  starting at offsetX,  width number of y Tiles starting at offsetY, to this gamemap position of point ( xx , yy)   
+    bool askServerCopyTrapsWithOffsetFrom(const GameMap& dtc, unsigned int xx, unsigned yy,  unsigned int length, unsigned int width, unsigned int offsetX, unsigned int offsetY);  
+    
     //! \brief Copy the tiles from the given source gamemap, it's length number of x Tiles  starting at offsetX,  width number of y Tiles starting at offsetY, to this gamemap position of point ( xx , yy)  
     bool copyTilesWithOffsetFrom(const GameMap& dtc, unsigned int xx, unsigned yy,  unsigned int length, unsigned int width, unsigned int offsetX, unsigned int offsetY);
     //! \brief Copy the tiles from the given source gamemap, it's first  length number of x  and first  width number of y, to this gamemap position of point ( xx , yy) 

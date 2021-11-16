@@ -36,6 +36,7 @@ class Trap;
 
 class TileData
 {
+
 public:
     TileData() :
         mHP(0)
@@ -67,6 +68,8 @@ public:
 class Building : public GameEntity
 {
 public:
+    friend class ODServer;
+    friend class GameMap;    
     //! \brief Default constructor with default values. Buildings are used only on server map
     Building(GameMap* gameMap) :
         GameEntity(gameMap)
@@ -85,7 +88,7 @@ public:
     { return false; }
 
     //! \brief Updates the active spot lists. Active spots are places where objects can be added
-    virtual void updateActiveSpots() = 0;
+    virtual void updateActiveSpots(GameMap* gameMap = nullptr) = 0;
 
     //! \brief  Do nothing since Buildings do not have exp.
     void receiveExp(double /*experience*/)
@@ -190,7 +193,7 @@ protected:
     //! child classes can expand TileData and add the data they need
     virtual TileData* createTileData(Tile* tile);
 
-    void addBuildingObject(Tile* targetTile, BuildingObject* obj);
+    void addBuildingObject(Tile* targetTile, BuildingObject* obj, GameMap* gameMap = nullptr);
     void removeBuildingObject(Tile* tile);
     void removeBuildingObject(BuildingObject* obj);
     BuildingObject* getBuildingObjectFromTile(Tile* tile);

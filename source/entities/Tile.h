@@ -164,7 +164,7 @@ public:
         Tile *tileTakingDamage, bool ko) override
     { return 0.0; }
 
-    void addToGameMap() override
+    void addToGameMap(GameMap* gameMap = nullptr) override
     {}
     void removeFromGameMap() override
     {}

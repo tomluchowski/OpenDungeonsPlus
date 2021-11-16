@@ -108,8 +108,8 @@ public:
     void rrTemporalMarkTile(Tile* curTile);
     void rrDetachEntity(GameEntity* curEntity);
     void rrAttachEntity(GameEntity* curEntity);
-    void rrCreateRenderedMovableEntity(RenderedMovableEntity* curRenderedMovableEntity);
-    void rrDestroyRenderedMovableEntity(RenderedMovableEntity* curRenderedMovableEntity);
+    void rrCreateRenderedMovableEntity(RenderedMovableEntity* curRenderedMovableEntity, NodeType nt = NodeType::MTILES_NODE);
+    void rrDestroyRenderedMovableEntity(RenderedMovableEntity* curRenderedMovableEntity, NodeType nt = NodeType::MTILES_NODE);
     void rrUpdateEntityOpacity(RenderedMovableEntity* entity);
     void rrCreateCreature(Creature* curCreature);
     void rrDestroyCreature(Creature* curCreature);

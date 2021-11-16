@@ -17,6 +17,8 @@
 
 #include "network/ODClient.h"
 
+#include "entities/Building.h"
+#include "entities/Creature.h"
 #include "entities/Creature.h"
 #include "entities/CreatureDefinition.h"
 #include "entities/EntityLoading.h"
@@ -43,6 +45,9 @@
 #include "sound/MusicPlayer.h"
 #include "sound/SoundEffectsManager.h"
 #include "spells/SpellType.h"
+#include "traps/Trap.h"
+#include "traps/TrapType.h"
+#include "traps/TrapManager.h"
 #include "utils/ConfigManager.h"
 #include "utils/Helper.h"
 #include "utils/LogManager.h"
@@ -852,6 +857,7 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
             gameMap->refreshBorderingTilesOf(tiles);
             break;
         }
+        
         case ServerNotificationType::revealTiles:
         {
             if(frameListener->getModeManager()->getCurrentModeType() != ModeManager::ModeType::EDITOR)
@@ -898,6 +904,66 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
                 draggableTileContainer->refreshTilesBlock(0, 0, draggableTileContainer->getMapSizeX() - 1, draggableTileContainer->getMapSizeY() - 1, NodeType::MDTC_NODE);
             }
             
+            break;
+        }
+        case ServerNotificationType::revealTraps:
+        {
+            if(frameListener->getModeManager()->getCurrentModeType() != ModeManager::ModeType::EDITOR)
+            {
+                OD_LOG_ERR("Wrong mode " + Helper::toString(frameListener->getModeManager()->getCurrentModeType()));
+                break;
+            }
+            GameMap* draggableTileContainer = (dynamic_cast<EditorMode*>(frameListener->getModeManager()->getCurrentMode())->draggableTileContainer);
+            if(draggableTileContainer!=nullptr)
+            {
+                uint32_t nbTraps;
+                OD_ASSERT_TRUE(packetReceived >> nbTraps);
+                std::vector<Tile*> tiles;
+                TrapType trapType;
+                std::string name;
+                int seatId;
+                Seat* seatPtr;
+                uint32_t xx, yy;
+                uint32_t nbCoveredTiles;
+                bool isActivated;
+                while(nbTraps > 0)
+                {             
+                    --nbTraps;
+                    OD_ASSERT_TRUE(packetReceived >> trapType );
+                    OD_ASSERT_TRUE(packetReceived >> name );
+                    OD_ASSERT_TRUE(packetReceived >> seatId );
+                    OD_ASSERT_TRUE(packetReceived >> nbCoveredTiles );
+                    std::vector<Tile*> affectedTiles;
+                    std::vector<bool> isActivatedVector;
+                    while(nbCoveredTiles > 0)
+                    {
+                        --nbCoveredTiles;
+                        OD_ASSERT_TRUE(packetReceived >> xx );
+                        OD_ASSERT_TRUE(packetReceived >> yy );                             
+                        OD_ASSERT_TRUE(packetReceived >> isActivated );
+                        xx = xx - draggableTileContainer->getPosition().x;
+                        yy = yy - draggableTileContainer->getPosition().y;
+                        affectedTiles.push_back(draggableTileContainer->getTile(xx,yy));
+                        isActivatedVector.push_back(isActivated);
+                    }
+                    if(seatId != -1)
+                        seatPtr = gameMap->getSeatById(seatId);
+                    else
+                        seatPtr = nullptr;
+                    OD_ASSERT_TRUE(seatPtr != nullptr);
+                    TrapManager::buildTrapOnTiles(draggableTileContainer, trapType, seatPtr, affectedTiles , true);
+                    // deactivate traps which 'mirror' trap was also deactivated 
+                    for(long unsigned int ii = 0 ; ii < affectedTiles.size() ; ++ii)
+                        if(!isActivatedVector[ii])
+                            affectedTiles[ii]->getCoveringTrap()->deactivate(affectedTiles[ii]);
+                }                                
+            }
+            break;
+        }
+        case ServerNotificationType::pingCreateAllEntities:
+        {
+            GameMap* draggableTileContainer = (dynamic_cast<EditorMode*>(frameListener->getModeManager()->getCurrentMode())->draggableTileContainer);
+            draggableTileContainer->createAllEntities(NodeType::MDTC_NODE);
             break;
         }
         

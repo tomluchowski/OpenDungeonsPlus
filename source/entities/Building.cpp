@@ -72,14 +72,16 @@ void Building::doUpkeep()
     }
 }
 
-void Building::addBuildingObject(Tile* targetTile, BuildingObject* obj)
+void Building::addBuildingObject(Tile* targetTile, BuildingObject* obj, GameMap* gameMap)
 {
     if(obj == nullptr)
         return;
-
+    if(gameMap == nullptr)
+        gameMap = getGameMap();
+    
     // The object position has been already set in the building object constructor
     mBuildingObjects[targetTile] = obj;
-    obj->addToGameMap();
+    obj->addToGameMap(gameMap);
     obj->setPosition(obj->getPosition());
 }
 

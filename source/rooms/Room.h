@@ -47,7 +47,7 @@ public:
     virtual bool isBridge() const
     { return false; }
 
-    virtual void addToGameMap() override;
+    virtual void addToGameMap(GameMap* gameMap = nullptr) override;
     virtual void removeFromGameMap() override;
 
     virtual void absorbRoom(Room* r);
@@ -84,7 +84,7 @@ public:
     { return true; }
 
     //! \brief Updates the active spot lists.
-    virtual void updateActiveSpots() override;
+    virtual void updateActiveSpots(GameMap* gameMap =nullptr) override;
 
     inline unsigned int getNumActiveSpots() const
     { return mNumActiveSpots; }

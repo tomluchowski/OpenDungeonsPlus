@@ -83,7 +83,8 @@
 #include <fstream>
 #include <string>
 #include <vector>
-
+#include <chrono>
+#include <thread>
 
 
 using namespace boost::filesystem;
@@ -1218,18 +1219,37 @@ void EditorMode::onEditCopy()
         }
 
         draggableTileContainer->setPosition(Ogre::Vector2(std::min(mTileMarker.mark.x,mTileMarker.point.x), std::min(mTileMarker.mark.y,mTileMarker.point.y) ));
+        
+        draggableTileContainer->createAllEntities(NodeType::MDTC_NODE);
+        
         // query server what is the content of tiles we hover over in orginal map
-        // only server side has the revelant info 
-        ClientNotification* notif = new ClientNotification(ClientNotificationType::editorAskRevealTiles);
-        notif->mPacket << static_cast<unsigned int> ( mTileMarker.getMinX())
+        // only server side has the relevant info 
+        ClientNotification* notif1 = new ClientNotification(ClientNotificationType::editorAskRevealTiles);
+        notif1->mPacket << static_cast<unsigned int> ( mTileMarker.getMinX())
                        << static_cast<unsigned int> ( mTileMarker.getMinY())
                        << static_cast<unsigned int> ( mTileMarker.getMinX()
                                                       + draggableTileContainer->getMapSizeX() - 1)
                        << static_cast<unsigned int> ( mTileMarker.getMinY()
                                                       + draggableTileContainer->getMapSizeY() - 1);
 
-        ODClient::getSingleton().queueClientNotification(notif);
-        draggableTileContainer->createAllEntities(NodeType::MDTC_NODE);
+        ODClient::getSingleton().queueClientNotification(notif1);
+
+        // the same way we query for traps in the orginal map
+        // again, only server side has relevant info
+        ClientNotification* notif2 = new ClientNotification(ClientNotificationType::editorAskRevealTraps);
+        notif2->mPacket << static_cast<unsigned int> ( mTileMarker.getMinX())
+                        << static_cast<unsigned int> ( mTileMarker.getMinY())
+                        << static_cast<unsigned int> ( mTileMarker.getMinX()
+                                                       + draggableTileContainer->getMapSizeX() - 1)
+                        << static_cast<unsigned int> ( mTileMarker.getMinY()
+                                                       + draggableTileContainer->getMapSizeY() - 1);        
+        ODClient::getSingleton().queueClientNotification(notif2);
+
+        // demand from server recreating of all gameEntities ( since we created the traps and tiles ...)         
+        ClientNotification* notif3 = new ClientNotification(ClientNotificationType::createAllEntities);
+        ODClient::getSingleton().queueClientNotification(notif3);        
+
+     
     }
 }
 
@@ -1241,6 +1261,13 @@ void EditorMode::onEditPaste()
         mGameMap->askServerCopyTilesWithOffsetFrom(*draggableTileContainer,0,0,
                                                    draggableTileContainer->getMapSizeX(),draggableTileContainer->getMapSizeY(),
                                                    draggableTileContainer->getPosition().x, draggableTileContainer->getPosition().y );
+
+        mGameMap->askServerCopyTrapsWithOffsetFrom(*draggableTileContainer,0,0,
+                                                   draggableTileContainer->getMapSizeX(),draggableTileContainer->getMapSizeY(),
+                                                   draggableTileContainer->getPosition().x, draggableTileContainer->getPosition().y );
+
+
+        
         mModifiedMapBit = true;
     }
 }

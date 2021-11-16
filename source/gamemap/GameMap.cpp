@@ -56,6 +56,7 @@
 #include "spells/Spell.h"
 #include "sound/SoundEffectsManager.h"
 #include "traps/Trap.h"
+#include "traps/TrapType.h"
 #include "traps/TrapManager.h"
 #include "utils/ConfigManager.h"
 #include "utils/Helper.h"
@@ -930,7 +931,6 @@ const CreatureDefinition* GameMap::getClassDescription(int index)
         return def.first;
 }
 
-
 void GameMap::createAllEntities(NodeType nt)
 {
     mTileSet = ConfigManager::getSingleton().getTileSet(mTileSetName);
@@ -983,7 +983,7 @@ void GameMap::createAllEntities(NodeType nt)
         // Create OGRE entities for rendered entities
         for (RenderedMovableEntity* rendered : mRenderedMovableEntities)
         {
-            rendered->createMesh();
+            rendered->createMesh(nt);
             rendered->setPosition(rendered->getPosition());
         }
 
@@ -3340,13 +3340,13 @@ void GameMap::setRoundedPosition(Ogre::Vector2 position, Ogre::Vector2 offset )
     getParentSceneNode()->setPosition(std::round(position.x + offset.x), std::round( position.y + offset.y),  getParentSceneNode()->getPosition().z);
 }
 
-Ogre::Vector2 GameMap::getPosition()
+Ogre::Vector2 GameMap::getPosition() const
 {
     Ogre::Vector3 vv = getParentSceneNode()->getPosition();
     return Ogre::Vector2( vv.x, vv.y);
 }
 
-Ogre::SceneNode* GameMap::getParentSceneNode()
+Ogre::SceneNode* GameMap::getParentSceneNode() const
 {
     return mTiles[0][0]->getParentSceneNode();
 
@@ -3363,7 +3363,8 @@ bool GameMap::askServerCopyTilesWithOffsetFrom(const GameMap& dtc, unsigned int 
             Tile* rhs;
             lhs = getTile(pp + offsetX,qq + offsetY);
             rhs = dtc.getTile( xx+pp, yy+qq);
-            if(lhs!=nullptr && rhs!=nullptr){
+            if(lhs!=nullptr && rhs!=nullptr)
+            {
                 ClientNotification *clientNotification = new ClientNotification(
                     ClientNotificationType::editorAskChangeTile);
                 clientNotification->mPacket << lhs->getX() << lhs->getY();
@@ -3379,38 +3380,47 @@ bool GameMap::askServerCopyTilesWithOffsetFrom(const GameMap& dtc, unsigned int 
     return isNull;
 }
 
-bool GameMap::copyTilesWithOffsetFrom(const GameMap& dtc, unsigned int xx, unsigned yy,  unsigned int length, unsigned int width, unsigned int offsetX, unsigned int offsetY)
+bool GameMap::askServerCopyTrapsWithOffsetFrom(const GameMap& dtc, unsigned int xx, unsigned yy,  unsigned int length, unsigned int width, unsigned int offsetX, unsigned int offsetY)
 {
-    bool isNull = false;
-    for(unsigned int pp =0 ; pp < length ;  pp++)
-        for(unsigned int qq =0  ; qq < width;  qq++)
-        {
-            Tile* lhs;
-            Tile* rhs;
-            lhs = getTile(pp + offsetX,qq + offsetY);
-            rhs = dtc.getTile( xx+pp, yy+qq);
-            if(lhs!=nullptr && rhs!=nullptr){
-                *lhs=*rhs;
-            }
-            else
-                isNull = true;
-        }
+
+    std::vector<Trap*> affectedTraps;
+    bool isActive;
     
-    return isNull;
+    for(Trap* trap : dtc.mTraps)
+    {
+        for(Tile* tile : trap->getCoveredTiles())
+        {           
+               
+            ClientNotification *clientNotification = new ClientNotification(
+                ClientNotificationType::editorAskBuildTrapWithActivation);
+            int seatId =(trap->getSeat() == nullptr) ? -1 : trap->getSeat()->getId();
+            TrapType trapType = trap->getType() ;
+            clientNotification->mPacket<< trapType;
+            clientNotification->mPacket<< seatId;
+            clientNotification->mPacket<< 1;
+            auto it = trap->mTileData.find(tile);
+            if(it == trap->mTileData.end())
+            {
+                OD_LOG_ERR("building=" + trap->getName() + ", tile=" + Tile::displayAsString(tile));
+                continue;
+            }
+            TileData* tileData = it->second;
+            TrapTileData* trapTileData = static_cast<TrapTileData*>(tileData);
+            // we mock up :
+            // dtc.tileToPacket(clientNotification->mPacket, tile);
+            // modulo postion of draggableTileContainer
+            int32_t xx = tile->getX() + dtc.getPosition().x;
+            int32_t yy = tile->getY() + dtc.getPosition().y;
+            clientNotification->mPacket<< xx;
+            clientNotification->mPacket<< yy;
+            // isActive = trapTileData->isActivated();            
+            // clientNotification->mPacket<< isActive;
+            ODClient::getSingleton().queueClientNotification(clientNotification);
+            
+        }        
+    }
+    
 }
-
-bool GameMap::copyTilesFrom(const GameMap& dtc, unsigned int xx, unsigned yy,  unsigned int length, unsigned int width)
-{
-    return copyTilesWithOffsetFrom(dtc, xx, yy, length, width, 0, 0);
-}
-
-
-bool GameMap::copyFullyTilesFrom(const GameMap& dtc, unsigned int xx, unsigned yy)
-{
-
-    return copyTilesFrom(dtc,xx,yy,mMapSizeX,mMapSizeY);
-}
-
 
 bool GameMap::refreshTilesBlock(unsigned int startX, unsigned int startY, unsigned int endX, unsigned int endY, NodeType nt)
 {

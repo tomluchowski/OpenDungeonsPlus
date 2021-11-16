@@ -62,7 +62,7 @@ void Spell::doUpkeep()
     deleteYourself();
 }
 
-void Spell::addToGameMap()
+void Spell::addToGameMap(GameMap* gameMap)
 {
     getGameMap()->addSpell(this);
     getGameMap()->addAnimatedObject(this);

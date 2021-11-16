@@ -1603,6 +1603,19 @@ bool ODServer::processClientNotifications(ODSocketClient* clientSocket)
             break;
         }
 
+        case ClientNotificationType::createAllEntities:
+        {
+            if(mServerMode != ServerMode::ModeEditor)
+            {
+                OD_LOG_ERR("Received editor command while wrong mode mode" + Helper::toString(static_cast<int>(mServerMode)));
+                break;
+            }
+            Player* player = clientSocket->getPlayer();
+            ServerNotification notif(ServerNotificationType::pingCreateAllEntities, player);
+            sendAsyncMsg(notif);            
+            break;
+        }
+        
         case ClientNotificationType::editorAskChangeTile:
         {
             if(mServerMode != ServerMode::ModeEditor)
@@ -1763,7 +1776,31 @@ bool ODServer::processClientNotifications(ODSocketClient* clientSocket)
             }
             break;
         }
+        // TODO: make the editorAskBuildTrapWithActivation use the isActive
+        // information from ODPacket stream, in that way it should be diffrent
+        // editorAskBuildTrap, now those "methods" are the same 
+        case ClientNotificationType::editorAskBuildTrapWithActivation:
+        {
+            if(mServerMode != ServerMode::ModeEditor)
+            {
+                OD_LOG_ERR("Received editor command while wrong mode mode"
+                    + Helper::toString(static_cast<int>(mServerMode)));
+                break;
+            }
+            TrapType type;
 
+            OD_ASSERT_TRUE(packetReceived >> type);
+
+            Player* player = clientSocket->getPlayer();
+            if(!TrapManager::buildTrapEditor(gameMap, type, packetReceived))
+            {
+                OD_LOG_INF("WARNING: player seatId=" + Helper::toString(player->getSeat()->getId())
+                    + " couldn't build trap: " + TrapManager::getTrapNameFromTrapType(type));
+                break;
+            }
+            break;
+        }
+        
         case ClientNotificationType::editorAskRevealTiles:
         {
             if(mServerMode != ServerMode::ModeEditor)
@@ -1801,6 +1838,99 @@ bool ODServer::processClientNotifications(ODSocketClient* clientSocket)
             }            
             break;
         }
+
+        case ClientNotificationType::editorAskRevealTraps:
+        {
+            if(mServerMode != ServerMode::ModeEditor)
+            {
+                OD_LOG_ERR("Received editor command while wrong mode mode"
+                           + Helper::toString(static_cast<int>(mServerMode)));
+                break;
+            }
+            unsigned int x1, y1, x2, y2;
+            uint32_t nbTraps;
+            OD_ASSERT_TRUE(packetReceived >> x1 >> y1 >> x2 >> y2);
+            std::vector<Trap*> affectedTraps;
+
+            for(Trap* trap : gameMap->mTraps)
+            {          
+                for(Tile* tile : trap->getCoveredTiles())
+                {
+                    // We are intrested only in traps which belong to the marked area.
+                    // Mark trap as affected if at least one trap from trap battery belongs
+                    // to the marked area.
+                    if(x1 <= tile->getX() &&  tile->getX() <= x2
+                       && y1 <= tile->getY() &&  tile->getY() <= y2)
+                    {
+                        affectedTraps.push_back(trap);
+                        break;
+                    }
+                }
+            }
+            
+            const std::vector<Seat*>& seats = gameMap->getSeats();
+            for(Seat* seat : seats)
+            {
+                if(seat->getPlayer() == nullptr)
+                    continue;
+                if(!seat->getPlayer()->getIsHuman())
+                    continue;
+                
+                ServerNotification notif(ServerNotificationType::revealTraps, seat->getPlayer());
+                nbTraps = affectedTraps.size();
+                notif.mPacket << nbTraps;
+            
+                for(Trap* trap : affectedTraps)
+                {
+                    uint32_t nbCoveredTiles;
+                    notif.mPacket << trap->getType();                    
+                    notif.mPacket << trap->getName();
+                    notif.mPacket << ((trap->getSeat() == nullptr) ? -1 : trap->getSeat()->getId());
+
+
+                    std::vector<Tile*> affectedTiles;
+                    for(Tile* tile : trap->getCoveredTiles())
+                    {
+
+                        // we are intrested only in traps which belong to the marked area                        
+                        if(x1 <= tile->getX() &&  tile->getX() <= x2
+                           && y1 <= tile->getY() &&  tile->getY() <= y2)
+                        {
+                            affectedTiles.push_back(tile);
+                        }
+                    }
+
+                    
+                    nbCoveredTiles =  affectedTiles.size();
+                    notif.mPacket << nbCoveredTiles;
+                    for(Tile* tile : affectedTiles)
+                    {                    
+
+                        uint32_t xx, yy;
+                        bool isActivated;
+                        xx = tile->getX();
+                        yy = tile->getY(); 
+                        notif.mPacket << xx;
+                        notif.mPacket << yy;
+                        // check whether the trap was active or not  ( semi-transparent or not ) 
+                        auto it = trap->mTileData.find(tile);
+                        if(it == trap->mTileData.end())
+                        {
+                            OD_LOG_ERR("building=" + trap->getName() + ", tile=" + Tile::displayAsString(tile));
+                            continue;
+                        }
+                        TileData* tileData = it->second;
+                        TrapTileData* trapTileData = static_cast<TrapTileData*>(tileData);                            
+                        isActivated = trapTileData->isActivated();
+                        notif.mPacket << isActivated;
+                        
+                    }   
+                }
+                sendAsyncMsg(notif); 
+            }
+            break;
+        }
+        
         
         case ClientNotificationType::editorCreateWorker:
         {

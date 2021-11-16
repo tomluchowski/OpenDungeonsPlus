@@ -72,10 +72,12 @@ enum class ServerNotificationType
     playSpatialSound, // Makes the client play a sound at tile coordinates.
     playRelativeSound, // Makes the client play a sound.
 
+    pingCreateAllEntities,
     markTiles,
     refreshTiles,
     refreshVisibleTiles,
     revealTiles,
+    revealTraps,
     carryEntity,
     releaseCarriedEntity,
 

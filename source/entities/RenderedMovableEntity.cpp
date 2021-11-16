@@ -70,7 +70,7 @@ void RenderedMovableEntity::createMeshLocal(NodeType nt)
     if(getIsOnServerMap())
         return;
 
-    RenderManager::getSingleton().rrCreateRenderedMovableEntity(this);
+    RenderManager::getSingleton().rrCreateRenderedMovableEntity(this, nt);
 }
 
 void RenderedMovableEntity::destroyMeshLocal(NodeType nt)
@@ -83,16 +83,18 @@ void RenderedMovableEntity::destroyMeshLocal(NodeType nt)
     RenderManager::getSingleton().rrDestroyRenderedMovableEntity(this);
 }
 
-void RenderedMovableEntity::addToGameMap()
+void RenderedMovableEntity::addToGameMap(GameMap* gameMap)
 {
-    getGameMap()->addRenderedMovableEntity(this);
-    getGameMap()->addAnimatedObject(this);
-    getGameMap()->addClientUpkeepEntity(this);
+    if(gameMap == nullptr)
+        gameMap  = getGameMap();
+    gameMap->addRenderedMovableEntity(this);
+    gameMap->addAnimatedObject(this);
+    gameMap->addClientUpkeepEntity(this);
 
     if(!getIsOnServerMap())
         return;
 
-    getGameMap()->addActiveObject(this);
+    gameMap->addActiveObject(this);
 }
 
 void RenderedMovableEntity::removeFromGameMap()

@@ -321,7 +321,7 @@ class GameEntity
         Tile *tileTakingDamage, bool ko) = 0;
 
     //! \brief Adds the entity to the correct spaces of the gamemap (animated objects, creature, ...)
-    virtual void addToGameMap() = 0;
+    virtual void addToGameMap(GameMap* gameMap = nullptr) = 0;
     virtual void removeFromGameMap() = 0;
 
     inline bool getIsOnMap() const

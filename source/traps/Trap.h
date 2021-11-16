@@ -42,6 +42,9 @@ enum class TrapType;
 //! \brief A small class telling whether a trap tile is activated.
 class TrapTileData : public TileData
 {
+
+    friend class ODServer;
+    friend class GameMap;
 public:
     TrapTileData() :
         TileData(),
@@ -168,7 +171,7 @@ public:
 
     virtual GameEntityType getObjectType() const override;
 
-    virtual void addToGameMap() override;
+    virtual void addToGameMap(GameMap* gameMap = nullptr) override;
     virtual void removeFromGameMap() override;
 
     virtual const TrapType getType() const = 0;
@@ -192,7 +195,7 @@ public:
     virtual void setupTrap(const std::string& name, Seat* seat, const std::vector<Tile*>& tiles);
 
     virtual bool removeCoveredTile(Tile* t) override;
-    virtual void updateActiveSpots() override;
+    virtual void updateActiveSpots(GameMap* gameMap = nullptr) override;
 
     virtual int32_t getNbNeededCraftedTrap() const;
 
@@ -214,6 +217,13 @@ public:
 
     static bool importTrapFromStream(Trap& trap, std::istream& is);
 
+    //! \brief Triggered when the trap is activated
+    void activate(Tile* tile);
+
+    //! \brief Triggered when deactivated.
+    virtual void deactivate(Tile* tile);
+
+    
 protected:
     static void fireTrapSound(Tile& tile, const std::string& soundFamily);
 
@@ -226,12 +236,6 @@ protected:
     virtual BuildingObject* notifyActiveSpotCreated(Tile* tile);
     virtual TrapEntity* getTrapEntity(Tile* tile) = 0;
     virtual void notifyActiveSpotRemoved(Tile* tile);
-
-    //! \brief Triggered when the trap is activated
-    void activate(Tile* tile);
-
-    //! \brief Triggered when deactivated.
-    virtual void deactivate(Tile* tile);
 
     uint32_t mNbShootsBeforeDeactivation;
     uint32_t mReloadTime;

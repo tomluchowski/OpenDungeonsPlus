@@ -30,7 +30,7 @@ public:
     { return mRoomType; }
 
     //! \brief Updates the temple position when in editor mode.
-    void updateActiveSpots() override;
+    void updateActiveSpots(GameMap* gameMap = nullptr) override;
 
     bool hasCarryEntitySpot(GameEntity* carriedEntity) override;
     Tile* askSpotForCarriedEntity(GameEntity* carriedEntity) override;

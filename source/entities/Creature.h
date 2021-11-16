@@ -127,7 +127,7 @@ public:
 
     virtual GameEntityType getObjectType() const override;
 
-    virtual void addToGameMap() override;
+    virtual void addToGameMap(GameMap* gameMap = nullptr) override;
     virtual void removeFromGameMap() override;
 
     bool canDisplayStatsWindow(Seat* seat) override

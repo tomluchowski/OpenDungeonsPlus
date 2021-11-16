@@ -62,7 +62,7 @@ bool Room::compareTile(Tile* tile1, Tile* tile2)
     return false;
 }
 
-void Room::addToGameMap()
+void Room::addToGameMap(GameMap* gameMap)
 {
     getGameMap()->addRoom(this);
     getGameMap()->addActiveObject(this);
@@ -228,7 +228,7 @@ void Room::checkForRoomAbsorbtion()
         reorderRoomTiles(mCoveredTiles);
 }
 
-void Room::updateActiveSpots()
+void Room::updateActiveSpots(GameMap* gameMap)
 {
     std::vector<Tile*> centralActiveSpotTiles;
     std::vector<Tile*> leftWallsActiveSpotTiles;

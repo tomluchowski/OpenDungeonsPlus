@@ -61,6 +61,7 @@ ODPacket& operator>>(ODPacket& is, EventShortNoticeType& type);
 class ODServer: public Ogre::Singleton<ODServer>,
     public ODSocketServer
 {
+    friend class EditorMode;
  public:
      enum ServerState
      {

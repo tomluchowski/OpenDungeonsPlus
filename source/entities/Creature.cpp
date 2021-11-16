@@ -316,7 +316,7 @@ GameEntityType Creature::getObjectType() const
     return GameEntityType::creature;
 }
 
-void Creature::addToGameMap()
+void Creature::addToGameMap(GameMap* gameMap)
 {
     getGameMap()->addCreature(this);
     getGameMap()->addAnimatedObject(this);
@@ -2349,17 +2349,13 @@ bool Creature::parkToWallTile(Tile* wallTile, Tile* nTile)
 
     Ogre::Vector3 parkingPoint;
     parkingPoint = (wallTile->getPosition() - nTile->getPosition())*0.4 + nTile->getPosition() ;
-    std::stringstream ss;
-    ss << "parking point: " << parkingPoint;
-    ss << "wallTile->getPosition(): " << wallTile->getPosition();
-    ss << "nTile->getPosition(): " << nTile->getPosition();
+
     
     std::list<Tile*> result = getGameMap()->path(this, nTile);
 
     std::vector<Ogre::Vector3> path;
     tileToVector3(result, path, true, 0.0);
     
-    OD_LOG_ERR(ss.str());
     path.push_back(parkingPoint);
     
     setWalkPath(EntityAnimation::walk_anim, EntityAnimation::idle_anim, true, true, path,false);

@@ -98,7 +98,7 @@ RoomDungeonTemple::RoomDungeonTemple(GameMap* gameMap) :
     setMeshName("DungeonTemple");
 }
 
-void RoomDungeonTemple::updateActiveSpots()
+void RoomDungeonTemple::updateActiveSpots(GameMap* gameMap)
 {
     // Room::updateActiveSpots(); <<-- Disabled on purpose.
     // We don't update the active spots the same way as only the central tile is needed.

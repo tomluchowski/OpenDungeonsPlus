@@ -141,7 +141,7 @@ bool TrapFactory::buildTrapDefault(GameMap* gameMap, Trap* trap, Seat* seat, con
         return false;
 
     trap->setupTrap(gameMap->nextUniqueNameTrap(trap->getType()), seat, tiles);
-    trap->addToGameMap();
+    trap->addToGameMap(gameMap);
     trap->createMesh();
 
     if((seat->getPlayer() != nullptr) &&
@@ -184,7 +184,7 @@ bool TrapFactory::buildTrapDefault(GameMap* gameMap, Trap* trap, Seat* seat, con
         }
     }
 
-    trap->updateActiveSpots();
+    trap->updateActiveSpots(gameMap);
 
     return true;
 }
@@ -406,7 +406,12 @@ bool TrapManager::buildTrapEditor(GameMap* gameMap, TrapType type, ODPacket& pac
     return factory.buildTrapEditor(gameMap, packet);
 }
 
-bool TrapManager::buildTrapOnTiles(GameMap* gameMap, TrapType type, Player* player, const std::vector<Tile*>& tiles)
+bool TrapManager::buildTrapOnTiles(GameMap* gameMap, TrapType type, Player* player, const std::vector<Tile*>& tiles, bool noFee =false)
+{
+    buildTrapOnTiles(gameMap, type, player->getSeat(), tiles, noFee);
+}
+
+bool TrapManager::buildTrapOnTiles(GameMap* gameMap, TrapType type, Seat* seatPtr, const std::vector<Tile*>& tiles, bool noFee =false)
 {
     std::vector<const TrapFactory*>& factories = getFactories();
     uint32_t index = static_cast<uint32_t>(type);
@@ -417,7 +422,7 @@ bool TrapManager::buildTrapOnTiles(GameMap* gameMap, TrapType type, Player* play
     }
 
     const TrapFactory& factory = *factories[index];
-    return factory.buildTrapOnTiles(gameMap, player, tiles);
+    return factory.buildTrapOnTiles(gameMap, seatPtr, tiles, noFee);
 }
 
 Trap* TrapManager::getTrapFromStream(GameMap* gameMap, std::istream& is)

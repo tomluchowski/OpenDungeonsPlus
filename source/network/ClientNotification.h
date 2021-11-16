@@ -55,13 +55,16 @@ enum class ClientNotificationType
     askExecuteConsoleCommand,
 
     //  Editor
+    createAllEntities,
     editorAskChangeTile,
     editorAskChangeTiles,
     editorAskBuildRoom,
     editorAskBuildTrap,
+    editorAskBuildTrapWithActivation,
     editorAskDestroyRoomTiles,
     editorAskDestroyTrapTiles,
-    editorAskRevealTiles,    
+    editorAskRevealTiles,
+    editorAskRevealTraps,
     editorCreateWorker,
     editorCreateFighter,
     editorAskCreateMapLight

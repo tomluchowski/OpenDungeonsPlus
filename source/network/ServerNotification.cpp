@@ -96,6 +96,8 @@ std::string ServerNotification::typeString(ServerNotificationType type)
             return "refreshCreatureVisDebug";
         case ServerNotificationType::refreshSeatVisDebug:
             return "refreshSeatVisDebug";
+        case ServerNotificationType::pingCreateAllEntities:
+            return "pingCreateAllEntities";
         case ServerNotificationType::markTiles:
             return "markTiles";
         case ServerNotificationType::refreshTiles:
@@ -104,6 +106,8 @@ std::string ServerNotification::typeString(ServerNotificationType type)
             return "refreshVisibleTiles";
         case ServerNotificationType::revealTiles:
             return "revealTiles";
+        case ServerNotificationType::revealTraps:
+            return "revealTraps";            
         case ServerNotificationType::carryEntity:
             return "carryEntity";
         case ServerNotificationType::releaseCarriedEntity:
