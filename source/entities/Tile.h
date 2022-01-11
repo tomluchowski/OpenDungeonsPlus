@@ -135,7 +135,7 @@ class Tile : public GameEntity
 public:
     Tile(GameMap* gameMap, int x = 0, int y = 0, TileType type = TileType::dirt, double fullness = 100.0);
 
-    Tile& operator=(const Tile& tt);
+    void transfer(Tile* t);
     
     virtual ~Tile();
 

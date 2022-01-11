@@ -80,30 +80,28 @@ Tile::~Tile()
     }
 }
 
-Tile& Tile::operator=(const Tile& tt)
+void Tile::transfer(Tile* tt)
 {
-    GameEntity::operator=(tt);
+    GameEntity::operator=(*tt);
 
-    mType = tt.mType;              
-    mTileVisual  = tt.mTileVisual;       
-    mSelected  = tt.mSelected;         
-    mFullness = tt.mFullness;         
-    mRefundPriceRoom = tt.mRefundPriceRoom;   
-    mRefundPriceTrap = tt.mRefundPriceTrap;
-    // mNeighbors = tt.mNeighbors;
-    mCoveringBuilding = tt.mCoveringBuilding;  
-    mClaimedPercentage = tt.mClaimedPercentage; 
-    mIsRoom = tt.mIsRoom;            
-    mIsTrap = tt.mIsTrap;            
-    mDisplayTileMesh = tt.mDisplayTileMesh;    
-    mColorCustomMesh = tt.mColorCustomMesh;  
-    mHasBridge = tt.mHasBridge;         
-    mLocalPlayerHasVision = tt.mLocalPlayerHasVision; 
-    // mTileCulling = tt.mTileCulling;       
-    // mNbWorkersClaiming = tt.mNbWorkersClaiming;
+    mType = tt->mType;              
+    mTileVisual  = tt->mTileVisual;       
+    mSelected  = tt->mSelected;         
+    mFullness = tt->mFullness;         
+    mRefundPriceRoom = tt->mRefundPriceRoom;   
+    mRefundPriceTrap = tt->mRefundPriceTrap;
+    // mNeighbors = tt->mNeighbors;
+    // mCoveringBuilding = tt->mCoveringBuilding;  
+    mClaimedPercentage = tt->mClaimedPercentage; 
+    mIsRoom = tt->mIsRoom;            
+    mIsTrap = tt->mIsTrap;            
+    mDisplayTileMesh = tt->mDisplayTileMesh;    
+    mColorCustomMesh = tt->mColorCustomMesh;  
+    mHasBridge = tt->mHasBridge;         
+    mLocalPlayerHasVision = tt->mLocalPlayerHasVision; 
+    // mTileCulling = tt->mTileCulling;       
+    // mNbWorkersClaiming = tt->mNbWorkersClaiming;
     
-    return *this;
-
 }
 
 
@@ -1325,7 +1323,7 @@ void Tile::claimTile(Seat* seat)
         Building* building = tile->getCoveringBuilding();
         if (building != nullptr)
         {
-            building->updateActiveSpots();
+            building->updateActiveSpots(getGameMap());
             building->createMesh();
         }
     }

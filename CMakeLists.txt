@@ -340,6 +340,7 @@ set(OD_SOURCEFILES
     ${SRC}/game/Seat.cpp
     ${SRC}/game/SeatData.cpp
 
+    ${SRC}/gamemap/DraggableTileContainer.cpp
     ${SRC}/gamemap/GameMap.cpp
     ${SRC}/gamemap/MapHandler.cpp
     ${SRC}/gamemap/MiniMap.cpp

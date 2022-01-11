@@ -64,8 +64,10 @@ bool Room::compareTile(Tile* tile1, Tile* tile2)
 
 void Room::addToGameMap(GameMap* gameMap)
 {
-    getGameMap()->addRoom(this);
-    getGameMap()->addActiveObject(this);
+    if(gameMap == nullptr)
+        gameMap = getGameMap();
+    gameMap->addRoom(this);
+    gameMap->addActiveObject(this);
 }
 
 void Room::removeFromGameMap()
@@ -311,21 +313,21 @@ void Room::updateActiveSpots(GameMap* gameMap)
         // Test for walls around
         // Up
         Tile* testTile;
-        testTile = getGameMap()->getTile(centerTile->getX(), centerTile->getY() + 2);
+        testTile = gameMap->getTile(centerTile->getX(), centerTile->getY() + 2);
         if (testTile != nullptr && testTile->isWallClaimedForSeat(getSeat()))
         {
-            Tile* topTile = getGameMap()->getTile(centerTile->getX(), centerTile->getY() + 1);
+            Tile* topTile = gameMap->getTile(centerTile->getX(), centerTile->getY() + 1);
             if (topTile != nullptr)
                 topWallsActiveSpotTiles.push_back(topTile);
         }
         // Up for 4 tiles wide room
-        testTile = getGameMap()->getTile(centerTile->getX(), centerTile->getY() + 3);
+        testTile = gameMap->getTile(centerTile->getX(), centerTile->getY() + 3);
         if (testTile != nullptr && testTile->isWallClaimedForSeat(getSeat()))
         {
             bool isFound = true;
             for(int k = 0; k < 3; ++k)
             {
-                Tile* testTile2 = getGameMap()->getTile(centerTile->getX() + k - 1, centerTile->getY() + 2);
+                Tile* testTile2 = gameMap->getTile(centerTile->getX() + k - 1, centerTile->getY() + 2);
                 if((testTile2 == nullptr) || (testTile2->getCoveringBuilding() != this))
                 {
                     isFound = false;
@@ -335,27 +337,27 @@ void Room::updateActiveSpots(GameMap* gameMap)
 
             if(isFound)
             {
-                Tile* topTile = getGameMap()->getTile(centerTile->getX(), centerTile->getY() + 2);
+                Tile* topTile = gameMap->getTile(centerTile->getX(), centerTile->getY() + 2);
                 topWallsActiveSpotTiles.push_back(topTile);
             }
         }
 
         // Down
-        testTile = getGameMap()->getTile(centerTile->getX(), centerTile->getY() - 2);
+        testTile = gameMap->getTile(centerTile->getX(), centerTile->getY() - 2);
         if (testTile != nullptr && testTile->isWallClaimedForSeat(getSeat()))
         {
-            Tile* bottomTile = getGameMap()->getTile(centerTile->getX(), centerTile->getY() - 1);
+            Tile* bottomTile = gameMap->getTile(centerTile->getX(), centerTile->getY() - 1);
             if (bottomTile != nullptr)
                 bottomWallsActiveSpotTiles.push_back(bottomTile);
         }
         // Down for 4 tiles wide room
-        testTile = getGameMap()->getTile(centerTile->getX(), centerTile->getY() - 3);
+        testTile = gameMap->getTile(centerTile->getX(), centerTile->getY() - 3);
         if (testTile != nullptr && testTile->isWallClaimedForSeat(getSeat()))
         {
             bool isFound = true;
             for(int k = 0; k < 3; ++k)
             {
-                Tile* testTile2 = getGameMap()->getTile(centerTile->getX() + k - 1, centerTile->getY() - 2);
+                Tile* testTile2 = gameMap->getTile(centerTile->getX() + k - 1, centerTile->getY() - 2);
                 if((testTile2 == nullptr) || (testTile2->getCoveringBuilding() != this))
                 {
                     isFound = false;
@@ -365,27 +367,27 @@ void Room::updateActiveSpots(GameMap* gameMap)
 
             if(isFound)
             {
-                Tile* topTile = getGameMap()->getTile(centerTile->getX(), centerTile->getY() - 2);
+                Tile* topTile = gameMap->getTile(centerTile->getX(), centerTile->getY() - 2);
                 bottomWallsActiveSpotTiles.push_back(topTile);
             }
         }
 
         // Left
-        testTile = getGameMap()->getTile(centerTile->getX() - 2, centerTile->getY());
+        testTile = gameMap->getTile(centerTile->getX() - 2, centerTile->getY());
         if (testTile != nullptr && testTile->isWallClaimedForSeat(getSeat()))
         {
-            Tile* leftTile = getGameMap()->getTile(centerTile->getX() - 1, centerTile->getY());
+            Tile* leftTile = gameMap->getTile(centerTile->getX() - 1, centerTile->getY());
             if (leftTile != nullptr)
                 leftWallsActiveSpotTiles.push_back(leftTile);
         }
         // Left for 4 tiles wide room
-        testTile = getGameMap()->getTile(centerTile->getX() - 3, centerTile->getY());
+        testTile = gameMap->getTile(centerTile->getX() - 3, centerTile->getY());
         if (testTile != nullptr && testTile->isWallClaimedForSeat(getSeat()))
         {
             bool isFound = true;
             for(int k = 0; k < 3; ++k)
             {
-                Tile* testTile2 = getGameMap()->getTile(centerTile->getX() - 2, centerTile->getY() + k - 1);
+                Tile* testTile2 = gameMap->getTile(centerTile->getX() - 2, centerTile->getY() + k - 1);
                 if((testTile2 == nullptr) || (testTile2->getCoveringBuilding() != this))
                 {
                     isFound = false;
@@ -395,27 +397,27 @@ void Room::updateActiveSpots(GameMap* gameMap)
 
             if(isFound)
             {
-                Tile* topTile = getGameMap()->getTile(centerTile->getX() - 2, centerTile->getY());
+                Tile* topTile = gameMap->getTile(centerTile->getX() - 2, centerTile->getY());
                 leftWallsActiveSpotTiles.push_back(topTile);
             }
         }
 
         // Right
-        testTile = getGameMap()->getTile(centerTile->getX() + 2, centerTile->getY());
+        testTile = gameMap->getTile(centerTile->getX() + 2, centerTile->getY());
         if (testTile != nullptr && testTile->isWallClaimedForSeat(getSeat()))
         {
-            Tile* rightTile = getGameMap()->getTile(centerTile->getX() + 1, centerTile->getY());
+            Tile* rightTile = gameMap->getTile(centerTile->getX() + 1, centerTile->getY());
             if (rightTile != nullptr)
                 rightWallsActiveSpotTiles.push_back(rightTile);
         }
         // Right for 4 tiles wide room
-        testTile = getGameMap()->getTile(centerTile->getX() + 3, centerTile->getY());
+        testTile = gameMap->getTile(centerTile->getX() + 3, centerTile->getY());
         if (testTile != nullptr && testTile->isWallClaimedForSeat(getSeat()))
         {
             bool isFound = true;
             for(int k = 0; k < 3; ++k)
             {
-                Tile* testTile2 = getGameMap()->getTile(centerTile->getX() + 2, centerTile->getY() + k - 1);
+                Tile* testTile2 = gameMap->getTile(centerTile->getX() + 2, centerTile->getY() + k - 1);
                 if((testTile2 == nullptr) || (testTile2->getCoveringBuilding() != this))
                 {
                     isFound = false;
@@ -425,7 +427,7 @@ void Room::updateActiveSpots(GameMap* gameMap)
 
             if(isFound)
             {
-                Tile* topTile = getGameMap()->getTile(centerTile->getX() + 2, centerTile->getY());
+                Tile* topTile = gameMap->getTile(centerTile->getX() + 2, centerTile->getY());
                 rightWallsActiveSpotTiles.push_back(topTile);
             }
         }
@@ -672,7 +674,7 @@ void Room::repairRoom()
         tile->setCoveringBuilding(this);
     }
 
-    updateActiveSpots();
+    updateActiveSpots(getGameMap());
 }
 
 bool Room::sortForMapSave(Room* r1, Room* r2)

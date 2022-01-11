@@ -92,6 +92,7 @@ public:
     //! \brief Same as previous functions but for EditorMode
     static void checkBuildTrapEditor(GameMap* gameMap, TrapType type, const InputManager& inputManager, InputCommand& inputCommand);
     static bool buildTrapEditor(GameMap* gameMap, TrapType type, ODPacket& packet);
+    //! \brief Used by AI for building traps
     static bool buildTrapOnTiles(GameMap* gameMap, TrapType type, Player* player, const std::vector<Tile*>& tiles, bool noFee);
     static bool buildTrapOnTiles(GameMap* gameMap, TrapType type, Seat* seatPtr, const std::vector<Tile*>& tiles, bool noFee);
 

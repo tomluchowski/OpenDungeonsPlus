@@ -87,6 +87,12 @@ std::string ClientNotification::typeString(ClientNotificationType type)
             return "editorAskChangeTile";
         case ClientNotificationType::editorAskChangeTiles:
             return "editorAskChangeTiles";
+        case ClientNotificationType::editorAskCreateDraggableTileContainer:
+            return "editorAskCreateDraggableTileContainer";
+        case ClientNotificationType::editorAskMoveDeltaDraggableTileContainer:
+            return "editorAskMoveDeltaDraggableTileContainer";            
+        case ClientNotificationType::editorAskSetRoundedPositionDraggableTileContainer:
+            return "editorAskSetRoundedPositionDraggableTileContainer";        
         case ClientNotificationType::editorAskBuildRoom:
             return "editorAskBuildRoom";
         case ClientNotificationType::editorAskBuildTrap:
@@ -95,6 +101,8 @@ std::string ClientNotification::typeString(ClientNotificationType type)
             return "editorAskBuildTrapWithActivation";            
         case ClientNotificationType::editorAskRevealTiles:
             return "editorAskRevealTiles";
+        case ClientNotificationType::editorAskRevealRooms:
+            return "editorAskRevealRooms";               
         case ClientNotificationType::editorAskRevealTraps:
             return "editorAskRevealTraps";            
         case ClientNotificationType::editorCreateWorker:

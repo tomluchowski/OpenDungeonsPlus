@@ -98,10 +98,16 @@ std::string ServerNotification::typeString(ServerNotificationType type)
             return "refreshSeatVisDebug";
         case ServerNotificationType::pingCreateAllEntities:
             return "pingCreateAllEntities";
+        case ServerNotificationType::pingCreateDraggableTileContainer:
+            return "pingCreateDraggableTileContainer";
+        case ServerNotificationType::pingEditorAskSetRoundedPositionDraggableTileContainer:
+            return "pingEditorAskSetRoundedPositionDraggableTileContainer";            
         case ServerNotificationType::markTiles:
             return "markTiles";
         case ServerNotificationType::refreshTiles:
             return "refreshTiles";
+        case ServerNotificationType::refreshTilesOnDraggableTileContainer:
+            return "refreshTilesOnDraggableTileContainer";            
         case ServerNotificationType::refreshVisibleTiles:
             return "refreshVisibleTiles";
         case ServerNotificationType::revealTiles:

@@ -91,13 +91,14 @@ class RoomHatcheryFactory : public RoomFactory
         }
         return room;
     }
-
-    bool buildRoomOnTiles(GameMap* gameMap, Player* player, const std::vector<Tile*>& tiles) const override
+    
+    bool buildRoomOnTiles(GameMap* gameMap, Player* player, const std::vector<Tile*>& tiles, bool noFee =false) const override
     {
         int32_t pricePerTarget = RoomManager::costPerTile(RoomHatchery::mRoomType);
         int32_t price = static_cast<int32_t>(tiles.size()) * pricePerTarget;
-        if(!gameMap->withdrawFromTreasuries(price, player->getSeat()))
-            return false;
+        if(!noFee)
+            if(!gameMap->withdrawFromTreasuries(price, player->getSeat()))
+                return false;
 
         RoomHatchery* room = new RoomHatchery(gameMap);
         return buildRoomDefault(gameMap, room, player->getSeat(), tiles);

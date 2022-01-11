@@ -51,7 +51,7 @@ public:
     virtual void checkBuildRoomEditor(GameMap* gameMap, const InputManager& inputManager, InputCommand& inputCommand) const = 0;
     virtual bool buildRoomEditor(GameMap* gameMap, ODPacket& packet) const = 0;
     virtual Room* getRoomFromStream(GameMap* gameMap, std::istream& is) const = 0;
-    virtual bool buildRoomOnTiles(GameMap* gameMap, Player* player, const std::vector<Tile*>& tiles) const = 0;
+    virtual bool buildRoomOnTiles(GameMap* gameMap, Player* player, const std::vector<Tile*>& tiles, bool noFee ) const = 0;
 
     std::string formatBuildRoom(RoomType type, uint32_t price) const;
     //! \brief Computes the room cost by checking the buildable tiles according to the given inputManager
@@ -95,7 +95,8 @@ public:
     static Room* getRoomFromStream(GameMap* gameMap, std::istream &is);
 
     //! \brief Used by AI for building rooms
-    static bool buildRoomOnTiles(GameMap* gameMap, RoomType type, Player* player, const std::vector<Tile*>& tiles);
+    static bool buildRoomOnTiles(GameMap* gameMap, RoomType type, Seat* seatPtr, const std::vector<Tile*>& tiles, bool fee = false); 
+    static bool buildRoomOnTiles(GameMap* gameMap, RoomType type, Player* player, const std::vector<Tile*>& tiles, bool fee = false);
 
     //! \brief Gets the room identification name
     static const std::string& getRoomNameFromRoomType(RoomType type);

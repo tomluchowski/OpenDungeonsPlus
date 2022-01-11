@@ -118,7 +118,7 @@ public:
     bool isCheckboxSelected(const CEGUI::String& checkbox);
 private:
 
-    GameMap* draggableTileContainer;
+    DraggableTileContainer* draggableTileContainer;
     
     void connectTileSelect(const std::string& buttonName, TileVisual tileVisual);
 

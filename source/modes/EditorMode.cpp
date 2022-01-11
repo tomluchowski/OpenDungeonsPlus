@@ -30,6 +30,7 @@
 #include "game/Player.h"
 #include "game/Seat.h"
 #include "gamemap/GameMap.h"
+#include "gamemap/DraggableTileContainer.h"
 #include "gamemap/MapHandler.h"
 #include "gamemap/MiniMap.h"
 #include "gamemap/Pathfinding.h"
@@ -510,8 +511,12 @@ bool EditorMode::mouseMoved(const OIS::MouseEvent &arg)
         if(ODFrameListener::getSingleton().findWorldPositionFromMouse(
                arg,mKeeperHandPosOverBlock2,inputManager.mKeeperHandPosOverBlock.z))
         {
-            draggableTileContainer->setRoundedPosition(
-                Ogre::Vector2(mKeeperHandPosOverBlock2.x,mKeeperHandPosOverBlock2.y), inputManager.offsetDraggableTileContainer);
+            ClientNotification* clientNotification = new ClientNotification(ClientNotificationType::editorAskSetRoundedPositionDraggableTileContainer);
+            clientNotification->mPacket << mKeeperHandPosOverBlock2.x;
+            clientNotification->mPacket << mKeeperHandPosOverBlock2.y;
+            clientNotification->mPacket << inputManager.offsetDraggableTileContainer.x;
+            clientNotification->mPacket << inputManager.offsetDraggableTileContainer.y;
+            ODClient::getSingleton().queueClientNotification(clientNotification);
         }
     }
     // If we have a room/trap/spell selected, show it
@@ -1194,63 +1199,26 @@ void EditorMode::handleHotkeys(OIS::KeyCode keycode)
 
 void EditorMode::onEditCopy()
 {
-    if(draggableTileContainer==nullptr)
-    {
-        // we create another Gamemap which will be visible and hover over the orignal
-        draggableTileContainer = new GameMap(0);
-    
-        draggableTileContainer->allocateMapMemory(
-            mTileMarker.getMaxX() - mTileMarker.getMinX() + 1, mTileMarker.getMaxY() - mTileMarker.getMinY() + 1);
 
-        draggableTileContainer->setTileSetName("Default");
-        for (int jj = 0; jj < draggableTileContainer->getMapSizeY(); ++jj)
-        {
-            for (int ii = 0; ii < draggableTileContainer->getMapSizeX(); ++ii)
-            {
-                Tile* tile = new Tile(draggableTileContainer, ii, jj);
-                tile->setParentSceneNode( dynamic_cast<Ogre::SceneNode*>(RenderManager::getSingletonPtr()->getSceneManager()->getRootSceneNode()->getChild("Draggable_scene_node")));
-                std::stringstream tileName("");
-                tileName << Tile::TILE_PREFIX << tile->getX() << "_" << tile->getY();
-                tile->setName(tileName.str());
-                // Maybe we should also setup the tile's position, however this
-                // doesn't have a smallest influence on how draggableTileContainer work
-                draggableTileContainer->addTile(tile);
-            }
-        }
-
-        draggableTileContainer->setPosition(Ogre::Vector2(std::min(mTileMarker.mark.x,mTileMarker.point.x), std::min(mTileMarker.mark.y,mTileMarker.point.y) ));
+         ClientNotification* notif1 = new ClientNotification(ClientNotificationType::editorAskCreateDraggableTileContainer);
+         
+         notif1->mPacket << static_cast<int>(mTileMarker.getMaxX() - mTileMarker.getMinX() + 1);
+         notif1->mPacket << static_cast<int>(mTileMarker.getMaxY() - mTileMarker.getMinY() + 1);
+         notif1->mPacket << static_cast<int>(std::min(mTileMarker.mark.x,mTileMarker.point.x));
+         notif1->mPacket << static_cast<int>(std::min(mTileMarker.mark.y,mTileMarker.point.y));
+         notif1->mPacket << static_cast<int>(mTileMarker.getMinX());
+         notif1->mPacket << static_cast<int>(mTileMarker.getMinY());
+         notif1->mPacket << static_cast<int>(mTileMarker.getMaxX());
+         notif1->mPacket << static_cast<int>(mTileMarker.getMaxY());
+         
         
-        draggableTileContainer->createAllEntities(NodeType::MDTC_NODE);
+         ODClient::getSingleton().queueClientNotification(notif1);
         
-        // query server what is the content of tiles we hover over in orginal map
-        // only server side has the relevant info 
-        ClientNotification* notif1 = new ClientNotification(ClientNotificationType::editorAskRevealTiles);
-        notif1->mPacket << static_cast<unsigned int> ( mTileMarker.getMinX())
-                       << static_cast<unsigned int> ( mTileMarker.getMinY())
-                       << static_cast<unsigned int> ( mTileMarker.getMinX()
-                                                      + draggableTileContainer->getMapSizeX() - 1)
-                       << static_cast<unsigned int> ( mTileMarker.getMinY()
-                                                      + draggableTileContainer->getMapSizeY() - 1);
 
-        ODClient::getSingleton().queueClientNotification(notif1);
+        
 
-        // the same way we query for traps in the orginal map
-        // again, only server side has relevant info
-        ClientNotification* notif2 = new ClientNotification(ClientNotificationType::editorAskRevealTraps);
-        notif2->mPacket << static_cast<unsigned int> ( mTileMarker.getMinX())
-                        << static_cast<unsigned int> ( mTileMarker.getMinY())
-                        << static_cast<unsigned int> ( mTileMarker.getMinX()
-                                                       + draggableTileContainer->getMapSizeX() - 1)
-                        << static_cast<unsigned int> ( mTileMarker.getMinY()
-                                                       + draggableTileContainer->getMapSizeY() - 1);        
-        ODClient::getSingleton().queueClientNotification(notif2);
+        // demand from server recreating of all gameEntities ( since we created the traps and tiles ...)             
 
-        // demand from server recreating of all gameEntities ( since we created the traps and tiles ...)         
-        ClientNotification* notif3 = new ClientNotification(ClientNotificationType::createAllEntities);
-        ODClient::getSingleton().queueClientNotification(notif3);        
-
-     
-    }
 }
 
 

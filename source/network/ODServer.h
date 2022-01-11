@@ -25,6 +25,7 @@
 
 class ServerNotification;
 class GameMap;
+class DraggableTileContainer;
 
 enum class ServerMode;
 
@@ -106,6 +107,7 @@ private:
     ServerMode mServerMode;
     ServerState mServerState;
     GameMap *mGameMap;
+    DraggableTileContainer *mDraggableTileContainer;
     bool mSeatsConfigured;
     //! Player allowed to configure the lobby, save the game, ...
     Player* mPlayerConfig;

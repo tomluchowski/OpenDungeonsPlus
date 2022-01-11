@@ -41,6 +41,7 @@
 #include "gamemap/MapHandler.h"
 #include "gamemap/Pathfinding.h"
 #include "gamemap/TileSet.h"
+#include "gamemap/DraggableTileContainer.h"
 #include "goals/Goal.h"
 #include "modes/ModeManager.h"
 #include "network/ODClient.h"
@@ -945,7 +946,7 @@ void GameMap::createAllEntities(NodeType nt)
 
         for (Room* room : mRooms)
         {
-            room->updateActiveSpots();
+            room->updateActiveSpots(this);
         }
 
         for (Spell* spell : mSpells)
@@ -3309,51 +3310,9 @@ void GameMap::fireRelativeSound(const std::vector<Seat*>& seats, const std::stri
     }
 }
 
-Ogre::AxisAlignedBox GameMap::getAABB()
-{
-    Ogre::AxisAlignedBox aabb(Ogre::AxisAlignedBox::Extent::EXTENT_FINITE);
-    aabb = dynamic_cast<Ogre::SceneNode*>(mTiles[0][0]->getEntityNode()->getChild(0))->getAttachedObject(0)->getWorldBoundingBox(true);
-    aabb.merge(static_cast<Ogre::SceneNode*>(mTiles[getMapSizeX()-1][getMapSizeY()-1]->getEntityNode()->getChild(0))->getAttachedObject(0)->getWorldBoundingBox(true));
-    return aabb;
-}
-
-void GameMap::moveDelta(Ogre::Vector2 delta)
-{
-    Ogre::Vector3 vv = getParentSceneNode()->getPosition();
-    vv.x += delta.x;
-    vv.y += delta.y;
-    getParentSceneNode()->setPosition(vv);
-}
-
-void GameMap::setPosition(Ogre::Vector2 position)
-{
-    getParentSceneNode()->setPosition(position.x, position.y,  getParentSceneNode()->getPosition().z);
-}
-
-void GameMap::setPosition(Ogre::Vector2 position, Ogre::Vector2 offset )
-{
-    getParentSceneNode()->setPosition(position.x + offset.x, position.y + offset.y,  getParentSceneNode()->getPosition().z);
-}
-
-void GameMap::setRoundedPosition(Ogre::Vector2 position, Ogre::Vector2 offset )
-{
-    getParentSceneNode()->setPosition(std::round(position.x + offset.x), std::round( position.y + offset.y),  getParentSceneNode()->getPosition().z);
-}
-
-Ogre::Vector2 GameMap::getPosition() const
-{
-    Ogre::Vector3 vv = getParentSceneNode()->getPosition();
-    return Ogre::Vector2( vv.x, vv.y);
-}
-
-Ogre::SceneNode* GameMap::getParentSceneNode() const
-{
-    return mTiles[0][0]->getParentSceneNode();
-
-}
 
 
-bool GameMap::askServerCopyTilesWithOffsetFrom(const GameMap& dtc, unsigned int xx, unsigned yy,  unsigned int length, unsigned int width, unsigned int offsetX, unsigned int offsetY)
+bool GameMap::askServerCopyTilesWithOffsetFrom(const DraggableTileContainer& dtc, unsigned int xx, unsigned yy,  unsigned int length, unsigned int width, unsigned int offsetX, unsigned int offsetY)
 {
     bool isNull = false;
     for(unsigned int pp =0 ; pp < length ;  pp++)
@@ -3380,7 +3339,7 @@ bool GameMap::askServerCopyTilesWithOffsetFrom(const GameMap& dtc, unsigned int 
     return isNull;
 }
 
-bool GameMap::askServerCopyTrapsWithOffsetFrom(const GameMap& dtc, unsigned int xx, unsigned yy,  unsigned int length, unsigned int width, unsigned int offsetX, unsigned int offsetY)
+bool GameMap::askServerCopyTrapsWithOffsetFrom(const DraggableTileContainer& dtc, unsigned int xx, unsigned yy,  unsigned int length, unsigned int width, unsigned int offsetX, unsigned int offsetY)
 {
 
     std::vector<Trap*> affectedTraps;
@@ -3422,12 +3381,56 @@ bool GameMap::askServerCopyTrapsWithOffsetFrom(const GameMap& dtc, unsigned int 
     
 }
 
+
+
+
+bool GameMap::copyTilesWithOffsetFrom(const DraggableTileContainer* dtc, unsigned int xx, unsigned yy,  unsigned int length, unsigned int width, unsigned int offsetX, unsigned int offsetY)
+{
+    bool isNull = false;
+    for(unsigned int pp =0 ; pp < length ;  pp++)
+        for(unsigned int qq =0  ; qq < width;  qq++)
+        {
+            Tile* lhs;
+            Tile* rhs;
+            lhs = getTile(pp + offsetX,qq + offsetY);
+            rhs = dtc->getTile( xx+pp, yy+qq);
+            if(lhs!=nullptr && rhs!=nullptr)
+            {
+                lhs->transfer(rhs);
+            }
+            else
+                isNull = true;
+        }
+    return isNull;
+}
+
+bool GameMap::copyTilesWithOffsetInto(const DraggableTileContainer* dtc, unsigned int xx, unsigned yy,  unsigned int length, unsigned int width, unsigned int offsetX, unsigned int offsetY)
+{
+    bool isNull = false;
+    for(unsigned int pp =0 ; pp < length ;  pp++)
+        for(unsigned int qq =0  ; qq < width;  qq++)
+        {
+            Tile* lhs;
+            Tile* rhs;
+            rhs = getTile(pp + offsetX,qq + offsetY);
+            lhs = dtc->getTile( xx+pp, yy+qq);
+            if(lhs!=nullptr && rhs!=nullptr)
+            {
+                lhs->transfer(rhs);
+            }
+            else
+                isNull = true;
+        }
+    return isNull;
+}
+
+
 bool GameMap::refreshTilesBlock(unsigned int startX, unsigned int startY, unsigned int endX, unsigned int endY, NodeType nt)
 {
     bool isNull = false;
     
-    for(unsigned int ii  = startX; ii <= endX ; ++ii)
-        for(unsigned int jj = startY; jj <= endY ; ++jj)
+    for(unsigned int ii  = startX; ii < endX ; ++ii)
+        for(unsigned int jj = startY; jj < endY ; ++jj)
         {
             Tile* lhs;
             lhs = getTile(ii, jj);

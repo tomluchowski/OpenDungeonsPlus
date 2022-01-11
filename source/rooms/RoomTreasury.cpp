@@ -180,7 +180,7 @@ class RoomTreasuryFactory : public RoomFactory
         }
 
         room->checkForRoomAbsorbtion();
-        room->updateActiveSpots();
+        room->updateActiveSpots(gameMap);
 
         return true;
     }
@@ -206,11 +206,12 @@ class RoomTreasuryFactory : public RoomFactory
         return room;
     }
 
-    bool buildRoomOnTiles(GameMap* gameMap, Player* player, const std::vector<Tile*>& tiles) const override
+    bool buildRoomOnTiles(GameMap* gameMap, Player* player, const std::vector<Tile*>& tiles, bool noFee =false) const override
     {
         int32_t price = getRoomCostForPlayer(gameMap, player, tiles);
-        if(!gameMap->withdrawFromTreasuries(price, player->getSeat()))
-            return false;
+        if(!noFee)
+            if(!gameMap->withdrawFromTreasuries(price, player->getSeat()))
+                return false;
 
         RoomTreasury* room = new RoomTreasury(gameMap);
         return buildRoomDefault(gameMap, room, player->getSeat(), tiles);

@@ -182,7 +182,7 @@ bool RoomFactory::buildRoomDefault(GameMap* gameMap, Room* room, Seat* seat, con
         return false;
 
     room->setupRoom(gameMap->nextUniqueNameRoom(room->getType()), seat, tiles);
-    room->addToGameMap();
+    room->addToGameMap(gameMap);
     room->createMesh();
 
     if((seat->getPlayer() != nullptr) &&
@@ -208,7 +208,7 @@ bool RoomFactory::buildRoomDefault(GameMap* gameMap, Room* room, Seat* seat, con
                 tilesPerSeat[tmpSeat].push_back(tile);
             }
         }
-
+        // We send notification for Tile refresh 
         for(const std::pair<Seat* const,std::vector<Tile*>>& p : tilesPerSeat)
         {
             uint32_t nbTiles = p.second.size();
@@ -226,7 +226,7 @@ bool RoomFactory::buildRoomDefault(GameMap* gameMap, Room* room, Seat* seat, con
     }
 
     room->checkForRoomAbsorbtion();
-    room->updateActiveSpots();
+    room->updateActiveSpots(gameMap);
 
     return true;
 }
@@ -425,8 +425,7 @@ Room* RoomManager::getRoomFromStream(GameMap* gameMap, std::istream& is)
     const RoomFactory& factory = *factories[index];
     return factory.getRoomFromStream(gameMap, is);
 }
-
-bool RoomManager::buildRoomOnTiles(GameMap* gameMap, RoomType type, Player* player, const std::vector<Tile*>& tiles)
+bool RoomManager::buildRoomOnTiles(GameMap* gameMap, RoomType type, Player* player, const std::vector<Tile*>& tiles, bool noFee)
 {
     std::vector<const RoomFactory*>& factories = getFactories();
     uint32_t index = static_cast<uint32_t>(type);
@@ -437,7 +436,12 @@ bool RoomManager::buildRoomOnTiles(GameMap* gameMap, RoomType type, Player* play
     }
 
     const RoomFactory& factory = *factories[index];
-    return factory.buildRoomOnTiles(gameMap, player, tiles);
+    return factory.buildRoomOnTiles(gameMap, player, tiles, noFee);
+}
+
+bool RoomManager::buildRoomOnTiles(GameMap* gameMap, RoomType type, Seat* seatPtr, const std::vector<Tile*>& tiles, bool noFee)
+{
+
 }
 
 const std::string& RoomManager::getRoomNameFromRoomType(RoomType type)
@@ -621,7 +625,7 @@ void RoomManager::sellRoomTiles(GameMap* gameMap, Player* player, ODPacket& pack
 
     // We update active spots of each impacted rooms
     for(Room* room : rooms)
-        room->updateActiveSpots();
+        room->updateActiveSpots(gameMap);
 }
 
 std::string RoomManager::formatSellRoom(int price)
@@ -747,7 +751,7 @@ void RoomManager::sellRoomTilesEditor(GameMap* gameMap, ODPacket& packet)
 
     // We update active spots of each impacted rooms
     for(Room* room : rooms)
-        room->updateActiveSpots();
+        room->updateActiveSpots(gameMap);
 }
 
 int RoomManager::costPerTile(RoomType type)

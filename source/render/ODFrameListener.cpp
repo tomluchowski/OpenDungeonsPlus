@@ -25,6 +25,7 @@
 #include "game/Player.h"
 #include "game/Seat.h"
 #include "gamemap/GameMap.h"
+#include "gamemap/DraggableTileContainer.h"
 #include "modes/AbstractApplicationMode.h"
 #include "modes/ModeManager.h"
 #include "network/ODServer.h"
@@ -283,7 +284,7 @@ bool ODFrameListener::findWorldPositionFromMouse(const OIS::MouseEvent &arg, Ogr
 }
 
 
-bool ODFrameListener::rayIntersectionGameMap(const OIS::MouseEvent &arg, Ogre::Vector3& keeperHand3DPos, GameMap* draggableTileContainer)
+bool ODFrameListener::rayIntersectionGameMap(const OIS::MouseEvent &arg, Ogre::Vector3& keeperHand3DPos, DraggableTileContainer* draggableTileContainer)
 {
     CEGUI::Vector2<float> mousePos = CEGUI::System::getSingleton().getDefaultGUIContext().getMouseCursor().getPosition();// * mMouseScale;
     Ogre::Ray mouseRay = mCameraManager.getActiveCamera()->getCameraToViewportRay(mousePos.d_x / float(

@@ -106,13 +106,6 @@ public:
     GameMap(bool isServerGameMap);
     ~GameMap();
 
-    Ogre::AxisAlignedBox getAABB();
-    Ogre::SceneNode* getParentSceneNode() const;
-    void setPosition(Ogre::Vector2 position);
-    void setRoundedPosition(Ogre::Vector2 position, Ogre::Vector2 offset );
-    void setPosition(Ogre::Vector2 position, Ogre::Vector2 offset );
-    Ogre::Vector2 getPosition() const;
-    void moveDelta(Ogre::Vector2 delta);
     std::string serverStr();
 
     bool refreshTilesBlock(unsigned int, unsigned int, unsigned int, unsigned int, NodeType);
@@ -440,7 +433,7 @@ public:
 
     inline bool isServerGameMap() const
     { return mIsServerGameMap; }
-
+    
     inline bool getGamePaused() const
     { return mIsPaused; }
 
@@ -553,22 +546,27 @@ public:
     void fireRelativeSound(const std::vector<Seat*>& seats, const std::string& soundFamily);
     //! \brief Methods to copy from/onto other gamemaps
     //! \brief Ask server to Copy the tiles from the given source gamemap -- in most cases the draggableTileContainer, it's length number of x Tiles  starting at offsetX,  width number of y Tiles starting at offsetY, to this gamemap position of point ( xx , yy)  
-    bool askServerCopyTilesWithOffsetFrom(const GameMap& dtc, unsigned int xx, unsigned yy,  unsigned int length, unsigned int width, unsigned int offsetX, unsigned int offsetY);
+    bool askServerCopyTilesWithOffsetFrom(const DraggableTileContainer& dtc, unsigned int xx, unsigned yy,  unsigned int length, unsigned int width, unsigned int offsetX, unsigned int offsetY);
     //! \brief Ask server to copy the traps from the given source gamemap -- in most cases teh draggableTileContainer, it's length number of x Tiles  starting at offsetX,  width number of y Tiles starting at offsetY, to this gamemap position of point ( xx , yy)   
-    bool askServerCopyTrapsWithOffsetFrom(const GameMap& dtc, unsigned int xx, unsigned yy,  unsigned int length, unsigned int width, unsigned int offsetX, unsigned int offsetY);  
+    bool askServerCopyTrapsWithOffsetFrom(const DraggableTileContainer& dtc, unsigned int xx, unsigned yy,  unsigned int length, unsigned int width, unsigned int offsetX, unsigned int offsetY);  
     
     //! \brief Copy the tiles from the given source gamemap, it's length number of x Tiles  starting at offsetX,  width number of y Tiles starting at offsetY, to this gamemap position of point ( xx , yy)  
-    bool copyTilesWithOffsetFrom(const GameMap& dtc, unsigned int xx, unsigned yy,  unsigned int length, unsigned int width, unsigned int offsetX, unsigned int offsetY);
+    bool copyTilesWithOffsetFrom(const DraggableTileContainer* dtc, unsigned int xx, unsigned yy,  unsigned int length, unsigned int width, unsigned int offsetX, unsigned int offsetY);
+    //! \brief The same as above, but we copy into not from Draggable Tile Container
+    bool copyTilesWithOffsetInto(const DraggableTileContainer* dtc, unsigned int xx, unsigned yy,  unsigned int length, unsigned int width, unsigned int offsetX, unsigned int offsetY);
     //! \brief Copy the tiles from the given source gamemap, it's first  length number of x  and first  width number of y, to this gamemap position of point ( xx , yy) 
     bool copyTilesFrom(const GameMap& , unsigned int xx, unsigned int yy,  unsigned int length, unsigned int width);
     //! \brief Copy all the tiles from the given gamemap, at position of point ( xx , yy )     
     bool copyFullyTilesFrom(const GameMap& , unsigned int xx, unsigned int yy);
-    
-private:
+
+protected:
     //! \brief Tells whether this game map instance is used as a reference by the server-side,
     //! or as a standard client game map.
-    bool mIsServerGameMap;
+    bool mIsServerGameMap;    
+    
+private:
 
+    
     //! \brief the Local player reference. The local player will also be in the player list so this pointer
     //! should not be deleted as it will be handled like every other in the list.
     Player* mLocalPlayer;

@@ -73,8 +73,11 @@ enum class ServerNotificationType
     playRelativeSound, // Makes the client play a sound.
 
     pingCreateAllEntities,
+    pingCreateDraggableTileContainer,
+    pingEditorAskSetRoundedPositionDraggableTileContainer,
     markTiles,
     refreshTiles,
+    refreshTilesOnDraggableTileContainer,
     refreshVisibleTiles,
     revealTiles,
     revealTraps,

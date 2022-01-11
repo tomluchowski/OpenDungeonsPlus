@@ -58,8 +58,8 @@ class RoomDungeonTempleFactory : public RoomFactory
         // Not buildable in game mode
         return false;
     }
-
-    bool buildRoomOnTiles(GameMap* gameMap, Player* player, const std::vector<Tile*>& tiles) const override
+    
+    bool buildRoomOnTiles(GameMap* gameMap, Player* player, const std::vector<Tile*>& tiles, bool noFee = false) const override
     {
         // Not buildable in game mode
         return false;

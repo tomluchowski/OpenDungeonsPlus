@@ -30,11 +30,13 @@
 #include "game/SkillType.h"
 #include "game/Seat.h"
 #include "gamemap/GameMap.h"
+#include "gamemap/DraggableTileContainer.h"
 #include "gamemap/MapHandler.h"
 #include "modes/ConsoleCommands.h"
 #include "network/ODClient.h"
 #include "network/ServerMode.h"
 #include "network/ServerNotification.h"
+#include "rooms/Room.h"
 #include "rooms/RoomManager.h"
 #include "rooms/RoomType.h"
 #include "spells/SpellManager.h"
@@ -72,6 +74,7 @@ ODServer::ODServer() :
     mServerMode(ServerMode::ModeNone),
     mServerState(ServerState::StateNone),
     mGameMap(new GameMap(true)),
+    mDraggableTileContainer(nullptr),
     mSeatsConfigured(false),
     mPlayerConfig(nullptr),
     mConsoleInterface(std::bind(&ODServer::printConsoleMsg, this, std::placeholders::_1)),
@@ -1166,7 +1169,7 @@ bool ODServer::processClientNotifications(ODSocketClient* clientSocket)
             sendAsyncMsg(notif);
             break;
         }
-
+        
         case ClientNotificationType::askEntityPickUp:
         {
             std::string entityName;
@@ -1611,8 +1614,83 @@ bool ODServer::processClientNotifications(ODSocketClient* clientSocket)
                 break;
             }
             Player* player = clientSocket->getPlayer();
-            ServerNotification notif(ServerNotificationType::pingCreateAllEntities, player);
+            ServerNotification *notif = new ServerNotification(ServerNotificationType::pingCreateAllEntities, player);
+            ODServer::getSingleton().queueServerNotification(notif);          
+            break;
+        }
+
+        case ClientNotificationType::editorAskCreateDraggableTileContainer:
+        {
+            if(mServerMode != ServerMode::ModeEditor)
+            {
+                OD_LOG_ERR("Received editor command while wrong mode mode" + Helper::toString(static_cast<int>(mServerMode)));
+                break;
+            }
+
+            int sizeX;
+            int sizeY;
+            int posX;
+            int posY;
+            int TileMarkerMinX;
+            int TileMarkerMinY;
+            int TileMarkerMaxX;
+            int TileMarkerMaxY;            
+            OD_ASSERT_TRUE(packetReceived >> sizeX >> sizeY >> posX >> posY >> TileMarkerMinX>> TileMarkerMinY >> TileMarkerMaxX>>TileMarkerMaxY);
+            if(mDraggableTileContainer==nullptr)
+            {
+                mDraggableTileContainer= new DraggableTileContainer(true);
+                mDraggableTileContainer->createNewMap(sizeX, sizeY);
+                mDraggableTileContainer->setPosition(Ogre::Vector2(posX,posY));
+                for(Seat* ss : gameMap->getSeats())
+                    mDraggableTileContainer->addSeat(ss);
+                Player* player = clientSocket->getPlayer();
+                ServerNotification notif(ServerNotificationType::pingCreateDraggableTileContainer, player);
+                notif.mPacket << sizeX << sizeY << posX << posY << TileMarkerMinX<< TileMarkerMinY << TileMarkerMaxX<<TileMarkerMaxY;
+                sendAsyncMsg(notif);
+            }
+            break;
+            
+        }
+        case ClientNotificationType::editorAskSetRoundedPositionDraggableTileContainer:
+        {
+            if(mServerMode != ServerMode::ModeEditor)
+            {
+                OD_LOG_ERR("Received editor command while wrong mode mode" + Helper::toString(static_cast<int>(mServerMode)));
+                break;
+            }
+
+            Ogre::Real posX;
+            Ogre::Real posY;
+            Ogre::Real offsetX;
+            Ogre::Real offsetY;
+            OD_ASSERT_TRUE(packetReceived >> posX >> posY >> offsetX >> offsetY);
+            if(mDraggableTileContainer!=nullptr)
+            {
+                mDraggableTileContainer->setRoundedPosition(Ogre::Vector2(posX, posY),Ogre::Vector2(offsetX, offsetY));
+            }
+            Player* player = clientSocket->getPlayer();
+            ServerNotification notif(ServerNotificationType::pingEditorAskSetRoundedPositionDraggableTileContainer, player);
+            notif.mPacket << posX << posY << offsetX << offsetY;
             sendAsyncMsg(notif);            
+            break;
+        }
+
+        
+        case ClientNotificationType::editorAskMoveDeltaDraggableTileContainer:
+        {
+            if(mServerMode != ServerMode::ModeEditor)
+            {
+                OD_LOG_ERR("Received editor command while wrong mode mode" + Helper::toString(static_cast<int>(mServerMode)));
+                break;
+            }
+
+            int sizeX;
+            int sizeY;
+            OD_ASSERT_TRUE(packetReceived >> sizeX >> sizeY);
+            if(mDraggableTileContainer!=nullptr)
+            {
+                mDraggableTileContainer->moveDelta(Ogre::Vector2(sizeX, sizeY));
+            }
             break;
         }
         
@@ -1661,7 +1739,7 @@ bool ODServer::processClientNotifications(ODSocketClient* clientSocket)
                     ServerNotification notif(ServerNotificationType::refreshTiles, seat->getPlayer());
                     notif.mPacket << 1;
                     gameMap->tileToPacket(notif.mPacket, selectedTile);
-                    seat->updateTileStateForSeat(selectedTile, false);
+                    seat->updateTileStateForSeat(selectedTile, true);
                     selectedTile->exportToPacketForUpdate(notif.mPacket, seat);
                 
                     sendAsyncMsg(notif);
@@ -1809,15 +1887,28 @@ bool ODServer::processClientNotifications(ODSocketClient* clientSocket)
                            + Helper::toString(static_cast<int>(mServerMode)));
                 break;
             }
-            unsigned int x1, y1, x2, y2;
-            
-            OD_ASSERT_TRUE(packetReceived >> x1 >> y1 >> x2 >> y2);
-           
-            std::vector<Tile*> affectedTiles = gameMap->rectangularRegion(x1, y1, x2, y2);
+            unsigned int x1, y1;
 
-            if(!affectedTiles.empty())
+            unsigned int length, width;
+
+            length = mDraggableTileContainer->getMapSizeX();
+            
+            width = mDraggableTileContainer->getMapSizeY();
+            
+            OD_ASSERT_TRUE(packetReceived >> x1 >> y1);
+
+                       // << static_cast<unsigned int> ( mTileMarker.getMinX()
+                       //                                + draggableTileContainer->getMapSizeX() - 1)
+                       // << static_cast<unsigned int> ( mTileMarker.getMinY()
+                       //                                + draggableTileContainer->getMapSizeY() - 1);
+            
+            // std::vector<Tile*> affectedTiles = gameMap->rectangularRegion(x1, y1, x1 + length - 1, y1 + width - 1);
+
+            gameMap->copyTilesWithOffsetInto( mDraggableTileContainer, 0, 0, length, width, mDraggableTileContainer->getPosition().x, mDraggableTileContainer->getPosition().y);
+            
+            if( mDraggableTileContainer->getMapSizeX()!=0 && mDraggableTileContainer->getMapSizeY()!=0)
             {
-                uint32_t nbTiles = affectedTiles.size();
+                uint32_t nbTiles =  mDraggableTileContainer->getMapSizeX() * mDraggableTileContainer->getMapSizeY();
                 const std::vector<Seat*>& seats = gameMap->getSeats();
                 for(Seat* seat : seats)
                 {
@@ -1826,19 +1917,106 @@ bool ODServer::processClientNotifications(ODSocketClient* clientSocket)
                     if(!seat->getPlayer()->getIsHuman())
                         continue;
 
-                    ServerNotification notif(ServerNotificationType::revealTiles, seat->getPlayer());
+                    ServerNotification notif (ServerNotificationType::revealTiles, seat->getPlayer());
                     notif.mPacket << nbTiles;
-                    for(Tile* tile : affectedTiles)
-                    {
-                        gameMap->tileToPacket(notif.mPacket, tile);
-                        notif.mPacket << tile->getType() << tile->getFullness() << ((tile->getSeat() == nullptr) ? -1 : tile->getSeat()->getId()) << tile->getTileVisual();
-                    }
+                    for(int ii =0 ; ii <  mDraggableTileContainer->getMapSizeX(); ++ii)
+                        for(int jj =0 ; jj <  mDraggableTileContainer->getMapSizeY(); ++jj)
+                        {
+                            Tile* tile = mDraggableTileContainer->getTile(ii,jj);
+                            mDraggableTileContainer->tileToPacket(notif.mPacket, tile);
+                            notif.mPacket << tile->getType() << tile->getFullness() << ((tile->getSeat() == nullptr) ? -1 : tile->getSeat()->getId()) << tile->getTileVisual();
+                        }
                     sendAsyncMsg(notif);
                 }
             }            
             break;
         }
+        case ClientNotificationType::editorAskRevealRooms:
+        {
+            if(mServerMode != ServerMode::ModeEditor)
+            {
+                OD_LOG_ERR("Received editor command while wrong mode mode"
+                           + Helper::toString(static_cast<int>(mServerMode)));
+                break;
+            }
+            unsigned int x1, y1, x2, y2;
+            uint32_t nbRooms;
+            OD_ASSERT_TRUE(packetReceived >> x1 >> y1 >> x2 >> y2);
+            std::vector<Room*> affectedRooms;
 
+            for(Room* room : gameMap->mRooms)
+            {          
+                for(Tile* tile : room->getCoveredTiles())
+                {
+                    // We are intrested only in rooms which belong to the marked area.
+                    // Mark room as affected if at least one room from room battery belongs
+                    // to the marked area.
+                    if(x1 <= tile->getX() &&  tile->getX() <= x2
+                       && y1 <= tile->getY() &&  tile->getY() <= y2)
+                    {
+                        affectedRooms.push_back(room);
+                        break;
+                    }
+                }
+            }
+
+            for(Room* room : affectedRooms)
+            {
+                std::vector<Tile*> affectedTiles;
+                ODPacket auxPacket;
+                int32_t seatId;
+                seatId = (room->getSeat() == nullptr ? -1 : room->getSeat()->getId());
+                auxPacket << seatId;
+                for(Tile* tile : room->getCoveredTiles())
+                {
+
+                    // we are intrested only in rooms which belong to the marked area                        
+                    if(x1 <= tile->getX() &&  tile->getX() <= x2
+                       && y1 <= tile->getY() &&  tile->getY() <= y2)
+                    {
+                        affectedTiles.push_back(tile); 
+                    }
+
+                  
+                }
+                uint32_t nbTiles;
+                nbTiles = affectedTiles.size();
+                auxPacket << nbTiles;
+                for(Tile* tile : affectedTiles)
+                    gameMap->tileToPacket(auxPacket, tile);
+                    
+
+                RoomManager::buildRoomEditor(mDraggableTileContainer, room->getType(), auxPacket);
+                // RoomManager::buildRoomOnTiles(mDraggableTileContainer, room->getType(), room->get , affectedTiles , true);
+               
+            }
+
+            if( mDraggableTileContainer->getMapSizeX()!=0 && mDraggableTileContainer->getMapSizeY()!=0)
+            {
+                uint32_t nbTiles =  mDraggableTileContainer->getMapSizeX() * mDraggableTileContainer->getMapSizeY();
+                const std::vector<Seat*>& seats = gameMap->getSeats();
+                for(Seat* seat : seats)
+                {
+                    if(seat->getPlayer() == nullptr)
+                        continue;
+                    if(!seat->getPlayer()->getIsHuman())
+                        continue;                    
+                    ServerNotification notif (ServerNotificationType::refreshTilesOnDraggableTileContainer, seat->getPlayer());
+                    notif.mPacket << nbTiles;
+                    for(int ii =0 ; ii <  mDraggableTileContainer->getMapSizeX(); ++ii)
+                        for(int jj =0 ; jj <  mDraggableTileContainer->getMapSizeY(); ++jj)
+                        {
+                            Tile* tile = mDraggableTileContainer->getTile(ii,jj);                            
+                            mDraggableTileContainer->tileToPacket(notif.mPacket, tile);
+                            // seat->updateTileStateForSeat(tile, false);
+                            tile->exportToPacketForUpdate(notif.mPacket, seat);
+                        }
+                    sendAsyncMsg(notif);
+                }
+            }
+            break;
+        }
+        
         case ClientNotificationType::editorAskRevealTraps:
         {
             if(mServerMode != ServerMode::ModeEditor)
@@ -1867,67 +2045,107 @@ bool ODServer::processClientNotifications(ODSocketClient* clientSocket)
                     }
                 }
             }
-            
-            const std::vector<Seat*>& seats = gameMap->getSeats();
-            for(Seat* seat : seats)
+
+            for(Trap* trap : affectedTraps)
             {
-                if(seat->getPlayer() == nullptr)
-                    continue;
-                if(!seat->getPlayer()->getIsHuman())
-                    continue;
-                
-                ServerNotification notif(ServerNotificationType::revealTraps, seat->getPlayer());
-                nbTraps = affectedTraps.size();
-                notif.mPacket << nbTraps;
-            
-                for(Trap* trap : affectedTraps)
+                std::vector<Tile*> affectedTiles;
+                for(Tile* tile : trap->getCoveredTiles())
                 {
-                    uint32_t nbCoveredTiles;
-                    notif.mPacket << trap->getType();                    
-                    notif.mPacket << trap->getName();
-                    notif.mPacket << ((trap->getSeat() == nullptr) ? -1 : trap->getSeat()->getId());
 
-
-                    std::vector<Tile*> affectedTiles;
-                    for(Tile* tile : trap->getCoveredTiles())
+                    // we are intrested only in traps which belong to the marked area                        
+                    if(x1 <= tile->getX() &&  tile->getX() <= x2
+                       && y1 <= tile->getY() &&  tile->getY() <= y2)
                     {
-
-                        // we are intrested only in traps which belong to the marked area                        
-                        if(x1 <= tile->getX() &&  tile->getX() <= x2
-                           && y1 <= tile->getY() &&  tile->getY() <= y2)
-                        {
-                            affectedTiles.push_back(tile);
-                        }
+                        affectedTiles.push_back(tile);
                     }
+                }
+                TrapManager::buildTrapOnTiles(mDraggableTileContainer, trap->getType(), trap->getSeat() , affectedTiles , true);
+               
+            }
+            if( mDraggableTileContainer->getMapSizeX()!=0 && mDraggableTileContainer->getMapSizeY()!=0)
+            {
+                uint32_t nbTiles =  mDraggableTileContainer->getMapSizeX() * mDraggableTileContainer->getMapSizeY();
+                const std::vector<Seat*>& seats = gameMap->getSeats();
+                for(Seat* seat : seats)
+                {
+                    if(seat->getPlayer() == nullptr)
+                        continue;
+                    if(!seat->getPlayer()->getIsHuman())
+                        continue;                    
+                    ServerNotification notif (ServerNotificationType::refreshTilesOnDraggableTileContainer, seat->getPlayer());
+                    notif.mPacket << nbTiles;
+                    for(int ii =0 ; ii <  mDraggableTileContainer->getMapSizeX(); ++ii)
+                        for(int jj =0 ; jj <  mDraggableTileContainer->getMapSizeY(); ++jj)
+                        {
+                            Tile* tile = mDraggableTileContainer->getTile(ii,jj);                            
+                            mDraggableTileContainer->tileToPacket(notif.mPacket, tile);
+                            // seat->updateTileStateForSeat(tile, false);
+                            tile->exportToPacketForUpdate(notif.mPacket, seat);
+                        }
+                    sendAsyncMsg(notif);
+                }
+            }
+
+            // const std::vector<Seat*>& seats = gameMap->getSeats();
+            // for(Seat* seat : seats)
+            // {
+            //     if(seat->getPlayer() == nullptr)
+            //         continue;
+            //     if(!seat->getPlayer()->getIsHuman())
+            //         continue;
+                
+            //     ServerNotification notif(ServerNotificationType::revealTraps, seat->getPlayer());
+            //     nbTraps = affectedTraps.size();
+            //     notif.mPacket << nbTraps;
+            
+            //     for(Trap* trap : affectedTraps)
+            //     {
+            //         uint32_t nbCoveredTiles;
+            //         notif.mPacket << trap->getType();                    
+            //         notif.mPacket << trap->getName();
+            //         notif.mPacket << ((trap->getSeat() == nullptr) ? -1 : trap->getSeat()->getId());
+
+
+            //         std::vector<Tile*> affectedTiles;
+            //         for(Tile* tile : trap->getCoveredTiles())
+            //         {
+
+            //             // we are intrested only in traps which belong to the marked area                        
+            //             if(x1 <= tile->getX() &&  tile->getX() <= x2
+            //                && y1 <= tile->getY() &&  tile->getY() <= y2)
+            //             {
+            //                 affectedTiles.push_back(tile);
+            //             }
+            //         }
 
                     
-                    nbCoveredTiles =  affectedTiles.size();
-                    notif.mPacket << nbCoveredTiles;
-                    for(Tile* tile : affectedTiles)
-                    {                    
+            //         nbCoveredTiles =  affectedTiles.size();
+            //         notif.mPacket << nbCoveredTiles;
+            //         for(Tile* tile : affectedTiles)
+            //         {                    
 
-                        uint32_t xx, yy;
-                        bool isActivated;
-                        xx = tile->getX();
-                        yy = tile->getY(); 
-                        notif.mPacket << xx;
-                        notif.mPacket << yy;
-                        // check whether the trap was active or not  ( semi-transparent or not ) 
-                        auto it = trap->mTileData.find(tile);
-                        if(it == trap->mTileData.end())
-                        {
-                            OD_LOG_ERR("building=" + trap->getName() + ", tile=" + Tile::displayAsString(tile));
-                            continue;
-                        }
-                        TileData* tileData = it->second;
-                        TrapTileData* trapTileData = static_cast<TrapTileData*>(tileData);                            
-                        isActivated = trapTileData->isActivated();
-                        notif.mPacket << isActivated;
+            //             uint32_t xx, yy;
+            //             bool isActivated;
+            //             xx = tile->getX();
+            //             yy = tile->getY(); 
+            //             notif.mPacket << xx;
+            //             notif.mPacket << yy;
+            //             // check whether the trap was active or not  ( semi-transparent or not ) 
+            //             auto it = trap->mTileData.find(tile);
+            //             if(it == trap->mTileData.end())
+            //             {
+            //                 OD_LOG_ERR("building=" + trap->getName() + ", tile=" + Tile::displayAsString(tile));
+            //                 continue;
+            //             }
+            //             TileData* tileData = it->second;
+            //             TrapTileData* trapTileData = static_cast<TrapTileData*>(tileData);                            
+            //             isActivated = trapTileData->isActivated();
+            //             notif.mPacket << isActivated;
                         
-                    }   
-                }
-                sendAsyncMsg(notif); 
-            }
+            //         }   
+            //     }
+            //     sendAsyncMsg(notif); 
+            // }
             break;
         }
         

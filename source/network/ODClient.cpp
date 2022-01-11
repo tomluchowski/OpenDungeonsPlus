@@ -32,6 +32,7 @@
 #include "game/Skill.h"
 #include "game/SkillType.h"
 #include "gamemap/GameMap.h"
+#include "gamemap/DraggableTileContainer.h"
 #include "modes/EditorMode.h"
 #include "modes/GameMode.h"
 #include "modes/MenuModeConfigureSeats.h"
@@ -857,6 +858,31 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
             gameMap->refreshBorderingTilesOf(tiles);
             break;
         }
+
+        case ServerNotificationType::refreshTilesOnDraggableTileContainer:
+        {
+            if(frameListener->getModeManager()->getCurrentModeType() != ModeManager::ModeType::EDITOR)
+            {
+                OD_LOG_ERR("Wrong mode " + Helper::toString(frameListener->getModeManager()->getCurrentModeType()));
+                break;
+            }            
+            uint32_t nbTiles;
+            OD_ASSERT_TRUE(packetReceived >> nbTiles);
+            std::vector<Tile*> tiles;
+            DraggableTileContainer* draggableTileContainer = (dynamic_cast<EditorMode*>(frameListener->getModeManager()->getCurrentMode())->draggableTileContainer);
+            while(nbTiles > 0)
+            {
+                --nbTiles;
+                Tile* gameTile = draggableTileContainer->tileFromPacket(packetReceived);
+                if(gameTile == nullptr)
+                    continue;
+
+                gameTile->updateFromPacket(packetReceived);
+                tiles.push_back(gameTile);
+            }
+            draggableTileContainer->refreshBorderingTilesOf(tiles);
+            break;
+        }
         
         case ServerNotificationType::revealTiles:
         {
@@ -865,7 +891,7 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
                 OD_LOG_ERR("Wrong mode " + Helper::toString(frameListener->getModeManager()->getCurrentModeType()));
                 break;
             }
-            GameMap* draggableTileContainer = (dynamic_cast<EditorMode*>(frameListener->getModeManager()->getCurrentMode())->draggableTileContainer);
+            DraggableTileContainer* draggableTileContainer = (dynamic_cast<EditorMode*>(frameListener->getModeManager()->getCurrentMode())->draggableTileContainer);
         
             if(draggableTileContainer!=nullptr)
             {
@@ -877,35 +903,32 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
                 double tileFullness;
                 int seatId;
                 Seat* seatPtr;
-                int xx, yy;
                 while(nbTiles > 0)
                 {
                 
                     --nbTiles;
-                    Tile* gameTile = gameMap->tileFromPacket(packetReceived);
+                    Tile* gameTile = draggableTileContainer->tileFromPacket(packetReceived);
+                    OD_ASSERT_TRUE( packetReceived >> tileType >> tileFullness >> seatId >> tileVisual  );
                     if(gameTile == nullptr)
-                        continue;
-                    xx = gameTile->getX();
-                    yy = gameTile->getY();
-                    OD_ASSERT_TRUE( packetReceived >> tileType >> tileFullness >> seatId >> tileVisual  ); 
+                        continue;                    
                     if(seatId != -1)
                         seatPtr = gameMap->getSeatById(seatId);
                     else
                         seatPtr = nullptr;
                 
-                    xx = xx - draggableTileContainer->getPosition().x;
-                    yy = yy - draggableTileContainer->getPosition().y;
-                    Tile* draggableTileContainerTile = draggableTileContainer->getTile(xx,yy);
-                    draggableTileContainerTile->setType(tileType);
-                    draggableTileContainerTile->setFullness(tileFullness);
-                    draggableTileContainerTile->setSeat(seatPtr);
-                    draggableTileContainerTile->setTileVisual(tileVisual);
+                    // xx = xx - draggableTileContainer->getPosition().x;
+                    // yy = yy - draggableTileContainer->getPosition().y;
+                    gameTile->setType(tileType);
+                    gameTile->setFullness(tileFullness);
+                    gameTile->setSeat(seatPtr);
+                    gameTile->setTileVisual(tileVisual);
                 }
-                draggableTileContainer->refreshTilesBlock(0, 0, draggableTileContainer->getMapSizeX() - 1, draggableTileContainer->getMapSizeY() - 1, NodeType::MDTC_NODE);
+                draggableTileContainer->refreshTilesBlock(0, 0, draggableTileContainer->getMapSizeX(), draggableTileContainer->getMapSizeY() , NodeType::MDTC_NODE);
             }
             
             break;
         }
+        
         case ServerNotificationType::revealTraps:
         {
             if(frameListener->getModeManager()->getCurrentModeType() != ModeManager::ModeType::EDITOR)
@@ -913,7 +936,7 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
                 OD_LOG_ERR("Wrong mode " + Helper::toString(frameListener->getModeManager()->getCurrentModeType()));
                 break;
             }
-            GameMap* draggableTileContainer = (dynamic_cast<EditorMode*>(frameListener->getModeManager()->getCurrentMode())->draggableTileContainer);
+            DraggableTileContainer* draggableTileContainer = (dynamic_cast<EditorMode*>(frameListener->getModeManager()->getCurrentMode())->draggableTileContainer);
             if(draggableTileContainer!=nullptr)
             {
                 uint32_t nbTraps;
@@ -951,7 +974,7 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
                     else
                         seatPtr = nullptr;
                     OD_ASSERT_TRUE(seatPtr != nullptr);
-                    TrapManager::buildTrapOnTiles(draggableTileContainer, trapType, seatPtr, affectedTiles , true);
+                    // TrapManager::buildTrapOnTiles(draggableTileContainer, trapType, seatPtr, affectedTiles , true);
                     // deactivate traps which 'mirror' trap was also deactivated 
                     for(long unsigned int ii = 0 ; ii < affectedTiles.size() ; ++ii)
                         if(!isActivatedVector[ii])
@@ -962,11 +985,94 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
         }
         case ServerNotificationType::pingCreateAllEntities:
         {
-            GameMap* draggableTileContainer = (dynamic_cast<EditorMode*>(frameListener->getModeManager()->getCurrentMode())->draggableTileContainer);
+            DraggableTileContainer* draggableTileContainer = (dynamic_cast<EditorMode*>(frameListener->getModeManager()->getCurrentMode())->draggableTileContainer);
             draggableTileContainer->createAllEntities(NodeType::MDTC_NODE);
             break;
         }
+        case ServerNotificationType::pingCreateDraggableTileContainer:
+        {
+            int sizeX, sizeY, posX, posY, TileMarkerMinX, TileMarkerMinY, TileMarkerMaxX,TileMarkerMaxY;
+            OD_ASSERT_TRUE(packetReceived >> sizeX );
+            OD_ASSERT_TRUE(packetReceived >> sizeY );
+            OD_ASSERT_TRUE(packetReceived >> posX );
+            OD_ASSERT_TRUE(packetReceived >> posY );
+            OD_ASSERT_TRUE(packetReceived >> TileMarkerMinX);
+            OD_ASSERT_TRUE(packetReceived >> TileMarkerMinY);
+            OD_ASSERT_TRUE(packetReceived >> TileMarkerMaxX);
+            OD_ASSERT_TRUE(packetReceived >> TileMarkerMaxY);
+                        
+                        
+
+
+            
+            DraggableTileContainer*& draggableTileContainer =  (dynamic_cast<EditorMode*>(frameListener->getModeManager()->getCurrentMode())->draggableTileContainer);
+            if(draggableTileContainer==nullptr)
+            {
+                // we create another Gamemap which will be visible and hover over the orignal
+                draggableTileContainer = new DraggableTileContainer(false);
+
+                draggableTileContainer->allocateMapMemory(sizeX,sizeY);
+
+                draggableTileContainer->setTileSetName("Default");
+                for (int jj = 0; jj < draggableTileContainer->getMapSizeY(); ++jj)
+                {
+                    for (int ii = 0; ii < draggableTileContainer->getMapSizeX(); ++ii)
+                    {
+                        Tile* tile = new Tile(draggableTileContainer, ii, jj);
+                        tile->setParentSceneNode( dynamic_cast<Ogre::SceneNode*>(RenderManager::getSingletonPtr()->getSceneManager()->getRootSceneNode()->getChild("Draggable_scene_node")));
+                        std::stringstream tileName("");
+                        tileName << Tile::TILE_PREFIX << tile->getX() << "_" << tile->getY();
+                        tile->setName(tileName.str());
+                        // Maybe we should also setup the tile's position, however this
+                        // doesn't have a smallest influence on how draggableTileContainer work
+                        draggableTileContainer->addTile(tile);
+                    }
+                }
+
+                draggableTileContainer->setPosition(Ogre::Vector2(posX,posY));
+                for(Seat* ss : gameMap->getSeats())
+                    draggableTileContainer->addSeat(ss);
+                draggableTileContainer->createAllEntities(NodeType::MDTC_NODE);        
+                // query server what is the content of tiles we hover over in orginal map
+                // only server side has the relevant info 
+                ClientNotification* notif2 = new ClientNotification(ClientNotificationType::editorAskRevealTiles);
+                notif2->mPacket << static_cast<unsigned int> ( TileMarkerMinX)
+                                << static_cast<unsigned int> ( TileMarkerMinY);
+
+                ODClient::getSingleton().queueClientNotification(notif2);
+
+                // // the same way we query for traps in the orginal map
+                // // again, only server side has relevant info
+                ClientNotification* notif3 = new ClientNotification(ClientNotificationType::editorAskRevealTraps);
+                notif3->mPacket << static_cast<unsigned int> ( TileMarkerMinX)
+                                << static_cast<unsigned int> ( TileMarkerMinY)
+                                << static_cast<unsigned int> ( TileMarkerMaxX)
+                                << static_cast<unsigned int> ( TileMarkerMaxY);
+                ODClient::getSingleton().queueClientNotification(notif3);
         
+                ClientNotification* notif4 = new ClientNotification(ClientNotificationType::editorAskRevealRooms);
+                notif4->mPacket << static_cast<unsigned int> ( TileMarkerMinX)
+                                << static_cast<unsigned int> ( TileMarkerMinY)
+                                << static_cast<unsigned int> ( TileMarkerMaxX)
+                                << static_cast<unsigned int> ( TileMarkerMaxY);
+                ODClient::getSingleton().queueClientNotification(notif4);
+            }
+            break;
+        }
+
+
+        case ServerNotificationType::pingEditorAskSetRoundedPositionDraggableTileContainer:
+        {
+            Ogre::Real posX, posY, offsetX, offsetY;
+            OD_ASSERT_TRUE(packetReceived >> posX );
+            OD_ASSERT_TRUE(packetReceived >> posY );
+            OD_ASSERT_TRUE(packetReceived >> offsetX );
+            OD_ASSERT_TRUE(packetReceived >> offsetY );
+            DraggableTileContainer*& draggableTileContainer =  (dynamic_cast<EditorMode*>(frameListener->getModeManager()->getCurrentMode())->draggableTileContainer);            
+            draggableTileContainer->setRoundedPosition(Ogre::Vector2(posX, posY), Ogre::Vector2(offsetX, offsetY));
+
+            break;
+        }
         case ServerNotificationType::markTiles:
         {
             bool digSet;
