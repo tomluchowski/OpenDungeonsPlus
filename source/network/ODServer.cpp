@@ -2116,10 +2116,14 @@ bool ODServer::processClientNotifications(ODSocketClient* clientSocket)
                     int32_t y = tile->getY() -  mDraggableTileContainer->getPosition().y;
                     auxPacket << x << y;    
                 }
-
-                RoomManager::buildRoomEditor(mDraggableTileContainer, room->getType(), auxPacket);
-                break;
+                if(!RoomManager::buildRoomEditor(mDraggableTileContainer, room->getType(), auxPacket))
+                {
+                    OD_LOG_INF("WARNING: player seatId=" + Helper::toString(seatId)
+                               + " couldn't build room: " + RoomManager::getRoomNameFromRoomType(room->getType()));
+                    break;
+                }
             }
+            break;
         }
         
         case ClientNotificationType::editorAskRevealTraps:
@@ -2191,8 +2195,9 @@ bool ODServer::processClientNotifications(ODSocketClient* clientSocket)
                                + " couldn't build trap: " + TrapManager::getTrapNameFromTrapType(trap->getType()));
                     break;
                 }                  
-                break;
+                
             }
+            break;
         }
         
         
