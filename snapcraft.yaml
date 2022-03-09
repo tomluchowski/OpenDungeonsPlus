@@ -88,7 +88,7 @@ parts:
         after: [ogre]
     opendungeons-plus:
         plugin: cmake
-        source: https://github.com/tomluchowski/OpenDungeons.git
+        source: https://github.com/tomluchowski/OpenDungeonsPlus.git
         source-tag: shaders-improvement
         source-depth: 1
         override-pull: |
