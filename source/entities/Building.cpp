@@ -82,7 +82,7 @@ void Building::addBuildingObject(Tile* targetTile, BuildingObject* obj, GameMap*
     // The object position has been already set in the building object constructor
     mBuildingObjects[targetTile] = obj;
     obj->addToGameMap(gameMap);
-    obj->setPosition(obj->getPosition());
+    obj->setPosition(obj->getPosition(),gameMap);
 }
 
 void Building::removeBuildingObject(Tile* tile)
@@ -145,14 +145,14 @@ bool Building::canBuildingBeRemoved()
     return ret;
 }
 
-void Building::removeAllBuildingObjects()
+void Building::removeAllBuildingObjects(GameMap* gameMap)
 {
     if(mBuildingObjects.empty())
         return;
 
     for (auto& p : mBuildingObjects)
     {
-        p.second->removeFromGameMap();
+        p.second->removeFromGameMap(gameMap);
         p.second->deleteYourself();
     }
     mBuildingObjects.clear();

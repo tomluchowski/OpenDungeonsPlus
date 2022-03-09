@@ -1200,24 +1200,24 @@ void EditorMode::handleHotkeys(OIS::KeyCode keycode)
 void EditorMode::onEditCopy()
 {
 
-         ClientNotification* notif1 = new ClientNotification(ClientNotificationType::editorAskCreateDraggableTileContainer);
+    ClientNotification* notif1 = new ClientNotification(ClientNotificationType::editorAskCreateDraggableTileContainer);
          
-         notif1->mPacket << static_cast<int>(mTileMarker.getMaxX() - mTileMarker.getMinX() + 1);
-         notif1->mPacket << static_cast<int>(mTileMarker.getMaxY() - mTileMarker.getMinY() + 1);
-         notif1->mPacket << static_cast<int>(std::min(mTileMarker.mark.x,mTileMarker.point.x));
-         notif1->mPacket << static_cast<int>(std::min(mTileMarker.mark.y,mTileMarker.point.y));
-         notif1->mPacket << static_cast<int>(mTileMarker.getMinX());
-         notif1->mPacket << static_cast<int>(mTileMarker.getMinY());
-         notif1->mPacket << static_cast<int>(mTileMarker.getMaxX());
-         notif1->mPacket << static_cast<int>(mTileMarker.getMaxY());
+    notif1->mPacket << static_cast<int>(mTileMarker.getMaxX() - mTileMarker.getMinX() + 1);
+    notif1->mPacket << static_cast<int>(mTileMarker.getMaxY() - mTileMarker.getMinY() + 1);
+    notif1->mPacket << static_cast<int>(std::min(mTileMarker.mark.x,mTileMarker.point.x));
+    notif1->mPacket << static_cast<int>(std::min(mTileMarker.mark.y,mTileMarker.point.y));
+    notif1->mPacket << static_cast<int>(mTileMarker.getMinX());
+    notif1->mPacket << static_cast<int>(mTileMarker.getMinY());
+    notif1->mPacket << static_cast<int>(mTileMarker.getMaxX());
+    notif1->mPacket << static_cast<int>(mTileMarker.getMaxY());
          
         
-         ODClient::getSingleton().queueClientNotification(notif1);
+    ODClient::getSingleton().queueClientNotification(notif1);
         
 
         
 
-        // demand from server recreating of all gameEntities ( since we created the traps and tiles ...)             
+    // demand from server recreating of all gameEntities ( since we created the traps and tiles ...)             
 
 }
 
@@ -1229,6 +1229,10 @@ void EditorMode::onEditPaste()
         mGameMap->askServerCopyTilesWithOffsetFrom(*draggableTileContainer,0,0,
                                                    draggableTileContainer->getMapSizeX(),draggableTileContainer->getMapSizeY(),
                                                    draggableTileContainer->getPosition().x, draggableTileContainer->getPosition().y );
+
+        mGameMap->askServerCopyRoomsWithOffsetFrom(*draggableTileContainer,0,0,
+                                                   draggableTileContainer->getMapSizeX(),draggableTileContainer->getMapSizeY(),
+                                                   draggableTileContainer->getPosition().x, draggableTileContainer->getPosition().y );        
 
         mGameMap->askServerCopyTrapsWithOffsetFrom(*draggableTileContainer,0,0,
                                                    draggableTileContainer->getMapSizeX(),draggableTileContainer->getMapSizeY(),
@@ -1242,24 +1246,17 @@ void EditorMode::onEditPaste()
 
 void EditorMode::onEditDelete()
 {
-    if(draggableTileContainer!=nullptr)
-    {
-        draggableTileContainer->clearAll(NodeType::MDTC_NODE);
-        delete draggableTileContainer;
-        draggableTileContainer=nullptr;
-    }
+
+    ClientNotification* notif1 = new ClientNotification(ClientNotificationType::editorAskDeleteDraggableTileContainer);
+    ODClient::getSingleton().queueClientNotification(notif1);
 }
 
 //! Rendering methods
 void EditorMode::onFrameStarted(const Ogre::FrameEvent& evt)
-{   
-    if(draggableTileContainer){
-        Ogre::ColourValue cv;
-        cv.setAsRGBA(0x33337700);
-        DebugDrawer::getSingleton().drawCuboid(draggableTileContainer->getAABB()
-                                               .getAllCorners().data(), cv, true);
-    }
-    if( mTileMarker.isVisible ){
+{
+    
+    if( mTileMarker.isVisible )
+    {
         Ogre::ColourValue cv;
         cv.setAsRGBA(0x77333300);
         DebugDrawer::getSingleton().drawCuboid(mTileMarker.getAABB()
@@ -2131,7 +2128,6 @@ EditorMode::~EditorMode()
     ConfigManager::getSingleton().saveEditorSettings();
     if(draggableTileContainer!=nullptr)
     {
-        draggableTileContainer->clearAll(NodeType::MDTC_NODE);
         delete draggableTileContainer;
     }
     DebugDrawer::getSingleton().clear();    

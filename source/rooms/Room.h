@@ -48,7 +48,7 @@ public:
     { return false; }
 
     virtual void addToGameMap(GameMap* gameMap = nullptr) override;
-    virtual void removeFromGameMap() override;
+    virtual void removeFromGameMap(GameMap* gameMap = nullptr) override;
 
     virtual void absorbRoom(Room* r);
 
@@ -170,7 +170,7 @@ protected:
     static void reorderRoomTiles(std::vector<Tile*>& tiles);
 private :
     void activeSpotCheckChange(ActiveSpotPlace place, const std::vector<Tile*>& originalSpotTiles,
-        const std::vector<Tile*>& newSpotTiles);
+                               const std::vector<Tile*>& newSpotTiles, GameMap* gameMap = nullptr);
 
 };
 

@@ -95,7 +95,7 @@ public:
     static Room* getRoomFromStream(GameMap* gameMap, std::istream &is);
 
     //! \brief Used by AI for building rooms
-    static bool buildRoomOnTiles(GameMap* gameMap, RoomType type, Seat* seatPtr, const std::vector<Tile*>& tiles, bool fee = false); 
+
     static bool buildRoomOnTiles(GameMap* gameMap, RoomType type, Player* player, const std::vector<Tile*>& tiles, bool fee = false);
 
     //! \brief Gets the room identification name

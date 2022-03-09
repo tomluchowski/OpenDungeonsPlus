@@ -27,6 +27,7 @@
 #include <string>
 #include <vector>
 #include <cstdint>
+#include "NodeType.h"
 
 namespace Ogre
 {
@@ -34,12 +35,6 @@ class SceneNode;
 class ParticleSystem;
 } //End namespace Ogre
 
-enum class NodeType
-{
-    MDTC_NODE,
-    MTILES_NODE
-
-};
 
 
 class Creature;
@@ -216,7 +211,7 @@ class GameEntity
     { mMeshExists = isExisting; }
 
     //! \brief Set the new entity position.
-    virtual void setPosition(const Ogre::Vector3& v)
+    virtual void setPosition(const Ogre::Vector3& v, GameMap *gameMap = nullptr )
     { mPosition = v; }
 
     inline void setParentSceneNode(Ogre::SceneNode* sceneNode)
@@ -267,7 +262,7 @@ class GameEntity
     //! called on server side and the packet should be given to the corresponding entity in updateFromPacket
     //! exportToPacketForUpdate and updateFromPacket works like exportToPacket and importFromPacket but for entities
     //! that already exist on client side and that we only want to update (for example a creature that levels up)
-    virtual void exportToPacketForUpdate(ODPacket& os, const Seat* seat) const;
+    virtual void exportToPacketForUpdate(ODPacket& os, Seat* seat) ;
     virtual void updateFromPacket(ODPacket& is);
 
     //! \brief Get if the object can be attacked or not
@@ -275,9 +270,8 @@ class GameEntity
     { return false; }
 
     //! \brief Pointer to the GameMap
-    inline GameMap* getGameMap() const
-    { return mGameMap; }
-
+    GameMap* getGameMap() const;
+    
     inline bool getCarryLock(const Creature& worker) const
     { return mCarryLock; }
 
@@ -287,10 +281,10 @@ class GameEntity
     bool getIsOnServerMap() const;
 
     //! \brief Function that schedules the object destruction. This function should not be called twice
-    void deleteYourself();
+    void deleteYourself(GameMap* gameMap = nullptr,NodeType nt = NodeType::MTILES_NODE);
 
     //! \brief Retrieves the position tile from the game map
-    Tile* getPositionTile() const;
+    Tile* getPositionTile(const GameMap*  gameMap = nullptr) const;
 
     //! \brief defines what happens on each turn with this object on server side
     virtual void doUpkeep() = 0;
@@ -322,7 +316,7 @@ class GameEntity
 
     //! \brief Adds the entity to the correct spaces of the gamemap (animated objects, creature, ...)
     virtual void addToGameMap(GameMap* gameMap = nullptr) = 0;
-    virtual void removeFromGameMap() = 0;
+    virtual void removeFromGameMap(GameMap* gameMap = nullptr) = 0;
 
     inline bool getIsOnMap() const
     { return mIsOnMap; }
@@ -335,13 +329,13 @@ class GameEntity
 
     //! \brief Called each turn with the list of seats that have vision on the tile where the entity is. It should handle
     //! messages to notify players that gain/lose vision
-    virtual void notifySeatsWithVision(const std::vector<Seat*>& seats);
+    virtual void notifySeatsWithVision(const std::vector<Seat*>& seats, NodeType nt = NodeType::MTILES_NODE);
     //! \brief Functions to add/remove a seat with vision
     virtual void addSeatWithVision(Seat* seat, bool async);
     virtual void removeSeatWithVision(Seat* seat);
 
     //! \brief Fires remove event to every seat with vision
-    virtual void fireRemoveEntityToSeatsWithVision();
+    virtual void fireRemoveEntityToSeatsWithVision(GameMap* gameMap = nullptr);
 
     //! \brief Returns true if the entity can be carried by a worker. False otherwise.
     virtual EntityCarryType getEntityCarryType(Creature* carrier)
@@ -385,9 +379,9 @@ class GameEntity
     {}
 
     //! \brief Called while moving the entity to add it to the tile it gets on
-    virtual void addEntityToPositionTile();
+    virtual void addEntityToPositionTile(GameMap *gameMap = nullptr);
     //! \brief Called while moving the entity to remove it from the tile it gets off
-    virtual void removeEntityFromPositionTile();
+    virtual void removeEntityFromPositionTile(GameMap *gameMap = nullptr);
 
     void addGameEntityListener(GameEntityListener* listener);
     void removeGameEntityListener(GameEntityListener* listener);
@@ -456,10 +450,10 @@ class GameEntity
     Ogre::SceneNode* mEntityNode;
 
     //! \brief Fires a add entity message to the player of the given seat
-    virtual void fireAddEntity(Seat* seat, bool async) = 0;
+    virtual void fireAddEntity(Seat* seat,bool async,NodeType nt = NodeType::MTILES_NODE) = 0;
     //! \brief Fires a remove creature message to the player of the given seat (if not null). If null, it fires to
     //! all players with vision
-    virtual void fireRemoveEntity(Seat* seat) = 0;
+    virtual void fireRemoveEntity(Seat* seat,NodeType nt = NodeType::MTILES_NODE) = 0;
     std::vector<Seat*> mSeatsWithVisionNotified;
 
     //! List of particle effects affecting this entity. Note that the particle effects are not saved on the entity automatically

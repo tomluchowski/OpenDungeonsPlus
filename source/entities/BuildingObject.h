@@ -49,7 +49,7 @@ public:
 
     void fireRefresh();
 
-    static BuildingObject* getBuildingObjectFromPacket(GameMap* gameMap, ODPacket& is);
+    static BuildingObject* getBuildingObjectFromPacket( GameMap* gameMap,   ODPacket& is);
 };
 
 #endif // BUILDINGOBJECT_H

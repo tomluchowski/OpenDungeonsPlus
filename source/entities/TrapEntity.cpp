@@ -99,12 +99,12 @@ void TrapEntity::seatSawTriggering(Seat* seat)
     mSeatsNotHidden.push_back(seat);
 }
 
-void TrapEntity::notifySeatsWithVision(const std::vector<Seat*>& seats)
+void TrapEntity::notifySeatsWithVision(const std::vector<Seat*>& seats, NodeType nt)
 {
     // If we are in the editor, everyseat has vision
     if(getGameMap()->isInEditorMode())
     {
-        PersistentObject::notifySeatsWithVision(seats);
+        PersistentObject::notifySeatsWithVision(seats,nt);
     }
     else
     {
@@ -117,7 +117,7 @@ void TrapEntity::notifySeatsWithVision(const std::vector<Seat*>& seats)
 
             seatsToNotify.push_back(seat);
         }
-        PersistentObject::notifySeatsWithVision(seatsToNotify);
+        PersistentObject::notifySeatsWithVision(seatsToNotify,nt);
     }
 }
 

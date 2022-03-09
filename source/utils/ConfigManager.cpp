@@ -1137,7 +1137,8 @@ bool ConfigManager::loadTilesets(const std::string& fileName)
 
             tileSet->addTileLink(tileVisual1, tileVisual2);
         }
-
+        if(!loadTilesetValues(defFile, TileVisual::nullTileVisual, tileSet->configureTileValues(TileVisual::nullTileVisual)))
+            return false;
         if(!loadTilesetValues(defFile, TileVisual::goldGround, tileSet->configureTileValues(TileVisual::goldGround)))
             return false;
         if(!loadTilesetValues(defFile, TileVisual::goldFull, tileSet->configureTileValues(TileVisual::goldFull)))

@@ -328,7 +328,7 @@ void Creature::addToGameMap(GameMap* gameMap)
     getGameMap()->addActiveObject(this);
 }
 
-void Creature::removeFromGameMap()
+void Creature::removeFromGameMap(GameMap* gameMap)
 {
     fireEntityRemoveFromGameMap();
     removeEntityFromPositionTile();
@@ -627,7 +627,7 @@ void Creature::importFromPacket(ODPacket& is)
     setupDefinition(*getGameMap(), *ConfigManager::getSingleton().getCreatureDefinitionDefaultWorker());
 }
 
-void Creature::setPosition(const Ogre::Vector3& v)
+void Creature::setPosition(const Ogre::Vector3& v, GameMap *gameMap )
 {
     MovableGameEntity::setPosition(v);
     if(mCarriedEntity != nullptr)
@@ -1563,7 +1563,7 @@ void Creature::checkLevelUp()
     setLevel(mLevel + 1);
 }
 
-void Creature::exportToPacketForUpdate(ODPacket& os, const Seat* seat) const
+void Creature::exportToPacketForUpdate(ODPacket& os, Seat* seat) 
 {
     MovableGameEntity::exportToPacketForUpdate(os, seat);
 
@@ -2551,12 +2551,13 @@ void Creature::slap()
     computeCreatureOverlayHealthValue();
 }
 
-void Creature::fireAddEntity(Seat* seat, bool async)
+void Creature::fireAddEntity(Seat* seat, bool async, NodeType nt )
 {
     if(async)
     {
         ServerNotification serverNotification(
             ServerNotificationType::addEntity, seat->getPlayer());
+        serverNotification.mPacket << nt;          
         exportHeadersToPacket(serverNotification.mPacket);
         exportToPacket(serverNotification.mPacket, seat);
         ODServer::getSingleton().sendAsyncMsg(serverNotification);
@@ -2570,6 +2571,7 @@ void Creature::fireAddEntity(Seat* seat, bool async)
 
     ServerNotification* serverNotification = new ServerNotification(
         ServerNotificationType::addEntity, seat->getPlayer());
+    serverNotification->mPacket << nt;      
     exportHeadersToPacket(serverNotification->mPacket);
     exportToPacket(serverNotification->mPacket, seat);
     ODServer::getSingleton().queueServerNotification(serverNotification);
@@ -2586,7 +2588,7 @@ void Creature::fireAddEntity(Seat* seat, bool async)
     }
 }
 
-void Creature::fireRemoveEntity(Seat* seat)
+void Creature::fireRemoveEntity(Seat* seat,NodeType nt)
 {
     // If we are carrying an entity, we release it first, then we can remove it and us
     if(mCarriedEntity != nullptr)
@@ -2607,6 +2609,7 @@ void Creature::fireRemoveEntity(Seat* seat)
     GameEntityType type = getObjectType();
     serverNotification->mPacket << type;
     serverNotification->mPacket << name;
+    serverNotification->mPacket << NodeType::MTILES_NODE;
     ODServer::getSingleton().queueServerNotification(serverNotification);
 }
 

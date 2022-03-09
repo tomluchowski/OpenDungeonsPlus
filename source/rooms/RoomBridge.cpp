@@ -198,6 +198,7 @@ void BridgeRoomFactory::checkBuildBridge(RoomType type, GameMap* gameMap, Seat* 
 
     uint32_t nbTiles = buildableTiles.size();
     clientNotification->mPacket << nbTiles;
+    // clientNotification->mPacket << gameMap->getNodeType();
     for(Tile* tile : buildableTiles)
         gameMap->tileToPacket(clientNotification->mPacket, tile);
 

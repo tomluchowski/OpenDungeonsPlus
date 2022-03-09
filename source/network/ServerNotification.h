@@ -74,10 +74,10 @@ enum class ServerNotificationType
 
     pingCreateAllEntities,
     pingCreateDraggableTileContainer,
+    pingDeleteDraggableTileContainer,
     pingEditorAskSetRoundedPositionDraggableTileContainer,
     markTiles,
     refreshTiles,
-    refreshTilesOnDraggableTileContainer,
     refreshVisibleTiles,
     revealTiles,
     revealTraps,

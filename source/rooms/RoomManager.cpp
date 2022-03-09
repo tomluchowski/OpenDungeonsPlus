@@ -22,6 +22,7 @@
 #include "game/Skill.h"
 #include "game/Seat.h"
 #include "gamemap/GameMap.h"
+#include "gamemap/DraggableTileContainer.h"
 #include "modes/InputCommand.h"
 #include "modes/InputManager.h"
 #include "network/ClientNotification.h"
@@ -103,6 +104,7 @@ void RoomFactory::checkBuildRoomDefault(GameMap* gameMap, RoomType type, const I
     ClientNotification *clientNotification = RoomManager::createRoomClientNotification(type);
     uint32_t nbTiles = buildableTiles.size();
     clientNotification->mPacket << nbTiles;
+        
     for(Tile* tile : buildableTiles)
         gameMap->tileToPacket(clientNotification->mPacket, tile);
 
@@ -143,6 +145,7 @@ void RoomFactory::checkBuildRoomDefaultEditor(GameMap* gameMap, RoomType type, c
     int32_t seatId = inputManager.mSeatIdSelected;
     clientNotification->mPacket << seatId;
     clientNotification->mPacket << nbTiles;
+    
     for(Tile* tile : buildableTiles)
         gameMap->tileToPacket(clientNotification->mPacket, tile);
 
@@ -185,9 +188,9 @@ bool RoomFactory::buildRoomDefault(GameMap* gameMap, Room* room, Seat* seat, con
     room->addToGameMap(gameMap);
     room->createMesh();
 
-    if((seat->getPlayer() != nullptr) &&
-       (seat->getPlayer()->getIsHuman()))
-    {
+    // if((seat->getPlayer() != nullptr) &&
+    //    (seat->getPlayer()->getIsHuman()))
+    // {
         // We notify the clients with vision of the changed tiles. Note that we need
         // to calculate per seat since they could have vision on different parts of the building
         std::map<Seat*,std::vector<Tile*>> tilesPerSeat;
@@ -212,9 +215,10 @@ bool RoomFactory::buildRoomDefault(GameMap* gameMap, Room* room, Seat* seat, con
         for(const std::pair<Seat* const,std::vector<Tile*>>& p : tilesPerSeat)
         {
             uint32_t nbTiles = p.second.size();
-            ServerNotification serverNotification(
-                ServerNotificationType::refreshTiles, p.first->getPlayer());
+            ServerNotification serverNotification(ServerNotificationType::refreshTiles, p.first->getPlayer());
             serverNotification.mPacket << nbTiles;
+            serverNotification.mPacket << gameMap->getNodeType();
+            
             for(Tile* tile : p.second)
             {
                 gameMap->tileToPacket(serverNotification.mPacket, tile);
@@ -223,7 +227,7 @@ bool RoomFactory::buildRoomDefault(GameMap* gameMap, Room* room, Seat* seat, con
             }
             ODServer::getSingleton().sendAsyncMsg(serverNotification);
         }
-    }
+    // }
 
     room->checkForRoomAbsorbtion();
     room->updateActiveSpots(gameMap);
@@ -439,10 +443,6 @@ bool RoomManager::buildRoomOnTiles(GameMap* gameMap, RoomType type, Player* play
     return factory.buildRoomOnTiles(gameMap, player, tiles, noFee);
 }
 
-bool RoomManager::buildRoomOnTiles(GameMap* gameMap, RoomType type, Seat* seatPtr, const std::vector<Tile*>& tiles, bool noFee)
-{
-
-}
 
 const std::string& RoomManager::getRoomNameFromRoomType(RoomType type)
 {
@@ -545,6 +545,7 @@ void RoomManager::checkSellRoomTiles(GameMap* gameMap, const InputManager& input
         ClientNotificationType::askSellRoomTiles);
     uint32_t nbTiles = sellTiles.size();
     clientNotification->mPacket << nbTiles;
+        
     for(Tile* tile : sellTiles)
         gameMap->tileToPacket(clientNotification->mPacket, tile);
 
@@ -614,6 +615,7 @@ void RoomManager::sellRoomTiles(GameMap* gameMap, Player* player, ODPacket& pack
         ServerNotification serverNotification(
             ServerNotificationType::refreshTiles, p.first->getPlayer());
         serverNotification.mPacket << nbTiles;
+        serverNotification.mPacket << gameMap->getNodeType();
         for(Tile* tile : p.second)
         {
             gameMap->tileToPacket(serverNotification.mPacket, tile);
@@ -678,6 +680,8 @@ void RoomManager::checkSellRoomTilesEditor(GameMap* gameMap, const InputManager&
         ClientNotificationType::editorAskDestroyRoomTiles);
     uint32_t nbTiles = sellTiles.size();
     clientNotification->mPacket << nbTiles;
+    // clientNotification->mPacket << gameMap->getNodeType();  
+    
     for(Tile* tile : sellTiles)
         gameMap->tileToPacket(clientNotification->mPacket, tile);
 
@@ -740,6 +744,8 @@ void RoomManager::sellRoomTilesEditor(GameMap* gameMap, ODPacket& packet)
         ServerNotification serverNotification(
             ServerNotificationType::refreshTiles, p.first->getPlayer());
         serverNotification.mPacket << nbTiles;
+        serverNotification.mPacket << gameMap->getNodeType();  
+        
         for(Tile* tile : p.second)
         {
             gameMap->tileToPacket(serverNotification.mPacket, tile);

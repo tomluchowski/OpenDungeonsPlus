@@ -128,7 +128,7 @@ public:
     virtual GameEntityType getObjectType() const override;
 
     virtual void addToGameMap(GameMap* gameMap = nullptr) override;
-    virtual void removeFromGameMap() override;
+    virtual void removeFromGameMap(GameMap* gameMap = nullptr) override;
 
     bool canDisplayStatsWindow(Seat* seat) override
     { return true; }
@@ -185,7 +185,7 @@ public:
     inline int32_t getNbTurnFurious() const
     { return mNbTurnFurious; }
 
-    void setPosition(const Ogre::Vector3& v) override;
+    void setPosition(const Ogre::Vector3& v, GameMap *gameMap = nullptr ) override;
 
     //! \brief Gets the move speed on the current tile.
     virtual double getMoveSpeed() const override;
@@ -558,7 +558,7 @@ public:
 
     virtual void clientUpkeep() override;
 
-    virtual void exportToPacketForUpdate(ODPacket& os, const Seat* seat) const override;
+    virtual void exportToPacketForUpdate(ODPacket& os, Seat* seat) override;
     virtual void updateFromPacket(ODPacket& is) override;
 
     //! \brief Called when an angry creature wants to attack a natural enemy
@@ -606,8 +606,8 @@ protected:
 
     virtual void createMeshLocal(NodeType nt = NodeType::MTILES_NODE) override;
     virtual void destroyMeshLocal(NodeType nt = NodeType::MTILES_NODE) override;
-    virtual void fireAddEntity(Seat* seat, bool async) override;
-    virtual void fireRemoveEntity(Seat* seat) override;
+    virtual void fireAddEntity(Seat* seat,  bool async, NodeType nt) override;
+    virtual void fireRemoveEntity(Seat* seat,NodeType nt = NodeType::MTILES_NODE) override;
 private:
     enum ForceAction
     {

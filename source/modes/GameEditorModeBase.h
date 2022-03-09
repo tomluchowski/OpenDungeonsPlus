@@ -97,6 +97,8 @@ public:
 //! \brief Class containing common functionality between editor and game modes.
 class GameEditorModeBase : public AbstractApplicationMode
 {
+    friend class ODClient;
+    
 public:
     GameEditorModeBase(ModeManager *modeManager, ModeManager::ModeType modeType, CEGUI::Window* rootWindow);
     ~GameEditorModeBase();

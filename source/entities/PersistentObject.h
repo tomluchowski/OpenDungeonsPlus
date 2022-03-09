@@ -54,8 +54,8 @@ public:
     virtual bool isVisibleForSeat(Seat* seat)
     { return true; }
 
-    virtual void notifySeatsWithVision(const std::vector<Seat*>& seats) override;
-    virtual void fireRemoveEntityToSeatsWithVision() override;
+    virtual void notifySeatsWithVision(const std::vector<Seat*>& seats, NodeType nt = NodeType::MTILES_NODE ) override;
+    virtual void fireRemoveEntityToSeatsWithVision(GameMap* gameMap = nullptr) override;
 
     virtual bool notifyRemoveAsked() override;
 

@@ -172,7 +172,7 @@ public:
     virtual GameEntityType getObjectType() const override;
 
     virtual void addToGameMap(GameMap* gameMap = nullptr) override;
-    virtual void removeFromGameMap() override;
+    virtual void removeFromGameMap(GameMap* gameMap = nullptr) override;
 
     virtual const TrapType getType() const = 0;
 

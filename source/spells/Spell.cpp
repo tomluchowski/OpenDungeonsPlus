@@ -74,7 +74,7 @@ void Spell::addToGameMap(GameMap* gameMap)
     getGameMap()->addActiveObject(this);
 }
 
-void Spell::removeFromGameMap()
+void Spell::removeFromGameMap(GameMap* gameMap)
 {
     fireEntityRemoveFromGameMap();
     removeEntityFromPositionTile();
@@ -90,7 +90,7 @@ void Spell::removeFromGameMap()
     getGameMap()->removeActiveObject(this);
 }
 
-void Spell::notifySeatsWithVision(const std::vector<Seat*>& seats)
+void Spell::notifySeatsWithVision(const std::vector<Seat*>& seats, NodeType nt)
 {
     // For spells, we want the caster and his allies to always have vision even if they
     // don't see the tile the spell is on. Of course, vision on the tile is not given by the spell

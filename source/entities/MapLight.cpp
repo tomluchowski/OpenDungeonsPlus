@@ -91,7 +91,7 @@ void MapLight::addToGameMap(GameMap* gameMap)
     getGameMap()->addClientUpkeepEntity(this);
 }
 
-void MapLight::removeFromGameMap()
+void MapLight::removeFromGameMap(GameMap* gameMap)
 {
     fireEntityRemoveFromGameMap();
     removeEntityFromPositionTile();
@@ -152,12 +152,13 @@ void MapLight::update(Ogre::Real timeSinceLastFrame)
     RenderManager::getSingleton().rrMoveMapLightFlicker(this, flickerPosition);*/
 }
 
-void MapLight::fireAddEntity(Seat* seat, bool async)
+void MapLight::fireAddEntity(Seat* seat, bool async, NodeType nt)
 {
     if(async)
     {
         ServerNotification serverNotification(
             ServerNotificationType::addEntity, seat->getPlayer());
+        serverNotification.mPacket << nt;  
         exportHeadersToPacket(serverNotification.mPacket);
         exportToPacket(serverNotification.mPacket, seat);
         ODServer::getSingleton().sendAsyncMsg(serverNotification);
@@ -166,13 +167,14 @@ void MapLight::fireAddEntity(Seat* seat, bool async)
     {
         ServerNotification* serverNotification = new ServerNotification(
             ServerNotificationType::addEntity, seat->getPlayer());
+        serverNotification->mPacket << nt;          
         exportHeadersToPacket(serverNotification->mPacket);
         exportToPacket(serverNotification->mPacket, seat);
         ODServer::getSingleton().queueServerNotification(serverNotification);
     }
 }
 
-void MapLight::fireRemoveEntity(Seat* seat)
+void MapLight::fireRemoveEntity(Seat* seat, NodeType nt)
 {
     const std::string& name = getName();
     ServerNotification *serverNotification = new ServerNotification(
@@ -180,10 +182,11 @@ void MapLight::fireRemoveEntity(Seat* seat)
     GameEntityType type = getObjectType();
     serverNotification->mPacket << type;
     serverNotification->mPacket << name;
+    serverNotification->mPacket << nt;    
     ODServer::getSingleton().queueServerNotification(serverNotification);
 }
 
-void MapLight::notifySeatsWithVision(const std::vector<Seat*>& seats)
+void MapLight::notifySeatsWithVision(const std::vector<Seat*>& seats, NodeType nt)
 {
     if(!mSeatsWithVisionNotified.empty())
         return;
@@ -200,7 +203,7 @@ void MapLight::notifySeatsWithVision(const std::vector<Seat*>& seats)
         if(!seat->getPlayer()->getIsHuman())
             continue;
 
-        fireAddEntity(seat, false);
+        fireAddEntity(seat, false, nt);
     }
 }
 

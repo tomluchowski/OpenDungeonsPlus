@@ -62,7 +62,7 @@ void CullingManager::cullTiles(const std::vector<Ogre::Vector3>& ogreVectors)
 
 void CullingManager::startTileCulling(Ogre::Camera* camera, const std::vector<Ogre::Vector3>& ogreVectors)
 {
-    showAllTiles();
+    showAllTiles(mGameMap);
 
     mWalk.mVertices.mMyArray.clear();
     for (int ii = 0 ; ii < 4 ; ++ii)
@@ -100,7 +100,7 @@ void CullingManager::stopTileCulling(const std::vector<Ogre::Vector3>& ogreVecto
     mWalk.prepareWalk();
 
     newBashAndSplashTiles(HIDE);
-    showAllTiles();
+    showAllTiles(mGameMap);
 }
 
 void CullingManager::hideAllTiles(void)
@@ -115,13 +115,13 @@ void CullingManager::hideAllTiles(void)
     }
 }
 
-void CullingManager::showAllTiles(void)
+void CullingManager::showAllTiles(GameMap* gameMap)
 {
-    for (int jj = 0; jj < mGameMap->getMapSizeY() ; ++jj)
+    for (int jj = 0; jj < gameMap->getMapSizeY() ; ++jj)
     {
-        for (int ii = 0; ii < mGameMap->getMapSizeX(); ++ii)
+        for (int ii = 0; ii < gameMap->getMapSizeX(); ++ii)
         {
-            Tile* tile = mGameMap->getTile(ii, jj);
+            Tile* tile = gameMap->getTile(ii, jj);
             tile->setTileCullingFlags(mCullingMask, true);
         }
     }

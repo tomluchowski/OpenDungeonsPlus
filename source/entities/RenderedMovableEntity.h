@@ -40,7 +40,7 @@ public:
     static const std::string RENDEREDMOVABLEENTITY_PREFIX;
 
     virtual void addToGameMap(GameMap* gameMap = nullptr) override;
-    virtual void removeFromGameMap() override;
+    virtual void removeFromGameMap(GameMap* gameMap = nullptr) override;
 
     bool getHideCoveredTile() const
     { return mHideCoveredTile; }
@@ -91,8 +91,8 @@ public:
 protected:
     virtual void createMeshLocal(NodeType nt = NodeType::MTILES_NODE) override;
     virtual void destroyMeshLocal(NodeType nt = NodeType::MTILES_NODE) override;
-    virtual void fireAddEntity(Seat* seat, bool async) override;
-    virtual void fireRemoveEntity(Seat* seat) override;
+    virtual void fireAddEntity(Seat* seat, bool  async,  NodeType nt = NodeType::MTILES_NODE ) override;
+    virtual void fireRemoveEntity(Seat* seat,  NodeType nt = NodeType::MTILES_NODE) override;
 
 private:
     Ogre::Real mRotationAngle;

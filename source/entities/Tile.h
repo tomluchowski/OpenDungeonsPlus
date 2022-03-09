@@ -166,13 +166,13 @@ public:
 
     void addToGameMap(GameMap* gameMap = nullptr) override
     {}
-    void removeFromGameMap() override
+    void removeFromGameMap(GameMap* gameMap = nullptr) override
     {}
 
-    void fireAddEntity(Seat* seat, bool async) override
+    void fireAddEntity(Seat* seat, bool async , NodeType nt) override
     {}
 
-    void fireRemoveEntity(Seat* seat) override
+    void fireRemoveEntity(Seat* seat,NodeType nt = NodeType::MTILES_NODE) override
     {}
 
     /*! \brief Set the type (rock, claimed, etc.) of the tile.
@@ -223,7 +223,7 @@ public:
     static int nextTileFullness(int f);
 
     //! \brief This function puts a message in the renderQueue to change the mesh for this tile.
-    void refreshMesh(NodeType nt = NodeType::MTILES_NODE);
+    void refreshMesh(NodeType nt = NodeType::MTILES_NODE, GameMap* gameMap =nullptr );
 
     //! \brief Marks the tile as being selected through a mouse click or drag.
     void setSelected(bool ss, const Player* pp);
@@ -377,13 +377,13 @@ public:
     //! \brief Computes the visible tiles and tags them to know which are visible
     void computeVisibleTiles();
     void clearVision();
-    void notifyVision(Seat* seat);
+    void notifyVision(Seat* seat, NodeType nt = NodeType::MTILES_NODE);
 
     void setSeats(const std::vector<Seat*>& seats);
     bool hasChangedForSeat(Seat* seat) const;
     void changeNotifiedForSeat(Seat* seat);
 
-    void notifyEntitiesSeatsWithVision();
+    void notifyEntitiesSeatsWithVision(NodeType nt = NodeType::MTILES_NODE);
 
     const std::vector<Seat*>& getSeatsWithVision()
     { return mSeatsWithVision; }
@@ -466,10 +466,10 @@ public:
 
     static void exportToStream(Tile* tile, std::ostream& os);
 
-    virtual void exportToPacketForUpdate(ODPacket& os, const Seat* seat) const override;
+    virtual void exportToPacketForUpdate(ODPacket& os, Seat* seat) override;
     virtual void updateFromPacket(ODPacket& is) override;
     void updateFullnessFromPacket(ODPacket& is);
-    void exportToPacketForUpdate(ODPacket& os, const Seat* seat, bool hideSeatId) const;
+    void exportToPacketForUpdate(ODPacket& os, Seat* seat, bool hideSeatId) ;
 
     bool addTileStateListener(TileStateListener& listener);
     bool removeTileStateListener(TileStateListener& listener);

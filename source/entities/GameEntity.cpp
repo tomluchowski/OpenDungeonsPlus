@@ -122,47 +122,62 @@ GameEntity& GameEntity::operator=(const GameEntity& gg)
     return *this;
 }
 
-void GameEntity::deleteYourself()
+void GameEntity::deleteYourself(GameMap* gameMap, NodeType nt) 
 {
-    destroyMesh();
+    if(gameMap == nullptr)
+        gameMap  = getGameMap();    
+    destroyMesh(nt);
     if(mIsDeleteRequested)
         return;
 
     mIsDeleteRequested = true;
 
-    getGameMap()->queueEntityForDeletion(this);
+    gameMap->queueEntityForDeletion(this);
 }
 
-Tile* GameEntity::getPositionTile() const
+Tile* GameEntity::getPositionTile(const GameMap*  gameMap) const
 {
-    const Ogre::Vector3& tempPosition = getPosition();
 
-    return getGameMap()->getTile(Helper::round(tempPosition.x),
-                                 Helper::round(tempPosition.y));
+    if(gameMap == nullptr)
+        gameMap = getGameMap();
+    const Ogre::Vector3& tempPosition = getPosition();    
+    return gameMap->getTile(Helper::round(tempPosition.x ) , Helper::round(tempPosition.y));
+                        
+}
+GameMap*  GameEntity::getGameMap() const
+{
+    return mGameMap;
 }
 
-void GameEntity::addEntityToPositionTile()
+
+
+void GameEntity::addEntityToPositionTile(GameMap* gameMap)
 {
+    if(gameMap == nullptr)
+        gameMap = getGameMap();
     if(getIsOnMap())
         return;
 
     setIsOnMap(true);
-    Tile* tile = getPositionTile();
+    Tile* tile = getPositionTile(gameMap);
     if(tile == nullptr)
     {
-        OD_LOG_ERR(getGameMap()->serverStr() + "entityName=" + getName() + ", pos=" + Helper::toString(getPosition()));
+        OD_LOG_ERR(gameMap->serverStr() + "entityName=" + getName() + ", pos=" + Helper::toString(getPosition()));
         return;
     }
-    OD_ASSERT_TRUE_MSG(tile->addEntity(this), getGameMap()->serverStr() + "entity=" + getName() + ", pos=" + Helper::toString(getPosition()) + ", tile=" + Tile::displayAsString(tile));
+    OD_ASSERT_TRUE_MSG(tile->addEntity(this), gameMap->serverStr() + "entity=" + getName() + ", pos=" + Helper::toString(getPosition()) + ", tile=" + Tile::displayAsString(tile));
 }
 
-void GameEntity::removeEntityFromPositionTile()
+void GameEntity::removeEntityFromPositionTile(GameMap* gameMap)
 {
+    if(gameMap == nullptr)
+        gameMap = getGameMap();
+    
     if(!getIsOnMap())
         return;
 
     setIsOnMap(false);
-    Tile* tile = getPositionTile();
+    Tile* tile = getPositionTile(gameMap);
     if(tile == nullptr)
     {
         OD_LOG_ERR("entityName=" + getName() + ", pos=" + Helper::toString(getPosition()));
@@ -288,7 +303,7 @@ void GameEntity::fireDropEntity(Player* playerPicking, Tile* tile)
     }
 }
 
-void GameEntity::notifySeatsWithVision(const std::vector<Seat*>& seats)
+void GameEntity::notifySeatsWithVision(const std::vector<Seat*>& seats , NodeType nt)
 {
     // We notify seats that lost vision
     for(std::vector<Seat*>::iterator it = mSeatsWithVisionNotified.begin(); it != mSeatsWithVisionNotified.end();)
@@ -325,7 +340,7 @@ void GameEntity::notifySeatsWithVision(const std::vector<Seat*>& seats)
         if(!seat->getPlayer()->getIsHuman())
             continue;
 
-        fireAddEntity(seat, false);
+        fireAddEntity(seat, false ,nt);
     }
 }
 
@@ -348,8 +363,11 @@ void GameEntity::removeSeatWithVision(Seat* seat)
     fireRemoveEntity(seat);
 }
 
-void GameEntity::fireRemoveEntityToSeatsWithVision()
+void GameEntity::fireRemoveEntityToSeatsWithVision(GameMap* gameMap)
 {
+    if(gameMap == nullptr)
+        gameMap = getGameMap();
+    
     for(Seat* seat : mSeatsWithVisionNotified)
     {
         if(seat->getPlayer() == nullptr)
@@ -357,7 +375,7 @@ void GameEntity::fireRemoveEntityToSeatsWithVision()
         if(!seat->getPlayer()->getIsHuman())
             continue;
 
-        fireRemoveEntity(seat);
+        fireRemoveEntity(seat,gameMap->getNodeType());
     }
 
     mSeatsWithVisionNotified.clear();
@@ -602,7 +620,7 @@ void GameEntity::destroyMesh(NodeType nt)
     destroyMeshLocal(nt);
 }
 
-void GameEntity::exportToPacketForUpdate(ODPacket& os, const Seat* seat) const
+void GameEntity::exportToPacketForUpdate(ODPacket& os, Seat* seat) 
 {
     uint32_t nbCreatureEffect = mEntityParticleEffects.size();
     os << nbCreatureEffect;

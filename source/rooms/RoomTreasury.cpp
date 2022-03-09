@@ -118,6 +118,7 @@ class RoomTreasuryFactory : public RoomFactory
         ClientNotification *clientNotification = RoomManager::createRoomClientNotification(RoomTreasury::mRoomType);
         uint32_t nbTiles = buildableTiles.size();
         clientNotification->mPacket << nbTiles;
+        
         for(Tile* tile : buildableTiles)
             gameMap->tileToPacket(clientNotification->mPacket, tile);
 
@@ -169,6 +170,8 @@ class RoomTreasuryFactory : public RoomFactory
                 ServerNotification serverNotification(
                     ServerNotificationType::refreshTiles, p.first->getPlayer());
                 serverNotification.mPacket << nbTiles;
+                serverNotification.mPacket << gameMap->getNodeType();
+                
                 for(Tile* tile : p.second)
                 {
                     gameMap->tileToPacket(serverNotification.mPacket, tile);

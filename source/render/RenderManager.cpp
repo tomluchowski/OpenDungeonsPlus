@@ -748,9 +748,8 @@ void RenderManager::rrDetachEntity(GameEntity* entity)
     // so the nullptr check wouldn't be necessery
     // this is ad hoc solution:  
     Ogre::SceneNode* entityNode = entity->getEntityNode();
-    OD_ASSERT_TRUE(entityNode!=nullptr);
-    if(entityNode!=nullptr)
-        entity->getParentSceneNode()->removeChild(entityNode);
+    entity->getParentSceneNode()->removeChild(entityNode);    
+
 }
 
 void RenderManager::rrAttachEntity(GameEntity* entity)
@@ -759,23 +758,20 @@ void RenderManager::rrAttachEntity(GameEntity* entity)
     // so the nullptr check wouldn't be necessery
     // this is ad hoc solution:      
     Ogre::SceneNode* entityNode = entity->getEntityNode();
-    OD_ASSERT_TRUE(entityNode!=nullptr);    
-    if(entityNode!=nullptr)    
-        entity->getParentSceneNode()->addChild(entityNode);
+    entity->getParentSceneNode()->addChild(entityNode);
 }
 
 void RenderManager::rrCreateRenderedMovableEntity(RenderedMovableEntity* renderedMovableEntity, NodeType nt)
 {
     std::string meshName = renderedMovableEntity->getMeshName();
-    std::string tempString = renderedMovableEntity->getOgreNamePrefix() + renderedMovableEntity->getName();
+    std::string tempString = renderedMovableEntity->getOgreNamePrefix() + renderedMovableEntity->getName() + (static_cast<bool>(nt) ?  "" : "_dtc" );
 
     Ogre::SceneNode* node;
 
     if(nt == NodeType::MTILES_NODE)
-        node = mRoomSceneNode->createChildSceneNode(tempString + "_node");
+        node = mRoomSceneNode->createChildSceneNode(tempString + "_node");    
     else
-        node = mDraggableSceneNode->createChildSceneNode(tempString + "_dtc_node");
-    
+        node = mDraggableSceneNode->createChildSceneNode(tempString + "_node");
     node->setPosition(renderedMovableEntity->getPosition());
     node->roll(Ogre::Degree(renderedMovableEntity->getRotationAngle()));
     Ogre::Entity* ent = nullptr;
@@ -811,7 +807,7 @@ void RenderManager::rrCreateRenderedMovableEntity(RenderedMovableEntity* rendere
 void RenderManager::rrDestroyRenderedMovableEntity(RenderedMovableEntity* curRenderedMovableEntity, NodeType nt)
 {
     std::string tempString = curRenderedMovableEntity->getOgreNamePrefix()
-                             + curRenderedMovableEntity->getName();
+                             + curRenderedMovableEntity->getName()+  (static_cast<bool>(nt) ?  "" : "_dtc" );
     Ogre::SceneNode* node = curRenderedMovableEntity->getEntityNode();
     if(mSceneManager->hasEntity(tempString))
     {

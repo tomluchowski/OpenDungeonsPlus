@@ -70,12 +70,14 @@ void Room::addToGameMap(GameMap* gameMap)
     gameMap->addActiveObject(this);
 }
 
-void Room::removeFromGameMap()
+void Room::removeFromGameMap(GameMap* gameMap)
 {
+    if(gameMap == nullptr)
+        gameMap = getGameMap();
     fireEntityRemoveFromGameMap();
-    getGameMap()->removeRoom(this);
+    gameMap->removeRoom(this);
     setIsOnMap(false);
-    for(Seat* seat : getGameMap()->getSeats())
+    for(Seat* seat : gameMap->getSeats())
     {
         for(Tile* tile : mCoveredTiles)
             seat->notifyBuildingRemovedFromGameMap(this, tile);
@@ -83,8 +85,8 @@ void Room::removeFromGameMap()
             seat->notifyBuildingRemovedFromGameMap(this, tile);
     }
 
-    removeAllBuildingObjects();
-    getGameMap()->removeActiveObject(this);
+    removeAllBuildingObjects(gameMap);
+    gameMap->removeActiveObject(this);
 }
 
 void Room::absorbRoom(Room *r)
@@ -433,11 +435,11 @@ void Room::updateActiveSpots(GameMap* gameMap)
         }
     }
 
-    activeSpotCheckChange(activeSpotCenter, mCentralActiveSpotTiles, centralActiveSpotTiles);
-    activeSpotCheckChange(activeSpotLeft, mLeftWallsActiveSpotTiles, leftWallsActiveSpotTiles);
-    activeSpotCheckChange(activeSpotRight, mRightWallsActiveSpotTiles, rightWallsActiveSpotTiles);
-    activeSpotCheckChange(activeSpotTop, mTopWallsActiveSpotTiles, topWallsActiveSpotTiles);
-    activeSpotCheckChange(activeSpotBottom, mBottomWallsActiveSpotTiles, bottomWallsActiveSpotTiles);
+    activeSpotCheckChange(activeSpotCenter, mCentralActiveSpotTiles, centralActiveSpotTiles, gameMap);
+    activeSpotCheckChange(activeSpotLeft, mLeftWallsActiveSpotTiles, leftWallsActiveSpotTiles, gameMap);
+    activeSpotCheckChange(activeSpotRight, mRightWallsActiveSpotTiles, rightWallsActiveSpotTiles, gameMap);
+    activeSpotCheckChange(activeSpotTop, mTopWallsActiveSpotTiles, topWallsActiveSpotTiles, gameMap);
+    activeSpotCheckChange(activeSpotBottom, mBottomWallsActiveSpotTiles, bottomWallsActiveSpotTiles, gameMap);
 
     mCentralActiveSpotTiles = centralActiveSpotTiles;
     mLeftWallsActiveSpotTiles = leftWallsActiveSpotTiles;
@@ -452,7 +454,7 @@ void Room::updateActiveSpots(GameMap* gameMap)
 }
 
 void Room::activeSpotCheckChange(ActiveSpotPlace place, const std::vector<Tile*>& originalSpotTiles,
-    const std::vector<Tile*>& newSpotTiles)
+                                 const std::vector<Tile*>& newSpotTiles,GameMap* gameMap)
 {
     // We create the non existing tiles
     for(std::vector<Tile*>::const_iterator it = newSpotTiles.begin(); it != newSpotTiles.end(); ++it)
@@ -465,7 +467,7 @@ void Room::activeSpotCheckChange(ActiveSpotPlace place, const std::vector<Tile*>
             if(ro != nullptr)
             {
                 // The room wants to build a room onject. We add it to the gamemap
-                addBuildingObject(tile, ro);
+                addBuildingObject(tile, ro,gameMap);
                 ro->createMesh();
             }
         }
@@ -594,6 +596,7 @@ void Room::restoreInitialEntityState()
         std::vector<Tile*>& tilesRefresh = p.second;
         uint32_t nbTiles = tilesRefresh.size();
         serverNotification->mPacket << nbTiles;
+        serverNotification->mPacket << getGameMap()->getNodeType();
         for(Tile* tile : tilesRefresh)
         {
             getGameMap()->tileToPacket(serverNotification->mPacket, tile);

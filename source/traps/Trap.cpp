@@ -90,12 +90,15 @@ void Trap::addToGameMap(GameMap* gameMap)
     gameMap->addActiveObject(this);
 }
 
-void Trap::removeFromGameMap()
+void Trap::removeFromGameMap(GameMap* gameMap)
 {
+    if(gameMap == nullptr)
+        gameMap = getGameMap();
+
     fireEntityRemoveFromGameMap();
     setIsOnMap(false);
-    getGameMap()->removeTrap(this);
-    for(Seat* seat : getGameMap()->getSeats())
+    gameMap->removeTrap(this);
+    for(Seat* seat : gameMap->getSeats())
     {
         for(Tile* tile : mCoveredTiles)
             seat->notifyBuildingRemovedFromGameMap(this, tile);
@@ -103,8 +106,8 @@ void Trap::removeFromGameMap()
             seat->notifyBuildingRemovedFromGameMap(this, tile);
     }
 
-    removeAllBuildingObjects();
-    getGameMap()->removeActiveObject(this);
+    removeAllBuildingObjects(gameMap);
+    gameMap->removeActiveObject(this);
 }
 
 void Trap::doUpkeep()

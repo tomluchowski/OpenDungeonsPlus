@@ -27,6 +27,7 @@
 #include "game/SkillManager.h"
 #include "game/SkillType.h"
 #include "gamemap/GameMap.h"
+#include "gamemap/DraggableTileContainer.h"
 #include "goals/Goal.h"
 #include "network/ODServer.h"
 #include "network/ServerNotification.h"
@@ -232,36 +233,43 @@ void Seat::clearTilesWithVision()
     if(!mPlayer->getIsHuman())
         return;
 
-    for(std::vector<TileStateNotified>& vec : mTilesStates)
+    for(std::pair<Tile* const ,TileStateNotified>& p: mTilesStates)
     {
-        for(TileStateNotified& p : vec)
-        {
-            p.mVisionTurnLast = p.mVisionTurnCurrent;
-            p.mVisionTurnCurrent = false;
-        }
+
+        p.second.mVisionTurnLast = p.second.mVisionTurnCurrent;
+        p.second.mVisionTurnCurrent = false;
+
     }
+    for(std::pair<Tile* const ,TileStateNotified>& p: mDraggableTilesStates)
+    {
+
+        p.second.mVisionTurnLast = p.second.mVisionTurnCurrent;
+        p.second.mVisionTurnCurrent = false;
+
+    }
+
+    
 }
 
-void Seat::notifyVisionOnTile(Tile* tile)
+void Seat::notifyVisionOnTile(Tile* tile, NodeType nt)
 {
     if(mPlayer == nullptr)
         return;
     if(!mPlayer->getIsHuman())
         return;
 
-    if(tile->getX() >= static_cast<int>(mTilesStates.size()))
+    if( nt == NodeType::MTILES_NODE)
+        mTilesStates[tile].mVisionTurnCurrent =  true;
+    else
     {
-        OD_LOG_ERR("Tile=" + Tile::displayAsString(tile));
-        return;
-    }
-    if(tile->getY() >= static_cast<int>(mTilesStates[tile->getX()].size()))
-    {
-        OD_LOG_ERR("Tile=" + Tile::displayAsString(tile));
-        return;
-    }
+        mDraggableTilesStates[tile].mVisionTurnCurrent = true;
+    }    
+}
 
-    TileStateNotified& tileState = mTilesStates[tile->getX()][tile->getY()];
-    tileState.mVisionTurnCurrent = true;
+
+void Seat::clearVisionForGameMap(DraggableTileContainer* dtc)
+{
+    mDraggableTilesStates.clear();
 }
 
 void Seat::notifyTileClaimedByEnemy(Tile* tile)
@@ -271,23 +279,27 @@ void Seat::notifyTileClaimedByEnemy(Tile* tile)
     if(!mPlayer->getIsHuman())
         return;
 
-    if(tile->getX() >= static_cast<int>(mTilesStates.size()))
+    std::map<Tile*,TileStateNotified>::iterator ii =  mTilesStates.find(tile);
+    if(   ii != mTilesStates.end() )
     {
-        OD_LOG_ERR("Tile=" + Tile::displayAsString(tile));
-        return;
+        // By default, we set the tile like if it was not claimed anymore
+        ii->second.mSeatIdOwner = -1;
+        ii->second.mTileVisual = TileVisual::dirtGround;
+        ii->second.mVisionTurnCurrent = true;        
+
     }
-    if(tile->getY() >= static_cast<int>(mTilesStates[tile->getX()].size()))
+    else
     {
-        OD_LOG_ERR("Tile=" + Tile::displayAsString(tile));
-        return;
-    }
-
-    TileStateNotified& tileState = mTilesStates[tile->getX()][tile->getY()];
-
-    // By default, we set the tile like if it was not claimed anymore
-    tileState.mSeatIdOwner = -1;
-    tileState.mTileVisual = TileVisual::dirtGround;
-    tileState.mVisionTurnCurrent = true;
+        std::map<Tile*,TileStateNotified>::iterator jj =  mDraggableTilesStates.find(tile);
+        if(   jj != mDraggableTilesStates.end() )
+        {
+            // By default, we set the tile like if it was not claimed anymore
+            ii->second.mSeatIdOwner = -1;
+            ii->second.mTileVisual = TileVisual::dirtGround;
+            ii->second.mVisionTurnCurrent = true;
+        }
+        
+    }   
 }
 
 const std::string Seat::getFactionFromLine(const std::string& line)
@@ -344,20 +356,25 @@ bool Seat::hasVisionOnTile(Tile* tile)
     if(!mPlayer->getIsHuman())
         return true;
 
-    if(tile->getX() >= static_cast<int>(mTilesStates.size()))
+    std::map<Tile*,TileStateNotified>::iterator ii =  mTilesStates.find(tile);
+    if(   ii != mTilesStates.end() )
     {
-        OD_LOG_ERR("Tile=" + Tile::displayAsString(tile));
-        return false;
+
+        return ii->second.mVisionTurnCurrent;        
+
     }
-    if(tile->getY() >= static_cast<int>(mTilesStates[tile->getX()].size()))
+    else
     {
-        OD_LOG_ERR("Tile=" + Tile::displayAsString(tile));
-        return false;
-    }
+        std::map<Tile*,TileStateNotified>::iterator jj =  mDraggableTilesStates.find(tile);
+        if(   jj != mDraggableTilesStates.end() )
+        {
+            return ii->second.mVisionTurnCurrent;
+        }
+        
+    }   
 
-    TileStateNotified& stateTile = mTilesStates[tile->getX()][tile->getY()];
-
-    return stateTile.mVisionTurnCurrent;
+    // by default return true
+    return true;
 }
 
 void Seat::initSeat()
@@ -443,24 +460,13 @@ void Seat::initSeat()
                 ServerNotificationType::refreshTiles, getPlayer());
             uint32_t nbTiles = tilesRefresh.size();
             serverNotification->mPacket << nbTiles;
+            serverNotification->mPacket << mGameMap->getNodeType();
             for(Tile* tile : tilesRefresh)
             {
                 std::pair<int, int> tileCoords(tile->getX(), tile->getY());
                 TileStateNotified& tileState = mTilesStateLoaded[tileCoords];
 
-                // We set the tile visual to make sure the tile state is exported if
-                // game is saved again
-                if(tile->getX() >= static_cast<int>(mTilesStates.size()))
-                {
-                    OD_LOG_ERR("Tile=" + Tile::displayAsString(tile));
-                    continue;
-                }
-                if(tile->getY() >= static_cast<int>(mTilesStates[tile->getX()].size()))
-                {
-                    OD_LOG_ERR("Tile=" + Tile::displayAsString(tile));
-                    continue;
-                }
-                mTilesStates[tile->getX()][tile->getY()] = tileState;
+                mTilesStates[tile] = tileState;
 
                 // Then, we export tile state to the client
                 mGameMap->tileToPacket(serverNotification->mPacket, tile);
@@ -473,41 +479,45 @@ void Seat::initSeat()
     }
 }
 
-void Seat::setMapSize(int x, int y)
+void Seat::setMapSize(GameMap* gameMapPointer,int x, int y)
 {
     if(mPlayer == nullptr)
         return;
     if(!mPlayer->getIsHuman())
         return;
 
-    mTilesStates = std::vector<std::vector<TileStateNotified>>(x, std::vector<TileStateNotified>(y));
     // By default, we know that rock (ground & full) will be set as rock full tiles,
     // gold (ground & full) will be set as gold full tiles,
     // other tiles will be set as dirt full tiles
+    std::map<Tile*,TileStateNotified>& mTiles = (gameMapPointer->getNodeType() == NodeType::MTILES_NODE)? mTilesStates : mDraggableTilesStates ;
+         
+    
     for(int xxx = 0; xxx < x; ++xxx)
     {
         for(int yyy = 0; yyy < y; ++yyy)
         {
-            Tile* tile = mGameMap->getTile(xxx, yyy);
+            Tile* tile = gameMapPointer->getTile(xxx, yyy);
             if(tile == nullptr)
                 continue;
 
             if(tile->getType() == TileType::gold)
             {
-                mTilesStates[xxx][yyy].mTileVisual = TileVisual::goldFull;
+                mTiles[tile].mTileVisual = TileVisual::goldFull;
                 continue;
             }
 
             if(tile->getType() == TileType::rock)
             {
-                mTilesStates[xxx][yyy].mTileVisual = TileVisual::rockFull;
+                mTiles[tile].mTileVisual = TileVisual::rockFull;
                 continue;
             }
 
-            mTilesStates[xxx][yyy].mTileVisual = TileVisual::dirtFull;
+            mTiles[tile].mTileVisual = TileVisual::dirtFull;
         }
     }
 }
+
+
 
 unsigned int Seat::checkAllGoals()
 {
@@ -603,38 +613,68 @@ void Seat::notifyChangedVisibleTiles()
         return;
 
     std::vector<Tile*> tilesToNotify;
-    int xMax = static_cast<int>(mTilesStates.size());
-    for(int xxx = 0; xxx < xMax; ++xxx)
-    {
-        int yMax = static_cast<int>(mTilesStates[xxx].size());
-        for(int yyy = 0; yyy < yMax; ++yyy)
+    for(std::pair<Tile*, TileStateNotified> p : mTilesStates)
         {
-            if(!mTilesStates[xxx][yyy].mVisionTurnCurrent)
+            if(!p.second.mVisionTurnCurrent)
                 continue;
 
-            Tile* tile = mGameMap->getTile(xxx, yyy);
-            if(!tile->hasChangedForSeat(this))
+            
+            if(!p.first->hasChangedForSeat(this))
                 continue;
 
-            tilesToNotify.push_back(tile);
-            tile->changeNotifiedForSeat(this);
+            tilesToNotify.push_back(p.first);
+            p.first->changeNotifiedForSeat(this);
+    //     }
+    // }
         }
-    }
-
-    if(tilesToNotify.empty())
-        return;
-
-    uint32_t nbTiles = tilesToNotify.size();
-    ServerNotification *serverNotification = new ServerNotification(
-        ServerNotificationType::refreshTiles, getPlayer());
-    serverNotification->mPacket << nbTiles;
-    for(Tile* tile : tilesToNotify)
+    if(!tilesToNotify.empty())
     {
-        mGameMap->tileToPacket(serverNotification->mPacket, tile);
-        updateTileStateForSeat(tile, false);
-        tile->exportToPacketForUpdate(serverNotification->mPacket, this);
+        uint32_t nbTiles = tilesToNotify.size();
+        ServerNotification *serverNotification = new ServerNotification(
+            ServerNotificationType::refreshTiles, getPlayer());
+        serverNotification->mPacket << nbTiles;
+        serverNotification->mPacket << NodeType::MTILES_NODE;
+        for(Tile* tile : tilesToNotify)
+        {
+            mGameMap->tileToPacket(serverNotification->mPacket, tile);
+            updateTileStateForSeat(tile, false);
+            tile->exportToPacketForUpdate(serverNotification->mPacket, this);
+        }
+        ODServer::getSingleton().queueServerNotification(serverNotification);
     }
-    ODServer::getSingleton().queueServerNotification(serverNotification);
+    tilesToNotify.clear();        
+    for(std::pair<Tile*, TileStateNotified> p : mDraggableTilesStates)
+        {
+            if(!p.second.mVisionTurnCurrent)
+                continue;
+
+            
+            if(!p.first->hasChangedForSeat(this))
+                continue;
+
+            tilesToNotify.push_back(p.first);
+            p.first->changeNotifiedForSeat(this);
+    //     }
+    // }
+        }
+    if(!tilesToNotify.empty())
+    {
+        uint32_t nbTiles = tilesToNotify.size();
+        ServerNotification *serverNotification = new ServerNotification(
+            ServerNotificationType::refreshTiles, getPlayer());
+        serverNotification->mPacket << nbTiles;
+        serverNotification->mPacket << NodeType::MDTC_NODE;
+        for(Tile* tile : tilesToNotify)
+        {
+            mGameMap->tileToPacket(serverNotification->mPacket, tile);
+            updateTileStateForSeat(tile, false);
+            tile->exportToPacketForUpdate(serverNotification->mPacket, this);
+        }
+        ODServer::getSingleton().queueServerNotification(serverNotification);
+    }
+
+
+    
 }
 
 void Seat::stopVisualDebugEntities()
@@ -709,18 +749,13 @@ void Seat::refreshSeatVisualDebug()
     if(mIsDebuggingVision)
     {
         std::vector<Tile*> tiles;
-        int xMax = static_cast<int>(mTilesStates.size());
-        for(int xxx = 0; xxx < xMax; ++xxx)
+        for(std::pair<Tile* const, TileStateNotified> &p : mTilesStates)
         {
-            int yMax = static_cast<int>(mTilesStates[xxx].size());
-            for(int yyy = 0; yyy < yMax; ++yyy)
-            {
-                if(!mTilesStates[xxx][yyy].mVisionTurnCurrent)
-                    continue;
+            if(!p.second.mVisionTurnCurrent)
+                continue;
 
-                Tile* tile = mGameMap->getTile(xxx, yyy);
-                tiles.push_back(tile);
-            }
+                
+            tiles.push_back(p.first);
         }
         uint32_t nbTiles = tiles.size();
         ServerNotification *serverNotification = new ServerNotification(
@@ -760,29 +795,25 @@ void Seat::sendVisibleTiles()
         ServerNotificationType::refreshVisibleTiles, getPlayer());
     std::vector<Tile*> tilesVisionGained;
     std::vector<Tile*> tilesVisionLost;
-    // Tiles we gained vision
-    int xMax = static_cast<int>(mTilesStates.size());
-    for(int xxx = 0; xxx < xMax; ++xxx)
-    {
-        int yMax = static_cast<int>(mTilesStates[xxx].size());
-        for(int yyy = 0; yyy < yMax; ++yyy)
+    
+    serverNotification->mPacket << NodeType::MTILES_NODE;
+        for(std::pair<Tile* const, TileStateNotified> &p : mTilesStates)
         {
-            if(mTilesStates[xxx][yyy].mVisionTurnCurrent == mTilesStates[xxx][yyy].mVisionTurnLast)
+            if(p.second.mVisionTurnCurrent == p.second.mVisionTurnLast)
                 continue;
 
-            Tile* tile = mGameMap->getTile(xxx, yyy);
-            if(mTilesStates[xxx][yyy].mVisionTurnCurrent)
+            if(p.second.mVisionTurnCurrent)
             {
                 // Vision gained
-                tilesVisionGained.push_back(tile);
+                tilesVisionGained.push_back(p.first);
             }
             else
             {
                 // Vision lost
-                tilesVisionLost.push_back(tile);
+                tilesVisionLost.push_back(p.first);
             }
         }
-    }
+    // }
 
     // Notify tiles we gained vision
     nbTiles = tilesVisionGained.size();
@@ -800,6 +831,56 @@ void Seat::sendVisibleTiles()
         mGameMap->tileToPacket(serverNotification->mPacket, tile);
     }
     ODServer::getSingleton().queueServerNotification(serverNotification);
+
+
+    nbTiles =0;
+    tilesVisionGained.clear();
+    tilesVisionLost.clear();
+
+    // do the same for mDraggableTilesStates    
+    serverNotification = new ServerNotification(
+        ServerNotificationType::refreshVisibleTiles, getPlayer());
+    // Tiles we gained vision
+
+    serverNotification->mPacket << NodeType::MDTC_NODE;
+    
+        for(std::pair<Tile* const, TileStateNotified> &p : mDraggableTilesStates)
+        {
+            if(p.second.mVisionTurnCurrent == p.second.mVisionTurnLast)
+                continue;
+
+            if(p.second.mVisionTurnCurrent)
+            {
+                // Vision gained
+                tilesVisionGained.push_back(p.first);
+            }
+            else
+            {
+                // Vision lost
+                tilesVisionLost.push_back(p.first);
+            }
+        }
+    // }
+
+    // Notify tiles we gained vision
+    nbTiles = tilesVisionGained.size();
+    serverNotification->mPacket << nbTiles;
+    for(Tile* tile : tilesVisionGained)
+    {
+        mGameMap->tileToPacket(serverNotification->mPacket, tile);
+    }
+
+    // Notify tiles we lost vision
+    nbTiles = tilesVisionLost.size();
+    serverNotification->mPacket << nbTiles;
+    for(Tile* tile : tilesVisionLost)
+    {
+        mGameMap->tileToPacket(serverNotification->mPacket, tile);
+    }
+    ODServer::getSingleton().queueServerNotification(serverNotification);
+    
+
+    
 }
 
 void Seat::computeSeatBeginTurn()
@@ -1147,7 +1228,7 @@ bool Seat::exportSeatToStream(std::ostream& os) const
 
     // On editor, we write the original player type. If we are saving a game, we keep the assigned type
     if((mGameMap->isInEditorMode()) ||
-        (getPlayer() == nullptr))
+       (getPlayer() == nullptr))
     {
         os << "player\t";
         os << mPlayerType;
@@ -1219,7 +1300,7 @@ bool Seat::exportSeatToStream(std::ostream& os) const
 
     // Tile states are only saved for human players
     if((getPlayer() == nullptr) ||
-        (!getPlayer()->getIsHuman()))
+       (!getPlayer()->getIsHuman()))
     {
         return true;
     }
@@ -1233,30 +1314,29 @@ bool Seat::exportSeatToStream(std::ostream& os) const
         // set so we don't have to bother about them
         switch(tileVisual)
         {
-            case TileVisual::nullTileVisual:
-            case TileVisual::goldFull:
-            case TileVisual::dirtFull:
-            case TileVisual::rockFull:
-                continue;
+        case TileVisual::nullTileVisual:
+        case TileVisual::goldFull:
+        case TileVisual::dirtFull:
+        case TileVisual::rockFull:
+            continue;
 
-            default:
-                break;
+        default:
+            break;
         }
         exportTilesVisualInitialStates(tileVisual, os);
     }
 
     os << "[markedTiles]" << std::endl;
-    for(uint32_t xxx = 0; xxx < mTilesStates.size(); ++xxx)
-    {
-        for(uint32_t yyy = 0; yyy < mTilesStates[xxx].size(); ++yyy)
-        {
-            const TileStateNotified& tileState = mTilesStates[xxx][yyy];
-            if(!tileState.mMarkedForDigging)
-                continue;
 
-            os << xxx << "\t" << yyy << std::endl;
-        }
+    for(std::pair<Tile* const, TileStateNotified> p : mTilesStates)
+    {
+      
+        if(!p.second.mMarkedForDigging)
+            continue;
+
+        os << p.first->getX()<< "\t" << p.first->getY() << std::endl;
     }
+
     os << "[/markedTiles]" << std::endl;
 
     return true;
@@ -1265,19 +1345,13 @@ bool Seat::exportSeatToStream(std::ostream& os) const
 void Seat::exportTilesVisualInitialStates(TileVisual tileVisual, std::ostream& os) const
 {
     os << "[" + Tile::tileVisualToString(tileVisual) + "]" << std::endl;
-
-    for(uint32_t xxx = 0; xxx < mTilesStates.size(); ++xxx)
-    {
-        for(uint32_t yyy = 0; yyy < mTilesStates[xxx].size(); ++yyy)
+        for(std::pair<Tile* const, TileStateNotified> p : mTilesStates)
         {
-            const TileStateNotified& tileState = mTilesStates[xxx][yyy];
-            if(tileState.mTileVisual != tileVisual)
+            if(!p.second.mMarkedForDigging)
                 continue;
 
-            os << xxx << "\t" << yyy << "\t" << tileState.mSeatIdOwner << std::endl;
+            os << p.first->getX()<< "\t" << p.first->getY() <<  "\t" << p.second.mSeatIdOwner << std::endl;
         }
-    }
-
     os << "[/" + Tile::tileVisualToString(tileVisual) + "]" << std::endl;
 }
 
@@ -1537,20 +1611,23 @@ void Seat::setSkillTree(const std::vector<SkillType>& skills)
 
 void Seat::updateTileStateForSeat(Tile* tile, bool hideSeatId)
 {
-    if(tile->getX() >= static_cast<int>(mTilesStates.size()))
-    {
-        OD_LOG_ERR("Tile=" + Tile::displayAsString(tile));
-        return;
-    }
-    if(tile->getY() >= static_cast<int>(mTilesStates[tile->getX()].size()))
-    {
-        OD_LOG_ERR("Tile=" + Tile::displayAsString(tile));
-        return;
-    }
 
-    TileStateNotified& tileState = mTilesStates[tile->getX()][tile->getY()];
-    tileState.mTileVisual = tile->getTileVisual();
-    switch(tileState.mTileVisual)
+    TileStateNotified& tileState = mTilesStates[tile];
+
+    std::map<Tile*,TileStateNotified>::iterator jj =  mTilesStates.find(tile);
+    if(   jj == mTilesStates.end() )
+    {
+        jj = mDraggableTilesStates.find(tile);
+        if( jj == mDraggableTilesStates.end())
+        {
+            OD_LOG_ERR("Tile=" + Tile::displayAsString(tile));
+            return;
+        }
+    }
+    
+    jj->second.mTileVisual = tile->getTileVisual();
+    
+    switch(jj->second.mTileVisual)
     {
         case TileVisual::claimedFull:
         case TileVisual::claimedGround:
@@ -1560,7 +1637,7 @@ void Seat::updateTileStateForSeat(Tile* tile, bool hideSeatId)
             }
             else
             {
-                tileState.mSeatIdOwner = tile->getSeat()->getId();
+                jj->second.mSeatIdOwner = tile->getSeat()->getId();
             }
             break;
         case TileVisual::waterGround:
@@ -1573,33 +1650,33 @@ void Seat::updateTileStateForSeat(Tile* tile, bool hideSeatId)
                 }
                 else
                 {
-                    tileState.mSeatIdOwner = tile->getSeat()->getId();
+                    jj->second.mSeatIdOwner = tile->getSeat()->getId();
                 }
             }
             break;
         default:
-            tileState.mSeatIdOwner = -1;
+            jj->second.mSeatIdOwner = -1;
             break;
     }
 
-    if(tile->getCoveringBuilding() == tileState.mBuilding)
+    if(tile->getCoveringBuilding() == jj->second.mBuilding)
         return;
 
     // If we are hiding seat id, we do not notify the building about vision
     // so that it doesn't send the building seat id
-    if((tileState.mBuilding != nullptr) && !hideSeatId)
-        tileState.mBuilding->notifySeatVision(tile, this);
+    if((jj->second.mBuilding != nullptr) && !hideSeatId)
+        jj->second.mBuilding->notifySeatVision(tile, this);
 
     if((tile->getCoveringBuilding() != nullptr) &&
         (tile->getCoveringBuilding()->isTileVisibleForSeat(tile, this)))
     {
-        tileState.mBuilding = tile->getCoveringBuilding();
+        jj->second.mBuilding = tile->getCoveringBuilding();
         if(!hideSeatId)
-            tileState.mBuilding->notifySeatVision(tile, this);
+            jj->second.mBuilding->notifySeatVision(tile, this);
     }
     else
     {
-        tileState.mBuilding = nullptr;
+        jj->second.mBuilding = nullptr;
     }
 }
 
@@ -1610,18 +1687,7 @@ void Seat::setVisibleBuildingOnTile(Building* building, Tile* tile)
     if(!getPlayer()->getIsHuman())
         return;
 
-    if(tile->getX() >= static_cast<int>(mTilesStates.size()))
-    {
-        OD_LOG_ERR("Tile=" + Tile::displayAsString(tile));
-        return;
-    }
-    if(tile->getY() >= static_cast<int>(mTilesStates[tile->getX()].size()))
-    {
-        OD_LOG_ERR("Tile=" + Tile::displayAsString(tile));
-        return;
-    }
-
-    TileStateNotified& tileState = mTilesStates[tile->getX()][tile->getY()];
+    TileStateNotified& tileState = mTilesStates[tile];
 
     if(building == tileState.mBuilding)
         return;
@@ -1630,8 +1696,8 @@ void Seat::setVisibleBuildingOnTile(Building* building, Tile* tile)
     tileState.mSeatIdOwner = building->getSeat()->getId();
 }
 
-void Seat::exportTileToPacket(ODPacket& os, const Tile* tile,
-        bool hideSeatId) const
+void Seat::exportTileToPacket(ODPacket& os, Tile* tile,
+        bool hideSeatId) 
 {
     if(getPlayer() == nullptr)
     {
@@ -1644,18 +1710,8 @@ void Seat::exportTileToPacket(ODPacket& os, const Tile* tile,
         return;
     }
 
-    if(tile->getX() >= static_cast<int>(mTilesStates.size()))
-    {
-        OD_LOG_ERR("Tile=" + Tile::displayAsString(tile));
-        return;
-    }
-    if(tile->getY() >= static_cast<int>(mTilesStates[tile->getX()].size()))
-    {
-        OD_LOG_ERR("Tile=" + Tile::displayAsString(tile));
-        return;
-    }
 
-    const TileStateNotified& tileState = mTilesStates[tile->getX()][tile->getY()];
+    TileStateNotified& tileState = mTilesStates[tile];
 
     int tileSeatId = -1;
     // We only pass the tile seat to the client if the tile is fully claimed
@@ -1737,19 +1793,7 @@ void Seat::notifyBuildingRemovedFromGameMap(Building* building, Tile* tile)
         return;
     if(!getPlayer()->getIsHuman())
         return;
-
-    if(tile->getX() >= static_cast<int>(mTilesStates.size()))
-    {
-        OD_LOG_ERR("Tile=" + Tile::displayAsString(tile));
-        return;
-    }
-    if(tile->getY() >= static_cast<int>(mTilesStates[tile->getX()].size()))
-    {
-        OD_LOG_ERR("Tile=" + Tile::displayAsString(tile));
-        return;
-    }
-
-    TileStateNotified& tileState = mTilesStates[tile->getX()][tile->getY()];
+    TileStateNotified& tileState = mTilesStates[tile];
     if(tileState.mBuilding == building)
         tileState.mBuilding = nullptr;
 }
@@ -1761,18 +1805,7 @@ void Seat::tileMarkedDiggingNotifiedToPlayer(Tile* tile, bool isDigSet)
     if(!getPlayer()->getIsHuman())
         return;
 
-    if(tile->getX() >= static_cast<int>(mTilesStates.size()))
-    {
-        OD_LOG_ERR("Tile=" + Tile::displayAsString(tile));
-        return;
-    }
-    if(tile->getY() >= static_cast<int>(mTilesStates[tile->getX()].size()))
-    {
-        OD_LOG_ERR("Tile=" + Tile::displayAsString(tile));
-        return;
-    }
-
-    TileStateNotified& tileState = mTilesStates[tile->getX()][tile->getY()];
+    TileStateNotified& tileState = mTilesStates[tile];
     tileState.mMarkedForDigging = isDigSet;
 }
 
@@ -1780,18 +1813,8 @@ bool Seat::isTileDiggableForClient(Tile* tile) const
 {
     if(!getPlayer()->getIsHuman())
         return false;
-    if(tile->getX() >= static_cast<int>(mTilesStates.size()))
-    {
-        OD_LOG_ERR("Tile=" + Tile::displayAsString(tile));
-        return false;
-    }
-    if(tile->getY() >= static_cast<int>(mTilesStates[tile->getX()].size()))
-    {
-        OD_LOG_ERR("Tile=" + Tile::displayAsString(tile));
-        return false;
-    }
 
-    const TileStateNotified& tileState = mTilesStates[tile->getX()][tile->getY()];
+    const TileStateNotified& tileState = mTilesStates.at(tile);
     // Handle non claimed
     switch(tileState.mTileVisual)
     {

@@ -80,7 +80,7 @@ void RenderedMovableEntity::destroyMeshLocal(NodeType nt)
     if(getIsOnServerMap())
         return;
 
-    RenderManager::getSingleton().rrDestroyRenderedMovableEntity(this);
+    RenderManager::getSingleton().rrDestroyRenderedMovableEntity(this,nt);
 }
 
 void RenderedMovableEntity::addToGameMap(GameMap* gameMap)
@@ -97,20 +97,22 @@ void RenderedMovableEntity::addToGameMap(GameMap* gameMap)
     gameMap->addActiveObject(this);
 }
 
-void RenderedMovableEntity::removeFromGameMap()
+void RenderedMovableEntity::removeFromGameMap(GameMap* gameMap)
 {
+    if(gameMap == nullptr)
+        gameMap  = getGameMap();    
     fireEntityRemoveFromGameMap();
     removeEntityFromPositionTile();
-    getGameMap()->removeRenderedMovableEntity(this);
-    getGameMap()->removeAnimatedObject(this);
-    getGameMap()->removeClientUpkeepEntity(this);
+    gameMap->removeRenderedMovableEntity(this);
+    gameMap->removeAnimatedObject(this);
+    gameMap->removeClientUpkeepEntity(this);
 
     if(!getIsOnServerMap())
         return;
 
-    fireRemoveEntityToSeatsWithVision();
+    fireRemoveEntityToSeatsWithVision(gameMap);
 
-    getGameMap()->removeActiveObject(this);
+    gameMap->removeActiveObject(this);
 }
 
 void RenderedMovableEntity::setMeshOpacity(float opacity)
@@ -152,27 +154,29 @@ void RenderedMovableEntity::drop(const Ogre::Vector3& v)
     setPosition(v);
 }
 
-void RenderedMovableEntity::fireAddEntity(Seat* seat, bool async)
+void RenderedMovableEntity::fireAddEntity(Seat* seat, bool async, NodeType nt)
 {
     if(async)
     {
         ServerNotification serverNotification(
             ServerNotificationType::addEntity, seat->getPlayer());
+        serverNotification.mPacket << nt;         
         exportHeadersToPacket(serverNotification.mPacket);
-        exportToPacket(serverNotification.mPacket, seat);
+        exportToPacket(serverNotification.mPacket, seat);       
         ODServer::getSingleton().sendAsyncMsg(serverNotification);
     }
     else
     {
         ServerNotification* serverNotification = new ServerNotification(
             ServerNotificationType::addEntity, seat->getPlayer());
+        serverNotification->mPacket << nt;         
         exportHeadersToPacket(serverNotification->mPacket);
         exportToPacket(serverNotification->mPacket, seat);
         ODServer::getSingleton().queueServerNotification(serverNotification);
     }
 }
 
-void RenderedMovableEntity::fireRemoveEntity(Seat* seat)
+void RenderedMovableEntity::fireRemoveEntity(Seat* seat, NodeType nt )
 {
     ServerNotification *serverNotification = new ServerNotification(
         ServerNotificationType::removeEntity, seat->getPlayer());
@@ -180,6 +184,7 @@ void RenderedMovableEntity::fireRemoveEntity(Seat* seat)
     GameEntityType type = getObjectType();
     serverNotification->mPacket << type;
     serverNotification->mPacket << name;
+    serverNotification->mPacket << nt; 
     ODServer::getSingleton().queueServerNotification(serverNotification);
 }
 

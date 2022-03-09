@@ -111,6 +111,7 @@ MiniMapCamera::MiniMapCamera(CEGUI::Window* miniMapWindow) :
     updateMinimapCamera();
     mCullingManager->computeIntersectionPoints(mMiniMapCam, mCameraTilesIntersections);
     mCullingManager->startTileCulling(mMiniMapCam, mCameraTilesIntersections);
+        
 }
 
 MiniMapCamera::~MiniMapCamera()

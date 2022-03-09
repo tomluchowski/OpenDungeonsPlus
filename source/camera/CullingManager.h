@@ -73,12 +73,14 @@ public:
     //! vectors are put in ogreVectors
     bool computeIntersectionPoints(Ogre::Camera* camera, std::vector<Ogre::Vector3>& ogreVectors);
 
+    void hideAllTiles();
+    void showAllTiles(GameMap *gameMap);
+    
 private:
 
     void cullTiles(const std::vector<Ogre::Vector3>& ogreVectors);
 
-    void hideAllTiles();
-    void showAllTiles();
+
 
     // set the new tiles
     void newBashAndSplashTiles(uint32_t);

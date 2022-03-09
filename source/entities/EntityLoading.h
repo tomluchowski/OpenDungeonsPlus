@@ -29,7 +29,7 @@ class ODPacket;
 namespace Entities
 {
     GameEntity* getGameEntityFromStream(GameMap* gameMap, GameEntityType type, std::istream& is);
-    GameEntity* getGameEntityFromPacket(GameMap* gameMap, ODPacket& is);
+    GameEntity* getGameEntityFromPacket(GameMap* gameMap,  ODPacket& is);
 }
 
 #endif // ENTITYLOADING_H

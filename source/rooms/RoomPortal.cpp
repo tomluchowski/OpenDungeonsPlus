@@ -346,6 +346,8 @@ void RoomPortal::restoreInitialEntityState()
         ServerNotification *serverNotification = new ServerNotification(
             ServerNotificationType::refreshTiles, seat->getPlayer());
         serverNotification->mPacket << nbTiles;
+        serverNotification->mPacket << getGameMap()->getNodeType();  
+        
         for(Tile* tile : tilesToNotify)
         {
             getGameMap()->tileToPacket(serverNotification->mPacket, tile);

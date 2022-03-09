@@ -94,7 +94,7 @@ GameEditorModeBase::GameEditorModeBase(ModeManager* modeManager, ModeManager::Mo
     mChatMessageDisplayTime(0),
     mChatMessageBoxDisplay(ChatMessageBoxDisplay::hide),
     mMiniMap(MiniMap::createMiniMap(rootWindow->getChild(Gui::MINIMAP))),
-    mMainCullingManager(new CullingManager(mGameMap, CullingType::SHOW_MAIN_WINDOW)),
+    mMainCullingManager( new CullingManager(mGameMap, CullingType::SHOW_MAIN_WINDOW)),
     mKeepReplayAtDisconnect(false),
     mCameraTilesIntersections(std::vector<Ogre::Vector3>(4, Ogre::Vector3::ZERO)),
     mConsole(Utils::make_unique<GameEditorModeConsole>(modeManager))

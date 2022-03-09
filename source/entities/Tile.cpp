@@ -89,9 +89,7 @@ void Tile::transfer(Tile* tt)
     mSelected  = tt->mSelected;         
     mFullness = tt->mFullness;         
     mRefundPriceRoom = tt->mRefundPriceRoom;   
-    mRefundPriceTrap = tt->mRefundPriceTrap;
-    // mNeighbors = tt->mNeighbors;
-    // mCoveringBuilding = tt->mCoveringBuilding;  
+    mRefundPriceTrap = tt->mRefundPriceTrap; 
     mClaimedPercentage = tt->mClaimedPercentage; 
     mIsRoom = tt->mIsRoom;            
     mIsTrap = tt->mIsTrap;            
@@ -99,8 +97,7 @@ void Tile::transfer(Tile* tt)
     mColorCustomMesh = tt->mColorCustomMesh;  
     mHasBridge = tt->mHasBridge;         
     mLocalPlayerHasVision = tt->mLocalPlayerHasVision; 
-    // mTileCulling = tt->mTileCulling;       
-    // mNbWorkersClaiming = tt->mNbWorkersClaiming;
+    mTileCulling = tt->mTileCulling;       
     
 }
 
@@ -749,17 +746,17 @@ void Tile::clearVision()
     mSeatsWithVision.clear();
 }
 
-void Tile::notifyVision(Seat* seat)
+void Tile::notifyVision(Seat* seat, NodeType nt)
 {
     if(std::find(mSeatsWithVision.begin(), mSeatsWithVision.end(), seat) != mSeatsWithVision.end())
         return;
 
-    seat->notifyVisionOnTile(this);
+    seat->notifyVisionOnTile(this, nt);
     mSeatsWithVision.push_back(seat);
 
     // We also notify vision for allied seats
     for(Seat* alliedSeat : seat->getAlliedSeats())
-        notifyVision(alliedSeat);
+        notifyVision(alliedSeat, nt);
 }
 
 void Tile::setSeats(const std::vector<Seat*>& seats)
@@ -1044,12 +1041,12 @@ bool Tile::isGroundClaimable(Seat* seat) const
     return true;
 }
 
-void Tile::exportToPacketForUpdate(ODPacket& os, const Seat* seat) const
+void Tile::exportToPacketForUpdate(ODPacket& os, Seat* seat) 
 {
     exportToPacketForUpdate(os, seat, false);
 }
 
-void Tile::exportToPacketForUpdate(ODPacket& os, const Seat* seat, bool hideSeatId) const
+void Tile::exportToPacketForUpdate(ODPacket& os, Seat* seat, bool hideSeatId) 
 {
     GameEntity::exportToPacketForUpdate(os, seat);
 
@@ -1186,15 +1183,18 @@ void Tile::loadFromLine(const std::string& line, Tile *t)
     t->mClaimedPercentage = 1.0;
 }
 
-void Tile::refreshMesh(NodeType nt)
+void Tile::refreshMesh(NodeType nt,GameMap* gameMap)
 {
+
+    if(gameMap  == nullptr)
+        gameMap = getGameMap();
     if (!isMeshExisting())
         return;
 
     if(getIsOnServerMap())
         return;
 
-    RenderManager::getSingleton().rrRefreshTile(*this, *getGameMap(), *getGameMap()->getLocalPlayer(),nt);
+    RenderManager::getSingleton().rrRefreshTile(*this, *gameMap, *gameMap->getLocalPlayer(),nt);
 }
 
 void Tile::setSelected(bool ss, const Player* pp)
@@ -1768,11 +1768,11 @@ void Tile::setDirtyForAllSeats()
         seatChanged.second = true;
 }
 
-void Tile::notifyEntitiesSeatsWithVision()
+void Tile::notifyEntitiesSeatsWithVision(NodeType nt)
 {
     for(GameEntity* entity : mEntitiesInTile)
     {
-        entity->notifySeatsWithVision(mSeatsWithVision);
+        entity->notifySeatsWithVision(mSeatsWithVision , nt);
     }
 }
 

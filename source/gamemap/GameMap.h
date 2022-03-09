@@ -103,8 +103,8 @@ friend class RenderManager;
 friend class ODServer;
 
 public:
-    GameMap(bool isServerGameMap);
-    ~GameMap();
+    GameMap(bool isServerGameMap, NodeType nt = NodeType::MTILES_NODE);
+    virtual ~GameMap();
 
     std::string serverStr();
 
@@ -133,13 +133,13 @@ public:
     void setProperPositions();
 
     //! \brief Creates meshes for all the tiles, creatures, rooms, traps and lights stored in this GameMap.
-    void createAllEntities(NodeType nt = NodeType::MTILES_NODE);
+    void createAllEntities();
 
     //! \brief Destroyes meshes for all the tiles, creatures, rooms, traps and lights stored in this GameMap.
     void destroyAllEntities();
 
     //! \brief Clears the mesh and deletes the data structure for all the tiles, creatures, classes, and players in the GameMap.
-    void clearAll(NodeType nt = NodeType::MTILES_NODE);
+    virtual void clearAll();
 
     //! \brief Clears the mesh and deletes the data structure for all the creatures in the GameMap.
     void clearCreatures();
@@ -219,7 +219,7 @@ public:
     void saveLevelEquipments(std::ofstream& levelFile);
 
     //! \brief Calls the deleteYourself() method on each of the rooms in the game map as well as clearing the vector of stored rooms.
-    void clearRooms();
+    void clearRooms(NodeType nt = NodeType::MTILES_NODE);
 
     //! \brief Simple mutators method to add/remove the given Room to the GameMap.
     void addRoom(Room *r);
@@ -247,7 +247,7 @@ public:
     Trap* getTrapByName(const std::string& name);
 
     //! \brief Traps related functions.
-    void clearTraps();
+    void clearTraps(NodeType nt = NodeType::MDTC_NODE);
     void addTrap(Trap *t);
     void removeTrap(Trap *t);
     inline const std::vector<Trap*>& getTraps() const
@@ -440,8 +440,11 @@ public:
     inline void setGamePaused(bool paused)
     { mIsPaused = paused; }
 
+    inline NodeType getNodeType()
+    { return mNodeType; }
+    
     //! \brief Refresh the tiles borders based a recent change on the map
-    void refreshBorderingTilesOf(const std::vector<Tile*>& affectedTiles);
+    void refreshBorderingTilesOf(const std::vector<Tile*>& affectedTiles, NodeType nt = NodeType::MTILES_NODE);
 
     std::vector<Tile*> getBuildableTilesForPlayerInArea(int x1, int y1, int x2, int y2,
         Player* player);
@@ -476,7 +479,7 @@ public:
     void addRenderedMovableEntity(RenderedMovableEntity *obj);
     void removeRenderedMovableEntity(RenderedMovableEntity *obj);
     RenderedMovableEntity* getRenderedMovableEntity(const std::string& name);
-    void clearRenderedMovableEntities();
+    void clearRenderedMovableEntities(NodeType nt = NodeType::MTILES_NODE);
     GameEntity* getEntityFromTypeAndName(GameEntityType entityType,
         const std::string& entityName);
 
@@ -498,7 +501,7 @@ public:
     //! RenderManager has finished to render every object inside.
     void processDeletionQueues();
 
-    void updateVisibleEntities();
+    void updateVisibleEntities(NodeType nt = NodeType::MTILES_NODE);
 
     void fireRefreshEntities();
 
@@ -547,7 +550,8 @@ public:
     //! \brief Methods to copy from/onto other gamemaps
     //! \brief Ask server to Copy the tiles from the given source gamemap -- in most cases the draggableTileContainer, it's length number of x Tiles  starting at offsetX,  width number of y Tiles starting at offsetY, to this gamemap position of point ( xx , yy)  
     bool askServerCopyTilesWithOffsetFrom(const DraggableTileContainer& dtc, unsigned int xx, unsigned yy,  unsigned int length, unsigned int width, unsigned int offsetX, unsigned int offsetY);
-    //! \brief Ask server to copy the traps from the given source gamemap -- in most cases teh draggableTileContainer, it's length number of x Tiles  starting at offsetX,  width number of y Tiles starting at offsetY, to this gamemap position of point ( xx , yy)   
+    //! \brief Ask server to copy the traps from the given source gamemap -- in most cases teh draggableTileContainer, it's length number of x Tiles  starting at offsetX,  width number of y Tiles starting at offsetY, to this gamemap position of point ( xx , yy)
+    bool askServerCopyRoomsWithOffsetFrom(const DraggableTileContainer& dtc, unsigned int xx, unsigned yy,  unsigned int length, unsigned int width, unsigned int offsetX, unsigned int offsetY);
     bool askServerCopyTrapsWithOffsetFrom(const DraggableTileContainer& dtc, unsigned int xx, unsigned yy,  unsigned int length, unsigned int width, unsigned int offsetX, unsigned int offsetY);  
     
     //! \brief Copy the tiles from the given source gamemap, it's length number of x Tiles  starting at offsetX,  width number of y Tiles starting at offsetY, to this gamemap position of point ( xx , yy)  
@@ -558,15 +562,33 @@ public:
     bool copyTilesFrom(const GameMap& , unsigned int xx, unsigned int yy,  unsigned int length, unsigned int width);
     //! \brief Copy all the tiles from the given gamemap, at position of point ( xx , yy )     
     bool copyFullyTilesFrom(const GameMap& , unsigned int xx, unsigned int yy);
+    virtual Ogre::Vector2 getPosition() const {return Ogre::Vector2::ZERO;} 
 
+    
 protected:
     //! \brief Tells whether this game map instance is used as a reference by the server-side,
     //! or as a standard client game map.
     bool mIsServerGameMap;    
+    std::vector<Seat*> mSeats;
+    
+    std::vector<GameEntity*> mActiveObjects;
+
+    //! \brief Useless entities that need to be deleted. They will be deleted when processDeletionQueues is called
+    std::vector<GameEntity*> mEntitiesToDelete;
+
+    //Mutable to allow locking in const functions.
+    std::vector<MovableGameEntity*> mAnimatedObjects;    
+    //! \brief Entities that want to be notified for upkeep on client side
+    
+    std::vector<GameEntity*> mGameEntityClientUpkeep;
     
 private:
 
+
     
+    
+    NodeType mNodeType;
+
     //! \brief the Local player reference. The local player will also be in the player list so this pointer
     //! should not be deleted as it will be handled like every other in the list.
     Player* mLocalPlayer;
@@ -608,8 +630,6 @@ private:
     std::vector<std::pair<const CreatureDefinition*,CreatureDefinition*> > mClassDescriptions;
     std::vector<std::pair<const Weapon*,Weapon*> > mWeapons;
 
-    //Mutable to allow locking in const functions.
-    std::vector<MovableGameEntity*> mAnimatedObjects;
 
     //! \brief Map Entities
     std::vector<Room*> mRooms;
@@ -618,25 +638,16 @@ private:
 
     //! \brief Players and available game player slots (Seats)
     std::vector<Player*> mPlayers;
-    std::vector<Seat*> mSeats;
     std::vector<Seat*> mWinningSeats;
 
     //! \brief Common player goals
     std::vector<std::unique_ptr<Goal>> mGoalsForAllSeats;
-
-    //! \brief Entities that want to be notified for upkeep on client side
-    std::vector<GameEntity*> mGameEntityClientUpkeep;
 
     //! \brief Tells whether the map color flood filling is enabled.
     bool mFloodFillEnabled;
 
     //! When true, fog of war will work normally. When false, every connected client will see the whole map
     bool mIsFOWActivated;
-
-    std::vector<GameEntity*> mActiveObjects;
-
-    //! \brief Useless entities that need to be deleted. They will be deleted when processDeletionQueues is called
-    std::vector<GameEntity*> mEntitiesToDelete;
 
     //! \brief Debug member used to know how many call to pathfinding has been made within the same turn.
     unsigned int mNumCallsTo_path;

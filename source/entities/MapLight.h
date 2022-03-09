@@ -60,7 +60,7 @@ public:
     static const std::string MAPLIGHT_NAME_PREFIX;
 
     virtual void addToGameMap(GameMap* gameMap = nullptr) override;
-    virtual void removeFromGameMap() override;
+    virtual void removeFromGameMap(GameMap* gameMap = nullptr) override;
 
     virtual void doUpkeep() override
     {}
@@ -103,7 +103,7 @@ public:
 
     //! NOTE: If we want to add MapLights on claimed tiles, we should do that on client side
     //! only if possible (and maybe create another class for that that cannot be picked up)
-    void notifySeatsWithVision(const std::vector<Seat*>& seats) override;
+    void notifySeatsWithVision(const std::vector<Seat*>& seats, NodeType nt) override;
 
     void fireAddEntityToAll();
 
@@ -127,8 +127,8 @@ protected:
 
     virtual void createMeshLocal(NodeType nt = NodeType::MTILES_NODE) override;
     virtual void destroyMeshLocal(NodeType nt = NodeType::MTILES_NODE) override;
-    virtual void fireAddEntity(Seat* seat, bool async) override;
-    virtual void fireRemoveEntity(Seat* seat) override;
+    virtual void fireAddEntity(Seat* seat, bool async, NodeType nt) override;
+    virtual void fireRemoveEntity(Seat* seat,NodeType nt = NodeType::MTILES_NODE) override;
 
 private:
     Ogre::ColourValue mDiffuseColor;

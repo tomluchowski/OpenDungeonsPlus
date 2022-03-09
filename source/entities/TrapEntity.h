@@ -50,7 +50,7 @@ public:
     virtual bool isVisibleForSeat(Seat* seat) override;
 
     void seatSawTriggering(Seat* seat);
-    void notifySeatsWithVision(const std::vector<Seat*>& seats) override;
+    void notifySeatsWithVision(const std::vector<Seat*>& seats, NodeType nt = NodeType::MTILES_NODE ) override;
 
     static TrapEntity* getTrapEntityFromPacket(GameMap* gameMap, ODPacket& is);
 

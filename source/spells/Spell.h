@@ -46,12 +46,12 @@ public:
     virtual SpellType getSpellType() const = 0;
 
     virtual void addToGameMap(GameMap* gameMap = nullptr) override;
-    virtual void removeFromGameMap() override;
+    virtual void removeFromGameMap(GameMap* gameMap = nullptr) override;
 
     //! \brief Some spells can be cast where the caster do not have vision. In this case, we
     //! want him and his allies to see the spell even if they don't have vision on the tile
     //! where the spell is
-    virtual void notifySeatsWithVision(const std::vector<Seat*>& seats) override;
+    virtual void notifySeatsWithVision(const std::vector<Seat*>& seats, NodeType nt = NodeType::MTILES_NODE ) override;
 
     virtual void doUpkeep() override;
 

@@ -18,7 +18,9 @@
 #ifndef SEAT_H
 #define SEAT_H
 
+#include "entities/NodeType.h"
 #include "game/SeatData.h"
+
 
 #include <Ogre.h>
 #include <OgreColourValue.h>
@@ -29,6 +31,7 @@
 
 class Building;
 class ConfigManager;
+class DraggableTileContainer;
 class Goal;
 class ODPacket;
 class GameMap;
@@ -37,6 +40,7 @@ class Player;
 class Skill;
 class Seat;
 class Tile;
+
 
 enum class KeeperAIType;
 enum class RoomType;
@@ -182,8 +186,10 @@ public:
 
     void initSeat();
 
-    void setMapSize(int x, int y);
+    void setMapSize(GameMap* gameMapPointer,int x, int y);
 
+    void setDraggableMapSize(int x, int y);
+    
     //! \brief Returns the next fighter creature class to spawn.
     const CreatureDefinition* getNextFighterClassToSpawn(const GameMap& gameMap, const ConfigManager& configManager );
 
@@ -201,9 +207,10 @@ public:
     bool canBuildingBeDestroyedBy(const Seat* seat) const;
 
     void clearTilesWithVision();
-    void notifyVisionOnTile(Tile* tile);
+    void notifyVisionOnTile(Tile* tile, NodeType nt);
     void notifyTileClaimedByEnemy(Tile* tile);
-
+    void clearVisionForGameMap(DraggableTileContainer* dtc);
+    
     //! \brief Returns true if this seat can see the given tile and false otherwise
     bool hasVisionOnTile(Tile* tile);
 
@@ -297,8 +304,8 @@ public:
      * associated to the seat have the needed information to display the
      * tile correctly
      */
-    void exportTileToPacket(ODPacket& os, const Tile* tile,
-        bool hideSeatId) const;
+    void exportTileToPacket(ODPacket& os, Tile* tile,
+        bool hideSeatId) ;
 
     static bool sortForMapSave(Seat* s1, Seat* s2);
 
@@ -359,7 +366,8 @@ private:
     //! \brief List of all the tiles in the gamemap (used for human players seats only). The first vector stores the X position.
     //! The second vector stores the Y position. TileStateNotified contains information about the tile
     //! state (last tile state notified, vision last turn for this seat, vision for current turn, ...
-    std::vector<std::vector<TileStateNotified>> mTilesStates;
+    std::map<Tile*,TileStateNotified> mTilesStates;
+    std::map<Tile*,TileStateNotified> mDraggableTilesStates;    
 
     std::map<std::pair<int, int>, TileStateNotified> mTilesStateLoaded;
 

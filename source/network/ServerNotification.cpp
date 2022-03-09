@@ -100,14 +100,14 @@ std::string ServerNotification::typeString(ServerNotificationType type)
             return "pingCreateAllEntities";
         case ServerNotificationType::pingCreateDraggableTileContainer:
             return "pingCreateDraggableTileContainer";
+        case ServerNotificationType::pingDeleteDraggableTileContainer:
+            return "pingDeleteDraggableTileContainer";            
         case ServerNotificationType::pingEditorAskSetRoundedPositionDraggableTileContainer:
             return "pingEditorAskSetRoundedPositionDraggableTileContainer";            
         case ServerNotificationType::markTiles:
             return "markTiles";
         case ServerNotificationType::refreshTiles:
-            return "refreshTiles";
-        case ServerNotificationType::refreshTilesOnDraggableTileContainer:
-            return "refreshTilesOnDraggableTileContainer";            
+            return "refreshTiles";           
         case ServerNotificationType::refreshVisibleTiles:
             return "refreshVisibleTiles";
         case ServerNotificationType::revealTiles:

@@ -158,9 +158,10 @@ private:
 };
 
 
-GameMap::GameMap(bool isServerGameMap) :
+GameMap::GameMap(bool isServerGameMap, NodeType nt) :
         TileContainer(isServerGameMap ? 15 : 0),
         mIsServerGameMap(isServerGameMap),
+        mNodeType(nt),
         mLocalPlayer(nullptr),
         mLocalPlayerNick(DEFAULT_NICK),
         mTurnNumber(-1),
@@ -171,7 +172,7 @@ GameMap::GameMap(bool isServerGameMap) :
         mNumCallsTo_path(0),
         mAiManager(*this),
         mTileSet(nullptr),
-        generator(0)
+        generator(42)
 {
     resetUniqueNumbers();
 }
@@ -278,73 +279,76 @@ void GameMap::setAllFullnessAndNeighbors()
     }
 }
 
-void GameMap::clearAll(NodeType nt)
+void GameMap::clearAll()
 {
-    clearCreatures();
-    clearClasses();
-    clearWeapons();
-    clearTraps();
-
-    clearMapLights();
-    clearRooms();
-    // NOTE : clearRenderedMovableEntities should be called after clearRooms because clearRooms will try to remove the objects from the room
-    clearRenderedMovableEntities();
-    clearSpells();
-
-    processDeletionQueues();
-
-    clearTiles(nt);
-    processDeletionQueues();
-
-    clearGoalsForAllSeats();
-    clearSeats();
-    mLocalPlayer = nullptr;
-    clearPlayers();
-
-    clearAiManager();
-
-    mLocalPlayerNick = DEFAULT_NICK;
-    mTurnNumber = -1;
-    resetUniqueNumbers();
-    mIsFOWActivated = true;
-    mTimePayDay = 0;
-
-    // We check if the different vectors are empty
-    if(!mActiveObjects.empty())
+    if(mNodeType == NodeType::MTILES_NODE)
     {
-        OD_LOG_ERR("mActiveObjects not empty size=" + Helper::toString(static_cast<uint32_t>(mActiveObjects.size())));
-        for(GameEntity* entity : mActiveObjects)
+        clearCreatures();
+        clearClasses();
+        clearWeapons();
+        clearTraps();
+
+        clearMapLights();
+        clearRooms();
+        // NOTE : clearRenderedMovableEntities should be called after clearRooms because clearRooms will try to remove the objects from the room
+        clearRenderedMovableEntities();
+        clearSpells();
+
+        processDeletionQueues();
+
+        clearTiles();
+        processDeletionQueues();
+
+        clearGoalsForAllSeats();
+        clearSeats();
+        mLocalPlayer = nullptr;
+        clearPlayers();
+
+        clearAiManager();
+
+        mLocalPlayerNick = DEFAULT_NICK;
+        mTurnNumber = -1;
+        resetUniqueNumbers();
+        mIsFOWActivated = true;
+        mTimePayDay = 0;
+
+        // We check if the different vectors are empty
+        if(!mActiveObjects.empty())
         {
-            OD_LOG_ERR("entity not removed=" + entity->getName());
+            OD_LOG_ERR("mActiveObjects not empty size=" + Helper::toString(static_cast<uint32_t>(mActiveObjects.size())));
+            for(GameEntity* entity : mActiveObjects)
+            {
+                OD_LOG_ERR("entity not removed=" + entity->getName());
+            }
+            mActiveObjects.clear();
         }
-        mActiveObjects.clear();
-    }
-    if(!mAnimatedObjects.empty())
-    {
-        OD_LOG_ERR("mAnimatedObjects not empty size=" + Helper::toString(static_cast<uint32_t>(mAnimatedObjects.size())));
-        for(GameEntity* entity : mAnimatedObjects)
+        if(!mAnimatedObjects.empty())
         {
-            OD_LOG_ERR("entity not removed=" + entity->getName());
+            OD_LOG_ERR("mAnimatedObjects not empty size=" + Helper::toString(static_cast<uint32_t>(mAnimatedObjects.size())));
+            for(GameEntity* entity : mAnimatedObjects)
+            {
+                OD_LOG_ERR("entity not removed=" + entity->getName());
+            }
+            mAnimatedObjects.clear();
         }
-        mAnimatedObjects.clear();
-    }
-    if(!mEntitiesToDelete.empty())
-    {
-        OD_LOG_ERR("mEntitiesToDelete not empty size=" + Helper::toString(static_cast<uint32_t>(mEntitiesToDelete.size())));
-        for(GameEntity* entity : mEntitiesToDelete)
+        if(!mEntitiesToDelete.empty())
         {
-            OD_LOG_ERR("entity not removed=" + entity->getName());
+            OD_LOG_ERR("mEntitiesToDelete not empty size=" + Helper::toString(static_cast<uint32_t>(mEntitiesToDelete.size())));
+            for(GameEntity* entity : mEntitiesToDelete)
+            {
+                OD_LOG_ERR("entity not removed=" + entity->getName());
+            }
+            mEntitiesToDelete.clear();
         }
-        mEntitiesToDelete.clear();
-    }
-    if(!mGameEntityClientUpkeep.empty())
-    {
-        OD_LOG_ERR("mGameEntityClientUpkeep not empty size=" + Helper::toString(static_cast<uint32_t>(mGameEntityClientUpkeep.size())));
-        for(GameEntity* entity : mGameEntityClientUpkeep)
+        if(!mGameEntityClientUpkeep.empty())
         {
-            OD_LOG_ERR("entity not removed=" + entity->getName());
+            OD_LOG_ERR("mGameEntityClientUpkeep not empty size=" + Helper::toString(static_cast<uint32_t>(mGameEntityClientUpkeep.size())));
+            for(GameEntity* entity : mGameEntityClientUpkeep)
+            {
+                OD_LOG_ERR("entity not removed=" + entity->getName());
+            }
+            mGameEntityClientUpkeep.clear();
         }
-        mGameEntityClientUpkeep.clear();
     }
 }
 
@@ -394,14 +398,14 @@ void GameMap::clearWeapons()
     mWeapons.clear();
 }
 
-void GameMap::clearRenderedMovableEntities()
+void GameMap::clearRenderedMovableEntities(NodeType nt)
 {
     // We need to work on a copy of mRenderedMovableEntities because removeFromGameMap will remove them from this vector
     std::vector<RenderedMovableEntity*> renderedMovableEntities = mRenderedMovableEntities;
     for (RenderedMovableEntity* obj : renderedMovableEntities)
     {
-        obj->removeFromGameMap();
-        obj->deleteYourself();
+        obj->removeFromGameMap(this);
+        obj->deleteYourself(this,nt);
     }
 
     mRenderedMovableEntities.clear();
@@ -932,7 +936,7 @@ const CreatureDefinition* GameMap::getClassDescription(int index)
         return def.first;
 }
 
-void GameMap::createAllEntities(NodeType nt)
+void GameMap::createAllEntities()
 {
     mTileSet = ConfigManager::getSingleton().getTileSet(mTileSetName);
 
@@ -977,14 +981,14 @@ void GameMap::createAllEntities(NodeType nt)
         {
             for (int ii = 0; ii < getMapSizeX(); ++ii)
             {
-                getTile(ii,jj)->createMesh(nt);
+                getTile(ii,jj)->createMesh(mNodeType);
             }
         }
 
         // Create OGRE entities for rendered entities
         for (RenderedMovableEntity* rendered : mRenderedMovableEntities)
         {
-            rendered->createMesh(nt);
+            rendered->createMesh(mNodeType);
             rendered->setPosition(rendered->getPosition());
         }
 
@@ -1812,14 +1816,14 @@ std::vector<GameEntity*> GameMap::getCarryableEntities(Creature* carrier, const 
     return returnList;
 }
 
-void GameMap::clearRooms()
+void GameMap::clearRooms(NodeType nt)
 {
     // We need to work on a copy of mRooms because removeFromGameMap will remove them from this vector
     std::vector<Room*> rooms = mRooms;
     for (Room *tempRoom : rooms)
     {
-        tempRoom->removeFromGameMap();
-        tempRoom->deleteYourself();
+        tempRoom->removeFromGameMap(this);
+        tempRoom->deleteYourself(this);
     }
 
     mRooms.clear();
@@ -1976,14 +1980,14 @@ Trap* GameMap::getTrapByName(const std::string& name)
     return nullptr;
 }
 
-void GameMap::clearTraps()
+void GameMap::clearTraps(NodeType nt)
 {
     // We need to work on a copy of mTraps because removeFromGameMap will remove them from this vector
     std::vector<Trap*> traps = mTraps;
     for (Trap* trap : traps)
     {
-        trap->removeFromGameMap();
-        trap->deleteYourself();
+        trap->removeFromGameMap(this);
+        trap->deleteYourself(this, nt);
     }
 
     mTraps.clear();
@@ -2498,7 +2502,7 @@ void GameMap::processDeletionQueues()
     mEntitiesToDelete.clear();
 }
 
-void GameMap::refreshBorderingTilesOf(const std::vector<Tile*>& affectedTiles)
+void GameMap::refreshBorderingTilesOf(const std::vector<Tile*>& affectedTiles, NodeType nt)
 {
     // Add the tiles which border the affected region to the affectedTiles vector since they may need to have their meshes changed.
     std::vector<Tile*> borderTiles = tilesBorderedByRegion(affectedTiles);
@@ -2508,7 +2512,7 @@ void GameMap::refreshBorderingTilesOf(const std::vector<Tile*>& affectedTiles)
     // Loop over all the affected tiles and force them to examine their neighbors.  This allows
     // them to switch to a mesh with fewer polygons if some are hidden by the neighbors, etc.
     for (Tile* tile : borderTiles)
-        tile->refreshMesh();
+        tile->refreshMesh( nt, this);
 }
 
 std::vector<Tile*> GameMap::getBuildableTilesForPlayerInArea(int x1, int y1, int x2, int y2,
@@ -2825,7 +2829,7 @@ Creature* GameMap::getWorkerForPathFinding(Seat* seat)
     return nullptr;
 }
 
-void GameMap::updateVisibleEntities()
+void GameMap::updateVisibleEntities(NodeType nt )
 {
     // Notify what happened to entities on visible tiles
     for (int jj = 0; jj < getMapSizeY(); ++jj)
@@ -2833,7 +2837,7 @@ void GameMap::updateVisibleEntities()
         for (int ii = 0; ii < getMapSizeX(); ++ii)
         {
             Tile* tile = getTile(ii,jj);
-            tile->notifyEntitiesSeatsWithVision();
+            tile->notifyEntitiesSeatsWithVision(nt);
         }
     }
 }
@@ -3339,45 +3343,26 @@ bool GameMap::askServerCopyTilesWithOffsetFrom(const DraggableTileContainer& dtc
     return isNull;
 }
 
+
+bool GameMap::askServerCopyRoomsWithOffsetFrom(const DraggableTileContainer& dtc, unsigned int xx, unsigned yy,  unsigned int length, unsigned int width, unsigned int offsetX, unsigned int offsetY)
+{
+    
+    ClientNotification *clientNotification = new ClientNotification(ClientNotificationType::editorAskCopyRoom);
+    ODClient::getSingleton().queueClientNotification(clientNotification);
+    
+}
+
+
+
+
+
+
+
+
 bool GameMap::askServerCopyTrapsWithOffsetFrom(const DraggableTileContainer& dtc, unsigned int xx, unsigned yy,  unsigned int length, unsigned int width, unsigned int offsetX, unsigned int offsetY)
 {
-
-    std::vector<Trap*> affectedTraps;
-    bool isActive;
-    
-    for(Trap* trap : dtc.mTraps)
-    {
-        for(Tile* tile : trap->getCoveredTiles())
-        {           
-               
-            ClientNotification *clientNotification = new ClientNotification(
-                ClientNotificationType::editorAskBuildTrapWithActivation);
-            int seatId =(trap->getSeat() == nullptr) ? -1 : trap->getSeat()->getId();
-            TrapType trapType = trap->getType() ;
-            clientNotification->mPacket<< trapType;
-            clientNotification->mPacket<< seatId;
-            clientNotification->mPacket<< 1;
-            auto it = trap->mTileData.find(tile);
-            if(it == trap->mTileData.end())
-            {
-                OD_LOG_ERR("building=" + trap->getName() + ", tile=" + Tile::displayAsString(tile));
-                continue;
-            }
-            TileData* tileData = it->second;
-            TrapTileData* trapTileData = static_cast<TrapTileData*>(tileData);
-            // we mock up :
-            // dtc.tileToPacket(clientNotification->mPacket, tile);
-            // modulo postion of draggableTileContainer
-            int32_t xx = tile->getX() + dtc.getPosition().x;
-            int32_t yy = tile->getY() + dtc.getPosition().y;
-            clientNotification->mPacket<< xx;
-            clientNotification->mPacket<< yy;
-            // isActive = trapTileData->isActivated();            
-            // clientNotification->mPacket<< isActive;
-            ODClient::getSingleton().queueClientNotification(clientNotification);
-            
-        }        
-    }
+    ClientNotification *clientNotification = new ClientNotification(ClientNotificationType::editorAskCopyTrap);
+    ODClient::getSingleton().queueClientNotification(clientNotification);
     
 }
 

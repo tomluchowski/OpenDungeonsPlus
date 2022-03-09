@@ -274,6 +274,24 @@ Command::Result cPrintNodes(const Command::ArgumentList_t& args, ConsoleInterfac
     return Command::Result::SUCCESS;
 }
 
+
+Command::Result cPrintEntities(const Command::ArgumentList_t& args, ConsoleInterface& c, AbstractModeManager&)
+{
+    std::function<void(Ogre::SceneNode*)> printNodesAux = [&](Ogre::SceneNode* sn){
+  	for(Ogre::MovableObject* mv: sn->getAttachedObjectIterator())
+            c.print(mv->getName());
+        
+        Ogre::Node::ChildNodeMap   chnm = sn->getChildren();
+        for(auto it : chnm   ){
+            printNodesAux( static_cast<Ogre::SceneNode*>(it));
+        } 
+    };
+    Ogre::SceneManager* mSceneMgr = RenderManager::getSingletonPtr()->getSceneManager();   
+    printNodesAux(mSceneMgr->getRootSceneNode());
+    return Command::Result::SUCCESS;
+}
+
+
 Command::Result cSrvAddCreature(const Command::ArgumentList_t& args, ConsoleInterface& c, GameMap& gameMap)
 {
     if (args.size() < 6)
@@ -659,6 +677,11 @@ void addConsoleCommands(ConsoleInterface& cl)
                   cPrintNodes,
                   Command::cStubServer,
                   {AbstractModeManager::ModeType::GAME, AbstractModeManager::ModeType::EDITOR});
+    cl.addCommand("printentities",
+                  "prints all entities in the scenemanager ",
+                  cPrintEntities,
+                  Command::cStubServer,
+                  {AbstractModeManager::ModeType::GAME, AbstractModeManager::ModeType::EDITOR});    
     cl.addCommand("setShadowFarClipDistance",
                   "sets the camera shadow far clip distance ",
                   cShadowFarClipDistance,

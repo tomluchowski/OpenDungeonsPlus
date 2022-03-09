@@ -171,8 +171,10 @@ bool TreasuryObject::tryDrop(Seat* seat, Tile* tile)
     return false;
 }
 
-void TreasuryObject::addEntityToPositionTile()
+void TreasuryObject::addEntityToPositionTile(GameMap* gameMap)
 {
+    if(gameMap == nullptr)
+        gameMap = getGameMap();
     if(getIsOnMap())
         return;
 
@@ -180,10 +182,10 @@ void TreasuryObject::addEntityToPositionTile()
     Tile* tile = getPositionTile();
     if(tile == nullptr)
     {
-        OD_LOG_ERR(getGameMap()->serverStr() + "entityName=" + getName() + ", pos=" + Helper::toString(getPosition()));
+        OD_LOG_ERR(gameMap->serverStr() + "entityName=" + getName() + ", pos=" + Helper::toString(getPosition()));
         return;
     }
-    OD_ASSERT_TRUE_MSG(tile->addTreasuryObject(this), getGameMap()->serverStr() + "entity=" + getName() + ", pos=" + Helper::toString(getPosition()) + ", tile=" + Tile::displayAsString(tile));
+    OD_ASSERT_TRUE_MSG(tile->addTreasuryObject(this), gameMap->serverStr() + "entity=" + getName() + ", pos=" + Helper::toString(getPosition()) + ", tile=" + Tile::displayAsString(tile));
 }
 
 EntityCarryType TreasuryObject::getEntityCarryType(Creature* carrier)

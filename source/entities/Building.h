@@ -97,7 +97,7 @@ public:
     //! \brief Checks if the building objects allow the room to be deleted
     bool canBuildingBeRemoved();
 
-    void removeAllBuildingObjects();
+    void removeAllBuildingObjects(GameMap* gameMap = nullptr);
     Tile* getCentralTile();
 
     virtual bool isClaimable(Seat* seat) const
@@ -198,9 +198,9 @@ protected:
     void removeBuildingObject(BuildingObject* obj);
     BuildingObject* getBuildingObjectFromTile(Tile* tile);
     //! \brief Buildings are handled by the tile, they don't fire add/remove events
-    void fireAddEntity(Seat* seat, bool async) override
+    void fireAddEntity(Seat* seat,bool async,NodeType nt) override
     {}
-    void fireRemoveEntity(Seat* seat) override
+    void fireRemoveEntity(Seat* seat,NodeType nt = NodeType::MTILES_NODE) override
     {}
 
     std::map<Tile*, BuildingObject*> mBuildingObjects;

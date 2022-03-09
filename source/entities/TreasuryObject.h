@@ -57,7 +57,7 @@ public:
     static TreasuryObject* getTreasuryObjectFromStream(GameMap* gameMap, std::istream& is);
     static TreasuryObject* getTreasuryObjectFromPacket(GameMap* gameMap, ODPacket& is);
 
-    virtual void addEntityToPositionTile() override;
+    virtual void addEntityToPositionTile(GameMap *gameMap = nullptr) override;
 
 protected:
     virtual void exportToStream(std::ostream& os) const override;

@@ -268,26 +268,29 @@ void MovableGameEntity::update(Ogre::Real timeSinceLastFrame)
     setPosition(newPosition);
 }
 
-void MovableGameEntity::setPosition(const Ogre::Vector3& v)
+void MovableGameEntity::setPosition(const Ogre::Vector3& v,GameMap *gameMap)
 {
+    if(gameMap == nullptr)
+        gameMap = getGameMap();
+    
     Tile* oldTile = nullptr;
     if(getIsOnMap())
     {
-        oldTile = getPositionTile();
+        oldTile = getPositionTile(gameMap);
         OD_ASSERT_TRUE_MSG(oldTile != nullptr, "entityName=" + getName() + ", oldPos=" + Helper::toString(getPosition()));
     }
-
     int newX = Helper::round(v.x);
     int newY = Helper::round(v.y);
-    Tile* newTile = getGameMap()->getTile(newX, newY);
-    if(newTile == nullptr)
+    Tile* newTile = gameMap->getTile(newX,newY) ;
+    OD_LOG_INF("entityName=" + getName() + ", newPos=" + Helper::toString(v));    
+    if(newTile == nullptr)        
     {
         OD_LOG_ERR("entityName=" + getName() + ", newPos=" + Helper::toString(v));
         return;
     }
 
     if((oldTile != newTile) && (oldTile != nullptr))
-        removeEntityFromPositionTile();
+        removeEntityFromPositionTile(gameMap);
 
     mPosition = v;
 
@@ -295,7 +298,7 @@ void MovableGameEntity::setPosition(const Ogre::Vector3& v)
         RenderManager::getSingleton().rrMoveEntity(this, v);
 
     if(oldTile != newTile)
-        addEntityToPositionTile();
+        addEntityToPositionTile(gameMap);
 }
 
 void MovableGameEntity::fireObjectAnimationState(const std::string& state, bool loop, const Ogre::Vector3& direction, bool playIdleWhenAnimationEnds)

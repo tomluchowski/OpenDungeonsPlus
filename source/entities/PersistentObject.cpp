@@ -63,7 +63,7 @@ PersistentObject* PersistentObject::getPersistentObjectFromPacket(GameMap* gameM
     return obj;
 }
 
-void PersistentObject::notifySeatsWithVision(const std::vector<Seat*>& seats)
+void PersistentObject::notifySeatsWithVision(const std::vector<Seat*>& seats, NodeType nt)
 {
     // We process seats that lost vision
     for(std::vector<Seat*>::iterator it = mSeatsWithVisionNotified.begin(); it != mSeatsWithVisionNotified.end();)
@@ -116,7 +116,7 @@ void PersistentObject::notifySeatsWithVision(const std::vector<Seat*>& seats)
             else
                 fireRemoveEntity(seat);
 
-            fireAddEntity(seat, false);
+            fireAddEntity(seat, false,nt);
         }
         else
         {
@@ -130,7 +130,7 @@ void PersistentObject::notifySeatsWithVision(const std::vector<Seat*>& seats)
     }
 }
 
-void PersistentObject::fireRemoveEntityToSeatsWithVision()
+void PersistentObject::fireRemoveEntityToSeatsWithVision(GameMap* gameMap)
 {
     for(Seat* seat : mSeatsAlreadyNotifiedOnce)
     {
@@ -139,7 +139,7 @@ void PersistentObject::fireRemoveEntityToSeatsWithVision()
         if(!seat->getPlayer()->getIsHuman())
             continue;
 
-        fireRemoveEntity(seat);
+        fireRemoveEntity(seat,gameMap->getNodeType());
     }
 }
 
@@ -153,7 +153,7 @@ void PersistentObject::exportToPacket(ODPacket& os, const Seat* seat) const
 void PersistentObject::importFromPacket(ODPacket& is)
 {
     BuildingObject::importFromPacket(is);
-
+    
     mTile = getGameMap()->tileFromPacket(is);
     if(mTile == nullptr)
     {

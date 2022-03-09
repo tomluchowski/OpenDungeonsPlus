@@ -102,6 +102,7 @@ void TrapFactory::checkBuildTrapDefault(GameMap* gameMap, TrapType type, const I
     ClientNotification *clientNotification = TrapManager::createTrapClientNotification(type);
     uint32_t nbTiles = buildableTiles.size();
     clientNotification->mPacket << nbTiles;
+    
     for(Tile* tile : buildableTiles)
         gameMap->tileToPacket(clientNotification->mPacket, tile);
 
@@ -144,9 +145,9 @@ bool TrapFactory::buildTrapDefault(GameMap* gameMap, Trap* trap, Seat* seat, con
     trap->addToGameMap(gameMap);
     trap->createMesh();
 
-    if((seat->getPlayer() != nullptr) &&
-       (seat->getPlayer()->getIsHuman()))
-    {
+    // if((seat->getPlayer() != nullptr) &&
+    //    (seat->getPlayer()->getIsHuman()))
+    // {
         // We notify the clients with vision of the changed tiles. Note that we need
         // to calculate per seat since they could have vision on different parts of the building
         std::map<Seat*,std::vector<Tile*>> tilesPerSeat;
@@ -174,6 +175,8 @@ bool TrapFactory::buildTrapDefault(GameMap* gameMap, Trap* trap, Seat* seat, con
             ServerNotification serverNotification(
                 ServerNotificationType::refreshTiles, p.first->getPlayer());
             serverNotification.mPacket << nbTiles;
+            serverNotification.mPacket << gameMap->getNodeType();    
+            
             for(Tile* tile : p.second)
             {
                 gameMap->tileToPacket(serverNotification.mPacket, tile);
@@ -182,7 +185,7 @@ bool TrapFactory::buildTrapDefault(GameMap* gameMap, Trap* trap, Seat* seat, con
             }
             ODServer::getSingleton().sendAsyncMsg(serverNotification);
         }
-    }
+    // }
 
     trap->updateActiveSpots(gameMap);
 
@@ -223,6 +226,7 @@ void TrapFactory::checkBuildTrapDefaultEditor(GameMap* gameMap, TrapType type, c
     int32_t seatId = inputManager.mSeatIdSelected;
     clientNotification->mPacket << seatId;
     clientNotification->mPacket << nbTiles;
+        
     for(Tile* tile : buildableTiles)
         gameMap->tileToPacket(clientNotification->mPacket, tile);
 
@@ -543,6 +547,7 @@ void TrapManager::checkSellTrapTiles(GameMap* gameMap, const InputManager& input
         ClientNotificationType::askSellTrapTiles);
     uint32_t nbTiles = sellTiles.size();
     clientNotification->mPacket << nbTiles;
+    // clientNotification->mPacket << gameMap->getNodeType();    
     for(Tile* tile : sellTiles)
         gameMap->tileToPacket(clientNotification->mPacket, tile);
 
@@ -612,6 +617,8 @@ void TrapManager::sellTrapTiles(GameMap* gameMap, Seat* seatSell, ODPacket& pack
         ServerNotification serverNotification(
             ServerNotificationType::refreshTiles, p.first->getPlayer());
         serverNotification.mPacket << nbTiles;
+        serverNotification.mPacket << gameMap->getNodeType();  
+        
         for(Tile* tile : p.second)
         {
             gameMap->tileToPacket(serverNotification.mPacket, tile);
@@ -664,6 +671,7 @@ void TrapManager::checkSellTrapTilesEditor(GameMap* gameMap, const InputManager&
         ClientNotificationType::editorAskDestroyTrapTiles);
     uint32_t nbTiles = sellTiles.size();
     clientNotification->mPacket << nbTiles;
+    
     for(Tile* tile : sellTiles)
         gameMap->tileToPacket(clientNotification->mPacket, tile);
 
@@ -726,6 +734,8 @@ void TrapManager::sellTrapTilesEditor(GameMap* gameMap, ODPacket& packet)
         ServerNotification serverNotification(
             ServerNotificationType::refreshTiles, p.first->getPlayer());
         serverNotification.mPacket << nbTiles;
+        serverNotification.mPacket << gameMap->getNodeType();   
+        
         for(Tile* tile : p.second)
         {
             gameMap->tileToPacket(serverNotification.mPacket, tile);
