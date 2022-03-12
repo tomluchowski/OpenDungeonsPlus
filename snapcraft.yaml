@@ -67,6 +67,11 @@ parts:
             - libzzip-0-13
             - libxaw7
             - libxt6
+            - libgl1
+            - libglvnd0
+            - libglx0
+            - libxrandr2
+            - libxrender1
     cegui:
         plugin: cmake
         configflags:
