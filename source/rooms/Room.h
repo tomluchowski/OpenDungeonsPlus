@@ -84,7 +84,7 @@ public:
     { return true; }
 
     //! \brief Updates the active spot lists.
-    virtual void updateActiveSpots(GameMap* gameMap) override;
+    virtual void updateActiveSpots(GameMap* gameMap = nullptr) override;
 
     inline unsigned int getNumActiveSpots() const
     { return mNumActiveSpots; }

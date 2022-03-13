@@ -191,6 +191,10 @@ bool Trap::removeCoveredTile(Tile* t)
 
 void Trap::updateActiveSpots(GameMap* gameMap)
 {
+    if(gameMap == nullptr)
+    {
+        gameMap = getGameMap();
+    }    
     // For a trap, by default, every tile is an active spot
     for(std::pair<Tile* const, TileData*>& p : mTileData)
     {

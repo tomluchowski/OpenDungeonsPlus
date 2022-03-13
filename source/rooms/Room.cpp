@@ -234,6 +234,10 @@ void Room::checkForRoomAbsorbtion()
 
 void Room::updateActiveSpots(GameMap* gameMap)
 {
+    if(gameMap == nullptr)
+    {
+        gameMap = getGameMap();
+    }
     std::vector<Tile*> centralActiveSpotTiles;
     std::vector<Tile*> leftWallsActiveSpotTiles;
     std::vector<Tile*> rightWallsActiveSpotTiles;
