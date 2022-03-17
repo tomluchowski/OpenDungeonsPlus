@@ -282,7 +282,6 @@ void MovableGameEntity::setPosition(const Ogre::Vector3& v,GameMap *gameMap)
     int newX = Helper::round(v.x);
     int newY = Helper::round(v.y);
     Tile* newTile = gameMap->getTile(newX,newY) ;
-    OD_LOG_INF("entityName=" + getName() + ", newPos=" + Helper::toString(v));    
     if(newTile == nullptr)        
     {
         OD_LOG_ERR("entityName=" + getName() + ", newPos=" + Helper::toString(v));

@@ -101,7 +101,7 @@ RenderManager::RenderManager(Ogre::OverlaySystem* overlaySystem) :
 {
   
     
-    mSceneManager = Ogre::Root::getSingleton().createSceneManager("OctreeSceneManager", "SceneManager");
+    mSceneManager = Ogre::Root::getSingleton().createSceneManager("DefaultSceneManager", "SceneManager");
     if(ConfigManager::getSingleton().getAudioValue(Config::SHADOWS)=="Yes")
     {
         mSceneManager->setShadowTechnique(Ogre::ShadowTechnique::SHADOWTYPE_TEXTURE_ADDITIVE_INTEGRATED);
@@ -311,6 +311,8 @@ Ogre::Light* RenderManager::addPointLightMenu(const std::string& name, const Ogr
     }
 
     Ogre::Light* light = mSceneManager->createLight(name);
+    Ogre::SceneNode* sn =  mSceneManager->getRootSceneNode()->createChildSceneNode("PointLightMenuSceneNode");
+    sn->attachObject(light);
     light->setType(Ogre::Light::LT_POINT);
     light->setDiffuseColour(diffuse);
     light->setSpecularColour(specular);
@@ -321,6 +323,7 @@ Ogre::Light* RenderManager::addPointLightMenu(const std::string& name, const Ogr
 void RenderManager::removePointLightMenu(Ogre::Light* light)
 {
     mSceneManager->destroyLight(light);
+    mSceneManager->getRootSceneNode()->removeAndDestroyChild("PointLightMenuSceneNode");
 }
 
 Ogre::Entity* RenderManager::addEntityMenu(const std::string& meshName, const std::string& entityName,
