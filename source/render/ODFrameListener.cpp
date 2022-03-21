@@ -107,7 +107,7 @@ ODFrameListener::ODFrameListener(const std::string& mainSceneFileName, Ogre::Ren
 
 void ODFrameListener::windowResized(Ogre::RenderWindow* rw)
 {
-    unsigned int width, height, depth;
+    unsigned int width, height;
     int left, top;
     rw->getMetrics(width, height, left, top);
 

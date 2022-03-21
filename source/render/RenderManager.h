@@ -97,7 +97,8 @@ public:
 
     static const Ogre::Real BLENDER_UNITS_PER_OGRE_UNIT;
     static const Ogre::Real KEEPER_HAND_WORLD_Z;
-
+    static const Ogre::Real DRAGGABLE_NODE_HEIGHT;
+    
     //! Debug function to be used for dev only. Beware, it should not be called from the server thread
     static std::string consoleListAnimationsForMesh(const std::string& meshName);
 

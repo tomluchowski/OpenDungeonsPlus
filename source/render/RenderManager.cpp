@@ -84,6 +84,9 @@ const Ogre::Real KEEPER_HAND_CREATURE_PICKED_SCALE = 0.05f;
 
 const Ogre::ColourValue BASE_AMBIENT_VALUE = Ogre::ColourValue(0.3f, 0.3f, 0.3f);
 
+const Ogre::Real RenderManager::DRAGGABLE_NODE_HEIGHT = 3.0f;
+
+
 RenderManager::RenderManager(Ogre::OverlaySystem* overlaySystem) :
     mHandLight(nullptr),
     mHandAnimationState(nullptr),
@@ -141,7 +144,7 @@ RenderManager::RenderManager(Ogre::OverlaySystem* overlaySystem) :
     mRoomSceneNode = mSceneManager->getRootSceneNode()->createChildSceneNode("Room_scene_node");
     mLightSceneNode = mSceneManager->getRootSceneNode()->createChildSceneNode("Light_scene_node");
     mMainMenuSceneNode = mSceneManager->getRootSceneNode()->createChildSceneNode("MainMenu_scene_node");
-    mDraggableSceneNode->setPosition(0.0,0.0,3.0);
+    mDraggableSceneNode->setPosition(0.0,0.0,DRAGGABLE_NODE_HEIGHT);
 
 
 }
@@ -175,7 +178,10 @@ void RenderManager::initGameRenderer(GameMap* gameMap)
         
         mHandLightNode->attachObject(mHandLight);
     }
-
+    // dirty hack to make the hovering gold tile be height agnostic, please look Gold.material file
+    Ogre::MaterialPtr liftedGold = Ogre::MaterialManager::getSingleton().getByName("Gold")->clone("LiftedGold");
+    liftedGold->getTechnique(0)->getPass(liftedGold->getTechnique(0)->getNumPasses() - 1)->getVertexProgramParameters()->setNamedConstant("height",DRAGGABLE_NODE_HEIGHT);
+    
     //Add a too small to be visible dummy dirt tile to the hand node
     //so that there will always be a dirt tile "visible"
     //This is an ugly workaround for issue where destroying some entities messes
@@ -596,6 +602,10 @@ void RenderManager::rrRefreshTile(const Tile& tile, GameMap& draggableTileContai
         if(!tileSetValue.getMaterialName().empty())
             tileMeshEnt->setMaterialName(tileSetValue.getMaterialName());
 
+
+        // dirty hack to make the hovering gold tile be height agnostic, please look Gold.material file
+        if(tileSetValue.getMaterialName() == "Gold" && nt == NodeType::MDTC_NODE)
+            tileMeshEnt->setMaterialName("LiftedGold");
         Seat* seatColor = nullptr;
         if(tile.shouldColorTileMesh())
             seatColor = tile.getSeat();
@@ -1405,8 +1415,9 @@ std::string RenderManager::colourizeMaterial(const std::string& materialName, co
         return materialName;
 
     Ogre::MaterialPtr oldMaterial = Ogre::MaterialManager::getSingleton().getByName(materialName);
-
+    
     //std::cout << "\nMaterial does not exist, creating a new one.";
+    
     Ogre::MaterialPtr newMaterial = oldMaterial->clone(tempSS.str());
     bool cloned = mShaderGenerator->cloneShaderBasedTechniques(*oldMaterial, *newMaterial);
     if(!cloned)

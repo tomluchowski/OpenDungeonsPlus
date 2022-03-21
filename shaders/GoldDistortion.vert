@@ -7,6 +7,7 @@
 uniform    mat4 projectionMatrix;
 uniform    mat4 viewMatrix;
 uniform    mat4 worldMatrix;
+uniform    float height;
 layout (location = 0) in vec4 aPos;
 layout (location = 2)  in vec3 aNormal;
 layout (location = 14) in vec3 aTangent;
@@ -24,7 +25,7 @@ float freq = 3.1415;
 vec3 deform(vec3 pos) {
     pos.x += perlin(pos.x,pos.y);
     pos.y += perlin(pos.y,pos.x);
-    pos.z *= (1 + sin((pos.x + 2*pos.y ) * freq)/6.0);
+    pos.z =  ( pos.z -height)* ((1 + sin(pos.x + 2*pos.y ) * freq)/12.0) + pos.z;
     return pos;
 }
  

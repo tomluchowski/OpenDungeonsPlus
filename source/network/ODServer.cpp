@@ -2184,8 +2184,10 @@ bool ODServer::processClientNotifications(ODSocketClient* clientSocket)
                     if(x1 <= tile->getX() &&  tile->getX() <= x2
                        && y1 <= tile->getY() &&  tile->getY() <= y2)
                     {
-                        auxPacket << tile->getX() - x1;
-                        auxPacket << tile->getY() - y1;                        
+                        int32_t offset_x = tile->getX() - x1;
+                        int32_t offset_y = tile->getY() - y1;
+                        auxPacket << offset_x;
+                        auxPacket << offset_y;
                     }
                 }
                 

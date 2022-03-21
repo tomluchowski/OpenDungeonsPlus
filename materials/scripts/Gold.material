@@ -9,6 +9,7 @@ vertex_program myVertexShader glsl
         param_named_auto projectionMatrix projection_matrix
         param_named_auto viewMatrix view_matrix
         param_named_auto worldMatrix world_matrix
+        param_named height float 0.0
     }
   
 }
