@@ -203,6 +203,8 @@ class TrapDoorFactory : public TrapFactory
         ClientNotification *clientNotification = TrapManager::createTrapClientNotificationEditor(type);
         int32_t seatId = inputManager.mSeatIdSelected;
         clientNotification->mPacket << seatId;
+        uint32_t nbTiles = 1;
+        clientNotification->mPacket << nbTiles;
         gameMap->tileToPacket(clientNotification->mPacket, tile);
 
         ODClient::getSingleton().queueClientNotification(clientNotification);
@@ -218,7 +220,10 @@ class TrapDoorFactory : public TrapFactory
             OD_LOG_ERR("seatId=" + Helper::toString(seatId));
             return false;
         }
-
+        uint32_t nbTiles;
+        OD_ASSERT_TRUE(packet >> nbTiles);
+        // oki let;s pressume now on that there's needed only 1 tile to be build
+        
         Tile* tile = gameMap->tileFromPacket(packet);
         if(tile == nullptr)
             return false;

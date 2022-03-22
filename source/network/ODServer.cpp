@@ -2156,13 +2156,11 @@ bool ODServer::processClientNotifications(ODSocketClient* clientSocket)
 
             for(Trap* trap : affectedTraps)
             {
-                std::vector<Tile*> affectedTiles;
-                ODPacket auxPacket;
                 int32_t seatId;
-                uint32_t nbTiles;
                 seatId = trap->getSeat()->getId();
+                ODPacket auxPacket;
                 auxPacket << seatId;
-                nbTiles = 0 ;
+                uint32_t nbTiles = 0 ;
                 
                 for(Tile* tile : trap->getCoveredTiles())
                 {
@@ -2189,14 +2187,15 @@ bool ODServer::processClientNotifications(ODSocketClient* clientSocket)
                         auxPacket << offset_x;
                         auxPacket << offset_y;
                     }
+
                 }
-                
                 if(!TrapManager::buildTrapEditor(mDraggableTileContainer, trap->getType(), auxPacket))
                 {
                     OD_LOG_INF("WARNING: player seatId=" + Helper::toString(trap->getSeat()->getId())
                                + " couldn't build trap: " + TrapManager::getTrapNameFromTrapType(trap->getType()));
                     break;
-                }                  
+                }                                     
+                
                 
             }
             break;
