@@ -83,6 +83,7 @@ parts:
             - -DCEGUI_BUILD_IMAGECODEC_FREEIMAGE=FALSE # we use ogre
             - -DCEGUI_SAMPLES_ENABLED=FALSE
         source: https://drive.google.com/drive/folders/11P_twZzfVURrLMQb3O2hta75tL21FPi4?usp=sharing
+        source-type: zip
         source-depth: 1
         source-tag: v0
         build-packages:
