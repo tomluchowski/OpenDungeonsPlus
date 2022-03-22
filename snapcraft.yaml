@@ -82,7 +82,7 @@ parts:
             - -DCEGUI_BUILD_RENDERER_OPENGL3=FALSE
             - -DCEGUI_BUILD_IMAGECODEC_FREEIMAGE=FALSE # we use ogre
             - -DCEGUI_SAMPLES_ENABLED=FALSE
-        source: https://ln5.sync.com/dl/618f9bf70/carruf9y-crkcjsvv-nt28egdp-r5nh3nyw
+        source: https://github.com/tomluchowski/cegui.git
         source-depth: 1
         source-tag: v0
         build-packages:
