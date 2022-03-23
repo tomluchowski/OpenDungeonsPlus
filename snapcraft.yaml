@@ -2,7 +2,7 @@ name: opendungeons-plus
 version: 0.8.0+new-editorimproved-shaders
 confinement: strict
 summary: OpenDungeons
-base: core20
+base: core18
 description: Open source game inspired by Dungeon Keeper - Dark, damp and dangerous.
 
 apps:
@@ -52,7 +52,7 @@ parts:
             - -DCMAKE_INSTALL_PREFIX=/usr/
             - -DOGRE_ENABLE_PRECOMPILED_HEADERS=OFF
         source: https://github.com/OGRECave/ogre.git
-        source-tag: v13.3.1
+        source-tag: v13.3.2
         source-depth: 1
         build-packages:
             - libegl-dev
