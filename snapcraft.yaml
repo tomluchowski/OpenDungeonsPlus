@@ -55,7 +55,6 @@ parts:
         source-tag: v13.3.2
         source-depth: 1
         build-packages:
-            - libegl-dev
             - libxaw7-dev
             - libzzip-dev
             - libxrandr-dev
