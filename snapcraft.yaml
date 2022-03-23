@@ -29,7 +29,6 @@ parts:
             - -DOGRE_CONFIG_THREAD_PROVIDER=std
             - -DOGRE_CONFIG_THREADS=3
             - -DOGRE_STATIC=FALSE
-            -  DOGRE_ENABLE_PRECOMPILED_HEADERS=OFF
             - -DOGRE_BUILD_DEPENDENCIES=FALSE
             - -DOGRE_BUILD_RENDERSYSTEM_GL=TRUE
             - -DOGRE_BUILD_RENDERSYSTEM_GL3PLUS=TRUE
@@ -83,6 +82,7 @@ parts:
             - -DCEGUI_BUILD_RENDERER_OPENGL3=FALSE
             - -DCEGUI_BUILD_IMAGECODEC_FREEIMAGE=FALSE # we use ogre
             - -DCEGUI_SAMPLES_ENABLED=FALSE
+            - -DOGRE_ENABLE_PRECOMPILED_HEADERS=OFF
         source: https://github.com/tomluchowski/cegui.git
         source-depth: 1
         source-tag: v0
