@@ -61,6 +61,7 @@ parts:
             - libfreetype6-dev
             - libxt-dev
             - libgl1-mesa-dev
+            - libegl1-mesa-dev
             - libglu1-mesa-dev
             - g++
         stage-packages:
