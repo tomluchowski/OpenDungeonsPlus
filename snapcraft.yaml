@@ -30,7 +30,7 @@ parts:
             - -DOGRE_CONFIG_THREADS=3
             - -DOGRE_STATIC=FALSE
             - -DOGRE_BUILD_DEPENDENCIES=FALSE
-            - -DOGRE_BUILD_RENDERSYSTEM_GL=FALSE
+            - -DOGRE_BUILD_RENDERSYSTEM_GL=TRUE
             - -DOGRE_BUILD_RENDERSYSTEM_GL3PLUS=TRUE
             - -DOGRE_RESOURCEMANAGER_STRICT=0
             # stuff we dont need
