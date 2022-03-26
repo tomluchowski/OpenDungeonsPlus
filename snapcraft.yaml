@@ -65,6 +65,7 @@ parts:
             - libglu1-mesa-dev
             - g++
         stage-packages:
+         	- libegl1-mesa
             - libfreetype6
             - libzzip-0-13
             - libxaw7
