@@ -1,7 +1,13 @@
+[OgreInternal]
+FileSystem=/usr/local/share/OGRE/Media/Main
+FileSystem=@RTSHADER_DIR@/GLSL
+FileSystem=@RTSHADER_DIR@/../ShadowVolume
+
+
+
 [Graphics]
 FileSystem=@RTSHADER_DIR@/GLSL
-FileSystem=@RTSHADER_DIR@/HLSL
-FileSystem=@RTSHADER_DIR@/HLSL_Cg
+
 FileSystem=@RTSHADER_DIR@/materials
 FileSystem=@RTSHADER_DIR@/../ShadowVolume
 FileSystem=materials/scripts
