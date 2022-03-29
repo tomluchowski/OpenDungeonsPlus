@@ -25,7 +25,7 @@ parts:
     ogre:
         plugin: cmake
         configflags:
-            - -DCMAKE_BUILD_TYPE=Debug
+            - -DCMAKE_BUILD_TYPE=Release
             - -DOGRE_CONFIG_THREAD_PROVIDER=std
             - -DOGRE_CONFIG_THREADS=3
             - -DOGRE_STATIC=FALSE
@@ -78,7 +78,7 @@ parts:
     cegui:
         plugin: cmake
         configflags:
-            - -DCMAKE_BUILD_TYPE=Debug
+            - -DCMAKE_BUILD_TYPE=Release
             - -DCMAKE_INSTALL_PREFIX=/usr/
             - -DCMAKE_CXX_FLAGS=-std=c++11
             - -DCEGUI_BUILD_RENDERER_OPENGL=FALSE
@@ -103,7 +103,7 @@ parts:
             snapcraftctl pull
             sed -i -e 's|if(CMAKE_INSTALL_PREFIX|if(""|g' CMakeLists.txt
         configflags:
-            - -DCMAKE_BUILD_TYPE=Debug
+            - -DCMAKE_BUILD_TYPE=Release
             - -DCMAKE_INSTALL_PREFIX=/usr/
             - -DOD_TREAT_WARNINGS_AS_ERRORS=OFF
         override-build: |
