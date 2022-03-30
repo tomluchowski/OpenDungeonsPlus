@@ -207,6 +207,13 @@ EditorMode::EditorMode(ModeManager* modeManager):
             CEGUI::Window::EventMouseClick,
             CEGUI::Event::Subscriber(&EditorMode::onEditDelete, this)
     ));
+    addEventConnection(
+        mRootWindow->getChild("Menubar")->getChild("Edit")->getChild("PopupMenu3")
+        ->getChild("MirrorX")->subscribeEvent(
+            CEGUI::Window::EventMouseClick,
+            CEGUI::Event::Subscriber(&EditorMode::onEditMirrorX, this)
+    ));
+
     
     addEventConnection(
         mRootWindow->getChild("LevelWindowFrame")->subscribeEvent(
@@ -1250,6 +1257,14 @@ void EditorMode::onEditDelete()
     ClientNotification* notif1 = new ClientNotification(ClientNotificationType::editorAskDeleteDraggableTileContainer);
     ODClient::getSingleton().queueClientNotification(notif1);
 }
+
+void EditorMode::onEditMirrorX()
+{
+
+    ClientNotification* notif1 = new ClientNotification(ClientNotificationType::editorAskDeleteDraggableTileContainer);
+    ODClient::getSingleton().queueClientNotification(notif1);
+}
+
 
 //! Rendering methods
 void EditorMode::onFrameStarted(const Ogre::FrameEvent& evt)

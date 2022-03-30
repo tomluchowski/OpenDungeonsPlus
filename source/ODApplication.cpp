@@ -269,7 +269,9 @@ void ODApplication::startClient()
         sfmlWindow.display();
     }
 #else /* OD_USE_SFML_WINDOW */
+    OD_LOG_INF("Before : ogreRoot.startRendering();");    
     ogreRoot.startRendering();
+    OD_LOG_INF("After : ogreRoot.startRendering();");    
 #endif /* OD_USE_SFML_WINDOW */
 
     OD_LOG_INF("Disconnecting client...");

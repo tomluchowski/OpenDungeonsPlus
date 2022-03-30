@@ -167,6 +167,7 @@ private:
     void onEditCopy();
     void onEditPaste();
     void onEditDelete();
+    void onEditMirrorX();
     
     //! \brief Called when there is a mouse input change
     void checkInputCommand();
