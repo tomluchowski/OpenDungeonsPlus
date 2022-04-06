@@ -279,6 +279,7 @@ set(OD_SOURCEFILES
 
     ${SRC}/creatureeffect/CreatureEffect.cpp
     ${SRC}/creatureeffect/CreatureEffectDefense.cpp
+    ${SRC}/creatureeffect/CreatureEffectDigTile.cpp
     ${SRC}/creatureeffect/CreatureEffectExplosion.cpp
     ${SRC}/creatureeffect/CreatureEffectHeal.cpp
     ${SRC}/creatureeffect/CreatureEffectManager.cpp

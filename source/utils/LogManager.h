@@ -33,6 +33,8 @@
 #define OD_LOG_WRN(_message)                      LogManager::getSingleton().logMessage(LogMessageLevel::WARNING, __FILE__, __LINE__, (std::string("") + _message))
 #define OD_LOG_INF(_message)                      LogManager::getSingleton().logMessage(LogMessageLevel::NORMAL, __FILE__, __LINE__, (std::string("") + _message))
 #define OD_LOG_DBG(_message)                      LogManager::getSingleton().logMessage(LogMessageLevel::TRIVIAL, __FILE__, __LINE__, (std::string("") + _message))
+#define OD_LOG_DIG(_message)                      LogManager::getSingleton().logMessage(LogMessageLevel::NORMAL, __FILE__, __LINE__, (std::string("DIGGING ") + _message))
+
 
 #define OD_ASSERT_TRUE(_condition)                if (!(_condition)) LogManager::getSingleton().logMessage(LogMessageLevel::CRITICAL, __FILE__, __LINE__, std::string(#_condition))
 #define OD_ASSERT_TRUE_MSG(_condition, _message)  if (!(_condition)) LogManager::getSingleton().logMessage(LogMessageLevel::CRITICAL, __FILE__, __LINE__, (std::string("") + _message))

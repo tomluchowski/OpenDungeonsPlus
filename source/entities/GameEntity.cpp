@@ -45,8 +45,27 @@ void EntityParticleEffect::exportParticleEffectToPacket(const EntityParticleEffe
 
 EntityParticleEffect* EntityParticleEffect::importParticleEffectFromPacket(ODPacket& is)
 {
-    static const std::vector<EntityParticleEffect*> effects;
-    return importParticleEffectFromPacketIfNotInList(effects, is);
+    std::string name;
+    std::string script;
+    int32_t nbTurnsEffect;
+    if(!(is >> name))
+    {
+        OD_LOG_ERR("error");
+        return nullptr;
+    }
+    if(!(is >> script))
+    {
+        OD_LOG_ERR("error");
+        return nullptr;
+    }
+    if(!(is >> nbTurnsEffect))
+    {
+        OD_LOG_ERR("error");
+        return nullptr;
+    }
+
+    EntityParticleEffect* effect = new EntityParticleEffect(name, script, nbTurnsEffect);
+    return effect;
 }
 
 EntityParticleEffect* EntityParticleEffect::importParticleEffectFromPacketIfNotInList(const std::vector<EntityParticleEffect*>& effects, ODPacket& is)
@@ -518,6 +537,7 @@ void GameEntity::clientUpkeep()
         }
 
         // Remove the effect
+        OD_LOG_DIG("RenderManager::getSingleton().rrEntityRemoveParticleEffect(this, effect->mParticleSystem);");
         RenderManager::getSingleton().rrEntityRemoveParticleEffect(this, effect->mParticleSystem);
         it = mEntityParticleEffects.erase(it);
         delete effect;
@@ -632,20 +652,42 @@ void GameEntity::updateFromPacket(ODPacket& is)
 {
     uint32_t nbEffects;
     OD_ASSERT_TRUE(is >> nbEffects);
+    OD_LOG_DIG("Number of effect to modify: " + Helper::toString(nbEffects));
     // We copy the list of effects currently on this entity. That will allow to
     // check if the effect is already on it and only display the effect if it is not
     std::vector<EntityParticleEffect*> currentEffects = mEntityParticleEffects;
+    OD_LOG_DIG("mEntityParticleEffects of " + mName);
+    std::stringstream ss;
+    for(EntityParticleEffect* ee: mEntityParticleEffects)
+    {
+        ss<<ee->mName<<" ";
+    }
+    OD_LOG_DIG(ss.str());
     while(nbEffects > 0)
     {
         --nbEffects;
+        EntityParticleEffect* effect = EntityParticleEffect::importParticleEffectFromPacket(is);
+        bool found = false;
+        for(EntityParticleEffect* effectIter  : mEntityParticleEffects)
+        {
+            if(effect->mName == effectIter->mName)
+            {
+                found = true;
+                effectIter->mNbTurnsEffect = effect->mNbTurnsEffect;
+                break;
+            }
+        }
+        if(!found)
+        {
 
-        EntityParticleEffect* effect = EntityParticleEffect::importParticleEffectFromPacketIfNotInList(currentEffects, is);
-        if(effect == nullptr)
-            continue;
+            effect->mParticleSystem = RenderManager::getSingleton().rrEntityAddParticleEffect(this,
+                                                                                              effect->mName, effect->mScript);
+            mEntityParticleEffects.push_back(effect);
 
-        effect->mParticleSystem = RenderManager::getSingleton().rrEntityAddParticleEffect(this,
-            effect->mName, effect->mScript);
-        mEntityParticleEffects.push_back(effect);
+
+        }
+        else
+            delete effect;
     }
 }
 

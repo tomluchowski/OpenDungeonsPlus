@@ -33,6 +33,7 @@
 class Building;
 class Creature;
 class CreatureAction;
+class CreatureEffectDigTile;
 class CreatureEffect;
 class CreatureDefinition;
 class CreatureOverlayStatus;
@@ -116,6 +117,8 @@ public:
     bool parkingBit;
     
     bool parkedBit;
+
+    CreatureEffectDigTile* mDiggingEffect;
     
     static const int32_t NB_TURNS_BEFORE_CHECKING_TASK;
 
@@ -498,6 +501,8 @@ public:
     //! Called on server side to add an effect (spell, slap, ...) to this creature
     void addCreatureEffect(CreatureEffect* effect);
 
+    void removeCreatureEffect(CreatureEffect* effectForDeletion);
+    
     //!\brief Returns true if the creature has an active slap effect
     bool hasSlapEffect() const
     { return mActiveSlapsCount > 0; }

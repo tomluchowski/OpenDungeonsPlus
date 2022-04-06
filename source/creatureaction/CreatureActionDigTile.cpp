@@ -18,6 +18,8 @@
 #include "creatureaction/CreatureActionDigTile.h"
 
 #include "creatureaction/CreatureActionGrabEntity.h"
+
+#include "creatureeffect/CreatureEffectDigTile.h"
 #include "entities/Creature.h"
 #include "entities/CreatureDefinition.h"
 #include "entities/Tile.h"
@@ -37,12 +39,15 @@ CreatureActionDigTile::CreatureActionDigTile(Creature& creature, Tile& tileDig, 
     mTileDig(tileDig),
     mTilePos(tilePos)
 {
-    mTileDig.addWorkerDigging(mCreature, mTilePos);
+    mTileDig.addWorkerDigging(mCreature, mTilePos);     
 }
 
 CreatureActionDigTile::~CreatureActionDigTile()
 {
+    OD_LOG_DIG("Removing Creature Dig Effect");
     mTileDig.removeWorkerDigging(mCreature, mTilePos);
+    mCreature.removeCreatureEffect(mCreature.mDiggingEffect);
+    mCreature.mDiggingEffect = nullptr;
 }
 
 std::function<bool()> CreatureActionDigTile::action()
@@ -89,7 +94,13 @@ bool CreatureActionDigTile::handleDigTile(Creature& creature, Tile& tileDig, Til
     const Ogre::Vector3& pos = creature.getPosition();
     Ogre::Vector3 walkDirection(tileDig.getX() - pos.x, tileDig.getY() - pos.y, 0);
     walkDirection.normalise();
-    creature.setAnimationState(EntityAnimation::dig_anim, true, walkDirection);
+    if(creature.mDiggingEffect == nullptr)
+    {
+        creature.mDiggingEffect = new CreatureEffectDigTile(-1, 1.0, "Examples/Smoke");
+        OD_LOG_DIG("Adding Creature Dig Effect");
+        creature.addCreatureEffect(creature.mDiggingEffect);
+    }
+    creature.setAnimationState(EntityAnimation::dig_anim, true, walkDirection);    
     double amountDug = tileDig.digOut(creature.getDigRate());
     if(amountDug > 0.0)
     {

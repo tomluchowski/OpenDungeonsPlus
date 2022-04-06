@@ -1,0 +1,44 @@
+// Example particle systems
+
+// smoke
+particle_system Examples/Smoke
+{
+	material        	Examples/Smoke
+	particle_width  	3
+	particle_height 	3
+	cull_each       	true
+	quota           	500
+	billboard_type  	point
+	sorted				true
+    texture_sheet_size  3 5
+
+	// Area emitter
+	emitter Point
+	{
+		position 0 -0.5 0
+		angle 90
+		emission_rate 1
+		time_to_live 1
+		direction 0 0 1
+		velocity_min 1
+		velocity_max 2    	
+	}
+
+	affector TextureAnimator
+	{
+		texcoord_count 15
+		duration 4
+		random_offset true
+	}
+
+	affector ColourImage
+	{
+		image smokecolors.png
+	}
+
+   	affector Scaler
+   	{
+       	rate 1.5
+   	}
+
+}

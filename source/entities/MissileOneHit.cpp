@@ -42,7 +42,7 @@ MissileOneHit::MissileOneHit(GameMap* gameMap, Seat* seat, const std::string& se
 }
 
 MissileOneHit::MissileOneHit(GameMap* gameMap) :
-        MissileObject(gameMap),
+    MissileObject(gameMap),
     mPhysicalDamage(0.0),
     mMagicalDamage(0.0),
     mElementDamage(0.0),

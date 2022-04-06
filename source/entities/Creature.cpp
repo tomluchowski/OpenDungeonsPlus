@@ -125,6 +125,7 @@ CreatureParticleEffect::~CreatureParticleEffect()
         // mEffect->releaseEffect(mCreature);
         delete mEffect;
     }
+    
 }
 
 Creature::Creature(GameMap* gameMap, const CreatureDefinition* definition, Seat* seat, Ogre::Vector3 position) :
@@ -795,7 +796,7 @@ void Creature::doUpkeep()
     }
 
     // We apply creature effects if any
-    for(auto it = mEntityParticleEffects.begin(); it != mEntityParticleEffects.end();)
+    for(auto it =  mEntityParticleEffects.begin(); it != mEntityParticleEffects.end();)
     {
         CreatureParticleEffect* effect = static_cast<CreatureParticleEffect*>(*it);
         if(effect->mEffect->upkeepEffect(*this))
@@ -2988,6 +2989,22 @@ void Creature::addCreatureEffect(CreatureEffect* effect)
         effect->getNbTurnsEffect(), effect);
     mEntityParticleEffects.push_back(particleEffect);
 
+    mNeedFireRefresh = true;
+}
+
+
+void Creature::removeCreatureEffect(CreatureEffect* effectForDeletion)
+{
+    for(auto it =  mEntityParticleEffects.begin(); it != mEntityParticleEffects.end(); ++it)
+    {
+        CreatureParticleEffect* effect = static_cast<CreatureParticleEffect*>(*it);
+        if(effect->mEffect == effectForDeletion)
+        {
+            effect->mNbTurnsEffect = 0;
+            break;
+        }
+        
+    }
     mNeedFireRefresh = true;
 }
 
