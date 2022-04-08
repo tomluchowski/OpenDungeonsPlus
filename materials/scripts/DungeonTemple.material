@@ -50,7 +50,7 @@ material Stacheln
             }
             texture_unit
             {
-                texture EnvmapCity.png
+                texture EnvmapMetal.png
                 colour_op_ex blend_manual src_texture src_current 0.3
                 env_map spherical
             }
