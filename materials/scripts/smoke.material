@@ -1,19 +1,63 @@
+vertex_program SoftParticles_VS glsl
+{
+	source SoftParticles.vert
+
+default_params
+{
+	param_named_auto modelViewProj worldviewproj_matrix
+	param_named_auto worldView worldview_matrix
+}
+}
+
+fragment_program SoftParticles_PS glsl
+{
+	source SoftParticles.frag
+
+	
+default_params
+{
+	param_named fadeDistance float 0.2
+//	param_named_auto eyePosition camera_position_object_space
+	param_named_auto nearClipDistance near_clip_distance
+	param_named_auto farClipDistance far_clip_distance
+	param_named_auto inverseViewportWidth inverse_viewport_width
+	param_named_auto inverseViewportHeight inverse_viewport_height
+}
+}
+
+
 material Examples/Smoke
 {
 	technique
 	{
 		pass
 		{
-			lighting off
-			scene_blend alpha_blend
-			depth_write off
-			diffuse vertexcolour
-
-			texture_unit
-			{
-				texture Smoke15Frames.png
-				tex_address_mode clamp
-			}
+					depth_write off
+					lighting off
+					scene_blend add
+		vertex_program_ref SoftParticles_VS
+		{
 		}
+
+        fragment_program_ref SoftParticles_PS
+        {
+			param_named DiffuseMap int 0
+			param_named ZPrePassMap int 1
+        }
+
+		texture_unit DiffuseMap
+		{
+			texture Smoke15Frames.png 2d
+			tex_address_mode clamp
+		}
+
+        texture_unit ZPrePassMap
+        {
+			texture white.bmp 2d // This gets filled in later
+            tex_address_mode clamp
+            filtering none
+        }
 	}
 }
+}
+

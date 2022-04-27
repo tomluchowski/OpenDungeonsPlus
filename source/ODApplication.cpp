@@ -28,6 +28,7 @@
 #include "sound/SoundEffectsManager.h"
 #include "render/Gui.h"
 #include "render/ODFrameListener.h"
+#include "render/RenderManager.h"
 #include "render/TextRenderer.h"
 #include "utils/ConfigManager.h"
 #include "utils/LogManager.h"

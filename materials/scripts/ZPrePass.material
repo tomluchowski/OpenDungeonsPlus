@@ -1,0 +1,43 @@
+
+
+
+vertex_program ZPrePass_VS glsl
+{
+    source ZPrePass.vert
+
+default_params
+{
+	param_named_auto cWorldViewProj worldviewproj_matrix
+	param_named_auto cWorldView worldview_matrix
+}
+}
+
+fragment_program ZPrePass_PS glsl
+{
+    source ZPrePass.frag
+
+default_params
+{
+	param_named_auto cNearClipDistance near_clip_distance
+	param_named_auto cFarClipDistance far_clip_distance
+}
+}
+
+material ZPrePass
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+
+        vertex_program_ref ZPrePass_VS
+        {
+        }
+
+        fragment_program_ref ZPrePass_PS
+        {
+        }
+    }
+}
+}

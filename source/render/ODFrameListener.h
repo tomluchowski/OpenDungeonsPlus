@@ -174,7 +174,8 @@ public:
     {
         return mFpsLimiter.getFrameRate();
     }
-
+    std::unique_ptr<RenderManager> mRenderManager;
+    
 private:
     //! \brief Tells whether the frame listener is initialized.
     bool mInitialized;
@@ -184,7 +185,7 @@ private:
 
     //! \brief Foreign reference to gui.
     Gui*                 mGui;
-    std::unique_ptr<RenderManager> mRenderManager;
+
     std::unique_ptr<GameMap>       mGameMap;
     std::unique_ptr<ModeManager>   mModeManager;
     std::unique_ptr<RenderSceneMenu>   mMainScene;

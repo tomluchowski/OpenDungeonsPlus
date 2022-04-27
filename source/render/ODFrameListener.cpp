@@ -103,6 +103,7 @@ ODFrameListener::ODFrameListener(const std::string& mainSceneFileName, Ogre::Ren
     readMainScene(mainSceneFileName);
 
     mInitialized = true;
+    mRenderManager->setup();
 }
 
 void ODFrameListener::windowResized(Ogre::RenderWindow* rw)
@@ -233,10 +234,10 @@ bool ODFrameListener::frameStarted(const Ogre::FrameEvent& evt)
     AbstractApplicationMode* currentMode = mModeManager->getCurrentMode();
     if(currentMode)
         currentMode->onFrameStarted(evt);
-    
-
-
-
+    if(mRenderManager  && mRenderManager->mRenderTarget != nullptr)
+    {
+        mRenderManager->mRenderTarget->update();
+    }
     return true;
 }
 

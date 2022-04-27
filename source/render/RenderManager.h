@@ -56,7 +56,7 @@ namespace RTShader {
 } //End namespace Ogre
 
 
-class RenderManager: public Ogre::Singleton<RenderManager>
+class RenderManager: public Ogre::Singleton<RenderManager>, Ogre::RenderTargetListener
 {
 public:
     RenderManager(Ogre::OverlaySystem* overlaySystem);
@@ -72,6 +72,19 @@ public:
     //! \brief Loop through the render requests in the queue and process them
     void updateRenderAnimations(Ogre::Real timeSinceLastFrame);
 
+    void setPosition(Ogre::Camera* obj, const Ogre::Vector3& vec);
+    
+    void setOrientation(Ogre::Camera* obj, const Ogre::Quaternion& q);
+
+    Ogre::Vector3 getPosition(Ogre::Camera* obj);
+
+    Ogre::Quaternion getOrientation(Ogre::Camera* obj);
+
+    // Called before a render is called to the render target
+    void preRenderTargetUpdate(const Ogre::RenderTargetEvent& evt);
+    void setup();
+    void handleSchemeNotFound(Ogre::MaterialPtr material);
+    
     //! \brief Initialize the renderer when a new game (Game or Editor) is launched
     void initGameRenderer(GameMap* gameMap);
     void stopGameRenderer(GameMap*);
@@ -183,6 +196,8 @@ public:
     void setScaleMenuEntity(Ogre::SceneNode* node, const Ogre::Vector3& absSize);
     const Ogre::Vector3& getMenuEntityScale(Ogre::SceneNode* node);
 
+    Ogre::RenderTarget* mRenderTarget;
+    
 private:
     Ogre::DefaultDebugDrawer ddd;
     

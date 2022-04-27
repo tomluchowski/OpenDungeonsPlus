@@ -574,6 +574,13 @@ Command::Result cSetCameraFOVy(const Command::ArgumentList_t& args, ConsoleInter
     return Command::Result::SUCCESS;
 }
 
+Command::Result cSetup(const Command::ArgumentList_t& args, ConsoleInterface& c, AbstractModeManager&)
+{
+    ODFrameListener::getSingleton().mRenderManager->setup();
+    c.print("\nsetting up mRenderManager setup()");
+    return Command::Result::SUCCESS;
+}
+
 Command::Result cListMeshAnims(const Command::ArgumentList_t& args, ConsoleInterface& c, AbstractModeManager&)
 {
     if(args.size() < 2)
@@ -832,6 +839,13 @@ void addConsoleCommands(ConsoleInterface& cl)
                    cSendCmdToServer,
                    cSrvAddMana,
                    {AbstractModeManager::ModeType::GAME, AbstractModeManager::ModeType::EDITOR});
+
+    cl.addCommand("setup",
+                   "setup",
+                   cSetup,
+                   Command::cStubServer,
+                   {AbstractModeManager::ModeType::GAME, AbstractModeManager::ModeType::EDITOR});
+    
     cl.addCommand("setcreaturedest",
                    "Sets the camera vertical field of view aspect ratio on the Y axis.\n\nExample:\n"
                    "setcamerafovy 45",

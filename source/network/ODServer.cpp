@@ -482,7 +482,7 @@ void ODServer::serverThread()
                 }
 
                 gameMap->createAllEntities();
-
+                
                 // Fill starting gold
                 for(Seat* seat : gameMap->getSeats())
                 {
