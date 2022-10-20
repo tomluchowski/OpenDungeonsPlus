@@ -52,7 +52,7 @@ parts:
             - -DCMAKE_INSTALL_PREFIX=/usr/
             - -DOGRE_ENABLE_PRECOMPILED_HEADERS=OFF
         source: https://github.com/OGRECave/ogre.git
-        source-tag: v13.3.2
+        source-tag: v1.12.13
         source-depth: 1
         build-packages:
             - libxaw7-dev
