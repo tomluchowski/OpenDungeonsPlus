@@ -102,9 +102,9 @@ parts:
         override-pull: |
             snapcraftctl pull
         build-packages:
-			- libx11-6
+            - libx11-6
         stage-packages:
-        	- libx11-6
+            - libx11-6
         after: [cegui]        
     opendungeons-plus:
         plugin: cmake
