@@ -41,11 +41,13 @@ public:
 
     void displayHealthOverlay(Ogre::Real timeToDisplay);
     void update(Ogre::Real timeSincelastFrame);
-
+    MovableTextOverlay* getMovableTextOverlay(){ return mMovableTextOverlay; }
 private:
+    
     void updateHealth();
     void updateStatus(Ogre::Real timeSincelastFrame);
 
+    bool mVisible;
     Creature* mCreature;
     Seat* mSeat;
     MovableTextOverlay* mMovableTextOverlay;

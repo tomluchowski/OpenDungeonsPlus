@@ -178,8 +178,14 @@ public:
     
 private:
     //! \brief Tells whether the frame listener is initialized.
+
     bool mInitialized;
 
+    /*! \brief For the upgrade renderer hook : due to alleged bug in ogre
+    *    we hide and save the CreatureOverlay state in that vector bool flags
+    */
+    std::vector<bool> mTemporaryWasVisible;
+    
     //! \brief The Ogre render window reference. Don't delete it.
     Ogre::RenderWindow* mWindow;
 

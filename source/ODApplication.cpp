@@ -210,6 +210,7 @@ void ODApplication::startClient()
     // but after the render window, eg: mRoot->initialise();
     // This advice was taken from here:
     // http://www.ogre3d.org/forums/viewtopic.php?p=487445#p487445
+    
     if (!Ogre::RTShader::ShaderGenerator::initialize())
     {
         OD_LOG_ERR("FATAL:"
@@ -223,6 +224,7 @@ void ODApplication::startClient()
     }
 #endif
 
+    
     Ogre::ResourceGroupManager::getSingletonPtr()->initialiseAllResourceGroups();
 
     MusicPlayer musicPlayer(resMgr.getMusicPath(), resMgr.listAllMusicFiles());
@@ -270,6 +272,7 @@ void ODApplication::startClient()
         sfmlWindow.display();
     }
 #else /* OD_USE_SFML_WINDOW */
+    // frameListener.mRenderManager->setup();
     OD_LOG_INF("Before : ogreRoot.startRendering();");    
     try
     {
@@ -278,7 +281,7 @@ void ODApplication::startClient()
     catch(const Ogre::Exception& e)
     {
         OD_LOG_INF( e.what());
-    }
+    }    
     OD_LOG_INF("After : ogreRoot.startRendering();");    
 #endif /* OD_USE_SFML_WINDOW */
 

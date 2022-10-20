@@ -107,6 +107,7 @@ public:
     //! \brief Set if the overlays should be displayed or not
     void setVisible(bool visible);
 
+    bool isVisible();
     //! Set the text displayed
     void setCaption(uint32_t childOverlayId, const Ogre::String& caption);
 

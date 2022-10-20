@@ -33,8 +33,10 @@
 #include "game/Seat.h"
 #include "gamemap/GameMap.h"
 #include "gamemap/TileSet.h"
+#include "modes/ModeManager.h"
 #include "render/CreatureOverlayStatus.h"
 #include "render/DebugDrawer.h"
+#include "render/MovableTextOverlay.h"
 #include "render/ODFrameListener.h"
 #include "rooms/Room.h"
 #include "utils/ConfigManager.h"
@@ -50,6 +52,7 @@
 #include <OgreMaterialManager.h>
 #include <OgreMesh.h>
 #include <OgreMovableObject.h>
+#include <OgreOverlayContainer.h>
 #include <OgreParticleSystem.h>
 #include <OgrePrerequisites.h>
 #include <OgreQuaternion.h>
@@ -102,18 +105,20 @@ RenderManager::RenderManager(Ogre::OverlaySystem* overlaySystem) :
     mFactorWidth(0.0f),
     mFactorHeight(0.0f),
     mCreatureTextOverlayDisplayed(false),
-    mHandKeeperHandVisibility(0)
+    mHandKeeperHandVisibility(0),
+    m_ZPrePassEnabled(false)
 {
   
     
     mSceneManager = Ogre::Root::getSingleton().createSceneManager("DefaultSceneManager", "SceneManager");
     if(ConfigManager::getSingleton().getAudioValue(Config::SHADOWS)=="Yes")
     {
-        mSceneManager->setShadowTechnique(Ogre::ShadowTechnique::SHADOWTYPE_TEXTURE_ADDITIVE_INTEGRATED);
-        mSceneManager->setShadowCameraSetup(Ogre::LiSPSMShadowCameraSetup::create());
-        mSceneManager->setShadowTextureConfig(0,1024,1024,Ogre::PixelFormat::PF_FLOAT32_RGBA,2);
-        mSceneManager->setShadowFarDistance(100.0);
-
+        mSceneManager->setShadowTechnique(Ogre::ShadowTechnique::SHADOWTYPE_TEXTURE_ADDITIVE);
+        // mSceneManager->setShadowCameraSetup(Ogre::LiSPSMShadowCameraSetup::create());
+        // mSceneManager->setShadowTextureConfig(0,1024,1024,Ogre::PixelFormat::PF_R32G32B32A32_UINT,0);
+        // mSceneManager->setShadowFarDistance(100.0);
+        // mSceneManager->setShadowDirectionalLightExtrusionDistance(500.0);
+        // mSceneManager->setShadowTextureSelfShadow(true);
         // donno if the below should be here -- paul424 :
         auto myIter = Ogre::MaterialManager::getSingleton().getResourceIterator();
         while(myIter.hasMoreElements())
@@ -167,11 +172,14 @@ void RenderManager::initGameRenderer(GameMap* gameMap)
     {
         mHandLight = mSceneManager->createLight("MouseLight");
         mHandLight->setType(Ogre::Light::LT_POINT);
+        // mHandLight->setDirection(0,0.77,-0.77);
         mHandLight->setDiffuseColour(Ogre::ColourValue(0.65f, 0.65f, 0.45f));
         mHandLight->setSpecularColour(Ogre::ColourValue(0.65f, 0.65f, 0.45f));
 
-        // the value borrowed from https://wiki.ogre3d.org/-Point+Light+Attenuation
-        mHandLight->setAttenuation(50, 1.0, 0.09, 0.032);       
+        // // the value borrowed from https://wiki.ogre3d.org/-Point+Light+Attenuation
+        mHandLight->setAttenuation(50, 1.0, 0.09, 0.032);
+        
+        
         
         if(mHandLightNode == nullptr)
         {
@@ -228,7 +236,7 @@ void RenderManager::initGameRenderer(GameMap* gameMap)
     }
 
     // Create the RTT texture
-    Ogre::TexturePtr m_texture = Ogre::TextureManager::getSingleton().createManual("smokeTexture", Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME, Ogre::TEX_TYPE_2D,Ogre::uint(float(1920)), Ogre::uint(float(1200)), 0, Ogre::PF_FLOAT32_R, Ogre::TU_RENDERTARGET, 0);
+    m_texture = Ogre::TextureManager::getSingleton().createManual("smokeTexture", Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME, Ogre::TEX_TYPE_2D,Ogre::uint(ODFrameListener::getSingleton().getCameraManager()->getActiveCamera()->getViewport()->getActualWidth()), Ogre::uint(ODFrameListener::getSingleton().getCameraManager()->getActiveCamera()->getViewport()->getActualHeight()), 0, Ogre::PF_FLOAT32_RGBA, Ogre::TU_RENDERTARGET, 0);
 
     // Setup the render target and its listener
     mRenderTarget = m_texture->getBuffer()->getRenderTarget();
@@ -243,7 +251,24 @@ void RenderManager::initGameRenderer(GameMap* gameMap)
     mRenderTarget->setAutoUpdated(false);
 
     // Update the render target (for a correct first frame)
+    // preRenderTargetUpdate:
+    std::vector<bool> mTemporaryWasVisible;
+    for (int i = 0; i < gameMap->getCreatures().size(); i++)
+    {
+        CreatureOverlayStatus* tmp = gameMap->getCreatures()[i]->getOverlayStatus();
+        mTemporaryWasVisible.push_back(tmp->getMovableTextOverlay()->isVisible());
+        tmp->getMovableTextOverlay()->setVisible(false);
+    }
     mRenderTarget->update();
+    // postRenderTargetUpdate:
+    int tmpItr = 0;
+    for (int i = 0; i < gameMap->getCreatures().size() ; i++)
+    {
+        CreatureOverlayStatus* tmp = gameMap->getCreatures()[i]->getOverlayStatus();
+        tmp->getMovableTextOverlay()->setVisible(mTemporaryWasVisible[tmpItr++]);
+    }        
+    mTemporaryWasVisible.clear();    
+    
     Ogre::MaterialPtr mSmokeMaterial = Ogre::MaterialManager::getSingleton().getByName("Examples/Smoke");
     mSmokeMaterial->getTechnique(0)->getPass(0)->getTextureUnitState(1)->setTexture(m_texture);
     
@@ -252,6 +277,7 @@ void RenderManager::initGameRenderer(GameMap* gameMap)
 
 void RenderManager::setup()
 {
+    OD_LOG_INF("TEST from setup()");
     // Loop through all materials and handle when a scheme is not found
     Ogre::ResourceManager::ResourceMapIterator tmpResourceIterator = Ogre::MaterialManager::getSingleton().getResourceIterator();
     while (tmpResourceIterator.hasMoreElements())
@@ -262,6 +288,9 @@ void RenderManager::setup()
 	if (tmpResourceType == "Material")
 	{
             Ogre::MaterialPtr tmpMaterialPtr = Ogre::static_pointer_cast<Ogre::Material>(tmpResourcePtr);
+    // Create a new technique in the material
+            Ogre::Technique* tmpTechnique = tmpMaterialPtr->getTechnique(0);
+            tmpTechnique->setSchemeName("Normal");
             if (tmpMaterialPtr)
                 handleSchemeNotFound(tmpMaterialPtr);
 	}
@@ -272,22 +301,23 @@ void RenderManager::setup()
 void RenderManager::handleSchemeNotFound(Ogre::MaterialPtr material)
 {
     // Check if we already have the scheme technique
-    if (material->getTechnique("mySchemeName"))
+    if (material->getTechnique("ZPrePassScheme"))
         // Return the function, we are done
         return;
-
+    
     // Filter certain specific materials to never get a new technique
     Ogre::String tmpMaterialName = material->getName();
-    if (tmpMaterialName.find("Background")!=Ogre::String::npos // || tmpMaterialName.find("Smoke")!=Ogre::String::npos
-        )
+
+
+    if ( material->isTransparent() || tmpMaterialName.find("Background")!=Ogre::String::npos || tmpMaterialName.find("CreatureOverlay")!=Ogre::String::npos || tmpMaterialName.find("Examples/Smoke")!=Ogre::String::npos )
 	return;
 
     // Create a new technique in the material
     Ogre::Technique* tmpTechnique = material->createTechnique();
-    tmpTechnique->setName("mySchemeName");
+    tmpTechnique->setName("ZPrePassScheme");
 
     // Set the scheme name of the technique
-    tmpTechnique->setSchemeName("mySchemeName");
+    tmpTechnique->setSchemeName("ZPrePassScheme");
 
     // Create a new pass in the technique
     Ogre::Pass* tmpPass = tmpTechnique->createPass();
@@ -295,6 +325,7 @@ void RenderManager::handleSchemeNotFound(Ogre::MaterialPtr material)
     // Point the pass to the technique of the z-prepass materials pass
     Ogre::MaterialPtr tmpZPrePassMaterial = Ogre::MaterialManager::getSingleton().getByName("ZPrePass");
     *tmpPass = *tmpZPrePassMaterial->getTechnique(0)->getPass(0);
+    
 }
 
 
@@ -327,14 +358,52 @@ Ogre::Quaternion RenderManager::getOrientation(Ogre::Camera* obj)
 // Called before a render is called to the render target
 void RenderManager::preRenderTargetUpdate(const Ogre::RenderTargetEvent& evt)
 {
-	// Update the camera
-	setPosition(ODFrameListener::getSingleton().getCameraManager()->getCamera("RenderToTexture"), getPosition(ODFrameListener::getSingleton().getCameraManager()->getActiveCamera()));
-	setOrientation(ODFrameListener::getSingleton().getCameraManager()->getCamera("RenderToTexture"), getOrientation(ODFrameListener::getSingleton().getCameraManager()->getActiveCamera()));
-	ODFrameListener::getSingleton().getCameraManager()->getCamera("RenderToTexture")->setFOVy(ODFrameListener::getSingleton().getCameraManager()->getActiveCamera()->getFOVy());
-	ODFrameListener::getSingleton().getCameraManager()->getCamera("RenderToTexture")->setAspectRatio(ODFrameListener::getSingleton().getCameraManager()->getActiveCamera()->getAspectRatio());
-	ODFrameListener::getSingleton().getCameraManager()->getCamera("RenderToTexture")->setNearClipDistance(ODFrameListener::getSingleton().getCameraManager()->getActiveCamera()->getNearClipDistance());
-	ODFrameListener::getSingleton().getCameraManager()->getCamera("RenderToTexture")->setFarClipDistance(ODFrameListener::getSingleton().getCameraManager()->getActiveCamera()->getFarClipDistance());
-	ODFrameListener::getSingleton().getCameraManager()->getCamera("RenderToTexture")->getViewport()->setMaterialScheme("mySchemeName");
+  
+    static Ogre::Overlay* tmpOverlay = NULL;
+    static Ogre::MaterialPtr tmpMaterial;
+
+    if(!m_ZPrePassEnabled)
+        return;    
+    
+    if (ODFrameListener::getSingleton().getModeManager()->getInputManager().mKeyboard->getKeyboard()->isModifierDown(OIS::Keyboard::Modifier::CapsLock))
+    {
+  
+        
+        if (!tmpOverlay)
+        {
+            tmpMaterial = Ogre::MaterialManager::getSingleton().getByName("DebugZPrePass");
+            tmpOverlay = Ogre::OverlayManager::getSingleton().create("blablabla");
+            tmpOverlay->setZOrder(5);
+            tmpOverlay->show();
+
+            Ogre::OverlayContainer* tmpOverlayContainer = (Ogre::OverlayContainer*)Ogre::OverlayManager::getSingleton().createOverlayElement("Panel", "testnameasd");
+            tmpOverlayContainer->setMetricsMode(Ogre::GMM_RELATIVE);
+            tmpOverlayContainer->setPosition(0, 0);
+            tmpOverlayContainer->setDimensions(1, 1);
+            tmpOverlayContainer->setMaterialName(tmpMaterial->getName());
+            tmpOverlayContainer->show();
+            tmpOverlay->add2D(tmpOverlayContainer);
+        }
+        tmpMaterial->getTechnique(0)->getPass(0)->getTextureUnitState(0)->setTexture(m_texture);
+        tmpOverlay->show();
+    }
+    else
+    {
+        if (tmpOverlay)
+            tmpOverlay->hide();
+    }
+
+
+
+    // Update the camera
+    setPosition(ODFrameListener::getSingleton().getCameraManager()->getCamera("RenderToTexture"), getPosition(ODFrameListener::getSingleton().getCameraManager()->getActiveCamera()));
+    setOrientation(ODFrameListener::getSingleton().getCameraManager()->getCamera("RenderToTexture"), getOrientation(ODFrameListener::getSingleton().getCameraManager()->getActiveCamera()));
+    ODFrameListener::getSingleton().getCameraManager()->getCamera("RenderToTexture")->setFOVy(ODFrameListener::getSingleton().getCameraManager()->getActiveCamera()->getFOVy());
+    ODFrameListener::getSingleton().getCameraManager()->getCamera("RenderToTexture")->setAspectRatio(ODFrameListener::getSingleton().getCameraManager()->getActiveCamera()->getAspectRatio());
+    ODFrameListener::getSingleton().getCameraManager()->getCamera("RenderToTexture")->setNearClipDistance(ODFrameListener::getSingleton().getCameraManager()->getActiveCamera()->getNearClipDistance());
+    ODFrameListener::getSingleton().getCameraManager()->getCamera("RenderToTexture")->setFarClipDistance(ODFrameListener::getSingleton().getCameraManager()->getActiveCamera()->getFarClipDistance());
+    ODFrameListener::getSingleton().getCameraManager()->getCamera("RenderToTexture")->getViewport()->setMaterialScheme("ZPrePassScheme");
+    
 }
 
 
@@ -1495,7 +1564,7 @@ std::string RenderManager::colourizeMaterial(const std::string& materialName, co
 
     tempSS.str("");
 
-    tempSS << materialName << "##";
+    tempSS << materialName ; // << "##";
 
     // Create the material name.
     if(seat != nullptr)
@@ -1510,7 +1579,7 @@ std::string RenderManager::colourizeMaterial(const std::string& materialName, co
 
     Ogre::MaterialPtr requestedMaterial = Ogre::MaterialManager::getSingleton().getByName(tempSS.str());
 
-    //cout << "\nCloning material:  " << tempSS.str();
+    // std::cout << "\nCloning material:  " << tempSS.str();
 
     // If this texture has been copied and colourized, we can return
 #if defined(OGRE_VERSION) && OGRE_VERSION < 0x10A00
@@ -1542,7 +1611,7 @@ std::string RenderManager::colourizeMaterial(const std::string& materialName, co
     {
         Ogre::Technique* technique = newMaterial->getTechnique(j);
         Ogre::String techniqueName = technique->getName();
-        if (technique->getNumPasses() == 0 || techniqueName.find("mySchemeName") != Ogre::String::npos)
+        if (technique->getNumPasses() == 0 || techniqueName.find("ZPrePassScheme") != Ogre::String::npos)
             continue;
 
         if (markedForDigging)
@@ -1675,11 +1744,11 @@ std::string RenderManager::setMaterialOpacity(const std::string& materialName, f
     Ogre::MaterialPtr oldMaterial = Ogre::MaterialManager::getSingleton().getByName(materialName);
     //std::cout << "\nMaterial does not exist, creating a new one.";
     Ogre::MaterialPtr newMaterial = oldMaterial->clone(newMaterialName.str());
-    bool cloned = mShaderGenerator->cloneShaderBasedTechniques(*oldMaterial, *newMaterial);
-    if(!cloned)
-    {
-        OD_LOG_ERR("Failed to clone rtss for material: " + materialName);
-    }
+    // bool cloned = mShaderGenerator->cloneShaderBasedTechniques(*oldMaterial, *newMaterial);
+    // if(!cloned)
+    // {
+    //     OD_LOG_ERR("Failed to clone rtss for material: " + materialName);
+    // }
 
     // Loop over the techniques for the new material
     for (auto i = 0; i < newMaterial->getNumTechniques(); ++i)
@@ -1781,16 +1850,17 @@ std::string RenderManager::rrBuildSkullFlagMaterial(const std::string& materialN
     Ogre::MaterialPtr oldMaterial = Ogre::MaterialManager::getSingleton().getByName(materialNameBase);
 
     Ogre::MaterialPtr newMaterial = oldMaterial->clone(materialNameToUse);
-    if(!mShaderGenerator->cloneShaderBasedTechniques(*oldMaterial, *newMaterial))
-    {
-        OD_LOG_ERR("Failed to clone rtss for material: " + materialNameBase);
-    }
+    
+    // if(!mShaderGenerator->cloneShaderBasedTechniques(*oldMaterial, *newMaterial))
+    // {
+    //     OD_LOG_ERR("Failed to clone rtss for material: " + materialNameBase);
+    // }
 
     for (unsigned short j = 0; j < newMaterial->getNumTechniques(); ++j)
     {
         Ogre::Technique* technique = newMaterial->getTechnique(j);
         Ogre::String techniqueName = technique->getName();
-        if (technique->getNumPasses() == 0 || techniqueName.find("mySchemeName") != Ogre::String::npos)
+        if (technique->getNumPasses() == 0 || techniqueName.find("ZPrePassScheme") != Ogre::String::npos)
             continue;
 
         for (uint16_t i = 0; i < technique->getNumPasses(); ++i)

@@ -22,6 +22,7 @@
 
 #include "render/ODFrameListener.h"
 
+#include "entities/Creature.h"
 #include "game/Player.h"
 #include "game/Seat.h"
 #include "gamemap/GameMap.h"
@@ -31,6 +32,8 @@
 #include "network/ODServer.h"
 #include "network/ODClient.h"
 #include "render/DebugDrawer.h"
+#include "render/CreatureOverlayStatus.h"
+#include "render/MovableTextOverlay.h"
 #include "render/Gui.h"
 #include "render/RenderManager.h"
 #include "render/TextRenderer.h"
@@ -103,14 +106,14 @@ ODFrameListener::ODFrameListener(const std::string& mainSceneFileName, Ogre::Ren
     readMainScene(mainSceneFileName);
 
     mInitialized = true;
-    mRenderManager->setup();
 }
 
 void ODFrameListener::windowResized(Ogre::RenderWindow* rw)
 {
     unsigned int width, height;
     int left, top;
-    rw->getMetrics(width, height, left, top);
+    unsigned int color;
+    rw->getMetrics(width, height, color, left, top);
 
     mModeManager->getInputManager().setWidthAndHeight(width, height);
     //Notify CEGUI that the display size has changed.
@@ -236,8 +239,24 @@ bool ODFrameListener::frameStarted(const Ogre::FrameEvent& evt)
         currentMode->onFrameStarted(evt);
     if(mRenderManager  && mRenderManager->mRenderTarget != nullptr)
     {
+        // preRenderTargetUpdate:
+        for (int i = 0; i < mGameMap->getCreatures().size(); i++)
+        {
+            CreatureOverlayStatus* tmp = mGameMap->getCreatures()[i]->getOverlayStatus();
+            mTemporaryWasVisible.push_back(tmp->getMovableTextOverlay()->isVisible());
+            tmp->getMovableTextOverlay()->setVisible(false);
+        }
         mRenderManager->mRenderTarget->update();
+        // postRenderTargetUpdate:
+        int tmpItr = 0;
+        for (int i = 0; i < mGameMap->getCreatures().size() ; i++)
+        {
+            CreatureOverlayStatus* tmp = mGameMap->getCreatures()[i]->getOverlayStatus();
+            tmp->getMovableTextOverlay()->setVisible(mTemporaryWasVisible[tmpItr++]);
+        }        
+        mTemporaryWasVisible.clear();
     }
+   
     return true;
 }
 

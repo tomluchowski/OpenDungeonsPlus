@@ -9,9 +9,9 @@ uniform    mat4 viewMatrix;
 uniform    mat4 worldMatrix;
 uniform    mat4 lightMatrix;
 
-layout (location = 0) in vec4 aPos;
-layout (location = 2)  in vec3 aNormal;
-layout (location = 14) in vec3 aTangent;
+layout (location = 0) in vec4 position;
+layout (location = 2)  in vec3 normal;
+layout (location = 14) in vec3 tangent;
  
 layout (location = 8) in vec2 uv_0;
 out vec2 out_UV0;
@@ -22,7 +22,7 @@ out vec3 FragPos;
 out vec4 VertexPos; 
 
 out mat3 TBN;
-out vec3 tangent;
+out vec3 tangentOut;
 
 float freq = 3.1415; 
  
@@ -35,10 +35,10 @@ vec3 deform(vec3 pos) {
  
 void main() {
     // compute world space position, tangent, bitangent
-    vec4 P4 = (worldMatrix * aPos);
+    vec4 P4 = (worldMatrix * position);
     vec3 P = P4.xyz;
-    vec3 T = normalize(vec3(worldMatrix * vec4(aTangent, 0.0)));
-    vec3 B = normalize(vec3(worldMatrix * vec4(cross(aTangent, aNormal), 0.0))); 
+    vec3 T = normalize(vec3(worldMatrix * vec4(tangent, 0.0)));
+    vec3 B = normalize(vec3(worldMatrix * vec4(cross(tangent, normal), 0.0))); 
  
     // apply deformation
     vec3 PT = deform(P + T);
@@ -59,6 +59,6 @@ void main() {
     out_UV0 = uv_0;
     out_UV1 = uv_0;
     out_UV2 = uv_0;
-    tangent = aTangent;
-    VertexPos = lightMatrix * aPos;
+    tangentOut = tangent;
+    VertexPos = lightMatrix * position;
 }  

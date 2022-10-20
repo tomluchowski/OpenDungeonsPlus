@@ -218,6 +218,14 @@ Command::Result cSetCameraLightDirectionThreshold(const Command::ArgumentList_t&
 
 }
 
+
+Command::Result cGetShadowTextureCount(const Command::ArgumentList_t& args, ConsoleInterface& c, AbstractModeManager&)
+{
+
+        c.print("Current shadow texture's number is  " + Helper::toString(RenderManager::getSingletonPtr()->getSceneManager()->getShadowTextureCount())) ;
+        return Command::Result::SUCCESS;        
+}
+
 Command::Result cSetShadowCameraFovY(const Command::ArgumentList_t& args, ConsoleInterface& c, AbstractModeManager&)
 {
         Ogre::Camera* mShadowCam = RenderManager::getSingletonPtr()->getSceneManager()->createCamera("mShadowCam");
@@ -574,10 +582,11 @@ Command::Result cSetCameraFOVy(const Command::ArgumentList_t& args, ConsoleInter
     return Command::Result::SUCCESS;
 }
 
-Command::Result cSetup(const Command::ArgumentList_t& args, ConsoleInterface& c, AbstractModeManager&)
+Command::Result cEnableZPrePass(const Command::ArgumentList_t& args, ConsoleInterface& c, AbstractModeManager&)
 {
     ODFrameListener::getSingleton().mRenderManager->setup();
-    c.print("\nsetting up mRenderManager setup()");
+    ODFrameListener::getSingleton().mRenderManager->m_ZPrePassEnabled = true;    
+    c.print("\nsetting up mRenderManager setup() \n ZPreePass enabled, to see it press CapsLock");
     return Command::Result::SUCCESS;
 }
 
@@ -684,6 +693,11 @@ void addConsoleCommands(ConsoleInterface& cl)
                   cPrintNodes,
                   Command::cStubServer,
                   {AbstractModeManager::ModeType::GAME, AbstractModeManager::ModeType::EDITOR});
+    cl.addCommand("getshadowtexturecount",
+                  "gets number of shadowing textures",
+                  cGetShadowTextureCount,
+                  Command::cStubServer,
+                  {AbstractModeManager::ModeType::GAME, AbstractModeManager::ModeType::EDITOR});    
     cl.addCommand("printentities",
                   "prints all entities in the scenemanager ",
                   cPrintEntities,
@@ -840,9 +854,9 @@ void addConsoleCommands(ConsoleInterface& cl)
                    cSrvAddMana,
                    {AbstractModeManager::ModeType::GAME, AbstractModeManager::ModeType::EDITOR});
 
-    cl.addCommand("setup",
-                   "setup",
-                   cSetup,
+    cl.addCommand("enableZPrePass",
+                   "enables Depth/ Z-Buffer , to show press capslock",
+                   cEnableZPrePass,
                    Command::cStubServer,
                    {AbstractModeManager::ModeType::GAME, AbstractModeManager::ModeType::EDITOR});
     

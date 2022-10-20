@@ -229,6 +229,12 @@ void MovableTextOverlay::setVisible(bool visible)
 
 }
 
+bool MovableTextOverlay::isVisible()
+{
+    return mOverlay->isVisible();
+
+}
+
 void MovableTextOverlay::setCaption(uint32_t childOverlayId, const Ogre::String& caption)
 {
     if(childOverlayId >= mChildOverlays.size())

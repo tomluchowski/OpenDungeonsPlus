@@ -8,7 +8,7 @@ uniform    mat4 projectionMatrix;
 uniform    mat4 viewMatrix;
 uniform    mat4 worldMatrix;
 uniform float time1;
-layout (location = 0) in vec4 aPos;
+layout (location = 0) in vec4 position;
  
 layout (location = 8) in vec2 uv_0;
 
@@ -28,7 +28,7 @@ vec3 deform(vec3 pos) {
  
 void main() {
     // compute world space position, tangent, bitangent
-    vec3 P = (worldMatrix * aPos).xyz;
+    vec3 P = (worldMatrix * position).xyz;
     
     
     P = deform(P); 

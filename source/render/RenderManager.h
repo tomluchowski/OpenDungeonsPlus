@@ -197,6 +197,7 @@ public:
     const Ogre::Vector3& getMenuEntityScale(Ogre::SceneNode* node);
 
     Ogre::RenderTarget* mRenderTarget;
+    bool m_ZPrePassEnabled;
     
 private:
     Ogre::DefaultDebugDrawer ddd;
@@ -238,6 +239,9 @@ private:
 
     Ogre::AnimationState* mHandAnimationState;
 
+
+    Ogre::TexturePtr m_texture;
+
     Ogre::Viewport* mViewport;
     Ogre::RTShader::ShaderGenerator* mShaderGenerator;
 
@@ -245,6 +249,7 @@ private:
     Ogre::SceneNode* mHandKeeperNode;
     Ogre::SceneNode* mDummyNode;
     Ogre::SceneNode* mHandLightNode;
+    Ogre::SceneNode* mHandLightNode2;
     Ogre::Camera* mShadowCam;
     Ogre::Radian mCurrentFOVy;
     Ogre::Real mFactorWidth;
