@@ -99,7 +99,7 @@ parts:
         configflags:
         source: https://github.com/wgois/OIS 
         source-depth: 1
-        source-tag: 1.5
+        source-tag: v1.5
         override-pull: |
             snapcraftctl pull
         after: [cegui]        
