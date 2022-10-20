@@ -96,7 +96,7 @@ parts:
         after: [ogre]
     libois:
         plugin: cmake
-        source: https://github.com/wgois/OIS 
+        source: https://github.com/wgois/OIS.git
         source-depth: 1
         source-tag: v1.5
         override-pull: |
