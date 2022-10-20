@@ -123,6 +123,7 @@ parts:
             sed -i -e 's|/.*/stage||g' $SNAPCRAFT_PART_INSTALL/etc/opendungeons-plus/plugins.cfg # drop stage prefix
             sed -i -e 's|/.*/stage||g' $SNAPCRAFT_PART_INSTALL/usr/share/games/opendungeons-plus/resources.cfg # drop stage prefix
         build-packages:
+            - pkg-config
             - libsfml-dev
             - libboost-thread-dev
             - libboost-locale-dev
