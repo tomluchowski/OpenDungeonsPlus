@@ -1,0 +1,45 @@
+vertex_program DebugZPrePass_VS glsl
+{
+    source DebugZPrePass_VS.vert
+
+default_params
+{
+	param_named_auto cWorldViewProj worldviewproj_matrix
+	//param_named_auto cWorldView worldview_matrix
+}
+}
+
+fragment_program DebugZPrePass_PS glsl
+{
+    source DebugZPrePass_PS.frag
+
+default_params
+{
+	//param_named_auto cNearClipDistance near_clip_distance
+	//param_named_auto cFarClipDistance far_clip_distance
+}
+}
+
+material DebugZPrePass
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+
+        vertex_program_ref DebugZPrePass_VS
+        {
+        }
+
+        fragment_program_ref DebugZPrePass_PS
+        {
+        }
+        texture_unit ZPrePassMap
+        {
+
+        }
+        
+    }
+}
+}
