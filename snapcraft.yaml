@@ -103,12 +103,12 @@ parts:
             snapcraftctl pull
         build-packages:
             - libc6
-            - libgcc-s1
+            - libgcc
             - libstdc++6
             - libx11-6
         stage-packages:
             - libc6
-            - libgcc-s1
+            - libgcc
             - libstdc++6
             - libx11-6
         after: [cegui]        
