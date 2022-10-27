@@ -24,9 +24,11 @@
 
 bool CreatureEffect::upkeepEffect(Creature& creature)
 {
-    if(mNbTurnsEffect <= 0)
+    if(mNbTurnsEffect < 0)
+        return true;
+    if(mNbTurnsEffect == 0)
         return false;
-
+    
     --mNbTurnsEffect;
     applyEffect(creature);
     return true;

@@ -538,6 +538,7 @@ void GameEntity::clientUpkeep()
 
         // Remove the effect
         OD_LOG_DIG("RenderManager::getSingleton().rrEntityRemoveParticleEffect(this, effect->mParticleSystem);");
+        OD_LOG_DIG(effect->mName);
         RenderManager::getSingleton().rrEntityRemoveParticleEffect(this, effect->mParticleSystem);
         it = mEntityParticleEffects.erase(it);
         delete effect;

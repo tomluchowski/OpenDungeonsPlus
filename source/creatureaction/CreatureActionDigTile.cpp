@@ -46,8 +46,11 @@ CreatureActionDigTile::~CreatureActionDigTile()
 {
     OD_LOG_DIG("Removing Creature Dig Effect");
     mTileDig.removeWorkerDigging(mCreature, mTilePos);
-    mCreature.removeCreatureEffect(mCreature.mDiggingEffect);
-    mCreature.mDiggingEffect = nullptr;
+    if(mCreature.mDiggingEffect)
+    {
+        mCreature.removeCreatureEffect(mCreature.mDiggingEffect);
+        mCreature.mDiggingEffect = nullptr;
+    }
 }
 
 std::function<bool()> CreatureActionDigTile::action()
@@ -96,8 +99,8 @@ bool CreatureActionDigTile::handleDigTile(Creature& creature, Tile& tileDig, Til
     walkDirection.normalise();
     if(creature.mDiggingEffect == nullptr)
     {
-        creature.mDiggingEffect = new CreatureEffectDigTile(-1, 1.0, "Examples/Smoke");
         OD_LOG_DIG("Adding Creature Dig Effect");
+        creature.mDiggingEffect = new CreatureEffectDigTile(-1, 1.0, "Examples/Smoke");
         creature.addCreatureEffect(creature.mDiggingEffect);
     }
     creature.setAnimationState(EntityAnimation::dig_anim, true, walkDirection);    
@@ -189,7 +192,13 @@ bool CreatureActionDigTile::handleDigTile(Creature& creature, Tile& tileDig, Til
         {
             // We do not push CreatureActionType::searchEntityToCarry because we want
             // this worker to be count as digging, not as carrying stuff
+            
             creature.pushAction(Utils::make_unique<CreatureActionGrabEntity>(creature, *obj));
+            if(creature.mDiggingEffect)
+            {
+                creature.removeCreatureEffect(creature.mDiggingEffect);
+                creature.mDiggingEffect = nullptr;
+            }            
             return true;
         }
 

@@ -25,10 +25,11 @@ class Creature;
 
 class CreatureEffect
 {
+    friend class Creature;
 public:
     // If particleEffectName is not empty, the corresponding particle effect will be
     // sent when the effect is added to the creature for nbTurnsEffect turns.
-    CreatureEffect(uint32_t nbTurnsEffect, const std::string& particleEffectScript) :
+    CreatureEffect(int32_t nbTurnsEffect, const std::string& particleEffectScript) :
         mNbTurnsEffect(nbTurnsEffect),
         mParticleEffectScript(particleEffectScript)
     {}
@@ -38,7 +39,7 @@ public:
 
     virtual const std::string& getEffectName() const = 0;
 
-    inline uint32_t getNbTurnsEffect() const
+    inline int32_t getNbTurnsEffect() const
     { return mNbTurnsEffect; }
 
     inline const std::string& getParticleEffectScript() const
@@ -77,7 +78,7 @@ protected:
     {}
 
 private:
-    uint32_t mNbTurnsEffect;
+    int32_t mNbTurnsEffect;
     std::string mParticleEffectScript;
 };
 

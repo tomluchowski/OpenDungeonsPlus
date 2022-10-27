@@ -23,7 +23,7 @@
 class CreatureEffectDefense : public CreatureEffect
 {
 public:
-    CreatureEffectDefense(uint32_t nbTurnsEffect, double phy, double mag, double ele, const std::string& particleEffectName) :
+    CreatureEffectDefense(int32_t nbTurnsEffect, double phy, double mag, double ele, const std::string& particleEffectName) :
         CreatureEffect(nbTurnsEffect, particleEffectName),
         mPhy(phy),
         mMag(mag),

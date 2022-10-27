@@ -23,7 +23,7 @@
 class CreatureEffectExplosion : public CreatureEffect
 {
 public:
-    CreatureEffectExplosion(uint32_t nbTurnsEffect, double effectValue, const std::string& particleEffectName) :
+    CreatureEffectExplosion(int32_t nbTurnsEffect, double effectValue, const std::string& particleEffectName) :
         CreatureEffect(nbTurnsEffect, particleEffectName),
         mEffectValue(effectValue)
     {}

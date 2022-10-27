@@ -101,7 +101,7 @@ static const Ogre::Real CANNON_MISSILE_HEIGHT = 0.3;
 const int32_t Creature::NB_TURNS_BEFORE_CHECKING_TASK = 15;
 const uint32_t Creature::NB_OVERLAY_HEALTH_VALUES = 8;
 
-CreatureParticleEffect::CreatureParticleEffect(Creature& creature, const std::string& name, const std::string& script, uint32_t nbTurnsEffect,
+CreatureParticleEffect::CreatureParticleEffect(Creature& creature, const std::string& name, const std::string& script, int32_t nbTurnsEffect,
         CreatureEffect* effect) :
     EntityParticleEffect(name, script, nbTurnsEffect),
     mEffect(effect),
@@ -1953,7 +1953,7 @@ std::string Creature::getStatsText()
     {
         tempSS << " " << CreatureAction::toString(ca.get()->getType());
     }
-    tempSS << std::endl;
+    tempSS << std::endl;   
     tempSS << "Destinations:";
     for(const Ogre::Vector3& dest : mWalkQueue)
     {
@@ -2992,21 +2992,24 @@ void Creature::addCreatureEffect(CreatureEffect* effect)
     mNeedFireRefresh = true;
 }
 
-
-void Creature::removeCreatureEffect(CreatureEffect* effectForDeletion)
+bool Creature::removeCreatureEffect(CreatureEffect* effectForDeletion)
 {
+    mNeedFireRefresh = false;
     for(auto it =  mEntityParticleEffects.begin(); it != mEntityParticleEffects.end(); ++it)
     {
         CreatureParticleEffect* effect = static_cast<CreatureParticleEffect*>(*it);
         if(effect->mEffect == effectForDeletion)
         {
-            effect->mNbTurnsEffect = 0;
-            break;
+            effect->mNbTurnsEffect = 0 ;
+            effect->mEffect->mNbTurnsEffect = 0 ;
+            mNeedFireRefresh = true;
+            return true;
         }
         
     }
-    mNeedFireRefresh = true;
+    return false;
 }
+
 
 bool Creature::isHurt() const
 {

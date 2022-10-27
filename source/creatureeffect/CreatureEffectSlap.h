@@ -23,7 +23,7 @@
 class CreatureEffectSlap : public CreatureEffect
 {
 public:
-    CreatureEffectSlap(uint32_t nbTurnsEffect, const std::string& particleEffectScript) :
+    CreatureEffectSlap(int32_t nbTurnsEffect, const std::string& particleEffectScript) :
         CreatureEffect(nbTurnsEffect, particleEffectScript)
     {}
 

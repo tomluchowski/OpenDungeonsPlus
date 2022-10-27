@@ -87,7 +87,7 @@ public:
 class CreatureParticleEffect : public EntityParticleEffect
 {
 public:
-    CreatureParticleEffect(Creature& creature, const std::string& name, const std::string& script, uint32_t nbTurnsEffect,
+    CreatureParticleEffect(Creature& creature, const std::string& name, const std::string& script, int32_t nbTurnsEffect,
         CreatureEffect* effect);
 
     virtual ~CreatureParticleEffect();
@@ -501,8 +501,8 @@ public:
     //! Called on server side to add an effect (spell, slap, ...) to this creature
     void addCreatureEffect(CreatureEffect* effect);
 
-    void removeCreatureEffect(CreatureEffect* effectForDeletion);
-    
+    bool removeCreatureEffect(CreatureEffect* effectForDeletion);
+
     //!\brief Returns true if the creature has an active slap effect
     bool hasSlapEffect() const
     { return mActiveSlapsCount > 0; }
