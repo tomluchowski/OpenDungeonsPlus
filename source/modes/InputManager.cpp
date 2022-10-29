@@ -108,6 +108,9 @@ InputManager::InputManager(Ogre::RenderWindow* renderWindow):
 #endif
 }
 
+template<> InputManager* Ogre::Singleton<InputManager>::msSingleton = nullptr;
+
+
 InputManager::~InputManager()
 {
     OD_LOG_INF("*** Destroying Input Manager ***");

@@ -19,6 +19,7 @@
 #define INPUTMANAGER_H
 
 #include <OgreVector.h>
+#include <OgreSingleton.h>
 
 #include <memory>
 
@@ -51,7 +52,7 @@ enum class InputCommandState
     validated, // When the player is happy with the build and wants to build
 };
 
-class InputManager
+class InputManager: public Ogre::Singleton<InputManager>
 {
 public:
 

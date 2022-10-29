@@ -6,6 +6,7 @@
 #include "gamemap/GameMap.h"
 #include "goals/Goal.h"
 #include "modes/ConsoleInterface.h"
+#include "modes/InputManager.h"
 #include "network/ClientNotification.h"
 #include "network/ODClient.h"
 #include "network/ODServer.h"
@@ -267,6 +268,15 @@ Command::Result cFPS(const Command::ArgumentList_t& args, ConsoleInterface& c, A
     }
     return Command::Result::SUCCESS;
 }
+
+
+Command::Result cGetPosition(const Command::ArgumentList_t& args, ConsoleInterface& c, AbstractModeManager& am)
+{
+    InputManager& inputManager = InputManager::getSingleton();
+    c.print("X: " + Helper::toString(inputManager.mXPos)+ " Y: " + Helper::toString(inputManager.mYPos));
+    return Command::Result::SUCCESS;
+}
+
 
 Command::Result cPrintNodes(const Command::ArgumentList_t& args, ConsoleInterface& c, AbstractModeManager&)
 {
@@ -688,6 +698,11 @@ void addConsoleCommands(ConsoleInterface& cl)
                   cFPS,
                   Command::cStubServer,
                   {AbstractModeManager::ModeType::GAME, AbstractModeManager::ModeType::EDITOR});
+    cl.addCommand("getposition",
+                  "gets position of a mouse in terms of x and y coordinates of gamemap",
+                  cGetPosition,
+                  Command::cStubServer,
+                  {AbstractModeManager::ModeType::GAME, AbstractModeManager::ModeType::EDITOR});    
     cl.addCommand("printnodes",
                   "prints all the scene nodes ",
                   cPrintNodes,
