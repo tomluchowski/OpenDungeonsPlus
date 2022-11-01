@@ -1347,7 +1347,7 @@ void Seat::exportTilesVisualInitialStates(TileVisual tileVisual, std::ostream& o
     os << "[" + Tile::tileVisualToString(tileVisual) + "]" << std::endl;
         for(std::pair<Tile* const, TileStateNotified> p : mTilesStates)
         {
-            if(!p.second.mMarkedForDigging)
+            if(p.second.mTileVisual != tileVisual)            
                 continue;
 
             os << p.first->getX()<< "\t" << p.first->getY() <<  "\t" << p.second.mSeatIdOwner << std::endl;
