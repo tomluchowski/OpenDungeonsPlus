@@ -127,7 +127,7 @@ void MovableGameEntity::clearDestinations(const std::string& animation, bool loo
         uint32_t nbDest = 0;
         ServerNotification *serverNotification = new ServerNotification(
             ServerNotificationType::animatedObjectSetWalkPath, seat->getPlayer());
-        serverNotification->mPacket << name << emptyString << animation
+        serverNotification->mPacket << true << name << emptyString << animation
             << loopAnim << playIdleWhenAnimationEnds << nbDest;
         ODServer::getSingleton().queueServerNotification(serverNotification);
     }
