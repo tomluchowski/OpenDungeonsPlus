@@ -367,7 +367,7 @@ bool GameMode::mouseMoved(const OIS::MouseEvent &arg)
 
     if (!directionKeyPressed && config.getInputValue(Config::AUTOSCROLL, "No", false) == "Yes")
     {
-        if (arg.state.X.abs == 0)
+        if (arg.state.X.abs <= 0.02 * arg.state.width)
             ODFrameListener::getSingleton().moveCamera(CameraManager::moveLeft);
         else
             ODFrameListener::getSingleton().moveCamera(CameraManager::stopLeft);
@@ -377,7 +377,7 @@ bool GameMode::mouseMoved(const OIS::MouseEvent &arg)
         else
             ODFrameListener::getSingleton().moveCamera(CameraManager::stopRight);
 
-        if (arg.state.Y.abs == 0)
+        if (arg.state.Y.abs <= 0.02 * arg.state.height)
             ODFrameListener::getSingleton().moveCamera(CameraManager::moveForward);
         else
             ODFrameListener::getSingleton().moveCamera(CameraManager::stopForward);
