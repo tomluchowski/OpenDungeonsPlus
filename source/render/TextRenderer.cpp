@@ -56,7 +56,6 @@ void TextRenderer::addTextBox(const std::string& ID, const std::string& text,
     textBox->setParameter("char_height", "16");
     textBox->setColour(color);
 
-    // Note: We make ogre handle an UTF8 string
     textBox->setCaption(text);
 
     mPanel->addChild(textBox);

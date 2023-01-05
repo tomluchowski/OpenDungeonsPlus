@@ -447,13 +447,6 @@ void RenderManager::createScene(Ogre::Viewport* nViewport)
     Ogre::ResourceGroupManager::getSingleton().addResourceLocation(
         ResourceManager::getSingleton().getShaderCachePath(), "FileSystem", "Graphics");
 
-    //FIXME - this is a workaround for an issue where the shader cache files are not found.
-    //Haven't found out why this started happening. Think it worked in 3faa1aa285df504350f9704bdf20eb851fc5be3d
-    //atleast.
-    Ogre::ResourceGroupManager::getSingleton().addResourceLocation(
-        ResourceManager::getSingleton().getShaderCachePath() + "../", "FileSystem", "Graphics");
-    mShaderGenerator->setShaderCachePath(ResourceManager::getSingleton().getShaderCachePath());
-
     mShaderGenerator->addSceneManager(mSceneManager);
 
     mViewport->setMaterialScheme(Ogre::RTShader::ShaderGenerator::DEFAULT_SCHEME_NAME);
@@ -513,6 +506,7 @@ Ogre::Light* RenderManager::addPointLightMenu(const std::string& name, const Ogr
     light->setDiffuseColour(diffuse);
     light->setSpecularColour(specular);
     light->setAttenuation(attenuationRange, attenuationConstant, attenuationLinear, attenuationQuadratic);
+    mSceneManager->getRootSceneNode()->createChildSceneNode(pos)->attachObject(light);
     return light;
 }
 
@@ -1699,7 +1693,8 @@ std::string RenderManager::colourizeMaterial(const std::string& materialName, co
     //std::cout << "\nMaterial does not exist, creating a new one.";
     
     Ogre::MaterialPtr newMaterial = oldMaterial->clone(tempSS.str());
-    bool cloned = mShaderGenerator->cloneShaderBasedTechniques(*oldMaterial, *newMaterial);
+    bool cloned = mShaderGenerator->cloneShaderBasedTechniques(*oldMaterial,
+                                                               *newMaterial);
     if(!cloned)
     {
         OD_LOG_ERR("Failed to clone rtss for material: " + materialName);
@@ -2045,11 +2040,12 @@ std::string RenderManager::setMaterialOpacity(const std::string& materialName, f
     Ogre::MaterialPtr oldMaterial = Ogre::MaterialManager::getSingleton().getByName(materialName);
     //std::cout << "\nMaterial does not exist, creating a new one.";
     Ogre::MaterialPtr newMaterial = oldMaterial->clone(newMaterialName.str());
-    // bool cloned = mShaderGenerator->cloneShaderBasedTechniques(*oldMaterial, *newMaterial);
-    // if(!cloned)
-    // {
-    //     OD_LOG_ERR("Failed to clone rtss for material: " + materialName);
-    // }
+    bool cloned = mShaderGenerator->cloneShaderBasedTechniques(*oldMaterial,
+                                                               *newMaterial);
+    if(!cloned)
+    {
+        OD_LOG_ERR("Failed to clone rtss for material: " + materialName);
+    }
 
     // Loop over the techniques for the new material
     for (auto i = 0; i < newMaterial->getNumTechniques(); ++i)
@@ -2151,11 +2147,10 @@ std::string RenderManager::rrBuildSkullFlagMaterial(const std::string& materialN
     Ogre::MaterialPtr oldMaterial = Ogre::MaterialManager::getSingleton().getByName(materialNameBase);
 
     Ogre::MaterialPtr newMaterial = oldMaterial->clone(materialNameToUse);
-    
-    // if(!mShaderGenerator->cloneShaderBasedTechniques(*oldMaterial, *newMaterial))
-    // {
-    //     OD_LOG_ERR("Failed to clone rtss for material: " + materialNameBase);
-    // }
+    if (!mShaderGenerator->cloneShaderBasedTechniques(*oldMaterial,
+                                                      *newMaterial)) {
+        OD_LOG_ERR("Failed to clone rtss for material: " + materialNameBase);
+    }
 
     for (unsigned short j = 0; j < newMaterial->getNumTechniques(); ++j)
     {

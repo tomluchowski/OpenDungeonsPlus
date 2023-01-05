@@ -111,8 +111,7 @@ void ODFrameListener::windowResized(Ogre::RenderWindow* rw)
 {
     unsigned int width, height;
     int left, top;
-    unsigned int color;
-    rw->getMetrics(width, height, color, left, top);
+    rw->getMetrics(width, height, left, top);
 
     mModeManager->getInputManager().setWidthAndHeight(width, height);
     //Notify CEGUI that the display size has changed.
