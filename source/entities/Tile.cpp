@@ -1708,6 +1708,22 @@ Room* Tile::getCoveringRoom() const
     return static_cast<Room*>(mCoveringBuilding);
 }
 
+unsigned int Tile::getEightNeighbouringRoomTypeCount(RoomType type) const
+{
+    unsigned int count = 0;
+    for(int ii = -1; ii <= 1; ++ii  )
+        for(int jj = -1; jj <= 1; ++jj  )
+        {
+            if( ii == 0 && jj == 0)
+                continue;
+            Tile* tt = getGameMap()->getTile(getX()+ ii,getY() + jj);
+            if ( tt != nullptr)
+                if(tt->getCoveringRoom()!= nullptr && tt->getCoveringRoom()->getSeat() == getCoveringRoom()->getSeat() && tt->getCoveringRoom()->getType() == type)
+                    count++;
+        }
+    return count;
+}
+
 bool Tile::checkCoveringRoomType(RoomType type) const
 {
     Room* coveringRoom = getCoveringRoom();

@@ -24,8 +24,21 @@
 class InputCommand;
 class InputManager;
 
+enum class FencingDirection
+{
+    NS,
+    EW,
+    SE,
+    SW,
+    NE,
+    NW,
+    nbDirections
+};
+
+
 class RoomPrison: public Room
 {
+
 public:
     RoomPrison(GameMap* gameMap);
 
@@ -34,6 +47,9 @@ public:
 
     void absorbRoom(Room *r) override;
 
+    virtual void updateActiveSpots(GameMap* gameMap = nullptr) override;
+    void splitTilesIntoClasses();
+    
     void doUpkeep() override;
 
     bool hasOpenCreatureSpot(Creature* creature) override;
@@ -54,15 +70,34 @@ public:
 
     void restoreInitialEntityState() override;
 
+    double getCreatureSpeed(const Creature* creature, Tile* tile) const override;
+
+    std::vector<Tile*>& getUnusedTiles(){ return mUnusedTiles; }
+
+    std::vector<Tile*>& getFenceTiles(){ return mFenceTiles; }
+    
     static const RoomType mRoomType;
 
+    virtual void setupRoom(const std::string& name, Seat* seat, const std::vector<Tile*>& tiles) override;    
+    
 protected:
     virtual BuildingObject* notifyActiveSpotCreated(ActiveSpotPlace place, Tile* tile) override;
     void exportToStream(std::ostream& os) const override;
     bool importFromStream(std::istream& is) override;
 
 private:
+    void deleteFenceMeshes();
+    void putFenceMeshes();
+    BuildingObject* createFencingMesh(FencingDirection hd, Tile*  tt);
+    void addFencingObject(Tile* targetTile, BuildingObject* obj, GameMap* gameMap = nullptr);
+    
+    std::vector<Tile*> mUnusedTiles;
+    std::vector<Tile*> mFenceTiles;
+    std::vector<Tile*> mActualPrisonTiles;
     std::vector<Creature*> mPendingPrisoners;
+
+    std::map<Tile*, BuildingObject*> mFencingObjects;
+    
     //! \brief Used at map loading to save creatures in prison
     std::vector<std::string> mPrisonersLoad;
 };

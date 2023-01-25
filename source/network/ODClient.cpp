@@ -36,6 +36,7 @@
 #include "gamemap/DraggableTileContainer.h"
 #include "modes/EditorMode.h"
 #include "modes/GameMode.h"
+#include "modes/InputCommand.h"
 #include "modes/MenuModeConfigureSeats.h"
 #include "modes/ModeManager.h"
 #include "network/ChatEventMessage.h"
@@ -1251,6 +1252,31 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
             OD_ASSERT_TRUE(packetReceived >> koCreatures);
             getPlayer()->getSeat()->setPlayerSettings(koCreatures);
             break;
+        }
+        case ServerNotificationType::displayText:
+        {
+            if(frameListener->getModeManager()->getCurrentModeType() != ModeManager::ModeType::EDITOR
+                && frameListener->getModeManager()->getCurrentModeType() != ModeManager::ModeType::GAME)
+            {
+                OD_LOG_ERR("Wrong mode " + Helper::toString(frameListener->getModeManager()->getCurrentModeType()));
+                break;
+            }
+            std::string text;
+            OD_ASSERT_TRUE(packetReceived >> text);            
+            if(frameListener->getModeManager()->getCurrentModeType() == ModeManager::ModeType::GAME )
+            {
+                GameMode* gm = static_cast<GameMode*>(frameListener->getModeManager()->getCurrentMode());
+                gm->displayText(Ogre::ColourValue::Red,text);
+            }
+            else if(frameListener->getModeManager()->getCurrentModeType() == ModeManager::ModeType::EDITOR)
+            {
+                EditorMode* em = static_cast<EditorMode*>(frameListener->getModeManager()->getCurrentMode());
+                em->displayText(Ogre::ColourValue::Red,text);
+
+            }
+ 
+            break;
+
         }
 
         default:

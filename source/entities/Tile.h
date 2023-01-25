@@ -264,11 +264,11 @@ public:
     //! \brief This function removes an entity to the list of entities in this tile.
     void removeEntity(GameEntity *entity);
 
-    //! \brief This function returns the count of the number of creatures in the tile.
+    //! \brief This function returns the count of the number of gameEntities in the tile.
     unsigned int numEntitiesInTile() const
     { return mEntitiesInTile.size(); }
 
-    //! \brief This function returns the count of the number of creatures in the tile.
+    //! \brief This function returns the container of gameEntity in the tile.
     const std::vector<GameEntity*>& getEntitiesInTile() const
     { return mEntitiesInTile; }
 
@@ -289,6 +289,8 @@ public:
     //! a pointer to the covering room
     Room* getCoveringRoom() const;
 
+    unsigned int getEightNeighbouringRoomTypeCount(RoomType type) const;
+    
     //! \brief Proxy that checks if there is a covering room and, if yes, that its
     //! type is the expected one. This is for convenience because it is a pretty
     //! common check

@@ -92,7 +92,9 @@ enum class ServerNotificationType
     setSpellCooldown,
 
     playerEvents,
-
+    
+    displayText,
+    
     exit
 };
 

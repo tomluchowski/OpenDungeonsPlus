@@ -137,6 +137,7 @@ void Room::absorbRoom(Room *r)
 
     // We fire the dead event so that if there are creatures heading for this room or
     // whatever, we release them before the remove from gamemap event
+
     r->fireEntityDead();
 }
 

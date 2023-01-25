@@ -438,7 +438,7 @@ double TrapDoor::getCreatureSpeed(const Creature* creature, Tile* tile) const
     if (!trapTileData->isActivated())
         return tile->getCreatureSpeedDefault(creature);
 
-    if(!mIsLockedState)
+    if(!mIsLocked)
         return tile->getCreatureSpeedDefault(creature);
 
     // Enemy units can go through doors. We need that otherwise, they won't be able to

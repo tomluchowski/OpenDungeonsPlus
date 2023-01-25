@@ -66,6 +66,7 @@
 #include "render/RenderManager.h"
 #include "rooms/RoomCrypt.h"
 #include "rooms/RoomDormitory.h"
+#include "rooms/RoomPrison.h"
 #include "sound/SoundEffectsManager.h"
 #include "spells/Spell.h"
 #include "spells/SpellType.h"
@@ -2168,10 +2169,12 @@ bool Creature::tryDrop(Seat* seat, Tile* tile)
     // If it is a worker, he can be dropped on dirt
     if (getDefinition()->isWorker() && (tile->getTileVisual() == TileVisual::dirtGround || tile->getTileVisual() == TileVisual::goldGround))
         return true;
-
+    
     // Every creature can be dropped on allied claimed tiles
     if(tile->isClaimedForSeat(seat))
         return true;
+
+
 
     return false;
 }
