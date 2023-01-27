@@ -28,6 +28,8 @@ enum class FencingDirection
 {
     NS,
     EW,
+    SN,
+    WE,
     SE,
     SW,
     NE,
@@ -75,6 +77,8 @@ public:
     std::vector<Tile*>& getUnusedTiles(){ return mUnusedTiles; }
 
     std::vector<Tile*>& getFenceTiles(){ return mFenceTiles; }
+
+    Tile* getActualPrisonTile(int index);
     
     static const RoomType mRoomType;
 

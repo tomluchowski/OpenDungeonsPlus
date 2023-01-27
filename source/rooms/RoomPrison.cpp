@@ -371,10 +371,16 @@ void RoomPrison::deleteFenceMeshes()
 void RoomPrison::putFenceMeshes()
 {
     std::vector<std::pair<int,int>> mFenceCoords;
+    std::vector<std::pair<int,int>> mActualTilesCoords;
+    
     for(Tile* tt : mFenceTiles)
     {
         mFenceCoords.push_back(std::make_pair(tt->getX(),tt->getY()));
     }
+    for(Tile* tt : mActualPrisonTiles)
+    {
+        mActualTilesCoords.push_back(std::make_pair(tt->getX(),tt->getY()));
+    }    
     for (Tile* tt: mFenceTiles)
     {
         int xx = tt->getX();
@@ -383,22 +389,38 @@ void RoomPrison::putFenceMeshes()
         std::pair<int,int> west = std::make_pair( xx - 1, yy);
         std::pair<int,int> north = std::make_pair( xx , yy + 1);
         std::pair<int,int> south = std::make_pair( xx , yy - 1);
-        auto it1 = std::find(mFenceCoords.begin(), mFenceCoords.end(), east);
-        auto it2 = std::find(mFenceCoords.begin(), mFenceCoords.end(), west);
-        auto it3 = std::find(mFenceCoords.begin(), mFenceCoords.end(), south);
-        auto it4 = std::find(mFenceCoords.begin(), mFenceCoords.end(), north);
+        auto fenceEast = std::find(mFenceCoords.begin(), mFenceCoords.end(), east);
+        auto fenceWest = std::find(mFenceCoords.begin(), mFenceCoords.end(), west);
+        auto fenceSouth = std::find(mFenceCoords.begin(), mFenceCoords.end(), south);
+        auto fenceNorth = std::find(mFenceCoords.begin(), mFenceCoords.end(), north);
+        auto actualEast = std::find(mActualTilesCoords.begin(), mActualTilesCoords.end(), east);
+        auto actualWest = std::find(mActualTilesCoords.begin(), mActualTilesCoords.end(), west);
+        auto actualSouth = std::find(mActualTilesCoords.begin(), mActualTilesCoords.end(), south);
+        auto actualNorth = std::find(mActualTilesCoords.begin(), mActualTilesCoords.end(), north);        
         BuildingObject* ro = nullptr;        
-        if(it1 != mFenceCoords.end() && it2 !=mFenceCoords.end()) 
-            ro = createFencingMesh(  FencingDirection::EW , tt);
-        else if(it3 != mFenceCoords.end() && it4 !=mFenceCoords.end()) 
-            ro = createFencingMesh(  FencingDirection::NS , tt);
-        else if(it1 != mFenceCoords.end() && it3 !=mFenceCoords.end())
+        if(fenceEast != mFenceCoords.end() && fenceWest !=mFenceCoords.end())
+            if(actualSouth!=mActualTilesCoords.end())
+                ro = createFencingMesh( FencingDirection::EW, tt);
+            else
+                ro = createFencingMesh( FencingDirection::WE, tt);
+        
+        else if(fenceSouth != mFenceCoords.end() && fenceNorth !=mFenceCoords.end())
+            if(actualWest!=mActualTilesCoords.end())
+                ro = createFencingMesh( FencingDirection::SN, tt);
+            else
+                ro = createFencingMesh( FencingDirection::NS, tt);
+        
+        else if(fenceEast != mFenceCoords.end() && fenceSouth !=mFenceCoords.end()
+                && actualWest!=mActualTilesCoords.end() && actualNorth!=mActualTilesCoords.end())
             ro = createFencingMesh(  FencingDirection::SE , tt);
-        else if(it1 != mFenceCoords.end() && it4 !=mFenceCoords.end())
+        else if(fenceEast != mFenceCoords.end() && fenceNorth !=mFenceCoords.end()
+                && actualWest!=mActualTilesCoords.end() && actualSouth!=mActualTilesCoords.end())            
             ro = createFencingMesh(  FencingDirection::NE , tt);
-        else if(it2 != mFenceCoords.end() && it3 !=mFenceCoords.end())
+        else if(fenceWest != mFenceCoords.end() && fenceSouth !=mFenceCoords.end()
+                && actualEast!=mActualTilesCoords.end() && actualNorth!=mActualTilesCoords.end())
             ro = createFencingMesh(  FencingDirection::SW , tt);
-        else if(it2 != mFenceCoords.end() && it4 !=mFenceCoords.end())
+        else if(fenceWest != mFenceCoords.end() && fenceNorth !=mFenceCoords.end()
+                && actualEast!=mActualTilesCoords.end() && actualSouth!=mActualTilesCoords.end())
             ro = createFencingMesh(  FencingDirection::NW , tt);        
         if(ro != nullptr)
         {
@@ -417,15 +439,19 @@ BuildingObject* RoomPrison::createFencingMesh(FencingDirection hd, Tile*  tt)
     case FencingDirection::NS :
         return new BuildingObject(getGameMap(), *this, "FenceStraight", *tt, 90.0, false);
     case FencingDirection::EW :
+        return new BuildingObject(getGameMap(), *this, "FenceStraight", *tt, 0.0, false);
+    case FencingDirection::SN :
+        return new BuildingObject(getGameMap(), *this, "FenceStraight", *tt, 270.0, false);
+    case FencingDirection::WE :
         return new BuildingObject(getGameMap(), *this, "FenceStraight", *tt, 180.0, false);
     case FencingDirection::SE :
-        return new BuildingObject(getGameMap(), *this, "FenceCorner", *tt, 180.0, false);
-    case FencingDirection::SW :
-        return new BuildingObject(getGameMap(), *this, "FenceCorner", *tt, 90.0, false);
+        return new BuildingObject(getGameMap(), *this, "FenceCorner", *tt, 270.0, false);
     case FencingDirection::NE :
-        return new BuildingObject(getGameMap(), *this, "FenceCorner", *tt, 270.0, false);        
+        return new BuildingObject(getGameMap(), *this, "FenceCorner", *tt, 00.0, false);
     case FencingDirection::NW :
-        return new BuildingObject(getGameMap(), *this, "FenceCorner", *tt, 0.0, false);        
+        return new BuildingObject(getGameMap(), *this, "FenceCorner", *tt, 90.0, false);
+    case FencingDirection::SW :
+        return new BuildingObject(getGameMap(), *this, "FenceCorner", *tt, 180.0, false);        
     default:
         break;
 
@@ -640,6 +666,8 @@ void RoomPrison::notifyCarryingStateChanged(Creature* carrier, GameEntity* carri
     mPendingPrisoners.erase(it);
 
     prisonerCreature->clearActionQueue();
+    Tile* myInsideTile = getActualPrisonTile(0);
+    prisonerCreature->setPosition(Ogre::Vector3(myInsideTile->getX(),myInsideTile->getY(),0.0f));
     prisonerCreature->pushAction(Utils::make_unique<CreatureActionUseRoom>(*prisonerCreature, *this, true));
     prisonerCreature->resetKoTurns();
 }
@@ -757,3 +785,15 @@ void RoomPrison::setupRoom(const std::string& name, Seat* seat, const std::vecto
     for(Creature* creature : creatures)
         creature->checkWalkPathValid();    
 }
+
+Tile* RoomPrison::getActualPrisonTile(int index)
+{
+    if(index >= static_cast<int>(mActualPrisonTiles.size()))
+    {
+        OD_LOG_ERR("name=" + getName() + ", index=" + Helper::toString(index) + ", size=" + Helper::toString(mActualPrisonTiles.size()));
+        return nullptr;
+    }
+
+    return mActualPrisonTiles[index];
+}
+

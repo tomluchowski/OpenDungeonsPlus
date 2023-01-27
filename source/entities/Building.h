@@ -111,6 +111,7 @@ public:
     virtual bool isAttackable(Tile* tile, Seat* seat) const override;
     virtual bool removeCoveredTile(Tile* t);
     std::vector<Tile*> getCoveredTiles() override;
+
     Tile* getCoveredTile(int index) override;
     uint32_t numCoveredTiles() const override
     { return mCoveredTiles.size(); }
