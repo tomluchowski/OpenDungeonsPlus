@@ -639,7 +639,7 @@ Tile* RoomPrison::askSpotForCarriedEntity(GameEntity* carriedEntity)
 
     Creature* creature = static_cast<Creature*>(carriedEntity);
     mPendingPrisoners.push_back(creature);
-    return getCoveredTile(0);
+    return getGateTile();
 }
 
 void RoomPrison::notifyCarryingStateChanged(Creature* carrier, GameEntity* carriedEntity)
@@ -666,8 +666,6 @@ void RoomPrison::notifyCarryingStateChanged(Creature* carrier, GameEntity* carri
     mPendingPrisoners.erase(it);
 
     prisonerCreature->clearActionQueue();
-    Tile* myInsideTile = getActualPrisonTile(0);
-    prisonerCreature->setPosition(Ogre::Vector3(myInsideTile->getX(),myInsideTile->getY(),0.0f));
     prisonerCreature->pushAction(Utils::make_unique<CreatureActionUseRoom>(*prisonerCreature, *this, true));
     prisonerCreature->resetKoTurns();
 }
@@ -795,5 +793,20 @@ Tile* RoomPrison::getActualPrisonTile(int index)
     }
 
     return mActualPrisonTiles[index];
+}
+
+Tile* RoomPrison::getGateTile()
+{
+    for(Tile* tile: mFenceTiles)
+    {
+        for(Tile* neighbour: tile->getAllNeighbors())
+        {
+            if(std::find(mActualPrisonTiles.begin(), mActualPrisonTiles.end(), neighbour)!=mActualPrisonTiles.end())
+                return tile;
+
+
+        }
+    }
+    return nullptr;
 }
 
