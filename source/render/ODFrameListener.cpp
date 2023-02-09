@@ -79,7 +79,7 @@ ODFrameListener::ODFrameListener(const std::string& mainSceneFileName, Ogre::Ren
     mInitialized(false),
     mWindow(renderWindow),
     mGui(gui),
-    mRenderManager(Utils::make_unique<RenderManager>(overLaySystem)),
+    mRenderManager(RenderManager::getSingletonPtr()),
     mGameMap(Utils::make_unique<GameMap>(false)),
     mModeManager(Utils::make_unique<ModeManager>(renderWindow, gui)),
     mMainScene(Utils::make_unique<RenderSceneMenu>()),

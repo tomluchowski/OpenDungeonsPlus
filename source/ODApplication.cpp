@@ -30,6 +30,7 @@
 #include "render/ODFrameListener.h"
 #include "render/RenderManager.h"
 #include "render/TextRenderer.h"
+#include "render/RenderManager.h"
 #include "utils/ConfigManager.h"
 #include "utils/LogManager.h"
 #include "utils/LogSinkConsole.h"
@@ -233,6 +234,9 @@ void ODApplication::startClient()
     ODServer server;
     ODClient client;
 
+    RenderManager renderManager(&overlaySystem);
+
+    Ogre::MaterialManager::getSingleton().setActiveScheme(Ogre::RTShader::ShaderGenerator::DEFAULT_SCHEME_NAME);
     Gui gui(&soundEffectsManager, resMgr.getCeguiLogFile(), *renderWindow);
     TextRenderer textRenderer;
     textRenderer.addTextBox("DebugMessages", ODApplication::MOTD.c_str(), 840,

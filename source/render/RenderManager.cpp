@@ -147,6 +147,9 @@ RenderManager::RenderManager(Ogre::OverlaySystem* overlaySystem) :
     mSceneManager->addListener(&ddd);
     mSceneManager->addRenderQueueListener(overlaySystem);
     mDraggableSceneNode = mSceneManager->getRootSceneNode()->createChildSceneNode("Draggable_scene_node");
+    mShaderGenerator = Ogre::RTShader::ShaderGenerator::getSingletonPtr();
+    mShaderGenerator->addSceneManager(mSceneManager);
+
     mCreatureSceneNode = mSceneManager->getRootSceneNode()->createChildSceneNode("Creature_scene_node");
     mTileSceneNode = mSceneManager->getRootSceneNode()->createChildSceneNode("Tile_scene_node");
     mRoomSceneNode = mSceneManager->getRootSceneNode()->createChildSceneNode("Room_scene_node");
@@ -442,12 +445,8 @@ void RenderManager::createScene(Ogre::Viewport* nViewport)
 
     
     //Set up the shader generator
-    mShaderGenerator = Ogre::RTShader::ShaderGenerator::getSingletonPtr();
-    //shaderGenerator->setTargetLanguage("glsl");
     Ogre::ResourceGroupManager::getSingleton().addResourceLocation(
         ResourceManager::getSingleton().getShaderCachePath(), "FileSystem", "Graphics");
-
-    mShaderGenerator->addSceneManager(mSceneManager);
 
     mViewport->setMaterialScheme(Ogre::RTShader::ShaderGenerator::DEFAULT_SCHEME_NAME);
 

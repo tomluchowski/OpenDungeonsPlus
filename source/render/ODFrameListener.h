@@ -191,7 +191,7 @@ private:
 
     //! \brief Foreign reference to gui.
     Gui*                 mGui;
-
+    RenderManager*       mRenderManager;
     std::unique_ptr<GameMap>       mGameMap;
     std::unique_ptr<ModeManager>   mModeManager;
     std::unique_ptr<RenderSceneMenu>   mMainScene;
