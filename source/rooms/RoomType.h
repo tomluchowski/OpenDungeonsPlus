@@ -48,5 +48,5 @@ std::istream& operator>>(std::istream& is, RoomType& rt);
 std::ostream& operator<<(std::ostream& os, const RoomType& rt);
 ODPacket& operator>>(ODPacket& is, RoomType& rt);
 ODPacket& operator<<(ODPacket& os, const RoomType& rt);
-
+std:: string roomTypeToString(const RoomType& rt);
 #endif

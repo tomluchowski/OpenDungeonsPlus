@@ -234,7 +234,6 @@ bool readGameMapFromFile(const std::string& fileName, GameMap& gameMap)
         Tile* tile = new Tile(&gameMap, true);
 
         Tile::loadFromLine(entire_line, tile);
-        tile->computeTileVisual();
 
         gameMap.addTile(tile);
     }
@@ -329,7 +328,13 @@ bool readGameMapFromFile(const std::string& fileName, GameMap& gameMap)
             return false;
         }
     }
+    
+    // Computer the tiles visuals
+    for(int ii = 0; ii < mapSizeX; ++ii)
+        for(int jj = 0; jj < mapSizeY; ++jj)
+             gameMap.getTile(ii,jj)->computeTileVisual();
 
+    
     // Read in the lights
     levelFile >> nextParam;
     if (nextParam != "[Lights]")

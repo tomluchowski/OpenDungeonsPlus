@@ -35,6 +35,9 @@
 const std::string RoomCryptName = "Crypt";
 const std::string RoomCryptNameDisplay = "Crypt room";
 const RoomType RoomCrypt::mRoomType = RoomType::crypt;
+const TileVisual RoomCrypt::mRoomVisual= TileVisual::cryptRoom;
+
+
 
 namespace
 {
@@ -43,6 +46,9 @@ class RoomCryptFactory : public RoomFactory
     RoomType getRoomType() const override
     { return RoomCrypt::mRoomType; }
 
+    TileVisual getVisualType() const override
+    { return RoomCrypt::mRoomVisual; }
+    
     const std::string& getName() const override
     { return RoomCryptName; }
 

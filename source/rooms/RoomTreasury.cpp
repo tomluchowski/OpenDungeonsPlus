@@ -41,6 +41,7 @@
 const std::string RoomTreasuryName = "Treasury";
 const std::string RoomTreasuryNameDisplay = "Treasury room";
 const RoomType RoomTreasury::mRoomType = RoomType::treasury;
+const TileVisual RoomTreasury::mRoomVisual= TileVisual::treasuryRoom;
 
 namespace
 {
@@ -49,6 +50,9 @@ class RoomTreasuryFactory : public RoomFactory
     RoomType getRoomType() const override
     { return RoomTreasury::mRoomType; }
 
+    TileVisual getVisualType() const override
+    { return RoomTreasury::mRoomVisual; }
+    
     const std::string& getName() const override
     { return RoomTreasuryName; }
 

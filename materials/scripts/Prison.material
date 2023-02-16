@@ -30,7 +30,7 @@ fragment_program myPrisonFragmentShader glsl
 }
 
 
-material PrisonGround //: RTSS/NormalMapping_MultiPass
+material Prison //: RTSS/NormalMapping_MultiPass
 {
     
     technique

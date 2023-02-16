@@ -31,6 +31,10 @@
 const std::string RoomBridgeWoodenName = "WoodenBridge";
 const std::string RoomBridgeWoodenNameDisplay = "Wooden Bridge room";
 const RoomType RoomBridgeWooden::mRoomType = RoomType::bridgeWooden;
+const TileVisual RoomBridgeWooden::mRoomVisual= TileVisual::nullTileVisual;
+
+
+
 static const std::vector<TileVisual> allowedTilesVisual = {TileVisual::waterGround};
 
 namespace
@@ -40,6 +44,9 @@ class RoomBridgeWoodenFactory : public BridgeRoomFactory
     RoomType getRoomType() const override
     { return RoomBridgeWooden::mRoomType; }
 
+    TileVisual getVisualType() const override
+    { return RoomBridgeWooden::mRoomVisual; }
+    
     const std::string& getName() const override
     { return RoomBridgeWoodenName; }
 

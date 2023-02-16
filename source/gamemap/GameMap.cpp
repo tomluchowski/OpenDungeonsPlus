@@ -2197,7 +2197,7 @@ bool GameMap::doFloodFill(Seat* seat, Tile* tile)
         {
             case TileType::dirt:
             case TileType::gold:
-            case TileType::rock:
+            case TileType::rock:           
             {
                 hasChanged |= tile->updateFloodFillFromTile(seat, FloodFillType::ground, neigh);
                 hasChanged |= tile->updateFloodFillFromTile(seat, FloodFillType::groundWater, neigh);
@@ -2959,8 +2959,8 @@ const TileSetValue& GameMap::getMeshForTile(const Tile* tile)
     int upper_bound = mTileSet->getTileValues(tile->getTileVisual()).at(index).size() - 1;
     std::uniform_int_distribution<int> distribution(0 , upper_bound);
 
-    int number = distribution(generator);
-    return mTileSet->getTileValues(tile->getTileVisual()).at(index).at(number) ;
+    int random_number = distribution(generator);
+    return mTileSet->getTileValues(tile->getTileVisual()).at(index).at(random_number) ;
 }
 
 uint32_t GameMap::getMaxNumberCreatures(Seat* seat) const

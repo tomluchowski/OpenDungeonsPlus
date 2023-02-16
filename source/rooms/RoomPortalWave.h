@@ -23,6 +23,8 @@
 
 #include <vector>
 
+
+enum class TileVisual;
 class CreatureDefinition;
 
 enum class RoomPortalWaveStrategy
@@ -107,7 +109,9 @@ public:
     { return true; }
 
     static const RoomType mRoomType;
+    static const TileVisual mRoomVisual;
 
+    
 protected:
     virtual void exportToStream(std::ostream& os) const override;
     virtual bool importFromStream(std::istream& is) override;

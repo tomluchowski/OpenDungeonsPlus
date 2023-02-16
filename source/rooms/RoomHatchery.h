@@ -22,6 +22,7 @@
 #include "rooms/RoomType.h"
 
 class Creature;
+enum class TileVisual;
 
 class RoomHatchery: public Room
 {
@@ -47,7 +48,8 @@ public:
     void creatureDropped(Creature& creature) override;
 
     static const RoomType mRoomType;
-
+    static const TileVisual mRoomVisual;
+    
 protected:
     BuildingObject* notifyActiveSpotCreated(ActiveSpotPlace place, Tile* tile) override;
     void notifyActiveSpotRemoved(ActiveSpotPlace place, Tile* tile) override;

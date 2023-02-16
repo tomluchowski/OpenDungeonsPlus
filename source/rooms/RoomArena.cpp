@@ -34,6 +34,7 @@
 const std::string RoomArenaName = "Arena";
 const std::string RoomArenaNameDisplay = "Arena room";
 const RoomType RoomArena::mRoomType = RoomType::arena;
+const TileVisual RoomArena::mRoomVisual = TileVisual::arenaRoom;
 
 namespace
 {
@@ -45,6 +46,9 @@ class RoomArenaFactory : public RoomFactory
     const std::string& getName() const override
     { return RoomArenaName; }
 
+    TileVisual getVisualType() const override
+    { return RoomArena::mRoomVisual; }
+    
     const std::string& getNameReadable() const override
     { return RoomArenaNameDisplay; }
 

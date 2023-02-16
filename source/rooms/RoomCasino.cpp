@@ -39,6 +39,8 @@
 const std::string RoomCasinoName = "Casino";
 const std::string RoomCasinoNameDisplay = "Casino room";
 const RoomType RoomCasino::mRoomType = RoomType::casino;
+const TileVisual RoomCasino::mRoomVisual= TileVisual::casinoRoom;
+
 
 namespace
 {
@@ -47,6 +49,9 @@ class RoomCasinoFactory : public RoomFactory
     RoomType getRoomType() const override
     { return RoomCasino::mRoomType; }
 
+    TileVisual getVisualType() const override
+    { return RoomCasino::mRoomVisual; }
+    
     const std::string& getName() const override
     { return RoomCasinoName; }
 

@@ -38,6 +38,9 @@
 const std::string RoomPortalName = "Portal";
 const std::string RoomPortalNameDisplay = "Portal room";
 const RoomType RoomPortal::mRoomType = RoomType::portal;
+const TileVisual RoomPortal::mRoomVisual= TileVisual::portalRoom;
+
+
 
 namespace
 {
@@ -46,6 +49,9 @@ class RoomPortalFactory : public RoomFactory
     RoomType getRoomType() const override
     { return RoomPortal::mRoomType; }
 
+    TileVisual getVisualType() const override
+    { return RoomPortal::mRoomVisual; }
+    
     const std::string& getName() const override
     { return RoomPortalName; }
 

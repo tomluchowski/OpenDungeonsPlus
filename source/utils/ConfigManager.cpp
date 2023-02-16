@@ -1163,6 +1163,35 @@ bool ConfigManager::loadTilesets(const std::string& fileName)
             return false;
         if(!loadTilesetValues(defFile, TileVisual::gemFull, tileSet->configureTileValues(TileVisual::gemFull)))
             return false;
+        if(!loadTilesetValues(defFile, TileVisual::dungeonTempleRoom, tileSet->configureTileValues(TileVisual::dungeonTempleRoom)))
+            return false;
+        if(!loadTilesetValues(defFile, TileVisual::dormitoryRoom, tileSet->configureTileValues(TileVisual::dormitoryRoom)))
+            return false;
+        if(!loadTilesetValues(defFile, TileVisual::treasuryRoom, tileSet->configureTileValues(TileVisual::treasuryRoom)))
+            return false;
+        if(!loadTilesetValues(defFile, TileVisual::portalRoom, tileSet->configureTileValues(TileVisual::portalRoom)))
+            return false;
+        if(!loadTilesetValues(defFile, TileVisual::workshopRoom, tileSet->configureTileValues(TileVisual::workshopRoom)))
+            return false;
+        if(!loadTilesetValues(defFile, TileVisual::trainingHallRoom, tileSet->configureTileValues(TileVisual::trainingHallRoom)))
+            return false;
+        if(!loadTilesetValues(defFile, TileVisual::libraryRoom, tileSet->configureTileValues(TileVisual::libraryRoom)))
+            return false;
+        if(!loadTilesetValues(defFile, TileVisual::hatcheryRoom, tileSet->configureTileValues(TileVisual::hatcheryRoom)))
+            return false;
+        if(!loadTilesetValues(defFile, TileVisual::cryptRoom, tileSet->configureTileValues(TileVisual::cryptRoom)))
+            return false;
+        if(!loadTilesetValues(defFile, TileVisual::portalWaveRoom, tileSet->configureTileValues(TileVisual::portalWaveRoom)))
+            return false;
+        if(!loadTilesetValues(defFile, TileVisual::prisonRoom, tileSet->configureTileValues(TileVisual::prisonRoom)))
+            return false;
+        if(!loadTilesetValues(defFile, TileVisual::arenaRoom, tileSet->configureTileValues(TileVisual::arenaRoom)))
+            return false;
+        if(!loadTilesetValues(defFile, TileVisual::casinoRoom, tileSet->configureTileValues(TileVisual::casinoRoom)))
+            return false;
+        if(!loadTilesetValues(defFile, TileVisual::tortureRoom, tileSet->configureTileValues(TileVisual::tortureRoom)))
+            return false;
+
     }
 
     // At least the default tileset should be defined

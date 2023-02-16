@@ -22,6 +22,8 @@
 #include "rooms/RoomType.h"
 
 class Tile;
+enum class TileVisual;
+
 
 class RoomBridgeStone: public RoomBridge
 {
@@ -32,7 +34,7 @@ public:
     { return mRoomType; }
 
     static const RoomType mRoomType;
-
+    static const TileVisual mRoomVisual;
 protected:
     void updateFloodFillTileRemoved(Seat* seat, Tile* tile) override;
 };

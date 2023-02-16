@@ -28,6 +28,7 @@
 #include "network/ODPacket.h"
 #include "render/RenderManager.h"
 #include "rooms/Room.h"
+#include "rooms/RoomType.h"
 #include "sound/SoundEffectsManager.h"
 #include "traps/Trap.h"
 #include "utils/ConfigManager.h"
@@ -52,6 +53,7 @@ Tile::Tile(GameMap* gameMap, int x, int y, TileType type, double fullness) :
     GameEntity(gameMap, "", "", nullptr),
     mX                  (x),
     mY                  (y),
+    mZ                  (0.0f),
     mType               (type),
     mTileVisual         (TileVisual::nullTileVisual),
     mSelected           (false),
@@ -113,6 +115,20 @@ bool Tile::isDiggable(const Seat* seat) const
     // Handle non claimed
     switch(mTileVisual)
     {
+        case TileVisual::dungeonTempleRoom:
+        case TileVisual::dormitoryRoom:
+        case TileVisual::treasuryRoom:
+        case TileVisual::portalRoom:
+        case TileVisual::workshopRoom:
+        case TileVisual::trainingHallRoom:
+        case TileVisual::libraryRoom:
+        case TileVisual::hatcheryRoom:
+        case TileVisual::cryptRoom:
+        case TileVisual::portalWaveRoom:
+        case TileVisual::prisonRoom:
+        case TileVisual::arenaRoom:
+        case TileVisual::casinoRoom:
+        case TileVisual::tortureRoom:        
         case TileVisual::claimedGround:
         case TileVisual::dirtGround:
         case TileVisual::goldGround:
@@ -321,7 +337,6 @@ std::string Tile::tileTypeToString(TileType t)
 
         case TileType::gem:
             return "Gem";
-
         default:
             return "Unknown tile type=" + Helper::toString(static_cast<uint32_t>(t));
     }
@@ -370,6 +385,49 @@ std::string Tile::tileVisualToString(TileVisual tileVisual)
         case TileVisual::claimedFull:
             return "claimedFull";
 
+        case TileVisual::dungeonTempleRoom:
+            return "dungeonTempleRoom";
+
+        case TileVisual::dormitoryRoom:
+            return "dormitoryRoom";
+
+        case TileVisual::treasuryRoom:
+            return "treasuryRoom";
+
+        case TileVisual::portalRoom:
+            return "portalRoom";
+
+        case TileVisual::workshopRoom:
+            return "workshopRoom";
+
+        case TileVisual::trainingHallRoom:
+            return "trainingHallRoom";
+
+        case TileVisual::libraryRoom:
+            return "libraryRoom";
+
+        case TileVisual::hatcheryRoom:
+            return "hatcheryRoom";
+
+        case TileVisual::cryptRoom:
+            return "cryptRoom";
+
+        case TileVisual::portalWaveRoom:
+            return "portalWaveRoom";
+
+        case TileVisual::prisonRoom:
+            return "prisonRoom";
+
+        case TileVisual::arenaRoom:
+            return "arenaRoom";
+
+        case TileVisual::casinoRoom:
+            return "casinoRoom";
+
+        case TileVisual::tortureRoom:
+            return "tortureRoom";
+  
+            
         default:
             return "Unknown tile type=" + Helper::toString(static_cast<uint32_t>(tileVisual));
     }
@@ -725,6 +783,26 @@ bool Tile::isClaimed() const
         if(mTileVisual == TileVisual::claimedFull)
             return true;
 
+
+        switch(mTileVisual)
+        {
+            case TileVisual::dungeonTempleRoom:
+            case TileVisual::dormitoryRoom:
+            case TileVisual::treasuryRoom:
+            case TileVisual::portalRoom:
+            case TileVisual::workshopRoom:
+            case TileVisual::trainingHallRoom:
+            case TileVisual::libraryRoom:
+            case TileVisual::hatcheryRoom:
+            case TileVisual::cryptRoom:
+            case TileVisual::portalWaveRoom:
+            case TileVisual::prisonRoom:
+            case TileVisual::arenaRoom:
+            case TileVisual::casinoRoom:
+            case TileVisual::tortureRoom:  
+                return true;
+        }
+        
         // For bridges
         if(getHasBridge())
             return true;
@@ -810,7 +888,59 @@ void Tile::computeTileVisual()
             else
             {
                 if(isClaimed())
+                {
                     mTileVisual = TileVisual::claimedGround;
+                    if(getCoveringRoom()!=nullptr)
+                        switch(getCoveringRoom()->getType())
+                        {
+                           case RoomType::arena:
+                               mTileVisual = TileVisual::arenaRoom;
+                               return;
+                           case RoomType::dungeonTemple: 
+                               mTileVisual = TileVisual::dungeonTempleRoom;
+                               return;
+                           case RoomType::dormitory: 
+                               mTileVisual = TileVisual::dormitoryRoom;
+                               return;
+                           case RoomType::treasury: 
+                               mTileVisual = TileVisual::treasuryRoom;
+                               return;
+                           case RoomType::portal: 
+                               mTileVisual = TileVisual::portalRoom;
+                               return;
+                           case RoomType::workshop: 
+                               mTileVisual = TileVisual::workshopRoom;
+                               return;
+                           case RoomType::trainingHall: 
+                               mTileVisual = TileVisual::trainingHallRoom;
+                               return;
+                           case RoomType::library: 
+                               mTileVisual = TileVisual::libraryRoom;
+                               return;
+                           case RoomType::hatchery: 
+                               mTileVisual = TileVisual::hatcheryRoom;
+                               return;
+                           case RoomType::crypt: 
+                               mTileVisual = TileVisual::cryptRoom;
+                               return;
+                           case RoomType::portalWave: 
+                               mTileVisual = TileVisual::portalWaveRoom;
+                               return;
+                           case RoomType::prison: 
+                               mTileVisual = TileVisual::prisonRoom;
+                               return;
+                           case RoomType::casino: 
+                               mTileVisual = TileVisual::casinoRoom;
+                               return;
+                           case RoomType::torture: 
+                               mTileVisual = TileVisual::tortureRoom;
+                               return;
+                           default:
+                               OD_LOG_ERR("Computing tile visual for unknown room type tile=" + Tile::displayAsString(this) + ", TileType=" + roomTypeToString(getCoveringRoom()->getType()));
+                               mTileVisual = TileVisual::nullTileVisual;
+                        }
+                    }
+                
                 else
                     mTileVisual = TileVisual::dirtGround;
             }
@@ -834,8 +964,59 @@ void Tile::computeTileVisual()
             else
             {
                 if(isClaimed())
+                {
                     mTileVisual = TileVisual::claimedGround;
-                else
+                    if(getCoveringRoom()!=nullptr)
+                        switch(getCoveringRoom()->getType())
+                        {
+                           case RoomType::arena:
+                               mTileVisual = TileVisual::arenaRoom;
+                               return;
+                           case RoomType::dungeonTemple: 
+                               mTileVisual = TileVisual::dungeonTempleRoom;
+                               return;
+                           case RoomType::dormitory: 
+                               mTileVisual = TileVisual::dormitoryRoom;
+                               return;
+                           case RoomType::treasury: 
+                               mTileVisual = TileVisual::treasuryRoom;
+                               return;
+                           case RoomType::portal: 
+                               mTileVisual = TileVisual::portalRoom;
+                               return;
+                           case RoomType::workshop: 
+                               mTileVisual = TileVisual::workshopRoom;
+                               return;
+                           case RoomType::trainingHall: 
+                               mTileVisual = TileVisual::trainingHallRoom;
+                               return;
+                           case RoomType::library: 
+                               mTileVisual = TileVisual::libraryRoom;
+                               return;
+                           case RoomType::hatchery: 
+                               mTileVisual = TileVisual::hatcheryRoom;
+                               return;
+                           case RoomType::crypt: 
+                               mTileVisual = TileVisual::cryptRoom;
+                               return;
+                           case RoomType::portalWave: 
+                               mTileVisual = TileVisual::portalWaveRoom;
+                               return;
+                           case RoomType::prison: 
+                               mTileVisual = TileVisual::prisonRoom;
+                               return;
+                           case RoomType::casino: 
+                               mTileVisual = TileVisual::casinoRoom;
+                               return;
+                           case RoomType::torture: 
+                               mTileVisual = TileVisual::tortureRoom;
+                               return;
+                           default:
+                               OD_LOG_ERR("Computing tile visual for unknown room type tile=" + Tile::displayAsString(this) + ", TileType=" + roomTypeToString(getCoveringRoom()->getType()));
+                               mTileVisual = TileVisual::nullTileVisual;
+                        }
+                }
+                else                    
                     mTileVisual = TileVisual::goldGround;
             }
             return;
@@ -854,7 +1035,7 @@ void Tile::computeTileVisual()
             else
                 mTileVisual = TileVisual::gemGround;
             return;
-
+            
         default:
             OD_LOG_ERR("Computing tile visual for unknown tile type tile=" + Tile::displayAsString(this) + ", TileType=" + tileTypeToString(getType()));
             mTileVisual = TileVisual::nullTileVisual;
@@ -908,6 +1089,7 @@ bool Tile::shouldColorTileMesh() const
     {
         case TileVisual::claimedGround:
         case TileVisual::claimedFull:
+        case TileVisual::portalRoom:    
             return true;
         default:
             return false;
@@ -1866,6 +2048,20 @@ double Tile::getCreatureSpeedDefault(const Creature* creature) const
 
     switch(getTileVisual())
     {
+        case TileVisual::dungeonTempleRoom:
+        case TileVisual::dormitoryRoom:
+        case TileVisual::treasuryRoom:
+        case TileVisual::portalRoom:
+        case TileVisual::workshopRoom:
+        case TileVisual::trainingHallRoom:
+        case TileVisual::libraryRoom:
+        case TileVisual::hatcheryRoom:
+        case TileVisual::cryptRoom:
+        case TileVisual::portalWaveRoom:
+        case TileVisual::prisonRoom:
+        case TileVisual::arenaRoom:
+        case TileVisual::casinoRoom:
+        case TileVisual::tortureRoom:        
         case TileVisual::dirtGround:
         case TileVisual::goldGround:
         case TileVisual::rockGround:

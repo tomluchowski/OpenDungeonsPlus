@@ -165,7 +165,7 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
                 --nb;
                 Tile* tile = gameMap->tileFromPacket(packetReceived);
                 tile->setType(TileType::gold);
-                tile->setTileVisual(TileVisual::goldFull);
+                tile->setTileVisualIfArgNotNullIfArgNotNull(TileVisual::goldFull);
             }
             // Rock
             OD_ASSERT_TRUE(packetReceived >> nb);
@@ -174,7 +174,7 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
                 --nb;
                 Tile* tile = gameMap->tileFromPacket(packetReceived);
                 tile->setType(TileType::rock);
-                tile->setTileVisual(TileVisual::rockFull);
+                tile->setTileVisualIfArgNotNullIfArgNotNull(TileVisual::rockFull);
             }
             // Gem
             OD_ASSERT_TRUE(packetReceived >> nb);
@@ -183,7 +183,7 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
                 --nb;
                 Tile* tile = gameMap->tileFromPacket(packetReceived);
                 tile->setType(TileType::gem);
-                tile->setTileVisual(TileVisual::gemFull);
+                tile->setTileVisualIfArgNotNullIfArgNotNull(TileVisual::gemFull);
             }
             // Water
             OD_ASSERT_TRUE(packetReceived >> nb);
@@ -192,7 +192,7 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
                 --nb;
                 Tile* tile = gameMap->tileFromPacket(packetReceived);
                 tile->setType(TileType::water);
-                tile->setTileVisual(TileVisual::waterGround);
+                tile->setTileVisualIfArgNotNullIfArgNotNull(TileVisual::waterGround);
             }
             // Lava
             OD_ASSERT_TRUE(packetReceived >> nb);
@@ -201,7 +201,7 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
                 --nb;
                 Tile* tile = gameMap->tileFromPacket(packetReceived);
                 tile->setType(TileType::lava);
-                tile->setTileVisual(TileVisual::lavaGround);
+                tile->setTileVisualIfArgNotNullIfArgNotNull(TileVisual::lavaGround);
             }
 
             
@@ -937,7 +937,7 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
                     gameTile->setType(tileType);
                     gameTile->setFullness(tileFullness);
                     gameTile->setSeat(seatPtr);
-                    gameTile->setTileVisual(tileVisual);
+                    gameTile->setTileVisualIfArgNotNullIfArgNotNull(tileVisual);
                 }
                 draggableTileContainer->refreshTilesBlock(0, 0, draggableTileContainer->getMapSizeX(), draggableTileContainer->getMapSizeY() , NodeType::MDTC_NODE);
             }

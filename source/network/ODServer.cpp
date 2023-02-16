@@ -724,6 +724,7 @@ bool ODServer::processClientNotifications(ODSocketClient* clientSocket)
             std::vector<Tile*> gemTiles;
             std::vector<Tile*> waterTiles;
             std::vector<Tile*> lavaTiles;
+            
             for (int xxx = 0; xxx < mapSizeX; ++xxx)
             {
                 for (int yyy = 0; yyy < mapSizeY; ++yyy)
@@ -746,7 +747,6 @@ bool ODServer::processClientNotifications(ODSocketClient* clientSocket)
                         case TileType::lava:
                             lavaTiles.push_back(tile);
                             break;
-
                             
                         default:
                             // Per default, tiles are dirt and don't need to be notified
@@ -787,7 +787,6 @@ bool ODServer::processClientNotifications(ODSocketClient* clientSocket)
             {
                 gameMap->tileToPacket(packet, tile);
             }
-
 
             
             clientSocket->send(packet);

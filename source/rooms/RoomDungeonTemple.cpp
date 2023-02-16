@@ -31,11 +31,16 @@
 const std::string RoomDungeonTempleName = "DungeonTemple";
 const std::string RoomDungeonTempleNameDisplay = "Dungeon temple room";
 const RoomType RoomDungeonTemple::mRoomType = RoomType::dungeonTemple;
+const TileVisual RoomDungeonTemple::mRoomVisual = TileVisual::dungeonTempleRoom;
 
 namespace
 {
 class RoomDungeonTempleFactory : public RoomFactory
 {
+    TileVisual getVisualType() const override
+    { return RoomDungeonTemple::mRoomVisual; }
+
+    
     RoomType getRoomType() const override
     { return RoomDungeonTemple::mRoomType; }
 

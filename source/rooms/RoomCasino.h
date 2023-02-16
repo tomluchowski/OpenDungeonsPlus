@@ -23,6 +23,7 @@
 
 class Creature;
 class Tile;
+enum class TileVisual;
 
 class RoomCasinoGameCreatureInfo
 {
@@ -66,6 +67,7 @@ public:
     bool useRoom(Creature& creature, bool forced) override;
 
     static const RoomType mRoomType;
+    static const TileVisual mRoomVisual;
 
 protected:
     BuildingObject* notifyActiveSpotCreated(ActiveSpotPlace place, Tile* tile) override;

@@ -23,6 +23,11 @@
 
 #include <Ogre.h>
 
+
+enum class TileVisual;
+
+
+
 class RoomDormitoryTileData : public TileData
 {
 public:
@@ -62,7 +67,7 @@ public:
     { return mX; }
 
     inline int getY() const
-    { return mY; }
+    { return mY; } 
 
     inline double getRotation() const
     { return mRotation; }
@@ -166,7 +171,8 @@ public:
     void creatureDropped(Creature& creature) override;
 
     static const RoomType mRoomType;
-
+    static const TileVisual mRoomVisual;
+    
 protected:
     void exportToStream(std::ostream& os) const override;
     bool importFromStream(std::istream& is) override;

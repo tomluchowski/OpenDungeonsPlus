@@ -184,9 +184,16 @@ bool RoomFactory::buildRoomDefault(GameMap* gameMap, Room* room, Seat* seat, con
     if(tiles.empty())
         return false;
 
+    for(Tile* tile: tiles)
+    {
+        tile->setTileVisualIfArgNotNullIfArgNotNull(getVisualType());
+    }
+       
     room->setupRoom(gameMap->nextUniqueNameRoom(room->getType()), seat, tiles);
     room->addToGameMap(gameMap);
     room->createMesh();
+
+
 
     // if((seat->getPlayer() != nullptr) &&
     //    (seat->getPlayer()->getIsHuman()))

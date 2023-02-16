@@ -5,6 +5,7 @@
 
 #include <istream>
 #include <ostream>
+#include <sstream>
 
 std::istream& operator>>(std::istream& is, RoomType& rt)
 {
@@ -34,4 +35,13 @@ ODPacket& operator<<(ODPacket& os, const RoomType& rt)
   uint32_t tmp = static_cast<uint32_t>(rt);
   os << tmp;
   return os;
+}
+
+
+std:: string roomTypeToString(const RoomType& rt)
+{
+    std::stringstream ss;
+    ss << rt;
+    return ss.str();
+
 }

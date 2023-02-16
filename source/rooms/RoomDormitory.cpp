@@ -35,6 +35,8 @@
 const std::string RoomDormitoryName = "Dormitory";
 const std::string RoomDormitoryNameDisplay = "Dormitory room";
 const RoomType RoomDormitory::mRoomType = RoomType::dormitory;
+const TileVisual RoomDormitory::mRoomVisual= TileVisual::dormitoryRoom;
+
 
 namespace
 {
@@ -43,6 +45,9 @@ class RoomDormitoryFactory : public RoomFactory
     RoomType getRoomType() const override
     { return RoomDormitory::mRoomType; }
 
+    TileVisual getVisualType() const override
+    { return RoomDormitory::mRoomVisual; }
+    
     const std::string& getName() const override
     { return RoomDormitoryName; }
 

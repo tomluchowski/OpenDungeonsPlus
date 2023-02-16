@@ -24,6 +24,8 @@
 class InputCommand;
 class InputManager;
 
+enum class TileVisual;
+
 class RoomCrypt: public Room
 {
 public:
@@ -41,7 +43,7 @@ public:
     void notifyCarryingStateChanged(Creature* carrier, GameEntity* carriedEntity) override;
 
     static const RoomType mRoomType;
-
+    static const TileVisual mRoomVisual;
 protected:
     virtual void exportToStream(std::ostream& os) const override;
     virtual bool importFromStream(std::istream& is) override;

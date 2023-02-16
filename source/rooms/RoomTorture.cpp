@@ -37,6 +37,9 @@
 const std::string RoomTortureName = "Torture";
 const std::string RoomTortureNameDisplay = "Torture room";
 const RoomType RoomTorture::mRoomType = RoomType::torture;
+const TileVisual RoomTorture::mRoomVisual= TileVisual::tortureRoom;
+
+
 
 namespace
 {
@@ -45,6 +48,9 @@ class RoomTortureFactory : public RoomFactory
     RoomType getRoomType() const override
     { return RoomTorture::mRoomType; }
 
+    TileVisual getVisualType() const override
+    { return RoomTorture::mRoomVisual; }
+    
     const std::string& getName() const override
     { return RoomTortureName; }
 

@@ -34,6 +34,8 @@
 const std::string RoomHatcheryName = "Hatchery";
 const std::string RoomHatcheryNameDisplay = "Hatchery room";
 const RoomType RoomHatchery::mRoomType = RoomType::hatchery;
+const TileVisual RoomHatchery::mRoomVisual= TileVisual::hatcheryRoom;
+
 
 namespace
 {
@@ -42,6 +44,9 @@ class RoomHatcheryFactory : public RoomFactory
     RoomType getRoomType() const override
     { return RoomHatchery::mRoomType; }
 
+    TileVisual getVisualType() const override
+    { return RoomHatchery::mRoomVisual; }
+    
     const std::string& getName() const override
     { return RoomHatcheryName; }
 

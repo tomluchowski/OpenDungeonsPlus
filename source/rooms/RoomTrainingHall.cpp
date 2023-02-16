@@ -32,6 +32,9 @@
 const std::string RoomTrainingHallName = "TrainingHall";
 const std::string RoomTrainingHallNameDisplay = "Training hall room";
 const RoomType RoomTrainingHall::mRoomType = RoomType::trainingHall;
+const TileVisual RoomTrainingHall::mRoomVisual= TileVisual::trainingHallRoom;
+
+
 
 namespace
 {
@@ -40,6 +43,10 @@ class RoomTrainingHallFactory : public RoomFactory
     RoomType getRoomType() const override
     { return RoomTrainingHall::mRoomType; }
 
+    TileVisual getVisualType() const override
+    { return RoomTrainingHall::mRoomVisual; }
+
+    
     const std::string& getName() const override
     { return RoomTrainingHallName; }
 

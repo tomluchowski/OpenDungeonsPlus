@@ -21,6 +21,9 @@
 #include "rooms/Room.h"
 #include "rooms/RoomType.h"
 
+
+enum class TileVisual;
+
 class RoomPortal: public Room
 {
 public:
@@ -64,7 +67,9 @@ public:
     virtual void restoreInitialEntityState() override;
 
     static const RoomType mRoomType;
+    static const TileVisual mRoomVisual;
 
+    
 protected:
     virtual void exportToStream(std::ostream& os) const override;
     virtual bool importFromStream(std::istream& is) override;

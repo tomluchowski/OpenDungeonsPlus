@@ -464,6 +464,7 @@ bool TileContainer::allocateMapMemory(int xSize, int ySize)
         OD_LOG_ERR("Failed to allocate map memory");
         return false;
     }
+
     for(int ii = 0; ii < mMapSizeX; ++ii)
     {
         mTiles[ii] = new Tile *[mMapSizeY];

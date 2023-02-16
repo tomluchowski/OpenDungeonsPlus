@@ -32,7 +32,8 @@ public:
     { return mRoomType; }
 
     static const RoomType mRoomType;
-
+    static const TileVisual mRoomVisual;
+    
 protected:
     void updateFloodFillTileRemoved(Seat* seat, Tile* tile) override;
 };

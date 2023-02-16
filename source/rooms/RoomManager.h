@@ -32,7 +32,10 @@ class Seat;
 class Room;
 class Tile;
 
+
 enum class RoomType;
+enum class TileVisual;
+
 
 //! \brief Factory class to register a new room
 class RoomFactory
@@ -40,8 +43,10 @@ class RoomFactory
 public:
     virtual ~RoomFactory()
     {}
-
     virtual RoomType getRoomType() const = 0;
+    virtual TileVisual getVisualType() const =0;
+
+
     virtual const std::string& getName() const = 0;
     virtual const std::string& getNameReadable() const = 0;
     virtual int getCostPerTile() const = 0;

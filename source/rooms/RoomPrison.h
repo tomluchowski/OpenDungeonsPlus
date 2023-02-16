@@ -37,6 +37,7 @@ enum class FencingDirection
     nbDirections
 };
 
+enum class TileVisual;
 
 class RoomPrison: public Room
 {
@@ -81,7 +82,9 @@ public:
     Tile* getActualPrisonTile(int index);
     
     static const RoomType mRoomType;
+    static const TileVisual mRoomVisual;
 
+    
     virtual void setupRoom(const std::string& name, Seat* seat, const std::vector<Tile*>& tiles) override;    
     
 protected:

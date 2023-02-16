@@ -94,6 +94,20 @@ enum class TileVisual
     claimedFull,
     gemGround,
     gemFull,
+    dungeonTempleRoom,
+    dormitoryRoom,
+    treasuryRoom,
+    portalRoom,
+    workshopRoom,
+    trainingHallRoom,
+    libraryRoom,
+    hatcheryRoom,
+    cryptRoom,
+    portalWaveRoom,
+    prisonRoom,
+    arenaRoom,
+    casinoRoom,
+    tortureRoom,    
     countTileVisual
 };
 
@@ -192,8 +206,11 @@ public:
     { return mTileVisual; }
 
     //! \brief Sets the tile type (rock, claimed, etc.).
-    inline void setTileVisual(TileVisual tileVisual)
-    { mTileVisual = tileVisual; }
+    inline void setTileVisualIfArgNotNullIfArgNotNull(TileVisual tileVisual)
+    {
+        if(tileVisual != TileVisual::nullTileVisual)
+        mTileVisual = tileVisual;
+    }
 
     //! \brief A mutator to change how "filled in" the tile is.
     //! Additionally this function refreshes floodfill if needed (if a tile becomes walkable)
@@ -358,6 +375,9 @@ public:
     inline int getY() const
     { return mY; }
 
+    inline float getZ() const
+    { return mZ; }       
+
     inline double getClaimedPercentage() const
     { return mClaimedPercentage; }
 
@@ -495,6 +515,10 @@ private:
     //! \brief The tile position
     int mX, mY;
 
+    //! \brief Tile depth ( for example for arena room) ....
+    float mZ;
+
+    
     //! \brief The tile type: Dirt, Gold, ...
     TileType mType;
 

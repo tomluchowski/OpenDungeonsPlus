@@ -24,6 +24,8 @@
 class InputCommand;
 class InputManager;
 
+enum class TileVisual;
+
 class RoomArena: public Room, public GameEntityListener
 {
 public:
@@ -49,7 +51,8 @@ public:
     bool notifyDropped(GameEntity* entity) override;
 
     static const RoomType mRoomType;
-
+    static const TileVisual mRoomVisual ;
+    
 protected:
     virtual BuildingObject* notifyActiveSpotCreated(ActiveSpotPlace place, Tile* tile) override;
     virtual void exportToStream(std::ostream& os) const override;

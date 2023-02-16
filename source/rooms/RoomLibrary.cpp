@@ -36,6 +36,7 @@
 const std::string RoomLibraryName = "Library";
 const std::string RoomLibraryNameDisplay = "Library room";
 const RoomType RoomLibrary::mRoomType = RoomType::library;
+const TileVisual RoomLibrary::mRoomVisual = TileVisual::libraryRoom;
 
 namespace
 {
@@ -44,6 +45,11 @@ class RoomLibraryFactory : public RoomFactory
     RoomType getRoomType() const override
     { return RoomLibrary::mRoomType; }
 
+    TileVisual getVisualType() const override
+    { return RoomLibrary::mRoomVisual; }
+
+
+    
     const std::string& getName() const override
     { return RoomLibraryName; }
 

@@ -40,6 +40,9 @@
 const std::string RoomPrisonName = "Prison";
 const std::string RoomPrisonNameDisplay = "Prison room";
 const RoomType RoomPrison::mRoomType = RoomType::prison;
+const TileVisual RoomPrison::mRoomVisual= TileVisual::prisonRoom;
+
+
 
 namespace
 {
@@ -48,6 +51,9 @@ class RoomPrisonFactory : public RoomFactory
     RoomType getRoomType() const override
     { return RoomPrison::mRoomType; }
 
+    TileVisual getVisualType() const override
+    { return RoomPrison::mRoomVisual; }
+    
     const std::string& getName() const override
     { return RoomPrisonName; }
 
@@ -803,8 +809,6 @@ Tile* RoomPrison::getGateTile()
         {
             if(std::find(mActualPrisonTiles.begin(), mActualPrisonTiles.end(), neighbour)!=mActualPrisonTiles.end())
                 return tile;
-
-
         }
     }
     return nullptr;

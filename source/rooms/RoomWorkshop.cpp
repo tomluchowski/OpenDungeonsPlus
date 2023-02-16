@@ -38,6 +38,9 @@
 const std::string RoomWorkshopName = "Workshop";
 const std::string RoomWorkshopNameDisplay = "Workshop room";
 const RoomType RoomWorkshop::mRoomType = RoomType::workshop;
+const TileVisual RoomWorkshop::mRoomVisual= TileVisual::workshopRoom;
+
+
 
 namespace
 {
@@ -46,6 +49,9 @@ class RoomWorkshopFactory : public RoomFactory
     RoomType getRoomType() const override
     { return RoomWorkshop::mRoomType; }
 
+    TileVisual getVisualType() const override
+    { return RoomWorkshop::mRoomVisual; }
+    
     const std::string& getName() const override
     { return RoomWorkshopName; }
 

@@ -21,6 +21,8 @@
 #include "rooms/Room.h"
 #include "rooms/RoomType.h"
 
+enum class TileVisual;
+
 class RoomTreasuryTileData : public TileData
 {
 public:
@@ -72,7 +74,8 @@ public:
     static int32_t getRoomCostForPlayer(GameMap* gameMap, Player* player, const std::vector<Tile*>& tiles);
 
     static const RoomType mRoomType;
-
+    static const TileVisual mRoomVisual;
+    
 protected:
     RoomTreasuryTileData* createTileData(Tile* tile) override;
     // Because treasury do not use active spots, we don't want the default

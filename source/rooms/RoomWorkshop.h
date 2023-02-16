@@ -22,6 +22,7 @@
 #include "rooms/RoomType.h"
 
 enum class TrapType;
+enum class TileVisual;
 
 class RoomWorkshopTileData : public TileData
 {
@@ -60,7 +61,8 @@ public:
     bool useRoom(Creature& creature, bool forced) override;
 
     static const RoomType mRoomType;
-
+    static const TileVisual mRoomVisual;
+    
 protected:
     void exportToStream(std::ostream& os) const override;
     bool importFromStream(std::istream& is) override;

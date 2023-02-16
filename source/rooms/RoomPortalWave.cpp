@@ -40,6 +40,9 @@
 const std::string RoomPortalWaveName = "PortalWave";
 const std::string RoomPortalWaveNameDisplay = "Wave portal room";
 const RoomType RoomPortalWave::mRoomType = RoomType::portalWave;
+const TileVisual RoomPortalWave::mRoomVisual= TileVisual::portalWaveRoom;
+
+
 
 namespace
 {
@@ -48,6 +51,9 @@ class RoomPortalWaveFactory : public RoomFactory
     RoomType getRoomType() const override
     { return RoomPortalWave::mRoomType; }
 
+    TileVisual getVisualType() const override
+    { return RoomPortalWave::mRoomVisual; }
+    
     const std::string& getName() const override
     { return RoomPortalWaveName; }
 

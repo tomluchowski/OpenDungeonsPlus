@@ -24,6 +24,8 @@
 class Creature;
 class Tile;
 
+enum class TileVisual;
+
 class RoomTortureCreatureInfo
 {
 public:
@@ -65,7 +67,8 @@ public:
     void restoreInitialEntityState() override;
 
     static const RoomType mRoomType;
-
+    static const TileVisual mRoomVisual;
+    
 protected:
     BuildingObject* notifyActiveSpotCreated(ActiveSpotPlace place, Tile* tile) override;
     void notifyActiveSpotRemoved(ActiveSpotPlace place, Tile* tile) override;

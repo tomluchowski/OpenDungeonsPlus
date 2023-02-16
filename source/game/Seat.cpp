@@ -341,6 +341,7 @@ void Seat::setPlayer(Player* player)
 
 bool Seat::hasVisionOnTile(Tile* tile)
 {
+    
     if(!mGameMap->isServerGameMap())
     {
         // On client side, we check only for the local player
@@ -1631,6 +1632,20 @@ void Seat::updateTileStateForSeat(Tile* tile, bool hideSeatId)
     {
         case TileVisual::claimedFull:
         case TileVisual::claimedGround:
+        case TileVisual::dungeonTempleRoom:
+        case TileVisual::dormitoryRoom:
+        case TileVisual::treasuryRoom:
+        case TileVisual::portalRoom:
+        case TileVisual::workshopRoom:
+        case TileVisual::trainingHallRoom:
+        case TileVisual::libraryRoom:
+        case TileVisual::hatcheryRoom:
+        case TileVisual::cryptRoom:
+        case TileVisual::portalWaveRoom:
+        case TileVisual::prisonRoom:
+        case TileVisual::arenaRoom:
+        case TileVisual::casinoRoom:
+        case TileVisual::tortureRoom:         
             if(tile->getSeat() == nullptr)
             {
                 OD_LOG_ERR("Tile=" + Tile::displayAsString(tile));
@@ -1721,6 +1736,21 @@ void Seat::exportTileToPacket(ODPacket& os, Tile* tile,
         {
             case TileVisual::claimedGround:
             case TileVisual::claimedFull:
+            case TileVisual::dungeonTempleRoom:
+            case TileVisual::dormitoryRoom:
+            case TileVisual::treasuryRoom:
+            case TileVisual::portalRoom:
+            case TileVisual::workshopRoom:
+            case TileVisual::trainingHallRoom:
+            case TileVisual::libraryRoom:
+            case TileVisual::hatcheryRoom:
+            case TileVisual::cryptRoom:
+            case TileVisual::portalWaveRoom:
+            case TileVisual::prisonRoom:
+            case TileVisual::arenaRoom:
+            case TileVisual::casinoRoom:
+            case TileVisual::tortureRoom:
+                
                 tileSeatId = tileState.mSeatIdOwner;
                 break;
             case TileVisual::waterGround:
@@ -1818,6 +1848,20 @@ bool Seat::isTileDiggableForClient(Tile* tile) const
     // Handle non claimed
     switch(tileState.mTileVisual)
     {
+        case TileVisual::dungeonTempleRoom:
+        case TileVisual::dormitoryRoom:
+        case TileVisual::treasuryRoom:
+        case TileVisual::portalRoom:
+        case TileVisual::workshopRoom:
+        case TileVisual::trainingHallRoom:
+        case TileVisual::libraryRoom:
+        case TileVisual::hatcheryRoom:
+        case TileVisual::cryptRoom:
+        case TileVisual::portalWaveRoom:
+        case TileVisual::prisonRoom:
+        case TileVisual::arenaRoom:
+        case TileVisual::casinoRoom:
+        case TileVisual::tortureRoom:        
         case TileVisual::claimedGround:
         case TileVisual::dirtGround:
         case TileVisual::goldGround:

@@ -694,7 +694,6 @@ void RenderManager::rrRefreshTile(const Tile& tile, GameMap& draggableTileContai
         return;
 
     std::string tileName = tile.getOgreNamePrefix() + tile.getName();
-    bool displayTilesetMesh = tile.shouldDisplayTileMesh();
     std::string meshName;
 
     // We only mark vision on ground tiles (except lava and water)
@@ -711,14 +710,11 @@ void RenderManager::rrRefreshTile(const Tile& tile, GameMap& draggableTileContai
             break;
     }
     bool isMarked = tile.getMarkedForDigging(&localPlayer);
+    
     const TileSetValue& tileSetValue = draggableTileContainer.getMeshForTile(&tile);
 
-    // We display the tile mesh if needed
-    if(displayTilesetMesh)
-    {
-        // We compute the mesh
-        meshName = tileSetValue.getMeshName();
-    }
+    // We compute the mesh
+    meshName = tileSetValue.getMeshName();
 
     Ogre::Entity* tileMeshEnt = nullptr;
     const std::string tileMeshName = tileName + (static_cast<bool>(nt) ?  "" : "_dtc" ) + "_tileMesh";
@@ -755,7 +751,6 @@ void RenderManager::rrRefreshTile(const Tile& tile, GameMap& draggableTileContai
             meshPtr->buildTangentVectors(Ogre::VES_TANGENT, src, dest);
         }
     }
-
     // We rescale and set the orientation that may have changed
     if(tileMeshNode != nullptr)
     {
@@ -794,53 +789,76 @@ void RenderManager::rrRefreshTile(const Tile& tile, GameMap& draggableTileContai
         colourizeEntity(tileMeshEnt, seatColor, isMarked, vision);
     }
 
-    // We display the custom mesh if there is one
-    const std::string customMeshName = tileName + (static_cast<bool>(nt) ?  "" : "_dtc" ) + "_customMesh";
-    meshName = tile.getMeshName();
-    Ogre::Entity* customMeshEnt = nullptr;
-    if(mSceneManager->hasEntity(customMeshName))
-    {
-        customMeshEnt = mSceneManager->getEntity(customMeshName);
-        if(customMeshEnt->getMesh()->getName().compare(meshName) != 0)
-        {
-            // Unlink and delete the old mesh
-            mSceneManager->getSceneNode(customMeshName + (static_cast<bool>(nt) ?  "" : "_dtc" ) + "_node")->detachObject(customMeshEnt);
-            mSceneManager->destroyEntity(customMeshEnt);
-            customMeshEnt = nullptr;
-        }
-    }
 
-    if((customMeshEnt == nullptr) && !meshName.empty())
-    {
-        // If the node does not exist, we create it
-        std::string customMeshNodeName = customMeshName + (static_cast<bool>(nt) ?  "" : "_dtc" ) + "_node";
-        Ogre::SceneNode* customMeshNode;
-        if(!mSceneManager->hasSceneNode(customMeshNodeName))
-            customMeshNode = tile.getEntityNode()->createChildSceneNode(customMeshNodeName);
+    if (tile.getTileVisual() == TileVisual::waterGround || tile.getTileVisual() == TileVisual::lavaGround){
+        if(tile.getHasBridge())
+        {
+            // We display the custom mesh if there is one
+            const std::string bridgeMeshName = tileName + (static_cast<bool>(nt) ?  "" : "_dtc" ) + "_bridgeMesh";
+            meshName = tile.getMeshName();
+            Ogre::Entity* customMeshEnt = nullptr;
+            if(mSceneManager->hasEntity(bridgeMeshName))
+            {
+                customMeshEnt = mSceneManager->getEntity(bridgeMeshName);
+            }
+
+            if((customMeshEnt == nullptr))
+            {
+                // If the node does not exist, we create it
+                std::string customMeshNodeName = bridgeMeshName + (static_cast<bool>(nt) ?  "" : "_dtc" ) + "_node";
+                Ogre::SceneNode* customMeshNode;
+                if(!mSceneManager->hasSceneNode(customMeshNodeName))
+                    customMeshNode = tile.getEntityNode()->createChildSceneNode(customMeshNodeName);
+                else
+                    customMeshNode = mSceneManager->getSceneNode(customMeshNodeName);
+
+                customMeshEnt = mSceneManager->createEntity(bridgeMeshName, meshName);
+
+                customMeshNode->attachObject(customMeshEnt);
+                customMeshNode->resetOrientation();
+
+                Ogre::MeshPtr meshPtr = customMeshEnt->getMesh();
+                unsigned short src, dest;
+                if (!meshPtr->suggestTangentVectorBuildParams(Ogre::VES_TANGENT, src, dest))
+                {
+                    meshPtr->buildTangentVectors(Ogre::VES_TANGENT, src, dest);
+                }
+            }
+
+            if(customMeshEnt != nullptr)
+            {
+                Seat* seatColor = nullptr;
+                if(tile.shouldColorCustomMesh())
+                    seatColor = tile.getSeat();
+
+                colourizeEntity(customMeshEnt, seatColor, isMarked, vision);
+            }
+
+            tile.getEntityNode()->setPosition(static_cast<Ogre::Real>(tile.getX()), static_cast<Ogre::Real>(tile.getY()),static_cast<Ogre::Real>(tile.getZ()) );        
+
+        }
         else
-            customMeshNode = mSceneManager->getSceneNode(customMeshNodeName);
-
-        customMeshEnt = mSceneManager->createEntity(customMeshName, meshName);
-
-        customMeshNode->attachObject(customMeshEnt);
-        customMeshNode->resetOrientation();
-
-        Ogre::MeshPtr meshPtr = customMeshEnt->getMesh();
-        unsigned short src, dest;
-        if (!meshPtr->suggestTangentVectorBuildParams(Ogre::VES_TANGENT, src, dest))
         {
-            meshPtr->buildTangentVectors(Ogre::VES_TANGENT, src, dest);
+            // We display the custom mesh if there is one
+            const std::string bridgeMeshName = tileName + (static_cast<bool>(nt) ?  "" : "_dtc" ) + "_bridgeMesh";
+            meshName = tile.getMeshName();
+            Ogre::Entity* customMeshEnt = nullptr;
+            if(mSceneManager->hasEntity(bridgeMeshName))
+            {
+                customMeshEnt = mSceneManager->getEntity(bridgeMeshName);
+
+                // Unlink and delete the old mesh
+                mSceneManager->getSceneNode(bridgeMeshName + (static_cast<bool>(nt) ?  "" : "_dtc" ) + "_node")->detachObject(customMeshEnt);
+                mSceneManager->destroyEntity(customMeshEnt);
+                
+            }
         }
+        
     }
+    
 
-    if(customMeshEnt != nullptr)
-    {
-        Seat* seatColor = nullptr;
-        if(tile.shouldColorCustomMesh())
-            seatColor = tile.getSeat();
 
-        colourizeEntity(customMeshEnt, seatColor, isMarked, vision);
-    }
+    
 }
 
 void RenderManager::rrCreateTile(Tile& tile, GameMap& dtc, const Player& localPlayer, NodeType nt)
@@ -853,7 +871,7 @@ void RenderManager::rrCreateTile(Tile& tile, GameMap& dtc, const Player& localPl
         node = mDraggableSceneNode->createChildSceneNode(tileName + "_dtc_node");
     tile.setParentSceneNode(node->getParentSceneNode());
     tile.setEntityNode(node);
-    node->setPosition(static_cast<Ogre::Real>(tile.getX()), static_cast<Ogre::Real>(tile.getY()), 0);
+    node->setPosition(static_cast<Ogre::Real>(tile.getX()), static_cast<Ogre::Real>(tile.getY()),static_cast<Ogre::Real>(tile.getZ()) );
 
     rrRefreshTile(tile, dtc, localPlayer,nt);
 }

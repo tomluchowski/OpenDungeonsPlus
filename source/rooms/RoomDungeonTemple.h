@@ -21,6 +21,8 @@
 #include "rooms/Room.h"
 #include "rooms/RoomType.h"
 
+enum class TileVisual;
+
 class RoomDungeonTemple: public Room
 {
 public:
@@ -39,7 +41,8 @@ public:
     virtual void restoreInitialEntityState() override;
 
     static const RoomType mRoomType;
-
+    static const TileVisual mRoomVisual;
+    
 protected:
     virtual void destroyMeshLocal(NodeType nt = NodeType::MTILES_NODE) override;
 
