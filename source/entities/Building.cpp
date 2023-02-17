@@ -219,7 +219,7 @@ bool Building::removeCoveredTile(Tile* t)
     mCoveredTilesDestroyed.push_back(t);
     mTileData[t]->mHP = 0.0;
     t->setCoveringBuilding(nullptr);
-
+    t->computeTileVisual();
     return true;
 }
 
