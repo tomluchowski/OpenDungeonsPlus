@@ -56,6 +56,8 @@ public:
     virtual RoomType getType() const override
     { return mRoomType; }
 
+
+   
     // Functions overriding virtual functions in the Room base class.
     bool removeCoveredTile(Tile* t) override;
 

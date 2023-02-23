@@ -186,7 +186,7 @@ bool RoomFactory::buildRoomDefault(GameMap* gameMap, Room* room, Seat* seat, con
 
     for(Tile* tile: tiles)
     {
-        tile->setTileVisualIfArgNotNullIfArgNotNull(getVisualType());
+        tile->setTileVisualIfArgNotNull(getVisualType());
     }
        
     room->setupRoom(gameMap->nextUniqueNameRoom(room->getType()), seat, tiles);
@@ -195,9 +195,9 @@ bool RoomFactory::buildRoomDefault(GameMap* gameMap, Room* room, Seat* seat, con
 
 
 
-    // if((seat->getPlayer() != nullptr) &&
-    //    (seat->getPlayer()->getIsHuman()))
-    // {
+    if((seat->getPlayer() != nullptr) &&
+       (seat->getPlayer()->getIsHuman()))
+    {
         // We notify the clients with vision of the changed tiles. Note that we need
         // to calculate per seat since they could have vision on different parts of the building
         std::map<Seat*,std::vector<Tile*>> tilesPerSeat;
@@ -234,7 +234,7 @@ bool RoomFactory::buildRoomDefault(GameMap* gameMap, Room* room, Seat* seat, con
             }
             ODServer::getSingleton().sendAsyncMsg(serverNotification);
         }
-    // }
+    }
 
     room->checkForRoomAbsorbtion();
     room->updateActiveSpots(gameMap);

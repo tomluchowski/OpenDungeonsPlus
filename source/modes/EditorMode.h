@@ -105,7 +105,7 @@ public:
     bool hideConfirmMenu(const CEGUI::EventArgs& /*arg*/);
     bool onYesConfirmMenu(const CEGUI::EventArgs& /*arg*/);
     bool launchNewLevelPressed(const CEGUI::EventArgs&);
-    void setTileVisualIfArgNotNullIfArgNotNull(TileVisual tileVisual)
+    void setTileVisualIfArgNotNull(TileVisual tileVisual)
     { mCurrentTileVisual = tileVisual; }
 
     void selectSquaredTiles(int tileX1, int tileY1, int tileX2, int tileY2) override;

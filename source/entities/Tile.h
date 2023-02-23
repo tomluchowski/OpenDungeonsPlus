@@ -206,7 +206,7 @@ public:
     { return mTileVisual; }
 
     //! \brief Sets the tile type (rock, claimed, etc.).
-    inline void setTileVisualIfArgNotNullIfArgNotNull(TileVisual tileVisual)
+    inline void setTileVisualIfArgNotNull(TileVisual tileVisual)
     {
         if(tileVisual != TileVisual::nullTileVisual)
         mTileVisual = tileVisual;

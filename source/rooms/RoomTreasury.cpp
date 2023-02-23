@@ -135,6 +135,11 @@ class RoomTreasuryFactory : public RoomFactory
         if(!getRoomTilesDefault(tiles, gameMap, player, packet))
             return false;
 
+        for(Tile* tile: tiles)
+        {
+            tile->setTileVisualIfArgNotNull(getVisualType());
+        }
+        
         int32_t price = getRoomCostForPlayer(gameMap, player, tiles);
         if(!gameMap->withdrawFromTreasuries(price, player->getSeat()))
             return false;

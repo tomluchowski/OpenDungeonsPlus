@@ -99,7 +99,7 @@ namespace
         bool operator()(const CEGUI::EventArgs& e)
         {
             playerSelection.setCurrentAction(SelectedAction::changeTile);
-            editorMode.setTileVisualIfArgNotNullIfArgNotNull(tileVisual);
+            editorMode.setTileVisualIfArgNotNull(tileVisual);
             return true;
         }
         TileVisual tileVisual;
