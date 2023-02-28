@@ -154,8 +154,8 @@ bool CreatureActionFight::handleFight(Creature& creature, GameEntity* entityAtta
             if(result.size() > 3)
                 result.resize(3);
 
-            std::vector<Ogre::Vector3> path;
-            creature.tileToVector3(result, path, true, 0.0);
+            std::vector<Ogre::Vector2> path;
+            creature.tileToVector2(result, path, true, 0.0);
             creature.setWalkPath(EntityAnimation::walk_anim, EntityAnimation::idle_anim, true, true, path, true);
             creature.pushAction(Utils::make_unique<CreatureActionWalkToTile>(creature));
             return false;
@@ -191,8 +191,8 @@ bool CreatureActionFight::handleFight(Creature& creature, GameEntity* entityAtta
             if(result.size() > 3)
                 result.resize(3);
 
-            std::vector<Ogre::Vector3> path;
-            creature.tileToVector3(result, path, true, 0.0);
+            std::vector<Ogre::Vector2> path;
+            creature.tileToVector2(result, path, true, 0.0);
             creature.setWalkPath(EntityAnimation::walk_anim, EntityAnimation::idle_anim, true, true, path, true);
             creature.pushAction(Utils::make_unique<CreatureActionWalkToTile>(creature));
             return false;

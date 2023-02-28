@@ -69,6 +69,8 @@ const std::string MINIMAP_TYPE = "MinimapType";
 const std::string LIGHT_FACTOR = "LightFactor";
 }
 
+typedef std::map<TileVisual,std::map<int,float>> HighMap;
+
 //! \brief This class is used to manage global configuration such as network configuration, global creature stats, ...
 //! It should NOT be used to load level specific stuff. For that, there is GameMap.
 class ConfigManager : public Ogre::Singleton<ConfigManager>
@@ -212,6 +214,9 @@ public:
     //! Returns the tileset for the given name. If the tileset is not found, returns the default tileset
     const TileSet* getTileSet(const std::string& tileSetName) const;
 
+    const HighMap* getHighMap(const std::string& tileSetName) const;
+
+    
     //! \brief Set a config value. Only permits predetermined types.
     void setAudioValue(const std::string& param, const std::string& value)
     { mUserConfig[Config::Ctg::AUDIO][param] = value; }
@@ -273,7 +278,7 @@ private:
     bool loadSpellConfig(const std::string& fileName);
     bool loadSkills(const std::string& fileName);
     bool loadTilesets(const std::string& fileName);
-    bool loadTilesetValues(std::istream& defFile, TileVisual tileVisual, std::vector<std::vector<TileSetValue>>& tileValues);
+    bool loadTilesetValues(std::istream& defFile, TileVisual tileVisual, std::vector<std::vector<TileSetValue>>& tileValues, std::map<TileVisual,std::map<int,float>>& highMap);
     bool loadEditorSettings(const std::string& fileName);
     //! \brief Loads the user configuration values, and use default ones if it cannot do it.
     void loadUserConfig(const std::string& fileName);
@@ -350,6 +355,8 @@ private:
 
     //! \brief Allowed tilesets
     std::map<std::string, const TileSet*> mTileSets;
+
+    std::map<std::string, const HighMap*> mHighMaps;
 
     //! \brief User config values
     //! < category, < param, value > >

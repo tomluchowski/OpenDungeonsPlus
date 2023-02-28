@@ -172,6 +172,7 @@ GameMap::GameMap(bool isServerGameMap, NodeType nt) :
         mNumCallsTo_path(0),
         mAiManager(*this),
         mTileSet(nullptr),
+        mHighMap(nullptr),
         generator(42)
 {
     resetUniqueNumbers();
@@ -939,7 +940,8 @@ const CreatureDefinition* GameMap::getClassDescription(int index)
 void GameMap::createAllEntities()
 {
     mTileSet = ConfigManager::getSingleton().getTileSet(mTileSetName);
-
+    mHighMap = ConfigManager::getSingleton().getHighMap(mTileSetName);
+    
     if(isServerGameMap())
     {
         // Set positions and update active spots
@@ -2921,7 +2923,8 @@ const std::string& GameMap::getMeshForDefaultTile() const
     return mTileSet->getTileValues(TileVisual::dirtFull).at(0).at(0).getMeshName();
 }
 
-const TileSetValue& GameMap::getMeshForTile(const Tile* tile)
+
+int GameMap::computeTileSetIndex(const Tile* tile) const
 {
     int index = 0;
     for(int i = 0; i < 4; ++i)
@@ -2955,6 +2958,13 @@ const TileSetValue& GameMap::getMeshForTile(const Tile* tile)
         if(mTileSet->areLinked(tile, t))
             index |= (1 << i);
     }
+    return index;
+}
+
+
+const TileSetValue& GameMap::getMeshForTile(const Tile* tile)
+{
+    int index = computeTileSetIndex(tile);
 
     int upper_bound = mTileSet->getTileValues(tile->getTileVisual()).at(index).size() - 1;
     std::uniform_int_distribution<int> distribution(0 , upper_bound);

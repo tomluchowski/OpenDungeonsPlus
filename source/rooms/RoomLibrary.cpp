@@ -253,10 +253,10 @@ bool RoomLibrary::addCreatureUsingRoom(Creature* creature)
             return true;
         }
 
-        std::vector<Ogre::Vector3> path;
-        Creature::tileToVector3(pathToSpot, path, true, 0.0);
+        std::vector<Ogre::Vector2> path;
+        Creature::tileToVector2(pathToSpot, path, true, 0.0);
         // We add the last step to take account of the offset
-        Ogre::Vector3 dest(wantedX, wantedY, 0.0);
+        Ogre::Vector2 dest(wantedX, wantedY);
         path.push_back(dest);
         creature->setWalkPath(EntityAnimation::walk_anim, EntityAnimation::idle_anim, true, true, path, true);
     }

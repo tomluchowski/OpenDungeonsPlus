@@ -91,6 +91,7 @@ class ODPacket
         ODPacket& operator >>(std::string&  data);
         ODPacket& operator >>(wchar_t*      data);
         ODPacket& operator >>(std::wstring& data);
+        ODPacket& operator >>(Ogre::Vector2& data);
         ODPacket& operator >>(Ogre::Vector3& data);
 
         /*! \brief Import data operators
@@ -111,6 +112,7 @@ class ODPacket
         ODPacket& operator <<(const std::string&    data);
         ODPacket& operator <<(const wchar_t*        data);
         ODPacket& operator <<(const std::wstring&   data);
+        ODPacket& operator <<(const Ogre::Vector2& data);
         ODPacket& operator <<(const Ogre::Vector3&   data);
 
         /*! \brief Return true if there were no error exporting data (operator >>).

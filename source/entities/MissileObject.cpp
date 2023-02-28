@@ -93,13 +93,14 @@ void MissileObject::doUpkeep()
     }
 
     // We check if a creature is in our way. We start by taking the tile we will be on
-    Ogre::Vector3 position = getPosition();
+    Ogre::Vector3 position3f = getPosition();
+    Ogre::Vector2 position = Ogre::Vector2(position3f.x,position3f.y);
     double moveDist = getMoveSpeed();
     Ogre::Vector3 destination;
     std::list<Tile*> tiles;
-    mIsMissileAlive = computeDestination(position, moveDist, mDirection, destination, tiles);
+    mIsMissileAlive = computeDestination(position3f, moveDist, mDirection, destination, tiles);
 
-    std::vector<Ogre::Vector3> path;
+    std::vector<Ogre::Vector2> path;
     Tile* lastTile = nullptr;
     while(!tiles.empty() && mIsMissileAlive)
     {
@@ -130,7 +131,7 @@ void MissileObject::doUpkeep()
                 path.push_back(position);
                 // We compute next position
                 mDirection = nextDirection;
-                mIsMissileAlive = computeDestination(position, moveDist, mDirection, destination, tiles);
+                mIsMissileAlive = computeDestination(position3f, moveDist, mDirection, destination, tiles);
                 continue;
             }
         }
@@ -140,11 +141,11 @@ void MissileObject::doUpkeep()
             Ogre::Vector3 lastPos;
             lastPos.x = static_cast<Ogre::Real>(lastTile->getX());
             lastPos.y = static_cast<Ogre::Real>(lastTile->getY());
-            lastPos.z = position.z;
+            // lastPos.z = position.z;
             Ogre::Vector3 curPos;
             curPos.x = static_cast<Ogre::Real>(tmpTile->getX());
             curPos.y = static_cast<Ogre::Real>(tmpTile->getY());
-            curPos.z = position.z;
+            // curPos.z = position.z;
             moveDist -= lastPos.distance(curPos);
         }
         lastTile = tmpTile;
@@ -197,7 +198,7 @@ void MissileObject::doUpkeep()
         }
     }
 
-    path.push_back(destination);
+    path.push_back(Ogre::Vector2(destination.x,destination.y));
     setWalkPath(EntityAnimation::idle_anim, EntityAnimation::idle_anim, true, true, path,true);
 }
 

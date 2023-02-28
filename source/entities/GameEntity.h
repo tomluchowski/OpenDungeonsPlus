@@ -188,6 +188,9 @@ class GameEntity
     const Ogre::Vector3& getPosition() const
     { return mPosition; }
 
+    const Ogre::Vector2 getPosition2d() const
+    { return Ogre::Vector2(mPosition.x,mPosition.y); }
+    
     inline Ogre::SceneNode* getParentSceneNode() const
     { return mParentSceneNode; }
 
@@ -219,6 +222,10 @@ class GameEntity
 
     inline void setEntityNode(Ogre::SceneNode* sceneNode)
     { mEntityNode = sceneNode; }
+
+    inline void setEntityHigh(float high)
+    { mPosition.z = high ;}
+    
 
     //! \brief Function that calls the mesh creation. If the mesh is already created, does nothing
     void createMesh(NodeType nt =  NodeType::MTILES_NODE);

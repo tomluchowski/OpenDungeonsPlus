@@ -513,7 +513,7 @@ public:
     void removeActiveSlapCount()
     { --mActiveSlapsCount; }
 
-    virtual void correctEntityMovePosition(Ogre::Vector3& position) override;
+    virtual void correctEntityMovePosition(Ogre::Vector2& position) override;
 
     //! \brief Called on client side and server side. true if the creature is hurt and false
     //! if at max HP or above

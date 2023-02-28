@@ -543,12 +543,12 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
                 break;
             }
 
-            std::vector<Ogre::Vector3> path;
+            std::vector<Ogre::Vector2> path;
                         
             while(nbDest > 0)
             {
                 --nbDest;
-                Ogre::Vector3 dest;
+                Ogre::Vector2 dest;
                 OD_ASSERT_TRUE(packetReceived >> dest);
                 if(walkDistortion)
                     tempAnimatedObject->correctEntityMovePosition(dest);

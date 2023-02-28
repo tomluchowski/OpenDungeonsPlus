@@ -138,8 +138,8 @@ void ChickenEntity::doUpkeep()
 
     uint32_t indexTile = Random::Uint(0, possibleTileMove.size() - 1);
     Tile* tileDest = possibleTileMove[indexTile];
-    Ogre::Vector3 v (static_cast<Ogre::Real>(tileDest->getX()), static_cast<Ogre::Real>(tileDest->getY()), 0.0);
-    std::vector<Ogre::Vector3> path;
+    Ogre::Vector2 v (static_cast<Ogre::Real>(tileDest->getX()), static_cast<Ogre::Real>(tileDest->getY()));
+    std::vector<Ogre::Vector2> path;
     path.push_back(v);
     setWalkPath(EntityAnimation::walk_anim, EntityAnimation::idle_anim, true, true, path,true);
 }
@@ -238,7 +238,7 @@ bool ChickenEntity::tryDrop(Seat* seat, Tile* tile)
     return false;
 }
 
-void ChickenEntity::correctEntityMovePosition(Ogre::Vector3& position)
+void ChickenEntity::correctEntityMovePosition(Ogre::Vector2& position)
 {
     static const double offset = 0.3;
     if(position.x > 0)
@@ -247,8 +247,8 @@ void ChickenEntity::correctEntityMovePosition(Ogre::Vector3& position)
     if(position.y > 0)
         position.y += Random::Double(-offset, offset);
 
-    if(position.z > 0)
-        position.z += Random::Double(-offset, offset);
+    // if(position.z > 0)
+    //     position.z += Random::Double(-offset, offset);
 }
 
 bool ChickenEntity::eatChicken(Creature* creature)

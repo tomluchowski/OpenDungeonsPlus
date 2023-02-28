@@ -321,7 +321,7 @@ void Player::dropHand(Tile *t, unsigned int index)
     mObjectsInHand.erase(mObjectsInHand.begin() + index);
 
     Ogre::Vector3 pos(static_cast<Ogre::Real>(t->getX()),
-       static_cast<Ogre::Real>(t->getY()), entity->getPosition().z);
+       static_cast<Ogre::Real>(t->getY()), 0);
     if(mGameMap->isServerGameMap())
     {
         entity->drop(pos);

@@ -56,12 +56,13 @@ public:
      * it will play endAnim (looped or not depending on loopEndAnim).
      */
     void setWalkPath(const std::string& walkAnim, const std::string& endAnim, bool loopEndAnim,
-                     bool playIdleWhenAnimationEnds, const std::vector<Ogre::Vector3>& path, bool walkDistortion);
+                     bool playIdleWhenAnimationEnds, const std::vector<Ogre::Vector2>& path, bool walkDistortion);
 
     /*! \brief Converts a tile list to a vector of Ogre::Vector3
      *
      * If skipFirst is true, the first tile in the list will be skipped
      */
+    static void tileToVector2(const std::list<Tile*>& tiles, std::vector<Ogre::Vector2>& path, bool skipFirst, Ogre::Real z);
     static void tileToVector3(const std::list<Tile*>& tiles, std::vector<Ogre::Vector3>& path, bool skipFirst, Ogre::Real z);
 
     //! \brief Clears all future destinations from the walk queue, stops the object where it is, and sets its animation state.
@@ -73,7 +74,7 @@ public:
 
     //! \brief Clients side function that corrects entities moves to allow several entities
     //! to be on the same tile
-    virtual void correctEntityMovePosition(Ogre::Vector3& position)
+    virtual void correctEntityMovePosition(Ogre::Vector2& position)
     {}
 
     virtual void correctDropPosition(Ogre::Vector3& position) override;
@@ -113,7 +114,7 @@ protected:
     virtual void exportToPacket(ODPacket& os, const Seat* seat) const override;
     virtual void importFromPacket(ODPacket& is) override;
 
-    std::deque<Ogre::Vector3> mWalkQueue;
+    std::deque<Ogre::Vector2> mWalkQueue;
     std::string mPrevAnimationState;
     bool mPrevAnimationStateLoop;
 

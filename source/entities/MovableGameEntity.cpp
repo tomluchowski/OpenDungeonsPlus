@@ -64,8 +64,26 @@ void MovableGameEntity::tileToVector3(const std::list<Tile*>& tiles, std::vector
     }
 }
 
+void MovableGameEntity::tileToVector2(const std::list<Tile*>& tiles, std::vector<Ogre::Vector2>& path,
+    bool skipFirst, Ogre::Real z)
+{
+    for(Tile* tile : tiles)
+    {
+        if(skipFirst)
+        {
+            skipFirst = false;
+            continue;
+        }
+
+        Ogre::Vector2 dest(static_cast<Ogre::Real>(tile->getX()), static_cast<Ogre::Real>(tile->getY()));
+        path.push_back(dest);
+    }
+}
+
+
+
 void MovableGameEntity::setWalkPath(const std::string& walkAnim, const std::string& endAnim, bool loopEndAnim,
-                                    bool playIdleWhenAnimationEnds, const std::vector<Ogre::Vector3>& path, bool walkDistortion)
+                                    bool playIdleWhenAnimationEnds, const std::vector<Ogre::Vector2>& path, bool walkDistortion)
 {
     mWalkQueue.clear();
     // We set the animation after clearing mWalkQueue and before filling it to be
@@ -73,8 +91,8 @@ void MovableGameEntity::setWalkPath(const std::string& walkAnim, const std::stri
     if(!path.empty())
         setAnimationState(walkAnim);
 
-    for(const Ogre::Vector3& dest : path)
-        mWalkQueue.push_back(dest);
+    for(const Ogre::Vector2& dest : path)
+        mWalkQueue.push_back(Ogre::Vector2(dest.x,dest.y));
 
     if(path.empty())
     {
@@ -103,7 +121,7 @@ void MovableGameEntity::setWalkPath(const std::string& walkAnim, const std::stri
         ServerNotification *serverNotification = new ServerNotification(
             ServerNotificationType::animatedObjectSetWalkPath, seat->getPlayer());
         serverNotification->mPacket << walkDistortion << name << walkAnim << endAnim << loopEndAnim << playIdleWhenAnimationEnds << nbDest;
-        for(const Ogre::Vector3& v : mWalkQueue)
+        for(const Ogre::Vector2& v : mWalkQueue)
             serverNotification->mPacket << v;
 
         ODServer::getSingleton().queueServerNotification(serverNotification);
@@ -232,9 +250,10 @@ void MovableGameEntity::update(Ogre::Real timeSinceLastFrame)
     double moveDist = ODApplication::turnsPerSecond
                       * getMoveSpeed()
                       * timeSinceLastFrame;
-    Ogre::Vector3 newPosition = getPosition();
-    Ogre::Vector3 nextDest = mWalkQueue.front();
-    Ogre::Vector3 walkDirection = nextDest - newPosition;
+    Ogre::Vector3 newPosition3f = getPosition();    
+    Ogre::Vector2 newPosition = Ogre::Vector2(newPosition3f.x,newPosition3f.y);
+    Ogre::Vector2 nextDest = mWalkQueue.front();
+    Ogre::Vector2 walkDirection = nextDest - newPosition;
     walkDirection.normalise();
 
     while(moveDist > 0.0)
@@ -264,8 +283,8 @@ void MovableGameEntity::update(Ogre::Real timeSinceLastFrame)
         }
     }
 
-    setWalkDirection(walkDirection);
-    setPosition(newPosition);
+    setWalkDirection(Ogre::Vector3(walkDirection.x,walkDirection.y,0));
+    setPosition(Ogre::Vector3(newPosition.x,newPosition.y,newPosition3f.z));
 }
 
 void MovableGameEntity::setPosition(const Ogre::Vector3& v,GameMap *gameMap)
@@ -293,11 +312,13 @@ void MovableGameEntity::setPosition(const Ogre::Vector3& v,GameMap *gameMap)
 
     mPosition = v;
 
-    if(!getIsOnServerMap())
-        RenderManager::getSingleton().rrMoveEntity(this, v);
-
     if(oldTile != newTile)
         addEntityToPositionTile(gameMap);
+    
+    if(!getIsOnServerMap())
+        RenderManager::getSingleton().rrMoveEntity(this, mPosition);
+
+
 }
 
 void MovableGameEntity::fireObjectAnimationState(const std::string& state, bool loop, const Ogre::Vector3& direction, bool playIdleWhenAnimationEnds)
@@ -352,7 +373,7 @@ void MovableGameEntity::exportToPacket(ODPacket& os, const Seat* seat) const
 
     int32_t nbDestinations = mWalkQueue.size();
     os << nbDestinations;
-    for(const Ogre::Vector3& dest : mWalkQueue)
+    for(const Ogre::Vector2& dest : mWalkQueue)
     {
         os << dest;
     }
@@ -371,7 +392,7 @@ void MovableGameEntity::importFromPacket(ODPacket& is)
     mWalkQueue.clear();
     for(int32_t i = 0; i < nbDestinations; ++i)
     {
-        Ogre::Vector3 dest;
+        Ogre::Vector2 dest;
         OD_ASSERT_TRUE(is >> dest);
         mWalkQueue.push_back(dest);
     }

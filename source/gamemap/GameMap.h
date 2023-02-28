@@ -56,12 +56,19 @@ class Spell;
 class TileSet;
 class TileSetValue;
 
+
 enum class GameEntityType;
 enum class FloodFillType;
 enum class KeeperAIType;
 enum class RoomType;
 enum class SpellType;
 enum class TrapType;
+enum class TileVisual;
+
+
+typedef std::map<TileVisual,std::map<int,float>> HighMap;
+
+
 
 enum class SelectionTileAllowed
 {
@@ -514,9 +521,17 @@ public:
     inline const std::string& getTileSetName() const
     { return mTileSetName; }
 
+
+    inline float getHighFromTileVisualandIndex(const TileVisual tv, const int index)
+    { return (*mHighMap).at(tv).at(index); }
     //! \brief getMeshForDefaultTile returns a mesh for some default dirt tile. This
     //! is used as a workaround to avoid lightning issues
     const std::string& getMeshForDefaultTile() const;
+
+    //! \brief compute the integer number, which in binary decoding -e.g. 1100 -- denoted as one binary digit
+    //! as whether each neighbour  - West, North, East , South , contains the same TileVisual enum type
+    int computeTileSetIndex(const Tile* tile) const;
+    
     //! \brief get the tileset infos for the given tile
     const TileSetValue& getMeshForTile(const Tile* tile) ;
 
@@ -663,6 +678,7 @@ private:
 
     //! Map tileset
     const TileSet* mTileSet;
+    const HighMap* mHighMap;
     std::string mTileSetName;
 
     // random number generator for Tile's faces

@@ -199,8 +199,8 @@ bool CreatureActionSearchJob::handleSearchJob(Creature& creature, bool forced)
         if(tilePath.empty() || (chosenTile == nullptr))
             continue;
 
-        std::vector<Ogre::Vector3> vectorPath;
-        creature.tileToVector3(tilePath, vectorPath, true, 0.0);
+        std::vector<Ogre::Vector2> vectorPath;
+        creature.tileToVector2(tilePath, vectorPath, true, 0.0);
         creature.setWalkPath(EntityAnimation::walk_anim, EntityAnimation::idle_anim, true, true, vectorPath, true);
         creature.pushAction(Utils::make_unique<CreatureActionWalkToTile>(creature));
         return false;

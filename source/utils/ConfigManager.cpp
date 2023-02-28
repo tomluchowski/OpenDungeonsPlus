@@ -176,6 +176,11 @@ ConfigManager::~ConfigManager()
         delete p.second;
     }
     mTileSets.clear();
+    for(std::pair<const std::string, const HighMap*> p : mHighMaps)
+    {
+        delete p.second;
+    }
+    mHighMaps.clear();
     recentlyUsedLevels.clear();
 }
 
@@ -1107,6 +1112,9 @@ bool ConfigManager::loadTilesets(const std::string& fileName)
         TileSet* tileSet = new TileSet();
         mTileSets[tileSetName] = tileSet;
 
+        HighMap* mHighMap = new HighMap();
+        mHighMaps[tileSetName] = mHighMap;
+        
         defFile >> nextParam;
         if(nextParam != "[TileLink]")
         {
@@ -1137,59 +1145,59 @@ bool ConfigManager::loadTilesets(const std::string& fileName)
 
             tileSet->addTileLink(tileVisual1, tileVisual2);
         }
-        if(!loadTilesetValues(defFile, TileVisual::nullTileVisual, tileSet->configureTileValues(TileVisual::nullTileVisual)))
+        if(!loadTilesetValues(defFile, TileVisual::nullTileVisual, tileSet->configureTileValues(TileVisual::nullTileVisual),*mHighMap))
             return false;
-        if(!loadTilesetValues(defFile, TileVisual::goldGround, tileSet->configureTileValues(TileVisual::goldGround)))
+        if(!loadTilesetValues(defFile, TileVisual::goldGround, tileSet->configureTileValues(TileVisual::goldGround),*mHighMap))
             return false;
-        if(!loadTilesetValues(defFile, TileVisual::goldFull, tileSet->configureTileValues(TileVisual::goldFull)))
+        if(!loadTilesetValues(defFile, TileVisual::goldFull, tileSet->configureTileValues(TileVisual::goldFull),*mHighMap))
             return false;
-        if(!loadTilesetValues(defFile, TileVisual::dirtGround, tileSet->configureTileValues(TileVisual::dirtGround)))
+        if(!loadTilesetValues(defFile, TileVisual::dirtGround, tileSet->configureTileValues(TileVisual::dirtGround),*mHighMap))
             return false;
-        if(!loadTilesetValues(defFile, TileVisual::dirtFull, tileSet->configureTileValues(TileVisual::dirtFull)))
+        if(!loadTilesetValues(defFile, TileVisual::dirtFull, tileSet->configureTileValues(TileVisual::dirtFull),*mHighMap))
             return false;
-        if(!loadTilesetValues(defFile, TileVisual::rockGround, tileSet->configureTileValues(TileVisual::rockGround)))
+        if(!loadTilesetValues(defFile, TileVisual::rockGround, tileSet->configureTileValues(TileVisual::rockGround),*mHighMap))
             return false;
-        if(!loadTilesetValues(defFile, TileVisual::rockFull, tileSet->configureTileValues(TileVisual::rockFull)))
+        if(!loadTilesetValues(defFile, TileVisual::rockFull, tileSet->configureTileValues(TileVisual::rockFull),*mHighMap))
             return false;
-        if(!loadTilesetValues(defFile, TileVisual::waterGround, tileSet->configureTileValues(TileVisual::waterGround)))
+        if(!loadTilesetValues(defFile, TileVisual::waterGround, tileSet->configureTileValues(TileVisual::waterGround),*mHighMap))
             return false;
-        if(!loadTilesetValues(defFile, TileVisual::lavaGround, tileSet->configureTileValues(TileVisual::lavaGround)))
+        if(!loadTilesetValues(defFile, TileVisual::lavaGround, tileSet->configureTileValues(TileVisual::lavaGround),*mHighMap))
             return false;
-        if(!loadTilesetValues(defFile, TileVisual::claimedGround, tileSet->configureTileValues(TileVisual::claimedGround)))
+        if(!loadTilesetValues(defFile, TileVisual::claimedGround, tileSet->configureTileValues(TileVisual::claimedGround),*mHighMap))
             return false;
-        if(!loadTilesetValues(defFile, TileVisual::claimedFull, tileSet->configureTileValues(TileVisual::claimedFull)))
+        if(!loadTilesetValues(defFile, TileVisual::claimedFull, tileSet->configureTileValues(TileVisual::claimedFull),*mHighMap))
             return false;
-        if(!loadTilesetValues(defFile, TileVisual::gemGround, tileSet->configureTileValues(TileVisual::gemGround)))
+        if(!loadTilesetValues(defFile, TileVisual::gemGround, tileSet->configureTileValues(TileVisual::gemGround),*mHighMap))
             return false;
-        if(!loadTilesetValues(defFile, TileVisual::gemFull, tileSet->configureTileValues(TileVisual::gemFull)))
+        if(!loadTilesetValues(defFile, TileVisual::gemFull, tileSet->configureTileValues(TileVisual::gemFull),*mHighMap))
             return false;
-        if(!loadTilesetValues(defFile, TileVisual::dungeonTempleRoom, tileSet->configureTileValues(TileVisual::dungeonTempleRoom)))
+        if(!loadTilesetValues(defFile, TileVisual::dungeonTempleRoom, tileSet->configureTileValues(TileVisual::dungeonTempleRoom),*mHighMap))
             return false;
-        if(!loadTilesetValues(defFile, TileVisual::dormitoryRoom, tileSet->configureTileValues(TileVisual::dormitoryRoom)))
+        if(!loadTilesetValues(defFile, TileVisual::dormitoryRoom, tileSet->configureTileValues(TileVisual::dormitoryRoom),*mHighMap))
             return false;
-        if(!loadTilesetValues(defFile, TileVisual::treasuryRoom, tileSet->configureTileValues(TileVisual::treasuryRoom)))
+        if(!loadTilesetValues(defFile, TileVisual::treasuryRoom, tileSet->configureTileValues(TileVisual::treasuryRoom),*mHighMap))
             return false;
-        if(!loadTilesetValues(defFile, TileVisual::portalRoom, tileSet->configureTileValues(TileVisual::portalRoom)))
+        if(!loadTilesetValues(defFile, TileVisual::portalRoom, tileSet->configureTileValues(TileVisual::portalRoom),*mHighMap))
             return false;
-        if(!loadTilesetValues(defFile, TileVisual::workshopRoom, tileSet->configureTileValues(TileVisual::workshopRoom)))
+        if(!loadTilesetValues(defFile, TileVisual::workshopRoom, tileSet->configureTileValues(TileVisual::workshopRoom),*mHighMap))
             return false;
-        if(!loadTilesetValues(defFile, TileVisual::trainingHallRoom, tileSet->configureTileValues(TileVisual::trainingHallRoom)))
+        if(!loadTilesetValues(defFile, TileVisual::trainingHallRoom, tileSet->configureTileValues(TileVisual::trainingHallRoom),*mHighMap))
             return false;
-        if(!loadTilesetValues(defFile, TileVisual::libraryRoom, tileSet->configureTileValues(TileVisual::libraryRoom)))
+        if(!loadTilesetValues(defFile, TileVisual::libraryRoom, tileSet->configureTileValues(TileVisual::libraryRoom),*mHighMap))
             return false;
-        if(!loadTilesetValues(defFile, TileVisual::hatcheryRoom, tileSet->configureTileValues(TileVisual::hatcheryRoom)))
+        if(!loadTilesetValues(defFile, TileVisual::hatcheryRoom, tileSet->configureTileValues(TileVisual::hatcheryRoom),*mHighMap))
             return false;
-        if(!loadTilesetValues(defFile, TileVisual::cryptRoom, tileSet->configureTileValues(TileVisual::cryptRoom)))
+        if(!loadTilesetValues(defFile, TileVisual::cryptRoom, tileSet->configureTileValues(TileVisual::cryptRoom),*mHighMap))
             return false;
-        if(!loadTilesetValues(defFile, TileVisual::portalWaveRoom, tileSet->configureTileValues(TileVisual::portalWaveRoom)))
+        if(!loadTilesetValues(defFile, TileVisual::portalWaveRoom, tileSet->configureTileValues(TileVisual::portalWaveRoom),*mHighMap))
             return false;
-        if(!loadTilesetValues(defFile, TileVisual::prisonRoom, tileSet->configureTileValues(TileVisual::prisonRoom)))
+        if(!loadTilesetValues(defFile, TileVisual::prisonRoom, tileSet->configureTileValues(TileVisual::prisonRoom),*mHighMap))
             return false;
-        if(!loadTilesetValues(defFile, TileVisual::arenaRoom, tileSet->configureTileValues(TileVisual::arenaRoom)))
+        if(!loadTilesetValues(defFile, TileVisual::arenaRoom, tileSet->configureTileValues(TileVisual::arenaRoom),*mHighMap))
             return false;
-        if(!loadTilesetValues(defFile, TileVisual::casinoRoom, tileSet->configureTileValues(TileVisual::casinoRoom)))
+        if(!loadTilesetValues(defFile, TileVisual::casinoRoom, tileSet->configureTileValues(TileVisual::casinoRoom),*mHighMap))
             return false;
-        if(!loadTilesetValues(defFile, TileVisual::tortureRoom, tileSet->configureTileValues(TileVisual::tortureRoom)))
+        if(!loadTilesetValues(defFile, TileVisual::tortureRoom, tileSet->configureTileValues(TileVisual::tortureRoom),*mHighMap))
             return false;
 
     }
@@ -1203,7 +1211,7 @@ bool ConfigManager::loadTilesets(const std::string& fileName)
     return true;
 }
 
-bool ConfigManager::loadTilesetValues(std::istream& defFile, TileVisual tileVisual, std::vector<std::vector<TileSetValue>>& tileValues)
+bool ConfigManager::loadTilesetValues(std::istream& defFile, TileVisual tileVisual, std::vector<std::vector<TileSetValue>>& tileValues, std::map<TileVisual,std::map<int,float>>& highMap)
 {
     std::string nextParam;
     std::string beginTag = "[" + Tile::tileVisualToString(tileVisual) + "]";
@@ -1230,6 +1238,7 @@ bool ConfigManager::loadTilesetValues(std::istream& defFile, TileVisual tileVisu
 
         std::string materialName;
         double rotX, rotY, rotZ;
+        float high;
         
         if(meshName=="[oneOf]"){
             defFile >> nextParam;
@@ -1241,33 +1250,51 @@ bool ConfigManager::loadTilesetValues(std::istream& defFile, TileVisual tileVisu
                 if(materialName.compare("''") == 0)
                     materialName.clear();
 
-                defFile >> rotX;
+                std::string mLine;
+                getline(defFile,mLine);
 
-                defFile >> rotY;
+                std::vector<std::string> resVtr = Helper::split(mLine, '\t', true);
 
-                defFile >> rotZ;
+                rotX = Helper::stringToT<double>(resVtr[0]);
+                rotY = Helper::stringToT<double>(resVtr[1]);                
+                rotZ = Helper::stringToT<double>(resVtr[2]);
 
+                if(resVtr.size() > 3)
+                    high =  Helper::stringToT<float>(resVtr[3]);
+                else
+                    high = 0;
+                
                 if(index >= tileValues.size())
                 {
                     OD_LOG_ERR("Tileset index too high in tileset=" + endTag + ", index=" + indexStr);
                     return false;
                 }
-
+                
+                highMap[tileVisual][index] = high;
+                
                 tileValues[index].push_back(TileSetValue(meshName, materialName, rotX, rotY, rotZ));
                 defFile >> nextParam;
             }
             continue;
-        }
-        
+        }         
         defFile >> materialName;
+        
         if(materialName.compare("''") == 0)
             materialName.clear();
 
-        defFile >> rotX;
+        std::string mLine;
+        getline(defFile,mLine);
 
-        defFile >> rotY;
+        std::vector<std::string> resVtr = Helper::split(mLine, '\t', true);
 
-        defFile >> rotZ;
+        rotX = Helper::stringToT<double>(resVtr[0]);
+        rotY = Helper::stringToT<double>(resVtr[1]);                
+        rotZ = Helper::stringToT<double>(resVtr[2]);
+
+        if(resVtr.size() > 3)
+            high =  Helper::stringToT<float>(resVtr[3]);
+        else
+            high = 0;
 
         if(index >= tileValues.size())
         {
@@ -1275,6 +1302,7 @@ bool ConfigManager::loadTilesetValues(std::istream& defFile, TileVisual tileVisu
             return false;
         }
 
+        highMap[tileVisual][index] = high;
         tileValues[index].push_back(TileSetValue(meshName, materialName, rotX, rotY, rotZ));
     }
 }
@@ -1754,6 +1782,25 @@ const TileSet* ConfigManager::getTileSet(const std::string& tileSetName) const
 
     return it->second;
 }
+
+const HighMap* ConfigManager::getHighMap(const std::string& tileSetName) const
+{
+    if(tileSetName.empty())
+        return mHighMaps.at(DEFAULT_TILESET_NAME);
+
+    auto it = mHighMaps.find(tileSetName);
+    if(it == mHighMaps.end())
+    {
+        OD_LOG_ERR("Cannot find requested highMap for a given tileset name=" + tileSetName);
+        // We return the default tileset
+        return mHighMaps.at(DEFAULT_TILESET_NAME);
+    }
+
+    return it->second;
+}
+
+
+
 
 bool ConfigManager::initVideoConfig(Ogre::Root& ogreRoot)
 {

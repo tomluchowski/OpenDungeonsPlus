@@ -729,8 +729,8 @@ bool RoomPrison::useRoom(Creature& creature, bool forced)
 
     uint32_t index = Random::Uint(0, availableTiles.size() - 1);
     Tile* tileDest = availableTiles[index];
-    Ogre::Vector3 v (static_cast<Ogre::Real>(tileDest->getX()), static_cast<Ogre::Real>(tileDest->getY()), 0.0);
-    std::vector<Ogre::Vector3> path;
+    Ogre::Vector2 v (static_cast<Ogre::Real>(tileDest->getX()), static_cast<Ogre::Real>(tileDest->getY()));
+    std::vector<Ogre::Vector2> path;
     path.push_back(v);
     creature.setWalkPath(EntityAnimation::flee_anim, EntityAnimation::idle_anim, true, true, path,true);
 

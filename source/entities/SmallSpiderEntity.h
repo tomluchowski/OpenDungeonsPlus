@@ -41,7 +41,7 @@ public:
 
     bool canSlap(Seat* seat) override;
 
-    virtual void correctEntityMovePosition(Ogre::Vector3& position) override;
+    virtual void correctEntityMovePosition(Ogre::Vector2& position) override;
 
     void slap() override
     { mIsSlapped = true; }

@@ -124,6 +124,13 @@ ODPacket& ODPacket::operator >>(std::wstring& data)
     return *this;
 }
 
+
+ODPacket& ODPacket::operator >>(Ogre::Vector2& data)
+{
+    mPacket >> data.x >> data.y;
+    return *this;
+}
+
 ODPacket& ODPacket::operator >>(Ogre::Vector3& data)
 {
     mPacket >> data.x >> data.y >> data.z;
@@ -224,6 +231,12 @@ ODPacket& ODPacket::operator <<(const wchar_t* data)
 ODPacket& ODPacket::operator <<(const std::wstring& data)
 {
     mPacket<<data;
+    return *this;
+}
+
+ODPacket& ODPacket::operator <<(const Ogre::Vector2&   data)
+{
+    mPacket << data.x << data.y;
     return *this;
 }
 

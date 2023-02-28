@@ -1103,8 +1103,8 @@ bool Creature::handleIdleAction()
             // If we are 5 tiles from the call to war, we don't go there
             if(tempPath.size() >= 5)
             {
-                std::vector<Ogre::Vector3> path;
-                tileToVector3(tempPath, path, true, 0.0);
+                std::vector<Ogre::Vector2> path;
+                tileToVector2(tempPath, path, true, 0.0);
                 setWalkPath(EntityAnimation::walk_anim, EntityAnimation::idle_anim, true, true, path, true);
                 pushAction(Utils::make_unique<CreatureActionGoCallToWar>(*this));
                 return false;
@@ -1956,9 +1956,9 @@ std::string Creature::getStatsText()
     }
     tempSS << std::endl;   
     tempSS << "Destinations:";
-    for(const Ogre::Vector3& dest : mWalkQueue)
+    for(const Ogre::Vector2& dest : mWalkQueue)
     {
-        tempSS << " " << Helper::toStringWithoutZ(dest);
+        tempSS << " " << Helper::toString(dest);
     }
     tempSS << std::endl;
     tempSS << "Mood: " << CreatureMood::toString(mMoodValue) << std::endl;
@@ -2351,14 +2351,14 @@ bool Creature::parkToWallTile(Tile* wallTile, Tile* nTile)
     if(posTile == nullptr)
         return false;
 
-    Ogre::Vector3 parkingPoint;
-    parkingPoint = (wallTile->getPosition() - nTile->getPosition())*0.4 + nTile->getPosition() ;
+    Ogre::Vector2 parkingPoint;
+    parkingPoint = (wallTile->getPosition2d() - nTile->getPosition2d())*0.4 + nTile->getPosition2d() ;
 
     
     std::list<Tile*> result = getGameMap()->path(this, nTile);
 
-    std::vector<Ogre::Vector3> path;
-    tileToVector3(result, path, true, 0.0);
+    std::vector<Ogre::Vector2> path;
+    tileToVector2(result, path, true, 0.0);
     
     path.push_back(parkingPoint);
     
@@ -2379,8 +2379,8 @@ bool Creature::setDestination(Tile* tile)
 
     std::list<Tile*> result = getGameMap()->path(this, tile);
 
-    std::vector<Ogre::Vector3> path;
-    tileToVector3(result, path, true, 0.0);
+    std::vector<Ogre::Vector2> path;
+    tileToVector2(result, path, true, 0.0);
     setWalkPath(EntityAnimation::walk_anim, EntityAnimation::idle_anim, true, true, path,true);
     pushAction(Utils::make_unique<CreatureActionWalkToTile>(*this));
     return true;
@@ -3056,7 +3056,7 @@ bool Creature::isInPrison() const
     return mSeatPrison != nullptr;
 }
 
-void Creature::correctEntityMovePosition(Ogre::Vector3& position)
+void Creature::correctEntityMovePosition(Ogre::Vector2& position)
 {
     static const double offset = 0.3;
     if(position.x > 0)
@@ -3065,14 +3065,14 @@ void Creature::correctEntityMovePosition(Ogre::Vector3& position)
     if(position.y > 0)
         position.y += Random::Double(-offset, offset);
 
-    if(position.z > 0)
-        position.z += Random::Double(-offset, offset);
+    // if(position.z > 0)
+    //     position.z += Random::Double(-offset, offset);
 }
 
 void Creature::checkWalkPathValid()
 {
     bool stop = false;
-    for(const Ogre::Vector3& dest : mWalkQueue)
+    for(const Ogre::Vector2& dest : mWalkQueue)
     {
         Tile* tile = getGameMap()->getTile(Helper::round(dest.x), Helper::round(dest.y));
         if(tile == nullptr)

@@ -139,6 +139,7 @@ namespace Helper
     #if defined(__OpenBSD__) && defined(__LP64__)
     std::string toString(size_t d);
     #endif
+    std::string toString(const Ogre::Vector2& v);    
     std::string toString(const Ogre::Vector3& v);
     std::string toStringWithoutZ(const Ogre::Vector3& v);
     std::string toString(const Ogre::ColourValue& c);

@@ -46,7 +46,7 @@ public:
     virtual void pickup() override;
     virtual bool tryDrop(Seat* seat, Tile* tile) override;
 
-    virtual void correctEntityMovePosition(Ogre::Vector3& position) override;
+    virtual void correctEntityMovePosition(Ogre::Vector2& position) override;
 
     bool eatChicken(Creature* creature);
 

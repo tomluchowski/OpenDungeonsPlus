@@ -293,6 +293,12 @@ namespace Helper
             + "," + TTostring(v.y)
             + "," + TTostring(v.z) + ")";
     }
+    std::string toString(const Ogre::Vector2& v)
+    {
+        return "(" + TTostring(v.x)
+            + "," + TTostring(v.y) + ")";
+    }
+    
     std::string toStringWithoutZ(const Ogre::Vector3& v)
     {
         return "(" + TTostring(v.x)

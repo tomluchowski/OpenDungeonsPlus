@@ -137,8 +137,8 @@ bool CreatureActionFindHome::handleFindHome(Creature& creature, bool forced)
 
     Tile* choosenTile = nullptr;
     std::list<Tile*> tempPath = creature.getGameMap()->findBestPath(&creature, myTile, availableDormitories, choosenTile);
-    std::vector<Ogre::Vector3> path;
-    creature.tileToVector3(tempPath, path, true, 0.0);
+    std::vector<Ogre::Vector2> path;
+    creature.tileToVector2(tempPath, path, true, 0.0);
     creature.setWalkPath(EntityAnimation::walk_anim, EntityAnimation::idle_anim, true, true, path,true);
     creature.pushAction(Utils::make_unique<CreatureActionWalkToTile>(creature));
     return false;
