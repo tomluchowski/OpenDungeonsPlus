@@ -3443,3 +3443,13 @@ bool GameMap::refreshTilesBlock(unsigned int startX, unsigned int startY, unsign
         }
     return isNull;
 }
+
+float GameMap::getHeightFromTile(const Tile* tile) const
+{
+    if (tile->getHasBridge())
+        return 0.0;
+    
+    TileVisual tv = tile->getTileVisual();
+    int index = tile->getGameMap()->computeTileSetIndex(tile);
+    return mHighMap->at(tv).at(index);
+}

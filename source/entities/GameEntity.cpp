@@ -179,15 +179,13 @@ void GameEntity::addEntityToPositionTile(GameMap* gameMap)
 
     setIsOnMap(true);
     Tile* tile = getPositionTile(gameMap);
-    TileVisual tv = tile->getTileVisual();
-    int index = gameMap->computeTileSetIndex(tile);
-
+    
     if(tile == nullptr)
     {
         OD_LOG_ERR(gameMap->serverStr() + "entityName=" + getName() + ", pos=" + Helper::toString(getPosition()));
         return;
     }
-    setEntityHigh(gameMap->getHighFromTileVisualandIndex(tv,index));
+    setEntityHeight(gameMap->getHeightFromTile(tile));
     OD_ASSERT_TRUE_MSG(tile->addEntity(this), gameMap->serverStr() + "entity=" + getName() + ", pos=" + Helper::toString(getPosition()) + ", tile=" + Tile::displayAsString(tile));
 }
 

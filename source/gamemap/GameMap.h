@@ -522,8 +522,8 @@ public:
     { return mTileSetName; }
 
 
-    inline float getHighFromTileVisualandIndex(const TileVisual tv, const int index)
-    { return (*mHighMap).at(tv).at(index); }
+    float getHeightFromTile(const Tile*) const;
+    
     //! \brief getMeshForDefaultTile returns a mesh for some default dirt tile. This
     //! is used as a workaround to avoid lightning issues
     const std::string& getMeshForDefaultTile() const;

@@ -223,7 +223,7 @@ class GameEntity
     inline void setEntityNode(Ogre::SceneNode* sceneNode)
     { mEntityNode = sceneNode; }
 
-    inline void setEntityHigh(float high)
+    inline void setEntityHeight(float high)
     { mPosition.z = high ;}
     
 
