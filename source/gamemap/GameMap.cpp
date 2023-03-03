@@ -3450,6 +3450,6 @@ float GameMap::getHeightFromTile(const Tile* tile) const
         return 0.0;
     
     TileVisual tv = tile->getTileVisual();
-    int index = tile->getGameMap()->computeTileSetIndex(tile);
+    int index = computeTileSetIndex(tile);
     return mHighMap->at(tv).at(index);
 }

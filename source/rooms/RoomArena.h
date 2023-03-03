@@ -40,8 +40,7 @@ public:
     void removeCreatureUsingRoom(Creature* c) override;
     void doUpkeep() override;
     bool useRoom(Creature& creature, bool forced) override;
-
-
+    double getCreatureSpeed(const Creature* creature, Tile* tile) const override;
     bool shouldStopUseIfHungrySleepy(Creature& creature, bool forced) override;
 
     std::string getListenerName() const override;
