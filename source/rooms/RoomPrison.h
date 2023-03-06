@@ -18,7 +18,7 @@
 #ifndef ROOMPRISON_H
 #define ROOMPRISON_H
 
-#include "rooms/Room.h"
+#include "rooms/FencedRoom.h"
 #include "rooms/RoomType.h"
 
 class InputCommand;
@@ -39,7 +39,7 @@ enum class FencingDirection
 
 enum class TileVisual;
 
-class RoomPrison: public Room
+class RoomPrison: public FencedRoom
 {
 
 public:
@@ -51,7 +51,6 @@ public:
     void absorbRoom(Room *r) override;
 
     virtual void updateActiveSpots(GameMap* gameMap = nullptr) override;
-    void splitTilesIntoClasses();
     
     void doUpkeep() override;
 
@@ -74,12 +73,6 @@ public:
     void restoreInitialEntityState() override;
 
     double getCreatureSpeed(const Creature* creature, Tile* tile) const override;
-
-    std::vector<Tile*>& getUnusedTiles(){ return mUnusedTiles; }
-
-    std::vector<Tile*>& getFenceTiles(){ return mFenceTiles; }
-
-    Tile* getActualPrisonTile(int index);
     
     static const RoomType mRoomType;
     static const TileVisual mRoomVisual;
@@ -101,9 +94,7 @@ private:
     BuildingObject* createFencingMesh(FencingDirection hd, Tile*  tt);
     void addFencingObject(Tile* targetTile, BuildingObject* obj, GameMap* gameMap = nullptr);
     
-    std::vector<Tile*> mUnusedTiles;
-    std::vector<Tile*> mFenceTiles;
-    std::vector<Tile*> mActualPrisonTiles;
+
     std::vector<Creature*> mPendingPrisoners;
 
     std::map<Tile*, BuildingObject*> mFencingObjects;

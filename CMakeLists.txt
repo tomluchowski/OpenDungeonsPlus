@@ -424,7 +424,8 @@ set(OD_SOURCEFILES
     ${SRC}/renderscene/RenderSceneSyncPost.cpp
     ${SRC}/renderscene/RenderSceneTurnEntity.cpp
     ${SRC}/renderscene/RenderSceneWait.cpp
-
+    
+    ${SRC}/rooms/FencedRoom.cpp
     ${SRC}/rooms/Room.cpp
     ${SRC}/rooms/RoomArena.cpp
     ${SRC}/rooms/RoomBridge.cpp

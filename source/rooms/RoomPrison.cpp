@@ -205,7 +205,7 @@ static const int32_t OFFSET_TILE_X = 0;
 static const int32_t OFFSET_TILE_Y = -1;
 
 RoomPrison::RoomPrison(GameMap* gameMap) :
-    Room(gameMap)
+    FencedRoom(gameMap)
 {
     setMeshName("PrisonGround");
 }
@@ -369,8 +369,6 @@ void RoomPrison::deleteFenceMeshes()
         obj->deleteYourself();
         mFencingObjects.erase(it);
     }
-
-    
 }
 
 
@@ -383,7 +381,7 @@ void RoomPrison::putFenceMeshes()
     {
         mFenceCoords.push_back(std::make_pair(tt->getX(),tt->getY()));
     }
-    for(Tile* tt : mActualPrisonTiles)
+    for(Tile* tt : mActualTiles)
     {
         mActualTilesCoords.push_back(std::make_pair(tt->getX(),tt->getY()));
     }    
@@ -466,47 +464,6 @@ BuildingObject* RoomPrison::createFencingMesh(FencingDirection hd, Tile*  tt)
     return nullptr;
 
 }
-
-
-void RoomPrison::splitTilesIntoClasses()
-{
-
-
-    std::vector<Tile*> allPrisonTiles = getCoveredTiles();
-    // check for the actual prison tiles -- those are the middle ones e.g.
-    // the tiles which has all 8 neigbours being the prison roomType
-    mActualPrisonTiles.clear();
-    for(Tile* tt : allPrisonTiles)
-    {
-        if(tt->getEightNeighbouringRoomTypeCount(RoomType::prison) == 8)
-            mActualPrisonTiles.push_back(tt);
-    }
-    std::vector<Tile*> diff;
-    std::sort(mActualPrisonTiles.begin(),mActualPrisonTiles.end());
-    std::sort(allPrisonTiles.begin(),allPrisonTiles.end());
-    std::set_difference(allPrisonTiles.begin(),allPrisonTiles.end(),mActualPrisonTiles.begin(),mActualPrisonTiles.end(), std::inserter(diff,diff.begin()));
-    mFenceTiles.clear();
-    for(Tile* tt: diff)
-    {
-        bool fencing = false;
-        for(Tile* ss: mActualPrisonTiles)
-            if(std::abs(ss->getX() - tt->getX() ) <= 1 &&  (std::abs(ss->getY() - tt->getY() ) <= 1   ))
-                fencing = true;
-        if(fencing)
-                mFenceTiles.push_back(tt);
-
-    }
-    // check for unused tiles ( those would be neither used nor fencing tiles
-    //-- too alone to consist a valid prison    
-    mUnusedTiles.clear();
-    std::sort(mFenceTiles.begin(),mFenceTiles.end());
-    std::set_difference(diff.begin(),diff.end(),mFenceTiles.begin(),mFenceTiles.end(), std::inserter(mUnusedTiles ,mUnusedTiles.begin()));    
-
-
-    
-}
-
-
 
 
 void RoomPrison::addFencingObject(Tile* targetTile, BuildingObject* obj, GameMap* gameMap)
@@ -720,7 +677,7 @@ bool RoomPrison::useRoom(Creature& creature, bool forced)
     std::vector<Tile*> availableTiles;
     for(Tile* tile : creatureTile->getAllNeighbors())
     {
-        if(std::find(mActualPrisonTiles.begin(), mActualPrisonTiles.end(), tile)!=mActualPrisonTiles.end())
+        if(std::find(mActualTiles.begin(), mActualTiles.end(), tile)!=mActualTiles.end())
             availableTiles.push_back(tile);
     }
 
@@ -753,7 +710,7 @@ void RoomPrison::creatureDropped(Creature& creature)
     
     // We only push the use room action. We do not want this creature to be
     // considered as searching for a job
-    if( std::find(mActualPrisonTiles.begin(),mActualPrisonTiles.end(), tile ) != mActualPrisonTiles.end())
+    if( std::find(mActualTiles.begin(),mActualTiles.end(), tile ) != mActualTiles.end())
     {
         creature.clearActionQueue();
         creature.pushAction(Utils::make_unique<CreatureActionUseRoom>(creature, *this, true));
@@ -762,7 +719,7 @@ void RoomPrison::creatureDropped(Creature& creature)
 
 double RoomPrison::getCreatureSpeed(const Creature* creature, Tile* tile) const
 {
-    if( std::find(mActualPrisonTiles.begin(),mActualPrisonTiles.end(), tile ) != mActualPrisonTiles.end())
+    if( std::find(mActualTiles.begin(),mActualTiles.end(), tile ) != mActualTiles.end())
         return 0.0;
     else
         return creature->getMoveSpeedGround();
@@ -790,16 +747,6 @@ void RoomPrison::setupRoom(const std::string& name, Seat* seat, const std::vecto
         creature->checkWalkPathValid();    
 }
 
-Tile* RoomPrison::getActualPrisonTile(int index)
-{
-    if(index >= static_cast<int>(mActualPrisonTiles.size()))
-    {
-        OD_LOG_ERR("name=" + getName() + ", index=" + Helper::toString(index) + ", size=" + Helper::toString(mActualPrisonTiles.size()));
-        return nullptr;
-    }
-
-    return mActualPrisonTiles[index];
-}
 
 Tile* RoomPrison::getGateTile()
 {
@@ -807,7 +754,7 @@ Tile* RoomPrison::getGateTile()
     {
         for(Tile* neighbour: tile->getAllNeighbors())
         {
-            if(std::find(mActualPrisonTiles.begin(), mActualPrisonTiles.end(), neighbour)!=mActualPrisonTiles.end())
+            if(std::find(mActualTiles.begin(), mActualTiles.end(), neighbour)!=mActualTiles.end())
                 return tile;
         }
     }

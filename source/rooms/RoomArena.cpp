@@ -104,7 +104,7 @@ class RoomArenaFactory : public RoomFactory
             if(!gameMap->withdrawFromTreasuries(price, player->getSeat()))
                 return false;        
 
-        RoomArena* room = new RoomArena(gameMap);
+         RoomArena* room = new RoomArena(gameMap);
         return buildRoomDefault(gameMap, room, player->getSeat(), tiles);
     }
 };
@@ -116,9 +116,9 @@ static RoomRegister reg(new RoomArenaFactory);
 static const Ogre::Real OFFSET_DUMMY = 0.3;
 
 RoomArena::RoomArena(GameMap* gameMap) :
-    Room(gameMap)
+    FencedRoom(gameMap)
 {
-    setMeshName("Arena");
+    setMeshName("Room");
 }
 
 void RoomArena::absorbRoom(Room *r)
@@ -244,12 +244,21 @@ void RoomArena::doUpkeep()
     }
 }
 
+
+void RoomArena::updateActiveSpots(GameMap* gameMap)
+{
+    splitTilesIntoClasses();
+    Room::updateActiveSpots(gameMap);    
+}
+
+
+
 bool RoomArena::useRoom(Creature& creature, bool forced)
 {
     // If the creature is alone, it should wander in the room. If it is not, it should wait until there is one ready
     if(mCreaturesFighting.size() < 2)
     {
-        std::vector<Tile*> tiles = getCoveredTiles();
+        std::vector<Tile*> tiles = getActualRoomTiles();
         if(tiles.empty())
         {
             OD_LOG_ERR("room=" + getName() + ", creature=" + creature.getName());

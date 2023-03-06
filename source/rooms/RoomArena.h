@@ -18,15 +18,16 @@
 #ifndef ROOMARENA_H
 #define ROOMARENA_H
 
-#include "rooms/Room.h"
+#include "rooms/FencedRoom.h"
 #include "rooms/RoomType.h"
+
 
 class InputCommand;
 class InputManager;
 
 enum class TileVisual;
 
-class RoomArena: public Room, public GameEntityListener
+class RoomArena: public FencedRoom, public GameEntityListener
 {
 public:
     RoomArena(GameMap* gameMap);
@@ -39,6 +40,7 @@ public:
     bool addCreatureUsingRoom(Creature* c) override;
     void removeCreatureUsingRoom(Creature* c) override;
     void doUpkeep() override;
+    virtual void updateActiveSpots(GameMap* gameMap = nullptr) override;    
     bool useRoom(Creature& creature, bool forced) override;
     double getCreatureSpeed(const Creature* creature, Tile* tile) const override;
     bool shouldStopUseIfHungrySleepy(Creature& creature, bool forced) override;
