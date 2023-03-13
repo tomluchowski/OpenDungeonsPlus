@@ -697,57 +697,6 @@ bool RoomPrison::useRoom(Creature& creature, bool forced)
     return false;
 }
 
-void RoomPrison::creatureDropped(Creature& creature)
-{
-    // Owned and enemy creatures can be tortured
-    if((getSeat() != creature.getSeat()) && (getSeat()->isAlliedSeat(creature.getSeat())))
-        return;
-
-    if(!hasOpenCreatureSpot(&creature))
-        return;
-
-    Tile* tile = creature.getPositionTile();
-    
-    // We only push the use room action. We do not want this creature to be
-    // considered as searching for a job
-    if( std::find(mActualTiles.begin(),mActualTiles.end(), tile ) != mActualTiles.end())
-    {
-        creature.clearActionQueue();
-        creature.pushAction(Utils::make_unique<CreatureActionUseRoom>(creature, *this, true));
-    }
-}
-
-double RoomPrison::getCreatureSpeed(const Creature* creature, Tile* tile) const
-{
-    if( std::find(mActualTiles.begin(),mActualTiles.end(), tile ) != mActualTiles.end())
-        return 0.0;
-    else
-        return creature->getMoveSpeedGround();
-}
-
-void RoomPrison::setupRoom(const std::string& name, Seat* seat, const std::vector<Tile*>& tiles)
-{
-    Room::setupRoom(name, seat, tiles);
-
-    std::vector<Creature*> creatures;
-    
-    for(Creature* creature : getGameMap()->getCreatures())
-    {
-        for(Tile* tile: tiles)
-        {
-            if(getGameMap()->pathExists(creature, tile, creature->getPositionTile()))
-            {
-                creatures.push_back(creature);
-                break;
-            }
-        }
-    }
-    // We check if a creature from the given seat has a path through the door and stop it if there is
-    for(Creature* creature : creatures)
-        creature->checkWalkPathValid();    
-}
-
-
 Tile* RoomPrison::getGateTile()
 {
     for(Tile* tile: mFenceTiles)
@@ -761,3 +710,11 @@ Tile* RoomPrison::getGateTile()
     return nullptr;
 }
 
+
+double RoomPrison::getCreatureSpeed(const Creature* creature, Tile* tile) const
+{
+    if( std::find(mActualTiles.begin(),mActualTiles.end(), tile ) != mActualTiles.end())
+        return 0.0;
+    else
+        return creature->getMoveSpeedGround();
+}

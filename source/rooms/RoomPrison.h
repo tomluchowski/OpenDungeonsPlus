@@ -67,18 +67,13 @@ public:
     bool isInContainment(Creature& creature) override;
 
     bool useRoom(Creature& creature, bool forced) override;
-
-    void creatureDropped(Creature& creature) override;
-
+    
     void restoreInitialEntityState() override;
-
-    double getCreatureSpeed(const Creature* creature, Tile* tile) const override;
     
     static const RoomType mRoomType;
-    static const TileVisual mRoomVisual;
+    static const TileVisual mRoomVisual;   
 
-    
-    virtual void setupRoom(const std::string& name, Seat* seat, const std::vector<Tile*>& tiles) override;    
+    double getCreatureSpeed(const Creature* creature, Tile* tile) const override;
     
 protected:
     virtual BuildingObject* notifyActiveSpotCreated(ActiveSpotPlace place, Tile* tile) override;

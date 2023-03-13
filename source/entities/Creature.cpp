@@ -2169,6 +2169,16 @@ bool Creature::tryDrop(Seat* seat, Tile* tile)
     // If it is a worker, he can be dropped on dirt
     if (getDefinition()->isWorker() && (tile->getTileVisual() == TileVisual::dirtGround || tile->getTileVisual() == TileVisual::goldGround))
         return true;
+
+
+    if((tile != nullptr) &&
+       (tile->getCoveringRoom() != nullptr))
+    {
+        Room* room = tile->getCoveringRoom();
+        if(room->getType() == RoomType::arena)
+            return room->hasOpenCreatureSpot(this);
+    }
+
     
     // Every creature can be dropped on allied claimed tiles
     if(tile->isClaimedForSeat(seat))

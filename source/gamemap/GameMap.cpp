@@ -1543,6 +1543,7 @@ std::list<Tile*> GameMap::path(int x1, int y1, int x2, int y2, const Creature* c
                         neighborTile = getTile(currentEntry->getTile()->getX() - 1, currentEntry->getTile()->getY() - 1);
                     break;
                 case 5:
+
                     if(areTilesPassable[0] && areTilesPassable[3])
                         neighborTile = getTile(currentEntry->getTile()->getX() - 1, currentEntry->getTile()->getY() + 1);
                     break;
@@ -2239,9 +2240,7 @@ void GameMap::replaceFloodFill(Seat* seat, FloodFillType floodFillType, uint32_t
         {
             Tile* tile = getTile(ii,jj);
             if(tile->getFloodFillValue(seat, floodFillType) != colorOld)
-                continue;
-
-            tile->replaceFloodFill(seat, floodFillType, colorNew);
+                tile->replaceFloodFill(seat, floodFillType, colorNew);
         }
     }
 }

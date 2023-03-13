@@ -42,7 +42,6 @@ public:
     void doUpkeep() override;
     virtual void updateActiveSpots(GameMap* gameMap = nullptr) override;    
     bool useRoom(Creature& creature, bool forced) override;
-    double getCreatureSpeed(const Creature* creature, Tile* tile) const override;
     bool shouldStopUseIfHungrySleepy(Creature& creature, bool forced) override;
 
     std::string getListenerName() const override;
@@ -53,12 +52,14 @@ public:
 
     static const RoomType mRoomType;
     static const TileVisual mRoomVisual ;
+
     
 protected:
     virtual BuildingObject* notifyActiveSpotCreated(ActiveSpotPlace place, Tile* tile) override;
     virtual void exportToStream(std::ostream& os) const override;
     virtual bool importFromStream(std::istream& is) override;
 
+    
 private:
     std::vector<Creature*> mCreaturesFighting;
 };

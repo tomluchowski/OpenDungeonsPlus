@@ -138,7 +138,7 @@ void RoomArena::absorbRoom(Room *r)
 bool RoomArena::hasOpenCreatureSpot(Creature* c)
 {
     // We allow up to number central active spots creatures fighting
-    if(mCreaturesFighting.size() >= mCentralActiveSpotTiles.size())
+    if(mCreaturesFighting.size() >= mActualTiles.size())
         return false;
 
     // We allow using arena only if level is not too high
@@ -153,6 +153,11 @@ bool RoomArena::addCreatureUsingRoom(Creature* creature)
     if(!Room::addCreatureUsingRoom(creature))
         return false;
 
+
+    Tile* creatureTile = creature->getPositionTile();
+    if(std::find(mActualTiles.begin(),mActualTiles.end(), creatureTile ) == mActualTiles.end())
+        return false;
+        
     mCreaturesFighting.push_back(creature);
     creature->addGameEntityListener(this);
     return true;
@@ -191,8 +196,8 @@ void RoomArena::doUpkeep()
         creatures.push_back(creature);
     }
 
-    for(Creature* creature : creatures)
-        creature->clearActionQueue();
+    // for(Creature* creature : creatures)
+    //     creature->clearActionQueue();
 
     // If less than 2 creatures, nothing to do
     if(mCreaturesFighting.size() < 2)
@@ -399,15 +404,3 @@ bool RoomArena::notifyDropped(GameEntity* entity)
     return true;
 }
 
-
-double RoomArena::getCreatureSpeed(const Creature* creature, Tile* tile) const
-{
-    // If the neighboruhood is 1111, that is we deal with the "basement" the
-    // allowed speed is 0.0, i.e. the tile is unreachable the usual way
-    if(getGameMap()->computeTileSetIndex(tile) == 0xF)
-        return 0.0;
-    else
-        return creature->getMoveSpeedGround();
-
-
-}
