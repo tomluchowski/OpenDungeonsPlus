@@ -30,6 +30,7 @@ add_boost_test(00-Goal
         ${SRC}/utils/LogManager.cpp
         ${SRC}/utils/LogSinkConsole.cpp
         LIBRARIES
+        ${OGRE_LIBRARIES}
         ${SFML_LIBRARIES}
         ${Boost_FILESYSTEM_LIBRARY_RELEASE}
         ${Boost_SYSTEM_LIBRARY_RELEASE})
@@ -123,3 +124,4 @@ add_boost_test(ab-TestTraps
         ${Boost_FILESYSTEM_LIBRARY_RELEASE}
         ${Boost_SYSTEM_LIBRARY_RELEASE}
         ${OGRE_LIBRARIES})
+

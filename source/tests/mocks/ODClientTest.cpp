@@ -419,15 +419,16 @@ bool ODClientTest::processMessage(ServerNotificationType cmd, ODPacket& packetRe
             std::string walkAnim;
             std::string endAnim;
             bool loopEndAnim;
+            bool walkDistortion;
             bool playIdleWhenAnimationEnds;
             uint32_t nbDest;
-            BOOST_CHECK(packetReceived >> entityName >> walkAnim >> endAnim);
+            BOOST_CHECK(packetReceived >> walkDistortion >> entityName >> walkAnim >> endAnim);
             BOOST_CHECK(packetReceived >> loopEndAnim >> playIdleWhenAnimationEnds >> nbDest);
-            std::vector<Ogre::Vector3> path;
+            std::vector<Ogre::Vector2> path;
             while(nbDest)
             {
                 --nbDest;
-                Ogre::Vector3 dest;
+                Ogre::Vector2 dest;
                 BOOST_CHECK(packetReceived >> dest);
                 path.push_back(dest);
             }
