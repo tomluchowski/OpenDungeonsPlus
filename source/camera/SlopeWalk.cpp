@@ -19,26 +19,11 @@
 #include "utils/LogManager.h"
 #include "utils/Helper.h"
 
-#include <boost/geometry.hpp>
-#include <boost/geometry/geometries/point_xy.hpp>
-#include <boost/geometry/geometries/polygon.hpp>
-#include <boost/geometry/geometries/register/point.hpp>
-#include <boost/geometry/geometries/adapted/boost_tuple.hpp>
-
 #include <algorithm>
 #include <iostream>
 #include <sstream>
 
-BOOST_GEOMETRY_REGISTER_POINT_2D(VectorInt64, int64_t, boost::geometry::cs::cartesian, x, y)
-//! Values used to know whether to show and/or hide a mesh
-typedef VectorInt64 Point;
-typedef boost::geometry::model::polygon<Point> Polygon;
 
-template <typename Point>
-void get_coordinates(Point const& p)
-{
-    OD_LOG_DBG( "get__coordinates : " + Helper::toString(double(boost::geometry::get<0>(p))/VectorInt64::UNIT) + ", " + Helper::toString( double(boost::geometry::get<1>(p))/VectorInt64::UNIT )) ;
-}
 
 void SlopeWalk::buildSlopes()
 {
@@ -274,38 +259,4 @@ std::string SlopeWalk::debug()
         ss << double(ii) / VectorInt64::UNIT << std::endl;
 
     return ss.str();
-}
-
-void SlopeWalk::convexHull()
-{
-    const double zoomFactorValue = 1.0565;
-    mVertices.zoom(zoomFactorValue);
-    Polygon polygon;
-    boost::geometry::append(polygon, mVertices.mMyArray);
-
-    uint32_t nb;
-    nb = boost::geometry::num_points(polygon);
-    if(nb != mVertices.mMyArray.size())
-    {
-        OD_LOG_ERR("Unexpected number of polygons=" + Helper::toString(nb));
-        return;
-    }
-
-    boost::geometry::correct(polygon);
-
-    // After correction, the polygon should be looped so we expect the size to
-    // have one more point
-    nb = boost::geometry::num_points(polygon) - 1;
-    if(nb != mVertices.mMyArray.size())
-    {
-        OD_LOG_ERR("Unexpected number of polygons=" + Helper::toString(nb));
-        return;
-    }
-
-    Polygon hull;
-    mVertices.mMyArray.clear();
-
-    boost::geometry::convex_hull(polygon, hull);
-    boost::geometry::for_each_point(boost::geometry::exterior_ring(hull), [this](Point &p){this->mVertices.mMyArray.push_back(p);});
-    mVertices.mMyArray.pop_back();
 }

@@ -89,7 +89,6 @@ public:
     void findMinMaxRight(const std::vector<VectorInt64>& );
     std::string debug();
     void buildSlopes();
-    void convexHull();
 
 };
 

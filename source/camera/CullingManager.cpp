@@ -31,6 +31,8 @@
 
 static const Ogre::Plane GROUND_PLANE(0, 0, 1, 0);
 
+const double zoomFactorValue = 1.0565;
+
 CullingManager::CullingManager(GameMap* gameMap, uint32_t cullingMask):
     mFirstIter(false),
     mGameMap(gameMap),
@@ -47,7 +49,9 @@ void CullingManager::cullTiles(const std::vector<Ogre::Vector3>& ogreVectors)
         mWalk.mVertices.mMyArray.push_back(VectorInt64(ogreVectors[ii]));
 
     // create a slope -- a set of left and right path
-    mWalk.convexHull();
+
+    const double zoomFactorValue = 1.0565;
+    mWalk.mVertices.zoom(zoomFactorValue);
     mWalk.buildSlopes();
 #ifdef DEBUG_CULLING
     OD_LOG_DBG(mOldWalk.debug());
@@ -67,8 +71,7 @@ void CullingManager::startTileCulling(Ogre::Camera* camera, const std::vector<Og
     mWalk.mVertices.mMyArray.clear();
     for (int ii = 0 ; ii < 4 ; ++ii)
         mWalk.mVertices.mMyArray.push_back(VectorInt64(ogreVectors[ii]));
-
-    mWalk.convexHull();
+    mWalk.mVertices.zoom(zoomFactorValue);    
     mWalk.buildSlopes();
     mOldWalk = mWalk;
     mOldWalk.prepareWalk();
@@ -89,7 +92,8 @@ void CullingManager::stopTileCulling(const std::vector<Ogre::Vector3>& ogreVecto
         mWalk.mVertices.mMyArray.push_back(VectorInt64(ogreVectors[ii]));
 
     // create a slope -- a set of left and rigth path
-    mWalk.convexHull();
+
+    mWalk.mVertices.zoom(zoomFactorValue);    
     mWalk.buildSlopes();
 
     OD_LOG_DBG(mOldWalk.debug());
