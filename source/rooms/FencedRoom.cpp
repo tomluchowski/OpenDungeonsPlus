@@ -124,3 +124,17 @@ void FencedRoom::setupRoom(const std::string& name, Seat* seat, const std::vecto
     for(Creature* creature : creatures)
         creature->checkWalkPathValid();    
 }
+
+
+Tile* FencedRoom::getGateTile()
+{
+    for(Tile* tile: mFenceTiles)
+    {
+        for(Tile* neighbour: tile->getAllNeighbors())
+        {
+            if(std::find(mActualTiles.begin(), mActualTiles.end(), neighbour)!=mActualTiles.end())
+                return tile;
+        }
+    }
+    return nullptr;
+}

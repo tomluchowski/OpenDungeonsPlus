@@ -190,10 +190,8 @@ void RoomArena::doUpkeep()
     std::vector<Creature*> creatures;
     for(Creature* creature : mCreaturesFighting)
     {
-        if(!creature->isKo())
-            continue;
-
-        creatures.push_back(creature);
+        if(creature->isKo())
+            creatures.push_back(creature);   
     }
 
     // for(Creature* creature : creatures)
@@ -223,6 +221,9 @@ void RoomArena::doUpkeep()
             if(opponent == creature)
                 continue;
 
+            if(std::find(creatures.begin(), creatures.end(), opponent) != creatures.end())
+                continue;
+            
             Tile* tileOpponent = opponent->getPositionTile();
             if(tileOpponent == nullptr)
             {
@@ -327,11 +328,7 @@ BuildingObject* RoomArena::notifyActiveSpotCreated(ActiveSpotPlace place, Tile* 
 
 bool RoomArena::shouldStopUseIfHungrySleepy(Creature& creature, bool forced)
 {
-    // If fighting, the creatures in the arena should not stop because hungry/tired
-    // That means it should stop only if alone
-    if(mCreaturesFighting.size() < 2)
-        return true;
-
+    // the creature cannot leave itself the combat pit
     return false;
 }
 

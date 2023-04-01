@@ -68,6 +68,8 @@ std::string ServerNotification::typeString(ServerNotificationType type)
             return "entityPickedUp";
         case ServerNotificationType::entityDropped:
             return "entityDropped";
+        case ServerNotificationType::entityTeleported:
+            return "entityTeleported";
         case ServerNotificationType::entitySlapped:
             return "entitySlapped";
         case ServerNotificationType::addEntity:

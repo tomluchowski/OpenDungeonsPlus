@@ -53,6 +53,7 @@ enum class ServerNotificationType
     setObjectAnimationState,
     entityPickedUp,
     entityDropped,
+    entityTeleported,
     entitySlapped,
 
     playerFighting, // Tells the player he is under attack or attacking

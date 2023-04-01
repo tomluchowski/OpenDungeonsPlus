@@ -81,7 +81,7 @@ Seat::Seat(GameMap* gameMap) :
     mConfigPlayerId(-1),
     mConfigTeamId(-1),
     mConfigFactionIndex(-1),
-    mKoCreatures(false)
+    mKoCreatures(true)
 {
 }
 

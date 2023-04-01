@@ -81,8 +81,6 @@ protected:
     bool importFromStream(std::istream& is) override;
 
 private:
-
-    Tile* getGateTile();
     
     void deleteFenceMeshes();
     void putFenceMeshes();

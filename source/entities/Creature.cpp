@@ -67,6 +67,7 @@
 #include "rooms/RoomCrypt.h"
 #include "rooms/RoomDormitory.h"
 #include "rooms/RoomPrison.h"
+#include "rooms/RoomArena.h"
 #include "sound/SoundEffectsManager.h"
 #include "spells/Spell.h"
 #include "spells/SpellType.h"
@@ -827,6 +828,40 @@ void Creature::doUpkeep()
 
     if(mKoTurnCounter < 0)
     {
+
+        if(getIsOnMap())
+        {
+            Tile* myTile = getPositionTile();
+            if(myTile == nullptr)
+            {
+                OD_LOG_ERR("name=" + getName() + ", position=" + Helper::toString(getPosition()));
+                return;
+            }
+            Room* myRoom = myTile->getCoveringRoom();
+            if( myRoom!=nullptr && myRoom->getType() == RoomType::arena)
+            {
+                
+                RoomArena* myRoomArena = static_cast<RoomArena*>(myRoom);
+                Ogre::Vector3 dest = myRoomArena->getGateTile()->getPosition();
+                setPosition(dest);
+
+                for(Seat* seat : mSeatsWithVisionNotified)
+                {
+                    if(seat->getPlayer() == nullptr)
+                        continue;
+                    if(!seat->getPlayer()->getIsHuman())
+                        continue;
+
+                    ServerNotification* serverNotification = new ServerNotification(
+                        ServerNotificationType::entityTeleported, seat->getPlayer());
+                    serverNotification->mPacket << getName() << dest;
+                    ODServer::getSingleton().queueServerNotification(serverNotification);
+                }
+            }  
+            
+        }
+
+        
         // If the counter reaches 0, the creature is dead
         ++mKoTurnCounter;
         if(mKoTurnCounter < 0)

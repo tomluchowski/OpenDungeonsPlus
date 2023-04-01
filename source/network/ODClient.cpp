@@ -600,7 +600,17 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
             gameMap->getLocalPlayer()->dropHand(tile);
             break;
         }
-
+        case ServerNotificationType::entityTeleported:
+        {
+            std::string objName;
+            Ogre::Vector3 dest;
+            
+            OD_ASSERT_TRUE(packetReceived >> objName >> dest);
+            MovableGameEntity *obj = gameMap->getAnimatedObject(objName);
+            obj->setPosition(dest);
+            
+            break;
+        }
         case ServerNotificationType::entitySlapped:
         {
             RenderManager::getSingleton().entitySlapped();

@@ -697,20 +697,6 @@ bool RoomPrison::useRoom(Creature& creature, bool forced)
     return false;
 }
 
-Tile* RoomPrison::getGateTile()
-{
-    for(Tile* tile: mFenceTiles)
-    {
-        for(Tile* neighbour: tile->getAllNeighbors())
-        {
-            if(std::find(mActualTiles.begin(), mActualTiles.end(), neighbour)!=mActualTiles.end())
-                return tile;
-        }
-    }
-    return nullptr;
-}
-
-
 double RoomPrison::getCreatureSpeed(const Creature* creature, Tile* tile) const
 {
     if( std::find(mActualTiles.begin(),mActualTiles.end(), tile ) != mActualTiles.end())

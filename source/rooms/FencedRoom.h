@@ -28,7 +28,9 @@ public:
     
     double getCreatureSpeed(const Creature* creature, Tile* tile) const;
 
-    virtual void creatureDropped(Creature& creature) override;    
+    virtual void creatureDropped(Creature& creature) override;
+    Tile* getGateTile();
+    
 protected:
     FencedRoom(GameMap*);
     void setupRoom(const std::string& name, Seat* seat, const std::vector<Tile*>& tiles);    
@@ -36,8 +38,10 @@ protected:
     std::vector<Tile*> mUnusedTiles;
     std::vector<Tile*> mFenceTiles;
     std::vector<Tile*> mActualTiles;
+
     
 private:
+
 
 
     
