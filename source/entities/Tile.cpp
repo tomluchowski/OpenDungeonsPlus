@@ -2358,8 +2358,9 @@ std::string Tile::getStatsText()
     tempSS << "TileVisual : " << tileVisualToString(getTileVisual()) << std::endl;
     tempSS << "Fulness : " << getFullness() << std::endl;
     tempSS << "SeatID : " << ((getSeat() == nullptr) ? " NULL " : Helper::toString(getSeat()->getId())) << std::endl;
-    for(FloodFillType ft = static_cast<FloodFillType>(0) ; ft < FloodFillType::nbValues   ; ft = static_cast<FloodFillType>((size_t)ft + 1))
-        tempSS << toString(ft) << ": " <<  getFloodFillValue(getSeat(), ft) << " \n"; 
+    if ( getSeat()!=nullptr )
+        for(FloodFillType ft = static_cast<FloodFillType>(0) ; ft < FloodFillType::nbValues   ; ft = static_cast<FloodFillType>((size_t)ft + 1))
+            tempSS << toString(ft) << ": " <<  getFloodFillValue(getSeat(), ft) << " \n"; 
     return tempSS.str();
 
 }
