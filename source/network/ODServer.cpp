@@ -1490,7 +1490,7 @@ bool ODServer::processClientNotifications(ODSocketClient* clientSocket)
             OD_ASSERT_TRUE(packetReceived >> xx >> yy >> refreshEachTurn);
             std::vector<std::pair<int,int>>& tiles = mTilesInfoWanted[clientSocket];
 
-            std::vector<std::pair<int,int>>::iterator it = std::find(tiles.begin(), tiles.end(), std::pair(xx,yy));
+            std::vector<std::pair<int,int>>::iterator it = std::find(tiles.begin(), tiles.end(), std::pair<int,int>(xx,yy));
             if(refreshEachTurn && (it == tiles.end()))
             {
                 tiles.push_back(std::pair<int,int>(xx,yy));
