@@ -66,6 +66,7 @@ enum class ServerNotificationType
     refreshPlayerSeat,
     setEntityOpacity,
     notifyCreatureInfo,
+    notifyTileInfo,
     refreshCreatureVisDebug,
 
     refreshSeatVisDebug,

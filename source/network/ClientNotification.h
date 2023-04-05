@@ -44,6 +44,7 @@ enum class ClientNotificationType
     askSellTrapTiles,
     ackNewTurn,
     askCreatureInfos,
+    askTileInfos,
     askPickupWorker,
     askPickupFighter,
     askSlapEntity,

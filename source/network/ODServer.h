@@ -117,6 +117,8 @@ private:
 
     std::map<ODSocketClient*, std::vector<std::string>> mCreaturesInfoWanted;
 
+    std::map<ODSocketClient*, std::vector<std::pair<int,int>>> mTilesInfoWanted;    
+
     ConsoleInterface mConsoleInterface;
 
     std::string mMasterServerGameId;

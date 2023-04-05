@@ -25,7 +25,9 @@
 #include "game/Player.h"
 #include "game/Seat.h"
 #include "gamemap/GameMap.h"
+#include "network/ODClient.h"
 #include "network/ODPacket.h"
+#include "network/ClientNotification.h"
 #include "render/RenderManager.h"
 #include "rooms/Room.h"
 #include "rooms/RoomType.h"
@@ -34,6 +36,11 @@
 #include "utils/ConfigManager.h"
 #include "utils/Helper.h"
 #include "utils/LogManager.h"
+
+#include <CEGUI/widgets/FrameWindow.h>
+#include <CEGUI/System.h>
+#include <CEGUI/WindowManager.h>
+#include <CEGUI/Window.h>
 
 #include <cstddef>
 #include <bitset>
@@ -69,7 +76,8 @@ Tile::Tile(GameMap* gameMap, int x, int y, TileType type, double fullness) :
     mHasBridge          (false),
     mLocalPlayerHasVision   (false),
     mTileCulling        (CullingType::HIDE),
-    mNbWorkersClaiming(0)
+    mNbWorkersClaiming(0),
+    mStatsWindow             (nullptr)
 {
     computeTileVisual();
 }
@@ -548,7 +556,24 @@ bool Tile::checkTileName(const std::string& tileName, int& x, int& y)
 
 std::string Tile::toString(FloodFillType type)
 {
-    return Helper::toString(static_cast<uint32_t>(type));
+    switch (type)
+    {
+        case FloodFillType::ground:
+            return "ground";
+
+        case FloodFillType::groundWater:
+            return "groundWater";
+
+        case FloodFillType::groundLava:
+            return "groundLava";
+
+        case FloodFillType::groundWaterLava:
+            return "groundWaterLava";
+
+
+        default:
+            return "Unknown FloodFillType type=" + Helper::toString(static_cast<uint32_t>(type));
+    }
 }
 
 bool Tile::isFloodFillFilled(Seat* seat) const
@@ -2251,4 +2276,90 @@ std::string Tile::displayAsString(const Tile* tile)
 
     return "[" + Helper::toString(tile->getX()) + ","
          + Helper::toString(tile->getY())+ "]";
+}
+
+
+bool Tile::CloseStatsWindow(const CEGUI::EventArgs& /*e*/)
+{
+    destroyStatsWindow();
+    return true;
+}
+
+void Tile::createStatsWindow()
+{
+    if (mStatsWindow != nullptr)
+        return;
+
+    ClientNotification *clientNotification = new ClientNotification(
+        ClientNotificationType::askTileInfos);
+    clientNotification->mPacket << getX() << getY() << true;
+    ODClient::getSingleton().queueClientNotification(clientNotification);
+
+    CEGUI::WindowManager* wmgr = CEGUI::WindowManager::getSingletonPtr();
+    CEGUI::Window* rootWindow = CEGUI::System::getSingleton().getDefaultGUIContext().getRootWindow();
+
+    mStatsWindow = wmgr->createWindow("OD/FrameWindow", std::string("CreatureStatsWindows_") + getName());
+    mStatsWindow->setPosition(CEGUI::UVector2(CEGUI::UDim(0.3, 0), CEGUI::UDim(0.3, 0)));
+    mStatsWindow->setSize(CEGUI::USize(CEGUI::UDim(0, 380), CEGUI::UDim(0, 400)));
+
+    CEGUI::Window* textWindow = wmgr->createWindow("OD/StaticText", "TextDisplay");
+    textWindow->setPosition(CEGUI::UVector2(CEGUI::UDim(0.05, 0), CEGUI::UDim(0.1, 0)));
+    textWindow->setSize(CEGUI::USize(CEGUI::UDim(0.9, 0), CEGUI::UDim(0.85, 0)));
+    textWindow->setProperty("FrameEnabled", "False");
+    textWindow->setProperty("BackgroundEnabled", "False");
+
+    // We want to close the window when the cross is clicked
+    mStatsWindow->subscribeEvent(CEGUI::FrameWindow::EventCloseClicked,
+        CEGUI::Event::Subscriber(&Tile::CloseStatsWindow, this));
+
+    // Set the window title
+    mStatsWindow->setText(getName() + " ( TILE INFO )");
+
+    mStatsWindow->addChild(textWindow);
+    rootWindow->addChild(mStatsWindow);
+    mStatsWindow->show();
+
+    updateStatsWindow("Loading...");
+}
+
+void Tile::destroyStatsWindow()
+{
+    if (mStatsWindow != nullptr)
+    {
+        ClientNotification *clientNotification = new ClientNotification(
+            ClientNotificationType::askTileInfos);
+        clientNotification->mPacket << getX() << getY() << false;
+        ODClient::getSingleton().queueClientNotification(clientNotification);
+
+        mStatsWindow->destroy();
+        mStatsWindow = nullptr;
+    }
+}
+
+void Tile::updateStatsWindow(const std::string& txt)
+{
+    if (mStatsWindow == nullptr)
+        return;
+
+    CEGUI::Window* textWindow = mStatsWindow->getChild("TextDisplay");
+    textWindow->setText(txt);
+}
+
+std::string Tile::getStatsText()
+{
+    // The creatures are not refreshed at each turn so this information is relevant in the server
+    // GameMap only
+    const std::string formatTitleOn = "[font='MedievalSharp-12'][colour='CCBBBBFF']";
+    const std::string formatTitleOff = "[font='MedievalSharp-10'][colour='FFFFFFFF']";
+
+    std::stringstream tempSS;
+    tempSS << "PosX: " << getX() << " PosY: " << getY() << std::endl; 
+    tempSS << "Type : " << tileTypeToString(getType()) << std::endl;
+    tempSS << "TileVisual : " << tileVisualToString(getTileVisual()) << std::endl;
+    tempSS << "Fulness : " << getFullness() << std::endl;
+    tempSS << "SeatID : " << ((getSeat() == nullptr) ? " NULL " : Helper::toString(getSeat()->getId())) << std::endl;
+    for(FloodFillType ft = static_cast<FloodFillType>(0) ; ft < FloodFillType::nbValues   ; ft = static_cast<FloodFillType>((size_t)ft + 1))
+        tempSS << toString(ft) << ": " <<  getFloodFillValue(getSeat(), ft) << " \n"; 
+    return tempSS.str();
+
 }

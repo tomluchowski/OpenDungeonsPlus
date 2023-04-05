@@ -2239,7 +2239,7 @@ void GameMap::replaceFloodFill(Seat* seat, FloodFillType floodFillType, uint32_t
         for (int ii = 0; ii < getMapSizeX(); ++ii)
         {
             Tile* tile = getTile(ii,jj);
-            if(tile->getFloodFillValue(seat, floodFillType) != colorOld)
+            if(tile->getFloodFillValue(seat, floodFillType) == colorOld)
                 tile->replaceFloodFill(seat, floodFillType, colorNew);
         }
     }

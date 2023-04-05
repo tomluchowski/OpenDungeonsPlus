@@ -367,6 +367,22 @@ void ODServer::startNewTurn(double timeSinceLastTurn)
                 ++itCreatures;
             }
         }
+        std::vector<std::pair<int,int>>& tiles = mTilesInfoWanted[sock];        
+        for(std::pair<int,int>& tile_pair : tiles)
+        {
+            Tile *tile = gameMap->getTile(tile_pair.first, tile_pair.second);
+            if( tile !=nullptr)
+            {
+                std::string tileInfos = tile->getStatsText();
+                
+                ServerNotification *serverNotification = new ServerNotification(
+                    ServerNotificationType::notifyTileInfo, player);
+                serverNotification->mPacket << tile_pair.first <<  tile_pair.second << tileInfos;
+                ODServer::getSingleton().queueServerNotification(serverNotification);                
+
+
+            }
+        }
     }
 
     gameMap->updateVisibleEntities();
@@ -1466,6 +1482,26 @@ bool ODServer::processClientNotifications(ODSocketClient* clientSocket)
             break;
         }
 
+        case ClientNotificationType::askTileInfos:
+        {
+            int xx;
+            int yy;
+            bool refreshEachTurn;
+            OD_ASSERT_TRUE(packetReceived >> xx >> yy >> refreshEachTurn);
+            std::vector<std::pair<int,int>>& tiles = mTilesInfoWanted[clientSocket];
+
+            std::vector<std::pair<int,int>>::iterator it = std::find(tiles.begin(), tiles.end(), std::pair(xx,yy));
+            if(refreshEachTurn && (it == tiles.end()))
+            {
+                tiles.push_back(std::pair<int,int>(xx,yy));
+            }
+            else if(!refreshEachTurn && (it != tiles.end()))
+                tiles.erase(it);
+
+            break;
+        }
+
+        
         case ClientNotificationType::askSaveMap:
         {
             Player* player = clientSocket->getPlayer();

@@ -22,7 +22,9 @@
 
 #include "entities/GameEntity.h"
 
+#include <CEGUI/EventArgs.h>
 #include <Ogre.h>
+
 
 #include <string>
 #include <vector>
@@ -126,6 +128,7 @@ enum class FloodFillType
     groundWaterLava,
     nbValues
 };
+
 
 /*! \brief Tile for listening for tile state events (like claiming or entity added/removed)
  */
@@ -496,6 +499,12 @@ public:
     bool addTileStateListener(TileStateListener& listener);
     bool removeTileStateListener(TileStateListener& listener);
 
+    void createStatsWindow() override;
+    void destroyStatsWindow();
+    bool CloseStatsWindow(const CEGUI::EventArgs& /*e*/);
+    void updateStatsWindow(const std::string& txt);
+    std::string getStatsText();
+    
 protected:
     virtual void exportHeadersToStream(std::ostream& os) const override
     {}
@@ -587,6 +596,8 @@ private:
     std::vector<TileStateListener*> mStateListeners;
 
     void fireTileStateChanged();
+
+    CEGUI::Window*  mStatsWindow;
 };
 
 #endif // TILE_H

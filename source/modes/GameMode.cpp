@@ -602,9 +602,11 @@ bool GameMode::mousePressed(const OIS::MouseEvent& arg, OIS::MouseButtonID id)
         }
 
         if(closestEntity == nullptr)
-            return true;
-
-        closestEntity->createStatsWindow();
+        {
+            tileClicked->createStatsWindow();
+        }
+        else
+            closestEntity->createStatsWindow();
         return true;
     }
 

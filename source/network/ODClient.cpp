@@ -777,6 +777,23 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
             break;
         }
 
+
+        case ServerNotificationType::notifyTileInfo:
+        {
+            int xx, yy;
+            std::string infos;
+            OD_ASSERT_TRUE(packetReceived >> xx >> yy >> infos);
+            Tile* tile = gameMap->getTile(xx,yy);
+            if(tile == nullptr)
+            {
+                OD_LOG_ERR("name=" + Helper::toString(xx) + " " + Helper::toString(yy));
+                break;
+            }
+
+            tile->updateStatsWindow(infos);
+            break;
+       } 
+        
         case ServerNotificationType::refreshCreatureVisDebug:
         {
             std::string name;

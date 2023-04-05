@@ -65,6 +65,8 @@ std::string ClientNotification::typeString(ClientNotificationType type)
             return "ackNewTurn";
         case ClientNotificationType::askCreatureInfos:
             return "askCreatureInfos";
+        case ClientNotificationType::askTileInfos:
+            return "askTileInfos";            
         case ClientNotificationType::askPickupWorker:
             return "askPickupWorker";
         case ClientNotificationType::askPickupFighter:

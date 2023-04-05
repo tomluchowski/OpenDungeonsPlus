@@ -94,6 +94,8 @@ std::string ServerNotification::typeString(ServerNotificationType type)
             return "playRelativeSound";
         case ServerNotificationType::notifyCreatureInfo:
             return "notifyCreatureInfo";
+        case ServerNotificationType::notifyTileInfo:
+            return "notifyTileInfo";            
         case ServerNotificationType::refreshCreatureVisDebug:
             return "refreshCreatureVisDebug";
         case ServerNotificationType::refreshSeatVisDebug:
