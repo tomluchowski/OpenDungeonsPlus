@@ -156,6 +156,7 @@ class GameMode final : public GameEditorModeBase, public InputCommand
     bool hideOptionsWindow(const CEGUI::EventArgs& = {});
     bool toggleOptionsWindow(const CEGUI::EventArgs& = {});
 
+    void toggleAllowTileDebugWindow(){ showTileDebugWindow = !showTileDebugWindow ;};
     //! \brief Refreshes the player current goals.
     void refreshPlayerGoals(const std::string& goalsDisplayString);
 
@@ -251,8 +252,13 @@ private:
     bool isMouseDownOnCEGUIWindow();
     bool isMouseWheelOnCEGUIWindow();
 
-     //! \brief Whether the keyboard keys moving camera are pressed down
+    //! \brief Whether the keyboard keys moving camera are pressed down
     bool directionKeyPressed;
+
+
+    //! \brief whether to allow showing the window with debug Tile info under middlemouse button click
+    bool showTileDebugWindow;
+    
     const ConfigManager &config;
     
     //! \brief Called when there is a mouse input change

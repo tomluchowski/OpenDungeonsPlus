@@ -7,6 +7,8 @@
 #include "goals/Goal.h"
 #include "modes/ConsoleInterface.h"
 #include "modes/InputManager.h"
+#include "modes/ModeManager.h"
+#include "modes/GameMode.h"
 #include "network/ClientNotification.h"
 #include "network/ODClient.h"
 #include "network/ODServer.h"
@@ -52,6 +54,7 @@ const std::string HELPMESSAGE =
         "\n\tnearclip - Sets the near clipping distance."
         "\n\tfarclip - Sets the far clipping distance."
         "\n\tcreaturevisdebug - Turns on visual debugging for a given creature."
+    
         "\n\tseatvisdebug - Turns on visual debugging for a given seat."
         "\n\tsetcreaturedest - Sets the creature destination/"
         "\n\tlistmeshanims - Lists all the animations for the given mesh."
@@ -811,6 +814,18 @@ void addConsoleCommands(ConsoleInterface& cl)
                    cSrvCreatureVisDebug,
                    {AbstractModeManager::ModeType::GAME, AbstractModeManager::ModeType::EDITOR},
                    {"creaturevisdebug"});
+
+    cl.addCommand("tilevisualdebug",
+                  "Enables middle clicking a tile and obtaining info for it",
+
+                   [](const Command::ArgumentList_t&, ConsoleInterface& c, AbstractModeManager&) {
+                       GameMode* gm = static_cast<GameMode*>(ODFrameListener::getSingletonPtr()->getModeManager()->getCurrentMode());
+                       gm->toggleAllowTileDebugWindow();
+                       return Command::Result::SUCCESS;
+                   },
+                   Command::cStubServer,
+                   {AbstractModeManager::ModeType::GAME});
+    
     cl.addCommand("seatvisualdebug",
                    "Visual debugging is a way to see all the tiles a given seat can see.\n\nExample:\n"
                    "seatvisualdebug 1\n\nThe above command will show every tiles seat 1 can see.  The same command will turn it off.",

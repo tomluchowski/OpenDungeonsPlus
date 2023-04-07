@@ -80,6 +80,7 @@ GameMode::GameMode(ModeManager *modeManager):
     mCurrentSkillProgress(0.0),
     mPreviousMousePosition(MouseMoveEvent{0, 0}),
     directionKeyPressed(false),
+    showTileDebugWindow(false),
     config(ConfigManager::getSingleton())
 {
     // Set per default the input on the map
@@ -603,7 +604,8 @@ bool GameMode::mousePressed(const OIS::MouseEvent& arg, OIS::MouseButtonID id)
 
         if(closestEntity == nullptr)
         {
-            tileClicked->createStatsWindow();
+            if(showTileDebugWindow)
+                tileClicked->createStatsWindow();
         }
         else
             closestEntity->createStatsWindow();
