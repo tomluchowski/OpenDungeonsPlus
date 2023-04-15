@@ -1,6 +1,6 @@
-## OpenDungeons
+## OpenDungeonsPlus
 
-OpenDungeons is an open source, real time strategy game sharing game elements
+OpenDungeonsPlus is an open source, real time strategy game sharing game elements
 with the Dungeon Keeper series and Evil Genius. Players build an underground
 dungeon which is inhabited by creatures. Players fight each other for control
 of the underground by indirectly commanding their creatures, directly casting
@@ -33,16 +33,16 @@ so please get in touch!
 You will find us on the following channels:
 
 - Forum: http://forum.freegamedev.net/viewforum.php?f=15
-- GitHub: https://github.com/OpenDungeons/OpenDungeons
+- GitHub: https://github.com/tomluchowski/OpenDungeonsPlus
 - IRC: #opendungeons channel on Freenode
 
 ### Build instructions
 
-If you retrieve the source code of OpenDungeons and want to have a go at
+If you retrieve the source code of OpenDungeonsPlus and want to have a go at
 building it yourself, have a look at platform-specific build instructions
 on our wiki: https://github.com/OpenDungeons/OpenDungeons/wiki/Compile
 
-In a few words, to build OpenDungeons, you need the following libraries:
+In a few words, to build OpenDungeonsPlus, you need the following libraries:
 
 - OGRE SDK (1.9.x)
 - Boost (same version that OGRE was linked against)
@@ -91,7 +91,7 @@ AUTHORS          - List of past and current contributors
 CREDITS          - Detailed listing of licenses and credits for our assets
 LICENSE.md       - General information about the code and assets licenses
 README.md        - The file you are currently reading
-RELEASE-NOTES.md - What's new in OpenDungeons
+RELEASE-NOTES.md - What's new in OpenDungeonsPlus
 ```
 
 **Code files**
