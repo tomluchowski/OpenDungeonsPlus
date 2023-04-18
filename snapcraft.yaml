@@ -24,7 +24,7 @@ parts:
         plugin: make
     ogre:
         plugin: cmake
-        configflags:
+        cmake-parameters:
             - -DCMAKE_BUILD_TYPE=Release
             - -DOGRE_CONFIG_THREAD_PROVIDER=std
             - -DOGRE_CONFIG_THREADS=3
@@ -77,7 +77,7 @@ parts:
             - libxrender1
     cegui:
         plugin: cmake
-        configflags:
+        cmake-parameters:
             - -DCMAKE_BUILD_TYPE=Release
             - -DCMAKE_INSTALL_PREFIX=/usr/
             - -DCMAKE_CXX_FLAGS=-std=c++11
@@ -118,7 +118,7 @@ parts:
         override-pull: |
             snapcraftctl pull
             sed -i -e 's|if(CMAKE_INSTALL_PREFIX|if(""|g' CMakeLists.txt
-        configflags:
+        cmake-parameters:
             - -DCMAKE_BUILD_TYPE=Release
             - -DCMAKE_INSTALL_PREFIX=/usr/
             - -DOD_TREAT_WARNINGS_AS_ERRORS=OFF
