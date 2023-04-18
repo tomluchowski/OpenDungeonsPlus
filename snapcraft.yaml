@@ -82,8 +82,10 @@ parts:
             - -DCMAKE_INSTALL_PREFIX=/usr/
             - -DCMAKE_CXX_FLAGS=-std=c++11
             - -DCEGUI_BUILD_RENDERER_OPENGL=FALSE
+            - -DCEGUI_BUILD_RENDERER_OPENGLES=FALSE
             - -DCEGUI_BUILD_RENDERER_OPENGL3=FALSE
             - -DCEGUI_BUILD_IMAGECODEC_FREEIMAGE=FALSE # we use ogre
+            - -DCEGUI_OPTION_DEFAULT_IMAGECODEC=OgreRenderer-0
             - -DCEGUI_SAMPLES_ENABLED=FALSE
         source: https://github.com/tomluchowski/cegui.git
         source-depth: 1
@@ -122,13 +124,7 @@ parts:
             - -DCMAKE_BUILD_TYPE=Release
             - -DCMAKE_INSTALL_PREFIX=/usr/
             - -DOD_TREAT_WARNINGS_AS_ERRORS=OFF
-            - -DCMAKE_CXX_FLAGS=-std=c++11
-            - -DCEGUI_BUILD_RENDERER_OPENGL=FALSE
-            - -DCEGUI_BUILD_RENDERER_OPENGLES=FALSE
-            - -DCEGUI_BUILD_RENDERER_OPENGL3=FALSE
-            - -DCEGUI_BUILD_IMAGECODEC_FREEIMAGE=FALSE # we use ogre
-            - -DCEGUI_OPTION_DEFAULT_IMAGECODEC=OgreRenderer-0
-            - -DCEGUI_SAMPLES_ENABLED=FALSE
+            
         override-build: |
             snapcraftctl build
             sed -i -e 's|/.*/stage||g' $SNAPCRAFT_PART_INSTALL/etc/opendungeons-plus/plugins.cfg # drop stage prefix
