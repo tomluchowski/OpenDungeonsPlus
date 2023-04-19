@@ -137,10 +137,10 @@ parts:
             - libboost-filesystem-dev
             - libboost-program-options-dev
         stage-packages:
-            - libsfml-window2.4
-            - libsfml-audio2.4
-            - libsfml-system2.4
-            - libsfml-network2.4
+            - libsfml-window2.5
+            - libsfml-audio2.5
+            - libsfml-system2.5
+            - libsfml-network2.5
             - libboost-thread1.71.0
             - libboost-program-options1.71.0
             - libboost-filesystem1.71.0
