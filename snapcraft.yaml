@@ -92,7 +92,7 @@ parts:
         build-packages:
             - librapidxml-dev
         build-environment:
-            - CMAKE_PREFIX_PATH: $CMAKE_PREFIX_PATH:$SNAPCRAFT_STAGE/usr/lib            
+            - CMAKE_PREFIX_PATH: $CMAKE_PREFIX_PATH:$SNAPCRAFT_STAGE/usr/            
         override-pull: |
             snapcraftctl pull
             sed -i -e 's|target_compile_features|\#target_compile_features|g' cegui/src/RendererModules/Ogre/CMakeLists.txt
@@ -118,6 +118,8 @@ parts:
         source: https://github.com/tomluchowski/OpenDungeonsPlus.git
         source-tag: shaders-improvement
         source-depth: 1
+        build-environment:
+            - CMAKE_PREFIX_PATH: $CMAKE_PREFIX_PATH:$SNAPCRAFT_STAGE/usr
         override-pull: |
             snapcraftctl pull
             sed -i -e 's|if(CMAKE_INSTALL_PREFIX|if(""|g' CMakeLists.txt
