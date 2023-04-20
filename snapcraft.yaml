@@ -7,7 +7,7 @@ description: Open source game inspired by Dungeon Keeper - Dark, damp and danger
 
 apps:
     opendungeons-plus:
-        command: desktop-launch $SNAP/usr/games/opendungeons-plus
+        command: bin/desktop-launch $SNAP/usr/games/opendungeons-plus
         environment:
             CEGUI_MODULE_DIR: $SNAP/usr/lib/cegui-0.9999
         plugs: [opengl, x11, pulseaudio, network, network-bind]
