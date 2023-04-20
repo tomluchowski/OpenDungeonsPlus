@@ -2,7 +2,7 @@ name: opendungeons-plus
 version: 0.8.0+new-editorimproved-shaders
 confinement: strict
 summary: OpenDungeons
-base: core20
+base: core22
 description: Open source game inspired by Dungeon Keeper - Dark, damp and dangerous.
 
 apps:
