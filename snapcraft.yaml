@@ -91,6 +91,8 @@ parts:
         source-tag: v0
         build-packages:
             - librapidxml-dev
+        build-environment:
+            - CMAKE_PREFIX_PATH: $CMAKE_PREFIX_PATH:$SNAPCRAFT_STAGE/usr            
         override-pull: |
             snapcraftctl pull
             sed -i -e 's|target_compile_features|\#target_compile_features|g' cegui/src/RendererModules/Ogre/CMakeLists.txt
