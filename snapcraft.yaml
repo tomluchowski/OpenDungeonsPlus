@@ -149,5 +149,6 @@ parts:
             - libboost-filesystem1.71.0
             - libboost-system1.71.0
             - libboost-locale1.71.0
+            - libbost-chrono1.71.0
             - libpulse0
         after: [ogre, cegui, desktop-glib-only,libois]
