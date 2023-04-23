@@ -514,6 +514,7 @@ ENDIF ()
 
 find_package(Threads REQUIRED)
 find_package(OIS REQUIRED)
+find_package(pybind11 REQUIRED)
 find_package(OGRE)
 if(NOT ${OGRE_FOUND})
     find_package(OldOGRE REQUIRED)
@@ -647,7 +648,10 @@ target_link_libraries(
     ${CEGUI_LIBRARIES}
     ${CEGUI_OgreRenderer_LIBRARIES}
     ${EXTRA_LIBRARIES}
+
 )
+
+target_link_libraries(opendungeons-plus PRIVATE pybind11::embed)
 
 # Set linker options in MSVC
 if(WIN32 AND MSVC)
