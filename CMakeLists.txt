@@ -514,6 +514,7 @@ ENDIF ()
 
 find_package(Threads REQUIRED)
 find_package(OIS REQUIRED)
+find_package(PythonLibs REQUIRED)
 find_package(pybind11 REQUIRED)
 find_package(OGRE)
 if(NOT ${OGRE_FOUND})
@@ -630,6 +631,9 @@ endif()
 
 # Create the binary file (WIN32 makes sure there is no console window on windows.)
 add_executable(${PROJECT_BINARY_NAME} WIN32 ${OD_SOURCEFILES})
+
+#add_library(python PRIVATE Python::Development)
+
 
 ##################################
 #### Link libraries ##############

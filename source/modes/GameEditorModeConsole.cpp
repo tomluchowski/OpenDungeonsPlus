@@ -29,12 +29,41 @@
 #include <CEGUI/widgets/PushButton.h>
 #include <CEGUI/widgets/Scrollbar.h>
 
+
+
+#include <pybind11/embed.h>
 #include <functional>
 #include <cassert>
 
+PYBIND11_EMBEDDED_MODULE(my_sys, m) {
+    struct my_stdout {
+        my_stdout() = default;
+        my_stdout(const my_stdout &) = default;
+        my_stdout(my_stdout &&) = default;
+    };
+
+    pybind11::class_<my_stdout> my_stdout(m, "my_stdout");
+    my_stdout.def_static("write", [](pybind11::object buffer) {
+        GameEditorModeConsole::getSingleton().printToConsole( buffer.cast<std::string>());
+    });
+    my_stdout.def_static("flush", []() {
+        GameEditorModeConsole::getSingleton().printToConsole( "\n" );
+    });
+
+    m.def("hook_stdout", []() {
+        auto py_sys = pybind11::module::import("sys");
+        auto my_sys = pybind11::module::import("my_sys");
+        py_sys.attr("stdout") = my_sys.attr("my_stdout");
+    });
+}
+
+template<> GameEditorModeConsole* Ogre::Singleton<GameEditorModeConsole>::msSingleton = nullptr;
+
 GameEditorModeConsole::GameEditorModeConsole(ModeManager* modeManager):
+    guard{},
     mConsoleInterface(std::bind(&GameEditorModeConsole::printToConsole, this, std::placeholders::_1)),
     mModeManager(modeManager)
+
 {
     ConsoleCommands::addConsoleCommands(mConsoleInterface);
 
@@ -140,29 +169,37 @@ void GameEditorModeConsole::printToConsole(const std::string& text)
 
 bool GameEditorModeConsole::executeCurrentPrompt(const CEGUI::EventArgs& e)
 {
-    mConsoleInterface.tryExecuteClientCommand(mEditboxWindow->getText().c_str(),
-                                        mModeManager->getCurrentModeType(),
-                                        *mModeManager);
+    // mConsoleInterface.tryExecuteClientCommand(mEditboxWindow->getText().c_str(),
+    //                                     mModeManager->getCurrentModeType(),
+    //                                     *mModeManager);
+    // });
+    pybind11::module::import("my_sys").attr("hook_stdout")();
+    // pybind11::print("Hello World!");
+    pybind11::object scope = pybind11::module_::import("__main__").attr("__dict__");
+    pybind11::exec(mEditboxWindow->getText().c_str(),scope);
+
+    
     mEditboxWindow->setText("");
     return true;
 }
 
+
 bool GameEditorModeConsole::characterEntered(const CEGUI::EventArgs& e)
 {
     // We only accept alphanumeric chars + space
-    const CEGUI::KeyEventArgs& kea = static_cast<const CEGUI::KeyEventArgs&>(e);
-    if((kea.codepoint >= 'a') && (kea.codepoint <= 'z'))
-        return false;
-    if((kea.codepoint >= 'A') && (kea.codepoint <= 'Z'))
-        return false;
-    if((kea.codepoint >= '0') && (kea.codepoint <= '9'))
-        return false;
-    if(kea.codepoint == ' ')
-        return false;
-    if(kea.codepoint == '.')
-        return false;
+    // const CEGUI::KeyEventArgs& kea = static_cast<const CEGUI::KeyEventArgs&>(e);
+    // if((kea.codepoint >= 'a') && (kea.codepoint <= 'z'))
+    //     return false;
+    // if((kea.codepoint >= 'A') && (kea.codepoint <= 'Z'))
+    //     return false;
+    // if((kea.codepoint >= '0') && (kea.codepoint <= '9'))
+    //     return false;
+    // if(kea.codepoint == ' ')
+    //     return false;
+    // if(kea.codepoint == '.')
+    //     return false;
     
-    return true;
+    return false;
 }
 
 bool GameEditorModeConsole::leaveConsole(const CEGUI::EventArgs& /*e*/)

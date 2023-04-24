@@ -22,6 +22,10 @@
 
 #include "ConsoleInterface.h"
 
+#include <OgreSingleton.h>
+
+#include <pybind11/embed.h>
+
 #include <string>
 
 namespace CEGUI
@@ -33,7 +37,10 @@ class Listbox;
 class Editbox;
 }
 
-class GameEditorModeConsole
+
+
+
+class GameEditorModeConsole : public Ogre::Singleton<GameEditorModeConsole>
 {
 public:
 
@@ -47,8 +54,11 @@ public:
     //! Used to call the corresponding Gui Sheet.
     void activate();
 
-private:
     void printToConsole(const std::string& text);
+        
+    pybind11::scoped_interpreter guard;
+private:
+
     bool executeCurrentPrompt(const CEGUI::EventArgs& e = {});
     bool characterEntered(const CEGUI::EventArgs& e = {});
 
