@@ -140,7 +140,7 @@ parts:
             - libboost-filesystem-dev
             - libboost-program-options-dev
         stage-packages:
-        	- libpybind11-dev
+        	- pybind11-dev
             - libsfml-window2.5
             - libsfml-audio2.5
             - libsfml-system2.5
