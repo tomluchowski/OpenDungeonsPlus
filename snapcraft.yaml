@@ -151,4 +151,5 @@ parts:
             - libboost-locale1.71.0
             - libboost-chrono1.71.0
             - libpulse0
+            - python3
         after: [ogre, cegui, desktop-glib-only,libois]
