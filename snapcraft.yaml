@@ -113,7 +113,6 @@ parts:
             - libstdc++6
             - libx11-6
         after: [cegui]
-    pybind11:
    	           
     opendungeons-plus:
         plugin: cmake
