@@ -112,7 +112,9 @@ parts:
             - libc6
             - libstdc++6
             - libx11-6
-        after: [cegui]        
+        after: [cegui]
+    pybind11:
+   	           
     opendungeons-plus:
         plugin: cmake
         source: https://github.com/tomluchowski/OpenDungeonsPlus.git
@@ -140,6 +142,7 @@ parts:
             - libboost-filesystem-dev
             - libboost-program-options-dev
         stage-packages:
+        	- pybind11-dev
             - libsfml-window2.5
             - libsfml-audio2.5
             - libsfml-system2.5
@@ -151,4 +154,4 @@ parts:
             - libboost-locale1.71.0
             - libboost-chrono1.71.0
             - libpulse0
-        after: [ogre, cegui, desktop-glib-only,libois]
+        after: [ogre, cegui, desktop-glib-only,libois,pybind11]
