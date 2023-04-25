@@ -587,6 +587,7 @@ include_directories(
     SYSTEM ${SFML_INCLUDE_DIR}
     SYSTEM ${OGRE_INCLUDE_DIRS}
     SYSTEM ${OIS_INCLUDE_DIRS}
+	SYSTEM ${PYTHON_INCLUDE_DIRS}
 )
 
 if(WIN32)
@@ -632,7 +633,7 @@ endif()
 # Create the binary file (WIN32 makes sure there is no console window on windows.)
 add_executable(${PROJECT_BINARY_NAME} WIN32 ${OD_SOURCEFILES})
 
-#add_library(python PRIVATE Python::Development)
+#target_link_libraries(opendungeons-plus PRIVATE Python::Development)
 
 
 ##################################
