@@ -140,7 +140,7 @@ parts:
             - libboost-filesystem-dev
             - libboost-program-options-dev
             - libpython3.9-dev
-            - pybind11-dev
+            #- pybind11-dev
         stage-packages:
             - libsfml-window2.5
             - libsfml-audio2.5
@@ -153,5 +153,5 @@ parts:
             - libboost-locale1.71.0
             - libboost-chrono1.71.0
             - libpulse0
-            - python3
+            #- python3
         after: [ogre, cegui, desktop-glib-only,libois]
