@@ -155,4 +155,5 @@ parts:
             - libpulse0
             - python3
             - python3-distutils
+            - python3-distutils-extra
         after: [ogre, cegui, desktop-glib-only,libois]
