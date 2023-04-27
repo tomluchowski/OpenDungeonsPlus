@@ -175,7 +175,7 @@ bool GameEditorModeConsole::executeCurrentPrompt(const CEGUI::EventArgs& e)
     // });
     pybind11::module::import("my_sys").attr("hook_stdout")();
     // pybind11::print("Hello World!");
-    pybind11::object scope = pybind11::module_::import("__main__").attr("__dict__");
+    pybind11::object scope = pybind11::module::import("__main__").attr("__dict__");
     pybind11::exec(mEditboxWindow->getText().c_str(),scope);
 
     
