@@ -139,10 +139,10 @@ parts:
             - libboost-locale-dev
             - libboost-filesystem-dev
             - libboost-program-options-dev
-            - libpython3.9-dev
-            - pybind11-dev
+            - libpython3.8-dev
             - python3-distutils
-            - python3-distutils-extra
+            - python3-distutils-extra            
+            - pybind11-dev
         stage-packages:
             - libsfml-window2.5
             - libsfml-audio2.5
