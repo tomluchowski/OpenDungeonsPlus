@@ -141,6 +141,8 @@ parts:
             - libboost-program-options-dev
             - libpython3.9-dev
             - pybind11-dev
+            - python3-distutils
+            - python3-distutils-extra
         stage-packages:
             - libsfml-window2.5
             - libsfml-audio2.5
@@ -154,6 +156,5 @@ parts:
             - libboost-chrono1.71.0
             - libpulse0
             - python3
-            - python3-distutils
-            - python3-distutils-extra
+
         after: [ogre, cegui, desktop-glib-only,libois]
