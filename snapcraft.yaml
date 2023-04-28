@@ -101,7 +101,7 @@ parts:
         plugin: cmake
         source: https://github.com/wgois/OIS.git
         source-depth: 1
-        source-tag: v1.5
+        source-tag: v1.5.1
         override-pull: |
             snapcraftctl pull
         build-packages:
