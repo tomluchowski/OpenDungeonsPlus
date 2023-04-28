@@ -12,11 +12,11 @@ apps:
             CEGUI_MODULE_DIR: $SNAP/usr/lib/cegui-0.9999
         plugs: [opengl, x11, pulseaudio, network, network-bind]
         desktop: usr/share/applications/opendungeons-plus.desktop
-        
+
 architectures:
   - build-on: amd64
-  - build-on: i386        
-  
+  - build-on: i386
+
 parts:
     desktop-glib-only:
         source: https://github.com/ubuntu/snapcraft-desktop-helpers.git
@@ -92,7 +92,7 @@ parts:
         build-packages:
             - librapidxml-dev
         build-environment:
-            - CMAKE_PREFIX_PATH: $CMAKE_PREFIX_PATH:$SNAPCRAFT_STAGE/usr/            
+            - CMAKE_PREFIX_PATH: $CMAKE_PREFIX_PATH:$SNAPCRAFT_STAGE/usr/
         override-pull: |
             snapcraftctl pull
             sed -i -e 's|target_compile_features|\#target_compile_features|g' cegui/src/RendererModules/Ogre/CMakeLists.txt
@@ -101,9 +101,12 @@ parts:
         plugin: cmake
         source: https://github.com/wgois/OIS.git
         source-tag: v1.5.1
-        source-depth: 1        
+        source-depth: 1
         override-pull: |
             snapcraftctl pull
+        cmake-parameters:
+            - -DCMAKE_BUILD_TYPE=Release
+            - -DCMAKE_INSTALL_PREFIX=/usr/
         build-packages:
             - libc6
             - libstdc++6
@@ -112,7 +115,7 @@ parts:
             - libc6
             - libstdc++6
             - libx11-6
-        after: [cegui]        
+        after: [cegui]
     opendungeons-plus:
         plugin: cmake
         source: https://github.com/tomluchowski/OpenDungeonsPlus.git
@@ -127,7 +130,6 @@ parts:
             - -DCMAKE_BUILD_TYPE=Release
             - -DCMAKE_INSTALL_PREFIX=/usr/
             - -DOD_TREAT_WARNINGS_AS_ERRORS=OFF
-            
         override-build: |
             snapcraftctl build
             sed -i -e 's|/.*/stage||g' $SNAPCRAFT_PART_INSTALL/etc/opendungeons-plus/plugins.cfg # drop stage prefix
@@ -141,7 +143,7 @@ parts:
             - libboost-program-options-dev
             - libpython3.8-dev
             - python3-distutils
-            - python3-distutils-extra            
+            - python3-distutils-extra
             - pybind11-dev
         stage-packages:
             - libsfml-window2.5
@@ -155,6 +157,7 @@ parts:
             - libboost-locale1.71.0
             - libboost-chrono1.71.0
             - libpulse0
+            - python3
             - libpython3.8
 
         after: [ogre, cegui, desktop-glib-only,libois]
