@@ -100,8 +100,8 @@ parts:
     libois:
         plugin: cmake
         source: https://github.com/wgois/OIS.git
-        source-depth: 1
         source-tag: v1.5.1
+        source-depth: 1        
         override-pull: |
             snapcraftctl pull
         build-packages:
@@ -155,6 +155,6 @@ parts:
             - libboost-locale1.71.0
             - libboost-chrono1.71.0
             - libpulse0
-            - python3
+            - libpython3.8
 
         after: [ogre, cegui, desktop-glib-only,libois]
