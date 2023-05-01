@@ -57,6 +57,9 @@ PYBIND11_EMBEDDED_MODULE(cheats, m){
 
     m.def("icanseedeadpeople",  [](){GameEditorModeConsole::getSingleton().mConsoleInterface.tryExecuteClientCommand( "icanseedeadpeople ", GameEditorModeConsole::getSingletonPtr()->mModeManager->getCurrentModeType(), *(GameEditorModeConsole::getSingletonPtr()->mModeManager)); });
 
+    m.def("fps",  [](int time){GameEditorModeConsole::getSingleton().mConsoleInterface.tryExecuteClientCommand( "fps " + Helper::toString(time), GameEditorModeConsole::getSingletonPtr()->mModeManager->getCurrentModeType(), *(GameEditorModeConsole::getSingletonPtr()->mModeManager)); });
+
+    
     m.def("ambientlight",  [](float R, float G, float B){GameEditorModeConsole::getSingleton().mConsoleInterface.tryExecuteClientCommand( "ambientlight " + Helper::toString(R) + " " + Helper::toString(G) + " " + Helper::toString(B), GameEditorModeConsole::getSingletonPtr()->mModeManager->getCurrentModeType(), *(GameEditorModeConsole::getSingletonPtr()->mModeManager)); });    
 
     m.def("nearclip",  [](float distance){GameEditorModeConsole::getSingleton().mConsoleInterface.tryExecuteClientCommand( "nearclip " + Helper::toString(distance), GameEditorModeConsole::getSingletonPtr()->mModeManager->getCurrentModeType(), *(GameEditorModeConsole::getSingletonPtr()->mModeManager)); });
