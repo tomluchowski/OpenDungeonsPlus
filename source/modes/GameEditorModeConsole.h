@@ -57,17 +57,22 @@ public:
     void printToConsole(const std::string& text);
         
     pybind11::scoped_interpreter guard;
+    ModeManager* mModeManager;
+    CEGUI::Editbox* mEditboxWindow;
+    ConsoleInterface mConsoleInterface;
+    
 private:
 
     bool executeCurrentPrompt(const CEGUI::EventArgs& e = {});
     bool characterEntered(const CEGUI::EventArgs& e = {});
+    bool executePythonPrompt();
+    
 
-    ConsoleInterface mConsoleInterface;
 
     CEGUI::Listbox* mConsoleHistoryWindow;
-    CEGUI::Editbox* mEditboxWindow;
 
-    ModeManager* mModeManager;
+
+
 
     bool leaveConsole(const CEGUI::EventArgs& e = {});
 

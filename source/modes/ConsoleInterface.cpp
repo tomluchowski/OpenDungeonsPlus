@@ -21,6 +21,7 @@
 #include "network/ODClient.h"
 
 #include <regex>
+#include <pybind11/embed.h>
 
 ConsoleInterface::ConsoleInterface(PrintFunction_t printFunction)
     :mPrintFunction(printFunction), mCommandHistoryBuffer(), mHistoryPos(mCommandHistoryBuffer.begin())

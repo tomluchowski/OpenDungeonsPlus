@@ -32,8 +32,13 @@
 
 
 #include <pybind11/embed.h>
+
+#include <pybind11/pybind11.h>
+#include <pybind11/stl.h>
+#include <vector>
 #include <functional>
 #include <cassert>
+
 
 PYBIND11_EMBEDDED_MODULE(my_sys, m) {
     struct my_stdout {
@@ -42,6 +47,8 @@ PYBIND11_EMBEDDED_MODULE(my_sys, m) {
         my_stdout(my_stdout &&) = default;
     };
 
+
+    
     pybind11::class_<my_stdout> my_stdout(m, "my_stdout");
     my_stdout.def_static("write", [](pybind11::object buffer) {
         GameEditorModeConsole::getSingleton().printToConsole( buffer.cast<std::string>());
@@ -57,7 +64,25 @@ PYBIND11_EMBEDDED_MODULE(my_sys, m) {
     });
 }
 
-template<> GameEditorModeConsole* Ogre::Singleton<GameEditorModeConsole>::msSingleton = nullptr;
+// std::vector<double> modify(const std::vector<double>& input)
+// {
+//   std::vector<double> output(input.size());
+  
+//   for ( size_t i = 0 ; i < input.size() ; ++i )
+//     output[i] = 2. * input[i];
+
+//   return output;
+// }
+
+// PYBIND11_EMBEDDED_MODULE(example,m)
+// {
+//   m.doc() = "pybind11 example plugin";
+
+//   m.def("modify", &modify, "Multiply all entries of a list by 2.template");
+// }
+
+
+template<>GameEditorModeConsole* Ogre::Singleton<GameEditorModeConsole>::msSingleton = nullptr;
 
 GameEditorModeConsole::GameEditorModeConsole(ModeManager* modeManager):
     guard{},
@@ -93,6 +118,11 @@ GameEditorModeConsole::GameEditorModeConsole(ModeManager* modeManager):
         consoleRootWindow->subscribeEvent(CEGUI::FrameWindow::EventCloseClicked,
                                     CEGUI::Event::Subscriber(&GameEditorModeConsole::leaveConsole, this))
     );
+    pybind11::module::import("my_sys").attr("hook_stdout")();
+    pybind11::object scope = pybind11::module::import("__main__").attr("__dict__");
+    
+    pybind11::exec("import cheats");
+
 }
 
 GameEditorModeConsole::~GameEditorModeConsole()
@@ -150,7 +180,7 @@ bool GameEditorModeConsole::keyPressed(const OIS::KeyEvent &arg)
         }
         case OIS::KC_RETURN:
         case OIS::KC_NUMPADENTER:
-            executeCurrentPrompt();
+            executePythonPrompt();
             break;
         default:
             break;
@@ -169,21 +199,25 @@ void GameEditorModeConsole::printToConsole(const std::string& text)
 
 bool GameEditorModeConsole::executeCurrentPrompt(const CEGUI::EventArgs& e)
 {
-    // mConsoleInterface.tryExecuteClientCommand(mEditboxWindow->getText().c_str(),
-    //                                     mModeManager->getCurrentModeType(),
-    //                                     *mModeManager);
-    // });
-    pybind11::module::import("my_sys").attr("hook_stdout")();
-    // pybind11::print("Hello World!");
-    pybind11::object scope = pybind11::module::import("__main__").attr("__dict__");
-    pybind11::exec(mEditboxWindow->getText().c_str(),scope);
-
-    
+    mConsoleInterface.tryExecuteClientCommand(mEditboxWindow->getText().c_str(),
+                                        mModeManager->getCurrentModeType(),
+                                        *mModeManager);
+        
     mEditboxWindow->setText("");
     return true;
 }
 
+bool GameEditorModeConsole::executePythonPrompt()
+{
 
+    pybind11::module::import("my_sys").attr("hook_stdout")();
+    pybind11::object scope = pybind11::module::import("__main__").attr("__dict__");
+    
+    pybind11::exec(mEditboxWindow->getText().c_str(),scope);
+    mEditboxWindow->setText("");
+    return true;
+
+}
 bool GameEditorModeConsole::characterEntered(const CEGUI::EventArgs& e)
 {
     // We only accept alphanumeric chars + space

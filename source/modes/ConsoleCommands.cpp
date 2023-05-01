@@ -6,8 +6,10 @@
 #include "gamemap/GameMap.h"
 #include "goals/Goal.h"
 #include "modes/ConsoleInterface.h"
+#include "modes/GameEditorModeConsole.h"
 #include "modes/InputManager.h"
 #include "modes/ModeManager.h"
+#include "modes/AbstractModeManager.h"
 #include "modes/GameMode.h"
 #include "network/ClientNotification.h"
 #include "network/ODClient.h"
@@ -19,6 +21,8 @@
 #include "utils/Helper.h"
 #include "utils/LogManager.h"
 
+
+#include <CEGUI/widgets/Editbox.h>
 #include <OgreCamera.h>
 #include <OgreSceneManager.h>
 #include <OgreSceneNode.h>
@@ -26,7 +30,51 @@
 #include <OgreShadowCameraSetupLiSPSM.h>
 #include <boost/algorithm/string/join.hpp>
 
+#include <pybind11/embed.h>
 #include <functional>
+
+PYBIND11_EMBEDDED_MODULE(cheats, m){
+    m.def("unlockskills",  [](){ GameEditorModeConsole::getSingleton().mConsoleInterface.tryExecuteClientCommand( "unlockskills", GameEditorModeConsole::getSingletonPtr()->mModeManager->getCurrentModeType(),*(GameEditorModeConsole::getSingletonPtr()->mModeManager)); });
+
+
+    m.def("addgold",  [](int seat, int gold){GameEditorModeConsole::getSingleton().mConsoleInterface.tryExecuteClientCommand( "addgold " + Helper::toString(seat)+ " " +Helper::toString(gold), GameEditorModeConsole::getSingletonPtr()->mModeManager->getCurrentModeType(), *(GameEditorModeConsole::getSingletonPtr()->mModeManager)); });
+
+    m.def("addmana",  [](int seat, int mana){GameEditorModeConsole::getSingleton().mConsoleInterface.tryExecuteClientCommand( "addmana " + Helper::toString(seat)+ " " +Helper::toString(mana), GameEditorModeConsole::getSingletonPtr()->mModeManager->getCurrentModeType(), *(GameEditorModeConsole::getSingletonPtr()->mModeManager)); });
+
+    m.def("help",  [](){GameEditorModeConsole::getSingleton().mConsoleInterface.tryExecuteClientCommand( "help ", GameEditorModeConsole::getSingletonPtr()->mModeManager->getCurrentModeType(), *(GameEditorModeConsole::getSingletonPtr()->mModeManager)); });
+    
+    m.def("help",  [](std::string info){GameEditorModeConsole::getSingleton().mConsoleInterface.tryExecuteClientCommand( "help " + info, GameEditorModeConsole::getSingletonPtr()->mModeManager->getCurrentModeType(), *(GameEditorModeConsole::getSingletonPtr()->mModeManager)); });
+
+    m.def("list",  [](std::string subject){GameEditorModeConsole::getSingleton().mConsoleInterface.tryExecuteClientCommand( "list " + subject, GameEditorModeConsole::getSingletonPtr()->mModeManager->getCurrentModeType(), *(GameEditorModeConsole::getSingletonPtr()->mModeManager)); });
+
+    m.def("maxtime",  [](int time){GameEditorModeConsole::getSingleton().mConsoleInterface.tryExecuteClientCommand( "maxtime " + Helper::toString(time), GameEditorModeConsole::getSingletonPtr()->mModeManager->getCurrentModeType(), *(GameEditorModeConsole::getSingletonPtr()->mModeManager)); });
+    
+    m.def("termwidth",  [](int width){GameEditorModeConsole::getSingleton().mConsoleInterface.tryExecuteClientCommand( "termwidth " + Helper::toString(width), GameEditorModeConsole::getSingletonPtr()->mModeManager->getCurrentModeType(), *(GameEditorModeConsole::getSingletonPtr()->mModeManager)); });
+
+    m.def("addcreature",  [](std::string name){GameEditorModeConsole::getSingleton().mConsoleInterface.tryExecuteClientCommand( "addcreature " + name, GameEditorModeConsole::getSingletonPtr()->mModeManager->getCurrentModeType(), *(GameEditorModeConsole::getSingletonPtr()->mModeManager)); });    
+
+    m.def("setcreaturelevel",  [](std::string name){GameEditorModeConsole::getSingleton().mConsoleInterface.tryExecuteClientCommand( "setcreaturelevel " + name, GameEditorModeConsole::getSingletonPtr()->mModeManager->getCurrentModeType(), *(GameEditorModeConsole::getSingletonPtr()->mModeManager)); });
+
+    m.def("icanseedeadpeople",  [](){GameEditorModeConsole::getSingleton().mConsoleInterface.tryExecuteClientCommand( "icanseedeadpeople ", GameEditorModeConsole::getSingletonPtr()->mModeManager->getCurrentModeType(), *(GameEditorModeConsole::getSingletonPtr()->mModeManager)); });
+
+    m.def("ambientlight",  [](float R, float G, float B){GameEditorModeConsole::getSingleton().mConsoleInterface.tryExecuteClientCommand( "ambientlight " + Helper::toString(R) + " " + Helper::toString(G) + " " + Helper::toString(B), GameEditorModeConsole::getSingletonPtr()->mModeManager->getCurrentModeType(), *(GameEditorModeConsole::getSingletonPtr()->mModeManager)); });    
+
+    m.def("nearclip",  [](float distance){GameEditorModeConsole::getSingleton().mConsoleInterface.tryExecuteClientCommand( "nearclip " + Helper::toString(distance), GameEditorModeConsole::getSingletonPtr()->mModeManager->getCurrentModeType(), *(GameEditorModeConsole::getSingletonPtr()->mModeManager)); });
+
+    m.def("farclip",  [](float distance){GameEditorModeConsole::getSingleton().mConsoleInterface.tryExecuteClientCommand( "farclip " + Helper::toString(distance), GameEditorModeConsole::getSingletonPtr()->mModeManager->getCurrentModeType(), *(GameEditorModeConsole::getSingletonPtr()->mModeManager)); });
+
+    m.def("creaturevisdebug",  [](std::string subject){GameEditorModeConsole::getSingleton().mConsoleInterface.tryExecuteClientCommand( "creaturevisdebug " + subject, GameEditorModeConsole::getSingletonPtr()->mModeManager->getCurrentModeType(), *(GameEditorModeConsole::getSingletonPtr()->mModeManager)); });
+
+    m.def("seatvisdebug",  [](int seat){GameEditorModeConsole::getSingleton().mConsoleInterface.tryExecuteClientCommand( "seatvisdebug " + Helper::toString(seat), GameEditorModeConsole::getSingletonPtr()->mModeManager->getCurrentModeType(), *(GameEditorModeConsole::getSingletonPtr()->mModeManager)); });
+
+    m.def("setcreaturedest",  [](std::string name, int x, int y){GameEditorModeConsole::getSingleton().mConsoleInterface.tryExecuteClientCommand( "setcreaturedest " + name + " " + Helper::toString(x) + " " + Helper::toString(y), GameEditorModeConsole::getSingletonPtr()->mModeManager->getCurrentModeType(), *(GameEditorModeConsole::getSingletonPtr()->mModeManager)); });
+
+    m.def("listmeshanims",  [](std::string name){GameEditorModeConsole::getSingleton().mConsoleInterface.tryExecuteClientCommand( "listmeshanims " + name, GameEditorModeConsole::getSingletonPtr()->mModeManager->getCurrentModeType(), *(GameEditorModeConsole::getSingletonPtr()->mModeManager)); });
+}
+
+
+
+
 
 namespace
 {
@@ -53,8 +101,7 @@ const std::string HELPMESSAGE =
         "\n\tambientlight - Sets the ambient light color."
         "\n\tnearclip - Sets the near clipping distance."
         "\n\tfarclip - Sets the far clipping distance."
-        "\n\tcreaturevisdebug - Turns on visual debugging for a given creature."
-    
+        "\n\tcreaturevisdebug - Turns on visual debugging for a given creature."    
         "\n\tseatvisdebug - Turns on visual debugging for a given seat."
         "\n\tsetcreaturedest - Sets the creature destination/"
         "\n\tlistmeshanims - Lists all the animations for the given mesh."
@@ -683,6 +730,12 @@ Command::Result cTriggerCompositor(const Command::ArgumentList_t& args, ConsoleI
 
 } // namespace <none>
 
+//PYBIND11_EMBEDDED_MODULE(fast_calc, m){ m.def("ambientlight", [&](){ ConsoleInterface mConsoleInterface ;mConsoleInterface.tryExecuteClientCommand(mEditboxWindow->getText().c_str(),
+//                                         mModeManager->getCurrentModeType(),
+//                                         *mModeManager);
+//     });}) }
+
+
 namespace ConsoleCommands
 {
 void addConsoleCommands(ConsoleInterface& cl)
@@ -693,7 +746,8 @@ void addConsoleCommands(ConsoleInterface& cl)
                    "ambientlight 0.4 0.6 0.5\n\nThe above command sets the ambient light color to red=0.4, green=0.6, and blue = 0.5.",
                    cAmbientLight,
                    Command::cStubServer,
-                   {AbstractModeManager::ModeType::GAME, AbstractModeManager::ModeType::EDITOR});
+                  {AbstractModeManager::ModeType::GAME, AbstractModeManager::ModeType::EDITOR});
+
     cl.addCommand("fps",
                   "'fps' (framespersecond) for short is a utility which displays or sets the maximum framerate at which the"
                   "rendering will attempt to update the screen.\n\nExample:\n"
@@ -937,7 +991,7 @@ void addConsoleCommands(ConsoleInterface& cl)
                         return Command::Result::SUCCESS;
                    },
                    Command::cStubServer,
-                   {AbstractModeManager::ModeType::GAME, AbstractModeManager::ModeType::EDITOR});
+                  {AbstractModeManager::ModeType::GAME, AbstractModeManager::ModeType::EDITOR});
     cl.addCommand("unlockskills",
                    "Unlock all skills for every seats\n"
                    "unlockskills",

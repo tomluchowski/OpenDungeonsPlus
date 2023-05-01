@@ -62,6 +62,9 @@ public:
     Gui& getGui()
     { return *mGui; }
 
+    //! \brief The currently loaded mode.
+    std::unique_ptr<AbstractApplicationMode> mCurrentApplicationMode;
+    
 private:
     //! \brief The common input manager instance
     InputManager mInputManager;
@@ -69,8 +72,7 @@ private:
     //! \brief Pointer to the GUI instance
     Gui* mGui;
 
-    //! \brief The currently loaded mode.
-    std::unique_ptr<AbstractApplicationMode> mCurrentApplicationMode;
+
 
     //! \brief Stores the order of modes loaded. Useful when used to go back to the previous mode.
     std::vector<ModeType> mPreviousModeTypes;

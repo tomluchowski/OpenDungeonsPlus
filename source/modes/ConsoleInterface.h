@@ -19,10 +19,10 @@
 #define CONSOLEINTERFACE_H
 
 #include "Command.h"
+#include "ModeManager.h"
 
 #include <boost/optional.hpp>
 #include <boost/algorithm/string.hpp>
-#include <pybind11/embed.h>
 
 
 
@@ -72,7 +72,7 @@ public:
     //! \returns Command::Result::SUCCESS if the command succeeds, Command::Result::WRONG_MODE if the
     //!     command is ran in the wrong mode, Command::Result::INVALID_ARGUMENT if one or more of the arguments
     //!     can't be parsed, and Command::Result::FAILED if the command fails.
-    Command::Result tryExecuteClientCommand(String_t commandString, ModeType modeType, AbstractModeManager& modeManager);
+    Command::Result tryExecuteClientCommand(String_t commandString, ModeManager::ModeType modeType, AbstractModeManager& modeManager);
 
     //! \brief Try executing a command on server side
     //! \param commandString The command string to be executed
