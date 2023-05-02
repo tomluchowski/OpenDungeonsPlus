@@ -64,22 +64,22 @@ PYBIND11_EMBEDDED_MODULE(my_sys, m) {
     });
 }
 
-// std::vector<double> modify(const std::vector<double>& input)
-// {
-//   std::vector<double> output(input.size());
+std::vector<double> modify(const std::vector<double>& input)
+{
+  std::vector<double> output(input.size());
   
-//   for ( size_t i = 0 ; i < input.size() ; ++i )
-//     output[i] = 2. * input[i];
+  for ( size_t i = 0 ; i < input.size() ; ++i )
+    output[i] = 2. * input[i];
 
-//   return output;
-// }
+  return output;
+}
 
-// PYBIND11_EMBEDDED_MODULE(example,m)
-// {
-//   m.doc() = "pybind11 example plugin";
+PYBIND11_EMBEDDED_MODULE(example,m)
+{
+  m.doc() = "pybind11 example plugin";
 
-//   m.def("modify", &modify, "Multiply all entries of a list by 2.template");
-// }
+  m.def("modify", &modify, "Multiply all entries of a list by 2.template");
+}
 
 
 template<>GameEditorModeConsole* Ogre::Singleton<GameEditorModeConsole>::msSingleton = nullptr;
@@ -212,8 +212,14 @@ bool GameEditorModeConsole::executePythonPrompt()
 
     pybind11::module::import("my_sys").attr("hook_stdout")();
     pybind11::object scope = pybind11::module::import("__main__").attr("__dict__");
-    
-    pybind11::exec(mEditboxWindow->getText().c_str(),scope);
+    try
+    {
+        pybind11::exec(mEditboxWindow->getText().c_str(),scope);
+    }
+    catch(pybind11::error_already_set &error)
+    {
+        printToConsole(error.what());
+    }
     mEditboxWindow->setText("");
     return true;
 
