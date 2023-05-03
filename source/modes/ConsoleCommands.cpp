@@ -45,6 +45,9 @@ PYBIND11_EMBEDDED_MODULE(cheats, m){
     
     m.def("help",  [](std::string info){GameEditorModeConsole::getSingleton().mConsoleInterface.tryExecuteClientCommand( "help " + info, GameEditorModeConsole::getSingletonPtr()->mModeManager->getCurrentModeType(), *(GameEditorModeConsole::getSingletonPtr()->mModeManager)); });
 
+    m.def("list",  [](){GameEditorModeConsole::getSingleton().mConsoleInterface.tryExecuteClientCommand( "list ", GameEditorModeConsole::getSingletonPtr()->mModeManager->getCurrentModeType(), *(GameEditorModeConsole::getSingletonPtr()->mModeManager)); });
+
+    
     m.def("list",  [](std::string subject){GameEditorModeConsole::getSingleton().mConsoleInterface.tryExecuteClientCommand( "list " + subject, GameEditorModeConsole::getSingletonPtr()->mModeManager->getCurrentModeType(), *(GameEditorModeConsole::getSingletonPtr()->mModeManager)); });
 
     m.def("maxtime",  [](int time){GameEditorModeConsole::getSingleton().mConsoleInterface.tryExecuteClientCommand( "maxtime " + Helper::toString(time), GameEditorModeConsole::getSingletonPtr()->mModeManager->getCurrentModeType(), *(GameEditorModeConsole::getSingletonPtr()->mModeManager)); });

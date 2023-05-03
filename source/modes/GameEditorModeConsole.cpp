@@ -220,6 +220,7 @@ bool GameEditorModeConsole::executePythonPrompt()
     {
         printToConsole(error.what());
     }
+    mConsoleInterface.getCommandHistoryBuffer().emplace_back(mEditboxWindow->getText().c_str());
     mEditboxWindow->setText("");
     return true;
 

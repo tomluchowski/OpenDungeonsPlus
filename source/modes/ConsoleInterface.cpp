@@ -53,7 +53,6 @@ Command::Result ConsoleInterface::tryExecuteClientCommand(String_t commandString
                                                     ModeType modeType,
                                                     AbstractModeManager& modeManager)
 {
-    mCommandHistoryBuffer.emplace_back(commandString);
     print(">> " + commandString);
     Command::ArgumentList_t tokenList;
     boost::algorithm::split(tokenList,

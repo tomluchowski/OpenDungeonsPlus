@@ -95,6 +95,9 @@ public:
     //! \returns Next command if it exists, otherwise boost::none
     boost::optional<const String_t&> scrollCommandHistoryPositionDown();
 
+    using CommandHistoryBufferList_t = std::list<String_t>;
+    inline CommandHistoryBufferList_t& getCommandHistoryBuffer() {return mCommandHistoryBuffer;}
+    
 private:
     using CommandPtr_t = std::shared_ptr<Command>;
 
@@ -119,7 +122,7 @@ private:
     PrintFunction_t mPrintFunction;
     using CommandMap_t = std::map<String_t,CommandPtr_t>;
     CommandMap_t mCommandMap;
-    using CommandHistoryBufferList_t = std::list<String_t>;
+
     CommandHistoryBufferList_t mCommandHistoryBuffer;
     CommandHistoryBufferList_t::iterator mHistoryPos;
     String_t mTemporaryCommandString;
