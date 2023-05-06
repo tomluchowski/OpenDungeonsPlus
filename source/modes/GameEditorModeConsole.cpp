@@ -22,7 +22,7 @@
 #include "utils/LogManager.h"
 #include "modes/GameEditorModeBase.h"
 
-#include <CEGUI/widgets/Editbox.h>
+#include <CEGUI/widgets/MultiLineEditbox.h>
 #include <CEGUI/widgets/FrameWindow.h>
 #include <CEGUI/widgets/Listbox.h>
 #include <CEGUI/widgets/ListboxTextItem.h>
@@ -54,7 +54,7 @@ PYBIND11_EMBEDDED_MODULE(my_sys, m) {
         GameEditorModeConsole::getSingleton().printToConsole( buffer.cast<std::string>());
     });
     my_stdout.def_static("flush", []() {
-        GameEditorModeConsole::getSingleton().printToConsole( "\n" );
+        // so far we do nothing, the underlying console doesn't have anything similar to "flush"
     });
 
     m.def("hook_stdout", []() {
@@ -98,7 +98,7 @@ GameEditorModeConsole::GameEditorModeConsole(ModeManager* modeManager):
     assert(listbox->getType().compare("OD/Listbox") == 0);
     mConsoleHistoryWindow = static_cast<CEGUI::Listbox*>(listbox);
     CEGUI::Window* editbox = consoleRootWindow->getChild("Editbox");
-    mEditboxWindow = static_cast<CEGUI::Editbox*>(editbox);
+    mEditboxWindow = static_cast<CEGUI::MultiLineEditbox*>(editbox);
     CEGUI::Window* sendButton = consoleRootWindow->getChild("SendButton");
 
     addEventConnection(
@@ -107,7 +107,7 @@ GameEditorModeConsole::GameEditorModeConsole(ModeManager* modeManager):
     );
 
     addEventConnection(
-        mEditboxWindow->subscribeEvent(CEGUI::Editbox::EventCharacterKey,
+        mEditboxWindow->subscribeEvent(CEGUI::MultiLineEditbox::EventCharacterKey,
                                    CEGUI::Event::Subscriber(&GameEditorModeConsole::characterEntered, this))
     );
 
@@ -180,7 +180,13 @@ bool GameEditorModeConsole::keyPressed(const OIS::KeyEvent &arg)
         }
         case OIS::KC_RETURN:
         case OIS::KC_NUMPADENTER:
-            executePythonPrompt();
+            if(mModeManager->getInputManager().mKeyboard->isModifierDown(OIS::Keyboard::Modifier::Shift))
+                executePythonPrompt();
+            else
+            {
+                mEditboxWindow->appendText("\n");
+                mEditboxWindow->ensureCaretIsVisible();
+            }
             break;
         default:
             break;
@@ -193,7 +199,10 @@ void GameEditorModeConsole::printToConsole(const std::string& text)
 {
     CEGUI::ListboxTextItem* lbi = new CEGUI::ListboxTextItem("");
     lbi->setTextParsingEnabled(false);
-    lbi->setText(text);
+    std::string ss = text;
+    if (ss[ss.length() - 1] == '\n')
+             ss.pop_back();
+    lbi->setText(ss);
     mConsoleHistoryWindow->addItem(lbi);
 }
 

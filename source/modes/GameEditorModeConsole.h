@@ -34,7 +34,7 @@ class Window;
 class EventArgs;
 class String;
 class Listbox;
-class Editbox;
+class MultiLineEditbox;
 }
 
 
@@ -58,7 +58,7 @@ public:
         
     pybind11::scoped_interpreter guard;
     ModeManager* mModeManager;
-    CEGUI::Editbox* mEditboxWindow;
+    CEGUI::MultiLineEditbox* mEditboxWindow;
     ConsoleInterface mConsoleInterface;
     
 private:

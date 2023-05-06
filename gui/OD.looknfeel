@@ -3308,7 +3308,7 @@
         </ImagerySection>
         <ImagerySection name="Caret">
             <ImageryComponent>
-                <ColourRectProperty name="ImageColours"/>
+                <!--  <ColourRectProperty name="ImageColours"/> -->
                 <Area>
                     <Dim type="LeftEdge"><AbsoluteDim value="0" /></Dim>
                     <Dim type="TopEdge"><AbsoluteDim value="0" /></Dim>
