@@ -35,6 +35,7 @@ class EventArgs;
 class String;
 class Listbox;
 class MultiLineEditbox;
+
 }
 
 
@@ -63,6 +64,8 @@ public:
     
 private:
 
+
+    
     bool executeCurrentPrompt(const CEGUI::EventArgs& e = {});
     bool characterEntered(const CEGUI::EventArgs& e = {});
     bool executePythonPrompt();
@@ -70,7 +73,7 @@ private:
 
 
     CEGUI::Listbox* mConsoleHistoryWindow;
-
+    CEGUI::Window* consoleRootWindow;
 
 
 

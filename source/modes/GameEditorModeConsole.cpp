@@ -24,6 +24,7 @@
 
 #include <CEGUI/widgets/MultiLineEditbox.h>
 #include <CEGUI/widgets/FrameWindow.h>
+#include <CEGUI/Font.h>
 #include <CEGUI/widgets/Listbox.h>
 #include <CEGUI/widgets/ListboxTextItem.h>
 #include <CEGUI/widgets/PushButton.h>
@@ -92,7 +93,7 @@ GameEditorModeConsole::GameEditorModeConsole(ModeManager* modeManager):
 {
     ConsoleCommands::addConsoleCommands(mConsoleInterface);
 
-    CEGUI::Window* consoleRootWindow = mModeManager->getGui().getGuiSheet(Gui::guiSheet::console);
+    consoleRootWindow = mModeManager->getGui().getGuiSheet(Gui::guiSheet::console);
     assert(consoleRootWindow != nullptr);
     CEGUI::Window* listbox = consoleRootWindow->getChild("ConsoleHistoryWindow");
     assert(listbox->getType().compare("OD/Listbox") == 0);
@@ -103,7 +104,7 @@ GameEditorModeConsole::GameEditorModeConsole(ModeManager* modeManager):
 
     addEventConnection(
         sendButton->subscribeEvent(CEGUI::PushButton::EventClicked,
-                                   CEGUI::Event::Subscriber(&GameEditorModeConsole::executeCurrentPrompt, this))
+                                   CEGUI::Event::Subscriber(&GameEditorModeConsole::executePythonPrompt, this))
     );
 
     addEventConnection(
@@ -111,6 +112,8 @@ GameEditorModeConsole::GameEditorModeConsole(ModeManager* modeManager):
                                    CEGUI::Event::Subscriber(&GameEditorModeConsole::characterEntered, this))
     );
 
+    // mEditboxWindow->setCaretBlinkEnabled(true);
+    // mEditboxWindow->setCaretBlinkTimeout(1.0);
     mConsoleHistoryWindow->getVertScrollbar()->setEndLockEnabled(true);
 
     // Permits closing the console.
@@ -147,11 +150,7 @@ bool GameEditorModeConsole::keyPressed(const OIS::KeyEvent &arg)
     {
         case OIS::KC_TAB:
         {
-            ConsoleInterface::String_t completed;
-            if(mConsoleInterface.tryCompleteCommand(mEditboxWindow->getText().c_str(), completed))
-                mEditboxWindow->setText(completed);
-
-            mEditboxWindow->setCaretIndex(mEditboxWindow->getText().length());
+            mEditboxWindow->appendText("    ");
             break;
         }
         case OIS::KC_GRAVE:
@@ -185,7 +184,10 @@ bool GameEditorModeConsole::keyPressed(const OIS::KeyEvent &arg)
             else
             {
                 mEditboxWindow->appendText("\n");
-                mEditboxWindow->ensureCaretIsVisible();
+                float fontHeight = mEditboxWindow->getFont('\n')->getFontHeight();
+                mEditboxWindow->setHeight(mEditboxWindow->getHeight() + CEGUI::UDim(0.0, fontHeight));
+                mEditboxWindow->setYPosition(mEditboxWindow->getYPosition() - CEGUI::UDim(0.0, fontHeight));
+                consoleRootWindow->setHeight(consoleRootWindow->getHeight() + CEGUI::UDim(0.0, fontHeight));
             }
             break;
         default:
