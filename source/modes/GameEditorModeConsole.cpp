@@ -65,23 +65,6 @@ PYBIND11_EMBEDDED_MODULE(my_sys, m) {
     });
 }
 
-std::vector<double> modify(const std::vector<double>& input)
-{
-  std::vector<double> output(input.size());
-  
-  for ( size_t i = 0 ; i < input.size() ; ++i )
-    output[i] = 2. * input[i];
-
-  return output;
-}
-
-PYBIND11_EMBEDDED_MODULE(example,m)
-{
-  m.doc() = "pybind11 example plugin";
-
-  m.def("modify", &modify, "Multiply all entries of a list by 2.template");
-}
-
 
 template<>GameEditorModeConsole* Ogre::Singleton<GameEditorModeConsole>::msSingleton = nullptr;
 
@@ -150,7 +133,10 @@ bool GameEditorModeConsole::keyPressed(const OIS::KeyEvent &arg)
     {
         case OIS::KC_TAB:
         {
-            mEditboxWindow->appendText("    ");
+            CEGUI::String line = mEditboxWindow->getText();
+            CEGUI::String line2 = line.substr(0,line.length() - 1);
+            mEditboxWindow->setText(line2 + "    ");
+            mEditboxWindow->setCaretIndex(mEditboxWindow->getText().length() - 1);
             break;
         }
         case OIS::KC_GRAVE:
@@ -239,7 +225,7 @@ bool GameEditorModeConsole::executePythonPrompt()
 bool GameEditorModeConsole::characterEntered(const CEGUI::EventArgs& e)
 {
     // We only accept alphanumeric chars + space
-    // const CEGUI::KeyEventArgs& kea = static_cast<const CEGUI::KeyEventArgs&>(e);
+    const CEGUI::KeyEventArgs& kea = static_cast<const CEGUI::KeyEventArgs&>(e);
     // if((kea.codepoint >= 'a') && (kea.codepoint <= 'z'))
     //     return false;
     // if((kea.codepoint >= 'A') && (kea.codepoint <= 'Z'))
@@ -250,7 +236,8 @@ bool GameEditorModeConsole::characterEntered(const CEGUI::EventArgs& e)
     //     return false;
     // if(kea.codepoint == '.')
     //     return false;
-    
+    if (kea.codepoint == '\t')
+        return true;
     return false;
 }
 
