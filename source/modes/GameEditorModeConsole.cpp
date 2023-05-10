@@ -134,9 +134,10 @@ bool GameEditorModeConsole::keyPressed(const OIS::KeyEvent &arg)
         case OIS::KC_TAB:
         {
             CEGUI::String line = mEditboxWindow->getText();
-            CEGUI::String line2 = line.substr(0,line.length() - 1);
-            mEditboxWindow->setText(line2 + "    ");
-            mEditboxWindow->setCaretIndex(mEditboxWindow->getText().length() - 1);
+            CEGUI::String line2 = line.substr(0,mEditboxWindow->getCaretIndex());
+            CEGUI::String line3 = line.substr(mEditboxWindow->getCaretIndex(), line.length() - 1);
+            mEditboxWindow->setText(line2 + "    " + line3);
+            mEditboxWindow->setCaretIndex(mEditboxWindow->getCaretIndex() + 4);
             break;
         }
         case OIS::KC_GRAVE:
