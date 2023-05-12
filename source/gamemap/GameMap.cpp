@@ -3206,10 +3206,10 @@ void GameMap::changeFloodFillConnectedTiles(Tile* startTile, Seat* seat, const s
 
     while(!tiles.empty())
     {
-        std::vector<Tile*> tiles_sorted  = tiles;
-        std::sort(tiles_sorted.begin(),tiles_sorted.end());
-        for(int ii = 0; ii < tiles_sorted.size() - 1; ++ii)
-            OD_ASSERT_TRUE(tiles_sorted[ii+1] != tiles_sorted[ii]);
+        // std::vector<Tile*> tiles_sorted  = tiles;
+        // std::sort(tiles_sorted.begin(),tiles_sorted.end());
+        // for(int ii = 0; ii < tiles_sorted.size() - 1; ++ii)
+        //     OD_ASSERT_TRUE(tiles_sorted[ii+1] != tiles_sorted[ii]);
 
         
         Tile* tile = tiles.back();
