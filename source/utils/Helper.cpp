@@ -311,4 +311,16 @@ namespace Helper
             + "," + TTostring(c.b)
             + "," + TTostring(c.a) + "]";
     }
+    std::string toString(std::vector<double>& p )
+    {
+        std::stringstream ss;
+        for(double& d: p)
+        {
+            ss << d << " " ;
+
+        }
+        return ss.str();
+
+
+    }
 } // namespace Helper

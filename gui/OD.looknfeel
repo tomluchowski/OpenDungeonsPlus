@@ -3193,7 +3193,7 @@
         <PropertyDefinition initialValue="FFFFFFFF" name="NormalTextColour" redrawOnWrite="true" />
         <PropertyDefinition initialValue="FF000000" name="SelectedTextColour" redrawOnWrite="true" />
         <PropertyDefinition initialValue="FF607FFF" name="ActiveSelectionColour" redrawOnWrite="true" />
-        <PropertyDefinition initialValue="00808080" name="InactiveSelectionColour" redrawOnWrite="true" />
+        <PropertyDefinition initialValue="FF808080" name="InactiveSelectionColour" redrawOnWrite="true" />
         <PropertyDefinition redrawOnWrite="true" initialValue="tl:00FF0000 tr:00FF0000 bl:00FF0000 br:00FF0000" type="ColourRect" name="ImageColours"/>
         <Property name="MouseCursorImage" value="OpenDungeonsSkin/MouseTextBar" />
         <Property name="SelectionBrushImage" value="OpenDungeonsSkin/SelectionBrush" />
@@ -3289,12 +3289,6 @@
         </Child>
         <ImagerySection name="main">
             <FrameComponent>
-                <Area>
-                    <Dim type="LeftEdge"><AbsoluteDim value="0" /></Dim>
-                    <Dim type="TopEdge"><AbsoluteDim value="0" /></Dim>
-                    <Dim type="Width"><UnifiedDim scale="1" type="Width" /></Dim>
-                    <Dim type="Height"><UnifiedDim scale="1" type="Height" /></Dim>
-                </Area>
                 <Image component="TopLeftCorner" name="OpenDungeonsSkin/MultiLineEditBoxTopLeft" />
                 <Image component="TopRightCorner" name="OpenDungeonsSkin/MultiLineEditBoxTopRight" />
                 <Image component="BottomLeftCorner" name="OpenDungeonsSkin/MultiLineEditBoxBottomLeft" />

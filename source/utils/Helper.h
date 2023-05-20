@@ -143,6 +143,7 @@ namespace Helper
     std::string toString(const Ogre::Vector3& v);
     std::string toStringWithoutZ(const Ogre::Vector3& v);
     std::string toString(const Ogre::ColourValue& c);
+    std::string toString(std::vector<double>& p);
 
     //! \brief Converts a pointer to displayable string. Useful for debug
     std::string toString(void* p);

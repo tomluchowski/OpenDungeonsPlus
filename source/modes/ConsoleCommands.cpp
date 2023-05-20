@@ -31,6 +31,7 @@
 #include <boost/algorithm/string/join.hpp>
 
 #include <pybind11/embed.h>
+#include <pybind11/stl.h>
 #include <functional>
 
 PYBIND11_EMBEDDED_MODULE(cheats, m){
@@ -76,6 +77,17 @@ PYBIND11_EMBEDDED_MODULE(cheats, m){
     m.def("setcreaturedest",  [](std::string name, int x, int y){GameEditorModeConsole::getSingleton().mConsoleInterface.tryExecuteClientCommand( "setcreaturedest " + name + " " + Helper::toString(x) + " " + Helper::toString(y), GameEditorModeConsole::getSingletonPtr()->mModeManager->getCurrentModeType(), *(GameEditorModeConsole::getSingletonPtr()->mModeManager)); });
 
     m.def("listmeshanims",  [](std::string name){GameEditorModeConsole::getSingleton().mConsoleInterface.tryExecuteClientCommand( "listmeshanims " + name, GameEditorModeConsole::getSingletonPtr()->mModeManager->getCurrentModeType(), *(GameEditorModeConsole::getSingletonPtr()->mModeManager)); });
+
+    m.def("triggercompositor",  [](std::string name){GameEditorModeConsole::getSingleton().mConsoleInterface.tryExecuteClientCommand( "triggercompositor " + name, GameEditorModeConsole::getSingletonPtr()->mModeManager->getCurrentModeType(), *(GameEditorModeConsole::getSingletonPtr()->mModeManager)); });
+
+    m.def("catmullspline",  [](std::vector<double> points){GameEditorModeConsole::getSingleton().mConsoleInterface.tryExecuteClientCommand( "catmullspline "  + Helper::toString(points), GameEditorModeConsole::getSingletonPtr()->mModeManager->getCurrentModeType(), *(GameEditorModeConsole::getSingletonPtr()->mModeManager)); });
+
+    m.def("circlearound",  [](double x, double y, double radious){GameEditorModeConsole::getSingleton().mConsoleInterface.tryExecuteClientCommand( "circlearound "  + Helper::toString(x) + " " + Helper::toString(y) + " " + Helper::toString(radious), GameEditorModeConsole::getSingletonPtr()->mModeManager->getCurrentModeType(), *(GameEditorModeConsole::getSingletonPtr()->mModeManager)); });
+
+    m.def("setcamerafovy",  [](double fovy){GameEditorModeConsole::getSingleton().mConsoleInterface.tryExecuteClientCommand( "setcamerafovy "  + Helper::toString(fovy), GameEditorModeConsole::getSingletonPtr()->mModeManager->getCurrentModeType(), *(GameEditorModeConsole::getSingletonPtr()->mModeManager)); });
+
+    m.def("logfloodfill",  [](){GameEditorModeConsole::getSingleton().mConsoleInterface.tryExecuteClientCommand( "logfloodfill ", GameEditorModeConsole::getSingletonPtr()->mModeManager->getCurrentModeType(), *(GameEditorModeConsole::getSingletonPtr()->mModeManager)); });
+    
 }
 
 
@@ -907,9 +919,8 @@ void addConsoleCommands(ConsoleInterface& cl)
                    {AbstractModeManager::ModeType::GAME, AbstractModeManager::ModeType::EDITOR});
     cl.addCommand("hermitecatmullspline",
                    "Triggers the catmullspline camera movement behaviour.\n\nExample:\n"
-                   "catmullspline 6 4 5 4 6 5 7\n"
-                   "Make the camera follow a lazy curved path along the given coordinates pairs. "
-                   "The first parameter is the number of pairs",
+                   "catmullspline 4 5 4 6 5 7\n"
+                   "Make the camera follow a lazy curved path along the given coordinates pairs. ",
                    cHermiteCatmullSpline,
                    Command::cStubServer,
                    {AbstractModeManager::ModeType::GAME, AbstractModeManager::ModeType::EDITOR},

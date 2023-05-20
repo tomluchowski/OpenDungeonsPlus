@@ -33,10 +33,8 @@
 
 
 #include <pybind11/embed.h>
-
 #include <pybind11/pybind11.h>
-#include <pybind11/stl.h>
-#include <vector>
+
 #include <functional>
 #include <cassert>
 
@@ -78,11 +76,17 @@ GameEditorModeConsole::GameEditorModeConsole(ModeManager* modeManager):
 
     consoleRootWindow = mModeManager->getGui().getGuiSheet(Gui::guiSheet::console);
     assert(consoleRootWindow != nullptr);
+    consoleRootWindow->setAlpha(0.4);
+    
     CEGUI::Window* listbox = consoleRootWindow->getChild("ConsoleHistoryWindow");
     assert(listbox->getType().compare("OD/Listbox") == 0);
     mConsoleHistoryWindow = static_cast<CEGUI::Listbox*>(listbox);
+    mConsoleHistoryWindow->setAlpha(0.4);
     CEGUI::Window* editbox = consoleRootWindow->getChild("Editbox");
     mEditboxWindow = static_cast<CEGUI::MultiLineEditbox*>(editbox);
+    mEditboxWindow->setAlpha(0.4);
+    // mEditboxWindow->setTextParsingEnabled(true);
+    // mEditboxWindow->setText("[colour='FFFF0000']");
     CEGUI::Window* sendButton = consoleRootWindow->getChild("SendButton");
 
     addEventConnection(
