@@ -112,6 +112,7 @@ GameEditorModeConsole::GameEditorModeConsole(ModeManager* modeManager):
     pybind11::object scope = pybind11::module::import("__main__").attr("__dict__");
     
     pybind11::exec("import cheats");
+    GameEditorModeConsole::getSingleton().printToConsole("The up to now console commands are in the package cheats. \n For example to call command fps with argument 30 type cheats.fps(30) \n For more type help('cheats') ");
 
 }
 

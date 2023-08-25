@@ -34,59 +34,192 @@
 #include <pybind11/stl.h>
 #include <functional>
 
+
+
+const std::map<std::string, const char*>& getDocString()
+{ 
+    static const std::map<std::string, const char*> &map = std::map<std::string, const char*>
+        {
+            {
+                "addcreature",
+                "Adds a new creature according to following parameters"
+            },
+            {
+                "addgold",
+                "'addgold' adds the given amount of gold to one player. It takes as arguments the ID of the player to"
+                "whom the gold should be given and the amount. If the player's treasuries are full, no more gold is given."
+                "Note that this command is available in server mode only. \n\nExample\n"
+                "to give 5000 gold to player color 1 : addgold 1 5000"
+            },
+            {
+                "addmana",
+                "'addmana' adds the given amount of mana to one player. It takes as arguments the ID of the player to"
+                "whom the man should be given and the amount. If the player's mana pool is full, no more mana is given."
+                "Note that this command is available in server mode only. \n\nExample\n"
+                "to give 25000 mana to player 1 : addmana 1 25000"
+            },
+            {
+                "ambientlight",
+                "The 'ambientlight' command sets the minimum light that every object in the scene is illuminated with. "
+                "It takes as it's argument and RGB triplet whose values for red, green, and blue range from 0.0 to 1.0.\n\nExample:\n"
+                "ambientlight 0.4 0.6 0.5\n\nThe above command sets the ambient light color to red=0.4, green=0.6, and blue = 0.5."
+            },
+            {
+                "catmullspline",
+                "Triggers the catmullspline camera movement behaviour.\n\nExample:\n"
+                "catmullspline 4 5 4 6 5 7\n"
+                "Make the camera follow a lazy curved path along the given coordinates pairs. "
+
+            },
+            {
+                "circlearound",
+                "Triggers the circle camera movement behaviour.\n\nExample:\n"
+                "circlearound 6 4 8\n"
+                "Make the camera follow a lazy a circle path around coors 6,4 with a radius of 8."
+            },
+            {
+                "creaturevisdebug",
+                "Visual debugging is a way to see a given creature\'s AI state.\n\nExample:\n"
+                "creaturevisdebug skeletor\n\n"
+                "The above command wil turn on visual debugging for the creature named \'skeletor\'. "
+                "The same command will turn it back off again."
+            },
+            {
+                "farclip",
+                "Sets the maximal viewpoint clipping distance. Objects farther than that won't be rendered.\n\nE.g.: farclip 30.0"
+            },
+            {
+                "fps",
+                "'fps' (framespersecond) for short is a utility which displays or sets the maximum framerate at which the"
+                "rendering will attempt to update the screen.\n\nExample:\n"
+                "fps 35\n\nThe above command will set the current maximum framerate to 35 turns per second."
+            },
+            {
+                "helpmessage",
+                "Display help message"
+            },
+            {
+                "list",
+                "'list' (or 'ls' for short) is a utility which lists various types of information about the current game. "
+                "Running list without an argument will produce a list of the lists available. "
+                "Running list with an argument displays the contents of that list.\n\nExamples:\n"
+                "list creatures\tLists all the creatures currently in the game.\n"
+                "list classes\tLists all creature classes.\n"
+                "list players\tLists every player in game.\n"
+                "list network\tTells whether the game is running as a server, a client or as the map editor.\n"
+                "list rooms\tLists all the current rooms in game.\n"
+                "list colors\tLists all seat's color values.\n"
+                "list goals\tLists The local player goals.\n"
+
+            },
+            {
+                "listmeshanims",
+                "'listmeshanims' lists all the animations for the given mesh."
+            },
+            {
+                "logfloodfill",
+                "'logfloodfill' logs the FloodFillValues of all the Tiles in the GameMap."
+            },
+            {
+                "maxtime",
+                "Sets the max time (in seconds) a message will be displayed in the info text area.\n\nExample:\n"
+                "maxtime 5"
+            },
+            {
+                "nearclip",
+                "Sets the minimal viewpoint clipping distance. Objects nearer than that won't be rendered.\n\nE.g.: nearclip 3.0"
+            },
+            {
+                "seatvisdebug",
+                "Visual debugging is a way to see all the tiles a given seat can see.\n\nExample:\n"
+                "seatvisualdebug 1\n\nThe above command will show every tiles seat 1 can see.  The same command will turn it off."
+            },
+            {
+                "setcamerafovy",
+                "Sets the camera vertical field of view aspect ratio on the Y axis.\n\nExample:\n"
+                "setcamerafovy 45"
+
+            },
+            {
+                "setcreaturedest",
+                "Sets the creature desitnation it should walk to \n\nExample\n"
+                "setcreaturedest 0 0 "
+
+            },
+            {
+                "setcreaturelevel",
+                "Sets the level of a given creature.\n\nExample:\n"
+                "setlevel NatureMonster1 10\n\nThe above command will set the creature \'NatureMonster1\' to 10."
+            },
+            {
+                "termwidth",
+                "Sets the terminal width."
+            },
+            {
+                "togglefow",
+                "Toggles on/off fog of war for every connected player",                
+            },
+            {
+                "triggercompositor",
+                "Starts the given compositor. The compositor must exist.\n\nExample:\n"
+                "triggercompositor blacknwhite"
+
+            },
+            {
+                "unlockskills",
+                "Unlock all skills for every seats\n"
+            }
+        
+        }; 
+    return map; 
+} 
+ 
+
+template<typename M, typename Ret, typename... Args>
+void addCommand(M &&m, const char *name, Ret (*cmdStrFunc)(Args...)) {
+	m.def(
+		name, 
+		[cmdStrFunc, name](Args... args) {
+			GameEditorModeConsole::getSingleton().mConsoleInterface.tryExecuteClientCommand(
+				std::string(name) + ' ' + cmdStrFunc(args...),
+				GameEditorModeConsole::getSingletonPtr()->mModeManager->getCurrentModeType(),
+				*(GameEditorModeConsole::getSingletonPtr()->mModeManager)); 
+		}, 
+		getDocString().at(name)
+	);
+}
+
+template<typename M>
+void addCommand(M &&m, const char *name) {
+	addCommand(m, name, +[]() { return ""; });
+}
+ 
+ 
+ 
+ 
 PYBIND11_EMBEDDED_MODULE(cheats, m){
-    m.def("unlockskills",  [](){ GameEditorModeConsole::getSingleton().mConsoleInterface.tryExecuteClientCommand( "unlockskills", GameEditorModeConsole::getSingletonPtr()->mModeManager->getCurrentModeType(),*(GameEditorModeConsole::getSingletonPtr()->mModeManager)); });
-
-
-    m.def("addgold",  [](int seat, int gold){GameEditorModeConsole::getSingleton().mConsoleInterface.tryExecuteClientCommand( "addgold " + Helper::toString(seat)+ " " +Helper::toString(gold), GameEditorModeConsole::getSingletonPtr()->mModeManager->getCurrentModeType(), *(GameEditorModeConsole::getSingletonPtr()->mModeManager)); });
-
-    m.def("addmana",  [](int seat, int mana){GameEditorModeConsole::getSingleton().mConsoleInterface.tryExecuteClientCommand( "addmana " + Helper::toString(seat)+ " " +Helper::toString(mana), GameEditorModeConsole::getSingletonPtr()->mModeManager->getCurrentModeType(), *(GameEditorModeConsole::getSingletonPtr()->mModeManager)); });
-
-    m.def("help",  [](){GameEditorModeConsole::getSingleton().mConsoleInterface.tryExecuteClientCommand( "help ", GameEditorModeConsole::getSingletonPtr()->mModeManager->getCurrentModeType(), *(GameEditorModeConsole::getSingletonPtr()->mModeManager)); });
-    
-    m.def("help",  [](std::string info){GameEditorModeConsole::getSingleton().mConsoleInterface.tryExecuteClientCommand( "help " + info, GameEditorModeConsole::getSingletonPtr()->mModeManager->getCurrentModeType(), *(GameEditorModeConsole::getSingletonPtr()->mModeManager)); });
-
-    m.def("list",  [](){GameEditorModeConsole::getSingleton().mConsoleInterface.tryExecuteClientCommand( "list ", GameEditorModeConsole::getSingletonPtr()->mModeManager->getCurrentModeType(), *(GameEditorModeConsole::getSingletonPtr()->mModeManager)); });
-
-    
-    m.def("list",  [](std::string subject){GameEditorModeConsole::getSingleton().mConsoleInterface.tryExecuteClientCommand( "list " + subject, GameEditorModeConsole::getSingletonPtr()->mModeManager->getCurrentModeType(), *(GameEditorModeConsole::getSingletonPtr()->mModeManager)); });
-
-    m.def("maxtime",  [](int time){GameEditorModeConsole::getSingleton().mConsoleInterface.tryExecuteClientCommand( "maxtime " + Helper::toString(time), GameEditorModeConsole::getSingletonPtr()->mModeManager->getCurrentModeType(), *(GameEditorModeConsole::getSingletonPtr()->mModeManager)); });
-    
-    m.def("termwidth",  [](int width){GameEditorModeConsole::getSingleton().mConsoleInterface.tryExecuteClientCommand( "termwidth " + Helper::toString(width), GameEditorModeConsole::getSingletonPtr()->mModeManager->getCurrentModeType(), *(GameEditorModeConsole::getSingletonPtr()->mModeManager)); });
-
-    m.def("addcreature",  [](std::string name){GameEditorModeConsole::getSingleton().mConsoleInterface.tryExecuteClientCommand( "addcreature " + name, GameEditorModeConsole::getSingletonPtr()->mModeManager->getCurrentModeType(), *(GameEditorModeConsole::getSingletonPtr()->mModeManager)); });    
-
-    m.def("setcreaturelevel",  [](std::string name){GameEditorModeConsole::getSingleton().mConsoleInterface.tryExecuteClientCommand( "setcreaturelevel " + name, GameEditorModeConsole::getSingletonPtr()->mModeManager->getCurrentModeType(), *(GameEditorModeConsole::getSingletonPtr()->mModeManager)); });
-
-    m.def("icanseedeadpeople",  [](){GameEditorModeConsole::getSingleton().mConsoleInterface.tryExecuteClientCommand( "icanseedeadpeople ", GameEditorModeConsole::getSingletonPtr()->mModeManager->getCurrentModeType(), *(GameEditorModeConsole::getSingletonPtr()->mModeManager)); });
-
-    m.def("fps",  [](int time){GameEditorModeConsole::getSingleton().mConsoleInterface.tryExecuteClientCommand( "fps " + Helper::toString(time), GameEditorModeConsole::getSingletonPtr()->mModeManager->getCurrentModeType(), *(GameEditorModeConsole::getSingletonPtr()->mModeManager)); });
-
-    
-    m.def("ambientlight",  [](float R, float G, float B){GameEditorModeConsole::getSingleton().mConsoleInterface.tryExecuteClientCommand( "ambientlight " + Helper::toString(R) + " " + Helper::toString(G) + " " + Helper::toString(B), GameEditorModeConsole::getSingletonPtr()->mModeManager->getCurrentModeType(), *(GameEditorModeConsole::getSingletonPtr()->mModeManager)); });    
-
-    m.def("nearclip",  [](float distance){GameEditorModeConsole::getSingleton().mConsoleInterface.tryExecuteClientCommand( "nearclip " + Helper::toString(distance), GameEditorModeConsole::getSingletonPtr()->mModeManager->getCurrentModeType(), *(GameEditorModeConsole::getSingletonPtr()->mModeManager)); });
-
-    m.def("farclip",  [](float distance){GameEditorModeConsole::getSingleton().mConsoleInterface.tryExecuteClientCommand( "farclip " + Helper::toString(distance), GameEditorModeConsole::getSingletonPtr()->mModeManager->getCurrentModeType(), *(GameEditorModeConsole::getSingletonPtr()->mModeManager)); });
-
-    m.def("creaturevisdebug",  [](std::string subject){GameEditorModeConsole::getSingleton().mConsoleInterface.tryExecuteClientCommand( "creaturevisdebug " + subject, GameEditorModeConsole::getSingletonPtr()->mModeManager->getCurrentModeType(), *(GameEditorModeConsole::getSingletonPtr()->mModeManager)); });
-
-    m.def("seatvisdebug",  [](int seat){GameEditorModeConsole::getSingleton().mConsoleInterface.tryExecuteClientCommand( "seatvisdebug " + Helper::toString(seat), GameEditorModeConsole::getSingletonPtr()->mModeManager->getCurrentModeType(), *(GameEditorModeConsole::getSingletonPtr()->mModeManager)); });
-
-    m.def("setcreaturedest",  [](std::string name, int x, int y){GameEditorModeConsole::getSingleton().mConsoleInterface.tryExecuteClientCommand( "setcreaturedest " + name + " " + Helper::toString(x) + " " + Helper::toString(y), GameEditorModeConsole::getSingletonPtr()->mModeManager->getCurrentModeType(), *(GameEditorModeConsole::getSingletonPtr()->mModeManager)); });
-
-    m.def("listmeshanims",  [](std::string name){GameEditorModeConsole::getSingleton().mConsoleInterface.tryExecuteClientCommand( "listmeshanims " + name, GameEditorModeConsole::getSingletonPtr()->mModeManager->getCurrentModeType(), *(GameEditorModeConsole::getSingletonPtr()->mModeManager)); });
-
-    m.def("triggercompositor",  [](std::string name){GameEditorModeConsole::getSingleton().mConsoleInterface.tryExecuteClientCommand( "triggercompositor " + name, GameEditorModeConsole::getSingletonPtr()->mModeManager->getCurrentModeType(), *(GameEditorModeConsole::getSingletonPtr()->mModeManager)); });
-
-    m.def("catmullspline",  [](std::vector<double> points){GameEditorModeConsole::getSingleton().mConsoleInterface.tryExecuteClientCommand( "catmullspline "  + Helper::toString(points), GameEditorModeConsole::getSingletonPtr()->mModeManager->getCurrentModeType(), *(GameEditorModeConsole::getSingletonPtr()->mModeManager)); });
-
-    m.def("circlearound",  [](double x, double y, double radious){GameEditorModeConsole::getSingleton().mConsoleInterface.tryExecuteClientCommand( "circlearound "  + Helper::toString(x) + " " + Helper::toString(y) + " " + Helper::toString(radious), GameEditorModeConsole::getSingletonPtr()->mModeManager->getCurrentModeType(), *(GameEditorModeConsole::getSingletonPtr()->mModeManager)); });
-
-    m.def("setcamerafovy",  [](double fovy){GameEditorModeConsole::getSingleton().mConsoleInterface.tryExecuteClientCommand( "setcamerafovy "  + Helper::toString(fovy), GameEditorModeConsole::getSingletonPtr()->mModeManager->getCurrentModeType(), *(GameEditorModeConsole::getSingletonPtr()->mModeManager)); });
-
-    m.def("logfloodfill",  [](){GameEditorModeConsole::getSingleton().mConsoleInterface.tryExecuteClientCommand( "logfloodfill ", GameEditorModeConsole::getSingletonPtr()->mModeManager->getCurrentModeType(), *(GameEditorModeConsole::getSingletonPtr()->mModeManager)); });
+    addCommand(m, "addcreature",  +[](int seat, std::string creatureName,  std::string meshName, float x, float y, float z, std::string creatureDefinitionString, int level, int exp, std::string hpString, int wakeFullness, int hunger, int goldCarried, std::string weaponLeft, std::string weaponRight, std::string skillsList, int weaponDropDeath  ){ return Helper::toString(seat) + " " + creatureName + " " + meshName + " " +  Helper::toString(x) + " " +  Helper::toString(y) + " " +  Helper::toString(z) + " "  + creatureDefinitionString + " " + Helper::toString(level) + " " +  Helper::toString(exp) + " " + hpString + " " +  Helper::toString(wakeFullness) + " " +  Helper::toString(hunger) + " " +  Helper::toString(goldCarried) + " " + weaponLeft + " " + weaponRight + " " + skillsList + " " +  Helper::toString(weaponDropDeath) ;});    
+    addCommand(m, "addgold", +[](int seat, int gold){ return Helper::toString(seat)+ " " +Helper::toString(gold); });
+    addCommand(m, "addmana", +[](int seat, int mana){ return Helper::toString(seat)+ " " +Helper::toString(mana); });
+    addCommand(m, "catmullspline", +[](std::vector<double> points){ return Helper::toString(points);  });    
+    addCommand(m, "circlearound",  +[](double x, double y, double radious){ return Helper::toString(x) + " " +  Helper::toString(y) + " " + Helper::toString(radious);      });
+    addCommand(m, "creaturevisdebug", +[](std::string subject){ return subject; });    
+    addCommand(m, "farclip",+[](float distance){ return Helper::toString(distance); });
+    addCommand(m, "fps", +[](int frames){ return Helper::toString(frames); });
+    addCommand(m, "helpmessage");
+    addCommand(m, "list", +[](std::string subject){ return subject; });
+    addCommand(m, "listmeshanims", +[](std::string name){ return name;});
+    addCommand(m, "logfloodfill");
+    addCommand(m, "maxtime",  +[](int time){ return Helper::toString(time);});
+    addCommand(m, "nearclip",+[](float distance){ return Helper::toString(distance); });
+    addCommand(m, "seatvisdebug",  +[](int seat){ return Helper::toString(seat); });
+    addCommand(m, "setcamerafovy",  +[](double fovy){ return Helper::toString(fovy);});
+    addCommand(m, "setcreaturedest",  +[](std::string name, int x, int y){  return name +  Helper::toString(x)+ " " +Helper::toString(y);     });
+    addCommand(m, "setcreaturelevel",  +[](int name){ return Helper::toString(name);});
+    addCommand(m, "termwidth", +[](int width){ return Helper::toString(width); });
+    addCommand(m, "togglefow");        
+    addCommand(m, "triggercompositor", +[](std::string name){ return name;});
+    addCommand(m, "unlockskills");
     
 }
 
@@ -748,274 +881,253 @@ Command::Result cTriggerCompositor(const Command::ArgumentList_t& args, ConsoleI
 
 } // namespace <none>
 
-//PYBIND11_EMBEDDED_MODULE(fast_calc, m){ m.def("ambientlight", [&](){ ConsoleInterface mConsoleInterface ;mConsoleInterface.tryExecuteClientCommand(mEditboxWindow->getText().c_str(),
-//                                         mModeManager->getCurrentModeType(),
-//                                         *mModeManager);
-//     });}) }
-
 
 namespace ConsoleCommands
 {
-void addConsoleCommands(ConsoleInterface& cl)
-{
-    cl.addCommand("ambientlight",
-                   "The 'ambientlight' command sets the minimum light that every object in the scene is illuminated with. "
-                   "It takes as it's argument and RGB triplet whose values for red, green, and blue range from 0.0 to 1.0.\n\nExample:\n"
-                   "ambientlight 0.4 0.6 0.5\n\nThe above command sets the ambient light color to red=0.4, green=0.6, and blue = 0.5.",
-                   cAmbientLight,
-                   Command::cStubServer,
-                  {AbstractModeManager::ModeType::GAME, AbstractModeManager::ModeType::EDITOR});
-
-    cl.addCommand("fps",
-                  "'fps' (framespersecond) for short is a utility which displays or sets the maximum framerate at which the"
-                  "rendering will attempt to update the screen.\n\nExample:\n"
-                  "fps 35\n\nThe above command will set the current maximum framerate to 35 turns per second.",
-                  cFPS,
-                  Command::cStubServer,
-                  {AbstractModeManager::ModeType::GAME, AbstractModeManager::ModeType::EDITOR});
-    cl.addCommand("getposition",
-                  "gets position of a mouse in terms of x and y coordinates of gamemap",
-                  cGetPosition,
-                  Command::cStubServer,
-                  {AbstractModeManager::ModeType::GAME, AbstractModeManager::ModeType::EDITOR});    
-    cl.addCommand("printnodes",
-                  "prints all the scene nodes ",
-                  cPrintNodes,
-                  Command::cStubServer,
-                  {AbstractModeManager::ModeType::GAME, AbstractModeManager::ModeType::EDITOR});
-    cl.addCommand("getshadowtexturecount",
-                  "gets number of shadowing textures",
-                  cGetShadowTextureCount,
-                  Command::cStubServer,
-                  {AbstractModeManager::ModeType::GAME, AbstractModeManager::ModeType::EDITOR});    
-    cl.addCommand("printentities",
-                  "prints all entities in the scenemanager ",
-                  cPrintEntities,
-                  Command::cStubServer,
-                  {AbstractModeManager::ModeType::GAME, AbstractModeManager::ModeType::EDITOR});    
-    cl.addCommand("setShadowFarClipDistance",
-                  "sets the camera shadow far clip distance ",
-                  cShadowFarClipDistance,
-                  Command::cStubServer,
-                  {AbstractModeManager::ModeType::GAME, AbstractModeManager::ModeType::EDITOR});
-    cl.addCommand("setShadowNearClipDistance",
-                  "sets the camera shadow near clip distance ",
-                  cShadowNearClipDistance,
-                  Command::cStubServer,
-                  {AbstractModeManager::ModeType::GAME, AbstractModeManager::ModeType::EDITOR});
-    cl.addCommand("setoptimaladjustfactor",
-                  "Adjusts the parameter n to produce optimal shadows ",
-                  cSetOptimalAdjustFactor,
-                  Command::cStubServer,
-                  {AbstractModeManager::ModeType::GAME, AbstractModeManager::ModeType::EDITOR});
-    cl.addCommand("setuseoptimaladjust",
-                  "Sets whether or not to use a slightly simpler version of the camera near point derivation (default is true) ",
-                  cSetUseSimpleOptimalAdjust,
-                  Command::cStubServer,
-                  {AbstractModeManager::ModeType::GAME, AbstractModeManager::ModeType::EDITOR});
-    cl.addCommand("setcameralightdirectionthreshold",
-                  "Sets the threshold between the camera and the light direction below which the LiSPSM projection is 'flattened', since coincident light and camera projections cause problems with the perspective skew. ",
-                  cSetCameraLightDirectionThreshold,
-                  Command::cStubServer,
-                  {AbstractModeManager::ModeType::GAME, AbstractModeManager::ModeType::EDITOR});
-
-    cl.addCommand("setshadowcamerafovy",
-                  "sets shadow camera field of view height in degreee",
-                  cSetShadowCameraFovY,
-                  Command::cStubServer,
-                  {AbstractModeManager::ModeType::GAME, AbstractModeManager::ModeType::EDITOR});    
-    cl.addCommand("nearclip",
-                   "Sets the minimal viewpoint clipping distance. Objects nearer than that won't be rendered.\n\nE.g.: nearclip 3.0",
-                   [](const Command::ArgumentList_t& args, ConsoleInterface& c, AbstractModeManager&) {
-                           return cSetFrameListenerVar<float>(std::mem_fn(&ODFrameListener::getActiveCameraNearClipDistance),
-                                                                 std::mem_fn(&ODFrameListener::setActiveCameraNearClipDistance),
-                                                                 ODFrameListener::getSingleton(),
-                                                                 "near clip distance", args, c);
-                    },
-                  Command::cStubServer,
-                  {AbstractModeManager::ModeType::GAME, AbstractModeManager::ModeType::EDITOR});
-    cl.addCommand("farclip",
-                  "Sets the maximal viewpoint clipping distance. Objects farther than that won't be rendered.\n\nE.g.: farclip 30.0",
-                  [](const Command::ArgumentList_t& args, ConsoleInterface& c, AbstractModeManager&) {
+    void addConsoleCommands(ConsoleInterface& cl)
+    {
+        cl.addCommand("addcreature",
+                      "Adds a new creature according to following parameters",
+                      cSendCmdToServer,
+                      cSrvAddCreature,
+                      {AbstractModeManager::ModeType::GAME, AbstractModeManager::ModeType::EDITOR});
+        cl.addCommand("addgold",
+                      "'addgold' adds the given amount of gold to one player. It takes as arguments the ID of the player to"
+                      "whom the gold should be given and the amount. If the player's treasuries are full, no more gold is given."
+                      "Note that this command is available in server mode only. \n\nExample\n"
+                      "to give 5000 gold to player color 1 : addgold 1 5000",
+                      cSendCmdToServer,
+                      cSrvAddGold,
+                      {AbstractModeManager::ModeType::GAME, AbstractModeManager::ModeType::EDITOR});
+        cl.addCommand("addmana",
+                      "'addmana' adds the given amount of mana to one player. It takes as arguments the ID of the player to"
+                      "whom the man should be given and the amount. If the player's mana pool is full, no more mana is given."
+                      "Note that this command is available in server mode only. \n\nExample\n"
+                      "to give 25000 mana to player 1 : addmana 1 25000",
+                      cSendCmdToServer,
+                      cSrvAddMana,
+                      {AbstractModeManager::ModeType::GAME, AbstractModeManager::ModeType::EDITOR});
+        cl.addCommand("ambientlight",
+                      "The 'ambientlight' command sets the minimum light that every object in the scene is illuminated with. "
+                      "It takes as it's argument and RGB triplet whose values for red, green, and blue range from 0.0 to 1.0.\n\nExample:\n"
+                      "ambientlight 0.4 0.6 0.5\n\nThe above command sets the ambient light color to red=0.4, green=0.6, and blue = 0.5.",
+                      cAmbientLight,
+                      Command::cStubServer,
+                      {AbstractModeManager::ModeType::GAME, AbstractModeManager::ModeType::EDITOR});
+        cl.addCommand("circlearound",
+                      "Triggers the circle camera movement behaviour.\n\nExample:\n"
+                      "circlearound 6 4 8\n"
+                      "Make the camera follow a lazy a circle path around coors 6,4 with a radius of 8.",
+                      cCircleAround,
+                      Command::cStubServer,
+                      {AbstractModeManager::ModeType::GAME, AbstractModeManager::ModeType::EDITOR});
+        cl.addCommand("creaturevisualdebug",
+                      "Visual debugging is a way to see a given creature\'s AI state.\n\nExample:\n"
+                      "creaturevisdebug skeletor\n\n"
+                      "The above command wil turn on visual debugging for the creature named \'skeletor\'. "
+                      "The same command will turn it back off again.",
+                      cSendCmdToServer,
+                      cSrvCreatureVisDebug,
+                      {AbstractModeManager::ModeType::GAME, AbstractModeManager::ModeType::EDITOR},
+                      {"creaturevisdebug"});
+        cl.addCommand("enableZPrePass",
+                      "enables Depth/ Z-Buffer , to show press capslock",
+                      cEnableZPrePass,
+                      Command::cStubServer,
+                      {AbstractModeManager::ModeType::GAME, AbstractModeManager::ModeType::EDITOR});
+    
+        cl.addCommand("farclip",
+                      "Sets the maximal viewpoint clipping distance. Objects farther than that won't be rendered.\n\nE.g.: farclip 30.0",
+                      [](const Command::ArgumentList_t& args, ConsoleInterface& c, AbstractModeManager&) {
                           return cSetFrameListenerVar<float>(std::mem_fn(&ODFrameListener::getActiveCameraFarClipDistance),
-                                                                std::mem_fn(&ODFrameListener::setActiveCameraFarClipDistance),
-                                                                ODFrameListener::getSingleton(),
-                                                                "far clip distance", args, c);
-                  },
-                  Command::cStubServer,
-                  {AbstractModeManager::ModeType::GAME, AbstractModeManager::ModeType::EDITOR});
-    cl.addCommand("maxtime",
-                  "Sets the max time (in seconds) a message will be displayed in the info text area.\n\nExample:\n"
-                  "maxtime 5",
-                  [](const Command::ArgumentList_t& args, ConsoleInterface& c, AbstractModeManager&) {
+                                                             std::mem_fn(&ODFrameListener::setActiveCameraFarClipDistance),
+                                                             ODFrameListener::getSingleton(),
+                                                             "far clip distance", args, c);
+                      },
+                      Command::cStubServer,
+                      {AbstractModeManager::ModeType::GAME, AbstractModeManager::ModeType::EDITOR});
+        cl.addCommand("fps",
+                      "'fps' (framespersecond) for short is a utility which displays or sets the maximum framerate at which the"
+                      "rendering will attempt to update the screen.\n\nExample:\n"
+                      "fps 35\n\nThe above command will set the current maximum framerate to 35 turns per second.",
+                      cFPS,
+                      Command::cStubServer,
+                      {AbstractModeManager::ModeType::GAME, AbstractModeManager::ModeType::EDITOR});
+        cl.addCommand("getposition",
+                      "gets position of a mouse in terms of x and y coordinates of gamemap",
+                      cGetPosition,
+                      Command::cStubServer,
+                      {AbstractModeManager::ModeType::GAME, AbstractModeManager::ModeType::EDITOR});    
+        cl.addCommand("getshadowtexturecount",
+                      "gets number of shadowing textures",
+                      cGetShadowTextureCount,
+                      Command::cStubServer,
+                      {AbstractModeManager::ModeType::GAME, AbstractModeManager::ModeType::EDITOR});    
+        cl.addCommand("helpmessage",
+                      "Display help message",
+                      [](const Command::ArgumentList_t&, ConsoleInterface& c, AbstractModeManager&) {
+                          c.print(HELPMESSAGE);
+                          return Command::Result::SUCCESS;
+                      },
+                      Command::cStubServer,
+                      {AbstractModeManager::ModeType::GAME, AbstractModeManager::ModeType::EDITOR});
+        cl.addCommand("catmullspline",
+                      "Triggers the catmullspline camera movement behaviour.\n\nExample:\n"
+                      "catmullspline 4 5 4 6 5 7\n"
+                      "Make the camera follow a lazy curved path along the given coordinates pairs. ",
+                      cHermiteCatmullSpline,
+                      Command::cStubServer,
+                      {AbstractModeManager::ModeType::GAME, AbstractModeManager::ModeType::EDITOR},
+                      {"hermitecatmullspline"});
+        cl.addCommand("keys",
+                      "list keys",
+                      cKeys,
+                      Command::cStubServer,
+                      {AbstractModeManager::ModeType::GAME, AbstractModeManager::ModeType::EDITOR},
+                      {});
+        cl.addCommand("list",
+                      "description to be reimplemented",
+                      cList,
+                      Command::cStubServer,
+                      {AbstractModeManager::ModeType::GAME, AbstractModeManager::ModeType::EDITOR},
+                      {"ls"});
+        cl.addCommand("listmeshanims",
+                      "'listmeshanims' lists all the animations for the given mesh.",
+                      cListMeshAnims,
+                      Command::cStubServer,
+                      {AbstractModeManager::ModeType::GAME, AbstractModeManager::ModeType::EDITOR},
+                      {"listmeshanimations"});
+        cl.addCommand("logfloodfill",
+                      "'logfloodfill' logs the FloodFillValues of all the Tiles in the GameMap.",
+                      cSendCmdToServer,
+                      cSrvLogFloodFill,
+                      {AbstractModeManager::ModeType::GAME},
+                      {});
+        cl.addCommand("maxtime",
+                      "Sets the max time (in seconds) a message will be displayed in the info text area.\n\nExample:\n"
+                      "maxtime 5",
+                      [](const Command::ArgumentList_t& args, ConsoleInterface& c, AbstractModeManager&) {
                           return cSetFrameListenerVar<float>(std::mem_fn(&ODFrameListener::getEventMaxTimeDisplay),
-                                                                std::mem_fn(&ODFrameListener::setEventMaxTimeDisplay),
-                                                                ODFrameListener::getSingleton(),
-                                                                "event max time display", args, c);
-                  },
-                  Command::cStubServer,
-                  {AbstractModeManager::ModeType::GAME, AbstractModeManager::ModeType::EDITOR});
-    cl.addCommand("addcreature",
-                  "Adds a new creature according to following parameters",
-                  cSendCmdToServer,
-                  cSrvAddCreature,
-                  {AbstractModeManager::ModeType::GAME, AbstractModeManager::ModeType::EDITOR});
-
-    std::string listDescription = "'list' (or 'ls' for short) is a utility which lists various types of information about the current game. "
-            "Running list without an argument will produce a list of the lists available. "
-            "Running list with an argument displays the contents of that list.\n\nExamples:\n"
-            "list creatures\tLists all the creatures currently in the game.\n"
-            "list classes\tLists all creature classes.\n"
-            "list players\tLists every player in game.\n"
-            "list network\tTells whether the game is running as a server, a client or as the map editor.\n"
-            "list rooms\tLists all the current rooms in game.\n"
-            "list colors\tLists all seat's color values.\n"
-            "list goals\tLists The local player goals.\n";
-    cl.addCommand("list",
-                   listDescription,
-                   cList,
-                   Command::cStubServer,
-                   {AbstractModeManager::ModeType::GAME, AbstractModeManager::ModeType::EDITOR},
-                   {"ls"});
-    cl.addCommand("creaturevisualdebug",
-                   "Visual debugging is a way to see a given creature\'s AI state.\n\nExample:\n"
-                   "creaturevisdebug skeletor\n\n"
-                   "The above command wil turn on visual debugging for the creature named \'skeletor\'. "
-                   "The same command will turn it back off again.",
-                   cSendCmdToServer,
-                   cSrvCreatureVisDebug,
-                   {AbstractModeManager::ModeType::GAME, AbstractModeManager::ModeType::EDITOR},
-                   {"creaturevisdebug"});
-
-    cl.addCommand("tilevisualdebug",
-                  "Enables middle clicking a tile and obtaining info for it",
-
-                   [](const Command::ArgumentList_t&, ConsoleInterface& c, AbstractModeManager&) {
-                       GameMode* gm = static_cast<GameMode*>(ODFrameListener::getSingletonPtr()->getModeManager()->getCurrentMode());
-                       gm->toggleAllowTileDebugWindow();
-                       return Command::Result::SUCCESS;
-                   },
-                   Command::cStubServer,
-                   {AbstractModeManager::ModeType::GAME});
+                                                             std::mem_fn(&ODFrameListener::setEventMaxTimeDisplay),
+                                                             ODFrameListener::getSingleton(),
+                                                             "event max time display", args, c);
+                      },
+                      Command::cStubServer,
+                      {AbstractModeManager::ModeType::GAME, AbstractModeManager::ModeType::EDITOR});
+        cl.addCommand("nearclip",
+                      "Sets the minimal viewpoint clipping distance. Objects nearer than that won't be rendered.\n\nE.g.: nearclip 3.0",
+                      [](const Command::ArgumentList_t& args, ConsoleInterface& c, AbstractModeManager&) {
+                          return cSetFrameListenerVar<float>(std::mem_fn(&ODFrameListener::getActiveCameraNearClipDistance),
+                                                             std::mem_fn(&ODFrameListener::setActiveCameraNearClipDistance),
+                                                             ODFrameListener::getSingleton(),
+                                                             "near clip distance", args, c);
+                      },
+                      Command::cStubServer,
+                      {AbstractModeManager::ModeType::GAME, AbstractModeManager::ModeType::EDITOR});
+        cl.addCommand("printentities",
+                      "prints all entities in the scenemanager ",
+                      cPrintEntities,
+                      Command::cStubServer,
+                      {AbstractModeManager::ModeType::GAME, AbstractModeManager::ModeType::EDITOR});    
+        cl.addCommand("printnodes",
+                      "prints all the scene nodes ",
+                      cPrintNodes,
+                      Command::cStubServer,
+                      {AbstractModeManager::ModeType::GAME, AbstractModeManager::ModeType::EDITOR});
+        cl.addCommand("seatvisualdebug",
+                      "Visual debugging is a way to see all the tiles a given seat can see.\n\nExample:\n"
+                      "seatvisualdebug 1\n\nThe above command will show every tiles seat 1 can see.  The same command will turn it off.",
+                      cSendCmdToServer,
+                      cSrvSeatVisDebug,
+                      {AbstractModeManager::ModeType::GAME, AbstractModeManager::ModeType::EDITOR},
+                      {"seatvisdebug"});
+        cl.addCommand("setShadowFarClipDistance",
+                      "sets the camera shadow far clip distance ",
+                      cShadowFarClipDistance,
+                      Command::cStubServer,
+                      {AbstractModeManager::ModeType::GAME, AbstractModeManager::ModeType::EDITOR});
+        cl.addCommand("setShadowNearClipDistance",
+                      "sets the camera shadow near clip distance ",
+                      cShadowNearClipDistance,
+                      Command::cStubServer,
+                      {AbstractModeManager::ModeType::GAME, AbstractModeManager::ModeType::EDITOR});
+        cl.addCommand("setcamerafovy",
+                      "Sets the camera vertical field of view aspect ratio on the Y axis.\n\nExample:\n"
+                      "setcamerafovy 45",
+                      cSetCameraFOVy,
+                      Command::cStubServer,
+                      {AbstractModeManager::ModeType::GAME, AbstractModeManager::ModeType::EDITOR});
+        cl.addCommand("setcameralightdirectionthreshold",
+                      "Sets the threshold between the camera and the light direction below which the LiSPSM projection is 'flattened', since coincident light and camera projections cause problems with the perspective skew. ",
+                      cSetCameraLightDirectionThreshold,
+                      Command::cStubServer,
+                      {AbstractModeManager::ModeType::GAME, AbstractModeManager::ModeType::EDITOR});
+        cl.addCommand("setcreaturedest",
+                      "Sets the creature desitnation it should walk to \n\nExample\n"
+                      "setcreaturedest 0 0 ",
+                      cSendCmdToServer,
+                      cSrvSetCreatureDest,
+                      {AbstractModeManager::ModeType::GAME, AbstractModeManager::ModeType::EDITOR},
+                      {"setcreaturedestination"});
+        cl.addCommand("setcreaturelevel",
+                      "Sets the level of a given creature.\n\nExample:\n"
+                      "setlevel NatureMonster1 10\n\nThe above command will set the creature \'NatureMonster1\' to 10.",
+                      cSendCmdToServer,
+                      cSrvSetCreatureLevel,
+                      {AbstractModeManager::ModeType::GAME, AbstractModeManager::ModeType::EDITOR});
+        cl.addCommand("setloglevel",
+                      "'setloglevel' sets the logging level. If no module (source file) is given, sets global log level."
+                      " Otherwise, sets log level of given module\nExample:\n"
+                      "setloglevel ODApplication 0 => Sets specific log level for ODApplication source file\n"
+                      "setloglevel 1 => Sets global log level",
+                      cSetLogLevel,
+                      Command::cStubServer,
+                      {AbstractModeManager::ModeType::GAME, AbstractModeManager::ModeType::EDITOR},
+                      {});
+        cl.addCommand("setoptimaladjustfactor",
+                      "Adjusts the parameter n to produce optimal shadows ",
+                      cSetOptimalAdjustFactor,
+                      Command::cStubServer,
+                      {AbstractModeManager::ModeType::GAME, AbstractModeManager::ModeType::EDITOR});
+        cl.addCommand("setshadowcamerafovy",
+                      "sets shadow camera field of view height in degreee",
+                      cSetShadowCameraFovY,
+                      Command::cStubServer,
+                      {AbstractModeManager::ModeType::GAME, AbstractModeManager::ModeType::EDITOR});    
+        cl.addCommand("setuseoptimaladjust",
+                      "Sets whether or not to use a slightly simpler version of the camera near point derivation (default is true) ",
+                      cSetUseSimpleOptimalAdjust,
+                      Command::cStubServer,
+                      {AbstractModeManager::ModeType::GAME, AbstractModeManager::ModeType::EDITOR});
+        cl.addCommand("tilevisualdebug",
+                      "Enables middle clicking a tile and obtaining info for it",
+                      [](const Command::ArgumentList_t&, ConsoleInterface& c, AbstractModeManager&) {
+                          GameMode* gm = static_cast<GameMode*>(ODFrameListener::getSingletonPtr()->getModeManager()->getCurrentMode());
+                          gm->toggleAllowTileDebugWindow();
+                          return Command::Result::SUCCESS;
+                      },
+                      Command::cStubServer,
+                      {AbstractModeManager::ModeType::GAME});
     
-    cl.addCommand("seatvisualdebug",
-                   "Visual debugging is a way to see all the tiles a given seat can see.\n\nExample:\n"
-                   "seatvisualdebug 1\n\nThe above command will show every tiles seat 1 can see.  The same command will turn it off.",
-                   cSendCmdToServer,
-                   cSrvSeatVisDebug,
-                   {AbstractModeManager::ModeType::GAME, AbstractModeManager::ModeType::EDITOR},
-                   {"seatvisdebug"});
-    cl.addCommand("togglefow",
-                   "Toggles on/off fog of war for every connected player",
-                   cSendCmdToServer,
-                   cSrvToggleFOW,
-                   {AbstractModeManager::ModeType::GAME},
-                   {"icanseedeadpeople"});
-    cl.addCommand("setcreaturelevel",
-                   "Sets the level of a given creature.\n\nExample:\n"
-                   "setlevel NatureMonster1 10\n\nThe above command will set the creature \'NatureMonster1\' to 10.",
-                   cSendCmdToServer,
-                   cSrvSetCreatureLevel,
-                   {AbstractModeManager::ModeType::GAME, AbstractModeManager::ModeType::EDITOR});
-    cl.addCommand("hermitecatmullspline",
-                   "Triggers the catmullspline camera movement behaviour.\n\nExample:\n"
-                   "catmullspline 4 5 4 6 5 7\n"
-                   "Make the camera follow a lazy curved path along the given coordinates pairs. ",
-                   cHermiteCatmullSpline,
-                   Command::cStubServer,
-                   {AbstractModeManager::ModeType::GAME, AbstractModeManager::ModeType::EDITOR},
-                   {"catmullspline"});
-    cl.addCommand("circlearound",
-                   "Triggers the circle camera movement behaviour.\n\nExample:\n"
-                   "circlearound 6 4 8\n"
-                   "Make the camera follow a lazy a circle path around coors 6,4 with a radius of 8.",
-                   cCircleAround,
-                   Command::cStubServer,
-                   {AbstractModeManager::ModeType::GAME, AbstractModeManager::ModeType::EDITOR});
-    cl.addCommand("setcamerafovy",
-                   "Sets the camera vertical field of view aspect ratio on the Y axis.\n\nExample:\n"
-                   "setcamerafovy 45",
-                   cSetCameraFOVy,
-                   Command::cStubServer,
-                   {AbstractModeManager::ModeType::GAME, AbstractModeManager::ModeType::EDITOR});
-    cl.addCommand("addgold",
-                   "'addgold' adds the given amount of gold to one player. It takes as arguments the ID of the player to"
-                   "whom the gold should be given and the amount. If the player's treasuries are full, no more gold is given."
-                   "Note that this command is available in server mode only. \n\nExample\n"
-                   "to give 5000 gold to player color 1 : addgold 1 5000",
-                   cSendCmdToServer,
-                   cSrvAddGold,
-                   {AbstractModeManager::ModeType::GAME, AbstractModeManager::ModeType::EDITOR});
-    cl.addCommand("addmana",
-                   "'addmana' adds the given amount of mana to one player. It takes as arguments the ID of the player to"
-                   "whom the man should be given and the amount. If the player's mana pool is full, no more mana is given."
-                   "Note that this command is available in server mode only. \n\nExample\n"
-                   "to give 25000 mana to player 1 : addmana 1 25000",
-                   cSendCmdToServer,
-                   cSrvAddMana,
-                   {AbstractModeManager::ModeType::GAME, AbstractModeManager::ModeType::EDITOR});
+        cl.addCommand("togglefow",
+                      "Toggles on/off fog of war for every connected player",
+                      cSendCmdToServer,
+                      cSrvToggleFOW,
+                      {AbstractModeManager::ModeType::GAME},
+                      {"icanseedeadpeople"});
+        cl.addCommand("triggercompositor",
+                      "Starts the given compositor. The compositor must exist.\n\nExample:\n"
+                      "triggercompositor blacknwhite",
+                      cTriggerCompositor,
+                      Command::cStubServer,
+                      {AbstractModeManager::ModeType::GAME, AbstractModeManager::ModeType::EDITOR});
+        cl.addCommand("unlockskills",
+                      "Unlock all skills for every seats\n"
+                      "unlockskills",
+                      cSendCmdToServer,
+                      cSrvUnlockSkills,
+                      {AbstractModeManager::ModeType::GAME});
 
-    cl.addCommand("enableZPrePass",
-                   "enables Depth/ Z-Buffer , to show press capslock",
-                   cEnableZPrePass,
-                   Command::cStubServer,
-                   {AbstractModeManager::ModeType::GAME, AbstractModeManager::ModeType::EDITOR});
-    
-    cl.addCommand("setcreaturedest",
-                   "Sets the camera vertical field of view aspect ratio on the Y axis.\n\nExample:\n"
-                   "setcamerafovy 45",
-                   cSendCmdToServer,
-                   cSrvSetCreatureDest,
-                   {AbstractModeManager::ModeType::GAME, AbstractModeManager::ModeType::EDITOR},
-                   {"setcreaturedestination"});
-    cl.addCommand("logfloodfill",
-                   "'logfloodfill' logs the FloodFillValues of all the Tiles in the GameMap.",
-                   cSendCmdToServer,
-                   cSrvLogFloodFill,
-                   {AbstractModeManager::ModeType::GAME},
-                   {});
-    cl.addCommand("listmeshanims",
-                   "'listmeshanims' lists all the animations for the given mesh.",
-                   cListMeshAnims,
-                   Command::cStubServer,
-                   {AbstractModeManager::ModeType::GAME, AbstractModeManager::ModeType::EDITOR},
-                   {"listmeshanimations"});
-    cl.addCommand("setloglevel",
-                   "'setloglevel' sets the logging level. If no module (source file) is given, sets global log level."
-                   " Otherwise, sets log level of given module\nExample:\n"
-                   "setloglevel ODApplication 0 => Sets specific log level for ODApplication source file\n"
-                   "setloglevel 1 => Sets global log level",
-                   cSetLogLevel,
-                   Command::cStubServer,
-                   {AbstractModeManager::ModeType::GAME, AbstractModeManager::ModeType::EDITOR},
-                   {});
-    cl.addCommand("keys",
-                   "list keys",
-                   cKeys,
-                   Command::cStubServer,
-                   {AbstractModeManager::ModeType::GAME, AbstractModeManager::ModeType::EDITOR},
-                   {});
-    cl.addCommand("triggercompositor",
-                   "Starts the given compositor. The compositor must exist.\n\nExample:\n"
-                   "triggercompositor blacknwhite",
-                   cTriggerCompositor,
-                   Command::cStubServer,
-                   {AbstractModeManager::ModeType::GAME, AbstractModeManager::ModeType::EDITOR});
-    cl.addCommand("helpmessage",
-                   "Display help message",
-                   [](const Command::ArgumentList_t&, ConsoleInterface& c, AbstractModeManager&) {
-                        c.print(HELPMESSAGE);
-                        return Command::Result::SUCCESS;
-                   },
-                   Command::cStubServer,
-                  {AbstractModeManager::ModeType::GAME, AbstractModeManager::ModeType::EDITOR});
-    cl.addCommand("unlockskills",
-                   "Unlock all skills for every seats\n"
-                   "unlockskills",
-                   cSendCmdToServer,
-                   cSrvUnlockSkills,
-                   {AbstractModeManager::ModeType::GAME});
-
-}
+    }
 
 } // namespace ConsoleCommands

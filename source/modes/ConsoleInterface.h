@@ -97,6 +97,9 @@ public:
 
     using CommandHistoryBufferList_t = std::list<String_t>;
     inline CommandHistoryBufferList_t& getCommandHistoryBuffer() {return mCommandHistoryBuffer;}
+
+    //! \brief Look up the description for the command
+    boost::optional<const String_t&> getCommandDescription(const String_t& command);
     
 private:
     using CommandPtr_t = std::shared_ptr<Command>;
@@ -112,8 +115,7 @@ private:
         mTemporaryCommandString.clear();
     }
 
-    //! \brief Look up the description for the command
-    boost::optional<const String_t&> getCommandDescription(const String_t& command);
+
     static Command::Result helpCommand(const Command::ArgumentList_t& args, ConsoleInterface& console, AbstractModeManager&);
 
     ConsoleInterface(const ConsoleInterface&) = delete;
