@@ -6,8 +6,6 @@
 
 class ConsoleInterface;
 
-const std::map<std::string, const char*>& getDocString();
-
 namespace ConsoleCommands
 {
     //! \brief Adds a number of console commands to the specified console

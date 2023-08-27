@@ -34,6 +34,9 @@
 #include <map>
 #include <vector>
 
+const std::map<std::string, const char*>& getDocString();
+
+
 class GameMap;
 
 //! \class ConsoleInterface
@@ -61,12 +64,20 @@ public:
     //! \param command The commnad to be run
     //! \param allowedModes A list of modes this command is allowed to run in.
     //! \param aliases And optional list of aliases
-    bool addCommand(String_t name, String_t description,
+    bool addCommandAux(String_t name, String_t description,
                     CommandClientFunction_t commandClient,
                     CommandServerFunction_t commandServer,
                     std::initializer_list<ModeType> allowedModes,
                     std::initializer_list<String_t> aliases = {});
 
+    bool addCommand(String_t name,
+                    CommandClientFunction_t commandClient,
+                    CommandServerFunction_t commandServer,
+                    std::initializer_list<ModeType> allowedModes,
+                    std::initializer_list<String_t> aliases = {})
+    {
+        return addCommandAux(name, "", commandClient, commandServer, allowedModes, aliases);
+    }
     //! \brief Try executing a command on client side
     //! \param commandString The command string to be executed
     //! \returns Command::Result::SUCCESS if the command succeeds, Command::Result::WRONG_MODE if the
