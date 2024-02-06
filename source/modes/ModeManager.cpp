@@ -18,6 +18,7 @@
 #include "modes/ModeManager.h"
 
 #include "modes/InputManager.h"
+#include "modes/AdvertMode.h"
 #include "modes/MenuModeMain.h"
 #include "modes/MenuModeConfigureSeats.h"
 #include "modes/MenuModeSkirmish.h"
@@ -135,6 +136,8 @@ void ModeManager::checkModeChange()
     case MENU_MASTERSERVER_JOIN:
         mCurrentApplicationMode = Utils::make_unique<MenuModeMasterServerJoin>(this);
         break;
+    case ADVERTISMENT:
+        mCurrentApplicationMode = Utils::make_unique<AdvertMode>(this);
     default:
         break;
     }

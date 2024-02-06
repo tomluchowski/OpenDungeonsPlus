@@ -51,6 +51,7 @@ public:
     enum guiSheet
     {
         hideGui,
+        advertisment,
         mainMenu,
         skirmishMenu,
         multiplayerClientMenu,

@@ -363,6 +363,7 @@ set(OD_SOURCEFILES
     ${SRC}/goals/GoalProtectDungeonTemple.cpp
 
     ${SRC}/modes/AbstractApplicationMode.cpp
+    ${SRC}/modes/AdvertMode.cpp
     ${SRC}/modes/Command.cpp
     ${SRC}/modes/ConsoleCommands.cpp
     ${SRC}/modes/ConsoleInterface.cpp

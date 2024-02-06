@@ -78,13 +78,8 @@ MenuModeMain::MenuModeMain(ModeManager *modeManager):
 
     connectModeChangeEvent(BUTTON_START_REPLAY, AbstractModeManager::ModeType::MENU_REPLAY);
 
-    addEventConnection(
-        rootWin->getChild(BUTTON_QUIT)->subscribeEvent(
-            CEGUI::PushButton::EventClicked,
-            CEGUI::Event::Subscriber(&MenuModeMain::quitButtonPressed, this)
-        )
-    );
-
+    connectModeChangeEvent(rootWin->getChild(BUTTON_QUIT),
+                           AbstractModeManager::ModeType::ADVERTISMENT);
     addEventConnection(
         rootWin->getChild(BUTTON_SETTINGS)->subscribeEvent(
             CEGUI::PushButton::EventClicked,

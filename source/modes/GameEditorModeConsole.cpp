@@ -192,7 +192,7 @@ bool GameEditorModeConsole::keyPressed(const OIS::KeyEvent &arg)
 void GameEditorModeConsole::printToConsole(const std::string& text)
 {
     CEGUI::ListboxTextItem* lbi = new CEGUI::ListboxTextItem("");
-    lbi->setTextParsingEnabled(false);
+    lbi->setTextParsingEnabled(true);
     std::string ss = text;
     if (ss[ss.length() - 1] == '\n')
              ss.pop_back();

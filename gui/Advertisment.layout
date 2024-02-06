@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<GUILayout version="4" >
+
+    <Window type="OD/StaticImage" name="Advertisment" >
+        <Property name="Area" value="{{0,0},{0,0},{1,2},{1,0}}" />
+        <Property name="Image" value="ODAdvertisment/AdvertismentA" />
+        <Property name="MaxSize" value="{{1,0},{1,0}}" /> 
+        <Window type="OD/StaticText" name="AdvertismentSlogan1" >
+            <Property name="Text" value=" Delve deeper into dark arkanes of opendungeons with c++ " />
+            <Property name="Area" value="{{0,0},{0,120},{1,0},{0,240}}" />
+            <Property name="Font" value="LiberationSans-20" />                     
+            <Property name="BackgroundEnabled" value="False" />
+            <Property name="FrameEnabled" value="False" />             
+        </Window>
+        <Window type="OD/StaticText" name="AdvertismentSlogan2" >
+            <Property name="Text" value=" Programmers and Artists wanted" />  
+            <Property name="Area" value="{{0,0},{0,240},{1,0},{0,360}}" />
+            <Property name="Font" value="LiberationSans-20" />
+            <Property name="BackgroundEnabled" value="False" />
+            <Property name="FrameEnabled" value="False" />                                    
+        </Window>   
+        <Window type="OD/StaticText" name="AdvertismentLink" >
+            <Property name="Text" value=" Click here to visit our discord channel : https://discord.gg/K2JPXuchZV" />  
+            <Property name="Area" value="{{0,0},{0,360},{1,0},{0,480}}" />
+            <Property name="Font" value="LiberationSans-20" />                                
+        </Window>
+    </Window>
+  
+</GUILayout>

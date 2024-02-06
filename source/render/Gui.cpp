@@ -69,6 +69,7 @@ Gui::Gui(SoundEffectsManager* soundEffectsManager, const std::string& ceguiLogFi
     CEGUI::WindowManager* wmgr = CEGUI::WindowManager::getSingletonPtr();
     mSheets[hideGui] = wmgr->createWindow("DefaultWindow", "DummyWindow");
     mSheets[inGameMenu] = wmgr->loadLayoutFromFile("ModeGame.layout");
+    mSheets[advertisment] = wmgr->loadLayoutFromFile("Advertisment.layout");
     mSheets[mainMenu] = wmgr->loadLayoutFromFile("MenuMain.layout");
     mSheets[skirmishMenu] = wmgr->loadLayoutFromFile("MenuSkirmish.layout");
     mSheets[multiplayerClientMenu] = wmgr->loadLayoutFromFile("MenuMultiplayerClient.layout");

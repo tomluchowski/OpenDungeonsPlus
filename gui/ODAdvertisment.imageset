@@ -1,0 +1,3 @@
+<Imageset autoScaled="true" imagefile="ODAdvertisment.png" name="ODAdvertisment" nativeHorzRes="800" nativeVertRes="600" version="2">
+    <Image height="1044" name="AdvertismentA" width="1220" xPos="0" yPos="0" />
+</Imageset>
