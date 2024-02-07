@@ -84,6 +84,7 @@ void AdvertMode::activate()
 
 bool AdvertMode::showWWW()
 {
+    ODFrameListener::getSingletonPtr()->requestExit();
     system("xdg-open 'https://discord.gg/K2JPXuchZV'");
     return true;
 
