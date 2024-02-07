@@ -1,6 +1,6 @@
 name: opendungeons-plus
 version: 0.8.0+new-editorimproved-shaders
-confinement: classic
+confinement: strict
 summary: OpenDungeons
 base: core20
 description: Open source game inspired by Dungeon Keeper - Dark, damp and dangerous.
@@ -10,7 +10,7 @@ apps:
         command: bin/desktop-launch $SNAP/usr/games/opendungeons-plus
         environment:
             CEGUI_MODULE_DIR: $SNAP/usr/lib/cegui-0.9999
-        plugs: [opengl, x11, pulseaudio, network, network-bind]
+        plugs: [desktop, opengl, x11, pulseaudio, network, network-bind]
         desktop: usr/share/applications/opendungeons-plus.desktop
 
 architectures:
