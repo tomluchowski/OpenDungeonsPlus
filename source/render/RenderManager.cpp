@@ -418,6 +418,7 @@ void RenderManager::stopGameRenderer(GameMap*)
         mSceneManager->destroyLight(mHandLight);
         mHandLight = nullptr;
     }
+    remove("LiftedGold");
 }
 
 void RenderManager::triggerCompositor(const std::string& compositorName)

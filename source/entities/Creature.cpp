@@ -94,9 +94,7 @@
 #include <cmath>
 #include <algorithm>
 
-#if OGRE_PLATFORM == OGRE_PLATFORM_WIN32
-#define snprintf_is_banned_in_OD_code _snprintf
-#endif
+
 
 static const Ogre::Real CANNON_MISSILE_HEIGHT = 0.3;
 

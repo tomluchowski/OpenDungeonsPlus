@@ -61,6 +61,8 @@
 
 #include <boost/program_options.hpp>
 
+#include <OISException.h>
+
 #include <string>
 #include <sstream>
 #include <fstream>
@@ -201,7 +203,7 @@ void ODApplication::startClient()
     HWND hwnd;
     renderWindow->getCustomAttribute("WINDOW", static_cast<void*>(&hwnd));
     HINSTANCE hInst = static_cast<HINSTANCE>(GetModuleHandle(nullptr));
-    SetClassLong(hwnd, GCL_HICON, reinterpret_cast<LONG>(LoadIcon(hInst, MAKEINTRESOURCE(IDI_ICON1))));
+    SetClassLong(hwnd, GCLP_HICON, reinterpret_cast<LONG>(LoadIcon(hInst, MAKEINTRESOURCE(IDI_ICON1))));
 #endif
 
     //Initialise RTshader system
@@ -247,29 +249,68 @@ void ODApplication::startClient()
 
 #ifdef OD_USE_SFML_WINDOW
     bool running = true;
-    while(running)
+    try
     {
-        sf::Event event;
-        while (sfmlWindow.pollEvent(event)) {
-            if (event.type == sf::Event::Closed)
+        while (running)
+        {
+            sf::Event event;
+            while (sfmlWindow.pollEvent(event))
             {
-                frameListener.requestExit();
-                break;
-            }
-            else
-            {
-                if (event.type == sf::Event::Resized)
+                if (event.type == sf::Event::Closed)
                 {
-                    renderWindow->resize(event.size.width, event.size.height);
-                    frameListener.windowResized(renderWindow);
+                    OD_LOG_INF("Requested window close ....");
+                    frameListener.requestExit();
+                    break;
                 }
-                frameListener.getModeManager()->getInputManager().handleSFMLEvent(event);
+                else
+                {
+                    if (event.type == sf::Event::Resized)
+                    {
+                        renderWindow->resize(event.size.width, event.size.height);
+                        frameListener.windowResized(renderWindow);
+                    }
+                    frameListener.getModeManager()->getInputManager().handleSFMLEvent(event);
+                }
             }
+            sfmlWindow.clear();
+            // If renderOneFrame returns false, it indicates that an exit has been requested
+            running = ogreRoot.renderOneFrame();
+            sfmlWindow.display();
         }
-        sfmlWindow.clear();
-        // If renderOneFrame returns false, it indicates that an exit has been requested
-        running = ogreRoot.renderOneFrame();
-        sfmlWindow.display();
+    }
+    catch (const CEGUI::Exception& e)
+    {
+        OD_LOG_ERR("a CEGUI exception " + e.what() + " has broken the main sfml loop");
+        throw ;
+    }
+    catch (const Ogre::Exception& e)
+    {
+        OD_LOG_ERR("an Ogre exception " + e.what() + " has broken the main sfml loop");
+        throw ;
+    }
+    catch (const boost::exception& e)
+    {
+        OD_LOG_ERR("a boost exception " + dynamic_cast<std::exception const&>(e).what()+ " has broken the main sfml loop");
+        throw;
+    }
+
+    catch (const OIS::Exception& e)
+    {
+        std::stringstream ss;
+        ss << "an OIS exception " << e.what() << " " + static_cast<int>(e.eType) << " " << e.eLine << " " << e.eFile << " " << e.eText << " has broken the main sfml loop";
+        OD_LOG_ERR(ss.str());
+        throw;
+    }
+    catch (const std::exception& e) 
+    {
+        OD_LOG_ERR("a std exception " + e.what()  + " has broken the main sfml loop");
+        throw;
+    
+    }
+    catch (...)
+    {
+        OD_LOG_ERR("an unkown exception has broken the main sfml loop");
+        throw ;
     }
 #else /* OD_USE_SFML_WINDOW */
     // frameListener.mRenderManager->setup();
@@ -284,7 +325,7 @@ void ODApplication::startClient()
     }    
     OD_LOG_INF("After : ogreRoot.startRendering();");    
 #endif /* OD_USE_SFML_WINDOW */
-
+    
     OD_LOG_INF("Disconnecting client...");
     client.disconnect();
     OD_LOG_INF("Stopping server...");

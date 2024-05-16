@@ -130,6 +130,8 @@ public:
 
     void createCameraNode(const std::string& name);
 
+    void destroyCameraNode(const std::string& name);
+    
     inline Ogre::SceneNode* getActiveCameraNode() const
     { return mActiveCameraNode; }
     Ogre::SceneNode* setActiveCameraNode(const Ogre::String& ss);
@@ -140,6 +142,8 @@ public:
     //! \brief Sets up the main camera
     void createCamera(const Ogre::String& ss, double nearClip, double farClip);
 
+    void destroyCamera(const Ogre::String& ss);
+    
     void setActiveCamera(const Ogre::String& ss);
 
     inline Ogre::Camera* getActiveCamera()

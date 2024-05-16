@@ -18,8 +18,10 @@
 #ifndef SETTINGSWINDOW_H
 #define SETTINGSWINDOW_H
 
+
 #include <CEGUI/Event.h>
 #include <CEGUI/Window.h>
+
 
 #include <vector>
 

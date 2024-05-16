@@ -62,6 +62,7 @@
 
 #include <OgreEntity.h>
 #include <OgreSceneNode.h>
+#include <OgreMaterialManager.h>
 #include <OgreRoot.h>
 #include <OgreRenderWindow.h>
 #include <OgreAxisAlignedBox.h>
@@ -301,7 +302,7 @@ EditorMode::EditorMode(ModeManager* modeManager):
             CEGUI::Event::Subscriber(&EditorMode::saveMenuSaveButtonClicked, this)
     ));
     
-    for(uint ii = 0 ;  ii < mGameMap->numClassDescriptions()   ; ++ii )
+    for(unsigned int ii = 0 ;  ii < mGameMap->numClassDescriptions()   ; ++ii )
     {
         mGameMap->getClassDescription(ii);
         CEGUI::Window* ww = CEGUI::WindowManager::getSingletonPtr()->createWindow("OD/MenuItem");
@@ -1417,6 +1418,13 @@ bool EditorMode::onYesConfirmMenu(const CEGUI::EventArgs& /*arg*/)
 
 bool EditorMode::loadLevelFromFile(const std::string& fileName)
 {
+    // Ogre::MaterialManager::getSingletonPtr()->unload("LiftedGold");    
+    Ogre::MaterialManager::getSingletonPtr()->remove("LiftedGold","Graphics");
+    Ogre::TextureManager::getSingletonPtr()->remove("smokeTexture");
+
+
+    ODFrameListener::getSingleton().getCameraManager()->destroyCamera("RenderToTexture");
+    ODFrameListener::getSingleton().getCameraManager()->destroyCameraNode("RenderToTexture");    
     
     mMainCullingManager->stopTileCulling(mCameraTilesIntersections);
     // eliminating the race condition
@@ -1557,10 +1565,10 @@ bool EditorMode::loadMenuFilePathTextChanged( const CEGUI::EventArgs& /*arg*/)
                 int nn = 1;
                 for (directory_entry& xx : directory_iterator(pp))
                 {
-                    if(!(isFileHidden(xx.path().leaf().c_str())
+                    if(!(isFileHidden(xx.path().filename().generic_string())
                          && !isCheckboxSelected("MenuEditorLoad/LevelWindowFrame/HiddenFiles")))
                     {
-                        if(xx.path().has_extension() && xx.path().extension().compare(".level") == 0)
+                        if(xx.path().has_extension() && xx.path().extension().compare(L".level") == 0)
                         {
                             addPathNameToList(xx, levelSelectList, CEGUI::Colour(1,0.64,0), nn);
                         }
@@ -1606,11 +1614,11 @@ bool EditorMode::loadMenuLevelSelectSelected(const CEGUI::EventArgs& /*arg*/)
         path pp (levelSelectList->getFirstSelectedItem()->getText().c_str());
         if(levelSelectList->getFirstSelectedItem()->getID() ==0)
         {
-            levelEditBox->setText(ll.parent_path().c_str());
+            levelEditBox->setText((ll.parent_path().generic_string()));
             levelEditBox->fireEvent(CEGUI::Editbox::EventTextAccepted,args);               
         }
 
-        else if(pp.has_extension() && pp.extension().compare(".level")==0)
+        else if(pp.has_extension() && pp.extension().compare(std::string(".level"))==0)
         {
             CEGUI::Window* descTxt =  mRootWindow->getChild("MenuEditorLoad")->getChild("LevelWindowFrame/MapDescriptionText");
             LevelInfo levelInfo;
@@ -1641,7 +1649,7 @@ bool EditorMode::loadMenuLevelDoubleClicked(const CEGUI::EventArgs& /*arg*/)
     if(levelSelectList->getFirstSelectedItem())
     {
         path pp (levelSelectList->getFirstSelectedItem()->getText().c_str());
-        if(pp.has_extension() && pp.extension().compare(".level")==0)
+        if(pp.has_extension() && pp.extension().compare(std::string(".level"))==0)
         {
             loadMenuAskForConfirmation((levelEditBox->getText() + "/" + levelSelectList->getFirstSelectedItem()->getText()).c_str());
         }
@@ -1711,9 +1719,9 @@ bool EditorMode::saveMenuFilePathTextChanged(const CEGUI::EventArgs& /*arg*/)
                 int nn = 1;
                 for (directory_entry& xx : directory_iterator(pp))
                 {
-                    if(!(isFileHidden(xx.path().leaf().c_str()) && !isCheckboxSelected("MenuEditorSave/LevelWindowFrame/HiddenFiles")))
+                    if(!(isFileHidden(xx.path().filename().generic_string()) && !isCheckboxSelected("MenuEditorSave/LevelWindowFrame/HiddenFiles")))
                     {
-                        if(xx.path().has_extension() && xx.path().extension().compare(".level") == 0)
+                        if(xx.path().has_extension() && xx.path().extension().compare(std::string(".level")) == 0)
                         {
                             addPathNameToList(xx, levelSelectList, CEGUI::Colour(1,0.64,0), nn);
                         }
@@ -1768,13 +1776,13 @@ bool EditorMode::saveMenuLevelSelectSelected(const CEGUI::EventArgs& /*arg*/)
         path pp (levelSelectList->getFirstSelectedItem()->getText().c_str());
         if(levelSelectList->getFirstSelectedItem()->getID() ==0)
         {
-            levelPathEditBox->setText(ll.parent_path().c_str());
+            levelPathEditBox->setText(ll.parent_path().generic_string());
             levelPathEditBox->fireEvent(CEGUI::Editbox::EventTextAccepted,args);               
         }
 
-        else if(pp.has_extension() && pp.extension().compare(".level")==0)
+        else if(pp.has_extension() && pp.extension().compare(std::string(".level"))==0)
         {
-            levelNameEditBox->setText(pp.c_str());
+            levelNameEditBox->setText(pp.generic_string());
             levelNameEditBox->fireEvent(CEGUI::Editbox::EventTextAccepted,args);                  
         }
     
@@ -2048,8 +2056,8 @@ void EditorMode::installRecentlyUsedFilesButtons()
     for(auto &ii :  ConfigManager::getSingleton().getRecentlyUsedFiles())
     {
         CEGUI::Window* ww = CEGUI::WindowManager::getSingletonPtr()->createWindow("OD/MenuItem");
-        ww->setText(ii.c_str());
-        ww->setName(ii.c_str());        
+        ww->setText(ii.generic_string());
+        ww->setName(ii.generic_string());
         mRootWindow->getChild("Menubar")->getChild("File")->getChild("PopupMenu1")->getChild("RecentlyUsed")->getChild("PopupMenu2")->addChild(ww);
         ww->subscribeEvent(
             CEGUI::Window::EventMouseClick,
@@ -2059,7 +2067,7 @@ void EditorMode::installRecentlyUsedFilesButtons()
                              ConfigManager::getSingleton().getRecentlyUsedFiles().end(), ii));
                     ConfigManager::getSingleton().getRecentlyUsedFiles().linearize();
                     ConfigManager::getSingleton().getRecentlyUsedFiles().push_back(ii);
-                    this->loadMenuAskForConfirmation(ii.c_str());
+                    this->loadMenuAskForConfirmation(ii.generic_string());
                     this->uninstallRecentlyUsedFilesButtons();
                     this->installRecentlyUsedFilesButtons();
                 })
@@ -2114,12 +2122,13 @@ bool EditorMode::isCheckboxSelected(const CEGUI::String& checkbox)
 }
 
 
-bool EditorMode::isFileHidden(const char* path)
+bool EditorMode::isFileHidden(std::string path)
 {
 #if OGRE_PLATFORM == OGRE_PLATFORM_WIN32
     
-    DWORD attributes = GetFileAttributes(path);
-    return (attributes & FILE_ATTRIBUTE_HIDDEN);
+    //DWORD attributes = GetFileAttributes(path);
+    //return (attributes & FILE_ATTRIBUTE_HIDDEN);
+    return false;
 #else
     return (path[0] == '.');
 #endif    
@@ -2128,9 +2137,9 @@ bool EditorMode::isFileHidden(const char* path)
 
 void EditorMode::addPathNameToList(directory_entry& xx, CEGUI::Listbox* levelSelectList, CEGUI::Colour cc, int& nn )
 {
-    CEGUI::ListboxTextItem* item = new CEGUI::ListboxTextItem(xx.path().c_str());
+    CEGUI::ListboxTextItem* item = new CEGUI::ListboxTextItem(xx.path().generic_string());
     item->setTextColours(cc);
-    item->setText(xx.path().leaf().c_str());
+    item->setText(xx.path().filename().generic_string());
     item->setID(nn);
     item->setSelectionBrushImage("OpenDungeonsSkin/SelectionBrush");
     levelSelectList->addItem(item);
@@ -2183,7 +2192,8 @@ bool EditorMode::launchNewLevelPressed(const CEGUI::EventArgs&)
             ->setText("The level filename already exists.\nPlease set a different filename.");
         return true;
     }
-    if (boost::filesystem::extension(level) != ".level") {
+    boost::filesystem::path pp(level);
+    if (pp.extension() != ".level") {
         level.append(".level");
     }
 

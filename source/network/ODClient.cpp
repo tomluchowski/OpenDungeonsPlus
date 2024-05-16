@@ -16,7 +16,6 @@
  */
 
 #include "network/ODClient.h"
-
 #include "camera/CullingManager.h"
 #include "entities/Building.h"
 #include "entities/Creature.h"

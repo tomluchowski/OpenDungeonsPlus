@@ -412,7 +412,7 @@ bool TrapManager::buildTrapEditor(GameMap* gameMap, TrapType type, ODPacket& pac
 
 bool TrapManager::buildTrapOnTiles(GameMap* gameMap, TrapType type, Player* player, const std::vector<Tile*>& tiles, bool noFee =false)
 {
-    buildTrapOnTiles(gameMap, type, player->getSeat(), tiles, noFee);
+    return buildTrapOnTiles(gameMap, type, player->getSeat(), tiles, noFee);
 }
 
 bool TrapManager::buildTrapOnTiles(GameMap* gameMap, TrapType type, Seat* seatPtr, const std::vector<Tile*>& tiles, bool noFee =false)

@@ -162,7 +162,7 @@ void ResourceManager::setupDataPath(boost::program_options::variables_map& optio
 #endif
     mPluginsPath = path + "/" + PLUGINSCFG;
 #if defined(OGRE_VERSION) && OGRE_VERSION >= 0x10A00
-    mPluginsPath = Ogre::FileSystemLayer::resolveBundlePath(mPluginsPath);
+   mPluginsPath = Ogre::FileSystemLayer::resolveBundlePath(mPluginsPath);
 #endif
 #endif
 

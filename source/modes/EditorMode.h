@@ -26,7 +26,9 @@
 
 #include <boost/filesystem.hpp>
 #include <boost/circular_buffer.hpp>
+
 #include <iostream>
+
 
 
 class DraggableTileContainer;
@@ -185,7 +187,7 @@ private:
     
     bool loadLevelFromFile(const std::string&);
     //! \brief file path to currently choosen file via load / save menu
-    bool isFileHidden(const char* path);
+    bool isFileHidden(std::string path);
     void addPathNameToList(boost::filesystem::directory_entry& xx, CEGUI::Listbox* levelSelectList, CEGUI::Colour cc, int& nn );
     std::string dialogFullPath;
 

@@ -47,9 +47,7 @@
 #include <istream>
 #include <ostream>
 
-#if OGRE_PLATFORM == OGRE_PLATFORM_WIN32
-#define snprintf_is_banned_in_OD_code _snprintf
-#endif
+
 
 
 const uint32_t Tile::NO_FLOODFILL = 0;

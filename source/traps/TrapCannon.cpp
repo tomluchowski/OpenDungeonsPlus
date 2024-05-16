@@ -103,7 +103,7 @@ class TrapCannonFactory : public TrapFactory
     }
     bool buildTrapOnTiles(GameMap* gameMap, Player* player, const std::vector<Tile*>& tiles, bool noFee = false) const override
     {        
-        buildTrapOnTiles(gameMap, player->getSeat(), tiles, noFee);
+        return buildTrapOnTiles(gameMap, player->getSeat(), tiles, noFee);
     }
 
     

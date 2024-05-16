@@ -132,6 +132,13 @@ void CameraManager::createCamera(const Ogre::String& ss, double nearClip, double
     OD_LOG_INF("Creating " + ss + " camera...");
 }
 
+void CameraManager::destroyCamera(const Ogre::String& ss)
+{
+    mRegisteredCameraNames.erase(ss);
+    mSceneManager->destroyCamera(ss);
+    OD_LOG_INF("Destroying " + ss + "camera ...");
+}
+
 void CameraManager::createCameraNode(const std::string& name)
 {
     Ogre::SceneNode* node = mSceneManager->getRootSceneNode()->createChildSceneNode(name + "_node");
@@ -154,6 +161,19 @@ void CameraManager::createCameraNode(const std::string& name)
 
     OD_LOG_INF("Creating " + name + "_node camera node...");
 }
+
+void CameraManager::destroyCameraNode(const std::string& name)
+{
+    mRegisteredCameraNodeNames.erase(name);
+    Ogre::SceneNode* node = static_cast<Ogre::SceneNode*>(mSceneManager->getRootSceneNode()->getChild(name + "_node"));
+    mSceneManager->destroySceneNode(name + "_node2");
+    mSceneManager->destroySceneNode(name + "_node");
+    mSceneManager->destroySceneNode("CameraTarget_" + name);
+
+    OD_LOG_INF("Destroying " + name + "_node camera node...");
+}
+
+
 
 void CameraManager::setNextDefaultView()
 {

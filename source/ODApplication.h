@@ -23,7 +23,6 @@
 #define ODAPPLICATION_H
 
 #include <string>
-
 namespace boost
 {
 namespace program_options

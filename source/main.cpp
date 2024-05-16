@@ -35,6 +35,7 @@
 
 #include <OgrePlatform.h>
 #include <OgreException.h>
+#include <CEGUI/Exceptions.h>
 
 #include <boost/program_options.hpp>
 
@@ -86,12 +87,28 @@ int main(int argc, char** argv)
         ODApplication od;
         od.startGame(options);
     }
+    catch (CEGUI::Exception& e)
+    {
+#if OGRE_PLATFORM == OGRE_PLATFORM_WIN32
+        MessageBox(0, e.what(), "An exception has occurred!", MB_OK | MB_ICONERROR | MB_TASKMODAL);
+#else
+        std::cerr << "An exception has occurred: " << e.what();
+#endif
+    }
     catch (Ogre::Exception& e)
     {
 #if OGRE_PLATFORM == OGRE_PLATFORM_WIN32
         MessageBox(0, e.what(), "An exception has occurred!", MB_OK | MB_ICONERROR | MB_TASKMODAL);
 #else
         std::cerr << "An exception has occurred: " << e.what();
+#endif
+    }
+    catch (...)
+    {
+#if OGRE_PLATFORM == OGRE_PLATFORM_WIN32
+        MessageBox(0, "Unkown Exception", "An unkownn exception has occurred!", MB_OK | MB_ICONERROR | MB_TASKMODAL);
+#else
+        std::cerr << "An unkownn exception has occurred: " << std::endl;
 #endif
     }
 

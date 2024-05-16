@@ -59,12 +59,11 @@
 #include <cstdlib>
 #include <iostream>
 
+#include <signal.h>
 
 template<> ODFrameListener* Ogre::Singleton<ODFrameListener>::msSingleton = nullptr;
 
-#if OGRE_PLATFORM == OGRE_PLATFORM_WIN32
-#define snprintf_is_banned_in_OD_code _snprintf
-#endif
+
 
 namespace
 {
@@ -130,6 +129,7 @@ void ODFrameListener::windowClosed(Ogre::RenderWindow*)
 
 ODFrameListener::~ODFrameListener()
 {
+    OD_LOG_INF("destructor of ODFrameListener");
     if (mInitialized)
         exitApplication();
 

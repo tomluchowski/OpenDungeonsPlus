@@ -18,9 +18,7 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifdef _MSC_VER
-#define snprintf_is_banned_in_OD_code _snprintf
-#endif
+
 
 #include "gamemap/GameMap.h"
 
@@ -3365,7 +3363,7 @@ bool GameMap::askServerCopyRoomsWithOffsetFrom(const DraggableTileContainer& dtc
     
     ClientNotification *clientNotification = new ClientNotification(ClientNotificationType::editorAskCopyRoom);
     ODClient::getSingleton().queueClientNotification(clientNotification);
-    
+    return true;
 }
 
 
@@ -3379,7 +3377,7 @@ bool GameMap::askServerCopyTrapsWithOffsetFrom(const DraggableTileContainer& dtc
 {
     ClientNotification *clientNotification = new ClientNotification(ClientNotificationType::editorAskCopyTrap);
     ODClient::getSingleton().queueClientNotification(clientNotification);
-    
+    return true;
 }
 
 

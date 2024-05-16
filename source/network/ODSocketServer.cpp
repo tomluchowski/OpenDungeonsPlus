@@ -109,6 +109,7 @@ void ODSocketServer::doTask(int timeoutMs)
                 if((mSockSelector.isReady(client->getSockClient())) &&
                     (!notifyClientMessage(client)))
                 {
+                    OD_LOG_INF("The server wants to remove the client");
                     // The server wants to remove the client
                     it = mSockClients.erase(it);
                     mSockSelector.remove(client->getSockClient());

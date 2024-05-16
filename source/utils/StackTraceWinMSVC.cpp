@@ -106,11 +106,11 @@ LONG WINAPI StackTracePrintPrivateData::exceptionFilter(LPEXCEPTION_POINTERS inf
 	STACKFRAME frame;
     memset(&frame,0,sizeof(frame));
 
-    frame.AddrPC.Offset = context->Eip;
+    frame.AddrPC.Offset = context->Rip;
     frame.AddrPC.Mode = AddrModeFlat;
-    frame.AddrStack.Offset = context->Esp;
+    frame.AddrStack.Offset = context->Rsp;
     frame.AddrStack.Mode = AddrModeFlat;
-    frame.AddrFrame.Offset = context->Ebp;
+    frame.AddrFrame.Offset = context->Rbp;
     frame.AddrFrame.Mode = AddrModeFlat;
 
     HANDLE process = GetCurrentProcess();
@@ -152,8 +152,8 @@ LONG WINAPI StackTracePrintPrivateData::exceptionFilter(LPEXCEPTION_POINTERS inf
         else
             processName = "[unknown module]";
 
-        DWORD dummy = 0;
-        if (SymGetSymFromAddr(process, frame.AddrPC.Offset, &dummy, symbol))
+        PDWORD64 dummy = 0;
+        if (SymGetSymFromAddr(process, frame.AddrPC.Offset, dummy, symbol))
             symbolFile = symbol->Name;
         else
             symbolFile = "[unknown function]";
