@@ -27,6 +27,7 @@
 #include "entities/MapLight.h"
 #include "entities/MovableGameEntity.h"
 #include "entities/RenderedMovableEntity.h"
+#include "entities/RockLava.h"
 #include "entities/Tile.h"
 #include "entities/Weapon.h"
 #include "game/Player.h"
@@ -418,7 +419,14 @@ void RenderManager::stopGameRenderer(GameMap*)
         mSceneManager->destroyLight(mHandLight);
         mHandLight = nullptr;
     }
-    remove("LiftedGold");
+    if(Ogre::MaterialManager::getSingleton().resourceExists("LiftedGold","Graphics"))
+        Ogre::MaterialManager::getSingleton().remove("LiftedGold","Graphics");
+    if(Ogre::TextureManager::getSingleton().resourceExists("smokeTexture", Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME))    
+        Ogre::TextureManager::getSingleton().remove("smokeTexture", Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME);
+    if(ODFrameListener::getSingleton().getCameraManager()->hasCamera("RenderToTexture"))
+        ODFrameListener::getSingleton().getCameraManager()->destroyCamera("RenderToTexture");
+    if(ODFrameListener::getSingleton().getCameraManager()->hasCameraNode("RenderToTexture"))
+    ODFrameListener::getSingleton().getCameraManager()->destroyCameraNode("RenderToTexture");    
 }
 
 void RenderManager::triggerCompositor(const std::string& compositorName)
@@ -977,6 +985,7 @@ void RenderManager::rrAttachEntity(GameEntity* entity)
 void RenderManager::rrCreateRenderedMovableEntity(RenderedMovableEntity* renderedMovableEntity, NodeType nt)
 {
     std::string meshName = renderedMovableEntity->getMeshName();
+    
     std::string tempString = renderedMovableEntity->getOgreNamePrefix() + renderedMovableEntity->getName() + (static_cast<bool>(nt) ?  "" : "_dtc" );
 
     Ogre::SceneNode* node;
@@ -1017,6 +1026,7 @@ void RenderManager::rrCreateRenderedMovableEntity(RenderedMovableEntity* rendere
         setEntityOpacity(ent, renderedMovableEntity->getOpacity());
 }
 
+
 void RenderManager::rrDestroyRenderedMovableEntity(RenderedMovableEntity* curRenderedMovableEntity, NodeType nt)
 {
     std::string tempString = curRenderedMovableEntity->getOgreNamePrefix()
@@ -1049,7 +1059,13 @@ void RenderManager::rrDestroyRenderedMovableEntity(RenderedMovableEntity* curRen
         else
             entity->setVisible(true);
     }
+
+
+
+    
 }
+
+
 
 void RenderManager::rrUpdateEntityOpacity(RenderedMovableEntity* entity)
 {
@@ -1343,6 +1359,23 @@ void RenderManager::rrRotateHand(Player* localPlayer)
     }
 }
 
+void RenderManager::rrPitchAroundAxis(RenderedMovableEntity* renderedmovableGameEntity, Ogre::Degree dd)
+{
+
+    if(renderedmovableGameEntity->getEntityNode() == nullptr)
+    {
+        OD_LOG_ERR("Entity do not have node=" + renderedmovableGameEntity->getName());
+        return;
+    }
+
+    Ogre::SceneNode* node = renderedmovableGameEntity->getEntityNode();
+    node->pitch(dd);
+
+
+
+}
+
+
 void RenderManager::rrCreateCreatureVisualDebug(Creature* curCreature, Tile* curTile)
 {
     if (curTile != nullptr && curCreature != nullptr)
@@ -1471,7 +1504,7 @@ void RenderManager::rrMoveEntity(GameEntity* entity, const Ogre::Vector3& positi
         OD_LOG_ERR("Entity do not have node=" + entity->getName());
         return;
     }
-
+         
     entity->getEntityNode()->setPosition(position);
 }
 

@@ -140,9 +140,13 @@ public:
     const Ogre::Quaternion& getActiveCameraOrientation() const;
 
     //! \brief Sets up the main camera
-    void createCamera(const Ogre::String& ss, double nearClip, double farClip);
+    void createCamera(const Ogre::String& ss, double nearClip, double farClip); 
 
     void destroyCamera(const Ogre::String& ss);
+
+    inline bool hasCamera(const Ogre::String& ss){return mSceneManager->hasCamera(ss); }
+
+    inline bool hasCameraNode(const Ogre::String& ss){return mSceneManager->hasSceneNode(ss + "_node");}
     
     void setActiveCamera(const Ogre::String& ss);
 

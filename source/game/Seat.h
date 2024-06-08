@@ -47,6 +47,7 @@ enum class RoomType;
 enum class SkillType;
 enum class SpellType;
 enum class TileVisual;
+enum class TileType;
 enum class TrapType;
 
 //! Class used to save the last tile state notified to each seat
@@ -314,6 +315,7 @@ public:
     bool importSeatFromStream(std::istream& is);
     bool exportSeatToStream(std::ostream& os) const;
     static void loadFromLine(const std::string& line, Seat *s);
+
     static const std::string getFactionFromLine(const std::string& line);
 
     static const std::string PLAYER_TYPE_HUMAN;

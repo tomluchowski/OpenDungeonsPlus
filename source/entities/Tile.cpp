@@ -1388,6 +1388,14 @@ void Tile::loadFromLine(const std::string& line, Tile *t)
     t->mClaimedPercentage = 1.0;
 }
 
+
+TileType Tile::getTileTypeFromLine(const std::string& line)
+{
+    std::vector<std::string> elems = Helper::split(line, '\t');
+    return static_cast<TileType>(Helper::toInt(elems[2]));
+}
+
+
 void Tile::refreshMesh(NodeType nt,GameMap* gameMap)
 {
 
@@ -2360,5 +2368,28 @@ std::string Tile::getStatsText()
         for(FloodFillType ft = static_cast<FloodFillType>(0) ; ft < FloodFillType::nbValues   ; ft = static_cast<FloodFillType>((size_t)ft + 1))
             tempSS << toString(ft) << ": " <<  getFloodFillValue(getSeat(), ft) << " \n"; 
     return tempSS.str();
+
+}
+
+
+bool Tile::addItselfToContainer(TileContainer* tc)
+{
+
+    int x = getX();
+    int y = getY();
+
+    if (x < tc->getMapSizeX() && y < tc->getMapSizeY() && x >= 0 && y >= 0)
+    {
+        if(tc->mTiles[x][y] != nullptr)
+        {
+            tc->mTiles[x][y]->destroyMesh();
+            delete tc->mTiles[x][y];
+        }
+        tc->mTiles[x][y] = this;
+        return true;
+    }
+
+    return false;
+
 
 }

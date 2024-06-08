@@ -40,6 +40,7 @@ class MapLight;
 class Creature;
 class Player;
 class RenderedMovableEntity;
+class RockLava;
 class Weapon;
 
 namespace Ogre
@@ -128,6 +129,7 @@ public:
     void rrCreateCreature(Creature* curCreature);
     void rrDestroyCreature(Creature* curCreature);
     void rrOrientEntityToward(MovableGameEntity* gameEntity, const Ogre::Vector3& direction);
+    void rrPitchAroundAxis(RenderedMovableEntity* gameEntity, Ogre::Degree dd);
     void rrScaleCreature(Creature& creature);
     void rrCreateWeapon(Creature* curCreature, const Weapon* curWeapon, const std::string& hand);
     void rrDestroyWeapon(Creature* curCreature, const Weapon* curWeapon, const std::string& hand);

@@ -1420,7 +1420,7 @@ bool EditorMode::loadLevelFromFile(const std::string& fileName)
 {
     // Ogre::MaterialManager::getSingletonPtr()->unload("LiftedGold");    
     Ogre::MaterialManager::getSingletonPtr()->remove("LiftedGold","Graphics");
-    Ogre::TextureManager::getSingletonPtr()->remove("smokeTexture");
+    Ogre::TextureManager::getSingletonPtr()->remove("smokeTexture", Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME);
 
 
     ODFrameListener::getSingleton().getCameraManager()->destroyCamera("RenderToTexture");

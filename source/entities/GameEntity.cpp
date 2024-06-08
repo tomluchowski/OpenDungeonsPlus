@@ -186,6 +186,7 @@ void GameEntity::addEntityToPositionTile(GameMap* gameMap)
         return;
     }
     setEntityHeight(gameMap->getHeightFromTile(tile));
+
     OD_ASSERT_TRUE_MSG(tile->addEntity(this), gameMap->serverStr() + "entity=" + getName() + ", pos=" + Helper::toString(getPosition()) + ", tile=" + Tile::displayAsString(tile));
 }
 
@@ -565,6 +566,7 @@ void GameEntity::addGameEntityListener(GameEntityListener* listener)
     }
     mGameEntityListeners.push_back(listener);
 }
+
 
 void GameEntity::removeGameEntityListener(GameEntityListener* listener)
 {

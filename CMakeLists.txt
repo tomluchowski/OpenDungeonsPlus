@@ -327,9 +327,11 @@ set(OD_SOURCEFILES
     ${SRC}/entities/NodeType.cpp
     ${SRC}/entities/PersistentObject.cpp
     ${SRC}/entities/RenderedMovableEntity.cpp
+    ${SRC}/entities/RockLava.cpp    
     ${SRC}/entities/SkillEntity.cpp
     ${SRC}/entities/SmallSpiderEntity.cpp
     ${SRC}/entities/Tile.cpp
+    ${SRC}/entities/TileLava.cpp
     ${SRC}/entities/TrapEntity.cpp
     ${SRC}/entities/TreasuryObject.cpp
     ${SRC}/entities/Weapon.cpp

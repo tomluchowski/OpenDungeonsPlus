@@ -2713,6 +2713,7 @@ GameEntity* GameMap::getEntityFromTypeAndName(GameEntityType entityType,
         case GameEntityType::treasuryObject:
         case GameEntityType::skillEntity:
         case GameEntityType::giftBoxEntity:
+        case GameEntityType::lavaRock:
             return getRenderedMovableEntity(entityName);
 
         case GameEntityType::spell:

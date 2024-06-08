@@ -351,6 +351,7 @@ void TileContainer::clearTiles(NodeType nt)
         {
             for (int jj = 0; jj < mMapSizeY; ++jj)
             {
+                mTiles[ii][jj]->removeItselfFromContainer();
                 mTiles[ii][jj]->destroyMesh(nt);
                 delete mTiles[ii][jj];
             }
@@ -365,21 +366,7 @@ void TileContainer::clearTiles(NodeType nt)
 
 bool TileContainer::addTile(Tile* t)
 {
-    int x = t->getX();
-    int y = t->getY();
-
-    if (x < getMapSizeX() && y < getMapSizeY() && x >= 0 && y >= 0)
-    {
-        if(mTiles[x][y] != nullptr)
-        {
-            mTiles[x][y]->destroyMesh();
-            delete mTiles[x][y];
-        }
-        mTiles[x][y] = t;
-        return true;
-    }
-
-    return false;
+    return t->addItselfToContainer(this);
 }
 
 void TileContainer::setTileNeighbors(Tile *t)

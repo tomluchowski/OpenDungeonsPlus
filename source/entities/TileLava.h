@@ -1,4 +1,4 @@
-/*!
+/*
  *  Copyright (C) 2011-2016  OpenDungeons Team
  *
  *  This program is free software: you can redistribute it and/or modify
@@ -15,38 +15,23 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef GAMEENTITYTYPE_H
-#define GAMEENTITYTYPE_H
+#ifndef TILELAVA_H
+#define TILELAVA_H
 
-#include <iosfwd>
+#include "entities/Tile.h"
+#include "entities/RockLava.h"
 
-class ODPacket;
 
-enum class GameEntityType
+class TileLava: public Tile
 {
-    unknown,
-    creature,
-    room,
-    trap,
-    tile,
-    mapLight,
-    spell,
-    buildingObject,
-    treasuryObject,
-    chickenEntity,
-    smallSpiderEntity,
-    craftedTrap,
-    missileObject,
-    persistentObject,
-    trapEntity,
-    skillEntity,
-    giftBoxEntity,
-    lavaRock
+    RockLava* rl;
+public:
+    TileLava() = delete;
+    TileLava(GameMap*, int = 0 , int = 0);
+    virtual ~TileLava();
+    virtual void removeItselfFromContainer()override;
+    bool addItselfToContainer(TileContainer *tc) override;
+    virtual void doUpkeep() override;
 };
 
-ODPacket& operator<<(ODPacket& os, const GameEntityType& type);
-ODPacket& operator>>(ODPacket& is, GameEntityType& type);
-std::ostream& operator<<(std::ostream& os, const GameEntityType& type);
-std::istream& operator>>(std::istream& is, GameEntityType& type);
-
-#endif
+#endif // TILELAVA_H

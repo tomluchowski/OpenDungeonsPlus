@@ -40,6 +40,7 @@ class MapLight;
 class DraggableTileContainer;
 class GameMap;
 class CreatureDefinition;
+class TileContainer;
 class Trap;
 class TreasuryObject;
 class ChickenEntity;
@@ -156,6 +157,9 @@ public:
     
     virtual ~Tile();
 
+    virtual bool addItselfToContainer(TileContainer*);
+    virtual void removeItselfFromContainer(){};
+    
     static const uint32_t NO_FLOODFILL;
     static const std::string TILE_PREFIX;
     static const std::string TILE_SCANF;
@@ -357,6 +361,10 @@ public:
 
     static std::string getFormat();
 
+     //! \brief Gives TileType from a level line
+    static TileType getTileTypeFromLine(const std::string& line);
+
+    
     //! \brief Loads the tile data from a level line.
     static void loadFromLine(const std::string& line, Tile *t);
 
@@ -506,6 +514,8 @@ public:
     std::string getStatsText();
     
 protected:
+    //! \brief List of the entities actually on this tile. Most of the creatures actions will rely on this list
+    std::vector<GameEntity*> mEntitiesInTile;
     virtual void exportHeadersToStream(std::ostream& os) const override
     {}
     virtual void exportHeadersToPacket(ODPacket& os) const override
@@ -554,8 +564,7 @@ private:
     std::vector<std::pair<Seat*, bool>> mTileChangedForSeats;
     std::vector<Seat*> mSeatsWithVision;
 
-    //! \brief List of the entities actually on this tile. Most of the creatures actions will rely on this list
-    std::vector<GameEntity*> mEntitiesInTile;
+
 
     Building* mCoveringBuilding;
     //! Floodfill values per seat and per floodfill type

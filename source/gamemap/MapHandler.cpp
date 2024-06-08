@@ -34,6 +34,7 @@
 #include "entities/MissileObject.h"
 #include "entities/SkillEntity.h"
 #include "entities/Tile.h"
+#include "entities/TileLava.h"
 #include "entities/TreasuryObject.h"
 #include "entities/Weapon.h"
 #include "rooms/Room.h"
@@ -231,8 +232,18 @@ bool readGameMapFromFile(const std::string& fileName, GameMap& gameMap)
         std::getline(levelFile, nextParam);
         entire_line += nextParam;
 
-        Tile* tile = new Tile(&gameMap, true);
+        TileType tt = Tile::getTileTypeFromLine(entire_line);
 
+        Tile* tile;
+        if(tt == TileType::lava)
+            tile = new TileLava(&gameMap);
+
+        else
+            tile =  new Tile(&gameMap, true);
+
+ 
+        
+ 
         Tile::loadFromLine(entire_line, tile);
 
         gameMap.addTile(tile);

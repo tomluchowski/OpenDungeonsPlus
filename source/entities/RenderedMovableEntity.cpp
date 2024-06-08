@@ -61,6 +61,7 @@ RenderedMovableEntity::RenderedMovableEntity(GameMap* gameMap) :
     mHideCoveredTile(false),
     mOpacity(1.0f)
 {
+
 }
 
 void RenderedMovableEntity::createMeshLocal(NodeType nt)

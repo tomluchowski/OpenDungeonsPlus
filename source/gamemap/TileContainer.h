@@ -31,6 +31,8 @@ enum class TileType;
 
 class TileContainer
 {
+
+    friend class Tile;
 public:
     TileContainer(int initTileDistance);
     virtual ~TileContainer();

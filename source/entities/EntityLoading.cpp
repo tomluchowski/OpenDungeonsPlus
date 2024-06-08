@@ -25,6 +25,7 @@
 #include "entities/MapLight.h"
 #include "entities/MissileObject.h"
 #include "entities/PersistentObject.h"
+#include "entities/RockLava.h"
 #include "entities/RenderedMovableEntity.h"
 #include "entities/SkillEntity.h"
 #include "entities/SmallSpiderEntity.h"
@@ -206,6 +207,12 @@ GameEntity* getGameEntityFromPacket(GameMap* gameMap, ODPacket& is)
             entity = GiftBoxEntity::getGiftBoxEntityFromPacket(gameMap, is);
             break;
         }
+
+        case GameEntityType::lavaRock:
+        {
+            entity = RockLava::getLavaRockEntityFromPacket(gameMap, is);
+            break;
+        }        
         default:
         {
             OD_LOG_ERR("Unknown enum value : " + Helper::toString(static_cast<int>(type)));
