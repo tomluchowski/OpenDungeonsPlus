@@ -9,6 +9,7 @@ FileSystem=@RTSHADER_DIR@/../ShadowVolume
 
 FileSystem=@RTSHADER_DIR@/materials
 FileSystem=materials/scripts
+FileSystem=materials/scripts/Creatures
 FileSystem=materials/textures
 FileSystem=models
 FileSystem=particles
