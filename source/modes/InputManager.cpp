@@ -17,6 +17,7 @@
 
 #include "InputManager.h"
 
+#include "gamemap/SelectionEntityWanted.h"
 #include "modes/AbstractApplicationMode.h"
 #include "modes/SFMLToOISListener.h"
 #include "utils/ConfigManager.h"
@@ -49,7 +50,9 @@ InputManager::InputManager(Ogre::RenderWindow* renderWindow):
     offsetDraggableTileContainer(Ogre::Vector2(Ogre::Vector2::ZERO)),
     mCommandState(InputCommandState::infoOnly),
     mMouse(nullptr),
-    mCurrentAMode(nullptr)
+    mCurrentAMode(nullptr),
+    mHighlightedCreature(nullptr),
+    mCreatureTypeForOutliner(SelectionEntityWanted::creatureAliveAllied)
 #ifdef OD_USE_SFML_WINDOW
     ,
     mListener(Utils::make_unique<SFMLToOISListener>(mCurrentAMode, renderWindow->getWidth(), renderWindow->getHeight()))

@@ -117,7 +117,7 @@ public:
     bool parkingBit;
     
     bool parkedBit;
-
+    
     CreatureEffectDigTile* mDiggingEffect;
     
     static const int32_t NB_TURNS_BEFORE_CHECKING_TASK;
@@ -603,6 +603,14 @@ public:
 
     void stopWalking();
     
+    void showOutliner();
+
+    void removeOutliner();
+
+    void maxAmbient();
+
+    void normalizeAmbient();
+    
 protected:
     virtual void exportToPacket(ODPacket& os, const Seat* seat) const override;
     virtual void importFromPacket(ODPacket& is) override;
@@ -614,6 +622,7 @@ protected:
     virtual void fireAddEntity(Seat* seat,  bool async, NodeType nt) override;
     virtual void fireRemoveEntity(Seat* seat,NodeType nt = NodeType::MTILES_NODE) override;
 private:
+    
     enum ForceAction
     {
         forcedActionNone,

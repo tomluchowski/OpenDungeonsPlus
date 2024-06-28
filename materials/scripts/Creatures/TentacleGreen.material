@@ -1,8 +1,8 @@
-// Chicken
+// TentacleGreen
 // import RTSS/NormalMapping_MultiPass from "RTShaderSystem.material"
 
 
-vertex_program myChickenVertexShader glsl
+vertex_program myTentacleGreenVertexShader glsl
 {
   source Creature.vert
     default_params
@@ -15,7 +15,7 @@ vertex_program myChickenVertexShader glsl
   
 }
 
-fragment_program myChickenFragmentShader glsl
+fragment_program myTentacleGreenFragmentShader glsl
 {
   source Creature.frag
     default_params
@@ -30,7 +30,7 @@ fragment_program myChickenFragmentShader glsl
 }
 
 
-material Chicken //: RTSS/NormalMapping_MultiPass
+material TentacleGreen //: RTSS/NormalMapping_MultiPass
 {
     
     technique
@@ -38,11 +38,11 @@ material Chicken //: RTSS/NormalMapping_MultiPass
 
         pass 
         {
-            vertex_program_ref myChickenVertexShader
+            vertex_program_ref myTentacleGreenVertexShader
             {
             
             }
-            fragment_program_ref myChickenFragmentShader
+            fragment_program_ref myTentacleGreenFragmentShader
             { 
             	param_named ambient float3 1.0 1.0 1.0
                 param_named decalmap int 0
@@ -54,12 +54,12 @@ material Chicken //: RTSS/NormalMapping_MultiPass
             // We use blending, so that we can see the underlying texture.
             texture_unit decalmap
             {
-                texture Chicken.png
+                texture TentacleGreen.png
             }
         
             texture_unit normalmap
             {
-                texture ChickenNormal.png
+                texture TentacleNormal.png
             }  
             texture_unit shadowmap
             {

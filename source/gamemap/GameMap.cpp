@@ -3451,3 +3451,9 @@ float GameMap::getHeightFromTile(const Tile* tile) const
     int index = computeTileSetIndex(tile);
     return mHighMap->at(tv).at(index);
 }
+
+void GameMap::setLocalPlayer(Player* pp){
+
+    mLocalPlayer = pp;
+
+}

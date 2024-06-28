@@ -105,34 +105,9 @@ void SpellCreatureDefense::checkSpellCast(GameMap* gameMap, const InputManager& 
             inputManager.mYPos);
     }
 
-    std::vector<GameEntity*> entities;
     // We search the closest creature alive
-    tileSelected->fillWithEntities(entities, SelectionEntityWanted::creatureAliveAllied, player);
-    Creature* closestCreature = nullptr;
-    double closestDist = 0;
-    for(GameEntity* entity : entities)
-    {
-        if(entity->getObjectType() != GameEntityType::creature)
-        {
-            OD_LOG_ERR("entityName=" + entity->getName() + ", entityType=" + Helper::toString(static_cast<uint32_t>(entity->getObjectType())));
-            continue;
-        }
-
-        const Ogre::Vector3& entityPos = entity->getPosition();
-        double dist = Pathfinding::squaredDistance(entityPos.x, inputManager.mKeeperHandPos.x, entityPos.y, inputManager.mKeeperHandPos.y);
-        if(closestCreature == nullptr)
-        {
-            closestDist = dist;
-            closestCreature = static_cast<Creature*>(entity);
-            continue;
-        }
-
-        if(dist >= closestDist)
-            continue;
-
-        closestDist = dist;
-        closestCreature = static_cast<Creature*>(entity);
-    }
+    Creature* closestCreature;
+    closestCreature = tileSelected->getClosestCreature(SelectionEntityWanted::creatureAliveAllied);
 
     if(closestCreature == nullptr)
     {

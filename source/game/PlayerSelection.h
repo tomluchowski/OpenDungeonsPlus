@@ -61,8 +61,8 @@ public:
     inline SpellType getNewSpellType() const
     { return mNewSpellType; }
 
-    inline void setNewSpellType(SpellType newSpellType)
-    { mNewSpellType = newSpellType; }
+    void setNewSpellType(SpellType newSpellType);
+
 
 private:
     //! \brief Room, trap or Spell tile type the player has currently selected for an action

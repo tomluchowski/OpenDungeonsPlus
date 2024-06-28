@@ -512,6 +512,9 @@ public:
     bool CloseStatsWindow(const CEGUI::EventArgs& /*e*/);
     void updateStatsWindow(const std::string& txt);
     std::string getStatsText();
+
+    Creature* getClosestCreature(SelectionEntityWanted );
+
     
 protected:
     //! \brief List of the entities actually on this tile. Most of the creatures actions will rely on this list

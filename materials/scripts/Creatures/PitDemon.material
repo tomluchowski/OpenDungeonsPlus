@@ -1,8 +1,4 @@
-// Chicken
-// import RTSS/NormalMapping_MultiPass from "RTShaderSystem.material"
-
-
-vertex_program myChickenVertexShader glsl
+vertex_program myPitDemonVertexShader glsl
 {
   source Creature.vert
     default_params
@@ -15,22 +11,26 @@ vertex_program myChickenVertexShader glsl
   
 }
 
-fragment_program myChickenFragmentShader glsl
+fragment_program myPitDemonFragmentShader glsl
 {
   source Creature.frag
     default_params
     {
-        param_named_auto ambientLightColour ambient_light_colour
-        param_named_auto lightDiffuseColour light_diffuse_colour 0 
-        param_named_auto lightSpecularColour light_specular_colour 0 
-        param_named_auto lightPos light_position  0
+        param_named_auto ambientLightColour ambient_light_colour 
+        param_named_auto lightDiffuseColour light_diffuse_colour 0.0 
+        param_named_auto lightSpecularColour light_specular_colour 0.0 
+        param_named_auto lightPos light_position  0.0 0.0 0.0 0.0
         param_named_auto cameraPosition camera_position
         param_named shadowingEnabled bool false         
     }
 }
 
 
-material Chicken //: RTSS/NormalMapping_MultiPass
+
+
+
+
+material PitDemon //: RTSS/NormalMapping_MultiPass
 {
     
     technique
@@ -38,11 +38,11 @@ material Chicken //: RTSS/NormalMapping_MultiPass
 
         pass 
         {
-            vertex_program_ref myChickenVertexShader
+            vertex_program_ref myPitDemonVertexShader
             {
             
             }
-            fragment_program_ref myChickenFragmentShader
+            fragment_program_ref myPitDemonFragmentShader
             { 
             	param_named ambient float3 1.0 1.0 1.0
                 param_named decalmap int 0
@@ -54,12 +54,12 @@ material Chicken //: RTSS/NormalMapping_MultiPass
             // We use blending, so that we can see the underlying texture.
             texture_unit decalmap
             {
-                texture Chicken.png
+                texture PitDemon.png
             }
         
             texture_unit normalmap
             {
-                texture ChickenNormal.png
+                texture PitDemonNormal.png
             }  
             texture_unit shadowmap
             {
@@ -72,3 +72,4 @@ material Chicken //: RTSS/NormalMapping_MultiPass
 
     }
 }
+

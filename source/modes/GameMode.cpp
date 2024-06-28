@@ -393,7 +393,7 @@ bool GameMode::mouseMoved(const OIS::MouseEvent &arg)
     // TODO: This should be changed, or combined with an icon or something later.
     TextRenderer& textRenderer = TextRenderer::getSingleton();
     textRenderer.moveText(ODApplication::POINTER_INFO_STRING,
-        static_cast<Ogre::Real>(mouseEvent.x + 30), static_cast<Ogre::Real>(mouseEvent.y));
+                          static_cast<Ogre::Real>(mouseEvent.x + 30), static_cast<Ogre::Real>(mouseEvent.y));
 
     // We notify current selection input
     checkInputCommand();
@@ -411,38 +411,29 @@ bool GameMode::mouseMoved(const OIS::MouseEvent &arg)
     if(tileClicked == nullptr)
         return true;
 
-    std::vector<GameEntity*> entities;
-    tileClicked->fillWithEntities(entities, SelectionEntityWanted::creatureAliveOrDead, mGameMap->getLocalPlayer());
-    // We search the closest creature alive
-    Creature* closestCreature = nullptr;
-    double closestDist = 0;
-    for(GameEntity* entity : entities)
-    {
-        if(entity->getObjectType() != GameEntityType::creature)
-        {
-            OD_LOG_ERR("entityName=" + entity->getName() + ", entityType=" + Helper::toString(static_cast<uint32_t>(entity->getObjectType())));
-            continue;
-        }
+    Creature* closestCreature = tileClicked->getClosestCreature(inputManager.mCreatureTypeForOutliner);
 
-        const Ogre::Vector3& entityPos = entity->getPosition();
-        double dist = Pathfinding::squaredDistance(entityPos.x, inputManager.mKeeperHandPos.x, entityPos.y, inputManager.mKeeperHandPos.y);
-        if(closestCreature == nullptr)
-        {
-            closestDist = dist;
-            closestCreature = static_cast<Creature*>(entity);
-            continue;
-        }
 
-        if(dist >= closestDist)
-            continue;
-
-        closestDist = dist;
-        closestCreature = static_cast<Creature*>(entity);
-    }
-
+    
+    
     if(closestCreature != nullptr)
-        RenderManager::getSingleton().rrTemporaryDisplayCreaturesTextOverlay(closestCreature, 0.5f);
+    {
+        if(closestCreature != inputManager.mHighlightedCreature)
+        {
+            if(inputManager.mHighlightedCreature != nullptr)
+            {
+                inputManager.mHighlightedCreature->normalizeAmbient();
+            }
+            inputManager.mHighlightedCreature = closestCreature;
+            closestCreature->maxAmbient();
+        }
+    }
+    else if(inputManager.mHighlightedCreature != nullptr)
+    {
+        inputManager.mHighlightedCreature->normalizeAmbient();
+        inputManager.mHighlightedCreature = nullptr;
 
+    }
     inputManager.mXPos = tileClicked->getX();
     inputManager.mYPos = tileClicked->getY();
     if (!inputManager.mLMouseDown)
@@ -1943,3 +1934,6 @@ void GameMode::buildPlayerSettingsWindow()
         offset += 15;
     }
 }
+
+
+

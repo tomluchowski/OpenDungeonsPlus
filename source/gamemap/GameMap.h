@@ -19,8 +19,8 @@
 #define GAMEMAP_H
 
 #include "entities/GameEntity.h"
+#include "gamemap/SelectionEntityWanted.h"
 #include "gamemap/TileContainer.h"
-
 #include "ai/AIManager.h"
 
 #ifdef __MINGW32__
@@ -78,22 +78,6 @@ enum class SelectionTileAllowed
     groundTiles
 };
 
-enum class SelectionEntityWanted
-{
-    any,
-    tiles,
-    chicken,
-    treasuryObjects,
-    creatureAliveOwned,
-    creatureAliveOwnedHurt,
-    creatureAliveAllied,
-    creatureAliveEnemy,
-    creatureAlive,
-    creatureAliveOrDead,
-    creatureAliveInOwnedPrisonHurt,
-    creatureAliveEnemyAttackable
-};
-
 /*! \brief The class which stores the entire game state on the server and a subset of this on each client.
  *
  * This class is one of the key classes in the OpenDungeons game.  The map
@@ -108,7 +92,7 @@ class GameMap: public TileContainer
 
 friend class RenderManager;
 friend class ODServer;
-
+    
 public:
     GameMap(bool isServerGameMap, NodeType nt = NodeType::MTILES_NODE);
     virtual ~GameMap();
@@ -414,8 +398,7 @@ public:
      */
     void enableFloodFill();
 
-    inline void setLocalPlayer(Player* player)
-    { mLocalPlayer = player; }
+    void setLocalPlayer(Player* player);
 
     inline Player* getLocalPlayer()
     { return mLocalPlayer; }

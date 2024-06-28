@@ -25,9 +25,11 @@
 #include "game/Player.h"
 #include "game/Seat.h"
 #include "gamemap/GameMap.h"
+#include "gamemap/Pathfinding.h"
 #include "network/ODClient.h"
 #include "network/ODPacket.h"
 #include "network/ClientNotification.h"
+#include "modes/InputManager.h"
 #include "render/RenderManager.h"
 #include "rooms/Room.h"
 #include "rooms/RoomType.h"
@@ -1712,6 +1714,9 @@ void Tile::fillWithEntities(std::vector<GameEntity*>& entities, SelectionEntityW
 
         switch(entityWanted)
         {
+            case SelectionEntityWanted::none:
+                continue;
+            
             case SelectionEntityWanted::any:
             {
                 // We accept any entity
@@ -2391,5 +2396,42 @@ bool Tile::addItselfToContainer(TileContainer* tc)
 
     return false;
 
+
+}
+
+Creature* Tile::getClosestCreature(SelectionEntityWanted se)
+{
+    InputManager& inputManager = InputManager::getSingleton();
+    std::vector<GameEntity*> entities;
+    assert( getGameMap()->getLocalPlayer() != nullptr);
+    fillWithEntities(entities, se, getGameMap()->getLocalPlayer());
+    // We search the closest creature alive
+    Creature* closestCreature = nullptr;
+    double closestDist = 0;
+    for(GameEntity* entity : entities)
+    {
+        if(entity->getObjectType() != GameEntityType::creature)
+        {
+            OD_LOG_ERR("entityName=" + entity->getName() + ", entityType=" + Helper::toString(static_cast<uint32_t>(entity->getObjectType())));
+            continue;
+        }
+
+        const Ogre::Vector3& entityPos = entity->getPosition();
+        double dist = Pathfinding::squaredDistance(entityPos.x, inputManager.mKeeperHandPos.x, entityPos.y, inputManager.mKeeperHandPos.y);
+        if(closestCreature == nullptr)
+        {
+            closestDist = dist;
+            closestCreature = static_cast<Creature*>(entity);
+            continue;
+        }
+
+        if(dist >= closestDist)
+            continue;
+        
+        closestDist = dist;
+        closestCreature = static_cast<Creature*>(entity);
+    }
+
+    return closestCreature;
 
 }

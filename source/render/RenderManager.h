@@ -139,6 +139,10 @@ public:
     void rrPickUpEntity(GameEntity* curEntity, Player* localPlayer);
     void rrDropHand(GameEntity* curEntity, Player* localPlayer);
     void rrRotateHand(Player* localPlayer);
+    void rrAddOutliner(Creature* creature);
+    void rrRemoveOutliner(Creature* creature);
+    void rrIncreaseAmbient(Creature* creature);
+    void rrNormalizeAmbient(Creature* creature);
     void rrCreateCreatureVisualDebug(Creature* curCreature, Tile* curTile);
     void rrDestroyCreatureVisualDebug(Creature* curCreature, Tile* curTile);
     void rrCreateSeatVisionVisualDebug(int seatId, Tile* tile);

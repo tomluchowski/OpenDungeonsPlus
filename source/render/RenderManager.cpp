@@ -531,14 +531,19 @@ Ogre::Entity* RenderManager::addEntityMenu(const std::string& meshName, const st
         return nullptr;
     }
 
-    Ogre::Entity* ent = mSceneManager->createEntity(entityName, meshName);
-    Ogre::MeshPtr meshPtr = ent->getMesh();
+    if(!Ogre::MeshManager::getSingleton().resourceExists(meshName,"Graphics"))
+        Ogre::MeshManager::getSingleton().load(meshName,"Graphics");
+
+    Ogre::MeshPtr meshPtr = Ogre::MeshManager::getSingleton().getByName(meshName,"Graphics");
+
     unsigned short src, dest;
     if (!meshPtr->suggestTangentVectorBuildParams(Ogre::VES_TANGENT, src, dest))
     {
         meshPtr->buildTangentVectors(Ogre::VES_TANGENT, src, dest);
-    }
+    } 
 
+    Ogre::Entity* ent = mSceneManager->createEntity(entityName, meshPtr);
+    
     Ogre::SceneNode* node = mMainMenuSceneNode->createChildSceneNode(ent->getName() + "_node");
     node->attachObject(ent);
     node->setPosition(pos);
@@ -746,19 +751,26 @@ void RenderManager::rrRefreshTile(const Tile& tile, GameMap& draggableTileContai
 
     if((tileMeshEnt == nullptr) && !meshName.empty())
     {
-        tileMeshEnt = mSceneManager->createEntity(tileMeshName, meshName);
+
+
+        if(!Ogre::MeshManager::getSingleton().resourceExists(meshName,"Graphics"))
+            Ogre::MeshManager::getSingleton().load(meshName,"Graphics");
+        Ogre::MeshPtr meshPtr = Ogre::MeshManager::getSingleton().getByName(meshName,"Graphics");
+        unsigned short src, dest;
+        if (!meshPtr->suggestTangentVectorBuildParams(Ogre::VES_TANGENT, src, dest))
+        {
+            meshPtr->buildTangentVectors(Ogre::VES_TANGENT, src, dest);
+        } 
+
+
+
+        
+        tileMeshEnt = mSceneManager->createEntity(tileMeshName, meshPtr);
         // If the node does not exist, we create it
         if(tileMeshNode == nullptr)
             tileMeshNode = tile.getEntityNode()->createChildSceneNode(tileMeshNodeName);
         // Link the tile mesh back to the relevant scene node so OGRE will render it
         tileMeshNode->attachObject(tileMeshEnt);
-
-        Ogre::MeshPtr meshPtr = tileMeshEnt->getMesh();
-        unsigned short src, dest;
-        if (!meshPtr->suggestTangentVectorBuildParams(Ogre::VES_TANGENT, src, dest))
-        {
-            meshPtr->buildTangentVectors(Ogre::VES_TANGENT, src, dest);
-        }
     }
     // We rescale and set the orientation that may have changed
     if(tileMeshNode != nullptr)
@@ -814,6 +826,18 @@ void RenderManager::rrRefreshTile(const Tile& tile, GameMap& draggableTileContai
             if((customMeshEnt == nullptr))
             {
                 // If the node does not exist, we create it
+
+                if(!Ogre::MeshManager::getSingleton().resourceExists(meshName,"Graphics"))
+                    Ogre::MeshManager::getSingleton().load(meshName,"Graphics");
+    
+
+                Ogre::MeshPtr meshPtr = Ogre::MeshManager::getSingleton().getByName(meshName,"Graphics");
+                unsigned short src, dest;
+    
+                if (!meshPtr->suggestTangentVectorBuildParams(Ogre::VES_TANGENT, src, dest))
+                {
+                    meshPtr->buildTangentVectors(Ogre::VES_TANGENT, src, dest);
+                }               
                 std::string customMeshNodeName = bridgeMeshName + (static_cast<bool>(nt) ?  "" : "_dtc" ) + "_node";
                 Ogre::SceneNode* customMeshNode;
                 if(!mSceneManager->hasSceneNode(customMeshNodeName))
@@ -821,17 +845,12 @@ void RenderManager::rrRefreshTile(const Tile& tile, GameMap& draggableTileContai
                 else
                     customMeshNode = mSceneManager->getSceneNode(customMeshNodeName);
 
-                customMeshEnt = mSceneManager->createEntity(bridgeMeshName, meshName);
+                customMeshEnt = mSceneManager->createEntity(bridgeMeshName, meshPtr);
 
                 customMeshNode->attachObject(customMeshEnt);
                 customMeshNode->resetOrientation();
 
-                Ogre::MeshPtr meshPtr = customMeshEnt->getMesh();
-                unsigned short src, dest;
-                if (!meshPtr->suggestTangentVectorBuildParams(Ogre::VES_TANGENT, src, dest))
-                {
-                    meshPtr->buildTangentVectors(Ogre::VES_TANGENT, src, dest);
-                }
+
             }
 
             if(customMeshEnt != nullptr)
@@ -996,10 +1015,27 @@ void RenderManager::rrCreateRenderedMovableEntity(RenderedMovableEntity* rendere
         node = mDraggableSceneNode->createChildSceneNode(tempString + "_node");
     node->setPosition(renderedMovableEntity->getPosition());
     node->roll(Ogre::Degree(renderedMovableEntity->getRotationAngle()));
+
+
     Ogre::Entity* ent = nullptr;
     if(!meshName.empty())
     {
-        ent = mSceneManager->createEntity(tempString, meshName + ".mesh");
+
+
+        if(!Ogre::MeshManager::getSingleton().resourceExists(meshName + ".mesh","Graphics"))
+            Ogre::MeshManager::getSingleton().load(meshName + ".mesh","Graphics");
+    
+
+        Ogre::MeshPtr meshPtr = Ogre::MeshManager::getSingleton().getByName(meshName + ".mesh","Graphics");
+        unsigned short src, dest;
+    
+        if (!meshPtr->suggestTangentVectorBuildParams(Ogre::VES_TANGENT, src, dest))
+        {
+            meshPtr->buildTangentVectors(Ogre::VES_TANGENT, src, dest);
+        } 
+
+        
+        ent = mSceneManager->createEntity(tempString, meshPtr);
         node->attachObject(ent);
     }
 
@@ -1098,14 +1134,22 @@ void RenderManager::rrCreateCreature(Creature* curCreature)
     const std::string& meshName = curCreature->getDefinition()->getMeshName();
 
     // Load the mesh for the creature
-    std::string creatureName = curCreature->getOgreNamePrefix() + curCreature->getName();
-    Ogre::Entity* ent = mSceneManager->createEntity(creatureName, meshName);
-    Ogre::MeshPtr meshPtr = ent->getMesh();
+
+
+    if(!Ogre::MeshManager::getSingleton().resourceExists(meshName,"Graphics"))
+        Ogre::MeshManager::getSingleton().load(meshName,"Graphics");
+    
+
+    Ogre::MeshPtr meshPtr = Ogre::MeshManager::getSingleton().getByName(meshName,"Graphics");
     unsigned short src, dest;
+    
     if (!meshPtr->suggestTangentVectorBuildParams(Ogre::VES_TANGENT, src, dest))
     {
         meshPtr->buildTangentVectors(Ogre::VES_TANGENT, src, dest);
-    }
+    }    
+    std::string creatureName = curCreature->getOgreNamePrefix() + curCreature->getName();
+    Ogre::Entity* ent = mSceneManager->createEntity(creatureName, meshPtr);
+
 
     Ogre::SceneNode* node = mCreatureSceneNode->createChildSceneNode(creatureName + "_node");
     curCreature->setEntityNode(node);
@@ -1118,6 +1162,8 @@ void RenderManager::rrCreateCreature(Creature* curCreature)
     curCreature->setOverlayStatus(creatureOverlay);
 
     creatureOverlay->displayHealthOverlay(mCreatureTextOverlayDisplayed ? -1.0 : 0.0);
+
+    curCreature->showOutliner();
 }
 
 void RenderManager::rrDestroyCreature(Creature* curCreature)
@@ -1704,6 +1750,209 @@ std::string RenderManager::colourizeMaterial(const std::string& materialName, co
     }
 
     return tempSS.str();
+}
+
+
+void RenderManager::rrAddOutliner(Creature* creature)
+{
+    std::string entityName  = creature->getOgreNamePrefix() +  creature->getName();
+    if(!mSceneManager->hasEntity(entityName))
+    {
+        OD_LOG_ERR("There is no entity=" + entityName);
+        return ;
+    }
+
+
+    Ogre::Entity* ent = mSceneManager->getEntity(entityName);
+    
+    for (unsigned int i = 0; i < ent->getNumSubEntities(); ++i)
+    {
+
+        std::stringstream ss("");
+        Ogre::SubEntity *tempSubEntity = ent->getSubEntity(i);
+        ss << tempSubEntity->getMaterialName();
+        ss << "##_Outliner";
+
+
+
+        Ogre::ColourValue cc = creature->getSeat()->getColorValue();        
+        ss << "_" << cc;
+        std::string materialName = tempSubEntity->getMaterialName();
+        if(materialName.find("##_Outliner") != std::string::npos)
+            continue;
+        OD_LOG_INF("searching for: " +  ss.str() );
+        Ogre::MaterialPtr  myOutliner = Ogre::MaterialManager::getSingletonPtr()->getByName(ss.str(),"Graphics");
+        if (!myOutliner)
+        {
+            OD_LOG_INF("couldn't find: " +  ss.str() );
+
+            //myOutliner = Ogre::MaterialManager::getSingletonPtr()->create("myOutliner","Graphics");               
+            myOutliner= Ogre::MaterialManager::getSingletonPtr()->getByName(materialName, "Graphics")->clone(ss.str(),"Graphics");
+            OD_LOG_INF("cloning......");
+            OD_LOG_INF(myOutliner->getName());
+            OD_LOG_INF("the number of techniques  is " + Helper::toString(myOutliner->getNumTechniques()));
+            Ogre::Pass* myPass1 = myOutliner->getTechnique(myOutliner->getNumTechniques() - 1)->createPass();
+            OD_LOG_INF("the number of passes is " + Helper::toString(myOutliner->getTechnique(myOutliner->getNumTechniques() - 1)->getNumPasses()));
+            //myOutliner->getTechnique(1)->movePass(0,1);
+            for(int ii =0 ; ii < myOutliner->getTechnique(myOutliner->getNumTechniques() - 1)->getNumPasses() - 1   ; ++ii)
+                myOutliner->getTechnique(myOutliner->getNumTechniques() - 1)->getPass(ii)->setDepthBias(2, 256);
+        
+            Ogre::HighLevelGpuProgramManager& mgr =  Ogre::HighLevelGpuProgramManager::getSingleton();
+            Ogre::HighLevelGpuProgramPtr vertex_program;
+
+            if(!mgr.resourceExists("Enlarge","Graphics"))
+            {
+                vertex_program = mgr.createProgram("Enlarge", "Graphics","glsl" ,Ogre::GpuProgramType::GPT_VERTEX_PROGRAM);
+
+                vertex_program->setSourceFile("Enlarge.vert");
+            }
+            else
+            {
+                vertex_program = mgr.getByName("Enlarge","Graphics");
+            }
+
+            myPass1->setVertexProgram("Enlarge","Graphics");
+
+            Ogre::Vector3 center = mSceneManager->getEntity(entityName)->getMesh()->getBounds().getCenter();
+         
+            myPass1->getVertexProgramParameters()->setNamedConstant("center", center);
+            myPass1->getVertexProgramParameters()->setNamedAutoConstant("worldViewProj", Ogre::GpuProgramParameters::ACT_WORLDVIEWPROJ_MATRIX);
+
+            Ogre::HighLevelGpuProgramPtr fragment_program;
+            if(!mgr.resourceExists("Custom_color","Graphics"))
+            {
+                fragment_program = mgr.createProgram ("Custom_color", "Graphics","glsl" ,Ogre::GpuProgramType::GPT_FRAGMENT_PROGRAM);
+                fragment_program->setSourceFile("Custom_color.frag");                                     
+            }
+            else
+                fragment_program = mgr.getByName("Custom_color","Graphics");
+            myPass1->setFragmentProgram("Custom_color","Graphics");
+            myPass1->getFragmentProgramParameters()->setNamedConstant("color",cc);
+            myPass1->getFragmentProgramParameters()->setNamedConstant("ambient",cc);
+        }
+          
+        tempSubEntity->setMaterial(myOutliner);
+    }  
+}
+
+
+void RenderManager::rrRemoveOutliner(Creature* creature)
+{
+    std::string entityName  = creature->getOgreNamePrefix() +  creature->getName();
+    if(!mSceneManager->hasEntity(entityName))
+    {
+        OD_LOG_ERR("There is no entity=" + entityName);
+        return ;
+    }
+
+
+    Ogre::Entity* ent = mSceneManager->getEntity(entityName);
+
+
+
+    for (unsigned int i = 0; i < ent->getNumSubEntities(); ++i)
+    {
+
+        Ogre::SubEntity *tempSubEntity = ent->getSubEntity(i);        
+        std::string materialName = tempSubEntity->getMaterialName();
+        if(materialName.find("##_Outliner") == std::string::npos)
+        {
+            OD_LOG_ERR("Called rrRemoveOutliner on creature, which has currently no Outliner=: " + entityName + "with material " + materialName);
+            return ;
+        }    
+        size_t pp = materialName.find("##_Outliner");
+        materialName.erase(materialName.begin() + pp, materialName.end());
+        Ogre::MaterialPtr  myMaterialPtr = Ogre::MaterialManager::getSingletonPtr()->getByName(materialName,"Graphics");
+        if(!myMaterialPtr)
+            OD_LOG_ERR("Couldn't find the orignal material, that is the material " + materialName + " in rrRemoveOutliner ");
+        else
+            tempSubEntity->setMaterial(myMaterialPtr);
+    }
+}
+
+
+void RenderManager::rrIncreaseAmbient(Creature* creature)
+{
+    std::string entityName  = creature->getOgreNamePrefix() +  creature->getName();
+    if(!mSceneManager->hasEntity(entityName))
+    {
+        OD_LOG_ERR("There is no entity=" + entityName);
+        return ;
+    }
+
+    Ogre::Entity* ent = mSceneManager->getEntity(entityName);
+    
+    for (unsigned int i = 0; i < ent->getNumSubEntities(); ++i)
+    {
+        Ogre::SubEntity *tempSubEntity = ent->getSubEntity(i);
+        std::string materialName =  tempSubEntity->getMaterialName();
+        if(materialName.find("##_Brighter") != std::string::npos)
+            continue;
+        
+        std::stringstream ss("");
+        ss << tempSubEntity->getMaterialName();
+        ss << "##_Brighter";
+        OD_LOG_INF("searching for: " +  ss.str() );
+        Ogre::MaterialPtr  myBrighter = Ogre::MaterialManager::getSingletonPtr()->getByName(ss.str(),"Graphics");
+        if (!myBrighter)
+        {
+            OD_LOG_INF("couldn't find: " +  ss.str() );
+
+            //myBrighter = Ogre::MaterialManager::getSingletonPtr()->create("myBrighter","Graphics");               
+            myBrighter= Ogre::MaterialManager::getSingletonPtr()->getByName(materialName, "Graphics")->clone(ss.str(),"Graphics");
+            OD_LOG_INF("cloning......");
+            OD_LOG_INF(myBrighter->getName());
+            OD_LOG_INF("the number of techniques  is " + Helper::toString(myBrighter->getNumTechniques()));
+            OD_LOG_INF("the number of passes is " + Helper::toString(myBrighter->getTechnique(myBrighter->getNumTechniques() - 1)->getNumPasses()));
+            for(int ii =0 ; ii < myBrighter->getTechnique(myBrighter->getNumTechniques() - 1)->getNumPasses(); ++ii)
+            {
+                myBrighter->getTechnique(myBrighter->getNumTechniques() - 1)->getPass(ii)->getFragmentProgramParameters()->setNamedConstant("ambient",Ogre::ColourValue(8.0,8.0,8.0));
+                // cv = cv * 8.0;
+                // myBrighter->getTechnique(myBrighter->getNumTechniques() - 1)->getPass(ii)->setAmbient(cv);
+            }
+
+
+        }
+          
+        tempSubEntity->setMaterial(myBrighter);
+    } 
+    
+
+}
+
+
+void RenderManager::rrNormalizeAmbient(Creature* creature)
+{
+    std::string entityName  = creature->getOgreNamePrefix() +  creature->getName();
+    if(!mSceneManager->hasEntity(entityName))
+    {
+        OD_LOG_ERR("There is no entity=" + entityName);
+        return ;
+    }
+
+
+    Ogre::Entity* ent = mSceneManager->getEntity(entityName);
+
+
+
+    for (unsigned int i = 0; i < ent->getNumSubEntities(); ++i)
+    {
+
+        Ogre::SubEntity *tempSubEntity = ent->getSubEntity(i);        
+        std::string materialName = tempSubEntity->getMaterialName();
+        if(materialName.find("##_Brighter") == std::string::npos)
+        {
+            OD_LOG_ERR("Called rrRemoveBrighter on creature, which has currently no Brighter=: " + entityName + "with material " + materialName);
+            return ;
+        }    
+        size_t pp = materialName.find("##_Brighter");
+        materialName.erase(materialName.begin() + pp, materialName.end());
+        Ogre::MaterialPtr  myMaterialPtr = Ogre::MaterialManager::getSingletonPtr()->getByName(materialName,"Graphics");
+        if(!myMaterialPtr)
+            OD_LOG_ERR("Couldn't find the orignal material, that is the material " + materialName + " in rrRemoveBrighter ");
+        else
+            tempSubEntity->setMaterial(myMaterialPtr);
+    }
 }
 
 void RenderManager::rrCarryEntity(Creature* carrier, GameEntity* carried)

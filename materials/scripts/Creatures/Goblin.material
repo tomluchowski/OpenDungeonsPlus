@@ -1,8 +1,8 @@
-// Chicken
+// GoblinBody
 // import RTSS/NormalMapping_MultiPass from "RTShaderSystem.material"
 
 
-vertex_program myChickenVertexShader glsl
+vertex_program myGoblinVertexShader glsl
 {
   source Creature.vert
     default_params
@@ -15,7 +15,7 @@ vertex_program myChickenVertexShader glsl
   
 }
 
-fragment_program myChickenFragmentShader glsl
+fragment_program myGoblinFragmentShader glsl
 {
   source Creature.frag
     default_params
@@ -30,7 +30,7 @@ fragment_program myChickenFragmentShader glsl
 }
 
 
-material Chicken //: RTSS/NormalMapping_MultiPass
+material GoblinBody //: RTSS/NormalMapping_MultiPass
 {
     
     technique
@@ -38,11 +38,11 @@ material Chicken //: RTSS/NormalMapping_MultiPass
 
         pass 
         {
-            vertex_program_ref myChickenVertexShader
+            vertex_program_ref myGoblinVertexShader
             {
             
             }
-            fragment_program_ref myChickenFragmentShader
+            fragment_program_ref myGoblinFragmentShader
             { 
             	param_named ambient float3 1.0 1.0 1.0
                 param_named decalmap int 0
@@ -54,12 +54,55 @@ material Chicken //: RTSS/NormalMapping_MultiPass
             // We use blending, so that we can see the underlying texture.
             texture_unit decalmap
             {
-                texture Chicken.png
+                texture Goblin.png
             }
         
             texture_unit normalmap
             {
-                texture ChickenNormal.png
+                texture GoblinNormal.png
+            }  
+            texture_unit shadowmap
+            {
+                content_type shadow
+                tex_address_mode clamp
+                filtering bilinear              
+                
+            }                
+        }
+
+    }
+}
+
+material GoblinKnife //: RTSS/NormalMapping_MultiPass
+{
+    
+    technique
+    {
+
+        pass 
+        {
+            vertex_program_ref myGoblinVertexShader
+            {
+            
+            }
+            fragment_program_ref myGoblinFragmentShader
+            { 
+            	param_named ambient float3 1.0 1.0 1.0
+                param_named decalmap int 0
+                param_named normalmap int 1
+                param_named shadowmap int 2 
+            }            
+            
+            
+            // We use blending, so that we can see the underlying texture.
+            texture_unit decalmap
+            {
+                texture GoblinKnife.png
+            }
+        
+            texture_unit normalmap
+            {
+                texture GoblinKnifeNormal.png
             }  
             texture_unit shadowmap
             {

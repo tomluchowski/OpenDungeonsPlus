@@ -506,6 +506,25 @@ Command::Result cList(const Command::ArgumentList_t& args, ConsoleInterface& c, 
                     << tempGoal->getSuccessMessage(*seat) << "\n";
         }
     }
+    else if (args[1].compare("lights") == 0)
+    {
+        // Loop over the list of ligths and print them.
+        stringStr << "Existing lights \n";
+        const Ogre::LightList &ll = ODFrameListener::getSingletonPtr()->getCameraManager()->getCamera("RTS")->getLights();
+        OD_LOG_INF("The size of LigthList is " + Helper::toString(ll.size()));
+        int ii =0 ;
+        for (auto light : ll )
+        {
+            stringStr << ii << ": " << light->getName() << " \n" ;
+            ++ii;
+        }
+
+
+    }
+
+
+
+    
     else
     {
         stringStr << "ERROR:  Unrecognized list.  Type \"list\" with no arguments to see available lists.";
@@ -762,7 +781,7 @@ namespace ConsoleCommands
                          cSrvAddMana,
                          {AbstractModeManager::ModeType::GAME, AbstractModeManager::ModeType::EDITOR });
  
-        cl.addCommand("ambientlight",
+        cl.addCommand("light",
                          cAmbientLight,
                          Command::cStubServer,
                          {AbstractModeManager::ModeType::GAME, AbstractModeManager::ModeType::EDITOR });

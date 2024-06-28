@@ -1,0 +1,39 @@
+
+material TrollRock
+{
+	technique
+	{
+		pass TrollRock
+		{
+			ambient 0.8 0.8 0.8 1
+			diffuse 0.65 0.65 0.65 1
+			specular 0 0 0 1 12.5
+
+			texture_unit
+			{
+				texture TrollRock.png 9
+				filtering linear linear point
+			}
+		}
+
+	}
+
+	technique mySchemeName
+	{
+		scheme mySchemeName
+		pass 
+		{
+			lighting off
+
+			vertex_program_ref ZPrePass_VS
+			{
+			}
+
+			fragment_program_ref ZPrePass_PS
+			{
+			}
+		}
+
+	}
+
+}

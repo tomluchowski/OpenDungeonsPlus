@@ -23,6 +23,7 @@
 
 #include <memory>
 
+
 #include "modes/Keyboard.h"
 
 namespace OIS
@@ -51,6 +52,10 @@ enum class InputCommandState
     building, // When the player is building (but has not validated he build)
     validated, // When the player is happy with the build and wants to build
 };
+
+enum class SelectionEntityWanted;
+
+class Creature;
 
 class InputManager: public Ogre::Singleton<InputManager>
 {
@@ -93,7 +98,10 @@ public:
     Ogre::Vector2       offsetDraggableTileContainer;
     InputCommandState   mCommandState;
     OIS::Mouse*         mMouse;
+    Creature*           mHighlightedCreature;
+    SelectionEntityWanted mCreatureTypeForOutliner;
 
+    
     private:
     AbstractApplicationMode* mCurrentAMode;
 #ifdef OD_USE_SFML_WINDOW

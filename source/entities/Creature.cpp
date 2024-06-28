@@ -630,9 +630,40 @@ void Creature::importFromPacket(ODPacket& is)
 
 void Creature::setPosition(const Ogre::Vector3& v, GameMap *gameMap )
 {
+    
     MovableGameEntity::setPosition(v);
     if(mCarriedEntity != nullptr)
         mCarriedEntity->notifyCarryMove(v);
+
+    if(!getIsOnServerMap()){
+
+    
+        InputManager& inputManager = InputManager::getSingleton();
+
+        if((getPositionTile()->getX() == inputManager.mXPos && getPositionTile()->getY() == inputManager.mYPos))
+        {
+    
+            Creature* closestCreature = getPositionTile()->getClosestCreature(inputManager.mCreatureTypeForOutliner );
+            if(closestCreature != nullptr)
+            {
+                if(closestCreature != inputManager.mHighlightedCreature)
+                {
+                    if(inputManager.mHighlightedCreature != nullptr)
+                    {
+                        inputManager.mHighlightedCreature->normalizeAmbient();
+                    }
+                    inputManager.mHighlightedCreature = closestCreature;
+                    closestCreature->maxAmbient();
+                }
+            }
+        }
+        else if(inputManager.mHighlightedCreature == this)
+        {
+            inputManager.mHighlightedCreature->normalizeAmbient();
+            inputManager.mHighlightedCreature = nullptr;        
+
+        }
+    }
 }
 
 void Creature::setHP(double nHP)
@@ -2174,6 +2205,14 @@ void Creature::pickup()
     if(getHasVisualDebuggingEntities())
         computeVisualDebugEntities();
 
+    InputManager& inputManager = InputManager::getSingleton();
+    
+    if(this == inputManager.mHighlightedCreature)
+    {
+        inputManager.mHighlightedCreature = nullptr;
+        normalizeAmbient();
+        removeOutliner(); 
+    }
     fireCreatureSound(CreatureSound::Pickup);
 }
 
@@ -3338,20 +3377,39 @@ void Creature::changeSeat(Seat* newSeat)
     }
 }
 
-void Creature::stopWalking(){
+void Creature::stopWalking()
+{
     if(parkingBit)
         parkedBit = true;
     MovableGameEntity::stopWalking();
 }
 
 
+void Creature::showOutliner()
+{
+    RenderManager::getSingleton().rrAddOutliner(this);
+}
 
 
+void Creature::removeOutliner()
+{
+    RenderManager::getSingleton().rrRemoveOutliner(this);
+}
 
 
+void Creature::maxAmbient()
+{
 
+    RenderManager::getSingleton().rrIncreaseAmbient(this);
 
+}
 
+void Creature::normalizeAmbient()
+{
+
+    RenderManager::getSingleton().rrNormalizeAmbient(this);
+
+}
 
 
 

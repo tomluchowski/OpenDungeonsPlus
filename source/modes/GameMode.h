@@ -32,6 +32,8 @@ namespace CEGUI
 class Window;
 }
 
+class Creature;
+
 enum class SpellType;
 enum class SkillType;
 
@@ -66,6 +68,8 @@ public:
     //! \brief Value currently displayed [0-completeness]
     float mCompletenessDisplayed;
 };
+
+
 
 class GameMode final : public GameEditorModeBase, public InputCommand
 {
@@ -189,6 +193,8 @@ class GameMode final : public GameEditorModeBase, public InputCommand
     //! \brief Called at each frame. Updates spell cooldowns.
     void refreshSpellButtonCoolDowns();
 
+    Creature* getClosestCreature(Tile*);
+    
 protected:
     bool onClickYesQuitMenu(const CEGUI::EventArgs& /*arg*/);
 
