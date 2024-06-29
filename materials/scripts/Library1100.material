@@ -42,7 +42,7 @@ material Library1100 //: RTSS/NormalMapping_MultiPass
             {
                 
             }
-            fragment_program_ref myLibrary1100ragmentShader
+            fragment_program_ref myLibrary1100FragmentShader
             { 
                 param_named decalmap int 0
                 param_named normalmap int 1
