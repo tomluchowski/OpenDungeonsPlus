@@ -38,11 +38,11 @@ material Farm1000 //: RTSS/NormalMapping_MultiPass
 
         pass 
         {
-            vertex_program_ref myFarmVertexShader
+            vertex_program_ref myFarm1000FragmentShader
             {
                 
             }
-            fragment_program_ref myFarmFragmentShader
+            fragment_program_ref myFarm1000FragmentShader
             { 
                 param_named decalmap int 0
                 param_named normalmap int 1

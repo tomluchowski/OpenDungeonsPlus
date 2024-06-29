@@ -38,11 +38,11 @@ material Library0001 //: RTSS/NormalMapping_MultiPass
 
         pass 
         {
-            vertex_program_ref myLibraryVertexShader
+            vertex_program_ref myLibrary0001VertexShader
             {
                 
             }
-            fragment_program_ref myLibraryFragmentShader
+            fragment_program_ref myLibrary0001FragmentShader
             { 
                 param_named decalmap int 0
                 param_named normalmap int 1
