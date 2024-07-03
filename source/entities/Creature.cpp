@@ -905,13 +905,13 @@ void Creature::doUpkeep()
     if (!isAlive())
     {
         // Let the creature lay dead on the ground for a few turns before removing it from the GameMap.
-        if (mDeathCounter == 0)
+        if (mDeathCounter == 0 )
         {
             OD_LOG_INF("Creature=" + getName() + " RIP");
 
             dropCarriedEquipment();
         }
-        else if (mDeathCounter >= ConfigManager::getSingleton().getCreatureDeathCounter())
+        else if ((getDefinition()->isWorker() && mDeathCounter == 1) || mDeathCounter >= ConfigManager::getSingleton().getCreatureDeathCounter())
         {
             // Remove the creature from the game map and into the deletion queue, it will be deleted
             // when it is safe, i.e. all other pointers to it have been wiped from the program.
@@ -2043,7 +2043,7 @@ double Creature::takeDamage(GameEntity* attacker, double absoluteDamage, double 
     {
         // If the attacking entity is a creature and its seat is configured to KO creatures
         // instead of killing, we KO
-        if(ko)
+        if(ko && !getDefinition()->isWorker())
         {
             mHp = 1.0;
             mKoTurnCounter = -ConfigManager::getSingleton().getNbTurnsKoCreatureAttacked();
