@@ -11,6 +11,6 @@ uniform    vec3 center;
 void main(void)
 {
   vec3 pos =  position.xyz  - center;
-  vec3 enlarged = pos*1.05 + center;
+  vec3 enlarged = pos*1.1 + center;
   gl_Position =worldViewProj * vec4(enlarged,1.0);
 }

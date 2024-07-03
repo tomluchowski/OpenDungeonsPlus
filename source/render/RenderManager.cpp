@@ -1450,7 +1450,7 @@ void RenderManager::rrDestroyCreatureVisualDebug(Creature* curCreature, Tile* cu
     {
         Ogre::Entity* visIndicatorEntity = mSceneManager->getEntity(tempSS.str());
         Ogre::SceneNode* visIndicatorNode = mSceneManager->getSceneNode(tempSS.str() + "_node");
-
+        
         visIndicatorNode->detachAllObjects();
         mSceneManager->destroyEntity(visIndicatorEntity);
         mSceneManager->destroySceneNode(visIndicatorNode);
@@ -1469,6 +1469,7 @@ void RenderManager::rrCreateSeatVisionVisualDebug(int seatId, Tile* tile)
                                            "Cre_vision_indicator.mesh");
         Ogre::SceneNode* visIndicatorNode = mCreatureSceneNode->createChildSceneNode(tempSS.str()
                                             + "_node");
+        
         visIndicatorNode->attachObject(visIndicatorEntity);
         visIndicatorNode->setPosition(Ogre::Vector3(static_cast<Ogre::Real>(tile->getX()),
                                                     static_cast<Ogre::Real>(tile->getY()),
@@ -1793,9 +1794,7 @@ void RenderManager::rrAddOutliner(Creature* creature)
             OD_LOG_INF("the number of techniques  is " + Helper::toString(myOutliner->getNumTechniques()));
             Ogre::Pass* myPass1 = myOutliner->getTechnique(myOutliner->getNumTechniques() - 1)->createPass();
             OD_LOG_INF("the number of passes is " + Helper::toString(myOutliner->getTechnique(myOutliner->getNumTechniques() - 1)->getNumPasses()));
-            //myOutliner->getTechnique(1)->movePass(0,1);
-            for(int ii =0 ; ii < myOutliner->getTechnique(myOutliner->getNumTechniques() - 1)->getNumPasses() - 1   ; ++ii)
-                myOutliner->getTechnique(myOutliner->getNumTechniques() - 1)->getPass(ii)->setDepthBias(2, 256);
+            myOutliner->getTechnique(myOutliner->getNumTechniques() - 1)->getPass( myOutliner->getTechnique(myOutliner->getNumTechniques() - 1)->getNumPasses()-1)->setDepthBias(-4, -32);
         
             Ogre::HighLevelGpuProgramManager& mgr =  Ogre::HighLevelGpuProgramManager::getSingleton();
             Ogre::HighLevelGpuProgramPtr vertex_program;

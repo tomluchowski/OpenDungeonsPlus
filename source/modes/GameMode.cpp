@@ -908,6 +908,7 @@ bool GameMode::keyPressedNormal(const OIS::KeyEvent &arg)
         break;
 
     case OIS::KC_LMENU:
+        RenderManager::getSingleton().
         RenderManager::getSingleton().rrSetCreaturesTextOverlay(*mGameMap, true);
         break;
 
