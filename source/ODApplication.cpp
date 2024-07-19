@@ -28,7 +28,6 @@
 #include "sound/SoundEffectsManager.h"
 #include "render/Gui.h"
 #include "render/ODFrameListener.h"
-#include "render/RenderManager.h"
 #include "render/TextRenderer.h"
 #include "render/RenderManager.h"
 #include "utils/ConfigManager.h"
@@ -61,8 +60,6 @@
 #endif /* OD_USE_SFML_WINDOW */
 
 #include <boost/program_options.hpp>
-
-#include <OISException.h>
 
 #include <string>
 #include <sstream>
@@ -190,6 +187,7 @@ void ODApplication::startClient()
     renderWindow->setVisible(true);
 #else /* OD_USE_SFML_WINDOW */
     Ogre::RenderWindow* renderWindow = ogreRoot.initialise(true, "OpenDungeons " + VERSION);
+    Ogre::WindowEventUtilities::_addRenderWindow(renderWindow);
 #endif /* OD_USE_SFML_WINDOW */
 
 
@@ -204,7 +202,7 @@ void ODApplication::startClient()
     HWND hwnd;
     renderWindow->getCustomAttribute("WINDOW", static_cast<void*>(&hwnd));
     HINSTANCE hInst = static_cast<HINSTANCE>(GetModuleHandle(nullptr));
-    SetClassLong(hwnd, GCLP_HICON, reinterpret_cast<LONG>(LoadIcon(hInst, MAKEINTRESOURCE(IDI_ICON1))));
+    SetClassLong(hwnd, GCL_HICON, reinterpret_cast<LONG>(LoadIcon(hInst, MAKEINTRESOURCE(IDI_ICON1))));
 #endif
 
     //Initialise RTshader system
@@ -213,7 +211,6 @@ void ODApplication::startClient()
     // but after the render window, eg: mRoot->initialise();
     // This advice was taken from here:
     // http://www.ogre3d.org/forums/viewtopic.php?p=487445#p487445
-    
     if (!Ogre::RTShader::ShaderGenerator::initialize())
     {
         OD_LOG_ERR("FATAL:"
@@ -225,7 +222,6 @@ void ODApplication::startClient()
     Ogre::MaterialManager::getSingleton().addListener(sgListener);
 #endif
 
-    
     Ogre::ResourceGroupManager::getSingletonPtr()->initialiseAllResourceGroups();
 
     MusicPlayer musicPlayer(resMgr.getMusicPath(), resMgr.listAllMusicFiles());
@@ -251,83 +247,34 @@ void ODApplication::startClient()
 
 #ifdef OD_USE_SFML_WINDOW
     bool running = true;
-    try
+    while(running)
     {
-        while (running)
-        {
-            sf::Event event;
-            while (sfmlWindow.pollEvent(event))
+        sf::Event event;
+        while (sfmlWindow.pollEvent(event)) {
+            if (event.type == sf::Event::Closed)
             {
-                if (event.type == sf::Event::Closed)
-                {
-                    OD_LOG_INF("Requested window close ....");
-                    frameListener.requestExit();
-                    break;
-                }
-                else
-                {
-                    if (event.type == sf::Event::Resized)
-                    {
-                        renderWindow->resize(event.size.width, event.size.height);
-                        frameListener.windowResized(renderWindow);
-                    }
-                    frameListener.getModeManager()->getInputManager().handleSFMLEvent(event);
-                }
+                frameListener.requestExit();
+                break;
             }
-            sfmlWindow.clear();
-            // If renderOneFrame returns false, it indicates that an exit has been requested
-            running = ogreRoot.renderOneFrame();
-            sfmlWindow.display();
+            else
+            {
+                if (event.type == sf::Event::Resized)
+                {
+                    renderWindow->resize(event.size.width, event.size.height);
+                    frameListener.windowResized(renderWindow);
+                }
+                frameListener.getModeManager()->getInputManager().handleSFMLEvent(event);
+            }
         }
-    }
-    catch (const CEGUI::Exception& e)
-    {
-        OD_LOG_ERR("a CEGUI exception " + e.what() + " has broken the main sfml loop");
-        throw ;
-    }
-    catch (const Ogre::Exception& e)
-    {
-        OD_LOG_ERR("an Ogre exception " + e.what() + " has broken the main sfml loop");
-        throw ;
-    }
-    catch (const boost::exception& e)
-    {
-        OD_LOG_ERR("a boost exception " + dynamic_cast<std::exception const&>(e).what()+ " has broken the main sfml loop");
-        throw;
-    }
-
-    catch (const OIS::Exception& e)
-    {
-        std::stringstream ss;
-        ss << "an OIS exception " << e.what() << " " + static_cast<int>(e.eType) << " " << e.eLine << " " << e.eFile << " " << e.eText << " has broken the main sfml loop";
-        OD_LOG_ERR(ss.str());
-        throw;
-    }
-    catch (const std::exception& e) 
-    {
-        OD_LOG_ERR("a std exception " + e.what()  + " has broken the main sfml loop");
-        throw;
-    
-    }
-    catch (...)
-    {
-        OD_LOG_ERR("an unkown exception has broken the main sfml loop");
-        throw ;
+        sfmlWindow.clear();
+        // If renderOneFrame returns false, it indicates that an exit has been requested
+        running = ogreRoot.renderOneFrame();
+        sfmlWindow.display();
     }
 #else /* OD_USE_SFML_WINDOW */
-    // frameListener.mRenderManager->setup();
-    OD_LOG_INF("Before : ogreRoot.startRendering();");    
-    try
-    {
-        ogreRoot.startRendering();
-    }
-    catch(const Ogre::Exception& e)
-    {
-        OD_LOG_INF( e.what());
-    }    
-    OD_LOG_INF("After : ogreRoot.startRendering();");    
+    ogreRoot.startRendering();
 #endif /* OD_USE_SFML_WINDOW */
-    
+
     OD_LOG_INF("Disconnecting client...");
     client.disconnect();
     OD_LOG_INF("Stopping server...");

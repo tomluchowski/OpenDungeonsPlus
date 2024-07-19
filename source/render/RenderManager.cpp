@@ -110,8 +110,10 @@ RenderManager::RenderManager(Ogre::OverlaySystem* overlaySystem) :
     m_ZPrePassEnabled(false)
 {
   
-    
+  
     mSceneManager = Ogre::Root::getSingleton().createSceneManager("DefaultSceneManager", "SceneManager");
+    mShaderGenerator = Ogre::RTShader::ShaderGenerator::getSingletonPtr();
+    mShaderGenerator->addSceneManager(mSceneManager); 
     if(ConfigManager::getSingleton().getAudioValue(Config::SHADOWS)=="Yes")
     {
         mSceneManager->setShadowTechnique(Ogre::ShadowTechnique::SHADOWTYPE_TEXTURE_ADDITIVE);
@@ -147,8 +149,7 @@ RenderManager::RenderManager(Ogre::OverlaySystem* overlaySystem) :
     mSceneManager->addListener(&ddd);
     mSceneManager->addRenderQueueListener(overlaySystem);
     mDraggableSceneNode = mSceneManager->getRootSceneNode()->createChildSceneNode("Draggable_scene_node");
-    mShaderGenerator = Ogre::RTShader::ShaderGenerator::getSingletonPtr();
-    mShaderGenerator->addSceneManager(mSceneManager);
+
 
     mCreatureSceneNode = mSceneManager->getRootSceneNode()->createChildSceneNode("Creature_scene_node");
     mTileSceneNode = mSceneManager->getRootSceneNode()->createChildSceneNode("Tile_scene_node");
@@ -499,13 +500,12 @@ Ogre::Light* RenderManager::addPointLightMenu(const std::string& name, const Ogr
     }
 
     Ogre::Light* light = mSceneManager->createLight(name);
-    Ogre::SceneNode* sn =  mSceneManager->getRootSceneNode()->createChildSceneNode("PointLightMenuSceneNode");
+    Ogre::SceneNode* sn =  mSceneManager->getRootSceneNode()->createChildSceneNode("PointLightMenuSceneNode",pos);
     sn->attachObject(light);
     light->setType(Ogre::Light::LT_POINT);
     light->setDiffuseColour(diffuse);
     light->setSpecularColour(specular);
     light->setAttenuation(attenuationRange, attenuationConstant, attenuationLinear, attenuationQuadratic);
-    mSceneManager->getRootSceneNode()->createChildSceneNode(pos)->attachObject(light);
     return light;
 }
 
