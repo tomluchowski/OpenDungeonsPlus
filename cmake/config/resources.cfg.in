@@ -1,12 +1,8 @@
-[OgreInternal]
-FileSystem=@RTSHADER_DIR@/../Main
-FileSystem=@RTSHADER_DIR@/GLSL
-FileSystem=@RTSHADER_DIR@/../ShadowVolume
-
-
-
 [Graphics]
-
+FileSystem=@RTSHADER_DIR@
+FileSystem=@RTSHADER_DIR@/GLSL
+FileSystem=@RTSHADER_DIR@/HLSL
+FileSystem=@RTSHADER_DIR@/HLSL_Cg
 FileSystem=@RTSHADER_DIR@/materials
 FileSystem=@RTSHADER_DIR@/../Main
 FileSystem=materials/scripts
