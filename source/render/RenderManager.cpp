@@ -821,7 +821,6 @@ Ogre::TexturePtr RenderManager::createPerlinTexture()
     //saveTexture(perlinFog,"myPerlinTexture.png");
     Ogre::TexturePtr alphaPerlinFog = createAlphaChannelForTexture(perlinFog);
     //saveTexture(alphaPerlinFog, "myAlphaPerlinTexture.png");
-    setupFogMaterial(alphaPerlinFog);
 
     renderTexture->removeAllViewports();
 
