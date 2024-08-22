@@ -1,0 +1,62 @@
+// Cloud
+// import RTSS/NormalMapping_MultiPass from "RTShaderSystem.material"
+
+
+vertex_program myCloudVertexShader2 glsl
+{
+  source Cloud.vert
+    default_params
+    {
+        param_named_auto projectionMatrix projection_matrix
+        param_named_auto viewMatrix view_matrix
+        param_named_auto worldMatrix world_matrix
+    }
+  
+}
+
+fragment_program myCloudFragmentShader2 glsl
+{
+  source Cloud.frag
+    default_params
+    {
+        param_named_auto time time 1.0
+        param_named  time_dillation float 1.0
+        param_named resolution float2 256.0 256.0 
+    	param_named  persistence float 0.5 // Controls roughness of the clouds
+    	param_named  lacunarity float 2.0 // Controls frequency of the clouds
+    	param_named  octaves int 5 // Number of noise layers
+    	param_named cloud_color float3 0.7 0.7 0.7
+    }
+}
+
+
+material Cloud2 //: RTSS/NormalMapping_MultiPass
+{
+    
+    technique
+    {
+
+        pass 
+        {
+        
+                    // Enable transparency blending
+            scene_blend alpha_blend
+            
+            // Enable alpha rejection (optional, to discard pixels with low alpha)
+            //alpha_rejection greater_equal 5
+            
+            // Use depth sorting to ensure correct rendering order
+            depth_write off
+            depth_check on
+            vertex_program_ref myCloudVertexShader2
+            {
+                
+            }
+            fragment_program_ref myCloudFragmentShader2
+            { 
+
+            }            
+               
+        }
+    }
+}
