@@ -977,7 +977,7 @@ void RenderManager::rrRefreshTile(Tile& tile, GameMap& draggableTileContainer, c
     // We compute the mesh
     meshName = tileSetValue.getMeshName();
     if(!vision)
-        meshName = "FogOfWar.mesh";
+        meshName = "FogOfWarDirt.mesh";
     Ogre::Entity* tileMeshEnt = nullptr;
     const std::string tileMeshName = tileName + (static_cast<bool>(nt) ?  "" : "_dtc" ) + "_tileMesh";
     if(mSceneManager->hasEntity(tileMeshName))
