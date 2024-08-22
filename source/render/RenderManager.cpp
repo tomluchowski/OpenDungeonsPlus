@@ -91,7 +91,7 @@ const Ogre::ColourValue BASE_AMBIENT_VALUE = Ogre::ColourValue(0.3f, 0.3f, 0.3f)
 
 const Ogre::Real RenderManager::DRAGGABLE_NODE_HEIGHT = 3.0f;
 
-const int PERLIN_NOISE_TEXTURE_SIZE =  4096;
+const int PERLIN_NOISE_TEXTURE_SIZE =  1024;
 
 
 RenderManager::RenderManager(Ogre::OverlaySystem* overlaySystem) :
