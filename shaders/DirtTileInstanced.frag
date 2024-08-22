@@ -3,6 +3,7 @@
 
 uniform sampler2D decalmap;
 uniform sampler2D normalmap;
+uniform sampler2D shadowmap;
 
 uniform vec4 ambientLightColour;
 uniform vec4 lightDiffuseColour; 
@@ -14,6 +15,7 @@ uniform bool shadowingEnabled;
 in vec2 out_UV0;
 in vec2 out_UV1;
 in vec3 FragPos;
+in vec4 VertexPos; 
 in mat3 TBN;
  
 out vec4 color;
@@ -27,7 +29,15 @@ void main (void)
     Normal =  normalize(TBN * Normal); 
     
     vec4 shadow = vec4(1.0, 1.0, 1.0,1.0);
+    vec4 tmpVertexPos = VertexPos;
     
+    // compute shadowmap
+    if(shadowingEnabled){
+		if(tmpVertexPos.z > 0 ){
+		    tmpVertexPos /= tmpVertexPos.w;
+		    shadow = texture(shadowmap, tmpVertexPos.xy); 
+		}
+    }
         
     // compute lightDir
     vec3 lightDir =  normalize(lightPos.xyz - FragPos*lightPos.w);
@@ -54,6 +64,6 @@ void main (void)
     else
         result =  lightingTerm * texelColor;
     color = vec4(result.xyz,  1.0);
-    /* color = vec4(1.0,1.0,1.0,1.0); */
        
 }    
+

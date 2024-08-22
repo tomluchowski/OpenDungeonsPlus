@@ -1,0 +1,67 @@
+
+vertex_program myFogVertexShader glsl
+{
+
+  source Fog.vert
+    default_params
+    {
+        param_named_auto projectionMatrix projection_matrix
+        param_named_auto viewMatrix view_matrix
+        param_named_auto worldMatrix world_matrix
+ 	    // param_named_auto time time 1.0
+    }
+
+
+}
+
+fragment_program myFogFragmentShader glsl
+{
+
+ source Fog.frag
+ 	default_params
+ 	{
+ 	
+
+ 	
+ 	
+ 	}
+
+}
+
+material Fog
+{
+
+
+
+
+
+    technique
+    {
+        pass
+        {
+            // Enable transparency for the cloud layer
+
+            scene_blend alpha_blend
+            depth_write off
+            depth_check on
+            // Vertex and fragment shader programs
+            vertex_program_ref myFogVertexShader
+            {
+                param_named_auto projectionMatrix projection_matrix
+                param_named_auto viewMatrix view_matrix
+                param_named_auto worldMatrix world_matrix
+            }
+            fragment_program_ref myFogFragmentShader
+            {
+            }
+
+            // Texture unit state with the generated Perlin noise texture
+            texture_unit textureSampler
+            {
+
+            }
+        }
+    }
+}
+
+

@@ -91,6 +91,8 @@ const Ogre::ColourValue BASE_AMBIENT_VALUE = Ogre::ColourValue(0.3f, 0.3f, 0.3f)
 
 const Ogre::Real RenderManager::DRAGGABLE_NODE_HEIGHT = 3.0f;
 
+const int PERLIN_NOISE_TEXTURE_SIZE =  4096;
+
 
 RenderManager::RenderManager(Ogre::OverlaySystem* overlaySystem) :
     mRenderTarget(nullptr),
@@ -113,6 +115,10 @@ RenderManager::RenderManager(Ogre::OverlaySystem* overlaySystem) :
   
     mSceneManager = Ogre::Root::getSingleton().createSceneManager("DefaultSceneManager", "SceneManager");
     mShaderGenerator = Ogre::RTShader::ShaderGenerator::getSingletonPtr();
+
+    mShaderGenerator->setShaderCachePath(ResourceManager::getSingletonPtr()->getShaderCachePath());
+    //mShaderGenerator->setShaderCacheEnabled(true);
+    
     mShaderGenerator->addSceneManager(mSceneManager); 
     if(ConfigManager::getSingleton().getAudioValue(Config::SHADOWS)=="Yes")
     {
@@ -145,6 +151,11 @@ RenderManager::RenderManager(Ogre::OverlaySystem* overlaySystem) :
         }  
         
     }
+    else
+    {
+        mSceneManager->setShadowTechnique(Ogre::ShadowTechnique::SHADOWTYPE_NONE);
+
+    }
     ddd.setStatic(true);
     mSceneManager->addListener(&ddd);
     mSceneManager->addRenderQueueListener(overlaySystem);
@@ -157,13 +168,52 @@ RenderManager::RenderManager(Ogre::OverlaySystem* overlaySystem) :
     mLightSceneNode = mSceneManager->getRootSceneNode()->createChildSceneNode("Light_scene_node");
     mMainMenuSceneNode = mSceneManager->getRootSceneNode()->createChildSceneNode("MainMenu_scene_node");
     mDraggableSceneNode->setPosition(0.0,0.0,DRAGGABLE_NODE_HEIGHT);
+    
+    mInstanceManagerDirt = mSceneManager->createInstanceManager(
+        "InstanceManagerMeshDirt",
+        "FogOfWarDirt.mesh",
+        "Graphics",
+        Ogre::InstanceManager::HWInstancingBasic,
+        128,
+        Ogre::IM_USEALL,
+        0);
+    mInstanceManagerCloud = mSceneManager->createInstanceManager(
+        "InstanceManagerMeshCloud2",
+        "FogOfWarCloud2.mesh",
+        "Graphics",
+        Ogre::InstanceManager::HWInstancingBasic,
+        64,
+        Ogre::IM_USEALL,
+        0);
 
 
+
+    
 }
+
+
+// Function to save PerlinNoiseTexture to an image file
+void RenderManager::saveTexture(Ogre::TexturePtr texture, const std::string& filename) {
+    Ogre::HardwarePixelBufferSharedPtr pixelBuffer = texture->getBuffer();
+    Ogre::Image image;
+
+    pixelBuffer->lock(Ogre::HardwareBuffer::HBL_READ_ONLY);
+    const Ogre::PixelBox& pixelBox = pixelBuffer->getCurrentLock();
+
+    image.loadDynamicImage(static_cast<Ogre::uchar*>(pixelBox.data), texture->getWidth(), texture->getHeight(),
+                           1, texture->getFormat(), false);
+
+    image.save(filename);
+
+    pixelBuffer->unlock();
+}
+
 
 RenderManager::~RenderManager()
 {
     delete DebugDrawer::getSingletonPtr();
+    mSceneManager->destroyInstanceManager(mInstanceManagerDirt);
+    mSceneManager->destroyInstanceManager(mInstanceManagerCloud);
 }
 
 void RenderManager::initGameRenderer(GameMap* gameMap)
@@ -182,7 +232,7 @@ void RenderManager::initGameRenderer(GameMap* gameMap)
         mHandLight->setSpecularColour(Ogre::ColourValue(0.65f, 0.65f, 0.45f));
 
         // // the value borrowed from https://wiki.ogre3d.org/-Point+Light+Attenuation
-        mHandLight->setAttenuation(50, 1.0, 0.09, 0.032);
+        mHandLight->setAttenuation(500, 1.0, 0.09, 0.032);
         
         
         
@@ -276,8 +326,8 @@ void RenderManager::initGameRenderer(GameMap* gameMap)
     
     Ogre::MaterialPtr mSmokeMaterial = Ogre::MaterialManager::getSingleton().getByName("Examples/Smoke");
     mSmokeMaterial->getTechnique(0)->getPass(0)->getTextureUnitState(1)->setTexture(m_texture);
-    
-    
+    Ogre::TexturePtr myPerlinTexture = createPerlinTexture();
+    setupFogMaterial(myPerlinTexture);
 }
 
 void RenderManager::setup()
@@ -423,14 +473,39 @@ void RenderManager::stopGameRenderer(GameMap*)
         mSceneManager->destroyLight(mHandLight);
         mHandLight = nullptr;
     }
-    if(Ogre::MaterialManager::getSingleton().resourceExists("LiftedGold","Graphics"))
-        Ogre::MaterialManager::getSingleton().remove("LiftedGold","Graphics");
-    if(Ogre::TextureManager::getSingleton().resourceExists("smokeTexture", Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME))    
-        Ogre::TextureManager::getSingleton().remove("smokeTexture", Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME);
+    removeIfExists<Ogre::MaterialManager>("LiftedGold", "Graphics");
+    removeIfExists<Ogre::TextureManager>("smokeTexture", Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME);
     if(ODFrameListener::getSingleton().getCameraManager()->hasCamera("RenderToTexture"))
         ODFrameListener::getSingleton().getCameraManager()->destroyCamera("RenderToTexture");
     if(ODFrameListener::getSingleton().getCameraManager()->hasCameraNode("RenderToTexture"))
-    ODFrameListener::getSingleton().getCameraManager()->destroyCameraNode("RenderToTexture");    
+        ODFrameListener::getSingleton().getCameraManager()->destroyCameraNode("RenderToTexture");
+    // unBind the PerlinNoiseTexture to the CloudMaterial programmatically
+    if(Ogre::MaterialManager::getSingleton().resourceExists("Fog", Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME))
+    {
+        Ogre::MaterialPtr fogMaterial = Ogre::MaterialManager::getSingleton().getByName("Fog");
+        if (!fogMaterial.isNull())
+        {
+            Ogre::Pass* pass = fogMaterial->getTechnique(0)->getPass(0);
+            Ogre::TextureUnitState* texState = pass->getTextureUnitState(0);
+
+            if (texState != nullptr )
+            {
+                texState->setTexture(Ogre::TexturePtr());
+            }
+            else
+            {
+                OD_LOG_ERR( "Error: TextureUnitState or myTexture is null.");
+                return;
+            }
+        }
+        else
+        {
+            OD_LOG_ERR ( "Error: Cloud material 'Fog' is null.");
+        }
+    }
+    removeIfExists<Ogre::TextureManager>("PerlinNoiseTexture", Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME );
+    removeIfExists<Ogre::TextureManager>("freshPerlinTexture", Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME );
+    
 }
 
 void RenderManager::triggerCompositor(const std::string& compositorName)
@@ -695,7 +770,181 @@ void RenderManager::updateRenderAnimations(Ogre::Real timeSinceLastFrame)
     }
 }
 
-void RenderManager::rrRefreshTile(const Tile& tile, GameMap& draggableTileContainer, const Player& localPlayer, NodeType nt)
+Ogre::TexturePtr RenderManager::createPerlinTexture()
+{
+    Ogre::SceneManager* mSceneManagerPerlin = Ogre::Root::getSingletonPtr()->createSceneManager("OctreeSceneManager", "perlinSceneManager");
+    Ogre::TexturePtr perlinTexture = Ogre::TextureManager::getSingleton().createManual(
+        "PerlinNoiseTexture",
+        Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME,
+        Ogre::TEX_TYPE_2D,
+        PERLIN_NOISE_TEXTURE_SIZE, PERLIN_NOISE_TEXTURE_SIZE,
+        0,
+        Ogre::PF_R8G8B8A8,
+        Ogre::TU_RENDERTARGET
+        );
+    Ogre::RenderTexture* renderTexture;
+    // Attach a camera and viewport to render the texture
+    renderTexture = perlinTexture->getBuffer()->getRenderTarget();
+    Ogre::Camera* camera = mSceneManagerPerlin->createCamera("PerlinNoiseCam");
+    camera->setProjectionType(Ogre::PT_ORTHOGRAPHIC);
+    camera->setOrthoWindow(PERLIN_NOISE_TEXTURE_SIZE, PERLIN_NOISE_TEXTURE_SIZE);
+    Ogre::SceneNode* cameraNode = mSceneManagerPerlin->getRootSceneNode()->createChildSceneNode();
+    cameraNode->attachObject(camera);
+    cameraNode->setPosition(0,0,1000);
+    cameraNode->lookAt(Ogre::Vector3(0,0,0), Ogre::Node::TS_WORLD);    
+        
+    Ogre::Viewport* viewport = renderTexture->addViewport(camera);
+    // viewport->setDimensions(0, 0, 1, 1);
+    viewport->setClearEveryFrame(true);
+    viewport->setBackgroundColour(Ogre::ColourValue::Black);
+    viewport->setOverlaysEnabled(false);
+        
+    // Create a quad
+    Ogre::Plane plane(Ogre::Vector3::UNIT_Z, 0);
+    Ogre::MeshManager::getSingleton().createPlane(
+        "Plane", Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME,
+        plane, PERLIN_NOISE_TEXTURE_SIZE, PERLIN_NOISE_TEXTURE_SIZE, 1, 1, true, 1, 1, 1, Ogre::Vector3::UNIT_Y);
+
+    Ogre::Entity* quadEntity = mSceneManagerPerlin->createEntity("Plane");
+            
+    quadEntity->setMaterialName("CloudGenerate", "Graphics");
+    Ogre::SceneNode* quadNode = mSceneManagerPerlin->getRootSceneNode()->createChildSceneNode();
+    quadNode->attachObject(quadEntity);
+
+    // quadNode->setPosition(-2048, -2048, -1000);
+
+    mSceneManagerPerlin->setAmbientLight(Ogre::ColourValue(.5, .5, .5));
+    //renderWindow->update();
+    renderTexture->update();
+    //renderWindow->writeContentsToFile("myRenderWindow.png");
+    Ogre::TexturePtr perlinFog = copyTexture(perlinTexture);
+    //saveTexture(perlinFog,"myPerlinTexture.png");
+    Ogre::TexturePtr alphaPerlinFog = createAlphaChannelForTexture(perlinFog);
+    //saveTexture(alphaPerlinFog, "myAlphaPerlinTexture.png");
+    setupFogMaterial(alphaPerlinFog);
+
+    renderTexture->removeAllViewports();
+
+    // Clean up resources before exiting the function
+    quadNode->detachAllObjects();  // Detach the entity from the node
+    mSceneManagerPerlin->destroySceneNode(quadNode);  // Destroy the scene node
+    mSceneManagerPerlin->destroyEntity(quadEntity);  // Destroy the entity
+    mSceneManagerPerlin->destroyCamera(camera);  // Destroy the camera
+
+    // Clean up manually created resources
+    Ogre::MeshManager::getSingleton().remove("Plane");
+    Ogre::Root::getSingletonPtr()->destroyRenderTarget(renderTexture);    
+    Ogre::Root::getSingletonPtr()->destroySceneManager(mSceneManagerPerlin);
+
+    return alphaPerlinFog;
+}
+void RenderManager::cleanUp()
+{
+
+
+
+
+}
+
+Ogre::TexturePtr RenderManager::copyTexture(Ogre::TexturePtr oldTexture)
+{
+    Ogre::TexturePtr newTexture = Ogre::TextureManager::getSingleton().createManual(
+        "freshPerlinTexture",
+        Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME,
+        Ogre::TEX_TYPE_2D,
+        PERLIN_NOISE_TEXTURE_SIZE, PERLIN_NOISE_TEXTURE_SIZE,
+        0,
+        Ogre::PF_R8G8B8A8,
+        Ogre::TU_DYNAMIC
+        );
+
+// Lock the source texture for reading
+    Ogre::HardwarePixelBufferSharedPtr srcBuffer = oldTexture->getBuffer();
+    srcBuffer->lock(Ogre::HardwareBuffer::HBL_READ_ONLY);
+    const Ogre::PixelBox& srcPixelBox = srcBuffer->getCurrentLock();
+
+// Lock the destination texture for writing
+    Ogre::HardwarePixelBufferSharedPtr destBuffer = newTexture->getBuffer();
+    destBuffer->lock(Ogre::HardwareBuffer::HBL_DISCARD);
+    const Ogre::PixelBox& destPixelBox = destBuffer->getCurrentLock();
+
+// Copy the pixel data from the source to the destination
+    Ogre::PixelUtil::bulkPixelConversion(srcPixelBox, destPixelBox);
+
+// Unlock the buffers
+    srcBuffer->unlock();
+    destBuffer->unlock(); 
+
+    return newTexture;
+
+}
+
+
+
+Ogre::TexturePtr RenderManager::createAlphaChannelForTexture(Ogre::TexturePtr m_texture)
+{
+
+    if (m_texture.isNull())
+    {
+        // Handle the case where the texture is not found
+        Ogre::LogManager::getSingleton().logMessage("Texture not found: ");
+        return m_texture;
+    }
+
+    Ogre::HardwarePixelBufferSharedPtr tmpHardwarePixelBuffer = m_texture->getBuffer(0, 0);
+    tmpHardwarePixelBuffer->lock(Ogre::HardwareBuffer::HBL_DISCARD);
+    const Ogre::PixelBox &tmpPixelBox = tmpHardwarePixelBuffer->getCurrentLock();
+    unsigned char* tmpData = static_cast<unsigned char*>(tmpPixelBox.data);
+    size_t tmpHeight = tmpPixelBox.getHeight();
+    size_t tmpWidth = tmpPixelBox.getWidth();
+    size_t tmpDataIndex = 0;
+    size_t tmpDataIndexStep = Ogre::PixelUtil::getNumElemBytes(tmpPixelBox.format);
+    Ogre::uint8 rr, gg, bb, aa;
+    for (size_t y = 0; y < tmpHeight; ++y)
+    {
+        for (size_t x = 0; x < tmpWidth; ++x)
+        {
+            // Set the new pixel data
+            Ogre::PixelUtil::unpackColour(&rr, &gg , &bb, &aa, tmpPixelBox.format, tmpData + tmpDataIndex);
+            Ogre::PixelUtil::packColour(rr, gg, bb, bb/3, tmpPixelBox.format, tmpData + tmpDataIndex);
+            tmpDataIndex += tmpDataIndexStep;
+        }
+    }
+    tmpHardwarePixelBuffer->unlock();
+    
+    return m_texture;
+}
+
+void RenderManager::setupFogMaterial(Ogre::TexturePtr myTexture)
+{
+    // Bind the PerlinNoiseTexture to the CloudMaterial programmatically
+    Ogre::MaterialPtr fogMaterial = Ogre::MaterialManager::getSingleton().getByName("Fog");
+    if (!fogMaterial.isNull())
+    {
+        Ogre::Pass* pass = fogMaterial->getTechnique(0)->getPass(0);
+        Ogre::TextureUnitState* texState = pass->getTextureUnitState(0);
+
+        if (texState != nullptr && !myTexture.isNull())
+        {
+            texState->setTexture(myTexture);
+        }
+        else
+        {
+            OD_LOG_ERR( "Error: TextureUnitState or myTexture is null.");
+            return;
+        }
+    }
+    else
+    {
+        OD_LOG_ERR ( "Error: Cloud material 'Fog' is null.");
+    }
+
+}
+
+
+
+
+void RenderManager::rrRefreshTile(Tile& tile, GameMap& draggableTileContainer, const Player& localPlayer, NodeType nt)
 {
     if (tile.getEntityNode() == nullptr)
         return;
@@ -705,24 +954,30 @@ void RenderManager::rrRefreshTile(const Tile& tile, GameMap& draggableTileContai
 
     // We only mark vision on ground tiles (except lava and water)
     bool vision = true;
-    switch(tile.getTileVisual())
-    {
-        case TileVisual::claimedGround:
-        case TileVisual::dirtGround:
-        case TileVisual::goldGround:
-        case TileVisual::rockGround:
-            vision = tile.getLocalPlayerHasVision();
-            break;
-        default:
-            break;
-    }
+
+    vision = tile.getLocalPlayerHasVision();
+
+
+    
+    // switch(tile.getTileVisual())
+    // {
+    //     case TileVisual::claimedGround:
+    //     case TileVisual::dirtGround:
+    //     case TileVisual::goldGround:
+    //     case TileVisual::rockGround:
+    //         vision = tile.getLocalPlayerHasVision();
+    //         break;
+    //     default:
+    //         break;
+    // }
     bool isMarked = tile.getMarkedForDigging(&localPlayer);
     
     const TileSetValue& tileSetValue = draggableTileContainer.getMeshForTile(&tile);
 
     // We compute the mesh
     meshName = tileSetValue.getMeshName();
-
+    if(!vision)
+        meshName = "FogOfWar.mesh";
     Ogre::Entity* tileMeshEnt = nullptr;
     const std::string tileMeshName = tileName + (static_cast<bool>(nt) ?  "" : "_dtc" ) + "_tileMesh";
     if(mSceneManager->hasEntity(tileMeshName))
@@ -742,28 +997,64 @@ void RenderManager::rrRefreshTile(const Tile& tile, GameMap& draggableTileContai
     if(mSceneManager->hasSceneNode(tileMeshNodeName))
         tileMeshNode = mSceneManager->getSceneNode(tileMeshNodeName);
 
-    if((tileMeshEnt == nullptr) && !meshName.empty())
+
+    if(!Ogre::MeshManager::getSingleton().resourceExists(meshName,"Graphics"))
+        Ogre::MeshManager::getSingleton().load(meshName,"Graphics");
+    Ogre::MeshPtr meshPtr = Ogre::MeshManager::getSingleton().getByName(meshName,"Graphics");
+    unsigned short src, dest;
+    if (!meshPtr->suggestTangentVectorBuildParams(Ogre::VES_TANGENT, src, dest))
+    {
+        meshPtr->buildTangentVectors(Ogre::VES_TANGENT, src, dest);
+    } 
+
+
+    if((tileMeshEnt == nullptr) && !meshName.empty() )
     {
 
 
-        if(!Ogre::MeshManager::getSingleton().resourceExists(meshName,"Graphics"))
-            Ogre::MeshManager::getSingleton().load(meshName,"Graphics");
-        Ogre::MeshPtr meshPtr = Ogre::MeshManager::getSingleton().getByName(meshName,"Graphics");
-        unsigned short src, dest;
-        if (!meshPtr->suggestTangentVectorBuildParams(Ogre::VES_TANGENT, src, dest))
-        {
-            meshPtr->buildTangentVectors(Ogre::VES_TANGENT, src, dest);
-        } 
+
+        if(tileMeshNode == nullptr)
+            tileMeshNode = tile.getEntityNode()->createChildSceneNode(tileMeshNodeName);
+
+
 
 
 
         
-        tileMeshEnt = mSceneManager->createEntity(tileMeshName, meshPtr);
-        // If the node does not exist, we create it
-        if(tileMeshNode == nullptr)
-            tileMeshNode = tile.getEntityNode()->createChildSceneNode(tileMeshNodeName);
-        // Link the tile mesh back to the relevant scene node so OGRE will render it
-        tileMeshNode->attachObject(tileMeshEnt);
+        if (vision && !tile.getHasFogOfWar())
+        {
+        
+            tileMeshEnt = mSceneManager->createEntity(tileMeshName, meshPtr);
+            // If the node does not exist, we create it
+
+            // Link the tile mesh back to the relevant scene node so OGRE will render it
+            tileMeshNode->attachObject(tileMeshEnt);
+            tile.setHasFogOfWar(false);
+
+        }
+        else if ( !vision && !tile.getHasFogOfWar())
+        {
+
+            
+            tileMeshNode->attachObject(tile.getFogOfWarMesh());
+            tileMeshNode->attachObject(tile.getFogOfWarCloud());
+            
+            
+            tile.setHasFogOfWar(true);
+                      
+        }
+
+        else if( vision && tile.getHasFogOfWar())
+        {
+            tileMeshNode->detachObject(tile.getFogOfWarMesh());
+            tileMeshNode->detachObject(tile.getFogOfWarCloud());
+            tileMeshEnt = mSceneManager->createEntity(tileMeshName, meshPtr);
+            // If the node does not exist, we create it
+
+            // Link the tile mesh back to the relevant scene node so OGRE will render it
+            tileMeshNode->attachObject(tileMeshEnt);
+            tile.setHasFogOfWar(false);            
+        }
     }
     // We rescale and set the orientation that may have changed
     if(tileMeshNode != nullptr)
@@ -785,11 +1076,11 @@ void RenderManager::rrRefreshTile(const Tile& tile, GameMap& draggableTileContai
             tileMeshNode->rotate(q);
     }
 
-    if(tileMeshEnt != nullptr)
+    if(tileMeshEnt != nullptr && vision)
     {
         tileMeshEnt->setCastShadows(false);
         // We replace the material if required by the tileset
-        if(!tileSetValue.getMaterialName().empty())
+        if(!tileSetValue.getMaterialName().empty() )
             tileMeshEnt->setMaterialName(tileSetValue.getMaterialName());
 
 
@@ -892,6 +1183,17 @@ void RenderManager::rrCreateTile(Tile& tile, GameMap& dtc, const Player& localPl
         node = mDraggableSceneNode->createChildSceneNode(tileName + "_dtc_node");
     tile.setParentSceneNode(node->getParentSceneNode());
     tile.setEntityNode(node);
+
+
+    Ogre::InstancedEntity* myDirt = mInstanceManagerDirt->createInstancedEntity("DirtInstanced");
+    Ogre::InstancedEntity* myCloud = mInstanceManagerCloud->createInstancedEntity("Fog");  
+    
+    myDirt->setCastShadows(false);
+    myCloud->setCastShadows(false);
+
+
+    tile.setFogOfWarMesh(myDirt);
+    tile.setFogOfWarCloud(myCloud);
     node->setPosition(static_cast<Ogre::Real>(tile.getX()), static_cast<Ogre::Real>(tile.getY()),static_cast<Ogre::Real>(tile.getZ()) );
 
     rrRefreshTile(tile, dtc, localPlayer,nt);
@@ -945,6 +1247,8 @@ void RenderManager::rrDestroyTile(Tile& tile, NodeType nt)
     mSceneManager->destroySceneNode(tile.getEntityNode());
     tile.setParentSceneNode(nullptr);
     tile.setEntityNode(nullptr);
+    mSceneManager->destroyInstancedEntity(tile.getFogOfWarMesh());
+    mSceneManager->destroyInstancedEntity(tile.getFogOfWarCloud());
 }
 
 void RenderManager::rrTemporalMarkTile(Tile* curTile)
@@ -1258,7 +1562,7 @@ void RenderManager::rrCreateMapLight(MapLight* curMapLight, bool displayVisual)
                           curMapLight->getAttenuationConstant(),
                           curMapLight->getAttenuationLinear(),
                           curMapLight->getAttenuationQuadratic());
-
+    
     // Create the base node that the "flicker_node" and the mesh attach to.
     Ogre::SceneNode* mapLightNode = mLightSceneNode->createChildSceneNode(mapLightName + "_node");
     curMapLight->setEntityNode(mapLightNode);
@@ -2224,4 +2528,15 @@ Ogre::AnimationState* RenderManager::setEntityAnimation(Ogre::Entity* ent, const
     }
 
     return animState;
+}
+
+template <typename Manager> bool RenderManager::removeIfExists(std::string resourceName,std::string resourceGroup )
+{
+
+    if(Manager::getSingleton().resourceExists(resourceName, resourceGroup))
+    {
+        Manager::getSingleton().remove(resourceName, resourceGroup);
+        return true;
+    }
+    return false;
 }

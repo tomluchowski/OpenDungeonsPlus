@@ -116,8 +116,17 @@ public:
     //! Debug function to be used for dev only. Beware, it should not be called from the server thread
     static std::string consoleListAnimationsForMesh(const std::string& meshName);
 
+    //! Functions needed to create Fog texture dynamically ( in the program run )
+
+    void saveTexture(Ogre::TexturePtr texture, const std::string& filename);
+    Ogre::TexturePtr createPerlinTexture();
+    Ogre::TexturePtr createAlphaChannelForTexture(Ogre::TexturePtr m_texture);
+    Ogre::TexturePtr copyTexture(Ogre::TexturePtr oldTexture);
+    void setupFogMaterial(Ogre::TexturePtr myTexture);
+    void cleanUp();
+    
     //Render request functions
-    void rrRefreshTile(const Tile& tile, GameMap& draggableTileContainer, const Player& localPlayer, NodeType nt = NodeType::MTILES_NODE);
+    void rrRefreshTile(Tile& tile, GameMap& draggableTileContainer, const Player& localPlayer, NodeType nt = NodeType::MTILES_NODE);
     void rrCreateTile(Tile& tile, GameMap& dtc, const Player& localPlayer, NodeType nt = NodeType::MTILES_NODE);
     void rrDestroyTile(Tile& tile, NodeType nt = NodeType::MTILES_NODE);
     void rrTemporalMarkTile(Tile* curTile);
@@ -206,11 +215,18 @@ public:
     bool m_ZPrePassEnabled;
     
 private:
+    Ogre::InstanceManager* mInstanceManagerDirt;
+    Ogre::InstanceManager* mInstanceManagerCloud;
+        
     Ogre::DefaultDebugDrawer ddd;
+
+    // Ogre::TexturePtr perlinFog;
     
     //! \brief Correctly places entities in hand next to the keeper hand
     void changeRenderQueueRecursive(Ogre::SceneNode* node, uint8_t renderQueueId);
 
+
+    template<typename Manager> bool removeIfExists(std::string, std::string);
     //! \brief Correctly places entities in hand next to the keeper hand
     void rrOrderHand(Player* localPlayer);
 

@@ -77,7 +77,8 @@ Tile::Tile(GameMap* gameMap, int x, int y, TileType type, double fullness) :
     mLocalPlayerHasVision   (false),
     mTileCulling        (CullingType::HIDE),
     mNbWorkersClaiming(0),
-    mStatsWindow             (nullptr)
+    mStatsWindow             (nullptr),
+    fogPresent          (false)
 {
     computeTileVisual();
 }

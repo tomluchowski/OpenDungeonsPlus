@@ -1,14 +1,43 @@
-// ReflMetal
+vertex_program myReflMetalVertexShader glsl
+{
+  source ReflMetal.vert
+    default_params
+    {
+        param_named_auto worldviewproj_matrix worldviewproj_matrix
+        param_named_auto normal_matrix normal_matrix
+        param_named_auto worldview_matrix worldview_matrix
+    }
+  
+}
+
+fragment_program myReflMetalFragmentShader glsl
+{
+  source ReflMetal.frag
+    default_params
+    {
+    }
+}
+
+
+
+
+
 material ReflMetal
 {
     technique
     {
         pass
         {
-            ambient 0.0 0.0 0.0
-            diffuse 1.0 1.0 1.0
-            specular 0.2 0.2 0.2 1.0 98.0
-            emissive 0.0 0.0 0.0 1
+            
+            vertex_program_ref myReflMetalVertexShader
+            {
+            }
+            fragment_program_ref myReflMetalFragmentShader
+            {
+               param_named ambient float3 1.0 1.0 1.0  // This will be set from C++ code
+            }
+            
+            
             texture_unit
             {
                 texture EnvmapMetal.png

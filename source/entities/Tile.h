@@ -49,6 +49,7 @@ class BuildingObject;
 class PersistentObject;
 class ODPacket;
 
+
 enum class RoomType;
 enum class SelectionEntityWanted;
 enum class TrapType;
@@ -219,6 +220,40 @@ public:
         mTileVisual = tileVisual;
     }
 
+
+    inline  void setFogOfWarMesh(Ogre::InstancedEntity* instancedEntity)
+    {
+        mFogOfWarDirtMesh = instancedEntity;
+
+    }
+    inline  Ogre::InstancedEntity* getFogOfWarMesh() const 
+    {
+        return mFogOfWarDirtMesh;
+
+    }
+
+    inline  void setFogOfWarCloud(Ogre::InstancedEntity* instancedEntity)
+    {
+        mFogOfWarCloud1Mesh = instancedEntity;
+
+    }
+    inline  Ogre::InstancedEntity* getFogOfWarCloud() const 
+    {
+        return mFogOfWarCloud1Mesh;
+
+    }
+      
+
+    inline bool getHasFogOfWar() const
+    {
+        return fogPresent;
+    }
+
+    inline void setHasFogOfWar(bool bb)
+    {
+        fogPresent = bb;
+    }
+    
     //! \brief A mutator to change how "filled in" the tile is.
     //! Additionally this function refreshes floodfill if needed (if a tile becomes walkable)
     void setFullness(double f);
@@ -587,6 +622,9 @@ private:
 
     bool mHasBridge;
 
+
+    bool fogPresent;
+    
     //! \brief Used on client side. true if the local player has vision, false otherwise.
     bool mLocalPlayerHasVision;
 
@@ -610,6 +648,13 @@ private:
     void fireTileStateChanged();
 
     CEGUI::Window*  mStatsWindow;
+
+    Ogre::InstancedEntity* mFogOfWarDirtMesh;
+
+    Ogre::InstancedEntity* mFogOfWarCloud1Mesh;
+
+    Ogre::InstancedEntity* mFogOfWarCloud2Mesh;
+    
 };
 
 #endif // TILE_H
