@@ -52,50 +52,38 @@ parts:
             - -DCMAKE_INSTALL_PREFIX=/usr/
             - -DOGRE_ENABLE_PRECOMPILED_HEADERS=OFF
         source: https://github.com/OGRECave/ogre.git
-        source-tag: v1.12.13
+        source-tag: v13.6.5
         source-depth: 1
         build-packages:
-            - libxaw7-dev
-            - libzzip-dev
             - libxrandr-dev
             - libfreetype6-dev
-            - libxt-dev
             - libgl1-mesa-dev
-            - libegl1-mesa-dev
             - libglu1-mesa-dev
             - g++
         stage-packages:
-            - libegl1-mesa
             - libfreetype6
-            - libzzip-0-13
-            - libxaw7
-            - libxt6
             - libgl1
-            - libglvnd0
-            - libglx0
             - libxrandr2
-            - libxrender1
+            - libegl1
     cegui:
         plugin: cmake
         cmake-parameters:
             - -DCMAKE_BUILD_TYPE=Release
             - -DCMAKE_INSTALL_PREFIX=/usr/
+            - -DCMAKE_CXX_FLAGS=-std=c++11
             - -DCEGUI_BUILD_RENDERER_OPENGL=FALSE
             - -DCEGUI_BUILD_RENDERER_OPENGLES=FALSE
             - -DCEGUI_BUILD_RENDERER_OPENGL3=FALSE
             - -DCEGUI_BUILD_IMAGECODEC_FREEIMAGE=FALSE # we use ogre
             - -DCEGUI_OPTION_DEFAULT_IMAGECODEC=OgreRenderer-0
             - -DCEGUI_SAMPLES_ENABLED=FALSE
-        source: https://github.com/tomluchowski/cegui.git
+        build-environment:
+            - CMAKE_PREFIX_PATH: $CMAKE_PREFIX_PATH:$SNAPCRAFT_STAGE/usr
+        source: https://github.com/paroj/cegui.git
         source-depth: 1
         source-tag: v0
         build-packages:
             - librapidxml-dev
-        build-environment:
-            - CMAKE_PREFIX_PATH: $CMAKE_PREFIX_PATH:$SNAPCRAFT_STAGE/usr/
-        override-pull: |
-            snapcraftctl pull
-            sed -i -e 's|target_compile_features|\#target_compile_features|g' cegui/src/RendererModules/Ogre/CMakeLists.txt
         after: [ogre]
     libois:
         plugin: cmake
