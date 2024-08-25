@@ -140,6 +140,12 @@ void MiniMapDrawn::update(Ogre::Real timeSinceLastFrame, const std::vector<Ogre:
                 continue;
             }
 
+            if(tile->getHasFogOfWar())
+            {
+                
+                drawPixel(ii,jj, 100, 100, 100);
+                continue;
+            }
             if (tile->getMarkedForDigging(mGameMap.getLocalPlayer()))
             {
                 drawPixel(ii, jj, 0xFF, 0xA8, 0x00);
