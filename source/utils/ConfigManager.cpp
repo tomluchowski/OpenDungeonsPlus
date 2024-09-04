@@ -1812,6 +1812,9 @@ bool ConfigManager::initVideoConfig(Ogre::Root& ogreRoot)
     // also I set  Separate Shader Objects here, this is ad-hoc solution so the game starts up
     // when no config.cfg file is present ( that should never happen , because currently the game checks
     // for the config.cfg and if no present it creates one )
+
+
+
     if (rendererName.empty()){
         rendererName = "OpenGL 3+ Rendering Subsystem";
         ogreRoot.getRenderSystemByName(rendererName)->setConfigOption("Separate Shader Objects", "true");
@@ -1889,6 +1892,7 @@ bool ConfigManager::initVideoConfig(Ogre::Root& ogreRoot)
         for (const std::string& option : optionsToRemove)
             mVideoUserConfig.erase(option);
     }
+    
 
     return true;
 }

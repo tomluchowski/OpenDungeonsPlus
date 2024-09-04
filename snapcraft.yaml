@@ -79,7 +79,7 @@ parts:
             - -DCEGUI_SAMPLES_ENABLED=FALSE
         build-environment:
             - CMAKE_PREFIX_PATH: $CMAKE_PREFIX_PATH:$SNAPCRAFT_STAGE/usr
-        source: https://github.com/paroj/cegui.git
+        source: https://github.com/tomluchowski/cegui.git
         source-depth: 1
         source-tag: v0
         build-packages:

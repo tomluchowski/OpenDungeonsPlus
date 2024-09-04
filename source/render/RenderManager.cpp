@@ -91,7 +91,7 @@ const Ogre::ColourValue BASE_AMBIENT_VALUE = Ogre::ColourValue(0.3f, 0.3f, 0.3f)
 
 const Ogre::Real RenderManager::DRAGGABLE_NODE_HEIGHT = 3.0f;
 
-const int PERLIN_NOISE_TEXTURE_SIZE =  1024;
+const int PERLIN_NOISE_TEXTURE_SIZE =  4096;
 
 
 RenderManager::RenderManager(Ogre::OverlaySystem* overlaySystem) :
@@ -185,7 +185,6 @@ RenderManager::RenderManager(Ogre::OverlaySystem* overlaySystem) :
         64,
         Ogre::IM_USEALL,
         0);
-
 
 
     
@@ -290,6 +289,9 @@ void RenderManager::initGameRenderer(GameMap* gameMap)
         mDummyEntities.push_back(dummyNode);
     }
 
+    // disable the scissors test, so we can generate to as large textures as one wish
+    Ogre::Root::getSingleton().getRenderSystem()->setScissorTest(false);
+    
     // Create the RTT texture
     m_texture = Ogre::TextureManager::getSingleton().createManual("smokeTexture", Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME, Ogre::TEX_TYPE_2D,Ogre::uint(ODFrameListener::getSingleton().getCameraManager()->getActiveCamera()->getViewport()->getActualWidth()), Ogre::uint(ODFrameListener::getSingleton().getCameraManager()->getActiveCamera()->getViewport()->getActualHeight()), 0, Ogre::PF_FLOAT32_RGBA, Ogre::TU_RENDERTARGET, 0);
 
