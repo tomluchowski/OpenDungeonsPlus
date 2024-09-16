@@ -84,7 +84,7 @@ GameEditorModeConsole::GameEditorModeConsole(ModeManager* modeManager):
     mConsoleHistoryWindow->setAlpha(0.4);
     CEGUI::Window* editbox = consoleRootWindow->getChild("Editbox");
     mEditboxWindow = static_cast<CEGUI::MultiLineEditbox*>(editbox);
-    mEditboxWindow->setAlpha(0.4);
+    // mEditboxWindow->setAlpha(0.4);
     // mEditboxWindow->setTextParsingEnabled(true);
     // mEditboxWindow->setText("[colour='FFFF0000']");
     CEGUI::Window* sendButton = consoleRootWindow->getChild("SendButton");

@@ -29,6 +29,6 @@ void main()
     vec4 local_position = position;
     FFP_Transform(uv1, local_position, local_position.xyz);
     
-    TexCoords.st = (worldMatrix *vec4(local_position.xyz,1.0)).xy/4 ;// + vec2(sin(time),cos(time));
+    TexCoords.st = (worldMatrix *vec4(local_position.xyz,1.0)).xy/8 ;// + vec2(sin(time),cos(time));
     gl_Position = projectionMatrix * viewMatrix * worldMatrix * vec4(local_position.xyz,1.0);
 }

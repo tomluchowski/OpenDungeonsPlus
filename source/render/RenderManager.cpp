@@ -481,30 +481,6 @@ void RenderManager::stopGameRenderer(GameMap*)
         ODFrameListener::getSingleton().getCameraManager()->destroyCamera("RenderToTexture");
     if(ODFrameListener::getSingleton().getCameraManager()->hasCameraNode("RenderToTexture"))
         ODFrameListener::getSingleton().getCameraManager()->destroyCameraNode("RenderToTexture");
-    // unBind the PerlinNoiseTexture to the CloudMaterial programmatically
-    // if(Ogre::MaterialManager::getSingleton().resourceExists("Fog", Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME))
-    // {
-    //     Ogre::MaterialPtr fogMaterial = Ogre::MaterialManager::getSingleton().getByName("Fog");
-    //     if (!fogMaterial.isNull())
-    //     {
-    //         Ogre::Pass* pass = fogMaterial->getTechnique(0)->getPass(0);
-    //         Ogre::TextureUnitState* texState = pass->getTextureUnitState(0);
-
-    //         if (texState != nullptr )
-    //         {
-    //             texState->setTexture(Ogre::TexturePtr());
-    //         }
-    //         else
-    //         {
-    //             OD_LOG_ERR( "Error: TextureUnitState or myTexture is null.");
-    //             return;
-    //         }
-    //     }
-    //     else
-    //     {
-    //         OD_LOG_ERR ( "Error: Cloud material 'Fog' is null.");
-    //     }
-    // }
     removeIfExists<Ogre::TextureManager>("PerlinNoiseTexture", Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME );
     removeIfExists<Ogre::TextureManager>("freshPerlinTexture", Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME );
     
