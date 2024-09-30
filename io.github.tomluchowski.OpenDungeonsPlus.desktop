@@ -1,9 +1,9 @@
 [Desktop Entry]
 Comment=OpenDungeonsPlus, a better fork of Opendungeons
-Categories=Game;Strategy;
+Categories=Game;StrategyGame;
 Exec=opendungoens-plus
-Icon=icon
-Name=OpenDungoensPlus
+Icon=io.github.tomluchowski.OpenDungeonsPlus.svg
+Name=OpenDungeonsPlus
 StartupNotify=true
 Terminal=false
 Type=Application
