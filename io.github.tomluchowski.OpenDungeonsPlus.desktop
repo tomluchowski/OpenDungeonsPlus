@@ -1,7 +1,7 @@
 [Desktop Entry]
 Comment=OpenDungeonsPlus, a better fork of Opendungeons
 Categories=Game;StrategyGame;
-Exec=opendungoens-plus
+Exec=opendungeons-plus
 Icon=io.github.tomluchowski.OpenDungeonsPlus.svg
 Name=OpenDungeonsPlus
 StartupNotify=true
