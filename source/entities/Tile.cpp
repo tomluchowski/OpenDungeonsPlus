@@ -78,7 +78,9 @@ Tile::Tile(GameMap* gameMap, int x, int y, TileType type, double fullness) :
     mTileCulling        (CullingType::HIDE),
     mNbWorkersClaiming(0),
     mStatsWindow             (nullptr),
-    fogPresent          (false)
+    fogPresent          (false),
+    mFogOfWarCloud1Mesh (nullptr),
+    mFogOfWarDirtMesh   (nullptr)   
 {
     computeTileVisual();
 }

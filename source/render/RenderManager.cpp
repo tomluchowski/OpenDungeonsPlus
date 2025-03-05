@@ -187,7 +187,8 @@ RenderManager::RenderManager(Ogre::OverlaySystem* overlaySystem) :
         0);
 
 
-    
+    mInstanceManagerDirt->defragmentBatches(true);
+    mInstanceManagerCloud->defragmentBatches(true);
 }
 
 
@@ -1012,9 +1013,12 @@ void RenderManager::rrRefreshTile(Tile& tile, GameMap& draggableTileContainer, c
         else if ( !vision && !tile.getHasFogOfWar())
         {
 
-            
+            tile.setFogOfWarMesh( mInstanceManagerDirt->createInstancedEntity("DirtInstanced"));
+            tile.setFogOfWarCloud( mInstanceManagerCloud->createInstancedEntity("Fog"));
             tileMeshNode->attachObject(tile.getFogOfWarMesh());
             tileMeshNode->attachObject(tile.getFogOfWarCloud());
+            tile.getFogOfWarMesh()->setPosition(tile.getPosition());
+            tile.getFogOfWarCloud()->setPosition(tile.getPosition());            
             
             
             tile.setHasFogOfWar(true);
@@ -1025,6 +1029,10 @@ void RenderManager::rrRefreshTile(Tile& tile, GameMap& draggableTileContainer, c
         {
             tileMeshNode->detachObject(tile.getFogOfWarMesh());
             tileMeshNode->detachObject(tile.getFogOfWarCloud());
+            mSceneManager->destroyInstancedEntity(tile.getFogOfWarMesh());
+            mSceneManager->destroyInstancedEntity(tile.getFogOfWarCloud());
+            tile.setFogOfWarMesh(nullptr);
+            tile.setFogOfWarCloud(nullptr);
             tileMeshEnt = mSceneManager->createEntity(tileMeshName, meshPtr);
             // If the node does not exist, we create it
 
@@ -1161,16 +1169,6 @@ void RenderManager::rrCreateTile(Tile& tile, GameMap& dtc, const Player& localPl
     tile.setParentSceneNode(node->getParentSceneNode());
     tile.setEntityNode(node);
 
-
-    Ogre::InstancedEntity* myDirt = mInstanceManagerDirt->createInstancedEntity("DirtInstanced");
-    Ogre::InstancedEntity* myCloud = mInstanceManagerCloud->createInstancedEntity("Fog");  
-    
-    myDirt->setCastShadows(false);
-    myCloud->setCastShadows(false);
-
-
-    tile.setFogOfWarMesh(myDirt);
-    tile.setFogOfWarCloud(myCloud);
     node->setPosition(static_cast<Ogre::Real>(tile.getX()), static_cast<Ogre::Real>(tile.getY()),static_cast<Ogre::Real>(tile.getZ()) );
 
     rrRefreshTile(tile, dtc, localPlayer,nt);
@@ -1224,8 +1222,10 @@ void RenderManager::rrDestroyTile(Tile& tile, NodeType nt)
     mSceneManager->destroySceneNode(tile.getEntityNode());
     tile.setParentSceneNode(nullptr);
     tile.setEntityNode(nullptr);
-    mSceneManager->destroyInstancedEntity(tile.getFogOfWarMesh());
-    mSceneManager->destroyInstancedEntity(tile.getFogOfWarCloud());
+    if(tile.getFogOfWarMesh())
+        mSceneManager->destroyInstancedEntity(tile.getFogOfWarMesh());
+    if(tile.getFogOfWarCloud())
+        mSceneManager->destroyInstancedEntity(tile.getFogOfWarCloud());
 }
 
 void RenderManager::rrTemporalMarkTile(Tile* curTile)
