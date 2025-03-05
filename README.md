@@ -31,10 +31,12 @@ a very relevant way of contributing to the development of this game,
 so please get in touch!
 
 You will find us on the following channels:
-
-- Forum: http://forum.freegamedev.net/viewforum.php?f=15
-- GitHub: https://github.com/tomluchowski/OpenDungeonsPlus
-- IRC: #opendungeons channel on Freenode
+- Snapcraft: https://snapcraft.io/opendungeons-plus
+- Discord (Scroll down and click "Links"): https://flathub.org/apps/io.github.tomluchowski.OpenDungeonsPlus 
+- OpenDungeons (upstream code):
+  - Forum: http://forum.freegamedev.net/viewforum.php?f=15
+  - GitHub: https://github.com/tomluchowski/OpenDungeonsPlus
+  - IRC: #opendungeons channel on Freenode
 
 ### Build instructions
 
