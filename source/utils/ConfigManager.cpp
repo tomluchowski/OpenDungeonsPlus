@@ -1939,7 +1939,7 @@ void ConfigManager::loadDefaultValuesForUserConfig(void)
     setVideoValue("Separate Shader Objects", "Yes");
     setVideoValue("VSync", "Yes");
     setVideoValue("VSync Interval", "1");
-    setVideoValue("Video Mode",	"1280 x 1024");
+    setVideoValue("Video Mode",	"1024 x 768");
     setVideoValue("sRGB Gamma Conversion", "No");
     setInputValue("Autoscroll",	"Yes");
     setInputValue("Keyboard Grab","Yes");
