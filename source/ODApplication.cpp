@@ -141,15 +141,15 @@ void ODApplication::startClient()
     const std::string windowTitle = "OpenDungeons " + VERSION;
 
     OD_LOG_INF("Creating window...");
-#ifdef OD_USE_SFML_WINDOW
-    const unsigned int MIN_WIDTH = 300;
-    const unsigned int MIN_HEIGHT = 200;
+
+    const unsigned int MIN_WIDTH = 800;
+    const unsigned int MIN_HEIGHT = 600;
 
     // Get width/height values from config
     unsigned int w = MIN_WIDTH;
     unsigned int h = MIN_HEIGHT;
     {
-        auto videoMode = configManager.getVideoValue(Config::VIDEO_MODE, "1280 x 720", false);
+        auto videoMode = configManager.getVideoValue(Config::VIDEO_MODE, "800 x 600", false);
         std::stringstream ss(videoMode);
         // Ignore the x in the middle
         char ignore;
@@ -159,6 +159,11 @@ void ODApplication::startClient()
         h = std::max(h, MIN_HEIGHT);
     }
 
+
+
+    
+#ifdef OD_USE_SFML_WINDOW
+    
     // Check if the config specifies fullscreen or windowed
     auto style = configManager.getVideoValue(Config::FULL_SCREEN, "No", false) == "Yes" && sf::VideoMode(w, h).isValid() ? sf::Style::Fullscreen : sf::Style::Default;
 
@@ -186,7 +191,19 @@ void ODApplication::startClient()
     }();
     renderWindow->setVisible(true);
 #else /* OD_USE_SFML_WINDOW */
-    Ogre::RenderWindow* renderWindow = ogreRoot.initialise(true, "OpenDungeons " + VERSION);
+    
+    ogreRoot.initialise(false);
+
+    Ogre::NameValuePairList misc;
+    misc["FSAA"] = "0";
+    misc["vsync"] = "true";
+
+    // You can also later load these from config or allow command-line override
+
+    OD_LOG_INF("Creating window: with resolution " + Helper::toString(w) + " " + Helper::toString(h));
+    
+    Ogre::RenderWindow* renderWindow = ogreRoot.createRenderWindow("OpenDungeons " + VERSION, w, h, false, &misc);
+    
     Ogre::WindowEventUtilities::_addRenderWindow(renderWindow);
 #endif /* OD_USE_SFML_WINDOW */
 
