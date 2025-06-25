@@ -246,12 +246,18 @@ public:
 
     inline bool getHasFogOfWar() const
     {
-        return fogPresent;
+        return mFogPresent;
     }
 
     inline void setHasFogOfWar(bool bb)
     {
-        fogPresent = bb;
+        mEverVisible = mEverVisible || bb;
+        mFogPresent = bb;
+    }
+
+    inline bool getEverVisible() const
+    {
+        return mEverVisible;
     }
     
     //! \brief A mutator to change how "filled in" the tile is.
@@ -622,8 +628,11 @@ private:
 
     bool mHasBridge;
 
+    bool mFogPresent;
 
-    bool fogPresent;
+    //! \brief Whether the tile has ever been visible , useful for fog of war 
+    
+    bool mEverVisible;
     
     //! \brief Used on client side. true if the local player has vision, false otherwise.
     bool mLocalPlayerHasVision;

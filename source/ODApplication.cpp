@@ -113,7 +113,6 @@ void ODApplication::startServer()
 void ODApplication::startClient()
 {
     ResourceManager& resMgr = ResourceManager::getSingleton();
-
     {
         //NOTE: This prevents a segmentation fault from OpenGL on exit.
         //Creating the object sets up an OpenAL context using a static object
@@ -202,7 +201,7 @@ void ODApplication::startClient()
 
     OD_LOG_INF("Creating window: with resolution " + Helper::toString(w) + " " + Helper::toString(h));
     
-    Ogre::RenderWindow* renderWindow = ogreRoot.createRenderWindow("OpenDungeons " + VERSION, w, h, false, &misc);
+    Ogre::RenderWindow* renderWindow = ogreRoot.createRenderWindow("OpenDungeons " + VERSION, w, h, configManager.getVideoValue(Config::FULL_SCREEN, "No", false) == "Yes" , &misc);
     
     Ogre::WindowEventUtilities::_addRenderWindow(renderWindow);
 #endif /* OD_USE_SFML_WINDOW */
@@ -238,7 +237,7 @@ void ODApplication::startClient()
     auto sgListener = new OgreBites::SGTechniqueResolverListener(Ogre::RTShader::ShaderGenerator::getSingletonPtr());
     Ogre::MaterialManager::getSingleton().addListener(sgListener);
 #endif
-
+    
     Ogre::ResourceGroupManager::getSingletonPtr()->initialiseAllResourceGroups();
 
     MusicPlayer musicPlayer(resMgr.getMusicPath(), resMgr.listAllMusicFiles());

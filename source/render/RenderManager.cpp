@@ -27,7 +27,6 @@
 #include "entities/MapLight.h"
 #include "entities/MovableGameEntity.h"
 #include "entities/RenderedMovableEntity.h"
-#include "entities/RockLava.h"
 #include "entities/Tile.h"
 #include "entities/Weapon.h"
 #include "game/Player.h"
@@ -95,8 +94,9 @@ const int PERLIN_NOISE_TEXTURE_SIZE =  4096;
 
 
 RenderManager::RenderManager(Ogre::OverlaySystem* overlaySystem) :
-    mRenderTarget(nullptr),
     mHandLight(nullptr),
+    mRenderTarget(nullptr),
+    m_ZPrePassEnabled(false),
     mHandAnimationState(nullptr),
     mViewport(nullptr),
     mShaderGenerator(nullptr),
@@ -108,8 +108,7 @@ RenderManager::RenderManager(Ogre::OverlaySystem* overlaySystem) :
     mFactorWidth(0.0f),
     mFactorHeight(0.0f),
     mCreatureTextOverlayDisplayed(false),
-    mHandKeeperHandVisibility(0),
-    m_ZPrePassEnabled(false)
+    mHandKeeperHandVisibility(0)
 {
   
   
@@ -177,6 +176,7 @@ RenderManager::RenderManager(Ogre::OverlaySystem* overlaySystem) :
         128,
         Ogre::IM_USEALL,
         0);
+    
     mInstanceManagerCloud = mSceneManager->createInstanceManager(
         "InstanceManagerMeshCloud2",
         "FogOfWarCloud2.mesh",
@@ -994,12 +994,8 @@ void RenderManager::rrRefreshTile(Tile& tile, GameMap& draggableTileContainer, c
         if(tileMeshNode == nullptr)
             tileMeshNode = tile.getEntityNode()->createChildSceneNode(tileMeshNodeName);
 
-
-
-
-
         
-        if (vision && !tile.getHasFogOfWar())
+        if (tile.getEverVisible() && !tile.getHasFogOfWar())
         {
         
             tileMeshEnt = mSceneManager->createEntity(tileMeshName, meshPtr);
@@ -1010,7 +1006,7 @@ void RenderManager::rrRefreshTile(Tile& tile, GameMap& draggableTileContainer, c
             tile.setHasFogOfWar(false);
 
         }
-        else if ( !vision && !tile.getHasFogOfWar())
+        else if ( !tile.getEverVisible() && !tile.getHasFogOfWar())
         {
 
             tile.setFogOfWarMesh( mInstanceManagerDirt->createInstancedEntity("DirtInstanced"));
@@ -1025,7 +1021,7 @@ void RenderManager::rrRefreshTile(Tile& tile, GameMap& draggableTileContainer, c
                       
         }
 
-        else if( vision && tile.getHasFogOfWar())
+        else if( tile.getEverVisible() && tile.getHasFogOfWar())
         {
             tileMeshNode->detachObject(tile.getFogOfWarMesh());
             tileMeshNode->detachObject(tile.getFogOfWarCloud());
@@ -1079,7 +1075,6 @@ void RenderManager::rrRefreshTile(Tile& tile, GameMap& draggableTileContainer, c
         colourizeEntity(tileMeshEnt, seatColor, isMarked, vision);
     }
 
-
     if (tile.getTileVisual() == TileVisual::waterGround || tile.getTileVisual() == TileVisual::lavaGround){
         if(tile.getHasBridge())
         {
@@ -1091,15 +1086,15 @@ void RenderManager::rrRefreshTile(Tile& tile, GameMap& draggableTileContainer, c
             {
                 customMeshEnt = mSceneManager->getEntity(bridgeMeshName);
             }
-
-            if((customMeshEnt == nullptr))
+            
+            if(customMeshEnt == nullptr)
             {
                 // If the node does not exist, we create it
 
                 if(!Ogre::MeshManager::getSingleton().resourceExists(meshName,"Graphics"))
                     Ogre::MeshManager::getSingleton().load(meshName,"Graphics");
     
-
+                
                 Ogre::MeshPtr meshPtr = Ogre::MeshManager::getSingleton().getByName(meshName,"Graphics");
                 unsigned short src, dest;
     
@@ -1121,7 +1116,6 @@ void RenderManager::rrRefreshTile(Tile& tile, GameMap& draggableTileContainer, c
 
 
             }
-
             if(customMeshEnt != nullptr)
             {
                 Seat* seatColor = nullptr;
