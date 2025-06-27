@@ -60,5 +60,5 @@ void main() {
     out_UV1 = uv_0;
     out_UV2 = uv_0;
     tangentOut = tangent;
-    VertexPos = lightMatrix * position;
+
 }  

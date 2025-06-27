@@ -954,8 +954,6 @@ void RenderManager::rrRefreshTile(Tile& tile, GameMap& draggableTileContainer, c
 
     // We compute the mesh
     meshName = tileSetValue.getMeshName();
-    if(!vision)
-        meshName = "FogOfWarDirt.mesh";
     Ogre::Entity* tileMeshEnt = nullptr;
     const std::string tileMeshName = tileName + (static_cast<bool>(nt) ?  "" : "_dtc" ) + "_tileMesh";
     if(mSceneManager->hasEntity(tileMeshName))
@@ -1057,7 +1055,7 @@ void RenderManager::rrRefreshTile(Tile& tile, GameMap& draggableTileContainer, c
             tileMeshNode->rotate(q);
     }
 
-    if(tileMeshEnt != nullptr && vision)
+    if(tileMeshEnt != nullptr)
     {
         tileMeshEnt->setCastShadows(false);
         // We replace the material if required by the tileset
@@ -2001,7 +1999,7 @@ std::string RenderManager::colourizeMaterial(const std::string& materialName, co
             // Color the material with dark color on the latest pass
             // so we're sure to see the taint.
             Ogre::Pass* pass = technique->getPass(0);
-            Ogre::ColourValue color(0.2, 0.2, 0.2, 1.0);
+            Ogre::ColourValue color(0.02, 0.02, 0.02, 1.0);
             pass->setSpecular(color);
             pass->setAmbient(color);
             pass->setDiffuse(color);

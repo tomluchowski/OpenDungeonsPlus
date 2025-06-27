@@ -8,19 +8,31 @@ float interpolate(float a0, float a1, float w) {
     if (1.0 < w) return a1;
 
     //return smoothstep(a0,a1,w) ;
-    /* // Use this cubic interpolation [[Smoothstep]] instead, for a smooth appearance:*/
+    /* Use this cubic interpolation [[Smoothstep]] instead, for a smooth appearance:*/
      return (a1 - a0) * (3.0 - w * 2.0) * w * w + a0;
-     /*
-     * // Use [[Smootherstep]] for an even smoother result with a second derivative equal to zero on boundaries:
-     * return (a1 - a0) * (x * (w * 6.0 - 15.0) * w * w *w + 10.0) + a0;
-     */
+     
+     // Use [[Smootherstep]] for an even smoother result with a second derivative equal to zero on boundaries:
+     //return (a1 - a0) * (x * (w * 6.0 - 15.0) * w * w *w + 10.0) + a0;
+    
 }
 
 /* Create random direction vector
  */
+float hash(int x, int y) {
+    return fract(sin(dot(vec2(x, y), vec2(127.1, 311.7))) * 43758.5453123);
+}
+
+/*vec2 randomGradient(int ix, int iy) {
+    float angle = hash(ix, iy) * 3.1415*0.2; // 2π
+    return vec2(cos(angle), sin(angle));
+}*/
+ 
+ 
+ 
+ 
 vec2 randomGradient(int ix, int iy) {
     // Random float. No precomputed gradients mean this works for any number of grid coordinates
-    float random = 2920.0 * sin(ix * 21942.0 + iy * 171324.0 + 8912.0) * cos(ix * 23157.0 * iy * 217832.0 + 9758.0);
+    float random = 29.0 * sin(ix * 21.0 + iy * 171 + 89.0) * cos(ix * 15.0 * iy * 83.0 + 75.0);
     vec2 gradient;
     gradient.x = cos(random);
     gradient.y = sin(random);
@@ -65,7 +77,7 @@ float perlin(float x, float y) {
     ix1 = interpolate(n0, n1, sx);
 
     value = interpolate(ix0, ix1, sy);
-    return value;
+    return value/2;
 }
  
  

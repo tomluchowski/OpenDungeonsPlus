@@ -251,7 +251,6 @@ public:
 
     inline void setHasFogOfWar(bool bb)
     {
-        mEverVisible = mEverVisible || bb;
         mFogPresent = bb;
     }
 
@@ -298,7 +297,12 @@ public:
     { return mSelected; }
 
     inline void setLocalPlayerHasVision(bool localPlayerHasVision)
-    { mLocalPlayerHasVision = localPlayerHasVision; }
+    {
+        mEverVisible = mEverVisible || localPlayerHasVision;
+
+        mLocalPlayerHasVision = localPlayerHasVision;
+
+    }
 
     inline bool getLocalPlayerHasVision() const
     { return mLocalPlayerHasVision; }
