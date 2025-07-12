@@ -61,7 +61,9 @@ public:
     bool mMarkedForDigging;
     bool mVisionTurnLast;
     bool mVisionTurnCurrent;
+    bool mEverVisited;
     Building* mBuilding;
+    
 };
 
 class Seat : public SeatData

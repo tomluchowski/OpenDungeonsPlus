@@ -83,6 +83,8 @@ std::string ClientNotification::typeString(ClientNotificationType type)
             return "askSaveMap";
         case ClientNotificationType::askExecuteConsoleCommand:
             return "askExecuteConsoleCommand";
+        case ClientNotificationType::notifyTileRevealed:
+            return "notifyTileRevealed";
         case ClientNotificationType::createAllEntities:
             return "createAllEntities";
         case ClientNotificationType::editorAskChangeTile:

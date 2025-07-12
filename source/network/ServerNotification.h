@@ -42,6 +42,7 @@ enum class ServerNotificationType
     clientRejected,
     seatConfigurationRefresh,
 
+    
     playerConfigChange,
 
     chat,
@@ -68,6 +69,7 @@ enum class ServerNotificationType
     notifyCreatureInfo,
     notifyTileInfo,
     refreshCreatureVisDebug,
+    restoreEverVisitedTiles,
 
     refreshSeatVisDebug,
 

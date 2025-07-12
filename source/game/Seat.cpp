@@ -440,7 +440,7 @@ void Seat::initSeat()
             // We check if the tile is marked
             if(p.second.mMarkedForDigging)
                 tilesMark.push_back(tile);
-
+            
             // Other tiles than goldFull, dirtFull and rockFull need to be notified to refresh
             switch(p.second.mTileVisual)
             {
@@ -1188,9 +1188,31 @@ bool Seat::importSeatFromStream(std::istream& is)
         TileStateNotified& tileState = mTilesStateLoaded[tilecoords];
         tileState.mMarkedForDigging = true;
     }
-
-    // The next line should be a seat end tag
+    
     OD_ASSERT_TRUE(is >> str);
+    if(str == "[EverVisitedTiles]")
+    {
+        while(true)
+        {
+            int xx;
+            int yy;
+            
+            OD_ASSERT_TRUE(is >> str );
+            if(str == "[/EverVisitedTiles]")
+            {
+                is >> str;
+                break;
+            }
+            
+            else
+                xx = Helper::toInt(str);
+
+            OD_ASSERT_TRUE(is >> yy);
+            mGameMap->everVisitedFlagPool[xx][yy][mId] = true;
+        }   
+    }
+
+    
     if(str != "[/Seat]")
     {
         OD_LOG_INF("WARNING: expected [/Seat] and read " + str);
@@ -1340,6 +1362,19 @@ bool Seat::exportSeatToStream(std::ostream& os) const
 
     os << "[/markedTiles]" << std::endl;
 
+    os << "[EverVisitedTiles]" << std::endl;
+    for(int xx = 0 ; xx < mGameMap->getMapSizeY(); ++xx)
+    {
+        for(int yy = 0 ; yy < mGameMap->getMapSizeY(); ++yy)
+        {
+      
+            if(mGameMap->everVisitedFlagPool[xx][yy][mId])
+                os << xx << " " << yy << std::endl;
+        }
+    }
+    os << "[/EverVisitedTiles]" << std::endl;
+
+    
     return true;
 }
 

@@ -51,7 +51,7 @@ std::string ServerNotification::typeString(ServerNotificationType type)
         case ServerNotificationType::clientRejected:
             return "clientRejected";
         case ServerNotificationType::seatConfigurationRefresh:
-            return "seatConfigurationRefresh";
+            return "seatConfigurationRefresh";          
         case ServerNotificationType::playerConfigChange:
             return "playerConfigChange";
         case ServerNotificationType::chat:
@@ -98,8 +98,10 @@ std::string ServerNotification::typeString(ServerNotificationType type)
             return "notifyTileInfo";            
         case ServerNotificationType::refreshCreatureVisDebug:
             return "refreshCreatureVisDebug";
-        case ServerNotificationType::refreshSeatVisDebug:
+        case ServerNotificationType::refreshSeatVisDebug:  
             return "refreshSeatVisDebug";
+        case ServerNotificationType::restoreEverVisitedTiles:
+            return "restoreEverVisitedTiles";
         case ServerNotificationType::pingCreateAllEntities:
             return "pingCreateAllEntities";
         case ServerNotificationType::pingCreateDraggableTileContainer:

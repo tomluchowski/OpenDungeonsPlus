@@ -52,6 +52,7 @@
 #include <iostream>
 #include <sstream>
 #include <fstream>
+#include <string>
 
 namespace MapHandler {
 
@@ -60,8 +61,16 @@ bool readGameMapFromFile(const std::string& fileName, GameMap& gameMap)
     std::stringstream levelFile;
     if(!Helper::readFileWithoutComments(fileName, levelFile))
         return false;
-
+    
     std::string nextParam;
+    int mapSizeX;
+    int mapSizeY;
+    int numberOfSeats;
+    
+    getXandYandSeatsNumber(levelFile,mapSizeX,mapSizeY,numberOfSeats);
+    levelFile.clear();               // Clear any eof or fail flags
+    levelFile.seekg(0, std::ios::beg);  // Move read position to beginning
+    gameMap.initializeEverVisitedFlagTilesPools(mapSizeX,mapSizeY,numberOfSeats);
     // Read in the version number from the level file
     levelFile >> nextParam;
     if (nextParam.compare(ODApplication::VERSIONSTRING) != 0)
@@ -137,6 +146,7 @@ bool readGameMapFromFile(const std::string& fileName, GameMap& gameMap)
     }
 
     levelFile >> nextParam;
+    
     if (nextParam != "[Seats]")
     {
         OD_LOG_WRN("Invalid seats start format=" + nextParam);
@@ -205,14 +215,17 @@ bool readGameMapFromFile(const std::string& fileName, GameMap& gameMap)
     }
 
     // Load the map size on next two lines
-    int mapSizeX;
-    int mapSizeY;
+
     levelFile >> mapSizeX;
     levelFile >> mapSizeY;
 
     if (!gameMap.createNewMap(mapSizeX, mapSizeY))
         return false;
 
+
+
+
+    
     // Read in the map tiles from disk
     gameMap.disableFloodFill();
     gameMap.setProperPositions();
@@ -959,6 +972,30 @@ bool getMapInfo(const std::string& fileName, LevelInfo& levelInfo)
 
     levelInfo.mLevelDescription = mapInfo.str();
     return true;
+}
+
+void getXandYandSeatsNumber(std::stringstream& ss,int& xx, int& yy, int& numberOfSeats)
+{
+    numberOfSeats = 0;
+    xx = -1;
+    yy = -1;
+    std::string nextParam;
+    while(true)
+    {
+        if(!ss.good())
+            break;
+        ss >> nextParam;
+        if (nextParam == "[Seat]")
+            numberOfSeats++;    
+        else if (nextParam == "[Tiles]")
+        {
+        
+            ss >> xx;
+            ss >> yy;
+        
+        }
+    }
+    OD_ASSERT_TRUE_MSG( xx > 0 && yy > 0 , "Couldn't find mapSizeX and mapSizeY" );
 }
 
 } // Namespace MapHandler

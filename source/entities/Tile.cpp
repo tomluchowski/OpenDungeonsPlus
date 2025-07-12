@@ -74,14 +74,14 @@ Tile::Tile(GameMap* gameMap, int x, int y, TileType type, double fullness) :
     mDisplayTileMesh    (true),
     mColorCustomMesh    (true),
     mHasBridge          (false),
+    mFogPresent          (false),
+    mEverVisible         (false),
     mLocalPlayerHasVision   (false),
     mTileCulling        (CullingType::HIDE),
     mNbWorkersClaiming(0),
     mStatsWindow             (nullptr),
-    mEverVisible         (false),
-    mFogPresent          (false),
-    mFogOfWarCloud1Mesh (nullptr),
-    mFogOfWarDirtMesh   (nullptr)   
+    mFogOfWarDirtMesh   (nullptr),
+    mFogOfWarCloud1Mesh (nullptr)   
 {
     computeTileVisual();
 }
@@ -2437,5 +2437,26 @@ Creature* Tile::getClosestCreature(SelectionEntityWanted se)
     }
 
     return closestCreature;
+
+}
+
+void Tile::setLocalPlayerHasVision(bool localPlayerHasVision)
+{
+    bool mEverVisibleOld = mEverVisible;
+    
+    mEverVisible = mEverVisible || localPlayerHasVision;
+
+    if(!mEverVisibleOld && mEverVisible)
+    {
+
+        ClientNotification *clientNotification = new ClientNotification(
+            ClientNotificationType::notifyTileRevealed);
+        clientNotification->mPacket << getX() << getY() ;
+        ODClient::getSingleton().queueClientNotification(clientNotification);
+
+
+    }
+
+    mLocalPlayerHasVision = localPlayerHasVision;
 
 }

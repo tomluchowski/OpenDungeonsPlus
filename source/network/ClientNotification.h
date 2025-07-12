@@ -54,7 +54,8 @@ enum class ClientNotificationType
 
     askSaveMap,
     askExecuteConsoleCommand,
-
+    notifyTileRevealed,
+    
     //  Editor
     createAllEntities,
     editorAskChangeTile,

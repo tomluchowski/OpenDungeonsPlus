@@ -158,6 +158,7 @@ private:
 
 GameMap::GameMap(bool isServerGameMap, NodeType nt) :
         TileContainer(isServerGameMap ? 15 : 0),
+        everVisitedFlagPool(nullptr),
         mIsServerGameMap(isServerGameMap),
         mNodeType(nt),
         mLocalPlayer(nullptr),
@@ -224,6 +225,7 @@ bool GameMap::loadLevel(const std::string& levelFilepath)
 
     if (MapHandler::readGameMapFromFile(levelFilepath, *this))
         setLevelFileName(levelFilepath);
+        
     else
         return false;
 
@@ -348,6 +350,7 @@ void GameMap::clearAll()
             }
             mGameEntityClientUpkeep.clear();
         }
+        clearEverVisitedFlagTilesPools();
     }
 }
 
@@ -2301,6 +2304,58 @@ void GameMap::refreshFloodFill(Seat* seat, Tile* tile)
     }
 }
 
+
+
+void GameMap::clearEverVisitedFlagTilesPools()
+{
+    if(everVisitedFlagPool!=nullptr)
+    {
+        for(int ii = 0; ii < mMapSizeX; ++ii)
+        {
+            delete [] everVisitedFlagPool[ii];
+
+        }
+        delete [] everVisitedFlagPool;
+        everVisitedFlagPool = nullptr;
+    }
+    
+}
+
+
+bool GameMap::initializeEverVisitedFlagTilesPools(uint32_t xx , uint32_t yy, uint32_t nbSeats)
+{
+
+
+
+    everVisitedFlagPool = new std::vector<bool>* [xx];
+    if(!everVisitedFlagPool)
+    {
+        OD_LOG_ERR("Failed to allocate map memory");
+        exit(0);
+        return false;
+    }
+
+    for(int ii = 0; ii < xx; ++ii)
+    {
+        everVisitedFlagPool[ii] = new std::vector<bool> [yy];
+        if(!everVisitedFlagPool[ii])
+        {
+            OD_LOG_ERR("Failed to allocate map memory");
+            return false;
+        }        
+        for(int jj = 0; jj < yy; ++jj)
+        {
+            everVisitedFlagPool[ii][jj].resize(nbSeats);
+        }
+    }
+
+    return true;
+}
+
+
+
+
+
 void GameMap::enableFloodFill()
 {
     // Carry out a flood fill of the whole level to make sure everything is good.
@@ -3294,6 +3349,7 @@ void GameMap::notifySeatsConfigured()
     }
     // Now that team ids are set and tiles are configured, we can compute floodfill
     enableFloodFill();
+    
 }
 
 void GameMap::fireGameSound(Tile& tile, const std::string& soundFamily)

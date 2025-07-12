@@ -136,7 +136,32 @@ bool ODServer::startServer(const std::string& creator, const std::string& levelF
         stopServer();
         return false;
     }
+    for(Seat* seat : gameMap->getSeats())
+    {
 
+        ServerNotification *serverNotification = new ServerNotification(
+            ServerNotificationType::restoreEverVisitedTiles, seat->getPlayer());
+
+        int mId = seat->getId();
+        int nbTiles = 0;
+        for(int xx = 0 ; xx < gameMap->getMapSizeX(); ++xx)
+            for(int yy = 0 ; yy < gameMap->getMapSizeY(); ++yy)
+                if(gameMap->everVisitedFlagPool[xx][yy][mId])
+                    ++nbTiles;
+
+        serverNotification->mPacket << nbTiles;
+
+        for(int xx = 0 ; xx < gameMap->getMapSizeX(); ++xx)
+            for(int yy = 0 ; yy < gameMap->getMapSizeY(); ++yy)
+                if(gameMap->everVisitedFlagPool[xx][yy][mId])
+                {
+                    serverNotification->mPacket << xx;
+                    serverNotification->mPacket << yy;        
+                }
+        ODServer::getSingleton().queueServerNotification(serverNotification);
+
+
+    }
     // We configure what is fixed (fixed AI, faction or team). While iterating seats, we keep in mind if there is
     // at least a human only seat. If yes, we configure all player type choosable to AI. If not, we configure all player
     // type choosable to AI except the first one.
@@ -1645,6 +1670,23 @@ bool ODServer::processClientNotifications(ODSocketClient* clientSocket)
             break;
         }
 
+
+    case ClientNotificationType::notifyTileRevealed:
+    {
+        
+        int xx;
+        int yy;
+ 
+        int seatId;
+        OD_ASSERT_TRUE(packetReceived >> xx >> yy );
+        seatId = clientSocket->getPlayer()->getSeat()->getId();
+        gameMap->everVisitedFlagPool[xx][yy][seatId] = true;
+
+
+        break;
+    }
+
+        
         case ClientNotificationType::createAllEntities:
         {
             if(mServerMode != ServerMode::ModeEditor)
@@ -2337,6 +2379,7 @@ bool ODServer::processClientNotifications(ODSocketClient* clientSocket)
             break;
         }
 
+        
         case ClientNotificationType::askExecuteConsoleCommand:
         {
             uint32_t nbArgs;

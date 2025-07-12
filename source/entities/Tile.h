@@ -258,6 +258,12 @@ public:
     {
         return mEverVisible;
     }
+
+    inline bool setEverVisible(bool s)
+    {
+        mEverVisible = s;
+    }
+
     
     //! \brief A mutator to change how "filled in" the tile is.
     //! Additionally this function refreshes floodfill if needed (if a tile becomes walkable)
@@ -296,13 +302,7 @@ public:
     bool getSelected() const
     { return mSelected; }
 
-    inline void setLocalPlayerHasVision(bool localPlayerHasVision)
-    {
-        mEverVisible = mEverVisible || localPlayerHasVision;
-
-        mLocalPlayerHasVision = localPlayerHasVision;
-
-    }
+    void setLocalPlayerHasVision(bool localPlayerHasVision);
 
     inline bool getLocalPlayerHasVision() const
     { return mLocalPlayerHasVision; }

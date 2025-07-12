@@ -263,6 +263,7 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
             break;
         }
 
+       
         case ServerNotificationType::addPlayers:
         {
             if(frameListener->getModeManager()->getCurrentModeType() != ModeManager::ModeType::MENU_CONFIGURE_SEATS)
@@ -861,6 +862,23 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
             break;
         }
 
+
+        case ServerNotificationType::restoreEverVisitedTiles:
+        {
+            uint32_t nbTiles;
+            uint32_t xx;
+            uint32_t yy;
+            OD_ASSERT_TRUE(packetReceived >> nbTiles);
+            while(nbTiles > 0)
+            {
+                --nbTiles;
+                OD_ASSERT_TRUE(packetReceived >> xx >> yy );
+                gameMap->getTile(xx,yy)->setEverVisible(true);
+            }
+            break;
+        }
+
+        
         case ServerNotificationType::refreshVisibleTiles:
         {
             uint32_t nbTiles;

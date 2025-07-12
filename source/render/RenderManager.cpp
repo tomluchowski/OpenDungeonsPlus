@@ -1999,11 +1999,27 @@ std::string RenderManager::colourizeMaterial(const std::string& materialName, co
             // Color the material with dark color on the latest pass
             // so we're sure to see the taint.
             Ogre::Pass* pass = technique->getPass(0);
-            Ogre::ColourValue color(0.02, 0.02, 0.02, 1.0);
-            pass->setSpecular(color);
-            pass->setAmbient(color);
-            pass->setDiffuse(color);
-            pass->setEmissive(color);            
+            Ogre::ColourValue current_color;
+            current_color = pass->getDiffuse();
+            current_color.r = 0.1;
+            current_color.g = 0.1;
+            current_color.b = 0.1;
+            pass->setDiffuse(current_color);
+            current_color = pass->getSpecular();
+            current_color.r = 0.1;
+            current_color.g = 0.1;
+            current_color.b = 0.1;            
+            pass->setSpecular(current_color);
+            current_color = pass->getAmbient();
+            current_color.r = 0.1;
+            current_color.g = 0.1;
+            current_color.b = 0.1;            
+            pass->setAmbient(current_color);
+            current_color = pass->getEmissive();
+            current_color.r = 0.1;
+            current_color.g = 0.1;
+            current_color.b = 0.1;     
+            pass->setEmissive(current_color);            
         }
         if (seat != nullptr)
         {

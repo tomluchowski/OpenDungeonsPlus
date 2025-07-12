@@ -1244,7 +1244,8 @@ bool ConfigManager::loadTilesetValues(std::istream& defFile, TileVisual tileVisu
         
         if(meshName=="[oneOf]"){
             defFile >> nextParam;
-            while(nextParam!="[/oneOf]"){
+            while(nextParam!="[/oneOf]")
+            {
 
                 meshName = nextParam;
                

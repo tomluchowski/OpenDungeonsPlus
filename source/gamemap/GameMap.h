@@ -562,6 +562,13 @@ public:
     bool copyFullyTilesFrom(const GameMap& , unsigned int xx, unsigned int yy);
     virtual Ogre::Vector2 getPosition() const {return Ogre::Vector2::ZERO;} 
 
+
+    //! Info needed for tracing ever visited tiles
+    std::vector<bool>** everVisitedFlagPool;
+    
+    void clearEverVisitedFlagTilesPools();
+    
+    bool initializeEverVisitedFlagTilesPools(uint32_t,uint32_t,uint32_t);
     
 protected:
     //! \brief Tells whether this game map instance is used as a reference by the server-side,
@@ -662,6 +669,7 @@ private:
     //! Map tileset
     const TileSet* mTileSet;
     const HighMap* mHighMap;
+    
     std::string mTileSetName;
 
     // random number generator for Tile's faces
@@ -672,6 +680,8 @@ private:
 
     //! \brief Resets the unique numbers
     void resetUniqueNumbers();
+
+
 };
 
 #endif // GAMEMAP_H
