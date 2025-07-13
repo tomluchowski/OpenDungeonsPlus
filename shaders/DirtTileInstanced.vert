@@ -17,15 +17,18 @@ layout (location = 2)  in vec3 normal;
 
 
 /* layout (location = 3)  in mat3x4 uv1; */
-layout (location = 8) in vec2 uv_0;
 layout (location = 8) in vec2 uv_1;
+layout(location = 9) in vec4 uv1_0;
+layout(location = 10) in vec4 uv1_1;
+layout(location = 11) in vec4 uv1_2;
+layout (location = 12) in vec4 final_color;
 layout (location = 14) in vec3 tangent;
-IN(mat3x4	uv1, TEXCOORD1)
-out vec2 out_UV0;
+
 out vec2 out_UV1;
 
 out vec3 FragPos;
 out vec4 VertexPos; 
+out vec4 outputColor; 
  
 out mat3 TBN;
  
@@ -39,6 +42,8 @@ vec3 deform(vec3 pos) {
  
  
 void main() {
+
+    mat3x4 uv1 = mat3x4(uv1_0, uv1_1, uv1_2);
     vec4 local_position = position;
     FFP_Transform(uv1, local_position, local_position.xyz);
     vec3 local_normal = normal;
@@ -65,7 +70,7 @@ void main() {
     gl_Position = projectionMatrix * viewMatrix * vec4(P, 1.0);
     FragPos = P;
  
-    out_UV0 = uv_0;
     out_UV1 = uv_1;
-    VertexPos = lightMatrix * local_position;    
+    VertexPos = lightMatrix * local_position;
+    outputColor = final_color;    
 }  

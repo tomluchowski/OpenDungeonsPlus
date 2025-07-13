@@ -217,15 +217,12 @@ public:
     inline void setTileVisualIfArgNotNull(TileVisual tileVisual)
     {
         if(tileVisual != TileVisual::nullTileVisual)
-        mTileVisual = tileVisual;
+            mTileVisual = tileVisual;
     }
 
 
-    inline  void setFogOfWarMesh(Ogre::InstancedEntity* instancedEntity)
-    {
-        mFogOfWarDirtMesh = instancedEntity;
+    void setFogOfWarMesh(Ogre::InstancedEntity* instancedEntity, bool isMarked);
 
-    }
     inline  Ogre::InstancedEntity* getFogOfWarMesh() const 
     {
         return mFogOfWarDirtMesh;

@@ -186,7 +186,8 @@ RenderManager::RenderManager(Ogre::OverlaySystem* overlaySystem) :
         Ogre::IM_USEALL,
         0);
 
-
+    mInstanceManagerDirt->setNumCustomParams(1); // Number of vec4 custom params
+    
     mInstanceManagerDirt->defragmentBatches(true);
     mInstanceManagerCloud->defragmentBatches(true);
 }
@@ -1007,7 +1008,7 @@ void RenderManager::rrRefreshTile(Tile& tile, GameMap& draggableTileContainer, c
         else if ( !tile.getEverVisible() && !tile.getHasFogOfWar())
         {
 
-            tile.setFogOfWarMesh( mInstanceManagerDirt->createInstancedEntity("DirtInstanced"));
+            tile.setFogOfWarMesh( mInstanceManagerDirt->createInstancedEntity("DirtInstanced"), isMarked);
             tile.setFogOfWarCloud( mInstanceManagerCloud->createInstancedEntity("Fog"));
             tileMeshNode->attachObject(tile.getFogOfWarMesh());
             tileMeshNode->attachObject(tile.getFogOfWarCloud());
@@ -1025,7 +1026,7 @@ void RenderManager::rrRefreshTile(Tile& tile, GameMap& draggableTileContainer, c
             tileMeshNode->detachObject(tile.getFogOfWarCloud());
             mSceneManager->destroyInstancedEntity(tile.getFogOfWarMesh());
             mSceneManager->destroyInstancedEntity(tile.getFogOfWarCloud());
-            tile.setFogOfWarMesh(nullptr);
+            tile.setFogOfWarMesh(nullptr, isMarked);
             tile.setFogOfWarCloud(nullptr);
             tileMeshEnt = mSceneManager->createEntity(tileMeshName, meshPtr);
             // If the node does not exist, we create it
@@ -1034,6 +1035,25 @@ void RenderManager::rrRefreshTile(Tile& tile, GameMap& draggableTileContainer, c
             tileMeshNode->attachObject(tileMeshEnt);
             tile.setHasFogOfWar(false);            
         }
+        else if ( !tile.getEverVisible() && tile.getHasFogOfWar())
+        {
+            tileMeshNode->detachObject(tile.getFogOfWarMesh());
+            mSceneManager->destroyInstancedEntity(tile.getFogOfWarMesh());
+            tile.setFogOfWarMesh(nullptr, isMarked);  
+            tile.setHasFogOfWar(false);  
+            tile.setFogOfWarMesh( mInstanceManagerDirt->createInstancedEntity("DirtInstanced"), isMarked);
+            tileMeshNode->attachObject(tile.getFogOfWarMesh());
+            tile.getFogOfWarMesh()->setPosition(tile.getPosition());
+           
+            
+            
+            tile.setHasFogOfWar(true);
+                      
+        }
+
+
+        
+
     }
     // We rescale and set the orientation that may have changed
     if(tileMeshNode != nullptr)

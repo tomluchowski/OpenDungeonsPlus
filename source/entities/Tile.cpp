@@ -2460,3 +2460,14 @@ void Tile::setLocalPlayerHasVision(bool localPlayerHasVision)
     mLocalPlayerHasVision = localPlayerHasVision;
 
 }
+
+
+void Tile::setFogOfWarMesh(Ogre::InstancedEntity* instancedEntity, bool isMarked)
+{
+    mFogOfWarDirtMesh = instancedEntity;
+    if(mFogOfWarDirtMesh!=nullptr)
+        if(isMarked)
+            mFogOfWarDirtMesh->setCustomParam(0, Ogre::Vector4(1.0f, 1.0f, 0.0f, 1.0f)); // Yellow color
+        else
+            mFogOfWarDirtMesh->setCustomParam(0, Ogre::Vector4(1.0f, 1.0f, 0.0f, 0.0f)); // 0 in alpha sygnalize the shader to use the orginal color from the texture
+}

@@ -13,18 +13,22 @@ uniform vec4 cameraPosition;
 uniform vec4 diffuseSurface;
 uniform bool shadowingEnabled;
 in vec2 out_UV0;
-in vec2 out_UV1;
 in vec3 FragPos;
 in vec4 VertexPos; 
+in vec4 outputColor; 
 in mat3 TBN;
  
 out vec4 color;
 
 void main (void)  
 {  
-    vec3 texelColor = texture(decalmap, out_UV0.st).rgb;
+    vec3 texelColor;
+    if(outputColor.a == 0.0)
+	    texelColor = texture(decalmap, out_UV0.st).rgb;
+    else
+    	texelColor = outputColor.rgb;
     // compute Normal
-    vec3 Normal = texture(normalmap, out_UV1.st).rgb;
+    vec3 Normal = texture(normalmap, out_UV0.st).rgb;
     Normal.xyz = 2 * Normal.xyz - (1.0,1.0,1.0);
     Normal =  normalize(TBN * Normal); 
     
