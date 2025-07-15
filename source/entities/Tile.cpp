@@ -1416,7 +1416,7 @@ void Tile::refreshMesh(NodeType nt,GameMap* gameMap)
     RenderManager::getSingleton().rrRefreshTile(*this, *gameMap, *gameMap->getLocalPlayer(),nt);
 }
 
-void Tile::setSelected(bool ss, const Player* pp)
+void Tile::setSelected (bool ss, const Player* pp)
 {
     if (mSelected != ss)
     {
