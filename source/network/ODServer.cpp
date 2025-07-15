@@ -136,13 +136,14 @@ bool ODServer::startServer(const std::string& creator, const std::string& levelF
         stopServer();
         return false;
     }
+    int mId = 0 ;
     for(Seat* seat : gameMap->getSeats())
     {
 
         ServerNotification *serverNotification = new ServerNotification(
             ServerNotificationType::restoreEverVisitedTiles, seat->getPlayer());
 
-        int mId = seat->getId();
+        mId = seat->getId();
         int nbTiles = 0;
         for(int xx = 0 ; xx < gameMap->getMapSizeX(); ++xx)
             for(int yy = 0 ; yy < gameMap->getMapSizeY(); ++yy)

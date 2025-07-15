@@ -67,10 +67,10 @@ bool readGameMapFromFile(const std::string& fileName, GameMap& gameMap)
     int mapSizeY;
     int numberOfSeats;
     
-    getXandYandSeatsNumber(levelFile,mapSizeX,mapSizeY,numberOfSeats);
+    getXandYandSeatsNumber(levelFile,mapSizeX,mapSizeY,numberOfSeats);  
     levelFile.clear();               // Clear any eof or fail flags
     levelFile.seekg(0, std::ios::beg);  // Move read position to beginning
-    gameMap.initializeEverVisitedFlagTilesPools(mapSizeX,mapSizeY,numberOfSeats);
+    gameMap.initializeEverVisitedFlagTilesPools(mapSizeX,mapSizeY,numberOfSeats + 1);  // mind that the mId = 0 is always reserved and is not a valid Seat number, instead mId = 0 is for rogue ( enemy to all ) creatures
     // Read in the version number from the level file
     levelFile >> nextParam;
     if (nextParam.compare(ODApplication::VERSIONSTRING) != 0)
