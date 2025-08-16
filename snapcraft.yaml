@@ -10,7 +10,7 @@ apps:
         command: bin/desktop-launch $SNAP/usr/games/opendungeons-plus
         environment:
             CEGUI_MODULE_DIR: $SNAP/usr/lib/cegui-0.9999
-        plugs: [desktop, opengl, x11, pulseaudio, network, network-bind]
+        plugs: [desktop, opengl, x11, audio-playback, network, network-bind]
         desktop: usr/share/applications/opendungeons-plus.desktop
 
 architectures:
