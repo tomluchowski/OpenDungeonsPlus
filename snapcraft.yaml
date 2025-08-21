@@ -121,7 +121,6 @@ parts:
             - -DCMAKE_BUILD_TYPE=Debug
             - -DCMAKE_INSTALL_PREFIX=/usr/
             - -DOD_TREAT_WARNINGS_AS_ERRORS=OFF
-            - -D
         override-build: |
             snapcraftctl build
             sed -i -e 's|/.*/stage||g' $SNAPCRAFT_PART_INSTALL/etc/opendungeons-plus/plugins.cfg # drop stage prefix
