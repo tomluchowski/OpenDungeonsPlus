@@ -55,7 +55,7 @@ namespace MapHandler
     bool getMapInfo(const std::string& fileName, LevelInfo& levelInfo);
 
     //! \brief Counts the number of all seats in the levelfile, needed to initialize the structure
-    //! everVisitedflagpool
+    //! everVisitedflagpool plus map Size X and map Size Y
 
     void getXandYandSeatsNumber(std::stringstream& ss,int& xx, int& yy, int& numberOfSeats);
     //! \brief Level extension constant, used in different GUI modes.

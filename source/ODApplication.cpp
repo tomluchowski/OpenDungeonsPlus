@@ -173,6 +173,10 @@ void ODApplication::startClient()
     sf::RenderWindow sfmlWindow(sf::VideoMode(w, h, sf::VideoMode::getDesktopMode().bitsPerPixel)
                                 , windowTitle, style, sf::ContextSettings(32, 0, 2, 1));
 
+    // sfmlWindow.setActive(true);
+    sfmlWindow.setMouseCursorVisible(false);
+
+
     ogreRoot.initialise(false);
 
     Ogre::RenderWindow* renderWindow = [&](){
@@ -184,7 +188,11 @@ void ODApplication::startClient()
 		misc["externalGLContext"] = Helper::toString(winGlContext);
 		misc["externalGLControl"] = Ogre::String("True");
 #else
-        misc["currentGLContext"] = Ogre::String("true");
+                // misc["currentGLContext"] = Ogre::String("true");
+                misc["externalWindowHandle"] =
+    Helper::toString(reinterpret_cast<size_t>(sfmlWindow.getSystemHandle()));
+
+    
 #endif
         return ogreRoot.createRenderWindow(windowTitle, w, h, style == sf::Style::Fullscreen, &misc);
     }();

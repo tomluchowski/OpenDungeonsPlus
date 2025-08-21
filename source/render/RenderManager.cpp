@@ -424,7 +424,8 @@ void RenderManager::preRenderTargetUpdate(const Ogre::RenderTargetEvent& evt)
     if(!m_ZPrePassEnabled)
         return;    
     
-    if (ODFrameListener::getSingleton().getModeManager()->getInputManager().mKeyboard->getKeyboard()->isModifierDown(OIS::Keyboard::Modifier::CapsLock))
+    if (ODFrameListener::getSingleton().getModeManager()->getInputManager().mKeyboard// ->getKeyboard()
+        ->isModifierDown(OIS::Keyboard::Modifier::CapsLock))
     {
   
         

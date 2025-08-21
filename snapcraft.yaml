@@ -33,7 +33,9 @@ parts:
             - -DOGRE_BUILD_RENDERSYSTEM_GL=TRUE
             - -DOGRE_BUILD_RENDERSYSTEM_GL3PLUS=TRUE
             - -DOGRE_RESOURCEMANAGER_STRICT=0
+            
             # stuff we dont need
+            - -DOGRE_GLSUPPORT_USE_EGL = FALSE
             - -DOGRE_BUILD_RENDERSYSTEM_GLES2=FALSE
             - -DOGRE_BUILD_TOOLS=FALSE
             - -DOGRE_BUILD_SAMPLES=FALSE
@@ -115,9 +117,11 @@ parts:
             snapcraftctl pull
             sed -i -e 's|if(CMAKE_INSTALL_PREFIX|if(""|g' CMakeLists.txt
         cmake-parameters:
+        	- -DOD_USE_SFML_WINDOW=TRUE
             - -DCMAKE_BUILD_TYPE=Debug
             - -DCMAKE_INSTALL_PREFIX=/usr/
             - -DOD_TREAT_WARNINGS_AS_ERRORS=OFF
+            - -D
         override-build: |
             snapcraftctl build
             sed -i -e 's|/.*/stage||g' $SNAPCRAFT_PART_INSTALL/etc/opendungeons-plus/plugins.cfg # drop stage prefix
