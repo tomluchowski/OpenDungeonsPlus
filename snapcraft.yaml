@@ -35,7 +35,7 @@ parts:
             - -DOGRE_RESOURCEMANAGER_STRICT=0
 
            # stuff we dont need
-            - -DOGRE_GLSUPPORT_USE_EGL = FALSE
+            - -DOGRE_GLSUPPORT_USE_EGL=FALSE
             - -DOGRE_BUILD_RENDERSYSTEM_GLES2=FALSE
             - -DOGRE_BUILD_TOOLS=FALSE
             - -DOGRE_BUILD_SAMPLES=FALSE
