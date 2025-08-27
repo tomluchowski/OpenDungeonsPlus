@@ -51,6 +51,7 @@ CreatureActionDigTile::~CreatureActionDigTile()
         mCreature.removeCreatureEffect(mCreature.mDiggingEffect);
         mCreature.mDiggingEffect = nullptr;
     }
+    mCreature.parkedBit = false;
 }
 
 std::function<bool()> CreatureActionDigTile::action()
@@ -77,8 +78,14 @@ bool CreatureActionDigTile::handleDigTile(Creature& creature, Tile& tileDig, Til
         return true;
     }
 
+
+    if(!creature.parkedBit)
+    {
+        creature.parkToWallTile(&tileDig, &tilePos);
+        return true;
+    }
     // We go to the tile we locked
-    if(&tilePos != myTile )
+    else if(&tilePos != myTile )
     {
         if(!creature.setDestination( &tilePos))
         {
@@ -87,12 +94,6 @@ bool CreatureActionDigTile::handleDigTile(Creature& creature, Tile& tileDig, Til
         }
         return true;
     }
-    else if(!creature.parkedBit)
-    {
-        creature.parkToWallTile(&tileDig, &tilePos);
-        return true;
-    }
-
     // Dig out the tile by decreasing the tile's fullness.
     const Ogre::Vector3& pos = creature.getPosition();
     Ogre::Vector3 walkDirection(tileDig.getX() - pos.x, tileDig.getY() - pos.y, 0);
