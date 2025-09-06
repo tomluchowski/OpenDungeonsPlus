@@ -51,32 +51,47 @@ void addCommand(M &&m, const char *name, Ret (*cmdStrFunc)(Args...)) {
 }
 
 template<typename M>
-void addCommand(M &&m, const char *name) {
+void addCommand(M &&m, const char *name)
+{
 	addCommand(m, name, +[]() { return ""; });
 }
  
  
  
  
-PYBIND11_EMBEDDED_MODULE(cheats, m){
+PYBIND11_EMBEDDED_MODULE(cheats, m)
+{
     addCommand(m, "addcreature",  +[](int seat, std::string creatureName,  std::string meshName, float x, float y, float z, std::string creatureDefinitionString, int level, int exp, std::string hpString, int wakeFullness, int hunger, int goldCarried, std::string weaponLeft, std::string weaponRight, std::string skillsList, int weaponDropDeath  ){ return Helper::toString(seat) + " " + creatureName + " " + meshName + " " +  Helper::toString(x) + " " +  Helper::toString(y) + " " +  Helper::toString(z) + " "  + creatureDefinitionString + " " + Helper::toString(level) + " " +  Helper::toString(exp) + " " + hpString + " " +  Helper::toString(wakeFullness) + " " +  Helper::toString(hunger) + " " +  Helper::toString(goldCarried) + " " + weaponLeft + " " + weaponRight + " " + skillsList + " " +  Helper::toString(weaponDropDeath) ;});    
     addCommand(m, "addgold", +[](int seat, int gold){ return Helper::toString(seat)+ " " +Helper::toString(gold); });
     addCommand(m, "addmana", +[](int seat, int mana){ return Helper::toString(seat)+ " " +Helper::toString(mana); });
     addCommand(m, "catmullspline", +[](std::vector<double> points){ return Helper::toString(points);  });    
     addCommand(m, "circlearound",  +[](double x, double y, double radious){ return Helper::toString(x) + " " +  Helper::toString(y) + " " + Helper::toString(radious);      });
-    addCommand(m, "creaturevisdebug", +[](std::string subject){ return subject; });    
+    addCommand(m, "creaturevisdebug", +[](std::string subject){ return subject; });
+    addCommand(m, "enableZPrePass");
     addCommand(m, "farclip",+[](float distance){ return Helper::toString(distance); });
     addCommand(m, "fps", +[](int frames){ return Helper::toString(frames); });
+    addCommand(m, "getposition");
+    addCommand(m, "getshadowtexturecount"); 
     addCommand(m, "helpmessage");
+    addCommand(m, "keys"); 
+    addCommand(m, "light", +[](float r, float g, float b){ return Helper::toString(r) + " " + Helper::toString(g) + " " + Helper::toString(b) ;});    
     addCommand(m, "list", +[](std::string subject){ return subject; });
     addCommand(m, "listmeshanims", +[](std::string name){ return name;});
     addCommand(m, "logfloodfill");
     addCommand(m, "maxtime",  +[](int time){ return Helper::toString(time);});
     addCommand(m, "nearclip",+[](float distance){ return Helper::toString(distance); });
+    addCommand(m, "printentities");
+    addCommand(m, "printnodes");    
     addCommand(m, "seatvisdebug",  +[](int seat){ return Helper::toString(seat); });
+    addCommand(m, "setShadowFarClipDistance",   +[](float distance){ return Helper::toString(distance); });
+    addCommand(m, "setShadowNearClipDistance",   +[](float distance){ return Helper::toString(distance); });    
     addCommand(m, "setcamerafovy",  +[](double fovy){ return Helper::toString(fovy);});
+    addCommand(m, "setcameralightdirectionthreshold",  +[](double threshold){ return Helper::toString(threshold);});    
     addCommand(m, "setcreaturedest",  +[](std::string name, int x, int y){  return name +  Helper::toString(x)+ " " +Helper::toString(y);     });
     addCommand(m, "setcreaturelevel",  +[](int name){ return Helper::toString(name);});
+    addCommand(m, "setloglevel",  +[](int level){ return Helper::toString(level);});
+    addCommand(m, "setoptimaladjustfactor",  +[](float factor){ return Helper::toString(factor);});
+    addCommand(m, "setshadowcamerafovy",  +[](double fovy){ return Helper::toString(fovy);});
     addCommand(m, "termwidth", +[](int width){ return Helper::toString(width); });
     addCommand(m, "togglefow");        
     addCommand(m, "triggercompositor", +[](std::string name){ return name;});
@@ -777,13 +792,7 @@ namespace ConsoleCommands
         cl.addCommand("addmana",
                          cSendCmdToServer,
                          cSrvAddMana,
-                         {AbstractModeManager::ModeType::GAME, AbstractModeManager::ModeType::EDITOR });
- 
-        cl.addCommand("light",
-                         cAmbientLight,
-                         Command::cStubServer,
-                         {AbstractModeManager::ModeType::GAME, AbstractModeManager::ModeType::EDITOR });
- 
+                         {AbstractModeManager::ModeType::GAME, AbstractModeManager::ModeType::EDITOR }); 
         cl.addCommand("catmullspline",
                          cHermiteCatmullSpline,
                          Command::cStubServer,
@@ -843,7 +852,11 @@ namespace ConsoleCommands
                          Command::cStubServer,
                          {AbstractModeManager::ModeType::GAME, AbstractModeManager::ModeType::EDITOR},
                          { });
- 
+        cl.addCommand("light",
+                         cAmbientLight,
+                         Command::cStubServer,
+                         {AbstractModeManager::ModeType::GAME, AbstractModeManager::ModeType::EDITOR });
+        
         cl.addCommand("list",
                          cList,
                          Command::cStubServer,
@@ -938,15 +951,15 @@ namespace ConsoleCommands
                          cSetOptimalAdjustFactor,
                          Command::cStubServer,
                          {AbstractModeManager::ModeType::GAME, AbstractModeManager::ModeType::EDITOR });
- 
+
+        cl.addCommand("setuseoptimaladjust",
+                         cSetUseSimpleOptimalAdjust,
+                         Command::cStubServer,
+                         {AbstractModeManager::ModeType::GAME, AbstractModeManager::ModeType::EDITOR });        
         cl.addCommand("setshadowcamerafovy",
                          cSetShadowCameraFovY,
                          Command::cStubServer,
                          {AbstractModeManager::ModeType::GAME, AbstractModeManager::ModeType::EDITOR});    
-        cl.addCommand("setuseoptimaladjust",
-                         cSetUseSimpleOptimalAdjust,
-                         Command::cStubServer,
-                         {AbstractModeManager::ModeType::GAME, AbstractModeManager::ModeType::EDITOR });
  
         cl.addCommand("tilevisualdebug",
                          [](const Command::ArgumentList_t&, ConsoleInterface& c, AbstractModeManager&) {

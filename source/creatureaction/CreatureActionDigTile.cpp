@@ -44,8 +44,8 @@ CreatureActionDigTile::CreatureActionDigTile(Creature& creature, Tile& tileDig, 
 
 CreatureActionDigTile::~CreatureActionDigTile()
 {
-    OD_LOG_DIG("Removing Creature Dig Effect");
     mTileDig.removeWorkerDigging(mCreature, mTilePos);
+    OD_LOG_DIG("Removing Creature Dig Effect");    
     if(mCreature.mDiggingEffect)
     {
         mCreature.removeCreatureEffect(mCreature.mDiggingEffect);

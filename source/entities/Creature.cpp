@@ -40,6 +40,7 @@
 #include "creatureaction/CreatureActionWalkToTile.h"
 #include "creaturebehaviour/CreatureBehaviour.h"
 #include "creatureeffect/CreatureEffect.h"
+#include "creatureeffect/CreatureEffectDigTile.h"
 #include "creatureeffect/CreatureEffectManager.h"
 #include "creatureeffect/CreatureEffectSlap.h"
 #include "creaturemood/CreatureMood.h"
@@ -2205,14 +2206,6 @@ void Creature::pickup()
     if(getHasVisualDebuggingEntities())
         computeVisualDebugEntities();
 
-    InputManager& inputManager = InputManager::getSingleton();
-    
-    if(this == inputManager.mHighlightedCreature)
-    {
-        inputManager.mHighlightedCreature = nullptr;
-        normalizeAmbient();
-        removeOutliner(); 
-    }
     fireCreatureSound(CreatureSound::Pickup);
 }
 

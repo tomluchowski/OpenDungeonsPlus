@@ -92,6 +92,12 @@ const std::map<std::string, const char*>& getDocString()
                 "getposition",
                 "gets position of a mouse in terms of x and y coordinates of gamemap"
             },
+
+            {
+                "getshadowtexturecount",
+                "prints current shadow texture's number"  
+
+            },
             {
                 "help",
                 ">help Lists available commands\n>help <command> displays description for <command>"
@@ -100,6 +106,19 @@ const std::map<std::string, const char*>& getDocString()
             {
                 "helpmessage",
                 "Display help message"
+            },
+
+            {
+                "keys",
+                "shows the game's action's keyboard layout"
+
+            },
+            {
+                "light",
+                "sets the game ambient light \n"
+                " An ambient light source represents an omnidirectional, fixed-intensity and fixed-color light source \n"
+                "that affects all objects in the scene equally (is omnipresent)"
+
             },
             {
                 "list",
@@ -162,6 +181,19 @@ const std::map<std::string, const char*>& getDocString()
                 "setcreaturelevel",
                 "Sets the level of a given creature.\n\nExample:\n"
                 "setlevel NatureMonster1 10\n\nThe above command will set the creature \'NatureMonster1\' to 10."
+            },
+            {
+                "setoptimaladjustfactor",
+                "Adjusts the parameter n to produce optimal shadows. \n"
+
+                "Remarks\n"
+                "The smaller the parameter n, the stronger the perspective warping effect.\n"
+                "The consequence of a stronger warping is that the near shadows will gain quality while the far ones will lose it.\n"
+                "Depending on your scene and light types you may want to tweak this value - for example directional lights tend to benefit from higher values of n than other types of light, \n"
+                "especially if you expect to see more distant shadows (say if the viewpoint is higher above the ground plane). \n"
+                "Remember that you can supply separate ShadowCameraSetup instances configured differently per light if you wish. "
+
+
             },
             {
                 "setShadowFarClipDistance",
