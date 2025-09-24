@@ -20,6 +20,7 @@
 #include "modes/ConsoleCommands.h"
 #include "render/Gui.h"
 #include "utils/LogManager.h"
+#include "utils/MakeUnique.h"
 #include "modes/GameEditorModeBase.h"
 
 #include <CEGUI/widgets/MultiLineEditbox.h>
@@ -39,37 +40,106 @@
 #include <cassert>
 
 
-PYBIND11_EMBEDDED_MODULE(my_sys, m) {
-    struct my_stdout {
-        my_stdout() = default;
-        my_stdout(const my_stdout &) = default;
-        my_stdout(my_stdout &&) = default;
-    };
+namespace py = pybind11;
 
+struct my_stream
+{
+    void write(const std::string& text)
+    {
+        GameEditorModeConsole::getSingleton().printToConsole(text);
+    }
 
-    
-    pybind11::class_<my_stdout> my_stdout(m, "my_stdout");
-    my_stdout.def_static("write", [](pybind11::object buffer) {
-        GameEditorModeConsole::getSingleton().printToConsole( buffer.cast<std::string>());
-    });
-    my_stdout.def_static("flush", []() {
-        // so far we do nothing, the underlying console doesn't have anything similar to "flush"
-    });
+    void flush()
+    {
+        // no-op for CEGUI
+    }
 
-    m.def("hook_stdout", []() {
-        auto py_sys = pybind11::module::import("sys");
-        auto my_sys = pybind11::module::import("my_sys");
-        py_sys.attr("stdout") = my_sys.attr("my_stdout");
+    std::string readline()
+    {
+        GameEditorModeConsole& console = GameEditorModeConsole::getSingleton();
+        std::string line;
+
+        {
+            py::gil_scoped_release release;
+            {
+                std::unique_lock<std::mutex> lk(console.mStdinMutex);
+
+                console.mStdinWaiting.store(true);
+                console.mStdinCond.wait(lk, [&console]
+                {
+                    return !console.mStdinQueue.empty() || !console.mPythonThreadRunning.load();
+                });
+                console.mStdinWaiting.store(false);
+
+                if (!console.mStdinQueue.empty())
+                {
+                    line = std::move(console.mStdinQueue.front());
+                    console.mStdinQueue.pop();
+                }
+                else
+                {
+                    line.clear();
+                }
+            }
+        }
+
+        if (!line.empty())
+            return line + "\n";
+        else
+            return std::string();
+    }
+
+    std::string read()
+    {
+        return readline();
+    }
+
+    bool isatty() const
+    {
+        return true;
+    }
+};
+
+PYBIND11_EMBEDDED_MODULE(my_sys, m)
+{
+    py::class_<my_stream>(m, "my_stream")
+        .def(py::init<>())
+        .def("write", &my_stream::write)
+        .def("flush", &my_stream::flush)
+        .def("readline", &my_stream::readline)
+        .def("read", &my_stream::read)
+        .def("isatty", &my_stream::isatty);
+
+    m.def("hook_streams", []()
+    {
+        py::module sys = py::module::import("sys");
+        py::module my = py::module::import("my_sys");
+        py::object stream_obj = my.attr("my_stream")();
+
+        sys.attr("stdout") = stream_obj;
+        sys.attr("stderr") = stream_obj;
+        sys.attr("stdin")  = stream_obj;
+
+        sys.attr("displayhook") = py::cpp_function([](py::handle obj)
+        {
+            if (!obj.is_none())
+            {
+                py::module builtins = py::module::import("builtins");
+                builtins.attr("_") = obj;
+                std::string repr = py::repr(obj).cast<std::string>();
+                GameEditorModeConsole::getSingleton().printToConsole(repr + "\n");
+            }
+        }, py::arg("obj"));
     });
 }
-
 
 template<>GameEditorModeConsole* Ogre::Singleton<GameEditorModeConsole>::msSingleton = nullptr;
 
 GameEditorModeConsole::GameEditorModeConsole(ModeManager* modeManager):
     guard{},
     mConsoleInterface(std::bind(&GameEditorModeConsole::printToConsole, this, std::placeholders::_1)),
-    mModeManager(modeManager)
+    mModeManager(modeManager),
+    freshlyEnabled(false)
 
 {
     ConsoleCommands::addConsoleCommands(mConsoleInterface);
@@ -89,10 +159,10 @@ GameEditorModeConsole::GameEditorModeConsole(ModeManager* modeManager):
     // mEditboxWindow->setText("[colour='FFFF0000']");
     CEGUI::Window* sendButton = consoleRootWindow->getChild("SendButton");
 
-    addEventConnection(
-        sendButton->subscribeEvent(CEGUI::PushButton::EventClicked,
-                                   CEGUI::Event::Subscriber(&GameEditorModeConsole::executePythonPrompt, this))
-    );
+    // addEventConnection(
+    //     sendButton->subscribeEvent(CEGUI::PushButton::EventClicked,
+    //                                CEGUI::Event::Subscriber(&GameEditorModeConsole::executePythonPrompt, this))
+    // );
 
     addEventConnection(
         mEditboxWindow->subscribeEvent(CEGUI::MultiLineEditbox::EventCharacterKey,
@@ -107,17 +177,24 @@ GameEditorModeConsole::GameEditorModeConsole(ModeManager* modeManager):
     addEventConnection(
         consoleRootWindow->subscribeEvent(CEGUI::FrameWindow::EventCloseClicked,
                                     CEGUI::Event::Subscriber(&GameEditorModeConsole::leaveConsole, this))
-    );
-    pybind11::module::import("my_sys").attr("hook_stdout")();
-    pybind11::object scope = pybind11::module::import("__main__").attr("__dict__");
-    
-    pybind11::exec("import cheats");
-    GameEditorModeConsole::getSingleton().printToConsole("The up to now console commands are in the package cheats. \n For example to call command fps with argument 30 type cheats.fps(30) \n For more type help('cheats') ");
+        );
+    {
+        pybind11::gil_scoped_acquire acquire;
+        pybind11::module::import("my_sys").attr("hook_streams")();
+   
+        pybind11::exec("import cheats");
 
+    }
+    
+    GameEditorModeConsole::getSingleton().printToConsole("The up to now console commands are in the package cheats. \n For example to call command fps with argument 30 type cheats.fps(30) \n For more type help('cheats') ");
+    // Create a persistent release so main thread does not reacquire the GIL
+    mMainThreadGilRelease = Utils::make_unique<pybind11::gil_scoped_release>();
+    startInterpreterThread();
 }
 
 GameEditorModeConsole::~GameEditorModeConsole()
 {
+    stopInterpreterThread();
     //Disconnect all event connections.
     for(CEGUI::Event::Connection& c : mEventConnections)
     {
@@ -130,10 +207,12 @@ void GameEditorModeConsole::activate()
     // Loads the corresponding Gui sheet.
     mModeManager->getGui().loadGuiSheet(Gui::console);
     mEditboxWindow->activate();
+    freshlyEnabled = true;
 }
 
 bool GameEditorModeConsole::keyPressed(const OIS::KeyEvent &arg)
 {
+    freshlyEnabled = false;
     switch(arg.key)
     {
         case OIS::KC_TAB:
@@ -157,7 +236,7 @@ bool GameEditorModeConsole::keyPressed(const OIS::KeyEvent &arg)
             {
                 mEditboxWindow->setText(completed.get());
             }
-            mEditboxWindow->setCaretIndex(mEditboxWindow->getText().length());
+            mEditboxWindow->setCaretIndex(mEditboxWindow->getText().length()-1);
             break;
 
         case OIS::KC_DOWN:
@@ -166,13 +245,33 @@ bool GameEditorModeConsole::keyPressed(const OIS::KeyEvent &arg)
             {
                 mEditboxWindow->setText(completed.get());
             }
-            mEditboxWindow->setCaretIndex(mEditboxWindow->getText().length());
+            mEditboxWindow->setCaretIndex(mEditboxWindow->getText().length()-1);
             break;
         }
         case OIS::KC_RETURN:
         case OIS::KC_NUMPADENTER:
-            if(mModeManager->getInputManager().mKeyboard->isModifierDown(OIS::Keyboard::Modifier::Shift))
-                executePythonPrompt();
+            if(!mModeManager->getInputManager().mKeyboard->isModifierDown(OIS::Keyboard::Modifier::Shift))
+            {
+                std::string line(mEditboxWindow->getText().c_str());
+                // If an input() is waiting, feed stdin; otherwise feed command queue
+                if (mStdinWaiting.load())
+                {
+                    {
+                        std::lock_guard<std::mutex> lk(mStdinMutex);
+                        mStdinQueue.push(line);
+                    }
+                    mStdinCond.notify_one();
+                }
+                else
+                {
+                    {
+                        std::lock_guard<std::mutex> lk(mCommandMutex);
+                        mCommandQueue.push(line);
+                    }
+                    mCommandCond.notify_one();
+                }
+                mEditboxWindow->setText("");
+            }
             else
             {
                 mEditboxWindow->appendText("\n");
@@ -192,7 +291,7 @@ bool GameEditorModeConsole::keyPressed(const OIS::KeyEvent &arg)
 void GameEditorModeConsole::printToConsole(const std::string& text)
 {
     CEGUI::ListboxTextItem* lbi = new CEGUI::ListboxTextItem("");
-    lbi->setTextParsingEnabled(true);
+    lbi->setTextParsingEnabled(false);
     std::string ss = text;
     if (ss[ss.length() - 1] == '\n')
              ss.pop_back();
@@ -210,24 +309,7 @@ bool GameEditorModeConsole::executeCurrentPrompt(const CEGUI::EventArgs& e)
     return true;
 }
 
-bool GameEditorModeConsole::executePythonPrompt()
-{
 
-    pybind11::module::import("my_sys").attr("hook_stdout")();
-    pybind11::object scope = pybind11::module::import("__main__").attr("__dict__");
-    try
-    {
-        pybind11::exec(mEditboxWindow->getText().c_str(),scope);
-    }
-    catch(pybind11::error_already_set &error)
-    {
-        printToConsole(error.what());
-    }
-    mConsoleInterface.getCommandHistoryBuffer().emplace_back(mEditboxWindow->getText().c_str());
-    mEditboxWindow->setText("");
-    return true;
-
-}
 bool GameEditorModeConsole::characterEntered(const CEGUI::EventArgs& e)
 {
     // We only accept alphanumeric chars + space
@@ -252,9 +334,134 @@ bool GameEditorModeConsole::leaveConsole(const CEGUI::EventArgs& /*e*/)
     if (mModeManager->getCurrentModeType() != AbstractModeManager::GAME
         && mModeManager->getCurrentModeType() != AbstractModeManager::EDITOR)
         return true;
-
+    
     // Warn the mother mode that we can leave the console.
     GameEditorModeBase* mode = static_cast<GameEditorModeBase*>(mModeManager->getCurrentMode());
     mode->leaveConsole();
     return true;
+}
+
+
+bool GameEditorModeConsole::isFreshlyEnabled()
+{
+    return freshlyEnabled;
+}
+
+
+void GameEditorModeConsole::interpreterLoop()
+{
+    // NOTE: Python interpreter must already be initialized
+    // (py::scoped_interpreter or equivalent)
+
+    while (mPythonThreadRunning.load())
+    {
+        std::string cmd;
+        {
+            std::unique_lock<std::mutex> lk(mCommandMutex);
+            mCommandCond.wait(lk, [this]
+            {
+                return !mCommandQueue.empty() || !mPythonThreadRunning.load();
+            });
+
+            if (!mPythonThreadRunning.load())
+                break;
+
+            if (!mCommandQueue.empty())
+            {
+                cmd = std::move(mCommandQueue.front());
+                mCommandQueue.pop();
+            }
+            else
+            {
+                continue;
+            }
+        }
+
+        // Execute the command under GIL
+        try
+        {
+            pybind11::gil_scoped_acquire acquire;
+            pybind11::object scope = pybind11::module::import("__main__").attr("__dict__");
+            run_line(cmd, scope);
+            Command::String_t currentPrompt(cmd);
+            //currentPrompt.erase(currentPrompt.end() - 1);
+            mConsoleInterface.getCommandHistoryBuffer().emplace_back(currentPrompt);
+     
+        }
+        catch (pybind11::error_already_set& e)
+        {
+            printToConsole(std::string("[Python exception] ") + e.what() + "\n");
+            // e.restore();
+            // PyErr_Print();
+        }
+    }
+}
+
+
+void GameEditorModeConsole::run_line(const std::string& code, pybind11::object scope)
+{
+    using namespace pybind11;
+    object builtins = module::import("builtins");
+    object compile = builtins.attr("compile");
+    object eval_func = builtins.attr("eval");
+
+    try
+    {
+        object compiled = compile(code, "<input>", "eval");
+        object result = eval_func(compiled, scope);
+        if (!result.is_none())
+        {
+            module sys = module::import("sys");
+            sys.attr("displayhook")(result);
+        }
+    }
+    catch (error_already_set& e)
+    {
+        if (e.matches(PyExc_SyntaxError))
+        {
+            exec(code, scope);
+        }
+        else
+        {
+            throw;
+        }
+    }
+}
+
+
+void GameEditorModeConsole::startInterpreterThread()
+{
+    if (mPythonThreadRunning.load())
+        return;
+
+    mPythonThreadRunning.store(true);
+    mPythonThread = std::thread([this]()
+    {
+        this->interpreterLoop();
+    });
+}
+
+void GameEditorModeConsole::stopInterpreterThread()
+{
+    if (!mPythonThreadRunning.load())
+        return;
+
+    // signal thread to exit
+    {
+        std::lock_guard<std::mutex> lock(mCommandMutex);
+        mPythonThreadRunning.store(false);
+    }
+    mCommandCond.notify_all();
+
+    // also wake any potential waiting stdin
+    mStdinCond.notify_all();
+
+
+    if (mMainThreadGilRelease)
+    {
+        mMainThreadGilRelease.reset();
+    }
+    
+    if (mPythonThread.joinable())
+        mPythonThread.join();
 }

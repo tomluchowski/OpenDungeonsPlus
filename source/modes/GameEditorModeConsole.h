@@ -19,14 +19,16 @@
 #define GAMEEDITORMODECONSOLE_H
 
 #include "AbstractApplicationMode.h"
-
 #include "ConsoleInterface.h"
 
 #include <OgreSingleton.h>
-
 #include <pybind11/embed.h>
-
+#include <condition_variable>
+#include <memory>
+#include <mutex>
 #include <string>
+#include <thread>
+#include <queue>
 
 namespace CEGUI
 {
@@ -43,6 +45,7 @@ class MultiLineEditbox;
 
 class GameEditorModeConsole : public Ogre::Singleton<GameEditorModeConsole>
 {
+    friend struct my_stream;
 public:
 
     GameEditorModeConsole(ModeManager*);
@@ -53,19 +56,47 @@ public:
 
     //! \brief Called when the game mode is activated
     //! Used to call the corresponding Gui Sheet.
+    
     void activate();
-
+    bool isFreshlyEnabled();
     void printToConsole(const std::string& text);
-        
-    pybind11::scoped_interpreter guard;
+    
+    void stopInterpreterThread();
+    void startInterpreterThread();
+
+    ConsoleInterface mConsoleInterface;        
     ModeManager* mModeManager;
-    CEGUI::MultiLineEditbox* mEditboxWindow;
-    ConsoleInterface mConsoleInterface;
+    void run_line(const std::string& code, pybind11::object scope);
     
 private:
-
-
+    std::unique_ptr<pybind11::gil_scoped_release> mMainThreadGilRelease;
     
+    pybind11::scoped_interpreter guard;
+    // Thread loop for executing Python commands
+    void interpreterLoop();
+
+    // === Python interpreter thread ===
+    std::thread mPythonThread;
+    std::atomic<bool> mPythonThreadRunning { false };
+
+    // === Command queue (for exec/eval lines typed by user) ===
+    std::mutex mCommandMutex;
+    std::condition_variable mCommandCond;
+    std::queue<std::string> mCommandQueue;
+
+    // === Stdin queue (for input() calls) ===
+    std::mutex mStdinMutex;
+    std::condition_variable mStdinCond;
+    std::queue<std::string> mStdinQueue;
+    std::atomic<bool> mStdinWaiting { false };
+
+    // === GUI / CEGUI console state ===
+    CEGUI::MultiLineEditbox* mEditboxWindow;
+
+
+
+
+    bool freshlyEnabled;    
     bool executeCurrentPrompt(const CEGUI::EventArgs& e = {});
     bool characterEntered(const CEGUI::EventArgs& e = {});
     bool executePythonPrompt();

@@ -787,7 +787,7 @@ bool GameMode::keyPressed(const OIS::KeyEvent& arg)
 {
     // Inject key to Gui
     CEGUI::System::getSingleton().getDefaultGUIContext().injectKeyDown(static_cast<CEGUI::Key::Scan>(arg.key));
-    if (arg.text != 0)
+    if (arg.text != 0 && !getConsole()->isFreshlyEnabled())
     {
         CEGUI::System::getSingleton().getDefaultGUIContext().injectChar(arg.text);
     }

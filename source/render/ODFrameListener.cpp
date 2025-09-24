@@ -328,7 +328,10 @@ void ODFrameListener::printDebugInfo()
     }
     if (mShowDebugInfo)
     {
-        infoSS << "FPS: " << mWindow->getStatistics().lastFPS;
+        infoSS << "last FPS: " << mWindow->getStatistics().lastFPS;
+        infoSS << "\naverage FPS: " <<  mWindow->getStatistics().avgFPS;
+        infoSS << "\nbest FPS: " << mWindow->getStatistics().bestFPS;
+        infoSS << "\nworse FPS: " << mWindow->getStatistics().worstFPS;       
         infoSS << "\ntriangleCount: " << mWindow->getStatistics().triangleCount;
         infoSS << "\nBatches: " << mWindow->getStatistics().batchCount;
         infoSS << "\nTurn number:  " << mGameMap->getTurnNumber();

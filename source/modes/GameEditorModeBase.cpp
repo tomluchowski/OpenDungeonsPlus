@@ -336,3 +336,4 @@ void GameEditorModeBase::leaveConsole()
     mCurrentInputMode = InputModeNormal;
     activate();
 }
+

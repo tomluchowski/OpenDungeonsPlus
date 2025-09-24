@@ -83,7 +83,6 @@ int main(int argc, char** argv)
 #endif
             return 0;
         }
-
         ODApplication od;
         od.startGame(options);
     }
