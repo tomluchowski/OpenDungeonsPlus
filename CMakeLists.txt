@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.5)
 
 ##################################
 #### Project settings ############
@@ -654,7 +654,7 @@ target_link_libraries(
 
 )
 
-target_link_libraries(opendungeons-plus PRIVATE pybind11::embed)
+target_link_libraries(opendungeons-plus pybind11::embed)
 
 # Set linker options in MSVC
 if(WIN32 AND MSVC)

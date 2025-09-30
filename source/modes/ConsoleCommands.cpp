@@ -87,8 +87,8 @@ PYBIND11_EMBEDDED_MODULE(cheats, m)
     addCommand(m, "setShadowNearClipDistance",   +[](float distance){ return Helper::toString(distance); });    
     addCommand(m, "setcamerafovy",  +[](double fovy){ return Helper::toString(fovy);});
     addCommand(m, "setcameralightdirectionthreshold",  +[](double threshold){ return Helper::toString(threshold);});    
-    addCommand(m, "setcreaturedest",  +[](std::string name, int x, int y){  return name +  Helper::toString(x)+ " " +Helper::toString(y);     });
-    addCommand(m, "setcreaturelevel",  +[](int name){ return Helper::toString(name);});
+    addCommand(m, "setcreaturedest",  +[](std::string name, int x, int y){  return name + " " +  Helper::toString(x)+ " " +Helper::toString(y);     });
+    addCommand(m, "setcreaturelevel",  +[](std::string name, int level){ return name + " " + Helper::toString(level);});
     addCommand(m, "setloglevel",  +[](int level){ return Helper::toString(level);});
     addCommand(m, "setoptimaladjustfactor",  +[](float factor){ return Helper::toString(factor);});
     addCommand(m, "setshadowcamerafovy",  +[](double fovy){ return Helper::toString(fovy);});

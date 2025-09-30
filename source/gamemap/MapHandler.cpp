@@ -45,7 +45,6 @@
 #include "utils/ConfigManager.h"
 #include "utils/Helper.h"
 #include "utils/LogManager.h"
-#include "utils/ResourceManager.h"
 
 #include "ODApplication.h"
 
