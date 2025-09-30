@@ -546,7 +546,7 @@ endif()
 #This has to cover the versions not already known by CMake
 set(Boost_ADDITIONAL_VERSIONS 1.47 1.47.0 1.47.1 1.55.0)
 
-set(OD_BOOST_COMPONENTS system filesystem locale program_options thread)
+set(OD_BOOST_COMPONENTS  filesystem locale program_options thread)
 
 if(BUILD_TESTING AND OD_BUILD_TESTING)
     set(OD_BOOST_COMPONENTS ${OD_BOOST_COMPONENTS} unit_test_framework)
