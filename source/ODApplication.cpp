@@ -268,7 +268,7 @@ void ODApplication::startClient()
         renderWindow, &overlaySystem, &gui);
 
     ogreRoot.addFrameListener(&frameListener);
-
+    
 #ifdef OD_USE_SFML_WINDOW
     bool running = true;
     while(running)

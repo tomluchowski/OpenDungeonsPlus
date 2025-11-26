@@ -18,6 +18,7 @@
 #include "gamemap/MapHandler.h"
 
 #include "creaturemood/CreatureMoodManager.h"
+#include "eventsystem/CreatureMoved.h"
 #include "gamemap/GameMap.h"
 #include "game/Seat.h"
 #include "goals/Goal.h"
@@ -37,6 +38,7 @@
 #include "entities/TileLava.h"
 #include "entities/TreasuryObject.h"
 #include "entities/Weapon.h"
+#include "modes/GameEditorModeConsole.h"
 #include "rooms/Room.h"
 #include "rooms/RoomManager.h"
 #include "spells/Spell.h"
@@ -58,7 +60,7 @@ namespace MapHandler {
 bool readGameMapFromFile(const std::string& fileName, GameMap& gameMap)
 {
     std::stringstream levelFile;
-    if(!Helper::readFileWithoutComments(fileName, levelFile))
+    if(!Helper::readFile(fileName, levelFile,true))
         return false;
     
     std::string nextParam;
@@ -71,6 +73,12 @@ bool readGameMapFromFile(const std::string& fileName, GameMap& gameMap)
     levelFile.seekg(0, std::ios::beg);  // Move read position to beginning
     gameMap.initializeEverVisitedFlagTilesPools(mapSizeX,mapSizeY,numberOfSeats + 1);  // mind that the mId = 0 is always reserved and is not a valid Seat number, instead mId = 0 is for rogue ( enemy to all ) creatures
     // Read in the version number from the level file
+
+    // std::vector CreatureMoved::alreadyVisited also depends on map Size : 
+    CreatureMoved::alreadyVisited.resize(mapSizeX*mapSizeY, false);
+    /// int CreatureMoved::GAME_MAP_WIDTH also depends on map Size:
+    CreatureMoved::GAME_MAP_WIDTH = mapSizeX;
+    
     levelFile >> nextParam;
     if (nextParam.compare(ODApplication::VERSIONSTRING) != 0)
     {
@@ -538,7 +546,46 @@ bool readGameMapFromFile(const std::string& fileName, GameMap& gameMap)
         OD_LOG_WRN("Invalid Chickens section");
         return false;
     }
+    
+    levelFile >> nextParam;
 
+    if(nextParam == "[Scripts]")
+    {
+        while(true)
+        {
+            if(!levelFile.good())
+                return false;
+
+            levelFile >> nextParam;
+            if (nextParam == "[/Scripts]")
+                break;
+
+            std::string entire_line = nextParam;
+            std::getline(levelFile, nextParam);
+            entire_line += nextParam;
+
+            std::stringstream ss(entire_line);
+            std::stringstream script_body;
+            std::string actionName;
+            std::string scriptName;
+            std::vector<int> auxVector;
+            int auxI;
+            ss >> actionName;
+            ss >> scriptName;
+            if(!Helper::readFile(scriptName,script_body,false))            
+                OD_LOG_ERR("COULD NOT READ THE FILE " + scriptName);
+            while(ss>>auxI)
+            {
+                auxVector.push_back(auxI);
+            }
+           
+            GameEditorModeConsole::scriptRegister[actionName].insert(make_pair(auxVector, script_body.str())); // std::make_pair(auxF,  script_body.str()));
+            
+        }
+    }
+
+
+        
     return true;
 }
 
@@ -821,7 +868,7 @@ bool getMapInfo(const std::string& fileName, LevelInfo& levelInfo)
 {
     // Prepare an invalid level reference
     std::stringstream levelFile;
-    if(!Helper::readFileWithoutComments(fileName, levelFile))
+    if(!Helper::readFile(fileName, levelFile,true))
         return false;
 
     std::string nextParam;

@@ -23,11 +23,13 @@
 #include "render/ODFrameListener.h"
 
 #include "entities/Creature.h"
+#include "eventsystem/ClockTick.h"
 #include "game/Player.h"
 #include "game/Seat.h"
 #include "gamemap/GameMap.h"
 #include "gamemap/DraggableTileContainer.h"
 #include "modes/AbstractApplicationMode.h"
+#include "modes/GameEditorModeConsole.h"
 #include "modes/ModeManager.h"
 #include "network/ODServer.h"
 #include "network/ODClient.h"
@@ -76,6 +78,7 @@ namespace
  * up the OGRE system.
  */
 ODFrameListener::ODFrameListener(const std::string& mainSceneFileName, Ogre::RenderWindow* renderWindow, Ogre::OverlaySystem* overLaySystem, Gui* gui) :
+    lastSecondFrameRenderingQueued(0),
     mInitialized(false),
     mWindow(renderWindow),
     mGui(gui),
@@ -89,7 +92,9 @@ ODFrameListener::ODFrameListener(const std::string& mainSceneFileName, Ogre::Ren
     mExitRequested(false),
     mCameraManager(mRenderManager->getSceneManager(), mGameMap.get(), renderWindow),
     mFpsLimiter(DEFAULT_FRAME_RATE),
-    mIsMainMenuCreated(false)
+    mIsMainMenuCreated(false),
+    currentSeconds(0),
+    currentMinutes(0)    
 {
     OD_LOG_INF("Creating frame listener...");
 
@@ -105,6 +110,7 @@ ODFrameListener::ODFrameListener(const std::string& mainSceneFileName, Ogre::Ren
     readMainScene(mainSceneFileName);
 
     mInitialized = true;
+   
 }
 
 void ODFrameListener::windowResized(Ogre::RenderWindow* rw)
@@ -177,6 +183,7 @@ bool ODFrameListener::frameRenderingQueued(const Ogre::FrameEvent& evt)
 
     // Sleep to limit the framerate to the max value
     mFpsLimiter.sleepIfEarly();
+    
 
     CEGUI::System::getSingleton().injectTimePulse(evt.timeSinceLastFrame);
     CEGUI::System::getSingleton().getDefaultGUIContext().injectTimePulse(evt.timeSinceLastFrame);
@@ -199,6 +206,19 @@ bool ODFrameListener::frameRenderingQueued(const Ogre::FrameEvent& evt)
         mCameraManager.getActiveCameraPosition(),
         mCameraManager.getActiveCameraOrientation());
 
+    
+    currentMinutes = ODClient::getSingleton().getGameTimeMillis() / 60000;
+    currentSeconds = (ODClient::getSingleton().getGameTimeMillis() % 60000)/1000;
+    std::stringstream ss ;
+    // ss << currentMinutes<< " " << lastMinuteFrameRenderingQueued;
+    // OD_LOG_INF(ss.str());
+    if( currentSeconds != lastSecondFrameRenderingQueued  )
+        // trigger observers dependent on time
+    {
+        // OD_LOG_INF("Another second of gameplay has passed, triggering dependent events");
+        notifyObservers(ClockTick(currentMinutes,currentSeconds));
+    }
+    lastSecondFrameRenderingQueued = currentSeconds;
     if((currentTurn != -1) && (mGameMap->getGamePaused()) && (!mExitRequested))
         return true;
 
@@ -216,6 +236,8 @@ bool ODFrameListener::frameRenderingQueued(const Ogre::FrameEvent& evt)
     ODClient::getSingleton().processClientSocketMessages();
     ODClient::getSingleton().processClientNotifications();
 
+
+    
     return mContinue;
 }
 
@@ -431,3 +453,4 @@ void ODFrameListener::readMainScene(const std::string& fileName)
     OD_LOG_INF("Load main scene file: " + fileName);
     mMainScene->readSceneMenu(fileName);
 }
+

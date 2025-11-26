@@ -54,6 +54,7 @@ template<typename M>
 void addCommand(M &&m, const char *name)
 {
 	addCommand(m, name, +[]() { return ""; });
+        
 }
  
  

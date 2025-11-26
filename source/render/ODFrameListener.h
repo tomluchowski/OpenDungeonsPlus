@@ -24,7 +24,9 @@
 #define ODFRAMELISTENER_H
 
 #include "camera/CameraManager.h"
+#include "eventsystem/Subject.h"
 #include "utils/FrameRateLimiter.h"
+
 
 #include <OgreFrameListener.h>
 #include <OgreSceneQuery.h>
@@ -34,6 +36,8 @@
 #include <OgreWindowEventUtilities.h>
 
 #include <memory>
+#include <vector>
+
 
 class ChatMessage;
 class GameMap;
@@ -69,7 +73,8 @@ class ODFrameListener :
         public Ogre::Singleton<ODFrameListener>,
         public Ogre::FrameListener,
         public Ogre::WindowEventListener,
-        public Ogre::RenderQueueListener
+        public Ogre::RenderQueueListener,
+        public Subject
 {
 
 friend class ODClient;
@@ -170,12 +175,26 @@ public:
         mFpsLimiter.setFrameRate(fps);
     }
 
-    inline unsigned int getMaxFPS()
+    inline unsigned int getMaxFPS() 
     {
         return mFpsLimiter.getFrameRate();
     }
+
+    inline int32_t getCurrentSeconds() const  
+    {
+        return currentSeconds;
+    }
+
+    inline int32_t getCurrentMinutes() const
+    {
+        return currentMinutes;
+    }
+    
     RenderManager*       mRenderManager;        
 private:
+
+    int32_t lastSecondFrameRenderingQueued;
+
     //! \brief Tells whether the frame listener is initialized.
 
     bool mInitialized;
@@ -219,6 +238,9 @@ private:
 
     //! \brief Reads the main scene definition
     void readMainScene(const std::string& fileName);
+
+    int32_t currentSeconds;
+    int32_t currentMinutes;
 };
 
 #endif // ODFRAMELISTENER_H

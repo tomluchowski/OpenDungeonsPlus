@@ -1445,6 +1445,12 @@ bool Tile::addEntity(GameEntity *entity)
     }
 
     mEntitiesInTile.push_back(entity);
+    Creature* creature;
+    if( (creature = dynamic_cast<Creature*>(entity)) )
+    {
+        creature->notifyObservers(CreatureMoved(getX(),getY()));
+
+    }
     if(!getGameMap()->isServerGameMap())
     {
         // On client side, we cull any movable entity that walks over a

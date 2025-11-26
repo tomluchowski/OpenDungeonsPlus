@@ -17,8 +17,13 @@
 
 #include "GameEditorModeConsole.h"
 
+#include "eventsystem/CreatureMoved.h"
+#include "eventsystem/ClockTick.h"
+#include "entities/Creature.h"
+#include "entities/Tile.h"
 #include "modes/ConsoleCommands.h"
 #include "render/Gui.h"
+#include "render/ODFrameListener.h"
 #include "utils/LogManager.h"
 #include "utils/MakeUnique.h"
 #include "modes/GameEditorModeBase.h"
@@ -38,6 +43,9 @@
 
 #include <functional>
 #include <cassert>
+
+
+std::unordered_map<std::string,std::multimap<std::vector<int>,std::string>> GameEditorModeConsole::scriptRegister = std::unordered_map<std::string,std::multimap<std::vector<int>,std::string>>();
 
 
 namespace py = pybind11;
@@ -187,9 +195,48 @@ GameEditorModeConsole::GameEditorModeConsole(ModeManager* modeManager):
     }
     
     GameEditorModeConsole::getSingleton().printToConsole("The up to now console commands are in the package cheats. \n For example to call command fps with argument 30 type cheats.fps(30) \n For more type help('cheats') ");
-    // Create a persistent release so main thread does not reacquire the GIL
+    // Creatte a persistent release so main thread does not reacquire the GIL
     mMainThreadGilRelease = Utils::make_unique<pybind11::gil_scoped_release>();
     startInterpreterThread();
+
+    // register an anwser to an Event we want, since GameEditorModeConsole is EventHandler as well
+    auto it = scriptRegister.find("CreatureMoved");
+    if (it !=scriptRegister.end())
+    {
+        for ( auto range = it->second.begin(); range != it->second.end(); ++range)
+        {
+        
+            registerEventHandler<CreatureMoved>([=](Subject& ss, Event const& ee, std::vector<int> trigger)
+            {
+                const Creature& ce = dynamic_cast<const Creature&>(ss);
+                if(ce.getPositionTile()->getX() == trigger[0] && ce.getPositionTile()->getY() == trigger[1] && !CreatureMoved::alreadyVisited[trigger[1]* CreatureMoved::GAME_MAP_WIDTH + trigger[0]])
+                {
+                    GameEditorModeConsole::run_script(range->second, range->first);
+                    CreatureMoved::alreadyVisited[trigger[1]* CreatureMoved::GAME_MAP_WIDTH + trigger[0]] = true;
+                }
+            
+            }, range->first);
+        }
+    }
+       
+    // register an anwser to an Event we want, since GameEditorModeConsole is EventHandler as well
+    it = scriptRegister.find("ClockTick");
+    if (it !=scriptRegister.end())
+    {
+        for ( auto range = it->second.begin(); range != it->second.end(); ++range)
+        {
+
+            registerEventHandler<ClockTick>([=](Subject& ss , Event const& ee, std::vector<int> trigger )
+            {
+                const ODFrameListener& odf = dynamic_cast<const ODFrameListener&>(ss);
+                if(odf.getCurrentMinutes() == trigger[0] && odf.getCurrentSeconds() == trigger[1] )
+                    GameEditorModeConsole::run_script(range->second, range->first);
+            }, range->first);
+        }
+    }
+    
+
+    ODFrameListener::getSingletonPtr()->registerObserver(*this); 
 }
 
 GameEditorModeConsole::~GameEditorModeConsole()
@@ -200,6 +247,9 @@ GameEditorModeConsole::~GameEditorModeConsole()
     {
         c->disconnect();
     }
+    // the order of removing the objects requires to unregister GameEditorModeBase as Observers:
+    // luckily we don't need to do something similar for creatures 
+    ODFrameListener::getSingletonPtr()->unregisterObserver(*this);
 }
 
 void GameEditorModeConsole::activate()
@@ -429,6 +479,16 @@ void GameEditorModeConsole::run_line(const std::string& code, pybind11::object s
 }
 
 
+
+void GameEditorModeConsole::run_script(std::string script_code, std::vector<int> mParameters)
+{
+    pybind11::gil_scoped_acquire acquire;
+    pybind11::object scope = pybind11::module::import("__main__").attr("__dict__");
+    run_line(script_code, scope);
+
+    
+}
+
 void GameEditorModeConsole::startInterpreterThread()
 {
     if (mPythonThreadRunning.load())
@@ -456,7 +516,7 @@ void GameEditorModeConsole::stopInterpreterThread()
     // also wake any potential waiting stdin
     mStdinCond.notify_all();
 
-
+    
     if (mMainThreadGilRelease)
     {
         mMainThreadGilRelease.reset();

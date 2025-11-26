@@ -190,7 +190,7 @@ bool ConfigManager::loadGlobalConfig(const std::string& configPath)
 {
     std::stringstream configFile;
     std::string fileName = configPath + "global.cfg";
-    if(!Helper::readFileWithoutComments(fileName, configFile))
+    if(!Helper::readFile(fileName, configFile,true))
     {
         OD_LOG_ERR("Couldn't read " + fileName);
         return false;
@@ -645,7 +645,7 @@ bool ConfigManager::loadCreatureDefinitions(const std::string& fileName)
 {
     OD_LOG_INF("Load creature definition file: " + fileName);
     std::stringstream defFile;
-    if(!Helper::readFileWithoutComments(fileName, defFile))
+    if(!Helper::readFile(fileName, defFile,true))
     {
         OD_LOG_ERR("Couldn't read " + fileName);
         return false;
@@ -695,7 +695,7 @@ bool ConfigManager::loadEquipements(const std::string& fileName)
 {
     OD_LOG_INF("Load weapon definition file: " + fileName);
     std::stringstream defFile;
-    if(!Helper::readFileWithoutComments(fileName, defFile))
+    if(!Helper::readFile(fileName, defFile,true))
     {
         OD_LOG_ERR("Couldn't read " + fileName);
         return false;
@@ -744,7 +744,7 @@ bool ConfigManager::loadSpawnConditions(const std::string& fileName)
 {
     OD_LOG_INF("Load creature spawn conditions file: " + fileName);
     std::stringstream defFile;
-    if(!Helper::readFileWithoutComments(fileName, defFile))
+    if(!Helper::readFile(fileName, defFile,true))
     {
         OD_LOG_ERR("Couldn't read " + fileName);
         return false;
@@ -830,7 +830,7 @@ bool ConfigManager::loadFactions(const std::string& fileName)
 {
     OD_LOG_INF("Load factions file: " + fileName);
     std::stringstream defFile;
-    if(!Helper::readFileWithoutComments(fileName, defFile))
+    if(!Helper::readFile(fileName, defFile, true))
     {
         OD_LOG_ERR("Couldn't read " + fileName);
         return false;
@@ -941,7 +941,7 @@ bool ConfigManager::loadRooms(const std::string& fileName)
 {
     OD_LOG_INF("Load Rooms file: " + fileName);
     std::stringstream defFile;
-    if(!Helper::readFileWithoutComments(fileName, defFile))
+    if(!Helper::readFile(fileName, defFile, true))
     {
         OD_LOG_ERR("Couldn't read " + fileName);
         return false;
@@ -974,7 +974,7 @@ bool ConfigManager::loadTraps(const std::string& fileName)
 {
     OD_LOG_INF("Load traps file: " + fileName);
     std::stringstream defFile;
-    if(!Helper::readFileWithoutComments(fileName, defFile))
+    if(!Helper::readFile(fileName, defFile, true))
     {
         OD_LOG_ERR("Couldn't read " + fileName);
         return false;
@@ -1007,7 +1007,7 @@ bool ConfigManager::loadSpellConfig(const std::string& fileName)
 {
     OD_LOG_INF("Load Spell config file: " + fileName);
     std::stringstream defFile;
-    if(!Helper::readFileWithoutComments(fileName, defFile))
+    if(!Helper::readFile(fileName, defFile,true))
     {
         OD_LOG_ERR("Couldn't read " + fileName);
         return false;
@@ -1040,7 +1040,7 @@ bool ConfigManager::loadSkills(const std::string& fileName)
 {
     OD_LOG_INF("Load Skills file: " + fileName);
     std::stringstream defFile;
-    if(!Helper::readFileWithoutComments(fileName, defFile))
+    if(!Helper::readFile(fileName, defFile,true))
     {
         OD_LOG_ERR("Couldn't read " + fileName);
         return false;
@@ -1072,7 +1072,7 @@ bool ConfigManager::loadTilesets(const std::string& fileName)
 {
     OD_LOG_INF("Load Tilesets file: " + fileName);
     std::stringstream defFile;
-    if(!Helper::readFileWithoutComments(fileName, defFile))
+    if(!Helper::readFile(fileName, defFile,true))
     {
         OD_LOG_ERR("Couldn't read " + fileName);
         return false;
@@ -1317,7 +1317,7 @@ bool ConfigManager::loadEditorSettings(const std::string& fileName)
     std::string nextParam;
     boost::circular_buffer<boost::filesystem::path>::capacity_type capacity;
     
-    if(!Helper::readFileWithoutComments(fileName, editorFile))
+    if(!Helper::readFile(fileName, editorFile,true))
     {
         OD_LOG_ERR("Couldn't read " + fileName);
         return false;
@@ -1397,7 +1397,7 @@ void ConfigManager::loadUserConfig(const std::string& fileName)
     else
     {
     
-        if(!Helper::readFileWithoutComments(fileName, defFile))
+        if(!Helper::readFile(fileName, defFile,true))
         {
         
             OD_LOG_INF("Couldn't read " + fileName);

@@ -22,6 +22,9 @@
 #define CREATURE_H
 
 #include "entities/MovableGameEntity.h"
+#include "eventsystem/CreatureMoved.h"
+#include "eventsystem/Subject.h"
+
 
 #include <Ogre.h>
 #include <Ogre.h>
@@ -109,7 +112,7 @@ public:
  *  will probably be refined later but it works fine for now and the code
  *  affected by this change is relatively limited.
  */
-class Creature: public MovableGameEntity
+class Creature: public MovableGameEntity, public Subject
 {
     friend class ODClient;
 public:

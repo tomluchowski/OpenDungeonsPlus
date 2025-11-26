@@ -425,10 +425,10 @@ public:
     { return mIsServerGameMap; }
     
     inline bool getGamePaused() const
-    { return mIsPaused; }
-
-    inline void setGamePaused(bool paused)
-    { mIsPaused = paused; }
+    {
+        return mIsPaused;
+    }
+    void setGamePaused( bool );
 
     inline NodeType getNodeType()
     { return mNodeType; }

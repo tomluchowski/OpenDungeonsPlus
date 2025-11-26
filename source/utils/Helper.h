@@ -122,7 +122,7 @@ namespace Helper
 
     //! \brief opens the file fileName and adds the uncommented lines to the stream.
     //! Returns true is the file could be open and false if an error occurs
-    bool readFileWithoutComments(const std::string& fileName, std::stringstream& stream);
+    bool readFile(const std::string& fileName, std::stringstream& stream, bool withoutComments);
 
     bool readNextLineNotEmpty(std::istream& is, std::string& line);
 

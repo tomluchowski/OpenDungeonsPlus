@@ -46,6 +46,8 @@
 #include "creaturemood/CreatureMood.h"
 #include "creaturemood/CreatureMoodManager.h"
 #include "creatureskill/CreatureSkill.h"
+
+
 #include "entities/ChickenEntity.h"
 #include "entities/CreatureDefinition.h"
 #include "entities/CreatureMoodValues.h"
@@ -53,6 +55,9 @@
 #include "entities/Tile.h"
 #include "entities/TreasuryObject.h"
 #include "entities/Weapon.h"
+
+
+
 #include "game/Player.h"
 #include "game/Skill.h"
 #include "game/SkillType.h"
@@ -60,6 +65,9 @@
 #include "gamemap/GameMap.h"
 #include "gamemap/Pathfinding.h"
 #include "giftboxes/GiftBoxSkill.h"
+
+#include "modes/GameEditorModeConsole.h"
+
 #include "network/ODClient.h"
 #include "network/ODServer.h"
 #include "network/ServerNotification.h"
@@ -207,6 +215,12 @@ Creature::Creature(GameMap* gameMap, const CreatureDefinition* definition, Seat*
         mWeaponR = gameMap->getWeapon(mDefinition->getWeaponSpawnR());
 
     setupDefinition(*gameMap, *ConfigManager::getSingleton().getCreatureDefinitionDefaultWorker());
+
+    if(!getIsOnServerMap())
+    {
+        registerObserver(GameEditorModeConsole::getSingleton());
+    }
+    
 }
 
 Creature::Creature(GameMap* gameMap) :
@@ -258,10 +272,15 @@ Creature::Creature(GameMap* gameMap) :
     mNbTurnsPrison           (0),
     mActiveSlapsCount        (0)
 {
+    if(!getIsOnServerMap())
+    {
+        registerObserver(GameEditorModeConsole::getSingleton());
+    }
 }
 
 Creature::~Creature()
 {
+
 }
 
 void Creature::createMeshLocal(NodeType nt)

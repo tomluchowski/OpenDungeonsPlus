@@ -168,7 +168,7 @@ namespace Helper
         return true;
     }
 
-    bool readFileWithoutComments(const std::string& fileName, std::stringstream& stream)
+    bool readFile(const std::string& fileName, std::stringstream& stream, bool withoutComments)
     {
         // Try to open the input file for reading and throw an error if we can't.
         std::ifstream baseLevelFile(fileName.c_str(), std::ifstream::in);
@@ -187,7 +187,10 @@ namespace Helper
             /* Find the first occurrence of the comment symbol on the
              * line and return everything before that character.
              */
-            stream << nextParam.substr(0, nextParam.find('#')) << "\n";
+            if(withoutComments)
+                stream << nextParam.substr(0, nextParam.find('#')) << "\n";
+            else
+                stream << nextParam << "\n";
         }
 
         baseLevelFile.close();

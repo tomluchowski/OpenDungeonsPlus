@@ -68,7 +68,7 @@ void RenderSceneMenu::readSceneMenu(const std::string& fileName)
     }
 
     std::stringstream defFile;
-    if(!Helper::readFileWithoutComments(fileName, defFile))
+    if(!Helper::readFile(fileName, defFile,true))
     {
         OD_LOG_ERR("Couldn't read " + fileName);
         return;

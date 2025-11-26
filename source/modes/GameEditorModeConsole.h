@@ -20,15 +20,19 @@
 
 #include "AbstractApplicationMode.h"
 #include "ConsoleInterface.h"
+#include "eventsystem/EventHandler.h"
 
 #include <OgreSingleton.h>
 #include <pybind11/embed.h>
+
 #include <condition_variable>
+#include <map>
 #include <memory>
 #include <mutex>
 #include <string>
 #include <thread>
 #include <queue>
+#include <unordered_map>
 
 namespace CEGUI
 {
@@ -43,7 +47,7 @@ class MultiLineEditbox;
 
 
 
-class GameEditorModeConsole : public Ogre::Singleton<GameEditorModeConsole>
+class GameEditorModeConsole : public Ogre::Singleton<GameEditorModeConsole>, public EventHandler
 {
     friend struct my_stream;
 public:
@@ -67,6 +71,10 @@ public:
     ConsoleInterface mConsoleInterface;        
     ModeManager* mModeManager;
     void run_line(const std::string& code, pybind11::object scope);
+    void run_script(std::string script_code, std::vector<int>);
+
+    static std::unordered_map<std::string, std::multimap<std::vector<int>,std::string>> scriptRegister;
+
     
 private:
     std::unique_ptr<pybind11::gil_scoped_release> mMainThreadGilRelease;

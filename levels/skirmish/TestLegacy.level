@@ -6877,3 +6877,10 @@ ProtectDungeonTemple	NULL
 [Chickens]
 # SeatId	Name	MeshName	PosX	PosY	PosZ	opacity	rotationAngle	PosX	PosY	PosZ
 [/Chickens]
+[Scripts]
+#EventName  Script  Trigger
+
+ClockTick python/hello3.py 0 10
+ClockTick python/hello4.py 0 15
+	
+[/Scripts]

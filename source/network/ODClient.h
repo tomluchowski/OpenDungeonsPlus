@@ -85,6 +85,14 @@ class ODClient: public Ogre::Singleton<ODClient>,
     inline bool getIsPlayerConfig() const
     { return mIsPlayerConfig; }
 
+    inline void pause()
+    { mGameClock.pause(); }
+
+
+    inline void resume()
+    { mGameClock.start(); }
+
+    
  protected:
     bool processMessage(ServerNotificationType cmd, ODPacket& packetReceived) override;
     void playerDisconnected() override;

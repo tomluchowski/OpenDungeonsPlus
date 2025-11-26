@@ -369,6 +369,7 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
 
             // Now that the we have received all needed information, we can launch the requested mode
             OD_LOG_INF("Starting game map");
+            resetGameClock();
             gameMap->setGamePaused(false);
             // Create ogre entities for the tiles, rooms, and creatures
             gameMap->createAllEntities();

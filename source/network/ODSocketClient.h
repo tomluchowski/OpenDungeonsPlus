@@ -19,6 +19,7 @@
 #define ODSOCKETCLIENT_H
 
 #include "network/ODPacket.h"
+#include "utils/Timer.h"
 
 #include <SFML/Network.hpp>
 
@@ -73,7 +74,12 @@ class ODSocketClient
         bool isDataAvailable(int miliseconds=5);
         int32_t getGameTimeMillis()
         { return mGameClock.getElapsedTime().asMilliseconds(); }
-
+        void resetGameClock()
+        { mGameClock.restart(); }
+        void pauseGameClock()
+        { mGameClock.pause(); }
+        void startGameClock()
+        { mGameClock.start(); }
         void setState(const std::string& state) {mState = state;}
 
         sf::TcpSocket& getSockClient()
@@ -107,7 +113,8 @@ class ODSocketClient
         { return false; }
         virtual void playerDisconnected()
         {}
-
+        Timer mGameClock;
+    
     private :
         bool processOneClientSocketMessage(int miliseconds=5);
 
@@ -118,7 +125,7 @@ class ODSocketClient
         int64_t mLastTurnAck;
         std::string mState;
 
-        sf::Clock mGameClock;
+
         std::ifstream mReplayInputStream;
         std::ofstream mReplayOutputStream;
         ODPacket mPendingPacket;

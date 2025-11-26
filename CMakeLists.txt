@@ -336,6 +336,11 @@ set(OD_SOURCEFILES
     ${SRC}/entities/TreasuryObject.cpp
     ${SRC}/entities/Weapon.cpp
 
+
+	${SRC}/eventsystem/CreatureMoved.cpp
+	${SRC}/eventsystem/EventHandler.cpp		
+	${SRC}/eventsystem/Subject.cpp		
+	
     ${SRC}/game/Player.cpp
     ${SRC}/game/PlayerSelection.cpp
     ${SRC}/game/Skill.cpp

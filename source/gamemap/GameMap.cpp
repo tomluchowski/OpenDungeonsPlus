@@ -3513,3 +3513,14 @@ void GameMap::setLocalPlayer(Player* pp){
     mLocalPlayer = pp;
 
 }
+
+void GameMap::setGamePaused(bool paused)
+{
+    if(!mIsPaused && paused)
+        ODClient::getSingletonPtr()->pause();
+    else if(mIsPaused && !paused)
+        ODClient::getSingletonPtr()->resume();
+    mIsPaused = paused;
+
+
+}
