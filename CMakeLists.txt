@@ -762,7 +762,7 @@ configure_file(${CMAKE_CONFIG_DIR}/opendungeons.6.in ${CMAKE_BINARY_DIR}/opendun
 # pointing to the game resources so that the game can be run in place
 # NOTE: This won't work on FAT filesystems
 if(NOT CMAKE_BINARY_DIR STREQUAL CMAKE_SOURCE_DIR)
-    foreach(RES config gui levels materials models music particles scripts shaders sounds)
+    foreach(RES config gui levels materials models music particles python scripts shaders sounds)
         if(NOT EXISTS ${CMAKE_BINARY_DIR}/${RES})
             message(STATUS "Creating symlink to ${CMAKE_SOURCE_DIR}/${RES} in ${CMAKE_BINARY_DIR}")
             if(UNIX)
@@ -792,6 +792,7 @@ if(UNIX)
                        ${CMAKE_SOURCE_DIR}/models
                        ${CMAKE_SOURCE_DIR}/music
                        ${CMAKE_SOURCE_DIR}/particles
+                       ${CMAKE_SOURCE_DIR}/python
                        ${CMAKE_SOURCE_DIR}/scripts
                        ${CMAKE_SOURCE_DIR}/shaders
                        ${CMAKE_SOURCE_DIR}/sounds)
@@ -897,6 +898,7 @@ elseif(WIN32)
                        ${CMAKE_SOURCE_DIR}/models
                        ${CMAKE_SOURCE_DIR}/music
                        ${CMAKE_SOURCE_DIR}/particles
+                       ${CMAKE_SOURCE_DIR}/python
                        ${CMAKE_SOURCE_DIR}/scripts
                        ${CMAKE_SOURCE_DIR}/shaders
                        ${CMAKE_SOURCE_DIR}/sounds)
