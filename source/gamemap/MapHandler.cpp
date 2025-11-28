@@ -47,6 +47,7 @@
 #include "utils/ConfigManager.h"
 #include "utils/Helper.h"
 #include "utils/LogManager.h"
+#include "utils/ResourceManager.h"
 
 #include "ODApplication.h"
 
@@ -572,7 +573,7 @@ bool readGameMapFromFile(const std::string& fileName, GameMap& gameMap)
             int auxI;
             ss >> actionName;
             ss >> scriptName;
-            if(!Helper::readFile(scriptName,script_body,false))            
+            if(!Helper::readFile( ResourceManager::getSingleton().getGameScriptsPath() +  scriptName,script_body,false))            
                 OD_LOG_ERR("COULD NOT READ THE FILE " + scriptName);
             while(ss>>auxI)
             {

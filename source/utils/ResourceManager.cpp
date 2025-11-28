@@ -612,3 +612,10 @@ std::string ResourceManager::getGameLevelPathMultiplayer() const
 {
     return getGameDataPath() + "levels/multiplayer/";
 }
+
+
+std::string ResourceManager::getGameScriptsPath() const
+{
+    return getGameDataPath() + "python/";
+
+}

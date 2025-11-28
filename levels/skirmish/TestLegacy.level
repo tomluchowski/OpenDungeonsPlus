@@ -6880,7 +6880,7 @@ ProtectDungeonTemple	NULL
 [Scripts]
 #EventName  Script  Trigger
 
-ClockTick python/hello3.py 0 10
-ClockTick python/hello4.py 0 15
+ClockTick hello3.py 0 10
+ClockTick hello4.py 0 15
 	
 [/Scripts]

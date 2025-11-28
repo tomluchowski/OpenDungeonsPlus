@@ -39,6 +39,7 @@ MenuModeEditorLoad::MenuModeEditorLoad(ModeManager* modeManager):
     AbstractApplicationMode(modeManager, ModeManager::MENU_EDITOR_LOAD)
 {
     CEGUI::Window* window = modeManager->getGui().getGuiSheet(Gui::guiSheet::editorLoadMenu);
+    
 
     // Fills the Level type combo box with the available level types.
     const CEGUI::Image* selImg = &CEGUI::ImageManager::getSingleton().get("OpenDungeonsSkin/SelectionBrush");

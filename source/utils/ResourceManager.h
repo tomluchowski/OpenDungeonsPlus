@@ -136,6 +136,8 @@ public:
     std::string getUserLevelPathMultiplayer() const
     { return mUserMultiplayerLevelsPath; }
 
+    std::string getGameScriptsPath() const;
+    
     inline bool isServerMode() const
     { return mServerMode; }
 
