@@ -21,7 +21,8 @@ parts:
     desktop-glib-only:
         source: https://github.com/ubuntu/snapcraft-desktop-helpers.git
         source-subdir: glib-only
-        plugin: make
+        plugin: make        
+        
     ogre:
         plugin: cmake
         cmake-parameters:
