@@ -76,10 +76,10 @@ class ODSocketClient
         { return mGameClock.getElapsedTime().asMilliseconds(); }
         void resetGameClock()
         { mGameClock.restart(); }
-        void pauseGameClock()
-        { mGameClock.pause(); }
-        void startGameClock()
-        { mGameClock.start(); }
+        // void pauseGameClock()
+        // { mGameClock.pause(); }
+        // void startGameClock()
+        // { mGameClock.start(); }
         void setState(const std::string& state) {mState = state;}
 
         sf::TcpSocket& getSockClient()
@@ -113,7 +113,7 @@ class ODSocketClient
         { return false; }
         virtual void playerDisconnected()
         {}
-        Timer mGameClock;
+        sf::Clock mGameClock;
     
     private :
         bool processOneClientSocketMessage(int miliseconds=5);

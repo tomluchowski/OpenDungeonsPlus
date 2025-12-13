@@ -4,7 +4,7 @@
 PluginFolder=@OD_OGRE_PLUGIN_DIR_DBG@
 
 # Define plugins
-Plugin=RenderSystem_GL_d
+# Plugin=RenderSystem_GL_d
 Plugin=Plugin_ParticleFX_d
 
 # Version-specific plugins (e.g. codecs for 1.11+)

@@ -1,0 +1,322 @@
+name: opendungeons-plus
+version: "0.8.0"
+summary: OpenDungeonsPlus – enhanced fork
+description: |
+  A dungeon management game inspired by Dungeon Keeper, Overlord 
+  and Evil Genius. Enhanced fork with upgraded editor and engine.
+
+grade: devel
+confinement: devmode
+base: core22
+
+apps:
+  opendungeons-plus:
+    command: usr/bin/opendungeons-plus
+    plugs:
+      - opengl
+      - audio-playback
+      - joystick
+      - network
+      - network-bind
+      - home
+      - removable-media
+      - x11
+      - desktop
+      - desktop-legacy
+      - wayland
+      - pulseaudio
+    environment:
+      ALSOFT_DRIVERS: pulse
+      LD_LIBRARY_PATH: "${SNAP}/usr/lib:${SNAP}/usr/lib/${SNAPCRAFT_ARCH_TRIPLET}:${SNAP}/usr/lib/openal:${SNAP}/usr/lib/cegui-0.9999:${LD_LIBRARY_PATH}"   # ← FIX (compressed to valid form)
+      OGRE_PLUGIN_DIR: "${SNAP}/usr/lib/OGRE"
+      OGRE_CONFIG_DIR: "${SNAP}/usr/share/OGRE"
+      CEGUI_DIR: "${SNAP}/usr"
+      XDG_DATA_DIRS: "${SNAP}/usr/share:/usr/share"
+      XDG_DATA_HOME: "${SNAP_USER_DATA}"
+      XDG_CONFIG_HOME: "${SNAP_USER_DATA}"
+      CEGUI_MODULE_DIR: "$SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/cegui-0.9999"
+      DISPLAY: :0
+      ALSOFT_LOGLEVEL: 3
+      OGRE_RTSHADER_CACHE_DIR: "$SNAP_USER_DATA/shaderCache"
+    extensions: [gnome]
+
+parts:
+
+  ######################################################################
+  # OIS 1.5.1
+  ######################################################################
+  libois:
+    plugin: cmake
+    source: https://github.com/wgois/OIS.git
+    source-tag: v1.5.1
+    source-depth: 1
+    cmake-parameters:
+      - -DCMAKE_BUILD_TYPE=Release
+      - -DCMAKE_INSTALL_PREFIX=/usr
+    build-packages:
+      - libx11-dev
+
+  ######################################################################
+  # OGRE 13.6.5
+  ######################################################################
+  ogre:
+    plugin: cmake
+    source: https://github.com/OGRECave/ogre.git
+    source-tag: v13.6.5
+    source-depth: 1
+
+    cmake-parameters:
+      - -DCMAKE_BUILD_TYPE=Debug
+      - -DOGRE_CONFIG_THREAD_PROVIDER=std
+      - -DOGRE_CONFIG_THREADS=3
+      - -DOGRE_STATIC=FALSE
+      - -DOGRE_BUILD_DEPENDENCIES=FALSE
+
+      # render systems
+      - -DOGRE_BUILD_RENDERSYSTEM_GL3PLUS=TRUE
+      - -DOGRE_BUILD_RENDERSYSTEM_GLES2=FALSE
+      - -DOGRE_BUILD_RENDERSYSTEM_GL=FALSE
+      - -DOGRE_GLSUPPORT_USE_EGL=FALSE
+
+      # disable unused plugins
+      - -DOGRE_BUILD_TOOLS=FALSE
+      - -DOGRE_BUILD_SAMPLES=FALSE
+      - -DOGRE_BUILD_PLUGIN_FREEIMAGE=FALSE
+      - -DOGRE_BUILD_PLUGIN_EXRCODEC=FALSE
+      - -DOGRE_BUILD_PLUGIN_BSP=FALSE
+      - -DOGRE_BUILD_PLUGIN_PCZ=FALSE
+      - -DOGRE_BUILD_PLUGIN_DOT_SCENE=FALSE
+
+      # disable heavy components
+      - -DOGRE_BUILD_COMPONENT_JAVA=FALSE
+      - -DOGRE_BUILD_COMPONENT_VOLUME=FALSE
+      - -DOGRE_BUILD_COMPONENT_PAGING=FALSE
+      - -DOGRE_BUILD_COMPONENT_TERRAIN=FALSE
+      - -DOGRE_BUILD_COMPONENT_PROPERTY=FALSE
+      - -DOGRE_BUILD_COMPONENT_MESHLODGENERATOR=FALSE
+      - -DOGRE_BUILD_COMPONENT_HLMS=FALSE
+
+      - -DCMAKE_INSTALL_PREFIX=/usr
+      - -DOGRE_ENABLE_PRECOMPILED_HEADERS=OFF
+
+    build-packages:
+      - libxrandr-dev
+      - libfreetype6-dev
+      - libgl1-mesa-dev
+      - libglu1-mesa-dev
+      - g++
+
+    stage-packages:
+      - libfreetype6
+      - libgl1
+      - libxrandr2
+      - libegl1
+
+    after: [libois]
+
+  ######################################################################
+  # CEGUI — FIXED to disable OpenGLES + libxml2 parser
+  ######################################################################
+  cegui:
+    plugin: cmake
+    source: https://github.com/tomluchowski/cegui.git
+    source-tag: scissors_test_disabled
+    source-depth: 1
+
+    cmake-parameters:
+      - -DCMAKE_BUILD_TYPE=Debug
+      - -DCMAKE_INSTALL_PREFIX=/usr
+      - -DCMAKE_CXX_FLAGS=-std=c++11
+
+      # Correct multiarch installation
+      - -DINSTALL_LIB_DIR=lib/${SNAPCRAFT_ARCH_TRIPLET}
+      - -DINSTALL_PKGCONFIG_DIR=lib/${SNAPCRAFT_ARCH_TRIPLET}/pkgconfig
+      - -DINSTALL_INCLUDE_DIR=include/cegui-0
+      - -DINSTALL_DATA_DIR=share/cegui-0
+
+      # Renderers: only OGRE
+      - -DCEGUI_BUILD_RENDERER_OGRE=ON
+      - -DCEGUI_BUILD_RENDERER_OPENGL=OFF
+      - -DCEGUI_BUILD_RENDERER_OPENGL3=OFF
+      - -DCEGUI_BUILD_RENDERER_OPENGLES=OFF
+      - -DCEGUI_BUILD_RENDERER_OPENGLES2=OFF     # ← FIX
+      - -DCEGUI_BUILD_RENDERER_OPENGLES3=OFF     # ← FIX
+
+      # XML parsers
+      - -DCEGUI_BUILD_XMLPARSER_EXPAT=ON
+      - -DCEGUI_BUILD_XMLPARSER_LIBXML2=OFF      # ← FIX
+
+      # Disable samples and unused codecs
+      - -DCEGUI_SAMPLES_ENABLED=OFF
+      - -DCEGUI_BUILD_IMAGECODEC_FREEIMAGE=OFF
+      - -DCEGUI_INSTALL_DEV_HEADERS=ON
+
+    build-packages:
+      - librapidxml-dev
+      - libexpat1-dev
+
+    build-environment:
+      - CMAKE_PREFIX_PATH: "$SNAPCRAFT_STAGE/usr"
+      - CMAKE_INCLUDE_PATH: "$SNAPCRAFT_STAGE/usr/include"
+      - CMAKE_LIBRARY_PATH: "$SNAPCRAFT_STAGE/usr/lib/${SNAPCRAFT_ARCH_TRIPLET}"
+      - PKG_CONFIG_PATH: "$SNAPCRAFT_STAGE/usr/lib/${SNAPCRAFT_ARCH_TRIPLET}/pkgconfig"
+
+    override-build: |
+      snapcraftctl build
+      # (your install path patching logic kept unchanged)
+      LIB64="$SNAPCRAFT_PART_INSTALL/usr/lib64"
+      LIBTRIPLET="$SNAPCRAFT_PART_INSTALL/usr/lib/${SNAPCRAFT_ARCH_TRIPLET}"
+      if [ -d "$LIB64" ]; then
+        mkdir -p "$LIBTRIPLET"
+        mv "$LIB64"/* "$LIBTRIPLET"/ 2>/dev/null || true
+        rm -rf "$LIB64"
+      fi
+
+    after: [ogre]
+
+  ########################################################################
+  # SFML 2.5.1 (AUDIO ENABLED, PULSEAUDIO DISABLED)
+  ########################################################################
+  sfml:
+    plugin: cmake
+    source: https://github.com/SFML/SFML.git
+    source-tag: 2.5.1
+    source-depth: 1
+
+    cmake-parameters:
+      - -DCMAKE_BUILD_TYPE=Release
+      - -DCMAKE_INSTALL_PREFIX=/usr
+      - -DBUILD_SHARED_LIBS=ON
+
+      # Enable audio (required by OpenDungeons)
+      - -DSFML_BUILD_AUDIO=ON
+
+      # Disable PulseAudio backend completely
+      - -DSFML_USE_PULSE=FALSE
+
+      # Force OpenAL audio backend only
+      - -DSFML_USE_OPENAL=TRUE
+
+      # Enable needed modules
+      - -DSFML_BUILD_GRAPHICS=ON
+      - -DSFML_BUILD_WINDOW=ON
+      - -DSFML_BUILD_SYSTEM=ON
+      - -DSFML_BUILD_NETWORK=ON
+
+      # Disable examples
+      - -DSFML_BUILD_EXAMPLES=OFF
+
+    build-packages:
+      - libopenal-dev
+      - libflac-dev
+      - libvorbis-dev
+      - libogg-dev
+      - libfreetype6-dev
+      - libx11-dev
+      - libxrandr-dev
+      - libudev-dev
+      - libjpeg-dev
+      - libpng-dev
+      - libxcb1-dev
+      - libxcb-image0-dev
+      - libxcb-render0-dev
+      - libxcb-shm0-dev
+      - libxcb-icccm4-dev
+      - libgl1-mesa-dev
+      - mesa-common-dev
+
+    stage-packages:
+      - libopenal1
+      - libflac8
+      - libvorbis0a
+      - libvorbisenc2
+      - libvorbisfile3
+      - libogg0
+      - libfreetype6
+
+    after: [ogre]
+
+
+  ######################################################################
+  # OpenDungeonsPlus
+  ######################################################################
+  opendungeons-plus:
+    plugin: cmake
+    source: .
+    cmake-parameters:
+      - -DOD_USE_SFML_WINDOW=TRUE
+      - -DCMAKE_BUILD_TYPE=Debug
+      - -DCMAKE_INSTALL_PREFIX=/usr/
+      - -DOD_TREAT_WARNINGS_AS_ERRORS=OFF
+      - "-DOGRE_DIR=$SNAPCRAFT_STAGE/usr/lib/OGRE/cmake"
+      - "-DCEGUI_DIR=$SNAPCRAFT_STAGE/usr"
+      - "-DOIS_DIR=$SNAPCRAFT_STAGE/usr"
+      - "-DCMAKE_PREFIX_PATH=$SNAPCRAFT_STAGE/usr"
+
+    build-environment:
+      - CMAKE_PREFIX_PATH: "$SNAPCRAFT_STAGE/usr"
+      - CMAKE_INCLUDE_PATH: "$SNAPCRAFT_STAGE/usr/include"
+      - CMAKE_LIBRARY_PATH: "$SNAPCRAFT_STAGE/usr/lib"
+      - PKG_CONFIG_PATH: "$SNAPCRAFT_STAGE/usr/lib/pkgconfig"
+
+    build-packages:
+      - pkg-config
+      - libboost-thread-dev
+      - libboost-locale-dev
+      - libboost-filesystem-dev
+      - libboost-program-options-dev
+      - libpython3.10-dev
+      - python3-distutils
+      - python3-distutils-extra
+      - pybind11-dev
+    stage-packages:
+      - libboost-thread1.74.0
+      - libboost-program-options1.74.0
+      - libboost-filesystem1.74.0
+      - libboost-system1.74.0
+      - libboost-locale1.74.0
+      - libboost-chrono1.74.0
+      - python3
+      - libpython3.10
+
+    override-build: |
+      snapcraftctl build
+
+      # Move binary into /usr/bin
+      install -Dm755 $SNAPCRAFT_PART_INSTALL/usr/games/opendungeons-plus \
+                     $SNAPCRAFT_PART_INSTALL/usr/bin/opendungeons-plus
+    override-prime: |
+      snapcraftctl prime
+
+      # OpenDungeons config directory
+      odcfg="$SNAPCRAFT_PRIME/etc/opendungeons-plus"
+
+      # Patch plugins.cfg actually used by the game
+      if [ -f "$odcfg/plugins.cfg" ]; then
+        sed -i \
+          -e 's|/root/stage/usr/lib|/usr/lib|g' \
+          -e 's|/root/stage||g' \
+          "$odcfg/plugins.cfg"
+      fi
+
+      # Patch resources.cfg used by the game
+      odres="$SNAPCRAFT_PRIME/usr/share/games/opendungeons-plus/resources.cfg"
+      if [ -f "$odres" ]; then
+        sed -i \
+          -e 's|/root/stage/usr/share/OGRE/Media/RTShaderLib|/usr/share/OGRE/Media/RTShaderLib|g' \
+          -e 's|/root/stage/usr/share/OGRE/Media/Main|/usr/share/OGRE/Media/Main|g' \
+          "$odres"
+      fi
+
+    # Assets
+    organize:
+      models: usr/share/opendungeons-plus/models
+      materials: usr/share/opendungeons-plus/materials
+      shaders: usr/share/opendungeons-plus/shaders
+      levels: usr/share/opendungeons-plus/levels
+      sounds: usr/share/opendungeons-plus/sounds
+      music: usr/share/opendungeons-plus/music
+      gui: usr/share/opendungeons-plus/gui
+      config: usr/share/opendungeons-plus/config
+
+    after: [ogre, cegui, libois, sfml]

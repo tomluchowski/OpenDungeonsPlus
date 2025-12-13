@@ -66,6 +66,7 @@
 #include <OgreRoot.h>
 #include <OgreTechnique.h>
 #include <OgreViewport.h>
+#include <OISKeyboard.h>
 #include <Overlay/OgreOverlay.h>
 #include <Overlay/OgreOverlayManager.h>
 #include <Overlay/OgreOverlaySystem.h>
@@ -116,7 +117,7 @@ RenderManager::RenderManager(Ogre::OverlaySystem* overlaySystem) :
     mShaderGenerator = Ogre::RTShader::ShaderGenerator::getSingletonPtr();
 
     mShaderGenerator->setShaderCachePath(ResourceManager::getSingletonPtr()->getShaderCachePath());
-    //mShaderGenerator->setShaderCacheEnabled(true);
+    mShaderGenerator->setShaderCacheEnabled(true);
     
     mShaderGenerator->addSceneManager(mSceneManager); 
     if(ConfigManager::getSingleton().getAudioValue(Config::SHADOWS)=="Yes")
@@ -424,34 +425,34 @@ void RenderManager::preRenderTargetUpdate(const Ogre::RenderTargetEvent& evt)
     if(!m_ZPrePassEnabled)
         return;    
     
-    if (ODFrameListener::getSingleton().getModeManager()->getInputManager().mKeyboard// ->getKeyboard()
-        ->isModifierDown(OIS::Keyboard::Modifier::CapsLock))
-    {
+    // if (ODFrameListener::getSingleton().getModeManager()->getInputManager().mKeyboard// ->getKeyboard()
+    //     ->isModifierDown(OIS::Keyboard::CapsLock))
+    // {
   
         
-        if (!tmpOverlay)
-        {
-            tmpMaterial = Ogre::MaterialManager::getSingleton().getByName("DebugZPrePass");
-            tmpOverlay = Ogre::OverlayManager::getSingleton().create("blablabla");
-            tmpOverlay->setZOrder(5);
-            tmpOverlay->show();
+    //     if (!tmpOverlay)
+    //     {
+    //         tmpMaterial = Ogre::MaterialManager::getSingleton().getByName("DebugZPrePass");
+    //         tmpOverlay = Ogre::OverlayManager::getSingleton().create("blablabla");
+    //         tmpOverlay->setZOrder(5);
+    //         tmpOverlay->show();
 
-            Ogre::OverlayContainer* tmpOverlayContainer = (Ogre::OverlayContainer*)Ogre::OverlayManager::getSingleton().createOverlayElement("Panel", "testnameasd");
-            tmpOverlayContainer->setMetricsMode(Ogre::GMM_RELATIVE);
-            tmpOverlayContainer->setPosition(0, 0);
-            tmpOverlayContainer->setDimensions(1, 1);
-            tmpOverlayContainer->setMaterialName(tmpMaterial->getName());
-            tmpOverlayContainer->show();
-            tmpOverlay->add2D(tmpOverlayContainer);
-        }
-        tmpMaterial->getTechnique(0)->getPass(0)->getTextureUnitState(0)->setTexture(m_texture);
-        tmpOverlay->show();
-    }
-    else
-    {
-        if (tmpOverlay)
-            tmpOverlay->hide();
-    }
+    //         Ogre::OverlayContainer* tmpOverlayContainer = (Ogre::OverlayContainer*)Ogre::OverlayManager::getSingleton().createOverlayElement("Panel", "testnameasd");
+    //         tmpOverlayContainer->setMetricsMode(Ogre::GMM_RELATIVE);
+    //         tmpOverlayContainer->setPosition(0, 0);
+    //         tmpOverlayContainer->setDimensions(1, 1);
+    //         tmpOverlayContainer->setMaterialName(tmpMaterial->getName());
+    //         tmpOverlayContainer->show();
+    //         tmpOverlay->add2D(tmpOverlayContainer);
+    //     }
+    //     tmpMaterial->getTechnique(0)->getPass(0)->getTextureUnitState(0)->setTexture(m_texture);
+    //     tmpOverlay->show();
+    // }
+    // else
+    // {
+    //     if (tmpOverlay)
+    //         tmpOverlay->hide();
+    // }
 
 
 
