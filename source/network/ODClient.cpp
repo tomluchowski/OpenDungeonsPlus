@@ -926,11 +926,14 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
         case ServerNotificationType::refreshTiles:
         {
             uint32_t nbTiles;
+            // OD_LOG_INF("nbTiles:");
+;
             NodeType nt;
             OD_ASSERT_TRUE(packetReceived >> nbTiles);
             OD_ASSERT_TRUE(packetReceived >> nt);
             GameMap* gameMapPointer = (nt == NodeType::MTILES_NODE) ? gameMap : (dynamic_cast<EditorMode*>(frameListener->getModeManager()->getCurrentMode())->draggableTileContainer) ;
             std::vector<Tile*> tiles;
+	    // OD_LOG_INF(Helper::toString(nbTiles));
             while(nbTiles > 0)
             {
                 --nbTiles;
@@ -939,9 +942,14 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
                     continue;
 
                 gameTile->updateFromPacket(packetReceived);
+                // OD_LOG_INF("this time I pulled");
+                // OD_LOG_INF(Helper::toString(gameTile->getX()));
+                // OD_LOG_INF(Helper::toString(gameTile->getY()));
                 tiles.push_back(gameTile);
             }
+            // OD_LOG_INF("now refreshing the bordering tiles of ....");
             gameMapPointer->refreshBorderingTilesOf(tiles, nt);
+	    // OD_LOG_INF("refreshing the bordering tiles of ... ended");
             break;
         }
         

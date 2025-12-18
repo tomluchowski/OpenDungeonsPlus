@@ -130,7 +130,7 @@ public:
     void rrCreateTile(Tile& tile, GameMap& dtc, const Player& localPlayer, NodeType nt = NodeType::MTILES_NODE);
     void rrDestroyTile(Tile& tile, NodeType nt = NodeType::MTILES_NODE);
     void rrTemporalMarkTile(Tile* curTile);
-    void rrDetachEntity(GameEntity* curEntity);
+    void rrDetachEntity(GameEntity* curEntity, bool really_do = true);
     void rrAttachEntity(GameEntity* curEntity);
     void rrCreateRenderedMovableEntity(RenderedMovableEntity* curRenderedMovableEntity, NodeType nt = NodeType::MTILES_NODE);
     void rrDestroyRenderedMovableEntity(RenderedMovableEntity* curRenderedMovableEntity, NodeType nt = NodeType::MTILES_NODE);

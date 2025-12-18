@@ -117,7 +117,7 @@ RenderManager::RenderManager(Ogre::OverlaySystem* overlaySystem) :
     mShaderGenerator = Ogre::RTShader::ShaderGenerator::getSingletonPtr();
 
     mShaderGenerator->setShaderCachePath(ResourceManager::getSingletonPtr()->getShaderCachePath());
-    mShaderGenerator->setShaderCacheEnabled(true);
+    // mShaderGenerator->setShaderCacheEnabled(true);
     
     mShaderGenerator->addSceneManager(mSceneManager); 
     if(ConfigManager::getSingleton().getAudioValue(Config::SHADOWS)=="Yes")
@@ -215,7 +215,7 @@ RenderManager::~RenderManager()
 {
     delete DebugDrawer::getSingletonPtr();
     mSceneManager->destroyInstanceManager(mInstanceManagerDirt);
-    mSceneManager->destroyInstanceManager(mInstanceManagerCloud);
+    // mSceneManager->destroyInstanceManager(mInstanceManagerCloud);
 }
 
 void RenderManager::initGameRenderer(GameMap* gameMap)
@@ -1015,7 +1015,8 @@ void RenderManager::rrRefreshTile(Tile& tile, GameMap& draggableTileContainer, c
             tileMeshNode->attachObject(tile.getFogOfWarMesh());
             tileMeshNode->attachObject(tile.getFogOfWarCloud());
             tile.getFogOfWarMesh()->setPosition(tile.getPosition());
-            tile.getFogOfWarCloud()->setPosition(tile.getPosition());            
+            tile.getFogOfWarCloud()->setPosition(tile.getPosition());    
+            
             
             
             tile.setHasFogOfWar(true);
@@ -1270,23 +1271,37 @@ void RenderManager::rrTemporalMarkTile(Tile* curTile)
     ent->setVisible(bb);
 }
 
-void RenderManager::rrDetachEntity(GameEntity* entity)
+void RenderManager::rrDetachEntity(GameEntity* entity , bool really_do )
 {
     //TODO : reorganize the way culling starts for gameEntities
     // so the nullptr check wouldn't be necessery
-    // this is ad hoc solution:  
-    Ogre::SceneNode* entityNode = entity->getEntityNode();
-    entity->getParentSceneNode()->removeChild(entityNode);    
+    // this is ad hoc solution:
 
+    Ogre::SceneNode* entityNode = entity->getEntityNode();
+    Ogre::SceneNode* parentNode = entity->getParentSceneNode(); 
+    //OD_LOG_INF("Removing Child: "  + Helper::toString(entityNode->getPosition().x) + " " + Helper::toString(entityNode->getPosition().y));
+    OD_ASSERT_TRUE(entityNode!=nullptr);    
+    if(entityNode!=nullptr && really_do)
+      {
+	// if ( entityNode->getParent() != parentNode)
+	//   {
+	//     OD_LOG_ERR("CRITICAL: node not found");
+	//     exit(0);
+	//   }
+	entity->getParentSceneNode()->removeChild(entityNode);    
+      }
 }
 
 void RenderManager::rrAttachEntity(GameEntity* entity)
 {
     //TODO : reorganize the way culling starts for gameEntities
     // so the nullptr check wouldn't be necessery
-    // this is ad hoc solution:      
+    // this is ad hoc solution:
+
     Ogre::SceneNode* entityNode = entity->getEntityNode();
-    entity->getParentSceneNode()->addChild(entityNode);
+    OD_ASSERT_TRUE(entityNode!=nullptr);    
+    if(entityNode!=nullptr) 
+        entity->getParentSceneNode()->addChild(entityNode);
 }
 
 void RenderManager::rrCreateRenderedMovableEntity(RenderedMovableEntity* renderedMovableEntity, NodeType nt)

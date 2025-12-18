@@ -8,6 +8,7 @@ description: |
 grade: devel
 confinement: devmode
 base: core22
+compression: lzo
 
 apps:
   opendungeons-plus:
@@ -40,6 +41,7 @@ apps:
       OGRE_RTSHADER_CACHE_DIR: "$SNAP_USER_DATA/shaderCache"
     extensions: [gnome]
 
+    
 parts:
 
   ######################################################################
@@ -242,9 +244,13 @@ parts:
   ######################################################################
   opendungeons-plus:
     plugin: cmake
-    source: .
+    source: https://github.com/tomluchowski/OpenDungeonsPlus.git
+    source-tag: shaders-improvement
+    source-depth: 1
+
+
     cmake-parameters:
-      - -DOD_USE_SFML_WINDOW=TRUE
+      - -DOD_USE_SFML_WINDOW=FALSE
       - -DCMAKE_BUILD_TYPE=Debug
       - -DCMAKE_INSTALL_PREFIX=/usr/
       - -DOD_TREAT_WARNINGS_AS_ERRORS=OFF
@@ -252,6 +258,9 @@ parts:
       - "-DCEGUI_DIR=$SNAPCRAFT_STAGE/usr"
       - "-DOIS_DIR=$SNAPCRAFT_STAGE/usr"
       - "-DCMAKE_PREFIX_PATH=$SNAPCRAFT_STAGE/usr"
+
+
+
 
     build-environment:
       - CMAKE_PREFIX_PATH: "$SNAPCRAFT_STAGE/usr"
@@ -269,7 +278,10 @@ parts:
       - python3-distutils
       - python3-distutils-extra
       - pybind11-dev
+      - gdb
     stage-packages:
+      - gdb
+      - libc6-dbg
       - libboost-thread1.74.0
       - libboost-program-options1.74.0
       - libboost-filesystem1.74.0

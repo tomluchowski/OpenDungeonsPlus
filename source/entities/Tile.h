@@ -305,7 +305,7 @@ public:
     { return mLocalPlayerHasVision; }
 
     //! \brief Set/unset the value of the mask depending on boolean value
-    void setTileCullingFlags(uint32_t mask, bool value);
+    void setTileCullingFlags(uint32_t mask, bool value, bool really_do = true);
 
     //! \brief Set the tile digging mark for the given player.
     void setMarkedForDigging(bool s, const Player* p);

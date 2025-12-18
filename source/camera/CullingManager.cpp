@@ -109,14 +109,17 @@ void CullingManager::stopTileCulling(const std::vector<Ogre::Vector3>& ogreVecto
 
 void CullingManager::hideAllTiles(void)
 {
+    OD_LOG_INF("starting to hide all game tiles"); 
+    mGameMap->getTile(0,0)->getParentSceneNode()->removeAllChildren();
     for (int jj = 0; jj < mGameMap->getMapSizeY() ; ++jj)
     {
         for (int ii = 0; ii < mGameMap->getMapSizeX(); ++ii)
         {
             Tile* tile = mGameMap->getTile(ii, jj);
-            tile->setTileCullingFlags(mCullingMask, false);
+            tile->setTileCullingFlags(mCullingMask, false, false);
         }
     }
+    OD_LOG_INF("done hiding all game tiles");
 }
 
 void CullingManager::showAllTiles(GameMap* gameMap)

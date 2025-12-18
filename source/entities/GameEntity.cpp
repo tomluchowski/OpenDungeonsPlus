@@ -701,7 +701,7 @@ void GameEntity::notifyFightPlayer(Tile* tile)
     getGameMap()->playerIsFighting(getSeat()->getPlayer(), tile);
 }
 
-void GameEntity::setParentNodeDetachFlags(uint32_t mask, bool value)
+void GameEntity::setParentNodeDetachFlags(uint32_t mask, bool value, bool really_do)
 {
     // We save the current attach  state
     bool oldState = (mEntityParentNodeAttach == EntityParentNodeAttach::ATTACHED);
@@ -716,5 +716,5 @@ void GameEntity::setParentNodeDetachFlags(uint32_t mask, bool value)
     if(newState)
         RenderManager::getSingleton().rrAttachEntity(this);
     else
-        RenderManager::getSingleton().rrDetachEntity(this);
+        RenderManager::getSingleton().rrDetachEntity(this, really_do);
 }

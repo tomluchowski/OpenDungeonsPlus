@@ -29,6 +29,8 @@
 #include <cstdint>
 #include "NodeType.h"
 
+#include <camera/CullingManager.h>
+
 namespace Ogre
 {
 class SceneNode;
@@ -155,6 +157,7 @@ public:
  */
 class GameEntity
 {
+    
   public:
     //! \brief Default constructor with default values
     GameEntity(
@@ -400,7 +403,7 @@ class GameEntity
     //! \brief Client side function to attach/detach the entity from its parent node.
     //! it is used as a byte array for reasons that might want to detach the
     //! entity (culling, if the entity is carried, ...)
-    void setParentNodeDetachFlags(uint32_t mask, bool value);
+    void setParentNodeDetachFlags(uint32_t mask, bool value, bool really_do = true);
 
     static void exportToStream(GameEntity* entity, std::ostream& os);
 

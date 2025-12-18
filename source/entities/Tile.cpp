@@ -2247,7 +2247,7 @@ bool Tile::removeWorkerDigging(const Creature& worker, Tile& tile)
     return false;
 }
 
-void Tile::setTileCullingFlags(uint32_t mask, bool value)
+void Tile::setTileCullingFlags(uint32_t mask, bool value , bool really_do)
 {
     // We save the current state. If the result is different, we refresh culling
     mTileCulling = (value ? mTileCulling | mask : mTileCulling & ~mask);
@@ -2255,9 +2255,9 @@ void Tile::setTileCullingFlags(uint32_t mask, bool value)
     if(mTileCulling == CullingType::HIDE)
     {
         // We cull the tile
-        setParentNodeDetachFlags(EntityParentNodeAttach::DETACH_CULLING, true);
+        setParentNodeDetachFlags(EntityParentNodeAttach::DETACH_CULLING, true, really_do);
         for(GameEntity* entity : mEntitiesInTile)
-            entity->setParentNodeDetachFlags(EntityParentNodeAttach::DETACH_CULLING, true);
+            entity->setParentNodeDetachFlags(EntityParentNodeAttach::DETACH_CULLING, true ,really_do);
     }
     else
     {
