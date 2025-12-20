@@ -5,10 +5,17 @@ description: |
   A dungeon management game inspired by Dungeon Keeper, Overlord 
   and Evil Genius. Enhanced fork with upgraded editor and engine.
 
-grade: devel
-confinement: devmode
+confinement: strict
 base: core22
 compression: lzo
+architectures:
+  - build-on: amd64
+
+
+layout:
+  /usr/share/OGRE:
+    bind: $SNAP/usr/share/OGRE
+
 
 apps:
   opendungeons-plus:
@@ -293,7 +300,13 @@ parts:
 
     override-build: |
       snapcraftctl build
-
+      #odres="$SNAPCRAFT_PRIME/usr/share/games/opendungeons-plus/resources.cfg"
+      #if [ -f "$odres" ]; then
+      #  sed -i \
+      #    -e 's|FileSystem=.*OGRE/Media/Main|FileSystem=$SNAP/usr/share/OGRE/Media/Main|g' \
+      #    -e 's|FileSystem=.*OGRE/Media/RTShaderLib|FileSystem=$SNAP/usr/share/OGRE/Media/RTShaderLib|g' \
+      #    "$odres"
+      #fi
       # Move binary into /usr/bin
       install -Dm755 $SNAPCRAFT_PART_INSTALL/usr/games/opendungeons-plus \
                      $SNAPCRAFT_PART_INSTALL/usr/bin/opendungeons-plus
@@ -301,24 +314,16 @@ parts:
       snapcraftctl prime
 
       # OpenDungeons config directory
-      odcfg="$SNAPCRAFT_PRIME/etc/opendungeons-plus"
+      # odcfg="$SNAPCRAFT_PRIME/etc/opendungeons-plus"
 
       # Patch plugins.cfg actually used by the game
-      if [ -f "$odcfg/plugins.cfg" ]; then
-        sed -i \
-          -e 's|/root/stage/usr/lib|/usr/lib|g' \
-          -e 's|/root/stage||g' \
-          "$odcfg/plugins.cfg"
-      fi
+      # if [ -f "$odcfg/plugins.cfg" ]; then
+      #  sed -i \
+      #    -e 's|/root/stage/usr/lib|/usr/lib|g' \
+      #    -e 's|/root/stage||g' \
+      #    "$odcfg/plugins.cfg"
+      #fi
 
-      # Patch resources.cfg used by the game
-      odres="$SNAPCRAFT_PRIME/usr/share/games/opendungeons-plus/resources.cfg"
-      if [ -f "$odres" ]; then
-        sed -i \
-          -e 's|/root/stage/usr/share/OGRE/Media/RTShaderLib|/usr/share/OGRE/Media/RTShaderLib|g' \
-          -e 's|/root/stage/usr/share/OGRE/Media/Main|/usr/share/OGRE/Media/Main|g' \
-          "$odres"
-      fi
 
     # Assets
     organize:
