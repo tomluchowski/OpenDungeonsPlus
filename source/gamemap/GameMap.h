@@ -569,7 +569,7 @@ public:
     void clearEverVisitedFlagTilesPools();
     
     bool initializeEverVisitedFlagTilesPools(uint32_t,uint32_t,uint32_t);
-    
+
 protected:
     //! \brief Tells whether this game map instance is used as a reference by the server-side,
     //! or as a standard client game map.

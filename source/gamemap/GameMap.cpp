@@ -296,7 +296,7 @@ void GameMap::clearAll()
         clearSpells();
 
         processDeletionQueues();
-
+        clearEverVisitedFlagTilesPools();
         clearTiles();
         processDeletionQueues();
 
@@ -350,7 +350,7 @@ void GameMap::clearAll()
             }
             mGameEntityClientUpkeep.clear();
         }
-        clearEverVisitedFlagTilesPools();
+
     }
 }
 
@@ -2351,8 +2351,6 @@ bool GameMap::initializeEverVisitedFlagTilesPools(uint32_t xx , uint32_t yy, uin
 
     return true;
 }
-
-
 
 
 

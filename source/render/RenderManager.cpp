@@ -1339,7 +1339,7 @@ void RenderManager::rrCreateRenderedMovableEntity(RenderedMovableEntity* rendere
 
         
         ent = mSceneManager->createEntity(tempString, meshPtr);
-        node->attachObject(ent);
+        node->attachObject(ent); 
     }
 
     renderedMovableEntity->setParentSceneNode(node->getParentSceneNode());
