@@ -23,6 +23,8 @@ if(NOT MSVC)
     add_definitions(-DOD_VERSION="${OD_MAJOR_VERSION}.${OD_MINOR_VERSION}.${OD_PATCH_LEVEL}")
 endif()
 
+set(CMAKE_CXX_STANDARD 14)
+
 # Set the data path depending on the platform
 if(WIN32)
     set(OD_DATA_PATH ".")

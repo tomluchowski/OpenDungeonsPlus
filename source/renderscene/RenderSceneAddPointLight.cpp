@@ -15,6 +15,7 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <iostream>
 #include "renderscene/RenderSceneAddPointLight.h"
 
 #include "camera/CameraManager.h"
