@@ -15,6 +15,7 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <iostream>
 #include "renderscene/RenderSceneSyncPost.h"
 
 #include "camera/CameraManager.h"
