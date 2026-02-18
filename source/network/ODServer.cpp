@@ -1585,7 +1585,7 @@ bool ODServer::processClientNotifications(ODSocketClient* clientSocket)
                     levelSave = boost::filesystem::path(receivedFilePath) /  receivedFileLevel;
 
                 }
-                std::cout << levelSave.string() << std::endl;
+                OD_LOG_INF( levelSave.string() + '\n');
             }
             else
             {

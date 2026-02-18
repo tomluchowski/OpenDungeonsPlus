@@ -30,6 +30,8 @@
 
 		<p>NOTE: On some linux distros ( like OpenSuse) it might require the command " xhost +local: " as regular user to run, before the command " snap run opendungeons-plus " . The game REQUIRES the graphic option 'Separate Shading Objects' to be enabled.</p>
 
+        <p>NOTE 2 : DO NOT mark dynamic shadows options as this is a future feature and won't work anywhere, it would only crash the game.</p>
+
 		<p>OpenDungeons is an open source, real time strategy game sharing game elements with the Dungeon Keeper series and Evil Genius. Players build an underground dungeon which is inhabited by creatures. Players fight each other for control of the underground by indirectly commanding their creatures, directly casting spells in combat, and luring enemies into sinister traps.        </p>
 
 

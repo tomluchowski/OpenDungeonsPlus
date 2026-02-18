@@ -147,12 +147,12 @@ void ResourceManager::setupDataPath(boost::program_options::variables_map& optio
     {
         // Don't warn on Windows as it is the default behaviour...
 #if OGRE_PLATFORM != OGRE_PLATFORM_WIN32
-        std::cout << "Note: Found data in the current folder. This data will be used instead of the installed one." << std::endl;
+        OD_LOG_INF("Note: Found data in the current folder. This data will be used instead of the installed one." + '\n');
 #endif
         mGameDataPath = "./";
     }
 
-    std::cout << "Game data path is: " << mGameDataPath << std::endl;
+    OD_LOG_INF( "Game data path is: " + mGameDataPath + '\n' );
 
 #ifndef OGRE_STATIC_LIB
 #ifdef OD_PLUGINS_CFG_PATH
@@ -173,15 +173,15 @@ void ResourceManager::setupDataPath(boost::program_options::variables_map& optio
     {
         // Don't warn on Windows as it is the default behaviour...
 #if OGRE_PLATFORM != OGRE_PLATFORM_WIN32
-        std::cout << "Note: Found a " << PLUGINSCFG << " file in the current folder. "
-                  << "This file will be used instead of the installed one." << std::endl;
+        OD_LOG_INF ( "Note: Found a " + PLUGINSCFG + " file in the current folder. "
+                     + "This file will be used instead of the installed one." + '\n');
 #endif
         mPluginsPath = pluginsCfg;
     }
 
 #endif // Windows and Linux
 
-    std::cout << PLUGINSCFG << " path is: " << mPluginsPath << std::endl;
+    OD_LOG_INF( PLUGINSCFG + " path is: " + mPluginsPath + '\n');
 
     mScriptPath = mGameDataPath + SCRIPTSUBPATH;
     mConfigPath = mGameDataPath + CONFIGSUBPATH;
@@ -277,11 +277,11 @@ void ResourceManager::setupUserDataFolders(boost::program_options::variables_map
     catch (const boost::filesystem::filesystem_error& e)
     {
         //TODO - Exit gracefully
-        std::cerr << "Fatal error creating user data folder: " << e.what() <<  std::endl;
+        OD_LOG_ERR( "Fatal error creating user data folder: " + e.what() +  '\n');
         exit(1);
     }
 
-    std::cout << "User data path is: " << mUserDataPath << std::endl;
+    OD_LOG_INF( + "User data path is: " + mUserDataPath + '\n');
 
     try
     {
@@ -290,10 +290,10 @@ void ResourceManager::setupUserDataFolders(boost::program_options::variables_map
     catch (const boost::filesystem::filesystem_error& e)
     {
         //TODO - Exit gracefully
-        std::cerr << "Fatal error creating user config folder: " << e.what() <<  std::endl;
+        OD_LOG_ERR("Fatal error creating user config folder: " + e.what() +  '\n');
         exit(1);
     }
-    std::cout << "User config path is: " << mUserConfigPath << std::endl;
+    OD_LOG_INF("User config path is: " + mUserConfigPath + '\n');
 
     try
     {
@@ -302,7 +302,7 @@ void ResourceManager::setupUserDataFolders(boost::program_options::variables_map
     catch (const boost::filesystem::filesystem_error& e)
     {
         //TODO - Exit gracefully
-        std::cerr << "Fatal error creating shader cache folder: " << e.what() <<  std::endl;
+        OD_LOG_ERR("Fatal error creating shader cache folder: " + e.what() +  '\n');
         exit(1);
     }
 
@@ -314,7 +314,7 @@ void ResourceManager::setupUserDataFolders(boost::program_options::variables_map
     catch (const boost::filesystem::filesystem_error& e)
     {
         //TODO - Exit gracefully
-        std::cerr << "Fatal error creating replay folder: " << e.what() <<  std::endl;
+        OD_LOG_ERR("Fatal error creating replay folder: " + e.what() +  '\n');
         exit(1);
     }
 
@@ -326,7 +326,7 @@ void ResourceManager::setupUserDataFolders(boost::program_options::variables_map
     catch (const boost::filesystem::filesystem_error& e)
     {
         //TODO - Exit gracefully
-        std::cerr << "Fatal error creating replay folder: " << e.what() <<  std::endl;
+        OD_LOG_ERR("Fatal error creating replay folder: " + e.what() +  '\n');
         exit(1);
     }
 
@@ -338,7 +338,7 @@ void ResourceManager::setupUserDataFolders(boost::program_options::variables_map
     catch (const boost::filesystem::filesystem_error& e)
     {
         //TODO - Exit gracefully
-        std::cerr << "Fatal error creating user skirmish levels folder: " << e.what() <<  std::endl;
+        OD_LOG_ERR("Fatal error creating user skirmish levels folder: " + e.what() +  '\n');
         exit(1);
     }
 
@@ -350,7 +350,7 @@ void ResourceManager::setupUserDataFolders(boost::program_options::variables_map
     catch (const boost::filesystem::filesystem_error& e)
     {
         //TODO - Exit gracefully
-        std::cerr << "Fatal error creating user multiplayer levels folder: " << e.what() <<  std::endl;
+        OD_LOG_ERR("Fatal error creating user multiplayer levels folder: " + e.what() +  '\n');
         exit(1);
     }
 
@@ -374,7 +374,7 @@ void ResourceManager::setupUserDataFolders(boost::program_options::variables_map
         boost::filesystem::path level(filePath);
         if(!boost::filesystem::exists(level))
         {
-            std::cerr << "Wanted level not found: " << filePath <<  std::endl;
+            OD_LOG_ERR("Wanted level not found: " + filePath +  '\n');
             exit(1);
         }
         mServerModeLevel = level.string();
@@ -398,7 +398,7 @@ void ResourceManager::setupUserDataFolders(boost::program_options::variables_map
             boost::filesystem::path level(filePath);
             if(!boost::filesystem::exists(level))
             {
-                std::cerr << "Wanted level not found: " << filePath <<  std::endl;
+                OD_LOG_ERR("Wanted level not found: " + filePath +  '\n');
                 exit(1);
             }
             mServerModeLevel = level.string();
@@ -421,7 +421,7 @@ void ResourceManager::setupUserDataFolders(boost::program_options::variables_map
             boost::filesystem::path level(filePath);
             if(!boost::filesystem::exists(level))
             {
-                std::cerr << "Wanted level not found: " << filePath <<  std::endl;
+                OD_LOG_ERR("Wanted level not found: " + filePath +  '\n');
                 exit(1);
             }
             mServerModeLevel = level.string();
@@ -458,7 +458,7 @@ void ResourceManager::setupUserDataFolders(boost::program_options::variables_map
     }
     catch(const boost::filesystem::filesystem_error& e)
     {
-        std::cerr << "ERROR: couldn't rename logs " << e.what() <<  std::endl;
+        OD_LOG_ERR("ERROR: couldn't rename logs " + e.what() +  '\n');
     }
 }
 

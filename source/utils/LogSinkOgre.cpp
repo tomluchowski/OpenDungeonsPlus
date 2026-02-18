@@ -73,7 +73,7 @@ LogSinkOgre::LogSinkOgre(const std::string& userDataPath)
     */
     mGameLog = mLogManager->createLog(userDataPath + LogManager::GAMELOG_NAME);
 #else
-    mGameLog = mLogManager->createLog(userDataPath, true, true, false);
+    mGameLog = mLogManager->createLog(userDataPath, true, false, false);
 #endif
 }
 

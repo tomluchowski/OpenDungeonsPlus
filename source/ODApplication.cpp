@@ -38,6 +38,7 @@
 #include "utils/Random.h"
 #include "utils/ResourceManager.h"
 
+#include <OgreLogManager.h>
 #include <OgreRenderWindow.h>
 #include <OgreRoot.h>
 #include <Overlay/OgreOverlaySystem.h>
@@ -67,13 +68,17 @@
 
 void ODApplication::startGame(boost::program_options::variables_map& options)
 {
-    ResourceManager resMgr(options);
-
     LogManager logMgr;
-    logMgr.setLevel(resMgr.getLogLevel());
+    Ogre::LogManager ogreLogManager;
+    ogreLogManager.createLog("Ogre.log", true, false, false);
+    logMgr.setLevel(LogMessageLevel::WARNING);
 
     logMgr.addSink(std::unique_ptr<LogSink>(new LogSinkConsole()));
+    ResourceManager resMgr(options);   
     logMgr.addSink(std::unique_ptr<LogSink>(new LogSinkFile(resMgr.getLogFile())));
+
+    logMgr.setLevel(resMgr.getLogLevel());
+
 
     if(resMgr.isServerMode())
         startServer();

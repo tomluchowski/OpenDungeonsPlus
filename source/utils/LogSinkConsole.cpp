@@ -19,6 +19,7 @@
 
 #include <iostream>
 #include <sstream>
+#include <mutex>
 
 #if WIN32 || _WINDOWS
     #include <Windows.h>
@@ -51,10 +52,19 @@ void LogSinkConsole::write(LogMessageLevel level, const std::string& module, con
         << std::endl;
 
     if (level >= LogMessageLevel::WARNING)
+    {
+        static std::mutex cerrMutex;
+        std::lock_guard<std::mutex> lock(cerrMutex);
         std::cerr << ss.str();
+        if(level >= LogMessageLevel::CRITICAL)
+            std::cerr.flush();
+    }
     else
+    {
+        static std::mutex coutMutex;
+        std::lock_guard<std::mutex> lock(coutMutex);
         std::cout << ss.str();
-
+    }
 #if (WIN32 || _WINDOWS) && OD_DEBUG
     ::OutputDebugStringA(ss.str().c_str());
 #endif
