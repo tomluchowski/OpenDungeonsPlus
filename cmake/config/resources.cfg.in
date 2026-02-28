@@ -3,7 +3,8 @@ FileSystem=/usr/share/OGRE/Media/RTShaderLib
 FileSystem=/usr/share/OGRE/Media/RTShaderLib/GLSL
 FileSystem=/usr/share/OGRE/Media/RTShaderLib/HLSL
 FileSystem=/usr/share/OGRE/Media/RTShaderLib/HLSL_Cg
-
+FileSystem=/usr/share/OGRE/Media/RTShaderLib/materials
+FileSystem=/usr/share/OGRE/Media/RTShaderLib/../Main
 [Graphics]
 FileSystem=/usr/share/OGRE/Media/RTShaderLib
 FileSystem=/usr/share/OGRE/Media/RTShaderLib/GLSL

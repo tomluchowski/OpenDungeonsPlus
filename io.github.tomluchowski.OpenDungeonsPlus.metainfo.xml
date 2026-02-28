@@ -28,7 +28,7 @@
 
 		JANUARY 2023: Now with improved prison chamber.</p>
 
-		<p>NOTE: On some linux distros ( like OpenSuse) it might require the command " xhost +local: " as regular user to run, before the command " snap run opendungeons-plus " . The game REQUIRES the graphic option 'Separate Shading Objects' to be enabled.</p>
+		<p>NOTE: On some linux distros ( like OpenSuse) it might require the command " xhost +local: " as regular user to run, before the command "flatpak run io.github.tomluchowski.OpenDungeonsPlus" . The game REQUIRES the graphic option 'Separate Shading Objects' to be enabled.</p>
 
         <p>NOTE 2 : DO NOT mark dynamic shadows options as this is a future feature and won't work anywhere, it would only crash the game.</p>
 
