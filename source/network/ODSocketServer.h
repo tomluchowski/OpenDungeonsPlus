@@ -22,6 +22,8 @@
 
 #include <SFML/Network.hpp>
 
+#include <cstdint>
+
 class ODPacket;
 
 class ODSocketServer
@@ -31,6 +33,10 @@ class ODSocketServer
         ~ODSocketServer();
 
         bool isConnected();
+
+        //! \brief Returns the port the server is actually listening on, or 0 if not connected.
+        int32_t getActualPort() const
+        { return mActualPort; }
 
         // Data Transimission
         virtual bool createServer(int listeningPort);
@@ -70,6 +76,7 @@ class ODSocketServer
         sf::TcpListener mSockListener;
         sf::SocketSelector mSockSelector;
         sf::Clock mClockMainTask;
+        int32_t mActualPort;
         bool mIsConnected;
 };
 
