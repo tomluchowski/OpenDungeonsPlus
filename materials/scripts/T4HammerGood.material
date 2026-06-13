@@ -10,10 +10,15 @@ material T4HammerGood : RTSS/NormalMapping_MultiPass
         pass lighting
         {
             // Override the normal map.
-            rtshader_system
+            texture_unit
             {
-                lighting_stage normal_map T4HammerGoodNormal.png object_space 
+                texture T4HammerGoodNormal.png
+                rtshader_system
+                {
+                    normal_map object_space
+                }
             }
+
         }
 
         pass decal

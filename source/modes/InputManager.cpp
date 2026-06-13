@@ -31,6 +31,8 @@
 #include <OgreRenderWindow.h>
 #include <exception>
 
+#include <clocale>
+
 InputManager::InputManager(Ogre::RenderWindow* renderWindow):
     mInputManager(nullptr),
     mKeyboard(nullptr),
@@ -99,7 +101,12 @@ void InputManager::createInputDevices(bool mouseGrab, bool keyboardGrab)
     // When grabbing, OIS tracks the pointer by accumulating relative motion and warps
     // the real pointer back to the window centre near the edges. Leaving the system
     // cursor visible then shows it drifting away from the one CEGUI draws, so hide it.
-    paramList.insert(std::make_pair(std::string("x11_mouse_hide"), std::string(mouseGrab ? "true" : "false")));
+    /* paramList.insert(std::make_pair(std::string("x11_mouse_hide"), std::string(mouseGrab ? "true" : "false")));
+     * FIXME: While I was debugging cursor issues I found that hiding actually hides the cursor,
+     * not showing the system one. It works somehow. Did not have much time to think about
+     * this yet. Need to return to it later.
+     */
+    paramList.insert(std::make_pair(std::string("x11_mouse_hide"), std::string("true")));
     paramList.insert(std::make_pair(std::string("x11_keyboard_grab"), std::string(keyboardGrab ? "true" : "false")));
     paramList.insert(std::make_pair(std::string("XAutoRepeatOn"), std::string("true")));
 #endif
@@ -116,6 +123,11 @@ void InputManager::createInputDevices(bool mouseGrab, bool keyboardGrab)
 
     //setup Mouse
     mMouse = static_cast<OIS::Mouse*>(mInputManager->createInputObject(OIS::OISMouse, true));
+
+    // OIS (LinuxKeyboard) calls setlocale(LC_ALL, "") which switches the
+    // numeric locale back to the user's environment. CEGUI's property parser
+    // relies on the C numeric locale (dot decimal separator), so restore it.
+    std::setlocale(LC_NUMERIC, "C");
 #else
     mKeyboard.reset(new Keyboard());
 #endif

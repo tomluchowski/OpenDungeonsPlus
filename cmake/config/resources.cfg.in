@@ -5,6 +5,12 @@ FileSystem=@CMAKE_INSTALL_PREFIX@/share/OGRE/Media/RTShaderLib/HLSL
 FileSystem=@CMAKE_INSTALL_PREFIX@/share/OGRE/Media/RTShaderLib/HLSL_Cg
 FileSystem=@CMAKE_INSTALL_PREFIX@/share/OGRE/Media/RTShaderLib/materials
 FileSystem=@CMAKE_INSTALL_PREFIX@/share/OGRE/Media/RTShaderLib/../Main
+[OgreInternal]
+FileSystem=@OGRE_MEDIA_DIR@/Main
+
+[Graphics]
+FileSystem=@RTSHADER_DIR@
+FileSystem=@OGRE_MEDIA_DIR@/Main
 FileSystem=materials/scripts
 FileSystem=materials/scripts/Creatures
 FileSystem=materials/textures
