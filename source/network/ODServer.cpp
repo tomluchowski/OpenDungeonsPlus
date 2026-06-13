@@ -2625,6 +2625,12 @@ int32_t ODServer::getNetworkPort() const
     if(port != -1)
         return port;
 
+    // If the socket bound to an ephemeral port (because the configured one was
+    // in use), report the actual port so the local client can connect.
+    int32_t actualPort = getActualPort();
+    if(actualPort != 0)
+        return actualPort;
+
     return ConfigManager::getSingleton().getNetworkPort();
 }
 

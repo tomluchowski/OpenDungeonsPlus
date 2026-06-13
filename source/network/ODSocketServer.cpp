@@ -39,19 +39,28 @@ ODSocketServer::~ODSocketServer()
 bool ODSocketServer::createServer(int listeningPort)
 {
     mIsConnected = false;
+    mActualPort = 0;
 
     // As we use selector, there is no need to set the socket as not-blocking
     sf::Socket::Status status = mSockListener.listen(listeningPort);
     if (status != sf::Socket::Done)
     {
-        OD_LOG_ERR("Could not listen to server port status="
-            + Helper::toString(status));
-        return false;
+        OD_LOG_WRN("Could not listen to server port " + Helper::toString(listeningPort)
+            + " status=" + Helper::toString(status) + ", trying ephemeral port.");
+        status = mSockListener.listen(0);
+        if (status != sf::Socket::Done)
+        {
+            OD_LOG_ERR("Could not listen to server port status="
+                + Helper::toString(status));
+            return false;
+        }
     }
+
+    mActualPort = static_cast<int32_t>(mSockListener.getLocalPort());
 
     mSockSelector.add(mSockListener);
     mIsConnected = true;
-    OD_LOG_INF("Server connected and listening");
+    OD_LOG_INF("Server connected and listening on port " + Helper::toString(mActualPort));
     mThread = new sf::Thread(&ODSocketServer::serverThread, this);
     mThread->launch();
 
@@ -128,6 +137,7 @@ void ODSocketServer::doTask(int timeoutMs)
 void ODSocketServer::stopServer()
 {
     mIsConnected = false;
+    mActualPort = 0;
     if(mThread != nullptr)
         delete mThread; // Delete waits for the thread to finish
     mThread = nullptr;
