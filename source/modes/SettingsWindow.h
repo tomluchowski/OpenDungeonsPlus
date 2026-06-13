@@ -38,6 +38,11 @@ public:
 
     ~SettingsWindow();
 
+    SettingsWindow(const SettingsWindow&) = delete;
+    SettingsWindow& operator=(const SettingsWindow&) = delete;
+    SettingsWindow(SettingsWindow&&) = delete;
+    SettingsWindow& operator=(SettingsWindow&&) = delete;
+
     void show();
 
     void hide();

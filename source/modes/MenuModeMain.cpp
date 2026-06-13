@@ -71,7 +71,7 @@ public:
 
 MenuModeMain::MenuModeMain(ModeManager *modeManager):
     AbstractApplicationMode(modeManager, ModeManager::MENU_MAIN),
-    mSettings(SettingsWindow(getModeManager().getGui().getGuiSheet(Gui::mainMenu)))
+    mSettings(getModeManager().getGui().getGuiSheet(Gui::mainMenu))
 {
     CEGUI::Window* rootWin = getModeManager().getGui().getGuiSheet(Gui::mainMenu);
     OD_ASSERT_TRUE(rootWin != nullptr);
@@ -141,6 +141,10 @@ void MenuModeMain::activate()
     CEGUI::Window* window = getModeManager().getGui().getGuiSheet(Gui::mainMenu);
     OD_ASSERT_TRUE(window != nullptr);
 
+    CEGUI::Sizef rootSize = window->getPixelSize();
+    OD_LOG_INF("MenuModeMain root window size: " + std::to_string(rootSize.d_width) + "x" + std::to_string(rootSize.d_height));
+    OD_LOG_INF("MenuModeMain root window area: '" + std::string(window->getProperty("Area").c_str()) + "'");
+
     window->getChild(WINDOW_SKIRMISH)->hide();
     window->getChild(WINDOW_MULTIPLAYER)->hide();
     window->getChild(WINDOW_EDITOR)->hide();
@@ -158,6 +162,8 @@ void MenuModeMain::activate()
 
     ODFrameListener::getSingleton().stopGameRenderer();
     ODFrameListener::getSingleton().createMainMenuScene();
+
+    // Settings window is hidden by default; user opens it via Settings button.
 }
 
 void MenuModeMain::connectModeChangeEvent(const std::string& buttonName, AbstractModeManager::ModeType mode)

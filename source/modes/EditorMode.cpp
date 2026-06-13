@@ -117,7 +117,7 @@ EditorMode::EditorMode(ModeManager* modeManager):
     mCurrentCreatureIndex(0),
     mMouseX(0),
     mMouseY(0),
-    mSettings(SettingsWindow(mRootWindow)),
+    mSettings(mRootWindow),
     mModifiedMapBit(false)
 {
 

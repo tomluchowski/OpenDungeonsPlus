@@ -75,6 +75,16 @@
 #include <sstream>
 #include <string>
 
+namespace
+{
+    void buildTangentVectorsIfNeeded(Ogre::MeshPtr meshPtr)
+    {
+        unsigned short src;
+        if (!meshPtr->suggestTangentVectorBuildParams(src))
+            meshPtr->buildTangentVectors(src);
+    }
+}
+
 template<> RenderManager* Ogre::Singleton<RenderManager>::msSingleton = nullptr;
 
 const uint8_t RenderManager::OD_RENDER_QUEUE_ID_GUI = 101;
@@ -561,20 +571,20 @@ Ogre::Light* RenderManager::addPointLightMenu(const std::string& name, const Ogr
     }
 
     Ogre::Light* light = mSceneManager->createLight(name);
-    Ogre::SceneNode* sn =  mSceneManager->getRootSceneNode()->createChildSceneNode("PointLightMenuSceneNode",pos);
+    Ogre::SceneNode* sn =  mSceneManager->getRootSceneNode()->createChildSceneNode(name + "_node", pos);
     sn->attachObject(light);
     light->setType(Ogre::Light::LT_POINT);
     light->setDiffuseColour(diffuse);
     light->setSpecularColour(specular);
     light->setAttenuation(attenuationRange, attenuationConstant, attenuationLinear, attenuationQuadratic);
-    mSceneManager->getRootSceneNode()->attachObject(light);
     return light;
 }
 
 void RenderManager::removePointLightMenu(Ogre::Light* light)
 {
+    const std::string nodeName = light->getName() + "_node";
     mSceneManager->destroyLight(light);
-    mSceneManager->getRootSceneNode()->removeAndDestroyChild("PointLightMenuSceneNode");
+    mSceneManager->getRootSceneNode()->removeAndDestroyChild(nodeName);
 }
 
 Ogre::Entity* RenderManager::addEntityMenu(const std::string& meshName, const std::string& entityName,
@@ -591,13 +601,8 @@ Ogre::Entity* RenderManager::addEntityMenu(const std::string& meshName, const st
 
     Ogre::MeshPtr meshPtr = Ogre::MeshManager::getSingleton().getByName(meshName,"Graphics");
 
-    unsigned short src, dest;
-    if (!meshPtr->suggestTangentVectorBuildParams(Ogre::VES_TANGENT, src, dest))
-    {
-        meshPtr->buildTangentVectors(Ogre::VES_TANGENT, src, dest);
-    } 
-
-    Ogre::Entity* ent = mSceneManager->createEntity(entityName, meshPtr);
+    buildTangentVectorsIfNeeded(meshPtr);
+Ogre::Entity* ent = mSceneManager->createEntity(entityName, meshPtr);
     
     Ogre::SceneNode* node = mMainMenuSceneNode->createChildSceneNode(ent->getName() + "_node");
     node->attachObject(ent);
@@ -870,7 +875,7 @@ Ogre::TexturePtr RenderManager::copyTexture(Ogre::TexturePtr oldTexture)
 Ogre::TexturePtr RenderManager::createAlphaChannelForTexture(Ogre::TexturePtr m_texture)
 {
 
-    if (m_texture.isNull())
+    if (!m_texture)
     {
         // Handle the case where the texture is not found
         Ogre::LogManager::getSingleton().logMessage("Texture not found: ");
@@ -905,12 +910,12 @@ void RenderManager::setupFogMaterial(Ogre::TexturePtr myTexture)
 {
     // Bind the PerlinNoiseTexture to the CloudMaterial programmatically
     Ogre::MaterialPtr fogMaterial = Ogre::MaterialManager::getSingleton().getByName("Fog");
-    if (!fogMaterial.isNull())
+    if (fogMaterial)
     {
         Ogre::Pass* pass = fogMaterial->getTechnique(0)->getPass(0);
         Ogre::TextureUnitState* texState = pass->getTextureUnitState(0);
 
-        if (texState != nullptr && !myTexture.isNull())
+        if (texState != nullptr && myTexture)
         {
             texState->setTexture(myTexture);
         }
@@ -985,14 +990,8 @@ void RenderManager::rrRefreshTile(Tile& tile, GameMap& draggableTileContainer, c
     if(!Ogre::MeshManager::getSingleton().resourceExists(meshName,"Graphics"))
         Ogre::MeshManager::getSingleton().load(meshName,"Graphics");
     Ogre::MeshPtr meshPtr = Ogre::MeshManager::getSingleton().getByName(meshName,"Graphics");
-    unsigned short src, dest;
-    if (!meshPtr->suggestTangentVectorBuildParams(Ogre::VES_TANGENT, src, dest))
-    {
-        meshPtr->buildTangentVectors(Ogre::VES_TANGENT, src, dest);
-    } 
-
-
-    if((tileMeshEnt == nullptr) && !meshName.empty() )
+    buildTangentVectorsIfNeeded(meshPtr);
+if((tileMeshEnt == nullptr) && !meshName.empty() )
     {
 
 
@@ -1122,13 +1121,8 @@ void RenderManager::rrRefreshTile(Tile& tile, GameMap& draggableTileContainer, c
     
                 
                 Ogre::MeshPtr meshPtr = Ogre::MeshManager::getSingleton().getByName(meshName,"Graphics");
-                unsigned short src, dest;
-    
-                if (!meshPtr->suggestTangentVectorBuildParams(Ogre::VES_TANGENT, src, dest))
-                {
-                    meshPtr->buildTangentVectors(Ogre::VES_TANGENT, src, dest);
-                }               
-                std::string customMeshNodeName = bridgeMeshName + (static_cast<bool>(nt) ?  "" : "_dtc" ) + "_node";
+                buildTangentVectorsIfNeeded(meshPtr);
+std::string customMeshNodeName = bridgeMeshName + (static_cast<bool>(nt) ?  "" : "_dtc" ) + "_node";
                 Ogre::SceneNode* customMeshNode;
                 if(!mSceneManager->hasSceneNode(customMeshNodeName))
                     customMeshNode = tile.getEntityNode()->createChildSceneNode(customMeshNodeName);
@@ -1335,15 +1329,8 @@ void RenderManager::rrCreateRenderedMovableEntity(RenderedMovableEntity* rendere
     
 
         Ogre::MeshPtr meshPtr = Ogre::MeshManager::getSingleton().getByName(meshName + ".mesh","Graphics");
-        unsigned short src, dest;
-    
-        if (!meshPtr->suggestTangentVectorBuildParams(Ogre::VES_TANGENT, src, dest))
-        {
-            meshPtr->buildTangentVectors(Ogre::VES_TANGENT, src, dest);
-        } 
-
-        
-        ent = mSceneManager->createEntity(tempString, meshPtr);
+        buildTangentVectorsIfNeeded(meshPtr);
+ent = mSceneManager->createEntity(tempString, meshPtr);
         node->attachObject(ent); 
     }
 
@@ -1449,13 +1436,8 @@ void RenderManager::rrCreateCreature(Creature* curCreature)
     
 
     Ogre::MeshPtr meshPtr = Ogre::MeshManager::getSingleton().getByName(meshName,"Graphics");
-    unsigned short src, dest;
-    
-    if (!meshPtr->suggestTangentVectorBuildParams(Ogre::VES_TANGENT, src, dest))
-    {
-        meshPtr->buildTangentVectors(Ogre::VES_TANGENT, src, dest);
-    }    
-    std::string creatureName = curCreature->getOgreNamePrefix() + curCreature->getName();
+    buildTangentVectorsIfNeeded(meshPtr);
+std::string creatureName = curCreature->getOgreNamePrefix() + curCreature->getName();
     Ogre::Entity* ent = mSceneManager->createEntity(creatureName, meshPtr);
 
 
@@ -1995,7 +1977,7 @@ std::string RenderManager::colourizeMaterial(const std::string& materialName, co
 
     // If this texture has been copied and colourized, we can return
 #if defined(OGRE_VERSION) && OGRE_VERSION < 0x10A00
-    if (!requestedMaterial.isNull())
+    if (requestedMaterial)
 #else
     if (requestedMaterial)
 #endif
@@ -2365,7 +2347,7 @@ std::string RenderManager::setMaterialOpacity(const std::string& materialName, f
 
     // If this texture has been copied and colourized, we can return
 #if defined(OGRE_VERSION) && OGRE_VERSION < 0x10A00
-    if (!requestedMaterial.isNull())
+    if (requestedMaterial)
 #else
     if (requestedMaterial)
 #endif
@@ -2472,7 +2454,7 @@ std::string RenderManager::rrBuildSkullFlagMaterial(const std::string& materialN
 
     // If this texture has been copied and colourized, we can return
 #if defined(OGRE_VERSION) && OGRE_VERSION < 0x10A00
-    if (!requestedMaterial.isNull())
+    if (requestedMaterial)
 #else
     if (requestedMaterial)
 #endif

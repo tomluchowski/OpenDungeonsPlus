@@ -73,7 +73,7 @@ namespace Ogre
 class ODFrameListener :
         public Ogre::Singleton<ODFrameListener>,
         public Ogre::FrameListener,
-        public Ogre::WindowEventListener,
+        public OgreBites::WindowEventListener,
         public Ogre::RenderQueueListener,
         public Subject
 {
@@ -123,7 +123,7 @@ public:
     bool frameStarted(const Ogre::FrameEvent& evt) override;
     
     //! \brief From Ogre::RenderQueueListener
-    void renderQueueStarted(Ogre::uint8 queueGroupId, const Ogre::String& invocation,
+    void renderQueueStarted(Ogre::uint8 queueGroupId, const Ogre::String& cameraName,
         bool& skipThisInvocation) override;
 
     //! \brief Exit the game.

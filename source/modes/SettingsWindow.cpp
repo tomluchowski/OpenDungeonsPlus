@@ -19,21 +19,123 @@
 
 #include "gamemap/MiniMap.h"
 #include "render/RenderManager.h"
+#include "render/ODFrameListener.h"
 #include "utils/ConfigManager.h"
 #include "utils/LogManager.h"
 #include "utils/Helper.h"
 
 #include <CEGUI/CEGUI.h>
+#include <CEGUI/PropertyHelper.h>
+#include <CEGUI/UDim.h>
 #include <CEGUI/widgets/ToggleButton.h>
 #include <CEGUI/widgets/Combobox.h>
 #include <CEGUI/widgets/ToggleButton.h>
 #include <CEGUI/widgets/PushButton.h>
 #include <CEGUI/WindowManager.h>
 
+#include <algorithm>
+
 #include <OgreRoot.h>
 #include <OgreRenderWindow.h>
 
 #include <SFML/Audio/Listener.hpp>
+
+#include <iostream>
+
+namespace
+{
+void dumpWindowTree(CEGUI::Window* window, int depth = 0)
+{
+    if(window == nullptr)
+        return;
+
+    CEGUI::Vector2f pos = window->getPixelPosition();
+    CEGUI::Sizef size = window->getPixelSize();
+    std::string indent(depth * 2, ' ');
+    CEGUI::Rectf inner = window->getUnclippedInnerRect().get();
+    std::string msg = indent + "CEGUI window: " + std::string(window->getName().c_str()) +
+        " type: " + std::string(window->getType().c_str()) +
+        " visible: " + std::string(window->isVisible() ? "yes" : "no") +
+        " pos: [" + std::to_string(pos.d_x) + "," + std::to_string(pos.d_y) +
+        "] size: [" + std::to_string(size.d_width) + "," + std::to_string(size.d_height) + "]" +
+        " inner: [" + std::to_string(inner.left()) + "," + std::to_string(inner.top()) +
+        "," + std::to_string(inner.right()) + "," + std::to_string(inner.bottom()) + "]" +
+        " area: '" + std::string(window->getProperty("Area").c_str()) + "'" +
+        " text: '" + std::string(window->getText().c_str()) + "'";
+    std::cerr << msg << std::endl;
+
+    for(size_t i = 0; i < window->getChildCount(); ++i)
+        dumpWindowTree(window->getChildAtIdx(i), depth + 1);
+}
+
+float computeUiScale()
+{
+    CEGUI::Sizef displaySize = CEGUI::System::getSingleton().getRenderer()->getDisplaySize();
+    constexpr float designWidth = 800.0f;
+    constexpr float designHeight = 600.0f;
+    float scale = std::min(displaySize.d_width / designWidth, displaySize.d_height / designHeight);
+    // Keep the UI usable on very high resolutions, but don't let it grow too huge.
+    if (scale > 1.5f)
+        scale = 1.5f;
+    if (scale < 1.0f)
+        scale = 1.0f;
+    return scale;
+}
+
+void scaleUdimOffsets(CEGUI::UDim& dim, float scale)
+{
+    dim.d_offset *= scale;
+}
+
+void scaleWindowArea(CEGUI::Window* window, float scale)
+{
+    CEGUI::URect area = CEGUI::PropertyHelper<CEGUI::URect>::fromString(window->getProperty("Area"));
+    scaleUdimOffsets(area.d_min.d_x, scale);
+    scaleUdimOffsets(area.d_min.d_y, scale);
+    scaleUdimOffsets(area.d_max.d_x, scale);
+    scaleUdimOffsets(area.d_max.d_y, scale);
+    window->setProperty("Area", CEGUI::PropertyHelper<CEGUI::URect>::toString(area));
+}
+
+void scaleDimProperty(CEGUI::Window* window, const char* propertyName, float scale)
+{
+    CEGUI::String value = window->getProperty(propertyName);
+    if (value.empty())
+        return;
+    CEGUI::UDim dim = CEGUI::PropertyHelper<CEGUI::UDim>::fromString(value);
+    dim.d_offset *= scale;
+    window->setProperty(propertyName, CEGUI::PropertyHelper<CEGUI::UDim>::toString(dim));
+}
+
+void scaleWindowTree(CEGUI::Window* window, float scale)
+{
+    for (size_t i = 0; i < window->getChildCount(); ++i)
+    {
+        CEGUI::Window* child = window->getChildAtIdx(i);
+        scaleWindowArea(child, scale);
+        scaleWindowTree(child, scale);
+    }
+}
+
+void centerAndScaleWindow(CEGUI::Window* window, float scale, const CEGUI::Sizef& displaySize)
+{
+    CEGUI::URect area = CEGUI::PropertyHelper<CEGUI::URect>::fromString(window->getProperty("Area"));
+    float left   = area.d_min.d_x.d_scale * displaySize.d_width  + area.d_min.d_x.d_offset;
+    float top    = area.d_min.d_y.d_scale * displaySize.d_height + area.d_min.d_y.d_offset;
+    float right  = area.d_max.d_x.d_scale * displaySize.d_width  + area.d_max.d_x.d_offset;
+    float bottom = area.d_max.d_y.d_scale * displaySize.d_height + area.d_max.d_y.d_offset;
+    float width  = (right - left) * scale;
+    float height = (bottom - top) * scale;
+    float newLeft = (displaySize.d_width - width) * 0.5f;
+    float newTop  = (displaySize.d_height - height) * 0.5f;
+
+    area.d_min.d_x = CEGUI::UDim(0.0f, newLeft);
+    area.d_min.d_y = CEGUI::UDim(0.0f, newTop);
+    area.d_max.d_x = CEGUI::UDim(0.0f, newLeft + width);
+    area.d_max.d_y = CEGUI::UDim(0.0f, newTop + height);
+    window->setProperty("Area", CEGUI::PropertyHelper<CEGUI::URect>::toString(area));
+}
+}
 
 SettingsWindow::SettingsWindow(CEGUI::Window* rootWindow):
     mSettingsWindow(nullptr),
@@ -136,6 +238,24 @@ SettingsWindow::SettingsWindow(CEGUI::Window* rootWindow):
     
 
     initConfig();
+
+    // The SettingsWindow layout was designed for 800x600. Scale and center it
+    // on higher resolutions so it stays usable.
+    CEGUI::Sizef displaySize = CEGUI::System::getSingleton().getRenderer()->getDisplaySize();
+    float scale = computeUiScale();
+    if (scale > 1.0f)
+    {
+        centerAndScaleWindow(mSettingsWindow, scale, displaySize);
+        scaleWindowTree(mSettingsWindow, scale);
+
+        CEGUI::Window* tabControl = mSettingsWindow->getChild("MainTabControl");
+        if (tabControl)
+            scaleDimProperty(tabControl, "TabHeight", scale);
+
+        // The apply-changes popup also uses pixel offsets relative to the centre.
+        scaleWindowArea(mApplyWindow, scale);
+        scaleWindowTree(mApplyWindow, scale);
+    }
 }
 
 SettingsWindow::~SettingsWindow()
@@ -508,7 +628,7 @@ void SettingsWindow::saveConfig()
     // Apply config
 
     // Video
-    Ogre::RenderWindow* win = ogreRoot->getAutoCreatedWindow();
+    Ogre::RenderWindow* win = ODFrameListener::getSingleton().getRenderWindow();
     if(win == nullptr)
     {
         OD_LOG_WRN("Changing window options when using sfml is not implemented yet! Please restart for the changes to have an effect.");
@@ -537,6 +657,8 @@ void SettingsWindow::show()
         // Input only allowed on this window when visible.
         mSettingsWindow->setModalState(true);
         mSettingsWindow->show();
+        OD_LOG_INF("SettingsWindow tree dump:");
+        dumpWindowTree(mSettingsWindow);
     }
 }
 

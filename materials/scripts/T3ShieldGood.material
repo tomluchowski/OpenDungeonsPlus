@@ -10,11 +10,14 @@ material T3ShieldGood : RTSS/NormalMapping_MultiPass
         pass lighting
         {
             // Override the normal map.
-            rtshader_system
+            texture_unit
             {
-                lighting_stage normal_map T3ShieldGoodNormal.png
+                texture T3ShieldGoodNormal.png
+                rtshader_system
+                {
+                    normal_map }
+                }
             }
-        }
 
         pass decal
         {
