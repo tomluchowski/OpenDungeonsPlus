@@ -314,31 +314,39 @@ void ResourceManager::setupServerMode(boost::program_options::variables_map& opt
     }
 }
 
+bool ResourceManager::isSameAsBuiltin(const std::string& path,
+                                      const BuiltinData::File& file)
+{
+    std::ifstream stream(path, std::ios::in | std::ios::binary);
+    if(!stream.is_open())
+        return false;
+
+    std::string content((std::istreambuf_iterator<char>(stream)),
+                        std::istreambuf_iterator<char>());
+    if(content.size() != file.mSize)
+        return false;
+
+    return std::equal(content.begin(), content.end(),
+                      reinterpret_cast<const char*>(file.mData));
+}
+
 void ResourceManager::checkBuiltinDataVersion()
 {
     const std::string stampPath = mUserGameDataPath + BUILTINVERSIONFILENAME;
     const std::string stamp = std::string(OD_BUILTIN_DATA_VERSION) + " " + BuiltinData::CONTENT_DIGEST;
 
-    std::string previousStamp;
-    {
-        std::ifstream stream(stampPath);
-        if(stream.is_open())
-            std::getline(stream, previousStamp);
-    }
-
-    if(previousStamp == stamp)
-        return;
-
-    if(!previousStamp.empty())
+    if(mNbStaleBuiltinFiles > 0)
     {
         // Files already there are never overwritten, so the game goes on reading whatever
         // was extracted first. That is what keeps edited files safe, but it also means an
         // upgrade, or a rebuilt config/ in a source tree, has no effect until the folder
-        // is removed. Say so rather than let it puzzle anyone.
-        OD_LOG_WRN("The defaults in " + mUserGameDataPath + " were written from a different"
-                   " build (" + previousStamp + ", this is " + stamp + ") and are kept as"
-                   " they are. Delete that folder to have the current ones written again,"
-                   " or pass --gamedata to read them from elsewhere.");
+        // is removed. Say so rather than let it puzzle anyone. Files this build simply
+        // added, such as a new level, are already in place and are not reported here.
+        OD_LOG_WRN(Helper::toString(static_cast<int32_t>(mNbStaleBuiltinFiles))
+                   + " file(s) in " + mUserGameDataPath + " differ from the ones this build"
+                   " carries and are kept as they are. Delete that folder to have the"
+                   " current ones written again, or pass --gamedata to read them from"
+                   " elsewhere.");
     }
 
     std::ofstream stream(stampPath, std::ios::out | std::ios::trunc);
@@ -349,6 +357,7 @@ void ResourceManager::checkBuiltinDataVersion()
 uint32_t ResourceManager::extractBuiltinData()
 {
     uint32_t nbExtracted = 0;
+    mNbStaleBuiltinFiles = 0;
     for(std::size_t index = 0; index < BuiltinData::FILE_COUNT; ++index)
     {
         const BuiltinData::File& file = BuiltinData::FILES[index];
@@ -358,9 +367,15 @@ uint32_t ResourceManager::extractBuiltinData()
         try
         {
             // Never overwrite: a file already there may have been edited on purpose, and
-            // this runs on every launch, not only the first one.
+            // this runs on every launch, not only the first one. Files this build would
+            // have written differently are counted, so that only a real difference is
+            // reported and simply adding a level stays quiet.
             if(boost::filesystem::exists(destination))
+            {
+                if(!isSameAsBuiltin(destination.string(), file))
+                    ++mNbStaleBuiltinFiles;
                 continue;
+            }
 
             boost::filesystem::create_directories(destination.parent_path());
 
