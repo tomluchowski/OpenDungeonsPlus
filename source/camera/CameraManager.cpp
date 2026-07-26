@@ -318,15 +318,28 @@ void CameraManager::updateCameraFrameTime(const Ogre::Real frameTime)
     else if (newPosition.z >= MAX_CAMERA_Z)
         newPosition.z = MAX_CAMERA_Z;
 
-    if (newPosition.x <= 0)
-        newPosition.x = 0;
-    else if (newPosition.x >= mGameMap->getMapSizeX())
-        newPosition.x = mGameMap->getMapSizeX();
+    // Keep the point the camera actually looks at inside the map, rather than the
+    // camera's own position. The camera is pitched (DEFAULT_X_AXIS_VIEW is 25 degrees
+    // off vertical), so its ground target lies z * tan(pitch) ahead of it, which with z
+    // between MIN_CAMERA_Z and MAX_CAMERA_Z is several tiles. Clamping the position
+    // alone let the view scroll past one edge of the map while stopping short of the
+    // opposite one, by exactly twice that offset.
+    Ogre::Vector3 groundOffset(Ogre::Vector3::ZERO);
+    Ogre::Vector3 cameraDirection = mActiveCamera->getDerivedDirection();
+    if (cameraDirection.z < 0.0)
+    {
+        // Follow the view direction down to z = 0, the same way getCameraViewTarget()
+        // does, but for the height the camera is about to end up at.
+        cameraDirection /= fabs(cameraDirection.z);
+        groundOffset = newPosition.z * cameraDirection;
+        groundOffset.z = 0.0;
+    }
 
-    if (newPosition.y <= 0)
-        newPosition.y = 0;
-    else if (newPosition.y >= mGameMap->getMapSizeY())
-        newPosition.y = mGameMap->getMapSizeY();
+    const Ogre::Real maxX = static_cast<Ogre::Real>(mGameMap->getMapSizeX()) - groundOffset.x;
+    const Ogre::Real maxY = static_cast<Ogre::Real>(mGameMap->getMapSizeY()) - groundOffset.y;
+
+    newPosition.x = std::min(std::max(newPosition.x, -groundOffset.x), maxX);
+    newPosition.y = std::min(std::max(newPosition.y, -groundOffset.y), maxY);
 
 
     // Prevent the tilting to show a reversed world or looking too high.
