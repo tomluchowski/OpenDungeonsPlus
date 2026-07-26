@@ -42,6 +42,7 @@
 class ChatMessage;
 class GameMap;
 class Gui;
+class MovableTextOverlay;
 class ModeManager;
 class RenderManager;
 class RenderSceneMenu;
@@ -200,9 +201,10 @@ private:
     bool mInitialized;
 
     /*! \brief For the upgrade renderer hook : due to alleged bug in ogre
-    *    we hide and save the CreatureOverlay state in that vector bool flags
+    *    we hide the CreatureOverlays while the render target updates, and keep the ones
+    *    we hid here so they can be shown again right after
     */
-    std::vector<bool> mTemporaryWasVisible;
+    std::vector<MovableTextOverlay*> mTemporaryHiddenOverlays;
     
     //! \brief The Ogre render window reference. Don't delete it.
     Ogre::RenderWindow* mWindow;
