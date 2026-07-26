@@ -2693,6 +2693,25 @@ int GameMap::nextSeatId(int SeatId)
     return firstSeatId;
 }
 
+int GameMap::previousSeatId(int SeatId)
+{
+    int previousId = -1;
+    int lastSeatId = -1;
+    for(Seat* seat : mSeats)
+    {
+        if(seat->getId() == SeatId)
+            previousId = lastSeatId;
+
+        lastSeatId = seat->getId();
+    }
+
+    // The first seat id, or one we do not know, wraps around to the last one
+    if(previousId == -1)
+        return lastSeatId;
+
+    return previousId;
+}
+
 std::string GameMap::nextUniqueNameCreature(const std::string& className)
 {
     std::string ret;

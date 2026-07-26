@@ -139,6 +139,10 @@ private:
     //! \brief Current selected creature to spawn
     uint32_t mCurrentCreatureIndex;
 
+    //! \brief The level name currently written in the status bar, kept so that the text is
+    //! only rewritten when it actually changes.
+    std::string mDisplayedLevelName;
+
     //! \brief Level given to the creatures spawned from now on. It is also applied to the
     //! creatures held in the hand when it changes, which is how the level of a creature
     //! already on the map is changed: pick it up, set the level, drop it.
@@ -168,6 +172,17 @@ private:
     //! \brief Asks the server to give the creatures currently held in the hand the level
     //! selected in the editor.
     void setLevelOfCreaturesInHand();
+
+    //! \brief Writes the list of the editor's keyboard shortcuts into the controls window.
+    void fillControlsWindow();
+
+    //! \brief Shows the name of the level being edited. Called on every frame because the
+    //! name is only known once the client has been told about the level, which happens
+    //! after the editor is up.
+    void updateLevelNameText();
+
+    bool showControlsWindow(const CEGUI::EventArgs& e = {});
+    bool hideControlsWindow(const CEGUI::EventArgs& e = {});
 
     //! \brief Refreshes the gui buttons. It will be called at level loading only since
     //! it shouldn't change in the editor

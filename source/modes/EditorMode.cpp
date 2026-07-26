@@ -215,6 +215,17 @@ EditorMode::EditorMode(ModeManager* modeManager):
             CEGUI::Window::EventMouseClick,
             CEGUI::Event::Subscriber(&EditorMode::onEditMirrorX, this)
     ));
+    addEventConnection(
+        mRootWindow->getChild("Menubar")->getChild("Help")->getChild("PopupMenu6")
+        ->getChild("Controls")->subscribeEvent(
+            CEGUI::Window::EventMouseClick,
+            CEGUI::Event::Subscriber(&EditorMode::showControlsWindow, this)
+    ));
+    addEventConnection(
+        mRootWindow->getChild("EditorHelpWindow")->subscribeEvent(
+            CEGUI::FrameWindow::EventCloseClicked,
+            CEGUI::Event::Subscriber(&EditorMode::hideControlsWindow, this)
+    ));
 
     
     addEventConnection(
@@ -467,6 +478,9 @@ void EditorMode::activate()
     CEGUI::Window* guiSheet = mRootWindow;
     guiSheet->getChild("LevelWindowFrame")->hide();
     guiSheet->getChild("EditorOptionsWindow")->hide();
+    guiSheet->getChild("EditorHelpWindow")->hide();
+    fillControlsWindow();
+    updateLevelNameText();
     guiSheet->getChild("ConfirmExit")->hide();
     guiSheet->getChild("ConfirmLoad")->hide();
     // Hide also the Replay check-box as it doesn't make sense for the editor
@@ -975,6 +989,70 @@ void EditorMode::updateCursorText()
     posWin->setText(textSS.str());
 }
 
+void EditorMode::updateLevelNameText()
+{
+    std::string levelName = mGameMap->getLevelName();
+    if(levelName.empty())
+        levelName = "unnamed";
+
+    if(levelName == mDisplayedLevelName)
+        return;
+
+    mDisplayedLevelName = levelName;
+    mRootWindow->getChild(Gui::EDITOR_LEVEL_NAME)->setText("Level: " + levelName);
+}
+
+void EditorMode::fillControlsWindow()
+{
+    // The editor has no other place saying what its keys do, and half of them are only
+    // reachable from the keyboard, so they are listed here rather than left to be found.
+    std::stringstream txt;
+    txt << "Camera" << std::endl;
+    txt << "    W A S D or the arrow keys - move" << std::endl;
+    txt << "    Q, E - rotate" << std::endl;
+    txt << "    Page Up, Page Down - tilt" << std::endl;
+    txt << "    Home, End - zoom in and out" << std::endl;
+    txt << "    1 to 0 - go back to a saved point of view" << std::endl;
+    txt << "    Shift + 1 to 0 - save the current point of view" << std::endl;
+    txt << std::endl;
+
+    txt << "Tiles" << std::endl;
+    txt << "    T - switch between full and empty tiles" << std::endl;
+    txt << "    Y - next seat, Shift + Y - previous seat" << std::endl;
+    txt << std::endl;
+
+    txt << "Creatures" << std::endl;
+    txt << "    C - next creature class, Shift + C - previous class" << std::endl;
+    txt << "    L - raise the level given to new creatures, Shift + L - lower it" << std::endl;
+    txt << "    Both are shown at the bottom of the screen. To change a creature" << std::endl;
+    txt << "    already placed, pick it up, set the level, then drop it." << std::endl;
+    txt << std::endl;
+
+    txt << "Editing" << std::endl;
+    txt << "    Ctrl + C - copy the marked tiles, Ctrl + V - paste" << std::endl;
+    txt << "    Delete - delete what was copied" << std::endl;
+    txt << std::endl;
+
+    txt << "Level" << std::endl;
+    txt << "    F5 - save, F10 - editor options" << std::endl;
+    txt << "    F11 - debug info, F12 or ` - console" << std::endl;
+    txt << "    Print Screen - screenshot, Escape - quit" << std::endl;
+
+    mRootWindow->getChild("EditorHelpWindow")->getChild("HelpText")->setText(txt.str());
+}
+
+bool EditorMode::showControlsWindow(const CEGUI::EventArgs& /*arg*/)
+{
+    mRootWindow->getChild("EditorHelpWindow")->show();
+    return true;
+}
+
+bool EditorMode::hideControlsWindow(const CEGUI::EventArgs& /*arg*/)
+{
+    mRootWindow->getChild("EditorHelpWindow")->hide();
+    return true;
+}
+
 void EditorMode::setLevelOfCreaturesInHand()
 {
     if(!ODClient::getSingleton().isConnected())
@@ -1073,10 +1151,17 @@ bool EditorMode::keyPressed(const OIS::KeyEvent &arg)
 
     //Toggle selected seat ID
     case OIS::KC_Y:
-        getModeManager().getInputManager().mSeatIdSelected = mGameMap->nextSeatId(getModeManager().getInputManager().mSeatIdSelected);
+    {
+        int& seatIdSelected = getModeManager().getInputManager().mSeatIdSelected;
+        if(getKeyboard()->isModifierDown(OIS::Keyboard::Shift))
+            seatIdSelected = mGameMap->previousSeatId(seatIdSelected);
+        else
+            seatIdSelected = mGameMap->nextSeatId(seatIdSelected);
+
         updateCursorText();
         updateFlagColor();
         break;
+    }
 
     //Toggle the level given to spawned creatures
     case OIS::KC_L:
@@ -1322,6 +1407,7 @@ void EditorMode::onFrameStarted(const Ogre::FrameEvent& evt)
 
     }
     DebugDrawer::getSingleton().build();
+    updateLevelNameText();
     GameEditorModeBase::onFrameStarted(evt);
 }
 

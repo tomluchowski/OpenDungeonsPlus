@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<GUILayout version="4" >
+    <Window type="OD/FrameWindow" name="EditorHelpWindow" >
+        <Property name="Area" value="{{0.5,-230},{0.5,-230},{0.5,230},{0.5,230}}" />
+        <Property name="Text" value="Editor Controls" />
+        <Property name="SizingEnabled" value="False" />
+        <Window type="OD/StaticText" name="HelpText" >
+            <Property name="Area" value="{{0,10},{0,30},{1,-10},{1,-10}}" />
+            <Property name="FrameEnabled" value="False" />
+            <Property name="BackgroundEnabled" value="False" />
+            <Property name="VertFormatting" value="TopAligned" />
+            <Property name="HorzFormatting" value="WordWrapLeftAligned" />
+            <Property name="VertScrollbar" value="True" />
+        </Window>
+    </Window>
+</GUILayout>
