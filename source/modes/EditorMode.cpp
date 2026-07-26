@@ -1099,6 +1099,16 @@ bool EditorMode::keyPressed(const OIS::KeyEvent &arg)
         {
             onEditCopy();
         }
+        else if(getKeyboard()->isModifierDown(OIS::Keyboard::Shift))
+        {
+            // Backwards, for when the wanted class is just behind the current one rather
+            // than a whole list away
+            if(mCurrentCreatureIndex == 0)
+                mCurrentCreatureIndex = mGameMap->numClassDescriptions();
+
+            if(mCurrentCreatureIndex > 0)
+                --mCurrentCreatureIndex;
+        }
         else if(++mCurrentCreatureIndex >= mGameMap->numClassDescriptions())
         {
             mCurrentCreatureIndex = 0;
