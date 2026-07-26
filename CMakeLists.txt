@@ -517,6 +517,32 @@ IF (WIN32)
 ENDIF ()
 
 ##################################
+#### Built-in default data #######
+##################################
+
+# The default configuration and the shipped levels are compiled into the executable so
+# that the game can populate the user data folder by itself, rather than requiring a
+# system wide data folder to exist and be readable. See source/utils/BuiltinData.h.
+file(GLOB_RECURSE OD_BUILTIN_DATA_FILES
+     ${CMAKE_SOURCE_DIR}/config/*.cfg
+     ${CMAKE_SOURCE_DIR}/levels/*.level)
+
+set(OD_BUILTIN_DATA_CPP ${CMAKE_BINARY_DIR}/generated/BuiltinData.cpp)
+
+add_custom_command(
+    OUTPUT ${OD_BUILTIN_DATA_CPP}
+    COMMAND ${CMAKE_COMMAND}
+            -DOD_SOURCE_DIR=${CMAKE_SOURCE_DIR}
+            -DOD_OUTPUT=${OD_BUILTIN_DATA_CPP}
+            -P ${CMAKE_SOURCE_DIR}/cmake/GenerateBuiltinData.cmake
+    DEPENDS ${OD_BUILTIN_DATA_FILES}
+            ${CMAKE_SOURCE_DIR}/cmake/GenerateBuiltinData.cmake
+    COMMENT "Embedding the default config and levels into the executable"
+    VERBATIM)
+
+SET(OD_SOURCEFILES ${OD_SOURCEFILES} ${OD_BUILTIN_DATA_CPP})
+
+##################################
 #### Find packages ###############
 ##################################
 
