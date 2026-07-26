@@ -181,6 +181,14 @@ public:
     void setNextDefaultView();
 
 private:
+    //! \brief The distance from the camera to the ground point it looks at, for a
+    //! camera at the given height. Zero if the camera is not looking downwards.
+    Ogre::Vector3 getGroundOffset(Ogre::Real height) const;
+
+    //! \brief Moves the position so that the ground point the camera looks at from it
+    //! stays within the map.
+    void clampToMap(Ogre::Vector3& position) const;
+
     //! \brief HermiteCatmullSpline members for each axices.
     HermiteCatmullSpline mXHCS;
     HermiteCatmullSpline mYHCS;
@@ -206,8 +214,13 @@ private:
     //! \brief Is true when a camera is flying to a given position.
     bool            mCameraIsFlying;
 
-    //! \brief The camera destination when the camera is "flying".
+    //! \brief The camera destination when the camera is "flying". Always on the map:
+    //! flyTo() clamps it, because the camera cannot look outside the map.
     Ogre::Vector3   mCameraFlightDestination;
+
+    //! \brief How far the view target was from the flight destination on the previous
+    //! frame of flight, used to notice a flight that is not getting anywhere.
+    Ogre::Real      mCameraFlightDistance;
 
     //! \brief Is true when the camera is rotating to a given point of view.
     bool            mCameraIsRotating;
