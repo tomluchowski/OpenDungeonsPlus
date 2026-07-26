@@ -28,6 +28,8 @@
 #include <OgreSingleton.h>
 #include <OgreStringVector.h>
 
+#include "utils/BuiltinData.h"
+
 namespace Ogre {
   class RenderTarget;
 }
@@ -198,6 +200,9 @@ private:
     //! Either mGameDataPath or mUserGameDataPath, see setupDefaultDataPath().
     std::string mDefaultDataPath;
 
+    //! \brief How many extracted files hold something other than what this build carries.
+    uint32_t mNbStaleBuiltinFiles = 0;
+
     //! \brief Main files in the user data path
     std::string mUserConfigFile;
     std::string mOgreLogFile;
@@ -251,8 +256,13 @@ private:
     //! \return the number of files written
     uint32_t extractBuiltinData();
 
-    //! \brief Warns when the extracted data folder was written by another version of the
-    //! game, since extractBuiltinData() will not have refreshed it, then stamps it.
+    //! \brief Whether the file already in the user folder holds exactly what this build
+    //! would have written there.
+    static bool isSameAsBuiltin(const std::string& path, const BuiltinData::File& file);
+
+    //! \brief Warns when the extracted data folder holds files this build would have
+    //! written differently, since extractBuiltinData() will not have refreshed them,
+    //! then stamps the folder with this build's version and digest.
     void checkBuiltinDataVersion();
 
     //! \brief Handles the options that launch the game as a server. They name a level, so
