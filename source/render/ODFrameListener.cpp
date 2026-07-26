@@ -265,21 +265,30 @@ bool ODFrameListener::frameStarted(const Ogre::FrameEvent& evt)
     if(mRenderManager  && mRenderManager->mRenderTarget != nullptr)
     {
         // preRenderTargetUpdate:
-        for (int i = 0; i < mGameMap->getCreatures().size(); i++)
+        // getOverlayStatus() is null for every creature whose mesh is not currently
+        // created, so it has to be checked here the same way Creature::update() does.
+        // Remember the overlays we actually hid rather than walking the creature list a
+        // second time: that kept the two loops in lockstep only as long as no creature
+        // gained or lost its overlay in between.
+        for (Creature* creature : mGameMap->getCreatures())
         {
-            CreatureOverlayStatus* tmp = mGameMap->getCreatures()[i]->getOverlayStatus();
-            mTemporaryWasVisible.push_back(tmp->getMovableTextOverlay()->isVisible());
-            tmp->getMovableTextOverlay()->setVisible(false);
+            CreatureOverlayStatus* tmp = creature->getOverlayStatus();
+            if(tmp == nullptr)
+                continue;
+
+            MovableTextOverlay* overlay = tmp->getMovableTextOverlay();
+            if(overlay == nullptr || !overlay->isVisible())
+                continue;
+
+            overlay->setVisible(false);
+            mTemporaryHiddenOverlays.push_back(overlay);
         }
         mRenderManager->mRenderTarget->update();
         // postRenderTargetUpdate:
-        int tmpItr = 0;
-        for (int i = 0; i < mGameMap->getCreatures().size() ; i++)
-        {
-            CreatureOverlayStatus* tmp = mGameMap->getCreatures()[i]->getOverlayStatus();
-            tmp->getMovableTextOverlay()->setVisible(mTemporaryWasVisible[tmpItr++]);
-        }        
-        mTemporaryWasVisible.clear();
+        for (MovableTextOverlay* overlay : mTemporaryHiddenOverlays)
+            overlay->setVisible(true);
+
+        mTemporaryHiddenOverlays.clear();
     }
    
     return true;

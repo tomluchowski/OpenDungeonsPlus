@@ -280,7 +280,17 @@ Creature::Creature(GameMap* gameMap) :
 
 Creature::~Creature()
 {
+    // The client remembers the creature the mouse is hovering in a bare pointer, so that
+    // it can restore its ambient once the mouse leaves it. Nothing used to clear that
+    // pointer when the creature itself went away, so a creature dying while highlighted
+    // left it dangling and the next mouse move dereferenced freed memory.
+    if(getIsOnServerMap())
+        return;
 
+    // May already be gone when the game map is torn down at shutdown.
+    InputManager* inputManager = InputManager::getSingletonPtr();
+    if(inputManager != nullptr && inputManager->mHighlightedCreature == this)
+        inputManager->mHighlightedCreature = nullptr;
 }
 
 void Creature::createMeshLocal(NodeType nt)
@@ -660,10 +670,16 @@ void Creature::setPosition(const Ogre::Vector3& v, GameMap *gameMap )
     
         InputManager& inputManager = InputManager::getSingleton();
 
-        if((getPositionTile()->getX() == inputManager.mXPos && getPositionTile()->getY() == inputManager.mYPos))
+        // getPositionTile() returns null whenever the creature sits outside the map,
+        // which happens while it is held in the keeper hand or carried around.
+        Tile* positionTile = getPositionTile();
+
+        if(positionTile != nullptr &&
+           positionTile->getX() == inputManager.mXPos &&
+           positionTile->getY() == inputManager.mYPos)
         {
-    
-            Creature* closestCreature = getPositionTile()->getClosestCreature(inputManager.mCreatureTypeForOutliner );
+
+            Creature* closestCreature = positionTile->getClosestCreature(inputManager.mCreatureTypeForOutliner );
             if(closestCreature != nullptr)
             {
                 if(closestCreature != inputManager.mHighlightedCreature)
