@@ -139,6 +139,11 @@ private:
     //! \brief Current selected creature to spawn
     uint32_t mCurrentCreatureIndex;
 
+    //! \brief Level given to the creatures spawned from now on. It is also applied to the
+    //! creatures held in the hand when it changes, which is how the level of a creature
+    //! already on the map is changed: pick it up, set the level, drop it.
+    uint32_t mCurrentCreatureLevel;
+
     //! \brief The creature node name being dragged by the mouse
     std::string mDraggedCreature;
 
@@ -159,6 +164,10 @@ private:
     //! \brief Updates the text seen next to the cursor position.
     //! This text gives the tile position, and the current left-click action
     void updateCursorText();
+
+    //! \brief Asks the server to give the creatures currently held in the hand the level
+    //! selected in the editor.
+    void setLevelOfCreaturesInHand();
 
     //! \brief Refreshes the gui buttons. It will be called at level loading only since
     //! it shouldn't change in the editor

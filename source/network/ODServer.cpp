@@ -79,6 +79,18 @@ namespace
         normalized.remove_trailing_separator();
         return normalized;
     }
+
+    //! \brief Gives a creature the level the editor asked for. Levelling raises the maximum
+    //! HP without healing, which is what we want in game but not here: a creature placed in
+    //! a level is expected to start it in full health.
+    void setEditorCreatureLevel(Creature& creature, uint32_t level)
+    {
+        if(level < 1)
+            level = 1;
+
+        creature.setLevel(level);
+        creature.setHP(creature.getMaxHp());
+    }
 }
 
 template<> ODServer* Ogre::Singleton<ODServer>::msSingleton = nullptr;
@@ -2311,7 +2323,8 @@ bool ODServer::processClientNotifications(ODSocketClient* clientSocket)
             }
             Player* player = clientSocket->getPlayer();
             int seatId;
-            OD_ASSERT_TRUE(packetReceived >> seatId);
+            uint32_t level;
+            OD_ASSERT_TRUE(packetReceived >> seatId >> level);
             Seat* seatCreature = gameMap->getSeatById(seatId);
             if(seatCreature == nullptr)
             {
@@ -2328,6 +2341,7 @@ bool ODServer::processClientNotifications(ODSocketClient* clientSocket)
             Creature* newCreature = new Creature(gameMap, classToSpawn, seatCreature);
             newCreature->addToGameMap();
             newCreature->setPosition(Ogre::Vector3(0.0, 0.0, 0.0));
+            setEditorCreatureLevel(*newCreature, level);
             // In editor mode, every player has vision
             for(Seat* seat : gameMap->getSeats())
             {
@@ -2353,7 +2367,8 @@ bool ODServer::processClientNotifications(ODSocketClient* clientSocket)
             Player* player = clientSocket->getPlayer();
             int seatId;
             std::string className;
-            OD_ASSERT_TRUE(packetReceived >> seatId >> className);
+            uint32_t level;
+            OD_ASSERT_TRUE(packetReceived >> seatId >> className >> level);
             Seat* seatCreature = gameMap->getSeatById(seatId);
             if(seatCreature == nullptr)
             {
@@ -2369,6 +2384,7 @@ bool ODServer::processClientNotifications(ODSocketClient* clientSocket)
             Creature* newCreature = new Creature(gameMap, classToSpawn, seatCreature);
             newCreature->addToGameMap();
             newCreature->setPosition(Ogre::Vector3(0.0, 0.0, 0.0));
+            setEditorCreatureLevel(*newCreature, level);
             // In editor mode, every player has vision
             for(Seat* seat : gameMap->getSeats())
             {
@@ -2381,6 +2397,31 @@ bool ODServer::processClientNotifications(ODSocketClient* clientSocket)
             }
 
             player->pickUpEntity(newCreature);
+            break;
+        }
+
+        case ClientNotificationType::editorSetCreatureLevel:
+        {
+            if(mServerMode != ServerMode::ModeEditor)
+            {
+                OD_LOG_ERR("Received editor command while wrong mode=" + Helper::toString(static_cast<int>(mServerMode)));
+                break;
+            }
+            Player* player = clientSocket->getPlayer();
+            uint32_t level;
+            OD_ASSERT_TRUE(packetReceived >> level);
+
+            // This is how the level of a creature already placed on the map is changed:
+            // it is picked up, given a level and dropped again. An empty hand, or one
+            // holding something that is not a creature, is not a mistake, it just means
+            // the editor is only setting the level of the creatures to come.
+            for(GameEntity* entity : player->getObjectsInHand())
+            {
+                if(entity->getObjectType() != GameEntityType::creature)
+                    continue;
+
+                setEditorCreatureLevel(*static_cast<Creature*>(entity), level);
+            }
             break;
         }
 
