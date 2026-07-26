@@ -118,6 +118,20 @@ void MissileObject::doUpkeep()
             Ogre::Vector3 nextDirection;
             OD_LOG_INF("missile name=" + getName() + ", hit wall on tile=" + Tile::displayAsString(tmpTile));
             mIsMissileAlive = wallHitNextDirection(mDirection, lastTile, nextDirection);
+
+            // lastTile is the tile the missile is coming from, and there is none when
+            // the very first tile of the path is already a wall: a missile launched
+            // straight at one, or one whose own tile got filled in under it. Both
+            // branches below would read through the null, so stop where we are. The
+            // loop below already checks lastTile for the same reason.
+            if(lastTile == nullptr)
+            {
+                mIsMissileAlive = false;
+                destination.x = position.x;
+                destination.y = position.y;
+                break;
+            }
+
             if(!mIsMissileAlive)
             {
                 destination.x = static_cast<Ogre::Real>(lastTile->getX());
