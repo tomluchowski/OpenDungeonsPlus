@@ -152,8 +152,8 @@
             </Window>
             <Window type="OD/StaticText" name="CreatureSpawnDisplay" >
                 <Property name="AlwaysOnTop" value="True" />
-                <Property name="Area" value="{{0,570},{0,0},{0,780},{0,25}}" />
-                <Property name="Text" value="Creature (C): ?" />
+                <Property name="Area" value="{{0,570},{0,0},{0,800},{0,25}}" />
+                <Property name="Text" value="Creature (C): ?, level (L): 1" />
                 <Property name="MaxSize" value="{{1,0},{1,0}}" />
                 <Property name="TooltipText" value="Selected Creature to spawn" />
                 <Property name="HorzFormatting" value="RightAligned" />

@@ -115,6 +115,7 @@ EditorMode::EditorMode(ModeManager* modeManager):
     mCurrentTileVisual(TileVisual::nullTileVisual),
     mCurrentFullness(100.0),
     mCurrentCreatureIndex(0),
+    mCurrentCreatureLevel(1),
     mMouseX(0),
     mMouseY(0),
     mSettings(SettingsWindow(mRootWindow)),
@@ -325,6 +326,7 @@ EditorMode::EditorMode(ModeManager* modeManager):
                             ClientNotificationType::editorCreateFighter);
                         clientNotification->mPacket << getModeManager().getInputManager().mSeatIdSelected;
                         clientNotification->mPacket << def->getClassName();
+                        clientNotification->mPacket << mCurrentCreatureLevel;
                         ODClient::getSingleton().queueClientNotification(clientNotification);
                     })
                 ));
@@ -968,7 +970,22 @@ void EditorMode::updateCursorText()
     else
         textSS << "Creature (C): " << def->getClassName();
 
+    textSS << ", level (L): " << mCurrentCreatureLevel;
+
     posWin->setText(textSS.str());
+}
+
+void EditorMode::setLevelOfCreaturesInHand()
+{
+    if(!ODClient::getSingleton().isConnected())
+        return;
+
+    // Only the server knows what the hand holds for sure, so it decides what the level
+    // applies to. Nothing happens if the hand is empty or holds something else.
+    ClientNotification *clientNotification = new ClientNotification(
+        ClientNotificationType::editorSetCreatureLevel);
+    clientNotification->mPacket << mCurrentCreatureLevel;
+    ODClient::getSingleton().queueClientNotification(clientNotification);
 }
 
 bool EditorMode::keyPressed(const OIS::KeyEvent &arg)
@@ -1059,6 +1076,21 @@ bool EditorMode::keyPressed(const OIS::KeyEvent &arg)
         getModeManager().getInputManager().mSeatIdSelected = mGameMap->nextSeatId(getModeManager().getInputManager().mSeatIdSelected);
         updateCursorText();
         updateFlagColor();
+        break;
+
+    //Toggle the level given to spawned creatures
+    case OIS::KC_L:
+        if(getKeyboard()->isModifierDown(OIS::Keyboard::Shift))
+        {
+            if(--mCurrentCreatureLevel < 1)
+                mCurrentCreatureLevel = MAX_LEVEL;
+        }
+        else if(++mCurrentCreatureLevel > MAX_LEVEL)
+        {
+            mCurrentCreatureLevel = 1;
+        }
+        updateCursorText();
+        setLevelOfCreaturesInHand();
         break;
 
     //Toggle mCurrentCreatureIndex
@@ -1299,6 +1331,7 @@ void EditorMode::notifyGuiAction(GuiAction guiAction)
                     ClientNotification *clientNotification = new ClientNotification(
                         ClientNotificationType::editorCreateWorker);
                     clientNotification->mPacket << getModeManager().getInputManager().mSeatIdSelected;
+                    clientNotification->mPacket << mCurrentCreatureLevel;
                     ODClient::getSingleton().queueClientNotification(clientNotification);
                 }
                 break;
@@ -1317,6 +1350,7 @@ void EditorMode::notifyGuiAction(GuiAction guiAction)
                         ClientNotificationType::editorCreateFighter);
                     clientNotification->mPacket << getModeManager().getInputManager().mSeatIdSelected;
                     clientNotification->mPacket << def->getClassName();
+                    clientNotification->mPacket << mCurrentCreatureLevel;
                     ODClient::getSingleton().queueClientNotification(clientNotification);
                 }
                 break;

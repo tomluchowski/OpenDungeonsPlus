@@ -76,7 +76,8 @@ enum class ClientNotificationType
     editorAskRevealTraps,
     editorCreateWorker,
     editorCreateFighter,
-    editorAskCreateMapLight
+    editorAskCreateMapLight,
+    editorSetCreatureLevel
 };
 
 ODPacket& operator<<(ODPacket& os, const ClientNotificationType& nt);
