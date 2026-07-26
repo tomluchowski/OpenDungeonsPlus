@@ -608,8 +608,13 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
             
             OD_ASSERT_TRUE(packetReceived >> objName >> dest);
             MovableGameEntity *obj = gameMap->getAnimatedObject(objName);
+            if (obj == nullptr)
+            {
+                OD_LOG_ERR("Server told us to teleport unknown entity name=" + objName);
+                break;
+            }
             obj->setPosition(dest);
-            
+
             break;
         }
         case ServerNotificationType::entitySlapped:

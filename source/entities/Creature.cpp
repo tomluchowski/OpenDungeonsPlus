@@ -984,6 +984,14 @@ void Creature::doUpkeep()
         return;
     }
 
+    // The ground the creature is standing on, or the ground it is walking towards, may have
+    // stopped being walkable since it last decided anything. Selling or destroying a bridge
+    // is what does that: the tiles it covered go back to being lava or water, and nothing
+    // told the creatures using them. Both checks have to happen before the creature acts, so
+    // that it acts on where it can actually go.
+    checkStandsOnWalkableTile();
+    checkWalkPathIsStillValid();
+
     // Check to see if we have earned enough experience to level up.
     checkLevelUp();
 
@@ -2494,6 +2502,162 @@ bool Creature::setDestination(Tile* tile)
     setWalkPath(EntityAnimation::walk_anim, EntityAnimation::idle_anim, true, true, path,true);
     pushAction(Utils::make_unique<CreatureActionWalkToTile>(*this));
     return true;
+}
+
+void Creature::checkWalkPathIsStillValid()
+{
+    if(mWalkQueue.empty())
+        return;
+
+    bool isPathBlocked = false;
+    for(const Ogre::Vector2& step : mWalkQueue)
+    {
+        Tile* tile = getGameMap()->getTile(Helper::round(step.x), Helper::round(step.y));
+        if(canGoThroughTile(tile))
+            continue;
+
+        // A building that will not let the creature through, a closed door or a prison, is
+        // another matter: those are meant to stop it where it is, and it was already
+        // walking towards one knowing what it would find. Only the ground going away from
+        // under the path is unexpected.
+        if((tile != nullptr) && (tile->getCoveringBuilding() != nullptr))
+            continue;
+
+        isPathBlocked = true;
+        break;
+    }
+
+    if(!isPathBlocked)
+        return;
+
+    const Ogre::Vector2& lastStep = mWalkQueue.back();
+    Tile* destination = getGameMap()->getTile(Helper::round(lastStep.x), Helper::round(lastStep.y));
+
+    OD_LOG_INF("creature=" + getName() + " cannot walk its path anymore, destination="
+        + Tile::displayAsString(destination));
+
+    // Stop where we are rather than walk into what is now lava or water. If there is no
+    // other way to the destination, the action that started the walk gets to decide what
+    // to do instead, exactly as it would have done had the creature arrived.
+    clearDestinations(EntityAnimation::idle_anim, true, true);
+
+    if(!canGoThroughTile(destination))
+        return;
+
+    std::list<Tile*> result = getGameMap()->path(this, destination);
+    if(result.size() <= 1)
+        return;
+
+    std::vector<Ogre::Vector2> path;
+    tileToVector2(result, path, true, 0.0);
+    setWalkPath(EntityAnimation::walk_anim, EntityAnimation::idle_anim, true, true, path, true);
+}
+
+void Creature::checkStandsOnWalkableTile()
+{
+    Tile* myTile = getPositionTile();
+    if(canGoThroughTile(myTile))
+        return;
+
+    // Prisons, fenced rooms and locked doors give a null speed on purpose, to hold the
+    // creature where it is. What we are after here is the ground going away from under
+    // it, which leaves the tile covered by nothing at all.
+    if(myTile->getCoveringBuilding() != nullptr)
+        return;
+
+    // And a bridge is the only thing that can be taken away from under a creature, so
+    // water and lava are the only ground it can be left standing on. Anything else that
+    // gives a null speed is left alone rather than guessed at.
+    if((myTile->getTileVisual() != TileVisual::waterGround) &&
+       (myTile->getTileVisual() != TileVisual::lavaGround))
+    {
+        return;
+    }
+
+    // A null move speed is used for everything, including the creature's own movement, so
+    // a creature standing where it cannot walk is stuck there for good. That happens when
+    // the bridge it was standing on is sold or destroyed under its feet.
+    Tile* tileDest = findClosestWalkableTile();
+    if(tileDest == nullptr)
+    {
+        OD_LOG_INF("creature=" + getName() + " is stuck on tile=" + Tile::displayAsString(myTile)
+            + " with nowhere to stand nearby");
+        return;
+    }
+
+    OD_LOG_INF("creature=" + getName() + " cannot stand on tile=" + Tile::displayAsString(myTile)
+        + " anymore, moving it to tile=" + Tile::displayAsString(tileDest));
+
+    clearDestinations(EntityAnimation::idle_anim, true, true);
+    teleportToTile(tileDest);
+}
+
+Tile* Creature::findClosestWalkableTile() const
+{
+    Tile* myTile = getPositionTile();
+    if(myTile == nullptr)
+        return nullptr;
+
+    // Search ring by ring around the creature and keep the closest tile of the first ring
+    // that has any. A bridge is at most a few tiles from a shore, so there is no point in
+    // looking very far: if nothing is found, the creature is in the middle of a lake and
+    // dropping it on the far bank would be worse than leaving it where it is.
+    const int32_t maxRadius = 5;
+    for(int32_t radius = 1; radius <= maxRadius; ++radius)
+    {
+        Tile* tileClosest = nullptr;
+        int32_t distClosest = 0;
+        for(int32_t xx = myTile->getX() - radius; xx <= myTile->getX() + radius; ++xx)
+        {
+            for(int32_t yy = myTile->getY() - radius; yy <= myTile->getY() + radius; ++yy)
+            {
+                // Only the tiles on the ring itself, the ones within it were checked by a
+                // previous round
+                if((std::abs(xx - myTile->getX()) != radius) &&
+                   (std::abs(yy - myTile->getY()) != radius))
+                {
+                    continue;
+                }
+
+                Tile* tile = getGameMap()->getTile(xx, yy);
+                if(!canGoThroughTile(tile))
+                    continue;
+
+                int32_t dist = Pathfinding::squaredDistanceTile(*myTile, *tile);
+                if((tileClosest != nullptr) && (dist >= distClosest))
+                    continue;
+
+                tileClosest = tile;
+                distClosest = dist;
+            }
+        }
+
+        if(tileClosest != nullptr)
+            return tileClosest;
+    }
+
+    return nullptr;
+}
+
+void Creature::teleportToTile(Tile* tile)
+{
+    // Keep the height we are at: flying creatures do not walk at ground level
+    Ogre::Vector3 dest(static_cast<Ogre::Real>(tile->getX()),
+        static_cast<Ogre::Real>(tile->getY()), getPosition().z);
+    setPosition(dest);
+
+    for(Seat* seat : mSeatsWithVisionNotified)
+    {
+        if(seat->getPlayer() == nullptr)
+            continue;
+        if(!seat->getPlayer()->getIsHuman())
+            continue;
+
+        ServerNotification* serverNotification = new ServerNotification(
+            ServerNotificationType::entityTeleported, seat->getPlayer());
+        serverNotification->mPacket << getName() << dest;
+        ODServer::getSingleton().queueServerNotification(serverNotification);
+    }
 }
 
 bool Creature::wanderRandomly(const std::string& animationState)
