@@ -116,7 +116,6 @@ public:
 
     void displayText(const Ogre::ColourValue& txtColour, const std::string& txt) override;
     bool updateDescription(const CEGUI::EventArgs& e = {});
-    std::string getEnv( const std::string & var );
     bool isCheckboxSelected(const CEGUI::String& checkbox);
 private:
 

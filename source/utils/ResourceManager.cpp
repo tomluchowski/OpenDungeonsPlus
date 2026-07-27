@@ -115,7 +115,8 @@ void ResourceManager::setupDataPath(boost::program_options::variables_map& optio
     CFRelease(mainBundleURL);
     CFRelease(cfStringRef);
 
-    mMacBundlePath = std::string(applePath + "/");
+    // Not applePath + "/": that is a pointer plus a pointer, which does not compile.
+    mMacBundlePath = std::string(applePath) + "/";
 
     mGameDataPath = mMacBundlePath + "Contents/Resources/";
 #else // Windows and linux
