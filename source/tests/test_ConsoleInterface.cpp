@@ -87,7 +87,7 @@ BOOST_AUTO_TEST_CASE(test_ConsoleInterface)
     MockConsole interface(appendText<std::string>);
     {
         BOOST_CHECK(
-            interface.addCommand("test1", "test1 description",
+            interface.addCommandAux("test1", "test1 description",
                                  [](const Command::ArgumentList_t& args, MockConsole& console, AbstractModeManager& mm)
                                     {
                                         for(auto&& arg : args)
@@ -101,7 +101,7 @@ BOOST_AUTO_TEST_CASE(test_ConsoleInterface)
             )
         );
     }
-    BOOST_CHECK(interface.addCommand("aliasedcommand",
+    BOOST_CHECK(interface.addCommandAux("aliasedcommand",
                          "aliased command desciption",
                          testCommand,
                          Command::cStubServer,
@@ -113,16 +113,27 @@ BOOST_AUTO_TEST_CASE(test_ConsoleInterface)
     //Check that scrolling up or down without a history does not do anything
     BOOST_CHECK(!interface.scrollCommandHistoryPositionDown());
     BOOST_CHECK(!interface.scrollCommandHistoryPositionUp("text"));
+
+    // Executing a command does not record it: the history belongs to whoever owns the
+    // prompt, and the game console records what was typed itself. Do the same here.
+    auto execute = [&interface, &modeManager, &count](const std::string& cmd, TestModeManager::ModeType mode)
+    {
+        auto result = interface.tryExecuteClientCommand(cmd, mode, modeManager);
+        interface.getCommandHistoryBuffer().emplace_back(cmd);
+        ++count;
+        return result;
+    };
+
     //try executing commands
-    BOOST_CHECK(interface.tryExecuteClientCommand("help",mt, modeManager) == Command::Result::SUCCESS); ++count;
-    interface.tryExecuteClientCommand("test0",mt, modeManager); ++count;
-    interface.tryExecuteClientCommand("test1",mt, modeManager); ++count;
-    interface.tryExecuteClientCommand("test1 123 abc",mt, modeManager); ++count;
-    BOOST_CHECK(interface.tryExecuteClientCommand("aliasedcommand", TestModeManager::ModeType::EDITOR, modeManager) == Command::Result::WRONG_MODE); ++count;
-    BOOST_CHECK(interface.tryExecuteClientCommand("aliasedcommand 1",mt, modeManager) == Command::Result::SUCCESS); ++count;
-    BOOST_CHECK(interface.tryExecuteClientCommand("aliasedcmd argument1",mt, modeManager) == Command::Result::INVALID_ARGUMENT); ++count;
-    BOOST_CHECK(interface.tryExecuteClientCommand("aliasedcmd 184467440737095516100",mt, modeManager) == Command::Result::INVALID_ARGUMENT); ++count;
-    interface.tryExecuteClientCommand("alsdcmd argument1",mt, modeManager); ++count;
+    BOOST_CHECK(execute("help", mt) == Command::Result::SUCCESS);
+    execute("test0", mt);
+    execute("test1", mt);
+    execute("test1 123 abc", mt);
+    BOOST_CHECK(execute("aliasedcommand", TestModeManager::ModeType::EDITOR) == Command::Result::WRONG_MODE);
+    BOOST_CHECK(execute("aliasedcommand 1", mt) == Command::Result::SUCCESS);
+    BOOST_CHECK(execute("aliasedcmd argument1", mt) == Command::Result::INVALID_ARGUMENT);
+    BOOST_CHECK(execute("aliasedcmd 184467440737095516100", mt) == Command::Result::INVALID_ARGUMENT);
+    execute("alsdcmd argument1", mt);
 
     ConsoleInterface::String_t str;
     //Test command complete completion
