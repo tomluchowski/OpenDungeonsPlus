@@ -56,6 +56,8 @@ public:
     virtual void checkBuildRoomEditor(GameMap* gameMap, const InputManager& inputManager, InputCommand& inputCommand) const = 0;
     virtual bool buildRoomEditor(GameMap* gameMap, ODPacket& packet) const = 0;
     virtual Room* getRoomFromStream(GameMap* gameMap, std::istream& is) const = 0;
+    //! \brief Creates an empty room of this type, used when an existing one is split in two.
+    virtual Room* createRoom(GameMap* gameMap) const = 0;
     virtual bool buildRoomOnTiles(GameMap* gameMap, Player* player, const std::vector<Tile*>& tiles, bool noFee ) const = 0;
 
     std::string formatBuildRoom(RoomType type, uint32_t price) const;
@@ -98,6 +100,11 @@ public:
 
     //! \brief Constructs a room according to the data in the stream
     static Room* getRoomFromStream(GameMap* gameMap, std::istream &is);
+
+    //! \brief Creates an empty room of the given type. It has no tiles, no name and no seat:
+    //! the caller is expected to hand it what it should own. Returns nullptr if the type is
+    //! not known.
+    static Room* createRoom(GameMap* gameMap, RoomType type);
 
     //! \brief Used by AI for building rooms
 

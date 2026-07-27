@@ -165,6 +165,10 @@ class RoomPrisonFactory : public RoomFactory
         return buildRoomDefaultEditor(gameMap, room, packet);
     }
 
+    //! \brief Creates an empty room of this type, for a room that has to be split in two.
+    Room* createRoom(GameMap* gameMap) const override
+    { return new RoomPrison(gameMap); }
+
     Room* getRoomFromStream(GameMap* gameMap, std::istream& is) const override
     {
         RoomPrison* room = new RoomPrison(gameMap);
