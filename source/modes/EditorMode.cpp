@@ -316,35 +316,16 @@ EditorMode::EditorMode(ModeManager* modeManager):
             CEGUI::Event::Subscriber(&EditorMode::saveMenuSaveButtonClicked, this)
     ));
     
-    for(unsigned int ii = 0 ;  ii < mGameMap->numClassDescriptions()   ; ++ii )
-    {
-        mGameMap->getClassDescription(ii);
-        CEGUI::Window* ww = CEGUI::WindowManager::getSingletonPtr()->createWindow("OD/MenuItem");
-        ww->setText(mGameMap->getClassDescription(ii)->getClassName());
-        ww->setName(mGameMap->getClassDescription(ii)->getClassName());
-        mRootWindow->getChild("Menubar")->getChild("Creatures")
-        ->getChild("PopupMenu4")->addChild(ww);
-        addEventConnection(
-            ww->subscribeEvent(
-                CEGUI::Window::EventMouseClick,
-                CEGUI::Event::Subscriber([&, ii ] (const CEGUI::EventArgs& ea) {
-                        this->selectCreature(ii,ea);
-                        const CreatureDefinition* def = mGameMap->getClassDescription(mCurrentCreatureIndex);
-                        if(def == nullptr)
-                        {
-                            OD_LOG_ERR("unexpected null CreatureDefinition mCurrentCreatureIndex=" + Helper::toString(mCurrentCreatureIndex));
-                            return;
-                        }
-                        ClientNotification *clientNotification = new ClientNotification(
-                            ClientNotificationType::editorCreateFighter);
-                        clientNotification->mPacket << getModeManager().getInputManager().mSeatIdSelected;
-                        clientNotification->mPacket << def->getClassName();
-                        clientNotification->mPacket << mCurrentCreatureLevel;
-                        ODClient::getSingleton().queueClientNotification(clientNotification);
-                    })
-                ));
-    }
+    // The menus filled from the game's own data are emptied before being filled. This mode
+    // is built anew every time the editor is entered, while the window it fills belongs to
+    // the Gui and lives as long as the game does, so on the second visit every one of these
+    // menu items is already there. CEGUI refuses a second child of the same name by
+    // throwing, and nothing catches it before it reaches main().
+    uninstallCreaturesMenuButtons();
+    installCreaturesMenuButtons();
+    uninstallRecentlyUsedFilesButtons();
     installRecentlyUsedFilesButtons();
+    uninstallSeatsMenuButtons();
     installSeatsMenuButtons();
 
     addEventConnection(
@@ -2161,6 +2142,44 @@ bool EditorMode::updateDescription(const CEGUI::EventArgs&)
 {
 
     return true;
+}
+
+void EditorMode::uninstallCreaturesMenuButtons()
+{
+    CEGUI::Window* pm = mRootWindow->getChild("Menubar")->getChild("Creatures")->getChild("PopupMenu4");
+    while(pm->getChildCount() > 0)
+        pm->removeChild(pm->getChildAtIdx(0));
+}
+
+void EditorMode::installCreaturesMenuButtons()
+{
+    for(unsigned int ii = 0 ;  ii < mGameMap->numClassDescriptions()   ; ++ii )
+    {
+        CEGUI::Window* ww = CEGUI::WindowManager::getSingletonPtr()->createWindow("OD/MenuItem");
+        ww->setText(mGameMap->getClassDescription(ii)->getClassName());
+        ww->setName(mGameMap->getClassDescription(ii)->getClassName());
+        mRootWindow->getChild("Menubar")->getChild("Creatures")
+        ->getChild("PopupMenu4")->addChild(ww);
+        addEventConnection(
+            ww->subscribeEvent(
+                CEGUI::Window::EventMouseClick,
+                CEGUI::Event::Subscriber([&, ii ] (const CEGUI::EventArgs& ea) {
+                        this->selectCreature(ii,ea);
+                        const CreatureDefinition* def = mGameMap->getClassDescription(mCurrentCreatureIndex);
+                        if(def == nullptr)
+                        {
+                            OD_LOG_ERR("unexpected null CreatureDefinition mCurrentCreatureIndex=" + Helper::toString(mCurrentCreatureIndex));
+                            return;
+                        }
+                        ClientNotification *clientNotification = new ClientNotification(
+                            ClientNotificationType::editorCreateFighter);
+                        clientNotification->mPacket << getModeManager().getInputManager().mSeatIdSelected;
+                        clientNotification->mPacket << def->getClassName();
+                        clientNotification->mPacket << mCurrentCreatureLevel;
+                        ODClient::getSingleton().queueClientNotification(clientNotification);
+                    })
+                ));
+    }
 }
 
 void EditorMode::uninstallRecentlyUsedFilesButtons()

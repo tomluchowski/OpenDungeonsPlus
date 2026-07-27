@@ -199,6 +199,8 @@ private:
     void handlePlayerActionNone();
     void handlePlayerActionChangeTile();
     void handlePlayerActionSelectTile();
+    void installCreaturesMenuButtons();
+    void uninstallCreaturesMenuButtons();
     void installRecentlyUsedFilesButtons();
     void uninstallRecentlyUsedFilesButtons();
     void installSeatsMenuButtons();
