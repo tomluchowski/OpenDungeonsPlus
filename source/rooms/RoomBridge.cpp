@@ -323,6 +323,23 @@ void RoomBridge::absorbRoom(Room *r)
     Room::absorbRoom(r);
 }
 
+void RoomBridge::splitRoom(Room& newRoom, const std::vector<Tile*>& tiles)
+{
+    // The tiles have already gone over, so what is left here is what this bridge keeps. Give
+    // the new one what its own tiles are worth, taking it from what is left rather than from
+    // the whole: a bridge half claimed stays half claimed on both sides of the cut.
+    RoomBridge& newBridge = static_cast<RoomBridge&>(newRoom);
+    uint32_t nbTilesTotal = numCoveredTiles() + tiles.size();
+    if(nbTilesTotal == 0)
+        return;
+
+    double claimedValue = mClaimedValue * static_cast<double>(tiles.size())
+        / static_cast<double>(nbTilesTotal);
+
+    newBridge.mClaimedValue = claimedValue;
+    mClaimedValue -= claimedValue;
+}
+
 bool RoomBridge::removeCoveredTile(Tile* t)
 {
     if(!Room::removeCoveredTile(t))

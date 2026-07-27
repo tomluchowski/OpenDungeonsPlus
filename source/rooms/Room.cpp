@@ -233,6 +233,133 @@ void Room::checkForRoomAbsorbtion()
         reorderRoomTiles(mCoveredTiles);
 }
 
+void Room::checkForSplit()
+{
+    if(mCoveredTiles.size() < 2)
+        return;
+
+    // Gather the tiles into groups that hold together. Two tiles belong to the same room
+    // only if one can be walked to from the other without leaving it, which is the same
+    // rule checkForRoomAbsorbtion() uses to decide that two rooms are really one.
+    std::vector<std::vector<Tile*>> groups;
+    std::set<Tile*> remaining(mCoveredTiles.begin(), mCoveredTiles.end());
+    while(!remaining.empty())
+    {
+        std::vector<Tile*> group;
+        std::vector<Tile*> toVisit(1, *remaining.begin());
+        remaining.erase(remaining.begin());
+        while(!toVisit.empty())
+        {
+            Tile* tile = toVisit.back();
+            toVisit.pop_back();
+            group.push_back(tile);
+
+            for(Tile* neigh : tile->getAllNeighbors())
+            {
+                auto it = remaining.find(neigh);
+                if(it == remaining.end())
+                    continue;
+
+                remaining.erase(it);
+                toVisit.push_back(neigh);
+            }
+        }
+
+        groups.push_back(group);
+    }
+
+    if(groups.size() < 2)
+        return;
+
+    // The biggest group stays here, so that the room that keeps the name and everything
+    // attached to it is the one most of it was. Ties go to the first, which is the group
+    // holding the tile the room happened to list first.
+    uint32_t indexBiggest = 0;
+    for(uint32_t index = 1; index < groups.size(); ++index)
+    {
+        if(groups[index].size() > groups[indexBiggest].size())
+            indexBiggest = index;
+    }
+
+    GameMap* gameMap = getGameMap();
+    for(uint32_t index = 0; index < groups.size(); ++index)
+    {
+        if(index == indexBiggest)
+            continue;
+
+        std::vector<Tile*>& group = groups[index];
+        Room* newRoom = RoomManager::createRoom(gameMap, getType());
+        if(newRoom == nullptr)
+            continue;
+
+        newRoom->setIsOnMap(true);
+        newRoom->setName(gameMap->nextUniqueNameRoom(newRoom->getType()));
+        newRoom->setSeat(getSeat());
+
+        OD_LOG_INF(gameMap->serverStr() + "room=" + getName() + " no longer holds together, "
+            + Helper::toString(static_cast<int32_t>(group.size())) + " of its tiles become room="
+            + newRoom->getName());
+
+        // The tiles change hands the same way absorbRoom() does it, and for the same reason.
+        // The new room gets a copy of what this one knew about each tile, its hit points and
+        // the gold in a treasury among them, so that nothing held there is lost. This one
+        // keeps the original, marked destroyed: seats remember which building covers a tile
+        // and ask that building about it until they are told otherwise, so its tile data has
+        // to stay reachable. Those tiles are not offered for repair either, since a tile the
+        // other room now covers cannot be built upon.
+        for(Tile* tile : group)
+        {
+            auto itData = mTileData.find(tile);
+            if(itData != mTileData.end())
+            {
+                newRoom->mTileData[tile] = itData->second->cloneTileData();
+                itData->second->mHP = 0.0;
+            }
+
+            auto itTile = std::find(mCoveredTiles.begin(), mCoveredTiles.end(), tile);
+            if(itTile != mCoveredTiles.end())
+                mCoveredTiles.erase(itTile);
+
+            // Whatever was built on the tile goes with it, the way absorbRoom() hands over
+            // everything a room had built. It stands on ground the other room owns now.
+            auto itObject = mBuildingObjects.find(tile);
+            if(itObject != mBuildingObjects.end())
+            {
+                newRoom->mBuildingObjects[tile] = itObject->second;
+                mBuildingObjects.erase(itObject);
+            }
+
+            mCoveredTilesDestroyed.push_back(tile);
+            newRoom->mCoveredTiles.push_back(tile);
+            tile->setCoveringBuilding(newRoom);
+        }
+
+        splitRoom(*newRoom, group);
+
+        reorderRoomTiles(newRoom->mCoveredTiles);
+        newRoom->addToGameMap(gameMap);
+        newRoom->createMesh();
+
+        // Whoever was working on those tiles is working for the other room now. It may have
+        // no room for them, so they are sent to look for a job as if the room had gone.
+        std::vector<Creature*> creatures = mCreaturesUsingRoom;
+        for(Creature* creature : creatures)
+        {
+            Tile* tile = creature->getPositionTile();
+            if((tile == nullptr) || (tile->getCoveringBuilding() != newRoom))
+                continue;
+
+            removeCreatureUsingRoom(creature);
+            handleCreatureUsingAbsorbedRoom(*creature);
+        }
+
+        newRoom->updateActiveSpots(gameMap);
+    }
+
+    reorderRoomTiles(mCoveredTiles);
+    updateActiveSpots(gameMap);
+}
+
 void Room::updateActiveSpots(GameMap* gameMap)
 {
     if(gameMap == nullptr)

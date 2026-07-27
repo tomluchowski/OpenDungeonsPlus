@@ -110,6 +110,12 @@ public:
 
     virtual bool isAttackable(Tile* tile, Seat* seat) const override;
     virtual bool removeCoveredTile(Tile* t);
+
+    //! \brief Called once the building has lost tiles. One whose tiles no longer hold
+    //! together should become several buildings rather than stay one that is in pieces.
+    //! A building that does not know how to split stays as it is.
+    virtual void checkForSplit()
+    {}
     std::vector<Tile*> getCoveredTiles() override;
 
     Tile* getCoveredTile(int index) override;

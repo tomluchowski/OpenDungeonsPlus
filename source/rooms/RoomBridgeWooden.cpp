@@ -102,6 +102,10 @@ class RoomBridgeWoodenFactory : public BridgeRoomFactory
         return buildRoomDefault(gameMap, room, seatRoom, tiles);
     }
 
+    //! \brief Creates an empty room of this type, for a room that has to be split in two.
+    Room* createRoom(GameMap* gameMap) const override
+    { return new RoomBridgeWooden(gameMap); }
+
     Room* getRoomFromStream(GameMap* gameMap, std::istream& is) const override
     {
         RoomBridgeWooden* room = new RoomBridgeWooden(gameMap);

@@ -208,6 +208,10 @@ class RoomTreasuryFactory : public RoomFactory
         return buildRoomDefaultEditor(gameMap, room, packet);
     }
 
+    //! \brief Creates an empty room of this type, for a room that has to be split in two.
+    Room* createRoom(GameMap* gameMap) const override
+    { return new RoomTreasury(gameMap); }
+
     Room* getRoomFromStream(GameMap* gameMap, std::istream& is) const override
     {
         RoomTreasury* room = new RoomTreasury(gameMap);
@@ -301,6 +305,26 @@ bool RoomTreasury::removeCoveredTile(Tile* t)
     roomTreasuryTileData->mMeshOfTile.clear();
     roomTreasuryTileData->mGoldInTile = 0;
     return Room::removeCoveredTile(t);
+}
+
+void RoomTreasury::splitRoom(Room& newRoom, const std::vector<Tile*>& tiles)
+{
+    // The tiles took a copy of their gold with them. This room counts the gold of every tile
+    // it holds data for, not only the ones it still covers, so leaving the copy behind would
+    // have the same gold counted by both rooms: selling the tile in the middle of a treasury
+    // would make gold rather than cost it.
+    for(Tile* tile : tiles)
+    {
+        auto it = mTileData.find(tile);
+        if(it == mTileData.end())
+            continue;
+
+        RoomTreasuryTileData* roomTreasuryTileData = static_cast<RoomTreasuryTileData*>(it->second);
+        roomTreasuryTileData->mGoldInTile = 0;
+        roomTreasuryTileData->mMeshOfTile.clear();
+    }
+
+    mGoldChanged = true;
 }
 
 int RoomTreasury::getTotalGoldStorage() const

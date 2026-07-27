@@ -61,6 +61,10 @@ public:
     // Functions overriding virtual functions in the Room base class.
     bool removeCoveredTile(Tile* t) override;
 
+    //! \brief The gold counted by a treasury is the gold in every tile it has data for,
+    //! which includes the tiles it has handed over, so it has to let go of theirs.
+    void splitRoom(Room& newRoom, const std::vector<Tile*>& tiles) override;
+
     // Functions specific to this class.
     virtual void doUpkeep() override;
 
