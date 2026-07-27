@@ -2297,8 +2297,14 @@ EditorMode::~EditorMode()
     {
         delete draggableTileContainer;
     }
-    DebugDrawer::getSingleton().clear();    
-    delete DebugDrawer::getSingletonPtr();
+    // The debug drawer belongs to the RenderManager, which makes it along with the scene
+    // and destroys it with itself, once for the whole run of the game. Deleting it here
+    // left its singleton pointer null for the next editor session, whose very first frame
+    // drew through it: that is a null this in DebugDrawer::build(), reading its manual
+    // object from address 0x10. Only the leftover geometry is ours to clear.
+    DebugDrawer* debugDrawer = DebugDrawer::getSingletonPtr();
+    if(debugDrawer != nullptr)
+        debugDrawer->clear();
 }
 
 bool EditorMode::launchNewLevelPressed(const CEGUI::EventArgs&)
