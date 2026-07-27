@@ -106,14 +106,14 @@
             <Property name="InheritsAlpha" value="False" />
         </Window>
         <Window type="OD/GameTabButton" name="TempleButton" >
-            <Property name="Area" value="{{0,570},{0,20},{0,630},{0,80}}" />
+            <Property name="Area" value="{{0,300},{0,50},{0,340},{0,90}}" />
             <Property name="Visible" value="False" />
             <Property name="NormalImage" value="OpenDungeonsIcons/TempleButton" />
             <Property name="TooltipText" value="Build a Temple (3x3)" />
             <Property name="InheritsAlpha" value="False" />
         </Window>
         <Window type="OD/GameTabButton" name="PortalButton" >
-            <Property name="Area" value="{{0,630},{0,20},{0,690},{0,80}}" />
+            <Property name="Area" value="{{0,340},{0,50},{0,380},{0,90}}" />
             <Property name="Visible" value="False" />
             <Property name="NormalImage" value="OpenDungeonsIcons/PortalButton" />
             <Property name="TooltipText" value="Build a Portal (3x3)" />
