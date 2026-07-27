@@ -22,7 +22,6 @@
 
 
 #include <regex>
-#include <pybind11/embed.h>
 
 
 const std::map<std::string, const char*>& getDocString()
