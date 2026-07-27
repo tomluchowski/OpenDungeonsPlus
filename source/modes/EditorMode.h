@@ -210,7 +210,10 @@ private:
     
     bool loadLevelFromFile(const std::string&);
     //! \brief file path to currently choosen file via load / save menu
-    bool isFileHidden(std::string path);
+    //! \brief Whether the file should be kept out of the level lists unless the player
+    //! asked for hidden ones. Takes the whole path: on Windows being hidden is an attribute
+    //! of the file, not a dot in front of its name.
+    bool isFileHidden(const boost::filesystem::path& path);
     void addPathNameToList(boost::filesystem::directory_entry& xx, CEGUI::Listbox* levelSelectList, CEGUI::Colour cc, int& nn );
     std::string dialogFullPath;
 

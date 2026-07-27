@@ -184,6 +184,16 @@ namespace Helper
         while (baseLevelFile.good())
         {
             std::getline(baseLevelFile, nextParam);
+
+            // A file written on Windows ends its lines with a carriage return before the
+            // line feed, and only Windows strips it back off when reading. Everywhere else
+            // it stays at the end of the line, where it makes the last value on it, or a
+            // section marker standing alone, something nothing here recognises: a level
+            // saved on Windows would not load anywhere at all. Take it off ourselves so
+            // that it makes no difference where a file was written.
+            if(!nextParam.empty() && (*nextParam.rbegin() == '\r'))
+                nextParam.erase(nextParam.size() - 1);
+
             /* Find the first occurrence of the comment symbol on the
              * line and return everything before that character.
              */
