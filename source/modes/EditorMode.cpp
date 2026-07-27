@@ -486,16 +486,21 @@ void EditorMode::activate()
     // Hide also the Replay check-box as it doesn't make sense for the editor
     guiSheet->getChild("ConfirmExit/SaveReplayCheckbox")->hide();
     guiSheet->getChild("GameChatWindow/GameChatEditBox")->hide();
+    // Start the file dialogs in the folder the player's own levels are saved to. That used
+    // to be $HOME, which is only set on Windows if someone has set it: there the dialogs
+    // opened on nothing at all. ResourceManager resolves this one per platform, and it is
+    // where a level being loaded or saved from the editor belongs anyway.
+    const std::string userLevelPath = ResourceManager::getSingleton().getUserLevelPathSkirmish();
     guiSheet->getChild("MenuEditorLoad")->hide();
     guiSheet->getChild("MenuEditorLoad")->getChild("LevelWindowFrame")
-    ->getChild("FilePath")->setText(getEnv("HOME"));
+    ->getChild("FilePath")->setText(userLevelPath);
     guiSheet->getChild("MenuEditorLoad")->getChild("LevelWindowFrame")
-    ->getChild("FilePath")->fireEvent(CEGUI::Editbox::EventTextAccepted,args); 
+    ->getChild("FilePath")->fireEvent(CEGUI::Editbox::EventTextAccepted,args);
     guiSheet->getChild("MenuEditorSave")->hide();
     guiSheet->getChild("MenuEditorSave")->getChild("LevelWindowFrame")
-    ->getChild("FilePath")->setText(getEnv("HOME"));
+    ->getChild("FilePath")->setText(userLevelPath);
     guiSheet->getChild("MenuEditorSave")->getChild("LevelWindowFrame")
-    ->getChild("FilePath")->fireEvent(CEGUI::Editbox::EventTextAccepted,args);     
+    ->getChild("FilePath")->fireEvent(CEGUI::Editbox::EventTextAccepted,args);
     CEGUI::Combobox* levelTypeCb = static_cast<CEGUI::Combobox*>
     (mRootWindow->getChild("LevelWindowFrame/LevelTypeSelect"));
     levelTypeCb->setItemSelectState(static_cast<size_t>(0), true);
@@ -2155,23 +2160,6 @@ bool EditorMode::updateDescription(const CEGUI::EventArgs&)
 
     return true;
 }
-
-std::string EditorMode::getEnv( const std::string & var )
-{
-    // WINDOWS:
-    // "you could look at HOMEDRIVE, HOMEPATH or USERPROFILE
-    // env variables on windows. or i guess SHGetFolderPathA()"
-    const char * val = std::getenv( var.c_str() );
-    if ( val == nullptr )
-    { // invalid to assign nullptr to std::string
-        return "";
-    }
-    else
-    {
-        return val;
-    }
-}
-
 
 void EditorMode::uninstallRecentlyUsedFilesButtons()
 {
