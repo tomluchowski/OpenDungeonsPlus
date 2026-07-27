@@ -23,6 +23,37 @@
 #include <cstdlib>
 #include <CEGUI/CEGUI.h>
 
+#include <OgrePrerequisites.h>
+
+#if OGRE_PLATFORM == OGRE_PLATFORM_WIN32
+#define WIN32_LEAN_AND_MEAN
+#define NOMINMAX
+#include <windows.h>
+#include <shellapi.h>
+#endif
+
+namespace
+{
+    //! \brief Hands a link to whatever the system uses to open one. Each platform has its
+    //! own way: xdg-open is the freedesktop one and does not exist on the other two.
+    void openInBrowser(const std::string& url)
+    {
+#if OGRE_PLATFORM == OGRE_PLATFORM_WIN32
+        ShellExecuteA(nullptr, "open", url.c_str(), nullptr, nullptr, SW_SHOWNORMAL);
+#else
+#if OGRE_PLATFORM == OGRE_PLATFORM_APPLE
+        const std::string command = "open '" + url + "'";
+#else
+        const std::string command = "xdg-open '" + url + "'";
+#endif
+        // The result is worth looking at only to say so: there is nothing to fall back on,
+        // and the game is on its way out by the time this runs.
+        if(std::system(command.c_str()) != 0)
+            OD_LOG_WRN("Couldn't open " + url);
+#endif
+    }
+}
+
 
 AdvertMode::AdvertMode(ModeManager* modeManager):
     AbstractApplicationMode(modeManager, ModeManager::ADVERTISMENT)
@@ -85,7 +116,7 @@ void AdvertMode::activate()
 bool AdvertMode::showWWW()
 {
     ODFrameListener::getSingletonPtr()->requestExit();
-    system("xdg-open 'https://discord.gg/K2JPXuchZV'");
+    openInBrowser("https://discord.gg/K2JPXuchZV");
     return true;
 
 }

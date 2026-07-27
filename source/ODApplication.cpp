@@ -231,7 +231,11 @@ void ODApplication::startClient()
     HWND hwnd;
     renderWindow->getCustomAttribute("WINDOW", static_cast<void*>(&hwnd));
     HINSTANCE hInst = static_cast<HINSTANCE>(GetModuleHandle(nullptr));
-    SetClassLong(hwnd, GCL_HICON, reinterpret_cast<LONG>(LoadIcon(hInst, MAKEINTRESOURCE(IDI_ICON1))));
+    // SetClassLong takes a 32 bit value, so casting the icon handle to one only works
+    // while a handle is 32 bits wide: a 64 bit build does not compile. The Ptr form is
+    // the same call on a 32 bit build and the right one on a 64 bit build.
+    SetClassLongPtr(hwnd, GCLP_HICON,
+        reinterpret_cast<LONG_PTR>(LoadIcon(hInst, MAKEINTRESOURCE(IDI_ICON1))));
 #endif
 
     //Initialise RTshader system

@@ -56,6 +56,20 @@
 
 #include <boost/program_options.hpp>
 
+namespace
+{
+    //! \brief Whether the character ends a folder name. Windows takes both, and the paths
+    //! here are a mix: some are built with '/', some come from the system or the player.
+    bool isDirectorySeparator(char c)
+    {
+#if OGRE_PLATFORM == OGRE_PLATFORM_WIN32
+        return (c == '/') || (c == '\\');
+#else
+        return c == '/';
+#endif
+    }
+}
+
 template<> ResourceManager* Ogre::Singleton<ResourceManager>::msSingleton = nullptr;
 #if OGRE_PLATFORM == OGRE_PLATFORM_WIN32 && defined(OD_DEBUG)
 //On windows, if the application is compiled in debug mode, use the plugins with debug prefix.
@@ -131,7 +145,7 @@ void ResourceManager::setupDataPath(boost::program_options::variables_map& optio
     if(!path.empty())
     {
         mGameDataPath = path;
-        if (*mGameDataPath.rbegin() != '/')
+        if (!isDirectorySeparator(*mGameDataPath.rbegin()))
         {
             mGameDataPath.append("/");
         }
@@ -203,8 +217,7 @@ void ResourceManager::setupUserDataFolders(boost::program_options::variables_map
         mUserDataPath = itOption->second.as<std::string>();
         if(!mUserDataPath.empty())
         {
-            uint32_t len = mUserDataPath.length();
-            if((mUserDataPath.at(len - 1) != '/') && (mUserDataPath.at(len - 1) != '\\'))
+            if(!isDirectorySeparator(*mUserDataPath.rbegin()))
                 mUserDataPath += '/';
 
             mUserConfigPath = mUserDataPath + "cfg/";
@@ -496,7 +509,9 @@ void ResourceManager::setupOgreResources(uint16_t shaderLanguageVersion)
             const Ogre::String& typeName = setting.first;
             Ogre::String archName = setting.second;
 
-            if(!archName.empty() && archName.front() != '/') // do not modify absolute paths
+            // Do not modify absolute paths. A leading '/' is not what makes one on Windows,
+            // where they start with a drive letter, so let boost decide.
+            if(!archName.empty() && !boost::filesystem::path(archName).is_absolute())
                 archName = mGameDataPath + archName;
             else
                 archName = Ogre::FileSystemLayer::resolveBundlePath(archName);

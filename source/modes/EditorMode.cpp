@@ -57,7 +57,9 @@
 
 
 #if OGRE_PLATFORM == OGRE_PLATFORM_WIN32
-#include <fileapi.h>
+#define WIN32_LEAN_AND_MEAN
+#define NOMINMAX
+#include <windows.h>
 #endif
 
 #include <OgreEntity.h>
@@ -1570,7 +1572,7 @@ bool EditorMode::loadMenuFilePathTextChanged( const CEGUI::EventArgs& /*arg*/)
                 int nn = 1;
                 for (directory_entry& xx : directory_iterator(pp))
                 {
-                    if(!(isFileHidden(xx.path().filename().generic_string())
+                    if(!(isFileHidden(xx.path())
                          && !isCheckboxSelected("MenuEditorLoad/LevelWindowFrame/HiddenFiles")))
                     {
                         if(xx.path().has_extension() && xx.path().extension().compare(L".level") == 0)
@@ -1724,7 +1726,7 @@ bool EditorMode::saveMenuFilePathTextChanged(const CEGUI::EventArgs& /*arg*/)
                 int nn = 1;
                 for (directory_entry& xx : directory_iterator(pp))
                 {
-                    if(!(isFileHidden(xx.path().filename().generic_string()) && !isCheckboxSelected("MenuEditorSave/LevelWindowFrame/HiddenFiles")))
+                    if(!(isFileHidden(xx.path()) && !isCheckboxSelected("MenuEditorSave/LevelWindowFrame/HiddenFiles")))
                     {
                         if(xx.path().has_extension() && xx.path().extension().compare(std::string(".level")) == 0)
                         {
@@ -2110,16 +2112,20 @@ bool EditorMode::isCheckboxSelected(const CEGUI::String& checkbox)
 }
 
 
-bool EditorMode::isFileHidden(std::string path)
+bool EditorMode::isFileHidden(const boost::filesystem::path& path)
 {
 #if OGRE_PLATFORM == OGRE_PLATFORM_WIN32
-    
-    //DWORD attributes = GetFileAttributes(path);
-    //return (attributes & FILE_ATTRIBUTE_HIDDEN);
-    return false;
+    // Windows keeps it as an attribute of the file rather than in its name, so the whole
+    // path is needed to ask for it. A file we cannot read the attributes of is not hidden.
+    const DWORD attributes = GetFileAttributesA(path.string().c_str());
+    if(attributes == INVALID_FILE_ATTRIBUTES)
+        return false;
+
+    return (attributes & (FILE_ATTRIBUTE_HIDDEN | FILE_ATTRIBUTE_SYSTEM)) != 0;
 #else
-    return (path[0] == '.');
-#endif    
+    const std::string filename = path.filename().string();
+    return !filename.empty() && (filename[0] == '.');
+#endif
 }
 
 
