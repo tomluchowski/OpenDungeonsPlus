@@ -118,6 +118,10 @@ EditorMode::EditorMode(ModeManager* modeManager):
     mCurrentFullness(100.0),
     mCurrentCreatureIndex(0),
     mCurrentCreatureLevel(1),
+    mPortalWaveTileX(-1),
+    mPortalWaveTileY(-1),
+    mPortalWaveSelectedWave(-1),
+    mPortalWaveRefreshing(false),
     mMouseX(0),
     mMouseY(0),
     mSettings(SettingsWindow(mRootWindow)),
@@ -424,6 +428,48 @@ EditorMode::EditorMode(ModeManager* modeManager):
         )
     );
 
+    // Wave portal window
+    addEventConnection(
+        mRootWindow->getChild("EditorPortalWavesWindow")->subscribeEvent(
+            CEGUI::FrameWindow::EventCloseClicked,
+            CEGUI::Event::Subscriber(&EditorMode::hidePortalWaveWindow, this)
+    ));
+    addEventConnection(
+        mRootWindow->getChild("EditorPortalWavesWindow/CloseButton")->subscribeEvent(
+            CEGUI::PushButton::EventClicked,
+            CEGUI::Event::Subscriber(&EditorMode::hidePortalWaveWindow, this)
+    ));
+    addEventConnection(
+        mRootWindow->getChild("EditorPortalWavesWindow/ApplyButton")->subscribeEvent(
+            CEGUI::PushButton::EventClicked,
+            CEGUI::Event::Subscriber(&EditorMode::onPortalWaveApply, this)
+    ));
+    addEventConnection(
+        mRootWindow->getChild("EditorPortalWavesWindow/AddWave")->subscribeEvent(
+            CEGUI::PushButton::EventClicked,
+            CEGUI::Event::Subscriber(&EditorMode::onPortalWaveAddWave, this)
+    ));
+    addEventConnection(
+        mRootWindow->getChild("EditorPortalWavesWindow/RemoveWave")->subscribeEvent(
+            CEGUI::PushButton::EventClicked,
+            CEGUI::Event::Subscriber(&EditorMode::onPortalWaveRemoveWave, this)
+    ));
+    addEventConnection(
+        mRootWindow->getChild("EditorPortalWavesWindow/AddCreature")->subscribeEvent(
+            CEGUI::PushButton::EventClicked,
+            CEGUI::Event::Subscriber(&EditorMode::onPortalWaveAddCreature, this)
+    ));
+    addEventConnection(
+        mRootWindow->getChild("EditorPortalWavesWindow/RemoveCreature")->subscribeEvent(
+            CEGUI::PushButton::EventClicked,
+            CEGUI::Event::Subscriber(&EditorMode::onPortalWaveRemoveCreature, this)
+    ));
+    addEventConnection(
+        mRootWindow->getChild("EditorPortalWavesWindow/WaveList")->subscribeEvent(
+            CEGUI::Listbox::EventSelectionChanged,
+            CEGUI::Event::Subscriber(&EditorMode::onPortalWaveSelectionChanged, this)
+    ));
+
     // Fills the Level type combo box with the available level types.
     const CEGUI::Image* selImg = &CEGUI::ImageManager
     ::getSingleton().get("OpenDungeonsSkin/SelectionBrush");
@@ -462,6 +508,7 @@ void EditorMode::activate()
     guiSheet->getChild("LevelWindowFrame")->hide();
     guiSheet->getChild("EditorOptionsWindow")->hide();
     guiSheet->getChild("EditorHelpWindow")->hide();
+    guiSheet->getChild("EditorPortalWavesWindow")->hide();
     fillControlsWindow();
     updateLevelNameText();
     guiSheet->getChild("ConfirmExit")->hide();
@@ -1016,6 +1063,12 @@ void EditorMode::fillControlsWindow()
     txt << "    already placed, pick it up, set the level, then drop it." << std::endl;
     txt << std::endl;
 
+    txt << "Rooms" << std::endl;
+    txt << "    P - edit the waves of the wave portal under the mouse" << std::endl;
+    txt << "    The waves are what the portal sends against the players, and" << std::endl;
+    txt << "    they are only kept once the level is saved." << std::endl;
+    txt << std::endl;
+
     txt << "Editing" << std::endl;
     txt << "    Ctrl + C - copy the marked tiles, Ctrl + V - paste" << std::endl;
     txt << "    Delete - delete what was copied" << std::endl;
@@ -1054,6 +1107,392 @@ void EditorMode::setLevelOfCreaturesInHand()
     ODClient::getSingleton().queueClientNotification(clientNotification);
 }
 
+namespace
+{
+    //! \brief The strategies a wave portal can follow, in the order they are written to the
+    //! level file, with the name the editor shows for each of them.
+    const std::vector<std::pair<RoomPortalWaveStrategy, std::string>>& getWaveStrategies()
+    {
+        static const std::vector<std::pair<RoomPortalWaveStrategy, std::string>> strategies =
+        {
+            { RoomPortalWaveStrategy::closestDungeon, "Closest dungeon" },
+            { RoomPortalWaveStrategy::randomPlayer, "Random player" },
+            { RoomPortalWaveStrategy::fixedTeamIds, "Fixed teams" }
+        };
+        return strategies;
+    }
+
+    //! \brief What a wave looks like in the list of waves. Kept short: the list is only as
+    //! wide as half the window.
+    std::string describeWave(uint32_t index, const RoomPortalWaveData& wave)
+    {
+        std::stringstream ss;
+        ss << (index + 1) << ": " << wave.mSpawnTurnMin;
+        if(wave.mSpawnTurnMax < 0)
+            ss << " on";
+        else
+            ss << " to " << wave.mSpawnTurnMax;
+
+        ss << " (" << wave.mSpawnCreatureClassName.size() << ")";
+        return ss.str();
+    }
+}
+
+void EditorMode::askPortalWaveData(Tile* tile)
+{
+    if(!ODClient::getSingleton().isConnected())
+        return;
+
+    if(tile == nullptr)
+        return;
+
+    // A client does not get the rooms themselves, only what its tiles look like, so this is
+    // as much as the editor can tell on its own. The server has the last word.
+    if(tile->getTileVisual() != RoomPortalWave::mRoomVisual)
+    {
+        displayText(Ogre::ColourValue::White, "Point at a wave portal to edit its waves");
+        return;
+    }
+
+    // The waves are not part of what a room tells its clients either, only the server knows
+    // them. The window is opened when the answer comes back.
+    ClientNotification *clientNotification = new ClientNotification(
+        ClientNotificationType::editorAskPortalWaveData);
+    mGameMap->tileToPacket(clientNotification->mPacket, tile);
+    ODClient::getSingleton().queueClientNotification(clientNotification);
+
+    mPortalWaveTileX = tile->getX();
+    mPortalWaveTileY = tile->getY();
+}
+
+void EditorMode::showPortalWaveWindow(const std::string& roomName, const RoomPortalWaveConfig& config)
+{
+    mPortalWaveRoomName = roomName;
+    mPortalWaveConfig = config;
+    mPortalWaveSelectedWave = mPortalWaveConfig.mWaves.empty() ? -1 : 0;
+
+    CEGUI::Window* window = mRootWindow->getChild("EditorPortalWavesWindow");
+    window->setText("Waves of " + roomName);
+
+    // The class list only depends on the level, but it is only known once the level has been
+    // loaded, which is why it is filled here rather than when the window is created.
+    const CEGUI::Image* selImg = &CEGUI::ImageManager::getSingleton().get("OpenDungeonsSkin/SelectionBrush");
+    CEGUI::Combobox* classCb = static_cast<CEGUI::Combobox*>(window->getChild("CreatureClass"));
+    classCb->resetList();
+    for(uint32_t i = 0; i < mGameMap->numClassDescriptions(); ++i)
+    {
+        const CreatureDefinition* def = mGameMap->getClassDescription(i);
+        if(def == nullptr)
+            continue;
+
+        CEGUI::ListboxTextItem* item = new CEGUI::ListboxTextItem(def->getClassName(), i);
+        item->setSelectionBrushImage(selImg);
+        classCb->addItem(item);
+    }
+    if(classCb->getItemCount() > 0)
+    {
+        CEGUI::ListboxItem* item = classCb->getListboxItemFromIndex(0);
+        classCb->setItemSelectState(item, true);
+        classCb->setText(item->getText());
+    }
+
+    CEGUI::Combobox* strategyCb = static_cast<CEGUI::Combobox*>(window->getChild("Strategy"));
+    strategyCb->resetList();
+    for(const std::pair<RoomPortalWaveStrategy, std::string>& strategy : getWaveStrategies())
+    {
+        CEGUI::ListboxTextItem* item = new CEGUI::ListboxTextItem(strategy.second,
+            static_cast<CEGUI::uint>(strategy.first));
+        item->setSelectionBrushImage(selImg);
+        strategyCb->addItem(item);
+    }
+
+    refreshPortalWaveWindow();
+    window->show();
+    window->activate();
+}
+
+void EditorMode::refreshPortalWaveWindow()
+{
+    CEGUI::Window* window = mRootWindow->getChild("EditorPortalWavesWindow");
+
+    // Writing into the widgets fires the same events the player firing them would, so tell
+    // the handlers to keep their hands off while this runs.
+    mPortalWaveRefreshing = true;
+
+    window->getChild("TurnsBetweenWaves")->setText(
+        Helper::toString(mPortalWaveConfig.mTurnsBetween2Waves));
+    window->getChild("RangeTilesAttack")->setText(
+        Helper::toString(mPortalWaveConfig.mRangeTilesAttack));
+
+    std::string teams;
+    for(int32_t team : mPortalWaveConfig.mTargetTeams)
+    {
+        if(!teams.empty())
+            teams += "/";
+
+        teams += Helper::toString(team);
+    }
+    window->getChild("TargetTeams")->setText(teams);
+
+    CEGUI::Combobox* strategyCb = static_cast<CEGUI::Combobox*>(window->getChild("Strategy"));
+    for(size_t i = 0; i < strategyCb->getItemCount(); ++i)
+    {
+        CEGUI::ListboxItem* item = strategyCb->getListboxItemFromIndex(i);
+        if(item->getID() != static_cast<CEGUI::uint>(mPortalWaveConfig.mStrategy))
+            continue;
+
+        strategyCb->setItemSelectState(item, true);
+        strategyCb->setText(item->getText());
+        break;
+    }
+
+    const CEGUI::Image* selImg = &CEGUI::ImageManager::getSingleton().get("OpenDungeonsSkin/SelectionBrush");
+    CEGUI::Listbox* waveList = static_cast<CEGUI::Listbox*>(window->getChild("WaveList"));
+    waveList->resetList();
+    for(uint32_t i = 0; i < mPortalWaveConfig.mWaves.size(); ++i)
+    {
+        CEGUI::ListboxTextItem* item = new CEGUI::ListboxTextItem(
+            describeWave(i, mPortalWaveConfig.mWaves[i]), i);
+        item->setSelectionBrushImage(selImg);
+        waveList->addItem(item);
+    }
+
+    if((mPortalWaveSelectedWave >= 0) &&
+       (static_cast<size_t>(mPortalWaveSelectedWave) < waveList->getItemCount()))
+    {
+        CEGUI::ListboxItem* item = waveList->getListboxItemFromIndex(mPortalWaveSelectedWave);
+        waveList->setItemSelectState(item, true);
+        waveList->ensureItemIsVisible(item);
+    }
+
+    mPortalWaveRefreshing = false;
+
+    refreshPortalWaveSelectedWave();
+}
+
+void EditorMode::refreshPortalWaveSelectedWave()
+{
+    CEGUI::Window* window = mRootWindow->getChild("EditorPortalWavesWindow");
+    CEGUI::Listbox* creatureList = static_cast<CEGUI::Listbox*>(window->getChild("CreatureList"));
+
+    mPortalWaveRefreshing = true;
+
+    creatureList->resetList();
+    if((mPortalWaveSelectedWave < 0) ||
+       (static_cast<size_t>(mPortalWaveSelectedWave) >= mPortalWaveConfig.mWaves.size()))
+    {
+        window->getChild("SpawnTurnMin")->setText("");
+        window->getChild("SpawnTurnMax")->setText("");
+        mPortalWaveRefreshing = false;
+        return;
+    }
+
+    const RoomPortalWaveData& wave = mPortalWaveConfig.mWaves[mPortalWaveSelectedWave];
+    window->getChild("SpawnTurnMin")->setText(Helper::toString(wave.mSpawnTurnMin));
+    window->getChild("SpawnTurnMax")->setText(Helper::toString(wave.mSpawnTurnMax));
+
+    const CEGUI::Image* selImg = &CEGUI::ImageManager::getSingleton().get("OpenDungeonsSkin/SelectionBrush");
+    for(uint32_t i = 0; i < wave.mSpawnCreatureClassName.size(); ++i)
+    {
+        const std::pair<std::string, uint32_t>& p = wave.mSpawnCreatureClassName[i];
+        CEGUI::ListboxTextItem* item = new CEGUI::ListboxTextItem(
+            p.first + " (level " + Helper::toString(p.second) + ")", i);
+        item->setSelectionBrushImage(selImg);
+        creatureList->addItem(item);
+    }
+
+    mPortalWaveRefreshing = false;
+}
+
+void EditorMode::readPortalWaveWindow()
+{
+    if(mPortalWaveRoomName.empty())
+        return;
+
+    CEGUI::Window* window = mRootWindow->getChild("EditorPortalWavesWindow");
+
+    mPortalWaveConfig.mTurnsBetween2Waves = Helper::toUInt32(
+        window->getChild("TurnsBetweenWaves")->getText().c_str());
+    mPortalWaveConfig.mRangeTilesAttack = Helper::toInt(
+        window->getChild("RangeTilesAttack")->getText().c_str());
+
+    CEGUI::Combobox* strategyCb = static_cast<CEGUI::Combobox*>(window->getChild("Strategy"));
+    CEGUI::ListboxItem* strategyItem = strategyCb->getSelectedItem();
+    if(strategyItem != nullptr)
+        mPortalWaveConfig.mStrategy = static_cast<RoomPortalWaveStrategy>(strategyItem->getID());
+
+    mPortalWaveConfig.mTargetTeams.clear();
+    std::string teams = window->getChild("TargetTeams")->getText().c_str();
+    for(const std::string& team : Helper::split(teams, '/', true))
+    {
+        // Team 0 is what a seat playing on its own gets, no portal can target it
+        int32_t teamId = Helper::toInt(team);
+        if(teamId == 0)
+            continue;
+
+        mPortalWaveConfig.mTargetTeams.push_back(teamId);
+    }
+
+    if((mPortalWaveSelectedWave < 0) ||
+       (static_cast<size_t>(mPortalWaveSelectedWave) >= mPortalWaveConfig.mWaves.size()))
+        return;
+
+    RoomPortalWaveData& wave = mPortalWaveConfig.mWaves[mPortalWaveSelectedWave];
+    wave.mSpawnTurnMin = Helper::toInt(window->getChild("SpawnTurnMin")->getText().c_str());
+    wave.mSpawnTurnMax = Helper::toInt(window->getChild("SpawnTurnMax")->getText().c_str());
+}
+
+bool EditorMode::onPortalWaveSelectionChanged(const CEGUI::EventArgs& /*arg*/)
+{
+    if(mPortalWaveRefreshing)
+        return true;
+
+    // What was typed for the wave that is being left belongs to that wave, so it has to be
+    // taken before the selection is allowed to move
+    readPortalWaveWindow();
+
+    CEGUI::Listbox* waveList = static_cast<CEGUI::Listbox*>(
+        mRootWindow->getChild("EditorPortalWavesWindow/WaveList"));
+    CEGUI::ListboxItem* item = waveList->getFirstSelectedItem();
+    mPortalWaveSelectedWave = (item == nullptr) ? -1 : static_cast<int32_t>(item->getID());
+
+    // The list itself is left alone: rewriting it here would clear the selection we just read
+    refreshPortalWaveSelectedWave();
+    return true;
+}
+
+bool EditorMode::onPortalWaveAddWave(const CEGUI::EventArgs& /*arg*/)
+{
+    if(mPortalWaveRoomName.empty())
+        return true;
+
+    readPortalWaveWindow();
+
+    // A new wave starts where the last one does, which is a better guess than turn 0 and
+    // easier to correct than an empty field
+    RoomPortalWaveData wave;
+    if(!mPortalWaveConfig.mWaves.empty())
+    {
+        const RoomPortalWaveData& last = mPortalWaveConfig.mWaves.back();
+        wave.mSpawnTurnMin = last.mSpawnTurnMin;
+        wave.mSpawnTurnMax = last.mSpawnTurnMax;
+    }
+
+    mPortalWaveConfig.mWaves.push_back(wave);
+    mPortalWaveSelectedWave = static_cast<int32_t>(mPortalWaveConfig.mWaves.size()) - 1;
+    refreshPortalWaveWindow();
+    return true;
+}
+
+bool EditorMode::onPortalWaveRemoveWave(const CEGUI::EventArgs& /*arg*/)
+{
+    if((mPortalWaveSelectedWave < 0) ||
+       (static_cast<size_t>(mPortalWaveSelectedWave) >= mPortalWaveConfig.mWaves.size()))
+        return true;
+
+    mPortalWaveConfig.mWaves.erase(mPortalWaveConfig.mWaves.begin() + mPortalWaveSelectedWave);
+    if(mPortalWaveConfig.mWaves.empty())
+        mPortalWaveSelectedWave = -1;
+    else if(static_cast<size_t>(mPortalWaveSelectedWave) >= mPortalWaveConfig.mWaves.size())
+        mPortalWaveSelectedWave = static_cast<int32_t>(mPortalWaveConfig.mWaves.size()) - 1;
+
+    refreshPortalWaveWindow();
+    return true;
+}
+
+bool EditorMode::onPortalWaveAddCreature(const CEGUI::EventArgs& /*arg*/)
+{
+    if((mPortalWaveSelectedWave < 0) ||
+       (static_cast<size_t>(mPortalWaveSelectedWave) >= mPortalWaveConfig.mWaves.size()))
+    {
+        displayText(Ogre::ColourValue::White, "Select a wave before adding creatures to it");
+        return true;
+    }
+
+    CEGUI::Window* window = mRootWindow->getChild("EditorPortalWavesWindow");
+    CEGUI::Combobox* classCb = static_cast<CEGUI::Combobox*>(window->getChild("CreatureClass"));
+    CEGUI::ListboxItem* classItem = classCb->getSelectedItem();
+    if(classItem == nullptr)
+        return true;
+
+    uint32_t level = Helper::toUInt32(window->getChild("CreatureLevel")->getText().c_str());
+    if(level < 1)
+        level = 1;
+    else if(level > MAX_LEVEL)
+        level = MAX_LEVEL;
+
+    readPortalWaveWindow();
+    mPortalWaveConfig.mWaves[mPortalWaveSelectedWave].mSpawnCreatureClassName.push_back(
+        std::pair<std::string, uint32_t>(classItem->getText().c_str(), level));
+
+    // The wave list shows how many creatures a wave holds, so it changed too
+    refreshPortalWaveWindow();
+    return true;
+}
+
+bool EditorMode::onPortalWaveRemoveCreature(const CEGUI::EventArgs& /*arg*/)
+{
+    if((mPortalWaveSelectedWave < 0) ||
+       (static_cast<size_t>(mPortalWaveSelectedWave) >= mPortalWaveConfig.mWaves.size()))
+        return true;
+
+    CEGUI::Listbox* creatureList = static_cast<CEGUI::Listbox*>(
+        mRootWindow->getChild("EditorPortalWavesWindow/CreatureList"));
+    CEGUI::ListboxItem* item = creatureList->getFirstSelectedItem();
+    if(item == nullptr)
+    {
+        displayText(Ogre::ColourValue::White, "Select the creature to remove from the wave");
+        return true;
+    }
+
+    std::vector<std::pair<std::string, uint32_t>>& creatures =
+        mPortalWaveConfig.mWaves[mPortalWaveSelectedWave].mSpawnCreatureClassName;
+    uint32_t index = item->getID();
+    if(index >= creatures.size())
+        return true;
+
+    readPortalWaveWindow();
+    creatures.erase(creatures.begin() + index);
+    refreshPortalWaveWindow();
+    return true;
+}
+
+bool EditorMode::onPortalWaveApply(const CEGUI::EventArgs& /*arg*/)
+{
+    if(mPortalWaveRoomName.empty())
+        return true;
+
+    if(!ODClient::getSingleton().isConnected())
+        return true;
+
+    readPortalWaveWindow();
+
+    Tile* tile = mGameMap->getTile(mPortalWaveTileX, mPortalWaveTileY);
+    if(tile == nullptr)
+        return true;
+
+    // The waves belong to the server side room: that is the one the level is saved from, and
+    // the tile the window was opened from is how it is named between the two
+    ClientNotification *clientNotification = new ClientNotification(
+        ClientNotificationType::editorSetPortalWaveData);
+    mGameMap->tileToPacket(clientNotification->mPacket, tile);
+    clientNotification->mPacket << mPortalWaveConfig;
+    ODClient::getSingleton().queueClientNotification(clientNotification);
+
+    mModifiedMapBit = true;
+    displayText(Ogre::ColourValue::White, "Waves of " + mPortalWaveRoomName
+        + " changed. Save the level to keep them.");
+    return true;
+}
+
+bool EditorMode::hidePortalWaveWindow(const CEGUI::EventArgs& /*arg*/)
+{
+    mRootWindow->getChild("EditorPortalWavesWindow")->hide();
+    mPortalWaveRoomName.clear();
+    mPortalWaveSelectedWave = -1;
+    return true;
+}
+
 bool EditorMode::keyPressed(const OIS::KeyEvent &arg)
 {
     // Inject key to the gui currently displayed
@@ -1065,6 +1504,17 @@ bool EditorMode::keyPressed(const OIS::KeyEvent &arg)
 
     if (mCurrentInputMode == InputModeConsole)
         return getConsole()->keyPressed(arg);
+
+    // The wave window is made of text fields: while it is up the keyboard belongs to it,
+    // otherwise typing a turn number would move the camera around instead. Escape still
+    // closes it, as it does for every other window of the editor.
+    if(mRootWindow->getChild("EditorPortalWavesWindow")->isVisible())
+    {
+        if(arg.key == OIS::KC_ESCAPE)
+            hidePortalWaveWindow();
+
+        return true;
+    }
 
     ODFrameListener& frameListener = ODFrameListener::getSingleton();
 
@@ -1195,6 +1645,14 @@ bool EditorMode::keyPressed(const OIS::KeyEvent &arg)
             onEditPaste();
         }
         break;
+
+    // Edit the waves of the wave portal under the mouse
+    case OIS::KC_P:
+    {
+        InputManager& inputManager = getModeManager().getInputManager();
+        askPortalWaveData(mGameMap->getTile(inputManager.mXPos, inputManager.mYPos));
+        break;
+    }
 
     case OIS::KC_DELETE:
         onEditDelete();

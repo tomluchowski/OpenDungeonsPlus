@@ -38,6 +38,7 @@
 #include "network/ServerNotification.h"
 #include "rooms/Room.h"
 #include "rooms/RoomManager.h"
+#include "rooms/RoomPortalWave.h"
 #include "rooms/RoomType.h"
 #include "spells/SpellManager.h"
 #include "spells/SpellType.h"
@@ -90,6 +91,23 @@ namespace
 
         creature.setLevel(level);
         creature.setHP(creature.getMaxHp());
+    }
+
+    //! \brief Finds the wave portal the editor is talking about. The editor names it by one of
+    //! its tiles: a client has no rooms of its own, only the tiles it was told about.
+    RoomPortalWave* getWavePortalOnTile(Tile* tile)
+    {
+        if(tile == nullptr)
+            return nullptr;
+
+        Room* room = tile->getCoveringRoom();
+        if(room == nullptr)
+            return nullptr;
+
+        if(room->getType() != RoomType::portalWave)
+            return nullptr;
+
+        return static_cast<RoomPortalWave*>(room);
     }
 }
 
@@ -2422,6 +2440,60 @@ bool ODServer::processClientNotifications(ODSocketClient* clientSocket)
 
                 setEditorCreatureLevel(*static_cast<Creature*>(entity), level);
             }
+            break;
+        }
+
+        case ClientNotificationType::editorAskPortalWaveData:
+        {
+            if(mServerMode != ServerMode::ModeEditor)
+            {
+                OD_LOG_ERR("Received editor command while wrong mode=" + Helper::toString(static_cast<int>(mServerMode)));
+                break;
+            }
+            Player* player = clientSocket->getPlayer();
+            Tile* tile = gameMap->tileFromPacket(packetReceived);
+
+            // The waves are never sent to the clients with the rest of the room, so the
+            // editor has to ask for them before it can show them.
+            RoomPortalWave* roomPortalWave = getWavePortalOnTile(tile);
+            if(roomPortalWave == nullptr)
+            {
+                OD_LOG_ERR("Editor asked for the waves of tile=" + Tile::displayAsString(tile)
+                    + " which holds no wave portal");
+                break;
+            }
+
+            RoomPortalWaveConfig config;
+            roomPortalWave->exportWaveConfig(config);
+            std::string roomName = roomPortalWave->getName();
+            ServerNotification notif(ServerNotificationType::editorPortalWaveData, player);
+            notif.mPacket << roomName << config;
+            sendAsyncMsg(notif);
+            break;
+        }
+
+        case ClientNotificationType::editorSetPortalWaveData:
+        {
+            if(mServerMode != ServerMode::ModeEditor)
+            {
+                OD_LOG_ERR("Received editor command while wrong mode=" + Helper::toString(static_cast<int>(mServerMode)));
+                break;
+            }
+            Tile* tile = gameMap->tileFromPacket(packetReceived);
+            RoomPortalWaveConfig config;
+            OD_ASSERT_TRUE(packetReceived >> config);
+
+            RoomPortalWave* roomPortalWave = getWavePortalOnTile(tile);
+            if(roomPortalWave == nullptr)
+            {
+                OD_LOG_ERR("Editor sent waves for tile=" + Tile::displayAsString(tile)
+                    + " which holds no wave portal");
+                break;
+            }
+
+            // The map is saved from the server side, so this is what ends up in the level
+            // file when the editor saves it.
+            roomPortalWave->importWaveConfig(config);
             break;
         }
 
