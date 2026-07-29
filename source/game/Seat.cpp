@@ -1366,11 +1366,13 @@ bool Seat::exportSeatToStream(std::ostream& os) const
     os << "[/markedTiles]" << std::endl;
 
     os << "[EverVisitedTiles]" << std::endl;
-    for(int xx = 0 ; xx < mGameMap->getMapSizeY(); ++xx)
+    // The pool has one row per column of the map, so the first loop is bounded by the width.
+    // Walking it up to the height read past the end of the array on any map taller than it
+    // is wide, which is what saving a game on such a map used to crash on.
+    for(int xx = 0 ; xx < mGameMap->getMapSizeX(); ++xx)
     {
         for(int yy = 0 ; yy < mGameMap->getMapSizeY(); ++yy)
         {
-      
             if(mGameMap->everVisitedFlagPool[xx][yy][mId])
                 os << xx << " " << yy << std::endl;
         }
