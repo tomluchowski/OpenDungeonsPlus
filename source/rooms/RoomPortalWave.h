@@ -21,11 +21,14 @@
 #include "rooms/Room.h"
 #include "rooms/RoomType.h"
 
+#include <cstdint>
+#include <string>
 #include <vector>
 
 
 enum class TileVisual;
 class CreatureDefinition;
+class ODPacket;
 
 enum class RoomPortalWaveStrategy
 {
@@ -54,6 +57,29 @@ public:
     //! Pair with creature class name and level
     std::vector<std::pair<std::string, uint32_t>> mSpawnCreatureClassName;
 };
+
+//! \brief Everything about a wave portal the editor is allowed to change: the settings
+//! shared by every wave, and the waves themselves. The waves only live on the server, so
+//! this is what travels between the editor and the server when they are edited.
+class RoomPortalWaveConfig
+{
+public:
+    RoomPortalWaveConfig() :
+        mTurnsBetween2Waves(0),
+        mStrategy(RoomPortalWaveStrategy::closestDungeon),
+        mRangeTilesAttack(-1)
+    {}
+
+    uint32_t mTurnsBetween2Waves;
+    RoomPortalWaveStrategy mStrategy;
+    //! \brief -1 means the portal attacks whatever the distance
+    int32_t mRangeTilesAttack;
+    std::vector<int32_t> mTargetTeams;
+    std::vector<RoomPortalWaveData> mWaves;
+};
+
+ODPacket& operator<<(ODPacket& os, const RoomPortalWaveConfig& config);
+ODPacket& operator>>(ODPacket& is, RoomPortalWaveConfig& config);
 
 class RoomPortalWave: public Room, public GameEntityListener
 {
@@ -96,6 +122,14 @@ public:
     virtual void restoreInitialEntityState() override;
 
     void addRoomPortalWaveData(RoomPortalWaveData* roomPortalWaveData);
+
+    //! \brief Copies out what the editor is allowed to change. The waves come in the order
+    //! they are written to the level file so that the editor lists them that way.
+    void exportWaveConfig(RoomPortalWaveConfig& config) const;
+
+    //! \brief Replaces everything the editor is allowed to change by what it sends back.
+    //! The waves that were there are dropped.
+    void importWaveConfig(const RoomPortalWaveConfig& config);
 
     //! \brief implementation of GameEntityListener
     std::string getListenerName() const override

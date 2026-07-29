@@ -271,6 +271,7 @@
         </Window>
         <LayoutImport type="DefaultWindow" filename="WindowEditorOptions.layout" name="EditorOptionsMenuImport" />
         <LayoutImport type="DefaultWindow" filename="WindowEditorHelp.layout" name="EditorHelpImport" />
+        <LayoutImport type="DefaultWindow" filename="WindowEditorPortalWaves.layout" name="EditorPortalWavesImport" />
         <LayoutImport type="DefaultWindow" filename="WindowQuit.layout" name="EditorQuitMenuImport" />
         <LayoutImport type="DefaultWindow" filename="LoadConfirm.layout" name="EditorConfirmLoadImport" />
         <LayoutImport type="DefaultWindow" filename="WindowEvent.layout" name="EventWindowImport" />

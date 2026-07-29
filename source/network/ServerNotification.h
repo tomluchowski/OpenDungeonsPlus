@@ -98,7 +98,10 @@ enum class ServerNotificationType
     playerEvents,
     
     displayText,
-    
+
+    //! \brief Answer to the editor asking what the waves of a wave portal are
+    editorPortalWaveData,
+
     exit
 };
 
