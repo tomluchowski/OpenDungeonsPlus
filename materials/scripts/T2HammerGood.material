@@ -15,9 +15,10 @@ material T2HammerGood : RTSS/NormalMapping_MultiPass
                 texture T2HammerGoodNormal.png
                 rtshader_system
                 {
-                    normal_map }
+                    normal_map tangent_space
                 }
             }
+        }
 
         pass decal
         {

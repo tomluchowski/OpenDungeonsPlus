@@ -15,9 +15,10 @@ material T2SwordGood : RTSS/NormalMapping_MultiPass
                 texture T2SwordGoodNormal.png
                 rtshader_system
                 {
-                    normal_map }
+                    normal_map tangent_space
                 }
             }
+        }
 
         pass decal
         {

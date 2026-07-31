@@ -15,9 +15,10 @@ material T3ShieldEvil : RTSS/NormalMapping_MultiPass
                 texture T3ShieldEvilNormal.png
                 rtshader_system
                 {
-                    normal_map }
+                    normal_map tangent_space
                 }
             }
+        }
 
         pass decal
         {
