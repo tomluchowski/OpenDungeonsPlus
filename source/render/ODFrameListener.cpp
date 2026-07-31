@@ -297,7 +297,9 @@ bool ODFrameListener::frameStarted(const Ogre::FrameEvent& evt)
 void ODFrameListener::renderQueueStarted(Ogre::uint8 queueGroupId, const Ogre::String& cameraName,
     bool&)
 {
-    if(queueGroupId == RenderManager::OD_RENDER_QUEUE_ID_GUI && cameraName == mCameraManager.getActiveCamera()->getName())
+    const Ogre::Camera* activeCamera = mCameraManager.getActiveCamera();
+    if(queueGroupId == RenderManager::OD_RENDER_QUEUE_ID_GUI &&
+       activeCamera != nullptr && cameraName == activeCamera->getName())
     {
         Ogre::Root::getSingleton().getRenderSystem()->clearFrameBuffer(Ogre::FBT_DEPTH);
         CEGUI::System::getSingleton().renderAllGUIContexts();

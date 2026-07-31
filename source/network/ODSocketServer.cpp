@@ -26,6 +26,7 @@
 
 ODSocketServer::ODSocketServer():
     mThread(nullptr),
+    mActualPort(0),
     mIsConnected(false)
 {
 }
