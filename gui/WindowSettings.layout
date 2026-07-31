@@ -85,7 +85,6 @@
                         <Property name="Area" value="{{0,32},{0,67},{0,327},{0,80}}" />
                         <Property name="Text" value="" />
                         <Property name="VerticalSlider" value="False" />
-                        <Property name="AutoRenderingSurface" value="True" />
                         <Property name="MaximumValue" value="100" />
                         <Property name="ClickStepSize" value="5" />
                     </Window>
@@ -168,7 +167,6 @@
                         <Property name="Area" value="{{0,32},{0,150},{0,327},{0,163}}" />
                         <Property name="Text" value="" />
                         <Property name="VerticalSlider" value="False" />
-                        <Property name="AutoRenderingSurface" value="True" />
                         <Property name="MaximumValue" value="250" />
                         <Property name="ClickStepSize" value="5" />
                     </Window>
