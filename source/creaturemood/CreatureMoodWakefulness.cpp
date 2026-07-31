@@ -15,8 +15,9 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <iostream>
 #include "creaturemood/CreatureMoodWakefulness.h"
+
+#include <iostream>
 
 #include "creaturemood/CreatureMoodManager.h"
 #include "entities/Creature.h"

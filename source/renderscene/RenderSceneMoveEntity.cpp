@@ -15,8 +15,9 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <iostream>
 #include "renderscene/RenderSceneMoveEntity.h"
+
+#include <iostream>
 
 #include "camera/CameraManager.h"
 #include "render/RenderManager.h"

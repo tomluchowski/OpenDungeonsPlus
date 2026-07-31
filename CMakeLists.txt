@@ -24,6 +24,7 @@ if(NOT MSVC)
 endif()
 
 set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Set the data path depending on the platform
 if(WIN32)
@@ -138,20 +139,9 @@ set(OD_OPT_FLAGS CACHE STRING "Optimization and optional compilation flags")
 set(OD_CXX11_FLAGS CACHE STRING "Compilation flags to enable C++11 support")
 
 if(MSVC)
-    # C++11 compilation flag is activated by default
+    # The language standard is driven by CMAKE_CXX_STANDARD above.
     # Optimisation flags can be added if deemed useful
 else()
-    include(CheckCXXCompilerFlag)
-    if(NOT OD_CXX11_FLAGS)
-        CHECK_CXX_COMPILER_FLAG("-std=c++11" OD_CXX11_FLAG_SUPPORTED)
-        CHECK_CXX_COMPILER_FLAG("-std=gnu++11" OD_CXXGNU11_FLAG_SUPPORTED)
-        # MinGW supports CXX11 flag but do not compile with it. However, it works with gnu++11
-        if(OD_CXX11_FLAG_SUPPORTED AND NOT MINGW)
-            set(OD_CXX11_FLAGS "-std=c++11" CACHE STRING "Compilation flags to enable C++11 support" FORCE)
-        elseif(OD_CXX11_FLAG_SUPPORTED)
-            set(OD_CXX11_FLAGS "-std=gnu++11" CACHE STRING "Compilation flags to enable C++11 support" FORCE)
-        endif()
-    endif()
     if(OD_ENABLE_WARNINGS)
         # Help getting compilation warnings
         set(OD_OPT_FLAGS "${OD_OPT_FLAGS} -Wall -Wcast-align -Wcast-qual -Wctor-dtor-privacy -Wdisabled-optimization -Wold-style-cast")
@@ -210,7 +200,7 @@ if(OD_USE_SFML_WINDOW)
     add_definitions(-DOD_USE_SFML_WINDOW)
 endif()
 
-set(CMAKE_CXX_FLAGS "${OD_CXX11_FLAGS} ${OD_OPT_FLAGS} ${CMAKE_CXX_FLAGS}")
+set(CMAKE_CXX_FLAGS "${OD_OPT_FLAGS} ${CMAKE_CXX_FLAGS}")
 message(STATUS "CMake CXX Flags: " ${CMAKE_CXX_FLAGS})
 
 set(EXTRA_LIBRARIES "")
