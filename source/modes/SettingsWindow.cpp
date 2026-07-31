@@ -40,34 +40,8 @@
 
 #include <SFML/Audio/Listener.hpp>
 
-#include <iostream>
-
 namespace
 {
-void dumpWindowTree(CEGUI::Window* window, int depth = 0)
-{
-    if(window == nullptr)
-        return;
-
-    CEGUI::Vector2f pos = window->getPixelPosition();
-    CEGUI::Sizef size = window->getPixelSize();
-    std::string indent(depth * 2, ' ');
-    CEGUI::Rectf inner = window->getUnclippedInnerRect().get();
-    std::string msg = indent + "CEGUI window: " + std::string(window->getName().c_str()) +
-        " type: " + std::string(window->getType().c_str()) +
-        " visible: " + std::string(window->isVisible() ? "yes" : "no") +
-        " pos: [" + std::to_string(pos.d_x) + "," + std::to_string(pos.d_y) +
-        "] size: [" + std::to_string(size.d_width) + "," + std::to_string(size.d_height) + "]" +
-        " inner: [" + std::to_string(inner.left()) + "," + std::to_string(inner.top()) +
-        "," + std::to_string(inner.right()) + "," + std::to_string(inner.bottom()) + "]" +
-        " area: '" + std::string(window->getProperty("Area").c_str()) + "'" +
-        " text: '" + std::string(window->getText().c_str()) + "'";
-    std::cerr << msg << std::endl;
-
-    for(size_t i = 0; i < window->getChildCount(); ++i)
-        dumpWindowTree(window->getChildAtIdx(i), depth + 1);
-}
-
 float computeUiScale()
 {
     CEGUI::Sizef displaySize = CEGUI::System::getSingleton().getRenderer()->getDisplaySize();
@@ -657,8 +631,6 @@ void SettingsWindow::show()
         // Input only allowed on this window when visible.
         mSettingsWindow->setModalState(true);
         mSettingsWindow->show();
-        OD_LOG_INF("SettingsWindow tree dump:");
-        dumpWindowTree(mSettingsWindow);
     }
 }
 
