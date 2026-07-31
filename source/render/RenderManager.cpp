@@ -77,8 +77,14 @@
 
 namespace
 {
-    void buildTangentVectorsIfNeeded(Ogre::MeshPtr meshPtr)
+    void buildTangentVectorsIfNeeded(const Ogre::MeshPtr& meshPtr)
     {
+        if (!meshPtr)
+        {
+            OD_LOG_ERR("Cannot build tangent vectors for a null mesh");
+            return;
+        }
+
         unsigned short src;
         if (!meshPtr->suggestTangentVectorBuildParams(src))
             meshPtr->buildTangentVectors(src);
@@ -604,7 +610,7 @@ Ogre::Entity* RenderManager::addEntityMenu(const std::string& meshName, const st
     Ogre::MeshPtr meshPtr = Ogre::MeshManager::getSingleton().getByName(meshName,"Graphics");
 
     buildTangentVectorsIfNeeded(meshPtr);
-Ogre::Entity* ent = mSceneManager->createEntity(entityName, meshPtr);
+    Ogre::Entity* ent = mSceneManager->createEntity(entityName, meshPtr);
     
     Ogre::SceneNode* node = mMainMenuSceneNode->createChildSceneNode(ent->getName() + "_node");
     node->attachObject(ent);
@@ -993,7 +999,7 @@ void RenderManager::rrRefreshTile(Tile& tile, GameMap& draggableTileContainer, c
         Ogre::MeshManager::getSingleton().load(meshName,"Graphics");
     Ogre::MeshPtr meshPtr = Ogre::MeshManager::getSingleton().getByName(meshName,"Graphics");
     buildTangentVectorsIfNeeded(meshPtr);
-if((tileMeshEnt == nullptr) && !meshName.empty() )
+    if((tileMeshEnt == nullptr) && !meshName.empty() )
     {
 
 
@@ -1124,7 +1130,7 @@ if((tileMeshEnt == nullptr) && !meshName.empty() )
                 
                 Ogre::MeshPtr meshPtr = Ogre::MeshManager::getSingleton().getByName(meshName,"Graphics");
                 buildTangentVectorsIfNeeded(meshPtr);
-std::string customMeshNodeName = bridgeMeshName + (static_cast<bool>(nt) ?  "" : "_dtc" ) + "_node";
+                std::string customMeshNodeName = bridgeMeshName + (static_cast<bool>(nt) ?  "" : "_dtc" ) + "_node";
                 Ogre::SceneNode* customMeshNode;
                 if(!mSceneManager->hasSceneNode(customMeshNodeName))
                     customMeshNode = tile.getEntityNode()->createChildSceneNode(customMeshNodeName);
@@ -1332,7 +1338,7 @@ void RenderManager::rrCreateRenderedMovableEntity(RenderedMovableEntity* rendere
 
         Ogre::MeshPtr meshPtr = Ogre::MeshManager::getSingleton().getByName(meshName + ".mesh","Graphics");
         buildTangentVectorsIfNeeded(meshPtr);
-ent = mSceneManager->createEntity(tempString, meshPtr);
+        ent = mSceneManager->createEntity(tempString, meshPtr);
         node->attachObject(ent); 
     }
 
@@ -1439,7 +1445,7 @@ void RenderManager::rrCreateCreature(Creature* curCreature)
 
     Ogre::MeshPtr meshPtr = Ogre::MeshManager::getSingleton().getByName(meshName,"Graphics");
     buildTangentVectorsIfNeeded(meshPtr);
-std::string creatureName = curCreature->getOgreNamePrefix() + curCreature->getName();
+    std::string creatureName = curCreature->getOgreNamePrefix() + curCreature->getName();
     Ogre::Entity* ent = mSceneManager->createEntity(creatureName, meshPtr);
 
 
@@ -1978,11 +1984,7 @@ std::string RenderManager::colourizeMaterial(const std::string& materialName, co
     // std::cout << "\nCloning material:  " << tempSS.str();
 
     // If this texture has been copied and colourized, we can return
-#if defined(OGRE_VERSION) && OGRE_VERSION < 0x10A00
     if (requestedMaterial)
-#else
-    if (requestedMaterial)
-#endif
         return tempSS.str();
 
     // If not yet, then do so
@@ -1996,7 +1998,7 @@ std::string RenderManager::colourizeMaterial(const std::string& materialName, co
     //std::cout << "\nMaterial does not exist, creating a new one.";
     
     Ogre::MaterialPtr newMaterial = oldMaterial->clone(tempSS.str());
-    bool cloned = mShaderGenerator->cloneShaderBasedTechniques(*oldMaterial.get(), *newMaterial.get());
+    bool cloned = mShaderGenerator->cloneShaderBasedTechniques(*oldMaterial, *newMaterial);
 
     if(!cloned)
     {
@@ -2354,18 +2356,14 @@ std::string RenderManager::setMaterialOpacity(const std::string& materialName, f
     Ogre::MaterialPtr requestedMaterial = Ogre::MaterialManager::getSingleton().getByName(newMaterialName.str());
 
     // If this texture has been copied and colourized, we can return
-#if defined(OGRE_VERSION) && OGRE_VERSION < 0x10A00
     if (requestedMaterial)
-#else
-    if (requestedMaterial)
-#endif
         return newMaterialName.str();
 
     // If not yet, then do so
     Ogre::MaterialPtr oldMaterial = Ogre::MaterialManager::getSingleton().getByName(materialName);
     //std::cout << "\nMaterial does not exist, creating a new one.";
     Ogre::MaterialPtr newMaterial = oldMaterial->clone(newMaterialName.str());
-    bool cloned = mShaderGenerator->cloneShaderBasedTechniques(*oldMaterial.get(), *newMaterial.get());
+    bool cloned = mShaderGenerator->cloneShaderBasedTechniques(*oldMaterial, *newMaterial);
     if(!cloned)
     {
         OD_LOG_ERR("Failed to clone rtss for material: " + materialName);
@@ -2452,17 +2450,13 @@ std::string RenderManager::rrBuildTintedMaterial(const std::string& materialName
     Ogre::MaterialPtr requestedMaterial = Ogre::MaterialPtr(Ogre::MaterialManager::getSingleton().getByName(materialNameToUse));
 
     // If this texture has been copied and colourized, we can return
-#if defined(OGRE_VERSION) && OGRE_VERSION < 0x10A00
     if (requestedMaterial)
-#else
-    if (requestedMaterial)
-#endif
         return materialNameToUse;
 
     Ogre::MaterialPtr oldMaterial = Ogre::MaterialManager::getSingleton().getByName(materialNameBase);
 
     Ogre::MaterialPtr newMaterial = oldMaterial->clone(materialNameToUse);
-    if(!mShaderGenerator->cloneShaderBasedTechniques(*oldMaterial.get(), *newMaterial.get()))
+    if(!mShaderGenerator->cloneShaderBasedTechniques(*oldMaterial, *newMaterial))
     {
         OD_LOG_ERR("Failed to clone rtss for material: " + materialNameBase);
     }
