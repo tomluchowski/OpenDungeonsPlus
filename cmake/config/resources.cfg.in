@@ -1,8 +1,8 @@
 [OgreInternal]
 FileSystem=@OGRE_MEDIA_DIR@/Main
+FileSystem=@RTSHADER_DIR@
 
 [Graphics]
-FileSystem=@RTSHADER_DIR@
 FileSystem=materials/scripts
 FileSystem=materials/scripts/Creatures
 FileSystem=materials/textures
