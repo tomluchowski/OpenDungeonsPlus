@@ -90,6 +90,12 @@ public:
     inline const std::string& getUserDataPath() const
     { return mUserDataPath; }
 
+    //! \brief Where the default configuration and levels are read from. Either the
+    //! installed game data folder, or the copy extracted below the user data folder when
+    //! there is no installed one.
+    inline const std::string& getDefaultDataPath() const
+    { return mDefaultDataPath; }
+
     inline const std::string& getReplayDataPath() const
     { return mReplayPath; }
 
@@ -183,6 +189,15 @@ private:
     //! Same as home path + "cfg/" on Windows.
     std::string mUserConfigPath;
 
+    //! \brief Where the copies of the built-in configuration and levels are written when
+    //! no installed game data folder can be found.
+    //! \example "~/.local/share/opendungeons/gamedata/" on linux
+    std::string mUserGameDataPath;
+
+    //! \brief The folder the default configuration and the shipped levels are read from.
+    //! Either mGameDataPath or mUserGameDataPath, see setupDefaultDataPath().
+    std::string mDefaultDataPath;
+
     //! \brief Main files in the user data path
     std::string mUserConfigFile;
     std::string mOgreLogFile;
@@ -207,11 +222,13 @@ private:
     static const std::string SOUNDSUBPATH;
     static const std::string SCRIPTSUBPATH;
     static const std::string CONFIGSUBPATH;
+    static const std::string GAMEDATASUBPATH;
     static const std::string LANGUAGESUBPATH;
     static const std::string SHADERCACHESUBPATH;
     static const std::string LOGFILENAME;
     static const std::string CEGUILOGFILENAME;
     static const std::string USERCFGFILENAME;
+    static const std::string BUILTINVERSIONFILENAME;
 
     static const std::string RESOURCEGROUPMUSIC;
     static const std::string RESOURCEGROUPSOUND;
@@ -223,6 +240,24 @@ private:
     //! \note If game data path is found in the current folder,
     //! then the local data path will be used.
     void setupDataPath(boost::program_options::variables_map& options);
+
+    //! \brief Extracts the configuration and levels built into the executable into the
+    //! user data folder, and points the default data path at them.
+    //! \note Must run after both setupDataPath() and setupUserDataFolders().
+    void setupDefaultDataPath(boost::program_options::variables_map& options);
+
+    //! \brief Writes every file of BuiltinData that is not already in mUserGameDataPath.
+    //! Existing files are never touched: the folder belongs to the player.
+    //! \return the number of files written
+    uint32_t extractBuiltinData();
+
+    //! \brief Warns when the extracted data folder was written by another version of the
+    //! game, since extractBuiltinData() will not have refreshed it, then stamps it.
+    void checkBuiltinDataVersion();
+
+    //! \brief Handles the options that launch the game as a server. They name a level, so
+    //! this has to run once the default data path is known.
+    void setupServerMode(boost::program_options::variables_map& options);
 };
 
 #endif // RESOURCEMANAGER_H_

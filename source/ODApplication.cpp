@@ -79,6 +79,14 @@ void ODApplication::startGame(boost::program_options::variables_map& options)
 
     logMgr.setLevel(resMgr.getLogLevel());
 
+    // ResourceManager settles all of these before the file sink above exists, so its own
+    // traces never reach the log. Repeat them here: which folder the game ended up
+    // reading from is the first thing worth knowing when it cannot find its data.
+    OD_LOG_INF("Game data path: " + resMgr.getGameDataPath());
+    OD_LOG_INF("Default data path: " + resMgr.getDefaultDataPath());
+    OD_LOG_INF("User data path: " + resMgr.getUserDataPath());
+    OD_LOG_INF("User config file: " + resMgr.getUserCfgFile());
+
 
     if(resMgr.isServerMode())
         startServer();
