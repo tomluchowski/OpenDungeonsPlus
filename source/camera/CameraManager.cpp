@@ -68,6 +68,7 @@ CameraManager::CameraManager(Ogre::SceneManager* sceneManager, GameMap* gm, Ogre
     mGameMap(gm),
     mCameraIsFlying(false),
     mCameraFlightDestination(Ogre::Vector3(0.0, 0.0, 0.0)),
+    mCameraFlightDistance(Ogre::Math::POS_INFINITY),
     mCameraIsRotating(false),
     mCameraPitchDestination(0.0),
     mCameraRollDestination(0.0),
@@ -318,16 +319,7 @@ void CameraManager::updateCameraFrameTime(const Ogre::Real frameTime)
     else if (newPosition.z >= MAX_CAMERA_Z)
         newPosition.z = MAX_CAMERA_Z;
 
-    if (newPosition.x <= 0)
-        newPosition.x = 0;
-    else if (newPosition.x >= mGameMap->getMapSizeX())
-        newPosition.x = mGameMap->getMapSizeX();
-
-    if (newPosition.y <= 0)
-        newPosition.y = 0;
-    else if (newPosition.y >= mGameMap->getMapSizeY())
-        newPosition.y = mGameMap->getMapSizeY();
-
+    clampToMap(newPosition);
 
     // Prevent the tilting to show a reversed world or looking too high.
     if (mRotateLocalVector.x != 0)
@@ -377,7 +369,13 @@ void CameraManager::updateCameraFrameTime(const Ogre::Real frameTime)
         // If we are within the stopping distance of the target, then quit flying.
         // Otherwise we move towards the destination.
 
-        if (radius <= 0.25)
+        // Give up as well when a frame of flight brings the view target no closer than
+        // the frame before. The destination is then somewhere the camera cannot look,
+        // and flying on only pushes it against the map edge for clampToMap() to pull
+        // it back, every frame, forever.
+        bool isStalled = (frameTime > 0.0) && (radius >= mCameraFlightDistance);
+
+        if (radius <= 0.25 || isStalled)
         {
             // We are within the stopping distance of the target destination
             // so stop flying towards it.
@@ -390,6 +388,7 @@ void CameraManager::updateCameraFrameTime(const Ogre::Real frameTime)
             // this offset vector to the camera position.
             flightDirection *= std::min(FLIGHT_SPEED * frameTime, radius);
             newPosition += flightDirection;
+            mCameraFlightDistance = radius;
         }
     }
 
@@ -476,8 +475,45 @@ void CameraManager::updateCameraFrameTime(const Ogre::Real frameTime)
             mCatmullSplineMode = false;
     }
 
+    // Everything above may have moved the camera again after the first clamp: the
+    // flight, the circle and the spline all add to the position directly. Clamp once
+    // more so the camera is never placed off the map, not even for the one frame it
+    // would take the next clamp to pull it back.
+    clampToMap(newPosition);
+
     // Move the camera to the new location
     getActiveCameraNode()->setPosition(newPosition);
+}
+
+Ogre::Vector3 CameraManager::getGroundOffset(Ogre::Real height) const
+{
+    // Follow the view direction down to z = 0, the same way getCameraViewTarget()
+    // does, but for an arbitrary height rather than the current one.
+    Ogre::Vector3 cameraDirection = mActiveCamera->getDerivedDirection();
+    if (cameraDirection.z >= 0.0)
+        return Ogre::Vector3::ZERO;
+
+    cameraDirection /= fabs(cameraDirection.z);
+    Ogre::Vector3 offset = height * cameraDirection;
+    offset.z = 0.0;
+    return offset;
+}
+
+void CameraManager::clampToMap(Ogre::Vector3& position) const
+{
+    // Keep the point the camera actually looks at inside the map, rather than the
+    // camera's own position. The camera is pitched (DEFAULT_X_AXIS_VIEW is 25 degrees
+    // off vertical), so its ground target lies z * tan(pitch) ahead of it, which with z
+    // between MIN_CAMERA_Z and MAX_CAMERA_Z is several tiles. Clamping the position
+    // alone let the view scroll past one edge of the map while stopping short of the
+    // opposite one, by exactly twice that offset.
+    Ogre::Vector3 groundOffset = getGroundOffset(position.z);
+
+    const Ogre::Real maxX = static_cast<Ogre::Real>(mGameMap->getMapSizeX()) - groundOffset.x;
+    const Ogre::Real maxY = static_cast<Ogre::Real>(mGameMap->getMapSizeY()) - groundOffset.y;
+
+    position.x = std::min(std::max(position.x, -groundOffset.x), maxX);
+    position.y = std::min(std::max(position.y, -groundOffset.y), maxY);
 }
 
 Ogre::Vector3 CameraManager::getCameraViewTarget() const
@@ -525,8 +561,19 @@ void CameraManager::resetCamera(const Ogre::Vector3& position)
 
 void CameraManager::flyTo(const Ogre::Vector3& destination)
 {
+    // clampToMap() keeps the camera's view target on the map, so a destination outside
+    // it is one the camera can never arrive at. A click near the border of the minimap
+    // names exactly that whenever the minimap shows ground past the map edge, and the
+    // camera then flew at that point for the rest of the game, never arriving. Aim at
+    // the nearest point on the map instead.
+    mCameraFlightDestination.x = std::min(std::max(destination.x, static_cast<Ogre::Real>(0.0)),
+        static_cast<Ogre::Real>(mGameMap->getMapSizeX()));
+    mCameraFlightDestination.y = std::min(std::max(destination.y, static_cast<Ogre::Real>(0.0)),
+        static_cast<Ogre::Real>(mGameMap->getMapSizeY()));
+    mCameraFlightDestination.z = destination.z;
+
     mCameraIsFlying = true;
-    mCameraFlightDestination = destination;
+    mCameraFlightDistance = Ogre::Math::POS_INFINITY;
 }
 
 void CameraManager::onMiniMapClick(Ogre::Vector2 cc)
