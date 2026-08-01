@@ -116,18 +116,24 @@ void SpellManager::write(const Spell& spell, std::ostream& os)
     spell.exportToStream(os);
 }
 
-void SpellManager::checkSpellCast(GameMap* gameMap, SpellType type, const InputManager& inputManager, InputCommand& inputCommand)
+bool SpellManager::checkSpellCooldown(GameMap* gameMap, SpellType type, InputCommand& inputCommand)
 {
     Player* player = gameMap->getLocalPlayer();
     float cooldown = player->getSpellCooldownSmoothTime(type);
-    if(cooldown > 0)
-    {
-        std::string errorStr = getSpellNameFromSpellType(type)
-            + " (" + Helper::toString(cooldown, 2)+ " s)";
+    if(cooldown <= 0)
+        return false;
 
-        inputCommand.displayText(Ogre::ColourValue::Red, errorStr);
+    std::string errorStr = getSpellNameFromSpellType(type)
+        + " (" + Helper::toString(cooldown, 2)+ " s)";
+
+    inputCommand.displayText(Ogre::ColourValue::Red, errorStr);
+    return true;
+}
+
+void SpellManager::checkSpellCast(GameMap* gameMap, SpellType type, const InputManager& inputManager, InputCommand& inputCommand)
+{
+    if(checkSpellCooldown(gameMap, type, inputCommand))
         return;
-    }
 
     std::vector<const SpellFactory*>& factories = getFactories();
     uint32_t index = static_cast<uint32_t>(type);

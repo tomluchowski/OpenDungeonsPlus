@@ -68,6 +68,13 @@ public:
     //! will be called with the data from the client and it should cast the spell if it is validated.
     static void checkSpellCast(GameMap* gameMap, SpellType type, const InputManager& inputManager, InputCommand& inputCommand);
 
+    //! \brief Called on client side. If the local player cannot cast the given spell yet, displays
+    //! how long is left before he can and returns true. Displays nothing and returns false otherwise.
+    //! This is the part of checkSpellCast that changes on its own while the player does nothing, so
+    //! it can be called on every frame to keep the countdown ticking. Unlike checkSpellCast, it never
+    //! casts anything, whatever the state of the input.
+    static bool checkSpellCooldown(GameMap* gameMap, SpellType type, InputCommand& inputCommand);
+
     //! \brief Called on server side. Casts the spell according to the information in the packet
     //! returns true if the spell was correctly cast and false otherwise
     //! Note that this function does not set the cooldown
