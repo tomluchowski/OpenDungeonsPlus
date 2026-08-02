@@ -293,10 +293,12 @@ void Seat::notifyTileClaimedByEnemy(Tile* tile)
         std::map<Tile*,TileStateNotified>::iterator jj =  mDraggableTilesStates.find(tile);
         if(   jj != mDraggableTilesStates.end() )
         {
-            // By default, we set the tile like if it was not claimed anymore
-            ii->second.mSeatIdOwner = -1;
-            ii->second.mTileVisual = TileVisual::dirtGround;
-            ii->second.mVisionTurnCurrent = true;
+            // By default, we set the tile like if it was not claimed anymore.
+            // Through jj: ii is the end of the other map here, and writing through it was
+            // reading past it.
+            jj->second.mSeatIdOwner = -1;
+            jj->second.mTileVisual = TileVisual::dirtGround;
+            jj->second.mVisionTurnCurrent = true;
         }
         
     }   
@@ -369,7 +371,8 @@ bool Seat::hasVisionOnTile(Tile* tile)
         std::map<Tile*,TileStateNotified>::iterator jj =  mDraggableTilesStates.find(tile);
         if(   jj != mDraggableTilesStates.end() )
         {
-            return ii->second.mVisionTurnCurrent;
+            // Through jj: ii is the end of the other map here
+            return jj->second.mVisionTurnCurrent;
         }
         
     }   
@@ -1363,11 +1366,13 @@ bool Seat::exportSeatToStream(std::ostream& os) const
     os << "[/markedTiles]" << std::endl;
 
     os << "[EverVisitedTiles]" << std::endl;
-    for(int xx = 0 ; xx < mGameMap->getMapSizeY(); ++xx)
+    // The pool has one row per column of the map, so the first loop is bounded by the width.
+    // Walking it up to the height read past the end of the array on any map taller than it
+    // is wide, which is what saving a game on such a map used to crash on.
+    for(int xx = 0 ; xx < mGameMap->getMapSizeX(); ++xx)
     {
         for(int yy = 0 ; yy < mGameMap->getMapSizeY(); ++yy)
         {
-      
             if(mGameMap->everVisitedFlagPool[xx][yy][mId])
                 os << xx << " " << yy << std::endl;
         }
@@ -1645,11 +1650,24 @@ void Seat::setSkillTree(const std::vector<SkillType>& skills)
     }
 }
 
+TileStateNotified* Seat::getTileStateNotified(Tile* tile)
+{
+    auto it = mTilesStates.find(tile);
+    if(it != mTilesStates.end())
+        return &it->second;
+
+    it = mDraggableTilesStates.find(tile);
+    if(it != mDraggableTilesStates.end())
+        return &it->second;
+
+    return nullptr;
+}
+
 void Seat::updateTileStateForSeat(Tile* tile, bool hideSeatId)
 {
-
-    TileStateNotified& tileState = mTilesStates[tile];
-
+    // Looking the tile up with operator[] used to create a default state for it in the game
+    // map even when it belonged to the draggable container, and the update below then went
+    // to that stray entry rather than to the container's own.
     std::map<Tile*,TileStateNotified>::iterator jj =  mTilesStates.find(tile);
     if(   jj == mTilesStates.end() )
     {
@@ -1737,13 +1755,18 @@ void Seat::setVisibleBuildingOnTile(Building* building, Tile* tile)
     if(!getPlayer()->getIsHuman())
         return;
 
-    TileStateNotified& tileState = mTilesStates[tile];
+    TileStateNotified* tileState = getTileStateNotified(tile);
+    if(tileState == nullptr)
+    {
+        OD_LOG_ERR("Tile=" + Tile::displayAsString(tile));
+        return;
+    }
 
-    if(building == tileState.mBuilding)
+    if(building == tileState->mBuilding)
         return;
 
-    tileState.mBuilding = building;
-    tileState.mSeatIdOwner = building->getSeat()->getId();
+    tileState->mBuilding = building;
+    tileState->mSeatIdOwner = building->getSeat()->getId();
 }
 
 void Seat::exportTileToPacket(ODPacket& os, Tile* tile,
@@ -1761,7 +1784,16 @@ void Seat::exportTileToPacket(ODPacket& os, Tile* tile,
     }
 
 
-    TileStateNotified& tileState = mTilesStates[tile];
+    // A tile in neither map used to get a default state created for it in the game map;
+    // exporting a default is kept, creating the entry is not.
+    TileStateNotified defaultState;
+    TileStateNotified* tileStatePtr = getTileStateNotified(tile);
+    if(tileStatePtr == nullptr)
+    {
+        OD_LOG_ERR("Tile=" + Tile::displayAsString(tile));
+        tileStatePtr = &defaultState;
+    }
+    TileStateNotified& tileState = *tileStatePtr;
 
     int tileSeatId = -1;
     // We only pass the tile seat to the client if the tile is fully claimed
@@ -1858,9 +1890,14 @@ void Seat::notifyBuildingRemovedFromGameMap(Building* building, Tile* tile)
         return;
     if(!getPlayer()->getIsHuman())
         return;
-    TileStateNotified& tileState = mTilesStates[tile];
-    if(tileState.mBuilding == building)
-        tileState.mBuilding = nullptr;
+    TileStateNotified* tileState = getTileStateNotified(tile);
+    if(tileState == nullptr)
+    {
+        OD_LOG_ERR("Tile=" + Tile::displayAsString(tile));
+        return;
+    }
+    if(tileState->mBuilding == building)
+        tileState->mBuilding = nullptr;
 }
 
 void Seat::tileMarkedDiggingNotifiedToPlayer(Tile* tile, bool isDigSet)
@@ -1870,8 +1907,13 @@ void Seat::tileMarkedDiggingNotifiedToPlayer(Tile* tile, bool isDigSet)
     if(!getPlayer()->getIsHuman())
         return;
 
-    TileStateNotified& tileState = mTilesStates[tile];
-    tileState.mMarkedForDigging = isDigSet;
+    TileStateNotified* tileState = getTileStateNotified(tile);
+    if(tileState == nullptr)
+    {
+        OD_LOG_ERR("Tile=" + Tile::displayAsString(tile));
+        return;
+    }
+    tileState->mMarkedForDigging = isDigSet;
 }
 
 bool Seat::isTileDiggableForClient(Tile* tile) const

@@ -373,6 +373,12 @@ private:
     std::map<Tile*,TileStateNotified> mTilesStates;
     std::map<Tile*,TileStateNotified> mDraggableTilesStates;    
 
+    //! \brief The notified state of the tile, whether it belongs to the game map or to the
+    //! draggable container, or nullptr if it belongs to neither. Never inserts anything:
+    //! both maps are filled once, when their container is sized, and a tile missing from
+    //! both is a tile of a container this seat was never told about.
+    TileStateNotified* getTileStateNotified(Tile* tile);
+
     std::map<std::pair<int, int>, TileStateNotified> mTilesStateLoaded;
 
     std::vector<Tile*> mVisualDebugEntityTiles;

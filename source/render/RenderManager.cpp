@@ -311,23 +311,27 @@ void RenderManager::initGameRenderer(GameMap* gameMap)
     mRenderTarget->setAutoUpdated(false);
 
     // Update the render target (for a correct first frame)
+    // getOverlayStatus() is null for every creature whose mesh is not currently created,
+    // so it has to be checked the same way ODFrameListener::frameStarted() does. Remember
+    // the overlays actually hidden rather than walking the creature list a second time:
+    // two loops kept in lockstep only agree as long as nothing changes in between.
     // preRenderTargetUpdate:
-    std::vector<bool> mTemporaryWasVisible;
-    for (int i = 0; i < gameMap->getCreatures().size(); i++)
+    std::vector<MovableTextOverlay*> temporaryHiddenOverlays;
+    for (Creature* creature : gameMap->getCreatures())
     {
-        CreatureOverlayStatus* tmp = gameMap->getCreatures()[i]->getOverlayStatus();
-        mTemporaryWasVisible.push_back(tmp->getMovableTextOverlay()->isVisible());
-        tmp->getMovableTextOverlay()->setVisible(false);
+        CreatureOverlayStatus* overlayStatus = creature->getOverlayStatus();
+        if(overlayStatus == nullptr)
+            continue;
+        MovableTextOverlay* overlay = overlayStatus->getMovableTextOverlay();
+        if(overlay == nullptr || !overlay->isVisible())
+            continue;
+        overlay->setVisible(false);
+        temporaryHiddenOverlays.push_back(overlay);
     }
     mRenderTarget->update();
     // postRenderTargetUpdate:
-    int tmpItr = 0;
-    for (int i = 0; i < gameMap->getCreatures().size() ; i++)
-    {
-        CreatureOverlayStatus* tmp = gameMap->getCreatures()[i]->getOverlayStatus();
-        tmp->getMovableTextOverlay()->setVisible(mTemporaryWasVisible[tmpItr++]);
-    }        
-    mTemporaryWasVisible.clear();    
+    for (MovableTextOverlay* overlay : temporaryHiddenOverlays)
+        overlay->setVisible(true);    
     
     Ogre::MaterialPtr mSmokeMaterial = Ogre::MaterialManager::getSingleton().getByName("Examples/Smoke");
     mSmokeMaterial->getTechnique(0)->getPass(0)->getTextureUnitState(1)->setTexture(m_texture);

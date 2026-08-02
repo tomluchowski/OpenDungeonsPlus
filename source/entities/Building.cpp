@@ -135,7 +135,7 @@ bool Building::canBuildingBeRemoved()
     if(mBuildingObjects.empty())
         return ret;
 
-    for (const std::pair<Tile* const, RenderedMovableEntity*>& p : mBuildingObjects)
+    for (const std::pair<Tile* const, BuildingObject*>& p : mBuildingObjects)
     {
         RenderedMovableEntity* obj = p.second;
         if(!obj->notifyRemoveAsked())
