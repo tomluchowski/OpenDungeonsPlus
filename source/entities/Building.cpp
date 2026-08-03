@@ -69,6 +69,9 @@ void Building::doUpkeep()
 
         updateActiveSpots();
         createMesh();
+
+        // Destroying the tiles in the middle of a building leaves the rest of it in pieces
+        checkForSplit();
     }
 }
 

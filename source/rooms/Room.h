@@ -57,6 +57,12 @@ public:
     //! should be overriden
     virtual void handleCreatureUsingAbsorbedRoom(Creature& creature);
 
+    //! \brief Called on the room the tiles are leaving once they have been handed over, so
+    //! that a room keeping something for the room as a whole, rather than per tile, can give
+    //! the new one its share. Anything held in the tile data moves with the tile on its own.
+    virtual void splitRoom(Room& newRoom, const std::vector<Tile*>& tiles)
+    {}
+
     static std::string getRoomStreamFormat();
 
     virtual RoomType getType() const = 0;
@@ -95,6 +101,13 @@ public:
     //! \brief Checks on the neighboor tiles of the room if there are other rooms of the same type/same seat.
     //! if so, it aborbs them
     void checkForRoomAbsorbtion();
+
+    //! \brief The counterpart of checkForRoomAbsorbtion: checks whether the covered tiles
+    //! still hold together and, if they do not, moves every group but the biggest into a room
+    //! of its own. Losing tiles in the middle, by selling or by destruction, leaves what is
+    //! left looking like one room while being two, and everything done to a room is then done
+    //! to both: claiming one half of a bridge used to claim the other half across the lava.
+    void checkForSplit() override;
 
     //! \brief returns true if the room can be repaired and there are destroyed tiles. false otherwise.
     bool canBeRepaired() const;

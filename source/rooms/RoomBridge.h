@@ -63,6 +63,10 @@ public:
     virtual double getCreatureSpeed(const Creature* creature, Tile* tile) const override;
 
     virtual void absorbRoom(Room *r) override;
+
+    //! \brief The value an enemy worker has to dance away to take the bridge is held for the
+    //! bridge as a whole, so a bridge cut in two has to share it out.
+    virtual void splitRoom(Room& newRoom, const std::vector<Tile*>& tiles) override;
     virtual bool removeCoveredTile(Tile* t) override;
 
 protected:

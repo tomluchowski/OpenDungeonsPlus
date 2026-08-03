@@ -451,6 +451,20 @@ bool RoomManager::buildRoomOnTiles(GameMap* gameMap, RoomType type, Player* play
 }
 
 
+Room* RoomManager::createRoom(GameMap* gameMap, RoomType type)
+{
+    std::vector<const RoomFactory*>& factories = getFactories();
+    uint32_t index = static_cast<uint32_t>(type);
+    if(index >= factories.size())
+    {
+        OD_LOG_ERR("type=" + Helper::toString(index) + ", factories.size=" + Helper::toString(factories.size()));
+        return nullptr;
+    }
+
+    const RoomFactory& factory = *factories[index];
+    return factory.createRoom(gameMap);
+}
+
 const std::string& RoomManager::getRoomNameFromRoomType(RoomType type)
 {
     std::vector<const RoomFactory*>& factories = getFactories();
@@ -634,7 +648,11 @@ void RoomManager::sellRoomTiles(GameMap* gameMap, Player* player, ODPacket& pack
 
     // We update active spots of each impacted rooms
     for(Room* room : rooms)
+    {
         room->updateActiveSpots(gameMap);
+        // Selling the tiles that joined the two ends of a room leaves two rooms
+        room->checkForSplit();
+    }
 }
 
 std::string RoomManager::formatSellRoom(int price)
@@ -764,7 +782,10 @@ void RoomManager::sellRoomTilesEditor(GameMap* gameMap, ODPacket& packet)
 
     // We update active spots of each impacted rooms
     for(Room* room : rooms)
+    {
         room->updateActiveSpots(gameMap);
+        room->checkForSplit();
+    }
 }
 
 int RoomManager::costPerTile(RoomType type)
