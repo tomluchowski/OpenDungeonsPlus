@@ -2558,90 +2558,14 @@ void Creature::checkStandsOnWalkableTile()
         return;
     }
 
-    // A null move speed is used for everything, including the creature's own movement, so
-    // a creature standing where it cannot walk is stuck there for good. That happens when
-    // the bridge it was standing on is sold or destroyed under its feet.
-    Tile* tileDest = findClosestWalkableTile();
-    if(tileDest == nullptr)
-    {
-        OD_LOG_INF("creature=" + getName() + " is stuck on tile=" + Tile::displayAsString(myTile)
-            + " with nowhere to stand nearby");
-        return;
-    }
-
-    OD_LOG_INF("creature=" + getName() + " cannot stand on tile=" + Tile::displayAsString(myTile)
-        + " anymore, moving it to tile=" + Tile::displayAsString(tileDest));
+    // The creature cannot go through this tile, or canGoThroughTile above would have
+    // accepted it, so it cannot live in what it is now standing in. It does not get
+    // fished out or teleported ashore: it drowns, or burns.
+    OD_LOG_INF("creature=" + getName() + " lost the ground under its feet on tile="
+        + Tile::displayAsString(myTile) + " and dies");
 
     clearDestinations(EntityAnimation::idle_anim, true, true);
-    teleportToTile(tileDest);
-}
-
-Tile* Creature::findClosestWalkableTile() const
-{
-    Tile* myTile = getPositionTile();
-    if(myTile == nullptr)
-        return nullptr;
-
-    // Search ring by ring around the creature and keep the closest tile of the first ring
-    // that has any. A bridge is at most a few tiles from a shore, so there is no point in
-    // looking very far: if nothing is found, the creature is in the middle of a lake and
-    // dropping it on the far bank would be worse than leaving it where it is.
-    const int32_t maxRadius = 5;
-    for(int32_t radius = 1; radius <= maxRadius; ++radius)
-    {
-        Tile* tileClosest = nullptr;
-        int32_t distClosest = 0;
-        for(int32_t xx = myTile->getX() - radius; xx <= myTile->getX() + radius; ++xx)
-        {
-            for(int32_t yy = myTile->getY() - radius; yy <= myTile->getY() + radius; ++yy)
-            {
-                // Only the tiles on the ring itself, the ones within it were checked by a
-                // previous round
-                if((std::abs(xx - myTile->getX()) != radius) &&
-                   (std::abs(yy - myTile->getY()) != radius))
-                {
-                    continue;
-                }
-
-                Tile* tile = getGameMap()->getTile(xx, yy);
-                if(!canGoThroughTile(tile))
-                    continue;
-
-                int32_t dist = Pathfinding::squaredDistanceTile(*myTile, *tile);
-                if((tileClosest != nullptr) && (dist >= distClosest))
-                    continue;
-
-                tileClosest = tile;
-                distClosest = dist;
-            }
-        }
-
-        if(tileClosest != nullptr)
-            return tileClosest;
-    }
-
-    return nullptr;
-}
-
-void Creature::teleportToTile(Tile* tile)
-{
-    // Keep the height we are at: flying creatures do not walk at ground level
-    Ogre::Vector3 dest(static_cast<Ogre::Real>(tile->getX()),
-        static_cast<Ogre::Real>(tile->getY()), getPosition().z);
-    setPosition(dest);
-
-    for(Seat* seat : mSeatsWithVisionNotified)
-    {
-        if(seat->getPlayer() == nullptr)
-            continue;
-        if(!seat->getPlayer()->getIsHuman())
-            continue;
-
-        ServerNotification* serverNotification = new ServerNotification(
-            ServerNotificationType::entityTeleported, seat->getPlayer());
-        serverNotification->mPacket << getName() << dest;
-        ODServer::getSingleton().queueServerNotification(serverNotification);
-    }
+    takeDamage(nullptr, getHP(), 0.0, 0.0, 0.0, myTile, false);
 }
 
 bool Creature::wanderRandomly(const std::string& animationState)
