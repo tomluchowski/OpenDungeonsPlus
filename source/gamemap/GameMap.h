@@ -415,6 +415,11 @@ public:
     //! \brief Updates the different entities animations.
     void updateAnimations(Ogre::Real timeSinceLastFrame);
 
+    //! \brief Client side. Puts the labels back over the creatures they belong to. They
+    //! are placed on the screen, so they have to follow the camera even when the game is
+    //! not running.
+    void updateCreatureOverlays(Ogre::Real timeSinceLastFrame);
+
     inline int64_t getTurnNumber() const
     { return mTurnNumber; }
 
