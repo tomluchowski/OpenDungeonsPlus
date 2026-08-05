@@ -119,6 +119,7 @@ public:
     static const std::string EDITOR_CURSOR_POS;
     static const std::string EDITOR_SEAT_ID;
     static const std::string EDITOR_CREATURE_SPAWN;
+    static const std::string EDITOR_LEVEL_NAME;
     static const std::string EDITOR_MAPLIGHT_BUTTON;
     static const std::string EXIT_CONFIRMATION_POPUP;
     static const std::string EXIT_CONFIRMATION_POPUP_YES_BUTTON;

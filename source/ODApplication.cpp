@@ -79,6 +79,14 @@ void ODApplication::startGame(boost::program_options::variables_map& options)
 
     logMgr.setLevel(resMgr.getLogLevel());
 
+    // ResourceManager settles all of these before the file sink above exists, so its own
+    // traces never reach the log. Repeat them here: which folder the game ended up
+    // reading from is the first thing worth knowing when it cannot find its data.
+    OD_LOG_INF("Game data path: " + resMgr.getGameDataPath());
+    OD_LOG_INF("Default data path: " + resMgr.getDefaultDataPath());
+    OD_LOG_INF("User data path: " + resMgr.getUserDataPath());
+    OD_LOG_INF("User config file: " + resMgr.getUserCfgFile());
+
 
     if(resMgr.isServerMode())
         startServer();
@@ -235,7 +243,11 @@ void ODApplication::startClient()
     HWND hwnd;
     renderWindow->getCustomAttribute("WINDOW", static_cast<void*>(&hwnd));
     HINSTANCE hInst = static_cast<HINSTANCE>(GetModuleHandle(nullptr));
-    SetClassLong(hwnd, GCL_HICON, reinterpret_cast<LONG>(LoadIcon(hInst, MAKEINTRESOURCE(IDI_ICON1))));
+    // SetClassLong takes a 32 bit value, so casting the icon handle to one only works
+    // while a handle is 32 bits wide: a 64 bit build does not compile. The Ptr form is
+    // the same call on a 32 bit build and the right one on a 64 bit build.
+    SetClassLongPtr(hwnd, GCLP_HICON,
+        reinterpret_cast<LONG_PTR>(LoadIcon(hInst, MAKEINTRESOURCE(IDI_ICON1))));
 #endif
 
     //Initialise RTshader system

@@ -44,6 +44,7 @@
 #include "network/ServerNotification.h"
 #include "render/ODFrameListener.h"
 #include "render/RenderManager.h"
+#include "rooms/RoomPortalWave.h"
 #include "sound/MusicPlayer.h"
 #include "sound/SoundEffectsManager.h"
 #include "spells/SpellType.h"
@@ -608,8 +609,13 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
             
             OD_ASSERT_TRUE(packetReceived >> objName >> dest);
             MovableGameEntity *obj = gameMap->getAnimatedObject(objName);
+            if (obj == nullptr)
+            {
+                OD_LOG_ERR("Server told us to teleport unknown entity name=" + objName);
+                break;
+            }
             obj->setPosition(dest);
-            
+
             break;
         }
         case ServerNotificationType::entitySlapped:
@@ -1327,9 +1333,25 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
                 em->displayText(Ogre::ColourValue::Red,text);
 
             }
- 
+
             break;
 
+        }
+
+        case ServerNotificationType::editorPortalWaveData:
+        {
+            if(frameListener->getModeManager()->getCurrentModeType() != ModeManager::ModeType::EDITOR)
+            {
+                OD_LOG_ERR("Wrong mode " + Helper::toString(frameListener->getModeManager()->getCurrentModeType()));
+                break;
+            }
+            std::string roomName;
+            RoomPortalWaveConfig config;
+            OD_ASSERT_TRUE(packetReceived >> roomName >> config);
+
+            EditorMode* editorMode = static_cast<EditorMode*>(frameListener->getModeManager()->getCurrentMode());
+            editorMode->showPortalWaveWindow(roomName, config);
+            break;
         }
 
         default:

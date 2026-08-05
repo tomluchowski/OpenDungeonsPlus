@@ -121,6 +121,12 @@ std::string ClientNotification::typeString(ClientNotificationType type)
             return "editorCreateFighter";
         case ClientNotificationType::editorAskCreateMapLight:
             return "editorAskCreateMapLight";
+        case ClientNotificationType::editorSetCreatureLevel:
+            return "editorSetCreatureLevel";
+        case ClientNotificationType::editorAskPortalWaveData:
+            return "editorAskPortalWaveData";
+        case ClientNotificationType::editorSetPortalWaveData:
+            return "editorSetPortalWaveData";
         default:
             OD_LOG_ERR("Unknown enum for ClientNotificationType="
                 + Helper::toString(static_cast<int>(type)));

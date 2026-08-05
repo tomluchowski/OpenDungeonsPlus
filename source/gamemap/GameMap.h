@@ -283,6 +283,7 @@ public:
     bool addSeat(Seat* s);
 
     int nextSeatId(int SeatId);
+    int previousSeatId(int SeatId);
 
     void clearFilledSeats();
     void clearAiManager();

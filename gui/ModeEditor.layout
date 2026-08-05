@@ -70,6 +70,9 @@
                 <Property name="Text" value="Help"/>
                 <Property name="Area" value="{{0,0},{0,10},{0,0},{0,20}}" />
                 <Window type="OD/PopupMenu" name="PopupMenu6">
+                    <Window type="OD/MenuItem" name="Controls">
+                        <Property name="Text" value="Controls"/>     
+                    </Window>
                     <Window type="OD/MenuItem" name="About">
                         <Property name="Text" value="About"/>     
                     </Window>
@@ -152,8 +155,8 @@
             </Window>
             <Window type="OD/StaticText" name="CreatureSpawnDisplay" >
                 <Property name="AlwaysOnTop" value="True" />
-                <Property name="Area" value="{{0,570},{0,0},{0,780},{0,25}}" />
-                <Property name="Text" value="Creature (C): ?" />
+                <Property name="Area" value="{{0,570},{0,0},{0,800},{0,25}}" />
+                <Property name="Text" value="Creature (C): ?, level (L): 1" />
                 <Property name="MaxSize" value="{{1,0},{1,0}}" />
                 <Property name="TooltipText" value="Selected Creature to spawn" />
                 <Property name="HorzFormatting" value="RightAligned" />
@@ -171,6 +174,15 @@
                     <Property name="VerticalAlignment" value="Centered" />
                 </Window>
             </Window>
+        </Window>
+        <Window type="OD/StaticText" name="LevelNameDisplay" >
+            <Property name="AlwaysOnTop" value="True" />
+            <Property name="Area" value="{{1,-330},{0,32},{1,-5},{0,57}}" />
+            <Property name="Text" value="Level: " />
+            <Property name="MaxSize" value="{{1,0},{1,0}}" />
+            <Property name="TooltipText" value="The level being edited" />
+            <Property name="HorzFormatting" value="RightAligned" />
+            <Property name="ClippedByParent" value="False" />
         </Window>
         <Window type="OD/ImageButton" name="OptionsButton" >
             <Property name="Area" value="{{1,-27},{0,5},{1,-2},{0,30}}" />
@@ -258,6 +270,8 @@
             </Window>
         </Window>
         <LayoutImport type="DefaultWindow" filename="WindowEditorOptions.layout" name="EditorOptionsMenuImport" />
+        <LayoutImport type="DefaultWindow" filename="WindowEditorHelp.layout" name="EditorHelpImport" />
+        <LayoutImport type="DefaultWindow" filename="WindowEditorPortalWaves.layout" name="EditorPortalWavesImport" />
         <LayoutImport type="DefaultWindow" filename="WindowQuit.layout" name="EditorQuitMenuImport" />
         <LayoutImport type="DefaultWindow" filename="LoadConfirm.layout" name="EditorConfirmLoadImport" />
         <LayoutImport type="DefaultWindow" filename="WindowEvent.layout" name="EventWindowImport" />

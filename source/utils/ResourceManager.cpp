@@ -51,10 +51,34 @@
 #include <OgreGpuProgramManager.h>
 #include <OgreFileSystemLayer.h>
 
+#include "utils/BuiltinData.h"
 #include "utils/LogManager.h"
 #include "utils/Helper.h"
 
 #include <boost/program_options.hpp>
+
+#include <fstream>
+
+//! \brief Stamped into the extracted data folder so an upgrade can be noticed.
+#ifdef OD_VERSION
+#define OD_BUILTIN_DATA_VERSION OD_VERSION
+#else
+#define OD_BUILTIN_DATA_VERSION "undefined"
+#endif
+
+namespace
+{
+    //! \brief Whether the character ends a folder name. Windows takes both, and the paths
+    //! here are a mix: some are built with '/', some come from the system or the player.
+    bool isDirectorySeparator(char c)
+    {
+#if OGRE_PLATFORM == OGRE_PLATFORM_WIN32
+        return (c == '/') || (c == '\\');
+#else
+        return c == '/';
+#endif
+    }
+}
 
 template<> ResourceManager* Ogre::Singleton<ResourceManager>::msSingleton = nullptr;
 #if OGRE_PLATFORM == OGRE_PLATFORM_WIN32 && defined(OD_DEBUG)
@@ -67,12 +91,14 @@ const std::string ResourceManager::RESOURCECFG = "resources.cfg";
 const std::string ResourceManager::MUSICSUBPATH = "music/";
 const std::string ResourceManager::SOUNDSUBPATH = "sounds/";
 const std::string ResourceManager::CONFIGSUBPATH = "config/";
+const std::string ResourceManager::GAMEDATASUBPATH = "gamedata/";
 const std::string ResourceManager::SCRIPTSUBPATH = "scripts/";
 const std::string ResourceManager::LANGUAGESUBPATH = "lang/";
 const std::string ResourceManager::SHADERCACHESUBPATH = "shaderCache/";
 const std::string ResourceManager::LOGFILENAME = "opendungeons.log";
 const std::string ResourceManager::CEGUILOGFILENAME = "CEGUI.log";
 const std::string ResourceManager::USERCFGFILENAME = "config.cfg";
+const std::string ResourceManager::BUILTINVERSIONFILENAME = "VERSION";
 
 const std::string ResourceManager::RESOURCEGROUPMUSIC = "Music";
 const std::string ResourceManager::RESOURCEGROUPSOUND = "Sound";
@@ -94,6 +120,9 @@ ResourceManager::ResourceManager(boost::program_options::variables_map& options)
 {
     setupDataPath(options);
     setupUserDataFolders(options);
+    setupDefaultDataPath(options);
+    // Needs the level paths, which setupDefaultDataPath() has just settled.
+    setupServerMode(options);
 }
 
 void ResourceManager::setupDataPath(boost::program_options::variables_map& options)
@@ -115,7 +144,8 @@ void ResourceManager::setupDataPath(boost::program_options::variables_map& optio
     CFRelease(mainBundleURL);
     CFRelease(cfStringRef);
 
-    mMacBundlePath = std::string(applePath + "/");
+    // Not applePath + "/": that is a pointer plus a pointer, which does not compile.
+    mMacBundlePath = std::string(applePath) + "/";
 
     mGameDataPath = mMacBundlePath + "Contents/Resources/";
 #else // Windows and linux
@@ -130,7 +160,7 @@ void ResourceManager::setupDataPath(boost::program_options::variables_map& optio
     if(!path.empty())
     {
         mGameDataPath = path;
-        if (*mGameDataPath.rbegin() != '/')
+        if (!isDirectorySeparator(*mGameDataPath.rbegin()))
         {
             mGameDataPath.append("/");
         }
@@ -184,10 +214,204 @@ void ResourceManager::setupDataPath(boost::program_options::variables_map& optio
     OD_LOG_INF( PLUGINSCFG + " path is: " + mPluginsPath + '\n');
 
     mScriptPath = mGameDataPath + SCRIPTSUBPATH;
-    mConfigPath = mGameDataPath + CONFIGSUBPATH;
     mSoundPath = mGameDataPath + SOUNDSUBPATH;
     mMusicPath = mGameDataPath + MUSICSUBPATH;
     mLanguagePath = mGameDataPath + LANGUAGESUBPATH;
+
+    // mConfigPath is not set here: where the configuration comes from also depends on the
+    // user data folder, so setupDefaultDataPath() settles it once both are known.
+}
+
+void ResourceManager::setupDefaultDataPath(boost::program_options::variables_map& options)
+{
+    mUserGameDataPath = mUserDataPath + GAMEDATASUBPATH;
+
+    // Reading the configuration and the shipped levels out of a folder the player owns is
+    // what makes the game independent from a system wide data folder: it no longer
+    // matters whether the one it was configured with was ever installed, or is readable.
+    // The files come from the copies compiled into the executable, see BuiltinData.h.
+    auto itOption = options.find("gamedata");
+    if(itOption != options.end())
+    {
+        // Explicit override, mostly useful to run against an edited source tree.
+        mDefaultDataPath = itOption->second.as<std::string>();
+        if(!mDefaultDataPath.empty() && !isDirectorySeparator(*mDefaultDataPath.rbegin()))
+            mDefaultDataPath += '/';
+    }
+    else
+    {
+        uint32_t nbExtracted = extractBuiltinData();
+        if(nbExtracted > 0)
+        {
+            OD_LOG_INF("Wrote " + Helper::toString(static_cast<int32_t>(nbExtracted))
+                       + " default data files to " + mUserGameDataPath);
+        }
+
+        checkBuiltinDataVersion();
+
+        mDefaultDataPath = mUserGameDataPath;
+    }
+
+    mConfigPath = mDefaultDataPath + CONFIGSUBPATH;
+
+    OD_LOG_INF("Default data path is: " + mDefaultDataPath + '\n');
+}
+
+void ResourceManager::setupServerMode(boost::program_options::variables_map& options)
+{
+    auto itOption = options.find("server");
+    if(itOption != options.end())
+    {
+        mServerMode = true;
+        std::string filePath = getGameLevelPathMultiplayer() + itOption->second.as<std::string>();
+        boost::filesystem::path level(filePath);
+        if(!boost::filesystem::exists(level))
+        {
+            OD_LOG_ERR("Wanted level not found: " + filePath +  '\n');
+            exit(1);
+        }
+        mServerModeLevel = level.string();
+
+        auto it2 = options.find("mscreator");
+        if(it2 != options.end())
+        {
+            mServerModeCreator = it2->second.as<std::string>();
+        }
+    }
+
+    // If the game is launched with both official server mode and custom server
+    // mode, we do not consider custom server mode
+    if(!mServerMode)
+    {
+        itOption = options.find("servercustom");
+        if(itOption != options.end())
+        {
+            mServerMode = true;
+            std::string filePath = getUserLevelPathMultiplayer() + itOption->second.as<std::string>();
+            boost::filesystem::path level(filePath);
+            if(!boost::filesystem::exists(level))
+            {
+                OD_LOG_ERR("Wanted level not found: " + filePath +  '\n');
+                exit(1);
+            }
+            mServerModeLevel = level.string();
+
+            auto it2 = options.find("mscreator");
+            if(it2 != options.end())
+            {
+                mServerModeCreator = it2->second.as<std::string>();
+            }
+        }
+    }
+
+    if(!mServerMode)
+    {
+        itOption = options.find("serversave");
+        if(itOption != options.end())
+        {
+            mServerMode = true;
+            std::string filePath = mSaveGamePath + itOption->second.as<std::string>();
+            boost::filesystem::path level(filePath);
+            if(!boost::filesystem::exists(level))
+            {
+                OD_LOG_ERR("Wanted level not found: " + filePath +  '\n');
+                exit(1);
+            }
+            mServerModeLevel = level.string();
+
+            auto it2 = options.find("mscreator");
+            if(it2 != options.end())
+            {
+                mServerModeCreator = it2->second.as<std::string>();
+            }
+        }
+    }
+}
+
+bool ResourceManager::isSameAsBuiltin(const std::string& path,
+                                      const BuiltinData::File& file)
+{
+    std::ifstream stream(path, std::ios::in | std::ios::binary);
+    if(!stream.is_open())
+        return false;
+
+    std::string content((std::istreambuf_iterator<char>(stream)),
+                        std::istreambuf_iterator<char>());
+    if(content.size() != file.mSize)
+        return false;
+
+    return std::equal(content.begin(), content.end(),
+                      reinterpret_cast<const char*>(file.mData));
+}
+
+void ResourceManager::checkBuiltinDataVersion()
+{
+    const std::string stampPath = mUserGameDataPath + BUILTINVERSIONFILENAME;
+    const std::string stamp = std::string(OD_BUILTIN_DATA_VERSION) + " " + BuiltinData::CONTENT_DIGEST;
+
+    if(mNbStaleBuiltinFiles > 0)
+    {
+        // Files already there are never overwritten, so the game goes on reading whatever
+        // was extracted first. That is what keeps edited files safe, but it also means an
+        // upgrade, or a rebuilt config/ in a source tree, has no effect until the folder
+        // is removed. Say so rather than let it puzzle anyone. Files this build simply
+        // added, such as a new level, are already in place and are not reported here.
+        OD_LOG_WRN(Helper::toString(static_cast<int32_t>(mNbStaleBuiltinFiles))
+                   + " file(s) in " + mUserGameDataPath + " differ from the ones this build"
+                   " carries and are kept as they are. Delete that folder to have the"
+                   " current ones written again, or pass --gamedata to read them from"
+                   " elsewhere.");
+    }
+
+    std::ofstream stream(stampPath, std::ios::out | std::ios::trunc);
+    if(stream.is_open())
+        stream << stamp << std::endl;
+}
+
+uint32_t ResourceManager::extractBuiltinData()
+{
+    uint32_t nbExtracted = 0;
+    mNbStaleBuiltinFiles = 0;
+    for(std::size_t index = 0; index < BuiltinData::FILE_COUNT; ++index)
+    {
+        const BuiltinData::File& file = BuiltinData::FILES[index];
+        const boost::filesystem::path destination =
+            boost::filesystem::path(mUserGameDataPath) / file.mPath;
+
+        try
+        {
+            // Never overwrite: a file already there may have been edited on purpose, and
+            // this runs on every launch, not only the first one. Files this build would
+            // have written differently are counted, so that only a real difference is
+            // reported and simply adding a level stays quiet.
+            if(boost::filesystem::exists(destination))
+            {
+                if(!isSameAsBuiltin(destination.string(), file))
+                    ++mNbStaleBuiltinFiles;
+                continue;
+            }
+
+            boost::filesystem::create_directories(destination.parent_path());
+
+            std::ofstream stream(destination.string(), std::ios::out | std::ios::binary);
+            if(!stream.is_open())
+            {
+                OD_LOG_ERR("Couldn't write default file: " + destination.string());
+                continue;
+            }
+
+            if(file.mSize > 0)
+                stream.write(reinterpret_cast<const char*>(file.mData), file.mSize);
+
+            ++nbExtracted;
+        }
+        catch(const boost::filesystem::filesystem_error& e)
+        {
+            OD_LOG_ERR("Couldn't write default file " + destination.string() + ": " + e.what());
+        }
+    }
+
+    return nbExtracted;
 }
 
 void ResourceManager::setupUserDataFolders(boost::program_options::variables_map& options)
@@ -202,8 +426,7 @@ void ResourceManager::setupUserDataFolders(boost::program_options::variables_map
         mUserDataPath = itOption->second.as<std::string>();
         if(!mUserDataPath.empty())
         {
-            uint32_t len = mUserDataPath.length();
-            if((mUserDataPath.at(len - 1) != '/') && (mUserDataPath.at(len - 1) != '\\'))
+            if(!isDirectorySeparator(*mUserDataPath.rbegin()))
                 mUserDataPath += '/';
 
             mUserConfigPath = mUserDataPath + "cfg/";
@@ -366,73 +589,8 @@ void ResourceManager::setupUserDataFolders(boost::program_options::variables_map
         mOgreLogFile = mUserDataPath + LOGFILENAME;
     }
 
-    itOption = options.find("server");
-    if(itOption != options.end())
-    {
-        mServerMode = true;
-        std::string filePath = getGameLevelPathMultiplayer() + itOption->second.as<std::string>();
-        boost::filesystem::path level(filePath);
-        if(!boost::filesystem::exists(level))
-        {
-            OD_LOG_ERR("Wanted level not found: " + filePath +  '\n');
-            exit(1);
-        }
-        mServerModeLevel = level.string();
-
-        auto it2 = options.find("mscreator");
-        if(it2 != options.end())
-        {
-            mServerModeCreator = it2->second.as<std::string>();
-        }
-    }
-
-    // If the game is launched with both official server mode and custom server
-    // mode, we do not consider custom server mode
-    if(!mServerMode)
-    {
-        itOption = options.find("servercustom");
-        if(itOption != options.end())
-        {
-            mServerMode = true;
-            std::string filePath = getUserLevelPathMultiplayer() + itOption->second.as<std::string>();
-            boost::filesystem::path level(filePath);
-            if(!boost::filesystem::exists(level))
-            {
-                OD_LOG_ERR("Wanted level not found: " + filePath +  '\n');
-                exit(1);
-            }
-            mServerModeLevel = level.string();
-
-            auto it2 = options.find("mscreator");
-            if(it2 != options.end())
-            {
-                mServerModeCreator = it2->second.as<std::string>();
-            }
-        }
-    }
-
-    if(!mServerMode)
-    {
-        itOption = options.find("serversave");
-        if(itOption != options.end())
-        {
-            mServerMode = true;
-            std::string filePath = mSaveGamePath + itOption->second.as<std::string>();
-            boost::filesystem::path level(filePath);
-            if(!boost::filesystem::exists(level))
-            {
-                OD_LOG_ERR("Wanted level not found: " + filePath +  '\n');
-                exit(1);
-            }
-            mServerModeLevel = level.string();
-
-            auto it2 = options.find("mscreator");
-            if(it2 != options.end())
-            {
-                mServerModeCreator = it2->second.as<std::string>();
-            }
-        }
-    }
+    // The server mode options name a level, so they are handled once the default data
+    // path is known, in setupServerMode().
 
     itOption = options.find("port");
     if(itOption != options.end())
@@ -495,7 +653,9 @@ void ResourceManager::setupOgreResources(uint16_t shaderLanguageVersion)
             const Ogre::String& typeName = setting.first;
             Ogre::String archName = setting.second;
 
-            if(!archName.empty() && archName.front() != '/') // do not modify absolute paths
+            // Do not modify absolute paths. A leading '/' is not what makes one on Windows,
+            // where they start with a drive letter, so let boost decide.
+            if(!archName.empty() && !boost::filesystem::path(archName).is_absolute())
                 archName = mGameDataPath + archName;
             else
                 archName = Ogre::FileSystemLayer::resolveBundlePath(archName);
@@ -597,6 +757,7 @@ void ResourceManager::buildCommandOptions(boost::program_options::options_descri
         ("servercustom", boost::program_options::value<std::string>(), "Launches the game on server mode and opens the given level from custom levels path")
         ("serversave", boost::program_options::value<std::string>(), "Launches the game on server mode and opens the given saved game")
         ("appData", boost::program_options::value<std::string>(), "Sets appData to the given path (where logs, replays, ... are saved)")
+        ("gamedata", boost::program_options::value<std::string>(), "Reads the configuration and the shipped levels from the given path instead of the copies extracted below appData")
         ("mscreator", boost::program_options::value<std::string>(), "Sets the creator for this map to connect to the master server. server/servercustom/serversave option needs to be on")
         ("port", boost::program_options::value<int32_t>(), "Sets the port used. Note that the port is used for both single and multi player")
         ("loglevel", boost::program_options::value<int32_t>(), "Sets the log level (between 0=Trivial and 3=Critical)")
@@ -605,12 +766,12 @@ void ResourceManager::buildCommandOptions(boost::program_options::options_descri
 
 std::string ResourceManager::getGameLevelPathSkirmish() const
 {
-    return getGameDataPath() + "levels/skirmish/";
+    return getDefaultDataPath() + "levels/skirmish/";
 }
 
 std::string ResourceManager::getGameLevelPathMultiplayer() const
 {
-    return getGameDataPath() + "levels/multiplayer/";
+    return getDefaultDataPath() + "levels/multiplayer/";
 }
 
 

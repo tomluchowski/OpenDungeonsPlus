@@ -23,6 +23,7 @@
 #include "gamemap/TileMarker.h"
 #include "modes/InputCommand.h"
 #include "modes/SettingsWindow.h"
+#include "rooms/RoomPortalWave.h"
 
 #include <boost/filesystem.hpp>
 #include <boost/circular_buffer.hpp>
@@ -116,8 +117,11 @@ public:
 
     void displayText(const Ogre::ColourValue& txtColour, const std::string& txt) override;
     bool updateDescription(const CEGUI::EventArgs& e = {});
-    std::string getEnv( const std::string & var );
     bool isCheckboxSelected(const CEGUI::String& checkbox);
+
+    //! \brief Shows the waves of a wave portal, as the server has just described them.
+    //! Called when the answer to the request sent by askPortalWaveData comes back.
+    void showPortalWaveWindow(const std::string& roomName, const RoomPortalWaveConfig& config);
 private:
 
     DraggableTileContainer* draggableTileContainer;
@@ -138,6 +142,30 @@ private:
 
     //! \brief Current selected creature to spawn
     uint32_t mCurrentCreatureIndex;
+
+    //! \brief The level name currently written in the status bar, kept so that the text is
+    //! only rewritten when it actually changes.
+    std::string mDisplayedLevelName;
+
+    //! \brief Level given to the creatures spawned from now on. It is also applied to the
+    //! creatures held in the hand when it changes, which is how the level of a creature
+    //! already on the map is changed: pick it up, set the level, drop it.
+    uint32_t mCurrentCreatureLevel;
+
+    //! \brief The wave portal being edited, and the copy of its waves the window works on.
+    //! The copy is only sent back to the server when the player applies it. The client has
+    //! no rooms of its own, so the portal is named to the server by one of its tiles.
+    std::string mPortalWaveRoomName;
+    int32_t mPortalWaveTileX;
+    int32_t mPortalWaveTileY;
+    RoomPortalWaveConfig mPortalWaveConfig;
+
+    //! \brief Index in mPortalWaveConfig.mWaves of the wave shown, -1 when there is none
+    int32_t mPortalWaveSelectedWave;
+
+    //! \brief Set while the wave window is being rewritten, so that the changes we make to
+    //! the widgets ourselves are not read back as if the player had made them.
+    bool mPortalWaveRefreshing;
 
     //! \brief The creature node name being dragged by the mouse
     std::string mDraggedCreature;
@@ -160,6 +188,44 @@ private:
     //! This text gives the tile position, and the current left-click action
     void updateCursorText();
 
+    //! \brief Asks the server to give the creatures currently held in the hand the level
+    //! selected in the editor.
+    void setLevelOfCreaturesInHand();
+
+    //! \brief Writes the list of the editor's keyboard shortcuts into the controls window.
+    void fillControlsWindow();
+
+    //! \brief Shows the name of the level being edited. Called on every frame because the
+    //! name is only known once the client has been told about the level, which happens
+    //! after the editor is up.
+    void updateLevelNameText();
+
+    bool showControlsWindow(const CEGUI::EventArgs& e = {});
+    bool hideControlsWindow(const CEGUI::EventArgs& e = {});
+
+    //! \brief Asks the server what the waves of the wave portal covering the given tile are.
+    //! They only exist on the server, so the window can only be filled once it answers.
+    void askPortalWaveData(Tile* tile);
+
+    //! \brief Writes the room wide settings and the fields of the wave being shown back into
+    //! the working copy. Called before anything that changes which wave is shown, so that
+    //! what was typed is not lost.
+    void readPortalWaveWindow();
+
+    //! \brief Rewrites the whole window from the working copy.
+    void refreshPortalWaveWindow();
+
+    //! \brief Rewrites the part of the window that describes the selected wave.
+    void refreshPortalWaveSelectedWave();
+
+    bool onPortalWaveSelectionChanged(const CEGUI::EventArgs& e = {});
+    bool onPortalWaveAddWave(const CEGUI::EventArgs& e = {});
+    bool onPortalWaveRemoveWave(const CEGUI::EventArgs& e = {});
+    bool onPortalWaveAddCreature(const CEGUI::EventArgs& e = {});
+    bool onPortalWaveRemoveCreature(const CEGUI::EventArgs& e = {});
+    bool onPortalWaveApply(const CEGUI::EventArgs& e = {});
+    bool hidePortalWaveWindow(const CEGUI::EventArgs& e = {});
+
     //! \brief Refreshes the gui buttons. It will be called at level loading only since
     //! it shouldn't change in the editor
     void refreshGuiSkill();
@@ -176,6 +242,8 @@ private:
     void handlePlayerActionNone();
     void handlePlayerActionChangeTile();
     void handlePlayerActionSelectTile();
+    void installCreaturesMenuButtons();
+    void uninstallCreaturesMenuButtons();
     void installRecentlyUsedFilesButtons();
     void uninstallRecentlyUsedFilesButtons();
     void installSeatsMenuButtons();
@@ -187,7 +255,10 @@ private:
     
     bool loadLevelFromFile(const std::string&);
     //! \brief file path to currently choosen file via load / save menu
-    bool isFileHidden(std::string path);
+    //! \brief Whether the file should be kept out of the level lists unless the player
+    //! asked for hidden ones. Takes the whole path: on Windows being hidden is an attribute
+    //! of the file, not a dot in front of its name.
+    bool isFileHidden(const boost::filesystem::path& path);
     void addPathNameToList(boost::filesystem::directory_entry& xx, CEGUI::Listbox* levelSelectList, CEGUI::Colour cc, int& nn );
     std::string dialogFullPath;
 

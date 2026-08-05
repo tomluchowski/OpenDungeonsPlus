@@ -198,6 +198,7 @@ const std::string Gui::EDITOR_FULLNESS = "HorizontalPipe/FullnessDisplay";
 const std::string Gui::EDITOR_CURSOR_POS = "HorizontalPipe/PositionDisplay";
 const std::string Gui::EDITOR_SEAT_ID = "HorizontalPipe/SeatIdDisplay";
 const std::string Gui::EDITOR_CREATURE_SPAWN = "HorizontalPipe/CreatureSpawnDisplay";
+const std::string Gui::EDITOR_LEVEL_NAME = "LevelNameDisplay";
 const std::string Gui::EDITOR_MAPLIGHT_BUTTON = "MainTabControl/Lights/MapLightButton";
 
 const std::string Gui::REM_TEXT_LOADING = "LoadingText";
