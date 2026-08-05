@@ -1882,7 +1882,12 @@ bool ConfigManager::initVideoConfig(Ogre::Root& ogreRoot)
             }
             if (!valueIsPossible)
             {
-                optionsToRemove.push_back(setting.first);
+                // The video mode also sizes the window when running windowed, where it
+                // need not be one of the render system's fullscreen modes. Dropping it
+                // would silently fall back to the minimum window size, so keep the
+                // user's value and simply don't push it to the render system.
+                if (setting.first != Config::VIDEO_MODE)
+                    optionsToRemove.push_back(setting.first);
                 continue;
             }
 

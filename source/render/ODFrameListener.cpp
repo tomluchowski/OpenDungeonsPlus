@@ -127,6 +127,10 @@ void ODFrameListener::windowResized(Ogre::RenderWindow* rw)
 
 void ODFrameListener::windowClosed(Ogre::RenderWindow*)
 {
+    // Stop the render loop: we are about to destroy the mode manager, which
+    // frameStarted() dereferences unconditionally.
+    requestExit();
+
     // We remove the mode manager to make sure it is destroyed before the window is. That
     // allows to release all taken resources in the mode
     mModeManager = nullptr;

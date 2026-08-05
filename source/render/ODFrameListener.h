@@ -88,6 +88,12 @@ public:
 
     void requestExit();
 
+    //! \brief Whether shutting down has been asked for, either by the game itself or by
+    //! the window being closed. Once set, no further frame may be rendered: closing the
+    //! window destroys the mode manager that frameStarted() relies on.
+    inline bool isExitRequested() const
+    { return mExitRequested; }
+
     inline float getEventMaxTimeDisplay() const
     { return mEventMaxTimeDisplay; }
 
