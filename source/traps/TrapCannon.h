@@ -45,6 +45,8 @@ public:
     virtual double getMagicalDefense() const override;
     virtual double getElementDefense() const override;
 
+    virtual double getTileHP() const override;
+
     virtual TrapEntity* getTrapEntity(Tile* tile) override;
 
     static const TrapType mTrapType;

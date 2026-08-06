@@ -57,6 +57,8 @@ public:
 
     double getCreatureSpeed(const Creature* creature, Tile* tile) const override;
 
+    double getTileHP() const override;
+
     bool permitsVision(Tile* tile) override;
 
     //! Returns true if tiles North and South (or east and west) are suitable to have a door on the

@@ -193,6 +193,10 @@ public:
     uint32_t getTrapConfigUInt32(const std::string& param) const;
     int32_t getTrapConfigInt32(const std::string& param) const;
     double getTrapConfigDouble(const std::string& param) const;
+    //! \brief Same as getTrapConfigDouble but returns defaultValue instead of
+    //! logging an error when the parameter is not in the configuration file.
+    //! Useful for newly introduced parameters older config files do not have.
+    double getTrapConfigDoubleOrDefault(const std::string& param, double defaultValue) const;
 
     //! Spells configuration
     const std::string& getSpellConfigString(const std::string& param) const;
