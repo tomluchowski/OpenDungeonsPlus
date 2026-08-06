@@ -51,6 +51,12 @@ GameEntityType Room::getObjectType() const
     return GameEntityType::room;
 }
 
+double Room::getTileHP() const
+{
+    const std::string& roomName = RoomManager::getRoomNameFromRoomType(getType());
+    return ConfigManager::getSingleton().getRoomConfigDoubleOrDefault(roomName + "HP", DEFAULT_TILE_HP);
+}
+
 bool Room::compareTile(Tile* tile1, Tile* tile2)
 {
     if(tile1->getX() < tile2->getX())
@@ -202,7 +208,7 @@ void Room::setupRoom(const std::string& name, Seat* seat, const std::vector<Tile
         mCoveredTiles.push_back(tile);
         TileData* tileData = createTileData(tile);
         mTileData[tile] = tileData;
-        tileData->mHP = DEFAULT_TILE_HP;
+        tileData->mHP = getTileHP();
 
         tile->setCoveringBuilding(this);
     }
@@ -658,7 +664,7 @@ bool Room::importTileDataFromStream(std::istream& is, Tile* tile, TileData* tile
     if(is.eof())
     {
         // Default initialization
-        tileData->mHP = DEFAULT_TILE_HP;
+        tileData->mHP = getTileHP();
         mCoveredTiles.push_back(tile);
         tile->setCoveringBuilding(this);
         return true;
@@ -804,7 +810,7 @@ void Room::repairRoom()
             tileData = createTileData(tile);
             mTileData[tile] = tileData;
         }
-        tileData->mHP = DEFAULT_TILE_HP;
+        tileData->mHP = getTileHP();
 
         tile->setCoveringBuilding(this);
     }

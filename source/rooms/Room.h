@@ -67,6 +67,11 @@ public:
 
     virtual RoomType getType() const = 0;
 
+    //! \brief Hit points each tile of the room starts with, read from the room
+    //! configuration file as <RoomName>HP (e.g. DormitoryHP). Falls back to
+    //! DEFAULT_TILE_HP when the configuration file has no such entry.
+    virtual double getTileHP() const;
+
     static bool compareTile(Tile* tile1, Tile* tile2);
 
     //! \brief Adds a creature using the room. If the creature is allowed, true is returned
