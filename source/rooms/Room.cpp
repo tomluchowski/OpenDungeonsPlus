@@ -51,6 +51,122 @@ GameEntityType Room::getObjectType() const
     return GameEntityType::room;
 }
 
+const double CLAIMED_VALUE_PER_TILE = 1.0;
+
+bool Room::isClaimable(Seat* seat) const
+{
+    ConfigManager& config = ConfigManager::getSingleton();
+    if(config.getRoomConfigDoubleOrDefault("RoomsClaimableByEnemies", 0.0) == 0.0)
+        return false;
+
+    if(getSeat()->isAlliedSeat(seat))
+        return false;
+
+    if(getType() == RoomType::dungeonTemple)
+        return false;
+
+    return true;
+}
+
+void Room::claimForSeat(Seat* seat, Tile* tile, double danceRate)
+{
+    auto it = mTileData.find(tile);
+    if(it == mTileData.end())
+    {
+        OD_LOG_ERR("room=" + getName() + ", tile=" + Tile::displayAsString(tile));
+        return;
+    }
+
+    TileData* tileData = it->second;
+    if(tileData->mClaimedValue > danceRate)
+    {
+        tileData->mClaimedValue -= danceRate;
+        return;
+    }
+
+    handTileOverToSeat(seat, tile);
+}
+
+Room* Room::handTileOverToSeat(Seat* seat, Tile* tile)
+{
+    GameMap* gameMap = getGameMap();
+
+    OD_LOG_INF("Room=" + getName() + " tile=" + Tile::displayAsString(tile)
+        + " claimed by seat id=" + Helper::toString(seat->getId()));
+
+    Room* newRoom = RoomManager::createRoom(gameMap, getType());
+    if(newRoom == nullptr)
+        return nullptr;
+
+    newRoom->setIsOnMap(true);
+    newRoom->setName(gameMap->nextUniqueNameRoom(newRoom->getType()));
+    newRoom->setSeat(seat);
+
+    // The tile changes hands the way checkForSplit() hands tiles over: the new
+    // room gets a copy of the tile data, this one keeps the original marked
+    // destroyed so seats that still think this room covers the tile can keep
+    // asking it.
+    auto itData = mTileData.find(tile);
+    if(itData != mTileData.end())
+    {
+        TileData* newData = itData->second->cloneTileData();
+        // The new owner starts with the tile fully claimed, so it can be danced
+        // back just as it was danced away.
+        newData->mClaimedValue = CLAIMED_VALUE_PER_TILE;
+        newRoom->mTileData[tile] = newData;
+        itData->second->mHP = 0.0;
+    }
+
+    auto itTile = std::find(mCoveredTiles.begin(), mCoveredTiles.end(), tile);
+    if(itTile != mCoveredTiles.end())
+        mCoveredTiles.erase(itTile);
+
+    auto itObject = mBuildingObjects.find(tile);
+    if(itObject != mBuildingObjects.end())
+    {
+        newRoom->mBuildingObjects[tile] = itObject->second;
+        mBuildingObjects.erase(itObject);
+    }
+
+    mCoveredTilesDestroyed.push_back(tile);
+    newRoom->mCoveredTiles.push_back(tile);
+    tile->setCoveringBuilding(newRoom);
+    tile->claimTile(seat);
+
+    // Anything this room keeps for the room as a whole rather than per tile,
+    // the gold in a treasury among it, goes over with the tile's share.
+    std::vector<Tile*> group(1, tile);
+    splitRoom(*newRoom, group);
+
+    newRoom->addToGameMap(gameMap);
+    newRoom->createMesh();
+
+    // Whoever was working on that tile is working for the other room now. It
+    // may have no room for them, so they are sent to look for a job as if the
+    // room had gone.
+    std::vector<Creature*> creatures = mCreaturesUsingRoom;
+    for(Creature* creature : creatures)
+    {
+        Tile* creatureTile = creature->getPositionTile();
+        if((creatureTile == nullptr) || (creatureTile->getCoveringBuilding() != newRoom))
+            continue;
+
+        removeCreatureUsingRoom(creature);
+        handleCreatureUsingAbsorbedRoom(*creature);
+    }
+
+    // The tile taken may sit next to another room of the claimer of the same
+    // type (the previous tiles they danced down, or a room of their own): merge.
+    newRoom->checkForRoomAbsorbtion();
+    newRoom->updateActiveSpots(gameMap);
+
+    // And losing the tile may have cut this room in two.
+    checkForSplit();
+    updateActiveSpots(gameMap);
+
+    return newRoom;
+}
+
 bool Room::compareTile(Tile* tile1, Tile* tile2)
 {
     if(tile1->getX() < tile2->getX())

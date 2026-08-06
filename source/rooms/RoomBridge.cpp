@@ -29,8 +29,6 @@
 #include "utils/Helper.h"
 #include "utils/LogManager.h"
 
-const double CLAIMED_VALUE_PER_TILE = 1.0;
-
 void BridgeRoomFactory::checkBuildBridge(RoomType type, GameMap* gameMap, Seat* seat, const InputManager& inputManager,
     InputCommand& inputCommand, const std::vector<TileVisual>& allowedTilesVisual, bool isEditor) const
 {
@@ -282,13 +280,6 @@ void RoomBridge::setupRoom(const std::string& name, Seat* seat, const std::vecto
         updateFloodFillPathCreated(s, tiles);
 }
 
-BridgeTileData* RoomBridge::createTileData(Tile* tile)
-{
-    BridgeTileData* tileData = new BridgeTileData;
-    tileData->mClaimedValue = CLAIMED_VALUE_PER_TILE;
-    return tileData;
-}
-
 void RoomBridge::restoreInitialEntityState()
 {
     Room::restoreInitialEntityState();
@@ -306,7 +297,7 @@ void RoomBridge::restoreInitialEntityState()
             if(it == mTileData.end())
                 continue;
 
-            static_cast<BridgeTileData*>(it->second)->mClaimedValue = claimedValuePerTile;
+            it->second->mClaimedValue = claimedValuePerTile;
         }
     }
 
@@ -325,7 +316,7 @@ void RoomBridge::exportToStream(std::ostream& os) const
         if(it == mTileData.end())
             continue;
 
-        claimedValue += static_cast<BridgeTileData*>(it->second)->mClaimedValue;
+        claimedValue += it->second->mClaimedValue;
     }
     os << claimedValue << "\n";
 }
@@ -368,75 +359,14 @@ void RoomBridge::claimForSeat(Seat* seat, Tile* tile, double danceRate)
         return;
     }
 
-    BridgeTileData* tileData = static_cast<BridgeTileData*>(it->second);
+    TileData* tileData = it->second;
     if(tileData->mClaimedValue > danceRate)
     {
         tileData->mClaimedValue -= danceRate;
         return;
     }
 
-    claimTileForSeat(seat, tile);
-}
-
-void RoomBridge::claimTileForSeat(Seat* seat, Tile* tile)
-{
-    GameMap* gameMap = getGameMap();
-
-    OD_LOG_INF("Bridge=" + getName() + " tile=" + Tile::displayAsString(tile)
-        + " claimed by seat id=" + Helper::toString(seat->getId()));
-
-    Room* newRoom = RoomManager::createRoom(gameMap, getType());
-    if(newRoom == nullptr)
-        return;
-
-    RoomBridge* newBridge = static_cast<RoomBridge*>(newRoom);
-    newBridge->setIsOnMap(true);
-    newBridge->setName(gameMap->nextUniqueNameRoom(newBridge->getType()));
-    newBridge->setSeat(seat);
-
-    // The tile changes hands the way checkForSplit() hands tiles over: the new
-    // bridge gets a copy of the tile data, this one keeps the original marked
-    // destroyed so seats that still think this bridge covers the tile can keep
-    // asking it. The tile stays a bridge tile throughout, so pathing across it
-    // is never interrupted for anybody and no flood fill has to change.
-    auto itData = mTileData.find(tile);
-    if(itData != mTileData.end())
-    {
-        BridgeTileData* newData = static_cast<BridgeTileData*>(itData->second->cloneTileData());
-        // The new owner starts with the tile fully claimed, just as the whole
-        // bridge used to start fully claimed for whoever took it.
-        newData->mClaimedValue = CLAIMED_VALUE_PER_TILE;
-        newBridge->mTileData[tile] = newData;
-        itData->second->mHP = 0.0;
-    }
-
-    auto itTile = std::find(mCoveredTiles.begin(), mCoveredTiles.end(), tile);
-    if(itTile != mCoveredTiles.end())
-        mCoveredTiles.erase(itTile);
-
-    auto itObject = mBuildingObjects.find(tile);
-    if(itObject != mBuildingObjects.end())
-    {
-        newBridge->mBuildingObjects[tile] = itObject->second;
-        mBuildingObjects.erase(itObject);
-    }
-
-    mCoveredTilesDestroyed.push_back(tile);
-    newBridge->mCoveredTiles.push_back(tile);
-    tile->setCoveringBuilding(newBridge);
-    tile->claimTile(seat);
-
-    newBridge->addToGameMap(gameMap);
-    newBridge->createMesh();
-
-    // The square taken may sit next to another bridge of the claimer (their own
-    // side of the crossing, or the previous squares they danced down): merge.
-    newBridge->checkForRoomAbsorbtion();
-    newBridge->updateActiveSpots(gameMap);
-
-    // And losing the square may have cut this bridge in two.
-    checkForSplit();
-    updateActiveSpots(gameMap);
+    handTileOverToSeat(seat, tile);
 }
 
 double RoomBridge::getCreatureSpeed(const Creature* creature, Tile* tile) const

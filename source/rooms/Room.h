@@ -67,6 +67,14 @@ public:
 
     virtual RoomType getType() const = 0;
 
+    //! \brief Rooms can be danced away tile by tile by enemy workers, the way
+    //! bridges and traps already can, when the RoomsClaimableByEnemies switch is
+    //! set in the room configuration file. The dungeon temple is never claimable:
+    //! losing it means defeat and that path expects destruction. Bridges and
+    //! portals override this pair with their own claiming rules.
+    virtual bool isClaimable(Seat* seat) const override;
+    virtual void claimForSeat(Seat* seat, Tile* tile, double danceRate) override;
+
     static bool compareTile(Tile* tile1, Tile* tile2);
 
     //! \brief Adds a creature using the room. If the creature is allowed, true is returned
@@ -148,6 +156,14 @@ public:
 
 protected:
     static void fireRoomSound(Tile& tile, const std::string& soundFamily);
+
+    //! \brief Hands the given tile of this room over to a room of the same type
+    //! owned by the claiming seat, merging it with an adjacent room of theirs
+    //! when there is one and splitting this room when the loss cuts it in two.
+    //! Room-level state gets shared out through splitRoom(), so e.g. a treasury
+    //! tile takes its share of the stored gold with it. Returns the room the
+    //! tile ended up in, or nullptr if no room could be created.
+    Room* handTileOverToSeat(Seat* seat, Tile* tile);
 
     /*! \brief Exports the headers needed to recreate the Room. It allows to extend Room as much as wanted.
      * The content of the Room will be exported by exportToPacket.
