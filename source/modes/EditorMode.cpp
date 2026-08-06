@@ -57,8 +57,14 @@
 
 
 #if OGRE_PLATFORM == OGRE_PLATFORM_WIN32
+// MinGW's libstdc++ predefines NOMINMAX, and the game builds with -Werror:
+// an unconditional redefinition is fatal there.
+#ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
+#endif
+#ifndef NOMINMAX
 #define NOMINMAX
+#endif
 #include <windows.h>
 #endif
 
