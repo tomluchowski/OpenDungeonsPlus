@@ -294,7 +294,7 @@ namespace Helper
     {
         return TTostring(d);
     }
-    #if defined(__OpenBSD__) && defined(__LP64__)
+    #if defined(__APPLE__) || (defined(__OpenBSD__) && defined(__LP64__))
     std::string toString(size_t d)
     {
         return TTostring(d);
