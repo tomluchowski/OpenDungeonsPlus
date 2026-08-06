@@ -112,6 +112,7 @@ ResourceManager::ResourceManager(boost::program_options::variables_map& options)
 
 void ResourceManager::setupDataPath(boost::program_options::variables_map& options)
 {
+    std::string path;
 #if OGRE_PLATFORM == OGRE_PLATFORM_APPLE
     //TODO - Test osx support
     char applePath[1024];
@@ -135,7 +136,6 @@ void ResourceManager::setupDataPath(boost::program_options::variables_map& optio
     mGameDataPath = mMacBundlePath + "Contents/Resources/";
 #else // Windows and linux
 
-    std::string path;
 #ifdef OD_DATA_PATH
     path = std::string(OD_DATA_PATH);
 #else
@@ -154,7 +154,12 @@ void ResourceManager::setupDataPath(boost::program_options::variables_map& optio
         mGameDataPath = Ogre::FileSystemLayer::resolveBundlePath(mGameDataPath);
 #endif
     }
+#endif // Windows and Linux
 
+    // From here on the logic is the same on every platform: data or a plugins.cfg
+    // in the current folder win over the installed ones. This is also what lets a
+    // macOS build run at all outside an .app bundle: the Apple branch above knows
+    // only the bundle layout, and nothing used to set the plugins path there.
     // Test whether there is data in "./" and remove the system path in that case.
     // Useful for developers.
     std::string resourceCfg = "./" + RESOURCECFG;
@@ -193,8 +198,6 @@ void ResourceManager::setupDataPath(boost::program_options::variables_map& optio
 #endif
         mPluginsPath = pluginsCfg;
     }
-
-#endif // Windows and Linux
 
     OD_LOG_INF( PLUGINSCFG + " path is: " + mPluginsPath + '\n');
 
