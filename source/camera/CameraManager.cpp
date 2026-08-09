@@ -166,7 +166,6 @@ void CameraManager::createCameraNode(const std::string& name)
 void CameraManager::destroyCameraNode(const std::string& name)
 {
     mRegisteredCameraNodeNames.erase(name);
-    Ogre::SceneNode* node = static_cast<Ogre::SceneNode*>(mSceneManager->getRootSceneNode()->getChild(name + "_node"));
     mSceneManager->destroySceneNode(name + "_node2");
     mSceneManager->destroySceneNode(name + "_node");
     mSceneManager->destroySceneNode("CameraTarget_" + name);
