@@ -39,6 +39,7 @@ material ReflMetal
 
             fragment_program_ref myReflMetalFragmentShader
             {
+                param_named ambient float3 1.0 1.0 1.0
                 param_named envmap int 0
             }
 
