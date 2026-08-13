@@ -7,6 +7,7 @@ uniform vec4 lightDiffuseColour;
 uniform vec4 lightSpecularColour;
 uniform vec4 lightPos;
 uniform vec4 cameraPosition;
+uniform vec3 ambient;
 
 in vec3 out_FragPos;
 in vec3 out_Normal;
@@ -31,7 +32,7 @@ void main() {
     vec3 reflectedLight = normalize(reflect(-L, N));
     float spec = pow(max(dot(reflectedLight, V), 0.0), 16.0);
     vec3 specular = spec * lightSpecularColour.rgb;
-    vec3 lighting = diffuse + specular + ambientLightColour.rgb;
+    vec3 lighting = diffuse + specular + ambientLightColour.rgb * ambient;
 
     // 50% blend between lighting and reflection (matches the old
     // "colour_op_ex blend_manual src_texture src_current 0.5").
