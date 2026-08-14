@@ -294,6 +294,10 @@ bool ODFrameListener::frameStarted(const Ogre::FrameEvent& evt)
     return true;
 }
 
+// Since Ogre 14 (OgreRenderQueueListener.h), the second parameter carries the
+// name of the camera being rendered; SceneManager passes
+// mCameraInProgress->getName(). The comparison below decides whether CEGUI is
+// drawn for this render, so the parameter's meaning matters.
 void ODFrameListener::renderQueueStarted(Ogre::uint8 queueGroupId, const Ogre::String& cameraName,
     bool&)
 {
