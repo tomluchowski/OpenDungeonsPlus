@@ -2,7 +2,7 @@
 
 <GUILayout version="4" >
     <Window type="OD/FrameWindow" name="ConfirmRestart" >
-        <Property name="Area" value="{{0.5,-200},{0.5,-100},{0.5,200},{0.5,60}}" />
+        <Property name="Area" value="{{0.5,-200},{0.5,-95},{0.5,200},{0.5,95}}" />
         <Property name="Text" value="Warning" />
         <Property name="Alpha" value="0.8" />
         <Property name="AlwaysOnTop" value="True" />
