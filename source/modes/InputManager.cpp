@@ -91,14 +91,13 @@ InputManager::InputManager(Ogre::RenderWindow* renderWindow):
     paramList.insert(std::make_pair(std::string("w32_keyboard"), std::string(keyboardGrab ? "DISCL_EXCLUSIVE" : "DISCL_NONEXCLUSIVE")));
 #elif defined OIS_LINUX_PLATFORM
     paramList.insert(std::make_pair(std::string("x11_mouse_grab"), std::string(mouseGrab ? "true" : "false")));
-    // When grabbing, OIS tracks the pointer by accumulating relative motion and warps
-    // the real pointer back to the window centre near the edges. Leaving the system
-    // cursor visible then shows it drifting away from the one CEGUI draws, so hide it.
-    /* paramList.insert(std::make_pair(std::string("x11_mouse_hide"), std::string(mouseGrab ? "true" : "false")));
-     * FIXME: While I was debugging cursor issues I found that hiding actually hides the cursor,
-     * not showing the system one. It works somehow. Did not have much time to think about
-     * this yet. Need to return to it later.
-     */
+    // Always hide the X11 cursor over the window: CEGUI draws its own cursor,
+    // so a visible system cursor would show as a second pointer — and when
+    // grabbing, OIS additionally warps the real pointer back to the window
+    // centre, which makes the system cursor visibly drift away from CEGUI's.
+    // (OIS implements this by setting a blank cursor on the window, so if the
+    // CEGUI cursor ever fails to render there is no pointer at all — that is
+    // the trade-off being made here.)
     paramList.insert(std::make_pair(std::string("x11_mouse_hide"), std::string("true")));
     paramList.insert(std::make_pair(std::string("x11_keyboard_grab"), std::string(keyboardGrab ? "true" : "false")));
     paramList.insert(std::make_pair(std::string("XAutoRepeatOn"), std::string("true")));
