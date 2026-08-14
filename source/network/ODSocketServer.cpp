@@ -37,7 +37,7 @@ ODSocketServer::~ODSocketServer()
         stopServer();
 }
 
-bool ODSocketServer::createServer(int listeningPort)
+bool ODSocketServer::createServer(int listeningPort, bool allowPortFallback)
 {
     mIsConnected = false;
     mActualPort = 0;
@@ -46,6 +46,12 @@ bool ODSocketServer::createServer(int listeningPort)
     sf::Socket::Status status = mSockListener.listen(listeningPort);
     if (status != sf::Socket::Done)
     {
+        if (!allowPortFallback)
+        {
+            OD_LOG_ERR("Could not listen to server port " + Helper::toString(listeningPort)
+                + " status=" + Helper::toString(status));
+            return false;
+        }
         OD_LOG_WRN("Could not listen to server port " + Helper::toString(listeningPort)
             + " status=" + Helper::toString(status) + ", trying ephemeral port.");
         status = mSockListener.listen(0);
