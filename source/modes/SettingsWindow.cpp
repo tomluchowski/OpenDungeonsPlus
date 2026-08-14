@@ -115,6 +115,7 @@ SettingsWindow::SettingsWindow(CEGUI::Window* rootWindow):
     mSettingsWindow(nullptr),
     mApplyWindow(nullptr),
     mRootWindow(rootWindow),
+    mUiScale(1.0f),
     dynamicShadowsChanged(false)
 {
     if (rootWindow == nullptr)
@@ -214,22 +215,58 @@ SettingsWindow::SettingsWindow(CEGUI::Window* rootWindow):
     initConfig();
 
     // The SettingsWindow layout was designed for 800x600. Scale and center it
-    // on higher resolutions so it stays usable.
-    CEGUI::Sizef displaySize = CEGUI::System::getSingleton().getRenderer()->getDisplaySize();
+    // on higher resolutions so it stays usable, and re-fit it whenever the
+    // display size changes (this is the window resolutions are applied from).
+    mSettingsWindowOriginalArea = mSettingsWindow->getProperty("Area");
+    applyUiScale();
+    addEventConnection(
+        CEGUI::System::getSingleton().subscribeEvent(
+            CEGUI::System::EventDisplaySizeChanged,
+            CEGUI::Event::Subscriber(&SettingsWindow::onDisplaySizeChanged, this)
+        )
+    );
+}
+
+void SettingsWindow::applyUiScale()
+{
     float scale = computeUiScale();
-    if (scale > 1.0f)
+
+    // Every widget below the two top-level windows only ever gets its pixel
+    // offsets multiplied, so moving from the currently applied scale to the
+    // new one is a plain ratio. This also covers the video-settings widgets
+    // initConfig() recreates, as long as they are brought to mUiScale when
+    // they are created.
+    float ratio = scale / mUiScale;
+    if (ratio != 1.0f)
     {
-        centerAndScaleWindow(mSettingsWindow, scale, displaySize);
-        scaleWindowTree(mSettingsWindow, scale);
+        scaleWindowTree(mSettingsWindow, ratio);
 
         CEGUI::Window* tabControl = mSettingsWindow->getChild("MainTabControl");
         if (tabControl)
-            scaleDimProperty(tabControl, "TabHeight", scale);
+            scaleDimProperty(tabControl, "TabHeight", ratio);
 
         // The apply-changes popup also uses pixel offsets relative to the centre.
-        scaleWindowArea(mApplyWindow, scale);
-        scaleWindowTree(mApplyWindow, scale);
+        scaleWindowArea(mApplyWindow, ratio);
+        scaleWindowTree(mApplyWindow, ratio);
     }
+
+    // The top-level window is re-centered from its designed area rather than
+    // by ratio, because centering flattens it to pixel offsets for the current
+    // display size.
+    mSettingsWindow->setProperty("Area", mSettingsWindowOriginalArea);
+    if (scale > 1.0f)
+    {
+        CEGUI::Sizef displaySize = CEGUI::System::getSingleton().getRenderer()->getDisplaySize();
+        centerAndScaleWindow(mSettingsWindow, scale, displaySize);
+    }
+
+    mUiScale = scale;
+}
+
+bool SettingsWindow::onDisplaySizeChanged(const CEGUI::EventArgs&)
+{
+    applyUiScale();
+    return true;
 }
 
 SettingsWindow::~SettingsWindow()
@@ -456,6 +493,15 @@ void SettingsWindow::initConfig()
                          CEGUI::UDim(0, config.possibleValues.size() * 17 + 30));
         videoCb->setReadOnly(true);
         videoCb->setSortingEnabled(true);
+
+        // These are laid out in design-space pixels; bring them to the UI
+        // scale the rest of the window is currently at (applyUiScale() then
+        // keeps them in sync through its ratio scaling).
+        if (mUiScale != 1.0f)
+        {
+            scaleWindowArea(videoCbText, mUiScale);
+            scaleWindowArea(videoCb, mUiScale);
+        }
 
         // Register the widgets for potential later deletion.
         mCustomVideoTexts.push_back(videoCbText);
