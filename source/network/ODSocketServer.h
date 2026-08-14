@@ -39,7 +39,13 @@ class ODSocketServer
         { return mActualPort; }
 
         // Data Transimission
-        virtual bool createServer(int listeningPort);
+        //! \brief Starts listening on listeningPort. If the port is busy and
+        //! allowPortFallback is true, falls back to an ephemeral port (callers
+        //! can retrieve it with getActualPort()). Hosting a multiplayer game
+        //! must NOT allow the fallback: remote clients dial the advertised
+        //! port, and silently binding another one would make them fail to
+        //! connect with no error on the host side.
+        virtual bool createServer(int listeningPort, bool allowPortFallback);
         virtual void stopServer();
 
     protected:
