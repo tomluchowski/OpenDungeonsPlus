@@ -70,7 +70,20 @@ public:
     //! \brief Hit points each tile of the room starts with, read from the room
     //! configuration file as <RoomName>HP (e.g. DormitoryHP). Falls back to
     //! DEFAULT_TILE_HP when the configuration file has no such entry.
+    //! A value of 0 (or less) means the room cannot be damaged at all.
     virtual double getTileHP() const;
+
+    //! \brief True when <RoomName>HP is configured to 0 or less: the room
+    //! cannot be attacked and can only change hands through claiming.
+    bool isIndestructible() const
+    { return getTileHP() <= 0.0; }
+
+    virtual bool isAttackable(Tile* tile, Seat* seat) const override;
+
+    //! \brief Shields indestructible rooms from stray damage that bypasses
+    //! target selection (rolling boulders, area effects).
+    virtual double takeDamage(GameEntity* attacker, double absoluteDamage, double physicalDamage, double magicalDamage, double elementDamage,
+        Tile* tileTakingDamage, bool ko) override;
 
     static bool compareTile(Tile* tile1, Tile* tile2);
 
