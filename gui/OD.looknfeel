@@ -973,6 +973,10 @@
             </Area>
             <Property name="AlwaysOnTop" value="False" />
             <Property name="WantsMultiClickEvents" value="False" />
+            <!-- Position against the window's outer rect, not the client area:
+                 the client area starts below the titlebar, so a client-relative
+                 titlebar would sit its own height too low. -->
+            <Property name="NonClient" value="True" />
         </Child>
         <Child nameSuffix="__auto_closebutton__" type="OD/SystemButton">
             <Area>
@@ -1000,6 +1004,7 @@
             <Property name="NormalImage" value="OpenDungeonsSkin/CloseButtonNormal" />
             <Property name="HoverImage" value="OpenDungeonsSkin/CloseButtonHover" />
             <Property name="PushedImage" value="OpenDungeonsSkin/CloseButtonPressed" />
+                    <Property name="NonClient" value="True" />
         </Child>
         <ImagerySection name="withtitle_frame">
             <FrameComponent>
