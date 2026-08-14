@@ -95,8 +95,6 @@ template.level                         OD Team                 GPLv3+
 
 Name                                   Author                  License                 Source URL
 ------------------------------------------------------------------------------------------------------------------------
-RTShaderLib/*                          The Ogre 3D Team        MIT                     http://www.ogre3d.org/licensing
-
 scripts/
 -> *.material                          OD Team                 GPLv3+
 
@@ -185,6 +183,8 @@ textures/
 -> MysteryBox*.png                     Nobiax, Danimal         CC-BY-SA 3.0            http://opengameart.org/users/danimal
 -> OrcBed*.png                         Bart, p0ss              CC-BY-SA 3.0            http://forum.freegamedev.net/viewtopic.php?p=60191#p60191
 -> Orc{,Normal}.png
+-> Panels_Diffuse.png                  The Ogre 3D Team        MIT                     https://github.com/OGRECave/ogre - Samples/Media/materials/textures
+-> Panels_Normal_Tangent.png           The Ogre 3D Team        MIT                     https://github.com/OGRECave/ogre - Samples/Media/materials/textures
 -> PitDemon*.png
 -> Podium*.png
 -> Portal{,Normal}.png                 Yughues                 CC0                     http://opengameart.org/users/yughues
