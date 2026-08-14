@@ -2323,11 +2323,15 @@ void Tile::createStatsWindow()
     mStatsWindow->setPosition(CEGUI::UVector2(CEGUI::UDim(0.3, 0), CEGUI::UDim(0.3, 0)));
     mStatsWindow->setSize(CEGUI::USize(CEGUI::UDim(0, 380), CEGUI::UDim(0, 400)));
 
+    // The frame's client area already excludes the titlebar, so the text pane
+    // can use almost all of it; the scrollbar keeps the tail of the stats
+    // reachable when the text is still taller than the window.
     CEGUI::Window* textWindow = wmgr->createWindow("OD/StaticText", "TextDisplay");
-    textWindow->setPosition(CEGUI::UVector2(CEGUI::UDim(0.05, 0), CEGUI::UDim(0.1, 0)));
-    textWindow->setSize(CEGUI::USize(CEGUI::UDim(0.9, 0), CEGUI::UDim(0.85, 0)));
+    textWindow->setPosition(CEGUI::UVector2(CEGUI::UDim(0.05, 0), CEGUI::UDim(0.02, 0)));
+    textWindow->setSize(CEGUI::USize(CEGUI::UDim(0.9, 0), CEGUI::UDim(0.96, 0)));
     textWindow->setProperty("FrameEnabled", "False");
     textWindow->setProperty("BackgroundEnabled", "False");
+    textWindow->setProperty("VertScrollbar", "True");
 
     // We want to close the window when the cross is clicked
     mStatsWindow->subscribeEvent(CEGUI::FrameWindow::EventCloseClicked,
