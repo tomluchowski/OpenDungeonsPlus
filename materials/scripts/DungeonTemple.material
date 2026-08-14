@@ -1,4 +1,36 @@
 // DungeonTemple
+
+// The Stacheln spikes used a spherical environment map via the legacy
+// fixed-function "env_map spherical" and "colour_op_ex blend_manual"
+// directives, which were removed in Ogre 14.x. The reflection and the
+// blending are now done in DungeonTemple.vert/.frag (same env-map formula
+// as ReflMetal.frag); the surface colours still come from the pass below.
+vertex_program myDungeonTempleVertexShader glsl
+{
+    source DungeonTemple.vert
+    default_params
+    {
+        param_named_auto projectionMatrix projection_matrix
+        param_named_auto viewMatrix view_matrix
+        param_named_auto worldMatrix world_matrix
+    }
+}
+
+fragment_program myDungeonTempleFragmentShader glsl
+{
+    source DungeonTemple.frag
+    default_params
+    {
+        param_named_auto ambientLightColour ambient_light_colour
+        param_named_auto lightDiffuseColour light_diffuse_colour 0
+        param_named_auto lightPos light_position 0
+        param_named_auto cameraPosition camera_position
+        param_named_auto surfaceAmbient surface_ambient_colour
+        param_named_auto surfaceDiffuse surface_diffuse_colour
+        param_named_auto surfaceEmissive surface_emissive_colour
+    }
+}
+
 material Sphere2
 {
     receive_shadows off
@@ -41,18 +73,26 @@ material Stacheln
             diffuse 0.4 0.4 0.4 1.0
             specular 0.0 0.0 0.0 1.0 12.5
             emissive 0.0 0.0 0.0 1.0
+
+            vertex_program_ref myDungeonTempleVertexShader
+            {
+            }
+
+            fragment_program_ref myDungeonTempleFragmentShader
+            {
+                param_named decalMap int 0
+                param_named envMap int 1
+            }
+
             texture_unit
             {
                 texture DungeonTemple.png
                 tex_address_mode wrap
                 filtering trilinear
-                colour_op alpha_blend
             }
             texture_unit
             {
                 texture EnvmapMetal.png
-                colour_op_ex blend_manual src_texture src_current 0.3
-                env_map spherical
             }
         }
     }
