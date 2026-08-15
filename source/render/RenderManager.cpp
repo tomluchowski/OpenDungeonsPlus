@@ -1952,7 +1952,7 @@ void RenderManager::colourizeEntity(Ogre::Entity *ent, const Seat* seat, bool ma
 
         std::string materialName = tempSubEntity->getMaterialName();
         // If the material name have been modified, we restore the original name
-        std::size_t index = materialName.find("##");
+        std::size_t index = materialName.find("@@");
         if(index != std::string::npos)
             materialName = materialName.substr(0, index);
 
@@ -1970,7 +1970,12 @@ std::string RenderManager::colourizeMaterial(const std::string& materialName, co
 
     tempSS.str("");
 
-    tempSS << materialName ; // << "##";
+    // The separator lets colourizeEntity() find the original material name back in
+    // the sub entity, so recolouring replaces the suffix instead of stacking a new
+    // clone on top of the previous one each time the tile changes hands or vision.
+    // It is "@@" rather than the "##" of the outliner/brighter suffixes so that
+    // their find("##...") checks never match a colourized name.
+    tempSS << materialName << "@@";
 
     // Create the material name.
     if(seat != nullptr)
