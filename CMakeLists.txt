@@ -517,6 +517,25 @@ find_package(PythonLibs REQUIRED)
 find_package(pybind11 REQUIRED)
 find_package(OIS REQUIRED)
 find_package(OGRE REQUIRED CONFIG)
+# An Ogre built against its bundled dependencies (OGRE_BUILD_DEPENDENCIES=ON) but
+# installed without OGRE_INSTALL_DEPENDENCIES exports the OgreBullet component with
+# an include/bullet directory that was never installed, and CMake refuses to
+# generate for any target that links it - which OGRE_LIBRARIES makes every OGRE
+# consumer do. The game never includes a Bullet header, so the missing directory
+# only matters as far as it makes CMake stop: drop the dead entries and move on.
+if(TARGET OgreBullet)
+    get_target_property(_od_bullet_incs OgreBullet INTERFACE_INCLUDE_DIRECTORIES)
+    if(_od_bullet_incs)
+        set(_od_bullet_incs_present "")
+        foreach(_od_inc_dir IN LISTS _od_bullet_incs)
+            if(_od_inc_dir MATCHES "^\\$" OR EXISTS "${_od_inc_dir}")
+                list(APPEND _od_bullet_incs_present "${_od_inc_dir}")
+            endif()
+        endforeach()
+        set_target_properties(OgreBullet PROPERTIES
+            INTERFACE_INCLUDE_DIRECTORIES "${_od_bullet_incs_present}")
+    endif()
+endif()
 set(RTSHADER_DIR "${OGRE_MEDIA_DIR}/RTShaderLib") # use upstream version
 set(OGRE_PLUGIN_DIR_REL ${OGRE_PLUGIN_DIR})
 set(OGRE_PLUGIN_DIR_DBG ${OGRE_PLUGIN_DIR})
