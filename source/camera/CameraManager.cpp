@@ -24,6 +24,8 @@
 #include "gamemap/TileContainer.h"
 #include "sound/SoundEffectsManager.h"
 #include "camera/CullingManager.h"
+#include "utils/ConfigManager.h"
+#include "utils/Helper.h"
 #include "utils/LogManager.h"
 #include "gamemap/GameMap.h"
 
@@ -74,6 +76,7 @@ CameraManager::CameraManager(Ogre::SceneManager* sceneManager, GameMap* gm, Ogre
     mCameraRollDestination(0.0),
     mCurrentDefaultViewMode(ViewModes::defaultView),
     mZChange(0.0),
+    mPanSpeedFactor(1.0),
     mSwivelDegrees(0.0),
     mTranslateVector(Ogre::Vector3(0.0, 0.0, 0.0)),
     mTranslateVectorAccel(Ogre::Vector3(0.0, 0.0, 0.0)),
@@ -81,6 +84,14 @@ CameraManager::CameraManager(Ogre::SceneManager* sceneManager, GameMap* gm, Ogre
     mSceneManager(sceneManager),
     mViewport(nullptr)
 {
+    const std::string panSpeedStr = ConfigManager::getSingleton().getInputValue(Config::PAN_SPEED, "100", false);
+    float panSpeedPercent = panSpeedStr.empty() ? 100.0f : Helper::toFloat(panSpeedStr);
+    if(panSpeedPercent < 10.0f)
+        panSpeedPercent = 10.0f;
+    else if(panSpeedPercent > 300.0f)
+        panSpeedPercent = 300.0f;
+    mPanSpeedFactor = panSpeedPercent / 100.0f;
+
     createViewport(renderWindow);
     createCamera("RTS", 0.02, 300.0);
     createCameraNode("RTS");
@@ -266,7 +277,7 @@ void CameraManager::updateCameraFrameTime(const Ogre::Real frameTime)
     if (!isCameraMovingAtAll())
         return;
 
-    mMoveSpeed = getActiveCameraNode()->getPosition().z / 16.0f;
+    mMoveSpeed = getActiveCameraNode()->getPosition().z / 16.0f * mPanSpeedFactor;
     mMoveSpeedAcceleration = 2.0f * mMoveSpeed;
     
     // Carry out the acceleration/deceleration calculations on the camera translation.
@@ -301,7 +312,22 @@ void CameraManager::updateCameraFrameTime(const Ogre::Real frameTime)
     // to the movement keys on the keyboard (the arrow keys and/or WASD).
     if (mZChange != 0)
     {
-        newPosition.z += static_cast<Ogre::Real>(mZChange * frameTime * ZOOM_SPEED);
+        // Zoom towards what is in the middle of the screen, not towards the
+        // ground under the camera: the camera looks ahead at an angle, so a
+        // plain height change slides the view target while zooming. Keeping
+        // the ground point at the screen centre fixed means shifting the
+        // camera base by the difference of its ground offsets at the two
+        // heights.
+        Ogre::Real newZ = newPosition.z + static_cast<Ogre::Real>(mZChange * frameTime * ZOOM_SPEED);
+        if (newZ <= MIN_CAMERA_Z)
+            newZ = MIN_CAMERA_Z;
+        else if (newZ >= MAX_CAMERA_Z)
+            newZ = MAX_CAMERA_Z;
+        Ogre::Vector3 offsetBefore = getGroundOffset(newPosition.z);
+        Ogre::Vector3 offsetAfter = getGroundOffset(newZ);
+        newPosition.x += offsetBefore.x - offsetAfter.x;
+        newPosition.y += offsetBefore.y - offsetAfter.y;
+        newPosition.z = newZ;
         // We also stow and stop the movement here, as the keyboard release events
         // and mouse wheel event are otherwise colliding on handling the zoom.
         if (mZChange > 0)

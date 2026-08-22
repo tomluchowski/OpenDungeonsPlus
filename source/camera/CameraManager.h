@@ -69,6 +69,9 @@ public:
     CameraManager(Ogre::SceneManager* sceneManager, GameMap* gameMap, Ogre::RenderWindow* renderWindow);
     virtual ~CameraManager();
 
+    inline void setPanSpeedFactor(Ogre::Real factor)
+    { mPanSpeedFactor = factor; }
+
     inline void circleAround(int x, int y, unsigned int radius)
     {
         mCenterX = x;
@@ -262,6 +265,10 @@ private:
 
     Ogre::Real mMoveSpeed;
     Ogre::Real mMoveSpeedAcceleration;
+
+    //! \brief User-tunable multiplier on the keyboard/autoscroll pan speed
+    //! (1.0 keeps the historic speed). Set from the settings window.
+    Ogre::Real mPanSpeedFactor;
 };
 
 #endif // CAMERAMANAGER_H_
