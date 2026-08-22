@@ -1019,7 +1019,13 @@ void RenderManager::rrRefreshTile(Tile& tile, GameMap& draggableTileContainer, c
             tileMeshNode->attachObject(tile.getFogOfWarMesh());
             tileMeshNode->attachObject(tile.getFogOfWarCloud());
             tile.getFogOfWarMesh()->setPosition(tile.getPosition());
-            tile.getFogOfWarCloud()->setPosition(tile.getPosition());    
+            tile.getFogOfWarCloud()->setPosition(tile.getPosition());
+            // Half a tile wider than the tile, so neighbouring fog tiles
+            // overlap: the opaque dirt domes interlock into one rolling mass
+            // instead of a grid of separate lumps, and the cloud quads blend
+            // through the edge fade in Cloud.frag.
+            tile.getFogOfWarMesh()->setScale(Ogre::Vector3(1.5, 1.5, 1.0));
+            tile.getFogOfWarCloud()->setScale(Ogre::Vector3(1.5, 1.5, 1.0));    
             
             
             
