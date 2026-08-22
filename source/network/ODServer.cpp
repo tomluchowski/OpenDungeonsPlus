@@ -635,6 +635,26 @@ void ODServer::processServerNotifications()
     }
 }
 
+namespace
+{
+//! \brief A defeated player cannot act any more. Refuses the action and tells
+//! them why - without this the game silently accepts orders (build, cast,
+//! summon) from a keeper whose dungeon is gone, which reads as "maybe I can
+//! still come back".
+bool refuseIfDefeated(Player* player)
+{
+    if(!player->getHasLost())
+        return false;
+
+    ServerNotification *serverNotification = new ServerNotification(
+        ServerNotificationType::chatServer, player);
+    std::string msg = "You have been defeated and can no longer give orders";
+    serverNotification->mPacket << msg << EventShortNoticeType::majorGameEvent;
+    ODServer::getSingleton().queueServerNotification(serverNotification);
+    return true;
+}
+}
+
 bool ODServer::processClientNotifications(ODSocketClient* clientSocket)
 {
     if (!clientSocket)
@@ -1334,6 +1354,8 @@ bool ODServer::processClientNotifications(ODSocketClient* clientSocket)
 
             OD_ASSERT_TRUE(packetReceived >> type);
             Player* player = clientSocket->getPlayer();
+            if(refuseIfDefeated(player))
+                break;
 
             // We check if the room is available. It is not normal to receive a message
             // asking to build an unbuildable room since the client should only display
@@ -1380,6 +1402,8 @@ bool ODServer::processClientNotifications(ODSocketClient* clientSocket)
 
             OD_ASSERT_TRUE(packetReceived >> type);
             Player* player = clientSocket->getPlayer();
+            if(refuseIfDefeated(player))
+                break;
 
             // We check if the trap is available. It is not normal to receive a message
             // asking to build an unbuildable trap since the client should only display
@@ -1423,6 +1447,8 @@ bool ODServer::processClientNotifications(ODSocketClient* clientSocket)
 
             OD_ASSERT_TRUE(packetReceived >> spellType);
             Player* player = clientSocket->getPlayer();
+            if(refuseIfDefeated(player))
+                break;
 
             // We check if the spell is available. It is not normal to receive a message
             // asking to cast an uncastable spell since the client should only display
