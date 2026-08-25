@@ -114,6 +114,22 @@
                         <Property name="Text" value="Autoscroll" />
                         <Property name="TooltipText" value="When checked, if the mouse cousor is on the screen border it will make camera fly " />
                     </Window>
+                    <Window type="OD/StaticText" name="PanSpeedText" >
+                        <Property name="Area" value="{{0,32},{0,160},{0,260},{0,180}}" />
+                        <Property name="MaxSize" value="{{1,0},{1,0}}" />
+                        <Property name="Text" value="Camera pan speed: 100%" />
+                        <Property name="BackgroundEnabled" value="False" />
+                        <Property name="FrameEnabled" value="False" />
+                    </Window>
+                    <Window type="OD/HorizontalSlider" name="PanSpeedSlider" >
+                        <Property name="Area" value="{{0,32},{0,180},{0,327},{0,193}}" />
+                        <Property name="Text" value="" />
+                        <Property name="VerticalSlider" value="False" />
+                        <Property name="AutoRenderingSurface" value="True" />
+                        <Property name="MaximumValue" value="290" />
+                        <Property name="ClickStepSize" value="10" />
+                        <Property name="TooltipText" value="How fast the arrow keys and autoscroll pan the camera (100% is the default speed)." />
+                    </Window>
                 </Window>
             </Window>
             <Window type="DefaultWindow" name="Game" >

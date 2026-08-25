@@ -18,6 +18,8 @@
 #include "modes/SettingsWindow.h"
 
 #include "gamemap/MiniMap.h"
+#include "camera/CameraManager.h"
+#include "render/ODFrameListener.h"
 #include "render/RenderManager.h"
 #include "utils/ConfigManager.h"
 #include "utils/LogManager.h"
@@ -104,6 +106,16 @@ SettingsWindow::SettingsWindow(CEGUI::Window* rootWindow):
         lightFactorSlider->subscribeEvent(
             CEGUI::Slider::EventValueChanged,
             CEGUI::Event::Subscriber(&SettingsWindow::onLightFactorChanged, this)
+        )
+    );
+
+    // Camera pan speed slider
+    CEGUI::Slider* panSpeedSlider = static_cast<CEGUI::Slider*>(
+        mSettingsWindow->getChild("MainTabControl/Input/InputSP/PanSpeedSlider"));
+    addEventConnection(
+        panSpeedSlider->subscribeEvent(
+            CEGUI::Slider::EventValueChanged,
+            CEGUI::Event::Subscriber(&SettingsWindow::onPanSpeedChanged, this)
         )
     );
 
@@ -217,6 +229,10 @@ void SettingsWindow::initConfig()
     std::string lightStr = config.getGameValue(Config::LIGHT_FACTOR, std::string(), false);
     float lightFactor = lightStr.empty() ? 0.0f : Helper::toFloat(lightStr);
     setLightFactorValue(lightFactor);
+
+    std::string panSpeedStr = config.getInputValue(Config::PAN_SPEED, "100", false);
+    float panSpeedPercent = panSpeedStr.empty() ? 100.0f : Helper::toFloat(panSpeedStr);
+    setPanSpeedValue(panSpeedPercent);
 
     // Input
     CEGUI::ToggleButton* keyboardGrabCheckbox = static_cast<CEGUI::ToggleButton*>(
@@ -416,6 +432,11 @@ void SettingsWindow::saveConfig()
     CEGUI::Slider* lightSlider = static_cast<CEGUI::Slider*>(
             mRootWindow->getChild("SettingsWindow/MainTabControl/Game/GameSP/LightSlider"));
     config.setGameValue(Config::LIGHT_FACTOR, Helper::toString(lightSlider->getCurrentValue()));
+
+    CEGUI::Slider* panSpeedSlider = static_cast<CEGUI::Slider*>(
+        mRootWindow->getChild("SettingsWindow/MainTabControl/Input/InputSP/PanSpeedSlider"));
+    config.setInputValue(Config::PAN_SPEED,
+        Helper::toString(static_cast<int32_t>(10.0f + panSpeedSlider->getCurrentValue())));
 
     // Input
     CEGUI::ToggleButton* keyboardGrabCheckbox = static_cast<CEGUI::ToggleButton*>(
@@ -644,6 +665,33 @@ void SettingsWindow::setMusicVolumeValue(float volume)
     // Set the music volume text
     CEGUI::Window* volumeText = mRootWindow->getChild("SettingsWindow/MainTabControl/Audio/AudioSP/MusicText");
     volumeText->setText("Music: " + Helper::toString(static_cast<int32_t>(volume)) + "%");
+}
+
+bool SettingsWindow::onPanSpeedChanged(const CEGUI::EventArgs&)
+{
+    CEGUI::Slider* panSpeedSlider = static_cast<CEGUI::Slider*>(
+        mRootWindow->getChild("SettingsWindow/MainTabControl/Input/InputSP/PanSpeedSlider"));
+    setPanSpeedValue(10.0f + panSpeedSlider->getCurrentValue());
+    return true;
+}
+
+void SettingsWindow::setPanSpeedValue(float panSpeedPercent)
+{
+    if(panSpeedPercent < 10.0f)
+        panSpeedPercent = 10.0f;
+    else if(panSpeedPercent > 300.0f)
+        panSpeedPercent = 300.0f;
+
+    // Apply immediately so the effect can be felt while the window is open.
+    ODFrameListener::getSingleton().getCameraManager()->setPanSpeedFactor(panSpeedPercent / 100.0f);
+
+    // The slider itself starts at the minimum usable speed rather than zero.
+    CEGUI::Slider* panSpeedSlider = static_cast<CEGUI::Slider*>(
+        mRootWindow->getChild("SettingsWindow/MainTabControl/Input/InputSP/PanSpeedSlider"));
+    panSpeedSlider->setCurrentValue(panSpeedPercent - 10.0f);
+
+    CEGUI::Window* panSpeedText = mRootWindow->getChild("SettingsWindow/MainTabControl/Input/InputSP/PanSpeedText");
+    panSpeedText->setText("Camera pan speed: " + Helper::toString(static_cast<int32_t>(panSpeedPercent)) + "%");
 }
 
 bool SettingsWindow::onLightFactorChanged(const CEGUI::EventArgs&)
