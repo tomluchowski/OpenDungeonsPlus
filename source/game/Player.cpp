@@ -486,8 +486,8 @@ void Player::notifyTeamFighting(Player* player, Tile* tile)
 void Player::notifyNoSkillInQueue()
 {
     // The advisory messages below (and their voice lines) are meaningless once
-    // the player has lost; without these guards the keeper keeps nagging a
-    // defeated player about beds, food and empty queues.
+    // the player has lost. This is the one place that checks it - callers just
+    // call, they do not test getHasLost() themselves.
     if(mHasLost)
         return;
 
@@ -733,7 +733,6 @@ void Player::upkeepPlayer(double timeSinceLastUpkeep)
 
     // Do not notify skill queue empty if no library
     if(getIsHuman() &&
-       !getHasLost() &&
        (getSeat()->getNbRooms(RoomType::library) > 0))
     {
         if(mNoSkillInQueueTime > timeSinceLastUpkeep)
@@ -748,8 +747,7 @@ void Player::upkeepPlayer(double timeSinceLastUpkeep)
         }
     }
 
-    if(getIsHuman() &&
-       !getHasLost())
+    if(getIsHuman())
     {
         if(mNoWorkerTime > timeSinceLastUpkeep)
             mNoWorkerTime -= timeSinceLastUpkeep;
