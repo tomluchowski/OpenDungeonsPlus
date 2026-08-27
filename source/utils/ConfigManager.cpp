@@ -1654,7 +1654,7 @@ double ConfigManager::getTrapConfigDouble(const std::string& param) const
 
 double ConfigManager::getTrapConfigDoubleOrDefault(const std::string& param, double defaultValue) const
 {
-    auto it = mTrapsConfig.find(param);
+    std::map<const std::string, std::string>::const_iterator it = mTrapsConfig.find(param);
     if(it == mTrapsConfig.end())
         return defaultValue;
 
