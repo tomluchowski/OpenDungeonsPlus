@@ -1506,8 +1506,6 @@ void Seat::setNextSkill(SkillType skilledType)
             return;
         if(!getPlayer()->getIsHuman())
             return;
-        if(getPlayer()->getHasLost())
-            return;
         if(getNbRooms(RoomType::library) <= 0)
             return;
 
