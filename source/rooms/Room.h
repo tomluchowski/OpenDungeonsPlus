@@ -67,6 +67,22 @@ public:
 
     virtual RoomType getType() const = 0;
 
+    //! \brief What enemies can do to a room, read from RoomsClaimableByEnemies
+    //! in the room configuration file.
+    enum class ClaimMode
+    {
+        //! Rooms cannot be claimed, only destroyed (the historical behaviour).
+        destructibleOnly = 0,
+        //! Workers can dance room tiles away and fighters can still destroy them.
+        claimableAndDestructible = 1,
+        //! Only workers can take a room, tile by tile; fighters leave rooms alone.
+        claimableOnly = 2
+    };
+
+    //! \brief The RoomsClaimableByEnemies value of the room configuration file.
+    //! Anything unknown counts as destructibleOnly.
+    static ClaimMode getClaimMode();
+
     //! \brief Rooms can be danced away tile by tile by enemy workers, the way
     //! bridges and traps already can, when the RoomsClaimableByEnemies switch is
     //! set in the room configuration file. The dungeon temple is never claimable:
@@ -74,6 +90,16 @@ public:
     //! portals override this pair with their own claiming rules.
     virtual bool isClaimable(Seat* seat) const override;
     virtual void claimForSeat(Seat* seat, Tile* tile, double danceRate) override;
+
+    //! \brief False in the claimableOnly mode, where a room changes hands by being
+    //! danced away and fighters have nothing to do with it. The dungeon temple
+    //! cannot be claimed, so it stays destructible in every mode: destroying it is
+    //! how a player gets defeated.
+    bool isDestructible() const;
+
+    virtual bool isAttackable(Tile* tile, Seat* seat) const override;
+    virtual double takeDamage(GameEntity* attacker, double absoluteDamage, double physicalDamage, double magicalDamage, double elementDamage,
+        Tile* tileTakingDamage, bool ko) override;
 
     static bool compareTile(Tile* tile1, Tile* tile2);
 

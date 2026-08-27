@@ -53,10 +53,21 @@ GameEntityType Room::getObjectType() const
 
 const double CLAIMED_VALUE_PER_TILE = 1.0;
 
-bool Room::isClaimable(Seat* seat) const
+Room::ClaimMode Room::getClaimMode()
 {
     ConfigManager& config = ConfigManager::getSingleton();
-    if(config.getRoomConfigDoubleOrDefault("RoomsClaimableByEnemies", 0.0) == 0.0)
+    double mode = config.getRoomConfigDoubleOrDefault("RoomsClaimableByEnemies", 0.0);
+    if(mode == 1.0)
+        return ClaimMode::claimableAndDestructible;
+    if(mode == 2.0)
+        return ClaimMode::claimableOnly;
+
+    return ClaimMode::destructibleOnly;
+}
+
+bool Room::isClaimable(Seat* seat) const
+{
+    if(getClaimMode() == ClaimMode::destructibleOnly)
         return false;
 
     if(getSeat()->isAlliedSeat(seat))
@@ -85,6 +96,36 @@ void Room::claimForSeat(Seat* seat, Tile* tile, double danceRate)
     }
 
     handTileOverToSeat(seat, tile);
+}
+
+bool Room::isDestructible() const
+{
+    if(getClaimMode() != ClaimMode::claimableOnly)
+        return true;
+
+    // The one room nobody can claim has to stay destructible, or the game
+    // could never be won.
+    return getType() == RoomType::dungeonTemple;
+}
+
+bool Room::isAttackable(Tile* tile, Seat* seat) const
+{
+    if(!isDestructible())
+        return false;
+
+    return Building::isAttackable(tile, seat);
+}
+
+double Room::takeDamage(GameEntity* attacker, double absoluteDamage, double physicalDamage, double magicalDamage, double elementDamage,
+        Tile* tileTakingDamage, bool ko)
+{
+    // Fighters never pick a room they cannot attack as a target, but damage
+    // that does not go through target selection (a boulder rolling through,
+    // an area spell) lands here all the same.
+    if(!isDestructible())
+        return 0.0;
+
+    return Building::takeDamage(attacker, absoluteDamage, physicalDamage, magicalDamage, elementDamage, tileTakingDamage, ko);
 }
 
 Room* Room::handTileOverToSeat(Seat* seat, Tile* tile)
