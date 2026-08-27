@@ -51,6 +51,33 @@ GameEntityType Room::getObjectType() const
     return GameEntityType::room;
 }
 
+double Room::getTileHP() const
+{
+    const std::string& roomName = RoomManager::getRoomNameFromRoomType(getType());
+    return ConfigManager::getSingleton().getRoomConfigDoubleOrDefault(roomName + "HP", DEFAULT_TILE_HP);
+}
+
+bool Room::isAttackable(Tile* tile, Seat* seat) const
+{
+    // <RoomName>HP = 0 in the room configuration means the room cannot be
+    // damaged at all: it can only change hands through claiming.
+    if(isIndestructible())
+        return false;
+
+    return Building::isAttackable(tile, seat);
+}
+
+double Room::takeDamage(GameEntity* attacker, double absoluteDamage, double physicalDamage, double magicalDamage, double elementDamage,
+        Tile* tileTakingDamage, bool ko)
+{
+    // Fighters never target an indestructible room (isAttackable), but stray
+    // damage such as a rolling boulder does not go through target selection.
+    if(isIndestructible())
+        return 0.0;
+
+    return Building::takeDamage(attacker, absoluteDamage, physicalDamage, magicalDamage, elementDamage, tileTakingDamage, ko);
+}
+
 bool Room::compareTile(Tile* tile1, Tile* tile2)
 {
     if(tile1->getX() < tile2->getX())
@@ -202,7 +229,10 @@ void Room::setupRoom(const std::string& name, Seat* seat, const std::vector<Tile
         mCoveredTiles.push_back(tile);
         TileData* tileData = createTileData(tile);
         mTileData[tile] = tileData;
-        tileData->mHP = DEFAULT_TILE_HP;
+        // Indestructible rooms still carry positive tile HP internally —
+        // zero HP means "tile destroyed" everywhere else; isAttackable()
+        // is what keeps them from being damaged.
+        tileData->mHP = isIndestructible() ? DEFAULT_TILE_HP : getTileHP();
 
         tile->setCoveringBuilding(this);
     }
@@ -658,7 +688,10 @@ bool Room::importTileDataFromStream(std::istream& is, Tile* tile, TileData* tile
     if(is.eof())
     {
         // Default initialization
-        tileData->mHP = DEFAULT_TILE_HP;
+        // Indestructible rooms still carry positive tile HP internally —
+        // zero HP means "tile destroyed" everywhere else; isAttackable()
+        // is what keeps them from being damaged.
+        tileData->mHP = isIndestructible() ? DEFAULT_TILE_HP : getTileHP();
         mCoveredTiles.push_back(tile);
         tile->setCoveringBuilding(this);
         return true;
@@ -804,7 +837,10 @@ void Room::repairRoom()
             tileData = createTileData(tile);
             mTileData[tile] = tileData;
         }
-        tileData->mHP = DEFAULT_TILE_HP;
+        // Indestructible rooms still carry positive tile HP internally —
+        // zero HP means "tile destroyed" everywhere else; isAttackable()
+        // is what keeps them from being damaged.
+        tileData->mHP = isIndestructible() ? DEFAULT_TILE_HP : getTileHP();
 
         tile->setCoveringBuilding(this);
     }
