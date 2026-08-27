@@ -256,7 +256,7 @@ void Room::checkForSplit()
 
             for(Tile* neigh : tile->getAllNeighbors())
             {
-                auto it = remaining.find(neigh);
+                std::set<Tile*>::iterator it = remaining.find(neigh);
                 if(it == remaining.end())
                     continue;
 
@@ -309,20 +309,20 @@ void Room::checkForSplit()
         // other room now covers cannot be built upon.
         for(Tile* tile : group)
         {
-            auto itData = mTileData.find(tile);
+            std::map<Tile*, TileData*>::iterator itData = mTileData.find(tile);
             if(itData != mTileData.end())
             {
                 newRoom->mTileData[tile] = itData->second->cloneTileData();
                 itData->second->mHP = 0.0;
             }
 
-            auto itTile = std::find(mCoveredTiles.begin(), mCoveredTiles.end(), tile);
+            std::vector<Tile*>::iterator itTile = std::find(mCoveredTiles.begin(), mCoveredTiles.end(), tile);
             if(itTile != mCoveredTiles.end())
                 mCoveredTiles.erase(itTile);
 
             // Whatever was built on the tile goes with it, the way absorbRoom() hands over
             // everything a room had built. It stands on ground the other room owns now.
-            auto itObject = mBuildingObjects.find(tile);
+            std::map<Tile*, BuildingObject*>::iterator itObject = mBuildingObjects.find(tile);
             if(itObject != mBuildingObjects.end())
             {
                 newRoom->mBuildingObjects[tile] = itObject->second;

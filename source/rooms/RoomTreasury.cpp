@@ -315,7 +315,7 @@ void RoomTreasury::splitRoom(Room& newRoom, const std::vector<Tile*>& tiles)
     // would make gold rather than cost it.
     for(Tile* tile : tiles)
     {
-        auto it = mTileData.find(tile);
+        std::map<Tile*, TileData*>::iterator it = mTileData.find(tile);
         if(it == mTileData.end())
             continue;
 

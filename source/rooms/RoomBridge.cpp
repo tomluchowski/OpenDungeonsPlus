@@ -302,7 +302,7 @@ void RoomBridge::restoreInitialEntityState()
         double claimedValuePerTile = mClaimedValue / static_cast<double>(nbTiles);
         for(Tile* tile : mCoveredTiles)
         {
-            auto it = mTileData.find(tile);
+            std::map<Tile*, TileData*>::iterator it = mTileData.find(tile);
             if(it == mTileData.end())
                 continue;
 
@@ -321,7 +321,7 @@ void RoomBridge::exportToStream(std::ostream& os) const
     double claimedValue = 0.0;
     for(Tile* tile : mCoveredTiles)
     {
-        auto it = mTileData.find(tile);
+        std::map<Tile*, TileData*>::const_iterator it = mTileData.find(tile);
         if(it == mTileData.end())
             continue;
 
@@ -361,7 +361,7 @@ void RoomBridge::claimForSeat(Seat* seat, Tile* tile, double danceRate)
 {
     // The dance only counts against the tile being danced on, so a bridge is
     // taken square by square, not all at once from one square.
-    auto it = mTileData.find(tile);
+    std::map<Tile*, TileData*>::iterator it = mTileData.find(tile);
     if(it == mTileData.end())
     {
         OD_LOG_ERR("bridge=" + getName() + ", tile=" + Tile::displayAsString(tile));
@@ -399,7 +399,7 @@ void RoomBridge::claimTileForSeat(Seat* seat, Tile* tile)
     // destroyed so seats that still think this bridge covers the tile can keep
     // asking it. The tile stays a bridge tile throughout, so pathing across it
     // is never interrupted for anybody and no flood fill has to change.
-    auto itData = mTileData.find(tile);
+    std::map<Tile*, TileData*>::iterator itData = mTileData.find(tile);
     if(itData != mTileData.end())
     {
         BridgeTileData* newData = static_cast<BridgeTileData*>(itData->second->cloneTileData());
@@ -410,11 +410,11 @@ void RoomBridge::claimTileForSeat(Seat* seat, Tile* tile)
         itData->second->mHP = 0.0;
     }
 
-    auto itTile = std::find(mCoveredTiles.begin(), mCoveredTiles.end(), tile);
+    std::vector<Tile*>::iterator itTile = std::find(mCoveredTiles.begin(), mCoveredTiles.end(), tile);
     if(itTile != mCoveredTiles.end())
         mCoveredTiles.erase(itTile);
 
-    auto itObject = mBuildingObjects.find(tile);
+    std::map<Tile*, BuildingObject*>::iterator itObject = mBuildingObjects.find(tile);
     if(itObject != mBuildingObjects.end())
     {
         newBridge->mBuildingObjects[tile] = itObject->second;
