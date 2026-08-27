@@ -70,7 +70,7 @@ bool Room::isClaimable(Seat* seat) const
 
 void Room::claimForSeat(Seat* seat, Tile* tile, double danceRate)
 {
-    auto it = mTileData.find(tile);
+    std::map<Tile*, TileData*>::iterator it = mTileData.find(tile);
     if(it == mTileData.end())
     {
         OD_LOG_ERR("room=" + getName() + ", tile=" + Tile::displayAsString(tile));
@@ -106,7 +106,7 @@ Room* Room::handTileOverToSeat(Seat* seat, Tile* tile)
     // room gets a copy of the tile data, this one keeps the original marked
     // destroyed so seats that still think this room covers the tile can keep
     // asking it.
-    auto itData = mTileData.find(tile);
+    std::map<Tile*, TileData*>::iterator itData = mTileData.find(tile);
     if(itData != mTileData.end())
     {
         TileData* newData = itData->second->cloneTileData();
@@ -117,11 +117,11 @@ Room* Room::handTileOverToSeat(Seat* seat, Tile* tile)
         itData->second->mHP = 0.0;
     }
 
-    auto itTile = std::find(mCoveredTiles.begin(), mCoveredTiles.end(), tile);
+    std::vector<Tile*>::iterator itTile = std::find(mCoveredTiles.begin(), mCoveredTiles.end(), tile);
     if(itTile != mCoveredTiles.end())
         mCoveredTiles.erase(itTile);
 
-    auto itObject = mBuildingObjects.find(tile);
+    std::map<Tile*, BuildingObject*>::iterator itObject = mBuildingObjects.find(tile);
     if(itObject != mBuildingObjects.end())
     {
         newRoom->mBuildingObjects[tile] = itObject->second;

@@ -1606,7 +1606,7 @@ double ConfigManager::getRoomConfigDouble(const std::string& param) const
 
 double ConfigManager::getRoomConfigDoubleOrDefault(const std::string& param, double defaultValue) const
 {
-    auto it = mRoomsConfig.find(param);
+    std::map<const std::string, std::string>::const_iterator it = mRoomsConfig.find(param);
     if(it == mRoomsConfig.end())
         return defaultValue;
 
