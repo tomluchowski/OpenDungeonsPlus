@@ -18,6 +18,7 @@
 #include "modes/AbstractModeManager.h"
 #include "modes/ConsoleInterface.h"
 
+#include <functional>
 #include <string>
 
 #define BOOST_TEST_MODULE ConsoleInterface
@@ -116,9 +117,9 @@ BOOST_AUTO_TEST_CASE(test_ConsoleInterface)
 
     // Executing a command does not record it: the history belongs to whoever owns the
     // prompt, and the game console records what was typed itself. Do the same here.
-    auto execute = [&interface, &modeManager, &count](const std::string& cmd, TestModeManager::ModeType mode)
+    std::function<Command::Result(const std::string&, TestModeManager::ModeType)> execute = [&interface, &modeManager, &count](const std::string& cmd, TestModeManager::ModeType mode)
     {
-        auto result = interface.tryExecuteClientCommand(cmd, mode, modeManager);
+        Command::Result result = interface.tryExecuteClientCommand(cmd, mode, modeManager);
         interface.getCommandHistoryBuffer().emplace_back(cmd);
         ++count;
         return result;
