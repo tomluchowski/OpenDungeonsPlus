@@ -215,7 +215,7 @@ void ResourceManager::setupDefaultDataPath(boost::program_options::variables_map
     // what makes the game independent from a system wide data folder: it no longer
     // matters whether the one it was configured with was ever installed, or is readable.
     // The files come from the copies compiled into the executable, see BuiltinData.h.
-    auto itOption = options.find("gamedata");
+    boost::program_options::variables_map::const_iterator itOption = options.find("gamedata");
     if(itOption != options.end())
     {
         // Explicit override, mostly useful to run against an edited source tree.
@@ -245,7 +245,7 @@ void ResourceManager::setupDefaultDataPath(boost::program_options::variables_map
 
 void ResourceManager::setupServerMode(boost::program_options::variables_map& options)
 {
-    auto itOption = options.find("server");
+    boost::program_options::variables_map::const_iterator itOption = options.find("server");
     if(itOption != options.end())
     {
         mServerMode = true;
@@ -258,7 +258,7 @@ void ResourceManager::setupServerMode(boost::program_options::variables_map& opt
         }
         mServerModeLevel = level.string();
 
-        auto it2 = options.find("mscreator");
+        boost::program_options::variables_map::const_iterator it2 = options.find("mscreator");
         if(it2 != options.end())
         {
             mServerModeCreator = it2->second.as<std::string>();
@@ -282,7 +282,7 @@ void ResourceManager::setupServerMode(boost::program_options::variables_map& opt
             }
             mServerModeLevel = level.string();
 
-            auto it2 = options.find("mscreator");
+            boost::program_options::variables_map::const_iterator it2 = options.find("mscreator");
             if(it2 != options.end())
             {
                 mServerModeCreator = it2->second.as<std::string>();
@@ -305,7 +305,7 @@ void ResourceManager::setupServerMode(boost::program_options::variables_map& opt
             }
             mServerModeLevel = level.string();
 
-            auto it2 = options.find("mscreator");
+            boost::program_options::variables_map::const_iterator it2 = options.find("mscreator");
             if(it2 != options.end())
             {
                 mServerModeCreator = it2->second.as<std::string>();
