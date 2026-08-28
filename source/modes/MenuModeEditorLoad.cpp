@@ -245,6 +245,7 @@ bool MenuModeEditorLoad::launchSelectedButtonPressed(const CEGUI::EventArgs&)
     {
         OD_LOG_ERR("Could not start server for editor !!!");
         window->getChild(Gui::EDM_TEXT_LOADING)->setText("ERROR: Could not start server for editor !!!");
+        return true;
     }
 
     int port = ODServer::getSingleton().getNetworkPort();

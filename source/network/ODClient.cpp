@@ -93,6 +93,12 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
     {
         case ServerNotificationType::loadLevel:
         {
+            // The map may still hold a previous session (a reconnection, or launching a
+            // level twice from the same menu). createNewMap only rebuilds the tiles, so
+            // without this the seats, creature classes and weapons pile up, and the
+            // duplicated class names crash the editor when it fills its creatures menu.
+            gameMap->clearAll();
+
             std::string odVersion;
             OD_ASSERT_TRUE(packetReceived >> odVersion);
 
