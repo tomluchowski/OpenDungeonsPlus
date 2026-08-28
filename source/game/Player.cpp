@@ -443,6 +443,11 @@ void Player::notifyNoMoreDungeonTemple()
 
 void Player::notifyTeamFighting(Player* player, Tile* tile)
 {
+    // A defeated player has nothing left to defend: no "we are under attack"
+    // and no battle music for fights that are no longer theirs.
+    if(mHasLost)
+        return;
+
     // We check if there is a fight event currently near this tile. If yes, we update
     // the time event. If not, we create a new fight event
     bool isFirstFight = true;
@@ -480,6 +485,12 @@ void Player::notifyTeamFighting(Player* player, Tile* tile)
 
 void Player::notifyNoSkillInQueue()
 {
+    // The advisory messages below (and their voice lines) are meaningless once
+    // the player has lost. This is the one place that checks it - callers just
+    // call, they do not test getHasLost() themselves.
+    if(mHasLost)
+        return;
+
     if(mNoSkillInQueueTime == 0.0f)
     {
         mNoSkillInQueueTime = NO_RESEARCH_TIME_COUNT;
@@ -494,6 +505,9 @@ void Player::notifyNoSkillInQueue()
 
 void Player::notifyNoWorker()
 {
+    if(mHasLost)
+        return;
+
     if(mNoWorkerTime > 0.0f)
         return;
 
@@ -508,6 +522,9 @@ void Player::notifyNoWorker()
 
 void Player::notifyNoTreasuryAvailable()
 {
+    if(mHasLost)
+        return;
+
     if(mNoTreasuryAvailableTime == 0.0f)
     {
         mNoTreasuryAvailableTime = NO_TREASURY_TIME_COUNT;
@@ -522,6 +539,9 @@ void Player::notifyNoTreasuryAvailable()
 
 void Player::notifyCreatureCannotFindBed(Creature& creature)
 {
+    if(mHasLost)
+        return;
+
     if(mCreatureCannotFindBed <= 0.0f)
     {
         mCreatureCannotFindBed = CREATURE_CANNOT_FIND_BED_TIME_COUNT;
@@ -540,6 +560,9 @@ void Player::notifyCreatureCannotFindBed(Creature& creature)
 
 void Player::notifyCreatureCannotFindFood(Creature& creature)
 {
+    if(mHasLost)
+        return;
+
     if(mCreatureCannotFindFood <= 0.0f)
     {
         mCreatureCannotFindFood = CREATURE_CANNOT_FIND_FOOD_TIME_COUNT;
@@ -710,7 +733,6 @@ void Player::upkeepPlayer(double timeSinceLastUpkeep)
 
     // Do not notify skill queue empty if no library
     if(getIsHuman() &&
-       !getHasLost() &&
        (getSeat()->getNbRooms(RoomType::library) > 0))
     {
         if(mNoSkillInQueueTime > timeSinceLastUpkeep)
@@ -725,8 +747,7 @@ void Player::upkeepPlayer(double timeSinceLastUpkeep)
         }
     }
 
-    if(getIsHuman() &&
-       !getHasLost())
+    if(getIsHuman())
     {
         if(mNoWorkerTime > timeSinceLastUpkeep)
             mNoWorkerTime -= timeSinceLastUpkeep;

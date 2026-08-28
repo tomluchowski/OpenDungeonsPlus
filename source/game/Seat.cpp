@@ -1506,8 +1506,6 @@ void Seat::setNextSkill(SkillType skilledType)
             return;
         if(!getPlayer()->getIsHuman())
             return;
-        if(getPlayer()->getHasLost())
-            return;
         if(getNbRooms(RoomType::library) <= 0)
             return;
 
@@ -1652,7 +1650,7 @@ void Seat::setSkillTree(const std::vector<SkillType>& skills)
 
 TileStateNotified* Seat::getTileStateNotified(Tile* tile)
 {
-    auto it = mTilesStates.find(tile);
+    std::map<Tile*, TileStateNotified>::iterator it = mTilesStates.find(tile);
     if(it != mTilesStates.end())
         return &it->second;
 

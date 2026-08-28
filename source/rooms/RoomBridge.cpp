@@ -293,7 +293,7 @@ void RoomBridge::restoreInitialEntityState()
         double claimedValuePerTile = mClaimedValue / static_cast<double>(nbTiles);
         for(Tile* tile : mCoveredTiles)
         {
-            auto it = mTileData.find(tile);
+            std::map<Tile*, TileData*>::iterator it = mTileData.find(tile);
             if(it == mTileData.end())
                 continue;
 
@@ -312,7 +312,7 @@ void RoomBridge::exportToStream(std::ostream& os) const
     double claimedValue = 0.0;
     for(Tile* tile : mCoveredTiles)
     {
-        auto it = mTileData.find(tile);
+        std::map<Tile*, TileData*>::const_iterator it = mTileData.find(tile);
         if(it == mTileData.end())
             continue;
 
@@ -352,7 +352,7 @@ void RoomBridge::claimForSeat(Seat* seat, Tile* tile, double danceRate)
 {
     // The dance only counts against the tile being danced on, so a bridge is
     // taken square by square, not all at once from one square.
-    auto it = mTileData.find(tile);
+    std::map<Tile*, TileData*>::iterator it = mTileData.find(tile);
     if(it == mTileData.end())
     {
         OD_LOG_ERR("bridge=" + getName() + ", tile=" + Tile::displayAsString(tile));

@@ -188,8 +188,7 @@ bool CreatureActionSearchTileToDig::handleSearchTileToDig(Creature& creature, in
             creature.pushAction(Utils::make_unique<CreatureActionGrabEntity>(creature, *obj));
             return true;
         }
-        else if(creature.getSeat()->getPlayer()->getIsHuman() &&
-                !creature.getSeat()->getPlayer()->getHasLost())
+        else if(creature.getSeat()->getPlayer()->getIsHuman())
         {
             creature.getSeat()->getPlayer()->notifyNoTreasuryAvailable();
         }

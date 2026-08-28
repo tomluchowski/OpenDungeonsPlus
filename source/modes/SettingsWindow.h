@@ -99,9 +99,11 @@ private:
 
     //! \brief Called when changing the ambient light factor value.
     bool onLightFactorChanged(const CEGUI::EventArgs&);
+    bool onPanSpeedChanged(const CEGUI::EventArgs&);
 
     //! \brief Set the volume value in the ambient light factor setting text and slider.
     void setLightFactorValue(float lightFactor);
+    void setPanSpeedValue(float panSpeedPercent);
 
     bool dynamicShadowsChanged;
 };
