@@ -67,6 +67,20 @@ static const int32_t MASTER_SERVER_STATUS_PENDING = 0;
 static const int32_t MASTER_SERVER_STATUS_STARTED = 1;
 static const int32_t MASTER_SERVER_STATUS_FINISHED = 2;
 
+namespace
+{
+    //! \brief Brings a directory to a form two of them can be compared with. The paths
+    //! handed around here mix absolute and relative ones, and the game data folders carry
+    //! a trailing separator while the ones taken from a level file do not.
+    boost::filesystem::path normalizeDirectory(const boost::filesystem::path& directory)
+    {
+        boost::filesystem::path normalized =
+            boost::filesystem::absolute(directory).lexically_normal();
+        normalized.remove_trailing_separator();
+        return normalized;
+    }
+}
+
 template<> ODServer* Ogre::Singleton<ODServer>::msSingleton = nullptr;
 
 ODServer::ODServer() :
@@ -1587,22 +1601,30 @@ bool ODServer::processClientNotifications(ODSocketClient* clientSocket)
             {
                 if(receivedFilePath=="" && receivedFileLevel=="")
                 {
-                    // In editor mode, we save in the original folder
-                    levelSave = levelPath;
+                    // Editing a level saves the player's own copy of it. The file it was
+                    // loaded from is one of the shipped levels unless it already sits in
+                    // the user levels folder, and those have to stay as they were shipped
+                    // so that the original map can still be played.
+                    ResourceManager& resMgr = ResourceManager::getSingleton();
+                    const boost::filesystem::path levelDir = normalizeDirectory(levelPath.parent_path());
 
-                    // // If the level was not a custom one, we save it as a custom one now.
-                    // // Note: We don't compare for official levels path, as they may be relative and unreliable.
-                    // std::string levelStr = levelSave.string();
-                    // ResourceManager& resMgr = ResourceManager::getSingleton();
-                    // bool skirmishLevelType = (levelStr.find("skirmish") != std::string::npos);
-                    // if (skirmishLevelType) {
-                    //     if (levelStr.find(resMgr.getUserLevelPathSkirmish()) == std::string::npos) {
-                    //         levelSave = boost::filesystem::path(resMgr.getUserLevelPathSkirmish() + fileLevel);
-                    //     }
-                    // }
-                    // else if (levelStr.find(resMgr.getUserLevelPathMultiplayer()) == std::string::npos) {
-                    //     levelSave = boost::filesystem::path(resMgr.getUserLevelPathMultiplayer() + fileLevel);
-                    // }
+                    // The two kinds of level live in folders named after them, in both the
+                    // shipped and the user tree.
+                    const bool isMultiplayer = (levelDir.filename() == "multiplayer");
+                    const boost::filesystem::path userLevelDir = normalizeDirectory(isMultiplayer
+                        ? resMgr.getUserLevelPathMultiplayer()
+                        : resMgr.getUserLevelPathSkirmish());
+
+                    if(levelDir == userLevelDir)
+                    {
+                        // Already the player's own level, write it back where it was.
+                        levelSave = levelPath;
+                    }
+                    else
+                    {
+                        levelSave = userLevelDir / fileLevel;
+                        OD_LOG_INF("Saving the edited level as a custom one: " + levelSave.string());
+                    }
                 }
                 else
                 {
