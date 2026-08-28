@@ -34,30 +34,6 @@ protected:
         const std::vector<TileVisual>& allowedTilesVisual, ODPacket& packet, bool isEditor) const;
 };
 
-//! \brief Per tile state of a bridge: how much dancing an enemy worker still has
-//! to do on this tile before it changes hands.
-class BridgeTileData : public TileData
-{
-public:
-    BridgeTileData() :
-        TileData(),
-        mClaimedValue(0.0)
-    {}
-
-    BridgeTileData(const BridgeTileData* tileData) :
-        TileData(tileData),
-        mClaimedValue(tileData->mClaimedValue)
-    {}
-
-    virtual ~BridgeTileData()
-    {}
-
-    virtual BridgeTileData* cloneTileData() const override
-    { return new BridgeTileData(this); }
-
-    double mClaimedValue;
-};
-
 //! \brief this class is a convenience class that handle shared bridges behaviour. It
 //! is designed to be extended
 class RoomBridge: public Room
@@ -92,17 +68,10 @@ protected:
     virtual void exportToStream(std::ostream& os) const override;
     virtual bool importFromStream(std::istream& is) override;
 
-    virtual BridgeTileData* createTileData(Tile* tile) override;
-
     virtual void updateFloodFillPathCreated(Seat* seat, const std::vector<Tile*>& tiles);
     virtual void updateFloodFillTileRemoved(Seat* seat, Tile* tile) = 0;
 
 private:
-    //! \brief Hands the given tile of this bridge over to a bridge owned by the
-    //! claiming seat, merging it with an adjacent bridge of theirs when there is
-    //! one and splitting this bridge when the loss cuts it in two.
-    void claimTileForSeat(Seat* seat, Tile* tile);
-
     //! \brief The stream format keeps one claim value for the whole bridge, so old
     //! saves and level files load unchanged. It is read into this field and shared
     //! out over the tiles in restoreInitialEntityState(); the live value is per

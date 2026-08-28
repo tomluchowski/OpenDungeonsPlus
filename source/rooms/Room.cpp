@@ -51,6 +51,163 @@ GameEntityType Room::getObjectType() const
     return GameEntityType::room;
 }
 
+const double CLAIMED_VALUE_PER_TILE = 1.0;
+
+Room::ClaimMode Room::getClaimMode()
+{
+    ConfigManager& config = ConfigManager::getSingleton();
+    double mode = config.getRoomConfigDoubleOrDefault("RoomsClaimableByEnemies", 0.0);
+    if(mode == 1.0)
+        return ClaimMode::claimableAndDestructible;
+    if(mode == 2.0)
+        return ClaimMode::claimableOnly;
+
+    return ClaimMode::destructibleOnly;
+}
+
+bool Room::isClaimable(Seat* seat) const
+{
+    if(getClaimMode() == ClaimMode::destructibleOnly)
+        return false;
+
+    if(getSeat()->isAlliedSeat(seat))
+        return false;
+
+    if(getType() == RoomType::dungeonTemple)
+        return false;
+
+    return true;
+}
+
+void Room::claimForSeat(Seat* seat, Tile* tile, double danceRate)
+{
+    std::map<Tile*, TileData*>::iterator it = mTileData.find(tile);
+    if(it == mTileData.end())
+    {
+        OD_LOG_ERR("room=" + getName() + ", tile=" + Tile::displayAsString(tile));
+        return;
+    }
+
+    TileData* tileData = it->second;
+    if(tileData->mClaimedValue > danceRate)
+    {
+        tileData->mClaimedValue -= danceRate;
+        return;
+    }
+
+    handTileOverToSeat(seat, tile);
+}
+
+bool Room::isDestructible() const
+{
+    if(getClaimMode() != ClaimMode::claimableOnly)
+        return true;
+
+    // The one room nobody can claim has to stay destructible, or the game
+    // could never be won.
+    return getType() == RoomType::dungeonTemple;
+}
+
+bool Room::isAttackable(Tile* tile, Seat* seat) const
+{
+    if(!isDestructible())
+        return false;
+
+    return Building::isAttackable(tile, seat);
+}
+
+double Room::takeDamage(GameEntity* attacker, double absoluteDamage, double physicalDamage, double magicalDamage, double elementDamage,
+        Tile* tileTakingDamage, bool ko)
+{
+    // Fighters never pick a room they cannot attack as a target, but damage
+    // that does not go through target selection (a boulder rolling through,
+    // an area spell) lands here all the same.
+    if(!isDestructible())
+        return 0.0;
+
+    return Building::takeDamage(attacker, absoluteDamage, physicalDamage, magicalDamage, elementDamage, tileTakingDamage, ko);
+}
+
+Room* Room::handTileOverToSeat(Seat* seat, Tile* tile)
+{
+    GameMap* gameMap = getGameMap();
+
+    OD_LOG_INF("Room=" + getName() + " tile=" + Tile::displayAsString(tile)
+        + " claimed by seat id=" + Helper::toString(seat->getId()));
+
+    Room* newRoom = RoomManager::createRoom(gameMap, getType());
+    if(newRoom == nullptr)
+        return nullptr;
+
+    newRoom->setIsOnMap(true);
+    newRoom->setName(gameMap->nextUniqueNameRoom(newRoom->getType()));
+    newRoom->setSeat(seat);
+
+    // The tile changes hands the way checkForSplit() hands tiles over: the new
+    // room gets a copy of the tile data, this one keeps the original marked
+    // destroyed so seats that still think this room covers the tile can keep
+    // asking it.
+    std::map<Tile*, TileData*>::iterator itData = mTileData.find(tile);
+    if(itData != mTileData.end())
+    {
+        TileData* newData = itData->second->cloneTileData();
+        // The new owner starts with the tile fully claimed, so it can be danced
+        // back just as it was danced away.
+        newData->mClaimedValue = CLAIMED_VALUE_PER_TILE;
+        newRoom->mTileData[tile] = newData;
+        itData->second->mHP = 0.0;
+    }
+
+    std::vector<Tile*>::iterator itTile = std::find(mCoveredTiles.begin(), mCoveredTiles.end(), tile);
+    if(itTile != mCoveredTiles.end())
+        mCoveredTiles.erase(itTile);
+
+    std::map<Tile*, BuildingObject*>::iterator itObject = mBuildingObjects.find(tile);
+    if(itObject != mBuildingObjects.end())
+    {
+        newRoom->mBuildingObjects[tile] = itObject->second;
+        mBuildingObjects.erase(itObject);
+    }
+
+    mCoveredTilesDestroyed.push_back(tile);
+    newRoom->mCoveredTiles.push_back(tile);
+    tile->setCoveringBuilding(newRoom);
+    tile->claimTile(seat);
+
+    // Anything this room keeps for the room as a whole rather than per tile,
+    // the gold in a treasury among it, goes over with the tile's share.
+    std::vector<Tile*> group(1, tile);
+    splitRoom(*newRoom, group);
+
+    newRoom->addToGameMap(gameMap);
+    newRoom->createMesh();
+
+    // Whoever was working on that tile is working for the other room now. It
+    // may have no room for them, so they are sent to look for a job as if the
+    // room had gone.
+    std::vector<Creature*> creatures = mCreaturesUsingRoom;
+    for(Creature* creature : creatures)
+    {
+        Tile* creatureTile = creature->getPositionTile();
+        if((creatureTile == nullptr) || (creatureTile->getCoveringBuilding() != newRoom))
+            continue;
+
+        removeCreatureUsingRoom(creature);
+        handleCreatureUsingAbsorbedRoom(*creature);
+    }
+
+    // The tile taken may sit next to another room of the claimer of the same
+    // type (the previous tiles they danced down, or a room of their own): merge.
+    newRoom->checkForRoomAbsorbtion();
+    newRoom->updateActiveSpots(gameMap);
+
+    // And losing the tile may have cut this room in two.
+    checkForSplit();
+    updateActiveSpots(gameMap);
+
+    return newRoom;
+}
+
 bool Room::compareTile(Tile* tile1, Tile* tile2)
 {
     if(tile1->getX() < tile2->getX())
