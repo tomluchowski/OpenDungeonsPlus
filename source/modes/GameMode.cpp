@@ -73,6 +73,7 @@ const std::string TEXT_SEAT_TEAM_ID_PREFIX = "TextSeatTeam";
 GameMode::GameMode(ModeManager *modeManager):
     GameEditorModeBase(modeManager, ModeManager::GAME, modeManager->getGui().getGuiSheet(Gui::guiSheet::inGameMenu)),
     mDigSetBool(false),
+    mIsSpellCooldownDisplayed(false),
     mIndexEvent(0),
     mSettings(SettingsWindow(mRootWindow)),
     mIsSkillWindowOpen(false),
@@ -1146,6 +1147,9 @@ void GameMode::onFrameStarted(const Ogre::FrameEvent& evt)
     }
     player->frameStarted(evt.timeSinceLastFrame);
 
+    // After frameStarted, so that the countdown shown is the one just computed.
+    refreshSpellCooldownText();
+
     if((mSkillCurrentCompletion.mProgressBar != nullptr) &&
        (mSkillCurrentCompletion.mCompletenessDisplayed < mSkillCurrentCompletion.mCompleteness))
     {
@@ -1670,6 +1674,41 @@ void GameMode::refreshSpellButtonCoolDowns()
             progressBar->hide();
         }
     });
+}
+
+void GameMode::refreshSpellCooldownText()
+{
+    // checkInputCommand() is what writes the text next to the pointer, and it only runs
+    // when the mouse moves or is clicked. Everything it displays is a function of where
+    // the pointer is, except the spell cooldown, which counts down on its own: holding
+    // the mouse still, over an enemy waiting to cast at it for instance, left the
+    // countdown frozen at whatever it read when the mouse last moved.
+    if(mPlayerSelection.getCurrentAction() != SelectedAction::castSpell)
+    {
+        mIsSpellCooldownDisplayed = false;
+        return;
+    }
+
+    if(SpellManager::checkSpellCooldown(mGameMap, mPlayerSelection.getNewSpellType(), *this))
+    {
+        mIsSpellCooldownDisplayed = true;
+        return;
+    }
+
+    if(!mIsSpellCooldownDisplayed)
+        return;
+
+    // The cooldown has just run out. What belongs next to the pointer now is whatever
+    // the spell itself wants to display there, and only the spell knows that, so ask it
+    // once. Not while the mouse button is being released though: checkSpellCast() casts
+    // the spell in that state rather than describing it.
+    mIsSpellCooldownDisplayed = false;
+
+    const InputManager& inputManager = mModeManager->getInputManager();
+    if(inputManager.mCommandState == InputCommandState::validated)
+        return;
+
+    SpellManager::checkSpellCast(mGameMap, mPlayerSelection.getNewSpellType(), inputManager, *this);
 }
 
 void GameMode::selectSquaredTiles(int tileX1, int tileY1, int tileX2, int tileY2)

@@ -178,11 +178,19 @@ void CreatureOverlayStatus::updateStatus(Ogre::Real timeSincelastFrame)
 
 void CreatureOverlayStatus::update(Ogre::Real timeSincelastFrame)
 {
-    // If the creature is not on map, we do not display the overlays
-    mMovableTextOverlay->setVisible(mCreature->getIsOnMap());
+    // If the creature is not on map, we do not display the overlays. Neither do we over a
+    // dead one: it lies there for a few turns before it is taken away, and its level and its
+    // mood are of no interest by then.
+    mMovableTextOverlay->setVisible(mCreature->getIsOnMap() && mCreature->isAlive());
 
     updateHealth();
-    updateStatus(timeSincelastFrame);
+
+    // A creature with several moods to show takes them in turns, one second each. No time
+    // passing means no turn taken: the labels are put back where the camera sees them while
+    // the game is paused, and cycling then would run through the moods as fast as the game
+    // draws.
+    if(timeSincelastFrame > 0.0)
+        updateStatus(timeSincelastFrame);
 
     mMovableTextOverlay->update(timeSincelastFrame);
 }

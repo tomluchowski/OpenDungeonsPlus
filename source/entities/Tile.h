@@ -256,7 +256,7 @@ public:
         return mEverVisible;
     }
 
-    inline bool setEverVisible(bool s)
+    inline void setEverVisible(bool s)
     {
         mEverVisible = s;
     }

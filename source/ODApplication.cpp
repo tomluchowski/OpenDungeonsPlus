@@ -147,7 +147,11 @@ void ODApplication::startClient()
     OD_LOG_INF("Creating window...");
 
     const unsigned int MIN_WIDTH = 800;
-    const unsigned int MIN_HEIGHT = 600;
+    // MenuMain.layout stacks its seven buttons around the vertical centre, from
+    // {0.5,-240} down to {0.5,320}, inside a root window inset by 10px top and bottom.
+    // The last one ("Quit") therefore only fits when 0.5*(h-20)+320 <= h-20, i.e. from
+    // 660px up. Anything shorter silently clips the bottom of the menu.
+    const unsigned int MIN_HEIGHT = 660;
 
     // Get width/height values from config
     unsigned int w = MIN_WIDTH;
@@ -301,7 +305,24 @@ void ODApplication::startClient()
         sfmlWindow.display();
     }
 #else /* OD_USE_SFML_WINDOW */
-    ogreRoot.startRendering();
+    // NOTE: Ogre::Root::startRendering() does not pump window events (Ogre::Bites does
+    // that for applications built on its context, which we are not). Without a message
+    // pump, ConfigureNotify never arrives, so windowResized() would only ever run once
+    // at startup and CEGUI's display size and OIS' clipping rectangle would go stale as
+    // soon as the window is resized. Drive the loop ourselves and pump every frame.
+    while (true)
+    {
+        Ogre::WindowEventUtilities::messagePump();
+
+        // Closing the window destroys the mode manager from within the pump above, so
+        // bail out here rather than rendering a frame that would still use it.
+        if (frameListener.isExitRequested())
+            break;
+
+        // renderOneFrame() returns false once an exit has been requested.
+        if (!ogreRoot.renderOneFrame())
+            break;
+    }
 #endif /* OD_USE_SFML_WINDOW */
 
     OD_LOG_INF("Disconnecting client...");

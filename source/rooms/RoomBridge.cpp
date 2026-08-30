@@ -29,8 +29,6 @@
 #include "utils/Helper.h"
 #include "utils/LogManager.h"
 
-const double CLAIMED_VALUE_PER_TILE = 1.0;
-
 void BridgeRoomFactory::checkBuildBridge(RoomType type, GameMap* gameMap, Seat* seat, const InputManager& inputManager,
     InputCommand& inputCommand, const std::vector<TileVisual>& allowedTilesVisual, bool isEditor) const
 {
@@ -278,8 +276,6 @@ void RoomBridge::setupRoom(const std::string& name, Seat* seat, const std::vecto
 {
     Room::setupRoom(name, seat, tiles);
 
-    mClaimedValue = static_cast<double>(tiles.size()) * CLAIMED_VALUE_PER_TILE;
-
     for(Seat* s : getGameMap()->getSeats())
         updateFloodFillPathCreated(s, tiles);
 }
@@ -287,6 +283,23 @@ void RoomBridge::setupRoom(const std::string& name, Seat* seat, const std::vecto
 void RoomBridge::restoreInitialEntityState()
 {
     Room::restoreInitialEntityState();
+
+    // The stream keeps one claim value for the whole bridge: share it out evenly
+    // over the tiles, which is exact for a fresh bridge and an approximation for
+    // a save made while an enemy worker was part way through a tile.
+    uint32_t nbTiles = numCoveredTiles();
+    if(nbTiles > 0)
+    {
+        double claimedValuePerTile = mClaimedValue / static_cast<double>(nbTiles);
+        for(Tile* tile : mCoveredTiles)
+        {
+            std::map<Tile*, TileData*>::iterator it = mTileData.find(tile);
+            if(it == mTileData.end())
+                continue;
+
+            it->second->mClaimedValue = claimedValuePerTile;
+        }
+    }
 
     for(Seat* s : getGameMap()->getSeats())
         updateFloodFillPathCreated(s, getCoveredTiles());
@@ -296,7 +309,16 @@ void RoomBridge::exportToStream(std::ostream& os) const
 {
     Room::exportToStream(os);
 
-    os << mClaimedValue << "\n";
+    double claimedValue = 0.0;
+    for(Tile* tile : mCoveredTiles)
+    {
+        std::map<Tile*, TileData*>::const_iterator it = mTileData.find(tile);
+        if(it == mTileData.end())
+            continue;
+
+        claimedValue += it->second->mClaimedValue;
+    }
+    os << claimedValue << "\n";
 }
 
 bool RoomBridge::importFromStream(std::istream& is)
@@ -310,26 +332,10 @@ bool RoomBridge::importFromStream(std::istream& is)
     return true;
 }
 
-void RoomBridge::absorbRoom(Room *r)
-{
-    if(r->getType() != getType())
-    {
-        OD_LOG_ERR("Trying to merge incompatible rooms: " + getName() + ", type=" + RoomManager::getRoomNameFromRoomType(getType()) + ", with " + r->getName() + ", type=" + RoomManager::getRoomNameFromRoomType(r->getType()));
-        return;
-    }
-    RoomBridge* oldRoom = static_cast<RoomBridge*>(r);
-    mClaimedValue += oldRoom->mClaimedValue;
-
-    Room::absorbRoom(r);
-}
-
 bool RoomBridge::removeCoveredTile(Tile* t)
 {
     if(!Room::removeCoveredTile(t))
         return false;
-
-    if(mClaimedValue > CLAIMED_VALUE_PER_TILE)
-        mClaimedValue -= CLAIMED_VALUE_PER_TILE;
 
     for(Seat* seat : getGameMap()->getSeats())
         updateFloodFillTileRemoved(seat, t);
@@ -344,23 +350,23 @@ bool RoomBridge::isClaimable(Seat* seat) const
 
 void RoomBridge::claimForSeat(Seat* seat, Tile* tile, double danceRate)
 {
-    if(mClaimedValue > danceRate)
+    // The dance only counts against the tile being danced on, so a bridge is
+    // taken square by square, not all at once from one square.
+    std::map<Tile*, TileData*>::iterator it = mTileData.find(tile);
+    if(it == mTileData.end())
     {
-        mClaimedValue -= danceRate;
+        OD_LOG_ERR("bridge=" + getName() + ", tile=" + Tile::displayAsString(tile));
         return;
     }
 
-    OD_LOG_INF("Bridge=" + getName() + " claimed by seat id=" + Helper::toString(seat->getId()));
-    mClaimedValue = static_cast<double>(numCoveredTiles());
-    setSeat(seat);
+    TileData* tileData = it->second;
+    if(tileData->mClaimedValue > danceRate)
+    {
+        tileData->mClaimedValue -= danceRate;
+        return;
+    }
 
-    for(Tile* tile : mCoveredTiles)
-        tile->claimTile(seat);
-
-    // We check if by claiming this bridge, we created a bigger one (can happen
-    // if a player builds a bridge next to another one's)
-    checkForRoomAbsorbtion();
-    updateActiveSpots(getGameMap());
+    handTileOverToSeat(seat, tile);
 }
 
 double RoomBridge::getCreatureSpeed(const Creature* creature, Tile* tile) const

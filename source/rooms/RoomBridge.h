@@ -62,7 +62,6 @@ public:
     virtual void claimForSeat(Seat* seat, Tile* tile, double danceRate) override;
     virtual double getCreatureSpeed(const Creature* creature, Tile* tile) const override;
 
-    virtual void absorbRoom(Room *r) override;
     virtual bool removeCoveredTile(Tile* t) override;
 
 protected:
@@ -73,6 +72,10 @@ protected:
     virtual void updateFloodFillTileRemoved(Seat* seat, Tile* tile) = 0;
 
 private:
+    //! \brief The stream format keeps one claim value for the whole bridge, so old
+    //! saves and level files load unchanged. It is read into this field and shared
+    //! out over the tiles in restoreInitialEntityState(); the live value is per
+    //! tile, in BridgeTileData.
     double mClaimedValue;
 };
 

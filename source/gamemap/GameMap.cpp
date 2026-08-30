@@ -46,6 +46,7 @@
 #include "network/ODServer.h"
 #include "network/ServerMode.h"
 #include "network/ServerNotification.h"
+#include "render/CreatureOverlayStatus.h"
 #include "render/ODFrameListener.h"
 #include "rooms/Room.h"
 #include "rooms/RoomManager.h"
@@ -1330,15 +1331,37 @@ unsigned long int GameMap::doMiscUpkeep(double timeSinceLastTurn)
 
 void GameMap::updateAnimations(Ogre::Real timeSinceLastFrame)
 {
-    if(mIsPaused)
+    if(mIsPaused || (getTurnNumber() <= 0))
+    {
+        // The labels over the creatures are placed on the screen rather than in the world,
+        // so they only stay over their creature for as long as something keeps putting them
+        // where the camera now sees it. The camera goes on moving while the game is paused,
+        // which left every label of them behind, sitting over whatever the creature had
+        // been standing on. They are moved without being given any time, so nothing they
+        // say changes and no mood of theirs takes its turn while the game is not running.
+        updateCreatureOverlays(0.0);
         return;
-
-    if(getTurnNumber() <= 0)
-        return;
+    }
 
     // Update the animations on all AnimatedObjects
     for(MovableGameEntity* mge : mAnimatedObjects)
         mge->update(timeSinceLastFrame);
+}
+
+void GameMap::updateCreatureOverlays(Ogre::Real timeSinceLastFrame)
+{
+    // Only the client has them
+    if(isServerGameMap())
+        return;
+
+    for(Creature* creature : mCreatures)
+    {
+        CreatureOverlayStatus* overlayStatus = creature->getOverlayStatus();
+        if(overlayStatus == nullptr)
+            continue;
+
+        overlayStatus->update(timeSinceLastFrame);
+    }
 }
 
 void GameMap::playerIsFighting(Player* player, Tile* tile)

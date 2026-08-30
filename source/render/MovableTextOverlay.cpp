@@ -273,8 +273,11 @@ void MovableTextOverlay::setMaterialName(uint32_t childOverlayId, const Ogre::St
 
 bool MovableTextOverlay::computeOverlayPositionHead(Ogre::Vector2& position)
 {
-    // the AABB of the target
-    const Ogre::AxisAlignedBox& AABB = mFollowedMov->getWorldBoundingBox();
+    // The AABB of the target. It has to be derived rather than taken as it stands: the
+    // entities are moved during the frame, after the scene was last updated, so the box
+    // Ogre holds is where the creature was on the previous frame. Placing the label from
+    // that leaves it trailing behind whatever is moving.
+    const Ogre::AxisAlignedBox& AABB = mFollowedMov->getWorldBoundingBox(true);
     if (!mCamera->isVisible(AABB))
         return false;
 

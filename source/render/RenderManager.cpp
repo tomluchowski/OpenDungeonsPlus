@@ -311,23 +311,27 @@ void RenderManager::initGameRenderer(GameMap* gameMap)
     mRenderTarget->setAutoUpdated(false);
 
     // Update the render target (for a correct first frame)
+    // getOverlayStatus() is null for every creature whose mesh is not currently created,
+    // so it has to be checked the same way ODFrameListener::frameStarted() does. Remember
+    // the overlays actually hidden rather than walking the creature list a second time:
+    // two loops kept in lockstep only agree as long as nothing changes in between.
     // preRenderTargetUpdate:
-    std::vector<bool> mTemporaryWasVisible;
-    for (int i = 0; i < gameMap->getCreatures().size(); i++)
+    std::vector<MovableTextOverlay*> temporaryHiddenOverlays;
+    for (Creature* creature : gameMap->getCreatures())
     {
-        CreatureOverlayStatus* tmp = gameMap->getCreatures()[i]->getOverlayStatus();
-        mTemporaryWasVisible.push_back(tmp->getMovableTextOverlay()->isVisible());
-        tmp->getMovableTextOverlay()->setVisible(false);
+        CreatureOverlayStatus* overlayStatus = creature->getOverlayStatus();
+        if(overlayStatus == nullptr)
+            continue;
+        MovableTextOverlay* overlay = overlayStatus->getMovableTextOverlay();
+        if(overlay == nullptr || !overlay->isVisible())
+            continue;
+        overlay->setVisible(false);
+        temporaryHiddenOverlays.push_back(overlay);
     }
     mRenderTarget->update();
     // postRenderTargetUpdate:
-    int tmpItr = 0;
-    for (int i = 0; i < gameMap->getCreatures().size() ; i++)
-    {
-        CreatureOverlayStatus* tmp = gameMap->getCreatures()[i]->getOverlayStatus();
-        tmp->getMovableTextOverlay()->setVisible(mTemporaryWasVisible[tmpItr++]);
-    }        
-    mTemporaryWasVisible.clear();    
+    for (MovableTextOverlay* overlay : temporaryHiddenOverlays)
+        overlay->setVisible(true);    
     
     Ogre::MaterialPtr mSmokeMaterial = Ogre::MaterialManager::getSingleton().getByName("Examples/Smoke");
     mSmokeMaterial->getTechnique(0)->getPass(0)->getTextureUnitState(1)->setTexture(m_texture);
@@ -1948,7 +1952,7 @@ void RenderManager::colourizeEntity(Ogre::Entity *ent, const Seat* seat, bool ma
 
         std::string materialName = tempSubEntity->getMaterialName();
         // If the material name have been modified, we restore the original name
-        std::size_t index = materialName.find("##");
+        std::size_t index = materialName.find("@@");
         if(index != std::string::npos)
             materialName = materialName.substr(0, index);
 
@@ -1966,7 +1970,12 @@ std::string RenderManager::colourizeMaterial(const std::string& materialName, co
 
     tempSS.str("");
 
-    tempSS << materialName ; // << "##";
+    // The separator lets colourizeEntity() find the original material name back in
+    // the sub entity, so recolouring replaces the suffix instead of stacking a new
+    // clone on top of the previous one each time the tile changes hands or vision.
+    // It is "@@" rather than the "##" of the outliner/brighter suffixes so that
+    // their find("##...") checks never match a colourized name.
+    tempSS << materialName << "@@";
 
     // Create the material name.
     if(seat != nullptr)

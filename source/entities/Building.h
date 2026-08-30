@@ -39,11 +39,13 @@ class TileData
 
 public:
     TileData() :
-        mHP(0)
+        mHP(0),
+        mClaimedValue(1.0)
     {}
 
     TileData(const TileData* tileData) :
-        mHP(tileData->mHP)
+        mHP(tileData->mHP),
+        mClaimedValue(tileData->mClaimedValue)
     {}
 
     virtual ~TileData()
@@ -53,6 +55,12 @@ public:
     { return new TileData(this); }
 
     double mHP;
+
+    //! How much dancing an enemy worker still has to do on this tile before it
+    //! changes hands, for buildings claimable tile by tile (bridges, rooms).
+    //! Note that TrapTileData keeps its own field of the same name that hides
+    //! this one; unifying the two is left for when trap serialization can move.
+    double mClaimedValue;
 
     //! Seats with vision on the corresponding tile. Note that seats with vision are not copied when cloning a TileData
     std::vector<Seat*> mSeatsVision;
@@ -110,6 +118,12 @@ public:
 
     virtual bool isAttackable(Tile* tile, Seat* seat) const override;
     virtual bool removeCoveredTile(Tile* t);
+
+    //! \brief Called once the building has lost tiles. One whose tiles no longer hold
+    //! together should become several buildings rather than stay one that is in pieces.
+    //! A building that does not know how to split stays as it is.
+    virtual void checkForSplit()
+    {}
     std::vector<Tile*> getCoveredTiles() override;
 
     Tile* getCoveredTile(int index) override;

@@ -69,6 +69,9 @@ void Building::doUpkeep()
 
         updateActiveSpots();
         createMesh();
+
+        // Destroying the tiles in the middle of a building leaves the rest of it in pieces
+        checkForSplit();
     }
 }
 
@@ -135,7 +138,7 @@ bool Building::canBuildingBeRemoved()
     if(mBuildingObjects.empty())
         return ret;
 
-    for (const std::pair<Tile* const, RenderedMovableEntity*>& p : mBuildingObjects)
+    for (const std::pair<Tile* const, BuildingObject*>& p : mBuildingObjects)
     {
         RenderedMovableEntity* obj = p.second;
         if(!obj->notifyRemoveAsked())

@@ -1604,6 +1604,15 @@ double ConfigManager::getRoomConfigDouble(const std::string& param) const
     return Helper::toDouble(it->second);
 }
 
+double ConfigManager::getRoomConfigDoubleOrDefault(const std::string& param, double defaultValue) const
+{
+    std::map<const std::string, std::string>::const_iterator it = mRoomsConfig.find(param);
+    if(it == mRoomsConfig.end())
+        return defaultValue;
+
+    return Helper::toDouble(it->second);
+}
+
 const std::string& ConfigManager::getTrapConfigString(const std::string& param) const
 {
     auto it = mTrapsConfig.find(param);
@@ -1882,7 +1891,12 @@ bool ConfigManager::initVideoConfig(Ogre::Root& ogreRoot)
             }
             if (!valueIsPossible)
             {
-                optionsToRemove.push_back(setting.first);
+                // The video mode also sizes the window when running windowed, where it
+                // need not be one of the render system's fullscreen modes. Dropping it
+                // would silently fall back to the minimum window size, so keep the
+                // user's value and simply don't push it to the render system.
+                if (setting.first != Config::VIDEO_MODE)
+                    optionsToRemove.push_back(setting.first);
                 continue;
             }
 

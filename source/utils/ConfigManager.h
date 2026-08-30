@@ -62,6 +62,7 @@ const std::string MUSIC_VOLUME = "Music Volume";
 const std::string KEYBOARD_GRAB = "Keyboard Grab";
 const std::string MOUSE_GRAB = "Mouse Grab";
 const std::string AUTOSCROLL = "Autoscroll";
+const std::string PAN_SPEED = "Pan Speed";
 // Game
 const std::string NICKNAME = "Nickname";
 const std::string KEEPERVOICE = "KeeperVoice";
@@ -187,6 +188,10 @@ public:
     uint32_t getRoomConfigUInt32(const std::string& param) const;
     int32_t getRoomConfigInt32(const std::string& param) const;
     double getRoomConfigDouble(const std::string& param) const;
+    //! \brief Same as getRoomConfigDouble but returns defaultValue instead of
+    //! logging an error when the parameter is not in the configuration file.
+    //! Useful for newly introduced parameters older config files do not have.
+    double getRoomConfigDoubleOrDefault(const std::string& param, double defaultValue) const;
 
     //! Traps configuration
     const std::string& getTrapConfigString(const std::string& param) const;

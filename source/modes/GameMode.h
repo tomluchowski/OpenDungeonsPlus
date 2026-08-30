@@ -193,6 +193,10 @@ class GameMode final : public GameEditorModeBase, public InputCommand
     //! \brief Called at each frame. Updates spell cooldowns.
     void refreshSpellButtonCoolDowns();
 
+    //! \brief Called at each frame. Keeps the countdown next to the mouse pointer ticking
+    //! while a spell that is still cooling down is selected.
+    void refreshSpellCooldownText();
+
     Creature* getClosestCreature(Tile*);
     
 protected:
@@ -218,6 +222,10 @@ private:
     //! \brief Sets whether a tile must marked or unmarked for digging.
     //! this value is based on the first marked flag tile selected.
     bool mDigSetBool;
+
+    //! \brief Whether the text next to the mouse pointer is currently a spell cooldown
+    //! countdown, and thus whether it will need replacing once the cooldown runs out.
+    bool mIsSpellCooldownDisplayed;
 
     //! \brief Index of the event in the game event queue (for zooming automatically)
     uint32_t mIndexEvent;

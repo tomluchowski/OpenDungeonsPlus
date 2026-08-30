@@ -57,9 +57,49 @@ public:
     //! should be overriden
     virtual void handleCreatureUsingAbsorbedRoom(Creature& creature);
 
+    //! \brief Called on the room the tiles are leaving once they have been handed over, so
+    //! that a room keeping something for the room as a whole, rather than per tile, can give
+    //! the new one its share. Anything held in the tile data moves with the tile on its own.
+    virtual void splitRoom(Room& newRoom, const std::vector<Tile*>& tiles)
+    {}
+
     static std::string getRoomStreamFormat();
 
     virtual RoomType getType() const = 0;
+
+    //! \brief What enemies can do to a room, read from RoomsClaimableByEnemies
+    //! in the room configuration file.
+    enum class ClaimMode
+    {
+        //! Rooms cannot be claimed, only destroyed (the historical behaviour).
+        destructibleOnly = 0,
+        //! Workers can dance room tiles away and fighters can still destroy them.
+        claimableAndDestructible = 1,
+        //! Only workers can take a room, tile by tile; fighters leave rooms alone.
+        claimableOnly = 2
+    };
+
+    //! \brief The RoomsClaimableByEnemies value of the room configuration file.
+    //! Anything unknown counts as destructibleOnly.
+    static ClaimMode getClaimMode();
+
+    //! \brief Rooms can be danced away tile by tile by enemy workers, the way
+    //! bridges and traps already can, when the RoomsClaimableByEnemies switch is
+    //! set in the room configuration file. The dungeon temple is never claimable:
+    //! losing it means defeat and that path expects destruction. Bridges and
+    //! portals override this pair with their own claiming rules.
+    virtual bool isClaimable(Seat* seat) const override;
+    virtual void claimForSeat(Seat* seat, Tile* tile, double danceRate) override;
+
+    //! \brief False in the claimableOnly mode, where a room changes hands by being
+    //! danced away and fighters have nothing to do with it. The dungeon temple
+    //! cannot be claimed, so it stays destructible in every mode: destroying it is
+    //! how a player gets defeated.
+    bool isDestructible() const;
+
+    virtual bool isAttackable(Tile* tile, Seat* seat) const override;
+    virtual double takeDamage(GameEntity* attacker, double absoluteDamage, double physicalDamage, double magicalDamage, double elementDamage,
+        Tile* tileTakingDamage, bool ko) override;
 
     static bool compareTile(Tile* tile1, Tile* tile2);
 
@@ -95,6 +135,13 @@ public:
     //! \brief Checks on the neighboor tiles of the room if there are other rooms of the same type/same seat.
     //! if so, it aborbs them
     void checkForRoomAbsorbtion();
+
+    //! \brief The counterpart of checkForRoomAbsorbtion: checks whether the covered tiles
+    //! still hold together and, if they do not, moves every group but the biggest into a room
+    //! of its own. Losing tiles in the middle, by selling or by destruction, leaves what is
+    //! left looking like one room while being two, and everything done to a room is then done
+    //! to both: claiming one half of a bridge used to claim the other half across the lava.
+    void checkForSplit() override;
 
     //! \brief returns true if the room can be repaired and there are destroyed tiles. false otherwise.
     bool canBeRepaired() const;
@@ -135,6 +182,14 @@ public:
 
 protected:
     static void fireRoomSound(Tile& tile, const std::string& soundFamily);
+
+    //! \brief Hands the given tile of this room over to a room of the same type
+    //! owned by the claiming seat, merging it with an adjacent room of theirs
+    //! when there is one and splitting this room when the loss cuts it in two.
+    //! Room-level state gets shared out through splitRoom(), so e.g. a treasury
+    //! tile takes its share of the stored gold with it. Returns the room the
+    //! tile ended up in, or nullptr if no room could be created.
+    Room* handTileOverToSeat(Seat* seat, Tile* tile);
 
     /*! \brief Exports the headers needed to recreate the Room. It allows to extend Room as much as wanted.
      * The content of the Room will be exported by exportToPacket.
