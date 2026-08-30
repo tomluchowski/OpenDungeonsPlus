@@ -204,6 +204,7 @@ protected:
 
     //! \brief The different Game Options Menu handlers
     bool showQuitMenuFromOptions(const CEGUI::EventArgs& e = {});
+    bool showExitApplicationFromOptions(const CEGUI::EventArgs& e = {});
     bool showObjectivesFromOptions(const CEGUI::EventArgs& e = {});
     bool showSkillFromOptions(const CEGUI::EventArgs& e = {});
     bool saveGame(const CEGUI::EventArgs& e = {});
@@ -219,6 +220,11 @@ protected:
     virtual bool keyReleasedNormal  (const OIS::KeyEvent &arg);
 
 private:
+    //! \brief Whether the pending exit confirmation should leave to the desktop
+    //! rather than back to the main menu. Set by the button that opened the
+    //! confirmation popup.
+    bool mExitToDesktop = false;
+
     //! \brief Sets whether a tile must marked or unmarked for digging.
     //! this value is based on the first marked flag tile selected.
     bool mDigSetBool;

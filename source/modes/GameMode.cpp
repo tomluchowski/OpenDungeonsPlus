@@ -222,6 +222,12 @@ GameMode::GameMode(ModeManager *modeManager):
             CEGUI::Event::Subscriber(&GameMode::showQuitMenuFromOptions, this)
         )
     );
+    addEventConnection(
+        guiSheet->getChild("GameOptionsWindow/ExitGameButton")->subscribeEvent(
+            CEGUI::PushButton::EventClicked,
+            CEGUI::Event::Subscriber(&GameMode::showExitApplicationFromOptions, this)
+        )
+    );
 
     //Exit confirmation box
     addEventConnection(
@@ -930,6 +936,7 @@ bool GameMode::keyPressedNormal(const OIS::KeyEvent &arg)
 
     // Quit the game
     case OIS::KC_ESCAPE:
+        mExitToDesktop = false;
         popupExit(!mGameMap->getGamePaused());
         break;
 
@@ -1215,7 +1222,10 @@ void GameMode::notifyGuiAction(GuiAction guiAction)
 
 bool GameMode::onClickYesQuitMenu(const CEGUI::EventArgs& /*arg*/)
 {
-    mModeManager->requestMode(AbstractModeManager::MENU_MAIN);
+    if(mExitToDesktop)
+        ODFrameListener::getSingleton().requestExit();
+    else
+        mModeManager->requestMode(AbstractModeManager::MENU_MAIN);
     return true;
 }
 
@@ -1366,6 +1376,15 @@ bool GameMode::toggleOptionsWindow(const CEGUI::EventArgs& e)
 
 bool GameMode::showQuitMenuFromOptions(const CEGUI::EventArgs& /*e*/)
 {
+    mExitToDesktop = false;
+    mRootWindow->getChild("GameOptionsWindow")->hide();
+    popupExit(!mGameMap->getGamePaused());
+    return true;
+}
+
+bool GameMode::showExitApplicationFromOptions(const CEGUI::EventArgs& /*e*/)
+{
+    mExitToDesktop = true;
     mRootWindow->getChild("GameOptionsWindow")->hide();
     popupExit(!mGameMap->getGamePaused());
     return true;
