@@ -1139,16 +1139,11 @@ void EditorMode::askPortalWaveData(Tile* tile)
     if(tile == nullptr)
         return;
 
-    // A client does not get the rooms themselves, only what its tiles look like, so this is
-    // as much as the editor can tell on its own. The server has the last word.
-    if(tile->getTileVisual() != RoomPortalWave::mRoomVisual)
-    {
-        displayText(Ogre::ColourValue::White, "Point at a wave portal to edit its waves");
-        return;
-    }
-
-    // The waves are not part of what a room tells its clients either, only the server knows
-    // them. The window is opened when the answer comes back.
+    // A client is only told what its tiles look like, never which room covers them, so it
+    // cannot tell a wave portal from any other tile on its own. The server can, and it is
+    // the only side that knows the waves anyway: it is asked for every tile, and answers
+    // with the waves, or with an empty room name when there is no wave portal there. The
+    // window is opened when the answer comes back.
     ClientNotification *clientNotification = new ClientNotification(
         ClientNotificationType::editorAskPortalWaveData);
     mGameMap->tileToPacket(clientNotification->mPacket, tile);
@@ -1160,6 +1155,12 @@ void EditorMode::askPortalWaveData(Tile* tile)
 
 void EditorMode::showPortalWaveWindow(const std::string& roomName, const RoomPortalWaveConfig& config)
 {
+    if(roomName.empty())
+    {
+        displayText(Ogre::ColourValue::White, "Point at a wave portal to edit its waves");
+        return;
+    }
+
     mPortalWaveRoomName = roomName;
     mPortalWaveConfig = config;
     mPortalWaveSelectedWave = mPortalWaveConfig.mWaves.empty() ? -1 : 0;

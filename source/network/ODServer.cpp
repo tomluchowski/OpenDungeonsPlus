@@ -2435,18 +2435,18 @@ bool ODServer::processClientNotifications(ODSocketClient* clientSocket)
             Tile* tile = gameMap->tileFromPacket(packetReceived);
 
             // The waves are never sent to the clients with the rest of the room, so the
-            // editor has to ask for them before it can show them.
+            // editor has to ask for them before it can show them. The editor cannot tell
+            // whether the tile holds a wave portal either, so it may ask about any tile:
+            // an empty room name is the answer when there is nothing to edit there.
+            std::string roomName;
+            RoomPortalWaveConfig config;
             RoomPortalWave* roomPortalWave = getWavePortalOnTile(tile);
-            if(roomPortalWave == nullptr)
+            if(roomPortalWave != nullptr)
             {
-                OD_LOG_ERR("Editor asked for the waves of tile=" + Tile::displayAsString(tile)
-                    + " which holds no wave portal");
-                break;
+                roomName = roomPortalWave->getName();
+                roomPortalWave->exportWaveConfig(config);
             }
 
-            RoomPortalWaveConfig config;
-            roomPortalWave->exportWaveConfig(config);
-            std::string roomName = roomPortalWave->getName();
             ServerNotification notif(ServerNotificationType::editorPortalWaveData, player);
             notif.mPacket << roomName << config;
             sendAsyncMsg(notif);

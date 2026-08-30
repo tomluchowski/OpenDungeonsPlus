@@ -121,7 +121,8 @@ public:
     bool isCheckboxSelected(const CEGUI::String& checkbox);
 
     //! \brief Shows the waves of a wave portal, as the server has just described them.
-    //! Called when the answer to the request sent by askPortalWaveData comes back.
+    //! Called when the answer to the request sent by askPortalWaveData comes back. An empty
+    //! room name means the tile asked about holds no wave portal, and only a hint is shown.
     void showPortalWaveWindow(const std::string& roomName, const RoomPortalWaveConfig& config);
 private:
 
