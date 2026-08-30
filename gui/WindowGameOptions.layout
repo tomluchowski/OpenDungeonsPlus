@@ -45,7 +45,7 @@
             <Property name="Area" value="{{0.5,-80},{0,321},{0.5,80},{0,354}}" />
             <Property name="IconImage" value="OpenDungeonsIcons/AbortIcon" />
             <Property name="IconImageColour" value="FFBB0000" />
-            <Property name="Text" value="Exit OpenDungeons" />
+            <Property name="Text" value="Exit to System" />
             <Property name="TooltipText" value="Leave this game and exit to the desktop..." />
         </Window>
     </Window>
