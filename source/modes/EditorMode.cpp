@@ -426,6 +426,13 @@ EditorMode::EditorMode(ModeManager* modeManager):
         )
     );
 
+    addEventConnection(
+        mRootWindow->getChild(Gui::BUTTON_PORTAL_WAVE)->subscribeEvent(
+          CEGUI::PushButton::EventClicked,
+          CEGUI::Event::Subscriber(RoomSelector(RoomType::portalWave, mPlayerSelection))
+        )
+    );
+
     // Wave portal window
     addEventConnection(
         mRootWindow->getChild("EditorPortalWavesWindow")->subscribeEvent(
@@ -2390,6 +2397,7 @@ void EditorMode::refreshGuiSkill()
     // We also display the editor only buttons
     guiSheet->getChild(Gui::BUTTON_TEMPLE)->show();
     guiSheet->getChild(Gui::BUTTON_PORTAL)->show();
+    guiSheet->getChild(Gui::BUTTON_PORTAL_WAVE)->show();
 }
 
 void EditorMode::connectTileSelect(const std::string& buttonName, TileVisual tileVisual)

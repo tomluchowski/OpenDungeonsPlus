@@ -151,6 +151,7 @@ const std::string Gui::MAIN_TABCONTROL = "MainTabControl";
 const std::string Gui::TAB_ROOMS = "MainTabControl/Rooms";
 const std::string Gui::BUTTON_TEMPLE = "MainTabControl/Rooms/TempleButton";
 const std::string Gui::BUTTON_PORTAL = "MainTabControl/Rooms/PortalButton";
+const std::string Gui::BUTTON_PORTAL_WAVE = "MainTabControl/Rooms/WavePortalButton";
 const std::string Gui::BUTTON_DESTROY_ROOM = "MainTabControl/Rooms/DestroyRoomButton";
 const std::string Gui::TAB_TRAPS = "MainTabControl/Traps";
 const std::string Gui::BUTTON_DESTROY_TRAP = "MainTabControl/Traps/DestroyTrapButton";
