@@ -138,6 +138,8 @@ std::string ServerNotification::typeString(ServerNotificationType type)
             return "exit";
         case ServerNotificationType::displayText:
             return "displayText";
+        case ServerNotificationType::editorPortalWaveData:
+            return "editorPortalWaveData";
         default:
             OD_LOG_ERR("Unknown enum for ServerNotificationType="
                 + Helper::toString(static_cast<int>(type)));

@@ -714,6 +714,49 @@ void RoomPortalWave::addRoomPortalWaveData(RoomPortalWaveData* roomPortalWaveDat
     }
 }
 
+void RoomPortalWave::exportWaveConfig(RoomPortalWaveConfig& config) const
+{
+    config.mTurnsBetween2Waves = mTurnsBetween2Waves;
+    config.mStrategy = mStrategy;
+    config.mRangeTilesAttack = mRangeTilesAttack;
+
+    config.mTargetTeams.clear();
+    for(int team : mTargetTeams)
+        config.mTargetTeams.push_back(static_cast<int32_t>(team));
+
+    // Same order as exportToStream so that the editor shows the waves the way the level
+    // file lists them
+    config.mWaves.clear();
+    for(RoomPortalWaveData* roomPortalWaveData : mRoomPortalWaveDataNotSpawnable)
+        config.mWaves.push_back(*roomPortalWaveData);
+
+    for(RoomPortalWaveData* roomPortalWaveData : mRoomPortalWaveDataSpawnable)
+        config.mWaves.push_back(*roomPortalWaveData);
+}
+
+void RoomPortalWave::importWaveConfig(const RoomPortalWaveConfig& config)
+{
+    mTurnsBetween2Waves = config.mTurnsBetween2Waves;
+    mStrategy = config.mStrategy;
+    mRangeTilesAttack = config.mRangeTilesAttack;
+
+    mTargetTeams.clear();
+    for(int32_t team : config.mTargetTeams)
+        mTargetTeams.push_back(team);
+
+    for(RoomPortalWaveData* roomPortalWaveData : mRoomPortalWaveDataSpawnable)
+        delete roomPortalWaveData;
+
+    mRoomPortalWaveDataSpawnable.clear();
+    for(RoomPortalWaveData* roomPortalWaveData : mRoomPortalWaveDataNotSpawnable)
+        delete roomPortalWaveData;
+
+    mRoomPortalWaveDataNotSpawnable.clear();
+
+    for(const RoomPortalWaveData& wave : config.mWaves)
+        addRoomPortalWaveData(new RoomPortalWaveData(wave));
+}
+
 bool RoomPortalWave::handleSearchFoe()
 {
     if(mPortalObject == nullptr)
@@ -1227,6 +1270,69 @@ bool RoomPortalWave::notifyRemovedFromGameMap(GameEntity* entity)
     }
 
     return true;
+}
+
+ODPacket& operator<<(ODPacket& os, const RoomPortalWaveConfig& config)
+{
+    int32_t strategy = static_cast<int32_t>(config.mStrategy);
+    os << config.mTurnsBetween2Waves << strategy << config.mRangeTilesAttack;
+
+    uint32_t nb = static_cast<uint32_t>(config.mTargetTeams.size());
+    os << nb;
+    for(int32_t team : config.mTargetTeams)
+        os << team;
+
+    nb = static_cast<uint32_t>(config.mWaves.size());
+    os << nb;
+    for(const RoomPortalWaveData& wave : config.mWaves)
+    {
+        os << wave.mSpawnTurnMin << wave.mSpawnTurnMax;
+        uint32_t nbCreatures = static_cast<uint32_t>(wave.mSpawnCreatureClassName.size());
+        os << nbCreatures;
+        for(const std::pair<std::string, uint32_t>& p : wave.mSpawnCreatureClassName)
+            os << p.first << p.second;
+    }
+
+    return os;
+}
+
+ODPacket& operator>>(ODPacket& is, RoomPortalWaveConfig& config)
+{
+    int32_t strategy;
+    is >> config.mTurnsBetween2Waves >> strategy >> config.mRangeTilesAttack;
+    config.mStrategy = static_cast<RoomPortalWaveStrategy>(strategy);
+
+    uint32_t nb;
+    is >> nb;
+    config.mTargetTeams.clear();
+    while(nb > 0)
+    {
+        --nb;
+        int32_t team;
+        is >> team;
+        config.mTargetTeams.push_back(team);
+    }
+
+    is >> nb;
+    config.mWaves.clear();
+    while(nb > 0)
+    {
+        --nb;
+        RoomPortalWaveData wave;
+        is >> wave.mSpawnTurnMin >> wave.mSpawnTurnMax;
+        uint32_t nbCreatures;
+        is >> nbCreatures;
+        while(nbCreatures > 0)
+        {
+            --nbCreatures;
+            std::pair<std::string, uint32_t> p;
+            is >> p.first >> p.second;
+            wave.mSpawnCreatureClassName.push_back(p);
+        }
+        config.mWaves.push_back(wave);
+    }
+
+    return is;
 }
 
 std::ostream& operator<<(std::ostream& os, const RoomPortalWaveStrategy& type)

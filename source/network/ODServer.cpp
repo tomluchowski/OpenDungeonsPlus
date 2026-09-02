@@ -38,6 +38,7 @@
 #include "network/ServerNotification.h"
 #include "rooms/Room.h"
 #include "rooms/RoomManager.h"
+#include "rooms/RoomPortalWave.h"
 #include "rooms/RoomType.h"
 #include "spells/SpellManager.h"
 #include "spells/SpellType.h"
@@ -66,6 +67,38 @@ static const double MASTER_SERVER_UPDATE_PERIOD_MS = 30000.0;
 static const int32_t MASTER_SERVER_STATUS_PENDING = 0;
 static const int32_t MASTER_SERVER_STATUS_STARTED = 1;
 static const int32_t MASTER_SERVER_STATUS_FINISHED = 2;
+
+namespace
+{
+    //! \brief Gives a creature the level the editor asked for. Levelling raises the maximum
+    //! HP without healing, which is what we want in game but not here: a creature placed in
+    //! a level is expected to start it in full health.
+    void setEditorCreatureLevel(Creature& creature, uint32_t level)
+    {
+        if(level < 1)
+            level = 1;
+
+        creature.setLevel(level);
+        creature.setHP(creature.getMaxHp());
+    }
+
+    //! \brief Finds the wave portal the editor is talking about. The editor names it by one of
+    //! its tiles: a client has no rooms of its own, only the tiles it was told about.
+    RoomPortalWave* getWavePortalOnTile(Tile* tile)
+    {
+        if(tile == nullptr)
+            return nullptr;
+
+        Room* room = tile->getCoveringRoom();
+        if(room == nullptr)
+            return nullptr;
+
+        if(room->getType() != RoomType::portalWave)
+            return nullptr;
+
+        return static_cast<RoomPortalWave*>(room);
+    }
+}
 
 template<> ODServer* Ogre::Singleton<ODServer>::msSingleton = nullptr;
 
@@ -2313,7 +2346,8 @@ bool ODServer::processClientNotifications(ODSocketClient* clientSocket)
             }
             Player* player = clientSocket->getPlayer();
             int seatId;
-            OD_ASSERT_TRUE(packetReceived >> seatId);
+            uint32_t level;
+            OD_ASSERT_TRUE(packetReceived >> seatId >> level);
             Seat* seatCreature = gameMap->getSeatById(seatId);
             if(seatCreature == nullptr)
             {
@@ -2330,6 +2364,7 @@ bool ODServer::processClientNotifications(ODSocketClient* clientSocket)
             Creature* newCreature = new Creature(gameMap, classToSpawn, seatCreature);
             newCreature->addToGameMap();
             newCreature->setPosition(Ogre::Vector3(0.0, 0.0, 0.0));
+            setEditorCreatureLevel(*newCreature, level);
             // In editor mode, every player has vision
             for(Seat* seat : gameMap->getSeats())
             {
@@ -2355,7 +2390,8 @@ bool ODServer::processClientNotifications(ODSocketClient* clientSocket)
             Player* player = clientSocket->getPlayer();
             int seatId;
             std::string className;
-            OD_ASSERT_TRUE(packetReceived >> seatId >> className);
+            uint32_t level;
+            OD_ASSERT_TRUE(packetReceived >> seatId >> className >> level);
             Seat* seatCreature = gameMap->getSeatById(seatId);
             if(seatCreature == nullptr)
             {
@@ -2371,6 +2407,7 @@ bool ODServer::processClientNotifications(ODSocketClient* clientSocket)
             Creature* newCreature = new Creature(gameMap, classToSpawn, seatCreature);
             newCreature->addToGameMap();
             newCreature->setPosition(Ogre::Vector3(0.0, 0.0, 0.0));
+            setEditorCreatureLevel(*newCreature, level);
             // In editor mode, every player has vision
             for(Seat* seat : gameMap->getSeats())
             {
@@ -2383,6 +2420,85 @@ bool ODServer::processClientNotifications(ODSocketClient* clientSocket)
             }
 
             player->pickUpEntity(newCreature);
+            break;
+        }
+
+        case ClientNotificationType::editorSetCreatureLevel:
+        {
+            if(mServerMode != ServerMode::ModeEditor)
+            {
+                OD_LOG_ERR("Received editor command while wrong mode=" + Helper::toString(static_cast<int>(mServerMode)));
+                break;
+            }
+            Player* player = clientSocket->getPlayer();
+            uint32_t level;
+            OD_ASSERT_TRUE(packetReceived >> level);
+
+            // This is how the level of a creature already placed on the map is changed:
+            // it is picked up, given a level and dropped again. An empty hand, or one
+            // holding something that is not a creature, is not a mistake, it just means
+            // the editor is only setting the level of the creatures to come.
+            for(GameEntity* entity : player->getObjectsInHand())
+            {
+                if(entity->getObjectType() != GameEntityType::creature)
+                    continue;
+
+                setEditorCreatureLevel(*static_cast<Creature*>(entity), level);
+            }
+            break;
+        }
+
+        case ClientNotificationType::editorAskPortalWaveData:
+        {
+            if(mServerMode != ServerMode::ModeEditor)
+            {
+                OD_LOG_ERR("Received editor command while wrong mode=" + Helper::toString(static_cast<int>(mServerMode)));
+                break;
+            }
+            Player* player = clientSocket->getPlayer();
+            Tile* tile = gameMap->tileFromPacket(packetReceived);
+
+            // The waves are never sent to the clients with the rest of the room, so the
+            // editor has to ask for them before it can show them. The editor cannot tell
+            // whether the tile holds a wave portal either, so it may ask about any tile:
+            // an empty room name is the answer when there is nothing to edit there.
+            std::string roomName;
+            RoomPortalWaveConfig config;
+            RoomPortalWave* roomPortalWave = getWavePortalOnTile(tile);
+            if(roomPortalWave != nullptr)
+            {
+                roomName = roomPortalWave->getName();
+                roomPortalWave->exportWaveConfig(config);
+            }
+
+            ServerNotification notif(ServerNotificationType::editorPortalWaveData, player);
+            notif.mPacket << roomName << config;
+            sendAsyncMsg(notif);
+            break;
+        }
+
+        case ClientNotificationType::editorSetPortalWaveData:
+        {
+            if(mServerMode != ServerMode::ModeEditor)
+            {
+                OD_LOG_ERR("Received editor command while wrong mode=" + Helper::toString(static_cast<int>(mServerMode)));
+                break;
+            }
+            Tile* tile = gameMap->tileFromPacket(packetReceived);
+            RoomPortalWaveConfig config;
+            OD_ASSERT_TRUE(packetReceived >> config);
+
+            RoomPortalWave* roomPortalWave = getWavePortalOnTile(tile);
+            if(roomPortalWave == nullptr)
+            {
+                OD_LOG_ERR("Editor sent waves for tile=" + Tile::displayAsString(tile)
+                    + " which holds no wave portal");
+                break;
+            }
+
+            // The map is saved from the server side, so this is what ends up in the level
+            // file when the editor saves it.
+            roomPortalWave->importWaveConfig(config);
             break;
         }
 

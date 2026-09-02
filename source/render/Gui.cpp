@@ -151,6 +151,7 @@ const std::string Gui::MAIN_TABCONTROL = "MainTabControl";
 const std::string Gui::TAB_ROOMS = "MainTabControl/Rooms";
 const std::string Gui::BUTTON_TEMPLE = "MainTabControl/Rooms/TempleButton";
 const std::string Gui::BUTTON_PORTAL = "MainTabControl/Rooms/PortalButton";
+const std::string Gui::BUTTON_PORTAL_WAVE = "MainTabControl/Rooms/WavePortalButton";
 const std::string Gui::BUTTON_DESTROY_ROOM = "MainTabControl/Rooms/DestroyRoomButton";
 const std::string Gui::TAB_TRAPS = "MainTabControl/Traps";
 const std::string Gui::BUTTON_DESTROY_TRAP = "MainTabControl/Traps/DestroyTrapButton";
@@ -198,6 +199,7 @@ const std::string Gui::EDITOR_FULLNESS = "HorizontalPipe/FullnessDisplay";
 const std::string Gui::EDITOR_CURSOR_POS = "HorizontalPipe/PositionDisplay";
 const std::string Gui::EDITOR_SEAT_ID = "HorizontalPipe/SeatIdDisplay";
 const std::string Gui::EDITOR_CREATURE_SPAWN = "HorizontalPipe/CreatureSpawnDisplay";
+const std::string Gui::EDITOR_LEVEL_NAME = "LevelNameDisplay";
 const std::string Gui::EDITOR_MAPLIGHT_BUTTON = "MainTabControl/Lights/MapLightButton";
 
 const std::string Gui::REM_TEXT_LOADING = "LoadingText";

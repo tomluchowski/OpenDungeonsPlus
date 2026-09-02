@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<GUILayout version="4" >
+    <Window type="OD/FrameWindow" name="EditorPortalWavesWindow" >
+        <Property name="Area" value="{{0.5,-270},{0.5,-240},{0.5,270},{0.5,240}}" />
+        <Property name="Text" value="Wave portal" />
+        <Property name="SizingEnabled" value="False" />
+        <Window type="OD/StaticText" name="TurnsLabel" >
+            <Property name="Area" value="{{0,8},{0,34},{0,170},{0,56}}" />
+            <Property name="Text" value="Turns between waves" />
+            <Property name="FrameEnabled" value="False" />
+            <Property name="BackgroundEnabled" value="False" />
+        </Window>
+        <Window type="OD/Editbox" name="TurnsBetweenWaves" >
+            <Property name="Area" value="{{0,174},{0,34},{0,254},{0,56}}" />
+            <Property name="TooltipText" value="How many turns the portal waits before it spawns the next wave." />
+        </Window>
+        <Window type="OD/StaticText" name="RangeLabel" >
+            <Property name="Area" value="{{0,264},{0,34},{0,400},{0,56}}" />
+            <Property name="Text" value="Attack range" />
+            <Property name="FrameEnabled" value="False" />
+            <Property name="BackgroundEnabled" value="False" />
+        </Window>
+        <Window type="OD/Editbox" name="RangeTilesAttack" >
+            <Property name="Area" value="{{0,404},{0,34},{0,484},{0,56}}" />
+            <Property name="TooltipText" value="How far, in tiles, a claimed tile makes the portal attack its owner. -1 means no limit." />
+        </Window>
+        <Window type="OD/StaticText" name="TeamsLabel" >
+            <Property name="Area" value="{{0,264},{0,60},{0,400},{0,82}}" />
+            <Property name="Text" value="Target teams" />
+            <Property name="FrameEnabled" value="False" />
+            <Property name="BackgroundEnabled" value="False" />
+        </Window>
+        <Window type="OD/Editbox" name="TargetTeams" >
+            <Property name="Area" value="{{0,404},{0,60},{0,520},{0,82}}" />
+            <Property name="TooltipText" value="Teams the portal attacks when its strategy is a fixed team, written 1/2. Leave empty for none." />
+        </Window>
+        <Window type="OD/StaticText" name="StrategyLabel" >
+            <Property name="Area" value="{{0,8},{0,60},{0,70},{0,82}}" />
+            <Property name="Text" value="Strategy" />
+            <Property name="FrameEnabled" value="False" />
+            <Property name="BackgroundEnabled" value="False" />
+        </Window>
+        <Window type="OD/Combobox" name="Strategy" >
+            <Property name="Area" value="{{0,74},{0,60},{0,254},{0,160}}" />
+            <Property name="ReadOnly" value="True" />
+            <Property name="TooltipText" value="Who the portal sends its waves against." />
+        </Window>
+        <Window type="OD/StaticText" name="WavesLabel" >
+            <Property name="Area" value="{{0,8},{0,88},{0,254},{0,110}}" />
+            <Property name="Text" value="Waves" />
+            <Property name="FrameEnabled" value="False" />
+            <Property name="BackgroundEnabled" value="False" />
+        </Window>
+        <Window type="OD/StaticText" name="CreaturesLabel" >
+            <Property name="Area" value="{{0,266},{0,88},{0,520},{0,110}}" />
+            <Property name="Text" value="Creatures of the selected wave" />
+            <Property name="FrameEnabled" value="False" />
+            <Property name="BackgroundEnabled" value="False" />
+        </Window>
+        <Window type="OD/Listbox" name="WaveList" >
+            <Property name="Area" value="{{0,8},{0,112},{0,254},{0,296}}" />
+        </Window>
+        <Window type="OD/Listbox" name="CreatureList" >
+            <Property name="Area" value="{{0,266},{0,112},{0,520},{0,296}}" />
+        </Window>
+        <Window type="OD/StaticText" name="SpawnMinLabel" >
+            <Property name="Area" value="{{0,8},{0,302},{0,130},{0,324}}" />
+            <Property name="Text" value="Spawn turn min" />
+            <Property name="FrameEnabled" value="False" />
+            <Property name="BackgroundEnabled" value="False" />
+        </Window>
+        <Window type="OD/Editbox" name="SpawnTurnMin" >
+            <Property name="Area" value="{{0,134},{0,302},{0,254},{0,324}}" />
+            <Property name="TooltipText" value="First turn the wave can be spawned on." />
+        </Window>
+        <Window type="OD/StaticText" name="SpawnMaxLabel" >
+            <Property name="Area" value="{{0,8},{0,328},{0,130},{0,350}}" />
+            <Property name="Text" value="Spawn turn max" />
+            <Property name="FrameEnabled" value="False" />
+            <Property name="BackgroundEnabled" value="False" />
+        </Window>
+        <Window type="OD/Editbox" name="SpawnTurnMax" >
+            <Property name="Area" value="{{0,134},{0,328},{0,254},{0,350}}" />
+            <Property name="TooltipText" value="Last turn the wave can be spawned on. -1 means the wave never stops coming." />
+        </Window>
+        <Window type="OD/Button" name="AddWave" >
+            <Property name="Area" value="{{0,8},{0,356},{0,128},{0,382}}" />
+            <Property name="Text" value="Add wave" />
+        </Window>
+        <Window type="OD/Button" name="RemoveWave" >
+            <Property name="Area" value="{{0,134},{0,356},{0,254},{0,382}}" />
+            <Property name="Text" value="Remove wave" />
+        </Window>
+        <Window type="OD/StaticText" name="LevelLabel" >
+            <Property name="Area" value="{{0,266},{0,302},{0,310},{0,324}}" />
+            <Property name="Text" value="Level" />
+            <Property name="FrameEnabled" value="False" />
+            <Property name="BackgroundEnabled" value="False" />
+        </Window>
+        <Window type="OD/Editbox" name="CreatureLevel" >
+            <Property name="Area" value="{{0,314},{0,302},{0,374},{0,324}}" />
+            <Property name="Text" value="1" />
+            <Property name="TooltipText" value="Level the creature is spawned at." />
+        </Window>
+        <Window type="OD/Button" name="AddCreature" >
+            <Property name="Area" value="{{0,382},{0,302},{0,448},{0,328}}" />
+            <Property name="Text" value="Add" />
+        </Window>
+        <Window type="OD/Button" name="RemoveCreature" >
+            <Property name="Area" value="{{0,454},{0,302},{0,520},{0,328}}" />
+            <Property name="Text" value="Remove" />
+        </Window>
+        <Window type="OD/Combobox" name="CreatureClass" >
+            <Property name="Area" value="{{0,266},{0,334},{0,520},{0,430}}" />
+            <Property name="ReadOnly" value="True" />
+            <Property name="TooltipText" value="Creature class added to the selected wave." />
+        </Window>
+        <Window type="OD/Button" name="ApplyButton" >
+            <Property name="Area" value="{{0,8},{0,392},{0,128},{0,418}}" />
+            <Property name="Text" value="Apply" />
+            <Property name="TooltipText" value="Send the waves to the map. Save the level to keep them." />
+        </Window>
+        <Window type="OD/Button" name="CloseButton" >
+            <Property name="Area" value="{{0,134},{0,392},{0,254},{0,418}}" />
+            <Property name="Text" value="Close" />
+        </Window>
+    </Window>
+</GUILayout>

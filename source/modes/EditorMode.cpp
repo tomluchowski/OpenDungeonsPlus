@@ -115,6 +115,11 @@ EditorMode::EditorMode(ModeManager* modeManager):
     mCurrentTileVisual(TileVisual::nullTileVisual),
     mCurrentFullness(100.0),
     mCurrentCreatureIndex(0),
+    mCurrentCreatureLevel(1),
+    mPortalWaveTileX(-1),
+    mPortalWaveTileY(-1),
+    mPortalWaveSelectedWave(-1),
+    mPortalWaveRefreshing(false),
     mMouseX(0),
     mMouseY(0),
     mSettings(SettingsWindow(mRootWindow)),
@@ -214,6 +219,17 @@ EditorMode::EditorMode(ModeManager* modeManager):
             CEGUI::Window::EventMouseClick,
             CEGUI::Event::Subscriber(&EditorMode::onEditMirrorX, this)
     ));
+    addEventConnection(
+        mRootWindow->getChild("Menubar")->getChild("Help")->getChild("PopupMenu6")
+        ->getChild("Controls")->subscribeEvent(
+            CEGUI::Window::EventMouseClick,
+            CEGUI::Event::Subscriber(&EditorMode::showControlsWindow, this)
+    ));
+    addEventConnection(
+        mRootWindow->getChild("EditorHelpWindow")->subscribeEvent(
+            CEGUI::FrameWindow::EventCloseClicked,
+            CEGUI::Event::Subscriber(&EditorMode::hideControlsWindow, this)
+    ));
 
     
     addEventConnection(
@@ -302,34 +318,16 @@ EditorMode::EditorMode(ModeManager* modeManager):
             CEGUI::Event::Subscriber(&EditorMode::saveMenuSaveButtonClicked, this)
     ));
     
-    for(unsigned int ii = 0 ;  ii < mGameMap->numClassDescriptions()   ; ++ii )
-    {
-        mGameMap->getClassDescription(ii);
-        CEGUI::Window* ww = CEGUI::WindowManager::getSingletonPtr()->createWindow("OD/MenuItem");
-        ww->setText(mGameMap->getClassDescription(ii)->getClassName());
-        ww->setName(mGameMap->getClassDescription(ii)->getClassName());
-        mRootWindow->getChild("Menubar")->getChild("Creatures")
-        ->getChild("PopupMenu4")->addChild(ww);
-        addEventConnection(
-            ww->subscribeEvent(
-                CEGUI::Window::EventMouseClick,
-                CEGUI::Event::Subscriber([&, ii ] (const CEGUI::EventArgs& ea) {
-                        this->selectCreature(ii,ea);
-                        const CreatureDefinition* def = mGameMap->getClassDescription(mCurrentCreatureIndex);
-                        if(def == nullptr)
-                        {
-                            OD_LOG_ERR("unexpected null CreatureDefinition mCurrentCreatureIndex=" + Helper::toString(mCurrentCreatureIndex));
-                            return;
-                        }
-                        ClientNotification *clientNotification = new ClientNotification(
-                            ClientNotificationType::editorCreateFighter);
-                        clientNotification->mPacket << getModeManager().getInputManager().mSeatIdSelected;
-                        clientNotification->mPacket << def->getClassName();
-                        ODClient::getSingleton().queueClientNotification(clientNotification);
-                    })
-                ));
-    }
+    // The menus filled from the game's own data are emptied before being filled. This mode
+    // is built anew every time the editor is entered, while the window it fills belongs to
+    // the Gui and lives as long as the game does, so on the second visit every one of these
+    // menu items is already there. CEGUI refuses a second child of the same name by
+    // throwing, and nothing catches it before it reaches main().
+    uninstallCreaturesMenuButtons();
+    installCreaturesMenuButtons();
+    uninstallRecentlyUsedFilesButtons();
     installRecentlyUsedFilesButtons();
+    uninstallSeatsMenuButtons();
     installSeatsMenuButtons();
 
     addEventConnection(
@@ -428,6 +426,55 @@ EditorMode::EditorMode(ModeManager* modeManager):
         )
     );
 
+    addEventConnection(
+        mRootWindow->getChild(Gui::BUTTON_PORTAL_WAVE)->subscribeEvent(
+          CEGUI::PushButton::EventClicked,
+          CEGUI::Event::Subscriber(RoomSelector(RoomType::portalWave, mPlayerSelection))
+        )
+    );
+
+    // Wave portal window
+    addEventConnection(
+        mRootWindow->getChild("EditorPortalWavesWindow")->subscribeEvent(
+            CEGUI::FrameWindow::EventCloseClicked,
+            CEGUI::Event::Subscriber(&EditorMode::hidePortalWaveWindow, this)
+    ));
+    addEventConnection(
+        mRootWindow->getChild("EditorPortalWavesWindow/CloseButton")->subscribeEvent(
+            CEGUI::PushButton::EventClicked,
+            CEGUI::Event::Subscriber(&EditorMode::hidePortalWaveWindow, this)
+    ));
+    addEventConnection(
+        mRootWindow->getChild("EditorPortalWavesWindow/ApplyButton")->subscribeEvent(
+            CEGUI::PushButton::EventClicked,
+            CEGUI::Event::Subscriber(&EditorMode::onPortalWaveApply, this)
+    ));
+    addEventConnection(
+        mRootWindow->getChild("EditorPortalWavesWindow/AddWave")->subscribeEvent(
+            CEGUI::PushButton::EventClicked,
+            CEGUI::Event::Subscriber(&EditorMode::onPortalWaveAddWave, this)
+    ));
+    addEventConnection(
+        mRootWindow->getChild("EditorPortalWavesWindow/RemoveWave")->subscribeEvent(
+            CEGUI::PushButton::EventClicked,
+            CEGUI::Event::Subscriber(&EditorMode::onPortalWaveRemoveWave, this)
+    ));
+    addEventConnection(
+        mRootWindow->getChild("EditorPortalWavesWindow/AddCreature")->subscribeEvent(
+            CEGUI::PushButton::EventClicked,
+            CEGUI::Event::Subscriber(&EditorMode::onPortalWaveAddCreature, this)
+    ));
+    addEventConnection(
+        mRootWindow->getChild("EditorPortalWavesWindow/RemoveCreature")->subscribeEvent(
+            CEGUI::PushButton::EventClicked,
+            CEGUI::Event::Subscriber(&EditorMode::onPortalWaveRemoveCreature, this)
+    ));
+    addEventConnection(
+        mRootWindow->getChild("EditorPortalWavesWindow/WaveList")->subscribeEvent(
+            CEGUI::Listbox::EventSelectionChanged,
+            CEGUI::Event::Subscriber(&EditorMode::onPortalWaveSelectionChanged, this)
+    ));
+
     // Fills the Level type combo box with the available level types.
     const CEGUI::Image* selImg = &CEGUI::ImageManager
     ::getSingleton().get("OpenDungeonsSkin/SelectionBrush");
@@ -465,6 +512,10 @@ void EditorMode::activate()
     CEGUI::Window* guiSheet = mRootWindow;
     guiSheet->getChild("LevelWindowFrame")->hide();
     guiSheet->getChild("EditorOptionsWindow")->hide();
+    guiSheet->getChild("EditorHelpWindow")->hide();
+    guiSheet->getChild("EditorPortalWavesWindow")->hide();
+    fillControlsWindow();
+    updateLevelNameText();
     guiSheet->getChild("ConfirmExit")->hide();
     guiSheet->getChild("ConfirmLoad")->hide();
     // Hide also the Replay check-box as it doesn't make sense for the editor
@@ -968,7 +1019,479 @@ void EditorMode::updateCursorText()
     else
         textSS << "Creature (C): " << def->getClassName();
 
+    textSS << ", level (L): " << mCurrentCreatureLevel;
+
     posWin->setText(textSS.str());
+}
+
+void EditorMode::updateLevelNameText()
+{
+    std::string levelName = mGameMap->getLevelName();
+    if(levelName.empty())
+        levelName = "unnamed";
+
+    if(levelName == mDisplayedLevelName)
+        return;
+
+    mDisplayedLevelName = levelName;
+    mRootWindow->getChild(Gui::EDITOR_LEVEL_NAME)->setText("Level: " + levelName);
+}
+
+void EditorMode::fillControlsWindow()
+{
+    // The editor has no other place saying what its keys do, and half of them are only
+    // reachable from the keyboard, so they are listed here rather than left to be found.
+    std::stringstream txt;
+    txt << "Camera" << std::endl;
+    txt << "    W A S D or the arrow keys - move" << std::endl;
+    txt << "    Q, E - rotate" << std::endl;
+    txt << "    Page Up, Page Down - tilt" << std::endl;
+    txt << "    Home, End - zoom in and out" << std::endl;
+    txt << "    1 to 0 - go back to a saved point of view" << std::endl;
+    txt << "    Shift + 1 to 0 - save the current point of view" << std::endl;
+    txt << std::endl;
+
+    txt << "Tiles" << std::endl;
+    txt << "    T - switch between full and empty tiles" << std::endl;
+    txt << "    Y - next seat, Shift + Y - previous seat" << std::endl;
+    txt << std::endl;
+
+    txt << "Creatures" << std::endl;
+    txt << "    C - next creature class, Shift + C - previous class" << std::endl;
+    txt << "    L - raise the level given to new creatures, Shift + L - lower it" << std::endl;
+    txt << "    Both are shown at the bottom of the screen. To change a creature" << std::endl;
+    txt << "    already placed, pick it up, set the level, then drop it." << std::endl;
+    txt << std::endl;
+
+    txt << "Rooms" << std::endl;
+    txt << "    P - edit the waves of the wave portal under the mouse" << std::endl;
+    txt << "    The waves are what the portal sends against the players, and" << std::endl;
+    txt << "    they are only kept once the level is saved." << std::endl;
+    txt << std::endl;
+
+    txt << "Editing" << std::endl;
+    txt << "    Ctrl + C - copy the marked tiles, Ctrl + V - paste" << std::endl;
+    txt << "    Delete - delete what was copied" << std::endl;
+    txt << std::endl;
+
+    txt << "Level" << std::endl;
+    txt << "    F5 - save, F10 - editor options" << std::endl;
+    txt << "    F11 - debug info, F12 or ` - console" << std::endl;
+    txt << "    Print Screen - screenshot, Escape - quit" << std::endl;
+
+    mRootWindow->getChild("EditorHelpWindow")->getChild("HelpText")->setText(txt.str());
+}
+
+bool EditorMode::showControlsWindow(const CEGUI::EventArgs& /*arg*/)
+{
+    mRootWindow->getChild("EditorHelpWindow")->show();
+    return true;
+}
+
+bool EditorMode::hideControlsWindow(const CEGUI::EventArgs& /*arg*/)
+{
+    mRootWindow->getChild("EditorHelpWindow")->hide();
+    return true;
+}
+
+void EditorMode::setLevelOfCreaturesInHand()
+{
+    if(!ODClient::getSingleton().isConnected())
+        return;
+
+    // Only the server knows what the hand holds for sure, so it decides what the level
+    // applies to. Nothing happens if the hand is empty or holds something else.
+    ClientNotification *clientNotification = new ClientNotification(
+        ClientNotificationType::editorSetCreatureLevel);
+    clientNotification->mPacket << mCurrentCreatureLevel;
+    ODClient::getSingleton().queueClientNotification(clientNotification);
+}
+
+namespace
+{
+    //! \brief The strategies a wave portal can follow, in the order they are written to the
+    //! level file, with the name the editor shows for each of them.
+    const std::vector<std::pair<RoomPortalWaveStrategy, std::string>>& getWaveStrategies()
+    {
+        static const std::vector<std::pair<RoomPortalWaveStrategy, std::string>> strategies =
+        {
+            { RoomPortalWaveStrategy::closestDungeon, "Closest dungeon" },
+            { RoomPortalWaveStrategy::randomPlayer, "Random player" },
+            { RoomPortalWaveStrategy::fixedTeamIds, "Fixed teams" }
+        };
+        return strategies;
+    }
+
+    //! \brief What a wave looks like in the list of waves. Kept short: the list is only as
+    //! wide as half the window.
+    std::string describeWave(uint32_t index, const RoomPortalWaveData& wave)
+    {
+        std::stringstream ss;
+        ss << (index + 1) << ": " << wave.mSpawnTurnMin;
+        if(wave.mSpawnTurnMax < 0)
+            ss << " on";
+        else
+            ss << " to " << wave.mSpawnTurnMax;
+
+        ss << " (" << wave.mSpawnCreatureClassName.size() << ")";
+        return ss.str();
+    }
+}
+
+void EditorMode::askPortalWaveData(Tile* tile)
+{
+    if(!ODClient::getSingleton().isConnected())
+        return;
+
+    if(tile == nullptr)
+        return;
+
+    // A client is only told what its tiles look like, never which room covers them, so it
+    // cannot tell a wave portal from any other tile on its own. The server can, and it is
+    // the only side that knows the waves anyway: it is asked for every tile, and answers
+    // with the waves, or with an empty room name when there is no wave portal there. The
+    // window is opened when the answer comes back.
+    ClientNotification *clientNotification = new ClientNotification(
+        ClientNotificationType::editorAskPortalWaveData);
+    mGameMap->tileToPacket(clientNotification->mPacket, tile);
+    ODClient::getSingleton().queueClientNotification(clientNotification);
+
+    mPortalWaveTileX = tile->getX();
+    mPortalWaveTileY = tile->getY();
+}
+
+void EditorMode::showPortalWaveWindow(const std::string& roomName, const RoomPortalWaveConfig& config)
+{
+    if(roomName.empty())
+    {
+        displayText(Ogre::ColourValue::White, "Point at a wave portal to edit its waves");
+        return;
+    }
+
+    mPortalWaveRoomName = roomName;
+    mPortalWaveConfig = config;
+    mPortalWaveSelectedWave = mPortalWaveConfig.mWaves.empty() ? -1 : 0;
+
+    CEGUI::Window* window = mRootWindow->getChild("EditorPortalWavesWindow");
+    window->setText("Waves of " + roomName);
+
+    // The class list only depends on the level, but it is only known once the level has been
+    // loaded, which is why it is filled here rather than when the window is created.
+    const CEGUI::Image* selImg = &CEGUI::ImageManager::getSingleton().get("OpenDungeonsSkin/SelectionBrush");
+    CEGUI::Combobox* classCb = static_cast<CEGUI::Combobox*>(window->getChild("CreatureClass"));
+    classCb->resetList();
+    for(uint32_t i = 0; i < mGameMap->numClassDescriptions(); ++i)
+    {
+        const CreatureDefinition* def = mGameMap->getClassDescription(i);
+        if(def == nullptr)
+            continue;
+
+        CEGUI::ListboxTextItem* item = new CEGUI::ListboxTextItem(def->getClassName(), i);
+        item->setSelectionBrushImage(selImg);
+        classCb->addItem(item);
+    }
+    if(classCb->getItemCount() > 0)
+    {
+        CEGUI::ListboxItem* item = classCb->getListboxItemFromIndex(0);
+        classCb->setItemSelectState(item, true);
+        classCb->setText(item->getText());
+    }
+
+    CEGUI::Combobox* strategyCb = static_cast<CEGUI::Combobox*>(window->getChild("Strategy"));
+    strategyCb->resetList();
+    for(const std::pair<RoomPortalWaveStrategy, std::string>& strategy : getWaveStrategies())
+    {
+        CEGUI::ListboxTextItem* item = new CEGUI::ListboxTextItem(strategy.second,
+            static_cast<CEGUI::uint>(strategy.first));
+        item->setSelectionBrushImage(selImg);
+        strategyCb->addItem(item);
+    }
+
+    refreshPortalWaveWindow();
+    window->show();
+    window->activate();
+}
+
+void EditorMode::refreshPortalWaveWindow()
+{
+    CEGUI::Window* window = mRootWindow->getChild("EditorPortalWavesWindow");
+
+    // Writing into the widgets fires the same events the player firing them would, so tell
+    // the handlers to keep their hands off while this runs.
+    mPortalWaveRefreshing = true;
+
+    window->getChild("TurnsBetweenWaves")->setText(
+        Helper::toString(mPortalWaveConfig.mTurnsBetween2Waves));
+    window->getChild("RangeTilesAttack")->setText(
+        Helper::toString(mPortalWaveConfig.mRangeTilesAttack));
+
+    std::string teams;
+    for(int32_t team : mPortalWaveConfig.mTargetTeams)
+    {
+        if(!teams.empty())
+            teams += "/";
+
+        teams += Helper::toString(team);
+    }
+    window->getChild("TargetTeams")->setText(teams);
+
+    CEGUI::Combobox* strategyCb = static_cast<CEGUI::Combobox*>(window->getChild("Strategy"));
+    for(size_t i = 0; i < strategyCb->getItemCount(); ++i)
+    {
+        CEGUI::ListboxItem* item = strategyCb->getListboxItemFromIndex(i);
+        if(item->getID() != static_cast<CEGUI::uint>(mPortalWaveConfig.mStrategy))
+            continue;
+
+        strategyCb->setItemSelectState(item, true);
+        strategyCb->setText(item->getText());
+        break;
+    }
+
+    const CEGUI::Image* selImg = &CEGUI::ImageManager::getSingleton().get("OpenDungeonsSkin/SelectionBrush");
+    CEGUI::Listbox* waveList = static_cast<CEGUI::Listbox*>(window->getChild("WaveList"));
+    waveList->resetList();
+    for(uint32_t i = 0; i < mPortalWaveConfig.mWaves.size(); ++i)
+    {
+        CEGUI::ListboxTextItem* item = new CEGUI::ListboxTextItem(
+            describeWave(i, mPortalWaveConfig.mWaves[i]), i);
+        item->setSelectionBrushImage(selImg);
+        waveList->addItem(item);
+    }
+
+    if((mPortalWaveSelectedWave >= 0) &&
+       (static_cast<size_t>(mPortalWaveSelectedWave) < waveList->getItemCount()))
+    {
+        CEGUI::ListboxItem* item = waveList->getListboxItemFromIndex(mPortalWaveSelectedWave);
+        waveList->setItemSelectState(item, true);
+        waveList->ensureItemIsVisible(item);
+    }
+
+    mPortalWaveRefreshing = false;
+
+    refreshPortalWaveSelectedWave();
+}
+
+void EditorMode::refreshPortalWaveSelectedWave()
+{
+    CEGUI::Window* window = mRootWindow->getChild("EditorPortalWavesWindow");
+    CEGUI::Listbox* creatureList = static_cast<CEGUI::Listbox*>(window->getChild("CreatureList"));
+
+    mPortalWaveRefreshing = true;
+
+    creatureList->resetList();
+    if((mPortalWaveSelectedWave < 0) ||
+       (static_cast<size_t>(mPortalWaveSelectedWave) >= mPortalWaveConfig.mWaves.size()))
+    {
+        window->getChild("SpawnTurnMin")->setText("");
+        window->getChild("SpawnTurnMax")->setText("");
+        mPortalWaveRefreshing = false;
+        return;
+    }
+
+    const RoomPortalWaveData& wave = mPortalWaveConfig.mWaves[mPortalWaveSelectedWave];
+    window->getChild("SpawnTurnMin")->setText(Helper::toString(wave.mSpawnTurnMin));
+    window->getChild("SpawnTurnMax")->setText(Helper::toString(wave.mSpawnTurnMax));
+
+    const CEGUI::Image* selImg = &CEGUI::ImageManager::getSingleton().get("OpenDungeonsSkin/SelectionBrush");
+    for(uint32_t i = 0; i < wave.mSpawnCreatureClassName.size(); ++i)
+    {
+        const std::pair<std::string, uint32_t>& p = wave.mSpawnCreatureClassName[i];
+        CEGUI::ListboxTextItem* item = new CEGUI::ListboxTextItem(
+            p.first + " (level " + Helper::toString(p.second) + ")", i);
+        item->setSelectionBrushImage(selImg);
+        creatureList->addItem(item);
+    }
+
+    mPortalWaveRefreshing = false;
+}
+
+void EditorMode::readPortalWaveWindow()
+{
+    if(mPortalWaveRoomName.empty())
+        return;
+
+    CEGUI::Window* window = mRootWindow->getChild("EditorPortalWavesWindow");
+
+    mPortalWaveConfig.mTurnsBetween2Waves = Helper::toUInt32(
+        window->getChild("TurnsBetweenWaves")->getText().c_str());
+    mPortalWaveConfig.mRangeTilesAttack = Helper::toInt(
+        window->getChild("RangeTilesAttack")->getText().c_str());
+
+    CEGUI::Combobox* strategyCb = static_cast<CEGUI::Combobox*>(window->getChild("Strategy"));
+    CEGUI::ListboxItem* strategyItem = strategyCb->getSelectedItem();
+    if(strategyItem != nullptr)
+        mPortalWaveConfig.mStrategy = static_cast<RoomPortalWaveStrategy>(strategyItem->getID());
+
+    mPortalWaveConfig.mTargetTeams.clear();
+    std::string teams = window->getChild("TargetTeams")->getText().c_str();
+    for(const std::string& team : Helper::split(teams, '/', true))
+    {
+        // Team 0 is what a seat playing on its own gets, no portal can target it
+        int32_t teamId = Helper::toInt(team);
+        if(teamId == 0)
+            continue;
+
+        mPortalWaveConfig.mTargetTeams.push_back(teamId);
+    }
+
+    if((mPortalWaveSelectedWave < 0) ||
+       (static_cast<size_t>(mPortalWaveSelectedWave) >= mPortalWaveConfig.mWaves.size()))
+        return;
+
+    RoomPortalWaveData& wave = mPortalWaveConfig.mWaves[mPortalWaveSelectedWave];
+    wave.mSpawnTurnMin = Helper::toInt(window->getChild("SpawnTurnMin")->getText().c_str());
+    wave.mSpawnTurnMax = Helper::toInt(window->getChild("SpawnTurnMax")->getText().c_str());
+}
+
+bool EditorMode::onPortalWaveSelectionChanged(const CEGUI::EventArgs& /*arg*/)
+{
+    if(mPortalWaveRefreshing)
+        return true;
+
+    // What was typed for the wave that is being left belongs to that wave, so it has to be
+    // taken before the selection is allowed to move
+    readPortalWaveWindow();
+
+    CEGUI::Listbox* waveList = static_cast<CEGUI::Listbox*>(
+        mRootWindow->getChild("EditorPortalWavesWindow/WaveList"));
+    CEGUI::ListboxItem* item = waveList->getFirstSelectedItem();
+    mPortalWaveSelectedWave = (item == nullptr) ? -1 : static_cast<int32_t>(item->getID());
+
+    // The list itself is left alone: rewriting it here would clear the selection we just read
+    refreshPortalWaveSelectedWave();
+    return true;
+}
+
+bool EditorMode::onPortalWaveAddWave(const CEGUI::EventArgs& /*arg*/)
+{
+    if(mPortalWaveRoomName.empty())
+        return true;
+
+    readPortalWaveWindow();
+
+    // A new wave starts where the last one does, which is a better guess than turn 0 and
+    // easier to correct than an empty field
+    RoomPortalWaveData wave;
+    if(!mPortalWaveConfig.mWaves.empty())
+    {
+        const RoomPortalWaveData& last = mPortalWaveConfig.mWaves.back();
+        wave.mSpawnTurnMin = last.mSpawnTurnMin;
+        wave.mSpawnTurnMax = last.mSpawnTurnMax;
+    }
+
+    mPortalWaveConfig.mWaves.push_back(wave);
+    mPortalWaveSelectedWave = static_cast<int32_t>(mPortalWaveConfig.mWaves.size()) - 1;
+    refreshPortalWaveWindow();
+    return true;
+}
+
+bool EditorMode::onPortalWaveRemoveWave(const CEGUI::EventArgs& /*arg*/)
+{
+    if((mPortalWaveSelectedWave < 0) ||
+       (static_cast<size_t>(mPortalWaveSelectedWave) >= mPortalWaveConfig.mWaves.size()))
+        return true;
+
+    mPortalWaveConfig.mWaves.erase(mPortalWaveConfig.mWaves.begin() + mPortalWaveSelectedWave);
+    if(mPortalWaveConfig.mWaves.empty())
+        mPortalWaveSelectedWave = -1;
+    else if(static_cast<size_t>(mPortalWaveSelectedWave) >= mPortalWaveConfig.mWaves.size())
+        mPortalWaveSelectedWave = static_cast<int32_t>(mPortalWaveConfig.mWaves.size()) - 1;
+
+    refreshPortalWaveWindow();
+    return true;
+}
+
+bool EditorMode::onPortalWaveAddCreature(const CEGUI::EventArgs& /*arg*/)
+{
+    if((mPortalWaveSelectedWave < 0) ||
+       (static_cast<size_t>(mPortalWaveSelectedWave) >= mPortalWaveConfig.mWaves.size()))
+    {
+        displayText(Ogre::ColourValue::White, "Select a wave before adding creatures to it");
+        return true;
+    }
+
+    CEGUI::Window* window = mRootWindow->getChild("EditorPortalWavesWindow");
+    CEGUI::Combobox* classCb = static_cast<CEGUI::Combobox*>(window->getChild("CreatureClass"));
+    CEGUI::ListboxItem* classItem = classCb->getSelectedItem();
+    if(classItem == nullptr)
+        return true;
+
+    uint32_t level = Helper::toUInt32(window->getChild("CreatureLevel")->getText().c_str());
+    if(level < 1)
+        level = 1;
+    else if(level > MAX_LEVEL)
+        level = MAX_LEVEL;
+
+    readPortalWaveWindow();
+    mPortalWaveConfig.mWaves[mPortalWaveSelectedWave].mSpawnCreatureClassName.push_back(
+        std::pair<std::string, uint32_t>(classItem->getText().c_str(), level));
+
+    // The wave list shows how many creatures a wave holds, so it changed too
+    refreshPortalWaveWindow();
+    return true;
+}
+
+bool EditorMode::onPortalWaveRemoveCreature(const CEGUI::EventArgs& /*arg*/)
+{
+    if((mPortalWaveSelectedWave < 0) ||
+       (static_cast<size_t>(mPortalWaveSelectedWave) >= mPortalWaveConfig.mWaves.size()))
+        return true;
+
+    CEGUI::Listbox* creatureList = static_cast<CEGUI::Listbox*>(
+        mRootWindow->getChild("EditorPortalWavesWindow/CreatureList"));
+    CEGUI::ListboxItem* item = creatureList->getFirstSelectedItem();
+    if(item == nullptr)
+    {
+        displayText(Ogre::ColourValue::White, "Select the creature to remove from the wave");
+        return true;
+    }
+
+    std::vector<std::pair<std::string, uint32_t>>& creatures =
+        mPortalWaveConfig.mWaves[mPortalWaveSelectedWave].mSpawnCreatureClassName;
+    uint32_t index = item->getID();
+    if(index >= creatures.size())
+        return true;
+
+    readPortalWaveWindow();
+    creatures.erase(creatures.begin() + index);
+    refreshPortalWaveWindow();
+    return true;
+}
+
+bool EditorMode::onPortalWaveApply(const CEGUI::EventArgs& /*arg*/)
+{
+    if(mPortalWaveRoomName.empty())
+        return true;
+
+    if(!ODClient::getSingleton().isConnected())
+        return true;
+
+    readPortalWaveWindow();
+
+    Tile* tile = mGameMap->getTile(mPortalWaveTileX, mPortalWaveTileY);
+    if(tile == nullptr)
+        return true;
+
+    // The waves belong to the server side room: that is the one the level is saved from, and
+    // the tile the window was opened from is how it is named between the two
+    ClientNotification *clientNotification = new ClientNotification(
+        ClientNotificationType::editorSetPortalWaveData);
+    mGameMap->tileToPacket(clientNotification->mPacket, tile);
+    clientNotification->mPacket << mPortalWaveConfig;
+    ODClient::getSingleton().queueClientNotification(clientNotification);
+
+    mModifiedMapBit = true;
+    displayText(Ogre::ColourValue::White, "Waves of " + mPortalWaveRoomName
+        + " changed. Save the level to keep them.");
+    return true;
+}
+
+bool EditorMode::hidePortalWaveWindow(const CEGUI::EventArgs& /*arg*/)
+{
+    mRootWindow->getChild("EditorPortalWavesWindow")->hide();
+    mPortalWaveRoomName.clear();
+    mPortalWaveSelectedWave = -1;
+    return true;
 }
 
 bool EditorMode::keyPressed(const OIS::KeyEvent &arg)
@@ -982,6 +1505,17 @@ bool EditorMode::keyPressed(const OIS::KeyEvent &arg)
 
     if (mCurrentInputMode == InputModeConsole)
         return getConsole()->keyPressed(arg);
+
+    // The wave window is made of text fields: while it is up the keyboard belongs to it,
+    // otherwise typing a turn number would move the camera around instead. Escape still
+    // closes it, as it does for every other window of the editor.
+    if(mRootWindow->getChild("EditorPortalWavesWindow")->isVisible())
+    {
+        if(arg.key == OIS::KC_ESCAPE)
+            hidePortalWaveWindow();
+
+        return true;
+    }
 
     ODFrameListener& frameListener = ODFrameListener::getSingleton();
 
@@ -1056,9 +1590,31 @@ bool EditorMode::keyPressed(const OIS::KeyEvent &arg)
 
     //Toggle selected seat ID
     case OIS::KC_Y:
-        getModeManager().getInputManager().mSeatIdSelected = mGameMap->nextSeatId(getModeManager().getInputManager().mSeatIdSelected);
+    {
+        int& seatIdSelected = getModeManager().getInputManager().mSeatIdSelected;
+        if(getKeyboard()->isModifierDown(OIS::Keyboard::Shift))
+            seatIdSelected = mGameMap->previousSeatId(seatIdSelected);
+        else
+            seatIdSelected = mGameMap->nextSeatId(seatIdSelected);
+
         updateCursorText();
         updateFlagColor();
+        break;
+    }
+
+    //Toggle the level given to spawned creatures
+    case OIS::KC_L:
+        if(getKeyboard()->isModifierDown(OIS::Keyboard::Shift))
+        {
+            if(--mCurrentCreatureLevel < 1)
+                mCurrentCreatureLevel = MAX_LEVEL;
+        }
+        else if(++mCurrentCreatureLevel > MAX_LEVEL)
+        {
+            mCurrentCreatureLevel = 1;
+        }
+        updateCursorText();
+        setLevelOfCreaturesInHand();
         break;
 
     //Toggle mCurrentCreatureIndex
@@ -1066,6 +1622,16 @@ bool EditorMode::keyPressed(const OIS::KeyEvent &arg)
         if( getKeyboard()->isModifierDown(OIS::Keyboard::Ctrl))
         {
             onEditCopy();
+        }
+        else if(getKeyboard()->isModifierDown(OIS::Keyboard::Shift))
+        {
+            // Backwards, for when the wanted class is just behind the current one rather
+            // than a whole list away
+            if(mCurrentCreatureIndex == 0)
+                mCurrentCreatureIndex = mGameMap->numClassDescriptions();
+
+            if(mCurrentCreatureIndex > 0)
+                --mCurrentCreatureIndex;
         }
         else if(++mCurrentCreatureIndex >= mGameMap->numClassDescriptions())
         {
@@ -1080,6 +1646,14 @@ bool EditorMode::keyPressed(const OIS::KeyEvent &arg)
             onEditPaste();
         }
         break;
+
+    // Edit the waves of the wave portal under the mouse
+    case OIS::KC_P:
+    {
+        InputManager& inputManager = getModeManager().getInputManager();
+        askPortalWaveData(mGameMap->getTile(inputManager.mXPos, inputManager.mYPos));
+        break;
+    }
 
     case OIS::KC_DELETE:
         onEditDelete();
@@ -1280,6 +1854,7 @@ void EditorMode::onFrameStarted(const Ogre::FrameEvent& evt)
 
     }
     DebugDrawer::getSingleton().build();
+    updateLevelNameText();
     GameEditorModeBase::onFrameStarted(evt);
 }
 
@@ -1299,6 +1874,7 @@ void EditorMode::notifyGuiAction(GuiAction guiAction)
                     ClientNotification *clientNotification = new ClientNotification(
                         ClientNotificationType::editorCreateWorker);
                     clientNotification->mPacket << getModeManager().getInputManager().mSeatIdSelected;
+                    clientNotification->mPacket << mCurrentCreatureLevel;
                     ODClient::getSingleton().queueClientNotification(clientNotification);
                 }
                 break;
@@ -1317,6 +1893,7 @@ void EditorMode::notifyGuiAction(GuiAction guiAction)
                         ClientNotificationType::editorCreateFighter);
                     clientNotification->mPacket << getModeManager().getInputManager().mSeatIdSelected;
                     clientNotification->mPacket << def->getClassName();
+                    clientNotification->mPacket << mCurrentCreatureLevel;
                     ODClient::getSingleton().queueClientNotification(clientNotification);
                 }
                 break;
@@ -1820,6 +2397,7 @@ void EditorMode::refreshGuiSkill()
     // We also display the editor only buttons
     guiSheet->getChild(Gui::BUTTON_TEMPLE)->show();
     guiSheet->getChild(Gui::BUTTON_PORTAL)->show();
+    guiSheet->getChild(Gui::BUTTON_PORTAL_WAVE)->show();
 }
 
 void EditorMode::connectTileSelect(const std::string& buttonName, TileVisual tileVisual)
@@ -2043,6 +2621,44 @@ std::string EditorMode::getEnv( const std::string & var )
 }
 
 
+void EditorMode::uninstallCreaturesMenuButtons()
+{
+    CEGUI::Window* pm = mRootWindow->getChild("Menubar")->getChild("Creatures")->getChild("PopupMenu4");
+    while(pm->getChildCount() > 0)
+        pm->removeChild(pm->getChildAtIdx(0));
+}
+
+void EditorMode::installCreaturesMenuButtons()
+{
+    for(unsigned int ii = 0 ;  ii < mGameMap->numClassDescriptions()   ; ++ii )
+    {
+        CEGUI::Window* ww = CEGUI::WindowManager::getSingletonPtr()->createWindow("OD/MenuItem");
+        ww->setText(mGameMap->getClassDescription(ii)->getClassName());
+        ww->setName(mGameMap->getClassDescription(ii)->getClassName());
+        mRootWindow->getChild("Menubar")->getChild("Creatures")
+        ->getChild("PopupMenu4")->addChild(ww);
+        addEventConnection(
+            ww->subscribeEvent(
+                CEGUI::Window::EventMouseClick,
+                CEGUI::Event::Subscriber([&, ii ] (const CEGUI::EventArgs& ea) {
+                        this->selectCreature(ii,ea);
+                        const CreatureDefinition* def = mGameMap->getClassDescription(mCurrentCreatureIndex);
+                        if(def == nullptr)
+                        {
+                            OD_LOG_ERR("unexpected null CreatureDefinition mCurrentCreatureIndex=" + Helper::toString(mCurrentCreatureIndex));
+                            return;
+                        }
+                        ClientNotification *clientNotification = new ClientNotification(
+                            ClientNotificationType::editorCreateFighter);
+                        clientNotification->mPacket << getModeManager().getInputManager().mSeatIdSelected;
+                        clientNotification->mPacket << def->getClassName();
+                        clientNotification->mPacket << mCurrentCreatureLevel;
+                        ODClient::getSingleton().queueClientNotification(clientNotification);
+                    })
+                ));
+    }
+}
+
 void EditorMode::uninstallRecentlyUsedFilesButtons()
 {
     CEGUI::Window *pm = mRootWindow->getChild("Menubar")->getChild("File")->getChild("PopupMenu1")->getChild("RecentlyUsed")->getChild("PopupMenu2");
@@ -2154,8 +2770,14 @@ EditorMode::~EditorMode()
     {
         delete draggableTileContainer;
     }
-    DebugDrawer::getSingleton().clear();    
-    delete DebugDrawer::getSingletonPtr();
+    // The debug drawer belongs to the RenderManager, which makes it along with the scene
+    // and destroys it with itself, once for the whole run of the game. Deleting it here
+    // left its singleton pointer null for the next editor session, whose very first frame
+    // drew through it: that is a null this in DebugDrawer::build(), reading its manual
+    // object from address 0x10. Only the leftover geometry is ours to clear.
+    DebugDrawer* debugDrawer = DebugDrawer::getSingletonPtr();
+    if(debugDrawer != nullptr)
+        debugDrawer->clear();
 }
 
 bool EditorMode::launchNewLevelPressed(const CEGUI::EventArgs&)

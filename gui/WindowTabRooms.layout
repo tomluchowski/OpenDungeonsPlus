@@ -119,5 +119,12 @@
             <Property name="TooltipText" value="Build a Portal (3x3)" />
             <Property name="InheritsAlpha" value="False" />
         </Window>
+        <Window type="OD/GameTabButton" name="WavePortalButton" >
+            <Property name="Area" value="{{0,690},{0,20},{0,750},{0,80}}" />
+            <Property name="Visible" value="False" />
+            <Property name="NormalImage" value="OpenDungeonsIcons/WavePortalButton" />
+            <Property name="TooltipText" value="Build a Wave portal (3x3), the room that sends waves of enemies" />
+            <Property name="InheritsAlpha" value="False" />
+        </Window>
     </Window>
 </GUILayout>

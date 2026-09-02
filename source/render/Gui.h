@@ -97,6 +97,7 @@ public:
     static const std::string TAB_ROOMS;
     static const std::string BUTTON_TEMPLE;
     static const std::string BUTTON_PORTAL;
+    static const std::string BUTTON_PORTAL_WAVE;
     static const std::string BUTTON_DESTROY_ROOM;
     static const std::string TAB_TRAPS;
     static const std::string BUTTON_DESTROY_TRAP;
@@ -119,6 +120,7 @@ public:
     static const std::string EDITOR_CURSOR_POS;
     static const std::string EDITOR_SEAT_ID;
     static const std::string EDITOR_CREATURE_SPAWN;
+    static const std::string EDITOR_LEVEL_NAME;
     static const std::string EDITOR_MAPLIGHT_BUTTON;
     static const std::string EXIT_CONFIRMATION_POPUP;
     static const std::string EXIT_CONFIRMATION_POPUP_YES_BUTTON;
