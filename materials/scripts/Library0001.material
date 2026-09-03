@@ -26,6 +26,7 @@ fragment_program myLibrary0001FragmentShader glsl
         param_named_auto lightPos light_position  0.0 0.0 0.0 0.0
         param_named_auto cameraPosition camera_position
         param_named shadowingEnabled bool false                 
+        param_named seatColor float4 1.0 1.0 1.0 1.0
     }
 }
 
@@ -47,6 +48,7 @@ material Library0001 //: RTSS/NormalMapping_MultiPass
                 param_named decalmap int 0
                 param_named normalmap int 1
                 param_named shadowmap int 2
+                param_named seatmap int 3
             }            
             
             
@@ -67,6 +69,10 @@ material Library0001 //: RTSS/NormalMapping_MultiPass
                 filtering bilinear              
                 
             }    
+            texture_unit seatmap
+            {
+                texture RoomSeat.png
+            }
         }
 
     }

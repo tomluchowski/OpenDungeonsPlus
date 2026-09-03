@@ -1115,10 +1115,9 @@ bool Tile::shouldColorTileMesh() const
 {
     // Claimed tiles and room floors carry their owner's colour: a room square
     // must be tellable from an enemy's at a glance, especially once rooms can
-    // change hands square by square. The materials that do not know how to
-    // tint themselves (no seatColor uniform) are skipped where the colour is
-    // applied, so listing a visual here is safe even before its material has
-    // been taught the tint.
+    // change hands square by square. The materials that have no seatColor to
+    // set are skipped where the colour is applied, so listing a visual here is
+    // safe even before its material has been given emblems to colour.
     switch(getTileVisual())
     {
         case TileVisual::claimedGround:

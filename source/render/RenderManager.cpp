@@ -2071,7 +2071,7 @@ std::string RenderManager::colourizeMaterial(const std::string& materialName, co
         {
             // Color the material with the Seat's color. Only the materials
             // whose fragment shader takes a seatColor can carry it; the rest
-            // (fixed-function or RTSS-generated ones) are left untinted
+            // (fixed-function or RTSS-generated ones) are left uncoloured
             // rather than aborted on.
             Ogre::Pass* lastPass = technique->getPass(technique->getNumPasses() - 1);
             if(lastPass->hasFragmentProgram())

@@ -4,6 +4,8 @@
 uniform sampler2D decalmap;
 uniform sampler2D normalmap;
 uniform sampler2D shadowmap;
+// Marks the floor's emblems: alpha is their coverage, rgb their shading.
+uniform sampler2D seatmap;
 
 uniform vec4 ambientLightColour;
 uniform vec4 lightDiffuseColour; 
@@ -11,9 +13,7 @@ uniform vec4 lightSpecularColour;
 uniform vec4 lightPos;
 uniform vec4 cameraPosition;
 // The owning seat's colour, set by RenderManager::colourizeMaterial on the
-// cloned per-seat material. The stock material never sets it, and OpenGL
-// zero-initialises uniforms at link time, so alpha stays 0.0 there and the
-// tint below stays off.
+// per-seat clone of the material; the stock material leaves it white.
 uniform vec4 seatColor;
 uniform bool shadowingEnabled;
 in vec2 out_UV0;
@@ -65,10 +65,11 @@ void main (void)
     // precompute the lighting term
     vec3 lightingTerm =  (diffuse + specular + ambientLightColour.rgb/2.0 )*shadow.rgb;
     vec3 texelColor = texture(decalmap, out_UV0.st).rgb;
-    // Tint owned room floors towards the owner's colour so it is visible at a
-    // glance whose room a square is, the way claimed ground already shows it.
-    if (seatColor.a > 0.0)
-        texelColor = mix(texelColor, texelColor * seatColor.rgb, 0.5);
+    // The emblems painted into the seat map take the owning seat's colour,
+    // the way the cross on claimed ground does; the floor around them keeps
+    // its own texture.
+    vec4 emblem = texture(seatmap, out_UV0.st);
+    texelColor = mix(texelColor, emblem.rgb * seatColor.rgb, emblem.a);
     result =  lightingTerm * texelColor;
 
     color  = vec4(result.xyz,  1.0);
