@@ -220,7 +220,7 @@ void ODApplication::startClient()
     
     Ogre::RenderWindow* renderWindow = ogreRoot.createRenderWindow("OpenDungeons " + VERSION, w, h, configManager.getVideoValue(Config::FULL_SCREEN, "No", false) == "Yes" , &misc);
     
-    Ogre::WindowEventUtilities::_addRenderWindow(renderWindow);
+    OgreBites::WindowEventUtilities::_addRenderWindow(renderWindow);
 #endif /* OD_USE_SFML_WINDOW */
 
 

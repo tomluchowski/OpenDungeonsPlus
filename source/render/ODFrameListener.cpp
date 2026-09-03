@@ -105,7 +105,7 @@ ODFrameListener::ODFrameListener(const std::string& mainSceneFileName, Ogre::Ren
     windowResized(mWindow);
 
     //Register as a Window listener
-    Ogre::WindowEventUtilities::addWindowEventListener(mWindow, this);
+    OgreBites::WindowEventUtilities::addWindowEventListener(mWindow, this);
 
     readMainScene(mainSceneFileName);
 
@@ -160,7 +160,7 @@ void ODFrameListener::exitApplication()
 
     OD_LOG_INF("Remove listener registration");
     //Remove ourself as a Window listener
-    Ogre::WindowEventUtilities::removeWindowEventListener(mWindow, this);
+    OgreBites::WindowEventUtilities::removeWindowEventListener(mWindow, this);
 
     OD_LOG_INF("Frame listener uninitialization done.");
     mInitialized = false;
@@ -294,10 +294,16 @@ bool ODFrameListener::frameStarted(const Ogre::FrameEvent& evt)
     return true;
 }
 
-void ODFrameListener::renderQueueStarted(Ogre::uint8 queueGroupId, const Ogre::String& invocation,
+// Since Ogre 14 (OgreRenderQueueListener.h), the second parameter carries the
+// name of the camera being rendered; SceneManager passes
+// mCameraInProgress->getName(). The comparison below decides whether CEGUI is
+// drawn for this render, so the parameter's meaning matters.
+void ODFrameListener::renderQueueStarted(Ogre::uint8 queueGroupId, const Ogre::String& cameraName,
     bool&)
 {
-    if(queueGroupId == RenderManager::OD_RENDER_QUEUE_ID_GUI && invocation.empty())
+    const Ogre::Camera* activeCamera = mCameraManager.getActiveCamera();
+    if(queueGroupId == RenderManager::OD_RENDER_QUEUE_ID_GUI &&
+       activeCamera != nullptr && cameraName == activeCamera->getName())
     {
         Ogre::Root::getSingleton().getRenderSystem()->clearFrameBuffer(Ogre::FBT_DEPTH);
         CEGUI::System::getSingleton().renderAllGUIContexts();

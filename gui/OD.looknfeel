@@ -912,8 +912,22 @@
         <Property name="NWSESizingCursorImage" value="OpenDungeonsSkin/MouseNwSeCursor" />
         <Property name="NESWSizingCursorImage" value="OpenDungeonsSkin/MouseNeSwCursor" />
         <NamedArea name="ClientWithTitleWithFrame">
-            <Area />
-
+            <Area>
+                <Dim type="LeftEdge"><ImageDim dimension="Width" name="OpenDungeonsSkin/WindowTopLeft" /></Dim>
+                <Dim type="TopEdge"><WidgetDim dimension="BottomEdge" widget="__auto_titlebar__" /></Dim>
+                <Dim type="RightEdge">
+                    <OperatorDim op="Subtract">
+                        <UnifiedDim scale="1" type="RightEdge" />
+                        <ImageDim dimension="Width" name="OpenDungeonsSkin/WindowTopRight" />
+                    </OperatorDim>
+                </Dim>
+                <Dim type="BottomEdge">
+                    <OperatorDim op="Subtract">
+                        <UnifiedDim scale="1" type="BottomEdge" />
+                        <ImageDim dimension="Height" name="OpenDungeonsSkin/WindowBottomEdge" />
+                    </OperatorDim>
+                </Dim>
+            </Area>
         </NamedArea>
         <NamedArea name="ClientWithTitleNoFrame">
             <Area>
@@ -959,6 +973,10 @@
             </Area>
             <Property name="AlwaysOnTop" value="False" />
             <Property name="WantsMultiClickEvents" value="False" />
+            <!-- Position against the window's outer rect, not the client area:
+                 the client area starts below the titlebar, so a client-relative
+                 titlebar would sit its own height too low. -->
+            <Property name="NonClient" value="True" />
         </Child>
         <Child nameSuffix="__auto_closebutton__" type="OD/SystemButton">
             <Area>
@@ -986,6 +1004,7 @@
             <Property name="NormalImage" value="OpenDungeonsSkin/CloseButtonNormal" />
             <Property name="HoverImage" value="OpenDungeonsSkin/CloseButtonHover" />
             <Property name="PushedImage" value="OpenDungeonsSkin/CloseButtonPressed" />
+                    <Property name="NonClient" value="True" />
         </Child>
         <ImagerySection name="withtitle_frame">
             <FrameComponent>

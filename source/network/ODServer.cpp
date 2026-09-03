@@ -159,9 +159,15 @@ bool ODServer::startServer(const std::string& creator, const std::string& levelF
         return false;
     }
 
-    // Set up the socket to listen on the specified port
+    // Set up the socket to listen on the specified port. Local games (single
+    // player, editor, loaded saves) reach the server through getNetworkPort(),
+    // which reports the port actually bound, so they may fall back to an
+    // ephemeral port when the configured one is busy. A multiplayer host must
+    // not: remote clients dial the advertised port, so failing loudly here
+    // beats a connection that never establishes.
     int32_t port = getNetworkPort();
-    if (!createServer(port))
+    bool allowPortFallback = (mode != ServerMode::ModeGameMultiPlayer);
+    if (!createServer(port, allowPortFallback))
     {
         mServerMode = ServerMode::ModeNone;
         mServerState = ServerState::StateNone;
@@ -2764,6 +2770,12 @@ int32_t ODServer::getNetworkPort() const
     int32_t port = ResourceManager::getSingleton().getForcedNetworkPort();
     if(port != -1)
         return port;
+
+    // If the socket bound to an ephemeral port (because the configured one was
+    // in use), report the actual port so the local client can connect.
+    int32_t actualPort = getActualPort();
+    if(actualPort != 0)
+        return actualPort;
 
     return ConfigManager::getSingleton().getNetworkPort();
 }

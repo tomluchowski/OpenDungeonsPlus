@@ -7,20 +7,25 @@
         <Property name="AlwaysOnTop" value="True" />
         <Property name="Text" value="Are you sure ?" /> 
         <Property name="AlwaysOnTop" value="True" />
+        <!-- The text fills the client area above the buttons and the buttons
+             are anchored to the client area's bottom edge, so the dialog lays
+             out correctly whatever room the titlebar and frame take. -->
         <Window type="OD/StaticText" name="Message" >
        	    <Property name="Text" value="  You have an unsaved changes, your work will be lost, &#0010;
       Do you really want to load a new level?" />
             <Property name="InheritsAlpha" value="False" />
-	    <Property name="Area" value="{{0.5,-220},{0.5,-100},{0.5,220},{0.5,0}}" />
+            <Property name="VertFormatting" value="CentreAligned" />
+            <Property name="HorzFormatting" value="WordWrapCentered" />
+            <Property name="Area" value="{{0,25},{0,5},{1,-25},{1,-50}}" />
         </Window>
         <Window type="OD/Button" name="YesOption" >
-            <Property name="Area" value="{{0.3,-48},{0.8,-39},{0.3,44},{0.8,-1}}" />
+            <Property name="Area" value="{{0.3,-48},{1,-44},{0.3,44},{1,-6}}" />
             <Property name="Text" value="Yes" />
             <Property name="TooltipText" value="Confirm exit" />
             <Property name="InheritsAlpha" value="False" />
         </Window>
         <Window type="OD/Button" name="NoOption" >
-            <Property name="Area" value="{{0.7,-47},{0.8,-39},{0.7,45},{0.8,-1}}" />
+            <Property name="Area" value="{{0.7,-47},{1,-44},{0.7,45},{1,-6}}" />
             <Property name="Text" value="No" />
             <Property name="TooltipText" value="Cancel exit" />
             <Property name="InheritsAlpha" value="False" />

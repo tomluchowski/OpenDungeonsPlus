@@ -21,26 +21,103 @@
 #include "camera/CameraManager.h"
 #include "render/ODFrameListener.h"
 #include "render/RenderManager.h"
+#include "render/ODFrameListener.h"
 #include "utils/ConfigManager.h"
 #include "utils/LogManager.h"
 #include "utils/Helper.h"
 
 #include <CEGUI/CEGUI.h>
+#include <CEGUI/PropertyHelper.h>
+#include <CEGUI/UDim.h>
 #include <CEGUI/widgets/ToggleButton.h>
 #include <CEGUI/widgets/Combobox.h>
 #include <CEGUI/widgets/ToggleButton.h>
 #include <CEGUI/widgets/PushButton.h>
 #include <CEGUI/WindowManager.h>
 
+#include <algorithm>
+
 #include <OgreRoot.h>
 #include <OgreRenderWindow.h>
 
 #include <SFML/Audio/Listener.hpp>
 
+namespace
+{
+float computeUiScale()
+{
+    CEGUI::Sizef displaySize = CEGUI::System::getSingleton().getRenderer()->getDisplaySize();
+    constexpr float designWidth = 800.0f;
+    constexpr float designHeight = 600.0f;
+    float scale = std::min(displaySize.d_width / designWidth, displaySize.d_height / designHeight);
+    // Keep the UI usable on very high resolutions, but don't let it grow too huge.
+    if (scale > 1.5f)
+        scale = 1.5f;
+    if (scale < 1.0f)
+        scale = 1.0f;
+    return scale;
+}
+
+void scaleUdimOffsets(CEGUI::UDim& dim, float scale)
+{
+    dim.d_offset *= scale;
+}
+
+void scaleWindowArea(CEGUI::Window* window, float scale)
+{
+    CEGUI::URect area = CEGUI::PropertyHelper<CEGUI::URect>::fromString(window->getProperty("Area"));
+    scaleUdimOffsets(area.d_min.d_x, scale);
+    scaleUdimOffsets(area.d_min.d_y, scale);
+    scaleUdimOffsets(area.d_max.d_x, scale);
+    scaleUdimOffsets(area.d_max.d_y, scale);
+    window->setProperty("Area", CEGUI::PropertyHelper<CEGUI::URect>::toString(area));
+}
+
+void scaleDimProperty(CEGUI::Window* window, const char* propertyName, float scale)
+{
+    CEGUI::String value = window->getProperty(propertyName);
+    if (value.empty())
+        return;
+    CEGUI::UDim dim = CEGUI::PropertyHelper<CEGUI::UDim>::fromString(value);
+    dim.d_offset *= scale;
+    window->setProperty(propertyName, CEGUI::PropertyHelper<CEGUI::UDim>::toString(dim));
+}
+
+void scaleWindowTree(CEGUI::Window* window, float scale)
+{
+    for (size_t i = 0; i < window->getChildCount(); ++i)
+    {
+        CEGUI::Window* child = window->getChildAtIdx(i);
+        scaleWindowArea(child, scale);
+        scaleWindowTree(child, scale);
+    }
+}
+
+void centerAndScaleWindow(CEGUI::Window* window, float scale, const CEGUI::Sizef& displaySize)
+{
+    CEGUI::URect area = CEGUI::PropertyHelper<CEGUI::URect>::fromString(window->getProperty("Area"));
+    float left   = area.d_min.d_x.d_scale * displaySize.d_width  + area.d_min.d_x.d_offset;
+    float top    = area.d_min.d_y.d_scale * displaySize.d_height + area.d_min.d_y.d_offset;
+    float right  = area.d_max.d_x.d_scale * displaySize.d_width  + area.d_max.d_x.d_offset;
+    float bottom = area.d_max.d_y.d_scale * displaySize.d_height + area.d_max.d_y.d_offset;
+    float width  = (right - left) * scale;
+    float height = (bottom - top) * scale;
+    float newLeft = (displaySize.d_width - width) * 0.5f;
+    float newTop  = (displaySize.d_height - height) * 0.5f;
+
+    area.d_min.d_x = CEGUI::UDim(0.0f, newLeft);
+    area.d_min.d_y = CEGUI::UDim(0.0f, newTop);
+    area.d_max.d_x = CEGUI::UDim(0.0f, newLeft + width);
+    area.d_max.d_y = CEGUI::UDim(0.0f, newTop + height);
+    window->setProperty("Area", CEGUI::PropertyHelper<CEGUI::URect>::toString(area));
+}
+}
+
 SettingsWindow::SettingsWindow(CEGUI::Window* rootWindow):
     mSettingsWindow(nullptr),
     mApplyWindow(nullptr),
     mRootWindow(rootWindow),
+    mUiScale(1.0f),
     dynamicShadowsChanged(false)
 {
     if (rootWindow == nullptr)
@@ -148,6 +225,60 @@ SettingsWindow::SettingsWindow(CEGUI::Window* rootWindow):
     
 
     initConfig();
+
+    // The SettingsWindow layout was designed for 800x600. Scale and center it
+    // on higher resolutions so it stays usable, and re-fit it whenever the
+    // display size changes (this is the window resolutions are applied from).
+    mSettingsWindowOriginalArea = mSettingsWindow->getProperty("Area");
+    applyUiScale();
+    addEventConnection(
+        CEGUI::System::getSingleton().subscribeEvent(
+            CEGUI::System::EventDisplaySizeChanged,
+            CEGUI::Event::Subscriber(&SettingsWindow::onDisplaySizeChanged, this)
+        )
+    );
+}
+
+void SettingsWindow::applyUiScale()
+{
+    float scale = computeUiScale();
+
+    // Every widget below the two top-level windows only ever gets its pixel
+    // offsets multiplied, so moving from the currently applied scale to the
+    // new one is a plain ratio. This also covers the video-settings widgets
+    // initConfig() recreates, as long as they are brought to mUiScale when
+    // they are created.
+    float ratio = scale / mUiScale;
+    if (ratio != 1.0f)
+    {
+        scaleWindowTree(mSettingsWindow, ratio);
+
+        CEGUI::Window* tabControl = mSettingsWindow->getChild("MainTabControl");
+        if (tabControl)
+            scaleDimProperty(tabControl, "TabHeight", ratio);
+
+        // The apply-changes popup also uses pixel offsets relative to the centre.
+        scaleWindowArea(mApplyWindow, ratio);
+        scaleWindowTree(mApplyWindow, ratio);
+    }
+
+    // The top-level window is re-centered from its designed area rather than
+    // by ratio, because centering flattens it to pixel offsets for the current
+    // display size.
+    mSettingsWindow->setProperty("Area", mSettingsWindowOriginalArea);
+    if (scale > 1.0f)
+    {
+        CEGUI::Sizef displaySize = CEGUI::System::getSingleton().getRenderer()->getDisplaySize();
+        centerAndScaleWindow(mSettingsWindow, scale, displaySize);
+    }
+
+    mUiScale = scale;
+}
+
+bool SettingsWindow::onDisplaySizeChanged(const CEGUI::EventArgs&)
+{
+    applyUiScale();
+    return true;
 }
 
 SettingsWindow::~SettingsWindow()
@@ -379,6 +510,15 @@ void SettingsWindow::initConfig()
         videoCb->setReadOnly(true);
         videoCb->setSortingEnabled(true);
 
+        // These are laid out in design-space pixels; bring them to the UI
+        // scale the rest of the window is currently at (applyUiScale() then
+        // keeps them in sync through its ratio scaling).
+        if (mUiScale != 1.0f)
+        {
+            scaleWindowArea(videoCbText, mUiScale);
+            scaleWindowArea(videoCb, mUiScale);
+        }
+
         // Register the widgets for potential later deletion.
         mCustomVideoTexts.push_back(videoCbText);
         mCustomVideoComboBoxes.push_back(videoCb);
@@ -529,7 +669,7 @@ void SettingsWindow::saveConfig()
     // Apply config
 
     // Video
-    Ogre::RenderWindow* win = ogreRoot->getAutoCreatedWindow();
+    Ogre::RenderWindow* win = ODFrameListener::getSingleton().getRenderWindow();
     if(win == nullptr)
     {
         OD_LOG_WRN("Changing window options when using sfml is not implemented yet! Please restart for the changes to have an effect.");

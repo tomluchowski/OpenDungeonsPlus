@@ -17,6 +17,8 @@
 
 #include "renderscene/RenderSceneResizeEntity.h"
 
+#include <iostream>
+
 #include "camera/CameraManager.h"
 #include "render/RenderManager.h"
 #include "renderscene/RenderSceneManager.h"
