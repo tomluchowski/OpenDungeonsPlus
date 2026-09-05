@@ -52,6 +52,9 @@ Für einen fehlenden Quellordner das betreffende Repository mit
 `git -C <Zielpfad> rev-parse HEAD` mit der Tabelle vergleichen.
 Bestehende Quellen dabei erhalten. `scissors_test_disabled` ist ein Tag.
 Expat wird aus dem Unterordner `src\expat\expat` konfiguriert.
+Zusätzlich zum aufgeführten CEGUI-Basiscommit wird beim Windows-Neuaufbau der
+[MSVC-Kompatibilitätspatch](../../scripts/win32/patches/cegui-msvc-snprintf.patch)
+angewendet; die Ursache ist im [Buildfehlerprotokoll](WINDOWS-BUILD-FIXES.md) belegt.
 
 ## Archive und Prüfsummen
 
@@ -132,7 +135,7 @@ des Boost-Skripts aus der aufrufenden Sitzung heraus; Fehler beenden die Reihenf
 | [install-base-prereqs.ps1](../../scripts/win32/install-base-prereqs.ps1) | Expat, OIS, SFML, danach FreeType, pybind11, PCRE; bei gezieltem Bedarf filterbar mit `-Only` |
 | [install-boost-prereq.ps1](../../scripts/win32/install-boost-prereq.ps1) | Boost-Buildwerkzeug und Bibliotheken; erzeugt `od-deps\boost-user-config.jam` |
 | [install-ogre-prereq.ps1](../../scripts/win32/install-ogre-prereq.ps1) | OGRE mit GL3Plus und den benötigten Komponenten |
-| [install-cegui-prereq.ps1](../../scripts/win32/install-cegui-prereq.ps1) | CEGUI mit OgreRenderer und Expat, nach OGRE und den Basisbibliotheken |
+| [install-cegui-prereq.ps1](../../scripts/win32/install-cegui-prereq.ps1) | Wendet den gespeicherten MSVC-Patch einmalig an und baut CEGUI mit OgreRenderer und Expat, nach OGRE und den Basisbibliotheken |
 
 Danach den Starthelfer laden und das Spiel nach [BUILDING.md](BUILDING.md)
 konfigurieren; ein Bibliotheksbuild allein belegt keinen erfolgreichen Spielbuild.
@@ -160,5 +163,7 @@ Logs liegen unter `od-deps\logs`; jeder erneute Skriptlauf ersetzt seine Logs.
   obwohl CMake die Linkbibliotheken findet; Paketierung und Laufzeit bleiben
   ungeprüft, siehe [aktueller Status](WINDOWS-DEV-SETUP.md).
 
-Die Dependency-Quellen wurden für diese Lösungen nicht gepatcht; die konkreten
-CMake- und Boost-Optionen stehen vollständig in den übernommenen Skripten.
+Die ursprüngliche Einrichtung benötigte für diese Lösungen keine Quellpatches;
+bei der anschließenden Spielkompilierung wurde der oben verlinkte CEGUI-Patch
+erforderlich. Die konkreten CMake- und Boost-Optionen stehen vollständig in den
+Skripten, die Änderung am CEGUI-Header in der zugehörigen Patchdatei.

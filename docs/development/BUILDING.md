@@ -1,8 +1,10 @@
 # Unter Windows konfigurieren und kompilieren
 
 Stand: 5. September 2026. Die [Voraussetzungen](WINDOWS-DEV-SETUP.md) sind installiert
-und CMake wurde erfolgreich ausgeführt; die folgenden Spielbuilds und der
-Spielstart sind noch nicht praktisch geprüft.
+und CMake sowie die Spielbuilds für Windows x64 in Release und Debug wurden
+erfolgreich ausgeführt; der Spielstart ist noch nicht praktisch geprüft.
+Die vier behobenen Buildfehler und ihre Nachweise stehen in
+[WINDOWS-BUILD-FIXES.md](WINDOWS-BUILD-FIXES.md).
 
 ## 1. PowerShell-Sitzung vorbereiten
 
@@ -62,12 +64,14 @@ cmake --build .\build\windows --config Debug --parallel 4
 if ($LASTEXITCODE -ne 0) { throw 'Spielbuild Debug fehlgeschlagen' }
 ```
 
-Laut generiertem Visual-Studio-Projekt sind die erwarteten Ausgabedateien
+Die erfolgreich erzeugten Ausgabedateien sind
 `build\windows\opendungeons-plus.exe` und `build\windows\opendungeons-plus_d.exe`,
-direkt im Buildordner. Diese Pfade wurden aus der Konfiguration geprüft;
-ein erfolgreicher Spielbuild ist damit noch nicht belegt.
+direkt im Buildordner. Beide Dateien wurden auf ihre AMD64-PE-Kennung und die
+jeweils passende Python-DLL geprüft, ohne das Spiel zu starten.
 Die Buildausgabe erscheint in der Konsole; bei einem Fehler die erste konkrete
 Compiler-/Linkermeldung und die verwendete Konfiguration festhalten.
+Die protokollierten erfolgreichen Verifikationsläufe dieser Einrichtung liegen
+unter `build\windows\game-Release-pass3.log` und `game-Debug-pass3.log`.
 
 ## 4. Spielstart und manuelle Prüfung
 

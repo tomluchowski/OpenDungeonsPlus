@@ -21,8 +21,12 @@ The maintained instructions and scripts live in this repository under
 `docs/development/` and `scripts/win32/`.
 Do not rely on the old copies in `build/` or `od-deps/setup-scripts/`.
 
-At the documented handover on 2026-09-05, dependency builds and game CMake
-configuration succeeded; compiling and starting the game were still unverified.
+At the verified state on 2026-09-05, dependency builds, game CMake configuration
+and both Windows x64 game builds (Release and Debug) succeeded; game startup,
+manual gameplay tests and packaging remain unverified.
+Read the [Windows build fixes](docs/development/WINDOWS-BUILD-FIXES.md) for the four
+diagnosed failures and verification logs; the CEGUI source now includes a
+repository-managed compatibility patch applied by its installation script.
 Read the current status document and check the actual files before making claims.
 Do not reinstall dependencies or switch versions just because a new session starts.
 Use the repository's environment helper and configuration script; the scripts

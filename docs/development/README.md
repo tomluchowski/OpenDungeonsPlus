@@ -18,6 +18,8 @@ ist zusätzlich in [AGENTS.md](../../AGENTS.md) im Projektstamm verankert.
   genaue Speicherorte, Verbindungen zum Projekt und überprüfter Stand.
 - [Konfigurieren und kompilieren](BUILDING.md): Umgebung laden, CMake ausführen,
   Release/Debug bauen und Protokolle finden.
+- [Windows-Buildfehler und Korrekturen](WINDOWS-BUILD-FIXES.md): nachgewiesene
+  Compilerfehler, ihre Ursachen, gezielte Korrekturen und Buildnachweise.
 - [Voraussetzungen wiederherstellen](WINDOWS-PREREQUISITES.md): Quellen,
   Prüfsummen, Installationsskripte, Reihenfolge und behobene Installationsprobleme.
 

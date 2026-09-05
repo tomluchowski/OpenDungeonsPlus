@@ -3,7 +3,8 @@
 Stand: 5. September 2026, lokaler Rechner von Mario, Windows x64.
 Die Voraussetzungen sind installiert; ihre Bibliotheksbuilds und die
 CMake-Konfiguration des Spiels waren erfolgreich.
-Der vollständige Spielbuild, Spielstart und die Paketierung sind noch ungeprüft.
+Die Spielbuilds für Release und Debug sind nach vier gezielten Korrekturen
+erfolgreich; Spielstart und Paketierung bleiben ungeprüft.
 
 ## Einstieg und Zuständigkeit der Dateien
 
@@ -53,7 +54,7 @@ Ein neuer Klon enthält die Anleitungen und Skripte, aber nicht die externe Inst
 | CMake | 3.31.8, portable Installation |
 | Python | 3.10.11 mit Headern, Release- und Debug-Importbibliotheken und Debug-Binärdateien |
 | OGRE | 13.6.5, GL3Plus; OgreMain, Bites, Overlay, RTShaderSystem, Octree, ParticleFX, STBI |
-| CEGUI | 0.9999.0 aus `tomluchowski/cegui`, Tag `scissors_test_disabled`, mit OgreRenderer und Expat |
+| CEGUI | 0.9999.0 aus `tomluchowski/cegui`, Tag `scissors_test_disabled`, mit OgreRenderer, Expat und dem gespeicherten MSVC-Kompatibilitätspatch |
 | OIS | 1.5.1 |
 | SFML | 2.5.1 |
 | Boost | 1.82.0; filesystem, locale, program_options, thread, system, chrono, date_time, atomic |
@@ -95,18 +96,20 @@ Der Compiler liegt dort unter
 ermittelt den Projektstamm relativ zu seinem eigenen Speicherort, lädt den
 benachbarten Starthelfer und konfiguriert `build\windows` mit Visual Studio 2022/x64.
 Es übergibt Python-Executable, Header und beide Importbibliotheken explizit
-und deaktiviert die Testtargets. Die Spielquellen und `CMakeLists.txt` wurden für
-diese Einrichtung nicht geändert.
+und deaktiviert die Testtargets. Bei der ursprünglichen Einrichtung wurden die
+Spielquellen und `CMakeLists.txt` nicht geändert; die anschließenden Korrekturen
+aus der tatsächlichen Kompilierung stehen im [Buildfehlerprotokoll](WINDOWS-BUILD-FIXES.md).
 
 ## Überprüft und noch offen
 
 | Schritt | Stand / Nachweis |
 | --- | --- |
 | Compiler, CMake und Python laden | Über den Starthelfer erfolgreich geprüft |
-| Bibliotheken bauen und installieren | Release und Debug erfolgreich; Protokolle unter `od-deps\logs` |
-| Unverändertes Spiel konfigurieren | Erfolgreich; `opendungeons-configure.log` endet mit erfolgreicher Konfiguration und Generierung |
+| Bibliotheken bauen und installieren | Release und Debug erfolgreich; CEGUI anschließend mit dem gespeicherten MSVC-Patch neu gebaut und installiert; Protokolle unter `od-deps\logs` |
+| Spiel konfigurieren | Mit den Buildkorrekturen erfolgreich erneut konfiguriert; `opendungeons-configure.log` endet mit erfolgreicher Konfiguration und Generierung |
 | Konfiguration über die ins Projekt übernommenen Skripte | Erfolgreich erneut ausgeführt, auch aus `docs\development`; Projektpfad und benachbarter Starthelfer werden korrekt aufgelöst |
-| Spiel kompilieren | Noch nicht ausgeführt; Befehle in [BUILDING.md](BUILDING.md) |
+| Spiel kompilieren | Release und Debug erfolgreich mit Exitcode 0; Befehle in [BUILDING.md](BUILDING.md), Nachweise im [Buildfehlerprotokoll](WINDOWS-BUILD-FIXES.md) |
+| Erzeugte Programme prüfen | Beide Dateien tragen die AMD64-PE-Kennung; Release importiert nur `python310.dll`, Debug nur `python310_d.dll` als Python-Laufzeit |
 | Spiel starten, GUI und Cursor testen | Noch nicht geprüft; manuelle QA durch den Nutzer |
 | Installationspaket erstellen | Noch nicht geprüft; ältere Paketlogik findet einige erwartete Boost-DLL-Namen nicht |
 
@@ -116,9 +119,10 @@ benötigten Boost-Linkbibliotheken gefunden. Die Meldung
 Paketierung; daraus weder einen fehlgeschlagenen Linktest noch ein funktionierendes
 Installationspaket ableiten.
 Die erneute Konfiguration meldet außerdem `Boost toolset is unknown` für
-MSVC 19.44.35228.0; die Generierung gelingt trotzdem, die tatsächliche
-Verknüpfung des Spiels bleibt bis zum ersten Spielbuild ungeprüft.
+MSVC 19.44.35228.0; die Generierung und beide Linkschritte gelingen trotzdem,
+nachdem der im [Buildfehlerprotokoll](WINDOWS-BUILD-FIXES.md) beschriebene
+Boost-Suchpfad korrigiert wurde.
 
-Für die Fortsetzung zuerst den Spielbuild durchführen, sobald er beauftragt ist,
-und dessen tatsächliches Ergebnis hier nachtragen; erst danach kann die Umgebung
-als für das Spiel vollständig geprüft gelten.
+Die Buildfehler sind behoben; vorhandene Compiler-/Linkerwarnungen sind im
+Buildfehlerprotokoll festgehalten. Als Nächstes steht die Laufzeitprüfung durch
+den Nutzer an; erfolgreiche Builds ersetzen diese Prüfung nicht.
