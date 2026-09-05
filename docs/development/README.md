@@ -22,6 +22,8 @@ is also recorded in [AGENTS.md](../../AGENTS.md) at the project root.
   compiler errors, their causes, targeted fixes and build evidence.
 - [Windows startup errors and fixes](WINDOWS-STARTUP-FIXES.md): actual startup
   failures, runtime preparation, resource-path correction and outstanding verification.
+- [Windows settings fixes](WINDOWS-SETTINGS-FIXES.md): duplicate colour-depth
+  choices, their cause and verification status.
 - [Restoring prerequisites](WINDOWS-PREREQUISITES.md): sources,
   checksums, installation scripts, order and resolved installation problems.
 
