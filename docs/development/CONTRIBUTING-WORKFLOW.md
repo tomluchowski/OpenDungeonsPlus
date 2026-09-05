@@ -79,6 +79,12 @@ status is in [LIVE-SETTINGS.md](LIVE-SETTINGS.md). Prepare upstream contribution
 from these boundaries after checking their dependencies. Linux validation is
 still pending.
 
+### Separate task: progressive edge scrolling
+
+`feature/progressive-edge-scrolling` continues from `feature/live-settings` and
+contains the mouse-edge camera control change. Its implementation and verification
+status are recorded in [PROGRESSIVE-EDGE-SCROLLING.md](PROGRESSIVE-EDGE-SCROLLING.md).
+
 ### Path to the future Windows PR
 
 The work branch contains our fork context, including personal paths
