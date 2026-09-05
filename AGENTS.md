@@ -9,6 +9,13 @@ descriptions and review comments.
 
 ## Project setup
 
+Always implement new requirements on the user's latest complete fork state,
+including all newer fork commits, local work and project documentation. Never
+start implementation work directly from `upstream` unless the user explicitly
+overrides this rule. Use `upstream` only to compare changes and to assemble a
+separate contribution branch after the fork implementation has been completed
+and reviewed.
+
 Before working on this project, read:
 
 1. [Windows environment and current status](docs/development/WINDOWS-DEV-SETUP.md).
@@ -18,14 +25,16 @@ Before working on this project, read:
 
 Windows development is organized on `feature/windows-support` in this fork.
 The related work is split into a local branch stack: `feature/windows-support`,
-`fix/dynamic-shadows`, `fix/settings-option-duplicates`, then
-`feature/live-settings`. Continue each task on its matching branch; see
+`fix/dynamic-shadows`, `fix/settings-option-duplicates`, `feature/live-settings`,
+`feature/progressive-edge-scrolling`, `docs/improvement-roadmap`, then
+`feature/gui-scaling`. Continue each task from the latest complete fork state; see
 [live settings and verification](docs/development/LIVE-SETTINGS.md).
 Read the current setup in [the contribution workflow](docs/development/CONTRIBUTING-WORKFLOW.md)
 before Git operations: `origin` is the fork and `upstream` is the original project.
 Preserve the existing default branch; continue each task on its own work branch.
 The work branch includes local notes and is not the final upstream PR branch;
-prepare that later from upstream using only the reviewed, reusable changes.
+assemble that separate contribution branch later using only the reviewed,
+reusable changes.
 Do not push without explicit user authorization.
 
 The Windows prerequisites are already installed in `C:\Users\mario\od-deps`;

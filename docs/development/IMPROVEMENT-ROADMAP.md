@@ -15,9 +15,10 @@ implementation branch.
 
 This audit is stored on `docs/improvement-roadmap`, created from the verified
 fork state that already contains the Windows, live-settings and progressive
-edge-scrolling work. The roadmap itself is fork documentation. Future upstream
-contributions must still be assembled from the then-current upstream branch with
-only their required dependencies.
+edge-scrolling work. The roadmap itself is fork documentation. Every new
+implementation branch must continue from the user's latest complete fork state.
+A later upstream contribution may be assembled separately with only the reviewed,
+reusable changes after implementation and verification in the fork.
 
 ## Evidence and limits
 
@@ -103,9 +104,9 @@ Before every feature branch:
 1. Fetch `upstream` and re-query open issues and pull requests.
 2. Check whether PR #29, #41, #45, #21, #16 or #15 has merged, changed scope or
    been replaced.
-3. Compare the exact affected files before choosing a base.
-4. Build the branch from current upstream and add only dependencies it actually
-   needs.
+3. Compare the exact affected files before integrating an upstream dependency.
+4. Create the implementation branch from the user's latest complete fork state
+   and preserve all newer fork commits and documentation.
 
 This gate prevents duplicate fixes and large avoidable merge conflicts.
 
@@ -126,17 +127,16 @@ review decision or status check.
 | [#16](https://github.com/tomluchowski/OpenDungeonsPlus/pull/16) | Open and conflicting at `ab2858da`; its 101 files combine unrelated crash, gameplay, editor, portability and level work. Its spell/room layout change is already available separately in PR #29. | Excluded; use the focused PR #29 dependency instead. |
 | [#15](https://github.com/tomluchowski/OpenDungeonsPlus/pull/15) | Open and mergeable at `efa47d31`, but based on an older upstream commit and changing 317 files for the Ogre 14 port. It also changes the settings window, dialogs, skill tree, `OD.looknfeel` and GUI/render code, and commit `27a6a9bb` implements settings-only automatic scaling from `1.0` to `1.5`. | Excluded because it would add the renderer port and silently choose the still-unresolved scale policy. Recheck and reconcile these GUI files if the port advances. |
 
-The prepared local branch `feature/gui-scaling` starts directly at
-`be44649f`. The PR #29 commit was cherry-picked as its only dependency, producing
-local commit `cfd924f5`. The branch is one commit ahead of upstream, its diff is
-limited to the two layout files above, and both files pass XML parsing.
+The corrected local branch `feature/gui-scaling` starts at the complete fork
+roadmap state `e9a62ce8`, which already contains the verified Windows,
+live-settings and progressive edge-scrolling work and all development
+documentation. The PR #29 commit was then cherry-picked as the focused layout
+dependency, producing local commit `39c91a9a`. Both dependency layouts pass XML
+parsing.
 
-The fork's live-settings commit `d660f8ae` was not added: it changes 31 files and
-is a separate contribution. Current upstream already calls
-`CEGUI::System::notifyDisplaySizeChanged()` from
-`ODFrameListener::windowResized()`, so GUI scaling can react to display-size
-events without importing that feature. The scale policy remains the only
-required decision before Step 1 implementation.
+The existing live-settings path supplies the runtime render-window replacement
+and display-size notification used by GUI scaling. Automatic resolution scaling
+is combined with a user-selected scale from 80% through 120%.
 
 ### 1. `feature/gui-scaling`
 
@@ -147,9 +147,8 @@ clickable across supported window sizes and after live resolution changes.
 reflow the top bar and bottom action area, and adapt fixed dialogs without changing
 their game behavior.
 
-**Required decision before implementation:** automatic scaling, a user-selected
-scale, or both; supported scale limits must also be chosen. The repository does
-not determine that product behavior unambiguously.
+**Scale policy:** combine automatic resolution scaling with a user-selected
+scale; the supported user range is 80% through 120% in 10% steps.
 
 **Dependency and overlap:** resolve PR #29 first because it changes
 `WindowTabSpells.layout`. Use the fork's live display update path where runtime
@@ -321,7 +320,6 @@ depending on it.
 
 ## Recommended next action
 
-The first new implementation branch should be `feature/gui-scaling`, after the
-scale policy is chosen and PR #29 is rechecked. It addresses the most pervasive
-confirmed defect, enables clearer feedback and onboarding, and does not require a
-renderer or asset-pipeline decision.
+Complete the manual verification matrix for `feature/gui-scaling`. It addresses
+the most pervasive confirmed defect, enables clearer feedback and onboarding,
+and does not require a renderer or asset-pipeline decision.

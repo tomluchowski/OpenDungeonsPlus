@@ -29,6 +29,8 @@ is also recorded in [AGENTS.md](../../AGENTS.md) at the project root.
 - [Product improvement audit and roadmap](IMPROVEMENT-ROADMAP.md): confirmed
   visual and usability gaps, ordered implementation branches and coordination
   with open upstream issues and pull requests.
+- [GUI scaling](GUI-SCALING.md): scale policy, implementation details,
+  automated checks and the required manual verification matrix.
 - [Restoring prerequisites](WINDOWS-PREREQUISITES.md): sources,
   checksums, installation scripts, order and resolved installation problems.
 
@@ -38,7 +40,7 @@ Add new files here as needed and link them above, for example:
 
 - `DEBUGGING.md`: traceable error analyses and solutions.
 - `ARCHITECTURE-NOTES.md`: findings about the existing code and its relationships.
-- `GUI-SCALING.md`: findings on GUI scaling once work on it begins.
+- `VISUAL-DIRECTION.md`: approved visual targets and asset constraints.
 
 For technical findings, record the affected code, verification steps and
 open questions; label statements that have not yet been verified accordingly.
