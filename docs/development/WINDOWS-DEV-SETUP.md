@@ -1,63 +1,124 @@
 # Windows-Entwicklungsumgebung
 
-Stand: 5. September 2026. Diese Notiz hält die besprochene Vorbereitung für
-Aufgabe 3, GUI-Skalierung, fest; sie ist noch keine praktisch verifizierte
-Installations- oder Build-Anleitung.
+Stand: 5. September 2026, lokaler Rechner von Mario, Windows x64.
+Die Voraussetzungen sind installiert; ihre Bibliotheksbuilds und die
+CMake-Konfiguration des Spiels waren erfolgreich.
+Der vollständige Spielbuild, Spielstart und die Paketierung sind noch ungeprüft.
 
-## Reicht VS Code allein?
+## Einstieg und Zuständigkeit der Dateien
 
-Nein. VS Code dient als Editor; um die Änderungen im Spiel zu prüfen, müssen
-zusätzlich Compiler, Build-Werkzeuge und Projektabhängigkeiten verfügbar sein,
-sodass das Spiel lokal kompiliert und startet.
+Diese Dokumentation und die Skripte unter [scripts/win32](../../scripts/win32)
+sind der gepflegte Projektbezug zur externen Installation.
+Für die tägliche Arbeit [BUILDING.md](BUILDING.md) verwenden;
+Quellen und Neuaufbau stehen in [WINDOWS-PREREQUISITES.md](WINDOWS-PREREQUISITES.md).
+[AGENTS.md](../../AGENTS.md) verweist neue Agentensitzungen auf diese Dateien.
 
-## Im Gespräch vorgeschlagene Werkzeuge
+Die großen Downloads, Bibliotheksquellen und kompilierten Dateien liegen außerhalb
+des Git-Repositories, damit sie unabhängig vom Arbeitsbranch wiederverwendbar sind.
+Die Skripte enthalten bewusst die konkreten Pfade dieser lokalen Installation;
+auf einem anderen Rechner müssen diese Pfade geprüft und angepasst werden.
+VS Code ist der Editor; Compiler, SDK und Bibliotheken werden zusätzlich benötigt.
 
-- VS Code als Editor.
-- Git für die Versionsverwaltung.
-- CMake für die Build-Konfiguration.
-- Visual Studio 2022 Build Tools mit dem Workload "Desktop development with C++",
-  MSVC-Compiler und Windows SDK.
-- Der lokale Klon des eigenen OpenDungeonsPlus-Forks.
+## Speicherorte
 
-Visual Studio 2022 wurde im Gespräch vorgeschlagen; eine funktionierende
-Kombination mit diesem Projekt und seinen Abhängigkeiten ist noch nicht bestätigt.
-Die vorhandene [Windows-Build-Konfiguration](../../appveyor.yml) enthält stattdessen
-ältere Einträge für Visual Studio 12 und MinGW, die keinen erfolgreichen Build mit
-Visual Studio 2022 belegen.
+| Zweck | Tatsächlicher Pfad |
+| --- | --- |
+| Projekt | `C:\Users\mario\GitHub\OpenDungeonsPlus` |
+| Externer Entwicklungsordner | `C:\Users\mario\od-deps` |
+| Installationspräfix der Bibliotheken | `C:\Users\mario\od-deps\install` |
+| Header / Linkbibliotheken / DLLs | Unter `install\include`, `install\lib`, `install\bin`; einige DLLs liegen auch unter `install\lib` |
+| Bibliotheksquellen | `C:\Users\mario\od-deps\src` |
+| Bibliotheksbuilds | `C:\Users\mario\od-deps\build` |
+| Archive und Prüfsummen | `C:\Users\mario\od-deps\downloads` |
+| Konfigurations- und Bibliotheksprotokolle | `C:\Users\mario\od-deps\logs` |
+| CMake | `C:\Users\mario\od-deps\tools\cmake-3.31.8-windows-x86_64\bin\cmake.exe` |
+| Visual Studio Build Tools | `C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools` |
+| Python | `C:\Users\mario\AppData\Local\Programs\Python\Python310` |
+| 7-Zip für die Quellarchive | `C:\Users\mario\scoop\shims\7z.exe` |
+| Generierter Spielbuild | `C:\Users\mario\GitHub\OpenDungeonsPlus\build\windows` |
+| Vorgesehener Installationsordner des Spiels | `C:\Users\mario\GitHub\OpenDungeonsPlus\build\windows\install` (noch nicht installiert) |
 
-## Im aktuellen Build-Code bestätigte Abhängigkeiten
+Unter `od-deps\setup-scripts`, `od-deps\Enter-OpenDungeonsPlus.ps1`,
+`od-deps\INSTALLATION.md` und dem ignorierten Projektordner `build` liegen noch
+Kopien aus der Installation; für weitere Arbeit die gepflegten Projektdateien
+verwenden, da die alten Kopien nicht automatisch aktualisiert werden.
+Ein neuer Klon enthält die Anleitungen und Skripte, aber nicht die externe Installation.
 
-Die [Build-Datei](../../CMakeLists.txt) sucht folgende Bibliotheken:
+## Installierter Stand
 
-- OGRE, einschließlich der vom Spiel verknüpften Komponenten.
-- CEGUI einschließlich des OGRE-Renderers.
-- SFML.
-- OIS.
-- Boost.
-- Python-Entwicklungsbibliotheken und Header.
-- pybind11 für die Python-Einbettung.
+| Komponente | Version / Konfiguration |
+| --- | --- |
+| Visual Studio 2022 Build Tools | 17.14.39, MSVC-Toolsetordner 14.44.35207, von CMake erkannter Compiler 19.44.35228.0, Ziel und Host x64 |
+| Windows SDK | 10.0.26100.0 |
+| CMake | 3.31.8, portable Installation |
+| Python | 3.10.11 mit Headern, Release- und Debug-Importbibliotheken und Debug-Binärdateien |
+| OGRE | 13.6.5, GL3Plus; OgreMain, Bites, Overlay, RTShaderSystem, Octree, ParticleFX, STBI |
+| CEGUI | 0.9999.0 aus `tomluchowski/cegui`, Tag `scissors_test_disabled`, mit OgreRenderer und Expat |
+| OIS | 1.5.1 |
+| SFML | 2.5.1 |
+| Boost | 1.82.0; filesystem, locale, program_options, thread, system, chrono, date_time, atomic |
+| pybind11 | 2.10.4 |
+| FreeType | 2.12.1 |
+| Expat | 2.8.4 |
+| PCRE | 8.45 mit UTF und Unicode-Properties |
 
-Die Build-Datei nennt CMake 3.5 als Mindestversion, prüft OGRE ab 1.9 und CEGUI ab
-0.8 und sucht SFML 2. Diese Angaben beschreiben die vorhandenen Build-Prüfungen;
-sie belegen keine konkret funktionierende Kombination aktueller Paketversionen
-und keinen stabilen Ogre-14-Port.
+Die kompilierten Bibliotheken liegen für x64 in Release und Debug vor;
+Boost zusätzlich statisch und dynamisch, jeweils mit dynamischer C++-Laufzeit.
+pybind11 stellt Header und CMake-Konfiguration bereit.
+Git, VS Code, 7-Zip und eine passende Visual-C++-Laufzeit waren bereits vorhanden.
 
-## Im Gespräch genannte optionale Ergänzungen
+OGRE, CEGUI, OIS, SFML und Python 3.10 orientieren sich an der vorhandenen
+[Snap-Baurezeptur](../../snap/snapcraft.yaml); die konkreten Windows-Optionen stehen
+in den Skripten. Dies dokumentiert OGRE 13.6.5 und belegt keinen Ogre-14-Port.
+Die älteren allgemeinen Angaben in README und AppVeyor ersetzen diesen lokalen Stand nicht.
 
-- CMake Tools für VS Code.
-- C/C++-Erweiterung für VS Code.
-- Codex in VS Code.
+## Wie Projekt und externe Installation zusammenfinden
 
-## Noch zu prüfen
+[Enter-OpenDungeonsPlus.ps1](../../scripts/win32/Enter-OpenDungeonsPlus.ps1)
+lädt die Visual-Studio-Entwicklungsumgebung für x64 und setzt in der aktuellen
+PowerShell-Sitzung:
 
-- Welche Werkzeuge und Abhängigkeiten auf dem Rechner bereits installiert sind.
-- Welche konkreten Versionen, Compiler und Zielarchitektur zusammen funktionieren.
-- Wie die Abhängigkeiten für diese Kombination bereitgestellt und gefunden werden.
-- Ob das Spiel damit tatsächlich gebaut und gestartet werden kann.
+- `PATH` für CMake, Bibliotheks-DLLs und Python.
+- `CMAKE_PREFIX_PATH`, `CEGUI_HOME` und `OIS_HOME` auf `od-deps\install`.
+- `BOOST_ROOT`, `BOOST_INCLUDEDIR`, `BOOST_LIBRARYDIR` auf die installierten Boost-Dateien.
+- `LIB` zusätzlich auf `od-deps\install\lib` für MSVCs automatische Verknüpfung.
 
-Die Bibliotheksliste wurde statisch mit dem Repository abgeglichen; im Rahmen
-dieser Dokumentation wurden keine Programme installiert und keine Builds oder
-Spieltests gestartet.
+CMake wurde bei der Installation außerdem dem Benutzer-PATH hinzugefügt;
+für einen eindeutigen Build trotzdem den Starthelfer laden.
+Die Compilerinitialisierung verwendet unter den Build Tools
+`Common7\Tools\Microsoft.VisualStudio.DevShell.dll`;
+Boost verwendet zusätzlich `VC\Auxiliary\Build\vcvarsall.bat`.
+Der Compiler liegt dort unter
+`VC\Tools\MSVC\14.44.35207\bin\HostX64\x64\cl.exe`.
 
-Sobald ein funktionierender Ablauf feststeht, die tatsächlich verwendeten Versionen
-und Build-Schritte in einer eigenen Build-Anleitung festhalten und hier verlinken.
+[configure-windows-prereqs.ps1](../../scripts/win32/configure-windows-prereqs.ps1)
+ermittelt den Projektstamm relativ zu seinem eigenen Speicherort, lädt den
+benachbarten Starthelfer und konfiguriert `build\windows` mit Visual Studio 2022/x64.
+Es übergibt Python-Executable, Header und beide Importbibliotheken explizit
+und deaktiviert die Testtargets. Die Spielquellen und `CMakeLists.txt` wurden für
+diese Einrichtung nicht geändert.
+
+## Überprüft und noch offen
+
+| Schritt | Stand / Nachweis |
+| --- | --- |
+| Compiler, CMake und Python laden | Über den Starthelfer erfolgreich geprüft |
+| Bibliotheken bauen und installieren | Release und Debug erfolgreich; Protokolle unter `od-deps\logs` |
+| Unverändertes Spiel konfigurieren | Erfolgreich; `opendungeons-configure.log` endet mit erfolgreicher Konfiguration und Generierung |
+| Konfiguration über die ins Projekt übernommenen Skripte | Erfolgreich erneut ausgeführt, auch aus `docs\development`; Projektpfad und benachbarter Starthelfer werden korrekt aufgelöst |
+| Spiel kompilieren | Noch nicht ausgeführt; Befehle in [BUILDING.md](BUILDING.md) |
+| Spiel starten, GUI und Cursor testen | Noch nicht geprüft; manuelle QA durch den Nutzer |
+| Installationspaket erstellen | Noch nicht geprüft; ältere Paketlogik findet einige erwartete Boost-DLL-Namen nicht |
+
+CMake hat Python, pybind11, OIS, OGRE, CEGUI samt OgreRenderer, SFML und die
+benötigten Boost-Linkbibliotheken gefunden. Die Meldung
+`DEPS_BOOST_FILESYSTEM_BIN_REL-NOTFOUND` betrifft die separate DLL-Suche für die
+Paketierung; daraus weder einen fehlgeschlagenen Linktest noch ein funktionierendes
+Installationspaket ableiten.
+Die erneute Konfiguration meldet außerdem `Boost toolset is unknown` für
+MSVC 19.44.35228.0; die Generierung gelingt trotzdem, die tatsächliche
+Verknüpfung des Spiels bleibt bis zum ersten Spielbuild ungeprüft.
+
+Für die Fortsetzung zuerst den Spielbuild durchführen, sobald er beauftragt ist,
+und dessen tatsächliches Ergebnis hier nachtragen; erst danach kann die Umgebung
+als für das Spiel vollständig geprüft gelten.

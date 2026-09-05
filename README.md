@@ -40,6 +40,10 @@ You will find us on the following channels:
 
 ### Build instructions
 
+For this fork's local Windows setup, see the maintained
+[development environment](docs/development/WINDOWS-DEV-SETUP.md) and
+[configure/build commands](docs/development/BUILDING.md), including verified status.
+
 If you retrieve the source code of OpenDungeonsPlus and want to have a go at
 building it yourself, have a look at platform-specific build instructions
 on our wiki: https://github.com/OpenDungeons/OpenDungeons/wiki/Compile

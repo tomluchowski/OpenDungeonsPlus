@@ -23,9 +23,69 @@ Arbeitsbranch direkt vom Upstream-Stand.
   lokal als `origin` eingerichtet.
 - Originalprojekt für unsere Beiträge:
   [tomluchowski/OpenDungeonsPlus](https://github.com/tomluchowski/OpenDungeonsPlus),
-  lokal als `upstream` einzurichten.
+  lokal als `upstream` eingerichtet.
 - Zielbranch im Originalprojekt: `shaders-improvement` (Stand: 5. September 2026).
   Vor einem Pull Request den gewünschten Zielbranch auf GitHub prüfen.
+
+## Aktuell eingerichtet: Windows-Unterstützung
+
+Stand: 5. September 2026. Unser Arbeitsbranch im Fork ist
+`feature/windows-support`; hier setzen wir die Windows-Arbeit fort.
+Auch Dokumentation und die Vorbereitung einer Build-Umgebung gehören auf einen
+Arbeitsbranch; ein Branch ist nicht auf neue Spielfunktionen beschränkt.
+
+Der Branch wurde vom vorhandenen Fork-Stand `a8ffa583` erstellt und übernimmt
+die bis dahin uncommittierten Setup-Skripte und Entwicklungsnotizen.
+Der Standardbranch `shaders-improvement` bleibt auf diesem Stand;
+seinen bereits vorhandenen Dokumentationscommit schreiben wir nicht um.
+Beim Abruf zeigte der bestätigte Standardbranch des Originals,
+`upstream/shaders-improvement`, auf den Commit `be44649f`.
+Der Fork-Standardbranch liegt damit zum Einrichtungszeitpunkt einen
+Dokumentationscommit vor dem Original.
+
+Die Einrichtung wird in zwei Commits festgehalten: zuerst die bisherigen lokalen
+Windows-Setup-Skripte, danach die Dokumentation einschließlich dieser Arbeitsweise.
+Es gibt dabei noch keine Änderung am Spielcode oder an der Spielversion;
+README und Entwicklungsdokumentation beschreiben den tatsächlichen Stand,
+ein zusätzlicher Spiele-Changelog-Eintrag ist für diese Einrichtung nicht nötig.
+
+### Tägliche Arbeit
+
+Beim Wiederaufnehmen `git status` prüfen und auf `feature/windows-support`
+weiterarbeiten; Umgebung und Buildbefehle stehen in [BUILDING.md](BUILDING.md).
+Für diese laufende Windows-Aufgabe nicht bei jeder Sitzung einen neuen Branch
+erstellen. Fachlich abgeschlossene Änderungen separat committen und gemeinsam
+mit ihrer zugehörigen allgemeinen Build-Dokumentation prüfen; persönliche
+Rechnernotizen in einem eigenen Dokumentationscommit halten.
+
+Der Standardbranch wird für diese Arbeit nicht verändert. Neue Originaländerungen
+zunächst mit `git fetch upstream` abrufen und vor einer Übernahme vergleichen;
+ein Abruf allein verändert weder Arbeitsdateien noch lokale Arbeitsbranches.
+
+`origin` ist lokal als Standardziel für spätere Pushes gesetzt, für den
+Windows-Arbeitsbranch ebenfalls ausdrücklich als Push-Remote.
+Der neue Branch ist bisher nur lokal vorhanden und hat noch keinen Remote-Tracking-Branch;
+das Hauptprojekt ist als Quelle zum Abrufen und als späteres PR-Ziel eingerichtet.
+Ein Push wird weiterhin nur nach ausdrücklicher Freigabe ausgeführt.
+
+### Weg zum späteren Windows-PR
+
+Der Arbeitsbranch enthält unseren Fork-Kontext einschließlich persönlicher Pfade
+und Notizen; diese werden durch den Ordnernamen oder einen separaten Commit
+nicht automatisch aus einem Pull Request ausgeschlossen.
+Deshalb wird der fertige Beitrag später auf einem separaten PR-Branch direkt
+vom dann aktuellen `upstream/shaders-improvement` zusammengestellt.
+Dieser PR-Branch ist jetzt noch nicht angelegt.
+
+Vorher den Windows-Build tatsächlich zum Laufen bringen, die Setup-Skripte für
+andere Rechner nutzbar machen und die Ergebnisse der Spieltests durch den Nutzer
+dokumentieren. Für den PR nur die geprüften, allgemein nutzbaren Änderungen und
+ihre Anleitung übernehmen; lokale Installationsprotokolle und Agentenvorgaben
+aus diesem Fork bleiben außerhalb des Beitrags.
+Die Auswahl und alle betroffenen Dateiunterschiede vor dem PR ausdrücklich prüfen
+und den zusammengestellten Stand erneut bauen, da er den privaten Fork-Kontext
+nicht voraussetzen darf. Erst nach ausdrücklicher Push-Freigabe den PR-Branch in
+den eigenen Fork veröffentlichen und gegen den Standardbranch des Originals anbieten.
 
 ## 1. Originalprojekt einmalig als Remote eintragen
 
