@@ -1,0 +1,39 @@
+material Sphere
+{
+	vertex_program mySphereVertexShader glsl
+	{
+	  source Simple.vert
+		default_params
+		{
+		    param_named_auto projectionMatrix projection_matrix
+		    param_named_auto viewMatrix view_matrix
+		    param_named_auto worldMatrix world_matrix
+		}
+	  
+	}
+
+	fragment_program mySphereFragmentShader glsl
+	{
+	  source SeatColor.frag
+		default_params
+		{       
+		}
+	}
+
+    technique
+    {
+        pass
+        {
+            vertex_program_ref mySphereVertexShader
+            {
+            
+            }
+            fragment_program_ref mySphereFragmentShader
+            { 
+            	param_named seatColor 0.0 0.0 0.0 1.0
+            }            
+            
+
+        }
+    }
+}
