@@ -40,8 +40,15 @@ That confirmation predates enabling dynamic shadows: a later startup failure was
 traced to OGRE's internal shadow programs being registered only in Graphics.
 The resource template now also exposes Media/Main through OgreInternal while
 retaining Graphics access for shader includes; the headless OGRE resource test
-fails before and passes after this correction, while actual startup verification
-with shadows enabled is pending. Check the latest evidence in the startup notes.
+fails before and passes after this correction, and the user's 14:52 run reached
+the main menu with shadows enabled. That run later failed while entering
+TestLegacyNoScripts.level. Added exception logging captured the cause during the
+user's 15:05 reproduction: automatic additive illumination splitting removed
+DirtInstanced's fragment shader, which GL3Plus requires. RenderManager now uses
+integrated additive texture shadows to retain the custom shader passes. Release
+and Debug rebuilt successfully; the isolated OGRE pass test fails with splitting
+and passes without it. The user must still retest the map and shadow appearance
+with the rebuilt executable; check the latest evidence in the startup notes.
 Read [startup failures and verification](docs/development/WINDOWS-STARTUP-FIXES.md)
 before investigating further startup issues; broader gameplay tests and packaging
 remain unverified.

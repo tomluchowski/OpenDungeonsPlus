@@ -89,10 +89,20 @@ loading and normal shutdown without the earlier loading errors; the user then
 confirmed an error-free direct startup on September 5, 2026.
 That confirmation predates the dynamic-shadow startup failure. The resource
 template now also registers OGRE's `Media/Main` in `OgreInternal`, while retaining
-its `Graphics` entry for game shader includes; startup verification with shadows
-enabled is pending as described in [startup fixes](WINDOWS-STARTUP-FIXES.md).
+its `Graphics` entry for game shader includes; the user's subsequent run reached
+the main menu with shadows enabled, as recorded in
+[startup fixes](WINDOWS-STARTUP-FIXES.md).
 The corrected configuration has been generated beside the executable and passed
 the isolated OGRE resource test; no C++ rebuild is needed for this template change.
+The user's later Legacy test-map reproduction identified a fragment shader removed
+by OGRE's automatic illumination splitting. RenderManager now selects integrated
+additive texture shadows, preserving the existing custom shader passes. Release
+and Debug rebuilt successfully; the isolated OGRE pass test reproduces the missing
+fragment programs with splitting and retains the original pass without it.
+The Release executable is ready for the user to retest the same map with shadows
+enabled; gameplay and shadow appearance have not yet been verified after this fix.
+Build logs: `game-Release-integrated-shadows.log` and
+`game-Debug-integrated-shadows.log` under `build/windows`.
 
 The configuration script now calls
 [prepare-windows-runtime.ps1](../../scripts/win32/prepare-windows-runtime.ps1).

@@ -12,8 +12,13 @@ without the earlier errors; the user confirmed that direct Release startup works
 without errors. Enabling dynamic shadows later exposed a separate resource-group
 failure: the resource template now also registers OGRE's Main media in its internal
 group, retaining the existing Graphics registration for shader includes.
-Reconfiguration and the headless OGRE resource test succeeded; actual startup
-verification with shadows enabled is pending; see
+Reconfiguration, the headless OGRE resource test and the user's subsequent
+main-menu startup with shadows enabled succeeded. Exception logging added for a
+subsequent Legacy test-map failure captured the cause in the user's 15:05 run:
+OGRE's automatic illumination splitting removed DirtInstanced's fragment shader.
+RenderManager now selects integrated additive texture shadows; both builds and
+the isolated OGRE pass test succeeded, with the user's map retest and visual
+acceptance still pending; see
 [startup fixes](WINDOWS-STARTUP-FIXES.md).
 Broader gameplay tests and packaging remain unverified.
 
