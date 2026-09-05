@@ -1,6 +1,15 @@
 $ErrorActionPreference = 'Stop'
 $taskRoot = 'C:\Users\mario\od-deps'
 $taskCmake = "$taskRoot\tools\cmake-3.31.8-windows-x86_64\bin\cmake.exe"
+$taskPatch = Join-Path $PSScriptRoot 'patches/ogre-multiwindow-settings.patch'
+$ErrorActionPreference = 'Continue'
+& git -C "$taskRoot\src\ogre" apply --recount --reverse --check $taskPatch *> $null
+if ($LASTEXITCODE -ne 0) {
+    Write-Output 'Applying OGRE multi-window settings compatibility fixes'
+    & git -C "$taskRoot\src\ogre" apply --recount $taskPatch
+    if ($LASTEXITCODE -ne 0) { throw 'OGRE compatibility patch failed' }
+}
+$ErrorActionPreference = 'Stop'
 $taskOptions = @('-S', "$taskRoot\src\ogre", '-B', "$taskRoot\build\ogre",
     '-G', 'Visual Studio 17 2022', '-A', 'x64', "-DCMAKE_INSTALL_PREFIX=$taskRoot\install",
     "-DCMAKE_PREFIX_PATH=$taskRoot\install", '-DOGRE_BUILD_DEPENDENCIES=OFF',

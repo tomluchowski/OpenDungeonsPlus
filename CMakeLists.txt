@@ -514,6 +514,9 @@ ENDIF ()
 # Adds the Windows icon resource file when building on windows.
 IF (WIN32)
     SET(OD_SOURCEFILES ${OD_SOURCEFILES} ${CMAKE_SOURCE_DIR}/dist/icon.rc)
+    IF (MSVC)
+        SET(OD_SOURCEFILES ${OD_SOURCEFILES} ${CMAKE_SOURCE_DIR}/dist/opendungeons.manifest)
+    ENDIF ()
 ENDIF ()
 
 ##################################
@@ -968,4 +971,3 @@ elseif(WIN32)
     install(FILES ${EXT_LIBS}
             DESTINATION ${OD_BIN_PATH})
 endif()
-
