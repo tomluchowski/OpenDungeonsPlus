@@ -23,12 +23,19 @@ top, bottom, left and right edges and combines naturally at corners.
 Keyboard camera movement and the Pan Speed setting retain their existing behavior.
 Disabling Autoscroll still disables mouse-edge movement.
 
+Mouse-edge scrolling is also suppressed while the pointer is over the in-game
+GUI. This prevents camera movement while using the bottom navigation, minimap or
+top navigation. Moving the pointer back over the game world restores the normal
+edge-scrolling behavior.
+
 ## Implementation
 
 `GameMode::mouseMoved()` converts the pointer's distance from each edge into a
 value from zero to one and passes it with the existing camera movement command.
 `CameraManager` uses that value as the per-axis maximum pan speed while preserving
-the existing acceleration and deceleration path.
+the existing acceleration and deceleration path. The existing CEGUI hit test sets
+all four edge intensities to zero while the pointer is over an in-game GUI widget,
+which also stops movement already initiated at an edge.
 
 ## Verification
 
@@ -48,6 +55,10 @@ progressive edge scrolling looks much better and that the reported control issue
 is fixed. The runtime logs contain no unhandled exception for that test run and
 end with normal engine shutdown.
 
+The follow-up suppression of edge scrolling over the bottom navigation, minimap
+and top navigation has been implemented and compiled. Manual in-game verification
+of these three GUI areas is pending.
+
 The project version remains 0.7.1 because this feature branch does not define a
-release. The project has no changelog, and the README has no detailed mouse-edge
-control section that requires updating.
+release. The release notes are therefore unchanged, and the README has no
+detailed mouse-edge control section that requires updating.
