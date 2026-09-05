@@ -14,3 +14,4 @@ $ErrorActionPreference = 'Continue'
 $ErrorActionPreference = 'Stop'
 if ($LASTEXITCODE -ne 0) { Get-Content -LiteralPath "$taskRoot\logs\opendungeons-configure.log" -Tail 60; throw 'Project configuration failed' }
 Write-Output 'Original project configuration succeeded'
+& (Join-Path $PSScriptRoot 'prepare-windows-runtime.ps1')
