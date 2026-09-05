@@ -37,7 +37,17 @@ On September 5, 2026, a clean Windows x64 Release build of the
 `build/windows/opendungeons-plus.exe`. The existing compiler warnings remained;
 the changed files produced no errors.
 
-Manual gameplay verification is still required. Enable Autoscroll, enter a
-playable map and check all four edges: movement should begin slowly on entering
-the outer 2%, increase continuously toward the edge and reach the configured Pan
-Speed at the edge. Also check a corner, keyboard movement and Autoscroll disabled.
+The first launch after the clean build failed because CMake regeneration had
+overwritten the prepared Windows resource configuration. Running
+`scripts/win32/prepare-windows-runtime.ps1` restored the installed OGRE media
+paths; this was a generated runtime configuration problem rather than a camera
+control failure.
+
+The user then tested the Release executable in game and confirmed that the
+progressive edge scrolling looks much better and that the reported control issue
+is fixed. The runtime logs contain no unhandled exception for that test run and
+end with normal engine shutdown.
+
+The project version remains 0.7.1 because this feature branch does not define a
+release. The project has no changelog, and the README has no detailed mouse-edge
+control section that requires updating.
