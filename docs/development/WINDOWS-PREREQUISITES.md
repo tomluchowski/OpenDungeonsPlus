@@ -134,7 +134,7 @@ changes out of the calling session; errors stop the sequence.
 | --- | --- |
 | [install-base-prereqs.ps1](../../scripts/win32/install-base-prereqs.ps1) | Expat, OIS, SFML, then FreeType, pybind11, PCRE; can be filtered with `-Only` for targeted needs |
 | [install-boost-prereq.ps1](../../scripts/win32/install-boost-prereq.ps1) | Boost build tool and libraries; generates `od-deps\boost-user-config.jam` |
-| [install-ogre-prereq.ps1](../../scripts/win32/install-ogre-prereq.ps1) | OGRE with GL3Plus and the required components |
+| [install-ogre-prereq.ps1](../../scripts/win32/install-ogre-prereq.ps1) | Applies the saved multi-window settings patch once, then builds OGRE with GL3Plus and the required components |
 | [install-cegui-prereq.ps1](../../scripts/win32/install-cegui-prereq.ps1) | Applies the saved MSVC patch once and builds CEGUI with OgreRenderer and Expat, after OGRE and the base libraries |
 
 Then load the environment helper and configure the game following [BUILDING.md](BUILDING.md);
@@ -163,7 +163,10 @@ Logs are stored under `od-deps\logs`; each new script run replaces its logs.
   although CMake finds the link libraries; packaging and runtime remain
   unverified, see the [current status](WINDOWS-DEV-SETUP.md).
 
-The original setup did not require source patches for these solutions;
-the CEGUI patch linked above became necessary during the subsequent game
-compilation. The specific CMake and Boost options are fully recorded in the
-scripts, and the change to the CEGUI header is in the corresponding patch file.
+The original setup did not require source patches. The CEGUI patch linked above
+became necessary during the subsequent game compilation. The live-settings work
+also requires
+[the OGRE multi-window settings patch](../../scripts/win32/patches/ogre-multiwindow-settings.patch)
+for context-safe secondary windows, hardware-gamma detection and runtime GL3Plus
+options. Both installers apply their patch idempotently. The specific CMake and
+Boost options are fully recorded in the scripts.

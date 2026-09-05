@@ -1,5 +1,9 @@
 # Configuring and compiling on Windows
 
+For the completed `feature/live-settings` work, see [LIVE-SETTINGS.md](LIVE-SETTINGS.md)
+for its build and runtime evidence. The baseline startup verification below
+predates those settings changes.
+
 As of September 5, 2026. The [prerequisites](WINDOWS-DEV-SETUP.md) are installed
 and CMake and the Windows x64 game builds in Release and Debug have
 completed successfully; the user's startup attempts exposed a resource-path error,
@@ -22,6 +26,21 @@ Set-Location -LiteralPath 'C:\Users\mario\GitHub\OpenDungeonsPlus'
 The dot at the start loads the compiler and search paths into the same session;
 then configure and build in this console. CMake 3.31.8,
 Python 3.10.11 and the x64 compiler from Visual Studio 2022 Build Tools are expected.
+
+Some automated shells provide both `PATH` and `Path`. MSBuild then fails before
+starting `CL.exe` with `System.ArgumentException: An item with the same key has
+already been added`. Normalize the process environment before loading the helper:
+
+```powershell
+$taskCurrentPath = $env:Path
+[System.Environment]::SetEnvironmentVariable('PATH', $null, 'Process')
+[System.Environment]::SetEnvironmentVariable('Path', $taskCurrentPath, 'Process')
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+. .\scripts\win32\Enter-OpenDungeonsPlus.ps1
+```
+
+This changes only the current build process. A normal PowerShell console with one
+path variable does not need this step.
 If needed, check without building:
 
 ```powershell
@@ -59,6 +78,15 @@ Release from the same prepared console:
 ```powershell
 cmake --build .\build\windows --config Release --parallel 4
 if ($LASTEXITCODE -ne 0) { throw 'Release game build failed' }
+```
+
+After changing a class layout in a header, or after an interrupted rebuild, create
+the next test executable with a clean build so that no object file can retain the
+previous layout:
+
+```powershell
+cmake --build .\build\windows --config Release --target opendungeons-plus --clean-first --parallel 4
+if ($LASTEXITCODE -ne 0) { throw 'Clean Release game build failed' }
 ```
 
 For Debug instead:

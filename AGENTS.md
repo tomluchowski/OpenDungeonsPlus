@@ -17,9 +17,13 @@ Before working on this project, read:
    workflow and task notes when relevant to the request.
 
 Windows development is organized on `feature/windows-support` in this fork.
+The related work is split into a local branch stack: `feature/windows-support`,
+`fix/dynamic-shadows`, `fix/settings-option-duplicates`, then
+`feature/live-settings`. Continue each task on its matching branch; see
+[live settings and verification](docs/development/LIVE-SETTINGS.md).
 Read the current setup in [the contribution workflow](docs/development/CONTRIBUTING-WORKFLOW.md)
 before Git operations: `origin` is the fork and `upstream` is the original project.
-Preserve the existing default branch; continue this Windows task on its work branch.
+Preserve the existing default branch; continue each task on its own work branch.
 The work branch includes local notes and is not the final upstream PR branch;
 prepare that later from upstream using only the reviewed, reusable changes.
 Do not push without explicit user authorization.

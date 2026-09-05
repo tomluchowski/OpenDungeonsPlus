@@ -24,6 +24,8 @@ is also recorded in [AGENTS.md](../../AGENTS.md) at the project root.
   failures, runtime preparation, resource-path correction and outstanding verification.
 - [Windows settings fixes](WINDOWS-SETTINGS-FIXES.md): duplicate colour-depth
   choices, their cause and verification status.
+- [Live settings](LIVE-SETTINGS.md): applying settings without restarting,
+  the fullscreen navigation report and completed Windows verification.
 - [Restoring prerequisites](WINDOWS-PREREQUISITES.md): sources,
   checksums, installation scripts, order and resolved installation problems.
 

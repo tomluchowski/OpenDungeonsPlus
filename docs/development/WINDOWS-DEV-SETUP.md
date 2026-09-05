@@ -1,5 +1,9 @@
 # Windows development environment
 
+The current settings work is on `feature/live-settings`; see
+[LIVE-SETTINGS.md](LIVE-SETTINGS.md) for changes and verification after the
+Windows-support baseline described below.
+
 As of September 5, 2026, Mario's local computer, Windows x64.
 The prerequisites are installed; their library builds and the game's
 CMake configuration succeeded.

@@ -51,7 +51,7 @@ and an additional game changelog entry is not needed for this setup.
 
 ### Daily work
 
-When resuming, check `git status` and continue working on `feature/windows-support`;
+When resuming Windows support work, check `git status` and use `feature/windows-support`;
 the environment and build commands are in [BUILDING.md](BUILDING.md).
 Do not create a new branch for each session of this ongoing Windows task.
 Commit completed, coherent changes separately and review them together
@@ -67,6 +67,17 @@ also explicitly set as the push remote for the Windows work branch.
 The new branch currently exists only locally and has no remote-tracking branch yet;
 the main project is configured as the source for fetching and as the future PR target.
 A push is still only performed after explicit authorization.
+
+### Separate task: live settings
+
+The related work is kept as a local stack so each branch adds one reviewable task:
+`feature/windows-support`, `fix/dynamic-shadows`,
+`fix/settings-option-duplicates`, then `feature/live-settings`. The live-settings
+changes affect shared game code, including Linux paths, so they remain separate
+from installing and building on Windows. Their implementation and verification
+status is in [LIVE-SETTINGS.md](LIVE-SETTINGS.md). Prepare upstream contributions
+from these boundaries after checking their dependencies. Linux validation is
+still pending.
 
 ### Path to the future Windows PR
 
