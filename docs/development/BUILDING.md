@@ -87,6 +87,12 @@ The files have been prepared and checked, and the executable includes the fix fo
 absolute Windows resource paths. The 14:07 startup logs confirm main-menu scene
 loading and normal shutdown without the earlier loading errors; the user then
 confirmed an error-free direct startup on September 5, 2026.
+That confirmation predates the dynamic-shadow startup failure. The resource
+template now also registers OGRE's `Media/Main` in `OgreInternal`, while retaining
+its `Graphics` entry for game shader includes; startup verification with shadows
+enabled is pending as described in [startup fixes](WINDOWS-STARTUP-FIXES.md).
+The corrected configuration has been generated beside the executable and passed
+the isolated OGRE resource test; no C++ rebuild is needed for this template change.
 
 The configuration script now calls
 [prepare-windows-runtime.ps1](../../scripts/win32/prepare-windows-runtime.ps1).

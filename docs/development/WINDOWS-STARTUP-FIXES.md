@@ -3,6 +3,8 @@
 As of September 5, 2026, the user confirmed that the Release executable starts
 directly without errors. This result is supported by the runtime evidence below,
 in addition to successful builds and static DLL checks.
+That confirmation preceded enabling dynamic shadows; the resulting startup
+failure and its resource-group correction are documented below.
 See [BUILDING.md](BUILDING.md) for the executable and runtime setup.
 
 ## Runtime files and generated resource configuration
@@ -74,6 +76,59 @@ extension, shader-version and deprecated material-syntax warnings remain; no
 warnings were disabled. The user subsequently confirmed error-free startup on
 September 5, 2026, completing the verification of the direct Release startup.
 
+## Enabling dynamic shadows prevented subsequent startup
+
+At 14:24:35 on September 5, 2026, the settings handler saved `Dynamic Shadows=Yes`
+and explicitly called `exit(0)`. The preceding run reached the main menu at
+3440 x 1440 fullscreen with shadows disabled. The subsequent attempts at 14:24:38,
+14:24:41 and 14:27:21 failed before CEGUI initialization with shadows enabled.
+The abrupt exit on saving is existing behavior in
+[SettingsWindow.cpp](../../source/modes/SettingsWindow.cpp); the failure on the
+next startup is a separate resource-loading bug.
+
+[RenderManager.cpp](../../source/render/RenderManager.cpp) enables texture shadows
+during construction. OGRE 13.6.5 then looks up its four shadow-extrusion programs
+through `OgreInternal`. The installed library uses
+`OGRE_RESOURCEMANAGER_STRICT=2`, but the generated configuration registered
+`Media/Main` only in the isolated `Graphics` group. The files were parsed there,
+yet the internal lookup could not find them. The DLL and shader files exist;
+this failure does not require reinstalling dependencies.
+
+The [resource template](../../cmake/config/resources.cfg.in) now also registers
+the same `Media/Main` directory under `OgreInternal`. Its existing `Graphics`
+registration is deliberately retained: game shaders include `OgreUnifiedShader.h`
+using strict group-local file lookup. Moving the directory out of `Graphics`
+would reintroduce missing-header errors. The two resource pools remain separate;
+no dependency files, user settings or game C++ sources are changed.
+The maintained Windows configuration script regenerates the template and resolves
+both entries to the existing local OGRE installation.
+
+The preserved evidence under `build/windows` is:
+
+- `startup-shadow-setting-change-game.log`: successful startup with shadows off,
+  followed by the explicit exit after saving the shadow setting.
+- `startup-before-shadow-fix-Ogre.log` and `startup-before-shadow-fix-game.log`:
+  the failed startup with shadows enabled.
+- `shadow-resources-before.cfg`: the original resource-group assignment.
+- `shadow-resource-probe.cpp`: an isolated check using the installed OGRE DLL and
+  its own script parser, without creating a renderer or game window.
+- `shadow-probe-before.log`: all four internal shadow lookups fail, exit code 1;
+  the game shader header remains accessible.
+- `shadow-probe-after.log`: all four internal shadow lookups and their source-file
+  loads succeed, and the game shader header remains accessible, exit code 0.
+- `shadow-resource-validation.json`: configuration, probe and unchanged executable
+  evidence, with actual game startup explicitly marked as pending.
+
+The probe checks resource registration, program lookup and source-file loading;
+without a renderer, OGRE uses null shader programs, so it does not verify shader
+compilation or rendering. The maintained Windows configuration script succeeded
+and prepared the corrected configuration beside the existing Release executable.
+The user configuration still enables dynamic shadows at 3440 x 1440 fullscreen.
+The executable is unchanged, so no C++ rebuild is required for this template-only
+fix. The game version remains 0.7.1; the root README already links to this startup
+record, and no separate release changelog entry is needed for this unreleased fix.
+The user's actual game startup with shadows enabled is still pending.
+
 ## Build process note
 
 The sandboxed process environment supplied both `Path` and `PATH`, causing the
@@ -83,8 +138,9 @@ environment succeeded; no system environment setting was changed.
 
 ## Verified outcome and remaining scope
 
-The direct Release startup objective is complete: the user confirmed error-free
-startup and the runtime logs verify that the earlier loading failures are gone.
+The earlier resource-path fix was verified by the user's error-free startup.
+The later dynamic-shadow resource-group correction still requires the checks
+described above; do not treat the earlier confirmation as verification of shadows.
 Broader gameplay and visual QA remain with the user; Debug runtime staging and
 packaging remain separate, unverified work. The game version remains 0.7.1;
 no release has been published.

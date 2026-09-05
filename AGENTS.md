@@ -36,6 +36,12 @@ User startup attempts exposed a Windows resource-path bug; both binaries now
 include its correction. A subsequent Release run loaded the main-menu scene and
 shut down normally without the earlier loading errors; the user subsequently
 confirmed that the Release executable starts without errors.
+That confirmation predates enabling dynamic shadows: a later startup failure was
+traced to OGRE's internal shadow programs being registered only in Graphics.
+The resource template now also exposes Media/Main through OgreInternal while
+retaining Graphics access for shader includes; the headless OGRE resource test
+fails before and passes after this correction, while actual startup verification
+with shadows enabled is pending. Check the latest evidence in the startup notes.
 Read [startup failures and verification](docs/development/WINDOWS-STARTUP-FIXES.md)
 before investigating further startup issues; broader gameplay tests and packaging
 remain unverified.
