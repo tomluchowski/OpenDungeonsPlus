@@ -1,110 +1,110 @@
-# Am Originalprojekt mitarbeiten
+# Contributing to the original project
 
-## Eigenständig im Fork arbeiten
+## Working independently in the fork
 
-Im eigenen Fork kann das Projekt unabhängig weiterentwickelt werden; eine Aufnahme
-ins Team des Originalprojekts oder dessen Schreibrechte sind dafür nicht nötig.
-Die tatsächlichen persönlichen Schreibrechte am Originalrepository wurden nicht
-geprüft.
+The project can be developed independently in your own fork; joining
+the original project's team or having write permissions there is not necessary.
+The actual personal write permissions to the original repository have not
+been checked.
 
-Das Originalprojekt wird als Upstream benötigt, wenn dessen neue Änderungen
-übernommen oder eigene Änderungen per Pull Request zurückgegeben werden sollen;
-beides ist für die reine Weiterentwicklung im eigenen Fork optional.
+The original project is needed as upstream when you want to incorporate its new
+changes or contribute your own changes back through a pull request;
+both are optional if you only want to continue development in your own fork.
 
-Auch im Fork einen eigenen Arbeitsbranch pro Aufgabe verwenden. Für reine
-Fork-Arbeiten diesen vom aktuellen eigenen Entwicklungsstand erstellen, damit
-bereits vorhandene eigene Änderungen erhalten bleiben. Die nachfolgenden Schritte
-beschreiben dagegen einen Beitrag ans Originalprojekt und starten dessen
-Arbeitsbranch direkt vom Upstream-Stand.
+Use a separate work branch for each task even in the fork. For work solely
+in the fork, create it from your own current development state so that
+existing changes of your own are preserved. The following steps,
+in contrast, describe a contribution to the original project and start its
+work branch directly from the upstream state.
 
-## Repositories und Zielbranch
+## Repositories and target branch
 
-- Eigener Fork: [Rokk001/OpenDungeonsPlus](https://github.com/Rokk001/OpenDungeonsPlus),
-  lokal als `origin` eingerichtet.
-- Originalprojekt für unsere Beiträge:
+- Own fork: [Rokk001/OpenDungeonsPlus](https://github.com/Rokk001/OpenDungeonsPlus),
+  configured locally as `origin`.
+- Original project for our contributions:
   [tomluchowski/OpenDungeonsPlus](https://github.com/tomluchowski/OpenDungeonsPlus),
-  lokal als `upstream` eingerichtet.
-- Zielbranch im Originalprojekt: `shaders-improvement` (Stand: 5. September 2026).
-  Vor einem Pull Request den gewünschten Zielbranch auf GitHub prüfen.
+  configured locally as `upstream`.
+- Target branch in the original project: `shaders-improvement` (as of September 5, 2026).
+  Check the intended target branch on GitHub before a pull request.
 
-## Aktuell eingerichtet: Windows-Unterstützung
+## Currently configured: Windows support
 
-Stand: 5. September 2026. Unser Arbeitsbranch im Fork ist
-`feature/windows-support`; hier setzen wir die Windows-Arbeit fort.
-Auch Dokumentation und die Vorbereitung einer Build-Umgebung gehören auf einen
-Arbeitsbranch; ein Branch ist nicht auf neue Spielfunktionen beschränkt.
+As of September 5, 2026. Our work branch in the fork is
+`feature/windows-support`; we continue the Windows work here.
+Documentation and the preparation of a build environment also belong on a
+work branch; a branch is not limited to new game features.
 
-Der Branch wurde vom vorhandenen Fork-Stand `a8ffa583` erstellt und übernimmt
-die bis dahin uncommittierten Setup-Skripte und Entwicklungsnotizen.
-Der Standardbranch `shaders-improvement` bleibt auf diesem Stand;
-seinen bereits vorhandenen Dokumentationscommit schreiben wir nicht um.
-Beim Abruf zeigte der bestätigte Standardbranch des Originals,
-`upstream/shaders-improvement`, auf den Commit `be44649f`.
-Der Fork-Standardbranch liegt damit zum Einrichtungszeitpunkt einen
-Dokumentationscommit vor dem Original.
+The branch was created from the existing fork state `a8ffa583` and includes
+the setup scripts and development notes that had not yet been committed.
+The default branch `shaders-improvement` remains at that state;
+we do not rewrite its existing documentation commit.
+When fetched, the confirmed default branch of the original project,
+`upstream/shaders-improvement`, pointed to commit `be44649f`.
+The fork's default branch was therefore one documentation commit ahead of
+the original at the time of setup.
 
-Die Einrichtung wird in zwei Commits festgehalten: zuerst die bisherigen lokalen
-Windows-Setup-Skripte, danach die Dokumentation einschließlich dieser Arbeitsweise.
-Es gibt dabei noch keine Änderung am Spielcode oder an der Spielversion;
-README und Entwicklungsdokumentation beschreiben den tatsächlichen Stand,
-ein zusätzlicher Spiele-Changelog-Eintrag ist für diese Einrichtung nicht nötig.
+The setup is recorded in two commits: first the existing local
+Windows setup scripts, then the documentation including this workflow.
+There is no change to the game code or game version at this point;
+README and the development documentation describe the actual state,
+and an additional game changelog entry is not needed for this setup.
 
-### Tägliche Arbeit
+### Daily work
 
-Beim Wiederaufnehmen `git status` prüfen und auf `feature/windows-support`
-weiterarbeiten; Umgebung und Buildbefehle stehen in [BUILDING.md](BUILDING.md).
-Für diese laufende Windows-Aufgabe nicht bei jeder Sitzung einen neuen Branch
-erstellen. Fachlich abgeschlossene Änderungen separat committen und gemeinsam
-mit ihrer zugehörigen allgemeinen Build-Dokumentation prüfen; persönliche
-Rechnernotizen in einem eigenen Dokumentationscommit halten.
+When resuming, check `git status` and continue working on `feature/windows-support`;
+the environment and build commands are in [BUILDING.md](BUILDING.md).
+Do not create a new branch for each session of this ongoing Windows task.
+Commit completed, coherent changes separately and review them together
+with their associated general build documentation; keep personal
+computer notes in a separate documentation commit.
 
-Der Standardbranch wird für diese Arbeit nicht verändert. Neue Originaländerungen
-zunächst mit `git fetch upstream` abrufen und vor einer Übernahme vergleichen;
-ein Abruf allein verändert weder Arbeitsdateien noch lokale Arbeitsbranches.
+The default branch is not changed for this work. First fetch new changes from
+the original with `git fetch upstream` and compare them before incorporating them;
+a fetch alone changes neither working files nor local work branches.
 
-`origin` ist lokal als Standardziel für spätere Pushes gesetzt, für den
-Windows-Arbeitsbranch ebenfalls ausdrücklich als Push-Remote.
-Der neue Branch ist bisher nur lokal vorhanden und hat noch keinen Remote-Tracking-Branch;
-das Hauptprojekt ist als Quelle zum Abrufen und als späteres PR-Ziel eingerichtet.
-Ein Push wird weiterhin nur nach ausdrücklicher Freigabe ausgeführt.
+`origin` is configured locally as the default target for future pushes and is
+also explicitly set as the push remote for the Windows work branch.
+The new branch currently exists only locally and has no remote-tracking branch yet;
+the main project is configured as the source for fetching and as the future PR target.
+A push is still only performed after explicit authorization.
 
-### Weg zum späteren Windows-PR
+### Path to the future Windows PR
 
-Der Arbeitsbranch enthält unseren Fork-Kontext einschließlich persönlicher Pfade
-und Notizen; diese werden durch den Ordnernamen oder einen separaten Commit
-nicht automatisch aus einem Pull Request ausgeschlossen.
-Deshalb wird der fertige Beitrag später auf einem separaten PR-Branch direkt
-vom dann aktuellen `upstream/shaders-improvement` zusammengestellt.
-Dieser PR-Branch ist jetzt noch nicht angelegt.
+The work branch contains our fork context, including personal paths
+and notes; the directory name or a separate commit does not
+automatically exclude them from a pull request.
+The finished contribution will therefore later be assembled on a separate PR branch
+directly from the then-current `upstream/shaders-improvement`.
+This PR branch has not yet been created.
 
-Vorher den Windows-Build tatsächlich zum Laufen bringen, die Setup-Skripte für
-andere Rechner nutzbar machen und die Ergebnisse der Spieltests durch den Nutzer
-dokumentieren. Für den PR nur die geprüften, allgemein nutzbaren Änderungen und
-ihre Anleitung übernehmen; lokale Installationsprotokolle und Agentenvorgaben
-aus diesem Fork bleiben außerhalb des Beitrags.
-Die Auswahl und alle betroffenen Dateiunterschiede vor dem PR ausdrücklich prüfen
-und den zusammengestellten Stand erneut bauen, da er den privaten Fork-Kontext
-nicht voraussetzen darf. Erst nach ausdrücklicher Push-Freigabe den PR-Branch in
-den eigenen Fork veröffentlichen und gegen den Standardbranch des Originals anbieten.
+First get the Windows build actually working, make the setup scripts usable
+on other computers and document the results of the user's game tests.
+Include only the verified, generally reusable changes and their instructions
+in the PR; local installation logs and agent instructions
+from this fork stay outside the contribution.
+Explicitly review the selection and all affected file differences before the PR
+and rebuild the assembled state, since it must not depend on the private
+fork context. Only after explicit push authorization, publish the PR branch
+in your own fork and propose it against the original project's default branch.
 
-## 1. Originalprojekt einmalig als Remote eintragen
+## 1. Add the original project as a remote once
 
-Vorhandene Remotes anzeigen:
+Show existing remotes:
 
 ```powershell
 git remote -v
 ```
 
-Falls `upstream` noch fehlt:
+If `upstream` is still missing:
 
 ```powershell
 git remote add upstream https://github.com/tomluchowski/OpenDungeonsPlus.git
 ```
 
-## 2. Basis aktuell halten
+## 2. Keep the base up to date
 
-Vor einem Branchwechsel mit `git status` prüfen, dass keine ungesicherten Änderungen
-vorliegen; laufende Arbeit zuerst auf ihrem eigenen Branch sichern.
+Before switching branches, use `git status` to check that there are no unsaved changes;
+save ongoing work on its own branch first.
 
 ```powershell
 git fetch upstream
@@ -112,77 +112,76 @@ git switch shaders-improvement
 git merge --ff-only upstream/shaders-improvement
 ```
 
-Damit wird der lokale Basisbranch aktualisiert; auf diesem Branch keine Features
-entwickeln. Falls Git den Fast-Forward ablehnt, die abweichenden Commits prüfen,
-bevor weitere Schritte erfolgen.
+This updates the local base branch; do not develop features on this
+branch. If Git rejects the fast-forward, inspect the divergent commits
+before taking further steps.
 
-Um auch den Basisbranch auf GitHub im eigenen Fork zu aktualisieren:
+To also update the base branch on GitHub in your own fork:
 
 ```powershell
 git push origin shaders-improvement
 ```
 
-## 3. Für jede Änderung einen eigenen Branch erstellen
+## 3. Create a separate branch for each change
 
-Beispiel für eine Arbeit an der GUI-Skalierung:
+Example for work on GUI scaling:
 
 ```powershell
 git switch -c feature/gui-scaling upstream/shaders-improvement
 ```
 
-Den Namen an die konkrete Aufgabe anpassen. Der Branch startet direkt vom zuvor
-abgerufenen Originalstand, damit bestehende Änderungen nur im Fork nicht automatisch
-Teil des Beitrags werden.
+Adapt the name to the specific task. The branch starts directly from the
+previously fetched original state so that existing fork-only changes do not
+automatically become part of the contribution.
 
-## 4. Entwickeln, prüfen und committen
+## 4. Develop, verify and commit
 
-Die Änderung umsetzen und die betroffene Funktion prüfen; im Commit nur Dateien
-aufnehmen, die zu dieser Aufgabe gehören. Vor jedem Commit prüfen, ob Version,
-README, Änderungsprotokoll oder weitere Dokumentation angepasst werden müssen.
+Implement the change and verify the affected functionality; include only files
+belonging to this task in the commit. Before each commit, check whether the version,
+README, changelog or other documentation needs to be updated.
 
-Mit `git diff` die Änderungen prüfen, die gewünschten Dateien gezielt mit `git add`
-vormerken und anschließend mit `git diff --cached` den vollständigen Commit-Inhalt
-kontrollieren.
+Review the changes with `git diff`, stage the intended files explicitly with `git add`
+and then check the full commit content with `git diff --cached`.
 
 ```powershell
 git commit -m "Describe the change"
 ```
 
-Die Beispielnachricht durch eine konkrete Beschreibung der Änderung ersetzen.
+Replace the example message with a specific description of the change.
 
-## 5. Branch in den eigenen Fork pushen
+## 5. Push the branch to your own fork
 
-Für den Beispielbranch:
+For the example branch:
 
 ```powershell
 git push -u origin feature/gui-scaling
 ```
 
-Wenn Codex die Arbeit ausführt, benötigt jeder Push eine ausdrückliche Freigabe;
-die Befehle in dieser Anleitung sind selbst keine Freigabe.
+When Codex performs the work, every push requires explicit authorization;
+the commands in this guide do not themselves constitute authorization.
 
-## 6. Pull Request ans Originalprojekt erstellen
+## 6. Create a pull request to the original project
 
-Auf GitHub einen Pull Request mit diesen Einstellungen öffnen:
+On GitHub, open a pull request with these settings:
 
-- Zielrepository (base repository): `tomluchowski/OpenDungeonsPlus`.
-- Zielbranch (base): `shaders-improvement`.
-- Quellrepository (head repository): `Rokk001/OpenDungeonsPlus`.
-- Quellbranch (compare): der eigene Arbeitsbranch, im Beispiel `feature/gui-scaling`.
+- Target repository (base repository): `tomluchowski/OpenDungeonsPlus`.
+- Target branch (base): `shaders-improvement`.
+- Source repository (head repository): `Rokk001/OpenDungeonsPlus`.
+- Source branch (compare): your own work branch, `feature/gui-scaling` in the example.
 
-Problem, Änderung und durchgeführte Prüfungen beschreiben; vor dem Erstellen unter
-"Files changed" kontrollieren, dass ausschließlich die vorgesehenen Änderungen
-enthalten sind.
+Describe the problem, change and checks performed; before creating the PR,
+check under "Files changed" that only the intended changes
+are included.
 
-## 7. Review-Kommentare bearbeiten
+## 7. Address review comments
 
-Korrekturen auf demselben Arbeitsbranch umsetzen, prüfen und committen; anschließend
-denselben Branch erneut in den eigenen Fork pushen, wodurch sich der bestehende
-Pull Request automatisch aktualisiert.
+Implement, verify and commit corrections on the same work branch; then
+push that branch to your own fork again, which automatically updates the existing
+pull request.
 
-## Dokumentation im Fork und im Pull Request
+## Documentation in the fork and in the pull request
 
-Eigene Entwicklungsnotizen liegen unter `docs/development/`. Für einen Beitrag ans
-Originalprojekt nur die dafür relevante Dokumentation ausdrücklich auf den
-Arbeitsbranch übernehmen; der Ordnername allein schließt Dateien nicht aus einem
-Pull Request aus.
+Personal development notes are stored under `docs/development/`. For a contribution to
+the original project, explicitly include only the relevant documentation on the
+work branch; the directory name alone does not exclude files from a
+pull request.

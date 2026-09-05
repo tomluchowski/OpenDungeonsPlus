@@ -1,38 +1,38 @@
-# Entwicklungsdokumentation
+# Development documentation
 
-Hier sammeln wir Anleitungen und Erkenntnisse zur Mitarbeit an OpenDungeonsPlus,
-mit einer Markdown-Datei pro Thema.
+Here we collect guides and findings on contributing to OpenDungeonsPlus,
+with one Markdown file per topic.
 
-Für eine neue Sitzung zuerst [Windows-Entwicklungsumgebung](WINDOWS-DEV-SETUP.md)
-und [Konfigurieren und kompilieren](BUILDING.md) lesen; der Einstieg für Agenten
-ist zusätzlich in [AGENTS.md](../../AGENTS.md) im Projektstamm verankert.
+For a new session, first read [Windows development environment](WINDOWS-DEV-SETUP.md)
+and [Configuring and compiling](BUILDING.md); the entry point for agents
+is also recorded in [AGENTS.md](../../AGENTS.md) at the project root.
 
-## Vorhandene Anleitungen
+## Available guides
 
-- [Am Originalprojekt mitarbeiten](CONTRIBUTING-WORKFLOW.md): Fork, Synchronisierung,
-  eingerichteter Windows-Arbeitsbranch, getrennte Commits und der Weg zum späteren
-  Pull Request ins Originalprojekt.
-- [Aufgaben und Arbeitsteilung](TASKS.md): bisherige Einschätzung zur autonomen
-  Umsetzung, Beteiligung beim Testen und vorgeschlagener Einstieg.
-- [Windows-Entwicklungsumgebung](WINDOWS-DEV-SETUP.md): installierte Versionen,
-  genaue Speicherorte, Verbindungen zum Projekt und überprüfter Stand.
-- [Konfigurieren und kompilieren](BUILDING.md): Umgebung laden, CMake ausführen,
-  Release/Debug bauen und Protokolle finden.
-- [Windows-Buildfehler und Korrekturen](WINDOWS-BUILD-FIXES.md): nachgewiesene
-  Compilerfehler, ihre Ursachen, gezielte Korrekturen und Buildnachweise.
-- [Voraussetzungen wiederherstellen](WINDOWS-PREREQUISITES.md): Quellen,
-  Prüfsummen, Installationsskripte, Reihenfolge und behobene Installationsprobleme.
+- [Contributing to the original project](CONTRIBUTING-WORKFLOW.md): fork, synchronization,
+  the configured Windows work branch, separate commits and the path to a later
+  pull request to the original project.
+- [Tasks and division of work](TASKS.md): assessment so far of autonomous
+  implementation, participation in testing and the suggested starting point.
+- [Windows development environment](WINDOWS-DEV-SETUP.md): installed versions,
+  exact locations, connections to the project and verified status.
+- [Configuring and compiling](BUILDING.md): load the environment, run CMake,
+  build Release/Debug and find logs.
+- [Windows build errors and fixes](WINDOWS-BUILD-FIXES.md): confirmed
+  compiler errors, their causes, targeted fixes and build evidence.
+- [Restoring prerequisites](WINDOWS-PREREQUISITES.md): sources,
+  checksums, installation scripts, order and resolved installation problems.
 
-## Weitere Notizen ablegen
+## Adding further notes
 
-Neue Dateien bei Bedarf hier ergänzen und oben verlinken, zum Beispiel:
+Add new files here as needed and link them above, for example:
 
-- `DEBUGGING.md`: nachvollziehbare Fehleranalysen und Lösungen.
-- `ARCHITECTURE-NOTES.md`: Erkenntnisse zum bestehenden Code und dessen Zusammenhängen.
-- `GUI-SCALING.md`: Erkenntnisse zur GUI-Skalierung, sobald daran gearbeitet wird.
+- `DEBUGGING.md`: traceable error analyses and solutions.
+- `ARCHITECTURE-NOTES.md`: findings about the existing code and its relationships.
+- `GUI-SCALING.md`: findings on GUI scaling once work on it begins.
 
-Bei technischen Erkenntnissen den betroffenen Code, die Schritte zur Prüfung und
-offene Fragen festhalten; noch nicht überprüfte Aussagen entsprechend kennzeichnen.
+For technical findings, record the affected code, verification steps and
+open questions; label statements that have not yet been verified accordingly.
 
-Die Sammlung ist zunächst für den eigenen Fork gedacht; welche Dokumentation ins
-Originalprojekt übernommen wird, entscheiden wir für den jeweiligen Pull Request.
+The collection is initially intended for our own fork; we decide which documentation
+to include in the original project for each pull request.

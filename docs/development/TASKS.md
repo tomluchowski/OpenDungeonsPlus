@@ -1,41 +1,41 @@
-# Aufgaben und Arbeitsteilung
+# Tasks and division of work
 
-Stand: 5. September 2026, festgehalten aus dem bisherigen Gespräch.
+As of September 5, 2026, recorded from the conversation so far.
 
-## Ziel der Zusammenarbeit
+## Goal of the collaboration
 
-Codex soll die Umsetzung möglichst selbstständig übernehmen; der Nutzer möchte
-hauptsächlich das Testen und die visuelle Beurteilung übernehmen.
+Codex should handle implementation as independently as possible; the user wants
+to focus mainly on testing and visual assessment.
 
-Die folgenden Bewertungen sind die bisherige Einschätzung aus dem Gespräch, keine
-Garantie einer vollständig autonomen Umsetzung. Eine technische Detailprüfung der
-einzelnen Aufgaben und ihrer konkreten Anforderungen steht noch aus.
+The following assessments reflect the conversation so far, not a
+guarantee of fully autonomous implementation. A detailed technical review of
+the individual tasks and their specific requirements is still pending.
 
-## Besprochene Aufgaben
+## Tasks discussed
 
-| Nr. | Aufgabe | Bisherige Einschätzung | Beteiligung oder offene Voraussetzung |
+| No. | Task | Assessment so far | Participation or outstanding prerequisite |
 | --- | --- | --- | --- |
-| 1 | Windows-Build zuverlässig machen | Sehr gut machbar, aber vollständige Autonomie nicht garantiert. | Lokale Windows- oder Abhängigkeitsprobleme können Eingriffe des Nutzers erfordern. |
-| 2 | Ogre-14-Port stabilisieren | Machbar eingeschätzt, aber großer Architektur- und Kompatibilitätsbereich ohne belastbare Vollständigkeitsgarantie. | Umfang und Hindernisse müssen zunächst am Code geprüft werden. |
-| 3 | GUI skalierbar machen | Als voraussichtlich vollständig durch Codex umsetzbar eingeschätzt. | Nutzer testet insbesondere die Darstellung; eine lokal baubare und startende Spielversion wird für die Ergebnisprüfung benötigt. |
-| 4 | Maus/Cursor sauber lösen | Als voraussichtlich vollständig durch Codex umsetzbar eingeschätzt. | Nutzer prüft das Verhalten im Spiel; der konkrete Änderungsumfang ist noch festzulegen. |
-| 5 | UI verständlicher machen | Größtenteils durch Codex umsetzbar eingeschätzt. | Offene Entscheidungen zu Bedienung und Texten müssen geklärt oder ausdrücklich delegiert werden. |
-| 6 | Tutorial / Onboarding | Durch Codex umsetzbar eingeschätzt, sofern Inhalt und Ablauf selbst definiert werden dürfen. | Die dafür notwendige Entscheidungsfreiheit wurde bisher nur als Voraussetzung genannt und noch nicht erteilt. |
+| 1 | Make the Windows build reliable | Very feasible, but full autonomy is not guaranteed. | Local Windows or dependency problems may require user intervention. |
+| 2 | Stabilize the Ogre 14 port | Assessed as feasible, but a large architecture and compatibility area without a reliable guarantee of completeness. | The scope and obstacles must first be examined in the code. |
+| 3 | Make the GUI scalable | Assessed as likely to be fully implementable by Codex. | The user tests the visual presentation in particular; a game version that builds and starts locally is needed to verify the result. |
+| 4 | Resolve mouse/cursor handling cleanly | Assessed as likely to be fully implementable by Codex. | The user checks the behavior in the game; the specific scope of changes still needs to be defined. |
+| 5 | Make the UI easier to understand | Assessed as largely implementable by Codex. | Open decisions about interaction and wording must be clarified or explicitly delegated. |
+| 6 | Tutorial / onboarding | Assessed as implementable by Codex, provided it may define the content and flow itself. | The necessary decision-making authority has so far only been mentioned as a prerequisite and has not yet been granted. |
 
-## Vorgeschlagener Einstieg
+## Suggested starting point
 
-Im Gespräch wurden Aufgabe 3 und 4 als Einstieg für möglichst wenig Eigenaufwand
-vorgeschlagen; das ist noch kein Auftrag zur Umsetzung dieser Aufgaben.
+In the conversation, tasks 3 and 4 were suggested as a starting point to minimize
+the user's own effort; this is not yet an instruction to implement these tasks.
 
-Für die GUI-Skalierung zuerst eine Umgebung herstellen, in der das Spiel lokal
-kompiliert und startet; die besprochenen Voraussetzungen stehen in der
-[Windows-Dokumentation](WINDOWS-DEV-SETUP.md).
+For GUI scaling, first establish an environment in which the game
+compiles and starts locally; the prerequisites discussed are in the
+[Windows documentation](WINDOWS-DEV-SETUP.md).
 
-## Offene Entscheidungen und Prüfung
+## Open decisions and verification
 
-Fehlende funktionale, gestalterische oder inhaltliche Entscheidungen werden nicht
-stillschweigend getroffen; sie müssen aus dem Projekt eindeutig hervorgehen, vom
-Nutzer beantwortet oder ausdrücklich an Codex delegiert werden.
+Missing functional, design or content decisions are not made
+silently; they must be unambiguously determined from the project, answered by the
+user or explicitly delegated to Codex.
 
-Manuelle Spieltests, QA und die visuelle Abnahme übernimmt der Nutzer; Ergebnisse
-und dabei gefundene Fehler werden anschließend gemeinsam ausgewertet.
+The user handles manual game tests, QA and visual acceptance; results
+and any errors found are then evaluated together.

@@ -1,5 +1,14 @@
 # Project context for future sessions
 
+## Language
+
+Communicate with the user in German.
+Write and maintain all project documentation in English.
+Use English for Git-related text, including commit messages, pull request titles,
+descriptions and review comments.
+
+## Project setup
+
 Before working on this project, read:
 
 1. [Windows environment and current status](docs/development/WINDOWS-DEV-SETUP.md).
