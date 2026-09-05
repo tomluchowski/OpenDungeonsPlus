@@ -18,6 +18,7 @@
 #include "modes/SettingsWindow.h"
 
 #include "gamemap/MiniMap.h"
+#include "network/ODClient.h"
 #include "camera/CameraManager.h"
 #include "render/ODFrameListener.h"
 #include "render/RenderManager.h"
@@ -33,17 +34,20 @@
 #include <CEGUI/WindowManager.h>
 
 #include <OgreRoot.h>
+#include <OgreCamera.h>
 #include <OgreRenderWindow.h>
+#include <OgreSceneManager.h>
 
 #include <SFML/Audio/Listener.hpp>
 
 #include <algorithm>
+#include <exception>
+#include <map>
 
 SettingsWindow::SettingsWindow(CEGUI::Window* rootWindow):
     mSettingsWindow(nullptr),
     mApplyWindow(nullptr),
-    mRootWindow(rootWindow),
-    dynamicShadowsChanged(false)
+    mRootWindow(rootWindow)
 {
     if (rootWindow == nullptr)
     {
@@ -140,14 +144,6 @@ SettingsWindow::SettingsWindow(CEGUI::Window* rootWindow):
             CEGUI::Event::Subscriber(&SettingsWindow::onPopupApplySettings, this)
         )
     );
-
-    addEventConnection(
-        mSettingsWindow->getChild("MainTabControl/Video/VideoSP/DynamicShadowsCheckbox")->subscribeEvent(
-            CEGUI::ToggleButton::EventSelectStateChanged,
-            CEGUI::Event::Subscriber(&SettingsWindow::onTriggerDynamicShadows, this)
-        )
-    );
-    
 
     initConfig();
 }
@@ -292,7 +288,6 @@ void SettingsWindow::initConfig()
     CEGUI::ToggleButton* dynamicShadowsCheckBox = static_cast<CEGUI::ToggleButton*>(
         mRootWindow->getChild("SettingsWindow/MainTabControl/Video/VideoSP/DynamicShadowsCheckbox"));
     dynamicShadowsCheckBox->setSelected( config.getUserValue(Config::Ctg::AUDIO,Config::SHADOWS,"",false) == "Yes");
-    dynamicShadowsChanged = false;
     Ogre::ConfigOptionMap::const_iterator it = options.find(Config::VIDEO_MODE);
     if (it != options.end())
     {
@@ -409,7 +404,7 @@ void SettingsWindow::initConfig()
     }
 }
 
-void SettingsWindow::saveConfig()
+bool SettingsWindow::saveConfig()
 {
     Ogre::Root* ogreRoot = Ogre::Root::getSingletonPtr();
     ConfigManager& config = ConfigManager::getSingleton();
@@ -419,6 +414,7 @@ void SettingsWindow::saveConfig()
     CEGUI::Editbox* usernameEb = static_cast<CEGUI::Editbox*>(
             mRootWindow->getChild("SettingsWindow/MainTabControl/Game/GameSP/NicknameEdit"));
     config.setGameValue(Config::NICKNAME, usernameEb->getText().c_str());
+    ODClient::getSingleton().requestNicknameChange(usernameEb->getText().c_str());
 
     CEGUI::Combobox* keeperVoiceCb = static_cast<CEGUI::Combobox*>(
             mRootWindow->getChild("SettingsWindow/MainTabControl/Game/GameSP/KeeperVoice"));
@@ -470,98 +466,136 @@ void SettingsWindow::saveConfig()
     // Video
     Ogre::RenderSystem* renderer = ogreRoot->getRenderSystem();
 
-    // Changing Ogre renderer needs a restart to allow to load shaders and requested stuff
     CEGUI::Combobox* rdrCb = static_cast<CEGUI::Combobox*>(
     mRootWindow->getChild("SettingsWindow/MainTabControl/Video/VideoSP/RendererCombobox"));
     std::string rendererName = rdrCb->getSelectedItem()->getText().c_str();
-    if (rendererName != renderer->getName() || dynamicShadowsChanged)
+    if (rendererName != renderer->getName())
     {
-        renderer = ogreRoot->getRenderSystemByName(rendererName);
-        if (renderer == nullptr)
-        {
-            const Ogre::RenderSystemList& renderers = ogreRoot->getAvailableRenderers();
-            if (renderers.empty())
-            {
-                OD_LOG_ERR("No valid renderer found while searching for " + std::string(rdrCb->getSelectedItem()->getText().c_str()));
-                return;
-            }
-            renderer = *renderers.begin();
-            OD_LOG_WRN("Wanted renderer : " + std::string(rdrCb->getSelectedItem()->getText().c_str()) + " not found. Using the first available: " + renderer->getName());
-        }
-
-        config.setVideoValue(Config::RENDERER, renderer->getName());
-        config.saveUserConfig();
-
-        // If render changed, we need to restart game.
-        // Note that we do not change values according to the others inputs. The reason
-        // is that we don't know if the given values are acceptable for the selected renderer
-        if(rendererName != renderer->getName())
-            OD_LOG_INF("Changed Ogre renderer to " + rendererName + ". We need to restart");
-        else
-            OD_LOG_INF("Changed Ogre dynamic shadows. We need to restart.");
-        exit(0);
+        OD_LOG_ERR("Cannot replace the active renderer while the game is running: " + rendererName);
+        return false;
     }
 
-    
     config.setVideoValue(Config::RENDERER, renderer->getName());
 
-    // Set renderer-dependent options now we know it didn't change.
     CEGUI::ToggleButton* fsCheckBox = static_cast<CEGUI::ToggleButton*>(
         mRootWindow->getChild("SettingsWindow/MainTabControl/Video/VideoSP/FullscreenCheckbox"));
-    renderer->setConfigOption(Config::FULL_SCREEN, (fsCheckBox->isSelected() ? "Yes" : "No"));
-    config.setVideoValue(Config::FULL_SCREEN, fsCheckBox->isSelected() ? "Yes" : "No");
-
     CEGUI::Combobox* resCb = static_cast<CEGUI::Combobox*>(
             mRootWindow->getChild("SettingsWindow/MainTabControl/Video/VideoSP/ResolutionCombobox"));
-    renderer->setConfigOption(Config::VIDEO_MODE, resCb->getSelectedItem()->getText().c_str());
-    config.setVideoValue(Config::VIDEO_MODE, resCb->getSelectedItem()->getText().c_str());
-
-    // Stores the renderer dependent options
     CEGUI::ToggleButton* vsCheckBox = static_cast<CEGUI::ToggleButton*>(
         mRootWindow->getChild("SettingsWindow/MainTabControl/Video/VideoSP/VSyncCheckbox"));
-    renderer->setConfigOption(Config::VSYNC, (vsCheckBox->isSelected() ? "Yes" : "No"));
-    config.setVideoValue(Config::VSYNC, fsCheckBox->isSelected() ? "Yes" : "No");
 
-    // Save renderer dependent settings and apply them.
+    std::map<std::string, std::string> selectedVideoOptions;
+    selectedVideoOptions[Config::FULL_SCREEN] = fsCheckBox->isSelected() ? "Yes" : "No";
+    selectedVideoOptions[Config::VIDEO_MODE] = resCb->getSelectedItem()->getText().c_str();
+    selectedVideoOptions[Config::VSYNC] = vsCheckBox->isSelected() ? "Yes" : "No";
     for (CEGUI::Window* combo : mCustomVideoComboBoxes)
-    {
-        std::string optionName = combo->getName().c_str();
-        std::string optionValue = combo->getText().c_str();
-        renderer->setConfigOption(optionName, optionValue);
-        config.setVideoValue(optionName, optionValue);
-    }
+        selectedVideoOptions[combo->getName().c_str()] = combo->getText().c_str();
 
-    config.saveUserConfig();
-
-    // Apply config
-
-    // Video
-    Ogre::RenderWindow* win = ogreRoot->getAutoCreatedWindow();
-    if(win == nullptr)
+    const Ogre::ConfigOptionMap initialRendererOptions = renderer->getConfigOptions();
+    std::map<std::string, std::string> previousRendererOptions;
+    std::map<std::string, std::string> previousVideoConfig;
+    bool resizeRenderWindow = false;
+    bool recreateRenderWindow = false;
+    for(const std::pair<const std::string, std::string>& selected : selectedVideoOptions)
     {
-        OD_LOG_WRN("Changing window options when using sfml is not implemented yet! Please restart for the changes to have an effect.");
-    }
-    else
-    {
-        std::vector<std::string> resVtr = Helper::split(resCb->getSelectedItem()->getText().c_str(), 'x');
-        if (resVtr.size() == 2)
+        Ogre::ConfigOptionMap::const_iterator previous = initialRendererOptions.find(selected.first);
+        if(previous == initialRendererOptions.end())
+            continue;
+        previousRendererOptions[selected.first] = previous->second.currentValue;
+        previousVideoConfig[selected.first] = config.getVideoValue(
+            selected.first, previous->second.currentValue, false);
+        if(previous->second.currentValue == selected.second)
+            continue;
+        if(selected.first == Config::FULL_SCREEN || selected.first == Config::VIDEO_MODE)
         {
-            uint32_t width = static_cast<uint32_t>(Helper::toInt(resVtr[0]));
-            uint32_t height = static_cast<uint32_t>(Helper::toInt(resVtr[1]));
-            win->setFullscreen(fsCheckBox->isSelected(), width, height);
-
-            // In windowed mode, the window needs resizing through other means
-            // NOTE: Doesn't work when the window is maximized on certain Composers.
-            if (!fsCheckBox->isSelected())
-              win->resize(width, height);
+            resizeRenderWindow = true;
+            continue;
+        }
+        if(selected.first != Config::VSYNC && selected.first != "VSync Interval"
+            && selected.first != "Reversed Z-Buffer"
+            && selected.first != "Separate Shader Objects" && selected.first != "Debug Layer")
+        {
+            recreateRenderWindow = true;
         }
     }
+
+    ODFrameListener& frameListener = ODFrameListener::getSingleton();
+    try
+    {
+        renderer->setConfigOption(Config::FULL_SCREEN, selectedVideoOptions[Config::FULL_SCREEN]);
+        renderer->setConfigOption(Config::VIDEO_MODE, selectedVideoOptions[Config::VIDEO_MODE]);
+        renderer->setConfigOption(Config::VSYNC, selectedVideoOptions[Config::VSYNC]);
+        for (CEGUI::Window* combo : mCustomVideoComboBoxes)
+            renderer->setConfigOption(combo->getName().c_str(), combo->getText().c_str());
+
+        for(const std::pair<const std::string, std::string>& selected : selectedVideoOptions)
+            config.setVideoValue(selected.first, selected.second);
+        config.saveUserConfig();
+
+        const Ogre::SceneManager::CameraList& cameras = RenderManager::getSingleton().getSceneManager()->getCameras();
+        for(const std::pair<const Ogre::String, Ogre::Camera*>& camera : cameras)
+            camera.second->setAspectRatio(camera.second->getAspectRatio());
+
+        if(recreateRenderWindow)
+        {
+            frameListener.requestRenderWindowRecreation(previousRendererOptions, previousVideoConfig);
+        }
+        else
+        {
+            Ogre::RenderWindow* window = frameListener.getRenderWindow();
+            if(resizeRenderWindow)
+            {
+                const std::vector<std::string> resolution = Helper::split(
+                    selectedVideoOptions[Config::VIDEO_MODE], 'x');
+                if(resolution.size() != 2)
+                    throw std::runtime_error("invalid video mode: " + selectedVideoOptions[Config::VIDEO_MODE]);
+
+                const uint32_t width = static_cast<uint32_t>(Helper::toInt(resolution[0]));
+                const uint32_t height = static_cast<uint32_t>(Helper::toInt(resolution[1]));
+                const bool fullscreen = fsCheckBox->isSelected();
+                window->setFullscreen(fullscreen, width, height);
+                if(!fullscreen)
+                    window->resize(width, height);
+                window->windowMovedOrResized();
+                frameListener.windowResized(window);
+            }
+            window->setVSyncInterval(static_cast<unsigned int>(Helper::toInt(
+                config.getVideoValue("VSync Interval", "1", false))));
+            window->setVSyncEnabled(vsCheckBox->isSelected());
+        }
+    }
+    catch(const std::exception& error)
+    {
+        OD_LOG_ERR("Could not apply video settings: " + std::string(error.what()));
+        std::map<std::string, std::string>::const_iterator fullscreen =
+            previousRendererOptions.find(Config::FULL_SCREEN);
+        if(fullscreen != previousRendererOptions.end())
+            renderer->setConfigOption(fullscreen->first, fullscreen->second);
+        std::map<std::string, std::string>::const_iterator videoMode =
+            previousRendererOptions.find(Config::VIDEO_MODE);
+        if(videoMode != previousRendererOptions.end())
+            renderer->setConfigOption(videoMode->first, videoMode->second);
+        for(const std::pair<const std::string, std::string>& option : previousRendererOptions)
+        {
+            if(option.first == Config::FULL_SCREEN || option.first == Config::VIDEO_MODE)
+                continue;
+            renderer->setConfigOption(option.first, option.second);
+        }
+        for(const std::pair<const std::string, std::string>& option : previousVideoConfig)
+            config.setVideoValue(option.first, option.second);
+        config.saveUserConfig();
+        initConfig();
+        return false;
+    }
+    RenderManager::getSingleton().setDynamicShadowsEnabled(dynamicShadowsCheckBox->isSelected());
+    return true;
 }
 
 void SettingsWindow::show()
 {
     if (mSettingsWindow)
     {
+        initConfig();
         // Input only allowed on this window when visible.
         mSettingsWindow->setModalState(true);
         mSettingsWindow->show();
@@ -630,8 +664,8 @@ bool SettingsWindow::onApplySettings(const CEGUI::EventArgs&)
         return true;
     }
 
-    saveConfig();
-    hide();
+    if(saveConfig())
+        hide();
     return true;
 }
 
@@ -709,11 +743,6 @@ bool SettingsWindow::onLightFactorChanged(const CEGUI::EventArgs&)
     return true;
 }
 
-
-void SettingsWindow::onTriggerDynamicShadows(const CEGUI::EventArgs&)
-{
-    dynamicShadowsChanged = !dynamicShadowsChanged;
-}
 
 void SettingsWindow::setLightFactorValue(float lightFactor)
 {

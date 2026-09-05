@@ -85,6 +85,9 @@ public:
 
     CEGUI::Window* getGuiSheet(guiSheet sheet);
 
+    //! \brief Move CEGUI rendering to another Ogre render target.
+    void setRenderTarget(Ogre::RenderTarget& renderTarget);
+
     // Access names of the GUI elements
     static const std::string ROOT;
     static const std::string DISPLAY_GOLD;
