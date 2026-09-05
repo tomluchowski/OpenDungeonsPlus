@@ -26,6 +26,9 @@ is also recorded in [AGENTS.md](../../AGENTS.md) at the project root.
   choices, their cause and verification status.
 - [Live settings](LIVE-SETTINGS.md): applying settings without restarting,
   the fullscreen navigation report and completed Windows verification.
+- [Product improvement audit and roadmap](IMPROVEMENT-ROADMAP.md): confirmed
+  visual and usability gaps, ordered implementation branches and coordination
+  with open upstream issues and pull requests.
 - [Restoring prerequisites](WINDOWS-PREREQUISITES.md): sources,
   checksums, installation scripts, order and resolved installation problems.
 

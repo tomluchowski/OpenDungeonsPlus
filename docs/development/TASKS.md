@@ -8,8 +8,9 @@ Codex should handle implementation as independently as possible; the user wants
 to focus mainly on testing and visual assessment.
 
 The following assessments reflect the conversation so far, not a
-guarantee of fully autonomous implementation. A detailed technical review of
-the individual tasks and their specific requirements is still pending.
+guarantee of fully autonomous implementation. The detailed technical findings,
+priorities, branch boundaries and upstream overlap are recorded in the
+[product improvement audit and roadmap](IMPROVEMENT-ROADMAP.md).
 
 ## Tasks discussed
 
