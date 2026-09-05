@@ -109,6 +109,35 @@ Before every feature branch:
 
 This gate prevents duplicate fixes and large avoidable merge conflicts.
 
+#### Gate 0 result for `feature/gui-scaling`
+
+Gate 0 was completed on September 5, 2026. After fetching `upstream`,
+`upstream/shaders-improvement` still pointed to `be44649f`. GitHub still
+reported 12 open issues and 13 open pull requests; none of the six pull
+requests checked below had merged or been replaced, and none reported a formal
+review decision or status check.
+
+| PR | Verified state and file overlap | Decision for this branch |
+| --- | --- | --- |
+| [#29](https://github.com/tomluchowski/OpenDungeonsPlus/pull/29) | Open and mergeable at `bab847a6`; its single commit changes only `gui/WindowTabRooms.layout` and `gui/WindowTabSpells.layout` and is patch-equivalent to the corresponding change in PR #16. | Required dependency because GUI scaling must continue from the corrected two-row action layouts. |
+| [#41](https://github.com/tomluchowski/OpenDungeonsPlus/pull/41) | Open and mergeable at `7f408353`; it changes `shaders/Cloud.frag` and `source/render/RenderManager.cpp`. | Excluded because fog rendering is independent of GUI scaling. |
+| [#45](https://github.com/tomluchowski/OpenDungeonsPlus/pull/45) | Open and mergeable at `bcec307c`; its 34 files cover room materials, seat-mask textures, `shaders/Room.frag`, `source/entities/Tile.cpp` and `source/render/RenderManager.cpp`. It still explicitly supersedes PR #37. | Excluded because room ownership rendering is independent of GUI scaling. |
+| [#21](https://github.com/tomluchowski/OpenDungeonsPlus/pull/21) | Open and conflicting at `2e2df09f`; its eight files cover CMake and platform/resource handling, with no GUI layout file. It remains a focused split from PR #16. | Excluded because it is not required for GUI scaling. |
+| [#16](https://github.com/tomluchowski/OpenDungeonsPlus/pull/16) | Open and conflicting at `ab2858da`; its 101 files combine unrelated crash, gameplay, editor, portability and level work. Its spell/room layout change is already available separately in PR #29. | Excluded; use the focused PR #29 dependency instead. |
+| [#15](https://github.com/tomluchowski/OpenDungeonsPlus/pull/15) | Open and mergeable at `efa47d31`, but based on an older upstream commit and changing 317 files for the Ogre 14 port. It also changes the settings window, dialogs, skill tree, `OD.looknfeel` and GUI/render code, and commit `27a6a9bb` implements settings-only automatic scaling from `1.0` to `1.5`. | Excluded because it would add the renderer port and silently choose the still-unresolved scale policy. Recheck and reconcile these GUI files if the port advances. |
+
+The prepared local branch `feature/gui-scaling` starts directly at
+`be44649f`. The PR #29 commit was cherry-picked as its only dependency, producing
+local commit `cfd924f5`. The branch is one commit ahead of upstream, its diff is
+limited to the two layout files above, and both files pass XML parsing.
+
+The fork's live-settings commit `d660f8ae` was not added: it changes 31 files and
+is a separate contribution. Current upstream already calls
+`CEGUI::System::notifyDisplaySizeChanged()` from
+`ODFrameListener::windowResized()`, so GUI scaling can react to display-size
+events without importing that feature. The scale policy remains the only
+required decision before Step 1 implementation.
+
 ### 1. `feature/gui-scaling`
 
 **Goal:** make the HUD, dialogs, fonts, tooltips and hit targets readable and
