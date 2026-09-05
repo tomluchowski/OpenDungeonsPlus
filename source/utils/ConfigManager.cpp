@@ -1661,6 +1661,15 @@ double ConfigManager::getTrapConfigDouble(const std::string& param) const
     return Helper::toDouble(it->second);
 }
 
+double ConfigManager::getTrapConfigDoubleOrDefault(const std::string& param, double defaultValue) const
+{
+    std::map<const std::string, std::string>::const_iterator it = mTrapsConfig.find(param);
+    if(it == mTrapsConfig.end())
+        return defaultValue;
+
+    return Helper::toDouble(it->second);
+}
+
 const std::string& ConfigManager::getSpellConfigString(const std::string& param) const
 {
     auto it = mSpellConfig.find(param);

@@ -30,10 +30,8 @@ public:
     { return TrapType::boulder; }
 
     virtual bool shoot(Tile* tile) override;
-    virtual bool isAttackable(Tile* tile, Seat* seat) const override
-    {
-        return false;
-    }
+
+    virtual double getTileHP() const override;
 
     virtual bool displayTileMesh() const override
     { return true; }
