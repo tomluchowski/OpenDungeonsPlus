@@ -20,6 +20,8 @@ is also recorded in [AGENTS.md](../../AGENTS.md) at the project root.
   build Release/Debug and find logs.
 - [Windows build errors and fixes](WINDOWS-BUILD-FIXES.md): confirmed
   compiler errors, their causes, targeted fixes and build evidence.
+- [Windows startup errors and fixes](WINDOWS-STARTUP-FIXES.md): actual startup
+  failures, runtime preparation, resource-path correction and outstanding verification.
 - [Restoring prerequisites](WINDOWS-PREREQUISITES.md): sources,
   checksums, installation scripts, order and resolved installation problems.
 

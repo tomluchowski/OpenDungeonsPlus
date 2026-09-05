@@ -45,6 +45,8 @@ For this fork's local Windows setup, see the maintained
 [configure/build commands](docs/development/BUILDING.md), including verified status.
 Diagnosed Windows compiler and linker failures are recorded in the
 [build fixes and validation notes](docs/development/WINDOWS-BUILD-FIXES.md).
+Direct Windows startup and its verification are covered in the
+[startup fixes](docs/development/WINDOWS-STARTUP-FIXES.md).
 
 If you retrieve the source code of OpenDungeonsPlus and want to have a go at
 building it yourself, have a look at platform-specific build instructions

@@ -2,9 +2,13 @@
 
 As of September 5, 2026. The [prerequisites](WINDOWS-DEV-SETUP.md) are installed
 and CMake and the Windows x64 game builds in Release and Debug have
-completed successfully; game startup has not yet been tested in practice.
+completed successfully; the user's startup attempts exposed a resource-path error,
+which has been corrected and rebuilt; a subsequent run reached the main-menu scene
+and shut down normally, and the user confirmed that Release starts without errors.
 The four resolved build errors and their evidence are recorded in
 [WINDOWS-BUILD-FIXES.md](WINDOWS-BUILD-FIXES.md).
+The startup evidence and subsequent correction are recorded in
+[WINDOWS-STARTUP-FIXES.md](WINDOWS-STARTUP-FIXES.md).
 
 ## 1. Prepare the PowerShell session
 
@@ -73,24 +77,66 @@ compiler/linker message and the configuration used.
 The logged successful verification runs for this setup are located
 under `build\windows\game-Release-pass3.log` and `game-Debug-pass3.log`.
 
-## 4. Game startup and manual verification
+## 4. Direct Release startup and manual verification
 
-The user should only test after a successful build; the following startup command
-has not yet been verified in practice and requires the same loaded environment:
+For the current local setup, double-click
+`C:\Users\mario\GitHub\OpenDungeonsPlus\build\windows\opendungeons-plus.exe`
+in File Explorer; no PowerShell session is needed to test the Release build.
+Keep the executable in that directory with its DLLs, configuration and resource links.
+The files have been prepared and checked, and the executable includes the fix for
+absolute Windows resource paths. The 14:07 startup logs confirm main-menu scene
+loading and normal shutdown without the earlier loading errors; the user then
+confirmed an error-free direct startup on September 5, 2026.
+
+The configuration script now calls
+[prepare-windows-runtime.ps1](../../scripts/win32/prepare-windows-runtime.ps1).
+It copies 20 installed Release library/plugin DLLs and the two Python runtime DLLs
+next to the executable, and replaces the generated Unix-style OGRE media paths
+with the existing Windows installation's `Media/RTShaderLib`,
+`Media/RTShaderLib/GLSL` and `Media/Main` directories.
+The missing HLSL, HLSL_Cg and materials subdirectories are not registered.
+The other game resource entries and their existing junctions are preserved.
+
+The generated `python310._pth` points to the existing Python installation, its
+`Lib` and `DLLs` directories and the executable directory, with `import site` enabled;
+Python documents this application-local module path mechanism in
+[Finding modules on Windows](https://docs.python.org/3.10/using/windows.html#finding-modules).
+This is a local development setup: OGRE media and the Python standard library
+still reside outside the repository, and the installed Visual C++ runtime is used.
+It is not a standalone distribution package.
+
+If dependencies change or CMake regenerates the resource configuration outside
+the configuration script, refresh the prepared files with:
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\win32\prepare-windows-runtime.ps1
+```
+
+The execution-policy option applies only to that process; it does not change the
+system's policy. The setup has already been performed for the current Release executable.
+
+As of September 5, 2026, static checks covered the executable and 22 DLLs,
+all four configured OGRE plugins and all 14 resource directories, with no missing
+DLL dependencies or incorrect CPU architectures; evidence is stored in
+`build\windows\runtime-validation.json`. These checks do not start the game.
+
+Debug still requires the prepared development environment; its direct-start
+runtime files have not been staged. An optional console startup from the loaded
+environment is:
 
 ```powershell
 Push-Location -LiteralPath .\build\windows
 try {
-    & .\opendungeons-plus.exe
+    & .\opendungeons-plus_d.exe
 } finally {
     Pop-Location
 }
 ```
 
-For Debug, use the file `opendungeons-plus_d.exe`.
-CMake generates `plugins.cfg`, `plugins_d.cfg`, `resources.cfg` and links
-to the game data here. If DLLs or plugins are missing, examine the actual startup error;
-DLL distribution, plugin loading and game startup are still pending.
+The Debug startup command has not been verified in practice; its generated
+`plugins_d.cfg` still names the Release variants of Codec_STBI and RenderSystem_GL3Plus,
+so Debug plugin selection needs correction before its startup can be considered ready.
+If a startup error occurs, record the actual message for diagnosis.
 The user performs manual game tests and visual acceptance.
 
 ## Logs and resuming work

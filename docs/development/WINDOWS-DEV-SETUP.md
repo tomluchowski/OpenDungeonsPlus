@@ -3,8 +3,13 @@
 As of September 5, 2026, Mario's local computer, Windows x64.
 The prerequisites are installed; their library builds and the game's
 CMake configuration succeeded.
-The Release and Debug game builds succeeded after four targeted fixes;
-game startup and packaging remain unverified.
+The Release and Debug game builds succeeded after four targeted fixes.
+The Release runtime files are now staged for testing the executable directly
+from File Explorer. The user's startup attempts exposed incorrect handling of
+absolute Windows resource paths; both builds now include the correction.
+A subsequent Release run loaded the main-menu scene and shut down normally
+without the earlier errors; the user confirmed that direct Release startup works
+without errors. Broader gameplay tests and packaging remain unverified.
 
 ## Entry point and file responsibilities
 
@@ -110,7 +115,9 @@ from the actual compilation are recorded in the [build error log](WINDOWS-BUILD-
 | Configuration using the scripts added to the project | Successfully rerun, also from `docs\development`; the project path and adjacent environment helper are resolved correctly |
 | Compile the game | Release and Debug successful with exit code 0; commands in [BUILDING.md](BUILDING.md), evidence in the [build error log](WINDOWS-BUILD-FIXES.md) |
 | Check generated programs | Both files have the AMD64 PE signature; Release imports only `python310.dll`, Debug only `python310_d.dll` as the Python runtime |
-| Start the game, test GUI and cursor | Not yet verified; manual QA by the user |
+| Prepare direct Release startup | 22 DLLs staged beside the executable, Python module paths recorded locally and OGRE media paths corrected; static checks of 23 PE files, four plugins and 14 resource directories passed; see [BUILDING.md](BUILDING.md) and `build\windows\runtime-validation.json` |
+| Start the Release game directly | User confirmed error-free startup after the path fix; the 14:07 logs show main-menu scene loading and normal shutdown without the earlier loading errors; see [startup fixes](WINDOWS-STARTUP-FIXES.md) |
+| Test gameplay, GUI and cursor | Broader manual gameplay and visual QA remain with the user |
 | Create an installation package | Not yet verified; older packaging logic cannot find some expected Boost DLL names |
 
 CMake found Python, pybind11, OIS, OGRE, CEGUI including OgreRenderer, SFML and the
@@ -124,5 +131,10 @@ after correcting the Boost search path described in the
 [build error log](WINDOWS-BUILD-FIXES.md).
 
 The build errors are fixed; existing compiler/linker warnings are recorded in the
-build error log. Runtime verification by the user is next;
-successful builds do not replace this check.
+build error log. The configuration script now also runs
+[prepare-windows-runtime.ps1](../../scripts/win32/prepare-windows-runtime.ps1)
+to stage the local Release runtime without requiring a prepared shell for startup.
+Debug runtime staging is still pending; its generated plugin list also mixes
+Debug plugins with Release variants of Codec_STBI and RenderSystem_GL3Plus.
+Direct Release startup is verified by the user's confirmation and runtime logs;
+broader gameplay tests remain with the user.

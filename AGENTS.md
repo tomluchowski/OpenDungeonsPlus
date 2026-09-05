@@ -31,8 +31,19 @@ The maintained instructions and scripts live in this repository under
 Do not rely on the old copies in `build/` or `od-deps/setup-scripts/`.
 
 At the verified state on 2026-09-05, dependency builds, game CMake configuration
-and both Windows x64 game builds (Release and Debug) succeeded; game startup,
-manual gameplay tests and packaging remain unverified.
+and both Windows x64 game builds (Release and Debug) succeeded.
+User startup attempts exposed a Windows resource-path bug; both binaries now
+include its correction. A subsequent Release run loaded the main-menu scene and
+shut down normally without the earlier loading errors; the user subsequently
+confirmed that the Release executable starts without errors.
+Read [startup failures and verification](docs/development/WINDOWS-STARTUP-FIXES.md)
+before investigating further startup issues; broader gameplay tests and packaging
+remain unverified.
+The Release executable now has its runtime DLLs staged beside it for direct
+File Explorer startup; the configuration script maintains this through
+`scripts/win32/prepare-windows-runtime.ps1`. Python's standard library and OGRE
+media still use the external installation. Read BUILDING.md for the static
+verification results and the remaining Debug runtime/plugin limitations.
 Read the [Windows build fixes](docs/development/WINDOWS-BUILD-FIXES.md) for the four
 diagnosed failures and verification logs; the CEGUI source now includes a
 repository-managed compatibility patch applied by its installation script.
