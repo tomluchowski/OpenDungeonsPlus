@@ -129,7 +129,14 @@ CEGUI::Window* Gui::getGuiSheet(guiSheet sheet)
     {
         return it->second;
     }
+
     return nullptr;
+}
+
+void Gui::setRenderTarget(Ogre::RenderTarget& renderTarget)
+{
+    static_cast<CEGUI::OgreRenderer*>(CEGUI::System::getSingleton().getRenderer())
+        ->setDefaultRootRenderTarget(renderTarget);
 }
 
 bool Gui::playButtonClickSound(const CEGUI::EventArgs&)

@@ -106,6 +106,7 @@ RenderManager::RenderManager(Ogre::OverlaySystem* overlaySystem) :
     mHandLightNode(nullptr),
     mShadowCam(nullptr),
     mCurrentFOVy(0.0f),
+    mCurrentAspectRatio(0.0f),
     mFactorWidth(0.0f),
     mFactorHeight(0.0f),
     mCreatureTextOverlayDisplayed(false),
@@ -120,44 +121,7 @@ RenderManager::RenderManager(Ogre::OverlaySystem* overlaySystem) :
     // mShaderGenerator->setShaderCacheEnabled(true);
     
     mShaderGenerator->addSceneManager(mSceneManager); 
-    if(ConfigManager::getSingleton().getAudioValue(Config::SHADOWS)=="Yes")
-    {
-        // Custom shaders apply lighting and shadows in one pass; automatic
-        // illumination splitting removes their fragment programs on GL3Plus.
-        mSceneManager->setShadowTechnique(Ogre::ShadowTechnique::SHADOWTYPE_TEXTURE_ADDITIVE_INTEGRATED);
-        // mSceneManager->setShadowCameraSetup(Ogre::LiSPSMShadowCameraSetup::create());
-        // mSceneManager->setShadowTextureConfig(0,1024,1024,Ogre::PixelFormat::PF_R32G32B32A32_UINT,0);
-        // mSceneManager->setShadowFarDistance(100.0);
-        // mSceneManager->setShadowDirectionalLightExtrusionDistance(500.0);
-        // mSceneManager->setShadowTextureSelfShadow(true);
-        // donno if the below should be here -- paul424 :
-        auto myIter = Ogre::MaterialManager::getSingleton().getResourceIterator();
-        while(myIter.hasMoreElements())
-        {
-            auto myPointer = myIter.peekNextValue();
-            Ogre::SharedPtr<Ogre::Material> myCastPointer = std::dynamic_pointer_cast<Ogre::Material> (myPointer);
-            Ogre::Technique* technique;
-            technique = myCastPointer->getTechnique(0);
-
-            if( technique->getPass(technique->getNumPasses() - 1)->hasFragmentProgram())
-            {
-                if(technique->getPass(technique->getNumPasses() - 1)->getFragmentProgramParameters()->hasNamedParameters())
-                {
-                    const Ogre::GpuNamedConstants& gnc = technique->getPass(technique->getNumPasses() - 1)->getFragmentProgramParameters()->getConstantDefinitions();
-                    auto it = gnc.map.find("shadowingEnabled");
-                    if(it!=  gnc.map.end())
-                        technique->getPass(technique->getNumPasses() - 1)->getFragmentProgramParameters()->setNamedConstant("shadowingEnabled",true);
-                }
-            }
-            myIter.getNext();
-        }  
-        
-    }
-    else
-    {
-        mSceneManager->setShadowTechnique(Ogre::ShadowTechnique::SHADOWTYPE_NONE);
-
-    }
+    setDynamicShadowsEnabled(ConfigManager::getSingleton().getAudioValue(Config::SHADOWS) == "Yes");
     ddd.setStatic(true);
     mSceneManager->addListener(&ddd);
     mSceneManager->addRenderQueueListener(overlaySystem);
@@ -212,6 +176,42 @@ void RenderManager::saveTexture(Ogre::TexturePtr texture, const std::string& fil
     pixelBuffer->unlock();
 }
 
+
+void RenderManager::setDynamicShadowsEnabled(bool enabled)
+{
+    // Custom shaders apply lighting and shadows in one pass; automatic
+    // illumination splitting removes their fragment programs on GL3Plus.
+    mSceneManager->setShadowTechnique(enabled ? Ogre::SHADOWTYPE_TEXTURE_ADDITIVE_INTEGRATED : Ogre::SHADOWTYPE_NONE);
+    // mSceneManager->setShadowCameraSetup(Ogre::LiSPSMShadowCameraSetup::create());
+    // mSceneManager->setShadowTextureConfig(0,1024,1024,Ogre::PixelFormat::PF_R32G32B32A32_UINT,0);
+    // mSceneManager->setShadowFarDistance(100.0);
+    // mSceneManager->setShadowDirectionalLightExtrusionDistance(500.0);
+    // mSceneManager->setShadowTextureSelfShadow(true);
+
+    // Include material clones and techniques created since the game started.
+    Ogre::ResourceManager::ResourceMapIterator materials = Ogre::MaterialManager::getSingleton().getResourceIterator();
+    while(materials.hasMoreElements())
+    {
+        Ogre::MaterialPtr material = std::static_pointer_cast<Ogre::Material>(materials.getNext());
+        for(unsigned short techniqueIndex = 0; techniqueIndex < material->getNumTechniques(); ++techniqueIndex)
+        {
+            Ogre::Technique* technique = material->getTechnique(techniqueIndex);
+            for(unsigned short passIndex = 0; passIndex < technique->getNumPasses(); ++passIndex)
+            {
+                Ogre::Pass* pass = technique->getPass(passIndex);
+                if(!pass->hasFragmentProgram())
+                    continue;
+                Ogre::GpuProgramParametersSharedPtr parameters = pass->getFragmentProgramParameters();
+                if(parameters->hasNamedParameters())
+                {
+                    const Ogre::GpuNamedConstants& constants = parameters->getConstantDefinitions();
+                    if(constants.map.find("shadowingEnabled") != constants.map.end())
+                        parameters->setNamedConstant("shadowingEnabled", enabled);
+                }
+            }
+        }
+    }
+}
 
 RenderManager::~RenderManager()
 {
@@ -2427,24 +2427,15 @@ std::string RenderManager::setMaterialOpacity(const std::string& materialName, f
 void RenderManager::moveCursor(float relX, float relY)
 {
     Ogre::Camera* cam = mViewport->getCamera();
-    if(cam->getFOVy() != mCurrentFOVy)
+    if(cam->getFOVy() != mCurrentFOVy || cam->getAspectRatio() != mCurrentAspectRatio)
     {
         mCurrentFOVy = cam->getFOVy();
+        mCurrentAspectRatio = cam->getAspectRatio();
         Ogre::Radian angle = cam->getFOVy() * 0.5f;
         Ogre::Real tan = Ogre::Math::Tan(angle);
-        Ogre::Real shortestSize = KEEPER_HAND_POS_Z * tan * 2.0f;
-        Ogre::Real width = mViewport->getActualWidth();
-        Ogre::Real height = mViewport->getActualHeight();
-        if(width > height)
-        {
-            mFactorHeight = shortestSize;
-            mFactorWidth = shortestSize * width / height;
-        }
-        else
-        {
-            mFactorWidth = shortestSize;
-            mFactorHeight = shortestSize * height / width;
-        }
+        // FOVy defines the vertical extent; keep the hand aligned after resizing.
+        mFactorHeight = KEEPER_HAND_POS_Z * tan * 2.0f;
+        mFactorWidth = mFactorHeight * mCurrentAspectRatio;
     }
 
     mHandKeeperNode->setPosition(mFactorWidth * (relX - 0.5f), mFactorHeight * (0.5f - relY), -KEEPER_HAND_POS_Z);
