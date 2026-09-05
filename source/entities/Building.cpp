@@ -84,6 +84,7 @@ void Building::addBuildingObject(Tile* targetTile, BuildingObject* obj, GameMap*
     
     // The object position has been already set in the building object constructor
     mBuildingObjects[targetTile] = obj;
+    obj->setSeat(getSeat());
     obj->addToGameMap(gameMap);
     obj->setPosition(obj->getPosition(),gameMap);
 }

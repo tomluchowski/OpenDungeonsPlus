@@ -1343,6 +1343,7 @@ void RenderManager::rrCreateRenderedMovableEntity(RenderedMovableEntity* rendere
 
         
         ent = mSceneManager->createEntity(tempString, meshPtr);
+        colourizeEntity(ent, renderedMovableEntity->getSeat(), false, true);
         node->attachObject(ent); 
     }
 

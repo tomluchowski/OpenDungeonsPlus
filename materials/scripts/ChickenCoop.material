@@ -71,7 +71,7 @@ material ChickenCoop //: RTSS/NormalMapping_MultiPass
             }                
             texture_unit seatmap
             {
-                texture RoomSeatNone.png
+                texture ChickenCoopSeat.png
             }
         }
 
