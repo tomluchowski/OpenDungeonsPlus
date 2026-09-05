@@ -1,7 +1,9 @@
 #version 330 core
 
 out vec4 FragColor;
-in vec2 TexCoords;
+// Matches the out_UV0 the cloud vertex shader actually writes; the old
+// "TexCoords" name matched nothing and left the coordinates undefined.
+in vec2 out_UV0;
 
 uniform float time;
 uniform float time_dillation;
@@ -33,7 +35,7 @@ float generateCloud(vec2 uv) {
 }
 
 void main() {
-    vec2 uv = TexCoords * resolution.xy / resolution.y;
+    vec2 uv = out_UV0 * resolution.xy / resolution.y;
     
     // Animate the clouds by adding time to the UV coordinates
     uv += time_dillation*time * 0.05;
@@ -48,6 +50,13 @@ void main() {
     
     // Mix cloud and sky colors based on the cloud pattern
     vec4 color = mix(skyColor, cloudColor, cloudPattern);
-    
+
+    // Each cloud quad is drawn half a tile wider than its tile and faded out
+    // over its outer third, so the fades of neighbouring fog tiles overlap
+    // into one continuous blanket instead of a grid of separate lumps.
+    vec2 border = min(out_UV0, vec2(1.0) - out_UV0);
+    float edge = smoothstep(0.0, 1.0 / 3.0, min(border.x, border.y));
+    color.a *= edge;
+
     FragColor = color;
 }

@@ -929,6 +929,48 @@ void RenderManager::setupFogMaterial(Ogre::TexturePtr myTexture)
 
 
 
+namespace
+{
+//! \brief Widens a tile's fog-of-war dirt dome towards each neighbour that is
+//! also under fog, so the fog interlocks into one rolling mass instead of a
+//! grid of separate lumps (issue #13). Tiles marked for digging are left at
+//! their exact tile size and nothing widens over them, so the yellow marking
+//! keeps clean tile-aligned edges instead of being chewed jagged by the
+//! overlapping domes.
+void updateFogOfWarExtents(Tile& tile, const Player& localPlayer)
+{
+    Ogre::InstancedEntity* fogMesh = tile.getFogOfWarMesh();
+    if(fogMesh == nullptr)
+        return;
+
+    Ogre::Real extendLeft = 0.0f, extendRight = 0.0f, extendDown = 0.0f, extendUp = 0.0f;
+    if(!tile.getMarkedForDigging(&localPlayer))
+    {
+        for(Tile* neighbor : tile.getAllNeighbors())
+        {
+            if(neighbor->getFogOfWarMesh() == nullptr)
+                continue;
+            if(neighbor->getMarkedForDigging(&localPlayer))
+                continue;
+            if(neighbor->getX() < tile.getX())
+                extendLeft = 0.25f;
+            else if(neighbor->getX() > tile.getX())
+                extendRight = 0.25f;
+            else if(neighbor->getY() < tile.getY())
+                extendDown = 0.25f;
+            else if(neighbor->getY() > tile.getY())
+                extendUp = 0.25f;
+        }
+    }
+
+    Ogre::Vector3 position = tile.getPosition();
+    position.x += (extendRight - extendLeft) / 2.0f;
+    position.y += (extendUp - extendDown) / 2.0f;
+    fogMesh->setScale(Ogre::Vector3(1.0f + extendLeft + extendRight, 1.0f + extendDown + extendUp, 1.0f));
+    fogMesh->setPosition(position);
+}
+}
+
 void RenderManager::rrRefreshTile(Tile& tile, GameMap& draggableTileContainer, const Player& localPlayer, NodeType nt)
 {
     if (tile.getEntityNode() == nullptr)
@@ -1019,7 +1061,13 @@ void RenderManager::rrRefreshTile(Tile& tile, GameMap& draggableTileContainer, c
             tileMeshNode->attachObject(tile.getFogOfWarMesh());
             tileMeshNode->attachObject(tile.getFogOfWarCloud());
             tile.getFogOfWarMesh()->setPosition(tile.getPosition());
-            tile.getFogOfWarCloud()->setPosition(tile.getPosition());    
+            tile.getFogOfWarCloud()->setPosition(tile.getPosition());
+            // The cloud quad is drawn half a tile wider than the tile and
+            // fades out over its outer third (Cloud.frag), so neighbouring
+            // clouds blend into one blanket instead of stacking hard edges.
+            // The dirt dome is widened per neighbour in
+            // updateFogOfWarExtents() below.
+            tile.getFogOfWarCloud()->setScale(Ogre::Vector3(1.5, 1.5, 1.0));
             
             
             
@@ -1055,12 +1103,15 @@ void RenderManager::rrRefreshTile(Tile& tile, GameMap& draggableTileContainer, c
             
             
             tile.setHasFogOfWar(true);
-                      
+
         }
 
-
-        
-
+        // This tile's fog or digging-mark state may just have changed, so the
+        // widening of its own dome and of every neighbouring dome towards it
+        // has to be recomputed.
+        updateFogOfWarExtents(tile, localPlayer);
+        for(Tile* neighbor : tile.getAllNeighbors())
+            updateFogOfWarExtents(*neighbor, localPlayer);
     }
     // We rescale and set the orientation that may have changed
     if(tileMeshNode != nullptr)
