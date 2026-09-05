@@ -117,6 +117,18 @@ linker optimization remain, as does the warning in the Debug linking step about
 combining `/INCREMENTAL` and `/FORCE`. This work fixes the confirmed build failures;
 it does not disable warnings.
 
+## Later GUI-scaling runtime correction
+
+The September 5 settings report required a second maintained CEGUI patch,
+[cegui-ogre-clipping.patch](../../scripts/win32/patches/cegui-ogre-clipping.patch).
+It restores per-batch scissor clipping in the Ogre renderer; it addresses
+rendered controls extending outside their input clip rectangles, rather than a
+compiler error. The CEGUI installer now applies both patches idempotently.
+Release and Debug library builds and installation succeeded, and the rebuilt
+Release renderer DLL was staged with a matching SHA-256. The Release game build
+also succeeded; detailed reproduction, probe coverage and remaining visual
+verification are in [GUI-SCALING.md](GUI-SCALING.md#settings-geometry-and-clipping-correction).
+
 ## Version and scope
 
 The game version remains 0.7.1; this work fixes build errors and does not

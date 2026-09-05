@@ -220,6 +220,57 @@ The user must launch the rebuilt Release executable and enter
 stability and lighting/shadow appearance. This correction is ready for that test;
 the actual gameplay result and shadow coverage remain unverified.
 
+## Resource-path regression after the GUI-scaling clean build
+
+On September 5, 2026, the clean Release build of the corrected fork-based
+`feature/gui-scaling` branch completed at 23:18:43. During that build, CMake had
+regenerated `build/windows/resources.cfg` at 23:10:13. Both `Graphics` and
+`OgreInternal` then pointed to
+`build/windows/install/share/OGRE/Media/RTShaderLib/../Main`, which does not exist.
+The required header still exists under
+`C:\Users\mario\od-deps\install\Media\Main\OgreUnifiedShader.h`.
+
+The user's 23:21:36 start reached CEGUI initialization and logged:
+
+```text
+Cannot locate resource OgreUnifiedShader.h in resource group OgreInternal.
+```
+
+The same log records the nonexistent path being registered in `OgreInternal`.
+The resource group was present; its directory was wrong. The Windows runtime
+preparation step had been omitted after CMake regenerated the configuration.
+
+Running the existing
+[runtime preparation script](../../scripts/win32/prepare-windows-runtime.ps1)
+restored the installed media paths at 23:23:55. Its first attempt stopped because
+the failed game process still held a runtime DLL open; it succeeded after that
+process was stopped. No game source, dependency version or executable changed.
+The [build instructions](BUILDING.md#3-build-the-game) now include runtime
+preparation immediately after both normal and clean Release builds.
+
+Verification found all 15 configured resource entries accessible, including
+`Media/Main` in both groups, and the required shader header present. The existing
+`shadow-resource-probe.exe` loaded the corrected configuration with the installed
+OGRE DLL and exited with code 0: the game shader header opens in `Graphics`, and
+all four internal shadow programs resolve and load. The probe creates no renderer
+or game window and does not verify CEGUI initialization or rendering.
+
+Evidence is retained under `build/windows`:
+
+- `gui-scaling-before-runtime-refresh-game.log`: the user's failed startup.
+- `gui-scaling-after-runtime-refresh-resources.cfg`: the corrected configuration.
+- `gui-scaling-runtime-probe.log` and `gui-scaling-runtime-probe-Ogre.log`: the
+  successful isolated resource check.
+
+The user's subsequent run reached the main-menu scene at 23:27:27 and shut down
+normally at 23:28:32, and the user confirmed startup. The reported settings
+geometry and clipping defects are documented with their corrections in
+[GUI-SCALING.md](GUI-SCALING.md#settings-geometry-and-clipping-correction).
+The user subsequently confirmed that these settings corrections work, and the
+updated game's 23:47 run reached a game map and shut down normally. The complete
+manual GUI matrix has not been confirmed individually; this result alone does not
+complete roadmap step 1.
+
 ## Build process note
 
 The sandboxed process environment supplied both `Path` and `PATH`, causing the

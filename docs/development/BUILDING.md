@@ -78,6 +78,7 @@ Release from the same prepared console:
 ```powershell
 cmake --build .\build\windows --config Release --parallel 4
 if ($LASTEXITCODE -ne 0) { throw 'Release game build failed' }
+& .\scripts\win32\prepare-windows-runtime.ps1
 ```
 
 After changing a class layout in a header, or after an interrupted rebuild, create
@@ -87,7 +88,15 @@ previous layout:
 ```powershell
 cmake --build .\build\windows --config Release --target opendungeons-plus --clean-first --parallel 4
 if ($LASTEXITCODE -ne 0) { throw 'Clean Release game build failed' }
+& .\scripts\win32\prepare-windows-runtime.ps1
 ```
+
+Keep the game and its error dialogs closed while preparing the runtime. CMake
+can regenerate `resources.cfg` during a build and restore paths that do not exist
+in this local Windows installation. Run runtime preparation after the successful
+Release build, including a clean build, before handing the executable to the user.
+The September 5 GUI-scaling startup failure from this omitted step is recorded in
+[startup fixes](WINDOWS-STARTUP-FIXES.md#resource-path-regression-after-the-gui-scaling-clean-build).
 
 For Debug instead:
 

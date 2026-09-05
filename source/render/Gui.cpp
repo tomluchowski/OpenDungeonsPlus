@@ -296,10 +296,11 @@ void Gui::applyScale(const CEGUI::Sizef& displaySize)
         displaySize.d_height / LAYOUT_DESIGN_HEIGHT);
     const float scale = resolutionScale * mUserScale;
 
+    updateResourceScaling(displaySize);
+
     for(const auto& scaledWindow : mScaledWindows)
         applyScale(scaledWindow.first, scaledWindow.second, scale);
 
-    updateResourceScaling(displaySize);
     CEGUI::System::getSingleton().getDefaultGUIContext().markAsDirty();
 }
 

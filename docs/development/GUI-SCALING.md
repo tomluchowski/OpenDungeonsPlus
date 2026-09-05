@@ -68,10 +68,98 @@ clean Release rebuild of the corrected fork-based branch regenerated every
 object file and completed successfully. After switching branches that change C++
 class layouts, rebuild this target with `--clean-first` before runtime testing.
 
+The corrected branch's clean build regenerated `resources.cfg` with nonexistent
+OGRE media paths. The user's 23:21:36 startup on September 5, 2026 then failed
+while initializing CEGUI because `OgreUnifiedShader.h` could not be opened in
+`OgreInternal`. Running the existing Windows runtime preparation script restored
+the installed media paths; the executable was not changed. All configured
+resource directories exist, and the existing isolated OGRE resource probe passes.
+The user's subsequent run reached the main-menu scene at 23:27:27 and shut down
+normally at 23:28:32; the user confirmed startup and reported the settings defects
+described below. See the
+[failure record](WINDOWS-STARTUP-FIXES.md#resource-path-regression-after-the-gui-scaling-clean-build)
+and the updated [Release build commands](BUILDING.md#3-build-the-game).
+
 All 39 CEGUI layout files parse as XML. Static bounds checks cover the main
 menu, top HUD, bottom action tabs, Settings and Skill Tree at 800 x 660,
 1920 x 1080 and 3840 x 2160 with 80%, 100% and 120% UI scale; all nine
-size-and-scale combinations fit their available areas.
+size-and-scale combinations fit their outer available areas. These checks did not
+verify nested font metrics, input handling or renderer clipping and therefore did
+not detect the user's subsequent settings failures.
+
+## Settings geometry and clipping correction
+
+On September 5, 2026, the user reported shifted settings controls, mouse interaction
+that did not follow the displayed interface and a covered confirmation button.
+The source trace and an isolated CEGUI probe identified these causes:
+
+- `Gui::applyScale` resized controls before updating the fonts and skin images.
+  The combobox skin derives its edit field and arrow dimensions from the font.
+  At 3440 x 1440, the field stayed 58 pixels high when changing to 120% instead
+  of growing to 70 pixels; switching to 80% then left it 70 pixels high instead
+  of 47. Updating font and image metrics before applying window geometry fixes
+  this one-change lag, including the generated child controls and their targets.
+- Fixed settings labels were shorter than their scaled fonts, the title and tab
+  strip overlapped, the dynamic-shadow checkbox extended past the page, and
+  dynamically generated renderer option fields overlapped the following row.
+  The settings layout now provides sufficient text height and row spacing,
+  including the nickname field's existing padding, and keeps the title, tabs,
+  page content and footer separate. No settings values or behavior were removed.
+- The installed CEGUI Ogre renderer explicitly disabled scissor clipping for
+  every batch. CEGUI still generated vertices outside the scrollable page while
+  hit testing correctly clipped those controls. At 100%, one off-page option
+  had geometry from y=1076 to y=1134 over the Apply button at y=1086 to y=1142,
+  despite having an empty clip rectangle. This explains the visible control
+  covering a different clickable target. The maintained
+  [CEGUI clipping patch](../../scripts/win32/patches/cegui-ogre-clipping.patch)
+  restores each batch's clipping flag; the existing prerequisite installer
+  applies it before building the library.
+
+### Verification and limits
+
+The local probe uses the installed CEGUI library and its NullRenderer, without a
+game window or GPU renderer. Its generator takes the actual scaling methods,
+settings layout and dynamic option geometry from the selected repository state;
+it substitutes only the game/renderer initialization and a representative set of
+ten two-choice renderer options. The comparison against commit `1822217e` fails;
+the corrected state passes with no failed assertions.
+
+It covers 3440 x 1440, 800 x 660, 1920 x 1080 and 3840 x 2160, each with the
+sequence 100% -> 120% -> 80% -> 100%. Checks cover all four settings pages,
+font/field heights, renderer option row separation, title/tab and page/footer
+bounds, absence of unnecessary horizontal scrolling, scrollbar and slider
+tracking, dragging the dialog, and Apply/UI-scale hit targets after dragging.
+The separate geometry capture proves that scissor clipping is required; this
+NullRenderer test does not verify the patched OpenGL output on the GPU.
+
+Evidence under `build/windows`:
+
+- `generate-settings-scale-probe.py` and `build-settings-scale-probe.ps1`: the
+  reproducible isolated probe; pass `--baseline` to the build script for the
+  comparison with commit `1822217e`.
+- `settings-scale-geometry-before.log`: generated vertices beyond page clipping.
+- `settings-scale-regression-before.log` and `settings-scale-regression-after.log`:
+  failing and passing assertions, respectively.
+- `game-Release-settings-scaling-fix.log`: successful Release rebuild; the EXE
+  was updated at 23:39:49 on September 5, 2026.
+
+The patched CEGUI library built and installed successfully in Release and Debug.
+Runtime preparation then staged the Release DLL beside the executable; its
+SHA-256 matches the installed source. Library logs are in `od-deps/logs` as
+`cegui-Release.log` and `cegui-Debug.log`. The Debug game executable was not
+rebuilt for these GUI corrections.
+
+The user subsequently confirmed that the reported settings problems are fixed
+and requested a commit. The updated game's 23:47:28 run loaded the main-menu
+scene, entered a game map at 23:47:47 and followed the normal shutdown path at
+23:48:31. That log is preserved as
+`build/windows/settings-scaling-user-confirmed-game.log`. This records acceptance
+of the reported settings corrections; the complete menu/HUD/dialog matrix below
+has not been confirmed individually.
+
+The game version remains 0.7.1 because this is an unreleased correction. The root
+README already links the maintained development, build and startup guides; no
+additional README change or separate release changelog entry is needed.
 
 ## Manual verification
 

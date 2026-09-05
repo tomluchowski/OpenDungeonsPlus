@@ -1,5 +1,18 @@
 # Windows development environment
 
+For the current `feature/gui-scaling` work, the September 5 clean Release build
+succeeded, but CMake regeneration restored invalid runtime resource paths.
+The existing runtime preparation script corrected them at 23:23:55; the isolated
+OGRE resource probe passes, and the user confirmed startup in the 23:27 run.
+The subsequent settings report exposed stale font-dependent control geometry,
+overlapping rows and disabled renderer clipping. Those corrections passed the
+isolated settings probe; the Release game was rebuilt at 23:39:49 and the CEGUI
+clipping correction was built in Release and Debug, installed and staged for
+Release testing. The user subsequently confirmed that the reported settings
+problems are fixed; the complete GUI verification matrix has not been confirmed
+individually. See [GUI scaling](GUI-SCALING.md) and the
+[startup failure record](WINDOWS-STARTUP-FIXES.md#resource-path-regression-after-the-gui-scaling-clean-build).
+
 The current settings work is on `feature/live-settings`; see
 [LIVE-SETTINGS.md](LIVE-SETTINGS.md) for changes and verification after the
 Windows-support baseline described below.
