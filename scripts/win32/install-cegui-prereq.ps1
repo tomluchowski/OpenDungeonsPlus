@@ -1,6 +1,15 @@
 $ErrorActionPreference = 'Stop'
 $taskRoot = 'C:\Users\mario\od-deps'
 $taskCmake = "$taskRoot\tools\cmake-3.31.8-windows-x86_64\bin\cmake.exe"
+$taskPatch = Join-Path $PSScriptRoot 'patches/cegui-msvc-snprintf.patch'
+$ErrorActionPreference = 'Continue'
+& git -C "$taskRoot\src\cegui" apply --reverse --check $taskPatch *> $null
+if ($LASTEXITCODE -ne 0) {
+    Write-Output 'Applying CEGUI snprintf compatibility fix for modern MSVC'
+    & git -C "$taskRoot\src\cegui" apply $taskPatch
+    if ($LASTEXITCODE -ne 0) { throw 'CEGUI compatibility patch failed' }
+}
+$ErrorActionPreference = 'Stop'
 $taskOptions = @('-S', "$taskRoot\src\cegui", '-B', "$taskRoot\build\cegui",
     '-G', 'Visual Studio 17 2022', '-A', 'x64', "-DCMAKE_INSTALL_PREFIX=$taskRoot\install",
     "-DCMAKE_PREFIX_PATH=$taskRoot\install", '-DCMAKE_CXX_FLAGS=/DWIN32 /D_WINDOWS /W3 /GR /EHsc /MP4',

@@ -43,6 +43,8 @@ You will find us on the following channels:
 For this fork's local Windows setup, see the maintained
 [development environment](docs/development/WINDOWS-DEV-SETUP.md) and
 [configure/build commands](docs/development/BUILDING.md), including verified status.
+Diagnosed Windows compiler and linker failures are recorded in the
+[build fixes and validation notes](docs/development/WINDOWS-BUILD-FIXES.md).
 
 If you retrieve the source code of OpenDungeonsPlus and want to have a go at
 building it yourself, have a look at platform-specific build instructions
