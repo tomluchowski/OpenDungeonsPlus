@@ -55,9 +55,10 @@ progressive edge scrolling looks much better and that the reported control issue
 is fixed. The runtime logs contain no unhandled exception for that test run and
 end with normal engine shutdown.
 
-The follow-up suppression of edge scrolling over the bottom navigation, minimap
-and top navigation has been implemented and compiled. Manual in-game verification
-of these three GUI areas is pending.
+The user then tested the follow-up suppression in the Release executable and
+confirmed that interaction with the bottom navigation, minimap and top navigation
+looks good without unwanted edge scrolling. The same run entered gameplay and
+ended with normal OGRE shutdown without an unhandled exception.
 
 The project version remains 0.7.1 because this feature branch does not define a
 release. The release notes are therefore unchanged, and the README has no
