@@ -440,29 +440,6 @@ bool GameMode::mouseMoved(const OIS::MouseEvent &arg)
     if(tileClicked == nullptr)
         return true;
 
-    Creature* closestCreature = tileClicked->getClosestCreature(inputManager.mCreatureTypeForOutliner);
-
-
-    
-    
-    if(closestCreature != nullptr)
-    {
-        if(closestCreature != inputManager.mHighlightedCreature)
-        {
-            if(inputManager.mHighlightedCreature != nullptr)
-            {
-                inputManager.mHighlightedCreature->normalizeAmbient();
-            }
-            inputManager.mHighlightedCreature = closestCreature;
-            closestCreature->maxAmbient();
-        }
-    }
-    else if(inputManager.mHighlightedCreature != nullptr)
-    {
-        inputManager.mHighlightedCreature->normalizeAmbient();
-        inputManager.mHighlightedCreature = nullptr;
-
-    }
     inputManager.mXPos = tileClicked->getX();
     inputManager.mYPos = tileClicked->getY();
     if (!inputManager.mLMouseDown)
@@ -1832,6 +1809,23 @@ void GameMode::refreshActionFeedback(float elapsed)
         {
             inputManager.mLStartDragX = inputManager.mXPos;
             inputManager.mLStartDragY = inputManager.mYPos;
+        }
+        // Empty-hand hover uses the pickup target selected by handlePlayerActionNone.
+        // Other states must also follow camera movement beneath a stationary pointer.
+        if(mPlayerSelection.getCurrentAction() != SelectedAction::none ||
+           mGameMap->getLocalPlayer()->numObjectsInHand() > 0 || mGameMap->getGamePaused())
+        {
+            Tile* hoveredTile = mGameMap->getTile(inputManager.mXPos, inputManager.mYPos);
+            Creature* creature = hoveredTile != nullptr ?
+                hoveredTile->getClosestCreature(inputManager.mCreatureTypeForOutliner) : nullptr;
+            if(inputManager.mHighlightedCreature != creature)
+            {
+                if(inputManager.mHighlightedCreature != nullptr)
+                    inputManager.mHighlightedCreature->normalizeAmbient();
+                inputManager.mHighlightedCreature = creature;
+                if(creature != nullptr)
+                    creature->maxAmbient();
+            }
         }
         // A release leaves validated in the input manager: a frame must never repeat it.
         const InputCommandState previousState = inputManager.mCommandState;
