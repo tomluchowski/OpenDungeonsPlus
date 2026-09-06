@@ -37,6 +37,8 @@
 
 #include <SFML/Audio/Listener.hpp>
 
+#include <algorithm>
+
 SettingsWindow::SettingsWindow(CEGUI::Window* rootWindow):
     mSettingsWindow(nullptr),
     mApplyWindow(nullptr),
@@ -365,6 +367,11 @@ void SettingsWindow::initConfig()
         // If the option is immutable, we can't change it and shouldn't see it. (at least for now)
         if (config.immutable || config.possibleValues.empty())
             continue;
+
+        // OGRE may repeat colour depths for different fullscreen refresh rates.
+        std::sort(config.possibleValues.begin(), config.possibleValues.end());
+        config.possibleValues.erase(std::unique(config.possibleValues.begin(), config.possibleValues.end()),
+                                   config.possibleValues.end());
 
         // The text next to the combobox
         CEGUI::DefaultWindow* videoCbText = static_cast<CEGUI::DefaultWindow*>(videoTab->createChild("OD/StaticText", optionName + "_Text"));
