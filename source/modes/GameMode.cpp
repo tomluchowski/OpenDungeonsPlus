@@ -934,8 +934,14 @@ bool GameMode::keyPressedNormal(const OIS::KeyEvent &arg)
         break;
     }
 
-    // Quit the game
+    // Close Options before considering a new exit confirmation.
     case OIS::KC_ESCAPE:
+        if(mRootWindow->getChild("GameOptionsWindow")->isVisible() &&
+           !mRootWindow->getChild(Gui::EXIT_CONFIRMATION_POPUP)->isVisible())
+        {
+            hideOptionsWindow();
+            break;
+        }
         mExitToDesktop = false;
         popupExit(!mGameMap->getGamePaused());
         break;
