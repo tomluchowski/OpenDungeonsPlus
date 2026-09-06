@@ -605,7 +605,21 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
             if(tile == nullptr)
                 break;
 
-            gameMap->getLocalPlayer()->dropHand(tile);
+            unsigned int index = 0;
+            // A reply may arrive after another local rotation or pickup.
+            if(!packetReceived.endOfPacket())
+            {
+                int32_t entityType;
+                std::string entityName;
+                if(!(packetReceived >> entityType >> entityName))
+                {
+                    OD_LOG_ERR("Incomplete dropped entity identity");
+                    break;
+                }
+                index = gameMap->getLocalPlayer()->getHandIndex(
+                    static_cast<GameEntityType>(entityType), entityName);
+            }
+            gameMap->getLocalPlayer()->dropHand(tile, index);
             break;
         }
         case ServerNotificationType::entityTeleported:

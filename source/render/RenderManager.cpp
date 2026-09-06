@@ -1701,15 +1701,7 @@ void RenderManager::rrOrderHand(Player* localPlayer)
 
 void RenderManager::rrRotateHand(Player* localPlayer)
 {
-    // Loop over the creatures in our hand and redraw each of them in their new location.
-    int i = 0;
-    const std::vector<GameEntity*>& objectsInHand = localPlayer->getObjectsInHand();
-    for (GameEntity* tmpEntity : objectsInHand)
-    {
-        Ogre::SceneNode* tmpEntityNode = mSceneManager->getSceneNode(tmpEntity->getOgreNamePrefix() + tmpEntity->getName() + "_node");
-        tmpEntityNode->setPosition(static_cast<Ogre::Real>(i % 6 + 1), static_cast<Ogre::Real>(i / 6), static_cast<Ogre::Real>(0.0));
-        ++i;
-    }
+    rrOrderHand(localPlayer);
 }
 
 void RenderManager::rrPitchAroundAxis(RenderedMovableEntity* renderedmovableGameEntity, Ogre::Degree dd)

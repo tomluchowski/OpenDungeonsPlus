@@ -643,6 +643,8 @@ bool GameMode::mousePressed(const OIS::MouseEvent& arg, OIS::MouseButtonID id)
                     ClientNotification *clientNotification = new ClientNotification(
                         ClientNotificationType::askHandDrop);
                     mGameMap->tileToPacket(clientNotification->mPacket, curTile);
+                    GameEntity* entity = mGameMap->getLocalPlayer()->getObjectsInHand().front();
+                    clientNotification->mPacket << entity->getObjectType() << entity->getName();
                     ODClient::getSingleton().queueClientNotification(clientNotification);
                 }
 

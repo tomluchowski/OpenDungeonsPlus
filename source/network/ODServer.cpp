@@ -1305,14 +1305,27 @@ bool ODServer::processClientNotifications(ODSocketClient* clientSocket)
                     + " send wrong tile");
                 break;
             }
-            if(!player->isDropHandPossible(tile, 0))
+            unsigned int index = 0;
+            // Old clients identify only the tile. New clients identify the held object too.
+            if(!packetReceived.endOfPacket())
+            {
+                int32_t entityType;
+                std::string entityName;
+                if(!(packetReceived >> entityType >> entityName))
+                {
+                    OD_LOG_ERR("Incomplete hand drop identity");
+                    break;
+                }
+                index = player->getHandIndex(static_cast<GameEntityType>(entityType), entityName);
+            }
+            if(!player->isDropHandPossible(tile, index))
             {
                 OD_LOG_ERR("player seatId=" + Helper::toString(player->getSeat()->getId())
                     + " could not drop entity in hand on tile "
                     + Tile::displayAsString(tile));
                 break;
             }
-            player->dropHand(tile, 0);
+            player->dropHand(tile, index);
             break;
         }
 
