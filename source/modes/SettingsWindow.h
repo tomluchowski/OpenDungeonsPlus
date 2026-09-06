@@ -52,7 +52,6 @@ public:
     //! \brief Called when pushing the cancel button on the settings window.
     bool onCancelSettings(const CEGUI::EventArgs& e = {});
 
-    void onTriggerDynamicShadows(const CEGUI::EventArgs& );
 private:
     //! \brief Vector of cegui event bindings to be cleared on exiting the mode
     std::vector<CEGUI::Event::Connection> mEventConnections;
@@ -73,8 +72,8 @@ private:
     //! \brief Set the different widget values according to current config.
     void initConfig();
 
-    //! \brief Save the config, potentially stopping the application if it needs to.
-    void saveConfig();
+    //! \brief Save and apply the config. Returns false if a selected value could not be applied.
+    bool saveConfig();
 
     //! \brief Adds an event binding to be cleared on exiting the mode.
     inline void addEventConnection(CEGUI::Event::Connection conn)
@@ -105,7 +104,6 @@ private:
     void setLightFactorValue(float lightFactor);
     void setPanSpeedValue(float panSpeedPercent);
 
-    bool dynamicShadowsChanged;
 };
 
 #endif // SETTINGSWINDOW_H
