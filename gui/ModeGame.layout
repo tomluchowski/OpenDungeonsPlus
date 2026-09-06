@@ -111,7 +111,7 @@
             <Property name="Visible" value="True" />
         </Window>
     <Window type="OD/ImageButton" name="PanelToggleButton" >
-            <Property name="Area" value="{{0,400},{1,-184},{0,448},{1,-132}}" />
+            <Property name="Area" value="{{0,400},{1,-184},{0,452},{1,-132}}" />
             <Property name="ButtonImage" value="OpenDungeonsSkin/TabButtonScrollLeftNormal" />
             <Property name="TooltipText" value="Hide / show control panel (G)" />
         </Window>
