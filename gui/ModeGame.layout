@@ -113,6 +113,13 @@
             <Property name="AlwaysOnTop" value="True" />
             <Property name="TooltipText" value="Query: select, then click a creature to view its information" />
         </Window>
+        <Window type="OD/GameTabButton" name="SellButton" >
+            <UserString name="AllowEdgeScrolling" value="true" />
+            <Property name="Area" value="{{0,140},{1,-184},{0,184},{1,-140}}" />
+            <Property name="NormalImage" value="OpenDungeonsIcons/GoldCoin" />
+            <Property name="AlwaysOnTop" value="True" />
+            <Property name="TooltipText" value="Sell: select, then click a room tile, trap or door" />
+        </Window>
     <Window type="OD/ImageButton" name="ObjectivesButton" >
             <UserString name="AllowEdgeScrolling" value="true" />
             <Property name="Area" value="{{0,452},{1,-184},{0,504},{1,-132}}" />

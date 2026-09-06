@@ -303,6 +303,8 @@ private:
     bool toggleQuery(const CEGUI::EventArgs& e);
     GameEntity* getQueryTarget(Tile* tile) const;
     void handlePlayerActionQuery();
+    bool toggleSell(const CEGUI::EventArgs& e);
+    void handlePlayerActionSell();
     void updateSelectedTiles();
 
     //! \brief Builds the player settings window

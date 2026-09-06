@@ -124,6 +124,8 @@ GameMode::GameMode(ModeManager *modeManager):
 
     addEventConnection(guiSheet->getChild("QueryButton")->subscribeEvent(
         CEGUI::PushButton::EventClicked, CEGUI::Event::Subscriber(&GameMode::toggleQuery, this)));
+    addEventConnection(guiSheet->getChild("SellButton")->subscribeEvent(
+        CEGUI::PushButton::EventClicked, CEGUI::Event::Subscriber(&GameMode::toggleSell, this)));
     addEventConnection(guiSheet->getChild("PanelToggleButton")->subscribeEvent(
         CEGUI::PushButton::EventClicked, CEGUI::Event::Subscriber(&GameMode::toggleControlPanel, this)));
     addEventConnection(guiSheet->getChild("EventsButton")->subscribeEvent(
@@ -2039,6 +2041,9 @@ void GameMode::checkInputCommand()
         case SelectedAction::queryEntity:
             handlePlayerActionQuery();
             break;
+        case SelectedAction::sellBuilding:
+            handlePlayerActionSell();
+            break;
         default:
             break;
     }
@@ -2060,6 +2065,32 @@ bool GameMode::toggleQuery(const CEGUI::EventArgs& e)
         SelectedAction::none : SelectedAction::queryEntity);
     unselectAllTiles();
     return true;
+}
+
+bool GameMode::toggleSell(const CEGUI::EventArgs& e)
+{
+    if(!isConnected() || mGameMap->getGamePaused())
+        return true;
+
+    InputManager& inputManager = mModeManager->getInputManager();
+    inputManager.mLMouseDown = false;
+    inputManager.mCommandState = InputCommandState::infoOnly;
+    mPlayerSelection.setCurrentAction(mPlayerSelection.getCurrentAction() == SelectedAction::sellBuilding ?
+        SelectedAction::none : SelectedAction::sellBuilding);
+    unselectAllTiles();
+    return true;
+}
+
+void GameMode::handlePlayerActionSell()
+{
+    const InputManager& inputManager = mModeManager->getInputManager();
+    Tile* tile = mGameMap->getTile(inputManager.mXPos, inputManager.mYPos);
+    if(tile != nullptr && tile->getIsTrap())
+        TrapManager::checkSellTrapTiles(mGameMap, inputManager, *this, {tile});
+    else if(tile != nullptr && tile->getIsRoom())
+        RoomManager::checkSellRoomTiles(mGameMap, inputManager, *this, {tile});
+    else
+        displayText(Ogre::ColourValue::Red, "Select a room, trap or door owned by you to sell.");
 }
 
 GameEntity* GameMode::getQueryTarget(Tile* tile) const
