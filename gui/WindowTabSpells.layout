@@ -3,7 +3,7 @@
 <GUILayout version="4" >
     <Window type="DefaultWindow" name="Spells" >
         <Property name="Area" value="{{0,0},{0,0},{1,0},{1,0}}" />
-        <Property name="Text" value="[image-size='w:32 h:32'][image='OpenDungeonsIcons/SpellsButton']" />
+        <Property name="Text" value="[image-size='w:40 h:40'][image='OpenDungeonsIcons/SpellsButton']" />
         <Property name="TooltipText" value="Spells" />
         <Property name="MaxSize" value="{{1,0},{1,0}}" />
         <Property name="Visible" value="False" />
@@ -13,7 +13,7 @@
              which is only window width - 200 wide, at anything close to the
              minimum window size. -->
         <Window type="OD/GameTabButton" name="SummonWorkerButton" >
-            <Property name="Area" value="{{0,100},{0,10},{0,140},{0,50}}" />
+            <Property name="Area" value="{{0,20},{0,6},{0,72},{0,58}}" />
             <Property name="NormalImage" value="OpenDungeonsIcons/SummonWorkerButton" />
             <Property name="TooltipText" value="Summon a worker" />
             <Property name="InheritsAlpha" value="False" />
@@ -31,7 +31,7 @@
             </Window>
         </Window>
         <Window type="OD/GameTabButton" name="CallToWarButton" >
-            <Property name="Area" value="{{0,140},{0,10},{0,180},{0,50}}" />
+            <Property name="Area" value="{{0,76},{0,6},{0,128},{0,58}}" />
             <Property name="NormalImage" value="OpenDungeonsIcons/CallToWarButton" />
             <Property name="TooltipText" value="Casts a spell that calls available creatures" />
             <Property name="InheritsAlpha" value="False" />
@@ -49,7 +49,7 @@
             </Window>
         </Window>
         <Window type="OD/GameTabButton" name="CreatureHealButton" >
-            <Property name="Area" value="{{0,180},{0,10},{0,220},{0,50}}" />
+            <Property name="Area" value="{{0,132},{0,6},{0,184},{0,58}}" />
             <Property name="NormalImage" value="OpenDungeonsIcons/CreatureHealButton" />
             <Property name="TooltipText" value="Casts a spell that heals owned creatures on allied tiles" />
             <Property name="InheritsAlpha" value="False" />
@@ -67,7 +67,7 @@
             </Window>
         </Window>
         <Window type="OD/GameTabButton" name="CreatureExplosionButton" >
-            <Property name="Area" value="{{0,220},{0,10},{0,260},{0,50}}" />
+            <Property name="Area" value="{{0,188},{0,6},{0,240},{0,58}}" />
             <Property name="NormalImage" value="OpenDungeonsIcons/CreatureExplosionButton" />
             <Property name="TooltipText" value="Casts a spell that damages enemy creatures on allied tiles" />
             <Property name="InheritsAlpha" value="False" />
@@ -85,7 +85,7 @@
             </Window>
         </Window>
         <Window type="OD/GameTabButton" name="CreatureHasteButton" >
-            <Property name="Area" value="{{0,260},{0,10},{0,300},{0,50}}" />
+            <Property name="Area" value="{{0,244},{0,6},{0,296},{0,58}}" />
             <Property name="NormalImage" value="OpenDungeonsIcons/CreatureHasteButton" />
             <Property name="TooltipText" value="Increases, target speed. Target: friendly creatures on claimed tiles" />
             <Property name="InheritsAlpha" value="False" />
@@ -103,7 +103,7 @@
             </Window>
         </Window>
         <Window type="OD/GameTabButton" name="CreatureDefenseButton" >
-            <Property name="Area" value="{{0,100},{0,50},{0,140},{0,90}}" />
+            <Property name="Area" value="{{0,300},{0,6},{0,352},{0,58}}" />
             <Property name="NormalImage" value="OpenDungeonsIcons/CreatureDefenseButton" />
             <Property name="TooltipText" value="Increases target physical defense. Target: friendly creatures on claimed tiles" />
             <Property name="InheritsAlpha" value="False" />
@@ -121,7 +121,7 @@
             </Window>
         </Window>
         <Window type="OD/GameTabButton" name="CreatureSlowButton" >
-            <Property name="Area" value="{{0,140},{0,50},{0,180},{0,90}}" />
+            <Property name="Area" value="{{0,356},{0,6},{0,408},{0,58}}" />
             <Property name="NormalImage" value="OpenDungeonsIcons/CreatureSlowButton" />
             <Property name="TooltipText" value="Decrease target speed. Target: enemy creatures on claimed tiles" />
             <Property name="InheritsAlpha" value="False" />
@@ -139,7 +139,7 @@
             </Window>
         </Window>
         <Window type="OD/GameTabButton" name="CreatureStrengthButton" >
-            <Property name="Area" value="{{0,180},{0,50},{0,220},{0,90}}" />
+            <Property name="Area" value="{{0,412},{0,6},{0,464},{0,58}}" />
             <Property name="NormalImage" value="OpenDungeonsIcons/CreatureStrengthButton" />
             <Property name="TooltipText" value="Increase target strength. Target: allied creatures on claimed tiles" />
             <Property name="InheritsAlpha" value="False" />
@@ -157,7 +157,7 @@
             </Window>
         </Window>
         <Window type="OD/GameTabButton" name="CreatureWeakButton" >
-            <Property name="Area" value="{{0,220},{0,50},{0,260},{0,90}}" />
+            <Property name="Area" value="{{0,468},{0,6},{0,520},{0,58}}" />
             <Property name="NormalImage" value="OpenDungeonsIcons/CreatureWeakButton" />
             <Property name="TooltipText" value="Decrease target strength. Target: enemy creatures on claimed tiles" />
             <Property name="InheritsAlpha" value="False" />
@@ -175,7 +175,7 @@
             </Window>
         </Window>
         <Window type="OD/GameTabButton" name="SpellEyeEvilButton" >
-            <Property name="Area" value="{{0,260},{0,50},{0,300},{0,90}}" />
+            <Property name="Area" value="{{0,20},{0,62},{0,72},{0,114}}" />
             <Property name="NormalImage" value="OpenDungeonsIcons/SpellEyeEvilButton" />
             <Property name="TooltipText" value="Temporary gives vision on tiles without vision. Target: any tile" />
             <Property name="InheritsAlpha" value="False" />

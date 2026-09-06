@@ -2,17 +2,18 @@
 
 <GUILayout version="4" >
     <Window type="DefaultWindow" name="Root" >
-        <Property name="Area" value="{{0,-1},{0,-1},{1,-1},{1,-1}}" />
+            <Property name="Font" value="MedievalSharp-10" />
+        <Property name="Area" value="{{0,0},{0,0},{1,0},{1,0}}" />
         <Property name="MaxSize" value="{{1,0},{1,0}}" />
         <Window type="OD/StaticImage" name="HorizontalPipe" >
-            <Property name="Area" value="{{0,0},{0,11},{1,0},{0,23}}" />
+            <Property name="Area" value="{{0,0},{0,0},{1,0},{0,48}}" />
             <Property name="Image" value="OpenDungeonsSkin/HorizontalPipe" />
             <Property name="MaxSize" value="{{1,0},{1,0}}" />
             <Property name="FrameEnabled" value="False" />
             <Property name="BackgroundEnabled" value="False" />
             <Property name="HorzFormatting" value="Tiled" />
             <Window type="OD/StaticText" name="GoldDisplay" >
-                <Property name="Area" value="{{0,5},{0,0},{0,150},{0,24}}" />
+                <Property name="Area" value="{{0,204},{0,2},{0,400},{0,44}}" />
                 <Property name="Text" value="0" />
                 <Property name="MaxSize" value="{{1,0},{1,0}}" />
                 <Property name="TooltipText" value="Your Gold" />
@@ -32,7 +33,7 @@
                 </Window>
             </Window>
             <Window type="OD/StaticText" name="ManaDisplay" >
-                <Property name="Area" value="{{0,155},{0,0},{0,285},{0,24}}" />
+                <Property name="Area" value="{{0,4},{0,2},{0,200},{0,44}}" />
                 <Property name="Text" value="0" />
                 <Property name="MaxSize" value="{{1,0},{1,0}}" />
                 <Property name="TooltipText" value="Your Mana" />
@@ -51,94 +52,24 @@
                     <Property name="VerticalAlignment" value="Centre" />
                 </Window>
             </Window>
-            <Window type="OD/StaticText" name="TerritoryDisplay" >
-                <Property name="Area" value="{{0,290},{0,0},{0,420},{0,24}}" />
-                <Property name="Text" value="0" />
-                <Property name="MaxSize" value="{{1,0},{1,0}}" />
-                <Property name="TooltipText" value="Your claimed territory" />
-                <Property name="HorzFormatting" value="RightAligned" />
-                <Property name="ClippedByParent" value="False" />
-                <Property name="VerticalAlignment" value="Centre" />
-                <Window type="OD/StaticImage" name="Icon" >
-                    <Property name="Area" value="{{0,0},{0,0},{0,30},{0,30}}" />
-                    <Property name="Image" value="OpenDungeonsIcons/TerritoryIcon" />
-                    <Property name="MaxSize" value="{{1,0},{1,0}}" />
-                    <Property name="AlwaysOnTop" value="True" />
-                    <Property name="TooltipText" value="Your claimed territory" />
-                    <Property name="FrameEnabled" value="False" />
-                    <Property name="ClippedByParent" value="False" />
-                    <Property name="BackgroundEnabled" value="False" />
-                    <Property name="VerticalAlignment" value="Centre" />
-                </Window>
-            </Window>
-	    <Window type="OD/StaticText" name="CreaturesDisplay" >
-                <Property name="Area" value="{{0,425},{0,0},{0,555},{0,24}}" />
-                <Property name="Text" value="0" />
-                <Property name="MaxSize" value="{{1,0},{1,0}}" />
-                <Property name="TooltipText" value="Your creatures pool" />
-                <Property name="HorzFormatting" value="RightAligned" />
-                <Property name="ClippedByParent" value="False" />
-                <Property name="VerticalAlignment" value="Centre" />
-                <Window type="OD/StaticImage" name="Icon" >
-                    <Property name="Area" value="{{0,0},{0,0},{0,30},{0,30}}" />
-                    <Property name="Image" value="OpenDungeonsIcons/CreaturesIcon" />
-                    <Property name="MaxSize" value="{{1,0},{1,0}}" />
-                    <Property name="AlwaysOnTop" value="True" />
-                    <Property name="TooltipText" value="Your creatures pool" />
-                    <Property name="FrameEnabled" value="False" />
-                    <Property name="ClippedByParent" value="False" />
-                    <Property name="BackgroundEnabled" value="False" />
-                    <Property name="VerticalAlignment" value="Centre" />
-                </Window>
-            </Window>
+
+
         </Window>
-        <Window type="OD/ImageButton" name="HelpButton" >
-            <Property name="Area" value="{{1,-53},{0,5},{1,-28},{0,30}}" />
-            <Property name="ButtonImage" value="OpenDungeonsIcons/HelpIcon" />
-            <Property name="AlwaysOnTop" value="True" />
-            <Property name="TooltipText" value="Help (F1)" />
-            <Property name="ClippedByParent" value="False" />
-            <Property name="Visible" value="True" />
-        </Window>
-        <Window type="OD/ImageButton" name="OptionsButton" >
-            <Property name="Area" value="{{1,-27},{0,5},{1,-2},{0,30}}" />
-            <Property name="ButtonImage" value="OpenDungeonsIcons/OptionsIcon" />
-            <Property name="AlwaysOnTop" value="True" />
-            <Property name="TooltipText" value="Options (F10)" />
-            <Property name="ClippedByParent" value="False" />
-            <Property name="Visible" value="True" />
-        </Window>
-        <Window type="OD/ImageButton" name="SkillButton" >
-            <Property name="Area" value="{{1,-232},{1,-202},{1,-202},{1,-172}}" />
-            <Property name="ButtonImage" value="OpenDungeonsIcons/SkillIcon" />
-            <Property name="AlwaysOnTop" value="True" />
-            <Property name="TooltipText" value="Skill (F4)" />
-            <Property name="ClippedByParent" value="False" />
-            <Property name="Visible" value="True" />
-        </Window>
-        <Window type="OD/ImageButton" name="ObjectivesButton" >
-            <Property name="Area" value="{{1,-232},{1,-171},{1,-202},{1,-141}}" />
-            <Property name="ButtonImage" value="OpenDungeonsIcons/ObjectivesIcon" />
-            <Property name="AlwaysOnTop" value="True" />
-            <Property name="TooltipText" value="Objectives (F3)" />
-            <Property name="ClippedByParent" value="False" />
-            <Property name="Visible" value="True" />
-        </Window>
-        <Window type="OD/ImageButton" name="PlayerSettingsButton" >
-            <Property name="Area" value="{{1,-232},{1,-140},{1,-202},{1,-110}}" />
-            <Property name="ButtonImage" value="OpenDungeonsIcons/HammerAnvilIcon" />
-            <Property name="AlwaysOnTop" value="True" />
-            <Property name="TooltipText" value="Player settings (F2)" />
-            <Property name="ClippedByParent" value="False" />
-            <Property name="Visible" value="True" />
-        </Window>
+
+
+
+
+
         <Window type="OD/StaticImage" name="MiniMap" >
-            <Property name="Area" value="{{1,-201},{1,-202},{1,-1},{1,-2}}" />
+            <Property name="BackgroundEnabled" value="False" />
+            <Property name="FrameEnabled" value="False" />
+            <Property name="Area" value="{{0,8},{1,-184},{0,184},{1,-8}}" />
             <Property name="MaxSize" value="{{1,0},{1,0}}" />
             <Property name="AlwaysOnTop" value="True" />
+        <UserString name="Circular" value="true" />
         </Window>
         <Window type="OD/StaticText" name="ActionFeedback" >
-            <Property name="Area" value="{{0,4},{1,-225},{1,-204},{1,-135}}" />
+            <Property name="Area" value="{{0,188},{1,-278},{1,-4},{1,-188}}" />
             <Property name="MousePassThroughEnabled" value="True" />
             <Property name="RiseOnClickEnabled" value="False" />
             <Property name="TextParsingEnabled" value="False" />
@@ -147,13 +78,14 @@
             <Property name="Text" value="Dig: left-drag walls to mark or unmark them." />
         </Window>
         <Window type="OD/TabControl" name="MainTabControl" >
-            <Property name="Area" value="{{0,0},{1,-133},{1,-200},{1,0}}" />
-            <Property name="TabHeight" value="{0,35}" />
+            <Property name="TabTextPadding" value="{0,6}" />
+            <Property name="Area" value="{{0,188},{1,-184},{1,0},{1,0}}" />
+            <Property name="TabHeight" value="{0,52}" />
             <Property name="RiseOnClickEnabled" value="False" />
-            <LayoutImport type="DefaultWindow" filename="WindowTabRooms.layout" name="RoomsImport" />
-            <LayoutImport type="DefaultWindow" filename="WindowTabTraps.layout" name="TrapsImport" />
-            <LayoutImport type="DefaultWindow" filename="WindowTabSpells.layout" name="SpellImport" />
             <LayoutImport type="DefaultWindow" filename="WindowTabCreatures.layout" name="CreaturesImport" />
+            <LayoutImport type="DefaultWindow" filename="WindowTabRooms.layout" name="RoomsImport" />
+            <LayoutImport type="DefaultWindow" filename="WindowTabSpells.layout" name="SpellImport" />
+            <LayoutImport type="DefaultWindow" filename="WindowTabTraps.layout" name="TrapsImport" />
         </Window>
         <LayoutImport type="DefaultWindow" filename="WindowQuit.layout" name="QuitMenuImport" />
         <LayoutImport type="DefaultWindow" filename="WindowPlayerSettings.layout" name="PlayerSettingsWindowImport" />
@@ -163,5 +95,39 @@
         <LayoutImport type="DefaultWindow" filename="WindowEvent.layout" name="EventWindowImport" />
         <LayoutImport type="DefaultWindow" filename="WindowChat.layout" name="ChatWindowImport" />
         <LayoutImport type="DefaultWindow" filename="WindowHelp.layout" name="HelpWindowImport" />
+
+
+        <Window type="OD/StaticText" name="ContextInfo" >
+            <Property name="Area" value="{{0,404},{0,2},{1,-4},{0,44}}" />
+            <Property name="MousePassThroughEnabled" value="True" />
+            <Property name="TextParsingEnabled" value="False" />
+            <Property name="HorzFormatting" value="LeftAligned" />
+        </Window>
+<Window type="OD/ImageButton" name="OptionsButton" >
+            <Property name="Area" value="{{0,8},{1,-52},{0,52},{1,-8}}" />
+            <Property name="ButtonImage" value="OpenDungeonsIcons/OptionsIcon" />
+            <Property name="AlwaysOnTop" value="True" />
+            <Property name="TooltipText" value="Options (F10)" />
+            <Property name="ClippedByParent" value="False" />
+            <Property name="Visible" value="True" />
+        </Window>
+    <Window type="OD/ImageButton" name="ObjectivesButton" >
+            <Property name="Area" value="{{0,452},{1,-184},{0,504},{1,-132}}" />
+            <Property name="ButtonImage" value="OpenDungeonsIcons/ObjectivesIcon" />
+            <Property name="AlwaysOnTop" value="True" />
+            <Property name="TooltipText" value="Objectives (F3)" />
+            <Property name="ClippedByParent" value="False" />
+            <Property name="Visible" value="True" />
+        </Window>
+    <Window type="OD/ImageButton" name="PanelToggleButton" >
+            <Property name="Area" value="{{0,400},{1,-184},{0,448},{1,-132}}" />
+            <Property name="ButtonImage" value="OpenDungeonsSkin/TabButtonScrollLeftNormal" />
+            <Property name="TooltipText" value="Hide / show control panel (G)" />
+        </Window>
+    <Window type="OD/ImageButton" name="EventsButton" >
+            <Property name="Area" value="{{0,508},{1,-184},{0,560},{1,-132}}" />
+            <Property name="ButtonImage" value="OpenDungeonsIcons/HelpIcon" />
+            <Property name="TooltipText" value="Messages" />
+        </Window>
     </Window>
 </GUILayout>

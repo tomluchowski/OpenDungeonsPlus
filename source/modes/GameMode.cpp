@@ -19,6 +19,7 @@
 
 #include "camera/CameraManager.h"
 #include "entities/Creature.h"
+#include "entities/CreatureDefinition.h"
 #include "entities/GameEntityType.h"
 #include "entities/Tile.h"
 #include "game/Player.h"
@@ -111,9 +112,19 @@ GameMode::GameMode(ModeManager *modeManager):
     guiSheet->getChild(Gui::BUTTON_DESTROY_ROOM)->setProperty("SelectionColour", "00FFFFFF");
     guiSheet->getChild(Gui::BUTTON_DESTROY_TRAP)->setProperty("SelectionColour", "00FFFFFF");
 
+    addEventConnection(guiSheet->getChild("PanelToggleButton")->subscribeEvent(
+        CEGUI::PushButton::EventClicked, CEGUI::Event::Subscriber(&GameMode::toggleControlPanel, this)));
+    addEventConnection(guiSheet->getChild("EventsButton")->subscribeEvent(
+        CEGUI::PushButton::EventClicked, CEGUI::Event::Subscriber([this](const CEGUI::EventArgs&)
+        {
+            CEGUI::Window* events = mRootWindow->getChild("GameEventText");
+            events->setVisible(!events->isVisible());
+            return true;
+        })));
+
     //Help window
     addEventConnection(
-        guiSheet->getChild("HelpButton")->subscribeEvent(
+        guiSheet->getChild("GameOptionsWindow/HelpButton")->subscribeEvent(
             CEGUI::PushButton::EventClicked,
             CEGUI::Event::Subscriber(&GameMode::toggleHelpWindow, this)
         )
@@ -135,7 +146,7 @@ GameMode::GameMode(ModeManager *modeManager):
 
     //Player settings window
     addEventConnection(
-        guiSheet->getChild("PlayerSettingsButton")->subscribeEvent(
+        guiSheet->getChild("GameOptionsWindow/PlayerSettingsButton")->subscribeEvent(
             CEGUI::PushButton::EventClicked,
             CEGUI::Event::Subscriber(&GameMode::togglePlayerSettingsWindow, this)
         )
@@ -160,12 +171,6 @@ GameMode::GameMode(ModeManager *modeManager):
     );
 
     // The skill tree window
-    addEventConnection(
-        guiSheet->getChild("SkillButton")->subscribeEvent(
-            CEGUI::PushButton::EventClicked,
-            CEGUI::Event::Subscriber(&GameMode::toggleSkillWindow, this)
-        )
-    );
     addEventConnection(
         guiSheet->getChild("SkillTreeWindow")->subscribeEvent(
             CEGUI::FrameWindow::EventCloseClicked,
@@ -890,6 +895,10 @@ bool GameMode::keyPressedNormal(const OIS::KeyEvent &arg)
 
     switch (arg.key)
     {
+    case OIS::KC_G:
+        toggleControlPanel();
+        break;
+
     case OIS::KC_F1:
         toggleHelpWindow();
         break;
@@ -1080,6 +1089,15 @@ bool GameMode::keyPressedChat(const OIS::KeyEvent &arg)
     return true;
 }
 
+bool GameMode::toggleControlPanel(const CEGUI::EventArgs&)
+{
+    CEGUI::Window* tabs = mRootWindow->getChild(Gui::MAIN_TABCONTROL);
+    CEGUI::Window* content = tabs->getChild("__auto_TabPane__");
+    content->setVisible(!content->isVisible());
+    tabs->setMousePassThroughEnabled(!content->isVisible());
+    return true;
+}
+
 void GameMode::refreshMainUI()
 {
     Seat* mySeat = mGameMap->getLocalPlayer()->getSeat();
@@ -1106,6 +1124,19 @@ void GameMode::refreshMainUI()
     tempSS << mySeat->getMana() << " " << (mySeat->getManaDelta() >= 0 ? "+" : "-")
             << mySeat->getManaDelta();
     widget->setText(tempSS.str());
+    unsigned int workers = 0;
+    unsigned int fighters = 0;
+    for(Creature* creature : mGameMap->getCreaturesBySeat(mySeat))
+    {
+        if(!creature->tryPickup(mySeat))
+            continue;
+        if(creature->getDefinition()->isWorker())
+            ++workers;
+        else
+            ++fighters;
+    }
+    guiSheet->getChild(Gui::BUTTON_CREATURE_WORKER + "/Count")->setText(Helper::toString(workers));
+    guiSheet->getChild(Gui::BUTTON_CREATURE_FIGHTER + "/Count")->setText(Helper::toString(fighters));
 }
 
 void GameMode::refreshPlayerGoals(const std::string& goalsDisplayString)
@@ -1327,6 +1358,7 @@ bool GameMode::toggleObjectivesWindow(const CEGUI::EventArgs& e)
 
 bool GameMode::showPlayerSettingsWindow(const CEGUI::EventArgs&)
 {
+    mRootWindow->getChild("GameOptionsWindow")->hide();
     // Before showing the player settings, we reset to the values in the seat. That's
     // because only the server can change them and the values in the Seat are the
     // ones that should be shown
@@ -1507,6 +1539,7 @@ bool GameMode::showSettingsFromOptions(const CEGUI::EventArgs& /*e*/)
 
 bool GameMode::showHelpWindow(const CEGUI::EventArgs&)
 {
+    mRootWindow->getChild("GameOptionsWindow")->hide();
     mRootWindow->getChild("GameHelpWindow")->show();
     return true;
 }

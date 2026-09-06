@@ -22,7 +22,8 @@
 
 namespace CEGUI
 {
-class Window;
+    class Window;
+    class BasicImage;
 }
 
 class MiniMap
@@ -41,6 +42,7 @@ public:
 
     //! \brief This function will create the minimap according to user preferences
     static MiniMap* createMiniMap(CEGUI::Window* miniMapWindow);
+    static CEGUI::BasicImage& createMiniMapImage(CEGUI::Window* miniMapWindow);
 
     // Returns the list of all possible minimap types
     static const std::vector<std::string>& getMiniMapTypes();

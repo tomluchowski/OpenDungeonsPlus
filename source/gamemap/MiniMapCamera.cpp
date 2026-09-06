@@ -95,7 +95,7 @@ MiniMapCamera::MiniMapCamera(CEGUI::Window* miniMapWindow) :
     CEGUI::Texture& miniMapTextureGui = static_cast<CEGUI::OgreRenderer*>(CEGUI::System::getSingletonPtr()
                                             ->getRenderer())->createTexture("miniMapTextureGui", mMiniMapOgreTexture);
 
-    CEGUI::BasicImage& imageset = dynamic_cast<CEGUI::BasicImage&>(CEGUI::ImageManager::getSingletonPtr()->create("BasicImage", "MiniMapImageset"));
+    CEGUI::BasicImage& imageset = MiniMap::createMiniMapImage(mMiniMapWindow);
     imageset.setArea(CEGUI::Rectf(CEGUI::Vector2f(0.0, 0.0),
         CEGUI::Size<float>(static_cast<float>(TEXTURE_SIZE), static_cast<float>(TEXTURE_SIZE))));
 

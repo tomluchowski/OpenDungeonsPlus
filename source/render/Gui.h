@@ -176,6 +176,7 @@ private:
         CEGUI::USize maxSize;
         CEGUI::String text;
         CEGUI::UDim tabHeight;
+        CEGUI::UDim tabTextPadding;
         bool hasFormattedImageSize;
         bool hasTabHeight;
     };

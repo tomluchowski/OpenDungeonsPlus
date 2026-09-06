@@ -255,6 +255,7 @@ void Gui::registerWindow(CEGUI::Window* window)
         if(tabControl != nullptr)
         {
             data.tabHeight = tabControl->getTabHeight();
+            data.tabTextPadding = tabControl->getTabTextPadding();
             data.hasTabHeight = true;
         }
 
@@ -318,6 +319,9 @@ void Gui::applyScale(CEGUI::Window* window, const WindowScaleData& data, float s
         CEGUI::UDim tabHeight(data.tabHeight);
         scaleDimension(tabHeight, scale);
         static_cast<CEGUI::TabControl*>(window)->setTabHeight(tabHeight);
+        CEGUI::UDim tabTextPadding(data.tabTextPadding);
+        scaleDimension(tabTextPadding, scale);
+        static_cast<CEGUI::TabControl*>(window)->setTabTextPadding(tabTextPadding);
     }
 }
 
@@ -382,8 +386,8 @@ bool Gui::playButtonClickSound(const CEGUI::EventArgs&)
  */
 const std::string Gui::DISPLAY_GOLD = "HorizontalPipe/GoldDisplay";
 const std::string Gui::DISPLAY_MANA = "HorizontalPipe/ManaDisplay";
-const std::string Gui::DISPLAY_TERRITORY = "HorizontalPipe/TerritoryDisplay";
-const std::string Gui::DISPLAY_CREATURES = "HorizontalPipe/CreaturesDisplay";
+const std::string Gui::DISPLAY_TERRITORY = "PlayerSettingsWindow/TerritoryDisplay";
+const std::string Gui::DISPLAY_CREATURES = "PlayerSettingsWindow/CreaturesDisplay";
 const std::string Gui::MINIMAP = "MiniMap";
 const std::string Gui::OBJECTIVE_TEXT = "ObjectivesWindow/ObjectivesText";
 const std::string Gui::MAIN_TABCONTROL = "MainTabControl";

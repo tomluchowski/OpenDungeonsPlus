@@ -23,6 +23,54 @@
 #include "utils/ConfigManager.h"
 #include "utils/LogManager.h"
 
+#include <CEGUI/BasicImage.h>
+#include <CEGUI/ImageManager.h>
+#include <CEGUI/Window.h>
+#include <cmath>
+
+namespace
+{
+class CircularMiniMapImage : public CEGUI::BasicImage
+{
+public:
+    explicit CircularMiniMapImage(const CEGUI::String& name) : CEGUI::BasicImage(name) {}
+    explicit CircularMiniMapImage(const CEGUI::XMLAttributes& attributes) : CEGUI::BasicImage(attributes) {}
+
+    void render(CEGUI::GeometryBuffer& buffer, const CEGUI::Rectf& area,
+        const CEGUI::Rectf* clip, const CEGUI::ColourRect& colours) const override
+    {
+        if(area.getWidth() <= 0.0f || area.getHeight() <= 0.0f)
+            return;
+        // Clip the existing texture, preserving its coordinates and all renderer choices.
+        const float radiusX = area.getWidth() * 0.5f;
+        const float radiusY = area.getHeight() * 0.5f;
+        const float centerX = area.left() + radiusX;
+        for(float y = area.top(); y < area.bottom(); y += 1.0f)
+        {
+            const float nextY = std::min(y + 1.0f, area.bottom());
+            const float dy = ((y + nextY) * 0.5f - area.top() - radiusY) / radiusY;
+            const float halfWidth = radiusX * std::sqrt(std::max(0.0f, 1.0f - dy * dy));
+            CEGUI::Rectf strip(centerX - halfWidth, y, centerX + halfWidth, nextY);
+            if(clip != nullptr)
+                strip = strip.getIntersection(*clip);
+            if(strip.getWidth() > 0.0f && strip.getHeight() > 0.0f)
+                CEGUI::BasicImage::render(buffer, area, &strip, colours);
+        }
+    }
+};
+}
+
+CEGUI::BasicImage& MiniMap::createMiniMapImage(CEGUI::Window* miniMapWindow)
+{
+    CEGUI::ImageManager& images = CEGUI::ImageManager::getSingleton();
+    const bool circular = miniMapWindow->isUserStringDefined("Circular") &&
+        miniMapWindow->getUserString("Circular") == "true";
+    if(circular && !images.isImageTypeAvailable("CircularMiniMap"))
+        images.addImageType<CircularMiniMapImage>("CircularMiniMap");
+    return static_cast<CEGUI::BasicImage&>(images.create(
+        circular ? "CircularMiniMap" : "BasicImage", "MiniMapImageset"));
+}
+
 namespace MiniMapTypes
 {
 static const std::string MINIMAP_CAMERA = "MiniMapCamera";
