@@ -9,7 +9,7 @@
         <Property name="Visible" value="False" />
         <Property name="RiseOnClickEnabled" value="False" />
         <Window type="OD/GameTabButton" name="WorkerButton" >
-            <Property name="Area" value="{{0,20},{0,6},{0,100},{0,114}}" />
+            <Property name="Area" value="{{0,20},{0,6},{0,100},{0,86}}" />
             <Property name="NormalImage" value="OpenDungeonsIcons/WorkerButton" />
             <Property name="TooltipText" value="Add a worker in hand if available" />
             <Property name="InheritsAlpha" value="False" />
@@ -23,7 +23,7 @@
                 </Window>
             </Window>
         <Window type="OD/GameTabButton" name="FighterButton" >
-            <Property name="Area" value="{{0,108},{0,6},{0,188},{0,114}}" />
+            <Property name="Area" value="{{0,108},{0,6},{0,188},{0,86}}" />
             <Property name="NormalImage" value="OpenDungeonsIcons/FighterButton" />
             <Property name="TooltipText" value="Add a fighter in hand if available" />
             <Property name="InheritsAlpha" value="False" />
