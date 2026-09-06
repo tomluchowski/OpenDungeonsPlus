@@ -793,7 +793,8 @@ bool GameMode::mouseReleased(const OIS::MouseEvent &arg, OIS::MouseButtonID id)
 bool GameMode::keyPressed(const OIS::KeyEvent& arg)
 {
     // Inject key to Gui
-    CEGUI::System::getSingleton().getDefaultGUIContext().injectKeyDown(static_cast<CEGUI::Key::Scan>(arg.key));
+    const bool guiHandledKey = CEGUI::System::getSingleton().getDefaultGUIContext().injectKeyDown(
+        static_cast<CEGUI::Key::Scan>(arg.key));
     if (arg.text != 0 && !getConsole()->isFreshlyEnabled())
     {
         CEGUI::System::getSingleton().getDefaultGUIContext().injectChar(arg.text);
@@ -807,6 +808,8 @@ bool GameMode::keyPressed(const OIS::KeyEvent& arg)
             return getConsole()->keyPressed(arg);
         case InputModeNormal:
         default:
+            if(arg.key == OIS::KC_ESCAPE && guiHandledKey)
+                return true;
             return keyPressedNormal(arg);
     }
 }
@@ -934,8 +937,15 @@ bool GameMode::keyPressedNormal(const OIS::KeyEvent &arg)
         break;
     }
 
-    // Quit the game
+    // Close one GUI layer before considering a new exit confirmation.
     case OIS::KC_ESCAPE:
+        if(closeTopWindow())
+            break;
+        if(mRootWindow->getChild("GameEventText")->isVisible())
+        {
+            mRootWindow->getChild("GameEventText")->hide();
+            break;
+        }
         mExitToDesktop = false;
         popupExit(!mGameMap->getGamePaused());
         break;
