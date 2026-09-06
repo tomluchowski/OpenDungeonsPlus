@@ -36,7 +36,7 @@ private:
     void addSlot();
     void selectView(size_t view);
     void scroll(int direction);
-    void pickUp(const std::string& type, CreaturePanelCriterion criterion, bool workersOnly);
+    void pickUp(const std::string& type, CreaturePanelCriterion criterion, bool workersOnly, int levelOrder = 0);
     void focus(const std::string& type);
 
     GameMap& mGameMap;

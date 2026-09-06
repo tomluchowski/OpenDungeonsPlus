@@ -12,6 +12,7 @@
 #include "entities/CreatureDefinition.h"
 #include "entities/GameEntityType.h"
 #include "game/Player.h"
+#include "modes/InputManager.h"
 #include "gamemap/GameMap.h"
 #include "network/ODClient.h"
 #include "network/ClientNotification.h"
@@ -59,6 +60,16 @@ void prepareCount(CEGUI::Window* window)
     window->setProperty("HorzFormatting", "CentreAligned");
     window->setProperty("VertFormatting", "CentreAligned");
     window->setText("0");
+}
+
+int selectedLevelOrder()
+{
+    Keyboard& keyboard = *InputManager::getSingleton().mKeyboard;
+    if(!keyboard.isModifierDown(OIS::Keyboard::Ctrl))
+        return 0;
+    const bool higher = keyboard.isKeyDown(OIS::KC_PERIOD);
+    const bool lower = keyboard.isKeyDown(OIS::KC_COMMA);
+    return higher == lower ? 0 : (higher ? 1 : -1);
 }
 }
 
@@ -168,8 +179,11 @@ void CreaturePanel::addSlot()
     mConnections.emplace_back(slot.portrait->subscribeEvent(CEGUI::Window::EventMouseClick,
         CEGUI::Event::Subscriber([this, index](const CEGUI::EventArgs& args)
         {
-            if(static_cast<const CEGUI::MouseEventArgs&>(args).button == CEGUI::RightButton)
+            const auto button = static_cast<const CEGUI::MouseEventArgs&>(args).button;
+            if(button == CEGUI::RightButton)
                 focus(mSlots[index].type);
+            else if(button == CEGUI::LeftButton && selectedLevelOrder() != 0)
+                pickUp(mSlots[index].type, Criterion::Total, false, selectedLevelOrder());
             return true;
         })));
     for(size_t row = 0; row < slot.counts.size(); ++row)
@@ -183,7 +197,7 @@ void CreaturePanel::addSlot()
             {
                 const auto button = static_cast<const CEGUI::MouseEventArgs&>(args).button;
                 if(button == CEGUI::LeftButton && row < VIEW_CRITERIA[mView].size())
-                    pickUp(mSlots[index].type, VIEW_CRITERIA[mView][row], false);
+                    pickUp(mSlots[index].type, VIEW_CRITERIA[mView][row], false, selectedLevelOrder());
                 else if(button == CEGUI::RightButton)
                     focus(mSlots[index].type);
                 return true;
@@ -266,11 +280,12 @@ void CreaturePanel::update()
     }
 }
 
-void CreaturePanel::pickUp(const std::string& type, CreaturePanelCriterion criterion, bool workersOnly)
+void CreaturePanel::pickUp(const std::string& type, CreaturePanelCriterion criterion, bool workersOnly, int levelOrder)
 {
     if(!ODClient::getSingleton().isConnected())
         return;
     Seat* seat = mGameMap.getLocalPlayer()->getSeat();
+    Creature* selected = nullptr;
     for(Creature* creature : mGameMap.getCreaturesBySeat(seat))
     {
         const CreatureDefinition* definition = creature->getDefinition();
@@ -278,11 +293,17 @@ void CreaturePanel::pickUp(const std::string& type, CreaturePanelCriterion crite
             mPendingPickups.count(creature->getName()) != 0 || !creature->tryPickup(seat) ||
             !matchesCreaturePanelCriterion(criterion, creature->getActivity(), creature->getMoodValue(), definition->isWorker()))
             continue;
-        mPendingPickups.insert(creature->getName());
-        ODClient::getSingleton().queueClientNotification(ClientNotificationType::askEntityPickUp,
-            creature->getObjectType(), creature->getName());
-        break;
+        if(selected == nullptr || (levelOrder > 0 && creature->getLevel() > selected->getLevel()) ||
+            (levelOrder < 0 && creature->getLevel() < selected->getLevel()))
+            selected = creature;
+        if(levelOrder == 0)
+            break;
     }
+    if(selected == nullptr)
+        return;
+    mPendingPickups.insert(selected->getName());
+    ODClient::getSingleton().queueClientNotification(ClientNotificationType::askEntityPickUp,
+        selected->getObjectType(), selected->getName());
 }
 
 void CreaturePanel::focus(const std::string& type)
