@@ -407,13 +407,13 @@ void SettingsWindow::initConfig()
 
         // The text next to the combobox
         CEGUI::DefaultWindow* videoCbText = static_cast<CEGUI::DefaultWindow*>(videoTab->createChild("OD/StaticText", optionName + "_Text"));
-        videoCbText->setArea(CEGUI::UDim(0, 20), CEGUI::UDim(0, 190 + offset), CEGUI::UDim(0.4, 0), CEGUI::UDim(0, 30));
+        videoCbText->setArea(CEGUI::UDim(0, 20), CEGUI::UDim(0, 238 + offset), CEGUI::UDim(0.4, 0), CEGUI::UDim(0, 34));
         videoCbText->setText(optionName + ": ");
         videoCbText->setProperty("FrameEnabled", "False");
         videoCbText->setProperty("BackgroundEnabled", "False");
 
         CEGUI::Combobox* videoCb = static_cast<CEGUI::Combobox*>(videoTab->createChild("OD/Combobox", optionName));
-        videoCb->setArea(CEGUI::UDim(0.5, 0), CEGUI::UDim(0, 195 + offset), CEGUI::UDim(0.5, -20),
+        videoCb->setArea(CEGUI::UDim(0.5, 0), CEGUI::UDim(0, 238 + offset), CEGUI::UDim(0.5, -20),
                          CEGUI::UDim(0, config.possibleValues.size() * 17 + 30));
         videoCb->setReadOnly(true);
         videoCb->setSortingEnabled(true);
@@ -437,7 +437,7 @@ void SettingsWindow::initConfig()
             }
             ++cbIndex;
         }
-        offset += 30;
+        offset += 40;
     }
 
     mGui.registerWindowHierarchy(mSettingsWindow);
