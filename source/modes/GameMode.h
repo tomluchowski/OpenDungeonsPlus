@@ -229,12 +229,8 @@ private:
     //! this value is based on the first marked flag tile selected.
     bool mDigSetBool;
 
-    std::string mActionDescription;
     std::string mActionTargetText;
-    std::string mActionFailure;
-    std::string mSelectedActionButton;
     bool mActionTargetValid = false;
-    float mActionFailureTime = 0.0f;
     std::vector<Tile*> mPreviewTiles;
     std::vector<Tile*> mSelectedTiles;
 
@@ -290,7 +286,6 @@ private:
     void checkInputCommand();
     void handlePlayerActionNone();
     void handlePlayerActionSelectTile();
-    std::string getActionDescription() const;
     void updateSelectedTiles();
 
     //! \brief Builds the player settings window

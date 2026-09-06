@@ -40,6 +40,7 @@
 #include <CEGUI/Event.h>
 
 #include <algorithm>
+#include <cmath>
 #include <sstream>
 
 namespace
@@ -48,6 +49,36 @@ const float LAYOUT_DESIGN_WIDTH = 1024.0f;
 const float LAYOUT_DESIGN_HEIGHT = 768.0f;
 const float FONT_DESIGN_WIDTH = 800.0f;
 const float FONT_DESIGN_HEIGHT = 600.0f;
+
+void createHandFeedbackImage()
+{
+    // Original project artwork: the reference's prohibition shape, without copied assets.
+    const int size = 64;
+    std::vector<unsigned char> pixels(size * size * 4, 0);
+    for(int y = 0; y < size; ++y)
+    {
+        for(int x = 0; x < size; ++x)
+        {
+            const float dx = x + 0.5f - size * 0.5f;
+            const float dy = y + 0.5f - size * 0.5f;
+            const float radius = std::sqrt(dx * dx + dy * dy);
+            const float ring = std::min(28.0f - radius, radius - 21.0f);
+            const float slash = std::min(24.0f - radius, 3.5f - std::abs(dx - dy) * 0.70710678f);
+            const float coverage = std::max(0.0f, std::min(1.0f, std::max(ring, slash) + 0.5f));
+            const int i = (y * size + x) * 4;
+            pixels[i] = 210;
+            pixels[i + 1] = 32;
+            pixels[i + 2] = 48;
+            pixels[i + 3] = static_cast<unsigned char>(coverage * 255.0f);
+        }
+    }
+    CEGUI::Texture& texture = CEGUI::System::getSingleton().getRenderer()->createTexture("HandProhibition");
+    texture.loadFromMemory(pixels.data(), CEGUI::Sizef(size, size), CEGUI::Texture::PF_RGBA);
+    CEGUI::BasicImage& image = static_cast<CEGUI::BasicImage&>(CEGUI::ImageManager::getSingleton().create(
+        "BasicImage", "OpenDungeonsIcons/Prohibition"));
+    image.setTexture(&texture);
+    image.setArea(CEGUI::Rectf(0, 0, size, size));
+}
 
 void scaleDimension(CEGUI::UDim& dimension, float scale)
 {
@@ -137,6 +168,7 @@ Gui::Gui(SoundEffectsManager* soundEffectsManager, const std::string& ceguiLogFi
 
     CEGUI::SchemeManager::getSingleton().createFromFile("ODSkin.scheme");
     OD_LOG_INF("CEGUI::SchemeManager created");
+    createHandFeedbackImage();
 
     float configuredScalePercent = 100.0f;
     std::istringstream scaleParser(ConfigManager::getSingleton().getGameValue(Config::UI_SCALE, "100", false));

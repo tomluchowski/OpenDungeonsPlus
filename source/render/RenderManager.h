@@ -169,6 +169,8 @@ public:
         const std::string& particleScript);
     void rrEntityRemoveParticleEffect(GameEntity* entity, Ogre::ParticleSystem* particleSystem);
     void rrToggleHandSelectorVisibility();
+    void rrSetHandPose(bool pointing, bool digging);
+    void rrDrawTilePreview(const std::vector<Tile*>& tiles, const Ogre::ColourValue& colour);
 
     //! \brief Toggles the creatures text overlay
     void rrSetCreaturesTextOverlay(GameMap& gameMap, bool value);
@@ -264,6 +266,9 @@ private:
     Ogre::SceneNode* mMainMenuSceneNode;
 
     Ogre::AnimationState* mHandAnimationState;
+    std::string mHandPose = "Idle";
+    Ogre::ManualObject* mHandPickaxe = nullptr;
+    Ogre::ManualObject* mTilePreview = nullptr;
 
 
     Ogre::TexturePtr m_texture;

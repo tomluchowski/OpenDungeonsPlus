@@ -104,14 +104,6 @@ GameMode::GameMode(ModeManager *modeManager):
 
     CEGUI::Window* guiSheet = mRootWindow;
 
-    SkillManager::listAllSkills([this](const std::string&, const std::string& castButton,
-        const std::string&, SkillType)
-    {
-        mRootWindow->getChild(castButton)->setProperty("SelectionColour", "00FFFFFF");
-    });
-    guiSheet->getChild(Gui::BUTTON_DESTROY_ROOM)->setProperty("SelectionColour", "00FFFFFF");
-    guiSheet->getChild(Gui::BUTTON_DESTROY_TRAP)->setProperty("SelectionColour", "00FFFFFF");
-
     addEventConnection(guiSheet->getChild("PanelToggleButton")->subscribeEvent(
         CEGUI::PushButton::EventClicked, CEGUI::Event::Subscriber(&GameMode::toggleControlPanel, this)));
     addEventConnection(guiSheet->getChild("EventsButton")->subscribeEvent(
@@ -521,8 +513,8 @@ bool GameMode::isMouseDownOnCEGUIWindow()
 
     CEGUI::String winName = currentWindow->getName();
 
-    // If the mouse press is on a CEGUI window, ignore it, except for the chat and event queues windows.
-    if (winName == "Root" || winName == "GameChatWindow" || winName == "GameChatText" || winName == "GameEventText")
+    // Passive chat passes through; the opened event surface owns its input.
+    if (winName == "Root" || winName == "GameChatWindow" || winName == "GameChatText")
         return false;
 
     return true;
@@ -591,7 +583,7 @@ bool GameMode::mousePressed(const OIS::MouseEvent& arg, OIS::MouseButtonID id)
         inputManager.mRMouseDown = true;
         inputManager.mLMouseDown = false;
         mPlayerSelection.setCurrentAction(SelectedAction::none);
-        mActionFailureTime = 0.0f;
+
         unselectAllTiles();
         TextRenderer::getSingleton().setText(ODApplication::POINTER_INFO_STRING, "");
         return true;
@@ -689,7 +681,6 @@ bool GameMode::mousePressed(const OIS::MouseEvent& arg, OIS::MouseButtonID id)
 
             if (mGameMap->getLocalPlayer()->isDropHandPossible(curTile))
             {
-                mActionFailureTime = 0.0f;
                 if(ODClient::getSingleton().isConnected())
                 {
                     // Send a message to the server telling it we want to drop the creature
@@ -1801,83 +1792,21 @@ void GameMode::refreshSpellButtonCoolDowns()
     });
 }
 
-std::string GameMode::getActionDescription() const
-{
-    switch(mPlayerSelection.getCurrentAction())
-    {
-        case SelectedAction::buildRoom:
-            return "Build " + RoomManager::getRoomReadableName(mPlayerSelection.getNewRoomType()) +
-                ": left-drag to build; right-click to cancel.";
-        case SelectedAction::buildTrap:
-            return "Place " + TrapManager::getTrapReadableName(mPlayerSelection.getNewTrapType()) +
-                ": left-click or drag to place; right-click to cancel.";
-        case SelectedAction::destroyRoom:
-            return "Sell rooms: left-drag your room tiles; right-click to cancel.";
-        case SelectedAction::destroyTrap:
-            return "Sell traps: left-drag your trap tiles; right-click to cancel.";
-        case SelectedAction::selectTile:
-            return mDigSetBool ? "Mark for digging: drag walls, release to confirm; right-click to cancel." :
-                "Unmark digging: drag marked walls, release to confirm; right-click to cancel.";
-        case SelectedAction::castSpell:
-        {
-            std::string target;
-            switch(mPlayerSelection.getNewSpellType())
-            {
-                case SpellType::summonWorker:
-                    target = "left-click or drag claimed ground";
-                    break;
-                case SpellType::creatureHeal:
-                    target = "left-drag hurt creatures on claimed ground";
-                    break;
-                case SpellType::creatureExplosion:
-                    target = "left-drag enemies on claimed ground";
-                    break;
-                case SpellType::eyeEvil:
-                case SpellType::callToWar:
-                    target = "left-click a map tile";
-                    break;
-                case SpellType::creatureWeak:
-                case SpellType::creatureSlow:
-                    target = "left-click an enemy on claimed ground";
-                    break;
-                default:
-                    target = "left-click an allied creature on claimed ground";
-                    break;
-            }
-            return SpellManager::getSpellReadableName(mPlayerSelection.getNewSpellType()) +
-                ": " + target + "; right-click to cancel.";
-        }
-        default:
-            if(mGameMap->getLocalPlayer()->numObjectsInHand() > 0)
-                return "Place from hand: right-click valid ground to drop the first object.";
-            return "Explore / dig: left-click to pick up; left-drag walls to mark or unmark digging.";
-    }
-}
-
 void GameMode::refreshActionFeedback(float elapsed)
 {
-    mActionFailureTime = std::max(0.0f, mActionFailureTime - elapsed);
-    const std::string description = getActionDescription();
-    if(description != mActionDescription)
-    {
-        mActionDescription = description;
-        mActionTargetText.clear();
-        const std::string button = SkillManager::getSelectedButton(mPlayerSelection);
-        if(!mSelectedActionButton.empty())
-            mRootWindow->getChild(mSelectedActionButton)->setProperty("SelectionColour", "00FFFFFF");
-        mSelectedActionButton = button;
-        if(!button.empty())
-        {
-            mRootWindow->getChild(button)->setProperty("SelectionColour", "FFFFCC55");
-            mActionFailureTime = 0.0f;
-        }
-    }
-
     InputManager& inputManager = mModeManager->getInputManager();
     if(isMouseDownOnCEGUIWindow())
     {
         unselectAllTiles();
         mActionTargetText.clear();
+        CEGUI::Window* hover = CEGUI::System::getSingleton().getDefaultGUIContext().getWindowContainingMouse();
+        if(hover != nullptr)
+            mActionTargetText = hover->getTooltipText().c_str();
+        if(inputManager.mHighlightedCreature != nullptr)
+        {
+            inputManager.mHighlightedCreature->normalizeAmbient();
+            inputManager.mHighlightedCreature = nullptr;
+        }
         TextRenderer::getSingleton().setText(ODApplication::POINTER_INFO_STRING, "");
     }
     else
@@ -1917,15 +1846,36 @@ void GameMode::refreshActionFeedback(float elapsed)
         inputManager.mCommandState = previousState;
     }
 
-    CEGUI::Window* feedback = mRootWindow->getChild("ActionFeedback");
-    const std::string detail = mActionFailureTime > 0.0f ? "Cannot complete: " + mActionFailure : mActionTargetText;
-    feedback->setText(mActionDescription + (detail.empty() ? "" : "\n" + detail));
+    mRootWindow->getChild("ContextInfo")->setText(mActionTargetText);
+    CEGUI::Window* icon = mRootWindow->getChild("HandActionIcon");
+    const bool overGui = isMouseDownOnCEGUIWindow();
+    Player* player = mGameMap->getLocalPlayer();
+    const bool active = mPlayerSelection.getCurrentAction() != SelectedAction::none;
+    const bool holding = player->numObjectsInHand() > 0;
+    const std::string button = SkillManager::getSelectedButton(mPlayerSelection);
+    const bool prohibited = !mActionTargetValid && (active || holding);
+    icon->setVisible(!overGui && (prohibited || !button.empty()));
+    if(icon->isVisible())
+    {
+        icon->setProperty("Image", prohibited ? "OpenDungeonsIcons/Prohibition" :
+            mRootWindow->getChild(button)->getProperty("NormalImage"));
+        const CEGUI::Vector2f pointer = CEGUI::System::getSingleton().getDefaultGUIContext().getMouseCursor().getPosition();
+        const float scale = icon->getPixelSize().d_width / 50.0f;
+        icon->setPosition(CEGUI::UVector2(CEGUI::UDim(0, pointer.d_x + 90.0f * scale),
+            CEGUI::UDim(0, pointer.d_y + 8.0f * scale)));
+    }
+    Tile* tile = mGameMap->getTile(inputManager.mXPos, inputManager.mYPos);
+    const bool digging = !overGui && !holding && !mGameMap->getGamePaused() && tile != nullptr &&
+        (mPlayerSelection.getCurrentAction() == SelectedAction::selectTile ||
+         (!active && !mPreviewTiles.empty() && tile->isDiggable(player->getSeat())));
+    RenderManager::getSingleton().rrSetHandPose(!overGui && !holding && (active || mActionTargetValid), digging);
+
 }
 
 
 void GameMode::selectSquaredTiles(int tileX1, int tileY1, int tileX2, int tileY2)
 {
-    // Loop over the tiles in the rectangular selection region and set their setSelected flag accordingly.
+    // Collect the eligible region for the outlined world preview.
     std::vector<Tile*> affectedTiles = mGameMap->rectangularRegion(tileX1,
         tileY1, tileX2, tileY2);
 
@@ -1939,16 +1889,22 @@ void GameMode::selectTiles(const std::vector<Tile*> tiles)
 
 void GameMode::updateSelectedTiles()
 {
-    if(!mActionTargetValid)
+    const bool building = mPlayerSelection.getCurrentAction() == SelectedAction::buildRoom ||
+        mPlayerSelection.getCurrentAction() == SelectedAction::buildTrap;
+    if(!mActionTargetValid && !building)
         mPreviewTiles.clear();
+    const Ogre::ColourValue colour = mActionTargetValid ? Ogre::ColourValue(0.35f, 0.3f, 1.0f) :
+        Ogre::ColourValue(1.0f, 0.15f, 0.1f);
     if(mPreviewTiles == mSelectedTiles)
+    {
+        RenderManager::getSingleton().rrDrawTilePreview(mSelectedTiles, colour);
         return;
+    }
     Player* player = mGameMap->getLocalPlayer();
     for(Tile* tile : mSelectedTiles)
         tile->setSelected(false, player);
-    for(Tile* tile : mPreviewTiles)
-        tile->setSelected(true, player);
     mSelectedTiles = mPreviewTiles;
+    RenderManager::getSingleton().rrDrawTilePreview(mSelectedTiles, colour);
 }
 
 void GameMode::unselectAllTiles()
@@ -1958,26 +1914,16 @@ void GameMode::unselectAllTiles()
         tile->setSelected(false, player);
     mSelectedTiles.clear();
     mPreviewTiles.clear();
+    RenderManager::getSingleton().rrDrawTilePreview(mSelectedTiles, Ogre::ColourValue::White);
 }
 
 void GameMode::displayText(const Ogre::ColourValue& txtColour, const std::string& txt)
 {
+    // Callers supply both eligibility and context; do not discard the former with the old label.
     mActionTargetValid = txtColour != Ogre::ColourValue::Red;
-    mActionTargetText = (mActionTargetValid ? "Ready: " : "Unavailable: ") + txt;
-    if(mModeManager->getInputManager().mCommandState == InputCommandState::validated)
-    {
-        if(mActionTargetValid)
-            mActionFailureTime = 0.0f;
-        else
-        {
-            mActionFailure = txt;
-            mActionFailureTime = 3.0f;
-        }
-    }
-    TextRenderer& textRenderer = TextRenderer::getSingleton();
-    textRenderer.setColor(ODApplication::POINTER_INFO_STRING,
-        mActionTargetValid ? Ogre::ColourValue(0.5f, 1.0f, 0.5f) : Ogre::ColourValue(1.0f, 0.45f, 0.35f));
-    textRenderer.setText(ODApplication::POINTER_INFO_STRING, mActionTargetText);
+    mActionTargetText = txt;
+    mRootWindow->getChild("ContextInfo")->setText(txt);
+    TextRenderer::getSingleton().setText(ODApplication::POINTER_INFO_STRING, "");
 }
 
 void GameMode::checkInputCommand()
@@ -2034,6 +1980,49 @@ void GameMode::handlePlayerActionNone()
     Player* player = mGameMap->getLocalPlayer();
     if(player->numObjectsInHand() == 0)
     {
+        Tile* tile = mGameMap->getTile(inputManager.mXPos, inputManager.mYPos);
+        GameEntity* closest = nullptr;
+        double distance = 0.0;
+        if(tile != nullptr)
+        {
+            std::vector<GameEntity*> entities;
+            tile->fillWithEntities(entities, SelectionEntityWanted::any, player);
+            for(GameEntity* entity : entities)
+            {
+                if(!entity->tryPickup(player->getSeat()))
+                    continue;
+                const Ogre::Vector3& pos = entity->getPosition();
+                const double candidate = Pathfinding::squaredDistance(pos.x, inputManager.mKeeperHandPos.x,
+                    pos.y, inputManager.mKeeperHandPos.y);
+                if(closest == nullptr || candidate < distance)
+                {
+                    closest = entity;
+                    distance = candidate;
+                }
+            }
+            if(closest != nullptr)
+            {
+                Creature* creature = dynamic_cast<Creature*>(closest);
+                displayText(Ogre::ColourValue::White, creature != nullptr ?
+                    creature->getDefinition()->getClassName() : closest->getName());
+            }
+            else if(tile->isDiggable(player->getSeat()))
+            {
+                displayText(Ogre::ColourValue::White, tile->getMarkedForDigging(player) ?
+                    "Marked wall. Click or drag to remove digging marks." : "Wall. Click or drag to mark for digging.");
+                selectSquaredTiles(tile->getX(), tile->getY(), tile->getX(), tile->getY());
+            }
+        }
+        InputManager& mutableInput = mModeManager->getInputManager();
+        Creature* creature = dynamic_cast<Creature*>(closest);
+        if(mutableInput.mHighlightedCreature != creature)
+        {
+            if(mutableInput.mHighlightedCreature != nullptr)
+                mutableInput.mHighlightedCreature->normalizeAmbient();
+            mutableInput.mHighlightedCreature = creature;
+            if(creature != nullptr)
+                creature->maxAmbient();
+        }
         TextRenderer::getSingleton().setText(ODApplication::POINTER_INFO_STRING, "");
         return;
     }
