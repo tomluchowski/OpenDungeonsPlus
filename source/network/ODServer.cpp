@@ -896,7 +896,7 @@ bool ODServer::processClientNotifications(ODSocketClient* clientSocket)
             clientSocket->setState("nick");
             // Tell the client to give us their nickname
             ODPacket packetSend;
-            packetSend << ServerNotificationType::pickNick << mServerMode;
+            packetSend << ServerNotificationType::pickNick << mServerMode << true;
             clientSocket->send(packetSend);
             break;
         }
@@ -909,6 +909,10 @@ bool ODServer::processClientNotifications(ODSocketClient* clientSocket)
             // Pick nick
             std::string clientNick;
             OD_ASSERT_TRUE(packetReceived >> clientNick);
+            bool liveNickname = false;
+            if(!packetReceived.endOfPacket())
+                OD_ASSERT_TRUE(packetReceived >> liveNickname);
+            clientSocket->setSupportsLiveNickname(liveNickname);
 
             // NOTE : playerId 0 is reserved for inactive players and 1 is reserved for AI
             int32_t playerId = mUniqueNumberPlayer + Seat::PLAYER_ID_HUMAN_MIN;
@@ -962,6 +966,27 @@ bool ODServer::processClientNotifications(ODSocketClient* clientSocket)
             packetSend << ServerNotificationType::startGameMode << seatId << mServerMode;
             clientSocket->send(packetSend);
             mSeatsConfigured = true;
+            break;
+        }
+
+        case ClientNotificationType::changeNick:
+        {
+            if(mServerState != ServerState::StateGame || !clientSocket->supportsLiveNickname()
+                || clientSocket->getPlayer() == nullptr)
+                break;
+
+            std::string nickname;
+            OD_ASSERT_TRUE(packetReceived >> nickname);
+            Player* player = clientSocket->getPlayer();
+            player->setNick(nickname);
+            const int32_t playerId = player->getId();
+            ODPacket packetSend;
+            packetSend << ServerNotificationType::playerNickChanged << playerId << nickname;
+            for(ODSocketClient* client : mSockClients)
+            {
+                if(client->supportsLiveNickname())
+                    client->send(packetSend);
+            }
             break;
         }
 
