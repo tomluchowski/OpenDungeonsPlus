@@ -2,7 +2,7 @@
 
 <GUILayout version="4" >
     <Window type="OD/FrameWindow" name="ConfirmExit" >
-        <Property name="Area" value="{{0.5,-200},{0.5,-100},{0.5,200},{0.5,39}}" />
+        <Property name="Area" value="{{0.5,-270},{0.5,-100},{0.5,270},{0.5,39}}" />
         <Property name="Text" value="Do you really want to leave the underworld?" />
         <Property name="Alpha" value="0.8" />
         <Property name="AlwaysOnTop" value="True" />
@@ -19,7 +19,7 @@
             <Property name="InheritsAlpha" value="False" />
         </Window>
         <Window type="OD/Checkbox" name="SaveReplayCheckbox" >
-            <Property name="Area" value="{{0.5,-91},{0,96},{0.5,91},{0,123}}" />
+            <Property name="Area" value="{{0.5,-120},{0,96},{0.5,120},{0,123}}" />
             <Property name="Text" value="Save the game replay?" />
         </Window>
     </Window>
