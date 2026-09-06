@@ -896,7 +896,7 @@ bool ODServer::processClientNotifications(ODSocketClient* clientSocket)
             clientSocket->setState("nick");
             // Tell the client to give us their nickname
             ODPacket packetSend;
-            packetSend << ServerNotificationType::pickNick << mServerMode << true;
+            packetSend << ServerNotificationType::pickNick << mServerMode << true << true;
             clientSocket->send(packetSend);
             break;
         }
@@ -913,6 +913,11 @@ bool ODServer::processClientNotifications(ODSocketClient* clientSocket)
             if(!packetReceived.endOfPacket())
                 OD_ASSERT_TRUE(packetReceived >> liveNickname);
             clientSocket->setSupportsLiveNickname(liveNickname);
+
+            bool creatureMood = false;
+            if(!packetReceived.endOfPacket())
+                OD_ASSERT_TRUE(packetReceived >> creatureMood);
+            clientSocket->setSupportsCreatureMood(creatureMood);
 
             // NOTE : playerId 0 is reserved for inactive players and 1 is reserved for AI
             int32_t playerId = mUniqueNumberPlayer + Seat::PLAYER_ID_HUMAN_MIN;
@@ -964,6 +969,7 @@ bool ODServer::processClientNotifications(ODSocketClient* clientSocket)
 
             packetSend.clear();
             packetSend << ServerNotificationType::startGameMode << seatId << mServerMode;
+            packetSend << clientSocket->supportsCreatureMood();
             clientSocket->send(packetSend);
             mSeatsConfigured = true;
             break;
@@ -1259,6 +1265,7 @@ bool ODServer::processClientNotifications(ODSocketClient* clientSocket)
                 ODPacket packetSend;
                 int seatId = client->getPlayer()->getSeat()->getId();
                 packetSend << ServerNotificationType::startGameMode << seatId << mServerMode;
+                packetSend << client->supportsCreatureMood();
                 client->send(packetSend);
             }
 
@@ -2701,6 +2708,12 @@ void ODServer::notifyExit()
     ServerNotification* exitServerNotification = new ServerNotification(
         ServerNotificationType::exit, nullptr);
     queueServerNotification(exitServerNotification);
+}
+
+bool ODServer::supportsCreatureMood(Player* player)
+{
+    ODSocketClient* client = getClientFromPlayer(player);
+    return client != nullptr && client->supportsCreatureMood();
 }
 
 ODSocketClient* ODServer::getClientFromPlayer(Player* player)

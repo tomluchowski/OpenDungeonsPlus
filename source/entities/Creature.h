@@ -805,6 +805,9 @@ private:
 
     void computeMood();
 
+    void exportMoodToPacket(ODPacket& os, const Seat* seat) const;
+    void importMoodFromPacket(ODPacket& is);
+
     void computeCreatureOverlayMoodValue();
 };
 
