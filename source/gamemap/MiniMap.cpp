@@ -20,8 +20,172 @@
 #include "gamemap/MiniMapCamera.h"
 #include "gamemap/MiniMapDrawn.h"
 #include "gamemap/MiniMapDrawnFull.h"
+#include "entities/GameEntityType.h"
+#include "entities/Tile.h"
+#include "game/Player.h"
+#include "game/Seat.h"
 #include "utils/ConfigManager.h"
 #include "utils/LogManager.h"
+
+#include <CEGUI/BasicImage.h>
+#include <CEGUI/ImageManager.h>
+#include <CEGUI/Window.h>
+#include <cmath>
+
+namespace
+{
+class CircularMiniMapImage : public CEGUI::BasicImage
+{
+public:
+    explicit CircularMiniMapImage(const CEGUI::String& name) : CEGUI::BasicImage(name) {}
+    explicit CircularMiniMapImage(const CEGUI::XMLAttributes& attributes) : CEGUI::BasicImage(attributes) {}
+
+    void render(CEGUI::GeometryBuffer& buffer, const CEGUI::Rectf& area,
+        const CEGUI::Rectf* clip, const CEGUI::ColourRect& colours) const override
+    {
+        if(area.getWidth() <= 0.0f || area.getHeight() <= 0.0f)
+            return;
+        // Clip the existing texture, preserving its coordinates and all renderer choices.
+        const float radiusX = area.getWidth() * 0.5f;
+        const float radiusY = area.getHeight() * 0.5f;
+        const float centerX = area.left() + radiusX;
+        for(float y = area.top(); y < area.bottom(); y += 1.0f)
+        {
+            const float nextY = std::min(y + 1.0f, area.bottom());
+            const float dy = ((y + nextY) * 0.5f - area.top() - radiusY) / radiusY;
+            const float halfWidth = radiusX * std::sqrt(std::max(0.0f, 1.0f - dy * dy));
+            CEGUI::Rectf strip(centerX - halfWidth, y, centerX + halfWidth, nextY);
+            if(clip != nullptr)
+                strip = strip.getIntersection(*clip);
+            if(strip.getWidth() > 0.0f && strip.getHeight() > 0.0f)
+                CEGUI::BasicImage::render(buffer, area, &strip, colours);
+        }
+    }
+};
+}
+
+CEGUI::BasicImage& MiniMap::createMiniMapImage(CEGUI::Window* miniMapWindow, const std::string& name)
+{
+    CEGUI::ImageManager& images = CEGUI::ImageManager::getSingleton();
+    const bool circular = miniMapWindow->isUserStringDefined("Circular") &&
+        miniMapWindow->getUserString("Circular") == "true";
+    if(circular && !images.isImageTypeAvailable("CircularMiniMap"))
+        images.addImageType<CircularMiniMapImage>("CircularMiniMap");
+    return static_cast<CEGUI::BasicImage&>(images.create(
+        circular ? "CircularMiniMap" : "BasicImage", name));
+}
+
+void MiniMap::setZoomLevel(int level)
+{
+    mZoomLevel = std::max(-3, std::min(2, level));
+}
+
+Ogre::Real MiniMap::getZoomScale() const
+{
+    return std::ldexp(1.0f, -mZoomLevel);
+}
+
+MiniMap::TileColour MiniMap::colourFromTile(Tile& tile, Seat& playerSeat, unsigned int phase)
+{
+    TileColour result;
+    if(!tile.getEverVisible())
+        return result;
+
+    const TileVisual visual = tile.getTileVisual();
+    Seat* owner = tile.getSeat();
+    const bool room = visual >= TileVisual::dungeonTempleRoom && visual < TileVisual::countTileVisual;
+    result.priority = 1;
+    if(room || visual == TileVisual::claimedGround || visual == TileVisual::claimedFull)
+    {
+        result.priority = 3;
+        if(room && (owner == nullptr || owner->isRogueSeat()))
+        {
+            const Ogre::ColourValue colours[] = {Ogre::ColourValue::Red, Ogre::ColourValue::Green,
+                Ogre::ColourValue::Blue, Ogre::ColourValue(1.0f, 1.0f, 0.0f)};
+            result.colour = colours[phase % 4];
+            result.animated = true;
+        }
+        else
+        {
+            result.colour = owner == nullptr ? Ogre::ColourValue(0.36f, 0.18f, 0.05f) : owner->getColorValue();
+            if(visual == TileVisual::dungeonTempleRoom)
+                result.colour = result.colour * 0.65f + Ogre::ColourValue::White * 0.35f;
+            else if(visual == TileVisual::claimedFull)
+                result.colour = result.colour * 0.45f;
+        }
+    }
+    else
+    {
+        switch(visual)
+        {
+            case TileVisual::dirtGround:
+            case TileVisual::goldGround:
+            case TileVisual::gemGround:
+            case TileVisual::rockGround:
+                result.colour = Ogre::ColourValue(0.82f, 0.70f, 0.50f);
+                break;
+            case TileVisual::dirtFull:
+                result.colour = Ogre::ColourValue(0.36f, 0.18f, 0.05f);
+                break;
+            case TileVisual::rockFull:
+                result.colour = Ogre::ColourValue(0.20f, 0.10f, 0.04f);
+                break;
+            case TileVisual::goldFull:
+                result.colour = Ogre::ColourValue(1.0f, 0.90f, 0.0f);
+                result.priority = 4;
+                break;
+            case TileVisual::gemFull:
+                result.colour = Ogre::ColourValue(0.63f, 0.0f, 0.82f);
+                result.priority = 4;
+                break;
+            case TileVisual::waterGround:
+                result.colour = Ogre::ColourValue(0.13f, 0.21f, 0.48f);
+                result.priority = 2;
+                break;
+            case TileVisual::lavaGround:
+                result.colour = Ogre::ColourValue(0.72f, 0.30f, 0.15f);
+                result.priority = 2;
+                break;
+            default:
+                break;
+        }
+    }
+    if(tile.getMarkedForDigging(playerSeat.getPlayer()))
+    {
+        result.colour = Ogre::ColourValue(0.0f, 1.0f, 1.0f);
+        result.priority = 5;
+    }
+    if(tile.getLocalPlayerHasVision())
+    {
+        for(GameEntity* entity : tile.getEntitiesInTile())
+        {
+            if(entity->getObjectType() == GameEntityType::creature)
+            {
+                Seat* creatureOwner = entity->getSeat();
+                if(creatureOwner == &playerSeat)
+                {
+                    result.animated = true;
+                    if(phase % 2 == 0 && result.priority < 7)
+                    {
+                        result.colour = Ogre::ColourValue::Black;
+                        result.priority = 7;
+                    }
+                }
+                else
+                {
+                    result.colour = creatureOwner == nullptr ? Ogre::ColourValue::White : creatureOwner->getColorValue();
+                    result.priority = 8;
+                }
+            }
+            else if(result.priority < 6 && entity->tryPickup(&playerSeat))
+            {
+                result.colour = Ogre::ColourValue(0.87f, 0.87f, 0.07f);
+                result.priority = 6;
+            }
+        }
+    }
+    return result;
+}
 
 namespace MiniMapTypes
 {

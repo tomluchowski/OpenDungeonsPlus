@@ -2498,12 +2498,12 @@ std::string RenderManager::rrBuildSkullFlagMaterial(const std::string& materialN
     return materialNameToUse;
 }
 
-void RenderManager::rrMinimapRendering(bool postRender)
+void RenderManager::rrMinimapRendering(bool postRender, bool keepWorldLighting)
 {
     if(mHandLight != nullptr)
         mHandLight->setVisible(postRender);
 
-    mLightSceneNode->setVisible(postRender);
+    mLightSceneNode->setVisible(postRender || keepWorldLighting);
 }
 
 void RenderManager::changeRenderQueueRecursive(Ogre::SceneNode* node, uint8_t renderQueueId)

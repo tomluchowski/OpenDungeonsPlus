@@ -107,6 +107,7 @@ public:
     Ogre::Vector3 getCameraViewTarget() const;
 
     void onMiniMapClick(Ogre::Vector2 cc);
+    void jumpToViewTarget(const Ogre::Vector2& pos);
 
     /** \brief Starts the camera moving towards a destination position,
      *  it will stop moving when it gets there.

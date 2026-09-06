@@ -28,6 +28,8 @@
 #include "game/Seat.h"
 #include "game/SkillType.h"
 #include "gamemap/GameMap.h"
+#include "gamemap/MiniMapCamera.h"
+#include "gamemap/MiniMapDrawnFull.h"
 #include "gamemap/Pathfinding.h"
 #include "modes/GameEditorModeConsole.h"
 #include "modes/InputBridge.h"
@@ -110,6 +112,16 @@ GameMode::GameMode(ModeManager *modeManager):
     showTileDebugWindow(false),
     config(ConfigManager::getSingleton())
 {
+    addEventConnection(mRootWindow->getChild("MiniMapZoomButton")->subscribeEvent(
+        CEGUI::Window::EventMouseClick, CEGUI::Event::Subscriber(&GameMode::zoomMiniMap, this)));
+    addEventConnection(mRootWindow->getChild("MapWindow")->subscribeEvent(
+        CEGUI::FrameWindow::EventCloseClicked, CEGUI::Event::Subscriber(&GameMode::closeMap, this)));
+    addEventConnection(mRootWindow->getChild("MapWindow")->subscribeEvent(
+        CEGUI::Window::EventHidden, CEGUI::Event::Subscriber(&GameMode::closeMap, this)));
+    addEventConnection(mRootWindow->getChild("MapWindow")->subscribeEvent(
+        CEGUI::Window::EventMouseClick, CEGUI::Event::Subscriber(&GameMode::clickMap, this)));
+    addEventConnection(mRootWindow->getChild("MapWindow/MapImage")->subscribeEvent(
+        CEGUI::Window::EventMouseClick, CEGUI::Event::Subscriber(&GameMode::clickMap, this)));
     addEventConnection(mRootWindow->getChild("GameOptionsWindow/UserCamerasButton")->subscribeEvent(
         CEGUI::PushButton::EventClicked, CEGUI::Event::Subscriber(&GameMode::showUserCameras, this)));
     addEventConnection(mRootWindow->getChild("UserCamerasWindow")->subscribeEvent(
@@ -315,6 +327,8 @@ GameMode::GameMode(ModeManager *modeManager):
 
 GameMode::~GameMode()
 {
+    // Remove tile listeners before the base destructor clears the game map.
+    mFullMap.reset();
     CEGUI::ToggleButton* checkBox =
         dynamic_cast<CEGUI::ToggleButton*>(
             mRootWindow->getChild(
@@ -556,6 +570,11 @@ bool GameMode::mousePressed(const OIS::MouseEvent& arg, OIS::MouseButtonID id)
         return true;
 
     inputManager.mMouseDownOnCEGUIWindow = isMouseDownOnCEGUIWindow();
+    if(mFullMap)
+    {
+        inputManager.mMouseDownOnCEGUIWindow = true;
+        return true;
+    }
     if (inputManager.mMouseDownOnCEGUIWindow)
         return true;
 
@@ -846,6 +865,22 @@ bool GameMode::keyPressedNormal(const OIS::KeyEvent &arg)
 {
     ODFrameListener& frameListener = ODFrameListener::getSingleton();
 
+    if(arg.key == OIS::KC_M)
+    {
+        if(!mMapKeyDown)
+        {
+            mMapKeyDown = true;
+            toggleMap();
+        }
+        return true;
+    }
+    if(mFullMap)
+    {
+        if(arg.key == OIS::KC_ESCAPE)
+            closeMap();
+        return true;
+    }
+
     switch (arg.key)
     {
     case OIS::KC_F1:
@@ -885,6 +920,13 @@ bool GameMode::keyPressedNormal(const OIS::KeyEvent &arg)
         break;
 
     case OIS::KC_H:
+        if(!cameraInputBlocked())
+            focusRoom(RoomType::dungeonTemple);
+        break;
+    case OIS::KC_P:
+        if(!cameraInputBlocked())
+            focusRoom(RoomType::portal);
+        break;
     case OIS::KC_T:
         if(isConnected() && !cameraInputBlocked()) // If we are in a game.
         {
@@ -904,8 +946,11 @@ bool GameMode::keyPressedNormal(const OIS::KeyEvent &arg)
         break;
 
     // Zooms to the next event
+    case OIS::KC_F:
     case OIS::KC_SPACE:
     {
+        if(cameraInputBlocked())
+            break;
         Player* player = mGameMap->getLocalPlayer();
         const PlayerEvent* event = player->getNextEvent(mIndexEvent);
         if(event == nullptr)
@@ -1027,6 +1072,8 @@ void GameMode::refreshPlayerGoals(const std::string& goalsDisplayString)
 
 bool GameMode::keyReleased(const OIS::KeyEvent &arg)
 {
+    if(arg.key == OIS::KC_M)
+        mMapKeyDown = false;
     CEGUI::System::getSingleton().getDefaultGUIContext().injectKeyUp(static_cast<CEGUI::Key::Scan>(arg.key));
 
     if (mCurrentInputMode == InputModeChat || mCurrentInputMode == InputModeConsole)
@@ -1075,24 +1122,12 @@ void GameMode::handleHotkeys(OIS::KeyCode keycode)
     }
 }
 
-bool GameMode::cameraInputBlocked()
-{
-    if(mCurrentInputMode != InputModeNormal || !isConnected() ||
-        !ODFrameListener::getSingleton().getRenderWindow()->isActive())
-        return true;
-    for(size_t i = 0; i < mRootWindow->getChildCount(); ++i)
-    {
-        CEGUI::Window* child = mRootWindow->getChildAtIdx(i);
-        if(child->isVisible() && dynamic_cast<CEGUI::FrameWindow*>(child) != nullptr)
-            return true;
-    }
-    return false;
-}
-
 void GameMode::updateCameraControls(float elapsed)
 {
     CameraManager* camera = ODFrameListener::getSingleton().getCameraManager();
     const auto down = [this](OIS::KeyCode key) { return getKeyboard()->isKeyDown(key); };
+    if(!down(OIS::KC_M))
+        mMapKeyDown = false;
     if(cameraInputBlocked())
     {
         camera->move(CameraManager::fullStop);
@@ -1123,6 +1158,153 @@ void GameMode::updateCameraControls(float elapsed)
         }
     }
     camera->setControls(Ogre::Vector2(input.x, input.y), input.zoom, input.swivel, input.fast);
+}
+
+bool GameMode::toggleMap(const CEGUI::EventArgs&)
+{
+    if(mFullMap)
+        return closeMap();
+    if(cameraInputBlocked())
+        return true;
+
+    InputManager& input = mModeManager->getInputManager();
+    input.mLMouseDown = input.mRMouseDown = input.mMMouseDown = false;
+    input.mCommandState = InputCommandState::infoOnly;
+    unselectAllTiles();
+    ODFrameListener::getSingleton().getCameraManager()->move(CameraManager::fullStop);
+
+    CEGUI::Window* window = mRootWindow->getChild("MapWindow");
+    CEGUI::Window* map = window->getChild("MapImage");
+    map->setAspectRatio(static_cast<float>(mGameMap->getMapSizeX()) / mGameMap->getMapSizeY());
+    window->show();
+    window->moveToFront();
+    window->setModalState(true);
+    mFullMap.reset(new MiniMapDrawnFull(map, "FullMap"));
+    mSavedMiniMapZoom = mMiniMap->getZoomLevel();
+    delete mMiniMap;
+    mMiniMap = nullptr;
+    mMiniMap = new MiniMapCamera(map->getChild("Detail"));
+    mMiniMap->setZoomLevel(1);
+    updateMapDetail();
+    return true;
+}
+
+bool GameMode::closeMap(const CEGUI::EventArgs&)
+{
+    if(!mFullMap)
+        return true;
+    mFullMap.reset();
+    delete mMiniMap;
+    mMiniMap = nullptr;
+    mMiniMap = MiniMap::createMiniMap(mRootWindow->getChild(Gui::MINIMAP));
+    mMiniMap->setZoomLevel(mSavedMiniMapZoom);
+    CEGUI::Window* window = mRootWindow->getChild("MapWindow");
+    window->setModalState(false);
+    window->hide();
+    return true;
+}
+
+bool GameMode::clickMap(const CEGUI::EventArgs& arg)
+{
+    if(!mFullMap)
+        return true;
+    const auto& mouse = static_cast<const CEGUI::MouseEventArgs&>(arg);
+    if(mouse.button == CEGUI::RightButton)
+        return closeMap();
+    if(mouse.button != CEGUI::LeftButton ||
+        !mRootWindow->getChild("MapWindow/MapImage")->getUnclippedOuterRect().get().isPointInRect(mouse.position))
+        return true;
+    const Ogre::Vector2 target = mFullMap->camera_2dPositionFromClick(
+        static_cast<int>(mouse.position.d_x), static_cast<int>(mouse.position.d_y));
+    closeMap();
+    ODFrameListener::getSingleton().getCameraManager()->jumpToViewTarget(target);
+    return true;
+}
+
+bool GameMode::zoomMiniMap(const CEGUI::EventArgs& arg)
+{
+    if(cameraInputBlocked())
+        return true;
+    const auto& mouse = static_cast<const CEGUI::MouseEventArgs&>(arg);
+    if(mouse.button != CEGUI::LeftButton && mouse.button != CEGUI::RightButton)
+        return true;
+    int level = mMiniMap->getZoomLevel() + (mouse.button == CEGUI::LeftButton ? 1 : -1);
+    if(dynamic_cast<MiniMapDrawnFull*>(mMiniMap) != nullptr)
+        level = std::max(0, level);
+    mMiniMap->setZoomLevel(level);
+    mMiniMap->update(0.5f, mCameraTilesIntersections);
+    return true;
+}
+
+void GameMode::updateMapDetail()
+{
+    CEGUI::Window* map = mRootWindow->getChild("MapWindow/MapImage");
+    CEGUI::Window* detail = map->getChild("Detail");
+    const CEGUI::Vector2f mouse = CEGUI::System::getSingleton().getDefaultGUIContext().getMouseCursor().getPosition();
+    const CEGUI::Rectf area = map->getUnclippedOuterRect().get();
+    detail->setVisible(area.isPointInRect(mouse));
+    if(!detail->isVisible())
+        return;
+    const CEGUI::Sizef size = detail->getPixelSize();
+    const float x = std::max(0.0f, std::min(area.getWidth() - size.d_width, mouse.d_x - area.left() + 12.0f));
+    const float y = std::max(0.0f, std::min(area.getHeight() - size.d_height, mouse.d_y - area.top() + 12.0f));
+    detail->setPosition(CEGUI::UVector2(CEGUI::UDim(0, x), CEGUI::UDim(0, y)));
+    static_cast<MiniMapCamera*>(mMiniMap)->setViewCenter(mFullMap->camera_2dPositionFromClick(
+        static_cast<int>(mouse.d_x), static_cast<int>(mouse.d_y)));
+}
+
+void GameMode::focusRoom(RoomType type)
+{
+    // Rooms are server objects; the client receives their owned tile visuals.
+    const TileVisual visual = type == RoomType::portal ? TileVisual::portalRoom : TileVisual::dungeonTempleRoom;
+    const Seat* owner = mGameMap->getLocalPlayer()->getSeat();
+    const int width = mGameMap->getMapSizeX();
+    const int height = mGameMap->getMapSizeY();
+    std::vector<bool> visited(width * height, false);
+    std::vector<Ogre::Vector2> centres;
+    for(int y = 0; y < height; ++y)
+    {
+        for(int x = 0; x < width; ++x)
+        {
+            Tile* first = mGameMap->getTile(x, y);
+            if(visited[y * width + x] || first->getTileVisual() != visual || first->getSeat() != owner)
+                continue;
+            std::vector<Tile*> tiles(1, first);
+            visited[y * width + x] = true;
+            Ogre::Vector2 centre = Ogre::Vector2::ZERO;
+            for(size_t i = 0; i < tiles.size(); ++i)
+            {
+                Tile* tile = tiles[i];
+                centre += Ogre::Vector2(tile->getX(), tile->getY());
+                const int dx[] = {-1, 1, 0, 0};
+                const int dy[] = {0, 0, -1, 1};
+                for(int direction = 0; direction < 4; ++direction)
+                {
+                    Tile* neighbour = mGameMap->getTile(tile->getX() + dx[direction], tile->getY() + dy[direction]);
+                    if(neighbour == nullptr || neighbour->getTileVisual() != visual || neighbour->getSeat() != owner)
+                        continue;
+                    const int index = neighbour->getY() * width + neighbour->getX();
+                    if(visited[index])
+                        continue;
+                    visited[index] = true;
+                    tiles.push_back(neighbour);
+                }
+            }
+            centre /= static_cast<Ogre::Real>(tiles.size());
+            Tile* centralTile = *std::min_element(tiles.begin(), tiles.end(), [&centre](Tile* a, Tile* b)
+            {
+                return Ogre::Vector2(a->getX(), a->getY()).squaredDistance(centre) <
+                    Ogre::Vector2(b->getX(), b->getY()).squaredDistance(centre);
+            });
+            centres.emplace_back(centralTile->getX(), centralTile->getY());
+        }
+    }
+    if(centres.empty())
+        return;
+    const size_t index = type == RoomType::portal ? mIndexPortal % centres.size() : 0;
+    ODFrameListener::getSingleton().getCameraManager()->jumpToViewTarget(centres[index]);
+    if(type == RoomType::portal)
+        mIndexPortal = index + 1;
 }
 
 bool GameMode::showUserCameras(const CEGUI::EventArgs&)
@@ -1163,7 +1345,11 @@ bool GameMode::storeUserCamera(const CEGUI::EventArgs&)
 
 void GameMode::onFrameStarted(const Ogre::FrameEvent& evt)
 {
+    if(mFullMap)
+        updateMapDetail();
     GameEditorModeBase::onFrameStarted(evt);
+    if(mFullMap)
+        mFullMap->update(evt.timeSinceLastFrame, mCameraTilesIntersections);
 
     refreshGuiSkill();
     refreshSpellButtonCoolDowns();
@@ -1490,7 +1676,9 @@ void GameMode::setHelpWindowText()
         << "  - Rotate: Delete / Page Down, Ctrl+Left / Right, or hold X and move the mouse." << std::endl
         << "  - Zoom: Home / End, Ctrl+Up / Down, wheel, or hold Z and move the mouse vertically." << std::endl
         << "  - Views: F1 isometric, F2 top down, F3 oblique; F4-F6 user cameras." << std::endl
-        << "  - Define user cameras in Options; H focuses the dungeon heart; V cycles views." << std::endl << std::endl;
+        << "  - Define user cameras in Options; H focuses the dungeon heart; P cycles portals; F focuses fights." << std::endl
+        << "  - M opens the map: left-click to move there, right-click or M to close; V cycles views." << std::endl
+        << "  - Minimap +/-: left-click to zoom in, right-click to zoom out." << std::endl << std::endl;
     txt << formatTitleOn << "Keeper hand controls" << formatTitleOff << std::endl
         << "Use your hand wisely to keep all minions under control and let your dungeon thrive!" << std::endl
         << "  - Mouse left click: Select an action, Confirm an action." << std::endl

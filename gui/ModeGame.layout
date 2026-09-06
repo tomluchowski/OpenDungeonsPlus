@@ -152,6 +152,7 @@
         <LayoutImport type="DefaultWindow" filename="WindowSkillTree.layout" name="SkillTreeWindowImport" />
         <LayoutImport type="DefaultWindow" filename="WindowGameOptions.layout" name="GameOptionsMenuImport" />
         <LayoutImport type="DefaultWindow" filename="WindowUserCameras.layout" name="UserCamerasImport" />
+        <LayoutImport type="DefaultWindow" filename="WindowMap.layout" name="MapImport" />
         <LayoutImport type="DefaultWindow" filename="WindowEvent.layout" name="EventWindowImport" />
         <LayoutImport type="DefaultWindow" filename="WindowChat.layout" name="ChatWindowImport" />
         <LayoutImport type="DefaultWindow" filename="WindowHelp.layout" name="HelpWindowImport" />

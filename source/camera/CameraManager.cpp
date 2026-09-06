@@ -622,6 +622,16 @@ void CameraManager::onMiniMapClick(Ogre::Vector2 cc)
     flyTo(Ogre::Vector3(cc.x, cc.y, 0.0));
 }
 
+void CameraManager::jumpToViewTarget(const Ogre::Vector2& pos)
+{
+    move(fullStop);
+    const Ogre::Real height = getActiveCameraNode()->getPosition().z;
+    Ogre::Vector3 position(pos.x, pos.y, height);
+    position -= getGroundOffset(height);
+    clampToMap(position);
+    getActiveCameraNode()->setPosition(position);
+}
+
 void CameraManager::setControls(const Ogre::Vector2& pan, Ogre::Real zoom, Ogre::Real swivel, bool fast)
 {
     mFastPanFactor = fast ? 2.0f : 1.0f;

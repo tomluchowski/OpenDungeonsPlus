@@ -182,7 +182,7 @@ public:
     //! \brief Does requested stuff for rendering in the minimap. Each time the minimap is rendered, this function will be
     //! called once before rendering is done with postRender = false and once when it is rendered with postRender = true.
     //! That allows to hide stuff that we don't want to display in the minimap
-    void rrMinimapRendering(bool postRender);
+    void rrMinimapRendering(bool postRender, bool keepWorldLighting = false);
 
     Ogre::Light* addPointLightMenu(const std::string& name, const Ogre::Vector3& pos,
         const Ogre::ColourValue& diffuse, const Ogre::ColourValue& specular, Ogre::Real attenuationRange,

@@ -34,6 +34,7 @@
 
 #include <Ogre.h>
 
+#include <CEGUI/widgets/FrameWindow.h>
 #include <CEGUI/widgets/PushButton.h>
 #include <CEGUI/widgets/Scrollbar.h>
 
@@ -179,15 +180,35 @@ void GameEditorModeBase::connectGuiAction(const std::string& buttonName, Abstrac
     );
 }
 
+bool GameEditorModeBase::cameraInputBlocked()
+{
+    if(mCurrentInputMode != InputModeNormal || !isConnected() ||
+        !ODFrameListener::getSingleton().getRenderWindow()->isActive())
+        return true;
+    for(size_t i = 0; i < mRootWindow->getChildCount(); ++i)
+    {
+        CEGUI::Window* child = mRootWindow->getChildAtIdx(i);
+        if(child->isVisible() && dynamic_cast<CEGUI::FrameWindow*>(child) != nullptr)
+            return true;
+    }
+    return false;
+}
+
 bool GameEditorModeBase::onMinimapClick(const CEGUI::EventArgs& arg)
 {
     const CEGUI::MouseEventArgs& mouseEvt = static_cast<const CEGUI::MouseEventArgs&>(arg);
+    if(getModeType() == ModeManager::GAME &&
+        (mouseEvt.button != CEGUI::LeftButton || cameraInputBlocked()))
+        return true;
 
     ODFrameListener& frameListener = ODFrameListener::getSingleton();
 
     Ogre::Vector2 cc = mMiniMap->camera_2dPositionFromClick(static_cast<int>(mouseEvt.position.d_x),
         static_cast<int>(mouseEvt.position.d_y));
-    frameListener.getCameraManager()->onMiniMapClick(cc);
+    if(getModeType() == ModeManager::GAME)
+        frameListener.getCameraManager()->jumpToViewTarget(cc);
+    else
+        frameListener.getCameraManager()->onMiniMapClick(cc);
 
     return true;
 }

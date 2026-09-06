@@ -42,7 +42,7 @@ class Tile;
 class MiniMapDrawnFull : public MiniMap
 {
 public:
-    MiniMapDrawnFull(CEGUI::Window* miniMapWindow);
+    MiniMapDrawnFull(CEGUI::Window* miniMapWindow, const std::string& suffix = "");
     ~MiniMapDrawnFull();
 
     Ogre::uint getWidth() const
@@ -53,7 +53,7 @@ public:
 
     void update(Ogre::Real timeSinceLastFrame, const std::vector<Ogre::Vector3>& cornerTiles) override;
 
-    void updateTileState(uint32_t minimapXMin, uint32_t xMinimapMax,
+    bool updateTileState(uint32_t minimapXMin, uint32_t xMinimapMax,
         uint32_t minimapYMin, uint32_t minimapYMax, uint32_t tileXMin,
         uint32_t tileXMax, uint32_t tileYMin, uint32_t tileYMax);
 
@@ -66,6 +66,9 @@ private:
         uint32_t xMin, uint32_t xMax, uint32_t yMin, uint32_t yMax);
 
     CEGUI::Window* mMiniMapWindow;
+    std::string mResourceSuffix;
+    Ogre::Vector2 mViewOrigin = Ogre::Vector2::ZERO;
+    Ogre::Vector2 mViewSize = Ogre::Vector2::UNIT_SCALE;
 
     GameMap& mGameMap;
     CameraManager& mCameraManager;
@@ -83,6 +86,8 @@ private:
 
     Ogre::Vector2 mCamera_2dPosition;
 
+    std::vector<Ogre::uint8> mPixels;
+    bool mPixelsDirty = true;
     Ogre::PixelBox mPixelBox;
     Ogre::TexturePtr mMiniMapOgreTexture;
     Ogre::HardwarePixelBufferSharedPtr mPixelBuffer;
