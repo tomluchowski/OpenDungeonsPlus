@@ -245,6 +245,9 @@ private:
     Ogre::Vector3   mTranslateVector;
     Ogre::Vector3   mTranslateVectorAccel;
 
+    //! \brief Maximum pan speed per axis, used to scale mouse-edge scrolling.
+    Ogre::Vector2   mTranslateMaxSpeedFactor;
+
     //! \brief The X-axis rotation vector, tilting the point of view (look down or up).
     Ogre::Vector3   mRotateLocalVector;
 
