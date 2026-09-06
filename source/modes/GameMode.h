@@ -36,6 +36,7 @@ class Window;
 
 class Creature;
 class CreaturePanel;
+class GameEntity;
 
 enum class SpellType;
 enum class SkillType;
@@ -299,6 +300,9 @@ private:
     void checkInputCommand();
     void handlePlayerActionNone();
     void handlePlayerActionSelectTile();
+    bool toggleQuery(const CEGUI::EventArgs& e);
+    GameEntity* getQueryTarget(Tile* tile) const;
+    void handlePlayerActionQuery();
     void updateSelectedTiles();
 
     //! \brief Builds the player settings window
