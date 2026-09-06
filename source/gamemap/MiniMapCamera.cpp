@@ -168,9 +168,9 @@ void MiniMapCamera::update(Ogre::Real timeSinceLastFrame, const std::vector<Ogre
 
     Ogre::RenderTarget* rt = mMiniMapOgreTexture->getBuffer()->getRenderTarget();
     rt->update();
-    updateHeartDirection(mMiniMapWindow, mGameMap, Ogre::Vector2(mCurCamPosX, mCurCamPosY),
+    updateMapOverlay(mMiniMapWindow, mGameMap, Ogre::Vector2(mCurCamPosX, mCurCamPosY),
         Ogre::Vector2::UNIT_SCALE * NB_TILES_DISPLAYED_IN_MINIMAP * getZoomScale(),
-        mUseViewCenter ? 0.0f : mMiniMapCamNode->getOrientation().getRoll().valueRadians());
+        mUseViewCenter ? 0.0f : mMiniMapCamNode->getOrientation().getRoll().valueRadians(), cornerTiles);
 }
 
 void MiniMapCamera::updateMinimapCamera()

@@ -40,17 +40,19 @@
 
 namespace
 {
-class CircularMiniMapImage : public CEGUI::BasicImage
+class MiniMapImage : public CEGUI::BasicImage
 {
 public:
-    explicit CircularMiniMapImage(const CEGUI::String& name) : CEGUI::BasicImage(name), mDot(name + "Dot") { createDot(); }
-    explicit CircularMiniMapImage(const CEGUI::XMLAttributes& attributes) : CEGUI::BasicImage(attributes), mDot(getName() + "Dot") { createDot(); }
-    ~CircularMiniMapImage() override
+    explicit MiniMapImage(const CEGUI::String& name) : CEGUI::BasicImage(name), mDot(name + "Dot") { createDot(); }
+    explicit MiniMapImage(const CEGUI::XMLAttributes& attributes) : CEGUI::BasicImage(attributes), mDot(getName() + "Dot") { createDot(); }
+    ~MiniMapImage() override
     {
         CEGUI::System::getSingleton().getRenderer()->destroyTexture(getName() + "DotTexture");
     }
 
+    bool mCircular = true;
     bool mShowDirection = false;
+    std::vector<Ogre::Vector2> mViewport;
     Ogre::Vector2 mDirectionStart;
     Ogre::Vector2 mDirectionEnd;
 
@@ -63,7 +65,9 @@ public:
         const float radiusX = area.getWidth() * 0.5f;
         const float radiusY = area.getHeight() * 0.5f;
         const float centerX = area.left() + radiusX;
-        for(float y = area.top(); y < area.bottom(); y += 1.0f)
+        if(!mCircular)
+            CEGUI::BasicImage::render(buffer, area, clip, colours);
+        else for(float y = area.top(); y < area.bottom(); y += 1.0f)
         {
             const float nextY = std::min(y + 1.0f, area.bottom());
             const float dy = ((y + nextY) * 0.5f - area.top() - radiusY) / radiusY;
@@ -74,28 +78,67 @@ public:
             if(strip.getWidth() > 0.0f && strip.getHeight() > 0.0f)
                 CEGUI::BasicImage::render(buffer, area, &strip, colours);
         }
-        if(!mShowDirection)
+        if(mShowDirection)
+            drawLine(buffer, area, clip, colours, mDirectionStart, mDirectionEnd, true);
+        for(size_t i = 0; i < mViewport.size(); ++i)
+            drawLine(buffer, area, clip, colours, mViewport[i], mViewport[(i + 1) % mViewport.size()], false);
+    }
+
+private:
+    void drawLine(CEGUI::GeometryBuffer& buffer, const CEGUI::Rectf& area,
+            const CEGUI::Rectf* clip, const CEGUI::ColourRect& colours,
+            const Ogre::Vector2& from, const Ogre::Vector2& to, bool dotted) const
+    {
+        Ogre::Vector2 start(area.left() + from.x * area.getWidth(), area.top() + from.y * area.getHeight());
+        const Ogre::Vector2 direction((to.x - from.x) * area.getWidth(), (to.y - from.y) * area.getHeight());
+        const CEGUI::Rectf bounds = clip == nullptr ? area : area.getIntersection(*clip);
+        if(bounds.getWidth() <= 0.0f || bounds.getHeight() <= 0.0f)
             return;
-        const Ogre::Vector2 start(area.left() + mDirectionStart.x * area.getWidth(),
-            area.top() + mDirectionStart.y * area.getHeight());
-        const Ogre::Vector2 end(area.left() + mDirectionEnd.x * area.getWidth(),
-            area.top() + mDirectionEnd.y * area.getHeight());
-        const Ogre::Vector2 direction = end - start;
-        const float length = direction.length();
+        // Clip before sampling: camera ground intersections may be far outside the map.
+        float first = 0.0f, last = 1.0f;
+        const float p[] = {-direction.x, direction.x, -direction.y, direction.y};
+        const float q[] = {start.x - bounds.left(), bounds.right() - start.x,
+            start.y - bounds.top(), bounds.bottom() - start.y};
+        for(int edge = 0; edge < 4; ++edge)
+        {
+            if(p[edge] == 0.0f)
+            {
+                if(q[edge] < 0.0f)
+                    return;
+                continue;
+            }
+            const float distance = q[edge] / p[edge];
+            if(p[edge] < 0.0f)
+                first = std::max(first, distance);
+            else
+                last = std::min(last, distance);
+            if(first > last)
+                return;
+        }
+        start += direction * first;
+        const Ogre::Vector2 segment = direction * (last - first);
+        const float length = segment.length();
         if(length < 1.0f)
             return;
-        for(float distance = 0.0f; distance <= length; distance += 5.0f)
+        const float halfSize = dotted ? 1.0f : 0.5f;
+        for(float distance = 0.0f; distance <= length; distance += dotted ? 5.0f : 0.75f)
         {
-            const Ogre::Vector2 dot = start + direction * (distance / length);
-            const float x = (dot.x - centerX) / std::max(1.0f, radiusX - 2.0f);
-            const float y = (dot.y - area.top() - radiusY) / std::max(1.0f, radiusY - 2.0f);
-            if(x * x + y * y > 1.0f)
-                continue;
-            const CEGUI::Rectf rect(dot.x - 1.0f, dot.y - 1.0f, dot.x + 1.0f, dot.y + 1.0f);
-            mDot.render(buffer, rect, clip, colours);
+            const Ogre::Vector2 dot = start + segment * (distance / length);
+            if(mCircular)
+            {
+                const float radiusX = area.getWidth() * 0.5f, radiusY = area.getHeight() * 0.5f;
+                const float x = (dot.x - area.left() - radiusX) / std::max(1.0f, radiusX - halfSize - 1.0f);
+                const float y = (dot.y - area.top() - radiusY) / std::max(1.0f, radiusY - halfSize - 1.0f);
+                if(x * x + y * y > 1.0f)
+                    continue;
+            }
+            const float left = std::floor(dot.x - halfSize + 0.5f);
+            const float top = std::floor(dot.y - halfSize + 0.5f);
+            mDot.render(buffer, CEGUI::Rectf(left, top,
+                left + halfSize * 2.0f, top + halfSize * 2.0f), &bounds, colours);
         }
     }
-private:
+
     void createDot()
     {
         CEGUI::Texture& texture = CEGUI::System::getSingleton().getRenderer()->createTexture(getName() + "DotTexture");
@@ -108,15 +151,18 @@ private:
 };
 }
 
-CEGUI::BasicImage& MiniMap::createMiniMapImage(CEGUI::Window* miniMapWindow, const std::string& name)
+CEGUI::BasicImage& MiniMap::createMiniMapImage(CEGUI::Window* miniMapWindow, const std::string& name, bool showViewport)
 {
     CEGUI::ImageManager& images = CEGUI::ImageManager::getSingleton();
     const bool circular = miniMapWindow->isUserStringDefined("Circular") &&
         miniMapWindow->getUserString("Circular") == "true";
-    if(circular && !images.isImageTypeAvailable("CircularMiniMap"))
-        images.addImageType<CircularMiniMapImage>("CircularMiniMap");
-    return static_cast<CEGUI::BasicImage&>(images.create(
-        circular ? "CircularMiniMap" : "BasicImage", name));
+    if(!circular && !showViewport)
+        return static_cast<CEGUI::BasicImage&>(images.create("BasicImage", name));
+    if(!images.isImageTypeAvailable("MiniMap"))
+        images.addImageType<MiniMapImage>("MiniMap");
+    auto& image = static_cast<MiniMapImage&>(images.create("MiniMap", name));
+    image.mCircular = circular;
+    return image;
 }
 
 void MiniMap::setZoomLevel(int level)
@@ -129,23 +175,26 @@ Ogre::Real MiniMap::getZoomScale() const
     return std::ldexp(1.0f, -mZoomLevel);
 }
 
-void MiniMap::updateHeartDirection(CEGUI::Window* window, GameMap& map,
-        const Ogre::Vector2& centre, const Ogre::Vector2& span, Ogre::Real rotation)
+void MiniMap::updateMapOverlay(CEGUI::Window* window, GameMap& map,
+        const Ogre::Vector2& centre, const Ogre::Vector2& span, Ogre::Real rotation, const std::vector<Ogre::Vector3>& cornerTiles)
 {
-    auto* image = dynamic_cast<CircularMiniMapImage*>(
+    auto* image = dynamic_cast<MiniMapImage*>(
         &CEGUI::ImageManager::getSingleton().get(window->getProperty("Image")));
     if(image == nullptr)
         return;
-    image->mShowDirection = false;
-    if(getZoomLevel() <= 0)
+    const auto project = [&centre, &span, rotation](const Ogre::Vector2& world)
     {
-        const auto project = [&centre, &span, rotation](const Ogre::Vector2& world)
-        {
-            const Ogre::Vector2 delta = world - centre;
-            const float x = delta.x * std::cos(rotation) + delta.y * std::sin(rotation);
-            const float y = -delta.x * std::sin(rotation) + delta.y * std::cos(rotation);
-            return Ogre::Vector2(0.5f + x / span.x, 0.5f - y / span.y);
-        };
+        const Ogre::Vector2 delta = world - centre;
+        const float x = delta.x * std::cos(rotation) + delta.y * std::sin(rotation);
+        const float y = -delta.x * std::sin(rotation) + delta.y * std::cos(rotation);
+        return Ogre::Vector2(0.5f + x / span.x, 0.5f - y / span.y);
+    };
+    image->mViewport.clear();
+    for(const Ogre::Vector3& corner : cornerTiles)
+        image->mViewport.push_back(project(Ogre::Vector2(corner.x, corner.y)));
+    image->mShowDirection = false;
+    if(image->mCircular && getZoomLevel() <= 0)
+    {
         const Ogre::Vector3 target = ODFrameListener::getSingleton().getCameraManager()->getCameraViewTarget();
         image->mDirectionStart = project(Ogre::Vector2(target.x, target.y));
         Seat* owner = map.getLocalPlayer()->getSeat();

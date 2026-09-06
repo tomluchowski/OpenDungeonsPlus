@@ -165,6 +165,6 @@ void MiniMapDrawn::update(Ogre::Real timeSinceLastFrame, const std::vector<Ogre:
     }
 
     mPixelBuffer->unlock();
-    updateHeartDirection(mMiniMapWindow, mGameMap, mCamera_2dPosition,
-        Ogre::Vector2(mWidth, mHeight) * (getZoomScale() / mGrainSize), rotation);
+    updateMapOverlay(mMiniMapWindow, mGameMap, mCamera_2dPosition,
+        Ogre::Vector2(mWidth, mHeight) * (getZoomScale() / mGrainSize), rotation, cornerTiles);
 }

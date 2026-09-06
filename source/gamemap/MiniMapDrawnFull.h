@@ -60,11 +60,6 @@ public:
     Ogre::Vector2 camera_2dPositionFromClick(int xx, int yy) override;
 
 private:
-    //! \brief Returns true is the segment between p1 and p2 (using x and y only)
-    //! crosses the values within xMin, xMax, yMin and yMax
-    bool crossSegment(const Ogre::Vector3& p1, const Ogre::Vector3& p2,
-        uint32_t xMin, uint32_t xMax, uint32_t yMin, uint32_t yMax);
-
     CEGUI::Window* mMiniMapWindow;
     std::string mResourceSuffix;
     Ogre::Vector2 mViewOrigin = Ogre::Vector2::ZERO;
@@ -74,10 +69,6 @@ private:
     CameraManager& mCameraManager;
 
     std::vector<MiniMapDrawnFullTileStateListener*> mTileStateListeners;
-
-    std::vector<MiniMapDrawnFullTileStateListener*> mVisibleRectangle;
-
-    std::vector<Ogre::Vector3> mLastCornerTiles;
 
     int mTopLeftCornerX;
     int mTopLeftCornerY;

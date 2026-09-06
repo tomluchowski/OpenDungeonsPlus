@@ -48,7 +48,7 @@ public:
     //! \brief This function will create the minimap according to user preferences
     static MiniMap* createMiniMap(CEGUI::Window* miniMapWindow);
     static CEGUI::BasicImage& createMiniMapImage(CEGUI::Window* miniMapWindow,
-        const std::string& name = "MiniMapImageset");
+        const std::string& name = "MiniMapImageset", bool showViewport = false);
 
     void setZoomLevel(int level);
     int getZoomLevel() const { return mZoomLevel; }
@@ -64,8 +64,8 @@ protected:
         bool animated = false;
     };
     static TileColour colourFromTile(Tile& tile, Seat& playerSeat, unsigned int phase);
-    void updateHeartDirection(CEGUI::Window* window, GameMap& map,
-        const Ogre::Vector2& centre, const Ogre::Vector2& span, Ogre::Real rotation);
+    void updateMapOverlay(CEGUI::Window* window, GameMap& map,
+        const Ogre::Vector2& centre, const Ogre::Vector2& span, Ogre::Real rotation, const std::vector<Ogre::Vector3>& cornerTiles);
     Ogre::Real mAnimationTime = 0.0f;
 private:
     int mZoomLevel = 0;
