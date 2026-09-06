@@ -105,7 +105,10 @@ enum class ServerNotificationType
     exit,
 
     // Sent only to clients that negotiated live nickname changes.
-    playerNickChanged
+    playerNickChanged,
+
+    // Owner-only aggregate counts, sent only after creature-panel negotiation.
+    creaturePanel
 };
 
 ODPacket& operator<<(ODPacket& os, const ServerNotificationType& nt);

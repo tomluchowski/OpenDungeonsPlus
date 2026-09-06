@@ -107,7 +107,7 @@ Ogre::TexturePtr createCreaturePortrait(const std::string& meshName, const std::
     camera->setNearClipDistance(0.01f);
     camera->setFarClipDistance(std::max(10.0f, size.length() * 4.0f));
     camera->setProjectionType(Ogre::PT_ORTHOGRAPHIC);
-    camera->setOrthoWindow(height * 0.75f, height);
+    camera->setOrthoWindow(height * 0.5f, height);
     Ogre::SceneNode* cameraNode = scene->getRootSceneNode()->createChildSceneNode();
     cameraNode->setFixedYawAxis(true, Ogre::Vector3::UNIT_Z);
     cameraNode->attachObject(camera);
@@ -115,7 +115,7 @@ Ogre::TexturePtr createCreaturePortrait(const std::string& meshName, const std::
     cameraNode->lookAt(center, Ogre::Node::TS_WORLD);
 
     Ogre::TexturePtr texture = Ogre::TextureManager::getSingleton().createManual(textureName, "General",
-        Ogre::TEX_TYPE_2D, 192, 256, 0, Ogre::PF_BYTE_RGBA, Ogre::TU_RENDERTARGET);
+        Ogre::TEX_TYPE_2D, 192, 384, 0, Ogre::PF_BYTE_RGBA, Ogre::TU_RENDERTARGET);
     try
     {
         Ogre::RenderTexture* target = texture->getBuffer()->getRenderTarget();
@@ -150,7 +150,7 @@ const CEGUI::Image& getCreaturePortraitImage(const std::string& meshName)
         CEGUI::Texture& guiTexture = renderer.createTexture(name, texture, true);
         CEGUI::BasicImage& image = static_cast<CEGUI::BasicImage&>(images.create("BasicImage", name));
         image.setTexture(&guiTexture);
-        image.setArea(CEGUI::Rectf(0.0f, 0.0f, 192.0f, 256.0f));
+        image.setArea(CEGUI::Rectf(0.0f, 0.0f, 192.0f, 384.0f));
         image.setAutoScaled(CEGUI::ASM_Disabled);
         return image;
     }

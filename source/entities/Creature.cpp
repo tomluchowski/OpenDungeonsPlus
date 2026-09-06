@@ -1785,7 +1785,7 @@ void Creature::importMoodFromPacket(ODPacket& is)
 CreatureActivity Creature::getActivity() const
 {
     CreatureActivity activity;
-    if(!getIsOnMap() || !isAlive())
+    if(!getIsOnMap() || !isAlive() || isKo())
         return activity;
 
     if(!getIsOnServerMap())

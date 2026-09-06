@@ -28,6 +28,7 @@
 #include "entities/Tile.h"
 #include "entities/Weapon.h"
 #include "game/Player.h"
+#include "game/CreaturePanelData.h"
 #include "game/Seat.h"
 #include "game/Skill.h"
 #include "game/SkillType.h"
@@ -241,14 +242,21 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
                 OD_ASSERT_TRUE(packetReceived >> creatureActivity);
             setSupportsCreatureActivity(false);
 
+            bool creaturePanel = false;
+            if(!packetReceived.endOfPacket())
+                OD_ASSERT_TRUE(packetReceived >> creaturePanel);
+            setSupportsCreaturePanel(false);
+
             ODPacket packSend;
             const std::string& nick = gameMap->getLocalPlayerNick();
             packSend << ClientNotificationType::setNick << nick;
-            if(liveNickname || creatureMood || creatureActivity)
+            if(liveNickname || creatureMood || creatureActivity || creaturePanel)
                 packSend << liveNickname;
-            if(creatureMood || creatureActivity)
+            if(creatureMood || creatureActivity || creaturePanel)
                 packSend << creatureMood;
-            if(creatureActivity)
+            if(creatureActivity || creaturePanel)
+                packSend << creatureActivity;
+            if(creaturePanel)
                 packSend << true;
             send(packSend);
 
@@ -424,6 +432,11 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
             if(!packetReceived.endOfPacket())
                 OD_ASSERT_TRUE(packetReceived >> creatureActivity);
             setSupportsCreatureActivity(creatureActivity);
+
+            bool creaturePanel = false;
+            if(!packetReceived.endOfPacket())
+                OD_ASSERT_TRUE(packetReceived >> creaturePanel);
+            setSupportsCreaturePanel(creaturePanel);
 
             // Now that the we have received all needed information, we can launch the requested mode
             OD_LOG_INF("Starting game map");
@@ -710,6 +723,19 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
             OD_ASSERT_TRUE(packetReceived >> goalsString);
 
             refreshMainUI(goalsString);
+            break;
+        }
+
+        case ServerNotificationType::creaturePanel:
+        {
+            CreaturePanelData data;
+            if(!supportsCreaturePanel() || !importCreaturePanelData(packetReceived, data))
+            {
+                OD_LOG_ERR("Invalid creature panel snapshot");
+                return false;
+            }
+            if(frameListener->getModeManager()->getCurrentModeType() == ModeManager::GAME)
+                static_cast<GameMode*>(frameListener->getModeManager()->getCurrentMode())->refreshCreaturePanel(data);
             break;
         }
 

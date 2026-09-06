@@ -35,6 +35,7 @@
 #include "network/ODClient.h"
 #include "network/ODServer.h"
 #include "render/Gui.h"
+#include "render/CreaturePanel.h"
 #include "render/ODFrameListener.h"
 #include "render/RenderManager.h"
 #include "render/TextRenderer.h"
@@ -312,6 +313,8 @@ GameMode::GameMode(ModeManager *modeManager):
     SkillManager::connectSkills(this, mRootWindow);
 
     syncTabButtonTooltips(Gui::MAIN_TABCONTROL);
+    mCreaturePanel.reset(new CreaturePanel(*mGameMap, modeManager->getGui(),
+        mRootWindow->getChild(Gui::TAB_CREATURES)));
 }
 
 GameMode::~GameMode()
@@ -1142,6 +1145,11 @@ void GameMode::refreshMainUI()
     guiSheet->getChild(Gui::BUTTON_CREATURE_FIGHTER + "/Count")->setText(Helper::toString(fighters));
 }
 
+void GameMode::refreshCreaturePanel(const CreaturePanelData& data)
+{
+    mCreaturePanel->setData(data);
+}
+
 void GameMode::refreshPlayerGoals(const std::string& goalsDisplayString)
 {
     CEGUI::Window* widget = mRootWindow->getChild(Gui::OBJECTIVE_TEXT);
@@ -1261,6 +1269,7 @@ void GameMode::onFrameStarted(const Ogre::FrameEvent& evt)
         return;
     }
     player->frameStarted(evt.timeSinceLastFrame);
+    mCreaturePanel->update();
 
     // After frameStarted, so that the countdown shown is the one just computed.
     refreshActionFeedback(evt.timeSinceLastFrame);
