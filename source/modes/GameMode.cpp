@@ -2077,8 +2077,13 @@ void GameMode::handlePlayerActionNone()
             if(closest != nullptr)
             {
                 Creature* creature = dynamic_cast<Creature*>(closest);
-                displayText(Ogre::ColourValue::White, creature != nullptr ?
-                    creature->getDefinition()->getClassName() : closest->getName());
+                if(closest->getObjectType() == GameEntityType::chickenEntity)
+                    displayText(Ogre::ColourValue::White, "Chicken");
+                else if(closest->getObjectType() == GameEntityType::treasuryObject)
+                    displayText(Ogre::ColourValue::White, "Gold");
+                else
+                    displayText(Ogre::ColourValue::White, creature != nullptr ?
+                        creature->getDefinition()->getClassName() : closest->getName());
             }
             else if(tile->isDiggable(player->getSeat()))
             {
