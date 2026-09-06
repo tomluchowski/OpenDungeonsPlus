@@ -70,7 +70,7 @@ MiniMapDrawn::MiniMapDrawn(CEGUI::Window* miniMapWindow) :
     CEGUI::Texture& miniMapTextureGui = static_cast<CEGUI::OgreRenderer*>(CEGUI::System::getSingletonPtr()
                                             ->getRenderer())->createTexture("miniMapTextureGui", mMiniMapOgreTexture);
 
-    CEGUI::BasicImage& imageset = dynamic_cast<CEGUI::BasicImage&>(CEGUI::ImageManager::getSingletonPtr()->create("BasicImage", "MiniMapImageset"));
+    CEGUI::BasicImage& imageset = MiniMap::createMiniMapImage(mMiniMapWindow);
     imageset.setArea(CEGUI::Rectf(CEGUI::Vector2f(0.0, 0.0),
                                       CEGUI::Size<float>(
                                           static_cast<float>(mWidth), static_cast<float>(mHeight)
@@ -102,8 +102,9 @@ Ogre::Vector2 MiniMapDrawn::camera_2dPositionFromClick(int xx, int yy)
     mTopLeftCornerY = static_cast<int>(mMiniMapWindow->getPixelPosition().d_y);
     Ogre::Real mm, nn, oo, pp;
     // Compute move and normalise
-    mm = (xx - mTopLeftCornerX) / static_cast<double>(mWidth) - 0.5;
-    nn = (yy - mTopLeftCornerY) / static_cast<double>(mHeight) - 0.5;
+    const CEGUI::Sizef displaySize = mMiniMapWindow->getPixelSize();
+    mm = (xx - mTopLeftCornerX) / static_cast<double>(displaySize.d_width) - 0.5;
+    nn = (yy - mTopLeftCornerY) / static_cast<double>(displaySize.d_height) - 0.5;
     // Applying rotation
     oo = nn * mSinRotation + mm * mCosRotation;
     pp = nn * mCosRotation - mm * mSinRotation;
