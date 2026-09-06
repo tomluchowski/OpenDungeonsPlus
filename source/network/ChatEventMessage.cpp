@@ -72,5 +72,14 @@ std::string EventMessage::getMessageAsString()
             eventType = "[image-size='w:16 h:16'][image='OpenDungeonsIcons/ObjectivesIcon'] [colour='FF3333FF']";
             break;
     }
-    return eventType + mMessage + formatWhiteColor + "\n";
+    // The payload is plain text; only the surrounding event decoration is markup.
+    std::string escapedMessage;
+    escapedMessage.reserve(mMessage.size());
+    for(char character : mMessage)
+    {
+        if(character == '\\' || character == '[')
+            escapedMessage += '\\';
+        escapedMessage += character;
+    }
+    return eventType + escapedMessage + formatWhiteColor + "\n";
 }
