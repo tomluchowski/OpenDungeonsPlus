@@ -336,6 +336,10 @@ void MiniMapDrawnFull::update(Ogre::Real timeSinceLastFrame, const std::vector<O
     image.setArea(CEGUI::Rectf(mViewOrigin.x * mWidth, mViewOrigin.y * mHeight,
         (mViewOrigin.x + scale) * mWidth, (mViewOrigin.y + scale) * mHeight));
     mMiniMapWindow->invalidate();
+    updateHeartDirection(mMiniMapWindow, mGameMap,
+        Ogre::Vector2((mViewOrigin.x + scale * 0.5f) * mGameMap.getMapSizeX(),
+            (1.0f - mViewOrigin.y - scale * 0.5f) * mGameMap.getMapSizeY()),
+        Ogre::Vector2(mGameMap.getMapSizeX(), mGameMap.getMapSizeY()) * scale, 0.0f);
 
     const Ogre::Vector3& topRight = cornerTiles[0];
     const Ogre::Vector3& topLeft = cornerTiles[1];

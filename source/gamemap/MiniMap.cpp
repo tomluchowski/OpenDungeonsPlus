@@ -24,11 +24,17 @@
 #include "entities/Tile.h"
 #include "game/Player.h"
 #include "game/Seat.h"
+#include "gamemap/GameMap.h"
+#include "render/ODFrameListener.h"
+#include "camera/CameraManager.h"
 #include "utils/ConfigManager.h"
 #include "utils/LogManager.h"
 
 #include <CEGUI/BasicImage.h>
 #include <CEGUI/ImageManager.h>
+#include <CEGUI/Renderer.h>
+#include <CEGUI/System.h>
+#include <CEGUI/Texture.h>
 #include <CEGUI/Window.h>
 #include <cmath>
 
@@ -37,8 +43,16 @@ namespace
 class CircularMiniMapImage : public CEGUI::BasicImage
 {
 public:
-    explicit CircularMiniMapImage(const CEGUI::String& name) : CEGUI::BasicImage(name) {}
-    explicit CircularMiniMapImage(const CEGUI::XMLAttributes& attributes) : CEGUI::BasicImage(attributes) {}
+    explicit CircularMiniMapImage(const CEGUI::String& name) : CEGUI::BasicImage(name), mDot(name + "Dot") { createDot(); }
+    explicit CircularMiniMapImage(const CEGUI::XMLAttributes& attributes) : CEGUI::BasicImage(attributes), mDot(getName() + "Dot") { createDot(); }
+    ~CircularMiniMapImage() override
+    {
+        CEGUI::System::getSingleton().getRenderer()->destroyTexture(getName() + "DotTexture");
+    }
+
+    bool mShowDirection = false;
+    Ogre::Vector2 mDirectionStart;
+    Ogre::Vector2 mDirectionEnd;
 
     void render(CEGUI::GeometryBuffer& buffer, const CEGUI::Rectf& area,
         const CEGUI::Rectf* clip, const CEGUI::ColourRect& colours) const override
@@ -60,7 +74,37 @@ public:
             if(strip.getWidth() > 0.0f && strip.getHeight() > 0.0f)
                 CEGUI::BasicImage::render(buffer, area, &strip, colours);
         }
+        if(!mShowDirection)
+            return;
+        const Ogre::Vector2 start(area.left() + mDirectionStart.x * area.getWidth(),
+            area.top() + mDirectionStart.y * area.getHeight());
+        const Ogre::Vector2 end(area.left() + mDirectionEnd.x * area.getWidth(),
+            area.top() + mDirectionEnd.y * area.getHeight());
+        const Ogre::Vector2 direction = end - start;
+        const float length = direction.length();
+        if(length < 1.0f)
+            return;
+        for(float distance = 0.0f; distance <= length; distance += 5.0f)
+        {
+            const Ogre::Vector2 dot = start + direction * (distance / length);
+            const float x = (dot.x - centerX) / std::max(1.0f, radiusX - 2.0f);
+            const float y = (dot.y - area.top() - radiusY) / std::max(1.0f, radiusY - 2.0f);
+            if(x * x + y * y > 1.0f)
+                continue;
+            const CEGUI::Rectf rect(dot.x - 1.0f, dot.y - 1.0f, dot.x + 1.0f, dot.y + 1.0f);
+            mDot.render(buffer, rect, clip, colours);
+        }
     }
+private:
+    void createDot()
+    {
+        CEGUI::Texture& texture = CEGUI::System::getSingleton().getRenderer()->createTexture(getName() + "DotTexture");
+        const unsigned char white[] = {255, 255, 255, 255};
+        texture.loadFromMemory(white, CEGUI::Sizef(1, 1), CEGUI::Texture::PF_RGBA);
+        mDot.setTexture(&texture);
+        mDot.setArea(CEGUI::Rectf(0, 0, 1, 1));
+    }
+    CEGUI::BasicImage mDot;
 };
 }
 
@@ -83,6 +127,41 @@ void MiniMap::setZoomLevel(int level)
 Ogre::Real MiniMap::getZoomScale() const
 {
     return std::ldexp(1.0f, -mZoomLevel);
+}
+
+void MiniMap::updateHeartDirection(CEGUI::Window* window, GameMap& map,
+        const Ogre::Vector2& centre, const Ogre::Vector2& span, Ogre::Real rotation)
+{
+    auto* image = dynamic_cast<CircularMiniMapImage*>(
+        &CEGUI::ImageManager::getSingleton().get(window->getProperty("Image")));
+    if(image == nullptr)
+        return;
+    image->mShowDirection = false;
+    if(getZoomLevel() <= 0)
+    {
+        const auto project = [&centre, &span, rotation](const Ogre::Vector2& world)
+        {
+            const Ogre::Vector2 delta = world - centre;
+            const float x = delta.x * std::cos(rotation) + delta.y * std::sin(rotation);
+            const float y = -delta.x * std::sin(rotation) + delta.y * std::cos(rotation);
+            return Ogre::Vector2(0.5f + x / span.x, 0.5f - y / span.y);
+        };
+        const Ogre::Vector3 target = ODFrameListener::getSingleton().getCameraManager()->getCameraViewTarget();
+        image->mDirectionStart = project(Ogre::Vector2(target.x, target.y));
+        Seat* owner = map.getLocalPlayer()->getSeat();
+        for(int y = 0; y < map.getMapSizeY() && !image->mShowDirection; ++y)
+            for(int x = 0; x < map.getMapSizeX(); ++x)
+            {
+                Tile* tile = map.getTile(x, y);
+                if(tile->getEverVisible() && tile->getSeat() == owner && tile->getTileVisual() == TileVisual::dungeonTempleRoom)
+                {
+                    image->mDirectionEnd = project(Ogre::Vector2(x, y));
+                    image->mShowDirection = true;
+                    break;
+                }
+            }
+    }
+    window->invalidate();
 }
 
 MiniMap::TileColour MiniMap::colourFromTile(Tile& tile, Seat& playerSeat, unsigned int phase)
@@ -204,7 +283,7 @@ static std::vector<std::string> buildMiniMapTypes()
 
 };
 
-const std::string& MiniMap::DEFAULT_MINIMAP = MiniMapTypes::MINIMAP_CAMERA;
+const std::string& MiniMap::DEFAULT_MINIMAP = MiniMapTypes::MINIMAP_DRAWN;
 
 MiniMap* MiniMap::createMiniMap(CEGUI::Window* miniMapWindow)
 {
@@ -219,7 +298,7 @@ MiniMap* MiniMap::createMiniMap(CEGUI::Window* miniMapWindow)
 
     OD_LOG_ERR("Couldn't find requested minimap=" + minimapType);
     // Per default, we return the default minimap
-    return new MiniMapCamera(miniMapWindow);
+    return new MiniMapDrawn(miniMapWindow);
 }
 
 const std::vector<std::string>& MiniMap::getMiniMapTypes()

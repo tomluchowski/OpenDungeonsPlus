@@ -29,6 +29,7 @@ class Window;
 
 class Tile;
 class Seat;
+class GameMap;
 
 class MiniMap
 {
@@ -63,6 +64,8 @@ protected:
         bool animated = false;
     };
     static TileColour colourFromTile(Tile& tile, Seat& playerSeat, unsigned int phase);
+    void updateHeartDirection(CEGUI::Window* window, GameMap& map,
+        const Ogre::Vector2& centre, const Ogre::Vector2& span, Ogre::Real rotation);
     Ogre::Real mAnimationTime = 0.0f;
 private:
     int mZoomLevel = 0;
