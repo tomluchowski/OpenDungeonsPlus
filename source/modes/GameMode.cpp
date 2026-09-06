@@ -84,6 +84,22 @@ static double getAutoscrollIntensity(int mousePosition, int screenSize, bool min
     return std::max(0.0, std::min(1.0, (edgeSize - distanceFromEdge) / edgeSize));
 }
 
+static bool blocksEdgeScrolling(CEGUI::Window* window)
+{
+    if(window == nullptr || window->getName() == "Root")
+        return false;
+
+    // Fixed HUD surfaces must not cover the physical screen edges. Dialogs
+    // still own their input, as do clicks and wheel events over the HUD.
+    for(CEGUI::Window* parent = window; parent != nullptr; parent = parent->getParent())
+    {
+        if(parent->isUserStringDefined("AllowEdgeScrolling") &&
+           parent->getUserString("AllowEdgeScrolling") == "true")
+            return false;
+    }
+    return true;
+}
+
 GameMode::GameMode(ModeManager *modeManager):
     GameEditorModeBase(modeManager, ModeManager::GAME, modeManager->getGui().getGuiSheet(Gui::guiSheet::inGameMenu)),
     mDigSetBool(false),
@@ -392,7 +408,8 @@ bool GameMode::mouseMoved(const OIS::MouseEvent &arg)
 
     if (!directionKeyPressed && config.getInputValue(Config::AUTOSCROLL, "No", false) == "Yes")
     {
-        const bool mouseOverGui = isMouseWheelOnCEGUIWindow();
+        const bool mouseOverGui = blocksEdgeScrolling(
+            CEGUI::System::getSingleton().getDefaultGUIContext().getWindowContainingMouse());
         const double leftIntensity = mouseOverGui ? 0.0 : getAutoscrollIntensity(arg.state.X.abs, arg.state.width, true);
         const double rightIntensity = mouseOverGui ? 0.0 : getAutoscrollIntensity(arg.state.X.abs, arg.state.width, false);
         const double topIntensity = mouseOverGui ? 0.0 : getAutoscrollIntensity(arg.state.Y.abs, arg.state.height, true);
