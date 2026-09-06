@@ -4625,6 +4625,7 @@
         <PropertyDefinition initialValue="OpenDungeonsSkin/ButtonDisabledEffect" name="DisabledImage" redrawOnWrite="true" />
         <PropertyDefinition initialValue="Stretched" name="VertImageFormatting" redrawOnWrite="true" />
         <PropertyDefinition initialValue="Stretched" name="HorzImageFormatting" redrawOnWrite="true" />
+        <PropertyDefinition initialValue="00FFFFFF" name="SelectionColour" redrawOnWrite="true" />
         <ImagerySection name="background">
             <ImageryComponent>
                 <Area>
@@ -4703,6 +4704,20 @@
                 <HorzFormatProperty name="HorzImageFormatting" />
             </ImageryComponent>
         </ImagerySection>
+        <ImagerySection name="selected">
+            <ImageryComponent>
+                <Area>
+                    <Dim type="LeftEdge"><AbsoluteDim value="0" /></Dim>
+                    <Dim type="TopEdge"><AbsoluteDim value="0" /></Dim>
+                    <Dim type="Width"><UnifiedDim scale="1" type="Width" /></Dim>
+                    <Dim type="Height"><UnifiedDim scale="1" type="Height" /></Dim>
+                </Area>
+                <Image name="OpenDungeonsSkin/ButtonHoverEffect" />
+                <ColourRectProperty name="SelectionColour" />
+                <VertFormatProperty name="VertImageFormatting" />
+                <HorzFormatProperty name="HorzImageFormatting" />
+            </ImageryComponent>
+        </ImagerySection>
         <StateImagery name="Normal">
             <Layer priority="0">
                 <Section section="background" />
@@ -4712,6 +4727,9 @@
             </Layer>
             <Layer priority="2">
                 <Section section="frame" />
+            </Layer>
+            <Layer priority="4">
+                <Section section="selected" />
             </Layer>
         </StateImagery>
         <StateImagery name="Hover">
@@ -4727,6 +4745,9 @@
             <Layer priority="3">
                 <Section section="hover" />
             </Layer>
+            <Layer priority="4">
+                <Section section="selected" />
+            </Layer>
         </StateImagery>
         <StateImagery name="Pushed">
             <Layer priority="0">
@@ -4740,6 +4761,9 @@
             </Layer>
             <Layer priority="3">
                 <Section section="pushed" />
+            </Layer>
+            <Layer priority="4">
+                <Section section="selected" />
             </Layer>
         </StateImagery>
         <StateImagery name="PushedOff">
@@ -4755,6 +4779,9 @@
             <Layer priority="3">
                 <Section section="hover" />
             </Layer>
+            <Layer priority="4">
+                <Section section="selected" />
+            </Layer>
         </StateImagery>
         <StateImagery name="Disabled">
             <Layer priority="0">
@@ -4768,6 +4795,9 @@
             </Layer>
             <Layer priority="3">
                 <Section section="disabled" />
+            </Layer>
+            <Layer priority="4">
+                <Section section="selected" />
             </Layer>
         </StateImagery>
     </WidgetLook>

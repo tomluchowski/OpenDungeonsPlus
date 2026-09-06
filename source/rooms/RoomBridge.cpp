@@ -40,21 +40,8 @@ void BridgeRoomFactory::checkBuildBridge(RoomType type, GameMap* gameMap, Seat* 
 
     int32_t pricePerTarget = RoomManager::costPerTile(type);
     int32_t playerGold = static_cast<int32_t>(seat->getGold());
-    if(inputManager.mCommandState == InputCommandState::infoOnly)
+    if(isEditor && inputManager.mCommandState == InputCommandState::infoOnly)
     {
-        if(!isEditor)
-        {
-            if(playerGold < pricePerTarget)
-            {
-                std::string txt = formatBuildRoom(type, pricePerTarget);
-                inputCommand.displayText(Ogre::ColourValue::Red, txt);
-            }
-            else
-            {
-                std::string txt = formatBuildRoom(type, pricePerTarget);
-                inputCommand.displayText(Ogre::ColourValue::White, txt);
-            }
-        }
         inputCommand.selectSquaredTiles(inputManager.mXPos, inputManager.mYPos, inputManager.mXPos,
             inputManager.mYPos);
         return;
@@ -154,15 +141,23 @@ void BridgeRoomFactory::checkBuildBridge(RoomType type, GameMap* gameMap, Seat* 
         buildableTiles.insert(buildableTiles.end(), tmpTiles.begin(), tmpTiles.end());
     }
 
-    if(inputManager.mCommandState == InputCommandState::building)
+    if(inputManager.mCommandState != InputCommandState::validated)
         inputCommand.selectTiles(buildableTiles);
 
     if(buildableTiles.empty())
     {
         if(!isEditor)
         {
-            std::string txt = formatBuildRoom(type, 0);
-            inputCommand.displayText(Ogre::ColourValue::White, txt);
+            Tile* tile = gameMap->getTile(inputManager.mXPos, inputManager.mYPos);
+            if(tile == nullptr)
+                inputCommand.displayText(Ogre::ColourValue::Red, "Point at a tile inside the map.");
+            else if(tile->getHasBridge())
+                inputCommand.displayText(Ogre::ColourValue::Red, "A bridge already occupies this tile.");
+            else if(std::find(allowedTilesVisual.begin(), allowedTilesVisual.end(), tile->getTileVisual()) == allowedTilesVisual.end())
+                inputCommand.displayText(Ogre::ColourValue::Red, allowedTilesVisual.size() == 1 ?
+                    "A wooden bridge needs water." : "A stone bridge needs water or lava.");
+            else
+                inputCommand.displayText(Ogre::ColourValue::Red, "Connect the bridge to your claimed ground.");
         }
         return;
     }
@@ -173,7 +168,7 @@ void BridgeRoomFactory::checkBuildBridge(RoomType type, GameMap* gameMap, Seat* 
         if(playerGold < priceTotal)
         {
             std::string txt = formatBuildRoom(type, priceTotal);
-            inputCommand.displayText(Ogre::ColourValue::Red, txt);
+            inputCommand.displayText(Ogre::ColourValue::Red, "Not enough gold. " + txt);
             return;
         }
 

@@ -137,6 +137,15 @@
             <Property name="MaxSize" value="{{1,0},{1,0}}" />
             <Property name="AlwaysOnTop" value="True" />
         </Window>
+        <Window type="OD/StaticText" name="ActionFeedback" >
+            <Property name="Area" value="{{0,4},{1,-225},{1,-204},{1,-135}}" />
+            <Property name="MousePassThroughEnabled" value="True" />
+            <Property name="RiseOnClickEnabled" value="False" />
+            <Property name="TextParsingEnabled" value="False" />
+            <Property name="HorzFormatting" value="WordWrapLeftAligned" />
+            <Property name="VertFormatting" value="CentreAligned" />
+            <Property name="Text" value="Dig: left-drag walls to mark or unmark them." />
+        </Window>
         <Window type="OD/TabControl" name="MainTabControl" >
             <Property name="Area" value="{{0,0},{1,-133},{1,-200},{1,0}}" />
             <Property name="TabHeight" value="{0,35}" />
