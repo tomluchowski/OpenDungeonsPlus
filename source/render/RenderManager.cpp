@@ -2567,7 +2567,19 @@ void RenderManager::rrDrawTilePreview(const std::vector<Tile*>& tiles, const Ogr
     {
         const float x = static_cast<float>(tile->getX());
         const float y = static_cast<float>(tile->getY());
-        const float z = tile->isFullTile() ? 1.02f : 0.04f;
+        float z = 0.04f;
+        if(tile->isFullTile())
+        {
+            // Use the rendered wall, including the existing unrevealed tile
+            // representation, so the outline cannot sit inside a taller mesh.
+            Ogre::MovableObject* wall = tile->getFogOfWarMesh();
+            const std::string meshName = tile->getOgreNamePrefix() + tile->getName() + "_tileMesh";
+            if(mSceneManager->hasEntity(meshName))
+                wall = mSceneManager->getEntity(meshName);
+            if(wall == nullptr)
+                continue;
+            z = wall->getWorldBoundingBox(true).getMaximum().z + 0.02f;
+        }
         const Ogre::Vector3 corners[] = {{x-0.5f,y-0.5f,z}, {x+0.5f,y-0.5f,z},
             {x+0.5f,y+0.5f,z}, {x-0.5f,y+0.5f,z}};
         for(int i = 0; i < 4; ++i)
