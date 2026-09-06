@@ -968,10 +968,72 @@ void RenderManager::setupFogMaterial(Ogre::TexturePtr myTexture)
 
 
 
+void RenderManager::rrRefreshRoomLight(const Tile& tile, bool removing)
+{
+    // Share a light across a small patch, rather than allocating one per tile.
+    const int patchSize = 3;
+    const int originX = tile.getX() / patchSize * patchSize;
+    const int originY = tile.getY() / patchSize * patchSize;
+    const std::string name = "RoomLight_" + Helper::toString(originX) + "_" + Helper::toString(originY);
+    Ogre::Vector3 position = Ogre::Vector3::ZERO;
+    int count = 0;
+    for(int x = originX; x < originX + patchSize; ++x)
+    {
+        for(int y = originY; y < originY + patchSize; ++y)
+        {
+            Tile* candidate = tile.getGameMap()->getTile(x, y);
+            if(candidate == nullptr || (removing && candidate == &tile) ||
+               candidate->getEntityNode() == nullptr || !candidate->getLocalPlayerHasVision())
+                continue;
+            TileVisual visual = candidate->getTileVisual();
+            if(visual < TileVisual::dungeonTempleRoom || visual >= TileVisual::countTileVisual)
+                continue;
+            position += Ogre::Vector3(static_cast<Ogre::Real>(x), static_cast<Ogre::Real>(y), 0.0f);
+            ++count;
+        }
+    }
+
+    if(count == 0)
+    {
+        if(mSceneManager->hasLight(name))
+        {
+            Ogre::Light* light = mSceneManager->getLight(name);
+            Ogre::SceneNode* node = light->getParentSceneNode();
+            node->detachObject(light);
+            mSceneManager->destroyLight(light);
+            mSceneManager->destroySceneNode(node);
+        }
+        return;
+    }
+
+    Ogre::Light* light;
+    if(mSceneManager->hasLight(name))
+        light = mSceneManager->getLight(name);
+    else
+    {
+        light = mSceneManager->createLight(name);
+        light->setType(Ogre::Light::LT_POINT);
+        light->setCastShadows(false);
+        // A local room fill complements the existing cursor and authored lights.
+        light->setAttenuation(6.0f, 1.0f, 0.09f, 0.032f);
+        light->setSpecularColour(Ogre::ColourValue::Black);
+        Ogre::SceneNode* node = mLightSceneNode->createChildSceneNode(name + "_node");
+        node->attachObject(light);
+    }
+    position /= static_cast<Ogre::Real>(count);
+    position.z = 3.0f;
+    light->getParentSceneNode()->setPosition(position);
+    const Ogre::Real density = static_cast<Ogre::Real>(count) / (patchSize * patchSize);
+    light->setDiffuseColour(Ogre::ColourValue(0.9f, 0.8f, 0.6f) * (0.55f * density));
+}
+
 void RenderManager::rrRefreshTile(Tile& tile, GameMap& draggableTileContainer, const Player& localPlayer, NodeType nt)
 {
     if (tile.getEntityNode() == nullptr)
         return;
+
+    if(nt == NodeType::MTILES_NODE)
+        rrRefreshRoomLight(tile);
 
     std::string tileName = tile.getOgreNamePrefix() + tile.getName();
     std::string meshName;
@@ -1236,6 +1298,9 @@ void RenderManager::rrDestroyTile(Tile& tile, NodeType nt)
 {
     if (tile.getEntityNode() == nullptr)
         return;
+
+    if(nt == NodeType::MTILES_NODE)
+        rrRefreshRoomLight(tile, true);
 
     std::string tileName = tile.getOgreNamePrefix() + tile.getName();
     std::string selectorName = tileName + "_selection_indicator";
