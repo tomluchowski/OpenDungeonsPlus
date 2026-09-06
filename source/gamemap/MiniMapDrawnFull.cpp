@@ -454,13 +454,14 @@ Ogre::Vector2 MiniMapDrawnFull::camera_2dPositionFromClick(int xx, int yy)
     mTopLeftCornerX = static_cast<int>(mMiniMapWindow->getPixelPosition().d_x);
     mTopLeftCornerY = static_cast<int>(mMiniMapWindow->getPixelPosition().d_y);
     Ogre::Vector2 v(0, 0);
+    const CEGUI::Sizef displaySize = mMiniMapWindow->getPixelSize();
     Ogre::Real gainX = static_cast<Ogre::Real>(mGameMap.getMapSizeX())
-        / static_cast<Ogre::Real>(mWidth);
+        / displaySize.d_width;
     Ogre::Real gainY = static_cast<Ogre::Real>(mGameMap.getMapSizeY())
-        / static_cast<Ogre::Real>(mHeight);
+        / displaySize.d_height;
 
     v.x = round(static_cast<Ogre::Real>(xx - mTopLeftCornerX) * gainX);
-    v.y = round(static_cast<Ogre::Real>(mHeight - yy + mTopLeftCornerY) * gainY);
+    v.y = round(static_cast<Ogre::Real>(displaySize.d_height - yy + mTopLeftCornerY) * gainY);
 
     return v;
 }

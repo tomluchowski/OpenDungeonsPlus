@@ -146,8 +146,9 @@ Ogre::Vector2 MiniMapCamera::camera_2dPositionFromClick(int xx, int yy)
     Ogre::Real sin = Ogre::Math::Sin(angle);
 
     // Compute tile clicked
-    Ogre::Real diffX = ((xx - mTopLeftCornerX) / mWidth - 0.5) * NB_TILES_DISPLAYED_IN_MINIMAP;
-    Ogre::Real diffY = ((mTopLeftCornerY - yy) / mHeight + 0.5) * NB_TILES_DISPLAYED_IN_MINIMAP;
+    const CEGUI::Sizef displaySize = mMiniMapWindow->getPixelSize();
+    Ogre::Real diffX = ((xx - mTopLeftCornerX) / displaySize.d_width - 0.5) * NB_TILES_DISPLAYED_IN_MINIMAP;
+    Ogre::Real diffY = ((mTopLeftCornerY - yy) / displaySize.d_height + 0.5) * NB_TILES_DISPLAYED_IN_MINIMAP;
 
     Ogre::Vector2 pos(diffX * cos - diffY * sin + mCurCamPosX, diffX * sin + diffY * cos + mCurCamPosY);
     OD_LOG_INF("Clicked minimap pos=" + Helper::toString(pos.x) + ", " + Helper::toString(pos.y));
