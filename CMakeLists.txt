@@ -409,6 +409,7 @@ set(OD_SOURCEFILES
     ${SRC}/render/CreatureOverlayStatus.cpp
     ${SRC}/render/DebugDrawer.cpp    
     ${SRC}/render/Gui.cpp
+    ${SRC}/render/CreaturePortrait.cpp
     ${SRC}/render/MovableTextOverlay.cpp
     ${SRC}/render/ODFrameListener.cpp
     ${SRC}/render/RenderManager.cpp
