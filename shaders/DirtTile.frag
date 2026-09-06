@@ -1,8 +1,11 @@
 #version 330  core
+#extension GL_ARB_shading_language_include : enable
+#include "ShadowMapping.glsl"
 
 
 uniform sampler2D decalmap;
 uniform sampler2D normalmap;
+uniform sampler2D shadowmap;
 
 uniform vec4 ambientLightColour;
 uniform vec4 lightDiffuseColour; 
@@ -14,6 +17,7 @@ uniform bool shadowingEnabled;
 in vec2 out_UV0;
 in vec2 out_UV1;
 in vec3 FragPos;
+in vec4 VertexPos;
 in mat3 TBN;
  
 out vec4 color;
@@ -27,6 +31,8 @@ void main (void)
     Normal =  normalize(TBN * Normal); 
     
     vec4 shadow = vec4(1.0, 1.0, 1.0,1.0);
+    if(shadowingEnabled)
+        shadow = vec4(sampleShadow(shadowmap, VertexPos));
     
         
     // compute lightDir

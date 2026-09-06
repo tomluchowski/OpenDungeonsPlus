@@ -1,5 +1,6 @@
 #version 330  core
-#define epsilon 0.00001
+#extension GL_ARB_shading_language_include : enable
+#include "ShadowMapping.glsl"
 
 uniform sampler2D decalmap;
 uniform sampler2D normalmap;
@@ -28,15 +29,10 @@ void main (void)
     Normal =  normalize(TBN * Normal); 
     
     vec4 shadow = vec4(1.0, 1.0, 1.0,1.0);
-    vec4 tmpVertexPos = VertexPos;
     
     // compute shadowmap
-    if(shadowingEnabled){
-		if(tmpVertexPos.z > epsilon ){
-		    tmpVertexPos /= tmpVertexPos.w;
-		    shadow = texture(shadowmap, tmpVertexPos.xy); 
-		}
-    }
+    if(shadowingEnabled)
+        shadow = vec4(sampleShadow(shadowmap, VertexPos));
     
     
     // compute lightDir
