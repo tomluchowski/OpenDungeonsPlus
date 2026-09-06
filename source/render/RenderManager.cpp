@@ -36,6 +36,7 @@
 #include "modes/ModeManager.h"
 #include "render/CreatureOverlayStatus.h"
 #include "render/DebugDrawer.h"
+#include "render/GroundShadowCameraSetup.h"
 #include "render/MovableTextOverlay.h"
 #include "render/ODFrameListener.h"
 #include "rooms/Room.h"
@@ -75,6 +76,8 @@
 #include <Overlay/OgreOverlayManager.h>
 #include <Overlay/OgreOverlaySystem.h>
 #include <RTShaderSystem/OgreShaderGenerator.h>
+#include <RTShaderSystem/OgreShaderRenderState.h>
+#include <RTShaderSystem/OgreShaderExIntegratedPSSM3.h>
 
 #include <sstream>
 #include <string>
@@ -249,11 +252,38 @@ void RenderManager::setDynamicShadowsEnabled(bool enabled)
     // Custom shaders apply lighting and shadows in one pass; automatic
     // illumination splitting removes their fragment programs on GL3Plus.
     mSceneManager->setShadowTechnique(enabled ? Ogre::SHADOWTYPE_TEXTURE_ADDITIVE_INTEGRATED : Ogre::SHADOWTYPE_NONE);
-    // mSceneManager->setShadowCameraSetup(Ogre::LiSPSMShadowCameraSetup::create());
-    // mSceneManager->setShadowTextureConfig(0,1024,1024,Ogre::PixelFormat::PF_R32G32B32A32_UINT,0);
-    // mSceneManager->setShadowFarDistance(100.0);
-    // mSceneManager->setShadowDirectionalLightExtrusionDistance(500.0);
-    // mSceneManager->setShadowTextureSelfShadow(true);
+    if(enabled)
+    {
+        mSceneManager->setShadowTexturePixelFormat(Ogre::PF_DEPTH16);
+        mSceneManager->setShadowCameraSetup(Ogre::ShadowCameraSetupPtr(new GroundShadowCameraSetup()));
+    }
+
+    // Fixed-function materials also need a receiver when Ogre generates their
+    // shaders: integrated shadows do not add a separate receiver pass.
+    Ogre::RTShader::RenderState* renderState =
+        mShaderGenerator->getRenderState(Ogre::RTShader::ShaderGenerator::DEFAULT_SCHEME_NAME);
+#if OGRE_VERSION_MAJOR >= 13
+    const Ogre::RTShader::SubRenderStateList& subStates = renderState->getSubRenderStates();
+#else
+    const Ogre::RTShader::SubRenderStateList& subStates = renderState->getTemplateSubRenderStateList();
+#endif
+    Ogre::RTShader::SubRenderState* shadowState = nullptr;
+    for(Ogre::RTShader::SubRenderState* subState : subStates)
+    {
+        if(subState->getType() == Ogre::RTShader::SRS_INTEGRATED_PSSM3)
+            shadowState = subState;
+    }
+    if(enabled && shadowState == nullptr)
+        renderState->addTemplateSubRenderState(mShaderGenerator->createSubRenderState(Ogre::RTShader::SRS_INTEGRATED_PSSM3));
+    else if(!enabled && shadowState != nullptr)
+    {
+#if OGRE_VERSION_MAJOR >= 13
+        renderState->removeSubRenderState(shadowState);
+#else
+        renderState->removeTemplateSubRenderState(shadowState);
+#endif
+    }
+    mShaderGenerator->invalidateScheme(Ogre::RTShader::ShaderGenerator::DEFAULT_SCHEME_NAME);
 
     // Include material clones and techniques created since the game started.
     Ogre::ResourceManager::ResourceMapIterator materials = Ogre::MaterialManager::getSingleton().getResourceIterator();
@@ -273,7 +303,15 @@ void RenderManager::setDynamicShadowsEnabled(bool enabled)
                 {
                     const Ogre::GpuNamedConstants& constants = parameters->getConstantDefinitions();
                     if(constants.map.find("shadowingEnabled") != constants.map.end())
-                        parameters->setNamedConstant("shadowingEnabled", enabled);
+                    {
+                        bool hasShadowTexture = false;
+                        for(unsigned short unit = 0; unit < pass->getNumTextureUnitStates(); ++unit)
+                        {
+                            if(pass->getTextureUnitState(unit)->getContentType() == Ogre::TextureUnitState::CONTENT_SHADOW)
+                                hasShadowTexture = true;
+                        }
+                        parameters->setNamedConstant("shadowingEnabled", enabled && hasShadowTexture);
+                    }
                 }
             }
         }
