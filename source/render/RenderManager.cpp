@@ -122,7 +122,9 @@ RenderManager::RenderManager(Ogre::OverlaySystem* overlaySystem) :
     mShaderGenerator->addSceneManager(mSceneManager); 
     if(ConfigManager::getSingleton().getAudioValue(Config::SHADOWS)=="Yes")
     {
-        mSceneManager->setShadowTechnique(Ogre::ShadowTechnique::SHADOWTYPE_TEXTURE_ADDITIVE);
+        // Custom shaders apply lighting and shadows in one pass; automatic
+        // illumination splitting removes their fragment programs on GL3Plus.
+        mSceneManager->setShadowTechnique(Ogre::ShadowTechnique::SHADOWTYPE_TEXTURE_ADDITIVE_INTEGRATED);
         // mSceneManager->setShadowCameraSetup(Ogre::LiSPSMShadowCameraSetup::create());
         // mSceneManager->setShadowTextureConfig(0,1024,1024,Ogre::PixelFormat::PF_R32G32B32A32_UINT,0);
         // mSceneManager->setShadowFarDistance(100.0);
