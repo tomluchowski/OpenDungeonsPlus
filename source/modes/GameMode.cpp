@@ -83,6 +83,20 @@ static double getAutoscrollIntensity(int mousePosition, int screenSize, bool min
     return std::max(0.0, std::min(1.0, (edgeSize - distanceFromEdge) / edgeSize));
 }
 
+static bool blocksEdgeScrolling(CEGUI::Window* window)
+{
+    if(window == nullptr || window->getName() == "Root")
+        return false;
+
+    for(CEGUI::Window* parent = window; parent != nullptr; parent = parent->getParent())
+    {
+        if(parent->isUserStringDefined("AllowEdgeScrolling") &&
+           parent->getUserString("AllowEdgeScrolling") == "true")
+            return false;
+    }
+    return true;
+}
+
 GameMode::GameMode(ModeManager *modeManager):
     GameEditorModeBase(modeManager, ModeManager::GAME, modeManager->getGui().getGuiSheet(Gui::guiSheet::inGameMenu)),
     mDigSetBool(false),
