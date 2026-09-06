@@ -1420,6 +1420,7 @@ bool GameMode::saveGame(const CEGUI::EventArgs& /*e*/)
         // Send a message to the server telling it we want to drop the creature
         ClientNotification *clientNotification = new ClientNotification(
             ClientNotificationType::askSaveMap);
+        clientNotification->mPacket << std::string() << std::string();
         ODClient::getSingleton().queueClientNotification(clientNotification);
     }
     return true;
