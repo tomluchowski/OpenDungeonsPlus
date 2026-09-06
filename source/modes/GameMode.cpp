@@ -65,6 +65,7 @@
 
 
 #include <algorithm>
+#include <cmath>
 #include <vector>
 #include <string>
 
@@ -126,9 +127,16 @@ GameMode::GameMode(ModeManager *modeManager):
         CEGUI::PushButton::EventClicked, CEGUI::Event::Subscriber([this](const CEGUI::EventArgs&)
         {
             CEGUI::Window* events = mRootWindow->getChild("GameEventText");
-            events->setVisible(!events->isVisible());
+            if(events->isVisible())
+                events->hide();
+            else
+                showEventMessages();
             return true;
         })));
+    addEventConnection(guiSheet->getChild("EventsButton")->subscribeEvent(
+        CEGUI::Window::EventMouseClick, CEGUI::Event::Subscriber(&GameMode::onEventMessagesClicked, this)));
+    guiSheet->getChild("GameEventText")->hide();
+    guiSheet->getChild("EventsButton")->setAlpha(1.0f);
 
     //Help window
     addEventConnection(
@@ -1231,6 +1239,7 @@ void GameMode::handleHotkeys(OIS::KeyCode keycode)
 void GameMode::onFrameStarted(const Ogre::FrameEvent& evt)
 {
     GameEditorModeBase::onFrameStarted(evt);
+    updateEventMessageIndicator(evt.timeSinceLastFrame);
 
     refreshGuiSkill();
     refreshSpellButtonCoolDowns();
@@ -1496,6 +1505,9 @@ bool GameMode::showSkillFromOptions(const CEGUI::EventArgs& /*e*/)
 
 bool GameMode::saveGame(const CEGUI::EventArgs& /*e*/)
 {
+    hideOptionsWindow();
+    showEventMessages();
+
     // We can save if launching in server mode only
     if(!ODServer::getSingleton().isConnected())
     {
@@ -1513,6 +1525,57 @@ bool GameMode::saveGame(const CEGUI::EventArgs& /*e*/)
         ODClient::getSingleton().queueClientNotification(clientNotification);
     }
     return true;
+}
+
+void GameMode::receiveEventShortNotice(EventMessage* event)
+{
+    GameEditorModeBase::receiveEventShortNotice(event);
+    if(mRootWindow->getChild("GameEventText")->isVisible())
+        showEventMessages();
+    else
+    {
+        mUnreadEventMessages = true;
+        mEventMessageFlashTime = 0.0f;
+        updateEventMessageIndicator(0.0f);
+    }
+}
+
+void GameMode::showEventMessages()
+{
+    CEGUI::Window* events = mRootWindow->getChild("GameEventText");
+    events->show();
+    events->moveToFront();
+    mUnreadEventMessages = false;
+    updateEventMessageIndicator(0.0f);
+}
+
+bool GameMode::onEventMessagesClicked(const CEGUI::EventArgs& arg)
+{
+    const CEGUI::MouseEventArgs& mouse = static_cast<const CEGUI::MouseEventArgs&>(arg);
+    CEGUI::Window* events = mRootWindow->getChild("GameEventText");
+    if(mouse.button == CEGUI::RightButton && !mUnreadEventMessages)
+    {
+        // Read messages remain available until explicitly dismissed.
+        for(EventMessage* message : mEventMessages)
+            delete message;
+        mEventMessages.clear();
+        events->setText("");
+        events->hide();
+    }
+    return true;
+}
+
+void GameMode::updateEventMessageIndicator(float elapsed)
+{
+    CEGUI::Window* button = mRootWindow->getChild("EventsButton");
+    if(!mUnreadEventMessages)
+    {
+        mEventMessageFlashTime = 0.0f;
+        button->setAlpha(1.0f);
+        return;
+    }
+    mEventMessageFlashTime = std::fmod(mEventMessageFlashTime + elapsed, 1.0f);
+    button->setAlpha(mEventMessageFlashTime < 0.5f ? 0.4f : 1.0f);
 }
 
 bool GameMode::showSettingsFromOptions(const CEGUI::EventArgs& /*e*/)

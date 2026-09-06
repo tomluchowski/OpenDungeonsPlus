@@ -118,6 +118,7 @@ class GameMode final : public GameEditorModeBase, public InputCommand
 
     void onFrameStarted(const Ogre::FrameEvent& evt) override;
     void onFrameEnded(const Ogre::FrameEvent& evt) override;
+    void receiveEventShortNotice(EventMessage* event) override;
 
     //! \brief Called when the game mode is activated
     //! Used to call the corresponding Gui Sheet.
@@ -220,6 +221,13 @@ protected:
     virtual bool keyReleasedNormal  (const OIS::KeyEvent &arg);
 
 private:
+    bool shouldExpireEventMessages() const override { return false; }
+    void showEventMessages();
+    bool onEventMessagesClicked(const CEGUI::EventArgs& arg);
+    void updateEventMessageIndicator(float elapsed);
+    bool mUnreadEventMessages = false;
+    float mEventMessageFlashTime = 0.0f;
+
     //! \brief Whether the pending exit confirmation should leave to the desktop
     //! rather than back to the main menu. Set by the button that opened the
     //! confirmation popup.

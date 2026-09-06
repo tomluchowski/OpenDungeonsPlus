@@ -125,7 +125,7 @@
             <UserString name="AllowEdgeScrolling" value="true" />
             <Property name="Area" value="{{0,508},{1,-184},{0,560},{1,-132}}" />
             <Property name="ButtonImage" value="OpenDungeonsIcons/HelpIcon" />
-            <Property name="TooltipText" value="Messages" />
+            <Property name="TooltipText" value="Messages: left-click to read, right-click to dismiss read messages" />
         </Window>
         <Window type="OD/StaticImage" name="HandActionIcon" >
             <Property name="Area" value="{{0,0},{0,0},{0,50},{0,50}}" />

@@ -108,7 +108,7 @@ public:
     void receiveChat(const ChatMessage& chat) override;
 
     //! \brief Receive and display some event text
-    void receiveEventShortNotice(EventMessage* event);
+    virtual void receiveEventShortNotice(EventMessage* event);
 
     //! \brief Called when the mode is activated.
     virtual void activate() override = 0;
@@ -137,6 +137,7 @@ protected:
 
     //! \brief Update the chat and event messages seen.
     void updateMessages(Ogre::Real update_time);
+    virtual bool shouldExpireEventMessages() const { return true; }
 
     //! \brief The main CEGUI window.
     CEGUI::Window* mRootWindow;
