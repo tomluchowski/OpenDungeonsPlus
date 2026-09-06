@@ -236,12 +236,19 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
             // Payload extensions start only after the server confirms this client's agreement.
             setSupportsCreatureMood(false);
 
+            bool creatureActivity = false;
+            if(!packetReceived.endOfPacket())
+                OD_ASSERT_TRUE(packetReceived >> creatureActivity);
+            setSupportsCreatureActivity(false);
+
             ODPacket packSend;
             const std::string& nick = gameMap->getLocalPlayerNick();
             packSend << ClientNotificationType::setNick << nick;
-            if(liveNickname || creatureMood)
+            if(liveNickname || creatureMood || creatureActivity)
                 packSend << liveNickname;
-            if(creatureMood)
+            if(creatureMood || creatureActivity)
+                packSend << creatureMood;
+            if(creatureActivity)
                 packSend << true;
             send(packSend);
 
@@ -412,6 +419,11 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
             if(!packetReceived.endOfPacket())
                 OD_ASSERT_TRUE(packetReceived >> creatureMood);
             setSupportsCreatureMood(creatureMood);
+
+            bool creatureActivity = false;
+            if(!packetReceived.endOfPacket())
+                OD_ASSERT_TRUE(packetReceived >> creatureActivity);
+            setSupportsCreatureActivity(creatureActivity);
 
             // Now that the we have received all needed information, we can launch the requested mode
             OD_LOG_INF("Starting game map");

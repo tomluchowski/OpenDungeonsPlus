@@ -896,7 +896,7 @@ bool ODServer::processClientNotifications(ODSocketClient* clientSocket)
             clientSocket->setState("nick");
             // Tell the client to give us their nickname
             ODPacket packetSend;
-            packetSend << ServerNotificationType::pickNick << mServerMode << true << true;
+            packetSend << ServerNotificationType::pickNick << mServerMode << true << true << true;
             clientSocket->send(packetSend);
             break;
         }
@@ -918,6 +918,11 @@ bool ODServer::processClientNotifications(ODSocketClient* clientSocket)
             if(!packetReceived.endOfPacket())
                 OD_ASSERT_TRUE(packetReceived >> creatureMood);
             clientSocket->setSupportsCreatureMood(creatureMood);
+
+            bool creatureActivity = false;
+            if(!packetReceived.endOfPacket())
+                OD_ASSERT_TRUE(packetReceived >> creatureActivity);
+            clientSocket->setSupportsCreatureActivity(creatureActivity);
 
             // NOTE : playerId 0 is reserved for inactive players and 1 is reserved for AI
             int32_t playerId = mUniqueNumberPlayer + Seat::PLAYER_ID_HUMAN_MIN;
@@ -970,6 +975,7 @@ bool ODServer::processClientNotifications(ODSocketClient* clientSocket)
             packetSend.clear();
             packetSend << ServerNotificationType::startGameMode << seatId << mServerMode;
             packetSend << clientSocket->supportsCreatureMood();
+            packetSend << clientSocket->supportsCreatureActivity();
             clientSocket->send(packetSend);
             mSeatsConfigured = true;
             break;
@@ -1266,6 +1272,7 @@ bool ODServer::processClientNotifications(ODSocketClient* clientSocket)
                 int seatId = client->getPlayer()->getSeat()->getId();
                 packetSend << ServerNotificationType::startGameMode << seatId << mServerMode;
                 packetSend << client->supportsCreatureMood();
+                packetSend << client->supportsCreatureActivity();
                 client->send(packetSend);
             }
 
@@ -2714,6 +2721,12 @@ bool ODServer::supportsCreatureMood(Player* player)
 {
     ODSocketClient* client = getClientFromPlayer(player);
     return client != nullptr && client->supportsCreatureMood();
+}
+
+bool ODServer::supportsCreatureActivity(Player* player)
+{
+    ODSocketClient* client = getClientFromPlayer(player);
+    return client != nullptr && client->supportsCreatureActivity();
 }
 
 ODSocketClient* ODServer::getClientFromPlayer(Player* player)

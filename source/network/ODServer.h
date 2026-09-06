@@ -84,6 +84,7 @@ class ODServer: public Ogre::Singleton<ODServer>,
 
     //! Whether the recipient negotiated full mood in creature snapshots and updates.
     bool supportsCreatureMood(Player* player);
+    bool supportsCreatureActivity(Player* player);
 
     //! \brief Sends an asynchronous message to the concerned player. This function should be used really carefully as it can easily
     //! make the game crash by sending messages in an unexpected order (changing the state of an entity that was not created, for example).

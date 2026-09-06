@@ -62,6 +62,7 @@ void ODSocketClient::disconnect(bool keepReplay)
 {
     mSupportsLiveNickname = false;
     mSupportsCreatureMood = false;
+    mSupportsCreatureActivity = false;
     mPendingTimestamp = -1;
     ODSource src = mSource;
     mSource = ODSource::none;

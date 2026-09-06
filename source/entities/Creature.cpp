@@ -37,6 +37,7 @@
 #include "creatureaction/CreatureActionSearchWallTileToClaim.h"
 #include "creatureaction/CreatureActionSleep.h"
 #include "creatureaction/CreatureActionStealFreeGold.h"
+#include "creatureaction/CreatureActionUseRoom.h"
 #include "creatureaction/CreatureActionWalkToTile.h"
 #include "creaturebehaviour/CreatureBehaviour.h"
 #include "creatureeffect/CreatureEffect.h"
@@ -605,6 +606,7 @@ void Creature::exportToPacket(ODPacket& os, const Seat* seat) const
         os << "none";
 
     exportMoodToPacket(os, seat);
+    exportActivityToPacket(os, seat);
 }
 
 void Creature::importFromPacket(ODPacket& is)
@@ -658,6 +660,7 @@ void Creature::importFromPacket(ODPacket& is)
     }
 
     importMoodFromPacket(is);
+    importActivityFromPacket(is);
     setupDefinition(*getGameMap(), *ConfigManager::getSingleton().getCreatureDefinitionDefaultWorker());
 }
 
@@ -1701,6 +1704,7 @@ void Creature::exportToPacketForUpdate(ODPacket& os, Seat* seat)
 
     os << seatPrisonId;
     exportMoodToPacket(os, seat);
+    exportActivityToPacket(os, seat);
 }
 
 void Creature::updateFromPacket(ODPacket& is)
@@ -1748,6 +1752,7 @@ void Creature::updateFromPacket(ODPacket& is)
     }
 
     importMoodFromPacket(is);
+    importActivityFromPacket(is);
 }
 
 void Creature::exportMoodToPacket(ODPacket& os, const Seat* seat) const
@@ -1775,6 +1780,89 @@ void Creature::importMoodFromPacket(ODPacket& is)
         return;
     }
     mMoodValue = static_cast<CreatureMoodLevel>(mood);
+}
+
+CreatureActivity Creature::getActivity() const
+{
+    CreatureActivity activity;
+    if(!getIsOnMap() || !isAlive())
+        return activity;
+
+    if(!getIsOnServerMap())
+        return mActivity;
+
+    activity.known = true;
+    if(!mActions.empty())
+        activity.action = mActions.back()->getType();
+
+    for(auto it = mActions.rbegin(); it != mActions.rend(); ++it)
+    {
+        const CreatureActionType type = (*it)->getType();
+        if(activity.task == CreatureActionType::nb && type != CreatureActionType::walkToTile &&
+           type != CreatureActionType::parkToTile)
+            activity.task = type;
+
+        if(type != CreatureActionType::useRoom)
+            continue;
+
+        const Room* room = static_cast<const CreatureActionUseRoom*>(it->get())->getRoom();
+        if(room != nullptr)
+        {
+            activity.assignedRoom = room->getType();
+            const Tile* tile = getPositionTile();
+            activity.inAssignedRoom = tile != nullptr && tile->getCoveringRoom() == room;
+        }
+        break;
+    }
+    return activity;
+}
+
+void Creature::exportActivityToPacket(ODPacket& os, const Seat* seat) const
+{
+    if(!ODServer::getSingleton().supportsCreatureActivity(seat->getPlayer()))
+        return;
+
+    const CreatureActivity activity = seat->isAlliedSeat(getSeat()) ? getActivity() : CreatureActivity();
+    os << activity.known;
+    if(!activity.known)
+        return;
+
+    os << static_cast<int32_t>(activity.action) << static_cast<int32_t>(activity.task)
+       << static_cast<int32_t>(activity.assignedRoom) << activity.inAssignedRoom;
+}
+
+void Creature::importActivityFromPacket(ODPacket& is)
+{
+    mActivity = CreatureActivity();
+    if(!ODClient::getSingleton().supportsCreatureActivity())
+        return;
+
+    CreatureActivity activity;
+    if(!(is >> activity.known))
+    {
+        OD_LOG_ERR("Missing creature activity for " + getName());
+        return;
+    }
+    if(!activity.known)
+        return;
+
+    int32_t action, task, room;
+    if(!(is >> action >> task >> room >> activity.inAssignedRoom))
+    {
+        OD_LOG_ERR("Incomplete creature activity for " + getName());
+        return;
+    }
+    if(action < 0 || action > static_cast<int32_t>(CreatureActionType::nb) ||
+       task < 0 || task > static_cast<int32_t>(CreatureActionType::nb) ||
+       room < 0 || room >= static_cast<int32_t>(RoomType::nbRooms))
+    {
+        OD_LOG_ERR("Invalid creature activity for " + getName());
+        return;
+    }
+    activity.action = static_cast<CreatureActionType>(action);
+    activity.task = static_cast<CreatureActionType>(task);
+    activity.assignedRoom = static_cast<RoomType>(room);
+    mActivity = activity;
 }
 
 void Creature::updateTilesInSight()
@@ -2267,6 +2355,7 @@ void Creature::pickup()
     removeEntityFromPositionTile();
     clearDestinations(EntityAnimation::idle_anim, true, true);
     clearActionQueue();
+    mActivity = CreatureActivity();
 
     if(!getIsOnServerMap())
         return;
@@ -2762,6 +2851,13 @@ void Creature::fireRemoveEntity(Seat* seat,NodeType nt)
 
 void Creature::fireCreatureRefreshIfNeeded()
 {
+    const CreatureActivity activity = getActivity();
+    if(!(mActivity == activity))
+    {
+        mActivity = activity;
+        mNeedFireRefresh = true;
+    }
+
     if(!mNeedFireRefresh)
         return;
 
