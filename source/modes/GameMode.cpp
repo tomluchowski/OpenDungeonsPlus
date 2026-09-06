@@ -387,10 +387,11 @@ bool GameMode::mouseMoved(const OIS::MouseEvent &arg)
 
     if (!directionKeyPressed && config.getInputValue(Config::AUTOSCROLL, "No", false) == "Yes")
     {
-        const double leftIntensity = getAutoscrollIntensity(arg.state.X.abs, arg.state.width, true);
-        const double rightIntensity = getAutoscrollIntensity(arg.state.X.abs, arg.state.width, false);
-        const double topIntensity = getAutoscrollIntensity(arg.state.Y.abs, arg.state.height, true);
-        const double bottomIntensity = getAutoscrollIntensity(arg.state.Y.abs, arg.state.height, false);
+        const bool mouseOverGui = isMouseWheelOnCEGUIWindow();
+        const double leftIntensity = mouseOverGui ? 0.0 : getAutoscrollIntensity(arg.state.X.abs, arg.state.width, true);
+        const double rightIntensity = mouseOverGui ? 0.0 : getAutoscrollIntensity(arg.state.X.abs, arg.state.width, false);
+        const double topIntensity = mouseOverGui ? 0.0 : getAutoscrollIntensity(arg.state.Y.abs, arg.state.height, true);
+        const double bottomIntensity = mouseOverGui ? 0.0 : getAutoscrollIntensity(arg.state.Y.abs, arg.state.height, false);
 
         if (leftIntensity > 0.0)
             ODFrameListener::getSingleton().moveCamera(CameraManager::moveLeft, leftIntensity);
