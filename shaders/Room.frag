@@ -1,16 +1,13 @@
 #version 330  core
 #extension GL_ARB_shading_language_include : enable
 #include "ShadowMapping.glsl"
-#include "LightAttenuation.glsl"
+#include "LocalLighting.glsl"
 
 uniform sampler2D decalmap;
 uniform sampler2D normalmap;
 uniform sampler2D shadowmap;
 
 uniform vec4 ambientLightColour;
-uniform vec4 lightDiffuseColour; 
-uniform vec4 lightSpecularColour;
-uniform vec4 lightPos;
 uniform vec4 cameraPosition;
 uniform bool shadowingEnabled;
 in vec2 out_UV0;
@@ -36,26 +33,10 @@ void main (void)
         shadow = vec4(sampleShadow(shadowmap, VertexPos));
     
     
-    // compute lightDir
-    vec3 lightDir =  normalize(lightPos.xyz - FragPos*lightPos.w);
-    
-    
-    // compute Specular
-    vec3 viewDirection =  normalize( cameraPosition.xyz - FragPos);
-    vec3 reflectedLightDirection =  normalize(reflect(-1.0*lightDir.xyz,Normal));
-    float spec =  max(dot(reflectedLightDirection, viewDirection ), 0.0) ;
-    spec = pow(spec,16);    
-    vec3 specular = spec * lightSpecularColour.rgb; 
-    
-    
-    // compute Diffuse
-    float diff = max(dot(lightDir,Normal), 0.0);
-    vec3 diffuse = diff * lightDiffuseColour.rgb;
-    
     vec3 result;
         
     // precompute the lighting term
-    vec3 lightingTerm = (diffuse + specular) * getLightAttenuation(lightPos, FragPos) * shadow.rgb + ambientLightColour.rgb/2.0;
+    vec3 lightingTerm = getLocalLighting(FragPos, Normal, cameraPosition.xyz, shadow.r) + ambientLightColour.rgb;
     vec3 texelColor = texture(decalmap, out_UV0.st).rgb;
     result =  lightingTerm * texelColor;
 

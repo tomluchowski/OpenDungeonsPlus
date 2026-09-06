@@ -242,6 +242,9 @@ private:
     //! is added to the current colorization.
     void colourizeEntity(Ogre::Entity* ent, const Seat* seat, bool markedForDigging, bool playerHasVision);
 
+    //! \brief Maintain local illumination for the visible room tiles around a tile.
+    void rrRefreshRoomLight(const Tile& tile, bool removing = false);
+
     //! \brief Makes the material be transparent with the given opacity (0.0f - 1.0f)
     //! \returns The new material name according to the current opacity.
     std::string setMaterialOpacity(const std::string& materialName, float opacity);

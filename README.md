@@ -12,6 +12,9 @@ of development.
 
 ### How to play
 
+Visible rooms have local lighting independent of the cursor, while overlapping
+lights and the ambient-light setting preserve terrain and creature colours.
+
 Future versions will have an in-game tutorial, but for now, you can use the
 following resources to learn the basic gameplay concepts:
 
