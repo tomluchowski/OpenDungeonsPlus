@@ -183,8 +183,8 @@ endif()
 if(WIN32 AND MSVC)
     #Set some extra compiler flags
     #TODO - investigate if these are what they should be
-    set(PLATFORM_C_FLAGS "/W3 /MD /Od /DWIN32 /D_WINDOWS /Gm /Gy /fp:fast /ZI /EHsc")
-    set(PLATFORM_C_FLAGS_DEBUG "/W3 /MDd /Od /Gm /Gy /fp:fast /ZI /DOD_DEBUG" )
+    set(PLATFORM_C_FLAGS "/W3 /MD /Od /DWIN32 /D_WINDOWS /Gm- /Gy /fp:fast /ZI /EHsc")
+    set(PLATFORM_C_FLAGS_DEBUG "/W3 /MDd /Od /Gm- /Gy /fp:fast /ZI /DOD_DEBUG" )
 
     # Set the application version
     add_definitions(/DOD_VERSION="${OD_MAJOR_VERSION}.${OD_MINOR_VERSION}.${OD_PATCH_LEVEL}")
