@@ -579,6 +579,8 @@ Ogre::Vector3 CameraManager::getCameraViewTarget() const
 
 void CameraManager::resetCamera(const Ogre::Vector3& position, const Ogre::Vector3& rotation)
 {
+    // Scripted menu shots must not inherit gameplay movement or view animation.
+    move(fullStop);
     Ogre::Node* nodeRotation = getActiveCameraNode()->getChild(0);
     nodeRotation->resetOrientation();
 
