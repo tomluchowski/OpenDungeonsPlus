@@ -2,7 +2,7 @@
 
 <GUILayout version="4" >
     <Window type="OD/FrameWindow" name="SettingsWindow" >
-        <Property name="Area" value="{{0,205},{0,50},{0,750},{0,550}}" />
+        <Property name="Area" value="{{0.5,-272.5},{0.5,-250},{0.5,272.5},{0.5,250}}" />
         <Property name="Text" value="Settings" />
         <Property name="SizingEnabled" value="False" />
         <Property name="AlwaysOnTop" value="True" />
@@ -62,6 +62,18 @@
                     <Window type="OD/Checkbox" name="VSyncCheckbox" >
                         <Property name="Area" value="{{0,22},{0,120},{0,166},{0,135}}" />
                         <Property name="Text" value="VSync" />
+                    </Window>
+                    <Window type="OD/StaticText" name="UIScaleText" >
+                        <Property name="Area" value="{{0,22},{0,150},{0,184},{0,170}}" />
+                        <Property name="MaxSize" value="{{1,0},{1,0}}" />
+                        <Property name="Text" value="UI Scale:" />
+                        <Property name="BackgroundEnabled" value="False" />
+                        <Property name="FrameEnabled" value="False" />
+                    </Window>
+                    <Window type="OD/Combobox" name="UIScaleCombobox" >
+                        <Property name="Area" value="{{0,202},{0,145},{0,346},{0,265}}" />
+                        <Property name="ReadOnly" value="True" />
+                        <Property name="TooltipText" value="Scales the interface immediately. Apply saves the setting." />
                     </Window>
                 </Window>
             </Window>

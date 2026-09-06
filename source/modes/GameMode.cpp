@@ -87,7 +87,7 @@ GameMode::GameMode(ModeManager *modeManager):
     mDigSetBool(false),
     mIsSpellCooldownDisplayed(false),
     mIndexEvent(0),
-    mSettings(SettingsWindow(mRootWindow)),
+    mSettings(mRootWindow, modeManager->getGui()),
     mIsSkillWindowOpen(false),
     mCurrentSkillType(SkillType::nullSkillType),
     mCurrentSkillProgress(0.0),
@@ -2010,7 +2010,7 @@ void GameMode::buildPlayerSettingsWindow()
         mSeatIds.push_back(seat->getId());
         offset += 15;
     }
+
+    getModeManager().getGui().registerWindowHierarchy(tmpWin);
 }
-
-
 
