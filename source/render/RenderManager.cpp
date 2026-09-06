@@ -186,7 +186,7 @@ void RenderManager::setDynamicShadowsEnabled(bool enabled)
     mSceneManager->setShadowTechnique(enabled ? Ogre::SHADOWTYPE_TEXTURE_ADDITIVE_INTEGRATED : Ogre::SHADOWTYPE_NONE);
     if(enabled)
     {
-        mSceneManager->setShadowTexturePixelFormat(Ogre::PF_DEPTH16);
+        mSceneManager->setShadowTexturePixelFormat(Ogre::PF_DEPTH24_STENCIL8);
         mSceneManager->setShadowCameraSetup(Ogre::ShadowCameraSetupPtr(new GroundShadowCameraSetup()));
     }
 
