@@ -272,8 +272,13 @@ private:
     bool isMouseDownOnCEGUIWindow();
     bool isMouseWheelOnCEGUIWindow();
 
-    //! \brief Whether the keyboard keys moving camera are pressed down
-    bool directionKeyPressed;
+    bool cameraInputBlocked();
+    void updateCameraControls(float elapsed) override;
+    bool showUserCameras(const CEGUI::EventArgs& = {});
+    bool closeUserCameras(const CEGUI::EventArgs& = {});
+    bool selectUserCamera(const CEGUI::EventArgs&);
+    bool storeUserCamera(const CEGUI::EventArgs&);
+    unsigned int mUserCameraSlot = 0;
 
 
     //! \brief whether to allow showing the window with debug Tile info under middlemouse button click

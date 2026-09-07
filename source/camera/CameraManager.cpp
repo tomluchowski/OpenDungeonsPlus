@@ -39,9 +39,8 @@
 #include <OgreViewport.h>
 
 #include <algorithm>
-
-const Ogre::Real Z_MOVE_SPEED = 1.0;
-const Ogre::Real Z_MOVE_SPEED_ACCELERATION = 2.0f * Z_MOVE_SPEED;
+#include <cmath>
+#include <sstream>
 
 //! The camera moving speed factor on Z axis.
 const Ogre::Real ZOOM_SPEED = 4.0;
@@ -76,10 +75,13 @@ CameraManager::CameraManager(Ogre::SceneManager* sceneManager, GameMap* gm, Ogre
     mCameraRollDestination(0.0),
     mCurrentDefaultViewMode(ViewModes::defaultView),
     mZChange(0.0),
+    mMoveSpeed(1.0),
+    mMoveSpeedAcceleration(2.0),
     mPanSpeedFactor(1.0),
     mSwivelDegrees(0.0),
     mTranslateVector(Ogre::Vector3(0.0, 0.0, 0.0)),
     mTranslateVectorAccel(Ogre::Vector3(0.0, 0.0, 0.0)),
+    mTranslateMaxSpeedFactor(Ogre::Vector2(1.0, 1.0)),
     mRotateLocalVector(Ogre::Vector3(0.0, 0.0, 0.0)),
     mSceneManager(sceneManager),
     mViewport(nullptr)
@@ -224,6 +226,10 @@ void CameraManager::setDefaultOrthogonalView()
 
 void CameraManager::RotateTo(Ogre::Real pitch, Ogre::Real roll)
 {
+    move(fullStop);
+    const Ogre::Real currentPitch = getActiveCameraNode()->getChild(0)->getOrientation().getPitch().valueDegrees();
+    setViewOrientation(getActiveCameraNode()->getOrientation(),
+        Ogre::Quaternion(Ogre::Degree(std::max(0.0f, std::min(50.0f, currentPitch))), Ogre::Vector3::UNIT_X));
     mCameraIsRotating = true;
     mCameraPitchDestination = pitch;
     mCameraRollDestination = roll;
@@ -239,6 +245,30 @@ void CameraManager::createViewport(Ogre::RenderWindow* renderWindow)
 //        Ogre::Camera* tmpCamera = getCamera(*m_itr);
 //    }
     OD_LOG_INF("Creating viewport...");
+}
+
+void CameraManager::setRenderWindow(Ogre::RenderWindow* renderWindow)
+{
+    Ogre::Viewport* previousViewport = mViewport;
+    Ogre::RenderTarget* previousTarget = previousViewport->getTarget();
+    Ogre::Viewport* viewport = renderWindow->addViewport(mActiveCamera,
+        previousViewport->getZOrder(), previousViewport->getLeft(), previousViewport->getTop(),
+        previousViewport->getWidth(), previousViewport->getHeight());
+    viewport->setBackgroundColour(previousViewport->getBackgroundColour());
+    viewport->setClearEveryFrame(previousViewport->getClearEveryFrame(), previousViewport->getClearBuffers());
+    viewport->setMaterialScheme(previousViewport->getMaterialScheme());
+    viewport->setOverlaysEnabled(previousViewport->getOverlaysEnabled());
+    viewport->setSkiesEnabled(previousViewport->getSkiesEnabled());
+    viewport->setShadowsEnabled(previousViewport->getShadowsEnabled());
+    viewport->setVisibilityMask(previousViewport->getVisibilityMask());
+
+    mViewport = viewport;
+    previousTarget->removeViewport(previousViewport->getZOrder());
+    if(viewport->getActualHeight() > 0)
+    {
+        mActiveCamera->setAspectRatio(static_cast<Ogre::Real>(viewport->getActualWidth())
+            / static_cast<Ogre::Real>(viewport->getActualHeight()));
+    }
 }
 
 const Ogre::Vector3& CameraManager::getActiveCameraPosition() const
@@ -277,7 +307,9 @@ void CameraManager::updateCameraFrameTime(const Ogre::Real frameTime)
     if (!isCameraMovingAtAll())
         return;
 
-    mMoveSpeed = getActiveCameraNode()->getPosition().z / 16.0f * mPanSpeedFactor;
+    if(frameTime <= 0.0f)
+        return;
+    mMoveSpeed = getActiveCameraNode()->getPosition().z / 16.0f * mPanSpeedFactor * mFastPanFactor;
     mMoveSpeedAcceleration = 2.0f * mMoveSpeed;
     
     // Carry out the acceleration/deceleration calculations on the camera translation.
@@ -285,6 +317,18 @@ void CameraManager::updateCameraFrameTime(const Ogre::Real frameTime)
     mTranslateVector *= static_cast<Ogre::Real>(std::max(0.0f, speed - (0.75f + (speed / mMoveSpeed))
                         * mMoveSpeedAcceleration * frameTime));
     mTranslateVector += mTranslateVectorAccel * static_cast<Ogre::Real>(frameTime * 2.0f);
+
+    const Ogre::Real maxMoveSpeedX = mMoveSpeed * mTranslateMaxSpeedFactor.x;
+    if(mTranslateVector.x > maxMoveSpeedX)
+        mTranslateVector.x = maxMoveSpeedX;
+    else if(mTranslateVector.x < -maxMoveSpeedX)
+        mTranslateVector.x = -maxMoveSpeedX;
+
+    const Ogre::Real maxMoveSpeedY = mMoveSpeed * mTranslateMaxSpeedFactor.y;
+    if(mTranslateVector.y > maxMoveSpeedY)
+        mTranslateVector.y = maxMoveSpeedY;
+    else if(mTranslateVector.y < -maxMoveSpeedY)
+        mTranslateVector.y = -maxMoveSpeedY;
 
     // If we have sped up to more than the maximum moveSpeed then rescale the
     // vector to that length. We use the squaredLength() in this calculation
@@ -298,19 +342,17 @@ void CameraManager::updateCameraFrameTime(const Ogre::Real frameTime)
     // Get the camera's current position.
     Ogre::Vector3 newPosition =  getActiveCameraNode()->getPosition();
 
-    // Get a quaternion which will rotate the "camera relative" x-y values
-    // for the translateVector into the global x-y used to position the camera.
     Ogre::Vector3 viewTarget = getCameraViewTarget();
-
-    Ogre::Vector3 viewDirection = viewTarget - newPosition;
-
-    viewDirection.z = 0.0;
-
-    Ogre::Quaternion viewDirectionQuaternion = Ogre::Vector3::UNIT_Y.getRotationTo(viewDirection);
+    // The projected view direction vanishes in a top-down view. The camera's
+    // right vector still defines screen-relative pan in every supported view.
+    Ogre::Vector3 right = mActiveCamera->getDerivedRight();
+    right.z = 0.0f;
+    right.normalise();
+    Ogre::Vector3 forward(-right.y, right.x, 0.0f);
 
     // Adjust the newPosition vector to account for the translation due
     // to the movement keys on the keyboard (the arrow keys and/or WASD).
-    if (mZChange != 0)
+    if (mZChange != 0 || mControlZoom != 0)
     {
         // Zoom towards what is in the middle of the screen, not towards the
         // ground under the camera: the camera looks ahead at an angle, so a
@@ -318,7 +360,7 @@ void CameraManager::updateCameraFrameTime(const Ogre::Real frameTime)
         // the ground point at the screen centre fixed means shifting the
         // camera base by the difference of its ground offsets at the two
         // heights.
-        Ogre::Real newZ = newPosition.z + static_cast<Ogre::Real>(mZChange * frameTime * ZOOM_SPEED);
+        Ogre::Real newZ = newPosition.z + static_cast<Ogre::Real>(mControlZoom * frameTime * ZOOM_SPEED + mZChange);
         if (newZ <= MIN_CAMERA_Z)
             newZ = MIN_CAMERA_Z;
         else if (newZ >= MAX_CAMERA_Z)
@@ -328,16 +370,12 @@ void CameraManager::updateCameraFrameTime(const Ogre::Real frameTime)
         newPosition.x += offsetBefore.x - offsetAfter.x;
         newPosition.y += offsetBefore.y - offsetAfter.y;
         newPosition.z = newZ;
-        // We also stow and stop the movement here, as the keyboard release events
-        // and mouse wheel event are otherwise colliding on handling the zoom.
-        if (mZChange > 0)
-            mZChange -= Z_MOVE_SPEED;
-        else if (mZChange < 0)
-            mZChange += Z_MOVE_SPEED;
+        mZChange = 0.0f;
     }
 
     // Update the position for the other axices.
-    newPosition += (viewDirectionQuaternion * mTranslateVector);
+    // Retain the nominal 60 Hz speed while making distance elapsed-time based.
+    newPosition += (right * mTranslateVector.x + forward * mTranslateVector.y) * (60.0f * frameTime);
 
     // Prevent camera from moving down into the tiles or too high.
     if (newPosition.z <= MIN_CAMERA_Z)
@@ -347,42 +385,19 @@ void CameraManager::updateCameraFrameTime(const Ogre::Real frameTime)
 
     clampToMap(newPosition);
 
-    // Prevent the tilting to show a reversed world or looking too high.
-    if (mRotateLocalVector.x != 0)
-    {
-        Ogre::Real currentPitch = getActiveCameraNode()->getChild(0)->getOrientation().getPitch().valueDegrees();
-        if ((currentPitch >= 0.0 && mRotateLocalVector.x < 0)
-            || (currentPitch <= 50.0 && mRotateLocalVector.x > 0))
-        {
-            // Tilt the camera up or down.
-            getActiveCameraNode()->getChild(0)->rotate(Ogre::Vector3::UNIT_X,
-                                        Ogre::Degree(mRotateLocalVector.x * frameTime),
-                                        Ogre::Node::TS_LOCAL);
-        }
-
-    }
-    if (mRotateLocalVector.y != 0)
-    {
-        // Tilt the camera up or down.
-        getActiveCameraNode()->rotate(Ogre::Vector3::UNIT_Z,
-                                      Ogre::Degree(mRotateLocalVector.y * frameTime),
-                                      Ogre::Node::TS_LOCAL);
-    }
-
-    // Swivel the camera to the left or right, while maintaining the same
-    // view target location on the ground.
-    Ogre::Real deltaX = newPosition.x - viewTarget.x;
-    Ogre::Real deltaY = newPosition.y - viewTarget.y;
-
-    Ogre::Real radius = sqrt(deltaX * deltaX + deltaY * deltaY);
-    Ogre::Real theta = atan2(deltaY, deltaX) + mSwivelDegrees.valueRadians() * frameTime;
-
-    newPosition.x = viewTarget.x + radius * cos(theta);
-    newPosition.y = viewTarget.y + radius * sin(theta);
-
+    Ogre::Vector3 groundTarget = newPosition + getGroundOffset(newPosition.z);
+    Ogre::Node* tilt = getActiveCameraNode()->getChild(0);
+    Ogre::Real pitch = tilt->getOrientation().getPitch().valueDegrees();
+    Ogre::Real pitchStep = mRotateLocalVector.x * frameTime;
+    if(pitchStep != 0.0f)
+        pitchStep = std::max(-pitch, std::min(50.0f - pitch, pitchStep));
+    tilt->pitch(Ogre::Degree(pitchStep), Ogre::Node::TS_LOCAL);
     getActiveCameraNode()->rotate(Ogre::Vector3::UNIT_Z,
-                                  Ogre::Degree(mSwivelDegrees * frameTime),
-                                  Ogre::Node::TS_WORLD);
+        Ogre::Degree((mSwivelDegrees.valueDegrees() + mControlSwivel * 117.0f
+            + mRotateLocalVector.y) * frameTime), Ogre::Node::TS_WORLD);
+    newPosition = groundTarget - getGroundOffset(newPosition.z);
+    // groundTarget includes the camera height; getGroundOffset has zero height.
+    Ogre::Real radius = 0.0f;
 
     // If the camera is trying to fly toward a destination, move it in that direction.
     if (mCameraIsFlying)
@@ -428,8 +443,12 @@ void CameraManager::updateCameraFrameTime(const Ogre::Real frameTime)
         Ogre::Real pitchDiff = std::abs(pitch - mCameraPitchDestination);
         Ogre::Real pitchChange = ((pitchUpdate * frameTime) > pitchDiff) ? pitchDiff / frameTime : pitchUpdate;
         bool pitchDone = false;
-        if (pitchDiff < 0.5)
+        if (pitchDiff <= pitchUpdate * frameTime)
         {
+            Ogre::Vector3 anchor = newPosition + getGroundOffset(newPosition.z);
+            getActiveCameraNode()->getChild(0)->setOrientation(
+                Ogre::Quaternion(Ogre::Degree(mCameraPitchDestination), Ogre::Vector3::UNIT_X));
+            newPosition = anchor - getGroundOffset(newPosition.z);
             mRotateLocalVector.x = 0.0;
             pitchDone = true;
         }
@@ -444,8 +463,12 @@ void CameraManager::updateCameraFrameTime(const Ogre::Real frameTime)
         Ogre::Real rollDiff = std::abs(roll - mCameraRollDestination);
         Ogre::Real rollChange = ((rollUpdate * frameTime) > rollDiff) ? rollDiff / frameTime : rollUpdate;
         bool rollDone = false;
-        if (std::abs(roll - mCameraRollDestination) < 0.5)
+        if (rollDiff <= rollUpdate * frameTime)
         {
+            Ogre::Vector3 anchor = newPosition + getGroundOffset(newPosition.z);
+            getActiveCameraNode()->setOrientation(
+                Ogre::Quaternion(Ogre::Degree(mCameraRollDestination), Ogre::Vector3::UNIT_Z));
+            newPosition = anchor - getGroundOffset(newPosition.z);
             mSwivelDegrees = 0.0;
             rollDone = true;
         }
@@ -513,6 +536,9 @@ void CameraManager::updateCameraFrameTime(const Ogre::Real frameTime)
 
 Ogre::Vector3 CameraManager::getGroundOffset(Ogre::Real height) const
 {
+    // Parent rotation does not refresh the attached camera's child transform
+    // until the scene graph update; input needs the new direction immediately.
+    mActiveCameraNode->_update(true, false);
     // Follow the view direction down to z = 0, the same way getCameraViewTarget()
     // does, but for an arbitrary height rather than the current one.
     Ogre::Vector3 cameraDirection = mActiveCamera->getDerivedDirection();
@@ -544,28 +570,17 @@ void CameraManager::clampToMap(Ogre::Vector3& position) const
 
 Ogre::Vector3 CameraManager::getCameraViewTarget() const
 {
-    // Get the position of the camera and direction that the camera is facing.
+    mActiveCameraNode->_update(true, false);
     Ogre::Vector3 position = mActiveCamera->getRealPosition();
-    Ogre::Vector3 viewDirection = mActiveCamera->getDerivedDirection();
-
-    // Compute the offset, this is how far you would move in the x-y plane if
-    // you follow along the view direction vector until you get to z = 0.
-    viewDirection.normalise();
-    viewDirection /= fabs(viewDirection.z);
-    Ogre::Vector3 offset = position.z * viewDirection;
-    offset.z = 0.0;
-
-    // The location we are looking at is then simply the camera's position plus
-    // the view offset computed above.  We zero the z-value on the target for
-    // consistency.
-    Ogre::Vector3 target = position + offset;
-    target.z = 0.0;
-
+    Ogre::Vector3 target = position + getGroundOffset(position.z);
+    target.z = 0.0f;
     return target;
 }
 
 void CameraManager::resetCamera(const Ogre::Vector3& position, const Ogre::Vector3& rotation)
 {
+    // Scripted menu shots must not inherit gameplay movement or view animation.
+    move(fullStop);
     Ogre::Node* nodeRotation = getActiveCameraNode()->getChild(0);
     nodeRotation->resetOrientation();
 
@@ -607,6 +622,105 @@ void CameraManager::onMiniMapClick(Ogre::Vector2 cc)
     flyTo(Ogre::Vector3(cc.x, cc.y, 0.0));
 }
 
+void CameraManager::setControls(const Ogre::Vector2& pan, Ogre::Real zoom, Ogre::Real swivel, bool fast)
+{
+    mFastPanFactor = fast ? 2.0f : 1.0f;
+    mMoveSpeed = getActiveCameraNode()->getPosition().z / 16.0f * mPanSpeedFactor * mFastPanFactor;
+    mMoveSpeedAcceleration = 2.0f * mMoveSpeed;
+    mTranslateVectorAccel = Ogre::Vector3(pan.x, pan.y, 0.0f) * mMoveSpeedAcceleration;
+    mTranslateMaxSpeedFactor = Ogre::Vector2(std::abs(pan.x), std::abs(pan.y));
+    mControlZoom = zoom;
+    mControlSwivel = swivel;
+    if(pan != Ogre::Vector2::ZERO || zoom != 0.0f || swivel != 0.0f)
+    {
+        mCameraIsFlying = mCameraIsRotating = false;
+        mSwivelDegrees = Ogre::Degree(0.0f);
+        mRotateLocalVector = Ogre::Vector3::ZERO;
+    }
+}
+
+void CameraManager::zoomBy(Ogre::Real distance)
+{
+    mZChange += distance;
+}
+
+void CameraManager::setViewOrientation(const Ogre::Quaternion& root, const Ogre::Quaternion& tilt)
+{
+    Ogre::Vector3 target = getCameraViewTarget();
+    Ogre::Real height = getActiveCameraNode()->getPosition().z;
+    getActiveCameraNode()->setOrientation(root);
+    getActiveCameraNode()->getChild(0)->setOrientation(tilt);
+    Ogre::Vector3 position = target - getGroundOffset(height);
+    position.z = height;
+    clampToMap(position);
+    getActiveCameraNode()->setPosition(position);
+}
+
+void CameraManager::orbitBy(Ogre::Real swivel, Ogre::Real pitch)
+{
+    mCameraIsRotating = mCameraIsFlying = false;
+    mRotateLocalVector = Ogre::Vector3::ZERO;
+    mSwivelDegrees = Ogre::Degree(0.0f);
+    Ogre::Quaternion root = getActiveCameraNode()->getOrientation();
+    Ogre::Quaternion tilt = getActiveCameraNode()->getChild(0)->getOrientation();
+    Ogre::Real currentPitch = tilt.getPitch().valueDegrees();
+    pitch = std::max(-currentPitch, std::min(50.0f - currentPitch, pitch));
+    setViewOrientation(Ogre::Quaternion(Ogre::Degree(swivel), Ogre::Vector3::UNIT_Z) * root,
+        tilt * Ogre::Quaternion(Ogre::Degree(pitch), Ogre::Vector3::UNIT_X));
+}
+
+void CameraManager::adjustUserView(Ogre::Real roll, Ogre::Real yaw, Ogre::Real pitch)
+{
+    move(fullStop);
+    Ogre::Quaternion root = getActiveCameraNode()->getOrientation();
+    Ogre::Quaternion tilt = getActiveCameraNode()->getChild(0)->getOrientation();
+    tilt = tilt * Ogre::Quaternion(Ogre::Degree(roll), Ogre::Vector3::UNIT_Z)
+        * Ogre::Quaternion(Ogre::Degree(yaw), Ogre::Vector3::UNIT_Y)
+        * Ogre::Quaternion(Ogre::Degree(pitch), Ogre::Vector3::UNIT_X);
+    // Ground-target navigation requires the camera to keep looking downwards.
+    if((root * tilt * Ogre::Vector3::NEGATIVE_UNIT_Z).z < -0.1f)
+        setViewOrientation(root, tilt);
+}
+
+void CameraManager::loadUserView(unsigned int slot)
+{
+    if(slot >= 3)
+        return;
+    std::istringstream values(ConfigManager::getSingleton().getInputValue(
+        "UserCamera" + Helper::toString(slot + 1), "", false));
+    Ogre::Quaternion root, tilt;
+    if(!(values >> root.w >> root.x >> root.y >> root.z >> tilt.w >> tilt.x >> tilt.y >> tilt.z))
+    {
+        move(fullStop);
+        setViewOrientation(Ogre::Quaternion::IDENTITY,
+            Ogre::Quaternion(Ogre::Degree(DEFAULT_X_AXIS_VIEW), Ogre::Vector3::UNIT_X));
+        return;
+    }
+    if(!std::isfinite(root.Norm()) || !std::isfinite(tilt.Norm()) || root.Norm() < 0.01f || tilt.Norm() < 0.01f)
+        return;
+    root.normalise();
+    tilt.normalise();
+    if((root * tilt * Ogre::Vector3::NEGATIVE_UNIT_Z).z >= -0.1f)
+        return;
+    move(fullStop);
+    setViewOrientation(root, tilt);
+}
+
+bool CameraManager::storeUserView(unsigned int slot)
+{
+    if(slot >= 3)
+        return false;
+    const Ogre::Quaternion& root = getActiveCameraNode()->getOrientation();
+    const Ogre::Quaternion& tilt = getActiveCameraNode()->getChild(0)->getOrientation();
+    std::ostringstream values;
+    values.precision(9);
+    values << root.w << ' ' << root.x << ' ' << root.y << ' ' << root.z << ' '
+        << tilt.w << ' ' << tilt.x << ' ' << tilt.y << ' ' << tilt.z;
+    ConfigManager& config = ConfigManager::getSingleton();
+    config.setInputValue("UserCamera" + Helper::toString(slot + 1), values.str());
+    return config.saveUserConfig();
+}
+
 void CameraManager::move(const Direction direction, double aux)
 {
     // NOTE : The camera loses the desired sense of left, right, top, down
@@ -615,72 +729,85 @@ void CameraManager::move(const Direction direction, double aux)
     Ogre::Real currentPitch = getActiveCameraNode()->getOrientation().getPitch().valueDegrees();
     currentPitch = std::fmod(currentPitch, 90.0f);
 
+    const bool scaledPan = aux > 0.0;
+    const Ogre::Real maxSpeedFactor = scaledPan ?
+        static_cast<Ogre::Real>(std::min(aux, 1.0)) : 1.0f;
+    const auto applyPanAcceleration = [this](Ogre::Real& acceleration, Ogre::Real direction)
+    {
+        const Ogre::Real newAcceleration = direction * mMoveSpeedAcceleration;
+        acceleration = newAcceleration;
+    };
+
     switch (direction)
     {
     case moveRight:
-        if (currentPitch <= 0.0f)
-            mTranslateVectorAccel.x += mMoveSpeedAcceleration;
-        else
-            mTranslateVectorAccel.x -= mMoveSpeedAcceleration;
+        mTranslateMaxSpeedFactor.x = maxSpeedFactor;
+        applyPanAcceleration(mTranslateVectorAccel.x, currentPitch <= 0.0f ? 1.0f : -1.0f);
         break;
 
     case stopRight:
         if(mTranslateVectorAccel.x >= 0)
+        {
             mTranslateVectorAccel.x = 0;
+            mTranslateMaxSpeedFactor.x = 1.0f;
+        }
         break;
 
     case moveLeft:
-        if (currentPitch <= 0.0f)
-            mTranslateVectorAccel.x -= mMoveSpeedAcceleration;
-        else
-            mTranslateVectorAccel.x += mMoveSpeedAcceleration;
+        mTranslateMaxSpeedFactor.x = maxSpeedFactor;
+        applyPanAcceleration(mTranslateVectorAccel.x, currentPitch <= 0.0f ? -1.0f : 1.0f);
         break;
 
     case stopLeft:
         if(mTranslateVectorAccel.x <= 0)
+        {
             mTranslateVectorAccel.x = 0;
+            mTranslateMaxSpeedFactor.x = 1.0f;
+        }
         break;
 
     case moveBackward:
-        if (currentPitch <= 0.0f)
-            mTranslateVectorAccel.y -= mMoveSpeedAcceleration;
-        else
-            mTranslateVectorAccel.y += mMoveSpeedAcceleration;
+        mTranslateMaxSpeedFactor.y = maxSpeedFactor;
+        applyPanAcceleration(mTranslateVectorAccel.y, currentPitch <= 0.0f ? -1.0f : 1.0f);
         break;
 
     case stopBackward:
         if(mTranslateVectorAccel.y <= 0)
+        {
             mTranslateVectorAccel.y = 0;
+            mTranslateMaxSpeedFactor.y = 1.0f;
+        }
         break;
 
     case moveForward:
-        if (currentPitch <= 0.0f)
-            mTranslateVectorAccel.y += mMoveSpeedAcceleration;
-        else
-            mTranslateVectorAccel.y -= mMoveSpeedAcceleration;
+        mTranslateMaxSpeedFactor.y = maxSpeedFactor;
+        applyPanAcceleration(mTranslateVectorAccel.y, currentPitch <= 0.0f ? 1.0f : -1.0f);
         break;
 
     case stopForward:
         if(mTranslateVectorAccel.y >= 0)
+        {
             mTranslateVectorAccel.y = 0;
+            mTranslateMaxSpeedFactor.y = 1.0f;
+        }
         break;
 
     case moveUp:
-        mZChange += Z_MOVE_SPEED_ACCELERATION;
+        mZChange += 0.2f;
         break;
 
     case stopUp:
         break;
 
     case moveDown:
-        mZChange -= Z_MOVE_SPEED_ACCELERATION;
+        mZChange -= 0.2f;
         break;
 
     case stopDown:
         break;
 
     case rotateLeft:
-        mSwivelDegrees += 1.3 * ROTATION_SPEED;
+        mSwivelDegrees = 1.3 * ROTATION_SPEED;
         break;
 
     case stopRotRight:
@@ -688,7 +815,7 @@ void CameraManager::move(const Direction direction, double aux)
         break;
 
     case rotateRight:
-        mSwivelDegrees -= 1.3 * ROTATION_SPEED;
+        mSwivelDegrees = -1.3 * ROTATION_SPEED;
         break;
 
     case stopRotLeft:
@@ -696,7 +823,7 @@ void CameraManager::move(const Direction direction, double aux)
         break;
 
     case rotateUp:
-        mRotateLocalVector.x += ROTATION_SPEED.valueDegrees();
+        mRotateLocalVector.x = ROTATION_SPEED.valueDegrees();
         break;
 
     case stopRotDown:
@@ -704,7 +831,7 @@ void CameraManager::move(const Direction direction, double aux)
         break;
 
     case rotateDown:
-        mRotateLocalVector.x -= ROTATION_SPEED.valueDegrees();
+        mRotateLocalVector.x = -ROTATION_SPEED.valueDegrees();
         break;
 
     case stopRotUp:
@@ -725,6 +852,16 @@ void CameraManager::move(const Direction direction, double aux)
 
     case zeroRandomRotateY:
         mRotateLocalVector.x = 0.0;
+        break;
+
+    case fullStop:
+        mTranslateVector = Ogre::Vector3::ZERO;
+        mTranslateVectorAccel = Ogre::Vector3::ZERO;
+        mRotateLocalVector = Ogre::Vector3::ZERO;
+        mZChange = mControlZoom = mControlSwivel = 0.0f;
+        mSwivelDegrees = Ogre::Degree(0.0f);
+        mCameraIsFlying = mCameraIsRotating = false;
+        mFastPanFactor = 1.0f;
         break;
 
     default:
@@ -770,9 +907,9 @@ bool CameraManager::isCameraMovingAtAll() const
             mTranslateVectorAccel.y != 0 ||
             mTranslateVector.x != 0 ||
             mTranslateVector.y != 0 ||
-            mZChange != 0 ||
+            mZChange != 0 || mControlZoom != 0 || mControlSwivel != 0 ||
             mSwivelDegrees.valueDegrees() != 0 ||
-            mRotateLocalVector.x != 0 ||
+            mRotateLocalVector.x != 0 || mRotateLocalVector.y != 0 ||
             mCameraIsFlying ||
             mCameraIsRotating);
 }

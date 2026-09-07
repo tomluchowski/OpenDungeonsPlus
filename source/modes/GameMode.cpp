@@ -18,6 +18,7 @@
 #include "modes/GameMode.h"
 
 #include "camera/CameraManager.h"
+#include "camera/CameraInput.h"
 #include "entities/Creature.h"
 #include "entities/GameEntityType.h"
 #include "entities/Tile.h"
@@ -70,20 +71,59 @@ const std::string TEXT_SEAT_ID_PREFIX = "TextSeat";
 const std::string TEXT_SEAT_PLAYER_NICKNAME_PREFIX = "TextSeatPlayerNick";
 const std::string TEXT_SEAT_TEAM_ID_PREFIX = "TextSeatTeam";
 
+const double AUTOSCROLL_EDGE_RATIO = 0.02;
+
+static double getAutoscrollIntensity(int mousePosition, int screenSize, bool minimumEdge)
+{
+    if(screenSize <= 1)
+        return 0.0;
+
+    const double edgeSize = AUTOSCROLL_EDGE_RATIO * screenSize;
+    const int distanceFromEdge = minimumEdge ? mousePosition : screenSize - 1 - mousePosition;
+    return std::max(0.0, std::min(1.0, (edgeSize - distanceFromEdge) / edgeSize));
+}
+
+static bool blocksEdgeScrolling(CEGUI::Window* window)
+{
+    if(window == nullptr || window->getName() == "Root")
+        return false;
+
+    for(CEGUI::Window* parent = window; parent != nullptr; parent = parent->getParent())
+    {
+        if(parent->isUserStringDefined("AllowEdgeScrolling") &&
+           parent->getUserString("AllowEdgeScrolling") == "true")
+            return false;
+    }
+    return true;
+}
+
 GameMode::GameMode(ModeManager *modeManager):
     GameEditorModeBase(modeManager, ModeManager::GAME, modeManager->getGui().getGuiSheet(Gui::guiSheet::inGameMenu)),
     mDigSetBool(false),
     mIsSpellCooldownDisplayed(false),
     mIndexEvent(0),
-    mSettings(SettingsWindow(mRootWindow)),
+    mSettings(mRootWindow, modeManager->getGui()),
     mIsSkillWindowOpen(false),
     mCurrentSkillType(SkillType::nullSkillType),
     mCurrentSkillProgress(0.0),
     mPreviousMousePosition(MouseMoveEvent{0, 0}),
-    directionKeyPressed(false),
     showTileDebugWindow(false),
     config(ConfigManager::getSingleton())
 {
+    addEventConnection(mRootWindow->getChild("GameOptionsWindow/UserCamerasButton")->subscribeEvent(
+        CEGUI::PushButton::EventClicked, CEGUI::Event::Subscriber(&GameMode::showUserCameras, this)));
+    addEventConnection(mRootWindow->getChild("UserCamerasWindow")->subscribeEvent(
+        CEGUI::FrameWindow::EventCloseClicked, CEGUI::Event::Subscriber(&GameMode::closeUserCameras, this)));
+    for(unsigned int slot = 0; slot < 3; ++slot)
+    {
+        CEGUI::Window* button = mRootWindow->getChild("UserCamerasWindow/Camera" + Helper::toString(slot + 1));
+        button->setID(slot);
+        addEventConnection(button->subscribeEvent(CEGUI::PushButton::EventClicked,
+            CEGUI::Event::Subscriber(&GameMode::selectUserCamera, this)));
+    }
+    addEventConnection(mRootWindow->getChild("UserCamerasWindow/Store")->subscribeEvent(
+        CEGUI::PushButton::EventClicked, CEGUI::Event::Subscriber(&GameMode::storeUserCamera, this)));
+
     // Set per default the input on the map
     mModeManager->getInputManager().mMouseDownOnCEGUIWindow = false;
 
@@ -366,36 +406,18 @@ bool GameMode::mouseMoved(const OIS::MouseEvent &arg)
     InputManager& inputManager = mModeManager->getInputManager();
     inputManager.mCommandState = (inputManager.mLMouseDown ? InputCommandState::building : InputCommandState::infoOnly);
 
-    // TODO: Here we should check whether the terminal is active...
-    if(inputManager.mMMouseDown)
+    if(!cameraInputBlocked() && !blocksEdgeScrolling(
+        CEGUI::System::getSingleton().getDefaultGUIContext().getWindowContainingMouse()))
     {
-        ODFrameListener::getSingleton().moveCamera(CameraManager::randomRotateX,mouseDelta.x);
-        ODFrameListener::getSingleton().moveCamera(CameraManager::randomRotateY,mouseDelta.y);
+        CameraManager* camera = ODFrameListener::getSingleton().getCameraManager();
+        if(getKeyboard()->isKeyDown(OIS::KC_X))
+            camera->orbitBy(mouseDelta.x * 0.25f, 0.0f);
+        else if(getKeyboard()->isKeyDown(OIS::KC_Z))
+            camera->zoomBy(-mouseDelta.y * 0.025f);
+        else if(inputManager.mMMouseDown)
+            camera->orbitBy(mouseDelta.x * 0.25f, mouseDelta.y * 0.25f);
     }
 
-    if (!directionKeyPressed && config.getInputValue(Config::AUTOSCROLL, "No", false) == "Yes")
-    {
-        if (arg.state.X.abs <= 0.02 * arg.state.width)
-            ODFrameListener::getSingleton().moveCamera(CameraManager::moveLeft);
-        else
-            ODFrameListener::getSingleton().moveCamera(CameraManager::stopLeft);
-
-        if (arg.state.X.abs >= 0.98 * arg.state.width)
-            ODFrameListener::getSingleton().moveCamera(CameraManager::moveRight);
-        else
-            ODFrameListener::getSingleton().moveCamera(CameraManager::stopRight);
-
-        if (arg.state.Y.abs <= 0.02 * arg.state.height)
-            ODFrameListener::getSingleton().moveCamera(CameraManager::moveForward);
-        else
-            ODFrameListener::getSingleton().moveCamera(CameraManager::stopForward);
-
-        if (arg.state.Y.abs >= 0.98 * arg.state.height)
-            ODFrameListener::getSingleton().moveCamera(CameraManager::moveBackward);
-        else
-            ODFrameListener::getSingleton().moveCamera(CameraManager::stopBackward);            
-    }
- 
     // If we have a room/trap/spell selected, show it
     // TODO: This should be changed, or combined with an icon or something later.
     TextRenderer& textRenderer = TextRenderer::getSingleton();
@@ -458,6 +480,15 @@ void GameMode::handleMouseWheel(const MouseWheelEvent &arg)
 
     ODFrameListener& frameListener = ODFrameListener::getSingleton();
 
+    if(cameraInputBlocked())
+        return;
+
+    // Native OIS reports 120 units per wheel notch; the SFML bridge reports notches.
+    float wheelNotches = static_cast<float>(arg.delta);
+#ifndef OD_USE_SFML_WINDOW
+    wheelNotches /= 120.0f;
+#endif
+
     if (arg.delta > 0)
     {
         if (getKeyboard()->isModifierDown(OIS::Keyboard::Ctrl))
@@ -466,7 +497,7 @@ void GameMode::handleMouseWheel(const MouseWheelEvent &arg)
         }
         else
         {
-            frameListener.moveCamera(CameraManager::moveDown);
+            frameListener.getCameraManager()->zoomBy(-0.2f * wheelNotches);
         }
     }
     else if (arg.delta < 0)
@@ -477,7 +508,7 @@ void GameMode::handleMouseWheel(const MouseWheelEvent &arg)
         }
         else
         {
-            frameListener.moveCamera(CameraManager::moveUp);
+            frameListener.getCameraManager()->zoomBy(-0.2f * wheelNotches);
         }
     }
 }
@@ -818,23 +849,22 @@ bool GameMode::keyPressedNormal(const OIS::KeyEvent &arg)
     switch (arg.key)
     {
     case OIS::KC_F1:
-        toggleHelpWindow();
+        if(!cameraInputBlocked())
+            frameListener.getCameraManager()->setDefaultIsometricView();
         break;
-
     case OIS::KC_F2:
-        togglePlayerSettingsWindow();
+        if(!cameraInputBlocked())
+            frameListener.getCameraManager()->setDefaultOrthogonalView();
         break;
-
     case OIS::KC_F3:
-        toggleObjectivesWindow();
+        if(!cameraInputBlocked())
+            frameListener.getCameraManager()->setDefaultView();
         break;
-
     case OIS::KC_F4:
-        toggleSkillWindow();
-        break;
-
     case OIS::KC_F5:
-        saveGame();
+    case OIS::KC_F6:
+        if(!cameraInputBlocked())
+            frameListener.getCameraManager()->loadUserView(arg.key - OIS::KC_F4);
         break;
 
     case OIS::KC_F9:
@@ -854,56 +884,9 @@ bool GameMode::keyPressedNormal(const OIS::KeyEvent &arg)
         enterConsole();
         break;
 
-    case OIS::KC_LEFT:
-    case OIS::KC_A:
-        frameListener.moveCamera(CameraManager::Direction::moveLeft);
-        directionKeyPressed = true;
-        break;
-
-    case OIS::KC_RIGHT:
-    case OIS::KC_D:
-        frameListener.moveCamera(CameraManager::Direction::moveRight);
-        directionKeyPressed = true;        
-        break;
-
-    case OIS::KC_UP:
-    case OIS::KC_W:
-        frameListener.moveCamera(CameraManager::Direction::moveForward);
-        directionKeyPressed = true;
-        break;
-
-    case OIS::KC_DOWN:
-    case OIS::KC_S:
-        frameListener.moveCamera(CameraManager::Direction::moveBackward);
-        directionKeyPressed = true;
-        break;
-
-    case OIS::KC_Q:
-        frameListener.moveCamera(CameraManager::Direction::rotateLeft);
-        break;
-
-    case OIS::KC_E:
-        frameListener.moveCamera(CameraManager::Direction::rotateRight);
-        break;
-
-    case OIS::KC_HOME:
-        frameListener.moveCamera(CameraManager::Direction::moveDown);
-        break;
-
-    case OIS::KC_END:
-        frameListener.moveCamera(CameraManager::Direction::moveUp);
-        break;
-
-    case OIS::KC_PGUP:
-        frameListener.moveCamera(CameraManager::Direction::rotateUp);
-        break;
-
-    case OIS::KC_PGDOWN:
-        frameListener.moveCamera(CameraManager::Direction::rotateDown);
-        break;
-
+    case OIS::KC_H:
     case OIS::KC_T:
-        if(isConnected()) // If we are in a game.
+        if(isConnected() && !cameraInputBlocked()) // If we are in a game.
         {
             Seat* tempSeat = mGameMap->getLocalPlayer()->getSeat();
             frameListener.cameraFlyTo(tempSeat->getStartingPosition());
@@ -911,7 +894,8 @@ bool GameMode::keyPressedNormal(const OIS::KeyEvent &arg)
         break;
 
     case OIS::KC_V:
-        ODFrameListener::getSingleton().getCameraManager()->setNextDefaultView();
+        if(!cameraInputBlocked())
+            frameListener.getCameraManager()->setNextDefaultView();
         break;
 
     case OIS::KC_LMENU:
@@ -1057,54 +1041,6 @@ bool GameMode::keyReleasedNormal(const OIS::KeyEvent &arg)
 
     switch (arg.key)
     {
-    case OIS::KC_LEFT:
-    case OIS::KC_A:
-        frameListener.moveCamera(CameraManager::Direction::stopLeft);
-        directionKeyPressed = false;
-        break;
-
-    case OIS::KC_RIGHT:
-    case OIS::KC_D:
-        frameListener.moveCamera(CameraManager::Direction::stopRight);
-        directionKeyPressed = false;
-        break;
-
-    case OIS::KC_UP:
-    case OIS::KC_W:
-        frameListener.moveCamera(CameraManager::Direction::stopForward);
-        directionKeyPressed = false;       
-        break;
-
-    case OIS::KC_DOWN:
-    case OIS::KC_S:
-        frameListener.moveCamera(CameraManager::Direction::stopBackward);
-        directionKeyPressed = false;
-        break;
-
-    case OIS::KC_Q:
-        frameListener.moveCamera(CameraManager::Direction::stopRotLeft);
-        break;
-
-    case OIS::KC_E:
-        frameListener.moveCamera(CameraManager::Direction::stopRotRight);
-        break;
-
-    case OIS::KC_HOME:
-        frameListener.moveCamera(CameraManager::Direction::stopDown);
-        break;
-
-    case OIS::KC_END:
-        frameListener.moveCamera(CameraManager::Direction::stopUp);
-        break;
-
-    case OIS::KC_PGUP:
-        frameListener.moveCamera(CameraManager::Direction::stopRotUp);
-        break;
-
-    case OIS::KC_PGDOWN:
-        frameListener.moveCamera(CameraManager::Direction::stopRotDown);
-        break;
-
     case OIS::KC_LMENU:
         RenderManager::getSingleton().rrSetCreaturesTextOverlay(*mGameMap, false);
         break;
@@ -1137,6 +1073,92 @@ void GameMode::handleHotkeys(OIS::KeyCode keycode)
         frameListener.getCameraManager()->getActiveCameraNode()->setOrientation(  inputManager.mHotkeyLocation[keynumber].qq);
         frameListener.getCameraManager()->getActiveCameraNode()->getChild(0)->setOrientation(  inputManager.mHotkeyLocation[keynumber].qq2);                
     }
+}
+
+bool GameMode::cameraInputBlocked()
+{
+    if(mCurrentInputMode != InputModeNormal || !isConnected() ||
+        !ODFrameListener::getSingleton().getRenderWindow()->isActive())
+        return true;
+    for(size_t i = 0; i < mRootWindow->getChildCount(); ++i)
+    {
+        CEGUI::Window* child = mRootWindow->getChildAtIdx(i);
+        if(child->isVisible() && dynamic_cast<CEGUI::FrameWindow*>(child) != nullptr)
+            return true;
+    }
+    return false;
+}
+
+void GameMode::updateCameraControls(float elapsed)
+{
+    CameraManager* camera = ODFrameListener::getSingleton().getCameraManager();
+    const auto down = [this](OIS::KeyCode key) { return getKeyboard()->isKeyDown(key); };
+    if(cameraInputBlocked())
+    {
+        camera->move(CameraManager::fullStop);
+        if(mCurrentInputMode == InputModeNormal && mRootWindow->getChild("UserCamerasWindow")->isVisible()
+            && ODFrameListener::getSingleton().getRenderWindow()->isActive()
+            && getKeyboard()->isModifierDown(OIS::Keyboard::Ctrl))
+        {
+            camera->adjustUserView((float(down(OIS::KC_INSERT)) - float(down(OIS::KC_DELETE))) * 90.0f * elapsed,
+                (float(down(OIS::KC_PGUP)) - float(down(OIS::KC_PGDOWN))) * 90.0f * elapsed,
+                (float(down(OIS::KC_HOME)) - float(down(OIS::KC_END))) * 90.0f * elapsed);
+        }
+        return;
+    }
+    CameraInput input = CameraInput::read(down);
+    if(input.x == 0.0f && input.y == 0.0f && input.zoom == 0.0f && input.swivel == 0.0f
+        && !down(OIS::KC_X) && !down(OIS::KC_Z)
+        && config.getInputValue(Config::AUTOSCROLL, "No", false) == "Yes")
+    {
+        CEGUI::GUIContext& context = CEGUI::System::getSingleton().getDefaultGUIContext();
+        if(!blocksEdgeScrolling(context.getWindowContainingMouse()))
+        {
+            const CEGUI::Vector2f& mouse = context.getMouseCursor().getPosition();
+            Ogre::RenderWindow* window = ODFrameListener::getSingleton().getRenderWindow();
+            input.x = static_cast<float>(getAutoscrollIntensity(static_cast<int>(mouse.d_x), window->getWidth(), false)
+                - getAutoscrollIntensity(static_cast<int>(mouse.d_x), window->getWidth(), true));
+            input.y = static_cast<float>(getAutoscrollIntensity(static_cast<int>(mouse.d_y), window->getHeight(), true)
+                - getAutoscrollIntensity(static_cast<int>(mouse.d_y), window->getHeight(), false));
+        }
+    }
+    camera->setControls(Ogre::Vector2(input.x, input.y), input.zoom, input.swivel, input.fast);
+}
+
+bool GameMode::showUserCameras(const CEGUI::EventArgs&)
+{
+    mRootWindow->getChild("GameOptionsWindow")->hide();
+    CEGUI::Window* window = mRootWindow->getChild("UserCamerasWindow");
+    window->show();
+    window->moveToFront();
+    window->setText("Define user camera " + Helper::toString(mUserCameraSlot + 1));
+    ODFrameListener::getSingleton().getCameraManager()->move(CameraManager::fullStop);
+    return true;
+}
+
+bool GameMode::closeUserCameras(const CEGUI::EventArgs&)
+{
+    mRootWindow->getChild("UserCamerasWindow")->hide();
+    ODFrameListener::getSingleton().getCameraManager()->move(CameraManager::fullStop);
+    return true;
+}
+
+bool GameMode::selectUserCamera(const CEGUI::EventArgs& args)
+{
+    mUserCameraSlot = static_cast<const CEGUI::WindowEventArgs&>(args).window->getID();
+    CameraManager* camera = ODFrameListener::getSingleton().getCameraManager();
+    camera->loadUserView(mUserCameraSlot);
+    mRootWindow->getChild("UserCamerasWindow")->setText("Define user camera " + Helper::toString(mUserCameraSlot + 1));
+    return true;
+}
+
+bool GameMode::storeUserCamera(const CEGUI::EventArgs&)
+{
+    if(ODFrameListener::getSingleton().getCameraManager()->storeUserView(mUserCameraSlot))
+        closeUserCameras();
+    else
+        mRootWindow->getChild("UserCamerasWindow")->setText("Could not save camera settings");
+    return true;
 }
 
 void GameMode::onFrameStarted(const Ogre::FrameEvent& evt)
@@ -1464,11 +1486,11 @@ void GameMode::setHelpWindowText()
         << "Well, at least you don't seem as dumb as a pit demon, so let's cover the basics again." << std::endl << std::endl;
     txt << formatTitleOn << "Camera controls" << formatTitleOff << std::endl
         << "The camera is your eyes - be watchful! Take the time to learn how to use it efficiently:" << std::endl
-        << "  - Camera translation: Arrow keys or WASD." << std::endl
-        << "  - Camera rotation: A (left) or E (right)." << std::endl
-        << "  - Camera zooming: Mouse wheel, Home (zoom out) or End (zoom in)." << std::endl
-        << "  - Camera tilting: Page Up (look up), Page Down (look down)." << std::endl
-        << "  - Cycle through camera modes: V." << std::endl << std::endl;
+        << "  - Pan: Arrow keys or WASD; hold Shift to scroll faster." << std::endl
+        << "  - Rotate: Delete / Page Down, Ctrl+Left / Right, or hold X and move the mouse." << std::endl
+        << "  - Zoom: Home / End, Ctrl+Up / Down, wheel, or hold Z and move the mouse vertically." << std::endl
+        << "  - Views: F1 isometric, F2 top down, F3 oblique; F4-F6 user cameras." << std::endl
+        << "  - Define user cameras in Options; H focuses the dungeon heart; V cycles views." << std::endl << std::endl;
     txt << formatTitleOn << "Keeper hand controls" << formatTitleOff << std::endl
         << "Use your hand wisely to keep all minions under control and let your dungeon thrive!" << std::endl
         << "  - Mouse left click: Select an action, Confirm an action." << std::endl
@@ -1485,7 +1507,7 @@ void GameMode::setHelpWindowText()
         << "in place (thanks to your evil tricks, the first tile is free!) so that your workers can store the gold they mine." << std::endl
         << "Be sure to build a dormitory and a hatchery to fulfill your creatures' lowest needs, and a library to skill "
         << "new buildings, spells and traps. Varied buildings, wealth and great dungeons will attract more powerful creatures." << std::endl
-        << "  - Use the Skill Manager (F4) to set the priority for the various skills that can be uncovered at the library."
+        << "  - Use the Skill Manager in Options to set the priority for the various skills that can be uncovered at the library."
         << "Make sure to have intelligent creatures always at work at your library - if you can find any among your dumb minions!" << std::endl
         << "  - Once you have a workshop, set traps to protect your dungeon - your creatures will then craft them at the workshop." << std::endl
         << "  - Use spells to macro-manage your creatures more efficiently." << std::endl << std::endl;
@@ -1992,7 +2014,6 @@ void GameMode::buildPlayerSettingsWindow()
         mSeatIds.push_back(seat->getId());
         offset += 15;
     }
+
+    getModeManager().getGui().registerWindowHierarchy(tmpWin);
 }
-
-
-

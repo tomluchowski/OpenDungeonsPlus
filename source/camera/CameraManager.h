@@ -131,6 +131,15 @@ public:
     */
     void move(const Direction direction, double aux = 0.0);
 
+    //! Continuous input is sampled once per frame, independent of key repeat.
+    void setControls(const Ogre::Vector2& pan, Ogre::Real zoom, Ogre::Real swivel, bool fast);
+    //! Pointer motion and wheel steps are distances, not persistent velocities.
+    void zoomBy(Ogre::Real distance);
+    void orbitBy(Ogre::Real swivel, Ogre::Real pitch);
+    void adjustUserView(Ogre::Real roll, Ogre::Real yaw, Ogre::Real pitch);
+    void loadUserView(unsigned int slot);
+    bool storeUserView(unsigned int slot);
+
     void createCameraNode(const std::string& name);
 
     void destroyCameraNode(const std::string& name);
@@ -163,6 +172,9 @@ public:
     Ogre::Viewport* getViewport()
     { return mViewport; }
 
+    //! \brief Move the main camera viewport to another render window.
+    void setRenderWindow(Ogre::RenderWindow* renderWindow);
+
     void resetHCSNodes(int nodeValue)
     {
         mXHCS.resetNodes(nodeValue);
@@ -191,6 +203,7 @@ private:
     //! \brief Moves the position so that the ground point the camera looks at from it
     //! stays within the map.
     void clampToMap(Ogre::Vector3& position) const;
+    void setViewOrientation(const Ogre::Quaternion& root, const Ogre::Quaternion& tilt);
 
     //! \brief HermiteCatmullSpline members for each axices.
     HermiteCatmullSpline mXHCS;
@@ -245,6 +258,9 @@ private:
     Ogre::Vector3   mTranslateVector;
     Ogre::Vector3   mTranslateVectorAccel;
 
+    //! \brief Maximum pan speed per axis, used to scale mouse-edge scrolling.
+    Ogre::Vector2   mTranslateMaxSpeedFactor;
+
     //! \brief The X-axis rotation vector, tilting the point of view (look down or up).
     Ogre::Vector3   mRotateLocalVector;
 
@@ -269,6 +285,9 @@ private:
     //! \brief User-tunable multiplier on the keyboard/autoscroll pan speed
     //! (1.0 keeps the historic speed). Set from the settings window.
     Ogre::Real mPanSpeedFactor;
+    Ogre::Real mFastPanFactor = 1.0f;
+    Ogre::Real mControlZoom = 0.0f;
+    Ogre::Real mControlSwivel = 0.0f;
 };
 
 #endif // CAMERAMANAGER_H_
