@@ -192,6 +192,7 @@ uint32_t MovableTextOverlay::createChildOverlay(const Ogre::String& fontName, Og
     childOverlay.mOverlayContainer = static_cast<Ogre::OverlayContainer*>(overlayManager.createOverlayElement(
         "Panel", mName + Helper::toString(id) + "_OvC"));
     childOverlay.mOverlayContainer->setDimensions(0.0, 0.0);
+    childOverlay.mOverlayContainer->hide();
 
     mOverlay->add2D(childOverlay.mOverlayContainer);
 
