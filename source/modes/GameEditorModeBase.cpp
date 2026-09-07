@@ -29,10 +29,12 @@
 #include "rooms/RoomType.h"
 #include "traps/TrapType.h"
 #include "utils/Helper.h"
+#include "utils/ConfigManager.h"
 #include "utils/MakeUnique.h"
 
 #include <Ogre.h>
 
+#include <CEGUI/widgets/FrameWindow.h>
 #include <CEGUI/widgets/PushButton.h>
 #include <CEGUI/widgets/Scrollbar.h>
 
@@ -94,6 +96,7 @@ GameEditorModeBase::GameEditorModeBase(ModeManager* modeManager, ModeManager::Mo
     mChatMessageDisplayTime(0),
     mChatMessageBoxDisplay(ChatMessageBoxDisplay::hide),
     mMiniMap(MiniMap::createMiniMap(rootWindow->getChild(Gui::MINIMAP))),
+    mMiniMapType(ConfigManager::getSingleton().getGameValue(Config::MINIMAP_TYPE, MiniMap::DEFAULT_MINIMAP, false)),
     mMainCullingManager( new CullingManager(mGameMap, CullingType::SHOW_MAIN_WINDOW)),
     mKeepReplayAtDisconnect(false),
     mCameraTilesIntersections(std::vector<Ogre::Vector3>(4, Ogre::Vector3::ZERO)),
@@ -177,21 +180,49 @@ void GameEditorModeBase::connectGuiAction(const std::string& buttonName, Abstrac
     );
 }
 
+bool GameEditorModeBase::cameraInputBlocked()
+{
+    if(mCurrentInputMode != InputModeNormal || !isConnected() ||
+        !ODFrameListener::getSingleton().getRenderWindow()->isActive())
+        return true;
+    for(size_t i = 0; i < mRootWindow->getChildCount(); ++i)
+    {
+        CEGUI::Window* child = mRootWindow->getChildAtIdx(i);
+        if(child->isVisible() && dynamic_cast<CEGUI::FrameWindow*>(child) != nullptr)
+            return true;
+    }
+    return false;
+}
+
 bool GameEditorModeBase::onMinimapClick(const CEGUI::EventArgs& arg)
 {
     const CEGUI::MouseEventArgs& mouseEvt = static_cast<const CEGUI::MouseEventArgs&>(arg);
+    if(getModeType() == ModeManager::GAME &&
+        (mouseEvt.button != CEGUI::LeftButton || cameraInputBlocked()))
+        return true;
 
     ODFrameListener& frameListener = ODFrameListener::getSingleton();
 
     Ogre::Vector2 cc = mMiniMap->camera_2dPositionFromClick(static_cast<int>(mouseEvt.position.d_x),
         static_cast<int>(mouseEvt.position.d_y));
-    frameListener.getCameraManager()->onMiniMapClick(cc);
+    if(getModeType() == ModeManager::GAME)
+        frameListener.getCameraManager()->jumpToViewTarget(cc);
+    else
+        frameListener.getCameraManager()->onMiniMapClick(cc);
 
     return true;
 }
 
 void GameEditorModeBase::onFrameStarted(const Ogre::FrameEvent& evt)
 {
+    const std::string miniMapType = ConfigManager::getSingleton().getGameValue(Config::MINIMAP_TYPE, MiniMap::DEFAULT_MINIMAP, false);
+    if(miniMapType != mMiniMapType)
+    {
+        delete mMiniMap;
+        mMiniMap = nullptr;
+        mMiniMap = MiniMap::createMiniMap(mRootWindow->getChild(Gui::MINIMAP));
+        mMiniMapType = miniMapType;
+    }
     updateMessages(evt.timeSinceLastFrame);
     if(mMainCullingManager != nullptr)
     {
@@ -336,4 +367,3 @@ void GameEditorModeBase::leaveConsole()
     mCurrentInputMode = InputModeNormal;
     activate();
 }
-
