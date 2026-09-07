@@ -20,6 +20,10 @@
 #include "network/ODClient.h"
 #include "network/ODServer.h"
 #include "render/Gui.h"
+#include "render/ODFrameListener.h"
+#include "utils/ResourceManager.h"
+
+#include <OgreRenderWindow.h>
 
 #include <CEGUI/System.h>
 #include <CEGUI/GUIContext.h>
@@ -76,6 +80,9 @@ bool AbstractApplicationMode::mouseReleased(const OIS::MouseEvent& arg, OIS::Mou
 
 bool AbstractApplicationMode::keyPressed(const OIS::KeyEvent& arg)
 {
+    if(handleScreenshotKey(arg))
+        return true;
+
     switch (arg.key)
     {
     default:
@@ -85,6 +92,15 @@ bool AbstractApplicationMode::keyPressed(const OIS::KeyEvent& arg)
             static_cast<CEGUI::Key::Scan>(arg.key));
         break;
     }
+    return true;
+}
+
+bool AbstractApplicationMode::handleScreenshotKey(const OIS::KeyEvent& arg)
+{
+    if(arg.key != OIS::KC_SYSRQ)
+        return false;
+
+    ResourceManager::getSingleton().takeScreenshot(ODFrameListener::getSingleton().getRenderWindow());
     return true;
 }
 
