@@ -353,6 +353,14 @@ void TileContainer::clearTiles(NodeType nt)
             {
                 mTiles[ii][jj]->removeItselfFromContainer();
                 mTiles[ii][jj]->destroyMesh(nt);
+            }
+        }
+        // Mesh cleanup can inspect neighbouring tiles to update shared lights.
+        // Keep the complete tile grid alive until every mesh has been removed.
+        for (int ii = 0; ii < mMapSizeX; ++ii)
+        {
+            for (int jj = 0; jj < mMapSizeY; ++jj)
+            {
                 delete mTiles[ii][jj];
             }
             delete[] mTiles[ii];
