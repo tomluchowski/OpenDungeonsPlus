@@ -792,6 +792,9 @@ bool GameMode::mouseReleased(const OIS::MouseEvent &arg, OIS::MouseButtonID id)
 
 bool GameMode::keyPressed(const OIS::KeyEvent& arg)
 {
+    if(handleScreenshotKey(arg))
+        return true;
+
     // Inject key to Gui
     CEGUI::System::getSingleton().getDefaultGUIContext().injectKeyDown(static_cast<CEGUI::Key::Scan>(arg.key));
     if (arg.text != 0 && !getConsole()->isFreshlyEnabled())
@@ -938,11 +941,6 @@ bool GameMode::keyPressedNormal(const OIS::KeyEvent &arg)
     case OIS::KC_ESCAPE:
         mExitToDesktop = false;
         popupExit(!mGameMap->getGamePaused());
-        break;
-
-    // Print a screenshot
-    case OIS::KC_SYSRQ:
-        ResourceManager::getSingleton().takeScreenshot(frameListener.getRenderWindow());
         break;
 
     case OIS::KC_RETURN:

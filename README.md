@@ -22,6 +22,10 @@ following resources to learn the basic gameplay concepts:
 You can play singleplayer levels using the Skirmish menu, or host/join a
 multiplayer game by using the corresponding menus.
 
+Press Print Screen to save a PNG screenshot from menus, dialogs, gameplay or
+the editor; images use the existing timestamped filenames in the configured
+user-data directory.
+
 ### Be part of the community
 
 As free software aficionados, we value community-based development and
