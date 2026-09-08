@@ -1,0 +1,36 @@
+particle_system SummonWorker
+{
+    material        SummonWorker
+    point_rendering false
+    particle_width  0.24
+    particle_height 0.24
+    cull_each       false
+    quota           160
+    billboard_type  point
+
+    emitter Box
+    {
+        angle               180
+        colour_range_start  0.25 1.0 0.75 1.0
+        colour_range_end    0.65 1.0 0.9 1.0
+        emission_rate       500
+        time_to_live        0.8
+        direction           0 0 1
+        velocity            1.4
+        duration            0.2
+        width               0.9
+        height              0.9
+        depth               1.0
+    }
+
+    affector LinearForce
+    {
+        force_vector      0 0 0.8
+        force_application add
+    }
+
+    affector ColourFader
+    {
+        alpha -1.2
+    }
+}
