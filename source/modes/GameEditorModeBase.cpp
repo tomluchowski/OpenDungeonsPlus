@@ -288,7 +288,7 @@ void GameEditorModeBase::updateMessages(Ogre::Real update_time)
     for (auto it = mEventMessages.begin(); it != mEventMessages.end();)
     {
         EventMessage* event = *it;
-        if (event->isMessageTooOld(maxChatTimeDisplay))
+        if (shouldExpireEventMessages() && event->isMessageTooOld(maxChatTimeDisplay))
         {
             delete event;
             it = mEventMessages.erase(it);

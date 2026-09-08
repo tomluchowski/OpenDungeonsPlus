@@ -71,6 +71,7 @@
 
 
 #include <algorithm>
+#include <cmath>
 #include <vector>
 #include <string>
 
@@ -154,13 +155,19 @@ GameMode::GameMode(ModeManager *modeManager):
         CEGUI::PushButton::EventClicked, CEGUI::Event::Subscriber(&GameMode::toggleSell, this)));
     addEventConnection(guiSheet->getChild("PanelToggleButton")->subscribeEvent(
         CEGUI::PushButton::EventClicked, CEGUI::Event::Subscriber(&GameMode::toggleControlPanel, this)));
-    addEventConnection(guiSheet->getChild("EventsButton")->subscribeEvent(
+    addEventConnection(guiSheet->getChild("GameEventText/Close")->subscribeEvent(
         CEGUI::PushButton::EventClicked, CEGUI::Event::Subscriber([this](const CEGUI::EventArgs&)
         {
-            CEGUI::Window* events = mRootWindow->getChild("GameEventText");
-            events->setVisible(!events->isVisible());
+            mRootWindow->getChild("GameEventText")->hide();
             return true;
         })));
+    addEventConnection(guiSheet->getChild("GameEventText/Dismiss")->subscribeEvent(
+        CEGUI::PushButton::EventClicked, CEGUI::Event::Subscriber([this](const CEGUI::EventArgs&)
+        {
+            dismissEventMessage(mSelectedEventMessage);
+            return true;
+        })));
+    guiSheet->getChild("GameEventText")->hide();
 
     //Help window
     addEventConnection(
@@ -342,6 +349,8 @@ GameMode::GameMode(ModeManager *modeManager):
 
 GameMode::~GameMode()
 {
+    for(const MessageTab& tab : mMessageTabs)
+        CEGUI::WindowManager::getSingleton().destroyWindow(tab.window);
     RenderManager::getSingleton().rrEnableHeldCreatureDisplay(false, mGameMap->getLocalPlayer());
     for(CEGUI::Window* icon : mHeldCreatureIcons)
         CEGUI::WindowManager::getSingleton().destroyWindow(icon);
@@ -1402,6 +1411,7 @@ void GameMode::onFrameStarted(const Ogre::FrameEvent& evt)
     if(mFullMap)
         updateMapDetail();
     GameEditorModeBase::onFrameStarted(evt);
+    updateEventMessageIndicator(evt.timeSinceLastFrame);
     if(mFullMap)
         mFullMap->update(evt.timeSinceLastFrame, mCameraTilesIntersections);
 
@@ -1617,7 +1627,9 @@ bool GameMode::toggleSkillWindow(const CEGUI::EventArgs& e)
 
 bool GameMode::showOptionsWindow(const CEGUI::EventArgs&)
 {
-    mRootWindow->getChild("GameOptionsWindow")->show();
+    CEGUI::Window* options = mRootWindow->getChild("GameOptionsWindow");
+    options->show();
+    options->moveToFront();
     return true;
 }
 
@@ -1670,6 +1682,9 @@ bool GameMode::showSkillFromOptions(const CEGUI::EventArgs& /*e*/)
 
 bool GameMode::saveGame(const CEGUI::EventArgs& /*e*/)
 {
+    hideOptionsWindow();
+    showEventMessages();
+
     // We can save if launching in server mode only
     if(!ODServer::getSingleton().isConnected())
     {
@@ -1687,6 +1702,126 @@ bool GameMode::saveGame(const CEGUI::EventArgs& /*e*/)
         ODClient::getSingleton().queueClientNotification(clientNotification);
     }
     return true;
+}
+
+void GameMode::receiveEventShortNotice(EventMessage* event)
+{
+    // The base mode retains ownership; gameplay presents one notice per tab.
+    mEventMessages.emplace_back(event);
+    CEGUI::Window* tab = CEGUI::WindowManager::getSingleton().createWindow("OD/GameTabButton");
+    tab->setProperty("NavigationFrame", "True");
+    tab->setProperty("NormalImage", "OpenDungeonsIcons/NavigationMessages");
+    tab->setTooltipText("Message: left-click to read, right-click to dismiss after reading");
+    tab->setRiseOnClickEnabled(false);
+    tab->setUserData(event);
+    tab->subscribeEvent(CEGUI::PushButton::EventClicked,
+        CEGUI::Event::Subscriber([this, event](const CEGUI::EventArgs&)
+        {
+            showEventMessage(event, true);
+            return true;
+        }));
+    tab->subscribeEvent(CEGUI::Window::EventMouseClick,
+        CEGUI::Event::Subscriber(&GameMode::onEventMessagesClicked, this));
+    mRootWindow->getChild("MessageQueue")->addChild(tab);
+    mMessageTabs.push_back({event, tab, false, -1.0f});
+    if(mRootWindow->getChild("GameEventText")->isVisible())
+    {
+        // In particular, a pending save shows its real response without raising
+        // the message window over another dialog opened in the meantime.
+        showEventMessage(event, false);
+    }
+    updateEventMessageIndicator(0.0f);
+}
+
+void GameMode::showEventMessages()
+{
+    CEGUI::Window* events = mRootWindow->getChild("GameEventText");
+    mSelectedEventMessage = nullptr;
+    events->getChild("Message")->setText("");
+    events->getChild("Dismiss")->disable();
+    events->show();
+    events->moveToFront();
+}
+
+void GameMode::showEventMessage(EventMessage* message, bool raiseWindow)
+{
+    auto found = std::find_if(mMessageTabs.begin(), mMessageTabs.end(),
+        [message](const MessageTab& tab) { return tab.message == message; });
+    if(found == mMessageTabs.end())
+        return;
+    found->read = true;
+    mSelectedEventMessage = message;
+    CEGUI::Window* events = mRootWindow->getChild("GameEventText");
+    CEGUI::Window* text = events->getChild("Message");
+    text->setText(reinterpret_cast<const CEGUI::utf8*>(message->getMessageAsString().c_str()));
+    static_cast<CEGUI::Scrollbar*>(text->getChild("__auto_vscrollbar__"))->setScrollPosition(0);
+    events->getChild("Dismiss")->enable();
+    events->show();
+    if(raiseWindow)
+        events->moveToFront();
+    updateEventMessageIndicator(0.0f);
+}
+
+void GameMode::dismissEventMessage(EventMessage* message)
+{
+    auto found = std::find_if(mMessageTabs.begin(), mMessageTabs.end(),
+        [message](const MessageTab& tab) { return tab.message == message; });
+    if(found == mMessageTabs.end() || !found->read)
+        return;
+    if(mSelectedEventMessage == message)
+    {
+        mSelectedEventMessage = nullptr;
+        mRootWindow->getChild("GameEventText")->hide();
+        mRootWindow->getChild("GameEventText/Message")->setText("");
+    }
+    CEGUI::WindowManager::getSingleton().destroyWindow(found->window);
+    mMessageTabs.erase(found);
+    mEventMessages.erase(std::remove(mEventMessages.begin(), mEventMessages.end(), message), mEventMessages.end());
+    delete message;
+    updateEventMessageIndicator(0.0f);
+}
+
+bool GameMode::onEventMessagesClicked(const CEGUI::EventArgs& arg)
+{
+    const CEGUI::MouseEventArgs& mouse = static_cast<const CEGUI::MouseEventArgs&>(arg);
+    if(mouse.button == CEGUI::RightButton)
+        dismissEventMessage(static_cast<EventMessage*>(mouse.window->getUserData()));
+    return true;
+}
+
+void GameMode::updateEventMessageIndicator(float elapsed)
+{
+    CEGUI::Window* queue = mRootWindow->getChild("MessageQueue");
+    const float height = queue->getPixelSize().d_height;
+    if(height <= 0)
+        return;
+    const float width = queue->getPixelSize().d_width;
+    const float entry = (width - queue->getChild("Receiver")->getPixelSize().d_width) / height;
+    const float tabWidth = 32.0f / 52.0f;
+    const float spacing = 36.0f / 52.0f;
+    mEventMessageFlashTime = std::fmod(mEventMessageFlashTime + std::max(0.0f, elapsed), 0.5f);
+    float precedingPosition = -spacing;
+    for(size_t i = 0; i < mMessageTabs.size(); ++i)
+    {
+        MessageTab& tab = mMessageTabs[i];
+        const float destination = i * spacing;
+        if(destination + tabWidth > entry)
+        {
+            // Keep excess notices pending instead of deleting or overlapping them.
+            tab.window->hide();
+            tab.position = -1.0f;
+            continue;
+        }
+        if(tab.position < 0)
+            tab.position = std::max(entry, precedingPosition + spacing);
+        tab.position = std::max(destination, tab.position - std::max(0.0f, elapsed) * 12.5f);
+        precedingPosition = tab.position;
+        tab.window->setArea(CEGUI::UDim(0, tab.position * height), CEGUI::UDim(0, 0),
+            CEGUI::UDim(0, tabWidth * height), CEGUI::UDim(1, 0));
+        tab.window->setProperty("NormalImage", !tab.read && mEventMessageFlashTime >= 0.25f
+            ? "OpenDungeonsIcons/NavigationMessages" : "OpenDungeonsIcons/NavigationMessagesRead");
+        tab.window->show();
+    }
 }
 
 bool GameMode::showSettingsFromOptions(const CEGUI::EventArgs& /*e*/)

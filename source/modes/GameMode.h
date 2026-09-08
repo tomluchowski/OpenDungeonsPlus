@@ -123,6 +123,7 @@ class GameMode final : public GameEditorModeBase, public InputCommand
 
     void onFrameStarted(const Ogre::FrameEvent& evt) override;
     void onFrameEnded(const Ogre::FrameEvent& evt) override;
+    void receiveEventShortNotice(EventMessage* event) override;
 
     //! \brief Called when the game mode is activated
     //! Used to call the corresponding Gui Sheet.
@@ -230,6 +231,23 @@ private:
     std::unique_ptr<CreaturePanel> mCreaturePanel;
     std::vector<CEGUI::Window*> mHeldCreatureIcons;
     void refreshHeldCreatureIcons();
+    bool shouldExpireEventMessages() const override { return false; }
+    void showEventMessages();
+    void showEventMessage(EventMessage* message, bool raiseWindow);
+    void dismissEventMessage(EventMessage* message);
+    bool onEventMessagesClicked(const CEGUI::EventArgs& arg);
+    void updateEventMessageIndicator(float elapsed);
+    struct MessageTab
+    {
+        EventMessage* message;
+        CEGUI::Window* window;
+        bool read;
+        float position;
+    };
+    std::vector<MessageTab> mMessageTabs;
+    EventMessage* mSelectedEventMessage = nullptr;
+    float mEventMessageFlashTime = 0.0f;
+
     //! \brief Whether the pending exit confirmation should leave to the desktop
     //! rather than back to the main menu. Set by the button that opened the
     //! confirmation popup.
