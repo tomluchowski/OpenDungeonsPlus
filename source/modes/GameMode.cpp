@@ -30,6 +30,7 @@
 #include "gamemap/Pathfinding.h"
 #include "modes/GameEditorModeConsole.h"
 #include "modes/InputBridge.h"
+#include "modes/MenuModeLoad.h"
 #include "network/ChatEventMessage.h"
 #include "network/ODClient.h"
 #include "network/ODServer.h"
@@ -210,6 +211,10 @@ GameMode::GameMode(ModeManager *modeManager):
         )
     );
     saveGameButtonWindow->setEnabled(ODServer::getSingleton().isConnected());
+    CEGUI::Window* loadGameButtonWindow = guiSheet->getChild("GameOptionsWindow/LoadGameButton");
+    addEventConnection(loadGameButtonWindow->subscribeEvent(CEGUI::PushButton::EventClicked,
+        CEGUI::Event::Subscriber(&GameMode::loadGame, this)));
+    loadGameButtonWindow->setEnabled(ODServer::getSingleton().isConnected());
     addEventConnection(
         guiSheet->getChild("GameOptionsWindow/SettingsButton")->subscribeEvent(
             CEGUI::PushButton::EventClicked,
@@ -792,6 +797,8 @@ bool GameMode::mouseReleased(const OIS::MouseEvent &arg, OIS::MouseButtonID id)
 
 bool GameMode::keyPressed(const OIS::KeyEvent& arg)
 {
+    if(mLoadMenu && mLoadMenu->isOpenInGame())
+        return mLoadMenu->keyPressed(arg);
     // Inject key to Gui
     const bool guiHandledKey = CEGUI::System::getSingleton().getDefaultGUIContext().injectKeyDown(
         static_cast<CEGUI::Key::Scan>(arg.key));
@@ -838,6 +845,10 @@ bool GameMode::keyPressedNormal(const OIS::KeyEvent &arg)
 
     case OIS::KC_F5:
         saveGame();
+        break;
+
+    case OIS::KC_F8:
+        loadGame();
         break;
 
     case OIS::KC_F9:
@@ -1411,6 +1422,18 @@ bool GameMode::showSkillFromOptions(const CEGUI::EventArgs& /*e*/)
 {
     mRootWindow->getChild("GameOptionsWindow")->hide();
     showSkillWindow();
+    return true;
+}
+
+bool GameMode::loadGame(const CEGUI::EventArgs& /*e*/)
+{
+    if(!ODServer::getSingleton().isConnected())
+        return true;
+    if(!mLoadMenu)
+        mLoadMenu.reset(new MenuModeLoad(&getModeManager(), true));
+    // Retain the options window so returning from the browser restores its caller.
+    showOptionsWindow();
+    mLoadMenu->activate();
     return true;
 }
 

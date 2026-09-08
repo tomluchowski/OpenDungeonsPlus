@@ -33,6 +33,7 @@ class Window;
 }
 
 class Creature;
+class MenuModeLoad;
 
 enum class SpellType;
 enum class SkillType;
@@ -208,6 +209,7 @@ protected:
     bool showObjectivesFromOptions(const CEGUI::EventArgs& e = {});
     bool showSkillFromOptions(const CEGUI::EventArgs& e = {});
     bool saveGame(const CEGUI::EventArgs& e = {});
+    bool loadGame(const CEGUI::EventArgs& e = {});
     bool showSettingsFromOptions(const CEGUI::EventArgs& e = {});
 
     //! \brief Handle the keyboard input in normal mode
@@ -220,6 +222,7 @@ protected:
     virtual bool keyReleasedNormal  (const OIS::KeyEvent &arg);
 
 private:
+    std::unique_ptr<MenuModeLoad> mLoadMenu;
     //! \brief Whether the pending exit confirmation should leave to the desktop
     //! rather than back to the main menu. Set by the button that opened the
     //! confirmation popup.

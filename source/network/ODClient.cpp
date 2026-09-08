@@ -234,9 +234,39 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
             {
                 case ServerMode::ModeGameSinglePlayer:
                 case ServerMode::ModeGameMultiPlayer:
-                case ServerMode::ModeGameLoaded:
                     frameListener->getModeManager()->requestMode(AbstractModeManager::MENU_CONFIGURE_SEATS);
                     break;
+                case ServerMode::ModeGameLoaded:
+                {
+                    // A saved skirmish already fixes its human side, faction and team.
+                    bool fixedSeats = getSource() != ODSource::file;
+                    uint32_t humanSeats = 0;
+                    for(Seat* seat : gameMap->getSeats())
+                    {
+                        if(seat->isRogueSeat())
+                            continue;
+                        if(seat->getPlayerType() == Seat::PLAYER_TYPE_HUMAN)
+                            ++humanSeats;
+                        else if(seat->getPlayerType() != Seat::PLAYER_TYPE_AI &&
+                                seat->getPlayerType() != Seat::PLAYER_TYPE_INACTIVE)
+                            fixedSeats = false;
+                        if(seat->getAvailableTeamIds().size() != 1 ||
+                           seat->getFaction() == Seat::PLAYER_FACTION_CHOICE)
+                            fixedSeats = false;
+                    }
+                    if(fixedSeats && humanSeats == 1)
+                    {
+                        ODPacket ready;
+                        ready << ClientNotificationType::readyForSeatConfiguration;
+                        send(ready);
+                        ODPacket start;
+                        start << ClientNotificationType::seatConfigurationSet;
+                        send(start);
+                    }
+                    else
+                        frameListener->getModeManager()->requestMode(AbstractModeManager::MENU_CONFIGURE_SEATS);
+                    break;
+                }
                 case ServerMode::ModeEditor:
                     break;
                 default:
@@ -273,6 +303,8 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
        
         case ServerNotificationType::addPlayers:
         {
+            if(frameListener->getModeManager()->getCurrentModeType() == ModeManager::MENU_LOAD_SAVEDGAME)
+                break;
             if(frameListener->getModeManager()->getCurrentModeType() != ModeManager::ModeType::MENU_CONFIGURE_SEATS)
             {
                 OD_LOG_ERR("Wrong mode " + Helper::toString(frameListener->getModeManager()->getCurrentModeType()));

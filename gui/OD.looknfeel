@@ -4772,4 +4772,73 @@
         </StateImagery>
     </WidgetLook>
 
+    <WidgetLook name="OD/MenuScrollbarThumb" inherits="OD/VerticalScrollbarThumb">
+        <StateImagery name="Normal"><Layer><Section section="normal" /></Layer></StateImagery>
+        <StateImagery name="Hover"><Layer><Section section="hover" /></Layer></StateImagery>
+        <StateImagery name="Pushed"><Layer><Section section="hover" /></Layer></StateImagery>
+        <StateImagery name="Disabled"><Layer><Section section="normal" /></Layer></StateImagery>
+        <ImagerySection name="normal"><ImageryComponent><Area>
+                <Dim type="LeftEdge"><AbsoluteDim value="0" /></Dim>
+                <Dim type="TopEdge"><AbsoluteDim value="0" /></Dim>
+                <Dim type="RightEdge"><UnifiedDim scale="1" type="RightEdge" /></Dim>
+                <Dim type="BottomEdge"><UnifiedDim scale="1" type="BottomEdge" /></Dim>
+            </Area>
+            <Image name="OpenDungeonsSkin/SelectionBrush" />
+            <Colours topLeft="FFBBBBBB" topRight="FFBBBBBB" bottomLeft="FFBBBBBB" bottomRight="FFBBBBBB" />
+            <VertFormat type="Stretched" /><HorzFormat type="Stretched" />
+        </ImageryComponent></ImagerySection>
+        <ImagerySection name="hover"><ImageryComponent><Area>
+                <Dim type="LeftEdge"><AbsoluteDim value="0" /></Dim>
+                <Dim type="TopEdge"><AbsoluteDim value="0" /></Dim>
+                <Dim type="RightEdge"><UnifiedDim scale="1" type="RightEdge" /></Dim>
+                <Dim type="BottomEdge"><UnifiedDim scale="1" type="BottomEdge" /></Dim>
+            </Area>
+            <Image name="OpenDungeonsSkin/SelectionBrush" />
+            <VertFormat type="Stretched" /><HorzFormat type="Stretched" />
+        </ImageryComponent></ImagerySection>
+    </WidgetLook>
+
+    <WidgetLook name="OD/MenuScrollbar" inherits="OD/VerticalScrollbar">
+        <StateImagery name="Enabled"><Layer><Section section="main" /></Layer></StateImagery>
+        <StateImagery name="Disabled"><Layer><Section section="main" /></Layer></StateImagery>
+        <Child nameSuffix="__auto_thumb__" type="OD/MenuScrollbarThumb">
+            <Area>
+                <Dim type="LeftEdge"><AbsoluteDim value="2" /></Dim>
+                <Dim type="TopEdge"><AbsoluteDim value="0" /></Dim>
+                <Dim type="Width"><UnifiedDim scale="1" offset="-4" type="Width" /></Dim>
+                <Dim type="Height"><UnifiedDim scale="0.1" type="Height" /></Dim>
+            </Area>
+            <Property name="MinSize" value="{{0,0},{0,25}}" />
+        </Child>
+        <ImagerySection name="main"><FrameComponent>
+                <Area>
+                    <Dim type="LeftEdge"><AbsoluteDim value="0" /></Dim>
+                    <Dim type="TopEdge"><AbsoluteDim value="0" /></Dim>
+                    <Dim type="Width"><UnifiedDim scale="1" type="Width" /></Dim>
+                    <Dim type="Height"><UnifiedDim scale="1" type="Height" /></Dim>
+                </Area>
+                <Image component="TopLeftCorner" name="OpenDungeonsSkin/VerticalSliderTopLeft" />
+                <Image component="TopRightCorner" name="OpenDungeonsSkin/VerticalSliderTopRight" />
+                <Image component="BottomLeftCorner" name="OpenDungeonsSkin/VerticalSliderBottomLeft" />
+                <Image component="BottomRightCorner" name="OpenDungeonsSkin/VerticalSliderBottomRight" />
+                <Image component="LeftEdge" name="OpenDungeonsSkin/VerticalSliderLeft" />
+                <Image component="RightEdge" name="OpenDungeonsSkin/VerticalSliderRight" />
+                <Image component="BottomEdge" name="OpenDungeonsSkin/VerticalSliderBottom" />
+                <Image component="TopEdge" name="OpenDungeonsSkin/VerticalSliderTop" />
+
+            </FrameComponent>
+            </ImagerySection>
+    </WidgetLook>
+
+    <WidgetLook name="OD/MenuDescription" inherits="OD/StaticText">
+        <Child nameSuffix="__auto_vscrollbar__" type="OD/MenuScrollbar">
+            <Area>
+                <Dim type="LeftEdge"><AbsoluteDim value="0" /></Dim>
+                <Dim type="TopEdge"><AbsoluteDim value="0" /></Dim>
+                <Dim type="Width"><OperatorDim op="Multiply"><ImageDim name="OpenDungeonsSkin/MiniVertScrollThumbNormal" dimension="Width" /><AbsoluteDim value="1.5" /></OperatorDim></Dim>
+                <Dim type="Height"><UnifiedDim scale="1" type="Height" /></Dim>
+            </Area>
+            <HorzAlignment type="RightAligned" />
+        </Child>
+    </WidgetLook>
 </Falagard>
