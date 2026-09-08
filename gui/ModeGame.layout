@@ -103,7 +103,7 @@
         <LayoutImport type="DefaultWindow" filename="WindowObjectives.layout" name="ObjectivesWindowImport" />
         <LayoutImport type="DefaultWindow" filename="WindowSkillTree.layout" name="SkillTreeWindowImport" />
         <LayoutImport type="DefaultWindow" filename="WindowGameOptions.layout" name="GameOptionsMenuImport" />
-        <LayoutImport type="DefaultWindow" filename="WindowEvent.layout" name="EventWindowImport" />
+        <LayoutImport type="DefaultWindow" filename="WindowGameEvent.layout" name="EventWindowImport" />
         <LayoutImport type="DefaultWindow" filename="WindowChat.layout" name="ChatWindowImport" />
         <LayoutImport type="DefaultWindow" filename="WindowHelp.layout" name="HelpWindowImport" />
 
@@ -153,12 +153,25 @@
             <Property name="NormalImage" value="OpenDungeonsIcons/NavigationPanel" />
             <Property name="TooltipText" value="Hide / show control panel (G)" />
         </Window>
-    <Window type="OD/GameTabButton" name="EventsButton" >
-            <Property name="NavigationFrame" value="True" />
+    <Window type="DefaultWindow" name="MessageQueue" >
             <UserString name="AllowEdgeScrolling" value="true" />
-            <Property name="Area" value="{{0,472},{1,-184},{0,504},{1,-132}}" />
-            <Property name="NormalImage" value="OpenDungeonsIcons/NavigationMessages" />
-            <Property name="TooltipText" value="Messages" />
+            <Property name="Area" value="{{0,472},{1,-184},{1,0},{1,-132}}" />
+            <Property name="MousePassThroughEnabled" value="True" />
+            <Property name="RiseOnClickEnabled" value="False" />
+            <Window type="OD/StaticImage" name="Rail">
+                <Property name="Area" value="{{0,0},{0.12,0},{1,0},{0.88,0}}" />
+                <Property name="Image" value="OpenDungeonsSkin/HorizontalPipe" />
+                <Property name="ImageColours" value="FFB98B56" />
+                <Property name="HorzFormatting" value="Tiled" />
+                <Property name="FrameEnabled" value="False" />
+                <Property name="BackgroundEnabled" value="False" />
+                <Property name="MousePassThroughEnabled" value="True" />
+            </Window>
+            <Window type="OD/ResourceDisplay" name="Receiver">
+                <Property name="Area" value="{{1,-192},{0.12,0},{1,0},{0.88,0}}" />
+                <Property name="AlwaysOnTop" value="True" />
+                <Property name="MousePassThroughEnabled" value="True" />
+            </Window>
         </Window>
         <Window type="OD/StaticImage" name="HandActionIcon" >
             <Property name="Area" value="{{0,0},{0,0},{0,50},{0,50}}" />

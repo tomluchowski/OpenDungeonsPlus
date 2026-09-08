@@ -302,6 +302,17 @@ void createNavigationImages()
             "BasicImage", std::string("OpenDungeonsIcons/") + utilities[utility]));
         utilityImage.setTexture(&utilityTexture);
         utilityImage.setArea(CEGUI::Rectf(0, 0, size, size));
+        if(utility == 2)
+        {
+            for(size_t i = 0; i < pixels.size(); i += 4)
+                pixels[i] = pixels[i + 1] = pixels[i + 2] = 224;
+            CEGUI::Texture& readTexture = CEGUI::System::getSingleton().getRenderer()->createTexture("NavigationMessagesRead");
+            readTexture.loadFromMemory(pixels.data(), CEGUI::Sizef(size, size), CEGUI::Texture::PF_RGBA);
+            CEGUI::BasicImage& readImage = static_cast<CEGUI::BasicImage&>(CEGUI::ImageManager::getSingleton().create(
+                "BasicImage", "OpenDungeonsIcons/NavigationMessagesRead"));
+            readImage.setTexture(&readTexture);
+            readImage.setArea(CEGUI::Rectf(0, 0, size, size));
+        }
     }
 
     const int badgeSize = 128;

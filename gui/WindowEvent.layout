@@ -3,7 +3,7 @@
 <GUILayout version="4" >
     <Window type="OD/StaticText" name="GameEventText" >
             <Property name="Visible" value="False" />
-        <Property name="Area" value="{{0,452},{1,-410},{1,-8},{1,-188}}" />
+        <Property name="Area" value="{{0.668,-373},{1,-309},{0.668,279},{1,-193}}" />
         <Property name="FrameEnabled" value="True" />
         <Property name="BackgroundEnabled" value="True" />
         <Property name="VertFormatting" value="TopAligned" />
