@@ -533,7 +533,7 @@ Gui::Gui(SoundEffectsManager* soundEffectsManager, const std::string& ceguiLogFi
             const CEGUI::Window* buttons = target == nullptr ? nullptr : target->getParent();
             const bool category = buttons != nullptr && buttons->getName() == "__auto_TabPane__Buttons" &&
                 buttons->getParent() != nullptr && buttons->getParent()->getName() == MAIN_TABCONTROL.c_str();
-            const CEGUI::Font* font = category ? &CEGUI::FontManager::getSingleton().get("MedievalSharp-12") : nullptr;
+            const CEGUI::Font* font = category ? &CEGUI::FontManager::getSingleton().get("MedievalSharp-13") : nullptr;
             if(tooltip->getFont(false) != font)
             {
                 tooltip->setFont(font);

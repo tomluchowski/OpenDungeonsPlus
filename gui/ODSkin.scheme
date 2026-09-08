@@ -13,6 +13,7 @@
     <Font filename="MedievalSharp-10.font" name="MedievalSharp-10" />
     <Font filename="MedievalSharp-8.font" name="MedievalSharp-8" />
     <Font filename="MedievalSharp-12.font" name="MedievalSharp-12" />
+    <Font filename="MedievalSharp-13.font" name="MedievalSharp-13" />
     <LookNFeel filename="OD.looknfeel" />
     <WindowRendererSet filename="CEGUICoreWindowRendererSet" />
     <FalagardMapping lookNFeel="OD/Button" renderer="Core/Button" targetType="CEGUI/PushButton" windowType="OD/Button" />
