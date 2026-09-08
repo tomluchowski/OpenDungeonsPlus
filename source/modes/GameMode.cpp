@@ -2631,6 +2631,18 @@ void GameMode::handlePlayerActionNone()
                     "Marked wall. Click or drag to remove digging marks." : "Wall. Click or drag to mark for digging.");
                 selectSquaredTiles(tile->getX(), tile->getY(), tile->getX(), tile->getY());
             }
+            else if(tile->getLocalPlayerHasVision() && !tile->getIsBuilding())
+            {
+                // Terrain context must not turn idle ground into an actionable hand target.
+                mActionTargetText = Tile::tileTypeToString(tile->getType());
+                if(tile->isClaimed())
+                    mActionTargetText += tile->getSeat() == player->getSeat() ? ". Your territory." :
+                        (tile->isClaimedForSeat(player->getSeat()) ? ". Allied territory." : ". Enemy territory.");
+                if(tile->isBuildableUpon(player->getSeat()))
+                    mActionTargetText += " You can build here.";
+                else if(tile->getType() == TileType::dirt && !tile->isFullTile() && !tile->isClaimed())
+                    mActionTargetText += ". Claim this ground before building.";
+            }
         }
         InputManager& mutableInput = mModeManager->getInputManager();
         Creature* creature = dynamic_cast<Creature*>(closest);
