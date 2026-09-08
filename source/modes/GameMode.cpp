@@ -99,6 +99,47 @@ static bool blocksEdgeScrolling(CEGUI::Window* window)
     return true;
 }
 
+static bool tileMatchesRoomType(const Tile& tile, RoomType type)
+{
+    switch(type)
+    {
+        case RoomType::dungeonTemple:
+            return tile.getTileVisual() == TileVisual::dungeonTempleRoom;
+        case RoomType::dormitory:
+            return tile.getTileVisual() == TileVisual::dormitoryRoom;
+        case RoomType::treasury:
+            return tile.getTileVisual() == TileVisual::treasuryRoom;
+        case RoomType::portal:
+            return tile.getTileVisual() == TileVisual::portalRoom;
+        case RoomType::workshop:
+            return tile.getTileVisual() == TileVisual::workshopRoom;
+        case RoomType::trainingHall:
+            return tile.getTileVisual() == TileVisual::trainingHallRoom;
+        case RoomType::library:
+            return tile.getTileVisual() == TileVisual::libraryRoom;
+        case RoomType::hatchery:
+            return tile.getTileVisual() == TileVisual::hatcheryRoom;
+        case RoomType::crypt:
+            return tile.getTileVisual() == TileVisual::cryptRoom;
+        case RoomType::portalWave:
+            return tile.getTileVisual() == TileVisual::portalWaveRoom;
+        case RoomType::prison:
+            return tile.getTileVisual() == TileVisual::prisonRoom;
+        case RoomType::bridgeWooden:
+            return tile.getHasBridge() && tile.getMeshName() == "WoodBridge.mesh";
+        case RoomType::bridgeStone:
+            return tile.getHasBridge() && tile.getMeshName() == "StoneBridge.mesh";
+        case RoomType::arena:
+            return tile.getTileVisual() == TileVisual::arenaRoom;
+        case RoomType::casino:
+            return tile.getTileVisual() == TileVisual::casinoRoom;
+        case RoomType::torture:
+            return tile.getTileVisual() == TileVisual::tortureRoom;
+        default:
+            return false;
+    }
+}
+
 GameMode::GameMode(ModeManager *modeManager):
     GameEditorModeBase(modeManager, ModeManager::GAME, modeManager->getGui().getGuiSheet(Gui::guiSheet::inGameMenu)),
     mDigSetBool(false),
@@ -142,6 +183,21 @@ GameMode::GameMode(ModeManager *modeManager):
     ODFrameListener::getSingleton().getCameraManager()->setDefaultView();
 
     CEGUI::Window* guiSheet = mRootWindow;
+
+    SkillManager::listAllRooms([this](RoomType type, const std::string& buttonName)
+    {
+        addEventConnection(mRootWindow->getChild(buttonName)->subscribeEvent(
+            CEGUI::Window::EventMouseClick,
+            CEGUI::Event::Subscriber([this, type](const CEGUI::EventArgs& args)
+            {
+                const auto button = static_cast<const CEGUI::MouseEventArgs&>(args).button;
+                if(button != CEGUI::RightButton)
+                    return false;
+                if(!cameraInputBlocked())
+                    focusRoom(type);
+                return true;
+            })));
+    });
 
     //Help window
     addEventConnection(
@@ -1256,7 +1312,6 @@ void GameMode::updateMapDetail()
 void GameMode::focusRoom(RoomType type)
 {
     // Rooms are server objects; the client receives their owned tile visuals.
-    const TileVisual visual = type == RoomType::portal ? TileVisual::portalRoom : TileVisual::dungeonTempleRoom;
     const Seat* owner = mGameMap->getLocalPlayer()->getSeat();
     const int width = mGameMap->getMapSizeX();
     const int height = mGameMap->getMapSizeY();
@@ -1267,7 +1322,7 @@ void GameMode::focusRoom(RoomType type)
         for(int x = 0; x < width; ++x)
         {
             Tile* first = mGameMap->getTile(x, y);
-            if(visited[y * width + x] || first->getTileVisual() != visual || first->getSeat() != owner)
+            if(visited[y * width + x] || !tileMatchesRoomType(*first, type) || first->getSeat() != owner)
                 continue;
             std::vector<Tile*> tiles(1, first);
             visited[y * width + x] = true;
@@ -1281,7 +1336,7 @@ void GameMode::focusRoom(RoomType type)
                 for(int direction = 0; direction < 4; ++direction)
                 {
                     Tile* neighbour = mGameMap->getTile(tile->getX() + dx[direction], tile->getY() + dy[direction]);
-                    if(neighbour == nullptr || neighbour->getTileVisual() != visual || neighbour->getSeat() != owner)
+                    if(neighbour == nullptr || !tileMatchesRoomType(*neighbour, type) || neighbour->getSeat() != owner)
                         continue;
                     const int index = neighbour->getY() * width + neighbour->getX();
                     if(visited[index])
@@ -1301,10 +1356,9 @@ void GameMode::focusRoom(RoomType type)
     }
     if(centres.empty())
         return;
-    const size_t index = type == RoomType::portal ? mIndexPortal % centres.size() : 0;
-    ODFrameListener::getSingleton().getCameraManager()->jumpToViewTarget(centres[index]);
-    if(type == RoomType::portal)
-        mIndexPortal = index + 1;
+    const size_t index = mRoomFocusIndices[type] % centres.size();
+    ODFrameListener::getSingleton().cameraFlyTo(Ogre::Vector3(centres[index].x, centres[index].y, 0.0f));
+    mRoomFocusIndices[type] = index + 1;
 }
 
 bool GameMode::showUserCameras(const CEGUI::EventArgs&)

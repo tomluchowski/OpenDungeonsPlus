@@ -735,3 +735,15 @@ void SkillManager::connectGuiButtons(GameEditorModeBase* mode, CEGUI::Window* ro
         skill->connectGuiButtons(mode, rootWindow, playerSelection);
     }
 }
+
+void SkillManager::listAllRooms(const std::function<void(RoomType, const std::string&)>& func)
+{
+    for(const SkillDef* skill : getSkillManager().mSkills)
+    {
+        if(skill == nullptr || skill->getSkillFamily() != SkillFamily::rooms)
+            continue;
+
+        const SkillDefRoom* room = static_cast<const SkillDefRoom*>(skill);
+        func(room->mRoomType, room->getGuiPath() + room->mButtonName);
+    }
+}
