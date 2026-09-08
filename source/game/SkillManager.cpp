@@ -20,11 +20,15 @@
 #include "game/Skill.h"
 #include "game/Seat.h"
 #include "game/SkillType.h"
+#include "gamemap/GameMap.h"
 #include "modes/GameEditorModeBase.h"
 #include "modes/GameMode.h"
 #include "render/Gui.h"
 #include "rooms/RoomType.h"
+#include "rooms/RoomManager.h"
+#include "spells/SpellSummonWorker.h"
 #include "spells/SpellType.h"
+#include "traps/TrapManager.h"
 #include "traps/TrapType.h"
 #include "utils/ConfigManager.h"
 #include "utils/Helper.h"
@@ -85,6 +89,8 @@ public:
 
     virtual SkillFamily getSkillFamily() const = 0;
 
+    virtual std::string getCostText(GameMap* gameMap) const = 0;
+
     virtual void connectGuiButtons(GameEditorModeBase* mode, CEGUI::Window* rootWindow, PlayerSelection& playerSelection) const = 0;
 
     virtual const std::string& getGuiPath() const = 0;
@@ -104,6 +110,9 @@ public:
 
     SkillFamily getSkillFamily() const override
     { return SkillFamily::rooms; }
+
+    std::string getCostText(GameMap* gameMap) const override
+    { return Helper::toString(RoomManager::costPerTile(mRoomType)) + " gold per tile"; }
 
     void connectGuiButtons(GameEditorModeBase* mode, CEGUI::Window* rootWindow, PlayerSelection& playerSelection) const override
     {
@@ -150,6 +159,9 @@ public:
     SkillFamily getSkillFamily() const override
     { return SkillFamily::traps; }
 
+    std::string getCostText(GameMap* gameMap) const override
+    { return Helper::toString(TrapManager::costPerTile(mTrapType)) + " gold per tile"; }
+
     void connectGuiButtons(GameEditorModeBase* mode, CEGUI::Window* rootWindow, PlayerSelection& playerSelection) const override
     {
         mode->addEventConnection(
@@ -194,6 +206,31 @@ public:
 
     SkillFamily getSkillFamily() const override
     { return SkillFamily::spells; }
+
+    std::string getCostText(GameMap* gameMap) const override
+    {
+        if(mSpellType == SpellType::summonWorker)
+            return Helper::toString(SpellSummonWorker::getNextWorkerPriceForPlayer(gameMap,
+                gameMap->getLocalPlayer())) + " mana for next worker";
+
+        const char* key;
+        switch(mSpellType)
+        {
+            case SpellType::callToWar: key = "CallToWarPrice"; break;
+            case SpellType::creatureHeal: key = "CreatureHealPrice"; break;
+            case SpellType::creatureExplosion: key = "CreatureExplosionPrice"; break;
+            case SpellType::creatureHaste: key = "CreatureHastePrice"; break;
+            case SpellType::creatureDefense: key = "CreatureDefensePrice"; break;
+            case SpellType::creatureSlow: key = "CreatureSlowPrice"; break;
+            case SpellType::creatureStrength: key = "CreatureStrengthPrice"; break;
+            case SpellType::creatureWeak: key = "CreatureWeakPrice"; break;
+            case SpellType::eyeEvil: key = "EyeEvilPrice"; break;
+            default: return "";
+        }
+        const std::string unit = (mSpellType == SpellType::callToWar || mSpellType == SpellType::eyeEvil) ?
+            " mana" : " mana per creature";
+        return Helper::toString(ConfigManager::getSingleton().getSpellConfigInt32(key)) + unit;
+    }
 
     void connectGuiButtons(GameEditorModeBase* mode, CEGUI::Window* rootWindow, PlayerSelection& playerSelection) const override
     {
@@ -733,6 +770,25 @@ void SkillManager::connectGuiButtons(GameEditorModeBase* mode, CEGUI::Window* ro
             continue;
 
         skill->connectGuiButtons(mode, rootWindow, playerSelection);
+    }
+}
+
+void SkillManager::updateCostTooltip(GameMap* gameMap, CEGUI::Window* rootWindow, CEGUI::Window* hoveredWindow)
+{
+    for(const SkillDef* skill : getSkillManager().mSkills)
+    {
+        if(skill == nullptr || hoveredWindow->getName() != skill->mButtonName ||
+            hoveredWindow != rootWindow->getChild(skill->getGuiPath() + skill->mButtonName))
+            continue;
+
+        if(!hoveredWindow->isUserStringDefined("CostBaseDescription"))
+            hoveredWindow->setUserString("CostBaseDescription", hoveredWindow->getTooltipText());
+        const std::string cost = skill->getCostText(gameMap);
+        const CEGUI::String text = hoveredWindow->getUserString("CostBaseDescription") +
+            (cost.empty() ? "" : " (" + cost + ")");
+        if(hoveredWindow->getTooltipText() != text)
+            hoveredWindow->setTooltipText(text);
+        return;
     }
 }
 

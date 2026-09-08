@@ -2258,7 +2258,10 @@ void GameMode::refreshActionFeedback(float elapsed)
         mActionTargetText.clear();
         CEGUI::Window* hover = CEGUI::System::getSingleton().getDefaultGUIContext().getWindowContainingMouse();
         if(hover != nullptr)
+        {
+            SkillManager::updateCostTooltip(mGameMap, mRootWindow, hover);
             mActionTargetText = hover->getTooltipText().c_str();
+        }
         if(inputManager.mHighlightedCreature != nullptr)
         {
             inputManager.mHighlightedCreature->normalizeAmbient();
