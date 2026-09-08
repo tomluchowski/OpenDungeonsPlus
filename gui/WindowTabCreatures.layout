@@ -2,6 +2,8 @@
 
 <GUILayout version="4" >
     <Window type="DefaultWindow" name="Creatures" >
+        <UserString name="NavigationColour" value="FF718C28" />
+        <UserString name="NavigationImage" value="OpenDungeonsIcons/NavigationCreatures" />
         <Property name="Area" value="{{0,0},{0,0},{1,0},{1,0}}" />
         <Property name="Text" value="[image-size='w:40 h:40'][image='OpenDungeonsIcons/CreaturesIcon']" />
         <Property name="TooltipText" value="Creatures" />

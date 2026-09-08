@@ -760,6 +760,8 @@ std::string SkillManager::getSelectedButton(const PlayerSelection& playerSelecti
             return Gui::BUTTON_DESTROY_TRAP;
         case SelectedAction::queryEntity:
             return "QueryButton";
+        case SelectedAction::sellBuilding:
+            return "SellButton";
         default:
             return "";
     }

@@ -31,6 +31,9 @@
 #include "utils/LogManager.h"
 
 #include <CEGUI/BasicImage.h>
+#include <CEGUI/Font.h>
+#include <CEGUI/FontGlyph.h>
+#include <CEGUI/FontManager.h>
 #include <CEGUI/ImageManager.h>
 #include <CEGUI/Renderer.h>
 #include <CEGUI/System.h>
@@ -55,6 +58,7 @@ public:
     std::vector<Ogre::Vector2> mViewport;
     Ogre::Vector2 mDirectionStart;
     Ogre::Vector2 mDirectionEnd;
+    Ogre::Vector2 mNorthDirection = Ogre::Vector2(0.0f, -1.0f);
 
     void render(CEGUI::GeometryBuffer& buffer, const CEGUI::Rectf& area,
         const CEGUI::Rectf* clip, const CEGUI::ColourRect& colours) const override
@@ -82,9 +86,79 @@ public:
             drawLine(buffer, area, clip, colours, mDirectionStart, mDirectionEnd, true);
         for(size_t i = 0; i < mViewport.size(); ++i)
             drawLine(buffer, area, clip, colours, mViewport[i], mViewport[(i + 1) % mViewport.size()], false);
+        if(mCircular)
+        {
+            drawFrame(buffer, area, clip);
+            drawNorth(buffer, area, clip, colours);
+        }
     }
 
 private:
+    void drawNorth(CEGUI::GeometryBuffer& buffer, const CEGUI::Rectf& area,
+            const CEGUI::Rectf* clip, const CEGUI::ColourRect& colours) const
+    {
+        const CEGUI::Font& font = CEGUI::FontManager::getSingleton().get("LiberationSans-10");
+        const CEGUI::Image& glyph = *font.getGlyphData('N')->getImage();
+        const float scale = std::min(area.getWidth(), area.getHeight()) / 176.0f;
+        const float x = area.left() + area.getWidth() * (0.5f + 0.41f * mNorthDirection.x);
+        const float y = area.top() + area.getHeight() * (0.5f + 0.41f * mNorthDirection.y);
+        CEGUI::Rectf letter(x - 6.0f * scale, y - 5.0f * scale,
+            x + 6.0f * scale, y + 5.0f * scale);
+        // Font images carry a baseline offset; place the visible glyph itself.
+        const CEGUI::Vector2f& offset = glyph.getRenderedOffset();
+        letter.offset(CEGUI::Vector2f(-offset.d_x, -offset.d_y));
+        glyph.render(buffer, letter, clip, colours);
+    }
+
+    void drawCircleBand(CEGUI::GeometryBuffer& buffer, const CEGUI::Rectf& area,
+            const CEGUI::Rectf* clip, float outerInset, float innerInset,
+            const CEGUI::Colour& colour) const
+    {
+        const CEGUI::Rectf bounds = clip == nullptr ? area : area.getIntersection(*clip);
+        if(bounds.getWidth() <= 0.0f || bounds.getHeight() <= 0.0f)
+            return;
+        const float centerX = area.left() + area.getWidth() * 0.5f;
+        const float centerY = area.top() + area.getHeight() * 0.5f;
+        const float outerRadiusX = std::max(0.0f, area.getWidth() * 0.5f - outerInset);
+        const float outerRadiusY = std::max(0.0f, area.getHeight() * 0.5f - outerInset);
+        const float innerRadiusX = std::max(0.0f, area.getWidth() * 0.5f - innerInset);
+        const float innerRadiusY = std::max(0.0f, area.getHeight() * 0.5f - innerInset);
+        const CEGUI::ColourRect bandColour(colour);
+        for(float y = area.top(); y < area.bottom(); y += 1.0f)
+        {
+            const float nextY = std::min(y + 1.0f, area.bottom());
+            const float sampleY = (y + nextY) * 0.5f - centerY;
+            if(std::abs(sampleY) > outerRadiusY)
+                continue;
+            const float outerY = sampleY / std::max(1.0f, outerRadiusY);
+            const float outerHalfWidth = outerRadiusX * std::sqrt(std::max(0.0f, 1.0f - outerY * outerY));
+            float innerHalfWidth = 0.0f;
+            if(std::abs(sampleY) < innerRadiusY)
+            {
+                const float innerY = sampleY / std::max(1.0f, innerRadiusY);
+                innerHalfWidth = innerRadiusX * std::sqrt(std::max(0.0f, 1.0f - innerY * innerY));
+            }
+            CEGUI::Rectf left(centerX - outerHalfWidth, y, centerX - innerHalfWidth, nextY);
+            CEGUI::Rectf right(centerX + innerHalfWidth, y, centerX + outerHalfWidth, nextY);
+            left = left.getIntersection(bounds);
+            right = right.getIntersection(bounds);
+            if(left.getWidth() > 0.0f)
+                mDot.render(buffer, left, &bounds, bandColour);
+            if(right.getWidth() > 0.0f)
+                mDot.render(buffer, right, &bounds, bandColour);
+        }
+    }
+
+    void drawFrame(CEGUI::GeometryBuffer& buffer, const CEGUI::Rectf& area,
+            const CEGUI::Rectf* clip) const
+    {
+        const float scale = std::min(area.getWidth(), area.getHeight()) / 176.0f;
+        drawCircleBand(buffer, area, clip, 0.0f, 7.0f * scale, CEGUI::Colour(9.5f / 255.0f, 11.0f / 255.0f, 8.5f / 255.0f));
+        drawCircleBand(buffer, area, clip, 2.0f * scale, 5.0f * scale, CEGUI::Colour(78.0f / 255.0f, 79.5f / 255.0f, 77.0f / 255.0f));
+        drawCircleBand(buffer, area, clip, 2.0f * scale, 3.0f * scale, CEGUI::Colour(126.5f / 255.0f, 132.0f / 255.0f, 130.5f / 255.0f));
+        drawCircleBand(buffer, area, clip, 5.0f * scale, 7.0f * scale, CEGUI::Colour(35.0f / 255.0f, 36.0f / 255.0f, 36.0f / 255.0f));
+    }
+
     void drawLine(CEGUI::GeometryBuffer& buffer, const CEGUI::Rectf& area,
             const CEGUI::Rectf* clip, const CEGUI::ColourRect& colours,
             const Ogre::Vector2& from, const Ogre::Vector2& to, bool dotted) const
@@ -190,6 +264,10 @@ void MiniMap::updateMapOverlay(CEGUI::Window* window, GameMap& map,
         return Ogre::Vector2(0.5f + x / span.x, 0.5f - y / span.y);
     };
     image->mViewport.clear();
+    // Positive world Y is north in the initial, unrotated map orientation.
+    image->mNorthDirection = Ogre::Vector2(std::sin(rotation) / span.x,
+        -std::cos(rotation) / span.y);
+    image->mNorthDirection.normalise();
     for(const Ogre::Vector3& corner : cornerTiles)
         image->mViewport.push_back(project(Ogre::Vector2(corner.x, corner.y)));
     image->mShowDirection = false;

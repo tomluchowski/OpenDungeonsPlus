@@ -477,10 +477,16 @@ TrapType TrapManager::getTrapTypeFromTrapName(const std::string& name)
 
 void TrapManager::checkSellTrapTiles(GameMap* gameMap, const InputManager& inputManager, InputCommand& inputCommand)
 {
-    Player* player = gameMap->getLocalPlayer();
-    std::vector<Tile*> sellTiles;
     std::vector<Tile*> tiles = gameMap->rectangularRegion(inputManager.mXPos,
         inputManager.mYPos, inputManager.mLStartDragX, inputManager.mLStartDragY);
+    checkSellTrapTiles(gameMap, inputManager, inputCommand, tiles);
+}
+
+void TrapManager::checkSellTrapTiles(GameMap* gameMap, const InputManager& inputManager, InputCommand& inputCommand,
+    const std::vector<Tile*>& tiles)
+{
+    Player* player = gameMap->getLocalPlayer();
+    std::vector<Tile*> sellTiles;
     uint32_t priceTotal = 0;
     for(Tile* tile : tiles)
     {

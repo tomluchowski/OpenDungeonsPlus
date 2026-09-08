@@ -21,6 +21,7 @@
 #include "camera/CameraInput.h"
 #include "entities/Creature.h"
 #include "entities/CreatureDefinition.h"
+#include "entities/CreatureDefinition.h"
 #include "entities/GameEntityType.h"
 #include "entities/Tile.h"
 #include "game/Player.h"
@@ -149,9 +150,21 @@ GameMode::GameMode(ModeManager *modeManager):
     addEventConnection(guiSheet->getChild("QueryButton")->subscribeEvent(
         CEGUI::PushButton::EventClicked, CEGUI::Event::Subscriber(&GameMode::toggleQuery, this)));
 
+    addEventConnection(guiSheet->getChild("SellButton")->subscribeEvent(
+        CEGUI::PushButton::EventClicked, CEGUI::Event::Subscriber(&GameMode::toggleSell, this)));
+    addEventConnection(guiSheet->getChild("PanelToggleButton")->subscribeEvent(
+        CEGUI::PushButton::EventClicked, CEGUI::Event::Subscriber(&GameMode::toggleControlPanel, this)));
+    addEventConnection(guiSheet->getChild("EventsButton")->subscribeEvent(
+        CEGUI::PushButton::EventClicked, CEGUI::Event::Subscriber([this](const CEGUI::EventArgs&)
+        {
+            CEGUI::Window* events = mRootWindow->getChild("GameEventText");
+            events->setVisible(!events->isVisible());
+            return true;
+        })));
+
     //Help window
     addEventConnection(
-        guiSheet->getChild("HelpButton")->subscribeEvent(
+        guiSheet->getChild("GameOptionsWindow/HelpButton")->subscribeEvent(
             CEGUI::PushButton::EventClicked,
             CEGUI::Event::Subscriber(&GameMode::toggleHelpWindow, this)
         )
@@ -173,7 +186,7 @@ GameMode::GameMode(ModeManager *modeManager):
 
     //Player settings window
     addEventConnection(
-        guiSheet->getChild("PlayerSettingsButton")->subscribeEvent(
+        guiSheet->getChild("GameOptionsWindow/PlayerSettingsButton")->subscribeEvent(
             CEGUI::PushButton::EventClicked,
             CEGUI::Event::Subscriber(&GameMode::togglePlayerSettingsWindow, this)
         )
@@ -198,12 +211,6 @@ GameMode::GameMode(ModeManager *modeManager):
     );
 
     // The skill tree window
-    addEventConnection(
-        guiSheet->getChild("SkillButton")->subscribeEvent(
-            CEGUI::PushButton::EventClicked,
-            CEGUI::Event::Subscriber(&GameMode::toggleSkillWindow, this)
-        )
-    );
     addEventConnection(
         guiSheet->getChild("SkillTreeWindow")->subscribeEvent(
             CEGUI::FrameWindow::EventCloseClicked,
@@ -397,9 +404,6 @@ void GameMode::activate()
 
     // Play the game music.
     MusicPlayer::getSingleton().play(mGameMap->getLevelMusicFile()); // in game music
-
-    std::string colorStr = Helper::getImageColoursStringFromColourValue(mGameMap->getLocalPlayer()->getSeat()->getColorValue());
-    guiSheet->getChild("HorizontalPipe")->setProperty("ImageColours", colorStr);
 
     if(mGameMap->getTurnNumber() != -1)
     {
@@ -896,6 +900,10 @@ bool GameMode::keyPressedNormal(const OIS::KeyEvent &arg)
 
     switch (arg.key)
     {
+    case OIS::KC_G:
+        toggleControlPanel();
+        break;
+
     case OIS::KC_F1:
         if(!cameraInputBlocked())
             frameListener.getCameraManager()->setDefaultIsometricView();
@@ -1049,6 +1057,15 @@ bool GameMode::keyPressedChat(const OIS::KeyEvent &arg)
     return true;
 }
 
+bool GameMode::toggleControlPanel(const CEGUI::EventArgs&)
+{
+    CEGUI::Window* tabs = mRootWindow->getChild(Gui::MAIN_TABCONTROL);
+    CEGUI::Window* content = tabs->getChild("__auto_TabPane__");
+    content->setVisible(!content->isVisible());
+    tabs->setMousePassThroughEnabled(!content->isVisible());
+    return true;
+}
+
 void GameMode::refreshMainUI()
 {
     Seat* mySeat = mGameMap->getLocalPlayer()->getSeat();
@@ -1067,14 +1084,20 @@ void GameMode::refreshMainUI()
 
     widget = guiSheet->getChild(Gui::DISPLAY_GOLD);
     tempSS.str("");
-    tempSS << mySeat->getGold() << "/" << mySeat->getGoldMax();
+    tempSS << mySeat->getGold();
     widget->setText(tempSS.str());
+    tempSS << "/" << mySeat->getGoldMax();
+    widget->setTooltipText("Your Gold: " + tempSS.str());
+    widget->getChild("Icon")->setTooltipText(widget->getTooltipText());
 
     widget = guiSheet->getChild(Gui::DISPLAY_MANA);
     tempSS.str("");
-    tempSS << mySeat->getMana() << " " << (mySeat->getManaDelta() >= 0 ? "+" : "-")
-            << mySeat->getManaDelta();
+    tempSS << mySeat->getMana();
     widget->setText(tempSS.str());
+    tempSS.str("");
+    tempSS << (mySeat->getManaDelta() >= 0 ? "+" : "") << mySeat->getManaDelta();
+    widget->getChild("Change")->setText(tempSS.str());
+    widget->getChild("Change")->setProperty("TextColours", mySeat->getManaDelta() >= 0 ? "FF00C880" : "FFFF4848");
     unsigned int workers = 0;
     unsigned int fighters = 0;
     for(Creature* creature : mGameMap->getCreaturesBySeat(mySeat))
@@ -1494,6 +1517,7 @@ bool GameMode::toggleObjectivesWindow(const CEGUI::EventArgs& e)
 
 bool GameMode::showPlayerSettingsWindow(const CEGUI::EventArgs&)
 {
+    mRootWindow->getChild("GameOptionsWindow")->hide();
     // Before showing the player settings, we reset to the values in the seat. That's
     // because only the server can change them and the values in the Seat are the
     // ones that should be shown
@@ -1674,6 +1698,7 @@ bool GameMode::showSettingsFromOptions(const CEGUI::EventArgs& /*e*/)
 
 bool GameMode::showHelpWindow(const CEGUI::EventArgs&)
 {
+    mRootWindow->getChild("GameOptionsWindow")->hide();
     mRootWindow->getChild("GameHelpWindow")->show();
     return true;
 }
@@ -1909,6 +1934,9 @@ void GameMode::refreshGuiSkill(bool forceRefresh)
     {
         refreshSkillButtonState(skillButtonName, castButtonName, skillProgressBarName, resType);
     });
+    getModeManager().getGui().arrangeRoomButtons(mRootWindow->getChild(Gui::TAB_ROOMS));
+    getModeManager().getGui().arrangeTrapButtons(mRootWindow->getChild(Gui::TAB_TRAPS));
+    getModeManager().getGui().arrangeSpellButtons(mRootWindow->getChild(Gui::TAB_SPELLS));
 }
 
 void GameMode::refreshSpellButtonCoolDowns()
@@ -2180,6 +2208,9 @@ void GameMode::checkInputCommand()
         case SelectedAction::destroyTrap:
             TrapManager::checkSellTrapTiles(mGameMap, inputManager, *this);
             break;
+        case SelectedAction::sellBuilding:
+            handlePlayerActionSell();
+            break;
         default:
             break;
     }
@@ -2201,6 +2232,32 @@ bool GameMode::toggleQuery(const CEGUI::EventArgs& e)
         SelectedAction::none : SelectedAction::queryEntity);
     unselectAllTiles();
     return true;
+}
+
+bool GameMode::toggleSell(const CEGUI::EventArgs& e)
+{
+    if(!isConnected() || mGameMap->getGamePaused())
+        return true;
+
+    InputManager& inputManager = mModeManager->getInputManager();
+    inputManager.mLMouseDown = false;
+    inputManager.mCommandState = InputCommandState::infoOnly;
+    mPlayerSelection.setCurrentAction(mPlayerSelection.getCurrentAction() == SelectedAction::sellBuilding ?
+        SelectedAction::none : SelectedAction::sellBuilding);
+    unselectAllTiles();
+    return true;
+}
+
+void GameMode::handlePlayerActionSell()
+{
+    const InputManager& inputManager = mModeManager->getInputManager();
+    Tile* tile = mGameMap->getTile(inputManager.mXPos, inputManager.mYPos);
+    if(tile != nullptr && tile->getIsTrap())
+        TrapManager::checkSellTrapTiles(mGameMap, inputManager, *this, {tile});
+    else if(tile != nullptr && tile->getIsRoom())
+        RoomManager::checkSellRoomTiles(mGameMap, inputManager, *this, {tile});
+    else
+        displayText(Ogre::ColourValue::Red, "Select a room, trap or door owned by you to sell.");
 }
 
 GameEntity* GameMode::getQueryTarget(Tile* tile) const

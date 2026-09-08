@@ -201,6 +201,18 @@ bool GameEditorModeBase::onMinimapClick(const CEGUI::EventArgs& arg)
         (mouseEvt.button != CEGUI::LeftButton || cameraInputBlocked()))
         return true;
 
+    CEGUI::Window* mapWindow = mRootWindow->getChild(Gui::MINIMAP);
+    if(mapWindow->isUserStringDefined("Circular") && mapWindow->getUserString("Circular") == "true")
+    {
+        const CEGUI::Rectf area = mapWindow->getUnclippedOuterRect().get();
+        if(area.getWidth() <= 0.0f || area.getHeight() <= 0.0f)
+            return true;
+        const float x = 2.0f * (mouseEvt.position.d_x - area.left()) / area.getWidth() - 1.0f;
+        const float y = 2.0f * (mouseEvt.position.d_y - area.top()) / area.getHeight() - 1.0f;
+        if(x * x + y * y > 1.0f)
+            return true;
+    }
+
     ODFrameListener& frameListener = ODFrameListener::getSingleton();
 
     Ogre::Vector2 cc = mMiniMap->camera_2dPositionFromClick(static_cast<int>(mouseEvt.position.d_x),

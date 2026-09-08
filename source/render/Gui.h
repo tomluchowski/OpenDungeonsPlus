@@ -32,6 +32,7 @@
 
 #include <string>
 #include <map>
+#include <initializer_list>
 
 class SoundEffectsManager;
 
@@ -102,6 +103,11 @@ public:
     //! \brief Sets the user-selected UI scale and applies it immediately.
     void setUserScalePercent(float scalePercent);
 
+    //! \brief Arranges visible gameplay actions and retains their scaled layout.
+    void arrangeRoomButtons(CEGUI::Window* rooms);
+    void arrangeTrapButtons(CEGUI::Window* traps);
+    void arrangeSpellButtons(CEGUI::Window* spells);
+
     // Access names of the GUI elements
     static const std::string ROOT;
     static const std::string DISPLAY_GOLD;
@@ -169,6 +175,7 @@ public:
     bool playButtonClickSound(const CEGUI::EventArgs& e = {});
 
 private:
+    void arrangeActionButtons(CEGUI::Window* panel, std::initializer_list<const char*> names);
     struct WindowScaleData
     {
         CEGUI::URect area;
@@ -176,6 +183,7 @@ private:
         CEGUI::USize maxSize;
         CEGUI::String text;
         CEGUI::UDim tabHeight;
+        CEGUI::UDim tabTextPadding;
         bool hasFormattedImageSize;
         bool hasTabHeight;
     };

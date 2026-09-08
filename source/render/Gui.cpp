@@ -37,6 +37,7 @@
 #include <CEGUI/WindowManager.h>
 #include <CEGUI/widgets/PushButton.h>
 #include <CEGUI/widgets/TabControl.h>
+#include <CEGUI/widgets/TabButton.h>
 #include <CEGUI/Event.h>
 
 #include <algorithm>
@@ -80,6 +81,300 @@ void createHandFeedbackImage()
     image.setArea(CEGUI::Rectf(0, 0, size, size));
 }
 
+class MiniMapCornerButton : public CEGUI::PushButton
+{
+public:
+    static const CEGUI::String WidgetTypeName;
+    MiniMapCornerButton(const CEGUI::String& type, const CEGUI::String& name) : CEGUI::PushButton(type, name) {}
+
+    bool isHit(const CEGUI::Vector2f& position, bool allowDisabled = false) const override
+    {
+        if(!CEGUI::PushButton::isHit(position, allowDisabled))
+            return false;
+        // Use the actual map bounds: pixel rounding can differ from this button.
+        const CEGUI::Rectf& map = getParent()->getChild("MiniMap")->getUnclippedOuterRect().get();
+        const float x = (position.d_x - map.left() - map.getWidth() * 0.5f) / (map.getWidth() * 0.5f);
+        const float y = (position.d_y - map.top() - map.getHeight() * 0.5f) / (map.getHeight() * 0.5f);
+        return x * x + y * y >= 1.0f;
+    }
+};
+const CEGUI::String MiniMapCornerButton::WidgetTypeName("OD/MiniMapCornerBase");
+
+void createMiniMapCornerImages()
+{
+    CEGUI::WindowFactoryManager::addFactory<CEGUI::TplWindowFactory<MiniMapCornerButton>>();
+    const int size = 128;
+    for(int corner = 0; corner < 4; ++corner)
+    {
+        std::vector<unsigned char> pixels(size * size * 4, 0);
+        for(int y = 0; y < size; ++y)
+        {
+            for(int x = 0; x < size; ++x)
+            {
+                const float u = ((corner & 1) ? size - x - 0.5f : x + 0.5f) * 44.0f / size;
+                const float v = ((corner & 2) ? size - y - 0.5f : y + 0.5f) * 44.0f / size;
+                const float curve = std::sqrt((88.0f - u) * (88.0f - u) + (88.0f - v) * (88.0f - v)) - 88.0f;
+                const float edge = std::min(curve, std::min(std::min(u, v), std::min(44.0f - u, 44.0f - v)));
+                if(edge <= 0.0f)
+                    continue;
+                const float shade = edge < 1.0f ? 12.0f : edge < 2.0f ? 116.0f : edge < 3.0f ? 62.0f : 24.0f - 10.0f * y / size;
+                const int i = (y * size + x) * 4;
+                pixels[i] = static_cast<unsigned char>(shade);
+                pixels[i + 1] = static_cast<unsigned char>(shade + 3.0f);
+                pixels[i + 2] = static_cast<unsigned char>(shade + 5.0f);
+                pixels[i + 3] = static_cast<unsigned char>(255.0f * std::min(1.0f, edge * size / 44.0f));
+            }
+        }
+        const std::string name = "MiniMapCorner" + std::to_string(corner);
+        CEGUI::Texture& texture = CEGUI::System::getSingleton().getRenderer()->createTexture(name);
+        texture.loadFromMemory(pixels.data(), CEGUI::Sizef(size, size), CEGUI::Texture::PF_RGBA);
+        auto& image = static_cast<CEGUI::BasicImage&>(CEGUI::ImageManager::getSingleton().create(
+            "BasicImage", "OpenDungeonsIcons/" + name));
+        image.setTexture(&texture);
+        image.setArea(CEGUI::Rectf(0, 0, size, size));
+    }
+}
+
+void createNavigationImages()
+{
+    createMiniMapCornerImages();
+    const int size = 64;
+    std::vector<unsigned char> pixels(size * size * 4, 0);
+    const float handleStart = 36.0f;
+    const float handleEnd = 53.0f;
+    const float handleLengthSquared = 2.0f * (handleEnd - handleStart) * (handleEnd - handleStart);
+    for(int y = 0; y < size; ++y)
+    {
+        for(int x = 0; x < size; ++x)
+        {
+            const float dx = x + 0.5f - 25.0f;
+            const float dy = y + 0.5f - 25.0f;
+            const float ringDistance = std::abs(std::sqrt(dx * dx + dy * dy) - 15.0f);
+            const float handleX = x + 0.5f - handleStart;
+            const float handleY = y + 0.5f - handleStart;
+            const float handleT = std::max(0.0f, std::min(1.0f,
+                ((handleX + handleY) * (handleEnd - handleStart)) / handleLengthSquared));
+            const float nearestX = handleStart + handleT * (handleEnd - handleStart);
+            const float nearestY = handleStart + handleT * (handleEnd - handleStart);
+            const float segmentX = x + 0.5f - nearestX;
+            const float segmentY = y + 0.5f - nearestY;
+            const float handleDistance = std::sqrt(segmentX * segmentX + segmentY * segmentY);
+            const float coverage = std::max(0.0f, std::min(1.0f,
+                std::max(3.0f - ringDistance, 3.0f - handleDistance)));
+            const int i = (y * size + x) * 4;
+            pixels[i] = 232;
+            pixels[i + 1] = 226;
+            pixels[i + 2] = 202;
+            pixels[i + 3] = static_cast<unsigned char>(coverage * 255.0f);
+        }
+    }
+    CEGUI::Texture& texture = CEGUI::System::getSingleton().getRenderer()->createTexture("MapZoom");
+    texture.loadFromMemory(pixels.data(), CEGUI::Sizef(size, size), CEGUI::Texture::PF_RGBA);
+    CEGUI::BasicImage& image = static_cast<CEGUI::BasicImage&>(CEGUI::ImageManager::getSingleton().create(
+        "BasicImage", "OpenDungeonsIcons/MapZoom"));
+    image.setTexture(&texture);
+    image.setArea(CEGUI::Rectf(0, 0, size, size));
+
+    const char* categories[] = {"NavigationCreatures", "NavigationRooms", "NavigationSpells", "NavigationWorkshop"};
+    for(int category = 0; category < 4; ++category)
+    {
+        for(int y = 0; y < size; ++y)
+        {
+            for(int x = 0; x < size; ++x)
+            {
+                int coverage = 0;
+                for(int sy = 0; sy < 4; ++sy)
+                {
+                    for(int sx = 0; sx < 4; ++sx)
+                    {
+                        const float px = x + (sx + 0.5f) * 0.25f;
+                        const float py = y + (sy + 0.5f) * 0.25f;
+                        auto line = [&](float ax, float ay, float bx, float by, float radius)
+                        {
+                            const float dx = bx - ax;
+                            const float dy = by - ay;
+                            const float t = std::max(0.0f, std::min(1.0f,
+                                ((px - ax) * dx + (py - ay) * dy) / (dx * dx + dy * dy)));
+                            const float ex = px - ax - t * dx;
+                            const float ey = py - ay - t * dy;
+                            return ex * ex + ey * ey <= radius * radius;
+                        };
+                        bool inside = false;
+                        if(category == 0)
+                        {
+                            const float dx = px - 32.0f;
+                            const float dy = py - 13.0f;
+                            inside = dx * dx + dy * dy <= 25.0f
+                                || (py >= 21 && py <= 40 && std::abs(dx) <= 9 - (py - 21) * 0.2f)
+                                || line(24, 24, 16, 40, 2.5f) || line(40, 24, 48, 40, 2.5f)
+                                || line(29, 38, 24, 55, 3) || line(35, 38, 40, 55, 3);
+                        }
+                        else if(category == 1)
+                        {
+                            inside = (py >= 9 && py <= 30 && std::abs(px - 32) <= (py - 9) * 1.2f)
+                                || (px >= 13 && px <= 51 && py >= 27 && py <= 55);
+                            if(px >= 27 && px <= 37 && py >= 39)
+                                inside = false;
+                        }
+                        else if(category == 2)
+                        {
+                            inside = line(12, 54, 43, 23, 2.5f)
+                                || line(44, 9, 44, 16, 1.5f) || line(51, 22, 58, 22, 1.5f)
+                                || line(31, 11, 35, 15, 1.5f) || line(51, 14, 55, 10, 1.5f)
+                                || line(51, 29, 55, 33, 1.5f) || line(31, 27, 35, 23, 1.5f);
+                        }
+                        else
+                        {
+                            inside = line(23, 20, 52, 51, 3)
+                                || line(8, 27, 17, 14, 2.5f) || line(17, 14, 30, 9, 2.5f)
+                                || line(30, 9, 43, 11, 2.5f) || line(17, 14, 26, 22, 3);
+                        }
+                        coverage += inside ? 1 : 0;
+                    }
+                }
+                const int i = (y * size + x) * 4;
+                pixels[i] = pixels[i + 1] = pixels[i + 2] = static_cast<unsigned char>(244 - y);
+                pixels[i + 3] = static_cast<unsigned char>(coverage * 255 / 16);
+            }
+        }
+        CEGUI::Texture& categoryTexture = CEGUI::System::getSingleton().getRenderer()->createTexture(categories[category]);
+        categoryTexture.loadFromMemory(pixels.data(), CEGUI::Sizef(size, size), CEGUI::Texture::PF_RGBA);
+        CEGUI::BasicImage& categoryImage = static_cast<CEGUI::BasicImage&>(CEGUI::ImageManager::getSingleton().create(
+            "BasicImage", std::string("OpenDungeonsIcons/") + categories[category]));
+        categoryImage.setTexture(&categoryTexture);
+        categoryImage.setArea(CEGUI::Rectf(0, 0, size, size));
+    }
+
+    const char* utilities[] = {"NavigationPanel", "NavigationObjectives", "NavigationMessages"};
+    for(int utility = 0; utility < 3; ++utility)
+    {
+        for(int y = 0; y < size; ++y)
+        {
+            for(int x = 0; x < size; ++x)
+            {
+                int coverage = 0;
+                for(int sy = 0; sy < 4; ++sy)
+                {
+                    for(int sx = 0; sx < 4; ++sx)
+                    {
+                        // Utility cells are narrower than the square category cells.
+                        const float px = (x + (sx + 0.5f) * 0.25f) * 32.0f / size;
+                        const float py = (y + (sy + 0.5f) * 0.25f) * 52.0f / size;
+                        auto line = [&](float ax, float ay, float bx, float by, float radius)
+                        {
+                            const float dx = bx - ax;
+                            const float dy = by - ay;
+                            const float t = std::max(0.0f, std::min(1.0f,
+                                ((px - ax) * dx + (py - ay) * dy) / (dx * dx + dy * dy)));
+                            const float ex = px - ax - t * dx;
+                            const float ey = py - ay - t * dy;
+                            return ex * ex + ey * ey <= radius * radius;
+                        };
+                        bool inside;
+                        if(utility == 0)
+                            inside = line(7, 14, 16, 6, 1.5f) || line(16, 6, 25, 14, 1.5f)
+                                || line(7, 38, 16, 46, 1.5f) || line(16, 46, 25, 38, 1.5f);
+                        else if(utility == 1)
+                        {
+                            const float dx = (px - 16) / 10;
+                            const float dy = std::abs(py - 26);
+                            const float lid = 5 * (1 - dx * dx);
+                            inside = (std::abs(dx) <= 1 && std::abs(dy - lid) <= 1.1f)
+                                || (px - 16) * (px - 16) + dy * dy <= 9;
+                        }
+                        else
+                            inside = (px - 18) * (px - 18) + (py - 14) * (py - 14) <= 4
+                                || line(16, 23, 13, 38, 1.5f)
+                                || line(12, 23, 17, 23, 1) || line(12, 38, 18, 38, 1);
+                        coverage += inside ? 1 : 0;
+                    }
+                }
+                const int i = (y * size + x) * 4;
+                pixels[i] = utility == 2 ? 140 : 224;
+                pixels[i + 1] = utility == 2 ? 235 : 226;
+                pixels[i + 2] = utility == 2 ? 255 : 218;
+                pixels[i + 3] = static_cast<unsigned char>(coverage * 255 / 16);
+            }
+        }
+        CEGUI::Texture& utilityTexture = CEGUI::System::getSingleton().getRenderer()->createTexture(utilities[utility]);
+        utilityTexture.loadFromMemory(pixels.data(), CEGUI::Sizef(size, size), CEGUI::Texture::PF_RGBA);
+        CEGUI::BasicImage& utilityImage = static_cast<CEGUI::BasicImage&>(CEGUI::ImageManager::getSingleton().create(
+            "BasicImage", std::string("OpenDungeonsIcons/") + utilities[utility]));
+        utilityImage.setTexture(&utilityTexture);
+        utilityImage.setArea(CEGUI::Rectf(0, 0, size, size));
+    }
+
+    const int badgeSize = 128;
+    pixels.resize(badgeSize * badgeSize * 4);
+    for(int badge = 0; badge < 2; ++badge)
+    {
+        auto inSymbol = [badge](float dx, float dy)
+        {
+            if(badge == 0)
+            {
+                const float hx = dx / 13;
+                const float hy = -dy / 13;
+                const float heart = hx * hx + hy * hy - 1;
+                return heart * heart * heart - hx * hx * hy * hy * hy <= 0;
+            }
+            const float upper = std::sqrt((dx + 1) * (dx + 1) + (dy + 7) * (dy + 7));
+            const float lower = std::sqrt((dx - 1) * (dx - 1) + (dy - 7) * (dy - 7));
+            return (std::abs(dx) < 1.5f && std::abs(dy) < 20)
+                || (std::abs(upper - 8) < 1.8f && (dx < 0 || dy < -7))
+                || (std::abs(lower - 8) < 1.8f && (dx > 0 || dy > 7));
+        };
+        for(int y = 0; y < badgeSize; ++y)
+        {
+            for(int x = 0; x < badgeSize; ++x)
+            {
+                const float dx = (x + 0.5f) * 64 / badgeSize - 32;
+                const float dy = (y + 0.5f) * 64 / badgeSize - 32;
+                const float radius = std::sqrt(dx * dx + dy * dy);
+                const float light = -(dx + dy) / std::max(1.0f, radius * 1.414214f);
+                const int i = (y * badgeSize + x) * 4;
+                unsigned char shade = static_cast<unsigned char>(std::max(0.0f, 28 - radius * 0.6f));
+                pixels[i] = pixels[i + 1] = pixels[i + 2] = shade;
+                if(radius > 25)
+                {
+                    const float slope = std::max(-1.0f, std::min(1.0f, (radius - 28) / 3));
+                    const float face = std::sqrt(std::max(0.0f, 1 - slope * slope));
+                    shade = static_cast<unsigned char>(std::max(12.0f,
+                        74 + 92 * light * slope + 65 * face));
+                    pixels[i] = pixels[i + 1] = pixels[i + 2] = shade;
+                }
+                else if(radius > 22 && radius < 24)
+                {
+                    const float relief = 0.65f + 0.35f * light * (radius - 23);
+                    pixels[i] = static_cast<unsigned char>((badge == 0 ? 24 : 210) * relief);
+                    pixels[i + 1] = static_cast<unsigned char>((badge == 0 ? 178 : 171) * relief);
+                    pixels[i + 2] = static_cast<unsigned char>((badge == 0 ? 114 : 35) * relief);
+                }
+                if(inSymbol(dx, dy))
+                {
+                    const float highlight = std::exp(-((dx + 5) * (dx + 5) + (dy + 6) * (dy + 6)) / 35);
+                    float relief = 174 - dx * 1.4f - dy * 2.4f + 48 * highlight;
+                    if(!inSymbol(dx - 1, dy - 1))
+                        relief = 244;
+                    else if(!inSymbol(dx + 1, dy + 1))
+                        relief = 72;
+                    pixels[i] = pixels[i + 1] = pixels[i + 2] =
+                        static_cast<unsigned char>(std::max(0.0f, std::min(255.0f, relief)));
+                }
+                else if(inSymbol(dx - 1.5f, dy - 1.5f))
+                    pixels[i] = pixels[i + 1] = pixels[i + 2] = 4;
+                pixels[i + 3] = static_cast<unsigned char>(std::max(0.0f, std::min(1.0f, 31 - radius)) * 255);
+            }
+        }
+        const std::string name = badge == 0 ? "ManaBadge" : "GoldBadge";
+        CEGUI::Texture& badgeTexture = CEGUI::System::getSingleton().getRenderer()->createTexture(name);
+        badgeTexture.loadFromMemory(pixels.data(), CEGUI::Sizef(badgeSize, badgeSize), CEGUI::Texture::PF_RGBA);
+        CEGUI::BasicImage& badgeImage = static_cast<CEGUI::BasicImage&>(CEGUI::ImageManager::getSingleton().create(
+            "BasicImage", "OpenDungeonsIcons/" + name));
+        badgeImage.setTexture(&badgeTexture);
+        badgeImage.setArea(CEGUI::Rectf(0, 0, badgeSize, badgeSize));
+    }
+}
+
 void scaleDimension(CEGUI::UDim& dimension, float scale)
 {
     dimension.d_offset *= scale;
@@ -109,6 +404,7 @@ bool shouldScaleImage(const CEGUI::String& ceguiName)
     return name.compare(0, 17, "OpenDungeonsSkin/") == 0
         || name.compare(0, 18, "OpenDungeonsIcons/") == 0
         || name.compare(0, 17, "ODMainMenuButton/") == 0
+        || name.compare(0, 13, "ODHudSurface/") == 0
         || name.compare(0, 7, "ODLogo/") == 0;
 }
 
@@ -169,6 +465,7 @@ Gui::Gui(SoundEffectsManager* soundEffectsManager, const std::string& ceguiLogFi
     CEGUI::SchemeManager::getSingleton().createFromFile("ODSkin.scheme");
     OD_LOG_INF("CEGUI::SchemeManager created");
     createHandFeedbackImage();
+    createNavigationImages();
 
     float configuredScalePercent = 100.0f;
     std::istringstream scaleParser(ConfigManager::getSingleton().getGameValue(Config::UI_SCALE, "100", false));
@@ -273,6 +570,26 @@ void Gui::registerWindowHierarchy(CEGUI::Window* window)
 
 void Gui::registerWindow(CEGUI::Window* window)
 {
+    if(window->isPropertyPresent("NavigationFrame"))
+    {
+        for(CEGUI::Window* parent = window->getParent(); parent != nullptr; parent = parent->getParent())
+        {
+            if(parent->isUserStringDefined("NavigationFrame") && parent->getUserString("NavigationFrame") == "true")
+            {
+                window->setProperty("NavigationFrame", "True");
+                break;
+            }
+        }
+    }
+    CEGUI::TabButton* tabButton = dynamic_cast<CEGUI::TabButton*>(window);
+    if(tabButton != nullptr && window->isPropertyPresent("NavigationColour"))
+    {
+        CEGUI::Window* page = tabButton->getTargetWindow();
+        if(page != nullptr && page->isUserStringDefined("NavigationColour"))
+            window->setProperty("NavigationColour", page->getUserString("NavigationColour"));
+        if(page != nullptr && page->isUserStringDefined("NavigationImage") && window->isPropertyPresent("NavigationImage"))
+            window->setProperty("NavigationImage", page->getUserString("NavigationImage"));
+    }
     if(!window->isAutoWindow() && mScaledWindows.find(window) == mScaledWindows.end())
     {
         WindowScaleData data;
@@ -287,6 +604,7 @@ void Gui::registerWindow(CEGUI::Window* window)
         if(tabControl != nullptr)
         {
             data.tabHeight = tabControl->getTabHeight();
+            data.tabTextPadding = tabControl->getTabTextPadding();
             data.hasTabHeight = true;
         }
 
@@ -306,6 +624,55 @@ void Gui::setUserScalePercent(float scalePercent)
         std::min(static_cast<float>(MAX_UI_SCALE_PERCENT), scalePercent));
     mUserScale = scalePercent / 100.0f;
     applyScale(CEGUI::System::getSingleton().getRenderer()->getDisplaySize());
+}
+
+void Gui::arrangeRoomButtons(CEGUI::Window* rooms)
+{
+    rooms->getChild("DestroyRoomButton")->hide();
+    arrangeActionButtons(rooms, {"DormitoryButton", "HatcheryButton", "LibraryButton", "TrainingHallButton",
+        "TreasuryButton", "WorkshopButton", "CasinoButton", "PrisonButton", "WoodenBridgeButton",
+        "TortureButton", "StoneBridgeButton", "CryptButton", "ArenaButton"});
+}
+
+void Gui::arrangeTrapButtons(CEGUI::Window* traps)
+{
+    traps->getChild("DestroyTrapButton")->hide();
+    arrangeActionButtons(traps, {"CannonButton", "SpikeTrapButton", "BoulderTrapButton", "WoodenDoorTrapButton"});
+}
+
+void Gui::arrangeSpellButtons(CEGUI::Window* spells)
+{
+    arrangeActionButtons(spells, {"SummonWorkerButton", "CallToWarButton", "CreatureHealButton",
+        "CreatureExplosionButton", "CreatureHasteButton", "CreatureDefenseButton", "CreatureSlowButton",
+        "CreatureStrengthButton", "CreatureWeakButton", "SpellEyeEvilButton"});
+}
+
+void Gui::arrangeActionButtons(CEGUI::Window* panel, std::initializer_list<const char*> names)
+{
+    const CEGUI::Sizef displaySize = CEGUI::System::getSingleton().getRenderer()->getDisplaySize();
+    const float scale = std::min(displaySize.d_width / LAYOUT_DESIGN_WIDTH,
+        displaySize.d_height / LAYOUT_DESIGN_HEIGHT) * mUserScale;
+    std::vector<CEGUI::Window*> buttons;
+    for(const char* name : names)
+    {
+        CEGUI::Window* button = panel->getChild(name);
+        if(button->isVisible())
+            buttons.push_back(button);
+    }
+
+    const bool large = buttons.size() <= 6 &&
+        (20.0f + 106.0f * buttons.size() - 4.0f) * scale <= panel->getPixelSize().d_width;
+    const float side = large ? 102.0f : 52.0f;
+    for(size_t index = 0; index < buttons.size(); ++index)
+    {
+        CEGUI::Window* button = buttons[index];
+        const float x = 20.0f + (side + 4.0f) * static_cast<float>(large ? index : index / 2);
+        const float y = 6.0f + (large ? 0.0f : 56.0f * static_cast<float>(index % 2));
+        WindowScaleData& data = mScaledWindows.at(button);
+        data.area = CEGUI::URect(CEGUI::UDim(0, x), CEGUI::UDim(0, y),
+            CEGUI::UDim(0, x + side), CEGUI::UDim(0, y + side));
+        applyScale(button, data, scale);
+    }
 }
 
 bool Gui::onDisplaySizeChanged(const CEGUI::EventArgs& e)
@@ -333,6 +700,14 @@ void Gui::applyScale(const CEGUI::Sizef& displaySize)
     for(const auto& scaledWindow : mScaledWindows)
         applyScale(scaledWindow.first, scaledWindow.second, scale);
 
+    const auto gameSheet = mSheets.find(inGameMenu);
+    if(gameSheet != mSheets.end())
+    {
+        arrangeRoomButtons(gameSheet->second->getChild(TAB_ROOMS));
+        arrangeTrapButtons(gameSheet->second->getChild(TAB_TRAPS));
+        arrangeSpellButtons(gameSheet->second->getChild(TAB_SPELLS));
+    }
+
     CEGUI::System::getSingleton().getDefaultGUIContext().markAsDirty();
 }
 
@@ -350,6 +725,9 @@ void Gui::applyScale(CEGUI::Window* window, const WindowScaleData& data, float s
         CEGUI::UDim tabHeight(data.tabHeight);
         scaleDimension(tabHeight, scale);
         static_cast<CEGUI::TabControl*>(window)->setTabHeight(tabHeight);
+        CEGUI::UDim tabTextPadding(data.tabTextPadding);
+        scaleDimension(tabTextPadding, scale);
+        static_cast<CEGUI::TabControl*>(window)->setTabTextPadding(tabTextPadding);
     }
 }
 
@@ -414,8 +792,8 @@ bool Gui::playButtonClickSound(const CEGUI::EventArgs&)
  */
 const std::string Gui::DISPLAY_GOLD = "HorizontalPipe/GoldDisplay";
 const std::string Gui::DISPLAY_MANA = "HorizontalPipe/ManaDisplay";
-const std::string Gui::DISPLAY_TERRITORY = "HorizontalPipe/TerritoryDisplay";
-const std::string Gui::DISPLAY_CREATURES = "HorizontalPipe/CreaturesDisplay";
+const std::string Gui::DISPLAY_TERRITORY = "PlayerSettingsWindow/TerritoryDisplay";
+const std::string Gui::DISPLAY_CREATURES = "PlayerSettingsWindow/CreaturesDisplay";
 const std::string Gui::MINIMAP = "MiniMap";
 const std::string Gui::OBJECTIVE_TEXT = "ObjectivesWindow/ObjectivesText";
 const std::string Gui::MAIN_TABCONTROL = "MainTabControl";
