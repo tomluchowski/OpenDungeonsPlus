@@ -485,6 +485,8 @@ void ODFrameListener::renderQueueStarted(Ogre::uint8 queueGroupId, const Ogre::S
     {
         Ogre::Root::getSingleton().getRenderSystem()->clearFrameBuffer(Ogre::FBT_DEPTH);
         CEGUI::System::getSingleton().renderAllGUIContexts();
+        // The static menu background must not inherit the last widget's clip.
+        Ogre::Root::getSingleton().getRenderSystem()->setScissorTest(false);
     }
     else if(queueGroupId == Ogre::RenderQueueGroupID::RENDER_QUEUE_MAIN )
     {

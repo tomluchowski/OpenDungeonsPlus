@@ -105,7 +105,7 @@ void MenuModeLoad::activate()
 
     GameMap* gameMap = ODFrameListener::getSingleton().getClientGameMap();
     CEGUI::Window* sheet = getModeManager().getGui().getGuiSheet(Gui::loadSavedGameMenu);
-    sheet->getChild("WelcomeBanner")->setVisible(!mInGame);
+    sheet->getChild("WelcomeBanner")->hide();
     sheet->getChild("VersionText")->setVisible(!mInGame);
     if(mInGame)
     {
