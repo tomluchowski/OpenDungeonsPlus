@@ -35,6 +35,7 @@
 #include "gamemap/Pathfinding.h"
 #include "modes/GameEditorModeConsole.h"
 #include "modes/InputBridge.h"
+#include "modes/MenuModeLoad.h"
 #include "network/ChatEventMessage.h"
 #include "network/ODClient.h"
 #include "network/ODServer.h"
@@ -282,6 +283,10 @@ GameMode::GameMode(ModeManager *modeManager):
         )
     );
     saveGameButtonWindow->setEnabled(ODServer::getSingleton().isConnected());
+    CEGUI::Window* loadGameButtonWindow = guiSheet->getChild("GameOptionsWindow/LoadGameButton");
+    addEventConnection(loadGameButtonWindow->subscribeEvent(CEGUI::PushButton::EventClicked,
+        CEGUI::Event::Subscriber(&GameMode::loadGame, this)));
+    loadGameButtonWindow->setEnabled(ODServer::getSingleton().isConnected());
     addEventConnection(
         guiSheet->getChild("GameOptionsWindow/SettingsButton")->subscribeEvent(
             CEGUI::PushButton::EventClicked,
@@ -868,8 +873,11 @@ bool GameMode::mouseReleased(const OIS::MouseEvent &arg, OIS::MouseButtonID id)
 
 bool GameMode::keyPressed(const OIS::KeyEvent& arg)
 {
+    if(mLoadMenu && mLoadMenu->isOpenInGame())
+        return mLoadMenu->keyPressed(arg);
     // Inject key to Gui
-    CEGUI::System::getSingleton().getDefaultGUIContext().injectKeyDown(static_cast<CEGUI::Key::Scan>(arg.key));
+    const bool guiHandledKey = CEGUI::System::getSingleton().getDefaultGUIContext().injectKeyDown(
+        static_cast<CEGUI::Key::Scan>(arg.key));
     if (arg.text != 0 && !getConsole()->isFreshlyEnabled())
     {
         CEGUI::System::getSingleton().getDefaultGUIContext().injectChar(arg.text);
@@ -883,6 +891,8 @@ bool GameMode::keyPressed(const OIS::KeyEvent& arg)
             return getConsole()->keyPressed(arg);
         case InputModeNormal:
         default:
+            if(arg.key == OIS::KC_ESCAPE && guiHandledKey)
+                return true;
             return keyPressedNormal(arg);
     }
 }
@@ -930,6 +940,10 @@ bool GameMode::keyPressedNormal(const OIS::KeyEvent &arg)
     case OIS::KC_F6:
         if(!cameraInputBlocked())
             frameListener.getCameraManager()->loadUserView(arg.key - OIS::KC_F4);
+        break;
+
+    case OIS::KC_F8:
+        loadGame();
         break;
 
     case OIS::KC_F9:
@@ -993,8 +1007,15 @@ bool GameMode::keyPressedNormal(const OIS::KeyEvent &arg)
         break;
     }
 
-    // Quit the game
+    // Close one GUI layer before considering a new exit confirmation.
     case OIS::KC_ESCAPE:
+        if(closeTopWindow())
+            break;
+        if(mRootWindow->getChild("GameEventText")->isVisible())
+        {
+            mRootWindow->getChild("GameEventText")->hide();
+            break;
+        }
         mExitToDesktop = false;
         popupExit(!mGameMap->getGamePaused());
         break;
@@ -1677,6 +1698,18 @@ bool GameMode::showSkillFromOptions(const CEGUI::EventArgs& /*e*/)
 {
     mRootWindow->getChild("GameOptionsWindow")->hide();
     showSkillWindow();
+    return true;
+}
+
+bool GameMode::loadGame(const CEGUI::EventArgs& /*e*/)
+{
+    if(!ODServer::getSingleton().isConnected())
+        return true;
+    if(!mLoadMenu)
+        mLoadMenu.reset(new MenuModeLoad(&getModeManager(), true));
+    // Retain the options window so returning from the browser restores its caller.
+    showOptionsWindow();
+    mLoadMenu->activate();
     return true;
 }
 

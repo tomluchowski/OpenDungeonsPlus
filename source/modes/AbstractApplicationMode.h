@@ -127,6 +127,9 @@ public:
     {}
 
 protected:
+    //! Close the frontmost visible GUI window through its existing cancel handler.
+    bool closeTopWindow();
+
     ModeManager& getModeManager()
     {
         return *mModeManager;

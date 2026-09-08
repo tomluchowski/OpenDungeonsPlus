@@ -38,6 +38,7 @@ class Creature;
 class CreaturePanel;
 class GameEntity;
 class MiniMapDrawnFull;
+class MenuModeLoad;
 
 enum class SpellType;
 enum class SkillType;
@@ -216,6 +217,7 @@ protected:
     bool showObjectivesFromOptions(const CEGUI::EventArgs& e = {});
     bool showSkillFromOptions(const CEGUI::EventArgs& e = {});
     bool saveGame(const CEGUI::EventArgs& e = {});
+    bool loadGame(const CEGUI::EventArgs& e = {});
     bool showSettingsFromOptions(const CEGUI::EventArgs& e = {});
 
     //! \brief Handle the keyboard input in normal mode
@@ -248,6 +250,7 @@ private:
     EventMessage* mSelectedEventMessage = nullptr;
     float mEventMessageFlashTime = 0.0f;
 
+    std::unique_ptr<MenuModeLoad> mLoadMenu;
     //! \brief Whether the pending exit confirmation should leave to the desktop
     //! rather than back to the main menu. Set by the button that opened the
     //! confirmation popup.

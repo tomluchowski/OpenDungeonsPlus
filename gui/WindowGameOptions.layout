@@ -25,8 +25,7 @@
             <Property name="Area" value="{{0,24},{0,174},{1,-24},{0,212}}" />
             <Property name="IconImage" value="OpenDungeonsIcons/LoadIcon" />
             <Property name="Text" value="Load Game (F8)" />
-            <Property name="Disabled" value="True" />
-            <Property name="TooltipText" value="Not implemented yet" />
+            <Property name="TooltipText" value="Load a saved game." />
         </Window>
         <Window type="OD/IconButton" name="SettingsButton" >
             <Property name="Area" value="{{0,24},{0,220},{1,-24},{0,258}}" />
