@@ -38,6 +38,9 @@
 #include <CEGUI/widgets/PushButton.h>
 #include <CEGUI/widgets/TabControl.h>
 #include <CEGUI/widgets/TabButton.h>
+#include <CEGUI/widgets/Combobox.h>
+#include <CEGUI/widgets/ScrollablePane.h>
+#include <CEGUI/widgets/ScrolledContainer.h>
 #include <CEGUI/Event.h>
 
 #include <algorithm>
@@ -717,6 +720,28 @@ void Gui::applyScale(const CEGUI::Sizef& displaySize)
         arrangeRoomButtons(gameSheet->second->getChild(TAB_ROOMS));
         arrangeTrapButtons(gameSheet->second->getChild(TAB_TRAPS));
         arrangeSpellButtons(gameSheet->second->getChild(TAB_SPELLS));
+    }
+
+    for(const auto& scaledWindow : mScaledWindows)
+    {
+        CEGUI::ScrollablePane* pane = dynamic_cast<CEGUI::ScrollablePane*>(scaledWindow.first);
+        if(pane == nullptr || !pane->isUserStringDefined("VisibleControlExtent"))
+            continue;
+        const CEGUI::ScrolledContainer* content = pane->getContentPane();
+        const CEGUI::Vector2f origin = content->getUnclippedOuterRect().get().getPosition();
+        CEGUI::Rectf extent(0, 0, 0, 0);
+        for(size_t i = 0; i < content->getChildCount(); ++i)
+        {
+            CEGUI::Window* child = content->getChildAtIdx(i);
+            if(!child->isVisible())
+                continue;
+            CEGUI::Rectf area = child->getUnclippedOuterRect().get();
+            if(dynamic_cast<CEGUI::Combobox*>(child) != nullptr)
+                area.d_max.d_y = child->getChild("__auto_editbox__")->getUnclippedOuterRect().get().bottom();
+            extent.d_max.d_x = std::max(extent.right(), area.right() - origin.d_x);
+            extent.d_max.d_y = std::max(extent.bottom(), area.bottom() - origin.d_y);
+        }
+        pane->setContentPaneArea(extent);
     }
 
     CEGUI::System::getSingleton().getDefaultGUIContext().markAsDirty();
