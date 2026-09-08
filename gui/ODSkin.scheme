@@ -2,13 +2,16 @@
     <Imageset filename="ODSkin.imageset" name="OpenDungeonsSkin" />
     <Imageset filename="ODIcons.imageset" name="OpenDungeonsIcons" />
     <Imageset filename="ODLogo.imageset" name="ODLogo" />
+    <Imageset filename="ODMainMenuLogo.imageset" name="ODMainMenuLogo" />
     <Imageset filename="ODBackgrounds.imageset" name="ODBackgrounds" />
+    <Imageset filename="ODHudSurface.imageset" name="ODHudSurface" />
     <Imageset filename="ODMainMenuButtons.imageset" name="ODMainMenuButtons" />
     <Imageset filename="ODMainMenuBackground.imageset" name="ODMainMenuBackground" />
     <Imageset filename="ODAdvertisment.imageset" name="ODAdvertisment" />    
     <Font filename="LiberationSans-10.font" name="LiberationSans-10" />
     <Font filename="LiberationSans-20.font" name="LiberationSans-20" />
     <Font filename="MedievalSharp-10.font" name="MedievalSharp-10" />
+    <Font filename="MedievalSharp-8.font" name="MedievalSharp-8" />
     <Font filename="MedievalSharp-12.font" name="MedievalSharp-12" />
     <LookNFeel filename="OD.looknfeel" />
     <WindowRendererSet filename="CEGUICoreWindowRendererSet" />
@@ -18,6 +21,7 @@
     <FalagardMapping lookNFeel="OD/ImageButton" renderer="Core/Button" targetType="CEGUI/PushButton" windowType="OD/ImageButton" />
     <FalagardMapping lookNFeel="OD/IconButton" renderer="Core/Button" targetType="CEGUI/PushButton" windowType="OD/IconButton" />
     <FalagardMapping lookNFeel="OD/GameTabButton" renderer="Core/Button" targetType="CEGUI/PushButton" windowType="OD/GameTabButton" />
+    <FalagardMapping lookNFeel="OD/MiniMapCornerButton" renderer="Core/Button" targetType="OD/MiniMapCornerBase" windowType="OD/MiniMapCornerButton" />
     <FalagardMapping lookNFeel="OD/InvisibleButton" renderer="Core/Button" targetType="CEGUI/PushButton" windowType="OD/InvisibleButton" />
     <FalagardMapping lookNFeel="OD/MainMenuButton" renderer="Core/Button" targetType="CEGUI/PushButton" windowType="OD/MainMenuButton" />
     <FalagardMapping lookNFeel="OD/Checkbox" renderer="Core/ToggleButton" targetType="CEGUI/ToggleButton" windowType="OD/Checkbox" />
@@ -57,4 +61,17 @@
     <FalagardMapping lookNFeel="OD/Tooltip" renderer="Core/Tooltip" targetType="CEGUI/Tooltip" windowType="OD/Tooltip" />
     <FalagardMapping lookNFeel="OD/StaticImage" renderer="Core/StaticImage" targetType="DefaultWindow" windowType="OD/StaticImage" />
     <FalagardMapping lookNFeel="OD/StaticText" renderer="Core/StaticText" targetType="DefaultWindow" windowType="OD/StaticText" />
+    <FalagardMapping lookNFeel="OD/ResourceDisplay" renderer="Core/StaticText" targetType="DefaultWindow" windowType="OD/ResourceDisplay" />
+    <FalagardMapping lookNFeel="OD/MenuSymbolButton" renderer="Core/Button" targetType="CEGUI/PushButton" windowType="OD/MenuSymbolButton" />
+    <FalagardMapping lookNFeel="OD/MenuScrollbarThumb" renderer="Core/Button" targetType="CEGUI/Thumb" windowType="OD/MenuScrollbarThumb" />
+    <FalagardMapping lookNFeel="OD/MenuScrollbar" renderer="Core/Scrollbar" targetType="CEGUI/Scrollbar" windowType="OD/MenuScrollbar" />
+    <Font filename="MedievalSharp-20.font" name="MedievalSharp-20" />
+    <FalagardMapping lookNFeel="OD/MenuTextButton" renderer="Core/Button" targetType="CEGUI/PushButton" windowType="OD/MenuTextButton" />
+    <FalagardMapping lookNFeel="OD/MenuTitle" renderer="Core/StaticText" targetType="DefaultWindow" windowType="OD/MenuTitle" />
+    <FalagardMapping lookNFeel="OD/MenuScrollablePane" renderer="Core/ScrollablePane" targetType="CEGUI/ScrollablePane" windowType="OD/MenuScrollablePane" />
+    <FalagardMapping lookNFeel="OD/MenuListbox" renderer="Core/Listbox" targetType="CEGUI/Listbox" windowType="OD/MenuListbox" />
+    <FalagardMapping lookNFeel="OD/MenuMultiColumnList" renderer="Core/MultiColumnList" targetType="CEGUI/MultiColumnList" windowType="OD/MenuMultiColumnList" />
+    <FalagardMapping lookNFeel="OD/MenuPageWindow" renderer="Core/FrameWindow" targetType="CEGUI/FrameWindow" windowType="OD/MenuSelectionWindow" />
+    <FalagardMapping lookNFeel="OD/SettingsSlider" renderer="Core/Slider" targetType="CEGUI/Slider" windowType="OD/SettingsSlider" />
+    <FalagardMapping lookNFeel="OD/SettingsSliderThumb" renderer="Core/Button" targetType="CEGUI/Thumb" windowType="OD/SettingsSliderThumb" />
 </GUIScheme>
