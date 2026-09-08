@@ -102,7 +102,10 @@ enum class ServerNotificationType
     //! \brief Answer to the editor asking what the waves of a wave portal are
     editorPortalWaveData,
 
-    exit
+    exit,
+
+    // Sent only to clients that negotiated live nickname changes.
+    playerNickChanged
 };
 
 ODPacket& operator<<(ODPacket& os, const ServerNotificationType& nt);

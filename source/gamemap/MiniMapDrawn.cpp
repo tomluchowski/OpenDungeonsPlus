@@ -96,6 +96,8 @@ MiniMapDrawn::~MiniMapDrawn()
 
 Ogre::Vector2 MiniMapDrawn::camera_2dPositionFromClick(int xx, int yy)
 {
+    mTopLeftCornerX = static_cast<int>(mMiniMapWindow->getPixelPosition().d_x);
+    mTopLeftCornerY = static_cast<int>(mMiniMapWindow->getPixelPosition().d_y);
     Ogre::Real mm, nn, oo, pp;
     // Compute move and normalise
     mm = (xx - mTopLeftCornerX) / static_cast<double>(mWidth) - 0.5;
