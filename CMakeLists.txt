@@ -377,6 +377,7 @@ set(OD_SOURCEFILES
     ${SRC}/modes/ConsoleInterface.cpp
     ${SRC}/modes/EditorMode.cpp
     ${SRC}/modes/GameMode.cpp
+    ${SRC}/modes/InputCommand.cpp
     ${SRC}/modes/GameEditorModeBase.cpp
     ${SRC}/modes/GameEditorModeConsole.cpp
     ${SRC}/modes/InputBridge.cpp

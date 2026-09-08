@@ -177,6 +177,7 @@ class GameMode final : public GameEditorModeBase, public InputCommand
     void unselectAllTiles() override;
 
     void displayText(const Ogre::ColourValue& txtColour, const std::string& txt) override;
+    void displayPointerText(const Ogre::ColourValue& txtColour, const std::string& txt) override;
 
     //! \brief Called when the skill window is displayed. This function will call the Seat to get
     //! the current skill tree and update it as the player clicks on the skill buttons by calling
@@ -198,9 +199,8 @@ class GameMode final : public GameEditorModeBase, public InputCommand
     //! \brief Called at each frame. Updates spell cooldowns.
     void refreshSpellButtonCoolDowns();
 
-    //! \brief Called at each frame. Keeps the countdown next to the mouse pointer ticking
-    //! while a spell that is still cooling down is selected.
-    void refreshSpellCooldownText();
+    //! Refresh the selected action, target preview and resource/cooldown feedback without executing it.
+    void refreshActionFeedback(float elapsed);
 
     Creature* getClosestCreature(Tile*);
     
@@ -226,6 +226,8 @@ protected:
 
 private:
     std::unique_ptr<CreaturePanel> mCreaturePanel;
+    std::vector<CEGUI::Window*> mHeldCreatureIcons;
+    void refreshHeldCreatureIcons();
     //! \brief Whether the pending exit confirmation should leave to the desktop
     //! rather than back to the main menu. Set by the button that opened the
     //! confirmation popup.
@@ -235,9 +237,10 @@ private:
     //! this value is based on the first marked flag tile selected.
     bool mDigSetBool;
 
-    //! \brief Whether the text next to the mouse pointer is currently a spell cooldown
-    //! countdown, and thus whether it will need replacing once the cooldown runs out.
-    bool mIsSpellCooldownDisplayed;
+    std::string mActionTargetText;
+    bool mActionTargetValid = false;
+    std::vector<Tile*> mPreviewTiles;
+    std::vector<Tile*> mSelectedTiles;
 
     //! \brief Index of the event in the game event queue (for zooming automatically)
     uint32_t mIndexEvent;
@@ -294,6 +297,7 @@ private:
     bool toggleQuery(const CEGUI::EventArgs& e);
     GameEntity* getQueryTarget(Tile* tile) const;
     void handlePlayerActionQuery();
+    void updateSelectedTiles();
 
     //! \brief Builds the player settings window
     void buildPlayerSettingsWindow();

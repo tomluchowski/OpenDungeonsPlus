@@ -55,33 +55,16 @@ void TrapFactory::checkBuildTrapDefault(GameMap* gameMap, TrapType type, const I
     Player* player = gameMap->getLocalPlayer();
     int32_t pricePerTarget = TrapManager::costPerTile(type);
     int32_t playerGold = static_cast<int32_t>(player->getSeat()->getGold());
-    if(inputManager.mCommandState == InputCommandState::infoOnly)
-    {
-        if(playerGold < pricePerTarget)
-        {
-            std::string txt = formatBuildTrap(type, pricePerTarget);
-            inputCommand.displayText(Ogre::ColourValue::Red, txt);
-        }
-        else
-        {
-            std::string txt = formatBuildTrap(type, pricePerTarget);
-            inputCommand.displayText(Ogre::ColourValue::White, txt);
-        }
-        inputCommand.selectSquaredTiles(inputManager.mXPos, inputManager.mYPos, inputManager.mXPos,
-            inputManager.mYPos);
-        return;
-    }
-
     std::vector<Tile*> buildableTiles = gameMap->getBuildableTilesForPlayerInArea(inputManager.mXPos,
         inputManager.mYPos, inputManager.mLStartDragX, inputManager.mLStartDragY, player);
 
-    if(inputManager.mCommandState == InputCommandState::building)
+    if(inputManager.mCommandState != InputCommandState::validated)
         inputCommand.selectTiles(buildableTiles);
 
     if(buildableTiles.empty())
     {
-        std::string txt = formatBuildTrap(type, 0);
-        inputCommand.displayText(Ogre::ColourValue::White, txt);
+        inputCommand.displayTileBuildFailure(gameMap->getTile(inputManager.mXPos, inputManager.mYPos),
+            player->getSeat());
         return;
     }
 
@@ -89,7 +72,7 @@ void TrapFactory::checkBuildTrapDefault(GameMap* gameMap, TrapType type, const I
     if(playerGold < priceTotal)
     {
         std::string txt = formatBuildTrap(type, priceTotal);
-        inputCommand.displayText(Ogre::ColourValue::Red, txt);
+        inputCommand.displayText(Ogre::ColourValue::Red, "Not enough gold. " + txt);
         return;
     }
 
@@ -495,28 +478,6 @@ TrapType TrapManager::getTrapTypeFromTrapName(const std::string& name)
 void TrapManager::checkSellTrapTiles(GameMap* gameMap, const InputManager& inputManager, InputCommand& inputCommand)
 {
     Player* player = gameMap->getLocalPlayer();
-    if(inputManager.mCommandState == InputCommandState::infoOnly)
-    {
-        // We do not differentiate between Trap and trap (because there is no way to know on client side).
-        // Note that price = 0 doesn't mean that the building is not a Trap
-        Tile* tile = gameMap->getTile(inputManager.mXPos, inputManager.mYPos);
-        if((tile == nullptr) || (!tile->getIsTrap()) || (tile->getSeat() != player->getSeat()))
-        {
-            std::string txt = formatSellTrap(0);
-            inputCommand.displayText(Ogre::ColourValue::White, txt);
-            inputCommand.selectSquaredTiles(inputManager.mXPos, inputManager.mYPos, inputManager.mXPos, inputManager.mYPos);
-            return;
-        }
-
-        uint32_t price = tile->getRefundPriceTrap();
-        std::string txt = formatSellTrap(price);
-        inputCommand.displayText(Ogre::ColourValue::White, txt);
-        std::vector<Tile*> tiles;
-        tiles.push_back(tile);
-        inputCommand.selectTiles(tiles);
-        return;
-    }
-
     std::vector<Tile*> sellTiles;
     std::vector<Tile*> tiles = gameMap->rectangularRegion(inputManager.mXPos,
         inputManager.mYPos, inputManager.mLStartDragX, inputManager.mLStartDragY);
@@ -533,11 +494,18 @@ void TrapManager::checkSellTrapTiles(GameMap* gameMap, const InputManager& input
         priceTotal += tile->getRefundPriceTrap();
     }
 
-    if(inputManager.mCommandState == InputCommandState::building)
+    if(sellTiles.empty())
+    {
+        inputCommand.unselectAllTiles();
+        inputCommand.displayText(Ogre::ColourValue::Red, "Select a trap owned by you to sell.");
+        return;
+    }
+
+    inputCommand.displayText(Ogre::ColourValue::White, formatSellTrap(priceTotal));
+
+    if(inputManager.mCommandState != InputCommandState::validated)
     {
         inputCommand.selectTiles(sellTiles);
-        std::string txt = formatSellTrap(priceTotal);
-        inputCommand.displayText(Ogre::ColourValue::White, txt);
         return;
     }
 

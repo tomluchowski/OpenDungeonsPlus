@@ -161,5 +161,20 @@
         <LayoutImport type="DefaultWindow" filename="WindowEvent.layout" name="EventWindowImport" />
         <LayoutImport type="DefaultWindow" filename="WindowChat.layout" name="ChatWindowImport" />
         <LayoutImport type="DefaultWindow" filename="WindowHelp.layout" name="HelpWindowImport" />
+        <Window type="OD/StaticImage" name="HandActionIcon" >
+            <Property name="Area" value="{{0,0},{0,0},{0,50},{0,50}}" />
+            <Property name="Visible" value="False" />
+            <Property name="AlwaysOnTop" value="True" />
+            <Property name="MousePassThroughEnabled" value="True" />
+            <Property name="ClippedByParent" value="False" />
+            <Property name="FrameEnabled" value="False" />
+            <Property name="BackgroundEnabled" value="False" />
+        </Window>
+        <Window type="OD/StaticText" name="ContextInfo" >
+            <Property name="Area" value="{{0,404},{0,2},{1,-4},{0,44}}" />
+            <Property name="MousePassThroughEnabled" value="True" />
+            <Property name="TextParsingEnabled" value="False" />
+            <Property name="HorzFormatting" value="LeftAligned" />
+        </Window>
     </Window>
 </GUILayout>
