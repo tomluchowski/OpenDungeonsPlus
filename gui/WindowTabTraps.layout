@@ -2,41 +2,43 @@
 
 <GUILayout version="4" >
     <Window type="DefaultWindow" name="Traps" >
+        <UserString name="NavigationColour" value="FF8939A1" />
+        <UserString name="NavigationImage" value="OpenDungeonsIcons/NavigationWorkshop" />
         <Property name="Area" value="{{0,0},{0,0},{1,0},{1,0}}" />
-        <Property name="Text" value="[image-size='w:32 h:32'][image='OpenDungeonsIcons/WorkshopButton']" />
+        <Property name="Text" value="[image-size='w:40 h:40'][image='OpenDungeonsIcons/WorkshopButton']" />
         <Property name="MaxSize" value="{{1,0},{1,0}}" />
         <Property name="Visible" value="False" />
         <Property name="RiseOnClickEnabled" value="False" />
-        <Property name="TooltipText" value="Traps" />
+        <Property name="TooltipText" value="Workshop" />
         <Window type="OD/GameTabButton" name="DestroyTrapButton" >
-            <Property name="Area" value="{{0,20},{0,25},{0,80},{0,85}}" />
+            <Property name="Area" value="{{0,20},{0,6},{0,72},{0,58}}" />
             <Property name="NormalImage" value="OpenDungeonsIcons/DestroyTrapButton" />
             <Property name="TooltipText" value="Destroy a trap (returns half its price)" />
             <Property name="InheritsAlpha" value="False" />
         </Window>
         <Window type="OD/GameTabButton" name="CannonButton" >
-            <Property name="Area" value="{{0,100},{0,25},{0,160},{0,85}}" />
+            <Property name="Area" value="{{0,76},{0,6},{0,128},{0,58}}" />
             <Property name="NormalImage" value="OpenDungeonsIcons/CannonButton" />
             <Property name="TooltipText" value="Build a cannon" />
             <Property name="InheritsAlpha" value="False" />
             <Property name="Visible" value="False" />
         </Window>
         <Window type="OD/GameTabButton" name="SpikeTrapButton" >
-            <Property name="Area" value="{{0,160},{0,25},{0,220},{0,85}}" />
+            <Property name="Area" value="{{0,132},{0,6},{0,184},{0,58}}" />
             <Property name="NormalImage" value="OpenDungeonsIcons/SpikeTrapButton" />
             <Property name="TooltipText" value="Build a spike trap" />
             <Property name="InheritsAlpha" value="False" />
             <Property name="Visible" value="False" />
         </Window>
         <Window type="OD/GameTabButton" name="BoulderTrapButton" >
-            <Property name="Area" value="{{0,220},{0,25},{0,280},{0,85}}" />
+            <Property name="Area" value="{{0,188},{0,6},{0,240},{0,58}}" />
             <Property name="NormalImage" value="OpenDungeonsIcons/BoulderTrapButton" />
             <Property name="TooltipText" value="Build a boulder trap" />
             <Property name="InheritsAlpha" value="False" />
             <Property name="Visible" value="False" />
         </Window>
         <Window type="OD/GameTabButton" name="WoodenDoorTrapButton" >
-            <Property name="Area" value="{{0,280},{0,25},{0,340},{0,85}}" />
+            <Property name="Area" value="{{0,244},{0,6},{0,296},{0,58}}" />
             <Property name="NormalImage" value="OpenDungeonsIcons/WoodenDoorTrapButton" />
             <Property name="TooltipText" value="Build a wooden door" />
             <Property name="InheritsAlpha" value="False" />
