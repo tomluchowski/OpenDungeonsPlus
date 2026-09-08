@@ -19,6 +19,7 @@
 
 #include "camera/CameraManager.h"
 #include "entities/Creature.h"
+#include "entities/CreatureDefinition.h"
 #include "entities/GameEntityType.h"
 #include "entities/Tile.h"
 #include "game/Player.h"
@@ -34,6 +35,7 @@
 #include "network/ODClient.h"
 #include "network/ODServer.h"
 #include "render/Gui.h"
+#include "render/CreaturePanel.h"
 #include "render/ODFrameListener.h"
 #include "render/RenderManager.h"
 #include "render/TextRenderer.h"
@@ -102,6 +104,9 @@ GameMode::GameMode(ModeManager *modeManager):
     ODFrameListener::getSingleton().getCameraManager()->setDefaultView();
 
     CEGUI::Window* guiSheet = mRootWindow;
+
+    addEventConnection(guiSheet->getChild("QueryButton")->subscribeEvent(
+        CEGUI::PushButton::EventClicked, CEGUI::Event::Subscriber(&GameMode::toggleQuery, this)));
 
     //Help window
     addEventConnection(
@@ -283,6 +288,8 @@ GameMode::GameMode(ModeManager *modeManager):
     SkillManager::connectSkills(this, mRootWindow);
 
     syncTabButtonTooltips(Gui::MAIN_TABCONTROL);
+    mCreaturePanel.reset(new CreaturePanel(*mGameMap, modeManager->getGui(),
+        mRootWindow->getChild(Gui::TAB_CREATURES)));
 }
 
 GameMode::~GameMode()
@@ -591,33 +598,7 @@ bool GameMode::mousePressed(const OIS::MouseEvent& arg, OIS::MouseButtonID id)
 
     if (id == OIS::MB_Middle)
     {
-        // See if the mouse is over any entity that might display a stats window
-        std::vector<GameEntity*> entities;
-        tileClicked->fillWithEntities(entities, SelectionEntityWanted::any, mGameMap->getLocalPlayer());
-        // We search the closest creature alive
-        GameEntity* closestEntity = nullptr;
-        double closestDist = 0;
-        for(GameEntity* entity : entities)
-        {
-            if(!entity->canDisplayStatsWindow(mGameMap->getLocalPlayer()->getSeat()))
-                continue;
-
-            const Ogre::Vector3& entityPos = entity->getPosition();
-            double dist = Pathfinding::squaredDistance(entityPos.x, inputManager.mKeeperHandPos.x, entityPos.y, inputManager.mKeeperHandPos.y);
-            if(closestEntity == nullptr)
-            {
-                closestDist = dist;
-                closestEntity = entity;
-                continue;
-            }
-
-            if(dist >= closestDist)
-                continue;
-
-            closestDist = dist;
-            closestEntity = entity;
-        }
-
+        GameEntity* closestEntity = getQueryTarget(tileClicked);
         if(closestEntity == nullptr)
         {
             if(showTileDebugWindow)
@@ -1051,6 +1032,24 @@ void GameMode::refreshMainUI()
     tempSS << mySeat->getMana() << " " << (mySeat->getManaDelta() >= 0 ? "+" : "-")
             << mySeat->getManaDelta();
     widget->setText(tempSS.str());
+    unsigned int workers = 0;
+    unsigned int fighters = 0;
+    for(Creature* creature : mGameMap->getCreaturesBySeat(mySeat))
+    {
+        if(!creature->tryPickup(mySeat))
+            continue;
+        if(creature->getDefinition()->isWorker())
+            ++workers;
+        else
+            ++fighters;
+    }
+    guiSheet->getChild(Gui::BUTTON_CREATURE_WORKER + "/Count")->setText(Helper::toString(workers));
+    guiSheet->getChild(Gui::BUTTON_CREATURE_FIGHTER + "/Count")->setText(Helper::toString(fighters));
+}
+
+void GameMode::refreshCreaturePanel(const CreaturePanelData& data)
+{
+    mCreaturePanel->setData(data);
 }
 
 void GameMode::refreshPlayerGoals(const std::string& goalsDisplayString)
@@ -1171,6 +1170,7 @@ void GameMode::onFrameStarted(const Ogre::FrameEvent& evt)
         return;
     }
     player->frameStarted(evt.timeSinceLastFrame);
+    mCreaturePanel->update();
 
     // After frameStarted, so that the countdown shown is the one just computed.
     refreshSpellCooldownText();
@@ -1813,12 +1813,71 @@ void GameMode::checkInputCommand()
         case SelectedAction::buildTrap:
             TrapManager::checkBuildTrap(mGameMap, mPlayerSelection.getNewTrapType(), inputManager, *this);
             return;
+        case SelectedAction::queryEntity:
+            handlePlayerActionQuery();
+            return;
         case SelectedAction::destroyTrap:
             TrapManager::checkSellTrapTiles(mGameMap, inputManager, *this);
             return;
         default:
             return;
     }
+}
+
+bool GameMode::toggleQuery(const CEGUI::EventArgs& e)
+{
+    if(!isConnected() || mGameMap->getGamePaused())
+        return true;
+
+    InputManager& inputManager = mModeManager->getInputManager();
+    inputManager.mLMouseDown = false;
+    inputManager.mCommandState = InputCommandState::infoOnly;
+    mPlayerSelection.setCurrentAction(mPlayerSelection.getCurrentAction() == SelectedAction::queryEntity ?
+        SelectedAction::none : SelectedAction::queryEntity);
+    unselectAllTiles();
+    return true;
+}
+
+GameEntity* GameMode::getQueryTarget(Tile* tile) const
+{
+    if(tile == nullptr)
+        return nullptr;
+
+    const InputManager& inputManager = mModeManager->getInputManager();
+    Player* player = mGameMap->getLocalPlayer();
+    std::vector<GameEntity*> entities;
+    tile->fillWithEntities(entities, SelectionEntityWanted::any, player);
+    GameEntity* closest = nullptr;
+    double distance = 0.0;
+    for(GameEntity* entity : entities)
+    {
+        if(!entity->canDisplayStatsWindow(player->getSeat()))
+            continue;
+        const Ogre::Vector3& position = entity->getPosition();
+        const double candidate = Pathfinding::squaredDistance(position.x, inputManager.mKeeperHandPos.x,
+            position.y, inputManager.mKeeperHandPos.y);
+        if(closest == nullptr || candidate < distance)
+        {
+            closest = entity;
+            distance = candidate;
+        }
+    }
+    return closest;
+}
+
+void GameMode::handlePlayerActionQuery()
+{
+    const InputManager& inputManager = mModeManager->getInputManager();
+    GameEntity* entity = getQueryTarget(mGameMap->getTile(inputManager.mXPos, inputManager.mYPos));
+    if(entity == nullptr)
+    {
+        displayText(Ogre::ColourValue::Red, "Point at a creature to view its information.");
+        return;
+    }
+
+    displayText(Ogre::ColourValue::White, entity->getName());
+    if(inputManager.mCommandState == InputCommandState::validated)
+        entity->createStatsWindow();
 }
 
 void GameMode::handlePlayerActionNone()

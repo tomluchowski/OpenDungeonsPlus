@@ -342,6 +342,7 @@ set(OD_SOURCEFILES
 	${SRC}/eventsystem/Subject.cpp		
 	
     ${SRC}/game/Player.cpp
+    ${SRC}/game/CreaturePanelData.cpp
     ${SRC}/game/PlayerSelection.cpp
     ${SRC}/game/Skill.cpp
     ${SRC}/game/SkillManager.cpp
@@ -408,6 +409,8 @@ set(OD_SOURCEFILES
     ${SRC}/render/CreatureOverlayStatus.cpp
     ${SRC}/render/DebugDrawer.cpp    
     ${SRC}/render/Gui.cpp
+    ${SRC}/render/CreaturePortrait.cpp
+    ${SRC}/render/CreaturePanel.cpp
     ${SRC}/render/MovableTextOverlay.cpp
     ${SRC}/render/ODFrameListener.cpp
     ${SRC}/render/RenderManager.cpp
