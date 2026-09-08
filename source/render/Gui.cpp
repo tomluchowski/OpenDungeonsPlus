@@ -34,6 +34,7 @@
 #include <CEGUI/System.h>
 #include <CEGUI/WindowManager.h>
 #include <CEGUI/widgets/PushButton.h>
+#include <CEGUI/widgets/Tooltip.h>
 #include <CEGUI/Event.h>
 
 Gui::Gui(SoundEffectsManager* soundEffectsManager, const std::string& ceguiLogFileName, Ogre::RenderTarget &renderTarget)
@@ -66,6 +67,18 @@ Gui::Gui(SoundEffectsManager* soundEffectsManager, const std::string& ceguiLogFi
     context.getMouseCursor().setDefaultImage("OpenDungeonsSkin/MouseArrow");
     context.getMouseCursor().setVisible(true);
     context.setDefaultTooltipType("OD/Tooltip");
+    context.getDefaultTooltipObject()->subscribeEvent(CEGUI::Window::EventMoved,
+        CEGUI::Event::Subscriber([](const CEGUI::EventArgs& e)
+        {
+            CEGUI::Window* tooltip = static_cast<const CEGUI::WindowEventArgs&>(e).window;
+            const CEGUI::Rectf bounds = tooltip->getUnclippedOuterRect().get();
+            const CEGUI::Sizef screen = tooltip->getRootContainerSize();
+            const float x = std::max(0.0f, std::min(bounds.left(), screen.d_width - bounds.getWidth()));
+            const float y = std::max(0.0f, std::min(bounds.top(), screen.d_height - bounds.getHeight()));
+            if(x != bounds.left() || y != bounds.top())
+                tooltip->setPosition(CEGUI::UVector2(CEGUI::UDim(0, x), CEGUI::UDim(0, y)));
+            return true;
+        }));
     CEGUI::WindowManager* wmgr = CEGUI::WindowManager::getSingletonPtr();
     mSheets[hideGui] = wmgr->createWindow("DefaultWindow", "DummyWindow");
     mSheets[inGameMenu] = wmgr->loadLayoutFromFile("ModeGame.layout");
