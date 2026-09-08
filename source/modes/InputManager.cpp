@@ -29,6 +29,14 @@
 
 #include <OISInputManager.h>
 #include <OgreRenderWindow.h>
+#include <CEGUI/System.h>
+#include <CEGUI/GUIContext.h>
+#include <algorithm>
+#include <exception>
+
+#if defined OIS_WIN32_PLATFORM && !defined OD_USE_SFML_WINDOW
+#include <windows.h>
+#endif
 
 InputManager::InputManager(Ogre::RenderWindow* renderWindow):
     mInputManager(nullptr),
@@ -52,7 +60,10 @@ InputManager::InputManager(Ogre::RenderWindow* renderWindow):
     mMouse(nullptr),
     mCurrentAMode(nullptr),
     mHighlightedCreature(nullptr),
-    mCreatureTypeForOutliner(SelectionEntityWanted::creatureAliveAllied)
+    mCreatureTypeForOutliner(SelectionEntityWanted::creatureAliveAllied),
+    mRenderWindow(renderWindow),
+    mMouseGrab(false),
+    mKeyboardGrab(false)
 #ifdef OD_USE_SFML_WINDOW
     ,
     mListener(Utils::make_unique<SFMLToOISListener>(mCurrentAMode, renderWindow->getWidth(), renderWindow->getHeight()))
@@ -67,17 +78,20 @@ InputManager::InputManager(Ogre::RenderWindow* renderWindow):
         mHotkeyLocation[i].qq = Ogre::Quaternion::IDENTITY;
     }
 
+    ConfigManager& config = ConfigManager::getSingleton();
+    createInputDevices(config.getInputValue(Config::MOUSE_GRAB, "No", false) == "Yes",
+                       config.getInputValue(Config::KEYBOARD_GRAB, "No", false) == "Yes");
+}
+
+void InputManager::createInputDevices(bool mouseGrab, bool keyboardGrab)
+{
 #ifndef OD_USE_SFML_WINDOW
 
     // Get the Window attribute for OIS.
     size_t windowHnd = 0;
-    renderWindow->getCustomAttribute("WINDOW", &windowHnd);
+    mRenderWindow->getCustomAttribute("WINDOW", &windowHnd);
     std::ostringstream windowHndStr;
     windowHndStr << windowHnd;
-
-    ConfigManager& config = ConfigManager::getSingleton();
-    bool mouseGrab = config.getInputValue(Config::MOUSE_GRAB, "No", false) == "Yes";
-    bool keyboardGrab = config.getInputValue(Config::KEYBOARD_GRAB, "No", false) == "Yes";
 
     //setup parameter list for OIS
     OIS::ParamList paramList;
@@ -101,7 +115,7 @@ InputManager::InputManager(Ogre::RenderWindow* renderWindow):
     mInputManager = OIS::InputManager::createInputSystem(paramList);
 
     //setup Keyboard
-    auto oisKeyboard = static_cast<OIS::Keyboard*>(mInputManager->createInputObject(OIS::OISKeyboard, true));
+    OIS::Keyboard* oisKeyboard = static_cast<OIS::Keyboard*>(mInputManager->createInputObject(OIS::OISKeyboard, true));
 
     oisKeyboard->setTextTranslation(OIS::Keyboard::Unicode);
 
@@ -112,6 +126,11 @@ InputManager::InputManager(Ogre::RenderWindow* renderWindow):
 #else
     mKeyboard.reset(new Keyboard());
 #endif
+    mMouseGrab = mouseGrab;
+    mKeyboardGrab = keyboardGrab;
+    setWidthAndHeight(mRenderWindow->getWidth(), mRenderWindow->getHeight());
+    if(mCurrentAMode != nullptr)
+        setCurrentAMode(*mCurrentAMode);
 }
 
 template<> InputManager* Ogre::Singleton<InputManager>::msSingleton = nullptr;
@@ -120,12 +139,79 @@ template<> InputManager* Ogre::Singleton<InputManager>::msSingleton = nullptr;
 InputManager::~InputManager()
 {
     OD_LOG_INF("*** Destroying Input Manager ***");
-#ifndef OD_USE_SFML_WINDOW
-    mInputManager->destroyInputObject(mMouse);
-    mInputManager->destroyInputObject(mKeyboard->getKeyboard());
+    destroyInputDevices();
+}
 
-    OIS::InputManager::destroyInputSystem(mInputManager);
+void InputManager::destroyInputDevices()
+{
+#ifndef OD_USE_SFML_WINDOW
+    if(mInputManager != nullptr)
+    {
+        if(mMouse != nullptr)
+            mInputManager->destroyInputObject(mMouse);
+        if(mKeyboard != nullptr)
+            mInputManager->destroyInputObject(mKeyboard->getKeyboard());
+        OIS::InputManager::destroyInputSystem(mInputManager);
+    }
     mInputManager = nullptr;
+    mMouse = nullptr;
+#endif
+    mKeyboard.reset();
+}
+
+void InputManager::refreshSettings()
+{
+    // Called before capturing input, never from inside an OIS callback.
+    ConfigManager& config = ConfigManager::getSingleton();
+    const bool mouseGrab = config.getInputValue(Config::MOUSE_GRAB, "No", false) == "Yes";
+    const bool keyboardGrab = config.getInputValue(Config::KEYBOARD_GRAB, "No", false) == "Yes";
+    if(mouseGrab == mMouseGrab && keyboardGrab == mKeyboardGrab)
+        return;
+
+    const bool previousMouseGrab = mMouseGrab;
+    const bool previousKeyboardGrab = mKeyboardGrab;
+    destroyInputDevices();
+    try
+    {
+        createInputDevices(mouseGrab, keyboardGrab);
+    }
+    catch(const std::exception& error)
+    {
+        OD_LOG_ERR("Could not apply input capture settings: " + std::string(error.what()));
+        destroyInputDevices();
+        config.setInputValue(Config::MOUSE_GRAB, previousMouseGrab ? "Yes" : "No");
+        config.setInputValue(Config::KEYBOARD_GRAB, previousKeyboardGrab ? "Yes" : "No");
+        config.saveUserConfig();
+        createInputDevices(previousMouseGrab, previousKeyboardGrab);
+    }
+    mLMouseDown = mRMouseDown = mMMouseDown = false;
+}
+
+bool InputManager::setRenderWindow(Ogre::RenderWindow* renderWindow)
+{
+    if(renderWindow == mRenderWindow)
+        return true;
+
+#ifdef OD_USE_SFML_WINDOW
+    return false;
+#else
+    Ogre::RenderWindow* previousWindow = mRenderWindow;
+    destroyInputDevices();
+    mRenderWindow = renderWindow;
+    try
+    {
+        createInputDevices(mMouseGrab, mKeyboardGrab);
+    }
+    catch(const std::exception& error)
+    {
+        OD_LOG_ERR("Could not move input to the new render window: " + std::string(error.what()));
+        destroyInputDevices();
+        mRenderWindow = previousWindow;
+        createInputDevices(mMouseGrab, mKeyboardGrab);
+        return false;
+    }
+    mLMouseDown = mRMouseDown = mMMouseDown = false;
+    return true;
 #endif
 }
 
@@ -135,6 +221,36 @@ void InputManager::setWidthAndHeight(int width, int height)
     const OIS::MouseState& ms = mMouse->getMouseState();
     ms.width = width;
     ms.height = height;
+#endif
+}
+
+void InputManager::setMousePosition(int x, int y)
+{
+#ifndef OD_USE_SFML_WINDOW
+    OIS::MouseState& state = const_cast<OIS::MouseState&>(mMouse->getMouseState());
+    x = (std::max)(0, (std::min)(x, state.width - 1));
+    y = (std::max)(0, (std::min)(y, state.height - 1));
+#if defined OIS_WIN32_PLATFORM
+    size_t windowHandle = 0;
+    mRenderWindow->getCustomAttribute("WINDOW", &windowHandle);
+    const HWND window = reinterpret_cast<HWND>(windowHandle);
+    POINT point = {x, y};
+    if(GetForegroundWindow() == window && ClientToScreen(window, &point))
+        SetCursorPos(point.x, point.y);
+#else
+    if(!mMouseGrab)
+        return;
+#endif
+    // Discard motion accumulated during loading without dispatching input.
+    OIS::MouseListener* listener = mMouse->getEventCallback();
+    mMouse->setEventCallback(nullptr);
+    mMouse->capture();
+    mMouse->setEventCallback(listener);
+    state.X.abs = x;
+    state.Y.abs = y;
+    state.X.rel = state.Y.rel = state.Z.rel = 0;
+    CEGUI::System::getSingleton().getDefaultGUIContext().injectMousePosition(
+        static_cast<float>(x), static_cast<float>(y));
 #endif
 }
 

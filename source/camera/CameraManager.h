@@ -163,6 +163,9 @@ public:
     Ogre::Viewport* getViewport()
     { return mViewport; }
 
+    //! \brief Move the main camera viewport to another render window.
+    void setRenderWindow(Ogre::RenderWindow* renderWindow);
+
     void resetHCSNodes(int nodeValue)
     {
         mXHCS.resetNodes(nodeValue);

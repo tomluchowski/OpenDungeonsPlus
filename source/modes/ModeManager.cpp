@@ -32,6 +32,9 @@
 #include "modes/GameMode.h"
 #include "modes/EditorMode.h"
 #include "utils/MakeUnique.h"
+#include "render/Gui.h"
+
+#include <CEGUI/Window.h>
 
 
 ModeManager::ModeManager(Ogre::RenderWindow* renderWindow, Gui* gui) :
@@ -78,6 +81,7 @@ void ModeManager::checkModeChange()
     if (mRequestedMode == NONE)
         return;
 
+    const bool initialMode = mCurrentApplicationMode == nullptr;
     ModeType previousMode = NONE;
     if(mCurrentApplicationMode != nullptr)
     {
@@ -144,6 +148,16 @@ void ModeManager::checkModeChange()
 
     mCurrentApplicationMode->activate();
 
+    if((initialMode && mRequestedMode == MENU_MAIN) || mRequestedMode == GAME)
+    {
+        CEGUI::Window* navigation = mRequestedMode == GAME
+            ? mGui->getGuiSheet(Gui::inGameMenu)->getChild(Gui::MAIN_TABCONTROL)
+            : mGui->getGuiSheet(Gui::mainMenu)->getChild("StartSkirmishButton");
+        const CEGUI::Rectf area = navigation->getUnclippedOuterRect().get();
+        mInputManager.setMousePosition(static_cast<int>((area.left() + area.right()) * 0.5f),
+                                       static_cast<int>((area.top() + area.bottom()) * 0.5f));
+    }
+
     // Add the previous mode to mode types history when relevant.
     if (previousMode != NONE && mStoreCurrentModeAtChange)
         mPreviousModeTypes.push_back(previousMode);
@@ -154,6 +168,7 @@ void ModeManager::checkModeChange()
 void ModeManager::update(const Ogre::FrameEvent& evt)
 {
     checkModeChange();
+    mInputManager.refreshSettings();
 
     // We update the current mode
     AbstractApplicationMode* currentMode = getCurrentMode();
