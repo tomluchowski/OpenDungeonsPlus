@@ -24,6 +24,7 @@
 
 
 #include <vector>
+#include <string>
 
 class Gui;
 
@@ -36,11 +37,13 @@ public:
     //! \brief Settings window constructor
     //! \param rootWindow The main CEGUI window used as background to the current mode.
     //! Used to load and later show the settings window.
-    SettingsWindow(CEGUI::Window* rootWindow, Gui& gui);
+    SettingsWindow(CEGUI::Window* rootWindow, Gui& gui, bool menuPages = false, bool gamePage = false);
 
     ~SettingsWindow();
 
     void show();
+
+    void showPage(const std::string& name);
 
     void hide();
 

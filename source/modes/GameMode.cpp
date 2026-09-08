@@ -110,7 +110,7 @@ GameMode::GameMode(ModeManager *modeManager):
     GameEditorModeBase(modeManager, ModeManager::GAME, modeManager->getGui().getGuiSheet(Gui::guiSheet::inGameMenu)),
     mDigSetBool(false),
     mIndexEvent(0),
-    mSettings(mRootWindow, modeManager->getGui()),
+    mSettings(mRootWindow, modeManager->getGui(), false, true),
     mIsSkillWindowOpen(false),
     mCurrentSkillType(SkillType::nullSkillType),
     mCurrentSkillProgress(0.0),
@@ -118,6 +118,21 @@ GameMode::GameMode(ModeManager *modeManager):
     showTileDebugWindow(false),
     config(ConfigManager::getSingleton())
 {
+    // Raise newly opened game dialogs above the HUD and older dialogs.
+    for(size_t index = 0; index < mRootWindow->getChildCount(); ++index)
+    {
+        CEGUI::Window* window = mRootWindow->getChildAtIdx(index);
+        if(dynamic_cast<CEGUI::FrameWindow*>(window) == nullptr)
+            continue;
+        addEventConnection(window->subscribeEvent(CEGUI::Window::EventShown,
+            CEGUI::Event::Subscriber([window](const CEGUI::EventArgs&)
+            {
+                window->setAlwaysOnTop(true);
+                window->moveToFront();
+                return true;
+            })));
+    }
+
     addEventConnection(mRootWindow->getChild("MiniMapZoomButton")->subscribeEvent(
         CEGUI::Window::EventMouseClick, CEGUI::Event::Subscriber(&GameMode::zoomMiniMap, this)));
     addEventConnection(mRootWindow->getChild("MapWindow")->subscribeEvent(
@@ -143,6 +158,7 @@ GameMode::GameMode(ModeManager *modeManager):
         CEGUI::PushButton::EventClicked, CEGUI::Event::Subscriber(&GameMode::storeUserCamera, this)));
 
     // Set per default the input on the map
+    initializeSettingsNavigation();
     mModeManager->getInputManager().mMouseDownOnCEGUIWindow = false;
 
     ODFrameListener::getSingleton().getCameraManager()->setDefaultView();
@@ -260,9 +276,15 @@ GameMode::GameMode(ModeManager *modeManager):
     addEventConnection(
         guiSheet->getChild("GameOptionsWindow")->subscribeEvent(
             CEGUI::FrameWindow::EventCloseClicked,
-            CEGUI::Event::Subscriber(&GameMode::hideOptionsWindow, this)
+            CEGUI::Event::Subscriber(&GameMode::closeOptionsWindow, this)
         )
     );
+    addEventConnection(guiSheet->getChild("GameOptionsWindow/EndGameButton")->subscribeEvent(
+        CEGUI::PushButton::EventClicked, CEGUI::Event::Subscriber(&GameMode::showEndGameFromOptions, this)));
+    addEventConnection(guiSheet->getChild("GameOptionsWindow/BackButton")->subscribeEvent(
+        CEGUI::PushButton::EventClicked, CEGUI::Event::Subscriber(&GameMode::showOptionsWindow, this)));
+    addEventConnection(guiSheet->getChild("GameOptionsWindow/ContinueButton")->subscribeEvent(
+        CEGUI::PushButton::EventClicked, CEGUI::Event::Subscriber(&GameMode::hideOptionsWindow, this)));
     addEventConnection(
         guiSheet->getChild("GameOptionsWindow/ObjectivesButton")->subscribeEvent(
             CEGUI::PushButton::EventClicked,
@@ -356,6 +378,7 @@ GameMode::~GameMode()
 {
     for(const MessageTab& tab : mMessageTabs)
         CEGUI::WindowManager::getSingleton().destroyWindow(tab.window);
+    mReturningToSettingsNavigation = false;
     RenderManager::getSingleton().rrEnableHeldCreatureDisplay(false, mGameMap->getLocalPlayer());
     for(CEGUI::Window* icon : mHeldCreatureIcons)
         CEGUI::WindowManager::getSingleton().destroyWindow(icon);
@@ -409,7 +432,10 @@ void GameMode::activate()
     guiSheet->getChild("ObjectivesWindow")->hide();
     guiSheet->getChild("PlayerSettingsWindow")->hide();
     guiSheet->getChild("SkillTreeWindow")->hide();
+    mReturningToSettingsNavigation = false;
     guiSheet->getChild("SettingsWindow")->hide();
+    guiSheet->getChild("SettingsNavigationWindow")->setModalState(false);
+    guiSheet->getChild("SettingsNavigationWindow")->hide();
     guiSheet->getChild("GameOptionsWindow")->hide();
     guiSheet->getChild("GameChatWindow/GameChatEditBox")->hide();
     guiSheet->getChild("GameHelpWindow")->hide();
@@ -1477,6 +1503,7 @@ void GameMode::popupExit(bool pause)
     if(pause)
     {
         mRootWindow->getChild(Gui::EXIT_CONFIRMATION_POPUP)->show();
+        mRootWindow->getChild(Gui::EXIT_CONFIRMATION_POPUP)->moveToFront();
     }
     else
     {
@@ -1525,7 +1552,9 @@ bool GameMode::onClickYesQuitMenu(const CEGUI::EventArgs& /*arg*/)
 
 bool GameMode::showObjectivesWindow(const CEGUI::EventArgs&)
 {
-    mRootWindow->getChild("ObjectivesWindow")->show();
+    CEGUI::Window* objectives = mRootWindow->getChild("ObjectivesWindow");
+    objectives->show();
+    objectives->moveToFront();
     return true;
 }
 
@@ -1648,6 +1677,7 @@ bool GameMode::toggleSkillWindow(const CEGUI::EventArgs& e)
 
 bool GameMode::showOptionsWindow(const CEGUI::EventArgs&)
 {
+    setOptionsPage(false);
     CEGUI::Window* options = mRootWindow->getChild("GameOptionsWindow");
     options->show();
     options->moveToFront();
@@ -1662,6 +1692,9 @@ bool GameMode::hideOptionsWindow(const CEGUI::EventArgs& /*e*/)
 
 bool GameMode::toggleOptionsWindow(const CEGUI::EventArgs& e)
 {
+    if(CEGUI::System::getSingleton().getDefaultGUIContext().getModalWindow() != nullptr)
+        return true;
+
     CEGUI::Window* options = mRootWindow->getChild("GameOptionsWindow");
 
     if (options->isVisible())
@@ -1671,10 +1704,34 @@ bool GameMode::toggleOptionsWindow(const CEGUI::EventArgs& e)
     return true;
 }
 
+void GameMode::setOptionsPage(bool endGame)
+{
+    CEGUI::Window* options = mRootWindow->getChild("GameOptionsWindow");
+    for(const char* name : {"ObjectivesButton", "SkillButton", "SaveGameButton", "LoadGameButton",
+        "SettingsButton", "EndGameButton", "HelpButton", "PlayerSettingsButton", "UserCamerasButton"})
+        options->getChild(name)->setVisible(!endGame);
+    for(const char* name : {"QuitGameButton", "ExitGameButton", "BackButton"})
+        options->getChild(name)->setVisible(endGame);
+    options->setText(endGame ? "End Game" : "Options");
+}
+
+bool GameMode::showEndGameFromOptions(const CEGUI::EventArgs&)
+{
+    setOptionsPage(true);
+    mRootWindow->getChild("GameOptionsWindow")->moveToFront();
+    return true;
+}
+
+bool GameMode::closeOptionsWindow(const CEGUI::EventArgs& e)
+{
+    if(mRootWindow->getChild("GameOptionsWindow/BackButton")->isVisible())
+        return showOptionsWindow(e);
+    return hideOptionsWindow(e);
+}
+
 bool GameMode::showQuitMenuFromOptions(const CEGUI::EventArgs& /*e*/)
 {
     mExitToDesktop = false;
-    mRootWindow->getChild("GameOptionsWindow")->hide();
     popupExit(!mGameMap->getGamePaused());
     return true;
 }
@@ -1682,16 +1739,14 @@ bool GameMode::showQuitMenuFromOptions(const CEGUI::EventArgs& /*e*/)
 bool GameMode::showExitApplicationFromOptions(const CEGUI::EventArgs& /*e*/)
 {
     mExitToDesktop = true;
-    mRootWindow->getChild("GameOptionsWindow")->hide();
     popupExit(!mGameMap->getGamePaused());
     return true;
 }
 
-bool GameMode::showObjectivesFromOptions(const CEGUI::EventArgs& /*e*/)
+bool GameMode::showObjectivesFromOptions(const CEGUI::EventArgs& e)
 {
     mRootWindow->getChild("GameOptionsWindow")->hide();
-    mRootWindow->getChild("ObjectivesWindow")->show();
-    return true;
+    return showObjectivesWindow(e);
 }
 
 bool GameMode::showSkillFromOptions(const CEGUI::EventArgs& /*e*/)
@@ -1860,8 +1915,68 @@ void GameMode::updateEventMessageIndicator(float elapsed)
 bool GameMode::showSettingsFromOptions(const CEGUI::EventArgs& /*e*/)
 {
     mRootWindow->getChild("GameOptionsWindow")->hide();
-    mSettings.show();
+    CEGUI::Window* navigation = mRootWindow->getChild("SettingsNavigationWindow");
+    navigation->setModalState(true);
+    navigation->show();
+    navigation->moveToFront();
     return true;
+}
+
+void GameMode::initializeSettingsNavigation()
+{
+    CEGUI::Window* navigation = mRootWindow->getChild("SettingsNavigationWindow");
+    navigation->hide();
+    auto closeNavigation = [navigation]()
+    {
+        navigation->setModalState(false);
+        navigation->hide();
+    };
+    for(const std::string& page : {"Video", "Audio", "Input", "Game"})
+    {
+        addEventConnection(navigation->getChild(page)->subscribeEvent(CEGUI::PushButton::EventClicked,
+            CEGUI::Event::Subscriber([this, closeNavigation, page](const CEGUI::EventArgs&)
+            {
+                closeNavigation();
+                mReturningToSettingsNavigation = true;
+                mSettings.showPage(page);
+                return true;
+            })));
+    }
+    addEventConnection(navigation->getChild("Cameras")->subscribeEvent(CEGUI::PushButton::EventClicked,
+        CEGUI::Event::Subscriber([this, closeNavigation](const CEGUI::EventArgs& e)
+        {
+            closeNavigation();
+            mReturningToSettingsNavigation = true;
+            return showUserCameras(e);
+        })));
+    addEventConnection(navigation->getChild("Continue")->subscribeEvent(CEGUI::PushButton::EventClicked,
+        CEGUI::Event::Subscriber([closeNavigation](const CEGUI::EventArgs&)
+        {
+            closeNavigation();
+            return true;
+        })));
+    auto back = [this, closeNavigation](const CEGUI::EventArgs& e)
+    {
+        closeNavigation();
+        return showOptionsWindow(e);
+    };
+    addEventConnection(navigation->getChild("Back")->subscribeEvent(CEGUI::PushButton::EventClicked,
+        CEGUI::Event::Subscriber(back)));
+    addEventConnection(navigation->subscribeEvent(CEGUI::FrameWindow::EventCloseClicked,
+        CEGUI::Event::Subscriber(back)));
+    for(const char* name : {"SettingsWindow", "UserCamerasWindow"})
+    {
+        addEventConnection(mRootWindow->getChild(name)->subscribeEvent(CEGUI::Window::EventHidden,
+            CEGUI::Event::Subscriber([this](const CEGUI::EventArgs&)
+            {
+                if(mReturningToSettingsNavigation)
+                {
+                    mReturningToSettingsNavigation = false;
+                    showSettingsFromOptions();
+                }
+                return true;
+            })));
+    }
 }
 
 bool GameMode::showHelpWindow(const CEGUI::EventArgs&)

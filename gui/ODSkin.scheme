@@ -65,4 +65,13 @@
     <FalagardMapping lookNFeel="OD/MenuSymbolButton" renderer="Core/Button" targetType="CEGUI/PushButton" windowType="OD/MenuSymbolButton" />
     <FalagardMapping lookNFeel="OD/MenuScrollbarThumb" renderer="Core/Button" targetType="CEGUI/Thumb" windowType="OD/MenuScrollbarThumb" />
     <FalagardMapping lookNFeel="OD/MenuScrollbar" renderer="Core/Scrollbar" targetType="CEGUI/Scrollbar" windowType="OD/MenuScrollbar" />
+    <Font filename="MedievalSharp-20.font" name="MedievalSharp-20" />
+    <FalagardMapping lookNFeel="OD/MenuTextButton" renderer="Core/Button" targetType="CEGUI/PushButton" windowType="OD/MenuTextButton" />
+    <FalagardMapping lookNFeel="OD/MenuTitle" renderer="Core/StaticText" targetType="DefaultWindow" windowType="OD/MenuTitle" />
+    <FalagardMapping lookNFeel="OD/MenuScrollablePane" renderer="Core/ScrollablePane" targetType="CEGUI/ScrollablePane" windowType="OD/MenuScrollablePane" />
+    <FalagardMapping lookNFeel="OD/MenuListbox" renderer="Core/Listbox" targetType="CEGUI/Listbox" windowType="OD/MenuListbox" />
+    <FalagardMapping lookNFeel="OD/MenuMultiColumnList" renderer="Core/MultiColumnList" targetType="CEGUI/MultiColumnList" windowType="OD/MenuMultiColumnList" />
+    <FalagardMapping lookNFeel="OD/MenuPageWindow" renderer="Core/FrameWindow" targetType="CEGUI/FrameWindow" windowType="OD/MenuSelectionWindow" />
+    <FalagardMapping lookNFeel="OD/SettingsSlider" renderer="Core/Slider" targetType="CEGUI/Slider" windowType="OD/SettingsSlider" />
+    <FalagardMapping lookNFeel="OD/SettingsSliderThumb" renderer="Core/Button" targetType="CEGUI/Thumb" windowType="OD/SettingsSliderThumb" />
 </GUIScheme>

@@ -46,7 +46,7 @@
 #include <map>
 #include <sstream>
 
-SettingsWindow::SettingsWindow(CEGUI::Window* rootWindow, Gui& gui):
+SettingsWindow::SettingsWindow(CEGUI::Window* rootWindow, Gui& gui, bool menuPages, bool gamePage):
     mSettingsWindow(nullptr),
     mApplyWindow(nullptr),
     mRootWindow(rootWindow),
@@ -67,6 +67,57 @@ SettingsWindow::SettingsWindow(CEGUI::Window* rootWindow, Gui& gui):
     }
     rootWindow->addChild(mSettingsWindow);
     mSettingsWindow->hide();
+    if(menuPages)
+    {
+        mSettingsWindow->setLookNFeel("OD/MenuPageWindow");
+        mSettingsWindow->setArea(CEGUI::URect(CEGUI::UDim(0.5f, -400), CEGUI::UDim(0.5f, -60),
+            CEGUI::UDim(0.5f, 400), CEGUI::UDim(1, -16)));
+        CEGUI::TabControl* tabs = static_cast<CEGUI::TabControl*>(mSettingsWindow->getChild("MainTabControl"));
+        tabs->setTabHeight(CEGUI::UDim(0, 0));
+        tabs->setArea(CEGUI::URect(CEGUI::UDim(0, 10), CEGUI::UDim(0, 72),
+            CEGUI::UDim(1, -10), CEGUI::UDim(1, -108)));
+        tabs->getChild("__auto_TabPane__")->setLookNFeel("OD/MenuPageContent");
+        for(const char* page : {"Video", "Audio", "Input", "Game"})
+            tabs->getChild(std::string(page) + "/" + page + "SP")->setUserString("TrimLeadingSpace", "true");
+        CEGUI::Window* title = wmgr->createWindow("OD/MenuTitle", "PageTitle");
+        title->setFont("MedievalSharp-20");
+        title->setArea(CEGUI::URect(CEGUI::UDim(0, 0), CEGUI::UDim(0, 0),
+            CEGUI::UDim(1, 0), CEGUI::UDim(0, 60)));
+        title->setMousePassThroughEnabled(true);
+        mSettingsWindow->addChild(title);
+    }
+    else if(gamePage)
+    {
+        mSettingsWindow->setLookNFeel("OD/GameSettingsWindow");
+        mSettingsWindow->setArea(CEGUI::URect(CEGUI::UDim(0, 0), CEGUI::UDim(0, 64),
+            CEGUI::UDim(1, 0), CEGUI::UDim(1, -192)));
+        CEGUI::TabControl* tabs = static_cast<CEGUI::TabControl*>(mSettingsWindow->getChild("MainTabControl"));
+        tabs->setArea(CEGUI::URect(CEGUI::UDim(0, 8), CEGUI::UDim(0, 64),
+            CEGUI::UDim(1, -8), CEGUI::UDim(1, -108)));
+        tabs->getChild("__auto_TabPane__")->setLookNFeel("OD/MenuPageContent");
+        CEGUI::Window* title = wmgr->createWindow("OD/StaticText", "PageTitle");
+        title->setFont("MedievalSharp-20");
+        title->setProperty("FrameEnabled", "False");
+        title->setProperty("BackgroundEnabled", "False");
+        title->setArea(CEGUI::URect(CEGUI::UDim(0, 8), CEGUI::UDim(0, 8),
+            CEGUI::UDim(1, -8), CEGUI::UDim(0, 48)));
+        title->setMousePassThroughEnabled(true);
+        mSettingsWindow->addChild(title);
+        auto updateTitle = [tabs, title](const CEGUI::EventArgs&)
+        {
+            const CEGUI::String& name = tabs->getTabContentsAtIndex(tabs->getSelectedTabIndex())->getName();
+            title->setText(name == "Video" ? "Graphics Options" : name == "Audio" ? "Sound Options" :
+                name == "Input" ? "Control Options" : "Game Options");
+            return true;
+        };
+        addEventConnection(tabs->subscribeEvent(CEGUI::TabControl::EventSelectionChanged,
+            CEGUI::Event::Subscriber(updateTitle)));
+        updateTitle(CEGUI::EventArgs());
+        tabs->getChild("Audio/AudioSP/MusicText")->setArea(CEGUI::URect(
+            CEGUI::UDim(0.5f, 32), CEGUI::UDim(0, 40), CEGUI::UDim(1, -48), CEGUI::UDim(0, 66)));
+        tabs->getChild("Audio/AudioSP/MusicSlider")->setArea(CEGUI::URect(
+            CEGUI::UDim(0.5f, 32), CEGUI::UDim(0, 78), CEGUI::UDim(1, -48), CEGUI::UDim(0, 104)));
+    }
 
     mApplyWindow = wmgr->loadLayoutFromFile("WindowApplyChanges.layout");
     if (mApplyWindow == nullptr)
@@ -413,7 +464,7 @@ void SettingsWindow::initConfig()
         videoCbText->setProperty("BackgroundEnabled", "False");
 
         CEGUI::Combobox* videoCb = static_cast<CEGUI::Combobox*>(videoTab->createChild("OD/Combobox", optionName));
-        videoCb->setArea(CEGUI::UDim(0.5, 0), CEGUI::UDim(0, 238 + offset), CEGUI::UDim(0.5, -20),
+        videoCb->setArea(CEGUI::UDim(0.45, 0), CEGUI::UDim(0, 238 + offset), CEGUI::UDim(0.55, -48),
                          CEGUI::UDim(0, config.possibleValues.size() * 17 + 30));
         videoCb->setReadOnly(true);
         videoCb->setSortingEnabled(true);
@@ -645,6 +696,15 @@ void SettingsWindow::show()
         mSettingsWindow->setModalState(true);
         mSettingsWindow->show();
     }
+}
+
+void SettingsWindow::showPage(const std::string& name)
+{
+    show();
+    static_cast<CEGUI::TabControl*>(mSettingsWindow->getChild("MainTabControl"))->setSelectedTab(name);
+    mSettingsWindow->setText(name == "Video" ? "Graphics Options" :
+        name == "Audio" ? "Sound Options" : name == "Input" ? "Control Options" : "Game Options");
+    mSettingsWindow->getChild("PageTitle")->setText(mSettingsWindow->getText());
 }
 
 void SettingsWindow::hide()

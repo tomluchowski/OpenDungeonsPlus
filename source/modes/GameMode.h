@@ -166,6 +166,9 @@ class GameMode final : public GameEditorModeBase, public InputCommand
     bool showOptionsWindow(const CEGUI::EventArgs& = {});
     bool hideOptionsWindow(const CEGUI::EventArgs& = {});
     bool toggleOptionsWindow(const CEGUI::EventArgs& = {});
+    bool closeOptionsWindow(const CEGUI::EventArgs& = {});
+    bool showEndGameFromOptions(const CEGUI::EventArgs& = {});
+    void setOptionsPage(bool endGame);
     bool toggleControlPanel(const CEGUI::EventArgs& = {});
 
     void toggleAllowTileDebugWindow(){ showTileDebugWindow = !showTileDebugWindow ;};
@@ -219,6 +222,7 @@ protected:
     bool saveGame(const CEGUI::EventArgs& e = {});
     bool loadGame(const CEGUI::EventArgs& e = {});
     bool showSettingsFromOptions(const CEGUI::EventArgs& e = {});
+    void initializeSettingsNavigation();
 
     //! \brief Handle the keyboard input in normal mode
     virtual bool keyPressedNormal   (const OIS::KeyEvent &arg);
@@ -270,6 +274,7 @@ private:
 
     //! \brief The settings window.
     SettingsWindow mSettings;
+    bool mReturningToSettingsNavigation = false;
 
     //! \brief Skills pending (Client side). This is copied from the seat for temporary changes while the
     //! player clicks on the skill tree window

@@ -2,22 +2,28 @@
 
 <GUILayout version="4" >
     <Window type="OD/FrameWindow" name="SettingsWindow" >
-        <Property name="Area" value="{{0.5,-272.5},{0.5,-250},{0.5,272.5},{0.5,250}}" />
+        <Property name="Area" value="{{0.5,-400},{0.5,-250},{0.5,400},{0.5,250}}" />
         <Property name="Text" value="Settings" />
         <Property name="SizingEnabled" value="False" />
         <Property name="AlwaysOnTop" value="True" />
-        <Window type="OD/IconButton" name="CancelButton" >
-            <Property name="Area" value="{{1,-230},{1,-55},{1,-130},{1,-25}}" />
-            <Property name="Text" value="Cancel" />
-            <Property name="IconImage" value="OpenDungeonsIcons/AbortIcon" />
+        <Window type="OD/MenuSymbolButton" name="CancelButton" >
+            <Property name="Area" value="{{1,-176},{1,-92.8},{1,-99.2},{1,-16}}" />
+            <Property name="Text" value="" />
+            <Property name="NormalImage" value="OpenDungeonsSkin/CloseButtonNormal" />
+            <Property name="HoverImage" value="OpenDungeonsSkin/CloseButtonNormal" />
+            <Property name="PushedImage" value="OpenDungeonsSkin/CloseButtonNormal" />
+            <Property name="TooltipText" value="Cancel" />
         </Window>
-        <Window type="OD/IconButton" name="ApplyButton" >
-            <Property name="Area" value="{{1,-125},{1,-55},{1,-25},{1,-25}}" />
-            <Property name="Text" value="Apply" />
-            <Property name="IconImage" value="OpenDungeonsIcons/CheckIcon" />
+        <Window type="OD/MenuSymbolButton" name="ApplyButton" >
+            <Property name="Area" value="{{1,-92.8},{1,-92.8},{1,-16},{1,-16}}" />
+            <Property name="Text" value="" />
+            <Property name="NormalImage" value="OpenDungeonsIcons/CheckIcon" />
+            <Property name="HoverImage" value="OpenDungeonsIcons/CheckIcon" />
+            <Property name="PushedImage" value="OpenDungeonsIcons/CheckIcon" />
+            <Property name="TooltipText" value="Apply" />
         </Window>
         <Window type="OD/TabControl" name="MainTabControl" >
-            <Property name="Area" value="{{0,10},{0,32},{1,-10},{1,-70}}" />
+            <Property name="Area" value="{{0,10},{0,32},{1,-10},{1,-108}}" />
             <Property name="TabHeight" value="{0,30}" />
             <Property name="RiseOnClickEnabled" value="False" />
             <Window type="DefaultWindow" name="Video" >
@@ -25,31 +31,31 @@
                 <Property name="Text" value="Video" />
                 <Property name="MaxSize" value="{{1,0},{1,0}}" />
                 <Property name="RiseOnClickEnabled" value="False" />
-                <Window type="OD/ScrollablePane" name="VideoSP" >
+                <Window type="OD/MenuScrollablePane" name="VideoSP" >
                     <UserString name="VisibleControlExtent" value="true" />
                     <Property name="ContentPaneAutoSized" value="False" />
                     <Property name="Area" value="{{0,0},{0,15},{1,0},{1,-5}}" />
                     <Window type="OD/StaticText" name="ResolutionText" >
-                        <Property name="Area" value="{{0,22},{0,20},{0,184},{0,46}}" />
+                        <Property name="Area" value="{{0,20},{0,20},{0.42,0},{0,46}}" />
                         <Property name="MaxSize" value="{{1,0},{1,0}}" />
                         <Property name="Text" value="Resolution:" />
                         <Property name="BackgroundEnabled" value="False" />
                         <Property name="FrameEnabled" value="False" />
                     </Window>
                     <Window type="OD/Combobox" name="ResolutionCombobox" >
-                        <Property name="Area" value="{{0,22},{0,48},{0,166},{0,168}}" />
+                        <Property name="Area" value="{{0.45,0},{0,20},{1,-48},{0,140}}" />
                         <Property name="ReadOnly" value="True" />
                     </Window>
                     <Window type="OD/Checkbox" name="FullscreenCheckbox" >
-                        <Property name="Area" value="{{0,202},{0,48},{0,302},{0,74}}" />
+                        <Property name="Area" value="{{0,20},{0,60},{0.42,0},{0,86}}" />
                         <Property name="Text" value="Fullscreen" />
                     </Window>
                     <Window type="OD/Checkbox" name="DynamicShadowsCheckbox" >
-                        <Property name="Area" value="{{0,322},{0,48},{0,502},{0,74}}" />
+                        <Property name="Area" value="{{0.45,0},{0,60},{1,-48},{0,86}}" />
                         <Property name="Text" value="Dynamic Shadows" />
                     </Window>                   
                     <Window type="OD/StaticText" name="RendererText" >
-                        <Property name="Area" value="{{0,22},{0,88},{0,184},{0,114}}" />
+                        <Property name="Area" value="{{0,20},{0,100},{0.42,0},{0,126}}" />
                         <Property name="MaxSize" value="{{1,0},{1,0}}" />
                         <Property name="Text" value="Renderer*:" />
                         <Property name="BackgroundEnabled" value="False" />
@@ -57,23 +63,23 @@
                         <Property name="TooltipText" value="* Needs a restart to be applied." />
                     </Window>
                     <Window type="OD/Combobox" name="RendererCombobox" >
-                        <Property name="Area" value="{{0,22},{0,116},{0,266},{0,236}}" />
+                        <Property name="Area" value="{{0.45,0},{0,100},{1,-48},{0,220}}" />
                         <Property name="ReadOnly" value="True" />
                         <Property name="TooltipText" value="* Needs a restart to be applied." />
                     </Window>
                     <Window type="OD/Checkbox" name="VSyncCheckbox" >
-                        <Property name="Area" value="{{0,22},{0,156},{0,166},{0,182}}" />
+                        <Property name="Area" value="{{0,20},{0,140},{0.42,0},{0,166}}" />
                         <Property name="Text" value="VSync" />
                     </Window>
                     <Window type="OD/StaticText" name="UIScaleText" >
-                        <Property name="Area" value="{{0,22},{0,194},{0,184},{0,220}}" />
+                        <Property name="Area" value="{{0,20},{0,180},{0.42,0},{0,206}}" />
                         <Property name="MaxSize" value="{{1,0},{1,0}}" />
                         <Property name="Text" value="UI Scale:" />
                         <Property name="BackgroundEnabled" value="False" />
                         <Property name="FrameEnabled" value="False" />
                     </Window>
                     <Window type="OD/Combobox" name="UIScaleCombobox" >
-                        <Property name="Area" value="{{0,202},{0,190},{0,346},{0,310}}" />
+                        <Property name="Area" value="{{0.45,0},{0,176},{1,-48},{0,296}}" />
                         <Property name="ReadOnly" value="True" />
                         <Property name="TooltipText" value="Scales the interface immediately. Apply saves the setting." />
                     </Window>
@@ -85,19 +91,19 @@
                 <Property name="MaxSize" value="{{1,0},{1,0}}" />
                 <Property name="Visible" value="False" />
                 <Property name="RiseOnClickEnabled" value="False" />
-                <Window type="OD/ScrollablePane" name="AudioSP" >
+                <Window type="OD/MenuScrollablePane" name="AudioSP" >
                     <UserString name="VisibleControlExtent" value="true" />
                     <Property name="ContentPaneAutoSized" value="False" />
                     <Property name="Area" value="{{0,0},{0,15},{1,0},{1,-5}}" />
                     <Window type="OD/StaticText" name="MusicText" >
-                        <Property name="Area" value="{{0,32},{0,40},{0,220},{0,66}}" />
+                        <Property name="Area" value="{{0,32},{0,40},{1,-48},{0,66}}" />
                         <Property name="MaxSize" value="{{1,0},{1,0}}" />
                         <Property name="Text" value="Music:" />
                         <Property name="BackgroundEnabled" value="False" />
                         <Property name="FrameEnabled" value="False" />
                     </Window>
-                    <Window type="OD/HorizontalSlider" name="MusicSlider" >
-                        <Property name="Area" value="{{0,32},{0,67},{0,327},{0,80}}" />
+                    <Window type="OD/SettingsSlider" name="MusicSlider" >
+                        <Property name="Area" value="{{0,32},{0,78},{1,-48},{0,104}}" />
                         <Property name="Text" value="" />
                         <Property name="VerticalSlider" value="False" />
                         <Property name="AutoRenderingSurface" value="True" />
@@ -112,34 +118,34 @@
                 <Property name="MaxSize" value="{{1,0},{1,0}}" />
                 <Property name="Visible" value="False" />
                 <Property name="RiseOnClickEnabled" value="False" />
-                <Window type="OD/ScrollablePane" name="InputSP" >
+                <Window type="OD/MenuScrollablePane" name="InputSP" >
                     <UserString name="VisibleControlExtent" value="true" />
                     <Property name="ContentPaneAutoSized" value="False" />
                     <Property name="Area" value="{{0,0},{0,0},{1,0},{1,0}}" />
                     <Window type="OD/Checkbox" name="KeyboardGrabCheckbox" >
-                        <Property name="Area" value="{{0,32},{0,40},{0,150},{0,66}}" />
+                        <Property name="Area" value="{{0,32},{0,40},{1,-48},{0,66}}" />
                         <Property name="Text" value="Keyboard grab" />
                         <Property name="TooltipText" value="When checked, the keyboard is grabbed and can't be used in other applications." />
                     </Window>
                     <Window type="OD/Checkbox" name="MouseGrabCheckbox" >
-                        <Property name="Area" value="{{0,32},{0,80},{0,150},{0,106}}" />
+                        <Property name="Area" value="{{0,32},{0,80},{1,-48},{0,106}}" />
                         <Property name="Text" value="Mouse grab" />
                         <Property name="TooltipText" value="When checked, the mouse is grabbed and can't be used in other applications." />
                     </Window>
                     <Window type="OD/Checkbox" name="AutoscrollCheckbox" >
-                        <Property name="Area" value="{{0,32},{0,120},{0,150},{0,146}}" />
+                        <Property name="Area" value="{{0,32},{0,120},{1,-48},{0,146}}" />
                         <Property name="Text" value="Autoscroll" />
                         <Property name="TooltipText" value="When checked, if the mouse cousor is on the screen border it will make camera fly " />
                     </Window>
                     <Window type="OD/StaticText" name="PanSpeedText" >
-                        <Property name="Area" value="{{0,32},{0,160},{0,260},{0,186}}" />
+                        <Property name="Area" value="{{0,32},{0,160},{1,-48},{0,186}}" />
                         <Property name="MaxSize" value="{{1,0},{1,0}}" />
                         <Property name="Text" value="Camera pan speed: 100%" />
                         <Property name="BackgroundEnabled" value="False" />
                         <Property name="FrameEnabled" value="False" />
                     </Window>
-                    <Window type="OD/HorizontalSlider" name="PanSpeedSlider" >
-                        <Property name="Area" value="{{0,32},{0,190},{0,327},{0,203}}" />
+                    <Window type="OD/SettingsSlider" name="PanSpeedSlider" >
+                        <Property name="Area" value="{{0,32},{0,194},{1,-48},{0,220}}" />
                         <Property name="Text" value="" />
                         <Property name="VerticalSlider" value="False" />
                         <Property name="AutoRenderingSurface" value="True" />
@@ -155,52 +161,52 @@
                 <Property name="MaxSize" value="{{1,0},{1,0}}" />
                 <Property name="Visible" value="False" />
                 <Property name="RiseOnClickEnabled" value="False" />
-                <Window type="OD/ScrollablePane" name="GameSP" >
+                <Window type="OD/MenuScrollablePane" name="GameSP" >
                     <UserString name="VisibleControlExtent" value="true" />
                     <Property name="ContentPaneAutoSized" value="False" />
                     <Property name="Area" value="{{0,0},{0,0},{1,0},{1,0}}" />
                     <Window type="OD/StaticText" name="NicknameText" >
-                        <Property name="Area" value="{{0,32},{0,46},{0,150},{0,72}}" />
+                        <Property name="Area" value="{{0,32},{0,46},{0.42,0},{0,72}}" />
                         <Property name="MaxSize" value="{{1,0},{1,0}}" />
                         <Property name="Text" value="Nickname:" />
                         <Property name="BackgroundEnabled" value="False" />
                         <Property name="FrameEnabled" value="False" />
                     </Window>
                     <Window type="OD/Editbox" name="NicknameEdit" >
-                        <Property name="Area" value="{{0,160},{0,40},{0,320},{0,80}}" />
+                        <Property name="Area" value="{{0.45,0},{0,40},{1,-48},{0,80}}" />
                         <Property name="Text" value="" />
                     </Window>
                     <Window type="OD/StaticText" name="KeeperVoiceText" >
-                        <Property name="Area" value="{{0,32},{0,90},{0,150},{0,116}}" />
+                        <Property name="Area" value="{{0,32},{0,90},{0.42,0},{0,116}}" />
                         <Property name="MaxSize" value="{{1,0},{1,0}}" />
                         <Property name="Text" value="Keeper Voice:" />
                         <Property name="BackgroundEnabled" value="False" />
                         <Property name="FrameEnabled" value="False" />
                     </Window>
                     <Window type="OD/Combobox" name="KeeperVoice" >
-                        <Property name="Area" value="{{0,160},{0,90},{0,320},{0,190}}" />
+                        <Property name="Area" value="{{0.45,0},{0,90},{1,-48},{0,190}}" />
                         <Property name="ReadOnly" value="True" />
                     </Window>
                     <Window type="OD/StaticText" name="MinimapText" >
-                        <Property name="Area" value="{{0,32},{0,130},{0,150},{0,156}}" />
+                        <Property name="Area" value="{{0,32},{0,130},{0.42,0},{0,156}}" />
                         <Property name="MaxSize" value="{{1,0},{1,0}}" />
                         <Property name="Text" value="Minimap Type:" />
                         <Property name="BackgroundEnabled" value="False" />
                         <Property name="FrameEnabled" value="False" />
                     </Window>
                     <Window type="OD/Combobox" name="MiniMapType" >
-                        <Property name="Area" value="{{0,160},{0,130},{0,320},{0,230}}" />
+                        <Property name="Area" value="{{0.45,0},{0,130},{1,-48},{0,230}}" />
                         <Property name="ReadOnly" value="True" />
                     </Window>
                     <Window type="OD/StaticText" name="LightText" >
-                        <Property name="Area" value="{{0,32},{0,170},{0,220},{0,196}}" />
+                        <Property name="Area" value="{{0,32},{0,170},{1,-48},{0,196}}" />
                         <Property name="MaxSize" value="{{1,0},{1,0}}" />
                         <Property name="Text" value="Ambient Light: +" />
                         <Property name="BackgroundEnabled" value="False" />
                         <Property name="FrameEnabled" value="False" />
                     </Window>
-                    <Window type="OD/HorizontalSlider" name="LightSlider" >
-                        <Property name="Area" value="{{0,32},{0,200},{0,327},{0,213}}" />
+                    <Window type="OD/SettingsSlider" name="LightSlider" >
+                        <Property name="Area" value="{{0,32},{0,208},{1,-48},{0,234}}" />
                         <Property name="Text" value="" />
                         <Property name="VerticalSlider" value="False" />
                         <Property name="AutoRenderingSurface" value="True" />

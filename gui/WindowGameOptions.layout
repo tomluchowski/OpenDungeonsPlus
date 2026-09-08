@@ -34,32 +34,48 @@
             <Property name="Disabled" value="False" />
             <Property name="TooltipText" value="Open the game settings window." />
         </Window>
-        <Window type="OD/IconButton" name="QuitGameButton" >
+        <Window type="OD/IconButton" name="EndGameButton" >
             <Property name="Area" value="{{0,24},{0,266},{1,-24},{0,304}}" />
+            <Property name="IconImage" value="OpenDungeonsIcons/AbortIcon" />
+            <Property name="Text" value="End Game" />
+        </Window>
+        <Window type="OD/IconButton" name="QuitGameButton" >
+            <Property name="Area" value="{{0,24},{0,82},{1,-24},{0,120}}" />
+            <Property name="Visible" value="False" />
             <Property name="IconImage" value="OpenDungeonsIcons/AbortIcon" />
             <Property name="Text" value="Quit to Menu" />
             <Property name="TooltipText" value="Leave this game and return to the main menu..." />
         </Window>
         <Window type="OD/IconButton" name="ExitGameButton" >
-            <Property name="Area" value="{{0,24},{0,312},{1,-24},{0,350}}" />
+            <Property name="Area" value="{{0,24},{0,128},{1,-24},{0,166}}" />
+            <Property name="Visible" value="False" />
             <Property name="IconImage" value="OpenDungeonsIcons/AbortIcon" />
             <Property name="IconImageColour" value="FFBB0000" />
             <Property name="Text" value="Exit to System" />
             <Property name="TooltipText" value="Leave this game and exit to the desktop..." />
         </Window>
             <Window type="OD/IconButton" name="HelpButton" >
-            <Property name="Area" value="{{0,24},{0,358},{1,-24},{0,396}}" />
+            <Property name="Area" value="{{0,24},{0,312},{1,-24},{0,350}}" />
             <Property name="IconImage" value="OpenDungeonsIcons/HelpIcon" />
             <Property name="Text" value="Help" />
         </Window>
             <Window type="OD/IconButton" name="PlayerSettingsButton" >
-            <Property name="Area" value="{{0,24},{0,404},{1,-24},{0,442}}" />
+            <Property name="Area" value="{{0,24},{0,358},{1,-24},{0,396}}" />
             <Property name="IconImage" value="OpenDungeonsIcons/SeatIcon" />
             <Property name="Text" value="Player information" />
         </Window>
         <Window type="OD/Button" name="UserCamerasButton">
-            <Property name="Area" value="{{0,24},{0,450},{1,-24},{0,488}}" />
+            <Property name="Area" value="{{0,24},{0,404},{1,-24},{0,442}}" />
             <Property name="Text" value="Define user cameras" />
+        </Window>
+        <Window type="OD/Button" name="BackButton">
+            <Property name="Area" value="{{0,24},{0,404},{1,-24},{0,442}}" />
+            <Property name="Text" value="Back" />
+            <Property name="Visible" value="False" />
+        </Window>
+        <Window type="OD/Button" name="ContinueButton">
+            <Property name="Area" value="{{0,24},{0,450},{1,-24},{0,488}}" />
+            <Property name="Text" value="Continue Game" />
         </Window>
     </Window>
 </GUILayout>
