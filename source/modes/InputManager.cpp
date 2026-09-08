@@ -29,7 +29,14 @@
 
 #include <OISInputManager.h>
 #include <OgreRenderWindow.h>
+#include <CEGUI/System.h>
+#include <CEGUI/GUIContext.h>
+#include <algorithm>
 #include <exception>
+
+#if defined OIS_WIN32_PLATFORM && !defined OD_USE_SFML_WINDOW
+#include <windows.h>
+#endif
 
 InputManager::InputManager(Ogre::RenderWindow* renderWindow):
     mInputManager(nullptr),
@@ -214,6 +221,36 @@ void InputManager::setWidthAndHeight(int width, int height)
     const OIS::MouseState& ms = mMouse->getMouseState();
     ms.width = width;
     ms.height = height;
+#endif
+}
+
+void InputManager::setMousePosition(int x, int y)
+{
+#ifndef OD_USE_SFML_WINDOW
+    OIS::MouseState& state = const_cast<OIS::MouseState&>(mMouse->getMouseState());
+    x = (std::max)(0, (std::min)(x, state.width - 1));
+    y = (std::max)(0, (std::min)(y, state.height - 1));
+#if defined OIS_WIN32_PLATFORM
+    size_t windowHandle = 0;
+    mRenderWindow->getCustomAttribute("WINDOW", &windowHandle);
+    const HWND window = reinterpret_cast<HWND>(windowHandle);
+    POINT point = {x, y};
+    if(GetForegroundWindow() == window && ClientToScreen(window, &point))
+        SetCursorPos(point.x, point.y);
+#else
+    if(!mMouseGrab)
+        return;
+#endif
+    // Discard motion accumulated during loading without dispatching input.
+    OIS::MouseListener* listener = mMouse->getEventCallback();
+    mMouse->setEventCallback(nullptr);
+    mMouse->capture();
+    mMouse->setEventCallback(listener);
+    state.X.abs = x;
+    state.Y.abs = y;
+    state.X.rel = state.Y.rel = state.Z.rel = 0;
+    CEGUI::System::getSingleton().getDefaultGUIContext().injectMousePosition(
+        static_cast<float>(x), static_cast<float>(y));
 #endif
 }
 
