@@ -95,7 +95,7 @@ MiniMapCamera::MiniMapCamera(CEGUI::Window* miniMapWindow) :
     CEGUI::Texture& miniMapTextureGui = static_cast<CEGUI::OgreRenderer*>(CEGUI::System::getSingletonPtr()
                                             ->getRenderer())->createTexture("miniMapTextureGui", mMiniMapOgreTexture);
 
-    CEGUI::BasicImage& imageset = dynamic_cast<CEGUI::BasicImage&>(CEGUI::ImageManager::getSingletonPtr()->create("BasicImage", "MiniMapImageset"));
+    CEGUI::BasicImage& imageset = MiniMap::createMiniMapImage(mMiniMapWindow);
     imageset.setArea(CEGUI::Rectf(CEGUI::Vector2f(0.0, 0.0),
         CEGUI::Size<float>(static_cast<float>(TEXTURE_SIZE), static_cast<float>(TEXTURE_SIZE))));
 
@@ -140,14 +140,15 @@ Ogre::Vector2 MiniMapCamera::camera_2dPositionFromClick(int xx, int yy)
     if(mCurCamPosY == -1)
         return Ogre::Vector2::ZERO;
 
-    const Ogre::Quaternion& orientation = mCameraManager.getActiveCameraNode()->getOrientation();
-    Ogre::Radian angle = orientation.getRoll();
+    const Ogre::Quaternion& orientation = mMiniMapCamNode->getOrientation();
+    Ogre::Radian angle = mUseViewCenter ? Ogre::Radian(0.0f) : orientation.getRoll();
     Ogre::Real cos = Ogre::Math::Cos(angle);
     Ogre::Real sin = Ogre::Math::Sin(angle);
 
     // Compute tile clicked
-    Ogre::Real diffX = ((xx - mTopLeftCornerX) / mWidth - 0.5) * NB_TILES_DISPLAYED_IN_MINIMAP;
-    Ogre::Real diffY = ((mTopLeftCornerY - yy) / mHeight + 0.5) * NB_TILES_DISPLAYED_IN_MINIMAP;
+    const CEGUI::Sizef displaySize = mMiniMapWindow->getPixelSize();
+    Ogre::Real diffX = ((xx - mTopLeftCornerX) / displaySize.d_width - 0.5) * NB_TILES_DISPLAYED_IN_MINIMAP * getZoomScale();
+    Ogre::Real diffY = ((mTopLeftCornerY - yy) / displaySize.d_height + 0.5) * NB_TILES_DISPLAYED_IN_MINIMAP * getZoomScale();
 
     Ogre::Vector2 pos(diffX * cos - diffY * sin + mCurCamPosX, diffX * sin + diffY * cos + mCurCamPosY);
     OD_LOG_INF("Clicked minimap pos=" + Helper::toString(pos.x) + ", " + Helper::toString(pos.y));
@@ -167,26 +168,38 @@ void MiniMapCamera::update(Ogre::Real timeSinceLastFrame, const std::vector<Ogre
 
     Ogre::RenderTarget* rt = mMiniMapOgreTexture->getBuffer()->getRenderTarget();
     rt->update();
+    updateMapOverlay(mMiniMapWindow, mGameMap, Ogre::Vector2(mCurCamPosX, mCurCamPosY),
+        Ogre::Vector2::UNIT_SCALE * NB_TILES_DISPLAYED_IN_MINIMAP * getZoomScale(),
+        mUseViewCenter ? 0.0f : mMiniMapCamNode->getOrientation().getRoll().valueRadians(), cornerTiles);
 }
 
 void MiniMapCamera::updateMinimapCamera()
 {
-    const Ogre::Vector3& camPos = mCameraManager.getActiveCameraNode()->getPosition();
-    mCurCamPosX = Helper::round(camPos.x);
-    mCurCamPosY = Helper::round(camPos.y);
+    const Ogre::Vector3 camPos = mCameraManager.getCameraViewTarget();
+    mCurCamPosX = Helper::round(mUseViewCenter ? mViewCenter.x : camPos.x);
+    mCurCamPosY = Helper::round(mUseViewCenter ? mViewCenter.y : camPos.y);
 
     const Ogre::Quaternion& orientation = mCameraManager.getActiveCameraNode()->getOrientation();
-    mMiniMapCamNode->setPosition(mCurCamPosX, mCurCamPosY, CAM_HEIGHT);
+    mMiniMapCamNode->setPosition(mCurCamPosX, mCurCamPosY, CAM_HEIGHT * getZoomScale());
     mMiniMapCamNode->lookAt(Ogre::Vector3(mCurCamPosX, mCurCamPosY, 0.0),
                      Ogre::Node::TransformSpace::TS_WORLD);
     Ogre::Quaternion qq;
-    qq.FromAngleAxis(orientation.getRoll(), Ogre::Vector3::UNIT_Z);
+    qq.FromAngleAxis(mUseViewCenter ? Ogre::Radian(0.0f) : orientation.getRoll(), Ogre::Vector3::UNIT_Z);
     mMiniMapCamNode->setOrientation(qq);
+    mMiniMapCamNode->_update(true, false);
+}
+
+void MiniMapCamera::setViewCenter(const Ogre::Vector2& center)
+{
+    if(!mUseViewCenter || mViewCenter != center)
+        mElapsedTime = MIN_TIME_REFRESH_SECS;
+    mUseViewCenter = true;
+    mViewCenter = center;
 }
 
 void MiniMapCamera::preRenderTargetUpdate(const Ogre::RenderTargetEvent& rte)
 {
-    RenderManager::getSingleton().rrMinimapRendering(false);
+    RenderManager::getSingleton().rrMinimapRendering(false, mUseViewCenter);
 }
 
 void MiniMapCamera::postRenderTargetUpdate(const Ogre::RenderTargetEvent& rte)

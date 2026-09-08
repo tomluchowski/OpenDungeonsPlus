@@ -133,6 +133,8 @@ protected:
     //! If in chat mode, then the game keyboard keys are interpreted as regular keys.
     InputMode mCurrentInputMode;
 
+    bool cameraInputBlocked();
+
     void connectGuiAction(const std::string& buttonName, AbstractApplicationMode::GuiAction action);
 
     //! \brief Update the chat and event messages seen.
