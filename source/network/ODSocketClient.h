@@ -50,7 +50,11 @@ class ODSocketClient
             mSource(ODSource::none),
             mPlayer(nullptr),
             mLastTurnAck(-1),
-            mPendingTimestamp(-1)
+            mPendingTimestamp(-1),
+            mSupportsLiveNickname(false),
+            mSupportsCreatureMood(false),
+            mSupportsCreatureActivity(false),
+            mSupportsCreaturePanel(false)
         {}
 
         virtual ~ODSocketClient()
@@ -68,6 +72,14 @@ class ODSocketClient
 
         Player* getPlayer() { return mPlayer; }
         void setPlayer(Player* player) { mPlayer = player; }
+        bool supportsLiveNickname() const { return mSupportsLiveNickname; }
+        void setSupportsLiveNickname(bool supported) { mSupportsLiveNickname = supported; }
+        bool supportsCreatureMood() const { return mSupportsCreatureMood; }
+        void setSupportsCreatureMood(bool supported) { mSupportsCreatureMood = supported; }
+        bool supportsCreatureActivity() const { return mSupportsCreatureActivity; }
+        void setSupportsCreatureActivity(bool supported) { mSupportsCreatureActivity = supported; }
+        bool supportsCreaturePanel() const { return mSupportsCreaturePanel; }
+        void setSupportsCreaturePanel(bool supported) { mSupportsCreaturePanel = supported; }
         int64_t getLastTurnAck() { return mLastTurnAck; }
         void setLastTurnAck(int64_t lastTurnAck) { mLastTurnAck = lastTurnAck; }
         const std::string& getState() {return mState;}
@@ -130,6 +142,10 @@ class ODSocketClient
         std::ofstream mReplayOutputStream;
         ODPacket mPendingPacket;
         int32_t mPendingTimestamp;
+        bool mSupportsLiveNickname;
+        bool mSupportsCreatureMood;
+        bool mSupportsCreatureActivity;
+        bool mSupportsCreaturePanel;
 
         //! \brief the replay filename being written. Used to later optionally delete it
         //! if asked to.
@@ -137,4 +153,3 @@ class ODSocketClient
 };
 
 #endif // ODSOCKETCLIENT_H
-
