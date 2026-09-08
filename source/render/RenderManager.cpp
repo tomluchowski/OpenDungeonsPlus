@@ -2730,6 +2730,50 @@ Ogre::FloatRect RenderManager::getHandCursorBounds(float relX, float relY) const
     const Ogre::Vector3 origin(height * camera->getAspectRatio() * (relX - 0.5f),
         height * (0.5f - relY), -KEEPER_HAND_POS_Z);
     const Ogre::SceneNode* model = hand->getParentSceneNode();
+    if(hand->getAnimationState("Point")->getEnabled())
+    {
+        // The mesh box includes empty space around the animated pointing pose.
+        hand->addSoftwareAnimationRequest(false);
+        try
+        {
+            hand->_updateAnimation();
+        }
+        catch(...)
+        {
+            hand->removeSoftwareAnimationRequest(false);
+            throw;
+        }
+        hand->removeSoftwareAnimationRequest(false);
+        for(unsigned int sub = 0; sub < hand->getNumSubEntities(); ++sub)
+        {
+            Ogre::SubEntity* part = hand->getSubEntity(sub);
+            if(!part->isVisible())
+                continue;
+            Ogre::VertexData* data = part->getSubMesh()->useSharedVertices ?
+                hand->_getSkelAnimVertexData() : part->_getSkelAnimVertexData();
+            const Ogre::VertexElement* element = data->vertexDeclaration->findElementBySemantic(Ogre::VES_POSITION);
+            auto buffer = data->vertexBufferBinding->getBuffer(element->getSource());
+            Ogre::HardwareBufferLockGuard lock(buffer, Ogre::HardwareBuffer::HBL_READ_ONLY);
+            auto* bytes = static_cast<unsigned char*>(lock.pData);
+            for(size_t i = 0; i < data->vertexCount; ++i)
+            {
+                float* vertex = nullptr;
+                element->baseVertexPointerToElement(bytes +
+                    (data->vertexStart + i) * buffer->getVertexSize(), &vertex);
+                const Ogre::Vector3 local = model->getPosition() + model->getOrientation() *
+                    (model->getScale() * Ogre::Vector3(vertex[0], vertex[1], vertex[2]));
+                const Ogre::Vector3 projected = camera->getProjectionMatrix() * (origin +
+                    mHandKeeperNode->getOrientation() * (mHandKeeperNode->getScale() * local));
+                const float x = (projected.x + 1.0f) * 0.5f;
+                const float y = (1.0f - projected.y) * 0.5f;
+                bounds.left = std::min(bounds.left, x);
+                bounds.top = std::min(bounds.top, y);
+                bounds.right = std::max(bounds.right, x);
+                bounds.bottom = std::max(bounds.bottom, y);
+            }
+        }
+        return bounds;
+    }
     const auto corners = hand->getBoundingBox().getAllCorners();
     for(int i = 0; i < 8; ++i)
     {
