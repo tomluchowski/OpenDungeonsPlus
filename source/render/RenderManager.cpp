@@ -170,6 +170,25 @@ void createKeeperHandPoses(Ogre::Entity* hand)
         hand->getAllAnimationStates()->createAnimationState("PointTransition", 0, duration);
 }
 
+void alignKeeperHandPointer(Ogre::Entity* hand, const Ogre::AnimationState* animation)
+{
+    const float weight = animation->getAnimationName() == "Point" ? 1.0f :
+        (animation->getAnimationName() == "PointTransition" ?
+            animation->getTimePosition() / animation->getLength() : 0.0f);
+    Ogre::SceneNode* model = hand->getParentSceneNode();
+    model->setPosition(Ogre::Vector3::ZERO);
+    if(weight == 0.0f)
+        return;
+
+    hand->_updateAnimation();
+    const Ogre::Bone* index = hand->getSkeleton()->getBone("Index3");
+    // Centre of the distal fingertip cap in Keeperhand.mesh, in Index3 bind space.
+    const Ogre::Vector3 tipLocal(-0.000284253f, 0.0155774f, 0.000218656f);
+    const Ogre::Vector3 tip = index->_getDerivedPosition() +
+        index->_getDerivedOrientation() * (index->_getDerivedScale() * tipLocal);
+    model->setPosition(-(model->getOrientation() * tip) * weight);
+}
+
 void createKeeperHandDigAnimation(Ogre::Entity* hand)
 {
     Ogre::Skeleton* skeleton = hand->getMesh()->getSkeleton().get();
@@ -952,6 +971,7 @@ void RenderManager::updateRenderAnimations(Ogre::Real timeSinceLastFrame)
             Ogre::Entity* ent = mSceneManager->getEntity("keeperHandEnt");
             mHandAnimationState = setEntityAnimation(ent, mHandPose, true);
         }
+        alignKeeperHandPointer(mSceneManager->getEntity("keeperHandEnt"), mHandAnimationState);
     }
     rrUpdateHeldCreature();
 }
