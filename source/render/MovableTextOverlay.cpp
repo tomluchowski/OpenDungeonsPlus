@@ -29,7 +29,8 @@
 #include <Overlay/OgreOverlayManager.h>
 
 ChildOverlay::ChildOverlay(const Ogre::String& fontName, Ogre::Real charHeight,
-        const Ogre::ColourValue& color, const Ogre::String& materialName) :
+        const Ogre::ColourValue& color, const Ogre::String& materialName,
+        bool stackWithPrevious) :
     mOverlayContainer(nullptr),
     mOverlayText(nullptr),
     mTextWidth(0),
@@ -39,7 +40,9 @@ ChildOverlay::ChildOverlay(const Ogre::String& fontName, Ogre::Real charHeight,
     mCharHeight(charHeight),
     mTimeToDisplay(0),
     // FIXME: Move FontManager usage to ResourceManager somehow and dehardcode "GUI"?
-    mFont(Ogre::FontManager::getSingleton().getByName(fontName, "GUI"))
+    mFont(Ogre::FontManager::getSingleton().getByName(fontName, "GUI")),
+    mStackWithPrevious(stackWithPrevious),
+    mCenterCaption(false)
 {
 #if defined(OGRE_VERSION) && OGRE_VERSION < 0x10A00
     if (mFont.isNull())
@@ -69,6 +72,8 @@ void ChildOverlay::setCaption(const Ogre::String& caption)
         mCaption = caption;
         mOverlayText->setCaption(mCaption);
         computeTextArea();
+        if(mCenterCaption)
+            centerCaption();
     }
 }
 
@@ -76,6 +81,18 @@ void ChildOverlay::forceTextArea(Ogre::Real textWidth, Ogre::Real textHeight)
 {
     mForcedWidth = textWidth;
     mForcedHeight = textHeight;
+    if(mCenterCaption)
+        centerCaption();
+}
+
+void ChildOverlay::centerCaption()
+{
+    mCenterCaption = true;
+    if(mOverlayText == nullptr || mForcedHeight < 0.0f)
+        return;
+
+    mOverlayText->setPosition(-mTextWidth * 0.5f - 1.0f,
+        (mForcedHeight - mTextHeight) * 0.5f + 2.0f);
 }
 
 void ChildOverlay::computeTextArea()
@@ -184,11 +201,12 @@ MovableTextOverlay::~MovableTextOverlay()
 }
 
 uint32_t MovableTextOverlay::createChildOverlay(const Ogre::String& fontName, Ogre::Real charHeight,
-    const Ogre::ColourValue& color, const Ogre::String& materialName)
+        const Ogre::ColourValue& color, const Ogre::String& materialName,
+        bool stackWithPrevious)
 {
     uint32_t id = mChildOverlays.size();
     Ogre::OverlayManager& overlayManager = Ogre::OverlayManager::getSingleton();
-    ChildOverlay childOverlay(fontName, charHeight, color, materialName);
+    ChildOverlay childOverlay(fontName, charHeight, color, materialName, stackWithPrevious);
     childOverlay.mOverlayContainer = static_cast<Ogre::OverlayContainer*>(overlayManager.createOverlayElement(
         "Panel", mName + Helper::toString(id) + "_OvC"));
     childOverlay.mOverlayContainer->setDimensions(0.0, 0.0);
@@ -259,6 +277,17 @@ void MovableTextOverlay::forceTextArea(uint32_t childOverlayId, Ogre::Real textW
     childOverlay.forceTextArea(textWidth, textHeight);
 }
 
+void MovableTextOverlay::centerCaption(uint32_t childOverlayId)
+{
+    if(childOverlayId >= mChildOverlays.size())
+    {
+        OD_LOG_ERR("childOverlayId=" + Helper::toString(childOverlayId));
+        return;
+    }
+
+    mChildOverlays[childOverlayId].centerCaption();
+}
+
 void MovableTextOverlay::setMaterialName(uint32_t childOverlayId, const Ogre::String& materialName)
 {
     if(childOverlayId >= mChildOverlays.size())
@@ -316,6 +345,10 @@ void MovableTextOverlay::displayOverlay(uint32_t childOverlayId, Ogre::Real time
 void MovableTextOverlay::update(Ogre::Real timeSincelastFrame)
 {
     bool displayed = false;
+    Ogre::Vector2 previousPosition;
+    Ogre::Real previousWidth = 0.0;
+    Ogre::Real previousHeight = 0.0;
+    bool hasPrevious = false;
     for(ChildOverlay& childOverlay : mChildOverlays)
     {
         childOverlay.update(timeSincelastFrame);
@@ -349,9 +382,23 @@ void MovableTextOverlay::update(Ogre::Real timeSincelastFrame)
         relTextWidth /= Ogre::OverlayManager::getSingleton().getViewportWidth();
         relTextHeight /= Ogre::OverlayManager::getSingleton().getViewportHeight();
 
-        screenPosition.y -= relTextHeight;
-        Ogre::Real xPos = screenPosition.x - (relTextWidth * 0.5);
-        childOverlay.mOverlayContainer->setPosition(xPos, screenPosition.y);
+        Ogre::Vector2 childPosition;
+        if(childOverlay.mStackWithPrevious || !hasPrevious)
+        {
+            screenPosition.y -= relTextHeight;
+            childPosition = Ogre::Vector2(screenPosition.x - (relTextWidth * 0.5), screenPosition.y);
+        }
+        else
+        {
+            childPosition = Ogre::Vector2(previousPosition.x + (previousWidth - relTextWidth) * 0.5,
+                previousPosition.y + (previousHeight - relTextHeight) * 0.5);
+        }
+
+        childOverlay.mOverlayContainer->setPosition(childPosition.x, childPosition.y);
         childOverlay.mOverlayContainer->setDimensions(relTextWidth, relTextHeight);
+        previousPosition = childPosition;
+        previousWidth = relTextWidth;
+        previousHeight = relTextHeight;
+        hasPrevious = true;
     }
 }
