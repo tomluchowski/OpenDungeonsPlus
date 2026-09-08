@@ -527,8 +527,18 @@ Gui::Gui(SoundEffectsManager* soundEffectsManager, const std::string& ceguiLogFi
     context.getDefaultTooltipObject()->subscribeEvent(CEGUI::Window::EventMoved,
         CEGUI::Event::Subscriber([](const CEGUI::EventArgs& e)
         {
-            CEGUI::Window* tooltip = static_cast<CEGUI::Window*>(
+            CEGUI::Tooltip* tooltip = static_cast<CEGUI::Tooltip*>(
                 static_cast<const CEGUI::ElementEventArgs&>(e).element);
+            const CEGUI::Window* target = tooltip->getTargetWindow();
+            const CEGUI::Window* buttons = target == nullptr ? nullptr : target->getParent();
+            const bool category = buttons != nullptr && buttons->getName() == "__auto_TabPane__Buttons" &&
+                buttons->getParent() != nullptr && buttons->getParent()->getName() == MAIN_TABCONTROL.c_str();
+            const CEGUI::Font* font = category ? &CEGUI::FontManager::getSingleton().get("MedievalSharp-12") : nullptr;
+            if(tooltip->getFont(false) != font)
+            {
+                tooltip->setFont(font);
+                tooltip->sizeSelf();
+            }
             const CEGUI::Rectf bounds = tooltip->getUnclippedOuterRect().get();
             const CEGUI::Sizef screen = tooltip->getRootContainerSize();
             const CEGUI::Vector2f cursor = tooltip->getGUIContext().getMouseCursor().getPosition();
