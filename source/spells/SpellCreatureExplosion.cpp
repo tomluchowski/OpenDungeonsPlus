@@ -77,41 +77,38 @@ void SpellCreatureExplosion::checkSpellCast(GameMap* gameMap, const InputManager
     int32_t priceTotal = 0;
     int32_t pricePerTarget = ConfigManager::getSingleton().getSpellConfigInt32("CreatureExplosionPrice");
     int32_t playerMana = static_cast<int32_t>(player->getSeat()->getMana());
-    if(inputManager.mCommandState == InputCommandState::infoOnly)
-    {
-        if(playerMana < pricePerTarget)
-        {
-            std::string txt = formatCastSpell(SpellType::creatureExplosion, pricePerTarget);
-            inputCommand.displayText(Ogre::ColourValue::Red, txt);
-        }
-        else
-        {
-            std::string txt = formatCastSpell(SpellType::creatureExplosion, pricePerTarget);
-            inputCommand.displayText(Ogre::ColourValue::White, txt);
-        }
-        inputCommand.selectSquaredTiles(inputManager.mXPos, inputManager.mYPos, inputManager.mXPos,
-            inputManager.mYPos);
-        return;
-    }
-
-    if(inputManager.mCommandState == InputCommandState::building)
-    {
-        inputCommand.selectSquaredTiles(inputManager.mXPos, inputManager.mYPos, inputManager.mLStartDragX,
-            inputManager.mLStartDragY);
-    }
-
     std::vector<GameEntity*> targets;
     gameMap->playerSelects(targets, inputManager.mXPos, inputManager.mYPos, inputManager.mLStartDragX, inputManager.mLStartDragY,
         SelectionTileAllowed::groundClaimedAllied, SelectionEntityWanted::creatureAliveEnemy, player);
 
     if(targets.empty())
     {
-        std::string txt = formatCastSpell(SpellType::creatureExplosion, 0);
-        inputCommand.displayText(Ogre::ColourValue::White, txt);
+        inputCommand.displayText(Ogre::ColourValue::Red, "Select an enemy creature on your claimed ground.");
         return;
     }
 
-    std::random_shuffle(targets.begin(), targets.end());
+    if(playerMana < pricePerTarget)
+    {
+        inputCommand.displayText(Ogre::ColourValue::Red, "Not enough mana. " +
+            formatCastSpell(SpellType::creatureExplosion, pricePerTarget));
+        return;
+    }
+
+    if(inputManager.mCommandState != InputCommandState::validated)
+    {
+        std::vector<Tile*> targetTiles;
+        for(GameEntity* target : targets)
+        {
+            Tile* tile = target->getPositionTile();
+            if(std::find(targetTiles.begin(), targetTiles.end(), tile) == targetTiles.end())
+                targetTiles.push_back(tile);
+        }
+        inputCommand.selectTiles(targetTiles);
+    }
+
+    // Preview must not consume random numbers or change which creatures a later click affects.
+    if(inputManager.mCommandState == InputCommandState::validated)
+        std::random_shuffle(targets.begin(), targets.end());
     std::vector<Creature*> creatures;
     for(GameEntity* target : targets)
     {

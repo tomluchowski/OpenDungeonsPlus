@@ -2,11 +2,11 @@
 
 <GUILayout version="4" >
     <Window type="OD/FrameWindow" name="SkillTreeWindow" >
-        <Property name="Area" value="{{0.5,-305},{0.5,-196},{0.5,305},{0.5,196}}" />
+        <Property name="Area" value="{{0.5,-305},{0.5,-220},{0.5,305},{0.5,220}}" />
         <Property name="Text" value="Skill Tree" />
         <Property name="SizingEnabled" value="False" />
         <Window type="OD/StaticImage" name="Skills" >
-            <Property name="Area" value="{{0,20},{0,35},{1,-20},{1,-60}}" />
+            <Property name="Area" value="{{0,20},{0,35},{1,-20},{1,-108}}" />
             <Property name="MaxSize" value="{{1,0},{1,0}}" />
             <Window type="OD/StaticImage" name="AttackSkills" >
                 <Property name="Area" value="{{0,10},{0,10},{0,190},{1,-10}}" />
@@ -492,14 +492,18 @@
             <Property name="Text" value="Unselect All" />
             <Property name="TooltipText" value="Unselect all pending skills in the tree" />
         </Window>
-        <Window type="OD/Button" name="CancelButton" >
-            <Property name="Area" value="{{1,-190},{1,-50},{1,-110},{1,-20}}" />
-            <Property name="Text" value="Cancel" />
+        <Window type="OD/MenuSymbolButton" name="CancelButton" >
+            <Property name="Area" value="{{1,-176},{1,-92.8},{1,-99.2},{1,-16}}" />
+            <Property name="NormalImage" value="OpenDungeonsSkin/CloseButtonNormal" />
+            <Property name="HoverImage" value="OpenDungeonsSkin/CloseButtonNormal" />
+            <Property name="PushedImage" value="OpenDungeonsSkin/CloseButtonNormal" />
             <Property name="TooltipText" value="Do not save modifications to the skill tree" />
         </Window>
-        <Window type="OD/Button" name="ApplyButton" >
-            <Property name="Area" value="{{1,-100},{1,-50},{1,-20},{1,-20}}" />
-            <Property name="Text" value="Apply" />
+        <Window type="OD/MenuSymbolButton" name="ApplyButton" >
+            <Property name="Area" value="{{1,-92.8},{1,-92.8},{1,-16},{1,-16}}" />
+            <Property name="NormalImage" value="OpenDungeonsIcons/CheckIcon" />
+            <Property name="HoverImage" value="OpenDungeonsIcons/CheckIcon" />
+            <Property name="PushedImage" value="OpenDungeonsIcons/CheckIcon" />
             <Property name="TooltipText" value="Save modifications to the skill tree" />
         </Window>
     </Window>

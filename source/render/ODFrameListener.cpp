@@ -43,11 +43,13 @@
 #include "sound/MusicPlayer.h"
 #include "sound/SoundEffectsManager.h"
 #include "utils/Helper.h"
+#include "utils/ConfigManager.h"
 #include "utils/LogManager.h"
 #include "utils/MakeUnique.h"
 
 #include <OgreCamera.h>
 #include <OgreRenderWindow.h>
+#include <OgreRenderSystem.h>
 #include <OgreRoot.h>
 #include <OgreSceneManager.h>
 #include <Overlay/OgreOverlaySystem.h>
@@ -59,6 +61,7 @@
 
 #include <algorithm>
 #include <cstdlib>
+#include <stdexcept>
 #include <iostream>
 
 #include <signal.h>
@@ -81,6 +84,9 @@ ODFrameListener::ODFrameListener(const std::string& mainSceneFileName, Ogre::Ren
     lastSecondFrameRenderingQueued(0),
     mInitialized(false),
     mWindow(renderWindow),
+    mPrimaryWindow(renderWindow),
+    mRenderWindowRecreationPending(false),
+    mRenderWindowSequence(0),
     mGui(gui),
     mRenderManager(RenderManager::getSingletonPtr()),
     mGameMap(Utils::make_unique<GameMap>(false)),
@@ -119,6 +125,12 @@ void ODFrameListener::windowResized(Ogre::RenderWindow* rw)
     int left, top;
     rw->getMetrics(width, height, left, top);
 
+    if(width == 0 || height == 0)
+        return;
+
+    Ogre::Camera* camera = mCameraManager.getActiveCamera();
+    camera->setAspectRatio(static_cast<Ogre::Real>(width) / static_cast<Ogre::Real>(height));
+
     mModeManager->getInputManager().setWidthAndHeight(width, height);
     //Notify CEGUI that the display size has changed.
     CEGUI::System::getSingleton().notifyDisplaySizeChanged(CEGUI::Size<float>(
@@ -148,6 +160,177 @@ ODFrameListener::~ODFrameListener()
 void ODFrameListener::requestExit()
 {
     mExitRequested = true;
+}
+
+void ODFrameListener::requestRenderWindowRecreation(
+    const std::map<std::string, std::string>& previousRendererOptions,
+    const std::map<std::string, std::string>& previousVideoConfig)
+{
+    mPreviousRendererOptions = previousRendererOptions;
+    mPreviousVideoConfig = previousVideoConfig;
+    mRenderWindowRecreationPending = true;
+}
+
+void ODFrameListener::restorePreviousVideoSettings()
+{
+    Ogre::RenderSystem* renderer = Ogre::Root::getSingleton().getRenderSystem();
+    std::map<std::string, std::string>::const_iterator fullscreen =
+        mPreviousRendererOptions.find(Config::FULL_SCREEN);
+    if(fullscreen != mPreviousRendererOptions.end())
+        renderer->setConfigOption(fullscreen->first, fullscreen->second);
+    std::map<std::string, std::string>::const_iterator videoMode =
+        mPreviousRendererOptions.find(Config::VIDEO_MODE);
+    if(videoMode != mPreviousRendererOptions.end())
+        renderer->setConfigOption(videoMode->first, videoMode->second);
+    for(const std::pair<const std::string, std::string>& option : mPreviousRendererOptions)
+    {
+        if(option.first == Config::FULL_SCREEN || option.first == Config::VIDEO_MODE)
+            continue;
+        renderer->setConfigOption(option.first, option.second);
+    }
+
+    ConfigManager& config = ConfigManager::getSingleton();
+    for(const std::pair<const std::string, std::string>& option : mPreviousVideoConfig)
+        config.setVideoValue(option.first, option.second);
+    config.saveUserConfig();
+    mPreviousRendererOptions.clear();
+    mPreviousVideoConfig.clear();
+}
+
+void ODFrameListener::applyPendingRenderWindowRecreation()
+{
+    if(!mRenderWindowRecreationPending)
+        return;
+    mRenderWindowRecreationPending = false;
+
+    Ogre::Root& root = Ogre::Root::getSingleton();
+    Ogre::RenderSystem* renderer = root.getRenderSystem();
+    Ogre::RenderWindow* previousWindow = mWindow;
+    Ogre::RenderWindow* replacementWindow = nullptr;
+    unsigned int previousWidth = 0;
+    unsigned int previousHeight = 0;
+    int previousLeft = 0;
+    int previousTop = 0;
+    previousWindow->getMetrics(previousWidth, previousHeight, previousLeft, previousTop);
+    const bool previousWasFullScreen = previousWindow->isFullScreen();
+    bool guiMoved = false;
+    bool cameraMoved = false;
+    bool inputMoved = false;
+    bool listenerMoved = false;
+    bool windowRegistered = false;
+
+    try
+    {
+        Ogre::RenderWindowDescription description = renderer->getRenderWindowDescription();
+        description.name = "OpenDungeonsLiveSettings" + Helper::toString(++mRenderWindowSequence);
+        description.miscParams["title"] = mPrimaryWindow->getName();
+        description.miscParams["hidden"] = "true";
+        if(!description.useFullScreen && !previousWasFullScreen)
+        {
+            description.miscParams["left"] = Helper::toString(previousLeft);
+            description.miscParams["top"] = Helper::toString(previousTop);
+        }
+
+        replacementWindow = root.createRenderWindow(description);
+        replacementWindow->setAutoUpdated(false);
+        replacementWindow->setActive(false);
+        Ogre::WindowEventUtilities::_addRenderWindow(replacementWindow);
+        windowRegistered = true;
+
+        renderer->_setRenderTarget(replacementWindow);
+        mCameraManager.setRenderWindow(replacementWindow);
+        cameraMoved = true;
+        mRenderManager->setViewport(mCameraManager.getViewport());
+        mGui->setRenderTarget(*replacementWindow);
+        guiMoved = true;
+        if(!mModeManager->getInputManager().setRenderWindow(replacementWindow))
+            throw std::runtime_error("input initialization failed for the replacement window");
+        mModeManager->getInputManager().refreshSettings();
+        inputMoved = true;
+
+        Ogre::WindowEventUtilities::removeWindowEventListener(previousWindow, this);
+        Ogre::WindowEventUtilities::addWindowEventListener(replacementWindow, this);
+        listenerMoved = true;
+        mWindow = replacementWindow;
+
+        previousWindow->setAutoUpdated(false);
+        previousWindow->setActive(false);
+        previousWindow->setVisible(false);
+        if(previousWasFullScreen)
+        {
+            previousWindow->setFullscreen(false, previousWidth, previousHeight);
+            if(description.useFullScreen)
+            {
+                replacementWindow->setFullscreen(false, description.width, description.height);
+                replacementWindow->setFullscreen(true, description.width, description.height);
+            }
+        }
+        replacementWindow->setVisible(true);
+        replacementWindow->setActive(true);
+        replacementWindow->setAutoUpdated(true);
+        replacementWindow->windowMovedOrResized();
+        windowResized(replacementWindow);
+
+        if(previousWindow != mPrimaryWindow)
+        {
+            Ogre::WindowEventUtilities::_removeRenderWindow(previousWindow);
+            root.destroyRenderTarget(previousWindow);
+        }
+        mPreviousRendererOptions.clear();
+        mPreviousVideoConfig.clear();
+        OD_LOG_INF("Applied video settings without restarting the game");
+    }
+    catch(const std::exception& error)
+    {
+        OD_LOG_ERR("Could not apply video settings: " + std::string(error.what()));
+        renderer->_setRenderTarget(previousWindow);
+        if(listenerMoved)
+        {
+            Ogre::WindowEventUtilities::removeWindowEventListener(replacementWindow, this);
+            Ogre::WindowEventUtilities::addWindowEventListener(previousWindow, this);
+            mWindow = previousWindow;
+        }
+        if(inputMoved)
+            mModeManager->getInputManager().setRenderWindow(previousWindow);
+        if(guiMoved)
+            mGui->setRenderTarget(*previousWindow);
+        if(cameraMoved)
+        {
+            mCameraManager.setRenderWindow(previousWindow);
+            mRenderManager->setViewport(mCameraManager.getViewport());
+        }
+        if(replacementWindow != nullptr)
+        {
+            if(windowRegistered)
+                Ogre::WindowEventUtilities::_removeRenderWindow(replacementWindow);
+            root.destroyRenderTarget(replacementWindow);
+        }
+        if(previousWasFullScreen && !previousWindow->isFullScreen())
+            previousWindow->setFullscreen(true, previousWidth, previousHeight);
+        restorePreviousVideoSettings();
+        previousWindow->setVisible(true);
+        previousWindow->setActive(true);
+        previousWindow->setAutoUpdated(true);
+        windowResized(previousWindow);
+    }
+}
+
+void ODFrameListener::prepareRenderWindowShutdown()
+{
+    if(mInitialized)
+        exitApplication();
+    mModeManager.reset();
+
+    if(mWindow != mPrimaryWindow)
+    {
+        Ogre::WindowEventUtilities::_removeRenderWindow(mWindow);
+        Ogre::Root& root = Ogre::Root::getSingleton();
+        root.getRenderSystem()->_setRenderTarget(mPrimaryWindow);
+        mGui->setRenderTarget(*mPrimaryWindow);
+        root.destroyRenderTarget(mWindow);
+        mWindow = mPrimaryWindow;
+    }
+    Ogre::WindowEventUtilities::_removeRenderWindow(mPrimaryWindow);
 }
 
 void ODFrameListener::exitApplication()
@@ -193,6 +376,7 @@ bool ODFrameListener::frameRenderingQueued(const Ogre::FrameEvent& evt)
     CEGUI::System::getSingleton().getDefaultGUIContext().injectTimePulse(evt.timeSinceLastFrame);
 
     mModeManager->update(evt);
+    applyPendingRenderWindowRecreation();
 
     int64_t currentTurn = mGameMap->getTurnNumber();
 
@@ -301,6 +485,8 @@ void ODFrameListener::renderQueueStarted(Ogre::uint8 queueGroupId, const Ogre::S
     {
         Ogre::Root::getSingleton().getRenderSystem()->clearFrameBuffer(Ogre::FBT_DEPTH);
         CEGUI::System::getSingleton().renderAllGUIContexts();
+        // The static menu background must not inherit the last widget's clip.
+        Ogre::Root::getSingleton().getRenderSystem()->setScissorTest(false);
     }
     else if(queueGroupId == Ogre::RenderQueueGroupID::RENDER_QUEUE_MAIN )
     {
@@ -466,4 +652,3 @@ void ODFrameListener::readMainScene(const std::string& fileName)
     OD_LOG_INF("Load main scene file: " + fileName);
     mMainScene->readSceneMenu(fileName);
 }
-
