@@ -154,6 +154,7 @@ void ModeManager::checkModeChange()
 void ModeManager::update(const Ogre::FrameEvent& evt)
 {
     checkModeChange();
+    mInputManager.refreshSettings();
 
     // We update the current mode
     AbstractApplicationMode* currentMode = getCurrentMode();
@@ -164,5 +165,6 @@ void ModeManager::update(const Ogre::FrameEvent& evt)
 #endif
     //currentMode->mouseMoved(OIS::MouseEvent(nullptr, currentMode->getMouse()->getMouseState()));
 
+    currentMode->updateCameraControls(evt.timeSinceLastFrame);
     currentMode->onFrameStarted(evt);
 }
