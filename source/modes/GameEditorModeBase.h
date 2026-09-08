@@ -133,6 +133,8 @@ protected:
     //! If in chat mode, then the game keyboard keys are interpreted as regular keys.
     InputMode mCurrentInputMode;
 
+    bool cameraInputBlocked();
+
     void connectGuiAction(const std::string& buttonName, AbstractApplicationMode::GuiAction action);
 
     //! \brief Update the chat and event messages seen.
@@ -156,6 +158,7 @@ protected:
 
     //! \brief The minimap used in this mode
     MiniMap* mMiniMap;
+    std::string mMiniMapType;
 
     //! \brief Culling manager for the main map
     CullingManager* mMainCullingManager;
