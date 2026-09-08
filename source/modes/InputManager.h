@@ -73,6 +73,7 @@ public:
     ~InputManager();
 
     void setWidthAndHeight(int width, int height);
+    void setMousePosition(int x, int y);
     void setCurrentAMode(AbstractApplicationMode& mode);
     void handleSFMLEvent(const sf::Event& evt);
     void refreshSettings();
