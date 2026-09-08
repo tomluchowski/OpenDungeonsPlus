@@ -2729,12 +2729,15 @@ Ogre::FloatRect RenderManager::getHandCursorBounds(float relX, float relY) const
     const float height = KEEPER_HAND_POS_Z * Ogre::Math::Tan(camera->getFOVy() * 0.5f) * 2.0f;
     const Ogre::Vector3 origin(height * camera->getAspectRatio() * (relX - 0.5f),
         height * (0.5f - relY), -KEEPER_HAND_POS_Z);
-    const Ogre::Vector3 displacement = origin - mHandKeeperNode->getPosition();
-    const auto& transform = hand->getParentSceneNode()->_getFullTransform();
+    const Ogre::SceneNode* model = hand->getParentSceneNode();
     const auto corners = hand->getBoundingBox().getAllCorners();
     for(int i = 0; i < 8; ++i)
     {
-        const Ogre::Vector3 projected = camera->getProjectionMatrix() * (transform * corners[i] + displacement);
+        // Overlay's parent already follows the world camera; use camera-local transforms.
+        const Ogre::Vector3 local = model->getPosition() +
+            model->getOrientation() * (model->getScale() * corners[i]);
+        const Ogre::Vector3 projected = camera->getProjectionMatrix() * (origin +
+            mHandKeeperNode->getOrientation() * (mHandKeeperNode->getScale() * local));
         const float x = (projected.x + 1.0f) * 0.5f;
         const float y = (1.0f - projected.y) * 0.5f;
         bounds.left = std::min(bounds.left, x);

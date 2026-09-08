@@ -527,7 +527,8 @@ Gui::Gui(SoundEffectsManager* soundEffectsManager, const std::string& ceguiLogFi
     context.getDefaultTooltipObject()->subscribeEvent(CEGUI::Window::EventMoved,
         CEGUI::Event::Subscriber([](const CEGUI::EventArgs& e)
         {
-            CEGUI::Window* tooltip = static_cast<const CEGUI::WindowEventArgs&>(e).window;
+            CEGUI::Window* tooltip = static_cast<CEGUI::Window*>(
+                static_cast<const CEGUI::ElementEventArgs&>(e).element);
             const CEGUI::Rectf bounds = tooltip->getUnclippedOuterRect().get();
             const CEGUI::Sizef screen = tooltip->getRootContainerSize();
             const CEGUI::Vector2f cursor = tooltip->getGUIContext().getMouseCursor().getPosition();
@@ -540,17 +541,17 @@ Gui::Gui(SoundEffectsManager* soundEffectsManager, const std::string& ceguiLogFi
                     area.right * screen.d_width, area.bottom * screen.d_height);
             }
             const float gap = tooltip->getFont()->getFontHeight() * 0.25f;
-            float x = cursor.d_x;
-            float y = hand.top() - bounds.getHeight() - gap;
-            if(y < 0.0f)
+            float x = hand.right() + gap;
+            float y = cursor.d_y - bounds.getHeight() * 0.5f;
+            if(x + bounds.getWidth() > screen.d_width)
             {
-                y = hand.bottom() + gap;
-                if(y + bounds.getHeight() > screen.d_height)
+                x = hand.left() - bounds.getWidth() - gap;
+                if(x < 0.0f)
                 {
-                    y = cursor.d_y;
-                    x = hand.right() + gap;
-                    if(x + bounds.getWidth() > screen.d_width)
-                        x = hand.left() - bounds.getWidth() - gap;
+                    x = cursor.d_x;
+                    y = hand.top() - bounds.getHeight() - gap;
+                    if(y < 0.0f)
+                        y = hand.bottom() + gap;
                 }
             }
             x = std::max(0.0f, std::min(x, screen.d_width - bounds.getWidth()));
