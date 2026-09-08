@@ -23,6 +23,7 @@
 #include "render/ODFrameListener.h"
 
 #include "entities/Creature.h"
+#include "entities/Tile.h"
 #include "eventsystem/ClockTick.h"
 #include "game/Player.h"
 #include "game/Seat.h"
@@ -48,6 +49,8 @@
 #include "utils/MakeUnique.h"
 
 #include <OgreCamera.h>
+#include <OgreEntity.h>
+#include <OgreInstancedEntity.h>
 #include <OgreRenderWindow.h>
 #include <OgreRenderSystem.h>
 #include <OgreRoot.h>
@@ -63,6 +66,8 @@
 #include <cstdlib>
 #include <stdexcept>
 #include <iostream>
+#include <cmath>
+#include <limits>
 
 #include <signal.h>
 
@@ -521,6 +526,71 @@ bool ODFrameListener::findWorldPositionFromMouse(const OIS::MouseEvent &arg, Ogr
 
 }
 
+
+bool ODFrameListener::findTilePositionFromMouse(const OIS::MouseEvent& arg, Ogre::Vector3& position)
+{
+    const auto mouse = CEGUI::System::getSingleton().getDefaultGUIContext().getMouseCursor().getPosition();
+    const Ogre::Ray ray = mCameraManager.getActiveCamera()->getCameraToViewportRay(
+        mouse.d_x / arg.state.width, mouse.d_y / arg.state.height);
+    const auto ground = ray.intersects(Ogre::Plane(Ogre::Vector3::UNIT_Z, 0));
+    if(!ground.first || ray.getDirection().z >= 0)
+        return false;
+
+    const int width = mGameMap->getMapSizeX();
+    const int height = mGameMap->getMapSizeY();
+    const Ogre::AxisAlignedBox mapBounds(-0.5f, -0.5f, 0,
+        width - 0.5f, height - 0.5f, ray.getOrigin().z);
+    const auto entry = ray.intersects(mapBounds);
+    if(!entry.first)
+        return false;
+
+    // Visit only tile columns crossed by the ray, using the rendered wall height.
+    const Ogre::Vector3 start = ray.getPoint(entry.second + 0.0001f);
+    int x = std::max(0, std::min(width - 1, static_cast<int>(std::floor(start.x + 0.5f))));
+    int y = std::max(0, std::min(height - 1, static_cast<int>(std::floor(start.y + 0.5f))));
+    const int stepX = ray.getDirection().x > 0 ? 1 : -1;
+    const int stepY = ray.getDirection().y > 0 ? 1 : -1;
+    const float infinity = std::numeric_limits<float>::infinity();
+    const float deltaX = ray.getDirection().x == 0 ? infinity : std::abs(1.0f / ray.getDirection().x);
+    const float deltaY = ray.getDirection().y == 0 ? infinity : std::abs(1.0f / ray.getDirection().y);
+    float nextX = ray.getDirection().x == 0 ? infinity : (x + stepX * 0.5f - ray.getOrigin().x) / ray.getDirection().x;
+    float nextY = ray.getDirection().y == 0 ? infinity : (y + stepY * 0.5f - ray.getOrigin().y) / ray.getDirection().y;
+    Ogre::SceneManager* scene = mRenderManager->getSceneManager();
+    for(int visited = 0; visited < width + height + 1; ++visited)
+    {
+        Tile* tile = mGameMap->getTile(x, y);
+        if(tile == nullptr)
+            break;
+        if(tile->isFullTile())
+        {
+            Ogre::MovableObject* wall = tile->getFogOfWarMesh();
+            const std::string name = tile->getOgreNamePrefix() + tile->getName() + "_tileMesh";
+            if(scene->hasEntity(name))
+                wall = scene->getEntity(name);
+            if(wall != nullptr)
+            {
+                const float top = wall->getWorldBoundingBox(true).getMaximum().z;
+                const auto hit = ray.intersects(Ogre::AxisAlignedBox(x - 0.5f, y - 0.5f, 0,
+                    x + 0.5f, y + 0.5f, top));
+                if(hit.first && hit.second <= ground.second)
+                {
+                    position = Ogre::Vector3(static_cast<float>(x), static_cast<float>(y), ray.getPoint(hit.second).z);
+                    return true;
+                }
+            }
+        }
+        const float next = std::min(nextX, nextY);
+        if(next > ground.second)
+            break;
+        if(nextX == next) { x += stepX; nextX += deltaX; }
+        if(nextY == next) { y += stepY; nextY += deltaY; }
+    }
+    const Ogre::Vector3 floor = ray.getPoint(ground.second);
+    if(mGameMap->getTile(Helper::round(floor.x), Helper::round(floor.y)) == nullptr)
+        return false;
+    position = floor;
+    return true;
+}
 
 bool ODFrameListener::rayIntersectionGameMap(const OIS::MouseEvent &arg, Ogre::Vector3& keeperHand3DPos, DraggableTileContainer* draggableTileContainer)
 {

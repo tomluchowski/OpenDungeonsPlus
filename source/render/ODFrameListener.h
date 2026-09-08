@@ -134,6 +134,7 @@ public:
     //! returns true if the keeper hand position was successfully computed and false otherwise.
     //! If it returns false, keeperHand3DPos will stay unchanged
     bool findWorldPositionFromMouse(const OIS::MouseEvent &arg, Ogre::Vector3& keeperHand3DPos, Ogre::Real height);
+    bool findTilePositionFromMouse(const OIS::MouseEvent& arg, Ogre::Vector3& position);
     bool rayIntersectionGameMap(const OIS::MouseEvent &arg,Ogre::Vector3& keeperHand3DPos, DraggableTileContainer* draggableTileContainer);
     
     /*! \brief Print a string in the upper right corner of the screen.
