@@ -23,7 +23,8 @@
 class MenuModeLoad: public AbstractApplicationMode
 {
 public:
-    MenuModeLoad(ModeManager*);
+    MenuModeLoad(ModeManager*, bool inGame = false, const std::string& savedGame = {});
+    ~MenuModeLoad() override;
 
     //! \brief Called when the game mode is activated
     //! Used to call the corresponding Gui Sheet.
@@ -32,8 +33,15 @@ public:
     bool launchSelectedButtonPressed(const CEGUI::EventArgs&);
     bool deleteSelectedButtonPressed(const CEGUI::EventArgs&);
     bool updateDescription(const CEGUI::EventArgs&);
+    bool closeBrowser(const CEGUI::EventArgs& = {});
+    bool isOpenInGame() const { return mInGame && mOpen; }
 
 private:
+    bool launchSavedGame(const std::string& level);
+    bool mInGame;
+    bool mOpen = false;
+    bool mWasPaused = false;
+    std::string mSavedGame;
     std::vector<std::string> mFilesList;
 };
 

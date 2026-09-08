@@ -108,7 +108,7 @@ public:
     void receiveChat(const ChatMessage& chat) override;
 
     //! \brief Receive and display some event text
-    void receiveEventShortNotice(EventMessage* event);
+    virtual void receiveEventShortNotice(EventMessage* event);
 
     //! \brief Called when the mode is activated.
     virtual void activate() override = 0;
@@ -133,10 +133,13 @@ protected:
     //! If in chat mode, then the game keyboard keys are interpreted as regular keys.
     InputMode mCurrentInputMode;
 
+    bool cameraInputBlocked();
+
     void connectGuiAction(const std::string& buttonName, AbstractApplicationMode::GuiAction action);
 
     //! \brief Update the chat and event messages seen.
     void updateMessages(Ogre::Real update_time);
+    virtual bool shouldExpireEventMessages() const { return true; }
 
     //! \brief The main CEGUI window.
     CEGUI::Window* mRootWindow;
@@ -156,6 +159,7 @@ protected:
 
     //! \brief The minimap used in this mode
     MiniMap* mMiniMap;
+    std::string mMiniMapType;
 
     //! \brief Culling manager for the main map
     CullingManager* mMainCullingManager;

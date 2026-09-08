@@ -727,7 +727,9 @@ bool writeGameMapToFile(const std::string& fileName, GameMap& gameMap)
     levelFile << "[/Rooms]" << std::endl;
 
     std::vector<Trap*> traps = gameMap.getTraps();
-    std::sort(traps.begin(), traps.end(), Trap::sortForMapSave);
+    // Gameplay saves retain the order used to schedule workshop production.
+    if(gameMap.isInEditorMode())
+        std::sort(traps.begin(), traps.end(), Trap::sortForMapSave);
 
     // Write out the traps to the file
     levelFile << "\n[Traps]\n";
