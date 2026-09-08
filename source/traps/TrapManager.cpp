@@ -65,6 +65,8 @@ void TrapFactory::checkBuildTrapDefault(GameMap* gameMap, TrapType type, const I
     {
         inputCommand.displayTileBuildFailure(gameMap->getTile(inputManager.mXPos, inputManager.mYPos),
             player->getSeat());
+        if(gameMap->getTile(inputManager.mXPos, inputManager.mYPos) != nullptr)
+            inputCommand.displayPointerText(Ogre::ColourValue::Red, Helper::toString(pricePerTarget));
         return;
     }
 
@@ -73,11 +75,13 @@ void TrapFactory::checkBuildTrapDefault(GameMap* gameMap, TrapType type, const I
     {
         std::string txt = formatBuildTrap(type, priceTotal);
         inputCommand.displayText(Ogre::ColourValue::Red, "Not enough gold. " + txt);
+        inputCommand.displayPointerText(Ogre::ColourValue::Red, Helper::toString(priceTotal));
         return;
     }
 
     std::string txt = formatBuildTrap(type, priceTotal);
     inputCommand.displayText(Ogre::ColourValue::White, txt);
+    inputCommand.displayPointerText(Ogre::ColourValue::Red, Helper::toString(priceTotal));
 
     if(inputManager.mCommandState != InputCommandState::validated)
         return;

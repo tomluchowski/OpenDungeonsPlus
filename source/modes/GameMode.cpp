@@ -376,6 +376,7 @@ GameMode::GameMode(ModeManager *modeManager):
 
 GameMode::~GameMode()
 {
+    TextRenderer::getSingleton().setCharacterHeight(ODApplication::POINTER_INFO_STRING, 16.0f);
     for(const MessageTab& tab : mMessageTabs)
         CEGUI::WindowManager::getSingleton().destroyWindow(tab.window);
     mReturningToSettingsNavigation = false;
@@ -2338,6 +2339,8 @@ void GameMode::refreshActionFeedback(float elapsed)
             CEGUI::UDim(0, pointer.d_y + 8.0f * scale)));
     }
     const float pointerScale = icon->getPixelSize().d_width / 50.0f;
+    TextRenderer::getSingleton().setCharacterHeight(ODApplication::POINTER_INFO_STRING,
+        16.0f * pointerScale);
     TextRenderer::getSingleton().moveText(ODApplication::POINTER_INFO_STRING,
         pointer.d_x + 145.0f * pointerScale, pointer.d_y + 24.0f * pointerScale);
     Tile* tile = mGameMap->getTile(inputManager.mXPos, inputManager.mYPos);

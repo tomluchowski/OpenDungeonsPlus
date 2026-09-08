@@ -83,20 +83,24 @@ class TrapDoorFactory : public TrapFactory
         if(!tile->isBuildableUpon(player->getSeat()))
         {
             inputCommand.displayTileBuildFailure(tile, player->getSeat());
+            inputCommand.displayPointerText(Ogre::ColourValue::Red, Helper::toString(pricePerTarget));
             return;
         }
         if(!TrapDoor::canDoorBeOnTile(gameMap, tile))
         {
             inputCommand.displayText(Ogre::ColourValue::Red, "A door needs walls on two opposite sides.");
+            inputCommand.displayPointerText(Ogre::ColourValue::Red, Helper::toString(pricePerTarget));
             return;
         }
         if(playerGold < pricePerTarget)
         {
             inputCommand.displayText(Ogre::ColourValue::Red,
                 "Not enough gold. " + formatBuildTrap(type, pricePerTarget));
+            inputCommand.displayPointerText(Ogre::ColourValue::Red, Helper::toString(pricePerTarget));
             return;
         }
         inputCommand.displayText(Ogre::ColourValue::White, formatBuildTrap(type, pricePerTarget));
+        inputCommand.displayPointerText(Ogre::ColourValue::Red, Helper::toString(pricePerTarget));
         if(inputManager.mCommandState != InputCommandState::validated)
             return;
 
