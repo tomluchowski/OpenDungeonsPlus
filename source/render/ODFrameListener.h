@@ -36,6 +36,7 @@
 #include <OgreWindowEventUtilities.h>
 
 #include <memory>
+#include <map>
 #include <vector>
 
 
@@ -133,6 +134,7 @@ public:
     //! returns true if the keeper hand position was successfully computed and false otherwise.
     //! If it returns false, keeperHand3DPos will stay unchanged
     bool findWorldPositionFromMouse(const OIS::MouseEvent &arg, Ogre::Vector3& keeperHand3DPos, Ogre::Real height);
+    bool findTilePositionFromMouse(const OIS::MouseEvent& arg, Ogre::Vector3& position);
     bool rayIntersectionGameMap(const OIS::MouseEvent &arg,Ogre::Vector3& keeperHand3DPos, DraggableTileContainer* draggableTileContainer);
     
     /*! \brief Print a string in the upper right corner of the screen.
@@ -151,6 +153,13 @@ public:
 
     inline Ogre::RenderWindow* getRenderWindow()
     { return mWindow; }
+
+    void requestRenderWindowRecreation(
+        const std::map<std::string, std::string>& previousRendererOptions,
+        const std::map<std::string, std::string>& previousVideoConfig);
+
+    //! \brief Release window-dependent objects before ODApplication destroys the primary window.
+    void prepareRenderWindowShutdown();
 
     inline bool getIsMainMenuCreated()
     { return mIsMainMenuCreated; }
@@ -215,6 +224,14 @@ private:
     //! \brief The Ogre render window reference. Don't delete it.
     Ogre::RenderWindow* mWindow;
 
+    //! \brief The first window owns the main OpenGL context and remains alive as an anchor.
+    Ogre::RenderWindow* mPrimaryWindow;
+
+    bool mRenderWindowRecreationPending;
+    uint32_t mRenderWindowSequence;
+    std::map<std::string, std::string> mPreviousRendererOptions;
+    std::map<std::string, std::string> mPreviousVideoConfig;
+
     //! \brief Foreign reference to gui.
     Gui*                 mGui;
 
@@ -240,6 +257,9 @@ private:
 
     //! \brief Actually exit application
     void exitApplication();
+
+    void applyPendingRenderWindowRecreation();
+    void restorePreviousVideoSettings();
 
     //! \brief Updates server-turn independent creature animation, audio, and overall rendering.
     void updateAnimations(Ogre::Real timeSinceLastFrame);

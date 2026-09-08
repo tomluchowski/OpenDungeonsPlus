@@ -123,8 +123,8 @@ bool SpellManager::checkSpellCooldown(GameMap* gameMap, SpellType type, InputCom
     if(cooldown <= 0)
         return false;
 
-    std::string errorStr = getSpellNameFromSpellType(type)
-        + " (" + Helper::toString(cooldown, 2)+ " s)";
+    std::string errorStr = getSpellReadableName(type)
+        + " is cooling down (" + Helper::toString(cooldown, 2) + " s remaining).";
 
     inputCommand.displayText(Ogre::ColourValue::Red, errorStr);
     return true;

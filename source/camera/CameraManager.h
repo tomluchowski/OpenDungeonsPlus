@@ -163,6 +163,9 @@ public:
     Ogre::Viewport* getViewport()
     { return mViewport; }
 
+    //! \brief Move the main camera viewport to another render window.
+    void setRenderWindow(Ogre::RenderWindow* renderWindow);
+
     void resetHCSNodes(int nodeValue)
     {
         mXHCS.resetNodes(nodeValue);
@@ -244,6 +247,9 @@ private:
     //! \brief Carry out the acceleration/deceleration calculations on the camera translation.
     Ogre::Vector3   mTranslateVector;
     Ogre::Vector3   mTranslateVectorAccel;
+
+    //! \brief Maximum pan speed per axis, used to scale mouse-edge scrolling.
+    Ogre::Vector2   mTranslateMaxSpeedFactor;
 
     //! \brief The X-axis rotation vector, tilting the point of view (look down or up).
     Ogre::Vector3   mRotateLocalVector;
