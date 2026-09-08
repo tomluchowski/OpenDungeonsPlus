@@ -27,6 +27,7 @@
 #include "rooms/RoomType.h"
 #include "rooms/RoomManager.h"
 #include "spells/SpellSummonWorker.h"
+#include "spells/SpellManager.h"
 #include "spells/SpellType.h"
 #include "traps/TrapManager.h"
 #include "traps/TrapType.h"
@@ -91,6 +92,8 @@ public:
 
     virtual std::string getCostText(GameMap* gameMap) const = 0;
 
+    virtual const std::string& getTooltipTitle() const = 0;
+
     virtual void connectGuiButtons(GameEditorModeBase* mode, CEGUI::Window* rootWindow, PlayerSelection& playerSelection) const = 0;
 
     virtual const std::string& getGuiPath() const = 0;
@@ -110,6 +113,9 @@ public:
 
     SkillFamily getSkillFamily() const override
     { return SkillFamily::rooms; }
+
+    const std::string& getTooltipTitle() const override
+    { return RoomManager::getRoomReadableName(mRoomType); }
 
     std::string getCostText(GameMap* gameMap) const override
     { return Helper::toString(RoomManager::costPerTile(mRoomType)) + " gold per tile"; }
@@ -159,6 +165,9 @@ public:
     SkillFamily getSkillFamily() const override
     { return SkillFamily::traps; }
 
+    const std::string& getTooltipTitle() const override
+    { return TrapManager::getTrapReadableName(mTrapType); }
+
     std::string getCostText(GameMap* gameMap) const override
     { return Helper::toString(TrapManager::costPerTile(mTrapType)) + " gold per tile"; }
 
@@ -206,6 +215,9 @@ public:
 
     SkillFamily getSkillFamily() const override
     { return SkillFamily::spells; }
+
+    const std::string& getTooltipTitle() const override
+    { return SpellManager::getSpellReadableName(mSpellType); }
 
     std::string getCostText(GameMap* gameMap) const override
     {
@@ -786,8 +798,9 @@ void SkillManager::updateCostTooltip(GameMap* gameMap, CEGUI::Window* rootWindow
         const std::string cost = skill->getCostText(gameMap);
         const CEGUI::String text = hoveredWindow->getUserString("CostBaseDescription") +
             (cost.empty() ? "" : " (" + cost + ")");
-        if(hoveredWindow->getTooltipText() != text)
-            hoveredWindow->setTooltipText(text);
+        hoveredWindow->setUserString("ContextHelp", text);
+        if(hoveredWindow->getTooltipText() != skill->getTooltipTitle())
+            hoveredWindow->setTooltipText(skill->getTooltipTitle());
         return;
     }
 }

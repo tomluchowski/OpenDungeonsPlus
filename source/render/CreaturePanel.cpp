@@ -99,7 +99,8 @@ CreaturePanel::CreaturePanel(GameMap& gameMap, Gui& gui, CEGUI::Window* parent) 
         CEGUI::Window* count = createWindow(mWindow, "OD/StaticText", "WorkerCount" + std::to_string(i),
             24, static_cast<float>(i * 27), 48, 26);
         prepareCount(count);
-        count->setTooltipText(std::string("Workers: ") + CRITERION_NAMES[static_cast<size_t>(WORKER_CRITERIA[i])]);
+        count->setTooltipText("Workers");
+        count->setUserString("ContextHelp", std::string("Workers: ") + CRITERION_NAMES[static_cast<size_t>(WORKER_CRITERIA[i])]);
         mWorkerCounts[i] = count;
         mConnections.emplace_back(count->subscribeEvent(CEGUI::Window::EventMouseClick,
             CEGUI::Event::Subscriber([this, i](const CEGUI::EventArgs& args)
@@ -268,7 +269,8 @@ void CreaturePanel::update()
         slot.type = types[mFirstType + i];
         const CreatureDefinition* definition = mGameMap.getClassDescription(slot.type);
         slot.portrait->setProperty("Image", getCreaturePanelPortraitImage(definition->getMeshName()).getName());
-        slot.portrait->setTooltipText(slot.type + ": right-click to locate");
+        slot.portrait->setTooltipText(slot.type);
+        slot.portrait->setUserString("ContextHelp", slot.type + ": right-click to locate");
         const auto& criteria = VIEW_CRITERIA[mView];
         for(size_t row = 0; row < slot.counts.size(); ++row)
         {
@@ -281,7 +283,8 @@ void CreaturePanel::update()
             const uint32_t count = mData.at(slot.type)[static_cast<size_t>(criterion)];
             countWindow->setText(Helper::toString(count));
             countWindow->setEnabled(count > 0);
-            countWindow->setTooltipText(slot.type + ": " + CRITERION_NAMES[static_cast<size_t>(criterion)] +
+            countWindow->setTooltipText(slot.type);
+            countWindow->setUserString("ContextHelp", slot.type + ": " + CRITERION_NAMES[static_cast<size_t>(criterion)] +
                 "\nLeft-click to pick up; right-click to locate");
         }
     }
