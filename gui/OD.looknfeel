@@ -3484,11 +3484,28 @@
     </WidgetLook>
 
     <WidgetLook name="OD/TabButton">
+        <PropertyDefinition name="NavigationFrame" type="bool" initialValue="False" redrawOnWrite="true" />
+        <PropertyDefinition name="NavigationColour" initialValue="FF718C28" redrawOnWrite="true" />
+        <PropertyDefinition name="NavigationImage" initialValue="" redrawOnWrite="true" />
+        <PropertyDefinition name="VertImageFormatting" initialValue="Stretched" redrawOnWrite="true" />
+        <PropertyDefinition name="HorzImageFormatting" initialValue="Stretched" redrawOnWrite="true" />
         <PropertyDefinition initialValue="FFC0C0C0" name="NormalTextColour" redrawOnWrite="true" />
         <PropertyDefinition initialValue="FFE0E0E0" name="HoverTextColour" redrawOnWrite="true" />
         <PropertyDefinition initialValue="FFFFFFFF" name="PushedTextColour" redrawOnWrite="true" />
         <PropertyDefinition initialValue="FFE0E0E0" name="SelectedTextColour" redrawOnWrite="true" />
         <PropertyDefinition initialValue="FF7F7F7F" name="DisabledTextColour" redrawOnWrite="true" />
+        <ImagerySection name="navigation_icon">
+            <ImageryComponent>
+                <Area>
+                    <Dim type="LeftEdge"><UnifiedDim scale="0.04" type="Width" /></Dim>
+                    <Dim type="TopEdge"><UnifiedDim scale="0.04" type="Height" /></Dim>
+                    <Dim type="Width"><UnifiedDim scale="0.92" type="Width" /></Dim>
+                    <Dim type="Height"><UnifiedDim scale="0.92" type="Height" /></Dim>
+                </Area>
+                <ImageProperty name="NavigationImage" />
+                <VertFormat type="Stretched" /><HorzFormat type="Stretched" />
+            </ImageryComponent>
+        </ImagerySection>
         <ImagerySection name="label">
             <TextComponent>
                 <Area>
@@ -3607,84 +3624,171 @@
         </ImagerySection>
         <StateImagery name="TopNormal">
             <Layer>
-                <Section section="top_normal" />
-                <Section section="label">
+                <Section look="OD/GameTabButton" section="background" controlProperty="NavigationFrame" controlValue="true">
+                    <ColourProperty name="NavigationColour" />
+                </Section>
+                <Section look="OD/GameTabButton" section="navigation_frame" controlProperty="NavigationFrame" controlValue="true" />
+                <Section section="top_normal" controlProperty="NavigationFrame" controlValue="false" />
+                <Section section="label" controlProperty="NavigationFrame" controlValue="false">
+                    <ColourProperty name="NormalTextColour" />
+                </Section>
+                <Section section="navigation_icon" controlProperty="NavigationFrame" controlValue="true">
                     <ColourProperty name="NormalTextColour" />
                 </Section>
             </Layer>
         </StateImagery>
         <StateImagery name="BottomNormal">
             <Layer>
-                <Section section="bot_normal" />
-                <Section section="label">
+                <Section look="OD/GameTabButton" section="background" controlProperty="NavigationFrame" controlValue="true">
+                    <ColourProperty name="NavigationColour" />
+                </Section>
+                <Section look="OD/GameTabButton" section="navigation_frame" controlProperty="NavigationFrame" controlValue="true" />
+                <Section section="bot_normal" controlProperty="NavigationFrame" controlValue="false" />
+                <Section section="label" controlProperty="NavigationFrame" controlValue="false">
+                    <ColourProperty name="NormalTextColour" />
+                </Section>
+                <Section section="navigation_icon" controlProperty="NavigationFrame" controlValue="true">
                     <ColourProperty name="NormalTextColour" />
                 </Section>
             </Layer>
         </StateImagery>
         <StateImagery name="TopHover">
             <Layer>
-                <Section section="top_hover" />
-                <Section section="label">
+                <Section look="OD/GameTabButton" section="background" controlProperty="NavigationFrame" controlValue="true">
+                    <ColourProperty name="NavigationColour" />
+                </Section>
+                <Section look="OD/GameTabButton" section="navigation_frame" controlProperty="NavigationFrame" controlValue="true" />
+                <Section section="top_hover" controlProperty="NavigationFrame" controlValue="false" />
+                <Section section="label" controlProperty="NavigationFrame" controlValue="false">
+                    <ColourProperty name="HoverTextColour" />
+                </Section>
+                <Section section="navigation_icon" controlProperty="NavigationFrame" controlValue="true">
                     <ColourProperty name="HoverTextColour" />
                 </Section>
             </Layer>
         </StateImagery>
         <StateImagery name="BottomHover">
             <Layer>
-                <Section section="bot_hover" />
-                <Section section="label">
+                <Section look="OD/GameTabButton" section="background" controlProperty="NavigationFrame" controlValue="true">
+                    <ColourProperty name="NavigationColour" />
+                </Section>
+                <Section look="OD/GameTabButton" section="navigation_frame" controlProperty="NavigationFrame" controlValue="true" />
+                <Section section="bot_hover" controlProperty="NavigationFrame" controlValue="false" />
+                <Section section="label" controlProperty="NavigationFrame" controlValue="false">
+                    <ColourProperty name="HoverTextColour" />
+                </Section>
+                <Section section="navigation_icon" controlProperty="NavigationFrame" controlValue="true">
                     <ColourProperty name="HoverTextColour" />
                 </Section>
             </Layer>
         </StateImagery>
+        <ImagerySection name="navigation_selected">
+            <ImageryComponent>
+                <Area>
+                    <Dim type="LeftEdge"><AbsoluteDim value="3" /></Dim>
+                    <Dim type="TopEdge"><AbsoluteDim value="3" /></Dim>
+                    <Dim type="RightEdge"><UnifiedDim scale="1" offset="-3" type="Width" /></Dim>
+                    <Dim type="BottomEdge"><UnifiedDim scale="1" offset="-3" type="Height" /></Dim>
+                </Area>
+                <Image name="OpenDungeonsSkin/SelectionBrush" />
+                <Colours topLeft="FFFFFFFF" topRight="FFFFFFFF" bottomLeft="FF606060" bottomRight="FF606060" />
+                <VertFormat type="Stretched" /><HorzFormat type="Stretched" />
+            </ImageryComponent>
+        </ImagerySection>
         <StateImagery name="TopSelected">
             <Layer>
-                <Section section="top_selected" />
-                <Section section="label">
+                <Section section="navigation_selected" controlProperty="NavigationFrame" controlValue="true">
+                    <ColourProperty name="NavigationColour" />
+                </Section>
+                <Section look="OD/GameTabButton" section="navigation_frame" controlProperty="NavigationFrame" controlValue="true">
+                    <Colours topLeft="FFFFDF85" topRight="FFFFDF85" bottomLeft="FFC29A44" bottomRight="FFC29A44" />
+                </Section>
+                <Section section="top_selected" controlProperty="NavigationFrame" controlValue="false" />
+                <Section section="label" controlProperty="NavigationFrame" controlValue="false">
+                    <ColourProperty name="SelectedTextColour" />
+                </Section>
+                <Section section="navigation_icon" controlProperty="NavigationFrame" controlValue="true">
                     <ColourProperty name="SelectedTextColour" />
                 </Section>
             </Layer>
         </StateImagery>
         <StateImagery name="BottomSelected">
             <Layer>
-                <Section section="bot_selected" />
-                <Section section="label">
+                <Section section="navigation_selected" controlProperty="NavigationFrame" controlValue="true">
+                    <ColourProperty name="NavigationColour" />
+                </Section>
+                <Section look="OD/GameTabButton" section="navigation_frame" controlProperty="NavigationFrame" controlValue="true">
+                    <Colours topLeft="FFFFDF85" topRight="FFFFDF85" bottomLeft="FFC29A44" bottomRight="FFC29A44" />
+                </Section>
+                <Section section="bot_selected" controlProperty="NavigationFrame" controlValue="false" />
+                <Section section="label" controlProperty="NavigationFrame" controlValue="false">
+                    <ColourProperty name="SelectedTextColour" />
+                </Section>
+                <Section section="navigation_icon" controlProperty="NavigationFrame" controlValue="true">
                     <ColourProperty name="SelectedTextColour" />
                 </Section>
             </Layer>
         </StateImagery>
         <StateImagery name="TopPushed">
             <Layer>
-                <Section section="top_normal" />
-                <Section section="label">
+                <Section look="OD/GameTabButton" section="background" controlProperty="NavigationFrame" controlValue="true">
+                    <ColourProperty name="NavigationColour" />
+                </Section>
+                <Section look="OD/GameTabButton" section="navigation_frame" controlProperty="NavigationFrame" controlValue="true" />
+                <Section section="top_normal" controlProperty="NavigationFrame" controlValue="false" />
+                <Section section="label" controlProperty="NavigationFrame" controlValue="false">
+                    <ColourProperty name="PushedTextColour" />
+                </Section>
+                <Section section="navigation_icon" controlProperty="NavigationFrame" controlValue="true">
                     <ColourProperty name="PushedTextColour" />
                 </Section>
             </Layer>
         </StateImagery>
         <StateImagery name="BottomPushed">
             <Layer>
-                <Section section="bot_normal" />
-                <Section section="label">
+                <Section look="OD/GameTabButton" section="background" controlProperty="NavigationFrame" controlValue="true">
+                    <ColourProperty name="NavigationColour" />
+                </Section>
+                <Section look="OD/GameTabButton" section="navigation_frame" controlProperty="NavigationFrame" controlValue="true" />
+                <Section section="bot_normal" controlProperty="NavigationFrame" controlValue="false" />
+                <Section section="label" controlProperty="NavigationFrame" controlValue="false">
+                    <ColourProperty name="PushedTextColour" />
+                </Section>
+                <Section section="navigation_icon" controlProperty="NavigationFrame" controlValue="true">
                     <ColourProperty name="PushedTextColour" />
                 </Section>
             </Layer>
         </StateImagery>
         <StateImagery name="TopDisabled">
             <Layer>
-                <Section section="top_normal">
+                <Section look="OD/GameTabButton" section="background" controlProperty="NavigationFrame" controlValue="true">
+                    <ColourProperty name="NavigationColour" />
+                </Section>
+                <Section look="OD/GameTabButton" section="navigation_frame" controlProperty="NavigationFrame" controlValue="true" />
+                <Section section="top_normal" controlProperty="NavigationFrame" controlValue="false">
                     <Colours bottomLeft="FF7F7F7F" bottomRight="FF7F7F7F" topLeft="FF7F7F7F" topRight="FF7F7F7F" />
                 </Section>
-                <Section section="label">
+                <Section section="label" controlProperty="NavigationFrame" controlValue="false">
+                    <ColourProperty name="DisabledTextColour" />
+                </Section>
+                <Section section="navigation_icon" controlProperty="NavigationFrame" controlValue="true">
                     <ColourProperty name="DisabledTextColour" />
                 </Section>
             </Layer>
         </StateImagery>
         <StateImagery name="BottomDisabled">
             <Layer>
-                <Section section="bot_normal">
+                <Section look="OD/GameTabButton" section="background" controlProperty="NavigationFrame" controlValue="true">
+                    <ColourProperty name="NavigationColour" />
+                </Section>
+                <Section look="OD/GameTabButton" section="navigation_frame" controlProperty="NavigationFrame" controlValue="true" />
+                <Section section="bot_normal" controlProperty="NavigationFrame" controlValue="false">
                     <Colours bottomLeft="FF7F7F7F" bottomRight="FF7F7F7F" topLeft="FF7F7F7F" topRight="FF7F7F7F" />
                 </Section>
-                <Section section="label">
+                <Section section="label" controlProperty="NavigationFrame" controlValue="false">
+                    <ColourProperty name="DisabledTextColour" />
+                </Section>
+                <Section section="navigation_icon" controlProperty="NavigationFrame" controlValue="true">
                     <ColourProperty name="DisabledTextColour" />
                 </Section>
             </Layer>
@@ -3692,6 +3796,7 @@
     </WidgetLook>
 
     <WidgetLook name="OD/TabContentPane">
+        <PropertyDefinition name="NavigationFrame" type="bool" initialValue="False" redrawOnWrite="true" />
         <PropertyDefinition initialValue="0" layoutOnWrite="true" name="EnableTop" redrawOnWrite="true" />
         <PropertyDefinition initialValue="0" layoutOnWrite="true" name="EnableBottom" redrawOnWrite="true" />
         <ImagerySection name="normal">
@@ -3719,16 +3824,26 @@
                 <Image component="Background" name="OpenDungeonsSkin/TabContentPaneMiddle" />
             </FrameComponent>
         </ImagerySection>
+        <ImagerySection name="navigation_background">
+            <ImageryComponent>
+                <Image name="ODHudSurface/Stone" />
+                <VertFormat type="Tiled" /><HorzFormat type="Tiled" />
+            </ImageryComponent>
+        </ImagerySection>
         <StateImagery name="Enabled">
             <Layer>
-                <Section section="normal" />
+                <Section section="normal" controlProperty="NavigationFrame" controlValue="false" />
+                <Section section="navigation_background" controlProperty="NavigationFrame" controlValue="true" />
+                <Section look="OD/GameTabButton" section="navigation_frame" controlProperty="NavigationFrame" controlValue="true" />
             </Layer>
         </StateImagery>
         <StateImagery name="Disabled">
             <Layer>
-                <Section section="normal">
+                <Section section="normal" controlProperty="NavigationFrame" controlValue="false">
                     <Colours bottomLeft="507F7F7F" bottomRight="507F7F7F" topLeft="507F7F7F" topRight="507F7F7F" />
                 </Section>
+                <Section section="navigation_background" controlProperty="NavigationFrame" controlValue="true" />
+                <Section look="OD/GameTabButton" section="navigation_frame" controlProperty="NavigationFrame" controlValue="true" />
             </Layer>
         </StateImagery>
     </WidgetLook>
@@ -4618,6 +4733,7 @@
     </WidgetLook>
 
     <WidgetLook name="OD/GameTabButton">
+        <PropertyDefinition name="NavigationFrame" type="bool" initialValue="False" redrawOnWrite="true" />
         <Property name="WantsMultiClickEvents" value="False" />
         <PropertyDefinition initialValue="" name="NormalImage" redrawOnWrite="true" />
         <PropertyDefinition initialValue="OpenDungeonsSkin/ButtonHoverEffect" name="HoverImage" redrawOnWrite="true" />
@@ -4625,6 +4741,7 @@
         <PropertyDefinition initialValue="OpenDungeonsSkin/ButtonDisabledEffect" name="DisabledImage" redrawOnWrite="true" />
         <PropertyDefinition initialValue="Stretched" name="VertImageFormatting" redrawOnWrite="true" />
         <PropertyDefinition initialValue="Stretched" name="HorzImageFormatting" redrawOnWrite="true" />
+        <PropertyDefinition initialValue="00FFFFFF" name="SelectionColour" redrawOnWrite="true" />
         <ImagerySection name="background">
             <ImageryComponent>
                 <Area>
@@ -4650,6 +4767,24 @@
                 <VertFormatProperty name="VertImageFormatting" />
                 <HorzFormatProperty name="HorzImageFormatting" />
             </ImageryComponent>
+        </ImagerySection>
+        <ImagerySection name="navigation_frame">
+            <FrameComponent>
+                <Area>
+                    <Dim type="LeftEdge"><AbsoluteDim value="0" /></Dim>
+                    <Dim type="TopEdge"><AbsoluteDim value="0" /></Dim>
+                    <Dim type="Width"><UnifiedDim scale="1" type="Width" /></Dim>
+                    <Dim type="Height"><UnifiedDim scale="1" type="Height" /></Dim>
+                </Area>
+                <Image component="TopLeftCorner" name="OpenDungeonsSkin/ButtonTopLeftNormal" />
+                <Image component="TopRightCorner" name="OpenDungeonsSkin/ButtonTopRightNormal" />
+                <Image component="BottomLeftCorner" name="OpenDungeonsSkin/ButtonBottomLeftNormal" />
+                <Image component="BottomRightCorner" name="OpenDungeonsSkin/ButtonBottomRightNormal" />
+                <Image component="LeftEdge" name="OpenDungeonsSkin/ButtonLeftNormal" />
+                <Image component="RightEdge" name="OpenDungeonsSkin/ButtonRightNormal" />
+                <Image component="TopEdge" name="OpenDungeonsSkin/ButtonTopNormal" />
+                <Image component="BottomEdge" name="OpenDungeonsSkin/ButtonBottomNormal" />
+            </FrameComponent>
         </ImagerySection>
         <ImagerySection name="frame">
             <ImageryComponent>
@@ -4703,6 +4838,20 @@
                 <HorzFormatProperty name="HorzImageFormatting" />
             </ImageryComponent>
         </ImagerySection>
+        <ImagerySection name="selected">
+            <ImageryComponent>
+                <Area>
+                    <Dim type="LeftEdge"><AbsoluteDim value="0" /></Dim>
+                    <Dim type="TopEdge"><AbsoluteDim value="0" /></Dim>
+                    <Dim type="Width"><UnifiedDim scale="1" type="Width" /></Dim>
+                    <Dim type="Height"><UnifiedDim scale="1" type="Height" /></Dim>
+                </Area>
+                <Image name="OpenDungeonsSkin/ButtonHoverEffect" />
+                <ColourRectProperty name="SelectionColour" />
+                <VertFormatProperty name="VertImageFormatting" />
+                <HorzFormatProperty name="HorzImageFormatting" />
+            </ImageryComponent>
+        </ImagerySection>
         <StateImagery name="Normal">
             <Layer priority="0">
                 <Section section="background" />
@@ -4711,7 +4860,11 @@
                 <Section section="normal" />
             </Layer>
             <Layer priority="2">
-                <Section section="frame" />
+                <Section section="frame" controlProperty="NavigationFrame" controlValue="false" />
+                <Section section="navigation_frame" controlProperty="NavigationFrame" controlValue="true" />
+            </Layer>
+            <Layer priority="4">
+                <Section section="selected" />
             </Layer>
         </StateImagery>
         <StateImagery name="Hover">
@@ -4722,10 +4875,14 @@
                 <Section section="normal" />
             </Layer>
             <Layer priority="2">
-                <Section section="frame" />
+                <Section section="frame" controlProperty="NavigationFrame" controlValue="false" />
+                <Section section="navigation_frame" controlProperty="NavigationFrame" controlValue="true" />
             </Layer>
             <Layer priority="3">
                 <Section section="hover" />
+            </Layer>
+            <Layer priority="4">
+                <Section section="selected" />
             </Layer>
         </StateImagery>
         <StateImagery name="Pushed">
@@ -4736,10 +4893,14 @@
                 <Section section="normal" />
             </Layer>
             <Layer priority="2">
-                <Section section="frame" />
+                <Section section="frame" controlProperty="NavigationFrame" controlValue="false" />
+                <Section section="navigation_frame" controlProperty="NavigationFrame" controlValue="true" />
             </Layer>
             <Layer priority="3">
                 <Section section="pushed" />
+            </Layer>
+            <Layer priority="4">
+                <Section section="selected" />
             </Layer>
         </StateImagery>
         <StateImagery name="PushedOff">
@@ -4750,10 +4911,14 @@
                 <Section section="normal" />
             </Layer>
             <Layer priority="2">
-                <Section section="frame" />
+                <Section section="frame" controlProperty="NavigationFrame" controlValue="false" />
+                <Section section="navigation_frame" controlProperty="NavigationFrame" controlValue="true" />
             </Layer>
             <Layer priority="3">
                 <Section section="hover" />
+            </Layer>
+            <Layer priority="4">
+                <Section section="selected" />
             </Layer>
         </StateImagery>
         <StateImagery name="Disabled">
@@ -4764,12 +4929,115 @@
                 <Section section="normal" />
             </Layer>
             <Layer priority="2">
-                <Section section="frame" />
+                <Section section="frame" controlProperty="NavigationFrame" controlValue="false" />
+                <Section section="navigation_frame" controlProperty="NavigationFrame" controlValue="true" />
             </Layer>
             <Layer priority="3">
                 <Section section="disabled" />
             </Layer>
+            <Layer priority="4">
+                <Section section="selected" />
+            </Layer>
         </StateImagery>
     </WidgetLook>
 
+    <WidgetLook name="OD/ResourceDisplay" inherits="OD/StaticText">
+        <NamedArea name="WithFrameTextRenderArea">
+            <Area>
+                <Dim type="LeftEdge"><UnifiedDim scale="0.33" type="LeftEdge" /></Dim>
+                <Dim type="TopEdge"><ImageDim dimension="Height" name="OpenDungeonsSkin/StaticTop" /></Dim>
+                <Dim type="RightEdge"><UnifiedDim scale="0.92" type="RightEdge" /></Dim>
+                <Dim type="BottomEdge"><OperatorDim op="Subtract"><UnifiedDim scale="1" type="BottomEdge" /><ImageDim dimension="Height" name="OpenDungeonsSkin/StaticBottom" /></OperatorDim></Dim>
+            </Area>
+        </NamedArea>
+        <ImagerySection name="inset">
+            <ImageryComponent>
+                <Area>
+                    <Dim type="LeftEdge"><ImageDim name="OpenDungeonsSkin/ButtonLeftNormal" dimension="Width" /></Dim>
+                    <Dim type="TopEdge"><ImageDim name="OpenDungeonsSkin/ButtonTopNormal" dimension="Height" /></Dim>
+                    <Dim type="RightEdge"><OperatorDim op="Subtract"><UnifiedDim scale="1" type="RightEdge" /><ImageDim name="OpenDungeonsSkin/ButtonRightNormal" dimension="Width" /></OperatorDim></Dim>
+                    <Dim type="BottomEdge"><OperatorDim op="Subtract"><UnifiedDim scale="1" type="BottomEdge" /><ImageDim name="OpenDungeonsSkin/ButtonBottomNormal" dimension="Height" /></OperatorDim></Dim>
+                </Area>
+                <Image name="OpenDungeonsSkin/SelectionBrush" />
+                <Colours topLeft="FF1A2228" topRight="FF1A2228" bottomLeft="FF080C10" bottomRight="FF080C10" />
+                <VertFormat type="Stretched" /><HorzFormat type="Stretched" />
+            </ImageryComponent>
+        </ImagerySection>
+        <StateImagery name="EnabledFrame"><Layer><Section look="OD/GameTabButton" section="navigation_frame" /></Layer></StateImagery>
+        <StateImagery name="DisabledFrame"><Layer><Section look="OD/GameTabButton" section="navigation_frame" /></Layer></StateImagery>
+        <StateImagery name="WithFrameEnabledBackground"><Layer><Section section="inset" /></Layer></StateImagery>
+        <StateImagery name="WithFrameDisabledBackground"><Layer><Section section="inset" /></Layer></StateImagery>
+    </WidgetLook>
+    <WidgetLook name="OD/MiniMapCornerButton" inherits="OD/GameTabButton">
+        <PropertyDefinition name="CornerBackground" initialValue="" redrawOnWrite="true" />
+        <PropertyDefinition name="CornerIconArea" initialValue="{{0.09,0},{0.09,0},{0.52,0},{0.52,0}}" redrawOnWrite="true" />
+        <ImagerySection name="corner">
+            <ImageryComponent>
+                <Area>
+                    <Dim type="LeftEdge"><AbsoluteDim value="0" /></Dim>
+                    <Dim type="TopEdge"><AbsoluteDim value="0" /></Dim>
+                    <Dim type="Width"><UnifiedDim scale="1" type="Width" /></Dim>
+                    <Dim type="Height"><UnifiedDim scale="1" type="Height" /></Dim>
+                </Area>
+                <ImageProperty name="CornerBackground" />
+                <VertFormat type="Stretched" />
+                <HorzFormat type="Stretched" />
+            </ImageryComponent>
+        </ImagerySection>
+        <ImagerySection name="corner_symbol">
+            <ImageryComponent>
+                <Area><AreaProperty name="CornerIconArea" /></Area>
+                <ImageProperty name="NormalImage" />
+                <VertFormat type="Stretched" />
+                <HorzFormat type="Stretched" />
+            </ImageryComponent>
+        </ImagerySection>
+        <StateImagery name="Normal">
+            <Layer><Section section="corner" /><Section section="corner_symbol" /></Layer>
+        </StateImagery>
+        <StateImagery name="Hover">
+            <Layer>
+                <Section section="corner"><Colours topLeft="FFFFDF99" topRight="FFFFDF99" bottomLeft="FFFFDF99" bottomRight="FFFFDF99" /></Section>
+                <Section section="corner_symbol" />
+            </Layer>
+        </StateImagery>
+        <StateImagery name="Pushed">
+            <Layer>
+                <Section section="corner"><Colours topLeft="FF999999" topRight="FF999999" bottomLeft="FF999999" bottomRight="FF999999" /></Section>
+                <Section section="corner_symbol"><Colours topLeft="FFBBBBBB" topRight="FFBBBBBB" bottomLeft="FFBBBBBB" bottomRight="FFBBBBBB" /></Section>
+            </Layer>
+        </StateImagery>
+        <StateImagery name="PushedOff">
+            <Layer><Section section="corner" /><Section section="corner_symbol" /></Layer>
+        </StateImagery>
+        <StateImagery name="Disabled">
+            <Layer>
+                <Section section="corner"><Colours topLeft="FF666666" topRight="FF666666" bottomLeft="FF666666" bottomRight="FF666666" /></Section>
+                <Section section="corner_symbol"><Colours topLeft="FF666666" topRight="FF666666" bottomLeft="FF666666" bottomRight="FF666666" /></Section>
+            </Layer>
+        </StateImagery>
+    </WidgetLook>
+    <WidgetLook name="OD/MenuSymbolButton" inherits="OD/InvisibleButton">
+        <ImagerySection name="outline"><FrameComponent>
+                <Area>
+                    <Dim type="LeftEdge"><AbsoluteDim value="0" /></Dim>
+                    <Dim type="TopEdge"><AbsoluteDim value="0" /></Dim>
+                    <Dim type="Width"><UnifiedDim scale="1" type="Width" /></Dim>
+                    <Dim type="Height"><UnifiedDim scale="1" type="Height" /></Dim>
+                </Area>
+                <Image component="TopLeftCorner" name="OpenDungeonsSkin/VerticalSliderTopLeft" />
+                <Image component="TopRightCorner" name="OpenDungeonsSkin/VerticalSliderTopRight" />
+                <Image component="BottomLeftCorner" name="OpenDungeonsSkin/VerticalSliderBottomLeft" />
+                <Image component="BottomRightCorner" name="OpenDungeonsSkin/VerticalSliderBottomRight" />
+                <Image component="LeftEdge" name="OpenDungeonsSkin/VerticalSliderLeft" />
+                <Image component="RightEdge" name="OpenDungeonsSkin/VerticalSliderRight" />
+                <Image component="BottomEdge" name="OpenDungeonsSkin/VerticalSliderBottom" />
+                <Image component="TopEdge" name="OpenDungeonsSkin/VerticalSliderTop" />
+
+            </FrameComponent>
+            </ImagerySection>
+        <StateImagery name="Normal"><Layer><Section section="outline" /><Section section="normal" /></Layer></StateImagery>
+        <StateImagery name="Hover"><Layer><Section section="outline" /><Section section="hover" /></Layer></StateImagery>
+        <StateImagery name="Pushed"><Layer><Section section="outline" /><Section section="pushed" /></Layer></StateImagery>
+    </WidgetLook>
 </Falagard>
