@@ -34,6 +34,8 @@ public:
     //! Used to call the corresponding Gui Sheet.
     void activate() final override;
 
+    bool goBack(const CEGUI::EventArgs& e = {}) override;
+
 private:
     //! \brief The Settings window
     SettingsWindow mSettings;
