@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<GUILayout version="4">
+    <Window type="OD/FrameWindow" name="MapWindow">
+        <Property name="Area" value="{{0.02,0},{0.02,0},{0.98,0},{0.98,0}}" />
+        <Property name="Text" value="Map (M)" />
+        <Property name="Visible" value="False" />
+        <Property name="SizingEnabled" value="False" />
+        <Property name="DragMovingEnabled" value="False" />
+        <Window type="OD/StaticImage" name="MapImage">
+            <Property name="Area" value="{{0,0},{0,0},{1,-24},{1,-24}}" />
+            <Property name="AspectMode" value="Shrink" />
+            <Property name="HorizontalAlignment" value="Centre" />
+            <Property name="VerticalAlignment" value="Centre" />
+            <Property name="FrameEnabled" value="False" />
+            <Property name="BackgroundEnabled" value="False" />
+            <Property name="TooltipText" value="Left-click: go here; right-click or M: close" />
+            <Window type="OD/StaticImage" name="Detail">
+                <Property name="Area" value="{{0,0},{0,0},{0.28,0},{0.28,0}}" />
+                <Property name="AspectMode" value="Shrink" />
+                <Property name="AspectRatio" value="1" />
+                <Property name="MousePassThroughEnabled" value="True" />
+                <Property name="AlwaysOnTop" value="True" />
+                <Property name="FrameEnabled" value="False" />
+                <Property name="BackgroundEnabled" value="False" />
+            </Window>
+        </Window>
+    </Window>
+</GUILayout>

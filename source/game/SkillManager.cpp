@@ -20,11 +20,16 @@
 #include "game/Skill.h"
 #include "game/Seat.h"
 #include "game/SkillType.h"
+#include "gamemap/GameMap.h"
 #include "modes/GameEditorModeBase.h"
 #include "modes/GameMode.h"
 #include "render/Gui.h"
 #include "rooms/RoomType.h"
+#include "rooms/RoomManager.h"
+#include "spells/SpellSummonWorker.h"
+#include "spells/SpellManager.h"
 #include "spells/SpellType.h"
+#include "traps/TrapManager.h"
 #include "traps/TrapType.h"
 #include "utils/ConfigManager.h"
 #include "utils/Helper.h"
@@ -85,6 +90,10 @@ public:
 
     virtual SkillFamily getSkillFamily() const = 0;
 
+    virtual std::string getCostText(GameMap* gameMap) const = 0;
+
+    virtual const std::string& getTooltipTitle() const = 0;
+
     virtual void connectGuiButtons(GameEditorModeBase* mode, CEGUI::Window* rootWindow, PlayerSelection& playerSelection) const = 0;
 
     virtual const std::string& getGuiPath() const = 0;
@@ -104,6 +113,12 @@ public:
 
     SkillFamily getSkillFamily() const override
     { return SkillFamily::rooms; }
+
+    const std::string& getTooltipTitle() const override
+    { return RoomManager::getRoomReadableName(mRoomType); }
+
+    std::string getCostText(GameMap* gameMap) const override
+    { return Helper::toString(RoomManager::costPerTile(mRoomType)) + " gold per tile"; }
 
     void connectGuiButtons(GameEditorModeBase* mode, CEGUI::Window* rootWindow, PlayerSelection& playerSelection) const override
     {
@@ -150,6 +165,12 @@ public:
     SkillFamily getSkillFamily() const override
     { return SkillFamily::traps; }
 
+    const std::string& getTooltipTitle() const override
+    { return TrapManager::getTrapReadableName(mTrapType); }
+
+    std::string getCostText(GameMap* gameMap) const override
+    { return Helper::toString(TrapManager::costPerTile(mTrapType)) + " gold per tile"; }
+
     void connectGuiButtons(GameEditorModeBase* mode, CEGUI::Window* rootWindow, PlayerSelection& playerSelection) const override
     {
         mode->addEventConnection(
@@ -194,6 +215,34 @@ public:
 
     SkillFamily getSkillFamily() const override
     { return SkillFamily::spells; }
+
+    const std::string& getTooltipTitle() const override
+    { return SpellManager::getSpellReadableName(mSpellType); }
+
+    std::string getCostText(GameMap* gameMap) const override
+    {
+        if(mSpellType == SpellType::summonWorker)
+            return Helper::toString(SpellSummonWorker::getNextWorkerPriceForPlayer(gameMap,
+                gameMap->getLocalPlayer())) + " mana for next worker";
+
+        const char* key;
+        switch(mSpellType)
+        {
+            case SpellType::callToWar: key = "CallToWarPrice"; break;
+            case SpellType::creatureHeal: key = "CreatureHealPrice"; break;
+            case SpellType::creatureExplosion: key = "CreatureExplosionPrice"; break;
+            case SpellType::creatureHaste: key = "CreatureHastePrice"; break;
+            case SpellType::creatureDefense: key = "CreatureDefensePrice"; break;
+            case SpellType::creatureSlow: key = "CreatureSlowPrice"; break;
+            case SpellType::creatureStrength: key = "CreatureStrengthPrice"; break;
+            case SpellType::creatureWeak: key = "CreatureWeakPrice"; break;
+            case SpellType::eyeEvil: key = "EyeEvilPrice"; break;
+            default: return "";
+        }
+        const std::string unit = (mSpellType == SpellType::callToWar || mSpellType == SpellType::eyeEvil) ?
+            " mana" : " mana per creature";
+        return Helper::toString(ConfigManager::getSingleton().getSpellConfigInt32(key)) + unit;
+    }
 
     void connectGuiButtons(GameEditorModeBase* mode, CEGUI::Window* rootWindow, PlayerSelection& playerSelection) const override
     {
@@ -734,4 +783,61 @@ void SkillManager::connectGuiButtons(GameEditorModeBase* mode, CEGUI::Window* ro
 
         skill->connectGuiButtons(mode, rootWindow, playerSelection);
     }
+}
+
+void SkillManager::updateCostTooltip(GameMap* gameMap, CEGUI::Window* rootWindow, CEGUI::Window* hoveredWindow)
+{
+    for(const SkillDef* skill : getSkillManager().mSkills)
+    {
+        if(skill == nullptr || hoveredWindow->getName() != skill->mButtonName ||
+            hoveredWindow != rootWindow->getChild(skill->getGuiPath() + skill->mButtonName))
+            continue;
+
+        if(!hoveredWindow->isUserStringDefined("CostBaseDescription"))
+            hoveredWindow->setUserString("CostBaseDescription", hoveredWindow->getTooltipText());
+        const std::string cost = skill->getCostText(gameMap);
+        const CEGUI::String text = hoveredWindow->getUserString("CostBaseDescription") +
+            (cost.empty() ? "" : " (" + cost + ")");
+        hoveredWindow->setUserString("ContextHelp", text);
+        if(hoveredWindow->getTooltipText() != skill->getTooltipTitle())
+            hoveredWindow->setTooltipText(skill->getTooltipTitle());
+        return;
+    }
+}
+
+std::string SkillManager::getSelectedButton(const PlayerSelection& playerSelection)
+{
+    SkillFamily family;
+    uint32_t type;
+    switch(playerSelection.getCurrentAction())
+    {
+        case SelectedAction::buildRoom:
+            family = SkillFamily::rooms;
+            type = static_cast<uint32_t>(playerSelection.getNewRoomType());
+            break;
+        case SelectedAction::buildTrap:
+            family = SkillFamily::traps;
+            type = static_cast<uint32_t>(playerSelection.getNewTrapType());
+            break;
+        case SelectedAction::castSpell:
+            family = SkillFamily::spells;
+            type = static_cast<uint32_t>(playerSelection.getNewSpellType());
+            break;
+        case SelectedAction::destroyRoom:
+            return Gui::BUTTON_DESTROY_ROOM;
+        case SelectedAction::destroyTrap:
+            return Gui::BUTTON_DESTROY_TRAP;
+        case SelectedAction::queryEntity:
+            return "QueryButton";
+        case SelectedAction::sellBuilding:
+            return "SellButton";
+        default:
+            return "";
+    }
+
+    const std::vector<SkillType>& skills = getSkillManager().mSkillsFamily.at(static_cast<uint32_t>(family));
+    if(type >= skills.size() || skills[type] == SkillType::nullSkillType)
+        return "";
+    const SkillDef* skill = getSkillManager().mSkills.at(static_cast<uint32_t>(skills[type]));
+    return skill->getGuiPath() + skill->mButtonName;
 }

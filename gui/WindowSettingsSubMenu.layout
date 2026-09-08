@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<GUILayout version="4" >
+    <Window type="DefaultWindow" name="SettingsSubMenuWindow" >
+        <Property name="Area" value="{{0,0},{0,0},{1,0},{1,0}}" />
+        <Property name="Visible" value="False" />
+        <Window type="OD/MenuTitle" name="Title" >
+            <Property name="Font" value="MedievalSharp-20" />
+            <Property name="Area" value="{{0.5,-300},{0.5,-60},{0.5,300},{0.5,0}}" />
+            <Property name="Text" value="Settings" />
+            <Property name="MousePassThroughEnabled" value="True" />
+        </Window>
+        <Window type="OD/MenuTextButton" name="VideoButton" >
+            <Property name="Font" value="MedievalSharp-12" />
+            <Property name="Area" value="{{0.5,-160},{0.5,32},{0.5,160},{0.5,68}}" />
+            <Property name="Text" value="Graphics Options" />
+        </Window>
+        <Window type="OD/MenuTextButton" name="AudioButton" >
+            <Property name="Font" value="MedievalSharp-12" />
+            <Property name="Area" value="{{0.5,-160},{0.5,68},{0.5,160},{0.5,104}}" />
+            <Property name="Text" value="Sound Options" />
+        </Window>
+        <Window type="OD/MenuTextButton" name="InputButton" >
+            <Property name="Font" value="MedievalSharp-12" />
+            <Property name="Area" value="{{0.5,-160},{0.5,104},{0.5,160},{0.5,140}}" />
+            <Property name="Text" value="Control Options" />
+        </Window>
+        <Window type="OD/MenuTextButton" name="GameButton" >
+            <Property name="Font" value="MedievalSharp-12" />
+            <Property name="Area" value="{{0.5,-160},{0.5,140},{0.5,160},{0.5,176}}" />
+            <Property name="Text" value="Game Options" />
+        </Window>
+        <Window type="OD/MenuSymbolButton" name="BackButton" >
+            <Property name="Area" value="{{1,-176},{1,-92.8},{1,-99.2},{1,-16}}" />
+            <Property name="NormalImage" value="OpenDungeonsSkin/CloseButtonNormal" />
+            <Property name="HoverImage" value="OpenDungeonsSkin/CloseButtonHover" />
+            <Property name="PushedImage" value="OpenDungeonsSkin/CloseButtonPressed" />
+            <Property name="TooltipText" value="Back" />
+        </Window>
+    </Window>
+</GUILayout>
