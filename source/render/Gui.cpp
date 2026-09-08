@@ -21,6 +21,7 @@
  */
 
 #include "render/Gui.h"
+#include "render/RenderManager.h"
 
 #include "ODApplication.h"
 #include "sound/SoundEffectsManager.h"
@@ -529,8 +530,31 @@ Gui::Gui(SoundEffectsManager* soundEffectsManager, const std::string& ceguiLogFi
             CEGUI::Window* tooltip = static_cast<const CEGUI::WindowEventArgs&>(e).window;
             const CEGUI::Rectf bounds = tooltip->getUnclippedOuterRect().get();
             const CEGUI::Sizef screen = tooltip->getRootContainerSize();
-            const float x = std::max(0.0f, std::min(bounds.left(), screen.d_width - bounds.getWidth()));
-            const float y = std::max(0.0f, std::min(bounds.top(), screen.d_height - bounds.getHeight()));
+            const CEGUI::Vector2f cursor = tooltip->getGUIContext().getMouseCursor().getPosition();
+            CEGUI::Rectf hand(cursor, CEGUI::Sizef(0, 0));
+            if(RenderManager::getSingletonPtr() != nullptr)
+            {
+                const Ogre::FloatRect area = RenderManager::getSingleton().getHandCursorBounds(
+                    cursor.d_x / screen.d_width, cursor.d_y / screen.d_height);
+                hand = CEGUI::Rectf(area.left * screen.d_width, area.top * screen.d_height,
+                    area.right * screen.d_width, area.bottom * screen.d_height);
+            }
+            const float gap = tooltip->getFont()->getFontHeight() * 0.25f;
+            float x = cursor.d_x;
+            float y = hand.top() - bounds.getHeight() - gap;
+            if(y < 0.0f)
+            {
+                y = hand.bottom() + gap;
+                if(y + bounds.getHeight() > screen.d_height)
+                {
+                    y = cursor.d_y;
+                    x = hand.right() + gap;
+                    if(x + bounds.getWidth() > screen.d_width)
+                        x = hand.left() - bounds.getWidth() - gap;
+                }
+            }
+            x = std::max(0.0f, std::min(x, screen.d_width - bounds.getWidth()));
+            y = std::max(0.0f, std::min(y, screen.d_height - bounds.getHeight()));
             if(x != bounds.left() || y != bounds.top())
                 tooltip->setPosition(CEGUI::UVector2(CEGUI::UDim(0, x), CEGUI::UDim(0, y)));
             return true;

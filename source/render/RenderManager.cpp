@@ -2698,6 +2698,33 @@ void RenderManager::moveCursor(float relX, float relY)
     mHandKeeperNode->setPosition(mFactorWidth * (relX - 0.5f), mFactorHeight * (0.5f - relY), -KEEPER_HAND_POS_Z);
 }
 
+Ogre::FloatRect RenderManager::getHandCursorBounds(float relX, float relY) const
+{
+    Ogre::FloatRect bounds(relX, relY, relX, relY);
+    if(mHandKeeperNode == nullptr || mHandKeeperHandVisibility != 0 || mViewport == nullptr)
+        return bounds;
+
+    Ogre::Entity* hand = mSceneManager->getEntity("keeperHandEnt");
+    const Ogre::Camera* camera = mViewport->getCamera();
+    const float height = KEEPER_HAND_POS_Z * Ogre::Math::Tan(camera->getFOVy() * 0.5f) * 2.0f;
+    const Ogre::Vector3 origin(height * camera->getAspectRatio() * (relX - 0.5f),
+        height * (0.5f - relY), -KEEPER_HAND_POS_Z);
+    const Ogre::Vector3 displacement = origin - mHandKeeperNode->getPosition();
+    const auto& transform = hand->getParentSceneNode()->_getFullTransform();
+    const auto corners = hand->getBoundingBox().getAllCorners();
+    for(int i = 0; i < 8; ++i)
+    {
+        const Ogre::Vector3 projected = camera->getProjectionMatrix() * (transform * corners[i] + displacement);
+        const float x = (projected.x + 1.0f) * 0.5f;
+        const float y = (1.0f - projected.y) * 0.5f;
+        bounds.left = std::min(bounds.left, x);
+        bounds.top = std::min(bounds.top, y);
+        bounds.right = std::max(bounds.right, x);
+        bounds.bottom = std::max(bounds.bottom, y);
+    }
+    return bounds;
+}
+
 void RenderManager::moveWorldCoords(Ogre::Real x, Ogre::Real y)
 {
     if(mHandLightNode != nullptr)

@@ -110,6 +110,7 @@ public:
     //! moveCursor allows to move the cursor on GUI
     //!  moveWorldCoords sends the world coords where the map light is
     void moveCursor(float relX, float relY);
+    Ogre::FloatRect getHandCursorBounds(float relX, float relY) const;
     void moveWorldCoords(Ogre::Real x, Ogre::Real y);
     void entitySlapped();
 
