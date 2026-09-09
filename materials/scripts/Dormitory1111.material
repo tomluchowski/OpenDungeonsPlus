@@ -71,7 +71,7 @@ material Dormitory1111 //: RTSS/NormalMapping_MultiPass
             }    
             texture_unit seatmap
             {
-                texture RoomSeat.png
+                texture RoomSeatNone.png
             }
         }
 
