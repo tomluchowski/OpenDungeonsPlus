@@ -1,3 +1,5 @@
+// The sphere the dungeon temple holds up, in the colour of the seat that owns
+// the temple. Without an owner it keeps the orange it always had.
 material Sphere
 {
 	vertex_program mySphereVertexShader glsl
@@ -30,7 +32,7 @@ material Sphere
             }
             fragment_program_ref mySphereFragmentShader
             { 
-            	param_named seatColor 0.0 0.0 0.0 1.0
+            	param_named seatColor float4 0.95 0.35 0.0 1.0
             }            
             
 
