@@ -1,0 +1,17 @@
+material DungeonGroundUnderlay
+{
+    receive_shadows off
+    technique
+    {
+        pass
+        {
+            lighting off
+            texture_unit
+            {
+                texture Dirt.png
+                tex_address_mode wrap
+                colour_op_ex modulate src_texture src_manual 0.3 0.3 0.3
+            }
+        }
+    }
+}

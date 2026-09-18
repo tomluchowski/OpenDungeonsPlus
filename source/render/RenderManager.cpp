@@ -21,6 +21,8 @@
 
 #include "render/RenderManager.h"
 
+#include "camera/CullingManager.h"
+
 #include "entities/Creature.h"
 #include "entities/CreatureDefinition.h"
 #include "entities/GameEntity.h"
@@ -223,6 +225,23 @@ void RenderManager::initGameRenderer(GameMap* gameMap)
     OD_ASSERT_TRUE(gameMap);
     OD_ASSERT_TRUE(mHandKeeperNode);
     mCreatureTextOverlayDisplayed = false;
+
+    // Cover tile and room seams with continuous earth below the dungeon.
+    const Ogre::Real groundMargin = mViewport->getCamera()->getFarClipDistance();
+    const Ogre::Real groundWidth = gameMap->getMapSizeX() + 2.0f * groundMargin;
+    const Ogre::Real groundHeight = gameMap->getMapSizeY() + 2.0f * groundMargin;
+    Ogre::MeshManager::getSingleton().createPlane("DungeonGroundUnderlayMesh", "Graphics",
+        Ogre::Plane(Ogre::Vector3::UNIT_Z, -1.0f), groundWidth, groundHeight,
+        1, 1, true, 1, groundWidth, groundHeight, Ogre::Vector3::UNIT_Y);
+    Ogre::Entity* ground = mSceneManager->createEntity("DungeonGroundUnderlay", "DungeonGroundUnderlayMesh", "Graphics");
+    ground->setMaterialName("DungeonGroundUnderlay", "Graphics");
+    ground->setCastShadows(false);
+    ground->setQueryFlags(0);
+    ground->setVisibilityFlags(CullingType::SHOW_ALL);
+    Ogre::SceneNode* groundNode = mSceneManager->getRootSceneNode()->createChildSceneNode("DungeonGroundUnderlayNode",
+        Ogre::Vector3((gameMap->getMapSizeX() - 1) * 0.5f, (gameMap->getMapSizeY() - 1) * 0.5f, 0.0f));
+    groundNode->attachObject(ground);
+
 
     // Create the light which follows the single tile selection mesh
     if(mHandLight == nullptr)
@@ -474,6 +493,12 @@ void RenderManager::preRenderTargetUpdate(const Ogre::RenderTargetEvent& evt)
 
 void RenderManager::stopGameRenderer(GameMap*)
 {
+    if(mSceneManager->hasEntity("DungeonGroundUnderlay"))
+    {
+        mSceneManager->destroyEntity("DungeonGroundUnderlay");
+        mSceneManager->destroySceneNode("DungeonGroundUnderlayNode");
+        Ogre::MeshManager::getSingleton().remove("DungeonGroundUnderlayMesh", "Graphics");
+    }
     // We do not remove the entities from mDummyEntities as it is a workaround avoiding a crash and removing
     // them can cause the crash to happen
 
