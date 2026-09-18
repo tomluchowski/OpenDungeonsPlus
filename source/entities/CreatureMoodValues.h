@@ -35,6 +35,9 @@ namespace CreatureMoodValues
     const uint32_t KoTemp = 0x0080;
     const uint32_t InJail = 0x0100;
     const uint32_t GoToCallToWar = 0x0200;
+    // Client-local display bit. It is derived from the negotiated full mood value,
+    // not serialized through the legacy overlay bit field.
+    const uint32_t Upset = 0x0400;
     // To know if a creature is KO
     const uint32_t KoDeathOrTemp = KoTemp | KoDeath;
     // Mood filters for creatures in prison that every player will see

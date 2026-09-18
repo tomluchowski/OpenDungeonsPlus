@@ -2313,7 +2313,11 @@ void RenderManager::rrSetCreaturesTextOverlay(GameMap& gameMap, bool value)
 {
     mCreatureTextOverlayDisplayed = value;
     for(Creature* creature : gameMap.getCreatures())
-        creature->getOverlayStatus()->displayHealthOverlay(mCreatureTextOverlayDisplayed ? -1.0 : 0.0);
+    {
+        CreatureOverlayStatus* overlayStatus = creature->getOverlayStatus();
+        if(overlayStatus != nullptr)
+            overlayStatus->displayHealthOverlay(mCreatureTextOverlayDisplayed ? -1.0 : 0.0);
+    }
 }
 
 void RenderManager::rrTemporaryDisplayCreaturesTextOverlay(Creature* creature, Ogre::Real timeToDisplay)

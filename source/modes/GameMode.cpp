@@ -310,6 +310,7 @@ void GameMode::activate()
     // Loads the corresponding Gui sheet.
     Gui& gui = getModeManager().getGui();
     gui.loadGuiSheet(Gui::inGameMenu);
+    RenderManager::getSingleton().rrSetCreaturesTextOverlay(*mGameMap, true);
 
     // We free the menu scene as it is not required anymore
     ODFrameListener::getSingleton().freeMainMenuScene();
@@ -914,11 +915,6 @@ bool GameMode::keyPressedNormal(const OIS::KeyEvent &arg)
         ODFrameListener::getSingleton().getCameraManager()->setNextDefaultView();
         break;
 
-    case OIS::KC_LMENU:
-        RenderManager::getSingleton().
-        RenderManager::getSingleton().rrSetCreaturesTextOverlay(*mGameMap, true);
-        break;
-
     // Zooms to the next event
     case OIS::KC_SPACE:
     {
@@ -1103,10 +1099,6 @@ bool GameMode::keyReleasedNormal(const OIS::KeyEvent &arg)
 
     case OIS::KC_PGDOWN:
         frameListener.moveCamera(CameraManager::Direction::stopRotDown);
-        break;
-
-    case OIS::KC_LMENU:
-        RenderManager::getSingleton().rrSetCreaturesTextOverlay(*mGameMap, false);
         break;
 
     default:
@@ -1993,6 +1985,5 @@ void GameMode::buildPlayerSettingsWindow()
         offset += 15;
     }
 }
-
 
 

@@ -148,3 +148,18 @@ material CreatureOverlayStatus_512
         }
     }
 }
+
+material CreatureOverlayStatus_1024
+{
+    technique
+    {
+        pass
+        {
+            scene_blend alpha_blend
+            texture_unit
+            {
+                texture CreatureUnhappy.png
+            }
+        }
+    }
+}
