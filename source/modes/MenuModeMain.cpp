@@ -71,7 +71,7 @@ public:
 
 MenuModeMain::MenuModeMain(ModeManager *modeManager):
     AbstractApplicationMode(modeManager, ModeManager::MENU_MAIN),
-    mSettings(SettingsWindow(getModeManager().getGui().getGuiSheet(Gui::mainMenu)))
+    mSettings(getModeManager().getGui().getGuiSheet(Gui::mainMenu), modeManager->getGui())
 {
     CEGUI::Window* rootWin = getModeManager().getGui().getGuiSheet(Gui::mainMenu);
     OD_ASSERT_TRUE(rootWin != nullptr);

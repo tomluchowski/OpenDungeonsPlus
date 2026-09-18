@@ -78,11 +78,13 @@ class RoomTreasuryFactory : public RoomFactory
             {
                 std::string txt = formatBuildRoom(RoomTreasury::mRoomType, pricePerTarget);
                 inputCommand.displayText(Ogre::ColourValue::Red, txt);
+                inputCommand.displayPointerText(Ogre::ColourValue::Red, "$" + Helper::toString(pricePerTarget));
             }
             else
             {
                 std::string txt = formatBuildRoom(RoomTreasury::mRoomType, pricePerTarget);
                 inputCommand.displayText(Ogre::ColourValue::White, txt);
+                inputCommand.displayPointerText(Ogre::ColourValue::Red, "$" + Helper::toString(pricePerTarget));
             }
             inputCommand.selectSquaredTiles(inputManager.mXPos, inputManager.mYPos, inputManager.mXPos,
                 inputManager.mYPos);
@@ -110,11 +112,13 @@ class RoomTreasuryFactory : public RoomFactory
         {
             std::string txt = formatBuildRoom(RoomTreasury::mRoomType, priceTotal);
             inputCommand.displayText(Ogre::ColourValue::Red, txt);
+            inputCommand.displayPointerText(Ogre::ColourValue::Red, "$" + Helper::toString(priceTotal));
             return;
         }
 
         std::string txt = formatBuildRoom(RoomTreasury::mRoomType, priceTotal);
         inputCommand.displayText(Ogre::ColourValue::White, txt);
+        inputCommand.displayPointerText(Ogre::ColourValue::Red, "$" + Helper::toString(priceTotal));
 
         if(inputManager.mCommandState != InputCommandState::validated)
             return;
