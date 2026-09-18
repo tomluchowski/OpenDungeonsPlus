@@ -92,6 +92,8 @@ public:
     static void listAllSkills(const std::function<void(const std::string&, const std::string&,
         const std::string&, SkillType)>& func);
 
+    static void listAllRooms(const std::function<void(RoomType, const std::string&)>& func);
+
     //! \brief Lists all the skills and calls the given function for each one with parameters:
     //! - SpellType
     //! - Gui use button progressbar name

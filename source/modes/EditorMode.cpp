@@ -122,7 +122,7 @@ EditorMode::EditorMode(ModeManager* modeManager):
     mPortalWaveRefreshing(false),
     mMouseX(0),
     mMouseY(0),
-    mSettings(SettingsWindow(mRootWindow)),
+    mSettings(mRootWindow, modeManager->getGui()),
     mModifiedMapBit(false)
 {
 

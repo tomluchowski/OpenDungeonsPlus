@@ -26,6 +26,8 @@
 
 #include "utils/ConfigManager.h"
 #include <CEGUI/EventArgs.h>
+#include <map>
+#include <memory>
 
 namespace CEGUI
 {
@@ -33,6 +35,7 @@ class Window;
 }
 
 class Creature;
+class MiniMapDrawnFull;
 
 enum class SpellType;
 enum class SkillType;
@@ -272,8 +275,23 @@ private:
     bool isMouseDownOnCEGUIWindow();
     bool isMouseWheelOnCEGUIWindow();
 
-    //! \brief Whether the keyboard keys moving camera are pressed down
-    bool directionKeyPressed;
+    void updateCameraControls(float elapsed) override;
+    bool showUserCameras(const CEGUI::EventArgs& = {});
+    bool closeUserCameras(const CEGUI::EventArgs& = {});
+    bool selectUserCamera(const CEGUI::EventArgs&);
+    bool storeUserCamera(const CEGUI::EventArgs&);
+    unsigned int mUserCameraSlot = 0;
+
+    bool toggleMap(const CEGUI::EventArgs& = {});
+    bool closeMap(const CEGUI::EventArgs& = {});
+    bool clickMap(const CEGUI::EventArgs&);
+    bool zoomMiniMap(const CEGUI::EventArgs&);
+    void updateMapDetail();
+    void focusRoom(RoomType type);
+    std::unique_ptr<MiniMapDrawnFull> mFullMap;
+    int mSavedMiniMapZoom = 0;
+    std::map<RoomType, size_t> mRoomFocusIndices;
+    bool mMapKeyDown = false;
 
 
     //! \brief whether to allow showing the window with debug Tile info under middlemouse button click

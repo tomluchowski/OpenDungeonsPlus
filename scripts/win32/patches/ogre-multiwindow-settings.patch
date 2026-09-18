@@ -1,0 +1,362 @@
+diff --git a/RenderSystems/GL3Plus/include/OgreGL3PlusRenderSystem.h b/RenderSystems/GL3Plus/include/OgreGL3PlusRenderSystem.h
+index 361ff64..f7c6444 100644
+--- a/RenderSystems/GL3Plus/include/OgreGL3PlusRenderSystem.h
++++ b/RenderSystems/GL3Plus/include/OgreGL3PlusRenderSystem.h
+@@ -126,6 +126,8 @@ namespace Ogre {
+ 
+         void initConfigOptions() override;
+ 
++        void setConfigOption(const String &name, const String &value) override;
++
+         RenderSystemCapabilities* createRenderSystemCapabilities() const override;
+ 
+         void initialiseFromRenderSystemCapabilities(RenderSystemCapabilities* caps, RenderTarget* primary) override;
+diff --git a/RenderSystems/GL3Plus/src/GLSL/include/OgreGLSLProgramManager.h b/RenderSystems/GL3Plus/src/GLSL/include/OgreGLSLProgramManager.h
+index 8b9b623..294afa8 100644
+--- a/RenderSystems/GL3Plus/src/GLSL/include/OgreGLSLProgramManager.h
++++ b/RenderSystems/GL3Plus/src/GLSL/include/OgreGLSLProgramManager.h
+@@ -74,6 +74,15 @@ namespace Ogre {
+         */
+         GLSLProgram* getActiveProgram(void);
+ 
++        /// Destroy all linked programs in the current OpenGL context.
++        void destroyAllPrograms();
++
++        /// Forget program-pipeline objects owned by a context that is being destroyed.
++        void notifyContextDestroyed(GL3PlusContext* context);
++
++        /// Return the context currently selected by the render system.
++        GL3PlusContext* getCurrentContext() const;
++
+         /** Populate a list of uniforms based on an OpenGL program object.
+         */
+         void extractUniformsFromProgram(
+diff --git a/RenderSystems/GL3Plus/src/GLSL/include/OgreGLSLSeparableProgram.h b/RenderSystems/GL3Plus/src/GLSL/include/OgreGLSLSeparableProgram.h
+index 65fec8d..a1b50e7 100644
+--- a/RenderSystems/GL3Plus/src/GLSL/include/OgreGLSLSeparableProgram.h
++++ b/RenderSystems/GL3Plus/src/GLSL/include/OgreGLSLSeparableProgram.h
+@@ -90,9 +90,12 @@ namespace Ogre
+         */
+         void activate(void) override;
+ 
++        /// Forget the context-local pipeline before its OpenGL context is destroyed.
++        void notifyContextDestroyed(GL3PlusContext* context);
++
+     protected:
+-        /// GL handle for pipeline object.
+-        GLuint mGLProgramPipelineHandle;
++        /// GL program-pipeline objects are context-local even when shader programs are shared.
++        std::map<GL3PlusContext*, GLuint> mGLProgramPipelineHandles;
+ 
+         /// Compiles and links the separate programs.
+         void compileAndLink(void) override;
+diff --git a/RenderSystems/GL3Plus/src/GLSL/src/OgreGLSLProgramManager.cpp b/RenderSystems/GL3Plus/src/GLSL/src/OgreGLSLProgramManager.cpp
+index da255e6..9c6271e 100644
+--- a/RenderSystems/GL3Plus/src/GLSL/src/OgreGLSLProgramManager.cpp
++++ b/RenderSystems/GL3Plus/src/GLSL/src/OgreGLSLProgramManager.cpp
+@@ -62,6 +62,31 @@ namespace Ogre {
+ 
+     GLSLProgramManager::~GLSLProgramManager(void) {}
+ 
++    void GLSLProgramManager::destroyAllPrograms()
++    {
++        for (auto & program : mPrograms)
++        {
++            delete program.second;
++        }
++        mPrograms.clear();
++        mActiveProgram = NULL;
++    }
++
++    void GLSLProgramManager::notifyContextDestroyed(GL3PlusContext* context)
++    {
++        for (auto & program : mPrograms)
++        {
++            if (auto separableProgram = dynamic_cast<GLSLSeparableProgram*>(program.second))
++                separableProgram->notifyContextDestroyed(context);
++        }
++        mActiveProgram = NULL;
++    }
++
++    GL3PlusContext* GLSLProgramManager::getCurrentContext() const
++    {
++        return mRenderSystem->_getCurrentContext();
++    }
++
+     GL3PlusStateCacheManager* GLSLProgramManager::getStateCacheManager()
+     {
+         return mRenderSystem->_getStateCacheManager();
+diff --git a/RenderSystems/GL3Plus/src/GLSL/src/OgreGLSLSeparableProgram.cpp b/RenderSystems/GL3Plus/src/GLSL/src/OgreGLSLSeparableProgram.cpp
+index f22f44f..278f7e8 100644
+--- a/RenderSystems/GL3Plus/src/GLSL/src/OgreGLSLSeparableProgram.cpp
++++ b/RenderSystems/GL3Plus/src/GLSL/src/OgreGLSLSeparableProgram.cpp
+@@ -45,14 +45,32 @@ namespace Ogre
+ 
+     GLSLSeparableProgram::~GLSLSeparableProgram()
+     {
+-        OGRE_CHECK_GL_ERROR(glDeleteProgramPipelines(1, &mGLProgramPipelineHandle));
++        notifyContextDestroyed(GLSLProgramManager::getSingleton().getCurrentContext());
++        mGLProgramPipelineHandles.clear();
+     }
+ 
+     void GLSLSeparableProgram::compileAndLink()
+     {
++        GLSLProgramManager& programManager = GLSLProgramManager::getSingleton();
++        GL3PlusContext* context = programManager.getCurrentContext();
++        OgreAssert(context, "cannot create a program pipeline without an active OpenGL context");
++
++        if (!mLinked)
++        {
++            auto currentPipeline = mGLProgramPipelineHandles.find(context);
++            if (currentPipeline != mGLProgramPipelineHandles.end())
++                OGRE_CHECK_GL_ERROR(glDeleteProgramPipelines(1, &currentPipeline->second));
++            mGLProgramPipelineHandles.clear();
++        }
++
++        auto pipeline = mGLProgramPipelineHandles.find(context);
++        if (pipeline != mGLProgramPipelineHandles.end())
++            return;
++
+         // Ensure no monolithic programs are in use.
+         OGRE_CHECK_GL_ERROR(glUseProgram(0));
+-        OGRE_CHECK_GL_ERROR(glGenProgramPipelines(1, &mGLProgramPipelineHandle));
++        GLuint pipelineHandle = 0;
++        OGRE_CHECK_GL_ERROR(glGenProgramPipelines(1, &pipelineHandle));
+ 
+         mLinked = true;
+ 
+@@ -61,51 +79,69 @@ namespace Ogre
+             if(!s) continue;
+ 
+             if(!s->linkSeparable())
+-        {
++            {
+                 mLinked = false;
++                OGRE_CHECK_GL_ERROR(glDeleteProgramPipelines(1, &pipelineHandle));
+                 return;
+             }
+         }
+ 
+-            GLenum ogre2gltype[GPT_COUNT] = {
+-                GL_VERTEX_SHADER_BIT,
+-                GL_FRAGMENT_SHADER_BIT,
+-                GL_GEOMETRY_SHADER_BIT,
+-                GL_TESS_EVALUATION_SHADER_BIT,
+-                GL_TESS_CONTROL_SHADER_BIT,
+-                GL_COMPUTE_SHADER_BIT
+-            };
++        GLenum ogre2gltype[GPT_COUNT] = {
++            GL_VERTEX_SHADER_BIT,
++            GL_FRAGMENT_SHADER_BIT,
++            GL_GEOMETRY_SHADER_BIT,
++            GL_TESS_EVALUATION_SHADER_BIT,
++            GL_TESS_CONTROL_SHADER_BIT,
++            GL_COMPUTE_SHADER_BIT
++        };
+ 
+-            for (auto s : mShaders)
+-            {
++        for (auto s : mShaders)
++        {
+             if(!s) continue;
+ 
+-                OGRE_CHECK_GL_ERROR(glUseProgramStages(mGLProgramPipelineHandle, ogre2gltype[s->getType()],
+-                                                       s->getGLProgramHandle()));
+-            }
++            OGRE_CHECK_GL_ERROR(glUseProgramStages(pipelineHandle, ogre2gltype[s->getType()],
++                                                   s->getGLProgramHandle()));
++        }
+ 
+-            // Validate pipeline
+-            OGRE_CHECK_GL_ERROR(glValidateProgramPipeline(mGLProgramPipelineHandle));
+-            logObjectInfo( getCombinedName() + String("GLSL program pipeline validation result: "), mGLProgramPipelineHandle );
++        // Validate pipeline
++        OGRE_CHECK_GL_ERROR(glValidateProgramPipeline(pipelineHandle));
++        logObjectInfo( getCombinedName() + String("GLSL program pipeline validation result: "), pipelineHandle );
+ 
+-            //            if (getGLSupport()->checkExtension("GL_KHR_debug") || gl3wIsSupported(4, 3))
+-            //                glObjectLabel(GL_PROGRAM_PIPELINE, mGLProgramPipelineHandle, 0,
+-            //                                 (mVertexShader->getName() + "/" + mFragmentShader->getName()).c_str());
+-        }
++        mGLProgramPipelineHandles[context] = pipelineHandle;
++
++        //            if (getGLSupport()->checkExtension("GL_KHR_debug") || gl3wIsSupported(4, 3))
++        //                glObjectLabel(GL_PROGRAM_PIPELINE, pipelineHandle, 0,
++        //                                 (mVertexShader->getName() + "/" + mFragmentShader->getName()).c_str());
++    }
+ 
+     void GLSLSeparableProgram::activate(void)
+     {
+-        if (!mLinked)
++        GLSLProgramManager& programManager = GLSLProgramManager::getSingleton();
++        GL3PlusContext* context = programManager.getCurrentContext();
++        auto pipeline = mGLProgramPipelineHandles.find(context);
++        if (!mLinked || pipeline == mGLProgramPipelineHandles.end())
+         {
+             compileAndLink();
++            pipeline = mGLProgramPipelineHandles.find(context);
+         }
+ 
+-        if (mLinked)
++        if (mLinked && pipeline != mGLProgramPipelineHandles.end())
+         {
+-            GLSLProgramManager::getSingleton().getStateCacheManager()->bindGLProgramPipeline(mGLProgramPipelineHandle);
++            programManager.getStateCacheManager()->bindGLProgramPipeline(pipeline->second);
+         }
+     }
+ 
++    void GLSLSeparableProgram::notifyContextDestroyed(GL3PlusContext* context)
++    {
++        auto pipeline = mGLProgramPipelineHandles.find(context);
++        if (pipeline == mGLProgramPipelineHandles.end())
++            return;
++
++        if (GLSLProgramManager::getSingleton().getCurrentContext() == context)
++            OGRE_CHECK_GL_ERROR(glDeleteProgramPipelines(1, &pipeline->second));
++        mGLProgramPipelineHandles.erase(pipeline);
++    }
++
+     void GLSLSeparableProgram::updateUniforms(GpuProgramParametersSharedPtr params,
+                                               uint16 mask, GpuProgramType fromProgType)
+     {
+diff --git a/RenderSystems/GL3Plus/src/OgreGL3PlusRenderSystem.cpp b/RenderSystems/GL3Plus/src/OgreGL3PlusRenderSystem.cpp
+index 5695b7f..07e3aa1 100644
+--- a/RenderSystems/GL3Plus/src/OgreGL3PlusRenderSystem.cpp
++++ b/RenderSystems/GL3Plus/src/OgreGL3PlusRenderSystem.cpp
+@@ -34,6 +34,7 @@ Copyright (c) 2000-2014 Torus Knot Software Ltd
+ #include "OgreStringConverter.h"
+ #include "OgreGL3PlusTextureManager.h"
+ #include "OgreGL3PlusHardwareBuffer.h"
++#include "OgreHighLevelGpuProgramManager.h"
+ #include "OgreGLSLShader.h"
+ #include "OgreGpuProgramManager.h"
+ #include "OgreException.h"
+@@ -214,6 +215,78 @@ namespace Ogre {
+         mOptions[opt.name] = opt;
+     }
+ 
++    void GL3PlusRenderSystem::setConfigOption(const String &name, const String &value)
++    {
++        const bool separateShadersChanged = name == "Separate Shader Objects"
++            && mGLInitialised && mSeparateShaderObjectsEnabled != StringConverter::parseBool(value);
++
++        GLRenderSystemCommon::setConfigOption(name, value);
++        if (!mGLInitialised)
++            return;
++
++        if (separateShadersChanged)
++        {
++            std::vector<ResourcePtr> loadedPrograms;
++            ResourceManager::ResourceMapIterator resources =
++                HighLevelGpuProgramManager::getSingleton().getResourceIterator();
++            while (resources.hasMoreElements())
++            {
++                ResourcePtr program = resources.getNext();
++                if (program->isLoaded())
++                    loadedPrograms.push_back(program);
++            }
++            for (int programType = 0; programType < GPT_COUNT; ++programType)
++            {
++                GpuProgramType type = static_cast<GpuProgramType>(programType);
++                if (mCurrentShader[type])
++                    unbindGpuProgram(type);
++            }
++            OGRE_CHECK_GL_ERROR(glUseProgram(0));
++            mStateCacheManager->bindGLProgramPipeline(0);
++            mProgramManager->destroyAllPrograms();
++            for (ResourcePtr & program : loadedPrograms)
++                program->unload();
++
++            mSeparateShaderObjectsEnabled = StringConverter::parseBool(value);
++            if (mSeparateShaderObjectsEnabled)
++                mCurrentCapabilities->setCapability(RSC_SEPARATE_SHADER_OBJECTS);
++            else
++                mCurrentCapabilities->unsetCapability(RSC_SEPARATE_SHADER_OBJECTS);
++            for (ResourcePtr & program : loadedPrograms)
++                program->load();
++        }
++        else if (name == "Reversed Z-Buffer")
++        {
++            const bool clipControlSupported = hasMinGLVersion(4, 5)
++                || checkExtension("GL_ARB_clip_control");
++            mIsReverseDepthBufferEnabled = StringConverter::parseBool(value)
++                && clipControlSupported;
++            if (clipControlSupported)
++            {
++                OGRE_CHECK_GL_ERROR(glClipControl(GL_LOWER_LEFT,
++                    mIsReverseDepthBufferEnabled ? GL_ZERO_TO_ONE : GL_NEGATIVE_ONE_TO_ONE));
++            }
++        }
++        else if (name == "Debug Layer" && getCapabilities()->hasCapability(RSC_DEBUG))
++        {
++            const bool debugEnabled = StringConverter::parseBool(value);
++            if (debugEnabled)
++            {
++                OGRE_CHECK_GL_ERROR(glEnable(GL_DEBUG_OUTPUT));
++                OGRE_CHECK_GL_ERROR(glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS));
++                OGRE_CHECK_GL_ERROR(glDebugMessageCallbackARB(&GLDebugCallback, NULL));
++                OGRE_CHECK_GL_ERROR(glDebugMessageControlARB(GL_DEBUG_SOURCE_API, GL_DONT_CARE,
++                    GL_DEBUG_SEVERITY_NOTIFICATION, 0, NULL, GL_FALSE));
++            }
++            else
++            {
++                OGRE_CHECK_GL_ERROR(glDebugMessageCallbackARB(NULL, NULL));
++                OGRE_CHECK_GL_ERROR(glDisable(GL_DEBUG_OUTPUT_SYNCHRONOUS));
++                OGRE_CHECK_GL_ERROR(glDisable(GL_DEBUG_OUTPUT));
++            }
++        }
++    }
++
+     RenderSystemCapabilities* GL3PlusRenderSystem::createRenderSystemCapabilities() const
+     {
+         RenderSystemCapabilities* rsc = OGRE_NEW RenderSystemCapabilities();
+@@ -1398,6 +1471,7 @@ namespace Ogre {
+ 
+     void GL3PlusRenderSystem::_unregisterContext(GL3PlusContext *context)
+     {
++        mProgramManager->notifyContextDestroyed(context);
+         static_cast<GL3PlusHardwareBufferManager*>(HardwareBufferManager::getSingletonPtr())->notifyContextDestroyed(context);
+ 
+         for(auto & rt : mRenderTargets)
+diff --git a/RenderSystems/GLSupport/src/win32/OgreWin32GLSupport.cpp b/RenderSystems/GLSupport/src/win32/OgreWin32GLSupport.cpp
+index 70e89c2..8f8178c 100644
+--- a/RenderSystems/GLSupport/src/win32/OgreWin32GLSupport.cpp
++++ b/RenderSystems/GLSupport/src/win32/OgreWin32GLSupport.cpp
+@@ -327,7 +327,8 @@ namespace Ogre {
+                         mHasPixelFormatARB = true;
+                     else if (ext == "WGL_ARB_multisample")
+                         mHasMultisample = true;
+-                    else if (ext == "WGL_EXT_framebuffer_sRGB")
++                    else if (ext == "WGL_EXT_framebuffer_sRGB"
++                             || ext == "WGL_ARB_framebuffer_sRGB")
+                         mHasHardwareGamma = true;
+                 }
+             }
+diff --git a/RenderSystems/GLSupport/src/win32/OgreWin32Window.cpp b/RenderSystems/GLSupport/src/win32/OgreWin32Window.cpp
+index c4269f8..f46ddff 100644
+--- a/RenderSystems/GLSupport/src/win32/OgreWin32Window.cpp
++++ b/RenderSystems/GLSupport/src/win32/OgreWin32Window.cpp
+@@ -551,11 +551,8 @@ namespace Ogre {
+ 
+                 SetWindowLong(mHWnd, GWL_STYLE, getWindowStyle(mIsFullScreen));
+                 SetWindowPos(mHWnd, HWND_TOPMOST, mLeft, mTop, width, height,
+-                    SWP_NOACTIVATE);
+-                mWidth = width;
+-                mHeight = height;
+-
+-
++                    SWP_FRAMECHANGED | SWP_NOACTIVATE);
++                windowMovedOrResized();
+             }
+             else
+             {               
+@@ -584,9 +581,6 @@ namespace Ogre {
+                 SetWindowLong(mHWnd, GWL_STYLE, getWindowStyle(mIsFullScreen));
+                 SetWindowPos(mHWnd, HWND_NOTOPMOST, left, top, winWidth, winHeight,
+                     SWP_DRAWFRAME | SWP_FRAMECHANGED | SWP_NOACTIVATE);
+-                mWidth = width;
+-                mHeight = height;
+-
+                 windowMovedOrResized();
+ 
+             }
