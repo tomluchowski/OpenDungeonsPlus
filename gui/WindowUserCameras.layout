@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<GUILayout version="4">
+    <Window type="OD/FrameWindow" name="UserCamerasWindow">
+        <Property name="Area" value="{{0.5,-240},{0,32},{0.5,240},{0,250}}" />
+        <Property name="Text" value="Define user cameras" />
+        <Property name="Visible" value="False" />
+        <Property name="SizingEnabled" value="False" />
+        <Window type="OD/Button" name="Camera1">
+            <Property name="Area" value="{{0,16},{0,36},{0,158},{0,72}}" />
+            <Property name="Text" value="Camera 1 (F4)" />
+        </Window>
+        <Window type="OD/Button" name="Camera2">
+            <Property name="Area" value="{{0,168},{0,36},{0,310},{0,72}}" />
+            <Property name="Text" value="Camera 2 (F5)" />
+        </Window>
+        <Window type="OD/Button" name="Camera3">
+            <Property name="Area" value="{{0,320},{0,36},{1,-16},{0,72}}" />
+            <Property name="Text" value="Camera 3 (F6)" />
+        </Window>
+        <Window type="OD/StaticText" name="Instructions">
+            <Property name="Area" value="{{0,16},{0,80},{1,-16},{0,164}}" />
+            <Property name="Text" value="Hold Ctrl to adjust:&#10;Insert / Delete: roll   Page Up / Down: yaw&#10;Home / End: pitch" />
+            <Property name="FrameEnabled" value="False" />
+            <Property name="BackgroundEnabled" value="False" />
+        </Window>
+        <Window type="OD/Button" name="Store">
+            <Property name="Area" value="{{0.5,-70},{0,170},{0.5,70},{0,204}}" />
+            <Property name="Text" value="Store" />
+        </Window>
+    </Window>
+</GUILayout>

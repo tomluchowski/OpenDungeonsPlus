@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<GUILayout version="4">
+    <Window type="OD/FrameWindow" name="SettingsNavigationWindow">
+        <Property name="LookNFeel" value="OD/GameSettingsWindow" />
+        <Property name="Area" value="{{0,0},{0,64},{1,0},{1,-192}}" />
+        <Property name="Visible" value="False" />
+        <Property name="AlwaysOnTop" value="True" />
+        <Property name="SizingEnabled" value="False" />
+        <Property name="DragMovingEnabled" value="False" />
+        <Window type="OD/StaticText" name="PageTitle">
+            <Property name="Area" value="{{0,8},{0,8},{1,-8},{0,48}}" />
+            <Property name="Text" value="Game Options" />
+            <Property name="Font" value="MedievalSharp-12" />
+            <Property name="FrameEnabled" value="False" />
+            <Property name="BackgroundEnabled" value="False" />
+            <Property name="MousePassThroughEnabled" value="True" />
+        </Window>
+        <Window type="OD/InvisibleButton" name="Video">
+            <Property name="LookNFeel" value="OD/GameNavigationButton" />
+            <Property name="Area" value="{{0,8},{0.125,0},{0.5,-8},{0.125,40}}" />
+            <Property name="Text" value="Graphics Options" />
+        </Window>
+        <Window type="OD/InvisibleButton" name="Audio">
+            <Property name="LookNFeel" value="OD/GameNavigationButton" />
+            <Property name="Area" value="{{0.5,8},{0.125,0},{1,-8},{0.125,40}}" />
+            <Property name="Text" value="Sound Options" />
+        </Window>
+        <Window type="OD/InvisibleButton" name="Input">
+            <Property name="LookNFeel" value="OD/GameNavigationButton" />
+            <Property name="Area" value="{{0,8},{0.375,0},{0.5,-8},{0.375,40}}" />
+            <Property name="Text" value="Control Options" />
+        </Window>
+        <Window type="OD/InvisibleButton" name="Cameras">
+            <Property name="LookNFeel" value="OD/GameNavigationButton" />
+            <Property name="Area" value="{{0.5,8},{0.375,0},{1,-8},{0.375,40}}" />
+            <Property name="Text" value="Define User Cameras" />
+        </Window>
+        <Window type="OD/InvisibleButton" name="Game">
+            <Property name="LookNFeel" value="OD/GameNavigationButton" />
+            <Property name="Area" value="{{0,8},{0.625,0},{0.5,-8},{0.625,40}}" />
+            <Property name="Text" value="Game Settings" />
+        </Window>
+        <Window type="OD/InvisibleButton" name="Continue">
+            <Property name="LookNFeel" value="OD/GameNavigationFooter" />
+            <Property name="Area" value="{{0,8},{0.859375,0},{0.5,-8},{0.859375,40}}" />
+            <Property name="Text" value="Continue Game" />
+            <Window type="OD/StaticImage" name="Symbol">
+                <Property name="Area" value="{{0,0},{0,2},{0,36},{0,38}}" />
+                <Property name="Image" value="OpenDungeonsIcons/CheckIcon" />
+                <Property name="MousePassThroughEnabled" value="True" />
+            </Window>
+        </Window>
+        <Window type="OD/InvisibleButton" name="Back">
+            <Property name="LookNFeel" value="OD/GameNavigationFooter" />
+            <Property name="Area" value="{{0.5,8},{0.859375,0},{1,-8},{0.859375,40}}" />
+            <Property name="Text" value="Back" />
+            <Window type="OD/StaticImage" name="Symbol">
+                <Property name="Area" value="{{0,0},{0,2},{0,36},{0,38}}" />
+                <Property name="Image" value="OpenDungeonsIcons/MenuReturn" />
+                <Property name="MousePassThroughEnabled" value="True" />
+            </Window>
+        </Window>
+    </Window>
+</GUILayout>
