@@ -1,16 +1,16 @@
 [Graphics]
-FileSystem=@CMAKE_INSTALL_PREFIX@/share/OGRE/Media/RTShaderLib
-FileSystem=@CMAKE_INSTALL_PREFIX@/share/OGRE/Media/RTShaderLib/GLSL
-FileSystem=@CMAKE_INSTALL_PREFIX@/share/OGRE/Media/RTShaderLib/HLSL
-FileSystem=@CMAKE_INSTALL_PREFIX@/share/OGRE/Media/RTShaderLib/HLSL_Cg
-FileSystem=@CMAKE_INSTALL_PREFIX@/share/OGRE/Media/RTShaderLib/materials
-FileSystem=@CMAKE_INSTALL_PREFIX@/share/OGRE/Media/RTShaderLib/../Main
+@OD_OGRE_SHADER_RESOURCES@
 FileSystem=materials/scripts
 FileSystem=materials/scripts/Creatures
 FileSystem=materials/textures
 FileSystem=models
 FileSystem=particles
 FileSystem=shaders
+
+# Internal shadow programs must also be visible to OGRE's global resource pool.
+# Keep Main in Graphics above for game shader includes with strict group lookup.
+[OgreInternal]
+FileSystem=@OD_OGRE_MEDIA_DIR@/RTShaderLib/../Main
 
 [GUI]
 FileSystem=gui

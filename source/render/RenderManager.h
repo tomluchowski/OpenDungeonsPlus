@@ -98,6 +98,7 @@ public:
 
     //! \brief Sets/Updates the overall world lighting value with given factor.
     void setWorldAmbientLightingFactor(float lightFactor);
+    void setDynamicShadowsEnabled(bool enabled);
 
     //! \brief Set the entity's opacity
     void setEntityOpacity(Ogre::Entity* ent, float opacity);

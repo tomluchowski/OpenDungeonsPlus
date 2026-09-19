@@ -1,4 +1,6 @@
 #version 330  core
+#extension GL_ARB_shading_language_include : enable
+#include "LightAttenuation.glsl"
 
 
 uniform sampler2D decalmap;
@@ -62,7 +64,7 @@ void main (void)
     vec3 result;
         
     // precompute the lighting term
-    vec3 lightingTerm =  (diffuse + specular + ambientLightColour.rgb/2.0 )*shadow.rgb;
+    vec3 lightingTerm = (diffuse + specular) * getLightAttenuation(lightPos, FragPos) * shadow.rgb + ambientLightColour.rgb/2.0;
     if(diffuseSurface  != vec4(1.0,1.0,1.0,1.0))
         result =  lightingTerm * mix(texelColor, diffuseSurface.rgb,0.5);
     else

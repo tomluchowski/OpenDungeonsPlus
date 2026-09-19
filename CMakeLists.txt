@@ -569,7 +569,7 @@ if(WIN32 AND ${OGRE_FOUND})
 
     find_package(Boost REQUIRED COMPONENTS ${OD_BOOST_COMPONENTS})
     if(Boost_FOUND)
-        set(OD_BOOST_LIB_DIRS  ${Boost_INCLUDE_DIRS}/stage/lib)
+        set(OD_BOOST_LIB_DIRS  ${Boost_LIBRARY_DIRS})
         set(OD_BOOST_INCLUDE_DIRS ${Boost_INCLUDE_DIRS})
     endif()
 else()
@@ -661,6 +661,12 @@ target_link_libraries(
 
 target_link_libraries(opendungeons-plus pybind11::embed)
 
+if(MSVC AND PYTHON_DEBUG_LIBRARY AND NOT PYTHON_IS_DEBUG)
+    # Keep pybind11's headers consistent with the selected debug Python library.
+    # Python's Windows header defines Py_DEBUG without a value as well.
+    target_compile_definitions(${PROJECT_BINARY_NAME} PRIVATE "$<$<CONFIG:Debug>:Py_DEBUG=>")
+endif()
+
 # Set linker options in MSVC
 if(WIN32 AND MSVC)
     # We need to force output because of the boost lib used, defining two times the
@@ -744,6 +750,20 @@ configure_file(${CMAKE_CONFIG_DIR}/plugins.cfg.in ${CMAKE_BINARY_DIR}/plugins.cf
 if(WIN32)
     configure_file(${CMAKE_CONFIG_DIR}/plugins_d.cfg.in ${CMAKE_BINARY_DIR}/plugins_d.cfg)
 endif()
+set(OD_OGRE_MEDIA_DIR "${CMAKE_INSTALL_PREFIX}/share/OGRE/Media")
+if(WIN32)
+    # Build-tree startup uses the discovered SDK, not the uninstalled game prefix.
+    file(TO_CMAKE_PATH "${OGRE_MEDIA_DIR}" OD_OGRE_MEDIA_DIR)
+    if(NOT IS_DIRECTORY "${OD_OGRE_MEDIA_DIR}/Main")
+        message(FATAL_ERROR "OGRE Main media is missing: ${OD_OGRE_MEDIA_DIR}/Main")
+    endif()
+endif()
+set(OD_OGRE_SHADER_RESOURCES "")
+foreach(OD_OGRE_SUBDIR RTShaderLib RTShaderLib/GLSL RTShaderLib/HLSL RTShaderLib/HLSL_Cg RTShaderLib/materials RTShaderLib/../Main)
+    if(NOT WIN32 OR IS_DIRECTORY "${OD_OGRE_MEDIA_DIR}/${OD_OGRE_SUBDIR}")
+        string(APPEND OD_OGRE_SHADER_RESOURCES "FileSystem=${OD_OGRE_MEDIA_DIR}/${OD_OGRE_SUBDIR}\n")
+    endif()
+endforeach()
 configure_file(${CMAKE_CONFIG_DIR}/resources.cfg.in ${CMAKE_BINARY_DIR}/resources.cfg @ONLY)
 # Link icon with its full path when not installed in the /usr prefix since it might not be caught by the hicolor theme
 if(CMAKE_INSTALL_PREFIX STREQUAL "/usr")
