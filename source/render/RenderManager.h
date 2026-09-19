@@ -98,6 +98,7 @@ public:
 
     //! \brief Sets/Updates the overall world lighting value with given factor.
     void setWorldAmbientLightingFactor(float lightFactor);
+    void setDynamicShadowsEnabled(bool enabled);
 
     //! \brief Set the entity's opacity
     void setEntityOpacity(Ogre::Entity* ent, float opacity);
@@ -240,6 +241,9 @@ private:
     //! \Note: if the entity is marked for digging (wall tiles only), then a yellow color
     //! is added to the current colorization.
     void colourizeEntity(Ogre::Entity* ent, const Seat* seat, bool markedForDigging, bool playerHasVision);
+
+    //! \brief Maintain local illumination for the visible room tiles around a tile.
+    void rrRefreshRoomLight(const Tile& tile, bool removing = false);
 
     //! \brief Makes the material be transparent with the given opacity (0.0f - 1.0f)
     //! \returns The new material name according to the current opacity.

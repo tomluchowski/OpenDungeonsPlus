@@ -12,6 +12,11 @@ FileSystem=models
 FileSystem=particles
 FileSystem=shaders
 
+# Internal shadow programs must also be visible to OGRE's global resource pool.
+# Keep Main in Graphics above for game shader includes with strict group lookup.
+[OgreInternal]
+FileSystem=@CMAKE_INSTALL_PREFIX@/share/OGRE/Media/RTShaderLib/../Main
+
 [GUI]
 FileSystem=gui
 FileSystem=gui/fonts
