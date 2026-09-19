@@ -38,6 +38,7 @@
 #include <CEGUI/widgets/FrameWindow.h>
 
 #include <algorithm>
+#include <cmath>
 
 RenderSceneMenu::RenderSceneMenu()
 {
@@ -45,6 +46,7 @@ RenderSceneMenu::RenderSceneMenu()
 
 RenderSceneMenu::~RenderSceneMenu()
 {
+    clearAtmosphere();
     for(RenderSceneGroup* sceneGroup : mSceneGroups)
         delete sceneGroup;
 
@@ -63,12 +65,14 @@ void RenderSceneMenu::resetMenu(CameraManager& cameraManager, RenderManager& ren
         renderManager.getSceneManager()->getSceneNode("Background")->getAttachedObject(0));
     Ogre::TextureManager::getSingleton().load("MainMenuBackground.png", "Graphics");
     background->setMaterial(Ogre::MaterialManager::getSingleton().getByName("MainMenuBackground", "Graphics"));
+    createAtmosphere(renderManager);
     updateMenu(cameraManager, renderManager, 0.0f);
 }
 
 void RenderSceneMenu::freeMenu(CameraManager& cameraManager, RenderManager& renderManager)
 {
     renderManager.rrSetHandPose(false, false);
+    clearAtmosphere();
     Ogre::Rectangle2D* background = static_cast<Ogre::Rectangle2D*>(
         renderManager.getSceneManager()->getSceneNode("Background")->getAttachedObject(0));
     background->setMaterial(Ogre::MaterialManager::getSingleton().getByName("Background", "Graphics"));
@@ -108,6 +112,178 @@ void RenderSceneMenu::updateMenu(CameraManager& cameraManager, RenderManager& re
     Ogre::Rectangle2D* background = static_cast<Ogre::Rectangle2D*>(
         renderManager.getSceneManager()->getSceneNode("Background")->getAttachedObject(0));
     background->setCorners(-halfWidth, halfHeight, halfWidth, -halfHeight);
+
+    mAtmosphereTime += std::min(timeSinceLastFrame, 0.1f);
+    for(AtmosphereEffect& effect : mAtmosphereEffects)
+    {
+        Ogre::Real alpha = 0.0f;
+        Ogre::Real scaleX = 1.0f;
+        Ogre::Real scaleY = 1.0f;
+        Ogre::Real driftX = 0.0f;
+        Ogre::Real driftY = 0.0f;
+        const Ogre::Real time = mAtmosphereTime + effect.mPhase;
+        switch(effect.mType)
+        {
+            case AtmosphereEffectType::fog:
+            {
+                alpha = 0.19f + 0.035f * Ogre::Math::Sin(time * 0.24f);
+                driftX = 0.009f * Ogre::Math::Sin(time * 0.11f);
+                driftY = 0.003f * Ogre::Math::Sin(time * 0.16f);
+                break;
+            }
+            case AtmosphereEffectType::fire:
+            {
+                const Ogre::Real flicker = 0.78f +
+                    0.15f * Ogre::Math::Sin(time * 8.0f) +
+                    0.07f * Ogre::Math::Sin(time * 13.0f);
+                alpha = 0.48f * flicker;
+                scaleX = 0.94f + 0.06f * flicker;
+                scaleY = 0.90f + 0.14f * flicker;
+                driftY = 0.003f * Ogre::Math::Sin(time * 11.0f);
+                break;
+            }
+            case AtmosphereEffectType::acid:
+                alpha = 0.11f + 0.04f * Ogre::Math::Sin(time * 1.4f);
+                scaleX = 1.0f + 0.05f * Ogre::Math::Sin(time * 0.9f);
+                scaleY = 1.0f + 0.04f * Ogre::Math::Sin(time * 1.1f);
+                break;
+            case AtmosphereEffectType::lightning:
+            {
+                const Ogre::Real cycle = std::fmod(time, 6.5f);
+                Ogre::Real flash = 0.0f;
+                if(cycle < 0.12f)
+                    flash = 1.0f - cycle / 0.12f;
+                else if(cycle >= 0.22f && cycle < 0.30f)
+                    flash = 0.7f * (1.0f - (cycle - 0.22f) / 0.08f);
+                alpha = 0.025f + 0.70f * flash;
+                scaleX = 0.9f + 0.15f * flash;
+                scaleY = 1.0f + 0.08f * flash;
+                break;
+            }
+            case AtmosphereEffectType::ember:
+            {
+                const Ogre::Real lifetime = 2.4f + 0.35f * effect.mPhase;
+                const Ogre::Real progress = std::fmod(time, lifetime) / lifetime;
+                alpha = 0.85f * Ogre::Math::Sin(Ogre::Math::PI * progress);
+                driftX = 0.011f * Ogre::Math::Sin(time * 1.4f + effect.mPhase)
+                    * progress;
+                driftY = -0.09f * progress;
+                scaleX = 1.0f - 0.5f * progress;
+                scaleY = scaleX;
+                break;
+            }
+        }
+
+        const Ogre::Real centerX = -halfWidth +
+            2.0f * halfWidth * (effect.mCenter.x + driftX);
+        const Ogre::Real centerY = halfHeight -
+            2.0f * halfHeight * (effect.mCenter.y + driftY);
+        const Ogre::Real effectHalfWidth = halfWidth * effect.mSize.x * scaleX;
+        const Ogre::Real effectHalfHeight = halfHeight * effect.mSize.y * scaleY;
+        effect.mRectangle->setCorners(centerX - effectHalfWidth,
+            centerY + effectHalfHeight, centerX + effectHalfWidth,
+            centerY - effectHalfHeight);
+
+        Ogre::MaterialPtr material = Ogre::MaterialManager::getSingleton().getByName(
+            effect.mMaterialName, "Graphics");
+        Ogre::ColourValue colour = effect.mColour;
+        colour.a = alpha;
+        Ogre::GpuProgramParametersSharedPtr parameters =
+            material->getTechnique(0)->getPass(0)->getFragmentProgramParameters();
+        parameters->setNamedConstant("tint", colour);
+        parameters->setNamedConstant("time", time);
+    }
+}
+
+void RenderSceneMenu::createAtmosphere(RenderManager& renderManager)
+{
+    clearAtmosphere();
+    mAtmosphereSceneManager = renderManager.getSceneManager();
+    mAtmosphereTime = 0.0f;
+
+    const auto addEffect = [&](AtmosphereEffectType type,
+        const std::string& baseMaterial, const Ogre::Vector2& center,
+        const Ogre::Vector2& size, const Ogre::ColourValue& colour,
+        Ogre::Real phase)
+    {
+        const std::string suffix = Helper::toString(mAtmosphereEffects.size());
+        const std::string objectName = "MainMenuAtmosphere_" + suffix;
+        const std::string materialName = objectName + "_material";
+        Ogre::MaterialPtr base = Ogre::MaterialManager::getSingleton().getByName(
+            baseMaterial, "Graphics");
+        Ogre::MaterialPtr material = base->clone(materialName, true, "Graphics");
+        Ogre::Rectangle2D* rectangle = new Ogre::Rectangle2D(objectName, true);
+        rectangle->setMaterial(material);
+        rectangle->setRenderQueueGroupAndPriority(
+            Ogre::RENDER_QUEUE_SKIES_EARLY, 101);
+        rectangle->setBoundingBox(Ogre::AxisAlignedBox::BOX_INFINITE);
+        Ogre::SceneNode* node = mAtmosphereSceneManager->getRootSceneNode()
+            ->createChildSceneNode(objectName + "_node");
+        node->attachObject(rectangle);
+        mAtmosphereEffects.push_back({type, rectangle, node, materialName,
+            center, size, colour, phase});
+    };
+
+    addEffect(AtmosphereEffectType::fire, "MainMenuAtmosphereGlow",
+        Ogre::Vector2(0.082f, 0.485f), Ogre::Vector2(0.105f, 0.16f),
+        Ogre::ColourValue(1.0f, 0.24f, 0.025f), 0.3f);
+    addEffect(AtmosphereEffectType::fire, "MainMenuAtmosphereGlow",
+        Ogre::Vector2(0.918f, 0.485f), Ogre::Vector2(0.105f, 0.16f),
+        Ogre::ColourValue(1.0f, 0.24f, 0.025f), 1.7f);
+    addEffect(AtmosphereEffectType::fire, "MainMenuAtmosphereGlow",
+        Ogre::Vector2(0.302f, 0.145f), Ogre::Vector2(0.065f, 0.095f),
+        Ogre::ColourValue(1.0f, 0.32f, 0.035f), 2.4f);
+    addEffect(AtmosphereEffectType::fire, "MainMenuAtmosphereGlow",
+        Ogre::Vector2(0.698f, 0.145f), Ogre::Vector2(0.065f, 0.095f),
+        Ogre::ColourValue(1.0f, 0.32f, 0.035f), 3.6f);
+    addEffect(AtmosphereEffectType::acid, "MainMenuAtmosphereGlow",
+        Ogre::Vector2(0.505f, 0.385f), Ogre::Vector2(0.15f, 0.14f),
+        Ogre::ColourValue(0.08f, 0.95f, 0.22f), 1.2f);
+    addEffect(AtmosphereEffectType::acid, "MainMenuAtmosphereGlow",
+        Ogre::Vector2(0.835f, 0.845f), Ogre::Vector2(0.16f, 0.08f),
+        Ogre::ColourValue(0.04f, 0.8f, 0.16f), 3.1f);
+    addEffect(AtmosphereEffectType::lightning, "MainMenuAtmosphereGlow",
+        Ogre::Vector2(0.879f, 0.105f), Ogre::Vector2(0.075f, 0.19f),
+        Ogre::ColourValue(0.16f, 1.0f, 0.32f), 0.0f);
+    addEffect(AtmosphereEffectType::fog, "MainMenuAtmosphereFog",
+        Ogre::Vector2(0.21f, 0.73f), Ogre::Vector2(0.39f, 0.23f),
+        Ogre::ColourValue(0.38f, 0.40f, 0.42f), 0.4f);
+    addEffect(AtmosphereEffectType::fog, "MainMenuAtmosphereFog",
+        Ogre::Vector2(0.79f, 0.73f), Ogre::Vector2(0.39f, 0.23f),
+        Ogre::ColourValue(0.32f, 0.40f, 0.37f), 12.6f);
+    addEffect(AtmosphereEffectType::fog, "MainMenuAtmosphereFog",
+        Ogre::Vector2(0.50f, 0.91f), Ogre::Vector2(0.82f, 0.14f),
+        Ogre::ColourValue(0.31f, 0.35f, 0.36f), 24.8f);
+
+    for(const Ogre::Vector2& fire : {Ogre::Vector2(0.082f, 0.485f),
+        Ogre::Vector2(0.918f, 0.485f), Ogre::Vector2(0.302f, 0.145f),
+        Ogre::Vector2(0.698f, 0.145f)})
+    {
+        for(unsigned int ember = 0; ember < 6; ++ember)
+        {
+            addEffect(AtmosphereEffectType::ember, "MainMenuAtmosphereGlow",
+                fire, Ogre::Vector2(0.0025f, 0.006f),
+                Ogre::ColourValue(1.0f, 0.38f, 0.055f),
+                ember * 0.67f + fire.x * 3.0f);
+        }
+    }
+}
+
+void RenderSceneMenu::clearAtmosphere()
+{
+    if(mAtmosphereSceneManager == nullptr)
+        return;
+
+    for(AtmosphereEffect& effect : mAtmosphereEffects)
+    {
+        effect.mNode->detachObject(effect.mRectangle);
+        delete effect.mRectangle;
+        mAtmosphereSceneManager->destroySceneNode(effect.mNode);
+        Ogre::MaterialManager::getSingleton().remove(
+            effect.mMaterialName, "Graphics");
+    }
+    mAtmosphereEffects.clear();
+    mAtmosphereSceneManager = nullptr;
 }
 
 void RenderSceneMenu::readSceneMenu(const std::string& fileName)

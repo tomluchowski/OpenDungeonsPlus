@@ -21,6 +21,10 @@
 class CameraManager;
 class RenderManager;
 class RenderSceneGroup;
+namespace Ogre
+{
+class Rectangle2D;
+}
 
 #include "renderscene/RenderScene.h"
 
@@ -45,8 +49,35 @@ public:
     void readSceneMenu(const std::string& fileName);
 
 private:
+    enum class AtmosphereEffectType
+    {
+        fog,
+        fire,
+        acid,
+        lightning,
+        ember
+    };
+
+    struct AtmosphereEffect
+    {
+        AtmosphereEffectType mType;
+        Ogre::Rectangle2D* mRectangle;
+        Ogre::SceneNode* mNode;
+        std::string mMaterialName;
+        Ogre::Vector2 mCenter;
+        Ogre::Vector2 mSize;
+        Ogre::ColourValue mColour;
+        Ogre::Real mPhase;
+    };
+
+    void createAtmosphere(RenderManager& renderManager);
+    void clearAtmosphere();
+
     std::vector<RenderSceneGroup*> mSceneGroups;
     RenderSceneListener* mRenderSceneListener;
+    std::vector<AtmosphereEffect> mAtmosphereEffects;
+    Ogre::SceneManager* mAtmosphereSceneManager = nullptr;
+    Ogre::Real mAtmosphereTime = 0.0f;
 };
 
 #endif // RENDERSCENEMENU_H
