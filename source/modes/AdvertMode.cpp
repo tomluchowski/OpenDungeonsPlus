@@ -22,6 +22,7 @@
 
 #include <cstdlib>
 #include <CEGUI/CEGUI.h>
+#include <CEGUI/widgets/PushButton.h>
 
 
 AdvertMode::AdvertMode(ModeManager* modeManager):
@@ -31,33 +32,17 @@ AdvertMode::AdvertMode(ModeManager* modeManager):
     CEGUI::Window* rootWin = getModeManager().getGui().getGuiSheet(Gui::advertisment);
     OD_ASSERT_TRUE(rootWin != nullptr);
     addEventConnection(
-        rootWin->subscribeEvent(
-            CEGUI::Window::EventMouseClick,
-            CEGUI::Event::Subscriber(&AdvertMode::quitPressed, this)
-            )
-        );
-
-
-    addEventConnection(
-        rootWin->getChild("AdvertismentLink")->subscribeEvent(
-            CEGUI::Window::EventMouseClick,
+        rootWin->getChild("CommunityPanel/DiscordButton")->subscribeEvent(
+            CEGUI::PushButton::EventClicked,
             CEGUI::Event::Subscriber(&AdvertMode::showWWW, this)
         )
     );
 
-
     addEventConnection(
-        rootWin->getChild("AdvertismentLink")->subscribeEvent(
-            CEGUI::Window::EventMouseEntersArea,
-            CEGUI::Event::Subscriber(&AdvertMode::hilightLink, this)
+        rootWin->getChild("CommunityPanel/CloseButton")->subscribeEvent(
+            CEGUI::PushButton::EventClicked,
+            CEGUI::Event::Subscriber(&AdvertMode::quitPressed, this)
         )
-   );
-
-    addEventConnection(
-        rootWin->getChild("AdvertismentLink")->subscribeEvent(
-            CEGUI::Window::EventMouseLeavesArea,
-            CEGUI::Event::Subscriber(&AdvertMode::unHilightLink, this)
-        )         
     );
 }
 
@@ -91,20 +76,6 @@ bool AdvertMode::showWWW()
 }
 
 
-bool AdvertMode::hilightLink()
-{
-    getModeManager().getGui().getGuiSheet(Gui::advertisment)->getChild("AdvertismentLink")->setProperty("FrameColours","tl:00000000 tr:00000000 bl:00000000 br:00000000" );
-    return true;
-}
-
-bool AdvertMode::unHilightLink()
-{
-    getModeManager().getGui().getGuiSheet(Gui::advertisment)->getChild("AdvertismentLink")->setProperty("FrameColours","tl:FFFFFFFF tr:FFFFFFFF bl:FFFFFFFF br:FFFFFFFF" );
-    return true;
-}
-
-
-        
 bool AdvertMode::quitPressed(const CEGUI::EventArgs&)
 {
     ODFrameListener::getSingletonPtr()->requestExit();
