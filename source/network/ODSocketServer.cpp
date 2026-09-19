@@ -32,7 +32,7 @@ ODSocketServer::ODSocketServer():
 
 ODSocketServer::~ODSocketServer()
 {
-    if(mIsConnected)
+    if(mIsConnected || mThread != nullptr)
         stopServer();
 }
 
@@ -125,9 +125,14 @@ void ODSocketServer::doTask(int timeoutMs)
     }
 }
 
-void ODSocketServer::stopServer()
+void ODSocketServer::requestStop()
 {
     mIsConnected = false;
+}
+
+void ODSocketServer::stopServer()
+{
+    requestStop();
     if(mThread != nullptr)
         delete mThread; // Delete waits for the thread to finish
     mThread = nullptr;
