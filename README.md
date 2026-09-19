@@ -27,6 +27,8 @@ the saved-game browser; Back preserves the current game until another save is
 selected. Loaded single-player saves resume their stored side without a new
 seat-selection step. Long save descriptions can be scrolled.
 
+The main-menu artwork includes flowing mist, flickering firelight, rising embers, acid glow and lightning effects.
+
 ### Be part of the community
 
 As free software aficionados, we value community-based development and
