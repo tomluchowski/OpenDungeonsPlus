@@ -41,7 +41,7 @@ void main (void)
     vec3 texelColor = texture(decalmap, out_UV0.st).rgb;
     result =  lightingTerm * texelColor;
 
-    color  = vec4(result.xyz,  1.0);
+    color  = vec4(enhanceDungeonColour(result),  1.0);
 
        
 }    

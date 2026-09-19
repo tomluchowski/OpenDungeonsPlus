@@ -50,7 +50,7 @@ void main (void)
         result =  lightingTerm * mix(texelColor, diffuseSurface.rgb,0.5);
     else
         result =  lightingTerm * texelColor;
-    color = vec4(result.xyz,  1.0);
+    color = vec4(enhanceDungeonColour(result),  1.0);
        
 }    
 
