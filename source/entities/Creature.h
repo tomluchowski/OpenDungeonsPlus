@@ -218,6 +218,17 @@ public:
     
     bool setDestination(Tile* tile);
 
+    //! \brief Server side. Checks that the creature can still walk the path it is following and,
+    //! if it cannot, looks for another way to the same destination. Tiles the creature could walk
+    //! on when the path was computed can stop being walkable while it is on its way, which is what
+    //! happens to a bridge over lava or water that is sold or destroyed.
+    void checkWalkPathIsStillValid();
+
+    //! \brief Server side. Checks that the creature is standing somewhere it can stand and, if
+    //! the ground has turned into water or lava it cannot live in, kills it. A creature on a
+    //! tile it cannot walk on has a null move speed, so it could never leave by itself anyway.
+    void checkStandsOnWalkableTile();
+
     //! \brief Picks a destination far away in the visible tiles and goes there
     //! Returns true if a valid Tile was found. The creature will go there
     //! Returns false if no reachable Tile was found
