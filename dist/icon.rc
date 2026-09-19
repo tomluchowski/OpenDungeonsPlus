@@ -1,1 +1,5 @@
 1 ICON "OD-Logo.ico"
+
+#ifdef __GNUC__
+1 24 "opendungeons.manifest"
+#endif

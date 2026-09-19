@@ -156,6 +156,7 @@ protected:
 
     //! \brief The minimap used in this mode
     MiniMap* mMiniMap;
+    std::string mMiniMapType;
 
     //! \brief Culling manager for the main map
     CullingManager* mMainCullingManager;

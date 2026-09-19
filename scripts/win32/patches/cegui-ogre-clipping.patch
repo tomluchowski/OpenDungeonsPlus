@@ -1,0 +1,11 @@
+diff --git a/cegui/src/RendererModules/Ogre/GeometryBuffer.cpp b/cegui/src/RendererModules/Ogre/GeometryBuffer.cpp
+--- a/cegui/src/RendererModules/Ogre/GeometryBuffer.cpp
++++ b/cegui/src/RendererModules/Ogre/GeometryBuffer.cpp
+@@ -211,6 +211,6 @@
+             d_renderSystem._setViewport(currentViewport);
+ #else
+             d_renderSystem.setScissorTest(
+-                false, d_clipRect.left(), d_clipRect.top(),
++                i->clip, d_clipRect.left(), d_clipRect.top(),
+                          d_clipRect.right(), d_clipRect.bottom());
+ #endif
