@@ -889,6 +889,8 @@ void Seat::sendVisibleTiles()
 
 void Seat::computeSeatBeginTurn()
 {
+    if(mCurrentSkill != nullptr)
+        addSkillPoints(0);
     if(mPlayer != nullptr)
     {
         std::fill(mNbRooms.begin(), mNbRooms.end(), 0);
@@ -1076,6 +1078,25 @@ bool Seat::importSeatFromStream(std::istream& is)
     }
 
     OD_ASSERT_TRUE(is >> str);
+    if(str == "[ResearchProgress]")
+    {
+        uint32_t count;
+        if(!(is >> mSkillPoints >> count) || mSkillPoints < 0 || count >= nbSkill)
+            return false;
+        for(uint32_t index = 0; index < count; ++index)
+        {
+            uint32_t level;
+            if(!(is >> str >> level))
+                return false;
+            const SkillType type = Skills::fromString(str);
+            if(type == SkillType::nullSkillType || !isSkillDone(type) || level < 1 || level > 3 ||
+               mResearchLevels.count(type) != 0)
+                return false;
+            mResearchLevels[type] = level;
+        }
+        if(!(is >> str) || str != "[/ResearchProgress]" || !(is >> str))
+            return false;
+    }
     if(str != "[SkillNotAllowed]")
     {
         OD_LOG_INF("WARNING: expected [SkillNotAllowed] and read " + str);
@@ -1130,8 +1151,8 @@ bool Seat::importSeatFromStream(std::istream& is)
             if(str.compare(Skills::toString(type)) != 0)
                 continue;
 
-            // We do not allow skills already done or not allowed
-            if(std::find(mSkillDone.begin(), mSkillDone.end(), type) != mSkillDone.end())
+            // Completed unlocks can have their next upgrade queued.
+            if(getSkillLevel(type) >= 3)
                 break;
             if(std::find(mSkillNotAllowed.begin(), mSkillNotAllowed.end(), type) != mSkillNotAllowed.end())
                 break;
@@ -1306,6 +1327,11 @@ bool Seat::exportSeatToStream(std::ostream& os) const
     }
     os << "[/SkillDone]" << std::endl;
 
+    os << "[ResearchProgress]\n" << mSkillPoints << "\t" << mSkillDone.size() << "\n";
+    for(SkillType type : mSkillDone)
+        os << Skills::toString(type) << "\t" << getSkillLevel(type) << "\n";
+    os << "[/ResearchProgress]\n";
+
     os << "[SkillNotAllowed]" << std::endl;
     for(SkillType type : mSkillNotAllowed)
     {
@@ -1404,6 +1430,12 @@ bool Seat::addSkill(SkillType type)
     std::vector<SkillType> skillDone = mSkillDone;
     skillDone.push_back(type);
     setSkillsDone(skillDone);
+    auto pending = std::find(mSkillPending.begin(), mSkillPending.end(), type);
+    if(pending != mSkillPending.end())
+    {
+        mSkillPending.erase(pending);
+        setSkillTree(mSkillPending);
+    }
 
     // Tells the player a new room/trap/spell is available.
     if((getPlayer() != nullptr) &&
@@ -1430,6 +1462,47 @@ bool Seat::isSkillDone(SkillType type) const
     }
 
     return false;
+}
+
+uint32_t Seat::getSkillLevel(SkillType type) const
+{
+    if(!isSkillDone(type))
+        return 0;
+    auto level = mResearchLevels.find(type);
+    return level == mResearchLevels.end() ? 1 : level->second;
+}
+
+void Seat::setResearchLevels(const std::map<SkillType, uint32_t>& levels)
+{
+    mResearchLevels.clear();
+    for(const auto& entry : levels)
+    {
+        if(isSkillDone(entry.first) && entry.second >= 1 && entry.second <= 3)
+            mResearchLevels.insert(entry);
+    }
+    mGuiSkillNeedsRefresh = true;
+}
+
+void Seat::completeResearch(SkillType type)
+{
+    const uint32_t level = getSkillLevel(type);
+    if(level == 0)
+        addSkill(type);
+    else if(level < 3)
+    {
+        mResearchLevels[type] = level + 1;
+        setSkillsDone(mSkillDone);
+        if(getPlayer() != nullptr && getPlayer()->getIsHuman() && !getPlayer()->getHasLost())
+        {
+            ServerNotification* notice = new ServerNotification(ServerNotificationType::chatServer, getPlayer());
+            notice->mPacket << (Skills::skillTypeToPlayerVisibleString(type) + " reached research level " +
+                Helper::toString(level + 1) + ".") << EventShortNoticeType::aboutSkills;
+            ODServer::getSingleton().queueServerNotification(notice);
+        }
+    }
+    auto pending = std::find(mSkillPending.begin(), mSkillPending.end(), type);
+    if(pending != mSkillPending.end())
+        mSkillPending.erase(pending);
 }
 
 uint32_t Seat::isSkillPending(SkillType skillType) const
@@ -1463,19 +1536,20 @@ void Seat::addSkillPoints(int32_t points)
         return;
     }
 
-    if(mSkillPoints < mCurrentSkill->getNeededSkillPoints())
+    while(mCurrentSkill != nullptr)
     {
-        mCurrentSkillType = mCurrentSkill->getType();
-        mCurrentSkillProgress = static_cast<float>(mSkillPoints) / static_cast<float>(mCurrentSkill->getNeededSkillPoints());
-        return;
+        const SkillType type = mCurrentSkill->getType();
+        const int32_t cost = mCurrentSkill->getNeededSkillPoints(getSkillLevel(type) + 1);
+        if(mSkillPoints < cost)
+        {
+            mCurrentSkillType = type;
+            mCurrentSkillProgress = static_cast<float>(mSkillPoints) / static_cast<float>(cost);
+            break;
+        }
+        mSkillPoints -= cost;
+        completeResearch(type);
+        setSkillTree(mSkillPending);
     }
-
-    // The current skill is complete. We add it to the available skill list
-    mSkillPoints -= mCurrentSkill->getNeededSkillPoints();
-    addSkill(mCurrentSkill->getType());
-
-    // We set the next skill
-    setNextSkill(mCurrentSkill->getType());
 }
 
 bool Seat::getCurrentSkillProgress(SkillType& type, float& progress) const
@@ -1542,22 +1616,20 @@ void Seat::setNextSkill(SkillType skilledType)
     }
 
     mCurrentSkillType = mCurrentSkill->getType();
-    mCurrentSkillProgress = static_cast<float>(mSkillPoints) / static_cast<float>(mCurrentSkill->getNeededSkillPoints());
+    const int32_t cost = mCurrentSkill->getNeededSkillPoints(getSkillLevel(skillType) + 1);
+    mCurrentSkillProgress = cost > 0 ? std::min(1.0f, static_cast<float>(mSkillPoints) / cost) : 0.0f;
 }
 
 void Seat::setSkillsDone(const std::vector<SkillType>& skills)
 {
     mSkillDone = skills;
-    // We remove the skills done from the pending skills (if it was there,
-    // which may not be true if the skill list changed after creating the
-    // skillEntity for example)
-    for(SkillType type : skills)
+    // Completed unlocks remain researchable until their final level.
+    for(auto it = mResearchLevels.begin(); it != mResearchLevels.end();)
     {
-        auto skill = std::find(mSkillPending.begin(), mSkillPending.end(), type);
-        if(skill == mSkillPending.end())
-            continue;
-
-        mSkillPending.erase(skill);
+        if(!isSkillDone(it->first))
+            it = mResearchLevels.erase(it);
+        else
+            ++it;
     }
 
     if(mGameMap->isServerGameMap())
@@ -1571,7 +1643,7 @@ void Seat::setSkillsDone(const std::vector<SkillType>& skills)
             uint32_t nbItems = mSkillDone.size();
             serverNotification->mPacket << nbItems;
             for(SkillType skill : mSkillDone)
-                serverNotification->mPacket << skill;
+                serverNotification->mPacket << skill << getSkillLevel(skill);
 
             ODServer::getSingleton().queueServerNotification(serverNotification);
         }
@@ -1590,8 +1662,12 @@ void Seat::setSkillTree(const std::vector<SkillType>& skills)
     {
         // We check if all the skills in the vector are allowed. If not, we don't update the list
         std::vector<SkillType> skillsDoneInTree = mSkillDone;
+        std::vector<SkillType> seen;
         for(SkillType skillType : skills)
         {
+            if(getSkillLevel(skillType) >= 3 || std::find(seen.begin(), seen.end(), skillType) != seen.end())
+                return;
+            seen.push_back(skillType);
             // We check if the skill is allowed
             if(std::find(mSkillNotAllowed.begin(), mSkillNotAllowed.end(), skillType) != mSkillNotAllowed.end())
             {
@@ -1608,7 +1684,7 @@ void Seat::setSkillTree(const std::vector<SkillType>& skills)
                 return;
             }
 
-            if(!skill->canBeSkilled(skillsDoneInTree))
+            if(!isSkillDone(skillType) && !skill->canBeSkilled(skillsDoneInTree))
             {
                 // Invalid skill. This might happen if the level has a skill pending with a non skillable dependency.
                 // In this case, we don't use the skill tree

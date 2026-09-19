@@ -20,11 +20,16 @@
 #include "game/Skill.h"
 #include "game/Seat.h"
 #include "game/SkillType.h"
+#include "gamemap/GameMap.h"
 #include "modes/GameEditorModeBase.h"
 #include "modes/GameMode.h"
 #include "render/Gui.h"
 #include "rooms/RoomType.h"
+#include "rooms/RoomManager.h"
+#include "spells/SpellSummonWorker.h"
+#include "spells/SpellManager.h"
 #include "spells/SpellType.h"
+#include "traps/TrapManager.h"
 #include "traps/TrapType.h"
 #include "utils/ConfigManager.h"
 #include "utils/Helper.h"
@@ -85,6 +90,10 @@ public:
 
     virtual SkillFamily getSkillFamily() const = 0;
 
+    virtual std::string getCostText(GameMap* gameMap) const = 0;
+
+    virtual const std::string& getTooltipTitle() const = 0;
+
     virtual void connectGuiButtons(GameEditorModeBase* mode, CEGUI::Window* rootWindow, PlayerSelection& playerSelection) const = 0;
 
     virtual const std::string& getGuiPath() const = 0;
@@ -104,6 +113,12 @@ public:
 
     SkillFamily getSkillFamily() const override
     { return SkillFamily::rooms; }
+
+    const std::string& getTooltipTitle() const override
+    { return RoomManager::getRoomReadableName(mRoomType); }
+
+    std::string getCostText(GameMap* gameMap) const override
+    { return Helper::toString(RoomManager::costPerTile(mRoomType)) + " gold per tile"; }
 
     void connectGuiButtons(GameEditorModeBase* mode, CEGUI::Window* rootWindow, PlayerSelection& playerSelection) const override
     {
@@ -150,6 +165,12 @@ public:
     SkillFamily getSkillFamily() const override
     { return SkillFamily::traps; }
 
+    const std::string& getTooltipTitle() const override
+    { return TrapManager::getTrapReadableName(mTrapType); }
+
+    std::string getCostText(GameMap* gameMap) const override
+    { return Helper::toString(TrapManager::costPerTile(mTrapType)) + " gold per tile"; }
+
     void connectGuiButtons(GameEditorModeBase* mode, CEGUI::Window* rootWindow, PlayerSelection& playerSelection) const override
     {
         mode->addEventConnection(
@@ -194,6 +215,34 @@ public:
 
     SkillFamily getSkillFamily() const override
     { return SkillFamily::spells; }
+
+    const std::string& getTooltipTitle() const override
+    { return SpellManager::getSpellReadableName(mSpellType); }
+
+    std::string getCostText(GameMap* gameMap) const override
+    {
+        if(mSpellType == SpellType::summonWorker)
+            return Helper::toString(SpellSummonWorker::getNextWorkerPriceForPlayer(gameMap,
+                gameMap->getLocalPlayer())) + " mana for next worker";
+
+        const char* key;
+        switch(mSpellType)
+        {
+            case SpellType::callToWar: key = "CallToWarPrice"; break;
+            case SpellType::creatureHeal: key = "CreatureHealPrice"; break;
+            case SpellType::creatureExplosion: key = "CreatureExplosionPrice"; break;
+            case SpellType::creatureHaste: key = "CreatureHastePrice"; break;
+            case SpellType::creatureDefense: key = "CreatureDefensePrice"; break;
+            case SpellType::creatureSlow: key = "CreatureSlowPrice"; break;
+            case SpellType::creatureStrength: key = "CreatureStrengthPrice"; break;
+            case SpellType::creatureWeak: key = "CreatureWeakPrice"; break;
+            case SpellType::eyeEvil: key = "EyeEvilPrice"; break;
+            default: return "";
+        }
+        const std::string unit = (mSpellType == SpellType::callToWar || mSpellType == SpellType::eyeEvil) ?
+            " mana" : " mana per creature";
+        return Helper::toString(ConfigManager::getSingleton().getSpellConfigInt32(key)) + unit;
+    }
 
     void connectGuiButtons(GameEditorModeBase* mode, CEGUI::Window* rootWindow, PlayerSelection& playerSelection) const override
     {
@@ -591,9 +640,12 @@ bool SkillManager::isAllSkillsDoneForSeat(const Seat* seat)
     {
         if(skill == nullptr)
             continue;
-        if(seat->isSkillDone(skill->mSkill->getType()))
+        if(seat->getSkillLevel(skill->mSkill->getType()) >= 3)
             continue;
-        if(!skill->mSkill->canBeSkilled(seat->getSkillDone()))
+        if(std::find(seat->getSkillNotAllowed().begin(), seat->getSkillNotAllowed().end(),
+            skill->mSkill->getType()) != seat->getSkillNotAllowed().end())
+            continue;
+        if(!seat->isSkillDone(skill->mSkill->getType()) && !skill->mSkill->canBeSkilled(seat->getSkillDone()))
             continue;
         return false;
     }
@@ -618,6 +670,107 @@ const Skill* SkillManager::getSkill(SkillType resType)
     return skill->mSkill;
 }
 
+double SkillManager::getResearchValue(const Seat* seat, SkillType type, double base, bool secondary)
+{
+    return getResearchValue(type, seat == nullptr ? 1 : seat->getSkillLevel(type), base, secondary);
+}
+
+double SkillManager::getResearchValue(SkillType type, uint32_t level, double base, bool secondary)
+{
+    const uint32_t step = std::max(1U, std::min(3U, level)) - 1;
+    switch(type)
+    {
+        case SkillType::roomTreasury:
+        case SkillType::roomBridgeWooden:
+        case SkillType::roomArena:
+            return base * (1.0 + 0.25 * step);
+        case SkillType::roomBridgeStone:
+        case SkillType::trapDoorWooden:
+        case SkillType::spellEyeEvil:
+            return base * (1.0 + 0.5 * step);
+        case SkillType::roomHatchery:
+        case SkillType::roomCrypt:
+            return base * (step == 0 ? 1.0 : (step == 1 ? 0.8 : 2.0 / 3.0));
+        case SkillType::roomPrison:
+            return base + step;
+        case SkillType::roomDormitory:
+        case SkillType::roomLibrary:
+        case SkillType::roomTrainingHall:
+        case SkillType::roomWorkshop:
+        case SkillType::roomCasino:
+        case SkillType::roomTorture:
+        case SkillType::trapCannon:
+        case SkillType::trapBoulder:
+        case SkillType::spellCreatureDefense:
+        case SkillType::spellCreatureHeal:
+            return base * (1.0 + 0.2 * step);
+        case SkillType::trapSpike:
+            return base * (step == 0 ? 1.0 : (step == 1 ? (secondary ? 4.0 / 3.0 : 1.3) : 1.6));
+        case SkillType::spellSummonWorker:
+        case SkillType::spellCreatureSlow:
+            return base * (1.0 - 0.1 * step);
+        case SkillType::spellCallToWar:
+            return base * (1.0 + 0.3 * step);
+        case SkillType::spellCreatureExplosion:
+            return base * (1.0 + (3.0 / 14.0) * step);
+        case SkillType::spellCreatureHaste:
+            return base * (1.0 + 0.1 * step);
+        case SkillType::spellCreatureStrength:
+        case SkillType::spellCreatureWeak:
+            return 1.0 + (base - 1.0) * (1.0 + 0.5 * step);
+        default:
+            return base;
+    }
+}
+
+std::string SkillManager::getResearchDescription(SkillType type, uint32_t level)
+{
+    const ConfigManager& config = ConfigManager::getSingleton();
+    const auto value = [type, level](double base, bool secondary = false)
+    { return Helper::toString(getResearchValue(type, level, base, secondary)); };
+    const auto room = [&config, &value](const char* key)
+    { return value(config.getRoomConfigDouble(key)); };
+    const auto spell = [&config, &value](const char* key)
+    { return value(config.getSpellConfigDouble(key)); };
+    switch(type)
+    {
+        case SkillType::roomTreasury: return "Storage: " + value(1000) + " gold per tile.";
+        case SkillType::roomHatchery: return "Chicken spawn interval: " + room("HatcheryChickenSpawnRate") + " turns.";
+        case SkillType::roomDormitory: return "Sleep recovery: " + value(1.5) + " wakefulness per turn; healing x" + value(1) + ".";
+        case SkillType::roomLibrary: return "Research work points: " + room("LibraryPointsPerWork") + " before creature efficiency.";
+        case SkillType::roomTrainingHall: return "Training experience per hit: " + room("TrainHallXpPerAttack") + ".";
+        case SkillType::roomWorkshop: return "Production work points: " + room("WorkshopPointsPerWork") + " before creature efficiency.";
+        case SkillType::roomBridgeWooden:
+        case SkillType::roomBridgeStone: return "Enemy claiming resistance: x" + value(1) + ".";
+        case SkillType::roomCrypt: return "Corpse processing interval: " + room("CryptRotNbTurns") + " turns.";
+        case SkillType::roomPrison: return "New converted creatures start at level " + value(1) + ".";
+        case SkillType::roomArena: return "Arena training cap: level " + value(config.getRoomConfigUInt32("ArenaMaxTrainingLevel")) + ".";
+        case SkillType::roomCasino: return "Keeper share of bets: " + value(config.getRoomConfigDouble("CasinoFee") * 100) + "%.";
+        case SkillType::roomTorture: return "Conversion chance per session: " + value(config.getRoomConfigDouble("TortureRallyPercent") * 100) + "%.";
+        case SkillType::trapDoorWooden: return "Door health: " + value(10) + ".";
+        case SkillType::trapCannon:
+        case SkillType::trapSpike:
+        case SkillType::trapBoulder:
+        {
+            const std::string prefix = type == SkillType::trapCannon ? "Cannon" :
+                (type == SkillType::trapSpike ? "Spike" : "Boulder");
+            return "Damage: " + value(config.getTrapConfigDouble(prefix + "DamagePerHitMin")) + "-" +
+                value(config.getTrapConfigDouble(prefix + "DamagePerHitMax"), true) + ".";
+        }
+        case SkillType::spellSummonWorker: return "Paid-worker base cost: " + spell("SummonWorkerBasePrice") + " mana; existing price growth retained.";
+        case SkillType::spellCallToWar: return "Maximum lifetime: " + spell("CallToWarNbTurnsMax") + " turns.";
+        case SkillType::spellCreatureDefense: return "Added physical defense: " + spell("CreatureDefenseValue") + ".";
+        case SkillType::spellCreatureExplosion: return "Damage per turn: " + spell("CreatureExplosionValue") + ".";
+        case SkillType::spellCreatureHaste: return "Movement speed: x" + spell("CreatureHasteValue") + ".";
+        case SkillType::spellCreatureHeal: return "Healing per turn: " + spell("CreatureHealValue") + ".";
+        case SkillType::spellCreatureSlow: return "Target movement speed: x" + spell("CreatureSlowValue") + ".";
+        case SkillType::spellCreatureStrength: return "Strength: x" + spell("CreatureStrengthValue") + ".";
+        case SkillType::spellCreatureWeak: return "Target strength: x" + spell("CreatureWeakValue") + ".";
+        case SkillType::spellEyeEvil: return "Revealed-area lifetime: " + spell("EyeEvilNbTurns") + " turns.";
+        default: return "";
+    }
+}
+
 void SkillManager::buildRandomPendingSkillsForSeat(std::vector<SkillType>& skills,
         const Seat* seat)
 {
@@ -636,10 +789,11 @@ void SkillManager::buildRandomPendingSkillsForSeat(std::vector<SkillType>& skill
 
         SkillType resType = skill->mSkill->getType();
         // We do not consider skills already pending or done
-        if(std::find(doneSkills.begin(), doneSkills.end(), resType) != doneSkills.end())
+        if(seat->getSkillLevel(resType) >= 3 || std::find(skills.begin(), skills.end(), resType) != skills.end())
             continue;
 
-        if(skill->mSkill->dependsOn(skillNotAllowed))
+        if(std::find(skillNotAllowed.begin(), skillNotAllowed.end(), resType) != skillNotAllowed.end() ||
+           (!seat->isSkillDone(resType) && skill->mSkill->dependsOn(skillNotAllowed)))
             continue;
 
         availableSkills.push_back(skill);
@@ -652,6 +806,11 @@ void SkillManager::buildRandomPendingSkillsForSeat(std::vector<SkillType>& skill
     std::random_shuffle(availableSkills.begin(), availableSkills.end());
     for(const SkillDef* skill : availableSkills)
     {
+        if(seat->isSkillDone(skill->mSkill->getType()))
+        {
+            skills.push_back(skill->mSkill->getType());
+            continue;
+        }
         // Since buildDependencies guarantees to not add duplicate skills, it is safe
         // to call it for every skill not already done
         skill->mSkill->buildDependencies(doneSkills, skills);
@@ -734,4 +893,61 @@ void SkillManager::connectGuiButtons(GameEditorModeBase* mode, CEGUI::Window* ro
 
         skill->connectGuiButtons(mode, rootWindow, playerSelection);
     }
+}
+
+void SkillManager::updateCostTooltip(GameMap* gameMap, CEGUI::Window* rootWindow, CEGUI::Window* hoveredWindow)
+{
+    for(const SkillDef* skill : getSkillManager().mSkills)
+    {
+        if(skill == nullptr || hoveredWindow->getName() != skill->mButtonName ||
+            hoveredWindow != rootWindow->getChild(skill->getGuiPath() + skill->mButtonName))
+            continue;
+
+        if(!hoveredWindow->isUserStringDefined("CostBaseDescription"))
+            hoveredWindow->setUserString("CostBaseDescription", hoveredWindow->getTooltipText());
+        const std::string cost = skill->getCostText(gameMap);
+        const CEGUI::String text = hoveredWindow->getUserString("CostBaseDescription") +
+            (cost.empty() ? "" : " (" + cost + ")");
+        hoveredWindow->setUserString("ContextHelp", text);
+        if(hoveredWindow->getTooltipText() != skill->getTooltipTitle())
+            hoveredWindow->setTooltipText(skill->getTooltipTitle());
+        return;
+    }
+}
+
+std::string SkillManager::getSelectedButton(const PlayerSelection& playerSelection)
+{
+    SkillFamily family;
+    uint32_t type;
+    switch(playerSelection.getCurrentAction())
+    {
+        case SelectedAction::buildRoom:
+            family = SkillFamily::rooms;
+            type = static_cast<uint32_t>(playerSelection.getNewRoomType());
+            break;
+        case SelectedAction::buildTrap:
+            family = SkillFamily::traps;
+            type = static_cast<uint32_t>(playerSelection.getNewTrapType());
+            break;
+        case SelectedAction::castSpell:
+            family = SkillFamily::spells;
+            type = static_cast<uint32_t>(playerSelection.getNewSpellType());
+            break;
+        case SelectedAction::destroyRoom:
+            return Gui::BUTTON_DESTROY_ROOM;
+        case SelectedAction::destroyTrap:
+            return Gui::BUTTON_DESTROY_TRAP;
+        case SelectedAction::queryEntity:
+            return "QueryButton";
+        case SelectedAction::sellBuilding:
+            return "SellButton";
+        default:
+            return "";
+    }
+
+    const std::vector<SkillType>& skills = getSkillManager().mSkillsFamily.at(static_cast<uint32_t>(family));
+    if(type >= skills.size() || skills[type] == SkillType::nullSkillType)
+        return "";
+    const SkillDef* skill = getSkillManager().mSkills.at(static_cast<uint32_t>(skills[type]));
+    return skill->getGuiPath() + skill->mButtonName;
 }

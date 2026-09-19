@@ -16,6 +16,8 @@
  */
 
 #include "rooms/RoomTrainingHall.h"
+#include "game/SkillManager.h"
+#include "game/SkillType.h"
 
 #include "entities/BuildingObject.h"
 #include "entities/Creature.h"
@@ -402,7 +404,8 @@ bool RoomTrainingHall::useRoom(Creature& creature, bool forced)
 
     // We add a bonus per wall active spots
     double coef = 1.0 + static_cast<double>(mNumActiveSpots - mCentralActiveSpotTiles.size()) * ConfigManager::getSingleton().getRoomConfigDouble("TrainHallBonusWallActiveSpot");
-    double expReceived = creatureRoomAffinity.getEfficiency() * ConfigManager::getSingleton().getRoomConfigDouble("TrainHallXpPerAttack");
+    double expReceived = creatureRoomAffinity.getEfficiency() * SkillManager::getResearchValue(
+        getSeat(), SkillType::roomTrainingHall, ConfigManager::getSingleton().getRoomConfigDouble("TrainHallXpPerAttack"));
     expReceived *= coef;
 
     creature.receiveExp(expReceived);

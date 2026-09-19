@@ -31,6 +31,8 @@
 #include "spells/SpellType.h"
 #include "spells/SpellManager.h"
 #include "utils/ConfigManager.h"
+#include "game/SkillManager.h"
+#include "game/SkillType.h"
 #include "utils/Helper.h"
 #include "utils/LogManager.h"
 
@@ -77,28 +79,14 @@ void SpellCreatureStrength::checkSpellCast(GameMap* gameMap, const InputManager&
     Player* player = gameMap->getLocalPlayer();
     int32_t pricePerTarget = ConfigManager::getSingleton().getSpellConfigInt32("CreatureStrengthPrice");
     int32_t playerMana = static_cast<int32_t>(player->getSeat()->getMana());
-    if(inputManager.mCommandState == InputCommandState::infoOnly)
+    Tile* tileSelected = gameMap->getTile(inputManager.mXPos, inputManager.mYPos);
+    if(tileSelected == nullptr)
     {
-        if(playerMana < pricePerTarget)
-        {
-            std::string txt = formatCastSpell(SpellType::creatureStrength, pricePerTarget);
-            inputCommand.displayText(Ogre::ColourValue::Red, txt);
-        }
-        else
-        {
-            std::string txt = formatCastSpell(SpellType::creatureStrength, pricePerTarget);
-            inputCommand.displayText(Ogre::ColourValue::White, txt);
-        }
-        inputCommand.selectSquaredTiles(inputManager.mXPos, inputManager.mYPos, inputManager.mXPos,
-            inputManager.mYPos);
+        inputCommand.displayText(Ogre::ColourValue::Red, "Point at a tile inside the map.");
         return;
     }
 
-    Tile* tileSelected = gameMap->getTile(inputManager.mXPos, inputManager.mYPos);
-    if(tileSelected == nullptr)
-        return;
-
-    if(inputManager.mCommandState == InputCommandState::building)
+    if(inputManager.mCommandState != InputCommandState::validated)
     {
         inputCommand.selectSquaredTiles(inputManager.mXPos, inputManager.mYPos, inputManager.mXPos,
             inputManager.mYPos);
@@ -110,8 +98,20 @@ void SpellCreatureStrength::checkSpellCast(GameMap* gameMap, const InputManager&
 
     if(closestCreature == nullptr)
     {
-        std::string txt = formatCastSpell(SpellType::creatureStrength, 0);
-        inputCommand.displayText(Ogre::ColourValue::White, txt);
+        inputCommand.displayText(Ogre::ColourValue::Red, "Select a living allied creature.");
+        return;
+    }
+
+    Tile* targetTile = closestCreature->getPositionTile();
+    if(targetTile == nullptr || !targetTile->isClaimedForSeat(player->getSeat()))
+    {
+        inputCommand.displayText(Ogre::ColourValue::Red, "The creature must stand on your claimed ground.");
+        return;
+    }
+    if(playerMana < pricePerTarget)
+    {
+        inputCommand.displayText(Ogre::ColourValue::Red, "Not enough mana. " +
+            formatCastSpell(SpellType::creatureStrength, pricePerTarget));
         return;
     }
 
@@ -174,7 +174,8 @@ bool SpellCreatureStrength::castSpell(GameMap* gameMap, Player* player, ODPacket
         return false;
 
     uint32_t duration = ConfigManager::getSingleton().getSpellConfigUInt32("CreatureStrengthDuration");
-    double value = ConfigManager::getSingleton().getSpellConfigDouble("CreatureStrengthValue");
+    double value = SkillManager::getResearchValue(player->getSeat(), SkillType::spellCreatureStrength,
+        ConfigManager::getSingleton().getSpellConfigDouble("CreatureStrengthValue"));
     CreatureEffectStrengthChange* effect = new CreatureEffectStrengthChange(duration, value, "SpellCreatureStrength");
     creature->addCreatureEffect(effect);
 

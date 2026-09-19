@@ -27,6 +27,8 @@
 #include "network/ODClient.h"
 #include "spells/SpellManager.h"
 #include "utils/ConfigManager.h"
+#include "game/SkillManager.h"
+#include "game/SkillType.h"
 #include "utils/Helper.h"
 #include "utils/LogManager.h"
 
@@ -107,31 +109,23 @@ void SpellCallToWar::checkSpellCast(GameMap* gameMap, const InputManager& inputM
 
     Tile* tile = gameMap->getTile(inputManager.mXPos, inputManager.mYPos);
     if(tile == nullptr)
-        return;
-
-    int32_t playerMana = static_cast<int32_t>(player->getSeat()->getMana());
-    int32_t price = ConfigManager::getSingleton().getSpellConfigInt32("CallToWarPrice");
-    if(inputManager.mCommandState == InputCommandState::infoOnly)
     {
-        if(playerMana < price)
-        {
-            std::string txt = formatCastSpell(SpellType::callToWar, price);
-            inputCommand.displayText(Ogre::ColourValue::Red, txt);
-        }
-        else
-        {
-            std::string txt = formatCastSpell(SpellType::callToWar, price);
-            inputCommand.displayText(Ogre::ColourValue::White, txt);
-        }
-        inputCommand.selectSquaredTiles(inputManager.mXPos, inputManager.mYPos, inputManager.mXPos,
-            inputManager.mYPos);
+        inputCommand.displayText(Ogre::ColourValue::Red, "Point at a tile inside the map.");
         return;
     }
 
-    if(inputManager.mCommandState == InputCommandState::building)
+    int32_t playerMana = static_cast<int32_t>(player->getSeat()->getMana());
+    int32_t price = ConfigManager::getSingleton().getSpellConfigInt32("CallToWarPrice");
+    if(playerMana < price)
     {
-        std::string txt = formatCastSpell(SpellType::callToWar, price);
-        inputCommand.displayText(Ogre::ColourValue::White, txt);
+        inputCommand.displayText(Ogre::ColourValue::Red, "Not enough mana. " +
+            formatCastSpell(SpellType::callToWar, price));
+        return;
+    }
+    inputCommand.displayText(Ogre::ColourValue::White, formatCastSpell(SpellType::callToWar, price));
+
+    if(inputManager.mCommandState != InputCommandState::validated)
+    {
         std::vector<Tile*> tiles;
         tiles.push_back(tile);
         inputCommand.selectTiles(tiles);
@@ -162,6 +156,9 @@ bool SpellCallToWar::castSpell(GameMap* gameMap, Player* player, ODPacket& packe
 
     SpellCallToWar* spell = new SpellCallToWar(gameMap);
     spell->setSeat(player->getSeat());
+    spell->setDuration(static_cast<int32_t>(std::round(SkillManager::getResearchValue(
+        player->getSeat(), SkillType::spellCallToWar,
+        ConfigManager::getSingleton().getSpellConfigInt32("CallToWarNbTurnsMax")))));
     spell->addToGameMap();
     Ogre::Vector3 spawnPosition(static_cast<Ogre::Real>(tile->getX()),
                                 static_cast<Ogre::Real>(tile->getY()),
@@ -185,4 +182,3 @@ Spell* SpellCallToWar::getSpellFromPacket(GameMap* gameMap, ODPacket &is)
     spell->importFromPacket(is);
     return spell;
 }
-

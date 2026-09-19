@@ -16,6 +16,8 @@
  */
 
 #include "rooms/RoomHatchery.h"
+#include "game/SkillManager.h"
+#include "game/SkillType.h"
 
 #include "creatureaction/CreatureActionEatChicken.h"
 #include "creatureaction/CreatureActionSearchFood.h"
@@ -165,7 +167,8 @@ void RoomHatchery::doUpkeep()
 
     // Chickens have been eaten. We check when we will spawn another one
     ++mSpawnChickenCooldown;
-    if(mSpawnChickenCooldown < ConfigManager::getSingleton().getRoomConfigUInt32("HatcheryChickenSpawnRate"))
+    if(mSpawnChickenCooldown < std::max(1.0, std::round(SkillManager::getResearchValue(
+        getSeat(), SkillType::roomHatchery, ConfigManager::getSingleton().getRoomConfigUInt32("HatcheryChickenSpawnRate")))))
         return;
 
     // We spawn 1 chicken per chicken coop (until chickens are maxed)
