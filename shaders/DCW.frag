@@ -42,22 +42,13 @@ void main (void)
     // precompute the lighting term
     vec3 lightingTerm = getLocalLighting(FragPos, Normal, cameraPosition.xyz, shadow.r) + ambientLightColour.rgb;
     
-    vec4 crossMap = texture(crossmap, out_UV2.st);   
-    if(crossMap.r < 0.00005)
-    {
-        vec3 texelColor = texture(decalmap, out_UV0.st).rgb;
-        if(diffuseSurface==vec4(1.0,1.0,1.0,1.0))
-            result =  lightingTerm * texelColor;
-        else
-            result =  lightingTerm * mix(texelColor,diffuseSurface.rgb,0.5);
-    }
-    else{
-        if(diffuseSurface==vec4(1.0,1.0,1.0,1.0))
-            result = lightingTerm * crossMap.rgb *  seatColor.rgb;
-        else
-            result =  lightingTerm * mix( crossMap.rgb * seatColor.rgb,diffuseSurface.rgb,0.5);        
-
-    }
+    vec4 crossMap = texture(crossmap, out_UV2.st);
+    vec3 texelColor = texture(decalmap, out_UV0.st).rgb;
+    vec3 surfaceColor = diffuseSurface == vec4(1.0, 1.0, 1.0, 1.0)
+        ? texelColor
+        : mix(texelColor, diffuseSurface.rgb, 0.5);
+    vec3 ownershipAccent = mix(surfaceColor, seatColor.rgb, 0.45);
+    result = lightingTerm * mix(surfaceColor, ownershipAccent, crossMap.r);
     color  = vec4( result.xyz,  1.0);
 
        
