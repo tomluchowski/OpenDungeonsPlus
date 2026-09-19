@@ -19,6 +19,7 @@
 
 #include "creatureaction/CreatureAction.h"
 #include "entities/Creature.h"
+#include "entities/CreatureDefinition.h"
 #include "entities/GameEntityType.h"
 #include "entities/Tile.h"
 #include "game/SkillManager.h"
@@ -337,13 +338,19 @@ void Player::dropHand(Tile *t, unsigned int index)
     {
         entity->drop(pos);
         entity->fireDropEntity(this, t);
+        if(!mGameMap->isInEditorMode() && entity->getObjectType() == GameEntityType::creature)
+        {
+            Creature* creature = static_cast<Creature*>(entity);
+            if(creature->getDefinition()->getTurnsStunDropped() > 0)
+                creature->setAnimationState(EntityAnimation::drop_anim, false,
+                    Ogre::Vector3::ZERO, false);
+        }
         return;
     }
 
     entity->correctDropPosition(pos);
     OD_LOG_INF("player seatId=" + Helper::toString(getSeat()->getId()) + " drop " + entity->getName() + " on tile=" + Tile::displayAsString(t));
     entity->drop(pos);
-
     // If this is the result of another player dropping the creature it is currently not visible so we need to create a mesh for it
     //cout << "\nthis:  " << this << "\nme:  " << gameMap->getLocalPlayer() << endl;
     //cout.flush();

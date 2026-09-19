@@ -1397,6 +1397,63 @@ bool ODServer::processClientNotifications(ODSocketClient* clientSocket)
             break;
         }
 
+        case ClientNotificationType::askHandDropAll:
+        {
+            Player* player = clientSocket->getPlayer();
+            Tile* tile = gameMap->tileFromPacket(packetReceived);
+            uint32_t count = 0;
+            if(tile == nullptr || !(packetReceived >> count) || count <= 1 ||
+               count != player->numCreaturesInHand())
+            {
+                OD_LOG_ERR("Invalid drop-all request");
+                break;
+            }
+
+            std::vector<GameEntity*> creatures;
+            bool valid = true;
+            for(uint32_t i = 0; i < count; ++i)
+            {
+                int32_t entityType;
+                std::string entityName;
+                if(!(packetReceived >> entityType >> entityName) ||
+                   static_cast<GameEntityType>(entityType) != GameEntityType::creature)
+                {
+                    valid = false;
+                    break;
+                }
+
+                const unsigned int index = player->getHandIndex(
+                    static_cast<GameEntityType>(entityType), entityName);
+                if(index >= player->numObjectsInHand() || !player->isDropHandPossible(tile, index))
+                {
+                    valid = false;
+                    break;
+                }
+
+                GameEntity* entity = player->getObjectsInHand()[index];
+                if(std::find(creatures.begin(), creatures.end(), entity) != creatures.end())
+                {
+                    valid = false;
+                    break;
+                }
+                creatures.push_back(entity);
+            }
+
+            if(!valid || !packetReceived.endOfPacket() || creatures.size() != count)
+            {
+                OD_LOG_ERR("Rejected drop-all request");
+                break;
+            }
+
+            for(GameEntity* entity : creatures)
+            {
+                const unsigned int index = player->getHandIndex(
+                    entity->getObjectType(), entity->getName());
+                player->dropHand(tile, index);
+            }
+            break;
+        }
+
         case ClientNotificationType::askPickupWorker:
         {
             Player *player = clientSocket->getPlayer();

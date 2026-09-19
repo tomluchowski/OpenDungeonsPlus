@@ -92,6 +92,8 @@ const Ogre::Real RenderManager::KEEPER_HAND_WORLD_Z = KEEPER_HAND_POS_Z / Render
 
 const Ogre::Real KEEPER_HAND_CREATURE_PICKED_OFFSET = 0.05f;
 const Ogre::Real KEEPER_HAND_CREATURE_PICKED_SCALE = 0.05f;
+const Ogre::Real CREATURE_DROP_ANIMATION_DURATION = 0.35f;
+const Ogre::Real CREATURE_GET_UP_ANIMATION_DURATION = 0.35f;
 
 const Ogre::ColourValue BASE_AMBIENT_VALUE = Ogre::ColourValue(0.3f, 0.3f, 0.3f);
 
@@ -266,6 +268,12 @@ void addPickaxePrism(Ogre::ManualObject* mesh, const std::vector<Ogre::Vector2>&
         }
     }
 }
+
+bool needsCreatureDropFallback(Ogre::Entity* entity)
+{
+    return !entity->getSkeleton()->hasAnimation("Die") ||
+        entity->getMesh()->getName() == "lich.mesh";
+}
 }
 
 RenderManager::RenderManager(Ogre::OverlaySystem* overlaySystem) :
@@ -389,6 +397,9 @@ void RenderManager::setDynamicShadowsEnabled(bool enabled)
 
 RenderManager::~RenderManager()
 {
+    mCreatureDropAnimations.clear();
+    mCreatureGroundPoses.clear();
+    mCreatureGetUpAnimations.clear();
     delete DebugDrawer::getSingletonPtr();
     mSceneManager->destroyInstanceManager(mInstanceManagerDirt);
     // mSceneManager->destroyInstanceManager(mInstanceManagerCloud);
@@ -650,6 +661,9 @@ void RenderManager::preRenderTargetUpdate(const Ogre::RenderTargetEvent& evt)
 
 void RenderManager::stopGameRenderer(GameMap* gameMap)
 {
+    mCreatureDropAnimations.clear();
+    mCreatureGroundPoses.clear();
+    mCreatureGetUpAnimations.clear();
     rrEnableHeldCreatureDisplay(false, gameMap->getLocalPlayer());
     rrDrawTilePreview({}, Ogre::ColourValue::White);
     rrSetHandPose(false, false);
@@ -972,6 +986,72 @@ void RenderManager::updateRenderAnimations(Ogre::Real timeSinceLastFrame)
             mHandAnimationState = setEntityAnimation(ent, mHandPose, true);
         }
         alignKeeperHandPointer(mSceneManager->getEntity("keeperHandEnt"), mHandAnimationState);
+    }
+
+    for(auto it = mCreatureDropAnimations.begin(); it != mCreatureDropAnimations.end();)
+    {
+        it->mElapsed += timeSinceLastFrame;
+        const Ogre::Real progress = std::min(
+            it->mElapsed / CREATURE_DROP_ANIMATION_DURATION, 1.0f);
+        const Ogre::Real fallingProgress = progress * progress;
+        Ogre::Vector3 position = it->mStart + (it->mEnd - it->mStart) * fallingProgress;
+        if(it->mUseFallbackLie)
+        {
+            it->mNode->setOrientation(Ogre::Quaternion::Slerp(fallingProgress,
+                it->mStartOrientation, it->mLieOrientation, true));
+            position += (it->mLiePosition - it->mEnd) * fallingProgress;
+        }
+        it->mNode->setPosition(position);
+        if(progress < 1.0f)
+        {
+            ++it;
+            continue;
+        }
+        Creature* creature = it->mCreature;
+        const bool lieOnGround = it->mLieOnGround;
+        const bool useFallbackLie = it->mUseFallbackLie;
+        Ogre::SceneNode* node = it->mNode;
+        const Ogre::Quaternion standingOrientation = it->mStartOrientation;
+        const Ogre::Real standingZ = it->mEnd.z;
+        it = mCreatureDropAnimations.erase(it);
+        if(lieOnGround)
+        {
+            if(useFallbackLie)
+                mCreatureGroundPoses.push_back({creature, node,
+                    standingOrientation, standingZ});
+            setCreatureDropGroundAnimation(creature);
+        }
+    }
+
+    for(auto it = mCreatureGetUpAnimations.begin(); it != mCreatureGetUpAnimations.end();)
+    {
+        it->mElapsed += timeSinceLastFrame;
+        const Ogre::Real progress = std::min(
+            it->mElapsed / CREATURE_GET_UP_ANIMATION_DURATION, 1.0f);
+        if(it->mUseFallback)
+        {
+            it->mNode->setOrientation(Ogre::Quaternion::Slerp(progress,
+                it->mStartOrientation, it->mEndOrientation, true));
+            it->mNode->setPosition(it->mStartPosition +
+                (it->mEndPosition - it->mStartPosition) * progress);
+        }
+        else if(it->mAnimationState != nullptr)
+        {
+            it->mAnimationState->setTimePosition(
+                it->mAnimationState->getLength() * (1.0f - progress));
+        }
+
+        if(progress < 1.0f)
+        {
+            ++it;
+            continue;
+        }
+
+        it->mNode->setOrientation(it->mEndOrientation);
+        it->mNode->setPosition(it->mEndPosition);
+        Creature* creature = it->mCreature;
+        it = mCreatureGetUpAnimations.erase(it);
+        creature->setAnimationState(EntityAnimation::idle_anim, true);
     }
     rrUpdateHeldCreature();
 }
@@ -1695,6 +1775,7 @@ void RenderManager::rrCreateCreature(Creature* curCreature)
 
 void RenderManager::rrDestroyCreature(Creature* curCreature)
 {
+    cancelCreatureDropAnimation(curCreature);
     if(curCreature->getOverlayStatus() != nullptr)
     {
         delete curCreature->getOverlayStatus();
@@ -1858,6 +1939,9 @@ void RenderManager::rrDestroyMapLightVisualIndicator(MapLight* curMapLight)
 
 void RenderManager::rrPickUpEntity(GameEntity* curEntity, Player* localPlayer)
 {
+    if(curEntity->getObjectType() == GameEntityType::creature)
+        cancelCreatureDropAnimation(static_cast<Creature*>(curEntity));
+
     Ogre::Entity* ent = mSceneManager->getEntity("keeperHandEnt");
     if(ent->hasAnimationState("Pickup"))
         mHandAnimationState = setEntityAnimation(ent, "Pickup", false);
@@ -1897,9 +1981,24 @@ void RenderManager::rrDropHand(GameEntity* curEntity, Player* localPlayer)
     curEntity->setParentNodeDetachFlags(
         EntityParentNodeAttach::DETACH_PICKEDUP, false);
     Ogre::Vector3 position = curEntity->getPosition();
-    curEntityNode->setPosition(position);
     if(curEntity->resizeMeshAfterDrop())
         curEntityNode->scale(Ogre::Vector3::UNIT_SCALE / KEEPER_HAND_CREATURE_PICKED_SCALE);
+
+    if(!curEntity->getGameMap()->isInEditorMode() &&
+       curEntity->getObjectType() == GameEntityType::creature)
+    {
+        Ogre::Vector3 dropStart = position;
+        dropStart.z += KEEPER_HAND_WORLD_Z;
+        curEntityNode->setPosition(dropStart);
+        Creature* creature = static_cast<Creature*>(curEntity);
+        mCreatureDropAnimations.push_back({creature, curEntityNode, dropStart,
+            position, curEntityNode->getOrientation(), Ogre::Quaternion::IDENTITY,
+            position, 0.0f, false, false});
+    }
+    else
+    {
+        curEntityNode->setPosition(position);
+    }
 
     rrOrderHand(localPlayer);
 }
@@ -2088,6 +2187,93 @@ void RenderManager::rrSetObjectAnimationState(MovableGameEntity* curAnimatedObje
         return;
 
     std::string anim = animation;
+    Creature* dropCreature = nullptr;
+    if(curAnimatedObject->getObjectType() == GameEntityType::creature)
+        dropCreature = static_cast<Creature*>(curAnimatedObject);
+
+    if(anim == EntityAnimation::getup_anim && dropCreature != nullptr)
+    {
+        startCreatureGetUpAnimation(dropCreature);
+        return;
+    }
+
+    if(anim == EntityAnimation::drop_anim && dropCreature != nullptr)
+    {
+        cancelCreatureGetUpAnimation(dropCreature);
+        restoreCreatureGroundPose(dropCreature);
+        for(CreatureDropAnimation& dropAnimation : mCreatureDropAnimations)
+        {
+            if(dropAnimation.mCreature != dropCreature)
+                continue;
+
+            dropAnimation.mLieOnGround = true;
+            dropAnimation.mUseFallbackLie = needsCreatureDropFallback(objectEntity);
+            if(dropAnimation.mUseFallbackLie)
+            {
+                dropAnimation.mLieOrientation = dropAnimation.mStartOrientation *
+                    Ogre::Quaternion(Ogre::Degree(-90.0f), Ogre::Vector3::UNIT_X);
+                const Ogre::Vector3 scale = dropAnimation.mNode->getScale();
+                const auto corners = objectEntity->getBoundingBox().getAllCorners();
+                Ogre::Real minZ = (dropAnimation.mLieOrientation * (scale * corners[0])).z;
+                for(unsigned int corner = 1; corner < 8; ++corner)
+                {
+                    const Ogre::Real z = (dropAnimation.mLieOrientation *
+                        (scale * corners[corner])).z;
+                    minZ = std::min(minZ, z);
+                }
+                dropAnimation.mLiePosition = dropAnimation.mEnd;
+                dropAnimation.mLiePosition.z -= minZ;
+            }
+            anim = EntityAnimation::idle_anim;
+            loop = true;
+            break;
+        }
+
+        if(anim == EntityAnimation::drop_anim)
+        {
+            if(needsCreatureDropFallback(objectEntity))
+            {
+                Ogre::SceneNode* node = dropCreature->getEntityNode();
+                const Ogre::Quaternion standingOrientation = node->getOrientation();
+                const Ogre::Quaternion lieOrientation = standingOrientation *
+                    Ogre::Quaternion(Ogre::Degree(-90.0f), Ogre::Vector3::UNIT_X);
+                const Ogre::Vector3 scale = node->getScale();
+                const auto corners = objectEntity->getBoundingBox().getAllCorners();
+                Ogre::Real minZ = (lieOrientation * (scale * corners[0])).z;
+                for(unsigned int corner = 1; corner < 8; ++corner)
+                {
+                    const Ogre::Real z = (lieOrientation * (scale * corners[corner])).z;
+                    minZ = std::min(minZ, z);
+                }
+                Ogre::Vector3 position = node->getPosition();
+                const Ogre::Real standingZ = position.z;
+                position.z -= minZ;
+                node->setOrientation(lieOrientation);
+                node->setPosition(position);
+                mCreatureGroundPoses.push_back({dropCreature, node,
+                    standingOrientation, standingZ});
+            }
+            setCreatureDropGroundAnimation(dropCreature);
+            return;
+        }
+    }
+    else if(dropCreature != nullptr)
+    {
+        cancelCreatureGetUpAnimation(dropCreature);
+        restoreCreatureGroundPose(dropCreature);
+        for(CreatureDropAnimation& dropAnimation : mCreatureDropAnimations)
+        {
+            if(dropAnimation.mCreature != dropCreature)
+                continue;
+            dropAnimation.mLieOnGround = false;
+            if(dropAnimation.mUseFallbackLie)
+            {
+                dropAnimation.mNode->setOrientation(dropAnimation.mStartOrientation);
+                dropAnimation.mUseFallbackLie = false;
+            }
+            break;
+        }
+    }
 
     // Handle the case where this entity does not have the requested animation.
     while (!objectEntity->getSkeleton()->hasAnimation(anim))
@@ -2124,6 +2310,132 @@ void RenderManager::rrSetObjectAnimationState(MovableGameEntity* curAnimatedObje
 
     Ogre::AnimationState* animState = setEntityAnimation(objectEntity, anim, loop);
     curAnimatedObject->setAnimationState(animState);
+}
+
+void RenderManager::cancelCreatureDropAnimation(Creature* creature)
+{
+    cancelCreatureGetUpAnimation(creature);
+    for(auto it = mCreatureDropAnimations.begin(); it != mCreatureDropAnimations.end();)
+    {
+        if(it->mCreature == creature)
+        {
+            it->mNode->setOrientation(it->mStartOrientation);
+            Ogre::Vector3 position = it->mNode->getPosition();
+            position.z = it->mEnd.z;
+            it->mNode->setPosition(position);
+            it = mCreatureDropAnimations.erase(it);
+        }
+        else
+            ++it;
+    }
+    restoreCreatureGroundPose(creature);
+}
+
+void RenderManager::cancelCreatureGetUpAnimation(Creature* creature)
+{
+    for(auto it = mCreatureGetUpAnimations.begin(); it != mCreatureGetUpAnimations.end();)
+    {
+        if(it->mCreature != creature)
+        {
+            ++it;
+            continue;
+        }
+
+        it->mNode->setOrientation(it->mEndOrientation);
+        it->mNode->setPosition(it->mEndPosition);
+        it = mCreatureGetUpAnimations.erase(it);
+    }
+}
+
+void RenderManager::startCreatureGetUpAnimation(Creature* creature)
+{
+    cancelCreatureGetUpAnimation(creature);
+    const std::string objectName = creature->getOgreNamePrefix() + creature->getName();
+    if(!mSceneManager->hasEntity(objectName))
+        return;
+
+    Ogre::Entity* objectEntity = mSceneManager->getEntity(objectName);
+    if(!objectEntity->hasSkeleton())
+        return;
+
+    Ogre::SceneNode* node = creature->getEntityNode();
+    Ogre::Quaternion startOrientation = node->getOrientation();
+    Ogre::Quaternion endOrientation = startOrientation;
+    Ogre::Vector3 startPosition = node->getPosition();
+    Ogre::Vector3 endPosition = startPosition;
+    Ogre::AnimationState* animationState = nullptr;
+    const bool useFallback = needsCreatureDropFallback(objectEntity);
+    if(useFallback)
+    {
+        bool foundGroundPose = false;
+        for(auto it = mCreatureGroundPoses.begin(); it != mCreatureGroundPoses.end(); ++it)
+        {
+            if(it->mCreature != creature)
+                continue;
+
+            endOrientation = it->mStandingOrientation;
+            endPosition.z = it->mStandingZ;
+            mCreatureGroundPoses.erase(it);
+            foundGroundPose = true;
+            break;
+        }
+        if(!foundGroundPose)
+        {
+            creature->setAnimationState(EntityAnimation::idle_anim, true);
+            return;
+        }
+    }
+    else
+    {
+        animationState = setEntityAnimation(objectEntity,
+            EntityAnimation::die_anim, false);
+        animationState->setTimePosition(animationState->getLength());
+        creature->setAnimationState(animationState);
+    }
+
+    mCreatureGetUpAnimations.push_back({creature, node, animationState,
+        startOrientation, endOrientation, startPosition, endPosition,
+        0.0f, useFallback});
+}
+
+void RenderManager::restoreCreatureGroundPose(Creature* creature)
+{
+    for(auto it = mCreatureGroundPoses.begin(); it != mCreatureGroundPoses.end();)
+    {
+        if(it->mCreature != creature)
+        {
+            ++it;
+            continue;
+        }
+
+        it->mNode->setOrientation(it->mStandingOrientation);
+        Ogre::Vector3 position = it->mNode->getPosition();
+        position.z = it->mStandingZ;
+        it->mNode->setPosition(position);
+        it = mCreatureGroundPoses.erase(it);
+    }
+}
+
+void RenderManager::setCreatureDropGroundAnimation(Creature* creature)
+{
+    const std::string objectName = creature->getOgreNamePrefix() + creature->getName();
+    if(!mSceneManager->hasEntity(objectName))
+        return;
+
+    Ogre::Entity* objectEntity = mSceneManager->getEntity(objectName);
+    if(!objectEntity->hasSkeleton())
+        return;
+
+    std::string animation = needsCreatureDropFallback(objectEntity) ?
+        EntityAnimation::sleep_anim : EntityAnimation::die_anim;
+    if(!objectEntity->getSkeleton()->hasAnimation(animation))
+        animation = EntityAnimation::sleep_anim;
+    if(!objectEntity->getSkeleton()->hasAnimation(animation))
+        animation = EntityAnimation::idle_anim;
+
+    Ogre::AnimationState* animationState = setEntityAnimation(objectEntity,
+        animation, animation == EntityAnimation::idle_anim);
+    creature->setAnimationState(animationState);
 }
 void RenderManager::rrMoveEntity(GameEntity* entity, const Ogre::Vector3& position)
 {

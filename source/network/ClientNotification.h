@@ -82,7 +82,8 @@ enum class ClientNotificationType
     editorSetPortalWaveData,
 
     // Append new messages to preserve existing network and replay identifiers.
-    changeNick
+    changeNick,
+    askHandDropAll
 };
 
 ODPacket& operator<<(ODPacket& os, const ClientNotificationType& nt);

@@ -27,6 +27,7 @@
 
 #include "utils/ConfigManager.h"
 #include <CEGUI/EventArgs.h>
+#include <cstdint>
 #include <memory>
 
 namespace CEGUI
@@ -343,6 +344,14 @@ private:
     bool toggleSell(const CEGUI::EventArgs& e);
     void handlePlayerActionSell();
     void updateSelectedTiles();
+
+    void sendPendingHandDropRequest(bool dropAllCreatures);
+    bool mPendingHandDrop = false;
+    float mPendingHandDropTime = 0.0f;
+    int mPendingHandDropX = -1;
+    int mPendingHandDropY = -1;
+    int32_t mPendingHandDropEntityType = 0;
+    std::string mPendingHandDropEntityName;
 
     //! \brief Builds the player settings window
     void buildPlayerSettingsWindow();

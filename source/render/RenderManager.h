@@ -275,6 +275,49 @@ private:
     Ogre::ManualObject* mHandPickaxe = nullptr;
     Ogre::ManualObject* mTilePreview = nullptr;
 
+    struct CreatureDropAnimation
+    {
+        Creature* mCreature;
+        Ogre::SceneNode* mNode;
+        Ogre::Vector3 mStart;
+        Ogre::Vector3 mEnd;
+        Ogre::Quaternion mStartOrientation;
+        Ogre::Quaternion mLieOrientation;
+        Ogre::Vector3 mLiePosition;
+        Ogre::Real mElapsed;
+        bool mLieOnGround;
+        bool mUseFallbackLie;
+    };
+    std::vector<CreatureDropAnimation> mCreatureDropAnimations;
+
+    struct CreatureGroundPose
+    {
+        Creature* mCreature;
+        Ogre::SceneNode* mNode;
+        Ogre::Quaternion mStandingOrientation;
+        Ogre::Real mStandingZ;
+    };
+    std::vector<CreatureGroundPose> mCreatureGroundPoses;
+
+    struct CreatureGetUpAnimation
+    {
+        Creature* mCreature;
+        Ogre::SceneNode* mNode;
+        Ogre::AnimationState* mAnimationState;
+        Ogre::Quaternion mStartOrientation;
+        Ogre::Quaternion mEndOrientation;
+        Ogre::Vector3 mStartPosition;
+        Ogre::Vector3 mEndPosition;
+        Ogre::Real mElapsed;
+        bool mUseFallback;
+    };
+    std::vector<CreatureGetUpAnimation> mCreatureGetUpAnimations;
+
+    void cancelCreatureDropAnimation(Creature* creature);
+    void cancelCreatureGetUpAnimation(Creature* creature);
+    void startCreatureGetUpAnimation(Creature* creature);
+    void restoreCreatureGroundPose(Creature* creature);
+    void setCreatureDropGroundAnimation(Creature* creature);
 
     Ogre::TexturePtr m_texture;
 
