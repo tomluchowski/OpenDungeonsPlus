@@ -2,20 +2,26 @@
 
 <GUILayout version="4" >
     <Window type="DefaultWindow" name="Spells" >
+        <UserString name="NavigationColour" value="FF398B60" />
+        <UserString name="NavigationImage" value="OpenDungeonsIcons/NavigationSpells" />
         <Property name="Area" value="{{0,0},{0,0},{1,0},{1,0}}" />
-        <Property name="Text" value="[image-size='w:32 h:32'][image='OpenDungeonsIcons/SpellsButton']" />
+        <Property name="Text" value="[image-size='w:40 h:40'][image='OpenDungeonsIcons/SpellsButton']" />
         <Property name="TooltipText" value="Spells" />
         <Property name="MaxSize" value="{{1,0},{1,0}}" />
         <Property name="Visible" value="False" />
         <Property name="RiseOnClickEnabled" value="False" />
+        <!-- Two rows of 40x40, the same shape the rooms tab uses: one row of 60s
+             ran to x=700 and the last buttons fell off the right edge of the tab,
+             which is only window width - 200 wide, at anything close to the
+             minimum window size. -->
         <Window type="OD/GameTabButton" name="SummonWorkerButton" >
-            <Property name="Area" value="{{0,100},{0,25},{0,160},{0,85}}" />
+            <Property name="Area" value="{{0,20},{0,6},{0,72},{0,58}}" />
             <Property name="NormalImage" value="OpenDungeonsIcons/SummonWorkerButton" />
             <Property name="TooltipText" value="Summon a worker" />
             <Property name="InheritsAlpha" value="False" />
             <Property name="Visible" value="False" />
             <Window type="OD/ProgressBar" name="SummonWorkerButtonProgressBar" >
-                <Property name="Area" value="{{0.0,-20},{0.0,0},{1.0,20},{1.0,0}}" />
+                <Property name="Area" value="{{0,0},{0,0},{1,0},{1,0}}" />
                 <Property name="InheritsTooltipText" value="True" />
                 <Property name="CurrentProgress" value="0.0" />
                 <Property name="MousePassThroughEnabled" value="True" />
@@ -27,13 +33,13 @@
             </Window>
         </Window>
         <Window type="OD/GameTabButton" name="CallToWarButton" >
-            <Property name="Area" value="{{0,160},{0,25},{0,220},{0,85}}" />
+            <Property name="Area" value="{{0,76},{0,6},{0,128},{0,58}}" />
             <Property name="NormalImage" value="OpenDungeonsIcons/CallToWarButton" />
             <Property name="TooltipText" value="Casts a spell that calls available creatures" />
             <Property name="InheritsAlpha" value="False" />
             <Property name="Visible" value="False" />
             <Window type="OD/ProgressBar" name="CallToWarButtonProgressBar" >
-                <Property name="Area" value="{{0.0,-20},{0.0,0},{1.0,20},{1.0,0}}" />
+                <Property name="Area" value="{{0,0},{0,0},{1,0},{1,0}}" />
                 <Property name="InheritsTooltipText" value="True" />
                 <Property name="CurrentProgress" value="0.0" />
                 <Property name="MousePassThroughEnabled" value="True" />
@@ -45,13 +51,13 @@
             </Window>
         </Window>
         <Window type="OD/GameTabButton" name="CreatureHealButton" >
-            <Property name="Area" value="{{0,220},{0,25},{0,280},{0,85}}" />
+            <Property name="Area" value="{{0,132},{0,6},{0,184},{0,58}}" />
             <Property name="NormalImage" value="OpenDungeonsIcons/CreatureHealButton" />
             <Property name="TooltipText" value="Casts a spell that heals owned creatures on allied tiles" />
             <Property name="InheritsAlpha" value="False" />
             <Property name="Visible" value="False" />
             <Window type="OD/ProgressBar" name="CreatureHealButtonProgressBar" >
-                <Property name="Area" value="{{0.0,-20},{0.0,0},{1.0,20},{1.0,0}}" />
+                <Property name="Area" value="{{0,0},{0,0},{1,0},{1,0}}" />
                 <Property name="InheritsTooltipText" value="True" />
                 <Property name="CurrentProgress" value="0.0" />
                 <Property name="MousePassThroughEnabled" value="True" />
@@ -63,13 +69,13 @@
             </Window>
         </Window>
         <Window type="OD/GameTabButton" name="CreatureExplosionButton" >
-            <Property name="Area" value="{{0,280},{0,25},{0,340},{0,85}}" />
+            <Property name="Area" value="{{0,188},{0,6},{0,240},{0,58}}" />
             <Property name="NormalImage" value="OpenDungeonsIcons/CreatureExplosionButton" />
             <Property name="TooltipText" value="Casts a spell that damages enemy creatures on allied tiles" />
             <Property name="InheritsAlpha" value="False" />
             <Property name="Visible" value="False" />
             <Window type="OD/ProgressBar" name="CreatureExplosionButtonProgressBar" >
-                <Property name="Area" value="{{0.0,-20},{0.0,0},{1.0,20},{1.0,0}}" />
+                <Property name="Area" value="{{0,0},{0,0},{1,0},{1,0}}" />
                 <Property name="InheritsTooltipText" value="True" />
                 <Property name="CurrentProgress" value="0.0" />
                 <Property name="MousePassThroughEnabled" value="True" />
@@ -81,13 +87,13 @@
             </Window>
         </Window>
         <Window type="OD/GameTabButton" name="CreatureHasteButton" >
-            <Property name="Area" value="{{0,340},{0,25},{0,400},{0,85}}" />
+            <Property name="Area" value="{{0,244},{0,6},{0,296},{0,58}}" />
             <Property name="NormalImage" value="OpenDungeonsIcons/CreatureHasteButton" />
             <Property name="TooltipText" value="Increases, target speed. Target: friendly creatures on claimed tiles" />
             <Property name="InheritsAlpha" value="False" />
             <Property name="Visible" value="False" />
             <Window type="OD/ProgressBar" name="CreatureHasteButtonProgressBar" >
-                <Property name="Area" value="{{0.0,-20},{0.0,0},{1.0,20},{1.0,0}}" />
+                <Property name="Area" value="{{0,0},{0,0},{1,0},{1,0}}" />
                 <Property name="InheritsTooltipText" value="True" />
                 <Property name="CurrentProgress" value="0.0" />
                 <Property name="MousePassThroughEnabled" value="True" />
@@ -99,13 +105,13 @@
             </Window>
         </Window>
         <Window type="OD/GameTabButton" name="CreatureDefenseButton" >
-            <Property name="Area" value="{{0,400},{0,25},{0,460},{0,85}}" />
+            <Property name="Area" value="{{0,300},{0,6},{0,352},{0,58}}" />
             <Property name="NormalImage" value="OpenDungeonsIcons/CreatureDefenseButton" />
             <Property name="TooltipText" value="Increases target physical defense. Target: friendly creatures on claimed tiles" />
             <Property name="InheritsAlpha" value="False" />
             <Property name="Visible" value="False" />
             <Window type="OD/ProgressBar" name="CreatureDefenseButtonProgressBar" >
-                <Property name="Area" value="{{0.0,-20},{0.0,0},{1.0,20},{1.0,0}}" />
+                <Property name="Area" value="{{0,0},{0,0},{1,0},{1,0}}" />
                 <Property name="InheritsTooltipText" value="True" />
                 <Property name="CurrentProgress" value="0.0" />
                 <Property name="MousePassThroughEnabled" value="True" />
@@ -117,13 +123,13 @@
             </Window>
         </Window>
         <Window type="OD/GameTabButton" name="CreatureSlowButton" >
-            <Property name="Area" value="{{0,460},{0,25},{0,520},{0,85}}" />
+            <Property name="Area" value="{{0,356},{0,6},{0,408},{0,58}}" />
             <Property name="NormalImage" value="OpenDungeonsIcons/CreatureSlowButton" />
             <Property name="TooltipText" value="Decrease target speed. Target: enemy creatures on claimed tiles" />
             <Property name="InheritsAlpha" value="False" />
             <Property name="Visible" value="False" />
             <Window type="OD/ProgressBar" name="CreatureSlowButtonProgressBar" >
-                <Property name="Area" value="{{0.0,-20},{0.0,0},{1.0,20},{1.0,0}}" />
+                <Property name="Area" value="{{0,0},{0,0},{1,0},{1,0}}" />
                 <Property name="InheritsTooltipText" value="True" />
                 <Property name="CurrentProgress" value="0.0" />
                 <Property name="MousePassThroughEnabled" value="True" />
@@ -135,13 +141,13 @@
             </Window>
         </Window>
         <Window type="OD/GameTabButton" name="CreatureStrengthButton" >
-            <Property name="Area" value="{{0,520},{0,25},{0,580},{0,85}}" />
+            <Property name="Area" value="{{0,412},{0,6},{0,464},{0,58}}" />
             <Property name="NormalImage" value="OpenDungeonsIcons/CreatureStrengthButton" />
             <Property name="TooltipText" value="Increase target strength. Target: allied creatures on claimed tiles" />
             <Property name="InheritsAlpha" value="False" />
             <Property name="Visible" value="False" />
             <Window type="OD/ProgressBar" name="CreatureStrengthButtonProgressBar" >
-                <Property name="Area" value="{{0.0,-20},{0.0,0},{1.0,20},{1.0,0}}" />
+                <Property name="Area" value="{{0,0},{0,0},{1,0},{1,0}}" />
                 <Property name="InheritsTooltipText" value="True" />
                 <Property name="CurrentProgress" value="0.0" />
                 <Property name="MousePassThroughEnabled" value="True" />
@@ -153,13 +159,13 @@
             </Window>
         </Window>
         <Window type="OD/GameTabButton" name="CreatureWeakButton" >
-            <Property name="Area" value="{{0,580},{0,25},{0,640},{0,85}}" />
+            <Property name="Area" value="{{0,468},{0,6},{0,520},{0,58}}" />
             <Property name="NormalImage" value="OpenDungeonsIcons/CreatureWeakButton" />
             <Property name="TooltipText" value="Decrease target strength. Target: enemy creatures on claimed tiles" />
             <Property name="InheritsAlpha" value="False" />
             <Property name="Visible" value="False" />
             <Window type="OD/ProgressBar" name="CreatureWeakButtonProgressBar" >
-                <Property name="Area" value="{{0.0,-20},{0.0,0},{1.0,20},{1.0,0}}" />
+                <Property name="Area" value="{{0,0},{0,0},{1,0},{1,0}}" />
                 <Property name="InheritsTooltipText" value="True" />
                 <Property name="CurrentProgress" value="0.0" />
                 <Property name="MousePassThroughEnabled" value="True" />
@@ -171,13 +177,13 @@
             </Window>
         </Window>
         <Window type="OD/GameTabButton" name="SpellEyeEvilButton" >
-            <Property name="Area" value="{{0,640},{0,25},{0,700},{0,85}}" />
+            <Property name="Area" value="{{0,20},{0,62},{0,72},{0,114}}" />
             <Property name="NormalImage" value="OpenDungeonsIcons/SpellEyeEvilButton" />
             <Property name="TooltipText" value="Temporary gives vision on tiles without vision. Target: any tile" />
             <Property name="InheritsAlpha" value="False" />
             <Property name="Visible" value="False" />
             <Window type="OD/ProgressBar" name="SpellEyeEvilButtonProgressBar" >
-                <Property name="Area" value="{{0.0,-20},{0.0,0},{1.0,20},{1.0,0}}" />
+                <Property name="Area" value="{{0,0},{0,0},{1,0},{1,0}}" />
                 <Property name="InheritsTooltipText" value="True" />
                 <Property name="CurrentProgress" value="0.0" />
                 <Property name="MousePassThroughEnabled" value="True" />
