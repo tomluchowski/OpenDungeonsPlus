@@ -37,10 +37,6 @@ public:
 
     bool showWWW();
 
-    bool hilightLink();
-
-    bool unHilightLink();
-    
     bool quitPressed(const CEGUI::EventArgs&);
 
 };

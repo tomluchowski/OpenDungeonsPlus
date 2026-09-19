@@ -1,30 +1,60 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <GUILayout version="4" >
-
     <Window type="OD/StaticImage" name="Advertisment" >
-        <Property name="Area" value="{{0,0},{0,0},{1,2},{1,0}}" />
+        <Property name="Area" value="{{0,0},{0,0},{1,0},{1,0}}" />
         <Property name="Image" value="ODAdvertisment/AdvertismentA" />
-        <Property name="MaxSize" value="{{1,0},{1,0}}" /> 
-        <Window type="OD/StaticText" name="AdvertismentSlogan1" >
-            <Property name="Text" value=" Delve deeper into dark arkanes of opendungeons with c++ " />
-            <Property name="Area" value="{{0,0},{0,120},{1,0},{0,240}}" />
-            <Property name="Font" value="LiberationSans-20" />                     
-            <Property name="BackgroundEnabled" value="False" />
-            <Property name="FrameEnabled" value="False" />             
-        </Window>
-        <Window type="OD/StaticText" name="AdvertismentSlogan2" >
-            <Property name="Text" value=" Programmers and Artists wanted" />  
-            <Property name="Area" value="{{0,0},{0,240},{1,0},{0,360}}" />
-            <Property name="Font" value="LiberationSans-20" />
-            <Property name="BackgroundEnabled" value="False" />
-            <Property name="FrameEnabled" value="False" />                                    
-        </Window>   
-        <Window type="OD/StaticText" name="AdvertismentLink" >
-            <Property name="Text" value=" Click here to visit our discord channel : https://discord.gg/K2JPXuchZV" />  
-            <Property name="Area" value="{{0,0},{0,360},{1,0},{0,480}}" />
-            <Property name="Font" value="LiberationSans-20" />                                
+        <Property name="MaxSize" value="{{1,0},{1,0}}" />
+        <Property name="FrameEnabled" value="False" />
+        <Property name="BackgroundEnabled" value="False" />
+
+        <Window type="OD/FrameWindow" name="CommunityPanel" >
+            <Property name="LookNFeel" value="OD/CommunityPanel" />
+            <Property name="Area" value="{{0.5,-300},{0.5,-155},{0.5,300},{0.5,155}}" />
+            <Property name="SizingEnabled" value="False" />
+            <Property name="DragMovingEnabled" value="False" />
+
+            <Window type="OD/StaticText" name="Title" >
+                <Property name="Area" value="{{0,24},{0,20},{1,-24},{0,70}}" />
+                <Property name="Text" value="Help shape the dungeon" />
+                <Property name="Font" value="MedievalSharp-20" />
+                <Property name="TextColours" value="tl:FFE9841C tr:FFE9841C bl:FFE9841C br:FFE9841C" />
+                <Property name="HorzFormatting" value="CentreAligned" />
+                <Property name="VertFormatting" value="CentreAligned" />
+                <Property name="FrameEnabled" value="False" />
+                <Property name="BackgroundEnabled" value="False" />
+                <Property name="InheritsAlpha" value="False" />
+                <Property name="MousePassThroughEnabled" value="True" />
+            </Window>
+
+            <Window type="OD/StaticText" name="Invitation" >
+                <Property name="Area" value="{{0,32},{0,82},{1,-32},{0,202}}" />
+                <Property name="Text" value="Built by a community of developers and artists.&#10;Join us on Discord to contribute, share feedback,&#10;or follow development." />
+                <Property name="Font" value="LiberationSans-10" />
+                <Property name="TextColours" value="tl:FFE7E0D0 tr:FFE7E0D0 bl:FFE7E0D0 br:FFE7E0D0" />
+                <Property name="HorzFormatting" value="CentreAligned" />
+                <Property name="VertFormatting" value="CentreAligned" />
+                <Property name="FrameEnabled" value="False" />
+                <Property name="BackgroundEnabled" value="False" />
+                <Property name="InheritsAlpha" value="False" />
+                <Property name="MousePassThroughEnabled" value="True" />
+            </Window>
+
+            <Window type="OD/Button" name="DiscordButton" >
+                <Property name="Area" value="{{0.5,-225},{1,-72},{0.5,-15},{1,-30}}" />
+                <Property name="Text" value="Join us on Discord" />
+                <Property name="Font" value="MedievalSharp-12" />
+                <Property name="TooltipText" value="Open the OpenDungeonsPlus Discord community" />
+                <Property name="InheritsAlpha" value="False" />
+            </Window>
+
+            <Window type="OD/Button" name="CloseButton" >
+                <Property name="Area" value="{{0.5,15},{1,-72},{0.5,225},{1,-30}}" />
+                <Property name="Text" value="Close" />
+                <Property name="Font" value="MedievalSharp-12" />
+                <Property name="TooltipText" value="Close OpenDungeonsPlus" />
+                <Property name="InheritsAlpha" value="False" />
+            </Window>
         </Window>
     </Window>
-  
 </GUILayout>
