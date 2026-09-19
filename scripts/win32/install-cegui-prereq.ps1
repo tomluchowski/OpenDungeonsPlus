@@ -9,6 +9,13 @@ if ($LASTEXITCODE -ne 0) {
     & git -C "$taskRoot\src\cegui" apply $taskPatch
     if ($LASTEXITCODE -ne 0) { throw 'CEGUI compatibility patch failed' }
 }
+$taskClippingPatch = Join-Path $PSScriptRoot 'patches/cegui-ogre-clipping.patch'
+& git -C "$taskRoot\src\cegui" apply --reverse --check $taskClippingPatch *> $null
+if ($LASTEXITCODE -ne 0) {
+    Write-Output 'Restoring CEGUI Ogre rendering clip regions'
+    & git -C "$taskRoot\src\cegui" apply $taskClippingPatch
+    if ($LASTEXITCODE -ne 0) { throw 'CEGUI clipping patch failed' }
+}
 $ErrorActionPreference = 'Stop'
 $taskOptions = @('-S', "$taskRoot\src\cegui", '-B', "$taskRoot\build\cegui",
     '-G', 'Visual Studio 17 2022', '-A', 'x64', "-DCMAKE_INSTALL_PREFIX=$taskRoot\install",

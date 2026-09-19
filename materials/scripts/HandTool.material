@@ -1,0 +1,39 @@
+// Reuse the existing CC0 tool textures credited to YD in CREDITS.
+material HandTool/Wood
+{
+    receive_shadows off
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_check on
+            depth_write on
+            ambient vertexcolour
+            diffuse vertexcolour
+            specular vertexcolour
+            texture_unit
+            {
+                texture BasicAxe.png
+                tex_address_mode clamp
+                filtering bilinear
+                colour_op modulate
+            }
+        }
+    }
+}
+
+material HandTool/Metal : HandTool/Wood
+{
+    technique
+    {
+        pass
+        {
+            texture_unit
+            {
+                texture BasicHammer.png
+            }
+        }
+    }
+}
