@@ -82,6 +82,10 @@ class ODServer: public Ogre::Singleton<ODServer>,
     //! \brief Adds a server notification to the server notification queue. The message will be sent to the concerned player
     void queueServerNotification(ServerNotification* n);
 
+    //! Whether the recipient negotiated full mood in creature snapshots and updates.
+    bool supportsCreatureMood(Player* player);
+    bool supportsCreatureActivity(Player* player);
+
     //! \brief Sends an asynchronous message to the concerned player. This function should be used really carefully as it can easily
     //! make the game crash by sending messages in an unexpected order (changing the state of an entity that was not created, for example).
     //! In most of the can, we will use it for messages that do not need synchronization with the game (example : chat) or
