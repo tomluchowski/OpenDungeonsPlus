@@ -507,6 +507,9 @@ public:
     //! Called on server side to add an effect (spell, slap, ...) to this creature
     void addCreatureEffect(CreatureEffect* effect);
 
+    //! Called on server side to add a finite presentation-only particle effect.
+    void addParticleEffect(const std::string& effectScript, uint32_t nbTurns);
+
     bool removeCreatureEffect(CreatureEffect* effectForDeletion);
 
     //!\brief Returns true if the creature has an active slap effect
