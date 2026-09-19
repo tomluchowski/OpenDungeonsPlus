@@ -19,11 +19,17 @@
 #define MINIMAP_H
 
 #include <OgrePrerequisites.h>
+#include <OgreColourValue.h>
 
 namespace CEGUI
 {
+class BasicImage;
 class Window;
 }
+
+class Tile;
+class Seat;
+class GameMap;
 
 class MiniMap
 {
@@ -41,9 +47,28 @@ public:
 
     //! \brief This function will create the minimap according to user preferences
     static MiniMap* createMiniMap(CEGUI::Window* miniMapWindow);
+    static CEGUI::BasicImage& createMiniMapImage(CEGUI::Window* miniMapWindow,
+        const std::string& name = "MiniMapImageset", bool showViewport = false);
+
+    void setZoomLevel(int level);
+    int getZoomLevel() const { return mZoomLevel; }
+    Ogre::Real getZoomScale() const;
 
     // Returns the list of all possible minimap types
     static const std::vector<std::string>& getMiniMapTypes();
+protected:
+    struct TileColour
+    {
+        Ogre::ColourValue colour = Ogre::ColourValue::Black;
+        unsigned int priority = 0;
+        bool animated = false;
+    };
+    static TileColour colourFromTile(Tile& tile, Seat& playerSeat, unsigned int phase);
+    void updateMapOverlay(CEGUI::Window* window, GameMap& map,
+        const Ogre::Vector2& centre, const Ogre::Vector2& span, Ogre::Real rotation, const std::vector<Ogre::Vector3>& cornerTiles);
+    Ogre::Real mAnimationTime = 0.0f;
+private:
+    int mZoomLevel = 0;
 };
 
 #endif // MINIMAP_H
