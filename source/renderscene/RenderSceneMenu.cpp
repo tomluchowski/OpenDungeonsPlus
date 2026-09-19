@@ -59,6 +59,8 @@ void RenderSceneMenu::dispatchSyncPost(const std::string& event)
 
 void RenderSceneMenu::resetMenu(CameraManager& cameraManager, RenderManager& renderManager)
 {
+    if(!renderManager.isKeeperHandVisible())
+        renderManager.rrToggleHandSelectorVisibility();
     Ogre::Rectangle2D* background = static_cast<Ogre::Rectangle2D*>(
         renderManager.getSceneManager()->getSceneNode("Background")->getAttachedObject(0));
     Ogre::TextureManager::getSingleton().load("MainMenuBackground.png", "Graphics");
