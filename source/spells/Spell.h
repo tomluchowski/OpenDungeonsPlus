@@ -64,6 +64,9 @@ public:
     static std::string getSpellStreamFormat();
 
 protected:
+    void setDuration(int32_t turns)
+    { mNbTurns = turns; }
+
     /*! \brief Exports the headers needed to recreate the Spell. It allows to extend Spells as much as wanted.
      * The content of the Spell will be exported by exportToPacket.
      */

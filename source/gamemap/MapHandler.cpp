@@ -81,7 +81,7 @@ bool readGameMapFromFile(const std::string& fileName, GameMap& gameMap)
     CreatureMoved::GAME_MAP_WIDTH = mapSizeX;
     
     levelFile >> nextParam;
-    if (nextParam.compare(ODApplication::VERSIONSTRING) != 0)
+    if (nextParam.compare(ODApplication::VERSIONSTRING) != 0 && nextParam != "OpenDungeons_Version:0.7.1")
     {
         OD_LOG_WRN("Attempting to load a file produced by a different version of OpenDungeons, filename="
             + fileName + ", file version=" + nextParam + ", odversion=" + ODApplication::VERSION);
@@ -877,7 +877,7 @@ bool getMapInfo(const std::string& fileName, LevelInfo& levelInfo)
     std::string nextParam;
     // Read in the version number from the level file
     levelFile >> nextParam;
-    if (nextParam.compare(ODApplication::VERSIONSTRING) != 0)
+    if (nextParam.compare(ODApplication::VERSIONSTRING) != 0 && nextParam != "OpenDungeons_Version:0.7.1")
         return false;
 
     levelFile >> nextParam;

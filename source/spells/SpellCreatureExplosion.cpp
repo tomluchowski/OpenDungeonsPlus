@@ -30,6 +30,8 @@
 #include "spells/SpellType.h"
 #include "spells/SpellManager.h"
 #include "utils/ConfigManager.h"
+#include "game/SkillManager.h"
+#include "game/SkillType.h"
 #include "utils/Helper.h"
 #include "utils/LogManager.h"
 
@@ -214,7 +216,8 @@ bool SpellCreatureExplosion::castSpell(GameMap* gameMap, Player* player, ODPacke
         return false;
 
     uint32_t duration = ConfigManager::getSingleton().getSpellConfigUInt32("CreatureExplosionDuration");
-    double value = ConfigManager::getSingleton().getSpellConfigDouble("CreatureExplosionValue");
+    double value = SkillManager::getResearchValue(player->getSeat(), SkillType::spellCreatureExplosion,
+        ConfigManager::getSingleton().getSpellConfigDouble("CreatureExplosionValue"));
     for(Creature* creature : creatures)
     {
         CreatureEffectExplosion* effect = new CreatureEffectExplosion(duration, value, "SpellCreatureExplosion");

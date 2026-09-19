@@ -2590,16 +2590,23 @@ bool ODServer::processClientNotifications(ODSocketClient* clientSocket)
             Player* player = clientSocket->getPlayer();
             uint32_t nbItems;
             OD_ASSERT_TRUE(packetReceived >> nbItems);
+            if(nbItems >= static_cast<uint32_t>(SkillType::countSkill))
+                return false;
             std::vector<SkillType> skills;
+            bool stale = false;
             while(nbItems > 0)
             {
                 nbItems--;
                 SkillType skill;
-                OD_ASSERT_TRUE(packetReceived >> skill);
+                uint32_t level;
+                if(!(packetReceived >> skill >> level) || skill <= SkillType::nullSkillType ||
+                   skill >= SkillType::countSkill || level < 1 || level > 3)
+                    return false;
+                stale = stale || level != player->getSeat()->getSkillLevel(skill) + 1;
                 skills.push_back(skill);
             }
 
-            player->getSeat()->setSkillTree(skills);
+            player->getSeat()->setSkillTree(stale ? player->getSeat()->getSkillPending() : skills);
             break;
         }
 

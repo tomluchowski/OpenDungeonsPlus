@@ -16,6 +16,8 @@
  */
 
 #include "traps/TrapBoulder.h"
+#include "game/SkillManager.h"
+#include "game/SkillType.h"
 
 #include "entities/Tile.h"
 #include "entities/MissileBoulder.h"
@@ -157,7 +159,8 @@ bool TrapBoulder::shoot(Tile* tile)
     direction.normalise();
     MissileBoulder* missile = new MissileBoulder(getGameMap(), getSeat(), getName(), "Boulder",
         direction, ConfigManager::getSingleton().getTrapConfigDouble("BoulderSpeed"),
-        Random::Double(mMinDamage, mMaxDamage), nullptr, true);
+        Random::Double(SkillManager::getResearchValue(getSeat(), SkillType::trapBoulder, mMinDamage),
+            SkillManager::getResearchValue(getSeat(), SkillType::trapBoulder, mMaxDamage)), nullptr, true);
     missile->addToGameMap();
     missile->createMesh();
     missile->setPosition(position);

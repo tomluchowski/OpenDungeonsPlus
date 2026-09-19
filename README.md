@@ -29,6 +29,8 @@ seat-selection step. Long save descriptions can be scrolled.
 
 Use Production beside the minimap or in Options to inspect owned trap orders and workshop progress, and move pending orders up or down in the production priority.
 
+Research rooms, traps and spells through three levels in the skill tree; completed upgrades, research points and the selected order are retained in saved games.
+
 ### Be part of the community
 
 As free software aficionados, we value community-based development and

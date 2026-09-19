@@ -43,6 +43,10 @@ public:
 
     void doUpkeep() override;
 
+    double getHP(Tile* tile) const override;
+    double takeDamage(GameEntity* attacker, double absoluteDamage, double physicalDamage, double magicalDamage,
+        double elementDamage, Tile* tileTakingDamage, bool ko) override;
+
     bool displayTileMesh() const override
     { return true; }
 
@@ -81,4 +85,3 @@ private:
 };
 
 #endif // TRAPDOOR_H
-

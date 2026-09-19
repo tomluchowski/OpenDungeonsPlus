@@ -138,6 +138,8 @@ GameMode::GameMode(ModeManager *modeManager):
 
     addEventConnection(mRootWindow->getChild("MiniMapZoomButton")->subscribeEvent(
         CEGUI::Window::EventMouseClick, CEGUI::Event::Subscriber(&GameMode::zoomMiniMap, this)));
+    addEventConnection(mRootWindow->getChild("ResearchButton")->subscribeEvent(
+        CEGUI::PushButton::EventClicked, CEGUI::Event::Subscriber(&GameMode::toggleSkillWindow, this)));
     for(const char* name : {"ProductionButton", "GameOptionsWindow/ProductionButton"})
         addEventConnection(mRootWindow->getChild(name)->subscribeEvent(
             CEGUI::PushButton::EventClicked, CEGUI::Event::Subscriber(&GameMode::showTrapProductionQueue, this)));
@@ -1665,8 +1667,12 @@ void GameMode::syncPlayerSettings()
 
 bool GameMode::showSkillWindow(const CEGUI::EventArgs&)
 {
+    while(closeTopWindow())
+    {
+    }
     resetSkillTree();
     mRootWindow->getChild("SkillTreeWindow")->show();
+    mRootWindow->getChild("SkillTreeWindow")->moveToFront();
     return true;
 }
 
@@ -1892,11 +1898,10 @@ bool GameMode::showObjectivesFromOptions(const CEGUI::EventArgs& e)
     return showObjectivesWindow(e);
 }
 
-bool GameMode::showSkillFromOptions(const CEGUI::EventArgs& /*e*/)
+bool GameMode::showSkillFromOptions(const CEGUI::EventArgs& e)
 {
     mRootWindow->getChild("GameOptionsWindow")->hide();
-    showSkillWindow();
-    return true;
+    return toggleSkillWindow(e);
 }
 
 bool GameMode::loadGame(const CEGUI::EventArgs& /*e*/)
@@ -2199,7 +2204,8 @@ void GameMode::refreshSkillButtonState(const std::string& skillButtonName, const
 {
     // Determine the widget name and button accordingly to the SkillType given
     Seat* localPlayerSeat = mGameMap->getLocalPlayer()->getSeat();
-    bool isDone = localPlayerSeat->isSkillDone(resType);
+    const uint32_t level = localPlayerSeat->getSkillLevel(resType);
+    bool isDone = level >= 3;
     bool isAllowed = true;
     uint32_t queueNumber = 0;
     if(!isDone)
@@ -2318,6 +2324,27 @@ void GameMode::refreshSkillButtonState(const std::string& skillButtonName, const
         skillButton->setEnabled(true);
         skillProgressBar->hide();
     }
+    guiSheet->getChild(castButtonName)->setVisible(level > 0 || !isAllowed);
+    const std::string levelText = level == 0 ? "0" : (level == 1 ? "I" : (level == 2 ? "II" : "III"));
+    skillButton->setText(levelText + (queueNumber > 0 ? "\n" + Helper::toString(queueNumber) : ""));
+    std::string description = Skills::skillTypeToPlayerVisibleString(resType) + " - level " +
+        Helper::toString(level) + "/3";
+    if(!isAllowed)
+        description += "\nUnavailable on this map.";
+    else if(level >= 3)
+        description += "\nMaximum level. " + SkillManager::getResearchDescription(resType, level);
+    else
+    {
+        description += "\nNext: level " + Helper::toString(level + 1) + " - " +
+            Helper::toString(SkillManager::getSkill(resType)->getNeededSkillPoints(level + 1)) + " research points.\n" +
+            SkillManager::getResearchDescription(resType, level + 1);
+        if(queueNumber > 0)
+            description += "\nQueue position: " + Helper::toString(queueNumber) + ".";
+        if(resType == curResType)
+            description += " Progress: " + Helper::toString(static_cast<int>(curSkillProgress * 100)) + "%.";
+    }
+    skillButton->setTooltipText(description);
+    skillButton->setUserString("ContextHelp", description);
 }
 
 void GameMode::refreshGuiSkill(bool forceRefresh)
@@ -2343,7 +2370,7 @@ void GameMode::refreshGuiSkill(bool forceRefresh)
         for(auto it = mSkillPending.begin(); it != mSkillPending.end();)
         {
             SkillType resType = *it;
-            if(!localPlayerSeat->isSkillDone(resType))
+            if(localPlayerSeat->getSkillLevel(resType) == mSkillEditLevels[resType])
             {
                 ++it;
                 continue;
@@ -2351,6 +2378,8 @@ void GameMode::refreshGuiSkill(bool forceRefresh)
 
             it = mSkillPending.erase(it);
         }
+        for(auto& entry : mSkillEditLevels)
+            entry.second = localPlayerSeat->getSkillLevel(entry.first);
     }
 
     localPlayerSeat->guiSkillRefreshed();
@@ -2875,15 +2904,21 @@ void GameMode::handlePlayerActionSelectTile()
 void GameMode::resetSkillTree()
 {
     mSkillPending = mGameMap->getLocalPlayer()->getSeat()->getSkillPending();
+    mSkillEditLevels.clear();
+    for(uint32_t index = 1; index < static_cast<uint32_t>(SkillType::countSkill); ++index)
+    {
+        const SkillType type = static_cast<SkillType>(index);
+        mSkillEditLevels[type] = mGameMap->getLocalPlayer()->getSeat()->getSkillLevel(type);
+    }
     mSkillCurrentCompletion.resetValue();
     mIsSkillWindowOpen = true;
 }
 
 bool GameMode::skillButtonTreeClicked(SkillType type)
 {
-    // If the skill is already done or not allowed, nothing to do
+    // Fully upgraded or map-disabled skills cannot be queued.
     const std::vector<SkillType>& skillDone = mGameMap->getLocalPlayer()->getSeat()->getSkillDone();
-    if(std::find(skillDone.begin(), skillDone.end(), type) != skillDone.end())
+    if(mGameMap->getLocalPlayer()->getSeat()->getSkillLevel(type) >= 3)
         return false;
     const std::vector<SkillType>& skillNotAllowed = mGameMap->getLocalPlayer()->getSeat()->getSkillNotAllowed();
     if(std::find(skillNotAllowed.begin(), skillNotAllowed.end(), type) != skillNotAllowed.end())
@@ -2894,6 +2929,9 @@ bool GameMode::skillButtonTreeClicked(SkillType type)
     {
         // The skill is pending. We remove it as well as all its dependencies
         mSkillPending.erase(it);
+
+        if(std::find(skillDone.begin(), skillDone.end(), type) != skillDone.end())
+            return true;
 
         for(it = mSkillPending.begin(); it != mSkillPending.end();)
         {
@@ -2921,7 +2959,10 @@ bool GameMode::skillButtonTreeClicked(SkillType type)
     // add them at the end of the list if all are available/done
     const Skill* skill = SkillManager::getSkill(type);
     std::vector<SkillType> dependencies;
-    skill->buildDependencies(skillDone, dependencies);
+    if(std::find(skillDone.begin(), skillDone.end(), type) != skillDone.end())
+        dependencies.push_back(type);
+    else
+        skill->buildDependencies(skillDone, dependencies);
 
     // We check if one of the dependencies is not available. If not, we cannot skill
     for(SkillType skillType : dependencies)
@@ -2959,7 +3000,7 @@ void GameMode::endSkillTree(bool apply)
         clientNotification->mPacket << nbItems;
         for(const SkillType& type : mSkillPending)
         {
-            clientNotification->mPacket << type;
+            clientNotification->mPacket << type << (mSkillEditLevels[type] + 1);
         }
         ODClient::getSingleton().queueClientNotification(clientNotification);
     }

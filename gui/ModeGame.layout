@@ -150,6 +150,15 @@
             <UserString name="AllowEdgeScrolling" value="true" />
             <UserString name="ContextHelp" value="Production: view workshop progress and change trap order priority" />
         </Window>
+        <Window type="OD/GameTabButton" name="ResearchButton">
+            <Property name="Area" value="{{0,52},{1,-224},{0,92},{1,-184}}" />
+            <Property name="NormalImage" value="OpenDungeonsIcons/SkillIcon" />
+            <Property name="NavigationFrame" value="True" />
+            <Property name="AlwaysOnTop" value="True" />
+            <Property name="TooltipText" value="Skill" />
+            <UserString name="AllowEdgeScrolling" value="true" />
+            <UserString name="ContextHelp" value="Skill: open the research tree and choose the next research" />
+        </Window>
     <Window type="OD/GameTabButton" name="ObjectivesButton" >
             <Property name="NavigationFrame" value="True" />
             <UserString name="AllowEdgeScrolling" value="true" />

@@ -31,6 +31,8 @@
 #include "spells/SpellType.h"
 #include "spells/SpellManager.h"
 #include "utils/ConfigManager.h"
+#include "game/SkillManager.h"
+#include "game/SkillType.h"
 #include "utils/Helper.h"
 #include "utils/LogManager.h"
 
@@ -242,7 +244,8 @@ bool SpellCreatureHeal::castSpell(GameMap* gameMap, Player* player, ODPacket& pa
         return false;
 
     uint32_t duration = ConfigManager::getSingleton().getSpellConfigUInt32("CreatureHealDuration");
-    double value = ConfigManager::getSingleton().getSpellConfigDouble("CreatureHealValue");
+    double value = SkillManager::getResearchValue(player->getSeat(), SkillType::spellCreatureHeal,
+        ConfigManager::getSingleton().getSpellConfigDouble("CreatureHealValue"));
     std::vector<Tile*> affectedTiles;
     for(Creature* creature : creatures)
     {

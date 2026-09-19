@@ -16,6 +16,8 @@
  */
 
 #include "creatureaction/CreatureActionSleep.h"
+#include "game/SkillManager.h"
+#include "game/SkillType.h"
 
 #include "creatureaction/CreatureActionFindHome.h"
 #include "entities/Creature.h"
@@ -72,8 +74,11 @@ bool CreatureActionSleep::handleSleep(Creature& creature, int32_t nbTurnsActive)
         }
 
         // Improve wakefulness
-        creature.increaseWakefulness(1.5);
-        creature.setHP(creature.getHP() + creature.getDefinition()->getSleepHeal());
+        Room* sleepingRoom = creature.getHomeTile()->getCoveringRoom();
+        const Seat* sleepingSeat = sleepingRoom == nullptr ? nullptr : sleepingRoom->getSeat();
+        creature.increaseWakefulness(SkillManager::getResearchValue(sleepingSeat, SkillType::roomDormitory, 1.5));
+        creature.setHP(creature.getHP() + SkillManager::getResearchValue(
+            sleepingSeat, SkillType::roomDormitory, creature.getDefinition()->getSleepHeal()));
 
         creature.computeCreatureOverlayHealthValue();
 

@@ -31,6 +31,8 @@
 #include "spells/SpellType.h"
 #include "spells/SpellManager.h"
 #include "utils/ConfigManager.h"
+#include "game/SkillManager.h"
+#include "game/SkillType.h"
 #include "utils/Helper.h"
 #include "utils/LogManager.h"
 
@@ -172,7 +174,8 @@ bool SpellCreatureHaste::castSpell(GameMap* gameMap, Player* player, ODPacket& p
         return false;
 
     uint32_t duration = ConfigManager::getSingleton().getSpellConfigUInt32("CreatureHasteDuration");
-    double value = ConfigManager::getSingleton().getSpellConfigDouble("CreatureHasteValue");
+    double value = SkillManager::getResearchValue(player->getSeat(), SkillType::spellCreatureHaste,
+        ConfigManager::getSingleton().getSpellConfigDouble("CreatureHasteValue"));
     CreatureEffectSpeedChange* effect = new CreatureEffectSpeedChange(duration, value, "SpellCreatureHaste");
     creature->addCreatureEffect(effect);
 

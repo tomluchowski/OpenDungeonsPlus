@@ -1402,15 +1402,23 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
             uint32_t nbItems;
             OD_ASSERT_TRUE(packetReceived >> nbItems);
             std::vector<SkillType> skills;
+            std::map<SkillType, uint32_t> levels;
+            if(nbItems >= static_cast<uint32_t>(SkillType::countSkill))
+                return false;
             while(nbItems > 0)
             {
                 nbItems--;
                 SkillType skill;
-                OD_ASSERT_TRUE(packetReceived >> skill);
+                uint32_t level;
+                if(!(packetReceived >> skill >> level) || skill <= SkillType::nullSkillType ||
+                   skill >= SkillType::countSkill || level < 1 || level > 3 || levels.count(skill) != 0)
+                    return false;
                 skills.push_back(skill);
+                levels[skill] = level;
             }
 
             getPlayer()->getSeat()->setSkillsDone(skills);
+            getPlayer()->getSeat()->setResearchLevels(levels);
             break;
         }
 

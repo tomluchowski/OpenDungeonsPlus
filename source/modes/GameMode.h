@@ -281,6 +281,7 @@ private:
     //! \brief Skills pending (Client side). This is copied from the seat for temporary changes while the
     //! player clicks on the skill tree window
     std::vector<SkillType> mSkillPending;
+    std::map<SkillType, uint32_t> mSkillEditLevels;
 
     SkillCurrentCompletion mSkillCurrentCompletion;
 

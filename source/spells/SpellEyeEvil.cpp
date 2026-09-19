@@ -27,6 +27,8 @@
 #include "network/ODClient.h"
 #include "spells/SpellManager.h"
 #include "utils/ConfigManager.h"
+#include "game/SkillManager.h"
+#include "game/SkillType.h"
 #include "utils/Helper.h"
 #include "utils/LogManager.h"
 
@@ -148,6 +150,9 @@ bool SpellEyeEvil::castSpell(GameMap* gameMap, Player* player, ODPacket& packet)
 
     SpellEyeEvil* spell = new SpellEyeEvil(gameMap);
     spell->setSeat(player->getSeat());
+    spell->setDuration(static_cast<int32_t>(std::round(SkillManager::getResearchValue(
+        player->getSeat(), SkillType::spellEyeEvil,
+        ConfigManager::getSingleton().getSpellConfigInt32("EyeEvilNbTurns")))));
     spell->addToGameMap();
     Ogre::Vector3 spawnPosition(static_cast<Ogre::Real>(tile->getX()),
                                 static_cast<Ogre::Real>(tile->getY()),

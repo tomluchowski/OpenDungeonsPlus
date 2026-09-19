@@ -16,6 +16,8 @@
  */
 
 #include "rooms/RoomBridge.h"
+#include "game/SkillManager.h"
+#include "game/SkillType.h"
 
 #include "entities/Creature.h"
 #include "entities/Tile.h"
@@ -347,6 +349,9 @@ bool RoomBridge::isClaimable(Seat* seat) const
 
 void RoomBridge::claimForSeat(Seat* seat, Tile* tile, double danceRate)
 {
+    const SkillType research = getType() == RoomType::bridgeStone ?
+        SkillType::roomBridgeStone : SkillType::roomBridgeWooden;
+    danceRate /= SkillManager::getResearchValue(getSeat(), research, 1.0);
     // The dance only counts against the tile being danced on, so a bridge is
     // taken square by square, not all at once from one square.
     std::map<Tile*, TileData*>::iterator it = mTileData.find(tile);

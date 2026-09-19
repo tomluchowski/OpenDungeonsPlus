@@ -85,6 +85,10 @@ public:
 
     static const Skill* getSkill(SkillType resType);
 
+    static double getResearchValue(SkillType type, uint32_t level, double base, bool secondary = false);
+    static double getResearchValue(const Seat* seat, SkillType type, double base, bool secondary = false);
+    static std::string getResearchDescription(SkillType type, uint32_t level);
+
     //! \brief Lists all the skills and calls the given function for each one with parameters:
     //! - Gui skill button name
     //! - Gui use button name
