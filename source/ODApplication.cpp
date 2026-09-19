@@ -161,7 +161,7 @@ void ODApplication::startClient()
         std::stringstream ss(videoMode);
         // Ignore the x in the middle
         char ignore;
-        ss >> w >> ignore >> h >> h;
+        ss >> w >> ignore >> h;
 
         w = std::max(w, MIN_WIDTH);
         h = std::max(h, MIN_HEIGHT);
@@ -210,11 +210,7 @@ void ODApplication::startClient()
     
     ogreRoot.initialise(false);
 
-    Ogre::NameValuePairList misc;
-    misc["FSAA"] = "0";
-    misc["vsync"] = "true";
-
-    // You can also later load these from config or allow command-line override
+    Ogre::NameValuePairList misc = ogreRoot.getRenderSystem()->getRenderWindowDescription().miscParams;
 
     OD_LOG_INF("Creating window: with resolution " + Helper::toString(w) + " " + Helper::toString(h));
     
@@ -235,7 +231,7 @@ void ODApplication::startClient()
     HWND hwnd;
     renderWindow->getCustomAttribute("WINDOW", static_cast<void*>(&hwnd));
     HINSTANCE hInst = static_cast<HINSTANCE>(GetModuleHandle(nullptr));
-    SetClassLong(hwnd, GCL_HICON, reinterpret_cast<LONG>(LoadIcon(hInst, MAKEINTRESOURCE(IDI_ICON1))));
+    SetClassLongPtr(hwnd, GCLP_HICON, reinterpret_cast<LONG_PTR>(LoadIcon(hInst, MAKEINTRESOURCE(IDI_ICON1))));
 #endif
 
     //Initialise RTshader system
@@ -333,6 +329,7 @@ void ODApplication::startClient()
     Ogre::MaterialManager::getSingleton().removeListener(sgListener);
     delete sgListener;
     Ogre::RTShader::ShaderGenerator::destroy();
+    frameListener.prepareRenderWindowShutdown();
     ogreRoot.destroyRenderTarget(renderWindow);
 }
 

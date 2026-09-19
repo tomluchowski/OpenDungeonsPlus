@@ -34,6 +34,8 @@ std::string CreatureMood::toString(CreatureMoodLevel moodLevel)
             return "Angry";
         case CreatureMoodLevel::Furious:
             return "Furious";
+        case CreatureMoodLevel::Unknown:
+            return "Unknown";
         default:
             OD_LOG_ERR("moodLevel=" + Helper::toString(static_cast<int>(moodLevel)));
             return "";
