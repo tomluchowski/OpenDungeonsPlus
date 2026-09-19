@@ -24,6 +24,8 @@
 #include "gamemap/GameMap.h"
 #include "render/ODFrameListener.h"
 
+#include <cmath>
+
 #include <OgrePrerequisites.h>
 #include <OgreSceneNode.h>
 #include <OgreTextureManager.h>
@@ -67,10 +69,11 @@ public:
 
     void fireTileStateChanged()
     {
-        mMinimap.updateTileState(mMinimapXMin, mMinimapXMax, mMinimapYMin,
+        mAnimated = mMinimap.updateTileState(mMinimapXMin, mMinimapXMax, mMinimapYMin,
             mMinimapYMax, mTileXMin, mTileXMax, mTileYMin, mTileYMax);
     }
 
+    bool mAnimated = false;
     const uint32_t mMinimapXMin;
     const uint32_t mMinimapXMax;
     const uint32_t mMinimapYMin;
@@ -84,259 +87,32 @@ private:
     MiniMapDrawnFull& mMinimap;
 };
 
-//! \brief This enum represents the possible values a pixel can have in the minimap.
-//! If a pixel corresponds to several game tiles, the highest value will be used
-//! to display the pixel
-enum class MiniMapDrawnFullPixel
-{
-    dirtFull,
-    dirtGround,
-    rockFull,
-    rockGround,
-    claimedFull,
-    claimedGround,
-    lava,
-    water,
-    goldFull,
-    goldGround,
-    gemFull,
-    gemGround,
-    pickupEntity,
-    alliedCreature,
-    enemyCreature
-};
-
 namespace
 {
-MiniMapDrawnFullPixel getPixelValueFromTile(Seat& playerSeat, Tile& tile)
+void fillPixelRegion(const Ogre::ColourValue& colour, Ogre::PixelBox& output,
+        uint32_t xMin, uint32_t xMax, uint32_t yMin, uint32_t yMax)
 {
-    MiniMapDrawnFullPixel value = MiniMapDrawnFullPixel::dirtFull;
-    const std::vector<GameEntity*>& entities = tile.getEntitiesInTile();
-    for(GameEntity* entity : entities)
-    {
-        if(entity->getObjectType() == GameEntityType::creature)
-        {
-            if(!entity->getSeat()->isAlliedSeat(&playerSeat))
-            {
-                if(value < MiniMapDrawnFullPixel::enemyCreature)
-                    value = MiniMapDrawnFullPixel::enemyCreature;
-            }
-            else
-            {
-                if(value < MiniMapDrawnFullPixel::alliedCreature)
-                    value = MiniMapDrawnFullPixel::alliedCreature;
-            }
-        }
-        else if(entity->tryPickup(&playerSeat))
-        {
-            if(value < MiniMapDrawnFullPixel::pickupEntity)
-                value = MiniMapDrawnFullPixel::pickupEntity;
-        }
-    }
-
-    // If something interesting is on the tile, we return the computed value
-    if(value != MiniMapDrawnFullPixel::dirtFull)
-        return value;
-
-    // Otherwise, we compute a value according to its type
-    switch(tile.getTileVisual())
-    {
-        case TileVisual::lavaGround:
-            value = MiniMapDrawnFullPixel::lava;
-            break;
-        case TileVisual::waterGround:
-            value = MiniMapDrawnFullPixel::water;
-            break;
-        case TileVisual::goldFull:
-            value = MiniMapDrawnFullPixel::goldFull;
-            break;
-        case TileVisual::goldGround:
-            value = MiniMapDrawnFullPixel::goldGround;
-            break;
-        case TileVisual::gemFull:
-            value = MiniMapDrawnFullPixel::gemFull;
-            break;
-        case TileVisual::gemGround:
-            value = MiniMapDrawnFullPixel::gemGround;
-            break;
-        case TileVisual::rockFull:
-            value = MiniMapDrawnFullPixel::rockFull;
-            break;
-        case TileVisual::rockGround:
-            value = MiniMapDrawnFullPixel::rockGround;
-            break;
-        case TileVisual::claimedGround:
-            value = MiniMapDrawnFullPixel::claimedGround;
-            break;
-        case TileVisual::claimedFull:
-            value = MiniMapDrawnFullPixel::claimedFull;
-            break;
-        case TileVisual::dirtGround:
-            value = MiniMapDrawnFullPixel::dirtGround;
-            break;
-        case TileVisual::dirtFull:
-            value = MiniMapDrawnFullPixel::dirtFull;
-            break;
-        default:
-            break;
-    }
-
-    return value;
-}
-
-void colourFromPixelValue(MiniMapDrawnFullPixel pixelValue, Seat* seatIfClaimed,
-        Ogre::HardwarePixelBufferSharedPtr& pixelBuffer, Ogre::PixelBox pixelBox,
-        uint32_t minimapWidth, uint32_t minimapHeight, uint32_t minimapXMin,
-        uint32_t minimapXMax, uint32_t minimapYMin, uint32_t minimapYMax)
-{
-    Ogre::uint8 RR = 0x00;
-    Ogre::uint8 GG = 0x00;
-    Ogre::uint8 BB = 0x00;
-    switch(pixelValue)
-    {
-        case MiniMapDrawnFullPixel::enemyCreature:
-        {
-            RR = 0xFF;
-            GG = 0x00;
-            BB = 0x00;
-            break;
-        }
-        case MiniMapDrawnFullPixel::claimedFull:
-        {
-            if(seatIfClaimed == nullptr)
-            {
-                RR = 0x86;
-                GG = 0x50;
-                BB = 0x28;
-            }
-            else
-            {
-                const Ogre::ColourValue& color = seatIfClaimed->getColorValue();
-                RR = color.r * 255.0;
-                GG = color.g * 255.0;
-                BB = color.b * 255.0;
-            }
-            break;
-        }
-        case MiniMapDrawnFullPixel::claimedGround:
-        {
-            if(seatIfClaimed == nullptr)
-            {
-                RR = 0x5C;
-                GG = 0x37;
-                BB = 0x1B;
-            }
-            else
-            {
-                const Ogre::ColourValue& color = seatIfClaimed->getColorValue();
-                RR = color.r * 200.0;
-                GG = color.g * 200.0;
-                BB = color.b * 200.0;
-            }
-            break;
-        }
-        case MiniMapDrawnFullPixel::goldFull:
-        {
-            RR = 0xB5;
-            GG = 0xB3;
-            BB = 0x2F;
-            break;
-        }
-        case MiniMapDrawnFullPixel::goldGround:
-        {
-            RR = 0x3B;
-            GG = 0x1D;
-            BB = 0x08;
-            break;
-        }
-        case MiniMapDrawnFullPixel::water:
-        {
-            RR = 0x21;
-            GG = 0x36;
-            BB = 0x7A;
-            break;
-        }
-        case MiniMapDrawnFullPixel::lava:
-        {
-            RR = 0xB2;
-            GG = 0x22;
-            BB = 0x22;
-            break;
-        }
-        case MiniMapDrawnFullPixel::dirtGround:
-        {
-            RR = 0x3B;
-            GG = 0x1D;
-            BB = 0x08;
-            break;
-        }
-        case MiniMapDrawnFullPixel::dirtFull:
-        {
-            RR = 0x5B;
-            GG = 0x2D;
-            BB = 0x0C;
-            break;
-        }
-        case MiniMapDrawnFullPixel::rockGround:
-        {
-            RR = 0x30;
-            GG = 0x30;
-            BB = 0x30;
-            break;
-        }
-        case MiniMapDrawnFullPixel::rockFull:
-        {
-            RR = 0x41;
-            GG = 0x41;
-            BB = 0x41;
-            break;
-        }
-        default:
-        {
-            RR = 0x00;
-            GG = 0x00;
-            BB = 0xFF;
-            break;
-        }
-        case MiniMapDrawnFullPixel::pickupEntity:
-        {
-            RR = 0xDD;
-            GG = 0xDD;
-            BB = 0x12;
-            break;
-        }
-    }
-
-    auto output = pixelBuffer->lock(pixelBox, Ogre::HardwareBuffer::HBL_NORMAL);
-
-    assert(minimapXMax <= output.getWidth());
-    assert(minimapYMax <= output.getHeight());
-
-    for(size_t xx = minimapXMin; xx < minimapXMax; ++xx)
-    {
-        for(size_t yy = minimapYMin; yy < minimapYMax; ++yy)
-        {
-            // TODO: This is probably a bit inefficient at the moment.
-            output.setColourAt(Ogre::ColourValue(RR/255.0, GG/255.0, BB/255.0), xx, output.getHeight() - yy, 0);
-
-        }
-    }
-
-    pixelBuffer->unlock();
+    assert(xMax <= output.getWidth());
+    assert(yMax <= output.getHeight());
+    for(uint32_t x = xMin; x < xMax; ++x)
+        for(uint32_t y = yMin; y < yMax; ++y)
+            output.setColourAt(colour, x, output.getHeight() - 1 - y, 0);
 }
 }
 
-MiniMapDrawnFull::MiniMapDrawnFull(CEGUI::Window* miniMapWindow) :
+MiniMapDrawnFull::MiniMapDrawnFull(CEGUI::Window* miniMapWindow, const std::string& suffix) :
     mMiniMapWindow(miniMapWindow),
+    mResourceSuffix(suffix),
     mGameMap(*ODFrameListener::getSingleton().getClientGameMap()),
     mCameraManager(*ODFrameListener::getSingleton().getCameraManager()),
     mTopLeftCornerX(0),
     mTopLeftCornerY(0),
     mWidth(static_cast<unsigned int>(mMiniMapWindow->getPixelSize().d_width)),
     mHeight(static_cast<unsigned int>(mMiniMapWindow->getPixelSize().d_height)),
-    mPixelBox(mWidth, mHeight, 1, Ogre::PF_R8G8B8),
+    mPixels(mWidth * mHeight * 3, 0),
+    mPixelBox(mWidth, mHeight, 1, Ogre::PF_R8G8B8, mPixels.data()),
     mMiniMapOgreTexture(Ogre::TextureManager::getSingletonPtr()->createManual(
-            "miniMapOgreTexture",
+            "miniMapOgreTexture" + suffix,
             Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME,
             Ogre::TEX_TYPE_2D,
             mWidth, mHeight, 0, Ogre::PF_R8G8B8,
@@ -404,10 +180,12 @@ MiniMapDrawnFull::MiniMapDrawnFull(CEGUI::Window* miniMapWindow) :
         listener->fireTileStateChanged();
     }
 
-    CEGUI::Texture& miniMapTextureGui = static_cast<CEGUI::OgreRenderer*>(CEGUI::System::getSingletonPtr()
-                                            ->getRenderer())->createTexture("miniMapTextureGui", mMiniMapOgreTexture);
+    mPixelBuffer->blitFromMemory(mPixelBox);
 
-    CEGUI::BasicImage& imageset = dynamic_cast<CEGUI::BasicImage&>(CEGUI::ImageManager::getSingletonPtr()->create("BasicImage", "MiniMapImageset"));
+    CEGUI::Texture& miniMapTextureGui = static_cast<CEGUI::OgreRenderer*>(CEGUI::System::getSingletonPtr()
+                                            ->getRenderer())->createTexture("miniMapTextureGui" + suffix, mMiniMapOgreTexture);
+
+    CEGUI::BasicImage& imageset = MiniMap::createMiniMapImage(mMiniMapWindow, "MiniMapImageset" + suffix, true);
     imageset.setArea(CEGUI::Rectf(CEGUI::Vector2f(0.0, 0.0),
                                       CEGUI::Size<float>(
                                           static_cast<float>(mWidth), static_cast<float>(mHeight)
@@ -443,193 +221,77 @@ MiniMapDrawnFull::~MiniMapDrawnFull()
     }
     mTileStateListeners.clear();
     mMiniMapWindow->setProperty("Image", "");
-    Ogre::String mm("miniMapOgreTexture");
+    Ogre::String mm("miniMapOgreTexture" + mResourceSuffix);
     Ogre::TextureManager::getSingletonPtr()->remove(mm,Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME);    
-    CEGUI::ImageManager::getSingletonPtr()->destroy("MiniMapImageset");
-    CEGUI::System::getSingletonPtr()->getRenderer()->destroyTexture("miniMapTextureGui");
+    CEGUI::ImageManager::getSingletonPtr()->destroy("MiniMapImageset" + mResourceSuffix);
+    CEGUI::System::getSingletonPtr()->getRenderer()->destroyTexture("miniMapTextureGui" + mResourceSuffix);
 }
 
 Ogre::Vector2 MiniMapDrawnFull::camera_2dPositionFromClick(int xx, int yy)
 {
+    mTopLeftCornerX = static_cast<int>(mMiniMapWindow->getPixelPosition().d_x);
+    mTopLeftCornerY = static_cast<int>(mMiniMapWindow->getPixelPosition().d_y);
     Ogre::Vector2 v(0, 0);
-    Ogre::Real gainX = static_cast<Ogre::Real>(mGameMap.getMapSizeX())
-        / static_cast<Ogre::Real>(mWidth);
-    Ogre::Real gainY = static_cast<Ogre::Real>(mGameMap.getMapSizeY())
-        / static_cast<Ogre::Real>(mHeight);
-
-    v.x = round(static_cast<Ogre::Real>(xx - mTopLeftCornerX) * gainX);
-    v.y = round(static_cast<Ogre::Real>(mHeight - yy + mTopLeftCornerY) * gainY);
+    const CEGUI::Sizef displaySize = mMiniMapWindow->getPixelSize();
+    v.x = std::max(0.0f, std::min(static_cast<Ogre::Real>(mGameMap.getMapSizeX() - 1),
+        (mViewOrigin.x + (xx - mTopLeftCornerX) / displaySize.d_width * mViewSize.x) * mGameMap.getMapSizeX()));
+    v.y = std::max(0.0f, std::min(static_cast<Ogre::Real>(mGameMap.getMapSizeY() - 1),
+        (1.0f - mViewOrigin.y - (yy - mTopLeftCornerY) / displaySize.d_height * mViewSize.y) * mGameMap.getMapSizeY()));
 
     return v;
 }
 
-void MiniMapDrawnFull::updateTileState(uint32_t minimapXMin, uint32_t minimapXMax,
+bool MiniMapDrawnFull::updateTileState(uint32_t minimapXMin, uint32_t minimapXMax,
         uint32_t minimapYMin, uint32_t minimapYMax, uint32_t tileXMin,
         uint32_t tileXMax, uint32_t tileYMin, uint32_t tileYMax)
 {
-    Seat& localPlayerSeat = *(mGameMap.getLocalPlayer()->getSeat());
-    // We compute the tile representation
-    MiniMapDrawnFullPixel curValue = MiniMapDrawnFullPixel::dirtFull;
-    Seat* seatIfClaimed = nullptr;
-    for(uint32_t xxx = tileXMin; xxx < tileXMax; ++xxx)
+    Seat& localPlayerSeat = *mGameMap.getLocalPlayer()->getSeat();
+    TileColour selected;
+    bool animated = false;
+    for(uint32_t x = tileXMin; x < tileXMax; ++x)
     {
-        for(uint32_t yyy = tileYMin; yyy < tileYMax; ++yyy)
+        for(uint32_t y = tileYMin; y < tileYMax; ++y)
         {
-            Tile* tile = mGameMap.getTile(xxx, yyy);
+            Tile* tile = mGameMap.getTile(x, y);
             if(tile == nullptr)
                 continue;
-
-            MiniMapDrawnFullPixel value = getPixelValueFromTile(localPlayerSeat,
-                *tile);
-            if(value > curValue)
-            {
-                curValue = value;
-                switch(value)
-                {
-                    case MiniMapDrawnFullPixel::claimedGround:
-                    case MiniMapDrawnFullPixel::claimedFull:
-                        seatIfClaimed = tile->getSeat();
-                        break;
-                    default:
-                        break;
-                }
-            }
+            const TileColour colour = colourFromTile(*tile, localPlayerSeat,
+                static_cast<unsigned int>(mAnimationTime * 2.0f));
+            animated |= colour.animated;
+            if(colour.priority > selected.priority)
+                selected = colour;
         }
     }
-
-    // We paint corresponding pixels
-    colourFromPixelValue(curValue, seatIfClaimed, mPixelBuffer, mPixelBox,
-        mWidth, mHeight, minimapXMin, minimapXMax, minimapYMin, minimapYMax);
-}
-
-bool MiniMapDrawnFull::crossSegment(const Ogre::Vector3& p1, const Ogre::Vector3& p2,
-        uint32_t xMin, uint32_t xMax, uint32_t yMin, uint32_t yMax)
-{
-    if((p1.x < static_cast<Ogre::Real>(xMin)) &&
-       (p2.x < static_cast<Ogre::Real>(xMin)))
-    {
-        return false;
-    }
-    if((p1.x > static_cast<Ogre::Real>(xMax)) &&
-       (p2.x > static_cast<Ogre::Real>(xMax)))
-    {
-        return false;
-    }
-
-    if((p1.y < static_cast<Ogre::Real>(yMin)) &&
-       (p2.y < static_cast<Ogre::Real>(yMin)))
-    {
-        return false;
-    }
-    if((p1.y > static_cast<Ogre::Real>(yMax)) &&
-       (p2.y > static_cast<Ogre::Real>(yMax)))
-    {
-        return false;
-    }
-
-    Ogre::Real diffYPoints = p2.y - p1.y;
-    Ogre::Real diffXPoints = p2.x - p1.x;
-    Ogre::Real diffYMin = p2.y - static_cast<Ogre::Real>(yMin);
-    Ogre::Real diffXMin = p2.x - static_cast<Ogre::Real>(xMin);
-    Ogre::Real diffYMax = p2.y - static_cast<Ogre::Real>(yMax);
-    Ogre::Real diffXMax = p2.x - static_cast<Ogre::Real>(xMax);
-
-    // Magic number to change the size of the line
-    static const Ogre::Real DIFF_MIN = 5;
-    if(
-       (
-        (diffYMin * diffXPoints - diffYPoints * diffXMin - DIFF_MIN< 0) &&
-        (diffYMax * diffXPoints - diffYPoints * diffXMax + DIFF_MIN >= 0)
-       ) ||
-       (
-        (diffYMax * diffXPoints - diffYPoints * diffXMax - DIFF_MIN< 0) &&
-        (diffYMin * diffXPoints - diffYPoints * diffXMin + DIFF_MIN >= 0)
-       )
-      )
-    {
-        return true;
-    }
-
-    return false;
+    fillPixelRegion(selected.colour, mPixelBox, minimapXMin, minimapXMax, minimapYMin, minimapYMax);
+    mPixelsDirty = true;
+    return animated;
 }
 
 void MiniMapDrawnFull::update(Ogre::Real timeSinceLastFrame, const std::vector<Ogre::Vector3>& cornerTiles)
 {
-    const Ogre::Vector3& topRight = cornerTiles[0];
-    const Ogre::Vector3& topLeft = cornerTiles[1];
-    const Ogre::Vector3& bottomLeft = cornerTiles[2];
-    const Ogre::Vector3& bottomRight = cornerTiles[3];
+    const unsigned int oldPhase = static_cast<unsigned int>(mAnimationTime * 2.0f);
+    mAnimationTime = std::fmod(mAnimationTime + timeSinceLastFrame, 2.0f);
+    if(oldPhase != static_cast<unsigned int>(mAnimationTime * 2.0f))
+        for(MiniMapDrawnFullTileStateListener* listener : mTileStateListeners)
+            if(listener->mAnimated)
+                listener->fireTileStateChanged();
 
-    bool isSame = (mLastCornerTiles.size() == cornerTiles.size());
-    static const Ogre::Real squareDiffMin = 0.5;
-    for(uint32_t iii = 0; isSame && iii < mLastCornerTiles.size(); ++iii)
-    {
-        Ogre::Real val = (mLastCornerTiles[iii] - cornerTiles[iii]).squaredLength();
-        isSame &= (val <= squareDiffMin);
-    }
+    const Ogre::Real scale = std::min(1.0f, getZoomScale());
+    const Ogre::Vector3 target = mCameraManager.getCameraViewTarget();
+    mViewSize = Ogre::Vector2(scale, scale);
+    mViewOrigin.x = std::max(0.0f, std::min(1.0f - scale, target.x / mGameMap.getMapSizeX() - scale * 0.5f));
+    mViewOrigin.y = std::max(0.0f, std::min(1.0f - scale, 1.0f - target.y / mGameMap.getMapSizeY() - scale * 0.5f));
+    auto& image = static_cast<CEGUI::BasicImage&>(CEGUI::ImageManager::getSingleton().get("MiniMapImageset" + mResourceSuffix));
+    image.setArea(CEGUI::Rectf(mViewOrigin.x * mWidth, mViewOrigin.y * mHeight,
+        (mViewOrigin.x + scale) * mWidth, (mViewOrigin.y + scale) * mHeight));
+    mMiniMapWindow->invalidate();
+    updateMapOverlay(mMiniMapWindow, mGameMap,
+        Ogre::Vector2((mViewOrigin.x + scale * 0.5f) * mGameMap.getMapSizeX(),
+            (1.0f - mViewOrigin.y - scale * 0.5f) * mGameMap.getMapSizeY()),
+        Ogre::Vector2(mGameMap.getMapSizeX(), mGameMap.getMapSizeY()) * scale, 0.0f, cornerTiles);
 
-    if(isSame)
+    if(!mPixelsDirty)
         return;
-
-    // We save corner tiles
-    mLastCornerTiles = cornerTiles;
-
-    // We refresh the old rectangle
-    for(MiniMapDrawnFullTileStateListener* listener : mVisibleRectangle)
-    {
-        listener->fireTileStateChanged();
-    }
-    mVisibleRectangle.clear();
-
-    // And we paint the new visible rectangle
-    auto output = mPixelBuffer->lock(mPixelBox, Ogre::HardwareBuffer::HBL_NORMAL);
-
-    // we look for the tiles at the border of vision to paint them black
-    for(MiniMapDrawnFullTileStateListener* listener : mTileStateListeners)
-    {
-        bool isInBorder = false;
-
-        // We check if the listener tiles are on the top line
-        if(!isInBorder &&
-            crossSegment(topRight, topLeft, listener->mTileXMin, listener->mTileXMax,
-                listener->mTileYMin, listener->mTileYMax))
-        {
-            isInBorder = true;
-        }
-
-        if(!isInBorder &&
-            crossSegment(topLeft, bottomLeft, listener->mTileXMin, listener->mTileXMax,
-                listener->mTileYMin, listener->mTileYMax))
-        {
-            isInBorder = true;
-        }
-
-        if(!isInBorder &&
-            crossSegment(bottomLeft, bottomRight, listener->mTileXMin, listener->mTileXMax,
-                listener->mTileYMin, listener->mTileYMax))
-        {
-            isInBorder = true;
-        }
-
-        if(!isInBorder &&
-            crossSegment(bottomRight, topRight, listener->mTileXMin, listener->mTileXMax,
-                listener->mTileYMin, listener->mTileYMax))
-        {
-            isInBorder = true;
-        }
-
-        if(!isInBorder)
-            continue;
-
-        mVisibleRectangle.push_back(listener);
-        for(uint32_t xxx = listener->mMinimapXMin; xxx < listener->mMinimapXMax; ++xxx)
-        {
-            for(uint32_t yyy = listener->mMinimapYMin; yyy < listener->mMinimapYMax; ++yyy)
-            {
-                output.setColourAt(Ogre::ColourValue(0.0f, 0.0f, 0.0f), xxx,
-                                   output.getHeight() - yyy, 0);
-            }
-        }
-    }
-    mPixelBuffer->unlock();
+    mPixelBuffer->blitFromMemory(mPixelBox);
+    mPixelsDirty = false;
 }

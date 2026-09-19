@@ -1,18 +1,34 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <GUILayout version="4" >
-    <Window type="OD/StaticText" name="SkirmishSubMenuWindow" >
-        <Property name="Area" value="{{0.0,200},{0.5,-240},{0.0,400},{0.5,0}}" />
-        <Property name="Text" value="" />
-        <Property name="FrameEnabled" value="False" />
-        <Property name="BackgroundEnabled" value="False" />
-        <Window type="OD/MainMenuButton" name="StartSkirmishButton" >
-            <Property name="Area" value="{{0.5,-80},{0,20},{0.5,100},{0,100}}" />
-            <Property name="Text" value="[image-size='w:32 h:32'][image='OpenDungeonsIcons/FighterButton'][vert-alignment='centre']Start Skirmish ..." />
+    <Window type="DefaultWindow" name="SkirmishSubMenuWindow" >
+        <Property name="Area" value="{{0,0},{0,0},{1,0},{1,0}}" />
+        <Property name="Visible" value="False" />
+        <Window type="OD/MenuTitle" name="Title" >
+            <Property name="Font" value="MedievalSharp-20" />
+            <Property name="Area" value="{{0.5,-300},{0.5,-60},{0.5,300},{0.5,0}}" />
+            <Property name="Text" value="Skirmish" />
+            <Property name="HorzFormatting" value="CentreAligned" />
+            <Property name="FrameEnabled" value="False" />
+            <Property name="BackgroundEnabled" value="False" />
+            <Property name="MousePassThroughEnabled" value="True" />
         </Window>
-        <Window type="OD/MainMenuButton" name="LoadSkirmishButton" >
-            <Property name="Area" value="{{0.5,-80},{0,90},{0.5,100},{0,170}}" />
-            <Property name="Text" value="[image-size='w:32 h:32'][image='OpenDungeonsIcons/LoadIcon'][vert-alignment='centre']Load Skirmish ..." />
+        <Window type="OD/MenuTextButton" name="StartSkirmishButton" >
+            <Property name="Font" value="MedievalSharp-12" />
+            <Property name="Area" value="{{0.5,-160},{0.5,32},{0.5,160},{0.5,68}}" />
+            <Property name="Text" value="Start Skirmish" />
+        </Window>
+        <Window type="OD/MenuTextButton" name="LoadSkirmishButton" >
+            <Property name="Font" value="MedievalSharp-12" />
+            <Property name="Area" value="{{0.5,-160},{0.5,68},{0.5,160},{0.5,104}}" />
+            <Property name="Text" value="Load Skirmish" />
+        </Window>
+        <Window type="OD/MenuSymbolButton" name="BackButton" >
+            <Property name="Area" value="{{1,-176},{1,-92.8},{1,-99.2},{1,-16}}" />
+            <Property name="NormalImage" value="OpenDungeonsSkin/CloseButtonNormal" />
+            <Property name="HoverImage" value="OpenDungeonsSkin/CloseButtonHover" />
+            <Property name="PushedImage" value="OpenDungeonsSkin/CloseButtonPressed" />
+            <Property name="TooltipText" value="Back" />
         </Window>
     </Window>
 </GUILayout>
