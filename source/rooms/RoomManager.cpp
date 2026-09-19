@@ -218,6 +218,16 @@ bool RoomFactory::buildRoomDefault(GameMap* gameMap, Room* room, Seat* seat, con
                 tile->exportToPacketForUpdate(serverNotification.mPacket, p.first);
             }
             ODServer::getSingleton().sendAsyncMsg(serverNotification);
+
+            if(!gameMap->isInEditorMode())
+            {
+                ServerNotification effectNotification(
+                    ServerNotificationType::roomConstructionEffect, p.first->getPlayer());
+                effectNotification.mPacket << nbTiles;
+                for(Tile* tile : p.second)
+                    gameMap->tileToPacket(effectNotification.mPacket, tile);
+                ODServer::getSingleton().sendAsyncMsg(effectNotification);
+            }
         }
     }
 

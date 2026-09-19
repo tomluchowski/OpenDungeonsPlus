@@ -108,7 +108,10 @@ enum class ServerNotificationType
     playerNickChanged,
 
     // Owner-only aggregate counts, sent only after creature-panel negotiation.
-    creaturePanel
+    creaturePanel,
+
+    // Presentation-only burst for newly built gameplay room tiles.
+    roomConstructionEffect
 };
 
 ODPacket& operator<<(ODPacket& os, const ServerNotificationType& nt);

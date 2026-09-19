@@ -1050,6 +1050,24 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
 	    // OD_LOG_INF("refreshing the bordering tiles of ... ended");
             break;
         }
+
+        case ServerNotificationType::roomConstructionEffect:
+        {
+            uint32_t nbTiles;
+            OD_ASSERT_TRUE(packetReceived >> nbTiles);
+            std::vector<Tile*> tiles;
+            while(nbTiles > 0)
+            {
+                --nbTiles;
+                Tile* tile = gameMap->tileFromPacket(packetReceived);
+                if(tile != nullptr)
+                    tiles.push_back(tile);
+            }
+
+            if(frameListener->getModeManager()->getCurrentModeType() == ModeManager::ModeType::GAME)
+                RenderManager::getSingleton().rrCreateRoomConstructionEffect(tiles);
+            break;
+        }
         
         case ServerNotificationType::revealTiles:
         {

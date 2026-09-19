@@ -174,6 +174,7 @@ public:
     void rrSetHandPose(bool pointing, bool digging);
     void rrPlayDigAnimation();
     void rrDrawTilePreview(const std::vector<Tile*>& tiles, const Ogre::ColourValue& colour);
+    void rrCreateRoomConstructionEffect(const std::vector<Tile*>& tiles);
 
     //! \brief Toggles the creatures text overlay
     void rrSetCreaturesTextOverlay(GameMap& gameMap, bool value);
@@ -273,6 +274,17 @@ private:
     std::string mHandPose = "Idle";
     Ogre::ManualObject* mHandPickaxe = nullptr;
     Ogre::ManualObject* mTilePreview = nullptr;
+
+    struct RoomConstructionEffect
+    {
+        std::string mNodeName;
+        std::string mParticleName;
+        Ogre::Real mRemainingTime;
+    };
+    std::vector<RoomConstructionEffect> mRoomConstructionEffects;
+    uint64_t mRoomConstructionEffectNumber = 0;
+
+    void clearRoomConstructionEffects();
 
 
     Ogre::TexturePtr m_texture;
