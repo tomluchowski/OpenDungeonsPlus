@@ -8,6 +8,12 @@ uniform vec4 lightPos[8];
 uniform vec4 lightAttenuation[8];
 uniform float firstLightCastsShadows;
 
+vec3 enhanceDungeonColour(vec3 value)
+{
+    float luminance = dot(value, vec3(0.2126, 0.7152, 0.0722));
+    return mix(vec3(luminance), value, 1.3) * 1.12;
+}
+
 vec3 getLocalLighting(vec3 position, vec3 normal, vec3 camera, float shadow)
 {
     vec3 lighting = vec3(0.0);

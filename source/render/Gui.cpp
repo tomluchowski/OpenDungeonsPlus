@@ -582,13 +582,22 @@ void Gui::registerWindow(CEGUI::Window* window)
         }
     }
     CEGUI::TabButton* tabButton = dynamic_cast<CEGUI::TabButton*>(window);
-    if(tabButton != nullptr && window->isPropertyPresent("NavigationColour"))
+    if(window->isPropertyPresent("NavigationColour"))
     {
-        CEGUI::Window* page = tabButton->getTargetWindow();
-        if(page != nullptr && page->isUserStringDefined("NavigationColour"))
-            window->setProperty("NavigationColour", page->getUserString("NavigationColour"));
-        if(page != nullptr && page->isUserStringDefined("NavigationImage") && window->isPropertyPresent("NavigationImage"))
-            window->setProperty("NavigationImage", page->getUserString("NavigationImage"));
+        CEGUI::Window* colourSource = tabButton == nullptr ? nullptr : tabButton->getTargetWindow();
+        if(colourSource == nullptr || !colourSource->isUserStringDefined("NavigationColour"))
+        {
+            for(colourSource = window->getParent(); colourSource != nullptr; colourSource = colourSource->getParent())
+            {
+                if(colourSource->isUserStringDefined("NavigationColour"))
+                    break;
+            }
+        }
+        if(colourSource != nullptr && colourSource->isUserStringDefined("NavigationColour"))
+            window->setProperty("NavigationColour", colourSource->getUserString("NavigationColour"));
+        if(tabButton != nullptr && colourSource != nullptr && colourSource->isUserStringDefined("NavigationImage") &&
+           window->isPropertyPresent("NavigationImage"))
+            window->setProperty("NavigationImage", colourSource->getUserString("NavigationImage"));
     }
     if(!window->isAutoWindow() && mScaledWindows.find(window) == mScaledWindows.end())
     {

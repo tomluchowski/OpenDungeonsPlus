@@ -4734,6 +4734,7 @@
 
     <WidgetLook name="OD/GameTabButton">
         <PropertyDefinition name="NavigationFrame" type="bool" initialValue="False" redrawOnWrite="true" />
+        <PropertyDefinition name="NavigationColour" initialValue="FFFFFFFF" redrawOnWrite="true" />
         <Property name="WantsMultiClickEvents" value="False" />
         <PropertyDefinition initialValue="" name="NormalImage" redrawOnWrite="true" />
         <PropertyDefinition initialValue="OpenDungeonsSkin/ButtonHoverEffect" name="HoverImage" redrawOnWrite="true" />
@@ -4854,7 +4855,10 @@
         </ImagerySection>
         <StateImagery name="Normal">
             <Layer priority="0">
-                <Section section="background" />
+                <Section section="background" controlProperty="NavigationFrame" controlValue="false" />
+                <Section section="background" controlProperty="NavigationFrame" controlValue="true">
+                    <ColourProperty name="NavigationColour" />
+                </Section>
             </Layer>
             <Layer priority="1">
                 <Section section="normal" />
@@ -4869,7 +4873,10 @@
         </StateImagery>
         <StateImagery name="Hover">
             <Layer priority="0">
-                <Section section="background" />
+                <Section section="background" controlProperty="NavigationFrame" controlValue="false" />
+                <Section section="background" controlProperty="NavigationFrame" controlValue="true">
+                    <ColourProperty name="NavigationColour" />
+                </Section>
             </Layer>
             <Layer priority="1">
                 <Section section="normal" />
@@ -4887,7 +4894,10 @@
         </StateImagery>
         <StateImagery name="Pushed">
             <Layer priority="0">
-                <Section section="background" />
+                <Section section="background" controlProperty="NavigationFrame" controlValue="false" />
+                <Section section="background" controlProperty="NavigationFrame" controlValue="true">
+                    <ColourProperty name="NavigationColour" />
+                </Section>
             </Layer>
             <Layer priority="1">
                 <Section section="normal" />
@@ -4905,7 +4915,10 @@
         </StateImagery>
         <StateImagery name="PushedOff">
             <Layer priority="0">
-                <Section section="background" />
+                <Section section="background" controlProperty="NavigationFrame" controlValue="false" />
+                <Section section="background" controlProperty="NavigationFrame" controlValue="true">
+                    <ColourProperty name="NavigationColour" />
+                </Section>
             </Layer>
             <Layer priority="1">
                 <Section section="normal" />
@@ -4923,7 +4936,10 @@
         </StateImagery>
         <StateImagery name="Disabled">
             <Layer priority="0">
-                <Section section="background" />
+                <Section section="background" controlProperty="NavigationFrame" controlValue="false" />
+                <Section section="background" controlProperty="NavigationFrame" controlValue="true">
+                    <ColourProperty name="NavigationColour" />
+                </Section>
             </Layer>
             <Layer priority="1">
                 <Section section="normal" />

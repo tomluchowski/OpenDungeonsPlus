@@ -47,7 +47,7 @@ void main (void)
     vec3 ownershipAccent = mix(surfaceColor, seatColor.rgb, 0.45);
     result = lightingTerm * mix(surfaceColor, ownershipAccent, crossMap.r);
 
-    color  = vec4( result.xyz,  1.0);
+    color  = vec4(enhanceDungeonColour(result),  1.0);
        
 }    
 
