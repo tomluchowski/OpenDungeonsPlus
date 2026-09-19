@@ -5,6 +5,29 @@ uniform sampler2D decalmap;
 uniform sampler2D normalmap;
 uniform sampler2D shadowmap;
 
+#ifdef DORMITORY_FLOOR
+uniform sampler2D dormitoryEdge;
+uniform sampler2D dormitoryCorner;
+// UV boundaries: U=0, V=0, U=1, V=1; one denotes an exposed room edge.
+uniform vec4 dormitoryBorders;
+
+vec3 dormitoryFloor(vec2 uv)
+{
+    bool right = uv.x > 0.5;
+    bool top = uv.y < 0.5;
+    bool side = (right ? dormitoryBorders.z : dormitoryBorders.x) > 0.5;
+    bool end = (top ? dormitoryBorders.y : dormitoryBorders.w) > 0.5;
+    if(side && end)
+        return texture(dormitoryCorner, vec2(right ? uv.x : 1.0 - uv.x,
+            top ? uv.y : 1.0 - uv.y)).rgb;
+    if(side)
+        return texture(dormitoryEdge, vec2(uv.y, right ? uv.x : 1.0 - uv.x)).rgb;
+    if(end)
+        return texture(dormitoryEdge, vec2(uv.x, top ? 1.0 - uv.y : uv.y)).rgb;
+    return texture(decalmap, uv).rgb;
+}
+#endif
+
 uniform vec4 ambientLightColour;
 uniform vec4 lightDiffuseColour; 
 uniform vec4 lightSpecularColour;
@@ -60,6 +83,9 @@ void main (void)
     // precompute the lighting term
     vec3 lightingTerm =  (diffuse + specular + ambientLightColour.rgb/2.0 )*shadow.rgb;
     vec3 texelColor = texture(decalmap, out_UV0.st).rgb;
+#ifdef DORMITORY_FLOOR
+    texelColor = dormitoryFloor(out_UV0.st);
+#endif
     result =  lightingTerm * texelColor;
 
     color  = vec4(result.xyz,  1.0);
