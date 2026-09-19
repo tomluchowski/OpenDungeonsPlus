@@ -183,8 +183,8 @@ endif()
 if(WIN32 AND MSVC)
     #Set some extra compiler flags
     #TODO - investigate if these are what they should be
-    set(PLATFORM_C_FLAGS "/W3 /MD /Od /DWIN32 /D_WINDOWS /Gm /Gy /fp:fast /ZI /EHsc")
-    set(PLATFORM_C_FLAGS_DEBUG "/W3 /MDd /Od /Gm /Gy /fp:fast /ZI /DOD_DEBUG" )
+    set(PLATFORM_C_FLAGS "/W3 /DWIN32 /D_WINDOWS /Gm- /Gy /fp:fast /EHsc")
+    set(PLATFORM_C_FLAGS_DEBUG "/W3 /MDd /Od /Gm- /Gy /fp:fast /ZI /DOD_DEBUG" )
 
     # Set the application version
     add_definitions(/DOD_VERSION="${OD_MAJOR_VERSION}.${OD_MINOR_VERSION}.${OD_PATCH_LEVEL}")
@@ -194,7 +194,7 @@ if(WIN32 AND MSVC)
     add_definitions(/DOD_PLUGINS_CFG_PATH="${OD_PLUGINS_CFG_PATH}")
 
     set(CMAKE_CXX_FLAGS "${PLATFORM_C_FLAGS}")
-    set(CMAKE_CXX_FLAGS_RELEASE "${PLATFORM_C_FLAGS}")
+    set(CMAKE_CXX_FLAGS_RELEASE "/MD /O2 /Zi")
     set(CMAKE_CXX_FLAGS_DEBUG "${PLATFORM_C_FLAGS_DEBUG}")
 endif()
 
