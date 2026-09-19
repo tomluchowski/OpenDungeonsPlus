@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<GUILayout version="4">
+    <Window type="OD/FrameWindow" name="ProductionWindow">
+        <Property name="Area" value="{{0.5,-280},{0.5,-240},{0.5,280},{0.5,240}}" />
+        <Property name="Text" value="Trap production" />
+        <Property name="SizingEnabled" value="False" />
+        <Property name="Visible" value="False" />
+        <Window type="OD/StaticText" name="WorkshopsLabel">
+            <Property name="Area" value="{{0,16},{0,30},{1,-16},{0,54}}" />
+            <Property name="Text" value="Work in progress" />
+            <Property name="FrameEnabled" value="False" />
+            <Property name="BackgroundEnabled" value="False" />
+        </Window>
+        <Window type="OD/Listbox" name="Workshops">
+            <Property name="Area" value="{{0,16},{0,56},{1,-16},{0,176}}" />
+        </Window>
+        <Window type="OD/StaticText" name="OrdersLabel">
+            <Property name="Area" value="{{0,16},{0,182},{1,-16},{0,206}}" />
+            <Property name="Text" value="Order priority (required items)" />
+            <Property name="FrameEnabled" value="False" />
+            <Property name="BackgroundEnabled" value="False" />
+        </Window>
+        <Window type="OD/Listbox" name="Orders">
+            <Property name="Area" value="{{0,16},{0,208},{1,-112},{1,-118}}" />
+            <Property name="Sort" value="False" />
+            <Property name="TooltipText" value="Select an order, then move it up or down." />
+        </Window>
+        <Window type="OD/Button" name="MoveUp">
+            <Property name="Area" value="{{1,-104},{0,208},{1,-16},{0,242}}" />
+            <Property name="Text" value="Move up" />
+            <Property name="Disabled" value="True" />
+        </Window>
+        <Window type="OD/Button" name="MoveDown">
+            <Property name="Area" value="{{1,-104},{0,250},{1,-16},{0,284}}" />
+            <Property name="Text" value="Move down" />
+            <Property name="Disabled" value="True" />
+        </Window>
+        <Window type="OD/StaticText" name="Explanation">
+            <Property name="Area" value="{{0,16},{1,-112},{1,-16},{1,-54}}" />
+            <Property name="Text" value="Priorities apply to the next item; current work is kept. Stock and reachability may skip an order." />
+            <Property name="HorzFormatting" value="WordWrapLeftAligned" />
+            <Property name="FrameEnabled" value="False" />
+            <Property name="BackgroundEnabled" value="False" />
+        </Window>
+        <Window type="OD/Button" name="CloseButton">
+            <Property name="Area" value="{{0.5,-64},{1,-48},{0.5,64},{1,-14}}" />
+            <Property name="Text" value="Close" />
+        </Window>
+    </Window>
+</GUILayout>

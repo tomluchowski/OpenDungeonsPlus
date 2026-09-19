@@ -102,6 +102,7 @@
         <LayoutImport type="DefaultWindow" filename="WindowPlayerSettings.layout" name="PlayerSettingsWindowImport" />
         <LayoutImport type="DefaultWindow" filename="WindowObjectives.layout" name="ObjectivesWindowImport" />
         <LayoutImport type="DefaultWindow" filename="WindowSkillTree.layout" name="SkillTreeWindowImport" />
+        <LayoutImport type="DefaultWindow" filename="WindowProduction.layout" name="ProductionWindowImport" />
         <LayoutImport type="DefaultWindow" filename="WindowGameOptions.layout" name="GameOptionsMenuImport" />
         <LayoutImport type="DefaultWindow" filename="WindowSettingsNavigation.layout" name="SettingsNavigationImport" />
         <LayoutImport type="DefaultWindow" filename="WindowGameEvent.layout" name="EventWindowImport" />
@@ -139,6 +140,15 @@
             <Property name="AlwaysOnTop" value="True" />
             <Property name="TooltipText" value="Sell" />
             <UserString name="ContextHelp" value="Sell: select, then click a room tile, trap or door" />
+        </Window>
+        <Window type="OD/GameTabButton" name="ProductionButton">
+            <Property name="Area" value="{{0,100},{1,-224},{0,140},{1,-184}}" />
+            <Property name="NormalImage" value="OpenDungeonsIcons/HammerAnvilIcon" />
+            <Property name="NavigationFrame" value="True" />
+            <Property name="AlwaysOnTop" value="True" />
+            <Property name="TooltipText" value="Production" />
+            <UserString name="AllowEdgeScrolling" value="true" />
+            <UserString name="ContextHelp" value="Production: view workshop progress and change trap order priority" />
         </Window>
     <Window type="OD/GameTabButton" name="ObjectivesButton" >
             <Property name="NavigationFrame" value="True" />

@@ -24,6 +24,7 @@
 #include "modes/InputBridge.h"
 #include "modes/SettingsWindow.h"
 #include "game/CreaturePanelData.h"
+#include "game/TrapProductionData.h"
 
 #include "utils/ConfigManager.h"
 #include <CEGUI/EventArgs.h>
@@ -161,6 +162,7 @@ class GameMode final : public GameEditorModeBase, public InputCommand
     bool unselectAllSkillWindow(const CEGUI::EventArgs& = {});
     bool autoFillSkillWindow(const CEGUI::EventArgs& = {});
     void closeSkillWindow(bool saveSkill);
+    void refreshTrapProductionQueue(const TrapProductionData& data);
 
     //! \brief Shows/hides/toggles the options window
     bool showOptionsWindow(const CEGUI::EventArgs& = {});
@@ -315,6 +317,15 @@ private:
     bool selectUserCamera(const CEGUI::EventArgs&);
     bool storeUserCamera(const CEGUI::EventArgs&);
     unsigned int mUserCameraSlot = 0;
+
+    bool showTrapProductionQueue(const CEGUI::EventArgs& = {});
+    bool closeTrapProductionQueue(const CEGUI::EventArgs& = {});
+    bool updateTrapProductionButtons(const CEGUI::EventArgs& = {});
+    bool moveTrapProductionOrder(bool earlier);
+    void requestTrapProductionQueue();
+    TrapProductionData mTrapProductionData;
+    float mProductionRefreshElapsed = 0.0f;
+    bool mProductionRequestPending = false;
 
     bool toggleMap(const CEGUI::EventArgs& = {});
     bool closeMap(const CEGUI::EventArgs& = {});

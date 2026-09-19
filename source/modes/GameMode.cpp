@@ -65,6 +65,9 @@
 #include <CEGUI/widgets/PushButton.h>
 #include <CEGUI/widgets/ToggleButton.h>
 #include <CEGUI/widgets/ProgressBar.h>
+#include <CEGUI/widgets/Listbox.h>
+#include <CEGUI/widgets/ListboxTextItem.h>
+#include <CEGUI/widgets/Scrollbar.h>
 
 #include <OgreRoot.h>
 #include <OgreRenderWindow.h>
@@ -135,6 +138,21 @@ GameMode::GameMode(ModeManager *modeManager):
 
     addEventConnection(mRootWindow->getChild("MiniMapZoomButton")->subscribeEvent(
         CEGUI::Window::EventMouseClick, CEGUI::Event::Subscriber(&GameMode::zoomMiniMap, this)));
+    for(const char* name : {"ProductionButton", "GameOptionsWindow/ProductionButton"})
+        addEventConnection(mRootWindow->getChild(name)->subscribeEvent(
+            CEGUI::PushButton::EventClicked, CEGUI::Event::Subscriber(&GameMode::showTrapProductionQueue, this)));
+    addEventConnection(mRootWindow->getChild("ProductionWindow")->subscribeEvent(
+        CEGUI::FrameWindow::EventCloseClicked, CEGUI::Event::Subscriber(&GameMode::closeTrapProductionQueue, this)));
+    addEventConnection(mRootWindow->getChild("ProductionWindow/CloseButton")->subscribeEvent(
+        CEGUI::PushButton::EventClicked, CEGUI::Event::Subscriber(&GameMode::closeTrapProductionQueue, this)));
+    addEventConnection(mRootWindow->getChild("ProductionWindow/Orders")->subscribeEvent(
+        CEGUI::Listbox::EventSelectionChanged, CEGUI::Event::Subscriber(&GameMode::updateTrapProductionButtons, this)));
+    addEventConnection(mRootWindow->getChild("ProductionWindow/MoveUp")->subscribeEvent(
+        CEGUI::PushButton::EventClicked, CEGUI::Event::Subscriber([this](const CEGUI::EventArgs&)
+        { return moveTrapProductionOrder(true); })));
+    addEventConnection(mRootWindow->getChild("ProductionWindow/MoveDown")->subscribeEvent(
+        CEGUI::PushButton::EventClicked, CEGUI::Event::Subscriber([this](const CEGUI::EventArgs&)
+        { return moveTrapProductionOrder(false); })));
     addEventConnection(mRootWindow->getChild("MapWindow")->subscribeEvent(
         CEGUI::FrameWindow::EventCloseClicked, CEGUI::Event::Subscriber(&GameMode::closeMap, this)));
     addEventConnection(mRootWindow->getChild("MapWindow")->subscribeEvent(
@@ -441,6 +459,9 @@ void GameMode::activate()
     guiSheet->getChild("ObjectivesWindow")->hide();
     guiSheet->getChild("PlayerSettingsWindow")->hide();
     guiSheet->getChild("SkillTreeWindow")->hide();
+    guiSheet->getChild("ProductionWindow")->hide();
+    mTrapProductionData = TrapProductionData{};
+    mProductionRequestPending = false;
     mReturningToSettingsNavigation = false;
     guiSheet->getChild("SettingsWindow")->hide();
     guiSheet->getChild("SettingsNavigationWindow")->setModalState(false);
@@ -1464,6 +1485,12 @@ bool GameMode::storeUserCamera(const CEGUI::EventArgs&)
 
 void GameMode::onFrameStarted(const Ogre::FrameEvent& evt)
 {
+    if(mRootWindow->getChild("ProductionWindow")->isVisible())
+    {
+        mProductionRefreshElapsed += evt.timeSinceLastFrame;
+        if(mProductionRefreshElapsed >= 1.0f)
+            requestTrapProductionQueue();
+    }
     if(mFullMap)
         updateMapDetail();
     GameEditorModeBase::onFrameStarted(evt);
@@ -1643,6 +1670,113 @@ bool GameMode::showSkillWindow(const CEGUI::EventArgs&)
     return true;
 }
 
+bool GameMode::showTrapProductionQueue(const CEGUI::EventArgs&)
+{
+    CEGUI::Window* production = mRootWindow->getChild("ProductionWindow");
+    const bool wasVisible = production->isVisible();
+    while(closeTopWindow())
+    {
+    }
+    if(wasVisible)
+        return true;
+    production->show();
+    production->moveToFront();
+    requestTrapProductionQueue();
+    return true;
+}
+
+bool GameMode::closeTrapProductionQueue(const CEGUI::EventArgs&)
+{
+    mRootWindow->getChild("ProductionWindow")->hide();
+    return true;
+}
+
+void GameMode::requestTrapProductionQueue()
+{
+    if(mProductionRequestPending || !isConnected())
+        return;
+    mProductionRequestPending = true;
+    mProductionRefreshElapsed = 0.0f;
+    updateTrapProductionButtons();
+    ODClient::getSingleton().queueClientNotification(
+        new ClientNotification(ClientNotificationType::askTrapProductionQueue));
+}
+
+bool GameMode::updateTrapProductionButtons(const CEGUI::EventArgs&)
+{
+    CEGUI::Listbox* orders = static_cast<CEGUI::Listbox*>(mRootWindow->getChild("ProductionWindow/Orders"));
+    CEGUI::ListboxItem* selected = orders->getFirstSelectedItem();
+    const bool valid = selected != nullptr &&
+        selected->getID() < mTrapProductionData.orders.size();
+    mRootWindow->getChild("ProductionWindow/MoveUp")->setEnabled(valid && selected->getID() > 0);
+    mRootWindow->getChild("ProductionWindow/MoveDown")->setEnabled(valid && selected->getID() + 1 < mTrapProductionData.orders.size());
+    return true;
+}
+
+bool GameMode::moveTrapProductionOrder(bool earlier)
+{
+    if(!isConnected())
+        return true;
+    CEGUI::Listbox* orders = static_cast<CEGUI::Listbox*>(mRootWindow->getChild("ProductionWindow/Orders"));
+    CEGUI::ListboxItem* selected = orders->getFirstSelectedItem();
+    if(selected == nullptr || selected->getID() >= mTrapProductionData.orders.size())
+        return true;
+    ClientNotification* request = new ClientNotification(ClientNotificationType::askMoveTrapProductionOrder);
+    request->mPacket << mTrapProductionData.orders[selected->getID()].name << earlier;
+    mProductionRequestPending = true;
+    mProductionRefreshElapsed = 0.0f;
+    updateTrapProductionButtons();
+    ODClient::getSingleton().queueClientNotification(request);
+    return true;
+}
+
+void GameMode::refreshTrapProductionQueue(const TrapProductionData& data)
+{
+    CEGUI::Listbox* orders = static_cast<CEGUI::Listbox*>(mRootWindow->getChild("ProductionWindow/Orders"));
+    CEGUI::Listbox* workshops = static_cast<CEGUI::Listbox*>(mRootWindow->getChild("ProductionWindow/Workshops"));
+    std::string selectedName;
+    CEGUI::ListboxItem* selected = orders->getFirstSelectedItem();
+    if(selected != nullptr && selected->getID() < mTrapProductionData.orders.size())
+        selectedName = mTrapProductionData.orders[selected->getID()].name;
+    const float scroll = orders->getVertScrollbar()->getScrollPosition();
+    mProductionRequestPending = true;
+    orders->resetList();
+    workshops->resetList();
+    mTrapProductionData = data;
+    for(size_t index = 0; index < data.orders.size(); ++index)
+    {
+        const TrapProductionOrder& order = data.orders[index];
+        const std::string text = Helper::toString(index + 1) + ". " +
+            TrapManager::getTrapNameFromTrapType(order.type) + " - " +
+            Helper::toString(order.needed) + " required (" + order.name + ")";
+        CEGUI::ListboxTextItem* item = new CEGUI::ListboxTextItem(text, static_cast<CEGUI::uint>(index));
+        item->setTextParsingEnabled(false);
+        item->setSelectionBrushImage("OpenDungeonsSkin/SelectionBrush");
+        orders->addItem(item);
+        if(order.name == selectedName)
+            orders->setItemSelectState(item, true);
+    }
+    orders->getVertScrollbar()->setScrollPosition(scroll);
+    for(const TrapProductionWorkshop& workshop : data.workshops)
+    {
+        std::string text = workshop.name + ": ";
+        if(workshop.type == TrapType::nullTrapType)
+            text += "Idle";
+        else
+            text += TrapManager::getTrapNameFromTrapType(workshop.type) + " - " +
+                Helper::toString(workshop.points) + "/" + Helper::toString(workshop.required) + " work points";
+        CEGUI::ListboxTextItem* item = new CEGUI::ListboxTextItem(text);
+        item->setTextParsingEnabled(false);
+        workshops->addItem(item);
+    }
+    mRootWindow->getChild("ProductionWindow/OrdersLabel")->setText(
+        data.orders.empty() ? "No pending trap orders" : "Order priority (required items)");
+    mRootWindow->getChild("ProductionWindow/WorkshopsLabel")->setText(
+        data.workshops.empty() ? "No workshops" : "Work in progress");
+    mProductionRequestPending = false;
+    updateTrapProductionButtons();
+}
+
 bool GameMode::hideSkillWindow(const CEGUI::EventArgs&)
 {
     closeSkillWindow(false);
@@ -1717,7 +1851,7 @@ void GameMode::setOptionsPage(bool endGame)
 {
     CEGUI::Window* options = mRootWindow->getChild("GameOptionsWindow");
     for(const char* name : {"ObjectivesButton", "SkillButton", "SaveGameButton", "LoadGameButton",
-        "SettingsButton", "EndGameButton", "HelpButton", "PlayerSettingsButton", "UserCamerasButton"})
+        "SettingsButton", "EndGameButton", "HelpButton", "PlayerSettingsButton", "UserCamerasButton", "ProductionButton"})
         options->getChild(name)->setVisible(!endGame);
     for(const char* name : {"QuitGameButton", "ExitGameButton", "BackButton"})
         options->getChild(name)->setVisible(endGame);

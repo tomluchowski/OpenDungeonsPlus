@@ -108,7 +108,10 @@ enum class ServerNotificationType
     playerNickChanged,
 
     // Owner-only aggregate counts, sent only after creature-panel negotiation.
-    creaturePanel
+    creaturePanel,
+
+    // Owner-only reply to a production query or reorder request.
+    trapProductionQueue
 };
 
 ODPacket& operator<<(ODPacket& os, const ServerNotificationType& nt);

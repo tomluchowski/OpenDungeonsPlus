@@ -785,6 +785,19 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
             break;
         }
 
+        case ServerNotificationType::trapProductionQueue:
+        {
+            TrapProductionData data;
+            if(!importTrapProductionData(packetReceived, data))
+            {
+                OD_LOG_ERR("Invalid trap production snapshot");
+                return false;
+            }
+            if(frameListener->getModeManager()->getCurrentModeType() == ModeManager::GAME)
+                static_cast<GameMode*>(frameListener->getModeManager()->getCurrentMode())->refreshTrapProductionQueue(data);
+            break;
+        }
+
         case ServerNotificationType::entitiesRefresh:
         {
             uint32_t nbEntities;
