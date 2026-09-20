@@ -57,22 +57,22 @@ CreatureOverlayStatus::CreatureOverlayStatus(Creature* creature, Ogre::Entity* e
     uint32_t healthId = mMovableTextOverlay->createChildOverlay("MedievalSharp", 30,
         Ogre::ColourValue(0.04f, 0.04f, 0.04f, 1.0f), "");
     mOverlayIds[static_cast<uint32_t>(CreatureOverlays::health)] = healthId;
-    mMovableTextOverlay->forceTextArea(healthId, 48,48);
+    mMovableTextOverlay->forceTextArea(healthId, 64,64);
     mMovableTextOverlay->centerCaption(healthId);
     mMovableTextOverlay->displayOverlay(healthId, 0);
 
     uint32_t experienceId = mMovableTextOverlay->createChildOverlay("MedievalSharp", 30,
         Ogre::ColourValue::White, "CreatureExperience", false);
     mOverlayIds[static_cast<uint32_t>(CreatureOverlays::experience)] = experienceId;
-    mMovableTextOverlay->forceTextArea(experienceId, 48, 48);
+    mMovableTextOverlay->forceTextArea(experienceId, 64, 64);
     mMovableTextOverlay->setAtlasFrame(experienceId, 0, 8);
 
     uint32_t recoveryId = mMovableTextOverlay->createChildOverlay("MedievalSharp", 30,
-        Ogre::ColourValue(0.04f, 0.04f, 0.04f, 1.0f), "CreatureRecovery", false);
+        Ogre::ColourValue(1.0f, 0.91f, 0.66f, 1.0f), "CreatureRecovery", false);
     mOverlayIds[static_cast<uint32_t>(CreatureOverlays::recovery)] = recoveryId;
-    mMovableTextOverlay->forceTextArea(recoveryId, 48, 48);
+    mMovableTextOverlay->forceTextArea(recoveryId, 64, 64);
     mMovableTextOverlay->centerCaption(recoveryId);
-    mMovableTextOverlay->setCaptionOutline(recoveryId, Ogre::ColourValue(1.0f, 0.91f, 0.66f, 1.0f));
+    mMovableTextOverlay->setCaptionOutline(recoveryId, Ogre::ColourValue(0.04f, 0.04f, 0.04f, 1.0f));
     mMovableTextOverlay->setAtlasFrame(recoveryId, 0, 8);
     mMovableTextOverlay->displayOverlay(recoveryId, -1);
 
@@ -81,7 +81,7 @@ CreatureOverlayStatus::CreatureOverlayStatus(Creature* creature, Ogre::Entity* e
     uint32_t statusId = mMovableTextOverlay->createChildOverlay("MedievalSharp", 16,
         Ogre::ColourValue::White, "", false);
     mOverlayIds[static_cast<uint32_t>(CreatureOverlays::status)] = statusId;
-    mMovableTextOverlay->forceTextArea(statusId, 22,22);
+    mMovableTextOverlay->forceTextArea(statusId, 30,30);
     // Note: We set the material to the first status overlay material otherwise, materials
     // are not shown when we change then ingame
     mMovableTextOverlay->setMaterialName(statusId, CREATURE_OVERLAY_STATUS_PREFIX + "1");
@@ -119,7 +119,7 @@ void CreatureOverlayStatus::updateHealth()
     {
         mLevel = mCreature->getLevel();
         const auto levelId = mOverlayIds[static_cast<uint32_t>(CreatureOverlays::recovery)];
-        mMovableTextOverlay->setCaptionSize(levelId, mLevel < 10 ? 24 : 18);
+        mMovableTextOverlay->setCaptionSize(levelId, mLevel < 10 ? 32 : 26);
         if(mStatus == 0)
         {
             mMovableTextOverlay->setCaption(levelId, Helper::toString(mLevel));

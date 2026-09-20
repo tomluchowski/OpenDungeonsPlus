@@ -19,6 +19,9 @@ def function(path, signature):
 
 
 game = (repo / 'source/modes/GameMode.cpp').read_text()
+game_header = (repo / 'source/modes/GameMode.h').read_text()
+visibility_default = re.search(r'bool mCreatureIndicatorsVisible = (true|false);', game_header).group(1)
+assert visibility_default == 'true', 'new gameplay starts with creature indicators visible'
 activation = function('source/modes/GameMode.cpp', 'void GameMode::activate()')
 assert 'mCreatureIndicatorsVisible);' in activation
 for key in ('LMENU', 'RMENU'):
@@ -78,7 +81,7 @@ namespace sf { struct Keyboard {
 };bool Keyboard::keys[6]={}; }
 struct Keyboard { OIS::Keyboard backend;OIS::Keyboard* mKeyboard=&backend;bool isModifierDown(OIS::Keyboard::Modifier); };
 KEYBOARD_METHOD
-struct GameMode { GameMap* mGameMap;bool mCreatureIndicatorsVisible=false;
+struct GameMode { GameMap* mGameMap;bool mCreatureIndicatorsVisible=VISIBILITY_DEFAULT;
  bool mIndicatorLeftAltDown=false,mIndicatorRightAltDown=false;
  void updateCreatureIndicatorAlt(OIS::KeyCode,bool); };
 TOGGLE_METHOD
@@ -106,9 +109,11 @@ int main(){int checks=0,failures=0;const auto check=[&](bool value,const char* w
  renderer.rrSetCreaturesTextOverlay(map,false);overlay.update(.1f);check(!display.visible,"release hides persistent need child too");
  check(!display.isDisplayed(99),"invalid child is not displayed");
  RenderManager::instance=&renderer;GameMode mode{&map};
+ renderer.rrSetCreaturesTextOverlay(map,mode.mCreatureIndicatorsVisible);overlay.update(0);
+ check(display.visible,"new gameplay starts with indicators visible");
  for(auto key:{OIS::KC_LMENU,OIS::KC_RMENU}) {
   for(int press=0;press<4;++press) {
-   const bool expected=press%2==0;
+   const bool expected=press%2!=0;
    mode.updateCreatureIndicatorAlt(key,true);overlay.update(0);
    check(display.visible==expected,"each Alt press toggles visibility");
    for(int repeat=0;repeat<10;++repeat)mode.updateCreatureIndicatorAlt(key,true);
@@ -117,22 +122,22 @@ int main(){int checks=0,failures=0;const auto check=[&](bool value,const char* w
    check(display.visible==expected,"release preserves selected visibility while paused");
   }
  }
- mode.updateCreatureIndicatorAlt(OIS::KC_A,true);check(!mode.mCreatureIndicatorsVisible,"other keys do not toggle");
+ mode.updateCreatureIndicatorAlt(OIS::KC_A,true);check(mode.mCreatureIndicatorsVisible,"other keys do not toggle");
  mode.updateCreatureIndicatorAlt(OIS::KC_LMENU,true);
  mode.updateCreatureIndicatorAlt(OIS::KC_RMENU,true);
  mode.updateCreatureIndicatorAlt(OIS::KC_LMENU,false);
  mode.updateCreatureIndicatorAlt(OIS::KC_RMENU,true);
- check(mode.mCreatureIndicatorsVisible,"overlapping Alt keys and repeats form one held interval");
+ check(!mode.mCreatureIndicatorsVisible,"overlapping Alt keys and repeats form one held interval");
  mode.updateCreatureIndicatorAlt(OIS::KC_RMENU,false);
  mode.updateCreatureIndicatorAlt(OIS::KC_RMENU,true);
- check(!mode.mCreatureIndicatorsVisible,"next press toggles after both Alt keys are released");
+ check(mode.mCreatureIndicatorsVisible,"next press toggles after both Alt keys are released");
  // Activation samples already-held keys but restores the saved per-mode choice.
  mode.mIndicatorLeftAltDown=true;mode.mIndicatorRightAltDown=false;
  mode.updateCreatureIndicatorAlt(OIS::KC_LMENU,true);
- check(!mode.mCreatureIndicatorsVisible,"activation with Alt held cannot create a new press");
+ check(mode.mCreatureIndicatorsVisible,"activation with Alt held cannot create a new press");
  mode.updateCreatureIndicatorAlt(OIS::KC_LMENU,false);
  mode.updateCreatureIndicatorAlt(OIS::KC_LMENU,true);
- check(mode.mCreatureIndicatorsVisible,"missed-release recovery permits next press");
+ check(!mode.mCreatureIndicatorsVisible,"missed-release recovery permits next press");
  std::cout<<"CHECKS="<<checks<<" FAILURES="<<failures<<'\n';return failures?1:0;}
 '''
 probe = probe.replace('CHILD_METHODS', '\n'.join(function('source/render/MovableTextOverlay.cpp', name)
@@ -144,6 +149,7 @@ probe = probe.replace('STATUS_METHODS', '\n'.join(function('source/render/Creatu
 probe = probe.replace('RENDER_METHOD', function('source/render/RenderManager.cpp', 'void RenderManager::rrSetCreaturesTextOverlay('))
 probe = probe.replace('KEYBOARD_METHOD', function('source/modes/Keyboard.cpp', 'bool Keyboard::isModifierDown('))
 probe = probe.replace('TOGGLE_METHOD', function('source/modes/GameMode.cpp', 'void GameMode::updateCreatureIndicatorAlt('))
+probe = probe.replace('VISIBILITY_DEFAULT', visibility_default)
 with tempfile.TemporaryDirectory(prefix='odp-indicator-alt-') as directory:
     work = Path(directory)
     (work / 'check.cpp').write_text(probe)

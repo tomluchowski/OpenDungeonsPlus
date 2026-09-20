@@ -49,6 +49,7 @@ private:
     void forceTextArea(Ogre::Real textWidth, Ogre::Real textHeight);
 
     void centerCaption();
+    void setScale(Ogre::Real scale);
 
     void displayOverlay(Ogre::Real time);
 
@@ -89,6 +90,7 @@ private:
 
     //! Height a char has for the wanted font
     Ogre::Real mCharHeight;
+    Ogre::Real mScale = 1.0f;
 
     Ogre::Real mTimeToDisplay;
 
@@ -141,7 +143,7 @@ public:
 private:
     //! Computes the position of the head of the followed entity in the screen coordinates. Returns true if
     //! the entity is on screen and position contains the position where the text should be displayed and false otherwise
-    bool computeOverlayPositionHead(Ogre::Vector2& position);
+    bool computeOverlayPositionHead(Ogre::Vector2& position, Ogre::Real& scale);
 
     const Ogre::String mName;
     const Ogre::MovableObject* mFollowedMov;
