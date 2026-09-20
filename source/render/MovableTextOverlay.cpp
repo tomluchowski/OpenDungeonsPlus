@@ -72,6 +72,8 @@ void ChildOverlay::setCaption(const Ogre::String& caption)
     {
         mCaption = caption;
         mOverlayText->setCaption(mCaption);
+        for(auto* outline : mCaptionOutline)
+            outline->setCaption(mCaption);
         computeTextArea();
         if(mCenterCaption)
             centerCaption();
@@ -94,6 +96,9 @@ void ChildOverlay::centerCaption()
 
     mOverlayText->setPosition(-mTextWidth * 0.5f - 1.0f,
         (mForcedHeight - mTextHeight) * 0.5f + 2.0f);
+    for(unsigned i = 0; i < mCaptionOutline.size(); ++i)
+        mCaptionOutline[i]->setPosition(mOverlayText->getLeft() + (i == 0 ? -0.75f : i == 1 ? 0.75f : 0.0f),
+            mOverlayText->getTop() + (i == 2 ? -0.75f : i == 3 ? 0.75f : 0.0f));
 }
 
 void ChildOverlay::computeTextArea()
@@ -193,6 +198,11 @@ MovableTextOverlay::~MovableTextOverlay()
     Ogre::OverlayManager& overlayManager = Ogre::OverlayManager::getSingleton();
     for(ChildOverlay& childOverlay : mChildOverlays)
     {
+        for(auto* outline : childOverlay.mCaptionOutline)
+        {
+            childOverlay.mOverlayContainer->removeChild(outline->getName());
+            overlayManager.destroyOverlayElement(outline);
+        }
         childOverlay.mOverlayContainer->removeChild(childOverlay.mOverlayText->getName());
         mOverlay->remove2D(childOverlay.mOverlayContainer);
         overlayManager.destroyOverlayElement(childOverlay.mOverlayText);
@@ -266,9 +276,41 @@ void MovableTextOverlay::setCaptionSize(uint32_t childOverlayId, Ogre::Real heig
     ChildOverlay& child = mChildOverlays[childOverlayId];
     child.mCharHeight = height;
     child.mOverlayText->setParameter("char_height", Helper::toString(height));
+    for(auto* outline : child.mCaptionOutline)
+        outline->setParameter("char_height", Helper::toString(height));
     child.computeTextArea();
     if(child.mCenterCaption)
         child.centerCaption();
+}
+
+void MovableTextOverlay::setCaptionOutline(uint32_t childOverlayId, const Ogre::ColourValue& colour)
+{
+    if(childOverlayId >= mChildOverlays.size())
+        return;
+    ChildOverlay& child = mChildOverlays[childOverlayId];
+    if(child.mCaptionOutline.empty())
+    {
+        for(unsigned i = 0; i < 4; ++i)
+        {
+            // Names sort before the foreground glyph in the container's Z-order.
+            auto* outline = Ogre::OverlayManager::getSingleton().createOverlayElement("TextArea",
+                mName + Helper::toString(childOverlayId) + "_OvOutline" + Helper::toString(i));
+            child.mOverlayContainer->addChild(outline);
+            outline->setMetricsMode(Ogre::GMM_RELATIVE);
+            outline->setDimensions(1.0f, 1.0f);
+            outline->setMetricsMode(Ogre::GMM_PIXELS);
+            outline->setParameter("font_name", child.mFont->getName());
+            outline->setParameter("char_height", Helper::toString(child.mCharHeight));
+            outline->setParameter("horz_align", "center");
+            outline->setParameter("vert_align", "top");
+            outline->setCaption(child.mCaption);
+            child.mCaptionOutline.push_back(outline);
+        }
+        mOverlay->setZOrder(mOverlay->getZOrder());
+    }
+    for(auto* outline : child.mCaptionOutline)
+        outline->setColour(colour);
+    child.centerCaption();
 }
 
 bool MovableTextOverlay::isVisible()

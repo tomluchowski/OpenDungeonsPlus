@@ -67,6 +67,7 @@ private:
 
     Ogre::OverlayContainer* mOverlayContainer;
     Ogre::OverlayElement* mOverlayText;
+    std::vector<Ogre::OverlayElement*> mCaptionOutline;
 
     //! the Material used in the overlay
     Ogre::String mMaterialName;
@@ -127,6 +128,7 @@ public:
     //! Centres the caption within its child overlay area
     void centerCaption(uint32_t childOverlayId);
     void setCaptionSize(uint32_t childOverlayId, Ogre::Real height);
+    void setCaptionOutline(uint32_t childOverlayId, const Ogre::ColourValue& colour);
 
     void setMaterialName(uint32_t childOverlayId, const Ogre::String& materialName);
     void setAtlasFrame(uint32_t childOverlayId, uint32_t frame, uint32_t columns);

@@ -72,6 +72,7 @@ CreatureOverlayStatus::CreatureOverlayStatus(Creature* creature, Ogre::Entity* e
     mOverlayIds[static_cast<uint32_t>(CreatureOverlays::recovery)] = recoveryId;
     mMovableTextOverlay->forceTextArea(recoveryId, 48, 48);
     mMovableTextOverlay->centerCaption(recoveryId);
+    mMovableTextOverlay->setCaptionOutline(recoveryId, Ogre::ColourValue(1.0f, 0.91f, 0.66f, 1.0f));
     mMovableTextOverlay->setAtlasFrame(recoveryId, 0, 8);
     mMovableTextOverlay->displayOverlay(recoveryId, -1);
 
