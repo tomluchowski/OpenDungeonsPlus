@@ -60,7 +60,7 @@ struct Creature {
 struct CreatureOverlayStatus {
  Creature* mCreature;MovableTextOverlay* mMovableTextOverlay;
  std::vector<uint32_t> mOverlayIds{0,1};
- void updateHealth(){}void updateStatus(float){mMovableTextOverlay->displayOverlay(1,-1);}
+ void updateHealth(){}void updateProgress(float){}void updateStatus(float){mMovableTextOverlay->displayOverlay(1,-1);}
  void displayHealthOverlay(float);void update(float);
 };
 STATUS_METHODS

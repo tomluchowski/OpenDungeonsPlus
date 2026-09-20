@@ -27,6 +27,7 @@
 #include <Overlay/OgreOverlay.h>
 #include <Overlay/OgreOverlayContainer.h>
 #include <Overlay/OgreOverlayManager.h>
+#include <Overlay/OgrePanelOverlayElement.h>
 
 ChildOverlay::ChildOverlay(const Ogre::String& fontName, Ogre::Real charHeight,
         const Ogre::ColourValue& color, const Ogre::String& materialName,
@@ -245,6 +246,29 @@ void MovableTextOverlay::setVisible(bool visible)
     else
         mOverlay->hide();
 
+}
+
+void MovableTextOverlay::setAtlasFrame(uint32_t childOverlayId, uint32_t frame, uint32_t columns)
+{
+    if(childOverlayId >= mChildOverlays.size() || columns == 0 || frame >= columns * columns)
+        return;
+    const Ogre::Real size = 1.0f / columns;
+    const Ogre::Real u = (frame % columns) * size;
+    const Ogre::Real v = (frame / columns) * size;
+    static_cast<Ogre::PanelOverlayElement*>(mChildOverlays[childOverlayId].mOverlayContainer)->setUV(
+        u, v, u + size, v + size);
+}
+
+void MovableTextOverlay::setCaptionSize(uint32_t childOverlayId, Ogre::Real height)
+{
+    if(childOverlayId >= mChildOverlays.size())
+        return;
+    ChildOverlay& child = mChildOverlays[childOverlayId];
+    child.mCharHeight = height;
+    child.mOverlayText->setParameter("char_height", Helper::toString(height));
+    child.computeTextArea();
+    if(child.mCenterCaption)
+        child.centerCaption();
 }
 
 bool MovableTextOverlay::isVisible()

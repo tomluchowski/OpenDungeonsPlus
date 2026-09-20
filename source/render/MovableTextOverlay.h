@@ -126,8 +126,10 @@ public:
 
     //! Centres the caption within its child overlay area
     void centerCaption(uint32_t childOverlayId);
+    void setCaptionSize(uint32_t childOverlayId, Ogre::Real height);
 
     void setMaterialName(uint32_t childOverlayId, const Ogre::String& materialName);
+    void setAtlasFrame(uint32_t childOverlayId, uint32_t frame, uint32_t columns);
 
     //! Displays the overlay during time seconds. If time < 0, the overlay will be always displayed
     void displayOverlay(uint32_t childOverlayId, Ogre::Real time);
