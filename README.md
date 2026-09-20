@@ -23,6 +23,7 @@ You can play singleplayer levels using the Skirmish menu, or host/join a
 multiplayer game by using the corresponding menus.
 
 Press Alt to toggle creature health and needs indicators on or off.
+Depleted health segments disappear so creatures remain visible through the gaps.
 
 ### Be part of the community
 
