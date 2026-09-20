@@ -17,6 +17,8 @@
 
 #include "renderscene/RenderSceneCameraMove.h"
 
+#include <iostream>
+
 #include "camera/CameraManager.h"
 #include "renderscene/RenderSceneManager.h"
 

@@ -299,7 +299,7 @@ Command::Result cSetCameraLightDirectionThreshold(const Command::ArgumentList_t&
 Command::Result cGetShadowTextureCount(const Command::ArgumentList_t& args, ConsoleInterface& c, AbstractModeManager&)
 {
 
-        c.print("Current shadow texture's number is  " + Helper::toString(RenderManager::getSingletonPtr()->getSceneManager()->getShadowTextureCount())) ;
+        c.print("Current shadow texture's number is  " + Helper::toString(RenderManager::getSingletonPtr()->getSceneManager()->getShadowTextureConfigList().size())) ;
         return Command::Result::SUCCESS;        
 }
 
@@ -372,7 +372,7 @@ Command::Result cPrintNodes(const Command::ArgumentList_t& args, ConsoleInterfac
 Command::Result cPrintEntities(const Command::ArgumentList_t& args, ConsoleInterface& c, AbstractModeManager&)
 {
     std::function<void(Ogre::SceneNode*)> printNodesAux = [&](Ogre::SceneNode* sn){
-  	for(Ogre::MovableObject* mv: sn->getAttachedObjectIterator())
+  	for(Ogre::MovableObject* mv: sn->getAttachedObjects())
             c.print(mv->getName());
         
         Ogre::Node::ChildNodeMap   chnm = sn->getChildren();

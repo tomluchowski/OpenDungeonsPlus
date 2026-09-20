@@ -10,9 +10,13 @@ material T2ShieldGood : RTSS/NormalMapping_MultiPass
         pass lighting
         {
             // Override the normal map.
-            rtshader_system
+            texture_unit
             {
-                lighting_stage normal_map T2ShieldGoodNormal.png
+                texture T2ShieldGoodNormal.png
+                rtshader_system
+                {
+                    normal_map tangent_space
+                }
             }
         }
 

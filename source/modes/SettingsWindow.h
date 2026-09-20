@@ -38,6 +38,11 @@ public:
 
     ~SettingsWindow();
 
+    SettingsWindow(const SettingsWindow&) = delete;
+    SettingsWindow& operator=(const SettingsWindow&) = delete;
+    SettingsWindow(SettingsWindow&&) = delete;
+    SettingsWindow& operator=(SettingsWindow&&) = delete;
+
     void show();
 
     void hide();
@@ -70,8 +75,25 @@ private:
     std::vector<CEGUI::Window*> mCustomVideoComboBoxes;
     std::vector<CEGUI::Window*> mCustomVideoTexts;
 
+    //! \brief The UI scale currently applied to the settings/apply windows
+    //! (1.0 means the layout is at its designed 800x600 geometry).
+    float mUiScale;
+
+    //! \brief The settings window "Area" as designed in the layout, kept so the
+    //! window can be re-centered from scratch when the display size changes.
+    CEGUI::String mSettingsWindowOriginalArea;
+
     //! \brief Set the different widget values according to current config.
     void initConfig();
+
+    //! \brief Scale and center the settings/apply windows for the current
+    //! display size. Safe to call again whenever the display size changes.
+    void applyUiScale();
+
+    //! \brief Called when the display size changes (e.g. after applying a new
+    //! resolution) so the windows are re-fitted instead of staying pinned to
+    //! the pixel geometry of the old resolution.
+    bool onDisplaySizeChanged(const CEGUI::EventArgs&);
 
     //! \brief Save the config, potentially stopping the application if it needs to.
     void saveConfig();

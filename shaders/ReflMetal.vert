@@ -1,38 +1,20 @@
-#version 460
-//-----------------------------------------------------------------------------
-//                         PROGRAM DEPENDENCIES
-//-----------------------------------------------------------------------------
-#define USE_OGRE_FROM_FUTURE
-#include <OgreUnifiedShader.h>
-#include "FFPLib_Transform.glsl"
-#include "SGXLib_PerPixelLighting.glsl"
-#include "FFPLib_Texturing.glsl"
+#version 330 core
+#extension GL_ARB_explicit_uniform_location : enable
+#extension GL_ARB_shading_language_include : enable
 
-//-----------------------------------------------------------------------------
-//                         GLOBAL PARAMETERS
-//-----------------------------------------------------------------------------
+uniform    mat4 projectionMatrix;
+uniform    mat4 viewMatrix;
+uniform    mat4 worldMatrix;
 
-layout(location = 0) uniform	mat4	worldviewproj_matrix;
-layout(location = 4) uniform	mat3	normal_matrix;
-layout(location = 7) uniform	mat4	worldview_matrix;
+layout (location = 0) in vec4 position;
+layout (location = 2) in vec3 normal;
 
-//-----------------------------------------------------------------------------
-//                         MAIN
-//-----------------------------------------------------------------------------
-IN(vec4	vertex, POSITION)
-IN(vec3	normal, NORMAL)
-OUT(vec3	iTexcoord_0, 0)
-OUT(vec3	iTexcoord_1, 1)
-OUT(vec2	iTexcoord_2, 2)
-void main(void) {
-	vec4	lColor_0;
-	vec4	lColor_1;
+out vec3 out_FragPos;
+out vec3 out_Normal;
 
-	FFP_Transform(worldviewproj_matrix, vertex, gl_Position);
-	lColor_0	=	vec4(1.00000,1.00000,1.00000,1.00000);
-	lColor_1	=	vec4(0.00000,0.00000,0.00000,0.00000);
-	FFP_Transform(normal_matrix, normal, iTexcoord_0);
-	FFP_Transform(worldview_matrix, vertex, iTexcoord_1);
-	FFP_GenerateTexCoord_EnvMap_Sphere(worldview_matrix, normal_matrix, vertex, normal, iTexcoord_2);
+void main() {
+    vec3 P = (worldMatrix * position).xyz;
+    out_Normal = mat3(worldMatrix) * normal;
+    gl_Position = projectionMatrix * viewMatrix * vec4(P, 1.0);
+    out_FragPos = P;
 }
-

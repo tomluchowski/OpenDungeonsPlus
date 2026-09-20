@@ -17,6 +17,8 @@
 
 #include "renderscene/RenderSceneSyncPost.h"
 
+#include <iostream>
+
 #include "camera/CameraManager.h"
 #include "renderscene/RenderSceneManager.h"
 

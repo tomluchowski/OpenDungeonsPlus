@@ -17,6 +17,8 @@
 
 #include "renderscene/RenderSceneWait.h"
 
+#include <iostream>
+
 #include "renderscene/RenderSceneManager.h"
 
 static const std::string RenderSceneWaitName = "Wait";
