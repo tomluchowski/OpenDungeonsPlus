@@ -220,9 +220,56 @@ void colourNavigationAtlas()
     }
 }
 
+void createSummonWorkerIcon()
+{
+    const int size = 64;
+    std::vector<unsigned char> pixels(size * size * 4, 0);
+    for(int y = 0; y < size; ++y)
+    {
+        for(int x = 0; x < size; ++x)
+        {
+            int coverage = 0;
+            for(int sy = 0; sy < 4; ++sy)
+            {
+                for(int sx = 0; sx < 4; ++sx)
+                {
+                    const float px = x + (sx + 0.5f) * 0.25f;
+                    const float py = y + (sy + 0.5f) * 0.25f;
+                    const auto ellipse = [&](float cx, float cy, float rx, float ry)
+                    {
+                        const float dx = (px - cx) / rx;
+                        const float dy = (py - cy) / ry;
+                        return dx * dx + dy * dy <= 1.0f;
+                    };
+                    const float earX = std::abs(px - 28.0f);
+                    const bool ears = earX <= 22.0f &&
+                        py >= 31.0f - 0.55f * earX && py <= 45.0f - 1.15f * earX;
+                    const bool face = ellipse(28, 30, 16, 18) || ellipse(28, 43, 10, 11);
+                    const bool eyes = ellipse(21, 31, 5, 6) || ellipse(35, 31, 5, 6);
+                    const bool nose = std::abs(px - 28.0f) <= 2.5f && py >= 39 && py <= 43;
+                    const bool mouth = py >= 47 && py <= 49 && std::abs(px - 28.0f) <= 4;
+                    const bool worker = (face || ears) && !eyes && !nose && !mouth;
+                    coverage += worker ? 1 : 0;
+                }
+            }
+            const int i = (y * size + x) * 4;
+            pixels[i] = pixels[i + 1] = pixels[i + 2] = 255;
+            pixels[i + 3] = static_cast<unsigned char>(coverage * 255 / 16);
+        }
+    }
+    shadeNavigationIcon(pixels, size, 132, 186, 242);
+    auto& texture = CEGUI::System::getSingleton().getRenderer()->createTexture("SummonWorkerSymbol");
+    texture.loadFromMemory(pixels.data(), CEGUI::Sizef(size, size), CEGUI::Texture::PF_RGBA);
+    auto& image = static_cast<CEGUI::BasicImage&>(CEGUI::ImageManager::getSingleton().get(
+        "OpenDungeonsIcons/SummonWorkerButton"));
+    image.setTexture(&texture);
+    image.setArea(CEGUI::Rectf(0, 0, size, size));
+}
+
 void createNavigationImages()
 {
     colourNavigationAtlas();
+    createSummonWorkerIcon();
     createMiniMapCornerImages();
     const int size = 64;
     std::vector<unsigned char> pixels(size * size * 4, 0);
