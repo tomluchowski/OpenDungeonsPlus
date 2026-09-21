@@ -1711,7 +1711,7 @@ void GameMode::receiveEventShortNotice(EventMessage* event)
     CEGUI::Window* tab = CEGUI::WindowManager::getSingleton().createWindow("OD/GameTabButton");
     tab->setProperty("NavigationFrame", "True");
     tab->setProperty("NormalImage", "OpenDungeonsIcons/NavigationMessages");
-    tab->setTooltipText("Message: left-click to read, right-click to dismiss after reading");
+    tab->setTooltipText("Message: left-click to read, right-click to dismiss");
     tab->setRiseOnClickEnabled(false);
     tab->setUserData(event);
     tab->subscribeEvent(CEGUI::PushButton::EventClicked,
@@ -1766,7 +1766,7 @@ void GameMode::dismissEventMessage(EventMessage* message)
 {
     auto found = std::find_if(mMessageTabs.begin(), mMessageTabs.end(),
         [message](const MessageTab& tab) { return tab.message == message; });
-    if(found == mMessageTabs.end() || !found->read)
+    if(found == mMessageTabs.end())
         return;
     if(mSelectedEventMessage == message)
     {
