@@ -37,7 +37,6 @@
 #include "creatureaction/CreatureActionSearchWallTileToClaim.h"
 #include "creatureaction/CreatureActionSleep.h"
 #include "creatureaction/CreatureActionStealFreeGold.h"
-#include "creatureaction/CreatureActionUseRoom.h"
 #include "creatureaction/CreatureActionWalkToTile.h"
 #include "creaturebehaviour/CreatureBehaviour.h"
 #include "creatureeffect/CreatureEffect.h"
@@ -174,7 +173,7 @@ Creature::Creature(GameMap* gameMap, const CreatureDefinition* definition, Seat*
     mNbTurnsWithoutBattle    (0),
     mCarriedEntity           (nullptr),
     mMoodCooldownTurns       (0),
-    mMoodValue               (gameMap->isServerGameMap() ? CreatureMoodLevel::Neutral : CreatureMoodLevel::Unknown),
+    mMoodValue               (CreatureMoodLevel::Neutral),
     mMoodPoints              (0),
     mNbTurnFurious           (-1),
     mOverlayHealthValue      (0),
@@ -259,7 +258,7 @@ Creature::Creature(GameMap* gameMap) :
     mNbTurnsWithoutBattle    (0),
     mCarriedEntity           (nullptr),
     mMoodCooldownTurns       (0),
-    mMoodValue               (gameMap->isServerGameMap() ? CreatureMoodLevel::Neutral : CreatureMoodLevel::Unknown),
+    mMoodValue               (CreatureMoodLevel::Neutral),
     mMoodPoints              (0),
     mNbTurnFurious           (-1),
     mOverlayHealthValue      (0),
@@ -610,9 +609,6 @@ void Creature::exportToPacket(ODPacket& os, const Seat* seat) const
         os << mWeaponR->getName();
     else
         os << "none";
-
-    exportMoodToPacket(os, seat);
-    exportActivityToPacket(os, seat);
 }
 
 void Creature::importFromPacket(ODPacket& is)
@@ -665,8 +661,6 @@ void Creature::importFromPacket(ODPacket& is)
         }
     }
 
-    importMoodFromPacket(is);
-    importActivityFromPacket(is);
     setupDefinition(*getGameMap(), *ConfigManager::getSingleton().getCreatureDefinitionDefaultWorker());
 }
 
@@ -1734,8 +1728,6 @@ void Creature::exportToPacketForUpdate(ODPacket& os, Seat* seat)
         seatPrisonId = mSeatPrison->getId();
 
     os << seatPrisonId;
-    exportMoodToPacket(os, seat);
-    exportActivityToPacket(os, seat);
 }
 
 void Creature::updateFromPacket(ODPacket& is)
@@ -1781,119 +1773,6 @@ void Creature::updateFromPacket(ODPacket& is)
             OD_LOG_ERR("Creature " + getName() + ", wrong seatId=" + Helper::toString(seatId));
         }
     }
-
-    importMoodFromPacket(is);
-    importActivityFromPacket(is);
-}
-
-void Creature::exportMoodToPacket(ODPacket& os, const Seat* seat) const
-{
-    if(!ODServer::getSingleton().supportsCreatureMood(seat->getPlayer()))
-        return;
-
-    int32_t mood = static_cast<int32_t>(seat->isAlliedSeat(getSeat()) ?
-        mMoodValue : CreatureMoodLevel::Unknown);
-    os << mood;
-}
-
-void Creature::importMoodFromPacket(ODPacket& is)
-{
-    mMoodValue = CreatureMoodLevel::Unknown;
-    if(!ODClient::getSingleton().supportsCreatureMood())
-        return;
-
-    int32_t mood = static_cast<int32_t>(CreatureMoodLevel::Unknown);
-    OD_ASSERT_TRUE(is >> mood);
-    if(mood < static_cast<int32_t>(CreatureMoodLevel::Unknown) ||
-       mood > static_cast<int32_t>(CreatureMoodLevel::Furious))
-    {
-        OD_LOG_ERR("Invalid creature mood=" + Helper::toString(mood));
-        return;
-    }
-    mMoodValue = static_cast<CreatureMoodLevel>(mood);
-}
-
-CreatureActivity Creature::getActivity() const
-{
-    CreatureActivity activity;
-    if(!getIsOnMap() || !isAlive() || isKo())
-        return activity;
-
-    if(!getIsOnServerMap())
-        return mActivity;
-
-    activity.known = true;
-    if(!mActions.empty())
-        activity.action = mActions.back()->getType();
-
-    for(auto it = mActions.rbegin(); it != mActions.rend(); ++it)
-    {
-        const CreatureActionType type = (*it)->getType();
-        if(activity.task == CreatureActionType::nb && type != CreatureActionType::walkToTile &&
-           type != CreatureActionType::parkToTile)
-            activity.task = type;
-
-        if(type != CreatureActionType::useRoom)
-            continue;
-
-        const Room* room = static_cast<const CreatureActionUseRoom*>(it->get())->getRoom();
-        if(room != nullptr)
-        {
-            activity.assignedRoom = room->getType();
-            const Tile* tile = getPositionTile();
-            activity.inAssignedRoom = tile != nullptr && tile->getCoveringRoom() == room;
-        }
-        break;
-    }
-    return activity;
-}
-
-void Creature::exportActivityToPacket(ODPacket& os, const Seat* seat) const
-{
-    if(!ODServer::getSingleton().supportsCreatureActivity(seat->getPlayer()))
-        return;
-
-    const CreatureActivity activity = seat->isAlliedSeat(getSeat()) ? getActivity() : CreatureActivity();
-    os << activity.known;
-    if(!activity.known)
-        return;
-
-    os << static_cast<int32_t>(activity.action) << static_cast<int32_t>(activity.task)
-       << static_cast<int32_t>(activity.assignedRoom) << activity.inAssignedRoom;
-}
-
-void Creature::importActivityFromPacket(ODPacket& is)
-{
-    mActivity = CreatureActivity();
-    if(!ODClient::getSingleton().supportsCreatureActivity())
-        return;
-
-    CreatureActivity activity;
-    if(!(is >> activity.known))
-    {
-        OD_LOG_ERR("Missing creature activity for " + getName());
-        return;
-    }
-    if(!activity.known)
-        return;
-
-    int32_t action, task, room;
-    if(!(is >> action >> task >> room >> activity.inAssignedRoom))
-    {
-        OD_LOG_ERR("Incomplete creature activity for " + getName());
-        return;
-    }
-    if(action < 0 || action > static_cast<int32_t>(CreatureActionType::nb) ||
-       task < 0 || task > static_cast<int32_t>(CreatureActionType::nb) ||
-       room < 0 || room >= static_cast<int32_t>(RoomType::nbRooms))
-    {
-        OD_LOG_ERR("Invalid creature activity for " + getName());
-        return;
-    }
-    activity.action = static_cast<CreatureActionType>(action);
-    activity.task = static_cast<CreatureActionType>(task);
-    activity.assignedRoom = static_cast<RoomType>(room);
-    mActivity = activity;
 }
 
 void Creature::updateTilesInSight()
@@ -2390,7 +2269,6 @@ void Creature::pickup()
     removeEntityFromPositionTile();
     clearDestinations(EntityAnimation::idle_anim, true, true);
     clearActionQueue();
-    mActivity = CreatureActivity();
 
     if(!getIsOnServerMap())
         return;
@@ -2888,13 +2766,6 @@ void Creature::fireRemoveEntity(Seat* seat,NodeType nt)
 
 void Creature::fireCreatureRefreshIfNeeded()
 {
-    const CreatureActivity activity = getActivity();
-    if(!(mActivity == activity))
-    {
-        mActivity = activity;
-        mNeedFireRefresh = true;
-    }
-
     if(!mNeedFireRefresh)
         return;
 
@@ -3194,8 +3065,6 @@ void Creature::computeMood()
     mMoodValue = CreatureMoodManager::getCreatureMoodLevel(mMoodPoints);
     if(mMoodValue == oldMoodValue)
         return;
-
-    mNeedFireRefresh = true;
 
     if((mMoodValue >= CreatureMoodLevel::Furious) &&
        (oldMoodValue < CreatureMoodLevel::Furious))

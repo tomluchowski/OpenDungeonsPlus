@@ -376,7 +376,7 @@ private:
     void buildPlayerSettingsWindow();
 
     void updateCreatureIndicatorAlt(OIS::KeyCode key, bool pressed);
-    bool mCreatureIndicatorsVisible = false;
+    bool mCreatureIndicatorsVisible = true;
     bool mIndicatorLeftAltDown = false;
     bool mIndicatorRightAltDown = false;
 
