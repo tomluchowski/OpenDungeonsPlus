@@ -27,6 +27,7 @@
 #include <Overlay/OgreOverlay.h>
 #include <Overlay/OgreOverlayContainer.h>
 #include <Overlay/OgreOverlayManager.h>
+#include <Overlay/OgrePanelOverlayElement.h>
 
 ChildOverlay::ChildOverlay(const Ogre::String& fontName, Ogre::Real charHeight,
         const Ogre::ColourValue& color, const Ogre::String& materialName,
@@ -71,6 +72,8 @@ void ChildOverlay::setCaption(const Ogre::String& caption)
     {
         mCaption = caption;
         mOverlayText->setCaption(mCaption);
+        for(auto* outline : mCaptionOutline)
+            outline->setCaption(mCaption);
         computeTextArea();
         if(mCenterCaption)
             centerCaption();
@@ -91,8 +94,23 @@ void ChildOverlay::centerCaption()
     if(mOverlayText == nullptr || mForcedHeight < 0.0f)
         return;
 
-    mOverlayText->setPosition(-mTextWidth * 0.5f - 1.0f,
-        (mForcedHeight - mTextHeight) * 0.5f + 2.0f);
+    mOverlayText->setPosition((-mTextWidth * 0.5f - 1.0f) * mScale,
+        ((mForcedHeight - mTextHeight) * 0.5f + 2.0f) * mScale);
+    for(unsigned i = 0; i < mCaptionOutline.size(); ++i)
+        mCaptionOutline[i]->setPosition(mOverlayText->getLeft() + mScale * (i == 0 ? -0.75f : i == 1 ? 0.75f : 0.0f),
+            mOverlayText->getTop() + mScale * (i == 2 ? -0.75f : i == 3 ? 0.75f : 0.0f));
+}
+
+void ChildOverlay::setScale(Ogre::Real scale)
+{
+    if(mScale == scale)
+        return;
+    mScale = scale;
+    mOverlayText->setParameter("char_height", Helper::toString(mCharHeight * mScale));
+    for(auto* outline : mCaptionOutline)
+        outline->setParameter("char_height", Helper::toString(mCharHeight * mScale));
+    if(mCenterCaption)
+        centerCaption();
 }
 
 void ChildOverlay::computeTextArea()
@@ -132,17 +150,17 @@ void ChildOverlay::displayOverlay(Ogre::Real time)
 Ogre::Real ChildOverlay::getWidth()
 {
     if(mForcedWidth != -1)
-        return mForcedWidth;
+        return mForcedWidth * mScale;
 
-    return mTextWidth;
+    return mTextWidth * mScale;
 }
 
 Ogre::Real ChildOverlay::getHeight()
 {
     if(mForcedHeight != -1)
-        return mForcedHeight;
+        return mForcedHeight * mScale;
 
-    return mTextHeight;
+    return mTextHeight * mScale;
 }
 
 void ChildOverlay::update(Ogre::Real timeSincelastFrame)
@@ -192,6 +210,11 @@ MovableTextOverlay::~MovableTextOverlay()
     Ogre::OverlayManager& overlayManager = Ogre::OverlayManager::getSingleton();
     for(ChildOverlay& childOverlay : mChildOverlays)
     {
+        for(auto* outline : childOverlay.mCaptionOutline)
+        {
+            childOverlay.mOverlayContainer->removeChild(outline->getName());
+            overlayManager.destroyOverlayElement(outline);
+        }
         childOverlay.mOverlayContainer->removeChild(childOverlay.mOverlayText->getName());
         mOverlay->remove2D(childOverlay.mOverlayContainer);
         overlayManager.destroyOverlayElement(childOverlay.mOverlayText);
@@ -247,6 +270,61 @@ void MovableTextOverlay::setVisible(bool visible)
 
 }
 
+void MovableTextOverlay::setAtlasFrame(uint32_t childOverlayId, uint32_t frame, uint32_t columns)
+{
+    if(childOverlayId >= mChildOverlays.size() || columns == 0 || frame >= columns * columns)
+        return;
+    const Ogre::Real size = 1.0f / columns;
+    const Ogre::Real u = (frame % columns) * size;
+    const Ogre::Real v = (frame / columns) * size;
+    static_cast<Ogre::PanelOverlayElement*>(mChildOverlays[childOverlayId].mOverlayContainer)->setUV(
+        u, v, u + size, v + size);
+}
+
+void MovableTextOverlay::setCaptionSize(uint32_t childOverlayId, Ogre::Real height)
+{
+    if(childOverlayId >= mChildOverlays.size())
+        return;
+    ChildOverlay& child = mChildOverlays[childOverlayId];
+    child.mCharHeight = height;
+    child.mOverlayText->setParameter("char_height", Helper::toString(height * child.mScale));
+    for(auto* outline : child.mCaptionOutline)
+        outline->setParameter("char_height", Helper::toString(height * child.mScale));
+    child.computeTextArea();
+    if(child.mCenterCaption)
+        child.centerCaption();
+}
+
+void MovableTextOverlay::setCaptionOutline(uint32_t childOverlayId, const Ogre::ColourValue& colour)
+{
+    if(childOverlayId >= mChildOverlays.size())
+        return;
+    ChildOverlay& child = mChildOverlays[childOverlayId];
+    if(child.mCaptionOutline.empty())
+    {
+        for(unsigned i = 0; i < 4; ++i)
+        {
+            // Names sort before the foreground glyph in the container's Z-order.
+            auto* outline = Ogre::OverlayManager::getSingleton().createOverlayElement("TextArea",
+                mName + Helper::toString(childOverlayId) + "_OvOutline" + Helper::toString(i));
+            child.mOverlayContainer->addChild(outline);
+            outline->setMetricsMode(Ogre::GMM_RELATIVE);
+            outline->setDimensions(1.0f, 1.0f);
+            outline->setMetricsMode(Ogre::GMM_PIXELS);
+            outline->setParameter("font_name", child.mFont->getName());
+            outline->setParameter("char_height", Helper::toString(child.mCharHeight * child.mScale));
+            outline->setParameter("horz_align", "center");
+            outline->setParameter("vert_align", "top");
+            outline->setCaption(child.mCaption);
+            child.mCaptionOutline.push_back(outline);
+        }
+        mOverlay->setZOrder(mOverlay->getZOrder());
+    }
+    for(auto* outline : child.mCaptionOutline)
+        outline->setColour(colour);
+    child.centerCaption();
+}
+
 bool MovableTextOverlay::isVisible()
 {
     return mOverlay->isVisible();
@@ -300,7 +378,7 @@ void MovableTextOverlay::setMaterialName(uint32_t childOverlayId, const Ogre::St
     childOverlay.setMaterialName(materialName);
 }
 
-bool MovableTextOverlay::computeOverlayPositionHead(Ogre::Vector2& position)
+bool MovableTextOverlay::computeOverlayPositionHead(Ogre::Vector2& position, Ogre::Real& scale)
 {
     // The AABB of the target. It has to be derived rather than taken as it stands: the
     // entities are moved during the frame, after the scene was last updated, so the box
@@ -321,7 +399,17 @@ bool MovableTextOverlay::computeOverlayPositionHead(Ogre::Vector2& position)
         return false;
 
     // Transform 3D point to screen
-    Ogre::Vector3 screenPosition = mCamera->getProjectionMatrix() * (mCamera->getViewMatrix() * centerTop);
+    const Ogre::Vector3 viewPosition = mCamera->getViewMatrix() * centerTop;
+    const Ogre::Vector4 projected = mCamera->getProjectionMatrix() *
+        Ogre::Vector4(viewPosition.x, viewPosition.y, viewPosition.z, 1.0f);
+    if(projected.w <= 0.0f)
+        return false;
+    const Ogre::Vector3 screenPosition(projected.x / projected.w,
+        projected.y / projected.w, projected.z / projected.w);
+    // A three-quarter-tile, camera-facing marker, with a readable distant minimum.
+    const Ogre::Real diameter = 0.75f * mCamera->getProjectionMatrix()[1][1] *
+        Ogre::OverlayManager::getSingleton().getViewportHeight() * 0.5f / projected.w;
+    scale = std::max(1.0f, diameter / 64.0f);
 
     // We transform from coordinate space [-1, 1] to [0, 1]
     position.x = 0.5 + (screenPosition.x * 0.5);
@@ -368,7 +456,8 @@ void MovableTextOverlay::update(Ogre::Real timeSincelastFrame)
         return;
 
     Ogre::Vector2 screenPosition;
-    if(!computeOverlayPositionHead(screenPosition))
+    Ogre::Real scale;
+    if(!computeOverlayPositionHead(screenPosition, scale))
     {
         for(ChildOverlay& childOverlay : mChildOverlays)
             childOverlay.setOnScreen(false);
@@ -378,6 +467,7 @@ void MovableTextOverlay::update(Ogre::Real timeSincelastFrame)
 
     for(ChildOverlay& childOverlay : mChildOverlays)
     {
+        childOverlay.setScale(scale);
         childOverlay.setOnScreen(true);
         if(!childOverlay.isDisplayed())
             continue;

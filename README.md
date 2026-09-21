@@ -22,7 +22,8 @@ following resources to learn the basic gameplay concepts:
 You can play singleplayer levels using the Skirmish menu, or host/join a
 multiplayer game by using the corresponding menus.
 
-Press Alt to toggle creature health and needs indicators on or off.
+Creature health and needs indicators are visible by default; press Alt to toggle
+them, and zoom in to enlarge their level, experience and attack-recovery display.
 Depleted health segments disappear so creatures remain visible through the gaps.
 
 ### Be part of the community
