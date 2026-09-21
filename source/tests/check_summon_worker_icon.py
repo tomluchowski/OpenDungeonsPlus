@@ -7,6 +7,7 @@ import xml.etree.ElementTree as ET
 
 repo = Path(__file__).resolve().parents[2]
 prefix = Path(os.environ['CMAKE_PREFIX_PATH'])
+(repo / 'build' / 'review-followups').mkdir(parents=True, exist_ok=True)
 gui = (repo / 'source/render/Gui.cpp').read_text()
 game = (repo / 'source/modes/GameMode.cpp').read_text()
 
