@@ -28,6 +28,7 @@
 #include "entities/Tile.h"
 #include "entities/Weapon.h"
 #include "game/Player.h"
+#include "game/CreaturePanelData.h"
 #include "game/Seat.h"
 #include "game/Skill.h"
 #include "game/SkillType.h"
@@ -224,9 +225,39 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
             ServerMode serverMode;
             OD_ASSERT_TRUE(packetReceived >> serverMode);
 
+            // Older servers and replays end this packet after the server mode.
+            bool liveNickname = false;
+            if(!packetReceived.endOfPacket())
+                OD_ASSERT_TRUE(packetReceived >> liveNickname);
+            setSupportsLiveNickname(liveNickname);
+
+            bool creatureMood = false;
+            if(!packetReceived.endOfPacket())
+                OD_ASSERT_TRUE(packetReceived >> creatureMood);
+            // Payload extensions start only after the server confirms this client's agreement.
+            setSupportsCreatureMood(false);
+
+            bool creatureActivity = false;
+            if(!packetReceived.endOfPacket())
+                OD_ASSERT_TRUE(packetReceived >> creatureActivity);
+            setSupportsCreatureActivity(false);
+
+            bool creaturePanel = false;
+            if(!packetReceived.endOfPacket())
+                OD_ASSERT_TRUE(packetReceived >> creaturePanel);
+            setSupportsCreaturePanel(false);
+
             ODPacket packSend;
             const std::string& nick = gameMap->getLocalPlayerNick();
             packSend << ClientNotificationType::setNick << nick;
+            if(liveNickname || creatureMood || creatureActivity || creaturePanel)
+                packSend << liveNickname;
+            if(creatureMood || creatureActivity || creaturePanel)
+                packSend << creatureMood;
+            if(creatureActivity || creaturePanel)
+                packSend << creatureActivity;
+            if(creaturePanel)
+                packSend << true;
             send(packSend);
 
             // We can proceed to configure seat level
@@ -289,6 +320,23 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
                 OD_ASSERT_TRUE(packetReceived >> nick >> id);
                 mode->addPlayer(nick, id);
                 addEventMessage(new EventMessage(nick + " is now connected."));
+            }
+            break;
+        }
+
+        case ServerNotificationType::playerNickChanged:
+        {
+            int32_t playerId;
+            std::string nickname;
+            OD_ASSERT_TRUE(packetReceived >> playerId >> nickname);
+            for(Player* player : gameMap->getPlayers())
+            {
+                if(player->getId() != playerId)
+                    continue;
+                player->setNick(nickname);
+                if(player == getPlayer())
+                    gameMap->setLocalPlayerNick(nickname);
+                break;
             }
             break;
         }
@@ -373,6 +421,22 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
 
             ServerMode serverMode;
             OD_ASSERT_TRUE(packetReceived >> serverMode);
+
+            // Replays also need the per-client agreement, not just the server's offer.
+            bool creatureMood = false;
+            if(!packetReceived.endOfPacket())
+                OD_ASSERT_TRUE(packetReceived >> creatureMood);
+            setSupportsCreatureMood(creatureMood);
+
+            bool creatureActivity = false;
+            if(!packetReceived.endOfPacket())
+                OD_ASSERT_TRUE(packetReceived >> creatureActivity);
+            setSupportsCreatureActivity(creatureActivity);
+
+            bool creaturePanel = false;
+            if(!packetReceived.endOfPacket())
+                OD_ASSERT_TRUE(packetReceived >> creaturePanel);
+            setSupportsCreaturePanel(creaturePanel);
 
             // Now that the we have received all needed information, we can launch the requested mode
             OD_LOG_INF("Starting game map");
@@ -659,6 +723,19 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
             OD_ASSERT_TRUE(packetReceived >> goalsString);
 
             refreshMainUI(goalsString);
+            break;
+        }
+
+        case ServerNotificationType::creaturePanel:
+        {
+            CreaturePanelData data;
+            if(!supportsCreaturePanel() || !importCreaturePanelData(packetReceived, data))
+            {
+                OD_LOG_ERR("Invalid creature panel snapshot");
+                return false;
+            }
+            if(frameListener->getModeManager()->getCurrentModeType() == ModeManager::GAME)
+                static_cast<GameMode*>(frameListener->getModeManager()->getCurrentMode())->refreshCreaturePanel(data);
             break;
         }
 
@@ -1465,6 +1542,18 @@ bool ODClient::replay(const std::string& filename)
 void ODClient::queueClientNotification(ClientNotification* n)
 {
     mClientNotificationQueue.push_back(n);
+}
+
+void ODClient::requestNicknameChange(const std::string& nickname)
+{
+    if(getSource() != ODSource::network || getPlayer() == nullptr || getPlayer()->getNick() == nickname)
+        return;
+    if(!supportsLiveNickname())
+    {
+        OD_LOG_WRN("The connected server does not support changing the current player's nickname.");
+        return;
+    }
+    queueClientNotification(ClientNotificationType::changeNick, nickname);
 }
 
 void ODClient::disconnect(bool keepReplay)

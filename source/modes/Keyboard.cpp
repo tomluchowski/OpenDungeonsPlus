@@ -14,7 +14,7 @@ bool Keyboard::isModifierDown(OIS::Keyboard::Modifier code)
         case OIS::Keyboard::Alt:
             return sf::Keyboard::isKeyPressed(sf::Keyboard::LAlt) || sf::Keyboard::isKeyPressed(sf::Keyboard::RAlt);
         case OIS::Keyboard::Ctrl:
-            return sf::Keyboard::isKeyPressed(sf::Keyboard::LControl) || sf::Keyboard::isKeyPressed(sf::Keyboard::LControl);
+            return sf::Keyboard::isKeyPressed(sf::Keyboard::LControl) || sf::Keyboard::isKeyPressed(sf::Keyboard::RControl);
         case OIS::Keyboard::Shift:
             return sf::Keyboard::isKeyPressed(sf::Keyboard::LShift) || sf::Keyboard::isKeyPressed(sf::Keyboard::RShift);
         default:

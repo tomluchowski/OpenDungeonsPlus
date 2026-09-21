@@ -23,9 +23,11 @@
 #include "modes/InputCommand.h"
 #include "modes/InputBridge.h"
 #include "modes/SettingsWindow.h"
+#include "game/CreaturePanelData.h"
 
 #include "utils/ConfigManager.h"
 #include <CEGUI/EventArgs.h>
+#include <memory>
 
 namespace CEGUI
 {
@@ -33,6 +35,8 @@ class Window;
 }
 
 class Creature;
+class CreaturePanel;
+class GameEntity;
 
 enum class SpellType;
 enum class SkillType;
@@ -166,6 +170,7 @@ class GameMode final : public GameEditorModeBase, public InputCommand
 
     //! \brief Refreshed the main ui data, such as mana, gold, ...
     void refreshMainUI();
+    void refreshCreaturePanel(const CreaturePanelData& data);
 
     void selectSquaredTiles(int tileX1, int tileY1, int tileX2, int tileY2) override;
     void selectTiles(const std::vector<Tile*> tiles) override;
@@ -220,6 +225,7 @@ protected:
     virtual bool keyReleasedNormal  (const OIS::KeyEvent &arg);
 
 private:
+    std::unique_ptr<CreaturePanel> mCreaturePanel;
     //! \brief Whether the pending exit confirmation should leave to the desktop
     //! rather than back to the main menu. Set by the button that opened the
     //! confirmation popup.
@@ -285,6 +291,9 @@ private:
     void checkInputCommand();
     void handlePlayerActionNone();
     void handlePlayerActionSelectTile();
+    bool toggleQuery(const CEGUI::EventArgs& e);
+    GameEntity* getQueryTarget(Tile* tile) const;
+    void handlePlayerActionQuery();
 
     //! \brief Builds the player settings window
     void buildPlayerSettingsWindow();
