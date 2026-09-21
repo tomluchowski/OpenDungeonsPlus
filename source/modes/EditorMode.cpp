@@ -1493,6 +1493,8 @@ bool EditorMode::hidePortalWaveWindow(const CEGUI::EventArgs& /*arg*/)
 
 bool EditorMode::keyPressed(const OIS::KeyEvent &arg)
 {
+    if(handleDesktopKey(arg))
+        return true;
     // Inject key to the gui currently displayed
     const bool guiHandledKey = CEGUI::System::getSingleton().getDefaultGUIContext().injectKeyDown(
         static_cast<CEGUI::Key::Scan>(arg.key));

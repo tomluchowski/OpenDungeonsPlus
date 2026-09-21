@@ -20,6 +20,7 @@
 #include "network/ODClient.h"
 #include "network/ODServer.h"
 #include "render/Gui.h"
+#include "render/ODFrameListener.h"
 
 #include <CEGUI/System.h>
 #include <CEGUI/GUIContext.h>
@@ -29,6 +30,10 @@
 #include <CEGUI/widgets/PopupMenu.h>
 
 #include <algorithm>
+
+#if defined OIS_WIN32_PLATFORM
+#include <windows.h>
+#endif
 
 namespace
 {
@@ -99,6 +104,8 @@ bool AbstractApplicationMode::mouseReleased(const OIS::MouseEvent& arg, OIS::Mou
 
 bool AbstractApplicationMode::keyPressed(const OIS::KeyEvent& arg)
 {
+    if(handleDesktopKey(arg))
+        return true;
     switch (arg.key)
     {
     case OIS::KC_ESCAPE:
@@ -114,6 +121,22 @@ bool AbstractApplicationMode::keyPressed(const OIS::KeyEvent& arg)
         break;
     }
     return true;
+}
+
+bool AbstractApplicationMode::handleDesktopKey(const OIS::KeyEvent& arg)
+{
+#if defined OIS_WIN32_PLATFORM
+    if(arg.key == OIS::KC_LWIN || arg.key == OIS::KC_RWIN)
+    {
+        size_t windowHandle = 0;
+        ODFrameListener::getSingleton().getRenderWindow()->getCustomAttribute("WINDOW", &windowHandle);
+        const HWND window = reinterpret_cast<HWND>(windowHandle);
+        if(window != nullptr && GetForegroundWindow() == window)
+            ShowWindow(window, SW_MINIMIZE);
+        return true;
+    }
+#endif
+    return false;
 }
 
 bool AbstractApplicationMode::keyReleased(const OIS::KeyEvent& arg)

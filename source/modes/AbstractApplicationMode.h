@@ -127,6 +127,9 @@ public:
     {}
 
 protected:
+    //! Release the foreground Windows game window to the desktop.
+    bool handleDesktopKey(const OIS::KeyEvent& arg);
+
     //! Close the frontmost visible GUI window through its existing cancel handler.
     bool closeTopWindow();
 
