@@ -126,6 +126,11 @@ TrapSpike::TrapSpike(GameMap* gameMap) :
     setMeshName("");
 }
 
+double TrapSpike::getTileHP() const
+{
+    return ConfigManager::getSingleton().getTrapConfigDoubleOrDefault("SpikeHP", DEFAULT_TILE_HP);
+}
+
 bool TrapSpike::shoot(Tile* tile)
 {
     std::vector<Tile*> visibleTiles;

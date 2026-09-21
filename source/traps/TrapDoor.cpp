@@ -432,6 +432,11 @@ bool TrapDoor::permitsVision(Tile* tile)
     return !mIsLockedState;
 }
 
+double TrapDoor::getTileHP() const
+{
+    return ConfigManager::getSingleton().getTrapConfigDoubleOrDefault("WoodenDoorHP", DEFAULT_TILE_HP);
+}
+
 double TrapDoor::getCreatureSpeed(const Creature* creature, Tile* tile) const
 {
     const TrapTileData* trapTileData = static_cast<const TrapTileData*>(mTileData.at(tile));

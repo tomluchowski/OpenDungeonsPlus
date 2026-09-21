@@ -207,3 +207,8 @@ double TrapCannon::getElementDefense() const
 {
     return ConfigManager::getSingleton().getTrapConfigUInt32("CannonEleDef");
 }
+
+double TrapCannon::getTileHP() const
+{
+    return ConfigManager::getSingleton().getTrapConfigDoubleOrDefault("CannonHP", DEFAULT_TILE_HP);
+}

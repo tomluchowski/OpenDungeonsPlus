@@ -205,6 +205,11 @@ public:
 
     virtual bool isAttackable(Tile* tile, Seat* seat) const override;
 
+    //! \brief Hit points each tile of the trap starts with. Trap types
+    //! override this to read their value from the trap configuration file.
+    virtual double getTileHP() const
+    { return DEFAULT_TILE_HP; }
+
     virtual bool shouldSetCoveringTileDirty(Seat* seat, Tile* tile) override;
 
     virtual void restoreInitialEntityState() override;

@@ -127,6 +127,11 @@ TrapBoulder::TrapBoulder(GameMap* gameMap) :
     setMeshName("");
 }
 
+double TrapBoulder::getTileHP() const
+{
+    return ConfigManager::getSingleton().getTrapConfigDoubleOrDefault("BoulderHP", DEFAULT_TILE_HP);
+}
+
 bool TrapBoulder::shoot(Tile* tile)
 {
     std::vector<Tile*> tiles = tile->getAllNeighbors();
