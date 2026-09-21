@@ -421,9 +421,12 @@ void MovableGameEntity::restoreEntityState()
     GameEntity::restoreEntityState();
     if(!mPrevAnimationState.empty())
     {
+        // The corpse fallback tilts the node; restore its heading before that tilt.
+        if(mPrevAnimationState == EntityAnimation::rot_anim && mWalkDirection != Ogre::Vector3::ZERO)
+            RenderManager::getSingleton().rrOrientEntityToward(this, mWalkDirection);
         RenderManager::getSingleton().rrSetObjectAnimationState(this, mPrevAnimationState, mPrevAnimationStateLoop);
 
-        if(mWalkDirection != Ogre::Vector3::ZERO)
+        if(mPrevAnimationState != EntityAnimation::rot_anim && mWalkDirection != Ogre::Vector3::ZERO)
             RenderManager::getSingleton().rrOrientEntityToward(this, mWalkDirection);
 
         // If the mesh has no skeleton, getAnimationState() could return null

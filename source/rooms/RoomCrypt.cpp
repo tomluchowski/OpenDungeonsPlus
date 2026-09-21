@@ -186,6 +186,8 @@ void RoomCrypt::notifyActiveSpotRemoved(ActiveSpotPlace place, Tile* tile)
         return;
 
     rottingCreature.first->addEntityToPositionTile();
+    rottingCreature.first->clearDestinations(EntityAnimation::die_anim, false, false);
+    rottingCreature.first->setAnimationState(EntityAnimation::die_anim, false, Ogre::Vector3::ZERO, false);
 }
 
 void RoomCrypt::absorbRoom(Room *r)
@@ -368,6 +370,8 @@ void RoomCrypt::notifyCarryingStateChanged(Creature* carrier, GameEntity* carrie
                 return;
             }
             // Start rotting
+            deadCreature->clearDestinations(EntityAnimation::rot_anim, false, false);
+            deadCreature->setAnimationState(EntityAnimation::rot_anim, false, Ogre::Vector3::ZERO, false);
             deadCreature->removeEntityFromPositionTile();
             p.second.second = 0;
             return;

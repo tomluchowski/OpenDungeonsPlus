@@ -1,0 +1,25 @@
+fragment_program CorpseFliesFragment glsl
+{
+    source CorpseFlies.frag
+    default_params
+    {
+        param_named_auto wingTime time_0_x 1
+    }
+}
+
+material CorpseFlies
+{
+    receive_shadows off
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_write off
+            diffuse vertexcolour
+            vertex_program_ref CombatImpactVertex {}
+            fragment_program_ref CorpseFliesFragment {}
+        }
+    }
+}

@@ -1,0 +1,29 @@
+particle_system CorpseDecay
+{
+    material        CorpseFlies
+    particle_width  0.12
+    particle_height 0.10
+    quota           24
+    billboard_type  point
+
+    emitter Box
+    {
+        angle               85
+        colour_range_start  1 1 1 1
+        colour_range_end    1 1 1 1
+        emission_rate       12
+        time_to_live        1.8
+        direction           0 0 1
+        velocity            0.22
+        width               0.65
+        height              0.65
+        depth               0.1
+    }
+
+    affector DirectionRandomiser
+    {
+        randomness    1.8
+        scope         1
+        keep_velocity true
+    }
+}

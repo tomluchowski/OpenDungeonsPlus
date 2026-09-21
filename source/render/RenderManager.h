@@ -453,6 +453,8 @@ private:
     void updateCreatureStep(Creature* creature);
     void cancelCreatureStep(Creature* creature = nullptr);
     void clearRoomConstructionEffects();
+    void clearCreatureDecay(Creature* creature);
+    std::map<Creature*, std::vector<Ogre::MaterialPtr>> mCreatureDecayMaterials;
 
 
     Ogre::TexturePtr m_texture;

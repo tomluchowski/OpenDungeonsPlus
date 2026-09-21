@@ -32,6 +32,7 @@ namespace EntityAnimation
     static const std::string idle_anim = "Idle";
     static const std::string flee_anim = "Flee";
     static const std::string die_anim = "Die";
+    static const std::string rot_anim = "Rot";
     static const std::string dig_anim = "Dig";
     static const std::string attack_anim = "Attack1";
     static const std::string claim_anim = "Claim";
