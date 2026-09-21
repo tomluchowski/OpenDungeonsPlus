@@ -31,9 +31,7 @@ enum class SelectedAction
     changeTile,
     selectTile,
     destroyRoom,
-    destroyTrap,
-    queryEntity,
-    sellBuilding
+    destroyTrap
 };
 
 //! \brief Class to store what the client-side player has currently selected.

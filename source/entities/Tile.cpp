@@ -509,7 +509,6 @@ bool Tile::isMarkedForDiggingByAnySeat()
 void Tile::addPlayerMarkingTile(const Player *p)
 {
     mPlayersMarkingTile.push_back(p);
-    fireTileStateChanged();
 }
 
 void Tile::removePlayerMarkingTile(const Player *p)
@@ -519,7 +518,6 @@ void Tile::removePlayerMarkingTile(const Player *p)
         return;
 
     mPlayersMarkingTile.erase(it);
-    fireTileStateChanged();
 }
 
 void Tile::addNeighbor(Tile *n)
@@ -2450,7 +2448,6 @@ Creature* Tile::getClosestCreature(SelectionEntityWanted se)
 
 void Tile::setLocalPlayerHasVision(bool localPlayerHasVision)
 {
-    const bool visionChanged = mLocalPlayerHasVision != localPlayerHasVision;
     bool mEverVisibleOld = mEverVisible;
     
     mEverVisible = mEverVisible || localPlayerHasVision;
@@ -2467,8 +2464,7 @@ void Tile::setLocalPlayerHasVision(bool localPlayerHasVision)
     }
 
     mLocalPlayerHasVision = localPlayerHasVision;
-    if(visionChanged)
-        fireTileStateChanged();
+
 }
 
 

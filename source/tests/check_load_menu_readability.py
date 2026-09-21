@@ -33,10 +33,10 @@ int main(int argc,char** argv){try{
  auto* list=static_cast<CEGUI::Listbox*>(frame->getChild("SaveGameSelect"));
  list->addItem(new CEGUI::ListboxTextItem("Saved dungeon"));
  for(bool game:{true,false,true,false}){
-  apply(sheet,game);check(frame->getLookNFeel()==(game?"OD/GameSettingsWindow":"OD/MenuPageWindow"));
+  apply(sheet,game);check(frame->getLookNFeel()==(game?"OD/GameSettingsWindow":"OD/FrameWindow"));
   check(loading->isInFront(*frame));check(list->getItemCount()==1);
   check(frame->getChild("BackButton")->isVisible());
-  check(frame->getPixelSize().d_width==1920&&frame->getPixelSize().d_height==1200);
+  check(frame->getPixelSize().d_width==850&&frame->getPixelSize().d_height==420);
   system.getDefaultGUIContext().draw();
  }
  windows.destroyWindow(sheet);CEGUI::System::destroy();CEGUI::NullRenderer::destroy(renderer);

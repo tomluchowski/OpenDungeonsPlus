@@ -107,23 +107,31 @@ void SpellCallToWar::checkSpellCast(GameMap* gameMap, const InputManager& inputM
 
     Tile* tile = gameMap->getTile(inputManager.mXPos, inputManager.mYPos);
     if(tile == nullptr)
-    {
-        inputCommand.displayText(Ogre::ColourValue::Red, "Point at a tile inside the map.");
         return;
-    }
 
     int32_t playerMana = static_cast<int32_t>(player->getSeat()->getMana());
     int32_t price = ConfigManager::getSingleton().getSpellConfigInt32("CallToWarPrice");
-    if(playerMana < price)
+    if(inputManager.mCommandState == InputCommandState::infoOnly)
     {
-        inputCommand.displayText(Ogre::ColourValue::Red, "Not enough mana. " +
-            formatCastSpell(SpellType::callToWar, price));
+        if(playerMana < price)
+        {
+            std::string txt = formatCastSpell(SpellType::callToWar, price);
+            inputCommand.displayText(Ogre::ColourValue::Red, txt);
+        }
+        else
+        {
+            std::string txt = formatCastSpell(SpellType::callToWar, price);
+            inputCommand.displayText(Ogre::ColourValue::White, txt);
+        }
+        inputCommand.selectSquaredTiles(inputManager.mXPos, inputManager.mYPos, inputManager.mXPos,
+            inputManager.mYPos);
         return;
     }
-    inputCommand.displayText(Ogre::ColourValue::White, formatCastSpell(SpellType::callToWar, price));
 
-    if(inputManager.mCommandState != InputCommandState::validated)
+    if(inputManager.mCommandState == InputCommandState::building)
     {
+        std::string txt = formatCastSpell(SpellType::callToWar, price);
+        inputCommand.displayText(Ogre::ColourValue::White, txt);
         std::vector<Tile*> tiles;
         tiles.push_back(tile);
         inputCommand.selectTiles(tiles);
@@ -177,3 +185,4 @@ Spell* SpellCallToWar::getSpellFromPacket(GameMap* gameMap, ODPacket &is)
     spell->importFromPacket(is);
     return spell;
 }
+

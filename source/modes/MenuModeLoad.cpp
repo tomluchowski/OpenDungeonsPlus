@@ -108,7 +108,7 @@ void MenuModeLoad::activate()
     sheet->getChild("WelcomeBanner")->setVisible(!mInGame);
     sheet->getChild("VersionText")->setVisible(!mInGame);
     sheet->getChild("LevelWindowFrame")->setLookNFeel(
-        mInGame ? "OD/GameSettingsWindow" : "OD/MenuPageWindow");
+        mInGame ? "OD/GameSettingsWindow" : "OD/FrameWindow");
     sheet->getChild("LoadingText")->setAlwaysOnTop(true);
     sheet->getChild("LoadingText")->moveToFront();
     if(mInGame)

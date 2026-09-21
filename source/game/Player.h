@@ -33,7 +33,6 @@ class Seat;
 class Tile;
 
 enum class CreatureActionType;
-enum class GameEntityType;
 enum class SpellType;
 
 enum class PlayerEventType
@@ -153,9 +152,6 @@ public:
 
     //! \brief Check to see the first object in hand can be dropped on Tile t and do so if possible.
     bool isDropHandPossible(Tile *t, unsigned int index = 0);
-
-    //! Returns the held object's index, or the hand size if it is not held.
-    unsigned int getHandIndex(GameEntityType type, const std::string& name) const;
 
     //! \brief Drops the creature on tile t. Returns the dropped creature
     void dropHand(Tile *t, unsigned int index = 0);

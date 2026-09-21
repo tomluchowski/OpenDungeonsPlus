@@ -68,7 +68,6 @@ const std::string NICKNAME = "Nickname";
 const std::string KEEPERVOICE = "KeeperVoice";
 const std::string MINIMAP_TYPE = "MinimapType";
 const std::string LIGHT_FACTOR = "LightFactor";
-const std::string UI_SCALE = "UI Scale";
 }
 
 typedef std::map<TileVisual,std::map<int,float>> HighMap;
