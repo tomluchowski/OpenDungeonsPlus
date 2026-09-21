@@ -99,7 +99,7 @@ int main(){int checks=0,failures=0;auto check=[&](bool ok,const char* why){++che
  }
  ODPacket bad;bad<<.5<<uint32_t(8)<<uint32_t(2)<<uint32_t(1);b.importProgressFromPacket(bad);check(!b.mHasProgressInformation,"invalid recovery rejected");
  ODPacket shortPacket;shortPacket<<.5;b.importProgressFromPacket(shortPacket);check(!b.mHasProgressInformation,"truncated payload rejected");
- a.mExp=0;a.receiveExp(-1);check(a.mExp==0,"negative gain rejected");a.receiveExp(20);check(a.mExp==20&&a.mNeedFireRefresh,"XP changes schedule replication");
+ a.mLevel=1;a.mExp=0;a.receiveExp(-1);check(a.mExp==0,"negative gain rejected");a.receiveExp(20);check(a.mExp==20&&a.mNeedFireRefresh,"XP changes schedule replication");
  MovableTextOverlay overlay;CreatureOverlayStatus status{&b,&overlay};b.mHasProgressInformation=true;b.mExperienceProgress=.5;b.mAttackRecoveryDuration=4;b.mAttackRecoveryTurns=4;b.mAttackRecoverySerial=1;
  status.updateProgress(0);check(overlay.frames[1]==31&&overlay.frames[2]==1,"half XP and fresh attack");
  status.updateProgress(.35f);check(overlay.frames[2]>1,"recovery sweeps between turns");auto frozen=overlay.frames[2];

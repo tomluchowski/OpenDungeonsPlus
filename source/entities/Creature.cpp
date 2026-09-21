@@ -16,6 +16,7 @@
  */
 
 #include "entities/Creature.h"
+#include "entities/CreatureProgression.h"
 
 #include "creatureaction/CreatureAction.h"
 #include "creatureaction/CreatureActionClaimGroundTile.h"
@@ -525,16 +526,16 @@ void Creature::buildStats()
     if (multiplier <= 0.0)
         return;
 
-    mMaxHP += mDefinition->getHpPerLevel() * multiplier;
+    mMaxHP = CreatureProgression::stat(mMaxHP, mDefinition->getHpPerLevel(), mLevel);
     mDigRate += mDefinition->getDigRatePerLevel() * multiplier;
     mClaimRate += mDefinition->getClaimRatePerLevel() * multiplier;
     mGroundSpeed += mDefinition->getGroundSpeedPerLevel() * multiplier;
     mWaterSpeed += mDefinition->getWaterSpeedPerLevel() * multiplier;
     mLavaSpeed += mDefinition->getLavaSpeedPerLevel() * multiplier;
 
-    mPhysicalDefense += mDefinition->getPhysicalDefPerLevel() * multiplier;
-    mMagicalDefense += mDefinition->getMagicalDefPerLevel() * multiplier;
-    mElementDefense += mDefinition->getElementDefPerLevel() * multiplier;
+    mPhysicalDefense = CreatureProgression::stat(mPhysicalDefense, mDefinition->getPhysicalDefPerLevel(), mLevel);
+    mMagicalDefense = CreatureProgression::stat(mMagicalDefense, mDefinition->getMagicalDefPerLevel(), mLevel);
+    mElementDefense = CreatureProgression::stat(mElementDefense, mDefinition->getElementDefPerLevel(), mLevel);
 }
 
 Creature* Creature::getCreatureFromStream(GameMap* gameMap, std::istream& is)
@@ -782,10 +783,13 @@ void Creature::computeVisibleTiles()
 void Creature::setLevel(unsigned int level)
 {
     // Reset XP once the level has been acquired.
-    mLevel = std::min(MAX_LEVEL, level);
+    mLevel = std::max(1u, std::min(MAX_LEVEL, level));
     mExp = 0.0;
 
+    const double previousMaxHP = mMaxHP;
     buildStats();
+    if(mHp > 0.0 && previousMaxHP > 0.0)
+        mHp = std::min(mMaxHP, mHp * mMaxHP / previousMaxHP);
 
     mNeedFireRefresh = true;
 }
@@ -1659,23 +1663,22 @@ double Creature::getElementDefense() const
 
 void Creature::checkLevelUp()
 {
-    if (getLevel() >= MAX_LEVEL)
-        return;
-
-    // Check the returned value.
-    double newXP = mDefinition->getXPNeededWhenLevel(getLevel());
-
-    // An error occurred
-    if (newXP <= 0.0)
+    while(getLevel() < MAX_LEVEL)
     {
-        OD_LOG_ERR("creature=" + getName() + ", newXP=" + Helper::toString(newXP));
-        return;
+        const double newXP = mDefinition->getXPNeededWhenLevel(getLevel());
+        if(!std::isfinite(newXP) || newXP <= 0.0)
+        {
+            OD_LOG_ERR("creature=" + getName() + ", newXP=" + Helper::toString(newXP));
+            return;
+        }
+        if(mExp < newXP)
+            return;
+
+        const double remainingXP = mExp - newXP;
+        setLevel(mLevel + 1);
+        mExp = remainingXP;
     }
-
-    if (mExp < newXP)
-        return;
-
-    setLevel(mLevel + 1);
+    mExp = 0.0;
 }
 
 void Creature::exportToPacketForUpdate(ODPacket& os, Seat* seat) 
@@ -2296,7 +2299,7 @@ double Creature::takeDamage(GameEntity* attacker, double absoluteDamage, double 
 
 void Creature::receiveExp(double experience)
 {
-    if (experience < 0)
+    if (!std::isfinite(experience) || experience < 0 || mLevel >= MAX_LEVEL)
         return;
 
     mExp += experience;

@@ -19,6 +19,7 @@
 
 #include "creatureskill/CreatureSkillManager.h"
 #include "entities/Creature.h"
+#include "entities/CreatureProgression.h"
 #include "entities/MissileOneHit.h"
 #include "entities/Tile.h"
 #include "entities/Weapon.h"
@@ -83,10 +84,10 @@ bool CreatureSkillMissileLaunch::tryUseFight(GameMap& gameMap, Creature* creatur
     missileDirection = missileDirection - position;
     missileDirection.normalise();
 
-    double level = static_cast<double>(creature->getLevel());
-    double phyAtk = mPhyAtk + (level * mPhyAtkPerLvl);
-    double magAtk = mMagAtk + (level * mMagAtkPerLvl);
-    double eleAtk = mMagAtk + (level * mEleAtkPerLvl);
+    const uint32_t level = creature->getLevel();
+    double phyAtk = CreatureProgression::stat(mPhyAtk + mPhyAtkPerLvl, mPhyAtkPerLvl, level);
+    double magAtk = CreatureProgression::stat(mMagAtk + mMagAtkPerLvl, mMagAtkPerLvl, level);
+    double eleAtk = CreatureProgression::stat(mMagAtk + mEleAtkPerLvl, mEleAtkPerLvl, level);
     if(creature->getWeaponL() != nullptr)
     {
         phyAtk +=creature->getWeaponL()->getPhysicalDamage();
