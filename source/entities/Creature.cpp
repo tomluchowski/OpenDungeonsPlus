@@ -421,8 +421,13 @@ void Creature::exportToStream(std::ostream& os) const
 
     os << "\t" << mWeaponDropDeath;
 
-    uint32_t nbEffects = mEntityParticleEffects.size();
-    os << "\t" << nbEffects;
+    uint32_t nbCreatureEffects = 0;
+    for(EntityParticleEffect* effect : mEntityParticleEffects)
+    {
+        if(effect->getEntityParticleEffectType() == EntityParticleEffectType::creature)
+            ++nbCreatureEffects;
+    }
+    os << "\t" << nbCreatureEffects;
     for(EntityParticleEffect* effect : mEntityParticleEffects)
     {
         // We only save creature particle effects. The other are expected to be re-created
@@ -873,6 +878,27 @@ void Creature::doUpkeep()
     // We apply creature effects if any
     for(auto it =  mEntityParticleEffects.begin(); it != mEntityParticleEffects.end();)
     {
+        EntityParticleEffect* entityEffect = *it;
+        if(entityEffect->getEntityParticleEffectType() != EntityParticleEffectType::creature)
+        {
+            if(entityEffect->mNbTurnsEffect < 0)
+            {
+                ++it;
+                continue;
+            }
+
+            if(entityEffect->mNbTurnsEffect > 0)
+            {
+                --entityEffect->mNbTurnsEffect;
+                ++it;
+                continue;
+            }
+
+            delete entityEffect;
+            it = mEntityParticleEffects.erase(it);
+            continue;
+        }
+
         CreatureParticleEffect* effect = static_cast<CreatureParticleEffect*>(*it);
         if(effect->mEffect->upkeepEffect(*this))
         {
@@ -3288,6 +3314,13 @@ void Creature::addCreatureEffect(CreatureEffect* effect)
     mEntityParticleEffects.push_back(particleEffect);
 
     mNeedFireRefresh = true;
+}
+
+void Creature::addParticleEffect(const std::string& effectScript, uint32_t nbTurns)
+{
+    EntityParticleEffect* effect = new EntityParticleEffect(
+        nextParticleSystemsName(), effectScript, nbTurns);
+    mEntityParticleEffects.push_back(effect);
 }
 
 bool Creature::removeCreatureEffect(CreatureEffect* effectForDeletion)
