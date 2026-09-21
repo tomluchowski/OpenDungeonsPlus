@@ -6,6 +6,7 @@ import tempfile
 
 repo = Path(__file__).resolve().parents[2]
 prefix = Path(os.environ['CMAKE_PREFIX_PATH'])
+(repo / 'build' / 'review-followups').mkdir(parents=True, exist_ok=True)
 source = (repo / 'source/render/RenderManager.cpp').read_text()
 start = source.index('std::string createCreatureDecayAnimation(')
 end = source.index('\n}\n}', start) + 2
