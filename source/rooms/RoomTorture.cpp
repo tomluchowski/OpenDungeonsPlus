@@ -20,6 +20,7 @@
 #include "game/SkillType.h"
 
 #include "creatureaction/CreatureActionUseRoom.h"
+#include "creatureaction/CreatureActionWalkToTile.h"
 #include "entities/BuildingObject.h"
 #include "entities/Creature.h"
 #include "entities/GameEntityType.h"
@@ -27,6 +28,7 @@
 #include "game/Player.h"
 #include "game/Seat.h"
 #include "gamemap/GameMap.h"
+#include "gamemap/RoomObjectNavigation.h"
 #include "network/ODServer.h"
 #include "network/ServerNotification.h"
 #include "rooms/RoomManager.h"
@@ -330,14 +332,29 @@ bool RoomTorture::useRoom(Creature& creature, bool forced)
         if(p.second.mCreature != &creature)
             continue;
 
-        if(tileCreature != p.first)
+        BuildingObject* obj = getBuildingObjectFromTile(p.first);
+        if(obj == nullptr)
         {
-            creature.setDestination(p.first);
+            OD_LOG_ERR("room=" + getName() + ", tile=" + Tile::displayAsString(p.first));
+            return false;
+        }
+        std::vector<Ogre::Vector2> approach;
+        if(!RoomObjectNavigation::workApproach(creature, *obj,
+            {static_cast<Ogre::Real>(p.first->getX()), static_cast<Ogre::Real>(p.first->getY())},
+            {0, -1}, approach))
+            return false;
+        if(!approach.empty())
+        {
+            creature.setWalkPath(EntityAnimation::walk_anim, EntityAnimation::idle_anim, true, true, approach, false, true);
+            creature.pushAction(Utils::make_unique<CreatureActionWalkToTile>(creature));
             return false;
         }
 
         // The creature is on the good tile
         p.second.mIsReady = true;
+        Ogre::Vector3 direction = obj->getPosition() + Ogre::Vector3(0, -1, 0) - creature.getPosition();
+        direction.z = 0;
+        direction.normalise();
 
         if((getSeat() != creature.getSeat()) &&
            (Random::Double(0.0, 1.0) <= std::min(1.0, SkillManager::getResearchValue(
@@ -366,13 +383,6 @@ bool RoomTorture::useRoom(Creature& creature, bool forced)
             config.getRoomConfigUInt32("TortureSessionLengthMax"));
         creature.setJobCooldown(nbTurns);
 
-        BuildingObject* obj = getBuildingObjectFromTile(tileCreature);
-        if(obj == nullptr)
-        {
-            OD_LOG_ERR("room=" + getName() + ", tile=" + Tile::displayAsString(tileCreature));
-            return false;
-        }
-
         // We set the flame during half the session
         ++p.second.mState;
         switch(p.second.mState)
@@ -381,12 +391,12 @@ bool RoomTorture::useRoom(Creature& creature, bool forced)
             {
                 obj->addParticleEffect("Flame", nbTurns / 2);
                 obj->fireRefresh();
-                creature.setAnimationState(EntityAnimation::flee_anim);
+                creature.setAnimationState(EntityAnimation::flee_anim, true, direction);
                 break;
             }
             case 2:
             {
-                creature.setAnimationState(EntityAnimation::idle_anim);
+                creature.setAnimationState(EntityAnimation::idle_anim, true, direction);
                 p.second.mState = 0;
                 break;
             }

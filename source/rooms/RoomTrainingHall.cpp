@@ -235,6 +235,8 @@ void RoomTrainingHall::notifyActiveSpotRemoved(ActiveSpotPlace place, Tile* tile
 
 void RoomTrainingHall::refreshCreaturesDummies()
 {
+    for(Creature* creature : mCreaturesUsingRoom)
+        releaseInteractionPosition(creature);
     mCreaturesDummies.clear();
     mUnusedDummies.clear();
     nbTurnsNoChangeDummies = 0;
@@ -391,7 +393,7 @@ bool RoomTrainingHall::useRoom(Creature& creature, bool forced)
     }
     if(!approach.empty())
     {
-        creature.setWalkPath(EntityAnimation::walk_anim, EntityAnimation::idle_anim, true, true, approach, false);
+        creature.setWalkPath(EntityAnimation::walk_anim, EntityAnimation::idle_anim, true, true, approach, false, true);
         creature.pushAction(Utils::make_unique<CreatureActionWalkToTile>(creature));
         return false;
     }

@@ -59,9 +59,11 @@ public:
     /*! \brief Replaces an object's current walk queue with a new path. During the
      * walk, the entity will play walkAnim (looped). When it gets to the wanted position,
      * it will play endAnim (looped or not depending on loopEndAnim).
+     * pathAlreadyRefined is for fully validated interaction routes with an exact endpoint.
      */
     void setWalkPath(const std::string& walkAnim, const std::string& endAnim, bool loopEndAnim,
-                     bool playIdleWhenAnimationEnds, const std::vector<Ogre::Vector2>& path, bool walkDistortion);
+                     bool playIdleWhenAnimationEnds, const std::vector<Ogre::Vector2>& path, bool walkDistortion,
+                     bool pathAlreadyRefined = false);
 
     /*! \brief Converts a tile list to a vector of Ogre::Vector3
      *

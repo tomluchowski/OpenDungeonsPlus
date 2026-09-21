@@ -34,6 +34,42 @@ const BuildingObject* interactionObject(Creature& creature, const Ogre::Vector2&
     return found == objects.end() ? nullptr : found->second;
 }
 
+RoomObjectPath::Obstacle interactionFootprint(const Creature& creature,
+    const Ogre::Vector2& position, Ogre::Vector2 direction)
+{
+    Ogre::Vector2 minimum(-0.2f), maximum(0.2f);
+    for(const auto& model : RoomObjectPath::walkingRadii)
+        if(creature.getMeshName() == model.name)
+        {
+            minimum = {model.minX, model.minY};
+            maximum = {model.maxX, model.maxY};
+            break;
+        }
+    if(direction.squaredLength() < 0.000001f)
+        direction = {0, -1};
+    direction.normalise();
+    const float scale = 1.0f + 0.02f * creature.getLevel();
+    return {minimum * scale, maximum * scale, position, -direction.y, direction.x};
+}
+
+bool interactionPositionClear(Creature& creature, const Ogre::Vector2& point,
+    const Ogre::Vector2& direction)
+{
+    const auto footprint = interactionFootprint(creature, point, direction);
+    for(const Room* room : creature.getGameMap()->getRooms())
+        for(const auto& entry : room->getInteractionPositions())
+        {
+            if(entry.first == &creature)
+                continue;
+            auto other = interactionFootprint(*entry.first, entry.second.position, entry.second.direction);
+            other.bodyMinimum = footprint.minimum;
+            other.bodyMaximum = footprint.maximum;
+            if(other.contains(point, direction))
+                return false;
+        }
+    return true;
+}
+
 bool terrainClear(Creature& creature, const Ogre::Vector2& from, const Ogre::Vector2& to)
 {
     GameMap& map = *creature.getGameMap();
@@ -406,27 +442,49 @@ bool RoomObjectNavigation::workApproach(Creature& creature, const BuildingObject
     Tile* objectTile = map.getTile(Helper::round(objectPosition.x), Helper::round(objectPosition.y));
     if(objectTile == nullptr)
         return false;
-    const auto* room = objectTile->getCoveringRoom();
-    const auto body = bodyObstacles(creature);
+    auto* room = objectTile->getCoveringRoom();
+    if(room == nullptr)
+        return false;
+    const auto body = bodyObstacles(creature, interactionObject(creature, wanted));
     const auto facing = objectPosition + facingOffset;
     Ogre::Vector2 away = wanted - facing;
     if(away.squaredLength() < 0.000001f)
         away = Ogre::Vector2(0, -1);
     away.normalise();
     const Ogre::Vector2 start(creature.getPosition().x, creature.getPosition().y);
-    // Preserve the assigned side of the workstation. Only increase its stand-
-    // off enough for this creature; work cannot require standing inside it.
+    std::vector<Ogre::Vector2> candidates;
+    const auto reserved = room->getInteractionPositions().find(&creature);
+    if(reserved != room->getInteractionPositions().end() && reserved->second.object == &object)
+        candidates.push_back(reserved->second.position);
+    room->releaseInteractionPosition(&creature);
+    // Keep the assigned side, but allow neighbouring users to stand side by side.
+    const Ogre::Vector2 sideways(-away.y, away.x);
     const int steps = int(std::ceil((2.0f * clearance(creature) + 1.0f) * 8.0f));
     for(int step = 0; step <= steps; ++step)
     {
-        const auto point = wanted + away * (step * 0.125f);
+        const auto center = wanted + away * (step * 0.125f);
+        candidates.push_back(center);
+        if(!RoomObjectPath::clearPoint(body, center, facing - center) ||
+            interactionPositionClear(creature, center, facing - center))
+            continue;
+        for(int side = 1; side <= steps; ++side)
+            for(float sign : {-1.0f, 1.0f})
+                candidates.push_back(center + sideways * (sign * side * 0.125f));
+    }
+    for(const auto& point : candidates)
+    {
         Tile* tile = map.getTile(Helper::round(point.x), Helper::round(point.y));
         if(!creature.canGoThroughTile(tile) || tile->getCoveringRoom() != room ||
-            !RoomObjectPath::clearPoint(body, point, facing - point))
+            !RoomObjectPath::clearPoint(body, point, facing - point) ||
+            !interactionPositionClear(creature, point, facing - point))
             continue;
         if(start.squaredDistance(point) < 0.0025f &&
-            RoomObjectPath::clearPoint(body, start, facing - start))
+            RoomObjectPath::clearPoint(body, start, facing - start) &&
+            interactionPositionClear(creature, start, facing - start))
+        {
+            room->reserveInteractionPosition(&creature, {&object, start, facing - start});
             return true;
+        }
         for(float distance : {clearance(creature) + 0.5f, 0.5f})
         {
             const auto staging = point + away * distance;
@@ -446,6 +504,7 @@ bool RoomObjectNavigation::workApproach(Creature& creature, const BuildingObject
             if(!path.empty() && path.back() == staging)
             {
                 path.push_back(point);
+                room->reserveInteractionPosition(&creature, {&object, point, facing - point});
                 return true;
             }
             path.clear();

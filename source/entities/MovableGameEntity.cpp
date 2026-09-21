@@ -86,10 +86,13 @@ void MovableGameEntity::tileToVector2(const std::list<Tile*>& tiles, std::vector
 
 
 void MovableGameEntity::setWalkPath(const std::string& walkAnim, const std::string& endAnim, bool loopEndAnim,
-                                    bool playIdleWhenAnimationEnds, const std::vector<Ogre::Vector2>& path, bool walkDistortion)
+                                    bool playIdleWhenAnimationEnds, const std::vector<Ogre::Vector2>& path, bool walkDistortion,
+                                    bool pathAlreadyRefined)
 {
     std::vector<Ogre::Vector2> walkPath = path;
-    if(getIsOnServerMap() && getObjectType() == GameEntityType::creature &&
+    if(pathAlreadyRefined)
+        walkDistortion = false;
+    if(!pathAlreadyRefined && getIsOnServerMap() && getObjectType() == GameEntityType::creature &&
         RoomObjectNavigation::refine(static_cast<Creature&>(*this), walkPath))
         walkDistortion = false;
     mWalkQueue.clear();

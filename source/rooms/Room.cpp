@@ -274,6 +274,8 @@ void Room::absorbRoom(Room *r)
 
     mCreaturesUsingRoom.insert(mCreaturesUsingRoom.end(), r->mCreaturesUsingRoom.begin(), r->mCreaturesUsingRoom.end());
     r->mCreaturesUsingRoom.clear();
+    mInteractionPositions.insert(r->mInteractionPositions.begin(), r->mInteractionPositions.end());
+    r->mInteractionPositions.clear();
 
     mBuildingObjects.insert(r->mBuildingObjects.begin(), r->mBuildingObjects.end());
     r->mBuildingObjects.clear();
@@ -326,6 +328,7 @@ bool Room::addCreatureUsingRoom(Creature* c)
 
 void Room::removeCreatureUsingRoom(Creature *c)
 {
+    releaseInteractionPosition(c);
     for (unsigned int i = 0; i < mCreaturesUsingRoom.size(); ++i)
     {
         if (mCreaturesUsingRoom[i] == c)
