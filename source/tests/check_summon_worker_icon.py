@@ -9,7 +9,19 @@ repo = Path(__file__).resolve().parents[2]
 prefix = Path(os.environ['CMAKE_PREFIX_PATH'])
 gui = (repo / 'source/render/Gui.cpp').read_text()
 game = (repo / 'source/modes/GameMode.cpp').read_text()
-refresh = game[game.index('void GameMode::refreshSkillButtonState('):game.index('void GameMode::refreshSkillConnections(')]
+
+
+def function(text, signature):
+    start = text.index(signature)
+    end = text.index('{', start) + 1
+    depth = 1
+    while depth:
+        depth += (text[end] == '{') - (text[end] == '}')
+        end += 1
+    return text[start:end]
+
+
+refresh = function(game, 'void GameMode::refreshSkillButtonState(')
 assert 'getCreatureHandIconImage' not in refresh
 assert 'getWorkerClassToSpawn' not in refresh
 assert 'mRootWindow->getChild(button)->getProperty("NormalImage")' in game
