@@ -4688,7 +4688,7 @@ void RenderManager::rrPlayDigAnimation()
     mHandAnimationState = setEntityAnimation(mSceneManager->getEntity("keeperHandEnt"), "DigSwing", false);
 }
 
-void RenderManager::rrDrawTilePreview(const std::vector<Tile*>& tiles, const Ogre::ColourValue& colour, bool construction)
+void RenderManager::rrDrawTilePreview(const std::vector<Tile*>& tiles, const Ogre::ColourValue& colour, bool construction, bool digging)
 {
     if(mTilePreview == nullptr)
     {
@@ -4744,19 +4744,30 @@ void RenderManager::rrDrawTilePreview(const std::vector<Tile*>& tiles, const Ogr
         }
     }
     mTilePreview->end();
-    if(construction)
+    if(construction || digging)
     {
         mTilePreview->begin("debug_draw", Ogre::RenderOperation::OT_TRIANGLE_LIST, "Graphics");
         for(Tile* tile : tiles)
         {
-            if(tile->isFullTile())
+            if(tile->isFullTile() && !digging)
                 continue;
             const float x = static_cast<float>(tile->getX());
             const float y = static_cast<float>(tile->getY());
-            const Ogre::Vector3 outer[] = {{x-0.5f,y-0.5f,0.045f}, {x+0.5f,y-0.5f,0.045f},
-                {x+0.5f,y+0.5f,0.045f}, {x-0.5f,y+0.5f,0.045f}};
-            const Ogre::Vector3 inner[] = {{x-0.44f,y-0.44f,0.045f}, {x+0.44f,y-0.44f,0.045f},
-                {x+0.44f,y+0.44f,0.045f}, {x-0.44f,y+0.44f,0.045f}};
+            float z = 0.045f;
+            if(tile->isFullTile())
+            {
+                Ogre::MovableObject* wall = tile->getFogOfWarMesh();
+                const std::string meshName = tile->getOgreNamePrefix() + tile->getName() + "_tileMesh";
+                if(mSceneManager->hasEntity(meshName))
+                    wall = mSceneManager->getEntity(meshName);
+                if(wall == nullptr)
+                    continue;
+                z = wall->getWorldBoundingBox(true).getMaximum().z + 0.02f;
+            }
+            const Ogre::Vector3 outer[] = {{x-0.5f,y-0.5f,z}, {x+0.5f,y-0.5f,z},
+                {x+0.5f,y+0.5f,z}, {x-0.5f,y+0.5f,z}};
+            const Ogre::Vector3 inner[] = {{x-0.44f,y-0.44f,z}, {x+0.44f,y-0.44f,z},
+                {x+0.44f,y+0.44f,z}, {x-0.44f,y+0.44f,z}};
             for(int i = 0; i < 4; ++i)
             {
                 const int next = (i + 1) % 4;
@@ -4764,6 +4775,25 @@ void RenderManager::rrDrawTilePreview(const std::vector<Tile*>& tiles, const Ogr
                 {
                     mTilePreview->position(point);
                     mTilePreview->colour(colour);
+                }
+                if(!tile->isFullTile())
+                    continue;
+                // Offset side frames just outside the wall to avoid surface flicker.
+                const auto point = [&](float along, float height)
+                {
+                    return Ogre::Vector3(x + 1.01f * (outer[i].x - x + along * (outer[next].x - outer[i].x)),
+                        y + 1.01f * (outer[i].y - y + along * (outer[next].y - outer[i].y)), height);
+                };
+                const Ogre::Vector3 face[] = {point(0, .04f), point(1, .04f), point(1, z), point(0, z)};
+                const Ogre::Vector3 inset[] = {point(.06f, .10f), point(.94f, .10f), point(.94f, z-.06f), point(.06f, z-.06f)};
+                for(int edge = 0; edge < 4; ++edge)
+                {
+                    const int end = (edge + 1) % 4;
+                    for(const auto& vertex : {face[edge], face[end], inset[end], face[edge], inset[end], inset[edge]})
+                    {
+                        mTilePreview->position(vertex);
+                        mTilePreview->colour(colour);
+                    }
                 }
             }
         }

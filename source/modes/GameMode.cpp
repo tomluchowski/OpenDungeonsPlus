@@ -2740,20 +2740,22 @@ void GameMode::updateSelectedTiles()
 {
     const bool building = mPlayerSelection.getCurrentAction() == SelectedAction::buildRoom ||
         mPlayerSelection.getCurrentAction() == SelectedAction::buildTrap;
+    const bool digging = mPlayerSelection.getCurrentAction() == SelectedAction::none ||
+        mPlayerSelection.getCurrentAction() == SelectedAction::selectTile;
     if(!mActionTargetValid && !building)
         mPreviewTiles.clear();
     const Ogre::ColourValue colour = mActionTargetValid ? Ogre::ColourValue(0.35f, 0.3f, 1.0f) :
         Ogre::ColourValue(1.0f, 0.15f, 0.1f);
     if(mPreviewTiles == mSelectedTiles)
     {
-        RenderManager::getSingleton().rrDrawTilePreview(mSelectedTiles, colour, building);
+        RenderManager::getSingleton().rrDrawTilePreview(mSelectedTiles, colour, building, digging);
         return;
     }
     Player* player = mGameMap->getLocalPlayer();
     for(Tile* tile : mSelectedTiles)
         tile->setSelected(false, player);
     mSelectedTiles = mPreviewTiles;
-    RenderManager::getSingleton().rrDrawTilePreview(mSelectedTiles, colour, building);
+    RenderManager::getSingleton().rrDrawTilePreview(mSelectedTiles, colour, building, digging);
 }
 
 void GameMode::unselectAllTiles()

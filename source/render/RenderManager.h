@@ -182,7 +182,7 @@ public:
     bool rrIsIdleHandAnimationPlaying() const;
     void rrCancelIdleHandAnimation();
     void rrPlayDigAnimation();
-    void rrDrawTilePreview(const std::vector<Tile*>& tiles, const Ogre::ColourValue& colour, bool construction = false);
+    void rrDrawTilePreview(const std::vector<Tile*>& tiles, const Ogre::ColourValue& colour, bool construction = false, bool digging = false);
     void rrCreateRoomConstructionEffect(const std::vector<Tile*>& tiles);
     void rrCreateCreatureCombatImpact(Creature* creature, bool weaponClash,
         bool bodyDamage, const Ogre::Vector3& attackerPosition);
