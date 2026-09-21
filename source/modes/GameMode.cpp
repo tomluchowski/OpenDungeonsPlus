@@ -2043,6 +2043,14 @@ void GameMode::refreshActionFeedback(float elapsed)
     const bool active = mPlayerSelection.getCurrentAction() != SelectedAction::none;
     const bool holding = player->numObjectsInHand() > 0;
     const std::string button = SkillManager::getSelectedButton(mPlayerSelection);
+    SkillManager::listAllRooms([&](RoomType, const std::string& path)
+    {
+        CEGUI::Window* roomButton = mRootWindow->getChild(path);
+        const CEGUI::String colour = mPlayerSelection.getCurrentAction() == SelectedAction::buildRoom &&
+            path == button ? "C0FFD060" : "00FFFFFF";
+        if(roomButton->getProperty("SelectionColour") != colour)
+            roomButton->setProperty("SelectionColour", colour);
+    });
     const bool prohibited = !mActionTargetValid && (active || holding);
     icon->setVisible(!overGui && (prohibited || !button.empty()));
     const CEGUI::Vector2f pointer = CEGUI::System::getSingleton().getDefaultGUIContext().getMouseCursor().getPosition();
