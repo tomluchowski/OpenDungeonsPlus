@@ -4546,6 +4546,27 @@
         </StateImagery>
     </WidgetLook>
 
+    <WidgetLook name="OD/ResearchButton" inherits="OD/ImageButton">
+        <PropertyDefinition name="ResearchLevelColour" initialValue="00FFFFFF" redrawOnWrite="true" />
+        <PropertyDefinition name="ResearchBackgroundColour" initialValue="FF292E34" redrawOnWrite="true" />
+        <ImagerySection name="research">
+            <ImageryComponent><Area><Dim type="LeftEdge"><UnifiedDim scale="0" type="Width" /></Dim><Dim type="TopEdge"><UnifiedDim scale="0" type="Height" /></Dim><Dim type="Width"><UnifiedDim scale="1" type="Width" /></Dim><Dim type="Height"><UnifiedDim scale="1" type="Height" /></Dim></Area><Image name="OpenDungeonsSkin/SelectionBrush" /><ColourRectProperty name="ResearchBackgroundColour" /><VertFormat type="Stretched" /><HorzFormat type="Stretched" /></ImageryComponent>
+            <ImageryComponent><Area><Dim type="LeftEdge"><UnifiedDim scale="0.1" type="Width" /></Dim><Dim type="TopEdge"><UnifiedDim scale="0.1" type="Height" /></Dim><Dim type="Width"><UnifiedDim scale="0.8" type="Width" /></Dim><Dim type="Height"><UnifiedDim scale="0.8" type="Height" /></Dim></Area><ImageProperty name="ButtonImage" /><ColourRectProperty name="ButtonImageColour" /><VertFormat type="Stretched" /><HorzFormat type="Stretched" /></ImageryComponent>
+            <ImageryComponent><Area><Dim type="LeftEdge"><UnifiedDim scale="0" type="Width" /></Dim><Dim type="TopEdge"><UnifiedDim scale="0" type="Height" /></Dim><Dim type="Width"><UnifiedDim scale="1" type="Width" /></Dim><Dim type="Height"><UnifiedDim scale="0.08" type="Height" /></Dim></Area><Image name="OpenDungeonsSkin/SelectionBrush" /><ColourRectProperty name="ResearchLevelColour" /><VertFormat type="Stretched" /><HorzFormat type="Stretched" /></ImageryComponent>
+            <ImageryComponent><Area><Dim type="LeftEdge"><UnifiedDim scale="0" type="Width" /></Dim><Dim type="TopEdge"><UnifiedDim scale="0.92" type="Height" /></Dim><Dim type="Width"><UnifiedDim scale="1" type="Width" /></Dim><Dim type="Height"><UnifiedDim scale="0.08" type="Height" /></Dim></Area><Image name="OpenDungeonsSkin/SelectionBrush" /><ColourRectProperty name="ResearchLevelColour" /><VertFormat type="Stretched" /><HorzFormat type="Stretched" /></ImageryComponent>
+            <ImageryComponent><Area><Dim type="LeftEdge"><UnifiedDim scale="0" type="Width" /></Dim><Dim type="TopEdge"><UnifiedDim scale="0.08" type="Height" /></Dim><Dim type="Width"><UnifiedDim scale="0.08" type="Width" /></Dim><Dim type="Height"><UnifiedDim scale="0.84" type="Height" /></Dim></Area><Image name="OpenDungeonsSkin/SelectionBrush" /><ColourRectProperty name="ResearchLevelColour" /><VertFormat type="Stretched" /><HorzFormat type="Stretched" /></ImageryComponent>
+            <ImageryComponent><Area><Dim type="LeftEdge"><UnifiedDim scale="0.92" type="Width" /></Dim><Dim type="TopEdge"><UnifiedDim scale="0.08" type="Height" /></Dim><Dim type="Width"><UnifiedDim scale="0.08" type="Width" /></Dim><Dim type="Height"><UnifiedDim scale="0.84" type="Height" /></Dim></Area><Image name="OpenDungeonsSkin/SelectionBrush" /><ColourRectProperty name="ResearchLevelColour" /><VertFormat type="Stretched" /><HorzFormat type="Stretched" /></ImageryComponent>
+            <ImageryComponent><Area><Dim type="LeftEdge"><UnifiedDim scale="0.7" type="Width" /></Dim><Dim type="TopEdge"><UnifiedDim scale="0.7" type="Height" /></Dim><Dim type="Width"><UnifiedDim scale="0.27" type="Width" /></Dim><Dim type="Height"><UnifiedDim scale="0.27" type="Height" /></Dim></Area><ImageProperty name="StateImage" /><ColourRectProperty name="StateImageColour" /><VertFormat type="Stretched" /><HorzFormat type="Stretched" /></ImageryComponent>
+        </ImagerySection>
+        <ImagerySection name="research_hover">
+            <ImageryComponent><Area><Dim type="LeftEdge"><UnifiedDim scale="0" type="Width" /></Dim><Dim type="TopEdge"><UnifiedDim scale="0" type="Height" /></Dim><Dim type="Width"><UnifiedDim scale="1" type="Width" /></Dim><Dim type="Height"><UnifiedDim scale="1" type="Height" /></Dim></Area><Image name="OpenDungeonsSkin/ButtonHoverEffect" /><Colours topLeft="66FFFFFF" topRight="66FFFFFF" bottomLeft="66FFFFFF" bottomRight="66FFFFFF" /><VertFormat type="Stretched" /><HorzFormat type="Stretched" /></ImageryComponent>
+        </ImagerySection>
+        <StateImagery name="Normal"><Layer><Section section="research" /></Layer></StateImagery>
+        <StateImagery name="Hover"><Layer><Section section="research" /><Section section="research_hover" /></Layer></StateImagery>
+        <StateImagery name="Pushed"><Layer><Section section="research" /><Section section="research_hover" /></Layer></StateImagery>
+        <StateImagery name="PushedOff"><Layer><Section section="research" /><Section section="research_hover" /></Layer></StateImagery>
+        <StateImagery name="Disabled"><Layer><Section section="research" /></Layer></StateImagery>
+    </WidgetLook>
     <WidgetLook name="OD/IconButton">
         <Property name="WantsMultiClickEvents" value="False" />
         <PropertyDefinition initialValue="FFFFFFFF" name="NormalTextColour" redrawOnWrite="true" />

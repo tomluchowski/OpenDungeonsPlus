@@ -75,4 +75,5 @@
     <FalagardMapping lookNFeel="OD/MenuPageWindow" renderer="Core/FrameWindow" targetType="CEGUI/FrameWindow" windowType="OD/MenuSelectionWindow" />
     <FalagardMapping lookNFeel="OD/SettingsSlider" renderer="Core/Slider" targetType="CEGUI/Slider" windowType="OD/SettingsSlider" />
     <FalagardMapping lookNFeel="OD/SettingsSliderThumb" renderer="Core/Button" targetType="CEGUI/Thumb" windowType="OD/SettingsSliderThumb" />
+    <FalagardMapping lookNFeel="OD/ResearchButton" renderer="Core/Button" targetType="CEGUI/PushButton" windowType="OD/ResearchButton" />
 </GUIScheme>

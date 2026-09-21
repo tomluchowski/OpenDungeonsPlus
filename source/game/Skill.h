@@ -38,6 +38,9 @@ public:
     inline SkillType getType() const
     { return mType; }
 
+    const std::vector<const Skill*>& getDependencies() const
+    { return mSkillDepends; }
+
     bool canBeSkilled(const std::vector<SkillType>& skillsDone) const;
 
     //! \brief Builds the dependency tree in dependencies with the skills required for this skill

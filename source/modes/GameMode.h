@@ -204,6 +204,7 @@ class GameMode final : public GameEditorModeBase, public InputCommand
     //! if a skill is done) and, if yes, refreshes accordingly.
     //! \param forceRefresh Refresh the gui even if no changes was declared by the local player Seat.
     void refreshGuiSkill(bool forceRefresh = false);
+    void refreshSkillConnections();
 
     //! \brief Called at each frame. Updates spell cooldowns.
     void refreshSpellButtonCoolDowns();
