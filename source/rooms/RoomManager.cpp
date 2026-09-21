@@ -637,6 +637,16 @@ void RoomManager::sellRoomTiles(GameMap* gameMap, Player* player, ODPacket& pack
             tile->exportToPacketForUpdate(serverNotification.mPacket, p.first);
         }
         ODServer::getSingleton().sendAsyncMsg(serverNotification);
+
+        if(!gameMap->isInEditorMode())
+        {
+            ServerNotification effectNotification(
+                ServerNotificationType::roomConstructionEffect, p.first->getPlayer());
+            effectNotification.mPacket << nbTiles;
+            for(Tile* tile : p.second)
+                gameMap->tileToPacket(effectNotification.mPacket, tile);
+            ODServer::getSingleton().sendAsyncMsg(effectNotification);
+        }
     }
 
     // We update active spots of each impacted rooms

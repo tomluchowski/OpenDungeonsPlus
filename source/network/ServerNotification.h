@@ -110,7 +110,7 @@ enum class ServerNotificationType
     // Owner-only aggregate counts, sent only after creature-panel negotiation.
     creaturePanel,
 
-    // Presentation-only burst for newly built gameplay room tiles.
+    // Presentation-only burst for successfully built or sold gameplay room tiles.
     roomConstructionEffect,
 
     // Presentation-only creature melee impact.
