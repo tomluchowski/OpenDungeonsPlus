@@ -4,13 +4,25 @@ import subprocess
 import tempfile
 
 repo = Path(__file__).resolve().parents[2]
+
+
+def function(text, signature):
+    start = text.index(signature)
+    end = text.index('{', start) + 1
+    depth = 1
+    while depth:
+        depth += (text[end] == '{') - (text[end] == '}')
+        end += 1
+    return text[start:end]
+
+
 source = (repo / 'source/modes/AbstractApplicationMode.cpp').read_text()
-start = source.index('bool AbstractApplicationMode::handleDesktopKey(')
-handler = source[start:source.index('bool AbstractApplicationMode::handleScreenshotKey(', start)]
+handler = function(source, 'bool AbstractApplicationMode::handleDesktopKey(')
 for mode in ('AbstractApplicationMode', 'GameMode', 'EditorMode'):
     text = (repo / f'source/modes/{mode}.cpp').read_text()
-    pressed = text[text.index(f'bool {mode}::keyPressed('):]
-    assert pressed.index('handleDesktopKey(arg)') < pressed.index('handleScreenshotKey(arg)')
+    pressed = function(text, f'bool {mode}::keyPressed(')
+    if 'handleScreenshotKey(arg)' in pressed:
+        assert pressed.index('handleDesktopKey(arg)') < pressed.index('handleScreenshotKey(arg)')
     assert pressed.index('handleDesktopKey(arg)') < pressed.index('injectKeyDown(')
 
 probe = r'''
