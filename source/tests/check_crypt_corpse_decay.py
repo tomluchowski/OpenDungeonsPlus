@@ -40,12 +40,15 @@ bool sameRotation(const Ogre::Quaternion& a,const Ogre::Quaternion& b){
 HELPERS
 enum class GameEntityType {creature,other};
 namespace EntityAnimation {const std::string rot_anim="Rot",die_anim="Die";}
-struct Tile {int x,y;int getX(){return x;}int getY(){return y;}};
-struct GameMap {Tile destination{4,5};Tile* getTile(int x,int y){return x==4&&y==5?&destination:nullptr;}};
+struct Room;
+struct Tile {int x,y;Room* room=nullptr;int getX(){return x;}int getY(){return y;}Room* getCoveringRoom(){return room;}};
+struct GameMap {Tile destination{4,5};std::map<std::pair<int,int>,Tile*> extra;
+ Tile* getTile(int x,int y){if(x==4&&y==5)return &destination;auto i=extra.find({x,y});return i==extra.end()?nullptr:i->second;}};
 struct GameEntity {GameEntityType type=GameEntityType::creature;GameEntityType getObjectType(){return type;}
  std::string getName(){return "test";}};
 struct Creature:GameEntity {
  Tile* tile=nullptr;std::string state,cleared;bool onTile=true;bool loop=true,idle=true;
+ bool alive=false;bool isAlive(){return alive;}
  Tile* getPositionTile(){return tile;}
  void clearDestinations(const std::string& s,bool l,bool i){cleared=s;loop=l;idle=i;}
  void setAnimationState(const std::string& s,bool l,const Ogre::Vector3&,bool i){state=s;loop=l;idle=i;}
@@ -55,7 +58,10 @@ enum class ActiveSpotPlace {activeSpotCenter,other};
 struct Room {void notifyActiveSpotRemoved(ActiveSpotPlace,Tile*){}};
 struct RoomCrypt:Room {
  GameMap map;std::map<Tile*,std::pair<Creature*,int32_t>> mRottingCreatures;
+ std::map<Tile*,void*> objects;const auto& getBuildingObjects(){return objects;}
+ RoomCrypt(){map.destination.room=this;}
  GameMap* getGameMap(){return &map;}std::string getName(){return "crypt";}
+ Tile* getDeliveryTile(Tile*);bool hasCarryEntitySpot(GameEntity*);Tile* askSpotForCarriedEntity(GameEntity*);
  void notifyCarryingStateChanged(Creature*,GameEntity*);void notifyActiveSpotRemoved(ActiveSpotPlace,Tile*);
 };
 OFFSETS
@@ -79,6 +85,24 @@ int main(int argc,char** argv){try{
  check(room.mRottingCreatures[&spot].first==nullptr,"interrupted delivery frees reservation");
  room.mRottingCreatures[&spot]={&corpse,-1};room.notifyActiveSpotRemoved(ActiveSpotPlace::activeSpotCenter,&spot);
  check(corpse.state=="unchanged","removing a reserved but unused spot leaves carried corpse unchanged");
+
+ RoomCrypt delivery;Tile grave{4,6},side{3,6,&delivery};Creature body;
+ delivery.mRottingCreatures[&grave]={nullptr,-1};delivery.map.extra[{3,6}]=&side;
+ check(delivery.hasCarryEntitySpot(&body),"available empty delivery tile is advertised");
+ body.alive=true;check(!delivery.hasCarryEntitySpot(&body),"crypt still rejects living creatures");body.alive=false;
+ delivery.objects[&delivery.map.destination]=&delivery;
+ check(delivery.askSpotForCarriedEntity(&body)==&side,"statue redirects reservation to free side tile");
+ check(delivery.mRottingCreatures[&grave].first==&body&&!delivery.hasCarryEntitySpot(&body),"one corpse reserves one grave");
+ carrier.tile=&delivery.map.destination;body.tile=carrier.tile;
+ delivery.notifyCarryingStateChanged(&carrier,&body);
+ check(!delivery.mRottingCreatures[&grave].first&&body.state.empty(),"old blocked tile is not accepted as new delivery");
+ check(delivery.askSpotForCarriedEntity(&body)==&side,"interrupted reservation can be reused");
+ carrier.tile=body.tile=&side;delivery.notifyCarryingStateChanged(&carrier,&body);
+ check(body.state=="Rot"&&!body.onTile&&delivery.mRottingCreatures[&grave].second==0,"free side delivery starts unchanged decay");
+ delivery.mRottingCreatures[&grave]={nullptr,-1};delivery.objects[&side]=&delivery;
+ check(!delivery.hasCarryEntitySpot(&body)&&delivery.askSpotForCarriedEntity(&body)==nullptr,"blocked grave is never reserved");
+ delivery.objects.clear();delivery.map.destination.room=nullptr;side.room=nullptr;
+ check(delivery.getDeliveryTile(&grave)==nullptr,"delivery never targets another room or outside the map");
 
  Ogre::Root root("","","crypt-decay.log");
  Ogre::DefaultHardwareBufferManager buffers;
@@ -134,6 +158,7 @@ int main(int argc,char** argv){try{
 probe = probe.replace('HELPERS', '\n'.join(function(renderer, signature) for signature in (
     'bool needsCreatureDropFallback(', 'std::string createCreatureDecayAnimation(')))
 probe = probe.replace('ROOM_METHODS', '\n'.join(function(crypt, signature) for signature in (
+    'Tile* RoomCrypt::getDeliveryTile(', 'bool RoomCrypt::hasCarryEntitySpot(', 'Tile* RoomCrypt::askSpotForCarriedEntity(',
     'void RoomCrypt::notifyCarryingStateChanged(', 'void RoomCrypt::notifyActiveSpotRemoved(')))
 probe = probe.replace('OFFSETS', '\n'.join(re.findall(r'^.*const.*OFFSET_TILE_[XY].*;$', crypt, re.M)))
 probe = probe.replace('MODELS', ','.join('"' + model + '"' for model in models))

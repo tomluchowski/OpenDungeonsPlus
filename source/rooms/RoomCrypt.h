@@ -51,6 +51,7 @@ protected:
     virtual BuildingObject* notifyActiveSpotCreated(ActiveSpotPlace place, Tile* tile) override;
     virtual void notifyActiveSpotRemoved(ActiveSpotPlace place, Tile* tile) override;
 private:
+    Tile* getDeliveryTile(Tile* spot);
     std::map<Tile*,std::pair<Creature*, int32_t> > mRottingCreatures;
     int32_t mRottenPoints;
 };

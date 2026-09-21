@@ -324,6 +324,7 @@ int main(){
  ROOM_LAYOUTS
  BENCHMARK
  SAVED_TERRAIN
+ CRYPT_DELIVERY
  std::cout<<"CHECKS="<<checks<<" FAILURES="<<failures<<'\n';return failures?1:0;
 }
 '''.replace('SOURCE', source).replace('FOOD_HANDLER', food_handler).replace('WORK_GATES', '\n'.join(work_gates))
@@ -693,6 +694,59 @@ if args.saved_terrain:
         check(foodMax<100000,"saved food search stays below 100 ms in the local performance fixture");
         '''
 probe = probe.replace('SAVED_TERRAIN', saved_probe)
+crypt_source = read_source('source/rooms/RoomCrypt.cpp')
+delivery = crypt_source[crypt_source.index('Tile* RoomCrypt::getDeliveryTile('):crypt_source.index('bool RoomCrypt::hasCarryEntitySpot(')]
+probe = probe.replace('int main(){', '''
+struct RoomCrypt:Room {
+ GameMap* map;GameMap* getGameMap(){return map;}Tile* getDeliveryTile(Tile*);
+};
+const int OFFSET_TILE_X=0,OFFSET_TILE_Y=-1;
+''' + delivery + '\nint main(){')
+probe = probe.replace('CRYPT_DELIVERY', r'''
+ {
+  struct Prop{const char* name;int x,y;float angle;};
+  const Prop props[]={{"KnightStatue2",4,3,180},{"KnightStatue2",6,3,180},
+   {"KnightStatue",3,4,90},{"StoneCoffin",4,4,0},{"CelticCross",6,4,0},
+   {"KnightStatue",7,4,270},{"KnightStatue",3,6,90},{"StoneCoffin",4,6,0},
+   {"StoneCoffin",6,6,0},{"KnightStatue",7,6,270},{"KnightStatue2",6,7,0}};
+  for(int rotation=0;rotation<4;++rotation){
+   GameMap map(11,11);RoomCrypt crypt;crypt.map=&map;crypt.type=RoomType::crypt;map.rooms={&crypt};
+   const auto rotate=[&](Ogre::Vector2 p){for(int n=0;n<rotation;++n)p={10-p.y,p.x};return p;};
+   for(auto& tile:map.tiles){tile.walkable=tile.x>=3&&tile.x<=7&&tile.y>=3&&tile.y<=7;if(tile.walkable)tile.room=&crypt;}
+   for(int x:{1,2}){auto p=rotate({float(x),5});map.getTile(int(p.x),int(p.y))->walkable=true;}
+   std::vector<BuildingObject> furniture;
+   furniture.reserve(11);
+   for(const auto& prop:props){auto p=rotate({float(prop.x),float(prop.y)});furniture.emplace_back();auto& object=furniture.back();
+    object.mesh=prop.name;object.pos={p.x,p.y,0};object.angle=prop.angle+rotation*90;
+    crypt.objects[map.getTile(int(p.x),int(p.y))]=&object;}
+   for(auto spot:{Ogre::Vector2(4,4),Ogre::Vector2(6,4),Ogre::Vector2(4,6),Ogre::Vector2(6,6)}){
+    auto p=rotate(spot);auto* tile=map.getTile(int(p.x),int(p.y));auto* delivery=crypt.getDeliveryTile(tile);
+    check(delivery&&delivery->room==&crypt&&!crypt.objects.count(delivery),"crypt delivery avoids statues and stays in its own room");
+    if(!delivery)continue;
+    for(const char* mesh:{"Kobold.mesh","Dwarf1.mesh"})for(int level:{1,30}){
+     Creature worker{&map};worker.mesh=mesh;worker.level=level;auto entrance=rotate({1,5});worker.pos={entrance.x,entrance.y,0};
+     std::vector<Ogre::Vector2> path;Creature::tileToVector2(map.path(&worker,delivery),path,true,0);RoomObjectNavigation::refine(worker,path);
+     if(std::string(mesh)=="Dwarf1.mesh"&&level==30){
+      check(path.empty(),"oversized dwarf cannot squeeze through the narrower coffin lane");continue;
+     }
+     check(!path.empty(),"crypt delivery has a collision-safe approach");
+     if(path.empty())continue;
+     check(!RoomObjectNavigation::blocked(worker,path),"crypt approach never crosses furniture");
+     worker.pos={path.back().x,path.back().y,0};
+     check(worker.getPositionTile()==delivery,"refined delivery remains on the reserved tile");
+     path.clear();Creature::tileToVector2(map.path(&worker,map.getTile(int(entrance.x),int(entrance.y))),path,true,0);RoomObjectNavigation::refine(worker,path);
+     check(!path.empty()&&path.back()==entrance,"worker leaves the crypt after corpse delivery");
+     check(!RoomObjectNavigation::blocked(worker,path),"crypt departure never crosses furniture");
+    }
+   }
+   auto* center=map.getTile(5,5);auto* lower=map.getTile(5,4);crypt.objects.clear();
+   check(crypt.getDeliveryTile(center)==lower,"unoccupied original delivery position retained");
+   for(auto p:{Ogre::Vector2(5,4),Ogre::Vector2(4,5),Ogre::Vector2(6,5),Ogre::Vector2(5,6)})
+    crypt.objects[map.getTile(int(p.x),int(p.y))]=&furniture.front();
+   check(crypt.getDeliveryTile(center)==nullptr,"fully obstructed spot has no delivery reservation");
+  }
+ }
+''')
 with tempfile.TemporaryDirectory(prefix='odp-room-navigation-') as directory:
     work = Path(directory)
     if args.source_ref:

@@ -286,6 +286,20 @@ void RoomCrypt::doUpkeep()
     }
 }
 
+Tile* RoomCrypt::getDeliveryTile(Tile* spot)
+{
+    // Wall statues may occupy the old fixed delivery tile and prevent turning.
+    const int offsets[][2] = {{OFFSET_TILE_X, OFFSET_TILE_Y}, {-1, 0}, {1, 0}, {0, 1}};
+    const auto& objects = getBuildingObjects();
+    for(const auto& offset : offsets)
+    {
+        Tile* tile = getGameMap()->getTile(spot->getX() + offset[0], spot->getY() + offset[1]);
+        if(tile != nullptr && tile->getCoveringRoom() == this && objects.find(tile) == objects.end())
+            return tile;
+    }
+    return nullptr;
+}
+
 bool RoomCrypt::hasCarryEntitySpot(GameEntity* carriedEntity)
 {
     if(carriedEntity->getObjectType() != GameEntityType::creature)
@@ -298,7 +312,7 @@ bool RoomCrypt::hasCarryEntitySpot(GameEntity* carriedEntity)
 
     for(std::pair<Tile* const, std::pair<Creature*, int32_t> >& p : mRottingCreatures)
     {
-        if(p.second.first == nullptr)
+        if(p.second.first == nullptr && getDeliveryTile(p.first) != nullptr)
             return true;
     }
     return false;
@@ -317,13 +331,12 @@ Tile* RoomCrypt::askSpotForCarriedEntity(GameEntity* carriedEntity)
     {
         if(p.second.first == nullptr)
         {
+            Tile* tile = getDeliveryTile(p.first);
+            if(tile == nullptr)
+                continue;
             p.second.first = creature;
             p.second.second = -1;
-            Tile* spot = p.first;
-            Tile* t = getGameMap()->getTile(spot->getX() + OFFSET_TILE_X,
-                spot->getY() + OFFSET_TILE_Y);
-            OD_ASSERT_TRUE_MSG(t != nullptr, "room=" + getName() + ", spot=" + Tile::displayAsString(spot));
-            return t;
+            return tile;
         }
     }
     return nullptr;
@@ -346,8 +359,7 @@ void RoomCrypt::notifyCarryingStateChanged(Creature* carrier, GameEntity* carrie
             }
 
             Tile* spot = p.first;
-            Tile* tileExpected = getGameMap()->getTile(spot->getX() + OFFSET_TILE_X,
-                spot->getY() + OFFSET_TILE_Y);
+            Tile* tileExpected = getDeliveryTile(spot);
             if(tileExpected != carrierTile)
             {
                 p.second.first = nullptr;
