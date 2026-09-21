@@ -107,6 +107,10 @@ void MenuModeLoad::activate()
     CEGUI::Window* sheet = getModeManager().getGui().getGuiSheet(Gui::loadSavedGameMenu);
     sheet->getChild("WelcomeBanner")->setVisible(!mInGame);
     sheet->getChild("VersionText")->setVisible(!mInGame);
+    sheet->getChild("LevelWindowFrame")->setLookNFeel(
+        mInGame ? "OD/GameSettingsWindow" : "OD/MenuPageWindow");
+    sheet->getChild("LoadingText")->setAlwaysOnTop(true);
+    sheet->getChild("LoadingText")->moveToFront();
     if(mInGame)
     {
         if(!mOpen)
