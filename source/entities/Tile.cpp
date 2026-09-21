@@ -1113,12 +1113,30 @@ void Tile::setTeamsNumber(uint32_t nbTeams)
 
 bool Tile::shouldColorTileMesh() const
 {
-    // We only set color for claimed tiles
+    // Claimed tiles and room floors carry their owner's colour: a room square
+    // must be tellable from an enemy's at a glance, especially once rooms can
+    // change hands square by square. The materials that do not know how to
+    // tint themselves (no seatColor uniform) are skipped where the colour is
+    // applied, so listing a visual here is safe even before its material has
+    // been taught the tint.
     switch(getTileVisual())
     {
         case TileVisual::claimedGround:
         case TileVisual::claimedFull:
-        case TileVisual::portalRoom:    
+        case TileVisual::dungeonTempleRoom:
+        case TileVisual::dormitoryRoom:
+        case TileVisual::treasuryRoom:
+        case TileVisual::portalRoom:
+        case TileVisual::workshopRoom:
+        case TileVisual::trainingHallRoom:
+        case TileVisual::libraryRoom:
+        case TileVisual::hatcheryRoom:
+        case TileVisual::cryptRoom:
+        case TileVisual::portalWaveRoom:
+        case TileVisual::prisonRoom:
+        case TileVisual::arenaRoom:
+        case TileVisual::casinoRoom:
+        case TileVisual::tortureRoom:
             return true;
         default:
             return false;

@@ -10,6 +10,11 @@ uniform vec4 lightDiffuseColour;
 uniform vec4 lightSpecularColour;
 uniform vec4 lightPos;
 uniform vec4 cameraPosition;
+// The owning seat's colour, set by RenderManager::colourizeMaterial on the
+// cloned per-seat material. The stock material never sets it, and OpenGL
+// zero-initialises uniforms at link time, so alpha stays 0.0 there and the
+// tint below stays off.
+uniform vec4 seatColor;
 uniform bool shadowingEnabled;
 in vec2 out_UV0;
 in vec2 out_UV1;
@@ -60,6 +65,10 @@ void main (void)
     // precompute the lighting term
     vec3 lightingTerm =  (diffuse + specular + ambientLightColour.rgb/2.0 )*shadow.rgb;
     vec3 texelColor = texture(decalmap, out_UV0.st).rgb;
+    // Tint owned room floors towards the owner's colour so it is visible at a
+    // glance whose room a square is, the way claimed ground already shows it.
+    if (seatColor.a > 0.0)
+        texelColor = mix(texelColor, texelColor * seatColor.rgb, 0.5);
     result =  lightingTerm * texelColor;
 
     color  = vec4(result.xyz,  1.0);

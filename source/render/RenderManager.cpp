@@ -2069,13 +2069,21 @@ std::string RenderManager::colourizeMaterial(const std::string& materialName, co
         }
         if (seat != nullptr)
         {
-            // Color the material with the Seat's color.
-            Ogre::ColourValue color = seat->getColorValue();
-            color.a = 1.0;
-            technique->getPass(technique->getNumPasses() -1 )->getFragmentProgramParameters()->setNamedConstant("seatColor", color) ;
-
-            
-
+            // Color the material with the Seat's color. Only the materials
+            // whose fragment shader takes a seatColor can carry it; the rest
+            // (fixed-function or RTSS-generated ones) are left untinted
+            // rather than aborted on.
+            Ogre::Pass* lastPass = technique->getPass(technique->getNumPasses() - 1);
+            if(lastPass->hasFragmentProgram())
+            {
+                const Ogre::GpuProgramParametersSharedPtr& params = lastPass->getFragmentProgramParameters();
+                if(params->_findNamedConstantDefinition("seatColor", false) != nullptr)
+                {
+                    Ogre::ColourValue color = seat->getColorValue();
+                    color.a = 1.0;
+                    params->setNamedConstant("seatColor", color);
+                }
+            }
         }
     }
 
