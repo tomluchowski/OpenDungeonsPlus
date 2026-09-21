@@ -61,9 +61,10 @@ if(Boost_FOUND)
 		if(Boost_USE_STATIC_LIBS)
 			set(_boostConfig "BoostTestTargetsStatic.h")
 		else()
-			if(NOT APPLE)
-				set(_boostConfig "BoostTestTargetsDynamic.h")
-			endif()
+			# Also on Apple: the "included" fallback compiles the whole
+			# framework into every file including BoostTestTargetConfig.h,
+			# which gives duplicate symbols in multi-file tests.
+			set(_boostConfig "BoostTestTargetsDynamic.h")
 		endif()
 	endif()
 	get_filename_component(_moddir ${CMAKE_CURRENT_LIST_FILE} PATH)

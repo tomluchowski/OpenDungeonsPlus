@@ -136,7 +136,10 @@ namespace Helper
     std::string toString(uint32_t d);
     std::string toString(int64_t d);
     std::string toString(uint64_t d);
-    #if defined(__OpenBSD__) && defined(__LP64__)
+    // On LP64 systems whose size_t is unsigned long while uint64_t is
+    // unsigned long long (macOS, OpenBSD), size_t matches none of the fixed
+    // width overloads and calls become ambiguous.
+    #if defined(__APPLE__) || (defined(__OpenBSD__) && defined(__LP64__))
     std::string toString(size_t d);
     #endif
     std::string toString(const Ogre::Vector2& v);    
