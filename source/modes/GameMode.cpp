@@ -383,6 +383,10 @@ void GameMode::activate()
     Gui& gui = getModeManager().getGui();
     gui.loadGuiSheet(Gui::inGameMenu);
     RenderManager::getSingleton().rrEnableHeldCreatureDisplay(true, mGameMap->getLocalPlayer());
+    mIndicatorLeftAltDown = getKeyboard()->isKeyDown(OIS::KC_LMENU);
+    mIndicatorRightAltDown = getKeyboard()->isKeyDown(OIS::KC_RMENU);
+    RenderManager::getSingleton().rrSetCreaturesTextOverlay(*mGameMap,
+        mCreatureIndicatorsVisible);
 
     // We free the menu scene as it is not required anymore
     ODFrameListener::getSingleton().freeMainMenuScene();
@@ -859,6 +863,7 @@ bool GameMode::mouseReleased(const OIS::MouseEvent &arg, OIS::MouseButtonID id)
 
 bool GameMode::keyPressed(const OIS::KeyEvent& arg)
 {
+    updateCreatureIndicatorAlt(arg.key, true);
     // Inject key to Gui
     CEGUI::System::getSingleton().getDefaultGUIContext().injectKeyDown(static_cast<CEGUI::Key::Scan>(arg.key));
     if (arg.text != 0 && !getConsole()->isFreshlyEnabled())
@@ -959,11 +964,6 @@ bool GameMode::keyPressedNormal(const OIS::KeyEvent &arg)
     case OIS::KC_V:
         if(!cameraInputBlocked())
             frameListener.getCameraManager()->setNextDefaultView();
-        break;
-
-    case OIS::KC_LMENU:
-        RenderManager::getSingleton().
-        RenderManager::getSingleton().rrSetCreaturesTextOverlay(*mGameMap, true);
         break;
 
     // Zooms to the next event
@@ -1128,6 +1128,7 @@ bool GameMode::keyReleased(const OIS::KeyEvent &arg)
 {
     if(arg.key == OIS::KC_M)
         mMapKeyDown = false;
+    updateCreatureIndicatorAlt(arg.key, false);
     CEGUI::System::getSingleton().getDefaultGUIContext().injectKeyUp(static_cast<CEGUI::Key::Scan>(arg.key));
 
     if (mCurrentInputMode == InputModeChat || mCurrentInputMode == InputModeConsole)
@@ -1142,8 +1143,52 @@ bool GameMode::keyReleasedNormal(const OIS::KeyEvent &arg)
 
     switch (arg.key)
     {
-    case OIS::KC_LMENU:
-        RenderManager::getSingleton().rrSetCreaturesTextOverlay(*mGameMap, false);
+    case OIS::KC_LEFT:
+    case OIS::KC_A:
+        frameListener.moveCamera(CameraManager::Direction::stopLeft);
+        directionKeyPressed = false;
+        break;
+
+    case OIS::KC_RIGHT:
+    case OIS::KC_D:
+        frameListener.moveCamera(CameraManager::Direction::stopRight);
+        directionKeyPressed = false;
+        break;
+
+    case OIS::KC_UP:
+    case OIS::KC_W:
+        frameListener.moveCamera(CameraManager::Direction::stopForward);
+        directionKeyPressed = false;
+        break;
+
+    case OIS::KC_DOWN:
+    case OIS::KC_S:
+        frameListener.moveCamera(CameraManager::Direction::stopBackward);
+        directionKeyPressed = false;
+        break;
+
+    case OIS::KC_Q:
+        frameListener.moveCamera(CameraManager::Direction::stopRotLeft);
+        break;
+
+    case OIS::KC_E:
+        frameListener.moveCamera(CameraManager::Direction::stopRotRight);
+        break;
+
+    case OIS::KC_HOME:
+        frameListener.moveCamera(CameraManager::Direction::stopDown);
+        break;
+
+    case OIS::KC_END:
+        frameListener.moveCamera(CameraManager::Direction::stopUp);
+        break;
+
+    case OIS::KC_PGUP:
+        frameListener.moveCamera(CameraManager::Direction::stopRotUp);
+        break;
+
+    case OIS::KC_PGDOWN:
+        frameListener.moveCamera(CameraManager::Direction::stopRotDown);
         break;
 
     default:
@@ -1397,10 +1442,31 @@ bool GameMode::storeUserCamera(const CEGUI::EventArgs&)
     return true;
 }
 
+void GameMode::updateCreatureIndicatorAlt(OIS::KeyCode key, bool pressed)
+{
+    if(key != OIS::KC_LMENU && key != OIS::KC_RMENU)
+        return;
+    const bool wasDown = mIndicatorLeftAltDown || mIndicatorRightAltDown;
+    (key == OIS::KC_LMENU ? mIndicatorLeftAltDown : mIndicatorRightAltDown) = pressed;
+    if(pressed && !wasDown)
+    {
+        mCreatureIndicatorsVisible = !mCreatureIndicatorsVisible;
+        RenderManager::getSingleton().rrSetCreaturesTextOverlay(*mGameMap,
+            mCreatureIndicatorsVisible);
+    }
+}
+
 void GameMode::onFrameStarted(const Ogre::FrameEvent& evt)
 {
     if(mFullMap)
         updateMapDetail();
+
+    // Recover releases missed while focus was elsewhere without changing the toggle.
+    if(!getKeyboard()->isKeyDown(OIS::KC_LMENU))
+        updateCreatureIndicatorAlt(OIS::KC_LMENU, false);
+    if(!getKeyboard()->isKeyDown(OIS::KC_RMENU))
+        updateCreatureIndicatorAlt(OIS::KC_RMENU, false);
+
     GameEditorModeBase::onFrameStarted(evt);
     if(mFullMap)
         mFullMap->update(evt.timeSinceLastFrame, mCameraTilesIntersections);

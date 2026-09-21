@@ -247,16 +247,23 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
                 OD_ASSERT_TRUE(packetReceived >> creaturePanel);
             setSupportsCreaturePanel(false);
 
+            bool creatureProgress = false;
+            if(!packetReceived.endOfPacket())
+                OD_ASSERT_TRUE(packetReceived >> creatureProgress);
+            setSupportsCreatureProgress(false);
+
             ODPacket packSend;
             const std::string& nick = gameMap->getLocalPlayerNick();
             packSend << ClientNotificationType::setNick << nick;
-            if(liveNickname || creatureMood || creatureActivity || creaturePanel)
+            if(liveNickname || creatureMood || creatureActivity || creaturePanel || creatureProgress)
                 packSend << liveNickname;
-            if(creatureMood || creatureActivity || creaturePanel)
+            if(creatureMood || creatureActivity || creaturePanel || creatureProgress)
                 packSend << creatureMood;
-            if(creatureActivity || creaturePanel)
+            if(creatureActivity || creaturePanel || creatureProgress)
                 packSend << creatureActivity;
-            if(creaturePanel)
+            if(creaturePanel || creatureProgress)
+                packSend << creaturePanel;
+            if(creatureProgress)
                 packSend << true;
             send(packSend);
 
@@ -437,6 +444,11 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
             if(!packetReceived.endOfPacket())
                 OD_ASSERT_TRUE(packetReceived >> creaturePanel);
             setSupportsCreaturePanel(creaturePanel);
+
+            bool creatureProgress = false;
+            if(!packetReceived.endOfPacket())
+                OD_ASSERT_TRUE(packetReceived >> creatureProgress);
+            setSupportsCreatureProgress(creatureProgress);
 
             // Now that the we have received all needed information, we can launch the requested mode
             OD_LOG_INF("Starting game map");

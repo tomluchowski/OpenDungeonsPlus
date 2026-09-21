@@ -16,8 +16,11 @@
  */
 
 #include "render/CreatureOverlayStatus.h"
+#include "ODApplication.h"
 
+#include "creaturemood/CreatureMood.h"
 #include "entities/Creature.h"
+#include "entities/CreatureMoodValues.h"
 #include "game/Seat.h"
 #include "render/MovableTextOverlay.h"
 #include "render/RenderManager.h"
@@ -31,6 +34,8 @@ const std::string CREATURE_OVERLAY_STATUS_PREFIX = "CreatureOverlayStatus_";
 enum class CreatureOverlays
 {
     health,
+    experience,
+    recovery,
     status,
     nbCreatureOverlays
 };
@@ -38,6 +43,7 @@ enum class CreatureOverlays
 CreatureOverlayStatus::CreatureOverlayStatus(Creature* creature, Ogre::Entity* ent,
         Ogre::Camera* cam) :
     mCreature(creature),
+    mSeat(nullptr),
     mMovableTextOverlay(nullptr),
     mHealthValue(0),
     mLevel(0),
@@ -48,17 +54,34 @@ CreatureOverlayStatus::CreatureOverlayStatus(Creature* creature, Ogre::Entity* e
     mMovableTextOverlay = new MovableTextOverlay(creature->getName(),
         ent, cam);
 
-    uint32_t healthId = mMovableTextOverlay->createChildOverlay("MedievalSharp", 16, Ogre::ColourValue::White, "");
+    uint32_t healthId = mMovableTextOverlay->createChildOverlay("MedievalSharp", 30,
+        Ogre::ColourValue(0.04f, 0.04f, 0.04f, 1.0f), "");
     mOverlayIds[static_cast<uint32_t>(CreatureOverlays::health)] = healthId;
-    mMovableTextOverlay->setCaption(healthId, Helper::toString(creature->getLevel()));
-    mMovableTextOverlay->forceTextArea(healthId, 42,42);
+    mMovableTextOverlay->forceTextArea(healthId, 64,64);
+    mMovableTextOverlay->centerCaption(healthId);
     mMovableTextOverlay->displayOverlay(healthId, 0);
+
+    uint32_t experienceId = mMovableTextOverlay->createChildOverlay("MedievalSharp", 30,
+        Ogre::ColourValue::White, "CreatureExperience", false);
+    mOverlayIds[static_cast<uint32_t>(CreatureOverlays::experience)] = experienceId;
+    mMovableTextOverlay->forceTextArea(experienceId, 64, 64);
+    mMovableTextOverlay->setAtlasFrame(experienceId, 0, 8);
+
+    uint32_t recoveryId = mMovableTextOverlay->createChildOverlay("MedievalSharp", 30,
+        Ogre::ColourValue(1.0f, 0.91f, 0.66f, 1.0f), "CreatureRecovery", false);
+    mOverlayIds[static_cast<uint32_t>(CreatureOverlays::recovery)] = recoveryId;
+    mMovableTextOverlay->forceTextArea(recoveryId, 64, 64);
+    mMovableTextOverlay->centerCaption(recoveryId);
+    mMovableTextOverlay->setCaptionOutline(recoveryId, Ogre::ColourValue(0.04f, 0.04f, 0.04f, 1.0f));
+    mMovableTextOverlay->setAtlasFrame(recoveryId, 0, 8);
+    mMovableTextOverlay->displayOverlay(recoveryId, -1);
 
     updateHealth();
 
-    uint32_t statusId = mMovableTextOverlay->createChildOverlay("MedievalSharp", 16, Ogre::ColourValue::White, "");
+    uint32_t statusId = mMovableTextOverlay->createChildOverlay("MedievalSharp", 16,
+        Ogre::ColourValue::White, "", false);
     mOverlayIds[static_cast<uint32_t>(CreatureOverlays::status)] = statusId;
-    mMovableTextOverlay->forceTextArea(statusId, 32,32);
+    mMovableTextOverlay->forceTextArea(statusId, 30,30);
     // Note: We set the material to the first status overlay material otherwise, materials
     // are not shown when we change then ingame
     mMovableTextOverlay->setMaterialName(statusId, CREATURE_OVERLAY_STATUS_PREFIX + "1");
@@ -95,95 +118,92 @@ void CreatureOverlayStatus::updateHealth()
     if(mLevel != mCreature->getLevel())
     {
         mLevel = mCreature->getLevel();
-        uint32_t healthId = mOverlayIds[static_cast<uint32_t>(CreatureOverlays::health)];
-        mMovableTextOverlay->setCaption(healthId, Helper::toString(mLevel));
+        const auto levelId = mOverlayIds[static_cast<uint32_t>(CreatureOverlays::recovery)];
+        mMovableTextOverlay->setCaptionSize(levelId, mLevel < 10 ? 32 : 26);
+        if(mStatus == 0)
+        {
+            mMovableTextOverlay->setCaption(levelId, Helper::toString(mLevel));
+        }
     }
+
+}
+
+void CreatureOverlayStatus::updateProgress(Ogre::Real timeSincelastFrame)
+{
+    const auto experienceId = mOverlayIds[static_cast<uint32_t>(CreatureOverlays::experience)];
+    const auto recoveryId = mOverlayIds[static_cast<uint32_t>(CreatureOverlays::recovery)];
+    const bool known = mCreature->hasProgressInformation();
+    mMovableTextOverlay->displayOverlay(experienceId, known ? -1 : 0);
+    mMovableTextOverlay->setAtlasFrame(experienceId,
+        static_cast<uint32_t>(mCreature->getExperienceProgress() * 63.0), 8);
+    const uint32_t duration = mCreature->getAttackRecoveryDuration();
+    const uint32_t remaining = mCreature->getAttackRecoveryTurns();
+    const uint32_t serial = mCreature->getAttackRecoverySerial();
+    if(remaining != mRecoveryTurns || serial != mRecoverySerial)
+    {
+        mRecoveryTurns = remaining;
+        mRecoverySerial = serial;
+        mRecoveryElapsed = 0.0f;
+    }
+    else
+        mRecoveryElapsed += timeSincelastFrame;
+    // Smooth only within the reported turn; never announce readiness before the server.
+    const double fraction = std::min(0.999, mRecoveryElapsed * ODApplication::turnsPerSecond);
+    const uint32_t frame = known && duration > 0 && remaining > 0 ?
+        1 + static_cast<uint32_t>(62.0 * (duration - remaining + fraction) / duration) : 0;
+    mMovableTextOverlay->setAtlasFrame(recoveryId, frame, 8);
 }
 
 void CreatureOverlayStatus::updateStatus(Ogre::Real timeSincelastFrame)
 {
     uint32_t moodValue = mCreature->getOverlayMoodValue();
-    if((mStatus == 0) && (moodValue == 0))
-        return;
+    if(mCreature->getMoodValue() == CreatureMoodLevel::Upset)
+        moodValue |= CreatureMoodValues::Upset;
 
-    // If current status is still on, we change only if we have displayed the current one for too long
-    if((mStatus & moodValue) != 0)
-    {
-        if(mTimeDisplayStatus > timeSincelastFrame)
-        {
-            mTimeDisplayStatus -= timeSincelastFrame;
-            return;
-        }
-
-        // If the current status is the only one activated, no need to change
-        if((moodValue & ~mStatus) == 0)
-            return;
-    }
-
+    uint32_t healthId = mOverlayIds[static_cast<uint32_t>(CreatureOverlays::recovery)];
     uint32_t statusId = mOverlayIds[static_cast<uint32_t>(CreatureOverlays::status)];
-    uint32_t newStatus;
     if(moodValue == 0)
     {
-        newStatus = 0;
-    }
-    else if(mStatus == 0)
-    {
-        // There is a status to display. We look for the first one
-        newStatus = 1;
-    }
-    else
-    {
-        // We are already displaying a status and it should be displayed. We check if there is another one
-        newStatus = mStatus << 1;
+        mStatus = 0;
+        mTimeDisplayStatus = 0.0;
+        mMovableTextOverlay->displayOverlay(statusId, 0);
+        mMovableTextOverlay->setCaption(healthId, Helper::toString(mLevel));
+        return;
     }
 
-    // We look for the next status (if we start from first position, no need to loop)
-    bool hasLooped = newStatus <= 1;
-    while(newStatus > 0)
+    if(mTimeDisplayStatus > timeSincelastFrame &&
+       (mStatus == 0 || (mStatus & moodValue) != 0))
     {
-        if(newStatus > moodValue)
-        {
-            if(hasLooped)
-            {
-                // We have looped without finding a fitting status. That is not normal since creature mood
-                // value is not 0 and we are supposed to have tried every bit
-                OD_LOG_ERR("mStatus=" + Helper::toString(mStatus) + ", CreatureOverlayMoodValue=" + Helper::toString(mCreature->getOverlayMoodValue()));
-                mStatus = 0;
-                return;
-            }
+        mTimeDisplayStatus -= timeSincelastFrame;
+        return;
+    }
 
-            newStatus = 1;
-        }
+    uint32_t newStatus = mStatus == 0 ? 1 : mStatus << 1;
+    while(newStatus != 0 && newStatus <= moodValue && (newStatus & moodValue) == 0)
+        newStatus <<= 1;
 
-        if((newStatus & moodValue) != 0)
-            break;
-
-        newStatus = newStatus << 1;
+    if(newStatus == 0 || newStatus > moodValue)
+    {
+        mStatus = 0;
+        mTimeDisplayStatus = 1.0;
+        mMovableTextOverlay->displayOverlay(statusId, 0);
+        mMovableTextOverlay->setCaption(healthId, Helper::toString(mLevel));
+        return;
     }
 
     mStatus = newStatus;
-
-    if(mStatus == 0)
-    {
-        mMovableTextOverlay->displayOverlay(statusId, 0);
-        mTimeDisplayStatus = 0.0;
-        return;
-    }
-
     mTimeDisplayStatus = 1.0;
     std::string material = CREATURE_OVERLAY_STATUS_PREFIX + Helper::toString(mStatus);
     mMovableTextOverlay->setMaterialName(statusId, material);
     mMovableTextOverlay->displayOverlay(statusId, -1);
+    mMovableTextOverlay->setCaption(healthId, "");
 }
 
 void CreatureOverlayStatus::update(Ogre::Real timeSincelastFrame)
 {
-    // If the creature is not on map, we do not display the overlays. Neither do we over a
-    // dead one: it lies there for a few turns before it is taken away, and its level and its
-    // mood are of no interest by then.
-    mMovableTextOverlay->setVisible(mCreature->getIsOnMap() && mCreature->isAlive());
-
     updateHealth();
+
+    updateProgress(timeSincelastFrame);
 
     // A creature with several moods to show takes them in turns, one second each. No time
     // passing means no turn taken: the labels are put back where the camera sees them while
@@ -193,4 +213,9 @@ void CreatureOverlayStatus::update(Ogre::Real timeSincelastFrame)
         updateStatus(timeSincelastFrame);
 
     mMovableTextOverlay->update(timeSincelastFrame);
+    // Health, level and need symbols share the same request lifetime, including
+    // temporary editor hover; hidden or dead creatures never show the overlay.
+    const auto healthId = mOverlayIds[static_cast<uint32_t>(CreatureOverlays::health)];
+    mMovableTextOverlay->setVisible(mCreature->getIsOnMap() && mCreature->isAlive() &&
+        mMovableTextOverlay->isDisplayed(healthId));
 }

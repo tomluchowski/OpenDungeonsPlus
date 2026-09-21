@@ -54,7 +54,8 @@ class ODSocketClient
             mSupportsLiveNickname(false),
             mSupportsCreatureMood(false),
             mSupportsCreatureActivity(false),
-            mSupportsCreaturePanel(false)
+            mSupportsCreaturePanel(false),
+            mSupportsCreatureProgress(false)
         {}
 
         virtual ~ODSocketClient()
@@ -80,6 +81,8 @@ class ODSocketClient
         void setSupportsCreatureActivity(bool supported) { mSupportsCreatureActivity = supported; }
         bool supportsCreaturePanel() const { return mSupportsCreaturePanel; }
         void setSupportsCreaturePanel(bool supported) { mSupportsCreaturePanel = supported; }
+        bool supportsCreatureProgress() const { return mSupportsCreatureProgress; }
+        void setSupportsCreatureProgress(bool supported) { mSupportsCreatureProgress = supported; }
         int64_t getLastTurnAck() { return mLastTurnAck; }
         void setLastTurnAck(int64_t lastTurnAck) { mLastTurnAck = lastTurnAck; }
         const std::string& getState() {return mState;}
@@ -146,6 +149,7 @@ class ODSocketClient
         bool mSupportsCreatureMood;
         bool mSupportsCreatureActivity;
         bool mSupportsCreaturePanel;
+        bool mSupportsCreatureProgress;
 
         //! \brief the replay filename being written. Used to later optionally delete it
         //! if asked to.
