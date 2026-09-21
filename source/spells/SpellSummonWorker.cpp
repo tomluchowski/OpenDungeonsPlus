@@ -225,6 +225,7 @@ bool SpellSummonWorker::summonWorkersOnTiles(GameMap* gameMap, Player* player, c
         Ogre::Vector3 spawnPosition(static_cast<Ogre::Real>(tile->getX()),
                                     static_cast<Ogre::Real>(tile->getY()),
                                     static_cast<Ogre::Real>(0.0));
+        newCreature->addParticleEffect("SummonWorker", 3);
         newCreature->createMesh();
         newCreature->setPosition(spawnPosition);
     }
