@@ -154,6 +154,26 @@ bool roomWorkGate(RoomType type,Creature& creature,BuildingObject* ro,const Ogre
 int checks=0,failures=0;
 void check(bool ok,const char* reason){++checks;if(!ok){++failures;std::cout<<"FAIL "<<reason<<'\n';}}
 int main(){
+ for(int rotation=0;rotation<4;++rotation)for(bool reverse:{false,true}){
+  GameMap corridor(20,20);for(auto& tile:corridor.tiles)tile.walkable=false;
+  auto rotate=[&](Ogre::Vector2 p){for(int i=0;i<rotation;++i)p={19-p.y,p.x};return p;};
+  std::vector<Ogre::Vector2> coarse;Ogre::Vector2 p(4,4);coarse.push_back(rotate(p));
+  for(int i=0;i<6;++i){p.x+=1;coarse.push_back(rotate(p));p.y+=1;coarse.push_back(rotate(p));}
+  for(auto point:coarse)corridor.getTile(Helper::round(point.x),Helper::round(point.y))->walkable=true;
+  if(reverse)std::reverse(coarse.begin(),coarse.end());
+  Creature walker{&corridor};walker.pos={coarse.front().x,coarse.front().y,0};
+  const auto destination=coarse.back();coarse.erase(coarse.begin());
+  walker.setWalkPath("Walk","Idle",true,true,coarse,true);
+  check(!walker.distortion,"stair corridor disables random client offsets");
+  check(!walker.walk.empty()&&walker.walk.back()==destination,"stair corridor preserves destination");
+  check(walker.walk.size()<=4,"stair corridor follows a diagonal rather than every tile centre");
+  Ogre::Vector2 from(walker.pos.x,walker.pos.y);float length=0;bool diagonal=false;
+  for(auto point:walker.walk){check(terrainClear(walker,from,point),"smoothed corridor never traverses wall or blocked corner");
+   auto delta=point-from;length+=delta.length();if(std::abs(delta.x)>.1f&&std::abs(delta.y)>.1f)diagonal=true;
+   for(int i=0;i<=100;++i){auto sample=from+delta*(i/100.f);auto* tile=corridor.getTile(Helper::round(sample.x),Helper::round(sample.y));
+    check(tile&&tile->walkable,"dense samples stay on excavated terrain");}from=point;}
+  check(diagonal&&length<10,"stair corridor contains a shorter diagonal leg");
+ }
  GameMap map;Room room;map.rooms.push_back(&room);for(auto& tile:map.tiles)tile.room=&room;
  BuildingObject object;room.objects[map.getTile(5,5)]=&object;Creature creature{&map};
  for(const auto& row:RoomObjectPath::meshBounds)for(float rotation:{0.f,30.f,45.f,90.f,180.f,270.f}){

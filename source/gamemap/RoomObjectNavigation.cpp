@@ -61,6 +61,57 @@ bool terrainClear(Creature& creature, const Ogre::Vector2& from, const Ogre::Vec
     return true;
 }
 
+bool smoothCorridor(Creature& creature, const std::vector<RoomObjectPath::Obstacle>& obstacles,
+    std::vector<Ogre::Vector2>& path)
+{
+    const Ogre::Vector2 start(creature.getPosition().x, creature.getPosition().y);
+    auto previous = start;
+    Ogre::Vector2 lastDirection = Ogre::Vector2::ZERO;
+    std::vector<Ogre::Vector2> candidates;
+    float originalLength = 0.0f;
+    unsigned turns = 0;
+    for(const auto& point : path)
+    {
+        const auto direction = point - previous;
+        if(direction.squaredLength() < 0.000001f)
+            continue;
+        const bool cardinal = std::abs(direction.x) < 0.00001f || std::abs(direction.y) < 0.00001f;
+        if(cardinal && std::abs(lastDirection.crossProduct(direction)) > 0.00001f)
+            ++turns;
+        lastDirection = cardinal ? direction : Ogre::Vector2::ZERO;
+        candidates.push_back((previous + point) * 0.5f);
+        candidates.push_back(point);
+        originalLength += direction.length();
+        previous = point;
+    }
+    if(turns < 2)
+        return false;
+    const auto clear = [&](const Ogre::Vector2& from, const Ogre::Vector2& to)
+    {
+        return terrainClear(creature, from, to) &&
+            RoomObjectPath::clearSegment(obstacles, from, to, from == start);
+    };
+    std::vector<Ogre::Vector2> result;
+    previous = start;
+    float length = 0.0f;
+    for(size_t first = 0; first < candidates.size();)
+    {
+        size_t next = candidates.size() - 1;
+        while(next > first && !clear(previous, candidates[next]))
+            --next;
+        if(!clear(previous, candidates[next]))
+            return false;
+        length += previous.distance(candidates[next]);
+        result.push_back(candidates[next]);
+        previous = candidates[next];
+        first = next + 1;
+    }
+    if(length >= originalLength - 0.0001f)
+        return false;
+    path.swap(result);
+    return true;
+}
+
 bool removeLowStepObstacles(Creature& creature, std::vector<RoomObjectPath::Obstacle>& obstacles)
 {
     const auto count = obstacles.size();
@@ -206,7 +257,7 @@ bool RoomObjectNavigation::refine(Creature& creature, std::vector<Ogre::Vector2>
         previous = point;
     }
     if(!nearby)
-        return false;
+        return smoothCorridor(creature, obstacles, path);
 
     obstacles = bodyObstacles(creature, interaction);
     auto goal = path.back();
@@ -316,6 +367,7 @@ bool RoomObjectNavigation::refine(Creature& creature, std::vector<Ogre::Vector2>
         path.clear();
         return true;
     }
+    smoothCorridor(creature, obstacles, result);
     path.swap(result);
     return true;
 }
