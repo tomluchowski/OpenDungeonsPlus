@@ -187,7 +187,7 @@ Gui::Gui(SoundEffectsManager* soundEffectsManager, const std::string& ceguiLogFi
         CEGUI::WindowManager::EventWindowDestroyed,
         CEGUI::Event::Subscriber(&Gui::onWindowDestroyed, this));
 
-    for(const auto& sheet : mSheets)
+    for(const std::pair<const guiSheet, CEGUI::Window*>& sheet : mSheets)
         registerWindow(sheet.second);
     applyScale(renderer.getDisplaySize());
 
@@ -301,10 +301,10 @@ void Gui::applyScale(const CEGUI::Sizef& displaySize)
 
     updateResourceScaling(displaySize);
 
-    for(const auto& scaledWindow : mScaledWindows)
+    for(const std::pair<CEGUI::Window* const, WindowScaleData>& scaledWindow : mScaledWindows)
         applyScale(scaledWindow.first, scaledWindow.second, scale);
 
-    for(const auto& scaledWindow : mScaledWindows)
+    for(const std::pair<CEGUI::Window* const, WindowScaleData>& scaledWindow : mScaledWindows)
     {
         CEGUI::ScrollablePane* pane = dynamic_cast<CEGUI::ScrollablePane*>(scaledWindow.first);
         if(pane == nullptr || !pane->isUserStringDefined("VisibleControlExtent"))
