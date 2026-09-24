@@ -39,6 +39,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <functional>
 
 RenderSceneMenu::RenderSceneMenu()
 {
@@ -201,7 +202,7 @@ void RenderSceneMenu::createAtmosphere(RenderManager& renderManager)
     mAtmosphereSceneManager = renderManager.getSceneManager();
     mAtmosphereTime = 0.0f;
 
-    const auto addEffect = [&](AtmosphereEffectType type,
+    const std::function<void(AtmosphereEffectType, const std::string&, const Ogre::Vector2&, const Ogre::Vector2&, const Ogre::ColourValue&, Ogre::Real)> addEffect = [&](AtmosphereEffectType type,
         const std::string& baseMaterial, const Ogre::Vector2& center,
         const Ogre::Vector2& size, const Ogre::ColourValue& colour,
         Ogre::Real phase)
