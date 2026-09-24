@@ -80,6 +80,7 @@
 
 #include <sstream>
 #include <string>
+#include <functional>
 
 template<> RenderManager* Ogre::Singleton<RenderManager>::msSingleton = nullptr;
 
@@ -230,7 +231,7 @@ void addPickaxePrism(Ogre::ManualObject* mesh, const std::vector<Ogre::Vector2>&
     const Ogre::FloatRect& textureArea)
 {
     // A small extruded polygon, in the hand rig's local units.
-    const auto textureCoordinate = [&](float u, float v)
+    const std::function<void(float, float)> textureCoordinate = [&](float u, float v)
     {
         mesh->textureCoord(textureArea.left + u * textureArea.width(),
             textureArea.top + v * textureArea.height());
@@ -988,7 +989,7 @@ void RenderManager::updateRenderAnimations(Ogre::Real timeSinceLastFrame)
         alignKeeperHandPointer(mSceneManager->getEntity("keeperHandEnt"), mHandAnimationState);
     }
 
-    for(auto it = mCreatureDropAnimations.begin(); it != mCreatureDropAnimations.end();)
+    for(std::vector<CreatureDropAnimation>::iterator it = mCreatureDropAnimations.begin(); it != mCreatureDropAnimations.end();)
     {
         it->mElapsed += timeSinceLastFrame;
         const Ogre::Real progress = std::min(
@@ -1023,7 +1024,7 @@ void RenderManager::updateRenderAnimations(Ogre::Real timeSinceLastFrame)
         }
     }
 
-    for(auto it = mCreatureGetUpAnimations.begin(); it != mCreatureGetUpAnimations.end();)
+    for(std::vector<CreatureGetUpAnimation>::iterator it = mCreatureGetUpAnimations.begin(); it != mCreatureGetUpAnimations.end();)
     {
         it->mElapsed += timeSinceLastFrame;
         const Ogre::Real progress = std::min(
@@ -2213,7 +2214,7 @@ void RenderManager::rrSetObjectAnimationState(MovableGameEntity* curAnimatedObje
                 dropAnimation.mLieOrientation = dropAnimation.mStartOrientation *
                     Ogre::Quaternion(Ogre::Degree(-90.0f), Ogre::Vector3::UNIT_X);
                 const Ogre::Vector3 scale = dropAnimation.mNode->getScale();
-                const auto corners = objectEntity->getBoundingBox().getAllCorners();
+                const Ogre::AxisAlignedBox::Corners corners = objectEntity->getBoundingBox().getAllCorners();
                 Ogre::Real minZ = (dropAnimation.mLieOrientation * (scale * corners[0])).z;
                 for(unsigned int corner = 1; corner < 8; ++corner)
                 {
@@ -2238,7 +2239,7 @@ void RenderManager::rrSetObjectAnimationState(MovableGameEntity* curAnimatedObje
                 const Ogre::Quaternion lieOrientation = standingOrientation *
                     Ogre::Quaternion(Ogre::Degree(-90.0f), Ogre::Vector3::UNIT_X);
                 const Ogre::Vector3 scale = node->getScale();
-                const auto corners = objectEntity->getBoundingBox().getAllCorners();
+                const Ogre::AxisAlignedBox::Corners corners = objectEntity->getBoundingBox().getAllCorners();
                 Ogre::Real minZ = (lieOrientation * (scale * corners[0])).z;
                 for(unsigned int corner = 1; corner < 8; ++corner)
                 {
@@ -2315,7 +2316,7 @@ void RenderManager::rrSetObjectAnimationState(MovableGameEntity* curAnimatedObje
 void RenderManager::cancelCreatureDropAnimation(Creature* creature)
 {
     cancelCreatureGetUpAnimation(creature);
-    for(auto it = mCreatureDropAnimations.begin(); it != mCreatureDropAnimations.end();)
+    for(std::vector<CreatureDropAnimation>::iterator it = mCreatureDropAnimations.begin(); it != mCreatureDropAnimations.end();)
     {
         if(it->mCreature == creature)
         {
@@ -2333,7 +2334,7 @@ void RenderManager::cancelCreatureDropAnimation(Creature* creature)
 
 void RenderManager::cancelCreatureGetUpAnimation(Creature* creature)
 {
-    for(auto it = mCreatureGetUpAnimations.begin(); it != mCreatureGetUpAnimations.end();)
+    for(std::vector<CreatureGetUpAnimation>::iterator it = mCreatureGetUpAnimations.begin(); it != mCreatureGetUpAnimations.end();)
     {
         if(it->mCreature != creature)
         {
@@ -2368,7 +2369,7 @@ void RenderManager::startCreatureGetUpAnimation(Creature* creature)
     if(useFallback)
     {
         bool foundGroundPose = false;
-        for(auto it = mCreatureGroundPoses.begin(); it != mCreatureGroundPoses.end(); ++it)
+        for(std::vector<CreatureGroundPose>::iterator it = mCreatureGroundPoses.begin(); it != mCreatureGroundPoses.end(); ++it)
         {
             if(it->mCreature != creature)
                 continue;
@@ -2400,7 +2401,7 @@ void RenderManager::startCreatureGetUpAnimation(Creature* creature)
 
 void RenderManager::restoreCreatureGroundPose(Creature* creature)
 {
-    for(auto it = mCreatureGroundPoses.begin(); it != mCreatureGroundPoses.end();)
+    for(std::vector<CreatureGroundPose>::iterator it = mCreatureGroundPoses.begin(); it != mCreatureGroundPoses.end();)
     {
         if(it->mCreature != creature)
         {
@@ -3064,9 +3065,9 @@ Ogre::FloatRect RenderManager::getHandCursorBounds(float relX, float relY) const
             Ogre::VertexData* data = part->getSubMesh()->useSharedVertices ?
                 hand->_getSkelAnimVertexData() : part->_getSkelAnimVertexData();
             const Ogre::VertexElement* element = data->vertexDeclaration->findElementBySemantic(Ogre::VES_POSITION);
-            auto buffer = data->vertexBufferBinding->getBuffer(element->getSource());
+            Ogre::HardwareVertexBufferSharedPtr buffer = data->vertexBufferBinding->getBuffer(element->getSource());
             Ogre::HardwareBufferLockGuard lock(buffer, Ogre::HardwareBuffer::HBL_READ_ONLY);
-            auto* bytes = static_cast<unsigned char*>(lock.pData);
+            unsigned char* bytes = static_cast<unsigned char*>(lock.pData);
             for(size_t i = 0; i < data->vertexCount; ++i)
             {
                 float* vertex = nullptr;
@@ -3086,7 +3087,7 @@ Ogre::FloatRect RenderManager::getHandCursorBounds(float relX, float relY) const
         }
         return bounds;
     }
-    const auto corners = hand->getBoundingBox().getAllCorners();
+    const Ogre::AxisAlignedBox::Corners corners = hand->getBoundingBox().getAllCorners();
     for(int i = 0; i < 8; ++i)
     {
         // Overlay's parent already follows the world camera; use camera-local transforms.

@@ -187,7 +187,7 @@ void CreaturePanel::addSlot()
     mConnections.emplace_back(slot.portrait->subscribeEvent(CEGUI::Window::EventMouseClick,
         CEGUI::Event::Subscriber([this, index](const CEGUI::EventArgs& args)
         {
-            const auto button = static_cast<const CEGUI::MouseEventArgs&>(args).button;
+            const CEGUI::MouseButton button = static_cast<const CEGUI::MouseEventArgs&>(args).button;
             if(button == CEGUI::RightButton)
                 focus(mSlots[index].type);
             else if(button == CEGUI::LeftButton && selectedLevelOrder() != 0)
@@ -203,7 +203,7 @@ void CreaturePanel::addSlot()
         mConnections.emplace_back(count->subscribeEvent(CEGUI::Window::EventMouseClick,
             CEGUI::Event::Subscriber([this, index, row](const CEGUI::EventArgs& args)
             {
-                const auto button = static_cast<const CEGUI::MouseEventArgs&>(args).button;
+                const CEGUI::MouseButton button = static_cast<const CEGUI::MouseEventArgs&>(args).button;
                 if(button == CEGUI::LeftButton && row < VIEW_CRITERIA[mView].size())
                     pickUp(mSlots[index].type, VIEW_CRITERIA[mView][row], false, selectedLevelOrder());
                 else if(button == CEGUI::RightButton)
@@ -234,7 +234,7 @@ void CreaturePanel::update()
     for(unsigned int i = 0; i < mGameMap.numClassDescriptions(); ++i)
     {
         const CreatureDefinition* definition = mGameMap.getClassDescription(i);
-        const auto found = mData.find(definition->getClassName());
+        const CreaturePanelData::iterator found = mData.find(definition->getClassName());
         if(found == mData.end())
             continue;
         if(definition->isWorker())
@@ -271,7 +271,7 @@ void CreaturePanel::update()
         slot.portrait->setProperty("Image", getCreaturePanelPortraitImage(definition->getMeshName()).getName());
         slot.portrait->setTooltipText(slot.type);
         slot.portrait->setUserString("ContextHelp", slot.type + ": right-click to locate");
-        const auto& criteria = VIEW_CRITERIA[mView];
+        const std::vector<Criterion>& criteria = VIEW_CRITERIA[mView];
         for(size_t row = 0; row < slot.counts.size(); ++row)
         {
             CEGUI::Window* countWindow = slot.counts[row];
@@ -279,7 +279,7 @@ void CreaturePanel::update()
             countWindow->setVerticalAlignment(criteria.size() == 1 ? CEGUI::VA_CENTRE : CEGUI::VA_TOP);
             if(row >= criteria.size())
                 continue;
-            const auto criterion = criteria[row];
+            const Criterion criterion = criteria[row];
             const uint32_t count = mData.at(slot.type)[static_cast<size_t>(criterion)];
             countWindow->setText(Helper::toString(count));
             countWindow->setEnabled(count > 0);
