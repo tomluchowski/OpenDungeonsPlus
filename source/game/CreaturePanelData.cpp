@@ -64,7 +64,7 @@ void addCreaturePanelCounts(CreaturePanelCounts& counts, const CreatureActivity&
 void exportCreaturePanelData(ODPacket& packet, const CreaturePanelData& data)
 {
     packet << static_cast<uint32_t>(data.size());
-    for(const auto& entry : data)
+    for(const std::pair<const std::string, CreaturePanelCounts>& entry : data)
     {
         packet << entry.first;
         for(uint32_t count : entry.second)
