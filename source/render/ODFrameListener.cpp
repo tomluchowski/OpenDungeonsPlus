@@ -529,10 +529,10 @@ bool ODFrameListener::findWorldPositionFromMouse(const OIS::MouseEvent &arg, Ogr
 
 bool ODFrameListener::findTilePositionFromMouse(const OIS::MouseEvent& arg, Ogre::Vector3& position)
 {
-    const auto mouse = CEGUI::System::getSingleton().getDefaultGUIContext().getMouseCursor().getPosition();
+    const CEGUI::Vector2f mouse = CEGUI::System::getSingleton().getDefaultGUIContext().getMouseCursor().getPosition();
     const Ogre::Ray ray = mCameraManager.getActiveCamera()->getCameraToViewportRay(
         mouse.d_x / arg.state.width, mouse.d_y / arg.state.height);
-    const auto ground = ray.intersects(Ogre::Plane(Ogre::Vector3::UNIT_Z, 0));
+    const Ogre::RayTestResult ground = ray.intersects(Ogre::Plane(Ogre::Vector3::UNIT_Z, 0));
     if(!ground.first || ray.getDirection().z >= 0)
         return false;
 
@@ -540,7 +540,7 @@ bool ODFrameListener::findTilePositionFromMouse(const OIS::MouseEvent& arg, Ogre
     const int height = mGameMap->getMapSizeY();
     const Ogre::AxisAlignedBox mapBounds(-0.5f, -0.5f, 0,
         width - 0.5f, height - 0.5f, ray.getOrigin().z);
-    const auto entry = ray.intersects(mapBounds);
+    const Ogre::RayTestResult entry = ray.intersects(mapBounds);
     if(!entry.first)
         return false;
 
@@ -570,7 +570,7 @@ bool ODFrameListener::findTilePositionFromMouse(const OIS::MouseEvent& arg, Ogre
             if(wall != nullptr)
             {
                 const float top = wall->getWorldBoundingBox(true).getMaximum().z;
-                const auto hit = ray.intersects(Ogre::AxisAlignedBox(x - 0.5f, y - 0.5f, 0,
+                const Ogre::RayTestResult hit = ray.intersects(Ogre::AxisAlignedBox(x - 0.5f, y - 0.5f, 0,
                     x + 0.5f, y + 0.5f, top));
                 if(hit.first && hit.second <= ground.second)
                 {
