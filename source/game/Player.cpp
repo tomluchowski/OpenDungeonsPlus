@@ -546,7 +546,7 @@ void Player::notifyCreatureCannotFindBed(Creature& creature)
     {
         mCreatureCannotFindBed = CREATURE_CANNOT_FIND_BED_TIME_COUNT;
 
-        std::string chatMsg = creature.getName() + " cannot find room for a bed";
+        std::string chatMsg = creature.getName() + " cannot find room for a bed. Build or enlarge a Dormitory.";
         ServerNotification *serverNotification = new ServerNotification(
             ServerNotificationType::chatServer, this);
         serverNotification->mPacket << chatMsg << EventShortNoticeType::genericGameInfo;
@@ -567,7 +567,7 @@ void Player::notifyCreatureCannotFindFood(Creature& creature)
     {
         mCreatureCannotFindFood = CREATURE_CANNOT_FIND_FOOD_TIME_COUNT;
 
-        std::string chatMsg = creature.getName() + " cannot find food";
+        std::string chatMsg = creature.getName() + " cannot find food. Build a Hatchery.";
         ServerNotification *serverNotification = new ServerNotification(
             ServerNotificationType::chatServer, this);
         serverNotification->mPacket << chatMsg << EventShortNoticeType::genericGameInfo;
