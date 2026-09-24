@@ -118,7 +118,7 @@ void CreatureOverlayStatus::updateHealth()
     if(mLevel != mCreature->getLevel())
     {
         mLevel = mCreature->getLevel();
-        const auto levelId = mOverlayIds[static_cast<uint32_t>(CreatureOverlays::recovery)];
+        const uint32_t levelId = mOverlayIds[static_cast<uint32_t>(CreatureOverlays::recovery)];
         mMovableTextOverlay->setCaptionSize(levelId, mLevel < 10 ? 32 : 26);
         if(mStatus == 0)
         {
@@ -130,8 +130,8 @@ void CreatureOverlayStatus::updateHealth()
 
 void CreatureOverlayStatus::updateProgress(Ogre::Real timeSincelastFrame)
 {
-    const auto experienceId = mOverlayIds[static_cast<uint32_t>(CreatureOverlays::experience)];
-    const auto recoveryId = mOverlayIds[static_cast<uint32_t>(CreatureOverlays::recovery)];
+    const uint32_t experienceId = mOverlayIds[static_cast<uint32_t>(CreatureOverlays::experience)];
+    const uint32_t recoveryId = mOverlayIds[static_cast<uint32_t>(CreatureOverlays::recovery)];
     const bool known = mCreature->hasProgressInformation();
     mMovableTextOverlay->displayOverlay(experienceId, known ? -1 : 0);
     mMovableTextOverlay->setAtlasFrame(experienceId,
@@ -215,7 +215,7 @@ void CreatureOverlayStatus::update(Ogre::Real timeSincelastFrame)
     mMovableTextOverlay->update(timeSincelastFrame);
     // Health, level and need symbols share the same request lifetime, including
     // temporary editor hover; hidden or dead creatures never show the overlay.
-    const auto healthId = mOverlayIds[static_cast<uint32_t>(CreatureOverlays::health)];
+    const uint32_t healthId = mOverlayIds[static_cast<uint32_t>(CreatureOverlays::health)];
     mMovableTextOverlay->setVisible(mCreature->getIsOnMap() && mCreature->isAlive() &&
         mMovableTextOverlay->isDisplayed(healthId));
 }

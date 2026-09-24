@@ -72,7 +72,7 @@ void ChildOverlay::setCaption(const Ogre::String& caption)
     {
         mCaption = caption;
         mOverlayText->setCaption(mCaption);
-        for(auto* outline : mCaptionOutline)
+        for(Ogre::OverlayElement* outline : mCaptionOutline)
             outline->setCaption(mCaption);
         computeTextArea();
         if(mCenterCaption)
@@ -107,7 +107,7 @@ void ChildOverlay::setScale(Ogre::Real scale)
         return;
     mScale = scale;
     mOverlayText->setParameter("char_height", Helper::toString(mCharHeight * mScale));
-    for(auto* outline : mCaptionOutline)
+    for(Ogre::OverlayElement* outline : mCaptionOutline)
         outline->setParameter("char_height", Helper::toString(mCharHeight * mScale));
     if(mCenterCaption)
         centerCaption();
@@ -210,7 +210,7 @@ MovableTextOverlay::~MovableTextOverlay()
     Ogre::OverlayManager& overlayManager = Ogre::OverlayManager::getSingleton();
     for(ChildOverlay& childOverlay : mChildOverlays)
     {
-        for(auto* outline : childOverlay.mCaptionOutline)
+        for(Ogre::OverlayElement* outline : childOverlay.mCaptionOutline)
         {
             childOverlay.mOverlayContainer->removeChild(outline->getName());
             overlayManager.destroyOverlayElement(outline);
@@ -288,7 +288,7 @@ void MovableTextOverlay::setCaptionSize(uint32_t childOverlayId, Ogre::Real heig
     ChildOverlay& child = mChildOverlays[childOverlayId];
     child.mCharHeight = height;
     child.mOverlayText->setParameter("char_height", Helper::toString(height * child.mScale));
-    for(auto* outline : child.mCaptionOutline)
+    for(Ogre::OverlayElement* outline : child.mCaptionOutline)
         outline->setParameter("char_height", Helper::toString(height * child.mScale));
     child.computeTextArea();
     if(child.mCenterCaption)
@@ -305,7 +305,7 @@ void MovableTextOverlay::setCaptionOutline(uint32_t childOverlayId, const Ogre::
         for(unsigned i = 0; i < 4; ++i)
         {
             // Names sort before the foreground glyph in the container's Z-order.
-            auto* outline = Ogre::OverlayManager::getSingleton().createOverlayElement("TextArea",
+            Ogre::OverlayElement* outline = Ogre::OverlayManager::getSingleton().createOverlayElement("TextArea",
                 mName + Helper::toString(childOverlayId) + "_OvOutline" + Helper::toString(i));
             child.mOverlayContainer->addChild(outline);
             outline->setMetricsMode(Ogre::GMM_RELATIVE);
@@ -320,7 +320,7 @@ void MovableTextOverlay::setCaptionOutline(uint32_t childOverlayId, const Ogre::
         }
         mOverlay->setZOrder(mOverlay->getZOrder());
     }
-    for(auto* outline : child.mCaptionOutline)
+    for(Ogre::OverlayElement* outline : child.mCaptionOutline)
         outline->setColour(colour);
     child.centerCaption();
 }
