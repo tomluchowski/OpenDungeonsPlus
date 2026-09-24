@@ -70,6 +70,9 @@ const std::string TEXT_SEAT_ID_PREFIX = "TextSeat";
 const std::string TEXT_SEAT_PLAYER_NICKNAME_PREFIX = "TextSeatPlayerNick";
 const std::string TEXT_SEAT_TEAM_ID_PREFIX = "TextSeatTeam";
 
+//! \brief The pointer movement in pixels up to which a middle button press and release is a click, not a camera rotation
+const float MIDDLE_CLICK_MAX_DRAG = 4.0f;
+
 GameMode::GameMode(ModeManager *modeManager):
     GameEditorModeBase(modeManager, ModeManager::GAME, modeManager->getGui().getGuiSheet(Gui::guiSheet::inGameMenu)),
     mDigSetBool(false),
@@ -80,6 +83,7 @@ GameMode::GameMode(ModeManager *modeManager):
     mCurrentSkillType(SkillType::nullSkillType),
     mCurrentSkillProgress(0.0),
     mPreviousMousePosition(MouseMoveEvent{0, 0}),
+    mMiddleDragDistance(0.0f),
     directionKeyPressed(false),
     showTileDebugWindow(false),
     config(ConfigManager::getSingleton())
@@ -369,6 +373,7 @@ bool GameMode::mouseMoved(const OIS::MouseEvent &arg)
     // TODO: Here we should check whether the terminal is active...
     if(inputManager.mMMouseDown)
     {
+        mMiddleDragDistance += std::abs(static_cast<float>(mouseDelta.x)) + std::abs(static_cast<float>(mouseDelta.y));
         ODFrameListener::getSingleton().moveCamera(CameraManager::randomRotateX,mouseDelta.x);
         ODFrameListener::getSingleton().moveCamera(CameraManager::randomRotateY,mouseDelta.y);
     }
@@ -514,6 +519,58 @@ bool GameMode::isMouseWheelOnCEGUIWindow()
     return true;
 }
 
+void GameMode::openStatsWindowUnderPointer(const OIS::MouseEvent& arg)
+{
+    InputManager& inputManager = mModeManager->getInputManager();
+
+    if(mGameMap->getGamePaused())
+        return;
+
+    if(!ODFrameListener::getSingleton().findWorldPositionFromMouse(arg, inputManager.mKeeperHandPos,RenderManager::KEEPER_HAND_WORLD_Z))
+        return;
+
+    int tileX = Helper::round(inputManager.mKeeperHandPos.x);
+    int tileY = Helper::round(inputManager.mKeeperHandPos.y);
+    Tile* tileClicked = mGameMap->getTile(tileX, tileY);
+    if(tileClicked == nullptr)
+        return;
+
+    // See if the mouse is over any entity that might display a stats window
+    std::vector<GameEntity*> entities;
+    tileClicked->fillWithEntities(entities, SelectionEntityWanted::any, mGameMap->getLocalPlayer());
+    // We search the closest creature alive
+    GameEntity* closestEntity = nullptr;
+    double closestDist = 0;
+    for(GameEntity* entity : entities)
+    {
+        if(!entity->canDisplayStatsWindow(mGameMap->getLocalPlayer()->getSeat()))
+            continue;
+
+        const Ogre::Vector3& entityPos = entity->getPosition();
+        double dist = Pathfinding::squaredDistance(entityPos.x, inputManager.mKeeperHandPos.x, entityPos.y, inputManager.mKeeperHandPos.y);
+        if(closestEntity == nullptr)
+        {
+            closestDist = dist;
+            closestEntity = entity;
+            continue;
+        }
+
+        if(dist >= closestDist)
+            continue;
+
+        closestDist = dist;
+        closestEntity = entity;
+    }
+
+    if(closestEntity == nullptr)
+    {
+        if(showTileDebugWindow)
+            tileClicked->createStatsWindow();
+    }
+    else
+        closestEntity->createStatsWindow();
+}
+
 bool GameMode::mousePressed(const OIS::MouseEvent& arg, OIS::MouseButtonID id)
 {
     InputManager& inputManager = mModeManager->getInputManager();
@@ -563,7 +620,10 @@ bool GameMode::mousePressed(const OIS::MouseEvent& arg, OIS::MouseButtonID id)
     // The player should be able to move the mouse even if not clicking on a tile. Because of that, we set
     // mMMouseDown before checking which tile is clicked
     if (id == OIS::MB_Middle)
+    {
         inputManager.mMMouseDown = true;
+        mMiddleDragDistance = 0.0f;
+    }
 
     int tileX = Helper::round(inputManager.mKeeperHandPos.x);
     int tileY = Helper::round(inputManager.mKeeperHandPos.y);
@@ -571,44 +631,10 @@ bool GameMode::mousePressed(const OIS::MouseEvent& arg, OIS::MouseButtonID id)
     if(tileClicked == nullptr)
         return true;
 
+    // The stats window opens when the middle button is released without the pointer having moved,
+    // so that rotating the camera over creatures does not open windows (see mouseReleased)
     if (id == OIS::MB_Middle)
-    {
-        // See if the mouse is over any entity that might display a stats window
-        std::vector<GameEntity*> entities;
-        tileClicked->fillWithEntities(entities, SelectionEntityWanted::any, mGameMap->getLocalPlayer());
-        // We search the closest creature alive
-        GameEntity* closestEntity = nullptr;
-        double closestDist = 0;
-        for(GameEntity* entity : entities)
-        {
-            if(!entity->canDisplayStatsWindow(mGameMap->getLocalPlayer()->getSeat()))
-                continue;
-
-            const Ogre::Vector3& entityPos = entity->getPosition();
-            double dist = Pathfinding::squaredDistance(entityPos.x, inputManager.mKeeperHandPos.x, entityPos.y, inputManager.mKeeperHandPos.y);
-            if(closestEntity == nullptr)
-            {
-                closestDist = dist;
-                closestEntity = entity;
-                continue;
-            }
-
-            if(dist >= closestDist)
-                continue;
-
-            closestDist = dist;
-            closestEntity = entity;
-        }
-
-        if(closestEntity == nullptr)
-        {
-            if(showTileDebugWindow)
-                tileClicked->createStatsWindow();
-        }
-        else
-            closestEntity->createStatsWindow();
         return true;
-    }
 
     // Right mouse button down
     if (id == OIS::MB_Right)
@@ -759,9 +785,14 @@ bool GameMode::mouseReleased(const OIS::MouseEvent &arg, OIS::MouseButtonID id)
 
     if(id == OIS::MB_Middle)
     {
+        // A middle click that did not move is a request for the stats window. mMMouseDown is only set when
+        // the press was on the map, so a press on a GUI window never gets here as a click
+        bool isClick = inputManager.mMMouseDown && (mMiddleDragDistance <= MIDDLE_CLICK_MAX_DRAG);
         inputManager.mMMouseDown = false;
         ODFrameListener::getSingleton().moveCamera(CameraManager::zeroRandomRotateX, 0.0);
         ODFrameListener::getSingleton().moveCamera(CameraManager::zeroRandomRotateY, 0.0);
+        if(isClick && isConnected() && (mGameMap->getLocalPlayer() != nullptr))
+            openStatsWindowUnderPointer(arg);
     }
 
     // If the mouse press was on a CEGUI window ignore it
