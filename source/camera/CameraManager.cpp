@@ -39,6 +39,7 @@
 #include <OgreViewport.h>
 
 #include <algorithm>
+#include <functional>
 
 const Ogre::Real Z_MOVE_SPEED = 1.0;
 const Ogre::Real Z_MOVE_SPEED_ACCELERATION = 2.0f * Z_MOVE_SPEED;
@@ -631,7 +632,7 @@ void CameraManager::move(const Direction direction, double aux)
     const bool scaledPan = aux > 0.0;
     const Ogre::Real maxSpeedFactor = scaledPan ?
         static_cast<Ogre::Real>(std::min(aux, 1.0)) : 1.0f;
-    const auto applyPanAcceleration = [this, scaledPan](Ogre::Real& acceleration, Ogre::Real direction)
+    const std::function<void(Ogre::Real&, Ogre::Real)> applyPanAcceleration = [this, scaledPan](Ogre::Real& acceleration, Ogre::Real direction)
     {
         const Ogre::Real newAcceleration = direction * mMoveSpeedAcceleration;
         if(scaledPan)
