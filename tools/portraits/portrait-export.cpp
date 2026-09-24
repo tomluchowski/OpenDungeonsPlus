@@ -37,7 +37,7 @@ int main(int argc, char** argv)
         Ogre::Root root("", "", output + "/portrait-export-Ogre.log");
         root.loadPlugin(dependencies + "/bin/RenderSystem_GL3Plus.dll");
         root.loadPlugin(dependencies + "/bin/Codec_STBI.dll");
-        auto* renderer = root.getAvailableRenderers().front();
+        Ogre::RenderSystem* renderer = root.getAvailableRenderers().front();
         root.setRenderSystem(renderer);
         renderer->setConfigOption("Full Screen", "No");
         renderer->setConfigOption("Debug Layer", "Off");
@@ -45,10 +45,10 @@ int main(int argc, char** argv)
         Ogre::NameValuePairList options;
         options["hidden"] = "true";
         options["FSAA"] = "0";
-        auto* window = root.createRenderWindow("PortraitAssetPreview", 192, 384, false, &options);
+        Ogre::RenderWindow* window = root.createRenderWindow("PortraitAssetPreview", 192, 384, false, &options);
         window->setAutoUpdated(false);
-        auto& resources = Ogre::ResourceGroupManager::getSingleton();
-        for(const auto* directory : {"/models", "/materials/scripts/Creatures", "/materials/textures", "/shaders"})
+        Ogre::ResourceGroupManager& resources = Ogre::ResourceGroupManager::getSingleton();
+        for(const char* directory : {"/models", "/materials/scripts/Creatures", "/materials/textures", "/shaders"})
             resources.addResourceLocation(project + directory, "FileSystem", "Graphics");
         resources.addResourceLocation(dependencies + "/Media/Main", "FileSystem", "OgreInternal");
         resources.addResourceLocation(dependencies + "/Media/Main", "FileSystem", "Graphics");
@@ -58,33 +58,33 @@ int main(int argc, char** argv)
         Ogre::MaterialManager::getSingleton().parseScript(resources.openResource("ReflMetal.material", "Graphics"), "Graphics");
 
         Ogre::RTShader::ShaderGenerator::initialize();
-        auto* shaderGenerator = Ogre::RTShader::ShaderGenerator::getSingletonPtr();
+        Ogre::RTShader::ShaderGenerator* shaderGenerator = Ogre::RTShader::ShaderGenerator::getSingletonPtr();
         OgreBites::SGTechniqueResolverListener listener(shaderGenerator);
         Ogre::MaterialManager::getSingleton().addListener(&listener);
-        auto* mainScene = root.createSceneManager("DefaultSceneManager");
+        Ogre::SceneManager* mainScene = root.createSceneManager("DefaultSceneManager");
         shaderGenerator->addSceneManager(mainScene);
-        auto* mainCamera = mainScene->createCamera("MainCamera");
+        Ogre::Camera* mainCamera = mainScene->createCamera("MainCamera");
         mainScene->getRootSceneNode()->createChildSceneNode()->attachObject(mainCamera);
         window->addViewport(mainCamera)->setBackgroundColour(Ogre::ColourValue::Black);
         Ogre::MaterialManager::getSingleton().setActiveScheme(Ogre::RTShader::ShaderGenerator::DEFAULT_SCHEME_NAME);
-        auto& guiRenderer = CEGUI::OgreRenderer::create(*window);
-        auto& provider = CEGUI::OgreRenderer::createOgreResourceProvider();
-        auto& codec = CEGUI::OgreRenderer::createOgreImageCodec();
+        CEGUI::OgreRenderer& guiRenderer = CEGUI::OgreRenderer::create(*window);
+        CEGUI::OgreResourceProvider& provider = CEGUI::OgreRenderer::createOgreResourceProvider();
+        CEGUI::OgreImageCodec& codec = CEGUI::OgreRenderer::createOgreImageCodec();
         CEGUI::System::create(guiRenderer, &provider, nullptr, &codec, nullptr, "", (output + "/portrait-export-CEGUI.log").c_str());
         guiRenderer.setFrameControlExecutionEnabled(false);
         std::vector<std::pair<Ogre::GpuProgramParametersSharedPtr, size_t>> shadowParameters;
-        auto materials = Ogre::MaterialManager::getSingleton().getResourceIterator();
+        Ogre::ResourceManager::ResourceMapIterator materials = Ogre::MaterialManager::getSingleton().getResourceIterator();
         while(materials.hasMoreElements())
         {
-            auto material = std::static_pointer_cast<Ogre::Material>(materials.getNext());
+            std::shared_ptr<Ogre::Material> material = std::static_pointer_cast<Ogre::Material>(materials.getNext());
             for(unsigned short t = 0; t < material->getNumTechniques(); ++t)
                 for(unsigned short p = 0; p < material->getTechnique(t)->getNumPasses(); ++p)
                 {
-                    auto* pass = material->getTechnique(t)->getPass(p);
+                    Ogre::Pass* pass = material->getTechnique(t)->getPass(p);
                     if(!pass->hasFragmentProgram()) continue;
-                    auto parameters = pass->getFragmentProgramParameters();
+                    Ogre::GpuProgramParametersSharedPtr parameters = pass->getFragmentProgramParameters();
                     if(!parameters->hasNamedParameters()) continue;
-                    auto found = parameters->getConstantDefinitions().map.find("shadowingEnabled");
+                    Ogre::GpuConstantDefinitionMap::const_iterator found = parameters->getConstantDefinitions().map.find("shadowingEnabled");
                     if(found == parameters->getConstantDefinitions().map.end()) continue;
                     parameters->setNamedConstant("shadowingEnabled", 1);
                     shadowParameters.emplace_back(parameters, found->second.physicalIndex);
@@ -101,16 +101,16 @@ int main(int argc, char** argv)
             if(tokens >> field >> value && field == "MeshName") meshes.insert(value);
         }
         if(meshes.empty()) throw std::runtime_error("No creature meshes found");
-        for(const auto& meshName : meshes)
+        for(const std::string& meshName : meshes)
         {
-            const auto& image = getCreaturePortraitImage(meshName);
+            const CEGUI::Image& image = getCreaturePortraitImage(meshName);
             if(&image != &getCreaturePortraitImage(meshName)) throw std::runtime_error("Portrait cache miss");
-            const auto& guiTexture = static_cast<const CEGUI::OgreTexture&>(guiRenderer.getTexture("CreaturePortrait/" + meshName));
-            auto texture = guiTexture.getOgreTexture();
-            auto* target = texture->getBuffer()->getRenderTarget();
+            const CEGUI::OgreTexture& guiTexture = static_cast<const CEGUI::OgreTexture&>(guiRenderer.getTexture("CreaturePortrait/" + meshName));
+            Ogre::TexturePtr texture = guiTexture.getOgreTexture();
+            Ogre::RenderTexture* target = texture->getBuffer()->getRenderTarget();
             target->writeContentsToFile(output + "/portrait-" + meshName + ".png");
-            const auto width = texture->getWidth();
-            const auto height = texture->getHeight();
+            const uint32_t width = texture->getWidth();
+            const uint32_t height = texture->getHeight();
             std::vector<unsigned char> pixels(width * height * 4);
             Ogre::PixelBox box(width, height, 1, Ogre::PF_BYTE_RGBA, pixels.data());
             texture->getBuffer()->blitToMemory(box);
@@ -122,11 +122,11 @@ int main(int argc, char** argv)
             if(meshName == "Kobold.mesh" || meshName == "Orc.mesh")
             {
                 window->update(false);
-                auto& buffer = guiRenderer.createGeometryBuffer();
+                CEGUI::GeometryBuffer& buffer = guiRenderer.createGeometryBuffer();
                 buffer.setClippingRegion(CEGUI::Rectf(0, 0, 192, 384));
                 image.render(buffer, CEGUI::Rectf(0, 0, 192, 384), nullptr, CEGUI::ColourRect(0xFFFFFFFF));
                 guiRenderer.beginRendering();
-                auto& guiTarget = guiRenderer.getDefaultRenderTarget();
+                CEGUI::RenderTarget& guiTarget = guiRenderer.getDefaultRenderTarget();
                 guiTarget.activate();
                 guiTarget.draw(buffer);
                 guiTarget.deactivate();
@@ -136,19 +136,19 @@ int main(int argc, char** argv)
                 guiRenderer.destroyGeometryBuffer(buffer);
             }
             std::cout << meshName << " visiblePixels=" << coloured << std::endl;
-            for(const auto& value : shadowParameters)
+            for(const std::pair<Ogre::GpuProgramParametersSharedPtr, size_t>& value : shadowParameters)
                 if(value.first->getIntPointer(value.second)[0] != 1)
                     throw std::runtime_error("World shadow parameter changed");
-            auto scenes = root.getSceneManagerIterator();
+            Ogre::SceneManagerEnumerator::SceneManagerIterator scenes = root.getSceneManagerIterator();
             while(scenes.hasMoreElements())
                 if(scenes.getNext() != mainScene) throw std::runtime_error("Retained portrait scene");
-            auto remainingMaterials = Ogre::MaterialManager::getSingleton().getResourceIterator();
+            Ogre::ResourceManager::ResourceMapIterator remainingMaterials = Ogre::MaterialManager::getSingleton().getResourceIterator();
             while(remainingMaterials.hasMoreElements())
                 if(remainingMaterials.getNext()->getName().find("CreaturePortrait/") == 0)
                     throw std::runtime_error("Retained portrait material copy");
         }
         CEGUI::OgreRenderer::destroySystem();
-        for(const auto& meshName : meshes)
+        for(const std::string& meshName : meshes)
             if(Ogre::TextureManager::getSingleton().resourceExists("CreaturePortrait/" + meshName, "General"))
                 throw std::runtime_error("Retained portrait texture after GUI shutdown");
         shaderGenerator->removeSceneManager(mainScene);

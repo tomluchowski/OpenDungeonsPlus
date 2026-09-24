@@ -1821,7 +1821,7 @@ CreatureActivity Creature::getActivity() const
     if(!mActions.empty())
         activity.action = mActions.back()->getType();
 
-    for(auto it = mActions.rbegin(); it != mActions.rend(); ++it)
+    for(std::vector<std::unique_ptr<CreatureAction>>::const_reverse_iterator it = mActions.rbegin(); it != mActions.rend(); ++it)
     {
         const CreatureActionType type = (*it)->getType();
         if(activity.task == CreatureActionType::nb && type != CreatureActionType::walkToTile &&
