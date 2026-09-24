@@ -26,7 +26,7 @@ struct PortraitScene
     ~PortraitScene()
     {
         Ogre::Root::getSingleton().destroySceneManager(scene);
-        for(const auto& material : materials)
+        for(const Ogre::MaterialPtr& material : materials)
             Ogre::MaterialManager::getSingleton().remove(material->getHandle());
     }
 };
