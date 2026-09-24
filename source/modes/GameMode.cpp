@@ -74,6 +74,7 @@
 #include <cmath>
 #include <vector>
 #include <string>
+#include <functional>
 
 const std::string TEXT_SEAT_ID_PREFIX = "TextSeat";
 const std::string TEXT_SEAT_PLAYER_NICKNAME_PREFIX = "TextSeatPlayerNick";
@@ -1188,7 +1189,7 @@ void GameMode::handleHotkeys(OIS::KeyCode keycode)
 void GameMode::updateCameraControls(float elapsed)
 {
     CameraManager* camera = ODFrameListener::getSingleton().getCameraManager();
-    const auto down = [this](OIS::KeyCode key) { return getKeyboard()->isKeyDown(key); };
+    const std::function<bool(OIS::KeyCode)> down = [this](OIS::KeyCode key) { return getKeyboard()->isKeyDown(key); };
     if(!down(OIS::KC_M))
         mMapKeyDown = false;
     if(cameraInputBlocked())
@@ -1271,7 +1272,7 @@ bool GameMode::clickMap(const CEGUI::EventArgs& arg)
 {
     if(!mFullMap)
         return true;
-    const auto& mouse = static_cast<const CEGUI::MouseEventArgs&>(arg);
+    const CEGUI::MouseEventArgs& mouse = static_cast<const CEGUI::MouseEventArgs&>(arg);
     if(mouse.button == CEGUI::RightButton)
         return closeMap();
     if(mouse.button != CEGUI::LeftButton ||
@@ -1288,7 +1289,7 @@ bool GameMode::zoomMiniMap(const CEGUI::EventArgs& arg)
 {
     if(cameraInputBlocked())
         return true;
-    const auto& mouse = static_cast<const CEGUI::MouseEventArgs&>(arg);
+    const CEGUI::MouseEventArgs& mouse = static_cast<const CEGUI::MouseEventArgs&>(arg);
     if(mouse.button != CEGUI::LeftButton && mouse.button != CEGUI::RightButton)
         return true;
     int level = mMiniMap->getZoomLevel() + (mouse.button == CEGUI::LeftButton ? 1 : -1);
@@ -1745,7 +1746,7 @@ void GameMode::showEventMessages()
 
 void GameMode::showEventMessage(EventMessage* message, bool raiseWindow)
 {
-    auto found = std::find_if(mMessageTabs.begin(), mMessageTabs.end(),
+    std::vector<MessageTab>::iterator found = std::find_if(mMessageTabs.begin(), mMessageTabs.end(),
         [message](const MessageTab& tab) { return tab.message == message; });
     if(found == mMessageTabs.end())
         return;
@@ -1764,7 +1765,7 @@ void GameMode::showEventMessage(EventMessage* message, bool raiseWindow)
 
 void GameMode::dismissEventMessage(EventMessage* message)
 {
-    auto found = std::find_if(mMessageTabs.begin(), mMessageTabs.end(),
+    std::vector<MessageTab>::iterator found = std::find_if(mMessageTabs.begin(), mMessageTabs.end(),
         [message](const MessageTab& tab) { return tab.message == message; });
     if(found == mMessageTabs.end())
         return;

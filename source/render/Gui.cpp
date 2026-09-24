@@ -43,6 +43,7 @@
 #include <algorithm>
 #include <cmath>
 #include <sstream>
+#include <functional>
 
 namespace
 {
@@ -128,7 +129,7 @@ void createMiniMapCornerImages()
         const std::string name = "MiniMapCorner" + std::to_string(corner);
         CEGUI::Texture& texture = CEGUI::System::getSingleton().getRenderer()->createTexture(name);
         texture.loadFromMemory(pixels.data(), CEGUI::Sizef(size, size), CEGUI::Texture::PF_RGBA);
-        auto& image = static_cast<CEGUI::BasicImage&>(CEGUI::ImageManager::getSingleton().create(
+        CEGUI::BasicImage& image = static_cast<CEGUI::BasicImage&>(CEGUI::ImageManager::getSingleton().create(
             "BasicImage", "OpenDungeonsIcons/" + name));
         image.setTexture(&texture);
         image.setArea(CEGUI::Rectf(0, 0, size, size));
@@ -189,7 +190,7 @@ void createNavigationImages()
                     {
                         const float px = x + (sx + 0.5f) * 0.25f;
                         const float py = y + (sy + 0.5f) * 0.25f;
-                        auto line = [&](float ax, float ay, float bx, float by, float radius)
+                        std::function<bool(float, float, float, float, float)> line = [&](float ax, float ay, float bx, float by, float radius)
                         {
                             const float dx = bx - ax;
                             const float dy = by - ay;
@@ -260,7 +261,7 @@ void createNavigationImages()
                         // Utility cells are narrower than the square category cells.
                         const float px = (x + (sx + 0.5f) * 0.25f) * 32.0f / size;
                         const float py = (y + (sy + 0.5f) * 0.25f) * 52.0f / size;
-                        auto line = [&](float ax, float ay, float bx, float by, float radius)
+                        std::function<bool(float, float, float, float, float)> line = [&](float ax, float ay, float bx, float by, float radius)
                         {
                             const float dx = bx - ax;
                             const float dy = by - ay;
@@ -319,7 +320,7 @@ void createNavigationImages()
     pixels.resize(badgeSize * badgeSize * 4);
     for(int badge = 0; badge < 2; ++badge)
     {
-        auto inSymbol = [badge](float dx, float dy)
+        std::function<bool(float, float)> inSymbol = [badge](float dx, float dy)
         {
             if(badge == 0)
             {
@@ -524,7 +525,7 @@ Gui::Gui(SoundEffectsManager* soundEffectsManager, const std::string& ceguiLogFi
         CEGUI::WindowManager::EventWindowDestroyed,
         CEGUI::Event::Subscriber(&Gui::onWindowDestroyed, this));
 
-    for(const auto& sheet : mSheets)
+    for(const std::pair<const guiSheet, CEGUI::Window*>& sheet : mSheets)
         registerWindow(sheet.second);
     applyScale(renderer.getDisplaySize());
 
@@ -708,10 +709,10 @@ void Gui::applyScale(const CEGUI::Sizef& displaySize)
 
     updateResourceScaling(displaySize);
 
-    for(const auto& scaledWindow : mScaledWindows)
+    for(const std::pair<CEGUI::Window* const, WindowScaleData>& scaledWindow : mScaledWindows)
         applyScale(scaledWindow.first, scaledWindow.second, scale);
 
-    const auto gameSheet = mSheets.find(inGameMenu);
+    const std::map<guiSheet, CEGUI::Window*>::iterator gameSheet = mSheets.find(inGameMenu);
     if(gameSheet != mSheets.end())
     {
         arrangeRoomButtons(gameSheet->second->getChild(TAB_ROOMS));
