@@ -80,6 +80,7 @@
 
 #include <sstream>
 #include <string>
+#include <functional>
 
 template<> RenderManager* Ogre::Singleton<RenderManager>::msSingleton = nullptr;
 
@@ -228,7 +229,7 @@ void addPickaxePrism(Ogre::ManualObject* mesh, const std::vector<Ogre::Vector2>&
     const Ogre::FloatRect& textureArea)
 {
     // A small extruded polygon, in the hand rig's local units.
-    const auto textureCoordinate = [&](float u, float v)
+    const std::function<void(float, float)> textureCoordinate = [&](float u, float v)
     {
         mesh->textureCoord(textureArea.left + u * textureArea.width(),
             textureArea.top + v * textureArea.height());
@@ -2752,9 +2753,9 @@ Ogre::FloatRect RenderManager::getHandCursorBounds(float relX, float relY) const
             Ogre::VertexData* data = part->getSubMesh()->useSharedVertices ?
                 hand->_getSkelAnimVertexData() : part->_getSkelAnimVertexData();
             const Ogre::VertexElement* element = data->vertexDeclaration->findElementBySemantic(Ogre::VES_POSITION);
-            auto buffer = data->vertexBufferBinding->getBuffer(element->getSource());
+            Ogre::HardwareVertexBufferSharedPtr buffer = data->vertexBufferBinding->getBuffer(element->getSource());
             Ogre::HardwareBufferLockGuard lock(buffer, Ogre::HardwareBuffer::HBL_READ_ONLY);
-            auto* bytes = static_cast<unsigned char*>(lock.pData);
+            unsigned char* bytes = static_cast<unsigned char*>(lock.pData);
             for(size_t i = 0; i < data->vertexCount; ++i)
             {
                 float* vertex = nullptr;
@@ -2774,7 +2775,7 @@ Ogre::FloatRect RenderManager::getHandCursorBounds(float relX, float relY) const
         }
         return bounds;
     }
-    const auto corners = hand->getBoundingBox().getAllCorners();
+    const Ogre::AxisAlignedBox::Corners corners = hand->getBoundingBox().getAllCorners();
     for(int i = 0; i < 8; ++i)
     {
         // Overlay's parent already follows the world camera; use camera-local transforms.
