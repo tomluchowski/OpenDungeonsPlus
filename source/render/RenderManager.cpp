@@ -80,6 +80,7 @@
 
 #include <sstream>
 #include <string>
+#include <functional>
 
 template<> RenderManager* Ogre::Singleton<RenderManager>::msSingleton = nullptr;
 
@@ -232,7 +233,7 @@ void addPickaxePrism(Ogre::ManualObject* mesh, const std::vector<Ogre::Vector2>&
     const Ogre::FloatRect& textureArea)
 {
     // A small extruded polygon, in the hand rig's local units.
-    const auto textureCoordinate = [&](float u, float v)
+    const std::function<void(float, float)> textureCoordinate = [&](float u, float v)
     {
         mesh->textureCoord(textureArea.left + u * textureArea.width(),
             textureArea.top + v * textureArea.height());
@@ -459,9 +460,9 @@ Ogre::AxisAlignedBox getSleepingPoseBounds(Ogre::Entity* entity,
         Ogre::VertexData* data = part->getSubMesh()->useSharedVertices ?
             entity->_getSkelAnimVertexData() : part->_getSkelAnimVertexData();
         const Ogre::VertexElement* element = data->vertexDeclaration->findElementBySemantic(Ogre::VES_POSITION);
-        auto buffer = data->vertexBufferBinding->getBuffer(element->getSource());
+        Ogre::HardwareVertexBufferSharedPtr buffer = data->vertexBufferBinding->getBuffer(element->getSource());
         Ogre::HardwareBufferLockGuard lock(buffer, Ogre::HardwareBuffer::HBL_READ_ONLY);
-        auto* bytes = static_cast<unsigned char*>(lock.pData);
+        unsigned char* bytes = static_cast<unsigned char*>(lock.pData);
         for(size_t index = 0; index < data->vertexCount; ++index)
         {
             float* vertex = nullptr;
@@ -485,10 +486,10 @@ Ogre::Vector3 getBedSupportPoint(const Ogre::MeshPtr& mesh)
         Ogre::SubMesh* part = mesh->getSubMesh(sub);
         Ogre::VertexData* data = part->useSharedVertices ? mesh->sharedVertexData : part->vertexData;
         const Ogre::VertexElement* element = data->vertexDeclaration->findElementBySemantic(Ogre::VES_POSITION);
-        auto vertices = data->vertexBufferBinding->getBuffer(element->getSource());
+        Ogre::HardwareVertexBufferSharedPtr vertices = data->vertexBufferBinding->getBuffer(element->getSource());
         Ogre::HardwareBufferLockGuard vertexLock(vertices, Ogre::HardwareBuffer::HBL_READ_ONLY);
-        auto* bytes = static_cast<unsigned char*>(vertexLock.pData);
-        auto indices = part->indexData->indexBuffer;
+        unsigned char* bytes = static_cast<unsigned char*>(vertexLock.pData);
+        Ogre::HardwareIndexBufferSharedPtr indices = part->indexData->indexBuffer;
         Ogre::HardwareBufferLockGuard indexLock(indices, Ogre::HardwareBuffer::HBL_READ_ONLY);
         for(size_t index = 0; index + 2 < part->indexData->indexCount; index += 3)
         {
@@ -503,7 +504,7 @@ Ogre::Vector3 getBedSupportPoint(const Ogre::MeshPtr& mesh)
                     (data->vertexStart + vertexIndex) * vertices->getVertexSize(), &vertex);
                 triangle[corner] = Ogre::Vector3(vertex);
             }
-            const auto hit = Ogre::Math::intersects(ray, triangle[0], triangle[1], triangle[2], true, true);
+            const Ogre::RayTestResult hit = Ogre::Math::intersects(ray, triangle[0], triangle[1], triangle[2], true, true);
             if(hit.first)
                 nearest = std::min(nearest, hit.second);
         }
@@ -1243,7 +1244,7 @@ void RenderManager::updateRenderAnimations(Ogre::Real timeSinceLastFrame)
     }
 
 
-    for(auto it = mChickenFeatherEffects.begin(); it != mChickenFeatherEffects.end();)
+    for(std::vector<ChickenFeatherEffect>::iterator it = mChickenFeatherEffects.begin(); it != mChickenFeatherEffects.end();)
     {
         it->mRemainingTime -= timeSinceLastFrame;
         if(it->mRemainingTime > 0.0f)
@@ -1362,7 +1363,7 @@ void RenderManager::updateRenderAnimations(Ogre::Real timeSinceLastFrame)
     for(Creature* creature : finishedFeeding)
         creature->setAnimationState(EntityAnimation::idle_anim, true);
 
-    for(auto it = mCreatureCombatImpactEffects.begin();
+    for(std::vector<CreatureCombatImpactEffect>::iterator it = mCreatureCombatImpactEffects.begin();
         it != mCreatureCombatImpactEffects.end();)
     {
         it->mRemainingTime -= timeSinceLastFrame;
@@ -1381,7 +1382,7 @@ void RenderManager::updateRenderAnimations(Ogre::Real timeSinceLastFrame)
         it = mCreatureCombatImpactEffects.erase(it);
     }
 
-    for(auto it = mCreatureCombatReactions.begin();
+    for(std::vector<CreatureCombatReaction>::iterator it = mCreatureCombatReactions.begin();
         it != mCreatureCombatReactions.end();)
     {
         it->mAnimation->addTime(timeSinceLastFrame);
@@ -1396,7 +1397,7 @@ void RenderManager::updateRenderAnimations(Ogre::Real timeSinceLastFrame)
         it = mCreatureCombatReactions.erase(it);
     }
 
-    for(auto it = mCreatureDropAnimations.begin(); it != mCreatureDropAnimations.end();)
+    for(std::vector<CreatureDropAnimation>::iterator it = mCreatureDropAnimations.begin(); it != mCreatureDropAnimations.end();)
     {
         it->mElapsed += timeSinceLastFrame;
         const Ogre::Real progress = std::min(
@@ -1431,7 +1432,7 @@ void RenderManager::updateRenderAnimations(Ogre::Real timeSinceLastFrame)
         }
     }
 
-    for(auto it = mCreatureGetUpAnimations.begin(); it != mCreatureGetUpAnimations.end();)
+    for(std::vector<CreatureGetUpAnimation>::iterator it = mCreatureGetUpAnimations.begin(); it != mCreatureGetUpAnimations.end();)
     {
         it->mElapsed += timeSinceLastFrame;
         const Ogre::Real progress = std::min(
@@ -1462,7 +1463,7 @@ void RenderManager::updateRenderAnimations(Ogre::Real timeSinceLastFrame)
         creature->setAnimationState(EntityAnimation::idle_anim, true);
     }
 
-    for(auto it = mRoomConstructionEffects.begin(); it != mRoomConstructionEffects.end();)
+    for(std::vector<RoomConstructionEffect>::iterator it = mRoomConstructionEffects.begin(); it != mRoomConstructionEffects.end();)
     {
         it->mRemainingTime -= timeSinceLastFrame;
         if(it->mRemainingTime > 0.0f)
@@ -2748,7 +2749,7 @@ void RenderManager::rrSetObjectAnimationState(MovableGameEntity* curAnimatedObje
         const Ogre::Quaternion lieOrientation = standingOrientation *
             Ogre::Quaternion(Ogre::Degree(-90.0f), Ogre::Vector3::UNIT_X);
         const Ogre::Vector3 scale = node->getScale();
-        const auto corners = objectEntity->getBoundingBox().getAllCorners();
+        const Ogre::AxisAlignedBox::Corners corners = objectEntity->getBoundingBox().getAllCorners();
         Ogre::Real minZ = (lieOrientation * (scale * corners[0])).z;
         for(unsigned int corner = 1; corner < 8; ++corner)
         {
@@ -2782,7 +2783,7 @@ void RenderManager::rrSetObjectAnimationState(MovableGameEntity* curAnimatedObje
                 dropAnimation.mLieOrientation = dropAnimation.mStartOrientation *
                     Ogre::Quaternion(Ogre::Degree(-90.0f), Ogre::Vector3::UNIT_X);
                 const Ogre::Vector3 scale = dropAnimation.mNode->getScale();
-                const auto corners = objectEntity->getBoundingBox().getAllCorners();
+                const Ogre::AxisAlignedBox::Corners corners = objectEntity->getBoundingBox().getAllCorners();
                 Ogre::Real minZ = (dropAnimation.mLieOrientation * (scale * corners[0])).z;
                 for(unsigned int corner = 1; corner < 8; ++corner)
                 {
@@ -2807,7 +2808,7 @@ void RenderManager::rrSetObjectAnimationState(MovableGameEntity* curAnimatedObje
                 const Ogre::Quaternion lieOrientation = standingOrientation *
                     Ogre::Quaternion(Ogre::Degree(-90.0f), Ogre::Vector3::UNIT_X);
                 const Ogre::Vector3 scale = node->getScale();
-                const auto corners = objectEntity->getBoundingBox().getAllCorners();
+                const Ogre::AxisAlignedBox::Corners corners = objectEntity->getBoundingBox().getAllCorners();
                 Ogre::Real minZ = (lieOrientation * (scale * corners[0])).z;
                 for(unsigned int corner = 1; corner < 8; ++corner)
                 {
@@ -2884,7 +2885,7 @@ void RenderManager::rrSetObjectAnimationState(MovableGameEntity* curAnimatedObje
 void RenderManager::cancelCreatureDropAnimation(Creature* creature)
 {
     cancelCreatureGetUpAnimation(creature);
-    for(auto it = mCreatureDropAnimations.begin(); it != mCreatureDropAnimations.end();)
+    for(std::vector<CreatureDropAnimation>::iterator it = mCreatureDropAnimations.begin(); it != mCreatureDropAnimations.end();)
     {
         if(it->mCreature == creature)
         {
@@ -2902,7 +2903,7 @@ void RenderManager::cancelCreatureDropAnimation(Creature* creature)
 
 void RenderManager::cancelCreatureGetUpAnimation(Creature* creature)
 {
-    for(auto it = mCreatureGetUpAnimations.begin(); it != mCreatureGetUpAnimations.end();)
+    for(std::vector<CreatureGetUpAnimation>::iterator it = mCreatureGetUpAnimations.begin(); it != mCreatureGetUpAnimations.end();)
     {
         if(it->mCreature != creature)
         {
@@ -2937,7 +2938,7 @@ void RenderManager::startCreatureGetUpAnimation(Creature* creature)
     if(useFallback)
     {
         bool foundGroundPose = false;
-        for(auto it = mCreatureGroundPoses.begin(); it != mCreatureGroundPoses.end(); ++it)
+        for(std::vector<CreatureGroundPose>::iterator it = mCreatureGroundPoses.begin(); it != mCreatureGroundPoses.end(); ++it)
         {
             if(it->mCreature != creature)
                 continue;
@@ -2969,7 +2970,7 @@ void RenderManager::startCreatureGetUpAnimation(Creature* creature)
 
 void RenderManager::restoreCreatureGroundPose(Creature* creature)
 {
-    for(auto it = mCreatureGroundPoses.begin(); it != mCreatureGroundPoses.end();)
+    for(std::vector<CreatureGroundPose>::iterator it = mCreatureGroundPoses.begin(); it != mCreatureGroundPoses.end();)
     {
         if(it->mCreature != creature)
         {
@@ -3013,7 +3014,7 @@ void RenderManager::rrCreateCreatureCombatImpact(Creature* creature,
     if(creature == nullptr || creature->getEntityNode() == nullptr)
         return;
 
-    for(auto it = mCreatureCombatReactions.begin();
+    for(std::vector<CreatureCombatReaction>::iterator it = mCreatureCombatReactions.begin();
         it != mCreatureCombatReactions.end();)
     {
         if(it->mCreature != creature)
@@ -3165,23 +3166,23 @@ void RenderManager::startCreatureFeedingAnimation(Creature* creature, Ogre::Enti
 void RenderManager::prepareCreatureFeedingReach(CreatureFeedingAnimation& feeding)
 {
     Ogre::Skeleton* skeleton = feeding.mEntity->getSkeleton();
-    auto& left = feeding.mArms[0];
-    auto& right = feeding.mArms[1];
+    CreatureFeedingLimb& left = feeding.mArms[0];
+    CreatureFeedingLimb& right = feeding.mArms[1];
     left.mUpper = findFeedingBone(skeleton, {"ArmUpper.L", "arm_l", "LeftArm", "Arm_L", "upper_arm.L", "upperhand.L", "shoulderJointLeft", "shoulderLeft", "Upperarm_L"});
     right.mUpper = findFeedingBone(skeleton, {"ArmUpper.R", "arm_r", "RightArm", "Arm_R", "upper_arm.R", "upperhand.R", "shoulderJointRight", "shoulderRight", "Upperarm_R"});
     left.mLower = findFeedingBone(skeleton, {"ArmLower.L", "forearm_l", "LeftForeArm", "Forearm_L", "ForeArm_L", "forearm.L", "arm.L", "ellbowLeft"});
     right.mLower = findFeedingBone(skeleton, {"ArmLower.R", "forearm_r", "RightForeArm", "Forearm_R", "ForeArm_R", "forearm.R", "arm.R", "ellbowRight"});
     left.mTip = findFeedingBone(skeleton, {"Hand.L", "hand_l", "LeftHand", "Hand_L", "hand.L", "indexf1.L", "wristLeft"});
     right.mTip = findFeedingBone(skeleton, {"Hand.R", "hand_r", "RightHand", "Hand_R", "hand.R", "indexf1.R", "handJointRight", "wristRight"});
-    auto& leftLeg = feeding.mLegs[0];
-    auto& rightLeg = feeding.mLegs[1];
+    CreatureFeedingLimb& leftLeg = feeding.mLegs[0];
+    CreatureFeedingLimb& rightLeg = feeding.mLegs[1];
     leftLeg.mUpper = findFeedingBone(skeleton, {"LegUpper.L", "leg_l", "LeftUpLeg", "thigh.L", "leg1.L", "hipLeft", "UpLeg_L", "Thigh_L", "Leg_1_L", "Leg_L", "Upperleg_L"});
     rightLeg.mUpper = findFeedingBone(skeleton, {"LegUpper.R", "leg_r", "RightUpLeg", "thigh.R", "leg1.R", "hipRight", "UpLeg_R", "Thigh_R", "Leg_1_R", "Leg_R", "Upperleg_R"});
     leftLeg.mLower = findFeedingBone(skeleton, {"LegLower.L", "lowleg_l", "LeftLeg", "Shin_L", "shin.L", "leg2.L", "kneeLeft", "Leg_L", "Lowerleg_L"});
     rightLeg.mLower = findFeedingBone(skeleton, {"LegLower.R", "lowleg_r", "RightLeg", "Shin_R", "shin.R", "leg2.R", "kneeRight", "Leg_R", "Lowerleg_R"});
     leftLeg.mTip = findFeedingBone(skeleton, {"Foot.L", "foot_l", "LeftFoot", "Foot_L", "foot.L", "ankleLeft", "tarsal.L", "Feet_L"});
     rightLeg.mTip = findFeedingBone(skeleton, {"Foot.R", "foot_r", "RightFoot", "Foot_R", "foot.R", "ankleRight", "tarsal.R", "Feet_R"});
-    for(const auto* limb : {&left, &right, &leftLeg, &rightLeg})
+    for(const CreatureFeedingLimb* limb : {&left, &right, &leftLeg, &rightLeg})
         if(limb->mUpper == nullptr || limb->mLower == nullptr || limb->mTip == nullptr)
             return;
     feeding.mSpine = findFeedingBone(skeleton, {"TorsoUpper", "spine", "Spine", "Spine_1", "spine1", "belly", "Spine1", "spine.01", "C3"});
@@ -3189,9 +3190,9 @@ void RenderManager::prepareCreatureFeedingReach(CreatureFeedingAnimation& feedin
         return;
     skeleton->setAnimationState(*feeding.mEntity->getAllAnimationStates());
     skeleton->_updateTransforms();
-    auto retain = [&feeding](Ogre::Bone* bone)
+    std::function<void(Ogre::Bone*)> retain = [&feeding](Ogre::Bone* bone)
     {
-        for(const auto& pose : feeding.mReachBones)
+        for(const CreatureFeedingBone& pose : feeding.mReachBones)
             if(pose.mBone == bone)
                 return;
         feeding.mReachBones.push_back({bone, bone->getPosition(), bone->getOrientation(), bone->isManuallyControlled()});
@@ -3213,7 +3214,7 @@ void RenderManager::prepareCreatureFeedingReach(CreatureFeedingAnimation& feedin
         // The wrist is inside the wide cuff; grasp beyond it at the fingers.
         for(unsigned int side = 0; side < 2; ++side)
         {
-            auto& arm = feeding.mArms[side];
+            CreatureFeedingLimb& arm = feeding.mArms[side];
             Ogre::Bone* finger = findFeedingBone(skeleton,
                 {side == 0 ? "f_middle.02.L" : "f_middle.02.R"});
             if(finger != nullptr)
@@ -3224,7 +3225,7 @@ void RenderManager::prepareCreatureFeedingReach(CreatureFeedingAnimation& feedin
     }
     if(feeding.mEntity->getMesh()->getName() == "Kobold.mesh" && skeleton->hasBone("Pick"))
         retain(skeleton->getBone("Pick"));
-    for(auto* limb : {&left, &right, &leftLeg, &rightLeg})
+    for(CreatureFeedingLimb* limb : {&left, &right, &leftLeg, &rightLeg})
     {
         limb->mRestTip = limb->mTip->_getDerivedPosition() +
             limb->mTip->_getDerivedOrientation() * (limb->mTip->_getDerivedScale() * limb->mGripOffset);
@@ -3255,12 +3256,12 @@ void RenderManager::prepareCreatureFeedingReach(CreatureFeedingAnimation& feedin
 
 Ogre::Vector3 RenderManager::updateCreatureFeedingReach(CreatureFeedingAnimation& feeding, Ogre::Real progress)
 {
-    auto smooth = [](Ogre::Real value)
+    std::function<Ogre::Real(Ogre::Real)> smooth = [](Ogre::Real value)
     {
         value = std::max(0.0f, std::min(value, 1.0f));
         return value * value * (3.0f - 2.0f * value);
     };
-    for(const auto& pose : feeding.mReachBones)
+    for(const CreatureFeedingBone& pose : feeding.mReachBones)
     {
         pose.mBone->setPosition(pose.mPosition);
         pose.mBone->setOrientation(pose.mOrientation);
@@ -3293,7 +3294,7 @@ Ogre::Vector3 RenderManager::updateCreatureFeedingReach(CreatureFeedingAnimation
     Ogre::Vector3 targets[2];
     for(unsigned int side = 0; side < 2; ++side)
     {
-        const auto& arm = feeding.mArms[side];
+        const CreatureFeedingLimb& arm = feeding.mArms[side];
         const Ogre::Vector3 grip = held + Ogre::Vector3(side == 0 ? spread : -spread, 0, 0);
         targets[side] = arm.mRestTip + (grip - arm.mRestTip) * reach * (1.0f - release);
     }
@@ -3303,7 +3304,7 @@ Ogre::Vector3 RenderManager::updateCreatureFeedingReach(CreatureFeedingAnimation
         Ogre::Vector3 adjustment = Ogre::Vector3::ZERO;
         for(unsigned int side = 0; side < 2; ++side)
         {
-            const auto& arm = feeding.mArms[side];
+            const CreatureFeedingLimb& arm = feeding.mArms[side];
             Ogre::Vector3 direction = targets[side] - arm.mUpper->_getDerivedPosition();
             const Ogre::Real distance = direction.normalise();
             const Ogre::Real length = arm.mUpper->_getDerivedPosition().distance(arm.mLower->_getDerivedPosition()) +
@@ -3320,7 +3321,7 @@ Ogre::Vector3 RenderManager::updateCreatureFeedingReach(CreatureFeedingAnimation
     }
     for(unsigned int side = 0; side < 2; ++side)
     {
-        auto& leg = feeding.mLegs[side];
+        CreatureFeedingLimb& leg = feeding.mLegs[side];
         Ogre::Vector3 foot = leg.mRestTip;
         const Ogre::Vector3 hip = leg.mUpper->_getDerivedPosition();
         const Ogre::Real legLength = hip.distance(leg.mLower->_getDerivedPosition()) +
@@ -3336,14 +3337,14 @@ Ogre::Vector3 RenderManager::updateCreatureFeedingReach(CreatureFeedingAnimation
         const Ogre::Node* footParent = leg.mTip->getParent();
         leg.mTip->setPosition(footParent != nullptr ? (footParent->_getDerivedOrientation().Inverse() *
             (foot - footParent->_getDerivedPosition())) / footParent->_getDerivedScale() : foot);
-        auto& arm = feeding.mArms[side];
+        CreatureFeedingLimb& arm = feeding.mArms[side];
         solveFeedingLimb(arm.mUpper, arm.mLower, arm.mTipOffset, targets[side]);
     }
-    for(const auto& pose : feeding.mReachBones)
+    for(const CreatureFeedingBone& pose : feeding.mReachBones)
     {
         if(pose.mDriver == nullptr)
             continue;
-        for(const auto& driver : feeding.mReachBones)
+        for(const CreatureFeedingBone& driver : feeding.mReachBones)
         {
             if(driver.mBone != pose.mDriver)
                 continue;
@@ -3357,7 +3358,7 @@ Ogre::Vector3 RenderManager::updateCreatureFeedingReach(CreatureFeedingAnimation
         root->_update(true, false);
     // Retain the manual-bone dirty flag so skinning refreshes its cached matrices.
     Ogre::Vector3 grip = Ogre::Vector3::ZERO;
-    for(const auto& arm : feeding.mArms)
+    for(const CreatureFeedingLimb& arm : feeding.mArms)
         grip += arm.mTip->_getDerivedPosition() + arm.mTip->_getDerivedOrientation() *
             (arm.mTip->_getDerivedScale() * arm.mGripOffset);
     return grip * 0.5f;
@@ -3488,7 +3489,7 @@ void RenderManager::fitCreatureToBed(CreatureSleepAnimation& sleeping)
 
 void RenderManager::cancelCreatureSleepAnimation(Creature* creature)
 {
-    for(auto it = mCreatureSleepAnimations.begin(); it != mCreatureSleepAnimations.end();)
+    for(std::vector<CreatureSleepAnimation>::iterator it = mCreatureSleepAnimations.begin(); it != mCreatureSleepAnimations.end();)
     {
         if(creature != nullptr && it->mCreature != creature)
         {
@@ -3504,7 +3505,7 @@ void RenderManager::cancelCreatureSleepAnimation(Creature* creature)
 
 void RenderManager::cancelCreatureFeedingAnimation(Creature* creature)
 {
-    for(auto it = mCreatureFeedingAnimations.begin(); it != mCreatureFeedingAnimations.end();)
+    for(std::vector<CreatureFeedingAnimation>::iterator it = mCreatureFeedingAnimations.begin(); it != mCreatureFeedingAnimations.end();)
     {
         if(creature != nullptr && it->mCreature != creature)
         {
@@ -3514,7 +3515,7 @@ void RenderManager::cancelCreatureFeedingAnimation(Creature* creature)
         it->mNode->setPosition(it->mBasePosition);
         it->mNode->setOrientation(it->mBaseOrientation);
         it->mNode->setScale(it->mBaseScale);
-        for(const auto& pose : it->mReachBones)
+        for(const CreatureFeedingBone& pose : it->mReachBones)
         {
             pose.mBone->setPosition(pose.mPosition);
             pose.mBone->setOrientation(pose.mOrientation);
@@ -3554,7 +3555,7 @@ void RenderManager::clearChickenFeatherEffects()
 
 void RenderManager::clearCreatureCombatEffects(Creature* creature)
 {
-    for(auto it = mCreatureCombatImpactEffects.begin();
+    for(std::vector<CreatureCombatImpactEffect>::iterator it = mCreatureCombatImpactEffects.begin();
         it != mCreatureCombatImpactEffects.end();)
     {
         if(creature != nullptr && it->mCreature != creature)
@@ -3571,7 +3572,7 @@ void RenderManager::clearCreatureCombatEffects(Creature* creature)
         it = mCreatureCombatImpactEffects.erase(it);
     }
 
-    for(auto it = mCreatureCombatReactions.begin();
+    for(std::vector<CreatureCombatReaction>::iterator it = mCreatureCombatReactions.begin();
         it != mCreatureCombatReactions.end();)
     {
         if(creature != nullptr && it->mCreature != creature)
@@ -4225,9 +4226,9 @@ Ogre::FloatRect RenderManager::getHandCursorBounds(float relX, float relY) const
             Ogre::VertexData* data = part->getSubMesh()->useSharedVertices ?
                 hand->_getSkelAnimVertexData() : part->_getSkelAnimVertexData();
             const Ogre::VertexElement* element = data->vertexDeclaration->findElementBySemantic(Ogre::VES_POSITION);
-            auto buffer = data->vertexBufferBinding->getBuffer(element->getSource());
+            Ogre::HardwareVertexBufferSharedPtr buffer = data->vertexBufferBinding->getBuffer(element->getSource());
             Ogre::HardwareBufferLockGuard lock(buffer, Ogre::HardwareBuffer::HBL_READ_ONLY);
-            auto* bytes = static_cast<unsigned char*>(lock.pData);
+            unsigned char* bytes = static_cast<unsigned char*>(lock.pData);
             for(size_t i = 0; i < data->vertexCount; ++i)
             {
                 float* vertex = nullptr;
@@ -4247,7 +4248,7 @@ Ogre::FloatRect RenderManager::getHandCursorBounds(float relX, float relY) const
         }
         return bounds;
     }
-    const auto corners = hand->getBoundingBox().getAllCorners();
+    const Ogre::AxisAlignedBox::Corners corners = hand->getBoundingBox().getAllCorners();
     for(int i = 0; i < 8; ++i)
     {
         // Overlay's parent already follows the world camera; use camera-local transforms.

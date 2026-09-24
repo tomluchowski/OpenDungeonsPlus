@@ -45,6 +45,7 @@
 #include <exception>
 #include <map>
 #include <sstream>
+#include <functional>
 
 SettingsWindow::SettingsWindow(CEGUI::Window* rootWindow, Gui& gui, bool menuPages, bool gamePage):
     mSettingsWindow(nullptr),
@@ -103,7 +104,7 @@ SettingsWindow::SettingsWindow(CEGUI::Window* rootWindow, Gui& gui, bool menuPag
             CEGUI::UDim(1, -8), CEGUI::UDim(0, 48)));
         title->setMousePassThroughEnabled(true);
         mSettingsWindow->addChild(title);
-        auto updateTitle = [tabs, title](const CEGUI::EventArgs&)
+        std::function<bool(const CEGUI::EventArgs&)> updateTitle = [tabs, title](const CEGUI::EventArgs&)
         {
             const CEGUI::String& name = tabs->getTabContentsAtIndex(tabs->getSelectedTabIndex())->getName();
             title->setText(name == "Video" ? "Graphics Options" : name == "Audio" ? "Sound Options" :
