@@ -37,6 +37,7 @@
 
 #include <CEGUI/Window.h>
 #include <CEGUI/widgets/PushButton.h>
+#include <functional>
 
 namespace
 {
@@ -726,11 +727,11 @@ double SkillManager::getResearchValue(SkillType type, uint32_t level, double bas
 std::string SkillManager::getResearchDescription(SkillType type, uint32_t level)
 {
     const ConfigManager& config = ConfigManager::getSingleton();
-    const auto value = [type, level](double base, bool secondary = false)
+    const std::function<std::string(double)> value = [type, level](double base, bool secondary = false)
     { return Helper::toString(getResearchValue(type, level, base, secondary)); };
-    const auto room = [&config, &value](const char* key)
+    const std::function<std::string(const char*)> room = [&config, &value](const char* key)
     { return value(config.getRoomConfigDouble(key)); };
-    const auto spell = [&config, &value](const char* key)
+    const std::function<std::string(const char*)> spell = [&config, &value](const char* key)
     { return value(config.getSpellConfigDouble(key)); };
     switch(type)
     {
@@ -755,7 +756,7 @@ std::string SkillManager::getResearchDescription(SkillType type, uint32_t level)
             const std::string prefix = type == SkillType::trapCannon ? "Cannon" :
                 (type == SkillType::trapSpike ? "Spike" : "Boulder");
             return "Damage: " + value(config.getTrapConfigDouble(prefix + "DamagePerHitMin")) + "-" +
-                value(config.getTrapConfigDouble(prefix + "DamagePerHitMax"), true) + ".";
+                Helper::toString(getResearchValue(type, level, config.getTrapConfigDouble(prefix + "DamagePerHitMax"), true)) + ".";
         }
         case SkillType::spellSummonWorker: return "Paid-worker base cost: " + spell("SummonWorkerBasePrice") + " mana; existing price growth retained.";
         case SkillType::spellCallToWar: return "Maximum lifetime: " + spell("CallToWarNbTurnsMax") + " turns.";

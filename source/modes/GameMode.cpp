@@ -78,6 +78,7 @@
 #include <cmath>
 #include <vector>
 #include <string>
+#include <functional>
 
 const std::string TEXT_SEAT_ID_PREFIX = "TextSeat";
 const std::string TEXT_SEAT_PLAYER_NICKNAME_PREFIX = "TextSeatPlayerNick";
@@ -390,7 +391,7 @@ GameMode::GameMode(ModeManager *modeManager):
     SkillManager::connectSkills(this, mRootWindow);
 
     syncTabButtonTooltips(Gui::MAIN_TABCONTROL);
-    for(const auto& entry : {std::make_pair(Gui::BUTTON_CREATURE_WORKER, "Workers"),
+    for(const std::pair<std::string, const char*>& entry : {std::make_pair(Gui::BUTTON_CREATURE_WORKER, "Workers"),
                             std::make_pair(Gui::BUTTON_CREATURE_FIGHTER, "Fighters")})
     {
         CEGUI::Window* button = mRootWindow->getChild(entry.first);
@@ -1267,7 +1268,7 @@ void GameMode::handleHotkeys(OIS::KeyCode keycode)
 void GameMode::updateCameraControls(float elapsed)
 {
     CameraManager* camera = ODFrameListener::getSingleton().getCameraManager();
-    const auto down = [this](OIS::KeyCode key) { return getKeyboard()->isKeyDown(key); };
+    const std::function<bool(OIS::KeyCode)> down = [this](OIS::KeyCode key) { return getKeyboard()->isKeyDown(key); };
     if(!down(OIS::KC_M))
         mMapKeyDown = false;
     if(cameraInputBlocked())
@@ -1350,7 +1351,7 @@ bool GameMode::clickMap(const CEGUI::EventArgs& arg)
 {
     if(!mFullMap)
         return true;
-    const auto& mouse = static_cast<const CEGUI::MouseEventArgs&>(arg);
+    const CEGUI::MouseEventArgs& mouse = static_cast<const CEGUI::MouseEventArgs&>(arg);
     if(mouse.button == CEGUI::RightButton)
         return closeMap();
     if(mouse.button != CEGUI::LeftButton ||
@@ -1367,7 +1368,7 @@ bool GameMode::zoomMiniMap(const CEGUI::EventArgs& arg)
 {
     if(cameraInputBlocked())
         return true;
-    const auto& mouse = static_cast<const CEGUI::MouseEventArgs&>(arg);
+    const CEGUI::MouseEventArgs& mouse = static_cast<const CEGUI::MouseEventArgs&>(arg);
     if(mouse.button != CEGUI::LeftButton && mouse.button != CEGUI::RightButton)
         return true;
     int level = mMiniMap->getZoomLevel() + (mouse.button == CEGUI::LeftButton ? 1 : -1);
@@ -1982,7 +1983,7 @@ void GameMode::showEventMessages()
 
 void GameMode::showEventMessage(EventMessage* message, bool raiseWindow)
 {
-    auto found = std::find_if(mMessageTabs.begin(), mMessageTabs.end(),
+    std::vector<MessageTab>::iterator found = std::find_if(mMessageTabs.begin(), mMessageTabs.end(),
         [message](const MessageTab& tab) { return tab.message == message; });
     if(found == mMessageTabs.end())
         return;
@@ -2001,7 +2002,7 @@ void GameMode::showEventMessage(EventMessage* message, bool raiseWindow)
 
 void GameMode::dismissEventMessage(EventMessage* message)
 {
-    auto found = std::find_if(mMessageTabs.begin(), mMessageTabs.end(),
+    std::vector<MessageTab>::iterator found = std::find_if(mMessageTabs.begin(), mMessageTabs.end(),
         [message](const MessageTab& tab) { return tab.message == message; });
     if(found == mMessageTabs.end() || !found->read)
         return;
@@ -2075,7 +2076,7 @@ void GameMode::initializeSettingsNavigation()
 {
     CEGUI::Window* navigation = mRootWindow->getChild("SettingsNavigationWindow");
     navigation->hide();
-    auto closeNavigation = [navigation]()
+    std::function<void()> closeNavigation = [navigation]()
     {
         navigation->setModalState(false);
         navigation->hide();
@@ -2104,7 +2105,7 @@ void GameMode::initializeSettingsNavigation()
             closeNavigation();
             return true;
         })));
-    auto back = [this, closeNavigation](const CEGUI::EventArgs& e)
+    std::function<bool(const CEGUI::EventArgs&)> back = [this, closeNavigation](const CEGUI::EventArgs& e)
     {
         closeNavigation();
         return showOptionsWindow(e);
@@ -2363,7 +2364,7 @@ void GameMode::refreshSkillButtonState(const std::string& skillButtonName, const
         if(resType == curResType)
             description += " Progress: " + Helper::toString(static_cast<int>(curSkillProgress * 100)) + "%.";
     }
-    const auto& dependencies = SkillManager::getSkill(resType)->getDependencies();
+    const std::vector<const Skill*>& dependencies = SkillManager::getSkill(resType)->getDependencies();
     bool prerequisitesReady = true;
     if(!dependencies.empty())
     {
@@ -2430,7 +2431,7 @@ void GameMode::refreshGuiSkill(bool forceRefresh)
 
             it = mSkillPending.erase(it);
         }
-        for(auto& entry : mSkillEditLevels)
+        for(std::pair<const SkillType, uint32_t>& entry : mSkillEditLevels)
             entry.second = localPlayerSeat->getSkillLevel(entry.first);
     }
 
@@ -2457,11 +2458,11 @@ void GameMode::refreshSkillConnections()
     Seat* seat = mGameMap->getLocalPlayer()->getSeat();
     std::map<SkillType, unsigned> depths;
     for(size_t pass = 0; pass < buttons.size(); ++pass)
-        for(const auto& entry : buttons)
+        for(const std::pair<const SkillType, CEGUI::Window*>& entry : buttons)
             for(const Skill* dependency : SkillManager::getSkill(entry.first)->getDependencies())
                 depths[entry.first] = std::max(depths[entry.first], depths[dependency->getType()] + 1);
 
-    for(const auto& entry : buttons)
+    for(const std::pair<const SkillType, CEGUI::Window*>& entry : buttons)
     {
         CEGUI::Window* button = entry.second;
         CEGUI::Window* parent = button->getParent();
@@ -2475,7 +2476,7 @@ void GameMode::refreshSkillConnections()
             CEGUI::USize(CEGUI::UDim(width, 0), CEGUI::UDim(height, 0)));
         if(button->isChild("ResearchLevel"))
         {
-            auto* badge = button->getChild("ResearchLevel");
+            CEGUI::Window* badge = button->getChild("ResearchLevel");
             const float badgeWidth = badge->getFont()->getTextExtent("3/3") + 8.0f;
             const float badgeHeight = badge->getFont()->getLineSpacing() + 2.0f;
             badge->setArea(CEGUI::UVector2(CEGUI::UDim(.5f, -badgeWidth * .5f), CEGUI::UDim(1, 0)),
@@ -2484,20 +2485,20 @@ void GameMode::refreshSkillConnections()
     }
 
     // Shared bars represent an ALL-prerequisite junction, not alternative routes.
-    for(const auto& entry : buttons)
+    for(const std::pair<const SkillType, CEGUI::Window*>& entry : buttons)
     {
         CEGUI::Window* target = entry.second;
         CEGUI::Window* parent = target->getParent();
-        const auto parentRect = parent->getUnclippedOuterRect().get();
-        const auto end = target->getUnclippedOuterRect().get();
+        const CEGUI::Rectf parentRect = parent->getUnclippedOuterRect().get();
+        const CEGUI::Rectf end = target->getUnclippedOuterRect().get();
         if(parentRect.getWidth() <= 0 || parentRect.getHeight() <= 0)
             continue;
-        const auto& required = SkillManager::getSkill(entry.first)->getDependencies();
+        const std::vector<const Skill*>& required = SkillManager::getSkill(entry.first)->getDependencies();
         const bool allReady = std::all_of(required.begin(), required.end(), [seat](const Skill* prerequisite)
             { return seat->getSkillLevel(prerequisite->getType()) > 0; });
         for(const Skill* dependency : required)
         {
-            const auto start = buttons.at(dependency->getType())->getUnclippedOuterRect().get();
+            const CEGUI::Rectf start = buttons.at(dependency->getType())->getUnclippedOuterRect().get();
             const float x1 = (start.left() + start.getWidth() * .5f - parentRect.left()) / parentRect.getWidth();
             const float x2 = (end.left() + end.getWidth() * .5f - parentRect.left()) / parentRect.getWidth();
             const float y1 = (start.bottom() - parentRect.top()) / parentRect.getHeight();
@@ -2551,7 +2552,7 @@ void GameMode::refreshSkillConnections()
                 junction->setMousePassThroughEnabled(true);
                 parent->addChild(junction);
             }
-            const auto start = buttons.at(required.front()->getType())->getUnclippedOuterRect().get();
+            const CEGUI::Rectf start = buttons.at(required.front()->getType())->getUnclippedOuterRect().get();
             const float middle = (start.bottom() + end.top() - 2 * parentRect.top()) / (2 * parentRect.getHeight());
             const float height = .075f * parentRect.getWidth() / parentRect.getHeight();
             junction->setArea(CEGUI::UVector2(CEGUI::UDim(.4625f, 0), CEGUI::UDim(middle - height * .5f, 0)),

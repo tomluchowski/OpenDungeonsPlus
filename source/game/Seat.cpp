@@ -1430,7 +1430,7 @@ bool Seat::addSkill(SkillType type)
     std::vector<SkillType> skillDone = mSkillDone;
     skillDone.push_back(type);
     setSkillsDone(skillDone);
-    auto pending = std::find(mSkillPending.begin(), mSkillPending.end(), type);
+    std::vector<SkillType>::iterator pending = std::find(mSkillPending.begin(), mSkillPending.end(), type);
     if(pending != mSkillPending.end())
     {
         mSkillPending.erase(pending);
@@ -1468,14 +1468,14 @@ uint32_t Seat::getSkillLevel(SkillType type) const
 {
     if(!isSkillDone(type))
         return 0;
-    auto level = mResearchLevels.find(type);
+    std::map<SkillType, uint32_t>::const_iterator level = mResearchLevels.find(type);
     return level == mResearchLevels.end() ? 1 : level->second;
 }
 
 void Seat::setResearchLevels(const std::map<SkillType, uint32_t>& levels)
 {
     mResearchLevels.clear();
-    for(const auto& entry : levels)
+    for(const std::pair<const SkillType, uint32_t>& entry : levels)
     {
         if(isSkillDone(entry.first) && entry.second >= 1 && entry.second <= 3)
             mResearchLevels.insert(entry);
@@ -1500,7 +1500,7 @@ void Seat::completeResearch(SkillType type)
             ODServer::getSingleton().queueServerNotification(notice);
         }
     }
-    auto pending = std::find(mSkillPending.begin(), mSkillPending.end(), type);
+    std::vector<SkillType>::iterator pending = std::find(mSkillPending.begin(), mSkillPending.end(), type);
     if(pending != mSkillPending.end())
         mSkillPending.erase(pending);
 }
@@ -1624,7 +1624,7 @@ void Seat::setSkillsDone(const std::vector<SkillType>& skills)
 {
     mSkillDone = skills;
     // Completed unlocks remain researchable until their final level.
-    for(auto it = mResearchLevels.begin(); it != mResearchLevels.end();)
+    for(std::map<SkillType, uint32_t>::iterator it = mResearchLevels.begin(); it != mResearchLevels.end();)
     {
         if(!isSkillDone(it->first))
             it = mResearchLevels.erase(it);
