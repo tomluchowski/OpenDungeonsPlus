@@ -40,6 +40,7 @@
 #include <CEGUI/Texture.h>
 #include <CEGUI/Window.h>
 #include <cmath>
+#include <functional>
 
 namespace
 {
@@ -234,7 +235,7 @@ CEGUI::BasicImage& MiniMap::createMiniMapImage(CEGUI::Window* miniMapWindow, con
         return static_cast<CEGUI::BasicImage&>(images.create("BasicImage", name));
     if(!images.isImageTypeAvailable("MiniMap"))
         images.addImageType<MiniMapImage>("MiniMap");
-    auto& image = static_cast<MiniMapImage&>(images.create("MiniMap", name));
+    MiniMapImage& image = static_cast<MiniMapImage&>(images.create("MiniMap", name));
     image.mCircular = circular;
     return image;
 }
@@ -252,11 +253,11 @@ Ogre::Real MiniMap::getZoomScale() const
 void MiniMap::updateMapOverlay(CEGUI::Window* window, GameMap& map,
         const Ogre::Vector2& centre, const Ogre::Vector2& span, Ogre::Real rotation, const std::vector<Ogre::Vector3>& cornerTiles)
 {
-    auto* image = dynamic_cast<MiniMapImage*>(
+    MiniMapImage* image = dynamic_cast<MiniMapImage*>(
         &CEGUI::ImageManager::getSingleton().get(window->getProperty("Image")));
     if(image == nullptr)
         return;
-    const auto project = [&centre, &span, rotation](const Ogre::Vector2& world)
+    const std::function<Ogre::Vector2(const Ogre::Vector2&)> project = [&centre, &span, rotation](const Ogre::Vector2& world)
     {
         const Ogre::Vector2 delta = world - centre;
         const float x = delta.x * std::cos(rotation) + delta.y * std::sin(rotation);
