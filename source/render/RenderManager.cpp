@@ -80,6 +80,7 @@
 
 #include <sstream>
 #include <string>
+#include <functional>
 
 template<> RenderManager* Ogre::Singleton<RenderManager>::msSingleton = nullptr;
 
@@ -210,7 +211,7 @@ void addPickaxePrism(Ogre::ManualObject* mesh, const std::vector<Ogre::Vector2>&
     const Ogre::FloatRect& textureArea)
 {
     // A small extruded polygon, in the hand rig's local units.
-    const auto textureCoordinate = [&](float u, float v)
+    const std::function<void(float, float)> textureCoordinate = [&](float u, float v)
     {
         mesh->textureCoord(textureArea.left + u * textureArea.width(),
             textureArea.top + v * textureArea.height());
@@ -957,7 +958,7 @@ void RenderManager::updateRenderAnimations(Ogre::Real timeSinceLastFrame)
         }
     }
 
-    for(auto it = mRoomConstructionEffects.begin(); it != mRoomConstructionEffects.end();)
+    for(std::vector<RoomConstructionEffect>::iterator it = mRoomConstructionEffects.begin(); it != mRoomConstructionEffects.end();)
     {
         it->mRemainingTime -= timeSinceLastFrame;
         if(it->mRemainingTime > 0.0f)
