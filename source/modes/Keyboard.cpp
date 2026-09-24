@@ -32,7 +32,7 @@ bool Keyboard::isKeyDown(OIS::KeyCode code)
 #ifdef OD_USE_SFML_WINDOW
     if(code == OIS::KC_UNASSIGNED)
         return false;
-    static const auto keyMap = []
+    static const std::array<CEGUI::Key::Scan, sf::Keyboard::KeyCount> keyMap = []
     {
         std::array<CEGUI::Key::Scan, sf::Keyboard::KeyCount> keys{};
         initKeyTable(keys);

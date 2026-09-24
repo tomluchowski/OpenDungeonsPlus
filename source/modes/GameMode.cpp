@@ -68,6 +68,7 @@
 #include <algorithm>
 #include <vector>
 #include <string>
+#include <functional>
 
 const std::string TEXT_SEAT_ID_PREFIX = "TextSeat";
 const std::string TEXT_SEAT_PLAYER_NICKNAME_PREFIX = "TextSeatPlayerNick";
@@ -190,7 +191,7 @@ GameMode::GameMode(ModeManager *modeManager):
             CEGUI::Window::EventMouseClick,
             CEGUI::Event::Subscriber([this, type](const CEGUI::EventArgs& args)
             {
-                const auto button = static_cast<const CEGUI::MouseEventArgs&>(args).button;
+                const CEGUI::MouseButton button = static_cast<const CEGUI::MouseEventArgs&>(args).button;
                 if(button != CEGUI::RightButton)
                     return false;
                 if(!cameraInputBlocked())
@@ -1181,7 +1182,7 @@ void GameMode::handleHotkeys(OIS::KeyCode keycode)
 void GameMode::updateCameraControls(float elapsed)
 {
     CameraManager* camera = ODFrameListener::getSingleton().getCameraManager();
-    const auto down = [this](OIS::KeyCode key) { return getKeyboard()->isKeyDown(key); };
+    const std::function<bool(OIS::KeyCode)> down = [this](OIS::KeyCode key) { return getKeyboard()->isKeyDown(key); };
     if(!down(OIS::KC_M))
         mMapKeyDown = false;
     if(cameraInputBlocked())
@@ -1264,7 +1265,7 @@ bool GameMode::clickMap(const CEGUI::EventArgs& arg)
 {
     if(!mFullMap)
         return true;
-    const auto& mouse = static_cast<const CEGUI::MouseEventArgs&>(arg);
+    const CEGUI::MouseEventArgs& mouse = static_cast<const CEGUI::MouseEventArgs&>(arg);
     if(mouse.button == CEGUI::RightButton)
         return closeMap();
     if(mouse.button != CEGUI::LeftButton ||
@@ -1281,7 +1282,7 @@ bool GameMode::zoomMiniMap(const CEGUI::EventArgs& arg)
 {
     if(cameraInputBlocked())
         return true;
-    const auto& mouse = static_cast<const CEGUI::MouseEventArgs&>(arg);
+    const CEGUI::MouseEventArgs& mouse = static_cast<const CEGUI::MouseEventArgs&>(arg);
     if(mouse.button != CEGUI::LeftButton && mouse.button != CEGUI::RightButton)
         return true;
     int level = mMiniMap->getZoomLevel() + (mouse.button == CEGUI::LeftButton ? 1 : -1);
