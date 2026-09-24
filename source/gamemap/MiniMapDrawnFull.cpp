@@ -281,7 +281,7 @@ void MiniMapDrawnFull::update(Ogre::Real timeSinceLastFrame, const std::vector<O
     mViewSize = Ogre::Vector2(scale, scale);
     mViewOrigin.x = std::max(0.0f, std::min(1.0f - scale, target.x / mGameMap.getMapSizeX() - scale * 0.5f));
     mViewOrigin.y = std::max(0.0f, std::min(1.0f - scale, 1.0f - target.y / mGameMap.getMapSizeY() - scale * 0.5f));
-    auto& image = static_cast<CEGUI::BasicImage&>(CEGUI::ImageManager::getSingleton().get("MiniMapImageset" + mResourceSuffix));
+    CEGUI::BasicImage& image = static_cast<CEGUI::BasicImage&>(CEGUI::ImageManager::getSingleton().get("MiniMapImageset" + mResourceSuffix));
     image.setArea(CEGUI::Rectf(mViewOrigin.x * mWidth, mViewOrigin.y * mHeight,
         (mViewOrigin.x + scale) * mWidth, (mViewOrigin.y + scale) * mHeight));
     mMiniMapWindow->invalidate();
