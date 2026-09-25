@@ -41,7 +41,7 @@ void RenderSceneManager::registerFactory(const RenderSceneFactory* factory)
 void RenderSceneManager::unregisterFactory(const RenderSceneFactory* factory)
 {
     std::vector<const RenderSceneFactory*>& factories = getFactories();
-    auto it = std::find(factories.begin(), factories.end(), factory);
+    std::vector<const RenderSceneFactory*>::iterator it = std::find(factories.begin(), factories.end(), factory);
     if(it == factories.end())
     {
         OD_LOG_ERR("Trying to unregister unknown factory=" + factory->getRenderSceneName());

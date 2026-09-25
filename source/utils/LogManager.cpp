@@ -72,7 +72,7 @@ void LogManager::logMessage(LogMessageLevel level, const char* filepath, int lin
             return;
         }
 
-        auto found = mModuleLevel.find(module);
+        std::map<std::string, LogMessageLevel>::iterator found = mModuleLevel.find(module);
         if (found == mModuleLevel.end() ||
             found->second > level)
         {
@@ -97,7 +97,7 @@ void LogManager::logMessage(LogMessageLevel level, const char* filepath, int lin
 
     std::string timestamp = mTimestampStream.str();
 
-    for (const auto& sink : mSinks)
+    for (const std::unique_ptr<LogSink>& sink : mSinks)
     {
         sink->write(level, module, timestamp, filename, line, message);
     }

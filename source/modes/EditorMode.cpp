@@ -2669,7 +2669,7 @@ void EditorMode::uninstallRecentlyUsedFilesButtons()
 
 void EditorMode::installRecentlyUsedFilesButtons()
 {
-    for(auto &ii :  ConfigManager::getSingleton().getRecentlyUsedFiles())
+    for(boost::filesystem::path &ii :  ConfigManager::getSingleton().getRecentlyUsedFiles())
     {
         CEGUI::Window* ww = CEGUI::WindowManager::getSingletonPtr()->createWindow("OD/MenuItem");
         ww->setText(ii.generic_string());

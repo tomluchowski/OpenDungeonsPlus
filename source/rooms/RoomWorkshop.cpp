@@ -280,7 +280,7 @@ bool RoomWorkshop::addCreatureUsingRoom(Creature* creature)
 void RoomWorkshop::removeCreatureUsingRoom(Creature* c)
 {
     Room::removeCreatureUsingRoom(c);
-    auto it = mCreaturesSpots.find(c);
+    std::map<Creature*, Tile*>::iterator it = mCreaturesSpots.find(c);
     if(it == mCreaturesSpots.end())
     {
         OD_LOG_ERR("room=" + getName() + ", creature=" + c->getName());
@@ -434,7 +434,7 @@ void RoomWorkshop::doUpkeep()
 
 bool RoomWorkshop::useRoom(Creature& creature, bool forced)
 {
-    auto it = mCreaturesSpots.find(&creature);
+    std::map<Creature*, Tile*>::iterator it = mCreaturesSpots.find(&creature);
     if(it == mCreaturesSpots.end())
     {
         OD_LOG_ERR("room=" + getName() + ", creature=" + creature.getName());

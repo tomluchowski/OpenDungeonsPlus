@@ -186,7 +186,7 @@ void SoundEffectsManager::updateListener(float timeSinceLastFrame,
     if(mRelativeSoundQueue.empty())
         return;
 
-    auto it = mRelativeSoundQueue.begin();
+    std::vector<GameSound*>::iterator it = mRelativeSoundQueue.begin();
     GameSound* sound = *it;
     if(sound->isPlaying())
         return;
@@ -201,7 +201,7 @@ void SoundEffectsManager::updateListener(float timeSinceLastFrame,
 void SoundEffectsManager::playSpatialSound(const std::string& family,
         float XPos, float YPos, float height)
 {
-    auto it = mSpatialSounds.find(family);
+    std::map<std::string, std::vector<GameSound*>>::iterator it = mSpatialSounds.find(family);
     if(it == mSpatialSounds.end())
     {
         OD_LOG_ERR("Couldn't find sound family=" + family);
@@ -225,7 +225,7 @@ void SoundEffectsManager::playRelativeSound(const std::string& family)
     // find it, we fall down to the default group. That allows to create new voice groups that
     // do not have to have sound for every event
     std::string keeperVoice = ConfigManager::getSingleton().getGameValue(Config::KEEPERVOICE);
-    auto it = mRelativeSounds.find(keeperVoice + "/" + family);
+    std::map<std::string, std::vector<GameSound*>>::iterator it = mRelativeSounds.find(keeperVoice + "/" + family);
     if(it == mRelativeSounds.end())
     {
         it = mRelativeSounds.find(ConfigManager::DEFAULT_KEEPER_VOICE + "/" + family);

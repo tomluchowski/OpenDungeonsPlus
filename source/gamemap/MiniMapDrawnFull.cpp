@@ -307,7 +307,7 @@ void colourFromPixelValue(MiniMapDrawnFullPixel pixelValue, Seat* seatIfClaimed,
         }
     }
 
-    auto output = pixelBuffer->lock(pixelBox, Ogre::HardwareBuffer::HBL_NORMAL);
+    Ogre::PixelBox output = pixelBuffer->lock(pixelBox, Ogre::HardwareBuffer::HBL_NORMAL);
 
     assert(minimapXMax <= output.getWidth());
     assert(minimapYMax <= output.getHeight());
@@ -582,7 +582,7 @@ void MiniMapDrawnFull::update(Ogre::Real timeSinceLastFrame, const std::vector<O
     mVisibleRectangle.clear();
 
     // And we paint the new visible rectangle
-    auto output = mPixelBuffer->lock(mPixelBox, Ogre::HardwareBuffer::HBL_NORMAL);
+    Ogre::PixelBox output = mPixelBuffer->lock(mPixelBox, Ogre::HardwareBuffer::HBL_NORMAL);
 
     // we look for the tiles at the border of vision to paint them black
     for(MiniMapDrawnFullTileStateListener* listener : mTileStateListeners)

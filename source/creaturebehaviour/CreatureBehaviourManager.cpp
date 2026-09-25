@@ -42,7 +42,7 @@ void CreatureBehaviourManager::registerFactory(const CreatureBehaviourFactory* f
 void CreatureBehaviourManager::unregisterFactory(const CreatureBehaviourFactory* factory)
 {
     std::vector<const CreatureBehaviourFactory*>& factories = getFactories();
-    auto it = std::find(factories.begin(), factories.end(), factory);
+    std::vector<const CreatureBehaviourFactory*>::iterator it = std::find(factories.begin(), factories.end(), factory);
     if(it == factories.end())
     {
         OD_LOG_ERR("Trying to unregister unknown factory=" + factory->getCreatureBehaviourName());

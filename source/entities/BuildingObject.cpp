@@ -81,7 +81,7 @@ void BuildingObject::doUpkeep()
 {
     RenderedMovableEntity::doUpkeep();
 
-    for(auto it = mEntityParticleEffects.begin(); it != mEntityParticleEffects.end();)
+    for(std::vector<EntityParticleEffect*>::iterator it = mEntityParticleEffects.begin(); it != mEntityParticleEffects.end();)
     {
         EntityParticleEffect* effect = *it;
         if(effect->mNbTurnsEffect < 0)

@@ -200,10 +200,10 @@ GameEditorModeConsole::GameEditorModeConsole(ModeManager* modeManager):
     startInterpreterThread();
 
     // register an anwser to an Event we want, since GameEditorModeConsole is EventHandler as well
-    auto it = scriptRegister.find("CreatureMoved");
+    std::unordered_map<std::string, std::multimap<std::vector<int>, std::string>>::iterator it = scriptRegister.find("CreatureMoved");
     if (it !=scriptRegister.end())
     {
-        for ( auto range = it->second.begin(); range != it->second.end(); ++range)
+        for ( std::multimap<std::vector<int>, std::string>::iterator range = it->second.begin(); range != it->second.end(); ++range)
         {
         
             registerEventHandler<CreatureMoved>([=](Subject& ss, Event const& ee, std::vector<int> trigger)
@@ -223,7 +223,7 @@ GameEditorModeConsole::GameEditorModeConsole(ModeManager* modeManager):
     it = scriptRegister.find("ClockTick");
     if (it !=scriptRegister.end())
     {
-        for ( auto range = it->second.begin(); range != it->second.end(); ++range)
+        for ( std::multimap<std::vector<int>, std::string>::iterator range = it->second.begin(); range != it->second.end(); ++range)
         {
 
             registerEventHandler<ClockTick>([=](Subject& ss , Event const& ee, std::vector<int> trigger )
@@ -282,7 +282,7 @@ bool GameEditorModeConsole::keyPressed(const OIS::KeyEvent &arg)
             break;
         }
         case OIS::KC_UP:
-            if(auto completed = mConsoleInterface.scrollCommandHistoryPositionUp(mEditboxWindow->getText().c_str()))
+            if(boost::optional<const ConsoleInterface::String_t&> completed = mConsoleInterface.scrollCommandHistoryPositionUp(mEditboxWindow->getText().c_str()))
             {
                 mEditboxWindow->setText(completed.get());
             }
@@ -291,7 +291,7 @@ bool GameEditorModeConsole::keyPressed(const OIS::KeyEvent &arg)
 
         case OIS::KC_DOWN:
         {
-            if(auto completed = mConsoleInterface.scrollCommandHistoryPositionDown())
+            if(boost::optional<const ConsoleInterface::String_t&> completed = mConsoleInterface.scrollCommandHistoryPositionDown())
             {
                 mEditboxWindow->setText(completed.get());
             }

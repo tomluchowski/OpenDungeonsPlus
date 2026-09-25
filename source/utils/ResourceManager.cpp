@@ -196,7 +196,7 @@ void ResourceManager::setupUserDataFolders(boost::program_options::variables_map
     mUserDataPath.clear();
     mUserConfigPath.clear();
 
-    auto itOption = options.find("appData");
+    boost::program_options::variables_map::iterator itOption = options.find("appData");
     if(itOption != options.end())
     {
         mUserDataPath = itOption->second.as<std::string>();
@@ -379,7 +379,7 @@ void ResourceManager::setupUserDataFolders(boost::program_options::variables_map
         }
         mServerModeLevel = level.string();
 
-        auto it2 = options.find("mscreator");
+        boost::program_options::variables_map::iterator it2 = options.find("mscreator");
         if(it2 != options.end())
         {
             mServerModeCreator = it2->second.as<std::string>();
@@ -403,7 +403,7 @@ void ResourceManager::setupUserDataFolders(boost::program_options::variables_map
             }
             mServerModeLevel = level.string();
 
-            auto it2 = options.find("mscreator");
+            boost::program_options::variables_map::iterator it2 = options.find("mscreator");
             if(it2 != options.end())
             {
                 mServerModeCreator = it2->second.as<std::string>();
@@ -426,7 +426,7 @@ void ResourceManager::setupUserDataFolders(boost::program_options::variables_map
             }
             mServerModeLevel = level.string();
 
-            auto it2 = options.find("mscreator");
+            boost::program_options::variables_map::iterator it2 = options.find("mscreator");
             if(it2 != options.end())
             {
                 mServerModeCreator = it2->second.as<std::string>();
@@ -484,13 +484,13 @@ void ResourceManager::setupOgreResources(uint16_t shaderLanguageVersion)
             typeName = i->first;
             archName = mGameDataPath + i->second;
 #else
-    const auto settings = cf.getSettingsBySection();
+    const Ogre::ConfigFile::SettingsBySection_ settings = cf.getSettingsBySection();
 
-    for(const auto& section : settings)
+    for(const std::pair<const Ogre::String, Ogre::ConfigFile::SettingsMultiMap>& section : settings)
     {
         const Ogre::String& secName = section.first;
-        const auto& settingsMap = section.second;
-        for(const auto& setting: settingsMap)
+        const Ogre::ConfigFile::SettingsMultiMap& settingsMap = section.second;
+        for(const std::pair<const Ogre::String, Ogre::String>& setting: settingsMap)
         {
             const Ogre::String& typeName = setting.first;
             Ogre::String archName = setting.second;

@@ -150,7 +150,7 @@ ConfigManager::ConfigManager(const std::string& configPath, const std::string& u
 
 ConfigManager::~ConfigManager()
 {
-    for(auto pair : mCreatureDefs)
+    for(std::pair<const std::string, CreatureDefinition*> pair : mCreatureDefs)
     {
         delete pair.second;
     }
@@ -1543,9 +1543,9 @@ const std::string ConfigManager::getUserValue(Config::Ctg category,
         OD_LOG_ERR("User configuration categories uninitialized!");
         return defaultValue;
     }
-    auto& userCfg = mUserConfig[category];
+    const std::map<std::string, std::string>& userCfg = mUserConfig[category];
 
-    auto it = userCfg.find(param);
+    std::map<std::string, std::string>::const_iterator it = userCfg.find(param);
     if(it == userCfg.end())
     {
         if (triggerError)
@@ -1558,7 +1558,7 @@ const std::string ConfigManager::getUserValue(Config::Ctg category,
 
 const std::string& ConfigManager::getRoomConfigString(const std::string& param) const
 {
-    auto it = mRoomsConfig.find(param);
+    std::map<const std::string, std::string>::const_iterator it = mRoomsConfig.find(param);
     if(it == mRoomsConfig.end())
     {
         OD_LOG_ERR("Unknown parameter param=" + param);
@@ -1570,7 +1570,7 @@ const std::string& ConfigManager::getRoomConfigString(const std::string& param) 
 
 uint32_t ConfigManager::getRoomConfigUInt32(const std::string& param) const
 {
-    auto it = mRoomsConfig.find(param);
+    std::map<const std::string, std::string>::const_iterator it = mRoomsConfig.find(param);
     if(it == mRoomsConfig.end())
     {
         OD_LOG_ERR("Unknown parameter param=" + param);
@@ -1582,7 +1582,7 @@ uint32_t ConfigManager::getRoomConfigUInt32(const std::string& param) const
 
 int32_t ConfigManager::getRoomConfigInt32(const std::string& param) const
 {
-    auto it = mRoomsConfig.find(param);
+    std::map<const std::string, std::string>::const_iterator it = mRoomsConfig.find(param);
     if(it == mRoomsConfig.end())
     {
         OD_LOG_ERR("Unknown parameter param=" + param);
@@ -1594,7 +1594,7 @@ int32_t ConfigManager::getRoomConfigInt32(const std::string& param) const
 
 double ConfigManager::getRoomConfigDouble(const std::string& param) const
 {
-    auto it = mRoomsConfig.find(param);
+    std::map<const std::string, std::string>::const_iterator it = mRoomsConfig.find(param);
     if(it == mRoomsConfig.end())
     {
         OD_LOG_ERR("Unknown parameter param=" + param);
@@ -1615,7 +1615,7 @@ double ConfigManager::getRoomConfigDoubleOrDefault(const std::string& param, dou
 
 const std::string& ConfigManager::getTrapConfigString(const std::string& param) const
 {
-    auto it = mTrapsConfig.find(param);
+    std::map<const std::string, std::string>::const_iterator it = mTrapsConfig.find(param);
     if(it == mTrapsConfig.end())
     {
         OD_LOG_ERR("Unknown parameter param=" + param);
@@ -1627,7 +1627,7 @@ const std::string& ConfigManager::getTrapConfigString(const std::string& param) 
 
 uint32_t ConfigManager::getTrapConfigUInt32(const std::string& param) const
 {
-    auto it = mTrapsConfig.find(param);
+    std::map<const std::string, std::string>::const_iterator it = mTrapsConfig.find(param);
     if(it == mTrapsConfig.end())
     {
         OD_LOG_ERR("Unknown parameter param=" + param);
@@ -1639,7 +1639,7 @@ uint32_t ConfigManager::getTrapConfigUInt32(const std::string& param) const
 
 int32_t ConfigManager::getTrapConfigInt32(const std::string& param) const
 {
-    auto it = mTrapsConfig.find(param);
+    std::map<const std::string, std::string>::const_iterator it = mTrapsConfig.find(param);
     if(it == mTrapsConfig.end())
     {
         OD_LOG_ERR("Unknown parameter param=" + param);
@@ -1651,7 +1651,7 @@ int32_t ConfigManager::getTrapConfigInt32(const std::string& param) const
 
 double ConfigManager::getTrapConfigDouble(const std::string& param) const
 {
-    auto it = mTrapsConfig.find(param);
+    std::map<const std::string, std::string>::const_iterator it = mTrapsConfig.find(param);
     if(it == mTrapsConfig.end())
     {
         OD_LOG_ERR("Unknown parameter param=" + param);
@@ -1663,7 +1663,7 @@ double ConfigManager::getTrapConfigDouble(const std::string& param) const
 
 const std::string& ConfigManager::getSpellConfigString(const std::string& param) const
 {
-    auto it = mSpellConfig.find(param);
+    std::map<const std::string, std::string>::const_iterator it = mSpellConfig.find(param);
     if(it == mSpellConfig.end())
     {
         OD_LOG_ERR("Unknown parameter param=" + param);
@@ -1675,7 +1675,7 @@ const std::string& ConfigManager::getSpellConfigString(const std::string& param)
 
 uint32_t ConfigManager::getSpellConfigUInt32(const std::string& param) const
 {
-    auto it = mSpellConfig.find(param);
+    std::map<const std::string, std::string>::const_iterator it = mSpellConfig.find(param);
     if(it == mSpellConfig.end())
     {
         OD_LOG_ERR("Unknown parameter param=" + param);
@@ -1687,7 +1687,7 @@ uint32_t ConfigManager::getSpellConfigUInt32(const std::string& param) const
 
 int32_t ConfigManager::getSpellConfigInt32(const std::string& param) const
 {
-    auto it = mSpellConfig.find(param);
+    std::map<const std::string, std::string>::const_iterator it = mSpellConfig.find(param);
     if(it == mSpellConfig.end())
     {
         OD_LOG_ERR("Unknown parameter param=" + param);
@@ -1699,7 +1699,7 @@ int32_t ConfigManager::getSpellConfigInt32(const std::string& param) const
 
 double ConfigManager::getSpellConfigDouble(const std::string& param) const
 {
-    auto it = mSpellConfig.find(param);
+    std::map<const std::string, std::string>::const_iterator it = mSpellConfig.find(param);
     if(it == mSpellConfig.end())
     {
         OD_LOG_ERR("Unknown parameter param=" + param);
@@ -1711,7 +1711,7 @@ double ConfigManager::getSpellConfigDouble(const std::string& param) const
 
 int32_t ConfigManager::getSkillPoints(const std::string& res) const
 {
-    auto it = mSkillPoints.find(res);
+    std::map<const std::string, int32_t>::const_iterator it = mSkillPoints.find(res);
     if(it == mSkillPoints.end())
     {
         OD_LOG_ERR("Unknown parameter res=" + res);
@@ -1723,7 +1723,7 @@ int32_t ConfigManager::getSkillPoints(const std::string& res) const
 
 const CreatureDefinition* ConfigManager::getCreatureDefinition(const std::string& name) const
 {
-    auto it = mCreatureDefs.find(name);
+    std::map<std::string, CreatureDefinition*>::const_iterator it = mCreatureDefs.find(name);
     if(it != mCreatureDefs.end())
     {
         return it->second;
@@ -1744,7 +1744,7 @@ const Weapon* ConfigManager::getWeapon(const std::string& name) const
 
 const Ogre::ColourValue& ConfigManager::getColorFromId(const std::string& id) const
 {
-    auto it = mSeatColors.find(id);
+    std::map<std::string, Ogre::ColourValue>::const_iterator it = mSeatColors.find(id);
     if(it == mSeatColors.end())
         return DEFAULT_SEAT_COLOURVALUE;
 
@@ -1754,7 +1754,7 @@ const Ogre::ColourValue& ConfigManager::getColorFromId(const std::string& id) co
 
 const std::vector<const SpawnCondition*>& ConfigManager::getCreatureSpawnConditions(const CreatureDefinition* def) const
 {
-    auto it = mCreatureSpawnConditions.find(def);
+    std::map<const CreatureDefinition*, std::vector<const SpawnCondition*>>::const_iterator it = mCreatureSpawnConditions.find(def);
     if(it == mCreatureSpawnConditions.end())
         return SpawnCondition::EMPTY_SPAWNCONDITIONS;
 
@@ -1763,7 +1763,7 @@ const std::vector<const SpawnCondition*>& ConfigManager::getCreatureSpawnConditi
 
 const std::vector<std::string>& ConfigManager::getFactionSpawnPool(const std::string& faction) const
 {
-    auto it = mFactionSpawnPool.find(faction);
+    std::map<const std::string, std::vector<Ogre::String>>::const_iterator it = mFactionSpawnPool.find(faction);
     if(it == mFactionSpawnPool.end())
         return EMPTY_SPAWNPOOL;
 
@@ -1772,7 +1772,7 @@ const std::vector<std::string>& ConfigManager::getFactionSpawnPool(const std::st
 
 const std::string& ConfigManager::getFactionWorkerClass(const std::string& faction) const
 {
-    auto it = mFactionDefaultWorkerClass.find(faction);
+    std::map<const std::string, std::string>::const_iterator it = mFactionDefaultWorkerClass.find(faction);
     if(it == mFactionDefaultWorkerClass.end())
         return EMPTY_STRING;
 
@@ -1784,7 +1784,7 @@ const TileSet* ConfigManager::getTileSet(const std::string& tileSetName) const
     if(tileSetName.empty())
         return mTileSets.at(DEFAULT_TILESET_NAME);
 
-    auto it = mTileSets.find(tileSetName);
+    std::map<std::string, const TileSet*>::const_iterator it = mTileSets.find(tileSetName);
     if(it == mTileSets.end())
     {
         OD_LOG_ERR("Cannot find requested tileset name=" + tileSetName);
@@ -1800,7 +1800,7 @@ const HighMap* ConfigManager::getHighMap(const std::string& tileSetName) const
     if(tileSetName.empty())
         return mHighMaps.at(DEFAULT_TILESET_NAME);
 
-    auto it = mHighMaps.find(tileSetName);
+    std::map<std::string, const HighMap*>::const_iterator it = mHighMaps.find(tileSetName);
     if(it == mHighMaps.end())
     {
         OD_LOG_ERR("Cannot find requested highMap for a given tileset name=" + tileSetName);

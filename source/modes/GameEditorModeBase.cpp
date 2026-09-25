@@ -242,7 +242,7 @@ void GameEditorModeBase::updateMessages(Ogre::Real update_time)
     // Update the chat message seen if necessary.
     bool messageDisplayUpdate = false;
     CEGUI::String ceguiStr;
-    for (auto it = mEventMessages.begin(); it != mEventMessages.end();)
+    for (std::vector<EventMessage*>::iterator it = mEventMessages.begin(); it != mEventMessages.end();)
     {
         EventMessage* event = *it;
         if (event->isMessageTooOld(maxChatTimeDisplay))

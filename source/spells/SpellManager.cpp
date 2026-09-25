@@ -58,7 +58,7 @@ void SpellManager::registerFactory(const SpellFactory* factory)
 void SpellManager::unregisterFactory(const SpellFactory* factory)
 {
     std::vector<const SpellFactory*>& factories = getFactories();
-    auto it = std::find(factories.begin(), factories.end(), factory);
+    std::vector<const SpellFactory*>::iterator it = std::find(factories.begin(), factories.end(), factory);
     if(it == factories.end())
     {
         OD_LOG_ERR("Trying to unregister unknown factory=" + factory->getName());

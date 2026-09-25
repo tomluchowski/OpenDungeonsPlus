@@ -150,7 +150,7 @@ bool RoomDormitory::removeCoveredTile(Tile* t)
     if (t == nullptr)
         return false;
 
-    auto it = mTileData.find(t);
+    std::map<Tile*, TileData*>::iterator it = mTileData.find(t);
     if(it == mTileData.end())
     {
         OD_LOG_ERR("room=" + getName() + ", tile=" + Tile::displayAsString(t));

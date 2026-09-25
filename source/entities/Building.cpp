@@ -90,7 +90,7 @@ void Building::addBuildingObject(Tile* targetTile, BuildingObject* obj, GameMap*
 
 void Building::removeBuildingObject(Tile* tile)
 {
-    auto it = mBuildingObjects.find(tile);
+    std::map<Tile*, BuildingObject*>::iterator it = mBuildingObjects.find(tile);
     if(it == mBuildingObjects.end())
         return;
 
@@ -102,7 +102,7 @@ void Building::removeBuildingObject(Tile* tile)
 
 void Building::removeBuildingObject(BuildingObject* obj)
 {
-    for (auto it = mBuildingObjects.begin(); it != mBuildingObjects.end(); ++it)
+    for (std::map<Tile*, BuildingObject*>::iterator it = mBuildingObjects.begin(); it != mBuildingObjects.end(); ++it)
     {
         if(it->second != obj)
             continue;
@@ -153,7 +153,7 @@ void Building::removeAllBuildingObjects(GameMap* gameMap)
     if(mBuildingObjects.empty())
         return;
 
-    for (auto& p : mBuildingObjects)
+    for (std::pair<Tile* const, BuildingObject*>& p : mBuildingObjects)
     {
         p.second->removeFromGameMap(gameMap);
         p.second->deleteYourself();
@@ -163,7 +163,7 @@ void Building::removeAllBuildingObjects(GameMap* gameMap)
 
 BuildingObject* Building::getBuildingObjectFromTile(Tile* tile)
 {
-    auto it = mBuildingObjects.find(tile);
+    std::map<Tile*, BuildingObject*>::iterator it = mBuildingObjects.find(tile);
     if(it == mBuildingObjects.end())
         return nullptr;
 
@@ -211,7 +211,7 @@ Tile* Building::getCentralTile()
 bool Building::removeCoveredTile(Tile* t)
 {
     OD_LOG_INF(getGameMap()->serverStr() + "building=" + getName() + ", removing covered tile=" + Tile::displayAsString(t));
-    auto it = std::find(mCoveredTiles.begin(), mCoveredTiles.end(), t);
+    std::vector<Tile*>::iterator it = std::find(mCoveredTiles.begin(), mCoveredTiles.end(), t);
     if(it == mCoveredTiles.end())
     {
         OD_LOG_ERR("building=" + getName() + ", removing unknown covered tile=" + Tile::displayAsString(t));
@@ -275,7 +275,7 @@ double Building::getHP(Tile *tile) const
 double Building::takeDamage(GameEntity* attacker, double absoluteDamage, double physicalDamage, double magicalDamage, double elementDamage,
         Tile *tileTakingDamage, bool ko)
 {
-    auto it = mTileData.find(tileTakingDamage);
+    std::map<Tile*, TileData*>::iterator it = mTileData.find(tileTakingDamage);
     if(it == mTileData.end())
     {
         OD_LOG_ERR("building=" + getName() + ", tile=" + Tile::displayAsString(tileTakingDamage));
@@ -356,7 +356,7 @@ void Building::exportToStream(std::ostream& os) const
     os << name << "\t" << seatId << "\t" << nbTiles << "\n";
     for(Tile* tile : mCoveredTiles)
     {
-        auto it = mTileData.find(tile);
+        std::map<Tile*, TileData*>::const_iterator it = mTileData.find(tile);
         if(it == mTileData.end())
         {
             OD_LOG_ERR("building=" + getName() + ", tile=" + Tile::displayAsString(tile));
@@ -374,7 +374,7 @@ void Building::exportToStream(std::ostream& os) const
 
     for(Tile* tile : mCoveredTilesDestroyed)
     {
-        auto it = mTileData.find(tile);
+        std::map<Tile*, TileData*>::const_iterator it = mTileData.find(tile);
         if(it == mTileData.end())
         {
             OD_LOG_ERR("building=" + getName() + ", tile=" + Tile::displayAsString(tile));
@@ -451,7 +451,7 @@ bool Building::importFromStream(std::istream& is)
 void Building::notifySeatVision(Tile* tile, Seat* seat)
 {
     TileData* tileData = mTileData[tile];
-    auto it = std::find(tileData->mSeatsVision.begin(), tileData->mSeatsVision.end(), seat);
+    std::vector<Seat*>::iterator it = std::find(tileData->mSeatsVision.begin(), tileData->mSeatsVision.end(), seat);
     if(tileData->mHP <= 0)
     {
         // We remove the seat

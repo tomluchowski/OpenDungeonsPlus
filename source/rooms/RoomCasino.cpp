@@ -187,7 +187,7 @@ void RoomCasino::notifyActiveSpotRemoved(ActiveSpotPlace place, Tile* tile)
     if(place != ActiveSpotPlace::activeSpotCenter)
         return;
 
-    auto it = mCreaturesSpots.find(tile);
+    std::map<Tile*, RoomCasinoGame>::iterator it = mCreaturesSpots.find(tile);
     if(it == mCreaturesSpots.end())
     {
         OD_LOG_ERR("room=" + getName() + ", tile=" + Tile::displayAsString(tile));

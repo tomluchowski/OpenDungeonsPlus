@@ -186,19 +186,19 @@ VectorInt64& SlopeWalk::getBottomRightVertex()
 void SlopeWalk::printState()
 {
     std::cerr << "mLeftVertices" << std::endl;
-    for(auto ii = mLeftVertices.begin(); ii != mLeftVertices.end(); ++ii)
+    for(std::deque<int32_t>::iterator ii = mLeftVertices.begin(); ii != mLeftVertices.end(); ++ii)
         std::cerr << mVertices[*ii] << std::endl;
     std::cerr << "mRightVertices" << std::endl;
-    for(auto ii = mRightVertices.begin(); ii != mRightVertices.end(); ++ii)
+    for(std::deque<int32_t>::iterator ii = mRightVertices.begin(); ii != mRightVertices.end(); ++ii)
         std::cerr << mVertices[*ii] << std::endl;
 }
 
 void SlopeWalk::findMinMaxLeft(const std::vector<VectorInt64> &aa)
 {
 
-    auto min = aa.begin();
-    auto max = aa.begin();
-    for(auto ii = aa.begin(); ii !=aa.end(); ++ii )
+    std::vector<VectorInt64>::const_iterator min = aa.begin();
+    std::vector<VectorInt64>::const_iterator max = aa.begin();
+    for(std::vector<VectorInt64>::const_iterator ii = aa.begin(); ii !=aa.end(); ++ii )
     {
         if(ii->y < min->y)
             min = ii;
@@ -212,9 +212,9 @@ void SlopeWalk::findMinMaxLeft(const std::vector<VectorInt64> &aa)
 
 void SlopeWalk::findMinMaxRight(const std::vector<VectorInt64> &aa)
 {
-    auto min = aa.begin();
-    auto max = aa.begin();
-    for(auto ii = aa.begin(); ii !=aa.end(); ++ii )
+    std::vector<VectorInt64>::const_iterator min = aa.begin();
+    std::vector<VectorInt64>::const_iterator max = aa.begin();
+    for(std::vector<VectorInt64>::const_iterator ii = aa.begin(); ii !=aa.end(); ++ii )
     {
         if(ii->y <= min->y)
             min = ii;
@@ -240,22 +240,22 @@ std::string SlopeWalk::debug()
 
     ss << "mLeftVertices" << std::endl;
 
-    for(auto ii : mLeftVertices)
+    for(int32_t ii : mLeftVertices)
         ss << ii << " ";
     ss << std::endl ;
     ss << "mRightVertices" << std::endl;
 
-    for(auto ii : mRightVertices)
+    for(int32_t ii : mRightVertices)
         ss << ii << " ";
     ss << std::endl ;
 
     ss<< "mRightSlopes " << std::endl;
-    for(auto ii : mRightSlopes)
+    for(int64_t ii : mRightSlopes)
         ss << double(ii) / VectorInt64::UNIT << std::endl;
     ss << std::endl;
 
     ss<< "mLeftSlopes " << std::endl;
-    for(auto ii : mLeftSlopes)
+    for(int64_t ii : mLeftSlopes)
         ss << double(ii) / VectorInt64::UNIT << std::endl;
 
     return ss.str();

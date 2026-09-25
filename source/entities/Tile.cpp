@@ -513,7 +513,7 @@ void Tile::addPlayerMarkingTile(const Player *p)
 
 void Tile::removePlayerMarkingTile(const Player *p)
 {
-    auto it = std::find(mPlayersMarkingTile.begin(), mPlayersMarkingTile.end(), p);
+    std::vector<const Player*>::iterator it = std::find(mPlayersMarkingTile.begin(), mPlayersMarkingTile.end(), p);
     if(it == mPlayersMarkingTile.end())
         return;
 
@@ -2276,7 +2276,7 @@ bool Tile::addTileStateListener(TileStateListener& listener)
 
 bool Tile::removeTileStateListener(TileStateListener& listener)
 {
-    auto it = std::find(mStateListeners.begin(), mStateListeners.end(), &listener);
+    std::vector<TileStateListener*>::iterator it = std::find(mStateListeners.begin(), mStateListeners.end(), &listener);
     if(it == mStateListeners.end())
         return false;
 

@@ -1553,7 +1553,7 @@ void Seat::setSkillsDone(const std::vector<SkillType>& skills)
     // skillEntity for example)
     for(SkillType type : skills)
     {
-        auto skill = std::find(mSkillPending.begin(), mSkillPending.end(), type);
+        std::vector<SkillType>::iterator skill = std::find(mSkillPending.begin(), mSkillPending.end(), type);
         if(skill == mSkillPending.end())
             continue;
 

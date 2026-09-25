@@ -396,7 +396,7 @@ bool CreatureDefinition::update(CreatureDefinition* creatureDef, std::stringstre
         if (nextParam == "BaseDefinition")
         {
             defFile >> baseDefinition;
-            auto it = defMap.find(baseDefinition);
+            std::map<std::string, CreatureDefinition*>::const_iterator it = defMap.find(baseDefinition);
             if(it == defMap.end())
             {
                 OD_LOG_ERR("Couldn't find base class " + baseDefinition);
@@ -730,7 +730,7 @@ void CreatureDefinition::writeCreatureDefinitionDiff(
     {
         // If there is a base definition, we take it as the reference no matter what def1 is because
         // we want to write only the differences between the reference and def2
-        auto it = defMap.find(def2->mBaseDefinition);
+        std::map<std::string, CreatureDefinition*>::const_iterator it = defMap.find(def2->mBaseDefinition);
         if(it != defMap.end())
         {
             def1 = it->second;

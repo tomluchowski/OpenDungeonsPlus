@@ -231,7 +231,7 @@ void RoomPortalWave::updateActiveSpots(GameMap* gameMap)
                 updatePortalPosition();
             else
             {
-                for(auto& p : mBuildingObjects)
+                for(std::pair<Tile* const, BuildingObject*>& p : mBuildingObjects)
                 {
                     if(p.second == nullptr)
                         continue;
@@ -436,7 +436,7 @@ void RoomPortalWave::handleSpawnWave()
 {
     // We start by checking that the spawnable wave list is up to date
     int64_t curTurn = getGameMap()->getTurnNumber();
-    for(auto it = mRoomPortalWaveDataSpawnable.begin(); it != mRoomPortalWaveDataSpawnable.end();)
+    for(std::vector<RoomPortalWaveData*>::iterator it = mRoomPortalWaveDataSpawnable.begin(); it != mRoomPortalWaveDataSpawnable.end();)
     {
         RoomPortalWaveData* roomPortalWaveData = *it;
         if(roomPortalWaveData->mSpawnTurnMin > curTurn)
@@ -459,7 +459,7 @@ void RoomPortalWave::handleSpawnWave()
     }
 
     // Now we check in the not spawnable list if a wave is available
-    for(auto it = mRoomPortalWaveDataNotSpawnable.begin(); it != mRoomPortalWaveDataNotSpawnable.end();)
+    for(std::vector<RoomPortalWaveData*>::iterator it = mRoomPortalWaveDataNotSpawnable.begin(); it != mRoomPortalWaveDataNotSpawnable.end();)
     {
         RoomPortalWaveData* roomPortalWaveData = *it;
         if(roomPortalWaveData->mSpawnTurnMin > curTurn)
@@ -798,7 +798,7 @@ bool RoomPortalWave::handleSearchFoe()
         if(!getGameMap()->pathExists(creature, tileStart, tile))
             continue;
 
-        auto it = tileDungeons.begin();
+        std::vector<std::pair<Tile*, Ogre::Real>>::iterator it = tileDungeons.begin();
         Ogre::Real templeDist = Pathfinding::squaredDistanceTile(*tileStart, *tile);
         while(it != tileDungeons.end())
         {
@@ -918,7 +918,7 @@ bool RoomPortalWave::handleDigging()
         if(tile == nullptr)
             continue;
 
-        auto it = tileDungeons.begin();
+        std::vector<std::pair<Room*, Ogre::Real>>::iterator it = tileDungeons.begin();
         Ogre::Real templeDist = Pathfinding::squaredDistanceTile(*tileStart, *tile);
         while(it != tileDungeons.end())
         {
@@ -995,7 +995,7 @@ bool RoomPortalWave::findBestDiggablePath(Tile* tileStart, Tile* tileDest, Creat
             // We reach the end of the map.
             // We try the last blocking tile we found in the other direction (if any)
             lastTileBlocked = nullptr;
-            for(auto it = blockingTiles.rbegin(); it != blockingTiles.rend(); ++it)
+            for(std::vector<TileSearch>::reverse_iterator it = blockingTiles.rbegin(); it != blockingTiles.rend(); ++it)
             {
                 TileSearch& tileSearch = *it;
                 if(tileSearch.mRotationClockWise &&

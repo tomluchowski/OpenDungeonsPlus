@@ -296,7 +296,7 @@ void TrapManager::registerFactory(const TrapFactory* factory)
 void TrapManager::unregisterFactory(const TrapFactory* factory)
 {
     std::vector<const TrapFactory*>& factories = getFactories();
-    auto it = std::find(factories.begin(), factories.end(), factory);
+    std::vector<const TrapFactory*>::iterator it = std::find(factories.begin(), factories.end(), factory);
     if(it == factories.end())
     {
         OD_LOG_ERR("Trying to unregister unknown factory=" + factory->getName());

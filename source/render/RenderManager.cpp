@@ -129,10 +129,10 @@ RenderManager::RenderManager(Ogre::OverlaySystem* overlaySystem) :
         // mSceneManager->setShadowDirectionalLightExtrusionDistance(500.0);
         // mSceneManager->setShadowTextureSelfShadow(true);
         // donno if the below should be here -- paul424 :
-        auto myIter = Ogre::MaterialManager::getSingleton().getResourceIterator();
+        Ogre::ResourceManager::ResourceMapIterator myIter = Ogre::MaterialManager::getSingleton().getResourceIterator();
         while(myIter.hasMoreElements())
         {
-            auto myPointer = myIter.peekNextValue();
+            Ogre::ResourcePtr myPointer = myIter.peekNextValue();
             Ogre::SharedPtr<Ogre::Material> myCastPointer = std::dynamic_pointer_cast<Ogre::Material> (myPointer);
             Ogre::Technique* technique;
             technique = myCastPointer->getTechnique(0);
@@ -142,7 +142,7 @@ RenderManager::RenderManager(Ogre::OverlaySystem* overlaySystem) :
                 if(technique->getPass(technique->getNumPasses() - 1)->getFragmentProgramParameters()->hasNamedParameters())
                 {
                     const Ogre::GpuNamedConstants& gnc = technique->getPass(technique->getNumPasses() - 1)->getFragmentProgramParameters()->getConstantDefinitions();
-                    auto it = gnc.map.find("shadowingEnabled");
+                    Ogre::GpuConstantDefinitionMap::const_iterator it = gnc.map.find("shadowingEnabled");
                     if(it!=  gnc.map.end())
                         technique->getPass(technique->getNumPasses() - 1)->getFragmentProgramParameters()->setNamedConstant("shadowingEnabled",true);
                 }
@@ -1928,8 +1928,8 @@ std::string RenderManager::consoleListAnimationsForMesh(const std::string& meshN
         ret += "\nBone: " + boneName;
     }
 #else
-    auto bones = objectEntity->getSkeleton()->getBones();
-    for(const auto b : bones)
+    Ogre::Skeleton::BoneList bones = objectEntity->getSkeleton()->getBones();
+    for(const Ogre::Bone* b : bones)
     {
         if(b)
         {
@@ -2382,10 +2382,10 @@ std::string RenderManager::setMaterialOpacity(const std::string& materialName, f
     }
 
     // Loop over the techniques for the new material
-    for (auto i = 0; i < newMaterial->getNumTechniques(); ++i)
+    for (int i = 0; i < newMaterial->getNumTechniques(); ++i)
     {
         Ogre::Technique* technique = newMaterial->getTechnique(i);
-        for(auto j = 0; j < technique->getNumPasses(); ++j)
+        for(int j = 0; j < technique->getNumPasses(); ++j)
         {
             // Set alpha value for all passes
             Ogre::Pass* pass = technique->getPass(j);

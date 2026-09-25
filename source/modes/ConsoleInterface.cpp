@@ -288,7 +288,7 @@ bool ConsoleInterface::addCommandAux(String_t name, String_t description,
 {
     CommandPtr_t commandPtr = std::make_shared<Command>(commandClient, commandServer, description, allowedModes);
     mCommandMap.emplace(name, commandPtr);
-    for(auto& alias : aliases)
+    for(const String_t& alias : aliases)
     {
         mCommandMap.emplace(alias, commandPtr);
     }
@@ -306,7 +306,7 @@ Command::Result ConsoleInterface::tryExecuteClientCommand(String_t commandString
                             boost::algorithm::token_compress_on);
 
     const String_t& commandName = tokenList.front();
-    auto it = mCommandMap.find(commandName);
+    ConsoleInterface::CommandMap_t::iterator it = mCommandMap.find(commandName);
     if(it != mCommandMap.end())
     {
         // Check if there is something to do on client side
@@ -343,7 +343,7 @@ Command::Result ConsoleInterface::tryExecuteServerCommand(const std::vector<std:
         return Command::Result::INVALID_ARGUMENT;
     }
     const std::string& commandName = args[0];
-    auto it = mCommandMap.find(commandName);
+    ConsoleInterface::CommandMap_t::iterator it = mCommandMap.find(commandName);
     if(it != mCommandMap.end())
     {
         // Check if there is something to do on client side
@@ -375,7 +375,7 @@ Command::Result ConsoleInterface::tryExecuteServerCommand(const std::vector<std:
 bool ConsoleInterface::tryCompleteCommand(const String_t& prefix, String_t& completedCmd)
 {
     std::vector<const String_t*> matches;
-    for(auto& element : mCommandMap)
+    for(std::pair<const ConsoleInterface::String_t, ConsoleInterface::CommandPtr_t>& element : mCommandMap)
     {
         if(boost::algorithm::starts_with(element.first, prefix))
         {
@@ -393,7 +393,7 @@ bool ConsoleInterface::tryCompleteCommand(const String_t& prefix, String_t& comp
     }
 
     // There are several matches. We display them
-    for(auto match : matches)
+    for(const String_t* match : matches)
     {
         const String_t& str = *match;
         print(str);
@@ -409,7 +409,7 @@ bool ConsoleInterface::tryCompleteCommand(const String_t& prefix, String_t& comp
     while(index < refStr.length())
     {
         bool isDif = false;
-        for(auto match : matches)
+        for(const String_t* match : matches)
         {
             const String_t& str = *match;
 
@@ -473,7 +473,7 @@ boost::optional<const ConsoleInterface::String_t&> ConsoleInterface::scrollComma
 
 boost::optional<const ConsoleInterface::String_t&> ConsoleInterface::getCommandDescription(const String_t& command)
 {
-    auto it = mCommandMap.find(command);
+    ConsoleInterface::CommandMap_t::iterator it = mCommandMap.find(command);
     if(it != mCommandMap.end())
     {
         return boost::optional<const String_t&>(it->second->getDescription());
@@ -488,7 +488,7 @@ Command::Result ConsoleInterface::helpCommand(const Command::ArgumentList_t& arg
 {
     if(args.size() > 1)
     {
-        auto result = console.getCommandDescription(args[1]);
+        boost::optional<const ConsoleInterface::String_t&> result = console.getCommandDescription(args[1]);
         if(result)
         {
             console.print("Help for command \"" + args[1] + "\":\n");
@@ -502,7 +502,7 @@ Command::Result ConsoleInterface::helpCommand(const Command::ArgumentList_t& arg
     else
     {
         console.print("Commands:\n");
-        for(auto& it : console.mCommandMap)
+        for(std::pair<const ConsoleInterface::String_t, ConsoleInterface::CommandPtr_t>& it : console.mCommandMap)
         {
             console.print(it.first);
         }

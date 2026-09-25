@@ -45,7 +45,7 @@ void CreatureMoodManager::registerFactory(const CreatureMoodFactory* factory)
 void CreatureMoodManager::unregisterFactory(const CreatureMoodFactory* factory)
 {
     std::vector<const CreatureMoodFactory*>& factories = getFactories();
-    auto it = std::find(factories.begin(), factories.end(), factory);
+    std::vector<const CreatureMoodFactory*>::iterator it = std::find(factories.begin(), factories.end(), factory);
     if(it == factories.end())
     {
         OD_LOG_ERR("Trying to unregister unknown factory=" + factory->getCreatureMoodName());

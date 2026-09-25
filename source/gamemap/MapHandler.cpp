@@ -673,7 +673,7 @@ bool writeGameMapToFile(const std::string& fileName, GameMap& gameMap)
     // Write out the goals shared by all players to the file.
     levelFile << "\n[Goals]\n";
     levelFile << "# " << Goal::getFormat() << "\n";
-    for (auto& goal : gameMap.getGoalsForAllSeats())
+    for (const std::unique_ptr<Goal>& goal : gameMap.getGoalsForAllSeats())
     {
         levelFile << *goal.get();
     }
