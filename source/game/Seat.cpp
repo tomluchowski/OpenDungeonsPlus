@@ -164,6 +164,18 @@ unsigned int Seat::checkAllCompletedGoals()
             {
                 mFailedGoals.push_back(*currentGoal);
 
+                // The voice line has a text so it can be read as well
+                if((getPlayer() != nullptr) &&
+                   getPlayer()->getIsHuman() &&
+                   !getPlayer()->getHasLost())
+                {
+                    ServerNotification *serverNotification = new ServerNotification(
+                        ServerNotificationType::chatServer, getPlayer());
+
+                    serverNotification->mPacket << "You have FAILED an objective!" << EventShortNoticeType::majorGameEvent;
+                    ODServer::getSingleton().queueServerNotification(serverNotification);
+                }
+
                 std::vector<Seat*> seats;
                 seats.push_back(this);
                 mGameMap->fireRelativeSound(seats, SoundRelativeKeeperStatements::GoalFailed);
@@ -2001,6 +2013,20 @@ const CreatureDefinition* Seat::getNextFighterClassToSpawn(const GameMap& gameMa
         if(!def.second && !conditions.empty())
         {
             def.second = true;
+
+            // The voice line has a text so it can be read as well
+            if((getPlayer() != nullptr) &&
+               getPlayer()->getIsHuman() &&
+               !getPlayer()->getHasLost())
+            {
+                ServerNotification *serverNotification = new ServerNotification(
+                    ServerNotificationType::chatServer, getPlayer());
+
+                serverNotification->mPacket << "A new creature is drawn to your dungeon: " + def.first->getClassName()
+                    << EventShortNoticeType::genericGameInfo;
+                ODServer::getSingleton().queueServerNotification(serverNotification);
+            }
+
             std::vector<Seat*> seats;
             seats.push_back(this);
             mGameMap->fireRelativeSound(seats, SoundRelativeKeeperStatements::CreatureNew);
