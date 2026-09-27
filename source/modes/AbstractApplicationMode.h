@@ -126,6 +126,9 @@ public:
     {}
 
 protected:
+    //! Capture the current view before a GUI or input submode consumes the key.
+    bool handleScreenshotKey(const OIS::KeyEvent& arg);
+
     ModeManager& getModeManager()
     {
         return *mModeManager;
