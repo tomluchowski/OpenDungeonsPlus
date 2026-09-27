@@ -240,7 +240,7 @@ void MiniMapDrawn::update(Ogre::Real timeSinceLastFrame, const std::vector<Ogre:
     //     }
     // }
 
-    auto output = mPixelBuffer->lock(mPixelBox, Ogre::HardwareBuffer::HBL_NORMAL);
+    Ogre::PixelBox output = mPixelBuffer->lock(mPixelBox, Ogre::HardwareBuffer::HBL_NORMAL);
 
     size_t xx = 0;
     size_t yy = 0;

@@ -85,7 +85,7 @@ void PersistentObject::notifySeatsWithVision(const std::vector<Seat*>& seats, No
     // that it is there. If it is not working, we notify that it has been removed
     for(Seat* seat : seats)
     {
-        auto it = std::find(mSeatsWithVisionNotified.begin(), mSeatsWithVisionNotified.end(), seat);
+        std::vector<Seat*>::iterator it = std::find(mSeatsWithVisionNotified.begin(), mSeatsWithVisionNotified.end(), seat);
         if(mIsWorking)
         {
             // If the seat was already in the list, nothing to do
@@ -120,7 +120,7 @@ void PersistentObject::notifySeatsWithVision(const std::vector<Seat*>& seats, No
         }
         else
         {
-            auto it = std::find(mSeatsAlreadyNotifiedOnce.begin(), mSeatsAlreadyNotifiedOnce.end(), seat);
+            std::vector<Seat*>::iterator it = std::find(mSeatsAlreadyNotifiedOnce.begin(), mSeatsAlreadyNotifiedOnce.end(), seat);
             if(it != mSeatsAlreadyNotifiedOnce.end())
             {
                 mSeatsAlreadyNotifiedOnce.erase(it);
@@ -170,7 +170,7 @@ bool PersistentObject::notifyRemoveAsked()
     // lost vision
     for(Seat* seat : mSeatsAlreadyNotifiedOnce)
     {
-        auto it = std::find(mSeatsWithVisionNotified.begin(), mSeatsWithVisionNotified.end(), seat);
+        std::vector<Seat*>::iterator it = std::find(mSeatsWithVisionNotified.begin(), mSeatsWithVisionNotified.end(), seat);
         if(it != mSeatsWithVisionNotified.end())
             continue;
 

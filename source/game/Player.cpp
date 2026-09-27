@@ -696,7 +696,7 @@ void Player::upkeepPlayer(double timeSinceLastUpkeep)
     bool wasFightHappening = false;
     bool isFightHappening = false;
     bool isEventListUpdated = false;
-    for(auto it = mEvents.begin(); it != mEvents.end();)
+    for(std::vector<PlayerEvent*>::iterator it = mEvents.begin(); it != mEvents.end();)
     {
         PlayerEvent* event = *it;
         if(event->getType() != PlayerEventType::fight)

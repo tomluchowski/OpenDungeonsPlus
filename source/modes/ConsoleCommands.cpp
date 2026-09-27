@@ -359,7 +359,7 @@ Command::Result cPrintNodes(const Command::ArgumentList_t& args, ConsoleInterfac
     std::function<void(Ogre::SceneNode*)> printNodesAux = [&](Ogre::SceneNode* sn){
         c.print(sn->getName());
         Ogre::Node::ChildNodeMap   chnm = sn->getChildren();
-        for(auto it : chnm   ){
+        for(Ogre::Node* it : chnm   ){
             printNodesAux( static_cast<Ogre::SceneNode*>(it));
         } 
     };
@@ -376,7 +376,7 @@ Command::Result cPrintEntities(const Command::ArgumentList_t& args, ConsoleInter
             c.print(mv->getName());
         
         Ogre::Node::ChildNodeMap   chnm = sn->getChildren();
-        for(auto it : chnm   ){
+        for(Ogre::Node* it : chnm   ){
             printNodesAux( static_cast<Ogre::SceneNode*>(it));
         } 
     };

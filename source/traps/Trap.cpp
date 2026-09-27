@@ -115,7 +115,7 @@ void Trap::doUpkeep()
     Building::doUpkeep();
 
     // We remove trap entities if we can
-    for(auto it = mTrapEntitiesWaitingRemove.begin(); it != mTrapEntitiesWaitingRemove.end();)
+    for(std::vector<BuildingObject*>::iterator it = mTrapEntitiesWaitingRemove.begin(); it != mTrapEntitiesWaitingRemove.end();)
     {
         BuildingObject* trapEntity = *it;
         if(!trapEntity->notifyRemoveAsked())
@@ -161,7 +161,7 @@ int32_t Trap::getNbNeededCraftedTrap() const
     int32_t nbNeededCraftedTrap = 0;
     for(Tile* tile : mCoveredTiles)
     {
-        auto it = mTileData.find(tile);
+        std::map<Tile*, TileData*>::const_iterator it = mTileData.find(tile);
         if(it == mTileData.end())
             continue;
 
@@ -212,7 +212,7 @@ void Trap::updateActiveSpots(GameMap* gameMap)
         if(trapTileData->getRemoveTrap())
         {
             trapTileData->setRemoveTrap(false);
-            auto it = mBuildingObjects.find(p.first);
+            std::map<Tile*, BuildingObject*>::iterator it = mBuildingObjects.find(p.first);
             if(it == mBuildingObjects.end())
                 continue;
 
@@ -346,7 +346,7 @@ Tile* Trap::askSpotForCarriedEntity(GameEntity* carriedEntity)
 
     for(Tile* tile : mCoveredTiles)
     {
-        auto it = mTileData.find(tile);
+        std::map<Tile*, TileData*>::iterator it = mTileData.find(tile);
         if(it == mTileData.end())
             continue;
 
@@ -372,7 +372,7 @@ void Trap::notifyCarryingStateChanged(Creature* carrier, GameEntity* carriedEnti
 
     for(Tile* tile : mCoveredTiles)
     {
-        auto it = mTileData.find(tile);
+        std::map<Tile*, TileData*>::iterator it = mTileData.find(tile);
         if(it == mTileData.end())
             continue;
 
@@ -417,7 +417,7 @@ bool Trap::isAttackable(Tile* tile, Seat* seat) const
         return false;
 
     // We check if the trap is hidden for this seat
-    auto it = mTileData.find(tile);
+    std::map<Tile*, TileData*>::const_iterator it = mTileData.find(tile);
     if(it == mTileData.end())
     {
         OD_LOG_ERR("name=" + getName() + ", tile=" + Tile::displayAsString(tile));
@@ -576,7 +576,7 @@ bool Trap::isTileVisibleForSeat(Tile* tile, Seat* seat) const
     if(getGameMap()->isInEditorMode())
         return true;
 
-    auto it = mTileData.find(tile);
+    std::map<Tile*, TileData*>::const_iterator it = mTileData.find(tile);
     if(it == mTileData.end())
     {
         OD_LOG_ERR("trap=" + getName() + ", tile=" + Tile::displayAsString(tile));
@@ -597,7 +597,7 @@ bool Trap::isClaimable(Seat* seat) const
 
 void Trap::claimForSeat(Seat* seat, Tile* tile, double danceRate)
 {
-    auto it = mTileData.find(tile);
+    std::map<Tile*, TileData*>::iterator it = mTileData.find(tile);
     if(it == mTileData.end())
     {
         OD_LOG_ERR("trap=" + getName() + ", tile=" + Tile::displayAsString(tile));
@@ -631,7 +631,7 @@ bool Trap::sortForMapSave(Trap* t1, Trap* t2)
 
 bool Trap::shouldSetCoveringTileDirty(Seat* seat, Tile* tile)
 {
-    auto it = mTileData.find(tile);
+    std::map<Tile*, TileData*>::iterator it = mTileData.find(tile);
     if(it == mTileData.end())
     {
         OD_LOG_ERR("trap=" + getName() + ", tile=" + Tile::displayAsString(tile));

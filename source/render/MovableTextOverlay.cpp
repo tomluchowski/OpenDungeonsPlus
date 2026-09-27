@@ -82,7 +82,7 @@ void ChildOverlay::computeTextArea()
 {
     mTextWidth = 0;
 
-    for(auto c : mCaption)
+    for(char c : mCaption)
     {
         if (c == 0x0020)
             mTextWidth += mFont->getGlyphAspectRatio(0x0030);

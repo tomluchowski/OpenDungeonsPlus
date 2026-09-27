@@ -305,7 +305,7 @@ void RoomManager::registerFactory(const RoomFactory* factory)
 void RoomManager::unregisterFactory(const RoomFactory* factory)
 {
     std::vector<const RoomFactory*>& factories = getFactories();
-    auto it = std::find(factories.begin(), factories.end(), factory);
+    std::vector<const RoomFactory*>::iterator it = std::find(factories.begin(), factories.end(), factory);
     if(it == factories.end())
     {
         OD_LOG_ERR("Trying to unregister unknown factory=" + factory->getName());

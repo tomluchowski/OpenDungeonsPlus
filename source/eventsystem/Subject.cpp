@@ -12,11 +12,11 @@ void Subject::unregisterObserver(Observer& observer) {
 }
 void Subject::notifyObservers(Event const& event) {
     std::vector<Observer*> dead;
-    for (auto* o: observers)
+    for (Observer* o: observers)
         if (o->onNotify(*this, event) == NotifyAction::UnRegister)
             dead.push_back(o);
-    auto endIt = observers.end();
-    for (auto* d: dead)
+    std::vector<Observer*>::iterator endIt = observers.end();
+    for (Observer* d: dead)
         endIt = std::remove(observers.begin(), endIt, d);
     observers.erase(endIt, observers.end());
 }

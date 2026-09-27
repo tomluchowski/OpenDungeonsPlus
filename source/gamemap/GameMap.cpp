@@ -203,7 +203,7 @@ bool GameMap::loadLevel(const std::string& levelFilepath)
 {
     // We reset the creature definitions
     clearClasses();
-    for(auto it : ConfigManager::getSingleton().getCreatureDefinitions())
+    for(std::pair<const std::string, CreatureDefinition*> it : ConfigManager::getSingleton().getCreatureDefinitions())
     {
         addClassDescription(it.second);
     }
@@ -904,7 +904,7 @@ void GameMap::removeActiveObject(GameEntity *a)
     if(!isServerGameMap())
         return;
 
-    auto it = std::find(mActiveObjects.begin(), mActiveObjects.end(), a);
+    std::vector<GameEntity*>::iterator it = std::find(mActiveObjects.begin(), mActiveObjects.end(), a);
     if(it == mActiveObjects.end())
     {
         OD_LOG_ERR("ActiveObject name=" + a->getName());
@@ -1626,7 +1626,7 @@ std::list<Tile*> GameMap::path(int x1, int y1, int x2, int y2, const Creature* c
                 neighbor.setParent(currentEntry);
 
                 AstarEntry* entry = new AstarEntry(neighbor);
-                auto itr = openList.begin();
+                std::vector<AstarEntry*>::iterator itr = openList.begin();
                 while((itr != openList.end()) &&
                       ((*itr)->fCost() > entry->fCost()))
                 {
@@ -1654,7 +1654,7 @@ std::list<Tile*> GameMap::path(int x1, int y1, int x2, int y2, const Creature* c
                     neighborEntry->setParent(currentEntry);
 
                     // The cost changed. We need to re-order openList
-                    auto itr = std::find(openList.begin(), openList.end(), neighborEntry);
+                    std::vector<AstarEntry*>::iterator itr = std::find(openList.begin(), openList.end(), neighborEntry);
                     if(itr == openList.end())
                     {
                         OD_LOG_ERR("Unexpected entry not found tileStart=" + Tile::displayAsString(start)
@@ -2139,7 +2139,7 @@ bool GameMap::addSeat(Seat *s)
     s->setColorValue(colorValue);
 
     // Add the goals for all seats to this seat.
-    for (auto& goal : mGoalsForAllSeats)
+    for (std::unique_ptr<Goal>& goal : mGoalsForAllSeats)
     {
         s->addGoal(goal.get());
     }
@@ -3173,7 +3173,7 @@ void GameMap::addClientUpkeepEntity(GameEntity* entity)
 
 void GameMap::removeClientUpkeepEntity(GameEntity* entity)
 {
-    auto it = std::find(mGameEntityClientUpkeep.begin(), mGameEntityClientUpkeep.end(), entity);
+    std::vector<GameEntity*>::iterator it = std::find(mGameEntityClientUpkeep.begin(), mGameEntityClientUpkeep.end(), entity);
     if(it == mGameEntityClientUpkeep.end())
         return;
 

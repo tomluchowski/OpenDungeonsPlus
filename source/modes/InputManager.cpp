@@ -101,7 +101,7 @@ InputManager::InputManager(Ogre::RenderWindow* renderWindow):
     mInputManager = OIS::InputManager::createInputSystem(paramList);
 
     //setup Keyboard
-    auto oisKeyboard = static_cast<OIS::Keyboard*>(mInputManager->createInputObject(OIS::OISKeyboard, true));
+    OIS::Keyboard* oisKeyboard = static_cast<OIS::Keyboard*>(mInputManager->createInputObject(OIS::OISKeyboard, true));
 
     oisKeyboard->setTextTranslation(OIS::Keyboard::Unicode);
 

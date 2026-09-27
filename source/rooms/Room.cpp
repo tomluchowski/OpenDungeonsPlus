@@ -953,7 +953,7 @@ void Room::repairRoom()
 
         mCoveredTiles.push_back(tile);
         TileData* tileData;
-        auto it = mTileData.find(tile);
+        std::map<Tile*, TileData*>::iterator it = mTileData.find(tile);
         if(it != mTileData.end())
             tileData = it->second;
         else

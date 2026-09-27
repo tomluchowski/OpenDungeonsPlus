@@ -189,7 +189,7 @@ MusicPlayer::~MusicPlayer()
 
 void MusicPlayer::update(float timeSinceLastUpdate)
 {
-    for(auto& pair : mTracks)
+    for(std::pair<const std::string, std::unique_ptr<ODMusic>>& pair : mTracks)
     {
         pair.second->update(timeSinceLastUpdate);
     }

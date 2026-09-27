@@ -124,7 +124,7 @@ void Gui::loadGuiSheet(guiSheet newSheet)
 
 CEGUI::Window* Gui::getGuiSheet(guiSheet sheet)
 {
-    auto it = mSheets.find(sheet);
+    std::map<Gui::guiSheet, CEGUI::Window*>::iterator it = mSheets.find(sheet);
     if(it != mSheets.end())
     {
         return it->second;

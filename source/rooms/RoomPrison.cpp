@@ -364,7 +364,7 @@ void RoomPrison::deleteFenceMeshes()
 {
     for (Tile* tile: mFenceTiles)
     {
-        auto it = mFencingObjects.find(tile);
+        std::map<Tile*, BuildingObject*>::iterator it = mFencingObjects.find(tile);
         if(it == mFencingObjects.end())
             continue;
 
@@ -397,14 +397,14 @@ void RoomPrison::putFenceMeshes()
         std::pair<int,int> west = std::make_pair( xx - 1, yy);
         std::pair<int,int> north = std::make_pair( xx , yy + 1);
         std::pair<int,int> south = std::make_pair( xx , yy - 1);
-        auto fenceEast = std::find(mFenceCoords.begin(), mFenceCoords.end(), east);
-        auto fenceWest = std::find(mFenceCoords.begin(), mFenceCoords.end(), west);
-        auto fenceSouth = std::find(mFenceCoords.begin(), mFenceCoords.end(), south);
-        auto fenceNorth = std::find(mFenceCoords.begin(), mFenceCoords.end(), north);
-        auto actualEast = std::find(mActualTilesCoords.begin(), mActualTilesCoords.end(), east);
-        auto actualWest = std::find(mActualTilesCoords.begin(), mActualTilesCoords.end(), west);
-        auto actualSouth = std::find(mActualTilesCoords.begin(), mActualTilesCoords.end(), south);
-        auto actualNorth = std::find(mActualTilesCoords.begin(), mActualTilesCoords.end(), north);        
+        std::vector<std::pair<int, int>>::iterator fenceEast = std::find(mFenceCoords.begin(), mFenceCoords.end(), east);
+        std::vector<std::pair<int, int>>::iterator fenceWest = std::find(mFenceCoords.begin(), mFenceCoords.end(), west);
+        std::vector<std::pair<int, int>>::iterator fenceSouth = std::find(mFenceCoords.begin(), mFenceCoords.end(), south);
+        std::vector<std::pair<int, int>>::iterator fenceNorth = std::find(mFenceCoords.begin(), mFenceCoords.end(), north);
+        std::vector<std::pair<int, int>>::iterator actualEast = std::find(mActualTilesCoords.begin(), mActualTilesCoords.end(), east);
+        std::vector<std::pair<int, int>>::iterator actualWest = std::find(mActualTilesCoords.begin(), mActualTilesCoords.end(), west);
+        std::vector<std::pair<int, int>>::iterator actualSouth = std::find(mActualTilesCoords.begin(), mActualTilesCoords.end(), south);
+        std::vector<std::pair<int, int>>::iterator actualNorth = std::find(mActualTilesCoords.begin(), mActualTilesCoords.end(), north);        
         BuildingObject* ro = nullptr;        
         if(fenceEast != mFenceCoords.end() && fenceWest !=mFenceCoords.end())
             if(actualSouth!=mActualTilesCoords.end())
@@ -623,7 +623,7 @@ void RoomPrison::notifyCarryingStateChanged(Creature* carrier, GameEntity* carri
     // We check if we were waiting for this creature
     // We release the pending prisoners before pushing the action room to make sure
     // the place is free when we add the creature
-    auto it = std::find(mPendingPrisoners.begin(), mPendingPrisoners.end(), prisonerCreature);
+    std::vector<Creature*>::iterator it = std::find(mPendingPrisoners.begin(), mPendingPrisoners.end(), prisonerCreature);
     if(it == mPendingPrisoners.end())
     {
         OD_LOG_ERR("room=" + getName() + ", unexpected creature=" + prisonerCreature->getName());

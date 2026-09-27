@@ -42,7 +42,7 @@ void CreatureEffectManager::registerFactory(const CreatureEffectFactory* factory
 void CreatureEffectManager::unregisterFactory(const CreatureEffectFactory* factory)
 {
     std::vector<const CreatureEffectFactory*>& factories = getFactories();
-    auto it = std::find(factories.begin(), factories.end(), factory);
+    std::vector<const CreatureEffectFactory*>::iterator it = std::find(factories.begin(), factories.end(), factory);
     if(it == factories.end())
     {
         OD_LOG_ERR("Trying to unregister unknown factory=" + factory->getCreatureEffectName());

@@ -121,7 +121,7 @@ namespace MasterServer
     {
         // We replace special meaning chars
         std::string formatted;
-        for(auto it = str.begin(); it != str.end(); ++it)
+        for(std::string::const_iterator it = str.begin(); it != str.end(); ++it)
         {
             char c = *it;
             bool isSecialChar = false;
@@ -148,7 +148,7 @@ namespace MasterServer
     {
         // We replace special meaning chars
         std::string formatted;
-        for(auto it = str.begin(); it != str.end(); ++it)
+        for(std::string::const_iterator it = str.begin(); it != str.end(); ++it)
         {
             char c = *it;
             if(c != replacementChar)

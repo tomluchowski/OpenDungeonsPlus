@@ -42,7 +42,7 @@ void CreatureSkillManager::registerFactory(const CreatureSkillFactory* factory)
 void CreatureSkillManager::unregisterFactory(const CreatureSkillFactory* factory)
 {
     std::vector<const CreatureSkillFactory*>& factories = getFactories();
-    auto it = std::find(factories.begin(), factories.end(), factory);
+    std::vector<const CreatureSkillFactory*>::iterator it = std::find(factories.begin(), factories.end(), factory);
     if(it == factories.end())
     {
         OD_LOG_ERR("Trying to unregister unknown factory=" + factory->getCreatureSkillName());

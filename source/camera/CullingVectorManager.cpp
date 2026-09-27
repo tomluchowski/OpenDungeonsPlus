@@ -25,7 +25,7 @@ void CullingVectorManager::sort()
     VectorInt64 cc(0, 0, 0);
 
     // find the center of points stored in mMyArray
-    for (auto ii : mMyArray)
+    for (VectorInt64 ii : mMyArray)
         cc = cc + ii;
 
     cc = cc / mMyArray.size();
@@ -69,11 +69,11 @@ void CullingVectorManager::zoom(double zz)
 {
     VectorInt64 cc(0, 0, 0);
 
-    for (auto& ii : mMyArray)
+    for (VectorInt64& ii : mMyArray)
         cc = cc + ii;
     
     cc = cc / mMyArray.size();
-    for (auto& ii : mMyArray)    
+    for (VectorInt64& ii : mMyArray)    
     {
         ii = cc + (ii - cc)*zz;    
     }

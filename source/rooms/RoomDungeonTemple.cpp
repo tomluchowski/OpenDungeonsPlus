@@ -127,7 +127,7 @@ void RoomDungeonTemple::updateActiveSpots(GameMap* gameMap)
                 updateTemplePosition();
             else
             {
-                for(auto& p : mBuildingObjects)
+                for(std::pair<Tile* const, BuildingObject*>& p : mBuildingObjects)
                 {
                     if(p.second == nullptr)
                         continue;

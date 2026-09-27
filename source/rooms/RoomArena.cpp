@@ -170,7 +170,7 @@ bool RoomArena::addCreatureUsingRoom(Creature* creature)
 void RoomArena::removeCreatureUsingRoom(Creature* c)
 {
     Room::removeCreatureUsingRoom(c);
-    auto it = std::find(mCreaturesFighting.begin(), mCreaturesFighting.end(), c);
+    std::vector<Creature*>::iterator it = std::find(mCreaturesFighting.begin(), mCreaturesFighting.end(), c);
     if(it == mCreaturesFighting.end())
     {
         OD_LOG_ERR("room=" + getName() + ", trying to remove " + c->getName());
@@ -358,7 +358,7 @@ std::string RoomArena::getListenerName() const
 
 bool RoomArena::notifyDead(GameEntity* entity)
 {
-    for(auto it = mCreaturesFighting.begin(); it != mCreaturesFighting.end(); ++it)
+    for(std::vector<Creature*>::iterator it = mCreaturesFighting.begin(); it != mCreaturesFighting.end(); ++it)
     {
         Creature* creature = *it;
         if(creature != entity)
@@ -372,7 +372,7 @@ bool RoomArena::notifyDead(GameEntity* entity)
 
 bool RoomArena::notifyRemovedFromGameMap(GameEntity* entity)
 {
-    for(auto it = mCreaturesFighting.begin(); it != mCreaturesFighting.end(); ++it)
+    for(std::vector<Creature*>::iterator it = mCreaturesFighting.begin(); it != mCreaturesFighting.end(); ++it)
     {
         Creature* creature = *it;
         if(creature != entity)
@@ -386,7 +386,7 @@ bool RoomArena::notifyRemovedFromGameMap(GameEntity* entity)
 
 bool RoomArena::notifyPickedUp(GameEntity* entity)
 {
-    for(auto it = mCreaturesFighting.begin(); it != mCreaturesFighting.end(); ++it)
+    for(std::vector<Creature*>::iterator it = mCreaturesFighting.begin(); it != mCreaturesFighting.end(); ++it)
     {
         Creature* creature = *it;
         if(creature != entity)

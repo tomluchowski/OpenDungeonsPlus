@@ -157,7 +157,7 @@ void ODApplication::startClient()
     unsigned int w = MIN_WIDTH;
     unsigned int h = MIN_HEIGHT;
     {
-        auto videoMode = configManager.getVideoValue(Config::VIDEO_MODE, "800 x 600", false);
+        std::string videoMode = configManager.getVideoValue(Config::VIDEO_MODE, "800 x 600", false);
         std::stringstream ss(videoMode);
         // Ignore the x in the middle
         char ignore;
@@ -173,7 +173,7 @@ void ODApplication::startClient()
 #ifdef OD_USE_SFML_WINDOW
     
     // Check if the config specifies fullscreen or windowed
-    auto style = configManager.getVideoValue(Config::FULL_SCREEN, "No", false) == "Yes" && sf::VideoMode(w, h).isValid() ? sf::Style::Fullscreen : sf::Style::Default;
+    sf::Uint32 style = configManager.getVideoValue(Config::FULL_SCREEN, "No", false) == "Yes" && sf::VideoMode(w, h).isValid() ? sf::Style::Fullscreen : sf::Style::Default;
 
     // Create an SFML window
     // we make sure to grab the right bit depth from the current desktop mode as otherwise full screen
@@ -191,8 +191,8 @@ void ODApplication::startClient()
     Ogre::RenderWindow* renderWindow = [&](){
 		Ogre::NameValuePairList misc;
 #if OGRE_PLATFORM == OGRE_PLATFORM_WIN32
-		auto winHandle = reinterpret_cast<size_t>(sfmlWindow.getSystemHandle());
-		auto winGlContext = reinterpret_cast<size_t>(wglGetCurrentContext());
+		size_t winHandle = reinterpret_cast<size_t>(sfmlWindow.getSystemHandle());
+		size_t winGlContext = reinterpret_cast<size_t>(wglGetCurrentContext());
 		misc["externalWindowHandle"] = Helper::toString(winHandle);
 		misc["externalGLContext"] = Helper::toString(winGlContext);
 		misc["externalGLControl"] = Ogre::String("True");
@@ -251,7 +251,7 @@ void ODApplication::startClient()
         return;
     }
 #if OGRE_VERSION > 0x10A00
-    auto sgListener = new OgreBites::SGTechniqueResolverListener(Ogre::RTShader::ShaderGenerator::getSingletonPtr());
+    OgreBites::SGTechniqueResolverListener* sgListener = new OgreBites::SGTechniqueResolverListener(Ogre::RTShader::ShaderGenerator::getSingletonPtr());
     Ogre::MaterialManager::getSingleton().addListener(sgListener);
 #endif
     

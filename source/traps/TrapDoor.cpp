@@ -327,7 +327,7 @@ void TrapDoor::doUpkeep()
     {
         if(!canDoorBeOnTile(getGameMap(), tile))
         {
-            auto it = mTileData.find(tile);
+            std::map<Tile*, TileData*>::iterator it = mTileData.find(tile);
             if(it == mTileData.end())
             {
                 OD_LOG_ERR("trap=" + getName() + ", tile=" + Tile::displayAsString(tile));

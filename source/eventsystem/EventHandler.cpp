@@ -2,11 +2,12 @@
 
 NotifyAction EventHandler::onNotify(Subject& subject, Event const& event)
 {
-    auto it = handlers.find(std::type_index(typeid(event)));
+    typedef std::multimap<std::vector<int>, std::function<void(Subject&, Event const&, std::vector<int>)>> HandlerMap;
+    std::unordered_map<std::type_index, HandlerMap>::iterator it = handlers.find(std::type_index(typeid(event)));
     if (it != handlers.end())
     { 
-        auto range = it->second.equal_range(event.mVectorOfParameters);
-        for (auto f = range.first; f != range.second; ++f)
+        std::pair<HandlerMap::iterator, HandlerMap::iterator> range = it->second.equal_range(event.mVectorOfParameters);
+        for (HandlerMap::iterator f = range.first; f != range.second; ++f)
             f->second(subject, event, f->first);
     }
     return NotifyAction::Done;

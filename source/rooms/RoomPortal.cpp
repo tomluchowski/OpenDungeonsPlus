@@ -183,7 +183,7 @@ void RoomPortal::updateActiveSpots(GameMap* gameMap)
                 updatePortalPosition();
             else
             {
-                for(auto& p : mBuildingObjects)
+                for(std::pair<Tile* const, BuildingObject*>& p : mBuildingObjects)
                 {
                     if(p.second == nullptr)
                         continue;

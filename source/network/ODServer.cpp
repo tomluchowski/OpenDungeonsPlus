@@ -2074,7 +2074,7 @@ bool ODServer::processClientNotifications(ODSocketClient* clientSocket)
                 for(Tile* tile : trap->getCoveredTiles())
                 {                          
 
-                    auto it = trap->mTileData.find(tile);
+                    std::map<Tile*, TileData*>::iterator it = trap->mTileData.find(tile);
                     if(it == trap->mTileData.end())
                     {
                         OD_LOG_ERR("building=" + trap->getName() + ", tile=" + Tile::displayAsString(tile));
