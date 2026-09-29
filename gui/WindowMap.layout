@@ -4,6 +4,7 @@
         <Property name="Area" value="{{0.02,0},{0.02,0},{0.98,0},{0.98,0}}" />
         <Property name="Text" value="Map (M)" />
         <Property name="Visible" value="False" />
+        <Property name="AlwaysOnTop" value="True" />
         <Property name="SizingEnabled" value="False" />
         <Property name="DragMovingEnabled" value="False" />
         <Window type="OD/StaticImage" name="MapImage">
