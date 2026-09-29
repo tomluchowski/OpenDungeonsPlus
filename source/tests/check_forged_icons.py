@@ -23,7 +23,7 @@ for name in sorted(used - runtime):
     assert name in rects, 'missing in imageset: ' + name
 for name in ('NavigationCreatures', 'NavigationRooms', 'NavigationSpells', 'NavigationWorkshop', 'NavigationPanel',
              'NavigationObjectives', 'NavigationMessages', 'NavigationMessagesRead', 'MenuReturn',
-             'HourglassIcon', 'CogIcon', 'HammerAnvilIcon'):
+             'HourglassIcon', 'CogIcon', 'HammerAnvilIcon', 'PlayIcon', 'CameraIcon'):
     assert name in rects, name
 terrain = {'GoldButton', 'LavaButton', 'RockButton', 'WaterButton', 'DirtButton', 'ClaimedButton', 'GemButton'}
 checked = 0
@@ -138,4 +138,9 @@ for f in ('source/entities/Creature.cpp', 'source/entities/Tile.cpp', 'source/ga
           'source/network/ChatEventMessage.cpp'):
     code = (repo / f).read_text()
     assert 'CCBBBBFF' not in code and "colour='FFFFFFFF'" not in code, f + ' has a cold or hard white text colour'
+# Options menu: every entry of its list shows an icon.
+options = (repo / 'gui/WindowGameOptions.layout').read_text()
+for button in re.findall(r'<Window type="(OD/\w*Button)" name="(\w+)"', options):
+    if button[1] != 'BackButton':
+        assert button[0] == 'OD/IconButton', button[1] + ' has no icon'
 print('FORGED ICONS OK: %d icons checked, %d square tiles' % (checked, len(squares)))

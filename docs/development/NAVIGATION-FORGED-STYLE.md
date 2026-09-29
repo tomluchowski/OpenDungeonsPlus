@@ -178,3 +178,9 @@ not been seen in the 3D scene.
 - Version label in the main menu logo: unchanged, it overlaps the "s" of "Plus" at some sizes.
 - Checks: `check_forged_icons.py` (no old close images, symbol buttons use atlas icons, thumb, list frames, bone text
   colours, no cold colour left in the source).
+
+## Options menu icons
+
+- Options menu: "Define user cameras" uses the existing `CameraIcon`, "Continue Game" the new `PlayIcon` (gold
+  triangle, 64 px, third block of the second atlas row). Check: `check_forged_icons.py` (every options entry has an
+  icon).

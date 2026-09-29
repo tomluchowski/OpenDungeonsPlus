@@ -811,6 +811,12 @@ def m_camera(c):
     c.add(c.circle(0.52, -0.06, 0.05), EMBER, z=0.04, bevel=0.05, base=0.18)
 
 
+def m_play(c):
+    tri = c.poly([(-0.36, -0.58), (0.60, 0.0), (-0.36, 0.58)])
+    c.add(tri, GOLD, z=0.12, bevel=0.10, base=0.06, shadow=0.6, sh_dx=0.05, sh_dy=0.07)
+    c.add(c.poly([(-0.20, -0.32), (0.30, 0.0), (-0.20, 0.32)]), GOLD_DARK, z=0.03, bevel=0.04, base=0.16)
+
+
 def m_lantern(c):
     c.glow(0.0, 0.0, 0.6, (255, 150, 30), 0.9)
     c.add(c.ring(0.0, -0.74, 0.14, 0.03), IRON, z=0.05, bevel=0.03, base=0.14)
@@ -982,6 +988,7 @@ ICONS = {
     "SkillIcon": _sym(m_flask),
     "SeatIcon": _sym(m_banner),
     "CameraIcon": _sym(m_camera),
+    "PlayIcon": _sym(m_play),
     "MapLightButton": _sym(m_lantern),
     # small symbols on a mini medallion: the population panel and the research states
     "CogIcon": _mini(m_gear, "room"),

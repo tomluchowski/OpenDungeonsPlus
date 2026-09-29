@@ -68,6 +68,7 @@ HEADER = ('<Imageset autoScaled="false" imagefile="ODIcons.png" name="OpenDungeo
 SMALL_ROW = ("GoldCoin", "TerritoryIcon", "ManaIcon", "OptionsIcon", "CreaturesIcon", "HelpIcon", "LoadIcon", "SaveIcon",
              "AbortIcon", "CheckIcon", "ObjectivesIcon", "SkillIcon", "SeatIcon", "CogIcon", "HourglassIcon", "HammerAnvilIcon")
 SECOND_ROW = ("CameraIcon", "MenuReturn", "MapLightButton")
+PLAY_ROW = ("PlayIcon",)   # after the seven terrain swatches of the second row
 
 
 def read_swatches():
@@ -101,6 +102,8 @@ def build_atlas():
         put(name, to_image(name), 64 * i, 0)
     for i, name in enumerate(SECOND_ROW):
         put(name, to_image(name), 64 * i, 64)
+    for i, name in enumerate(PLAY_ROW):
+        put(name, to_image(name), 192 + 64 * len(SWATCHES) + 64 * i, 64)
     for i, name in enumerate(SWATCHES):
         put(name, swatches[name], 192 + 64 * i, 64)
     big = [n for n in names if fm.ICONS[n]["cells"] == 128]

@@ -18,6 +18,7 @@
     <Image height="64" name="CameraIcon" width="64" xPos="0" yPos="64" />
     <Image height="64" name="MenuReturn" width="64" xPos="64" yPos="64" />
     <Image height="64" name="MapLightButton" width="64" xPos="128" yPos="64" />
+    <Image height="64" name="PlayIcon" width="64" xPos="640" yPos="64" />
     <Image height="64" name="GoldButton" width="64" xPos="192" yPos="64" />
     <Image height="64" name="LavaButton" width="64" xPos="256" yPos="64" />
     <Image height="64" name="RockButton" width="64" xPos="320" yPos="64" />
