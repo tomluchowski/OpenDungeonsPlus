@@ -184,10 +184,7 @@ int main(int argc,char** argv){try{
 }catch(const std::exception& e){std::cerr<<e.what()<<'\n';return 1;}}
 '''.replace('METHODS', function('void GameMode::refreshSkillButtonState(')+'\n'+function('void GameMode::refreshSkillConnections(')).replace('INITIALIZERS', initializers).replace('NAMES', skill_names[names_start:names_end])
 if args.render:
-    native = (repo / 'source/render/Gui.cpp').read_text()
-    icon_methods = native[native.index('void shadeNavigationIcon('):native.index('void createNavigationImages(')]
     probe = probe.replace('#include <CEGUI/RendererModules/Null/Renderer.h>', '#include <CEGUI/RendererModules/Ogre/Renderer.h>\n#include <CEGUI/BasicImage.h>\n#include <Ogre.h>\n#include <OgreRenderTexture.h>\n#include <OgreHardwarePixelBuffer.h>\n#include <RTShaderSystem/OgreShaderGenerator.h>\n#include <Bites/OgreSGTechniqueResolverListener.h>')
-    probe = probe.replace('int main(int argc,char** argv)', icon_methods + '\nint main(int argc,char** argv)')
     probe = probe.replace('auto& renderer=CEGUI::NullRenderer::create();renderer.setDisplaySize(CEGUI::Sizef(1920,1200));', r'''
  ogre.loadPlugin(std::string(argv[2])+"/bin/RenderSystem_GL3Plus");
  auto* renderSystem=ogre.getAvailableRenderers().front();ogre.setRenderSystem(renderSystem);
@@ -205,8 +202,6 @@ if args.render:
  window->addViewport(camera)->setBackgroundColour(Ogre::ColourValue(.02f,.03f,.04f));
  auto& renderer=CEGUI::OgreRenderer::create(*window);renderer.setFrameControlExecutionEnabled(false);
  renderer.setDisplaySize(CEGUI::Sizef(1920,1200));''')
-    probe = probe.replace('CEGUI::SchemeManager::getSingleton().createFromFile("ODSkin.scheme");',
-                          'CEGUI::SchemeManager::getSingleton().createFromFile("ODSkin.scheme");colourNavigationAtlas();createSummonWorkerIcon();')
     probe = probe.replace(' windows.destroyWindow(root);', r'''
  renderer.setDisplaySize(CEGUI::Sizef(1280,960));
  auto fonts=CEGUI::FontManager::getSingleton().getIterator();

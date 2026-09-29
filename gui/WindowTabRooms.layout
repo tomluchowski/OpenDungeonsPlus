@@ -2,7 +2,7 @@
 
 <GUILayout version="4" >
     <Window type="DefaultWindow" name="Rooms" >
-        <UserString name="NavigationColour" value="FFD9A650" />
+        <UserString name="NavigationColour" value="FFE6D2BC" />
         <UserString name="NavigationImage" value="OpenDungeonsIcons/NavigationRooms" />
         <Property name="Area" value="{{0,0},{0,0},{1,0},{1,0}}" />
         <Property name="Text" value="[image-size='w:40 h:40'][image='OpenDungeonsIcons/RoomsButton']" />

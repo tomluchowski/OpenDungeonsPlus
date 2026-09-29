@@ -290,6 +290,68 @@ def opaque(rgb):
     return np.concatenate([np.clip(rgb, 0, 255), np.ones(rgb.shape[:2] + (1,), dtype=np.float32)], axis=2)
 
 
+def rivet(rgb, cx, cy, radius):
+    """A domed bronze rivet with a dark ring, lit from the top left."""
+    h, w = rgb.shape[:2]
+    px, py = grid(h, w)
+    dx, dy = px - cx, py - cy
+    dist = np.hypot(dx, dy)
+    z = np.sqrt(np.clip(1 - (dist / radius) ** 2, 0, 1))
+    nxv, nyv = dx / radius, dy / radius
+    diffuse = np.clip(-0.5 * nxv - 0.6 * nyv + 0.62 * z, 0, 1)
+    halfway = np.clip(-0.26 * nxv - 0.31 * nyv + 0.91 * z, 0, 1)
+    rv = col("rivet")[None, None, :] * (0.34 + 0.92 * diffuse)[..., None]
+    rv = rv + col("rivet_glint")[None, None, :] * (0.85 * halfway ** 18)[..., None]
+    rgb = np.where((dist < radius)[..., None], rv, rgb)
+    ring = ((dist >= radius) & (dist < radius + 0.9))[..., None]
+    return np.where(ring, rgb * 0.35, rgb)
+
+
+def forged_bar(w, h, seed):
+    """One segment of a forged iron bar: lit bronze edge, chamfers, an iron face with rivets and a glowing vent slot.
+
+    The rows are laid out for h = 48 and scale with h. The left and right edge are the joints between segments.
+    """
+    px, py = grid(h, w)
+    s = h / 48.0
+    yy = py
+
+    def band(a, b):
+        return ((yy >= a * s) & (yy < b * s))[..., None]
+
+    rgb = np.broadcast_to(col("iron")[None, None, :] * (1.16 - 0.42 * (yy / h))[..., None], (h, w, 3)).copy()
+    rgb = np.where(band(0, 1.5), col("contour"), rgb)
+    t = np.clip((yy - 1.5 * s) / (2.5 * s), 0, 1)[..., None]
+    rgb = np.where(band(1.5, 4), lerp(col("bronze_bright"), col("bronze_dark"), t), rgb)
+    t = np.clip((yy - 4 * s) / (6 * s), 0, 1)[..., None]
+    rgb = np.where(band(4, 10), lerp(col("iron_lit") * 1.12, col("iron"), t), rgb)
+    rgb = np.where(band(10, 11.5), col("contour") * 1.5, rgb)
+    rgb = np.where(band(36.5, 38), col("contour") * 1.5, rgb)
+    t = np.clip((yy - 38 * s) / (6 * s), 0, 1)[..., None]
+    rgb = np.where(band(38, 44), lerp(col("iron") * 0.62, col("iron") * 0.34, t), rgb)
+    rgb = np.where(band(44, 45.5), col("bronze_dark"), rgb)
+    rgb = np.where(band(45.5, 48), col("contour"), rgb)
+    streak = np.repeat(fine_noise(h, 1, seed + 2), w, axis=1)
+    rgb = rgb + (soft_noise(h, w, seed, 6) * 5.0 + fine_noise(h, w, seed + 1) * 3.0 + streak * 3.5)[..., None]
+    # vent slot in the middle of the face with a glow of embers
+    cx, cy, hw, hh, rad = w / 2.0, 24.0 * s, 15.0, 4.6 * s, 2.4
+    qx, qy = np.abs(px - cx) - (hw - rad), np.abs(py - cy) - (hh - rad)
+    depth = -(np.hypot(np.maximum(qx, 0), np.maximum(qy, 0)) + np.minimum(np.maximum(qx, qy), 0) - rad)
+    inside = depth > 0.9
+    glow = np.exp(-(((px - cx) / (hw * 0.75)) ** 2)) * np.clip(1.0 - np.abs(py - cy) / hh, 0, 1)
+    slot = col("inset")[None, None, :] * 0.55 + col("ember")[None, None, :] * (0.55 * glow)[..., None]         + col("ember_bright")[None, None, :] * (0.25 * glow ** 3)[..., None]
+    rgb = np.where(inside[..., None], slot, rgb)
+    rim = (depth > 0.0) & (depth <= 0.9)
+    lit = ((py > cy) | (px > cx + hw * 0.6))[..., None]
+    rgb = np.where(rim[..., None], np.where(lit, col("bronze_dark") * 1.3, col("contour")), rgb)
+    for rx in (7.5, w - 7.5):
+        rgb = rivet(rgb, rx, 24.0 * s, 3.1 * s)
+    rgb[:, 0, :] = lerp(rgb[:, 0, :], col("contour")[None, :], 0.85)
+    rgb[:, 1, :] = np.where(((yy[:, 1] > 11.5 * s) & (yy[:, 1] < 36.5 * s))[:, None], rgb[:, 1, :] * 1.28, rgb[:, 1, :])
+    rgb[:, -1, :] = lerp(rgb[:, -1, :], col("contour")[None, :], 0.85)
+    return opaque(np.clip(rgb, 0, 255))
+
+
 def paint(atlas):
     put = atlas.put
     # ---- Buttons (sheets of 40x16) ---------------------------------------------------------
@@ -473,6 +535,9 @@ def paint(atlas):
         base = base + (soft_noise(r[3], r[2], seed, 3) * 4 + fine_noise(r[3], r[2], seed + 1) * 3)[..., None]
         base = np.where((np.abs(angle) > 0.86)[..., None], base * 0.45, base)
         put(r, opaque(base), "pipe " + name)
+    # ---- Forged bar: the top strip and the message rail of the game screen (64 x 48, tiled sideways) --------------------
+    r = RECTS["ForgedBar"]
+    put(r, forged_bar(r[2], r[3], 161), "forged bar")
     # ---- Game button sheets (60x60) ----------------------------------------------------------------------------------
     r = RECTS["ButtonBackground"]
     px, py = grid(r[3], r[2])
