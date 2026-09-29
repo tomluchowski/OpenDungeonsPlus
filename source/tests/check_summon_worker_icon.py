@@ -33,7 +33,7 @@ h, w, x, y = (int(m[i]) for i in (1, 2, 3, 4))
 tile = np.array(Image.open(repo / 'gui/ODIcons.png').convert('RGBA'), dtype=np.float32)[y:y + h, x:x + w]
 opaque = tile[..., 3] > 200
 assert (w, h) == (128, 128) and opaque.sum() > 0.6 * w * h
-assert (tile[..., 3][:3, :3] == 0).all(), 'round emblem keeps transparent corners'
+assert tile[..., 3][0, 0] == 0 and tile[..., 3][16, 16] > 240 and opaque.sum() > 0.9 * w * h, 'square tile with slightly rounded corners, no round medallion'
 rgb = tile[opaque][:, :3]
 assert (rgb[:, 2] > rgb[:, 0] + 12).mean() < 0.01, 'no cold blue enamel'
 centre = tile[40:80, 40:88, :3].reshape(-1, 3)

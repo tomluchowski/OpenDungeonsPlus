@@ -44,7 +44,7 @@ std::string ChatMessage::getMessageAsString() const
 {
     const Ogre::ColourValue& colorValue = mSeat ? mSeat->getColorValue() : ConfigManager::getSingleton().getColorFromId("");
     const std::string formatSeatColor = "[colour='" + Helper::getCEGUIColorFromOgreColourValue(colorValue) + "']";
-    const std::string formatWhiteColor = "[colour='FFFFFFFF']";
+    const std::string formatWhiteColor = "[colour='FFE8DCC0']";
     std::string messageStr = formatSeatColor + mPlayerNick + formatWhiteColor + ": " + getMessage()  + "\n";
     return messageStr;
 }
@@ -63,7 +63,7 @@ bool EventMessage::isMessageTooOld(float maxTimeDisplay) const
 std::string EventMessage::getMessageAsString()
 {
     std::string eventType;
-    const std::string formatWhiteColor = "[colour='FFFFFFFF']";
+    const std::string formatWhiteColor = "[colour='FFE8DCC0']";
     switch(mType)
     {
         case EventShortNoticeType::genericGameInfo:

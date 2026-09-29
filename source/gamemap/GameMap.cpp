@@ -2648,8 +2648,8 @@ std::string GameMap::getGoalsStringForPlayer(Player* player)
     Seat* seat = player->getSeat();
     seat->resetGoalsChanged();
 
-    const std::string formatTitleOn = "[font='MedievalSharp-12'][colour='CCBBBBFF']";
-    const std::string formatTitleOff = "[font='MedievalSharp-10'][colour='FFFFFFFF']";
+    const std::string formatTitleOn = "[font='MedievalSharp-12'][colour='FFF2C860']";
+    const std::string formatTitleOff = "[font='MedievalSharp-10'][colour='FFE8DCC0']";
 
     if (playerIsAWinner)
     {

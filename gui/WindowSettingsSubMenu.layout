@@ -32,9 +32,9 @@
         </Window>
         <Window type="OD/MenuSymbolButton" name="BackButton" >
             <Property name="Area" value="{{1,-176},{1,-92.8},{1,-99.2},{1,-16}}" />
-            <Property name="NormalImage" value="OpenDungeonsSkin/CloseButtonNormal" />
-            <Property name="HoverImage" value="OpenDungeonsSkin/CloseButtonHover" />
-            <Property name="PushedImage" value="OpenDungeonsSkin/CloseButtonPressed" />
+            <Property name="NormalImage" value="OpenDungeonsIcons/AbortIcon" />
+            <Property name="HoverImage" value="OpenDungeonsIcons/AbortIcon" />
+            <Property name="PushedImage" value="OpenDungeonsIcons/AbortIcon" />
             <Property name="TooltipText" value="Back" />
         </Window>
     </Window>

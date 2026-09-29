@@ -78,8 +78,7 @@ for health and success.
   states, emerald and ember state icons.
 
 The game has since been built with this change and is in use. Previews are mock-ups that cut the atlas by image
-name and place it on real screenshots. Not redrawn: creature portraits, the map cursors, the selection brush,
-backgrounds and logos.
+name and place it on real screenshots. Not redrawn: creature portraits, the map cursors, backgrounds and logos.
 
 ## Forged emblems, bar and tabs
 
@@ -98,13 +97,84 @@ backgrounds and logos.
 - **Message tabs** show a bronze medal with a gold "i"; new messages glow ember, read ones are dark bronze.
 - **Tabs**: all four categories use the same warm stone (`NavigationColour`); the selected tab is the stone
   with an ember glow and the gold frame, in `OD/TabButton`.
-- **Bar** `OpenDungeonsSkin/ForgedBar` (64 x 48, drawn by `generate_forged_skin.py`): iron bar with a lit bronze
-  edge, chamfers, rivets and a glowing vent slot per segment. It replaces the copper pipe of the top strip and
+- **Bar** `OpenDungeonsSkin/ForgedBar` (448 x 48, drawn by `generate_forged_skin.py`, see "Second unification pass"): iron bar with a lit bronze
+  edge, chamfers, fine joints, small rivets and a dim vent slot in some segments. It replaces the copper pipe of the top strip and
   the message rail in `ModeGame.layout` (the editor keeps its thin pipe).
 - **Event text colours** are set in one place, the top of `source/network/ChatEventMessage.cpp`: bone for
   information, amber for creatures, gold for skills and objectives, ember red for major events.
 - Check: `source/tests/check_forged_icons.py` (regions present, warm colours, no cold pixels, bar).
 
 The game has since been built with this change and is in use. Previews are montages of atlas cuts on real screenshots.
-Listed but not changed: the hand cursor and the selection brush (loaded by the cursor code; a warm tint is
-possible through their image colours but was left alone because it touches input feedback).
+Listed but not changed: nothing of the hand cursor graphic beyond the colour grade below.
+
+## Second unification pass
+
+- **Research tiles** (`OpenDungeonsSkin/ResearchTile*`, 60 px, drawn by `paint_research_tiles` in `generate_forged_skin.py`):
+  the frame around a research icon. Locked is dark iron, learned bronze with a gold edge, working iron with a glowing
+  ember edge, queued a dimmer ember edge; `ResearchTileFocus` is the gold rim with an ember glow that shows on hover.
+  `GameMode.cpp` sets the property `ResearchTileImage` per node (`OD/ResearchButton`); the flat state colour
+  `ResearchBackgroundColour` is gone. Level lines are thinner, the connection lines are ember orange when the
+  prerequisite is done and dark bronze otherwise, the `&` joints gold or bronze, the level badge bone on dark stone.
+  The three columns lost their orange and pink `FrameColours`.
+- **Stretched atlas images**: a small image that is stretched over a whole panel (for example the 4 x 10 px static
+  backdrop) blends with the atlas texel next to it at its edge. That gave the wide brown gradients and streaks in the
+  columns of the skill tree, in the message dialog and in the list, menu, edit box and combobox backgrounds. These
+  images (`RELOCATED` in the generator) are now one flat colour without noise, sit in the free lower part of the
+  atlas and have a one texel ring of their own edge colour. Edge strips of frames can still fade a little at their
+  far end where another sheet lies next to them (visible on the top line of a combobox).
+- **Message panel** `OD/EventPanel` (scheme mapping and look in `OD.looknfeel`): the window frame with rivets and one
+  even stone inset, without a title bar; `WindowGameEvent.layout` and `WindowEvent.layout` use it. The window frame
+  itself is now calm (flat face, hardly any grain), so large windows show no pattern.
+- **Symbol buttons** `OD/MenuSymbolButton` (message dialog, skill tree, settings, menus): the symbol sits on the
+  forged button plate with the same normal, ember hover and sunk pressed states as the other buttons.
+- **Forged bar** `ForgedBar` is 448 x 48 (seven segments of 64): fine joints instead of a wide groove, four small rivets
+  around every joint, a dim vent slot only in the second and fifth segment, a little brightness change per segment and
+  no noise pattern that repeats every segment.
+- **Selection frame**: `SquareSelector.mesh` used the water material, hence the cold violet blue. The new material
+  `SquareSelector` (`materials/scripts/SquareSelector.material`, one emissive gold and ember colour) is assigned in
+  `RenderManager::rrTemporalMarkTile`.
+- **Hand**: `materials/textures/Keeperhand.png` got a warm colour grade (a multiplier per channel, no repaint) so the
+  hand loses its pale beige and green-blue edge tint. The graphic and the mesh are unchanged.
+- **Numbers** in the creature panel (`prepareCount` in `CreaturePanel.cpp`) are bone instead of white.
+- **Icons** are square tiles now, see "Forged emblems, bar and tabs".
+- Checked, no change needed: chat, quit, help, objectives, settings, options, load confirmation and debriefing use
+  `OD/*` looks only; the remaining hard coded colours in layouts are the bone and gold text, the red of the quit icon
+  (`WindowGameOptions.layout`, meant as a warning) and the test window `WidgetsTest.layout`.
+- Checks: `check_forged_icons.py` (square tiles, bar segments and vents, the four research states and the focus rim,
+  clean edge rings, look and layout wiring, selection material), `check_research_tree_ui.py` (state image per node),
+  `check_summon_worker_icon.py`.
+
+The game has since been built with this change and is in use. The skill tree and the message panel were rendered with the real
+look'n'feel through CEGUI and Ogre (`check_research_tree_ui.py --render` and a layout render laid over a screenshot),
+the bar, the icon tiles and the texture grade only as montages. The new selection material and the hand texture have
+not been seen in the 3D scene.
+
+## Third pass: leftover details of the menus and windows
+
+- **Close buttons**: every back and cancel button (`OD/MenuSymbolButton`) now uses `OpenDungeonsIcons/AbortIcon`, the
+  same gold symbol as the message dialog, for the normal, hover and pressed image. Before, the menus and several
+  windows pointed at `OpenDungeonsSkin/CloseButton*`, an old picture that carries its own frame and is stretched
+  from 15 px, which gave a blocky X in a yellow frame next to the forged check mark.
+- **Menu scrollbar** `OD/MenuScrollbarThumb` is the forged iron thumb with grip lines of `OD/VerticalScrollbarThumb`
+  (it drew the flat white selection brush before); track and arrows were already forged.
+- **List frame in the menus**: `OD/MenuListbox` (load game, replay, skirmish, multiplayer, map editor) draws the same
+  stone inset with iron frame as the lists in the windows (`OD/Listbox`, section `main`). The item area is moved in
+  by the width of that frame and the scrollbar sits inside it; the window areas of the layouts are unchanged.
+  `OD/MenuMultiColumnList` (server list) got the thin frame of `OD/MultiColumnList`.
+- **Text colours**: `OD/StaticText` defaults to bone (`FFE8DCC0`) instead of pure white, the tooltip text is bone
+  too, and so are chat text and the reset colour of event notices. The section titles of the info windows for
+  creatures, tiles, the map and the help (`formatTitleOn` in `Creature.cpp`, `Tile.cpp`, `GameMap.cpp`,
+  `GameMode.cpp`) were pale lavender (`CCBBBBFF`); they are gold now (`FFF2C860`), the body text bone.
+  Items of a listbox are drawn by CEGUI in white and are not changed by any look; a change would need a colour on
+  every created item.
+- **Left as it is on purpose**: mana and its rate are mint green, growing counts turn red when negative (a resource
+  signal), the "done" tick of the skill tree is green, the red quit icon of the options window, the orange message
+  plaques of the notice queue (unread signal). The unused `OD/VUMeter` look keeps a green.
+- **Not caused by the skin**: the creature and tile info windows (`createStatsWindow` in `Creature.cpp` and
+  `Tile.cpp`) create their text as a plain `OD/StaticText` with centred vertical and unwrapped horizontal
+  formatting; long text is centred vertically, so the first line runs under the title bar, and lines longer than the
+  window are cut on the right. The frame geometry did not change since before the forged pass. The help window layout
+  shows the fix: `TopAligned`, `WordWrapLeftAligned`, `VertScrollbar` true. Not applied here.
+- Version label in the main menu logo: unchanged, it overlaps the "s" of "Plus" at some sizes.
+- Checks: `check_forged_icons.py` (no old close images, symbol buttons use atlas icons, thumb, list frames, bone text
+  colours, no cold colour left in the source).

@@ -9,9 +9,9 @@
         <Window type="OD/MenuSymbolButton" name="CancelButton" >
             <Property name="Area" value="{{1,-176},{1,-92.8},{1,-99.2},{1,-16}}" />
             <Property name="Text" value="" />
-            <Property name="NormalImage" value="OpenDungeonsSkin/CloseButtonNormal" />
-            <Property name="HoverImage" value="OpenDungeonsSkin/CloseButtonNormal" />
-            <Property name="PushedImage" value="OpenDungeonsSkin/CloseButtonNormal" />
+            <Property name="NormalImage" value="OpenDungeonsIcons/AbortIcon" />
+            <Property name="HoverImage" value="OpenDungeonsIcons/AbortIcon" />
+            <Property name="PushedImage" value="OpenDungeonsIcons/AbortIcon" />
             <Property name="TooltipText" value="Cancel" />
         </Window>
         <Window type="OD/MenuSymbolButton" name="ApplyButton" >

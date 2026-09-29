@@ -2736,8 +2736,8 @@ bool GameMode::toggleHelpWindow(const CEGUI::EventArgs& e)
 void GameMode::setHelpWindowText()
 {
     CEGUI::Window* textWindow = mRootWindow->getChild("GameHelpWindow/TextDisplay");
-    const std::string formatTitleOn = "[font='MedievalSharp-12'][colour='CCBBBBFF']";
-    const std::string formatTitleOff = "[font='MedievalSharp-10'][colour='FFFFFFFF']";
+    const std::string formatTitleOn = "[font='MedievalSharp-12'][colour='FFF2C860']";
+    const std::string formatTitleOff = "[font='MedievalSharp-10'][colour='FFE8DCC0']";
     std::stringstream txt("");
     txt << "Always skipping classes to play with kobolds in the torture room, were you?" << std::endl
         << "Well, at least you don't seem as dumb as a pit demon, so let's cover the basics again." << std::endl << std::endl;
@@ -2922,8 +2922,8 @@ void GameMode::refreshSkillButtonState(const std::string& skillButtonName, const
         levelBadge->setProperty("VertFormatting", "CentreAligned");
         levelBadge->setProperty("FrameEnabled", "False");
         levelBadge->setProperty("BackgroundEnabled", "True");
-        levelBadge->setProperty("BackgroundColours", "FF2A1F16");
-        levelBadge->setProperty("TextColours", "FFFFFFFF");
+        levelBadge->setProperty("BackgroundColours", "FF1B140F");
+        levelBadge->setProperty("TextColours", "FFF0E2C0");
         levelBadge->setMousePassThroughEnabled(true);
         levelBadge->setClippedByParent(false);
         skillButton->addChild(levelBadge);
@@ -2970,8 +2970,9 @@ void GameMode::refreshSkillButtonState(const std::string& skillButtonName, const
     // Keep explanations optional; the main tree communicates through its nodes and paths.
     skillButton->setTooltipText(description);
     skillButton->setUserString("ContextHelp", Skills::skillTypeToPlayerVisibleString(resType));
-    skillButton->setProperty("ResearchBackgroundColour", state == "Researching" ? "FFB76A23" :
-        state == "Queued" ? "FF6A5424" : level > 0 ? "FF773C32" : "FF2E2117");
+    skillButton->setProperty("ResearchTileImage", state == "Researching" ? "OpenDungeonsSkin/ResearchTileWorking" :
+        state == "Queued" ? "OpenDungeonsSkin/ResearchTileQueued" :
+        level > 0 ? "OpenDungeonsSkin/ResearchTileLearned" : "OpenDungeonsSkin/ResearchTileLocked");
     skillProgressBar->setArea(CEGUI::UVector2(CEGUI::UDim(.12f, 0), CEGUI::UDim(.82f, 0)),
         CEGUI::USize(CEGUI::UDim(.76f, 0), CEGUI::UDim(.09f, 0)));
     skillProgressBar->setProperty("VerticalProgress", "False");
@@ -3111,7 +3112,7 @@ void GameMode::refreshSkillConnections()
                 line->setArea(CEGUI::UVector2(CEGUI::UDim(segments[part][0], 0), CEGUI::UDim(segments[part][1], 0)),
                     CEGUI::USize(CEGUI::UDim(segments[part][2], 0), CEGUI::UDim(segments[part][3], 0)));
                 line->setProperty("ImageColours",
-                    (part == 0 ? seat->getSkillLevel(dependency->getType()) > 0 : allReady) ? "FFD28B54" : "FF6A5A46");
+                    (part == 0 ? seat->getSkillLevel(dependency->getType()) > 0 : allReady) ? "FFE8862E" : "FF6E5232");
             }
         }
         if(required.size() > 1)
@@ -3138,7 +3139,7 @@ void GameMode::refreshSkillConnections()
             const float height = .075f * parentRect.getWidth() / parentRect.getHeight();
             junction->setArea(CEGUI::UVector2(CEGUI::UDim(.4625f, 0), CEGUI::UDim(middle - height * .5f, 0)),
                 CEGUI::USize(CEGUI::UDim(.075f, 0), CEGUI::UDim(height, 0)));
-            junction->setProperty("TextColours", allReady ? "FFFFC480" : "FF9A8A70");
+            junction->setProperty("TextColours", allReady ? "FFEEBE5C" : "FF8A6A40");
         }
     }
 }

@@ -102,10 +102,10 @@ def facing_of(depth):
 
 
 def plate(w, h, r=2.0, rim=3.4, edge="bronze", face="iron", state="normal",
-          seed=1, rivets=(), line=1.0):
+          seed=1, rivets=(), line=1.0, bevel_metal="iron", calm=False):
     """Draws a forged plate: contour, metal edge line, bevel and a face.
 
-    edge: bronze, gold, ember or none. face: iron, inset or ember.
+    edge: bronze, gold, ember or none. face: iron, inset, bronze or ember.
     state: normal, hover, pressed, selected.
     """
     depth = rounded_depth(w, h, r)
@@ -113,14 +113,17 @@ def plate(w, h, r=2.0, rim=3.4, edge="bronze", face="iron", state="normal",
     if state == "pressed":
         facing = -facing
     out = np.zeros((h, w, 4), dtype=np.float32)
-    mott = soft_noise(h, w, seed, 5) * MATERIAL["mottle"]
-    grain = fine_noise(h, w, seed + 7) * MATERIAL["grain"]
+    calm_k = 0.3 if calm else 1.0     # a calm plate has a flat face with hardly any grain: large windows must not show a pattern
+    mott = soft_noise(h, w, seed, 5) * MATERIAL["mottle"] * calm_k
+    grain = fine_noise(h, w, seed + 7) * MATERIAL["grain"] * calm_k
 
     y = (np.arange(h, dtype=np.float32) + 0.5)[:, None] / h
     if face == "iron":
         img = col("iron")[None, None, :] * (1.16 - 0.34 * y[..., None])
     elif face == "inset":
-        img = col("inset")[None, None, :] * (1.10 - 0.30 * y[..., None])
+        img = col("inset")[None, None, :] * ((1.02 - 0.0 * y[..., None]) if calm else (1.10 - 0.30 * y[..., None]))
+    elif face == "bronze":
+        img = lerp(col("bronze_dark")[None, None, :], col("bronze")[None, None, :], np.clip(0.75 - 0.45 * y, 0, 1)[..., None]) * 0.86
     else:
         t = np.clip(0.35 + 0.65 * y, 0, 1)[..., None] * (0.75 + 0.25 * soft_noise(h, w, seed + 3, 4)[..., None])
         img = lerp(col("ember_dark")[None, None, :], col("ember")[None, None, :], t * 0.78)
@@ -138,8 +141,11 @@ def plate(w, h, r=2.0, rim=3.4, edge="bronze", face="iron", state="normal",
         bevel = (depth >= line_end) & (depth < rim)
         across = np.clip((depth - line_end) / max(rim - line_end, 0.5), 0, 1)     # 0 at the edge, 1 at the face
         lit = 0.62 + facing * 0.44 * (1.0 - across) ** 0.8 - 0.05 * across
-        bev = col("iron")[None, None, :] * lit[..., None] * 1.12
-        bev = bev + (col("iron_lit") - col("iron"))[None, None, :] * (np.clip(facing, 0, 1) * (1.0 - across))[..., None] * 0.8
+        base_m, lit_m = {"iron": (col("iron"), col("iron_lit")),
+                         "bronze": (col("bronze_dark") * 1.35, col("bronze")),
+                         "ember": (col("ember_dark") * 1.9, col("ember"))}[bevel_metal]
+        bev = base_m[None, None, :] * lit[..., None] * 1.12
+        bev = bev + (lit_m - base_m)[None, None, :] * (np.clip(facing, 0, 1) * (1.0 - across))[..., None] * 0.8
         out[..., :3] = np.where(bevel[..., None], bev + grain[..., None], out[..., :3])
     if face in ("inset", "ember"):
         inner = (depth >= rim) & (depth < rim + 1.3)
@@ -272,6 +278,10 @@ class Atlas:
         used = np.zeros(out.shape[:2], dtype=bool)
         for (x, y, w, h) in RECTS.values():
             used[y:y + h, x:x + w] = True
+        for name in PADDED:
+            x, y, w, h = RECTS[name]
+            out[y - 1:y + h + 1, x - 1:x + w + 1] = np.pad(out[y:y + h, x:x + w], ((1, 1), (1, 1), (0, 0)), mode="edge")
+            used[y - 1:y + h + 1, x - 1:x + w + 1] = True
         out[~used] = 0
         out[..., 3] *= 255.0
         Image.fromarray(to_uint8(out), "RGBA").save(ATLAS, optimize=True)
@@ -307,10 +317,16 @@ def rivet(rgb, cx, cy, radius):
     return np.where(ring, rgb * 0.35, rgb)
 
 
-def forged_bar(w, h, seed):
-    """One segment of a forged iron bar: lit bronze edge, chamfers, an iron face with rivets and a glowing vent slot.
+BAR_SEGMENT = 64        # width of one iron segment of the bar
+BAR_VENTS = (1, 4)      # segments that carry a vent slot: uneven spacing, so no zipper rhythm
 
-    The rows are laid out for h = 48 and scale with h. The left and right edge are the joints between segments.
+
+def forged_bar(w, h, seed):
+    """A run of forged iron bar segments: lit bronze edge, chamfers, an iron face with fine joints, small rivets
+    and a dim vent slot in only some of the segments. The tile has no visible repeat inside itself, and its left and
+    right edge are joints like all the others, so it tiles sideways without a seam.
+
+    The rows are laid out for h = 48 and scale with h.
     """
     px, py = grid(h, w)
     s = h / 48.0
@@ -319,6 +335,8 @@ def forged_bar(w, h, seed):
     def band(a, b):
         return ((yy >= a * s) & (yy < b * s))[..., None]
 
+    seg = np.minimum((px // BAR_SEGMENT).astype(int), w // BAR_SEGMENT - 1)
+    tone = np.random.RandomState(seed + 5).uniform(-1.0, 1.0, w // BAR_SEGMENT)[seg]      # a little brightness per segment
     rgb = np.broadcast_to(col("iron")[None, None, :] * (1.16 - 0.42 * (yy / h))[..., None], (h, w, 3)).copy()
     rgb = np.where(band(0, 1.5), col("contour"), rgb)
     t = np.clip((yy - 1.5 * s) / (2.5 * s), 0, 1)[..., None]
@@ -331,25 +349,72 @@ def forged_bar(w, h, seed):
     rgb = np.where(band(38, 44), lerp(col("iron") * 0.62, col("iron") * 0.34, t), rgb)
     rgb = np.where(band(44, 45.5), col("bronze_dark"), rgb)
     rgb = np.where(band(45.5, 48), col("contour"), rgb)
+    face = (yy >= 4 * s) & (yy < 44 * s)
+    rgb = rgb * (1.0 + 0.035 * tone * face)[..., None]
     streak = np.repeat(fine_noise(h, 1, seed + 2), w, axis=1)
-    rgb = rgb + (soft_noise(h, w, seed, 6) * 5.0 + fine_noise(h, w, seed + 1) * 3.0 + streak * 3.5)[..., None]
-    # vent slot in the middle of the face with a glow of embers
-    cx, cy, hw, hh, rad = w / 2.0, 24.0 * s, 15.0, 4.6 * s, 2.4
-    qx, qy = np.abs(px - cx) - (hw - rad), np.abs(py - cy) - (hh - rad)
-    depth = -(np.hypot(np.maximum(qx, 0), np.maximum(qy, 0)) + np.minimum(np.maximum(qx, qy), 0) - rad)
-    inside = depth > 0.9
-    glow = np.exp(-(((px - cx) / (hw * 0.75)) ** 2)) * np.clip(1.0 - np.abs(py - cy) / hh, 0, 1)
-    slot = col("inset")[None, None, :] * 0.55 + col("ember")[None, None, :] * (0.55 * glow)[..., None]         + col("ember_bright")[None, None, :] * (0.25 * glow ** 3)[..., None]
-    rgb = np.where(inside[..., None], slot, rgb)
-    rim = (depth > 0.0) & (depth <= 0.9)
-    lit = ((py > cy) | (px > cx + hw * 0.6))[..., None]
-    rgb = np.where(rim[..., None], np.where(lit, col("bronze_dark") * 1.3, col("contour")), rgb)
-    for rx in (7.5, w - 7.5):
-        rgb = rivet(rgb, rx, 24.0 * s, 3.1 * s)
+    rgb = rgb + (soft_noise(h, w, seed, 12) * 4.0 + fine_noise(h, w, seed + 1) * 2.4 + streak * 1.4)[..., None]
+    # vent slots: a slim slot with a dim ember glow, only in some segments
+    for index in BAR_VENTS:
+        cx, cy, hw, hh, rad = index * BAR_SEGMENT + BAR_SEGMENT / 2.0, 24.0 * s, 12.5, 3.4 * s, 1.8
+        qx, qy = np.abs(px - cx) - (hw - rad), np.abs(py - cy) - (hh - rad)
+        depth = -(np.hypot(np.maximum(qx, 0), np.maximum(qy, 0)) + np.minimum(np.maximum(qx, qy), 0) - rad)
+        inside = depth > 0.9
+        glow = np.exp(-(((px - cx) / (hw * 0.7)) ** 2)) * np.clip(1.0 - np.abs(py - cy) / hh, 0, 1)
+        slot = col("inset")[None, None, :] * 0.55 + col("ember")[None, None, :] * (0.34 * glow)[..., None]
+        rgb = np.where(inside[..., None], slot, rgb)
+        rim = (depth > 0.0) & (depth <= 0.9)
+        lit = ((py > cy) | (px > cx + hw * 0.6))[..., None]
+        rgb = np.where(rim[..., None], np.where(lit, col("bronze_dark") * 1.3, col("contour")), rgb)
+    # joints between the segments: a fine dark groove with a lit line beside it, and four small rivets around it
+    for k in range(w // BAR_SEGMENT + 1):
+        jx = k * BAR_SEGMENT
+        for ry in (16.5, 31.5):
+            for rx in (jx - 5.5, jx + 5.5):
+                if 0 < rx < w:
+                    rgb = rivet(rgb, rx, ry * s, 1.7 * s)
+                elif rx <= 0:
+                    rgb = rivet(rgb, rx + w, ry * s, 1.7 * s)
+                else:
+                    rgb = rivet(rgb, rx - w, ry * s, 1.7 * s)
+    yrow = np.arange(h, dtype=np.float32) + 0.5
+    inner = ((yrow > 11.5 * s) & (yrow < 36.5 * s))[:, None]
     rgb[:, 0, :] = lerp(rgb[:, 0, :], col("contour")[None, :], 0.85)
-    rgb[:, 1, :] = np.where(((yy[:, 1] > 11.5 * s) & (yy[:, 1] < 36.5 * s))[:, None], rgb[:, 1, :] * 1.28, rgb[:, 1, :])
     rgb[:, -1, :] = lerp(rgb[:, -1, :], col("contour")[None, :], 0.85)
+    rgb[:, -2, :] = lerp(rgb[:, -2, :], col("contour")[None, :], 0.30)
+    rgb[:, 1, :] = np.where(inner, rgb[:, 1, :] * 1.22, rgb[:, 1, :])
+    for k in range(1, w // BAR_SEGMENT):
+        jx = k * BAR_SEGMENT
+        rgb[:, jx - 1, :] = lerp(rgb[:, jx - 1, :], col("contour")[None, :], 0.30)
+        rgb[:, jx, :] = lerp(rgb[:, jx, :], col("contour")[None, :], 0.85)
+        rgb[:, jx + 1, :] = np.where(inner, rgb[:, jx + 1, :] * 1.22, rgb[:, jx + 1, :])
     return opaque(np.clip(rgb, 0, 255))
+
+
+def paint_research_tiles(atlas):
+    """Locked is dark iron, learned bronze with a gold edge, working iron with a glowing ember edge, queued a dimmer ember;
+    the focus overlay of hovering is a gold line with a glow of embers around the inside."""
+    put = atlas.put
+    size = RECTS["ResearchTileLocked"][2]
+    locked = plate(size, size, r=4.0, rim=6.0, edge="bronze", face="iron", seed=301, line=1.0)
+    locked[..., :3] *= 0.52
+    put(RECTS["ResearchTileLocked"], locked, "research locked")
+    put(RECTS["ResearchTileLearned"], plate(size, size, r=4.0, rim=6.0, edge="gold", face="bronze", seed=302, line=1.2, bevel_metal="bronze"), "research learned")
+    working = plate(size, size, r=4.0, rim=6.0, edge="ember", face="ember", seed=303, line=1.4, bevel_metal="ember")
+    px, py = grid(size, size)
+    edge_d = np.minimum(np.minimum(px, size - px), np.minimum(py, size - py))
+    working[..., :3] = np.clip(working[..., :3] + col("ember_bright")[None, None, :] * (0.55 * np.exp(-edge_d / 5.0))[..., None], 0, 255)
+    put(RECTS["ResearchTileWorking"], working, "research working")
+    queued = plate(size, size, r=4.0, rim=6.0, edge="ember", face="iron", seed=304, line=1.0)
+    queued[..., :3] = queued[..., :3] * 0.75 + col("ember_dark")[None, None, :] * 0.45
+    put(RECTS["ResearchTileQueued"], queued, "research queued")
+    focus = empty(RECTS["ResearchTileFocus"])
+    depth = rounded_depth(size, size, 4.0)
+    focus[..., :3] = lerp(col("ember_bright")[None, None, :], col("gold_bright")[None, None, :], np.clip(1.6 - depth, 0, 1)[..., None])
+    focus[..., 3] = np.clip(np.exp(-np.maximum(depth - 1.0, 0) / 4.5) * 0.55, 0, 1) * np.clip(depth + 0.5, 0, 1)
+    line = (depth >= 1.0) & (depth < 2.4)
+    focus[line, 3] = 1.0
+    focus[line, :3] = col("gold_bright")
+    put(RECTS["ResearchTileFocus"], focus, "research focus")
 
 
 def paint(atlas):
@@ -393,13 +458,13 @@ def paint(atlas):
     # ---- Window frame, client brush, title bar -------------------------------------------------
     r = union("WindowTopLeft", "WindowBottomRight")
     w, h = r[2], r[3]
-    t = plate(w, h, r=5.0, rim=8.0, edge="bronze", face="inset", seed=41, line=1.4,
+    t = plate(w, h, r=5.0, rim=8.0, edge="bronze", face="inset", seed=41, line=1.4, calm=True,
               rivets=[(5.6, 5.6, 2.1), (w - 5.6, 5.6, 2.1), (5.6, h - 5.6, 2.1), (w - 5.6, h - 5.6, 2.1)])
     put(r, t, "window frame")
     r = RECTS["ClientBrush"]
     px, py = grid(r[3], r[2])
-    body = col("inset")[None, None, :] * (1.06 - 0.16 * py[..., None] / r[3])
-    body = body + (soft_noise(r[3], r[2], 43, 9) * 3.0 + fine_noise(r[3], r[2], 44) * 1.8)[..., None]
+    body = col("inset")[None, None, :] * 1.02 * np.ones_like(py)[..., None]
+    body = body + (soft_noise(r[3], r[2], 43, 9) * 1.0 + fine_noise(r[3], r[2], 44) * 0.8)[..., None]
     put(r, opaque(body), "client brush")
     r = union("TitleBarLeft", "SysAreaRight")
     w, h = r[2], r[3]
@@ -538,6 +603,12 @@ def paint(atlas):
     # ---- Forged bar: the top strip and the message rail of the game screen (64 x 48, tiled sideways) --------------------
     r = RECTS["ForgedBar"]
     put(r, forged_bar(r[2], r[3], 161), "forged bar")
+    # ---- Research tiles (60x60): the frame around a research icon; the state shows in the material ------------------
+    paint_research_tiles(atlas)
+    # ---- Backdrop of static panels: a clean gradient (see RELOCATED for why it must not carry any noise) ----
+    r = RECTS["StaticBackdrop"]
+    y = (np.arange(r[3], dtype=np.float32) + 0.5)[:, None, None] / r[3]
+    put(r, opaque(np.broadcast_to(col("inset")[None, None, :] * (1.06 - 0.16 * y), (r[3], r[2], 3)).copy()), "static backdrop")
     # ---- Game button sheets (60x60) ----------------------------------------------------------------------------------
     r = RECTS["ButtonBackground"]
     px, py = grid(r[3], r[2])
@@ -572,6 +643,35 @@ def paint(atlas):
     t[inner, :3] = col("contour")
     t[inner, 3] = 0.55 * np.clip(1.4 - (depth[inner] - 4.0) / 1.3, 0, 1)
     put(r, t, "button frame")
+    paint_relocated(atlas)
+
+
+# Small images that are stretched over whole panels: the middle of frames of lists, menus, edit boxes, tooltips, tabs, sliders
+# and progress bars. Each one is drawn as one flat colour (the mean of the plate face it used to be cut from, so a
+# stretched noise pattern can never show as streaks) and lives in the free lower part of the atlas with a ring of one
+# texel that repeats its own edge colour: the texture filter blends over the ring, not over the neighbouring frame
+# pieces (which showed as a wide gradient toward the frame). The value is the old rectangle (x, y, w, h) the colour is taken from.
+RELOCATED = {
+    "ComboboxEditBackground": (9, 77, 17, 10),
+    "ComboboxListBackdrop": (9, 114, 22, 22),
+    "EditBoxMiddle": (71, 78, 32, 8),
+    "TooltipMiddle": (71, 96, 32, 8),
+    "MenuMiddle": (78, 151, 2, 8),
+    "PopupMenuFrameMiddle": (93, 151, 2, 8),
+    "MultiListMiddle": (117, 142, 2, 8),
+    "MultiLineEditBoxMiddle": (134, 142, 2, 8),
+    "TabContentPaneMiddle": (280, 20, 18, 16),
+    "VerticalSliderMiddle": (8, 150, 2, 53),
+    "HorizontalSliderMiddle": (24, 178, 54, 3),
+    "ProgressBarMiddle": (15, 222, 12, 6),
+}
+PADDED = tuple(RELOCATED) + ("StaticBackdrop",)
+
+
+def paint_relocated(atlas):
+    for name, (ox, oy, w, h) in RELOCATED.items():
+        mean = atlas.img[oy:oy + h, ox:ox + w, :3].mean(axis=(0, 1))
+        atlas.put(RECTS[name], opaque(np.broadcast_to(mean, (h, w, 3)).copy()), name + " flat")
 
 
 MENU_BUTTONS = os.path.join(ROOT, "gui", "ODMainMenuButtons.png")
