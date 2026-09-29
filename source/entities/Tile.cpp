@@ -31,6 +31,9 @@
 #include "network/ODPacket.h"
 #include "network/ClientNotification.h"
 #include "modes/InputManager.h"
+#include "modes/ModeManager.h"
+#include "render/Gui.h"
+#include "render/ODFrameListener.h"
 #include "render/RenderManager.h"
 #include "rooms/Room.h"
 #include "rooms/RoomType.h"
@@ -2342,18 +2345,10 @@ void Tile::createStatsWindow()
     clientNotification->mPacket << getX() << getY() << true;
     ODClient::getSingleton().queueClientNotification(clientNotification);
 
-    CEGUI::WindowManager* wmgr = CEGUI::WindowManager::getSingletonPtr();
     CEGUI::Window* rootWindow = CEGUI::System::getSingleton().getDefaultGUIContext().getRootWindow();
 
-    mStatsWindow = wmgr->createWindow("OD/FrameWindow", std::string("CreatureStatsWindows_") + getName());
-    mStatsWindow->setPosition(CEGUI::UVector2(CEGUI::UDim(0.3, 0), CEGUI::UDim(0.3, 0)));
-    mStatsWindow->setSize(CEGUI::USize(CEGUI::UDim(0, 380), CEGUI::UDim(0, 400)));
-
-    CEGUI::Window* textWindow = wmgr->createWindow("OD/StaticText", "TextDisplay");
-    textWindow->setPosition(CEGUI::UVector2(CEGUI::UDim(0.05, 0), CEGUI::UDim(0.1, 0)));
-    textWindow->setSize(CEGUI::USize(CEGUI::UDim(0.9, 0), CEGUI::UDim(0.85, 0)));
-    textWindow->setProperty("FrameEnabled", "False");
-    textWindow->setProperty("BackgroundEnabled", "False");
+    mStatsWindow = ODFrameListener::getSingleton().getModeManager()->getGui().createInfoWindow(
+        std::string("CreatureStatsWindows_") + getName());
 
     // We want to close the window when the cross is clicked
     mStatsWindow->subscribeEvent(CEGUI::FrameWindow::EventCloseClicked,
@@ -2362,7 +2357,6 @@ void Tile::createStatsWindow()
     // Set the window title
     mStatsWindow->setText(getName() + " ( TILE INFO )");
 
-    mStatsWindow->addChild(textWindow);
     rootWindow->addChild(mStatsWindow);
     mStatsWindow->show();
 
@@ -2396,8 +2390,8 @@ std::string Tile::getStatsText()
 {
     // The creatures are not refreshed at each turn so this information is relevant in the server
     // GameMap only
-    const std::string formatTitleOn = "[font='MedievalSharp-12'][colour='FFF2C860']";
-    const std::string formatTitleOff = "[font='MedievalSharp-10'][colour='FFE8DCC0']";
+    const std::string formatTitleOn = "[font='MedievalSharp-10'][colour='FFF2C860']";
+    const std::string formatTitleOff = "[font='MedievalSharp-8'][colour='FFE8DCC0']";
 
     std::stringstream tempSS;
     tempSS << "PosX: " << getX() << " PosY: " << getY() << std::endl; 

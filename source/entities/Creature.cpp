@@ -69,11 +69,14 @@
 #include "giftboxes/GiftBoxSkill.h"
 
 #include "modes/GameEditorModeConsole.h"
+#include "modes/ModeManager.h"
 
 #include "network/ODClient.h"
 #include "network/ODServer.h"
 #include "network/ServerNotification.h"
 #include "render/CreatureOverlayStatus.h"
+#include "render/Gui.h"
+#include "render/ODFrameListener.h"
 #include "render/RenderManager.h"
 #include "rooms/RoomCrypt.h"
 #include "rooms/RoomDormitory.h"
@@ -2156,18 +2159,10 @@ void Creature::createStatsWindow()
     clientNotification->mPacket << name << true;
     ODClient::getSingleton().queueClientNotification(clientNotification);
 
-    CEGUI::WindowManager* wmgr = CEGUI::WindowManager::getSingletonPtr();
     CEGUI::Window* rootWindow = CEGUI::System::getSingleton().getDefaultGUIContext().getRootWindow();
 
-    mStatsWindow = wmgr->createWindow("OD/FrameWindow", std::string("CreatureStatsWindows_") + getName());
-    mStatsWindow->setPosition(CEGUI::UVector2(CEGUI::UDim(0.3, 0), CEGUI::UDim(0.3, 0)));
-    mStatsWindow->setSize(CEGUI::USize(CEGUI::UDim(0, 380), CEGUI::UDim(0, 400)));
-
-    CEGUI::Window* textWindow = wmgr->createWindow("OD/StaticText", "TextDisplay");
-    textWindow->setPosition(CEGUI::UVector2(CEGUI::UDim(0.05, 0), CEGUI::UDim(0.1, 0)));
-    textWindow->setSize(CEGUI::USize(CEGUI::UDim(0.9, 0), CEGUI::UDim(0.85, 0)));
-    textWindow->setProperty("FrameEnabled", "False");
-    textWindow->setProperty("BackgroundEnabled", "False");
+    mStatsWindow = ODFrameListener::getSingleton().getModeManager()->getGui().createInfoWindow(
+        std::string("CreatureStatsWindows_") + getName());
 
     // We want to close the window when the cross is clicked
     mStatsWindow->subscribeEvent(CEGUI::FrameWindow::EventCloseClicked,
@@ -2176,7 +2171,6 @@ void Creature::createStatsWindow()
     // Set the window title
     mStatsWindow->setText(getName() + " (" + getDefinition()->getClassName() + ")");
 
-    mStatsWindow->addChild(textWindow);
     rootWindow->addChild(mStatsWindow);
     mStatsWindow->show();
 
@@ -2211,8 +2205,8 @@ std::string Creature::getStatsText()
 {
     // The creatures are not refreshed at each turn so this information is relevant in the server
     // GameMap only
-    const std::string formatTitleOn = "[font='MedievalSharp-12'][colour='FFF2C860']";
-    const std::string formatTitleOff = "[font='MedievalSharp-10'][colour='FFE8DCC0']";
+    const std::string formatTitleOn = "[font='MedievalSharp-10'][colour='FFF2C860']";
+    const std::string formatTitleOff = "[font='MedievalSharp-8'][colour='FFE8DCC0']";
 
     std::stringstream tempSS;
     tempSS << formatTitleOn << "Characteristics" << formatTitleOff << std::endl;
@@ -2254,10 +2248,19 @@ std::string Creature::getStatsText()
         tempSS << " " << CreatureAction::toString(ca.get()->getType());
     }
     tempSS << std::endl;   
-    tempSS << "Destinations:";
+    // The window has a fixed size, so only the next destinations are listed
+    const uint32_t maxDestinations = 4;
+    tempSS << "Destinations (" << mWalkQueue.size() << "):";
+    uint32_t nbDestinations = 0;
     for(const Ogre::Vector2& dest : mWalkQueue)
     {
+        if(nbDestinations >= maxDestinations)
+        {
+            tempSS << " ...";
+            break;
+        }
         tempSS << " " << Helper::toString(dest);
+        ++nbDestinations;
     }
     tempSS << std::endl;
     tempSS << "Mood: " << CreatureMood::toString(mMoodValue) << std::endl;

@@ -100,6 +100,10 @@ public:
     //! \brief Registers a window tree for resolution-independent scaling.
     void registerWindowHierarchy(CEGUI::Window* window);
 
+    //! \brief Creates a fixed size information window with a text area named "TextDisplay" from
+    //! WindowStats.layout, registered for scaling. The caller adds it to the root window.
+    CEGUI::Window* createInfoWindow(const std::string& name);
+
     //! \brief Sets the user-selected UI scale and applies it immediately.
     void setUserScalePercent(float scalePercent);
 

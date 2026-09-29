@@ -170,17 +170,21 @@ not been seen in the 3D scene.
 - **Left as it is on purpose**: mana and its rate are mint green, growing counts turn red when negative (a resource
   signal), the "done" tick of the skill tree is green, the red quit icon of the options window, the orange message
   plaques of the notice queue (unread signal). The unused `OD/VUMeter` look keeps a green.
-- **Not caused by the skin**: the creature and tile info windows (`createStatsWindow` in `Creature.cpp` and
-  `Tile.cpp`) create their text as a plain `OD/StaticText` with centred vertical and unwrapped horizontal
-  formatting; long text is centred vertically, so the first line runs under the title bar, and lines longer than the
-  window are cut on the right. The frame geometry did not change since before the forged pass. The help window layout
-  shows the fix: `TopAligned`, `WordWrapLeftAligned`, `VertScrollbar` true. Not applied here.
+- **Info windows** (creature and tile): fixed, see "Info windows" below.
 - Version label in the main menu logo: unchanged, it overlaps the "s" of "Plus" at some sizes.
 - Checks: `check_forged_icons.py` (no old close images, symbol buttons use atlas icons, thumb, list frames, bone text
   colours, no cold colour left in the source).
 
-## Options menu icons
+## Info windows and options menu icons
 
+- The creature and tile info windows come from `gui/WindowStats.layout` through `Gui::createInfoWindow`, so they are
+  registered for UI scaling like every other layout. Before, the code built them with a fixed 380 x 400 pixel size
+  that was never scaled while the fonts were, which is why the text was huge and cut off.
+- The window is fixed: 540 x 490 layout units, centred, `SizingEnabled` false (moving and closing stay). The text
+  area is `TopAligned`, `WordWrapLeftAligned`, font `MedievalSharp-8` for the body, `MedievalSharp-10` for the gold
+  headings; no scrollbar. The list of destinations of a creature shows the next four and the total count.
+- Rendered with the real look'n'feel and the full worst case text (long weapon lines, five actions) at 1920x1200,
+  1280x720, and both with UI scale 120 %: nothing is cut. Tile text is much shorter and fits as well.
 - Options menu: "Define user cameras" uses the existing `CameraIcon`, "Continue Game" the new `PlayIcon` (gold
-  triangle, 64 px, third block of the second atlas row). Check: `check_forged_icons.py` (every options entry has an
-  icon).
+  triangle, 64 px, third block of the second atlas row). Check: `check_info_window.py` (no sizing, fixed size,
+  body font, formatting, both entities use the layout, every options entry has an icon) and `check_forged_icons.py`.
