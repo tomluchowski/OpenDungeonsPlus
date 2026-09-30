@@ -87,6 +87,9 @@ bool shouldScaleImage(const CEGUI::String& ceguiName)
         || startsWith(name, "ODLogo/");
 }
 
+//! \brief Scales the w: and h: values of every [image-size='...'] tag in a CEGUI formatted text by the given factor.
+//! The numbers are read with a std::istringstream (rather than atof) so that an empty or malformed value is detected and
+//! the tag is left untouched instead of silently becoming 0. Scaled values are rounded and at least 1.
 std::string scaleFormattedImageSizes(const CEGUI::String& ceguiText, float scale)
 {
     std::string text(ceguiText.c_str());
