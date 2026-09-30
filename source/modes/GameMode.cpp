@@ -387,11 +387,12 @@ bool GameMode::mouseMoved(const OIS::MouseEvent &arg)
 
     if (!directionKeyPressed && config.getInputValue(Config::AUTOSCROLL, "No", false) == "Yes")
     {
+        // The bottom edge is always covered by the game UI, so it is not blocked by it
         const bool mouseOverGui = isMouseWheelOnCEGUIWindow();
         const double leftIntensity = mouseOverGui ? 0.0 : getAutoscrollIntensity(arg.state.X.abs, arg.state.width, true);
         const double rightIntensity = mouseOverGui ? 0.0 : getAutoscrollIntensity(arg.state.X.abs, arg.state.width, false);
         const double topIntensity = mouseOverGui ? 0.0 : getAutoscrollIntensity(arg.state.Y.abs, arg.state.height, true);
-        const double bottomIntensity = mouseOverGui ? 0.0 : getAutoscrollIntensity(arg.state.Y.abs, arg.state.height, false);
+        const double bottomIntensity = getAutoscrollIntensity(arg.state.Y.abs, arg.state.height, false);
 
         if (leftIntensity > 0.0)
             ODFrameListener::getSingleton().moveCamera(CameraManager::moveLeft, leftIntensity);
