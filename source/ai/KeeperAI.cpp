@@ -28,6 +28,9 @@
 #include "rooms/Room.h"
 #include "rooms/RoomManager.h"
 #include "rooms/RoomType.h"
+#include "spells/Spell.h"
+#include "spells/SpellCallToWar.h"
+#include "spells/SpellType.h"
 #include "spells/SpellSummonWorker.h"
 #include "utils/Helper.h"
 #include "utils/LogManager.h"
@@ -51,10 +54,14 @@ static const std::vector<RoomType> wantedBuildings = {
 KeeperAI::KeeperAI(GameMap& gameMap, Player& player, int cooldownDefenseMin, int cooldownDefenseMax,
              int cooldownSaveWoundedCreaturesMin, int cooldownSaveWoundedCreaturesMax,
              int cooldownLookingForRoomsMin, int cooldownLookingForRoomsMax,
-             int reactionPercent, int minHpPercentToFight):
+             int reactionPercent, int minHpPercentToFight, int minFightersToAttack):
     BaseAI(gameMap, player),
     mReactionPercent(reactionPercent),
     mMinHpPercentToFight(minHpPercentToFight),
+    mMinFightersToAttack(minFightersToAttack),
+    mIsAttacking(false),
+    mNbFightersAtAttackStart(0),
+    mCooldownAttack(0),
     mCooldownCheckTreasury(0),
     mCooldownLookingForRooms(0),
     mCooldownLookingForRoomsMin(cooldownLookingForRoomsMin),
@@ -96,6 +103,8 @@ bool KeeperAI::doTurn(double timeSinceLastTurn)
     saveWoundedCreatures();
 
     handleDefense();
+
+    handleAttack();
 
     if (handleWorkers())
         return true;
@@ -704,6 +713,126 @@ void KeeperAI::handleDefense()
             }
         }
     }
+}
+
+int KeeperAI::countHealthyFighters() const
+{
+    int nbFighters = 0;
+    for(Creature* creature : mGameMap.getCreaturesBySeat(mPlayer.getSeat()))
+    {
+        if(creature->getDefinition()->isWorker())
+            continue;
+        if(creature->isKo())
+            continue;
+        if(creature->getHP() < (creature->getMaxHp() * mMinHpPercentToFight / 100.0))
+            continue;
+
+        ++nbFighters;
+    }
+    return nbFighters;
+}
+
+Tile* KeeperAI::findEnemyTempleTile()
+{
+    Tile* central = getDungeonTemple()->getCentralTile();
+    Tile* best = nullptr;
+    int bestDistance = 0;
+    for(Seat* seat : mGameMap.getSeats())
+    {
+        if(seat->isAlliedSeat(mPlayer.getSeat()))
+            continue;
+
+        for(Room* temple : mGameMap.getRoomsByTypeAndSeat(RoomType::dungeonTemple, seat))
+        {
+            Tile* tile = temple->getCentralTile();
+            if(tile == nullptr)
+                continue;
+
+            int distance = std::abs(tile->getX() - central->getX()) + std::abs(tile->getY() - central->getY());
+            if((best == nullptr) || (distance < bestDistance))
+            {
+                best = tile;
+                bestDistance = distance;
+            }
+        }
+    }
+    return best;
+}
+
+void KeeperAI::removeBanners()
+{
+    for(Spell* banner : mGameMap.getSpellsBySeatAndType(mPlayer.getSeat(), SpellType::callToWar))
+        banner->slap();
+}
+
+void KeeperAI::handleAttack()
+{
+    if(mMinFightersToAttack <= 0)
+        return;
+
+    if(mCooldownAttack > 0)
+    {
+        --mCooldownAttack;
+        return;
+    }
+    mCooldownAttack = scaledCooldown(20, 40);
+
+    Seat* seat = mPlayer.getSeat();
+    if(!SkillManager::isSpellAvailable(SpellType::callToWar, seat))
+        return;
+
+    int nbFighters = countHealthyFighters();
+    Tile* enemyTile = findEnemyTempleTile();
+
+    if(mIsAttacking)
+    {
+        // We retreat if the enemy is gone or we lost half of the fighters we started with
+        if((enemyTile == nullptr) || ((nbFighters * 2) < mNbFightersAtAttackStart))
+        {
+            OD_LOG_INF("AI seatId=" + Helper::toString(seat->getId()) + " retreats, fighters=" + Helper::toString(nbFighters));
+            removeBanners();
+            mIsAttacking = false;
+            mCooldownAttack = scaledCooldown(200, 300);
+            return;
+        }
+
+        // The banner expires after some time. We renew it if needed
+        if(mGameMap.getSpellsBySeatAndType(seat, SpellType::callToWar).empty())
+            SpellCallToWar::castSpellOnTile(&mGameMap, &mPlayer, enemyTile);
+
+        return;
+    }
+
+    if((nbFighters < mMinFightersToAttack) || (enemyTile == nullptr))
+        return;
+
+    // We need a walkable way to the enemy temple. If there is none, workers dig it first
+    Tile* central = getDungeonTemple()->getCentralTile();
+    Creature* fighter = nullptr;
+    for(Creature* creature : mGameMap.getCreaturesBySeat(seat))
+    {
+        if(creature->getDefinition()->isWorker() || (creature->getPositionTile() == nullptr))
+            continue;
+
+        fighter = creature;
+        break;
+    }
+    if(fighter == nullptr)
+        return;
+
+    if(!mGameMap.pathExists(fighter, fighter->getPositionTile(), enemyTile))
+    {
+        digWayToTile(central, enemyTile);
+        mCooldownAttack = scaledCooldown(100, 200);
+        return;
+    }
+
+    if(!SpellCallToWar::castSpellOnTile(&mGameMap, &mPlayer, enemyTile))
+        return;
+
+    OD_LOG_INF("AI seatId=" + Helper::toString(seat->getId()) + " attacks with fighters=" + Helper::toString(nbFighters));
+    mIsAttacking = true;
+    mNbFightersAtAttackStart = nbFighters;
 }
 
 bool KeeperAI::handleWorkers()

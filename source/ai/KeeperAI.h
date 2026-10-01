@@ -29,7 +29,7 @@ public:
     KeeperAI(GameMap& gameMap, Player& player, int cooldownDefenseMin, int cooldownDefenseMax,
              int cooldownSaveWoundedCreaturesMin, int cooldownSaveWoundedCreaturesMax,
              int cooldownLookingForRoomsMin, int cooldownLookingForRoomsMax,
-             int reactionPercent, int minHpPercentToFight);
+             int reactionPercent, int minHpPercentToFight, int minFightersToAttack);
     virtual bool doTurn(double timeSinceLastTurn);
 
 protected:
@@ -53,6 +53,11 @@ protected:
 
     //! \brief Checks if we are under attack and does the needed if it is the case
     void handleDefense();
+
+    //! \brief Offensive state machine: once enough healthy fighters are available, digs toward the
+    //! closest enemy dungeon temple and rallies the fighters there with a call to war banner.
+    //! Retreats (removes the banner) when too many fighters were lost.
+    void handleAttack();
 
     //! \brief Checks if a new worker should be summoned
     //! Returns true if the action has been done and false if nothing has been done
@@ -85,6 +90,15 @@ private:
     //! \brief Returns true if the given room is needed and false otherwise
     bool checkNeedRoom(RoomType roomType);
 
+    //! \brief Returns the number of non-worker creatures with enough HP to be sent to fight
+    int countHealthyFighters() const;
+
+    //! \brief Returns the central tile of the closest enemy dungeon temple or nullptr if there is none
+    Tile* findEnemyTempleTile();
+
+    //! \brief Removes every call to war banner owned by this AI
+    void removeBanners();
+
     //! \brief Returns a random cooldown between min and max, scaled by the AI reaction time
     int scaledCooldown(int min, int max) const;
 
@@ -92,6 +106,13 @@ private:
     int mReactionPercent;
     //! \brief Creatures below this percentage of their max HP are not sent to fight (lower is more aggressive)
     int mMinHpPercentToFight;
+    //! \brief Number of healthy fighters needed to start an attack (0 = never attacks)
+    int mMinFightersToAttack;
+    //! \brief True while the AI is sending its fighters against an enemy dungeon
+    bool mIsAttacking;
+    //! \brief Number of healthy fighters when the attack started. Used to decide when to retreat
+    int mNbFightersAtAttackStart;
+    int mCooldownAttack;
     int mCooldownCheckTreasury;
     int mCooldownLookingForRooms;
     int mCooldownLookingForRoomsMin;

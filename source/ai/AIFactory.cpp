@@ -28,11 +28,11 @@ BaseAI* createAI(GameMap& gameMap, Player& player, KeeperAIType type)
     switch(type)
     {
         case KeeperAIType::easy:
-            return new KeeperAI(gameMap, player, 30, 50, 30, 50, 60, 80, 150, 70);
+            return new KeeperAI(gameMap, player, 30, 50, 30, 50, 60, 80, 150, 70, 12);
         case KeeperAIType::normal:
-            return new KeeperAI(gameMap, player, 0, 5, 0, 5, 30, 50, 100, 50);
+            return new KeeperAI(gameMap, player, 0, 5, 0, 5, 30, 50, 100, 50, 8);
         case KeeperAIType::hard:
-            return new KeeperAI(gameMap, player, 0, 3, 0, 3, 20, 35, 60, 30);
+            return new KeeperAI(gameMap, player, 0, 3, 0, 3, 20, 35, 60, 30, 5);
         default:
             break;
     }
