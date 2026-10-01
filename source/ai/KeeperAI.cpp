@@ -50,8 +50,11 @@ static const std::vector<RoomType> wantedBuildings = {
 
 KeeperAI::KeeperAI(GameMap& gameMap, Player& player, int cooldownDefenseMin, int cooldownDefenseMax,
              int cooldownSaveWoundedCreaturesMin, int cooldownSaveWoundedCreaturesMax,
-             int cooldownLookingForRoomsMin, int cooldownLookingForRoomsMax):
+             int cooldownLookingForRoomsMin, int cooldownLookingForRoomsMax,
+             int reactionPercent, int minHpPercentToFight):
     BaseAI(gameMap, player),
+    mReactionPercent(reactionPercent),
+    mMinHpPercentToFight(minHpPercentToFight),
     mCooldownCheckTreasury(0),
     mCooldownLookingForRooms(0),
     mCooldownLookingForRoomsMin(cooldownLookingForRoomsMin),
@@ -71,6 +74,11 @@ KeeperAI::KeeperAI(GameMap& gameMap, Player& player, int cooldownDefenseMin, int
     mCooldownSaveWoundedCreaturesMax(cooldownSaveWoundedCreaturesMax),
     mIsFirstUpkeepDone(false)
 {
+}
+
+int KeeperAI::scaledCooldown(int min, int max) const
+{
+    return Random::Int((min * mReactionPercent) / 100, (max * mReactionPercent) / 100);
 }
 
 bool KeeperAI::doTurn(double timeSinceLastTurn)
@@ -122,7 +130,7 @@ bool KeeperAI::checkTreasury()
         --mCooldownCheckTreasury;
         return false;
     }
-    mCooldownCheckTreasury = Random::Int(10,30);
+    mCooldownCheckTreasury = scaledCooldown(10, 30);
 
     int totalGold = 0;
     int totalStorage = 0;
@@ -366,7 +374,7 @@ bool KeeperAI::lookForGold()
         return false;
     }
 
-    mCooldownLookingForGold = Random::Int(70,120);
+    mCooldownLookingForGold = scaledCooldown(70, 120);
 
     // Do we need gold ?
     int emptyStorage = 0;
@@ -671,7 +679,7 @@ void KeeperAI::handleDefense()
         {
             if(creature2->getDefinition()->isWorker())
                 continue;
-            if(creature2->getHP() < (creature2->getMaxHp() * 0.5))
+            if(creature2->getHP() < (creature2->getMaxHp() * mMinHpPercentToFight / 100.0))
                 continue;
             if(creature2->isActionInList(CreatureActionType::fight))
                 continue;
@@ -706,7 +714,7 @@ bool KeeperAI::handleWorkers()
         return false;
     }
 
-    mCooldownWorkers = Random::Int(3,10);
+    mCooldownWorkers = scaledCooldown(3, 10);
 
     // We want to use the first covered tile because the central might be destroyed and enemy claimed
     // and, if it is the case, we will not be able to spawn a worker.
@@ -741,7 +749,7 @@ bool KeeperAI::repairRooms()
         return false;
     }
 
-    mCooldownRepairRooms = Random::Int(20,60);
+    mCooldownRepairRooms = scaledCooldown(20, 60);
 
     Seat* seat = mPlayer.getSeat();
     for(Room* room : mGameMap.getRooms())

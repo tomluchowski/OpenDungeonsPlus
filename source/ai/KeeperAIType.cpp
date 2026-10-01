@@ -48,6 +48,11 @@ const std::string& toString(KeeperAIType type)
             static const std::string str = "normal";
             return str;
         }
+        case KeeperAIType::hard:
+        {
+            static const std::string str = "hard";
+            return str;
+        }
         default:
             break;
     }
@@ -68,6 +73,11 @@ const std::string& toDisplayableString(KeeperAIType type)
         case KeeperAIType::normal:
         {
             static const std::string str = "AI Normal";
+            return str;
+        }
+        case KeeperAIType::hard:
+        {
+            static const std::string str = "AI Hard";
             return str;
         }
         default:

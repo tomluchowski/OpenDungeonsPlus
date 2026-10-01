@@ -28,7 +28,8 @@ class KeeperAI : public BaseAI
 public:
     KeeperAI(GameMap& gameMap, Player& player, int cooldownDefenseMin, int cooldownDefenseMax,
              int cooldownSaveWoundedCreaturesMin, int cooldownSaveWoundedCreaturesMax,
-             int cooldownLookingForRoomsMin, int cooldownLookingForRoomsMax);
+             int cooldownLookingForRoomsMin, int cooldownLookingForRoomsMax,
+             int reactionPercent, int minHpPercentToFight);
     virtual bool doTurn(double timeSinceLastTurn);
 
 protected:
@@ -84,6 +85,13 @@ private:
     //! \brief Returns true if the given room is needed and false otherwise
     bool checkNeedRoom(RoomType roomType);
 
+    //! \brief Returns a random cooldown between min and max, scaled by the AI reaction time
+    int scaledCooldown(int min, int max) const;
+
+    //! \brief Reaction time in percent of the base cooldowns (lower is faster)
+    int mReactionPercent;
+    //! \brief Creatures below this percentage of their max HP are not sent to fight (lower is more aggressive)
+    int mMinHpPercentToFight;
     int mCooldownCheckTreasury;
     int mCooldownLookingForRooms;
     int mCooldownLookingForRoomsMin;

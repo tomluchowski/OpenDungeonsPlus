@@ -24,6 +24,7 @@ enum class KeeperAIType
 {
    easy,
    normal,
+   hard,
    nbAI              // Must be the last in this enum
 };
 
