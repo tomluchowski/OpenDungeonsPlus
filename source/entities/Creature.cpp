@@ -3537,7 +3537,7 @@ void Creature::setInJail(Room* prison)
 
 double Creature::getThreat() const
 {
-    return mHp * (1.0 + 0.1 * (static_cast<double>(mLevel) - 1.0));
+    return mHp * (1.0 + 0.25 * (static_cast<double>(mLevel) - 1.0));
 }
 
 bool Creature::isDangerous(const Creature* creature, int distance) const

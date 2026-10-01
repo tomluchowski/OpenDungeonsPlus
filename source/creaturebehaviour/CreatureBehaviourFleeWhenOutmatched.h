@@ -29,7 +29,7 @@ public:
     static const std::string mNameCreatureBehaviourFleeWhenOutmatched;
 
     CreatureBehaviourFleeWhenOutmatched() :
-        mFearCoef(2.0)
+        mFearCoef(2.5)
     {}
 
     virtual ~CreatureBehaviourFleeWhenOutmatched()
