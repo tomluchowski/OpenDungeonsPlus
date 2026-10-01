@@ -1417,10 +1417,21 @@ bool Creature::searchBestTargetInList(const std::vector<GameEntity*>& listObject
     Tile* tileAttack = nullptr;
     CreatureSkillData* skillData = nullptr;
     Tile* tilePosition = nullptr;
+    // Distance to the target, divided by its threat factor (see below)
     int closestDist = -1;
+    double ownThreat = getThreat();
     // We try to attack creatures first
     for(GameEntity* entity : listObjects)
     {
+        // Strong enemy creatures are targeted first: the more threatening a creature is compared to us,
+        // the closer it appears to be. Other entities are not weighted.
+        double threatFactor = 1.0;
+        if((entity->getObjectType() == GameEntityType::creature) && (ownThreat > 0.0))
+        {
+            threatFactor = static_cast<Creature*>(entity)->getThreat() / ownThreat;
+            threatFactor = std::max(0.5, std::min(2.0, threatFactor));
+        }
+
         GameEntity* entityAttackCheck = nullptr;
         Tile* tileAttackCheck = nullptr;
         CreatureSkillData* skillDataCheck = nullptr;
@@ -1432,7 +1443,7 @@ bool Creature::searchBestTargetInList(const std::vector<GameEntity*>& listObject
             if(std::find(mVisibleTiles.begin(), mVisibleTiles.end(), tile) == mVisibleTiles.end())
                 continue;
 
-            int dist = Pathfinding::squaredDistanceTile(*tile, *myTile);
+            int dist = static_cast<int>(Pathfinding::squaredDistanceTile(*tile, *myTile) / threatFactor);
             if((closestDistCheck != -1) && (dist >= closestDistCheck))
                 continue;
 
@@ -1478,13 +1489,14 @@ bool Creature::searchBestTargetInList(const std::vector<GameEntity*>& listObject
         if(rangeTarget <= (skillRangeMax * skillRangeMax))
         {
              // We can attack
-             if((closestDist == -1) || (rangeTarget < closestDist))
+             int rangeTargetWeighted = static_cast<int>(rangeTarget / threatFactor);
+             if((closestDist == -1) || (rangeTargetWeighted < closestDist))
              {
                 tilePosition = myTile;
                 entityAttack = entityAttackCheck;
                 tileAttack = tileAttackCheck;
                 skillData = skillDataCheck;
-                closestDist = rangeTarget;
+                closestDist = rangeTargetWeighted;
              }
              continue;
         }
@@ -3521,6 +3533,11 @@ void Creature::setInJail(Room* prison)
 
     mSeatPrison = prison->getSeat();
     mNeedFireRefresh = true;
+}
+
+double Creature::getThreat() const
+{
+    return mHp * (1.0 + 0.1 * (static_cast<double>(mLevel) - 1.0));
 }
 
 bool Creature::isDangerous(const Creature* creature, int distance) const

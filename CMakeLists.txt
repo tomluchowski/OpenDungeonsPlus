@@ -273,6 +273,7 @@ set(OD_SOURCEFILES
     ${SRC}/creaturebehaviour/CreatureBehaviour.cpp
     ${SRC}/creaturebehaviour/CreatureBehaviourAttackEnemy.cpp
     ${SRC}/creaturebehaviour/CreatureBehaviourEngageNaturalEnemy.cpp
+    ${SRC}/creaturebehaviour/CreatureBehaviourFleeWhenOutmatched.cpp
     ${SRC}/creaturebehaviour/CreatureBehaviourFleeWhenWeak.cpp
     ${SRC}/creaturebehaviour/CreatureBehaviourLeaveDungeonWhenFurious.cpp
     ${SRC}/creaturebehaviour/CreatureBehaviourManager.cpp

@@ -162,6 +162,10 @@ public:
     inline double getHP() const
     { return mHp; }
 
+    //! \brief Rough combat strength used for fear and target priority. It grows with
+    //! the current health and the level.
+    double getThreat() const;
+
     //! \brief Gets the current dig rate
     inline double getDigRate() const
     { return mDigRate; }
