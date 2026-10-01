@@ -292,7 +292,11 @@ set(OD_SOURCEFILES
     ${SRC}/creaturemood/CreatureMoodCreature.cpp
     ${SRC}/creaturemood/CreatureMoodFee.cpp
     ${SRC}/creaturemood/CreatureMoodHunger.cpp
+    ${SRC}/creaturemood/CreatureMoodHeldInHand.cpp
     ${SRC}/creaturemood/CreatureMoodHpLoss.cpp
+    ${SRC}/creaturemood/CreatureMoodNoLair.cpp
+    ${SRC}/creaturemood/CreatureMoodOutOfWork.cpp
+    ${SRC}/creaturemood/CreatureMoodSlapped.cpp
     ${SRC}/creaturemood/CreatureMoodManager.cpp
     ${SRC}/creaturemood/CreatureMoodTurnsWithoutFight.cpp
 
