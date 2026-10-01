@@ -20,6 +20,9 @@
 
 #include "ai/BaseAI.h"
 
+#include <vector>
+
+class Tile;
 enum class RoomType;
 
 class KeeperAI : public BaseAI
@@ -29,7 +32,8 @@ public:
     KeeperAI(GameMap& gameMap, Player& player, int cooldownDefenseMin, int cooldownDefenseMax,
              int cooldownSaveWoundedCreaturesMin, int cooldownSaveWoundedCreaturesMax,
              int cooldownLookingForRoomsMin, int cooldownLookingForRoomsMax,
-             int reactionPercent, int minHpPercentToFight, int minFightersToAttack);
+             int reactionPercent, int minHpPercentToFight, int minFightersToAttack,
+             int maxTrapTiles, int maxDoors);
     virtual bool doTurn(double timeSinceLastTurn);
 
 protected:
@@ -58,6 +62,14 @@ protected:
     //! closest enemy dungeon temple and rallies the fighters there with a call to war banner.
     //! Retreats (removes the banner) when too many fighters were lost.
     void handleAttack();
+
+    //! \brief Places researched traps and wooden doors at the entrances of the AI rooms and in the
+    //! corridors in front of them. Limited by gold, workshop production and the AI level
+    void handleTraps();
+
+    //! \brief Casts heal on hurt fighting creatures and a call to war banner on a fight in the dungeon
+    //! when the mana allows it
+    void handleSpells();
 
     //! \brief Checks if a new worker should be summoned
     //! Returns true if the action has been done and false if nothing has been done
@@ -96,6 +108,10 @@ private:
     //! \brief Returns the central tile of the closest enemy dungeon temple or nullptr if there is none
     Tile* findEnemyTempleTile();
 
+    //! \brief Fills the tiles where a door can be built (entrances of the rooms) and the tiles in the
+    //! corridor right in front of them (trap places)
+    void findChokePoints(std::vector<Tile*>& doorTiles, std::vector<Tile*>& trapTiles);
+
     //! \brief Removes every call to war banner owned by this AI
     void removeBanners();
 
@@ -108,6 +124,14 @@ private:
     int mMinHpPercentToFight;
     //! \brief Number of healthy fighters needed to start an attack (0 = never attacks)
     int mMinFightersToAttack;
+    //! \brief Maximum number of trap tiles (without doors) the AI owns
+    int mMaxTrapTiles;
+    //! \brief Maximum number of doors the AI owns
+    int mMaxDoors;
+    int mCooldownTraps;
+    int mCooldownSpells;
+    //! \brief True while a call to war banner placed to defend the dungeon is out
+    bool mIsDefenseBannerOut;
     //! \brief True while the AI is sending its fighters against an enemy dungeon
     bool mIsAttacking;
     //! \brief Number of healthy fighters when the attack started. Used to decide when to retreat

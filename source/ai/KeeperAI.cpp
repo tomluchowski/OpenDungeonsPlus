@@ -30,12 +30,19 @@
 #include "rooms/RoomType.h"
 #include "spells/Spell.h"
 #include "spells/SpellCallToWar.h"
+#include "spells/SpellCreatureHeal.h"
 #include "spells/SpellType.h"
 #include "spells/SpellSummonWorker.h"
+#include "traps/Trap.h"
+#include "traps/TrapDoor.h"
+#include "traps/TrapManager.h"
+#include "traps/TrapType.h"
+#include "utils/ConfigManager.h"
 #include "utils/Helper.h"
 #include "utils/LogManager.h"
 #include "utils/Random.h"
 
+#include <algorithm>
 #include <vector>
 
 // Contains the rooms the AI will try to build. It will try to build them in the given order
@@ -54,11 +61,17 @@ static const std::vector<RoomType> wantedBuildings = {
 KeeperAI::KeeperAI(GameMap& gameMap, Player& player, int cooldownDefenseMin, int cooldownDefenseMax,
              int cooldownSaveWoundedCreaturesMin, int cooldownSaveWoundedCreaturesMax,
              int cooldownLookingForRoomsMin, int cooldownLookingForRoomsMax,
-             int reactionPercent, int minHpPercentToFight, int minFightersToAttack):
+             int reactionPercent, int minHpPercentToFight, int minFightersToAttack,
+             int maxTrapTiles, int maxDoors):
     BaseAI(gameMap, player),
     mReactionPercent(reactionPercent),
     mMinHpPercentToFight(minHpPercentToFight),
     mMinFightersToAttack(minFightersToAttack),
+    mMaxTrapTiles(maxTrapTiles),
+    mMaxDoors(maxDoors),
+    mCooldownTraps(0),
+    mCooldownSpells(0),
+    mIsDefenseBannerOut(false),
     mIsAttacking(false),
     mNbFightersAtAttackStart(0),
     mCooldownAttack(0),
@@ -105,6 +118,10 @@ bool KeeperAI::doTurn(double timeSinceLastTurn)
     handleDefense();
 
     handleAttack();
+
+    handleSpells();
+
+    handleTraps();
 
     if (handleWorkers())
         return true;
@@ -833,6 +850,210 @@ void KeeperAI::handleAttack()
     OD_LOG_INF("AI seatId=" + Helper::toString(seat->getId()) + " attacks with fighters=" + Helper::toString(nbFighters));
     mIsAttacking = true;
     mNbFightersAtAttackStart = nbFighters;
+}
+
+void KeeperAI::handleSpells()
+{
+    if(mCooldownSpells > 0)
+    {
+        --mCooldownSpells;
+        return;
+    }
+    mCooldownSpells = scaledCooldown(5, 10);
+
+    Seat* seat = mPlayer.getSeat();
+    int32_t mana = static_cast<int32_t>(seat->getMana());
+
+    // We heal our hurt fighting creatures (on claimed ground like for a human player)
+    if(SkillManager::isSpellAvailable(SpellType::creatureHeal, seat) &&
+       (mana >= ConfigManager::getSingleton().getSpellConfigInt32("CreatureHealPrice")))
+    {
+        std::vector<Creature*> toHeal;
+        for(Creature* creature : mGameMap.getCreaturesBySeat(seat))
+        {
+            if(!creature->isAlive() || creature->isKo() || !creature->isHurt())
+                continue;
+            if(!creature->isActionInList(CreatureActionType::fight))
+                continue;
+            // Only creatures that are really wounded are worth the mana
+            if(creature->getHP() > (creature->getMaxHp() * 0.6))
+                continue;
+
+            Tile* pos = creature->getPositionTile();
+            if((pos == nullptr) || !pos->isClaimedForSeat(seat))
+                continue;
+
+            toHeal.push_back(creature);
+        }
+
+        if(!toHeal.empty() && SpellCreatureHeal::castSpellOnCreatures(&mGameMap, &mPlayer, toHeal))
+            return;
+    }
+
+    // Call to war to gather the creatures where our dungeon is attacked. The attack state machine owns
+    // the banner while the AI is attacking
+    if(mIsAttacking || !SkillManager::isSpellAvailable(SpellType::callToWar, seat))
+        return;
+
+    Tile* fightTile = nullptr;
+    int nbFighting = 0;
+    for(Creature* creature : mGameMap.getCreaturesBySeat(seat))
+    {
+        if(creature->getDefinition()->isWorker() || !creature->isActionInList(CreatureActionType::fight))
+            continue;
+
+        Tile* pos = creature->getPositionTile();
+        if((pos == nullptr) || !pos->isClaimedForSeat(seat))
+            continue;
+
+        ++nbFighting;
+        fightTile = pos;
+    }
+
+    if(nbFighting == 0)
+    {
+        // The fight is over, we do not keep the creatures gathered
+        if(mIsDefenseBannerOut)
+        {
+            removeBanners();
+            mIsDefenseBannerOut = false;
+        }
+        return;
+    }
+
+    if((nbFighting < 2) || !mGameMap.getSpellsBySeatAndType(seat, SpellType::callToWar).empty())
+        return;
+
+    // We keep enough mana for healing
+    int32_t manaCost = ConfigManager::getSingleton().getSpellConfigInt32("CallToWarPrice");
+    int32_t reserve = ConfigManager::getSingleton().getSpellConfigInt32("CreatureHealPrice");
+    if(mana < (manaCost + reserve))
+        return;
+
+    if(SpellCallToWar::castSpellOnTile(&mGameMap, &mPlayer, fightTile))
+        mIsDefenseBannerOut = true;
+}
+
+void KeeperAI::findChokePoints(std::vector<Tile*>& doorTiles, std::vector<Tile*>& trapTiles)
+{
+    Seat* seat = mPlayer.getSeat();
+    static const int dx[4] = {1, -1, 0, 0};
+    static const int dy[4] = {0, 0, 1, -1};
+    for(Room* room : mGameMap.getRooms())
+    {
+        if(room->getSeat() != seat)
+            continue;
+
+        for(Tile* roomTile : room->getCoveredTiles())
+        {
+            for(int i = 0; i < 4; ++i)
+            {
+                Tile* entrance = mGameMap.getTile(roomTile->getX() + dx[i], roomTile->getY() + dy[i]);
+                if((entrance == nullptr) || !entrance->isBuildableUpon(seat) ||
+                   !TrapDoor::canDoorBeOnTile(&mGameMap, entrance))
+                {
+                    continue;
+                }
+                if(std::find(doorTiles.begin(), doorTiles.end(), entrance) == doorTiles.end())
+                    doorTiles.push_back(entrance);
+
+                // The corridor tile one step further away from the room is a place for a trap
+                Tile* ahead = mGameMap.getTile(entrance->getX() + dx[i], entrance->getY() + dy[i]);
+                if((ahead == nullptr) || !ahead->isBuildableUpon(seat) ||
+                   !TrapDoor::canDoorBeOnTile(&mGameMap, ahead))
+                {
+                    continue;
+                }
+                if(std::find(trapTiles.begin(), trapTiles.end(), ahead) == trapTiles.end())
+                    trapTiles.push_back(ahead);
+            }
+        }
+    }
+}
+
+void KeeperAI::handleTraps()
+{
+    if(mCooldownTraps > 0)
+    {
+        --mCooldownTraps;
+        return;
+    }
+    mCooldownTraps = scaledCooldown(40, 80);
+
+    Seat* seat = mPlayer.getSeat();
+    // Traps and doors are crafted in a workshop. Without one, nothing would be done with them
+    if(seat->getNbRooms(RoomType::workshop) <= 0)
+        return;
+
+    int nbTrapTiles = 0;
+    int nbDoors = 0;
+    int nbWaitingForCraft = 0;
+    for(Trap* trap : mGameMap.getTraps())
+    {
+        if(trap->getSeat() != seat)
+            continue;
+
+        if(trap->getType() == TrapType::doorWooden)
+            ++nbDoors;
+        else
+            nbTrapTiles += static_cast<int>(trap->getCoveredTiles().size());
+
+        if(trap->getNbNeededCraftedTrap() > 0)
+            ++nbWaitingForCraft;
+    }
+
+    // The workshop is not done with the previous ones. We do not pile up more orders
+    if(nbWaitingForCraft >= 2)
+        return;
+
+    // We keep some gold for rooms and repairs
+    const int goldReserve = 1500;
+    int gold = seat->getGold();
+
+    bool canBuildDoor = (nbDoors < mMaxDoors) && SkillManager::isTrapAvailable(TrapType::doorWooden, seat) &&
+        (gold >= (TrapManager::costPerTile(TrapType::doorWooden) + goldReserve));
+    std::vector<TrapType> trapTypes;
+    if(nbTrapTiles < mMaxTrapTiles)
+    {
+        // We go through every existing trap type except doors
+        for(uint32_t i = 1; i < static_cast<uint32_t>(TrapType::nbTraps); ++i)
+        {
+            TrapType type = static_cast<TrapType>(i);
+            if(type == TrapType::doorWooden)
+                continue;
+            if(!SkillManager::isTrapAvailable(type, seat))
+                continue;
+            if(gold < (TrapManager::costPerTile(type) + goldReserve))
+                continue;
+
+            trapTypes.push_back(type);
+        }
+    }
+
+    if(!canBuildDoor && trapTypes.empty())
+        return;
+
+    std::vector<Tile*> doorTiles;
+    std::vector<Tile*> trapTiles;
+    findChokePoints(doorTiles, trapTiles);
+
+    // We alternate between doors and traps
+    std::vector<Tile*> tiles;
+    if(canBuildDoor && !doorTiles.empty() && (trapTypes.empty() || (nbDoors <= nbTrapTiles)))
+    {
+        tiles.push_back(doorTiles[Random::Int(0, static_cast<int>(doorTiles.size()) - 1)]);
+        if(TrapManager::buildTrapOnTiles(&mGameMap, TrapType::doorWooden, &mPlayer, tiles, false))
+            OD_LOG_INF("AI seatId=" + Helper::toString(seat->getId()) + " builds a door");
+        return;
+    }
+
+    if(trapTypes.empty() || trapTiles.empty())
+        return;
+
+    tiles.push_back(trapTiles[Random::Int(0, static_cast<int>(trapTiles.size()) - 1)]);
+    TrapType type = trapTypes[Random::Int(0, static_cast<int>(trapTypes.size()) - 1)];
+    if(TrapManager::buildTrapOnTiles(&mGameMap, type, &mPlayer, tiles, false))
+        OD_LOG_INF("AI seatId=" + Helper::toString(seat->getId()) + " builds a trap");
 }
 
 bool KeeperAI::handleWorkers()
