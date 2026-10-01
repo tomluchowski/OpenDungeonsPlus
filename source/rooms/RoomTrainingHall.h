@@ -52,6 +52,8 @@ protected:
     void notifyActiveSpotRemoved(ActiveSpotPlace place, Tile* tile) override;
 private:
     int32_t nbTurnsNoChangeDummies;
+    //! \brief Gold for the training of the last turns that is not paid yet (less than 1 gold)
+    double mTrainingGoldDue;
     void refreshCreaturesDummies();
     std::vector<Tile*> mUnusedDummies;
     std::map<Creature*,Tile*> mCreaturesDummies;
