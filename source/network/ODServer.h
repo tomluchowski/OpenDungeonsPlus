@@ -79,6 +79,9 @@ class ODServer: public Ogre::Singleton<ODServer>,
     bool startServer(const std::string& creator, const std::string& levelFilename, ServerMode mode, bool useMasterServer);
     void stopServer() override;
 
+    //! \brief Returns the file the running game was loaded from. Empty if no game is loaded.
+    const std::string& getLevelFilename() const;
+
     //! \brief Adds a server notification to the server notification queue. The message will be sent to the concerned player
     void queueServerNotification(ServerNotification* n);
 
