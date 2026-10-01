@@ -3537,7 +3537,17 @@ void Creature::setInJail(Room* prison)
 
 double Creature::getThreat() const
 {
-    return mHp * (1.0 + 0.25 * (static_cast<double>(mLevel) - 1.0));
+    // Threat multiplier in percent for the levels 1 to 10. Above level 10 the last
+    // step of the table (100 percent per level) is continued.
+    static const double THREAT_PERCENT_BY_LEVEL[10] = {100.0, 125.0, 150.0, 175.0, 200.0, 225.0, 250.0, 300.0, 400.0, 500.0};
+    unsigned int level = (mLevel < 1) ? 1 : mLevel;
+    double percent;
+    if(level <= 10)
+        percent = THREAT_PERCENT_BY_LEVEL[level - 1];
+    else
+        percent = THREAT_PERCENT_BY_LEVEL[9] + 100.0 * static_cast<double>(level - 10);
+
+    return mHp * percent / 100.0;
 }
 
 bool Creature::isDangerous(const Creature* creature, int distance) const
