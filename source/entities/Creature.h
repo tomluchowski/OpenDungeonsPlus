@@ -204,6 +204,23 @@ public:
     inline int32_t getNbTurnFurious() const
     { return mNbTurnFurious; }
 
+    //! \brief Number of turns the creature has been held in the hand (decreases after being dropped)
+    inline int32_t getNbTurnsInHand() const
+    { return mNbTurnsInHand; }
+
+    //! \brief Number of times the creature wanted to work but found no job (reset when it works)
+    inline int32_t getNbTurnsOutOfWork() const
+    { return mNbTurnsOutOfWork; }
+
+    inline void increaseNbTurnsOutOfWork()
+    { ++mNbTurnsOutOfWork; }
+
+    inline void resetNbTurnsOutOfWork()
+    { mNbTurnsOutOfWork = 0; }
+
+    //! \brief Number of slaps received during the last nbTurns turns
+    int32_t getNbRecentSlaps(int32_t nbTurns) const;
+
     void setPosition(const Ogre::Vector3& v, GameMap *gameMap = nullptr ) override;
 
     //! \brief Gets the move speed on the current tile.
@@ -808,6 +825,18 @@ private:
 
     //! \brief Counts the number of active slaps affecting the creature
     uint32_t                        mActiveSlapsCount;
+
+    //! \brief Used on server side for the mood. Turns spent in the hand (decreases when not held)
+    int32_t                         mNbTurnsInHand;
+
+    //! \brief Used on server side. True while the creature is held in the hand
+    bool                            mIsInHand;
+
+    //! \brief Used on server side for the mood. Failed job searches (reset when the creature works)
+    int32_t                         mNbTurnsOutOfWork;
+
+    //! \brief Used on server side for the mood. Turn numbers of the latest slaps
+    std::vector<int64_t>            mSlapTurns;
 
     //! \brief Skills the creature can use
     std::vector<CreatureSkillData> mSkillData;
