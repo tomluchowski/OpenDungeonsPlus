@@ -2904,6 +2904,12 @@ void ODServer::stopServer()
     mGameMap->clearAll();
 }
 
+//! \brief Returns the file the running game was loaded from. Empty if no game is loaded.
+const std::string& ODServer::getLevelFilename() const
+{
+    return mGameMap->getLevelFileName();
+}
+
 void ODServer::notifyExit()
 {
     while(!mServerNotificationQueue.empty())
