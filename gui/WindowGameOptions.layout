@@ -54,6 +54,13 @@
             <Property name="Text" value="Exit to System" />
             <Property name="TooltipText" value="Leave this game and exit to the desktop..." />
         </Window>
+        <Window type="OD/IconButton" name="RestartLevelButton" >
+            <Property name="Area" value="{{0,24},{0,174},{1,-24},{0,212}}" />
+            <Property name="Visible" value="False" />
+            <Property name="IconImage" value="OpenDungeonsIcons/LoadIcon" />
+            <Property name="Text" value="Restart Level" />
+            <Property name="TooltipText" value="Restart this level from the beginning (single player only)." />
+        </Window>
             <Window type="OD/IconButton" name="HelpButton" >
             <Property name="Area" value="{{0,24},{0,312},{1,-24},{0,350}}" />
             <Property name="IconImage" value="OpenDungeonsIcons/HelpIcon" />
