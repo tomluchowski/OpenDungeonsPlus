@@ -972,6 +972,9 @@ void Creature::doUpkeep()
             OD_LOG_INF("Creature=" + getName() + " RIP");
 
             dropCarriedEquipment();
+
+            if(getIsOnServerMap() && (getSeat()->getPlayer() != nullptr))
+                getSeat()->getPlayer()->notifyCreatureKilled(*this);
         }
         else if ((getDefinition()->isWorker() && mDeathCounter == 1) || mDeathCounter >= ConfigManager::getSingleton().getCreatureDeathCounter())
         {

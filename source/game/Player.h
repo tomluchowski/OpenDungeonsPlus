@@ -198,6 +198,18 @@ public:
     //! \brief Notify the player that a creature cannot find a bed
     void notifyCreatureCannotFindFood(Creature& creature);
 
+    //! \brief Notify the player that a build or purchase failed for lack of gold
+    //! Should be called on the server game map
+    void notifyNotEnoughGold();
+
+    //! \brief Notify the player that one of their creatures has died
+    //! Should be called on the server game map
+    void notifyCreatureKilled(Creature& creature);
+
+    //! \brief Notify the player that a new creature type is now attracted to the dungeon
+    //! Should be called on the server game map
+    void notifyNewCreatureType(const std::string& creatureClassName);
+
     void fireEvents();
 
     //! \brief Called on client side to update the current list of events. Note that
@@ -281,6 +293,12 @@ private:
     //! \brief This counter tells how much time is left before considering
     //! the player should be notified again that a creature cannot find place in a hatchery.
     float mCreatureCannotFindFood;
+
+    //! \brief Time left before the player is told again that gold is missing for a purchase.
+    float mNotEnoughGoldTime;
+
+    //! \brief Time left before the player is told again that a creature has died.
+    float mCreatureKilledTime;
 
     bool mHasLost;
 
