@@ -3663,6 +3663,13 @@ void Creature::flee()
     pushAction(Utils::make_unique<CreatureActionFlee>(*this));
 }
 
+void Creature::fleeFromTile(Tile* fearTile, int32_t nbTurns)
+{
+    clearDestinations(EntityAnimation::idle_anim, true, true);
+    clearActionQueue();
+    pushAction(Utils::make_unique<CreatureActionFlee>(*this, fearTile, nbTurns));
+}
+
 void Creature::sleep()
 {
     clearDestinations(EntityAnimation::idle_anim, true, true);

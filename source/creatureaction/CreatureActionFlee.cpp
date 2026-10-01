@@ -19,7 +19,9 @@
 
 #include "creatureaction/CreatureActionWalkToTile.h"
 #include "entities/Creature.h"
+#include "entities/Tile.h"
 #include "gamemap/GameMap.h"
+#include "gamemap/Pathfinding.h"
 #include "rooms/Room.h"
 #include "rooms/RoomType.h"
 #include "utils/Helper.h"
@@ -31,6 +33,12 @@ static const int NB_TURN_FLEE_MAX = 5;
 
 std::function<bool()> CreatureActionFlee::action()
 {
+    if(mFearTurns > 0)
+    {
+        return std::bind(&CreatureActionFlee::handleFear,
+            std::ref(mCreature), getNbTurns(), mFearTurns, mFearTile);
+    }
+
     return std::bind(&CreatureActionFlee::handleFlee,
         std::ref(mCreature), getNbTurns());
 }
@@ -76,5 +84,46 @@ bool CreatureActionFlee::handleFlee(Creature& creature, int32_t nbTurns)
 
     // No dungeon temple is acessible or we are too near. We will wander randomly
     creature.wanderRandomly(EntityAnimation::flee_anim);
+    return false;
+}
+
+bool CreatureActionFlee::handleFear(Creature& creature, int32_t nbTurns, int32_t fearTurns, Tile* fearTile)
+{
+    Tile* myTile = creature.getPositionTile();
+    if(myTile == nullptr)
+    {
+        OD_LOG_ERR("creature=" + creature.getName() + ", position=" + Helper::toString(creature.getPosition()));
+        creature.popAction();
+        return false;
+    }
+
+    if((nbTurns > fearTurns) || (fearTile == nullptr))
+    {
+        creature.popAction();
+        return true;
+    }
+
+    // We run to the reachable visible tile that is the farthest from the scary tile
+    Tile* bestTile = nullptr;
+    int32_t bestDist = Pathfinding::squaredDistanceTile(*myTile, *fearTile);
+    for(Tile* tile : creature.getTilesWithinSightRadius())
+    {
+        if(tile->isFullTile())
+            continue;
+
+        int32_t dist = Pathfinding::squaredDistanceTile(*tile, *fearTile);
+        if(dist <= bestDist)
+            continue;
+
+        if(!creature.getGameMap()->pathExists(&creature, myTile, tile))
+            continue;
+
+        bestDist = dist;
+        bestTile = tile;
+    }
+
+    if(bestTile != nullptr)
+        creature.setDestination(bestTile);
+
     return false;
 }

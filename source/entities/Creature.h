@@ -601,6 +601,9 @@ public:
 
     void flee();
 
+    //! \brief Makes the creature run away from fearTile for nbTurns turns (fear trap)
+    void fleeFromTile(Tile* fearTile, int32_t nbTurns);
+
     void sleep();
 
     void leaveDungeon();
