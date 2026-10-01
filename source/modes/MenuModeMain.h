@@ -35,6 +35,9 @@ public:
     void activate() final override;
 
 private:
+    //! \brief Starts the level again if the in-game "Restart Level" button asked for it
+    void restartPendingLevel();
+
     //! \brief The Settings window
     SettingsWindow mSettings;
 
