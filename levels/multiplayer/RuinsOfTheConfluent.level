@@ -2146,6 +2146,10 @@ NatureMonster	5
     HeldInHand	100	200	-3
     # MoodModifierName	DurationTurns	MaxSlaps	MoodModifier
     Slapped	600	5	-120
+    # MoodModifierName	TurnsMax	MoodModifier
+    Tortured	43	-71
+    # MoodModifierName	TurnsMax	MoodModifier
+    Rested	30	43
     [/MoodModifiers]
     [CreatureSkills]
     # SkillName	CooldownNbTurns	WarmupNbTurns	RangeMax	LevelMin	EffectDuration	EffectValue

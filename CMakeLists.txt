@@ -298,6 +298,8 @@ set(OD_SOURCEFILES
     ${SRC}/creaturemood/CreatureMoodNoLair.cpp
     ${SRC}/creaturemood/CreatureMoodOutOfWork.cpp
     ${SRC}/creaturemood/CreatureMoodSlapped.cpp
+    ${SRC}/creaturemood/CreatureMoodTortured.cpp
+    ${SRC}/creaturemood/CreatureMoodRested.cpp
     ${SRC}/creaturemood/CreatureMoodManager.cpp
     ${SRC}/creaturemood/CreatureMoodTurnsWithoutFight.cpp
 

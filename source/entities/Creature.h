@@ -218,6 +218,18 @@ public:
     inline void resetNbTurnsOutOfWork()
     { mNbTurnsOutOfWork = 0; }
 
+    //! \brief Number of turns of torture still weighing on the mood (fades after the torture stops)
+    inline int32_t getNbTurnsTortureMood() const
+    { return mNbTurnsTortureMood; }
+
+    //! \brief Number of turns of sleep in the lair still relieving the mood (fades after waking up)
+    inline int32_t getNbTurnsRested() const
+    { return mNbTurnsRested; }
+
+    //! \brief Called on server side each turn the creature sleeps in its lair
+    inline void markRested()
+    { mRestedThisTurn = true; }
+
     //! \brief Number of slaps received during the last nbTurns turns
     int32_t getNbRecentSlaps(int32_t nbTurns) const;
 
@@ -591,7 +603,10 @@ public:
     { return mNbTurnsTorture; }
 
     inline void increaseTurnsTorture()
-    { ++mNbTurnsTorture; }
+    {
+        ++mNbTurnsTorture;
+        mTorturedThisTurn = true;
+    }
 
     inline int32_t getNbTurnsPrison() const
     { return mNbTurnsPrison; }
@@ -834,6 +849,12 @@ private:
 
     //! \brief Used on server side for the mood. Failed job searches (reset when the creature works)
     int32_t                         mNbTurnsOutOfWork;
+
+    //! \brief Used on server side for the mood. Turns of torture and of rest, growing while it lasts and fading afterwards
+    int32_t                         mNbTurnsTortureMood;
+    int32_t                         mNbTurnsRested;
+    bool                            mTorturedThisTurn;
+    bool                            mRestedThisTurn;
 
     //! \brief Used on server side for the mood. Turn numbers of the latest slaps
     std::vector<int64_t>            mSlapTurns;

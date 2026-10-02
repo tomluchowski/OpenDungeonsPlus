@@ -216,7 +216,11 @@ Creature::Creature(GameMap* gameMap, const CreatureDefinition* definition, Seat*
     mActiveSlapsCount        (0),
     mNbTurnsInHand           (0),
     mIsInHand                (false),
-    mNbTurnsOutOfWork        (0)
+    mNbTurnsOutOfWork        (0),
+    mNbTurnsTortureMood      (0),
+    mNbTurnsRested           (0),
+    mTorturedThisTurn        (false),
+    mRestedThisTurn          (false)
 {
     //TODO: This should be set in initialiser list in parent classes
     setSeat(seat);
@@ -304,7 +308,11 @@ Creature::Creature(GameMap* gameMap) :
     mActiveSlapsCount        (0),
     mNbTurnsInHand           (0),
     mIsInHand                (false),
-    mNbTurnsOutOfWork        (0)
+    mNbTurnsOutOfWork        (0),
+    mNbTurnsTortureMood      (0),
+    mNbTurnsRested           (0),
+    mTorturedThisTurn        (false),
+    mRestedThisTurn          (false)
 {
     if(!getIsOnServerMap())
     {
@@ -951,6 +959,20 @@ void Creature::doUpkeep()
         ++mNbTurnsInHand;
     else if(mNbTurnsInHand > 0)
         --mNbTurnsInHand;
+
+    // Torture weighs on the mood while it lasts, sleeping in the lair relieves it. Both fade afterwards
+    if(mTorturedThisTurn)
+        ++mNbTurnsTortureMood;
+    else if(mNbTurnsTortureMood > 0)
+        --mNbTurnsTortureMood;
+
+    if(mRestedThisTurn)
+        ++mNbTurnsRested;
+    else if(mNbTurnsRested > 0)
+        --mNbTurnsRested;
+
+    mTorturedThisTurn = false;
+    mRestedThisTurn = false;
 
     // if creature is not on map (picked up or being carried), we do nothing
     if(!getIsOnMap())
@@ -3775,6 +3797,10 @@ void Creature::changeSeat(Seat* newSeat)
     mNbTurnsInHand = 0;
     mIsInHand = false;
     mNbTurnsOutOfWork = 0;
+    mNbTurnsTortureMood = 0;
+    mNbTurnsRested = 0;
+    mTorturedThisTurn = false;
+    mRestedThisTurn = false;
     mSlapTurns.clear();
     clearDestinations(EntityAnimation::idle_anim, true, true);
     clearActionQueue();
