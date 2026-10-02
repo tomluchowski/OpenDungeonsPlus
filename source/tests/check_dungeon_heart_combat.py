@@ -21,6 +21,7 @@ def function(text, signature):
 probe = r'''
 #include <algorithm>
 #include <cmath>
+#include <cstdint>
 #include <iostream>
 #include <map>
 #include <sstream>
@@ -35,7 +36,11 @@ struct Tile{int getX()const{return 3;}int getY()const{return 4;}};
 struct Player {bool human=true;bool lost=false;int conqueror=-1,heartX=-1,heartY=-1,recorded=0;bool getIsHuman()const{return human;}bool getHasLost()const{return lost;}
  void recordHeartDestroyed(int c,int x,int y){conqueror=c;heartX=x;heartY=y;++recorded;}};
 struct SeatStatistics {unsigned mKeepersDefeated=0;};
-struct Seat {int team;Player* player=nullptr;int id=0;SeatStatistics stats;SeatStatistics& getStatistics(){return stats;}Player* getPlayer(){return player;}int getId()const{return id;}bool isAlliedSeat(Seat* s){return s&&team==s->team;}};
+enum class SkillType {nullSkillType};
+namespace Skills {std::string toString(SkillType){return "";}}
+namespace Helper {std::string toString(int value){return std::to_string(value);}}
+struct Seat {int team;Player* player=nullptr;int id=0;SeatStatistics stats;SeatStatistics& getStatistics(){return stats;}Player* getPlayer(){return player;}int getId()const{return id;}bool isAlliedSeat(Seat* s){return s&&team==s->team;}
+ bool isRogueSeat()const{return false;}double getMana()const{return 0;}void addRevealMapTurns(uint32_t){}std::vector<SkillType> getSkillDone()const{return {};}bool addSkill(SkillType){return true;}};
 enum class ServerNotificationType {chatServer};
 enum class EventShortNoticeType {majorGameEvent};
 struct ODPacket {std::vector<std::string> texts;int majorEvents=0;
@@ -57,7 +62,8 @@ struct Creature:GameEntity {CreatureDefinition definition;Creature(Seat* s,bool 
  GameEntityType getObjectType()const override{return GameEntityType::creature;}
  const CreatureDefinition* getDefinition()const{return &definition;}};
 struct GameMap {bool editor=false;int fights=0;
- bool isInEditorMode(){return editor;}void playerIsFighting(Player*,Tile*){++fights;}};
+ bool isInEditorMode(){return editor;}void playerIsFighting(Player*,Tile*){++fights;}
+ void addManaToSeat(int,int){}uint32_t getHeartDestroyedReward()const{return 0;}};
 struct TreasuryObject {TreasuryObject(GameMap*,int){}void addToGameMap(){}void createMesh(){}void setPosition(Ogre::Vector3){}};
 struct BuildingObject:GameEntity {Tile* tile;BuildingObject(Tile* t):tile(t){}Tile* getPositionTile(){return tile;}bool notifyRemoveAsked(){return true;}};
 struct ODApplication {static double turnsPerSecond;};double ODApplication::turnsPerSecond=1.4;
@@ -94,6 +100,7 @@ struct RoomDungeonTemple:Room {
 struct PersistentObject:BuildingObject {
  PersistentObject(GameMap*,Room&,const char*,Tile* t,double,bool):BuildingObject(t){}
 };
+HEART_REWARD
 METHODS
 HEART_OBJECT;
 bool RoomDungeonTemple::isTreasuryTile(Tile*)const{return false;}
@@ -222,6 +229,9 @@ methods = '\n'.join(function(source, sig) for sig in (
 methods = source[source.index('const double RoomDungeonTemple::HEART_MAX_HP'):source.index('RoomDungeonTemple::RoomDungeonTemple(')] + methods
 probe = probe.replace('INLINE_METHODS', inline).replace('METHODS', methods)
 probe = probe.replace('HEART_OBJECT', function(source, 'class DungeonHeartObject :'))
+# The reward for destroying a heart is a file-local helper called by takeHeartDamage
+reward = source[source.index('const uint32_t HEART_REWARD_REVEAL_TURNS'):source.index('void giveDestroyedHeartReward(')]
+probe = probe.replace('HEART_REWARD', reward + function(source, 'void giveDestroyedHeartReward('))
 with tempfile.TemporaryDirectory(prefix='odp-heart-combat-') as directory:
     work = Path(directory)
     (work / 'check.cpp').write_text(probe)
