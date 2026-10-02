@@ -76,6 +76,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstdlib>
 #include <vector>
 #include <string>
 #include <functional>
@@ -414,6 +415,8 @@ GameMode::~GameMode()
     RenderManager::getSingleton().rrEnableHeldCreatureDisplay(false, mGameMap->getLocalPlayer());
     for(CEGUI::Window* icon : mHeldCreatureIcons)
         CEGUI::WindowManager::getSingleton().destroyWindow(icon);
+    if(mSelectionSizeLabel != nullptr)
+        CEGUI::WindowManager::getSingleton().destroyWindow(mSelectionSizeLabel);
     // Remove tile listeners before the base destructor clears the game map.
     mFullMap.reset();
     CEGUI::ToggleButton* checkBox =
@@ -2644,6 +2647,7 @@ void GameMode::refreshActionFeedback(float elapsed)
         !inputManager.mLMouseDown && !inputManager.mRMouseDown && !inputManager.mMMouseDown &&
         isConnected() && RenderManager::getSingleton().isKeeperHandVisible());
     refreshHeldCreatureIcons();
+    refreshSelectionSizeLabel();
 }
 
 void GameMode::resetIdleHand()
@@ -2722,6 +2726,48 @@ void GameMode::refreshHeldCreatureIcons()
     }
 }
 
+
+void GameMode::refreshSelectionSizeLabel()
+{
+    const InputManager& inputManager = mModeManager->getInputManager();
+    const SelectedAction action = mPlayerSelection.getCurrentAction();
+    const bool areaAction = action == SelectedAction::none || action == SelectedAction::selectTile ||
+        action == SelectedAction::buildRoom || action == SelectedAction::buildTrap ||
+        action == SelectedAction::destroyRoom || action == SelectedAction::destroyTrap ||
+        action == SelectedAction::sellBuilding;
+    const int width = std::abs(inputManager.mXPos - inputManager.mLStartDragX) + 1;
+    const int height = std::abs(inputManager.mYPos - inputManager.mLStartDragY) + 1;
+    // Only while a drag marks more than one tile; a single tile click shows nothing
+    const bool show = areaAction && inputManager.mLMouseDown && !isMouseDownOnCEGUIWindow() &&
+        !mGameMap->getGamePaused() && mGameMap->getLocalPlayer()->numObjectsInHand() == 0 &&
+        !mPreviewTiles.empty() && width * height > 1 &&
+        mGameMap->getTile(inputManager.mXPos, inputManager.mYPos) != nullptr;
+    if(!show)
+    {
+        if(mSelectionSizeLabel != nullptr)
+            mSelectionSizeLabel->setVisible(false);
+        return;
+    }
+
+    if(mSelectionSizeLabel == nullptr)
+    {
+        mSelectionSizeLabel = CEGUI::WindowManager::getSingleton().createWindow("OD/StaticText", "SelectionSizeLabel");
+        mSelectionSizeLabel->setAlwaysOnTop(true);
+        mSelectionSizeLabel->setMousePassThroughEnabled(true);
+        mSelectionSizeLabel->setProperty("ClippedByParent", "False");
+        mSelectionSizeLabel->setProperty("FrameEnabled", "True");
+        mSelectionSizeLabel->setProperty("BackgroundEnabled", "True");
+        mRootWindow->addChild(mSelectionSizeLabel);
+    }
+    const CEGUI::Vector2f pointer = CEGUI::System::getSingleton().getDefaultGUIContext().getMouseCursor().getPosition();
+    const float scale = mRootWindow->getChild("HandActionIcon")->getPixelSize().d_width / 50.0f;
+    mSelectionSizeLabel->setText(std::to_string(width) + "x" + std::to_string(height));
+    mSelectionSizeLabel->setSize(CEGUI::USize(CEGUI::UDim(0, 64.0f * scale), CEGUI::UDim(0, 28.0f * scale)));
+    // Below the hand, clear of the action icon and the pointer text
+    mSelectionSizeLabel->setPosition(CEGUI::UVector2(CEGUI::UDim(0, pointer.d_x + 90.0f * scale),
+        CEGUI::UDim(0, pointer.d_y + 110.0f * scale)));
+    mSelectionSizeLabel->setVisible(true);
+}
 
 void GameMode::selectSquaredTiles(int tileX1, int tileY1, int tileX2, int tileY2)
 {
