@@ -786,6 +786,7 @@ bool ODServer::processClientNotifications(ODSocketClient* clientSocket)
             packet << gameMap->getLevelFightMusicFile();
 
             packet << gameMap->getTileSetName();
+            packet << gameMap->isSandbox();
 
             int32_t nb;
             // Seats
@@ -1514,6 +1515,23 @@ bool ODServer::processClientNotifications(ODSocketClient* clientSocket)
         {
             Player* player = clientSocket->getPlayer();
             TrapManager::sellTrapTiles(gameMap, player->getSeat(), packetReceived);
+            break;
+        }
+
+        case ClientNotificationType::askSandboxTakeHero:
+        {
+            std::string className;
+            uint32_t level;
+            OD_ASSERT_TRUE(packetReceived >> className >> level);
+            gameMap->getSandboxMode().takeHero(clientSocket->getPlayer(), className, level);
+            break;
+        }
+
+        case ClientNotificationType::askSandboxInvasion:
+        {
+            bool continual;
+            OD_ASSERT_TRUE(packetReceived >> continual);
+            gameMap->getSandboxMode().startInvasion(clientSocket->getPlayer(), continual);
             break;
         }
 

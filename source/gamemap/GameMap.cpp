@@ -167,6 +167,8 @@ GameMap::GameMap(bool isServerGameMap, NodeType nt) :
         mTurnNumber(-1),
         mIsPaused(false),
         mTimePayDay(0),
+        mIsSandbox(false),
+        mSandboxMode(*this),
         mFloodFillEnabled(false),
         mIsFOWActivated(true),
         mNumCallsTo_path(0),
@@ -313,6 +315,8 @@ void GameMap::clearAll()
         resetUniqueNumbers();
         mIsFOWActivated = true;
         mTimePayDay = 0;
+        mIsSandbox = false;
+        mSandboxMode.reset();
 
         // We check if the different vectors are empty
         if(!mActiveObjects.empty())
@@ -1119,6 +1123,9 @@ void GameMap::doTurn(double timeSinceLastTurn)
         seat->getPlayer()->upkeepPlayer(timeSinceLastTurn);
     }
 
+    if(mIsSandbox && mIsServerGameMap)
+        mSandboxMode.doTurn();
+
     OD_LOG_INF("During this turn there were " + Helper::toString(mNumCallsTo_path - numCallsTo_path_atStart)
         + " calls to GameMap::path(), miscUpkeepTime=" + Helper::toString(miscUpkeepTime));
 }
@@ -1188,7 +1195,8 @@ unsigned long int GameMap::doMiscUpkeep(double timeSinceLastTurn)
 
         // Check the goals and move completed ones to the completedGoals list for the seat.
         //NOTE: Once seats are placed on this list, they stay there even if goals are unmet.  We may want to change this.
-        if (seat->checkAllGoals() == 0 && seat->numFailedGoals() == 0)
+        // A sandbox level has no goals: a seat without goals must not win at once
+        if (!mIsSandbox && seat->checkAllGoals() == 0 && seat->numFailedGoals() == 0)
             addWinningSeat(seat);
 
         seat->mNumCreaturesFightersMax = getMaxNumberCreatures(seat);

@@ -79,7 +79,11 @@ enum class ClientNotificationType
     editorAskCreateMapLight,
     editorSetCreatureLevel,
     editorAskPortalWaveData,
-    editorSetPortalWaveData
+    editorSetPortalWaveData,
+
+    // Sandbox mode
+    askSandboxTakeHero,
+    askSandboxInvasion
 };
 
 ODPacket& operator<<(ODPacket& os, const ClientNotificationType& nt);

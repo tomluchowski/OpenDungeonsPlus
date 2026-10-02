@@ -128,6 +128,10 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
 
             gameMap->setTileSetName(str);
 
+            bool isSandbox;
+            OD_ASSERT_TRUE(packetReceived >> isSandbox);
+            gameMap->setSandbox(isSandbox);
+
             int32_t nb;
             // Seats
             OD_ASSERT_TRUE(packetReceived >> nb);

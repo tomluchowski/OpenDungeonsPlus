@@ -63,6 +63,7 @@
 #include "game/SkillType.h"
 #include "game/Seat.h"
 #include "gamemap/GameMap.h"
+#include "gamemap/SandboxMode.h"
 #include "gamemap/Pathfinding.h"
 #include "giftboxes/GiftBoxSkill.h"
 
@@ -2232,6 +2233,20 @@ void Creature::popAction()
     mActions.pop_back();
 }
 
+bool Creature::isSandboxHeroFor(const Seat* seat) const
+{
+    if(!getGameMap()->isSandbox())
+        return false;
+
+    if(seat == nullptr)
+        return false;
+
+    if(seat->getPlayer() == nullptr || !seat->getPlayer()->getIsHuman())
+        return false;
+
+    return SandboxMode::isHeroSeat(getSeat()) && !SandboxMode::isHeroSeat(seat);
+}
+
 bool Creature::tryPickup(Seat* seat)
 {
     if(!getIsOnMap())
@@ -2241,8 +2256,11 @@ bool Creature::tryPickup(Seat* seat)
     if (!getGameMap()->isInEditorMode() && !isAlive())
         return false;
 
-    if(!getGameMap()->isInEditorMode() && (mSeatPrison == nullptr) && !getSeat()->canOwnedCreatureBePickedUpBy(seat))
+    if(!getGameMap()->isInEditorMode() && (mSeatPrison == nullptr) && !getSeat()->canOwnedCreatureBePickedUpBy(seat) &&
+       !isSandboxHeroFor(seat))
+    {
         return false;
+    }
 
     if(!getGameMap()->isInEditorMode() && (mSeatPrison != nullptr) && !mSeatPrison->canOwnedCreatureBePickedUpBy(seat))
         return false;
@@ -2291,6 +2309,10 @@ bool Creature::tryDrop(Seat* seat, Tile* tile)
     // we cannot drop a creature on a tile we don't see
     if(!seat->hasVisionOnTile(tile))
         return false;
+
+    // In the sandbox, the heroes taken from the toolbox can be dropped on any ground the seat sees
+    if(isSandboxHeroFor(seat) && canGoThroughTile(tile))
+        return true;
 
     // If it is a worker, he can be dropped on dirt
     if (getDefinition()->isWorker() && (tile->getTileVisual() == TileVisual::dirtGround || tile->getTileVisual() == TileVisual::goldGround))

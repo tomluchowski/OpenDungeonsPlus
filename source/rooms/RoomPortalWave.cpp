@@ -338,7 +338,8 @@ void RoomPortalWave::handleChooseTarget()
     }
 }
 
-void RoomPortalWave::spawnWave(RoomPortalWaveData* roomPortalWaveData, uint32_t maxCreaturesToSpawn)
+void RoomPortalWave::spawnWave(RoomPortalWaveData* roomPortalWaveData, uint32_t maxCreaturesToSpawn,
+    std::vector<std::string>* spawnedNames)
 {
     Tile* centralTile = getCentralTile();
     if (centralTile == nullptr)
@@ -376,8 +377,25 @@ void RoomPortalWave::spawnWave(RoomPortalWaveData* roomPortalWaveData, uint32_t 
         newCreature->createMesh();
         newCreature->setPosition(newCreature->getPosition());
 
+        if(spawnedNames != nullptr)
+            spawnedNames->push_back(newCreature->getName());
+
         --maxCreaturesToSpawn;
     }
+}
+
+void RoomPortalWave::spawnCreatures(const std::vector<std::pair<std::string, uint32_t>>& creatures,
+    std::vector<std::string>& spawnedNames)
+{
+    RoomPortalWaveData roomPortalWaveData;
+    roomPortalWaveData.mSpawnCreatureClassName = creatures;
+
+    uint32_t maxCreatures = ConfigManager::getSingleton().getMaxCreaturesPerSeatAbsolute();
+    uint32_t numCreatures = getSeat()->getNumCreaturesFighters();
+    if(numCreatures >= maxCreatures)
+        return;
+
+    spawnWave(&roomPortalWaveData, maxCreatures - numCreatures, &spawnedNames);
 }
 
 void RoomPortalWave::handleAttack()

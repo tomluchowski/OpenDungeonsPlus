@@ -352,6 +352,9 @@ public:
     //! to prepare for the pickup (removing creature from GameMap, changing states, ...).
     //! Returns true if the creature can be picked up
     bool tryPickup(Seat* seat) override;
+
+    //! \brief In a sandbox level, the player can pick up and drop the heroes of the hero seat
+    bool isSandboxHeroFor(const Seat* seat) const;
     void pickup() override;
     bool tryDrop(Seat* seat, Tile* tile) override;
     void drop(const Ogre::Vector3& v) override;

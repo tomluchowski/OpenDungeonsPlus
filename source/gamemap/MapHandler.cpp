@@ -151,6 +151,13 @@ bool readGameMapFromFile(const std::string& fileName, GameMap& gameMap)
             OD_LOG_INF("TileSet: " + tileSet);
             continue;
         }
+
+        param = "Sandbox\t";
+        if (nextParam.compare(0, param.size(), param) == 0)
+        {
+            gameMap.setSandbox(nextParam.substr(param.size()) == "1");
+            continue;
+        }
     }
 
     levelFile >> nextParam;
@@ -652,6 +659,8 @@ bool writeGameMapToFile(const std::string& fileName, GameMap& gameMap)
         levelFile << "FightMusic\t" << gameMap.getLevelFightMusicFile() << std::endl;
     if(!gameMap.getTileSetName().empty())
         levelFile << "TileSet\t" << gameMap.getTileSetName() << std::endl;
+    if(gameMap.isSandbox())
+        levelFile << "Sandbox\t1" << std::endl;
 
     levelFile << "[/Info]" << std::endl;
 
@@ -909,6 +918,12 @@ bool getMapInfo(const std::string& fileName, LevelInfo& levelInfo)
         if (nextParam.compare(0, param.size(), param) == 0)
         {
             mapInfo << nextParam.substr(param.size()) << std::endl << std::endl;
+            continue;
+        }
+
+        if (nextParam == "Sandbox\t1")
+        {
+            levelInfo.mIsSandbox = true;
             continue;
         }
 

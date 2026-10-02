@@ -355,6 +355,7 @@ set(OD_SOURCEFILES
     ${SRC}/gamemap/MiniMap.cpp
     ${SRC}/gamemap/MiniMapDrawn.cpp
     ${SRC}/gamemap/MiniMapDrawnFull.cpp
+    ${SRC}/gamemap/SandboxMode.cpp
     ${SRC}/gamemap/MiniMapCamera.cpp
     ${SRC}/gamemap/TileContainer.cpp
     ${SRC}/gamemap/TileSet.cpp
