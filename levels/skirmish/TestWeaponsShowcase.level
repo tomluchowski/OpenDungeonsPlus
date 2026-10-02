@@ -17,7 +17,7 @@ startingY	0
 colorId	1
 gold	0
 goldMined	0
-mana	1000
+mana	100
 [SkillDone]
 [/SkillDone]
 [SkillNotAllowed]

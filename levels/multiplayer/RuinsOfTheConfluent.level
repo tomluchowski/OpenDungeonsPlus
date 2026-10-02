@@ -18,7 +18,7 @@ startingY	10
 colorId	1
 gold	1000
 goldMined	0
-mana	2000
+mana	100
 [SkillDone]
 roomTreasury
 roomDormitory
@@ -41,7 +41,7 @@ startingY	50
 colorId	2
 gold	1000
 goldMined	0
-mana	200
+mana	100
 [SkillDone]
 roomTreasury
 roomDormitory
@@ -64,7 +64,7 @@ startingY	50
 colorId	3
 gold	1000
 goldMined	0
-mana	2000
+mana	100
 [SkillDone]
 roomTreasury
 roomDormitory
@@ -87,7 +87,7 @@ startingY	10
 colorId	4
 gold	1000
 goldMined	0
-mana	2000
+mana	100
 [SkillDone]
 roomTreasury
 roomDormitory
@@ -110,7 +110,7 @@ startingY	29
 colorId	5
 gold	1000
 goldMined	0
-mana	2000
+mana	100
 [SkillDone]
 [/SkillDone]
 [SkillNotAllowed]
