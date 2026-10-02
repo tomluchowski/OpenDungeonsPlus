@@ -50,6 +50,9 @@ private:
     bool toggleSkirmishSubMenu(const CEGUI::EventArgs&);
     bool toggleMultiplayerSubMenu(const CEGUI::EventArgs&);
     bool toggleEditorSubMenu(const CEGUI::EventArgs&);
+
+    //! \brief Opens the level list with the sandbox levels
+    bool sandboxButtonPressed(const CEGUI::EventArgs& e);
 };
 
 #endif // MENUMODEMAIN_H

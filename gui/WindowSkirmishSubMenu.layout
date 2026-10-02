@@ -14,5 +14,9 @@
             <Property name="Area" value="{{0.5,-80},{0,90},{0.5,100},{0,170}}" />
             <Property name="Text" value="[image-size='w:32 h:32'][image='OpenDungeonsIcons/LoadIcon'][vert-alignment='centre']Load Skirmish ..." />
         </Window>
+        <Window type="OD/MainMenuButton" name="StartSandboxButton" >
+            <Property name="Area" value="{{0.5,-80},{0,160},{0.5,100},{0,240}}" />
+            <Property name="Text" value="[image-size='w:32 h:32'][image='OpenDungeonsIcons/WavePortalButton'][vert-alignment='centre']Sandbox ..." />
+        </Window>
     </Window>
 </GUILayout>

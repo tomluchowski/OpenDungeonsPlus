@@ -34,6 +34,11 @@
 #include <CEGUI/CEGUI.h>
 #include "boost/filesystem.hpp"
 
+bool MenuModeSkirmish::sStartWithSandboxLevels = false;
+
+//! \brief The index of the level type listing the sandbox levels
+static const size_t LEVEL_TYPE_SANDBOX = 4;
+
 MenuModeSkirmish::MenuModeSkirmish(ModeManager* modeManager):
     AbstractApplicationMode(modeManager, ModeManager::MENU_SKIRMISH)
 {
@@ -57,6 +62,10 @@ MenuModeSkirmish::MenuModeSkirmish(ModeManager* modeManager):
     levelTypeCb->addItem(item);
 
     item = new CEGUI::ListboxTextItem("Custom Multiplayer Levels", 3);
+    item->setSelectionBrushImage(selImg);
+    levelTypeCb->addItem(item);
+
+    item = new CEGUI::ListboxTextItem("Sandbox Levels", 4);
     item->setSelectionBrushImage(selImg);
     levelTypeCb->addItem(item);
 
@@ -118,7 +127,12 @@ void MenuModeSkirmish::activate()
     // Select skirmish
     CEGUI::Combobox* levelTypeCb = static_cast<CEGUI::Combobox*>(getModeManager().getGui().
                                        getGuiSheet(Gui::skirmishMenu)->getChild(Gui::SKM_LIST_LEVEL_TYPES));
-    levelTypeCb->setItemSelectState(static_cast<size_t>(0), true);
+    if(sStartWithSandboxLevels)
+        levelTypeCb->setItemSelectState(LEVEL_TYPE_SANDBOX, true);
+    else
+        levelTypeCb->setItemSelectState(static_cast<size_t>(0), true);
+
+    sStartWithSandboxLevels = false;
     updateFilesList();
 
     // Set the player name if valid. (Will use the defaut one if not.)
@@ -142,6 +156,7 @@ bool MenuModeSkirmish::updateFilesList(const CEGUI::EventArgs&)
     levelSelectList->resetList();
 
     std::string levelPath;
+    std::vector<std::string> levelFiles;
     size_t selection = levelTypeCb->getItemIndex(levelTypeCb->getSelectedItem());
     switch (selection)
     {
@@ -158,34 +173,46 @@ bool MenuModeSkirmish::updateFilesList(const CEGUI::EventArgs&)
         case 3:
             levelPath = ResourceManager::getSingleton().getUserLevelPathMultiplayer();
             break;
+        case LEVEL_TYPE_SANDBOX:
+            levelPath = ResourceManager::getSingleton().getGameLevelPathSkirmish();
+            Helper::fillFilesList(ResourceManager::getSingleton().getUserLevelPathSkirmish(),
+                levelFiles, MapHandler::LEVEL_EXTENSION);
+            break;
     }
 
-    if(Helper::fillFilesList(levelPath, mFilesList, MapHandler::LEVEL_EXTENSION))
+    Helper::fillFilesList(levelPath, levelFiles, MapHandler::LEVEL_EXTENSION);
+    for (uint32_t n = 0; n < levelFiles.size(); ++n)
     {
-        for (uint32_t n = 0; n < mFilesList.size(); ++n)
+        std::string filename = levelFiles[n];
+
+        LevelInfo levelInfo;
+        std::string mapName;
+        std::string mapDescription;
+        if(MapHandler::getMapInfo(filename, levelInfo))
         {
-            std::string filename = mFilesList[n];
+            mapName = levelInfo.mLevelName;
+            mapDescription = levelInfo.mLevelDescription;
 
-            LevelInfo levelInfo;
-            std::string mapName;
-            std::string mapDescription;
-            if(MapHandler::getMapInfo(filename, levelInfo))
-            {
-                mapName = levelInfo.mLevelName;
-                mapDescription = levelInfo.mLevelDescription;
-            }
-            else
-            {
-                mapName = "invalid map";
-                mapDescription = "invalid map";
-            }
-
-            mDescriptionList.push_back(mapDescription);
-            CEGUI::ListboxTextItem* item = new CEGUI::ListboxTextItem(mapName);
-            item->setID(n);
-            item->setSelectionBrushImage("OpenDungeonsSkin/SelectionBrush");
-            levelSelectList->addItem(item);
+            // Sandbox levels are only listed with the sandbox levels
+            if(levelInfo.mIsSandbox != (selection == LEVEL_TYPE_SANDBOX))
+                continue;
         }
+        else
+        {
+            if(selection == LEVEL_TYPE_SANDBOX)
+                continue;
+
+            mapName = "invalid map";
+            mapDescription = "invalid map";
+        }
+
+        uint32_t id = static_cast<uint32_t>(mFilesList.size());
+        mFilesList.push_back(filename);
+        mDescriptionList.push_back(mapDescription);
+        CEGUI::ListboxTextItem* item = new CEGUI::ListboxTextItem(mapName);
+        item->setID(id);
+        item->setSelectionBrushImage("OpenDungeonsSkin/SelectionBrush");
+        levelSelectList->addItem(item);
     }
 
     updateDescription();
