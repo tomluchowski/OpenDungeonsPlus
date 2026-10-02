@@ -35,6 +35,8 @@
 #include "utils/Helper.h"
 #include "utils/LogManager.h"
 
+#include <algorithm>
+
 const std::string SpellSummonWorkerName = "summonWorker";
 const std::string SpellSummonWorkerNameDisplay = "Summon worker";
 const std::string SpellSummonWorkerCooldownKey = "SummonWorkerCooldown";
@@ -89,13 +91,10 @@ void SpellSummonWorker::checkSpellCast(GameMap* gameMap, const InputManager& inp
         return;
     }
 
-    int32_t nbFreeWorkers = ConfigManager::getSingleton().getSpellConfigInt32("SummonWorkerNbFree");
     int32_t nbWorkers = player->getSeat()->getNumCreaturesWorkers();
-    int32_t pricePerWorker = static_cast<int32_t>(std::round(SkillManager::getResearchValue(
+    int32_t basePrice = static_cast<int32_t>(std::round(SkillManager::getResearchValue(
         player->getSeat(), SkillType::spellSummonWorker,
         ConfigManager::getSingleton().getSpellConfigInt32("SummonWorkerBasePrice"))));
-    if(nbWorkers > nbFreeWorkers)
-        pricePerWorker *= std::pow(2, nbWorkers - nbFreeWorkers);
 
     int32_t priceTotal = 0;
 
@@ -114,20 +113,13 @@ void SpellSummonWorker::checkSpellCast(GameMap* gameMap, const InputManager& inp
         }
 
         Tile* tile = static_cast<Tile*>(target);
-        ++nbWorkers;
-        if(nbWorkers <= nbFreeWorkers)
-        {
-            tiles.push_back(tile);
-            continue;
-        }
-
-        int32_t newPrice = priceTotal + pricePerWorker;
+        int32_t newPrice = priceTotal + getWorkerPrice(basePrice, nbWorkers);
         if(newPrice > playerMana)
                 break;
 
         tiles.push_back(tile);
         priceTotal = newPrice;
-        pricePerWorker *= 2;
+        ++nbWorkers;
     }
 
     if(tiles.empty())
@@ -188,13 +180,10 @@ bool SpellSummonWorker::summonWorkersOnTiles(GameMap* gameMap, Player* player, c
         return false;
     }
 
-    int32_t nbFreeWorkers = ConfigManager::getSingleton().getSpellConfigInt32("SummonWorkerNbFree");
     int32_t nbWorkers = player->getSeat()->getNumCreaturesWorkers();
-    int32_t pricePerWorker = static_cast<int32_t>(std::round(SkillManager::getResearchValue(
+    int32_t basePrice = static_cast<int32_t>(std::round(SkillManager::getResearchValue(
         player->getSeat(), SkillType::spellSummonWorker,
         ConfigManager::getSingleton().getSpellConfigInt32("SummonWorkerBasePrice"))));
-    if(nbWorkers > nbFreeWorkers)
-        pricePerWorker *= std::pow(2, nbWorkers - nbFreeWorkers);
 
     int32_t playerMana = static_cast<int32_t>(player->getSeat()->getMana());
     int32_t priceTotal = 0;
@@ -202,20 +191,13 @@ bool SpellSummonWorker::summonWorkersOnTiles(GameMap* gameMap, Player* player, c
     std::vector<Tile*> tilesSummon;
     for(Tile* tile : tiles)
     {
-        if(nbWorkers < nbFreeWorkers)
-        {
-            tilesSummon.push_back(tile);
-            ++nbWorkers;
-            continue;
-        }
-
-        int32_t newPrice = priceTotal + pricePerWorker;
+        int32_t newPrice = priceTotal + getWorkerPrice(basePrice, nbWorkers);
         if(newPrice > playerMana)
                 break;
 
         tilesSummon.push_back(tile);
         priceTotal = newPrice;
-        pricePerWorker *= 2;
+        ++nbWorkers;
     }
 
     if(!player->getSeat()->takeMana(priceTotal))
@@ -242,16 +224,19 @@ bool SpellSummonWorker::summonWorkersOnTiles(GameMap* gameMap, Player* player, c
 int32_t SpellSummonWorker::getNextWorkerPriceForPlayer(GameMap* gameMap, Player* player)
 {
     int32_t nbWorkers = player->getSeat()->getNumCreaturesWorkers();
-    int32_t nbFreeWorkers = ConfigManager::getSingleton().getSpellConfigInt32("SummonWorkerNbFree");
-    if(nbWorkers < nbFreeWorkers)
-        return 0;
-
-    int32_t price = static_cast<int32_t>(std::round(SkillManager::getResearchValue(
+    int32_t basePrice = static_cast<int32_t>(std::round(SkillManager::getResearchValue(
         player->getSeat(), SkillType::spellSummonWorker,
         ConfigManager::getSingleton().getSpellConfigInt32("SummonWorkerBasePrice"))));
-    price *= std::pow(2, nbWorkers - nbFreeWorkers);
 
-    return price;
+    return getWorkerPrice(basePrice, nbWorkers);
+}
+
+int32_t SpellSummonWorker::getWorkerPrice(int32_t basePrice, int32_t nbWorkers)
+{
+    // The dungeon heart supplies the first workers. Summoning below that count costs the base
+    // price, each worker above it costs one more base price than the one before.
+    int32_t nbHeartWorkers = ConfigManager::getSingleton().getSpellConfigInt32("SummonWorkerNbHeart");
+    return basePrice * std::max(1, nbWorkers - nbHeartWorkers + 1);
 }
 
 Spell* SpellSummonWorker::getSpellFromStream(GameMap* gameMap, std::istream &is)

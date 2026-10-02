@@ -31,6 +31,11 @@ public:
     static bool castSpell(GameMap* gameMap, Player* player, ODPacket& packet);
     static bool summonWorkersOnTiles(GameMap* gameMap, Player* player, const std::vector<Tile*>& tiles);
     static int32_t getNextWorkerPriceForPlayer(GameMap* gameMap, Player* player);
+    //! \brief Mana price of the next worker: the base price times the number of workers above the
+    //! ones the heart supplies (at least one base price).
+    //! \param basePrice Price of one step, already scaled by the research.
+    //! \param nbWorkers Number of workers the seat owns before the summon.
+    static int32_t getWorkerPrice(int32_t basePrice, int32_t nbWorkers);
 
     static Spell* getSpellFromStream(GameMap* gameMap, std::istream &is);
     static Spell* getSpellFromPacket(GameMap* gameMap, ODPacket &is);

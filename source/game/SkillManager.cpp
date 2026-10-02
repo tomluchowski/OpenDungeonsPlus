@@ -758,7 +758,7 @@ std::string SkillManager::getResearchDescription(SkillType type, uint32_t level)
             return "Damage: " + value(config.getTrapConfigDouble(prefix + "DamagePerHitMin")) + "-" +
                 Helper::toString(getResearchValue(type, level, config.getTrapConfigDouble(prefix + "DamagePerHitMax"), true)) + ".";
         }
-        case SkillType::spellSummonWorker: return "Paid-worker base cost: " + spell("SummonWorkerBasePrice") + " mana; existing price growth retained.";
+        case SkillType::spellSummonWorker: return "Paid-worker base cost: " + spell("SummonWorkerBasePrice") + " mana, plus one more base cost for every worker above the heart's four.";
         case SkillType::spellCallToWar: return "Maximum lifetime: " + spell("CallToWarNbTurnsMax") + " turns.";
         case SkillType::spellCreatureDefense: return "Added physical defense: " + spell("CreatureDefenseValue") + ".";
         case SkillType::spellCreatureExplosion: return "Damage per turn: " + spell("CreatureExplosionValue") + ".";
