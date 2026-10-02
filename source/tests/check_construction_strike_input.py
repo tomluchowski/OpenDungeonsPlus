@@ -28,7 +28,7 @@ enum class InputCommandState { infoOnly,building,validated };
 enum class SelectedAction { none,selectTile,buildRoom,destroyRoom,castSpell,buildTrap,destroyTrap,queryEntity,sellBuilding };
 enum class RoomType { dormitory,treasury };
 struct RoomTreasury {static constexpr RoomType mRoomType=RoomType::treasury;};
-enum class TrapType { cannon,doorWooden };
+enum class TrapType { cannon,doorWooden,doorBarricade };
 struct Seat { int gold=0,treasuries=1;int getGold(){return gold;}int getNbRooms(RoomType){return treasuries;} };
 struct Player { Seat seat;Seat* getSeat(){return &seat;} };
 struct Tile { bool buildable=true;bool isBuildableUpon(Seat*){return buildable;} };
@@ -51,10 +51,14 @@ struct GameMode;using InputCommand=GameMode;
 struct RoomFactory { std::string formatBuildRoom(RoomType,uint32_t)const{return "room";}
  void checkBuildRoomDefault(GameMap*,RoomType,const InputManager&,InputCommand&)const; };
 struct TreasuryFactory:RoomFactory {void checkBuildRoom(GameMap*,const InputManager&,InputCommand&)const;};
+struct GameMap;struct Tile;bool doorAllowedOn(GameMap*,Tile*);
 struct TrapFactory { std::string formatBuildTrap(TrapType,uint32_t)const{return "trap";}
+ TrapType mDoorType=TrapType::doorWooden;
+ bool canBuildOn(GameMap* map,Tile* tile)const{return mDoorType==TrapType::doorBarricade||doorAllowedOn(map,tile);}
  void checkBuildTrapDefault(GameMap*,TrapType,const InputManager&,InputCommand&)const;
  void checkBuildTrap(GameMap*,const InputManager&,InputCommand&)const; };
 struct TrapDoor { static bool canDoorBeOnTile(GameMap* map,Tile*){return map->doorAllowed;} };
+bool doorAllowedOn(GameMap* map,Tile* tile){return TrapDoor::canDoorBeOnTile(map,tile);}
 struct RoomManager { static int costPerTile(RoomType){return 25;}
  static ClientNotification* createRoomClientNotification(RoomType){return new ClientNotification;}
  static void checkBuildRoom(GameMap* m,RoomType t,const InputManager& i,InputCommand& c){
