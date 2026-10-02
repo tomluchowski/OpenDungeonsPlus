@@ -55,7 +55,8 @@ struct Player {
  RECORD
  void notifyNoMoreDungeonTemple();
 };
-struct Seat {int id,team;Player* player=nullptr;SeatStatistics stats;
+struct Seat {int id,team;Player* player=nullptr;SeatStatistics stats;double mana=0;
+ double getMana()const{return mana;}void addMana(double value){mana+=value;}
  bool isRogueSeat()const{return id==0;}const SeatStatistics& getStatistics()const{return stats;}
  int getId()const{return id;}Player* getPlayer(){return player;}bool isAlliedSeat(Seat* s){return s&&team==s->team;}};
 struct GameMapMock {int64_t turn=0;int64_t getTurnNumber()const{return turn;}std::vector<Seat*> seats;std::vector<Room*> temples;int sounds=0;
