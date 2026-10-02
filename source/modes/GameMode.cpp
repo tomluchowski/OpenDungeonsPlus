@@ -3093,6 +3093,13 @@ void GameMode::refreshSkillConnections()
         if(button->isChild("ResearchLevel"))
         {
             CEGUI::Window* badge = button->getChild("ResearchLevel");
+            // The nodes of a wide row are close together: use the smaller font when the
+            // counter would otherwise touch the counter of the neighbouring node.
+            const float nodePitch = width * parent->getPixelSize().d_width;
+            CEGUI::Font* badgeFont = &CEGUI::FontManager::getSingleton().get("MedievalSharp-10");
+            if(badgeFont->getTextExtent("3/3") + 16.0f > nodePitch)
+                badgeFont = &CEGUI::FontManager::getSingleton().get("MedievalSharp-8");
+            badge->setFont(badgeFont);
             const float badgeWidth = badge->getFont()->getTextExtent("3/3") + 8.0f;
             const float badgeHeight = badge->getFont()->getLineSpacing() + 2.0f;
             badge->setArea(CEGUI::UVector2(CEGUI::UDim(.5f, -badgeWidth * .5f), CEGUI::UDim(1, 0)),
