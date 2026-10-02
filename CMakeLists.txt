@@ -269,6 +269,7 @@ set(OD_SOURCEFILES
     ${SRC}/creatureaction/CreatureActionSearchWallTileToClaim.cpp
     ${SRC}/creatureaction/CreatureActionSleep.cpp
     ${SRC}/creatureaction/CreatureActionStealFreeGold.cpp
+    ${SRC}/creatureaction/CreatureActionTunnel.cpp
     ${SRC}/creatureaction/CreatureActionUseRoom.cpp
     ${SRC}/creatureaction/CreatureActionWalkToTile.cpp
 
