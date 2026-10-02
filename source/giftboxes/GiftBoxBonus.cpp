@@ -17,20 +17,32 @@
 
 #include "giftboxes/GiftBoxBonus.h"
 
+#include "ODApplication.h"
 #include "entities/Creature.h"
+#include "entities/CreatureDefinition.h"
 #include "entities/Tile.h"
 #include "entities/TreasuryObject.h"
 #include "game/Seat.h"
+#include "game/SkillType.h"
 #include "gamemap/GameMap.h"
 #include "utils/Helper.h"
 #include "utils/LogManager.h"
+#include "utils/Random.h"
 
+#include <cmath>
 #include <iostream>
 
 // Proposed values, they need to be approved
 static const uint32_t DEFAULT_AMOUNT_MANA = 50000;
 static const uint32_t DEFAULT_AMOUNT_GOLD = 10000;
 static const uint32_t DEFAULT_AMOUNT_LEVELS = 1;
+static const uint32_t DEFAULT_AMOUNT_WORKERS = 10;
+//! Workers received with the upgraded Summon Worker spell start at this level
+static const uint32_t LEVEL_WORKERS_UPGRADED = 4;
+//! Skill level of the Summon Worker spell from which it counts as upgraded
+static const uint32_t SKILL_LEVEL_UPGRADED = 2;
+//! Stun Workers: the enemy workers stay down for this many seconds
+static const double STUN_WORKERS_SECONDS = 5.0;
 
 //! \brief Creates a bonus box of the given type and amount with the mystery box mesh
 GiftBoxBonus::GiftBoxBonus(GameMap* gameMap, const std::string& baseName, GiftBoxType type, uint32_t amount) :
@@ -61,6 +73,22 @@ std::string GiftBoxBonus::getDisplayName(GiftBoxType type)
             return "Reveal Map";
         case GiftBoxType::levelUp:
             return "Increase Level";
+        case GiftBoxType::healAll:
+            return "Heal All";
+        case GiftBoxType::makeSafe:
+            return "Make Safe";
+        case GiftBoxType::weakenWalls:
+            return "Weaken Walls";
+        case GiftBoxType::stunWorkers:
+            return "Stun Workers";
+        case GiftBoxType::receiveWorkers:
+            return "Receive Workers";
+        case GiftBoxType::makeHappy:
+            return "Make Happy";
+        case GiftBoxType::makeUnhappy:
+            return "Make Unhappy";
+        case GiftBoxType::killCreatures:
+            return "Kill Creatures";
         default:
             return "Special";
     }
@@ -79,6 +107,22 @@ std::string GiftBoxBonus::getDescription(GiftBoxType type)
             return "Reveals the whole map.";
         case GiftBoxType::levelUp:
             return "All your creatures gain a level.";
+        case GiftBoxType::healAll:
+            return "Heals all your creatures completely.";
+        case GiftBoxType::makeSafe:
+            return "Reinforces the walls around your dungeon.";
+        case GiftBoxType::weakenWalls:
+            return "Turns the reinforced walls of the enemy back to earth.";
+        case GiftBoxType::stunWorkers:
+            return "Stuns all enemy workers for a few seconds.";
+        case GiftBoxType::receiveWorkers:
+            return "Gives you free workers.";
+        case GiftBoxType::makeHappy:
+            return "Removes all the annoyance of your creatures.";
+        case GiftBoxType::makeUnhappy:
+            return "Makes all enemy creatures unhappy.";
+        case GiftBoxType::killCreatures:
+            return "Kills an enemy creature you can see.";
         default:
             return "";
     }
@@ -95,7 +139,16 @@ uint32_t GiftBoxBonus::getDefaultAmount(GiftBoxType type)
             return DEFAULT_AMOUNT_GOLD;
         case GiftBoxType::levelUp:
             return DEFAULT_AMOUNT_LEVELS;
+        case GiftBoxType::receiveWorkers:
+            return DEFAULT_AMOUNT_WORKERS;
         case GiftBoxType::revealMap:
+        case GiftBoxType::healAll:
+        case GiftBoxType::makeSafe:
+        case GiftBoxType::weakenWalls:
+        case GiftBoxType::stunWorkers:
+        case GiftBoxType::makeHappy:
+        case GiftBoxType::makeUnhappy:
+        case GiftBoxType::killCreatures:
             return 0;
         default:
             OD_LOG_ERR("Unexpected GiftBoxType=" + Helper::toString(static_cast<uint32_t>(type)));
@@ -176,6 +229,147 @@ void GiftBoxBonus::applyBonus(GameMap* gameMap, Seat* seat, GiftBoxType type, ui
 
                 creature->setLevel(creature->getLevel() + amount);
             }
+            break;
+        }
+        case GiftBoxType::healAll:
+        {
+            std::vector<Creature*> creatures = gameMap->getCreaturesBySeat(seat);
+            for(Creature* creature : creatures)
+            {
+                if(!creature->isAlive())
+                    continue;
+
+                creature->heal(creature->getMaxHp());
+            }
+            break;
+        }
+        case GiftBoxType::makeSafe:
+        {
+            // Every wall next to claimed ground of the seat that is not claimed yet becomes a reinforced wall
+            for(int x = 0; x < gameMap->getMapSizeX(); ++x)
+            {
+                for(int y = 0; y < gameMap->getMapSizeY(); ++y)
+                {
+                    Tile* tile = gameMap->getTile(x, y);
+                    if((tile == nullptr) || tile->isClaimed() || !tile->isWallClaimable(seat))
+                        continue;
+
+                    tile->claimTile(seat);
+                }
+            }
+            break;
+        }
+        case GiftBoxType::weakenWalls:
+        {
+            // Reinforced enemy walls turn back to earth. Rooms, traps, doors and bridges are not affected
+            for(int x = 0; x < gameMap->getMapSizeX(); ++x)
+            {
+                for(int y = 0; y < gameMap->getMapSizeY(); ++y)
+                {
+                    Tile* tile = gameMap->getTile(x, y);
+                    if((tile == nullptr) || !tile->isFullTile() || !tile->isClaimed())
+                        continue;
+
+                    if(tile->getSeat()->isAlliedSeat(seat))
+                        continue;
+
+                    if((tile->getCoveringBuilding() != nullptr) || tile->getHasBridge())
+                        continue;
+
+                    tile->getSeat()->notifyTileClaimedByEnemy(tile);
+                    tile->unclaimTile();
+                }
+            }
+            break;
+        }
+        case GiftBoxType::stunWorkers:
+        {
+            int32_t nbTurns = static_cast<int32_t>(std::ceil(STUN_WORKERS_SECONDS * ODApplication::turnsPerSecond));
+            std::vector<Creature*> creatures = gameMap->getCreatures();
+            for(Creature* creature : creatures)
+            {
+                if(!creature->isAlive() || !creature->getDefinition()->isWorker())
+                    continue;
+
+                if(creature->getSeat()->isAlliedSeat(seat))
+                    continue;
+
+                creature->stun(nbTurns);
+            }
+            break;
+        }
+        case GiftBoxType::receiveWorkers:
+        {
+            const CreatureDefinition* workerClass = seat->getWorkerClassToSpawn();
+            Tile* tile = positionTile;
+            if((workerClass == nullptr) || (tile == nullptr))
+            {
+                OD_LOG_ERR("No worker class or tile for special type=" + Helper::toString(static_cast<uint32_t>(type)));
+                break;
+            }
+
+            bool upgraded = (seat->getSkillLevel(SkillType::spellSummonWorker) >= SKILL_LEVEL_UPGRADED);
+            for(uint32_t i = 0; i < amount; ++i)
+            {
+                Creature* newCreature = new Creature(gameMap, workerClass, seat);
+                newCreature->addToGameMap();
+                if(upgraded)
+                    newCreature->setLevel(LEVEL_WORKERS_UPGRADED);
+
+                Ogre::Vector3 spawnPosition(static_cast<Ogre::Real>(tile->getX()),
+                                            static_cast<Ogre::Real>(tile->getY()), 0.0f);
+                newCreature->addParticleEffect("SummonWorker", 3);
+                newCreature->createMesh();
+                newCreature->setPosition(spawnPosition);
+            }
+            break;
+        }
+        case GiftBoxType::makeHappy:
+        {
+            std::vector<Creature*> creatures = gameMap->getCreaturesBySeat(seat);
+            for(Creature* creature : creatures)
+            {
+                if(creature->isAlive())
+                    creature->removeAnnoyance();
+            }
+            break;
+        }
+        case GiftBoxType::makeUnhappy:
+        {
+            std::vector<Creature*> creatures = gameMap->getCreatures();
+            for(Creature* creature : creatures)
+            {
+                if(!creature->isAlive() || creature->getSeat()->isRogueSeat())
+                    continue;
+
+                if(creature->getSeat()->isAlliedSeat(seat))
+                    continue;
+
+                creature->makeUnhappy();
+            }
+            break;
+        }
+        case GiftBoxType::killCreatures:
+        {
+            // One visible enemy creature is chosen at random
+            std::vector<Creature*> victims;
+            std::vector<Creature*> creatures = gameMap->getCreatures();
+            for(Creature* creature : creatures)
+            {
+                if(!creature->isAlive() || creature->getSeat()->isAlliedSeat(seat))
+                    continue;
+
+                Tile* pos = creature->getPositionTile();
+                if((pos == nullptr) || !seat->hasVisionOnTile(pos))
+                    continue;
+
+                victims.push_back(creature);
+            }
+            if(victims.empty())
+                break;
+
+            Creature* victim = victims[Random::Int(0, static_cast<int>(victims.size()) - 1)];
+            victim->takeDamage(nullptr, victim->getHP() + 1.0, 0.0, 0.0, 0.0, victim->getPositionTile(), false);
             break;
         }
         default:

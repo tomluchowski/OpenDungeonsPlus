@@ -675,6 +675,17 @@ public:
     //! \brief Adds relief from praying, up to maxRelief
     void addPrayerRelief(int32_t relief, int32_t maxRelief);
 
+    //! \brief Mood points given by a special (positive after Make Happy, negative after Make Unhappy).
+    //! They fade towards 0 over time
+    inline int32_t getSpecialMood() const
+    { return mSpecialMood; }
+
+    //! \brief Make Happy special: clears the annoyance the creature has gathered
+    void removeAnnoyance();
+
+    //! \brief Make Unhappy special: pushes the creature down to the angry mood level
+    void makeUnhappy();
+
     inline int32_t getNbTurnsTorture() const
     { return mNbTurnsTorture; }
 
@@ -936,6 +947,9 @@ private:
 
     //! \brief Mood points gained by praying in a temple. They fade every turn
     int32_t                         mPrayerRelief;
+
+    //! \brief Mood points set by the Make Happy and Make Unhappy specials. They fade towards 0 every turn
+    int32_t                         mSpecialMood;
 
     //! \brief Counts turns the creature is furious. If it stays like this for too long, it will become rogue
     int32_t                         mNbTurnFurious;

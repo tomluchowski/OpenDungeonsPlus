@@ -85,6 +85,25 @@ check("SKIRMISH_HEART_REWARD_ROOMS_AND_LAND = 2" in header, "heart reward range 
 weights = [int(w) for w in re.findall(r"\{ GiftBoxType::\w+, (\d+) \}", temple)]
 check(len(weights) > 0 and all(w > 0 for w in weights), "every special of the reward pool needs a positive weight")
 
+# The random pool holds only types the gift box code can apply
+pool = re.search(r"HEART_REWARD_SPECIALS\[\] =\s*\{(.*?)\n\};", temple, re.S).group(1)
+weights = [int(w) for w in re.findall(r"GiftBoxType::\w+, (\d+) \}", pool)]
+check(len(weights) == 12 and sum(weights) == 100 and min(weights) >= 1, "the reward weights must add up to 100")
+bonus = (root / "source/giftboxes/GiftBoxBonus.cpp").read_text(encoding="utf-8")
+for entry in re.findall(r"GiftBoxType::(\w+)", pool):
+    check("case GiftBoxType::" + entry + ":" in bonus, "no gift box effect for the special " + entry)
+
+check(len(re.findall(r"GiftBoxType::(\w+)", pool)) == 12 and len(set(re.findall(r"GiftBoxType::(\w+)", pool))) == 12,
+      "the reward pool must hold the twelve specials")
+entity = (root / "source/entities/GiftBoxEntity.cpp").read_text(encoding="utf-8")
+for entry in re.findall(r"GiftBoxType::(\w+)", pool):
+    check("case GiftBoxType::" + entry + ":" in entity, "a level cannot load the special " + entry)
+check("removeAnnoyance" in bonus and "makeUnhappy()" in bonus and "claimTile(seat)" in bonus
+      and "unclaimTile()" in bonus and "stun(nbTurns)" in bonus and "setLevel(LEVEL_WORKERS_UPGRADED)" in bonus,
+      "the new special effects must call the creature and tile functions")
+mood = (root / "source/creaturemood/CreatureMoodManager.cpp").read_text(encoding="utf-8")
+check("getSpecialMood()" in mood, "the special mood must count in the mood points")
+
 if failures:
     print("\n".join(failures))
     sys.exit(1)

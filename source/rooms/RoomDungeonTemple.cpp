@@ -78,15 +78,23 @@ struct HeartRewardSpecial
     int mWeight;
 };
 
-//! \brief The specials picked from when a heart is destroyed. The chance of a special is its weight
-//! divided by the sum of all weights: plain supplies (gold, mana, map view) are more common than
-//! effects that change the whole dungeon at once (level up).
+//! \brief The twelve specials picked from when a heart is destroyed. The chance of a special is its weight
+//! divided by the sum of all weights (100): plain supplies (gold, mana, map view) are the most common,
+//! effects that change the whole dungeon at once (level up, kill creatures, stun workers) are rare.
 const HeartRewardSpecial HEART_REWARD_SPECIALS[] =
 {
     { GiftBoxType::gold, 15 },
     { GiftBoxType::mana, 14 },
     { GiftBoxType::revealMap, 12 },
-    { GiftBoxType::levelUp, 6 }
+    { GiftBoxType::receiveWorkers, 10 },
+    { GiftBoxType::makeHappy, 9 },
+    { GiftBoxType::healAll, 8 },
+    { GiftBoxType::makeSafe, 7 },
+    { GiftBoxType::weakenWalls, 7 },
+    { GiftBoxType::levelUp, 6 },
+    { GiftBoxType::stunWorkers, 6 },
+    { GiftBoxType::makeUnhappy, 4 },
+    { GiftBoxType::killCreatures, 2 }
 };
 const int NB_HEART_REWARD_SPECIALS = sizeof(HEART_REWARD_SPECIALS) / sizeof(HEART_REWARD_SPECIALS[0]);
 

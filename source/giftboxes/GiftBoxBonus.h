@@ -29,7 +29,10 @@ class Seat;
 //! view of the whole map for the rest of the game or a level for the creatures of the seat that brings
 //! the box to its dungeon temple. The type is one of GiftBoxType::mana, gold, revealMap
 //! and levelUp. The meaning of the amount depends on the type: mana points, gold coins,
-//! number of levels given. The type revealMap does not use it.
+//! number of levels given. The types revealMap and healAll do not use it; healAll heals
+//! every creature of the seat completely. The types makeSafe, weakenWalls,
+//! stunWorkers, makeHappy, makeUnhappy and killCreatures do not use the amount either, receiveWorkers uses it
+//! as the number of workers.
 class GiftBoxBonus: public GiftBoxEntity
 {
 public:
@@ -41,17 +44,17 @@ public:
     inline uint32_t getAmount() const
     { return mAmount; }
 
-    //! \brief Applies the bonus to the seat. The tile is where left over gold appears.
-    //! Used when the box is delivered.
+    //! \brief Applies the bonus to the seat. The tile is where workers or left over gold appear.
+    //! Used when the box is delivered and when a stored special is used.
     static void applyBonus(GameMap* gameMap, Seat* seat, GiftBoxType type, uint32_t amount, Tile* positionTile);
 
-    //! \brief The name of the special, used for messages
+    //! \brief The name of the special, used for the button and the message
     static std::string getDisplayName(GiftBoxType type);
 
-    //! \brief What the special does, used as a tooltip
+    //! \brief What the special does, used as the tooltip of its button
     static std::string getDescription(GiftBoxType type);
 
-    //! \brief The default amount of a box of the given type
+    //! \brief The amount used when a box is placed in the editor
     static uint32_t getDefaultAmount(GiftBoxType type);
 
 protected:

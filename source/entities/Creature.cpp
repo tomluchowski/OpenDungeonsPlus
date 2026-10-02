@@ -230,6 +230,7 @@ Creature::Creature(GameMap* gameMap, const CreatureDefinition* definition, Seat*
     mMoodValue               (gameMap->isServerGameMap() ? CreatureMoodLevel::Neutral : CreatureMoodLevel::Unknown),
     mMoodPoints              (0),
     mPrayerRelief            (0),
+    mSpecialMood             (0),
     mNbTurnFurious           (-1),
     mOverlayHealthValue      (0),
     mOverlayMoodValue        (CreatureMoodValues::Nothing),
@@ -329,6 +330,7 @@ Creature::Creature(GameMap* gameMap) :
     mMoodValue               (gameMap->isServerGameMap() ? CreatureMoodLevel::Neutral : CreatureMoodLevel::Unknown),
     mMoodPoints              (0),
     mPrayerRelief            (0),
+    mSpecialMood             (0),
     mNbTurnFurious           (-1),
     mOverlayHealthValue      (0),
     mOverlayMoodValue        (0),
@@ -1179,6 +1181,16 @@ void Creature::doUpkeep()
         mPrayerRelief -= ConfigManager::getSingleton().getRoomConfigInt32("TemplePrayerReliefDecayPerTurn");
         if(mPrayerRelief < 0)
             mPrayerRelief = 0;
+    }
+
+    // The mood set by the specials fades
+    if(mSpecialMood != 0)
+    {
+        int32_t decay = ConfigManager::getSingleton().getRoomConfigInt32("SpecialMoodDecayPerTurn");
+        if(mSpecialMood > 0)
+            mSpecialMood = std::max(0, mSpecialMood - decay);
+        else
+            mSpecialMood = std::min(0, mSpecialMood + decay);
     }
 
     // Check if we should compute mood
@@ -3657,6 +3669,32 @@ void Creature::addPrayerRelief(int32_t relief, int32_t maxRelief)
     mPrayerRelief = std::min(mPrayerRelief + relief, maxRelief);
 }
 
+void Creature::removeAnnoyance()
+{
+    mNbTurnsInHand = 0;
+    mNbTurnsOutOfWork = 0;
+    mNbTurnsTortureMood = 0;
+    mNbTurnsWithoutBattle = 0;
+    mSlapTurns.clear();
+    mSpecialMood = 0;
+    // What is left (hunger, tiredness, wounds, unpaid wage) is cancelled for a while, it builds up again
+    int32_t points = CreatureMoodManager::computeCreatureMoodModifiers(*this);
+    mSpecialMood = std::max(0, -points);
+    mMoodCooldownTurns = 0;
+}
+
+void Creature::makeUnhappy()
+{
+    mSpecialMood = 0;
+    int32_t points = CreatureMoodManager::computeCreatureMoodModifiers(*this);
+    // The middle of the angry level
+    int32_t target = (ConfigManager::getSingleton().getCreatureMoodAngry()
+        + ConfigManager::getSingleton().getCreatureMoodFurious()) / 2;
+    int32_t wanted = target - ConfigManager::getSingleton().getCreatureBaseMood() - points;
+    mSpecialMood = std::min(0, wanted);
+    mMoodCooldownTurns = 0;
+}
+
 void Creature::computeMood()
 {
     mMoodPoints = CreatureMoodManager::computeCreatureMoodModifiers(*this);
@@ -4270,6 +4308,7 @@ void Creature::changeSeat(Seat* newSeat)
     mMoodValue = CreatureMoodLevel::Neutral;
     mMoodPoints = 0;
     mPrayerRelief = 0;
+    mSpecialMood = 0;
     mWakefulness = 100;
     mHunger = 0;
     mNbTurnsTorture = 0;

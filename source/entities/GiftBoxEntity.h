@@ -36,6 +36,14 @@ enum class GiftBoxType
     gold,
     revealMap,
     levelUp,
+    healAll,
+    makeSafe,
+    weakenWalls,
+    stunWorkers,
+    receiveWorkers,
+    makeHappy,
+    makeUnhappy,
+    killCreatures,
     nbTypes
 };
 std::ostream& operator<<(std::ostream& os, const GiftBoxType& type);
