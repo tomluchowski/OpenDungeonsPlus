@@ -78,6 +78,8 @@ namespace
     static const int32_t DEFAULT_GRIEF_MOOD_PENALTY = 400;
     static const int64_t DEFAULT_GRIEF_RAGE_TURNS = 300;
     static const int32_t DEFAULT_GRIEF_RAGE_BONUS_PERCENT = 30;
+    //! Default points the friends of a creature lose towards a newcomer it befriends
+    static const int32_t DEFAULT_JEALOUSY_VALUE_LOSS = 3;
     //! Largest absolute value of a decimal config setting; larger values are cut to it
     static const double DECIMAL_SETTING_LIMIT = 1000.0;
 
@@ -178,7 +180,8 @@ RelationshipSettings::RelationshipSettings() :
     mTempMoodDecayPerTurn(DEFAULT_TEMP_MOOD_DECAY_PER_TURN),
     mGriefMoodPenalty(DEFAULT_GRIEF_MOOD_PENALTY),
     mGriefRageTurns(DEFAULT_GRIEF_RAGE_TURNS),
-    mGriefRageBonusPercent(DEFAULT_GRIEF_RAGE_BONUS_PERCENT)
+    mGriefRageBonusPercent(DEFAULT_GRIEF_RAGE_BONUS_PERCENT),
+    mJealousyValueLoss(DEFAULT_JEALOUSY_VALUE_LOSS)
 {
 }
 
@@ -235,7 +238,8 @@ RelationshipSettings RelationshipSettings::fromConfig(const std::map<std::string
         {"TempMoodMax", &settings.mTempMoodMax},
         {"TempMoodDecayPerTurn", &settings.mTempMoodDecayPerTurn},
         {"GriefMoodPenalty", &settings.mGriefMoodPenalty},
-        {"GriefRageBonusPercent", &settings.mGriefRageBonusPercent}
+        {"GriefRageBonusPercent", &settings.mGriefRageBonusPercent},
+        {"JealousyValueLoss", &settings.mJealousyValueLoss}
     };
     struct DoubleEntry
     {
@@ -404,13 +408,36 @@ void CreatureRelationships::changeValue(const std::string& creatureA, const std:
 
     Pair pair = makePair(creatureA, creatureB);
     int32_t value = amount;
+    int32_t oldValue = 0;
     std::map<Pair, PairData>::const_iterator it = mPairs.find(pair);
     if(it != mPairs.end())
-        value += it->second.mValue;
+    {
+        oldValue = it->second.mValue;
+        value += oldValue;
+    }
 
     setValue(pair, value, turn, true);
     enforceLimits(creatureA, turn);
     enforceLimits(creatureB, turn);
+
+    // Becoming friends makes the friends of both creatures jealous
+    if((mSettings.mJealousyValueLoss > 0) && (oldValue < mSettings.mThresholdFriends)
+       && isFriend(creatureA, creatureB))
+    {
+        applyJealousy(creatureA, creatureB, turn);
+        applyJealousy(creatureB, creatureA, turn);
+    }
+}
+
+void CreatureRelationships::applyJealousy(const std::string& creature, const std::string& newFriend, int64_t turn)
+{
+    std::vector<std::string> friends;
+    getFriends(creature, friends);
+    for(size_t i = 0; i < friends.size(); ++i)
+    {
+        if(friends[i] != newFriend)
+            changeValue(friends[i], newFriend, -mSettings.mJealousyValueLoss, turn);
+    }
 }
 
 void CreatureRelationships::enforceLimits(const std::string& creature, int64_t turn)

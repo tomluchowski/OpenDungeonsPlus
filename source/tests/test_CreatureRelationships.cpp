@@ -482,6 +482,28 @@ BOOST_AUTO_TEST_CASE(test_Friends)
     BOOST_CHECK(friends.empty());
 }
 
+BOOST_AUTO_TEST_CASE(test_Jealousy)
+{
+    CreatureRelationships relationships;
+    const RelationshipSettings& settings = relationships.getSettings();
+    relationships.changeValue("A", "B", 60, 0);
+    BOOST_CHECK_EQUAL(relationships.getValue("A", "C"), 0);
+
+    // B becomes friends with C: A, the friend of B, gets jealous of C
+    relationships.changeValue("B", "C", 55, 0);
+    BOOST_CHECK_EQUAL(relationships.getValue("A", "C"), -settings.mJealousyValueLoss);
+    BOOST_CHECK_EQUAL(relationships.getValue("B", "C"), 55);
+    BOOST_CHECK_EQUAL(relationships.getValue("A", "B"), 60);
+
+    // Strengthening an existing friendship does not count again
+    relationships.changeValue("B", "C", 10, 0);
+    BOOST_CHECK_EQUAL(relationships.getValue("A", "C"), -settings.mJealousyValueLoss);
+
+    // Without friends nobody is jealous
+    relationships.changeValue("X", "Y", 60, 0);
+    BOOST_CHECK_EQUAL(relationships.getNbPairs(), 4u);
+}
+
 BOOST_AUTO_TEST_CASE(test_ConfigValues)
 {
     std::map<std::string, std::string> config;

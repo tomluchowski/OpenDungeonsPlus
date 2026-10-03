@@ -139,6 +139,11 @@ struct RelationshipSettings
     //! \brief Extra damage in percent a grieving creature deals to the side of the killer
     int32_t mGriefRageBonusPercent;
 
+    //! \brief Jealousy: when a creature becomes friends with another one, the friends of the first
+    //! creature lose this many points towards the newcomer (0 switches it off). The break-up of
+    //! partners needs the lovers tier and is not part of it yet.
+    int32_t mJealousyValueLoss;
+
     //! Start value of a pair of creature classes (sorted pair of class names), see config
     //! entries "Racial_<ClassA>_<ClassB>".
     std::map<std::pair<std::string, std::string>, int32_t> mRacialStart;
@@ -273,6 +278,12 @@ private:
     void setValue(const Pair& pair, int32_t value, int64_t turn, bool isEvent);
     //! \brief Lets the weakest relationship of a tier fall back while the creature has too many of it
     void enforceLimits(const std::string& creature, int64_t turn);
+    //! \brief Friends of creature get jealous of newFriend, which just became its friend
+    //! \param creature The creature whose friends get jealous
+    //! \param newFriend The creature that just became a friend of creature
+    //! \param turn The current turn
+    void applyJealousy(const std::string& creature, const std::string& newFriend, int64_t turn);
+
     //! \brief Records a tier change of the pair if the old and the new value are in different tiers.
     void recordTierChange(const Pair& pair, int32_t oldValue, int32_t newValue);
     //! \brief Returns one value that lies in the given tier (used by clients that only know the tier).
