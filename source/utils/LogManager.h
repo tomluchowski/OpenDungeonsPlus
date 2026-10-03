@@ -58,12 +58,20 @@ public:
     //! \brief Log a message to the sinks.
     void logMessage(LogMessageLevel level, const char* filepath, int line, const std::string& message);
 
+    //! \brief Number of critical messages (OD_LOG_ERR, failed OD_ASSERT_TRUE) logged so far, whatever the log level.
+    uint32_t getCriticalCount();
+
+    //! \brief The first critical message logged (empty if none).
+    std::string getFirstCritical();
+
     static const std::string GAMELOG_NAME;
 private:
     LogManager(const LogManager&) = delete;
     LogManager& operator=(const LogManager&) = delete;
 
     LogMessageLevel mLevel;
+    uint32_t mCriticalCount;
+    std::string mFirstCritical;
     std::map<std::string, LogMessageLevel> mModuleLevel;
     sf::Mutex mLock;
     std::vector<std::unique_ptr<LogSink>> mSinks;

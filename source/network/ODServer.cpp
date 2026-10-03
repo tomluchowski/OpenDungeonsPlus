@@ -50,6 +50,7 @@
 #include "utils/LogManager.h"
 #include "utils/MasterServer.h"
 #include "utils/ResourceManager.h"
+#include "utils/RunLevelTest.h"
 #include "ODApplication.h"
 
 #include <SFML/Network.hpp>
@@ -172,6 +173,9 @@ bool ODServer::startServer(const std::string& creator, const std::string& levelF
     int mId = 0 ;
     for(Seat* seat : gameMap->getSeats())
     {
+        // The rogue seat has no client to tell, sending to its player logged an error at every level start
+        if(seat->isRogueSeat())
+            continue;
 
         ServerNotification *serverNotification = new ServerNotification(
             ServerNotificationType::restoreEverVisitedTiles, seat->getPlayer());
@@ -470,6 +474,8 @@ void ODServer::startNewTurn(double timeSinceLastTurn)
 
     gameMap->fireRefreshEntities();
     gameMap->processDeletionQueues();
+    if(RunLevelTest::isActive())
+        RunLevelTest::onServerTurn(*gameMap);
 }
 
 void ODServer::serverThread()

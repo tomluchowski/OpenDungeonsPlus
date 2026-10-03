@@ -86,6 +86,7 @@ const std::string ResourceManager::RESOURCEGROUPSOUND = "Sound";
  */
 ResourceManager::ResourceManager(boost::program_options::variables_map& options) :
         mServerMode(false),
+        mRunLevelSeconds(120),
         mForcedNetworkPort(-1),
         mLogLevel(LogMessageLevel::NORMAL),
         mGameDataPath("./"),
@@ -434,6 +435,14 @@ void ResourceManager::setupUserDataFolders(boost::program_options::variables_map
         }
     }
 
+    itOption = options.find("run-level");
+    if(itOption != options.end())
+        mRunLevel = itOption->second.as<std::string>();
+
+    itOption = options.find("seconds");
+    if(itOption != options.end())
+        mRunLevelSeconds = itOption->second.as<int32_t>();
+
     itOption = options.find("port");
     if(itOption != options.end())
         mForcedNetworkPort = itOption->second.as<int32_t>();
@@ -600,6 +609,8 @@ void ResourceManager::buildCommandOptions(boost::program_options::options_descri
         ("mscreator", boost::program_options::value<std::string>(), "Sets the creator for this map to connect to the master server. server/servercustom/serversave option needs to be on")
         ("port", boost::program_options::value<int32_t>(), "Sets the port used. Note that the port is used for both single and multi player")
         ("loglevel", boost::program_options::value<int32_t>(), "Sets the log level (between 0=Trivial and 3=Critical)")
+        ("run-level", boost::program_options::value<std::string>(), "Debug: starts a local game on the given level file, runs it for --seconds, triggers the win and exits with a result code")
+        ("seconds", boost::program_options::value<int32_t>(), "Debug: game time in seconds for --run-level (default 120)")
     ;
 }
 

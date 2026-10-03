@@ -153,11 +153,23 @@ public:
     inline LogMessageLevel getLogLevel() const
     { return mLogLevel; }
 
+    //! \brief Debug option --run-level: level file to run as an automated load test (empty if not used)
+    inline const std::string& getRunLevel() const
+    { return mRunLevel; }
+
+    //! \brief Debug option --seconds: game time in seconds the automated load test runs
+    inline int32_t getRunLevelSeconds() const
+    { return mRunLevelSeconds; }
+
 private:
     //! \brief used when the executable is launched in server mode
     bool mServerMode;
     std::string mServerModeLevel;
     std::string mServerModeCreator;
+
+    //! \brief used by the automated level load test
+    std::string mRunLevel;
+    int32_t mRunLevelSeconds;
 
     //! \brief used when the network port is forced
     int32_t mForcedNetworkPort;

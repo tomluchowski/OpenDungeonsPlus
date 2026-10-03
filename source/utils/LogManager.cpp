@@ -27,7 +27,8 @@ template<> LogManager* Ogre::Singleton<LogManager>::msSingleton = nullptr;
 const std::string LogManager::GAMELOG_NAME = "gameLog";
 
 LogManager::LogManager()
-    : mLevel(LogMessageLevel::NORMAL)
+    : mLevel(LogMessageLevel::NORMAL),
+    mCriticalCount(0)
 {
 
 }
@@ -52,9 +53,28 @@ void LogManager::setModuleLevel(const char* module, LogMessageLevel level)
     mModuleLevel[module] = level;
 }
 
+uint32_t LogManager::getCriticalCount()
+{
+    sf::Lock locked(mLock);
+    return mCriticalCount;
+}
+
+std::string LogManager::getFirstCritical()
+{
+    sf::Lock locked(mLock);
+    return mFirstCritical;
+}
+
 void LogManager::logMessage(LogMessageLevel level, const char* filepath, int line, const std::string& message)
 {
     sf::Lock locked(mLock);
+
+    if(level == LogMessageLevel::CRITICAL)
+    {
+        ++mCriticalCount;
+        if(mFirstCritical.empty())
+            mFirstCritical = boost::filesystem::path(filepath).filename().string() + ":" + Helper::toString(line) + " " + message;
+    }
 
     // module
 

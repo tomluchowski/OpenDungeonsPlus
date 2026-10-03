@@ -495,6 +495,7 @@ set(OD_SOURCEFILES
     ${SRC}/utils/MasterServer.cpp
     ${SRC}/utils/Random.cpp
     ${SRC}/utils/ResourceManager.cpp
+    ${SRC}/utils/RunLevelTest.cpp
     ${SRC}/utils/VectorInt64.cpp
 
     ${SRC}/ODApplication.cpp
