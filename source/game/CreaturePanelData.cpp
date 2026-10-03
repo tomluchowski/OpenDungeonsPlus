@@ -31,6 +31,11 @@ bool matchesCreaturePanelCriterion(CreaturePanelCriterion criterion, const Creat
          activity.task == CreatureActionType::searchGroundTileToClaim ||
          activity.task == CreatureActionType::searchWallTileToClaim ||
          activity.task == CreatureActionType::searchEntityToCarry));
+    const bool working = worker && (activity.task == CreatureActionType::digTile ||
+        activity.task == CreatureActionType::claimGroundTile ||
+        activity.task == CreatureActionType::claimWallTile ||
+        activity.task == CreatureActionType::grabEntity ||
+        activity.task == CreatureActionType::carryEntity);
     const bool usingRoom = activity.action == CreatureActionType::useRoom && activity.inAssignedRoom;
     const bool manufacturing = usingRoom && (activity.assignedRoom == RoomType::workshop ||
         activity.assignedRoom == RoomType::library);
@@ -40,12 +45,7 @@ bool matchesCreaturePanelCriterion(CreaturePanelCriterion criterion, const Creat
     switch(criterion)
     {
         case CreaturePanelCriterion::Idle: return idle;
-        case CreaturePanelCriterion::Working:
-            return worker && (activity.task == CreatureActionType::digTile ||
-                activity.task == CreatureActionType::claimGroundTile ||
-                activity.task == CreatureActionType::claimWallTile ||
-                activity.task == CreatureActionType::grabEntity ||
-                activity.task == CreatureActionType::carryEntity);
+        case CreaturePanelCriterion::Working: return working;
         case CreaturePanelCriterion::Fighting: return fighting;
         case CreaturePanelCriterion::Manufacturing: return manufacturing;
         case CreaturePanelCriterion::Training: return training;
