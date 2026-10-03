@@ -182,6 +182,9 @@ struct RelationshipSettings
     //! \brief Mood points the friends that see a slap lose
     int32_t mSlapFriendsMoodPenalty;
 
+    //! Start value of a converted prisoner towards each creature that captured it
+    int32_t mConvertedCaptorValue;
+
     //! Start value of a pair of creature classes (sorted pair of class names), see config
     //! entries "Racial_<ClassA>_<ClassB>".
     std::map<std::pair<std::string, std::string>, int32_t> mRacialStart;
@@ -262,6 +265,9 @@ public:
     //! \param lookup The function that returns the gender of the creature with a given name
     void setGenderLookup(const GenderLookup& lookup)
     { mGenderLookup = lookup; }
+    //! \brief A converted prisoner starts with mConvertedCaptorValue (negative) towards every creature
+    //! in captors that captured it. Pairs that already have a value are left alone.
+    void startConverted(const std::string& creature, const std::vector<std::string>& captors, int64_t turn);
 
     //! \brief Single entry point for all gameplay hooks. Changes the value of the
     //! pair according to the amount configured for the event.

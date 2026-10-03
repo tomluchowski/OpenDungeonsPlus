@@ -2215,8 +2215,16 @@ void Creature::updateFromPacket(ODPacket& is)
         }
         else
         {
+            Seat* oldSeat = getSeat();
             setSeat(seat);
             social::PostLog::getSingleton().rosterChanged();
+            // A creature that joins the local keeper from another seat was converted
+            Player* localPlayer = getGameMap()->getLocalPlayer();
+            if(getGameMap()->isRelationshipsEnabled() && (oldSeat != nullptr) && !oldSeat->isRogueSeat()
+               && (localPlayer != nullptr) && (seat == localPlayer->getSeat()))
+            {
+                socialEvent(social::PostCategory::Converted);
+            }
         }
     }
 
@@ -3462,6 +3470,26 @@ void Creature::reportRelationshipEvent(RelationshipEvent event, Creature& creatu
         gameMap->getTurnNumber(), creatureA.getDefinition()->getClassName(), creatureB.getDefinition()->getClassName());
 }
 
+void Creature::startConvertedRelationships()
+{
+    std::vector<std::string> captors;
+    captors.swap(mCaptors);
+    // The prison seat of the converted creature is only cleared later, so canHaveRelationships() cannot be used
+    if(!getIsOnServerMap() || !getGameMap()->isRelationshipsEnabled() || (getSeat() == nullptr)
+       || getSeat()->isRogueSeat() || getDefinition()->isWorker())
+        return;
+
+    GameMap* gameMap = getGameMap();
+    std::vector<std::string> sameKeeper;
+    for(size_t i = 0; i < captors.size(); ++i)
+    {
+        Creature* captor = gameMap->getCreature(captors[i]);
+        if((captor != nullptr) && (captor->getSeat() == getSeat()) && captor->canHaveRelationships())
+            sameKeeper.push_back(captors[i]);
+    }
+    gameMap->getCreatureRelationships()->startConverted(getName(), sameKeeper, gameMap->getTurnNumber());
+}
+
 void Creature::reportFightParticipants(Creature& killer)
 {
     if(getDefinition()->isWorker() || !killer.canHaveRelationships() || (killer.getSeat() == getSeat()) || killer.getSeat()->isAlliedSeat(getSeat()))
@@ -3543,6 +3571,15 @@ double Creature::takeDamage(GameEntity* attacker, double absoluteDamage, double 
             mKoTurnCounter = -ConfigManager::getSingleton().getNbTurnsKoCreatureAttacked();
             OD_LOG_INF("creature=" + getName() + " has been KO by " + attacker->getName());
             dropCarriedEquipment();
+
+            // Enemies that knock this creature out are remembered in case it is converted later
+            static const size_t MAX_CAPTORS = 8;
+            if((creatureAttacking != nullptr) && (creatureAttacking->getSeat() != getSeat()) && (mCaptors.size() < MAX_CAPTORS)
+               && getIsOnServerMap() && getGameMap()->isRelationshipsEnabled() && creatureAttacking->canHaveRelationships()
+               && (std::find(mCaptors.begin(), mCaptors.end(), creatureAttacking->getName()) == mCaptors.end()))
+            {
+                mCaptors.push_back(creatureAttacking->getName());
+            }
 
             // The loser of a fight in the arena gets a worse relationship with the winner
             if(!wasKo && (creatureAttacking != nullptr) && (getPositionTile() != nullptr)

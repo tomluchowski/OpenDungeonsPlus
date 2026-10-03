@@ -543,6 +543,24 @@ BOOST_AUTO_TEST_CASE(test_BestFriend)
     BOOST_CHECK(relationships.getBestFriend("Nobody").empty());
 }
 
+BOOST_AUTO_TEST_CASE(test_ConvertedPrisoner)
+{
+    CreatureRelationships relationships;
+    std::vector<std::string> captors;
+    captors.push_back("Captor1");
+    captors.push_back("Captor2");
+    captors.push_back("Convert");
+    relationships.changeValue("Convert", "Captor2", 10, 0);
+    relationships.startConverted("Convert", captors, 0);
+    const int32_t captorValue = relationships.getSettings().mConvertedCaptorValue;
+    BOOST_CHECK(captorValue < 0);
+    BOOST_CHECK_EQUAL(relationships.getValue("Convert", "Captor1"), captorValue);
+    // An existing value stays, others get none
+    BOOST_CHECK_EQUAL(relationships.getValue("Convert", "Captor2"), 10);
+    BOOST_CHECK_EQUAL(relationships.getValue("Convert", "Other"), 0);
+    BOOST_CHECK_EQUAL(relationships.getNbPairs(), 2u);
+}
+
 // Settings read from the config keep the default when a key is missing or not a number
 BOOST_AUTO_TEST_CASE(test_ConfigValues)
 {

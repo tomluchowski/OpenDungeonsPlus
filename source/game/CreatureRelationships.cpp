@@ -105,6 +105,8 @@ namespace
     static const int32_t DEFAULT_EAT_TOGETHER_TILES = 6;
     //! Default mood points the friends that see a slap lose
     static const int32_t DEFAULT_SLAP_FRIENDS_MOOD_PENALTY = 150;
+    //! Default start value of a converted prisoner towards each creature that captured it
+    static const int32_t DEFAULT_CONVERTED_CAPTOR_VALUE = -20;
     //! Default points a partner loses towards the newcomer a creature befriends, and the value below which lovers break up
     static const int32_t DEFAULT_LOVERS_JEALOUSY_VALUE_LOSS = 8;
     static const int32_t DEFAULT_LOVERS_BREAK_VALUE = 70;
@@ -229,7 +231,8 @@ RelationshipSettings::RelationshipSettings() :
     mNeighbourBedTiles(DEFAULT_NEIGHBOUR_BED_TILES),
     mEatTogetherMood(DEFAULT_EAT_TOGETHER_MOOD),
     mEatTogetherTiles(DEFAULT_EAT_TOGETHER_TILES),
-    mSlapFriendsMoodPenalty(DEFAULT_SLAP_FRIENDS_MOOD_PENALTY)
+    mSlapFriendsMoodPenalty(DEFAULT_SLAP_FRIENDS_MOOD_PENALTY),
+    mConvertedCaptorValue(DEFAULT_CONVERTED_CAPTOR_VALUE)
 {
 }
 
@@ -298,7 +301,8 @@ RelationshipSettings RelationshipSettings::fromConfig(const std::map<std::string
         {"NeighbourBedTiles", &settings.mNeighbourBedTiles},
         {"EatTogetherMood", &settings.mEatTogetherMood},
         {"EatTogetherTiles", &settings.mEatTogetherTiles},
-        {"SlapFriendsMoodPenalty", &settings.mSlapFriendsMoodPenalty}
+        {"SlapFriendsMoodPenalty", &settings.mSlapFriendsMoodPenalty},
+        {"ConvertedCaptorValue", &settings.mConvertedCaptorValue}
     };
     struct DoubleEntry
     {
@@ -409,6 +413,18 @@ CreatureRelationships::Pair CreatureRelationships::makePair(const std::string& c
         return Pair(creatureA, creatureB);
 
     return Pair(creatureB, creatureA);
+}
+
+void CreatureRelationships::startConverted(const std::string& creature, const std::vector<std::string>& captors,
+    int64_t turn)
+{
+    for(size_t i = 0; i < captors.size(); ++i)
+    {
+        if((captors[i] == creature) || (getValue(creature, captors[i]) != 0))
+            continue;
+
+        changeValue(creature, captors[i], mSettings.mConvertedCaptorValue, turn);
+    }
 }
 
 void CreatureRelationships::onRelationshipEvent(RelationshipEvent event, const std::string& creatureA,

@@ -51,6 +51,8 @@ enum class PostCategory : uint8_t
     Hatred,
     Nemesis,
     Breakup,
+    //! A prisoner was converted and joined the local keeper (relationship option)
+    Converted,
     //! Two creatures became a couple, or a couple broke up (relationship option)
     Couple,
     SplitUp,

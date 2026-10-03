@@ -342,6 +342,7 @@ bool RoomTorture::useRoom(Creature& creature, bool forced)
         {
             // The creature changes side
             creature.changeSeat(getSeat());
+            creature.startConvertedRelationships();
             creature.clearActionQueue();
 
             // We return false because we don't want to choose an action before a next complete turn
