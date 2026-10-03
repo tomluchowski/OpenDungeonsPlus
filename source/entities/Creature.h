@@ -179,6 +179,11 @@ public:
     void setAppearanceFromServer(const CreatureAppearance& appearance);
     std::string getStatsText();
 
+    //! \brief Client side. One line with the strongest friend and the worst enemy of a creature of the
+    //! local player or its allies, e.g. "Closest: Name (friend) - Against: Name (nemesis)". Empty if the
+    //! option is off, the creature belongs to somebody else or it has no relationships.
+    std::string getRelationshipTooltip();
+
     //! \brief Get the level of the object
     inline unsigned int getLevel() const
     { return mLevel; }

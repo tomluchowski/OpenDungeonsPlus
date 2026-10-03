@@ -2956,6 +2956,28 @@ float Creature::fillProfilePage(CEGUI::Window* page)
     return gui.layoutCreatureProfilePage(page);
 }
 
+std::string Creature::getRelationshipTooltip()
+{
+    GameMap* gameMap = getGameMap();
+    Player* localPlayer = gameMap->getLocalPlayer();
+    if(getIsOnServerMap() || !gameMap->isRelationshipsEnabled() || (gameMap->getCreatureRelationships() == nullptr)
+       || (localPlayer == nullptr) || !getSeat()->isAlliedSeat(localPlayer->getSeat()) || isInPrison())
+        return std::string();
+
+    ProfileRelations relations;
+    collectProfileRelations(gameMap, *gameMap->getCreatureRelationships(), getName(), relations);
+    std::string line;
+    if(!relations.mClose.empty())
+        line += "Closest: " + relations.mTierText[relations.mClose[0]];
+    if(!relations.mAgainst.empty())
+    {
+        if(!line.empty())
+            line += " - ";
+        line += "Against: " + relations.mTierText[relations.mAgainst[0]];
+    }
+    return line;
+}
+
 std::string Creature::getStatsText()
 {
     // The creatures are not refreshed at each turn so this information is relevant in the server
