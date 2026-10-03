@@ -2223,6 +2223,58 @@ void Creature::reportDeathToFriends(GameEntity* killer)
     }
 }
 
+bool Creature::hasFriendDoing(CreatureActionType action, double maxTiles, bool useHomeTile) const
+{
+    Tile* myTile = useHomeTile ? getHomeTile() : getPositionTile();
+    if(myTile == nullptr)
+        return false;
+
+    std::vector<std::string> friends;
+    getGameMap()->getCreatureRelationships()->getFriends(getName(), friends);
+    for(size_t i = 0; i < friends.size(); ++i)
+    {
+        Creature* friendCreature = getGameMap()->getCreature(friends[i]);
+        if((friendCreature == nullptr) || (friendCreature->getSeat() != getSeat()) || !friendCreature->isAlive()
+           || friendCreature->isKo() || !friendCreature->getIsOnMap() || !friendCreature->canHaveRelationships()
+           || !friendCreature->isActionInList(action))
+        {
+            continue;
+        }
+
+        Tile* friendTile = useHomeTile ? friendCreature->getHomeTile() : friendCreature->getPositionTile();
+        // A sleeping friend lies in its bed
+        if((friendTile == nullptr) || (useHomeTile && (friendCreature->getPositionTile() != friendTile)))
+            continue;
+
+        double dx = static_cast<double>(friendTile->getX() - myTile->getX());
+        double dy = static_cast<double>(friendTile->getY() - myTile->getY());
+        if((dx * dx + dy * dy) <= (maxTiles * maxTiles))
+            return true;
+    }
+
+    return false;
+}
+
+void Creature::reportSleepingNextToFriends()
+{
+    if(!canHaveRelationships())
+        return;
+
+    const RelationshipSettings& settings = getGameMap()->getCreatureRelationships()->getSettings();
+    if(hasFriendDoing(CreatureActionType::sleep, static_cast<double>(settings.mNeighbourBedTiles), true))
+        addRelationshipMood(settings.mSleepNextToFriendMood);
+}
+
+void Creature::reportEatingWithFriends()
+{
+    if(!canHaveRelationships())
+        return;
+
+    const RelationshipSettings& settings = getGameMap()->getCreatureRelationships()->getSettings();
+    if(hasFriendDoing(CreatureActionType::eatChicken, static_cast<double>(settings.mEatTogetherTiles), false))
+        addRelationshipMood(settings.mEatTogetherMood);
+}
+
 void Creature::reportLeavingToBestFriend()
 {
     if(!canHaveRelationships())

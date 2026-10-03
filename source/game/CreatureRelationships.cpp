@@ -82,6 +82,12 @@ namespace
     static const int32_t DEFAULT_JEALOUSY_VALUE_LOSS = 3;
     //! Default chance in percent that the best friend of an unhappy leaver leaves with it
     static const int32_t DEFAULT_LEAVE_TOGETHER_CHANCE_PERCENT = 30;
+    //! Default mood points for sleeping next to a friend, and the distance in tiles that counts as next to it
+    static const int32_t DEFAULT_SLEEP_NEXT_TO_FRIEND_MOOD = 150;
+    static const int32_t DEFAULT_NEIGHBOUR_BED_TILES = 3;
+    //! Default mood points for eating together with a friend, and the distance in tiles that counts as together
+    static const int32_t DEFAULT_EAT_TOGETHER_MOOD = 100;
+    static const int32_t DEFAULT_EAT_TOGETHER_TILES = 6;
     //! Largest absolute value of a decimal config setting; larger values are cut to it
     static const double DECIMAL_SETTING_LIMIT = 1000.0;
 
@@ -184,7 +190,11 @@ RelationshipSettings::RelationshipSettings() :
     mGriefRageTurns(DEFAULT_GRIEF_RAGE_TURNS),
     mGriefRageBonusPercent(DEFAULT_GRIEF_RAGE_BONUS_PERCENT),
     mJealousyValueLoss(DEFAULT_JEALOUSY_VALUE_LOSS),
-    mLeaveTogetherChancePercent(DEFAULT_LEAVE_TOGETHER_CHANCE_PERCENT)
+    mLeaveTogetherChancePercent(DEFAULT_LEAVE_TOGETHER_CHANCE_PERCENT),
+    mSleepNextToFriendMood(DEFAULT_SLEEP_NEXT_TO_FRIEND_MOOD),
+    mNeighbourBedTiles(DEFAULT_NEIGHBOUR_BED_TILES),
+    mEatTogetherMood(DEFAULT_EAT_TOGETHER_MOOD),
+    mEatTogetherTiles(DEFAULT_EAT_TOGETHER_TILES)
 {
 }
 
@@ -243,7 +253,11 @@ RelationshipSettings RelationshipSettings::fromConfig(const std::map<std::string
         {"GriefMoodPenalty", &settings.mGriefMoodPenalty},
         {"GriefRageBonusPercent", &settings.mGriefRageBonusPercent},
         {"JealousyValueLoss", &settings.mJealousyValueLoss},
-        {"LeaveTogetherChancePercent", &settings.mLeaveTogetherChancePercent}
+        {"LeaveTogetherChancePercent", &settings.mLeaveTogetherChancePercent},
+        {"SleepNextToFriendMood", &settings.mSleepNextToFriendMood},
+        {"NeighbourBedTiles", &settings.mNeighbourBedTiles},
+        {"EatTogetherMood", &settings.mEatTogetherMood},
+        {"EatTogetherTiles", &settings.mEatTogetherTiles}
     };
     struct DoubleEntry
     {

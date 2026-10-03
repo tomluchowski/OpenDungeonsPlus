@@ -332,7 +332,15 @@ public:
     //! \param killer The entity that dealt the killing blow
     void reportDeathToFriends(GameEntity* killer);
 
-    //! \brief Server side. Called when this creature starts to leave the dungeon unhappy: its best friend
+    //! \brief Server side. Called while this creature sleeps in its bed: a friend sleeping in a bed close by
+    //! raises its mood a little.
+    void reportSleepingNextToFriends();
+
+    //! \brief Server side. Called when this creature eats: a friend that eats at the same time close by
+    //! raises its mood a little.
+    void reportEatingWithFriends();
+
+    //! Server side. Called when this creature starts to leave the dungeon unhappy: its best friend
     //! may leave with it (chance from the settings).
     void reportLeavingToBestFriend();
 
@@ -845,6 +853,13 @@ private:
     //! Combat modifier of the relationships, computed at most once per turn
     mutable int64_t                 mCombatModifierTurn = -1;
     mutable double                  mCombatModifier = 0.0;
+
+    //! \brief Server side. True if a friend of the same keeper that is doing action is within maxTiles tiles,
+    //! measured between the home tiles (sleeping) or the positions.
+    //! \param action The action the friend has to do
+    //! \param maxTiles Largest distance in tiles
+    //! \param useHomeTile True to measure between the home tiles (a friend must lie in its bed), false for the positions
+    bool hasFriendDoing(CreatureActionType action, double maxTiles, bool useHomeTile) const;
 
     //! Mood points from relationship events that fade each turn (relationships)
     int32_t                         mRelationshipTempMood = 0;

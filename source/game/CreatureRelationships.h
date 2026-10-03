@@ -147,6 +147,18 @@ struct RelationshipSettings
     //! Chance (percent) that the best friend of a creature that leaves the dungeon unhappy leaves with it
     int32_t mLeaveTogetherChancePercent;
 
+    //! \brief Mood points a creature gets while a friend sleeps in a bed close by
+    int32_t mSleepNextToFriendMood;
+
+    //! \brief Largest distance in tiles between two beds that counts as close by
+    int32_t mNeighbourBedTiles;
+
+    //! \brief Mood points a creature gets while a friend eats at the same time close by
+    int32_t mEatTogetherMood;
+
+    //! \brief Largest distance in tiles between two eating creatures that counts as together
+    int32_t mEatTogetherTiles;
+
     //! Start value of a pair of creature classes (sorted pair of class names), see config
     //! entries "Racial_<ClassA>_<ClassB>".
     std::map<std::pair<std::string, std::string>, int32_t> mRacialStart;
