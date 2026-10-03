@@ -48,7 +48,9 @@ enum class RelationshipEvent
     //! The first creature lost against the second one in the arena
     arenaLoss,
     //! The second creature took away the chicken the first one wanted
-    chickenSnatched
+    chickenSnatched,
+    //! Two creatures prayed in the temple at the same time; only changes pairs that hate each other
+    prayedTogether
 };
 
 //! \brief Values of the relationship system. The defaults are used when
@@ -84,6 +86,10 @@ struct RelationshipSettings
     int32_t mEventDefeatedEnemiesTogether;
     int32_t mEventArenaLoss;
     int32_t mEventChickenSnatched;
+    //! Reconciliation: points a hated pair gains when it prays together, at most once per
+    //! mPrayerTogetherCooldownTurns turns (0 for the amount switches it off)
+    int32_t mEventPrayedTogether;
+    int64_t mPrayerTogetherCooldownTurns;
     //! Training together counts at most once per pair in this number of turns (one training cycle)
     int64_t mTrainingTogetherCooldownTurns;
     //! Creatures that hit the same enemy within this number of turns took part in defeating it
@@ -405,6 +411,8 @@ private:
     std::map<Pair, PairData> mPairs;
     //! Turn of the last counted training event per pair
     std::map<Pair, int64_t> mLastTrainingTurn;
+    //! Turn of the last counted prayer event per pair
+    std::map<Pair, int64_t> mLastPrayerTurn;
     std::vector<RelationshipTierChange> mTierChanges;
     int64_t mLastDriftTurn;
 
