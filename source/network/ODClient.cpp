@@ -872,7 +872,8 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
             MovableGameEntity* entity = gameMap->getRenderedMovableEntity(entityName);
             if(entity == nullptr)
             {
-                OD_LOG_ERR("MovableGameEntity pointer equal to nullptr: entityName=" + entityName);
+                // The entity can already be gone on the client when the order arrives (for example a trap rebuilt in the meantime)
+                OD_LOG_WRN("MovableGameEntity pointer equal to nullptr: entityName=" + entityName);
                 break;
             }
 
