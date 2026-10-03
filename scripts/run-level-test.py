@@ -98,6 +98,7 @@ def main():
     parser.add_argument("--exe", required=True, help="built game executable")
     parser.add_argument("--seconds", type=int, default=120, help="game time per level (default 120)")
     parser.add_argument("--markdown", action="store_true", help="print the results as a CAMPAIGN-STATE.md paragraph")
+    parser.add_argument("--progress-file", help="append one progress line per finished level to this file")
     parser.add_argument("levels", nargs="*", help="level files (default: all levels of Campaign.cfg)")
     args = parser.parse_args()
 
@@ -112,8 +113,20 @@ def main():
         passed, text = run_level(exe, level, args.seconds)
         print(text, flush=True)
         results.append((passed, text))
+        pass_count = len([1 for ok, _ in results if ok])
+        progress = "%d/%d Maps getestet – %d PASS, %d FAIL – zuletzt: %s %s" % (
+            len(results), len(levels), pass_count, len(results) - pass_count,
+            os.path.splitext(os.path.basename(level))[0], "PASS" if passed else "FAIL")
+        print(progress, flush=True)
+        if args.progress_file:
+            with open(args.progress_file, "a", encoding="utf-8") as handle:
+                handle.write(progress + "\n")
 
     failed = [text for passed, text in results if not passed]
+    if failed:
+        print("FAIL:")
+        for text in failed:
+            print("  " + text.splitlines()[0])
     print("%d of %d levels PASS" % (len(results) - len(failed), len(results)))
     if args.markdown:
         print()
