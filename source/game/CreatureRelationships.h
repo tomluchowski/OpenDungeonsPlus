@@ -159,6 +159,9 @@ struct RelationshipSettings
     //! \brief Largest distance in tiles between two eating creatures that counts as together
     int32_t mEatTogetherTiles;
 
+    //! \brief Mood points the friends that see a slap lose
+    int32_t mSlapFriendsMoodPenalty;
+
     //! Start value of a pair of creature classes (sorted pair of class names), see config
     //! entries "Racial_<ClassA>_<ClassB>".
     std::map<std::pair<std::string, std::string>, int32_t> mRacialStart;

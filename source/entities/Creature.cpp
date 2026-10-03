@@ -2255,6 +2255,29 @@ bool Creature::hasFriendDoing(CreatureActionType action, double maxTiles, bool u
     return false;
 }
 
+void Creature::reportSlapToFriends()
+{
+    if(!canHaveRelationships())
+        return;
+
+    CreatureRelationships* relationships = getGameMap()->getCreatureRelationships();
+    int32_t penalty = relationships->getSettings().mSlapFriendsMoodPenalty;
+    // Only the friends that can see the slapped creature care
+    std::vector<GameEntity*> seers = getGameMap()->getVisibleCreatures(getVisibleTiles(), getSeat(), false);
+    for(GameEntity* seer : seers)
+    {
+        if((seer == this) || (seer->getObjectType() != GameEntityType::creature))
+            continue;
+
+        Creature* friendCreature = static_cast<Creature*>(seer);
+        if((friendCreature->getSeat() == getSeat()) && friendCreature->isAlive()
+           && relationships->isFriend(getName(), friendCreature->getName()))
+        {
+            friendCreature->addRelationshipMood(-penalty);
+        }
+    }
+}
+
 void Creature::reportSleepingNextToFriends()
 {
     if(!canHaveRelationships())
@@ -3113,6 +3136,10 @@ void Creature::slap()
     CreatureEffectSlap* effect = new CreatureEffectSlap(
         ConfigManager::getSingleton().getSlapEffectDuration(), "");
     addCreatureEffect(effect);
+
+    // The friends that see the slap are upset
+    reportSlapToFriends();
+
     mHp -= mMaxHP * ConfigManager::getSingleton().getSlapDamagePercent() / 100.0;
     computeCreatureOverlayHealthValue();
 }

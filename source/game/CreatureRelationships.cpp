@@ -88,6 +88,8 @@ namespace
     //! Default mood points for eating together with a friend, and the distance in tiles that counts as together
     static const int32_t DEFAULT_EAT_TOGETHER_MOOD = 100;
     static const int32_t DEFAULT_EAT_TOGETHER_TILES = 6;
+    //! Default mood points the friends that see a slap lose
+    static const int32_t DEFAULT_SLAP_FRIENDS_MOOD_PENALTY = 150;
     //! Largest absolute value of a decimal config setting; larger values are cut to it
     static const double DECIMAL_SETTING_LIMIT = 1000.0;
 
@@ -194,7 +196,8 @@ RelationshipSettings::RelationshipSettings() :
     mSleepNextToFriendMood(DEFAULT_SLEEP_NEXT_TO_FRIEND_MOOD),
     mNeighbourBedTiles(DEFAULT_NEIGHBOUR_BED_TILES),
     mEatTogetherMood(DEFAULT_EAT_TOGETHER_MOOD),
-    mEatTogetherTiles(DEFAULT_EAT_TOGETHER_TILES)
+    mEatTogetherTiles(DEFAULT_EAT_TOGETHER_TILES),
+    mSlapFriendsMoodPenalty(DEFAULT_SLAP_FRIENDS_MOOD_PENALTY)
 {
 }
 
@@ -257,7 +260,8 @@ RelationshipSettings RelationshipSettings::fromConfig(const std::map<std::string
         {"SleepNextToFriendMood", &settings.mSleepNextToFriendMood},
         {"NeighbourBedTiles", &settings.mNeighbourBedTiles},
         {"EatTogetherMood", &settings.mEatTogetherMood},
-        {"EatTogetherTiles", &settings.mEatTogetherTiles}
+        {"EatTogetherTiles", &settings.mEatTogetherTiles},
+        {"SlapFriendsMoodPenalty", &settings.mSlapFriendsMoodPenalty}
     };
     struct DoubleEntry
     {
