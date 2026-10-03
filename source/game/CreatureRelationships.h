@@ -124,6 +124,21 @@ struct RelationshipSettings
     //! \brief Extra experience in percent a mentored creature gets while training
     int32_t mMentorXpBonusPercent;
 
+    //! \brief Temporary mood points from relationship events (grief, ...) are capped at this size
+    int32_t mTempMoodMax;
+
+    //! \brief Points of the temporary mood that fade each turn
+    int32_t mTempMoodDecayPerTurn;
+
+    //! \brief Mood points a creature loses when a friend dies
+    int32_t mGriefMoodPenalty;
+
+    //! \brief Turns a grieving creature deals more damage to the side of the killer
+    int64_t mGriefRageTurns;
+
+    //! \brief Extra damage in percent a grieving creature deals to the side of the killer
+    int32_t mGriefRageBonusPercent;
+
     //! Start value of a pair of creature classes (sorted pair of class names), see config
     //! entries "Racial_<ClassA>_<ClassB>".
     std::map<std::pair<std::string, std::string>, int32_t> mRacialStart;
@@ -205,6 +220,9 @@ public:
     //! \return 1.0 if no friend mentors the creature, else 1.0 plus the bonus
     double mentoringFactor(const std::string& creature, uint32_t level,
         const std::vector<std::pair<std::string, uint32_t> >& trainees) const;
+
+    //! \brief Lists the creatures that are friends (or better) of the creature.
+    void getFriends(const std::string& creature, std::vector<std::string>& friends) const;
 
     //! \brief Lists the creatures that have a value with the creature, with the value.
     void getPartners(const std::string& creature, std::vector<std::pair<std::string, int32_t> >& partners) const;

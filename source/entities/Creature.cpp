@@ -103,6 +103,7 @@
 #include <Ogre.h>
 
 #include <cmath>
+#include <cstdlib>
 #include <algorithm>
 
 
@@ -1044,6 +1045,18 @@ void Creature::doUpkeep()
     // A nemesis brawl may end
     if(!mBrawlOpponent.empty())
         updateBrawl();
+
+    // The mood from relationship events fades
+    if(mRelationshipTempMood != 0)
+    {
+        CreatureRelationships* relationships = getGameMap()->getCreatureRelationships();
+        int32_t decay = (relationships == nullptr) ? std::abs(mRelationshipTempMood) :
+            relationships->getSettings().mTempMoodDecayPerTurn;
+        if(mRelationshipTempMood > 0)
+            mRelationshipTempMood = std::max(0, mRelationshipTempMood - decay);
+        else
+            mRelationshipTempMood = std::min(0, mRelationshipTempMood + decay);
+    }
 
     // Check if we should compute mood
     if(mMoodCooldownTurns > 0)
@@ -2167,7 +2180,61 @@ int32_t Creature::getRelationshipMood() const
     if(!canHaveRelationships())
         return 0;
 
-    return getGameMap()->getCreatureRelationships()->moodModifier(getName());
+    return getGameMap()->getCreatureRelationships()->moodModifier(getName()) + mRelationshipTempMood;
+}
+
+void Creature::addRelationshipMood(int32_t points)
+{
+    if(!canHaveRelationships() || (points == 0))
+        return;
+
+    int32_t maxMood = getGameMap()->getCreatureRelationships()->getSettings().mTempMoodMax;
+    mRelationshipTempMood = std::max(-maxMood, std::min(maxMood, mRelationshipTempMood + points));
+    // The mood is computed again soon
+    mMoodCooldownTurns = 0;
+}
+
+void Creature::reportDeathToFriends(GameEntity* killer)
+{
+    if(!canHaveRelationships())
+        return;
+
+    GameMap* gameMap = getGameMap();
+    CreatureRelationships* relationships = gameMap->getCreatureRelationships();
+    const RelationshipSettings& settings = relationships->getSettings();
+    int64_t turn = gameMap->getTurnNumber();
+    std::vector<std::string> friends;
+    relationships->getFriends(getName(), friends);
+    for(size_t i = 0; i < friends.size(); ++i)
+    {
+        Creature* mourner = gameMap->getCreature(friends[i]);
+        if((mourner == nullptr) || (mourner == this) || (mourner->getSeat() != getSeat()) || !mourner->isAlive()
+           || !mourner->canHaveRelationships())
+        {
+            continue;
+        }
+
+        mourner->addRelationshipMood(-settings.mGriefMoodPenalty);
+        if((killer != nullptr) && (killer->getSeat() != nullptr) && (killer->getSeat() != getSeat()))
+        {
+            mourner->mRageUntilTurn = turn + settings.mGriefRageTurns;
+            mourner->mRageSeatId = killer->getSeat()->getId();
+        }
+    }
+}
+
+double Creature::getRelationshipRageFactor(const Seat* victimSeat) const
+{
+    if((mRageUntilTurn <= 0) || (victimSeat == nullptr) || (victimSeat->getId() != mRageSeatId)
+       || !canHaveRelationships())
+    {
+        return 1.0;
+    }
+
+    if(getGameMap()->getTurnNumber() >= mRageUntilTurn)
+        return 1.0;
+
+    return 1.0 + static_cast<double>(getGameMap()->getCreatureRelationships()->getSettings().mGriefRageBonusPercent) / 100.0;
 }
 
 bool Creature::canStartBrawl() const
@@ -2353,7 +2420,11 @@ double Creature::takeDamage(GameEntity* attacker, double absoluteDamage, double 
     physicalDamage = std::max(physicalDamage - getPhysicalDefense(), 0.0);
     magicalDamage = std::max(magicalDamage - getMagicalDefense(), 0.0);
     elementDamage = std::max(elementDamage - getElementDefense(), 0.0);
-    double damageDone = std::min(mHp, absoluteDamage + physicalDamage + magicalDamage + elementDamage);
+    double totalDamage = absoluteDamage + physicalDamage + magicalDamage + elementDamage;
+    // A creature that grieves for a friend hits harder against the side that killed it
+    if(creatureAttacking != nullptr)
+        totalDamage *= creatureAttacking->getRelationshipRageFactor(getSeat());
+    double damageDone = std::min(mHp, totalDamage);
     mHp -= damageDone;
     if(mHp <= 0)
     {
@@ -2386,6 +2457,8 @@ double Creature::takeDamage(GameEntity* attacker, double absoluteDamage, double 
     {
         if(wasAlive && (creatureAttacking != nullptr) && getIsOnServerMap() && getGameMap()->isRelationshipsEnabled())
             reportFightParticipants(*creatureAttacking);
+        if(wasAlive && getIsOnServerMap() && getGameMap()->isRelationshipsEnabled())
+            reportDeathToFriends(attacker);
         fireEntityDead();
     }
 
@@ -3698,6 +3771,8 @@ void Creature::changeSeat(Seat* newSeat)
         getGameMap()->getCreatureRelationships()->removeCreature(getName());
     mMoodValue = CreatureMoodLevel::Neutral;
     mMoodPoints = 0;
+    mRelationshipTempMood = 0;
+    mRageUntilTurn = 0;
     mWakefulness = 100;
     mHunger = 0;
     mNbTurnsTorture = 0;

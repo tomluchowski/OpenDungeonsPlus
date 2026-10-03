@@ -71,6 +71,13 @@ namespace
     //! Default levels a friend must be higher to mentor a training creature, and the extra experience in percent
     static const int32_t DEFAULT_MENTOR_MIN_LEVEL_DIFF = 2;
     static const int32_t DEFAULT_MENTOR_XP_BONUS_PERCENT = 50;
+    //! Default cap of the temporary relationship mood and the points it fades each turn
+    static const int32_t DEFAULT_TEMP_MOOD_MAX = 1000;
+    static const int32_t DEFAULT_TEMP_MOOD_DECAY_PER_TURN = 3;
+    //! Default mood points lost for a dead friend, turns of rage afterwards and the extra damage in percent
+    static const int32_t DEFAULT_GRIEF_MOOD_PENALTY = 400;
+    static const int64_t DEFAULT_GRIEF_RAGE_TURNS = 300;
+    static const int32_t DEFAULT_GRIEF_RAGE_BONUS_PERCENT = 30;
     //! Largest absolute value of a decimal config setting; larger values are cut to it
     static const double DECIMAL_SETTING_LIMIT = 1000.0;
 
@@ -166,7 +173,12 @@ RelationshipSettings::RelationshipSettings() :
     mBrawlMaxTurns(DEFAULT_BRAWL_MAX_TURNS),
     mBrawlValueChange(DEFAULT_BRAWL_VALUE_CHANGE),
     mMentorMinLevelDiff(DEFAULT_MENTOR_MIN_LEVEL_DIFF),
-    mMentorXpBonusPercent(DEFAULT_MENTOR_XP_BONUS_PERCENT)
+    mMentorXpBonusPercent(DEFAULT_MENTOR_XP_BONUS_PERCENT),
+    mTempMoodMax(DEFAULT_TEMP_MOOD_MAX),
+    mTempMoodDecayPerTurn(DEFAULT_TEMP_MOOD_DECAY_PER_TURN),
+    mGriefMoodPenalty(DEFAULT_GRIEF_MOOD_PENALTY),
+    mGriefRageTurns(DEFAULT_GRIEF_RAGE_TURNS),
+    mGriefRageBonusPercent(DEFAULT_GRIEF_RAGE_BONUS_PERCENT)
 {
 }
 
@@ -219,7 +231,11 @@ RelationshipSettings RelationshipSettings::fromConfig(const std::map<std::string
         {"BrawlStopHealthPercent", &settings.mBrawlStopHealthPercent},
         {"BrawlValueChange", &settings.mBrawlValueChange},
         {"MentorMinLevelDiff", &settings.mMentorMinLevelDiff},
-        {"MentorXpBonusPercent", &settings.mMentorXpBonusPercent}
+        {"MentorXpBonusPercent", &settings.mMentorXpBonusPercent},
+        {"TempMoodMax", &settings.mTempMoodMax},
+        {"TempMoodDecayPerTurn", &settings.mTempMoodDecayPerTurn},
+        {"GriefMoodPenalty", &settings.mGriefMoodPenalty},
+        {"GriefRageBonusPercent", &settings.mGriefRageBonusPercent}
     };
     struct DoubleEntry
     {
@@ -240,7 +256,8 @@ RelationshipSettings RelationshipSettings::fromConfig(const std::map<std::string
         {"TrainingTogetherCooldownTurns", &settings.mTrainingTogetherCooldownTurns},
         {"FightParticipantTurns", &settings.mFightParticipantTurns},
         {"BrawlCheckIntervalTurns", &settings.mBrawlCheckIntervalTurns},
-        {"BrawlMaxTurns", &settings.mBrawlMaxTurns}
+        {"BrawlMaxTurns", &settings.mBrawlMaxTurns},
+        {"GriefRageTurns", &settings.mGriefRageTurns}
     };
 
     std::string missing;
@@ -606,6 +623,18 @@ int32_t CreatureRelationships::moodModifier(const std::string& creature) const
     }
 
     return modifier;
+}
+
+void CreatureRelationships::getFriends(const std::string& creature, std::vector<std::string>& friends) const
+{
+    friends.clear();
+    std::vector<std::pair<std::string, int32_t> > partners;
+    getPartners(creature, partners);
+    for(size_t i = 0; i < partners.size(); ++i)
+    {
+        if(partners[i].second >= mSettings.mThresholdFriends)
+            friends.push_back(partners[i].first);
+    }
 }
 
 void CreatureRelationships::getPartners(const std::string& creature,

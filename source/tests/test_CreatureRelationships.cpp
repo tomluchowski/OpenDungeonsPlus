@@ -465,6 +465,23 @@ BOOST_AUTO_TEST_CASE(test_Mentoring)
     BOOST_CHECK_EQUAL(relationships.mentoringFactor("Pupil", 4, trainees), 1.0);
 }
 
+BOOST_AUTO_TEST_CASE(test_Friends)
+{
+    CreatureRelationships relationships;
+    relationships.changeValue("A", "Friend", 60, 0);
+    relationships.changeValue("A", "Acquaintance", 20, 0);
+    relationships.changeValue("A", "Foe", -90, 0);
+    std::vector<std::string> friends;
+    relationships.getFriends("A", friends);
+    BOOST_REQUIRE_EQUAL(friends.size(), 1u);
+    BOOST_CHECK_EQUAL(friends[0], "Friend");
+    relationships.getFriends("Friend", friends);
+    BOOST_REQUIRE_EQUAL(friends.size(), 1u);
+    BOOST_CHECK_EQUAL(friends[0], "A");
+    relationships.getFriends("Nobody", friends);
+    BOOST_CHECK(friends.empty());
+}
+
 BOOST_AUTO_TEST_CASE(test_ConfigValues)
 {
     std::map<std::string, std::string> config;
