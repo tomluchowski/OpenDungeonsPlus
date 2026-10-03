@@ -42,7 +42,9 @@ void RockLava::setPosition(const Ogre::Vector3& v, GameMap *gameMap )
 
 
     MovableGameEntity::setPosition(v, gameMap);
-    RenderManager::getSingleton().rrPitchAroundAxis(this, Ogre::Degree(5));
+    // The node does not exist yet when the rock is placed at its start position before its mesh is created
+    if(getEntityNode() != nullptr)
+        RenderManager::getSingleton().rrPitchAroundAxis(this, Ogre::Degree(5));
 
 
 }
