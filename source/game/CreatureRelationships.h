@@ -144,6 +144,9 @@ struct RelationshipSettings
     //! partners needs the lovers tier and is not part of it yet.
     int32_t mJealousyValueLoss;
 
+    //! Chance (percent) that the best friend of a creature that leaves the dungeon unhappy leaves with it
+    int32_t mLeaveTogetherChancePercent;
+
     //! Start value of a pair of creature classes (sorted pair of class names), see config
     //! entries "Racial_<ClassA>_<ClassB>".
     std::map<std::pair<std::string, std::string>, int32_t> mRacialStart;
@@ -225,6 +228,11 @@ public:
     //! \return 1.0 if no friend mentors the creature, else 1.0 plus the bonus
     double mentoringFactor(const std::string& creature, uint32_t level,
         const std::vector<std::pair<std::string, uint32_t> >& trainees) const;
+
+    //! \brief Returns the strongest best friend (value at least the best friends threshold) of the
+    //! creature, or an empty string if it has none.
+    //! \param creature The creature to look at
+    std::string getBestFriend(const std::string& creature) const;
 
     //! \brief Lists the creatures that are friends (or better) of the creature.
     void getFriends(const std::string& creature, std::vector<std::string>& friends) const;

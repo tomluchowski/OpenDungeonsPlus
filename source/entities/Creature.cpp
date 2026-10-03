@@ -2223,6 +2223,34 @@ void Creature::reportDeathToFriends(GameEntity* killer)
     }
 }
 
+void Creature::reportLeavingToBestFriend()
+{
+    if(!canHaveRelationships())
+        return;
+
+    CreatureRelationships* relationships = getGameMap()->getCreatureRelationships();
+    std::string bestFriend = relationships->getBestFriend(getName());
+    if(bestFriend.empty())
+        return;
+
+    Creature* friendCreature = getGameMap()->getCreature(bestFriend);
+    if((friendCreature == nullptr) || (friendCreature->getSeat() != getSeat()) || !friendCreature->isAlive()
+       || friendCreature->isKo() || !friendCreature->getIsOnMap()
+       || !friendCreature->canHaveRelationships()
+       || friendCreature->isActionInList(CreatureActionType::leaveDungeon))
+    {
+        return;
+    }
+
+    // The chance is in percent: a roll from 0 to 99 below it succeeds
+    const int32_t maxPercentRoll = 99;
+    if(Random::Int(0, maxPercentRoll) >= relationships->getSettings().mLeaveTogetherChancePercent)
+        return;
+
+    OD_LOG_INF("creature=" + friendCreature->getName() + " leaves its dungeon together with its best friend " + getName());
+    friendCreature->leaveDungeon();
+}
+
 double Creature::getRelationshipRageFactor(const Seat* victimSeat) const
 {
     if((mRageUntilTurn <= 0) || (victimSeat == nullptr) || (victimSeat->getId() != mRageSeatId)

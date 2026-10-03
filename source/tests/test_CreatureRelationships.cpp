@@ -504,6 +504,21 @@ BOOST_AUTO_TEST_CASE(test_Jealousy)
     BOOST_CHECK_EQUAL(relationships.getNbPairs(), 4u);
 }
 
+BOOST_AUTO_TEST_CASE(test_BestFriend)
+{
+    CreatureRelationships relationships;
+    relationships.changeValue("A", "Friend", 60, 0);
+    BOOST_CHECK(relationships.getBestFriend("A").empty());
+
+    relationships.changeValue("A", "Buddy", 85, 0);
+    BOOST_CHECK_EQUAL(relationships.getBestFriend("A"), "Buddy");
+    BOOST_CHECK_EQUAL(relationships.getBestFriend("Buddy"), "A");
+
+    relationships.changeValue("A", "Soulmate", 95, 0);
+    BOOST_CHECK_EQUAL(relationships.getBestFriend("A"), "Soulmate");
+    BOOST_CHECK(relationships.getBestFriend("Nobody").empty());
+}
+
 BOOST_AUTO_TEST_CASE(test_ConfigValues)
 {
     std::map<std::string, std::string> config;

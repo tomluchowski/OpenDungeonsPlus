@@ -80,6 +80,8 @@ namespace
     static const int32_t DEFAULT_GRIEF_RAGE_BONUS_PERCENT = 30;
     //! Default points the friends of a creature lose towards a newcomer it befriends
     static const int32_t DEFAULT_JEALOUSY_VALUE_LOSS = 3;
+    //! Default chance in percent that the best friend of an unhappy leaver leaves with it
+    static const int32_t DEFAULT_LEAVE_TOGETHER_CHANCE_PERCENT = 30;
     //! Largest absolute value of a decimal config setting; larger values are cut to it
     static const double DECIMAL_SETTING_LIMIT = 1000.0;
 
@@ -181,7 +183,8 @@ RelationshipSettings::RelationshipSettings() :
     mGriefMoodPenalty(DEFAULT_GRIEF_MOOD_PENALTY),
     mGriefRageTurns(DEFAULT_GRIEF_RAGE_TURNS),
     mGriefRageBonusPercent(DEFAULT_GRIEF_RAGE_BONUS_PERCENT),
-    mJealousyValueLoss(DEFAULT_JEALOUSY_VALUE_LOSS)
+    mJealousyValueLoss(DEFAULT_JEALOUSY_VALUE_LOSS),
+    mLeaveTogetherChancePercent(DEFAULT_LEAVE_TOGETHER_CHANCE_PERCENT)
 {
 }
 
@@ -239,7 +242,8 @@ RelationshipSettings RelationshipSettings::fromConfig(const std::map<std::string
         {"TempMoodDecayPerTurn", &settings.mTempMoodDecayPerTurn},
         {"GriefMoodPenalty", &settings.mGriefMoodPenalty},
         {"GriefRageBonusPercent", &settings.mGriefRageBonusPercent},
-        {"JealousyValueLoss", &settings.mJealousyValueLoss}
+        {"JealousyValueLoss", &settings.mJealousyValueLoss},
+        {"LeaveTogetherChancePercent", &settings.mLeaveTogetherChancePercent}
     };
     struct DoubleEntry
     {
@@ -650,6 +654,24 @@ int32_t CreatureRelationships::moodModifier(const std::string& creature) const
     }
 
     return modifier;
+}
+
+std::string CreatureRelationships::getBestFriend(const std::string& creature) const
+{
+    std::vector<std::pair<std::string, int32_t> > partners;
+    getPartners(creature, partners);
+    std::string best;
+    int32_t bestValue = mSettings.mThresholdBestFriends - 1;
+    for(size_t i = 0; i < partners.size(); ++i)
+    {
+        if(partners[i].second > bestValue)
+        {
+            best = partners[i].first;
+            bestValue = partners[i].second;
+        }
+    }
+
+    return best;
 }
 
 void CreatureRelationships::getFriends(const std::string& creature, std::vector<std::string>& friends) const
