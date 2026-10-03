@@ -421,7 +421,32 @@ void Seat::initSeat()
     std::vector<SkillType> skills = mSkillDone;
     mSkillDone.clear();
     setSkillsDone(skills);
-    skills = mSkillPending;
+    // Pending skills whose dependencies are neither done nor pending before them cannot be researched
+    // (for example a level that lists a skill but not the skills it builds upon). They are left out
+    // here, so that setSkillTree does not reject the whole list because of them
+    std::vector<SkillType> pendingToCheck = mSkillPending;
+    std::vector<SkillType> skillsDoneInTree = mSkillDone;
+    skills.clear();
+    bool progress = true;
+    while(progress)
+    {
+        progress = false;
+        for(std::vector<SkillType>::iterator it = pendingToCheck.begin(); it != pendingToCheck.end(); ++it)
+        {
+            const Skill* skill = SkillManager::getSkill(*it);
+            if((skill != nullptr) && !isSkillDone(*it) && !skill->canBeSkilled(skillsDoneInTree))
+                continue;
+
+            skills.push_back(*it);
+            skillsDoneInTree.push_back(*it);
+            pendingToCheck.erase(it);
+            progress = true;
+            break;
+        }
+    }
+    for(SkillType skillType : pendingToCheck)
+        OD_LOG_INF("Seat " + Helper::toString(mId) + ": pending skill " + Skills::toString(skillType) + " skipped, missing dependencies");
+
     mSkillPending.clear();
     setSkillTree(skills);
 
