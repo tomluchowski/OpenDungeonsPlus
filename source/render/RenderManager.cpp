@@ -2302,8 +2302,8 @@ void RenderManager::rrCarryEntity(Creature* carrier, GameEntity* carried)
     Ogre::Real carrySpotZ = 0.5;
     if(carrierScale > 0.0)
     {
-        carrySpotZ = (carrierEnt->getBoundingBox().getMax().z * carrierScale -
-            carriedEnt->getBoundingBox().getMin().z * carriedScale) / carrierScale;
+        carrySpotZ = (carrierEnt->getBoundingBox().getMaximum().z * carrierScale -
+            carriedEnt->getBoundingBox().getMinimum().z * carriedScale) / carrierScale;
     }
     carriedNode->setPosition(Ogre::Vector3(0, 0, carrySpotZ));
 }
