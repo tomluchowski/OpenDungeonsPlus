@@ -159,6 +159,10 @@ public:
     //! buttons (FriendLink0, FriendLink1, FoeLink) carrying the creature name in the user string "Creature"; the
     //! caller decides what a click does. Returns the bottom edge of the page content in design pixels.
     float fillProfilePage(CEGUI::Window* page);
+
+    //! \brief Gender of the creature ("Female", "Male" or empty), derived from its name and class. Same
+    //! value as the profile gender shown on the client, so it can be used on the server.
+    std::string getGender() const;
     std::string getStatsText();
 
     //! \brief Get the level of the object

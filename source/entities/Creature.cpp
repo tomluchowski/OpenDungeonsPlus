@@ -2456,6 +2456,11 @@ void Creature::refreshProfilePage()
     fillProfilePage(mStatsWindow->getChild("ProfilePage/Content"));
 }
 
+std::string Creature::getGender() const
+{
+    return social::SocialProfileCache::getCreatureGender(getName(), getDefinition()->getClassName());
+}
+
 float Creature::fillProfilePage(CEGUI::Window* page)
 {
     const CreatureDefinition* definition = getDefinition();

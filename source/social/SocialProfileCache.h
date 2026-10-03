@@ -51,6 +51,10 @@ public:
 
     static SocialProfileCache& getSingleton();
 
+    //! \brief Gender of a creature ("Female", "Male" or empty), identical to the profile gender. Usable
+    //! on the server thread: it uses its own copy of the data, loaded once, and does not touch the cache.
+    static std::string getCreatureGender(const std::string& creatureName, const std::string& className);
+
     //! \brief Returns the profile of the creature, generating it on first use.
     const CreatureProfile& getProfile(const std::string& creatureName, const std::string& className,
         bool isWorker);

@@ -49,6 +49,23 @@ void SocialProfileCache::loadData()
     }
 }
 
+namespace
+{
+const SocialData& getGenderData()
+{
+    // Initialised once (thread safe), read only afterwards.
+    static SocialData data;
+    static bool loaded = data.loadFromDirectory(ConfigManager::getSingleton().getConfigPath());
+    (void)loaded;
+    return data;
+}
+}
+
+std::string SocialProfileCache::getCreatureGender(const std::string& creatureName, const std::string& className)
+{
+    return SocialGenerator::makeGender(getGenderData(), creatureName, className);
+}
+
 const SocialData& SocialProfileCache::getData()
 {
     loadData();

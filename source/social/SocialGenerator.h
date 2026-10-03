@@ -40,6 +40,12 @@ public:
     //! Highest name variant that is drawn from the name tables, see makeProfile
     static const uint32_t MAX_NAME_VARIANT = 12;
 
+    //! \brief Gender of a creature ("Female", "Male" or empty), the same value makeProfile puts in
+    //! CreatureProfile::mGender. Depends only on the creature name, the class and the data, so the server
+    //! and the client get the same result.
+    static std::string makeGender(const SocialData& data, const std::string& creatureName,
+        const std::string& className);
+
     //! \brief Builds the profile of a creature from its name (for example "Orc17"). Variant 0 is the
     //! normal name; a higher variant draws another first name and surname or title (everything else stays
     //! the same), so a caller can resolve two creatures of a dungeon with the same name. Variants above
