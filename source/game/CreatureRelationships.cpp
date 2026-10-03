@@ -68,6 +68,9 @@ namespace
     static const int32_t DEFAULT_BRAWL_STOP_HEALTH_PERCENT = 25;
     static const int64_t DEFAULT_BRAWL_MAX_TURNS = 150;
     static const int32_t DEFAULT_BRAWL_VALUE_CHANGE = -6;
+    //! Default levels a friend must be higher to mentor a training creature, and the extra experience in percent
+    static const int32_t DEFAULT_MENTOR_MIN_LEVEL_DIFF = 2;
+    static const int32_t DEFAULT_MENTOR_XP_BONUS_PERCENT = 50;
     //! Largest absolute value of a decimal config setting; larger values are cut to it
     static const double DECIMAL_SETTING_LIMIT = 1000.0;
 
@@ -161,7 +164,9 @@ RelationshipSettings::RelationshipSettings() :
     mBrawlMaxDistanceTiles(DEFAULT_BRAWL_MAX_DISTANCE_TILES),
     mBrawlStopHealthPercent(DEFAULT_BRAWL_STOP_HEALTH_PERCENT),
     mBrawlMaxTurns(DEFAULT_BRAWL_MAX_TURNS),
-    mBrawlValueChange(DEFAULT_BRAWL_VALUE_CHANGE)
+    mBrawlValueChange(DEFAULT_BRAWL_VALUE_CHANGE),
+    mMentorMinLevelDiff(DEFAULT_MENTOR_MIN_LEVEL_DIFF),
+    mMentorXpBonusPercent(DEFAULT_MENTOR_XP_BONUS_PERCENT)
 {
 }
 
@@ -212,7 +217,9 @@ RelationshipSettings RelationshipSettings::fromConfig(const std::map<std::string
         {"BrawlChancePercent", &settings.mBrawlChancePercent},
         {"BrawlMaxDistanceTiles", &settings.mBrawlMaxDistanceTiles},
         {"BrawlStopHealthPercent", &settings.mBrawlStopHealthPercent},
-        {"BrawlValueChange", &settings.mBrawlValueChange}
+        {"BrawlValueChange", &settings.mBrawlValueChange},
+        {"MentorMinLevelDiff", &settings.mMentorMinLevelDiff},
+        {"MentorXpBonusPercent", &settings.mMentorXpBonusPercent}
     };
     struct DoubleEntry
     {
@@ -557,6 +564,24 @@ double CreatureRelationships::combatModifier(const std::string& creature,
         bonus -= mSettings.mCombatPenaltyNemesis;
 
     return bonus;
+}
+
+double CreatureRelationships::mentoringFactor(const std::string& creature, uint32_t level,
+    const std::vector<std::pair<std::string, uint32_t> >& trainees) const
+{
+    for(size_t i = 0; i < trainees.size(); ++i)
+    {
+        if(trainees[i].first == creature)
+            continue;
+
+        if((trainees[i].second >= level + static_cast<uint32_t>(std::max<int32_t>(0, mSettings.mMentorMinLevelDiff)))
+           && isFriend(creature, trainees[i].first))
+        {
+            return 1.0 + static_cast<double>(std::max<int32_t>(0, mSettings.mMentorXpBonusPercent)) / 100.0;
+        }
+    }
+
+    return 1.0;
 }
 
 int32_t CreatureRelationships::moodModifier(const std::string& creature) const

@@ -448,6 +448,23 @@ BOOST_AUTO_TEST_CASE(test_LimitsPerCreature)
     BOOST_CHECK_EQUAL(pairs.size(), 2u);
 }
 
+BOOST_AUTO_TEST_CASE(test_Mentoring)
+{
+    CreatureRelationships relationships;
+    std::vector<std::pair<std::string, uint32_t> > trainees;
+    trainees.push_back(std::pair<std::string, uint32_t>("Pupil", 2));
+    trainees.push_back(std::pair<std::string, uint32_t>("Master", 5));
+    BOOST_CHECK_EQUAL(relationships.mentoringFactor("Pupil", 2, trainees), 1.0);
+
+    // Only a friend teaches
+    relationships.changeValue("Pupil", "Master", 60, 0);
+    BOOST_CHECK_EQUAL(relationships.mentoringFactor("Pupil", 2, trainees), 1.5);
+    // The master does not learn from the pupil
+    BOOST_CHECK_EQUAL(relationships.mentoringFactor("Master", 5, trainees), 1.0);
+    // The level difference must be large enough
+    BOOST_CHECK_EQUAL(relationships.mentoringFactor("Pupil", 4, trainees), 1.0);
+}
+
 BOOST_AUTO_TEST_CASE(test_ConfigValues)
 {
     std::map<std::string, std::string> config;
