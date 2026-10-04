@@ -24,6 +24,20 @@ original model colors and
 equipment when revising an illustration. Do not put count labels into the art:
 the population panel supplies the live count overlay.
 
+## Composed Dungeonbook pictures
+
+When the folder `materials/portraits/variants/<catalog id>/` holds a `manifest.cfg`, the Dungeonbook and the
+creature card show a picture composed from the neutral base named there and one chosen part per slot, instead of
+the preview portrait. The server picks the parts once when a creature spawns and stores them with the creature
+(optional last token of the creature line in the save file, sent to the clients with the creature data). The
+catalog id is the mesh name plus the lower case gender (`Orc.mesh-male`), or the plain mesh name when the
+folder without gender exists. Without a valid manifest the Dungeonbook shows the tinted preview portrait as
+before; the creature bar never uses these folders.
+
+Settings are in `config/dungeonbook-appearance.cfg` (asset folder, cache limits), the colour regions of the
+neutral bases in `config/dungeonbook-base-tints.cfg` and the profile remarks that match the parts in
+`config/dungeonbook-quirks.cfg` (one line per slot and option name, as written in the manifests).
+
 ## Goblin.mesh
 
 Identity reference: `build/portrait-export/portrait-Goblin.mesh.png`.

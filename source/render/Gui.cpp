@@ -370,12 +370,12 @@ float Gui::layoutCreatureProfilePage(CEGUI::Window* page)
     const float scale = getLayoutScale();
     float y = PROFILE_FLOW_TOP;
 
-    // Bio, likes and dislikes, then the rows with friends and foe, then status and latest post
-    const char* const textRowsBefore[] = {"BioText", "LikesText", "DislikesText"};
+    // Bio, likes and dislikes, the quirks of the picture, then the rows with friends and foe, then status and latest post
+    const char* const textRowsBefore[] = {"BioText", "LikesText", "DislikesText", "QuirksText"};
     const char* const textRowsAfter[] = {"StatusText", "LatestText"};
     const char* const linkRows[2][3] = {{"FriendsLabel", "FriendLink0", "FriendLink1"}, {"FoeLabel", "FoeLink", nullptr}};
 
-    for(std::size_t i = 0; i < 3; ++i)
+    for(std::size_t i = 0; i < 4; ++i)
         y = layoutProfileTextRow(page->getChild(textRowsBefore[i]), y, scale);
 
     for(std::size_t row = 0; row < 2; ++row)

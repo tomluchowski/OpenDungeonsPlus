@@ -13,9 +13,9 @@
 namespace
 {
 //! Draw order of the slots. Slots with other names, or listed in another order, are dropped.
-const char* const SLOT_ORDER[] = { "build", "hair", "ears", "eyes", "nose", "mouth", "chin", "helmet",
+const char* const SLOT_ORDER[] = { "build", "outfit", "hair", "ears", "eyes", "nose", "mouth", "chin", "helmet",
     "scar", "neck" };
-const int NB_SLOT_NAMES = 10;
+const int NB_SLOT_NAMES = 11;
 
 int getSlotRank(const std::string& name)
 {

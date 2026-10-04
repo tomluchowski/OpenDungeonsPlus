@@ -8,6 +8,7 @@
 #include "game/CreatureAppearance.h"
 #include "render/AppearanceCompose.h"
 #include "render/DungeonbookAppearanceConfig.h"
+#include "render/DungeonbookQuirks.h"
 #include "render/PortraitManifest.h"
 #include "render/PortraitManifestRegistry.h"
 #include "render/PortraitTint.h"
@@ -50,6 +51,8 @@ struct PictureState
     DungeonbookAppearanceConfig mConfig;
     //! Colour regions of the neutral bases (config/dungeonbook-base-tints.cfg)
     PortraitTint mTint;
+    //! Profile remarks (config/dungeonbook-quirks.cfg)
+    DungeonbookQuirks mQuirks;
     //! Cached pictures, least recently used first
     std::vector<AppearanceCompose::CacheEntry> mEntries;
     //! Catalog ids and picture keys that failed; they are logged once and not tried again until the map is
@@ -98,6 +101,14 @@ PictureState& getState()
     for(std::vector<std::string>::const_iterator it = errors.begin(); it != errors.end(); ++it)
     {
         OD_LOG_WRN("Dungeonbook base tints: " + *it);
+    }
+
+    // A missing file or a bad line only costs the remarks
+    state.mQuirks.loadFromFile(path + "dungeonbook-quirks.cfg");
+    const std::vector<std::string>& quirkWarnings = state.mQuirks.getWarnings();
+    for(std::vector<std::string>::const_iterator it = quirkWarnings.begin(); it != quirkWarnings.end(); ++it)
+    {
+        OD_LOG_WRN("Dungeonbook quirks: " + *it);
     }
     return state;
 }
@@ -308,6 +319,21 @@ const PortraitManifest* getClientPortraitManifest(const std::string& catalogId)
     const PortraitManifest* manifest = state.mRegistry.getManifest(catalogId);
     logRegistryMessages(state);
     return manifest;
+}
+
+std::vector<std::string> getCreatureAppearanceRemarks(const std::string& creatureName,
+    const CreatureAppearance& appearance)
+{
+    if(appearance.isEmpty())
+        return std::vector<std::string>();
+
+    PictureState& state = getState();
+    const PortraitManifest* manifest = state.mRegistry.getManifest(appearance.getCatalogId());
+    logRegistryMessages(state);
+    if(manifest == nullptr)
+        return std::vector<std::string>();
+
+    return DungeonbookQuirkLogic::selectRemarks(state.mQuirks, *manifest, appearance, creatureName);
 }
 
 void clearCreatureAppearancePictures()

@@ -6,6 +6,10 @@ OpenDungeons since version 0.4.7, in reverse chronological order.
 The numbers preceded by a hash (e.g. #9) reference GitHub issue numbers on
 our repository at https://github.com/OpenDungeons/OpenDungeons
 
+### Unreleased
+
+* Creatures can get an individual picture in the Dungeonbook, composed from a neutral base and one part per slot (chosen once when the creature spawns and stored in the save game as an optional field; old saves still load) together with short profile remarks that match the parts. Without the part images the Dungeonbook keeps the previous portrait
+
 ### Version 0.7.1 - 24 Aug 2016
 
 **Highlights:**

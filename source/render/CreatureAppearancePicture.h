@@ -7,6 +7,7 @@
 #define CREATUREAPPEARANCEPICTURE_H
 
 #include <string>
+#include <vector>
 
 class CreatureAppearance;
 class PortraitManifest;
@@ -36,6 +37,13 @@ const CEGUI::Image* getCreatureAppearanceImage(const std::string& creatureName, 
 //! \brief The manifest of a catalog id from the client side registry (loaded once), nullptr if there is
 //! none. For the profile remarks, which are keyed by slot and option name.
 const PortraitManifest* getClientPortraitManifest(const std::string& catalogId);
+
+//! \brief The profile remarks that match the parts of the appearance (config/dungeonbook-quirks.cfg), at most
+//! DungeonbookQuirkLogic::MAX_REMARKS, chosen from the creature name and the appearance with a fixed hash
+//! (same on every client and after loading). Empty if the appearance is empty or has no manifest. The caller
+//! shows them only when getCreatureAppearanceImage() returned a picture, never in the fallback.
+std::vector<std::string> getCreatureAppearanceRemarks(const std::string& creatureName,
+    const CreatureAppearance& appearance);
 
 //! \brief Releases all composed pictures and forgets the loaded manifests and failures (end of a game,
 //! next to clearCreatureProfilePortraits()).

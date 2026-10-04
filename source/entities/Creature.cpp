@@ -76,6 +76,7 @@
 #include "network/ODServer.h"
 #include "network/ServerNotification.h"
 #include "render/CreatureOverlayStatus.h"
+#include "render/CreatureAppearancePicture.h"
 #include "render/CreaturePortrait.h"
 #include "render/Gui.h"
 #include "render/ODFrameListener.h"
@@ -92,6 +93,7 @@
 #include "rooms/RoomArena.h"
 #include "sound/SoundEffectsManager.h"
 #include "render/DungeonbookAppearanceConfig.h"
+#include "render/DungeonbookQuirks.h"
 #include "render/PortraitManifestRegistry.h"
 #include "spells/Spell.h"
 #include "spells/SpellType.h"
@@ -2638,8 +2640,19 @@ float Creature::fillProfilePage(CEGUI::Window* page)
     bool isAllied = (localSeat != nullptr) &&
         (getSeat()->isAlliedSeat(localSeat) || ((mSeatPrison != nullptr) && mSeatPrison->isAlliedSeat(localSeat)));
 
-    page->getChild("Portrait")->setProperty("Image",
-        getCreatureProfilePortraitImage(getName(), definition->getMeshName()).getName());
+    // The composed picture of the creature's appearance; without one (no appearance yet, missing or invalid
+    // manifest) the tinted preview portrait is the fallback and no remarks are shown. Asked on every fill, since
+    // the appearance can arrive later, and the image is set right away because the cache may release it.
+    const CEGUI::Image* appearanceImage = getCreatureAppearanceImage(getName(), mAppearance);
+    if(appearanceImage != nullptr)
+    {
+        page->getChild("Portrait")->setProperty("Image", appearanceImage->getName());
+    }
+    else
+    {
+        page->getChild("Portrait")->setProperty("Image",
+            getCreatureProfilePortraitImage(getName(), definition->getMeshName()).getName());
+    }
     page->getChild("NameText")->setText(profile.getFullName());
 
     std::string handle = makeProfileHandle(profile) + " - " + (definition->isWorker() ? "Worker" : "Fighter") +
@@ -2658,6 +2671,22 @@ float Creature::fillProfilePage(CEGUI::Window* page)
     std::vector<std::string> dislikes(profile.mDislikes, profile.mDislikes + 2);
     page->getChild("LikesText")->setText("Likes: " + joinProfileList(likes));
     page->getChild("DislikesText")->setText("Dislikes: " + joinProfileList(dislikes));
+    // Remarks that match the parts of the picture, only for the composed picture
+    std::string quirks;
+    if(appearanceImage != nullptr)
+    {
+        quirks = DungeonbookQuirkLogic::formatRemarks(getCreatureAppearanceRemarks(getName(), mAppearance));
+    }
+    page->getChild("QuirksText")->setVisible(!quirks.empty());
+    page->getChild("QuirksText")->setText(quirks);
+    // Remarks that match the parts of the picture, only for the composed picture
+    std::string quirks;
+    if(appearanceImage != nullptr)
+    {
+        quirks = DungeonbookQuirkLogic::formatRemarks(getCreatureAppearanceRemarks(getName(), mAppearance));
+    }
+    page->getChild("QuirksText")->setVisible(!quirks.empty());
+    page->getChild("QuirksText")->setText(quirks);
 
     // Health is shown as the same stage the creature overlay uses, the client has no exact value
     CEGUI::ProgressBar* healthBar = static_cast<CEGUI::ProgressBar*>(page->getChild("HealthBar"));

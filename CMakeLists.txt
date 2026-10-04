@@ -417,6 +417,7 @@ set(OD_SOURCEFILES
     ${SRC}/render/CreatureAppearancePicture.cpp
     ${SRC}/render/PortraitManifestRegistry.cpp
     ${SRC}/render/DungeonbookAppearanceConfig.cpp
+    ${SRC}/render/DungeonbookQuirks.cpp
     ${SRC}/render/CreaturePanel.cpp
     ${SRC}/render/SocialWindow.cpp
     ${SRC}/render/MovableTextOverlay.cpp
