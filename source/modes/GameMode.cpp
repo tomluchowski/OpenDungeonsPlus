@@ -2943,7 +2943,7 @@ void GameMode::refreshSkillButtonState(const std::string& skillButtonName, const
         skillButton->setEnabled(true);
         skillProgressBar->hide();
     }
-    guiSheet->getChild(castButtonName)->setVisible(level > 0 || !isAllowed);
+    guiSheet->getChild(castButtonName)->setVisible(level > 0);
     skillButton->setText("");
     skillButton->setProperty("ButtonImageColour", level == 0 ? "FF666666" : "FFFFFFFF");
     skillButton->setProperty("ResearchLevelColour", getResearchFrameColour(level));
