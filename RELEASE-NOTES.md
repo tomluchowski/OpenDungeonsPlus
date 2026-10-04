@@ -8,6 +8,7 @@ our repository at https://github.com/OpenDungeons/OpenDungeons
 
 ### Unreleased
 
+* Level scripts gained the conditions portal, alive, reached and stone (portal state, named creatures, reaching a region or a heart, portal stones on the ground); existing levels load unchanged
 * Leave transparent gaps for depleted creature health segments so they no longer obscure creature details
 * Fixed list selection in the menu so a click selects the row under the pointer instead of the row above it
 
