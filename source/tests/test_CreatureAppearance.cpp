@@ -7,6 +7,7 @@
 #include "BoostTestTargetConfig.h"
 
 #include "game/CreatureAppearance.h"
+#include "network/ODPacket.h"
 #include "render/PortraitManifest.h"
 #include "render/PortraitManifestRegistry.h"
 
@@ -170,6 +171,18 @@ BOOST_AUTO_TEST_CASE(test_ResolveCatalogIdWithFixtures)
     BOOST_CHECK_EQUAL(CreatureAppearanceLogic::resolveCatalogId("Goblin.mesh", "Male", exists), "Goblin.mesh");
     BOOST_CHECK_EQUAL(CreatureAppearanceLogic::resolveCatalogId("Goblin.mesh", "Female", exists), "Goblin.mesh");
     BOOST_CHECK(CreatureAppearanceLogic::resolveCatalogId("Knight.mesh", "Female", exists).empty());
+
+    // Elf.mesh and Elf.mesh-male both exist: the suffix folder wins for its gender, the plain folder is
+    // the original gender (and the one used without gender)
+    BOOST_CHECK_EQUAL(CreatureAppearanceLogic::resolveCatalogId("Elf.mesh", "Male", exists), "Elf.mesh-male");
+    BOOST_CHECK_EQUAL(CreatureAppearanceLogic::resolveCatalogId("Elf.mesh", "Female", exists), "Elf.mesh");
+    BOOST_CHECK_EQUAL(CreatureAppearanceLogic::resolveCatalogId("Elf.mesh", "", exists), "Elf.mesh");
+    const PortraitManifest* elfMale = registry.getManifest("Elf.mesh-male");
+    const PortraitManifest* elfPlain = registry.getManifest("Elf.mesh");
+    BOOST_REQUIRE(elfMale != nullptr);
+    BOOST_REQUIRE(elfPlain != nullptr);
+    BOOST_CHECK_EQUAL(elfMale->getOptionsOfSlot("hair").size(), 2u);
+    BOOST_CHECK_EQUAL(elfPlain->getOptionsOfSlot("hair").size(), 1u);
     BOOST_CHECK(CreatureAppearanceLogic::resolveCatalogId("Nothing.mesh", "Male", exists).empty());
 
     // The folder without suffix has a usable manifest
@@ -304,6 +317,49 @@ BOOST_AUTO_TEST_CASE(test_TokenRoundTrip)
         BOOST_CHECK_MESSAGE(!CreatureAppearanceLogic::fromToken(bad[i], result), std::string("accepted: ") + bad[i]);
         BOOST_CHECK(result.isEmpty());
     }
+}
+
+BOOST_AUTO_TEST_CASE(test_PacketRoundTrip)
+{
+    // Creature::exportToPacket appends the token as a string after the progress data,
+    // Creature::importFromPacket reads it back; an empty string means no appearance
+    CreatureAppearance appearance = makeKnightLook(2, 1);
+    ODPacket packet;
+    packet << std::string("other data") << CreatureAppearanceLogic::toToken(appearance)
+        << CreatureAppearanceLogic::toToken(CreatureAppearance());
+
+    std::string before;
+    std::string token;
+    std::string emptyToken;
+    BOOST_REQUIRE(packet >> before >> token >> emptyToken);
+    BOOST_CHECK_EQUAL(before, "other data");
+
+    CreatureAppearance received;
+    BOOST_REQUIRE(CreatureAppearanceLogic::fromToken(token, received));
+    BOOST_CHECK(received == appearance);
+
+    // The creature without appearance arrives as an empty string and stays empty
+    BOOST_CHECK(emptyToken.empty());
+    CreatureAppearance none;
+    BOOST_CHECK(!CreatureAppearanceLogic::fromToken(emptyToken, none));
+    BOOST_CHECK(none.isEmpty());
+}
+
+BOOST_AUTO_TEST_CASE(test_AppearanceNotificationRoundTrip)
+{
+    // ServerNotificationType::creatureAppearance: creature name, then the token
+    CreatureAppearance appearance = makeKnightLook(1, 2);
+    ODPacket packet;
+    packet << std::string("Knight 3") << CreatureAppearanceLogic::toToken(appearance);
+
+    std::string name;
+    std::string token;
+    BOOST_REQUIRE(packet >> name >> token);
+    BOOST_CHECK_EQUAL(name, "Knight 3");
+
+    CreatureAppearance received;
+    BOOST_REQUIRE(CreatureAppearanceLogic::fromToken(token, received));
+    BOOST_CHECK(received == appearance);
 }
 
 BOOST_AUTO_TEST_CASE(test_SaveLineOptionalToken)

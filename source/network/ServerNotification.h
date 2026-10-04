@@ -108,7 +108,13 @@ enum class ServerNotificationType
     playerNickChanged,
 
     // Owner-only aggregate counts, sent only after creature-panel negotiation.
-    creaturePanel
+    creaturePanel,
+
+    //! The server assigned a Dungeonbook appearance to a creature after it spawned (the portrait manifest
+    //! was not available before): + string creature name, string appearance token. Sent once to the
+    //! human players that see the creature; clients that see it later get it with the creature data.
+    //! Appended last so that no existing numeric value changes.
+    creatureAppearance
 };
 
 ODPacket& operator<<(ODPacket& os, const ServerNotificationType& nt);

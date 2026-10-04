@@ -127,6 +127,9 @@ static const Ogre::Real CANNON_MISSILE_HEIGHT = 0.3;
 
 namespace
 {
+//! Turns between two tries to assign a missing appearance
+const uint32_t APPEARANCE_RETRY_TURNS = 200;
+
 //! \brief Server side registry of the portrait manifests used to assign the Dungeonbook appearance.
 //! Configured once from config/dungeonbook-appearance.cfg; messages are logged once.
 PortraitManifestRegistry& getAppearanceRegistry()
@@ -753,6 +756,42 @@ void Creature::assignAppearance(bool firstSpawn)
         CreatureAppearanceLogic::validate(*manifest, catalogId, getName(), mAppearance);
 }
 
+void Creature::retryAppearance()
+{
+    if(mAppearanceRetryTurns > 0)
+    {
+        --mAppearanceRetryTurns;
+        return;
+    }
+    mAppearanceRetryTurns = APPEARANCE_RETRY_TURNS;
+
+    // Same derivation as for old saves
+    assignAppearance(false);
+    if(mAppearance.isEmpty())
+        return;
+
+    // Clients that already know the creature get the new appearance once, the others receive it
+    // with the full creature data when they see it
+    for(Seat* seat : mSeatsWithVisionNotified)
+    {
+        if(seat->getPlayer() == nullptr || !seat->getPlayer()->getIsHuman())
+            continue;
+
+        ServerNotification* notification = new ServerNotification(
+            ServerNotificationType::creatureAppearance, seat->getPlayer());
+        notification->mPacket << getName() << CreatureAppearanceLogic::toToken(mAppearance);
+        ODServer::getSingleton().queueServerNotification(notification);
+    }
+}
+
+void Creature::setAppearanceFromServer(const CreatureAppearance& appearance)
+{
+    if(getIsOnServerMap())
+        return;
+
+    mAppearance = appearance;
+}
+
 void Creature::buildStats()
 {
     // Get the base value
@@ -855,6 +894,9 @@ void Creature::exportToPacket(ODPacket& os, const Seat* seat) const
     exportMoodToPacket(os, seat);
     exportActivityToPacket(os, seat);
     exportProgressToPacket(os, seat);
+
+    // Dungeonbook appearance: chosen by the server, sent once with the full creature data (empty: none)
+    os << CreatureAppearanceLogic::toToken(mAppearance);
 }
 
 void Creature::importFromPacket(ODPacket& is)
@@ -910,6 +952,16 @@ void Creature::importFromPacket(ODPacket& is)
     importMoodFromPacket(is);
     importActivityFromPacket(is);
     importProgressFromPacket(is);
+
+    // The client only takes over the appearance the server has chosen, it never rolls one itself
+    std::string appearanceToken;
+    OD_ASSERT_TRUE(is >> appearanceToken);
+    mAppearance = CreatureAppearance();
+    if(!appearanceToken.empty() && !CreatureAppearanceLogic::fromToken(appearanceToken, mAppearance))
+    {
+        OD_LOG_ERR("Invalid appearance token=" + appearanceToken);
+    }
+
     setupDefinition(*getGameMap(), *ConfigManager::getSingleton().getCreatureDefinitionDefaultWorker());
 }
 
@@ -1079,6 +1131,10 @@ void Creature::dropCarriedEquipment()
 
 void Creature::doUpkeep()
 {
+    // No manifest was available when the creature spawned: assign the appearance as soon as it is
+    if(mAppearance.isEmpty() && getIsOnServerMap())
+        retryAppearance();
+
     // If the creature is in jail, we check if it is still standing on it (if not picked up). If
     // not, it is free
     if((mSeatPrison != nullptr) &&

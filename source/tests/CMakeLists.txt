@@ -180,5 +180,9 @@ add_boost_test(00-CreatureAppearance
         ${SRC}/render/PortraitManifest.h
         ${SRC}/render/PortraitManifest.cpp
         ${SRC}/render/PortraitManifestRegistry.h
-        ${SRC}/render/PortraitManifestRegistry.cpp)
+        ${SRC}/render/PortraitManifestRegistry.cpp
+        ${SRC}/network/ODPacket.h
+        ${SRC}/network/ODPacket.cpp
+        LIBRARIES
+        ${SFML_LIBRARIES})
 

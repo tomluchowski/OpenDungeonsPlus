@@ -170,6 +170,10 @@ public:
     //! Empty for creatures without a catalog id or while no manifest exists.
     const CreatureAppearance& getAppearance() const
     { return mAppearance; }
+
+    //! \brief Client side. Takes over the appearance the server sent in the creature message of
+    //! ServerNotificationType::creatureAppearance. Ignored on the server.
+    void setAppearanceFromServer(const CreatureAppearance& appearance);
     std::string getStatsText();
 
     //! \brief Get the level of the object
@@ -551,6 +555,11 @@ public:
     //! replaces options that no longer exist. Does nothing without catalog id or manifest.
     void assignAppearance(bool firstSpawn);
 
+    //! \brief Server side, called from doUpkeep while the creature has no appearance. Tries again every
+    //! few turns (the manifest may be available now), and sends a new appearance once to the clients
+    //! that already know the creature.
+    void retryAppearance();
+
     //! Called on server side to add an effect (spell, slap, ...) to this creature
     void addCreatureEffect(CreatureEffect* effect);
 
@@ -718,6 +727,8 @@ private:
     std::string     mDefinitionString;
     //! \brief Dungeonbook appearance, see getAppearance()
     CreatureAppearance mAppearance;
+    //! \brief Server side. Upkeeps left until the next try to assign a missing appearance
+    uint32_t mAppearanceRetryTurns = 0;
     //! \brief Pointer to the struct holding the general type of the creature with its values
     const CreatureDefinition* mDefinition;
 
