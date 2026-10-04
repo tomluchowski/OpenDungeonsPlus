@@ -28,6 +28,7 @@
 
 const int32_t RelationshipSettings::VALUE_MIN = -100;
 const int32_t RelationshipSettings::VALUE_MAX = 100;
+const size_t RelationshipCreatureState::MAX_CAPTORS;
 
 namespace
 {
@@ -1194,8 +1195,10 @@ void writeRelationshipCreatureStates(std::ostream& os, const std::vector<Relatio
             continue;
 
         os << state.mName << "\t" << state.mGriefMood << "\t" << std::max<int64_t>(0, state.mRageTurnsLeft) << "\t"
-           << state.mRageSeatId << "\t" << state.mBrawlOpponent << "\t" << std::max<int64_t>(0, state.mBrawlTurnsLeft)
-           << "\n";
+           << state.mRageSeatId << "\t" << state.mBrawlOpponent << "\t" << std::max<int64_t>(0, state.mBrawlTurnsLeft);
+        for(size_t j = 0; j < state.mCaptors.size() && (j < RelationshipCreatureState::MAX_CAPTORS); ++j)
+            os << "\t" << state.mCaptors[j];
+        os << "\n";
     }
 }
 
@@ -1251,6 +1254,12 @@ bool readRelationshipCreatureStates(std::istream& is, std::vector<RelationshipCr
         state.mRageSeatId = static_cast<int32_t>(rageSeat);
         state.mBrawlOpponent = fields[STATE_FIELD_BRAWL_OPPONENT];
         state.mBrawlTurnsLeft = std::max<int64_t>(0, brawlTurns);
+        // Older saves have no captor fields
+        for(size_t i = 6; i < fields.size() && (state.mCaptors.size() < RelationshipCreatureState::MAX_CAPTORS); ++i)
+        {
+            if(!fields[i].empty())
+                state.mCaptors.push_back(fields[i]);
+        }
         states.push_back(state);
     }
 }

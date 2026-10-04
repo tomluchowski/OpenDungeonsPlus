@@ -221,9 +221,12 @@ struct RelationshipCreatureState
         mBrawlTurnsLeft(0)
     {}
 
+    //! The most captors that are saved per creature
+    static const size_t MAX_CAPTORS = 8;
+
     //! True if there is nothing to save
     bool isEmpty() const
-    { return (mGriefMood == 0) && (mRageTurnsLeft <= 0) && mBrawlOpponent.empty(); }
+    { return (mGriefMood == 0) && (mRageTurnsLeft <= 0) && mBrawlOpponent.empty() && mCaptors.empty(); }
 
     std::string mName;
     //! Temporary mood points (negative for grief), fading each turn
@@ -234,10 +237,13 @@ struct RelationshipCreatureState
     //! Name of the creature of a running brawl (empty if none) and the turns it can still last
     std::string mBrawlOpponent;
     int64_t mBrawlTurnsLeft;
+    //! Names of the enemy creatures that knocked this creature out (see Creature::mCaptors)
+    std::vector<std::string> mCaptors;
 };
 
 //! \brief Writes one tab separated line per creature state (creature name, grief mood, rage turns
-//! left, rage seat id, brawl opponent, brawl turns left). States that are empty are skipped.
+//! left, rage seat id, brawl opponent, brawl turns left, then one field per captor). States that are
+//! empty are skipped.
 void writeRelationshipCreatureStates(std::ostream& os, const std::vector<RelationshipCreatureState>& states);
 
 //! \brief Reads lines written by writeRelationshipCreatureStates until the line "[/RelationshipState]".

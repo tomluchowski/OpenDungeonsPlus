@@ -3390,12 +3390,17 @@ void Creature::endBrawl()
 bool Creature::getRelationshipState(RelationshipCreatureState& state) const
 {
     state = RelationshipCreatureState();
-    if(!canHaveRelationships())
+    if(!getIsOnServerMap() || !getGameMap()->isRelationshipsEnabled())
         return false;
 
     GameMap* gameMap = getGameMap();
     int64_t turn = gameMap->getTurnNumber();
     state.mName = getName();
+    // The captors belong to creatures that are held prisoner, which cannot have relationships
+    state.mCaptors = mCaptors;
+    if(!canHaveRelationships())
+        return !state.isEmpty();
+
     state.mGriefMood = mRelationshipTempMood;
     if(mRageUntilTurn > turn)
     {
@@ -3421,10 +3426,21 @@ bool Creature::getRelationshipState(RelationshipCreatureState& state) const
 
 void Creature::setRelationshipState(const RelationshipCreatureState& state)
 {
-    if(!canHaveRelationships())
+    if(!getIsOnServerMap() || !getGameMap()->isRelationshipsEnabled())
         return;
 
     GameMap* gameMap = getGameMap();
+    // Captors that are not around any more are ignored
+    mCaptors.clear();
+    for(size_t i = 0; i < state.mCaptors.size() && (mCaptors.size() < RelationshipCreatureState::MAX_CAPTORS); ++i)
+    {
+        if(gameMap->getCreature(state.mCaptors[i]) != nullptr)
+            mCaptors.push_back(state.mCaptors[i]);
+    }
+
+    if(!canHaveRelationships())
+        return;
+
     const RelationshipSettings& settings = gameMap->getCreatureRelationships()->getSettings();
     int64_t turn = gameMap->getTurnNumber();
     mRelationshipTempMood = std::max(-settings.mTempMoodMax, std::min(settings.mTempMoodMax, state.mGriefMood));

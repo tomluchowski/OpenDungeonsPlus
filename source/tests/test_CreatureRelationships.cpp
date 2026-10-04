@@ -998,6 +998,33 @@ BOOST_AUTO_TEST_CASE(test_CreatureStateOldSaveAndEmptyState)
     BOOST_CHECK(readRelationshipCreatureStates(emptySection, loaded));
     BOOST_CHECK(loaded.empty());
 
+    // Captors are saved as extra fields (at most 8); a line without them (older save) still loads
+    RelationshipCreatureState captured;
+    captured.mName = "Elf3";
+    for(int i = 1; i <= 10; ++i)
+    {
+        std::ostringstream captorName;
+        captorName << "Knight" << i;
+        captured.mCaptors.push_back(captorName.str());
+    }
+    BOOST_CHECK(!captured.isEmpty());
+    std::vector<RelationshipCreatureState> withCaptors;
+    withCaptors.push_back(captured);
+    std::ostringstream capturedOut;
+    writeRelationshipCreatureStates(capturedOut, withCaptors);
+    capturedOut << "Orc1\t-50\t0\t-1\t\t0\n[/RelationshipState]\n";
+    std::istringstream capturedIn(capturedOut.str());
+    std::vector<RelationshipCreatureState> capturedLoaded;
+    BOOST_REQUIRE(readRelationshipCreatureStates(capturedIn, capturedLoaded));
+    BOOST_REQUIRE_EQUAL(capturedLoaded.size(), 2u);
+    BOOST_CHECK_EQUAL(capturedLoaded[0].mName, "Elf3");
+    BOOST_REQUIRE_EQUAL(capturedLoaded[0].mCaptors.size(), 8u);
+    BOOST_CHECK_EQUAL(capturedLoaded[0].mCaptors[0], "Knight1");
+    BOOST_CHECK_EQUAL(capturedLoaded[0].mCaptors[7], "Knight8");
+    BOOST_CHECK_EQUAL(capturedLoaded[0].mGriefMood, 0);
+    BOOST_CHECK_EQUAL(capturedLoaded[1].mGriefMood, -50);
+    BOOST_CHECK(capturedLoaded[1].mCaptors.empty());
+
     // Broken lines and a missing end marker are refused
     std::istringstream broken("Orc1\tabc\t0\t-1\t\t0\n[/RelationshipState]\n");
     BOOST_CHECK(!readRelationshipCreatureStates(broken, loaded));
