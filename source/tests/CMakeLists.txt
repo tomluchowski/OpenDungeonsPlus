@@ -186,3 +186,16 @@ add_boost_test(00-CreatureAppearance
         LIBRARIES
         ${SFML_LIBRARIES})
 
+add_boost_test(00-AppearanceCompose
+        SOURCES
+        test_AppearanceCompose.cpp
+        ${SRC}/render/AppearanceCompose.h
+        ${SRC}/render/AppearanceCompose.cpp
+        ${SRC}/render/PortraitTint.h
+        ${SRC}/render/PortraitTint.cpp
+        ${SRC}/render/PortraitManifest.h
+        ${SRC}/render/PortraitManifest.cpp
+        ${SRC}/game/CreatureAppearance.h
+        ${SRC}/game/CreatureAppearance.cpp
+        ${SRC}/social/SocialRng.h)
+

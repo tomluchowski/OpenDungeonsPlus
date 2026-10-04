@@ -413,6 +413,8 @@ set(OD_SOURCEFILES
     ${SRC}/render/CreaturePortrait.cpp
     ${SRC}/render/PortraitTint.cpp
     ${SRC}/render/PortraitManifest.cpp
+    ${SRC}/render/AppearanceCompose.cpp
+    ${SRC}/render/CreatureAppearancePicture.cpp
     ${SRC}/render/PortraitManifestRegistry.cpp
     ${SRC}/render/DungeonbookAppearanceConfig.cpp
     ${SRC}/render/CreaturePanel.cpp
