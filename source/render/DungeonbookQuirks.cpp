@@ -142,12 +142,12 @@ std::vector<std::string> pickRemarks(const std::vector<std::string>& candidates,
     if(candidates.size() <= maxCount)
         return candidates;
 
-    const std::string seed = creatureName + "|" + toToken(appearance) + "|";
+    const std::string seed = creatureName + "|" + CreatureAppearanceLogic::toToken(appearance) + "|";
     std::vector<ScoredRemark> scored;
     for(std::size_t i = 0; i < candidates.size(); ++i)
     {
         ScoredRemark remark;
-        remark.mScore = stableHash(seed + candidates[i]);
+        remark.mScore = CreatureAppearanceLogic::stableHash(seed + candidates[i]);
         remark.mIndex = i;
         scored.push_back(remark);
     }
