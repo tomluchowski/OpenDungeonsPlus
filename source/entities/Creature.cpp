@@ -65,6 +65,7 @@
 #include "game/Seat.h"
 #include "gamemap/GameMap.h"
 #include "gamemap/Pathfinding.h"
+#include "game/CreatureAppearance.h"
 #include "giftboxes/GiftBoxSkill.h"
 
 #include "modes/GameEditorModeConsole.h"
@@ -90,6 +91,8 @@
 #include "rooms/RoomPrison.h"
 #include "rooms/RoomArena.h"
 #include "sound/SoundEffectsManager.h"
+#include "render/DungeonbookAppearanceConfig.h"
+#include "render/PortraitManifestRegistry.h"
 #include "spells/Spell.h"
 #include "spells/SpellType.h"
 #include "traps/Trap.h"
@@ -98,6 +101,7 @@
 #include "utils/LogManager.h"
 #include "utils/MakeUnique.h"
 #include "utils/Random.h"
+#include "utils/ResourceManager.h"
 
 #include <CEGUI/Event.h>
 #include <CEGUI/Image.h>
@@ -120,6 +124,48 @@
 
 
 static const Ogre::Real CANNON_MISSILE_HEIGHT = 0.3;
+
+namespace
+{
+//! \brief Server side registry of the portrait manifests used to assign the Dungeonbook appearance.
+//! Configured once from config/dungeonbook-appearance.cfg; messages are logged once.
+PortraitManifestRegistry& getAppearanceRegistry()
+{
+    static PortraitManifestRegistry registry;
+    static bool initialized = false;
+    if(!initialized)
+    {
+        initialized = true;
+        std::string path = ConfigManager::getSingleton().getConfigPath();
+        if(!path.empty() && (path[path.size() - 1] != '/') && (path[path.size() - 1] != '\\'))
+            path += "/";
+
+        DungeonbookAppearanceConfig config;
+        config.loadFromFile(path + "dungeonbook-appearance.cfg");
+        const std::vector<std::string>& warnings = config.getWarnings();
+        for(std::vector<std::string>::const_iterator it = warnings.begin(); it != warnings.end(); ++it)
+        {
+            OD_LOG_WRN("Dungeonbook appearance: " + *it);
+        }
+
+        std::string root = config.getAssetRoot();
+        if(root.empty())
+            root = "materials/portraits/variants";
+
+        bool isAbsolute = (root.size() > 1) && ((root[1] == ':') || (root[0] == '/') || (root[0] == '\\'));
+        if(!isAbsolute)
+            root = ResourceManager::getSingleton().getGameDataPath() + root;
+
+        registry.setAssetRoot(root);
+    }
+    return registry;
+}
+
+uint32_t getAppearanceRandom(uint32_t min, uint32_t max)
+{
+    return Random::Uint(min, max);
+}
+}
 
 const int32_t Creature::NB_TURNS_BEFORE_CHECKING_TASK = 15;
 const uint32_t Creature::NB_OVERLAY_HEALTH_VALUES = 8;
@@ -328,6 +374,10 @@ Creature::Creature(GameMap* gameMap, const CreatureDefinition* definition, Seat*
     setMeshName(definition->getMeshName());
     setName(getGameMap()->nextUniqueNameCreature(definition->getClassName()));
 
+    // First spawn: the Dungeonbook appearance is chosen once and never changed afterwards
+    if(getIsOnServerMap())
+        assignAppearance(true);
+
     mMaxHP = mDefinition->getMinHp();
     setHP(mMaxHP);
 
@@ -524,7 +574,7 @@ std::string Creature::getCreatureStreamFormat()
 
     format += "ClassName\tLevel\tCurrentXP\tCurrentHP\tCurrentWakefulness"
             "\tCurrentHunger\tGoldToDeposit\tLeftWeapon\tRightWeapon\tCarriedSkill\tCarriedWeapon"
-            "\tNbCreatureEffects\tN*CreatureEffects";
+            "\tNbCreatureEffects\tN*CreatureEffects\t[Appearance]";
 
     return format;
 }
@@ -573,6 +623,10 @@ void Creature::exportToStream(std::ostream& os) const
         os << "\t";
         CreatureEffectManager::write(*creatureParticleEffect->mEffect, os);
     }
+
+    // Optional last token, missing in old saves and for creatures without appearance
+    if(!mAppearance.isEmpty())
+        os << "\t" << CreatureAppearanceLogic::toToken(mAppearance);
 }
 
 bool Creature::importFromStream(std::istream& is)
@@ -642,7 +696,59 @@ bool Creature::importFromStream(std::istream& is)
         addCreatureEffect(effect);
     }
 
+    // Optional appearance token. Old saves end after the effects.
+    std::string appearanceToken;
+    if(is >> appearanceToken)
+    {
+        if(!CreatureAppearanceLogic::fromToken(appearanceToken, mAppearance))
+        {
+            OD_LOG_WRN("Invalid appearance token=" + appearanceToken);
+        }
+    }
+
     return true;
+}
+
+void Creature::assignAppearance(bool firstSpawn)
+{
+    if(!getIsOnServerMap() || (mDefinition == nullptr))
+        return;
+
+    std::string catalogId = CreatureAppearanceLogic::makeCatalogId(mDefinition->getMeshName(), getGender());
+    if(catalogId.empty())
+        return;
+
+    PortraitManifestRegistry& registry = getAppearanceRegistry();
+    const PortraitManifest* manifest = registry.getManifest(catalogId);
+    std::vector<std::string> messages = registry.takeMessages();
+    for(std::vector<std::string>::const_iterator it = messages.begin(); it != messages.end(); ++it)
+    {
+        OD_LOG_WRN("Dungeonbook appearance: " + *it);
+    }
+
+    // No manifest (yet): the appearance is derived later like for old saves, a stored one is kept
+    if(manifest == nullptr)
+        return;
+
+    if(firstSpawn)
+    {
+        std::vector<CreatureAppearance> taken;
+        std::vector<Creature*> mates = getGameMap()->getCreaturesBySeat(getSeat());
+        for(std::vector<Creature*>::const_iterator it = mates.begin(); it != mates.end(); ++it)
+        {
+            const CreatureAppearance& other = (*it)->getAppearance();
+            if(other.getCatalogId() == catalogId)
+                taken.push_back(other);
+        }
+
+        mAppearance = CreatureAppearanceLogic::pickRandom(*manifest, catalogId, getAppearanceRandom, taken);
+        return;
+    }
+
+    if(mAppearance.isEmpty())
+        mAppearance = CreatureAppearanceLogic::pickStable(*manifest, catalogId, getName());
+    else
+        CreatureAppearanceLogic::validate(*manifest, catalogId, getName(), mAppearance);
 }
 
 void Creature::buildStats()
@@ -3486,6 +3592,9 @@ void Creature::setupDefinition(GameMap& dtc, const CreatureDefinition& defaultWo
                 std::string name = getGameMap()->nextUniqueNameCreature(mDefinition->getClassName());
                 setName(name);
             }
+
+            // Loaded creature: old saves and creatures spawned without a manifest get a stable appearance
+            assignAppearance(false);
         }
     }
 
