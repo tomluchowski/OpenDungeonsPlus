@@ -23,6 +23,7 @@
 #include <cstdlib>
 #include <istream>
 #include <ostream>
+#include <set>
 #include <sstream>
 
 const int32_t RelationshipSettings::VALUE_MIN = -100;
@@ -90,6 +91,15 @@ namespace
     static const int32_t DEFAULT_EAT_TOGETHER_TILES = 6;
     //! Default mood points the friends that see a slap lose
     static const int32_t DEFAULT_SLAP_FRIENDS_MOOD_PENALTY = 150;
+    //! Default points a partner loses towards the newcomer a creature befriends, and the value below which lovers break up
+    static const int32_t DEFAULT_LOVERS_JEALOUSY_VALUE_LOSS = 8;
+    static const int32_t DEFAULT_LOVERS_BREAK_VALUE = 70;
+    //! Default defense of a creature that fights next to its partner
+    static const double DEFAULT_COMBAT_BONUS_LOVERS = 2.5;
+    //! Default mood bonus while the partner is alive, mood malus when it dies, and the chance (percent) it leaves with a leaver
+    static const int32_t DEFAULT_MOOD_BONUS_LOVERS = 300;
+    static const int32_t DEFAULT_PARTNER_GRIEF_MOOD_PENALTY = 800;
+    static const int32_t DEFAULT_LEAVE_PARTNER_CHANCE_PERCENT = 70;
     //! Largest absolute value of a decimal config setting; larger values are cut to it
     static const double DECIMAL_SETTING_LIMIT = 1000.0;
 
@@ -97,6 +107,8 @@ namespace
     static const int64_t SETTING_LIMIT = 1000000;
     //! Number of tab separated fields of a saved pair line: creatureA, creatureB, value, age in turns
     static const size_t NB_SAVE_FIELDS = 4;
+    //! Number of fields of a saved pair that also has the lovers flag
+    static const size_t NB_SAVE_FIELDS_WITH_LOVERS = 5;
 
     //! \brief Reads a whole text as an integer. Returns false and leaves value untouched if the text
     //! is not exactly one integer.
@@ -192,6 +204,12 @@ RelationshipSettings::RelationshipSettings() :
     mGriefRageTurns(DEFAULT_GRIEF_RAGE_TURNS),
     mGriefRageBonusPercent(DEFAULT_GRIEF_RAGE_BONUS_PERCENT),
     mJealousyValueLoss(DEFAULT_JEALOUSY_VALUE_LOSS),
+    mLoversJealousyValueLoss(DEFAULT_LOVERS_JEALOUSY_VALUE_LOSS),
+    mLoversBreakValue(DEFAULT_LOVERS_BREAK_VALUE),
+    mCombatBonusLovers(DEFAULT_COMBAT_BONUS_LOVERS),
+    mMoodBonusLovers(DEFAULT_MOOD_BONUS_LOVERS),
+    mPartnerGriefMoodPenalty(DEFAULT_PARTNER_GRIEF_MOOD_PENALTY),
+    mLeavePartnerChancePercent(DEFAULT_LEAVE_PARTNER_CHANCE_PERCENT),
     mLeaveTogetherChancePercent(DEFAULT_LEAVE_TOGETHER_CHANCE_PERCENT),
     mSleepNextToFriendMood(DEFAULT_SLEEP_NEXT_TO_FRIEND_MOOD),
     mNeighbourBedTiles(DEFAULT_NEIGHBOUR_BED_TILES),
@@ -256,6 +274,11 @@ RelationshipSettings RelationshipSettings::fromConfig(const std::map<std::string
         {"GriefMoodPenalty", &settings.mGriefMoodPenalty},
         {"GriefRageBonusPercent", &settings.mGriefRageBonusPercent},
         {"JealousyValueLoss", &settings.mJealousyValueLoss},
+        {"LoversJealousyValueLoss", &settings.mLoversJealousyValueLoss},
+        {"LoversBreakValue", &settings.mLoversBreakValue},
+        {"MoodBonusLovers", &settings.mMoodBonusLovers},
+        {"PartnerGriefMoodPenalty", &settings.mPartnerGriefMoodPenalty},
+        {"LeavePartnerChancePercent", &settings.mLeavePartnerChancePercent},
         {"LeaveTogetherChancePercent", &settings.mLeaveTogetherChancePercent},
         {"SleepNextToFriendMood", &settings.mSleepNextToFriendMood},
         {"NeighbourBedTiles", &settings.mNeighbourBedTiles},
@@ -273,6 +296,7 @@ RelationshipSettings RelationshipSettings::fromConfig(const std::map<std::string
         {"CombatRadiusTiles", &settings.mCombatRadiusTiles},
         {"CombatBonusFriends", &settings.mCombatBonusFriends},
         {"CombatBonusBestFriends", &settings.mCombatBonusBestFriends},
+        {"CombatBonusLovers", &settings.mCombatBonusLovers},
         {"CombatPenaltyNemesis", &settings.mCombatPenaltyNemesis}
     };
     TurnEntry turnEntries[] =
@@ -439,12 +463,13 @@ void CreatureRelationships::changeValue(const std::string& creatureA, const std:
     }
 
     setValue(pair, value, turn, true);
+    updateLovers(pair);
     enforceLimits(creatureA, turn);
     enforceLimits(creatureB, turn);
 
     // Becoming friends makes the friends of both creatures jealous
-    if((mSettings.mJealousyValueLoss > 0) && (oldValue < mSettings.mThresholdFriends)
-       && isFriend(creatureA, creatureB))
+    if(((mSettings.mJealousyValueLoss > 0) || (mSettings.mLoversJealousyValueLoss > 0))
+       && (oldValue < mSettings.mThresholdFriends) && isFriend(creatureA, creatureB))
     {
         applyJealousy(creatureA, creatureB, turn);
         applyJealousy(creatureB, creatureA, turn);
@@ -457,8 +482,13 @@ void CreatureRelationships::applyJealousy(const std::string& creature, const std
     getFriends(creature, friends);
     for(size_t i = 0; i < friends.size(); ++i)
     {
-        if(friends[i] != newFriend)
-            changeValue(friends[i], newFriend, -mSettings.mJealousyValueLoss, turn);
+        if(friends[i] == newFriend)
+            continue;
+
+        // A partner is hurt more than a friend
+        int32_t loss = isLovers(creature, friends[i]) ? mSettings.mLoversJealousyValueLoss : mSettings.mJealousyValueLoss;
+        if(loss > 0)
+            changeValue(friends[i], newFriend, -loss, turn);
     }
 }
 
@@ -468,12 +498,37 @@ void CreatureRelationships::enforceLimits(const std::string& creature, int64_t t
     getPartners(creature, partners);
     int32_t nbFriends = 0;
     int32_t nbNemeses = 0;
+    int32_t nbLovers = 0;
     for(size_t i = 0; i < partners.size(); ++i)
     {
-        if(partners[i].second >= mSettings.mThresholdFriends)
+        if(isLovers(creature, partners[i].first))
+            ++nbLovers;
+        else if(partners[i].second >= mSettings.mThresholdFriends)
             ++nbFriends;
         else if(partners[i].second <= mSettings.mThresholdNemesis)
             ++nbNemeses;
+    }
+
+    while(nbLovers > mSettings.mMaxPartners)
+    {
+        // The weakest couple falls back to best friends
+        size_t weakest = partners.size();
+        for(size_t i = 0; i < partners.size(); ++i)
+        {
+            if(!isLovers(creature, partners[i].first))
+                continue;
+            if((weakest == partners.size()) || (partners[i].second < partners[weakest].second))
+                weakest = i;
+        }
+        if(weakest == partners.size())
+            break;
+
+        Pair pair = makePair(creature, partners[weakest].first);
+        std::map<Pair, PairData>::iterator it = mPairs.find(pair);
+        it->second.mValue = std::min(it->second.mValue, mSettings.mThresholdLovers - 1);
+        clearLovers(pair, it->second);
+        partners[weakest].second = it->second.mValue;
+        --nbLovers;
     }
 
     while(nbFriends > mSettings.mMaxFriends)
@@ -482,7 +537,7 @@ void CreatureRelationships::enforceLimits(const std::string& creature, int64_t t
         size_t weakest = partners.size();
         for(size_t i = 0; i < partners.size(); ++i)
         {
-            if(partners[i].second < mSettings.mThresholdFriends)
+            if((partners[i].second < mSettings.mThresholdFriends) || isLovers(creature, partners[i].first))
                 continue;
             if((weakest == partners.size()) || (partners[i].second < partners[weakest].second))
                 weakest = i;
@@ -519,10 +574,10 @@ void CreatureRelationships::setValue(const Pair& pair, int32_t value, int64_t tu
 {
     value = std::max(RelationshipSettings::VALUE_MIN, std::min(RelationshipSettings::VALUE_MAX, value));
 
-    int32_t oldValue = 0;
+    RelationshipTier oldTier = RelationshipTier::neutral;
     std::map<Pair, PairData>::iterator it = mPairs.find(pair);
     if(it != mPairs.end())
-        oldValue = it->second.mValue;
+        oldTier = tierOfData(*this, it->second);
 
     if(value == 0)
     {
@@ -534,6 +589,7 @@ void CreatureRelationships::setValue(const Pair& pair, int32_t value, int64_t tu
         PairData data;
         data.mValue = value;
         data.mLastEventTurn = turn;
+        data.mLovers = false;
         mPairs[pair] = data;
     }
     else
@@ -541,15 +597,81 @@ void CreatureRelationships::setValue(const Pair& pair, int32_t value, int64_t tu
         it->second.mValue = value;
         if(isEvent)
             it->second.mLastEventTurn = turn;
+        // Lovers break up below the break value
+        if(it->second.mLovers && (value < mSettings.mLoversBreakValue))
+            it->second.mLovers = false;
     }
 
-    recordTierChange(pair, oldValue, value);
+    RelationshipTier newTier = RelationshipTier::neutral;
+    it = mPairs.find(pair);
+    if(it != mPairs.end())
+        newTier = tierOfData(*this, it->second);
+    recordTierChange(pair, oldTier, newTier);
 }
 
-void CreatureRelationships::recordTierChange(const Pair& pair, int32_t oldValue, int32_t newValue)
+RelationshipTier CreatureRelationships::tierOfData(const CreatureRelationships& self, const PairData& data)
 {
-    RelationshipTier oldTier = tierOfValue(oldValue, false);
-    RelationshipTier newTier = tierOfValue(newValue, false);
+    if(data.mLovers)
+        return RelationshipTier::lovers;
+
+    return self.tierOfValue(data.mValue, false);
+}
+
+bool CreatureRelationships::haveLoversGenders(const Pair& pair) const
+{
+    if(!mGenderLookup)
+        return false;
+
+    std::string genderA = mGenderLookup(pair.first);
+    std::string genderB = mGenderLookup(pair.second);
+    return ((genderA == "Male") && (genderB == "Female")) || ((genderA == "Female") && (genderB == "Male"));
+}
+
+bool CreatureRelationships::canTakeLover(const std::string& creature, int32_t value) const
+{
+    if(mSettings.mMaxPartners <= 0)
+        return false;
+
+    int32_t nbLovers = 0;
+    int32_t weakest = RelationshipSettings::VALUE_MAX;
+    for(std::map<Pair, PairData>::const_iterator it = mPairs.begin(); it != mPairs.end(); ++it)
+    {
+        if(!it->second.mLovers || ((it->first.first != creature) && (it->first.second != creature)))
+            continue;
+
+        ++nbLovers;
+        weakest = std::min(weakest, it->second.mValue);
+    }
+
+    // A weaker partner is replaced by the stronger new couple
+    return (nbLovers < mSettings.mMaxPartners) || (value > weakest);
+}
+
+void CreatureRelationships::updateLovers(const Pair& pair)
+{
+    std::map<Pair, PairData>::iterator it = mPairs.find(pair);
+    if((it == mPairs.end()) || it->second.mLovers || (it->second.mValue < mSettings.mThresholdLovers))
+        return;
+
+    if(!haveLoversGenders(pair) || !canTakeLover(pair.first, it->second.mValue)
+       || !canTakeLover(pair.second, it->second.mValue))
+    {
+        return;
+    }
+
+    RelationshipTier oldTier = tierOfData(*this, it->second);
+    it->second.mLovers = true;
+    recordTierChange(pair, oldTier, RelationshipTier::lovers);
+}
+
+void CreatureRelationships::clearLovers(const Pair& pair, PairData& data)
+{
+    data.mLovers = false;
+    recordTierChange(pair, RelationshipTier::lovers, tierOfValue(data.mValue, false));
+}
+
+void CreatureRelationships::recordTierChange(const Pair& pair, RelationshipTier oldTier, RelationshipTier newTier)
+{
     if(oldTier == newTier)
         return;
 
@@ -589,7 +711,35 @@ RelationshipTier CreatureRelationships::tierOfValue(int32_t value, bool loversAl
 RelationshipTier CreatureRelationships::tierOf(const std::string& creatureA, const std::string& creatureB,
     bool loversAllowed) const
 {
-    return tierOfValue(getValue(creatureA, creatureB), loversAllowed);
+    std::map<Pair, PairData>::const_iterator it = mPairs.find(makePair(creatureA, creatureB));
+    if(it == mPairs.end())
+        return RelationshipTier::neutral;
+
+    if(loversAllowed && it->second.mLovers)
+        return RelationshipTier::lovers;
+
+    return tierOfValue(it->second.mValue, false);
+}
+
+bool CreatureRelationships::isLovers(const std::string& creatureA, const std::string& creatureB) const
+{
+    std::map<Pair, PairData>::const_iterator it = mPairs.find(makePair(creatureA, creatureB));
+    return (it != mPairs.end()) && it->second.mLovers;
+}
+
+std::string CreatureRelationships::getPartner(const std::string& creature) const
+{
+    for(std::map<Pair, PairData>::const_iterator it = mPairs.begin(); it != mPairs.end(); ++it)
+    {
+        if(!it->second.mLovers)
+            continue;
+        if(it->first.first == creature)
+            return it->first.second;
+        if(it->first.second == creature)
+            return it->first.first;
+    }
+
+    return std::string();
 }
 
 bool CreatureRelationships::isFriend(const std::string& creatureA, const std::string& creatureB) const
@@ -618,7 +768,9 @@ double CreatureRelationships::combatModifier(const std::string& creature,
             continue;
 
         int32_t value = getValue(creature, nearbyFighters[i]);
-        if(value >= mSettings.mThresholdBestFriends)
+        if(isLovers(creature, nearbyFighters[i]))
+            bonus = std::max(bonus, mSettings.mCombatBonusLovers);
+        else if(value >= mSettings.mThresholdBestFriends)
             bonus = std::max(bonus, mSettings.mCombatBonusBestFriends);
         else if(value >= mSettings.mThresholdFriends)
             bonus = std::max(bonus, mSettings.mCombatBonusFriends);
@@ -658,8 +810,15 @@ int32_t CreatureRelationships::moodModifier(const std::string& creature) const
     int32_t modifier = 0;
     for(size_t i = 0; i < partners.size(); ++i)
     {
+        // The partner is a pure bonus and does not count against the hated limit
+        if(isLovers(creature, partners[i].first))
+        {
+            modifier += mSettings.mMoodBonusLovers;
+            continue;
+        }
+
         if(nbHated >= mSettings.mMoodMaxPairs)
-            break;
+            continue;
 
         if(partners[i].second <= mSettings.mThresholdNemesis)
             modifier -= mSettings.mMoodPenaltyNemesis;
@@ -773,20 +932,24 @@ void CreatureRelationships::doTurn(int64_t turn)
         }
 
         int32_t oldValue = it->second.mValue;
+        RelationshipTier oldTier = tierOfData(*this, it->second);
         int32_t newValue = oldValue;
         if(oldValue > 0)
             newValue = std::max<int32_t>(0, oldValue - mSettings.mDriftAmount);
         else
             newValue = std::min<int32_t>(0, oldValue + mSettings.mDriftAmount);
 
-        recordTierChange(it->first, oldValue, newValue);
         if(newValue == 0)
         {
+            recordTierChange(it->first, oldTier, RelationshipTier::neutral);
             it = mPairs.erase(it);
             continue;
         }
 
         it->second.mValue = newValue;
+        if(it->second.mLovers && (newValue < mSettings.mLoversBreakValue))
+            it->second.mLovers = false;
+        recordTierChange(it->first, oldTier, tierOfData(*this, it->second));
         ++it;
     }
 }
@@ -833,6 +996,7 @@ void CreatureRelationships::setTier(const std::string& creatureA, const std::str
     PairData data;
     data.mValue = value;
     data.mLastEventTurn = 0;
+    data.mLovers = (tier == RelationshipTier::lovers);
     mPairs[pair] = data;
 }
 
@@ -841,7 +1005,7 @@ void CreatureRelationships::getTiers(std::vector<RelationshipTierChange>& tiers)
     tiers.clear();
     for(std::map<Pair, PairData>::const_iterator it = mPairs.begin(); it != mPairs.end(); ++it)
     {
-        RelationshipTier tier = tierOfValue(it->second.mValue, false);
+        RelationshipTier tier = tierOfData(*this, it->second);
         if(tier == RelationshipTier::neutral)
             continue;
 
@@ -859,7 +1023,8 @@ void CreatureRelationships::writeToStream(std::ostream& os, int64_t turn) const
     for(std::map<Pair, PairData>::const_iterator it = mPairs.begin(); it != mPairs.end(); ++it)
     {
         int64_t age = std::max<int64_t>(0, turn - it->second.mLastEventTurn);
-        os << it->first.first << "\t" << it->first.second << "\t" << it->second.mValue << "\t" << age << "\n";
+        os << it->first.first << "\t" << it->first.second << "\t" << it->second.mValue << "\t" << age << "\t"
+           << (it->second.mLovers ? 1 : 0) << "\n";
     }
 }
 
@@ -867,6 +1032,7 @@ bool CreatureRelationships::readFromStream(std::istream& is, int64_t turn)
 {
     mPairs.clear();
     mTierChanges.clear();
+    std::set<Pair> legacy;
 
     std::string line;
     while(true)
@@ -879,7 +1045,30 @@ bool CreatureRelationships::readFromStream(std::istream& is, int64_t turn)
             line.erase(line.size() - 1);
 
         if(line == "[/Relationships]")
+        {
+            // Pairs of old saves have no lovers flag: they are lovers when they qualify now
+            for(std::map<Pair, PairData>::iterator it = mPairs.begin(); it != mPairs.end(); ++it)
+            {
+                if(legacy.count(it->first) != 0)
+                    updateLovers(it->first);
+            }
+            // The limits are applied once per creature that has a partner
+            std::vector<std::string> names;
+            for(std::map<Pair, PairData>::const_iterator it = mPairs.begin(); it != mPairs.end(); ++it)
+            {
+                if(it->second.mLovers)
+                {
+                    names.push_back(it->first.first);
+                    names.push_back(it->first.second);
+                }
+            }
+            for(size_t i = 0; i < names.size(); ++i)
+                enforceLimits(names[i], turn);
+
+            // Nothing of this is news for the clients
+            mTierChanges.clear();
             return true;
+        }
 
         if(line.empty() || (line[0] == '#'))
             continue;
@@ -900,8 +1089,10 @@ bool CreatureRelationships::readFromStream(std::istream& is, int64_t turn)
 
         int64_t value;
         int64_t age;
-        if((fields.size() != NB_SAVE_FIELDS) || fields[0].empty() || fields[1].empty() || (fields[0] == fields[1])
-            || !parseInt(fields[2], value) || !parseInt(fields[3], age))
+        int64_t lovers = 0;
+        bool hasFlag = (fields.size() == NB_SAVE_FIELDS_WITH_LOVERS);
+        if(((fields.size() != NB_SAVE_FIELDS) && !hasFlag) || fields[0].empty() || fields[1].empty() || (fields[0] == fields[1])
+            || !parseInt(fields[2], value) || !parseInt(fields[3], age) || (hasFlag && !parseInt(fields[4], lovers)))
         {
             return false;
         }
@@ -914,6 +1105,10 @@ bool CreatureRelationships::readFromStream(std::istream& is, int64_t turn)
         PairData data;
         data.mValue = static_cast<int32_t>(value);
         data.mLastEventTurn = turn - std::max<int64_t>(0, age);
-        mPairs[makePair(fields[0], fields[1])] = data;
+        data.mLovers = hasFlag && (lovers != 0) && (data.mValue >= mSettings.mLoversBreakValue);
+        Pair pair = makePair(fields[0], fields[1]);
+        mPairs[pair] = data;
+        if(!hasFlag)
+            legacy.insert(pair);
     }
 }

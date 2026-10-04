@@ -534,4 +534,315 @@ BOOST_AUTO_TEST_CASE(test_ConfigValues)
     BOOST_CHECK_EQUAL(settings.mMaxNemeses, 2);
 }
 
+namespace
+{
+    std::map<std::string, std::string> genders;
+
+    std::string testGender(const std::string& name)
+    {
+        std::map<std::string, std::string>::const_iterator it = genders.find(name);
+        return (it == genders.end()) ? std::string() : it->second;
+    }
+
+    void setupGenders(CreatureRelationships& relationships)
+    {
+        genders.clear();
+        genders["Adam"] = "Male";
+        genders["Bob"] = "Male";
+        genders["Eve"] = "Female";
+        genders["Fay"] = "Female";
+        genders["Rock"] = "";
+        relationships.setGenderLookup(testGender);
+    }
+}
+
+BOOST_AUTO_TEST_CASE(test_LoversNeedOneMaleAndOneFemale)
+{
+    CreatureRelationships relationships;
+    setupGenders(relationships);
+
+    // Below the threshold nobody is lovers
+    relationships.changeValue("Adam", "Eve", 89, 0);
+    BOOST_CHECK(relationships.tierOf("Adam", "Eve", true) == RelationshipTier::bestFriends);
+    BOOST_CHECK(!relationships.isLovers("Adam", "Eve"));
+
+    // Male and female at the threshold
+    std::vector<RelationshipTierChange> changes;
+    relationships.takeTierChanges(changes);
+    relationships.changeValue("Adam", "Eve", 1, 1);
+    BOOST_CHECK(relationships.tierOf("Adam", "Eve", true) == RelationshipTier::lovers);
+    BOOST_CHECK(relationships.isLovers("Eve", "Adam"));
+    BOOST_CHECK_EQUAL(relationships.getPartner("Adam"), "Eve");
+    BOOST_CHECK_EQUAL(relationships.getPartner("Eve"), "Adam");
+    // The caller can still ask for the pure value tier
+    BOOST_CHECK(relationships.tierOf("Adam", "Eve", false) == RelationshipTier::bestFriends);
+    relationships.takeTierChanges(changes);
+    BOOST_REQUIRE_EQUAL(changes.size(), 1u);
+    BOOST_CHECK(changes[0].mOldTier == RelationshipTier::bestFriends);
+    BOOST_CHECK(changes[0].mNewTier == RelationshipTier::lovers);
+
+    // Same gender stays at best friends, however high the value is
+    relationships.changeValue("Adam", "Bob", 100, 2);
+    BOOST_CHECK(relationships.tierOf("Adam", "Bob", true) == RelationshipTier::bestFriends);
+    relationships.changeValue("Eve", "Fay", 100, 2);
+    BOOST_CHECK(relationships.tierOf("Eve", "Fay", true) == RelationshipTier::bestFriends);
+
+    // No gender: skipped
+    relationships.changeValue("Rock", "Fay", 100, 2);
+    relationships.changeValue("Rock", "Unknown", 100, 2);
+    BOOST_CHECK(relationships.tierOf("Rock", "Fay", true) == RelationshipTier::bestFriends);
+    BOOST_CHECK(relationships.tierOf("Rock", "Unknown", true) == RelationshipTier::bestFriends);
+
+    // Without a lookup nobody is lovers
+    CreatureRelationships noLookup;
+    noLookup.changeValue("Adam", "Eve", 100, 0);
+    BOOST_CHECK(noLookup.tierOf("Adam", "Eve", true) == RelationshipTier::bestFriends);
+}
+
+BOOST_AUTO_TEST_CASE(test_LoversLimitOnePartner)
+{
+    CreatureRelationships relationships;
+    setupGenders(relationships);
+    relationships.changeValue("Adam", "Eve", 95, 0);
+    BOOST_REQUIRE(relationships.isLovers("Adam", "Eve"));
+
+    // A weaker candidate does not take the place of the partner
+    relationships.changeValue("Adam", "Fay", 92, 1);
+    BOOST_CHECK(relationships.isLovers("Adam", "Eve"));
+    BOOST_CHECK(!relationships.isLovers("Adam", "Fay"));
+    BOOST_CHECK(relationships.tierOf("Adam", "Fay", true) == RelationshipTier::bestFriends);
+    BOOST_CHECK_EQUAL(relationships.getValue("Adam", "Fay"), 92);
+
+    // A stronger candidate does: the old couple falls back below the threshold
+    relationships.changeValue("Adam", "Fay", 6, 2);
+    BOOST_CHECK(relationships.isLovers("Adam", "Fay"));
+    BOOST_CHECK(!relationships.isLovers("Adam", "Eve"));
+    BOOST_CHECK_EQUAL(relationships.getValue("Adam", "Eve"), 89);
+    BOOST_CHECK_EQUAL(relationships.getPartner("Adam"), "Fay");
+    BOOST_CHECK_EQUAL(relationships.getPartner("Eve"), "");
+}
+
+BOOST_AUTO_TEST_CASE(test_LoversBreakUpHysteresis)
+{
+    CreatureRelationships relationships;
+    setupGenders(relationships);
+    relationships.changeValue("Adam", "Eve", 95, 0);
+    BOOST_REQUIRE(relationships.isLovers("Adam", "Eve"));
+
+    // Between the break value and the threshold they stay lovers
+    relationships.changeValue("Adam", "Eve", -25, 1);
+    BOOST_CHECK_EQUAL(relationships.getValue("Adam", "Eve"), 70);
+    BOOST_CHECK(relationships.tierOf("Adam", "Eve", true) == RelationshipTier::lovers);
+
+    // Below 70 they break up and drop to the lower tier
+    std::vector<RelationshipTierChange> changes;
+    relationships.takeTierChanges(changes);
+    relationships.changeValue("Adam", "Eve", -1, 2);
+    BOOST_CHECK(!relationships.isLovers("Adam", "Eve"));
+    BOOST_CHECK(relationships.tierOf("Adam", "Eve", true) == RelationshipTier::friends);
+    BOOST_CHECK_EQUAL(relationships.getPartner("Adam"), "");
+    relationships.takeTierChanges(changes);
+    BOOST_REQUIRE_EQUAL(changes.size(), 1u);
+    BOOST_CHECK(changes[0].mOldTier == RelationshipTier::lovers);
+    BOOST_CHECK(changes[0].mNewTier == RelationshipTier::friends);
+
+    // Back at 89 they are not lovers again, only at 90
+    relationships.changeValue("Adam", "Eve", 20, 3);
+    BOOST_CHECK(!relationships.isLovers("Adam", "Eve"));
+    relationships.changeValue("Adam", "Eve", 1, 4);
+    BOOST_CHECK(relationships.isLovers("Adam", "Eve"));
+
+    // A single large drop ends the relationship in one tier change
+    relationships.takeTierChanges(changes);
+    relationships.changeValue("Adam", "Eve", -200, 5);
+    BOOST_CHECK(!relationships.isLovers("Adam", "Eve"));
+    relationships.takeTierChanges(changes);
+    BOOST_REQUIRE_EQUAL(changes.size(), 1u);
+    BOOST_CHECK(changes[0].mOldTier == RelationshipTier::lovers);
+    BOOST_CHECK(changes[0].mNewTier == RelationshipTier::nemesis);
+}
+
+BOOST_AUTO_TEST_CASE(test_LoversBreakUpByDrift)
+{
+    CreatureRelationships relationships;
+    setupGenders(relationships);
+    relationships.changeValue("Adam", "Eve", 71, 0);
+    BOOST_CHECK(!relationships.isLovers("Adam", "Eve"));
+    relationships.changeValue("Adam", "Eve", 24, 0);
+    BOOST_REQUIRE(relationships.isLovers("Adam", "Eve"));
+    relationships.changeValue("Adam", "Eve", -24, 0);
+    BOOST_CHECK_EQUAL(relationships.getValue("Adam", "Eve"), 71);
+    BOOST_CHECK(relationships.isLovers("Adam", "Eve"));
+
+    // Drift moves 1 point per step: 71 -> 70 keeps them, 70 -> 69 ends it
+    int64_t turn = relationships.getSettings().mDriftIdleTurns + relationships.getSettings().mDriftIntervalTurns;
+    relationships.doTurn(turn);
+    BOOST_CHECK_EQUAL(relationships.getValue("Adam", "Eve"), 70);
+    BOOST_CHECK(relationships.isLovers("Adam", "Eve"));
+    std::vector<RelationshipTierChange> changes;
+    relationships.takeTierChanges(changes);
+    relationships.doTurn(turn + relationships.getSettings().mDriftIntervalTurns);
+    BOOST_CHECK_EQUAL(relationships.getValue("Adam", "Eve"), 69);
+    BOOST_CHECK(!relationships.isLovers("Adam", "Eve"));
+    relationships.takeTierChanges(changes);
+    BOOST_REQUIRE_EQUAL(changes.size(), 1u);
+    BOOST_CHECK(changes[0].mOldTier == RelationshipTier::lovers);
+    BOOST_CHECK(changes[0].mNewTier == RelationshipTier::friends);
+}
+
+BOOST_AUTO_TEST_CASE(test_LoversSaveLoadWithFlag)
+{
+    CreatureRelationships relationships;
+    setupGenders(relationships);
+    // A couple that has dropped to 75 is still lovers, a same-gender pair at 95 is not
+    relationships.changeValue("Adam", "Eve", 95, 0);
+    relationships.changeValue("Adam", "Eve", -20, 0);
+    relationships.changeValue("Bob", "Fay", 60, 0);
+    relationships.changeValue("Adam", "Bob", 95, 0);
+    BOOST_REQUIRE(relationships.isLovers("Adam", "Eve"));
+
+    std::stringstream saved;
+    saved << "[Relationships]\n";
+    relationships.writeToStream(saved, 10);
+    saved << "[/Relationships]\n";
+    std::string header;
+    saved >> header;
+
+    // The flag is read back as stored, even without a gender lookup
+    CreatureRelationships loaded;
+    BOOST_REQUIRE(loaded.readFromStream(saved, 10));
+    BOOST_CHECK(loaded.isLovers("Adam", "Eve"));
+    BOOST_CHECK_EQUAL(loaded.getValue("Adam", "Eve"), 75);
+    BOOST_CHECK(!loaded.isLovers("Adam", "Bob"));
+    BOOST_CHECK(!loaded.isLovers("Bob", "Fay"));
+    BOOST_CHECK(loaded.tierOf("Adam", "Eve", true) == RelationshipTier::lovers);
+    std::vector<RelationshipTierChange> changes;
+    loaded.takeTierChanges(changes);
+    BOOST_CHECK(changes.empty());
+}
+
+BOOST_AUTO_TEST_CASE(test_LoversLoadOldSaveWithoutFlag)
+{
+    // Old saves have four fields per line: the flag is derived from the value and the genders
+    CreatureRelationships relationships;
+    setupGenders(relationships);
+    std::stringstream saved;
+    saved << "Adam\tEve\t92\t5\n";
+    saved << "Adam\tBob\t95\t5\n";
+    saved << "Bob\tFay\t75\t5\n";
+    saved << "[/Relationships]\n";
+    BOOST_REQUIRE(relationships.readFromStream(saved, 10));
+    BOOST_CHECK(relationships.isLovers("Adam", "Eve"));
+    BOOST_CHECK(!relationships.isLovers("Adam", "Bob"));
+    // Below the threshold an old pair is not lovers
+    BOOST_CHECK(!relationships.isLovers("Bob", "Fay"));
+
+    // Old save with two possible partners for one creature: only the stronger pair stays lovers
+    CreatureRelationships crowded;
+    setupGenders(crowded);
+    std::stringstream saved2;
+    saved2 << "Adam\tEve\t92\t5\n";
+    saved2 << "Adam\tFay\t97\t5\n";
+    saved2 << "[/Relationships]\n";
+    BOOST_REQUIRE(crowded.readFromStream(saved2, 10));
+    BOOST_CHECK(crowded.isLovers("Adam", "Fay"));
+    BOOST_CHECK(!crowded.isLovers("Adam", "Eve"));
+
+    // A line with a fifth field that is not a number is invalid
+    CreatureRelationships broken;
+    std::stringstream saved3;
+    saved3 << "Adam\tEve\t92\t5\tx\n";
+    saved3 << "[/Relationships]\n";
+    BOOST_CHECK(!broken.readFromStream(saved3, 10));
+}
+
+BOOST_AUTO_TEST_CASE(test_LoversClientTiers)
+{
+    CreatureRelationships server;
+    setupGenders(server);
+    server.changeValue("Adam", "Eve", 95, 0);
+    server.changeValue("Bob", "Fay", 85, 0);
+
+    std::vector<RelationshipTierChange> tiers;
+    server.getTiers(tiers);
+    BOOST_REQUIRE_EQUAL(tiers.size(), 2u);
+    CreatureRelationships client;
+    for(const RelationshipTierChange& tier : tiers)
+        client.setTier(tier.mCreatureA, tier.mCreatureB, tier.mNewTier);
+
+    BOOST_CHECK(client.tierOf("Adam", "Eve", true) == RelationshipTier::lovers);
+    BOOST_CHECK(client.tierOf("Bob", "Fay", true) == RelationshipTier::bestFriends);
+    client.setTier("Adam", "Eve", RelationshipTier::bestFriends);
+    BOOST_CHECK(client.tierOf("Adam", "Eve", true) == RelationshipTier::bestFriends);
+}
+
+BOOST_AUTO_TEST_CASE(test_LoversEffects)
+{
+    CreatureRelationships relationships;
+    setupGenders(relationships);
+    const RelationshipSettings& settings = relationships.getSettings();
+
+    relationships.changeValue("Adam", "Eve", 95, 0);
+    relationships.changeValue("Adam", "Bob", 85, 0);
+    BOOST_REQUIRE(relationships.isLovers("Adam", "Eve"));
+
+    // The strongest combat bonus: the partner beats a best friend, the best bonus counts once
+    std::vector<std::string> nearby;
+    nearby.push_back("Bob");
+    BOOST_CHECK_EQUAL(relationships.combatModifier("Adam", nearby), settings.mCombatBonusBestFriends);
+    nearby.push_back("Eve");
+    BOOST_CHECK_EQUAL(relationships.combatModifier("Adam", nearby), settings.mCombatBonusLovers);
+    BOOST_CHECK(settings.mCombatBonusLovers > settings.mCombatBonusBestFriends);
+
+    // The mood boost is there while the pair exists; removing the creature (death, leaving) ends it
+    BOOST_CHECK_EQUAL(relationships.moodModifier("Adam"), settings.mMoodBonusLovers);
+    BOOST_CHECK_EQUAL(relationships.moodModifier("Eve"), settings.mMoodBonusLovers);
+    BOOST_CHECK_EQUAL(relationships.moodModifier("Bob"), 0);
+    relationships.removeCreature("Eve");
+    BOOST_CHECK_EQUAL(relationships.moodModifier("Adam"), 0);
+    BOOST_CHECK_EQUAL(relationships.getPartner("Adam"), "");
+}
+
+BOOST_AUTO_TEST_CASE(test_LoversJealousy)
+{
+    CreatureRelationships relationships;
+    setupGenders(relationships);
+    const RelationshipSettings& settings = relationships.getSettings();
+
+    relationships.changeValue("Adam", "Eve", 95, 0);
+    BOOST_REQUIRE(relationships.isLovers("Adam", "Eve"));
+    relationships.changeValue("Adam", "Bob", 10, 0);
+    relationships.changeValue("Eve", "Bob", 10, 0);
+
+    // Adam becomes friends with Bob: Eve (the partner) loses more towards Bob than a friend would
+    relationships.changeValue("Adam", "Bob", 45, 1);
+    BOOST_CHECK(relationships.isFriend("Adam", "Bob"));
+    BOOST_CHECK_EQUAL(relationships.getValue("Eve", "Bob"), 10 - settings.mLoversJealousyValueLoss);
+    BOOST_CHECK(settings.mLoversJealousyValueLoss > settings.mJealousyValueLoss);
+}
+
+BOOST_AUTO_TEST_CASE(test_LoversConfigValues)
+{
+    RelationshipSettings defaults;
+    BOOST_CHECK_EQUAL(defaults.mThresholdLovers, 90);
+    BOOST_CHECK_EQUAL(defaults.mLoversBreakValue, 70);
+    BOOST_CHECK_EQUAL(defaults.mMaxPartners, 1);
+    BOOST_CHECK(defaults.mPartnerGriefMoodPenalty > defaults.mGriefMoodPenalty);
+
+    std::map<std::string, std::string> config;
+    config["LoversBreakValue"] = "60";
+    config["CombatBonusLovers"] = "3";
+    config["MoodBonusLovers"] = "123";
+    config["PartnerGriefMoodPenalty"] = "900";
+    config["LeavePartnerChancePercent"] = "55";
+    config["LoversJealousyValueLoss"] = "9";
+    RelationshipSettings settings = RelationshipSettings::fromConfig(config);
+    BOOST_CHECK_EQUAL(settings.mLoversBreakValue, 60);
+    BOOST_CHECK_EQUAL(settings.mCombatBonusLovers, 3.0);
+    BOOST_CHECK_EQUAL(settings.mMoodBonusLovers, 123);
+    BOOST_CHECK_EQUAL(settings.mPartnerGriefMoodPenalty, 900);
+    BOOST_CHECK_EQUAL(settings.mLeavePartnerChancePercent, 55);
+    BOOST_CHECK_EQUAL(settings.mLoversJealousyValueLoss, 9);
+}
+
 BOOST_AUTO_TEST_SUITE_END()
