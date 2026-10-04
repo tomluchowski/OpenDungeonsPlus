@@ -1,0 +1,8 @@
+{
+  "direction": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-299a61b7-8a81-48ab-9f19-011d4563d210.png",
+  "haze": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-b31c4e26-aa42-4c47-9276-f9a0f14c6077.png",
+  "unsuccessful_haze_correction": {
+    "prompt": "Remove ONLY the background haze and drop shadow around this isolated closed ridged Cultist helmet. Preserve the complete metal helmet design, orientation, coarse painted brushwork, opaque black interior of the visor, and all spikes and contour details. Output ONLY the complete isolated helmet on genuine transparent RGBA alpha background: every pixel outside the helmet contour must be completely transparent, with no gray halo, glow, shadow, fog, backdrop, checkerboard or text. No head, face, body or full portrait.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-5e50d86c-eab6-4b39-afe7-ec9a74fd8852.png"
+  }
+}

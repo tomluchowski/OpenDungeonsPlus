@@ -1,0 +1,13 @@
+{
+  "id": "Knight.mesh-female",
+  "n": 3,
+  "name": "houndskull",
+  "prompt": "Generate ONE new isolated face-covering helmet customization part for the female Knight catalog entry. The attached ORIGINAL PORTRAIT is a reference ONLY for the exact three-quarter viewing direction, head tilt, steel gray palette, light from upper left and coarse hand-painted dark-fantasy brushwork. Output ONLY a complete empty helmet, no head, skin, neck, body, armor shoulders, clothing, hair, person, background or full portrait. Variant 3: Pointed houndskull visor with a distinctly projecting tapered snout, closed cheek plates and narrow eye openings; rounded crown. Opaque dark interior behind all visor openings; no face visible. Match the reference helmet's orientation precisely; do not turn it frontal or mirror it. Entire contour visible with transparent padding, genuine RGBA alpha background, no baked checkerboard, no text, symbols, weapons, glow or shadow outside the object. Direct isolated-part generation, not portrait cropping.",
+  "file": "helmet-3-houndskull-corrected.png",
+  "reference": "materials/textures/portrait-Knight.mesh-female.png",
+  "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-329aced8-88bc-4022-ac8e-8bce5261b43d.png",
+  "rejected_original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-299a61b7-8a81-48ab-9f19-011d4563d210.png",
+  "correction_prompt": "Correct ONLY the viewing direction of this new isolated Knight helmet. Reference image 1 is the target isolated pointed houndskull helmet; image 2 is the ORIGINAL Knight female portrait defining the required direction. Repaint the EMPTY helmet to look toward IMAGE RIGHT: its pointed snout must project toward the RIGHT edge, not toward the left edge. Match image 2's three-quarter orientation and downward tilt, light from upper left. Keep the distinct pointed visor and steel palette, coarse painted brushwork; do not simply mirror the lighting. Output ONLY this one complete isolated helmet on genuine transparent RGBA background with padding, no person, face, skin, body, hair, costume, glow, backdrop or text.",
+  "method": "direct isolated generation and direction correction; unmodified copy",
+  "status": "generated-visually-inspected-placement-pending"
+}

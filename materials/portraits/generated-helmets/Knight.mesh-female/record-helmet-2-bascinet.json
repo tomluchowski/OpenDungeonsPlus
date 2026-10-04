@@ -1,0 +1,11 @@
+{
+  "id": "Knight.mesh-female",
+  "n": 2,
+  "name": "bascinet",
+  "prompt": "Generate ONE new isolated face-covering helmet customization part for the female Knight catalog entry. The attached ORIGINAL PORTRAIT is a reference ONLY for the exact three-quarter viewing direction, head tilt, steel gray palette, light from upper left and coarse hand-painted dark-fantasy brushwork. Output ONLY a complete empty helmet, no head, skin, neck, body, armor shoulders, clothing, hair, person, background or full portrait. Variant 2: Rounded dome bascinet with a compact closed rounded visor and paired thin horizontal eye slits; no pointed roof or flat barrel top. Opaque dark interior behind all visor openings; no face visible. Match the reference helmet's orientation precisely; do not turn it frontal or mirror it. Entire contour visible with transparent padding, genuine RGBA alpha background, no baked checkerboard, no text, symbols, weapons, glow or shadow outside the object. Direct isolated-part generation, not portrait cropping.",
+  "file": "helmet-2-bascinet.png",
+  "reference": "materials/textures/portrait-Knight.mesh-female.png",
+  "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-b13269fd-f5bb-4f7b-86f1-9c5d97ee782e.png",
+  "method": "direct isolated generation; unmodified copy",
+  "status": "generated-placement-pending"
+}

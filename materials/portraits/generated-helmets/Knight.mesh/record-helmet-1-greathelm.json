@@ -1,0 +1,11 @@
+{
+  "id": "Knight.mesh",
+  "n": 1,
+  "name": "greathelm",
+  "prompt": "Generate ONE new isolated face-covering helmet customization part for the male Knight catalog entry. The attached ORIGINAL PORTRAIT is a reference ONLY for the exact three-quarter viewing direction, downward head tilt, steel gray palette, light from upper left and coarse hand-painted dark-fantasy brushwork. Output ONLY a complete empty helmet, no head, skin, neck, body, armor shoulders, clothing, braid, person, background or full portrait. Variant 1: angular peaked great helm, broad closed lower faceplate, paired narrow dark eye slits and small ventilation holes, visibly distinct from a rounded bascinet, pointed visor and flat-topped barrel helmet. Opaque dark interior behind eye slits; no face visible. Match the reference helmet's orientation precisely; do not turn it frontal or mirror it. Entire contour visible with transparent padding, genuine RGBA alpha background, no baked checkerboard, no text, symbols, weapons, glow or shadow outside the object. Direct isolated-part generation, not portrait cropping.",
+  "file": "helmet-1-greathelm.png",
+  "reference": "materials/textures/portrait-Knight.mesh.png",
+  "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-b8670f97-8e41-46be-aa4b-3ae2b6281fe9.png",
+  "method": "direct isolated generation; unmodified copy",
+  "status": "generated-visually-inspected-placement-pending"
+}

@@ -23,9 +23,11 @@
         "scar"
       ],
       "observation": "The original reference has a face-covering helmet; the neutral base removes it, but the catalog provides neither a separate helmet nor eyes, nose or mouth.",
-      "required_action": "Owner must determine whether final appearance uses a separate helmet or new facial options; do not generate or cut new assets without authorization.",
+      "required_action": "Integrate mandatory helmet choice and helmet damage masking in the separate runtime task; Knight male neutral-base fit remains deferred.",
       "regeneration": "not-established",
-      "kind": "missing-content-not-source-defect"
+      "kind": "missing-content-not-source-defect",
+      "resolution": "Owner selected four closed helmet shapes per gender; all 16 isolated parts and supplemental patches delivered.",
+      "helmet_delivery": "materials/portraits/helmet-variants/README.md"
     },
     {
       "portrait": "Knight.mesh-female",
@@ -36,9 +38,11 @@
         "scar"
       ],
       "observation": "The original reference has a face-covering helmet; the neutral base removes it, but the catalog provides neither a separate helmet nor eyes, nose or mouth.",
-      "required_action": "Owner must determine whether final appearance uses a separate helmet or new facial options; do not generate or cut new assets without authorization.",
+      "required_action": "Integrate mandatory helmet choice and helmet damage masking in the separate runtime task; Knight male neutral-base fit remains deferred.",
       "regeneration": "not-established",
-      "kind": "missing-content-not-source-defect"
+      "kind": "missing-content-not-source-defect",
+      "resolution": "Owner selected four closed helmet shapes per gender; all 16 isolated parts and supplemental patches delivered.",
+      "helmet_delivery": "materials/portraits/helmet-variants/README.md"
     },
     {
       "portrait": "Cultist.mesh",
@@ -49,9 +53,11 @@
         "scar"
       ],
       "observation": "The original reference has a face-covering helmet; the neutral base removes it, but the catalog provides neither a separate helmet nor eyes, nose or mouth.",
-      "required_action": "Owner must determine whether final appearance uses a separate helmet or new facial options; do not generate or cut new assets without authorization.",
+      "required_action": "Integrate mandatory helmet choice and helmet damage masking in the separate runtime task; Knight male neutral-base fit remains deferred.",
       "regeneration": "not-established",
-      "kind": "missing-content-not-source-defect"
+      "kind": "missing-content-not-source-defect",
+      "resolution": "Owner selected four closed helmet shapes per gender; all 16 isolated parts and supplemental patches delivered.",
+      "helmet_delivery": "materials/portraits/helmet-variants/README.md"
     },
     {
       "portrait": "Cultist.mesh-female",
@@ -62,9 +68,11 @@
         "scar"
       ],
       "observation": "The original reference has a face-covering helmet; the neutral base removes it, but the catalog provides neither a separate helmet nor eyes, nose or mouth.",
-      "required_action": "Owner must determine whether final appearance uses a separate helmet or new facial options; do not generate or cut new assets without authorization.",
+      "required_action": "Integrate mandatory helmet choice and helmet damage masking in the separate runtime task; Knight male neutral-base fit remains deferred.",
       "regeneration": "not-established",
-      "kind": "missing-content-not-source-defect"
+      "kind": "missing-content-not-source-defect",
+      "resolution": "Owner selected four closed helmet shapes per gender; all 16 isolated parts and supplemental patches delivered.",
+      "helmet_delivery": "materials/portraits/helmet-variants/README.md"
     }
   ],
   "records": [

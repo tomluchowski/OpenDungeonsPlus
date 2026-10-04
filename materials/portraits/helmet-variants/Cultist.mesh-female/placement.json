@@ -1,0 +1,164 @@
+[
+  {
+    "id": "Cultist.mesh-female",
+    "n": 1,
+    "name": "arch",
+    "prompt": "Generate ONE new isolated face-covering helmet customization part for the female Cultist catalog entry. The attached ORIGINAL PORTRAIT is a reference ONLY for the exact three-quarter viewing direction, head tilt, steel gray palette, light from upper left and coarse hand-painted dark-fantasy brushwork. Output ONLY a complete empty helmet, no head, skin, neck, body, armor shoulders, clothing, hair, person, background or full portrait. Variant 1: Closed elongated steel grille mask below a broad arched spiked crest; long vertical dark visor openings backed by opaque shadow. Opaque dark interior behind all visor openings; no face visible. Match the reference helmet's orientation precisely; do not turn it frontal or mirror it. Entire contour visible with transparent padding, genuine RGBA alpha background, no baked checkerboard, no text, symbols, weapons, glow or shadow outside the object. Direct isolated-part generation, not portrait cropping.",
+    "file": "helmet-1-arch.png",
+    "reference": "materials/textures/portrait-Cultist.mesh-female.png",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-a20d11b9-a7b8-4c7b-9309-71e52d9d5d98.png",
+    "source": "materials/portraits/generated-helmets/Cultist.mesh-female/helmet-1-arch.png",
+    "source_sha256": "920504d2e5099b32793e4cb7cf5698c3adc9a6a904205a3d21ccf876f2bf0eb7",
+    "source_bbox": [
+      6,
+      21,
+      1129,
+      1292
+    ],
+    "shell_top": 479,
+    "rect": [
+      0,
+      0,
+      887,
+      950
+    ],
+    "scale": 0.5564575645756458,
+    "horizontal_scale": 0.7437269372693726,
+    "offset": [
+      -2.4623616236162356,
+      96.0568265682657
+    ],
+    "head_anchor": [
+      265,
+      380,
+      310,
+      435
+    ],
+    "base": "materials/portraits/neutral-bases/Cultist.mesh-female.png",
+    "base_sha256": "817d002078001f72f266323b7b8a8ebc5ca8f2b890584eeb41324a4dbdc908fc",
+    "visual_acceptance": "single-helmet-native-and-small-inspected",
+    "combined_visual_acceptance": "open-existing-slot-registration"
+  },
+  {
+    "id": "Cultist.mesh-female",
+    "n": 2,
+    "name": "crown",
+    "prompt": "Generate ONE new isolated face-covering helmet customization part for the female Cultist catalog entry. The attached ORIGINAL PORTRAIT is a reference ONLY for the exact three-quarter viewing direction, head tilt, steel gray palette, light from upper left and coarse hand-painted dark-fantasy brushwork. Output ONLY a complete empty helmet, no head, skin, neck, body, armor shoulders, clothing, hair, person, background or full portrait. Variant 2: Closed angular helmet with a compact ring of short metal crown spikes, a broad solid lower faceplate and paired narrow eye slits; no broad arch. Opaque dark interior behind all visor openings; no face visible. Match the reference helmet's orientation precisely; do not turn it frontal or mirror it. Entire contour visible with transparent padding, genuine RGBA alpha background, no baked checkerboard, no text, symbols, weapons, glow or shadow outside the object. Direct isolated-part generation, not portrait cropping.",
+    "file": "helmet-2-crown.png",
+    "reference": "materials/textures/portrait-Cultist.mesh-female.png",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-ab1b7d40-443a-48e0-bba1-c85f42febb31.png",
+    "source": "materials/portraits/generated-helmets/Cultist.mesh-female/helmet-2-crown.png",
+    "source_sha256": "2ee2fc926ffd5f659d59c76b1a84df2532c289abc459cbc3a369a0eb83b603ac",
+    "source_bbox": [
+      127,
+      37,
+      1062,
+      1299
+    ],
+    "shell_top": 289,
+    "rect": [
+      0,
+      0,
+      887,
+      950
+    ],
+    "scale": 0.4651485148514852,
+    "horizontal_scale": 0.5512871287128713,
+    "offset": [
+      92.259801980198,
+      210.7720792079208
+    ],
+    "head_anchor": [
+      265,
+      380,
+      310,
+      435
+    ],
+    "base": "materials/portraits/neutral-bases/Cultist.mesh-female.png",
+    "base_sha256": "817d002078001f72f266323b7b8a8ebc5ca8f2b890584eeb41324a4dbdc908fc",
+    "visual_acceptance": "single-helmet-native-and-small-inspected",
+    "combined_visual_acceptance": "open-existing-slot-registration"
+  },
+  {
+    "id": "Cultist.mesh-female",
+    "n": 3,
+    "name": "horned",
+    "prompt": "Generate ONE new isolated face-covering helmet customization part for the female Cultist catalog entry. The attached ORIGINAL PORTRAIT is a reference ONLY for the exact three-quarter viewing direction, head tilt, steel gray palette, light from upper left and coarse hand-painted dark-fantasy brushwork. Output ONLY a complete empty helmet, no head, skin, neck, body, armor shoulders, clothing, hair, person, background or full portrait. Variant 3: Closed tapered mask with two swept short steel horns attached to a rounded crown and a deep narrow central dark visor slit; no broad arch. Opaque dark interior behind all visor openings; no face visible. Match the reference helmet's orientation precisely; do not turn it frontal or mirror it. Entire contour visible with transparent padding, genuine RGBA alpha background, no baked checkerboard, no text, symbols, weapons, glow or shadow outside the object. Direct isolated-part generation, not portrait cropping.",
+    "file": "helmet-3-horned.png",
+    "reference": "materials/textures/portrait-Cultist.mesh-female.png",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-44812bf2-d91b-4770-b6dd-4775a5872331.png",
+    "source": "materials/portraits/generated-helmets/Cultist.mesh-female/helmet-3-horned.png",
+    "source_sha256": "d99c9e8f11ddf7fb4038cb36fa1ce899bde6354295e8b6c00709f27358e4aaa0",
+    "source_bbox": [
+      149,
+      62,
+      1083,
+      1304
+    ],
+    "shell_top": 286,
+    "rect": [
+      0,
+      0,
+      887,
+      950
+    ],
+    "scale": 0.46149312377210217,
+    "horizontal_scale": 0.5469548133595284,
+    "offset": [
+      83.07583497053048,
+      253.21296660117878
+    ],
+    "head_anchor": [
+      265,
+      380,
+      310,
+      435
+    ],
+    "base": "materials/portraits/neutral-bases/Cultist.mesh-female.png",
+    "base_sha256": "817d002078001f72f266323b7b8a8ebc5ca8f2b890584eeb41324a4dbdc908fc",
+    "visual_acceptance": "single-helmet-native-and-small-inspected",
+    "combined_visual_acceptance": "open-existing-slot-registration"
+  },
+  {
+    "id": "Cultist.mesh-female",
+    "n": 4,
+    "name": "ridged",
+    "prompt": "Generate ONE new isolated face-covering helmet customization part for the female Cultist catalog entry. The attached ORIGINAL PORTRAIT is a reference ONLY for the exact three-quarter viewing direction, head tilt, steel gray palette, light from upper left and coarse hand-painted dark-fantasy brushwork. Output ONLY a complete empty helmet, no head, skin, neck, body, armor shoulders, clothing, hair, person, background or full portrait. Variant 4: Tall sharply ridged closed steel helm with a single central blade crest and segmented broad faceplate with narrow vertical ventilation slits; no horns or arch. Opaque dark interior behind all visor openings; no face visible. Match the reference helmet's orientation precisely; do not turn it frontal or mirror it. Entire contour visible with transparent padding, genuine RGBA alpha background, no baked checkerboard, no text, symbols, weapons, glow or shadow outside the object. Direct isolated-part generation, not portrait cropping.",
+    "file": "helmet-4-ridged-clean.png",
+    "reference": "materials/textures/portrait-Cultist.mesh-female.png",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-fe5262ed-7862-4a22-b942-19d7a566e03a.png",
+    "rejected_original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-b31c4e26-aa42-4c47-9276-f9a0f14c6077.png",
+    "correction_prompt": "Generate a NEW standalone empty closed steel Cultist helmet with a tall central blade crest, segmented faceplate, and three long dark vertical visor slits. Reference 1 defines ORIGINAL female Cultist's three-quarter angle, downward head tilt and painted gray steel style. Reference 2 illustrates ONLY the requested ridged helmet shape. Output ONLY the isolated helmet with its full metal contour surrounded by clear TRANSPARENT RGBA alpha padding. Absolutely NO shadow, glow, haze, gray halo, background, black backdrop, fog, body, head, face, hair, clothing, text or weapons. Visor interior is opaque dark metal/shadow, no person. Not a full portrait. Use the coarse painted brushwork of reference 1, not photorealism.",
+    "source": "materials/portraits/generated-helmets/Cultist.mesh-female/helmet-4-ridged-clean.png",
+    "source_sha256": "e1751422b87db866b6672ec8d0d031b5fc23ea5283416c264a34d52dee976c23",
+    "source_bbox": [
+      235,
+      17,
+      1011,
+      1352
+    ],
+    "shell_top": 311,
+    "rect": [
+      0,
+      0,
+      887,
+      950
+    ],
+    "scale": 0.4512968299711816,
+    "horizontal_scale": 0.5348703170028819,
+    "offset": [
+      86.77579250720459,
+      204.8466858789625
+    ],
+    "head_anchor": [
+      265,
+      380,
+      310,
+      435
+    ],
+    "base": "materials/portraits/neutral-bases/Cultist.mesh-female.png",
+    "base_sha256": "817d002078001f72f266323b7b8a8ebc5ca8f2b890584eeb41324a4dbdc908fc",
+    "visual_acceptance": "single-helmet-native-and-small-inspected",
+    "combined_visual_acceptance": "open-existing-slot-registration"
+  }
+]

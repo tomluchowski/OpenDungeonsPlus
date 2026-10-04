@@ -1,0 +1,11 @@
+{
+  "id": "Cultist.mesh",
+  "n": 3,
+  "name": "horned",
+  "prompt": "Generate ONE new isolated face-covering helmet customization part for the male Cultist catalog entry. The attached ORIGINAL PORTRAIT is a reference ONLY for the exact three-quarter viewing direction, head tilt, steel gray palette, light from upper left and coarse hand-painted dark-fantasy brushwork. Output ONLY a complete empty helmet, no head, skin, neck, body, armor shoulders, clothing, hair, person, background or full portrait. Variant 3: Closed tapered mask with two swept short steel horns attached to a rounded crown and a deep narrow central dark visor slit; no broad arch. Opaque dark interior behind all visor openings; no face visible. Match the reference helmet's orientation precisely; do not turn it frontal or mirror it. Entire contour visible with transparent padding, genuine RGBA alpha background, no baked checkerboard, no text, symbols, weapons, glow or shadow outside the object. Direct isolated-part generation, not portrait cropping.",
+  "file": "helmet-3-horned.png",
+  "reference": "materials/textures/portrait-Cultist.mesh.png",
+  "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-28d281b2-bd85-4530-895c-7b0a9f142618.png",
+  "method": "direct isolated generation; unmodified copy",
+  "status": "generated-placement-pending"
+}

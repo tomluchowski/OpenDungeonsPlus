@@ -1,0 +1,26 @@
+{
+  "sources": 16,
+  "unchanged_generator_copies": 16,
+  "alpha_passed": 16,
+  "derived_rgba_patches": 16,
+  "neutral_composites": 12,
+  "deferred_composites": 4,
+  "visual_acceptance": "pending",
+  "rules": {
+    "selection": "one helmet from 1..4 is mandatory; option 0 would expose a featureless head",
+    "draw_order": [
+      "build",
+      "hair",
+      "helmet",
+      "scar",
+      "neck"
+    ],
+    "scar_mask": "clip helmet damage to the selected helmet alpha",
+    "missing_base": "Knight male remains deferred; do not substitute the original clothed portrait"
+  },
+  "individual_visual_review": {
+    "native_and_50x100": 12,
+    "isolated_only_missing_base": 4,
+    "combined_acceptance": "open"
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "id": "Cultist.mesh-female",
+  "n": 4,
+  "name": "ridged",
+  "prompt": "Generate ONE new isolated face-covering helmet customization part for the female Cultist catalog entry. The attached ORIGINAL PORTRAIT is a reference ONLY for the exact three-quarter viewing direction, head tilt, steel gray palette, light from upper left and coarse hand-painted dark-fantasy brushwork. Output ONLY a complete empty helmet, no head, skin, neck, body, armor shoulders, clothing, hair, person, background or full portrait. Variant 4: Tall sharply ridged closed steel helm with a single central blade crest and segmented broad faceplate with narrow vertical ventilation slits; no horns or arch. Opaque dark interior behind all visor openings; no face visible. Match the reference helmet's orientation precisely; do not turn it frontal or mirror it. Entire contour visible with transparent padding, genuine RGBA alpha background, no baked checkerboard, no text, symbols, weapons, glow or shadow outside the object. Direct isolated-part generation, not portrait cropping.",
+  "file": "helmet-4-ridged-clean.png",
+  "reference": "materials/textures/portrait-Cultist.mesh-female.png",
+  "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-fe5262ed-7862-4a22-b942-19d7a566e03a.png",
+  "rejected_original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-b31c4e26-aa42-4c47-9276-f9a0f14c6077.png",
+  "correction_prompt": "Generate a NEW standalone empty closed steel Cultist helmet with a tall central blade crest, segmented faceplate, and three long dark vertical visor slits. Reference 1 defines ORIGINAL female Cultist's three-quarter angle, downward head tilt and painted gray steel style. Reference 2 illustrates ONLY the requested ridged helmet shape. Output ONLY the isolated helmet with its full metal contour surrounded by clear TRANSPARENT RGBA alpha padding. Absolutely NO shadow, glow, haze, gray halo, background, black backdrop, fog, body, head, face, hair, clothing, text or weapons. Visor interior is opaque dark metal/shadow, no person. Not a full portrait. Use the coarse painted brushwork of reference 1, not photorealism.",
+  "method": "direct isolated generation; unmodified copy",
+  "status": "generated-visually-inspected-placement-pending"
+}
