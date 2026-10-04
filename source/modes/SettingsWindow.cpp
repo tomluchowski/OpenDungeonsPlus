@@ -297,7 +297,7 @@ void SettingsWindow::initConfig()
     bloodEffectsCheckbox->setSelected(
         config.getGameValue(Config::BLOOD_EFFECTS, "Yes", false) == "Yes");
     CEGUI::Combobox* roomAmbience = static_cast<CEGUI::Combobox*>(
-            mRootWindow->getChild("SettingsWindow/MainTabControl/Game/GameSP/RoomAmbience"));
+            mRootWindow->getChild("SettingsWindow/MainTabControl/Audio/AudioSP/RoomAmbience"));
     roomAmbience->resetList();
     std::string ambienceCurrent = RoomAmbience::modeToString(RoomAmbience::modeFromString(
         config.getGameValue(Config::ROOM_AMBIENCE, "full", false)));
@@ -560,7 +560,7 @@ bool SettingsWindow::saveConfig()
     config.setGameValue(Config::BLOOD_EFFECTS,
         bloodEffectsCheckbox->isSelected() ? "Yes" : "No");
     CEGUI::Combobox* roomAmbience = static_cast<CEGUI::Combobox*>(
-            mRootWindow->getChild("SettingsWindow/MainTabControl/Game/GameSP/RoomAmbience"));
+            mRootWindow->getChild("SettingsWindow/MainTabControl/Audio/AudioSP/RoomAmbience"));
     CEGUI::ListboxItem* roomAmbienceItem = roomAmbience->getSelectedItem();
     std::string ambienceMode = (roomAmbienceItem != nullptr) ?
         std::string(roomAmbienceItem->getText().c_str()) : std::string("full");
