@@ -34,6 +34,9 @@ public:
     //! is invalid as a whole (the caller then uses the fallback picture).
     const PortraitManifest* getManifest(const std::string& catalogId);
 
+    //! \brief True if the folder of the catalog id holds a manifest.cfg file (it is not loaded or validated).
+    bool hasCatalog(const std::string& catalogId) const;
+
     //! \brief Forgets everything that was loaded (also the missing ones).
     void clear();
 

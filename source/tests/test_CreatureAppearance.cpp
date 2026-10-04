@@ -115,12 +115,67 @@ BOOST_AUTO_TEST_CASE(test_StableHash)
     BOOST_CHECK_EQUAL(CreatureAppearanceLogic::stableHash("foobar"), 0xBF9CF968u);
 }
 
-BOOST_AUTO_TEST_CASE(test_MakeCatalogId)
+namespace
 {
-    BOOST_CHECK_EQUAL(CreatureAppearanceLogic::makeCatalogId("Dwarf1.mesh", "Female"), "Dwarf1.mesh-female");
-    BOOST_CHECK_EQUAL(CreatureAppearanceLogic::makeCatalogId("Knight.mesh", "Male"), "Knight.mesh-male");
-    BOOST_CHECK(CreatureAppearanceLogic::makeCatalogId("Knight.mesh", "").empty());
-    BOOST_CHECK(CreatureAppearanceLogic::makeCatalogId("", "Male").empty());
+bool existsInList(const std::set<std::string>* folders, const std::string& id)
+{
+    return folders->count(id) != 0;
+}
+
+std::string resolveWithFolders(const std::set<std::string>& folders, const std::string& mesh,
+    const std::string& gender)
+{
+    CreatureAppearanceLogic::CatalogExistsFunction exists =
+        std::bind(&existsInList, &folders, std::placeholders::_1);
+    return CreatureAppearanceLogic::resolveCatalogId(mesh, gender, exists);
+}
+}
+
+BOOST_AUTO_TEST_CASE(test_ResolveCatalogId)
+{
+    // Folders as they exist: some with a gender suffix, some only for the original gender
+    std::set<std::string> folders;
+    folders.insert("Dwarf1.mesh-female");
+    folders.insert("Kobold.mesh");
+    folders.insert("Kobold.mesh-female");
+    folders.insert("Elf.mesh");
+    folders.insert("Elf.mesh-male");
+
+    // With suffix
+    BOOST_CHECK_EQUAL(resolveWithFolders(folders, "Dwarf1.mesh", "Female"), "Dwarf1.mesh-female");
+    BOOST_CHECK_EQUAL(resolveWithFolders(folders, "Kobold.mesh", "Female"), "Kobold.mesh-female");
+    BOOST_CHECK_EQUAL(resolveWithFolders(folders, "Elf.mesh", "Male"), "Elf.mesh-male");
+
+    // Original gender: no folder with this suffix, the folder without suffix is used
+    BOOST_CHECK_EQUAL(resolveWithFolders(folders, "Kobold.mesh", "Male"), "Kobold.mesh");
+    BOOST_CHECK_EQUAL(resolveWithFolders(folders, "Elf.mesh", "Female"), "Elf.mesh");
+    BOOST_CHECK_EQUAL(resolveWithFolders(folders, "Kobold.mesh", ""), "Kobold.mesh");
+
+    // No folder at all: fallback
+    BOOST_CHECK(resolveWithFolders(folders, "Dwarf1.mesh", "Male").empty());
+    BOOST_CHECK(resolveWithFolders(folders, "Troll.mesh", "Male").empty());
+    BOOST_CHECK(resolveWithFolders(folders, "Troll.mesh", "").empty());
+    BOOST_CHECK(resolveWithFolders(folders, "", "Male").empty());
+}
+
+BOOST_AUTO_TEST_CASE(test_ResolveCatalogIdWithFixtures)
+{
+    PortraitManifestRegistry registry;
+    registry.setAssetRoot(getVariantsDirectory());
+    CreatureAppearanceLogic::CatalogExistsFunction exists =
+        std::bind(&PortraitManifestRegistry::hasCatalog, &registry, std::placeholders::_1);
+
+    // Knight.mesh-male exists with suffix, Goblin.mesh only without suffix
+    BOOST_CHECK_EQUAL(CreatureAppearanceLogic::resolveCatalogId("Knight.mesh", "Male", exists), "Knight.mesh-male");
+    BOOST_CHECK_EQUAL(CreatureAppearanceLogic::resolveCatalogId("Goblin.mesh", "Male", exists), "Goblin.mesh");
+    BOOST_CHECK_EQUAL(CreatureAppearanceLogic::resolveCatalogId("Goblin.mesh", "Female", exists), "Goblin.mesh");
+    BOOST_CHECK(CreatureAppearanceLogic::resolveCatalogId("Knight.mesh", "Female", exists).empty());
+    BOOST_CHECK(CreatureAppearanceLogic::resolveCatalogId("Nothing.mesh", "Male", exists).empty());
+
+    // The folder without suffix has a usable manifest
+    const PortraitManifest* goblin = registry.getManifest("Goblin.mesh");
+    BOOST_REQUIRE(goblin != nullptr);
+    BOOST_CHECK_EQUAL(goblin->getSlots().size(), 1u);
 }
 
 BOOST_AUTO_TEST_CASE(test_FirstSpawnEveryOptionPickable)

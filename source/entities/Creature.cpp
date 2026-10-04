@@ -714,11 +714,13 @@ void Creature::assignAppearance(bool firstSpawn)
     if(!getIsOnServerMap() || (mDefinition == nullptr))
         return;
 
-    std::string catalogId = CreatureAppearanceLogic::makeCatalogId(mDefinition->getMeshName(), getGender());
+    PortraitManifestRegistry& registry = getAppearanceRegistry();
+    CreatureAppearanceLogic::CatalogExistsFunction exists =
+        std::bind(&PortraitManifestRegistry::hasCatalog, &registry, std::placeholders::_1);
+    std::string catalogId = CreatureAppearanceLogic::resolveCatalogId(mDefinition->getMeshName(), getGender(), exists);
     if(catalogId.empty())
         return;
 
-    PortraitManifestRegistry& registry = getAppearanceRegistry();
     const PortraitManifest* manifest = registry.getManifest(catalogId);
     std::vector<std::string> messages = registry.takeMessages();
     for(std::vector<std::string>::const_iterator it = messages.begin(); it != messages.end(); ++it)

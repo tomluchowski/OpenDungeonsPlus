@@ -5,6 +5,8 @@
 
 #include "render/PortraitManifestRegistry.h"
 
+#include <fstream>
+
 void PortraitManifestRegistry::setAssetRoot(const std::string& assetRoot)
 {
     mAssetRoot = assetRoot;
@@ -39,6 +41,15 @@ const PortraitManifest* PortraitManifestRegistry::getManifest(const std::string&
 
     mManifests[catalogId] = manifest;
     return manifest.get();
+}
+
+bool PortraitManifestRegistry::hasCatalog(const std::string& catalogId) const
+{
+    if(catalogId.empty())
+        return false;
+
+    std::ifstream file((mAssetRoot + catalogId + "/manifest.cfg").c_str());
+    return file.good();
 }
 
 void PortraitManifestRegistry::clear()

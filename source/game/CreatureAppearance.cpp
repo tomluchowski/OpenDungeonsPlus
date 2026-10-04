@@ -80,16 +80,27 @@ uint32_t stableHash(const std::string& text)
     return hash;
 }
 
-std::string makeCatalogId(const std::string& meshName, const std::string& gender)
+std::string resolveCatalogId(const std::string& meshName, const std::string& gender,
+    const CatalogExistsFunction& exists)
 {
-    if(meshName.empty() || gender.empty())
+    if(meshName.empty())
         return std::string();
 
-    std::string lowerGender = gender;
-    for(std::string::size_type i = 0; i < lowerGender.size(); ++i)
-        lowerGender[i] = static_cast<char>(std::tolower(static_cast<unsigned char>(lowerGender[i])));
+    if(!gender.empty())
+    {
+        std::string lowerGender = gender;
+        for(std::string::size_type i = 0; i < lowerGender.size(); ++i)
+            lowerGender[i] = static_cast<char>(std::tolower(static_cast<unsigned char>(lowerGender[i])));
 
-    return meshName + "-" + lowerGender;
+        std::string withGender = meshName + "-" + lowerGender;
+        if(exists(withGender))
+            return withGender;
+    }
+
+    if(exists(meshName))
+        return meshName;
+
+    return std::string();
 }
 
 CreatureAppearance pickRandom(const PortraitManifest& manifest, const std::string& catalogId,

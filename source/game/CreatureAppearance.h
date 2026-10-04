@@ -67,9 +67,15 @@ extern const uint32_t MAX_DUPLICATE_TRIES;
 //! standard library, so old saves always get the same look.
 uint32_t stableHash(const std::string& text);
 
-//! \brief "<mesh name>-<lower case gender>", e.g. "Dwarf1.mesh-female". Empty if the mesh or the gender
-//! is empty (then the creature has no catalog id).
-std::string makeCatalogId(const std::string& meshName, const std::string& gender);
+//! Tells whether a folder for the catalog id exists
+typedef std::function<bool(const std::string&)> CatalogExistsFunction;
+
+//! \brief Catalog id of a creature, chosen like the gender portraits (portrait-<mesh>-<gender>.png): the
+//! folder "<mesh name>-<lower case gender>" (e.g. "Elf.mesh-male") if it exists, otherwise the folder
+//! "<mesh name>" without suffix (the original gender of the mesh, e.g. "Elf.mesh"). Empty if neither
+//! folder exists (then the creature has no appearance and the fallback picture is used).
+std::string resolveCatalogId(const std::string& meshName, const std::string& gender,
+    const CatalogExistsFunction& exists);
 
 //! \brief First spawn: one option per slot, every listed option with the same chance. Rolls again (up to
 //! MAX_DUPLICATE_TRIES times) while the result equals one of the appearances in taken; if the space is
