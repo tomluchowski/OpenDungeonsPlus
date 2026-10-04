@@ -59,7 +59,7 @@ namespace
     static const int32_t DEFAULT_EVENT_ARENA_LOSS = -10;
     static const int32_t DEFAULT_EVENT_CHICKEN_SNATCHED = -12;
     //! Default points a hated pair gains when it prays together, and the turns until it can gain them again
-    static const int32_t DEFAULT_EVENT_PRAYED_TOGETHER = 2;
+    static const int32_t DEFAULT_EVENT_PRAYED_TOGETHER = 4;
     static const int64_t DEFAULT_PRAYER_TOGETHER_COOLDOWN_TURNS = 30;
     //! Training together counts once per pair in this many turns (one training cycle)
     static const int64_t DEFAULT_TRAINING_TOGETHER_COOLDOWN_TURNS = 40;
@@ -88,26 +88,26 @@ namespace
     static const int32_t DEFAULT_BRAWL_VALUE_CHANGE = -6;
     //! Default levels a friend must be higher to mentor a training creature, and the extra experience in percent
     static const int32_t DEFAULT_MENTOR_MIN_LEVEL_DIFF = 2;
-    static const int32_t DEFAULT_MENTOR_XP_BONUS_PERCENT = 50;
+    static const int32_t DEFAULT_MENTOR_XP_BONUS_PERCENT = 30;
     //! Default cap of the temporary relationship mood and the points it fades each turn
     static const int32_t DEFAULT_TEMP_MOOD_MAX = 1000;
     static const int32_t DEFAULT_TEMP_MOOD_DECAY_PER_TURN = 3;
     //! Default mood points lost for a dead friend, turns of rage afterwards and the extra damage in percent
     static const int32_t DEFAULT_GRIEF_MOOD_PENALTY = 400;
-    static const int64_t DEFAULT_GRIEF_RAGE_TURNS = 300;
-    static const int32_t DEFAULT_GRIEF_RAGE_BONUS_PERCENT = 30;
+    static const int64_t DEFAULT_GRIEF_RAGE_TURNS = 200;
+    static const int32_t DEFAULT_GRIEF_RAGE_BONUS_PERCENT = 20;
     //! Default points the friends of a creature lose towards a newcomer it befriends
     static const int32_t DEFAULT_JEALOUSY_VALUE_LOSS = 3;
     //! Default chance in percent that the best friend of an unhappy leaver leaves with it
     static const int32_t DEFAULT_LEAVE_TOGETHER_CHANCE_PERCENT = 30;
     //! Default mood points for sleeping next to a friend, and the distance in tiles that counts as next to it
-    static const int32_t DEFAULT_SLEEP_NEXT_TO_FRIEND_MOOD = 150;
+    static const int32_t DEFAULT_SLEEP_NEXT_TO_FRIEND_MOOD = 50;
     static const int32_t DEFAULT_NEIGHBOUR_BED_TILES = 3;
     //! Default mood points for eating together with a friend, and the distance in tiles that counts as together
     static const int32_t DEFAULT_EAT_TOGETHER_MOOD = 100;
     static const int32_t DEFAULT_EAT_TOGETHER_TILES = 6;
     //! Default mood points the friends that see a slap lose
-    static const int32_t DEFAULT_SLAP_FRIENDS_MOOD_PENALTY = 150;
+    static const int32_t DEFAULT_SLAP_FRIENDS_MOOD_PENALTY = 60;
     //! Default start value of a converted prisoner towards each creature that captured it
     static const int32_t DEFAULT_CONVERTED_CAPTOR_VALUE = -20;
     //! Default points a partner loses towards the newcomer a creature befriends, and the value below which lovers break up

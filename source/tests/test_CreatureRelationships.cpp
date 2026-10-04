@@ -479,7 +479,8 @@ BOOST_AUTO_TEST_CASE(test_Mentoring)
 
     // Only a friend teaches
     relationships.changeValue("Pupil", "Master", 60, 0);
-    BOOST_CHECK_EQUAL(relationships.mentoringFactor("Pupil", 2, trainees), 1.5);
+    BOOST_CHECK_EQUAL(relationships.mentoringFactor("Pupil", 2, trainees),
+        1.0 + relationships.getSettings().mMentorXpBonusPercent / 100.0);
     // The master does not learn from the pupil
     BOOST_CHECK_EQUAL(relationships.mentoringFactor("Master", 5, trainees), 1.0);
     // The level difference must be large enough
