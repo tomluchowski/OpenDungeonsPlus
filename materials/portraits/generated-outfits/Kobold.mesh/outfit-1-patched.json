@@ -1,0 +1,10 @@
+{
+  "id": "Kobold.mesh",
+  "n": 1,
+  "name": "patched",
+  "file": "outfit-1-patched.png",
+  "prompt": "Generate ONE new isolated empty Kobold clothing part registered to the attached neutral game-dummy base, EXACT887x1774 canvas, preserve transparent blank space above clothing. Match its slight three-quarter pose, lean narrow shoulders, lowered arms, coarse purple-family fantasy painting and upper-left light. Outfit: modest patched dark brown sack-cloth tunic with a simple worn leather sleeveless vest, plain cord waist belt, full long sleeves and simple cloth wrist cuffs; no skin exposed on torso or visible arms. Collar at y850-940, shoulder caps y950-1050; torso covers x180-760 down through bottom1774; left sleeve follows left arm downward toward x0 at bottom; right sleeve follows arm at right edge downward. Cover the reference torso/shoulder/arm silhouette with small coverage margin. This is an empty garment for a purple Kobold dummy, not a body or character portrait. ONLY clothing on real RGBA transparency: no head, neck skin, face, dummy, body, hair, ears, jewelry, weapon, letters, symbols, equipment, backdrop or checkerboard; no tight crop, preserve entire reference canvas. Painterly muted brown fabrics and leather, not photorealistic.",
+  "reference": "materials/portraits/neutral-bases/Kobold.mesh.png",
+  "original": "C:/Users/mario/.codex/generated_images/01a0f765-dd88-7a90-b3e3-6becedd2dd5f/exec-c8f0e4e5-a5fb-4fc5-a2a3-c2a4a0fc1427.png",
+  "status": "candidate-pending-composite-review"
+}

@@ -1,0 +1,10 @@
+{
+  "id": "Goblin.mesh",
+  "n": 1,
+  "name": "patched",
+  "file": "outfit-1-patched.png",
+  "prompt": "Generate ONE isolated empty clothing part registered to the attached olive-green Goblin game-dummy base, EXACT887x1774 RGBA transparent canvas, retain full blank space above the collar. Same slim torso, narrow shoulders, lowered arms, three-quarter pose and upper-left painterly light. Patched muted brown long-sleeved tunic with plain dark leather vest and simple cord belt, cloth wrist cuffs; a small practical Goblin outfit covering the entire visible torso, shoulders and arms with margin. Collar y850-960 for Goblin male or y810-940 for Goblin female, shoulders near y980-1080, chest x150-820 at y1100, belt near y1500, clothing through lower crop. Use the attached reference for its own exact shoulder/arm silhouette. ONLY empty clothing on genuine transparency: no dummy/person/body/head/skin, face, hair, ears, jewelry, weapons, lettering, symbols, modern items, backdrop or checkerboard; coarse hand-painted dark fantasy texture, not photorealistic product imagery. Preserve canvas and exact viewing direction; never a full dressed portrait.",
+  "reference": "materials/portraits/neutral-bases/Goblin.mesh.png",
+  "original": "C:/Users/mario/.codex/generated_images/01a0f765-dd88-7a90-b3e3-6becedd2dd5f/exec-b3a85995-d7ad-4982-a154-d80ff7b9e7a2.png",
+  "status": "candidate-pending-composite-review"
+}

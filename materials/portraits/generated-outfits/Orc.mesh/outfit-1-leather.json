@@ -1,0 +1,10 @@
+{
+  "id": "Orc.mesh",
+  "n": 1,
+  "name": "leather",
+  "file": "outfit-1-leather.png",
+  "prompt": "Generate ONE isolated empty outfit overlay: Orc male outfit option 1, a rugged dark brown stitched leather jerkin over a dark ochre long-sleeved undershirt, plain broad shoulder reinforcement and closed modest torso. Attached neutral mannequin is a registration reference ONLY for exact three-quarter head direction, very broad neck/shoulders and upper-body silhouette, coarse painted fantasy texture, upper-left light and olive/brown palette. Fixed 887x1774 canvas. Empty transparent head area above y=840; neck opening beneath the jaw around x=480,y=890, shoulder clothing follows the reference near y=930. Cover all shoulders, torso and visible arms with a slight coverage margin; garment continues through the bottom and both cropped frame edges with no exposed flanks or raised hem. Output ONLY the empty clothes on genuine transparent RGBA alpha; no head, face, neck skin, body, mannequin, person, hand skin, hair, helmet, jewelry, weapon, text, symbol, checkerboard, background or outside shadow. No dressed full portrait, no organs or sexualized contours; original reference unchanged. Hand-painted dark-fantasy game part, not photorealistic product photography.",
+  "reference": "materials/portraits/neutral-bases/Orc.mesh.png",
+  "original": "C:/Users/mario/.codex/generated_images/01a0f765-dd88-7a90-b3e3-6becedd2dd5f/exec-06a37d59-762f-4f4c-83b8-9c1c5539c75e.png",
+  "status": "candidate-pending-composite-review"
+}

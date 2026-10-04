@@ -1,0 +1,10 @@
+{
+  "id": "Elf.mesh-male",
+  "prompt": "Create ONE isolated EMPTY Elf outfit overlay, exact887x1774 transparentRGBA canvas, registered to attached neutral dummy reference for geometry only. Plain muted forest-green long-sleeved tunic with dark brown leather shoulder panels and waist belt, no insignia or ornaments. Preserve slender torso, lowered arms, slight three-quarter pose and warm upper-left painted lighting. Collar y980-1120, shoulders y1030-1200, chest x40-850 y1350, waist belt y1570. Cover entire shoulder, torso and visible arms with slight fitting margin to outer contours, continue past bottom frame edge. Coarse fantasy painted brushwork matching reference. EMPTY GARMENTS ONLY, no body, dummy, skin, face, head, eyes, nose, ears, hair, beard, helmet, necklace, bow, weapon, tools, writing, symbols, modern items or background. Keep large upper canvas above collar transparent, no recentering or tight crop.",
+  "original": "C:/Users/mario/.codex/generated_images/01a0f765-dd88-7a90-b3e3-6becedd2dd5f/exec-f4e828fc-d162-4d91-9384-f5693201d459.png",
+  "n": 1,
+  "name": "tunic",
+  "file": "outfit-1-tunic.png",
+  "reference": "materials/portraits/neutral-bases/Elf.mesh-male.png",
+  "status": "candidate-pending-composite-review"
+}

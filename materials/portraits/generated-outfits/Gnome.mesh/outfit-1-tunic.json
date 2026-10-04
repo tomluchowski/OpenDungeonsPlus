@@ -1,0 +1,10 @@
+{
+  "id": "Gnome.mesh",
+  "prompt": "Create ONE new isolated empty Gnome clothing overlay registered to the attached neutral dummy. Full exact887x1774 RGBA transparent canvas, reference is geometry and style only, no dummy in result. Plain muted dark olive-brown long-sleeved tunic, simple leather waist belt and cuff reinforcements, no tools or emblems. Match narrow small frame, sloping shoulders and arms lowered along sides, slight three-quarter view and upper-left lighting. Collar y820-940, shoulders from x120 to850 at y940-1070, arm contours follow the exact reference down to bottom corners, waist y1500. Cover all visible shoulders, torso, upper arms and forearms with a fitting margin; garment extends through bottom crop. Painted coarse fantasy style matching warm reference, not photography. ONLY empty clothing, absolutely no body, skin, head, face, ears, eyes, nose, hair, beard, helmet, jewelry, weapon, symbols, text, modern objects or background. Keep upper canvas above collar transparent; never tightly crop or recenter.",
+  "original": "C:/Users/mario/.codex/generated_images/01a0f765-dd88-7a90-b3e3-6becedd2dd5f/exec-cb695f8a-9d79-44ee-99ea-4947d7efea77.png",
+  "n": 1,
+  "name": "tunic",
+  "file": "outfit-1-tunic.png",
+  "reference": "materials/portraits/neutral-bases/Gnome.mesh.png",
+  "status": "candidate-pending-composite-review"
+}

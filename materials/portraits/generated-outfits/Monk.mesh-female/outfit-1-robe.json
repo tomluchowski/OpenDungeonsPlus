@@ -1,0 +1,10 @@
+{
+  "id": "Monk.mesh-female",
+  "prompt": "Generate one isolated EMPTY Monk clothing overlay for the attached neutral dummy, exact pose and registration reference only. Full887x1774 transparentRGBA canvas. A simple dark earth-brown closed long-sleeved monk robe, plain cloth waist sash, no emblems or religious symbols. Follow the broad rounded torso, lowered arms, slight three-quarter view, upper-left warm lighting, coarse painted fantasy style. Collar y710-830, shoulders y820-1010, broad chest x20-880 y1100, waist sash y1490. Cover all visible torso, shoulders and arms down to the bottom crop with modest fitting margin. Empty robe only, no dummy, body, skin, head, face, ears, eyes, nose, hair, beard, helmet, jewelry, weapon, writing, symbols, tools, background or modern objects. Preserve fullcanvas, upper space blank transparent, never recenter or tightly crop.",
+  "original": "C:/Users/mario/.codex/generated_images/01a0f765-dd88-7a90-b3e3-6becedd2dd5f/exec-1d861ec9-fcc6-4b61-bc3d-974281229f6c.png",
+  "n": 1,
+  "name": "robe",
+  "file": "outfit-1-robe.png",
+  "reference": "materials/portraits/neutral-bases/Monk.mesh-female.png",
+  "status": "candidate-pending-composite-review"
+}

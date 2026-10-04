@@ -1,0 +1,10 @@
+{
+  "id": "Orc.mesh-female",
+  "n": 3,
+  "name": "padded",
+  "file": "outfit-3-padded.png",
+  "prompt": "Generate ONE isolated empty outfit overlay: Orc female outfit option 3, a thick dark ochre quilted gambeson with long padded sleeves, reinforced brown cloth shoulder panels and a plain leather waist belt; a padded cloth outfit distinctly different from leather vest and chain mail. The attached neutral mannequin is a registration reference ONLY: match exact three-quarter pose, downward head direction, shoulder and arm silhouette, coarse hand-painted fantasy brushwork and upper-left light. Fixed 887x1774 portrait canvas. Transparent head space; a modest collar around the base of the neck; cover shoulders, entire torso and all visible arms through the bottom and both cropped frame edges. Include lower garment filling the bottom edge, no raised hem or exposed flanks, with slight coverage margin outside the reference torso silhouette. Output ONLY the empty garment on genuine transparent RGBA alpha; no head, face, neck skin, body, mannequin, hand skin, hair, helmet, jewelry, weapon, text, emblem, checkerboard, background or external cast shadow. No sexualized contours or breasts. Do not create a full dressed portrait. Keep the original reference untouched; only a new clothing layer is requested.",
+  "reference": "materials/portraits/neutral-bases/Orc.mesh-female.png",
+  "original": "C:/Users/mario/.codex/generated_images/01a0f765-dd88-7a90-b3e3-6becedd2dd5f/exec-bd9dd28a-ff0d-471f-bff1-187a8b1d7c8f.png",
+  "status": "candidate-pending-composite-review"
+}

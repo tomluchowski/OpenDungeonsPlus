@@ -1,0 +1,14 @@
+{
+  "id": "Knight.mesh",
+  "n": 3,
+  "name": "padded",
+  "file": "outfit-3-padded-corrected.png",
+  "prompt": "Generate ONE isolated empty clothing overlay: Knight male outfit option 3, a thick burgundy quilted gambeson with full long padded sleeves, a high modest collar, dark brown leather shoulder reinforcements and a plain leather belt, simple dark steel forearm guards and leather gloves following hands at hips; lower burgundy padded coat fills the bottom edge. Clearly distinct from full plate and chain mail: primarily quilted cloth, no breastplate or mail. Attached neutral mannequin is a registration reference ONLY for exact three-quarter orientation, wide shoulder/torso geometry, bent arms, elbows, waist pose, crop and upper-left painted light. Fixed 887x1774 canvas, head area transparent, garment covers all visible shoulders, torso and arms with a slight overlap margin and no exposed abdomen or flanks. Output ONLY empty clothing on genuine transparent RGBA alpha: no head, neck skin, face, body, mannequin, person, hand skin, hair, helmet, jewelry, weapon, letters, emblems, checkerboard, background or outside shadow. Painted dark fantasy brushwork matching the reference, muted burgundy, brown and dark gray palette, no photorealistic product photography or sexualization. Do not make a dressed portrait or regenerate organs; original reference unchanged.",
+  "reference": "materials/portraits/neutral-bases/Knight.mesh.png",
+  "original": "C:/Users/mario/.codex/generated_images/01a0f765-dd88-7a90-b3e3-6becedd2dd5f/exec-e73aaffb-6ee4-4409-8854-5ad9d31df57d.png",
+  "status": "corrected-candidate-pending-composite-review",
+  "initial_file": "outfit-3-padded.png",
+  "initial_original": "C:/Users/mario/.codex/generated_images/01a0f765-dd88-7a90-b3e3-6becedd2dd5f/exec-a45b79b5-2730-4ea1-be57-2dbb4a88bb77.png",
+  "attempt": 2,
+  "correction_prompt": "Generate ONE empty isolated Knight padded clothing overlay. Match attached neutral mannequin's EXACT 887x1774 canvas, three-quarter perspective, wide torso and bent arms at hips. Transparent empty top space must remain. Collar y620-700, shoulders y720-800, chest spans x100-800 at y950, waist belt y1300-1380. Upper arms extend beyond side frame around y1150, bent forearms reenter side frame at y1250, closed brown glove cuffs around x150,y1450 and x750,y1450. Garment covers the neutral body's whole torso and visible arms with a small silhouette margin, down through bottom crop. Distinctive muted ochre/brown quilted padded gambeson with long sleeves, leather shoulder reinforcement and plain waist belt: no chain-mail or plate cuirass. Same coarse painted dark fantasy style and upper-left light. Output ONLY the separate clothing part, no mannequin, body, head, skin, helmet, hair, jewelry, weapons, letters, emblem, backdrop or checkerboard; real RGBA transparency, EXACT canvas887x1774, no tight product crop."
+}

@@ -1,0 +1,10 @@
+{
+  "id": "Troll.mesh",
+  "prompt": "Create ONE isolated EMPTY Troll outfit overlay registered exactly to the attached stone-grey neutral dummy reference. Exact887x1774 transparentRGBA full canvas, no body rendered. Plain rugged dark brown-grey heavy leather coat over padded long sleeves, thick plain waist belt, no emblems or tools. Follow the massive stocky torso and lowered thick arms, slight three-quarter angle and upper-left light; female reference turns toward viewer LEFT, male reference toward viewer RIGHT, match attached reference exactly. Collar y880-1030, huge shoulders y850-1080 across frame sides, chest fills x0-887 y1200, belt around y1500. Cover all visible shoulders, torso and arms with outer contour fitting margin, continue beyond side and bottom crop. Coarse painted fantasy style matching stone reference, not photography. EMPTY garments only, no dummy, body, stone skin, head, face, eyes, nose, ears, hair, beard, helmet, necklace, weapon, text, symbols, modern objects or background. Retain blank upper canvas and exact coordinates, no recenter or tight crop.",
+  "original": "C:/Users/mario/.codex/generated_images/01a0f765-dd88-7a90-b3e3-6becedd2dd5f/exec-af423fef-5e40-4ee6-a7a0-a8bb804781b0.png",
+  "n": 1,
+  "name": "leather",
+  "file": "outfit-1-leather.png",
+  "reference": "materials/portraits/neutral-bases/Troll.mesh.png",
+  "status": "candidate-pending-composite-review"
+}

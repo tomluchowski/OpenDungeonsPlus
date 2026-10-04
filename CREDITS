@@ -501,3 +501,6 @@ source/tests/fixtures/portraits/    OD Team    GPLv3+    Solid colour test image
 materials/portraits/neutral-bases/*.png  Image generator, Mario  GPLv3+  AI-generated neutral Dungeonbook bases from this project's portrait references; exact prompts and provenance in materials/portraits/neutral-bases/generation-records.json; originals preserved.
 materials/portraits/generated-helmets/  Image generator, Mario  GPLv3+  16 isolated helmet variants from this project's portrait references; exact prompts and provenance in catalog.json; source copies unchanged.
 materials/portraits/helmet-variants/     Image generator, Mario  GPLv3+  Derived placements and diagnostic composites of the above helmet assets and this project's neutral bases.
+materials/portraits/neutral-variants/  Image generator, Mario  GPLv3+  Derived neutral-base delivery copies, registered isolated source features, alpha masks and diagnostic composites; original generated sources preserved.
+materials/portraits/generated-outfits/  Image generator, Mario  GPLv3+  Newly generated isolated clothing and armor layers with exact prompts and provenance; unmodified generator copies.
+materials/portraits/variants/*/outfit-*.png  Image generator, Mario  GPLv3+  Registered clothing layers and locally fitted build copies from generated-outfits; original sources preserved.

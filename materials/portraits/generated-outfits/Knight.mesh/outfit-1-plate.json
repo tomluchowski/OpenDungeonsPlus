@@ -1,0 +1,10 @@
+{
+  "id": "Knight.mesh",
+  "n": 1,
+  "name": "plate",
+  "file": "outfit-1-plate.png",
+  "prompt": "Generate ONE isolated empty clothing/armor overlay: Knight male outfit option 1, full dark steel plate cuirass with broad segmented shoulder pauldrons, metal upper-arm protection and articulated elbow guards over a muted burgundy padded long-sleeved tunic, plain unmarked armor, modest closed torso, a simple belt and burgundy lower coat filling the bottom frame. Input neutral mannequin is a registration reference ONLY: preserve its exact three-quarter head direction, shoulders, torso width, bent arms with hands resting at the waist, crop and upper-left painted light. Canvas 887x1774; retain empty transparent head space. Collar at base of neck below y=650; shoulders around y=700, torso and bent arms extend to bottom edge; cover the entire torso, shoulders and visible arms, with slight overlap outside the mannequin's silhouette. No helmet or head: those are separate layers. Output only the empty armor-and-clothing shell, genuine transparent RGBA, no body, face, neck skin, mannequin, hand skin, person, hair, jewelry, weapon, text, emblem, heraldic symbol, checkerboard, background or external shadow. Do not regenerate a full portrait. Coarse hand-painted dark-fantasy brushwork matching the reference, not photorealistic product photography. Preserve the original reference unchanged.",
+  "reference": "materials/portraits/neutral-bases/Knight.mesh.png",
+  "original": "C:/Users/mario/.codex/generated_images/01a0f765-dd88-7a90-b3e3-6becedd2dd5f/exec-e6d35dcc-87af-4b7a-8b4d-8c625aa4949f.png",
+  "status": "candidate-pending-composite-review"
+}

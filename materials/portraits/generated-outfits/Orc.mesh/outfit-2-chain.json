@@ -1,0 +1,10 @@
+{
+  "id": "Orc.mesh",
+  "n": 2,
+  "name": "chain",
+  "file": "outfit-2-chain.png",
+  "prompt": "Generate ONE isolated empty outfit overlay: Orc male outfit option 2, dark iron chain mail over a padded brown long-sleeved tunic, leather shoulder caps, plain waist belt and dark cloth lower torso continuing through the bottom frame. Clearly distinct chain-mail outfit, not a leather vest or quilted coat. Attached neutral mannequin is a reference ONLY for exact three-quarter perspective, broad shoulders and neck, torso/arm silhouette, coarse hand-painted fantasy brushwork, upper-left lighting and olive/brown palette. Fixed 887x1774 portrait canvas, transparent empty head space above the clothing. Neck opening below the reference's jaw at about x=480,y=900; shoulder armor at the actual shoulder contour near y=950. Cover all shoulders, torso and visible arms with a slight outside overlap margin; no exposed abdomen or flanks. Output only the empty clothing shell on genuine transparent RGBA: no head, face, neck skin, body, mannequin, person, hand skin, hair, helmet, jewelry, weapon, letters, emblem, checkerboard, background or external shadow. No full portrait, no organs, no sexualization. Preserve the reference unchanged.",
+  "reference": "materials/portraits/neutral-bases/Orc.mesh.png",
+  "original": "C:/Users/mario/.codex/generated_images/01a0f765-dd88-7a90-b3e3-6becedd2dd5f/exec-d9dd43fa-2e01-49c8-9d8a-5a475ea15718.png",
+  "status": "candidate-pending-composite-review"
+}

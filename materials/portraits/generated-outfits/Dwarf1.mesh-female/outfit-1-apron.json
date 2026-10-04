@@ -1,0 +1,10 @@
+{
+  "id": "Dwarf1.mesh-female",
+  "n": 1,
+  "name": "apron",
+  "file": "outfit-1-apron.png",
+  "prompt": "Generate ONE isolated empty Dwarf clothing overlay registered to the attached neutral game-dummy base. EXACT887x1774 transparent RGBA, keep full blank space above the collar. Same broad stout shoulders, torso silhouette, lowered arms, slight three-quarter angle, orange-family coarse fantasy brushwork and upper-left light. A worn brown leather work apron over a closed olive-brown padded long-sleeved shirt, plain wide brown belt and leather wrist cuffs. Collar y850-950, shoulders y950-1080 extending beyond both side edges, broad chest x50-840 at y1100, waist belt y1500-1600; tunic/apron continues through bottom frame. Cover all visible shoulders, torso and arms with a small silhouette margin. Empty outfit only, no skin or dummy/person/body, head, face, beard/hair, helmet, jewelry, tools/weapons, text, insignia, symbols, modern objects, checkerboard or backdrop. Matching painted game-art texture, not product photography, never sexualized; preserve pose and exact reference crop.",
+  "reference": "materials/portraits/neutral-bases/Dwarf1.mesh-female.png",
+  "original": "C:/Users/mario/.codex/generated_images/01a0f765-dd88-7a90-b3e3-6becedd2dd5f/exec-d1689bc2-7aed-4d9d-8185-ab95fb6f3882.png",
+  "status": "candidate-pending-composite-review"
+}

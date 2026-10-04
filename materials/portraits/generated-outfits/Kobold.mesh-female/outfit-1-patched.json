@@ -1,0 +1,10 @@
+{
+  "id": "Kobold.mesh-female",
+  "n": 1,
+  "name": "patched",
+  "file": "outfit-1-patched.png",
+  "prompt": "Generate one empty isolated clothing overlay for the attached purple Kobold game-dummy base, EXACT887x1774 transparent RGBA canvas with all empty top space retained. Same lean shoulders, lowered arms, three-quarter pose, coarse hand-painted dark-fantasy brushwork and upper-left lighting. Outfit: closed dark brown patched sack-cloth tunic under a worn leather vest, long full sleeves, simple cord belt, cloth wrist cuffs; modest full torso/arm coverage with a small silhouette margin. Collar y820-940, shoulder caps y930-1040, vest/chest x170-770 at y1100, waist belt y1450, cloth continues through lower frame; arms follow the reference down both sides to the bottom crop. ONLY the empty clothes, not a person or full portrait. No head, neck skin, dummy/body/anatomy, face, ears, hair, jewelry, symbols, writing, weapon, modern object, background or checkerboard. Preserve the exact reference canvas and pose, muted brown fabric/leather harmonizing with purple material; no tight product crop.",
+  "reference": "materials/portraits/neutral-bases/Kobold.mesh-female.png",
+  "original": "C:/Users/mario/.codex/generated_images/01a0f765-dd88-7a90-b3e3-6becedd2dd5f/exec-94d5e174-0c5c-4cec-b9ff-c6d1aeb6643c.png",
+  "status": "candidate-pending-composite-review"
+}

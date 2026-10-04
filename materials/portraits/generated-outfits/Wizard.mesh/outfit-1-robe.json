@@ -1,0 +1,10 @@
+{
+  "id": "Wizard.mesh",
+  "prompt": "Generate ONE new isolated EMPTY Wizard clothing layer exactly registered to this neutral dummy reference. Full887x1774 transparentRGBA canvas, large blank upper canvas retained. Plain dark muted blue-grey long-sleeved wizard robe with simple brown cloth sash, no insignia or symbols. Match slender lowered arms and narrow torso, slight three-quarter angle and upper-left warm light. Reference head is small and LOW in frame: collar y930-1060, shoulders y1010-1160, chest x150-830 at y1260, sash y1550. Cover all visible shoulders, torso and arms with fitting margin and continue beyond lower edge. Coarse fantasy brushwork matching reference, no photorealism. Only empty garment pieces; no head, body, dummy, skin, face, eyes, nose, ears, hair, beard, hat, helmet, jewelry, weapon, magic effects, writing, symbols, modern objects or background. Keep full-frame coordinates, no re-centering and no tight crop.",
+  "original": "C:/Users/mario/.codex/generated_images/01a0f765-dd88-7a90-b3e3-6becedd2dd5f/exec-3d6ae44b-c1d1-44dd-93b2-1e1043397593.png",
+  "n": 1,
+  "name": "robe",
+  "file": "outfit-1-robe.png",
+  "reference": "materials/portraits/neutral-bases/Wizard.mesh.png",
+  "status": "candidate-pending-composite-review"
+}

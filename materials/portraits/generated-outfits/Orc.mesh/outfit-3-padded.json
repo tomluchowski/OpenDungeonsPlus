@@ -1,0 +1,10 @@
+{
+  "id": "Orc.mesh",
+  "n": 3,
+  "name": "padded",
+  "file": "outfit-3-padded.png",
+  "prompt": "Generate ONE isolated empty outfit overlay: Orc male option 3, thick dark ochre quilted gambeson with full padded long sleeves, dark brown reinforced cloth shoulder panels and a plain leather waist belt, lower padded coat continuing through the bottom frame. Primarily quilted cloth, distinctly unlike leather jerkin or chain mail. Use the attached neutral mannequin ONLY as exact registration reference: retain its three-quarter orientation, extremely broad neck and shoulders, arms, upper-body crop, coarse painted brushwork, upper-left light and olive/brown palette. Fixed 887x1774 canvas. IMPORTANT preserve the original garment position rather than enlarging it to fill empty head space: clothing begins only below the jaw/neck around y=850-900, shoulder contours around y=950; upper head region is entirely transparent. Cover all shoulders, torso and visible arms with a slight outside overlap margin, no exposed abdomen/flanks or raised hem. Output only the empty clothes in genuine transparent RGBA, no head, face, neck skin, body, mannequin, person, hand skin, hair, helmet, jewelry, weapon, text, symbol, checkerboard, background or external shadow. No full portrait, no organs, no sexualization; original reference unchanged.",
+  "reference": "materials/portraits/neutral-bases/Orc.mesh.png",
+  "original": "C:/Users/mario/.codex/generated_images/01a0f765-dd88-7a90-b3e3-6becedd2dd5f/exec-7d6e133e-a3ff-4b05-aea7-7a434c8be9f3.png",
+  "status": "candidate-pending-composite-review"
+}

@@ -1,0 +1,10 @@
+{
+  "id": "Lizardman.mesh",
+  "prompt": "Create ONE isolated EMPTY Lizardman clothing layer registered to the attached golden reptilian neutral dummy, exact pose/silhouette reference only. Exact887x1774 transparentRGBA full canvas. Plain rugged dark brown leather long-sleeved tunic with layered leather shoulder guards, plain waist belt and cuffs, no symbols or weapons. Match long angled neck, reptilian shoulder anatomy, lowered arms and slight three-quarter view, warm upper-left illumination and coarse painted fantasy style. Collar y850-1000 following the long neck, shoulders y970-1160, chest x20-880 at y1250, belt y1510; cover every visible shoulder, torso and arm with fitting margin down beyond bottom crop. Empty clothes only, no dummy, body, golden skin, scales, head, face, snout, eyes, ears, hair, helmet, necklace, weapons, tools, writing, symbols, modern objects or background. Preserve upper transparent blank space and exact full-frame registration, no recenter or tight crop.",
+  "original": "C:/Users/mario/.codex/generated_images/01a0f765-dd88-7a90-b3e3-6becedd2dd5f/exec-53e04cbc-f0e6-4d2b-a232-8655bc312b93.png",
+  "n": 1,
+  "name": "leather",
+  "file": "outfit-1-leather.png",
+  "reference": "materials/portraits/neutral-bases/Lizardman.mesh.png",
+  "status": "candidate-pending-composite-review"
+}

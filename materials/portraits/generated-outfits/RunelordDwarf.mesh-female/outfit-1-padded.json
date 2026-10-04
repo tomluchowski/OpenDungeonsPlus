@@ -1,0 +1,10 @@
+{
+  "id": "RunelordDwarf.mesh-female",
+  "prompt": "Generate one separate EMPTY outfit layer registered to this exact neutral Runelord Dwarf reference dummy. Reference is for pose and geometry only. Full 887x1774 transparent RGBA canvas, upper half blank above collar. A plain dark charcoal-brown padded robe/tunic with leather reinforced long sleeves and waist belt, no symbols, runes or decoration. Follow the broad compact torso, lowered arms, symmetric nearly frontal pose and upper-left light. Male reference collar y735-850 and shoulders y790-960; female reference collar y790-890 and shoulders y850-1030; use the attached reference alone to select the geometry. Cover shoulders, entire torso and visible arms through the lower crop, with fitting margin on outer sleeves; continue beyond side and bottom edges. Retain the reference coarse orange-family painted fantasy brushwork. EMPTY CLOTHES only, no body or mannequin rendered, no skin, head, face, ears, eyes, nose, hair, beard, helmet, necklace, weapon, tools, text, emblems, modern objects or background. Preserve exact full-frame registration, never tightly crop or recenter.",
+  "original": "C:/Users/mario/.codex/generated_images/01a0f765-dd88-7a90-b3e3-6becedd2dd5f/exec-7959007f-6be9-4f79-95ea-49021d03ada1.png",
+  "n": 1,
+  "name": "padded",
+  "file": "outfit-1-padded.png",
+  "reference": "materials/portraits/neutral-bases/RunelordDwarf.mesh-female.png",
+  "status": "candidate-pending-composite-review"
+}

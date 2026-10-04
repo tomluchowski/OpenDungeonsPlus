@@ -1,0 +1,10 @@
+{
+  "id": "Dwarf1.mesh",
+  "n": 1,
+  "name": "apron",
+  "file": "outfit-1-apron.png",
+  "prompt": "Create ONE new isolated empty Dwarf clothing overlay, using the attached neutral dummy as exact registration reference. EXACT887x1774 transparent RGBA canvas, same broad stout shoulders, barrel chest, lowered arms, slight three-quarter view, coarse orange-family fantasy brushwork and upper-left light. A worn dark brown leather work apron over a closed muted olive-brown long-sleeved padded shirt, broad plain waist belt, leather wrist cuffs; no tools or symbols. Collar around y850-950, shoulders y950-1080 with sides beyond both frame edges, chest broad from x50-840 at y1100, waist belt y1500-1600, all clothing continues beyond lower crop. Cover the entire visible torso, shoulders and arms with margin even for a slightly broader stout build. ONLY empty garment pieces, no body, dummy, head, skin, face, beard, hair, helmet, jewelry, weapon, writing, symbol, modern object or background. Preserve full canvas and upper blank space, no tightly cropped product view; hand-painted game part, no photorealism.",
+  "reference": "materials/portraits/neutral-bases/Dwarf1.mesh.png",
+  "original": "C:/Users/mario/.codex/generated_images/01a0f765-dd88-7a90-b3e3-6becedd2dd5f/exec-ec81c705-19f3-422b-b88b-e0b95b04130e.png",
+  "status": "candidate-pending-composite-review"
+}

@@ -1,0 +1,10 @@
+{
+  "id": "Adventurer.mesh-female",
+  "prompt": "Generate one new isolated EMPTY adventurer outfit overlay using the attached neutral dummy solely as the exact pose, silhouette and lighting reference. Exact887x1774 transparentRGBA canvas. A worn dark brown leather jerkin over a muted ochre-brown long-sleeved shirt, plain belt, wrist cuffs, no weapons or tools. Collar begins y680-800, shoulders y800-960, chest spans x30-880 around y1050, belt y1450-1570. Follow exact reference slight three-quarter view, narrow waist and lowered arms extending to bottom frame. Cover every visible shoulder and torso and arm with modest outer contour margin, continue past bottom crop. Match coarse painted fantasy game style, warm upper-left light. Only separate empty garments, no body, dummy, skin, head, face, eyes, nose, ears, hair, helmet, necklace, symbols, writing, modern items or background. Entire space above collar stays transparent. Do not recenter or tightly crop.",
+  "original": "C:/Users/mario/.codex/generated_images/01a0f765-dd88-7a90-b3e3-6becedd2dd5f/exec-9b851cb5-af33-4412-b98a-2b33167f22b3.png",
+  "n": 1,
+  "name": "leather",
+  "file": "outfit-1-leather.png",
+  "reference": "materials/portraits/neutral-bases/Adventurer.mesh-female.png",
+  "status": "candidate-pending-composite-review"
+}

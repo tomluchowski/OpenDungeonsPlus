@@ -1,0 +1,10 @@
+{
+  "id": "Cultist.mesh-female",
+  "prompt": "Generate ONE separate EMPTY Cultist robe overlay registered to the attached neutral dummy as exact pose/geometry reference only. Exact887x1774 transparentRGBA canvas. Plain closed dark burgundy-brown long-sleeved robe, simple cloth sash and cuffs, no hood, symbols or ornaments. Match narrow torso, lowered arms, slight three-quarter view and muted upper-left light, coarse painted fantasy style. Male collar around y780-910, female y850-980; shoulders y920-1080, chest x80-860 y1200, sash y1510. Cover every visible shoulder, torso and arm with a small fitting margin, continuing beyond bottom crop. Only empty garments, absolutely no dummy, body, skin, head, face, eyes, nose, ears, hair, beard, helmet, hood, mask, necklace, weapon, tools, writing, insignia, symbols, modern objects or background. Preserve blank upper canvas above collar and exactframe registration, no tightcrop or recentering.",
+  "original": "C:/Users/mario/.codex/generated_images/01a0f765-dd88-7a90-b3e3-6becedd2dd5f/exec-12d614fc-ce54-4c03-85a9-1fd81c939a9a.png",
+  "n": 1,
+  "name": "robe",
+  "file": "outfit-1-robe.png",
+  "reference": "materials/portraits/neutral-bases/Cultist.mesh-female.png",
+  "status": "candidate-pending-composite-review"
+}

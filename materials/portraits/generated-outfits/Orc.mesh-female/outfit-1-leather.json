@@ -1,0 +1,10 @@
+{
+  "id": "Orc.mesh-female",
+  "n": 1,
+  "name": "leather",
+  "file": "outfit-1-leather.png",
+  "prompt": "Generate ONE new isolated clothing overlay, not a portrait: outfit option 1 for the Orc female Dungeonbook catalog entry. Input image is a REFERENCE ONLY for exact pose, three-quarter viewing direction, shoulder and arm silhouette, neck opening location, coarse painted brushwork, upper-left light and olive/brown palette. Create a rugged brown stitched leather jerkin over a dark ochre long-sleeved undershirt, full modest coverage of shoulders, torso and visible arms, closed chest, no exposed breasts. Clothing must exactly follow the reference mannequin, including its crop at the bottom and both canvas edges, neck opening just below the neck. Output ONLY the empty clothing shell on genuine transparent RGBA background; all head, face, neck skin, arms/hand skin, mannequin, body and original background must be transparent. No head, person, naked body, hair, jewelry, helmet, weapons, text, symbols, checkerboard or shadow outside the clothing. Match reference's portrait canvas 887 by 1774 pixels and fixed registration: head space above y=720 empty; neck opening centred around x=465 y=850; shoulder clothing follows reference below y=810, garment extends continuously to bottom y=1774 and sleeves to left/right canvas edges. Do not show a complete dressed person, only the isolated garment painted in the same dark-fantasy style. This is a new outfit layer; do not modify the reference or regenerate its face or body.",
+  "reference": "materials/portraits/neutral-bases/Orc.mesh-female.png",
+  "original": "C:/Users/mario/.codex/generated_images/01a0f765-dd88-7a90-b3e3-6becedd2dd5f/exec-4d7aa6a3-a7d0-4685-8a27-94db89dd793a.png",
+  "status": "candidate-pending-composite-review"
+}

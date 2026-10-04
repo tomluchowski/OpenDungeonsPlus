@@ -1,0 +1,10 @@
+{
+  "id": "DarkElf.mesh",
+  "prompt": "Generate ONE isolated EMPTY Dark Elf clothing overlay registered exactly to the attached blue-grey neutral dummy reference, using it solely for pose and geometry. Exact887x1774 transparentRGBA canvas. Plain dark charcoal/slate long-sleeved tunic with muted leather shoulder panels, plain waist belt and cuffs, no emblems. Slight three-quarter view, lowered slender arms, cool upper-left lighting, coarse painted fantasy brushwork matching the reference. Male reference collar around y900-1030, female around y880-1000; match the actual attached reference precisely, shoulders y980-1150, chest x40-850 y1250, belt y1510. Cover all visible shoulders, entire torso and arms with fitting margin, continue beyond bottomcrop. Empty garments only, no dummy, body, skin, head, face, ears, eyes, nose, hair, beard, helmet, necklace, weapons, tools, symbols, writing, modern objects or background. Retain all blank upper canvas, no tight crop or recentering.",
+  "original": "C:/Users/mario/.codex/generated_images/01a0f765-dd88-7a90-b3e3-6becedd2dd5f/exec-3da12bef-7004-4300-86e6-5b22c743d8ff.png",
+  "n": 1,
+  "name": "tunic",
+  "file": "outfit-1-tunic.png",
+  "reference": "materials/portraits/neutral-bases/DarkElf.mesh.png",
+  "status": "candidate-pending-composite-review"
+}

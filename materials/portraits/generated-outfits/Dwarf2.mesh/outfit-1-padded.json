@@ -1,0 +1,10 @@
+{
+  "id": "Dwarf2.mesh",
+  "prompt": "Create one new isolated EMPTY clothing overlay for the attached neutral Dwarf 2 dummy, which is the exact pose and registration reference, not an edit target. Exact 887x1774 transparent RGBA canvas. Preserve its broad stout shoulder silhouette, lowered arms, slight three-quarter angle, coarse warm fantasy painted brushwork, upper-left illumination. A plain worn muted brown long-sleeved padded tunic with dark leather shoulder reinforcement and broad waist belt. Collar begins around y850-970, broad shoulders across both frame edges around y950-1100, chest from x0 to887 at y1150, waist belt around y1530. Garment must cover all visible shoulder, torso and arm areas, extend beyond lower and side frame edges with a modest fitting margin. Empty garment only: absolutely no dummy, body, skin, head, face, eyes, ears, nose, beard, hair, helmet, necklace, tools, weapon, writing, symbols, background or modern objects. Keep the upper canvas empty; do not recenter or crop tightly. Match the reference camera angle and painted style exactly.",
+  "original": "C:/Users/mario/.codex/generated_images/01a0f765-dd88-7a90-b3e3-6becedd2dd5f/exec-0b58b17e-1a61-4297-a953-0e0cd0b56d47.png",
+  "n": 1,
+  "name": "padded",
+  "file": "outfit-1-padded.png",
+  "reference": "materials/portraits/neutral-bases/Dwarf2.mesh.png",
+  "status": "candidate-pending-composite-review"
+}

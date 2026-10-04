@@ -1,0 +1,10 @@
+{
+  "id": "Orc.mesh-female",
+  "n": 2,
+  "name": "chain",
+  "file": "outfit-2-chain.png",
+  "prompt": "Generate ONE isolated empty outfit overlay: Orc female outfit option 2, a dark iron chain shirt over a padded brown long-sleeved tunic with leather shoulder caps, a simple high modest collar and plain dark cloth lower torso. The attached neutral mannequin is a registration reference ONLY; match its exact three-quarter pose, head direction, shoulder width, arm silhouette, coarse painted fantasy brushwork, upper-left light and olive/brown palette. Same 887x1774 portrait canvas. Transparent head space above the garment, collar below the mannequin jaw and neck, shoulders and visible arms fully enclosed by sleeves. Cover every torso pixel through the bottom frame, including flanks: garment must slightly overlap reference silhouette by 20 pixels, with no exposed skin between torso and sleeves and no hem above the bottom edge. Output ONLY clothing on genuine transparent RGBA alpha, no head, neck skin, body, mannequin, face, hand skin, jewelry, weapons, helmet, letters, emblems, checkerboard, background or external shadow. Do not generate a dressed portrait or organs. Avoid polished photorealism: use the reference's coarse hand-painted dark-fantasy texture. No sexualized contours, no breasts or deep neckline. Distinctly chain mail, unlike stitched leather or padded armor. The original reference must remain unchanged.",
+  "reference": "materials/portraits/neutral-bases/Orc.mesh-female.png",
+  "original": "C:/Users/mario/.codex/generated_images/01a0f765-dd88-7a90-b3e3-6becedd2dd5f/exec-afcb40cd-087d-4462-8c75-d8d02190b4e3.png",
+  "status": "candidate-pending-composite-review"
+}
