@@ -59,6 +59,10 @@ public:
     //! \brief Reports an exception that ended the application. Returns the exit code.
     static int reportException(const std::string& what);
 
+    //! \brief Called by the render thread every frame. Once the game runs, the frame times are summed and the
+    //! average is printed as one line (FRAMETIME frames=... avg_ms=...) before the result line.
+    static void recordFrame(float seconds);
+
     //! \brief Called by the server thread after every turn of the game.
     static void onServerTurn(GameMap& gameMap);
 };

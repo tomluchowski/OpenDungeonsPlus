@@ -44,6 +44,9 @@ namespace
     std::atomic<bool> sFinished(false);
     std::atomic<bool> sGameStarted(false);
     std::atomic<int> sExitCode(0);
+    //! Frames drawn since the game started and their summed time in microseconds
+    std::atomic<uint64_t> sFrameCount(0);
+    std::atomic<uint64_t> sFrameMicros(0);
     std::mutex sResultMutex;
     std::string sLevelFile;
     std::string sLevelName;
@@ -57,6 +60,10 @@ namespace
             return false;
 
         sExitCode = code;
+        const uint64_t frames = sFrameCount.load();
+        if(frames > 0)
+            std::cout << "FRAMETIME frames=" << frames << " avg_ms="
+                << (static_cast<double>(sFrameMicros.load()) / 1000.0 / static_cast<double>(frames)) << std::endl;
         std::cout << line << std::endl;
         if(ResourceManager::getSingletonPtr() != nullptr)
         {
@@ -134,6 +141,15 @@ int RunLevelTest::reportException(const std::string& what)
 {
     emitResult(codeRunError, "FAIL " + sLevelName + " : run error: unhandled exception: " + what);
     return sExitCode.load();
+}
+
+void RunLevelTest::recordFrame(float seconds)
+{
+    if(!sActive.load() || !sGameStarted.load() || sFinished.load() || seconds <= 0.0f)
+        return;
+
+    sFrameCount.fetch_add(1);
+    sFrameMicros.fetch_add(static_cast<uint64_t>(seconds * 1000000.0f));
 }
 
 void RunLevelTest::onServerTurn(GameMap& gameMap)
