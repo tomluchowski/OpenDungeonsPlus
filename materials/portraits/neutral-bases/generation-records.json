@@ -1,0 +1,285 @@
+{
+  "requirement": "Genderless featureless unclothed game dummy, no clothing/equipment/facial organs or visible sexual characteristics; catalog gender is an asset label.",
+  "completed_count": 33,
+  "total": 34,
+  "completed": [
+    {
+      "id": "Kobold.mesh",
+      "status": "generated-inspected",
+      "prompt": "Edit this Kobold neutral base to meet the final requirement: a completely naked smooth GENDER-NEUTRAL anatomical mannequin, with NO nipples, NO visible sex characteristics, NO genitals, NO defined breasts, no exaggerated pectorals or abdominal muscle segmentation. Smooth the torso into a neutral body while preserving precisely the existing silhouette, head position, blank angular head, shoulders, arms, violet color, lighting, painterly style, background and 887x1774 canvas. Absolutely no clothes, equipment or accessories; no facial features, hair or ears. This is a nonsexual modular game underlay. Do not introduce new features; remove the two visible nipple dots and soften the sculpted muscle divisions into simple smooth skin.",
+      "file": "materials/portraits/neutral-bases/Kobold.mesh.png",
+      "source": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-696cf041-ff7b-4a10-83fb-9d5c0086717e.png"
+    },
+    {
+      "id": "Kobold.mesh-female",
+      "status": "generated-inspected",
+      "prompt": "Create ONE neutral modular game portrait base from the attached Kobold catalog reference, exactly 887x1774 pixels. Preserve violet skin, species head outline, head position, upper-body pose and crop, dark blue painted background, painterly lighting. REQUIRED completely NAKED SMOOTH GENDER-NEUTRAL MANNEQUIN body: no clothes, straps, wraps, gloves, belts, armor, equipment, jewelry or accessories; no visible sex characteristics, no genitals, no nipples, no defined breasts. A simple continuous neutral upper torso and arms, no exaggerated musculature. Entire head is blank shaded violet skin: remove eyes, brows, eye sockets, nose, mouth, teeth, ears, hair, ponytail, beard, scars and markings. Fill former clothing areas with continuous skin and former hair/ear areas with background. This is a nonsexual character customization underlay; the female catalog label does NOT mean depict sexual anatomy. No text, no transparency, no collage. Output only the neutral naked base.",
+      "file": "materials/portraits/neutral-bases/Kobold.mesh-female.png",
+      "source": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-6598ba28-fbb0-4fa6-a71f-dfae532d8fdd.png"
+    },
+    {
+      "id": "Goblin.mesh",
+      "status": "generated-inspected",
+      "prompt": "Generate ONE neutral naked Goblin game portrait base from this reference, canvas exactly 887x1774. Preserve olive-green skin, outer head/jaw shape, head position, original three-quarter upper-body pose and crop, arms, painterly brushwork, lighting and dark blue background. Make the ENTIRE face blank continuous shaded skin: NO eyes, eyebrows, eye sockets, nose protrusion or nostrils, mouth, lips, teeth, ears, hair, beard, scars or markings. Remove large ears completely and fill their area with matching background. Body is a smooth naked GENDER-NEUTRAL anatomical mannequin: NO nipples, genitals, defined breasts or exaggerated muscle segmentation; soften chest/abdomen into neutral continuous skin while retaining overall contour. NO clothes, equipment, armor, straps, gloves, jewelry or weapons. Nonsexual modular character customization underlay; catalog gender is merely a file label. No text, no transparency, no holes, no collage.",
+      "file": "materials/portraits/neutral-bases/Goblin.mesh.png",
+      "source": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-cf4c7100-b19b-427b-b9f8-7e1953911064.png"
+    },
+    {
+      "id": "Goblin.mesh-female",
+      "status": "generated-inspected",
+      "prompt": "Generate ONE neutral naked Goblin game portrait base from this reference, canvas exactly 887x1774. Preserve olive-green skin, outer head/jaw shape, head position, original three-quarter upper-body pose and crop, arms, painterly brushwork, lighting and dark blue background. Make the ENTIRE face blank continuous shaded skin: NO eyes, eyebrows, eye sockets, nose protrusion or nostrils, mouth, lips, teeth, ears, hair, beard, scars or markings. Remove large ears completely and fill their area with matching background. Body is a smooth naked GENDER-NEUTRAL anatomical mannequin: NO nipples, genitals, defined breasts or exaggerated muscle segmentation; soften chest/abdomen into neutral continuous skin while retaining overall contour. NO clothes, equipment, armor, straps, gloves, jewelry or weapons. Nonsexual modular character customization underlay; catalog gender is merely a file label. No text, no transparency, no holes, no collage. For this female catalog reference remove ALL long hair, hair band and brown cloth top; chest MUST be smooth neutral mannequin skin, NO breast definition, NO nipples, no sexual anatomy, preserving overall shoulder positions.",
+      "file": "materials/portraits/neutral-bases/Goblin.mesh-female.png",
+      "source": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-aa66bd1d-1a16-498f-b9bf-2e762652b1dd.png"
+    },
+    {
+      "id": "Orc.mesh",
+      "status": "generated-inspected",
+      "prompt": "Create ONE neutral NAKED modular game portrait base from the attached reference, canvas EXACTLY 887x1774. Preserve species anatomy and outer head/jaw outline, head position, shoulder positions, upper-body pose, crop, skin/material color, lighting, painted brushwork and background. ALL face areas must be blank continuous shaded skin: no eyes, eyebrows, eye sockets, nose, nostrils, mouth, lips, teeth or tusks, hair, beard, ears, scars, paint or markings. Remove ALL clothing and equipment, including helmet, hood, armor, cloth, gloves, straps, belts, jewelry, weapons; nothing worn may remain. Replace former costumes with continuous neutral naked skin; replace hair and ears with matching background. Body is a smooth GENDER-NEUTRAL anatomical mannequin with a flat neutral chest: NO nipples, breasts, genitals or sexual characteristics, NO exaggerated muscle segmentation; catalog gender is ONLY an asset label. Nonsexual character customization underlay, keep original upper-body crop, no extra limbs, no hands introduced, no text, no transparency, no collage. Orc reference: keep olive-yellow skin and broad stocky silhouette; completely remove brown stitched vest, ear points and ivory tusks; blank broad head and smooth bare torso.",
+      "file": "materials/portraits/neutral-bases/Orc.mesh.png",
+      "source": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-4c4c0529-0201-463b-abbb-87f5db9bf6f7.png"
+    },
+    {
+      "id": "Orc.mesh-female",
+      "status": "generated-inspected",
+      "prompt": "Create ONE neutral NAKED modular game portrait base from the attached reference, canvas EXACTLY 887x1774. Preserve species anatomy and outer head/jaw outline, head position, shoulder positions, upper-body pose, crop, skin/material color, lighting, painted brushwork and background. ALL face areas must be blank continuous shaded skin: no eyes, eyebrows, eye sockets, nose, nostrils, mouth, lips, teeth or tusks, hair, beard, ears, scars, paint or markings. Remove ALL clothing and equipment, including helmet, hood, armor, cloth, gloves, straps, belts, jewelry, weapons; nothing worn may remain. Replace former costumes with continuous neutral naked skin; replace hair and ears with matching background. Body is a smooth GENDER-NEUTRAL anatomical mannequin with a flat neutral chest: NO nipples, breasts, genitals or sexual characteristics, NO exaggerated muscle segmentation; catalog gender is ONLY an asset label. Nonsexual character customization underlay, keep original upper-body crop, no extra limbs, no hands introduced, no text, no transparency, no collage. Orc reference: retain olive-yellow color and stocky broad head; completely remove long braid, hair tie, ears, ivory tusks and brown stitched vest; bare smooth FLAT gender-neutral torso, no breasts or nipples.",
+      "file": "materials/portraits/neutral-bases/Orc.mesh-female.png",
+      "source": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-74713a84-e463-4611-bb36-458ae7c8adec.png"
+    },
+    {
+      "id": "Dwarf1.mesh",
+      "status": "generated-inspected",
+      "prompt": "Create ONE neutral NAKED modular game portrait base from the attached reference, canvas EXACTLY 887x1774. Preserve species anatomy and outer head/jaw outline, head position, shoulder positions, upper-body pose, crop, skin/material color, lighting, painted brushwork and background. ALL face areas must be blank continuous shaded skin: no eyes, eyebrows, eye sockets, nose, nostrils, mouth, lips, teeth or tusks, hair, beard, ears, scars, paint or markings. Remove ALL clothing and equipment, including helmet, hood, armor, cloth, gloves, straps, belts, jewelry, weapons; nothing worn may remain. Replace former costumes with continuous neutral naked skin; replace hair and ears with matching background. Body is a smooth GENDER-NEUTRAL anatomical mannequin with a flat neutral chest: NO nipples, breasts, genitals or sexual characteristics, NO exaggerated muscle segmentation; catalog gender is ONLY an asset label. Nonsexual character customization underlay, keep original upper-body crop, no extra limbs, no hands introduced, no text, no transparency, no collage. Dwarf 1 reference: completely remove steel helmet, breastplate, brown sleeves, long brown beard and all hair; expose a blank bald broad dwarf head and continuous warm peach skin on stocky neck, shoulders, torso and visible arms, no armor-colored skin, no beard-shaped extension, no nipples.",
+      "file": "materials/portraits/neutral-bases/Dwarf1.mesh.png",
+      "source": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-c952e645-761c-4124-9cf7-1972eb34d7d5.png"
+    },
+    {
+      "id": "Dwarf1.mesh-female",
+      "status": "generated-inspected",
+      "prompt": "Create ONE neutral NAKED modular game portrait base from the attached reference, canvas EXACTLY 887x1774. Preserve species anatomy and outer head/jaw outline, head position, shoulder positions, upper-body pose, crop, skin/material color, lighting, painted brushwork and background. ALL face areas must be blank continuous shaded skin: no eyes, eyebrows, eye sockets, nose, nostrils, mouth, lips, teeth or tusks, hair, beard, ears, scars, paint or markings. Remove ALL clothing and equipment, including helmet, hood, armor, cloth, gloves, straps, belts, jewelry, weapons; nothing worn may remain. Replace former costumes with continuous neutral naked skin; replace hair and ears with matching background. Body is a smooth GENDER-NEUTRAL anatomical mannequin with a flat neutral chest: NO nipples, breasts, genitals or sexual characteristics, NO exaggerated muscle segmentation; catalog gender is ONLY an asset label. Nonsexual character customization underlay, keep original upper-body crop, no extra limbs, no hands introduced, no text, no transparency, no collage. Dwarf 1 reference: completely remove steel helmet, breastplate, brown sleeves, twin braids, hair and braid rings; warm peach skin over blank bald broad head, neck and bare stocky torso. FLAT neutral chest, absolutely no breasts, cleavage or nipples; no steel texture remains.",
+      "file": "materials/portraits/neutral-bases/Dwarf1.mesh-female.png",
+      "source": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-5d2a3092-42c6-41ab-b4c3-b42f7171bdf4.png"
+    },
+    {
+      "id": "Dwarf2.mesh",
+      "status": "generated-inspected",
+      "prompt": "Create ONE neutral NAKED modular game portrait base from the attached reference, canvas EXACTLY 887x1774. Preserve species anatomy and outer head/jaw outline, head position, shoulder positions, upper-body pose, crop, skin/material color, lighting, painted brushwork and background. ALL face areas must be blank continuous shaded skin: no eyes, eyebrows, eye sockets, nose, nostrils, mouth, lips, teeth or tusks, hair, beard, ears, scars, paint or markings. Remove ALL clothing and equipment, including helmet, hood, armor, cloth, gloves, straps, belts, jewelry, weapons; nothing worn may remain. Replace former costumes with continuous neutral naked skin; replace hair and ears with matching background. Body is a smooth GENDER-NEUTRAL anatomical mannequin with a flat neutral chest: NO nipples, breasts, genitals or sexual characteristics, NO exaggerated muscle segmentation; catalog gender is ONLY an asset label. Nonsexual character customization underlay, keep original upper-body crop, no extra limbs, no hands introduced, no text, no transparency, no collage. Dwarf 2: remove elaborate steel helmet including its mask and cheek guards, white beard and moustache, all armor and brown clothes; reveal blank bald stocky dwarf head with continuous warm muted peach skin, short neck and neutral bare torso; no helmet geometry may remain, no long beard-shaped chin, no breasts or nipples.",
+      "file": "materials/portraits/neutral-bases/Dwarf2.mesh.png",
+      "source": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-1241fd87-1cff-4463-a44f-76cb2d8e5de2.png"
+    },
+    {
+      "id": "Dwarf2.mesh-female",
+      "status": "generated-inspected",
+      "prompt": "Create ONE neutral NAKED modular game portrait base from the attached reference, canvas EXACTLY 887x1774. Preserve species anatomy and outer head/jaw outline, head position, shoulder positions, upper-body pose, crop, skin/material color, lighting, painted brushwork and background. ALL face areas must be blank continuous shaded skin: no eyes, eyebrows, eye sockets, nose, nostrils, mouth, lips, teeth or tusks, hair, beard, ears, scars, paint or markings. Remove ALL clothing and equipment, including helmet, hood, armor, cloth, gloves, straps, belts, jewelry, weapons; nothing worn may remain. Replace former costumes with continuous neutral naked skin; replace hair and ears with matching background. Body is a smooth GENDER-NEUTRAL anatomical mannequin with a flat neutral chest: NO nipples, breasts, genitals or sexual characteristics, NO exaggerated muscle segmentation; catalog gender is ONLY an asset label. Nonsexual character customization underlay, keep original upper-body crop, no extra limbs, no hands introduced, no text, no transparency, no collage. Dwarf 2: remove steel helmet including mask and cheek guards, white braids, braid rings, all hair, armor and clothes; reveal blank bald stocky dwarf head with muted peach skin and neutral bare torso; absolutely no nipples, breasts or cleavage, no helmet geometry remains.\nCORRECTION: Correct this neutral mannequin portrait, keep its canvas 887x1774, body, colors, skin brushwork, pose, lighting and background. Remove the visible ear on image LEFT completely, fill where it sticks out with matching dark blue background. REMOVE ALL remaining facial structure: eye sockets, brow, nose ridge/protrusion, cheek blush markings; the entire head front must be one smoothly shaded featureless skin surface, like a blank wooden mannequin but painted peach skin. No eyes, nose, mouth, ears, brows, hair. Naked smooth neutral torso unchanged, no nipples, breasts or genitals, no clothing or equipment. Only the head correction; retain underlying head outer outline.",
+      "file": "materials/portraits/neutral-bases/Dwarf2.mesh-female.png",
+      "source": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-603f7fb5-d5d5-456e-bfae-f28ea98c20e2.png"
+    },
+    {
+      "id": "RunelordDwarf.mesh",
+      "status": "generated-inspected",
+      "prompt": "Create ONE neutral NAKED modular game portrait base from the attached reference, canvas EXACTLY 887x1774. Preserve species anatomy and outer head/jaw outline, head position, shoulder positions, upper-body pose, crop, skin/material color, lighting, painted brushwork and background. ALL face areas must be blank continuous shaded skin: no eyes, eyebrows, eye sockets, nose, nostrils, mouth, lips, teeth or tusks, hair, beard, ears, scars, paint or markings. Remove ALL clothing and equipment, including helmet, hood, armor, cloth, gloves, straps, belts, jewelry, weapons; nothing worn may remain. Replace former costumes with continuous neutral naked skin; replace hair and ears with matching background. Body is a smooth GENDER-NEUTRAL anatomical mannequin with a flat neutral chest: NO nipples, breasts, genitals or sexual characteristics, NO exaggerated muscle segmentation; catalog gender is ONLY an asset label. Nonsexual character customization underlay, keep original upper-body crop, no extra limbs, no hands introduced, no text, no transparency, no collage. Runelord dwarf: fully remove black helmet and huge angular shoulder armor, breastplate, belt/buckle, gray beard and moustache; reconstruct underlying stocky dwarf silhouette with SHORT natural chin, bare bald blank head, warm tan skin across shoulders and smooth torso, NOT black armor texture or armored shoulder outline. Retain original head center and framing; no nipple or face contours.\nCORRECTION: Remove the remaining small ear protrusion on image LEFT of this naked neutral dwarf mannequin, blend its entire former area into the dark blue background and smooth head contour. Also smooth any eye socket/brow/nose shading into a completely featureless continuous skin face. Preserve exactly body, head position, blank head dimensions, warm tan skin, background, brushwork, lighting, canvas 887x1774. No ears, facial organs, hair, nipples, sexual characteristics, clothing or equipment.",
+      "file": "materials/portraits/neutral-bases/RunelordDwarf.mesh.png",
+      "source": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-5b8bd6ec-c167-4f33-838b-c3df8522f0bb.png"
+    },
+    {
+      "id": "RunelordDwarf.mesh-female",
+      "status": "generated-inspected",
+      "prompt": "Create ONE neutral NAKED modular game portrait base from the attached reference, canvas EXACTLY 887x1774. Preserve species anatomy and outer head/jaw outline, head position, shoulder positions, upper-body pose, crop, skin/material color, lighting, painted brushwork and background. ALL face areas must be blank continuous shaded skin: no eyes, eyebrows, eye sockets, nose, nostrils, mouth, lips, teeth or tusks, hair, beard, ears, scars, paint or markings. Remove ALL clothing and equipment, including helmet, hood, armor, cloth, gloves, straps, belts, jewelry, weapons; nothing worn may remain. Replace former costumes with continuous neutral naked skin; replace hair and ears with matching background. Body is a smooth GENDER-NEUTRAL anatomical mannequin with a flat neutral chest: NO nipples, breasts, genitals or sexual characteristics, NO exaggerated muscle segmentation; catalog gender is ONLY an asset label. Nonsexual character customization underlay, keep original upper-body crop, no extra limbs, no hands introduced, no text, no transparency, no collage. Runelord dwarf: remove ALL black helmet, angular shoulder armor, breastplate, belt, buckle, white-gray braids and hair, jewelry. Underneath is warm tan naked stocky dwarf mannequin with bald entirely blank head WITHOUT ears or even eye-socket/nose contours, short neck, smooth flat neutral chest without breasts or nipples. Exclude armored shoulder extensions from underlying body.",
+      "file": "materials/portraits/neutral-bases/RunelordDwarf.mesh-female.png",
+      "source": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-d262c7a5-76e0-4f76-9278-8dc342763037.png"
+    },
+    {
+      "id": "Gnome.mesh",
+      "status": "generated-inspected",
+      "prompt": "Create ONE neutral NAKED modular game portrait base from the attached reference, canvas EXACTLY 887x1774. Preserve species anatomy and outer head/jaw outline, head position, shoulder positions, upper-body pose, crop, skin/material color, lighting, painted brushwork and background. ALL face areas must be blank continuous shaded skin: no eyes, eyebrows, eye sockets, nose, nostrils, mouth, lips, teeth or tusks, hair, beard, ears, scars, paint or markings. Remove ALL clothing and equipment, including helmet, hood, armor, cloth, gloves, straps, belts, jewelry, weapons; nothing worn may remain. Replace former costumes with continuous neutral naked skin; replace hair and ears with matching background. Body is a smooth GENDER-NEUTRAL anatomical mannequin with a flat neutral chest: NO nipples, breasts, genitals or sexual characteristics, NO exaggerated muscle segmentation; catalog gender is ONLY an asset label. Nonsexual character customization underlay, keep original upper-body crop, no extra limbs, no hands introduced, no text, no transparency, no collage. CRITICAL face surface is completely smooth without any anatomical facial contours or sockets, ears have zero protrusion. Preserve underlying head location but NOT helmet/hair outline; flat softly shaded neutral torso, no rounded breast shapes. Gnome reference: remove tan cap including ear flaps, every blue tunic/button/collar, all face features and ears; warm rosy tan skin, small adult fantasy gnome proportions and original pose, bare smooth neutral torso and arms, adult nonsexual mannequin.",
+      "file": "materials/portraits/neutral-bases/Gnome.mesh.png",
+      "source": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-39a52433-4a45-463c-af0c-894174327a1a.png"
+    },
+    {
+      "id": "Gnome.mesh-female",
+      "status": "generated-inspected",
+      "prompt": "Create ONE neutral NAKED modular game portrait base from the attached reference, canvas EXACTLY 887x1774. Preserve species anatomy and outer head/jaw outline, head position, shoulder positions, upper-body pose, crop, skin/material color, lighting, painted brushwork and background. ALL face areas must be blank continuous shaded skin: no eyes, eyebrows, eye sockets, nose, nostrils, mouth, lips, teeth or tusks, hair, beard, ears, scars, paint or markings. Remove ALL clothing and equipment, including helmet, hood, armor, cloth, gloves, straps, belts, jewelry, weapons; nothing worn may remain. Replace former costumes with continuous neutral naked skin; replace hair and ears with matching background. Body is a smooth GENDER-NEUTRAL anatomical mannequin with a flat neutral chest: NO nipples, breasts, genitals or sexual characteristics, NO exaggerated muscle segmentation; catalog gender is ONLY an asset label. Nonsexual character customization underlay, keep original upper-body crop, no extra limbs, no hands introduced, no text, no transparency, no collage. CRITICAL face surface is completely smooth without any anatomical facial contours or sockets, ears have zero protrusion. Preserve underlying head location but NOT helmet/hair outline; flat softly shaded neutral torso, no rounded breast shapes. Gnome reference: ADULT fantasy gnome mannequin, remove tan cap with ear flaps, blue tunic with every button, all twin braids and bands, ears and face contours; keep warm rosy tan skin, head placement and pose, perfectly smooth FLAT bare torso with no sexual anatomy.",
+      "file": "materials/portraits/neutral-bases/Gnome.mesh-female.png",
+      "source": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-3b3979c3-2c83-453a-b82d-525a9a1c4543.png"
+    },
+    {
+      "id": "Adventurer.mesh",
+      "status": "generated-inspected",
+      "prompt": "Create ONE neutral NAKED modular game portrait base from the attached reference, canvas EXACTLY 887x1774. Preserve species anatomy and outer head/jaw outline, head position, shoulder positions, upper-body pose, crop, skin/material color, lighting, painted brushwork and background. ALL face areas must be blank continuous shaded skin: no eyes, eyebrows, eye sockets, nose, nostrils, mouth, lips, teeth or tusks, hair, beard, ears, scars, paint or markings. Remove ALL clothing and equipment, including helmet, hood, armor, cloth, gloves, straps, belts, jewelry, weapons; nothing worn may remain. Replace former costumes with continuous neutral naked skin; replace hair and ears with matching background. Body is a smooth GENDER-NEUTRAL anatomical mannequin with a flat neutral chest: NO nipples, breasts, genitals or sexual characteristics, NO exaggerated muscle segmentation; catalog gender is ONLY an asset label. Nonsexual character customization underlay, keep original upper-body crop, no extra limbs, no hands introduced, no text, no transparency, no collage. CRITICAL face surface is completely smooth without any anatomical facial contours or sockets, ears have zero protrusion. Preserve underlying head location but NOT helmet/hair outline; flat softly shaded neutral torso, no rounded breast shapes. Adventurer adult human reference: completely remove brown hair, ears, yellow tunic, white undershirt sleeves and collar, leather cross strap with all four knives, waist belt and buckle; smooth warm tan naked skin across blank head, neck, shoulders, torso and arms. Preserve slim build, head tilt and original crop, no residual weapon/costume shapes.",
+      "file": "materials/portraits/neutral-bases/Adventurer.mesh.png",
+      "source": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-596df639-69d8-4d39-ab9a-a2ccf88b4c1f.png"
+    },
+    {
+      "id": "Adventurer.mesh-female",
+      "status": "generated-inspected",
+      "prompt": "Produce one painted GAME DUMMY asset for the Adventurer female catalog entry: a genderless featureless mannequin, not a person. Use the attached existing dummy as the style, warm tan palette, head position, pose, smooth blank surface and dark blue background reference. Plain smooth mannequin chest, shoulders, torso and arms with no anatomical sex characteristics and no facial organs, hair or ears; no garments, gear or accessories. Nonsexual modular character customization placeholder, no skin anatomy details, no joints or seams, no text. Canvas exactly 887x1774, retain the reference upper-body crop and head tilt.",
+      "file": "materials/portraits/neutral-bases/Adventurer.mesh-female.png",
+      "source": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-a12f4054-2534-42f5-bd83-85dbc86c3100.png"
+    },
+    {
+      "id": "Monk.mesh",
+      "status": "generated-inspected",
+      "prompt": "Create ONE neutral NAKED modular game portrait base from the attached reference, canvas EXACTLY 887x1774. Preserve species anatomy and outer head/jaw outline, head position, shoulder positions, upper-body pose, crop, skin/material color, lighting, painted brushwork and background. ALL face areas must be blank continuous shaded skin: no eyes, eyebrows, eye sockets, nose, nostrils, mouth, lips, teeth or tusks, hair, beard, ears, scars, paint or markings. Remove ALL clothing and equipment, including helmet, hood, armor, cloth, gloves, straps, belts, jewelry, weapons; nothing worn may remain. Replace former costumes with continuous neutral naked skin; replace hair and ears with matching background. Body is a smooth GENDER-NEUTRAL anatomical mannequin with a flat neutral chest: NO nipples, breasts, genitals or sexual characteristics, NO exaggerated muscle segmentation; catalog gender is ONLY an asset label. Nonsexual character customization underlay, keep original upper-body crop, no extra limbs, no hands introduced, no text, no transparency, no collage. CRITICAL face surface is completely smooth without any anatomical facial contours or sockets, ears have zero protrusion. Preserve underlying head location but NOT helmet/hair outline; flat softly shaded neutral torso, no rounded breast shapes. Monk reference: adult human, keep rounded stout belly and original head placement, remove brown robe with hood and rope belt completely, brown bowl haircut and ears completely; underlying softly rounded warm pale skin torso and arms, blank bald smooth head, NO facial organs or sexual characteristics.",
+      "file": "materials/portraits/neutral-bases/Monk.mesh.png",
+      "source": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-d7cb39ef-bb51-4aeb-869a-8b0675bc5085.png"
+    },
+    {
+      "id": "Monk.mesh-female",
+      "status": "generated-inspected",
+      "prompt": "Create ONE painted modular GAME DUMMY portrait from the reference, exactly 887x1774 pixels. A genderless featureless mannequin, NOT a person, with simple smooth continuous surface and no anatomical sex characteristics. Retain species proportions, head location and tilt, shoulders, pose, crop, reference skin/material palette, painterly brushwork, lighting and background. Replace ALL worn garments, armor, helmets, hoods, sleeves, gloves, straps, belts, jewelry and weapons with a plain smooth mannequin torso and arms. Remove ALL facial organs and contours: eyes, sockets, eyebrows, nose, mouth, teeth/tusks, ears, hair, beard, scars/paint. Blank smooth bald head, zero ear protrusions, flat neutral chest. Nonsexual character customization dummy ready for separate overlays, no seams/joints, no text, no collage, no transparency. Monk reference: retain stout round belly, rounded head placement and warm pale peach palette; remove brown robe/hood/rope belt, brown braid and hair completely; smooth featureless genderless game dummy with short neck and plain rounded torso.",
+      "file": "materials/portraits/neutral-bases/Monk.mesh-female.png",
+      "source": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-54661d40-9dec-44b2-b522-895684d082f9.png"
+    },
+    {
+      "id": "Defender.mesh",
+      "status": "generated-inspected",
+      "prompt": "Create ONE painted modular GAME DUMMY portrait from the reference, exactly 887x1774 pixels. A genderless featureless mannequin, NOT a person, with simple smooth continuous surface and no anatomical sex characteristics. Retain species proportions, head location and tilt, shoulders, pose, crop, reference skin/material palette, painterly brushwork, lighting and background. Replace ALL worn garments, armor, helmets, hoods, sleeves, gloves, straps, belts, jewelry and weapons with a plain smooth mannequin torso and arms. Remove ALL facial organs and contours: eyes, sockets, eyebrows, nose, mouth, teeth/tusks, ears, hair, beard, scars/paint. Blank smooth bald head, zero ear protrusions, flat neutral chest. Nonsexual character customization dummy ready for separate overlays, no seams/joints, no text, no collage, no transparency. Defender reference: retain warm tan palette and head turned toward image LEFT, remove steel breastplate/shoulder plates, ochre collar and brown sleeves, all beard/hair/ears. Underlying natural shoulders and smooth plain torso, do not retain armor-shaped body; completely smooth blank head with no nose protrusion.",
+      "file": "materials/portraits/neutral-bases/Defender.mesh.png",
+      "source": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-3081e077-3486-441f-8dc3-08d39ad0e105.png"
+    },
+    {
+      "id": "Defender.mesh-female",
+      "status": "generated-inspected",
+      "prompt": "Create ONE painted modular GAME DUMMY portrait from the reference, exactly 887x1774 pixels. A genderless featureless mannequin, NOT a person, with simple smooth continuous surface and no anatomical sex characteristics. Retain species proportions, head location and tilt, shoulders, pose, crop, reference skin/material palette, painterly brushwork, lighting and background. Replace ALL worn garments, armor, helmets, hoods, sleeves, gloves, straps, belts, jewelry and weapons with a plain smooth mannequin torso and arms. Remove ALL facial organs and contours: eyes, sockets, eyebrows, nose, mouth, teeth/tusks, ears, hair, beard, scars/paint. Blank smooth bald head, zero ear protrusions, flat neutral chest. Nonsexual character customization dummy ready for separate overlays, no seams/joints, no text, no collage, no transparency. Defender reference: warm tan palette and head facing toward image LEFT; remove long brown braid and all hair, ears, ochre collar, brown sleeves and ALL steel armor. Smooth featureless dummy head, no nose ridge; plain flat neutral torso with natural shoulders beneath former armor.",
+      "file": "materials/portraits/neutral-bases/Defender.mesh-female.png",
+      "source": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-53818e75-e432-4f43-b5cd-730a4eca1b3e.png"
+    },
+    {
+      "id": "Wizard.mesh",
+      "status": "generated-inspected",
+      "prompt": "Create ONE painted modular GAME DUMMY portrait from the reference, exactly 887x1774 pixels. A genderless featureless mannequin, NOT a person, with simple smooth continuous surface and no anatomical sex characteristics. Retain species proportions, head location and tilt, shoulders, pose, crop, reference skin/material palette, painterly brushwork, lighting and background. Replace ALL worn garments, armor, helmets, hoods, sleeves, gloves, straps, belts, jewelry and weapons with a plain smooth mannequin torso and arms. Remove ALL facial organs and contours: eyes, sockets, eyebrows, nose, mouth, teeth/tusks, ears, hair, beard, scars/paint. Blank smooth bald head, zero ear protrusions, flat neutral chest. Nonsexual character customization dummy ready for separate overlays, no seams/joints, no text, no collage, no transparency. Wizard reference: completely remove tall pointed blue hat including wide brim, red scarf, blue robe and gold trims, pendant and white beard/hair; keep the original LOWER head position underneath hat and warm tan palette, smooth bald head with blank face and no ears, slim neutral torso and arms, former tall hat area becomes dark background.",
+      "file": "materials/portraits/neutral-bases/Wizard.mesh.png",
+      "source": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-3d93ea15-0b1b-4561-b178-0287dd7253be.png"
+    },
+    {
+      "id": "Wizard.mesh-female",
+      "status": "generated-inspected",
+      "prompt": "Create ONE painted modular GAME DUMMY portrait from the reference, exactly 887x1774 pixels. A genderless featureless mannequin, NOT a person, with simple smooth continuous surface and no anatomical sex characteristics. Retain species proportions, head location and tilt, shoulders, pose, crop, reference skin/material palette, painterly brushwork, lighting and background. Replace ALL worn garments, armor, helmets, hoods, sleeves, gloves, straps, belts, jewelry and weapons with a plain smooth mannequin torso and arms. Remove ALL facial organs and contours: eyes, sockets, eyebrows, nose, mouth, teeth/tusks, ears, hair, beard, scars/paint. Blank smooth bald head, zero ear protrusions, flat neutral chest. Nonsexual character customization dummy ready for separate overlays, no seams/joints, no text, no collage, no transparency. Wizard reference: remove ALL pointed blue hat/wide brim, white flowing hair, red scarf, blue robe/gold trim, pendant; keep original head location LOWER in canvas beneath former hat and warm tan palette; blank bald head, plain smooth flat mannequin torso and arms. Former hat/hair regions become dark background.",
+      "file": "materials/portraits/neutral-bases/Wizard.mesh-female.png",
+      "source": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-0e9009c7-f54f-4b54-9696-5a4d18aa59d7.png"
+    },
+    {
+      "id": "Elf.mesh-male",
+      "status": "generated-inspected",
+      "prompt": "Create ONE painted modular GAME DUMMY portrait from the reference, exactly 887x1774 pixels. A genderless featureless mannequin, NOT a person, with simple smooth continuous surface and no anatomical sex characteristics. Retain species proportions, head location and tilt, shoulders, pose, crop, reference skin/material palette, painterly brushwork, lighting and background. Replace ALL worn garments, armor, helmets, hoods, sleeves, gloves, straps, belts, jewelry and weapons with a plain smooth mannequin torso and arms. Remove ALL facial organs and contours: eyes, sockets, eyebrows, nose, mouth, teeth/tusks, ears, hair, beard, scars/paint. Blank smooth bald head, zero ear protrusions, flat neutral chest. Nonsexual character customization dummy ready for separate overlays, no seams/joints, no text, no collage, no transparency. Elf reference: retain slim elongated head, head tilt and pale warm peach palette; completely remove pointed ears, ALL blond hair, green leather armor/collar, brown shoulder pads and gold clasp/decoration. Smooth blank bald head, plain slim featureless torso and natural shoulders.",
+      "file": "materials/portraits/neutral-bases/Elf.mesh-male.png",
+      "source": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-299c4d3a-223e-4033-b7e9-c6f4dbdbd3db.png"
+    },
+    {
+      "id": "Elf.mesh",
+      "status": "generated-inspected",
+      "prompt": "Create ONE painted modular GAME DUMMY portrait from the reference, exactly 887x1774 pixels. A genderless featureless mannequin, NOT a person, with simple smooth continuous surface and no anatomical sex characteristics. Retain species proportions, head location and tilt, shoulders, pose, crop, reference skin/material palette, painterly brushwork, lighting and background. Replace ALL worn garments, armor, helmets, hoods, sleeves, gloves, straps, belts, jewelry and weapons with a plain smooth mannequin torso and arms. Remove ALL facial organs and contours: eyes, sockets, eyebrows, nose, mouth, teeth/tusks, ears, hair, beard, scars/paint. Blank smooth bald head, zero ear protrusions, flat neutral chest. Nonsexual character customization dummy ready for separate overlays, no seams/joints, no text, no collage, no transparency. Elf reference: retain slender head shape/tilt/location and pale warm peach palette. Remove ALL blond hair, pointed ears, green garments/armor, brown shoulder pads and gold decoration; mannequin torso must be plain FLAT and featureless with NO breast forms or cleavage, blank head without any organs.",
+      "file": "materials/portraits/neutral-bases/Elf.mesh.png",
+      "source": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-8de6f43d-b6a2-4d0a-a7b2-5f14131343be.png"
+    },
+    {
+      "id": "DarkElf.mesh-male",
+      "status": "generated-inspected",
+      "prompt": "Create ONE painted modular GAME DUMMY portrait from the reference, exactly 887x1774 pixels. A genderless featureless mannequin, NOT a person, with simple smooth continuous surface and no anatomical sex characteristics. Retain species proportions, head location and tilt, shoulders, pose, crop, reference skin/material palette, painterly brushwork, lighting and background. Replace ALL worn garments, armor, helmets, hoods, sleeves, gloves, straps, belts, jewelry and weapons with a plain smooth mannequin torso and arms. Remove ALL facial organs and contours: eyes, sockets, eyebrows, nose, mouth, teeth/tusks, ears, hair, beard, scars/paint. Blank smooth bald head, zero ear protrusions, flat neutral chest. Nonsexual character customization dummy ready for separate overlays, no seams/joints, no text, no collage, no transparency. Dark elf reference: preserve pale icy blue skin/material palette, slim head tilt and upper-body position; remove white hair, pointed ears AND gold ear accessories, every dark blue garment/armor, shoulder decorations and clasps; plain icy-blue featureless dummy torso with natural shoulders and blank bald head.",
+      "file": "materials/portraits/neutral-bases/DarkElf.mesh-male.png",
+      "source": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-ddef41ed-8844-42ee-8b24-1622abd5c154.png"
+    },
+    {
+      "id": "DarkElf.mesh",
+      "status": "generated-inspected",
+      "prompt": "Create ONE painted modular GAME DUMMY portrait from the reference, exactly 887x1774 pixels. A genderless featureless mannequin, NOT a person, with simple smooth continuous surface and no anatomical sex characteristics. Retain species proportions, head location and tilt, shoulders, pose, crop, reference skin/material palette, painterly brushwork, lighting and background. Replace ALL worn garments, armor, helmets, hoods, sleeves, gloves, straps, belts, jewelry and weapons with a plain smooth mannequin torso and arms. Remove ALL facial organs and contours: eyes, sockets, eyebrows, nose, mouth, teeth/tusks, ears, hair, beard, scars/paint. Blank smooth bald head, zero ear protrusions, flat neutral chest. Nonsexual character customization dummy ready for separate overlays, no seams/joints, no text, no collage, no transparency. Dark elf reference: retain icy pale blue palette, head tilt and slender proportions; remove ALL white hair, pointed ears/gold ear accessories, every dark garment/armor and gold decoration. Plain FLAT mannequin chest with no breast forms/cleavage; blank smooth head without facial organs, shoulders and arms plain blue.",
+      "file": "materials/portraits/neutral-bases/DarkElf.mesh.png",
+      "source": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-97e10f0f-9519-42bc-b484-eb3c73b5e80c.png"
+    },
+    {
+      "id": "Troll.mesh",
+      "status": "generated-inspected",
+      "prompt": "Create ONE painted modular GAME DUMMY portrait from the reference, exactly 887x1774 pixels. A genderless featureless mannequin, NOT a person, with simple smooth continuous surface and no anatomical sex characteristics. Retain species proportions, head location and tilt, shoulders, pose, crop, reference skin/material palette, painterly brushwork, lighting and background. Replace ALL worn garments, armor, helmets, hoods, sleeves, gloves, straps, belts, jewelry and weapons with a plain smooth mannequin torso and arms. Remove ALL facial organs and contours: eyes, sockets, eyebrows, nose, mouth, teeth/tusks, ears, hair, beard, scars/paint. Blank smooth bald head, zero ear protrusions, flat neutral chest. Nonsexual character customization dummy ready for separate overlays, no seams/joints, no text, no collage, no transparency. Troll reference: retain gray rock material, huge stocky body and head location, neutral stone dummy torso. Remove red eyes/sockets, nose, mouth, stone teeth and ears completely so face is blank rounded stone surface. Remove protruding crown/side spikes for a neutral underlay, retaining stone material paint style; no facial crack resembling eye or mouth. No equipment.",
+      "file": "materials/portraits/neutral-bases/Troll.mesh.png",
+      "source": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-0147a3e9-ca48-487f-bf7e-a2c49a32681d.png"
+    },
+    {
+      "id": "Troll.mesh-female",
+      "status": "generated-inspected",
+      "prompt": "Create ONE painted modular GAME DUMMY portrait from the reference, exactly 887x1774 pixels. A genderless featureless mannequin, NOT a person, with simple smooth continuous surface and no anatomical sex characteristics. Retain species proportions, head location and tilt, shoulders, pose, crop, reference skin/material palette, painterly brushwork, lighting and background. Replace ALL worn garments, armor, helmets, hoods, sleeves, gloves, straps, belts, jewelry and weapons with a plain smooth mannequin torso and arms. Remove ALL facial organs and contours: eyes, sockets, eyebrows, nose, mouth, teeth/tusks, ears, hair, beard, scars/paint. Blank smooth bald head, zero ear protrusions, flat neutral chest. Nonsexual character customization dummy ready for separate overlays, no seams/joints, no text, no collage, no transparency. Troll reference: neutral gray stone material dummy, huge stocky build/head location preserved; remove ALL moss hair and leafy strands, crown/side spikes, eyes/sockets, nose, lips, teeth and ears. Featureless continuous stone face and plain broad neutral torso with no breast forms. Maintain painterly stone texture, no sexual features.",
+      "file": "materials/portraits/neutral-bases/Troll.mesh-female.png",
+      "source": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-45598799-92f4-4303-8206-ef23629acf1a.png"
+    },
+    {
+      "id": "Lizardman.mesh",
+      "status": "generated-inspected",
+      "prompt": "Create ONE painted modular GAME DUMMY portrait from the reference, exactly 887x1774 pixels. A genderless featureless mannequin, NOT a person, with simple smooth continuous surface and no anatomical sex characteristics. Retain species proportions, head location and tilt, shoulders, pose, crop, reference skin/material palette, painterly brushwork, lighting and background. Replace ALL worn garments, armor, helmets, hoods, sleeves, gloves, straps, belts, jewelry and weapons with a plain smooth mannequin torso and arms. Remove ALL facial organs and contours: eyes, sockets, eyebrows, nose, mouth, teeth/tusks, ears, hair, beard, scars/paint. Blank smooth bald head, zero ear protrusions, flat neutral chest. Nonsexual character customization dummy ready for separate overlays, no seams/joints, no text, no collage, no transparency. Lizardman reference: golden-yellow scaled species material and reptilian overall head silhouette/pose retained, face fully continuous smooth scaled surface WITHOUT eyes/sockets, nostrils/nose detail, mouth seam or teeth. Remove black markings across shoulders/torso and all head ridges for neutral underlay; uniform golden yellow scaled dummy neck, shoulders and torso, no human sexual anatomy.",
+      "file": "materials/portraits/neutral-bases/Lizardman.mesh.png",
+      "source": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-65721be0-dbe7-4422-bd5a-7cec919e26ed.png"
+    },
+    {
+      "id": "Lizardman.mesh-female",
+      "status": "generated-inspected",
+      "prompt": "Create ONE painted modular GAME DUMMY portrait from the reference, exactly 887x1774 pixels. A genderless featureless mannequin, NOT a person, with simple smooth continuous surface and no anatomical sex characteristics. Retain species proportions, head location and tilt, shoulders, pose, crop, reference skin/material palette, painterly brushwork, lighting and background. Replace ALL worn garments, armor, helmets, hoods, sleeves, gloves, straps, belts, jewelry and weapons with a plain smooth mannequin torso and arms. Remove ALL facial organs and contours: eyes, sockets, eyebrows, nose, mouth, teeth/tusks, ears, hair, beard, scars/paint. Blank smooth bald head, zero ear protrusions, flat neutral chest. Nonsexual character customization dummy ready for separate overlays, no seams/joints, no text, no collage, no transparency. Lizardman reference: golden yellow reptilian scales, underlying head shape and pose retained; remove orange mane/frill ENTIRELY and fill its former area with dark background; remove head ridges, black body markings, eyes/sockets, nose/nostrils, mouth/lips/teeth. Continuous blank golden scaled head and plain neutral torso, no human breasts.",
+      "file": "materials/portraits/neutral-bases/Lizardman.mesh-female.png",
+      "source": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-d1a9413b-7d78-45e0-a1c9-d45b10fe875c.png"
+    },
+    {
+      "id": "Knight.mesh-female",
+      "status": "generated-inspected-placement-unverified",
+      "prompt": "Reframe this existing featureless GAME DUMMY painting into an upper-body portrait: keep head, neck, shoulders and torso, enlarge composition so the waist and elbows extend beyond the lower edge, matching an upper-body character icon. Keep head tilt, plain tan dummy surface and dark painted background. Exactly 887x1774 canvas, same painted style; no new detail or accessories.",
+      "file": "materials/portraits/neutral-bases/Knight.mesh-female.png",
+      "source": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-6fc39ca3-015a-451d-891e-7776b03991a6.png",
+      "fit_issue": "Forearm position and framing differ; verify overlay fit during subsequent assessment."
+    },
+    {
+      "id": "Cultist.mesh",
+      "status": "generated-inspected",
+      "prompt": "Create ONE painted modular GAME DUMMY portrait from the reference, exactly 887x1774 pixels. A genderless featureless mannequin, NOT a person, with simple smooth continuous surface and no anatomical sex characteristics. Retain species proportions, head location and tilt, shoulders, pose, crop, reference skin/material palette, painterly brushwork, lighting and background. Replace ALL worn garments, armor, helmets, hoods, sleeves, gloves, straps, belts, jewelry and weapons with a plain smooth mannequin torso and arms. Remove ALL facial organs and contours: eyes, sockets, eyebrows, nose, mouth, teeth/tusks, ears, hair, beard, scars/paint. Blank smooth bald head, zero ear protrusions, flat neutral chest. Nonsexual character customization dummy ready for separate overlays, no seams/joints, no text, no collage, no transparency. Cultist reference: remove spiked metallic helmet and entire crescent halo, red high-collar cloak, dark shirt/sleeves, yellow lacing and belt completely. Plain warm muted tan sculpted game dummy with blank bald oval head at original helmet location and same tilt; underlying neck, shoulders and torso. Upper body portrait only, bottom edge cuts at waist, arms down along torso matching original silhouette, no additional parts.",
+      "file": "materials/portraits/neutral-bases/Cultist.mesh.png",
+      "source": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-5aa1300c-61c6-4031-b5f9-7366116bd3ba.png"
+    },
+    {
+      "id": "Cultist.mesh-female",
+      "status": "generated-inspected",
+      "prompt": "Create ONE painted modular GAME DUMMY portrait from the reference, exactly 887x1774 pixels. A genderless featureless mannequin, NOT a person, with simple smooth continuous surface and no anatomical sex characteristics. Retain species proportions, head location and tilt, shoulders, pose, crop, reference skin/material palette, painterly brushwork, lighting and background. Replace ALL worn garments, armor, helmets, hoods, sleeves, gloves, straps, belts, jewelry and weapons with a plain smooth mannequin torso and arms. Remove ALL facial organs and contours: eyes, sockets, eyebrows, nose, mouth, teeth/tusks, ears, hair, beard, scars/paint. Blank smooth bald head, zero ear protrusions, flat neutral chest. Nonsexual character customization dummy ready for separate overlays, no seams/joints, no text, no collage, no transparency. Cultist reference: remove ALL black long hair, spiked metal helmet/crescent halo, red cloak/high collar, dark clothes, yellow lacing, belt/buckle. Plain warm muted tan genderless dummy with blank oval head at helmet center and same tilt, natural neck/shoulders and smooth flat torso. Upper body portrait cropped at waist, torso continues beyond lower edge, arms descending at sides matching original.",
+      "file": "materials/portraits/neutral-bases/Cultist.mesh-female.png",
+      "source": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-5e9d2bd1-2c85-49ae-b8e3-7a3bb2a6d5ad.png"
+    }
+  ],
+  "pending": [
+    "Knight.mesh"
+  ],
+  "blocker": {
+    "id": "Knight.mesh",
+    "candidate": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-ea116742-e361-450a-b912-078e80a06f49.png",
+    "issue": "Generated candidate introduced legs and changed arm pose; not accepted.",
+    "correction_prompt": "Create ONE painted modular GAME DUMMY portrait from the reference, exactly 887x1774 pixels. A genderless featureless mannequin, NOT a person, with simple smooth continuous surface and no anatomical sex characteristics. Retain species proportions, head location and tilt, shoulders, pose, crop, reference skin/material palette, painterly brushwork, lighting and background. Replace ALL worn garments, armor, helmets, hoods, sleeves, gloves, straps, belts, jewelry and weapons with a plain smooth mannequin torso and arms. Remove ALL facial organs and contours: eyes, sockets, eyebrows, nose, mouth, teeth/tusks, ears, hair, beard, scars/paint. Blank smooth bald head, zero ear protrusions, flat neutral chest. Nonsexual character customization dummy ready for separate overlays, no seams/joints, no text, no collage, no transparency. Knight reference: remove helmet, armor, purple clothes and gold accessories entirely, replace with warm tan genderless dummy. Keep HEAD LOCATION and BODY CROP of original: portrait from head to waist only, torso extends through BOTTOM edge, NO pelvis, NO legs, NO thighs, NO hands or new pose. Arms descend toward bottom at sides as original; do not put hands on hips. Natural bald oval blank head replaces helmet, plain neutral torso, no anatomical details.",
+    "block": "Output moderation sexual",
+    "request_id": "ccda48d7-bac0-4820-b4d5-77577858bbef"
+  },
+  "resolved_blocks": [
+    {
+      "id": "Adventurer.mesh-female",
+      "reason": "Earlier input moderation blocked original request; user clarified dummy requirement, successful featureless dummy saved using existing dummy reference."
+    },
+    {
+      "id": "Monk.mesh-female",
+      "resolution": "Usage limit expired; generated, inspected and saved."
+    }
+  ],
+  "dimension_issues": [
+    {
+      "id": "Kobold.mesh",
+      "actual": [
+        887,
+        1773
+      ],
+      "required": [
+        887,
+        1774
+      ]
+    },
+    {
+      "id": "RunelordDwarf.mesh-female",
+      "actual": [
+        887,
+        1773
+      ],
+      "required": [
+        887,
+        1774
+      ]
+    }
+  ],
+  "technical_ready_count": 31
+}

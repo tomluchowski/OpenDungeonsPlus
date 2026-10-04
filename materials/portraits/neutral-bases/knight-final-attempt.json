@@ -1,0 +1,13 @@
+{
+  "id": "Knight.mesh",
+  "status": "blocked",
+  "request_id": "39a45b8e-deb9-4a4f-8bef-eedde81bf136",
+  "stage": "output",
+  "category": "sexual",
+  "prompt": "Create a painterly asset of an artificial, genderless display mannequin for a fantasy game's modular portrait editor, 887x1774 pixels. Reference 1 supplies ONLY the composition, head tilt, shoulder angle, arm position, dark blue background and broad painted brushwork; reference 2 supplies the smooth ochre clay-like mannequin material. The subject is an inanimate sculpted dummy: an entirely blank oval head, simple neck, solid smooth torso and plain arms, with no facial features or anatomical details. Use the reference 1 head position and gentle tilt toward the viewer's left, shoulders and arms bent back beside the torso; frame from the head through the waist, with the torso continuing beyond the bottom edge. Show only this upper-body display dummy, no legs or pelvis. Continuous matte ochre surface throughout, no seams, joints, garments, helmet, equipment, ornaments or markings. Preserve the reference 1 vertical framing and top margin; lighting from upper left, dark navy painterly backdrop. One single game asset, no text.",
+  "references": [
+    "materials/textures/portrait-Knight.mesh.png",
+    "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-ea116742-e361-450a-b912-078e80a06f49.png"
+  ],
+  "result": "No image returned; 33 of 34 saved bases remain unchanged."
+}
