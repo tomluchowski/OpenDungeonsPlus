@@ -1468,6 +1468,7 @@ void RenderManager::updateRenderAnimations(Ogre::Real timeSinceLastFrame)
     }
 
     updateCreatureTurns(timeSinceLastFrame);
+    updateCreatureDeathVariants(timeSinceLastFrame);
 
     for(std::vector<CreatureDropAnimation>::iterator it = mCreatureDropAnimations.begin(); it != mCreatureDropAnimations.end();)
     {
@@ -2334,6 +2335,13 @@ void RenderManager::rrDestroyCreature(Creature* curCreature)
         else
             ++it;
     }
+    for(std::vector<CreatureDeathVariant>::iterator it = mCreatureDeathVariants.begin(); it != mCreatureDeathVariants.end();)
+    {
+        if(it->mCreature == curCreature)
+            it = mCreatureDeathVariants.erase(it);
+        else
+            ++it;
+    }
     cancelCreatureDropAnimation(curCreature);
     if(curCreature->getOverlayStatus() != nullptr)
     {
@@ -2460,6 +2468,79 @@ void RenderManager::updateCreatureTurns(Ogre::Real timeSinceLastFrame)
         it->mNode->setOrientation(it->mLast);
         if(t >= 1.0f)
             it = mCreatureTurns.erase(it);
+        else
+            ++it;
+    }
+}
+
+void RenderManager::startCreatureDeathVariant(Creature* creature, Ogre::Entity* entity)
+{
+    // Slimes, flyers, crawlers and tentacles keep their own death; the others get one of three, chosen by name
+    if(getCombatMotion(entity->getMesh()->getName()) == CombatMotion::fluid ||
+       getCombatMotion(entity->getMesh()->getName()) == CombatMotion::flying ||
+       getCombatMotion(entity->getMesh()->getName()) == CombatMotion::crawler ||
+       getCombatMotion(entity->getMesh()->getName()) == CombatMotion::tentacle)
+        return;
+
+    const int variant = static_cast<int>(std::hash<std::string>()(creature->getName()) % 3);
+    if(variant == 0)
+        return;
+
+    Ogre::SceneNode* node = creature->getEntityNode();
+    if(node == nullptr)
+        return;
+
+    for(std::vector<CreatureDeathVariant>::iterator it = mCreatureDeathVariants.begin(); it != mCreatureDeathVariants.end(); ++it)
+    {
+        if(it->mCreature == creature)
+        {
+            mCreatureDeathVariants.erase(it);
+            break;
+        }
+    }
+    CreatureDeathVariant entry = {creature, node, node->getOrientation(), node->getPosition(),
+        node->getOrientation(), node->getPosition(), variant, 0.0f,
+        std::max(0.4f, entity->getSkeleton()->getAnimation(EntityAnimation::die_anim)->getLength())};
+    mCreatureDeathVariants.push_back(entry);
+}
+
+void RenderManager::updateCreatureDeathVariants(Ogre::Real timeSinceLastFrame)
+{
+    for(std::vector<CreatureDeathVariant>::iterator it = mCreatureDeathVariants.begin(); it != mCreatureDeathVariants.end();)
+    {
+        // Somebody else (a drop, the decay, a move) set the pose: let go and keep what they set
+        if(!it->mNode->getOrientation().equals(it->mLastOrientation, Ogre::Radian(0.02f)) ||
+           it->mNode->getPosition().distance(it->mLastPosition) > 0.02f)
+        {
+            it = mCreatureDeathVariants.erase(it);
+            continue;
+        }
+        it->mElapsed += timeSinceLastFrame;
+        const Ogre::Real t = std::min(1.0f, it->mElapsed / it->mDuration);
+        const Ogre::Real eased = t * t * (3.0f - 2.0f * t);
+        Ogre::Quaternion turn = Ogre::Quaternion::IDENTITY;
+        Ogre::Vector3 shift = Ogre::Vector3::ZERO;
+        if(it->mVariant == 1)
+        {
+            // Thrown back: leans over backwards and slides a little away from the blow
+            turn = Ogre::Quaternion(Ogre::Degree(15.0f * eased), Ogre::Vector3::UNIT_X);
+            shift = Ogre::Vector3(0.0f, -0.15f * eased, 0.0f);
+        }
+        else
+        {
+            // Sinks to the knees and sags to the side
+            turn = Ogre::Quaternion(Ogre::Degree(35.0f * eased), Ogre::Vector3::UNIT_Z) *
+                Ogre::Quaternion(Ogre::Degree(-8.0f * eased), Ogre::Vector3::UNIT_X);
+            shift = Ogre::Vector3(0.0f, 0.05f * eased, 0.0f);
+        }
+        it->mLastOrientation = it->mBaseOrientation * turn;
+        it->mLastPosition = it->mBasePosition + it->mBaseOrientation * shift;
+        if(it->mVariant != 1)
+            it->mLastPosition.z -= 0.03f * eased;
+        it->mNode->setOrientation(it->mLastOrientation);
+        it->mNode->setPosition(it->mLastPosition);
+        if(t >= 1.0f)
+            it = mCreatureDeathVariants.erase(it);
         else
             ++it;
     }
@@ -2961,6 +3042,9 @@ void RenderManager::rrSetObjectAnimationState(MovableGameEntity* curAnimatedObje
         return;
     }
 
+    if(anim == EntityAnimation::die_anim && dropCreature != nullptr && objectEntity->getSkeleton()->hasAnimation(anim))
+        startCreatureDeathVariant(dropCreature, objectEntity);
+
     if(anim == EntityAnimation::drop_anim && dropCreature != nullptr)
     {
         cancelCreatureGetUpAnimation(dropCreature);
@@ -3315,6 +3399,7 @@ void RenderManager::clearCreatureCombatEffects(Creature* creature)
         mCreatureAttackVariants.clear();
         mCreatureAttackSides.clear();
         mCreatureTurns.clear();
+        mCreatureDeathVariants.clear();
     }
 }
 void RenderManager::rrMoveEntity(GameEntity* entity, const Ogre::Vector3& position)
