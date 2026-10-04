@@ -164,3 +164,11 @@ add_boost_test(ab-TestTraps
         ${Boost_SYSTEM_LIBRARY_RELEASE}
         ${OGRE_LIBRARIES})
 
+add_boost_test(00-PortraitManifest
+        SOURCES
+        test_PortraitManifest.cpp
+        ${SRC}/render/PortraitManifest.h
+        ${SRC}/render/PortraitManifest.cpp
+        ${SRC}/render/DungeonbookAppearanceConfig.h
+        ${SRC}/render/DungeonbookAppearanceConfig.cpp)
+
