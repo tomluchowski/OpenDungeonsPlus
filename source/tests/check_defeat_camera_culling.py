@@ -189,15 +189,19 @@ int main()
     check(DefeatSequenceSettings::CAMERA_PITCH + 22.5f < 90.0f - 5.0f, "the pitch leaves at least 5 degrees between the upper view edge and the horizon");
     check(DefeatSequenceSettings::CAMERA_PITCH > 25.0f && DefeatSequenceSettings::CAMERA_HEIGHT < 3.0f, "the cut is lower and more oblique than the game camera (pitch 25, height 3 to 16)");
 
-    // The pose before the fix, as in the game log: the two upper rays are lost
+    // A view whose upper rays never reach the floor (the old defeat pose, the possession view): no log message,
+    // the missed corners fall back to the floor point below the far clip corner
     {
         camera->setAspectRatio(16.0f / 10.0f);
         cameraManager.resetCamera(Ogre::Vector3(58.0f, 102.0f, 2.0f), Ogre::Vector3(68.0f, 0.0f, 0.0f));
         std::vector<Ogre::Vector3> corners;
         gErrors.clear();
         const int misses = floorCorners(cameraManager, corners);
-        check(misses == 2 && gErrors.size() == 2 && gErrors[0].find("0th ray") != std::string::npos
-            && gErrors[1].find("1th ray") != std::string::npos, "reproduced: pitch 68 loses the 0th and 1th ray, as in the log");
+        check(misses == 0 && gErrors.empty(), "a pitch of 68 logs nothing for the two upper rays");
+        bool onFloor = true;
+        for(int i = 0; i < 4; ++i)
+            onFloor = onFloor && std::fabs(corners[i].z) < 0.001f && corners[i].x > -999.0f;
+        check(onFloor, "a pitch of 68 still gives four points on the floor");
     }
 
     delete root;

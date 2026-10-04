@@ -198,7 +198,9 @@ bool CullingManager::computeIntersectionPoints(Ogre::Camera* camera, std::vector
             ogreVectors[ii]= (ray.getPoint(intersectionResult.second));
         else
         {
-            OD_LOG_ERR("I didn't find the intersection point for " + Helper::toString(ii) + "th ray ");
+            // The ray points above the horizon (possession view, defeat view): use the floor point below
+            // the far clip corner, so the culled area stays a superset of what is visible.
+            ogreVectors[ii] = Ogre::Vector3(cameraVector[ii+4].x, cameraVector[ii+4].y, 0.0);
         }
     }
     return true;
