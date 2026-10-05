@@ -83,20 +83,25 @@ else:
     if turn_effect.get("Reduced") != ["yes"]:
         problems.append("the turn of the cannon should stay in the mode reduced")
 
-roll = effects.get("BoulderRoll")
-if roll is None:
-    problems.append("effect BoulderRoll missing")
-else:
-    if roll.get("Match") != ["Boulder"] or roll.get("Event") != ["TrapFired"] or roll.get("Kind") != ["Roll"]:
-        problems.append("BoulderRoll must be a Roll on the event TrapFired of Boulder")
-    for key in ("Mesh", "System", "EndSystem"):
-        if key not in roll:
-            problems.append("BoulderRoll lacks %s" % key)
-    if not os.path.exists(os.path.join(ROOT, "models", roll["Mesh"][0] + ".mesh")):
-        problems.append("mesh of BoulderRoll missing")
-    for key in ("System", "EndSystem"):
-        if not re.search(r"^particle_system %s\s*$" % re.escape(roll[key][0]), particles, re.M):
-            problems.append("particle system %s missing" % roll[key][0])
+# The real boulder is the server missile (TrapBoulder::shoot); the client must not roll a second one
+if "BoulderRoll" in effects:
+    problems.append("BoulderRoll would roll a second boulder next to the server missile")
+dust = effects.get("BoulderMissileDust")
+if dust is None:
+    problems.append("effect BoulderMissileDust missing")
+elif dust.get("Match") != ["trap:MissileMoving"] or dust.get("Target") != ["Object"] or dust.get("Kind") != ["Particle"]:
+    problems.append("BoulderMissileDust must be a particle on moving missiles")
+burst = effects.get("BoulderLaunchBurst")
+if burst is None:
+    problems.append("effect BoulderLaunchBurst missing")
+elif burst.get("Match") != ["Boulder"] or burst.get("Event") != ["TrapFired"] or burst.get("Kind") != ["Particle"]:
+    problems.append("BoulderLaunchBurst must be a particle on the event TrapFired of Boulder")
+for effect in (dust, burst):
+    if effect is not None and not re.search(r"^particle_system %s\s*$" % re.escape(effect["System"][0]), particles, re.M):
+        problems.append("particle system %s missing" % effect["System"][0])
+scan = read("source", "render", "RoomAmbience.cpp")
+if '"MissileMoving"' not in scan or "GameEntityType::missileObject" not in scan:
+    problems.append("scanObjects does not give moving missiles the kind MissileMoving")
 
 shake = effects.get("BoulderRollShake")
 if shake is None:

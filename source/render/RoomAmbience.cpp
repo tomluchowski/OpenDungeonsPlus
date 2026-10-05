@@ -651,6 +651,9 @@ void RoomAmbience::scanObjects(Ogre::Camera* camera, const Ogre::Vector3& camera
         std::string kind;
         if(entity->getObjectType() == GameEntityType::trapEntity)
             kind = entity->getName().substr(0, entity->getName().find('_'));
+        // A missile that flies (the boulder of a trap) gets its dust trail; one that lies still gets nothing
+        else if((entity->getObjectType() == GameEntityType::missileObject) && entity->isMoving())
+            kind = "MissileMoving";
 
         const std::vector<uint32_t>& list = getObjectEffects(entity->getMeshName(), kind);
         if(list.empty())
