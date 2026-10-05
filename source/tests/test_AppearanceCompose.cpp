@@ -264,9 +264,10 @@ BOOST_AUTO_TEST_CASE(test_FlattenAndTint)
     BOOST_CHECK(flattenAndTint(RgbaImage(), 4, nullptr, "", "Brak", emptyWidth, emptyHeight).empty());
     BOOST_CHECK(flattenAndTint(composed, 0, nullptr, "", "Brak", emptyWidth, emptyHeight).empty());
 
-    // The base tint file of the game: it has regions for the fixture bases and none for unknown ids
+    // The base tint file of the fixtures: it has regions for the fixture bases and none for unknown ids
+    // (the shipped file belongs to the shipped bases and is not read here)
     PortraitTint tint;
-    BOOST_REQUIRE(tint.loadFromFile(getTestsDirectory() + "/../../config/dungeonbook-base-tints.cfg"));
+    BOOST_REQUIRE(tint.loadFromFile(getTestsDirectory() + "/fixtures/portraits/base-tints.cfg"));
     BOOST_CHECK(tint.getErrors().empty());
     BOOST_CHECK(tint.hasMesh(KNIGHT_ID));
     BOOST_CHECK(!tint.hasMesh("Troll.mesh-male"));
@@ -297,6 +298,195 @@ BOOST_AUTO_TEST_CASE(test_FlattenAndTint)
     }
     BOOST_CHECK_GT(changed, 0u);
     BOOST_CHECK_GT(hashes.size(), 1u);
+}
+
+namespace
+{
+//! One opaque part pixel and one transparent pixel in a 2x1 part
+Part makeTwoPixelPart(const std::string& slot)
+{
+    RgbaImage image(2, 1);
+    image.mPixels[0] = 200;
+    image.mPixels[1] = 150;
+    image.mPixels[2] = 100;
+    image.mPixels[3] = 255;
+    image.mPixels[4] = 10;
+    image.mPixels[5] = 20;
+    image.mPixels[6] = 30;
+    image.mPixels[7] = 0;
+    return makePart(slot, 0, 0, image);
+}
+
+//! True if the first pixel of the part is one of the three pure colours of the fixture palette
+bool isPrimaryColour(const Part& part)
+{
+    const uint8_t* pixel = &part.mImage.mPixels[0];
+    return ((pixel[0] == 255) && (pixel[1] == 0) && (pixel[2] == 0)) ||
+        ((pixel[0] == 0) && (pixel[1] == 255) && (pixel[2] == 0)) ||
+        ((pixel[0] == 0) && (pixel[1] == 0) && (pixel[2] == 255));
+}
+}
+
+BOOST_AUTO_TEST_CASE(test_TintParts)
+{
+    PortraitTint tint;
+    BOOST_REQUIRE(tint.loadFromFile(getTestsDirectory() + "/fixtures/portraits/part-tints.cfg"));
+    BOOST_CHECK(tint.getErrors().empty());
+    BOOST_CHECK(tint.hasMesh("hair"));
+    BOOST_CHECK(tint.hasMesh("chin:forked"));
+    BOOST_CHECK(!tint.hasMesh("chin:square"));
+
+    // A solid part becomes exactly one colour of the palette; alpha and transparent pixels stay as they are
+    Part hair = makeTwoPixelPart("hair");
+    tintPart(hair, KNIGHT_ID, "swept", &tint, "Brak");
+    BOOST_CHECK(isPrimaryColour(hair));
+    BOOST_CHECK_EQUAL(static_cast<int>(hair.mImage.mPixels[3]), 255);
+    BOOST_CHECK_EQUAL(static_cast<int>(hair.mImage.mPixels[4]), 10);
+    BOOST_CHECK_EQUAL(static_cast<int>(hair.mImage.mPixels[5]), 20);
+    BOOST_CHECK_EQUAL(static_cast<int>(hair.mImage.mPixels[6]), 30);
+    BOOST_CHECK_EQUAL(static_cast<int>(hair.mImage.mPixels[7]), 0);
+
+    // Same creature, same colour, every time
+    Part again = makeTwoPixelPart("hair");
+    tintPart(again, KNIGHT_ID, "waves", &tint, "Brak");
+    BOOST_CHECK(again.mImage.mPixels == hair.mImage.mPixels);
+
+    // The beard has the colour of the hair (same region name), also by slot and option key
+    Part beard = makeTwoPixelPart("chin");
+    tintPart(beard, KNIGHT_ID, "forked", &tint, "Brak");
+    BOOST_CHECK(beard.mImage.mPixels == hair.mImage.mPixels);
+
+    // Creatures differ
+    const char* const names[] = {"Brak", "Zog", "Mira", "Ulf", "Hesta", "Grim", "Tilda", "Rurik"};
+    std::set<uint32_t> colours;
+    for(size_t i = 0; i < sizeof(names) / sizeof(names[0]); ++i)
+    {
+        Part part = makeTwoPixelPart("hair");
+        tintPart(part, KNIGHT_ID, "swept", &tint, names[i]);
+        BOOST_CHECK(isPrimaryColour(part));
+        colours.insert(hashPixels(part.mImage.mPixels));
+    }
+    BOOST_CHECK_GT(colours.size(), 1u);
+
+    // Parts without an entry and a missing tint are left alone
+    Part skinChin = makeTwoPixelPart("chin");
+    tintPart(skinChin, KNIGHT_ID, "square", &tint, "Brak");
+    BOOST_CHECK(skinChin.mImage.mPixels == makeTwoPixelPart("chin").mImage.mPixels);
+    Part noTint = makeTwoPixelPart("hair");
+    tintPart(noTint, KNIGHT_ID, "swept", nullptr, "Brak");
+    BOOST_CHECK(noTint.mImage.mPixels == makeTwoPixelPart("hair").mImage.mPixels);
+    Part empty;
+    empty.mSlot = "hair";
+    tintPart(empty, KNIGHT_ID, "swept", &tint, "Brak");
+    BOOST_CHECK(!empty.mImage.isValid());
+
+    // An entry for slot and option applies to that option only, and the eyes slot works like any other
+    Part eyes = makeTwoPixelPart("eyes");
+    tintPart(eyes, KNIGHT_ID, "round", &tint, "Brak");
+    BOOST_CHECK(isPrimaryColour(eyes));
+    Part otherEyes = makeTwoPixelPart("eyes");
+    tintPart(otherEyes, KNIGHT_ID, "narrow", &tint, "Brak");
+    BOOST_CHECK(otherEyes.mImage.mPixels == makeTwoPixelPart("eyes").mImage.mPixels);
+
+    // The coloured part ends up in the composed picture
+    RgbaImage base = makeSolid(2, 1, 0, 0, 0, 255);
+    std::vector<Part> parts;
+    parts.push_back(hair);
+    RgbaImage composed = compose(base, parts, false);
+    BOOST_CHECK_EQUAL(static_cast<int>(composed.mPixels[0]), static_cast<int>(hair.mImage.mPixels[0]));
+    BOOST_CHECK_EQUAL(static_cast<int>(composed.mPixels[4]), 0);
+}
+
+BOOST_AUTO_TEST_CASE(test_EyesByCatalogId)
+{
+    PortraitTint tint;
+    BOOST_REQUIRE(tint.loadFromFile(getTestsDirectory() + "/fixtures/portraits/part-tints.cfg"));
+    BOOST_CHECK(tint.getErrors().empty());
+    BOOST_CHECK(tint.hasMesh("Knight.mesh-male:eyes:narrow"));
+
+    // Only the left half of an 8x1 part lies in the ellipse of the eyes entry (centre 2, radius 1.6 pixels)
+    Part eyes;
+    eyes.mSlot = "eyes";
+    eyes.mX = 0;
+    eyes.mY = 0;
+    eyes.mImage = makeSolid(8, 1, 200, 150, 100, 255);
+    Part before = eyes;
+    tintPart(eyes, KNIGHT_ID, "narrow", &tint, "Brak");
+    BOOST_CHECK(isPrimaryColour(eyes));
+    // the last pixel is far outside and keeps its colour, the alpha is never changed
+    for(size_t c = 0; c < 4; ++c)
+        BOOST_CHECK_EQUAL(static_cast<int>(eyes.mImage.mPixels[7 * 4 + c]), static_cast<int>(before.mImage.mPixels[7 * 4 + c]));
+
+    // Another catalog id or option has no entry
+    Part other = before;
+    tintPart(other, "Orc.mesh-male", "narrow", &tint, "Brak");
+    BOOST_CHECK(other.mImage.mPixels == before.mImage.mPixels);
+    tintPart(other, KNIGHT_ID, "round", &tint, "Brak");
+    BOOST_CHECK(other.mImage.mPixels == before.mImage.mPixels);
+}
+
+BOOST_AUTO_TEST_CASE(test_BaseSkinAmplitude)
+{
+    PortraitTint parts;
+    BOOST_REQUIRE(parts.loadFromFile(getTestsDirectory() + "/fixtures/portraits/part-tints.cfg"));
+    float skinShift[3] = {0.0f, 0.0f, 0.0f};
+    BOOST_REQUIRE(parts.getRegionShift("base-skin", "Skin", skinShift));
+    BOOST_CHECK_GT(skinShift[0], 0.0f);
+    BOOST_CHECK_GT(skinShift[1], 0.0f);
+    BOOST_CHECK_GT(skinShift[2], 0.0f);
+
+    PortraitTint base;
+    BOOST_REQUIRE(base.loadFromFile(getTestsDirectory() + "/fixtures/portraits/base-tints-flat.cfg"));
+    BOOST_CHECK(base.getErrors().empty());
+
+    PortraitManifest manifest;
+    BOOST_REQUIRE(loadKnightManifest(manifest));
+    RgbaImage composed = compose(makeKnightBase(), makeKnightParts(manifest, false), false);
+    uint32_t width = 0;
+    uint32_t height = 0;
+    std::vector<uint8_t> plain = flattenAndTint(composed, 4, nullptr, KNIGHT_ID, "Brak", width, height);
+
+    // With amplitude 0 the skin does not vary
+    BOOST_CHECK(flattenAndTint(composed, 4, &base, KNIGHT_ID, "Brak", width, height) == plain);
+
+    // After the amplitude is set, names differ and the same name stays the same
+    base.setShiftWhereNone("Skin", skinShift);
+    std::vector<uint8_t> first = flattenAndTint(composed, 4, &base, KNIGHT_ID, "Brak", width, height);
+    BOOST_CHECK(first == flattenAndTint(composed, 4, &base, KNIGHT_ID, "Brak", width, height));
+    BOOST_CHECK(first != plain);
+    const char* const names[] = {"Zog", "Mira", "Ulf", "Hesta", "Grim", "Tilda", "Rurik"};
+    std::set<uint32_t> hashes;
+    hashes.insert(hashPixels(first));
+    for(size_t i = 0; i < sizeof(names) / sizeof(names[0]); ++i)
+        hashes.insert(hashPixels(flattenAndTint(composed, 4, &base, KNIGHT_ID, names[i], width, height)));
+    BOOST_CHECK_GT(hashes.size(), 1u);
+
+    // A region with its own amplitude is not touched by setShiftWhereNone
+    PortraitTint own;
+    BOOST_REQUIRE(own.loadFromFile(getTestsDirectory() + "/fixtures/portraits/base-tints.cfg"));
+    std::vector<uint8_t> ownBefore = flattenAndTint(composed, 4, &own, KNIGHT_ID, "Brak", width, height);
+    own.setShiftWhereNone("Skin", skinShift);
+    BOOST_CHECK(flattenAndTint(composed, 4, &own, KNIGHT_ID, "Brak", width, height) == ownBefore);
+}
+
+BOOST_AUTO_TEST_CASE(test_ShippedPartTintsLoad)
+{
+    PortraitTint tint;
+    BOOST_REQUIRE(tint.loadFromFile(getTestsDirectory() + "/../../config/dungeonbook-part-tints.cfg"));
+    BOOST_CHECK(tint.getErrors().empty());
+    // Hair of people and beards are coloured; skin like chins and the eyes slot are not
+    BOOST_CHECK(tint.hasMesh("hair:swept"));
+    BOOST_CHECK(tint.hasMesh("chin:forked"));
+    BOOST_CHECK(tint.hasMesh("chin:braided"));
+    BOOST_CHECK(!tint.hasMesh("chin:square"));
+    BOOST_CHECK(!tint.hasMesh("chin:rounded"));
+    BOOST_CHECK(!tint.hasMesh("hair:shortfrill"));
+    // The skin amplitude of the bases is above zero in all three values
+    float skinShift[3] = {0.0f, 0.0f, 0.0f};
+    BOOST_REQUIRE(tint.getRegionShift("base-skin", "Skin", skinShift));
+    BOOST_CHECK_GT(skinShift[0], 0.0f);
+    BOOST_CHECK_GT(skinShift[1], 0.0f);
+    BOOST_CHECK_GT(skinShift[2], 0.0f);
 }
 
 BOOST_AUTO_TEST_CASE(test_PictureKey)

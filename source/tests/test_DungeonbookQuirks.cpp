@@ -271,4 +271,14 @@ BOOST_AUTO_TEST_CASE(test_ShippedConfig)
     BOOST_CHECK_EQUAL(*patch, "Collects eye patches, green ones only.");
     BOOST_CHECK(quirks.find("mouth", "cigar") != nullptr);
     BOOST_CHECK(quirks.find("scar", "diagonal") != nullptr);
+
+    // The option names of the shipped manifests: helmets and outfits too, and no leftovers of the test names
+    const char* const helmets[] = {"arch", "barrel", "bascinet", "crown", "greathelm", "horned", "houndskull", "ridged"};
+    for(std::size_t i = 0; i < 8; ++i)
+        BOOST_CHECK_MESSAGE(quirks.find("helmet", helmets[i]) != nullptr, std::string("no remark for helmet ") + helmets[i]);
+    const char* const outfits[] = {"apron", "chain", "leather", "padded", "patched", "plate", "robe", "tunic"};
+    for(std::size_t i = 0; i < 8; ++i)
+        BOOST_CHECK_MESSAGE(quirks.find("outfit", outfits[i]) != nullptr, std::string("no remark for outfit ") + outfits[i]);
+    BOOST_CHECK(quirks.find("helmet", "plain") == nullptr);
+    BOOST_CHECK(quirks.find("hair", "bald") == nullptr);
 }

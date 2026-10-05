@@ -2,7 +2,7 @@
 
 <GUILayout version="4" >
     <Window type="OD/FrameWindow" name="CreatureProfileWindow" >
-        <Property name="Area" value="{{0.5,-270},{0.5,-252},{0.5,270},{0.5,252}}" />
+        <Property name="Area" value="{{0.5,-270},{0.5,-280},{0.5,270},{0.5,280}}" />
         <Property name="SizingEnabled" value="False" />
         <Window type="DefaultWindow" name="ProfilePage" >
             <Property name="Area" value="{{0.0,0},{0.0,34},{1.0,0},{1.0,-56}}" />

@@ -58,6 +58,18 @@ extern const char* const SLOT_SCAR;
 //! scar is limited to the alpha of the chosen helmet.
 bool isHelmetDamageClipped(const std::string& catalogId);
 
+//! \brief Colours one chosen part (hair, beard and the like) for the creature, before the parts are composed.
+//! The bases are bare, so hair, eyes and beards get their colours from the parts: tint is the part tint file
+//! (config/dungeonbook-part-tints.cfg), its entries are keyed by the slot ("hair") or by slot and option
+//! name ("chin:forked"), or by catalog id, slot and option name ("Orc.mesh:eyes:round", for the eyes, whose
+//! iris lies at another place in every base); all keys that exist are applied. Same code path as the base tint
+//! (PortraitTint::apply, the colour of a region is chosen from the creature name and the region name), so a
+//! creature gets the same hair and beard colour wherever the region is called the same. Only visible pixels
+//! (alpha above 0) are coloured, the alpha is never changed. Nothing happens if tint is null or has no
+//! entry for the part.
+void tintPart(Part& part, const std::string& catalogId, const std::string& optionName, const PortraitTint* tint,
+    const std::string& creatureName);
+
 //! \brief Draws the parts onto a copy of the base, in the order of the vector (the order of the Slot
 //! lines of the manifest), with alpha blending at the slot position. Parts that are invalid or reach
 //! outside of the base are cut at its border. If clipDamageToHelmet is set and a part of the helmet slot

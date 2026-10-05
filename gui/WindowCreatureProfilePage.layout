@@ -107,7 +107,7 @@
             <Property name="HorzFormatting" value="WordWrapLeftAligned" />
         </Window>
         <Window type="OD/StaticText" name="QuirksText" >
-            <Property name="Area" value="{{0.0,16},{0.0,262},{1.0,-16},{0.0,282}}" />
+            <Property name="Area" value="{{0.0,16},{0.0,408},{1.0,-16},{0.0,456}}" />
             <Property name="Visible" value="False" />
             <Property name="FrameEnabled" value="False" />
             <Property name="BackgroundEnabled" value="False" />

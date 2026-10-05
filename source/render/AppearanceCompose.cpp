@@ -75,6 +75,51 @@ bool isHelmetDamageClipped(const std::string& catalogId)
     return startsWith(catalogId, "Knight.") || startsWith(catalogId, "Cultist.");
 }
 
+void tintPart(Part& part, const std::string& catalogId, const std::string& optionName, const PortraitTint* tint,
+    const std::string& creatureName)
+{
+    if((tint == nullptr) || !part.mImage.isValid())
+        return;
+
+    std::vector<std::string> keys;
+    if(tint->hasMesh(part.mSlot))
+        keys.push_back(part.mSlot);
+    std::string optionKey = part.mSlot + ":" + optionName;
+    if(tint->hasMesh(optionKey))
+        keys.push_back(optionKey);
+    std::string catalogKey = catalogId + ":" + optionKey;
+    if(tint->hasMesh(catalogKey))
+        keys.push_back(catalogKey);
+    if(keys.empty())
+        return;
+
+    size_t pixels = static_cast<size_t>(part.mImage.mWidth) * part.mImage.mHeight;
+    std::vector<float> rgb(pixels * 3);
+    std::vector<float> coverage(pixels);
+    for(size_t i = 0; i < pixels; ++i)
+    {
+        const uint8_t* pixel = &part.mImage.mPixels[i * 4];
+        rgb[i * 3] = pixel[0] / 255.0f;
+        rgb[i * 3 + 1] = pixel[1] / 255.0f;
+        rgb[i * 3 + 2] = pixel[2] / 255.0f;
+        coverage[i] = (pixel[3] > 0) ? 1.0f : 0.0f;
+    }
+
+    for(size_t k = 0; k < keys.size(); ++k)
+        tint->apply(keys[k], creatureName, rgb, part.mImage.mWidth, part.mImage.mHeight, &coverage);
+
+    for(size_t i = 0; i < pixels; ++i)
+    {
+        if(coverage[i] == 0.0f)
+            continue;
+
+        uint8_t* pixel = &part.mImage.mPixels[i * 4];
+        pixel[0] = static_cast<uint8_t>(rgb[i * 3] * 255.0f + 0.5f);
+        pixel[1] = static_cast<uint8_t>(rgb[i * 3 + 1] * 255.0f + 0.5f);
+        pixel[2] = static_cast<uint8_t>(rgb[i * 3 + 2] * 255.0f + 0.5f);
+    }
+}
+
 RgbaImage compose(const RgbaImage& base, const std::vector<Part>& parts, bool clipDamageToHelmet)
 {
     if(!base.isValid())

@@ -370,12 +370,13 @@ float Gui::layoutCreatureProfilePage(CEGUI::Window* page)
     const float scale = getLayoutScale();
     float y = PROFILE_FLOW_TOP;
 
-    // Bio, likes and dislikes, the quirks of the picture, then the rows with friends and foe, then status and latest post
-    const char* const textRowsBefore[] = {"BioText", "LikesText", "DislikesText", "QuirksText"};
-    const char* const textRowsAfter[] = {"StatusText", "LatestText"};
+    // Bio, likes and dislikes, then the rows with friends and foe, then status and latest post. The quirks of the
+    // picture come last, so they never move the status and the latest post (the creature card has a fixed height).
+    const char* const textRowsBefore[] = {"BioText", "LikesText", "DislikesText"};
+    const char* const textRowsAfter[] = {"StatusText", "LatestText", "QuirksText"};
     const char* const linkRows[2][3] = {{"FriendsLabel", "FriendLink0", "FriendLink1"}, {"FoeLabel", "FoeLink", nullptr}};
 
-    for(std::size_t i = 0; i < 4; ++i)
+    for(std::size_t i = 0; i < 3; ++i)
         y = layoutProfileTextRow(page->getChild(textRowsBefore[i]), y, scale);
 
     for(std::size_t row = 0; row < 2; ++row)
@@ -403,7 +404,7 @@ float Gui::layoutCreatureProfilePage(CEGUI::Window* page)
         y = std::max(y + lineHeight, linkY) + PROFILE_ROW_GAP;
     }
 
-    for(std::size_t i = 0; i < 2; ++i)
+    for(std::size_t i = 0; i < 3; ++i)
         y = layoutProfileTextRow(page->getChild(textRowsAfter[i]), y, scale);
 
     return y;

@@ -51,6 +51,8 @@ struct PictureState
     DungeonbookAppearanceConfig mConfig;
     //! Colour regions of the neutral bases (config/dungeonbook-base-tints.cfg)
     PortraitTint mTint;
+    //! Colours of the hair and beard parts (config/dungeonbook-part-tints.cfg)
+    PortraitTint mPartTint;
     //! Profile remarks (config/dungeonbook-quirks.cfg)
     DungeonbookQuirks mQuirks;
     //! Cached pictures, least recently used first
@@ -102,6 +104,20 @@ PictureState& getState()
     {
         OD_LOG_WRN("Dungeonbook base tints: " + *it);
     }
+
+    // A missing file or a bad line only costs the colours of the parts
+    state.mPartTint.loadFromFile(path + "dungeonbook-part-tints.cfg");
+    const std::vector<std::string>& partErrors = state.mPartTint.getErrors();
+    for(std::vector<std::string>::const_iterator it = partErrors.begin(); it != partErrors.end(); ++it)
+    {
+        OD_LOG_WRN("Dungeonbook part tints: " + *it);
+    }
+
+    // The regions of the bases may come without a skin amplitude (shift 0): the skin of every creature then
+    // varies by the amplitude of the entry base-skin of the part tints, as the skin of the old portraits does
+    float skinShift[3];
+    if(state.mPartTint.getRegionShift("base-skin", "Skin", skinShift))
+        state.mTint.setShiftWhereNone("Skin", skinShift);
 
     // A missing file or a bad line only costs the remarks
     state.mQuirks.loadFromFile(path + "dungeonbook-quirks.cfg");
@@ -216,6 +232,8 @@ const CEGUI::Image* buildPicture(PictureState& state, const std::string& creatur
         if(!loadRgbaImage(option->mPath, it->mWidth, it->mHeight, part.mImage, error))
             return nullptr;
 
+        // The bases have no hair, eyes or beards: the parts carry them and get the colour of the creature
+        AppearanceCompose::tintPart(part, appearance.getCatalogId(), option->mName, &state.mPartTint, creatureName);
         parts.push_back(part);
     }
 

@@ -183,6 +183,7 @@ bool PortraitTint::parseRegion(const std::vector<std::string>& columns, Region& 
     }
     region.mName = columns[1];
     bool hasBox = false;
+    bool hasEllipse = false;
     bool hasHue = false;
     bool hasSat = false;
     bool hasVal = false;
@@ -230,6 +231,13 @@ bool PortraitTint::parseRegion(const std::vector<std::string>& columns, Region& 
                 region.mBox[k] = values[k];
             hasBox = true;
         }
+        else if((key == "ellipse") && (values.size() == 4))
+        {
+            for(int k = 0; k < 4; ++k)
+                region.mEllipse[k] = values[k];
+            region.mHasEllipse = true;
+            hasEllipse = true;
+        }
         else if((key == "not") && (values.size() % 4 == 0))
             region.mCutOut = values;
         else if((key == "hue") && (values.size() == 2))
@@ -256,9 +264,9 @@ bool PortraitTint::parseRegion(const std::vector<std::string>& columns, Region& 
             return false;
         }
     }
-    if(!hasMode || !hasBox || !hasHue || !hasSat || !hasVal)
+    if(!hasMode || !(hasBox || hasEllipse) || !hasHue || !hasSat || !hasVal)
     {
-        error = "Region '" + region.mName + "' needs palette= or shift=, box=, hue=, sat= and val=";
+        error = "Region '" + region.mName + "' needs palette= or shift=, box= or ellipse=, hue=, sat= and val=";
         return false;
     }
     return true;
@@ -342,10 +350,76 @@ bool PortraitTint::hasMesh(const std::string& meshName) const
     return false;
 }
 
+bool PortraitTint::getRegionShift(const std::string& meshName, const std::string& regionName, float shift[3]) const
+{
+    for(size_t p = 0; p < mPortraits.size(); ++p)
+    {
+        if(mPortraits[p].mMesh != meshName)
+            continue;
+        for(size_t r = 0; r < mPortraits[p].mRegions.size(); ++r)
+        {
+            const Region& region = mPortraits[p].mRegions[r];
+            if((region.mName != regionName) || (region.mPalette >= 0))
+                continue;
+            for(int k = 0; k < 3; ++k)
+                shift[k] = region.mShift[k];
+            return true;
+        }
+    }
+    return false;
+}
+
+void PortraitTint::setShiftWhereNone(const std::string& regionName, const float shift[3])
+{
+    for(size_t p = 0; p < mPortraits.size(); ++p)
+    {
+        for(size_t r = 0; r < mPortraits[p].mRegions.size(); ++r)
+        {
+            Region& region = mPortraits[p].mRegions[r];
+            if((region.mName != regionName) || (region.mPalette >= 0))
+                continue;
+            if((region.mShift[0] != 0.0f) || (region.mShift[1] != 0.0f) || (region.mShift[2] != 0.0f))
+                continue;
+            for(int k = 0; k < 3; ++k)
+                region.mShift[k] = shift[k];
+        }
+    }
+}
+
 void PortraitTint::computeWeights(const Region& region, const std::vector<float>& hue,
     const std::vector<float>& saturation, const std::vector<float>& value, uint32_t width, uint32_t height,
     std::vector<float>& weights) const
 {
+    if(region.mHasEllipse)
+    {
+        // Inside the ellipse the weight is 1, it falls to 0 within a short feather outside of it
+        const float radiusX = region.mEllipse[2] * width;
+        const float radiusY = region.mEllipse[3] * width;
+        const float smallest = std::min(radiusX, radiusY);
+        const float feather = std::max(1.0f, 0.15f * smallest);
+        weights.assign(static_cast<size_t>(width) * height, 0.0f);
+        if(smallest <= 0.0f)
+            return;
+        for(uint32_t y = 0; y < height; ++y)
+        {
+            for(uint32_t x = 0; x < width; ++x)
+            {
+                size_t index = static_cast<size_t>(y) * width + x;
+                float dx = (x + 0.5f - region.mEllipse[0] * width) / radiusX;
+                float dy = (y + 0.5f - region.mEllipse[1] * height) / radiusY;
+                float distance = std::sqrt(dx * dx + dy * dy) * smallest;
+                float weight = clamp01(1.0f - (distance - smallest) / feather);
+                if(weight <= 0.0f)
+                    continue;
+                weight *= hueWeight(hue[index], region.mHue[0], region.mHue[1]);
+                weight *= ramp(saturation[index], region.mSaturation[0], region.mSaturation[1], SV_FEATHER);
+                weight *= ramp(value[index], region.mValue[0], region.mValue[1], SV_FEATHER);
+                weights[index] = weight;
+            }
+        }
+        return;
+    }
+
     std::vector<float> columnWeight(width);
     std::vector<float> rowWeight(height);
     for(uint32_t x = 0; x < width; ++x)
@@ -377,10 +451,12 @@ void PortraitTint::computeWeights(const Region& region, const std::vector<float>
 }
 
 void PortraitTint::apply(const std::string& meshName, const std::string& creatureName, std::vector<float>& rgb,
-    uint32_t width, uint32_t height) const
+    uint32_t width, uint32_t height, const std::vector<float>* coverage) const
 {
     size_t pixels = static_cast<size_t>(width) * height;
     if((pixels == 0) || (rgb.size() != pixels * 3))
+        return;
+    if((coverage != nullptr) && (coverage->size() != pixels))
         return;
 
     std::vector<float> hue(pixels);
@@ -398,6 +474,11 @@ void PortraitTint::apply(const std::string& meshName, const std::string& creatur
         {
             const Region& region = mPortraits[p].mRegions[r];
             computeWeights(region, hue, saturation, value, width, height, weights);
+            if(coverage != nullptr)
+            {
+                for(size_t i = 0; i < pixels; ++i)
+                    weights[i] *= (*coverage)[i];
+            }
             double total = 0.0;
             double valueSum = 0.0;
             for(size_t i = 0; i < pixels; ++i)

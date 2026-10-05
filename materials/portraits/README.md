@@ -35,7 +35,9 @@ folder without gender exists. Without a valid manifest the Dungeonbook shows the
 before; the creature bar never uses these folders.
 
 Settings are in `config/dungeonbook-appearance.cfg` (asset folder, cache limits), the colour regions of the
-neutral bases in `config/dungeonbook-base-tints.cfg` and the profile remarks that match the parts in
+neutral bases in `config/dungeonbook-base-tints.cfg`, the hair and beard colours in
+`config/dungeonbook-part-tints.cfg` (the bases have no hair, eyes or beards, so the colour is applied to the chosen
+parts) and the profile remarks that match the parts in
 `config/dungeonbook-quirks.cfg` (one line per slot and option name, as written in the manifests).
 
 ## Goblin.mesh
