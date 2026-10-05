@@ -61,14 +61,27 @@ bool PortraitManifestRegistry::hasCatalog(const std::string& catalogId) const
     if(catalogId.empty())
         return false;
 
+    std::map<std::string, bool>::const_iterator known = mCatalogAnswers.find(catalogId);
+    if(known != mCatalogAnswers.end())
+        return known->second;
+
     std::ifstream file((mAssetRoot + catalogId + "/manifest.cfg").c_str());
-    return file.good();
+    bool exists = file.good();
+    mCatalogAnswers[catalogId] = exists;
+    return exists;
+}
+
+void PortraitManifestRegistry::invalidateCatalogs()
+{
+    mCatalogAnswers.clear();
+    ++mCatalogGeneration;
 }
 
 void PortraitManifestRegistry::clear()
 {
     mManifests.clear();
     mFailures.clear();
+    invalidateCatalogs();
 }
 
 bool PortraitManifestRegistry::retryFailed()

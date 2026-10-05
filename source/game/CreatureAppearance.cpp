@@ -270,6 +270,15 @@ CreatureAppearance pickRandom(const PortraitManifest& manifest, const std::strin
     }
 }
 
+bool needsAppearanceCheck(bool appearanceEmpty, bool validated, bool noCatalog, uint32_t noCatalogGeneration,
+    uint32_t currentGeneration)
+{
+    if(noCatalog && (noCatalogGeneration == currentGeneration))
+        return false;
+
+    return appearanceEmpty || !validated;
+}
+
 CreatureAppearance pickStable(const PortraitManifest& manifest, const std::string& catalogId,
     const std::string& creatureName)
 {

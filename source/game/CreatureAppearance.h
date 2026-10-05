@@ -92,6 +92,12 @@ extern const uint32_t ROLL_BUDGET;
 //! Largest number of combinations pickRandom enumerates
 extern const uint64_t ENUMERATION_LIMIT;
 
+//! \brief Tells whether the periodic appearance check has to look at a creature. A creature without an
+//! appearance, or with one that was never checked against a manifest, is looked at - except a creature that
+//! has no catalog id: it is left alone until the catalog generation changes (new folders may have appeared).
+bool needsAppearanceCheck(bool appearanceEmpty, bool validated, bool noCatalog, uint32_t noCatalogGeneration,
+    uint32_t currentGeneration);
+
 //! \brief Old saves: one option per slot, derived from the creature name only (stable hash).
 CreatureAppearance pickStable(const PortraitManifest& manifest, const std::string& catalogId,
     const std::string& creatureName);

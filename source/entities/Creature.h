@@ -732,6 +732,10 @@ private:
     //! True once the appearance was checked against a valid manifest (server). A creature loaded or spawned without
     //! a manifest is checked as soon as one exists, see retryAppearance.
     bool mAppearanceValidated = false;
+    //! True if no catalog id exists for this creature (the plan: no appearance). It is not looked at again until the
+    //! catalog generation of the registry changes.
+    bool mAppearanceNoCatalog = false;
+    uint32_t mAppearanceNoCatalogGeneration = 0;
     //! \brief Pointer to the struct holding the general type of the creature with its values
     const CreatureDefinition* mDefinition;
 

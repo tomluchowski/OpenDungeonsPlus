@@ -727,3 +727,32 @@ BOOST_AUTO_TEST_CASE(test_StoredLookCheckedWhenManifestBecomesValid)
 
     std::remove(getRetryManifestPath().c_str());
 }
+
+BOOST_AUTO_TEST_CASE(test_CreaturesWithoutCatalogAreLeftAlone)
+{
+    using CreatureAppearanceLogic::needsAppearanceCheck;
+    // No catalog id, same generation: never looked at, whatever else is true
+    BOOST_CHECK(!needsAppearanceCheck(true, false, true, 3, 3));
+    BOOST_CHECK(!needsAppearanceCheck(false, false, true, 3, 3));
+    // A new generation (folders may have appeared) lets it be looked at once
+    BOOST_CHECK(needsAppearanceCheck(true, false, true, 3, 4));
+    // With a catalog id nothing changes: empty or unchecked looks are checked, checked ones are not
+    BOOST_CHECK(needsAppearanceCheck(true, false, false, 0, 0));
+    BOOST_CHECK(needsAppearanceCheck(false, false, false, 0, 7));
+    BOOST_CHECK(!needsAppearanceCheck(false, true, false, 0, 7));
+
+    // The registry answers hasCatalog from memory until the catalogs are invalidated (one file lookup per period)
+    std::remove(getRetryManifestPath().c_str());
+    PortraitManifestRegistry registry;
+    registry.setAssetRoot(getVariantsDirectory());
+    const std::string id = "../retry";
+    uint32_t generation = registry.getCatalogGeneration();
+    BOOST_CHECK(!registry.hasCatalog(id));
+    writeRetryManifest("Slot	hair	4	2	8	8
+");
+    BOOST_CHECK(!registry.hasCatalog(id));
+    registry.invalidateCatalogs();
+    BOOST_CHECK(registry.getCatalogGeneration() != generation);
+    BOOST_CHECK(registry.hasCatalog(id));
+    std::remove(getRetryManifestPath().c_str());
+}

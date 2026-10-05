@@ -724,7 +724,12 @@ void Creature::assignAppearance(bool firstSpawn)
         std::bind(&PortraitManifestRegistry::hasCatalog, &registry, std::placeholders::_1);
     std::string catalogId = CreatureAppearanceLogic::resolveCatalogId(mDefinition->getMeshName(), getGender(), exists);
     if(catalogId.empty())
+    {
+        mAppearanceNoCatalog = true;
+        mAppearanceNoCatalogGeneration = registry.getCatalogGeneration();
         return;
+    }
+    mAppearanceNoCatalog = false;
 
     const PortraitManifest* manifest = registry.getManifest(catalogId);
     std::vector<std::string> messages = registry.takeMessages();
@@ -763,7 +768,8 @@ void Creature::assignAppearance(bool firstSpawn)
 
 void Creature::retryAppearance()
 {
-    if(mAppearanceRetryTurns > 0)
+    // A creature without catalog id is only looked at when the catalog generation changed: no waiting period
+    if((mAppearanceRetryTurns > 0) && !mAppearanceNoCatalog)
     {
         --mAppearanceRetryTurns;
         return;
@@ -1141,8 +1147,23 @@ void Creature::doUpkeep()
 {
     // No manifest was available when the creature spawned: assign the appearance as soon as it is
     // (or the stored one was never checked against a manifest): the appearance is derived or checked as soon as one is
-    if(getIsOnServerMap() && (mAppearance.isEmpty() || !mAppearanceValidated))
-        retryAppearance();
+    if(getIsOnServerMap())
+    {
+        // New catalog folders are looked for once per retry period for all creatures together, never per creature
+        static int64_t lastCatalogRefresh = -1;
+        int64_t turn = getGameMap()->getTurnNumber();
+        if((lastCatalogRefresh < 0) || (turn < lastCatalogRefresh) || (turn - lastCatalogRefresh >= APPEARANCE_RETRY_TURNS))
+        {
+            lastCatalogRefresh = turn;
+            getAppearanceRegistry().invalidateCatalogs();
+        }
+
+        if(CreatureAppearanceLogic::needsAppearanceCheck(mAppearance.isEmpty(), mAppearanceValidated,
+            mAppearanceNoCatalog, mAppearanceNoCatalogGeneration, getAppearanceRegistry().getCatalogGeneration()))
+        {
+            retryAppearance();
+        }
+    }
 
     // If the creature is in jail, we check if it is still standing on it (if not picked up). If
     // not, it is free
