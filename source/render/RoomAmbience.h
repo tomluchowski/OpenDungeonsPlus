@@ -20,6 +20,7 @@
 
 #include "render/RoomAmbienceConfig.h"
 #include "render/RoomAmbienceExtras.h"
+#include "render/WallTorchView.h"
 
 #include <OgrePrerequisites.h>
 #include <OgreQuaternion.h>
@@ -94,6 +95,10 @@ public:
     //! the owner is not given). Returns the number of effects started
     uint32_t triggerEvent(const std::string& eventName, const Ogre::Vector3& position, bool forced,
         const std::string& visualName = std::string(), bool noThrottle = false, const Seat* owner = nullptr);
+
+    //! \brief Replaces the wall torches that are shown by the list the server sent. The client
+    //! derives nothing; the torches are drawn as they are listed (see WallTorchView)
+    void setWallTorchSpots(const std::vector<WallTorchSpot>& spots);
 
     //! \brief Plays the sound of the family (a folder below sounds/Spatial) at the position
     void playSound(const std::string& family, const Ogre::Vector3& position);
@@ -594,6 +599,8 @@ private:
     std::vector<HeartRate> mHeartRates;
     //! Moments that are read from what the client already knows (heart rate)
     RoomAmbienceExtras mExtras;
+    //! The wall torches the server listed, drawn as they are listed
+    WallTorchView mWallTorches;
     //! Dice of its own, so the game random sequence is untouched
     std::mt19937 mRandom;
 

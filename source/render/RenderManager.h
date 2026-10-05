@@ -74,6 +74,10 @@ public:
     inline Ogre::SceneManager* getSceneManager() const
     { return mSceneManager; }
 
+    //! \brief Node that holds the world lights (hidden while the minimap is rendered)
+    inline Ogre::SceneNode* getLightSceneNode() const
+    { return mLightSceneNode; }
+
     //! \brief Loop through the render requests in the queue and process them
     void updateRenderAnimations(Ogre::Real timeSinceLastFrame);
 
