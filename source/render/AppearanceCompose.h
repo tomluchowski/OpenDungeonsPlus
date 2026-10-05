@@ -54,7 +54,8 @@ struct Part
 //! The bases are bare, so hair, eyes and beards get their colours from the parts: tint is the part tint file
 //! (config/dungeonbook-part-tints.cfg), its entries are keyed by the slot ("hair") or by slot and option
 //! name ("chin:forked"), or by catalog id, slot and option name ("Orc.mesh:eyes:round", for the eyes, whose
-//! iris lies at another place in every base); all keys that exist are applied. Same code path as the base tint
+//! iris lies at another place in every base); a block for the catalog id replaces the generic ones for that part,
+//! otherwise the slot and the slot:option blocks that exist are applied. Same code path as the base tint
 //! (PortraitTint::apply, the colour of a region is chosen from the creature name and the region name), so a
 //! creature gets the same hair and beard colour wherever the region is called the same. Only visible pixels
 //! (alpha above 0) are coloured, the alpha is never changed. Nothing happens if tint is null or has no

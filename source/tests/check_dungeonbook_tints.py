@@ -39,7 +39,7 @@ def parse(path):
         columns = [c.strip() for c in line.split('\t')]
         key = columns[0]
         if key == '[Palette]':
-            palettes[len(palettes)] = {'name': None, 'colours': 0}
+            palettes[len(palettes)] = {'name': None, 'colours': []}
             current = 'palette'
         elif key == '[Portrait]':
             portraits.append({'mesh': None, 'regions': []})
@@ -50,7 +50,7 @@ def parse(path):
             if any(floats(c) is None for c in columns[2:5]):
                 errors.append((number, 'bad Colour numbers'))
             else:
-                palettes[len(palettes) - 1]['colours'] += 1
+                palettes[len(palettes) - 1]['colours'].append(tuple(floats(c)[0] for c in columns[2:5]))
         elif key == 'Mesh' and current == 'portrait' and len(columns) >= 2:
             portraits[-1]['mesh'] = columns[1]
         elif key == 'Region' and current == 'portrait' and len(columns) >= 3:
@@ -73,6 +73,7 @@ def parse(path):
                         ok = False
                         break
                     region['mode'] = True
+                    region['palette'] = text
                     continue
                 values = floats(text)
                 if values is None:
@@ -132,7 +133,7 @@ meshes = [b['mesh'] for b in bases]
 assert None not in meshes
 assert len(meshes) == len(set(meshes)), 'a catalog id has two base tint blocks'
 
-_, parts, errors = parse(repo / 'config' / 'dungeonbook-part-tints.cfg')
+part_palettes, parts, errors = parse(repo / 'config' / 'dungeonbook-part-tints.cfg')
 assert not errors, errors
 keys = [p['mesh'] for p in parts]
 assert None not in keys
@@ -146,6 +147,37 @@ assert len(skin) == 1, 'the part tints need exactly one base-skin entry'
 shifts = [r['shift'] for r in skin[0]['regions'] if r['name'] == 'Skin' and 'shift' in r]
 assert shifts and all(v > 0 for v in shifts[0]), ('the base skin amplitude must be above 0', shifts)
 
+# Palettes that exist in both files are the ones of the old portraits (same colours, same order), and the
+# catalog ids whose old portrait uses fire, glow or hair_brown use them in the new parts as well (the region
+# names Eyes and Hair are the old ones, so the colour a creature gets is the same as before)
+old_palettes, old_portraits, old_errors = parse(repo / 'config' / 'portrait-tints.cfg')
+assert not old_errors, old_errors
+old_by_name = {p['name']: p['colours'] for p in old_palettes.values()}
+for palette in part_palettes.values():
+    if palette['name'] in old_by_name:
+        assert palette['colours'] == old_by_name[palette['name']], 'palette %s differs from portrait-tints.cfg' % palette['name']
+for name in ('fire', 'glow', 'hair_brown', 'eyes', 'hair'):
+    assert name in [p['name'] for p in part_palettes.values()], 'palette %s is missing in the part tints' % name
+
+old_palette_of = {}
+for portrait in old_portraits:
+    for region in portrait['regions']:
+        if 'palette' in region and region['name'] in ('Eyes', 'Hair'):
+            old_palette_of.setdefault((portrait['mesh'], region['name']), set()).add(region['palette'])
+for portrait in parts:
+    names = portrait['mesh'].split(':')
+    if len(names) != 3:
+        continue
+    catalog, slot, _ = names
+    for region in portrait['regions']:
+        wanted = old_palette_of.get((catalog, region['name']))
+        if wanted and wanted & {'fire', 'glow', 'hair_brown'}:
+            assert region.get('palette') in wanted, '%s uses %s, the old portrait uses %s' % (portrait['mesh'], region.get('palette'), wanted)
+# every base whose old portrait uses one of the three palettes has such blocks in the part tints
+for (catalog, region_name), wanted in old_palette_of.items():
+    if wanted & {'fire', 'glow', 'hair_brown'}:
+        assert any(p['mesh'].startswith(catalog + ':') for p in parts), 'no part block for %s although the old portrait uses %s' % (catalog, wanted)
+
 if manifests:
     missing = [i for i in manifests if i not in meshes]
     assert not missing, 'catalog ids without a base tint block: %s' % missing
@@ -154,6 +186,8 @@ if manifests:
     empty = [b['mesh'] for b in bases if not b['regions']]
     assert not empty, 'base tint blocks without a region: %s' % empty
     for key in keys:
+        if key == 'base-skin':
+            continue
         names = key.split(':')
         catalog = names.pop(0) if len(names) == 3 else None
         slot, option = names[0], (names[1] if len(names) > 1 else '')

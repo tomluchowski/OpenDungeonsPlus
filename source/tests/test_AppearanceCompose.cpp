@@ -443,6 +443,32 @@ BOOST_AUTO_TEST_CASE(test_EyesByCatalogId)
     BOOST_CHECK(other.mImage.mPixels == before.mImage.mPixels);
 }
 
+BOOST_AUTO_TEST_CASE(test_CatalogBlockReplacesGenericOnes)
+{
+    PortraitTint tint;
+    BOOST_REQUIRE(tint.loadFromFile(getTestsDirectory() + "/fixtures/portraits/part-tints.cfg"));
+    BOOST_CHECK(tint.getErrors().empty());
+
+    const char* const names[] = {"Brak", "Zog", "Mira", "Ulf", "Hesta", "Grim", "Tilda", "Rurik"};
+    std::set<uint32_t> genericColours;
+    for(size_t i = 0; i < sizeof(names) / sizeof(names[0]); ++i)
+    {
+        // The Knight has a block of its own for this option: its palette has one colour, blue
+        Part knight = makeTwoPixelPart("hair");
+        tintPart(knight, KNIGHT_ID, "braid", &tint, names[i]);
+        BOOST_CHECK_EQUAL(static_cast<int>(knight.mImage.mPixels[0]), 0);
+        BOOST_CHECK_EQUAL(static_cast<int>(knight.mImage.mPixels[1]), 0);
+        BOOST_CHECK_EQUAL(static_cast<int>(knight.mImage.mPixels[2]), 255);
+
+        // Another catalog id uses the generic hair block (red, green or blue by name)
+        Part other = makeTwoPixelPart("hair");
+        tintPart(other, "Orc.mesh-male", "braid", &tint, names[i]);
+        BOOST_CHECK(isPrimaryColour(other));
+        genericColours.insert(hashPixels(other.mImage.mPixels));
+    }
+    BOOST_CHECK_GT(genericColours.size(), 1u);
+}
+
 BOOST_AUTO_TEST_CASE(test_BaseSkinAmplitude)
 {
     PortraitTint parts;

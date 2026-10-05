@@ -55,15 +55,21 @@ void tintPart(Part& part, const std::string& catalogId, const std::string& optio
     if((tint == nullptr) || !part.mImage.isValid())
         return;
 
+    // A block for this catalog id replaces the generic ones (slot, slot and option) for the part
     std::vector<std::string> keys;
-    if(tint->hasMesh(part.mSlot))
-        keys.push_back(part.mSlot);
     std::string optionKey = part.mSlot + ":" + optionName;
-    if(tint->hasMesh(optionKey))
-        keys.push_back(optionKey);
     std::string catalogKey = catalogId + ":" + optionKey;
     if(tint->hasMesh(catalogKey))
+    {
         keys.push_back(catalogKey);
+    }
+    else
+    {
+        if(tint->hasMesh(part.mSlot))
+            keys.push_back(part.mSlot);
+        if(tint->hasMesh(optionKey))
+            keys.push_back(optionKey);
+    }
     if(keys.empty())
         return;
 
