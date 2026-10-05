@@ -89,8 +89,8 @@ if "BoulderRoll" in effects:
 dust = effects.get("BoulderMissileDust")
 if dust is None:
     problems.append("effect BoulderMissileDust missing")
-elif dust.get("Match") != ["trap:MissileMoving"] or dust.get("Target") != ["Object"] or dust.get("Kind") != ["Particle"]:
-    problems.append("BoulderMissileDust must be a particle on moving missiles")
+elif dust.get("Match") != ["trap:BoulderMoving"] or dust.get("Target") != ["Object"] or dust.get("Kind") != ["Particle"]:
+    problems.append("BoulderMissileDust must be a particle on moving boulders")
 burst = effects.get("BoulderLaunchBurst")
 if burst is None:
     problems.append("effect BoulderLaunchBurst missing")
@@ -100,8 +100,10 @@ for effect in (dust, burst):
     if effect is not None and not re.search(r"^particle_system %s\s*$" % re.escape(effect["System"][0]), particles, re.M):
         problems.append("particle system %s missing" % effect["System"][0])
 scan = read("source", "render", "RoomAmbience.cpp")
-if '"MissileMoving"' not in scan or "GameEntityType::missileObject" not in scan:
-    problems.append("scanObjects does not give moving missiles the kind MissileMoving")
+if '"BoulderMoving"' not in scan or "GameEntityType::missileObject" not in scan or 'getMeshName() == "Boulder"' not in scan:
+    problems.append("scanObjects does not give moving boulder missiles (mesh Boulder) the kind BoulderMoving")
+if '"MissileMoving"' in scan:
+    problems.append("the kind MissileMoving would give the dust to cannonballs and the other missiles too")
 
 shake = effects.get("BoulderRollShake")
 if shake is None:

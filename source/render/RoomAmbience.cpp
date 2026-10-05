@@ -651,9 +651,11 @@ void RoomAmbience::scanObjects(Ogre::Camera* camera, const Ogre::Vector3& camera
         std::string kind;
         if(entity->getObjectType() == GameEntityType::trapEntity)
             kind = entity->getName().substr(0, entity->getName().find('_'));
-        // A missile that flies (the boulder of a trap) gets its dust trail; one that lies still gets nothing
-        else if((entity->getObjectType() == GameEntityType::missileObject) && entity->isMoving())
-            kind = "MissileMoving";
+        // A boulder that rolls (the missile of the boulder trap, mesh Boulder) gets its dust trail. One that lies still
+        // gets nothing, and neither do the other missiles (cannonballs, blasts, stones): they have no dust of their own
+        else if((entity->getObjectType() == GameEntityType::missileObject) && entity->isMoving() &&
+                (entity->getMeshName() == "Boulder"))
+            kind = "BoulderMoving";
 
         const std::vector<uint32_t>& list = getObjectEffects(entity->getMeshName(), kind);
         if(list.empty())
