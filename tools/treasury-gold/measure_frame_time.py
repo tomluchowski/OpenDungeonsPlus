@@ -17,8 +17,8 @@ appear for stored gold). Prints a table of the mean frame times (ms) and the cha
 """
 
 import argparse
+import importlib.util
 import os
-import re
 import shutil
 import subprocess
 import sys
@@ -26,7 +26,18 @@ import tempfile
 
 REPO = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 DEFAULT_LEVEL = os.path.join(REPO, 'levels', 'skirmish', 'StoneKeep.level')
-FRAME_LINE = re.compile(r'^FRAMETIME frames=(\d+) avg_ms=([0-9.eE+-]+)')
+
+
+def load_level_test():
+    """The level test script (its file name has a hyphen, so it is loaded by path)."""
+    path = os.path.join(REPO, 'scripts', 'run-level-test.py')
+    spec = importlib.util.spec_from_file_location('run_level_test', path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+LEVEL_TEST = load_level_test()
 
 
 def default_config():
@@ -86,14 +97,9 @@ def run_once(exe, level, seconds, detail, config_path):
         process = subprocess.run(command, cwd=os.path.dirname(os.path.abspath(exe)), env=environment,
                                  stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True,
                                  timeout=2 * seconds + 400)
-        result = None
-        passed = False
-        for line in process.stdout.splitlines():
-            match = FRAME_LINE.match(line.strip())
-            if match:
-                result = (float(match.group(2)), int(match.group(1)))
-            if line.startswith('PASS '):
-                passed = True
+        frame_time = LEVEL_TEST.parse_frame_time(process.stdout)
+        result = None if frame_time is None else (frame_time[1], frame_time[0])
+        passed = any(line.startswith('PASS ') for line in process.stdout.splitlines())
         if not passed or result is None:
             print('  run failed or no FRAMETIME line (%s, %s, exit code %d)' % (os.path.basename(exe), detail,
                                                                                  process.returncode))

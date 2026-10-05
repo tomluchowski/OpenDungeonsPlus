@@ -12,6 +12,9 @@ lets it run for N seconds of game time, fires the win and exits with a code:
     4  no victory (player seat defeated, win not reported)
     5  timeout (the watchdog of the game ended a hanging run)
 
+The game also prints "FRAMETIME frames=<n> avg_ms=<x>" before its result line; the script prints that line
+after the level's result line (the result line itself is unchanged).
+
 Any other exit code (for example a crash) counts as FAIL "crash". The script
 also kills a game that outlives its own limit. Exit code of the script: 0 only
 if all levels passed.
@@ -54,8 +57,27 @@ def campaign_levels():
     return levels
 
 
+FRAME_LINE = re.compile(r"^FRAMETIME frames=(\d+) avg_ms=([0-9.eE+-]+)")
+
+
+def parse_frame_time(output):
+    """Returns (frames, avg_ms) of the last FRAMETIME line of the game output, or None."""
+    result = None
+    for text in (output or "").splitlines():
+        match = FRAME_LINE.match(text.strip())
+        if match:
+            result = (int(match.group(1)), float(match.group(2)))
+    return result
+
+
 def run_level(exe, level, seconds):
     """Runs one level. Returns (passed, text)."""
+    passed, text, _ = run_level_with_frame_time(exe, level, seconds)
+    return passed, text
+
+
+def run_level_with_frame_time(exe, level, seconds):
+    """Runs one level. Returns (passed, text, frame_time), frame_time is (frames, avg_ms) or None."""
     appdata = tempfile.mkdtemp(prefix="od-run-level-")
     limit = 2 * seconds + 400
     command = [exe, "--run-level", level, "--seconds", str(seconds), "--appData", appdata]
@@ -70,6 +92,7 @@ def run_level(exe, level, seconds):
         output, _ = process.communicate()
         code = None
 
+    frame_time = parse_frame_time(output)
     line = ""
     for text in (output or "").splitlines():
         if text.startswith("PASS ") or text.startswith("FAIL "):
@@ -83,14 +106,15 @@ def run_level(exe, level, seconds):
 
     name = os.path.basename(level)
     if code is None:
-        return False, "FAIL %s : timeout: the script killed the game after %d s" % (name, limit)
+        return False, "FAIL %s : timeout: the script killed the game after %d s" % (name, limit), frame_time
     if code == 0 and line.startswith("PASS "):
-        return True, line
+        return True, line, frame_time
     if code not in CODE_NAMES:
-        return False, "FAIL %s : crash: exit code %d (%s)" % (name, code, line or "no result line")
+        return False, "FAIL %s : crash: exit code %d (%s)" % (name, code, line or "no result line"), frame_time
     if code == 0:
-        return False, "FAIL %s : exit code 0 without a PASS line" % name
-    return False, line or "FAIL %s : %s (exit code %d, no result line)" % (name, CODE_NAMES[code], code)
+        return False, "FAIL %s : exit code 0 without a PASS line" % name, frame_time
+    return (False, line or "FAIL %s : %s (exit code %d, no result line)" % (name, CODE_NAMES[code], code),
+            frame_time)
 
 
 def main():
@@ -110,8 +134,10 @@ def main():
 
     results = []
     for level in levels:
-        passed, text = run_level(exe, level, args.seconds)
+        passed, text, frame_time = run_level_with_frame_time(exe, level, args.seconds)
         print(text, flush=True)
+        if frame_time is not None:
+            print("FRAMETIME frames=%d avg_ms=%s" % frame_time, flush=True)
         results.append((passed, text))
         pass_count = len([1 for ok, _ in results if ok])
         progress = "%d/%d Maps getestet – %d PASS, %d FAIL – zuletzt: %s %s" % (
