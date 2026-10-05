@@ -669,24 +669,15 @@ BOOST_AUTO_TEST_CASE(test_RegistryRetriesFailedManifests)
 BOOST_AUTO_TEST_CASE(test_StoredLookCheckedWhenManifestBecomesValid)
 {
     const std::string validManifest =
-        "Base	../neutral-bases/Knight.mesh-male.png
-"
-        "Slot	hair	4	2	8	8
-"
-        "Slot	helmet	2	0	12	10
-"
-        "Slot	scar	5	10	4	4
-"
-        "Option	hair	1	braid	../variants/Knight.mesh-male/hair-1-braid.png
-"
-        "Option	hair	2	bald	../variants/Knight.mesh-male/hair-2-bald.png
-"
-        "Option	helmet	1	plain	../variants/Knight.mesh-male/helmet-1-plain.png
-"
-        "Option	helmet	2	horned	../variants/Knight.mesh-male/helmet-2-horned.png
-"
-        "Option	scar	1	cheek	../variants/Knight.mesh-male/scar-1-cheek.png
-";
+        "Base	../neutral-bases/Knight.mesh-male.png\n"
+        "Slot	hair	4	2	8	8\n"
+        "Slot	helmet	2	0	12	10\n"
+        "Slot	scar	5	10	4	4\n"
+        "Option	hair	1	braid	../variants/Knight.mesh-male/hair-1-braid.png\n"
+        "Option	hair	2	bald	../variants/Knight.mesh-male/hair-2-bald.png\n"
+        "Option	helmet	1	plain	../variants/Knight.mesh-male/helmet-1-plain.png\n"
+        "Option	helmet	2	horned	../variants/Knight.mesh-male/helmet-2-horned.png\n"
+        "Option	scar	1	cheek	../variants/Knight.mesh-male/scar-1-cheek.png\n";
 
     std::remove(getRetryManifestPath().c_str());
     PortraitManifestRegistry registry;
@@ -697,8 +688,7 @@ BOOST_AUTO_TEST_CASE(test_StoredLookCheckedWhenManifestBecomesValid)
     CreatureAppearance stored = makeKnightLook(3, 2);
     stored.setCatalogId(id);
     stored.getChoices()[2].mNumber = 1;
-    writeRetryManifest("Slot	hair	4	2	8	8
-");
+    writeRetryManifest("Slot	hair	4	2	8	8\n");
     BOOST_CHECK(registry.getManifest(id) == nullptr);
 
     // The manifest is repaired: after the retry the stored look is checked like at load
@@ -748,8 +738,7 @@ BOOST_AUTO_TEST_CASE(test_CreaturesWithoutCatalogAreLeftAlone)
     const std::string id = "../retry";
     uint32_t generation = registry.getCatalogGeneration();
     BOOST_CHECK(!registry.hasCatalog(id));
-    writeRetryManifest("Slot	hair	4	2	8	8
-");
+    writeRetryManifest("Slot	hair	4	2	8	8\n");
     BOOST_CHECK(!registry.hasCatalog(id));
     registry.invalidateCatalogs();
     BOOST_CHECK(registry.getCatalogGeneration() != generation);

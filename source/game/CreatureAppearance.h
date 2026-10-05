@@ -74,6 +74,9 @@ typedef std::function<bool(const std::string&)> CatalogExistsFunction;
 std::string resolveCatalogId(const std::string& meshName, const std::string& gender,
     const CatalogExistsFunction& exists);
 
+//! Product of two values, the largest 64 bit value if it would overflow
+uint64_t multiplySaturating(uint64_t a, uint64_t b);
+
 //! \brief Number of different appearances of the manifest: the product of the option counts of all slots
 //! that have options, saturating at the largest 64 bit value. 1 for a manifest without options.
 uint64_t countCombinations(const PortraitManifest& manifest);

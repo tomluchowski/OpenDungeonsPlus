@@ -403,7 +403,7 @@ BOOST_AUTO_TEST_CASE(test_TintParts)
     tintPart(eyes, KNIGHT_ID, "round", &tint, "Brak");
     BOOST_CHECK(isPrimaryColour(eyes));
     Part otherEyes = makeTwoPixelPart("eyes");
-    tintPart(otherEyes, KNIGHT_ID, "narrow", &tint, "Brak");
+    tintPart(otherEyes, KNIGHT_ID, "wide", &tint, "Brak");
     BOOST_CHECK(otherEyes.mImage.mPixels == makeTwoPixelPart("eyes").mImage.mPixels);
 
     // The coloured part ends up in the composed picture
@@ -439,7 +439,7 @@ BOOST_AUTO_TEST_CASE(test_EyesByCatalogId)
     Part other = before;
     tintPart(other, "Orc.mesh-male", "narrow", &tint, "Brak");
     BOOST_CHECK(other.mImage.mPixels == before.mImage.mPixels);
-    tintPart(other, KNIGHT_ID, "round", &tint, "Brak");
+    tintPart(other, KNIGHT_ID, "wide", &tint, "Brak");
     BOOST_CHECK(other.mImage.mPixels == before.mImage.mPixels);
 }
 
