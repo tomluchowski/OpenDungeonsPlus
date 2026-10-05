@@ -6,6 +6,11 @@ add_boost_test(00-Random
         ${SRC}/utils/Random.h
         ${SRC}/utils/Random.cpp)
 
+add_boost_test(00-SelectionSize
+        SOURCES
+        test_SelectionSize.cpp
+        ${SRC}/utils/SelectionSize.h)
+
 add_boost_test(00-ODPacket
         SOURCES
         test_ODPacket.cpp

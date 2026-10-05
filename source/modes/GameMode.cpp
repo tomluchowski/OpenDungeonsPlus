@@ -58,6 +58,7 @@
 #include "utils/Helper.h"
 #include "utils/LogManager.h"
 #include "utils/ResourceManager.h"
+#include "utils/SelectionSize.h"
 #include "ODApplication.h"
 
 #include <CEGUI/CEGUI.h>
@@ -2735,8 +2736,10 @@ void GameMode::refreshSelectionSizeLabel()
         action == SelectedAction::buildRoom || action == SelectedAction::buildTrap ||
         action == SelectedAction::destroyRoom || action == SelectedAction::destroyTrap ||
         action == SelectedAction::sellBuilding;
-    const int width = std::abs(inputManager.mXPos - inputManager.mLStartDragX) + 1;
-    const int height = std::abs(inputManager.mYPos - inputManager.mLStartDragY) + 1;
+    // Size of the tiles actually marked, which can be smaller than the dragged rectangle
+    int width = 0;
+    int height = 0;
+    getSelectionSize(mPreviewTiles, width, height);
     // Only while a drag marks more than one tile; a single tile click shows nothing
     const bool show = areaAction && inputManager.mLMouseDown && !isMouseDownOnCEGUIWindow() &&
         !mGameMap->getGamePaused() && mGameMap->getLocalPlayer()->numObjectsInHand() == 0 &&

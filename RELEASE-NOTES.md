@@ -6,6 +6,10 @@ OpenDungeons since version 0.4.7, in reverse chronological order.
 The numbers preceded by a hash (e.g. #9) reference GitHub issue numbers on
 our repository at https://github.com/OpenDungeons/OpenDungeons
 
+### Unreleased
+
+* The size shown beside a multi-tile selection now matches the width and height of the marked tiles
+
 ### Version 0.7.1 - 24 Aug 2016
 
 **Highlights:**

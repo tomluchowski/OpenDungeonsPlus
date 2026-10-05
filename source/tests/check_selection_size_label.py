@@ -27,9 +27,8 @@ check(re.search(r"refreshHeldCreatureIcons\(\);\s*refreshSelectionSizeLabel\(\);
       "label is not refreshed every frame after the held creature icons")
 check("destroyWindow(mSelectionSizeLabel)" in mode, "label window is never destroyed")
 
-# Size as the dragged rectangle in tiles, from the drag start to the hand tile
-check("std::abs(inputManager.mXPos - inputManager.mLStartDragX) + 1" in body, "width not computed from drag")
-check("std::abs(inputManager.mYPos - inputManager.mLStartDragY) + 1" in body, "height not computed from drag")
+# Size of the marked (previewed) tiles, not of the raw dragged rectangle
+check("getSelectionSize(mPreviewTiles, width, height)" in body, "size not computed from the marked tiles")
 check('std::to_string(width) + "x" + std::to_string(height)' in body, "text is not widthxheight")
 
 # Shown only during an active drag, never for a single tile
