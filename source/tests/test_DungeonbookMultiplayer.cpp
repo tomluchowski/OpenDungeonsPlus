@@ -131,8 +131,7 @@ uint32_t pictureHash(const PortraitManifest& manifest, const CreatureAppearance&
         parts.push_back(part);
     }
 
-    AppearanceCompose::RgbaImage composed = AppearanceCompose::compose(base, parts,
-        AppearanceCompose::isHelmetDamageClipped(appearance.getCatalogId()));
+    AppearanceCompose::RgbaImage composed = AppearanceCompose::compose(base, parts);
     uint32_t width = 0;
     uint32_t height = 0;
     std::vector<uint8_t> pixels = AppearanceCompose::flattenAndTint(composed, 4, nullptr, appearance.getCatalogId(), name,

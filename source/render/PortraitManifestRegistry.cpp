@@ -29,14 +29,27 @@ const PortraitManifest* PortraitManifestRegistry::getManifest(const std::string&
     std::string path = mAssetRoot + catalogId + "/manifest.cfg";
     bool loaded = manifest->loadFromFile(path);
 
-    const std::vector<std::string>& errors = manifest->getErrors();
-    for(std::vector<std::string>::const_iterator error = errors.begin(); error != errors.end(); ++error)
-        mMessages.push_back(*error);
+    std::vector<std::string> messages = manifest->getErrors();
+    if(!loaded)
+        messages.push_back("Portrait manifest of " + catalogId + " is missing or invalid: " + path);
+
+    std::string text;
+    for(std::vector<std::string>::const_iterator message = messages.begin(); message != messages.end(); ++message)
+        text += *message + "\n";
+
+    // A problem is reported when it is new; a manifest that stays broken is not reported at every retry
+    std::map<std::string, std::string>::iterator failure = mFailures.find(catalogId);
+    if(!text.empty() && ((failure == mFailures.end()) || (failure->second != text)))
+        mMessages.insert(mMessages.end(), messages.begin(), messages.end());
 
     if(!loaded)
     {
-        mMessages.push_back("Portrait manifest of " + catalogId + " is missing or invalid: " + path);
+        mFailures[catalogId] = text;
         manifest.reset();
+    }
+    else if(failure != mFailures.end())
+    {
+        mFailures.erase(failure);
     }
 
     mManifests[catalogId] = manifest;
@@ -55,6 +68,25 @@ bool PortraitManifestRegistry::hasCatalog(const std::string& catalogId) const
 void PortraitManifestRegistry::clear()
 {
     mManifests.clear();
+    mFailures.clear();
+}
+
+bool PortraitManifestRegistry::retryFailed()
+{
+    bool anyFailed = false;
+    std::map<std::string, std::shared_ptr<PortraitManifest> >::iterator it = mManifests.begin();
+    while(it != mManifests.end())
+    {
+        if(it->second)
+        {
+            ++it;
+            continue;
+        }
+
+        anyFailed = true;
+        mManifests.erase(it++);
+    }
+    return anyFailed;
 }
 
 std::vector<std::string> PortraitManifestRegistry::takeMessages()

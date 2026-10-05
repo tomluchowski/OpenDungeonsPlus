@@ -60,9 +60,6 @@ namespace CreatureAppearanceLogic
 //! Random function with the signature of Random::Uint (both bounds are inclusive)
 typedef std::function<uint32_t(uint32_t, uint32_t)> RandomFunction;
 
-//! Number of tries to find an appearance that no creature of the keeper has before the last one is accepted
-extern const uint32_t MAX_DUPLICATE_TRIES;
-
 //! \brief Fixed 32 bit FNV-1a hash of the bytes of the text. Does not depend on the platform or the
 //! standard library, so old saves always get the same look.
 uint32_t stableHash(const std::string& text);
@@ -77,11 +74,23 @@ typedef std::function<bool(const std::string&)> CatalogExistsFunction;
 std::string resolveCatalogId(const std::string& meshName, const std::string& gender,
     const CatalogExistsFunction& exists);
 
-//! \brief First spawn: one option per slot, every listed option with the same chance. Rolls again (up to
-//! MAX_DUPLICATE_TRIES times) while the result equals one of the appearances in taken; if the space is
-//! exhausted the last roll is accepted. Slots without an option are left out.
+//! \brief Number of different appearances of the manifest: the product of the option counts of all slots
+//! that have options, saturating at the largest 64 bit value. 1 for a manifest without options.
+uint64_t countCombinations(const PortraitManifest& manifest);
+
+//! \brief First spawn: one option per slot, every listed option with the same chance. Rolls again until the
+//! result is none of the appearances in taken. A duplicate is only accepted if every combination of the
+//! manifest is already in taken (checked first, so the call always ends). There is no fixed number of tries;
+//! only a generator that keeps rolling taken combinations (a broken or scripted one) is helped after
+//! ROLL_BUDGET rolls by choosing among the free combinations directly, as long as there are not more than
+//! ENUMERATION_LIMIT combinations. Slots without an option are left out.
 CreatureAppearance pickRandom(const PortraitManifest& manifest, const std::string& catalogId,
     const RandomFunction& random, const std::vector<CreatureAppearance>& taken);
+
+//! Rolls after which pickRandom enumerates the free combinations (see pickRandom)
+extern const uint32_t ROLL_BUDGET;
+//! Largest number of combinations pickRandom enumerates
+extern const uint64_t ENUMERATION_LIMIT;
 
 //! \brief Old saves: one option per slot, derived from the creature name only (stable hash).
 CreatureAppearance pickStable(const PortraitManifest& manifest, const std::string& catalogId,

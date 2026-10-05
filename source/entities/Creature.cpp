@@ -767,7 +767,9 @@ void Creature::retryAppearance()
     }
     mAppearanceRetryTurns = APPEARANCE_RETRY_TURNS;
 
-    // Same derivation as for old saves
+    // A manifest that was missing or invalid at spawn may be there now: the registry looks again, then the
+    // appearance is derived like for old saves
+    getAppearanceRegistry().retryFailed();
     assignAppearance(false);
     if(mAppearance.isEmpty())
         return;

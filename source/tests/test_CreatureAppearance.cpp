@@ -11,6 +11,8 @@
 #include "render/PortraitManifest.h"
 #include "render/PortraitManifestRegistry.h"
 
+#include <cstdio>
+#include <fstream>
 #include <set>
 #include <sstream>
 #include <string>
@@ -252,23 +254,150 @@ BOOST_AUTO_TEST_CASE(test_FirstSpawnAvoidsDuplicates)
     BOOST_CHECK(first == makeKnightLook(1, 2));
 }
 
+namespace
+{
+//! Always rolls the lowest value: it can only ever produce the first combination
+uint32_t lowestValue(uint32_t min, uint32_t)
+{
+    return min;
+}
+
+bool isLookOfKnight(const CreatureAppearance& appearance)
+{
+    return appearance == makeKnightLook(1, 1) || appearance == makeKnightLook(1, 2) ||
+        appearance == makeKnightLook(2, 1) || appearance == makeKnightLook(2, 2);
+}
+}
+
+BOOST_AUTO_TEST_CASE(test_CombinationCount)
+{
+    PortraitManifest manifest;
+    BOOST_REQUIRE(loadKnight(manifest));
+    // hair 2 x helmet 2 x scar 1
+    BOOST_CHECK_EQUAL(CreatureAppearanceLogic::countCombinations(manifest), 4u);
+
+    PortraitManifest reduced;
+    BOOST_REQUIRE(loadReducedKnight(reduced));
+    BOOST_CHECK_EQUAL(CreatureAppearanceLogic::countCombinations(reduced), 1u);
+
+    // Big spaces saturate instead of overflowing
+    const uint64_t biggest = 0xFFFFFFFFFFFFFFFFull;
+    BOOST_CHECK_EQUAL(CreatureAppearanceLogic::multiplySaturating(3, 4), 12u);
+    BOOST_CHECK_EQUAL(CreatureAppearanceLogic::multiplySaturating(0, biggest), 0u);
+    BOOST_CHECK_EQUAL(CreatureAppearanceLogic::multiplySaturating(biggest, 1), biggest);
+    BOOST_CHECK_EQUAL(CreatureAppearanceLogic::multiplySaturating(biggest, 2), biggest);
+    BOOST_CHECK_EQUAL(CreatureAppearanceLogic::multiplySaturating(0x100000000ull, 0x100000000ull), biggest);
+    BOOST_CHECK_EQUAL(CreatureAppearanceLogic::multiplySaturating(0xFFFFFFFFull, 0x100000001ull), biggest);
+    BOOST_CHECK_EQUAL(CreatureAppearanceLogic::multiplySaturating(0x100000000ull, 0xFFFFFFFFull), 0xFFFFFFFF00000000ull);
+}
+
 BOOST_AUTO_TEST_CASE(test_FirstSpawnSpaceExhausted)
 {
     PortraitManifest manifest;
     BOOST_REQUIRE(loadKnight(manifest));
 
-    // Both looks the counting generator can reach are taken: after the limited tries the last roll is
-    // accepted instead of looping forever
+    // All four combinations are in use: only now a duplicate is accepted, and the call ends
     CountingRandom generator;
     CreatureAppearanceLogic::RandomFunction random =
         std::bind(&CountingRandom::next, &generator, std::placeholders::_1, std::placeholders::_2);
 
     std::vector<CreatureAppearance> taken;
+    taken.push_back(makeKnightLook(1, 1));
     taken.push_back(makeKnightLook(1, 2));
     taken.push_back(makeKnightLook(2, 1));
+    taken.push_back(makeKnightLook(2, 2));
     CreatureAppearance appearance = CreatureAppearanceLogic::pickRandom(manifest, KNIGHT_ID, random, taken);
     BOOST_CHECK_EQUAL(appearance.getChoices().size(), 3u);
-    BOOST_CHECK(appearance == makeKnightLook(1, 2) || appearance == makeKnightLook(2, 1));
+    BOOST_CHECK(isLookOfKnight(appearance));
+
+    // The same look listed twice does not count twice: three different looks leave one free
+    std::vector<CreatureAppearance> repeated;
+    repeated.push_back(makeKnightLook(1, 1));
+    repeated.push_back(makeKnightLook(1, 1));
+    repeated.push_back(makeKnightLook(1, 2));
+    repeated.push_back(makeKnightLook(1, 2));
+    CreatureAppearance free = CreatureAppearanceLogic::pickRandom(manifest, KNIGHT_ID, random, repeated);
+    BOOST_CHECK(free == makeKnightLook(2, 1) || free == makeKnightLook(2, 2));
+}
+
+BOOST_AUTO_TEST_CASE(test_FirstSpawnNearlyFull)
+{
+    PortraitManifest manifest;
+    BOOST_REQUIRE(loadKnight(manifest));
+
+    std::vector<CreatureAppearance> taken;
+    taken.push_back(makeKnightLook(1, 1));
+    taken.push_back(makeKnightLook(1, 2));
+    taken.push_back(makeKnightLook(2, 1));
+
+    // A usual generator finds the only free combination
+    TestRandom generator;
+    CreatureAppearanceLogic::RandomFunction random =
+        std::bind(&TestRandom::next, &generator, std::placeholders::_1, std::placeholders::_2);
+    BOOST_CHECK(CreatureAppearanceLogic::pickRandom(manifest, KNIGHT_ID, random, taken) == makeKnightLook(2, 2));
+
+    // A generator that only produces a used combination does not stop the call: after the roll budget the
+    // free combination is chosen directly
+    CreatureAppearanceLogic::RandomFunction stuck = lowestValue;
+    BOOST_CHECK(CreatureAppearanceLogic::pickRandom(manifest, KNIGHT_ID, stuck, taken) == makeKnightLook(2, 2));
+
+    // Every hole is found, wherever it is
+    for(uint32_t hair = 1; hair <= 2; ++hair)
+    {
+        for(uint32_t helmet = 1; helmet <= 2; ++helmet)
+        {
+            std::vector<CreatureAppearance> others;
+            for(uint32_t h = 1; h <= 2; ++h)
+            {
+                for(uint32_t m = 1; m <= 2; ++m)
+                {
+                    if(h != hair || m != helmet)
+                        others.push_back(makeKnightLook(h, m));
+                }
+            }
+            TestRandom again;
+            CreatureAppearanceLogic::RandomFunction rollAgain =
+                std::bind(&TestRandom::next, &again, std::placeholders::_1, std::placeholders::_2);
+            BOOST_CHECK(CreatureAppearanceLogic::pickRandom(manifest, KNIGHT_ID, rollAgain, others) ==
+                makeKnightLook(hair, helmet));
+            BOOST_CHECK(CreatureAppearanceLogic::pickRandom(manifest, KNIGHT_ID, stuck, others) ==
+                makeKnightLook(hair, helmet));
+        }
+    }
+}
+
+BOOST_AUTO_TEST_CASE(test_FirstSpawnOtherCatalogOrLooksDoNotCount)
+{
+    PortraitManifest manifest;
+    BOOST_REQUIRE(loadKnight(manifest));
+
+    // Many looks of other catalog ids, and looks that use an option the manifest no longer has, never use up
+    // the space of this one
+    std::vector<CreatureAppearance> taken;
+    for(uint32_t i = 0; i < 1000; ++i)
+    {
+        CreatureAppearance other = makeKnightLook(1 + i % 2, 1 + (i / 2) % 2);
+        other.setCatalogId("Orc.mesh-male");
+        taken.push_back(other);
+    }
+    taken.push_back(makeKnightLook(3, 1));
+    taken.push_back(makeKnightLook(1, 9));
+    taken.push_back(makeKnightLook(1, 1));
+    taken.push_back(makeKnightLook(1, 2));
+    taken.push_back(makeKnightLook(2, 1));
+
+    CreatureAppearanceLogic::RandomFunction stuck = lowestValue;
+    BOOST_CHECK(CreatureAppearanceLogic::pickRandom(manifest, KNIGHT_ID, stuck, taken) == makeKnightLook(2, 2));
+
+    // A one combination manifest is exhausted by that combination
+    PortraitManifest reduced;
+    BOOST_REQUIRE(loadReducedKnight(reduced));
+    std::vector<CreatureAppearance> none;
+    CreatureAppearance only = CreatureAppearanceLogic::pickRandom(reduced, KNIGHT_ID, stuck, none);
+    BOOST_CHECK(only == makeKnightLook(1, 1));
+    std::vector<CreatureAppearance> one;
+    one.push_back(only);
+    BOOST_CHECK(CreatureAppearanceLogic::pickRandom(reduced, KNIGHT_ID, stuck, one) == only);
 }
 
 BOOST_AUTO_TEST_CASE(test_OldSaveStable)
@@ -465,4 +594,74 @@ BOOST_AUTO_TEST_CASE(test_RegistryLoadsOnce)
     // Unknown id and empty id
     BOOST_CHECK(registry.getManifest("Nothing.mesh-male") == nullptr);
     BOOST_CHECK(registry.getManifest("") == nullptr);
+}
+
+namespace
+{
+std::string getRetryManifestPath()
+{
+    return getVariantsDirectory() + "../retry/manifest.cfg";
+}
+
+void writeRetryManifest(const std::string& text)
+{
+    std::ofstream file(getRetryManifestPath().c_str(), std::ios::out | std::ios::trunc);
+    file << text;
+}
+}
+
+BOOST_AUTO_TEST_CASE(test_RegistryRetriesFailedManifests)
+{
+    const std::string validManifest =
+        "Base\t../neutral-bases/Knight.mesh-male.png\n"
+        "Slot\thair\t4\t2\t8\t8\n"
+        "Slot\thelmet\t2\t0\t12\t10\n"
+        "Slot\tscar\t5\t10\t4\t4\n"
+        "Option\thair\t1\tbraid\t../variants/Knight.mesh-male/hair-1-braid.png\n"
+        "Option\thair\t2\tbald\t../variants/Knight.mesh-male/hair-2-bald.png\n"
+        "Option\thelmet\t1\tplain\t../variants/Knight.mesh-male/helmet-1-plain.png\n"
+        "Option\thelmet\t2\thorned\t../variants/Knight.mesh-male/helmet-2-horned.png\n"
+        "Option\tscar\t1\tcheek\t../variants/Knight.mesh-male/scar-1-cheek.png\n";
+
+    std::remove(getRetryManifestPath().c_str());
+    PortraitManifestRegistry registry;
+    registry.setAssetRoot(getVariantsDirectory());
+    const std::string id = "../retry";
+
+    // Missing: no manifest, reported once
+    BOOST_CHECK(registry.getManifest(id) == nullptr);
+    BOOST_CHECK(!registry.takeMessages().empty());
+
+    // Invalid (no base): still nothing, and the file is not read again before the retry
+    writeRetryManifest("Slot\thair\t4\t2\t8\t8\n");
+    BOOST_CHECK(registry.getManifest(id) == nullptr);
+    BOOST_CHECK(registry.takeMessages().empty());
+    BOOST_CHECK(registry.retryFailed());
+    BOOST_CHECK(registry.getManifest(id) == nullptr);
+    BOOST_CHECK(!registry.takeMessages().empty());
+
+    // The same problem again is not reported again
+    BOOST_CHECK(registry.retryFailed());
+    BOOST_CHECK(registry.getManifest(id) == nullptr);
+    BOOST_CHECK(registry.takeMessages().empty());
+
+    // Repaired: found after the retry, without a restart
+    writeRetryManifest(validManifest);
+    BOOST_CHECK(registry.getManifest(id) == nullptr);
+    BOOST_CHECK(registry.retryFailed());
+    const PortraitManifest* manifest = registry.getManifest(id);
+    BOOST_REQUIRE(manifest != nullptr);
+    BOOST_CHECK_EQUAL(manifest->getSlots().size(), 3u);
+
+    // Loaded manifests are kept and a retry without failures does nothing
+    BOOST_CHECK(!registry.retryFailed());
+    BOOST_CHECK(registry.getManifest(id) == manifest);
+
+    // The creature gets its look like an old save: the stable pick from the name, the same every time
+    CreatureAppearance first = CreatureAppearanceLogic::pickStable(*manifest, id, "Late Knight");
+    CreatureAppearance second = CreatureAppearanceLogic::pickStable(*manifest, id, "Late Knight");
+    BOOST_CHECK(first == second);
+    BOOST_CHECK_EQUAL(first.getChoices().size(), 3u);
+
+    std::remove(getRetryManifestPath().c_str());
 }

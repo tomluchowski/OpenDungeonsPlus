@@ -45,6 +45,11 @@ assert 'applyProfileScroll(page, offset)' in body, 'the rows must follow the scr
 assert 'return overflow ? viewport : y;' in body, 'the caller must get the page height on overflow'
 assert 'Gui::onProfileScrolled' in gui and 'EventScrollPositionChanged' in gui, 'the scrollbar is not connected'
 assert 'mProfileBaseAreas.erase' in gui, 'the unscrolled areas must be released with the window'
+assert 'EventMouseWheel' in gui and 'Gui::onProfileWheel' in gui, 'the mouse wheel does not scroll the profile'
+assert 'setMouseInputPropagationEnabled(true)' in gui, 'the rows must pass the mouse wheel on to the page'
+wheel = gui[gui.index('bool Gui::onProfileWheel'):]
+wheel = wheel[:wheel.index('\n}\n')]
+assert 'isVisible()' in wheel, 'the wheel must only scroll while the scrollbar is shown'
 header_rows = ('Portrait', 'NameText', 'HandleText', 'AgeText', 'RelationText', 'FromText', 'JobText', 'HealthLabel',
                'HealthBar', 'ExperienceLabel', 'ExperienceBar')
 for name in header_rows:
@@ -108,6 +113,30 @@ for width, height in ((1024, 768), (1280, 720), (1920, 1080), (2560, 1440)):
                 report.append('%dx%d %s: page %.0f px, content %.0f px, %s' % (width, height, name, page_px, need, state))
         # the status keeps its place whatever the resolution: its top does not depend on the remarks
         assert typical[0] == without_quirks[0]
+
+# Dungeonbook: the profile gets the pane minus the room kept for the recent posts
+social = (repo / 'source/render/SocialWindow.cpp').read_text()
+minimum = float(re.search(r'PROFILE_MIN_POSTS_HEIGHT = ([0-9.]+)f', social)[1])
+gap = float(re.search(r'OWN_POSTS_GAP = ([0-9.]+)f', social)[1])
+assert 'UDim(1, -PROFILE_MIN_POSTS_HEIGHT)' in social, 'the profile holder must leave the room for the posts'
+assert social.index('UDim(1, -PROFILE_MIN_POSTS_HEIGHT)') < social.index('fillProfilePage(mProfilePage)'), 'the holder is set after the fill'
+social_layout = (repo / 'gui/WindowSocial.layout').read_text()
+window = re.search(r'name="SocialWindow">\s*<Property name="Area" value="\{\{0\.5,(-?\d+)\},\{0\.5,(-?\d+)\},\{0\.5,(\d+)\},\{0\.5,(\d+)\}\}"', social_layout)
+pane = re.search(r'name="ProfilePane">\s*<Property name="Area" value="\{\{0,(\d+)\},\{0,(\d+)\},\{1,(-\d+)\},\{1,(-\d+)\}\}"', social_layout)
+pane_height = (int(window[4]) - int(window[2])) - int(pane[2]) + int(pane[4])
+pane_width = (int(window[3]) - int(window[1])) - int(pane[1]) + int(pane[3])
+dungeonbook_viewport = pane_height - minimum
+posts_height = pane_height - (dungeonbook_viewport + gap)
+assert posts_height >= minimum - gap > 0, 'the recent posts keep no room'
+assert dungeonbook_viewport >= 300, 'the profile viewport of the Dungeonbook is too small'
+# worst case: the profile scrolls, the posts keep their height
+for name, (latest_bottom, remarks_bottom) in (('typical', typical), ('worst', worst)):
+    shown = min(remarks_bottom, dungeonbook_viewport)
+    assert pane_height - (shown + gap) >= minimum - gap, name
+for width, height in ((1024, 768), (1280, 720), (1920, 1080), (2560, 1440)):
+    scale = min(width / 1024.0, height / 768.0)
+    report.append('%dx%d Dungeonbook: pane %.0f px, profile %.0f px (typical %.0f, worst %.0f design px of content), posts at least %.0f px' % (
+        width, height, pane_height * scale, dungeonbook_viewport * scale, typical[1], worst[1], (minimum - gap) * scale))
 
 print('profile layout ok: card %dx%d design px, page %d px, typical latest ends %.0f, remarks %.0f, worst %.0f' % (
     card_width, card_height, page_height, typical[0], typical[1], worst[1]))

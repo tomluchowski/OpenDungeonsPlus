@@ -26,6 +26,7 @@
 #include <CEGUI/System.h>
 #include <CEGUI/Texture.h>
 
+#include <chrono>
 #include <fstream>
 #include <iterator>
 #include <set>
@@ -60,7 +61,14 @@ struct PictureState
     //! Catalog ids and picture keys that failed; they are logged once and not tried again until the map is
     //! unloaded. Only failures that come from the files, never the empty appearance.
     std::set<std::string> mFailed;
+    //! What was logged already (catalog id or key plus the reason), so a failure that repeats is logged once
+    std::set<std::string> mLogged;
+    //! Last time the failed pictures and manifests were given another chance
+    std::chrono::steady_clock::time_point mLastRetry;
 };
+
+//! Seconds between two new tries of failed manifests and pictures (they read files, so never every frame)
+const int RETRY_SECONDS = 10;
 
 PictureState& getRawState()
 {
@@ -141,7 +149,8 @@ void logRegistryMessages(PictureState& state)
 //! Logs the reason once per catalog id or picture key and remembers the failure
 void rememberFailure(PictureState& state, const std::string& failedKey, const std::string& reason)
 {
-    if(state.mFailed.insert(failedKey).second)
+    state.mFailed.insert(failedKey);
+    if(state.mLogged.insert(failedKey + "|" + reason).second)
     {
         OD_LOG_WRN("Dungeonbook appearance of " + failedKey + " falls back to the creature portrait: " + reason);
     }
@@ -237,8 +246,7 @@ const CEGUI::Image* buildPicture(PictureState& state, const std::string& creatur
         parts.push_back(part);
     }
 
-    AppearanceCompose::RgbaImage composed = AppearanceCompose::compose(base, parts,
-        AppearanceCompose::isHelmetDamageClipped(appearance.getCatalogId()));
+    AppearanceCompose::RgbaImage composed = AppearanceCompose::compose(base, parts);
     std::vector<AppearanceCompose::Part>().swap(parts);
     base = AppearanceCompose::RgbaImage();
 
@@ -291,6 +299,17 @@ const CEGUI::Image* getCreatureAppearanceImage(const std::string& creatureName, 
         return nullptr;
 
     PictureState& state = getState();
+
+    // Failed manifests and pictures get another chance now and then, so files that arrive or are repaired
+    // later are used without a restart
+    std::chrono::steady_clock::time_point now = std::chrono::steady_clock::now();
+    if(!state.mFailed.empty() && (now - state.mLastRetry >= std::chrono::seconds(RETRY_SECONDS)))
+    {
+        state.mLastRetry = now;
+        state.mFailed.clear();
+        state.mRegistry.retryFailed();
+    }
+
     const std::string& catalogId = appearance.getCatalogId();
     const std::string key = AppearanceCompose::makePictureKey(appearance, creatureName);
     if((state.mFailed.count(catalogId) != 0) || (state.mFailed.count(key) != 0))
@@ -367,5 +386,6 @@ void clearCreatureAppearancePictures()
     }
     state.mEntries.clear();
     state.mFailed.clear();
+    state.mLogged.clear();
     state.mRegistry.clear();
 }

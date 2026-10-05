@@ -101,7 +101,7 @@ BOOST_AUTO_TEST_CASE(test_AlphaBlend)
     std::vector<Part> parts;
     parts.push_back(makePart("hair", 1, 1, makeSolid(2, 2, 200, 0, 0, 128)));
 
-    RgbaImage result = compose(base, parts, false);
+    RgbaImage result = compose(base, parts);
     BOOST_REQUIRE(result.isValid());
     checkPixel(result, 0, 0, 100, 100, 100, 255);
     checkPixel(result, 1, 1, 150, 50, 50, 255);
@@ -112,7 +112,7 @@ BOOST_AUTO_TEST_CASE(test_AlphaBlend)
     parts.clear();
     parts.push_back(makePart("hair", 0, 0, makeSolid(4, 4, 1, 2, 3, 0)));
     parts.push_back(makePart("ears", 0, 0, makeSolid(1, 1, 9, 8, 7, 255)));
-    result = compose(base, parts, false);
+    result = compose(base, parts);
     checkPixel(result, 0, 0, 9, 8, 7, 255);
     checkPixel(result, 1, 0, 100, 100, 100, 255);
 
@@ -128,40 +128,34 @@ BOOST_AUTO_TEST_CASE(test_PartOrderAndBounds)
     parts.push_back(makePart("ears", 1, 1, makeSolid(2, 2, 0, 255, 0, 255)));
 
     // The later part is on top where they overlap
-    RgbaImage result = compose(base, parts, false);
+    RgbaImage result = compose(base, parts);
     checkPixel(result, 0, 0, 255, 0, 0, 255);
     checkPixel(result, 1, 1, 0, 255, 0, 255);
 
     std::vector<Part> reversed;
     reversed.push_back(parts[1]);
     reversed.push_back(parts[0]);
-    result = compose(base, reversed, false);
+    result = compose(base, reversed);
     checkPixel(result, 1, 1, 255, 0, 0, 255);
 
     // A part that reaches over the border is cut, one outside of it is ignored
     parts.clear();
     parts.push_back(makePart("hair", 3, 3, makeSolid(4, 4, 0, 0, 255, 255)));
     parts.push_back(makePart("ears", 9, 9, makeSolid(2, 2, 255, 255, 255, 255)));
-    result = compose(base, parts, false);
+    result = compose(base, parts);
     BOOST_CHECK_EQUAL(result.mWidth, 4u);
     BOOST_CHECK_EQUAL(result.mHeight, 4u);
     checkPixel(result, 3, 3, 0, 0, 255, 255);
     checkPixel(result, 2, 3, 0, 0, 0, 255);
 
     // An invalid base gives nothing
-    BOOST_CHECK(!compose(RgbaImage(), parts, false).isValid());
+    BOOST_CHECK(!compose(RgbaImage(), parts).isValid());
 }
 
-BOOST_AUTO_TEST_CASE(test_HelmetClipping)
+BOOST_AUTO_TEST_CASE(test_NoRuntimeHelmetClipping)
 {
-    BOOST_CHECK(isHelmetDamageClipped("Knight.mesh-male"));
-    BOOST_CHECK(isHelmetDamageClipped("Knight.mesh-female"));
-    BOOST_CHECK(isHelmetDamageClipped("Cultist.mesh"));
-    BOOST_CHECK(!isHelmetDamageClipped("Orc.mesh-male"));
-    BOOST_CHECK(!isHelmetDamageClipped("KnightLike.mesh"));
-    BOOST_CHECK(!isHelmetDamageClipped(""));
-
-    // Helmet 4x4 at (2,0): its left two columns are opaque, the right two columns transparent.
+    // The scar masks and the helmet damage are baked into the part images, the runtime draws plain source over
+    // in the order of the parts: a scar below or beside a helmet is drawn as it is
     RgbaImage helmet = makeSolid(4, 4, 150, 150, 160, 255);
     for(uint32_t y = 0; y < 4; ++y)
     {
@@ -171,35 +165,16 @@ BOOST_AUTO_TEST_CASE(test_HelmetClipping)
     RgbaImage base = makeSolid(8, 8, 50, 50, 50, 255);
     std::vector<Part> parts;
     parts.push_back(makePart("helmet", 2, 0, helmet));
-    // Scar 4x4 at (2,2): rows 2 and 3 lie in the helmet rectangle, rows 4 and 5 below it
     parts.push_back(makePart("scar", 2, 2, makeSolid(4, 4, 255, 255, 255, 255)));
 
-    RgbaImage clipped = compose(base, parts, true);
-    // opaque helmet pixel: the scar stays
-    checkPixel(clipped, 2, 2, 255, 255, 255, 255);
-    checkPixel(clipped, 3, 3, 255, 255, 255, 255);
-    // transparent helmet pixel and below the helmet: the scar is cut away, the base shows
-    checkPixel(clipped, 4, 2, 50, 50, 50, 255);
-    checkPixel(clipped, 5, 3, 50, 50, 50, 255);
-    checkPixel(clipped, 2, 4, 50, 50, 50, 255);
-    // the helmet itself is not touched
-    checkPixel(clipped, 3, 0, 150, 150, 160, 255);
-
-    RgbaImage unclipped = compose(base, parts, false);
-    checkPixel(unclipped, 4, 2, 255, 255, 255, 255);
-    checkPixel(unclipped, 2, 4, 255, 255, 255, 255);
-
-    // Without a helmet part there is nothing to clip to
-    std::vector<Part> onlyScar;
-    onlyScar.push_back(parts[1]);
-    RgbaImage bare = compose(base, onlyScar, true);
-    checkPixel(bare, 4, 2, 255, 255, 255, 255);
-
-    // Only the scar slot is limited, other slots are drawn as they are
-    std::vector<Part> withHair = parts;
-    withHair.push_back(makePart("hair", 6, 6, makeSolid(2, 2, 255, 0, 0, 255)));
-    RgbaImage hairResult = compose(base, withHair, true);
-    checkPixel(hairResult, 7, 7, 255, 0, 0, 255);
+    RgbaImage result = compose(base, parts);
+    // the whole scar is drawn, also where the helmet is transparent and below the helmet
+    checkPixel(result, 2, 2, 255, 255, 255, 255);
+    checkPixel(result, 4, 2, 255, 255, 255, 255);
+    checkPixel(result, 5, 3, 255, 255, 255, 255);
+    checkPixel(result, 2, 4, 255, 255, 255, 255);
+    // the helmet itself is drawn first and stays where the scar does not cover it
+    checkPixel(result, 3, 0, 150, 150, 160, 255);
 }
 
 BOOST_AUTO_TEST_CASE(test_ComposePixelHash)
@@ -215,26 +190,69 @@ BOOST_AUTO_TEST_CASE(test_ComposePixelHash)
     BOOST_CHECK_EQUAL(parts[1].mSlot, "helmet");
     BOOST_CHECK_EQUAL(parts[2].mSlot, "scar");
 
-    RgbaImage unclipped = compose(makeKnightBase(), parts, false);
-    BOOST_CHECK_EQUAL(hashPixels(unclipped.mPixels), 0x59549e25u);
+    RgbaImage result = compose(makeKnightBase(), parts);
+    BOOST_CHECK_EQUAL(hashPixels(result.mPixels), 0x59549e25u);
     // the scar is half transparent on the cheek
-    checkPixel(unclipped, 6, 11, 170, 160, 155, 255);
-
-    // The scar of the fixture lies below the helmet, so helmet damage clipping removes it completely
-    RgbaImage clipped = compose(makeKnightBase(), parts, true);
-    BOOST_CHECK_EQUAL(hashPixels(clipped.mPixels), 0x40678085u);
-    RgbaImage noScar = compose(makeKnightBase(), makeKnightParts(manifest, false), false);
-    BOOST_CHECK(clipped.mPixels == noScar.mPixels);
+    checkPixel(result, 6, 11, 170, 160, 155, 255);
 
     // Same input, same pixels
-    BOOST_CHECK(compose(makeKnightBase(), parts, true).mPixels == clipped.mPixels);
+    BOOST_CHECK(compose(makeKnightBase(), parts).mPixels == result.mPixels);
+}
+
+BOOST_AUTO_TEST_CASE(test_GoldenComposeAndTint)
+{
+    // A scene whose every step can be derived exactly (see check_dungeonbook_golden.py, which recomputes these
+    // values and checks that they are the ones written here): solid parts on block borders, a palette with
+    // one colour and a region that selects only the hair
+    const uint32_t GOLDEN_COMPOSE_HASH = 0x84120a45u;
+    const uint32_t GOLDEN_TINT_HASH = 0x20e4aa70u;
+
+    RgbaImage base = makeSolid(16, 32, 120, 100, 90, 255);
+    std::vector<Part> parts;
+    parts.push_back(makePart("hair", 4, 4, makeSolid(8, 8, 200, 40, 40, 255)));
+    parts.push_back(makePart("scar", 8, 16, makeSolid(4, 4, 255, 255, 255, 128)));
+    RgbaImage composed = compose(base, parts);
+    BOOST_CHECK_EQUAL(hashPixels(composed.mPixels), GOLDEN_COMPOSE_HASH);
+    checkPixel(composed, 5, 5, 200, 40, 40, 255);
+    checkPixel(composed, 9, 17, 188, 178, 173, 255);
+    checkPixel(composed, 0, 0, 120, 100, 90, 255);
+
+    PortraitTint tint;
+    BOOST_REQUIRE(tint.loadFromFile(getTestsDirectory() + "/fixtures/portraits/golden-tint.cfg"));
+    BOOST_CHECK(tint.getErrors().empty());
+    BOOST_CHECK(tint.hasMesh("Golden.mesh"));
+
+    uint32_t width = 0;
+    uint32_t height = 0;
+    std::vector<uint8_t> result = flattenAndTint(composed, 4, &tint, "Golden.mesh", "Anyone", width, height);
+    BOOST_REQUIRE_EQUAL(width, 4u);
+    BOOST_REQUIRE_EQUAL(height, 8u);
+    BOOST_REQUIRE_EQUAL(result.size(), 4u * 8u * 4u);
+    BOOST_CHECK_EQUAL(hashPixels(result), GOLDEN_TINT_HASH);
+
+    // The hair blocks (1..2, 1..2) became the palette colour, everything else keeps its colour; the colour does
+    // not depend on the creature (one colour in the palette)
+    for(uint32_t y = 0; y < 8; ++y)
+    {
+        for(uint32_t x = 0; x < 4; ++x)
+        {
+            const uint8_t* pixel = &result[(static_cast<size_t>(y) * 4 + x) * 4];
+            bool hair = (x == 1 || x == 2) && (y == 1 || y == 2);
+            bool scar = (x == 2) && (y == 4);
+            BOOST_CHECK_EQUAL(static_cast<int>(pixel[0]), hair ? 0 : (scar ? 188 : 120));
+            BOOST_CHECK_EQUAL(static_cast<int>(pixel[1]), hair ? 128 : (scar ? 178 : 100));
+            BOOST_CHECK_EQUAL(static_cast<int>(pixel[2]), hair ? 0 : (scar ? 173 : 90));
+            BOOST_CHECK_EQUAL(static_cast<int>(pixel[3]), 255);
+        }
+    }
+    BOOST_CHECK(flattenAndTint(composed, 4, &tint, "Golden.mesh", "Somebody else", width, height) == result);
 }
 
 BOOST_AUTO_TEST_CASE(test_FlattenAndTint)
 {
     PortraitManifest manifest;
     BOOST_REQUIRE(loadKnightManifest(manifest));
-    RgbaImage composed = compose(makeKnightBase(), makeKnightParts(manifest, true), true);
+    RgbaImage composed = compose(makeKnightBase(), makeKnightParts(manifest, true));
 
     uint32_t width = 0;
     uint32_t height = 0;
@@ -392,7 +410,7 @@ BOOST_AUTO_TEST_CASE(test_TintParts)
     RgbaImage base = makeSolid(2, 1, 0, 0, 0, 255);
     std::vector<Part> parts;
     parts.push_back(hair);
-    RgbaImage composed = compose(base, parts, false);
+    RgbaImage composed = compose(base, parts);
     BOOST_CHECK_EQUAL(static_cast<int>(composed.mPixels[0]), static_cast<int>(hair.mImage.mPixels[0]));
     BOOST_CHECK_EQUAL(static_cast<int>(composed.mPixels[4]), 0);
 }
@@ -441,7 +459,7 @@ BOOST_AUTO_TEST_CASE(test_BaseSkinAmplitude)
 
     PortraitManifest manifest;
     BOOST_REQUIRE(loadKnightManifest(manifest));
-    RgbaImage composed = compose(makeKnightBase(), makeKnightParts(manifest, false), false);
+    RgbaImage composed = compose(makeKnightBase(), makeKnightParts(manifest, false));
     uint32_t width = 0;
     uint32_t height = 0;
     std::vector<uint8_t> plain = flattenAndTint(composed, 4, nullptr, KNIGHT_ID, "Brak", width, height);

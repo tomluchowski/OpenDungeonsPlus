@@ -40,6 +40,12 @@ public:
     //! \brief Forgets everything that was loaded (also the missing ones).
     void clear();
 
+    //! \brief Makes the next getManifest call load every catalog id again that failed before (missing or
+    //! invalid manifest), so a manifest that was added or repaired later is found without a restart. The
+    //! callers use it now and then (every few seconds), never every frame, because loading reads files.
+    //! Manifests that loaded fine are kept. Returns true if there was a failed catalog id.
+    bool retryFailed();
+
     //! \brief Hands out the messages collected since the last call.
     std::vector<std::string> takeMessages();
 
@@ -48,6 +54,8 @@ private:
     //! nullptr values are catalog ids whose manifest is missing or invalid
     std::map<std::string, std::shared_ptr<PortraitManifest> > mManifests;
     std::vector<std::string> mMessages;
+    //! The problem text of the catalog ids that failed, so a failure that stays the same is reported once
+    std::map<std::string, std::string> mFailures;
 };
 
 #endif // PORTRAITMANIFESTREGISTRY_H

@@ -50,14 +50,6 @@ struct Part
     RgbaImage mImage;
 };
 
-//! Slot names the helmet rule needs (as written in the manifests)
-extern const char* const SLOT_HELMET;
-extern const char* const SLOT_SCAR;
-
-//! \brief True for the catalog ids whose scar slot holds helmet damage (Knight and Cultist): there the
-//! scar is limited to the alpha of the chosen helmet.
-bool isHelmetDamageClipped(const std::string& catalogId);
-
 //! \brief Colours one chosen part (hair, beard and the like) for the creature, before the parts are composed.
 //! The bases are bare, so hair, eyes and beards get their colours from the parts: tint is the part tint file
 //! (config/dungeonbook-part-tints.cfg), its entries are keyed by the slot ("hair") or by slot and option
@@ -71,12 +63,12 @@ void tintPart(Part& part, const std::string& catalogId, const std::string& optio
     const std::string& creatureName);
 
 //! \brief Draws the parts onto a copy of the base, in the order of the vector (the order of the Slot
-//! lines of the manifest), with alpha blending at the slot position. Parts that are invalid or reach
-//! outside of the base are cut at its border. If clipDamageToHelmet is set and a part of the helmet slot
-//! is present, the alpha of the scar part is multiplied with the alpha of the helmet at the same pixel
-//! (zero outside of the helmet), so helmet damage never leaves the helmet. Without a helmet part the
-//! scar is drawn as it is. An invalid base gives an empty image.
-RgbaImage compose(const RgbaImage& base, const std::vector<Part>& parts, bool clipDamageToHelmet);
+//! lines of the manifest), with plain alpha blending ("source over") at the slot position. Parts that are
+//! invalid or reach outside of the base are cut at its border. Nothing else is applied at runtime: the masks
+//! of scars against hair and ears and of helmet damage against the helmet are baked into the part images
+//! (composition-rules.json of the delivered manifests: "literal source-over in frozen manifest order").
+//! An invalid base gives an empty image.
+RgbaImage compose(const RgbaImage& base, const std::vector<Part>& parts);
 
 //! \brief Puts the image over the dark portrait background, averages blocks of downscale x downscale
 //! pixels (alpha ignored afterwards, like the portrait of the creature bar), colours it with

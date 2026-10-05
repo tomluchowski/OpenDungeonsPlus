@@ -12,8 +12,6 @@
 
 namespace AppearanceCompose
 {
-const char* const SLOT_HELMET = "helmet";
-const char* const SLOT_SCAR = "scar";
 const uint32_t CACHE_KEEP_NEWEST = 4;
 
 namespace
@@ -22,11 +20,6 @@ namespace
 const float BACKGROUND_RED = 0.025f;
 const float BACKGROUND_GREEN = 0.018f;
 const float BACKGROUND_BLUE = 0.015f;
-
-bool startsWith(const std::string& text, const std::string& prefix)
-{
-    return text.compare(0, prefix.size(), prefix) == 0;
-}
 
 //! Normal "over" blending of a non premultiplied source pixel with the given alpha on the destination
 void blendPixel(uint8_t* dst, const uint8_t* src, uint32_t srcAlpha)
@@ -54,25 +47,6 @@ void blendPixel(uint8_t* dst, const uint8_t* src, uint32_t srcAlpha)
     }
     dst[3] = static_cast<uint8_t>(outAlpha);
 }
-
-//! Alpha of the helmet at a pixel of the canvas, 0 outside of the helmet
-uint32_t getHelmetAlpha(const Part& helmet, uint32_t canvasX, uint32_t canvasY)
-{
-    if((canvasX < helmet.mX) || (canvasY < helmet.mY))
-        return 0;
-
-    uint32_t x = canvasX - helmet.mX;
-    uint32_t y = canvasY - helmet.mY;
-    if((x >= helmet.mImage.mWidth) || (y >= helmet.mImage.mHeight))
-        return 0;
-
-    return helmet.mImage.mPixels[(static_cast<size_t>(y) * helmet.mImage.mWidth + x) * 4 + 3];
-}
-}
-
-bool isHelmetDamageClipped(const std::string& catalogId)
-{
-    return startsWith(catalogId, "Knight.") || startsWith(catalogId, "Cultist.");
 }
 
 void tintPart(Part& part, const std::string& catalogId, const std::string& optionName, const PortraitTint* tint,
@@ -120,22 +94,12 @@ void tintPart(Part& part, const std::string& catalogId, const std::string& optio
     }
 }
 
-RgbaImage compose(const RgbaImage& base, const std::vector<Part>& parts, bool clipDamageToHelmet)
+RgbaImage compose(const RgbaImage& base, const std::vector<Part>& parts)
 {
     if(!base.isValid())
         return RgbaImage();
 
     RgbaImage result = base;
-
-    const Part* helmet = nullptr;
-    if(clipDamageToHelmet)
-    {
-        for(std::vector<Part>::const_iterator it = parts.begin(); it != parts.end(); ++it)
-        {
-            if((it->mSlot == SLOT_HELMET) && it->mImage.isValid())
-                helmet = &(*it);
-        }
-    }
 
     for(std::vector<Part>::const_iterator it = parts.begin(); it != parts.end(); ++it)
     {
@@ -143,7 +107,6 @@ RgbaImage compose(const RgbaImage& base, const std::vector<Part>& parts, bool cl
         if(!part.mImage.isValid())
             continue;
 
-        bool clipToHelmet = (helmet != nullptr) && (part.mSlot == SLOT_SCAR);
         for(uint32_t y = 0; y < part.mImage.mHeight; ++y)
         {
             uint32_t canvasY = part.mY + y;
@@ -158,8 +121,6 @@ RgbaImage compose(const RgbaImage& base, const std::vector<Part>& parts, bool cl
 
                 const uint8_t* src = &part.mImage.mPixels[(static_cast<size_t>(y) * part.mImage.mWidth + x) * 4];
                 uint32_t alpha = src[3];
-                if(clipToHelmet)
-                    alpha = (alpha * getHelmetAlpha(*helmet, canvasX, canvasY) + 127) / 255;
 
                 uint8_t* dst = &result.mPixels[(static_cast<size_t>(canvasY) * result.mWidth + canvasX) * 4];
                 blendPixel(dst, src, alpha);

@@ -12,7 +12,8 @@
 
 namespace CreatureAppearanceLogic
 {
-const uint32_t MAX_DUPLICATE_TRIES = 32;
+const uint32_t ROLL_BUDGET = 100000;
+const uint64_t ENUMERATION_LIMIT = 4000000;
 }
 
 uint32_t CreatureAppearance::getChoice(const std::string& slot) const
@@ -103,42 +104,170 @@ std::string resolveCatalogId(const std::string& meshName, const std::string& gen
     return std::string();
 }
 
+uint64_t multiplySaturating(uint64_t a, uint64_t b)
+{
+    if((a != 0) && (b > UINT64_MAX / a))
+        return UINT64_MAX;
+
+    return a * b;
+}
+
+uint64_t countCombinations(const PortraitManifest& manifest)
+{
+    uint64_t total = 1;
+    const std::vector<PortraitManifest::Slot>& slots = manifest.getSlots();
+    for(std::vector<PortraitManifest::Slot>::const_iterator it = slots.begin(); it != slots.end(); ++it)
+    {
+        uint64_t count = getNumbers(manifest, it->mName).size();
+        if(count == 0)
+            continue;
+
+        total = multiplySaturating(total, count);
+    }
+    return total;
+}
+
+namespace
+{
+//! One slot of the appearance space: its name and its option numbers
+struct SlotNumbers
+{
+    std::string mSlot;
+    std::vector<uint32_t> mNumbers;
+};
+
+std::vector<SlotNumbers> getSlotNumbers(const PortraitManifest& manifest)
+{
+    std::vector<SlotNumbers> result;
+    const std::vector<PortraitManifest::Slot>& slots = manifest.getSlots();
+    for(std::vector<PortraitManifest::Slot>::const_iterator it = slots.begin(); it != slots.end(); ++it)
+    {
+        SlotNumbers entry;
+        entry.mSlot = it->mName;
+        entry.mNumbers = getNumbers(manifest, it->mName);
+        if(!entry.mNumbers.empty())
+            result.push_back(entry);
+    }
+    return result;
+}
+
+//! True if the appearance is one combination of the space (right catalog id, one existing option per slot)
+bool isInSpace(const CreatureAppearance& appearance, const std::string& catalogId, const std::vector<SlotNumbers>& space)
+{
+    if(appearance.getCatalogId() != catalogId || appearance.getChoices().size() != space.size())
+        return false;
+
+    for(uint32_t i = 0; i < space.size(); ++i)
+    {
+        const CreatureAppearance::Choice& choice = appearance.getChoices()[i];
+        if(choice.mSlot != space[i].mSlot)
+            return false;
+
+        bool found = false;
+        for(uint32_t n = 0; n < space[i].mNumbers.size(); ++n)
+            found = found || (space[i].mNumbers[n] == choice.mNumber);
+
+        if(!found)
+            return false;
+    }
+    return true;
+}
+
+bool isTaken(const CreatureAppearance& appearance, const std::vector<CreatureAppearance>& taken)
+{
+    for(std::vector<CreatureAppearance>::const_iterator other = taken.begin(); other != taken.end(); ++other)
+    {
+        if(*other == appearance)
+            return true;
+    }
+    return false;
+}
+
+//! The combination with the given index (mixed radix, the first slot changes slowest)
+CreatureAppearance makeCombination(const std::string& catalogId, const std::vector<SlotNumbers>& space, uint64_t index)
+{
+    std::vector<uint32_t> positions(space.size(), 0);
+    for(size_t i = space.size(); i > 0; --i)
+    {
+        uint64_t count = space[i - 1].mNumbers.size();
+        positions[i - 1] = static_cast<uint32_t>(index % count);
+        index /= count;
+    }
+
+    CreatureAppearance appearance;
+    appearance.setCatalogId(catalogId);
+    for(size_t i = 0; i < space.size(); ++i)
+        addChoice(appearance, space[i].mSlot, space[i].mNumbers[positions[i]]);
+
+    return appearance;
+}
+
+CreatureAppearance rollCombination(const std::string& catalogId, const std::vector<SlotNumbers>& space,
+    const RandomFunction& random)
+{
+    CreatureAppearance appearance;
+    appearance.setCatalogId(catalogId);
+    for(std::vector<SlotNumbers>::const_iterator it = space.begin(); it != space.end(); ++it)
+    {
+        uint32_t index = random(0, static_cast<uint32_t>(it->mNumbers.size()) - 1);
+        if(index >= it->mNumbers.size())
+            index = static_cast<uint32_t>(it->mNumbers.size()) - 1;
+        addChoice(appearance, it->mSlot, it->mNumbers[index]);
+    }
+    return appearance;
+}
+}
+
 CreatureAppearance pickRandom(const PortraitManifest& manifest, const std::string& catalogId,
     const RandomFunction& random, const std::vector<CreatureAppearance>& taken)
 {
-    CreatureAppearance appearance;
-    for(uint32_t attempt = 0; attempt < MAX_DUPLICATE_TRIES; ++attempt)
+    const std::vector<SlotNumbers> space = getSlotNumbers(manifest);
+    const uint64_t total = countCombinations(manifest);
+
+    // Count the different combinations of this space that are already in use
+    std::vector<CreatureAppearance> used;
+    for(std::vector<CreatureAppearance>::const_iterator it = taken.begin(); it != taken.end(); ++it)
     {
-        appearance = CreatureAppearance();
-        appearance.setCatalogId(catalogId);
-        const std::vector<PortraitManifest::Slot>& slots = manifest.getSlots();
-        for(std::vector<PortraitManifest::Slot>::const_iterator it = slots.begin(); it != slots.end(); ++it)
-        {
-            std::vector<uint32_t> numbers = getNumbers(manifest, it->mName);
-            if(numbers.empty())
-                continue;
+        if(isInSpace(*it, catalogId, space) && !isTaken(*it, used))
+            used.push_back(*it);
+    }
 
-            uint32_t index = random(0, static_cast<uint32_t>(numbers.size()) - 1);
-            if(index >= numbers.size())
-                index = static_cast<uint32_t>(numbers.size()) - 1;
-            addChoice(appearance, it->mName, numbers[index]);
-        }
+    // Every combination is in use: a duplicate cannot be avoided
+    if(static_cast<uint64_t>(used.size()) >= total)
+        return rollCombination(catalogId, space, random);
 
-        bool duplicate = false;
-        for(std::vector<CreatureAppearance>::const_iterator other = taken.begin(); other != taken.end(); ++other)
-        {
-            if(*other == appearance)
-            {
-                duplicate = true;
-                break;
-            }
-        }
-        if(!duplicate)
+    for(uint32_t roll = 0; roll < ROLL_BUDGET; ++roll)
+    {
+        CreatureAppearance appearance = rollCombination(catalogId, space, random);
+        if(!isTaken(appearance, taken))
             return appearance;
     }
 
-    // The space is exhausted (or nearly): accept the last roll
-    return appearance;
+    // The generator keeps hitting used combinations: pick among the free ones directly
+    if(total <= ENUMERATION_LIMIT)
+    {
+        uint64_t free = total - static_cast<uint64_t>(used.size());
+        uint64_t wanted = static_cast<uint64_t>(random(0, 0xFFFFFFFFu)) % free;
+        for(uint64_t index = 0; index < total; ++index)
+        {
+            CreatureAppearance appearance = makeCombination(catalogId, space, index);
+            if(isTaken(appearance, used))
+                continue;
+
+            if(wanted == 0)
+                return appearance;
+
+            --wanted;
+        }
+    }
+
+    // Too many combinations to list and still no free one: the space is huge, keep rolling
+    while(true)
+    {
+        CreatureAppearance appearance = rollCombination(catalogId, space, random);
+        if(!isTaken(appearance, taken))
+            return appearance;
+    }
 }
 
 CreatureAppearance pickStable(const PortraitManifest& manifest, const std::string& catalogId,

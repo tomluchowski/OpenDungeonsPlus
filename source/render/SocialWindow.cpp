@@ -51,6 +51,9 @@ const std::size_t MAX_FEED_ROWS = 25;
 const std::size_t MAX_OWN_POSTS = 5;
 //! Distance between the profile and the recent posts below it (design pixels)
 const float OWN_POSTS_GAP = 6.0f;
+//! The profile never takes more of the pane than leaves this much (design pixels) for the recent posts; what
+//! does not fit scrolls inside the profile
+const float PROFILE_MIN_POSTS_HEIGHT = 110.0f;
 //! Space the creature list keeps free right of its items (design pixels), so the horizontal scrollbar never appears
 const float LIST_TEXT_MARGIN = 34.0f;
 //! The window checks for changes at most this often (real seconds), so at most 4 redraws per second
@@ -403,6 +406,10 @@ void SocialWindow::refreshProfile()
                     CEGUI::PushButton::EventClicked, CEGUI::Event::Subscriber(&SocialWindow::onLinkClicked, this)));
             }
         }
+
+        // The profile gets the pane minus the room kept for the recent posts, and scrolls if it needs more
+        gui.setScaledArea(holder, CEGUI::URect(CEGUI::UDim(0, 0), CEGUI::UDim(0, 0), CEGUI::UDim(1, 0),
+            CEGUI::UDim(1, -PROFILE_MIN_POSTS_HEIGHT)));
 
         // The same code fills the creature card
         profileBottom = creature->fillProfilePage(mProfilePage);

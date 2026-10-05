@@ -195,6 +195,8 @@ private:
     void applyProfileScroll(CEGUI::Window* page, float offset);
     //! \brief The scrollbar of a profile page was moved.
     bool onProfileScrolled(const CEGUI::EventArgs& e);
+    //! \brief The mouse wheel turned over the profile page or one of its rows: scrolls the page if it scrolls.
+    bool onProfileWheel(const CEGUI::EventArgs& e);
     //! \brief Layout values of a window as loaded, used to re-apply the UI scale from the original values.
     struct WindowScaleData
     {

@@ -70,6 +70,12 @@ for name in ('source/render/AppearanceCompose.cpp', 'source/render/DungeonbookQu
     # Only the appearance picture code may be checked for the random pick: CreatureAppearance takes the
     # random function as a parameter and never calls the global generator itself
     for pattern in forbidden:
+        if pattern == 'std::chrono' and name.endswith('CreatureAppearancePicture.cpp'):
+            # The picture code only uses a clock to decide when failed files are tried again, never for pixels
+            for line in text.splitlines():
+                if 'std::chrono' in line:
+                    assert any(word in line for word in ('#include', 'mLastRetry', 'steady_clock', 'RETRY_SECONDS')), line
+            continue
         assert not re.search(pattern, text), '%s uses %s' % (name, pattern)
 
 # The remark choice and the stable look use the fixed hash

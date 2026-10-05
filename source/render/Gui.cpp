@@ -296,6 +296,12 @@ CEGUI::Window* Gui::createCreatureProfilePage(CEGUI::Window* holder)
     registerWindowHierarchy(page);
     page->getChild("ProfileScrollbar")->subscribeEvent(CEGUI::Scrollbar::EventScrollPositionChanged,
         CEGUI::Event::Subscriber(&Gui::onProfileScrolled, this));
+
+    // The rows pass the mouse wheel on to the page, which scrolls (only while its scrollbar is shown)
+    for(std::size_t i = 0; i < page->getChildCount(); ++i)
+        page->getChildAtIdx(i)->setMouseInputPropagationEnabled(true);
+
+    page->subscribeEvent(CEGUI::Window::EventMouseWheel, CEGUI::Event::Subscriber(&Gui::onProfileWheel, this));
     return page;
 }
 
@@ -468,6 +474,24 @@ void Gui::applyProfileScroll(CEGUI::Window* page, float offset)
         area.d_max.d_y.d_offset -= offset;
         setScaledArea(it->first, area);
     }
+}
+
+bool Gui::onProfileWheel(const CEGUI::EventArgs& e)
+{
+    const CEGUI::MouseEventArgs& args = static_cast<const CEGUI::MouseEventArgs&>(e);
+    CEGUI::Window* page = args.window;
+    while((page != nullptr) && !page->isChild("ProfileScrollbar"))
+        page = page->getParent();
+
+    if(page == nullptr)
+        return false;
+
+    CEGUI::Scrollbar* scrollbar = static_cast<CEGUI::Scrollbar*>(page->getChild("ProfileScrollbar"));
+    if(!scrollbar->isVisible())
+        return false;
+
+    scrollbar->setScrollPosition(scrollbar->getScrollPosition() - args.wheelChange * PROFILE_SCROLL_STEP);
+    return true;
 }
 
 bool Gui::onProfileScrolled(const CEGUI::EventArgs& e)
