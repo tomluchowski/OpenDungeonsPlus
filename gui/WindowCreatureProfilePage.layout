@@ -171,5 +171,9 @@
             <Property name="VertFormatting" value="TopAligned" />
             <Property name="HorzFormatting" value="WordWrapLeftAligned" />
         </Window>
+        <Window type="OD/VerticalScrollbar" name="ProfileScrollbar" >
+            <Property name="Area" value="{{1.0,-14},{0.0,0},{1.0,0},{1.0,0}}" />
+            <Property name="Visible" value="False" />
+        </Window>
     </Window>
 </GUILayout>
