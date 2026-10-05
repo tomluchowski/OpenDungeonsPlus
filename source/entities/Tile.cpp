@@ -158,6 +158,11 @@ bool Tile::isDiggable(const Seat* seat) const
             break;
     }
 
+    // The client knows nothing about a tile it has never seen: it is an unexplored wall that can be marked.
+    // The server decides with its own state whether the mark is accepted.
+    if(mTileVisual == TileVisual::nullTileVisual && !mEverVisible && !getGameMap()->isServerGameMap())
+        return true;
+
     // Should be claimed tile
     if(mTileVisual != TileVisual::claimedFull)
     {
