@@ -3037,7 +3037,8 @@ void GameMode::handlePlayerActionSelectTile()
     std::vector<Tile*> diggableTiles;
     for(Tile* tile : tiles)
     {
-        if(mDigSetBool ? tile->isDiggable(player->getSeat()) : tile->getMarkedForDigging(player))
+        // Unexplored tiles cannot be marked: the mark would show which walls are gold or dirt
+        if(mDigSetBool ? (tile->getEverVisible() && tile->isDiggable(player->getSeat())) : tile->getMarkedForDigging(player))
             diggableTiles.push_back(tile);
     }
     if(diggableTiles.empty())
