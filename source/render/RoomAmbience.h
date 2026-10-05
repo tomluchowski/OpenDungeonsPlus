@@ -415,7 +415,12 @@ private:
     void buildIndex();
     //! \brief Looks at what the camera sees and starts or stops the effects of the objects, tiles and events there
     void scan();
+<<<<<<< HEAD
     //! \brief Finds the objects near the camera that have effects and collects the candidates for them
+=======
+    //! \brief Hands the torch list of the client map to mWallTorches when it has changed
+    void syncWallTorches();
+>>>>>>> d9d7c19b2 (Connect the client wall torch list to the room ambience and use one config reader)
     void scanObjects(Ogre::Camera* camera, const Ogre::Vector3& cameraPosition);
     //! \brief Finds the room tiles near the look point that have effects and collects the candidates for them
     void scanTiles(Ogre::Camera* camera, const Ogre::Vector3& cameraPosition, const Ogre::Vector3& lookPoint);
@@ -544,6 +549,14 @@ private:
     std::vector<uint32_t> mObjectWildcardEffects;
     //! Largest distance around the look point that is scanned
     double mScanRadius;
+<<<<<<< HEAD
+=======
+    double mHeartRateFactor;
+    RoomAmbienceExtras mExtras;
+    WallTorchView mWallTorches;
+    //! Version of GameMap::getWallTorches() that was handed to mWallTorches last
+    uint32_t mWallTorchesVersion;
+>>>>>>> d9d7c19b2 (Connect the client wall torch list to the room ambience and use one config reader)
 
     //! The running looping effects, per target
     std::map<std::string, Emitter> mEmitters;

@@ -18,7 +18,7 @@
 #include "render/WallTorchView.h"
 
 #include "render/RenderManager.h"
-#include "utils/ConfigManager.h"
+#include "rooms/WallTorchConfig.h"
 #include "utils/Helper.h"
 #include "utils/LogManager.h"
 
@@ -40,8 +40,6 @@ namespace
 const double TWO_PI = 6.283185307179586;
 //! Seconds between two checks of what is near the camera
 const double REFRESH_INTERVAL = 0.25;
-//! Value that no config file holds, to find out whether a key is missing
-const double MISSING_VALUE = -987654.5;
 //! Distance factor of the mode "reduced"
 const double REDUCED_DISTANCE_FACTOR = 0.7;
 //! Distance from the camera within which a torch is shown at all
@@ -118,36 +116,19 @@ WallTorchView::WallTorchView() :
 {
 }
 
-double WallTorchView::readValue(const std::string& name, double defaultValue)
-{
-    double value = ConfigManager::getSingleton().getRoomConfigDoubleOrDefault(name, MISSING_VALUE);
-    if(value != MISSING_VALUE)
-        return value;
-
-    if(std::find(mReportedKeys.begin(), mReportedKeys.end(), name) == mReportedKeys.end())
-    {
-        mReportedKeys.push_back(name);
-        OD_LOG_WRN("Wall torches: " + name + " is missing in the rooms configuration, using " + Helper::toString(defaultValue));
-    }
-
-    return defaultValue;
-}
-
 void WallTorchView::loadSettings()
 {
     mSettingsLoaded = true;
-    Settings defaults;
-    double lights = std::max(0.0, readValue("WallTorchActiveLights", defaults.mActiveLights));
-    double lightsReduced = std::max(0.0, readValue("WallTorchActiveLightsReduced", defaults.mActiveLightsReduced));
-    mSettings.mActiveLights = static_cast<uint32_t>(lights);
-    mSettings.mActiveLightsReduced = static_cast<uint32_t>(lightsReduced);
-    mSettings.mRange = std::max(0.5, readValue("WallTorchLightRadius", defaults.mRange));
-    mSettings.mIntensity = std::max(0.0, readValue("WallTorchLightIntensity", defaults.mIntensity));
-    mSettings.mColourR = std::min(1.0, std::max(0.0, readValue("WallTorchLightColorR", defaults.mColourR)));
-    mSettings.mColourG = std::min(1.0, std::max(0.0, readValue("WallTorchLightColorG", defaults.mColourG)));
-    mSettings.mColourB = std::min(1.0, std::max(0.0, readValue("WallTorchLightColorB", defaults.mColourB)));
-    mSettings.mFlickerStrength = std::min(1.0, std::max(0.0, readValue("WallTorchFlickerStrength", defaults.mFlickerStrength)));
-    mSettings.mFlickerSpeed = std::max(0.0, readValue("WallTorchFlickerSpeed", defaults.mFlickerSpeed));
+    WallTorchConfig config = WallTorchConfig::load();
+    mSettings.mActiveLights = config.mActiveLights;
+    mSettings.mActiveLightsReduced = config.mActiveLightsReduced;
+    mSettings.mRange = config.mLightRadius;
+    mSettings.mIntensity = config.mLightIntensity;
+    mSettings.mColourR = config.mLightColorR;
+    mSettings.mColourG = config.mLightColorG;
+    mSettings.mColourB = config.mLightColorB;
+    mSettings.mFlickerStrength = config.mFlickerStrength;
+    mSettings.mFlickerSpeed = config.mFlickerSpeed;
 }
 
 void WallTorchView::destroyTorch(Torch& torch)

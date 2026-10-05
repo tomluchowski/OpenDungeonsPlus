@@ -113,8 +113,6 @@ private:
     };
 
     void loadSettings();
-    //! \brief Reads a key of config/rooms.cfg; a missing key gives defaultValue and is logged once
-    double readValue(const std::string& name, double defaultValue);
     void refresh(Mode mode, Ogre::Camera* camera);
     void createPart(Torch& torch, uint32_t index, const std::string& name);
     void destroyPart(Part& part);

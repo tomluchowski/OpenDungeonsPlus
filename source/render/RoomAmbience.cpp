@@ -324,6 +324,7 @@ RoomAmbience::RoomAmbience(GameMap* gameMap, const std::string& configPath) :
     mShakeSpeed(DEFAULT_SHAKE_SPEED),
     mShakePhase(0.0),
     mShakeApplied(Ogre::Vector3::ZERO),
+    mWallTorchesVersion(0),
     mRandom(RANDOM_SEED),
     mCreaturesInitialized(false),
     mLastHeartHP(-1.0),
@@ -781,11 +782,37 @@ void RoomAmbience::setWallTorchSpots(const std::vector<WallTorchSpot>& spots)
     mWallTorches.setSpots(spots);
 }
 
+void RoomAmbience::syncWallTorches()
+{
+    if((mGameMap == nullptr) || (mGameMap->getWallTorchesVersion() == mWallTorchesVersion))
+        return;
+
+    mWallTorchesVersion = mGameMap->getWallTorchesVersion();
+    std::vector<WallTorchSpot> spots;
+    const std::map<uint32_t, WallTorch>& torches = mGameMap->getWallTorches();
+    for(const std::pair<const uint32_t, WallTorch>& p : torches)
+    {
+        const WallTorch& torch = p.second;
+        // The direction is the one from the wall tile to the open tile, the same as WallTorchSide
+        WallTorchSide side = WallTorchSide::west;
+        if(WallTorches::getDirY(torch.mDir) > 0)
+            side = WallTorchSide::north;
+        else if(WallTorches::getDirY(torch.mDir) < 0)
+            side = WallTorchSide::south;
+        else if(WallTorches::getDirX(torch.mDir) > 0)
+            side = WallTorchSide::east;
+
+        spots.push_back(WallTorchSpot(torch.mX, torch.mY, side));
+    }
+    setWallTorchSpots(spots);
+}
+
 void RoomAmbience::update(Ogre::Real timeSinceLastFrame)
 {
     if(mMode == Mode::off)
         return;
 
+    syncWallTorches();
     double dt = static_cast<double>(timeSinceLastFrame);
     mClock += dt;
     mScanTimer += dt;
