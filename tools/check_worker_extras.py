@@ -65,4 +65,10 @@ for name in ('DigHitGold', 'DigFinishGold'):
     assert block, name
     assert 'ReactionGlow' not in block.group(1), '%s must not use the big glow' % name
 
+# Diggers stand in front of the wall tile, not half inside it
+creature_src = read('source/entities/Creature.cpp')
+share = re.search(r'parkingShare\s*=\s*([0-9.]+)', creature_src)
+assert share and float(share.group(1)) <= 0.25, 'parking point too close to the wall edge'
+assert 'getPosition2d())*parkingShare' in creature_src
+
 print('worker extras: ok (%d sound events, %d families)' % (len(table), len(families)))

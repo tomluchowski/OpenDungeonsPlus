@@ -2857,7 +2857,10 @@ bool Creature::parkToWallTile(Tile* wallTile, Tile* nTile)
         return false;
 
     Ogre::Vector2 parkingPoint;
-    parkingPoint = (wallTile->getPosition2d() - nTile->getPosition2d())*0.4 + nTile->getPosition2d() ;
+    // Stay well in front of the wall: the dig animation reaches forward, and 0.4 left only a tenth of a tile
+    // to the edge, so the worker stood half inside the block
+    static const double parkingShare = 0.2;
+    parkingPoint = (wallTile->getPosition2d() - nTile->getPosition2d())*parkingShare + nTile->getPosition2d() ;
 
     
     std::list<Tile*> result = getGameMap()->path(this, nTile);
