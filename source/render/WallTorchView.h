@@ -31,7 +31,7 @@
 
 /*! \brief Shows the wall torches the server sent, client side only.
  *
- * Every torch has a bracket, a flickering flame, a glow and a thread of smoke (the particle systems
+ * Every torch has a bracket (the model WallTorch.mesh, a billboard if it cannot be loaded),a flickering flame, a glow and a thread of smoke (the particle systems
  * of the room ambience). Only the nearest few torches to the camera also get a warm, flickering point
  * light (no shadows); the others show flame and glow without a light source. How many depends on the
  * room ambience mode (full / reduced / off). Strength, colour, range and flicker of the light come from
@@ -65,11 +65,13 @@ private:
     struct Part
     {
         Part() :
-            mNode(nullptr), mSystem(nullptr), mBaseWidth(1.0), mBaseHeight(1.0)
+            mNode(nullptr), mSystem(nullptr), mEntity(nullptr), mBaseWidth(1.0), mBaseHeight(1.0)
         {}
 
         Ogre::SceneNode* mNode;
         Ogre::ParticleSystem* mSystem;
+        //! Set instead of mSystem for the bracket model
+        Ogre::Entity* mEntity;
         double mBaseWidth;
         double mBaseHeight;
     };
@@ -77,11 +79,13 @@ private:
     struct Torch
     {
         Torch() :
-            mPosition(Ogre::Vector3::ZERO), mLightPosition(Ogre::Vector3::ZERO), mPhase(0.0), mDistance(0.0), mShown(false),
+            mPosition(Ogre::Vector3::ZERO), mDirection(Ogre::Vector3::ZERO), mLightPosition(Ogre::Vector3::ZERO), mPhase(0.0), mDistance(0.0), mShown(false),
             mLightNode(nullptr), mLight(nullptr)
         {}
 
         Ogre::Vector3 mPosition;
+        //! From the wall to the open tile
+        Ogre::Vector3 mDirection;
         //! Where the light hangs: a little in front of the wall and higher than the flame
         Ogre::Vector3 mLightPosition;
         double mPhase;
@@ -115,6 +119,8 @@ private:
     void loadSettings();
     void refresh(Mode mode, Ogre::Camera* camera);
     void createPart(Torch& torch, uint32_t index, const std::string& name);
+    //! Creates the bracket model; false if the mesh cannot be loaded
+    bool createModel(Torch& torch, const std::string& name);
     void destroyPart(Part& part);
     void createLight(Torch& torch, const std::string& name);
     void destroyLight(Torch& torch);

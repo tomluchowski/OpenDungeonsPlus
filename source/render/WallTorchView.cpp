@@ -25,6 +25,8 @@
 #include <OgreAxisAlignedBox.h>
 #include <OgreCamera.h>
 #include <OgreColourValue.h>
+#include <OgreEntity.h>
+#include <OgreException.h>
 #include <OgreLight.h>
 #include <OgreParticleSystem.h>
 #include <OgreParticleSystemManager.h>
@@ -53,6 +55,12 @@ const double WALL_SURFACE_OFFSET = 0.55;
 //! How far in front of the wall the light hangs and how high
 const double LIGHT_FRONT_OFFSET = 0.3;
 const double LIGHT_HEIGHT = 1.6;
+
+//! Bracket model: mesh name, height of its origin (the contact point with the wall) and the shift of
+//! flame, glow and smoke from the wall towards the open tile (the cup of the model)
+const char* const MODEL_MESH = "WallTorch.mesh";
+const double MODEL_HEIGHT = 0.85;
+const double FLAME_WALL_OFFSET = 0.2;
 
 //! The parts of a torch: bracket, flame, glow, smoke
 const uint32_t NB_PARTS = 4;
@@ -167,6 +175,7 @@ void WallTorchView::setSpots(const std::vector<WallTorchSpot>& spots)
 
         Torch torch;
         torch.mPosition = position;
+        torch.mDirection = direction;
         torch.mLightPosition = wall + direction * static_cast<Ogre::Real>(WALL_SURFACE_OFFSET + LIGHT_FRONT_OFFSET);
         torch.mLightPosition.z = static_cast<Ogre::Real>(LIGHT_HEIGHT);
         std::uniform_real_distribution<double> phase(0.0, TWO_PI);
@@ -200,16 +209,51 @@ void WallTorchView::destroyPart(Part& part)
             part.mNode->detachAllObjects();
         if(part.mSystem != nullptr)
             sceneManager->destroyParticleSystem(part.mSystem);
+        if(part.mEntity != nullptr)
+            sceneManager->destroyEntity(part.mEntity);
         if(part.mNode != nullptr)
             sceneManager->destroySceneNode(part.mNode);
     }
 
     part.mNode = nullptr;
     part.mSystem = nullptr;
+    part.mEntity = nullptr;
+}
+
+bool WallTorchView::createModel(Torch& torch, const std::string& name)
+{
+    Ogre::SceneManager* sceneManager = RenderManager::getSingleton().getSceneManager();
+    Part& part = torch.mParts[0];
+    try
+    {
+        part.mEntity = sceneManager->createEntity(name, MODEL_MESH);
+    }
+    catch(const Ogre::Exception& e)
+    {
+        if(std::find(mReportedKeys.begin(), mReportedKeys.end(), MODEL_MESH) == mReportedKeys.end())
+        {
+            mReportedKeys.push_back(MODEL_MESH);
+            OD_LOG_WRN(std::string("Wall torches: cannot load model ") + MODEL_MESH + ": " + e.getDescription());
+        }
+        part.mEntity = nullptr;
+        return false;
+    }
+
+    // The model reaches from the wall along +Y; turn it so that it points to the open tile
+    Ogre::Vector3 position = torch.mPosition;
+    position.z = static_cast<Ogre::Real>(MODEL_HEIGHT);
+    part.mNode = sceneManager->getRootSceneNode()->createChildSceneNode(name + "_node", position);
+    double angle = std::atan2(-torch.mDirection.x, torch.mDirection.y);
+    part.mNode->setOrientation(Ogre::Quaternion(Ogre::Radian(static_cast<Ogre::Real>(angle)), Ogre::Vector3::UNIT_Z));
+    part.mNode->attachObject(part.mEntity);
+    return true;
 }
 
 void WallTorchView::createPart(Torch& torch, uint32_t index, const std::string& name)
 {
+    if((index == 0) && createModel(torch, name + "_0"))
+        return;
+
     if(Ogre::ParticleSystemManager::getSingleton().getTemplate(PART_SYSTEMS[index]) == nullptr)
     {
         if(std::find(mReportedKeys.begin(), mReportedKeys.end(), PART_SYSTEMS[index]) == mReportedKeys.end())
@@ -225,6 +269,8 @@ void WallTorchView::createPart(Torch& torch, uint32_t index, const std::string& 
     std::string partName = name + "_" + Helper::toString(index);
     Ogre::Vector3 position = torch.mPosition;
     position.z = static_cast<Ogre::Real>(PART_HEIGHTS[index]);
+    if(index > 0)
+        position += torch.mDirection * static_cast<Ogre::Real>(FLAME_WALL_OFFSET);
     part.mNode = sceneManager->getRootSceneNode()->createChildSceneNode(partName + "_node", position);
     part.mSystem = sceneManager->createParticleSystem(partName, PART_SYSTEMS[index]);
     part.mNode->attachObject(part.mSystem);
