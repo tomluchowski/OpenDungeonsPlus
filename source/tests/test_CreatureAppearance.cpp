@@ -665,3 +665,65 @@ BOOST_AUTO_TEST_CASE(test_RegistryRetriesFailedManifests)
 
     std::remove(getRetryManifestPath().c_str());
 }
+
+BOOST_AUTO_TEST_CASE(test_StoredLookCheckedWhenManifestBecomesValid)
+{
+    const std::string validManifest =
+        "Base	../neutral-bases/Knight.mesh-male.png
+"
+        "Slot	hair	4	2	8	8
+"
+        "Slot	helmet	2	0	12	10
+"
+        "Slot	scar	5	10	4	4
+"
+        "Option	hair	1	braid	../variants/Knight.mesh-male/hair-1-braid.png
+"
+        "Option	hair	2	bald	../variants/Knight.mesh-male/hair-2-bald.png
+"
+        "Option	helmet	1	plain	../variants/Knight.mesh-male/helmet-1-plain.png
+"
+        "Option	helmet	2	horned	../variants/Knight.mesh-male/helmet-2-horned.png
+"
+        "Option	scar	1	cheek	../variants/Knight.mesh-male/scar-1-cheek.png
+";
+
+    std::remove(getRetryManifestPath().c_str());
+    PortraitManifestRegistry registry;
+    registry.setAssetRoot(getVariantsDirectory());
+    const std::string id = "../retry";
+
+    // A creature loaded while the manifest was invalid keeps a stored look that uses a removed option (hair 3)
+    CreatureAppearance stored = makeKnightLook(3, 2);
+    stored.setCatalogId(id);
+    stored.getChoices()[2].mNumber = 1;
+    writeRetryManifest("Slot	hair	4	2	8	8
+");
+    BOOST_CHECK(registry.getManifest(id) == nullptr);
+
+    // The manifest is repaired: after the retry the stored look is checked like at load
+    writeRetryManifest(validManifest);
+    BOOST_CHECK(registry.retryFailed());
+    const PortraitManifest* manifest = registry.getManifest(id);
+    BOOST_REQUIRE(manifest != nullptr);
+
+    CreatureAppearance replaced = stored;
+    BOOST_CHECK(CreatureAppearanceLogic::validate(*manifest, id, "Old Knight", replaced));
+    BOOST_CHECK(replaced.getChoice("hair") == 1 || replaced.getChoice("hair") == 2);
+    // the options that still exist stay
+    BOOST_CHECK_EQUAL(replaced.getChoice("helmet"), 2u);
+    BOOST_CHECK_EQUAL(replaced.getChoice("scar"), 1u);
+    // the replacement is stable: the same name gives the same hair every time
+    CreatureAppearance again = stored;
+    BOOST_CHECK(CreatureAppearanceLogic::validate(*manifest, id, "Old Knight", again));
+    BOOST_CHECK(again == replaced);
+
+    // A look that is fine stays as it is and nothing is reported as changed
+    CreatureAppearance fine = makeKnightLook(2, 1);
+    fine.setCatalogId(id);
+    CreatureAppearance copy = fine;
+    BOOST_CHECK(!CreatureAppearanceLogic::validate(*manifest, id, "Old Knight", copy));
+    BOOST_CHECK(copy == fine);
+
+    std::remove(getRetryManifestPath().c_str());
+}

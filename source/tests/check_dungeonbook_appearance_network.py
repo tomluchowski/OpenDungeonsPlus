@@ -49,7 +49,7 @@ assert 'assignAppearance' not in import_full
 
 # A missing appearance is retried on the server in doUpkeep and announced once
 upkeep = body(creature, 'void Creature::doUpkeep()')
-assert 'mAppearance.isEmpty() && getIsOnServerMap()' in upkeep and 'retryAppearance();' in upkeep
+assert 'getIsOnServerMap() && (mAppearance.isEmpty() || !mAppearanceValidated)' in upkeep and 'retryAppearance();' in upkeep
 retry = body(creature, 'void Creature::retryAppearance()')
 assert 'assignAppearance(false);' in retry
 assert 'ServerNotificationType::creatureAppearance' in retry

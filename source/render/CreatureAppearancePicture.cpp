@@ -221,12 +221,17 @@ const CEGUI::Image* buildPicture(PictureState& state, const std::string& creatur
         return nullptr;
     }
 
+    // The server is authoritative; for the display an option that the manifest no longer has is replaced the same
+    // stable way as there, so the picture is complete until the server tells the corrected look
+    CreatureAppearance shown = appearance;
+    CreatureAppearanceLogic::validate(manifest, appearance.getCatalogId(), creatureName, shown);
+
     // The parts in the order of the Slot lines of the manifest
     std::vector<AppearanceCompose::Part> parts;
     const std::vector<PortraitManifest::Slot>& slots = manifest.getSlots();
     for(std::vector<PortraitManifest::Slot>::const_iterator it = slots.begin(); it != slots.end(); ++it)
     {
-        uint32_t number = appearance.getChoice(it->mName);
+        uint32_t number = shown.getChoice(it->mName);
         if(number == 0)
             continue;
 

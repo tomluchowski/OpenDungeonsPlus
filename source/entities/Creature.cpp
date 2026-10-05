@@ -749,6 +749,7 @@ void Creature::assignAppearance(bool firstSpawn)
         }
 
         mAppearance = CreatureAppearanceLogic::pickRandom(*manifest, catalogId, getAppearanceRandom, taken);
+        mAppearanceValidated = true;
         return;
     }
 
@@ -756,6 +757,8 @@ void Creature::assignAppearance(bool firstSpawn)
         mAppearance = CreatureAppearanceLogic::pickStable(*manifest, catalogId, getName());
     else
         CreatureAppearanceLogic::validate(*manifest, catalogId, getName(), mAppearance);
+
+    mAppearanceValidated = true;
 }
 
 void Creature::retryAppearance()
@@ -770,8 +773,9 @@ void Creature::retryAppearance()
     // A manifest that was missing or invalid at spawn may be there now: the registry looks again, then the
     // appearance is derived like for old saves
     getAppearanceRegistry().retryFailed();
+    CreatureAppearance before = mAppearance;
     assignAppearance(false);
-    if(mAppearance.isEmpty())
+    if(mAppearance.isEmpty() || (mAppearance == before))
         return;
 
     // Clients that already know the creature get the new appearance once, the others receive it
@@ -1136,7 +1140,8 @@ void Creature::dropCarriedEquipment()
 void Creature::doUpkeep()
 {
     // No manifest was available when the creature spawned: assign the appearance as soon as it is
-    if(mAppearance.isEmpty() && getIsOnServerMap())
+    // (or the stored one was never checked against a manifest): the appearance is derived or checked as soon as one is
+    if(getIsOnServerMap() && (mAppearance.isEmpty() || !mAppearanceValidated))
         retryAppearance();
 
     // If the creature is in jail, we check if it is still standing on it (if not picked up). If

@@ -729,6 +729,9 @@ private:
     CreatureAppearance mAppearance;
     //! \brief Server side. Upkeeps left until the next try to assign a missing appearance
     uint32_t mAppearanceRetryTurns = 0;
+    //! True once the appearance was checked against a valid manifest (server). A creature loaded or spawned without
+    //! a manifest is checked as soon as one exists, see retryAppearance.
+    bool mAppearanceValidated = false;
     //! \brief Pointer to the struct holding the general type of the creature with its values
     const CreatureDefinition* mDefinition;
 
