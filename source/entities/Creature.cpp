@@ -2650,7 +2650,23 @@ bool Creature::setDestination(Tile* tile)
     tileToVector2(result, path, true, 0.0);
     setWalkPath(EntityAnimation::walk_anim, EntityAnimation::idle_anim, true, true, path,true);
     if(!isMoving() && posTile != tile)
-        return false;
+    {
+        if(path.empty())
+        {
+            OD_LOG_INF("creature=" + getName() + " has no tile path from " + Tile::displayAsString(posTile)
+                + " to " + Tile::displayAsString(tile));
+            return false;
+        }
+
+        // The tile path exists but the refinement around room objects found no route
+        // (for example because the tile center is covered by an object). We walk the
+        // tile path as it is instead of failing the whole action.
+        OD_LOG_INF("creature=" + getName() + " walks the unrefined tile path from " + Tile::displayAsString(posTile)
+            + " to " + Tile::displayAsString(tile));
+        setWalkPath(EntityAnimation::walk_anim, EntityAnimation::idle_anim, true, true, path, true, true);
+        if(!isMoving())
+            return false;
+    }
     pushAction(Utils::make_unique<CreatureActionWalkToTile>(*this));
     return true;
 }
