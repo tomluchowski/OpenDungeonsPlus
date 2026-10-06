@@ -313,8 +313,11 @@ WorkerBed.skeleton                         OD Team                 GPLv3+       
 Keeperhand.*                           Skorpio                 CC-BY-SA 3.0, GPLv3+
 Knight.*                               surt                    CC0                     http://opengameart.org/forumtopic/cc0-scraps
 KnightCoffin.mesh                      YD                      CC0                     http://forum.freegamedev.net/viewtopic.php?p=60771#p60771
+KnightCoffin.skeleton                   OD Team                 GPLv3+                  Skeleton and clips Sleep and Wake of KnightCoffin.mesh, AI-generated with a Blender script (tools/blender-assets/crypt_rig.py, original work); the mesh was re-exported with skin weights, shape and textures unchanged
 KnightStatue.mesh                      YD                      CC0                     http://forum.freegamedev.net/viewtopic.php?p=60771#p60771
+KnightStatue.skeleton                   OD Team                 GPLv3+                  Skeleton and clips Sleep and Wake of KnightStatue.mesh, AI-generated with a Blender script (tools/blender-assets/crypt_rig.py, original work); the mesh was re-exported with skin weights, shape and textures unchanged
 KnightStatue2.mesh                     YD                      CC0                     http://forum.freegamedev.net/viewtopic.php?p=60771#p60771
+KnightStatue2.skeleton                  OD Team                 GPLv3+                  Skeleton and clips Sleep and Wake of KnightStatue2.mesh, AI-generated with a Blender script (tools/blender-assets/crypt_rig.py, original work); the mesh was re-exported with skin weights, shape and textures unchanged
 Kobold.*                               surt                    CC0                     http://opengameart.org/forumtopic/cc0-scraps
 Kreatur.*                              Skorpio                 CC-BY-SA 3.0, GPLv3+
 Lamp.mesh                              Danimal                 CC-BY-SA 3.0            http://forum.freegamedev.net/viewtopic.php?p=59621#p59621
@@ -355,6 +358,7 @@ Spiketrap.*                            Danimal                 CC-BY 3.0        
 SquareSelector.mesh                    OD Team                 CC-BY-SA 3.0            http://forum.freegamedev.net/viewtopic.php?p=59066#p59066
 Staff.*                                Skorpio                 CC-BY-SA 3.0, GPLv3+
 StoneCoffin.mesh                       Yughues                 CC0                     http://forum.freegamedev.net/viewtopic.php?p=60771#p60771
+StoneCoffin.skeleton                    OD Team                 GPLv3+                  Skeleton and clips Sleep and Wake of StoneCoffin.mesh, AI-generated with a Blender script (tools/blender-assets/crypt_rig.py, original work); the mesh was re-exported with skin weights, shape and textures unchanged
 T2HammerGood                           YD, Skorpio             CC-BY-SA 3.0            http://opengameart.org/content/hammer-skorpio-2
 T3HammerGood                           Danimal, Nobiax         CC-BY                   http://opengameart.org/users/danimal
 T4HammerGood                           AriseAgain              CC-BY-SA                https://sketchfab.com/models/3a56aaa4f3744bbd8136794bfc91cb86
