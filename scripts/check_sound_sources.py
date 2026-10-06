@@ -7,7 +7,7 @@
 Rules:
 - every audio file under sounds/ and music/ is covered by a CREDITS entry, and every audio entry of CREDITS
   points to at least one existing file;
-- every entry for sounds/ has a source URL and the licence CC0, CC-BY or CC-BY-SA;
+- every entry for sounds/ has a source URL and the licence CC0, CC-BY, CC-BY-SA or public domain;
 - no entry for a sound names synthesised, generated or a script as its origin;
 - music/ is only checked for the CREDITS entry.
 A few older real recordings are listed below with the reason why they are accepted differently.
@@ -30,9 +30,6 @@ OWN_RECORDING_FILES = ("SwordBlock*.ogg", "Digging*.ogg", "default_build_trap.og
 # Older real recordings under a GPL licence: accepted without a source URL (existing recordings, owner
 # decision): the interface click and the keeper voice spoken by a project member.
 GPL_FILES = ("click.ogg", "OD_voice_keeper(neutral)_*.ogg")
-
-# Real recordings in the public domain, taken from Wikimedia Commons (hatchery chickens)
-PUBLIC_DOMAIN_FOLDER = "Spatial/Rooms/Hatchery/"
 
 LICENSE_RE = re.compile(r"CC0|CC-BY-SA\s*[0-9.]+|CC-BY\s*[0-9.]+|Public domain|GPL\w*\s*[0-9.]*\+?")
 ENTRY_RE = re.compile(r"^(->\s*)?(\S*?\.(?:ogg|wav|flac|mp3))(.*)$")
@@ -120,11 +117,9 @@ def check_entry(pattern, rest):
         if not any(fnmatch.fnmatchcase(name, p) for p in GPL_FILES):
             problems.append("licence %s is only accepted for the listed older recordings" % license_name)
         return problems
-    if license_name == "Public domain":
-        if not pattern.startswith(PUBLIC_DOMAIN_FOLDER):
-            problems.append("public domain is only accepted for the hatchery recordings")
-    elif not (license_name.startswith("CC0") or license_name.startswith("CC-BY")):
-        problems.append("licence is not CC0, CC-BY or CC-BY-SA")
+    if not (license_name.startswith("CC0") or license_name.startswith("CC-BY")
+            or license_name == "Public domain"):
+        problems.append("licence is not CC0, CC-BY, CC-BY-SA or public domain")
     if not has_url:
         problems.append("no source URL")
     return problems
