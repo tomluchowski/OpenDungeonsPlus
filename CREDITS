@@ -438,11 +438,11 @@ Name                                   Author                  License          
 Name                                   Author                  License                 Source URL
 ------------------------------------------------------------------------------------------------------------------------
 Spatial/Creatures/Default/Attack/
--> SwordBlock*.ogg                     Svenskmand              CC-BY-SA 3.0
+-> SwordBlock*.ogg                     Svenskmand              CC-BY-SA 3.0                  own recordings of a former OpenDungeons member, no public source
 Spatial/Creatures/Default/Die/
 -> Die*.ogg                            remaxim                 CC-BY-SA 3.0            http://opengameart.org/content/2-male-death-voices
 Spatial/Creatures/Default/Dig/
--> Digging*.ogg                        Svenskmand              CC-BY-SA 3.0
+-> Digging*.ogg                        Svenskmand              CC-BY-SA 3.0                  own recordings of a former OpenDungeons member, no public source
 Spatial/Creatures/Default/Drop/
 -> falling1.ogg                        remaxim                 CC-BY-SA 3.0            http://opengameart.org/content/falling-body
 Spatial/Creatures/Default/Pickup/
@@ -455,11 +455,11 @@ Spatial/Creatures/Keeper/Workers\Die/
 Spatial/Game/BuildRoom/
 -> default_build_room.ogg              remaxim                 CC-BY-SA 3.0, GPLv3+    http://opengameart.org/content/falling-body
 Spatial/Game/BuildTrap/
--> default_build_trap.ogg              Svenskmand              CC-BY-SA 3.0
+-> default_build_trap.ogg              Svenskmand              CC-BY-SA 3.0                  own recordings of a former OpenDungeons member, no public source
 Spatial/Game/ClaimTile/
--> Claim01.ogg                         Svenskmand              CC-BY-SA 3.0
+-> Claim01.ogg                         Svenskmand              CC-BY-SA 3.0                  own recordings of a former OpenDungeons member, no public source
 Spatial/Game/RocksFalling/
--> RocksFalling*.ogg                   Svenskmand              CC-BY-SA 3.0
+-> RocksFalling*.ogg                   Svenskmand              CC-BY-SA 3.0                  own recordings of a former OpenDungeons member, no public source
 
 Spatial/Rooms/Hatchery/Cluck/
 -> Cluck*.ogg                          OD Team                 GPLv3+                  Synthesised by tools/gen_room_effects_sound.py from sine waves (script generated, original work, not AI generated)
