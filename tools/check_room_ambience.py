@@ -20,10 +20,10 @@ SETTINGS = ("ScanInterval", "MaxParticles", "MaxParticlesReduced", "MaxMotions",
 EFFECT_KEYS = ("Name", "Target", "Match", "When", "Event", "Kind", "System", "Motion", "After", "Offset", "Axis",
                "Amount", "Speed", "Flicker", "Duration", "Chance", "Spacing", "MaxDistance", "Priority", "Reduced",
                "NeedWall", "Clips", "Every", "Family", "Delay", "Mesh", "Land", "From",
-               "OwnerOnly", "WallSide", "HeartRate", "Below", "Sound")
+               "OwnerOnly", "WallSide", "HeartRate", "Below", "Sound", "Object", "Loop")
 TARGETS = ("Object", "Tile", "Event")
-WHENS = ("Always", "Occupied", "Empty", "Hit", "Locked", "Reloading", "Ready", "LowHealth", "Vacated")
-KINDS = ("Particle", "Motion", "Clip", "Shake", "Turn", "Sound", "Beam", "Projectile", "Mark", "Model")
+WHENS = ("Always", "Occupied", "Empty", "Hit", "Locked", "Reloading", "Ready", "LowHealth", "Vacated", "Sleeping")
+KINDS = ("Particle", "Motion", "Clip", "Shake", "Turn", "Sound", "Beam", "Projectile", "Mark", "Model", "CreatureClip")
 MOTIONS = ("Sway", "Wobble", "Spin", "Bob", "Pulse", "Flicker")
 # Room tile visuals that only some builds have
 OPTIONAL_VISUALS = ("guardRoom", "templeRoom")
@@ -174,7 +174,7 @@ def check_effect(effect, where, problems, visuals, systems, mats, counts):
         problems.append("%s: bad When %s" % (where, when))
     if when == "Vacated" and target == "Event":
         problems.append("%s: When Vacated does not work on events" % where)
-    if when in ("Hit", "Locked", "Reloading", "Ready", "LowHealth") and target != "Object":
+    if when in ("Hit", "Locked", "Reloading", "Ready", "LowHealth", "Sleeping") and target != "Object":
         problems.append("%s: When %s only works on objects" % (where, when))
     if target == "Event":
         counts["events"] += 1
@@ -182,8 +182,8 @@ def check_effect(effect, where, problems, visuals, systems, mats, counts):
             problems.append("%s: event effect without Event" % where)
         else:
             counts["names"].add(effect["Event"][0])
-        if kind not in ("Particle", "Shake", "Mark", "Sound", "Beam", "Projectile"):
-            problems.append("%s: event effects must be particles, shakes, marks, sounds, beams or projectiles" % where)
+        if kind not in ("Particle", "Shake", "Mark", "Sound", "Beam", "Projectile", "Clip", "CreatureClip"):
+            problems.append("%s: event effects must be particles, shakes, marks, sounds, beams, projectiles or clips" % where)
     else:
         if "Match" not in effect:
             problems.append("%s: no Match" % where)
@@ -285,10 +285,29 @@ def check_effect(effect, where, problems, visuals, systems, mats, counts):
         if motion not in MOTIONS:
             problems.append("%s: bad Motion %s" % (where, motion))
     elif kind == "Clip":
-        if target != "Object":
-            problems.append("%s: clips only work on objects" % where)
+        if target == "Tile":
+            problems.append("%s: clips only work on objects and events" % where)
         if not effect.get("Clips"):
             problems.append("%s: clip effect without Clips" % where)
+        if target == "Event":
+            # The clip is played on the nearest of the objects named in Object, within Amount tiles of the event
+            if not effect.get("Object"):
+                problems.append("%s: an event clip needs Object (the meshes that play it)" % where)
+            if "Amount" not in effect:
+                problems.append("%s: an event clip needs Amount (radius in tiles)" % where)
+            elif is_number(effect["Amount"][0]) and not 0.0 < float(effect["Amount"][0]) <= 6.0:
+                problems.append("%s: the radius (Amount) of an event clip must be above 0 and at most 6 tiles" % where)
+            if "Loop" in effect:
+                problems.append("%s: Loop only belongs to clips of objects" % where)
+        elif "Every" not in effect and effect.get("Loop", ["no"])[0] not in ("yes", "true", "1"):
+            problems.append("%s: a clip on an object needs Every (or Loop yes)" % where)
+    elif kind == "CreatureClip":
+        if target != "Event":
+            problems.append("%s: creature clips only work as events" % where)
+        if not effect.get("Clips"):
+            problems.append("%s: creature clip without Clips" % where)
+        if "Object" in effect or "Loop" in effect:
+            problems.append("%s: Object and Loop do not belong to creature clips" % where)
     for key in ("After", "Amount", "Speed", "Flicker", "Duration", "Every", "Chance", "Spacing", "MaxDistance", "Priority",
                 "Delay", "Below"):
         if key in effect and not is_number(effect[key][0]):
@@ -296,7 +315,18 @@ def check_effect(effect, where, problems, visuals, systems, mats, counts):
     for key in ("Offset", "Axis", "From"):
         if key in effect and (len(effect[key]) != 3 or not all(is_number(v) for v in effect[key])):
             problems.append("%s: %s needs three numbers" % (where, key))
-    for key in ("Reduced", "NeedWall", "OwnerOnly", "WallSide", "HeartRate"):
+    if "Object" in effect and not (kind == "Clip" and target == "Event"):
+        problems.append("%s: Object only belongs to clips of events" % where)
+    if "Loop" in effect and kind != "Clip":
+        problems.append("%s: Loop only belongs to clips" % where)
+    for pattern in effect.get("Object", []):
+        if "*" not in pattern and not mesh_exists(pattern):
+            problems.append("%s: no mesh %s" % (where, pattern))
+        elif "*" in pattern:
+            part = pattern.replace("*", "")
+            if not any(f.startswith(part) or f.endswith(part + ".mesh") for f in os.listdir(os.path.join(ROOT, "models"))):
+                problems.append("%s: wildcard %s matches no mesh" % (where, pattern))
+    for key in ("Reduced", "NeedWall", "OwnerOnly", "WallSide", "HeartRate", "Loop"):
         if key in effect and effect[key][0] not in ("yes", "no", "true", "false", "1", "0"):
             problems.append("%s: %s needs yes or no" % (where, key))
     for match in effect.get("Match", []):
