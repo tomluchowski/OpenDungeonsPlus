@@ -34,6 +34,9 @@ if args.trace_food:
 if args.trace_work:
     source = source.replace('const auto tiles = map.path(&creature, stagingTile);', 'if(creature.getLevel()==30&&(creature.getMeshName()=="Dragon.mesh"||creature.getMeshName()=="PitDemon.mesh"))std::cout<<"WORK_CAND "<<creature.getMeshName()<<" "<<object.getMeshName()<<" "<<point<<" stage="<<staging<<"\\n"; const auto tiles = map.path(&creature, stagingTile);')
     source = source.replace('path.clear();\n            return true;', 'if(creature.getLevel()==30&&(creature.getMeshName()=="Dragon.mesh"||creature.getMeshName()=="PitDemon.mesh"))std::cout<<"BAD_LEG "<<previous<<" -> "<<target<<"\\n"; path.clear();\n            return true;')
+# Probe-only: the navigation code looks bodies up in the real table; additionally offer it an artificial
+# oversized test model. The shipped tables stay untouched and the model-wide loops below keep iterating them.
+source = source.replace(': RoomObjectPath::walkingRadii)', ': testWalkingRadii())')
 food_source = (subprocess.check_output(['git', 'show', args.food_source_ref + ':source/creatureaction/CreatureActionEatChicken.cpp'], cwd=repo, text=True)
                if args.food_source_ref else read_source('source/creatureaction/CreatureActionEatChicken.cpp'))
 food_handler = food_source[food_source.index('bool CreatureActionEatChicken::handleEatChicken('):food_source.index('\nstd::string CreatureActionEatChicken::getListenerName()')]
@@ -57,6 +60,16 @@ probe = r'''
 #include <string>
 #include <iostream>
 #include <chrono>
+
+static const char* const oversizedTestMesh="TestOversized.mesh";
+static const std::vector<RoomObjectPath::WalkingRadius>& testWalkingRadii(){
+ static std::vector<RoomObjectPath::WalkingRadius> table;
+ if(table.empty()){
+  for(const auto& model:RoomObjectPath::walkingRadii)table.push_back(model);
+  table.push_back({oversizedTestMesh,1.5f,-1.5f,-1.5f,1.5f,1.5f});
+ }
+ return table;
+}
 enum class CreatureActionType {sleep,leaveDungeon,useRoom};
 namespace Helper {int round(float v){return int(std::round(v));}}
 struct Room;
@@ -219,6 +232,23 @@ int main(){
    creature.pos={approach.back().x,approach.back().y,0};ChickenEntity clearFood{&map,{4,5,0}};
    CreatureActionEatChicken::handleEatChicken(creature,&clearFood);
    check(clearFood.consumed==1&&creature.feeding==1&&creature.food==10,"each body-sized arrival can consume once through the actual food action");
+  }
+ }
+ // Artificially oversized test model (probe only): too large to ever fit between coop and eating reach.
+ for(int level:{1,30}){
+  creature=Creature{&map};creature.mesh=oversizedTestMesh;creature.level=level;creature.pos={8,5,0};
+  std::vector<Ogre::Vector2> approach;
+  check(!RoomObjectNavigation::foodApproach(creature,spawn,approach)&&approach.empty(),"oversized test model finds no access to food against the coop");
+  ChickenEntity tight{&map,{spawn.x,spawn.y,0}};
+  CreatureActionEatChicken::handleEatChicken(creature,&tight);
+  check(tight.consumed==0&&creature.popped==1&&creature.food==0&&creature.feeding==0,"oversized eater releases inaccessible wall-side chicken without reward or animation");
+  approach.clear();
+  check(RoomObjectNavigation::foodApproach(creature,{4,5},approach),"oversized test model reaches food once it wanders clear of the coop");
+  check(!approach.empty()&&!RoomObjectNavigation::blocked(creature,approach),"oversized free-food approach preserves full measured body clearance");
+  if(!approach.empty()){
+   creature.pos={approach.back().x,approach.back().y,0};ChickenEntity clearFood{&map,{4,5,0}};
+   CreatureActionEatChicken::handleEatChicken(creature,&clearFood);
+   check(clearFood.consumed==1&&creature.feeding==1&&creature.food==10,"oversized arrival can consume once through the actual food action");
   }
  }
  creature=Creature{&map};
