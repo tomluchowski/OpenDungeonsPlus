@@ -38,6 +38,8 @@ public:
     uint32_t mActiveLights;
     //! WallTorchActiveLightsReduced: the same with the reduced effects setting
     uint32_t mActiveLightsReduced;
+    //! WallTorchSoundLoops: torches nearest to the camera that play the crackling loop (0 = none)
+    uint32_t mSoundLoops;
     //! WallTorchLightRadius: range of the light in tiles
     double mLightRadius;
     //! WallTorchLightColorR/G/B (0 to 1)

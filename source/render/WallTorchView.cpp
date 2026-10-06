@@ -19,6 +19,7 @@
 
 #include "render/RenderManager.h"
 #include "rooms/WallTorchConfig.h"
+#include "sound/SoundEffectsManager.h"
 #include "utils/Helper.h"
 #include "utils/LogManager.h"
 
@@ -55,6 +56,8 @@ const double WALL_SURFACE_OFFSET = 0.55;
 //! How far in front of the wall the light hangs and how high
 const double LIGHT_FRONT_OFFSET = 0.3;
 const double LIGHT_HEIGHT = 1.6;
+//! Sound family of the crackling loop, played at the flame
+const char* const LOOP_FAMILY = "Rooms/Torch/Loop";
 
 //! Bracket model: mesh name, height of its origin (the contact point with the wall) and the shift of
 //! flame, glow and smoke from the wall towards the open tile (the cup of the model)
@@ -130,6 +133,7 @@ void WallTorchView::loadSettings()
     WallTorchConfig config = WallTorchConfig::load();
     mSettings.mActiveLights = config.mActiveLights;
     mSettings.mActiveLightsReduced = config.mActiveLightsReduced;
+    mSettings.mSoundLoops = config.mSoundLoops;
     mSettings.mRange = config.mLightRadius;
     mSettings.mIntensity = config.mLightIntensity;
     mSettings.mColourR = config.mLightColorR;
@@ -139,8 +143,28 @@ void WallTorchView::loadSettings()
     mSettings.mFlickerSpeed = config.mFlickerSpeed;
 }
 
+void WallTorchView::startSound(Torch& torch)
+{
+    if(SoundEffectsManager::getSingletonPtr() == nullptr)
+        return;
+
+    torch.mSoundHandle = SoundEffectsManager::getSingleton().startSpatialLoop(LOOP_FAMILY,
+        torch.mPosition.x + torch.mDirection.x * static_cast<Ogre::Real>(FLAME_WALL_OFFSET),
+        torch.mPosition.y + torch.mDirection.y * static_cast<Ogre::Real>(FLAME_WALL_OFFSET),
+        static_cast<Ogre::Real>(PART_HEIGHTS[1]));
+}
+
+void WallTorchView::stopSound(Torch& torch)
+{
+    if((torch.mSoundHandle != 0) && (SoundEffectsManager::getSingletonPtr() != nullptr))
+        SoundEffectsManager::getSingleton().stopSpatialLoop(torch.mSoundHandle);
+
+    torch.mSoundHandle = 0;
+}
+
 void WallTorchView::destroyTorch(Torch& torch)
 {
+    stopSound(torch);
     destroyLight(torch);
     for(uint32_t i = 0; i < NB_PARTS; ++i)
         destroyPart(torch.mParts[i]);
@@ -394,7 +418,10 @@ void WallTorchView::refresh(Mode mode, Ogre::Camera* camera)
             lookDistances.push_back((torch.mPosition - lookPoint).length());
         }
         else
+        {
             destroyLight(torch);
+            stopSound(torch);
+        }
     }
 
     // Real light only for the nearest few of them (to the point the camera looks at)
@@ -422,6 +449,28 @@ void WallTorchView::refresh(Mode mode, Ogre::Camera* camera)
         }
         else
             destroyLight(torch);
+    }
+
+    // The crackling loop for the nearest few to the camera (refresh is not called with the setting off)
+    std::vector<double> cameraDistances;
+    std::vector<uint32_t> loudOrder;
+    for(uint32_t i = 0; i < shown.size(); ++i)
+    {
+        cameraDistances.push_back(shown[i]->second.mDistance);
+        loudOrder.push_back(i);
+    }
+    std::sort(loudOrder.begin(), loudOrder.end(), NearerTorch(cameraDistances));
+    std::vector<bool> loud(shown.size(), false);
+    for(uint32_t i = 0; (i < loudOrder.size()) && (i < mSettings.mSoundLoops); ++i)
+        loud[loudOrder[i]] = true;
+
+    for(uint32_t i = 0; i < shown.size(); ++i)
+    {
+        Torch& torch = shown[i]->second;
+        if(loud[i] && (torch.mSoundHandle == 0))
+            startSound(torch);
+        else if(!loud[i])
+            stopSound(torch);
     }
 }
 

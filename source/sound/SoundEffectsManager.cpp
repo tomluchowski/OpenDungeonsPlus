@@ -103,7 +103,8 @@ void GameSound::play(float x, float y, float z)
 // SoundEffectsManager class
 template<> SoundEffectsManager* Ogre::Singleton<SoundEffectsManager>::msSingleton = nullptr;
 
-SoundEffectsManager::SoundEffectsManager()
+SoundEffectsManager::SoundEffectsManager() :
+    mNextLoopHandle(1)
 {
     const std::string& soundFolderPath = ResourceManager::getSingleton().getSoundPath();
     // We read the spatial sound directory
@@ -118,6 +119,14 @@ SoundEffectsManager::SoundEffectsManager()
 
 SoundEffectsManager::~SoundEffectsManager()
 {
+    // The loops use the buffers of the cache, so they have to go first
+    for(std::map<uint32_t, sf::Sound*>::iterator loopIt = mSpatialLoops.begin(); loopIt != mSpatialLoops.end(); ++loopIt)
+    {
+        loopIt->second->stop();
+        delete loopIt->second;
+    }
+    mSpatialLoops.clear();
+
     // Clear up every cached sounds...
     std::map<std::string, GameSound*>::iterator it = mGameSoundCache.begin();
     std::map<std::string, GameSound*>::iterator it_end = mGameSoundCache.end();
@@ -217,6 +226,46 @@ void SoundEffectsManager::playSpatialSound(const std::string& family,
 
     unsigned int soundId = Random::Uint(0, sounds.size() - 1);
     sounds[soundId]->play(XPos, YPos, height);
+}
+
+uint32_t SoundEffectsManager::startSpatialLoop(const std::string& family,
+        float XPos, float YPos, float height)
+{
+    std::map<std::string, std::vector<GameSound*>>::iterator it = mSpatialSounds.find(family);
+    if((it == mSpatialSounds.end()) || it->second.empty())
+    {
+        OD_LOG_ERR("No sound found for loop family=" + family);
+        return 0;
+    }
+
+    const sf::SoundBuffer* buffer = it->second[0]->getBuffer();
+    if(buffer == nullptr)
+        return 0;
+
+    // Same fall-off as the other spatial sounds
+    sf::Sound* sound = new sf::Sound();
+    sound->setBuffer(*buffer);
+    sound->setLoop(true);
+    sound->setVolume(100.0f);
+    sound->setAttenuation(3.0f);
+    sound->setMinDistance(3.0f);
+    sound->setPosition(XPos, YPos, height);
+    sound->play();
+
+    uint32_t handle = mNextLoopHandle++;
+    mSpatialLoops[handle] = sound;
+    return handle;
+}
+
+void SoundEffectsManager::stopSpatialLoop(uint32_t handle)
+{
+    std::map<uint32_t, sf::Sound*>::iterator it = mSpatialLoops.find(handle);
+    if(it == mSpatialLoops.end())
+        return;
+
+    it->second->stop();
+    delete it->second;
+    mSpatialLoops.erase(it);
 }
 
 void SoundEffectsManager::playRelativeSound(const std::string& family)

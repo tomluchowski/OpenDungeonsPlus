@@ -80,7 +80,7 @@ private:
     {
         Torch() :
             mPosition(Ogre::Vector3::ZERO), mDirection(Ogre::Vector3::ZERO), mLightPosition(Ogre::Vector3::ZERO), mPhase(0.0), mDistance(0.0), mShown(false),
-            mLightNode(nullptr), mLight(nullptr)
+            mLightNode(nullptr), mLight(nullptr), mSoundHandle(0)
         {}
 
         Ogre::Vector3 mPosition;
@@ -96,17 +96,20 @@ private:
         Part mParts[4];
         Ogre::SceneNode* mLightNode;
         Ogre::Light* mLight;
+        //! Handle of the running crackling loop, 0 if none
+        uint32_t mSoundHandle;
     };
 
     struct Settings
     {
         Settings() :
-            mActiveLights(4), mActiveLightsReduced(2), mRange(6.0), mIntensity(1.0),
+            mActiveLights(4), mActiveLightsReduced(2), mSoundLoops(4), mRange(6.0), mIntensity(1.0),
             mColourR(1.0), mColourG(0.62), mColourB(0.28), mFlickerStrength(0.25), mFlickerSpeed(2.3)
         {}
 
         uint32_t mActiveLights;
         uint32_t mActiveLightsReduced;
+        uint32_t mSoundLoops;
         double mRange;
         double mIntensity;
         double mColourR;
@@ -124,6 +127,8 @@ private:
     void destroyPart(Part& part);
     void createLight(Torch& torch, const std::string& name);
     void destroyLight(Torch& torch);
+    void startSound(Torch& torch);
+    void stopSound(Torch& torch);
     void animate();
     void destroyTorch(Torch& torch);
 

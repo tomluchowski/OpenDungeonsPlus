@@ -60,6 +60,7 @@ double readClamped(const std::string& key, double defaultValue, double minValue,
 WallTorchConfig::WallTorchConfig() :
     mActiveLights(4),
     mActiveLightsReduced(2),
+    mSoundLoops(4),
     mLightRadius(6.0),
     mLightColorR(1.0),
     mLightColorG(0.62),
@@ -78,6 +79,7 @@ WallTorchConfig WallTorchConfig::load()
     result.mPlacement.mMinDistance = readCount("WallTorchMinDistance", 3, 1);
     result.mActiveLights = readCount("WallTorchActiveLights", 4, 0);
     result.mActiveLightsReduced = readCount("WallTorchActiveLightsReduced", 2, 0);
+    result.mSoundLoops = readCount("WallTorchSoundLoops", 4, 0);
     result.mLightRadius = readClamped("WallTorchLightRadius", 6.0, 0.5, 64.0);
     result.mLightColorR = readClamped("WallTorchLightColorR", 1.0, 0.0, 1.0);
     result.mLightColorG = readClamped("WallTorchLightColorG", 0.62, 0.0, 1.0);
