@@ -12,6 +12,7 @@ def read(path):
 
 frag = read('shaders/GoldDistortion.frag')
 material = read('materials/scripts/Gold.material')
+render = read('source/render/RenderManager.cpp')
 
 # No area glow: the lit colour is never multiplied by the vein gain and nothing is added everywhere.
 assert 'result * veinGain' not in frag and 'result *= veinGain' not in frag
@@ -24,8 +25,11 @@ assert 'vein * veinGain * sheen' in frag
 assert re.search(r'glitter\s*=\s*step\([^;]*\*\s*vein;', frag), 'glitter must be masked by the veins'
 # Glitter is time dependent and sparse (only a few cells per area light up).
 assert 'veinTime' in frag and 'step(0.90, cellRand)' in frag
-# A digging mark must not tint the veins or add light.
-assert '(1.0 - vein)' in frag
+# The whole gold texture receives the transparent material overlay, including its veins.
+assert 'result = lightingTerm * texelColor;' in frag
+assert 'Ogre::ColourValue markColor(0.65f, 0.45f, 1.0f, 0.5f)' in render
+assert 'markPass->setSceneBlending(Ogre::SBT_TRANSPARENT_ALPHA)' in render
+assert 'markPass->setDepthWriteEnabled(false)' in render
 # Output is clamped and opaque.
 assert 'min(result, vec3(1.0))' in frag
 assert re.search(r'color = vec4\([^;]*, 1\.0\);', frag)

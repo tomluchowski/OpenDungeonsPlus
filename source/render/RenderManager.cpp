@@ -4167,21 +4167,7 @@ std::string RenderManager::colourizeMaterial(const std::string& materialName, co
         if (technique->getNumPasses() == 0 || techniqueName.find("ZPrePassScheme") != Ogre::String::npos)
             continue;
 
-        if (markedForDigging)
-        {
-            // Color the material with yellow on the latest pass
-            // so we're sure to see the taint.
-            Ogre::ColourValue color(1.0, 1.0, 0.0, 1.0);
-            for (uint16_t i = 0; i < technique->getNumPasses(); ++i)
-            {
-                Ogre::Pass* pass = technique->getPass(i);
-                pass->setSpecular(color);
-                pass->setAmbient(color);
-                pass->setDiffuse(color);
-                pass->setEmissive(color);
-            }
-        }
-        else if(!playerHasVision)
+        if (!markedForDigging && !playerHasVision)
         {
             // Color the material with dark color on the latest pass
             // so we're sure to see the taint.
@@ -4217,6 +4203,24 @@ std::string RenderManager::colourizeMaterial(const std::string& materialName, co
 
             
 
+        }
+        if(markedForDigging)
+        {
+            Ogre::Pass* markPass = technique->createPass();
+            *markPass = *technique->getPass(0);
+            Ogre::HighLevelGpuProgramManager& programManager = Ogre::HighLevelGpuProgramManager::getSingleton();
+            if(!programManager.resourceExists("Custom_color", "Graphics"))
+            {
+                Ogre::HighLevelGpuProgramPtr fragmentProgram = programManager.createProgram("Custom_color", "Graphics", "glsl", Ogre::GpuProgramType::GPT_FRAGMENT_PROGRAM);
+                fragmentProgram->setSourceFile("Custom_color.frag");
+            }
+            markPass->setFragmentProgram("Custom_color", "Graphics");
+            Ogre::ColourValue markColor(0.65f, 0.45f, 1.0f, 0.5f);
+            markPass->getFragmentProgramParameters()->setNamedConstant("color", markColor);
+            markPass->getFragmentProgramParameters()->setNamedConstant("ambient", markColor);
+            markPass->setLightingEnabled(false);
+            markPass->setSceneBlending(Ogre::SBT_TRANSPARENT_ALPHA);
+            markPass->setDepthWriteEnabled(false);
         }
     }
 

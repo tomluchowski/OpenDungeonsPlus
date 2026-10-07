@@ -27,7 +27,6 @@ fragment_program myFragmentShader glsl
         param_named_auto lightCount light_count
         param_named_auto firstLightCastsShadows light_casts_shadows 0
         param_named_auto cameraPosition camera_position
-        param_named_auto diffuseSurface surface_diffuse_colour
         param_named_auto veinTime time_0_x 600
         param_named veinGain float 1.0
     }

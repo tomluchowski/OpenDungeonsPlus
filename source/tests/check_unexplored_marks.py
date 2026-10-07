@@ -29,6 +29,9 @@ rectangle = render[render.index('static void drawTileRectangle('):render.index('
 assert 'if(!digging)' in rectangle and 'OT_TRIANGLE_LIST' in rectangle
 assert 'PREVIEW_BORDER_INNER_HALF' in rectangle and 'PREVIEW_TILE_HALF' in rectangle
 assert 'PREVIEW_BORDER_INNER_HALF = 0.44f' in render and 'PREVIEW_TILE_HALF = 0.5f' in render
+tile = read('source/entities/Tile.cpp')
+assert 'Ogre::Vector4(0.65f, 0.45f, 1.0f, 0.5f)' in tile
+assert 'mix(texelColor, outputColor.rgb, outputColor.a)' in fog_shader
 
 # Flat marked-fog geometry is independent of tile type and exactly shares every adjacent edge.
 mesh = render[render.index('void createMarkedFogMesh('):render.index('RenderManager::RenderManager(')]
