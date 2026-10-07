@@ -123,12 +123,12 @@ inline BedPlacement bedPlacement(const MeshBounds& bounds, int x, int y,
     const float angle = allocationAngle + float(hash % 8001u) * 0.001f - 4.0f;
     const float radians = angle * 0.01745329252f;
     const float cosine = std::cos(radians), sine = std::sin(radians);
-    // Fit the rotated footprint, keeping the right and bottom 30% lanes clear.
+    // Fit the rotated footprint, keeping the right and bottom 35% lanes clear.
     const float c = std::abs(cosine), s = std::abs(sine);
     const float determinant = c * c - s * s;
-    const FurnitureScale scale{0.70f * (width * c - height * s) /
+    const FurnitureScale scale{0.65f * (width * c - height * s) /
             (determinant * (bounds.maxX - bounds.minX)),
-        0.70f * (height * c - width * s) /
+        0.65f * (height * c - width * s) /
             (determinant * (bounds.maxY - bounds.minY))};
     float left = 1.0e10f, top = -1.0e10f;
     for(float px : {bounds.minX * scale.x, bounds.maxX * scale.x})

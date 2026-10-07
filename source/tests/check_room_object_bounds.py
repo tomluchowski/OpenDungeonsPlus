@@ -95,11 +95,11 @@ int main(int argc,char** argv){try{
    node->_update(true,false);Ogre::AxisAlignedBox actual;
    for(int i=0;i<8;++i)actual.merge(node->convertLocalToWorldPosition(bounds.getAllCorners()[i]));
    ++checks;
-   if(std::abs(actual.getSize().x-width*.70f)>.00003f||
-      std::abs(actual.getSize().y-height*.70f)>.00003f||
-      std::abs((4.5f+width-actual.getMaximum().x)-width*.30f)>.00003f||
-      std::abs((actual.getMinimum().y-6.5f)-height*.30f)>.00003f){
-    ++failures;std::cout<<"FAIL "<<row.name<<" rotated bed must leave 30 percent right and bottom lanes\n";
+   if(std::abs(actual.getSize().x-width*.65f)>.00003f||
+      std::abs(actual.getSize().y-height*.65f)>.00003f||
+      std::abs((4.5f+width-actual.getMaximum().x)-width*.35f)>.00003f||
+      std::abs((actual.getMinimum().y-6.5f)-height*.35f)>.00003f){
+    ++failures;std::cout<<"FAIL "<<row.name<<" rotated bed must leave 35 percent right and bottom lanes\n";
    }
    ++checks;
    if(std::abs(actual.getMinimum().x-4.5f)>.00003f||
