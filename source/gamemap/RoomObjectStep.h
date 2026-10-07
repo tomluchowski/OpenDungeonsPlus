@@ -6,22 +6,21 @@
 
 namespace RoomObjectPath
 {
-// Only the completely measured low nest is traversable. Tall posts and
-// unknown furniture retain infinite height and cannot enter this path.
+// Only a completely measured bed that is not higher than maxStepHeight (the
+// BedStepMaxHeight configuration value) is traversable. Higher beds and unknown
+// furniture retain their height and cannot enter this path.
 inline float prepareLowStep(Obstacle& obstacle, const std::string& mesh,
-    float scale, float groundZ)
+    float scale, float groundZ, float maxStepHeight)
 {
     const float height = obstacle.maximumHeight - groundZ;
-    if(height <= 0.0f || height > lowWalkingHeight * 1.02f || height > lowWalkingHeight * scale)
+    if(height <= 0.0f || height > maxStepHeight)
         return 0.0f;
-    for(const LowWalkingBounds& body : lowWalkingBounds)
-        if(mesh == body.name && !body.empty)
-        {
-            obstacle.bodyMinimum = Ogre::Vector2(body.minX - lowWalkingMargin, body.minY - lowWalkingMargin) * scale;
-            obstacle.bodyMaximum = Ogre::Vector2(body.maxX + lowWalkingMargin, body.maxY + lowWalkingMargin) * scale;
-            return height - (body.minZ - lowWalkingMargin) * scale;
-        }
-    return 0.0f;
+    const BodyBand* body = bodyBand(mesh, height);
+    if(body == nullptr || body->empty)
+        return 0.0f;
+    obstacle.bodyMinimum = Ogre::Vector2(body->minX - lowWalkingMargin, body->minY - lowWalkingMargin) * scale;
+    obstacle.bodyMaximum = Ogre::Vector2(body->maxX + lowWalkingMargin, body->maxY + lowWalkingMargin) * scale;
+    return height - (body->minZ - lowWalkingMargin) * scale;
 }
 
 inline float lowStepElevation(const Obstacle& obstacle, Ogre::Vector2 position,

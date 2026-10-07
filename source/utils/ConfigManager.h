@@ -161,6 +161,9 @@ public:
     inline double getManaWellBonusPerTile() const
     { return mManaWellBonusPerTile; }
 
+    inline double getBedStepMaxHeight() const
+    { return mBedStepMaxHeight; }
+
     inline double getClaimingWallPenalty() const
     { return mClaimingWallPenalty; }
 
@@ -349,6 +352,7 @@ private:
     double mMaxManaPerSeat;
     //! \brief Extra mana per second for each claimed mana well tile
     double mManaWellBonusPerTile;
+    double mBedStepMaxHeight;
     double mClaimingWallPenalty;
     double mDigCoefGold;
     double mDigCoefGem;
