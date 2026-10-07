@@ -154,6 +154,9 @@ constexpr float bedAngleStep = 0.001f;
 constexpr float bedAngleJitter = 4.0f;
 // Part of the allocated width and depth that the rotated bed covers; the rest stays free.
 constexpr float bedFootprintShare = 0.70f;
+// The rest of the tile width and depth is the lane between two neighbouring beds. A
+// creature wider than that lane cannot use it.
+constexpr float bedLaneWidth = 1.0f - bedFootprintShare;
 // Start values for the search of the corner of the rotated bed.
 constexpr float bedCornerSentinel = 1.0e10f;
 

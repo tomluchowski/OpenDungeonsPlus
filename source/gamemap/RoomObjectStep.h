@@ -6,9 +6,11 @@
 
 namespace RoomObjectPath
 {
-// Only a completely measured bed that is not higher than maxStepHeight (the
-// BedStepMaxHeight configuration value) is traversable. Higher beds and unknown
-// furniture retain their height and cannot enter this path.
+// Only a completely measured bed is traversable: one that is not higher than
+// maxStepHeight (the BedStepMaxHeight configuration value), or any higher bed for
+// a creature whose body below the bed top is wider than the lane between two beds.
+// A creature that fits the lane walks through it instead. Unknown furniture
+// retains its height and cannot enter this path.
 // Returns the height that a creature of the given size has to climb to step onto the
 // obstacle and stores the body part that touches it in the obstacle; returns 0 if the
 // obstacle cannot be stepped onto.
@@ -16,10 +18,12 @@ inline float prepareLowStep(Obstacle& obstacle, const std::string& mesh,
     float scale, float groundZ, float maxStepHeight)
 {
     const float height = obstacle.maximumHeight - groundZ;
-    if(height <= 0.0f || height > maxStepHeight)
+    if(height <= 0.0f)
         return 0.0f;
     const BodyBand* body = bodyBand(mesh, height);
     if(body == nullptr || body->empty)
+        return 0.0f;
+    if(height > maxStepHeight && (body->maxX - body->minX + 2.0f * lowWalkingMargin) * scale <= bedLaneWidth)
         return 0.0f;
     obstacle.bodyMinimum = Ogre::Vector2(body->minX - lowWalkingMargin, body->minY - lowWalkingMargin) * scale;
     obstacle.bodyMaximum = Ogre::Vector2(body->maxX + lowWalkingMargin, body->maxY + lowWalkingMargin) * scale;
