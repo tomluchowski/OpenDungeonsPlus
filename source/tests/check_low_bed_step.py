@@ -82,8 +82,10 @@ int main(int argc,char** argv){
  for(const auto& body:bodyBands)for(int level:{1,30})for(float angle:{0.f,.07f,1.5707963f}){
   Obstacle bed{{-.35f,-.35f},{.35f,.35f},{5,5},std::cos(angle),std::sin(angle)};bed.maximumHeight=body.height;
   const float scale=1+.02f*level;const float rise=prepareLowStep(bed,body.name,scale,0,stepMax);
-  if(body.height>stepMax){check(rise==0,"beds above the configured step height remain solid");continue;}
-  check(body.empty?rise==0:rise>0,"only known ground bodies require a step");
+  const bool wide=(body.maxX-body.minX+2*lowWalkingMargin)*scale>bedLaneWidth;
+  const bool steps=!body.empty&&(body.height<=stepMax||wide);
+  check(steps?rise>0:rise==0,"only known ground bodies step, high beds only for bodies wider than the lane");
+  if(!steps)continue;
   for(int heading=0;heading<8;++heading){
    const Ogre::Vector2 direction(std::cos(heading*.785398163f),std::sin(heading*.785398163f));
    const auto shape=bed.forHeading(direction);float previous=lowStepElevation(bed,Ogre::Vector2(5,5)-direction*2.f,direction,rise);

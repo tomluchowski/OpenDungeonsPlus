@@ -107,6 +107,11 @@ inline FurnitureScale furnitureScale(const MeshBounds& bounds)
     return {scale, scale};
 }
 
+// A bed covers this fraction of its tile width and depth; the rest is the lane
+// between two neighbouring beds. A creature wider than that lane cannot use it.
+constexpr float bedTileFill = 0.70f;
+constexpr float bedLaneWidth = 1.0f - bedTileFill;
+
 struct BedPlacement
 {
     float x, y, angle;
@@ -126,9 +131,9 @@ inline BedPlacement bedPlacement(const MeshBounds& bounds, int x, int y,
     // Fit the rotated footprint, keeping the right and bottom 30% lanes clear.
     const float c = std::abs(cosine), s = std::abs(sine);
     const float determinant = c * c - s * s;
-    const FurnitureScale scale{0.70f * (width * c - height * s) /
+    const FurnitureScale scale{bedTileFill * (width * c - height * s) /
             (determinant * (bounds.maxX - bounds.minX)),
-        0.70f * (height * c - width * s) /
+        bedTileFill * (height * c - width * s) /
             (determinant * (bounds.maxY - bounds.minY))};
     float left = 1.0e10f, top = -1.0e10f;
     for(float px : {bounds.minX * scale.x, bounds.maxX * scale.x})
