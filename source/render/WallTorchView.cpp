@@ -403,15 +403,6 @@ void WallTorchView::refresh(Mode mode, Ogre::Camera* camera)
                 camera->isVisible(Ogre::AxisAlignedBox(center - extent, center + extent));
         }
 
-        for(uint32_t i = 0; i < NB_PARTS; ++i)
-        {
-            bool wanted = torch.mShown && (i < nbParts) && (torch.mDistance <= PART_DISTANCES[i] * distanceFactor);
-            if(wanted && (torch.mParts[i].mNode == nullptr))
-                createPart(torch, i, "WallTorch_" + keyToString(it->first) + "_" + Helper::toString(++mUniqueNumber));
-            else if(!wanted && (torch.mParts[i].mNode != nullptr))
-                destroyPart(torch.mParts[i]);
-        }
-
         if(torch.mShown)
         {
             shown.push_back(it);
@@ -419,6 +410,8 @@ void WallTorchView::refresh(Mode mode, Ogre::Camera* camera)
         }
         else
         {
+            for(uint32_t i = 0; i < NB_PARTS; ++i)
+                destroyPart(torch.mParts[i]);
             destroyLight(torch);
             stopSound(torch);
         }
@@ -449,6 +442,17 @@ void WallTorchView::refresh(Mode mode, Ogre::Camera* camera)
         }
         else
             destroyLight(torch);
+
+        // Without a real light, keep only the holder and flame.
+        for(uint32_t part = 0; part < NB_PARTS; ++part)
+        {
+            bool wanted = (part < nbParts) && (torch.mDistance <= PART_DISTANCES[part] * distanceFactor) &&
+                ((part < NB_REDUCED_PARTS) || (torch.mLight != nullptr));
+            if(wanted && (torch.mParts[part].mNode == nullptr))
+                createPart(torch, part, "WallTorch_" + keyToString(shown[i]->first) + "_" + Helper::toString(++mUniqueNumber));
+            else if(!wanted && (torch.mParts[part].mNode != nullptr))
+                destroyPart(torch.mParts[part]);
+        }
     }
 
     // The crackling loop for the nearest few to the camera (refresh is not called with the setting off)
