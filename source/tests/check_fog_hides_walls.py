@@ -1,4 +1,4 @@
-"""Static checks that unexplored (fogged) tiles reveal nothing: no hover text and no lit relief.
+"""Static checks that unexplored (fogged) tiles reveal no type or lit relief.
 
 Run from any directory. It does not start a game.
 """
@@ -18,14 +18,13 @@ def check(condition, message):
         failures.append(message)
 
 
-# Unexplored walls can be marked for digging: the hover text is the generic wall text and the client
-# treats a never seen tile (no tile data yet) as a markable wall, so nothing is revealed
+# Unexplored walls use the same hover text and mark action regardless of their actual type.
 tile_cpp = (root / "source/entities/Tile.cpp").read_text(encoding="utf-8")
 check("mTileVisual == TileVisual::nullTileVisual && !mEverVisible && !getGameMap()->isServerGameMap()" in tile_cpp,
       "unexplored tiles are not markable on the client")
-check(re.search(r"else if\(tile->isDiggable\(.*?\)\)\s*\{\s*displayText\([^;]*Click or drag to mark for digging",
-                game_mode, re.S) is not None,
-      "hover wall text is missing")
+fog_hover = game_mode[game_mode.index("void GameMode::handlePlayerActionNone()"):game_mode.index("void GameMode::handlePlayerActionSelectTile()")]
+check(fog_hover.index('"Unexplored. Click or drag to mark for digging."') < fog_hover.index('tile->fillWithEntities('),
+      "neutral fog hover must precede entity and type lookup")
 
 # The selection error texts must not describe a fogged tile
 select = game_mode[game_mode.index("void GameMode::handlePlayerActionSelectTile()"):]

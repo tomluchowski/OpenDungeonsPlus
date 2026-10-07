@@ -485,7 +485,11 @@ void Tile::setMarkedForDigging(bool ss, const Player *pp)
     /* If we are trying to mark a tile that is not dirt or gold
      * or is already dug out, ignore the request.
      */
-    if (ss && !isDiggable(pp->getSeat()))
+    const bool unexplored = pp->getIsHuman() &&
+        (getGameMap()->isServerGameMap() ?
+            !getGameMap()->everVisitedFlagPool[getX()][getY()][pp->getSeat()->getId()] :
+            (!getEverVisible() || getHasFogOfWar()));
+    if (ss && !unexplored && !isDiggable(pp->getSeat()))
         return;
 
     // If the tile was already in the given state, we can return

@@ -2043,7 +2043,7 @@ void RenderManager::rrRefreshTile(Tile& tile, GameMap& draggableTileContainer, c
         else if ( !tile.getEverVisible() && !tile.getHasFogOfWar())
         {
 
-            tile.setFogOfWarMesh( mInstanceManagerDirt->createInstancedEntity("DirtInstanced"), false);
+            tile.setFogOfWarMesh( mInstanceManagerDirt->createInstancedEntity("DirtInstanced"), isMarked);
             tile.setFogOfWarCloud( mInstanceManagerCloud->createInstancedEntity("Fog"));
             tileMeshNode->attachObject(tile.getFogOfWarMesh());
             tileMeshNode->attachObject(tile.getFogOfWarCloud());
@@ -2077,7 +2077,7 @@ void RenderManager::rrRefreshTile(Tile& tile, GameMap& draggableTileContainer, c
             mSceneManager->destroyInstancedEntity(tile.getFogOfWarMesh());
             tile.setFogOfWarMesh(nullptr, isMarked);  
             tile.setHasFogOfWar(false);  
-            tile.setFogOfWarMesh( mInstanceManagerDirt->createInstancedEntity("DirtInstanced"), false);
+            tile.setFogOfWarMesh( mInstanceManagerDirt->createInstancedEntity("DirtInstanced"), isMarked);
             tileMeshNode->attachObject(tile.getFogOfWarMesh());
             tile.getFogOfWarMesh()->setPosition(tile.getPosition());
            
@@ -2091,6 +2091,9 @@ void RenderManager::rrRefreshTile(Tile& tile, GameMap& draggableTileContainer, c
         
 
     }
+    if(tile.getHasFogOfWar() && tile.getFogOfWarMesh() != nullptr)
+        tile.setFogOfWarMesh(tile.getFogOfWarMesh(), isMarked);
+
     // We rescale and set the orientation that may have changed
     if(tileMeshNode != nullptr)
     {

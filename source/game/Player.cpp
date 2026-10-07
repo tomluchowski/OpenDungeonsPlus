@@ -638,14 +638,16 @@ void Player::markTilesForDigging(bool marked, const std::vector<Tile*>& tiles, b
             }
 
             // If the tile is diggable for the client, we mark it for him
-            if(getSeat()->isTileDiggableForClient(tile))
+            const bool unexplored = !getSeat()->hasVisionOnTile(tile) &&
+                !mGameMap->everVisitedFlagPool[tile->getX()][tile->getY()][getSeat()->getId()];
+            if(unexplored || getSeat()->isTileDiggableForClient(tile))
             {
                 getSeat()->tileMarkedDiggingNotifiedToPlayer(tile, marked);
                 tilesMark.push_back(tile);
             }
 
             // If the tile can be marked on server side, we mark it
-            if(!tile->isDiggable(getSeat()))
+            if(!unexplored && !tile->isDiggable(getSeat()))
                 continue;
 
             tile->setMarkedForDigging(marked, this);

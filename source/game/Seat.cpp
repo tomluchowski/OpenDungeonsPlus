@@ -258,8 +258,15 @@ void Seat::notifyVisionOnTile(Tile* tile, NodeType nt)
     if(!mPlayer->getIsHuman())
         return;
 
+    if(nt == NodeType::MTILES_NODE && !mTilesStates[tile].mVisionTurnCurrent &&
+       mTilesStates[tile].mMarkedForDigging && !tile->isDiggable(this))
+        mPlayer->markTilesForDigging(false, std::vector<Tile*>(1, tile), false);
+
     if( nt == NodeType::MTILES_NODE)
+    {
         mTilesStates[tile].mVisionTurnCurrent =  true;
+        mGameMap->everVisitedFlagPool[tile->getX()][tile->getY()][mId] = true;
+    }
     else
     {
         mDraggableTilesStates[tile].mVisionTurnCurrent = true;

@@ -1,5 +1,4 @@
-"""Check that unexplored tiles cannot be marked for digging and that a fogged tile never shows a mark colour,
-so the yellow mark does not reveal gold or dirt walls in the unexplored area. Text check, no game start."""
+"""Check type-neutral marking of unexplored tiles and the fog-surface mark. Text check, no game start."""
 from pathlib import Path
 
 repo = Path(__file__).resolve().parents[2]
@@ -10,10 +9,21 @@ def read(path):
 
 
 game_mode = read('source/modes/GameMode.cpp')
-assert 'tile->getEverVisible() && tile->isDiggable(player->getSeat())' in game_mode
+assert 'Unexplored. Click or drag to mark for digging.' in game_mode
+assert '!tile->getEverVisible() || tile->getHasFogOfWar() || tile->isDiggable' in game_mode
+
+player = read('source/game/Player.cpp')
+assert 'if(unexplored || getSeat()->isTileDiggableForClient(tile))' in player
+assert 'if(!unexplored && !tile->isDiggable(getSeat()))' in player
+seat = read('source/game/Seat.cpp')
+assert 'mPlayer->markTilesForDigging(false, std::vector<Tile*>(1, tile), false)' in seat
 
 render = read('source/render/RenderManager.cpp')
-assert render.count('createInstancedEntity("DirtInstanced"), false)') == 2
-assert 'createInstancedEntity("DirtInstanced"), isMarked)' not in render
+assert render.count('createInstancedEntity("DirtInstanced"), isMarked)') == 2
+assert 'tile.setFogOfWarMesh(tile.getFogOfWarMesh(), isMarked)' in render
+preview = render[render.index('void RenderManager::rrDrawTilePreview('):render.index('bool RenderManager::getKeeperHandPosition')]
+rectangle = preview[preview.index('if(singleRectangle)'):preview.index('    return;\n    }')]
+assert 'OT_TRIANGLE_LIST' not in rectangle
+assert 'minX - 0.5f' in rectangle and 'maxX + 0.5f' in rectangle
 
 print('check_unexplored_marks ok')
