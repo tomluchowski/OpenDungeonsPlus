@@ -9,6 +9,7 @@
 #include "rooms/Room.h"
 #include "rooms/RoomPrison.h"
 #include "rooms/RoomType.h"
+#include "utils/ConfigManager.h"
 #include "utils/Helper.h"
 #include <functional>
 
@@ -101,7 +102,8 @@ bool removeLowStepObstacles(Creature& creature, std::vector<RoomObjectPath::Obst
     obstacles.erase(std::remove_if(obstacles.begin(), obstacles.end(), [&](RoomObjectPath::Obstacle obstacle)
     {
         return RoomObjectPath::prepareLowStep(obstacle, creature.getMeshName(),
-            RoomObjectPath::creatureScale(creature.getLevel()), creature.getPosition().z) > 0.0f;
+            RoomObjectPath::creatureScale(creature.getLevel()), creature.getPosition().z,
+            ConfigManager::getSingleton().getBedStepMaxHeight()) > 0.0f;
     }), obstacles.end());
     return obstacles.size() != count;
 }
@@ -167,29 +169,25 @@ std::vector<RoomObjectPath::Obstacle> RoomObjectNavigation::bodyObstacles(Creatu
     Ogre::Vector2 heading(creature.getWalkDirection().x, creature.getWalkDirection().y);
     if(heading.squaredLength() < 0.000001f)
         heading = Ogre::Vector2(0, -1);
-    const RoomObjectPath::LowWalkingBounds* low = nullptr;
-    for(const RoomObjectPath::LowWalkingBounds& model : RoomObjectPath::lowWalkingBounds)
-        if(creature.getMeshName() == model.name)
-        {
-            low = &model;
-            break;
-        }
     for(std::vector<RoomObjectPath::Obstacle>::iterator it = result.begin(); it != result.end();)
     {
         RoomObjectPath::Obstacle& obstacle = *it;
         obstacle.bodyMinimum = minimum * scale;
         obstacle.bodyMaximum = maximum * scale;
-        if(low != nullptr && obstacle.maximumHeight <= creature.getPosition().z + RoomObjectPath::lowWalkingHeight * scale)
+        // Body parts above the complete object cannot collide with it, so only the
+        // body below its top counts.
+        const RoomObjectPath::BodyBand* band = RoomObjectPath::bodyBand(creature.getMeshName(),
+            obstacle.maximumHeight - creature.getPosition().z);
+        if(band != nullptr)
         {
-            // Body parts above the complete object cannot collide with it.
-            if(low->empty)
+            if(band->empty)
             {
                 it = result.erase(it);
                 continue;
             }
             const float margin = RoomObjectPath::lowWalkingMargin;
-            obstacle.bodyMinimum = Ogre::Vector2(low->minX - margin, low->minY - margin) * scale;
-            obstacle.bodyMaximum = Ogre::Vector2(low->maxX + margin, low->maxY + margin) * scale;
+            obstacle.bodyMinimum = Ogre::Vector2(band->minX - margin, band->minY - margin) * scale;
+            obstacle.bodyMaximum = Ogre::Vector2(band->maxX + margin, band->maxY + margin) * scale;
         }
         obstacle.initialHeading = heading;
         ++it;
@@ -282,7 +280,8 @@ bool RoomObjectNavigation::refine(Creature& creature, std::vector<Ogre::Vector2>
     for(RoomObjectPath::Obstacle obstacle : obstacles)
     {
         const float rise = RoomObjectPath::prepareLowStep(obstacle, creature.getMeshName(),
-            RoomObjectPath::creatureScale(creature.getLevel()), creature.getPosition().z);
+            RoomObjectPath::creatureScale(creature.getLevel()), creature.getPosition().z,
+            ConfigManager::getSingleton().getBedStepMaxHeight());
         if(rise <= 0.0f)
         {
             solid.push_back(obstacle);

@@ -38,8 +38,10 @@ Ogre::Bone* findBone(Ogre::Skeleton* skeleton,std::initializer_list<const char*>
  return nullptr;
 }
 Ogre::AxisAlignedBox poseBounds;
-const float heights[]={.05f,.1f,.15f,.2f,.3f,RoomObjectPath::lowWalkingHeight};
-Ogre::AxisAlignedBox heightBounds[6];
+// One band for every furniture top that carries a measured height (all beds): the creature is clipped
+// at that height in mesh units, i.e. one level-one scale step below the furniture top.
+std::vector<float> furnitureTops,heights;
+std::vector<Ogre::AxisAlignedBox> heightBounds;
 bool profile=false;
 const std::string boneProfile="BONE_PROFILE";
 std::map<unsigned short,Ogre::AxisAlignedBox> boneBounds,lowBoneBounds;
@@ -63,7 +65,7 @@ float radius(Ogre::Entity* entity){
      if(strongest==range.second||weight->second.weight>strongest->second.weight)strongest=weight;
     if(strongest==range.second)throw std::runtime_error("Bone profile found an unweighted vertex");
     const auto bone=strongest->second.boneIndex;boneBounds[bone].merge(Ogre::Vector3(vertex));
-    if(vertex[2]<=RoomObjectPath::lowWalkingHeight)lowBoneBounds[bone].merge(Ogre::Vector3(vertex));
+    if(vertex[2]<=heights.back())lowBoneBounds[bone].merge(Ogre::Vector3(vertex));
    }
   }
   {
@@ -80,8 +82,7 @@ float radius(Ogre::Entity* entity){
      if(index>=data->vertexCount)throw std::runtime_error("Height profile vertex index outside animated data");
      float* vertex;position->baseVertexPointerToElement(bytes+(data->vertexStart+index)*buffer->getVertexSize(),&vertex);points[corner]=Ogre::Vector3(vertex);
     }
-    for(int band=0;band<6;++band)for(int corner=0;corner<3;++corner){
-     if(!profile&&band!=5)continue;
+    for(size_t band=0;band<heights.size();++band)for(int corner=0;corner<3;++corner){
      const auto& a=points[corner];const auto& b=points[(corner+1)%3];
      if(a.z<=heights[band])heightBounds[band].merge(a);
      if((a.z<heights[band]&&b.z>heights[band])||(a.z>heights[band]&&b.z<heights[band]))
@@ -99,6 +100,11 @@ int main(int argc,char** argv){try{
  auto& groups=Ogre::ResourceGroupManager::getSingleton();groups.createResourceGroup("Graphics");
  groups.addResourceLocation(std::string(argv[1])+"/models","FileSystem","Graphics",true);groups.initialiseAllResourceGroups();
  auto* scene=root.createSceneManager();int checks=0,failures=0;
+ for(const auto& row:RoomObjectPath::meshBounds)if(std::isfinite(row.maxZ))furnitureTops.push_back(row.maxZ);
+ std::sort(furnitureTops.begin(),furnitureTops.end());
+ furnitureTops.erase(std::unique(furnitureTops.begin(),furnitureTops.end()),furnitureTops.end());
+ for(float top:furnitureTops)heights.push_back(top/1.02f);
+ heightBounds.resize(heights.size());
  profile=argc>3;
  const int frames=std::stoi(argv[2]);
  if(profile)for(const std::string name:{BED_NAMES}){
@@ -123,18 +129,22 @@ int main(int argc,char** argv){try{
    if(actual>model.radius||poseBounds.getMinimum().x<model.minX||poseBounds.getMinimum().y<model.minY||poseBounds.getMaximum().x>model.maxX||poseBounds.getMaximum().y>model.maxY){++failures;std::cout<<"FAIL "<<model.name<<" pose "<<frame<<" exceeds walking bounds "<<poseBounds<<'\n';}
    root._fireFrameEnded();
   }
-  bool foundLow=false;
-  for(const auto& low:RoomObjectPath::lowWalkingBounds)if(std::string(low.name)==model.name){
-   foundLow=true;const auto& actual=heightBounds[5];const float margin=RoomObjectPath::lowWalkingMargin;
-   ++checks;if(low.empty?!actual.isNull():(actual.isNull()||actual.getMinimum().x<low.minX-margin||
-    actual.getMinimum().y<low.minY-margin||actual.getMaximum().x>low.maxX+margin||actual.getMaximum().y>low.maxY+margin||
-    actual.getMinimum().z<low.minZ-margin)){
-    ++failures;std::cout<<"FAIL low walking envelope "<<model.name<<" "<<actual<<'\n';
+  for(size_t band=0;band<heights.size();++band){
+   const auto& actual=heightBounds[band];const float margin=RoomObjectPath::lowWalkingMargin;
+   const RoomObjectPath::BodyBand* low=RoomObjectPath::bodyBand(model.name,furnitureTops[band]);
+   if(profile){
+    const Ogre::Vector3 lo=actual.isNull()?Ogre::Vector3::ZERO:actual.getMinimum(),hi=actual.isNull()?Ogre::Vector3::ZERO:actual.getMaximum();
+    const auto down=[](float v){return std::floor(v*1.0e6f)/1.0e6f;};const auto up=[](float v){return std::ceil(v*1.0e6f)/1.0e6f;};
+    std::cout<<"BODY_ROW {\""<<model.name<<"\", "<<furnitureTops[band]<<"f, "<<down(lo.x)<<"f, "<<down(lo.y)<<"f, "<<up(hi.x)<<"f, "<<up(hi.y)<<"f, "
+     <<(actual.isNull()?"true":"false")<<", "<<down(lo.z)<<"f},\n";
+   }
+   ++checks;if(low==nullptr){++failures;std::cout<<"FAIL missing body band "<<model.name<<" height="<<furnitureTops[band]<<'\n';continue;}
+   ++checks;if(low->empty?!actual.isNull():(actual.isNull()||actual.getMinimum().x<low->minX-margin||
+    actual.getMinimum().y<low->minY-margin||actual.getMaximum().x>low->maxX+margin||actual.getMaximum().y>low->maxY+margin||
+    actual.getMinimum().z<low->minZ-margin)){
+    ++failures;std::cout<<"FAIL body band "<<model.name<<" height="<<furnitureTops[band]<<" "<<actual<<'\n';
    }
   }
-  ++checks;if(!foundLow){++failures;std::cout<<"FAIL missing low walking envelope "<<model.name<<'\n';}
-  if(profile)for(int band=0;band<6;++band)
-   std::cout<<"HEIGHT_PROFILE "<<model.name<<" z="<<heights[band]<<" bounds="<<heightBounds[band]<<'\n';
   if(profile)for(int joint=0;joint<6;++joint){
    std::cout<<"LEG_PROFILE "<<model.name<<" joint="<<joint;
    if(joints[joint])std::cout<<" bone="<<joints[joint]->getName()<<" bounds="<<jointBounds[joint];else std::cout<<" missing";
@@ -163,7 +173,7 @@ with tempfile.TemporaryDirectory(prefix='odp-walking-bounds-') as directory:
                     f'/I{prefix / "include/OGRE"}', 'check.cpp', '/Fecheck.exe', '/link',
                     f'/LIBPATH:{prefix / "lib"}', 'OgreMain.lib'], cwd=work, check=True)
     result = subprocess.run([str(work / 'check.exe'), str(repo), str(args.frames)] + (['profile'] if args.height_profile else []), cwd=work, capture_output=True, text=True)
-    print('\n'.join(line for line in result.stdout.splitlines() if any(marker in line for marker in ('CHECKS=', 'FAIL ', 'HEIGHT_PROFILE ', 'FURNITURE_HEIGHT ', 'LEG_PROFILE ', 'DOMINANT_BONE '))))
+    print('\n'.join(line for line in result.stdout.splitlines() if any(marker in line for marker in ('CHECKS=', 'FAIL ', 'BODY_ROW ', 'FURNITURE_HEIGHT ', 'LEG_PROFILE ', 'DOMINANT_BONE '))))
     if result.returncode:
         if 'FAIL ' not in result.stdout:
             print(result.stderr)

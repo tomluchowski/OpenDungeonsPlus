@@ -125,6 +125,11 @@ std::list<Tile*> GameMap::path(Creature* creature,Tile* target){
   }
  }return {};
 }
+struct ConfigManager {
+ static ConfigManager& getSingleton(){static ConfigManager config;return config;}
+ double getBedStepMaxHeight()const{return STEP_MAX;}
+ double getRoomConfigDouble(const char*){return 10;}unsigned getRoomConfigUInt32(const char*){return 1;}
+};
 SOURCE
 void Creature::setWalkPath(const std::string&,const std::string&,bool,bool,const std::vector<Ogre::Vector2>& path,bool jitter){
  walk=path;distortion=jitter;if(RoomObjectNavigation::refine(*this,walk))distortion=false;
@@ -137,10 +142,6 @@ struct ChickenEntity {
 };
 struct CreatureActionWalkToTile {CreatureActionWalkToTile(Creature&){}};
 struct CreatureActionEatChicken {static bool handleEatChicken(Creature&,ChickenEntity*);};
-struct ConfigManager {
- static ConfigManager& getSingleton(){static ConfigManager config;return config;}
- double getRoomConfigDouble(const char*){return 10;}unsigned getRoomConfigUInt32(const char*){return 1;}
-};
 namespace Random {int Int(int first,int){return first;}}
 namespace Utils {using std::make_unique;}
 namespace EntityAnimation {const std::string walk_anim="Walk",idle_anim="Idle",eat_chicken_anim="EatChicken";}
@@ -179,7 +180,7 @@ int main(){
   const float crossingY=5+std::sin(angle)*(row.minX+row.maxX)*.5f+std::cos(angle)*(row.minY+row.maxY)*.5f;
   creature.pos={1,crossingY,0};
   std::vector<Ogre::Vector2> path;for(int x=2;x<=10;++x)path.push_back({float(x),crossingY});
-  check(RoomObjectNavigation::blocked(creature,path)!=(std::string(row.name)=="GoblinBed"),"straight crossing is permitted only over the measured low nest");
+  check(RoomObjectNavigation::blocked(creature,path)!=(row.maxZ<=ConfigManager::getSingleton().getBedStepMaxHeight()),"straight crossing is permitted only over beds not higher than the configured step height");
   check(RoomObjectNavigation::refine(creature,path),"furniture routes suppress independent client jitter");
   if(path.empty())std::cout<<"NO_ROUTE "<<row.name<<" rotation="<<rotation<<'\n';
   check(!path.empty()&&path.back()==Ogre::Vector2(10,crossingY),"route keeps accessible destination");
@@ -326,7 +327,7 @@ int main(){
  SAVED_TERRAIN
  std::cout<<"CHECKS="<<checks<<" FAILURES="<<failures<<'\n';return failures?1:0;
 }
-'''.replace('SOURCE', source).replace('FOOD_HANDLER', food_handler).replace('WORK_GATES', '\n'.join(work_gates))
+'''.replace('STEP_MAX', re.search(r'^\s*BedStepMaxHeight\s+(\S+)', (repo / 'config/global.cfg').read_text(), re.M)[1]).replace('SOURCE', source).replace('FOOD_HANDLER', food_handler).replace('WORK_GATES', '\n'.join(work_gates))
 probe = probe.replace('PACKED_BEDS', r'''
  {
   // A completely furnished room with two opposing doorways: an open-map
@@ -407,7 +408,7 @@ probe = probe.replace('PACKED_BEDS', r'''
     for(const auto& point:path){
      bool clear=true;
      for(auto obstacle:obstacles)if(obstacle.intersects(previous,point)){
-      const float rise=RoomObjectPath::prepareLowStep(obstacle,walker.mesh,1+.02f*walker.level,walker.pos.z);
+      const float rise=RoomObjectPath::prepareLowStep(obstacle,walker.mesh,1+.02f*walker.level,walker.pos.z,ConfigManager::getSingleton().getBedStepMaxHeight());
       if(rise<=0){clear=false;break;}
       for(int sample=0;sample<=64;++sample){
        const auto at=previous+(point-previous)*(sample/64.f);

@@ -1,6 +1,7 @@
 """Exercise production low-nest elevation and renderer lifecycle without a game."""
 from pathlib import Path
 import os
+import re
 import sys
 import subprocess
 import tempfile
@@ -8,6 +9,7 @@ import tempfile
 repo = Path(__file__).resolve().parents[2]
 prefix = Path(os.environ['CMAKE_PREFIX_PATH'])
 renderer = (repo / 'source/render/RenderManager.cpp').read_text()
+step_max = re.search(r'^\s*BedStepMaxHeight\s+(\S+)', (repo / 'config/global.cfg').read_text(), re.M)[1]
 methods = renderer.split('void RenderManager::updateCreatureStep(', 1)[1].split('\nvoid RenderManager::rrMoveMapLightFlicker(', 1)[0]
 probe = r'''
 #include <Ogre.h>
@@ -16,6 +18,7 @@ probe = r'''
 #include "gamemap/RoomObjectStep.h"
 #include <set>
 #include <iostream>
+struct ConfigManager {static ConfigManager& getSingleton(){static ConfigManager manager;return manager;}double getBedStepMaxHeight()const{return STEP_MAX;}};
 enum class GameEntityType {buildingObject,creature};
 struct RenderedMovableEntity {
  Ogre::SceneNode* node;std::string mesh="GoblinBed";Ogre::Vector3 pos;float angle=0;
@@ -75,9 +78,11 @@ void renderPreview(const std::string& repo,const std::string& prefix){
 int main(int argc,char** argv){
  int checks=0,failures=0;auto check=[&](bool ok,const char* reason){++checks;if(!ok){++failures;std::cout<<"FAIL "<<reason<<'\n';}};
  using namespace RoomObjectPath;
- for(const auto& body:lowWalkingBounds)for(int level:{1,30})for(float angle:{0.f,.07f,1.5707963f}){
-  Obstacle bed{{-.35f,-.35f},{.35f,.35f},{5,5},std::cos(angle),std::sin(angle)};bed.maximumHeight=.073802f;
-  const float scale=1+.02f*level;const float rise=prepareLowStep(bed,body.name,scale,0);
+ const float stepMax=ConfigManager::getSingleton().getBedStepMaxHeight();
+ for(const auto& body:bodyBands)for(int level:{1,30})for(float angle:{0.f,.07f,1.5707963f}){
+  Obstacle bed{{-.35f,-.35f},{.35f,.35f},{5,5},std::cos(angle),std::sin(angle)};bed.maximumHeight=body.height;
+  const float scale=1+.02f*level;const float rise=prepareLowStep(bed,body.name,scale,0,stepMax);
+  if(body.height>stepMax){check(rise==0,"beds above the configured step height remain solid");continue;}
   check(body.empty?rise==0:rise>0,"only known ground bodies require a step");
   for(int heading=0;heading<8;++heading){
    const Ogre::Vector2 direction(std::cos(heading*.785398163f),std::sin(heading*.785398163f));
@@ -90,7 +95,7 @@ int main(int argc,char** argv){
     check(std::abs(lift-previous)<.016f,"entry and exit height remain continuous at one-centimeter samples");previous=lift;
    }
   }
-  bed.maximumHeight=.2f;check(prepareLowStep(bed,body.name,scale,0)==0,"higher bed parts remain solid");
+  bed.maximumHeight=.2f;check(prepareLowStep(bed,body.name,scale,0,stepMax)==0,"unmeasured furniture heights remain solid");
  }
  Ogre::SceneNode creatureNode(nullptr),bedNode(nullptr);GameMap map;BuildingObject nest;nest.node=&bedNode;
  for(const auto& bounds:meshBounds)if(std::string(bounds.name)=="GoblinBed"){
@@ -111,7 +116,7 @@ int main(int argc,char** argv){
  if(argc>1)renderPreview(argv[1],argv[2]);
  std::cout<<"CHECKS="<<checks<<" FAILURES="<<failures<<'\n';return failures?1:0;
 }
-'''.replace('METHODS', methods)
+'''.replace('METHODS', methods).replace('STEP_MAX', step_max)
 with tempfile.TemporaryDirectory(prefix='odp-low-step-') as directory:
     work = Path(directory)
     (work / 'check.cpp').write_text(probe)

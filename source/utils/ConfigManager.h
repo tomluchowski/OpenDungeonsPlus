@@ -150,6 +150,9 @@ public:
     inline double getMaxManaPerSeat() const
     { return mMaxManaPerSeat; }
 
+    inline double getBedStepMaxHeight() const
+    { return mBedStepMaxHeight; }
+
     inline double getClaimingWallPenalty() const
     { return mClaimingWallPenalty; }
 
@@ -333,6 +336,7 @@ private:
     int64_t mTimePayDay;
     int32_t mNbTurnsFuriousMax;
     double mMaxManaPerSeat;
+    double mBedStepMaxHeight;
     double mClaimingWallPenalty;
     double mDigCoefGold;
     double mDigCoefGem;

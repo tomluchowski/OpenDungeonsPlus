@@ -3664,7 +3664,8 @@ void RenderManager::updateCreatureStep(Creature* creature)
                 {candidate->getPosition().x, candidate->getPosition().y}, std::cos(angle), std::sin(angle)};
             obstacle.maximumHeight = candidate->getPosition().z + bounds.maxZ;
             const float rise = RoomObjectPath::prepareLowStep(obstacle, creature->getMeshName(),
-                RoomObjectPath::creatureScale(creature->getLevel()), position.z);
+                RoomObjectPath::creatureScale(creature->getLevel()), position.z,
+                ConfigManager::getSingleton().getBedStepMaxHeight());
             if(!creature->isMoving() && !obstacle.contains(point, direction))
                 continue;
             lift = std::max(lift, RoomObjectPath::lowStepElevation(obstacle, point, direction, rise));
