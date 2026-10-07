@@ -2,6 +2,95 @@
 // (see config/roomAmbienceDeferred.cfg).
 // Spark, glow and ember systems are shared with the other room ambience particle files.
 
+// ---- Wall torches ----
+
+// The iron bracket and the torch head, one billboard that stays
+particle_system RoomAmbTorchBracket
+{
+    material        RoomAmbBracket
+    point_rendering false
+    particle_width  0.2
+    particle_height 0.4
+    cull_each       false
+    quota           1
+    billboard_type  point
+
+    emitter Point
+    {
+        angle               0
+        colour              1.0 1.0 1.0 1.0
+        emission_rate       2
+        time_to_live        100000
+        direction           0 0 1
+        velocity            0
+    }
+}
+
+// The flame on the torch head: one billboard that grows upward, the game makes it flicker
+particle_system RoomAmbTorchFlame
+{
+    material        RoomAmbFlame
+    point_rendering false
+    particle_width  0.2
+    particle_height 0.3
+    cull_each       false
+    quota           1
+    billboard_type  point
+    billboard_origin bottom_center
+
+    emitter Point
+    {
+        angle               0
+        colour              1.0 1.0 1.0 0.95
+        emission_rate       2
+        time_to_live        100000
+        direction           0 0 1
+        velocity            0
+        position            0 0 0.1
+    }
+}
+
+// A thin thread of smoke from the torch
+particle_system RoomAmbTorchSmoke
+{
+    material        RoomAmbSmoke
+    point_rendering false
+    particle_width  0.12
+    particle_height 0.12
+    cull_each       false
+    quota           8
+    billboard_type  point
+
+    emitter Point
+    {
+        angle               10
+        colour_range_start  0.35 0.34 0.33 0.35
+        colour_range_end    0.45 0.43 0.41 0.4
+        emission_rate       1.6
+        time_to_live        2.6
+        direction           0 0 1
+        velocity_min        0.25
+        velocity_max        0.45
+        position            0 0 0.4
+    }
+
+    affector Scaler
+    {
+        rate    0.12
+    }
+
+    affector ColourFader
+    {
+        alpha   -0.14
+    }
+
+    affector DirectionRandomiser
+    {
+        randomness  0.3
+        scope       0.4
+        keep_velocity true
+    }
+}
 
 // ---- Unmade beds ----
 

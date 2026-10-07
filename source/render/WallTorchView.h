@@ -31,9 +31,9 @@
 
 /*! \brief Shows the wall torches the server sent, client side only.
  *
- * Every torch has a bracket (the model WallTorch.mesh, a billboard if it cannot be loaded),a flickering flame, a glow and a thread of smoke (the particle systems
+ * Every torch has a bracket (the model WallTorch.mesh, a billboard if it cannot be loaded), a flickering flame and a thread of smoke (the particle systems
  * of the room ambience). Only the nearest few torches to the camera also get a warm, flickering point
- * light (no shadows); the others show flame and glow without a light source. How many depends on the
+ * light (no shadows); the others show flame without a light source. How many depends on the
  * room ambience mode (full / reduced / off). Strength, colour, range and flicker of the light come from
  * config/rooms.cfg (keys WallTorch...); a missing key falls back to a default and is logged once.
  */
@@ -92,8 +92,8 @@ private:
         //! Distance to the camera at the last check
         double mDistance;
         bool mShown;
-        //! Bracket, flame, glow, smoke (an unused part has no node)
-        Part mParts[4];
+        //! Bracket, flame, smoke (an unused part has no node)
+        Part mParts[3];
         Ogre::SceneNode* mLightNode;
         Ogre::Light* mLight;
         //! Handle of the running crackling loop, 0 if none
