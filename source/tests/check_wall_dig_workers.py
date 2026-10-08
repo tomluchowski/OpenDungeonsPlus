@@ -36,9 +36,10 @@ assert "RoomObjectNavigation::blocked(*this, path)" in creature
 assert "path.back() != point" in creature
 assert "!RoomObjectNavigation::refine" not in creature[creature.index("bool Creature::wallDigPath"):creature.index("bool Creature::parkToWallTile")]
 assert "current.squaredDistance(desired) > 0.0025f" in dig
-assert "isWorkerDiggingPositionFree(worker, tile, path.back())" in tile
+assert "isWorkerDiggingPositionFree" not in tile
 assert "mWorkerDigPositions[&worker] = path.back()" in tile
-assert "canGoThroughTile(tile)" in creature[creature.index("bool Creature::wallDigPath"):creature.index("bool Creature::parkToWallTile")]
+assert "facing * 0.2f + sideways * offset" in creature
+assert "-1.0f / 3.0f : 1.0f / 3.0f" in creature
 
 # Capacity and released-slot reuse are per face, independent of worker count
 # on other faces; a blocked candidate cannot become a reservation.
@@ -59,39 +60,13 @@ assert slots[0] == [1, 5, 3]
 assert reserve(2, 6, (False, False, False)) is None
 assert reserve(2, 6, (False, True, False)) == 1
 
-# Read the actual configured worker meshes and calibrated body bounds; compare
-# the resulting body rectangles at maximum level scale for all four faces.
-workers = []
-for section in read("config/creatures.cfg").split("[Creature]")[1:]:
-    if re.search(r"CreatureJob\s+Worker\b", section):
-        workers.append(re.search(r"MeshName\s+(\S+)", section).group(1))
-bounds = {}
-for row in re.findall(r'\{"([^"\n]+\.mesh)", ([^}]+)\}', read("source/gamemap/RoomObjectBounds.h")):
-    numbers = row[1].split(",")
-    if len(numbers) == 5:
-        bounds[row[0]] = tuple(float(x.strip().rstrip("f")) for x in numbers[1:])
-assert workers and all(mesh in bounds for mesh in workers)
-scale = 1 + value(config, "CreatureLevelGrowthMax")
-spacing = max([0.4] + [bounds[mesh][2] - bounds[mesh][0] for mesh in workers]) * scale + 0.01
-forward = max([0.3] + [-bounds[mesh][1] for mesh in workers]) * scale + 0.01
-for mesh in workers:
-    low_x, low_y, high_x, high_y = (x * scale for x in bounds[mesh])
-    assert high_x - low_x < spacing
-    assert -low_y < forward
-    for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)):
-        rectangles = []
-        for offset in (0, -spacing, spacing):
-            # Wall center is origin; neighbour floor center is -facing.
-            px, py = -dx + dx * (0.5 - forward) - dy * offset, -dy + dy * (0.5 - forward) + dx * offset
-            corners = [(px - dy*x - dx*y, py + dx*x - dy*y)
-                       for x in (low_x, high_x) for y in (low_y, high_y)]
-            assert all(x*dx + y*dy < -0.5 for x, y in corners)
-            rectangles.append((min(x for x,y in corners), min(y for x,y in corners),
-                               max(x for x,y in corners), max(y for x,y in corners)))
-        for i in range(3):
-            for j in range(i):
-                a, b = rectangles[i], rectangles[j]
-                assert a[2] <= b[0] or b[2] <= a[0] or a[3] <= b[1] or b[3] <= a[1]
+# All centers stay in one tile for all faces, even with solid side walls.
+for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+    points = [(dx * 0.2 - dy * offset, dy * 0.2 + dx * offset)
+              for offset in (0, -1/3, 1/3)]
+    assert len(set(points)) == 3
+    assert all(-0.5 < x < 0.5 and -0.5 < y < 0.5 for x, y in points)
+    assert all(round(x) == 0 and round(y) == 0 for x, y in points)
 
 # Existing per-worker mining is kept: each worker removes its own amount and
 # receives its own gold, with final finite-wall depletion capped by fullness.

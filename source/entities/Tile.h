@@ -543,7 +543,6 @@ public:
     void canWorkerDig(Creature& worker, std::vector<Tile*>& tiles);
     int getWorkerDiggingSlot(const Creature& worker, const Tile& tile) const;
     Ogre::Vector2 getWorkerDiggingPosition(const Creature& worker) const;
-    bool isWorkerDiggingPositionFree(const Creature& worker, const Tile& tile, const Ogre::Vector2& point) const;
     bool addWorkerDigging(Creature& worker, Tile& tile);
     bool removeWorkerDigging(const Creature& worker, Tile& tile);
 

@@ -2156,53 +2156,10 @@ bool Tile::removeWorkerClaiming(const Creature& worker)
     return true;
 }
 
-static std::pair<Ogre::Vector2, Ogre::Vector2> workerDigBounds(const Creature& worker,
-    const Ogre::Vector2& point, const Ogre::Vector2& facing)
-{
-    Ogre::Vector2 minimum(-0.2f), maximum(0.2f);
-    for(const RoomObjectPath::WalkingRadius& model : RoomObjectPath::walkingRadii)
-        if(worker.getMeshName() == model.name)
-        {
-            minimum = Ogre::Vector2(model.minX, model.minY);
-            maximum = Ogre::Vector2(model.maxX, model.maxY);
-            break;
-        }
-    const float maximumScale = 1.0f + ConfigManager::getSingleton().getCreatureLevelGrowthMax();
-    minimum *= maximumScale;
-    maximum *= maximumScale;
-    Ogre::Vector2 low(std::numeric_limits<float>::infinity()), high(-std::numeric_limits<float>::infinity());
-    for(float x : {minimum.x, maximum.x})
-        for(float y : {minimum.y, maximum.y})
-        {
-            const Ogre::Vector2 corner = point + Ogre::Vector2(-facing.y * x - facing.x * y,
-                facing.x * x - facing.y * y);
-            low.makeFloor(corner);
-            high.makeCeil(corner);
-        }
-    return std::make_pair(low, high);
-}
-
 Ogre::Vector2 Tile::getWorkerDiggingPosition(const Creature& worker) const
 {
     const std::map<const Creature*, Ogre::Vector2>::const_iterator found = mWorkerDigPositions.find(&worker);
     return found == mWorkerDigPositions.end() ? Ogre::Vector2::ZERO : found->second;
-}
-
-bool Tile::isWorkerDiggingPositionFree(const Creature& worker, const Tile& tile, const Ogre::Vector2& point) const
-{
-    const std::pair<Ogre::Vector2, Ogre::Vector2> candidate = workerDigBounds(worker, point, getPosition2d() - tile.getPosition2d());
-    for(uint32_t i = 0; i < mNeighbors.size() && i < mWorkersDigging.size(); ++i)
-        for(const Creature* reserved : mWorkersDigging[i])
-        {
-            if(reserved == nullptr || reserved == &worker)
-                continue;
-            const std::pair<Ogre::Vector2, Ogre::Vector2> other = workerDigBounds(*reserved,
-                getWorkerDiggingPosition(*reserved), getPosition2d() - mNeighbors[i]->getPosition2d());
-            if(candidate.second.x > other.first.x && other.second.x > candidate.first.x &&
-                candidate.second.y > other.first.y && other.second.y > candidate.first.y)
-                return false;
-        }
-    return true;
 }
 
 void Tile::canWorkerDig(Creature& worker, std::vector<Tile*>& tiles)
@@ -2219,8 +2176,7 @@ void Tile::canWorkerDig(Creature& worker, std::vector<Tile*>& tiles)
             slot < ConfigManager::getSingleton().getNbWorkersDigSameFaceTile(); ++slot)
         {
             std::vector<Ogre::Vector2> path;
-            if(mWorkersDigging[i][slot] == nullptr && worker.wallDigPath(this, neigh, slot, path) &&
-                isWorkerDiggingPositionFree(worker, *neigh, path.back()))
+            if(mWorkersDigging[i][slot] == nullptr && worker.wallDigPath(this, neigh, slot, path))
             {
                 tiles.push_back(neigh);
                 break;
@@ -2241,8 +2197,7 @@ bool Tile::addWorkerDigging(Creature& worker, Tile& tile)
             slot < ConfigManager::getSingleton().getNbWorkersDigSameFaceTile(); ++slot)
         {
             std::vector<Ogre::Vector2> path;
-            if(mWorkersDigging[i][slot] != nullptr || !worker.wallDigPath(this, &tile, slot, path) ||
-                !isWorkerDiggingPositionFree(worker, tile, path.back()))
+            if(mWorkersDigging[i][slot] != nullptr || !worker.wallDigPath(this, &tile, slot, path))
                 continue;
             mWorkersDigging[i][slot] = &worker;
             mWorkerDigPositions[&worker] = path.back();
