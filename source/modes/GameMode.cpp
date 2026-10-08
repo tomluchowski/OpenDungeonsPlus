@@ -108,6 +108,8 @@ static bool blocksEdgeScrolling(CEGUI::Window* window)
     return true;
 }
 
+//! \brief Tells whether the tile shows a room of the given type. The client only knows the tile
+//! visuals of rooms (rooms are server objects), and bridges are told apart by their mesh.
 static bool tileMatchesRoomType(const Tile& tile, RoomType type)
 {
     switch(type)

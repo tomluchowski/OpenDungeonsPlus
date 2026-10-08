@@ -92,6 +92,9 @@ public:
     static void listAllSkills(const std::function<void(const std::string&, const std::string&,
         const std::string&, SkillType)>& func);
 
+    //! \brief Lists all the room skills and calls the given function for each one with parameters:
+    //! - The room type
+    //! - Gui use button name
     static void listAllRooms(const std::function<void(RoomType, const std::string&)>& func);
 
     //! \brief Lists all the skills and calls the given function for each one with parameters:
