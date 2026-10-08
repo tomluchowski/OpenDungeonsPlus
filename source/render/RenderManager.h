@@ -110,6 +110,8 @@ public:
     //! moveCursor allows to move the cursor on GUI
     //!  moveWorldCoords sends the world coords where the map light is
     void moveCursor(float relX, float relY);
+    //! \brief Returns the screen area covered by the hand cursor, in relative screen coordinates (0 to 1).
+    //! If the hand is hidden, the area is the empty rectangle at the given cursor position.
     Ogre::FloatRect getHandCursorBounds(float relX, float relY) const;
     void moveWorldCoords(Ogre::Real x, Ogre::Real y);
     void entitySlapped();
