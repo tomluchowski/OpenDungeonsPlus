@@ -96,8 +96,12 @@ public:
     //! \brief setup the scene
     void createScene(Ogre::Viewport*);
 
+    void setViewport(Ogre::Viewport* viewport)
+    { mViewport = viewport; }
+
     //! \brief Sets/Updates the overall world lighting value with given factor.
     void setWorldAmbientLightingFactor(float lightFactor);
+    void setDynamicShadowsEnabled(bool enabled);
 
     //! \brief Set the entity's opacity
     void setEntityOpacity(Ogre::Entity* ent, float opacity);
@@ -274,6 +278,7 @@ private:
     Ogre::SceneNode* mHandLightNode2;
     Ogre::Camera* mShadowCam;
     Ogre::Radian mCurrentFOVy;
+    Ogre::Real mCurrentAspectRatio;
     Ogre::Real mFactorWidth;
     Ogre::Real mFactorHeight;
 

@@ -42,6 +42,7 @@
         <Window type="OD/Checkbox" name="KOCreatureCheckbox" >
             <Property name="Area" value="{{0,20},{0.6,0},{1,0},{0.6,20}}" />
             <Property name="Text" value="KO enemy creatures instead of killing" />
+            <Property name="TooltipText" value="Defeated enemy creatures are knocked out instead of killed. Your workers carry them to a prison with free space." />
         </Window>
     </Window>
 </GUILayout>

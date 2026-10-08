@@ -23,9 +23,11 @@
 #include "modes/InputCommand.h"
 #include "modes/InputBridge.h"
 #include "modes/SettingsWindow.h"
+#include "game/CreaturePanelData.h"
 
 #include "utils/ConfigManager.h"
 #include <CEGUI/EventArgs.h>
+#include <memory>
 
 namespace CEGUI
 {
@@ -33,6 +35,8 @@ class Window;
 }
 
 class Creature;
+class CreaturePanel;
+class GameEntity;
 
 enum class SpellType;
 enum class SkillType;
@@ -166,6 +170,7 @@ class GameMode final : public GameEditorModeBase, public InputCommand
 
     //! \brief Refreshed the main ui data, such as mana, gold, ...
     void refreshMainUI();
+    void refreshCreaturePanel(const CreaturePanelData& data);
 
     void selectSquaredTiles(int tileX1, int tileY1, int tileX2, int tileY2) override;
     void selectTiles(const std::vector<Tile*> tiles) override;
@@ -220,6 +225,7 @@ protected:
     virtual bool keyReleasedNormal  (const OIS::KeyEvent &arg);
 
 private:
+    std::unique_ptr<CreaturePanel> mCreaturePanel;
     //! \brief Whether the pending exit confirmation should leave to the desktop
     //! rather than back to the main menu. Set by the button that opened the
     //! confirmation popup.
@@ -255,6 +261,16 @@ private:
 
     MouseMoveEvent mPreviousMousePosition;
 
+    //! \brief Pointer movement in pixels since the middle button was pressed. A middle click that moved
+    //! is a camera rotation and must not open a stats window.
+    float mMiddleDragDistance;
+    //! \brief Pointer position in pixels where the middle button went down
+    float mMiddlePressX;
+    float mMiddlePressY;
+
+    //! \brief Opens the stats window of the entity under the pointer (or the tile debug window if enabled)
+    void openStatsWindowUnderPointer(const OIS::MouseEvent& arg);
+
     //! \brief Set the help window (quite long) text.
     void setHelpWindowText();
 
@@ -285,9 +301,22 @@ private:
     void checkInputCommand();
     void handlePlayerActionNone();
     void handlePlayerActionSelectTile();
+    bool toggleQuery(const CEGUI::EventArgs& e);
+    GameEntity* getQueryTarget(Tile* tile) const;
+    void handlePlayerActionQuery();
 
     //! \brief Builds the player settings window
     void buildPlayerSettingsWindow();
+
+    void updateCreatureIndicatorAlt(OIS::KeyCode key, bool pressed);
+    bool mCreatureIndicatorsVisible = true;
+    bool mIndicatorLeftAltDown = false;
+    bool mIndicatorRightAltDown = false;
+    void resetIdleHand();
+    void updateIdleHand(float elapsed, bool eligible);
+    float mIdleHandElapsed = 0.0f;
+    std::set<OIS::KeyCode> mIdleHandKeys;
+
 
 };
 

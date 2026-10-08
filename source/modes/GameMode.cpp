@@ -19,6 +19,7 @@
 
 #include "camera/CameraManager.h"
 #include "entities/Creature.h"
+#include "entities/CreatureDefinition.h"
 #include "entities/GameEntityType.h"
 #include "entities/Tile.h"
 #include "game/Player.h"
@@ -34,6 +35,7 @@
 #include "network/ODClient.h"
 #include "network/ODServer.h"
 #include "render/Gui.h"
+#include "render/CreaturePanel.h"
 #include "render/ODFrameListener.h"
 #include "render/RenderManager.h"
 #include "render/TextRenderer.h"
@@ -70,17 +72,47 @@ const std::string TEXT_SEAT_ID_PREFIX = "TextSeat";
 const std::string TEXT_SEAT_PLAYER_NICKNAME_PREFIX = "TextSeatPlayerNick";
 const std::string TEXT_SEAT_TEAM_ID_PREFIX = "TextSeatTeam";
 
+const double AUTOSCROLL_EDGE_RATIO = 0.02;
+
+static double getAutoscrollIntensity(int mousePosition, int screenSize, bool minimumEdge)
+{
+    if(screenSize <= 1)
+        return 0.0;
+
+    const double edgeSize = AUTOSCROLL_EDGE_RATIO * screenSize;
+    const int distanceFromEdge = minimumEdge ? mousePosition : screenSize - 1 - mousePosition;
+    return std::max(0.0, std::min(1.0, (edgeSize - distanceFromEdge) / edgeSize));
+}
+
+//! \brief The pointer movement in pixels up to which a middle button press and release is a click, not a camera rotation
+//! (measured from where the button went down, scaled with the display height, so that the hand jitter of a
+//! click on a high resolution screen does not count as a drag)
+const float MIDDLE_CLICK_MAX_DRAG = 6.0f;
+//! \brief A creature is picked by a middle click if the pointer ray passes it within this distance (in tiles)
+const float MIDDLE_CLICK_PICK_RADIUS = 0.7f;
+//! \brief Height above the floor at which the pointer ray is checked against creatures and other entities
+const float MIDDLE_CLICK_BODY_HEIGHT = 0.4f;
+//! \brief Display height for which MIDDLE_CLICK_MAX_DRAG is meant, the allowed drag grows above it
+const float MIDDLE_CLICK_REFERENCE_DISPLAY_HEIGHT = 1080.0f;
+//! \brief Number of points after the first one at which the pointer ray is sampled to find the tiles it crosses
+const int MIDDLE_CLICK_RAY_STEPS = 6;
+//! \brief Distance in height between two of those points
+const float MIDDLE_CLICK_RAY_STEP_HEIGHT = 0.25f;
+
 GameMode::GameMode(ModeManager *modeManager):
     GameEditorModeBase(modeManager, ModeManager::GAME, modeManager->getGui().getGuiSheet(Gui::guiSheet::inGameMenu)),
     mDigSetBool(false),
     mIsSpellCooldownDisplayed(false),
     mIndexEvent(0),
-    mSettings(SettingsWindow(mRootWindow)),
+    mSettings(mRootWindow, modeManager->getGui()),
     mIsSkillWindowOpen(false),
     mCurrentSkillType(SkillType::nullSkillType),
     mCurrentSkillProgress(0.0),
     mPreviousMousePosition(MouseMoveEvent{0, 0}),
+    mMiddleDragDistance(0.0f),
     directionKeyPressed(false),
+    mMiddlePressX(0.0f),
+    mMiddlePressY(0.0f),
     showTileDebugWindow(false),
     config(ConfigManager::getSingleton())
 {
@@ -90,6 +122,9 @@ GameMode::GameMode(ModeManager *modeManager):
     ODFrameListener::getSingleton().getCameraManager()->setDefaultView();
 
     CEGUI::Window* guiSheet = mRootWindow;
+
+    addEventConnection(guiSheet->getChild("QueryButton")->subscribeEvent(
+        CEGUI::PushButton::EventClicked, CEGUI::Event::Subscriber(&GameMode::toggleQuery, this)));
 
     //Help window
     addEventConnection(
@@ -271,6 +306,8 @@ GameMode::GameMode(ModeManager *modeManager):
     SkillManager::connectSkills(this, mRootWindow);
 
     syncTabButtonTooltips(Gui::MAIN_TABCONTROL);
+    mCreaturePanel.reset(new CreaturePanel(*mGameMap, modeManager->getGui(),
+        mRootWindow->getChild(Gui::TAB_CREATURES)));
 }
 
 GameMode::~GameMode()
@@ -310,6 +347,10 @@ void GameMode::activate()
     // Loads the corresponding Gui sheet.
     Gui& gui = getModeManager().getGui();
     gui.loadGuiSheet(Gui::inGameMenu);
+    mIndicatorLeftAltDown = getKeyboard()->isKeyDown(OIS::KC_LMENU);
+    mIndicatorRightAltDown = getKeyboard()->isKeyDown(OIS::KC_RMENU);
+    RenderManager::getSingleton().rrSetCreaturesTextOverlay(*mGameMap,
+        mCreatureIndicatorsVisible);
 
     // We free the menu scene as it is not required anymore
     ODFrameListener::getSingleton().freeMainMenuScene();
@@ -369,29 +410,39 @@ bool GameMode::mouseMoved(const OIS::MouseEvent &arg)
     // TODO: Here we should check whether the terminal is active...
     if(inputManager.mMMouseDown)
     {
+        float dragX = static_cast<float>(mouseEvent.x) - mMiddlePressX;
+        float dragY = static_cast<float>(mouseEvent.y) - mMiddlePressY;
+        mMiddleDragDistance = std::max(mMiddleDragDistance, std::sqrt(dragX * dragX + dragY * dragY));
         ODFrameListener::getSingleton().moveCamera(CameraManager::randomRotateX,mouseDelta.x);
         ODFrameListener::getSingleton().moveCamera(CameraManager::randomRotateY,mouseDelta.y);
     }
 
     if (!directionKeyPressed && config.getInputValue(Config::AUTOSCROLL, "No", false) == "Yes")
     {
-        if (arg.state.X.abs <= 0.02 * arg.state.width)
-            ODFrameListener::getSingleton().moveCamera(CameraManager::moveLeft);
+        // The bottom edge is always covered by the game UI, so it is not blocked by it
+        const bool mouseOverGui = isMouseWheelOnCEGUIWindow();
+        const double leftIntensity = mouseOverGui ? 0.0 : getAutoscrollIntensity(arg.state.X.abs, arg.state.width, true);
+        const double rightIntensity = mouseOverGui ? 0.0 : getAutoscrollIntensity(arg.state.X.abs, arg.state.width, false);
+        const double topIntensity = mouseOverGui ? 0.0 : getAutoscrollIntensity(arg.state.Y.abs, arg.state.height, true);
+        const double bottomIntensity = getAutoscrollIntensity(arg.state.Y.abs, arg.state.height, false);
+
+        if (leftIntensity > 0.0)
+            ODFrameListener::getSingleton().moveCamera(CameraManager::moveLeft, leftIntensity);
         else
             ODFrameListener::getSingleton().moveCamera(CameraManager::stopLeft);
 
-        if (arg.state.X.abs >= 0.98 * arg.state.width)
-            ODFrameListener::getSingleton().moveCamera(CameraManager::moveRight);
+        if (rightIntensity > 0.0)
+            ODFrameListener::getSingleton().moveCamera(CameraManager::moveRight, rightIntensity);
         else
             ODFrameListener::getSingleton().moveCamera(CameraManager::stopRight);
 
-        if (arg.state.Y.abs <= 0.02 * arg.state.height)
-            ODFrameListener::getSingleton().moveCamera(CameraManager::moveForward);
+        if (topIntensity > 0.0)
+            ODFrameListener::getSingleton().moveCamera(CameraManager::moveForward, topIntensity);
         else
             ODFrameListener::getSingleton().moveCamera(CameraManager::stopForward);
 
-        if (arg.state.Y.abs >= 0.98 * arg.state.height)
-            ODFrameListener::getSingleton().moveCamera(CameraManager::moveBackward);
+        if (bottomIntensity > 0.0)
+            ODFrameListener::getSingleton().moveCamera(CameraManager::moveBackward, bottomIntensity);
         else
             ODFrameListener::getSingleton().moveCamera(CameraManager::stopBackward);            
     }
@@ -514,6 +565,74 @@ bool GameMode::isMouseWheelOnCEGUIWindow()
     return true;
 }
 
+void GameMode::openStatsWindowUnderPointer(const OIS::MouseEvent& arg)
+{
+    InputManager& inputManager = mModeManager->getInputManager();
+
+    if(mGameMap->getGamePaused())
+        return;
+
+    // The pointer ray is checked against the bodies of the entities. Intersecting it with a plane at a fixed
+    // height misses a creature that is clicked on its body, because the ray reaches that plane in front of it.
+    if(mGameMap->getLocalPlayer() == nullptr)
+        return;
+
+    Ogre::Camera* camera = ODFrameListener::getSingleton().getCameraManager()->getActiveCamera();
+    if(camera == nullptr)
+        return;
+
+    const CEGUI::Vector2f mouse = CEGUI::System::getSingleton().getDefaultGUIContext().getMouseCursor().getPosition();
+    const Ogre::Ray ray = camera->getCameraToViewportRay(mouse.d_x / arg.state.width, mouse.d_y / arg.state.height);
+    if(ray.getDirection().z >= 0)
+        return;
+
+    // The tiles the ray crosses between the floor and above the creatures
+    std::vector<Tile*> tiles;
+    for(int step = 0; step <= MIDDLE_CLICK_RAY_STEPS; ++step)
+    {
+        const float height = MIDDLE_CLICK_RAY_STEP_HEIGHT * static_cast<float>(step);
+        const Ogre::Vector3 point = ray.getPoint((ray.getOrigin().z - height) / -ray.getDirection().z);
+        Tile* tile = mGameMap->getTile(Helper::round(point.x), Helper::round(point.y));
+        if((tile != nullptr) && (std::find(tiles.begin(), tiles.end(), tile) == tiles.end()))
+            tiles.push_back(tile);
+    }
+
+    GameEntity* closestEntity = nullptr;
+    float closestDist = MIDDLE_CLICK_PICK_RADIUS;
+    for(Tile* tile : tiles)
+    {
+        std::vector<GameEntity*> entities;
+        tile->fillWithEntities(entities, SelectionEntityWanted::any, mGameMap->getLocalPlayer());
+        for(GameEntity* entity : entities)
+        {
+            if(!entity->canDisplayStatsWindow(mGameMap->getLocalPlayer()->getSeat()))
+                continue;
+
+            Ogre::Vector3 body = entity->getPosition();
+            body.z += MIDDLE_CLICK_BODY_HEIGHT;
+            const float dist = ray.getDirection().crossProduct(body - ray.getOrigin()).length();
+            if(dist >= closestDist)
+                continue;
+
+            closestDist = dist;
+            closestEntity = entity;
+        }
+    }
+
+    if(closestEntity != nullptr)
+    {
+        closestEntity->createStatsWindow();
+        return;
+    }
+
+    if(showTileDebugWindow)
+    {
+        Tile* tileClicked = mGameMap->getTile(inputManager.mXPos, inputManager.mYPos);
+        if(tileClicked != nullptr)
+            tileClicked->createStatsWindow();
+    }
+}
+
 bool GameMode::mousePressed(const OIS::MouseEvent& arg, OIS::MouseButtonID id)
 {
     InputManager& inputManager = mModeManager->getInputManager();
@@ -563,7 +682,12 @@ bool GameMode::mousePressed(const OIS::MouseEvent& arg, OIS::MouseButtonID id)
     // The player should be able to move the mouse even if not clicking on a tile. Because of that, we set
     // mMMouseDown before checking which tile is clicked
     if (id == OIS::MB_Middle)
+    {
         inputManager.mMMouseDown = true;
+        mMiddleDragDistance = 0.0f;
+        mMiddlePressX = static_cast<float>(arg.state.X.abs);
+        mMiddlePressY = static_cast<float>(arg.state.Y.abs);
+    }
 
     int tileX = Helper::round(inputManager.mKeeperHandPos.x);
     int tileY = Helper::round(inputManager.mKeeperHandPos.y);
@@ -571,44 +695,10 @@ bool GameMode::mousePressed(const OIS::MouseEvent& arg, OIS::MouseButtonID id)
     if(tileClicked == nullptr)
         return true;
 
+    // The stats window opens when the middle button is released without the pointer having moved,
+    // so that rotating the camera over creatures does not open windows (see mouseReleased)
     if (id == OIS::MB_Middle)
-    {
-        // See if the mouse is over any entity that might display a stats window
-        std::vector<GameEntity*> entities;
-        tileClicked->fillWithEntities(entities, SelectionEntityWanted::any, mGameMap->getLocalPlayer());
-        // We search the closest creature alive
-        GameEntity* closestEntity = nullptr;
-        double closestDist = 0;
-        for(GameEntity* entity : entities)
-        {
-            if(!entity->canDisplayStatsWindow(mGameMap->getLocalPlayer()->getSeat()))
-                continue;
-
-            const Ogre::Vector3& entityPos = entity->getPosition();
-            double dist = Pathfinding::squaredDistance(entityPos.x, inputManager.mKeeperHandPos.x, entityPos.y, inputManager.mKeeperHandPos.y);
-            if(closestEntity == nullptr)
-            {
-                closestDist = dist;
-                closestEntity = entity;
-                continue;
-            }
-
-            if(dist >= closestDist)
-                continue;
-
-            closestDist = dist;
-            closestEntity = entity;
-        }
-
-        if(closestEntity == nullptr)
-        {
-            if(showTileDebugWindow)
-                tileClicked->createStatsWindow();
-        }
-        else
-            closestEntity->createStatsWindow();
         return true;
-    }
 
     // Right mouse button down
     if (id == OIS::MB_Right)
@@ -759,9 +849,15 @@ bool GameMode::mouseReleased(const OIS::MouseEvent &arg, OIS::MouseButtonID id)
 
     if(id == OIS::MB_Middle)
     {
+        // A middle click that did not move is a request for the stats window. mMMouseDown is only set when
+        // the press was on the map, so a press on a GUI window never gets here as a click
+        float maxDrag = MIDDLE_CLICK_MAX_DRAG * std::max(1.0f, static_cast<float>(arg.state.height) / MIDDLE_CLICK_REFERENCE_DISPLAY_HEIGHT);
+        bool isClick = inputManager.mMMouseDown && (mMiddleDragDistance <= maxDrag);
         inputManager.mMMouseDown = false;
         ODFrameListener::getSingleton().moveCamera(CameraManager::zeroRandomRotateX, 0.0);
         ODFrameListener::getSingleton().moveCamera(CameraManager::zeroRandomRotateY, 0.0);
+        if(isClick && isConnected() && (mGameMap->getLocalPlayer() != nullptr))
+            openStatsWindowUnderPointer(arg);
     }
 
     // If the mouse press was on a CEGUI window ignore it
@@ -792,6 +888,7 @@ bool GameMode::mouseReleased(const OIS::MouseEvent &arg, OIS::MouseButtonID id)
 
 bool GameMode::keyPressed(const OIS::KeyEvent& arg)
 {
+    updateCreatureIndicatorAlt(arg.key, true);
     // Inject key to Gui
     CEGUI::System::getSingleton().getDefaultGUIContext().injectKeyDown(static_cast<CEGUI::Key::Scan>(arg.key));
     if (arg.text != 0 && !getConsole()->isFreshlyEnabled())
@@ -914,11 +1011,6 @@ bool GameMode::keyPressedNormal(const OIS::KeyEvent &arg)
         ODFrameListener::getSingleton().getCameraManager()->setNextDefaultView();
         break;
 
-    case OIS::KC_LMENU:
-        RenderManager::getSingleton().
-        RenderManager::getSingleton().rrSetCreaturesTextOverlay(*mGameMap, true);
-        break;
-
     // Zooms to the next event
     case OIS::KC_SPACE:
     {
@@ -1033,6 +1125,24 @@ void GameMode::refreshMainUI()
     tempSS << mySeat->getMana() << " " << (mySeat->getManaDelta() >= 0 ? "+" : "-")
             << mySeat->getManaDelta();
     widget->setText(tempSS.str());
+    unsigned int workers = 0;
+    unsigned int fighters = 0;
+    for(Creature* creature : mGameMap->getCreaturesBySeat(mySeat))
+    {
+        if(!creature->tryPickup(mySeat))
+            continue;
+        if(creature->getDefinition()->isWorker())
+            ++workers;
+        else
+            ++fighters;
+    }
+    guiSheet->getChild(Gui::BUTTON_CREATURE_WORKER + "/Count")->setText(Helper::toString(workers));
+    guiSheet->getChild(Gui::BUTTON_CREATURE_FIGHTER + "/Count")->setText(Helper::toString(fighters));
+}
+
+void GameMode::refreshCreaturePanel(const CreaturePanelData& data)
+{
+    mCreaturePanel->setData(data);
 }
 
 void GameMode::refreshPlayerGoals(const std::string& goalsDisplayString)
@@ -1043,6 +1153,7 @@ void GameMode::refreshPlayerGoals(const std::string& goalsDisplayString)
 
 bool GameMode::keyReleased(const OIS::KeyEvent &arg)
 {
+    updateCreatureIndicatorAlt(arg.key, false);
     CEGUI::System::getSingleton().getDefaultGUIContext().injectKeyUp(static_cast<CEGUI::Key::Scan>(arg.key));
 
     if (mCurrentInputMode == InputModeChat || mCurrentInputMode == InputModeConsole)
@@ -1105,10 +1216,6 @@ bool GameMode::keyReleasedNormal(const OIS::KeyEvent &arg)
         frameListener.moveCamera(CameraManager::Direction::stopRotDown);
         break;
 
-    case OIS::KC_LMENU:
-        RenderManager::getSingleton().rrSetCreaturesTextOverlay(*mGameMap, false);
-        break;
-
     default:
         break;
     }
@@ -1139,8 +1246,28 @@ void GameMode::handleHotkeys(OIS::KeyCode keycode)
     }
 }
 
+void GameMode::updateCreatureIndicatorAlt(OIS::KeyCode key, bool pressed)
+{
+    if(key != OIS::KC_LMENU && key != OIS::KC_RMENU)
+        return;
+    const bool wasDown = mIndicatorLeftAltDown || mIndicatorRightAltDown;
+    (key == OIS::KC_LMENU ? mIndicatorLeftAltDown : mIndicatorRightAltDown) = pressed;
+    if(pressed && !wasDown)
+    {
+        mCreatureIndicatorsVisible = !mCreatureIndicatorsVisible;
+        RenderManager::getSingleton().rrSetCreaturesTextOverlay(*mGameMap,
+            mCreatureIndicatorsVisible);
+    }
+}
+
 void GameMode::onFrameStarted(const Ogre::FrameEvent& evt)
 {
+    // Recover releases missed while focus was elsewhere without changing the toggle.
+    if(!getKeyboard()->isKeyDown(OIS::KC_LMENU))
+        updateCreatureIndicatorAlt(OIS::KC_LMENU, false);
+    if(!getKeyboard()->isKeyDown(OIS::KC_RMENU))
+        updateCreatureIndicatorAlt(OIS::KC_RMENU, false);
+
     GameEditorModeBase::onFrameStarted(evt);
 
     refreshGuiSkill();
@@ -1153,6 +1280,7 @@ void GameMode::onFrameStarted(const Ogre::FrameEvent& evt)
         return;
     }
     player->frameStarted(evt.timeSinceLastFrame);
+    mCreaturePanel->update();
 
     // After frameStarted, so that the countdown shown is the one just computed.
     refreshSpellCooldownText();
@@ -1473,7 +1601,7 @@ void GameMode::setHelpWindowText()
         << "Use your hand wisely to keep all minions under control and let your dungeon thrive!" << std::endl
         << "  - Mouse left click: Select an action, Confirm an action." << std::endl
         << "  - Mouse right click: Unselect an action, Slap a creature (grin)." << std::endl
-        << "  - Mouse middle click (on a creature): Show debugging information." << std::endl
+        << "  - Mouse middle click (on a creature): Show the creature profile." << std::endl
         << "You can select multiple tiles for some actions by left clicking and dragging the mouse." << std::endl << std::endl;
     txt << formatTitleOn << "Basic workflow" << formatTitleOff << std::endl
         << "As an overlord of the underworld, your evil plan is to build a strong dungeon and to crush your neighbours."
@@ -1795,12 +1923,71 @@ void GameMode::checkInputCommand()
         case SelectedAction::buildTrap:
             TrapManager::checkBuildTrap(mGameMap, mPlayerSelection.getNewTrapType(), inputManager, *this);
             return;
+        case SelectedAction::queryEntity:
+            handlePlayerActionQuery();
+            return;
         case SelectedAction::destroyTrap:
             TrapManager::checkSellTrapTiles(mGameMap, inputManager, *this);
             return;
         default:
             return;
     }
+}
+
+bool GameMode::toggleQuery(const CEGUI::EventArgs& e)
+{
+    if(!isConnected() || mGameMap->getGamePaused())
+        return true;
+
+    InputManager& inputManager = mModeManager->getInputManager();
+    inputManager.mLMouseDown = false;
+    inputManager.mCommandState = InputCommandState::infoOnly;
+    mPlayerSelection.setCurrentAction(mPlayerSelection.getCurrentAction() == SelectedAction::queryEntity ?
+        SelectedAction::none : SelectedAction::queryEntity);
+    unselectAllTiles();
+    return true;
+}
+
+GameEntity* GameMode::getQueryTarget(Tile* tile) const
+{
+    if(tile == nullptr)
+        return nullptr;
+
+    const InputManager& inputManager = mModeManager->getInputManager();
+    Player* player = mGameMap->getLocalPlayer();
+    std::vector<GameEntity*> entities;
+    tile->fillWithEntities(entities, SelectionEntityWanted::any, player);
+    GameEntity* closest = nullptr;
+    double distance = 0.0;
+    for(GameEntity* entity : entities)
+    {
+        if(!entity->canDisplayStatsWindow(player->getSeat()))
+            continue;
+        const Ogre::Vector3& position = entity->getPosition();
+        const double candidate = Pathfinding::squaredDistance(position.x, inputManager.mKeeperHandPos.x,
+            position.y, inputManager.mKeeperHandPos.y);
+        if(closest == nullptr || candidate < distance)
+        {
+            closest = entity;
+            distance = candidate;
+        }
+    }
+    return closest;
+}
+
+void GameMode::handlePlayerActionQuery()
+{
+    const InputManager& inputManager = mModeManager->getInputManager();
+    GameEntity* entity = getQueryTarget(mGameMap->getTile(inputManager.mXPos, inputManager.mYPos));
+    if(entity == nullptr)
+    {
+        displayText(Ogre::ColourValue::Red, "Point at a creature to view its information.");
+        return;
+    }
+
+    displayText(Ogre::ColourValue::White, entity->getName());
+    if(inputManager.mCommandState == InputCommandState::validated)
+        entity->createStatsWindow();
 }
 
 void GameMode::handlePlayerActionNone()
@@ -1992,7 +2179,6 @@ void GameMode::buildPlayerSettingsWindow()
         mSeatIds.push_back(seat->getId());
         offset += 15;
     }
+
+    getModeManager().getGui().registerWindowHierarchy(tmpWin);
 }
-
-
-

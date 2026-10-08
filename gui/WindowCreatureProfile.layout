@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<GUILayout version="4" >
+    <Window type="OD/FrameWindow" name="CreatureProfileWindow" >
+        <Property name="Area" value="{{0.5,-270},{0.5,-228},{0.5,270},{0.5,228}}" />
+        <Property name="SizingEnabled" value="False" />
+        <Window type="DefaultWindow" name="ProfilePage" >
+            <Property name="Area" value="{{0.0,0},{0.0,0},{1.0,0},{1.0,-56}}" />
+            <Window type="OD/StaticImage" name="Portrait" >
+                <Property name="Area" value="{{0.0,16},{0.0,36},{0.0,136},{0.0,156}}" />
+            </Window>
+            <Window type="OD/StaticText" name="NameText" >
+                <Property name="Area" value="{{0.0,148},{0.0,34},{1.0,-16},{0.0,58}}" />
+                <Property name="FrameEnabled" value="False" />
+                <Property name="BackgroundEnabled" value="False" />
+                <Property name="Font" value="MedievalSharp-10" />
+                <Property name="VertFormatting" value="TopAligned" />
+                <Property name="HorzFormatting" value="LeftAligned" />
+            </Window>
+            <Window type="OD/StaticText" name="HandleText" >
+                <Property name="Area" value="{{0.0,148},{0.0,60},{1.0,-16},{0.0,80}}" />
+                <Property name="FrameEnabled" value="False" />
+                <Property name="BackgroundEnabled" value="False" />
+                <Property name="Font" value="MedievalSharp-8" />
+                <Property name="VertFormatting" value="TopAligned" />
+                <Property name="HorzFormatting" value="LeftAligned" />
+            </Window>
+            <Window type="OD/StaticText" name="AgeText" >
+                <Property name="Area" value="{{0.0,148},{0.0,82},{1.0,-16},{0.0,102}}" />
+                <Property name="FrameEnabled" value="False" />
+                <Property name="BackgroundEnabled" value="False" />
+                <Property name="Font" value="MedievalSharp-8" />
+                <Property name="VertFormatting" value="TopAligned" />
+                <Property name="HorzFormatting" value="LeftAligned" />
+            </Window>
+            <Window type="OD/StaticText" name="RelationText" >
+                <Property name="Area" value="{{0.0,148},{0.0,104},{1.0,-16},{0.0,124}}" />
+                <Property name="FrameEnabled" value="False" />
+                <Property name="BackgroundEnabled" value="False" />
+                <Property name="Font" value="MedievalSharp-8" />
+                <Property name="VertFormatting" value="TopAligned" />
+                <Property name="HorzFormatting" value="LeftAligned" />
+            </Window>
+            <Window type="OD/StaticText" name="FromText" >
+                <Property name="Area" value="{{0.0,148},{0.0,126},{1.0,-16},{0.0,146}}" />
+                <Property name="FrameEnabled" value="False" />
+                <Property name="BackgroundEnabled" value="False" />
+                <Property name="Font" value="MedievalSharp-8" />
+                <Property name="VertFormatting" value="TopAligned" />
+                <Property name="HorzFormatting" value="LeftAligned" />
+            </Window>
+            <Window type="OD/StaticText" name="JobText" >
+                <Property name="Area" value="{{0.0,148},{0.0,148},{1.0,-16},{0.0,168}}" />
+                <Property name="FrameEnabled" value="False" />
+                <Property name="BackgroundEnabled" value="False" />
+                <Property name="Font" value="MedievalSharp-8" />
+                <Property name="VertFormatting" value="TopAligned" />
+                <Property name="HorzFormatting" value="LeftAligned" />
+            </Window>
+            <Window type="OD/StaticText" name="HealthLabel" >
+                <Property name="Area" value="{{0.0,16},{0.0,178},{0.0,64},{0.0,198}}" />
+                <Property name="FrameEnabled" value="False" />
+                <Property name="BackgroundEnabled" value="False" />
+                <Property name="Font" value="MedievalSharp-8" />
+                <Property name="VertFormatting" value="CentreAligned" />
+                <Property name="HorzFormatting" value="LeftAligned" />
+            </Window>
+            <Window type="OD/ProgressBar" name="HealthBar" >
+                <Property name="Area" value="{{0.0,66},{0.0,180},{0.5,-8},{0.0,196}}" />
+                <Property name="StepSize" value="0.01" />
+                <Property name="CurrentProgress" value="1.0" />
+                <Property name="TooltipText" value="Health" />
+            </Window>
+            <Window type="OD/StaticText" name="ExperienceLabel" >
+                <Property name="Area" value="{{0.5,8},{0.0,178},{0.5,38},{0.0,198}}" />
+                <Property name="FrameEnabled" value="False" />
+                <Property name="BackgroundEnabled" value="False" />
+                <Property name="Font" value="MedievalSharp-8" />
+                <Property name="VertFormatting" value="CentreAligned" />
+                <Property name="HorzFormatting" value="LeftAligned" />
+            </Window>
+            <Window type="OD/ProgressBar" name="ExperienceBar" >
+                <Property name="Area" value="{{0.5,42},{0.0,180},{1.0,-16},{0.0,196}}" />
+                <Property name="StepSize" value="0.01" />
+                <Property name="CurrentProgress" value="0.0" />
+                <Property name="TooltipText" value="Progress to the next level" />
+            </Window>
+            <Window type="OD/StaticText" name="BioText" >
+                <Property name="Area" value="{{0.0,16},{0.0,206},{1.0,-16},{0.0,260}}" />
+                <Property name="FrameEnabled" value="False" />
+                <Property name="BackgroundEnabled" value="False" />
+                <Property name="Font" value="MedievalSharp-8" />
+                <Property name="VertFormatting" value="TopAligned" />
+                <Property name="HorzFormatting" value="WordWrapLeftAligned" />
+            </Window>
+            <Window type="OD/StaticText" name="LikesText" >
+                <Property name="Area" value="{{0.0,16},{0.0,268},{1.0,-16},{0.0,288}}" />
+                <Property name="FrameEnabled" value="False" />
+                <Property name="BackgroundEnabled" value="False" />
+                <Property name="Font" value="MedievalSharp-8" />
+                <Property name="VertFormatting" value="TopAligned" />
+                <Property name="HorzFormatting" value="WordWrapLeftAligned" />
+            </Window>
+            <Window type="OD/StaticText" name="DislikesText" >
+                <Property name="Area" value="{{0.0,16},{0.0,290},{1.0,-16},{0.0,310}}" />
+                <Property name="FrameEnabled" value="False" />
+                <Property name="BackgroundEnabled" value="False" />
+                <Property name="Font" value="MedievalSharp-8" />
+                <Property name="VertFormatting" value="TopAligned" />
+                <Property name="HorzFormatting" value="WordWrapLeftAligned" />
+            </Window>
+            <Window type="OD/StaticText" name="FriendsText" >
+                <Property name="Area" value="{{0.0,16},{0.0,312},{1.0,-16},{0.0,332}}" />
+                <Property name="FrameEnabled" value="False" />
+                <Property name="BackgroundEnabled" value="False" />
+                <Property name="Font" value="MedievalSharp-8" />
+                <Property name="VertFormatting" value="TopAligned" />
+                <Property name="HorzFormatting" value="WordWrapLeftAligned" />
+            </Window>
+            <Window type="OD/StaticText" name="FoeText" >
+                <Property name="Area" value="{{0.0,16},{0.0,334},{1.0,-16},{0.0,354}}" />
+                <Property name="FrameEnabled" value="False" />
+                <Property name="BackgroundEnabled" value="False" />
+                <Property name="Font" value="MedievalSharp-8" />
+                <Property name="VertFormatting" value="TopAligned" />
+                <Property name="HorzFormatting" value="WordWrapLeftAligned" />
+            </Window>
+            <Window type="OD/StaticText" name="StatusText" >
+                <Property name="Area" value="{{0.0,16},{0.0,356},{1.0,-16},{0.0,394}}" />
+                <Property name="FrameEnabled" value="False" />
+                <Property name="BackgroundEnabled" value="False" />
+                <Property name="Font" value="MedievalSharp-8" />
+                <Property name="VertFormatting" value="TopAligned" />
+                <Property name="HorzFormatting" value="WordWrapLeftAligned" />
+            </Window>
+        </Window>
+        <Window type="OD/StaticText" name="StatsText" >
+            <Property name="Area" value="{{0.0,20},{0.0,34},{1.0,-20},{1.0,-56}}" />
+            <Property name="Visible" value="False" />
+            <Property name="FrameEnabled" value="False" />
+            <Property name="BackgroundEnabled" value="False" />
+            <Property name="Font" value="MedievalSharp-8" />
+            <Property name="VertFormatting" value="TopAligned" />
+            <Property name="HorzFormatting" value="WordWrapLeftAligned" />
+        </Window>
+        <Window type="OD/Button" name="ProfileTab" >
+            <Property name="Area" value="{{0.5,-190},{1.0,-48},{0.5,-70},{1.0,-16}}" />
+            <Property name="Text" value="Profile" />
+            <Property name="TooltipText" value="Social profile of this creature" />
+        </Window>
+        <Window type="OD/Button" name="StatsTab" >
+            <Property name="Area" value="{{0.5,-60},{1.0,-48},{0.5,60},{1.0,-16}}" />
+            <Property name="Text" value="Stats" />
+            <Property name="TooltipText" value="Detailed statistics of this creature" />
+        </Window>
+        <Window type="OD/Button" name="BookTab" >
+            <Property name="Area" value="{{0.5,70},{1.0,-48},{0.5,190},{1.0,-16}}" />
+            <Property name="Text" value="Dungeonbook" />
+            <Property name="Disabled" value="True" />
+            <Property name="TooltipText" value="Coming soon: what the minions post about their day" />
+        </Window>
+    </Window>
+</GUILayout>

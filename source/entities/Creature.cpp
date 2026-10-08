@@ -37,6 +37,7 @@
 #include "creatureaction/CreatureActionSearchWallTileToClaim.h"
 #include "creatureaction/CreatureActionSleep.h"
 #include "creatureaction/CreatureActionStealFreeGold.h"
+#include "creatureaction/CreatureActionUseRoom.h"
 #include "creatureaction/CreatureActionWalkToTile.h"
 #include "creaturebehaviour/CreatureBehaviour.h"
 #include "creatureeffect/CreatureEffect.h"
@@ -67,12 +68,19 @@
 #include "giftboxes/GiftBoxSkill.h"
 
 #include "modes/GameEditorModeConsole.h"
+#include "modes/ModeManager.h"
 
 #include "network/ODClient.h"
 #include "network/ODServer.h"
 #include "network/ServerNotification.h"
 #include "render/CreatureOverlayStatus.h"
+#include "render/CreaturePortrait.h"
+#include "render/Gui.h"
+#include "render/ODFrameListener.h"
 #include "render/RenderManager.h"
+#include "social/SocialGenerator.h"
+#include "social/SocialProfileCache.h"
+#include "social/SocialRng.h"
 #include "rooms/RoomCrypt.h"
 #include "rooms/RoomDormitory.h"
 #include "rooms/RoomPrison.h"
@@ -88,12 +96,14 @@
 #include "utils/Random.h"
 
 #include <CEGUI/Event.h>
+#include <CEGUI/Image.h>
 #include <CEGUI/System.h>
 #include <CEGUI/UDim.h>
 #include <CEGUI/Vector.h>
 #include <CEGUI/WindowManager.h>
 #include <CEGUI/Window.h>
 #include <CEGUI/widgets/FrameWindow.h>
+#include <CEGUI/widgets/ProgressBar.h>
 #include <CEGUI/widgets/PushButton.h>
 
 #include <OgreQuaternion.h>
@@ -109,6 +119,142 @@ static const Ogre::Real CANNON_MISSILE_HEIGHT = 0.3;
 
 const int32_t Creature::NB_TURNS_BEFORE_CHECKING_TASK = 15;
 const uint32_t Creature::NB_OVERLAY_HEALTH_VALUES = 8;
+
+namespace
+{
+//! \brief Friends are the creatures of the seat with an affinity above this value
+const uint32_t PROFILE_FRIEND_MIN_AFFINITY = 600;
+//! \brief The foe is the creature with an affinity below this value
+const uint32_t PROFILE_FOE_MAX_AFFINITY = 150;
+const uint32_t PROFILE_MAX_FRIENDS = 2;
+//! \brief The handle of the card gets a number from PROFILE_HANDLE_MIN_NUMBER to PROFILE_HANDLE_MIN_NUMBER + PROFILE_HANDLE_NUMBER_COUNT - 1
+const int PROFILE_HANDLE_MIN_NUMBER = 10;
+const int PROFILE_HANDLE_NUMBER_COUNT = 90;
+//! \brief Number of likes and of dislikes in a profile
+const std::size_t PROFILE_LIST_SIZE = 2;
+//! \brief Colour of the label of the active and of the inactive tab of the card (ARGB)
+const char* const PROFILE_TAB_COLOUR_ACTIVE = "FFF2C860";
+const char* const PROFILE_TAB_COLOUR_INACTIVE = "FFF0E2C0";
+
+typedef std::pair<uint32_t, std::string> ProfileAffinity;
+
+bool isHigherAffinity(const ProfileAffinity& a, const ProfileAffinity& b)
+{
+    if(a.first != b.first)
+        return a.first > b.first;
+
+    return a.second < b.second;
+}
+
+//! \brief Picks the friends and the foe of a creature among the creatures of a seat (see
+//! SocialGenerator::affinity). Only computed when the creature card is refreshed.
+void findFriendsAndFoe(const std::string& name, const std::vector<Creature*>& mates,
+    std::vector<std::string>& friends, std::string& foe)
+{
+    std::vector<ProfileAffinity> affinities;
+    for(Creature* mate : mates)
+    {
+        if(mate->getName() == name)
+            continue;
+
+        affinities.push_back(ProfileAffinity(social::SocialGenerator::affinity(name, mate->getName()), mate->getName()));
+    }
+    std::sort(affinities.begin(), affinities.end(), isHigherAffinity);
+
+    for(const ProfileAffinity& affinity : affinities)
+    {
+        if((affinity.first <= PROFILE_FRIEND_MIN_AFFINITY) || (friends.size() >= PROFILE_MAX_FRIENDS))
+            break;
+
+        friends.push_back(affinity.second);
+    }
+    if(!affinities.empty() && (affinities.back().first < PROFILE_FOE_MAX_AFFINITY))
+        foe = affinities.back().second;
+}
+
+//! \brief State name used to look up the mood line of the creature (see social-texts.cfg)
+std::string getProfileMoodState(uint32_t moodBits, CreatureMoodLevel moodLevel)
+{
+    if((moodBits & CreatureMoodValues::KoTemp) != 0)
+        return "KoTemp";
+    if((moodBits & CreatureMoodValues::InJail) != 0)
+        return "InJail";
+    if((moodBits & CreatureMoodValues::LeaveDungeon) != 0)
+        return "LeaveDungeon";
+    if((moodBits & CreatureMoodValues::GetFee) != 0)
+        return "GetFee";
+    if((moodBits & CreatureMoodValues::Hungry) != 0)
+        return "Hungry";
+    if((moodBits & CreatureMoodValues::Tired) != 0)
+        return "Tired";
+
+    switch(moodLevel)
+    {
+        case CreatureMoodLevel::Happy:
+            return "Happy";
+        case CreatureMoodLevel::Neutral:
+            return "Neutral";
+        case CreatureMoodLevel::Upset:
+            return "Upset";
+        case CreatureMoodLevel::Angry:
+            return "Angry";
+        case CreatureMoodLevel::Furious:
+            return "Furious";
+        default:
+            return "Unknown";
+    }
+}
+
+//! \brief A made-up handle derived from the profile name ("Mold the Damp" -> "@mold47"), so that the internal
+//! creature name never shows on the card
+std::string makeProfileHandle(const social::CreatureProfile& profile)
+{
+    std::string handle = "@";
+    for(char c : profile.mFirstName)
+    {
+        if(((c >= 'a') && (c <= 'z')) || ((c >= '0') && (c <= '9')))
+            handle += c;
+        else if((c >= 'A') && (c <= 'Z'))
+            handle += static_cast<char>(c - 'A' + 'a');
+    }
+    handle += Helper::toString(PROFILE_HANDLE_MIN_NUMBER +
+        static_cast<int>(social::fnv1a64(profile.mCreatureName + "|handle") % PROFILE_HANDLE_NUMBER_COUNT));
+    return handle;
+}
+
+//! \brief Profile name of the creature with the given internal name, empty if there is no such creature
+std::string getProfileNameOfCreature(GameMap* gameMap, const std::string& creatureName)
+{
+    Creature* creature = gameMap->getCreature(creatureName);
+    if(creature == nullptr)
+        return std::string();
+
+    const CreatureDefinition* definition = creature->getDefinition();
+    return social::SocialProfileCache::getSingleton().getProfile(creatureName, definition->getClassName(),
+        definition->isWorker()).getFullName();
+}
+
+void setTabState(CEGUI::Window* tab, const std::string& label, bool active)
+{
+    tab->setText(active ? "[ " + label + " ]" : label);
+    tab->setProperty("NormalTextColour", active ? PROFILE_TAB_COLOUR_ACTIVE : PROFILE_TAB_COLOUR_INACTIVE);
+}
+
+std::string joinProfileList(const std::vector<std::string>& values)
+{
+    std::string result;
+    for(const std::string& value : values)
+    {
+        if(value.empty())
+            continue;
+
+        if(!result.empty())
+            result += ", ";
+        result += value;
+    }
+    return result;
+}
+}
 
 CreatureParticleEffect::CreatureParticleEffect(Creature& creature, const std::string& name, const std::string& script, int32_t nbTurnsEffect,
         CreatureEffect* effect) :
@@ -172,7 +318,7 @@ Creature::Creature(GameMap* gameMap, const CreatureDefinition* definition, Seat*
     mNbTurnsWithoutBattle    (0),
     mCarriedEntity           (nullptr),
     mMoodCooldownTurns       (0),
-    mMoodValue               (CreatureMoodLevel::Neutral),
+    mMoodValue               (gameMap->isServerGameMap() ? CreatureMoodLevel::Neutral : CreatureMoodLevel::Unknown),
     mMoodPoints              (0),
     mNbTurnFurious           (-1),
     mOverlayHealthValue      (0),
@@ -257,7 +403,7 @@ Creature::Creature(GameMap* gameMap) :
     mNbTurnsWithoutBattle    (0),
     mCarriedEntity           (nullptr),
     mMoodCooldownTurns       (0),
-    mMoodValue               (CreatureMoodLevel::Neutral),
+    mMoodValue               (gameMap->isServerGameMap() ? CreatureMoodLevel::Neutral : CreatureMoodLevel::Unknown),
     mMoodPoints              (0),
     mNbTurnFurious           (-1),
     mOverlayHealthValue      (0),
@@ -608,6 +754,10 @@ void Creature::exportToPacket(ODPacket& os, const Seat* seat) const
         os << mWeaponR->getName();
     else
         os << "none";
+
+    exportMoodToPacket(os, seat);
+    exportActivityToPacket(os, seat);
+    exportProgressToPacket(os, seat);
 }
 
 void Creature::importFromPacket(ODPacket& is)
@@ -660,6 +810,9 @@ void Creature::importFromPacket(ODPacket& is)
         }
     }
 
+    importMoodFromPacket(is);
+    importActivityFromPacket(is);
+    importProgressFromPacket(is);
     setupDefinition(*getGameMap(), *ConfigManager::getSingleton().getCreatureDefinitionDefaultWorker());
 }
 
@@ -1071,6 +1224,11 @@ void Creature::doUpkeep()
     ++mNbTurnsWithoutBattle;
 
     bool isWarmUp = false;
+    if(mAttackRecoveryTurns > 0)
+    {
+        --mAttackRecoveryTurns;
+        mNeedFireRefresh = true;
+    }
     // We use creature skills if we can
     for(CreatureSkillData& skillData : mSkillData)
     {
@@ -1723,6 +1881,9 @@ void Creature::exportToPacketForUpdate(ODPacket& os, Seat* seat)
         seatPrisonId = mSeatPrison->getId();
 
     os << seatPrisonId;
+    exportMoodToPacket(os, seat);
+    exportActivityToPacket(os, seat);
+    exportProgressToPacket(os, seat);
 }
 
 void Creature::updateFromPacket(ODPacket& is)
@@ -1768,6 +1929,158 @@ void Creature::updateFromPacket(ODPacket& is)
             OD_LOG_ERR("Creature " + getName() + ", wrong seatId=" + Helper::toString(seatId));
         }
     }
+
+    importMoodFromPacket(is);
+    importActivityFromPacket(is);
+    importProgressFromPacket(is);
+}
+
+double Creature::getExperienceProgress() const
+{
+    if(!getIsOnServerMap())
+        return mExperienceProgress;
+    if(mLevel >= MAX_LEVEL)
+        return 1.0;
+    const double needed = mDefinition->getXPNeededWhenLevel(mLevel);
+    return needed > 0.0 ? std::max(0.0, std::min(1.0, mExp / needed)) : 0.0;
+}
+
+void Creature::exportProgressToPacket(ODPacket& os, const Seat* seat) const
+{
+    if(!ODServer::getSingleton().supportsCreatureProgress(seat->getPlayer()))
+        return;
+    os << getExperienceProgress() << mAttackRecoveryTurns << mAttackRecoveryDuration
+       << mAttackRecoverySerial;
+}
+
+void Creature::importProgressFromPacket(ODPacket& is)
+{
+    mHasProgressInformation = false;
+    if(!ODClient::getSingleton().supportsCreatureProgress())
+        return;
+    double experience;
+    uint32_t remaining, duration, serial;
+    OD_ASSERT_TRUE(is >> experience >> remaining >> duration >> serial);
+    if(!std::isfinite(experience) || experience < 0.0 || experience > 1.0 || remaining > duration)
+    {
+        OD_LOG_ERR("Invalid creature progress for " + getName());
+        return;
+    }
+    mExperienceProgress = experience;
+    mAttackRecoveryTurns = remaining;
+    mAttackRecoveryDuration = duration;
+    mAttackRecoverySerial = serial;
+    mHasProgressInformation = true;
+}
+
+void Creature::exportMoodToPacket(ODPacket& os, const Seat* seat) const
+{
+    if(!ODServer::getSingleton().supportsCreatureMood(seat->getPlayer()))
+        return;
+
+    int32_t mood = static_cast<int32_t>(seat->isAlliedSeat(getSeat()) ?
+        mMoodValue : CreatureMoodLevel::Unknown);
+    os << mood;
+}
+
+void Creature::importMoodFromPacket(ODPacket& is)
+{
+    mMoodValue = CreatureMoodLevel::Unknown;
+    if(!ODClient::getSingleton().supportsCreatureMood())
+        return;
+
+    int32_t mood = static_cast<int32_t>(CreatureMoodLevel::Unknown);
+    OD_ASSERT_TRUE(is >> mood);
+    if(mood < static_cast<int32_t>(CreatureMoodLevel::Unknown) ||
+       mood > static_cast<int32_t>(CreatureMoodLevel::Furious))
+    {
+        OD_LOG_ERR("Invalid creature mood=" + Helper::toString(mood));
+        return;
+    }
+    mMoodValue = static_cast<CreatureMoodLevel>(mood);
+}
+
+CreatureActivity Creature::getActivity() const
+{
+    CreatureActivity activity;
+    if(!getIsOnMap() || !isAlive() || isKo())
+        return activity;
+
+    if(!getIsOnServerMap())
+        return mActivity;
+
+    activity.known = true;
+    if(!mActions.empty())
+        activity.action = mActions.back()->getType();
+
+    for(std::vector<std::unique_ptr<CreatureAction>>::const_reverse_iterator it = mActions.rbegin(); it != mActions.rend(); ++it)
+    {
+        const CreatureActionType type = (*it)->getType();
+        if(activity.task == CreatureActionType::nb && type != CreatureActionType::walkToTile &&
+           type != CreatureActionType::parkToTile)
+            activity.task = type;
+
+        if(type != CreatureActionType::useRoom)
+            continue;
+
+        const Room* room = static_cast<const CreatureActionUseRoom*>(it->get())->getRoom();
+        if(room != nullptr)
+        {
+            activity.assignedRoom = room->getType();
+            const Tile* tile = getPositionTile();
+            activity.inAssignedRoom = tile != nullptr && tile->getCoveringRoom() == room;
+        }
+        break;
+    }
+    return activity;
+}
+
+void Creature::exportActivityToPacket(ODPacket& os, const Seat* seat) const
+{
+    if(!ODServer::getSingleton().supportsCreatureActivity(seat->getPlayer()))
+        return;
+
+    const CreatureActivity activity = seat->isAlliedSeat(getSeat()) ? getActivity() : CreatureActivity();
+    os << activity.known;
+    if(!activity.known)
+        return;
+
+    os << static_cast<int32_t>(activity.action) << static_cast<int32_t>(activity.task)
+       << static_cast<int32_t>(activity.assignedRoom) << activity.inAssignedRoom;
+}
+
+void Creature::importActivityFromPacket(ODPacket& is)
+{
+    mActivity = CreatureActivity();
+    if(!ODClient::getSingleton().supportsCreatureActivity())
+        return;
+
+    CreatureActivity activity;
+    if(!(is >> activity.known))
+    {
+        OD_LOG_ERR("Missing creature activity for " + getName());
+        return;
+    }
+    if(!activity.known)
+        return;
+
+    int32_t action, task, room;
+    if(!(is >> action >> task >> room >> activity.inAssignedRoom))
+    {
+        OD_LOG_ERR("Incomplete creature activity for " + getName());
+        return;
+    }
+    if(action < 0 || action > static_cast<int32_t>(CreatureActionType::nb) ||
+       task < 0 || task > static_cast<int32_t>(CreatureActionType::nb) ||
+       room < 0 || room >= static_cast<int32_t>(RoomType::nbRooms))
+    {
+        OD_LOG_ERR("Invalid creature activity for " + getName());
+        return;
+    }
+    activity.action = static_cast<CreatureActionType>(action);
+    activity.task = static_cast<CreatureActionType>(task);
+    activity.assignedRoom = static_cast<RoomType>(room);
+    mActivity = activity;
 }
 
 void Creature::updateTilesInSight()
@@ -1983,30 +2296,26 @@ void Creature::createStatsWindow()
     clientNotification->mPacket << name << true;
     ODClient::getSingleton().queueClientNotification(clientNotification);
 
-    CEGUI::WindowManager* wmgr = CEGUI::WindowManager::getSingletonPtr();
     CEGUI::Window* rootWindow = CEGUI::System::getSingleton().getDefaultGUIContext().getRootWindow();
 
-    mStatsWindow = wmgr->createWindow("OD/FrameWindow", std::string("CreatureStatsWindows_") + getName());
-    mStatsWindow->setPosition(CEGUI::UVector2(CEGUI::UDim(0.3, 0), CEGUI::UDim(0.3, 0)));
-    mStatsWindow->setSize(CEGUI::USize(CEGUI::UDim(0, 380), CEGUI::UDim(0, 400)));
-
-    CEGUI::Window* textWindow = wmgr->createWindow("OD/StaticText", "TextDisplay");
-    textWindow->setPosition(CEGUI::UVector2(CEGUI::UDim(0.05, 0), CEGUI::UDim(0.1, 0)));
-    textWindow->setSize(CEGUI::USize(CEGUI::UDim(0.9, 0), CEGUI::UDim(0.85, 0)));
-    textWindow->setProperty("FrameEnabled", "False");
-    textWindow->setProperty("BackgroundEnabled", "False");
+    mStatsWindow = ODFrameListener::getSingleton().getModeManager()->getGui().createCreatureProfileWindow(
+        std::string("CreatureStatsWindows_") + getName());
 
     // We want to close the window when the cross is clicked
     mStatsWindow->subscribeEvent(CEGUI::FrameWindow::EventCloseClicked,
         CEGUI::Event::Subscriber(&Creature::CloseStatsWindow, this));
+    mStatsWindow->getChild("ProfileTab")->subscribeEvent(CEGUI::PushButton::EventClicked,
+        CEGUI::Event::Subscriber(&Creature::ProfileTabClicked, this));
+    mStatsWindow->getChild("StatsTab")->subscribeEvent(CEGUI::PushButton::EventClicked,
+        CEGUI::Event::Subscriber(&Creature::StatsTabClicked, this));
 
-    // Set the window title
-    mStatsWindow->setText(getName() + " (" + getDefinition()->getClassName() + ")");
+    mStatsWindow->getChild("ProfilePage/Portrait")->setProperty("Image",
+        getCreaturePanelPortraitImage(getDefinition()->getMeshName()).getName());
 
-    mStatsWindow->addChild(textWindow);
     rootWindow->addChild(mStatsWindow);
     mStatsWindow->show();
 
+    showStatsPage(false);
     updateStatsWindow("Loading...");
 }
 
@@ -2030,16 +2339,124 @@ void Creature::updateStatsWindow(const std::string& txt)
     if (mStatsWindow == nullptr)
         return;
 
-    CEGUI::Window* textWindow = mStatsWindow->getChild("TextDisplay");
+    CEGUI::Window* textWindow = mStatsWindow->getChild("StatsText");
     textWindow->setText(txt);
+    // The server refreshes the statistics while the card is open, so the profile page follows
+    refreshProfilePage();
+}
+
+bool Creature::ProfileTabClicked(const CEGUI::EventArgs& /*e*/)
+{
+    showStatsPage(false);
+    return true;
+}
+
+bool Creature::StatsTabClicked(const CEGUI::EventArgs& /*e*/)
+{
+    showStatsPage(true);
+    return true;
+}
+
+void Creature::showStatsPage(bool stats)
+{
+    if (mStatsWindow == nullptr)
+        return;
+
+    mStatsWindow->getChild("ProfilePage")->setVisible(!stats);
+    mStatsWindow->getChild("StatsText")->setVisible(stats);
+    // The active tab stays enabled and is shown in gold between brackets
+    setTabState(mStatsWindow->getChild("ProfileTab"), "Profile", !stats);
+    setTabState(mStatsWindow->getChild("StatsTab"), "Stats", stats);
+}
+
+void Creature::refreshProfilePage()
+{
+    if (mStatsWindow == nullptr)
+        return;
+
+    const CreatureDefinition* definition = getDefinition();
+    const social::CreatureProfile& profile = social::SocialProfileCache::getSingleton().getProfile(
+        getName(), definition->getClassName(), definition->isWorker());
+
+    // Mood, friends and the like are only known for creatures of the local player and its allies
+    Seat* localSeat = nullptr;
+    if(getGameMap()->getLocalPlayer() != nullptr)
+        localSeat = getGameMap()->getLocalPlayer()->getSeat();
+    bool isAllied = (localSeat != nullptr) &&
+        (getSeat()->isAlliedSeat(localSeat) || ((mSeatPrison != nullptr) && mSeatPrison->isAlliedSeat(localSeat)));
+
+    social::SocialProfileCache& cache = social::SocialProfileCache::getSingleton();
+    std::string classDisplayName = social::SocialGenerator::displayClassName(cache.getData(), definition->getClassName());
+    mStatsWindow->setText(profile.getFullName() + " (" + classDisplayName + ")");
+
+    CEGUI::Window* page = mStatsWindow->getChild("ProfilePage");
+    page->getChild("NameText")->setText(profile.getFullName());
+
+    std::string handle = makeProfileHandle(profile) + " - " + (definition->isWorker() ? "Worker" : "Fighter") +
+        " - Level " + Helper::toString(getLevel());
+    page->getChild("HandleText")->setText(handle);
+
+    std::string age = (profile.mAgeText == Helper::toString(profile.mAge)) ? "Age " + profile.mAgeText : profile.mAgeText;
+    if(!profile.mGender.empty())
+        age += " - " + profile.mGender;
+    page->getChild("AgeText")->setText(age);
+    page->getChild("RelationText")->setText("Relationship: " + profile.mRelationship);
+    page->getChild("FromText")->setText("From: " + profile.mHometown);
+    page->getChild("JobText")->setText("Job: " + profile.mJob);
+    page->getChild("BioText")->setText("\"" + profile.mBio + "\"");
+    std::vector<std::string> likes(profile.mLikes, profile.mLikes + PROFILE_LIST_SIZE);
+    std::vector<std::string> dislikes(profile.mDislikes, profile.mDislikes + PROFILE_LIST_SIZE);
+    page->getChild("LikesText")->setText("Likes: " + joinProfileList(likes));
+    page->getChild("DislikesText")->setText("Dislikes: " + joinProfileList(dislikes));
+
+    // Health is shown as the same stage the creature overlay uses, the client has no exact value
+    CEGUI::ProgressBar* healthBar = static_cast<CEGUI::ProgressBar*>(page->getChild("HealthBar"));
+    healthBar->setProgress(1.0f - static_cast<float>(mOverlayHealthValue) /
+        static_cast<float>(NB_OVERLAY_HEALTH_VALUES - 1));
+    page->getChild("HealthLabel")->setText("Health");
+    CEGUI::ProgressBar* experienceBar = static_cast<CEGUI::ProgressBar*>(page->getChild("ExperienceBar"));
+    bool showExperience = isAllied && hasProgressInformation();
+    experienceBar->setVisible(showExperience);
+    page->getChild("ExperienceLabel")->setVisible(showExperience);
+    page->getChild("ExperienceLabel")->setText("XP");
+    if(showExperience)
+        experienceBar->setProgress(static_cast<float>(getExperienceProgress()));
+
+    CEGUI::Window* friendsText = page->getChild("FriendsText");
+    CEGUI::Window* foeText = page->getChild("FoeText");
+    CEGUI::Window* statusText = page->getChild("StatusText");
+    friendsText->setVisible(isAllied);
+    foeText->setVisible(isAllied);
+    statusText->setVisible(isAllied);
+    if(!isAllied)
+        return;
+
+    std::vector<std::string> friends;
+    std::string foe;
+    findFriendsAndFoe(getName(), getGameMap()->getCreaturesBySeat(localSeat), friends, foe);
+    std::vector<std::string> friendNames;
+    for(const std::string& friendName : friends)
+        friendNames.push_back(getProfileNameOfCreature(getGameMap(), friendName));
+    std::string foeName = foe.empty() ? std::string() : getProfileNameOfCreature(getGameMap(), foe);
+    std::string friendList = joinProfileList(friendNames);
+    friendsText->setText("Friends: " + (friendList.empty() ? std::string("none yet") : friendList));
+    foeText->setText("Foe: " + (foeName.empty() ? std::string("none") : foeName));
+
+    std::string moodLine = social::SocialGenerator::moodLine(cache.getData(),
+        getName(), definition->getClassName(), definition->isWorker(),
+        getProfileMoodState(getOverlayMoodValue(), mMoodValue));
+    std::string status = "Status";
+    if(mMoodValue != CreatureMoodLevel::Unknown)
+        status += " (" + getProfileMoodState(0, mMoodValue) + ")";
+    statusText->setText(status + ": " + (moodLine.empty() ? std::string("...") : moodLine));
 }
 
 std::string Creature::getStatsText()
 {
     // The creatures are not refreshed at each turn so this information is relevant in the server
     // GameMap only
-    const std::string formatTitleOn = "[font='MedievalSharp-12'][colour='CCBBBBFF']";
-    const std::string formatTitleOff = "[font='MedievalSharp-10'][colour='FFFFFFFF']";
+    const std::string formatTitleOn = "[font='MedievalSharp-10'][colour='CCBBBBFF']";
+    const std::string formatTitleOff = "[font='MedievalSharp-8'][colour='FFFFFFFF']";
 
     std::stringstream tempSS;
     tempSS << formatTitleOn << "Characteristics" << formatTitleOff << std::endl;
@@ -2081,10 +2498,19 @@ std::string Creature::getStatsText()
         tempSS << " " << CreatureAction::toString(ca.get()->getType());
     }
     tempSS << std::endl;   
-    tempSS << "Destinations:";
+    // The window has a fixed size, so only the next destinations are listed
+    const uint32_t maxDestinations = 4;
+    tempSS << "Destinations (" << mWalkQueue.size() << "):";
+    uint32_t nbDestinations = 0;
     for(const Ogre::Vector2& dest : mWalkQueue)
     {
+        if(nbDestinations >= maxDestinations)
+        {
+            tempSS << " ...";
+            break;
+        }
         tempSS << " " << Helper::toString(dest);
+        ++nbDestinations;
     }
     tempSS << std::endl;
     tempSS << "Mood: " << CreatureMood::toString(mMoodValue) << std::endl;
@@ -2158,6 +2584,7 @@ void Creature::receiveExp(double experience)
         return;
 
     mExp += experience;
+    mNeedFireRefresh = true;
 }
 
 void Creature::useAttack(CreatureSkillData& skillData, GameEntity& entityAttack,
@@ -2180,6 +2607,12 @@ void Creature::useAttack(CreatureSkillData& skillData, GameEntity& entityAttack,
         &entityAttack, &tileAttack, ko, notifyPlayerIfHit);
     skillData.mWarmup = skillData.mSkill->getWarmupNbTurns();
     skillData.mCooldown = skillData.mSkill->getCooldownNbTurns();
+
+    // Both timers count down together; either can postpone the next attack.
+    mAttackRecoveryDuration = std::max(skillData.mWarmup, skillData.mCooldown);
+    mAttackRecoveryTurns = mAttackRecoveryDuration;
+    ++mAttackRecoverySerial;
+    mNeedFireRefresh = true;
 
     // Fighting is tiring
     decreaseWakefulness(0.5);
@@ -2260,6 +2693,7 @@ void Creature::pickup()
     removeEntityFromPositionTile();
     clearDestinations(EntityAnimation::idle_anim, true, true);
     clearActionQueue();
+    mActivity = CreatureActivity();
 
     if(!getIsOnServerMap())
         return;
@@ -2755,6 +3189,13 @@ void Creature::fireRemoveEntity(Seat* seat,NodeType nt)
 
 void Creature::fireCreatureRefreshIfNeeded()
 {
+    const CreatureActivity activity = getActivity();
+    if(!(mActivity == activity))
+    {
+        mActivity = activity;
+        mNeedFireRefresh = true;
+    }
+
     if(!mNeedFireRefresh)
         return;
 
@@ -3023,6 +3464,8 @@ void Creature::computeMood()
     mMoodValue = CreatureMoodManager::getCreatureMoodLevel(mMoodPoints);
     if(mMoodValue == oldMoodValue)
         return;
+
+    mNeedFireRefresh = true;
 
     if((mMoodValue >= CreatureMoodLevel::Furious) &&
        (oldMoodValue < CreatureMoodLevel::Furious))
@@ -3471,9 +3914,3 @@ void Creature::normalizeAmbient()
     RenderManager::getSingleton().rrNormalizeAmbient(this);
 
 }
-
-
-
-
-
-
