@@ -26,6 +26,7 @@
 #include "game/Seat.h"
 #include "gamemap/GameMap.h"
 #include "gamemap/Pathfinding.h"
+#include "gamemap/RoomObjectBounds.h"
 #include "network/ODClient.h"
 #include "network/ODPacket.h"
 #include "network/ClientNotification.h"
