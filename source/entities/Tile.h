@@ -28,6 +28,8 @@
 
 #include <string>
 #include <vector>
+#include <array>
+#include <map>
 #include <iosfwd>
 #include <cstdint>
 
@@ -538,8 +540,11 @@ public:
     bool removeWorkerClaiming(const Creature& worker);
     //! \brief Feels the tile vector with the available tiles the worker can
     //! go to
-    void canWorkerDig(const Creature& worker, std::vector<Tile*>& tiles);
-    bool addWorkerDigging(const Creature& worker, Tile& tile);
+    void canWorkerDig(Creature& worker, std::vector<Tile*>& tiles);
+    int getWorkerDiggingSlot(const Creature& worker, const Tile& tile) const;
+    Ogre::Vector2 getWorkerDiggingPosition(const Creature& worker) const;
+    bool isWorkerDiggingPositionFree(const Creature& worker, const Tile& tile, const Ogre::Vector2& point) const;
+    bool addWorkerDigging(Creature& worker, Tile& tile);
     bool removeWorkerDigging(const Creature& worker, Tile& tile);
 
     static void exportToStream(Tile* tile, std::ostream& os);
@@ -652,9 +657,10 @@ private:
 
     void setDirtyForAllSeats();
 
-    //! \brief Vector with the number of workers digging the tile. The index corresponds
+    //! \brief Reserved worker slots for each wall face. The outer index corresponds
     //! to the index in mNeighbors
-    std::vector<uint32_t> mNbWorkersDigging;
+    std::vector<std::array<const Creature*, 3>> mWorkersDigging;
+    std::map<const Creature*, Ogre::Vector2> mWorkerDigPositions;
     uint32_t mNbWorkersClaiming;
     std::vector<TileStateListener*> mStateListeners;
 

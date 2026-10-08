@@ -218,6 +218,7 @@ public:
     virtual void update(Ogre::Real timeSinceLastFrame) override;
 
     bool parkToWallTile(Tile* wallTile, Tile* nTile);
+    bool wallDigPath(Tile* wallTile, Tile* nTile, uint32_t slot, std::vector<Ogre::Vector2>& path);
     
     bool setDestination(Tile* tile);
 

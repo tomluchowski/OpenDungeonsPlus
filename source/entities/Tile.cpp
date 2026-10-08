@@ -48,6 +48,8 @@
 #include <bitset>
 #include <istream>
 #include <ostream>
+#include <limits>
+#include <utility>
 
 
 
@@ -525,7 +527,7 @@ void Tile::removePlayerMarkingTile(const Player *p)
 void Tile::addNeighbor(Tile *n)
 {
     mNeighbors.push_back(n);
-    mNbWorkersDigging.push_back(0);
+    mWorkersDigging.push_back({{nullptr, nullptr, nullptr}});
 }
 
 Tile* Tile::getNeighbor(unsigned int index)
@@ -2154,98 +2156,123 @@ bool Tile::removeWorkerClaiming(const Creature& worker)
     return true;
 }
 
-void Tile::canWorkerDig(const Creature& worker, std::vector<Tile*>& tiles)
+static std::pair<Ogre::Vector2, Ogre::Vector2> workerDigBounds(const Creature& worker,
+    const Ogre::Vector2& point, const Ogre::Vector2& facing)
 {
-    Tile* myTile = worker.getPositionTile();
-    if (myTile == nullptr)
-    {
-        OD_LOG_ERR("worker=" + worker.getName() + ", pos=" + Helper::toString(worker.getPosition()));
+    Ogre::Vector2 minimum(-0.2f), maximum(0.2f);
+    for(const RoomObjectPath::WalkingRadius& model : RoomObjectPath::walkingRadii)
+        if(worker.getMeshName() == model.name)
+        {
+            minimum = Ogre::Vector2(model.minX, model.minY);
+            maximum = Ogre::Vector2(model.maxX, model.maxY);
+            break;
+        }
+    const float maximumScale = 1.0f + ConfigManager::getSingleton().getCreatureLevelGrowthMax();
+    minimum *= maximumScale;
+    maximum *= maximumScale;
+    Ogre::Vector2 low(std::numeric_limits<float>::infinity()), high(-std::numeric_limits<float>::infinity());
+    for(float x : {minimum.x, maximum.x})
+        for(float y : {minimum.y, maximum.y})
+        {
+            const Ogre::Vector2 corner = point + Ogre::Vector2(-facing.y * x - facing.x * y,
+                facing.x * x - facing.y * y);
+            low.makeFloor(corner);
+            high.makeCeil(corner);
+        }
+    return std::make_pair(low, high);
+}
+
+Ogre::Vector2 Tile::getWorkerDiggingPosition(const Creature& worker) const
+{
+    const std::map<const Creature*, Ogre::Vector2>::const_iterator found = mWorkerDigPositions.find(&worker);
+    return found == mWorkerDigPositions.end() ? Ogre::Vector2::ZERO : found->second;
+}
+
+bool Tile::isWorkerDiggingPositionFree(const Creature& worker, const Tile& tile, const Ogre::Vector2& point) const
+{
+    const std::pair<Ogre::Vector2, Ogre::Vector2> candidate = workerDigBounds(worker, point, getPosition2d() - tile.getPosition2d());
+    for(uint32_t i = 0; i < mNeighbors.size() && i < mWorkersDigging.size(); ++i)
+        for(const Creature* reserved : mWorkersDigging[i])
+        {
+            if(reserved == nullptr || reserved == &worker)
+                continue;
+            const std::pair<Ogre::Vector2, Ogre::Vector2> other = workerDigBounds(*reserved,
+                getWorkerDiggingPosition(*reserved), getPosition2d() - mNeighbors[i]->getPosition2d());
+            if(candidate.second.x > other.first.x && other.second.x > candidate.first.x &&
+                candidate.second.y > other.first.y && other.second.y > candidate.first.y)
+                return false;
+        }
+    return true;
+}
+
+void Tile::canWorkerDig(Creature& worker, std::vector<Tile*>& tiles)
+{
+    if(!getIsOnServerMap() || worker.getPositionTile() == nullptr)
         return;
-    }
 
     for(uint32_t i = 0; i < mNeighbors.size(); ++i)
     {
         Tile* neigh = mNeighbors[i];
-        if(neigh->isFullTile())
+        if(neigh->isFullTile() || i >= mWorkersDigging.size())
             continue;
-
-        if(!getGameMap()->pathExists(&worker, myTile, neigh))
-            continue;
-
-        if(i >= mNbWorkersDigging.size())
+        for(uint32_t slot = 0; slot < mWorkersDigging[i].size() &&
+            slot < ConfigManager::getSingleton().getNbWorkersDigSameFaceTile(); ++slot)
         {
-            static bool log = true;
-            if(log)
+            std::vector<Ogre::Vector2> path;
+            if(mWorkersDigging[i][slot] == nullptr && worker.wallDigPath(this, neigh, slot, path) &&
+                isWorkerDiggingPositionFree(worker, *neigh, path.back()))
             {
-                log = false;
-                OD_LOG_ERR("worker=" + worker.getName() + ", myTile=" + Tile::displayAsString(myTile)
-                    + ", neigh=" + Tile::displayAsString(neigh) + ", i=" + Helper::toString(i)
-                    + ", size=" + Helper::toString(mNbWorkersDigging.size()));
+                tiles.push_back(neigh);
+                break;
             }
-            continue;
         }
-
-        if(mNbWorkersDigging[i] >= ConfigManager::getSingleton().getNbWorkersDigSameFaceTile())
-            continue;
-
-        tiles.push_back(neigh);
     }
 }
 
-bool Tile::addWorkerDigging(const Creature& worker, Tile& tile)
+bool Tile::addWorkerDigging(Creature& worker, Tile& tile)
 {
-    for(uint32_t i = 0; i < mNeighbors.size(); ++i)
+    if(!getIsOnServerMap())
+        return false;
+    for(uint32_t i = 0; i < mNeighbors.size() && i < mWorkersDigging.size(); ++i)
     {
-        Tile* neigh = mNeighbors[i];
-        if(neigh != &tile)
+        if(mNeighbors[i] != &tile)
             continue;
-
-        if(i >= mNbWorkersDigging.size())
+        for(uint32_t slot = 0; slot < mWorkersDigging[i].size() &&
+            slot < ConfigManager::getSingleton().getNbWorkersDigSameFaceTile(); ++slot)
         {
-            static bool log = true;
-            if(log)
-            {
-                log = false;
-                OD_LOG_ERR("worker=" + worker.getName() + ", tile=" + Tile::displayAsString(&tile)
-                    + ", neigh=" + Tile::displayAsString(neigh) + ", i=" + Helper::toString(i)
-                    + ", size=" + Helper::toString(mNbWorkersDigging.size()));
-            }
-            continue;
+            std::vector<Ogre::Vector2> path;
+            if(mWorkersDigging[i][slot] != nullptr || !worker.wallDigPath(this, &tile, slot, path) ||
+                !isWorkerDiggingPositionFree(worker, tile, path.back()))
+                continue;
+            mWorkersDigging[i][slot] = &worker;
+            mWorkerDigPositions[&worker] = path.back();
+            return true;
         }
-
-        ++mNbWorkersDigging[i];
-        return true;
     }
-
     return false;
+}
+
+int Tile::getWorkerDiggingSlot(const Creature& worker, const Tile& tile) const
+{
+    for(uint32_t i = 0; i < mNeighbors.size() && i < mWorkersDigging.size(); ++i)
+        if(mNeighbors[i] == &tile)
+            for(uint32_t slot = 0; slot < mWorkersDigging[i].size(); ++slot)
+                if(mWorkersDigging[i][slot] == &worker)
+                    return static_cast<int>(slot);
+    return -1;
 }
 
 bool Tile::removeWorkerDigging(const Creature& worker, Tile& tile)
 {
-    // Sanity check
-    for(uint32_t i = 0; i < mNeighbors.size(); ++i)
-    {
-        Tile* neigh = mNeighbors[i];
-        if(neigh != &tile)
-            continue;
-
-        if(i >= mNbWorkersDigging.size())
-        {
-            static bool log = true;
-            if(log)
-            {
-                log = false;
-                OD_LOG_ERR("worker=" + worker.getName() + ", tile=" + Tile::displayAsString(&tile)
-                    + ", neigh=" + Tile::displayAsString(neigh) + ", i=" + Helper::toString(i)
-                    + ", size=" + Helper::toString(mNbWorkersDigging.size()));
-            }
-            continue;
-        }
-
-        --mNbWorkersDigging[i];
-        return true;
-    }
-
+    for(uint32_t i = 0; i < mNeighbors.size() && i < mWorkersDigging.size(); ++i)
+        if(mNeighbors[i] == &tile)
+            for(const Creature*& reserved : mWorkersDigging[i])
+                if(reserved == &worker)
+                {
+                    reserved = nullptr;
+                    mWorkerDigPositions.erase(&worker);
+                    return true;
+                }
     return false;
 }
 

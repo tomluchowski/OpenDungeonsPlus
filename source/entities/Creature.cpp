@@ -66,6 +66,7 @@
 #include "gamemap/GameMap.h"
 #include "gamemap/Pathfinding.h"
 #include "gamemap/RoomObjectNavigation.h"
+#include "gamemap/RoomObjectBounds.h"
 #include "giftboxes/GiftBoxSkill.h"
 
 #include "modes/GameEditorModeConsole.h"
@@ -2609,8 +2610,83 @@ bool Creature::resizeMeshAfterDrop()
 }
 
 
+bool Creature::wallDigPath(Tile* wallTile, Tile* nTile, uint32_t slot, std::vector<Ogre::Vector2>& path)
+{
+    if(nTile == nullptr || wallTile == nullptr || getPositionTile() == nullptr || slot >= 3)
+        return false;
+
+    const Ogre::Vector2 facing = wallTile->getPosition2d() - nTile->getPosition2d();
+    const Ogre::Vector2 sideways(-facing.y, facing.x);
+    // Use the largest worker body width at its maximum level scale. The outer
+    // positions can extend onto neighbouring floor tiles, which must be reachable.
+    float spacing = 0.4f;
+    float forward = 0.3f;
+    Ogre::Vector2 minimum(-0.2f), maximum(0.2f);
+    for(const std::pair<const std::string, CreatureDefinition*>& definition : ConfigManager::getSingleton().getCreatureDefinitions())
+    {
+        if(!definition.second->isWorker())
+            continue;
+        for(const RoomObjectPath::WalkingRadius& model : RoomObjectPath::walkingRadii)
+            if(definition.second->getMeshName() == model.name)
+            {
+                spacing = std::max(spacing, model.maxX - model.minX);
+                forward = std::max(forward, -model.minY);
+            }
+    }
+    for(const RoomObjectPath::WalkingRadius& model : RoomObjectPath::walkingRadii)
+        if(getMeshName() == model.name)
+        {
+            minimum = Ogre::Vector2(model.minX, model.minY);
+            maximum = Ogre::Vector2(model.maxX, model.maxY);
+            break;
+        }
+    const float maximumScale = 1.0f + ConfigManager::getSingleton().getCreatureLevelGrowthMax();
+    spacing = spacing * maximumScale + 0.01f;
+    forward = forward * maximumScale + 0.01f;
+    minimum *= static_cast<float>(getLevelScale());
+    maximum *= static_cast<float>(getLevelScale());
+    const float offset = slot == 0 ? 0.0f : (slot == 1 ? -spacing : spacing);
+    const Ogre::Vector2 point = nTile->getPosition2d() + facing * (0.5f - forward) + sideways * offset;
+    // Check the complete standing body against terrain, not just its center.
+    for(float x : {minimum.x, maximum.x})
+        for(float y : {minimum.y, maximum.y})
+        {
+            const Ogre::Vector2 corner = point + Ogre::Vector2(-facing.y * x - facing.x * y,
+                facing.x * x - facing.y * y);
+            Tile* tile = getGameMap()->getTile(Helper::round(corner.x), Helper::round(corner.y));
+            if(tile == nullptr || !canGoThroughTile(tile))
+                return false;
+        }
+    Tile* destination = getGameMap()->getTile(Helper::round(point.x), Helper::round(point.y));
+    if(destination == nullptr || !canGoThroughTile(destination) ||
+        !getGameMap()->pathExists(this, getPositionTile(), destination))
+        return false;
+    const std::list<Tile*> tiles = getGameMap()->path(this, destination);
+    tileToVector2(tiles, path, true, 0.0f);
+    path.push_back(point);
+    RoomObjectNavigation::refine(*this, path);
+    if(!RoomObjectPath::clearPoint(RoomObjectNavigation::bodyObstacles(*this), point, facing) ||
+        path.empty() || path.back() != point ||
+        RoomObjectNavigation::blocked(*this, path))
+    {
+        path.clear();
+        return false;
+    }
+    return true;
+}
+
 bool Creature::parkToWallTile(Tile* wallTile, Tile* nTile)
 {
+    const int slot = wallTile == nullptr || nTile == nullptr ? -1 : wallTile->getWorkerDiggingSlot(*this, *nTile);
+    if(slot >= 0)
+    {
+        std::vector<Ogre::Vector2> path;
+        if(!wallDigPath(wallTile, nTile, static_cast<uint32_t>(slot), path))
+            return false;
+        setWalkPath(EntityAnimation::walk_anim, EntityAnimation::idle_anim, true, true, path, false, true);
+        pushAction(Utils::make_unique<CreatureActionParkToTile>(*this));
+        return true;
+    }
     if(nTile == nullptr || wallTile == nullptr )
         return false;
 

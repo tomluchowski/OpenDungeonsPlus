@@ -67,7 +67,7 @@ ConfigManager::ConfigManager(const std::string& configPath, const std::string& u
     mDigCoefClaimedWall(0.5),
     mNbTurnsKoCreatureAttacked(10),
     mCreatureDefinitionDefaultWorker(nullptr),
-    mNbWorkersDigSameFaceTile(2),
+    mNbWorkersDigSameFaceTile(3),
     mNbWorkersClaimSameTile(1)
 {
     // TODO: it might be better to go through the creature definitions and try to pickup the first worker we can find
