@@ -332,17 +332,11 @@ void CameraManager::updateCameraFrameTime(const Ogre::Real frameTime)
                         * mMoveSpeedAcceleration * frameTime));
     mTranslateVector += mTranslateVectorAccel * static_cast<Ogre::Real>(frameTime * 2.0f);
 
+    // The speed limit of each axis is lowered while the pointer is only just inside the scrolling border
     const Ogre::Real maxMoveSpeedX = mMoveSpeed * mTranslateMaxSpeedFactor.x;
-    if(mTranslateVector.x > maxMoveSpeedX)
-        mTranslateVector.x = maxMoveSpeedX;
-    else if(mTranslateVector.x < -maxMoveSpeedX)
-        mTranslateVector.x = -maxMoveSpeedX;
-
+    mTranslateVector.x = std::max(-maxMoveSpeedX, std::min(maxMoveSpeedX, mTranslateVector.x));
     const Ogre::Real maxMoveSpeedY = mMoveSpeed * mTranslateMaxSpeedFactor.y;
-    if(mTranslateVector.y > maxMoveSpeedY)
-        mTranslateVector.y = maxMoveSpeedY;
-    else if(mTranslateVector.y < -maxMoveSpeedY)
-        mTranslateVector.y = -maxMoveSpeedY;
+    mTranslateVector.y = std::max(-maxMoveSpeedY, std::min(maxMoveSpeedY, mTranslateVector.y));
 
     // If we have sped up to more than the maximum moveSpeed then rescale the
     // vector to that length. We use the squaredLength() in this calculation

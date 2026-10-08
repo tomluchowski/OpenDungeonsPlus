@@ -75,12 +75,11 @@ public:
     void setWidthAndHeight(int width, int height);
     void setCurrentAMode(AbstractApplicationMode& mode);
     void handleSFMLEvent(const sf::Event& evt);
-    //! \brief Recreates the input devices if the mouse or keyboard grab setting changed.
-    //! Must be called before capturing input, never from inside an input callback.
+    //! \brief Recreates the input devices if the mouse or keyboard capture setting changed.
+    //! Must not be called from an input callback.
     void refreshSettings();
-
-    //! \brief Moves the input devices to another render window.
-    //! Returns false (and keeps the old window) if the devices could not be created.
+    //! \brief Moves the input devices to another render window. Returns false (and keeps the old window)
+    //! if the devices could not be created for the new one.
     bool setRenderWindow(Ogre::RenderWindow* renderWindow);
 
     OIS::InputManager*  mInputManager;
@@ -111,19 +110,15 @@ public:
     
     private:
     AbstractApplicationMode* mCurrentAMode;
-    //! \brief The window the input devices are attached to.
+    //! \brief The render window the input devices are bound to
     Ogre::RenderWindow* mRenderWindow;
-
-    //! \brief Whether the mouse is currently grabbed by the window.
+    //! \brief Whether the input devices were created with mouse capture
     bool mMouseGrab;
-
-    //! \brief Whether the keyboard is currently grabbed by the window.
+    //! \brief Whether the input devices were created with keyboard capture
     bool mKeyboardGrab;
-
-    //! \brief Creates the mouse and keyboard for mRenderWindow with the given grab settings.
+    //! \brief Creates the mouse and keyboard for mRenderWindow
     void createInputDevices(bool mouseGrab, bool keyboardGrab);
-
-    //! \brief Destroys the mouse and keyboard.
+    //! \brief Destroys the mouse and keyboard; safe to call when they do not exist
     void destroyInputDevices();
 #ifdef OD_USE_SFML_WINDOW
     std::unique_ptr<SFMLToOISListener> mListener;
