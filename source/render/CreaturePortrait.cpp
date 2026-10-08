@@ -38,6 +38,10 @@ const size_t RGB_CHANNELS = 3;
 const float MAX_CHANNEL_VALUE = 255.0f;
 const std::string TINTED_PREFIX = "TintedCreaturePortrait/";
 
+//! Size in pixels of the rendered portrait textures and of the images made from them
+const unsigned int PORTRAIT_WIDTH = 192;
+const unsigned int PORTRAIT_HEIGHT = 384;
+
 PortraitTint& getPortraitTint()
 {
     static PortraitTint tint;
@@ -154,9 +158,12 @@ Ogre::TexturePtr createCreaturePortrait(const std::string& meshName, const std::
 
     const Ogre::AxisAlignedBox& bounds = mesh->getBounds();
     const Ogre::Vector3 size = bounds.getSize();
+    // Visible height of the portrait: most of the model height, but at least what its width needs
     const float height = std::max(size.z * 0.65f, size.x * 0.35f);
+    // Upright models are framed on the upper body, 72 percent up the model
     Ogre::Vector3 center = bounds.getCenter();
     center.z = bounds.getMinimum().z + size.z * 0.72f;
+    // Models that are lower than they are deep are framed on the centre, or on the head bone if they have one
     if(size.z < size.y)
     {
         center = bounds.getCenter();
@@ -189,7 +196,7 @@ Ogre::TexturePtr createCreaturePortrait(const std::string& meshName, const std::
     cameraNode->lookAt(center, Ogre::Node::TS_WORLD);
 
     Ogre::TexturePtr texture = Ogre::TextureManager::getSingleton().createManual(textureName, "General",
-        Ogre::TEX_TYPE_2D, 192, 384, 0, Ogre::PF_BYTE_RGBA, Ogre::TU_RENDERTARGET);
+        Ogre::TEX_TYPE_2D, PORTRAIT_WIDTH, PORTRAIT_HEIGHT, 0, Ogre::PF_BYTE_RGBA, Ogre::TU_RENDERTARGET);
     try
     {
         Ogre::RenderTexture* target = texture->getBuffer()->getRenderTarget();
@@ -226,7 +233,8 @@ const CEGUI::Image& getCreaturePortraitImage(const std::string& meshName)
         CEGUI::Texture& guiTexture = renderer.createTexture(name, texture, true);
         CEGUI::BasicImage& image = static_cast<CEGUI::BasicImage&>(images.create("BasicImage", name));
         image.setTexture(&guiTexture);
-        image.setArea(CEGUI::Rectf(0.0f, 0.0f, 192.0f, 384.0f));
+        image.setArea(CEGUI::Rectf(0.0f, 0.0f, static_cast<float>(PORTRAIT_WIDTH),
+            static_cast<float>(PORTRAIT_HEIGHT)));
         image.setAutoScaled(CEGUI::ASM_Disabled);
         return image;
     }
@@ -282,6 +290,7 @@ const CEGUI::Image& getCreatureHandIconImage(const std::string& meshName)
     if(images.isDefined(name))
         return images.get(name);
 
+    // Makes sure the illustrated portrait is loaded if there is one; otherwise the rendered one is used
     getCreaturePanelPortraitImage(meshName);
     CEGUI::Renderer& renderer = *CEGUI::System::getSingleton().getRenderer();
     const bool illustrated = renderer.isTextureDefined("IllustratedCreaturePortrait/" + meshName);
@@ -291,6 +300,7 @@ const CEGUI::Image& getCreatureHandIconImage(const std::string& meshName)
     const CEGUI::Sizef size = texture.getOriginalDataSize();
     const float side = std::min(size.d_width, size.d_height);
     const float left = (size.d_width - side) * 0.5f;
+    // Illustrations are cropped closer to the top than rendered portraits, which are cropped in the middle
     const float top = (size.d_height - side) * (illustrated ? 0.25f : 0.5f);
     CEGUI::BasicImage& image = static_cast<CEGUI::BasicImage&>(images.create("BasicImage", name));
     image.setTexture(&texture);
