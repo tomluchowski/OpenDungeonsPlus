@@ -29,6 +29,18 @@
 #include <Overlay/OgreOverlayManager.h>
 #include <Overlay/OgrePanelOverlayElement.h>
 
+namespace
+{
+//! Number of copies of a caption drawn behind it to make the outline
+const unsigned int NB_OUTLINE_ELEMENTS = 4;
+//! Offset in pixels, at scale 1, of each outline copy from the caption: left, right, up, down
+const Ogre::Real OUTLINE_OFFSETS[NB_OUTLINE_ELEMENTS][2] = {
+    {-0.75f, 0.0f}, {0.75f, 0.0f}, {0.0f, -0.75f}, {0.0f, 0.75f}
+};
+//! Size in pixels of the marker at scale 1; the markers get bigger when the camera is closer
+const Ogre::Real MARKER_BASE_SIZE = 64.0f;
+}
+
 ChildOverlay::ChildOverlay(const Ogre::String& fontName, Ogre::Real charHeight,
         const Ogre::ColourValue& color, const Ogre::String& materialName,
         bool stackWithPrevious) :
@@ -97,8 +109,8 @@ void ChildOverlay::centerCaption()
     mOverlayText->setPosition((-mTextWidth * 0.5f - 1.0f) * mScale,
         ((mForcedHeight - mTextHeight) * 0.5f + 2.0f) * mScale);
     for(unsigned i = 0; i < mCaptionOutline.size(); ++i)
-        mCaptionOutline[i]->setPosition(mOverlayText->getLeft() + mScale * (i == 0 ? -0.75f : i == 1 ? 0.75f : 0.0f),
-            mOverlayText->getTop() + mScale * (i == 2 ? -0.75f : i == 3 ? 0.75f : 0.0f));
+        mCaptionOutline[i]->setPosition(mOverlayText->getLeft() + mScale * OUTLINE_OFFSETS[i][0],
+            mOverlayText->getTop() + mScale * OUTLINE_OFFSETS[i][1]);
 }
 
 void ChildOverlay::setScale(Ogre::Real scale)
@@ -106,11 +118,16 @@ void ChildOverlay::setScale(Ogre::Real scale)
     if(mScale == scale)
         return;
     mScale = scale;
+    applyCharHeight();
+    if(mCenterCaption)
+        centerCaption();
+}
+
+void ChildOverlay::applyCharHeight()
+{
     mOverlayText->setParameter("char_height", Helper::toString(mCharHeight * mScale));
     for(Ogre::OverlayElement* outline : mCaptionOutline)
         outline->setParameter("char_height", Helper::toString(mCharHeight * mScale));
-    if(mCenterCaption)
-        centerCaption();
 }
 
 void ChildOverlay::computeTextArea()
@@ -287,9 +304,7 @@ void MovableTextOverlay::setCaptionSize(uint32_t childOverlayId, Ogre::Real heig
         return;
     ChildOverlay& child = mChildOverlays[childOverlayId];
     child.mCharHeight = height;
-    child.mOverlayText->setParameter("char_height", Helper::toString(height * child.mScale));
-    for(Ogre::OverlayElement* outline : child.mCaptionOutline)
-        outline->setParameter("char_height", Helper::toString(height * child.mScale));
+    child.applyCharHeight();
     child.computeTextArea();
     if(child.mCenterCaption)
         child.centerCaption();
@@ -302,7 +317,7 @@ void MovableTextOverlay::setCaptionOutline(uint32_t childOverlayId, const Ogre::
     ChildOverlay& child = mChildOverlays[childOverlayId];
     if(child.mCaptionOutline.empty())
     {
-        for(unsigned i = 0; i < 4; ++i)
+        for(unsigned i = 0; i < NB_OUTLINE_ELEMENTS; ++i)
         {
             // Names sort before the foreground glyph in the container's Z-order.
             Ogre::OverlayElement* outline = Ogre::OverlayManager::getSingleton().createOverlayElement("TextArea",
@@ -318,6 +333,7 @@ void MovableTextOverlay::setCaptionOutline(uint32_t childOverlayId, const Ogre::
             outline->setCaption(child.mCaption);
             child.mCaptionOutline.push_back(outline);
         }
+        // Setting the same Z-order again makes the overlay sort the new elements into its container order
         mOverlay->setZOrder(mOverlay->getZOrder());
     }
     for(Ogre::OverlayElement* outline : child.mCaptionOutline)
@@ -409,7 +425,7 @@ bool MovableTextOverlay::computeOverlayPositionHead(Ogre::Vector2& position, Ogr
     // A three-quarter-tile, camera-facing marker, with a readable distant minimum.
     const Ogre::Real diameter = 0.75f * mCamera->getProjectionMatrix()[1][1] *
         Ogre::OverlayManager::getSingleton().getViewportHeight() * 0.5f / projected.w;
-    scale = std::max(1.0f, diameter / 64.0f);
+    scale = std::max(1.0f, diameter / MARKER_BASE_SIZE);
 
     // We transform from coordinate space [-1, 1] to [0, 1]
     position.x = 0.5 + (screenPosition.x * 0.5);

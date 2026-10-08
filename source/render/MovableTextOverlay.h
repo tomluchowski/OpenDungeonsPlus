@@ -48,8 +48,12 @@ private:
 
     void forceTextArea(Ogre::Real textWidth, Ogre::Real textHeight);
 
+    //! \brief Centres the caption in the forced text area and keeps it centred when it changes
     void centerCaption();
+    //! \brief Sets the factor applied to the character height and to the size of the child overlay
     void setScale(Ogre::Real scale);
+    //! \brief Applies mCharHeight and mScale to the caption and its outline
+    void applyCharHeight();
 
     void displayOverlay(Ogre::Real time);
 
@@ -68,6 +72,8 @@ private:
 
     Ogre::OverlayContainer* mOverlayContainer;
     Ogre::OverlayElement* mOverlayText;
+    //! \brief Copies of the caption drawn behind it, offset by a fraction of a pixel in four directions.
+    //! Empty until setCaptionOutline() is called.
     std::vector<Ogre::OverlayElement*> mCaptionOutline;
 
     //! the Material used in the overlay
@@ -90,6 +96,7 @@ private:
 
     //! Height a char has for the wanted font
     Ogre::Real mCharHeight;
+    //! \brief Factor applied to the character height and the size, depending on the camera distance
     Ogre::Real mScale = 1.0f;
 
     Ogre::Real mTimeToDisplay;
@@ -129,14 +136,19 @@ public:
 
     //! Centres the caption within its child overlay area
     void centerCaption(uint32_t childOverlayId);
+    //! \brief Sets the character height of the caption (before scaling)
     void setCaptionSize(uint32_t childOverlayId, Ogre::Real height);
+    //! \brief Draws the caption outlined with the given colour. Creates the outline on the first call.
     void setCaptionOutline(uint32_t childOverlayId, const Ogre::ColourValue& colour);
 
     void setMaterialName(uint32_t childOverlayId, const Ogre::String& materialName);
+    //! \brief Shows one cell of the material texture, which is a square grid of columns x columns cells
+    //! numbered row by row. Ignored if the frame is outside the grid.
     void setAtlasFrame(uint32_t childOverlayId, uint32_t frame, uint32_t columns);
 
     //! Displays the overlay during time seconds. If time < 0, the overlay will be always displayed
     void displayOverlay(uint32_t childOverlayId, Ogre::Real time);
+    //! \brief Whether the child overlay is currently displayed, i.e. its display time has not run out
     bool isDisplayed(uint32_t childOverlayId);
     void update(Ogre::Real timeSincelastFrame);
 
