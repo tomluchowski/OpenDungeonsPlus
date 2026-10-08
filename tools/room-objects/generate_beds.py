@@ -171,7 +171,8 @@ def write_xml(meshes, path):
     for i, (mat, m) in enumerate(meshes):
         L.append('\t\t<submeshname name="%s" index="%d" />' % (mat, i))
     L += ['\t</submeshnames>', '</mesh>']
-    open(path, 'w').write("\n".join(L) + "\n")
+    with open(path, 'w') as xml_file:
+        xml_file.write("\n".join(L) + "\n")
 
 
 def worker_bed(out):

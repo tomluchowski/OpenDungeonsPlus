@@ -3,7 +3,8 @@
 
 Usage: restyle_chicken_coop.py ORIGINAL.png OUTPUT.png
 ORIGINAL is the unmodified texture from the repository history (the script is
-not idempotent on its own output).  Original work, CC0.
+not idempotent on its own output).  The script is original work, CC0; the
+resulting texture keeps the licence listed for ChickenCoop*.png in CREDITS.
 """
 import sys
 import numpy as np
