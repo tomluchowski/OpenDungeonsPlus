@@ -21,6 +21,8 @@
 
 #include "render/RenderManager.h"
 
+#include "camera/CullingManager.h"
+
 #include "entities/Creature.h"
 #include "entities/CreatureDefinition.h"
 #include "entities/GameEntity.h"
@@ -92,6 +94,13 @@ const Ogre::ColourValue BASE_AMBIENT_VALUE = Ogre::ColourValue(0.3f, 0.3f, 0.3f)
 const Ogre::Real RenderManager::DRAGGABLE_NODE_HEIGHT = 3.0f;
 
 const int PERLIN_NOISE_TEXTURE_SIZE =  4096;
+
+//! Names of the ground underlay resources and scene objects created in initGameRenderer.
+const std::string GROUND_UNDERLAY_MESH_NAME = "DungeonGroundUnderlayMesh";
+const std::string GROUND_UNDERLAY_ENTITY_NAME = "DungeonGroundUnderlay";
+const std::string GROUND_UNDERLAY_NODE_NAME = "DungeonGroundUnderlayNode";
+//! Z position of the ground underlay plane, below the deepest tile geometry.
+const Ogre::Real GROUND_UNDERLAY_HEIGHT = -4.0f;
 
 
 RenderManager::RenderManager(Ogre::OverlaySystem* overlaySystem) :
@@ -223,6 +232,25 @@ void RenderManager::initGameRenderer(GameMap* gameMap)
     OD_ASSERT_TRUE(gameMap);
     OD_ASSERT_TRUE(mHandKeeperNode);
     mCreatureTextOverlayDisplayed = false;
+
+    // Cover tile and room seams with continuous earth below the dungeon.
+    // The plane lies below the deepest tile geometry (arena pit floor at z = -3.012,
+    // see ArenaLowered.mesh), otherwise it would hide the pit and the creatures in it.
+    const Ogre::Real groundMargin = mViewport->getCamera()->getFarClipDistance();
+    const Ogre::Real groundSizeX = gameMap->getMapSizeX() + 2.0f * groundMargin;
+    const Ogre::Real groundSizeY = gameMap->getMapSizeY() + 2.0f * groundMargin;
+    Ogre::MeshManager::getSingleton().createPlane(GROUND_UNDERLAY_MESH_NAME, "Graphics",
+        Ogre::Plane(Ogre::Vector3::UNIT_Z, GROUND_UNDERLAY_HEIGHT), groundSizeX, groundSizeY,
+        1, 1, true, 1, groundSizeX, groundSizeY, Ogre::Vector3::UNIT_Y);
+    Ogre::Entity* ground = mSceneManager->createEntity(GROUND_UNDERLAY_ENTITY_NAME, GROUND_UNDERLAY_MESH_NAME, "Graphics");
+    ground->setMaterialName("DungeonGroundUnderlay", "Graphics");
+    ground->setCastShadows(false);
+    ground->setQueryFlags(0);
+    ground->setVisibilityFlags(CullingType::SHOW_ALL);
+    Ogre::SceneNode* groundNode = mSceneManager->getRootSceneNode()->createChildSceneNode(GROUND_UNDERLAY_NODE_NAME,
+        Ogre::Vector3((gameMap->getMapSizeX() - 1) * 0.5f, (gameMap->getMapSizeY() - 1) * 0.5f, 0.0f));
+    groundNode->attachObject(ground);
+
 
     // Create the light which follows the single tile selection mesh
     if(mHandLight == nullptr)
@@ -474,6 +502,12 @@ void RenderManager::preRenderTargetUpdate(const Ogre::RenderTargetEvent& evt)
 
 void RenderManager::stopGameRenderer(GameMap*)
 {
+    if(mSceneManager->hasEntity(GROUND_UNDERLAY_ENTITY_NAME))
+    {
+        mSceneManager->destroyEntity(GROUND_UNDERLAY_ENTITY_NAME);
+        mSceneManager->destroySceneNode(GROUND_UNDERLAY_NODE_NAME);
+        Ogre::MeshManager::getSingleton().remove(GROUND_UNDERLAY_MESH_NAME, "Graphics");
+    }
     // We do not remove the entities from mDummyEntities as it is a workaround avoiding a crash and removing
     // them can cause the crash to happen
 
