@@ -207,6 +207,7 @@ class GameMode final : public GameEditorModeBase, public InputCommand
 
     //! \brief Refreshed the main ui data, such as mana, gold, ...
     void refreshMainUI();
+    //! \brief Passes the latest creature counts received from the server to the creature panel
     void refreshCreaturePanel(const CreaturePanelData& data);
 
     void selectSquaredTiles(int tileX1, int tileY1, int tileX2, int tileY2) override;
@@ -270,6 +271,7 @@ protected:
     virtual bool keyReleasedNormal  (const OIS::KeyEvent &arg);
 
 private:
+    //! \brief The population panel in the creatures tab
     std::unique_ptr<CreaturePanel> mCreaturePanel;
     std::vector<CEGUI::Window*> mHeldCreatureIcons;
     void refreshHeldCreatureIcons();
@@ -448,9 +450,14 @@ private:
     //! \brief Builds the player settings window
     void buildPlayerSettingsWindow();
 
+    //! \brief Tracks the Alt keys and toggles the creature indicators on each new Alt press.
+    //! Key repeats and overlapping left/right Alt presses count as one held interval.
     void updateCreatureIndicatorAlt(OIS::KeyCode key, bool pressed);
+    //! \brief Whether the health and need indicators above the creatures are shown
     bool mCreatureIndicatorsVisible = true;
+    //! \brief Whether the left Alt key is currently held, as far as the indicator toggle knows
     bool mIndicatorLeftAltDown = false;
+    //! \brief Whether the right Alt key is currently held, as far as the indicator toggle knows
     bool mIndicatorRightAltDown = false;
 
     //! \brief Brings the defeat sequence to the wall-clock time now (does nothing before it starts)
