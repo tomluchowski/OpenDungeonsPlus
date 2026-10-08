@@ -109,6 +109,43 @@ static double getAutoscrollIntensity(int mousePosition, int screenSize, bool min
     return std::max(0.0, std::min(1.0, (edgeSize - distanceFromEdge) / edgeSize));
 }
 
+//! Colours of the research tree (CEGUI ARGB strings). The state icon colours mark finished,
+//! impossible and running research, the frame colours the research level and the link colours
+//! whether the prerequisites of a path are complete.
+static const std::string RESEARCH_ICON_COLOUR_DONE = "FF3CB46E";
+static const std::string RESEARCH_ICON_COLOUR_UNAVAILABLE = "FFC4472A";
+static const std::string RESEARCH_ICON_COLOUR_WORKING = "FFC8A030";
+static const std::string RESEARCH_FRAME_COLOUR_NONE = "00FFFFFF";
+static const std::string RESEARCH_FRAME_COLOUR_BRONZE = "FFC98A4A";
+static const std::string RESEARCH_FRAME_COLOUR_GOLD = "FFFFC947";
+static const std::string RESEARCH_LINK_COLOUR_READY = "FFE8862E";
+static const std::string RESEARCH_LINK_COLOUR_WAITING = "FF6E5232";
+static const std::string RESEARCH_JUNCTION_COLOUR_READY = "FFEEBE5C";
+static const std::string RESEARCH_JUNCTION_COLOUR_WAITING = "FF8A6A40";
+//! Research level at which a node gets the bronze frame and the one with the gold frame
+static const uint32_t RESEARCH_LEVEL_BRONZE = 2;
+static const uint32_t RESEARCH_LEVEL_GOLD = 3;
+
+static const std::string& getResearchFrameColour(uint32_t level)
+{
+    if(level >= RESEARCH_LEVEL_GOLD)
+        return RESEARCH_FRAME_COLOUR_GOLD;
+    if(level == RESEARCH_LEVEL_BRONZE)
+        return RESEARCH_FRAME_COLOUR_BRONZE;
+    return RESEARCH_FRAME_COLOUR_NONE;
+}
+
+static std::string getResearchTileImage(const std::string& state, uint32_t level)
+{
+    if(state == "Researching")
+        return "OpenDungeonsSkin/ResearchTileWorking";
+    if(state == "Queued")
+        return "OpenDungeonsSkin/ResearchTileQueued";
+    if(level > 0)
+        return "OpenDungeonsSkin/ResearchTileLearned";
+    return "OpenDungeonsSkin/ResearchTileLocked";
+}
+
 static bool blocksEdgeScrolling(CEGUI::Window* window)
 {
     if(window == nullptr || window->getName() == "Root")
@@ -2846,7 +2883,7 @@ void GameMode::refreshSkillButtonState(const std::string& skillButtonName, const
         guiSheet->getChild(castButtonName)->show();
         skillButton->setText("");
         skillButton->setProperty("StateImage", okIcon);
-        skillButton->setProperty("StateImageColour", "FF3CB46E");
+        skillButton->setProperty("StateImageColour", RESEARCH_ICON_COLOUR_DONE);
         skillButton->setEnabled(false);
         skillProgressBar->hide();
     }
@@ -2855,7 +2892,7 @@ void GameMode::refreshSkillButtonState(const std::string& skillButtonName, const
         guiSheet->getChild(castButtonName)->show();
         skillButton->setText("");
         skillButton->setProperty("StateImage", abortIcon);
-        skillButton->setProperty("StateImageColour", "FFC4472A");
+        skillButton->setProperty("StateImageColour", RESEARCH_ICON_COLOUR_UNAVAILABLE);
         skillButton->setEnabled(false);
         skillProgressBar->hide();
     }
@@ -2869,7 +2906,7 @@ void GameMode::refreshSkillButtonState(const std::string& skillButtonName, const
             skillButton->setText(Helper::toString(queueNumber));
 
         skillButton->setProperty("StateImage", workIcon);
-        skillButton->setProperty("StateImageColour", "FFC8A030");
+        skillButton->setProperty("StateImageColour", RESEARCH_ICON_COLOUR_WORKING);
         skillButton->setEnabled(true);
         if (curSkillProgress > 0.0f)
         {
@@ -2909,8 +2946,7 @@ void GameMode::refreshSkillButtonState(const std::string& skillButtonName, const
     guiSheet->getChild(castButtonName)->setVisible(level > 0 || !isAllowed);
     skillButton->setText("");
     skillButton->setProperty("ButtonImageColour", level == 0 ? "FF666666" : "FFFFFFFF");
-    skillButton->setProperty("ResearchLevelColour", level >= 3 ? "FFFFC947" :
-        level == 2 ? "FFC98A4A" : "00FFFFFF");
+    skillButton->setProperty("ResearchLevelColour", getResearchFrameColour(level));
     CEGUI::Window* levelBadge;
     if(skillButton->isChild("ResearchLevel"))
         levelBadge = skillButton->getChild("ResearchLevel");
@@ -2970,9 +3006,7 @@ void GameMode::refreshSkillButtonState(const std::string& skillButtonName, const
     // Keep explanations optional; the main tree communicates through its nodes and paths.
     skillButton->setTooltipText(description);
     skillButton->setUserString("ContextHelp", Skills::skillTypeToPlayerVisibleString(resType));
-    skillButton->setProperty("ResearchTileImage", state == "Researching" ? "OpenDungeonsSkin/ResearchTileWorking" :
-        state == "Queued" ? "OpenDungeonsSkin/ResearchTileQueued" :
-        level > 0 ? "OpenDungeonsSkin/ResearchTileLearned" : "OpenDungeonsSkin/ResearchTileLocked");
+    skillButton->setProperty("ResearchTileImage", getResearchTileImage(state, level));
     skillProgressBar->setArea(CEGUI::UVector2(CEGUI::UDim(.12f, 0), CEGUI::UDim(.82f, 0)),
         CEGUI::USize(CEGUI::UDim(.76f, 0), CEGUI::UDim(.09f, 0)));
     skillProgressBar->setProperty("VerticalProgress", "False");
@@ -3111,8 +3145,9 @@ void GameMode::refreshSkillConnections()
                 }
                 line->setArea(CEGUI::UVector2(CEGUI::UDim(segments[part][0], 0), CEGUI::UDim(segments[part][1], 0)),
                     CEGUI::USize(CEGUI::UDim(segments[part][2], 0), CEGUI::UDim(segments[part][3], 0)));
+                const bool linkReady = part == 0 ? seat->getSkillLevel(dependency->getType()) > 0 : allReady;
                 line->setProperty("ImageColours",
-                    (part == 0 ? seat->getSkillLevel(dependency->getType()) > 0 : allReady) ? "FFE8862E" : "FF6E5232");
+                    linkReady ? RESEARCH_LINK_COLOUR_READY : RESEARCH_LINK_COLOUR_WAITING);
             }
         }
         if(required.size() > 1)
@@ -3139,7 +3174,7 @@ void GameMode::refreshSkillConnections()
             const float height = .075f * parentRect.getWidth() / parentRect.getHeight();
             junction->setArea(CEGUI::UVector2(CEGUI::UDim(.4625f, 0), CEGUI::UDim(middle - height * .5f, 0)),
                 CEGUI::USize(CEGUI::UDim(.075f, 0), CEGUI::UDim(height, 0)));
-            junction->setProperty("TextColours", allReady ? "FFEEBE5C" : "FF8A6A40");
+            junction->setProperty("TextColours", allReady ? RESEARCH_JUNCTION_COLOUR_READY : RESEARCH_JUNCTION_COLOUR_WAITING);
         }
     }
 }

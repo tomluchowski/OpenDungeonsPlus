@@ -26,7 +26,8 @@ namespace
 {
 // Colours of the event notices: warm bone for information, amber for creatures,
 // gold for skills, ember red for major events
-const std::string EVENT_COLOUR_INFO = "[colour='FFE8DCC0']";
+const std::string EVENT_COLOUR_TEXT = "[colour='FFE8DCC0']";
+const std::string EVENT_COLOUR_INFO = EVENT_COLOUR_TEXT;
 const std::string EVENT_COLOUR_MAJOR = "[colour='FFE8583A']";
 const std::string EVENT_COLOUR_CREATURES = "[colour='FFE8A850']";
 const std::string EVENT_COLOUR_SKILLS = "[colour='FFF2C860']";
@@ -44,8 +45,7 @@ std::string ChatMessage::getMessageAsString() const
 {
     const Ogre::ColourValue& colorValue = mSeat ? mSeat->getColorValue() : ConfigManager::getSingleton().getColorFromId("");
     const std::string formatSeatColor = "[colour='" + Helper::getCEGUIColorFromOgreColourValue(colorValue) + "']";
-    const std::string formatWhiteColor = "[colour='FFE8DCC0']";
-    std::string messageStr = formatSeatColor + mPlayerNick + formatWhiteColor + ": " + getMessage()  + "\n";
+    std::string messageStr = formatSeatColor + mPlayerNick + EVENT_COLOUR_TEXT + ": " + getMessage()  + "\n";
     return messageStr;
 }
 
@@ -63,7 +63,6 @@ bool EventMessage::isMessageTooOld(float maxTimeDisplay) const
 std::string EventMessage::getMessageAsString()
 {
     std::string eventType;
-    const std::string formatWhiteColor = "[colour='FFE8DCC0']";
     switch(mType)
     {
         case EventShortNoticeType::genericGameInfo:
@@ -83,5 +82,5 @@ std::string EventMessage::getMessageAsString()
             eventType = "[image-size='w:16 h:16'][image='OpenDungeonsIcons/ObjectivesIcon'] " + EVENT_COLOUR_OBJECTIVES;
             break;
     }
-    return eventType + mMessage + formatWhiteColor + "\n";
+    return eventType + mMessage + EVENT_COLOUR_TEXT + "\n";
 }
