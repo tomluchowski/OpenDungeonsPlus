@@ -63,7 +63,7 @@ struct ODServer {
 };
 struct GameMap {
  bool editor=false;int gold=0;std::map<int,Tile> tiles;std::vector<Seat*> seats;
- Tile* tileFromPacket(ODPacket& p){int id;p>>id;auto i=tiles.find(id);return i==tiles.end()?nullptr:&i->second;}
+ Tile* tileFromPacket(ODPacket& p){int id;p>>id;std::map<int,Tile>::iterator i=tiles.find(id);return i==tiles.end()?nullptr:&i->second;}
  void tileToPacket(ODPacket& p,Tile* t){p<<t->id;}
  void addGoldToSeat(int amount,int){gold+=amount;}
  const std::vector<Seat*>& getSeats(){return seats;}
@@ -71,9 +71,9 @@ struct GameMap {
 };
 struct RoomManager {static int costPerTile(int){return 100;}static void sellRoomTiles(GameMap*,Player*,ODPacket&);};
 METHOD
+int checks=0,failures=0;
+void check(bool ok,const char* label){++checks;if(!ok){++failures;std::cout<<"FAIL "<<label<<'\n';}}
 int main(){
- int checks=0,failures=0;
- auto check=[&](bool ok,const char* label){++checks;if(!ok){++failures;std::cout<<"FAIL "<<label<<'\n';}};
  // Partial vision, failed/foreign/unsellable/empty/duplicate/invalid requests.
  for(bool editor:{false,true})for(int count:{1,6}) {
   Seat owner{1},observer{2},ai{3},absent{4};
@@ -87,16 +87,16 @@ int main(){
   map.tiles.emplace(20,Tile{20,&room,false});map.tiles.emplace(21,Tile{21,&foreign});
   map.tiles.emplace(22,Tile{22,&portal});map.tiles.emplace(23,Tile{23});
   request<<20<<21<<22<<23<<0<<99;
-  auto& messages=ODServer::getSingleton().sent;messages.clear();
+  std::vector<ServerNotification>& messages=ODServer::getSingleton().sent;messages.clear();
   RoomManager::sellRoomTiles(&map,&p,request);
   check(map.gold==50*count,"refund unchanged");
   check(room.updates==1&&room.splits==1,"room lifecycle unchanged");
   check(foreign.updates==0&&portal.updates==0,"excluded rooms untouched");
   check(messages.size()==(editor?2:4),"one refresh/effect pair per visible human");
   for(Player* recipient:{&p,&q}) {
-   const auto& expected=recipient==&p?accepted:seen;
+   const std::vector<int>& expected=recipient==&p?accepted:seen;
    int refreshIndex=-1,effectIndex=-1,refreshCount=0,effectCount=0;
-   for(size_t i=0;i<messages.size();++i){const auto& n=messages[i];if(n.recipient!=recipient)continue;
+   for(size_t i=0;i<messages.size();++i){const ServerNotification& n=messages[i];if(n.recipient!=recipient)continue;
     if(n.type==ServerNotificationType::refreshTiles){refreshIndex=int(i);++refreshCount;
      std::vector<int> packet{int(expected.size()),7};for(int id:expected){packet.push_back(id);packet.push_back(0);}
      check(n.mPacket.data==packet,"refresh remains exact");
