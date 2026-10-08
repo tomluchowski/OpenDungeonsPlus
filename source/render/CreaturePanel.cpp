@@ -28,20 +28,30 @@
 namespace
 {
 using Criterion = CreaturePanelCriterion;
+//! Height in pixels of the panel content: the worker block, the type strip and every type column
+const float ROW_HEIGHT = 108.0f;
+//! Width in pixels of one type column
+const float SLOT_WIDTH = 54.0f;
+//! Distance in pixels between the left edges of two neighbouring type columns
+const float SLOT_STRIDE = 58.0f;
+//! Criteria shown in the count rows of each type column, one list per view (Total, Jobs, Fighting, Moods)
 const std::array<std::vector<Criterion>, 4> VIEW_CRITERIA = {{
     {Criterion::Total},
     {Criterion::Idle, Criterion::Manufacturing, Criterion::Training, Criterion::OtherJobs},
     {Criterion::Fighting, Criterion::Guarding, Criterion::OtherFighting},
     {Criterion::Happy, Criterion::Unhappy, Criterion::Angry}
 }};
+//! Criteria shown in the worker block, top to bottom
 const std::array<Criterion, 4> WORKER_CRITERIA = {{
     Criterion::Total, Criterion::Idle, Criterion::Working, Criterion::Fighting
 }};
+//! Tooltip names of the criteria, indexed by the CreaturePanelCriterion value
 const std::array<const char*, 12> CRITERION_NAMES = {{
     "Total", "Idle", "Working", "Fighting", "Manufacturing", "Training", "Other jobs",
     "Guarding", "Other activities", "Happy", "Unhappy", "Angry"
 }};
 
+//! Creates a child window of parent at the given pixel position and size
 CEGUI::Window* createWindow(CEGUI::Window* parent, const std::string& type,
     const std::string& name, float x, float y, float width, float height)
 {
@@ -53,6 +63,7 @@ CEGUI::Window* createWindow(CEGUI::Window* parent, const std::string& type,
     return window;
 }
 
+//! Sets up a window as a centred number label without frame and background
 void prepareCount(CEGUI::Window* window)
 {
     window->setProperty("FrameEnabled", "False");
@@ -62,6 +73,8 @@ void prepareCount(CEGUI::Window* window)
     window->setText("0");
 }
 
+//! Returns which creature a click picks up by level: 1 for the highest level (Ctrl and period held),
+//! -1 for the lowest (Ctrl and comma held) and 0 for the first one found
 int selectedLevelOrder()
 {
     Keyboard& keyboard = *InputManager::getSingleton().mKeyboard;
@@ -81,7 +94,7 @@ CreaturePanel::CreaturePanel(GameMap& gameMap, Gui& gui, CEGUI::Window* parent) 
         CEGUI::UDim(1, -48), CEGUI::UDim(0, 116)));
     mWindow->setUserString("AllowEdgeScrolling", "true");
     CEGUI::Window* workerBackground = createWindow(mWindow, "OD/StaticImage", "WorkerBackground",
-        0, 0, 74, 108);
+        0, 0, 74, ROW_HEIGHT);
     workerBackground->setProperty("FrameEnabled", "False");
     workerBackground->setProperty("BackgroundEnabled", "False");
     workerBackground->setProperty("Image", "OpenDungeonsSkin/SelectionBrush");
@@ -133,9 +146,9 @@ CreaturePanel::CreaturePanel(GameMap& gameMap, Gui& gui, CEGUI::Window* parent) 
         CEGUI::Event::Subscriber([this](const CEGUI::EventArgs&) { scroll(-1); return true; })));
     mConnections.emplace_back(mNext->subscribeEvent(CEGUI::PushButton::EventClicked,
         CEGUI::Event::Subscriber([this](const CEGUI::EventArgs&) { scroll(1); return true; })));
-    mStrip = createWindow(mWindow, "DefaultWindow", "Types", 134, 0, 1, 108);
+    mStrip = createWindow(mWindow, "DefaultWindow", "Types", 134, 0, 1, ROW_HEIGHT);
     mStrip->setArea(CEGUI::URect(CEGUI::UDim(0, 134), CEGUI::UDim(0, 0),
-        CEGUI::UDim(1, 0), CEGUI::UDim(0, 108)));
+        CEGUI::UDim(1, 0), CEGUI::UDim(0, ROW_HEIGHT)));
     mGui.registerWindowHierarchy(mWindow);
     mWindow->hide();
 }
@@ -179,8 +192,8 @@ void CreaturePanel::addSlot()
     const size_t index = mSlots.size();
     Slot slot;
     slot.window = createWindow(mStrip, "DefaultWindow", "Type" + std::to_string(index),
-        static_cast<float>(index * 58), 0, 54, 108);
-    slot.portrait = createWindow(slot.window, "OD/StaticImage", "Portrait", 0, 0, 54, 108);
+        static_cast<float>(index) * SLOT_STRIDE, 0, SLOT_WIDTH, ROW_HEIGHT);
+    slot.portrait = createWindow(slot.window, "OD/StaticImage", "Portrait", 0, 0, SLOT_WIDTH, ROW_HEIGHT);
     // Keep the original model proportions; the surrounding frame fills the column.
     slot.portrait->setProperty("HorzFormatting", "Stretched");
     slot.portrait->setProperty("VertFormatting", "Stretched");
@@ -197,7 +210,7 @@ void CreaturePanel::addSlot()
     for(size_t row = 0; row < slot.counts.size(); ++row)
     {
         CEGUI::Window* count = createWindow(slot.window, "OD/StaticText", "Count" + std::to_string(row),
-            0, static_cast<float>(row * 26), 54, 26);
+            0, static_cast<float>(row * 26), SLOT_WIDTH, 26);
         prepareCount(count);
         slot.counts[row] = count;
         mConnections.emplace_back(count->subscribeEvent(CEGUI::Window::EventMouseClick,
@@ -225,8 +238,8 @@ void CreaturePanel::update()
         return;
     mLastSize = size;
     mDirty = false;
-    const float scale = size.d_height / 108.0f;
-    mVisibleSlots = scale > 0 ? static_cast<size_t>(std::max(0.0f, size.d_width) / (58.0f * scale)) : 0;
+    const float scale = size.d_height / ROW_HEIGHT;
+    mVisibleSlots = scale > 0 ? static_cast<size_t>(std::max(0.0f, size.d_width) / (SLOT_STRIDE * scale)) : 0;
 
     std::vector<std::string> types;
     CreaturePanelCounts workers{};
