@@ -413,6 +413,9 @@ set(OD_SOURCEFILES
     ${SRC}/render/RenderManager.cpp
     ${SRC}/render/TextRenderer.cpp
 
+    ${SRC}/social/SocialData.cpp
+    ${SRC}/social/SocialGenerator.cpp
+
     ${SRC}/renderscene/RenderScene.cpp
     ${SRC}/renderscene/RenderSceneAddEntity.cpp
     ${SRC}/renderscene/RenderSceneAddParticleEffect.cpp

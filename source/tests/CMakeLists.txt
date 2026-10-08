@@ -6,6 +6,16 @@ add_boost_test(00-Random
         ${SRC}/utils/Random.h
         ${SRC}/utils/Random.cpp)
 
+add_boost_test(00-SocialGenerator
+        SOURCES
+        test_SocialGenerator.cpp
+        ${SRC}/social/CreatureProfile.h
+        ${SRC}/social/SocialRng.h
+        ${SRC}/social/SocialData.h
+        ${SRC}/social/SocialData.cpp
+        ${SRC}/social/SocialGenerator.h
+        ${SRC}/social/SocialGenerator.cpp)
+
 add_boost_test(00-ODPacket
         SOURCES
         test_ODPacket.cpp

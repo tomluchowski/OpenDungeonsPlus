@@ -163,6 +163,9 @@ public:
     inline int32_t getNbTurnsKoCreatureAttacked() const
     { return mNbTurnsKoCreatureAttacked; }
 
+    inline const std::string& getConfigPath() const
+    { return mConfigPath; }
+
     inline const std::string& getMainMenuMusic() const
     { return mMainMenuMusic; }
 

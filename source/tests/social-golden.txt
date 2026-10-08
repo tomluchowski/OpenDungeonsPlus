@@ -1,0 +1,52 @@
+# Golden profiles: name, class, firstName|age|hometown|job. A change here means the generator or the data files changed
+# (profiles of existing creatures change). Regenerate only on purpose.
+Kobold1	Kobold	Pebbla|17|Shovel's Rest|Senior Shovel Operator
+DwarfWorker4	DwarfWorker	Dunna|128|Lower Smeltworks|Junior Tunnel Foreman
+Rat7	Rat	Skrit|5|Cellar Door Gap|Crumb Auditor
+Orc10	Orc	Gorm|22|Slagheap Keep|Gate Enthusiast
+LavaSpawn13	LavaSpawn	Moira|9|Old Hoard Cave|Puddle Consultant
+LizardMan16	LizardMan	Tesska|52|Hot Spring Hollow|Sun Patch Inspector
+Goblin19	Goblin	Skitz|33|Mushroom Rot|Sneaky Junior Associate
+PitDemon22	PitDemon	Cinder|825|Cinderhold|Furnace Supervisor
+Roach25	Roach	Gnash|1|Under the Stairs|Night Shift Cleaner
+Spider28	Spider	Whisker|3|Woodpile|Web Maintenance Engineer
+Troll31	Troll	Brokk|20|Stonechew|Door Tester
+Cultist34	Cultist	Wenna|64|Saltmarsh Landing|Chanting Coordinator
+CaveHornet37	CaveHornet	Sniffles|3|Damp Corner|Buzzing Correspondent
+Slime40	Slime	Sputter|3|Bubbling Bog|Floor Polisher
+Skeleton43	Skeleton	Cobweb|1672|Cold Crypt|Rattle Section Lead
+Lich46	Lich	Wisp|292|Wormwood Vault|Head of Ancient Paperwork
+Scarab49	Scarab	Mabel|5|The Skirting Board|Shell Polish Technician
+Adventurer52	Adventurer	Rowan|57|Stoneharrow|Freelance Treasure Appraiser
+Monk55	Monk	Wenna|38|Brambleford|Hush Coordinator
+Dwarf158	Dwarf1	Thrunna|144|Copperdeep|Anvil Attendant
+Dwarf261	Dwarf2	Vanna|96|Deepforge|Senior Anvil Attendant
+Knight64	Knight	Edric|48|Lower Wick|Shiny Armour Wearer
+Wizard67	Wizard	Lambert|46|Brambleford|Hat Maintenance Officer
+DarkElf70	DarkElf	Liriel|192|Thornweave Grove|Gloom Stylist
+Elf73	Elf	Orindel|256|Silverbough|Leaf Arranger
+RunelordDwarf76	RunelordDwarf	Gerda|63|Copperdeep|Chief Rune Scribbler
+NatureMonster79	NatureMonster	Splotch|26|Bubbling Bog|Moss Relations Manager
+Defender82	Defender	Lark|57|Millbrook Cross|Gate Sitter
+Wyvern85	Wyvern	Spume|30|Deep Cavern|Sky Patrol Lead
+Gnome88	Gnome	Morgun|234|Lower Smeltworks|Mushroom Quality Inspector
+TentacleAlbine91	TentacleAlbine	Grumble|9|Old Hoard Cave|Pale Wave Specialist
+TentacleGreen94	TentacleGreen	Tendril|8|Deep Cavern|Damp Corner Specialist
+Dragon97	Dragon	Splotch|28|Sinkhole Six|Hoard Comfort Manager
+Kreatur100	Kreatur	Grumbelle|27|Bubbling Bog|Unexplained Noise Coordinator
+Kobold240	Kobold	Nub|24|Underhollow|Senior Shovel Operator
+DwarfWorker247	DwarfWorker	Borin|244|Quarry Nine|Junior Tunnel Foreman
+Rat254	Rat	Scuttle|2|Under the Stairs|Crumb Auditor
+Orc261	Orc	Skunk|45|Boulder Flats|Gate Enthusiast
+LavaSpawn268	LavaSpawn	Ooze|11|Bubbling Bog|Puddle Consultant
+LizardMan275	LizardMan	Ssarak|40|Warm Wall|Sun Patch Inspector
+Goblin282	Goblin	Blik|39|Lower Midden|Sneaky Junior Associate
+PitDemon289	PitDemon	Cindra|415|Ember Flats|Furnace Supervisor
+Roach296	Roach	Clicka|4|Drain Junction|Night Shift Cleaner
+Spider303	Spider	Twitch|4|The Wainscot|Web Maintenance Engineer
+Troll310	Troll	Borzak|20|Stonechew|Door Tester
+Cultist317	Cultist	Quinn|47|Thornby|Chanting Coordinator
+CaveHornet324	CaveHornet	Gnash|3|Pantry Corner|Buzzing Correspondent
+Slime331	Slime	Glob|14|Lava Lake Shallows|Floor Polisher
+Skeleton338	Skeleton	Dust|1048|Dustwick|Rattle Section Lead
+Lich345	Lich	Hollis|833|Wormwood Vault|Head of Ancient Paperwork
