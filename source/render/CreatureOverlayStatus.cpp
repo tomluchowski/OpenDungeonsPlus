@@ -193,7 +193,7 @@ void CreatureOverlayStatus::updateStatus(Ogre::Real timeSincelastFrame)
     if(mCreature->getMoodValue() == CreatureMoodLevel::Upset)
         moodValue |= CreatureMoodValues::Upset;
 
-    // The level is shown in the recovery overlay, which stays empty while a mood symbol is displayed
+    // The level caption belongs to the recovery overlay; it is cleared while a mood symbol is shown
     uint32_t levelId = mOverlayIds[static_cast<uint32_t>(CreatureOverlays::recovery)];
     uint32_t statusId = mOverlayIds[static_cast<uint32_t>(CreatureOverlays::status)];
     if(moodValue == 0)

@@ -122,6 +122,7 @@ class ODPacket
          */
         operator bool() const;
 
+        //! \brief Whether everything was read, used to detect optional trailing fields of older peers
         bool endOfPacket() const
         { return mPacket.endOfPacket(); }
 

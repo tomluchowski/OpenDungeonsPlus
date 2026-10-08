@@ -70,6 +70,7 @@ private:
     //! \brief The root window.
     CEGUI::Window* mRootWindow;
 
+    //! \brief Used to apply the UI scale and to register the generated windows for scaling
     Gui& mGui;
 
     //! \brief The temporary video comboboxes and texts created depending on the video settings.

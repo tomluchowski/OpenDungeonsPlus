@@ -166,10 +166,16 @@ class ODSocketClient
         std::ofstream mReplayOutputStream;
         ODPacket mPendingPacket;
         int32_t mPendingTimestamp;
-        //! \brief True if the peer announced that it handles nickname changes during the game.
+        // The other side agreed to the optional protocol extensions below. They are negotiated when the
+        // nickname is exchanged and reset on disconnect, so older peers keep working.
+
+        //! \brief Nickname changes during the game
         bool mSupportsLiveNickname;
+        //! \brief Creature mood in creature packets
         bool mSupportsCreatureMood;
+        //! \brief Creature activity in creature packets
         bool mSupportsCreatureActivity;
+        //! \brief Creature count snapshots for the creature panel
         bool mSupportsCreaturePanel;
         //! \brief Creature experience and attack recovery in creature packets
         bool mSupportsCreatureProgress;
