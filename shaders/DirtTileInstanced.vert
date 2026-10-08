@@ -46,6 +46,15 @@ void main() {
     mat3x4 uv1 = mat3x4(uv1_0, uv1_1, uv1_2);
     vec4 local_position = position;
     FFP_Transform(uv1, local_position, local_position.xyz);
+    if(final_color.a > 0.0)
+    {
+        // Marked fog uses a flat, field-filling mesh, never a deformed tile-type surface.
+        vec3 P = (worldMatrix * local_position).xyz;
+        gl_Position = projectionMatrix * viewMatrix * vec4(P, 1.0);
+        FragPos = P;
+        outputColor = final_color;
+        return;
+    }
     vec3 local_normal = normal;
     FFP_Transform(uv1, local_normal, local_normal.xyz);
 
