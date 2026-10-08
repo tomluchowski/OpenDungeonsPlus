@@ -82,6 +82,9 @@ for exception in record['accepted_exceptions']:
     key = case_key(exception)
     assert key in EXCEPTIONS and (exception['old'],exception['new']) == EXCEPTIONS[key]
     assert exception['diff'] == 100*(exception['new']-exception['old'])/exception['old']
+    documented = {3: '3.002906', 777: '3.019051'}
+    assert exception['documented_percent'] == documented[exception['seed']]
+    assert round(exception['diff'], 6) == float(exception['documented_percent'])
     assert exception['acceptance'] == ACCEPTANCE
 assert {case_key(row) for row in record['accepted_exceptions']} == set(EXCEPTIONS)
 print('Recorded nest-wait parity: 46 cases <=3%, exactly two unchanged accepted outcomes; config/source provenance verified. No model or C++ executed.')

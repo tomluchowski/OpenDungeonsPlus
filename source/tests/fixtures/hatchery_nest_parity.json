@@ -411,7 +411,8 @@
       "old": 6194,
       "new": 6380,
       "diff": 3.0029060381013886,
-      "acceptance": "akzeptiert von Mario 2026-10-08"
+      "acceptance": "akzeptiert von Mario 2026-10-08",
+      "documented_percent": "3.002906"
     },
     {
       "layout": "6x6-two",
@@ -420,7 +421,8 @@
       "old": 6194,
       "new": 6381,
       "diff": 3.0190506942202133,
-      "acceptance": "akzeptiert von Mario 2026-10-08"
+      "acceptance": "akzeptiert von Mario 2026-10-08",
+      "documented_percent": "3.019051"
     }
   ],
   "evidence": "Recorded finite collision-grid/roaming/nominal-clock simulation, not C++ execution or universal layout guarantee"
