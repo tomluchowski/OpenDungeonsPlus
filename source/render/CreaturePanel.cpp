@@ -369,9 +369,11 @@ void CreaturePanel::pickUp(const std::string& type, CreaturePanelCriterion crite
     for(Creature* creature : mGameMap.getCreaturesBySeat(seat))
     {
         const CreatureDefinition* definition = creature->getDefinition();
-        if((workersOnly ? !definition->isWorker() : definition->getClassName() != type) ||
-            mPendingPickups.count(creature->getName()) != 0 || !creature->tryPickup(seat) ||
-            !matchesCreaturePanelCriterion(criterion, creature->getActivity(), creature->getMoodValue(), definition->isWorker()))
+        const bool isWantedType = workersOnly ? definition->isWorker() : definition->getClassName() == type;
+        if(!isWantedType || mPendingPickups.count(creature->getName()) != 0 || !creature->tryPickup(seat))
+            continue;
+        if(!matchesCreaturePanelCriterion(criterion, creature->getActivity(), creature->getMoodValue(),
+            definition->isWorker()))
             continue;
         if(selected == nullptr || (levelOrder > 0 && creature->getLevel() > selected->getLevel()) ||
             (levelOrder < 0 && creature->getLevel() < selected->getLevel()))
