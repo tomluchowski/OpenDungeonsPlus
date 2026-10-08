@@ -5,6 +5,16 @@
         <Property name="Area" value="{{0.0,0},{0.0,0},{1.0,0},{1.0,0}}" />
         <Window type="OD/StaticImage" name="Portrait" >
             <Property name="Area" value="{{0.0,16},{0.0,4},{0.0,136},{0.0,124}}" />
+            <Window type="OD/StaticImage" name="Image" >
+                <Property name="Area" value="{{0,2},{0,2},{1,-2},{1,-2}}" />
+                <Property name="AspectMode" value="Shrink" />
+                <Property name="AspectRatio" value="1" />
+                <Property name="HorizontalAlignment" value="Centre" />
+                <Property name="VerticalAlignment" value="Centre" />
+                <Property name="FrameEnabled" value="False" />
+                <Property name="BackgroundEnabled" value="False" />
+                <Property name="MousePassThroughEnabled" value="True" />
+            </Window>
         </Window>
         <Window type="OD/StaticText" name="NameText" >
             <Property name="Area" value="{{0.0,148},{0.0,2},{1.0,-16},{0.0,26}}" />

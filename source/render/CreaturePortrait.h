@@ -29,7 +29,7 @@ const CEGUI::Image& getCreatureHandIconImage(const std::string& meshName);
 
 //! Portrait of one creature: the illustrated portrait of its class with the colour variation of
 //! config/portrait-tints.cfg (hair, beard, eyes, skin, teeth), chosen from the creature name.
-//! Falls back to getCreaturePanelPortraitImage() for classes without tint entries. The tinted
+//! Returns a top-square view; classes without tint entries share the panel portrait texture. The tinted
 //! image is created on first use and cached until clearCreatureProfilePortraits().
 const CEGUI::Image& getCreatureProfilePortraitImage(const std::string& creatureName, const std::string& meshName);
 

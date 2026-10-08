@@ -19,7 +19,7 @@ namespace CEGUI
 
 //! \brief The Dungeonbook picture of one creature: its neutral base plus the parts of its appearance,
 //! composed on the CPU, coloured like the profile portrait (config/dungeonbook-base-tints.cfg, same
-//! PortraitTint code, colours chosen from the creature name) and handed out as a CEGUI image.
+//! PortraitTint code, colours chosen from the creature name) and handed out as a top-square CEGUI image.
 //!
 //! Returns nullptr if the caller has to use the fallback, the creature-bar portrait of the creature
 //! (getCreatureProfilePortraitImage): the appearance is empty (no catalog id yet; this can change at
