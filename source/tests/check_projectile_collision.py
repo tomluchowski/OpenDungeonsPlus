@@ -39,8 +39,8 @@ struct Tile {
     int getX() const {return x;} int getY() const {return y;}
     double getFullness() const {return fullness;}
     bool isEntityOnTile(GameEntity* e) const {
-        for(auto* entry:enemies)if(entry==e)return true;
-        for(auto* entry:allies)if(entry==e)return true;
+        for(GameEntity* entry:enemies)if(entry==e)return true;
+        for(GameEntity* entry:allies)if(entry==e)return true;
         return false;
     }
 };
