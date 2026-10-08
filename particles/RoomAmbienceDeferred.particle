@@ -46,7 +46,7 @@ particle_system RoomAmbTorchFlame
         time_to_live        100000
         direction           0 0 1
         velocity            0
-        position            0 0 0.1
+        position            0 0 0
     }
 }
 

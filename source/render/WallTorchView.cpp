@@ -63,7 +63,7 @@ const char* const LOOP_FAMILY = "Rooms/Torch/Loop";
 //! flame and smoke from the wall towards the open tile (the cup of the model)
 const char* const MODEL_MESH = "WallTorch.mesh";
 const double MODEL_HEIGHT = 0.85;
-const double FLAME_WALL_OFFSET = 0.2;
+const double FLAME_WALL_OFFSET = 0.194;
 
 //! The parts of a torch: bracket, flame, smoke
 const uint32_t NB_PARTS = 3;
