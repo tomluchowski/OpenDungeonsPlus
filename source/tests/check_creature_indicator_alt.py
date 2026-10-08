@@ -30,8 +30,8 @@ for key in ('LMENU', 'RMENU'):
     assert f'updateCreatureIndicatorAlt(OIS::KC_{key}, false);' in function('source/modes/GameMode.cpp', 'void GameMode::onFrameStarted(')
 for signature, pressed in (('bool GameMode::keyPressed(', 'true'), ('bool GameMode::keyReleased(', 'false')):
     assert f'updateCreatureIndicatorAlt(arg.key, {pressed});' in function('source/modes/GameMode.cpp', signature)
-renderer = (repo / 'source/render/RenderManager.cpp').read_text()
-assert 'creatureOverlay->displayHealthOverlay(mCreatureTextOverlayDisplayed ? -1.0 : 0.0)' in renderer
+assert 'overlayStatus->displayHealthOverlay(mCreatureTextOverlayDisplayed ? -1.0 : 0.0)' in function(
+    'source/render/RenderManager.cpp', 'void RenderManager::rrSetCreaturesTextOverlay(')
 
 probe = r'''
 #include <cstdint>
