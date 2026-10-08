@@ -63,3 +63,39 @@ material Dirt //: RTSS/NormalMapping_MultiPass
 
     }
 }
+
+// Earth wall (dirtFull): darker, cooler rock texture; the unclaimed floor keeps the Dirt material
+material DirtWall //: RTSS/NormalMapping_MultiPass
+{
+    
+    technique
+    {
+
+        pass 
+        {
+
+            vertex_program_ref myDirtTileVertexShader
+            {
+                
+            }
+            fragment_program_ref myDirtTileFragmentShader
+            { 
+                param_named decalmap int 0
+                param_named normalmap int 1     
+            }            
+            
+            
+            // We use blending, so that we can see the underlying texture.
+            texture_unit decalmap
+            {
+                texture DirtWall.png
+                
+            }
+            texture_unit normalmap
+            {
+                texture DirtWallNormal.png               
+            }
+        }
+
+    }
+}
