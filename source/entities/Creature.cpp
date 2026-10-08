@@ -1813,9 +1813,15 @@ void Creature::importProgressFromPacket(ODPacket& is)
     mHasProgressInformation = false;
     if(!ODClient::getSingleton().supportsCreatureProgress())
         return;
-    double experience;
-    uint32_t remaining, duration, serial;
-    OD_ASSERT_TRUE(is >> experience >> remaining >> duration >> serial);
+    double experience = 0.0;
+    uint32_t remaining = 0;
+    uint32_t duration = 0;
+    uint32_t serial = 0;
+    if(!(is >> experience >> remaining >> duration >> serial))
+    {
+        OD_LOG_ERR("Incomplete creature progress for " + getName());
+        return;
+    }
     if(!std::isfinite(experience) || experience < 0.0 || experience > 1.0 || remaining > duration)
     {
         OD_LOG_ERR("Invalid creature progress for " + getName());
