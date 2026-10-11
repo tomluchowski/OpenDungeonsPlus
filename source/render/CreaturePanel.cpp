@@ -29,24 +29,24 @@ namespace
 {
 using Criterion = CreaturePanelCriterion;
 //! Height in pixels of the panel content: the worker block, the type strip and every type column
-const float ROW_HEIGHT = 108.0f;
+static const float ROW_HEIGHT = 108.0f;
 //! Width in pixels of one type column
-const float SLOT_WIDTH = 54.0f;
+static const float SLOT_WIDTH = 54.0f;
 //! Distance in pixels between the left edges of two neighbouring type columns
-const float SLOT_STRIDE = 58.0f;
+static const float SLOT_STRIDE = 58.0f;
 //! Criteria shown in the count rows of each type column, one list per view (Total, Jobs, Fighting, Moods)
-const std::array<std::vector<Criterion>, 4> VIEW_CRITERIA = {{
+static const std::array<std::vector<Criterion>, 4> VIEW_CRITERIA = {{
     {Criterion::Total},
     {Criterion::Idle, Criterion::Manufacturing, Criterion::Training, Criterion::OtherJobs},
     {Criterion::Fighting, Criterion::Guarding, Criterion::OtherFighting},
     {Criterion::Happy, Criterion::Unhappy, Criterion::Angry}
 }};
 //! Criteria shown in the worker block, top to bottom
-const std::array<Criterion, 4> WORKER_CRITERIA = {{
+static const std::array<Criterion, 4> WORKER_CRITERIA = {{
     Criterion::Total, Criterion::Idle, Criterion::Working, Criterion::Fighting
 }};
 //! Tooltip names of the criteria, indexed by the CreaturePanelCriterion value
-const std::array<const char*, 12> CRITERION_NAMES = {{
+static const std::array<const char*, 12> CRITERION_NAMES = {{
     "Total", "Idle", "Working", "Fighting", "Manufacturing", "Training", "Other jobs",
     "Guarding", "Other activities", "Happy", "Unhappy", "Angry"
 }};
