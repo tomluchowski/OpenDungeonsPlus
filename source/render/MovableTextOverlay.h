@@ -142,8 +142,10 @@ public:
     void setCaptionOutline(uint32_t childOverlayId, const Ogre::ColourValue& colour);
 
     void setMaterialName(uint32_t childOverlayId, const Ogre::String& materialName);
-    //! \brief Shows one cell of the material texture, which is a square grid of columns x columns cells
-    //! numbered row by row. Ignored if the frame is outside the grid.
+    //! \brief Shows one cell of the material texture, which is a square grid of columns x columns cells.
+    //! The frame number enumerates the cells row by row from the top left to the bottom right square.
+    //! The cell is shown by mapping the overlay to its u,v texture coordinates in [0..1]x[0..1].
+    //! Ignored if the frame is outside the grid.
     void setAtlasFrame(uint32_t childOverlayId, uint32_t frame, uint32_t columns);
 
     //! Displays the overlay during time seconds. If time < 0, the overlay will be always displayed

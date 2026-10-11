@@ -291,6 +291,9 @@ void MovableTextOverlay::setAtlasFrame(uint32_t childOverlayId, uint32_t frame, 
 {
     if(childOverlayId >= mChildOverlays.size() || columns == 0 || frame >= columns * columns)
         return;
+    // The texture is divided into columns x columns squares of the same size. The frame number
+    // enumerates them from the top left to the bottom right square, row by row. The result are
+    // the u,v coordinates of the top left corner of the square in [0..1]x[0..1].
     const Ogre::Real size = 1.0f / columns;
     const Ogre::Real u = (frame % columns) * size;
     const Ogre::Real v = (frame / columns) * size;
