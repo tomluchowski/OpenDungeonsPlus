@@ -179,7 +179,9 @@ public:
     //! \brief Toggles the creatures text overlay
     void rrTemporaryDisplayCreaturesTextOverlay(Creature* creature, Ogre::Real timeToDisplay);
 
-    std::string rrBuildSkullFlagMaterial(const std::string& materialNameBase,
+    //! \brief Returns the name of a copy of the given material that is tinted with the given colour.
+    //! The copy is created on the first request and reused afterwards.
+    std::string rrBuildTintedMaterial(const std::string& materialNameBase,
         const Ogre::ColourValue& color);
 
     //! \brief Does requested stuff for rendering in the minimap. Each time the minimap is rendered, this function will be

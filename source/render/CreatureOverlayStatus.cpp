@@ -108,7 +108,7 @@ void CreatureOverlayStatus::updateHealth()
     {
         mHealthValue = mCreature->getOverlayHealthValue();
         mSeat = mCreature->getSeat();
-        std::string material = RenderManager::getSingleton().rrBuildSkullFlagMaterial(
+        std::string material = RenderManager::getSingleton().rrBuildTintedMaterial(
             "CreatureOverlay" + Helper::toString(mHealthValue),
             mSeat->getColorValue());
         uint32_t healthId = mOverlayIds[static_cast<uint32_t>(CreatureOverlays::health)];

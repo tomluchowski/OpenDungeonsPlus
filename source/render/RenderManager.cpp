@@ -2462,7 +2462,7 @@ void RenderManager::entitySlapped()
         mHandAnimationState = setEntityAnimation(ent, "Slap", false);
 }
 
-std::string RenderManager::rrBuildSkullFlagMaterial(const std::string& materialNameBase,
+std::string RenderManager::rrBuildTintedMaterial(const std::string& materialNameBase,
         const Ogre::ColourValue& color)
 {
     std::string materialNameToUse = materialNameBase + "_" + Helper::toString(color);
