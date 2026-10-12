@@ -1,0 +1,10 @@
+﻿{
+  "id": "Goblin.mesh-female",
+  "slot": "hair",
+  "n": 1,
+  "name": "swept",
+  "prompt": "Generate a NEW standalone customization asset for an adult female Goblin. Image is anatomy, palette, clothing and brushwork reference only. Variation: a swept-back hairstyle with the exact reference hair color and texture; only hair that can show outside any headwear. Output ONLY requested hair or crest, no head or face. Hand-painted late-1990s dark fantasy strategy game style matching reference. Species anatomy unchanged, do not add tusks or fangs absent from reference. No beard or moustache. Complete contour centered with transparent padding, genuine alpha background, no glow, fog, shadows, scenery, text, symbols or complete portrait. Reference clothing coverage preserved. Direct isolated-feature generation, never full-image cropping.",
+  "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-781416aa-43a6-419d-b48d-f22d5f9215bb.png",
+  "file": "hair-1-swept.png",
+  "method": "direct generation; unmodified file copy"
+}

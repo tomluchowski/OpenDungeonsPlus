@@ -1,0 +1,10 @@
+﻿{
+  "id": "Goblin.mesh",
+  "slot": "scar",
+  "n": 2,
+  "name": "scratches",
+  "prompt": "Generate ONLY THREE separate small healed scratch scars as a standalone transparent game customization overlay. Exactly three parallel diagonal scars, evenly spaced, similar length. Count clearly: scar one, scar two, scar three. Pale pink and muted beige healed scar tissue in hand-painted dark fantasy game style, each narrow and subtle, NO fresh wound or blood. Complete contours with transparent gaps between all THREE marks and transparent padding. Genuine alpha background. No face, head, body, skin rectangle, scenery or text. Direct isolated asset generation, no full portrait or cropping.",
+  "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-6fd30c31-8de9-4296-93d8-9eee1f5ab819.png",
+  "file": "scar-2-scratches.png",
+  "method": "direct generation; unmodified file copy"
+}

@@ -1,0 +1,192 @@
+[
+  {
+    "id": "Goblin.mesh",
+    "slot": "build",
+    "n": 1,
+    "name": "slim",
+    "prompt": "Generate a NEW standalone customization asset for an adult male Goblin. Image is anatomy, palette, clothing and brushwork reference only. Variation: a slimmer shoulder and chest build, preserving the exact reference clothing, colors and coverage. Output ONLY shoulders and upper chest ending at upper ribs, preserving reference coverage; no head, abdomen or lower body. Hand-painted late-1990s dark fantasy strategy game style matching reference. Species anatomy unchanged, do not add tusks or fangs absent from reference.  Complete contour centered with transparent padding, genuine alpha background, no glow, fog, shadows, scenery, text, symbols or complete portrait. Reference clothing coverage preserved. Direct isolated-feature generation, never full-image cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-389a9e0d-79e5-44ac-90b9-34ff8d6b84bf.png",
+    "file": "build-1-slim.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "Goblin.mesh",
+    "slot": "build",
+    "n": 2,
+    "name": "sturdy",
+    "prompt": "Generate a NEW standalone customization asset for an adult male Goblin. Image is anatomy, palette, clothing and brushwork reference only. Variation: a sturdier shoulder and chest build, preserving the exact reference clothing, colors and coverage. Output ONLY shoulders and upper chest ending at upper ribs, preserving reference coverage; no head, abdomen or lower body. Hand-painted late-1990s dark fantasy strategy game style matching reference. Species anatomy unchanged, do not add tusks or fangs absent from reference.  Complete contour centered with transparent padding, genuine alpha background, no glow, fog, shadows, scenery, text, symbols or complete portrait. Reference clothing coverage preserved. Direct isolated-feature generation, never full-image cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-f3a09eb4-737a-441e-bc08-f22f4a947193.png",
+    "file": "build-2-sturdy.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "Goblin.mesh",
+    "slot": "chin",
+    "n": 1,
+    "name": "square",
+    "prompt": "Generate a NEW standalone customization asset for an adult male Goblin. Image is anatomy, palette, clothing and brushwork reference only. Variation: a squarer chin and jaw, preserving species-specific anatomy and reference skin; no beard. Output ONLY chin and lower jaw strictly BELOW the entire lower lip; skin-only top boundary, NO lips, mouth, teeth, neck or head. Hand-painted late-1990s dark fantasy strategy game style matching reference. Species anatomy unchanged, do not add tusks or fangs absent from reference.  Complete contour centered with transparent padding, genuine alpha background, no glow, fog, shadows, scenery, text, symbols or complete portrait. Reference clothing coverage preserved. Direct isolated-feature generation, never full-image cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-f9750919-2b8f-4008-a2e7-e0c71aa27928.png",
+    "file": "chin-1-square.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "Goblin.mesh",
+    "slot": "chin",
+    "n": 2,
+    "name": "rounded",
+    "prompt": "Generate a NEW standalone customization asset for an adult male Goblin. Image is anatomy, palette, clothing and brushwork reference only. Variation: a softer rounded chin and jaw, preserving species-specific anatomy and reference skin; no beard. Output ONLY chin and lower jaw strictly BELOW the entire lower lip; skin-only top boundary, NO lips, mouth, teeth, neck or head. Hand-painted late-1990s dark fantasy strategy game style matching reference. Species anatomy unchanged, do not add tusks or fangs absent from reference.  Complete contour centered with transparent padding, genuine alpha background, no glow, fog, shadows, scenery, text, symbols or complete portrait. Reference clothing coverage preserved. Direct isolated-feature generation, never full-image cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-8b028952-c324-4f51-ad62-9d2e92b96275.png",
+    "file": "chin-2-rounded.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "Goblin.mesh",
+    "slot": "ears",
+    "n": 1,
+    "name": "notched",
+    "prompt": "Generate a NEW standalone customization asset for an adult male Goblin. Image is anatomy, palette, clothing and brushwork reference only. Variation: the visible ear with a small healed notch near its tip, preserving its species-specific anatomy and reference skin. Output ONE isolated visible ear, entire contour, no head or hair. Hand-painted late-1990s dark fantasy strategy game style matching reference. Species anatomy unchanged, do not add tusks or fangs absent from reference.  Complete contour centered with transparent padding, genuine alpha background, no glow, fog, shadows, scenery, text, symbols or complete portrait. Reference clothing coverage preserved. Direct isolated-feature generation, never full-image cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-62cfdcf0-5d60-43ec-a893-e67544ffb31a.png",
+    "file": "ears-1-notched.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "Goblin.mesh",
+    "slot": "ears",
+    "n": 2,
+    "name": "rounder",
+    "prompt": "Generate a NEW standalone customization asset for an adult male Goblin. Image is anatomy, palette, clothing and brushwork reference only. Variation: the visible ear with a shorter and rounder tip, preserving its species-specific anatomy and reference skin. Output ONE isolated visible ear, entire contour, no head or hair. Hand-painted late-1990s dark fantasy strategy game style matching reference. Species anatomy unchanged, do not add tusks or fangs absent from reference.  Complete contour centered with transparent padding, genuine alpha background, no glow, fog, shadows, scenery, text, symbols or complete portrait. Reference clothing coverage preserved. Direct isolated-feature generation, never full-image cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-3cba4211-a090-443b-9033-9e6202e4efea.png",
+    "file": "ears-2-rounder.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "Goblin.mesh",
+    "slot": "eyes",
+    "n": 1,
+    "name": "narrow",
+    "prompt": "Generate a NEW standalone customization asset for an adult male Goblin. Image is anatomy, palette, clothing and brushwork reference only. Variation: narrow suspicious eyes with heavy lids and brows, preserving the exact reference eye and skin colors. Output ONLY eyes and brows or requested eye patch and remaining eye, no entire face. Hand-painted late-1990s dark fantasy strategy game style matching reference. Species anatomy unchanged, do not add tusks or fangs absent from reference.  Complete contour centered with transparent padding, genuine alpha background, no glow, fog, shadows, scenery, text, symbols or complete portrait. Reference clothing coverage preserved. Direct isolated-feature generation, never full-image cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-86ea1540-0b4f-465b-9d3b-19c451599efe.png",
+    "file": "eyes-1-narrow.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "Goblin.mesh",
+    "slot": "eyes",
+    "n": 2,
+    "name": "round",
+    "prompt": "Generate a NEW standalone customization asset for an adult male Goblin. Image is anatomy, palette, clothing and brushwork reference only. Variation: rounder alert eyes with raised brows, preserving the exact reference eye and skin colors. Output ONLY eyes and brows or requested eye patch and remaining eye, no entire face. Hand-painted late-1990s dark fantasy strategy game style matching reference. Species anatomy unchanged, do not add tusks or fangs absent from reference.  Complete contour centered with transparent padding, genuine alpha background, no glow, fog, shadows, scenery, text, symbols or complete portrait. Reference clothing coverage preserved. Direct isolated-feature generation, never full-image cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-8e525caa-e60f-4930-b821-562676c4bcab.png",
+    "file": "eyes-2-round.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "Goblin.mesh",
+    "slot": "eyes",
+    "n": 3,
+    "name": "eyepatch",
+    "prompt": "Generate a NEW standalone customization asset for an adult male Goblin. Image is anatomy, palette, clothing and brushwork reference only. Variation: a worn dark leather eye patch over the near eye, with a plain leather strap. Output ONLY eyes and brows or requested eye patch and remaining eye, no entire face. Hand-painted late-1990s dark fantasy strategy game style matching reference. Species anatomy unchanged, do not add tusks or fangs absent from reference.  Complete contour centered with transparent padding, genuine alpha background, no glow, fog, shadows, scenery, text, symbols or complete portrait. Reference clothing coverage preserved. Direct isolated-feature generation, never full-image cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-8e89cfc8-d373-4877-b3d6-ecc37d1fa502.png",
+    "file": "eyes-3-eyepatch.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "Goblin.mesh",
+    "slot": "mouth",
+    "n": 1,
+    "name": "teeth",
+    "prompt": "Generate a NEW standalone customization asset for an adult male Goblin. Image is anatomy, palette, clothing and brushwork reference only. Variation: a tighter crooked grin with uneven teeth, preserving the species-specific lips and teeth, including tusks ONLY IF PRESENT in the reference. Output ONLY mouth, lips, teeth and specified mouth accessory, no nose or chin. Hand-painted late-1990s dark fantasy strategy game style matching reference. Species anatomy unchanged, do not add tusks or fangs absent from reference.  Complete contour centered with transparent padding, genuine alpha background, no glow, fog, shadows, scenery, text, symbols or complete portrait. Reference clothing coverage preserved. Direct isolated-feature generation, never full-image cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-b7c2e6a4-7218-4c9f-94cb-98d81f885bf2.png",
+    "file": "mouth-1-teeth.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "Goblin.mesh",
+    "slot": "mouth",
+    "n": 2,
+    "name": "grin",
+    "prompt": "Generate a NEW standalone customization asset for an adult male Goblin. Image is anatomy, palette, clothing and brushwork reference only. Variation: a broader lopsided grin, preserving the species-specific lips and teeth, including tusks ONLY IF PRESENT in the reference. Output ONLY mouth, lips, teeth and specified mouth accessory, no nose or chin. Hand-painted late-1990s dark fantasy strategy game style matching reference. Species anatomy unchanged, do not add tusks or fangs absent from reference.  Complete contour centered with transparent padding, genuine alpha background, no glow, fog, shadows, scenery, text, symbols or complete portrait. Reference clothing coverage preserved. Direct isolated-feature generation, never full-image cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-048940ea-3619-4c1a-8656-c07bed33d46c.png",
+    "file": "mouth-2-grin.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "Goblin.mesh",
+    "slot": "mouth",
+    "n": 3,
+    "name": "cigar",
+    "prompt": "Generate a NEW standalone customization asset for an adult male Goblin. Image is anatomy, palette, clothing and brushwork reference only. Variation: a short fat brown cigar clamped in the corner of the mouth, preserving the species-specific lips and teeth, including tusks ONLY IF PRESENT in the reference. Output ONLY mouth, lips, teeth and specified mouth accessory, no nose or chin. Hand-painted late-1990s dark fantasy strategy game style matching reference. Species anatomy unchanged, do not add tusks or fangs absent from reference.  Complete contour centered with transparent padding, genuine alpha background, no glow, fog, shadows, scenery, text, symbols or complete portrait. Reference clothing coverage preserved. Direct isolated-feature generation, never full-image cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-7aa760f0-c4d5-4b78-874e-313a492f04fb.png",
+    "file": "mouth-3-cigar.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "Goblin.mesh",
+    "slot": "neck",
+    "n": 1,
+    "name": "teeth",
+    "prompt": "Generate a NEW standalone customization asset for an adult male Goblin. Image is anatomy, palette, clothing and brushwork reference only. Variation: a plain cord necklace with three small yellowed animal teeth. Output ONLY jewelry; no neck, chest, head or skin. Hand-painted late-1990s dark fantasy strategy game style matching reference. Species anatomy unchanged, do not add tusks or fangs absent from reference.  Complete contour centered with transparent padding, genuine alpha background, no glow, fog, shadows, scenery, text, symbols or complete portrait. Reference clothing coverage preserved. Direct isolated-feature generation, never full-image cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-e6d1dbbf-1c7f-49d2-a35c-4178cb3ffc87.png",
+    "file": "neck-1-teeth.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "Goblin.mesh",
+    "slot": "neck",
+    "n": 2,
+    "name": "torque",
+    "prompt": "Generate a NEW standalone customization asset for an adult male Goblin. Image is anatomy, palette, clothing and brushwork reference only. Variation: a plain aged bronze neck torque, no symbols. Output ONLY jewelry; no neck, chest, head or skin. Hand-painted late-1990s dark fantasy strategy game style matching reference. Species anatomy unchanged, do not add tusks or fangs absent from reference.  Complete contour centered with transparent padding, genuine alpha background, no glow, fog, shadows, scenery, text, symbols or complete portrait. Reference clothing coverage preserved. Direct isolated-feature generation, never full-image cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-ec3de59a-7d76-4fc6-81a1-f4570d45a016.png",
+    "file": "neck-2-torque.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "Goblin.mesh",
+    "slot": "nose",
+    "n": 1,
+    "name": "crooked",
+    "prompt": "Generate a NEW standalone customization asset for an adult male Goblin. Image is anatomy, palette, clothing and brushwork reference only. Variation: a crooked broken nose with a healed bump, preserving the species-specific anatomy and reference skin. Output ONE isolated nose, no eyes, mouth or face. Hand-painted late-1990s dark fantasy strategy game style matching reference. Species anatomy unchanged, do not add tusks or fangs absent from reference.  Complete contour centered with transparent padding, genuine alpha background, no glow, fog, shadows, scenery, text, symbols or complete portrait. Reference clothing coverage preserved. Direct isolated-feature generation, never full-image cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-39294dd0-c6aa-4c36-9c88-6aa66ea466a4.png",
+    "file": "nose-1-crooked.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "Goblin.mesh",
+    "slot": "nose",
+    "n": 2,
+    "name": "broad",
+    "prompt": "Generate a NEW standalone customization asset for an adult male Goblin. Image is anatomy, palette, clothing and brushwork reference only. Variation: a broader flatter nose with wider nostrils, preserving the species-specific anatomy and reference skin. Output ONE isolated nose, no eyes, mouth or face. Hand-painted late-1990s dark fantasy strategy game style matching reference. Species anatomy unchanged, do not add tusks or fangs absent from reference.  Complete contour centered with transparent padding, genuine alpha background, no glow, fog, shadows, scenery, text, symbols or complete portrait. Reference clothing coverage preserved. Direct isolated-feature generation, never full-image cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-c3dc9085-9e16-4e45-b151-b51963d830db.png",
+    "file": "nose-2-broad.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "Goblin.mesh",
+    "slot": "scar",
+    "n": 1,
+    "name": "diagonal",
+    "prompt": "Generate a NEW standalone customization asset for an adult male Goblin. Image is anatomy, palette, clothing and brushwork reference only. Variation: one pale healed diagonal scar. Output ONLY requested scar or paint marks; no face or skin silhouette. Hand-painted late-1990s dark fantasy strategy game style matching reference. Species anatomy unchanged, do not add tusks or fangs absent from reference.  Complete contour centered with transparent padding, genuine alpha background, no glow, fog, shadows, scenery, text, symbols or complete portrait. Reference clothing coverage preserved. Direct isolated-feature generation, never full-image cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-90579619-79c0-4feb-8f52-03683fe8eafd.png",
+    "file": "scar-1-diagonal.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "Goblin.mesh",
+    "slot": "scar",
+    "n": 2,
+    "name": "scratches",
+    "prompt": "Generate ONLY THREE separate small healed scratch scars as a standalone transparent game customization overlay. Exactly three parallel diagonal scars, evenly spaced, similar length. Count clearly: scar one, scar two, scar three. Pale pink and muted beige healed scar tissue in hand-painted dark fantasy game style, each narrow and subtle, NO fresh wound or blood. Complete contours with transparent gaps between all THREE marks and transparent padding. Genuine alpha background. No face, head, body, skin rectangle, scenery or text. Direct isolated asset generation, no full portrait or cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-6fd30c31-8de9-4296-93d8-9eee1f5ab819.png",
+    "file": "scar-2-scratches.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "Goblin.mesh",
+    "slot": "scar",
+    "n": 3,
+    "name": "warpaint",
+    "prompt": "Generate a NEW standalone customization asset for an adult male Goblin. Image is anatomy, palette, clothing and brushwork reference only. Variation: simple dark red war-paint streaks, no symbols. Output ONLY requested scar or paint marks; no face or skin silhouette. Hand-painted late-1990s dark fantasy strategy game style matching reference. Species anatomy unchanged, do not add tusks or fangs absent from reference.  Complete contour centered with transparent padding, genuine alpha background, no glow, fog, shadows, scenery, text, symbols or complete portrait. Reference clothing coverage preserved. Direct isolated-feature generation, never full-image cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-ae0d3948-2ffa-4812-acec-7e826e01d0d6.png",
+    "file": "scar-3-warpaint.png",
+    "method": "direct generation; unmodified file copy"
+  }
+]

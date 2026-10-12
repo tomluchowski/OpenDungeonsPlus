@@ -1,0 +1,10 @@
+﻿{
+  "id": "Knight.mesh-female",
+  "slot": "scar",
+  "n": 1,
+  "name": "diagonal",
+  "prompt": "Generate a NEW standalone customization asset for an adult female Knight. Reference ONLY for anatomy, palette, clothing and brushwork. Variation: one shallow diagonal dent matching the reference helmet metal; ONLY isolated damage mark, absolutely NO helmet, NO metal panel, no eye slots, no head outline; transparent surrounding mark. Output ONLY the requested isolated scar or paint marks, NO face, head, body or rectangular skin patch. Hand-painted dark fantasy strategy-game style matching reference. Preserve species anatomy and reference clothing coverage; never invent tusks absent from reference. No beard or moustache. Complete contour centered with transparent padding and genuine alpha background. No scenery, text, glow, fog or full portrait. Direct isolated-feature generation, never full-image cropping.",
+  "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-da4d0057-60a4-4063-8854-c2622e4e7109.png",
+  "file": "scar-1-diagonal.png",
+  "method": "direct generation; unmodified file copy"
+}

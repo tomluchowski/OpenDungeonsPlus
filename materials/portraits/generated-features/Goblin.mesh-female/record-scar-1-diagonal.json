@@ -1,0 +1,10 @@
+﻿{
+  "id": "Goblin.mesh-female",
+  "slot": "scar",
+  "n": 1,
+  "name": "diagonal",
+  "prompt": "Generate a NEW standalone customization asset for an adult female Goblin. Reference ONLY for anatomy, palette, clothing and brushwork. Variation: one pale healed diagonal scar. Output ONLY the requested isolated scar or paint marks, NO face, head, body or rectangular skin patch. Hand-painted dark fantasy strategy-game style matching reference. Preserve species anatomy and reference clothing coverage; never invent tusks absent from reference. No beard or moustache. Complete contour centered with transparent padding and genuine alpha background. No scenery, text, glow, fog or full portrait. Direct isolated-feature generation, never full-image cropping.",
+  "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-93189df5-610c-477c-bc83-d3b0b0c1a6cb.png",
+  "file": "scar-1-diagonal.png",
+  "method": "direct generation; unmodified file copy"
+}

@@ -1,0 +1,10 @@
+﻿{
+  "id": "Goblin.mesh",
+  "slot": "chin",
+  "n": 1,
+  "name": "square",
+  "prompt": "Generate a NEW standalone customization asset for an adult male Goblin. Image is anatomy, palette, clothing and brushwork reference only. Variation: a squarer chin and jaw, preserving species-specific anatomy and reference skin; no beard. Output ONLY chin and lower jaw strictly BELOW the entire lower lip; skin-only top boundary, NO lips, mouth, teeth, neck or head. Hand-painted late-1990s dark fantasy strategy game style matching reference. Species anatomy unchanged, do not add tusks or fangs absent from reference.  Complete contour centered with transparent padding, genuine alpha background, no glow, fog, shadows, scenery, text, symbols or complete portrait. Reference clothing coverage preserved. Direct isolated-feature generation, never full-image cropping.",
+  "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-f9750919-2b8f-4008-a2e7-e0c71aa27928.png",
+  "file": "chin-1-square.png",
+  "method": "direct generation; unmodified file copy"
+}

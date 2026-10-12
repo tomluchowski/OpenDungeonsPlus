@@ -1,0 +1,10 @@
+﻿{
+  "id": "Goblin.mesh-female",
+  "slot": "hair",
+  "n": 2,
+  "name": "waves",
+  "prompt": "Generate a NEW isolated hairstyle customization asset for an adult female goblin, using the reference ONLY for dark brown hair color and hand-painted brushwork. Make a visibly DIFFERENT hairstyle: FULLY LOOSE, FULLER WAVY SHOULDER-LENGTH HAIR with a broad center part, two masses of thick flowing waves framing the empty face opening. NO ponytail, NO topknot, NO hair tie, NO swept-back crest. Output hair only, NO head, face, skin, ears, neck or body. Complete hair contour centered with transparent padding and genuine alpha background. Dark fantasy strategy-game painterly style matching reference. No text, glow, scenery or full portrait. Direct isolated-feature generation; never crop a full image.",
+  "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-0c9b7a29-22bc-41cb-a09c-3cf8f6a2d917.png",
+  "file": "hair-2-waves.png",
+  "method": "direct generation; unmodified file copy"
+}
