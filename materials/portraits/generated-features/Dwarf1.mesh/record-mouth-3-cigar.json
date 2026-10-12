@@ -1,0 +1,10 @@
+﻿{
+  "id": "Dwarf1.mesh",
+  "slot": "mouth",
+  "n": 3,
+  "name": "cigar",
+  "prompt": "Generate a NEW standalone painted game asset for a MALE Dwarf1. Image 1 is ONLY a reference for species anatomy, skin/material and hair colors, three-quarter orientation, lighting direction, costume, brush texture and palette. Requested variation: a short fat brown cigar clamped in the left corner of the mouth, contained within the mouth region with no smoke outside. Output ONE isolated mouth with lips, teeth, tusks if present and the requested mouth-held accessory if any; no nose, eyes, chin or entire face. Center the requested part with transparent padding and preserve its complete contour. True transparent alpha background with clean edges, no outer glow or shadow halo. Hand-painted late-1990s dark-fantasy strategy-game style matching the reference. No full portrait, surrounding anatomy, scenery, text, labels, symbols, weapons or modern objects. Non-sexualized, modest clothing coverage unchanged.  Generate this individual feature directly; do not produce a full image for cropping.",
+  "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-c5f4547a-0d73-46e2-a1b1-71c0406b00ba.png",
+  "file": "mouth-3-cigar.png",
+  "method": "direct generation; unmodified file copy"
+}

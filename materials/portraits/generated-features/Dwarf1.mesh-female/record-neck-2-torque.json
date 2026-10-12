@@ -1,0 +1,10 @@
+﻿{
+  "id": "Dwarf1.mesh-female",
+  "slot": "neck",
+  "n": 2,
+  "name": "torque",
+  "prompt": "Generate a NEW standalone customization feature for an adult female dwarf. Reference supplies palette, anatomy and painted brushwork only. Variation: a plain aged bronze neck torque, no symbols. Output ONLY requested necklace or torque; no neck, skin or chest. Humanlike dwarf anatomy, warm reference skin tones, NO tusks or fangs, no beard or moustache. Late-1990s painted dark fantasy game style, complete contour centered with transparent padding. True transparent empty background, no scenery, text, labels, fog or glow. Only named feature, never complete portrait, no cropping.",
+  "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-47728121-fdd0-49fb-a95d-55d151ca41ba.png",
+  "file": "neck-2-torque.png",
+  "method": "direct generation; unmodified file copy"
+}

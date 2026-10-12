@@ -1,0 +1,10 @@
+﻿{
+  "id": "Dwarf1.mesh-female",
+  "slot": "hair",
+  "n": 1,
+  "name": "swept",
+  "prompt": "Generate a NEW standalone game customization feature for an adult female dwarf. Image reference supplies anatomy, palette, brushwork and clothing only. Variation: a swept-back hairstyle with the exact reference hair color and texture; only hair that can show outside any headwear. Output ONLY copper-brown hair visible outside a helmet; no helmet, head, face or body. Painted late-1990s dark fantasy strategy game style matching reference, natural copper-brown hair, warm reference skin tones. Complete contour with transparent padding. True transparent empty background directly outside silhouette, no glow, fog, scenery, labels or symbols. Clothing coverage preserved. No beard, moustache or entire portrait. Generate feature directly; no cropping.",
+  "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-6d098152-3334-4c69-8b14-8b71b7eb5ec5.png",
+  "file": "hair-1-swept.png",
+  "method": "direct generation; unmodified file copy"
+}

@@ -1,0 +1,10 @@
+﻿{
+  "id": "Dwarf1.mesh-female",
+  "slot": "build",
+  "n": 2,
+  "name": "sturdy",
+  "prompt": "Generate a NEW standalone game customization feature for an adult female dwarf. Image reference supplies anatomy, palette, brushwork and clothing only. Variation: a sturdier shoulder and chest build, preserving the exact reference clothing, colors and coverage; modest bust variation under identical coverage, original neckline unchanged. Output ONLY clothed shoulders and armored upper chest ending at upper ribs; no head, hair, waist or lower body. Painted late-1990s dark fantasy strategy game style matching reference, natural copper-brown hair, warm reference skin tones. Complete contour with transparent padding. True transparent empty background directly outside silhouette, no glow, fog, scenery, labels or symbols. Clothing coverage preserved. No beard, moustache or entire portrait. Generate feature directly; no cropping.",
+  "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-111f2628-89de-4625-9f61-935f91e3c8eb.png",
+  "file": "build-2-sturdy.png",
+  "method": "direct generation; unmodified file copy"
+}

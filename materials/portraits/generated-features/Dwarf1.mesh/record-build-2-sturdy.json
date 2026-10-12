@@ -1,0 +1,10 @@
+﻿{
+  "id": "Dwarf1.mesh",
+  "slot": "build",
+  "n": 2,
+  "name": "sturdy",
+  "prompt": "Generate a NEW standalone painted game asset for a MALE Dwarf1. Image 1 is ONLY a reference for species anatomy, skin/material and hair colors, three-quarter orientation, lighting direction, costume, brush texture and palette. Requested variation: a wider sturdier torso under exactly the same silver breastplate, same armor design and colors. Output ONLY shoulders and upper chest in the exact same modest clothing or armor as the reference; no head, face or arms below the shoulders. Center the requested part with transparent padding and preserve its complete contour. True transparent alpha background with clean edges, no outer glow or shadow halo. Hand-painted late-1990s dark-fantasy strategy-game style matching the reference. No full portrait, surrounding anatomy, scenery, text, labels, symbols, weapons or modern objects. Non-sexualized, modest clothing coverage unchanged.  Generate this individual feature directly; do not produce a full image for cropping.",
+  "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-19ad5bbf-b6c6-40d5-ba01-870de6a587cb.png",
+  "file": "build-2-sturdy.png",
+  "method": "direct generation; unmodified file copy"
+}

@@ -1,0 +1,10 @@
+﻿{
+  "id": "Dwarf1.mesh",
+  "slot": "chin",
+  "n": 1,
+  "name": "forked",
+  "prompt": "Generate a NEW standalone painted game asset for a MALE Dwarf1. Image 1 is ONLY a reference for species anatomy, skin/material and hair colors, three-quarter orientation, lighting direction, costume, brush texture and palette. Requested variation: a brown forked beard with two thick tapering ends, same beard silhouette at the top edge. Output ONLY the requested chin, jaw or beard as a small independent anatomy sprite; no mouth, nose or entire head. Center the requested part with transparent padding and preserve its complete contour. True transparent alpha background with clean edges, no outer glow or shadow halo. Hand-painted late-1990s dark-fantasy strategy-game style matching the reference. No full portrait, surrounding anatomy, scenery, text, labels, symbols, weapons or modern objects. Non-sexualized, modest clothing coverage unchanged.  Generate this individual feature directly; do not produce a full image for cropping.",
+  "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-460693b0-3dde-45d5-a9cc-178cb9dc60f5.png",
+  "file": "chin-1-forked.png",
+  "method": "direct generation; unmodified file copy"
+}

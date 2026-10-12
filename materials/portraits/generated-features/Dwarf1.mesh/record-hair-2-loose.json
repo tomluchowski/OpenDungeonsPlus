@@ -1,0 +1,10 @@
+﻿{
+  "id": "Dwarf1.mesh",
+  "slot": "hair",
+  "n": 2,
+  "name": "loose",
+  "prompt": "Generate a NEW standalone painted game asset for a MALE Dwarf1. Image 1 is ONLY a reference for species anatomy, skin/material and hair colors, three-quarter orientation, lighting direction, costume, brush texture and palette. Requested variation: loose coarse dark brown side hair emerging below the helmet on the left of the image, helmet unchanged. Output ONLY the requested hair, moss hair or crest/frill as an isolated sprite; no head, face, ears or body. Center the requested part with transparent padding and preserve its complete contour. True transparent alpha background with clean edges, no outer glow or shadow halo. Hand-painted late-1990s dark-fantasy strategy-game style matching the reference. No full portrait, surrounding anatomy, scenery, text, labels, symbols, weapons or modern objects. Non-sexualized, modest clothing coverage unchanged.  Generate this individual feature directly; do not produce a full image for cropping.",
+  "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-b2856ce8-fba0-4a9f-995e-5904c0cd5f30.png",
+  "file": "hair-2-loose.png",
+  "method": "direct generation; unmodified file copy"
+}

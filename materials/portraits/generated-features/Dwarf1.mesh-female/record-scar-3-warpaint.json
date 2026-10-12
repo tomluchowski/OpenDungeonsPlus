@@ -1,0 +1,10 @@
+﻿{
+  "id": "Dwarf1.mesh-female",
+  "slot": "scar",
+  "n": 3,
+  "name": "warpaint",
+  "prompt": "Generate a NEW standalone customization feature for an adult female dwarf. Reference supplies palette, anatomy and painted brushwork only. Variation: simple dark red war-paint streaks, no symbols. Output ONLY requested healed scar or paint marks; no face or skin silhouette. Humanlike dwarf anatomy, warm reference skin tones, NO tusks or fangs, no beard or moustache. Late-1990s painted dark fantasy game style, complete contour centered with transparent padding. True transparent empty background, no scenery, text, labels, fog or glow. Only named feature, never complete portrait, no cropping.",
+  "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-d0fab98d-2b28-4410-b24a-0d132c8b7c3d.png",
+  "file": "scar-3-warpaint.png",
+  "method": "direct generation; unmodified file copy"
+}

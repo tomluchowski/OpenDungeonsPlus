@@ -1,0 +1,10 @@
+﻿{
+  "id": "Dwarf2.mesh",
+  "slot": "hair",
+  "n": 1,
+  "name": "swept",
+  "prompt": "Generate a NEW standalone customization asset for an adult male Dwarf2. Reference ONLY for anatomy, palette, clothing and brushwork. Variation: a swept-back hairstyle with the exact reference hair color and texture; only hair that can show outside any headwear; white hair side strands that emerge below helmet sides, no hair over the helmet, no beard or moustache. Output ONLY isolated hair, NO head, face or body. Hand-painted dark fantasy strategy-game style matching reference. Preserve species anatomy and reference clothing coverage; never invent tusks absent from reference. Complete contour centered with transparent padding and genuine alpha background. No scenery, text, glow, fog or full portrait. Direct isolated-feature generation, never full-image cropping.",
+  "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-07f27c92-9164-489d-b822-9a68a4edb52e.png",
+  "file": "hair-1-swept.png",
+  "method": "direct generation; unmodified file copy"
+}

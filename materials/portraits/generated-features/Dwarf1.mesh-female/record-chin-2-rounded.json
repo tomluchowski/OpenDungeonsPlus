@@ -1,0 +1,10 @@
+﻿{
+  "id": "Dwarf1.mesh-female",
+  "slot": "chin",
+  "n": 2,
+  "name": "rounded",
+  "prompt": "Generate a NEW standalone customization feature for an adult female dwarf. Reference supplies palette, anatomy and painted brushwork only. Variation: a softer rounded chin and jaw, preserving species-specific anatomy and reference skin; no beard. Output ONLY chin and lower jaw BELOW lower lip; no lips, mouth, teeth, neck or head. Humanlike dwarf anatomy, warm reference skin tones, NO tusks or fangs, no beard or moustache. Late-1990s painted dark fantasy game style, complete contour centered with transparent padding. True transparent empty background, no scenery, text, labels, fog or glow. Only named feature, never complete portrait, no cropping.",
+  "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-d8797ee7-1dfb-4c4b-b0c9-28c60388da7c.png",
+  "file": "chin-2-rounded.png",
+  "method": "direct generation; unmodified file copy"
+}

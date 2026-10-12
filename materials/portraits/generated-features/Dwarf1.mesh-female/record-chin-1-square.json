@@ -1,0 +1,10 @@
+﻿{
+  "id": "Dwarf1.mesh-female",
+  "slot": "chin",
+  "n": 1,
+  "name": "square",
+  "prompt": "Generate a new square broad chin and lower jaw customization sprite for an adult female dwarf, using reference only for warm peach skin palette and painted game brushwork. The part is strictly below the entire lip region; skin-only curved upper boundary, no lip or mouth at all. A distinct broad squared chin, complete lower jaw silhouette, no beard, no moustache, no neck. Only chin and jaw on genuine transparent background, no fog, shadow or scenery. Hand-painted late-1990s dark fantasy strategy-game asset, directly generated, no cutting.",
+  "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-704b27a1-0af7-48db-adb6-64a3145cfe63.png",
+  "file": "chin-1-square.png",
+  "method": "direct generation; unmodified file copy"
+}

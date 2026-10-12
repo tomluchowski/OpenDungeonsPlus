@@ -1,0 +1,10 @@
+﻿{
+  "id": "Dwarf1.mesh-female",
+  "slot": "mouth",
+  "n": 2,
+  "name": "grin",
+  "prompt": "Generate a NEW standalone customization feature for an adult female dwarf. Reference supplies palette, anatomy and painted brushwork only. Variation: a broader lopsided grin, preserving the species-specific lips, and ordinary blunt teeth. Output ONLY human-shaped female lips and normal blunt teeth with requested accessory; NO tusks, fangs, pointed teeth, chin or nose. Humanlike dwarf anatomy, warm reference skin tones, NO tusks or fangs, no beard or moustache. Late-1990s painted dark fantasy game style, complete contour centered with transparent padding. True transparent empty background, no scenery, text, labels, fog or glow. Only named feature, never complete portrait, no cropping.",
+  "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-1cd1f2c6-d363-4970-997f-ea28324752ec.png",
+  "file": "mouth-2-grin.png",
+  "method": "direct generation; unmodified file copy"
+}

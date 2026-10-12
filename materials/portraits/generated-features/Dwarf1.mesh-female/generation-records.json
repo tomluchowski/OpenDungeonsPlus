@@ -1,0 +1,192 @@
+[
+  {
+    "id": "Dwarf1.mesh-female",
+    "slot": "build",
+    "n": 1,
+    "name": "slim",
+    "prompt": "Generate a NEW standalone game customization feature for an adult female dwarf. Image reference supplies anatomy, palette, brushwork and clothing only. Variation: a slimmer shoulder and chest build, preserving the exact reference clothing, colors and coverage; modest bust variation under identical coverage, original neckline unchanged. Output ONLY clothed shoulders and armored upper chest ending at upper ribs; no head, hair, waist or lower body. Painted late-1990s dark fantasy strategy game style matching reference, natural copper-brown hair, warm reference skin tones. Complete contour with transparent padding. True transparent empty background directly outside silhouette, no glow, fog, scenery, labels or symbols. Clothing coverage preserved. No beard, moustache or entire portrait. Generate feature directly; no cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-8ef48bc1-ba6c-4935-8ec8-d8233fca6e08.png",
+    "file": "build-1-slim.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "Dwarf1.mesh-female",
+    "slot": "build",
+    "n": 2,
+    "name": "sturdy",
+    "prompt": "Generate a NEW standalone game customization feature for an adult female dwarf. Image reference supplies anatomy, palette, brushwork and clothing only. Variation: a sturdier shoulder and chest build, preserving the exact reference clothing, colors and coverage; modest bust variation under identical coverage, original neckline unchanged. Output ONLY clothed shoulders and armored upper chest ending at upper ribs; no head, hair, waist or lower body. Painted late-1990s dark fantasy strategy game style matching reference, natural copper-brown hair, warm reference skin tones. Complete contour with transparent padding. True transparent empty background directly outside silhouette, no glow, fog, scenery, labels or symbols. Clothing coverage preserved. No beard, moustache or entire portrait. Generate feature directly; no cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-111f2628-89de-4625-9f61-935f91e3c8eb.png",
+    "file": "build-2-sturdy.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "Dwarf1.mesh-female",
+    "slot": "chin",
+    "n": 1,
+    "name": "square",
+    "prompt": "Generate a new square broad chin and lower jaw customization sprite for an adult female dwarf, using reference only for warm peach skin palette and painted game brushwork. The part is strictly below the entire lip region; skin-only curved upper boundary, no lip or mouth at all. A distinct broad squared chin, complete lower jaw silhouette, no beard, no moustache, no neck. Only chin and jaw on genuine transparent background, no fog, shadow or scenery. Hand-painted late-1990s dark fantasy strategy-game asset, directly generated, no cutting.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-704b27a1-0af7-48db-adb6-64a3145cfe63.png",
+    "file": "chin-1-square.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "Dwarf1.mesh-female",
+    "slot": "chin",
+    "n": 2,
+    "name": "rounded",
+    "prompt": "Generate a NEW standalone customization feature for an adult female dwarf. Reference supplies palette, anatomy and painted brushwork only. Variation: a softer rounded chin and jaw, preserving species-specific anatomy and reference skin; no beard. Output ONLY chin and lower jaw BELOW lower lip; no lips, mouth, teeth, neck or head. Humanlike dwarf anatomy, warm reference skin tones, NO tusks or fangs, no beard or moustache. Late-1990s painted dark fantasy game style, complete contour centered with transparent padding. True transparent empty background, no scenery, text, labels, fog or glow. Only named feature, never complete portrait, no cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-d8797ee7-1dfb-4c4b-b0c9-28c60388da7c.png",
+    "file": "chin-2-rounded.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "Dwarf1.mesh-female",
+    "slot": "eyes",
+    "n": 1,
+    "name": "narrow",
+    "prompt": "Generate a NEW standalone game customization feature for an adult female dwarf. Image reference supplies anatomy, palette, brushwork and clothing only. Variation: narrow suspicious eyes with heavy lids and brows, preserving the exact reference eye and skin colors. Output ONLY eyes and brows or specified eye patch with remaining eye; no nose or complete face. Painted late-1990s dark fantasy strategy game style matching reference, natural copper-brown hair, warm reference skin tones. Complete contour with transparent padding. True transparent empty background directly outside silhouette, no glow, fog, scenery, labels or symbols. Clothing coverage preserved. No beard, moustache or entire portrait. Generate feature directly; no cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-58e19a84-5127-405d-97f7-b49b16e9395a.png",
+    "file": "eyes-1-narrow.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "Dwarf1.mesh-female",
+    "slot": "eyes",
+    "n": 2,
+    "name": "round",
+    "prompt": "Generate a NEW standalone game customization feature for an adult female dwarf. Image reference supplies anatomy, palette, brushwork and clothing only. Variation: rounder alert eyes with raised brows, preserving the exact reference eye and skin colors. Output ONLY eyes and brows or specified eye patch with remaining eye; no nose or complete face. Painted late-1990s dark fantasy strategy game style matching reference, natural copper-brown hair, warm reference skin tones. Complete contour with transparent padding. True transparent empty background directly outside silhouette, no glow, fog, scenery, labels or symbols. Clothing coverage preserved. No beard, moustache or entire portrait. Generate feature directly; no cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-1b2eed77-214b-409c-b2a0-ad42792d4f27.png",
+    "file": "eyes-2-round.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "Dwarf1.mesh-female",
+    "slot": "eyes",
+    "n": 3,
+    "name": "eyepatch",
+    "prompt": "Generate a NEW standalone game customization feature for an adult female dwarf. Image reference supplies anatomy, palette, brushwork and clothing only. Variation: a worn dark leather eye patch over the near eye, with a plain leather strap. Output ONLY eyes and brows or specified eye patch with remaining eye; no nose or complete face. Painted late-1990s dark fantasy strategy game style matching reference, natural copper-brown hair, warm reference skin tones. Complete contour with transparent padding. True transparent empty background directly outside silhouette, no glow, fog, scenery, labels or symbols. Clothing coverage preserved. No beard, moustache or entire portrait. Generate feature directly; no cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-cc259894-03ba-49ae-8903-997a14a89552.png",
+    "file": "eyes-3-eyepatch.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "Dwarf1.mesh-female",
+    "slot": "hair",
+    "n": 1,
+    "name": "swept",
+    "prompt": "Generate a NEW standalone game customization feature for an adult female dwarf. Image reference supplies anatomy, palette, brushwork and clothing only. Variation: a swept-back hairstyle with the exact reference hair color and texture; only hair that can show outside any headwear. Output ONLY copper-brown hair visible outside a helmet; no helmet, head, face or body. Painted late-1990s dark fantasy strategy game style matching reference, natural copper-brown hair, warm reference skin tones. Complete contour with transparent padding. True transparent empty background directly outside silhouette, no glow, fog, scenery, labels or symbols. Clothing coverage preserved. No beard, moustache or entire portrait. Generate feature directly; no cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-6d098152-3334-4c69-8b14-8b71b7eb5ec5.png",
+    "file": "hair-1-swept.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "Dwarf1.mesh-female",
+    "slot": "hair",
+    "n": 2,
+    "name": "waves",
+    "prompt": "Generate a NEW standalone game customization feature for an adult female dwarf. Image reference supplies anatomy, palette, brushwork and clothing only. Variation: a fuller wavy hairstyle with the exact reference hair color and texture; only hair that can show outside any headwear. Output ONLY copper-brown hair visible outside a helmet; no helmet, head, face or body. Painted late-1990s dark fantasy strategy game style matching reference, natural copper-brown hair, warm reference skin tones. Complete contour with transparent padding. True transparent empty background directly outside silhouette, no glow, fog, scenery, labels or symbols. Clothing coverage preserved. No beard, moustache or entire portrait. Generate feature directly; no cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-c84cc1a2-b1cc-424f-9d92-34433e7e8d9d.png",
+    "file": "hair-2-waves.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "Dwarf1.mesh-female",
+    "slot": "mouth",
+    "n": 1,
+    "name": "teeth",
+    "prompt": "Generate a NEW standalone customization feature for an adult female dwarf. Reference supplies palette, anatomy and painted brushwork only. Variation: a tighter crooked grin with uneven teeth, preserving the species-specific lips, and ordinary blunt teeth. Output ONLY human-shaped female lips and normal blunt teeth with requested accessory; NO tusks, fangs, pointed teeth, chin or nose. Humanlike dwarf anatomy, warm reference skin tones, NO tusks or fangs, no beard or moustache. Late-1990s painted dark fantasy game style, complete contour centered with transparent padding. True transparent empty background, no scenery, text, labels, fog or glow. Only named feature, never complete portrait, no cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-5e4f109a-c5d7-4037-9ad4-676a55fdb4e2.png",
+    "file": "mouth-1-teeth.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "Dwarf1.mesh-female",
+    "slot": "mouth",
+    "n": 2,
+    "name": "grin",
+    "prompt": "Generate a NEW standalone customization feature for an adult female dwarf. Reference supplies palette, anatomy and painted brushwork only. Variation: a broader lopsided grin, preserving the species-specific lips, and ordinary blunt teeth. Output ONLY human-shaped female lips and normal blunt teeth with requested accessory; NO tusks, fangs, pointed teeth, chin or nose. Humanlike dwarf anatomy, warm reference skin tones, NO tusks or fangs, no beard or moustache. Late-1990s painted dark fantasy game style, complete contour centered with transparent padding. True transparent empty background, no scenery, text, labels, fog or glow. Only named feature, never complete portrait, no cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-1cd1f2c6-d363-4970-997f-ea28324752ec.png",
+    "file": "mouth-2-grin.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "Dwarf1.mesh-female",
+    "slot": "mouth",
+    "n": 3,
+    "name": "cigar",
+    "prompt": "Generate a NEW standalone customization feature for an adult female dwarf. Reference supplies palette, anatomy and painted brushwork only. Variation: a short fat brown cigar clamped in the corner of the mouth, preserving the species-specific lips, and ordinary blunt teeth. Output ONLY human-shaped female lips and normal blunt teeth with requested accessory; NO tusks, fangs, pointed teeth, chin or nose. Humanlike dwarf anatomy, warm reference skin tones, NO tusks or fangs, no beard or moustache. Late-1990s painted dark fantasy game style, complete contour centered with transparent padding. True transparent empty background, no scenery, text, labels, fog or glow. Only named feature, never complete portrait, no cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-197b6294-fd86-4357-8f08-b0e8914d9d13.png",
+    "file": "mouth-3-cigar.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "Dwarf1.mesh-female",
+    "slot": "neck",
+    "n": 1,
+    "name": "teeth",
+    "prompt": "Generate a NEW standalone customization feature for an adult female dwarf. Reference supplies palette, anatomy and painted brushwork only. Variation: a plain cord necklace with three small yellowed animal teeth. Output ONLY requested necklace or torque; no neck, skin or chest. Humanlike dwarf anatomy, warm reference skin tones, NO tusks or fangs, no beard or moustache. Late-1990s painted dark fantasy game style, complete contour centered with transparent padding. True transparent empty background, no scenery, text, labels, fog or glow. Only named feature, never complete portrait, no cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-ba9a0e0b-131c-449f-acc9-e2d31443b9ea.png",
+    "file": "neck-1-teeth.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "Dwarf1.mesh-female",
+    "slot": "neck",
+    "n": 2,
+    "name": "torque",
+    "prompt": "Generate a NEW standalone customization feature for an adult female dwarf. Reference supplies palette, anatomy and painted brushwork only. Variation: a plain aged bronze neck torque, no symbols. Output ONLY requested necklace or torque; no neck, skin or chest. Humanlike dwarf anatomy, warm reference skin tones, NO tusks or fangs, no beard or moustache. Late-1990s painted dark fantasy game style, complete contour centered with transparent padding. True transparent empty background, no scenery, text, labels, fog or glow. Only named feature, never complete portrait, no cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-47728121-fdd0-49fb-a95d-55d151ca41ba.png",
+    "file": "neck-2-torque.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "Dwarf1.mesh-female",
+    "slot": "nose",
+    "n": 1,
+    "name": "crooked",
+    "prompt": "Generate a NEW standalone game customization feature for an adult female dwarf. Image reference supplies anatomy, palette, brushwork and clothing only. Variation: a crooked broken nose with a healed bump, preserving the species-specific anatomy and reference skin. Output ONE isolated nose, entire contour, no eyes or mouth. Painted late-1990s dark fantasy strategy game style matching reference, natural copper-brown hair, warm reference skin tones. Complete contour with transparent padding. True transparent empty background directly outside silhouette, no glow, fog, scenery, labels or symbols. Clothing coverage preserved. No beard, moustache or entire portrait. Generate feature directly; no cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-8ba1440f-1ef8-43e1-ba46-11c366b5a9d3.png",
+    "file": "nose-1-crooked.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "Dwarf1.mesh-female",
+    "slot": "nose",
+    "n": 2,
+    "name": "broad",
+    "prompt": "Generate a NEW standalone game customization feature for an adult female dwarf. Image reference supplies anatomy, palette, brushwork and clothing only. Variation: a broader flatter nose with wider nostrils, preserving the species-specific anatomy and reference skin. Output ONE isolated nose, entire contour, no eyes or mouth. Painted late-1990s dark fantasy strategy game style matching reference, natural copper-brown hair, warm reference skin tones. Complete contour with transparent padding. True transparent empty background directly outside silhouette, no glow, fog, scenery, labels or symbols. Clothing coverage preserved. No beard, moustache or entire portrait. Generate feature directly; no cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-3eb596ad-d711-443a-8823-8418e1fb106a.png",
+    "file": "nose-2-broad.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "Dwarf1.mesh-female",
+    "slot": "scar",
+    "n": 1,
+    "name": "diagonal",
+    "prompt": "Generate a NEW standalone customization feature for an adult female dwarf. Reference supplies palette, anatomy and painted brushwork only. Variation: one pale healed diagonal scar. Output ONLY requested healed scar or paint marks; no face or skin silhouette. Humanlike dwarf anatomy, warm reference skin tones, NO tusks or fangs, no beard or moustache. Late-1990s painted dark fantasy game style, complete contour centered with transparent padding. True transparent empty background, no scenery, text, labels, fog or glow. Only named feature, never complete portrait, no cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-c83cbbd5-8ff3-4f90-aa8e-6131a578877b.png",
+    "file": "scar-1-diagonal.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "Dwarf1.mesh-female",
+    "slot": "scar",
+    "n": 2,
+    "name": "scratches",
+    "prompt": "Generate a NEW standalone customization feature for an adult female dwarf. Reference supplies palette, anatomy and painted brushwork only. Variation: three small parallel healed scratches. Output ONLY requested healed scar or paint marks; no face or skin silhouette. Humanlike dwarf anatomy, warm reference skin tones, NO tusks or fangs, no beard or moustache. Late-1990s painted dark fantasy game style, complete contour centered with transparent padding. True transparent empty background, no scenery, text, labels, fog or glow. Only named feature, never complete portrait, no cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-332f1d69-573e-40be-8388-1e7233db01b4.png",
+    "file": "scar-2-scratches.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "Dwarf1.mesh-female",
+    "slot": "scar",
+    "n": 3,
+    "name": "warpaint",
+    "prompt": "Generate a NEW standalone customization feature for an adult female dwarf. Reference supplies palette, anatomy and painted brushwork only. Variation: simple dark red war-paint streaks, no symbols. Output ONLY requested healed scar or paint marks; no face or skin silhouette. Humanlike dwarf anatomy, warm reference skin tones, NO tusks or fangs, no beard or moustache. Late-1990s painted dark fantasy game style, complete contour centered with transparent padding. True transparent empty background, no scenery, text, labels, fog or glow. Only named feature, never complete portrait, no cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-d0fab98d-2b28-4410-b24a-0d132c8b7c3d.png",
+    "file": "scar-3-warpaint.png",
+    "method": "direct generation; unmodified file copy"
+  }
+]

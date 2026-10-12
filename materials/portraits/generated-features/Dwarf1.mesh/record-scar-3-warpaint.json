@@ -1,0 +1,10 @@
+﻿{
+  "id": "Dwarf1.mesh",
+  "slot": "scar",
+  "n": 3,
+  "name": "warpaint",
+  "prompt": "Generate a NEW standalone painted game asset for a MALE Dwarf1. Image 1 is ONLY a reference for species anatomy, skin/material and hair colors, three-quarter orientation, lighting direction, costume, brush texture and palette. Requested variation: a small dark russet war paint smear on the cheek on the left of the image, no symbols. Output ONLY the requested scar, crack, scale damage, war-paint or helmet-damage marks as a transparent overlay; no face, skin silhouette or complete helmet. Center the requested part with transparent padding and preserve its complete contour. True transparent alpha background with clean edges, no outer glow or shadow halo. Hand-painted late-1990s dark-fantasy strategy-game style matching the reference. No full portrait, surrounding anatomy, scenery, text, labels, symbols, weapons or modern objects. Non-sexualized, modest clothing coverage unchanged.  Generate this individual feature directly; do not produce a full image for cropping.",
+  "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-488e4c66-9d89-4b5c-8c73-09d5658ea092.png",
+  "file": "scar-3-warpaint.png",
+  "method": "direct generation; unmodified file copy"
+}

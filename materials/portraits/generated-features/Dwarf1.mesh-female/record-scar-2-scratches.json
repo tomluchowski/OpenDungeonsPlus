@@ -1,0 +1,10 @@
+﻿{
+  "id": "Dwarf1.mesh-female",
+  "slot": "scar",
+  "n": 2,
+  "name": "scratches",
+  "prompt": "Generate a NEW standalone customization feature for an adult female dwarf. Reference supplies palette, anatomy and painted brushwork only. Variation: three small parallel healed scratches. Output ONLY requested healed scar or paint marks; no face or skin silhouette. Humanlike dwarf anatomy, warm reference skin tones, NO tusks or fangs, no beard or moustache. Late-1990s painted dark fantasy game style, complete contour centered with transparent padding. True transparent empty background, no scenery, text, labels, fog or glow. Only named feature, never complete portrait, no cropping.",
+  "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-332f1d69-573e-40be-8388-1e7233db01b4.png",
+  "file": "scar-2-scratches.png",
+  "method": "direct generation; unmodified file copy"
+}

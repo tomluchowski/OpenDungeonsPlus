@@ -1,0 +1,10 @@
+﻿{
+  "id": "Dwarf1.mesh-female",
+  "slot": "eyes",
+  "n": 1,
+  "name": "narrow",
+  "prompt": "Generate a NEW standalone game customization feature for an adult female dwarf. Image reference supplies anatomy, palette, brushwork and clothing only. Variation: narrow suspicious eyes with heavy lids and brows, preserving the exact reference eye and skin colors. Output ONLY eyes and brows or specified eye patch with remaining eye; no nose or complete face. Painted late-1990s dark fantasy strategy game style matching reference, natural copper-brown hair, warm reference skin tones. Complete contour with transparent padding. True transparent empty background directly outside silhouette, no glow, fog, scenery, labels or symbols. Clothing coverage preserved. No beard, moustache or entire portrait. Generate feature directly; no cropping.",
+  "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-58e19a84-5127-405d-97f7-b49b16e9395a.png",
+  "file": "eyes-1-narrow.png",
+  "method": "direct generation; unmodified file copy"
+}

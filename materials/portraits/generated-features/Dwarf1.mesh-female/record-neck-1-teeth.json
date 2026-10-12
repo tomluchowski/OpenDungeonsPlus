@@ -1,0 +1,10 @@
+﻿{
+  "id": "Dwarf1.mesh-female",
+  "slot": "neck",
+  "n": 1,
+  "name": "teeth",
+  "prompt": "Generate a NEW standalone customization feature for an adult female dwarf. Reference supplies palette, anatomy and painted brushwork only. Variation: a plain cord necklace with three small yellowed animal teeth. Output ONLY requested necklace or torque; no neck, skin or chest. Humanlike dwarf anatomy, warm reference skin tones, NO tusks or fangs, no beard or moustache. Late-1990s painted dark fantasy game style, complete contour centered with transparent padding. True transparent empty background, no scenery, text, labels, fog or glow. Only named feature, never complete portrait, no cropping.",
+  "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-ba9a0e0b-131c-449f-acc9-e2d31443b9ea.png",
+  "file": "neck-1-teeth.png",
+  "method": "direct generation; unmodified file copy"
+}
