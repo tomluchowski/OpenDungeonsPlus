@@ -1,8 +1,8 @@
 $ErrorActionPreference = 'Stop'
 $taskRepo = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
 $taskBuild = Join-Path $taskRepo 'build\windows'
-$taskPrefix = Join-Path $env:USERPROFILE 'od-deps\install'
-$taskPythonRoot = Join-Path $env:LOCALAPPDATA 'Programs\Python\Python310'
+. (Join-Path $PSScriptRoot 'windows-paths.ps1')
+$taskPrefix = "$taskDependencyRoot\install"
 $taskResourcesFile = Join-Path $taskBuild 'resources.cfg'
 
 # These include the plugins loaded dynamically by OGRE and CEGUI, as well as
