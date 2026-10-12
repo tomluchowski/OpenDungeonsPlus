@@ -20,8 +20,32 @@ class ODPacket;
 // Wire order for the negotiated creature-panel snapshot. Keep existing values.
 enum class CreaturePanelCriterion
 {
-    Total, Idle, Working, Fighting, Manufacturing, Training, OtherJobs,
-    Guarding, OtherFighting, Happy, Unhappy, Angry, Count
+    //! All creatures of the type that are on the map
+    Total,
+    //! Without a task, or (workers) searching for something to do
+    Idle,
+    //! (workers only) Digging, claiming or carrying
+    Working,
+    //! Fighting an enemy or a friendly creature
+    Fighting,
+    //! Using a workshop or a library
+    Manufacturing,
+    //! Using a training hall or an arena, or sparring in the arena
+    Training,
+    //! Everything that is neither idle, manufacturing nor training
+    OtherJobs,
+    //! Always zero: there is no guarding action
+    Guarding,
+    //! Everything that is not fighting
+    OtherFighting,
+    //! Mood happy or neutral
+    Happy,
+    //! Mood upset or angry
+    Unhappy,
+    //! Mood furious
+    Angry,
+    //! Number of criteria, not a criterion
+    Count
 };
 
 //! Number of creatures per criterion, indexed by CreaturePanelCriterion.
