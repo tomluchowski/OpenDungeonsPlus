@@ -1,0 +1,10 @@
+﻿{
+  "id": "Orc.mesh",
+  "slot": "chin",
+  "n": 1,
+  "name": "square",
+  "prompt": "Generate a standalone hand-painted game customization asset: ONLY a broad square chin and lower jaw contour belonging to an adult male olive-green orc. The image reference is palette and brushwork only. This part ends BELOW the lower lip: no mouth, no lips, no teeth, no tusks, no nose, no face, no neck. Show a solid opaque olive-green square chin pad and jaw taper, with crisp complete silhouette; all surrounding pixels transparent. No glow, gradient fog, cast shadow, backdrop or colored halo. Match the subdued painted dark fantasy reference. Directly generate the isolated chin, no cropping.",
+  "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-c2c7c125-8096-4ddb-8199-2626208d687a.png",
+  "file": "chin-1-square.png",
+  "method": "direct generation; unmodified file copy"
+}

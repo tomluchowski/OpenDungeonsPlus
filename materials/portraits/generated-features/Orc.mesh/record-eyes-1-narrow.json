@@ -1,0 +1,10 @@
+﻿{
+  "id": "Orc.mesh",
+  "slot": "eyes",
+  "n": 1,
+  "name": "narrow",
+  "prompt": "Generate a NEW standalone painted game asset for an adult male Orc. Reference image supplies anatomy, color, lighting, clothing and brushwork only. Requested variation: narrow suspicious eyes with heavy lids and brows, preserving the exact reference eye and skin colors. Output ONLY eyes and brows or specified eye patch and remaining eye, no entire face. Complete contour, centered with transparent padding. Genuine transparent alpha, clean edges, no halo. Hand-painted late-1990s dark fantasy strategy game style matching reference. Neutral character customization asset, reference clothing coverage unchanged. No full portrait, surrounding anatomy, scenery, text or weapons.  Generate this feature directly, never a full image for cropping.",
+  "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-543b039d-77e3-4b48-974e-906bf65801dd.png",
+  "file": "eyes-1-narrow.png",
+  "method": "direct generation; unmodified file copy"
+}

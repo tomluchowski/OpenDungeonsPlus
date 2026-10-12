@@ -1,0 +1,10 @@
+﻿{
+  "id": "Orc.mesh",
+  "slot": "mouth",
+  "n": 3,
+  "name": "cigar",
+  "prompt": "Generate a NEW standalone painted game asset for an adult male Orc. Reference image supplies anatomy, color, lighting, clothing and brushwork only. Requested variation: a short fat brown cigar clamped in the corner of the mouth, preserving the species-specific lips, teeth and tusks. Output ONLY mouth with lips, teeth or tusks and requested mouth accessory, no entire face. Complete contour, centered with transparent padding. Genuine transparent alpha, clean edges, no halo. Hand-painted late-1990s dark fantasy strategy game style matching reference. Neutral character customization asset, reference clothing coverage unchanged. No full portrait, surrounding anatomy, scenery, text or weapons.  Generate this feature directly, never a full image for cropping.",
+  "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-47f39143-76a1-4151-9480-66a2ff21e698.png",
+  "file": "mouth-3-cigar.png",
+  "method": "direct generation; unmodified file copy"
+}

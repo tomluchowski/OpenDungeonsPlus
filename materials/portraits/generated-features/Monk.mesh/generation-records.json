@@ -1,0 +1,212 @@
+[
+  {
+    "id": "Monk.mesh",
+    "slot": "build",
+    "n": 1,
+    "name": "slim",
+    "prompt": "Generate a NEW standalone customization asset for an adult male Monk. Reference ONLY for anatomy, palette, clothing and brushwork. Variation: a slimmer shoulder and chest build, preserving the exact reference clothing, colors and coverage. Output ONLY the isolated clothed shoulders and chest, NO head, face, hair or ears. Hand-painted dark fantasy strategy-game style matching reference. Preserve species anatomy and reference clothing coverage; never invent tusks absent from reference. Complete contour centered with transparent padding and genuine alpha background. No scenery, text, glow, fog or full portrait. Direct isolated-feature generation, never full-image cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-e7383da2-a38a-4fef-9204-02f1f4ed4c98.png",
+    "file": "build-1-slim.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "Monk.mesh",
+    "slot": "build",
+    "n": 2,
+    "name": "sturdy",
+    "prompt": "Generate a NEW standalone customization asset for an adult male Monk. Reference ONLY for anatomy, palette, clothing and brushwork. Variation: a sturdier shoulder and chest build, preserving the exact reference clothing, colors and coverage. Output ONLY the isolated clothed shoulders and chest, NO head, face, hair or ears. Hand-painted dark fantasy strategy-game style matching reference. Preserve species anatomy and reference clothing coverage; never invent tusks absent from reference. Complete contour centered with transparent padding and genuine alpha background. No scenery, text, glow, fog or full portrait. Direct isolated-feature generation, never full-image cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-4638851a-045a-4a3d-9814-bf3f04444936.png",
+    "file": "build-2-sturdy.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "Monk.mesh",
+    "slot": "chin",
+    "n": 1,
+    "name": "square",
+    "prompt": "Generate a NEW standalone customization asset for an adult male Monk. Reference ONLY for anatomy, palette, clothing and brushwork. Variation: a squarer chin and jaw, preserving species-specific anatomy and reference skin; no beard. Output ONLY the isolated chin and jaw BELOW the mouth, absolutely NO lips, teeth, mouth, nose, eyes, head or body. Hand-painted dark fantasy strategy-game style matching reference. Preserve species anatomy and reference clothing coverage; never invent tusks absent from reference. Complete contour centered with transparent padding and genuine alpha background. No scenery, text, glow, fog or full portrait. Direct isolated-feature generation, never full-image cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-0f3ac5c9-aca0-462c-bb4e-84aebb059eb5.png",
+    "file": "chin-1-square.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "Monk.mesh",
+    "slot": "chin",
+    "n": 2,
+    "name": "rounded",
+    "prompt": "Generate a NEW standalone customization asset for an adult male Monk. Reference ONLY for anatomy, palette, clothing and brushwork. Variation: a softer rounded chin and jaw, preserving species-specific anatomy and reference skin; no beard. Output ONLY the isolated chin and jaw BELOW the mouth, absolutely NO lips, teeth, mouth, nose, eyes, head or body. Hand-painted dark fantasy strategy-game style matching reference. Preserve species anatomy and reference clothing coverage; never invent tusks absent from reference. Complete contour centered with transparent padding and genuine alpha background. No scenery, text, glow, fog or full portrait. Direct isolated-feature generation, never full-image cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-f5478175-e086-4d04-bfb2-337bc9231785.png",
+    "file": "chin-2-rounded.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "Monk.mesh",
+    "slot": "ears",
+    "n": 1,
+    "name": "notched",
+    "prompt": "Generate a NEW standalone customization asset for an adult male Monk. Reference ONLY for anatomy, palette, clothing and brushwork. Variation: the visible ear with a small healed notch near its tip, preserving its species-specific anatomy and reference skin. Output ONLY one isolated ear, NO head, face or body. Hand-painted dark fantasy strategy-game style matching reference. Preserve species anatomy and reference clothing coverage; never invent tusks absent from reference. Complete contour centered with transparent padding and genuine alpha background. No scenery, text, glow, fog or full portrait. Direct isolated-feature generation, never full-image cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-be26090a-c4ad-44db-8e95-2fea4fa3d4f3.png",
+    "file": "ears-1-notched.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "Monk.mesh",
+    "slot": "ears",
+    "n": 2,
+    "name": "rounder",
+    "prompt": "Generate a NEW standalone customization asset for an adult male Monk. Reference ONLY for anatomy, palette, clothing and brushwork. Variation: the visible ear with a shorter and rounder tip, preserving its species-specific anatomy and reference skin. Output ONLY one isolated ear, NO head, face or body. Hand-painted dark fantasy strategy-game style matching reference. Preserve species anatomy and reference clothing coverage; never invent tusks absent from reference. Complete contour centered with transparent padding and genuine alpha background. No scenery, text, glow, fog or full portrait. Direct isolated-feature generation, never full-image cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-04aa9b51-79c3-4052-bf43-eb17b4da76ee.png",
+    "file": "ears-2-rounder.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "Monk.mesh",
+    "slot": "eyes",
+    "n": 1,
+    "name": "narrow",
+    "prompt": "Generate a NEW standalone customization asset for an adult male Monk. Reference ONLY for anatomy, palette, clothing and brushwork. Variation: narrow suspicious eyes with heavy lids and brows, preserving the exact reference eye and skin colors. Output ONLY isolated eyes with lids, brows and a thin rim of nearby skin, or the requested eye patch with strap, NO helmet, armor, headwear, nasal guard, nose, mouth, full face, head or body. Hand-painted dark fantasy strategy-game style matching reference. Preserve species anatomy and reference clothing coverage; never invent tusks absent from reference. Complete contour centered with transparent padding and genuine alpha background. No scenery, text, glow, fog or full portrait. Direct isolated-feature generation, never full-image cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-92e17568-8a79-4188-bb85-4b98094f94c9.png",
+    "file": "eyes-1-narrow.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "Monk.mesh",
+    "slot": "eyes",
+    "n": 2,
+    "name": "round",
+    "prompt": "Generate a NEW standalone customization asset for an adult male Monk. Reference ONLY for anatomy, palette, clothing and brushwork. Variation: rounder alert eyes with raised brows, preserving the exact reference eye and skin colors. Output ONLY isolated eyes with lids, brows and a thin rim of nearby skin, or the requested eye patch with strap, NO helmet, armor, headwear, nasal guard, nose, mouth, full face, head or body. Hand-painted dark fantasy strategy-game style matching reference. Preserve species anatomy and reference clothing coverage; never invent tusks absent from reference. Complete contour centered with transparent padding and genuine alpha background. No scenery, text, glow, fog or full portrait. Direct isolated-feature generation, never full-image cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-f6bd3340-2f63-4df5-9828-15cca88025ea.png",
+    "file": "eyes-2-round.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "Monk.mesh",
+    "slot": "eyes",
+    "n": 3,
+    "name": "eyepatch",
+    "prompt": "Generate a NEW standalone customization asset for an adult male Monk. Reference ONLY for anatomy, palette, clothing and brushwork. Variation: a worn dark leather eye patch over the near eye, with a plain leather strap. Output ONLY isolated eyes with lids, brows and a thin rim of nearby skin, or the requested eye patch with strap, NO helmet, armor, headwear, nasal guard, nose, mouth, full face, head or body. Hand-painted dark fantasy strategy-game style matching reference. Preserve species anatomy and reference clothing coverage; never invent tusks absent from reference. Complete contour centered with transparent padding and genuine alpha background. No scenery, text, glow, fog or full portrait. Direct isolated-feature generation, never full-image cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-c236779b-fae0-402f-ac28-60f058868a5d.png",
+    "file": "eyes-3-eyepatch.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "Monk.mesh",
+    "slot": "hair",
+    "n": 1,
+    "name": "swept",
+    "prompt": "Generate a NEW standalone customization asset for an adult male Monk. Reference ONLY for anatomy, palette, clothing and brushwork. Variation: a swept-back hairstyle with the exact reference hair color and texture; only hair that can show outside any headwear. Output ONLY isolated SCALP HAIR, NO beard, NO moustache, NO facial hair, NO head, NO face, NO skin, NO helmet, NO body. Hand-painted dark fantasy strategy-game style matching reference. Preserve species anatomy and reference clothing coverage; never invent tusks absent from reference. Complete contour centered with transparent padding and genuine alpha background. No scenery, text, glow, fog or full portrait. Direct isolated-feature generation, never full-image cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-b3d94edd-0e69-45f8-a2ea-96cc4511c0da.png",
+    "file": "hair-1-swept.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "Monk.mesh",
+    "slot": "hair",
+    "n": 2,
+    "name": "waves",
+    "prompt": "Generate a NEW standalone customization asset for an adult male Monk. Reference ONLY for anatomy, palette, clothing and brushwork. Variation: a fuller wavy hairstyle with the exact reference hair color and texture; only hair that can show outside any headwear; visibly different from swept-back hair: loose flowing waves, no ponytail or hair tie. Output ONLY isolated SCALP HAIR, NO beard, NO moustache, NO facial hair, NO head, NO face, NO skin, NO helmet, NO body. Hand-painted dark fantasy strategy-game style matching reference. Preserve species anatomy and reference clothing coverage; never invent tusks absent from reference. Complete contour centered with transparent padding and genuine alpha background. No scenery, text, glow, fog or full portrait. Direct isolated-feature generation, never full-image cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-eee88b18-8a14-4ce7-8d89-35d6d2fee95e.png",
+    "file": "hair-2-waves.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "Monk.mesh",
+    "slot": "mouth",
+    "n": 1,
+    "name": "teeth",
+    "prompt": "Generate a NEW standalone customization asset for an adult male Monk. Reference ONLY for anatomy, palette, clothing and brushwork. Variation: a tighter crooked grin with uneven teeth, preserving the species-specific lips and teeth, including tusks ONLY IF PRESENT in reference. Output ONLY isolated lips and teeth, NO beard, moustache, chin hair, nose, eyes, head or body; a cigar ONLY when explicitly requested in Variation, otherwise NO cigar, cigarette, pipe or other accessory. Hand-painted dark fantasy strategy-game style matching reference. Preserve species anatomy and reference clothing coverage; never invent tusks absent from reference. Complete contour centered with transparent padding and genuine alpha background. No scenery, text, glow, fog or full portrait. Direct isolated-feature generation, never full-image cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-abcb3c34-86a2-4994-b219-c4f59923b7fb.png",
+    "file": "mouth-1-teeth.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "Monk.mesh",
+    "slot": "mouth",
+    "n": 2,
+    "name": "grin",
+    "prompt": "Generate a NEW standalone customization asset for an adult male Monk. Reference ONLY for anatomy, palette, clothing and brushwork. Variation: a broader lopsided grin, preserving the species-specific lips and teeth, including tusks ONLY IF PRESENT in reference. Output ONLY isolated lips and teeth, NO beard, moustache, chin hair, nose, eyes, head or body; a cigar ONLY when explicitly requested in Variation, otherwise NO cigar, cigarette, pipe or other accessory. Hand-painted dark fantasy strategy-game style matching reference. Preserve species anatomy and reference clothing coverage; never invent tusks absent from reference. Complete contour centered with transparent padding and genuine alpha background. No scenery, text, glow, fog or full portrait. Direct isolated-feature generation, never full-image cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-705e297d-2741-4c10-adf8-459d2b08994c.png",
+    "file": "mouth-2-grin.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "Monk.mesh",
+    "slot": "mouth",
+    "n": 3,
+    "name": "cigar",
+    "prompt": "Generate a NEW standalone customization asset for an adult male Monk. Reference ONLY for anatomy, palette, clothing and brushwork. Variation: a short fat brown cigar clamped in the corner of the mouth, preserving the species-specific lips and teeth, including tusks ONLY IF PRESENT in reference. Output ONLY isolated lips and teeth, NO beard, moustache, chin hair, nose, eyes, head or body; a cigar ONLY when explicitly requested in Variation, otherwise NO cigar, cigarette, pipe or other accessory. Hand-painted dark fantasy strategy-game style matching reference. Preserve species anatomy and reference clothing coverage; never invent tusks absent from reference. Complete contour centered with transparent padding and genuine alpha background. No scenery, text, glow, fog or full portrait. Direct isolated-feature generation, never full-image cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-b6163675-970c-440c-a3df-035d0f254883.png",
+    "file": "mouth-3-cigar.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "Monk.mesh",
+    "slot": "neck",
+    "n": 1,
+    "name": "teeth",
+    "prompt": "Generate a NEW standalone customization asset for an adult male Monk. Reference ONLY for anatomy, palette, clothing and brushwork. Variation: a plain cord necklace with three small yellowed animal teeth. Output ONLY the isolated necklace or neck torque, NO neck skin, head or body. Hand-painted dark fantasy strategy-game style matching reference. Preserve species anatomy and reference clothing coverage; never invent tusks absent from reference. Complete contour centered with transparent padding and genuine alpha background. No scenery, text, glow, fog or full portrait. Direct isolated-feature generation, never full-image cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-7af408cc-9926-4365-893f-afd8e9da4ae3.png",
+    "file": "neck-1-teeth.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "Monk.mesh",
+    "slot": "neck",
+    "n": 2,
+    "name": "torque",
+    "prompt": "Generate a NEW standalone customization asset for an adult male Monk. Reference ONLY for anatomy, palette, clothing and brushwork. Variation: a plain aged bronze neck torque, no symbols. Output ONLY the isolated necklace or neck torque, NO neck skin, head or body. Hand-painted dark fantasy strategy-game style matching reference. Preserve species anatomy and reference clothing coverage; never invent tusks absent from reference. Complete contour centered with transparent padding and genuine alpha background. No scenery, text, glow, fog or full portrait. Direct isolated-feature generation, never full-image cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-31b3bf71-a6cf-45dc-9cab-66994b8540bf.png",
+    "file": "neck-2-torque.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "Monk.mesh",
+    "slot": "nose",
+    "n": 1,
+    "name": "crooked",
+    "prompt": "Generate a NEW standalone customization asset for an adult male Monk. Reference ONLY for anatomy, palette, clothing and brushwork. Variation: a crooked broken nose with a healed bump, preserving the species-specific anatomy and reference skin. Output ONLY an isolated nose with nostrils, NO eyes, mouth, chin, head or body. Hand-painted dark fantasy strategy-game style matching reference. Preserve species anatomy and reference clothing coverage; never invent tusks absent from reference. Complete contour centered with transparent padding and genuine alpha background. No scenery, text, glow, fog or full portrait. Direct isolated-feature generation, never full-image cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-c2cf89a4-c12f-4df6-8c91-ec6b3b1af626.png",
+    "file": "nose-1-crooked.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "Monk.mesh",
+    "slot": "nose",
+    "n": 2,
+    "name": "broad",
+    "prompt": "Generate a NEW standalone customization asset for an adult male Monk. Reference ONLY for anatomy, palette, clothing and brushwork. Variation: a broader flatter nose with wider nostrils, preserving the species-specific anatomy and reference skin. Output ONLY an isolated nose with nostrils, NO eyes, mouth, chin, head or body. Hand-painted dark fantasy strategy-game style matching reference. Preserve species anatomy and reference clothing coverage; never invent tusks absent from reference. Complete contour centered with transparent padding and genuine alpha background. No scenery, text, glow, fog or full portrait. Direct isolated-feature generation, never full-image cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-a329784c-caec-4c47-bed8-fcdd42ba60a1.png",
+    "file": "nose-2-broad.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "Monk.mesh",
+    "slot": "scar",
+    "n": 1,
+    "name": "diagonal",
+    "prompt": "Generate a NEW standalone customization asset for an adult male Monk. Reference ONLY for anatomy, palette, clothing and brushwork. Variation: one pale healed diagonal scar. Output ONLY the requested isolated scar or paint marks, NO face, head, body or rectangular skin patch. Hand-painted dark fantasy strategy-game style matching reference. Preserve species anatomy and reference clothing coverage; never invent tusks absent from reference. Complete contour centered with transparent padding and genuine alpha background. No scenery, text, glow, fog or full portrait. Direct isolated-feature generation, never full-image cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-03aacc74-07d4-4eed-8b9e-2d38adc8dea5.png",
+    "file": "scar-1-diagonal.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "Monk.mesh",
+    "slot": "scar",
+    "n": 2,
+    "name": "scratches",
+    "prompt": "Generate a NEW standalone customization asset for an adult male Monk. Reference ONLY for anatomy, palette, clothing and brushwork. Variation: three small parallel healed scratches; EXACTLY THREE separately visible parallel scars, count one, two, three. Output ONLY the requested isolated scar or paint marks, NO face, head, body or rectangular skin patch. Hand-painted dark fantasy strategy-game style matching reference. Preserve species anatomy and reference clothing coverage; never invent tusks absent from reference. Complete contour centered with transparent padding and genuine alpha background. No scenery, text, glow, fog or full portrait. Direct isolated-feature generation, never full-image cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-bf3ea9af-b59a-4658-95c8-f9e44ba933bd.png",
+    "file": "scar-2-scratches.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "Monk.mesh",
+    "slot": "scar",
+    "n": 3,
+    "name": "warpaint",
+    "prompt": "Generate a NEW standalone customization asset for an adult male Monk. Reference ONLY for anatomy, palette, clothing and brushwork. Variation: simple dark red war-paint streaks, no symbols. Output ONLY the requested isolated scar or paint marks, NO face, head, body or rectangular skin patch. Hand-painted dark fantasy strategy-game style matching reference. Preserve species anatomy and reference clothing coverage; never invent tusks absent from reference. Complete contour centered with transparent padding and genuine alpha background. No scenery, text, glow, fog or full portrait. Direct isolated-feature generation, never full-image cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-413c2e25-ad8e-49b2-87cc-53b750f42cba.png",
+    "file": "scar-3-warpaint.png",
+    "method": "direct generation; unmodified file copy"
+  }
+]

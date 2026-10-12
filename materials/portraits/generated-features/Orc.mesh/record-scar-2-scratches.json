@@ -1,0 +1,10 @@
+﻿{
+  "id": "Orc.mesh",
+  "slot": "scar",
+  "n": 2,
+  "name": "scratches",
+  "prompt": "Generate a NEW standalone painted game asset for an adult male Orc. Reference image supplies anatomy, color, lighting, clothing and brushwork only. Requested variation: three small parallel healed scratches. Output ONLY requested scar, paint or damage marks, no face or skin silhouette. Complete contour, centered with transparent padding. Genuine transparent alpha, clean edges, no halo. Hand-painted late-1990s dark fantasy strategy game style matching reference. Neutral character customization asset, reference clothing coverage unchanged. No full portrait, surrounding anatomy, scenery, text or weapons.  Generate this feature directly, never a full image for cropping.",
+  "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-952c4f87-0b36-48f1-8095-3e442fc32a97.png",
+  "file": "scar-2-scratches.png",
+  "method": "direct generation; unmodified file copy"
+}

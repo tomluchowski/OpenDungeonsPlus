@@ -1,0 +1,212 @@
+[
+  {
+    "id": "Orc.mesh-female",
+    "slot": "ears",
+    "n": 1,
+    "name": "notched",
+    "prompt": "Generate a NEW standalone painted game sprite: exactly ONE isolated ear of a FEMALE ORC, the large visible ear on the left of the reference image, with a small healed notch in its pointed tip. Image 1 is ONLY a reference for anatomy, olive skin, three-quarter orientation, lighting direction, brush texture and palette. Output ONLY the ear itself, including its lobe and complete contour, centered with transparent padding. No head, face, hair, neck, body, background, cast shadow, text, labels or other objects. True transparent alpha background. Hand-painted late-1990s dark-fantasy strategy-game style matching the reference. This is a directly generated individual organ asset, not a full portrait or a crop of one.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-1f5efb58-7e7f-487d-b096-d94063b9a132.png",
+    "file": "ears-1-notched.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "Orc.mesh-female",
+    "slot": "ears",
+    "n": 2,
+    "name": "rounder",
+    "prompt": "Generate a NEW standalone painted game sprite: exactly ONE isolated ear of a FEMALE ORC, the large visible ear on the left of the reference image, with a distinctly shorter rounder tip, same olive skin. Image 1 is ONLY a reference for anatomy, three-quarter orientation, lighting direction, brush texture and palette. Output ONLY the ear itself, including its lobe and complete contour, centered with transparent padding. No head, face, hair, neck, body, background, cast shadow, text, labels or other objects. True transparent alpha background. Hand-painted late-1990s dark-fantasy strategy-game style matching the reference. This is a directly generated individual organ asset, not a full portrait or a crop of one.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-06ae37ac-00a3-4a6d-bb0f-2f5e7cd3b761.png",
+    "file": "ears-2-rounder.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "Orc.mesh-female",
+    "slot": "nose",
+    "n": 1,
+    "name": "crooked",
+    "prompt": "Generate a NEW standalone painted game asset for a FEMALE ORC. Image 1 is ONLY a reference for species anatomy, olive skin, three-quarter orientation, lighting direction, costume, brush texture and palette. Requested variation: a slightly crooked broken nose with a bump, same olive skin. Output ONE isolated nose with its full outline and nostrils; no eyes or mouth. Center the requested part with transparent padding and preserve its complete contour. True transparent alpha background. Hand-painted late-1990s dark-fantasy strategy-game style matching the reference. No full portrait, surrounding anatomy, scenery, cast shadow, text, labels, symbols, weapons or modern objects. Non-sexualized, modest clothing coverage unchanged. Generate the individual feature directly; do not produce a full image for cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-2d095976-f55d-45ef-aebc-3ef51be9067e.png",
+    "file": "nose-1-crooked.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "Orc.mesh-female",
+    "slot": "nose",
+    "n": 2,
+    "name": "broad",
+    "prompt": "Generate a NEW standalone painted game asset for a FEMALE ORC. Image 1 is ONLY a reference for species anatomy, olive skin, three-quarter orientation, lighting direction, costume, brush texture and palette. Requested variation: a broader flatter nose with wide nostrils, same olive skin. Output ONE isolated nose with its full outline and nostrils; no eyes or mouth. Center the requested part with transparent padding and preserve its complete contour. True transparent alpha background. Hand-painted late-1990s dark-fantasy strategy-game style matching the reference. No full portrait, surrounding anatomy, scenery, cast shadow, text, labels, symbols, weapons or modern objects. Non-sexualized, modest clothing coverage unchanged. Generate the individual feature directly; do not produce a full image for cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-ca16e06d-0efe-41ae-bf0d-982a83eb04b3.png",
+    "file": "nose-2-broad.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "Orc.mesh-female",
+    "slot": "mouth",
+    "n": 1,
+    "name": "tusks",
+    "prompt": "Generate a NEW standalone painted game asset for a FEMALE ORC. Image 1 is ONLY a reference for species anatomy, olive skin, three-quarter orientation, lighting direction, costume, brush texture and palette. Requested variation: a tight-lipped scowl with slightly shorter blunt ivory lower tusks. Output ONE isolated mouth including only lips, teeth, tusks and the requested mouth-held accessory if any; no nose, eyes or chin. Center the requested part with transparent padding and preserve its complete contour. True transparent alpha background. Hand-painted late-1990s dark-fantasy strategy-game style matching the reference. No full portrait, surrounding anatomy, scenery, cast shadow, text, labels, symbols, weapons or modern objects. Non-sexualized, modest clothing coverage unchanged. Generate the individual feature directly; do not produce a full image for cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-d10f7062-4f58-4be7-a368-4ea93f3d5610.png",
+    "file": "mouth-1-tusks.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "Orc.mesh-female",
+    "slot": "mouth",
+    "n": 2,
+    "name": "grin",
+    "prompt": "Generate a NEW standalone painted game asset for a FEMALE ORC. Image 1 is ONLY a reference for species anatomy, olive skin, three-quarter orientation, lighting direction, costume, brush texture and palette. Requested variation: a subtle lopsided grin with slender curved ivory lower tusks. Output ONE isolated mouth including only lips, teeth, tusks and the requested mouth-held accessory if any; no nose, eyes or chin. Center the requested part with transparent padding and preserve its complete contour. True transparent alpha background. Hand-painted late-1990s dark-fantasy strategy-game style matching the reference. No full portrait, surrounding anatomy, scenery, cast shadow, text, labels, symbols, weapons or modern objects. Non-sexualized, modest clothing coverage unchanged. Generate the individual feature directly; do not produce a full image for cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-d96ad520-0340-446f-ac90-e236e763851a.png",
+    "file": "mouth-2-grin.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "Orc.mesh-female",
+    "slot": "mouth",
+    "n": 3,
+    "name": "cigar",
+    "prompt": "Generate a NEW standalone painted game asset for a FEMALE ORC. Image 1 is ONLY a reference for species anatomy, olive skin, three-quarter orientation, lighting direction, costume, brush texture and palette. Requested variation: a short fat brown cigar clamped in the left corner of the mouth within the mouth region, no smoke outside the region. Output ONE isolated mouth including only lips, teeth, tusks and the requested mouth-held accessory if any; no nose, eyes or chin. Center the requested part with transparent padding and preserve its complete contour. True transparent alpha background. Hand-painted late-1990s dark-fantasy strategy-game style matching the reference. No full portrait, surrounding anatomy, scenery, cast shadow, text, labels, symbols, weapons or modern objects. Non-sexualized, modest clothing coverage unchanged. Generate the individual feature directly; do not produce a full image for cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-78a815b5-a034-4f72-83da-13a80dcb2d5c.png",
+    "file": "mouth-3-cigar.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "Orc.mesh-female",
+    "slot": "eyes",
+    "n": 1,
+    "name": "narrow",
+    "prompt": "Generate a NEW standalone painted game asset for a FEMALE ORC. Image 1 is ONLY a reference for species anatomy, olive skin, three-quarter orientation, lighting direction, costume, brush texture and palette. Requested variation: narrow suspicious eyes with heavy lids and thick brows. Output ONLY the eyes and brows, or the specified eye patch and strap for the accessory option; no nose, mouth or face. Center the requested part with transparent padding and preserve its complete contour. True transparent alpha background. Hand-painted late-1990s dark-fantasy strategy-game style matching the reference. No full portrait, surrounding anatomy, scenery, cast shadow, text, labels, symbols, weapons or modern objects. Non-sexualized, modest clothing coverage unchanged. Generate the individual feature directly; do not produce a full image for cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-78027465-97f1-47ec-b7a1-ab0a204893f0.png",
+    "file": "eyes-1-narrow.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "Orc.mesh-female",
+    "slot": "eyes",
+    "n": 2,
+    "name": "round",
+    "prompt": "Generate a NEW standalone painted game asset for a FEMALE ORC. Image 1 is ONLY a reference for species anatomy, olive skin, three-quarter orientation, lighting direction, costume, brush texture and palette. Requested variation: rounder watchful golden eyes and raised arched brows. Output ONLY the eyes and brows, or the specified eye patch and strap for the accessory option; no nose, mouth or face. Center the requested part with transparent padding and preserve its complete contour. True transparent alpha background. Hand-painted late-1990s dark-fantasy strategy-game style matching the reference. No full portrait, surrounding anatomy, scenery, cast shadow, text, labels, symbols, weapons or modern objects. Non-sexualized, modest clothing coverage unchanged. Generate the individual feature directly; do not produce a full image for cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-e9113564-aa4c-4091-bbbf-8391cd350412.png",
+    "file": "eyes-2-round.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "Orc.mesh-female",
+    "slot": "eyes",
+    "n": 3,
+    "name": "eyepatch",
+    "prompt": "Generate a NEW standalone painted game asset for a FEMALE ORC. Image 1 is ONLY a reference for species anatomy, olive skin, three-quarter orientation, lighting direction, costume, brush texture and palette. Requested variation: a worn black leather eye patch over the eye on the left of the image, with a short thin strap following the brow toward the temple entirely inside the eye region. Output ONLY the eyes and brows, or the specified eye patch and strap for the accessory option; no nose, mouth or face. Center the requested part with transparent padding and preserve its complete contour. True transparent alpha background. Hand-painted late-1990s dark-fantasy strategy-game style matching the reference. No full portrait, surrounding anatomy, scenery, cast shadow, text, labels, symbols, weapons or modern objects. Non-sexualized, modest clothing coverage unchanged. Generate the individual feature directly; do not produce a full image for cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-1d86199c-07da-4205-b578-3897cd6ab8d7.png",
+    "file": "eyes-3-eyepatch.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "Orc.mesh-female",
+    "slot": "chin",
+    "n": 1,
+    "name": "square",
+    "prompt": "Generate a NEW standalone painted game asset for a FEMALE ORC. Image 1 is ONLY a reference for species anatomy, olive skin, three-quarter orientation, lighting direction, costume, brush texture and palette. Requested variation: a slightly squarer strong female jaw and chin, smooth olive skin without any beard. Output ONLY the chin and jaw feature as a small independent anatomy sprite; no beard, mouth, nose or whole head. Center the requested part with transparent padding and preserve its complete contour. True transparent alpha background. Hand-painted late-1990s dark-fantasy strategy-game style matching the reference. No full portrait, surrounding anatomy, scenery, cast shadow, text, labels, symbols, weapons or modern objects. Non-sexualized, modest clothing coverage unchanged. Generate the individual feature directly; do not produce a full image for cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-973c78b6-f415-41e6-b719-28822be6ad40.png",
+    "file": "chin-1-square.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "Orc.mesh-female",
+    "slot": "chin",
+    "n": 2,
+    "name": "rounded",
+    "prompt": "Generate a NEW standalone painted game asset for a FEMALE ORC. Image 1 is ONLY a reference for species anatomy, olive skin, three-quarter orientation, lighting direction, costume, brush texture and palette. Requested variation: a slightly softer round female chin, smooth olive skin without any beard. Output ONLY the chin and jaw feature as a small independent anatomy sprite; no beard, mouth, nose or whole head. Center the requested part with transparent padding and preserve its complete contour. True transparent alpha background. Hand-painted late-1990s dark-fantasy strategy-game style matching the reference. No full portrait, surrounding anatomy, scenery, cast shadow, text, labels, symbols, weapons or modern objects. Non-sexualized, modest clothing coverage unchanged. Generate the individual feature directly; do not produce a full image for cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-a80c8189-982b-4551-8d4a-28c4706cb49f.png",
+    "file": "chin-2-rounded.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "Orc.mesh-female",
+    "slot": "hair",
+    "n": 1,
+    "name": "swept",
+    "prompt": "Generate a NEW standalone painted game asset for a FEMALE ORC. Image 1 is ONLY a reference for species anatomy, olive skin, three-quarter orientation, lighting direction, costume, brush texture and palette. Requested variation: closely swept-back dark brown crown hair, preserving the existing long braid and hairline. Output ONLY the requested hairstyle as an isolated hair sprite; no head, face, ears or body. Center the requested part with transparent padding and preserve its complete contour. True transparent alpha background. Hand-painted late-1990s dark-fantasy strategy-game style matching the reference. No full portrait, surrounding anatomy, scenery, cast shadow, text, labels, symbols, weapons or modern objects. Non-sexualized, modest clothing coverage unchanged. Generate the individual feature directly; do not produce a full image for cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-11d7ab7f-e2e2-4737-a175-f72ea85750ca.png",
+    "file": "hair-1-swept.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "Orc.mesh-female",
+    "slot": "hair",
+    "n": 2,
+    "name": "waves",
+    "prompt": "Generate a NEW standalone painted game asset for a FEMALE ORC. Image 1 is ONLY a reference for species anatomy, olive skin, three-quarter orientation, lighting direction, costume, brush texture and palette. Requested variation: fuller wavy dark brown crown hair, preserving the existing long braid and hairline. Output ONLY the requested hairstyle as an isolated hair sprite; no head, face, ears or body. Center the requested part with transparent padding and preserve its complete contour. True transparent alpha background. Hand-painted late-1990s dark-fantasy strategy-game style matching the reference. No full portrait, surrounding anatomy, scenery, cast shadow, text, labels, symbols, weapons or modern objects. Non-sexualized, modest clothing coverage unchanged. Generate the individual feature directly; do not produce a full image for cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-29236d8d-42b4-4c1c-9f26-732589a31732.png",
+    "file": "hair-2-waves.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "Orc.mesh-female",
+    "slot": "scar",
+    "n": 1,
+    "name": "diagonal",
+    "prompt": "Generate a NEW standalone painted game asset for a FEMALE ORC. Image 1 is ONLY a reference for species anatomy, olive skin, three-quarter orientation, lighting direction, costume, brush texture and palette. Requested variation: one thin healed pale diagonal scar on the cheek on the left of the image. Output ONLY the requested scar or war-paint marks as a transparent overlay; no face or cheek silhouette. Center the requested part with transparent padding and preserve its complete contour. True transparent alpha background. Hand-painted late-1990s dark-fantasy strategy-game style matching the reference. No full portrait, surrounding anatomy, scenery, cast shadow, text, labels, symbols, weapons or modern objects. Non-sexualized, modest clothing coverage unchanged. Generate the individual feature directly; do not produce a full image for cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-6b9c9129-c34a-4adf-9e5c-6f0f5330daee.png",
+    "file": "scar-1-diagonal.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "Orc.mesh-female",
+    "slot": "scar",
+    "n": 2,
+    "name": "scratches",
+    "prompt": "Generate a NEW standalone painted game asset for a FEMALE ORC. Image 1 is ONLY a reference for species anatomy, olive skin, three-quarter orientation, lighting direction, costume, brush texture and palette. Requested variation: two short healed parallel scratches on the cheek on the left of the image. Output ONLY the requested scar or war-paint marks as a transparent overlay; no face or cheek silhouette. Center the requested part with transparent padding and preserve its complete contour. True transparent alpha background. Hand-painted late-1990s dark-fantasy strategy-game style matching the reference. No full portrait, surrounding anatomy, scenery, cast shadow, text, labels, symbols, weapons or modern objects. Non-sexualized, modest clothing coverage unchanged. Generate the individual feature directly; do not produce a full image for cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-e8a28903-3df4-42ea-8954-c4e8ab05ed76.png",
+    "file": "scar-2-scratches.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "Orc.mesh-female",
+    "slot": "scar",
+    "n": 3,
+    "name": "warpaint",
+    "prompt": "Generate a NEW standalone painted game asset for a FEMALE ORC. Image 1 is ONLY a reference for species anatomy, olive skin, three-quarter orientation, lighting direction, costume, brush texture and palette. Requested variation: a short dark russet war paint smear on the cheek on the left of the image, no symbols. Output ONLY the requested scar or war-paint marks as a transparent overlay; no face or cheek silhouette. Center the requested part with transparent padding and preserve its complete contour. True transparent alpha background. Hand-painted late-1990s dark-fantasy strategy-game style matching the reference. No full portrait, surrounding anatomy, scenery, cast shadow, text, labels, symbols, weapons or modern objects. Non-sexualized, modest clothing coverage unchanged. Generate the individual feature directly; do not produce a full image for cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-eb7c61c4-61b9-4cf3-8065-3842e26f0552.png",
+    "file": "scar-3-warpaint.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "Orc.mesh-female",
+    "slot": "neck",
+    "n": 1,
+    "name": "teeth",
+    "prompt": "Generate a NEW standalone painted game asset for a FEMALE ORC. Image 1 is ONLY a reference for species anatomy, olive skin, three-quarter orientation, lighting direction, costume, brush texture and palette. Requested variation: a dark cord necklace with three small yellowed animal teeth on the upper chest. Output ONLY the requested necklace or jewelry as an isolated object; no neck, chest, skin or head. Center the requested part with transparent padding and preserve its complete contour. True transparent alpha background. Hand-painted late-1990s dark-fantasy strategy-game style matching the reference. No full portrait, surrounding anatomy, scenery, cast shadow, text, labels, symbols, weapons or modern objects. Non-sexualized, modest clothing coverage unchanged. Generate the individual feature directly; do not produce a full image for cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-863ad829-9a0a-4cd1-86b5-14b9619a1aa8.png",
+    "file": "neck-1-teeth.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "Orc.mesh-female",
+    "slot": "neck",
+    "n": 2,
+    "name": "torque",
+    "prompt": "Generate a NEW standalone painted game asset for a FEMALE ORC. Image 1 is ONLY a reference for species anatomy, olive skin, three-quarter orientation, lighting direction, costume, brush texture and palette. Requested variation: a simple aged bronze torque at the base of the neck, no symbols. Output ONLY the requested necklace or jewelry as an isolated object; no neck, chest, skin or head. Center the requested part with transparent padding and preserve its complete contour. True transparent alpha background. Hand-painted late-1990s dark-fantasy strategy-game style matching the reference. No full portrait, surrounding anatomy, scenery, cast shadow, text, labels, symbols, weapons or modern objects. Non-sexualized, modest clothing coverage unchanged. Generate the individual feature directly; do not produce a full image for cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-80d170ce-109e-43ff-a99b-af7c1cddc2a9.png",
+    "file": "neck-2-torque.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "Orc.mesh-female",
+    "slot": "build",
+    "n": 1,
+    "name": "slim",
+    "prompt": "Generate a NEW standalone painted game asset for a FEMALE ORC. Image 1 is ONLY a reference for species anatomy, olive skin, three-quarter orientation, lighting direction, costume, brush texture and palette. Requested variation: a slimmer torso and subtly smaller bust under the same fully covering brown leather tunic, original neckline unchanged. Output ONLY shoulders and upper chest in the same modest clothing as the reference; no head, face, arms below shoulders or background. Center the requested part with transparent padding and preserve its complete contour. True transparent alpha background. Hand-painted late-1990s dark-fantasy strategy-game style matching the reference. No full portrait, surrounding anatomy, scenery, cast shadow, text, labels, symbols, weapons or modern objects. Non-sexualized, modest clothing coverage unchanged. Generate the individual feature directly; do not produce a full image for cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-3a72ef41-8c7b-4194-837b-65ffcf502cfd.png",
+    "file": "build-1-slim.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "Orc.mesh-female",
+    "slot": "build",
+    "n": 2,
+    "name": "sturdy",
+    "prompt": "Generate a NEW standalone painted game asset for a FEMALE ORC. Image 1 is ONLY a reference for species anatomy, olive skin, three-quarter orientation, lighting direction, costume, brush texture and palette. Requested variation: a sturdier torso and modestly fuller bust under the same fully covering brown leather tunic, original neckline unchanged. Output ONLY shoulders and upper chest in the same modest clothing as the reference; no head, face, arms below shoulders or background. Center the requested part with transparent padding and preserve its complete contour. True transparent alpha background. Hand-painted late-1990s dark-fantasy strategy-game style matching the reference. No full portrait, surrounding anatomy, scenery, cast shadow, text, labels, symbols, weapons or modern objects. Non-sexualized, modest clothing coverage unchanged. Generate the individual feature directly; do not produce a full image for cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-e37c9e19-020c-4871-998a-fce62589a723.png",
+    "file": "build-2-sturdy.png",
+    "method": "direct generation; unmodified file copy"
+  }
+]

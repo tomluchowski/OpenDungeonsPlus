@@ -1,0 +1,10 @@
+﻿{
+  "id": "Orc.mesh",
+  "slot": "neck",
+  "n": 2,
+  "name": "torque",
+  "prompt": "Generate ONE standalone painted dark fantasy game jewelry asset: a complete simple worn bronze torque collar for an orc, thick open metal ring with plain rounded terminals, front three-quarter view. Isolated jewelry only, no character, no skin, neck, body or portrait. Palette subdued aged bronze, painterly 1990s strategy game brushwork. True transparent background immediately outside object, no glow or cast shadow; center with transparent padding. Direct generation, no cropping.",
+  "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-e38e2585-ef76-4b1f-89d0-5fc32609141b.png",
+  "file": "neck-2-torque.png",
+  "method": "direct generation; unmodified file copy"
+}
