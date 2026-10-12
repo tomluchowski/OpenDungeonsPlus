@@ -1,0 +1,380 @@
+[
+  {
+    "method": "visible-alpha-v2",
+    "file": "build-1-slim.png",
+    "source": "materials/portraits/generated-features/Defender.mesh/build-1-slim.png",
+    "source_sha256": "a8f52c343ec717714734b6030fce47a2a12f60ef7edfbff6ebb7f452e8d5519d",
+    "rect": [
+      0,
+      820,
+      887,
+      954
+    ],
+    "scale": 0.7746724890829695,
+    "offset": [
+      -9.29606986899569,
+      -81.15152838427952
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "build-2-sturdy.png",
+    "source": "materials/portraits/generated-features/Defender.mesh/build-2-sturdy.png",
+    "source_sha256": "5e3d2f9b58ec1a2ca77a610a8f173b76e39b70d9c583158d9d03b3a4e6986960",
+    "rect": [
+      0,
+      820,
+      887,
+      954
+    ],
+    "scale": 0.7158999192897498,
+    "offset": [
+      -0.7158999192897498,
+      3.074253430185621
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "hair-1-swept.png",
+    "source": "materials/portraits/generated-features/Defender.mesh/hair-1-swept.png",
+    "source_sha256": "8de3d8b5ffab20e22840b3b5c13e0660b7e448da1695c62e93e0f6c2ba6a4b82",
+    "rect": [
+      250,
+      110,
+      450,
+      790
+    ],
+    "scale": 0.3663453111305872,
+    "offset": [
+      -64.2296231375986,
+      -38.951796669588084
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "hair-2-waves.png",
+    "source": "materials/portraits/generated-features/Defender.mesh/hair-2-waves.png",
+    "source_sha256": "4c3682e68acd2bfa3abe2894bb278c4ae26d95be85fb646fc69db22d0b08ef84",
+    "rect": [
+      250,
+      110,
+      450,
+      790
+    ],
+    "scale": 0.30488694383661563,
+    "offset": [
+      -18.45222465353759,
+      -11.744711889132024
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "ears-1-notched.png",
+    "source": "materials/portraits/generated-features/Defender.mesh/ears-1-notched.png",
+    "source_sha256": "6f2e9f45e7d5d0d437eb5208c27180baa8d3606aec0b12f51af5d9168dcf7de5",
+    "rect": [
+      590,
+      475,
+      120,
+      160
+    ],
+    "scale": 0.1372854914196568,
+    "offset": [
+      -36.30577223088924,
+      -0.6552262090483687
+    ],
+    "visual_acceptance": "native-review-pending"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "ears-2-rounder.png",
+    "source": "materials/portraits/generated-features/Defender.mesh/ears-2-rounder.png",
+    "source_sha256": "ba1838d54c093452474ee8a73bc1b563206ff44bbe7fc134ecb0572bd6266089",
+    "rect": [
+      590,
+      475,
+      120,
+      160
+    ],
+    "scale": 0.1461794019933555,
+    "offset": [
+      -44.51827242524918,
+      -3.980066445182729
+    ],
+    "visual_acceptance": "native-review-pending"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "eyes-1-narrow.png",
+    "source": "materials/portraits/generated-features/Defender.mesh/eyes-1-narrow.png",
+    "source_sha256": "6cb113be84024a00ce3c54adfd518efbffca23a225c4479578e9d5f5b38fd4bd",
+    "rect": [
+      322,
+      435,
+      255,
+      140
+    ],
+    "scale": 0.1295005807200929,
+    "offset": [
+      -8.864111498257824,
+      20.20702671312428
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "eyes-2-round.png",
+    "source": "materials/portraits/generated-features/Defender.mesh/eyes-2-round.png",
+    "source_sha256": "c39c7ab0bc357b1c909cea28ea991d3d836925b5baa643dbeb824c6ffd74decf",
+    "rect": [
+      322,
+      435,
+      255,
+      140
+    ],
+    "scale": 0.1750392464678179,
+    "offset": [
+      -40.01255886970173,
+      -5.2668759811616965
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "eyes-3-eyepatch.png",
+    "source": "materials/portraits/generated-features/Defender.mesh/eyes-3-eyepatch.png",
+    "source_sha256": "1b4833066741d5f62448f3c6017035e5d1eedb6091267c1a647b0e17dc9789cf",
+    "rect": [
+      322,
+      435,
+      255,
+      140
+    ],
+    "scale": 0.15594405594405594,
+    "offset": [
+      -12.225874125874125,
+      0.37097902097902136
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "nose-1-crooked.png",
+    "source": "materials/portraits/generated-features/Defender.mesh/nose-1-crooked.png",
+    "source_sha256": "da6b15c1c9c0e0b5c07d4b8db24b72db6480fc0678a0a14841340da88d726686",
+    "rect": [
+      347,
+      522,
+      175,
+      165
+    ],
+    "scale": 0.17051282051282052,
+    "offset": [
+      -43.45384615384616,
+      -0.5397435897435905
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "nose-2-broad.png",
+    "source": "materials/portraits/generated-features/Defender.mesh/nose-2-broad.png",
+    "source_sha256": "134738df6ffa6a827e1de471918868867939e6f0dd54337772fc780b13d9cef3",
+    "rect": [
+      347,
+      522,
+      175,
+      165
+    ],
+    "scale": 0.1964549483013294,
+    "offset": [
+      -63.573855243722306,
+      -8.360413589364846
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "mouth-1-teeth.png",
+    "source": "materials/portraits/generated-features/Defender.mesh/mouth-1-teeth.png",
+    "source_sha256": "6c3777c30ffc4120c295a4a5eb32a37bff7862c674b05ad293da0c2df397e1dd",
+    "rect": [
+      330,
+      620,
+      210,
+      100
+    ],
+    "scale": 0.11276948590381426,
+    "offset": [
+      3.281923714759536,
+      -0.46434494195688103
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "mouth-2-grin.png",
+    "source": "materials/portraits/generated-features/Defender.mesh/mouth-2-grin.png",
+    "source_sha256": "c6302f91bfbcf30e7fdca86c745151544415e6b14a8aa79c37fddcf5f4320b15",
+    "rect": [
+      330,
+      620,
+      210,
+      100
+    ],
+    "scale": 0.10397553516819572,
+    "offset": [
+      12.7217125382263,
+      4.3547400611620795
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "mouth-3-cigar.png",
+    "source": "materials/portraits/generated-features/Defender.mesh/mouth-3-cigar.png",
+    "source_sha256": "55ba4af6780a9b51be1356dc3986a5fa2acfbc7f167df1f24d728f58c1146036",
+    "rect": [
+      330,
+      620,
+      210,
+      100
+    ],
+    "scale": 0.12164579606440072,
+    "offset": [
+      5.7370304114490125,
+      -6.991055456171736
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "chin-1-forked.png",
+    "source": "materials/portraits/generated-features/Defender.mesh/chin-1-forked.png",
+    "source_sha256": "508b51e630bb3a978c1ad97b799c78fe8e0f8a7408151ff912a039292ed814e4",
+    "rect": [
+      290,
+      675,
+      300,
+      180
+    ],
+    "scale": 0.144390243902439,
+    "offset": [
+      55.49658536585367,
+      0.8390243902439032
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "chin-2-braided.png",
+    "source": "materials/portraits/generated-features/Defender.mesh/chin-2-braided.png",
+    "source_sha256": "a2b1a7f7f63aad17eb312b0e7dc5732e826477e631e6a17582b1b1342e70e701",
+    "rect": [
+      290,
+      675,
+      300,
+      180
+    ],
+    "scale": 0.13381555153707053,
+    "offset": [
+      64.89330922242314,
+      1.5479204339963832
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "scar-1-diagonal.png",
+    "source": "materials/portraits/generated-features/Defender.mesh/scar-1-diagonal.png",
+    "source_sha256": "604a0deb0d881f9e737c1c6a80ad5bf80ab4214c26a7ee20a1f91f32f66f9ff4",
+    "rect": [
+      335,
+      560,
+      170,
+      130
+    ],
+    "scale": 0.1031578947368421,
+    "offset": [
+      17.431578947368426,
+      -1.433684210526316
+    ],
+    "visual_acceptance": "native-review-pending"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "scar-2-scratches.png",
+    "source": "materials/portraits/generated-features/Defender.mesh/scar-2-scratches.png",
+    "source_sha256": "9adeccd377e149987004846c4353f90b9d669c7571cd1604ea7f15404e4d9e7d",
+    "rect": [
+      335,
+      560,
+      170,
+      130
+    ],
+    "scale": 0.09780439121756487,
+    "offset": [
+      24.41017964071856,
+      -1.2135728542914173
+    ],
+    "visual_acceptance": "native-review-pending"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "scar-3-warpaint.png",
+    "source": "materials/portraits/generated-features/Defender.mesh/scar-3-warpaint.png",
+    "source_sha256": "6e5a500897caca27efe8c348ebe643a14e36ba95c65f22a25d5d07887206d1ac",
+    "rect": [
+      335,
+      560,
+      170,
+      130
+    ],
+    "scale": 0.0829805249788315,
+    "offset": [
+      36.414902624894154,
+      8.697713801862829
+    ],
+    "visual_acceptance": "native-review-pending"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "neck-1-teeth.png",
+    "source": "materials/portraits/generated-features/Defender.mesh/neck-1-teeth.png",
+    "source_sha256": "20de8d5d003a71a0212dad7911b68a7adf36b96fcdf4131d679e78c889ab6038",
+    "rect": [
+      270,
+      780,
+      380,
+      210
+    ],
+    "scale": 0.19910514541387025,
+    "offset": [
+      36.88814317673377,
+      6.243847874720357
+    ],
+    "visual_acceptance": "native-review-pending"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "neck-2-torque.png",
+    "source": "materials/portraits/generated-features/Defender.mesh/neck-2-torque.png",
+    "source_sha256": "73322553d78732e248dfb159b73e84f06d5b16e0a6eacc828d93ace4ace2099c",
+    "rect": [
+      270,
+      780,
+      380,
+      210
+    ],
+    "scale": 0.2507042253521127,
+    "offset": [
+      -2.540845070422538,
+      -23.10985915492958
+    ],
+    "visual_acceptance": "native-review-pending"
+  }
+]

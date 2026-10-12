@@ -1,0 +1,380 @@
+[
+  {
+    "method": "visible-alpha-v2",
+    "file": "build-1-slim.png",
+    "source": "materials/portraits/generated-features/Monk.mesh-female/build-1-slim.png",
+    "source_sha256": "0bf835ea0c060d7f1a96b07781d90c83f31647623810ebfd7aad6fed3f89221c",
+    "rect": [
+      0,
+      790,
+      887,
+      984
+    ],
+    "scale": 0.7587681779298546,
+    "offset": [
+      -9.105218135158312,
+      -54.31308810949537
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "build-2-sturdy.png",
+    "source": "materials/portraits/generated-features/Monk.mesh-female/build-2-sturdy.png",
+    "source_sha256": "1a82ebb907ae9d210219fd3e9cf4ba9e436ba6a154524b4c54a5d17822cce300",
+    "rect": [
+      0,
+      790,
+      887,
+      984
+    ],
+    "scale": 0.7478920741989882,
+    "offset": [
+      0.0,
+      -49.099915682967946
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "hair-1-swept.png",
+    "source": "materials/portraits/generated-features/Monk.mesh-female/hair-1-swept.png",
+    "source_sha256": "7db2254eab5f74749e637f83ed9e6eaeee41e58fae1818f2d118241093f9b554",
+    "rect": [
+      230,
+      110,
+      520,
+      720
+    ],
+    "scale": 0.5728559533721899,
+    "offset": [
+      -100.03996669442131,
+      -9.205661948376353
+    ],
+    "visual_acceptance": "native-review-pending"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "hair-2-waves.png",
+    "source": "materials/portraits/generated-features/Monk.mesh-female/hair-2-waves.png",
+    "source_sha256": "ba97a39a301d63bf39b3af4c28b35e5a2e126bc9da967313f7f8749226cc6bfe",
+    "rect": [
+      230,
+      110,
+      520,
+      720
+    ],
+    "scale": 0.4299559471365639,
+    "offset": [
+      -20.116299559471365,
+      12.130396475770926
+    ],
+    "visual_acceptance": "native-review-pending"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "ears-1-notched.png",
+    "source": "materials/portraits/generated-features/Monk.mesh-female/ears-1-notched.png",
+    "source_sha256": "ba1b9bcb1e1be04c3a03847aba6c5c32d08d267afd92acc4314c2153965ef9ee",
+    "rect": [
+      205,
+      370,
+      120,
+      160
+    ],
+    "scale": 0.12307692307692308,
+    "offset": [
+      -14.400000000000002,
+      3.1999999999999957
+    ],
+    "visual_acceptance": "native-review-pending"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "ears-2-rounder.png",
+    "source": "materials/portraits/generated-features/Monk.mesh-female/ears-2-rounder.png",
+    "source_sha256": "8f261c00cac819b8eca77e0fa3f974cba3b5ca15cb3a272ec139c0690105287f",
+    "rect": [
+      205,
+      370,
+      120,
+      160
+    ],
+    "scale": 0.1299492385786802,
+    "offset": [
+      -24.856852791878175,
+      3.3949238578680205
+    ],
+    "visual_acceptance": "native-review-pending"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "eyes-1-narrow.png",
+    "source": "materials/portraits/generated-features/Monk.mesh-female/eyes-1-narrow.png",
+    "source_sha256": "693a4c7de1bcf45fe3dfabeaee870eb5be05487aa56817f54c26579c9345d797",
+    "rect": [
+      297,
+      365,
+      265,
+      120
+    ],
+    "scale": 0.14233353695784973,
+    "offset": [
+      6.036652412950518,
+      -3.267257177764204
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "eyes-2-round.png",
+    "source": "materials/portraits/generated-features/Monk.mesh-female/eyes-2-round.png",
+    "source_sha256": "6be311883919293d2e258f7d63232a289d91354fbfb9cc998d323d8c0709ce4a",
+    "rect": [
+      297,
+      365,
+      265,
+      120
+    ],
+    "scale": 0.13771517996870108,
+    "offset": [
+      10.897496087636945,
+      -0.6635367762128297
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "eyes-3-eyepatch.png",
+    "source": "materials/portraits/generated-features/Monk.mesh-female/eyes-3-eyepatch.png",
+    "source_sha256": "c3ae8a62040795ea1c3e690c4fce326b146ac5266f5dafc2a01dd5855fb34c49",
+    "rect": [
+      297,
+      365,
+      265,
+      120
+    ],
+    "scale": 0.1414790996784566,
+    "offset": [
+      6.654340836012864,
+      -2.533762057877812
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "nose-1-crooked.png",
+    "source": "materials/portraits/generated-features/Monk.mesh-female/nose-1-crooked.png",
+    "source_sha256": "9ab2d12bb8a1177694dcccd907cdc8be374d04946c23c158f3b935af4f5cea59",
+    "rect": [
+      407,
+      412,
+      135,
+      145
+    ],
+    "scale": 0.14054726368159204,
+    "offset": [
+      -40.86194029850746,
+      5.599502487562189
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "nose-2-broad.png",
+    "source": "materials/portraits/generated-features/Monk.mesh-female/nose-2-broad.png",
+    "source_sha256": "bd58b77d58d09cf4f10866480556b794088dcba6622b2f2754dbd9f6af3d8bf8",
+    "rect": [
+      407,
+      412,
+      135,
+      145
+    ],
+    "scale": 0.14425770308123248,
+    "offset": [
+      -43.289915966386545,
+      -1.0714285714285623
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "mouth-1-teeth.png",
+    "source": "materials/portraits/generated-features/Monk.mesh-female/mouth-1-teeth.png",
+    "source_sha256": "2024fa2b73da331921b89ba9ad2f5fc2fa5d3eca67a7109d682980fd18b14d0b",
+    "rect": [
+      332,
+      507,
+      235,
+      85
+    ],
+    "scale": 0.08412698412698413,
+    "offset": [
+      51.88095238095238,
+      -1.0777777777777828
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "mouth-2-grin.png",
+    "source": "materials/portraits/generated-features/Monk.mesh-female/mouth-2-grin.png",
+    "source_sha256": "b8c654f64cc5d2f815b6cc514b377f8b0224eab57bc03244783d9bba37a602f2",
+    "rect": [
+      332,
+      507,
+      235,
+      85
+    ],
+    "scale": 0.09013605442176871,
+    "offset": [
+      37.36904761904762,
+      2.028911564625849
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "mouth-3-cigar.png",
+    "source": "materials/portraits/generated-features/Monk.mesh-female/mouth-3-cigar.png",
+    "source_sha256": "122ca0d4d06aeb0fdb7725c9ea7742e77bfdf51a243a25cea723814e1b8fbc3f",
+    "rect": [
+      332,
+      507,
+      235,
+      85
+    ],
+    "scale": 0.09981167608286252,
+    "offset": [
+      23.12806026365348,
+      0.7288135593220346
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "chin-1-square.png",
+    "source": "materials/portraits/generated-features/Monk.mesh-female/chin-1-square.png",
+    "source_sha256": "1e81dfb7597f71a405a7df23f96d5b8a32a4a37873e935e35932ee85e0efbcb9",
+    "rect": [
+      300,
+      565,
+      290,
+      150
+    ],
+    "scale": 0.18495297805642633,
+    "offset": [
+      2.863636363636367,
+      -22.655172413793103
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "chin-2-rounded.png",
+    "source": "materials/portraits/generated-features/Monk.mesh-female/chin-2-rounded.png",
+    "source_sha256": "6d45108fbd80409e7b91e269df526ae6d0a227b0bc9ee344ce2dbdeeb86377f7",
+    "rect": [
+      300,
+      565,
+      290,
+      150
+    ],
+    "scale": 0.14081145584725538,
+    "offset": [
+      36.856801909307876,
+      1.2147971360381788
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "scar-1-diagonal.png",
+    "source": "materials/portraits/generated-features/Monk.mesh-female/scar-1-diagonal.png",
+    "source_sha256": "25927f58c29a11b4c40c24fa1116fdde26cbdf097d7cd05337929c212d891cd7",
+    "rect": [
+      315,
+      555,
+      180,
+      135
+    ],
+    "scale": 0.0865546218487395,
+    "offset": [
+      35.08109243697479,
+      10.806722689075631
+    ],
+    "visual_acceptance": "native-review-pending"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "scar-2-scratches.png",
+    "source": "materials/portraits/generated-features/Monk.mesh-female/scar-2-scratches.png",
+    "source_sha256": "c7b2dbe1e7fae594d0d26f76fa5c5b057a08232a64f9b74336a0249e5485f0fd",
+    "rect": [
+      315,
+      555,
+      180,
+      135
+    ],
+    "scale": 0.13770053475935828,
+    "offset": [
+      -16.786764705882355,
+      -3.9665775401069503
+    ],
+    "visual_acceptance": "native-review-pending"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "scar-3-warpaint.png",
+    "source": "materials/portraits/generated-features/Monk.mesh-female/scar-3-warpaint.png",
+    "source_sha256": "9d07198fed6e42cd60847be412692c932573fc749daaa473889d61777a259415",
+    "rect": [
+      315,
+      555,
+      180,
+      135
+    ],
+    "scale": 0.10533807829181495,
+    "offset": [
+      9.047686832740213,
+      12.776868327402136
+    ],
+    "visual_acceptance": "native-review-pending"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "neck-1-teeth.png",
+    "source": "materials/portraits/generated-features/Monk.mesh-female/neck-1-teeth.png",
+    "source_sha256": "a6c25f8c8980de06359a776bdace40eac0457a0f63b885e3a5db1c60bad563cc",
+    "rect": [
+      260,
+      645,
+      360,
+      230
+    ],
+    "scale": 0.205607476635514,
+    "offset": [
+      21.88785046728971,
+      13.94392523364486
+    ],
+    "visual_acceptance": "native-review-pending"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "neck-2-torque.png",
+    "source": "materials/portraits/generated-features/Monk.mesh-female/neck-2-torque.png",
+    "source_sha256": "d77d231b86bf9d8e47bab86f1b79b9654c96d0e584f2d20e4a421c8b7a14750a",
+    "rect": [
+      260,
+      645,
+      360,
+      230
+    ],
+    "scale": 0.22525597269624573,
+    "offset": [
+      7.003412969283271,
+      -1.5699658703071684
+    ],
+    "visual_acceptance": "native-review-pending"
+  }
+]
