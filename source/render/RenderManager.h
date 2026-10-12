@@ -101,6 +101,7 @@ public:
 
     //! \brief Sets/Updates the overall world lighting value with given factor.
     void setWorldAmbientLightingFactor(float lightFactor);
+    //! \brief Switches the dynamic shadow technique on or off and updates all materials accordingly.
     void setDynamicShadowsEnabled(bool enabled);
 
     //! \brief Set the entity's opacity
