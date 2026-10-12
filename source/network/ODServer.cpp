@@ -66,6 +66,8 @@
 #include <boost/lexical_cast.hpp>
 
 
+//! \brief Number of tiles of a 5x5 dungeon heart (3x3 core and treasury ring)
+const uint32_t HEART_TILES_PER_LEVEL = 25;
 const std::string SAVEGAME_SKIRMISH_PREFIX = "SK-";
 const std::string SAVEGAME_MULTIPLAYER_PREFIX = "MP-";
 static const double MASTER_SERVER_UPDATE_PERIOD_MS = 30000.0;
@@ -206,6 +208,25 @@ bool ODServer::startServer(const std::string& creator, const std::string& levelF
         OD_LOG_INF("Couldn't start server. The level file can't be loaded: " + levelFilename);
         stopServer();
         return false;
+    }
+
+    // Level files must carry 5x5 hearts. Only savegames (and the editor, to fix old maps) may still
+    // contain an older 3x3 heart.
+    if((mode != ServerMode::ModeGameLoaded) && (mode != ServerMode::ModeEditor))
+    {
+        for(Room* room : gameMap->getRoomsByType(RoomType::dungeonTemple))
+        {
+            if(room->numCoveredTiles() == HEART_TILES_PER_LEVEL)
+                continue;
+
+            OD_LOG_ERR("Level " + levelFilename + " rejected: heart " + room->getName() + " covers "
+                + Helper::toString(room->numCoveredTiles()) + " tiles, a level heart must be 5x5 ("
+                + Helper::toString(HEART_TILES_PER_LEVEL) + " tiles)");
+            mServerMode = ServerMode::ModeNone;
+            mServerState = ServerState::StateNone;
+            stopServer();
+            return false;
+        }
     }
 
     // Set up the socket to listen on the specified port

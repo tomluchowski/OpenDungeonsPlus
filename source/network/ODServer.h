@@ -76,6 +76,9 @@ class ODServer: public Ogre::Singleton<ODServer>,
     inline ServerMode getServerMode() const
     { return mServerMode; }
 
+    //! \brief Loads the level and starts the server. Level files whose dungeon heart does not cover
+    //! 25 tiles (5x5) are refused; savegames and the editor may still load older hearts.
+    //! \return true when the server is running.
     bool startServer(const std::string& creator, const std::string& levelFilename, ServerMode mode, bool useMasterServer);
     void stopServer() override;
 
