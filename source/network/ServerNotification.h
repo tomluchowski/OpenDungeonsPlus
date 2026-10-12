@@ -135,9 +135,10 @@ enum class ServerNotificationType
     levelStatistics,
 
     // Owner-only dungeon heart health for the ring of the top-left badge:
-    // + float healthFraction (0 to 1, heart health / maximum heart health), bool underAttack.
-    // Sent to a human owner when the fraction changed by at least one percentage point, when the
-    // heart is destroyed, and once when the game starts or is loaded.
+    // + float healthFraction (0 to 1, heart health / maximum heart health), bool underAttack,
+    // double heartHP (whole points, for the tooltip), double heartMaxHP.
+    // Sent to a human owner when the fraction changed by at least one percentage point or the whole
+    // heart HP changed, when the heart is destroyed, and once when the game starts or is loaded.
     // Appended last so that no existing numeric value changes.
     heartHealth
 };

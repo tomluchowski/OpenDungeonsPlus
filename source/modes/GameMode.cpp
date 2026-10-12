@@ -2072,12 +2072,6 @@ void GameMode::createDefeatWindows()
         mRootWindow->addChild(cover);
     }
 
-    mDefeatSubtitle = windowManager.createWindow("OD/StaticText", "DefeatSubtitle");
-    mDefeatSubtitle->setFont("MedievalSharp-20");
-    mDefeatSubtitle->setArea(CEGUI::UDim(0.1f, 0), CEGUI::UDim(0.8f, 0), CEGUI::UDim(0.8f, 0), CEGUI::UDim(0.1f, 0));
-    mDefeatSubtitle->setProperty("TextColours", "FFFFFFFF");
-    mDefeatSubtitle->setProperty("HorzFormatting", "CentreAligned");
-
     // A camera symbol in the top right corner, shown while the sequence runs
     mDefeatCameraMarker = windowManager.createWindow("OD/StaticImage", "DefeatCameraMarker");
     mDefeatCameraMarker->setArea(CEGUI::UDim(1, -50), CEGUI::UDim(0, 10), CEGUI::UDim(0, 40), CEGUI::UDim(0, 40));
@@ -2089,6 +2083,11 @@ void GameMode::createDefeatWindows()
     mDefeatCameraMarker->setAlwaysOnTop(true);
     mRootWindow->addChild(mDefeatCameraMarker);
 
+    mDefeatSubtitle = windowManager.createWindow("OD/StaticText", "DefeatSubtitle");
+    mDefeatSubtitle->setFont("MedievalSharp-20");
+    mDefeatSubtitle->setArea(CEGUI::UDim(0.1f, 0), CEGUI::UDim(0.8f, 0), CEGUI::UDim(0.8f, 0), CEGUI::UDim(0.1f, 0));
+    mDefeatSubtitle->setProperty("TextColours", "FFFFFFFF");
+    mDefeatSubtitle->setProperty("HorzFormatting", "CentreAligned");
     mDefeatSubtitle->setProperty("FrameEnabled", "False");
     mDefeatSubtitle->setProperty("BackgroundEnabled", "False");
     mDefeatSubtitle->setProperty("TextParsingEnabled", "False");

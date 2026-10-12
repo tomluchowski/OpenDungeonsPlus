@@ -417,9 +417,9 @@ private:
 
     DefeatSequence mDefeatSequence;
     //! Position of the destroyed heart in the scene
-    Ogre::Vector3 mDefeatHeartPosition;
+    Ogre::Vector3 mDefeatHeartPosition = Ogre::Vector3::ZERO;
     //! Direction (horizontal, unit length) in which the swirl travels
-    Ogre::Vector3 mDefeatSwirlDirection;
+    Ogre::Vector3 mDefeatSwirlDirection = Ogre::Vector3::ZERO;
     bool mDefeatExplosionEffectActive = false;
     bool mDefeatSwirlEffectActive = false;
     bool mDefeatSwirlDone = false;

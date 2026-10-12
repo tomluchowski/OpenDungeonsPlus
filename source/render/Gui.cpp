@@ -200,10 +200,27 @@ void drawBadgePixels(std::vector<unsigned char>& pixels, int badge, float health
                 const float relief = 0.65f + 0.35f * light * (radius - 23);
                 // The ring of the heart badge is the health of the dungeon heart: the lit part
                 // is green, the rest stays as a dark groove
-                const bool lit = badge != 0 || HeartHealthRing::isRingLit(dx, dy, healthFraction);
-                pixels[i] = static_cast<unsigned char>((badge == 0 ? (lit ? 24 : 14) : 210) * relief);
-                pixels[i + 1] = static_cast<unsigned char>((badge == 0 ? (lit ? 178 : 38) : 171) * relief);
-                pixels[i + 2] = static_cast<unsigned char>((badge == 0 ? (lit ? 114 : 30) : 35) * relief);
+                int ringRed = 210;
+                int ringGreen = 171;
+                int ringBlue = 35;
+                if(badge == 0)
+                {
+                    if(HeartHealthRing::isRingLit(dx, dy, healthFraction))
+                    {
+                        ringRed = 24;
+                        ringGreen = 178;
+                        ringBlue = 114;
+                    }
+                    else
+                    {
+                        ringRed = 14;
+                        ringGreen = 38;
+                        ringBlue = 30;
+                    }
+                }
+                pixels[i] = static_cast<unsigned char>(ringRed * relief);
+                pixels[i + 1] = static_cast<unsigned char>(ringGreen * relief);
+                pixels[i + 2] = static_cast<unsigned char>(ringBlue * relief);
             }
             if(isInBadgeSymbol(badge, dx, dy))
             {
