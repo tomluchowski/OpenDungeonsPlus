@@ -1,8 +1,8 @@
 $ErrorActionPreference = 'Stop'
 $taskRepo = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
 $taskBuild = Join-Path $taskRepo 'build\windows'
-. (Join-Path $PSScriptRoot 'OpenDungeonsPlus-paths.ps1')
-$taskPrefix = Join-Path $taskRoot 'install'
+. (Join-Path $PSScriptRoot 'windows-paths.ps1')
+$taskPrefix = "$taskDependencyRoot\install"
 $taskResourcesFile = Join-Path $taskBuild 'resources.cfg'
 
 # These include the plugins loaded dynamically by OGRE and CEGUI, as well as

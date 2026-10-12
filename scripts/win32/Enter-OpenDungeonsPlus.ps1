@@ -1,5 +1,4 @@
-. (Join-Path $PSScriptRoot 'OpenDungeonsPlus-paths.ps1')
-$taskDependencyRoot = $taskRoot
+. (Join-Path $PSScriptRoot 'windows-paths.ps1')
 Import-Module "$taskVsPath\Common7\Tools\Microsoft.VisualStudio.DevShell.dll"
 Enter-VsDevShell -VsInstallPath $taskVsPath -SkipAutomaticLocation -DevCmdArguments '-arch=x64 -host_arch=x64'
 $env:Path = "$taskDependencyRoot\tools\cmake-3.31.8-windows-x86_64\bin;$taskDependencyRoot\install\bin;$taskDependencyRoot\install\lib;$taskPythonRoot;" + $env:Path
