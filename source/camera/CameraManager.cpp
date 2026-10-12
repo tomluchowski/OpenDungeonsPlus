@@ -42,8 +42,13 @@
 #include <cmath>
 #include <sstream>
 
-//! The camera moving speed factor on Z axis.
-const Ogre::Real ZOOM_SPEED = 4.0;
+//! The default zoom levels, used when the user config has no (valid) values.
+const int DEFAULT_ZOOM_LEVELS = 5;
+//! The default camera moving speed on Z axis while it moves between two zoom levels, in tile size per second.
+const Ogre::Real DEFAULT_ZOOM_SPEED = 13.0;
+
+//! The pointer motion (mouse delta times 0.025) that is one zoom level while dragging to zoom.
+const Ogre::Real ZOOM_DRAG_DISTANCE = 1.0;
 
 //! Camera speed when clicking on the minimap or pushing the home key.
 const Ogre::Real FLIGHT_SPEED = 70.0;
@@ -65,9 +70,6 @@ const Ogre::Real NOMINAL_FRAME_RATE = 60.0f;
 
 //! Factor on the pan speed while the fast key is held.
 const Ogre::Real FAST_PAN_FACTOR = 2.0f;
-
-//! Zoom distance of one move up or move down request.
-const Ogre::Real KEY_ZOOM_STEP = 0.2f;
 
 //! A view needs a view direction that points at least this far down (negative z), otherwise
 //! the ground target of the camera is not defined.
@@ -105,7 +107,9 @@ CameraManager::CameraManager(Ogre::SceneManager* sceneManager, GameMap* gm, Ogre
     mCameraPitchDestination(0.0),
     mCameraRollDestination(0.0),
     mCurrentDefaultViewMode(ViewModes::defaultView),
-    mZChange(0.0),
+    mZoomTargetZ(MAX_CAMERA_Z),
+    mZoomAnimating(false),
+    mZoomDragDistance(0.0),
     mMoveSpeed(1.0),
     mMoveSpeedAcceleration(2.0),
     mPanSpeedFactor(1.0),
@@ -124,6 +128,22 @@ CameraManager::CameraManager(Ogre::SceneManager* sceneManager, GameMap* gm, Ogre
     else if(panSpeedPercent > 300.0f)
         panSpeedPercent = 300.0f;
     mPanSpeedFactor = panSpeedPercent / 100.0f;
+
+    ConfigManager& config = ConfigManager::getSingleton();
+    mZoomLevels = static_cast<int>(Helper::toFloat(config.getInputValue(Config::ZOOM_LEVELS,
+        Helper::toString(DEFAULT_ZOOM_LEVELS), false)));
+    mZoomMinZ = Helper::toFloat(config.getInputValue(Config::ZOOM_MIN_HEIGHT, Helper::toString(MIN_CAMERA_Z), false));
+    mZoomMaxZ = Helper::toFloat(config.getInputValue(Config::ZOOM_MAX_HEIGHT, Helper::toString(MAX_CAMERA_Z), false));
+    mZoomSpeed = Helper::toFloat(config.getInputValue(Config::ZOOM_SPEED, Helper::toString(DEFAULT_ZOOM_SPEED), false));
+    if(mZoomLevels < 2 || mZoomMinZ <= 0.0f || mZoomMaxZ <= mZoomMinZ || mZoomSpeed <= 0.0f)
+    {
+        OD_LOG_WRN("Invalid zoom config, using the default zoom levels");
+        mZoomLevels = DEFAULT_ZOOM_LEVELS;
+        mZoomMinZ = MIN_CAMERA_Z;
+        mZoomMaxZ = MAX_CAMERA_Z;
+        mZoomSpeed = DEFAULT_ZOOM_SPEED;
+    }
+    mZoomTargetZ = mZoomMaxZ;
 
     createViewport(renderWindow);
     createCamera("RTS", 0.02, 300.0);
@@ -383,7 +403,7 @@ void CameraManager::updateCameraFrameTime(const Ogre::Real frameTime)
 
     // Adjust the newPosition vector to account for the translation due
     // to the movement keys on the keyboard (the arrow keys and/or WASD).
-    if (mZChange != 0 || mControlZoom != 0)
+    if (mZoomAnimating)
     {
         // Zoom towards what is in the middle of the screen, not towards the
         // ground under the camera: the camera looks ahead at an angle, so a
@@ -391,17 +411,18 @@ void CameraManager::updateCameraFrameTime(const Ogre::Real frameTime)
         // the ground point at the screen centre fixed means shifting the
         // camera base by the difference of its ground offsets at the two
         // heights.
-        Ogre::Real newZ = newPosition.z + static_cast<Ogre::Real>(mControlZoom * frameTime * ZOOM_SPEED + mZChange);
-        if (newZ <= MIN_CAMERA_Z)
-            newZ = MIN_CAMERA_Z;
-        else if (newZ >= MAX_CAMERA_Z)
-            newZ = MAX_CAMERA_Z;
+        // The animation always ends exactly on the target level.
+        Ogre::Real zoomStepHeight = static_cast<Ogre::Real>(frameTime * mZoomSpeed);
+        Ogre::Real newZ = mZoomTargetZ;
+        if (std::abs(mZoomTargetZ - newPosition.z) > zoomStepHeight)
+            newZ = newPosition.z + ((mZoomTargetZ > newPosition.z) ? zoomStepHeight : -zoomStepHeight);
+        else
+            mZoomAnimating = false;
         Ogre::Vector3 offsetBefore = getGroundOffset(newPosition.z);
         Ogre::Vector3 offsetAfter = getGroundOffset(newZ);
         newPosition.x += offsetBefore.x - offsetAfter.x;
         newPosition.y += offsetBefore.y - offsetAfter.y;
         newPosition.z = newZ;
-        mZChange = 0.0f;
     }
 
     // Update the position for the other axices.
@@ -409,10 +430,10 @@ void CameraManager::updateCameraFrameTime(const Ogre::Real frameTime)
     newPosition += (right * mTranslateVector.x + forward * mTranslateVector.y) * (NOMINAL_FRAME_RATE * frameTime);
 
     // Prevent camera from moving down into the tiles or too high.
-    if (newPosition.z <= MIN_CAMERA_Z)
-        newPosition.z = MIN_CAMERA_Z;
-    else if (newPosition.z >= MAX_CAMERA_Z)
-        newPosition.z = MAX_CAMERA_Z;
+    if (newPosition.z <= mZoomMinZ)
+        newPosition.z = mZoomMinZ;
+    else if (newPosition.z >= mZoomMaxZ)
+        newPosition.z = mZoomMaxZ;
 
     clampToMap(newPosition);
 
@@ -619,6 +640,8 @@ void CameraManager::resetCamera(const Ogre::Vector3& position, const Ogre::Vecto
     nodeCamera->resetOrientation();
 
     nodeCamera->setPosition(position);
+    mZoomAnimating = false;
+    mZoomDragDistance = 0.0f;
 
     nodeRotation->pitch(Ogre::Degree(rotation.x), Ogre::Node::TS_LOCAL);
     nodeRotation->yaw(Ogre::Degree(rotation.y), Ogre::Node::TS_LOCAL);
@@ -628,6 +651,7 @@ void CameraManager::resetCamera(const Ogre::Vector3& position, const Ogre::Vecto
 void CameraManager::resetCamera(const Ogre::Vector3& position)
 {
     resetCamera(position, Ogre::Vector3(DEFAULT_X_AXIS_VIEW, 0, 0));
+    snapToZoomLevel();
 }
 
 
@@ -660,6 +684,9 @@ void CameraManager::setControls(const Ogre::Vector2& pan, Ogre::Real zoom, Ogre:
     mMoveSpeedAcceleration = 2.0f * mMoveSpeed;
     mTranslateVectorAccel = Ogre::Vector3(pan.x, pan.y, 0.0f) * mMoveSpeedAcceleration;
     mTranslateMaxSpeedFactor = Ogre::Vector2(std::abs(pan.x), std::abs(pan.y));
+    // A zoom key press is one zoom level, holding the key does not repeat it.
+    if(zoom != 0.0f && zoom != mControlZoom)
+        zoomStep(zoom > 0.0f ? 1 : -1);
     mControlZoom = zoom;
     mControlSwivel = swivel;
     if(pan != Ogre::Vector2::ZERO || zoom != 0.0f || swivel != 0.0f)
@@ -670,9 +697,57 @@ void CameraManager::setControls(const Ogre::Vector2& pan, Ogre::Real zoom, Ogre:
     }
 }
 
+Ogre::Real CameraManager::getZoomLevelHeight(int level) const
+{
+    return mZoomMinZ + (mZoomMaxZ - mZoomMinZ) * static_cast<Ogre::Real>(level)
+        / static_cast<Ogre::Real>(mZoomLevels - 1);
+}
+
+int CameraManager::getNearestZoomLevel(Ogre::Real height) const
+{
+    Ogre::Real level = (height - mZoomMinZ) / (mZoomMaxZ - mZoomMinZ) * static_cast<Ogre::Real>(mZoomLevels - 1);
+    return std::max(0, std::min(mZoomLevels - 1, static_cast<int>(std::floor(level + 0.5f))));
+}
+
+void CameraManager::zoomStep(int levels)
+{
+    if(levels == 0)
+        return;
+
+    // Steps in a row start from the level the running animation moves to.
+    Ogre::Real currentZ = mZoomAnimating ? mZoomTargetZ : getActiveCameraNode()->getPosition().z;
+    int level = std::max(0, std::min(mZoomLevels - 1, getNearestZoomLevel(currentZ) + levels));
+    Ogre::Real targetZ = getZoomLevelHeight(level);
+    if(targetZ == currentZ)
+        return;
+
+    mZoomTargetZ = targetZ;
+    mZoomAnimating = true;
+}
+
 void CameraManager::zoomBy(Ogre::Real distance)
 {
-    mZChange += distance;
+    mZoomDragDistance += distance;
+    while(std::abs(mZoomDragDistance) >= ZOOM_DRAG_DISTANCE)
+    {
+        int direction = (mZoomDragDistance > 0.0f) ? 1 : -1;
+        zoomStep(direction);
+        mZoomDragDistance -= direction * ZOOM_DRAG_DISTANCE;
+    }
+}
+
+void CameraManager::snapToZoomLevel()
+{
+    Ogre::Vector3 position = getActiveCameraNode()->getPosition();
+    Ogre::Real height = getZoomLevelHeight(getNearestZoomLevel(position.z));
+    Ogre::Vector3 offsetBefore = getGroundOffset(position.z);
+    Ogre::Vector3 offsetAfter = getGroundOffset(height);
+    position.x += offsetBefore.x - offsetAfter.x;
+    position.y += offsetBefore.y - offsetAfter.y;
+    position.z = height;
+    clampToMap(position);
+    getActiveCameraNode()->setPosition(position);
+    mZoomAnimating = false;
 }
 
 void CameraManager::setViewOrientation(const Ogre::Quaternion& root, const Ogre::Quaternion& tilt)
@@ -819,14 +894,14 @@ void CameraManager::move(const Direction direction, double aux)
         break;
 
     case moveUp:
-        mZChange += KEY_ZOOM_STEP;
+        zoomStep(1);
         break;
 
     case stopUp:
         break;
 
     case moveDown:
-        mZChange -= KEY_ZOOM_STEP;
+        zoomStep(-1);
         break;
 
     case stopDown:
@@ -884,7 +959,7 @@ void CameraManager::move(const Direction direction, double aux)
         mTranslateVector = Ogre::Vector3::ZERO;
         mTranslateVectorAccel = Ogre::Vector3::ZERO;
         mRotateLocalVector = Ogre::Vector3::ZERO;
-        mZChange = mControlZoom = mControlSwivel = 0.0f;
+        mControlZoom = mControlSwivel = 0.0f;
         mSwivelDegrees = Ogre::Degree(0.0f);
         mCameraIsFlying = mCameraIsRotating = false;
         mFastPanFactor = 1.0f;
@@ -933,7 +1008,7 @@ bool CameraManager::isCameraMovingAtAll() const
             mTranslateVectorAccel.y != 0 ||
             mTranslateVector.x != 0 ||
             mTranslateVector.y != 0 ||
-            mZChange != 0 || mControlZoom != 0 || mControlSwivel != 0 ||
+            mZoomAnimating || mControlSwivel != 0 ||
             mSwivelDegrees.valueDegrees() != 0 ||
             mRotateLocalVector.x != 0 || mRotateLocalVector.y != 0 ||
             mCameraIsFlying ||

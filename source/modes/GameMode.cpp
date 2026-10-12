@@ -64,6 +64,7 @@
 
 
 #include <algorithm>
+#include <cmath>
 #include <vector>
 #include <string>
 #include <functional>
@@ -80,9 +81,6 @@ const float MOUSE_ORBIT_DEGREES_PER_PIXEL = 0.25f;
 
 //! Zoom distance per pixel of vertical mouse movement while Z is held.
 const float MOUSE_ZOOM_PER_PIXEL = 0.025f;
-
-//! Zoom distance of one mouse wheel notch.
-const float WHEEL_ZOOM_STEP = 0.2f;
 
 //! Wheel units OIS reports per notch.
 const float OIS_WHEEL_UNITS_PER_NOTCH = 120.0f;
@@ -507,6 +505,8 @@ void GameMode::handleMouseWheel(const MouseWheelEvent &arg)
 #ifndef OD_USE_SFML_WINDOW
     wheelNotches /= OIS_WHEEL_UNITS_PER_NOTCH;
 #endif
+    // Every wheel notch is one zoom level.
+    int wheelStepCount = std::max(1, static_cast<int>(std::floor(std::abs(wheelNotches) + 0.5f)));
 
     if (arg.delta == 0)
         return;
@@ -514,7 +514,7 @@ void GameMode::handleMouseWheel(const MouseWheelEvent &arg)
     if (getKeyboard()->isModifierDown(OIS::Keyboard::Ctrl))
         mGameMap->getLocalPlayer()->rotateHand(arg.delta > 0 ? Player::Direction::left : Player::Direction::right);
     else
-        ODFrameListener::getSingleton().getCameraManager()->zoomBy(-WHEEL_ZOOM_STEP * wheelNotches);
+        ODFrameListener::getSingleton().getCameraManager()->zoomStep(wheelNotches > 0.0f ? -wheelStepCount : wheelStepCount);
 }
 
 bool GameMode::isMouseDownOnCEGUIWindow()
