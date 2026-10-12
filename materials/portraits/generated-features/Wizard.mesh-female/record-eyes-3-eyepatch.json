@@ -1,0 +1,10 @@
+﻿{
+  "id": "Wizard.mesh-female",
+  "slot": "eyes",
+  "n": 3,
+  "name": "eyepatch",
+  "prompt": "Generate a NEW standalone customization asset for an adult female Wizard. Reference ONLY for anatomy, palette, clothing and brushwork. Variation: a worn dark leather eye patch over the near eye, with a plain leather strap. Output ONLY isolated eyes with lids, brows and a thin rim of nearby skin, or the requested eye patch with strap, NO helmet, armor, headwear, nasal guard, nose, mouth, full face, head or body; absolutely NO SCALP HAIR, no side hair, eyebrows and eyelashes permitted. Hand-painted dark fantasy strategy-game style matching reference. Preserve species anatomy and reference clothing coverage; never invent tusks absent from reference. No beard or moustache. Complete contour centered with transparent padding and genuine alpha background. No scenery, text, glow, fog or full portrait. Direct isolated-feature generation, never full-image cropping.",
+  "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-a11f9336-a2b0-4a14-9477-62a5db58827b.png",
+  "file": "eyes-3-eyepatch.png",
+  "method": "direct generation; unmodified file copy"
+}

@@ -1,0 +1,212 @@
+[
+  {
+    "id": "Wizard.mesh-female",
+    "slot": "build",
+    "n": 1,
+    "name": "slim",
+    "prompt": "Generate a NEW standalone customization asset for an adult female Wizard. Reference ONLY for anatomy, palette, clothing and brushwork. Variation: a slimmer shoulder and chest build, preserving the exact reference clothing, colors and coverage; modest bust variation under identical coverage, original neckline unchanged. Output ONLY the isolated clothed shoulders and chest, NO head, face, hair or ears. Hand-painted dark fantasy strategy-game style matching reference. Preserve species anatomy and reference clothing coverage; never invent tusks absent from reference. No beard or moustache. Complete contour centered with transparent padding and genuine alpha background. No scenery, text, glow, fog or full portrait. Direct isolated-feature generation, never full-image cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-5a2d9a88-44ab-4853-b95f-99b48dd7e680.png",
+    "file": "build-1-slim.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "Wizard.mesh-female",
+    "slot": "build",
+    "n": 2,
+    "name": "sturdy",
+    "prompt": "Generate a NEW standalone customization asset for an adult female Wizard. Reference ONLY for anatomy, palette, clothing and brushwork. Variation: a sturdier shoulder and chest build, preserving the exact reference clothing, colors and coverage; modest bust variation under identical coverage, original neckline unchanged. Output ONLY the isolated clothed shoulders and chest, NO head, face, hair or ears. Hand-painted dark fantasy strategy-game style matching reference. Preserve species anatomy and reference clothing coverage; never invent tusks absent from reference. No beard or moustache. Complete contour centered with transparent padding and genuine alpha background. No scenery, text, glow, fog or full portrait. Direct isolated-feature generation, never full-image cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-fb3319de-e904-443f-8e96-e20c278c20a8.png",
+    "file": "build-2-sturdy.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "Wizard.mesh-female",
+    "slot": "chin",
+    "n": 1,
+    "name": "square",
+    "prompt": "Generate a NEW standalone customization asset for an adult female Wizard. Reference ONLY for anatomy, palette, clothing and brushwork. Variation: a squarer chin and jaw, preserving species-specific anatomy and reference skin; no beard. Output ONLY the isolated chin and jaw BELOW the mouth, absolutely NO lips, teeth, mouth, nose, eyes, head or body; STOP at the jaw underside, absolutely NO NECK, no throat, no shoulders. Hand-painted dark fantasy strategy-game style matching reference. Preserve species anatomy and reference clothing coverage; never invent tusks absent from reference. No beard or moustache. Complete contour centered with transparent padding and genuine alpha background. No scenery, text, glow, fog or full portrait. Direct isolated-feature generation, never full-image cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-ca37857a-c4b3-4848-b27b-346f503cb90a.png",
+    "file": "chin-1-square.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "Wizard.mesh-female",
+    "slot": "chin",
+    "n": 2,
+    "name": "rounded",
+    "prompt": "Generate a NEW standalone customization asset for an adult female Wizard. Reference ONLY for anatomy, palette, clothing and brushwork. Variation: a softer rounded chin and jaw, preserving species-specific anatomy and reference skin; no beard. Output ONLY the isolated chin and jaw BELOW the mouth, absolutely NO lips, teeth, mouth, nose, eyes, head or body; STOP at the jaw underside, absolutely NO NECK, no throat, no shoulders. Hand-painted dark fantasy strategy-game style matching reference. Preserve species anatomy and reference clothing coverage; never invent tusks absent from reference. No beard or moustache. Complete contour centered with transparent padding and genuine alpha background. No scenery, text, glow, fog or full portrait. Direct isolated-feature generation, never full-image cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-6ba6f912-0210-4925-9e69-2af793e0d8ee.png",
+    "file": "chin-2-rounded.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "Wizard.mesh-female",
+    "slot": "ears",
+    "n": 1,
+    "name": "notched",
+    "prompt": "Generate a NEW standalone customization asset for an adult female Wizard. Reference ONLY for anatomy, palette, clothing and brushwork. Variation: the visible ear with a small healed notch near its tip, preserving its species-specific anatomy and reference skin. Output ONLY one isolated ear, NO head, face or body; ear skin ONLY, absolutely no scalp hair, no sideburns, no beard or moustache. Hand-painted dark fantasy strategy-game style matching reference. Preserve species anatomy and reference clothing coverage; never invent tusks absent from reference. No beard or moustache. Complete contour centered with transparent padding and genuine alpha background. No scenery, text, glow, fog or full portrait. Direct isolated-feature generation, never full-image cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-cbf8d4ba-08ab-4e30-86e8-945bf9e1c66b.png",
+    "file": "ears-1-notched.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "Wizard.mesh-female",
+    "slot": "ears",
+    "n": 2,
+    "name": "rounder",
+    "prompt": "Generate a NEW standalone customization asset for an adult female Wizard. Reference ONLY for anatomy, palette, clothing and brushwork. Variation: the visible ear with a shorter and rounder tip, preserving its species-specific anatomy and reference skin. Output ONLY one isolated ear, NO head, face or body; ear skin ONLY, absolutely no scalp hair, no sideburns, no beard or moustache. Hand-painted dark fantasy strategy-game style matching reference. Preserve species anatomy and reference clothing coverage; never invent tusks absent from reference. No beard or moustache. Complete contour centered with transparent padding and genuine alpha background. No scenery, text, glow, fog or full portrait. Direct isolated-feature generation, never full-image cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-5549b14e-8959-4f81-8e72-94e5d475329a.png",
+    "file": "ears-2-rounder.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "Wizard.mesh-female",
+    "slot": "eyes",
+    "n": 1,
+    "name": "narrow",
+    "prompt": "Generate a NEW standalone customization asset for an adult female Wizard. Reference ONLY for anatomy, palette, clothing and brushwork. Variation: narrow suspicious eyes with heavy lids and brows, preserving the exact reference eye and skin colors. Output ONLY isolated eyes with lids, brows and a thin rim of nearby skin, or the requested eye patch with strap, NO helmet, armor, headwear, nasal guard, nose, mouth, full face, head or body. Hand-painted dark fantasy strategy-game style matching reference. Preserve species anatomy and reference clothing coverage; never invent tusks absent from reference. No beard or moustache. Complete contour centered with transparent padding and genuine alpha background. No scenery, text, glow, fog or full portrait. Direct isolated-feature generation, never full-image cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-84c5811f-5e05-4927-a8eb-8674e2d9e738.png",
+    "file": "eyes-1-narrow.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "Wizard.mesh-female",
+    "slot": "eyes",
+    "n": 2,
+    "name": "round",
+    "prompt": "Generate a NEW standalone customization asset for an adult female Wizard. Reference ONLY for anatomy, palette, clothing and brushwork. Variation: rounder alert eyes with raised brows, preserving the exact reference eye and skin colors. Output ONLY isolated eyes with lids, brows and a thin rim of nearby skin, or the requested eye patch with strap, NO helmet, armor, headwear, nasal guard, nose, mouth, full face, head or body. Hand-painted dark fantasy strategy-game style matching reference. Preserve species anatomy and reference clothing coverage; never invent tusks absent from reference. No beard or moustache. Complete contour centered with transparent padding and genuine alpha background. No scenery, text, glow, fog or full portrait. Direct isolated-feature generation, never full-image cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-7d898f31-a07d-4284-9021-af0aa1636092.png",
+    "file": "eyes-2-round.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "Wizard.mesh-female",
+    "slot": "eyes",
+    "n": 3,
+    "name": "eyepatch",
+    "prompt": "Generate a NEW standalone customization asset for an adult female Wizard. Reference ONLY for anatomy, palette, clothing and brushwork. Variation: a worn dark leather eye patch over the near eye, with a plain leather strap. Output ONLY isolated eyes with lids, brows and a thin rim of nearby skin, or the requested eye patch with strap, NO helmet, armor, headwear, nasal guard, nose, mouth, full face, head or body; absolutely NO SCALP HAIR, no side hair, eyebrows and eyelashes permitted. Hand-painted dark fantasy strategy-game style matching reference. Preserve species anatomy and reference clothing coverage; never invent tusks absent from reference. No beard or moustache. Complete contour centered with transparent padding and genuine alpha background. No scenery, text, glow, fog or full portrait. Direct isolated-feature generation, never full-image cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-a11f9336-a2b0-4a14-9477-62a5db58827b.png",
+    "file": "eyes-3-eyepatch.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "Wizard.mesh-female",
+    "slot": "hair",
+    "n": 1,
+    "name": "swept",
+    "prompt": "Generate a NEW standalone customization asset for an adult female Wizard. Reference ONLY for anatomy, palette, clothing and brushwork. Variation: a swept-back hairstyle with the exact reference hair color and texture; only hair that can show outside any headwear; ONLY two DISCONNECTED grey-white side hair strands that begin BELOW helmet sides; transparent gap between strands, absolutely NO upper scalp hair, NO crown, NO fringe, NO continuous wig or arch, NO helmet, no beard or moustache. Output ONLY isolated SCALP HAIR, NO beard, NO moustache, NO facial hair, NO head, NO face, NO skin, NO helmet, NO body. Hand-painted dark fantasy strategy-game style matching reference. Preserve species anatomy and reference clothing coverage; never invent tusks absent from reference. No beard or moustache. Complete contour centered with transparent padding and genuine alpha background. No scenery, text, glow, fog or full portrait. Direct isolated-feature generation, never full-image cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-bcbedf48-b9bb-47d9-8edb-c1c2353cdc15.png",
+    "file": "hair-1-swept.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "Wizard.mesh-female",
+    "slot": "hair",
+    "n": 2,
+    "name": "waves",
+    "prompt": "Generate a NEW standalone customization asset for an adult female Wizard. Reference ONLY for anatomy, palette, clothing and brushwork. Variation: a fuller wavy hairstyle with the exact reference hair color and texture; only hair that can show outside any headwear; visibly different from swept-back hair: loose flowing waves, no ponytail or hair tie; ONLY two DISCONNECTED grey-white side hair strands that begin BELOW helmet sides; transparent gap between strands, absolutely NO upper scalp hair, NO crown, NO fringe, NO continuous wig or arch, NO helmet, no beard or moustache. Output ONLY isolated SCALP HAIR, NO beard, NO moustache, NO facial hair, NO head, NO face, NO skin, NO helmet, NO body. Hand-painted dark fantasy strategy-game style matching reference. Preserve species anatomy and reference clothing coverage; never invent tusks absent from reference. No beard or moustache. Complete contour centered with transparent padding and genuine alpha background. No scenery, text, glow, fog or full portrait. Direct isolated-feature generation, never full-image cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-79f8ec1d-7165-4927-9a22-f82a7bd50b84.png",
+    "file": "hair-2-waves.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "Wizard.mesh-female",
+    "slot": "mouth",
+    "n": 1,
+    "name": "teeth",
+    "prompt": "Generate a NEW standalone customization asset for an adult female Wizard. Reference ONLY for anatomy, palette, clothing and brushwork. Variation: a tighter crooked grin with uneven teeth, preserving the species-specific lips and teeth, including tusks ONLY IF PRESENT in reference. Output ONLY isolated lips and teeth, NO beard, moustache, chin hair, nose, eyes, head or body; a cigar ONLY when explicitly requested in Variation, otherwise NO cigar, cigarette, pipe or other accessory. Hand-painted dark fantasy strategy-game style matching reference. Preserve species anatomy and reference clothing coverage; never invent tusks absent from reference. No beard or moustache. Complete contour centered with transparent padding and genuine alpha background. No scenery, text, glow, fog or full portrait. Direct isolated-feature generation, never full-image cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-d4356ecf-f67e-4fa9-9836-2b559d6c8c8c.png",
+    "file": "mouth-1-teeth.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "Wizard.mesh-female",
+    "slot": "mouth",
+    "n": 2,
+    "name": "grin",
+    "prompt": "Generate a NEW standalone customization asset for an adult female Wizard. Reference ONLY for anatomy, palette, clothing and brushwork. Variation: a broader lopsided grin, preserving the species-specific lips and teeth, including tusks ONLY IF PRESENT in reference. Output ONLY isolated lips and teeth, NO beard, moustache, chin hair, nose, eyes, head or body; a cigar ONLY when explicitly requested in Variation, otherwise NO cigar, cigarette, pipe or other accessory. Hand-painted dark fantasy strategy-game style matching reference. Preserve species anatomy and reference clothing coverage; never invent tusks absent from reference. No beard or moustache. Complete contour centered with transparent padding and genuine alpha background. No scenery, text, glow, fog or full portrait. Direct isolated-feature generation, never full-image cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-10f12199-764d-4909-bea5-a157e022ae40.png",
+    "file": "mouth-2-grin.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "Wizard.mesh-female",
+    "slot": "mouth",
+    "n": 3,
+    "name": "cigar",
+    "prompt": "Generate a NEW standalone customization asset for an adult female Wizard. Reference ONLY for anatomy, palette, clothing and brushwork. Variation: a short fat brown cigar clamped in the corner of the mouth, preserving the species-specific lips and teeth, including tusks ONLY IF PRESENT in reference. Output ONLY isolated lips and teeth, NO beard, moustache, chin hair, nose, eyes, head or body; a cigar ONLY when explicitly requested in Variation, otherwise NO cigar, cigarette, pipe or other accessory; tight anatomical contour around lips, absolutely NO CHIN OR JAW, no lower face. Hand-painted dark fantasy strategy-game style matching reference. Preserve species anatomy and reference clothing coverage; never invent tusks absent from reference. No beard or moustache. Complete contour centered with transparent padding and genuine alpha background. No scenery, text, glow, fog or full portrait. Direct isolated-feature generation, never full-image cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-17751221-bf3f-4dd4-b52c-785c5886c016.png",
+    "file": "mouth-3-cigar.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "Wizard.mesh-female",
+    "slot": "neck",
+    "n": 1,
+    "name": "teeth",
+    "prompt": "Generate a NEW standalone customization asset for an adult female Wizard. Reference ONLY for anatomy, palette, clothing and brushwork. Variation: a plain cord necklace with three small yellowed animal teeth. Output ONLY the isolated necklace or neck torque, NO neck skin, head or body. Hand-painted dark fantasy strategy-game style matching reference. Preserve species anatomy and reference clothing coverage; never invent tusks absent from reference. No beard or moustache. Complete contour centered with transparent padding and genuine alpha background. No scenery, text, glow, fog or full portrait. Direct isolated-feature generation, never full-image cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-be9360e7-39c7-4b2a-b647-a3ee6a117dc9.png",
+    "file": "neck-1-teeth.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "Wizard.mesh-female",
+    "slot": "neck",
+    "n": 2,
+    "name": "torque",
+    "prompt": "Generate a NEW standalone customization asset for an adult female Wizard. Reference ONLY for anatomy, palette, clothing and brushwork. Variation: a plain aged bronze neck torque, no symbols. Output ONLY the isolated necklace or neck torque, NO neck skin, head or body. Hand-painted dark fantasy strategy-game style matching reference. Preserve species anatomy and reference clothing coverage; never invent tusks absent from reference. No beard or moustache. Complete contour centered with transparent padding and genuine alpha background. No scenery, text, glow, fog or full portrait. Direct isolated-feature generation, never full-image cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-cf9a8bba-3802-48c3-9b9f-41ed9d866c46.png",
+    "file": "neck-2-torque.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "Wizard.mesh-female",
+    "slot": "nose",
+    "n": 1,
+    "name": "crooked",
+    "prompt": "Generate a NEW standalone customization asset for an adult female Wizard. Reference ONLY for anatomy, palette, clothing and brushwork. Variation: a crooked broken nose with a healed bump, preserving the species-specific anatomy and reference skin. Output ONLY an isolated nose with nostrils, NO eyes, mouth, chin, head or body. Hand-painted dark fantasy strategy-game style matching reference. Preserve species anatomy and reference clothing coverage; never invent tusks absent from reference. No beard or moustache. Complete contour centered with transparent padding and genuine alpha background. No scenery, text, glow, fog or full portrait. Direct isolated-feature generation, never full-image cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-aa48c39f-f1b6-45f2-9ec6-4a447f72d094.png",
+    "file": "nose-1-crooked.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "Wizard.mesh-female",
+    "slot": "nose",
+    "n": 2,
+    "name": "broad",
+    "prompt": "Generate a NEW standalone customization asset for an adult female Wizard. Reference ONLY for anatomy, palette, clothing and brushwork. Variation: a broader flatter nose with wider nostrils, preserving the species-specific anatomy and reference skin. Output ONLY an isolated nose with nostrils, NO eyes, mouth, chin, head or body. Hand-painted dark fantasy strategy-game style matching reference. Preserve species anatomy and reference clothing coverage; never invent tusks absent from reference. No beard or moustache. Complete contour centered with transparent padding and genuine alpha background. No scenery, text, glow, fog or full portrait. Direct isolated-feature generation, never full-image cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-fd6ac630-503d-4db3-87da-d428c6fc64a5.png",
+    "file": "nose-2-broad.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "Wizard.mesh-female",
+    "slot": "scar",
+    "n": 1,
+    "name": "diagonal",
+    "prompt": "Generate a NEW standalone customization asset for an adult female Wizard. Reference ONLY for anatomy, palette, clothing and brushwork. Variation: one pale healed diagonal scar. Output ONLY the requested isolated scar or paint marks, NO face, head, body or rectangular skin patch. Hand-painted dark fantasy strategy-game style matching reference. Preserve species anatomy and reference clothing coverage; never invent tusks absent from reference. No beard or moustache. Complete contour centered with transparent padding and genuine alpha background. No scenery, text, glow, fog or full portrait. Direct isolated-feature generation, never full-image cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-80267e15-b067-400c-98cf-cf9797a6d798.png",
+    "file": "scar-1-diagonal.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "Wizard.mesh-female",
+    "slot": "scar",
+    "n": 2,
+    "name": "scratches",
+    "prompt": "Generate a NEW standalone customization asset for an adult female Wizard. Reference ONLY for anatomy, palette, clothing and brushwork. Variation: three small parallel healed scratches; EXACTLY THREE separately visible parallel scars, count one, two, three. Output ONLY the requested isolated scar or paint marks, NO face, head, body or rectangular skin patch. Hand-painted dark fantasy strategy-game style matching reference. Preserve species anatomy and reference clothing coverage; never invent tusks absent from reference. No beard or moustache. Complete contour centered with transparent padding and genuine alpha background. No scenery, text, glow, fog or full portrait. Direct isolated-feature generation, never full-image cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-88853386-56e6-4e9f-8a37-70d1c56856c1.png",
+    "file": "scar-2-scratches.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "Wizard.mesh-female",
+    "slot": "scar",
+    "n": 3,
+    "name": "warpaint",
+    "prompt": "Generate a NEW standalone customization asset for an adult female Wizard. Reference ONLY for anatomy, palette, clothing and brushwork. Variation: simple dark red war-paint streaks, no symbols. Output ONLY the requested isolated scar or paint marks, NO face, head, body or rectangular skin patch. Hand-painted dark fantasy strategy-game style matching reference. Preserve species anatomy and reference clothing coverage; never invent tusks absent from reference. No beard or moustache. Complete contour centered with transparent padding and genuine alpha background. No scenery, text, glow, fog or full portrait. Direct isolated-feature generation, never full-image cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-4f10e466-8945-4a01-8414-008c013217da.png",
+    "file": "scar-3-warpaint.png",
+    "method": "direct generation; unmodified file copy"
+  }
+]
