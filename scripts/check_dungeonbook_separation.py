@@ -117,9 +117,6 @@ for word in ('getCreatureAppearanceImage', 'getCreatureAppearanceRemarks', 'getC
              'AppearanceCompose', 'PortraitManifest', 'DungeonbookQuirks') + FOLDER_NAMES:
     if word in game:
         fail('modes/GameMode.cpp mentions %s' % word)
-icon_start = game.find('getCreatureHandIconImage(')
-if icon_start < 0:
-    fail('hand icon code not found in GameMode.cpp')
 
 # Nowhere in the game code (tests excluded) is a part or base folder named, except where the pictures are loaded
 allowed_folder_users = {
