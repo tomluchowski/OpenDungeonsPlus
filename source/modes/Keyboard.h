@@ -8,6 +8,7 @@ class Keyboard
 {
 public:
     bool isModifierDown(OIS::Keyboard::Modifier code);
+    bool isKeyDown(OIS::KeyCode code);
 #ifndef OD_USE_SFML_WINDOW
     Keyboard(OIS::Keyboard* kb) : mKeyboard(kb) {}
 

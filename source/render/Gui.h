@@ -24,7 +24,9 @@
 #ifndef GUI_H_
 #define GUI_H_
 
+#include <CEGUI/Event.h>
 #include <CEGUI/InputEvent.h>
+#include <CEGUI/Window.h>
 
 #include <OISMouse.h>
 
@@ -84,6 +86,41 @@ public:
     static CEGUI::MouseButton convertButton (OIS::MouseButtonID buttonID);
 
     CEGUI::Window* getGuiSheet(guiSheet sheet);
+
+    //! \brief Move CEGUI rendering to another Ogre render target.
+    void setRenderTarget(Ogre::RenderTarget& renderTarget);
+
+    enum
+    {
+        MIN_UI_SCALE_PERCENT = 80,
+        MAX_UI_SCALE_PERCENT = 120
+    };
+
+    //! \brief Registers a window tree for resolution-independent scaling.
+    void registerWindowHierarchy(CEGUI::Window* window);
+
+    //! \brief Creates a fixed size information window with a text area named "TextDisplay" from
+    //! WindowStats.layout, registered for scaling. The caller adds it to the root window.
+    CEGUI::Window* createInfoWindow(const std::string& name);
+
+    //! \brief Creates the fixed size creature profile window from WindowCreatureProfile.layout,
+    //! registered for scaling. The caller adds it to the root window.
+    CEGUI::Window* createCreatureProfileWindow(const std::string& name);
+    //! \brief Loads the profile page (portrait, texts, bars) as the child "Content" of the given holder window.
+    //! The page is shared by the creature card and the Dungeonbook, see Creature::fillProfilePage.
+    CEGUI::Window* createCreatureProfilePage(CEGUI::Window* holder);
+    //! \brief Stacks the text rows of the profile page (bio to latest post) one below the other, each as
+    //! high as its wrapped text, so no gap is left between short rows. Returns the bottom edge of the
+    //! last visible row in design pixels, relative to the page. If the rows are higher than the page, the page
+    //! scrolls (scrollbar at its right edge, shown only then) and the height of the page is returned.
+    float layoutCreatureProfilePage(CEGUI::Window* page);
+    //! \brief Sets the area of a registered window given in design pixels (the scale is applied here).
+    void setScaledArea(CEGUI::Window* window, const CEGUI::URect& designArea);
+    //! \brief Factor from design pixels to screen pixels (display size and user scale).
+    float getLayoutScale() const;
+
+    //! \brief Sets the user-selected UI scale and applies it immediately.
+    void setUserScalePercent(float scalePercent);
 
     // Access names of the GUI elements
     static const std::string ROOT;
@@ -152,9 +189,52 @@ public:
     bool playButtonClickSound(const CEGUI::EventArgs& e = {});
 
 private:
-    std::map<guiSheet, CEGUI::Window*> mSheets;
+    //! \brief Places one text row of the profile page at y (design pixels) as high as its text, returns the y of the next row.
+    float layoutProfileTextRow(CEGUI::Window* window, float y, float scale);
+    //! \brief Moves all children of the profile page (except the scrollbar) from their unscrolled areas up by offset.
+    void applyProfileScroll(CEGUI::Window* page, float offset);
+    //! \brief The scrollbar of a profile page was moved.
+    bool onProfileScrolled(const CEGUI::EventArgs& e);
+    //! \brief The mouse wheel turned over the profile page or one of its rows: scrolls the page if it scrolls.
+    bool onProfileWheel(const CEGUI::EventArgs& e);
+    //! \brief Layout values of a window as loaded, used to re-apply the UI scale from the original values.
+    struct WindowScaleData
+    {
+        CEGUI::URect area;
+        CEGUI::USize minSize;
+        CEGUI::USize maxSize;
+        CEGUI::String text;
+        CEGUI::UDim tabHeight;
+        //! \brief True if the text contains [image-size='...'] tags that have to be scaled as well.
+        bool hasFormattedImageSize;
+        //! \brief True if the window is a tab control, so tabHeight is valid.
+        bool hasTabHeight;
+    };
 
+    //! \brief The loaded gui sheets, by sheet type.
+    std::map<guiSheet, CEGUI::Window*> mSheets;
+    //! \brief The windows that take part in UI scaling, with their original layout values.
+    std::map<CEGUI::Window*, WindowScaleData> mScaledWindows;
+    //! \brief The unscrolled design areas of the children of the profile pages, see layoutCreatureProfilePage.
+    std::map<CEGUI::Window*, CEGUI::URect> mProfileBaseAreas;
+
+    //! \brief UI scale chosen by the user (1.0 = 100%), on top of the scale derived from the display size.
+    float mUserScale;
+
+    //! \brief Keeps the display size change subscription alive; disconnected in the destructor.
+    CEGUI::Event::ScopedConnection mDisplaySizeChangedConnection;
+    //! \brief Keeps the window destroyed subscription alive; disconnected in the destructor.
+    CEGUI::Event::ScopedConnection mWindowDestroyedConnection;
+
+    //! \brief Used to play the button click sound.
     SoundEffectsManager* mSoundEffectsManager;
+
+    bool onDisplaySizeChanged(const CEGUI::EventArgs& e);
+    bool onWindowDestroyed(const CEGUI::EventArgs& e);
+    void registerWindow(CEGUI::Window* window);
+    void applyScale(const CEGUI::Sizef& displaySize);
+    void applyScale(CEGUI::Window* window, const WindowScaleData& data, float scale);
+    void updateResourceScaling(const CEGUI::Sizef& displaySize);
 };
 
 #endif // GUI_H_

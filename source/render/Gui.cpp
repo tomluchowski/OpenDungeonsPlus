@@ -24,9 +24,11 @@
 
 #include "ODApplication.h"
 #include "sound/SoundEffectsManager.h"
+#include "utils/ConfigManager.h"
 #include "utils/LogManager.h"
 
 #include <CEGUI/CEGUI.h>
+#include <CEGUI/BasicImage.h>
 #include <CEGUI/RendererModules/Ogre/Renderer.h>
 #include <CEGUI/RendererModules/Ogre/ResourceProvider.h>
 #include <CEGUI/RendererModules/Ogre/ImageCodec.h>
@@ -34,10 +36,97 @@
 #include <CEGUI/System.h>
 #include <CEGUI/WindowManager.h>
 #include <CEGUI/widgets/PushButton.h>
+#include <CEGUI/widgets/TabControl.h>
+#include <CEGUI/widgets/Scrollbar.h>
 #include <CEGUI/Event.h>
 
+#include <algorithm>
+#include <sstream>
+
+namespace
+{
+const float LAYOUT_DESIGN_WIDTH = 1024.0f;
+const float LAYOUT_DESIGN_HEIGHT = 768.0f;
+const float FONT_DESIGN_WIDTH = 800.0f;
+const float FONT_DESIGN_HEIGHT = 600.0f;
+
+void scaleDimension(CEGUI::UDim& dimension, float scale)
+{
+    dimension.d_offset *= scale;
+}
+
+CEGUI::URect scaleRect(const CEGUI::URect& rect, float scale)
+{
+    CEGUI::URect scaled(rect);
+    scaleDimension(scaled.d_min.d_x, scale);
+    scaleDimension(scaled.d_min.d_y, scale);
+    scaleDimension(scaled.d_max.d_x, scale);
+    scaleDimension(scaled.d_max.d_y, scale);
+    return scaled;
+}
+
+CEGUI::USize scaleSize(const CEGUI::USize& size, float scale)
+{
+    CEGUI::USize scaled(size);
+    scaleDimension(scaled.d_width, scale);
+    scaleDimension(scaled.d_height, scale);
+    return scaled;
+}
+
+bool shouldScaleImage(const CEGUI::String& ceguiName)
+{
+    const std::string name(ceguiName.c_str());
+    return name.compare(0, 17, "OpenDungeonsSkin/") == 0
+        || name.compare(0, 18, "OpenDungeonsIcons/") == 0
+        || name.compare(0, 17, "ODMainMenuButton/") == 0
+        || name.compare(0, 7, "ODLogo/") == 0;
+}
+
+//! \brief Scales the w: and h: values of every [image-size='...'] tag in a CEGUI formatted text by the given factor.
+//! The numbers are read with a std::istringstream (rather than atof) so that an empty or malformed value is detected and
+//! the tag is left untouched instead of silently becoming 0. Scaled values are rounded and at least 1.
+std::string scaleFormattedImageSizes(const CEGUI::String& ceguiText, float scale)
+{
+    std::string text(ceguiText.c_str());
+    size_t tagStart = 0;
+    while((tagStart = text.find("[image-size='", tagStart)) != std::string::npos)
+    {
+        size_t tagEnd = text.find("']", tagStart);
+        if(tagEnd == std::string::npos)
+            break;
+
+        const char* dimensions[] = {"w:", "h:"};
+        for(const char* dimension : dimensions)
+        {
+            const size_t marker = text.find(dimension, tagStart);
+            if(marker == std::string::npos || marker >= tagEnd)
+                continue;
+
+            const size_t valueStart = marker + 2;
+            size_t valueEnd = valueStart;
+            while(valueEnd < tagEnd && ((text[valueEnd] >= '0' && text[valueEnd] <= '9') || text[valueEnd] == '.'))
+                ++valueEnd;
+
+            float value = 0.0f;
+            std::istringstream valueParser(text.substr(valueStart, valueEnd - valueStart));
+            if(!(valueParser >> value))
+                continue;
+
+            std::ostringstream scaledValue;
+            scaledValue << std::max(1, static_cast<int>(value * scale + 0.5f));
+            text.replace(valueStart, valueEnd - valueStart, scaledValue.str());
+            tagEnd = text.find("']", tagStart);
+        }
+
+        tagStart = tagEnd + 2;
+    }
+    return text;
+}
+}
+
 Gui::Gui(SoundEffectsManager* soundEffectsManager, const std::string& ceguiLogFileName, Ogre::RenderTarget &renderTarget)
-  : mSoundEffectsManager(soundEffectsManager)
+  : mUserScale(1.0f),
+    mSoundEffectsManager(soundEffectsManager)
 {
     OD_LOG_INF("*** Initializing CEGUI ***");
     CEGUI::OgreRenderer& renderer = CEGUI::OgreRenderer::create(renderTarget);
@@ -52,6 +141,15 @@ Gui::Gui(SoundEffectsManager* soundEffectsManager, const std::string& ceguiLogFi
 
     CEGUI::SchemeManager::getSingleton().createFromFile("ODSkin.scheme");
     OD_LOG_INF("CEGUI::SchemeManager created");
+
+    float configuredScalePercent = 100.0f;
+    std::istringstream scaleParser(ConfigManager::getSingleton().getGameValue(Config::UI_SCALE, "100", false));
+    if(!(scaleParser >> configuredScalePercent))
+        configuredScalePercent = 100.0f;
+    configuredScalePercent = std::max(static_cast<float>(MIN_UI_SCALE_PERCENT),
+        std::min(static_cast<float>(MAX_UI_SCALE_PERCENT), configuredScalePercent));
+    mUserScale = configuredScalePercent / 100.0f;
+    updateResourceScaling(renderer.getDisplaySize());
 
     // We want Ogre overlays to be displayed in front of CEGUI. According to
     // http://cegui.org.uk/forum/viewtopic.php?f=10&t=5694
@@ -83,6 +181,17 @@ Gui::Gui(SoundEffectsManager* soundEffectsManager, const std::string& ceguiLogFi
     mSheets[loadSavedGameMenu] =  wmgr->loadLayoutFromFile("MenuLoad.layout");
     mSheets[console] = wmgr->loadLayoutFromFile("WindowConsole.layout");
 
+    mDisplaySizeChangedConnection = CEGUI::System::getSingleton().subscribeEvent(
+        CEGUI::System::EventDisplaySizeChanged,
+        CEGUI::Event::Subscriber(&Gui::onDisplaySizeChanged, this));
+    mWindowDestroyedConnection = wmgr->subscribeEvent(
+        CEGUI::WindowManager::EventWindowDestroyed,
+        CEGUI::Event::Subscriber(&Gui::onWindowDestroyed, this));
+
+    for(const std::pair<const guiSheet, CEGUI::Window*>& sheet : mSheets)
+        registerWindow(sheet.second);
+    applyScale(renderer.getDisplaySize());
+
     // Set the game version
     mSheets[mainMenu]->getChild("VersionText")->setText(ODApplication::VERSION);
     mSheets[skirmishMenu]->getChild("VersionText")->setText(ODApplication::VERSION);
@@ -103,6 +212,8 @@ Gui::Gui(SoundEffectsManager* soundEffectsManager, const std::string& ceguiLogFi
 
 Gui::~Gui()
 {
+    mDisplaySizeChangedConnection.disconnect();
+    mWindowDestroyedConnection.disconnect();
     //This also calls CEGUI::System::destroy();
     CEGUI::OgreRenderer::destroySystem();
 }
@@ -117,9 +228,401 @@ CEGUI::MouseButton Gui::convertButton(OIS::MouseButtonID buttonID)
 
 void Gui::loadGuiSheet(guiSheet newSheet)
 {
+    registerWindowHierarchy(mSheets[newSheet]);
     CEGUI::System::getSingletonPtr()->getDefaultGUIContext().setRootWindow(mSheets[newSheet]);
     // This shouldn't be needed, but the gui seems to not allways change when using hideGui without it.
     CEGUI::System::getSingletonPtr()->getDefaultGUIContext().markAsDirty();
+}
+
+void Gui::registerWindowHierarchy(CEGUI::Window* window)
+{
+    if(window == nullptr)
+        return;
+
+    registerWindow(window);
+    applyScale(CEGUI::System::getSingleton().getRenderer()->getDisplaySize());
+}
+
+void Gui::registerWindow(CEGUI::Window* window)
+{
+    if(!window->isAutoWindow() && mScaledWindows.find(window) == mScaledWindows.end())
+    {
+        WindowScaleData data;
+        data.area = window->getArea();
+        data.minSize = window->getMinSize();
+        data.maxSize = window->getMaxSize();
+        data.text = window->getText();
+        data.hasFormattedImageSize = std::string(data.text.c_str()).find("[image-size='") != std::string::npos;
+        data.hasTabHeight = false;
+
+        CEGUI::TabControl* tabControl = dynamic_cast<CEGUI::TabControl*>(window);
+        if(tabControl != nullptr)
+        {
+            data.tabHeight = tabControl->getTabHeight();
+            data.hasTabHeight = true;
+        }
+
+        mScaledWindows.insert(std::make_pair(window, data));
+    }
+
+    for(size_t i = 0; i < window->getChildCount(); ++i)
+        registerWindow(window->getChildAtIdx(i));
+}
+
+CEGUI::Window* Gui::createInfoWindow(const std::string& name)
+{
+    CEGUI::WindowManager& wmgr = CEGUI::WindowManager::getSingleton();
+    CEGUI::Window* window = wmgr.loadLayoutFromFile("WindowStats.layout");
+    window->setName(name);
+    registerWindowHierarchy(window);
+    return window;
+}
+
+CEGUI::Window* Gui::createCreatureProfileWindow(const std::string& name)
+{
+    CEGUI::WindowManager& wmgr = CEGUI::WindowManager::getSingleton();
+    CEGUI::Window* window = wmgr.loadLayoutFromFile("WindowCreatureProfile.layout");
+    window->setName(name);
+    registerWindowHierarchy(window);
+    return window;
+}
+
+CEGUI::Window* Gui::createCreatureProfilePage(CEGUI::Window* holder)
+{
+    CEGUI::WindowManager& wmgr = CEGUI::WindowManager::getSingleton();
+    CEGUI::Window* page = wmgr.loadLayoutFromFile("WindowCreatureProfilePage.layout");
+    page->setName("Content");
+    holder->addChild(page);
+    registerWindowHierarchy(page);
+    page->getChild("ProfileScrollbar")->subscribeEvent(CEGUI::Scrollbar::EventScrollPositionChanged,
+        CEGUI::Event::Subscriber(&Gui::onProfileScrolled, this));
+
+    // The rows pass the mouse wheel on to the page, which scrolls (only while its scrollbar is shown)
+    for(std::size_t i = 0; i < page->getChildCount(); ++i)
+        page->getChildAtIdx(i)->setMouseInputPropagationEnabled(true);
+
+    page->subscribeEvent(CEGUI::Window::EventMouseWheel, CEGUI::Event::Subscriber(&Gui::onProfileWheel, this));
+    return page;
+}
+
+namespace
+{
+//! Top edge of the first flowing row of the profile page (design pixels, matches WindowCreatureProfilePage.layout)
+const float PROFILE_FLOW_TOP = 174.0f;
+//! Width of the "Friends:" and "Foe:" labels when links follow them, and where the links start
+const float PROFILE_LABEL_WIDTH = 88.0f;
+const float PROFILE_LINK_LEFT = 92.0f;
+const float PROFILE_ROW_GAP = 4.0f;
+const float PROFILE_LINE_PADDING = 4.0f;
+//! Distance of the rows of the profile page from the left and the right edge (design pixels)
+const float PROFILE_SIDE_MARGIN = 16.0f;
+//! Height of one text line if the window has no font (design pixels)
+const float PROFILE_FALLBACK_LINE_HEIGHT = 16.0f;
+//! Part of the window width the text of a row may use before it wraps
+const float PROFILE_TEXT_WIDTH_FACTOR = 0.96f;
+//! Number of rows with a label and links (friends, foe) and the most windows in such a row (label and two links)
+const std::size_t PROFILE_LINK_ROWS = 2;
+const std::size_t PROFILE_LINK_ROW_WINDOWS = 3;
+//! Scroll step of the profile page (design pixels), about two lines
+const float PROFILE_SCROLL_STEP = 28.0f;
+//! Tolerance (design pixels) before the rows count as higher than the page
+const float PROFILE_OVERFLOW_TOLERANCE = 0.5f;
+//! Names of the rows that flow from top to bottom and so change their position when the texts change
+const char* const PROFILE_FLOW_ROWS[] = {"BioText", "LikesText", "DislikesText", "FriendsLabel",
+    "FriendLink0", "FriendLink1", "FoeLabel", "FoeLink", "StatusText", "LatestText"};
+const std::size_t PROFILE_FLOW_ROW_COUNT = sizeof(PROFILE_FLOW_ROWS) / sizeof(PROFILE_FLOW_ROWS[0]);
+
+//! \brief Number of lines the text needs when it is wrapped at the given pixel width
+std::size_t countWrappedLines(const CEGUI::Font* font, const std::string& text, float width)
+{
+    std::size_t lines = 1;
+    float lineWidth = 0.0f;
+    const float spaceWidth = font->getTextExtent(" ");
+    std::string::size_type pos = 0;
+    while(pos <= text.size())
+    {
+        std::string::size_type end = text.find_first_of(" \n", pos);
+        if(end == std::string::npos)
+            end = text.size();
+
+        const float wordWidth = font->getTextExtent(text.substr(pos, end - pos));
+        if((lineWidth > 0.0f) && (lineWidth + spaceWidth + wordWidth > width))
+        {
+            ++lines;
+            lineWidth = wordWidth;
+        }
+        else
+        {
+            lineWidth += ((lineWidth > 0.0f) ? spaceWidth : 0.0f) + wordWidth;
+        }
+        if((end < text.size()) && (text[end] == '\n'))
+        {
+            ++lines;
+            lineWidth = 0.0f;
+        }
+        pos = end + 1;
+    }
+    return lines;
+}
+
+//! \brief Height in design pixels of the given number of text lines of the window
+float getProfileLinesHeight(const CEGUI::Window* window, std::size_t lines, float scale)
+{
+    const CEGUI::Font* font = window->getFont();
+    if(font == nullptr)
+        return PROFILE_LINE_PADDING + PROFILE_FALLBACK_LINE_HEIGHT * static_cast<float>(lines);
+
+    return font->getLineSpacing() * static_cast<float>(lines) / scale + PROFILE_LINE_PADDING;
+}
+}
+
+float Gui::layoutProfileTextRow(CEGUI::Window* window, float y, float scale)
+{
+    if(!window->isVisible())
+        return y;
+
+    const CEGUI::Font* font = window->getFont();
+    const float width = window->getPixelSize().d_width * PROFILE_TEXT_WIDTH_FACTOR;
+    const std::size_t lines = (font == nullptr) ? 1 :
+        countWrappedLines(font, std::string(window->getText().c_str()), width);
+    const float height = getProfileLinesHeight(window, lines, scale);
+    setScaledArea(window, CEGUI::URect(CEGUI::UDim(0, PROFILE_SIDE_MARGIN), CEGUI::UDim(0, y),
+        CEGUI::UDim(1, -PROFILE_SIDE_MARGIN), CEGUI::UDim(0, y + height)));
+    return y + height + PROFILE_ROW_GAP;
+}
+
+float Gui::layoutCreatureProfilePage(CEGUI::Window* page)
+{
+    const float scale = getLayoutScale();
+    float y = PROFILE_FLOW_TOP;
+
+    // Bio, likes and dislikes, then the rows with friends and foe, then status and latest post
+    const char* const textRowsBefore[] = {"BioText", "LikesText", "DislikesText"};
+    const char* const textRowsAfter[] = {"StatusText", "LatestText"};
+    const char* const linkRows[PROFILE_LINK_ROWS][PROFILE_LINK_ROW_WINDOWS] = {{"FriendsLabel", "FriendLink0", "FriendLink1"}, {"FoeLabel", "FoeLink", nullptr}};
+
+    for(std::size_t i = 0; i < 3; ++i)
+        y = layoutProfileTextRow(page->getChild(textRowsBefore[i]), y, scale);
+
+    for(std::size_t row = 0; row < PROFILE_LINK_ROWS; ++row)
+    {
+        CEGUI::Window* label = page->getChild(linkRows[row][0]);
+        if(!label->isVisible())
+            continue;
+
+        // The label shares its line with the first link, further links follow below
+        const float lineHeight = getProfileLinesHeight(label, 1, scale);
+        float linkY = y;
+        for(std::size_t i = 1; (i < PROFILE_LINK_ROW_WINDOWS) && (linkRows[row][i] != nullptr); ++i)
+        {
+            CEGUI::Window* link = page->getChild(linkRows[row][i]);
+            if(!link->isVisible())
+                continue;
+
+            setScaledArea(link, CEGUI::URect(CEGUI::UDim(0, PROFILE_LINK_LEFT), CEGUI::UDim(0, linkY),
+                CEGUI::UDim(1, -PROFILE_SIDE_MARGIN), CEGUI::UDim(0, linkY + lineHeight)));
+            linkY += lineHeight;
+        }
+        const bool hasLinks = (linkY > y);
+        setScaledArea(label, CEGUI::URect(CEGUI::UDim(0, PROFILE_SIDE_MARGIN), CEGUI::UDim(0, y),
+            hasLinks ? CEGUI::UDim(0, PROFILE_LABEL_WIDTH) : CEGUI::UDim(1, -PROFILE_SIDE_MARGIN),
+            CEGUI::UDim(0, y + lineHeight)));
+        y = std::max(y + lineHeight, linkY) + PROFILE_ROW_GAP;
+    }
+
+    for(std::size_t i = 0; i < 2; ++i)
+        y = layoutProfileTextRow(page->getChild(textRowsAfter[i]), y, scale);
+
+    // Remember where every row sits without scrolling. The rows laid out above are fresh, the rows of the
+    // header (portrait to experience bar) are never moved by the layout and are noted once.
+    for(std::size_t i = 0; i < page->getChildCount(); ++i)
+    {
+        CEGUI::Window* child = page->getChildAtIdx(i);
+        if(child->getName() == "ProfileScrollbar")
+            continue;
+
+        bool isFlowRow = false;
+        for(std::size_t k = 0; k < PROFILE_FLOW_ROW_COUNT; ++k)
+            isFlowRow = isFlowRow || (child->getName() == PROFILE_FLOW_ROWS[k]);
+
+        std::map<CEGUI::Window*, WindowScaleData>::const_iterator data = mScaledWindows.find(child);
+        if((data != mScaledWindows.end()) && (isFlowRow || (mProfileBaseAreas.find(child) == mProfileBaseAreas.end())))
+            mProfileBaseAreas[child] = data->second.area;
+    }
+
+    // Everything is visible as long as the content fits the page; otherwise the page scrolls and a scrollbar
+    // appears, so no row is ever cut off without a way to reach it
+    CEGUI::Window* bar = page->getChild("ProfileScrollbar");
+    const float viewport = page->getPixelSize().d_height / scale;
+    const bool overflow = (y > viewport + PROFILE_OVERFLOW_TOLERANCE);
+    float offset = 0.0f;
+    if(overflow)
+    {
+        CEGUI::Scrollbar* scrollbar = static_cast<CEGUI::Scrollbar*>(bar);
+        offset = std::max(0.0f, std::min(scrollbar->getScrollPosition(), y - viewport));
+        // Setting the position below must not scroll the rows a second time through onProfileScrolled
+        page->setUserString("ProfileScrolling", "true");
+        scrollbar->setDocumentSize(y);
+        scrollbar->setPageSize(viewport);
+        scrollbar->setStepSize(PROFILE_SCROLL_STEP);
+        scrollbar->setScrollPosition(offset);
+        page->setUserString("ProfileScrolling", "false");
+    }
+    bar->setVisible(overflow);
+    applyProfileScroll(page, offset);
+
+    // The caller puts what follows the profile below the visible part
+    return overflow ? viewport : y;
+}
+
+void Gui::applyProfileScroll(CEGUI::Window* page, float offset)
+{
+    for(std::map<CEGUI::Window*, CEGUI::URect>::const_iterator it = mProfileBaseAreas.begin();
+        it != mProfileBaseAreas.end(); ++it)
+    {
+        if(it->first->getParent() != page)
+            continue;
+
+        CEGUI::URect area = it->second;
+        area.d_min.d_y.d_offset -= offset;
+        area.d_max.d_y.d_offset -= offset;
+        setScaledArea(it->first, area);
+    }
+}
+
+bool Gui::onProfileWheel(const CEGUI::EventArgs& e)
+{
+    const CEGUI::MouseEventArgs& args = static_cast<const CEGUI::MouseEventArgs&>(e);
+    CEGUI::Window* page = args.window;
+    while((page != nullptr) && !page->isChild("ProfileScrollbar"))
+        page = page->getParent();
+
+    if(page == nullptr)
+        return false;
+
+    CEGUI::Scrollbar* scrollbar = static_cast<CEGUI::Scrollbar*>(page->getChild("ProfileScrollbar"));
+    if(!scrollbar->isVisible())
+        return false;
+
+    scrollbar->setScrollPosition(scrollbar->getScrollPosition() - args.wheelChange * PROFILE_SCROLL_STEP);
+    return true;
+}
+
+bool Gui::onProfileScrolled(const CEGUI::EventArgs& e)
+{
+    const CEGUI::WindowEventArgs& args = static_cast<const CEGUI::WindowEventArgs&>(e);
+    CEGUI::Window* page = args.window->getParent();
+    if((page == nullptr) ||
+       (page->isUserStringDefined("ProfileScrolling") && (page->getUserString("ProfileScrolling") == "true")))
+        return true;
+
+    applyProfileScroll(page, static_cast<CEGUI::Scrollbar*>(args.window)->getScrollPosition());
+    return true;
+}
+
+void Gui::setScaledArea(CEGUI::Window* window, const CEGUI::URect& designArea)
+{
+    std::map<CEGUI::Window*, WindowScaleData>::iterator it = mScaledWindows.find(window);
+    if(it != mScaledWindows.end())
+        it->second.area = designArea;
+
+    window->setArea(scaleRect(designArea, getLayoutScale()));
+}
+
+float Gui::getLayoutScale() const
+{
+    const CEGUI::Sizef displaySize = CEGUI::System::getSingleton().getRenderer()->getDisplaySize();
+    return std::min(displaySize.d_width / LAYOUT_DESIGN_WIDTH, displaySize.d_height / LAYOUT_DESIGN_HEIGHT) * mUserScale;
+}
+
+void Gui::setUserScalePercent(float scalePercent)
+{
+    if(scalePercent != scalePercent)
+        scalePercent = 100.0f;
+
+    scalePercent = std::max(static_cast<float>(MIN_UI_SCALE_PERCENT),
+        std::min(static_cast<float>(MAX_UI_SCALE_PERCENT), scalePercent));
+    mUserScale = scalePercent / 100.0f;
+    applyScale(CEGUI::System::getSingleton().getRenderer()->getDisplaySize());
+}
+
+bool Gui::onDisplaySizeChanged(const CEGUI::EventArgs& e)
+{
+    const CEGUI::DisplayEventArgs& displayEvent = static_cast<const CEGUI::DisplayEventArgs&>(e);
+    applyScale(displayEvent.size);
+    return true;
+}
+
+bool Gui::onWindowDestroyed(const CEGUI::EventArgs& e)
+{
+    const CEGUI::WindowEventArgs& windowEvent = static_cast<const CEGUI::WindowEventArgs&>(e);
+    mScaledWindows.erase(windowEvent.window);
+    mProfileBaseAreas.erase(windowEvent.window);
+    return true;
+}
+
+void Gui::applyScale(const CEGUI::Sizef& displaySize)
+{
+    const float resolutionScale = std::min(displaySize.d_width / LAYOUT_DESIGN_WIDTH,
+        displaySize.d_height / LAYOUT_DESIGN_HEIGHT);
+    const float scale = resolutionScale * mUserScale;
+
+    updateResourceScaling(displaySize);
+
+    for(const std::pair<CEGUI::Window* const, WindowScaleData>& scaledWindow : mScaledWindows)
+        applyScale(scaledWindow.first, scaledWindow.second, scale);
+
+    CEGUI::System::getSingleton().getDefaultGUIContext().markAsDirty();
+}
+
+void Gui::applyScale(CEGUI::Window* window, const WindowScaleData& data, float scale)
+{
+    window->setMinSize(scaleSize(data.minSize, scale));
+    window->setMaxSize(scaleSize(data.maxSize, scale));
+    window->setArea(scaleRect(data.area, scale));
+
+    if(data.hasFormattedImageSize)
+        window->setText(scaleFormattedImageSizes(data.text, scale));
+
+    if(data.hasTabHeight)
+    {
+        CEGUI::UDim tabHeight(data.tabHeight);
+        scaleDimension(tabHeight, scale);
+        static_cast<CEGUI::TabControl*>(window)->setTabHeight(tabHeight);
+    }
+}
+
+void Gui::updateResourceScaling(const CEGUI::Sizef& displaySize)
+{
+    const CEGUI::Sizef fontNativeResolution(FONT_DESIGN_WIDTH / mUserScale,
+        FONT_DESIGN_HEIGHT / mUserScale);
+    CEGUI::FontManager::FontIterator font = CEGUI::FontManager::getSingleton().getIterator();
+    while(!font.isAtEnd())
+    {
+        font.getCurrentValue()->setNativeResolution(fontNativeResolution);
+        font.getCurrentValue()->setAutoScaled(CEGUI::ASM_Min);
+        ++font;
+    }
+
+    const CEGUI::Sizef imageNativeResolution(LAYOUT_DESIGN_WIDTH / mUserScale,
+        LAYOUT_DESIGN_HEIGHT / mUserScale);
+    CEGUI::ImageManager::ImageIterator image = CEGUI::ImageManager::getSingleton().getIterator();
+    while(!image.isAtEnd())
+    {
+        if(shouldScaleImage(image.getCurrentKey()))
+        {
+            CEGUI::BasicImage* basicImage = dynamic_cast<CEGUI::BasicImage*>(image.getCurrentValue().first);
+            if(basicImage != nullptr)
+            {
+                basicImage->setNativeResolution(imageNativeResolution);
+                basicImage->setAutoScaled(CEGUI::ASM_Min);
+            }
+        }
+        ++image;
+    }
+
+    CEGUI::FontManager::getSingleton().notifyDisplaySizeChanged(displaySize);
+    CEGUI::ImageManager::getSingleton().notifyDisplaySizeChanged(displaySize);
 }
 
 CEGUI::Window* Gui::getGuiSheet(guiSheet sheet)
@@ -129,7 +632,14 @@ CEGUI::Window* Gui::getGuiSheet(guiSheet sheet)
     {
         return it->second;
     }
+
     return nullptr;
+}
+
+void Gui::setRenderTarget(Ogre::RenderTarget& renderTarget)
+{
+    static_cast<CEGUI::OgreRenderer*>(CEGUI::System::getSingleton().getRenderer())
+        ->setDefaultRootRenderTarget(renderTarget);
 }
 
 bool Gui::playButtonClickSound(const CEGUI::EventArgs&)
