@@ -52,6 +52,7 @@ public:
 
     virtual ~MissileObject();
 
+    //! \brief Moves the missile for one turn. A target or creature is hit once, and the flight ends on the tile of the hit.
     virtual void doUpkeep() override;
 
     /*! brief Function called when the missile hits a wall. If it returns true, the missile direction
