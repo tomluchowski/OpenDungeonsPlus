@@ -1,0 +1,192 @@
+[
+  {
+    "id": "RunelordDwarf.mesh",
+    "slot": "build",
+    "n": 1,
+    "name": "slim",
+    "prompt": "Generate a NEW standalone customization asset for an adult male RunelordDwarf. Reference ONLY for anatomy, palette, clothing and brushwork. Variation: a slimmer shoulder and chest build, preserving the exact reference clothing, colors and coverage. Output ONLY the isolated clothed shoulders and chest, NO head, face, hair or ears. Hand-painted dark fantasy strategy-game style matching reference. Preserve species anatomy and reference clothing coverage; never invent tusks absent from reference. Complete contour centered with transparent padding and genuine alpha background. No scenery, text, glow, fog or full portrait. Direct isolated-feature generation, never full-image cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-d3862467-7af1-47f9-a336-bf4a7b0568f2.png",
+    "file": "build-1-slim.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "RunelordDwarf.mesh",
+    "slot": "build",
+    "n": 2,
+    "name": "sturdy",
+    "prompt": "Generate a NEW standalone customization asset for an adult male RunelordDwarf. Reference ONLY for anatomy, palette, clothing and brushwork. Variation: a sturdier shoulder and chest build, preserving the exact reference clothing, colors and coverage. Output ONLY the isolated clothed shoulders and chest, NO head, face, hair or ears. Hand-painted dark fantasy strategy-game style matching reference. Preserve species anatomy and reference clothing coverage; never invent tusks absent from reference. Complete contour centered with transparent padding and genuine alpha background. No scenery, text, glow, fog or full portrait. Direct isolated-feature generation, never full-image cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-17139fbd-fd97-44da-832c-8d5b4a9aa22a.png",
+    "file": "build-2-sturdy.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "RunelordDwarf.mesh",
+    "slot": "chin",
+    "n": 1,
+    "name": "forked",
+    "prompt": "Generate a NEW standalone customization asset for an adult male RunelordDwarf. Reference ONLY for anatomy, palette, clothing and brushwork. Variation: a shorter forked beard with two tapered ends, retaining the reference beard color. Output ONLY the isolated requested beard, no lips, mouth, nose, eyes, head or body. Hand-painted dark fantasy strategy-game style matching reference. Preserve species anatomy and reference clothing coverage; never invent tusks absent from reference. Complete contour centered with transparent padding and genuine alpha background. No scenery, text, glow, fog or full portrait. Direct isolated-feature generation, never full-image cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-face40be-cb38-47cf-b794-81b87db0757c.png",
+    "file": "chin-1-forked.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "RunelordDwarf.mesh",
+    "slot": "chin",
+    "n": 2,
+    "name": "braided",
+    "prompt": "Generate a NEW standalone customization asset for an adult male RunelordDwarf. Reference ONLY for anatomy, palette, clothing and brushwork. Variation: a beard with two small braids tied by plain iron rings, retaining the reference beard color. Output ONLY the isolated requested beard, no lips, mouth, nose, eyes, head or body. Hand-painted dark fantasy strategy-game style matching reference. Preserve species anatomy and reference clothing coverage; never invent tusks absent from reference. Complete contour centered with transparent padding and genuine alpha background. No scenery, text, glow, fog or full portrait. Direct isolated-feature generation, never full-image cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-abd4cc5e-e14c-4e9f-ad55-c21a09580822.png",
+    "file": "chin-2-braided.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "RunelordDwarf.mesh",
+    "slot": "eyes",
+    "n": 1,
+    "name": "narrow",
+    "prompt": "Generate a NEW standalone customization asset for an adult male RunelordDwarf. Reference ONLY for anatomy, palette, clothing and brushwork. Variation: narrow suspicious eyes with heavy lids and brows, preserving the exact reference eye and skin colors. Output ONLY isolated eyes with lids, brows and a thin rim of nearby skin, or the requested eye patch with strap, NO helmet, armor, headwear, nasal guard, nose, mouth, full face, head or body. Hand-painted dark fantasy strategy-game style matching reference. Preserve species anatomy and reference clothing coverage; never invent tusks absent from reference. Complete contour centered with transparent padding and genuine alpha background. No scenery, text, glow, fog or full portrait. Direct isolated-feature generation, never full-image cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-916c0c57-bf1a-4e15-af8f-20509ba6c47e.png",
+    "file": "eyes-1-narrow.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "RunelordDwarf.mesh",
+    "slot": "eyes",
+    "n": 2,
+    "name": "round",
+    "prompt": "Generate a NEW standalone customization asset for an adult male RunelordDwarf. Reference ONLY for anatomy, palette, clothing and brushwork. Variation: rounder alert eyes with raised brows, preserving the exact reference eye and skin colors. Output ONLY isolated eyes with lids, brows and a thin rim of nearby skin, or the requested eye patch with strap, NO helmet, armor, headwear, nasal guard, nose, mouth, full face, head or body. Hand-painted dark fantasy strategy-game style matching reference. Preserve species anatomy and reference clothing coverage; never invent tusks absent from reference. Complete contour centered with transparent padding and genuine alpha background. No scenery, text, glow, fog or full portrait. Direct isolated-feature generation, never full-image cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-1d46fc55-7af7-44c6-bd57-262fc5fa9608.png",
+    "file": "eyes-2-round.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "RunelordDwarf.mesh",
+    "slot": "eyes",
+    "n": 3,
+    "name": "eyepatch",
+    "prompt": "Generate a NEW standalone customization asset for an adult male RunelordDwarf. Reference ONLY for anatomy, palette, clothing and brushwork. Variation: a worn dark leather eye patch over the near eye, with a plain leather strap. Output ONLY isolated eyes with lids, brows and a thin rim of nearby skin, or the requested eye patch with strap, NO helmet, armor, headwear, nasal guard, nose, mouth, full face, head or body. Hand-painted dark fantasy strategy-game style matching reference. Preserve species anatomy and reference clothing coverage; never invent tusks absent from reference. Complete contour centered with transparent padding and genuine alpha background. No scenery, text, glow, fog or full portrait. Direct isolated-feature generation, never full-image cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-de43aaab-e80c-465b-a2b3-338f8a9d45d6.png",
+    "file": "eyes-3-eyepatch.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "RunelordDwarf.mesh",
+    "slot": "hair",
+    "n": 1,
+    "name": "swept",
+    "prompt": "Generate a NEW standalone customization asset for an adult male RunelordDwarf. Reference ONLY for anatomy, palette, clothing and brushwork. Variation: a swept-back hairstyle with the exact reference hair color and texture; only hair that can show outside any headwear; ONLY two DISCONNECTED grey-white side hair strands that begin BELOW helmet sides; transparent gap between strands, absolutely NO upper scalp hair, NO crown, NO fringe, NO continuous wig or arch, NO helmet, no beard or moustache. Output ONLY isolated SCALP HAIR, NO beard, NO moustache, NO facial hair, NO head, NO face, NO skin, NO helmet, NO body. Hand-painted dark fantasy strategy-game style matching reference. Preserve species anatomy and reference clothing coverage; never invent tusks absent from reference. Complete contour centered with transparent padding and genuine alpha background. No scenery, text, glow, fog or full portrait. Direct isolated-feature generation, never full-image cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-f33f05ce-24a3-4243-b825-fbd1b5652826.png",
+    "file": "hair-1-swept.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "RunelordDwarf.mesh",
+    "slot": "hair",
+    "n": 2,
+    "name": "waves",
+    "prompt": "Generate a NEW standalone customization asset for an adult male RunelordDwarf. Reference ONLY for anatomy, palette, clothing and brushwork. Variation: a fuller wavy hairstyle with the exact reference hair color and texture; only hair that can show outside any headwear; visibly different from swept-back hair: loose flowing waves, no ponytail or hair tie; ONLY two DISCONNECTED grey-white side hair strands that begin BELOW helmet sides; transparent gap between strands, absolutely NO upper scalp hair, NO crown, NO fringe, NO continuous wig or arch, NO helmet, no beard or moustache. Output ONLY isolated SCALP HAIR, NO beard, NO moustache, NO facial hair, NO head, NO face, NO skin, NO helmet, NO body. Hand-painted dark fantasy strategy-game style matching reference. Preserve species anatomy and reference clothing coverage; never invent tusks absent from reference. Complete contour centered with transparent padding and genuine alpha background. No scenery, text, glow, fog or full portrait. Direct isolated-feature generation, never full-image cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-cf2b82ba-744c-4dfb-a373-e24389cee954.png",
+    "file": "hair-2-waves.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "RunelordDwarf.mesh",
+    "slot": "mouth",
+    "n": 1,
+    "name": "teeth",
+    "prompt": "Generate a NEW standalone customization asset for an adult male RunelordDwarf. Reference ONLY for anatomy, palette, clothing and brushwork. Variation: a tighter crooked grin with uneven teeth, preserving the species-specific lips and teeth, including tusks ONLY IF PRESENT in reference. Output ONLY isolated lips and teeth, NO beard, moustache, chin hair, nose, eyes, head or body; a cigar ONLY when explicitly requested in Variation, otherwise NO cigar, cigarette, pipe or other accessory. Hand-painted dark fantasy strategy-game style matching reference. Preserve species anatomy and reference clothing coverage; never invent tusks absent from reference. Complete contour centered with transparent padding and genuine alpha background. No scenery, text, glow, fog or full portrait. Direct isolated-feature generation, never full-image cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-3d43d76a-d0c4-4cff-8935-f80576d9de3f.png",
+    "file": "mouth-1-teeth.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "RunelordDwarf.mesh",
+    "slot": "mouth",
+    "n": 2,
+    "name": "grin",
+    "prompt": "Generate a NEW standalone customization asset for an adult male RunelordDwarf. Reference ONLY for anatomy, palette, clothing and brushwork. Variation: a broader lopsided grin, preserving the species-specific lips and teeth, including tusks ONLY IF PRESENT in reference. Output ONLY isolated lips and teeth, NO beard, moustache, chin hair, nose, eyes, head or body; a cigar ONLY when explicitly requested in Variation, otherwise NO cigar, cigarette, pipe or other accessory. Hand-painted dark fantasy strategy-game style matching reference. Preserve species anatomy and reference clothing coverage; never invent tusks absent from reference. Complete contour centered with transparent padding and genuine alpha background. No scenery, text, glow, fog or full portrait. Direct isolated-feature generation, never full-image cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-5aee6f18-6e66-4080-831f-3b7d7e0bc902.png",
+    "file": "mouth-2-grin.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "RunelordDwarf.mesh",
+    "slot": "mouth",
+    "n": 3,
+    "name": "cigar",
+    "prompt": "Generate a NEW standalone customization asset for an adult male RunelordDwarf. Reference ONLY for anatomy, palette, clothing and brushwork. Variation: a short fat brown cigar clamped in the corner of the mouth, preserving the species-specific lips and teeth, including tusks ONLY IF PRESENT in reference. Output ONLY isolated lips and teeth, NO beard, moustache, chin hair, nose, eyes, head or body; a cigar ONLY when explicitly requested in Variation, otherwise NO cigar, cigarette, pipe or other accessory. Hand-painted dark fantasy strategy-game style matching reference. Preserve species anatomy and reference clothing coverage; never invent tusks absent from reference. Complete contour centered with transparent padding and genuine alpha background. No scenery, text, glow, fog or full portrait. Direct isolated-feature generation, never full-image cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-dff45549-1644-4ddb-b6ca-1d2957853f79.png",
+    "file": "mouth-3-cigar.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "RunelordDwarf.mesh",
+    "slot": "neck",
+    "n": 1,
+    "name": "teeth",
+    "prompt": "Generate a NEW standalone customization asset for an adult male RunelordDwarf. Reference ONLY for anatomy, palette, clothing and brushwork. Variation: a plain cord necklace with three small yellowed animal teeth. Output ONLY the isolated necklace or neck torque, NO neck skin, head or body. Hand-painted dark fantasy strategy-game style matching reference. Preserve species anatomy and reference clothing coverage; never invent tusks absent from reference. Complete contour centered with transparent padding and genuine alpha background. No scenery, text, glow, fog or full portrait. Direct isolated-feature generation, never full-image cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-b47e6f99-eb8d-4a90-b73c-bc4db93398bf.png",
+    "file": "neck-1-teeth.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "RunelordDwarf.mesh",
+    "slot": "neck",
+    "n": 2,
+    "name": "torque",
+    "prompt": "Generate a NEW standalone customization asset for an adult male RunelordDwarf. Reference ONLY for anatomy, palette, clothing and brushwork. Variation: a plain aged bronze neck torque, no symbols. Output ONLY the isolated necklace or neck torque, NO neck skin, head or body. Hand-painted dark fantasy strategy-game style matching reference. Preserve species anatomy and reference clothing coverage; never invent tusks absent from reference. Complete contour centered with transparent padding and genuine alpha background. No scenery, text, glow, fog or full portrait. Direct isolated-feature generation, never full-image cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-72338bed-e76d-4bcd-9be1-347ea28e502a.png",
+    "file": "neck-2-torque.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "RunelordDwarf.mesh",
+    "slot": "nose",
+    "n": 1,
+    "name": "crooked",
+    "prompt": "Generate a NEW standalone customization asset for an adult male RunelordDwarf. Reference ONLY for anatomy, palette, clothing and brushwork. Variation: a crooked broken nose with a healed bump, preserving the species-specific anatomy and reference skin. Output ONLY an isolated nose with nostrils, NO eyes, mouth, chin, head or body. Hand-painted dark fantasy strategy-game style matching reference. Preserve species anatomy and reference clothing coverage; never invent tusks absent from reference. Complete contour centered with transparent padding and genuine alpha background. No scenery, text, glow, fog or full portrait. Direct isolated-feature generation, never full-image cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-71dd5e05-1c0e-4fa8-bc98-b7dbf336f815.png",
+    "file": "nose-1-crooked.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "RunelordDwarf.mesh",
+    "slot": "nose",
+    "n": 2,
+    "name": "broad",
+    "prompt": "Generate a NEW standalone customization asset for an adult male RunelordDwarf. Reference ONLY for anatomy, palette, clothing and brushwork. Variation: a broader flatter nose with wider nostrils, preserving the species-specific anatomy and reference skin. Output ONLY an isolated nose with nostrils, NO eyes, mouth, chin, head or body. Hand-painted dark fantasy strategy-game style matching reference. Preserve species anatomy and reference clothing coverage; never invent tusks absent from reference. Complete contour centered with transparent padding and genuine alpha background. No scenery, text, glow, fog or full portrait. Direct isolated-feature generation, never full-image cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-009918ae-883d-4f03-b1c2-268dd143ad7b.png",
+    "file": "nose-2-broad.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "RunelordDwarf.mesh",
+    "slot": "scar",
+    "n": 1,
+    "name": "diagonal",
+    "prompt": "Generate a NEW standalone customization asset for an adult male RunelordDwarf. Reference ONLY for anatomy, palette, clothing and brushwork. Variation: one pale healed diagonal scar. Output ONLY the requested isolated scar or paint marks, NO face, head, body or rectangular skin patch. Hand-painted dark fantasy strategy-game style matching reference. Preserve species anatomy and reference clothing coverage; never invent tusks absent from reference. Complete contour centered with transparent padding and genuine alpha background. No scenery, text, glow, fog or full portrait. Direct isolated-feature generation, never full-image cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-f41d6359-4a22-4fbc-9d4a-a0eb5ff51f0a.png",
+    "file": "scar-1-diagonal.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "RunelordDwarf.mesh",
+    "slot": "scar",
+    "n": 2,
+    "name": "scratches",
+    "prompt": "Generate a NEW standalone customization asset for an adult male RunelordDwarf. Reference ONLY for anatomy, palette, clothing and brushwork. Variation: three small parallel healed scratches; EXACTLY THREE separately visible parallel scars, count one, two, three. Output ONLY the requested isolated scar or paint marks, NO face, head, body or rectangular skin patch. Hand-painted dark fantasy strategy-game style matching reference. Preserve species anatomy and reference clothing coverage; never invent tusks absent from reference. Complete contour centered with transparent padding and genuine alpha background. No scenery, text, glow, fog or full portrait. Direct isolated-feature generation, never full-image cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-7d82cd40-0cf0-41c8-94bc-e6aa0f60eba3.png",
+    "file": "scar-2-scratches.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "RunelordDwarf.mesh",
+    "slot": "scar",
+    "n": 3,
+    "name": "warpaint",
+    "prompt": "Generate a NEW standalone customization asset for an adult male RunelordDwarf. Reference ONLY for anatomy, palette, clothing and brushwork. Variation: simple dark red war-paint streaks, no symbols. Output ONLY the requested isolated scar or paint marks, NO face, head, body or rectangular skin patch. Hand-painted dark fantasy strategy-game style matching reference. Preserve species anatomy and reference clothing coverage; never invent tusks absent from reference. Complete contour centered with transparent padding and genuine alpha background. No scenery, text, glow, fog or full portrait. Direct isolated-feature generation, never full-image cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-a68d5783-dd77-49de-a459-e6c5c5e89fd5.png",
+    "file": "scar-3-warpaint.png",
+    "method": "direct generation; unmodified file copy"
+  }
+]

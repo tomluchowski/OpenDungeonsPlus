@@ -1,0 +1,10 @@
+﻿{
+  "id": "RunelordDwarf.mesh-female",
+  "slot": "hair",
+  "n": 2,
+  "name": "waves",
+  "prompt": "Generate a NEW standalone customization asset for an adult female RunelordDwarf. Reference ONLY for anatomy, palette, clothing and brushwork. Variation: a fuller wavy hairstyle with the exact reference hair color and texture; only hair that can show outside any headwear; visibly different from swept-back hair: loose flowing waves, no ponytail or hair tie; ONLY two DISCONNECTED grey-white side hair strands that begin BELOW helmet sides; transparent gap between strands, absolutely NO upper scalp hair, NO crown, NO fringe, NO continuous wig or arch, NO helmet, no beard or moustache. Output ONLY isolated SCALP HAIR, NO beard, NO moustache, NO facial hair, NO head, NO face, NO skin, NO helmet, NO body. Hand-painted dark fantasy strategy-game style matching reference. Preserve species anatomy and reference clothing coverage; never invent tusks absent from reference. No beard or moustache. Complete contour centered with transparent padding and genuine alpha background. No scenery, text, glow, fog or full portrait. Direct isolated-feature generation, never full-image cropping.",
+  "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-317ce9b8-d065-422d-a608-297f4e9fa17e.png",
+  "file": "hair-2-waves.png",
+  "method": "direct generation; unmodified file copy"
+}

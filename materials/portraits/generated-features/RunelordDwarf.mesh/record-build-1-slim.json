@@ -1,0 +1,10 @@
+﻿{
+  "id": "RunelordDwarf.mesh",
+  "slot": "build",
+  "n": 1,
+  "name": "slim",
+  "prompt": "Generate a NEW standalone customization asset for an adult male RunelordDwarf. Reference ONLY for anatomy, palette, clothing and brushwork. Variation: a slimmer shoulder and chest build, preserving the exact reference clothing, colors and coverage. Output ONLY the isolated clothed shoulders and chest, NO head, face, hair or ears. Hand-painted dark fantasy strategy-game style matching reference. Preserve species anatomy and reference clothing coverage; never invent tusks absent from reference. Complete contour centered with transparent padding and genuine alpha background. No scenery, text, glow, fog or full portrait. Direct isolated-feature generation, never full-image cropping.",
+  "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-d3862467-7af1-47f9-a336-bf4a7b0568f2.png",
+  "file": "build-1-slim.png",
+  "method": "direct generation; unmodified file copy"
+}
