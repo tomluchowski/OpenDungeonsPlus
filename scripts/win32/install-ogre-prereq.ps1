@@ -1,5 +1,6 @@
 $ErrorActionPreference = 'Stop'
-$taskRoot = Join-Path $env:USERPROFILE 'od-deps'
+. (Join-Path $PSScriptRoot 'windows-paths.ps1')
+$taskRoot = $taskDependencyRoot
 $taskCmake = "$taskRoot\tools\cmake-3.31.8-windows-x86_64\bin\cmake.exe"
 $taskOptions = @('-S', "$taskRoot\src\ogre", '-B', "$taskRoot\build\ogre",
     '-G', 'Visual Studio 17 2022', '-A', 'x64', "-DCMAKE_INSTALL_PREFIX=$taskRoot\install",

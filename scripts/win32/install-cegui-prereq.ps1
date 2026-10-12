@@ -1,6 +1,6 @@
 $ErrorActionPreference = 'Stop'
-$taskRoot = Join-Path $env:USERPROFILE 'od-deps'
-$taskPythonRoot = (Join-Path $env:LOCALAPPDATA 'Programs\Python\Python310').Replace('\', '/')
+. (Join-Path $PSScriptRoot 'windows-paths.ps1')
+$taskRoot = $taskDependencyRoot
 $taskCmake = "$taskRoot\tools\cmake-3.31.8-windows-x86_64\bin\cmake.exe"
 $taskPatch = Join-Path $PSScriptRoot 'patches/cegui-msvc-snprintf.patch'
 $ErrorActionPreference = 'Continue'
@@ -27,7 +27,7 @@ $taskOptions = @('-S', "$taskRoot\src\cegui", '-B', "$taskRoot\build\cegui",
     "-DEXPAT_LIB_DBG=$taskRoot/install/lib/libexpatd.lib",
     "-DPCRE_LIB_DBG=$taskRoot/install/lib/pcred.lib",
     "-DBOOST_ROOT=$taskRoot/install", "-DBOOST_INCLUDEDIR=$taskRoot/install/include/boost-1_82",
-    "-DPYTHON_EXECUTABLE=$taskPythonRoot/python.exe")
+    "-DPYTHON_EXECUTABLE=$taskPythonCmakeRoot/python.exe")
 Write-Output 'Configuring CEGUI'
 $ErrorActionPreference = 'Continue'
 & $taskCmake @taskOptions *> "$taskRoot\logs\cegui-configure.log"
