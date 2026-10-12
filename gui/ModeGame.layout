@@ -194,7 +194,8 @@
             <Property name="Area" value="{{0,8},{1,-184},{0,52},{1,-140}}" />
             <Property name="NormalImage" value="OpenDungeonsIcons/HelpIcon" />
             <Property name="AlwaysOnTop" value="True" />
-            <Property name="TooltipText" value="Query: select, then click a creature to view its information" />
+            <Property name="TooltipText" value="Query" />
+            <UserString name="ContextHelp" value="Query: select, then click a creature to view its information" />
         </Window>
         <Window type="OD/MiniMapCornerButton" name="MiniMapZoomButton">
             <Property name="CornerBackground" value="OpenDungeonsIcons/MiniMapCorner3" />
@@ -204,7 +205,8 @@
             <Property name="Area" value="{{0,140},{1,-52},{0,184},{1,-8}}" />
             <Property name="NormalImage" value="OpenDungeonsIcons/MapZoom" />
             <Property name="AlwaysOnTop" value="True" />
-            <Property name="TooltipText" value="Minimap: left-click to zoom in, right-click to zoom out; M opens the map" />
+            <Property name="TooltipText" value="Minimap" />
+            <UserString name="ContextHelp" value="Minimap: left-click to zoom in, right-click to zoom out; M opens the map" />
         </Window>
         <LayoutImport type="DefaultWindow" filename="WindowMap.layout" name="MapImport" />
         <LayoutImport type="DefaultWindow" filename="WindowUserCameras.layout" name="UserCamerasImport" />
