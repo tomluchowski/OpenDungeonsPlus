@@ -499,3 +499,8 @@ opendungeons.appdata.xml               OD Team                 GPLv3+
 ====================================================
 
 materials/portraits/generated-features/ AI-generated with Codex  GPLv3+                  AI-generated isolated feature assets based on this project's portraits; exact prompts and source provenance are recorded in each portrait folder; original generator outputs preserved.
+materials/portraits/variants/Kobold.mesh*/*.png  AI-generated with Codex  GPLv3+  AI-generated source features; resized and positioned only from materials/portraits/generated-features/; originals preserved.
+materials/portraits/variants/Goblin.mesh*/*.png  AI-generated with Codex  GPLv3+  AI-generated source features; resized and positioned only from materials/portraits/generated-features/; originals preserved.
+materials/portraits/variants/Orc.mesh*/*.png  AI-generated with Codex  GPLv3+  AI-generated source features; resized and positioned only from materials/portraits/generated-features/; originals preserved.
+materials/portraits/variants/Dwarf1.mesh*/*.png  AI-generated with Codex  GPLv3+  AI-generated source features; resized and positioned only from materials/portraits/generated-features/; originals preserved.
+materials/portraits/variants/Dwarf2.mesh*/*.png  AI-generated with Codex  GPLv3+  AI-generated source features; resized and positioned only from materials/portraits/generated-features/; originals preserved.

@@ -1,0 +1,344 @@
+[
+  {
+    "method": "visible-alpha-v2",
+    "file": "build-1-slim.png",
+    "source": "materials/portraits/generated-features/Orc.mesh/build-1-slim.png",
+    "source_sha256": "6c749eed1f91074031fe8e89a6aa41fc5bec3a78257001f387b16caeed32a117",
+    "rect": [
+      0,
+      890,
+      887,
+      884
+    ],
+    "scale": 0.690809968847352,
+    "offset": [
+      -7.598909657320872,
+      -11.516744548286596
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "build-2-sturdy.png",
+    "source": "materials/portraits/generated-features/Orc.mesh/build-2-sturdy.png",
+    "source_sha256": "f754b1804961c1292d34b96670112dd578fd0083294b89c6060f5d659b305029",
+    "rect": [
+      0,
+      890,
+      887,
+      884
+    ],
+    "scale": 0.5854785478547855,
+    "offset": [
+      -5.2693069306930695,
+      126.71980198019801
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "ears-1-notched.png",
+    "source": "materials/portraits/generated-features/Orc.mesh/ears-1-notched.png",
+    "source_sha256": "9b1f5c0de6f273cb2fc6f6583b6b83dc093c49587686f2d04ba6aa8a66650799",
+    "rect": [
+      180,
+      350,
+      190,
+      255
+    ],
+    "scale": 0.17555555555555555,
+    "offset": [
+      -7.173333333333332,
+      17.777777777777786
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "ears-2-rounder.png",
+    "source": "materials/portraits/generated-features/Orc.mesh/ears-2-rounder.png",
+    "source_sha256": "f61ddfc979ffdbd12e5b91cda36439b3e41a54b25ba618f6b7eaa03196ebfb33",
+    "rect": [
+      180,
+      350,
+      190,
+      255
+    ],
+    "scale": 0.22636103151862463,
+    "offset": [
+      -48.965616045845266,
+      -11.259312320916898
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "eyes-1-narrow.png",
+    "source": "materials/portraits/generated-features/Orc.mesh/eyes-1-narrow.png",
+    "source_sha256": "ac432d2b6633daf3448c67b75f4a35a45298ec9998cb8d0aa9a12daa787b7fa6",
+    "rect": [
+      340,
+      425,
+      300,
+      140
+    ],
+    "scale": 0.16983523447401774,
+    "offset": [
+      -0.1343472750316863,
+      -6.086185044359947
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "eyes-2-round.png",
+    "source": "materials/portraits/generated-features/Orc.mesh/eyes-2-round.png",
+    "source_sha256": "eeb2278126e13da7da6a81c6a8ce198dd8cbf36f8c1cc06878d26c9f7d3857a7",
+    "rect": [
+      340,
+      425,
+      300,
+      140
+    ],
+    "scale": 0.1699429296131896,
+    "offset": [
+      -27.67533291058973,
+      5.08180088776157
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "eyes-3-eyepatch.png",
+    "source": "materials/portraits/generated-features/Orc.mesh/eyes-3-eyepatch.png",
+    "source_sha256": "c0ceeb6156b95d695267584b018f81101407870924b5d35179976a60d7540122",
+    "rect": [
+      340,
+      425,
+      300,
+      140
+    ],
+    "scale": 0.16822429906542055,
+    "offset": [
+      -0.47663551401868176,
+      -1.8317757009345783
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "nose-1-crooked.png",
+    "source": "materials/portraits/generated-features/Orc.mesh/nose-1-crooked.png",
+    "source_sha256": "05d1100eba5d0c1ec68f4cf413e26774c70380afea48f7f880b554ab9208db5b",
+    "rect": [
+      435,
+      500,
+      220,
+      150
+    ],
+    "scale": 0.15945945945945947,
+    "offset": [
+      -12.783783783783797,
+      -6.324324324324326
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "nose-2-broad.png",
+    "source": "materials/portraits/generated-features/Orc.mesh/nose-2-broad.png",
+    "source_sha256": "e2700a72b30bc74e60fcb488af9eecbd5d68b61e830d640cab6fb385e8b6be54",
+    "rect": [
+      435,
+      500,
+      220,
+      150
+    ],
+    "scale": 0.20665499124343256,
+    "offset": [
+      -48.81436077057792,
+      -29.464098073555164
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "mouth-1-teeth.png",
+    "source": "materials/portraits/generated-features/Orc.mesh/mouth-1-teeth.png",
+    "source_sha256": "b695ce37d3a092bbddd3568eb965bf9bec5de71ee87e22a70742761467a01790",
+    "rect": [
+      385,
+      597,
+      290,
+      125
+    ],
+    "scale": 0.13229018492176386,
+    "offset": [
+      25.872688477951648,
+      1.448079658605975
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "mouth-2-grin.png",
+    "source": "materials/portraits/generated-features/Orc.mesh/mouth-2-grin.png",
+    "source_sha256": "8f57bf6b9c1195fad8acaf0f615a0992c39a353d5cfd64b80dad714931ef0173",
+    "rect": [
+      385,
+      597,
+      290,
+      125
+    ],
+    "scale": 0.1218872870249017,
+    "offset": [
+      51.146788990825684,
+      -3.745740498034074
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "mouth-3-cigar.png",
+    "source": "materials/portraits/generated-features/Orc.mesh/mouth-3-cigar.png",
+    "source_sha256": "09204bb9368570f60a8252b5cd3ec720306f40ce00f2de85b5fb32f72d4ae2d4",
+    "rect": [
+      385,
+      597,
+      290,
+      125
+    ],
+    "scale": 0.12269129287598944,
+    "offset": [
+      49.91424802110818,
+      -3.3852242744063332
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "chin-1-square.png",
+    "source": "materials/portraits/generated-features/Orc.mesh/chin-1-square.png",
+    "source_sha256": "fdd041915008ac5c33968695543dee98b36a34d94e0a1dd40eee8966ecf47c33",
+    "rect": [
+      330,
+      695,
+      320,
+      140
+    ],
+    "scale": 0.13027744270205066,
+    "offset": [
+      71.34620024125452,
+      -8.361881785283472
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "chin-2-rounded.png",
+    "source": "materials/portraits/generated-features/Orc.mesh/chin-2-rounded.png",
+    "source_sha256": "41c4eb073ecd57dd853425c72cfaef8128566c6a0d934617d71a7dd501706d8d",
+    "rect": [
+      330,
+      695,
+      320,
+      140
+    ],
+    "scale": 0.13881748071979436,
+    "offset": [
+      53.31876606683804,
+      -3.15681233933163
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "scar-1-diagonal.png",
+    "source": "materials/portraits/generated-features/Orc.mesh/scar-1-diagonal.png",
+    "source_sha256": "9c732b979efb62cbcb159adb749222de34ff90375072d133807b4c81d2c3ff79",
+    "rect": [
+      300,
+      485,
+      190,
+      150
+    ],
+    "scale": 0.08625730994152046,
+    "offset": [
+      46.35087719298246,
+      14.619883040935672
+    ],
+    "visual_acceptance": "native-review-pending"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "scar-2-scratches.png",
+    "source": "materials/portraits/generated-features/Orc.mesh/scar-2-scratches.png",
+    "source_sha256": "466d3f3840030de4448db13230465cff4158ab38b52f0b8e68bf90478d552db5",
+    "rect": [
+      300,
+      485,
+      190,
+      150
+    ],
+    "scale": 0.12114989733059549,
+    "offset": [
+      21.64373716632443,
+      -8.71457905544148
+    ],
+    "visual_acceptance": "native-review-pending"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "scar-3-warpaint.png",
+    "source": "materials/portraits/generated-features/Orc.mesh/scar-3-warpaint.png",
+    "source_sha256": "2922c097d61eca06580371b8a4ab285528788313a595717692308fe5fee39cdb",
+    "rect": [
+      300,
+      485,
+      190,
+      150
+    ],
+    "scale": 0.09760132340777503,
+    "offset": [
+      32.8767576509512,
+      12.974358974358974
+    ],
+    "visual_acceptance": "native-review-pending"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "neck-1-teeth.png",
+    "source": "materials/portraits/generated-features/Orc.mesh/neck-1-teeth.png",
+    "source_sha256": "3984bd1c68e9eb93f4c7e53f68a4e22b4b2a1bda2417cf907939e388f04a21e4",
+    "rect": [
+      250,
+      820,
+      400,
+      240
+    ],
+    "scale": 0.23690205011389523,
+    "offset": [
+      18.059225512528478,
+      4.865603644646924
+    ],
+    "visual_acceptance": "native-review-pending"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "neck-2-torque.png",
+    "source": "materials/portraits/generated-features/Orc.mesh/neck-2-torque.png",
+    "source_sha256": "d89599ec48db883ea70a77db6ed0c9fd01be66d102530ee16c101eb5256dbda7",
+    "rect": [
+      250,
+      820,
+      400,
+      240
+    ],
+    "scale": 0.2877247849882721,
+    "offset": [
+      -21.116497263487098,
+      -27.45895230648945
+    ],
+    "visual_acceptance": "needs-correction"
+  }
+]

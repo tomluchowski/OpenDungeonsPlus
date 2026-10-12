@@ -1,0 +1,344 @@
+[
+  {
+    "method": "visible-alpha-v2",
+    "file": "build-1-slim.png",
+    "source": "materials/portraits/generated-features/Kobold.mesh/build-1-slim.png",
+    "source_sha256": "867ead724953f688804db2ae3f04af9a720923495dc9bcea4416b3d1720958f3",
+    "rect": [
+      0,
+      810,
+      887,
+      964
+    ],
+    "scale": 0.6436865021770682,
+    "offset": [
+      -19.954281567489115,
+      116.70791001451376
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "build-2-sturdy.png",
+    "source": "materials/portraits/generated-features/Kobold.mesh/build-2-sturdy.png",
+    "source_sha256": "9c77c6e90713f4530931cc7da1acb8df2463de19fc011092f8a7d512a9a79321",
+    "rect": [
+      0,
+      810,
+      887,
+      964
+    ],
+    "scale": 0.6781345565749235,
+    "offset": [
+      -2.0344036697247136,
+      71.05045871559638
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "ears-1-notched.png",
+    "source": "materials/portraits/generated-features/Kobold.mesh/ears-1-notched.png",
+    "source_sha256": "6244cd830c29f2833c81eff2f960a23736b60a703d8bc3675069ce6b18013d14",
+    "rect": [
+      70,
+      335,
+      250,
+      300
+    ],
+    "scale": 0.21303656597774245,
+    "offset": [
+      5.273449920508746,
+      -5.0906200317965045
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "ears-2-rounder.png",
+    "source": "materials/portraits/generated-features/Kobold.mesh/ears-2-rounder.png",
+    "source_sha256": "e0e945a0789c4400e44ff802620cb640d53b1edf9d396bf942534805fc36b3e8",
+    "rect": [
+      70,
+      335,
+      250,
+      300
+    ],
+    "scale": 0.2809224318658281,
+    "offset": [
+      -35.26624737945494,
+      -36.532494758909856
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "eyes-1-narrow.png",
+    "source": "materials/portraits/generated-features/Kobold.mesh/eyes-1-narrow.png",
+    "source_sha256": "00a6d48081546ab5a42c5d8aadc144e5943fababd7b529548b35fbfa20b86b8d",
+    "rect": [
+      245,
+      465,
+      390,
+      150
+    ],
+    "scale": 0.22264150943396227,
+    "offset": [
+      -3.039622641509446,
+      -26.301886792452834
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "eyes-2-round.png",
+    "source": "materials/portraits/generated-features/Kobold.mesh/eyes-2-round.png",
+    "source_sha256": "37c2bc04bbe2c30648fa43e1b668b72dd5b7f8c2255738116a531b76bb5f7de8",
+    "rect": [
+      245,
+      465,
+      390,
+      150
+    ],
+    "scale": 0.20379965457685664,
+    "offset": [
+      14.127806563039734,
+      -17.8307426597582
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "eyes-3-eyepatch.png",
+    "source": "materials/portraits/generated-features/Kobold.mesh/eyes-3-eyepatch.png",
+    "source_sha256": "65a1cf64a0822facf0839d897c4a85f32ea739afd94d987e1a5badf5d04196b4",
+    "rect": [
+      245,
+      465,
+      390,
+      150
+    ],
+    "scale": 0.2062937062937063,
+    "offset": [
+      9.232517482517487,
+      -17.213286713286713
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "nose-1-crooked.png",
+    "source": "materials/portraits/generated-features/Kobold.mesh/nose-1-crooked.png",
+    "source_sha256": "cace8a4bbbac981ee47da82f53c152bdd4b60a49eef6b7ce579ee7d446a32cfa",
+    "rect": [
+      410,
+      560,
+      180,
+      150
+    ],
+    "scale": 0.12291666666666666,
+    "offset": [
+      3.7125000000000057,
+      5.675000000000001
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "nose-2-broad.png",
+    "source": "materials/portraits/generated-features/Kobold.mesh/nose-2-broad.png",
+    "source_sha256": "4f51df5d834992beb76f90ec1b1b1c4ea04d3b23a68a96ee8fdcc3b5d8d8590c",
+    "rect": [
+      410,
+      560,
+      180,
+      150
+    ],
+    "scale": 0.155467720685112,
+    "offset": [
+      -29.32147562582346,
+      -1.1014492753623202
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "mouth-1-teeth.png",
+    "source": "materials/portraits/generated-features/Kobold.mesh/mouth-1-teeth.png",
+    "source_sha256": "ec81f396880c97190bb641b0b9a0691960313cf8a2dc96dc25835b38d9e2f3ea",
+    "rect": [
+      295,
+      660,
+      370,
+      130
+    ],
+    "scale": 0.14871016691957512,
+    "offset": [
+      70.41881638846738,
+      -11.95751138088012
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "mouth-2-grin.png",
+    "source": "materials/portraits/generated-features/Kobold.mesh/mouth-2-grin.png",
+    "source_sha256": "66184a4b47f0bd117a82246973409a3550f85434287ad6834389b503a0db091b",
+    "rect": [
+      295,
+      660,
+      370,
+      130
+    ],
+    "scale": 0.16415410385259632,
+    "offset": [
+      39.64154103852596,
+      -8.294807370184255
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "mouth-3-cigar.png",
+    "source": "materials/portraits/generated-features/Kobold.mesh/mouth-3-cigar.png",
+    "source_sha256": "6fc4356ccaac6820a58cc1716e4c975db8f520806e115d3959558c98766f1f84",
+    "rect": [
+      295,
+      660,
+      370,
+      130
+    ],
+    "scale": 0.14803625377643503,
+    "offset": [
+      50.6570996978852,
+      0.16012084592145825
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "chin-1-forked.png",
+    "source": "materials/portraits/generated-features/Kobold.mesh/chin-1-forked.png",
+    "source_sha256": "03b4781089b8c0fcb4ee1a6cabcc481d9cf6eaeea17c29eb8c04badeb559e8c9",
+    "rect": [
+      320,
+      750,
+      290,
+      160
+    ],
+    "scale": 0.1350210970464135,
+    "offset": [
+      45.48945147679326,
+      7.22362869198313
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "chin-2-braided.png",
+    "source": "materials/portraits/generated-features/Kobold.mesh/chin-2-braided.png",
+    "source_sha256": "e1e9063f402d23df27904929dfdff51f70f7ba59bb6003f9f56e9384b0ee57a8",
+    "rect": [
+      320,
+      750,
+      290,
+      160
+    ],
+    "scale": 0.1514792899408284,
+    "offset": [
+      27.755029585798823,
+      6.456804733727811
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "scar-1-diagonal.png",
+    "source": "materials/portraits/generated-features/Kobold.mesh/scar-1-diagonal.png",
+    "source_sha256": "8d9e14bad26c76b6a82c109cf058f678fc09a1d88ce1c6edf1a712d19d0902e7",
+    "rect": [
+      230,
+      525,
+      200,
+      150
+    ],
+    "scale": 0.13024282560706402,
+    "offset": [
+      -1.0033112582781456,
+      7.403973509933774
+    ],
+    "visual_acceptance": "native-review-pending"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "scar-2-scratches.png",
+    "source": "materials/portraits/generated-features/Kobold.mesh/scar-2-scratches.png",
+    "source_sha256": "fc64477db5c5e19f7ebb93299975434476fdaf2fa787245cd7782c6e71075987",
+    "rect": [
+      230,
+      525,
+      200,
+      150
+    ],
+    "scale": 0.15712383488681758,
+    "offset": [
+      -26.9560585885486,
+      -8.825565912117177
+    ],
+    "visual_acceptance": "native-review-pending"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "scar-3-warpaint.png",
+    "source": "materials/portraits/generated-features/Kobold.mesh/scar-3-warpaint.png",
+    "source_sha256": "3260333c07e3e173b83afb35635c75c21300e06f48a739c3be527f940c7e08f3",
+    "rect": [
+      230,
+      525,
+      200,
+      150
+    ],
+    "scale": 0.16643159379407615,
+    "offset": [
+      -40.05218617771508,
+      -13.791255289139631
+    ],
+    "visual_acceptance": "native-review-pending"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "neck-1-teeth.png",
+    "source": "materials/portraits/generated-features/Kobold.mesh/neck-1-teeth.png",
+    "source_sha256": "0ea5d81e9638c014390b469cf3e98e8adf24c6475f16c7652938f7fc5ff2b27a",
+    "rect": [
+      235,
+      810,
+      420,
+      250
+    ],
+    "scale": 0.2361863488624052,
+    "offset": [
+      42.42578548212352,
+      -5.965330444203683
+    ],
+    "visual_acceptance": "native-review-pending"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "neck-2-torque.png",
+    "source": "materials/portraits/generated-features/Kobold.mesh/neck-2-torque.png",
+    "source_sha256": "ea63479930a62f203116b9c4c94a9d816b2a789a64d680709c6a623cce642308",
+    "rect": [
+      235,
+      810,
+      420,
+      250
+    ],
+    "scale": 0.23803680981595093,
+    "offset": [
+      -1.1386503067484668,
+      18.83558282208589
+    ],
+    "visual_acceptance": "needs-correction"
+  }
+]

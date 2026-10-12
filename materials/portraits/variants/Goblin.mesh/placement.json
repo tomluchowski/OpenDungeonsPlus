@@ -1,0 +1,344 @@
+[
+  {
+    "method": "visible-alpha-v2",
+    "file": "build-1-slim.png",
+    "source": "materials/portraits/generated-features/Goblin.mesh/build-1-slim.png",
+    "source_sha256": "c3c0fb8ecd5edc5f32d288245462b34204d96de787db4121ac534da5589c014a",
+    "rect": [
+      0,
+      865,
+      887,
+      909
+    ],
+    "scale": 0.7416387959866221,
+    "offset": [
+      -60.81438127090301,
+      3.5836120401338007
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "build-2-sturdy.png",
+    "source": "materials/portraits/generated-features/Goblin.mesh/build-2-sturdy.png",
+    "source_sha256": "fae509977d9ff148187c3d28c411c2ca0d6a8c139b429d8563004a237e34b044",
+    "rect": [
+      0,
+      865,
+      887,
+      909
+    ],
+    "scale": 0.6465014577259475,
+    "offset": [
+      -32.32507288629731,
+      84.70116618075805
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "ears-1-notched.png",
+    "source": "materials/portraits/generated-features/Goblin.mesh/ears-1-notched.png",
+    "source_sha256": "566cd8b0d5c2ddd2da3217617f0a70b69f6f356ed1bae74fc0c483216eec5ca2",
+    "rect": [
+      35,
+      210,
+      250,
+      470
+    ],
+    "scale": 0.2694684796044499,
+    "offset": [
+      -24.15080346106302,
+      31.55129789864032
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "ears-2-rounder.png",
+    "source": "materials/portraits/generated-features/Goblin.mesh/ears-2-rounder.png",
+    "source_sha256": "307e7c407751da116a2cd71c0129026f63fb18a058f73b1a6023d57ec73b3dac",
+    "rect": [
+      35,
+      210,
+      250,
+      470
+    ],
+    "scale": 0.3348694316436252,
+    "offset": [
+      -82.11674347158218,
+      -10.794162826420902
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "eyes-1-narrow.png",
+    "source": "materials/portraits/generated-features/Goblin.mesh/eyes-1-narrow.png",
+    "source_sha256": "3a1b6ecffc0fced350bd916d62a96c238e2fdd0fa40e72cd6ffe527599a6f719",
+    "rect": [
+      292,
+      445,
+      335,
+      170
+    ],
+    "scale": 0.20781893004115226,
+    "offset": [
+      -57.775720164609055,
+      7.587448559670779
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "eyes-2-round.png",
+    "source": "materials/portraits/generated-features/Goblin.mesh/eyes-2-round.png",
+    "source_sha256": "070a2e0bbd55cac2c2c602b959dd06d7e046a376dab2c52a597de464efb87487",
+    "rect": [
+      292,
+      445,
+      335,
+      170
+    ],
+    "scale": 0.21144452198185626,
+    "offset": [
+      -62.65736217725053,
+      7.611304954640607
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "eyes-3-eyepatch.png",
+    "source": "materials/portraits/generated-features/Goblin.mesh/eyes-3-eyepatch.png",
+    "source_sha256": "72fbd0b0809e35213c7ec2369f473efd0947914de55bac6e6dfc073bb11614f0",
+    "rect": [
+      292,
+      445,
+      335,
+      170
+    ],
+    "scale": 0.18523489932885906,
+    "offset": [
+      2.9187919463087297,
+      8.775838926174497
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "nose-1-crooked.png",
+    "source": "materials/portraits/generated-features/Goblin.mesh/nose-1-crooked.png",
+    "source_sha256": "1ead9546af78025510cef085c219814f0f153758d512f7f5188e35babafab996",
+    "rect": [
+      410,
+      570,
+      150,
+      190
+    ],
+    "scale": 0.15881561238223418,
+    "offset": [
+      -47.20861372812921,
+      13.527590847913867
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "nose-2-broad.png",
+    "source": "materials/portraits/generated-features/Goblin.mesh/nose-2-broad.png",
+    "source_sha256": "e451057bf9ac748bac3aa1ffc3dce9b1974a0f068d5780dabd28ebfdc6a03c47",
+    "rect": [
+      410,
+      570,
+      150,
+      190
+    ],
+    "scale": 0.13752913752913754,
+    "offset": [
+      -30.622377622377627,
+      24.585081585081582
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "mouth-1-teeth.png",
+    "source": "materials/portraits/generated-features/Goblin.mesh/mouth-1-teeth.png",
+    "source_sha256": "35c4df54974ce67912f93be297ee1ff558c7af4947a1b8d48002225f55008b5c",
+    "rect": [
+      300,
+      680,
+      370,
+      140
+    ],
+    "scale": 0.1700787401574803,
+    "offset": [
+      34.140157480314954,
+      -4.91968503937008
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "mouth-2-grin.png",
+    "source": "materials/portraits/generated-features/Goblin.mesh/mouth-2-grin.png",
+    "source_sha256": "cdaa960b62fe9a4b8e77dec248ef18cf3972ce9ebecea2d7c47cef1f3faf06b1",
+    "rect": [
+      300,
+      680,
+      370,
+      140
+    ],
+    "scale": 0.13090909090909092,
+    "offset": [
+      68.81818181818181,
+      11.41818181818181
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "mouth-3-cigar.png",
+    "source": "materials/portraits/generated-features/Goblin.mesh/mouth-3-cigar.png",
+    "source_sha256": "25afa9d83ae8282d7c907ec6fea23d37e67327c90360220d176668960a4540d5",
+    "rect": [
+      300,
+      680,
+      370,
+      140
+    ],
+    "scale": 0.17335473515248795,
+    "offset": [
+      27.5072231139647,
+      -7.229534510433378
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "chin-1-square.png",
+    "source": "materials/portraits/generated-features/Goblin.mesh/chin-1-square.png",
+    "source_sha256": "d7483e482030b4fb118ec995656112b67dde4c51918c43a715c5b37bce3c6c05",
+    "rect": [
+      347,
+      745,
+      275,
+      180
+    ],
+    "scale": 0.20149253731343283,
+    "offset": [
+      -19.059701492537314,
+      1.746268656716424
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "chin-2-rounded.png",
+    "source": "materials/portraits/generated-features/Goblin.mesh/chin-2-rounded.png",
+    "source_sha256": "e0ea78b6b5fe4b603bc91343f011e3c60b9e2778ebb2580d065614a13b31a149",
+    "rect": [
+      347,
+      745,
+      275,
+      180
+    ],
+    "scale": 0.17381974248927037,
+    "offset": [
+      4.87553648068671,
+      7.17489270386266
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "scar-1-diagonal.png",
+    "source": "materials/portraits/generated-features/Goblin.mesh/scar-1-diagonal.png",
+    "source_sha256": "3f2290fb062458158121de5a7177af03be18ac8191c5b1ce6ee4eb1918f364d7",
+    "rect": [
+      235,
+      565,
+      200,
+      170
+    ],
+    "scale": 0.12180052956751986,
+    "offset": [
+      25.153574580759045,
+      7.1085613415710505
+    ],
+    "visual_acceptance": "native-review-pending"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "scar-2-scratches.png",
+    "source": "materials/portraits/generated-features/Goblin.mesh/scar-2-scratches.png",
+    "source_sha256": "b8f42d8ebe43289e4b33418bf8ced88efda16c61208acc137c2ba7cbb599ef72",
+    "rect": [
+      235,
+      565,
+      200,
+      170
+    ],
+    "scale": 0.16911764705882354,
+    "offset": [
+      -37.915441176470594,
+      -1.0808823529411775
+    ],
+    "visual_acceptance": "native-review-pending"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "scar-3-warpaint.png",
+    "source": "materials/portraits/generated-features/Goblin.mesh/scar-3-warpaint.png",
+    "source_sha256": "acdca804ef5cb641486ccf9d66b84b8a4b5bba835689829a0fcd83fbf78174d7",
+    "rect": [
+      235,
+      565,
+      200,
+      170
+    ],
+    "scale": 0.12909260991580918,
+    "offset": [
+      27.51449953227315,
+      -0.00748362956033688
+    ],
+    "visual_acceptance": "native-review-pending"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "neck-1-teeth.png",
+    "source": "materials/portraits/generated-features/Goblin.mesh/neck-1-teeth.png",
+    "source_sha256": "e52452e377f76462400ece63f011e6795aad01e7ea8943be8f9336ce55e4adae",
+    "rect": [
+      275,
+      855,
+      350,
+      220
+    ],
+    "scale": 0.20346320346320346,
+    "offset": [
+      19.24891774891777,
+      6.640692640692642
+    ],
+    "visual_acceptance": "native-review-pending"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "neck-2-torque.png",
+    "source": "materials/portraits/generated-features/Goblin.mesh/neck-2-torque.png",
+    "source_sha256": "b449ab7fc3d083961835613a4818e4304a3f79a4dc6bf001879f15de1a5d90ca",
+    "rect": [
+      275,
+      855,
+      350,
+      220
+    ],
+    "scale": 0.2245762711864407,
+    "offset": [
+      2.525423728813559,
+      -5.881355932203402
+    ],
+    "visual_acceptance": "needs-correction"
+  }
+]
