@@ -14,7 +14,14 @@ bool Keyboard::isModifierDown(OIS::Keyboard::Modifier code)
         case OIS::Keyboard::Alt:
             return sf::Keyboard::isKeyPressed(sf::Keyboard::LAlt) || sf::Keyboard::isKeyPressed(sf::Keyboard::RAlt);
         case OIS::Keyboard::Ctrl:
-            return sf::Keyboard::isKeyPressed(sf::Keyboard::LControl) || sf::Keyboard::isKeyPressed(sf::Keyboard::RControl);
+        {
+            // AltGr (right Alt on layouts that have it) is reported by Windows as LControl plus RAlt.
+            // A left Control that is only held together with the right Alt is that fake Control and
+            // must not trigger the Ctrl shortcuts; a real right Control still counts.
+            const bool rightAltDown = sf::Keyboard::isKeyPressed(sf::Keyboard::RAlt);
+            const bool leftControlDown = sf::Keyboard::isKeyPressed(sf::Keyboard::LControl) && !rightAltDown;
+            return leftControlDown || sf::Keyboard::isKeyPressed(sf::Keyboard::RControl);
+        }
         case OIS::Keyboard::Shift:
             return sf::Keyboard::isKeyPressed(sf::Keyboard::LShift) || sf::Keyboard::isKeyPressed(sf::Keyboard::RShift);
         default:
