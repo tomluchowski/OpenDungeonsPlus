@@ -55,3 +55,36 @@ September 7, 2026, including an output path containing spaces. These checks
 validate the existing export path; artistic acceptance of future illustrated
 portraits remains separate. Linux and other render plugins are not validated
 by this Windows wrapper.
+The individual audit records each existing file, its visible observation, cause or uncertainty, required action and local comparison evidence.
+`reviewed-local-only` means no obvious defect in that single-option comparison; it does not mean final combined acceptance.
+Correction flags concern current composites, including unresolved appearance differences; they do not count required regenerations.
+
+## Neutral-base registration and frozen manifest contract
+
+`prepare_neutral_bases.py` writes 34 separate 887x1774 delivery copies and provenance;
+only the last row is repeated for the two short canvases, preserving every source pixel.
+`prepare_neutral_features.py --portrait <catalog-id>` registers existing isolated sources
+using `neutral-feature-layouts.json` and writes candidate patches and evidence under
+`materials/portraits/neutral-variants/`; repeat the option to process a creature pair.
+`validate_neutral_features.py` checks original hashes, preserved base pixels and candidate
+dimensions, without granting visual acceptance.
+`python scripts/check_portrait_manifests.py` checks the final completion contract under
+`materials/portraits/variants/` using only the Python standard library; optional repeated
+`--portrait` arguments limit it to pilot images. It requires neutral Base references,
+a full-canvas outfit slot with at least one option, the current draw order, and the
+four existing helmets for Knight/Cultist. Only Base, Slot and Option rows are allowed;
+helmet damage is clipped in the delivered scar alpha, not by an extra manifest row.
+Every source option must appear in the native and 50x100 composite checks.
+`prepare_outfit_variants.py` derives registration copies without modifying generator files;
+`deliver_neutral_variants.py` copies final options into their catalog folders;
+`render_manifest_reviews.py` composes exactly the delivered manifest order;
+`verify_portrait_sources.py` checks the independent source hashes.
+These asset/tool changes do not change runtime behavior or require a runtime version bump.
+
+`render_native_check_sheets.py --portrait <catalog-id>` records six literal-manifest combinations covering every option, with unresampled face/body panels and twelve 50x100 previews. `visual-acceptance.json` records acceptance only after visual inspection and ties it to the delivered file hashes; the neutral validator rejects stale acceptance records.
+
+`measure_base_tints.py` measures species-colour pixels in each actual neutral base,
+writes normalized skin bounds to `config/dungeonbook-base-tints.cfg`, and records
+pixel bounds and source hashes in `base-tint-measurements.json`. All inspected
+bases have blank faces and no hair or beard; absent regions are recorded without
+inventing boxes from feature placement. Tint shifts remain neutral.

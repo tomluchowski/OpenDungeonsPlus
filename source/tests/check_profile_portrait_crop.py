@@ -13,7 +13,9 @@ appearance = (root / 'source/render/CreatureAppearancePicture.cpp').read_text()
 portrait = (root / 'source/render/CreaturePortrait.cpp').read_text()
 assert 'image.setArea(getProfilePortraitArea(static_cast<float>(width), static_cast<float>(height)))' in appearance
 profile = portrait[portrait.index('const CEGUI::Image& getCreatureProfilePortraitImage('):]
-assert profile.count('return getProfileFallbackImage(portraitKey);') == 2
+# The fallback is asked with the portrait key, which is the mesh name while there are no gender portraits
+assert (profile.count('return getProfileFallbackImage(portraitKey);') +
+        profile.count('return getProfileFallbackImage(meshName);')) == 2
 assert 'image.setArea(getProfilePortraitArea(static_cast<float>(width), static_cast<float>(height)))' in profile
 fallback = portrait[portrait.index('const CEGUI::Image& getProfileFallbackImage('):portrait.index('struct PortraitScene')]
 assert 'image.setArea(getProfilePortraitArea(size.d_width, size.d_height))' in fallback
