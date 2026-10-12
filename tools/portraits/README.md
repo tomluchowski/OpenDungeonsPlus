@@ -55,3 +55,11 @@ September 7, 2026, including an output path containing spaces. These checks
 validate the existing export path; artistic acceptance of future illustrated
 portraits remains separate. Linux and other render plugins are not validated
 by this Windows wrapper.
+
+
+## Existing isolated feature placement
+
+`prepare_existing_features.py` reads the existing isolated feature PNGs and the tracked feature catalog/layouts; it writes derived RGBA patches and manifests under `materials/portraits/variants/`, and local review composites under `work/existing-feature-review/`.
+It uses the same already available Pillow dependency as the grid helper and does not call an image-generation service or modify its input PNGs.
+Run `python tools/portraits/validate_existing_features.py` to check the delivery contract, source/base hashes and correction statuses.
+See the [delivery report](../../materials/portraits/variants/README.md) for known fit failures and the limits of technical validation.

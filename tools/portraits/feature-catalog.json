@@ -1,0 +1,4066 @@
+[
+  {
+    "id": "Kobold.mesh",
+    "mesh": "Kobold",
+    "gender": "male",
+    "reference": "materials/textures/portrait-Kobold.mesh.png",
+    "jobs": [
+      {
+        "slot": "build",
+        "n": 1,
+        "name": "slim",
+        "desc": "a slimmer upper torso and chest, same brown leather straps and clothing coverage; keep the torso geometry unchanged at the top edge of the region"
+      },
+      {
+        "slot": "build",
+        "n": 2,
+        "name": "sturdy",
+        "desc": "a sturdier upper torso and chest, same brown leather straps and clothing coverage; keep the torso geometry unchanged at the top edge of the region"
+      },
+      {
+        "slot": "ears",
+        "n": 1,
+        "name": "notched",
+        "desc": "the large visible ear on the left of the image with a small healed notch in its pointed tip, same violet skin"
+      },
+      {
+        "slot": "ears",
+        "n": 2,
+        "name": "rounder",
+        "desc": "the large visible ear on the left of the image with a slightly shorter and rounder tip, same violet skin"
+      },
+      {
+        "slot": "eyes",
+        "n": 1,
+        "name": "narrow",
+        "desc": "narrow suspicious glowing golden eyes under heavy lids and thick pale brows"
+      },
+      {
+        "slot": "eyes",
+        "n": 2,
+        "name": "round",
+        "desc": "rounder alert glowing golden eyes with slightly raised pale brows"
+      },
+      {
+        "slot": "eyes",
+        "n": 3,
+        "name": "eyepatch",
+        "desc": "a small worn dark leather eye patch over the eye on the left of the image, short strap following the brow entirely inside the eye region"
+      },
+      {
+        "slot": "nose",
+        "n": 1,
+        "name": "crooked",
+        "desc": "a crooked violet hooked nose with a healed bump"
+      },
+      {
+        "slot": "nose",
+        "n": 2,
+        "name": "broad",
+        "desc": "a broader flatter violet nose with wider nostrils"
+      },
+      {
+        "slot": "mouth",
+        "n": 1,
+        "name": "teeth",
+        "desc": "a tight crooked grin showing fewer, more uneven ivory teeth"
+      },
+      {
+        "slot": "mouth",
+        "n": 2,
+        "name": "grin",
+        "desc": "a wider lopsided grin with smaller pointed ivory teeth"
+      },
+      {
+        "slot": "mouth",
+        "n": 3,
+        "name": "cigar",
+        "desc": "a short fat brown cigar clamped in the corner of the grin, wholly within the mouth region, no smoke outside the region"
+      },
+      {
+        "slot": "chin",
+        "n": 1,
+        "name": "forked",
+        "desc": "a short dark forked beard with two tapered ends, preserving the original moustache above the region"
+      },
+      {
+        "slot": "chin",
+        "n": 2,
+        "name": "braided",
+        "desc": "a short dark beard with two small braids tied by plain iron rings, preserving the original moustache above the region"
+      },
+      {
+        "slot": "scar",
+        "n": 1,
+        "name": "diagonal",
+        "desc": "a thin pale healed diagonal scar on the cheek on the left of the image"
+      },
+      {
+        "slot": "scar",
+        "n": 2,
+        "name": "scratches",
+        "desc": "two short pale healed scratches on the cheek on the left of the image"
+      },
+      {
+        "slot": "scar",
+        "n": 3,
+        "name": "warpaint",
+        "desc": "a small dark russet war paint smear on the cheek on the left of the image, no symbols"
+      },
+      {
+        "slot": "neck",
+        "n": 1,
+        "name": "teeth",
+        "desc": "a short dark cord necklace with three small yellowed animal teeth, entirely within the neck region"
+      },
+      {
+        "slot": "neck",
+        "n": 2,
+        "name": "torque",
+        "desc": "a plain aged bronze neck torque, no symbols, entirely within the neck region"
+      }
+    ]
+  },
+  {
+    "id": "Kobold.mesh-female",
+    "mesh": "Kobold",
+    "gender": "female",
+    "reference": "materials/textures/portrait-Kobold.mesh-female.png",
+    "jobs": [
+      {
+        "slot": "build",
+        "n": 1,
+        "name": "slim",
+        "desc": "a slimmer upper torso and chest, same brown leather straps and clothing coverage; keep the torso geometry unchanged at the top edge of the region; modest bust size variation under the same fully covering brown leather wrapping, original neckline unchanged"
+      },
+      {
+        "slot": "build",
+        "n": 2,
+        "name": "sturdy",
+        "desc": "a sturdier upper torso and chest, same brown leather straps and clothing coverage; keep the torso geometry unchanged at the top edge of the region; modest bust size variation under the same fully covering brown leather wrapping, original neckline unchanged"
+      },
+      {
+        "slot": "hair",
+        "n": 1,
+        "name": "swept",
+        "desc": "a smoother swept-back dark violet ponytail crown, preserving the original long ponytail below the region and its brown leather tie"
+      },
+      {
+        "slot": "hair",
+        "n": 2,
+        "name": "waves",
+        "desc": "a fuller wavy dark violet ponytail crown, preserving the original long ponytail below the region and its brown leather tie"
+      },
+      {
+        "slot": "ears",
+        "n": 1,
+        "name": "notched",
+        "desc": "the large visible ear on the left of the image with a small healed notch in its pointed tip, same violet skin"
+      },
+      {
+        "slot": "ears",
+        "n": 2,
+        "name": "rounder",
+        "desc": "the large visible ear on the left of the image with a slightly shorter and rounder tip, same violet skin"
+      },
+      {
+        "slot": "eyes",
+        "n": 1,
+        "name": "narrow",
+        "desc": "narrow suspicious glowing golden eyes under heavy lids and thick pale brows"
+      },
+      {
+        "slot": "eyes",
+        "n": 2,
+        "name": "round",
+        "desc": "rounder alert glowing golden eyes with slightly raised pale brows"
+      },
+      {
+        "slot": "eyes",
+        "n": 3,
+        "name": "eyepatch",
+        "desc": "a small worn dark leather eye patch over the eye on the left of the image, short strap following the brow entirely inside the eye region"
+      },
+      {
+        "slot": "nose",
+        "n": 1,
+        "name": "crooked",
+        "desc": "a crooked violet hooked nose with a healed bump"
+      },
+      {
+        "slot": "nose",
+        "n": 2,
+        "name": "broad",
+        "desc": "a broader flatter violet nose with wider nostrils"
+      },
+      {
+        "slot": "mouth",
+        "n": 1,
+        "name": "teeth",
+        "desc": "a tight crooked grin showing fewer, more uneven ivory teeth"
+      },
+      {
+        "slot": "mouth",
+        "n": 2,
+        "name": "grin",
+        "desc": "a wider lopsided grin with smaller pointed ivory teeth"
+      },
+      {
+        "slot": "mouth",
+        "n": 3,
+        "name": "cigar",
+        "desc": "a short fat brown cigar clamped in the corner of the grin, wholly within the mouth region, no smoke outside the region"
+      },
+      {
+        "slot": "chin",
+        "n": 1,
+        "name": "square",
+        "desc": "a slightly squarer violet chin and jaw, no beard"
+      },
+      {
+        "slot": "chin",
+        "n": 2,
+        "name": "rounded",
+        "desc": "a softer rounded violet chin and jaw, no beard"
+      },
+      {
+        "slot": "scar",
+        "n": 1,
+        "name": "diagonal",
+        "desc": "a thin pale healed diagonal scar on the cheek on the left of the image"
+      },
+      {
+        "slot": "scar",
+        "n": 2,
+        "name": "scratches",
+        "desc": "two short pale healed scratches on the cheek on the left of the image"
+      },
+      {
+        "slot": "scar",
+        "n": 3,
+        "name": "warpaint",
+        "desc": "a small dark russet war paint smear on the cheek on the left of the image, no symbols"
+      },
+      {
+        "slot": "neck",
+        "n": 1,
+        "name": "teeth",
+        "desc": "a short dark cord necklace with three small yellowed animal teeth, entirely within the neck region"
+      },
+      {
+        "slot": "neck",
+        "n": 2,
+        "name": "torque",
+        "desc": "a plain aged bronze neck torque, no symbols, entirely within the neck region"
+      }
+    ]
+  },
+  {
+    "id": "Goblin.mesh",
+    "mesh": "Goblin",
+    "gender": "male",
+    "reference": "materials/textures/portrait-Goblin.mesh.png",
+    "jobs": [
+      {
+        "slot": "build",
+        "n": 1,
+        "name": "slim",
+        "desc": "a slimmer shoulder and chest build, preserving the exact reference clothing, colors and coverage"
+      },
+      {
+        "slot": "build",
+        "n": 2,
+        "name": "sturdy",
+        "desc": "a sturdier shoulder and chest build, preserving the exact reference clothing, colors and coverage"
+      },
+      {
+        "slot": "ears",
+        "n": 1,
+        "name": "notched",
+        "desc": "the visible ear with a small healed notch near its tip, preserving its species-specific anatomy and reference skin"
+      },
+      {
+        "slot": "ears",
+        "n": 2,
+        "name": "rounder",
+        "desc": "the visible ear with a shorter and rounder tip, preserving its species-specific anatomy and reference skin"
+      },
+      {
+        "slot": "eyes",
+        "n": 1,
+        "name": "narrow",
+        "desc": "narrow suspicious eyes with heavy lids and brows, preserving the exact reference eye and skin colors"
+      },
+      {
+        "slot": "eyes",
+        "n": 2,
+        "name": "round",
+        "desc": "rounder alert eyes with raised brows, preserving the exact reference eye and skin colors"
+      },
+      {
+        "slot": "eyes",
+        "n": 3,
+        "name": "eyepatch",
+        "desc": "a worn dark leather eye patch over the near eye, with a plain leather strap"
+      },
+      {
+        "slot": "nose",
+        "n": 1,
+        "name": "crooked",
+        "desc": "a crooked broken nose with a healed bump, preserving the species-specific anatomy and reference skin"
+      },
+      {
+        "slot": "nose",
+        "n": 2,
+        "name": "broad",
+        "desc": "a broader flatter nose with wider nostrils, preserving the species-specific anatomy and reference skin"
+      },
+      {
+        "slot": "mouth",
+        "n": 1,
+        "name": "teeth",
+        "desc": "a tighter crooked grin with uneven teeth, preserving the species-specific lips, teeth and tusks"
+      },
+      {
+        "slot": "mouth",
+        "n": 2,
+        "name": "grin",
+        "desc": "a broader lopsided grin, preserving the species-specific lips, teeth and tusks"
+      },
+      {
+        "slot": "mouth",
+        "n": 3,
+        "name": "cigar",
+        "desc": "a short fat brown cigar clamped in the corner of the mouth, preserving the species-specific lips, teeth and tusks"
+      },
+      {
+        "slot": "chin",
+        "n": 1,
+        "name": "square",
+        "desc": "a squarer chin and jaw, preserving species-specific anatomy and reference skin; no beard"
+      },
+      {
+        "slot": "chin",
+        "n": 2,
+        "name": "rounded",
+        "desc": "a softer rounded chin and jaw, preserving species-specific anatomy and reference skin; no beard"
+      },
+      {
+        "slot": "scar",
+        "n": 1,
+        "name": "diagonal",
+        "desc": "one pale healed diagonal scar"
+      },
+      {
+        "slot": "scar",
+        "n": 2,
+        "name": "scratches",
+        "desc": "three small parallel healed scratches"
+      },
+      {
+        "slot": "scar",
+        "n": 3,
+        "name": "warpaint",
+        "desc": "simple dark red war-paint streaks, no symbols"
+      },
+      {
+        "slot": "neck",
+        "n": 1,
+        "name": "teeth",
+        "desc": "a plain cord necklace with three small yellowed animal teeth"
+      },
+      {
+        "slot": "neck",
+        "n": 2,
+        "name": "torque",
+        "desc": "a plain aged bronze neck torque, no symbols"
+      }
+    ]
+  },
+  {
+    "id": "Goblin.mesh-female",
+    "mesh": "Goblin",
+    "gender": "female",
+    "reference": "materials/textures/portrait-Goblin.mesh-female.png",
+    "jobs": [
+      {
+        "slot": "build",
+        "n": 1,
+        "name": "slim",
+        "desc": "a slimmer shoulder and chest build, preserving the exact reference clothing, colors and coverage; modest bust variation under identical coverage, original neckline unchanged"
+      },
+      {
+        "slot": "build",
+        "n": 2,
+        "name": "sturdy",
+        "desc": "a sturdier shoulder and chest build, preserving the exact reference clothing, colors and coverage; modest bust variation under identical coverage, original neckline unchanged"
+      },
+      {
+        "slot": "hair",
+        "n": 1,
+        "name": "swept",
+        "desc": "a swept-back hairstyle with the exact reference hair color and texture; only hair that can show outside any headwear"
+      },
+      {
+        "slot": "hair",
+        "n": 2,
+        "name": "waves",
+        "desc": "a fuller wavy hairstyle with the exact reference hair color and texture; only hair that can show outside any headwear"
+      },
+      {
+        "slot": "ears",
+        "n": 1,
+        "name": "notched",
+        "desc": "the visible ear with a small healed notch near its tip, preserving its species-specific anatomy and reference skin"
+      },
+      {
+        "slot": "ears",
+        "n": 2,
+        "name": "rounder",
+        "desc": "the visible ear with a shorter and rounder tip, preserving its species-specific anatomy and reference skin"
+      },
+      {
+        "slot": "eyes",
+        "n": 1,
+        "name": "narrow",
+        "desc": "narrow suspicious eyes with heavy lids and brows, preserving the exact reference eye and skin colors"
+      },
+      {
+        "slot": "eyes",
+        "n": 2,
+        "name": "round",
+        "desc": "rounder alert eyes with raised brows, preserving the exact reference eye and skin colors"
+      },
+      {
+        "slot": "eyes",
+        "n": 3,
+        "name": "eyepatch",
+        "desc": "a worn dark leather eye patch over the near eye, with a plain leather strap"
+      },
+      {
+        "slot": "nose",
+        "n": 1,
+        "name": "crooked",
+        "desc": "a crooked broken nose with a healed bump, preserving the species-specific anatomy and reference skin"
+      },
+      {
+        "slot": "nose",
+        "n": 2,
+        "name": "broad",
+        "desc": "a broader flatter nose with wider nostrils, preserving the species-specific anatomy and reference skin"
+      },
+      {
+        "slot": "mouth",
+        "n": 1,
+        "name": "teeth",
+        "desc": "a tighter crooked grin with uneven teeth, preserving the species-specific lips, teeth and tusks"
+      },
+      {
+        "slot": "mouth",
+        "n": 2,
+        "name": "grin",
+        "desc": "a broader lopsided grin, preserving the species-specific lips, teeth and tusks"
+      },
+      {
+        "slot": "mouth",
+        "n": 3,
+        "name": "cigar",
+        "desc": "a short fat brown cigar clamped in the corner of the mouth, preserving the species-specific lips, teeth and tusks"
+      },
+      {
+        "slot": "chin",
+        "n": 1,
+        "name": "square",
+        "desc": "a squarer chin and jaw, preserving species-specific anatomy and reference skin; no beard"
+      },
+      {
+        "slot": "chin",
+        "n": 2,
+        "name": "rounded",
+        "desc": "a softer rounded chin and jaw, preserving species-specific anatomy and reference skin; no beard"
+      },
+      {
+        "slot": "scar",
+        "n": 1,
+        "name": "diagonal",
+        "desc": "one pale healed diagonal scar"
+      },
+      {
+        "slot": "scar",
+        "n": 2,
+        "name": "scratches",
+        "desc": "three small parallel healed scratches"
+      },
+      {
+        "slot": "scar",
+        "n": 3,
+        "name": "warpaint",
+        "desc": "simple dark red war-paint streaks, no symbols"
+      },
+      {
+        "slot": "neck",
+        "n": 1,
+        "name": "teeth",
+        "desc": "a plain cord necklace with three small yellowed animal teeth"
+      },
+      {
+        "slot": "neck",
+        "n": 2,
+        "name": "torque",
+        "desc": "a plain aged bronze neck torque, no symbols"
+      }
+    ]
+  },
+  {
+    "id": "Orc.mesh",
+    "mesh": "Orc",
+    "gender": "male",
+    "reference": "materials/textures/portrait-Orc.mesh.png",
+    "jobs": [
+      {
+        "slot": "build",
+        "n": 1,
+        "name": "slim",
+        "desc": "a slimmer shoulder and chest build, preserving the exact reference clothing, colors and coverage"
+      },
+      {
+        "slot": "build",
+        "n": 2,
+        "name": "sturdy",
+        "desc": "a sturdier shoulder and chest build, preserving the exact reference clothing, colors and coverage"
+      },
+      {
+        "slot": "ears",
+        "n": 1,
+        "name": "notched",
+        "desc": "the visible ear with a small healed notch near its tip, preserving its species-specific anatomy and reference skin"
+      },
+      {
+        "slot": "ears",
+        "n": 2,
+        "name": "rounder",
+        "desc": "the visible ear with a shorter and rounder tip, preserving its species-specific anatomy and reference skin"
+      },
+      {
+        "slot": "eyes",
+        "n": 1,
+        "name": "narrow",
+        "desc": "narrow suspicious eyes with heavy lids and brows, preserving the exact reference eye and skin colors"
+      },
+      {
+        "slot": "eyes",
+        "n": 2,
+        "name": "round",
+        "desc": "rounder alert eyes with raised brows, preserving the exact reference eye and skin colors"
+      },
+      {
+        "slot": "eyes",
+        "n": 3,
+        "name": "eyepatch",
+        "desc": "a worn dark leather eye patch over the near eye, with a plain leather strap"
+      },
+      {
+        "slot": "nose",
+        "n": 1,
+        "name": "crooked",
+        "desc": "a crooked broken nose with a healed bump, preserving the species-specific anatomy and reference skin"
+      },
+      {
+        "slot": "nose",
+        "n": 2,
+        "name": "broad",
+        "desc": "a broader flatter nose with wider nostrils, preserving the species-specific anatomy and reference skin"
+      },
+      {
+        "slot": "mouth",
+        "n": 1,
+        "name": "teeth",
+        "desc": "a tighter crooked grin with uneven teeth, preserving the species-specific lips, teeth and tusks"
+      },
+      {
+        "slot": "mouth",
+        "n": 2,
+        "name": "grin",
+        "desc": "a broader lopsided grin, preserving the species-specific lips, teeth and tusks"
+      },
+      {
+        "slot": "mouth",
+        "n": 3,
+        "name": "cigar",
+        "desc": "a short fat brown cigar clamped in the corner of the mouth, preserving the species-specific lips, teeth and tusks"
+      },
+      {
+        "slot": "chin",
+        "n": 1,
+        "name": "square",
+        "desc": "a squarer chin and jaw, preserving species-specific anatomy and reference skin; no beard"
+      },
+      {
+        "slot": "chin",
+        "n": 2,
+        "name": "rounded",
+        "desc": "a softer rounded chin and jaw, preserving species-specific anatomy and reference skin; no beard"
+      },
+      {
+        "slot": "scar",
+        "n": 1,
+        "name": "diagonal",
+        "desc": "one pale healed diagonal scar"
+      },
+      {
+        "slot": "scar",
+        "n": 2,
+        "name": "scratches",
+        "desc": "three small parallel healed scratches"
+      },
+      {
+        "slot": "scar",
+        "n": 3,
+        "name": "warpaint",
+        "desc": "simple dark red war-paint streaks, no symbols"
+      },
+      {
+        "slot": "neck",
+        "n": 1,
+        "name": "teeth",
+        "desc": "a plain cord necklace with three small yellowed animal teeth"
+      },
+      {
+        "slot": "neck",
+        "n": 2,
+        "name": "torque",
+        "desc": "a plain aged bronze neck torque, no symbols"
+      }
+    ]
+  },
+  {
+    "id": "Orc.mesh-female",
+    "mesh": "Orc",
+    "gender": "female",
+    "reference": "materials/textures/portrait-Orc.mesh-female.png",
+    "jobs": [
+      {
+        "slot": "build",
+        "n": 1,
+        "name": "slim",
+        "desc": "a slimmer torso and subtly smaller bust under the same fully covering brown leather tunic, original neckline unchanged"
+      },
+      {
+        "slot": "build",
+        "n": 2,
+        "name": "sturdy",
+        "desc": "a sturdier torso and modestly fuller bust under the same fully covering brown leather tunic, original neckline unchanged"
+      },
+      {
+        "slot": "hair",
+        "n": 1,
+        "name": "swept",
+        "desc": "closely swept-back dark brown crown hair, preserving the existing long braid and hairline"
+      },
+      {
+        "slot": "hair",
+        "n": 2,
+        "name": "waves",
+        "desc": "fuller wavy dark brown crown hair, preserving the existing long braid and hairline"
+      },
+      {
+        "slot": "ears",
+        "n": 1,
+        "name": "notched",
+        "desc": "the large visible ear on the left of the image with a small healed notch in its pointed tip"
+      },
+      {
+        "slot": "ears",
+        "n": 2,
+        "name": "rounder",
+        "desc": "the large visible ear on the left of the image with a shorter rounder tip, same olive skin"
+      },
+      {
+        "slot": "eyes",
+        "n": 1,
+        "name": "narrow",
+        "desc": "narrow suspicious eyes with heavy lids and thick brows"
+      },
+      {
+        "slot": "eyes",
+        "n": 2,
+        "name": "round",
+        "desc": "rounder watchful golden eyes and raised arched brows"
+      },
+      {
+        "slot": "eyes",
+        "n": 3,
+        "name": "eyepatch",
+        "desc": "a worn black leather eye patch over the eye on the left of the image, with a short thin strap following the brow toward the temple entirely inside the eye region"
+      },
+      {
+        "slot": "nose",
+        "n": 1,
+        "name": "crooked",
+        "desc": "a slightly crooked broken nose with a bump, same olive skin"
+      },
+      {
+        "slot": "nose",
+        "n": 2,
+        "name": "broad",
+        "desc": "a broader flatter nose with wide nostrils, same olive skin"
+      },
+      {
+        "slot": "mouth",
+        "n": 1,
+        "name": "tusks",
+        "desc": "a tight-lipped scowl with slightly shorter blunt ivory lower tusks"
+      },
+      {
+        "slot": "mouth",
+        "n": 2,
+        "name": "grin",
+        "desc": "a subtle lopsided grin with slender curved ivory lower tusks"
+      },
+      {
+        "slot": "mouth",
+        "n": 3,
+        "name": "cigar",
+        "desc": "a short fat brown cigar clamped in the left corner of the mouth within the mouth region, no smoke outside the region"
+      },
+      {
+        "slot": "chin",
+        "n": 1,
+        "name": "square",
+        "desc": "a slightly squarer strong female jaw and chin, smooth olive skin without any beard"
+      },
+      {
+        "slot": "chin",
+        "n": 2,
+        "name": "rounded",
+        "desc": "a slightly softer round female chin, smooth olive skin without any beard"
+      },
+      {
+        "slot": "scar",
+        "n": 1,
+        "name": "diagonal",
+        "desc": "one thin healed pale diagonal scar on the cheek on the left of the image"
+      },
+      {
+        "slot": "scar",
+        "n": 2,
+        "name": "scratches",
+        "desc": "two short healed parallel scratches on the cheek on the left of the image"
+      },
+      {
+        "slot": "scar",
+        "n": 3,
+        "name": "warpaint",
+        "desc": "a short dark russet war paint smear on the cheek on the left of the image, no symbols"
+      },
+      {
+        "slot": "neck",
+        "n": 1,
+        "name": "teeth",
+        "desc": "a dark cord necklace with three small yellowed animal teeth on the upper chest"
+      },
+      {
+        "slot": "neck",
+        "n": 2,
+        "name": "torque",
+        "desc": "a simple aged bronze torque at the base of the neck, no symbols"
+      }
+    ]
+  },
+  {
+    "id": "Dwarf1.mesh",
+    "mesh": "Dwarf1",
+    "gender": "male",
+    "reference": "materials/textures/portrait-Dwarf1.mesh.png",
+    "jobs": [
+      {
+        "slot": "build",
+        "n": 1,
+        "name": "slim",
+        "desc": "a slimmer torso under exactly the same silver breastplate, same armor design and colors"
+      },
+      {
+        "slot": "build",
+        "n": 2,
+        "name": "sturdy",
+        "desc": "a wider sturdier torso under exactly the same silver breastplate, same armor design and colors"
+      },
+      {
+        "slot": "hair",
+        "n": 1,
+        "name": "braid",
+        "desc": "one short dark brown side braid emerging below the helmet on the left of the image, helmet unchanged"
+      },
+      {
+        "slot": "hair",
+        "n": 2,
+        "name": "loose",
+        "desc": "loose coarse dark brown side hair emerging below the helmet on the left of the image, helmet unchanged"
+      },
+      {
+        "slot": "eyes",
+        "n": 1,
+        "name": "narrow",
+        "desc": "narrow suspicious eyes with heavy lids and thick brown brows, helmet unchanged"
+      },
+      {
+        "slot": "eyes",
+        "n": 2,
+        "name": "round",
+        "desc": "rounder alert eyes beneath slightly raised brown brows, helmet unchanged"
+      },
+      {
+        "slot": "eyes",
+        "n": 3,
+        "name": "eyepatch",
+        "desc": "a worn black leather eye patch over the eye on the left of the image, short strap disappearing under the helmet entirely within the eye region"
+      },
+      {
+        "slot": "nose",
+        "n": 1,
+        "name": "crooked",
+        "desc": "a crooked bulbous nose with a healed bump and ruddy skin"
+      },
+      {
+        "slot": "nose",
+        "n": 2,
+        "name": "broad",
+        "desc": "a broader flatter ruddy nose with wide nostrils"
+      },
+      {
+        "slot": "mouth",
+        "n": 1,
+        "name": "scowl",
+        "desc": "a tight-lipped grumpy scowl framed by the existing brown moustache"
+      },
+      {
+        "slot": "mouth",
+        "n": 2,
+        "name": "grin",
+        "desc": "a small lopsided grin showing a few crooked yellowish teeth under the existing moustache"
+      },
+      {
+        "slot": "mouth",
+        "n": 3,
+        "name": "cigar",
+        "desc": "a short fat brown cigar clamped in the left corner of the mouth, contained within the mouth region with no smoke outside"
+      },
+      {
+        "slot": "chin",
+        "n": 1,
+        "name": "forked",
+        "desc": "a brown forked beard with two thick tapering ends, same beard silhouette at the top edge"
+      },
+      {
+        "slot": "chin",
+        "n": 2,
+        "name": "braided",
+        "desc": "a brown beard with three stout braids tied near their ends by plain iron rings, same beard silhouette at the top edge"
+      },
+      {
+        "slot": "scar",
+        "n": 1,
+        "name": "diagonal",
+        "desc": "a thin pale healed diagonal scar on the cheek on the left of the image"
+      },
+      {
+        "slot": "scar",
+        "n": 2,
+        "name": "scratches",
+        "desc": "two short healed scratches on the cheek on the left of the image"
+      },
+      {
+        "slot": "scar",
+        "n": 3,
+        "name": "warpaint",
+        "desc": "a small dark russet war paint smear on the cheek on the left of the image, no symbols"
+      },
+      {
+        "slot": "neck",
+        "n": 1,
+        "name": "pin",
+        "desc": "a small aged bronze collar pin on the upper breastplate to the right of the beard, no symbols"
+      },
+      {
+        "slot": "neck",
+        "n": 2,
+        "name": "tooth",
+        "desc": "a small animal tooth pendant hanging on a short dark cord at the collar to the right of the beard"
+      }
+    ]
+  },
+  {
+    "id": "Dwarf1.mesh-female",
+    "mesh": "Dwarf1",
+    "gender": "female",
+    "reference": "materials/textures/portrait-Dwarf1.mesh-female.png",
+    "jobs": [
+      {
+        "slot": "build",
+        "n": 1,
+        "name": "slim",
+        "desc": "a slimmer shoulder and chest build, preserving the exact reference clothing, colors and coverage; modest bust variation under identical coverage, original neckline unchanged"
+      },
+      {
+        "slot": "build",
+        "n": 2,
+        "name": "sturdy",
+        "desc": "a sturdier shoulder and chest build, preserving the exact reference clothing, colors and coverage; modest bust variation under identical coverage, original neckline unchanged"
+      },
+      {
+        "slot": "hair",
+        "n": 1,
+        "name": "swept",
+        "desc": "a swept-back hairstyle with the exact reference hair color and texture; only hair that can show outside any headwear"
+      },
+      {
+        "slot": "hair",
+        "n": 2,
+        "name": "waves",
+        "desc": "a fuller wavy hairstyle with the exact reference hair color and texture; only hair that can show outside any headwear"
+      },
+      {
+        "slot": "eyes",
+        "n": 1,
+        "name": "narrow",
+        "desc": "narrow suspicious eyes with heavy lids and brows, preserving the exact reference eye and skin colors"
+      },
+      {
+        "slot": "eyes",
+        "n": 2,
+        "name": "round",
+        "desc": "rounder alert eyes with raised brows, preserving the exact reference eye and skin colors"
+      },
+      {
+        "slot": "eyes",
+        "n": 3,
+        "name": "eyepatch",
+        "desc": "a worn dark leather eye patch over the near eye, with a plain leather strap"
+      },
+      {
+        "slot": "nose",
+        "n": 1,
+        "name": "crooked",
+        "desc": "a crooked broken nose with a healed bump, preserving the species-specific anatomy and reference skin"
+      },
+      {
+        "slot": "nose",
+        "n": 2,
+        "name": "broad",
+        "desc": "a broader flatter nose with wider nostrils, preserving the species-specific anatomy and reference skin"
+      },
+      {
+        "slot": "mouth",
+        "n": 1,
+        "name": "teeth",
+        "desc": "a tighter crooked grin with uneven teeth, preserving the species-specific lips, teeth and tusks"
+      },
+      {
+        "slot": "mouth",
+        "n": 2,
+        "name": "grin",
+        "desc": "a broader lopsided grin, preserving the species-specific lips, teeth and tusks"
+      },
+      {
+        "slot": "mouth",
+        "n": 3,
+        "name": "cigar",
+        "desc": "a short fat brown cigar clamped in the corner of the mouth, preserving the species-specific lips, teeth and tusks"
+      },
+      {
+        "slot": "chin",
+        "n": 1,
+        "name": "square",
+        "desc": "a squarer chin and jaw, preserving species-specific anatomy and reference skin; no beard"
+      },
+      {
+        "slot": "chin",
+        "n": 2,
+        "name": "rounded",
+        "desc": "a softer rounded chin and jaw, preserving species-specific anatomy and reference skin; no beard"
+      },
+      {
+        "slot": "scar",
+        "n": 1,
+        "name": "diagonal",
+        "desc": "one pale healed diagonal scar"
+      },
+      {
+        "slot": "scar",
+        "n": 2,
+        "name": "scratches",
+        "desc": "three small parallel healed scratches"
+      },
+      {
+        "slot": "scar",
+        "n": 3,
+        "name": "warpaint",
+        "desc": "simple dark red war-paint streaks, no symbols"
+      },
+      {
+        "slot": "neck",
+        "n": 1,
+        "name": "teeth",
+        "desc": "a plain cord necklace with three small yellowed animal teeth"
+      },
+      {
+        "slot": "neck",
+        "n": 2,
+        "name": "torque",
+        "desc": "a plain aged bronze neck torque, no symbols"
+      }
+    ]
+  },
+  {
+    "id": "Dwarf2.mesh",
+    "mesh": "Dwarf2",
+    "gender": "male",
+    "reference": "materials/textures/portrait-Dwarf2.mesh.png",
+    "jobs": [
+      {
+        "slot": "build",
+        "n": 1,
+        "name": "slim",
+        "desc": "a slimmer shoulder and chest build, preserving the exact reference clothing, colors and coverage"
+      },
+      {
+        "slot": "build",
+        "n": 2,
+        "name": "sturdy",
+        "desc": "a sturdier shoulder and chest build, preserving the exact reference clothing, colors and coverage"
+      },
+      {
+        "slot": "hair",
+        "n": 1,
+        "name": "swept",
+        "desc": "a swept-back hairstyle with the exact reference hair color and texture; only hair that can show outside any headwear"
+      },
+      {
+        "slot": "hair",
+        "n": 2,
+        "name": "waves",
+        "desc": "a fuller wavy hairstyle with the exact reference hair color and texture; only hair that can show outside any headwear"
+      },
+      {
+        "slot": "eyes",
+        "n": 1,
+        "name": "narrow",
+        "desc": "narrow suspicious eyes with heavy lids and brows, preserving the exact reference eye and skin colors"
+      },
+      {
+        "slot": "eyes",
+        "n": 2,
+        "name": "round",
+        "desc": "rounder alert eyes with raised brows, preserving the exact reference eye and skin colors"
+      },
+      {
+        "slot": "eyes",
+        "n": 3,
+        "name": "eyepatch",
+        "desc": "a worn dark leather eye patch over the near eye, with a plain leather strap"
+      },
+      {
+        "slot": "nose",
+        "n": 1,
+        "name": "crooked",
+        "desc": "a crooked broken nose with a healed bump, preserving the species-specific anatomy and reference skin"
+      },
+      {
+        "slot": "nose",
+        "n": 2,
+        "name": "broad",
+        "desc": "a broader flatter nose with wider nostrils, preserving the species-specific anatomy and reference skin"
+      },
+      {
+        "slot": "mouth",
+        "n": 1,
+        "name": "teeth",
+        "desc": "a tighter crooked grin with uneven teeth, preserving the species-specific lips, teeth and tusks"
+      },
+      {
+        "slot": "mouth",
+        "n": 2,
+        "name": "grin",
+        "desc": "a broader lopsided grin, preserving the species-specific lips, teeth and tusks"
+      },
+      {
+        "slot": "mouth",
+        "n": 3,
+        "name": "cigar",
+        "desc": "a short fat brown cigar clamped in the corner of the mouth, preserving the species-specific lips, teeth and tusks"
+      },
+      {
+        "slot": "chin",
+        "n": 1,
+        "name": "forked",
+        "desc": "a shorter forked beard with two tapered ends, retaining the reference beard color"
+      },
+      {
+        "slot": "chin",
+        "n": 2,
+        "name": "braided",
+        "desc": "a beard with two small braids tied by plain iron rings, retaining the reference beard color"
+      },
+      {
+        "slot": "scar",
+        "n": 1,
+        "name": "diagonal",
+        "desc": "one pale healed diagonal scar"
+      },
+      {
+        "slot": "scar",
+        "n": 2,
+        "name": "scratches",
+        "desc": "three small parallel healed scratches"
+      },
+      {
+        "slot": "scar",
+        "n": 3,
+        "name": "warpaint",
+        "desc": "simple dark red war-paint streaks, no symbols"
+      },
+      {
+        "slot": "neck",
+        "n": 1,
+        "name": "teeth",
+        "desc": "a plain cord necklace with three small yellowed animal teeth"
+      },
+      {
+        "slot": "neck",
+        "n": 2,
+        "name": "torque",
+        "desc": "a plain aged bronze neck torque, no symbols"
+      }
+    ]
+  },
+  {
+    "id": "Dwarf2.mesh-female",
+    "mesh": "Dwarf2",
+    "gender": "female",
+    "reference": "materials/textures/portrait-Dwarf2.mesh-female.png",
+    "jobs": [
+      {
+        "slot": "build",
+        "n": 1,
+        "name": "slim",
+        "desc": "a slimmer shoulder and chest build, preserving the exact reference clothing, colors and coverage; modest bust variation under identical coverage, original neckline unchanged"
+      },
+      {
+        "slot": "build",
+        "n": 2,
+        "name": "sturdy",
+        "desc": "a sturdier shoulder and chest build, preserving the exact reference clothing, colors and coverage; modest bust variation under identical coverage, original neckline unchanged"
+      },
+      {
+        "slot": "hair",
+        "n": 1,
+        "name": "swept",
+        "desc": "a swept-back hairstyle with the exact reference hair color and texture; only hair that can show outside any headwear"
+      },
+      {
+        "slot": "hair",
+        "n": 2,
+        "name": "waves",
+        "desc": "a fuller wavy hairstyle with the exact reference hair color and texture; only hair that can show outside any headwear"
+      },
+      {
+        "slot": "eyes",
+        "n": 1,
+        "name": "narrow",
+        "desc": "narrow suspicious eyes with heavy lids and brows, preserving the exact reference eye and skin colors"
+      },
+      {
+        "slot": "eyes",
+        "n": 2,
+        "name": "round",
+        "desc": "rounder alert eyes with raised brows, preserving the exact reference eye and skin colors"
+      },
+      {
+        "slot": "eyes",
+        "n": 3,
+        "name": "eyepatch",
+        "desc": "a worn dark leather eye patch over the near eye, with a plain leather strap"
+      },
+      {
+        "slot": "nose",
+        "n": 1,
+        "name": "crooked",
+        "desc": "a crooked broken nose with a healed bump, preserving the species-specific anatomy and reference skin"
+      },
+      {
+        "slot": "nose",
+        "n": 2,
+        "name": "broad",
+        "desc": "a broader flatter nose with wider nostrils, preserving the species-specific anatomy and reference skin"
+      },
+      {
+        "slot": "mouth",
+        "n": 1,
+        "name": "teeth",
+        "desc": "a tighter crooked grin with uneven teeth, preserving the species-specific lips, teeth and tusks"
+      },
+      {
+        "slot": "mouth",
+        "n": 2,
+        "name": "grin",
+        "desc": "a broader lopsided grin, preserving the species-specific lips, teeth and tusks"
+      },
+      {
+        "slot": "mouth",
+        "n": 3,
+        "name": "cigar",
+        "desc": "a short fat brown cigar clamped in the corner of the mouth, preserving the species-specific lips, teeth and tusks"
+      },
+      {
+        "slot": "chin",
+        "n": 1,
+        "name": "square",
+        "desc": "a squarer chin and jaw, preserving species-specific anatomy and reference skin; no beard"
+      },
+      {
+        "slot": "chin",
+        "n": 2,
+        "name": "rounded",
+        "desc": "a softer rounded chin and jaw, preserving species-specific anatomy and reference skin; no beard"
+      },
+      {
+        "slot": "scar",
+        "n": 1,
+        "name": "diagonal",
+        "desc": "one pale healed diagonal scar"
+      },
+      {
+        "slot": "scar",
+        "n": 2,
+        "name": "scratches",
+        "desc": "three small parallel healed scratches"
+      },
+      {
+        "slot": "scar",
+        "n": 3,
+        "name": "warpaint",
+        "desc": "simple dark red war-paint streaks, no symbols"
+      },
+      {
+        "slot": "neck",
+        "n": 1,
+        "name": "teeth",
+        "desc": "a plain cord necklace with three small yellowed animal teeth"
+      },
+      {
+        "slot": "neck",
+        "n": 2,
+        "name": "torque",
+        "desc": "a plain aged bronze neck torque, no symbols"
+      }
+    ]
+  },
+  {
+    "id": "RunelordDwarf.mesh",
+    "mesh": "RunelordDwarf",
+    "gender": "male",
+    "reference": "materials/textures/portrait-RunelordDwarf.mesh.png",
+    "jobs": [
+      {
+        "slot": "build",
+        "n": 1,
+        "name": "slim",
+        "desc": "a slimmer shoulder and chest build, preserving the exact reference clothing, colors and coverage"
+      },
+      {
+        "slot": "build",
+        "n": 2,
+        "name": "sturdy",
+        "desc": "a sturdier shoulder and chest build, preserving the exact reference clothing, colors and coverage"
+      },
+      {
+        "slot": "hair",
+        "n": 1,
+        "name": "swept",
+        "desc": "a swept-back hairstyle with the exact reference hair color and texture; only hair that can show outside any headwear"
+      },
+      {
+        "slot": "hair",
+        "n": 2,
+        "name": "waves",
+        "desc": "a fuller wavy hairstyle with the exact reference hair color and texture; only hair that can show outside any headwear"
+      },
+      {
+        "slot": "eyes",
+        "n": 1,
+        "name": "narrow",
+        "desc": "narrow suspicious eyes with heavy lids and brows, preserving the exact reference eye and skin colors"
+      },
+      {
+        "slot": "eyes",
+        "n": 2,
+        "name": "round",
+        "desc": "rounder alert eyes with raised brows, preserving the exact reference eye and skin colors"
+      },
+      {
+        "slot": "eyes",
+        "n": 3,
+        "name": "eyepatch",
+        "desc": "a worn dark leather eye patch over the near eye, with a plain leather strap"
+      },
+      {
+        "slot": "nose",
+        "n": 1,
+        "name": "crooked",
+        "desc": "a crooked broken nose with a healed bump, preserving the species-specific anatomy and reference skin"
+      },
+      {
+        "slot": "nose",
+        "n": 2,
+        "name": "broad",
+        "desc": "a broader flatter nose with wider nostrils, preserving the species-specific anatomy and reference skin"
+      },
+      {
+        "slot": "mouth",
+        "n": 1,
+        "name": "teeth",
+        "desc": "a tighter crooked grin with uneven teeth, preserving the species-specific lips, teeth and tusks"
+      },
+      {
+        "slot": "mouth",
+        "n": 2,
+        "name": "grin",
+        "desc": "a broader lopsided grin, preserving the species-specific lips, teeth and tusks"
+      },
+      {
+        "slot": "mouth",
+        "n": 3,
+        "name": "cigar",
+        "desc": "a short fat brown cigar clamped in the corner of the mouth, preserving the species-specific lips, teeth and tusks"
+      },
+      {
+        "slot": "chin",
+        "n": 1,
+        "name": "forked",
+        "desc": "a shorter forked beard with two tapered ends, retaining the reference beard color"
+      },
+      {
+        "slot": "chin",
+        "n": 2,
+        "name": "braided",
+        "desc": "a beard with two small braids tied by plain iron rings, retaining the reference beard color"
+      },
+      {
+        "slot": "scar",
+        "n": 1,
+        "name": "diagonal",
+        "desc": "one pale healed diagonal scar"
+      },
+      {
+        "slot": "scar",
+        "n": 2,
+        "name": "scratches",
+        "desc": "three small parallel healed scratches"
+      },
+      {
+        "slot": "scar",
+        "n": 3,
+        "name": "warpaint",
+        "desc": "simple dark red war-paint streaks, no symbols"
+      },
+      {
+        "slot": "neck",
+        "n": 1,
+        "name": "teeth",
+        "desc": "a plain cord necklace with three small yellowed animal teeth"
+      },
+      {
+        "slot": "neck",
+        "n": 2,
+        "name": "torque",
+        "desc": "a plain aged bronze neck torque, no symbols"
+      }
+    ]
+  },
+  {
+    "id": "RunelordDwarf.mesh-female",
+    "mesh": "RunelordDwarf",
+    "gender": "female",
+    "reference": "materials/textures/portrait-RunelordDwarf.mesh-female.png",
+    "jobs": [
+      {
+        "slot": "build",
+        "n": 1,
+        "name": "slim",
+        "desc": "a slimmer shoulder and chest build, preserving the exact reference clothing, colors and coverage; modest bust variation under identical coverage, original neckline unchanged"
+      },
+      {
+        "slot": "build",
+        "n": 2,
+        "name": "sturdy",
+        "desc": "a sturdier shoulder and chest build, preserving the exact reference clothing, colors and coverage; modest bust variation under identical coverage, original neckline unchanged"
+      },
+      {
+        "slot": "hair",
+        "n": 1,
+        "name": "swept",
+        "desc": "a swept-back hairstyle with the exact reference hair color and texture; only hair that can show outside any headwear"
+      },
+      {
+        "slot": "hair",
+        "n": 2,
+        "name": "waves",
+        "desc": "a fuller wavy hairstyle with the exact reference hair color and texture; only hair that can show outside any headwear"
+      },
+      {
+        "slot": "eyes",
+        "n": 1,
+        "name": "narrow",
+        "desc": "narrow suspicious eyes with heavy lids and brows, preserving the exact reference eye and skin colors"
+      },
+      {
+        "slot": "eyes",
+        "n": 2,
+        "name": "round",
+        "desc": "rounder alert eyes with raised brows, preserving the exact reference eye and skin colors"
+      },
+      {
+        "slot": "eyes",
+        "n": 3,
+        "name": "eyepatch",
+        "desc": "a worn dark leather eye patch over the near eye, with a plain leather strap"
+      },
+      {
+        "slot": "nose",
+        "n": 1,
+        "name": "crooked",
+        "desc": "a crooked broken nose with a healed bump, preserving the species-specific anatomy and reference skin"
+      },
+      {
+        "slot": "nose",
+        "n": 2,
+        "name": "broad",
+        "desc": "a broader flatter nose with wider nostrils, preserving the species-specific anatomy and reference skin"
+      },
+      {
+        "slot": "mouth",
+        "n": 1,
+        "name": "teeth",
+        "desc": "a tighter crooked grin with uneven teeth, preserving the species-specific lips, teeth and tusks"
+      },
+      {
+        "slot": "mouth",
+        "n": 2,
+        "name": "grin",
+        "desc": "a broader lopsided grin, preserving the species-specific lips, teeth and tusks"
+      },
+      {
+        "slot": "mouth",
+        "n": 3,
+        "name": "cigar",
+        "desc": "a short fat brown cigar clamped in the corner of the mouth, preserving the species-specific lips, teeth and tusks"
+      },
+      {
+        "slot": "chin",
+        "n": 1,
+        "name": "square",
+        "desc": "a squarer chin and jaw, preserving species-specific anatomy and reference skin; no beard"
+      },
+      {
+        "slot": "chin",
+        "n": 2,
+        "name": "rounded",
+        "desc": "a softer rounded chin and jaw, preserving species-specific anatomy and reference skin; no beard"
+      },
+      {
+        "slot": "scar",
+        "n": 1,
+        "name": "diagonal",
+        "desc": "one pale healed diagonal scar"
+      },
+      {
+        "slot": "scar",
+        "n": 2,
+        "name": "scratches",
+        "desc": "three small parallel healed scratches"
+      },
+      {
+        "slot": "scar",
+        "n": 3,
+        "name": "warpaint",
+        "desc": "simple dark red war-paint streaks, no symbols"
+      },
+      {
+        "slot": "neck",
+        "n": 1,
+        "name": "teeth",
+        "desc": "a plain cord necklace with three small yellowed animal teeth"
+      },
+      {
+        "slot": "neck",
+        "n": 2,
+        "name": "torque",
+        "desc": "a plain aged bronze neck torque, no symbols"
+      }
+    ]
+  },
+  {
+    "id": "Gnome.mesh",
+    "mesh": "Gnome",
+    "gender": "male",
+    "reference": "materials/textures/portrait-Gnome.mesh.png",
+    "jobs": [
+      {
+        "slot": "build",
+        "n": 1,
+        "name": "slim",
+        "desc": "a slimmer shoulder and chest build, preserving the exact reference clothing, colors and coverage"
+      },
+      {
+        "slot": "build",
+        "n": 2,
+        "name": "sturdy",
+        "desc": "a sturdier shoulder and chest build, preserving the exact reference clothing, colors and coverage"
+      },
+      {
+        "slot": "eyes",
+        "n": 1,
+        "name": "narrow",
+        "desc": "narrow suspicious eyes with heavy lids and brows, preserving the exact reference eye and skin colors"
+      },
+      {
+        "slot": "eyes",
+        "n": 2,
+        "name": "round",
+        "desc": "rounder alert eyes with raised brows, preserving the exact reference eye and skin colors"
+      },
+      {
+        "slot": "eyes",
+        "n": 3,
+        "name": "eyepatch",
+        "desc": "a worn dark leather eye patch over the near eye, with a plain leather strap"
+      },
+      {
+        "slot": "nose",
+        "n": 1,
+        "name": "crooked",
+        "desc": "a crooked broken nose with a healed bump, preserving the species-specific anatomy and reference skin"
+      },
+      {
+        "slot": "nose",
+        "n": 2,
+        "name": "broad",
+        "desc": "a broader flatter nose with wider nostrils, preserving the species-specific anatomy and reference skin"
+      },
+      {
+        "slot": "mouth",
+        "n": 1,
+        "name": "teeth",
+        "desc": "a tighter crooked grin with uneven teeth, preserving the species-specific lips, teeth and tusks"
+      },
+      {
+        "slot": "mouth",
+        "n": 2,
+        "name": "grin",
+        "desc": "a broader lopsided grin, preserving the species-specific lips, teeth and tusks"
+      },
+      {
+        "slot": "mouth",
+        "n": 3,
+        "name": "cigar",
+        "desc": "a short fat brown cigar clamped in the corner of the mouth, preserving the species-specific lips, teeth and tusks"
+      },
+      {
+        "slot": "chin",
+        "n": 1,
+        "name": "square",
+        "desc": "a squarer chin and jaw, preserving species-specific anatomy and reference skin; no beard"
+      },
+      {
+        "slot": "chin",
+        "n": 2,
+        "name": "rounded",
+        "desc": "a softer rounded chin and jaw, preserving species-specific anatomy and reference skin; no beard"
+      },
+      {
+        "slot": "scar",
+        "n": 1,
+        "name": "diagonal",
+        "desc": "one pale healed diagonal scar"
+      },
+      {
+        "slot": "scar",
+        "n": 2,
+        "name": "scratches",
+        "desc": "three small parallel healed scratches"
+      },
+      {
+        "slot": "scar",
+        "n": 3,
+        "name": "warpaint",
+        "desc": "simple dark red war-paint streaks, no symbols"
+      },
+      {
+        "slot": "neck",
+        "n": 1,
+        "name": "teeth",
+        "desc": "a plain cord necklace with three small yellowed animal teeth"
+      },
+      {
+        "slot": "neck",
+        "n": 2,
+        "name": "torque",
+        "desc": "a plain aged bronze neck torque, no symbols"
+      }
+    ]
+  },
+  {
+    "id": "Gnome.mesh-female",
+    "mesh": "Gnome",
+    "gender": "female",
+    "reference": "materials/textures/portrait-Gnome.mesh-female.png",
+    "jobs": [
+      {
+        "slot": "build",
+        "n": 1,
+        "name": "slim",
+        "desc": "a slimmer shoulder and chest build, preserving the exact reference clothing, colors and coverage; modest bust variation under identical coverage, original neckline unchanged"
+      },
+      {
+        "slot": "build",
+        "n": 2,
+        "name": "sturdy",
+        "desc": "a sturdier shoulder and chest build, preserving the exact reference clothing, colors and coverage; modest bust variation under identical coverage, original neckline unchanged"
+      },
+      {
+        "slot": "hair",
+        "n": 1,
+        "name": "swept",
+        "desc": "a swept-back hairstyle with the exact reference hair color and texture; only hair that can show outside any headwear"
+      },
+      {
+        "slot": "hair",
+        "n": 2,
+        "name": "waves",
+        "desc": "a fuller wavy hairstyle with the exact reference hair color and texture; only hair that can show outside any headwear"
+      },
+      {
+        "slot": "eyes",
+        "n": 1,
+        "name": "narrow",
+        "desc": "narrow suspicious eyes with heavy lids and brows, preserving the exact reference eye and skin colors"
+      },
+      {
+        "slot": "eyes",
+        "n": 2,
+        "name": "round",
+        "desc": "rounder alert eyes with raised brows, preserving the exact reference eye and skin colors"
+      },
+      {
+        "slot": "eyes",
+        "n": 3,
+        "name": "eyepatch",
+        "desc": "a worn dark leather eye patch over the near eye, with a plain leather strap"
+      },
+      {
+        "slot": "nose",
+        "n": 1,
+        "name": "crooked",
+        "desc": "a crooked broken nose with a healed bump, preserving the species-specific anatomy and reference skin"
+      },
+      {
+        "slot": "nose",
+        "n": 2,
+        "name": "broad",
+        "desc": "a broader flatter nose with wider nostrils, preserving the species-specific anatomy and reference skin"
+      },
+      {
+        "slot": "mouth",
+        "n": 1,
+        "name": "teeth",
+        "desc": "a tighter crooked grin with uneven teeth, preserving the species-specific lips, teeth and tusks"
+      },
+      {
+        "slot": "mouth",
+        "n": 2,
+        "name": "grin",
+        "desc": "a broader lopsided grin, preserving the species-specific lips, teeth and tusks"
+      },
+      {
+        "slot": "mouth",
+        "n": 3,
+        "name": "cigar",
+        "desc": "a short fat brown cigar clamped in the corner of the mouth, preserving the species-specific lips, teeth and tusks"
+      },
+      {
+        "slot": "chin",
+        "n": 1,
+        "name": "square",
+        "desc": "a squarer chin and jaw, preserving species-specific anatomy and reference skin; no beard"
+      },
+      {
+        "slot": "chin",
+        "n": 2,
+        "name": "rounded",
+        "desc": "a softer rounded chin and jaw, preserving species-specific anatomy and reference skin; no beard"
+      },
+      {
+        "slot": "scar",
+        "n": 1,
+        "name": "diagonal",
+        "desc": "one pale healed diagonal scar"
+      },
+      {
+        "slot": "scar",
+        "n": 2,
+        "name": "scratches",
+        "desc": "three small parallel healed scratches"
+      },
+      {
+        "slot": "scar",
+        "n": 3,
+        "name": "warpaint",
+        "desc": "simple dark red war-paint streaks, no symbols"
+      },
+      {
+        "slot": "neck",
+        "n": 1,
+        "name": "teeth",
+        "desc": "a plain cord necklace with three small yellowed animal teeth"
+      },
+      {
+        "slot": "neck",
+        "n": 2,
+        "name": "torque",
+        "desc": "a plain aged bronze neck torque, no symbols"
+      }
+    ]
+  },
+  {
+    "id": "Adventurer.mesh",
+    "mesh": "Adventurer",
+    "gender": "male",
+    "reference": "materials/textures/portrait-Adventurer.mesh.png",
+    "jobs": [
+      {
+        "slot": "build",
+        "n": 1,
+        "name": "slim",
+        "desc": "a slimmer shoulder and chest build, preserving the exact reference clothing, colors and coverage"
+      },
+      {
+        "slot": "build",
+        "n": 2,
+        "name": "sturdy",
+        "desc": "a sturdier shoulder and chest build, preserving the exact reference clothing, colors and coverage"
+      },
+      {
+        "slot": "hair",
+        "n": 1,
+        "name": "swept",
+        "desc": "a swept-back hairstyle with the exact reference hair color and texture; only hair that can show outside any headwear"
+      },
+      {
+        "slot": "hair",
+        "n": 2,
+        "name": "waves",
+        "desc": "a fuller wavy hairstyle with the exact reference hair color and texture; only hair that can show outside any headwear"
+      },
+      {
+        "slot": "ears",
+        "n": 1,
+        "name": "notched",
+        "desc": "the visible ear with a small healed notch near its tip, preserving its species-specific anatomy and reference skin"
+      },
+      {
+        "slot": "ears",
+        "n": 2,
+        "name": "rounder",
+        "desc": "the visible ear with a shorter and rounder tip, preserving its species-specific anatomy and reference skin"
+      },
+      {
+        "slot": "eyes",
+        "n": 1,
+        "name": "narrow",
+        "desc": "narrow suspicious eyes with heavy lids and brows, preserving the exact reference eye and skin colors"
+      },
+      {
+        "slot": "eyes",
+        "n": 2,
+        "name": "round",
+        "desc": "rounder alert eyes with raised brows, preserving the exact reference eye and skin colors"
+      },
+      {
+        "slot": "eyes",
+        "n": 3,
+        "name": "eyepatch",
+        "desc": "a worn dark leather eye patch over the near eye, with a plain leather strap"
+      },
+      {
+        "slot": "nose",
+        "n": 1,
+        "name": "crooked",
+        "desc": "a crooked broken nose with a healed bump, preserving the species-specific anatomy and reference skin"
+      },
+      {
+        "slot": "nose",
+        "n": 2,
+        "name": "broad",
+        "desc": "a broader flatter nose with wider nostrils, preserving the species-specific anatomy and reference skin"
+      },
+      {
+        "slot": "mouth",
+        "n": 1,
+        "name": "teeth",
+        "desc": "a tighter crooked grin with uneven teeth, preserving the species-specific lips, teeth and tusks"
+      },
+      {
+        "slot": "mouth",
+        "n": 2,
+        "name": "grin",
+        "desc": "a broader lopsided grin, preserving the species-specific lips, teeth and tusks"
+      },
+      {
+        "slot": "mouth",
+        "n": 3,
+        "name": "cigar",
+        "desc": "a short fat brown cigar clamped in the corner of the mouth, preserving the species-specific lips, teeth and tusks"
+      },
+      {
+        "slot": "chin",
+        "n": 1,
+        "name": "square",
+        "desc": "a squarer chin and jaw, preserving species-specific anatomy and reference skin; no beard"
+      },
+      {
+        "slot": "chin",
+        "n": 2,
+        "name": "rounded",
+        "desc": "a softer rounded chin and jaw, preserving species-specific anatomy and reference skin; no beard"
+      },
+      {
+        "slot": "scar",
+        "n": 1,
+        "name": "diagonal",
+        "desc": "one pale healed diagonal scar"
+      },
+      {
+        "slot": "scar",
+        "n": 2,
+        "name": "scratches",
+        "desc": "three small parallel healed scratches"
+      },
+      {
+        "slot": "scar",
+        "n": 3,
+        "name": "warpaint",
+        "desc": "simple dark red war-paint streaks, no symbols"
+      },
+      {
+        "slot": "neck",
+        "n": 1,
+        "name": "teeth",
+        "desc": "a plain cord necklace with three small yellowed animal teeth"
+      },
+      {
+        "slot": "neck",
+        "n": 2,
+        "name": "torque",
+        "desc": "a plain aged bronze neck torque, no symbols"
+      }
+    ]
+  },
+  {
+    "id": "Adventurer.mesh-female",
+    "mesh": "Adventurer",
+    "gender": "female",
+    "reference": "materials/textures/portrait-Adventurer.mesh-female.png",
+    "jobs": [
+      {
+        "slot": "build",
+        "n": 1,
+        "name": "slim",
+        "desc": "a slimmer shoulder and chest build, preserving the exact reference clothing, colors and coverage; modest bust variation under identical coverage, original neckline unchanged"
+      },
+      {
+        "slot": "build",
+        "n": 2,
+        "name": "sturdy",
+        "desc": "a sturdier shoulder and chest build, preserving the exact reference clothing, colors and coverage; modest bust variation under identical coverage, original neckline unchanged"
+      },
+      {
+        "slot": "hair",
+        "n": 1,
+        "name": "swept",
+        "desc": "a swept-back hairstyle with the exact reference hair color and texture; only hair that can show outside any headwear"
+      },
+      {
+        "slot": "hair",
+        "n": 2,
+        "name": "waves",
+        "desc": "a fuller wavy hairstyle with the exact reference hair color and texture; only hair that can show outside any headwear"
+      },
+      {
+        "slot": "ears",
+        "n": 1,
+        "name": "notched",
+        "desc": "the visible ear with a small healed notch near its tip, preserving its species-specific anatomy and reference skin"
+      },
+      {
+        "slot": "ears",
+        "n": 2,
+        "name": "rounder",
+        "desc": "the visible ear with a shorter and rounder tip, preserving its species-specific anatomy and reference skin"
+      },
+      {
+        "slot": "eyes",
+        "n": 1,
+        "name": "narrow",
+        "desc": "narrow suspicious eyes with heavy lids and brows, preserving the exact reference eye and skin colors"
+      },
+      {
+        "slot": "eyes",
+        "n": 2,
+        "name": "round",
+        "desc": "rounder alert eyes with raised brows, preserving the exact reference eye and skin colors"
+      },
+      {
+        "slot": "eyes",
+        "n": 3,
+        "name": "eyepatch",
+        "desc": "a worn dark leather eye patch over the near eye, with a plain leather strap"
+      },
+      {
+        "slot": "nose",
+        "n": 1,
+        "name": "crooked",
+        "desc": "a crooked broken nose with a healed bump, preserving the species-specific anatomy and reference skin"
+      },
+      {
+        "slot": "nose",
+        "n": 2,
+        "name": "broad",
+        "desc": "a broader flatter nose with wider nostrils, preserving the species-specific anatomy and reference skin"
+      },
+      {
+        "slot": "mouth",
+        "n": 1,
+        "name": "teeth",
+        "desc": "a tighter crooked grin with uneven teeth, preserving the species-specific lips, teeth and tusks"
+      },
+      {
+        "slot": "mouth",
+        "n": 2,
+        "name": "grin",
+        "desc": "a broader lopsided grin, preserving the species-specific lips, teeth and tusks"
+      },
+      {
+        "slot": "mouth",
+        "n": 3,
+        "name": "cigar",
+        "desc": "a short fat brown cigar clamped in the corner of the mouth, preserving the species-specific lips, teeth and tusks"
+      },
+      {
+        "slot": "chin",
+        "n": 1,
+        "name": "square",
+        "desc": "a squarer chin and jaw, preserving species-specific anatomy and reference skin; no beard"
+      },
+      {
+        "slot": "chin",
+        "n": 2,
+        "name": "rounded",
+        "desc": "a softer rounded chin and jaw, preserving species-specific anatomy and reference skin; no beard"
+      },
+      {
+        "slot": "scar",
+        "n": 1,
+        "name": "diagonal",
+        "desc": "one pale healed diagonal scar"
+      },
+      {
+        "slot": "scar",
+        "n": 2,
+        "name": "scratches",
+        "desc": "three small parallel healed scratches"
+      },
+      {
+        "slot": "scar",
+        "n": 3,
+        "name": "warpaint",
+        "desc": "simple dark red war-paint streaks, no symbols"
+      },
+      {
+        "slot": "neck",
+        "n": 1,
+        "name": "teeth",
+        "desc": "a plain cord necklace with three small yellowed animal teeth"
+      },
+      {
+        "slot": "neck",
+        "n": 2,
+        "name": "torque",
+        "desc": "a plain aged bronze neck torque, no symbols"
+      }
+    ]
+  },
+  {
+    "id": "Monk.mesh",
+    "mesh": "Monk",
+    "gender": "male",
+    "reference": "materials/textures/portrait-Monk.mesh.png",
+    "jobs": [
+      {
+        "slot": "build",
+        "n": 1,
+        "name": "slim",
+        "desc": "a slimmer shoulder and chest build, preserving the exact reference clothing, colors and coverage"
+      },
+      {
+        "slot": "build",
+        "n": 2,
+        "name": "sturdy",
+        "desc": "a sturdier shoulder and chest build, preserving the exact reference clothing, colors and coverage"
+      },
+      {
+        "slot": "hair",
+        "n": 1,
+        "name": "swept",
+        "desc": "a swept-back hairstyle with the exact reference hair color and texture; only hair that can show outside any headwear"
+      },
+      {
+        "slot": "hair",
+        "n": 2,
+        "name": "waves",
+        "desc": "a fuller wavy hairstyle with the exact reference hair color and texture; only hair that can show outside any headwear"
+      },
+      {
+        "slot": "ears",
+        "n": 1,
+        "name": "notched",
+        "desc": "the visible ear with a small healed notch near its tip, preserving its species-specific anatomy and reference skin"
+      },
+      {
+        "slot": "ears",
+        "n": 2,
+        "name": "rounder",
+        "desc": "the visible ear with a shorter and rounder tip, preserving its species-specific anatomy and reference skin"
+      },
+      {
+        "slot": "eyes",
+        "n": 1,
+        "name": "narrow",
+        "desc": "narrow suspicious eyes with heavy lids and brows, preserving the exact reference eye and skin colors"
+      },
+      {
+        "slot": "eyes",
+        "n": 2,
+        "name": "round",
+        "desc": "rounder alert eyes with raised brows, preserving the exact reference eye and skin colors"
+      },
+      {
+        "slot": "eyes",
+        "n": 3,
+        "name": "eyepatch",
+        "desc": "a worn dark leather eye patch over the near eye, with a plain leather strap"
+      },
+      {
+        "slot": "nose",
+        "n": 1,
+        "name": "crooked",
+        "desc": "a crooked broken nose with a healed bump, preserving the species-specific anatomy and reference skin"
+      },
+      {
+        "slot": "nose",
+        "n": 2,
+        "name": "broad",
+        "desc": "a broader flatter nose with wider nostrils, preserving the species-specific anatomy and reference skin"
+      },
+      {
+        "slot": "mouth",
+        "n": 1,
+        "name": "teeth",
+        "desc": "a tighter crooked grin with uneven teeth, preserving the species-specific lips, teeth and tusks"
+      },
+      {
+        "slot": "mouth",
+        "n": 2,
+        "name": "grin",
+        "desc": "a broader lopsided grin, preserving the species-specific lips, teeth and tusks"
+      },
+      {
+        "slot": "mouth",
+        "n": 3,
+        "name": "cigar",
+        "desc": "a short fat brown cigar clamped in the corner of the mouth, preserving the species-specific lips, teeth and tusks"
+      },
+      {
+        "slot": "chin",
+        "n": 1,
+        "name": "square",
+        "desc": "a squarer chin and jaw, preserving species-specific anatomy and reference skin; no beard"
+      },
+      {
+        "slot": "chin",
+        "n": 2,
+        "name": "rounded",
+        "desc": "a softer rounded chin and jaw, preserving species-specific anatomy and reference skin; no beard"
+      },
+      {
+        "slot": "scar",
+        "n": 1,
+        "name": "diagonal",
+        "desc": "one pale healed diagonal scar"
+      },
+      {
+        "slot": "scar",
+        "n": 2,
+        "name": "scratches",
+        "desc": "three small parallel healed scratches"
+      },
+      {
+        "slot": "scar",
+        "n": 3,
+        "name": "warpaint",
+        "desc": "simple dark red war-paint streaks, no symbols"
+      },
+      {
+        "slot": "neck",
+        "n": 1,
+        "name": "teeth",
+        "desc": "a plain cord necklace with three small yellowed animal teeth"
+      },
+      {
+        "slot": "neck",
+        "n": 2,
+        "name": "torque",
+        "desc": "a plain aged bronze neck torque, no symbols"
+      }
+    ]
+  },
+  {
+    "id": "Monk.mesh-female",
+    "mesh": "Monk",
+    "gender": "female",
+    "reference": "materials/textures/portrait-Monk.mesh-female.png",
+    "jobs": [
+      {
+        "slot": "build",
+        "n": 1,
+        "name": "slim",
+        "desc": "a slimmer shoulder and chest build, preserving the exact reference clothing, colors and coverage; modest bust variation under identical coverage, original neckline unchanged"
+      },
+      {
+        "slot": "build",
+        "n": 2,
+        "name": "sturdy",
+        "desc": "a sturdier shoulder and chest build, preserving the exact reference clothing, colors and coverage; modest bust variation under identical coverage, original neckline unchanged"
+      },
+      {
+        "slot": "hair",
+        "n": 1,
+        "name": "swept",
+        "desc": "a swept-back hairstyle with the exact reference hair color and texture; only hair that can show outside any headwear"
+      },
+      {
+        "slot": "hair",
+        "n": 2,
+        "name": "waves",
+        "desc": "a fuller wavy hairstyle with the exact reference hair color and texture; only hair that can show outside any headwear"
+      },
+      {
+        "slot": "ears",
+        "n": 1,
+        "name": "notched",
+        "desc": "the visible ear with a small healed notch near its tip, preserving its species-specific anatomy and reference skin"
+      },
+      {
+        "slot": "ears",
+        "n": 2,
+        "name": "rounder",
+        "desc": "the visible ear with a shorter and rounder tip, preserving its species-specific anatomy and reference skin"
+      },
+      {
+        "slot": "eyes",
+        "n": 1,
+        "name": "narrow",
+        "desc": "narrow suspicious eyes with heavy lids and brows, preserving the exact reference eye and skin colors"
+      },
+      {
+        "slot": "eyes",
+        "n": 2,
+        "name": "round",
+        "desc": "rounder alert eyes with raised brows, preserving the exact reference eye and skin colors"
+      },
+      {
+        "slot": "eyes",
+        "n": 3,
+        "name": "eyepatch",
+        "desc": "a worn dark leather eye patch over the near eye, with a plain leather strap"
+      },
+      {
+        "slot": "nose",
+        "n": 1,
+        "name": "crooked",
+        "desc": "a crooked broken nose with a healed bump, preserving the species-specific anatomy and reference skin"
+      },
+      {
+        "slot": "nose",
+        "n": 2,
+        "name": "broad",
+        "desc": "a broader flatter nose with wider nostrils, preserving the species-specific anatomy and reference skin"
+      },
+      {
+        "slot": "mouth",
+        "n": 1,
+        "name": "teeth",
+        "desc": "a tighter crooked grin with uneven teeth, preserving the species-specific lips, teeth and tusks"
+      },
+      {
+        "slot": "mouth",
+        "n": 2,
+        "name": "grin",
+        "desc": "a broader lopsided grin, preserving the species-specific lips, teeth and tusks"
+      },
+      {
+        "slot": "mouth",
+        "n": 3,
+        "name": "cigar",
+        "desc": "a short fat brown cigar clamped in the corner of the mouth, preserving the species-specific lips, teeth and tusks"
+      },
+      {
+        "slot": "chin",
+        "n": 1,
+        "name": "square",
+        "desc": "a squarer chin and jaw, preserving species-specific anatomy and reference skin; no beard"
+      },
+      {
+        "slot": "chin",
+        "n": 2,
+        "name": "rounded",
+        "desc": "a softer rounded chin and jaw, preserving species-specific anatomy and reference skin; no beard"
+      },
+      {
+        "slot": "scar",
+        "n": 1,
+        "name": "diagonal",
+        "desc": "one pale healed diagonal scar"
+      },
+      {
+        "slot": "scar",
+        "n": 2,
+        "name": "scratches",
+        "desc": "three small parallel healed scratches"
+      },
+      {
+        "slot": "scar",
+        "n": 3,
+        "name": "warpaint",
+        "desc": "simple dark red war-paint streaks, no symbols"
+      },
+      {
+        "slot": "neck",
+        "n": 1,
+        "name": "teeth",
+        "desc": "a plain cord necklace with three small yellowed animal teeth"
+      },
+      {
+        "slot": "neck",
+        "n": 2,
+        "name": "torque",
+        "desc": "a plain aged bronze neck torque, no symbols"
+      }
+    ]
+  },
+  {
+    "id": "Defender.mesh",
+    "mesh": "Defender",
+    "gender": "male",
+    "reference": "materials/textures/portrait-Defender.mesh.png",
+    "jobs": [
+      {
+        "slot": "build",
+        "n": 1,
+        "name": "slim",
+        "desc": "a slimmer shoulder and chest build, preserving the exact reference clothing, colors and coverage"
+      },
+      {
+        "slot": "build",
+        "n": 2,
+        "name": "sturdy",
+        "desc": "a sturdier shoulder and chest build, preserving the exact reference clothing, colors and coverage"
+      },
+      {
+        "slot": "hair",
+        "n": 1,
+        "name": "swept",
+        "desc": "a swept-back hairstyle with the exact reference hair color and texture; only hair that can show outside any headwear"
+      },
+      {
+        "slot": "hair",
+        "n": 2,
+        "name": "waves",
+        "desc": "a fuller wavy hairstyle with the exact reference hair color and texture; only hair that can show outside any headwear"
+      },
+      {
+        "slot": "ears",
+        "n": 1,
+        "name": "notched",
+        "desc": "the visible ear with a small healed notch near its tip, preserving its species-specific anatomy and reference skin"
+      },
+      {
+        "slot": "ears",
+        "n": 2,
+        "name": "rounder",
+        "desc": "the visible ear with a shorter and rounder tip, preserving its species-specific anatomy and reference skin"
+      },
+      {
+        "slot": "eyes",
+        "n": 1,
+        "name": "narrow",
+        "desc": "narrow suspicious eyes with heavy lids and brows, preserving the exact reference eye and skin colors"
+      },
+      {
+        "slot": "eyes",
+        "n": 2,
+        "name": "round",
+        "desc": "rounder alert eyes with raised brows, preserving the exact reference eye and skin colors"
+      },
+      {
+        "slot": "eyes",
+        "n": 3,
+        "name": "eyepatch",
+        "desc": "a worn dark leather eye patch over the near eye, with a plain leather strap"
+      },
+      {
+        "slot": "nose",
+        "n": 1,
+        "name": "crooked",
+        "desc": "a crooked broken nose with a healed bump, preserving the species-specific anatomy and reference skin"
+      },
+      {
+        "slot": "nose",
+        "n": 2,
+        "name": "broad",
+        "desc": "a broader flatter nose with wider nostrils, preserving the species-specific anatomy and reference skin"
+      },
+      {
+        "slot": "mouth",
+        "n": 1,
+        "name": "teeth",
+        "desc": "a tighter crooked grin with uneven teeth, preserving the species-specific lips, teeth and tusks"
+      },
+      {
+        "slot": "mouth",
+        "n": 2,
+        "name": "grin",
+        "desc": "a broader lopsided grin, preserving the species-specific lips, teeth and tusks"
+      },
+      {
+        "slot": "mouth",
+        "n": 3,
+        "name": "cigar",
+        "desc": "a short fat brown cigar clamped in the corner of the mouth, preserving the species-specific lips, teeth and tusks"
+      },
+      {
+        "slot": "chin",
+        "n": 1,
+        "name": "forked",
+        "desc": "a shorter forked beard with two tapered ends, retaining the reference beard color"
+      },
+      {
+        "slot": "chin",
+        "n": 2,
+        "name": "braided",
+        "desc": "a beard with two small braids tied by plain iron rings, retaining the reference beard color"
+      },
+      {
+        "slot": "scar",
+        "n": 1,
+        "name": "diagonal",
+        "desc": "one pale healed diagonal scar"
+      },
+      {
+        "slot": "scar",
+        "n": 2,
+        "name": "scratches",
+        "desc": "three small parallel healed scratches"
+      },
+      {
+        "slot": "scar",
+        "n": 3,
+        "name": "warpaint",
+        "desc": "simple dark red war-paint streaks, no symbols"
+      },
+      {
+        "slot": "neck",
+        "n": 1,
+        "name": "teeth",
+        "desc": "a plain cord necklace with three small yellowed animal teeth"
+      },
+      {
+        "slot": "neck",
+        "n": 2,
+        "name": "torque",
+        "desc": "a plain aged bronze neck torque, no symbols"
+      }
+    ]
+  },
+  {
+    "id": "Defender.mesh-female",
+    "mesh": "Defender",
+    "gender": "female",
+    "reference": "materials/textures/portrait-Defender.mesh-female.png",
+    "jobs": [
+      {
+        "slot": "build",
+        "n": 1,
+        "name": "slim",
+        "desc": "a slimmer shoulder and chest build, preserving the exact reference clothing, colors and coverage; modest bust variation under identical coverage, original neckline unchanged"
+      },
+      {
+        "slot": "build",
+        "n": 2,
+        "name": "sturdy",
+        "desc": "a sturdier shoulder and chest build, preserving the exact reference clothing, colors and coverage; modest bust variation under identical coverage, original neckline unchanged"
+      },
+      {
+        "slot": "hair",
+        "n": 1,
+        "name": "swept",
+        "desc": "a swept-back hairstyle with the exact reference hair color and texture; only hair that can show outside any headwear"
+      },
+      {
+        "slot": "hair",
+        "n": 2,
+        "name": "waves",
+        "desc": "a fuller wavy hairstyle with the exact reference hair color and texture; only hair that can show outside any headwear"
+      },
+      {
+        "slot": "ears",
+        "n": 1,
+        "name": "notched",
+        "desc": "the visible ear with a small healed notch near its tip, preserving its species-specific anatomy and reference skin"
+      },
+      {
+        "slot": "ears",
+        "n": 2,
+        "name": "rounder",
+        "desc": "the visible ear with a shorter and rounder tip, preserving its species-specific anatomy and reference skin"
+      },
+      {
+        "slot": "eyes",
+        "n": 1,
+        "name": "narrow",
+        "desc": "narrow suspicious eyes with heavy lids and brows, preserving the exact reference eye and skin colors"
+      },
+      {
+        "slot": "eyes",
+        "n": 2,
+        "name": "round",
+        "desc": "rounder alert eyes with raised brows, preserving the exact reference eye and skin colors"
+      },
+      {
+        "slot": "eyes",
+        "n": 3,
+        "name": "eyepatch",
+        "desc": "a worn dark leather eye patch over the near eye, with a plain leather strap"
+      },
+      {
+        "slot": "nose",
+        "n": 1,
+        "name": "crooked",
+        "desc": "a crooked broken nose with a healed bump, preserving the species-specific anatomy and reference skin"
+      },
+      {
+        "slot": "nose",
+        "n": 2,
+        "name": "broad",
+        "desc": "a broader flatter nose with wider nostrils, preserving the species-specific anatomy and reference skin"
+      },
+      {
+        "slot": "mouth",
+        "n": 1,
+        "name": "teeth",
+        "desc": "a tighter crooked grin with uneven teeth, preserving the species-specific lips, teeth and tusks"
+      },
+      {
+        "slot": "mouth",
+        "n": 2,
+        "name": "grin",
+        "desc": "a broader lopsided grin, preserving the species-specific lips, teeth and tusks"
+      },
+      {
+        "slot": "mouth",
+        "n": 3,
+        "name": "cigar",
+        "desc": "a short fat brown cigar clamped in the corner of the mouth, preserving the species-specific lips, teeth and tusks"
+      },
+      {
+        "slot": "chin",
+        "n": 1,
+        "name": "square",
+        "desc": "a squarer chin and jaw, preserving species-specific anatomy and reference skin; no beard"
+      },
+      {
+        "slot": "chin",
+        "n": 2,
+        "name": "rounded",
+        "desc": "a softer rounded chin and jaw, preserving species-specific anatomy and reference skin; no beard"
+      },
+      {
+        "slot": "scar",
+        "n": 1,
+        "name": "diagonal",
+        "desc": "one pale healed diagonal scar"
+      },
+      {
+        "slot": "scar",
+        "n": 2,
+        "name": "scratches",
+        "desc": "three small parallel healed scratches"
+      },
+      {
+        "slot": "scar",
+        "n": 3,
+        "name": "warpaint",
+        "desc": "simple dark red war-paint streaks, no symbols"
+      },
+      {
+        "slot": "neck",
+        "n": 1,
+        "name": "teeth",
+        "desc": "a plain cord necklace with three small yellowed animal teeth"
+      },
+      {
+        "slot": "neck",
+        "n": 2,
+        "name": "torque",
+        "desc": "a plain aged bronze neck torque, no symbols"
+      }
+    ]
+  },
+  {
+    "id": "Wizard.mesh",
+    "mesh": "Wizard",
+    "gender": "male",
+    "reference": "materials/textures/portrait-Wizard.mesh.png",
+    "jobs": [
+      {
+        "slot": "build",
+        "n": 1,
+        "name": "slim",
+        "desc": "a slimmer shoulder and chest build, preserving the exact reference clothing, colors and coverage"
+      },
+      {
+        "slot": "build",
+        "n": 2,
+        "name": "sturdy",
+        "desc": "a sturdier shoulder and chest build, preserving the exact reference clothing, colors and coverage"
+      },
+      {
+        "slot": "hair",
+        "n": 1,
+        "name": "swept",
+        "desc": "a swept-back hairstyle with the exact reference hair color and texture; only hair that can show outside any headwear"
+      },
+      {
+        "slot": "hair",
+        "n": 2,
+        "name": "waves",
+        "desc": "a fuller wavy hairstyle with the exact reference hair color and texture; only hair that can show outside any headwear"
+      },
+      {
+        "slot": "ears",
+        "n": 1,
+        "name": "notched",
+        "desc": "the visible ear with a small healed notch near its tip, preserving its species-specific anatomy and reference skin"
+      },
+      {
+        "slot": "ears",
+        "n": 2,
+        "name": "rounder",
+        "desc": "the visible ear with a shorter and rounder tip, preserving its species-specific anatomy and reference skin"
+      },
+      {
+        "slot": "eyes",
+        "n": 1,
+        "name": "narrow",
+        "desc": "narrow suspicious eyes with heavy lids and brows, preserving the exact reference eye and skin colors"
+      },
+      {
+        "slot": "eyes",
+        "n": 2,
+        "name": "round",
+        "desc": "rounder alert eyes with raised brows, preserving the exact reference eye and skin colors"
+      },
+      {
+        "slot": "eyes",
+        "n": 3,
+        "name": "eyepatch",
+        "desc": "a worn dark leather eye patch over the near eye, with a plain leather strap"
+      },
+      {
+        "slot": "nose",
+        "n": 1,
+        "name": "crooked",
+        "desc": "a crooked broken nose with a healed bump, preserving the species-specific anatomy and reference skin"
+      },
+      {
+        "slot": "nose",
+        "n": 2,
+        "name": "broad",
+        "desc": "a broader flatter nose with wider nostrils, preserving the species-specific anatomy and reference skin"
+      },
+      {
+        "slot": "mouth",
+        "n": 1,
+        "name": "teeth",
+        "desc": "a tighter crooked grin with uneven teeth, preserving the species-specific lips, teeth and tusks"
+      },
+      {
+        "slot": "mouth",
+        "n": 2,
+        "name": "grin",
+        "desc": "a broader lopsided grin, preserving the species-specific lips, teeth and tusks"
+      },
+      {
+        "slot": "mouth",
+        "n": 3,
+        "name": "cigar",
+        "desc": "a short fat brown cigar clamped in the corner of the mouth, preserving the species-specific lips, teeth and tusks"
+      },
+      {
+        "slot": "chin",
+        "n": 1,
+        "name": "forked",
+        "desc": "a shorter forked beard with two tapered ends, retaining the reference beard color"
+      },
+      {
+        "slot": "chin",
+        "n": 2,
+        "name": "braided",
+        "desc": "a beard with two small braids tied by plain iron rings, retaining the reference beard color"
+      },
+      {
+        "slot": "scar",
+        "n": 1,
+        "name": "diagonal",
+        "desc": "one pale healed diagonal scar"
+      },
+      {
+        "slot": "scar",
+        "n": 2,
+        "name": "scratches",
+        "desc": "three small parallel healed scratches"
+      },
+      {
+        "slot": "scar",
+        "n": 3,
+        "name": "warpaint",
+        "desc": "simple dark red war-paint streaks, no symbols"
+      },
+      {
+        "slot": "neck",
+        "n": 1,
+        "name": "teeth",
+        "desc": "a plain cord necklace with three small yellowed animal teeth"
+      },
+      {
+        "slot": "neck",
+        "n": 2,
+        "name": "torque",
+        "desc": "a plain aged bronze neck torque, no symbols"
+      }
+    ]
+  },
+  {
+    "id": "Wizard.mesh-female",
+    "mesh": "Wizard",
+    "gender": "female",
+    "reference": "materials/textures/portrait-Wizard.mesh-female.png",
+    "jobs": [
+      {
+        "slot": "build",
+        "n": 1,
+        "name": "slim",
+        "desc": "a slimmer shoulder and chest build, preserving the exact reference clothing, colors and coverage; modest bust variation under identical coverage, original neckline unchanged"
+      },
+      {
+        "slot": "build",
+        "n": 2,
+        "name": "sturdy",
+        "desc": "a sturdier shoulder and chest build, preserving the exact reference clothing, colors and coverage; modest bust variation under identical coverage, original neckline unchanged"
+      },
+      {
+        "slot": "hair",
+        "n": 1,
+        "name": "swept",
+        "desc": "a swept-back hairstyle with the exact reference hair color and texture; only hair that can show outside any headwear"
+      },
+      {
+        "slot": "hair",
+        "n": 2,
+        "name": "waves",
+        "desc": "a fuller wavy hairstyle with the exact reference hair color and texture; only hair that can show outside any headwear"
+      },
+      {
+        "slot": "ears",
+        "n": 1,
+        "name": "notched",
+        "desc": "the visible ear with a small healed notch near its tip, preserving its species-specific anatomy and reference skin"
+      },
+      {
+        "slot": "ears",
+        "n": 2,
+        "name": "rounder",
+        "desc": "the visible ear with a shorter and rounder tip, preserving its species-specific anatomy and reference skin"
+      },
+      {
+        "slot": "eyes",
+        "n": 1,
+        "name": "narrow",
+        "desc": "narrow suspicious eyes with heavy lids and brows, preserving the exact reference eye and skin colors"
+      },
+      {
+        "slot": "eyes",
+        "n": 2,
+        "name": "round",
+        "desc": "rounder alert eyes with raised brows, preserving the exact reference eye and skin colors"
+      },
+      {
+        "slot": "eyes",
+        "n": 3,
+        "name": "eyepatch",
+        "desc": "a worn dark leather eye patch over the near eye, with a plain leather strap"
+      },
+      {
+        "slot": "nose",
+        "n": 1,
+        "name": "crooked",
+        "desc": "a crooked broken nose with a healed bump, preserving the species-specific anatomy and reference skin"
+      },
+      {
+        "slot": "nose",
+        "n": 2,
+        "name": "broad",
+        "desc": "a broader flatter nose with wider nostrils, preserving the species-specific anatomy and reference skin"
+      },
+      {
+        "slot": "mouth",
+        "n": 1,
+        "name": "teeth",
+        "desc": "a tighter crooked grin with uneven teeth, preserving the species-specific lips, teeth and tusks"
+      },
+      {
+        "slot": "mouth",
+        "n": 2,
+        "name": "grin",
+        "desc": "a broader lopsided grin, preserving the species-specific lips, teeth and tusks"
+      },
+      {
+        "slot": "mouth",
+        "n": 3,
+        "name": "cigar",
+        "desc": "a short fat brown cigar clamped in the corner of the mouth, preserving the species-specific lips, teeth and tusks"
+      },
+      {
+        "slot": "chin",
+        "n": 1,
+        "name": "square",
+        "desc": "a squarer chin and jaw, preserving species-specific anatomy and reference skin; no beard"
+      },
+      {
+        "slot": "chin",
+        "n": 2,
+        "name": "rounded",
+        "desc": "a softer rounded chin and jaw, preserving species-specific anatomy and reference skin; no beard"
+      },
+      {
+        "slot": "scar",
+        "n": 1,
+        "name": "diagonal",
+        "desc": "one pale healed diagonal scar"
+      },
+      {
+        "slot": "scar",
+        "n": 2,
+        "name": "scratches",
+        "desc": "three small parallel healed scratches"
+      },
+      {
+        "slot": "scar",
+        "n": 3,
+        "name": "warpaint",
+        "desc": "simple dark red war-paint streaks, no symbols"
+      },
+      {
+        "slot": "neck",
+        "n": 1,
+        "name": "teeth",
+        "desc": "a plain cord necklace with three small yellowed animal teeth"
+      },
+      {
+        "slot": "neck",
+        "n": 2,
+        "name": "torque",
+        "desc": "a plain aged bronze neck torque, no symbols"
+      }
+    ]
+  },
+  {
+    "id": "Elf.mesh-male",
+    "mesh": "Elf",
+    "gender": "male",
+    "reference": "materials/textures/portrait-Elf.mesh-male.png",
+    "jobs": [
+      {
+        "slot": "build",
+        "n": 1,
+        "name": "slim",
+        "desc": "a slimmer shoulder and chest build, preserving the exact reference clothing, colors and coverage"
+      },
+      {
+        "slot": "build",
+        "n": 2,
+        "name": "sturdy",
+        "desc": "a sturdier shoulder and chest build, preserving the exact reference clothing, colors and coverage"
+      },
+      {
+        "slot": "hair",
+        "n": 1,
+        "name": "swept",
+        "desc": "a swept-back hairstyle with the exact reference hair color and texture; only hair that can show outside any headwear"
+      },
+      {
+        "slot": "hair",
+        "n": 2,
+        "name": "waves",
+        "desc": "a fuller wavy hairstyle with the exact reference hair color and texture; only hair that can show outside any headwear"
+      },
+      {
+        "slot": "ears",
+        "n": 1,
+        "name": "notched",
+        "desc": "the visible ear with a small healed notch near its tip, preserving its species-specific anatomy and reference skin"
+      },
+      {
+        "slot": "ears",
+        "n": 2,
+        "name": "rounder",
+        "desc": "the visible ear with a shorter and rounder tip, preserving its species-specific anatomy and reference skin"
+      },
+      {
+        "slot": "eyes",
+        "n": 1,
+        "name": "narrow",
+        "desc": "narrow suspicious eyes with heavy lids and brows, preserving the exact reference eye and skin colors"
+      },
+      {
+        "slot": "eyes",
+        "n": 2,
+        "name": "round",
+        "desc": "rounder alert eyes with raised brows, preserving the exact reference eye and skin colors"
+      },
+      {
+        "slot": "eyes",
+        "n": 3,
+        "name": "eyepatch",
+        "desc": "a worn dark leather eye patch over the near eye, with a plain leather strap"
+      },
+      {
+        "slot": "nose",
+        "n": 1,
+        "name": "crooked",
+        "desc": "a crooked broken nose with a healed bump, preserving the species-specific anatomy and reference skin"
+      },
+      {
+        "slot": "nose",
+        "n": 2,
+        "name": "broad",
+        "desc": "a broader flatter nose with wider nostrils, preserving the species-specific anatomy and reference skin"
+      },
+      {
+        "slot": "mouth",
+        "n": 1,
+        "name": "teeth",
+        "desc": "a tighter crooked grin with uneven teeth, preserving the species-specific lips, teeth and tusks"
+      },
+      {
+        "slot": "mouth",
+        "n": 2,
+        "name": "grin",
+        "desc": "a broader lopsided grin, preserving the species-specific lips, teeth and tusks"
+      },
+      {
+        "slot": "mouth",
+        "n": 3,
+        "name": "cigar",
+        "desc": "a short fat brown cigar clamped in the corner of the mouth, preserving the species-specific lips, teeth and tusks"
+      },
+      {
+        "slot": "chin",
+        "n": 1,
+        "name": "square",
+        "desc": "a squarer chin and jaw, preserving species-specific anatomy and reference skin; no beard"
+      },
+      {
+        "slot": "chin",
+        "n": 2,
+        "name": "rounded",
+        "desc": "a softer rounded chin and jaw, preserving species-specific anatomy and reference skin; no beard"
+      },
+      {
+        "slot": "scar",
+        "n": 1,
+        "name": "diagonal",
+        "desc": "one pale healed diagonal scar"
+      },
+      {
+        "slot": "scar",
+        "n": 2,
+        "name": "scratches",
+        "desc": "three small parallel healed scratches"
+      },
+      {
+        "slot": "scar",
+        "n": 3,
+        "name": "warpaint",
+        "desc": "simple dark red war-paint streaks, no symbols"
+      },
+      {
+        "slot": "neck",
+        "n": 1,
+        "name": "teeth",
+        "desc": "a plain cord necklace with three small yellowed animal teeth"
+      },
+      {
+        "slot": "neck",
+        "n": 2,
+        "name": "torque",
+        "desc": "a plain aged bronze neck torque, no symbols"
+      }
+    ]
+  },
+  {
+    "id": "Elf.mesh",
+    "mesh": "Elf",
+    "gender": "female",
+    "reference": "materials/textures/portrait-Elf.mesh.png",
+    "jobs": [
+      {
+        "slot": "build",
+        "n": 1,
+        "name": "slim",
+        "desc": "a slimmer shoulder and chest build, preserving the exact reference clothing, colors and coverage; modest bust variation under identical coverage, original neckline unchanged"
+      },
+      {
+        "slot": "build",
+        "n": 2,
+        "name": "sturdy",
+        "desc": "a sturdier shoulder and chest build, preserving the exact reference clothing, colors and coverage; modest bust variation under identical coverage, original neckline unchanged"
+      },
+      {
+        "slot": "hair",
+        "n": 1,
+        "name": "swept",
+        "desc": "a swept-back hairstyle with the exact reference hair color and texture; only hair that can show outside any headwear"
+      },
+      {
+        "slot": "hair",
+        "n": 2,
+        "name": "waves",
+        "desc": "a fuller wavy hairstyle with the exact reference hair color and texture; only hair that can show outside any headwear"
+      },
+      {
+        "slot": "ears",
+        "n": 1,
+        "name": "notched",
+        "desc": "the visible ear with a small healed notch near its tip, preserving its species-specific anatomy and reference skin"
+      },
+      {
+        "slot": "ears",
+        "n": 2,
+        "name": "rounder",
+        "desc": "the visible ear with a shorter and rounder tip, preserving its species-specific anatomy and reference skin"
+      },
+      {
+        "slot": "eyes",
+        "n": 1,
+        "name": "narrow",
+        "desc": "narrow suspicious eyes with heavy lids and brows, preserving the exact reference eye and skin colors"
+      },
+      {
+        "slot": "eyes",
+        "n": 2,
+        "name": "round",
+        "desc": "rounder alert eyes with raised brows, preserving the exact reference eye and skin colors"
+      },
+      {
+        "slot": "eyes",
+        "n": 3,
+        "name": "eyepatch",
+        "desc": "a worn dark leather eye patch over the near eye, with a plain leather strap"
+      },
+      {
+        "slot": "nose",
+        "n": 1,
+        "name": "crooked",
+        "desc": "a crooked broken nose with a healed bump, preserving the species-specific anatomy and reference skin"
+      },
+      {
+        "slot": "nose",
+        "n": 2,
+        "name": "broad",
+        "desc": "a broader flatter nose with wider nostrils, preserving the species-specific anatomy and reference skin"
+      },
+      {
+        "slot": "mouth",
+        "n": 1,
+        "name": "teeth",
+        "desc": "a tighter crooked grin with uneven teeth, preserving the species-specific lips, teeth and tusks"
+      },
+      {
+        "slot": "mouth",
+        "n": 2,
+        "name": "grin",
+        "desc": "a broader lopsided grin, preserving the species-specific lips, teeth and tusks"
+      },
+      {
+        "slot": "mouth",
+        "n": 3,
+        "name": "cigar",
+        "desc": "a short fat brown cigar clamped in the corner of the mouth, preserving the species-specific lips, teeth and tusks"
+      },
+      {
+        "slot": "chin",
+        "n": 1,
+        "name": "square",
+        "desc": "a squarer chin and jaw, preserving species-specific anatomy and reference skin; no beard"
+      },
+      {
+        "slot": "chin",
+        "n": 2,
+        "name": "rounded",
+        "desc": "a softer rounded chin and jaw, preserving species-specific anatomy and reference skin; no beard"
+      },
+      {
+        "slot": "scar",
+        "n": 1,
+        "name": "diagonal",
+        "desc": "one pale healed diagonal scar"
+      },
+      {
+        "slot": "scar",
+        "n": 2,
+        "name": "scratches",
+        "desc": "three small parallel healed scratches"
+      },
+      {
+        "slot": "scar",
+        "n": 3,
+        "name": "warpaint",
+        "desc": "simple dark red war-paint streaks, no symbols"
+      },
+      {
+        "slot": "neck",
+        "n": 1,
+        "name": "teeth",
+        "desc": "a plain cord necklace with three small yellowed animal teeth"
+      },
+      {
+        "slot": "neck",
+        "n": 2,
+        "name": "torque",
+        "desc": "a plain aged bronze neck torque, no symbols"
+      }
+    ]
+  },
+  {
+    "id": "DarkElf.mesh-male",
+    "mesh": "DarkElf",
+    "gender": "male",
+    "reference": "materials/textures/portrait-DarkElf.mesh-male.png",
+    "jobs": [
+      {
+        "slot": "build",
+        "n": 1,
+        "name": "slim",
+        "desc": "a slimmer shoulder and chest build, preserving the exact reference clothing, colors and coverage"
+      },
+      {
+        "slot": "build",
+        "n": 2,
+        "name": "sturdy",
+        "desc": "a sturdier shoulder and chest build, preserving the exact reference clothing, colors and coverage"
+      },
+      {
+        "slot": "hair",
+        "n": 1,
+        "name": "swept",
+        "desc": "a swept-back hairstyle with the exact reference hair color and texture; only hair that can show outside any headwear"
+      },
+      {
+        "slot": "hair",
+        "n": 2,
+        "name": "waves",
+        "desc": "a fuller wavy hairstyle with the exact reference hair color and texture; only hair that can show outside any headwear"
+      },
+      {
+        "slot": "ears",
+        "n": 1,
+        "name": "notched",
+        "desc": "the visible ear with a small healed notch near its tip, preserving its species-specific anatomy and reference skin"
+      },
+      {
+        "slot": "ears",
+        "n": 2,
+        "name": "rounder",
+        "desc": "the visible ear with a shorter and rounder tip, preserving its species-specific anatomy and reference skin"
+      },
+      {
+        "slot": "eyes",
+        "n": 1,
+        "name": "narrow",
+        "desc": "narrow suspicious eyes with heavy lids and brows, preserving the exact reference eye and skin colors"
+      },
+      {
+        "slot": "eyes",
+        "n": 2,
+        "name": "round",
+        "desc": "rounder alert eyes with raised brows, preserving the exact reference eye and skin colors"
+      },
+      {
+        "slot": "eyes",
+        "n": 3,
+        "name": "eyepatch",
+        "desc": "a worn dark leather eye patch over the near eye, with a plain leather strap"
+      },
+      {
+        "slot": "nose",
+        "n": 1,
+        "name": "crooked",
+        "desc": "a crooked broken nose with a healed bump, preserving the species-specific anatomy and reference skin"
+      },
+      {
+        "slot": "nose",
+        "n": 2,
+        "name": "broad",
+        "desc": "a broader flatter nose with wider nostrils, preserving the species-specific anatomy and reference skin"
+      },
+      {
+        "slot": "mouth",
+        "n": 1,
+        "name": "teeth",
+        "desc": "a tighter crooked grin with uneven teeth, preserving the species-specific lips, teeth and tusks"
+      },
+      {
+        "slot": "mouth",
+        "n": 2,
+        "name": "grin",
+        "desc": "a broader lopsided grin, preserving the species-specific lips, teeth and tusks"
+      },
+      {
+        "slot": "mouth",
+        "n": 3,
+        "name": "cigar",
+        "desc": "a short fat brown cigar clamped in the corner of the mouth, preserving the species-specific lips, teeth and tusks"
+      },
+      {
+        "slot": "chin",
+        "n": 1,
+        "name": "square",
+        "desc": "a squarer chin and jaw, preserving species-specific anatomy and reference skin; no beard"
+      },
+      {
+        "slot": "chin",
+        "n": 2,
+        "name": "rounded",
+        "desc": "a softer rounded chin and jaw, preserving species-specific anatomy and reference skin; no beard"
+      },
+      {
+        "slot": "scar",
+        "n": 1,
+        "name": "diagonal",
+        "desc": "one pale healed diagonal scar"
+      },
+      {
+        "slot": "scar",
+        "n": 2,
+        "name": "scratches",
+        "desc": "three small parallel healed scratches"
+      },
+      {
+        "slot": "scar",
+        "n": 3,
+        "name": "warpaint",
+        "desc": "simple dark red war-paint streaks, no symbols"
+      },
+      {
+        "slot": "neck",
+        "n": 1,
+        "name": "teeth",
+        "desc": "a plain cord necklace with three small yellowed animal teeth"
+      },
+      {
+        "slot": "neck",
+        "n": 2,
+        "name": "torque",
+        "desc": "a plain aged bronze neck torque, no symbols"
+      }
+    ]
+  },
+  {
+    "id": "DarkElf.mesh",
+    "mesh": "DarkElf",
+    "gender": "female",
+    "reference": "materials/textures/portrait-DarkElf.mesh.png",
+    "jobs": [
+      {
+        "slot": "build",
+        "n": 1,
+        "name": "slim",
+        "desc": "a slimmer shoulder and chest build, preserving the exact reference clothing, colors and coverage; modest bust variation under identical coverage, original neckline unchanged"
+      },
+      {
+        "slot": "build",
+        "n": 2,
+        "name": "sturdy",
+        "desc": "a sturdier shoulder and chest build, preserving the exact reference clothing, colors and coverage; modest bust variation under identical coverage, original neckline unchanged"
+      },
+      {
+        "slot": "hair",
+        "n": 1,
+        "name": "swept",
+        "desc": "a swept-back hairstyle with the exact reference hair color and texture; only hair that can show outside any headwear"
+      },
+      {
+        "slot": "hair",
+        "n": 2,
+        "name": "waves",
+        "desc": "a fuller wavy hairstyle with the exact reference hair color and texture; only hair that can show outside any headwear"
+      },
+      {
+        "slot": "ears",
+        "n": 1,
+        "name": "notched",
+        "desc": "the visible ear with a small healed notch near its tip, preserving its species-specific anatomy and reference skin"
+      },
+      {
+        "slot": "ears",
+        "n": 2,
+        "name": "rounder",
+        "desc": "the visible ear with a shorter and rounder tip, preserving its species-specific anatomy and reference skin"
+      },
+      {
+        "slot": "eyes",
+        "n": 1,
+        "name": "narrow",
+        "desc": "narrow suspicious eyes with heavy lids and brows, preserving the exact reference eye and skin colors"
+      },
+      {
+        "slot": "eyes",
+        "n": 2,
+        "name": "round",
+        "desc": "rounder alert eyes with raised brows, preserving the exact reference eye and skin colors"
+      },
+      {
+        "slot": "eyes",
+        "n": 3,
+        "name": "eyepatch",
+        "desc": "a worn dark leather eye patch over the near eye, with a plain leather strap"
+      },
+      {
+        "slot": "nose",
+        "n": 1,
+        "name": "crooked",
+        "desc": "a crooked broken nose with a healed bump, preserving the species-specific anatomy and reference skin"
+      },
+      {
+        "slot": "nose",
+        "n": 2,
+        "name": "broad",
+        "desc": "a broader flatter nose with wider nostrils, preserving the species-specific anatomy and reference skin"
+      },
+      {
+        "slot": "mouth",
+        "n": 1,
+        "name": "teeth",
+        "desc": "a tighter crooked grin with uneven teeth, preserving the species-specific lips, teeth and tusks"
+      },
+      {
+        "slot": "mouth",
+        "n": 2,
+        "name": "grin",
+        "desc": "a broader lopsided grin, preserving the species-specific lips, teeth and tusks"
+      },
+      {
+        "slot": "mouth",
+        "n": 3,
+        "name": "cigar",
+        "desc": "a short fat brown cigar clamped in the corner of the mouth, preserving the species-specific lips, teeth and tusks"
+      },
+      {
+        "slot": "chin",
+        "n": 1,
+        "name": "square",
+        "desc": "a squarer chin and jaw, preserving species-specific anatomy and reference skin; no beard"
+      },
+      {
+        "slot": "chin",
+        "n": 2,
+        "name": "rounded",
+        "desc": "a softer rounded chin and jaw, preserving species-specific anatomy and reference skin; no beard"
+      },
+      {
+        "slot": "scar",
+        "n": 1,
+        "name": "diagonal",
+        "desc": "one pale healed diagonal scar"
+      },
+      {
+        "slot": "scar",
+        "n": 2,
+        "name": "scratches",
+        "desc": "three small parallel healed scratches"
+      },
+      {
+        "slot": "scar",
+        "n": 3,
+        "name": "warpaint",
+        "desc": "simple dark red war-paint streaks, no symbols"
+      },
+      {
+        "slot": "neck",
+        "n": 1,
+        "name": "teeth",
+        "desc": "a plain cord necklace with three small yellowed animal teeth"
+      },
+      {
+        "slot": "neck",
+        "n": 2,
+        "name": "torque",
+        "desc": "a plain aged bronze neck torque, no symbols"
+      }
+    ]
+  },
+  {
+    "id": "Troll.mesh",
+    "mesh": "Troll",
+    "gender": "male",
+    "reference": "materials/textures/portrait-Troll.mesh.png",
+    "jobs": [
+      {
+        "slot": "build",
+        "n": 1,
+        "name": "slim",
+        "desc": "a slimmer shoulder and chest build, preserving the exact reference clothing, colors and coverage"
+      },
+      {
+        "slot": "build",
+        "n": 2,
+        "name": "sturdy",
+        "desc": "a sturdier shoulder and chest build, preserving the exact reference clothing, colors and coverage"
+      },
+      {
+        "slot": "ears",
+        "n": 1,
+        "name": "notched",
+        "desc": "the visible ear with a small healed notch near its tip, preserving its species-specific anatomy and reference skin"
+      },
+      {
+        "slot": "ears",
+        "n": 2,
+        "name": "rounder",
+        "desc": "the visible ear with a shorter and rounder tip, preserving its species-specific anatomy and reference skin"
+      },
+      {
+        "slot": "eyes",
+        "n": 1,
+        "name": "narrow",
+        "desc": "narrow suspicious eyes with heavy lids and brows, preserving the exact reference eye and skin colors"
+      },
+      {
+        "slot": "eyes",
+        "n": 2,
+        "name": "round",
+        "desc": "rounder alert eyes with raised brows, preserving the exact reference eye and skin colors"
+      },
+      {
+        "slot": "eyes",
+        "n": 3,
+        "name": "eyepatch",
+        "desc": "a worn dark leather eye patch over the near eye, with a plain leather strap"
+      },
+      {
+        "slot": "nose",
+        "n": 1,
+        "name": "crooked",
+        "desc": "a crooked broken nose with a healed bump, preserving the species-specific anatomy and reference skin"
+      },
+      {
+        "slot": "nose",
+        "n": 2,
+        "name": "broad",
+        "desc": "a broader flatter nose with wider nostrils, preserving the species-specific anatomy and reference skin"
+      },
+      {
+        "slot": "mouth",
+        "n": 1,
+        "name": "teeth",
+        "desc": "a tighter crooked grin with uneven teeth, preserving the species-specific lips, teeth and tusks"
+      },
+      {
+        "slot": "mouth",
+        "n": 2,
+        "name": "grin",
+        "desc": "a broader lopsided grin, preserving the species-specific lips, teeth and tusks"
+      },
+      {
+        "slot": "mouth",
+        "n": 3,
+        "name": "cigar",
+        "desc": "a short fat brown cigar clamped in the corner of the mouth, preserving the species-specific lips, teeth and tusks"
+      },
+      {
+        "slot": "chin",
+        "n": 1,
+        "name": "square",
+        "desc": "a squarer chin and jaw, preserving species-specific anatomy and reference skin; no beard"
+      },
+      {
+        "slot": "chin",
+        "n": 2,
+        "name": "rounded",
+        "desc": "a softer rounded chin and jaw, preserving species-specific anatomy and reference skin; no beard"
+      },
+      {
+        "slot": "scar",
+        "n": 1,
+        "name": "diagonal",
+        "desc": "one healed diagonal crack in the stone surface"
+      },
+      {
+        "slot": "scar",
+        "n": 2,
+        "name": "scratches",
+        "desc": "three small parallel scratches in the stone surface"
+      },
+      {
+        "slot": "scar",
+        "n": 3,
+        "name": "warpaint",
+        "desc": "simple dark red war-paint streaks, no symbols"
+      },
+      {
+        "slot": "neck",
+        "n": 1,
+        "name": "teeth",
+        "desc": "a plain cord necklace with three small yellowed animal teeth"
+      },
+      {
+        "slot": "neck",
+        "n": 2,
+        "name": "torque",
+        "desc": "a plain aged bronze neck torque, no symbols"
+      }
+    ]
+  },
+  {
+    "id": "Troll.mesh-female",
+    "mesh": "Troll",
+    "gender": "female",
+    "reference": "materials/textures/portrait-Troll.mesh-female.png",
+    "jobs": [
+      {
+        "slot": "build",
+        "n": 1,
+        "name": "slim",
+        "desc": "a slimmer shoulder and chest build, preserving the exact reference clothing, colors and coverage; modest bust variation under identical coverage, original neckline unchanged"
+      },
+      {
+        "slot": "build",
+        "n": 2,
+        "name": "sturdy",
+        "desc": "a sturdier shoulder and chest build, preserving the exact reference clothing, colors and coverage; modest bust variation under identical coverage, original neckline unchanged"
+      },
+      {
+        "slot": "hair",
+        "n": 1,
+        "name": "mossstrands",
+        "desc": "shorter swept moss strands, same moss material and palette as the reference"
+      },
+      {
+        "slot": "hair",
+        "n": 2,
+        "name": "mossbraids",
+        "desc": "two loose moss braids, same moss material and palette as the reference"
+      },
+      {
+        "slot": "eyes",
+        "n": 1,
+        "name": "narrow",
+        "desc": "narrow suspicious eyes with heavy lids and brows, preserving the exact reference eye and skin colors"
+      },
+      {
+        "slot": "eyes",
+        "n": 2,
+        "name": "round",
+        "desc": "rounder alert eyes with raised brows, preserving the exact reference eye and skin colors"
+      },
+      {
+        "slot": "eyes",
+        "n": 3,
+        "name": "eyepatch",
+        "desc": "a worn dark leather eye patch over the near eye, with a plain leather strap"
+      },
+      {
+        "slot": "nose",
+        "n": 1,
+        "name": "crooked",
+        "desc": "a crooked broken nose with a healed bump, preserving the species-specific anatomy and reference skin"
+      },
+      {
+        "slot": "nose",
+        "n": 2,
+        "name": "broad",
+        "desc": "a broader flatter nose with wider nostrils, preserving the species-specific anatomy and reference skin"
+      },
+      {
+        "slot": "mouth",
+        "n": 1,
+        "name": "teeth",
+        "desc": "a tighter crooked grin with uneven teeth, preserving the species-specific lips, teeth and tusks"
+      },
+      {
+        "slot": "mouth",
+        "n": 2,
+        "name": "grin",
+        "desc": "a broader lopsided grin, preserving the species-specific lips, teeth and tusks"
+      },
+      {
+        "slot": "mouth",
+        "n": 3,
+        "name": "cigar",
+        "desc": "a short fat brown cigar clamped in the corner of the mouth, preserving the species-specific lips, teeth and tusks"
+      },
+      {
+        "slot": "chin",
+        "n": 1,
+        "name": "square",
+        "desc": "a squarer chin and jaw, preserving species-specific anatomy and reference skin; no beard"
+      },
+      {
+        "slot": "chin",
+        "n": 2,
+        "name": "rounded",
+        "desc": "a softer rounded chin and jaw, preserving species-specific anatomy and reference skin; no beard"
+      },
+      {
+        "slot": "scar",
+        "n": 1,
+        "name": "diagonal",
+        "desc": "one healed diagonal crack in the stone surface"
+      },
+      {
+        "slot": "scar",
+        "n": 2,
+        "name": "scratches",
+        "desc": "three small parallel scratches in the stone surface"
+      },
+      {
+        "slot": "scar",
+        "n": 3,
+        "name": "warpaint",
+        "desc": "simple dark red war-paint streaks, no symbols"
+      },
+      {
+        "slot": "neck",
+        "n": 1,
+        "name": "teeth",
+        "desc": "a plain cord necklace with three small yellowed animal teeth"
+      },
+      {
+        "slot": "neck",
+        "n": 2,
+        "name": "torque",
+        "desc": "a plain aged bronze neck torque, no symbols"
+      }
+    ]
+  },
+  {
+    "id": "Lizardman.mesh",
+    "mesh": "Lizardman",
+    "gender": "male",
+    "reference": "materials/textures/portrait-Lizardman.mesh.png",
+    "jobs": [
+      {
+        "slot": "build",
+        "n": 1,
+        "name": "slim",
+        "desc": "a slimmer shoulder and chest build, preserving the exact reference clothing, colors and coverage"
+      },
+      {
+        "slot": "build",
+        "n": 2,
+        "name": "sturdy",
+        "desc": "a sturdier shoulder and chest build, preserving the exact reference clothing, colors and coverage"
+      },
+      {
+        "slot": "eyes",
+        "n": 1,
+        "name": "narrow",
+        "desc": "narrow suspicious eyes with heavy lids and brows, preserving the exact reference eye and skin colors"
+      },
+      {
+        "slot": "eyes",
+        "n": 2,
+        "name": "round",
+        "desc": "rounder alert eyes with raised brows, preserving the exact reference eye and skin colors"
+      },
+      {
+        "slot": "eyes",
+        "n": 3,
+        "name": "eyepatch",
+        "desc": "a worn dark leather eye patch over the near eye, with a plain leather strap"
+      },
+      {
+        "slot": "nose",
+        "n": 1,
+        "name": "crooked",
+        "desc": "a crooked broken nose with a healed bump, preserving the species-specific anatomy and reference skin"
+      },
+      {
+        "slot": "nose",
+        "n": 2,
+        "name": "broad",
+        "desc": "a broader flatter nose with wider nostrils, preserving the species-specific anatomy and reference skin"
+      },
+      {
+        "slot": "mouth",
+        "n": 1,
+        "name": "teeth",
+        "desc": "a tighter crooked grin with uneven teeth, preserving the species-specific lips, teeth and tusks"
+      },
+      {
+        "slot": "mouth",
+        "n": 2,
+        "name": "grin",
+        "desc": "a broader lopsided grin, preserving the species-specific lips, teeth and tusks"
+      },
+      {
+        "slot": "mouth",
+        "n": 3,
+        "name": "cigar",
+        "desc": "a short fat brown cigar clamped in the corner of the mouth, preserving the species-specific lips, teeth and tusks"
+      },
+      {
+        "slot": "chin",
+        "n": 1,
+        "name": "square",
+        "desc": "a squarer chin and jaw, preserving species-specific anatomy and reference skin; no beard"
+      },
+      {
+        "slot": "chin",
+        "n": 2,
+        "name": "rounded",
+        "desc": "a softer rounded chin and jaw, preserving species-specific anatomy and reference skin; no beard"
+      },
+      {
+        "slot": "scar",
+        "n": 1,
+        "name": "diagonal",
+        "desc": "one diagonal healed scale-damage mark"
+      },
+      {
+        "slot": "scar",
+        "n": 2,
+        "name": "scratches",
+        "desc": "three small parallel scale-damage marks"
+      },
+      {
+        "slot": "scar",
+        "n": 3,
+        "name": "warpaint",
+        "desc": "simple dark red war-paint streaks, no symbols"
+      },
+      {
+        "slot": "neck",
+        "n": 1,
+        "name": "teeth",
+        "desc": "a plain cord necklace with three small yellowed animal teeth"
+      },
+      {
+        "slot": "neck",
+        "n": 2,
+        "name": "torque",
+        "desc": "a plain aged bronze neck torque, no symbols"
+      }
+    ]
+  },
+  {
+    "id": "Lizardman.mesh-female",
+    "mesh": "Lizardman",
+    "gender": "female",
+    "reference": "materials/textures/portrait-Lizardman.mesh-female.png",
+    "jobs": [
+      {
+        "slot": "build",
+        "n": 1,
+        "name": "slim",
+        "desc": "a slimmer shoulder and chest build, preserving the exact reference clothing, colors and coverage; modest bust variation under identical coverage, original neckline unchanged"
+      },
+      {
+        "slot": "build",
+        "n": 2,
+        "name": "sturdy",
+        "desc": "a sturdier shoulder and chest build, preserving the exact reference clothing, colors and coverage; modest bust variation under identical coverage, original neckline unchanged"
+      },
+      {
+        "slot": "hair",
+        "n": 1,
+        "name": "shortfrill",
+        "desc": "a shorter crest frill with the reference orange scales"
+      },
+      {
+        "slot": "hair",
+        "n": 2,
+        "name": "wavefrill",
+        "desc": "a fuller wavy crest frill with the reference orange scales"
+      },
+      {
+        "slot": "eyes",
+        "n": 1,
+        "name": "narrow",
+        "desc": "narrow suspicious eyes with heavy lids and brows, preserving the exact reference eye and skin colors"
+      },
+      {
+        "slot": "eyes",
+        "n": 2,
+        "name": "round",
+        "desc": "rounder alert eyes with raised brows, preserving the exact reference eye and skin colors"
+      },
+      {
+        "slot": "eyes",
+        "n": 3,
+        "name": "eyepatch",
+        "desc": "a worn dark leather eye patch over the near eye, with a plain leather strap"
+      },
+      {
+        "slot": "nose",
+        "n": 1,
+        "name": "crooked",
+        "desc": "a crooked broken nose with a healed bump, preserving the species-specific anatomy and reference skin"
+      },
+      {
+        "slot": "nose",
+        "n": 2,
+        "name": "broad",
+        "desc": "a broader flatter nose with wider nostrils, preserving the species-specific anatomy and reference skin"
+      },
+      {
+        "slot": "mouth",
+        "n": 1,
+        "name": "teeth",
+        "desc": "a tighter crooked grin with uneven teeth, preserving the species-specific lips, teeth and tusks"
+      },
+      {
+        "slot": "mouth",
+        "n": 2,
+        "name": "grin",
+        "desc": "a broader lopsided grin, preserving the species-specific lips, teeth and tusks"
+      },
+      {
+        "slot": "mouth",
+        "n": 3,
+        "name": "cigar",
+        "desc": "a short fat brown cigar clamped in the corner of the mouth, preserving the species-specific lips, teeth and tusks"
+      },
+      {
+        "slot": "chin",
+        "n": 1,
+        "name": "square",
+        "desc": "a squarer chin and jaw, preserving species-specific anatomy and reference skin; no beard"
+      },
+      {
+        "slot": "chin",
+        "n": 2,
+        "name": "rounded",
+        "desc": "a softer rounded chin and jaw, preserving species-specific anatomy and reference skin; no beard"
+      },
+      {
+        "slot": "scar",
+        "n": 1,
+        "name": "diagonal",
+        "desc": "one diagonal healed scale-damage mark"
+      },
+      {
+        "slot": "scar",
+        "n": 2,
+        "name": "scratches",
+        "desc": "three small parallel scale-damage marks"
+      },
+      {
+        "slot": "scar",
+        "n": 3,
+        "name": "warpaint",
+        "desc": "simple dark red war-paint streaks, no symbols"
+      },
+      {
+        "slot": "neck",
+        "n": 1,
+        "name": "teeth",
+        "desc": "a plain cord necklace with three small yellowed animal teeth"
+      },
+      {
+        "slot": "neck",
+        "n": 2,
+        "name": "torque",
+        "desc": "a plain aged bronze neck torque, no symbols"
+      }
+    ]
+  },
+  {
+    "id": "Knight.mesh",
+    "mesh": "Knight",
+    "gender": "male",
+    "reference": "materials/textures/portrait-Knight.mesh.png",
+    "jobs": [
+      {
+        "slot": "build",
+        "n": 1,
+        "name": "slim",
+        "desc": "a slimmer shoulder and chest build, preserving the exact reference clothing, colors and coverage"
+      },
+      {
+        "slot": "build",
+        "n": 2,
+        "name": "sturdy",
+        "desc": "a sturdier shoulder and chest build, preserving the exact reference clothing, colors and coverage"
+      },
+      {
+        "slot": "hair",
+        "n": 1,
+        "name": "swept",
+        "desc": "a short plain braid showing below the helmet, reference hair color if visible; otherwise dark brown"
+      },
+      {
+        "slot": "hair",
+        "n": 2,
+        "name": "waves",
+        "desc": "loose short hair strands showing below the helmet, reference hair color if visible; otherwise dark brown"
+      },
+      {
+        "slot": "scar",
+        "n": 1,
+        "name": "diagonal",
+        "desc": "one shallow diagonal dent matching the reference helmet metal"
+      },
+      {
+        "slot": "scar",
+        "n": 2,
+        "name": "scratches",
+        "desc": "three small parallel scratches matching the reference helmet metal"
+      },
+      {
+        "slot": "scar",
+        "n": 3,
+        "name": "warpaint",
+        "desc": "a small irregular worn patch matching the reference helmet metal, no paint or symbols"
+      },
+      {
+        "slot": "neck",
+        "n": 1,
+        "name": "teeth",
+        "desc": "a plain cord necklace with three small yellowed animal teeth"
+      },
+      {
+        "slot": "neck",
+        "n": 2,
+        "name": "torque",
+        "desc": "a plain aged bronze neck torque, no symbols"
+      }
+    ]
+  },
+  {
+    "id": "Knight.mesh-female",
+    "mesh": "Knight",
+    "gender": "female",
+    "reference": "materials/textures/portrait-Knight.mesh-female.png",
+    "jobs": [
+      {
+        "slot": "build",
+        "n": 1,
+        "name": "slim",
+        "desc": "a slimmer shoulder and chest build, preserving the exact reference clothing, colors and coverage; modest bust variation under identical coverage, original neckline unchanged"
+      },
+      {
+        "slot": "build",
+        "n": 2,
+        "name": "sturdy",
+        "desc": "a sturdier shoulder and chest build, preserving the exact reference clothing, colors and coverage; modest bust variation under identical coverage, original neckline unchanged"
+      },
+      {
+        "slot": "hair",
+        "n": 1,
+        "name": "swept",
+        "desc": "a short plain braid showing below the helmet, reference hair color if visible; otherwise dark brown"
+      },
+      {
+        "slot": "hair",
+        "n": 2,
+        "name": "waves",
+        "desc": "loose short hair strands showing below the helmet, reference hair color if visible; otherwise dark brown"
+      },
+      {
+        "slot": "scar",
+        "n": 1,
+        "name": "diagonal",
+        "desc": "one shallow diagonal dent matching the reference helmet metal"
+      },
+      {
+        "slot": "scar",
+        "n": 2,
+        "name": "scratches",
+        "desc": "three small parallel scratches matching the reference helmet metal"
+      },
+      {
+        "slot": "scar",
+        "n": 3,
+        "name": "warpaint",
+        "desc": "a small irregular worn patch matching the reference helmet metal, no paint or symbols"
+      },
+      {
+        "slot": "neck",
+        "n": 1,
+        "name": "teeth",
+        "desc": "a plain cord necklace with three small yellowed animal teeth"
+      },
+      {
+        "slot": "neck",
+        "n": 2,
+        "name": "torque",
+        "desc": "a plain aged bronze neck torque, no symbols"
+      }
+    ]
+  },
+  {
+    "id": "Cultist.mesh",
+    "mesh": "Cultist",
+    "gender": "male",
+    "reference": "materials/textures/portrait-Cultist.mesh.png",
+    "jobs": [
+      {
+        "slot": "build",
+        "n": 1,
+        "name": "slim",
+        "desc": "a slimmer shoulder and chest build, preserving the exact reference clothing, colors and coverage"
+      },
+      {
+        "slot": "build",
+        "n": 2,
+        "name": "sturdy",
+        "desc": "a sturdier shoulder and chest build, preserving the exact reference clothing, colors and coverage"
+      },
+      {
+        "slot": "hair",
+        "n": 1,
+        "name": "swept",
+        "desc": "a short plain braid showing below the helmet, reference hair color if visible; otherwise dark brown"
+      },
+      {
+        "slot": "hair",
+        "n": 2,
+        "name": "waves",
+        "desc": "loose short hair strands showing below the helmet, reference hair color if visible; otherwise dark brown"
+      },
+      {
+        "slot": "scar",
+        "n": 1,
+        "name": "diagonal",
+        "desc": "one shallow diagonal dent matching the reference helmet metal"
+      },
+      {
+        "slot": "scar",
+        "n": 2,
+        "name": "scratches",
+        "desc": "three small parallel scratches matching the reference helmet metal"
+      },
+      {
+        "slot": "scar",
+        "n": 3,
+        "name": "warpaint",
+        "desc": "a small irregular worn patch matching the reference helmet metal, no paint or symbols"
+      },
+      {
+        "slot": "neck",
+        "n": 1,
+        "name": "teeth",
+        "desc": "a plain cord necklace with three small yellowed animal teeth"
+      },
+      {
+        "slot": "neck",
+        "n": 2,
+        "name": "torque",
+        "desc": "a plain aged bronze neck torque, no symbols"
+      }
+    ]
+  },
+  {
+    "id": "Cultist.mesh-female",
+    "mesh": "Cultist",
+    "gender": "female",
+    "reference": "materials/textures/portrait-Cultist.mesh-female.png",
+    "jobs": [
+      {
+        "slot": "build",
+        "n": 1,
+        "name": "slim",
+        "desc": "a slimmer shoulder and chest build, preserving the exact reference clothing, colors and coverage; modest bust variation under identical coverage, original neckline unchanged"
+      },
+      {
+        "slot": "build",
+        "n": 2,
+        "name": "sturdy",
+        "desc": "a sturdier shoulder and chest build, preserving the exact reference clothing, colors and coverage; modest bust variation under identical coverage, original neckline unchanged"
+      },
+      {
+        "slot": "hair",
+        "n": 1,
+        "name": "swept",
+        "desc": "a short plain braid showing below the helmet, reference hair color if visible; otherwise dark brown"
+      },
+      {
+        "slot": "hair",
+        "n": 2,
+        "name": "waves",
+        "desc": "loose short hair strands showing below the helmet, reference hair color if visible; otherwise dark brown"
+      },
+      {
+        "slot": "scar",
+        "n": 1,
+        "name": "diagonal",
+        "desc": "one shallow diagonal dent matching the reference helmet metal"
+      },
+      {
+        "slot": "scar",
+        "n": 2,
+        "name": "scratches",
+        "desc": "three small parallel scratches matching the reference helmet metal"
+      },
+      {
+        "slot": "scar",
+        "n": 3,
+        "name": "warpaint",
+        "desc": "a small irregular worn patch matching the reference helmet metal, no paint or symbols"
+      },
+      {
+        "slot": "neck",
+        "n": 1,
+        "name": "teeth",
+        "desc": "a plain cord necklace with three small yellowed animal teeth"
+      },
+      {
+        "slot": "neck",
+        "n": 2,
+        "name": "torque",
+        "desc": "a plain aged bronze neck torque, no symbols"
+      }
+    ]
+  }
+]
