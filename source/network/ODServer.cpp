@@ -483,6 +483,8 @@ void ODServer::serverThread()
         // doTask should return after the length of 1 turn even if their are communications. When
         // it returns, we can launch next turn.
         doTask(static_cast<int32_t>(turnLengthMs));
+        if(!isConnected())
+            break;
         // If all the clients are disconnected during a game, we close the server
         if((mServerState == ServerState::StateGame) &&
            (mSockClients.empty()))
@@ -655,7 +657,7 @@ void ODServer::processServerNotifications()
 
             case ServerNotificationType::exit:
                 running = false;
-                stopServer();
+                requestStop();
                 break;
 
             default:
@@ -2667,15 +2669,7 @@ void ODServer::stopServer()
 
 void ODServer::notifyExit()
 {
-    while(!mServerNotificationQueue.empty())
-    {
-        delete mServerNotificationQueue.front();
-        mServerNotificationQueue.pop_front();
-    }
-
-    ServerNotification* exitServerNotification = new ServerNotification(
-        ServerNotificationType::exit, nullptr);
-    queueServerNotification(exitServerNotification);
+    requestStop();
 }
 
 ODSocketClient* ODServer::getClientFromPlayer(Player* player)

@@ -21,6 +21,7 @@
 #include "ODSocketClient.h"
 
 #include <SFML/Network.hpp>
+#include <atomic>
 
 class ODPacket;
 
@@ -28,15 +29,20 @@ class ODSocketServer
 {
     public:
         ODSocketServer();
+        //! \brief Stops the server and joins its thread if it is still running.
         ~ODSocketServer();
 
         bool isConnected();
 
         // Data Transimission
         virtual bool createServer(int listeningPort);
+        //! \brief Requests the exit, joins the worker thread and releases the sockets. Called by the owner only.
         virtual void stopServer();
 
     protected:
+        //! \brief Requests the worker exit without joining it or touching its owned resources.
+        void requestStop();
+
         /*! \brief Function called when a new client connects. If the server returns an ODSocketClient,
          *! it will be added to the client list
          */
@@ -70,7 +76,7 @@ class ODSocketServer
         sf::TcpListener mSockListener;
         sf::SocketSelector mSockSelector;
         sf::Clock mClockMainTask;
-        bool mIsConnected;
+        std::atomic<bool> mIsConnected;
 };
 
 #endif // ODSOCKETSERVER_H
