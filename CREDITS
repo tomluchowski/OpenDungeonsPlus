@@ -189,7 +189,7 @@ textures/
 -> Podium*.png
 -> Portal{,Normal}.png                 Yughues                 CC0                     http://opengameart.org/users/yughues
 -> PortalVortex.png
--> portrait-*.mesh-{female,male}.png   Image generator         GPLv3+                  Generated from the project's own model exports and existing portraits, prompts in materials/portraits/
+-> portrait-*.mesh-{female,male}.png   AI-generated with Codex  GPLv3+                  AI-generated from the project's own model exports and existing portraits, prompts in materials/portraits/
 -> RangerBed*.png                      PantherOne              CC0                     http://opengameart.org/content/tent-pack
 -> Rat*.png                            CDmir                   CC0                     http://opengameart.org/content/evil-giant-rat
 -> Roach*.png                          Danimal, Atmostatic     CC-BY-SA 3.0            http://opengameart.org/content/roach-game-ready-and-animated
@@ -493,3 +493,9 @@ icon.rc                                OD Team                 GPLv3+
 logo.svg                               Svenskmand              CC-BY-SA 3.0
 OD-Logo.ico                            Svenskmand              CC-BY-SA 3.0
 opendungeons.appdata.xml               OD Team                 GPLv3+
+
+====================================================
+== Portrait feature assets: materials/portraits/  ==
+====================================================
+
+materials/portraits/generated-features/ AI-generated with Codex  GPLv3+                  AI-generated isolated feature assets based on this project's portraits; exact prompts and source provenance are recorded in each portrait folder; original generator outputs preserved.
