@@ -8,6 +8,7 @@ source = (repo / 'source/render/RenderManager.cpp').read_text()
 method = source[source.index('static const float WALL_FRAME_OUTWARD_SCALE'):
                 source.index('\nvoid RenderManager::entitySlapped(')]
 code = r'''
+#include <algorithm>
 #include <vector>
 #include <string>
 #include <cmath>
@@ -35,7 +36,7 @@ struct SceneManager {ManualObject object;SceneNode node;MovableObject wall;
 struct Tile {int x,y;bool full;int getX(){return x;}int getY(){return y;}bool isFullTile(){return full;}
  Ogre::MovableObject* getFogOfWarMesh(){return nullptr;}std::string getOgreNamePrefix(){return "tile";}std::string getName(){return "1";}};
 struct RenderManager {Ogre::SceneManager* mSceneManager;Ogre::ManualObject* mTilePreview=nullptr;
- void rrDrawTilePreview(const std::vector<Tile*>&,const Ogre::ColourValue&,bool=false,bool=false);};
+ void rrDrawTilePreview(const std::vector<Tile*>&,const Ogre::ColourValue&,bool=false,bool=false,bool=false);};
 METHOD
 int main(){int checks=0,failures=0;auto check=[&](bool pass,const char* label){++checks;if(!pass){++failures;std::cout<<"FAIL "<<label<<'\n';}};
  Ogre::SceneManager scene;RenderManager render{&scene};Tile floor{3,4,false},wall{5,6,true},other{4,4,false};
@@ -72,6 +73,15 @@ int main(){int checks=0,failures=0;auto check=[&](bool pass,const char* label){+
  check(std::abs(topArea-(1-.88f*.88f))<.0001f,"digging top has the accepted construction border width");
  render.rrDrawTilePreview({&wall,&wall},{.35f,.3f,1},false,true);
  check(scene.object.sections[1].points.size()==240,"drag selection frames every selected wall");
+ render.rrDrawTilePreview({&floor,&wall,&other},{.35f,.3f,1},true,false,true);
+ check(scene.object.sections.size()==1,"drag outline is one rectangle");
+ check(scene.object.sections[0].points.size()==8,"drag outline has four edges");
+ check(scene.object.sections[0].points[0].x==2.5f&&scene.object.sections[0].points[0].y==3.5f,
+  "drag outline begins at full selection minimum");
+ check(scene.object.sections[0].points[2].x==5.5f&&scene.object.sections[0].points[4].y==6.5f,
+  "drag outline reaches full selection maximum");
+ render.rrDrawTilePreview({&floor,&wall,&other},{.35f,.3f,1},false,true,true);
+ check(scene.object.sections.size()==2&&scene.object.sections[1].points.size()==24,"digging drag outline adds a thick border");
  render.rrDrawTilePreview({}, {1,1,1},true);check(scene.object.sections.empty(),"cancel clears ribbon and lines");
  std::cout<<"CHECKS="<<checks<<" FAILURES="<<failures<<'\n';return failures?1:0;}
 '''.replace('METHOD', method)
@@ -83,7 +93,9 @@ with tempfile.TemporaryDirectory(prefix='odp-construction-preview-') as director
 
 game = (repo / 'source/modes/GameMode.cpp').read_text()
 update = game.split('void GameMode::updateSelectedTiles()', 1)[1].split('void GameMode::unselectAllTiles()', 1)[0]
-assert update.count('rrDrawTilePreview(mSelectedTiles, colour, building, digging)') == 2
+assert update.count('rrDrawTilePreview(outlineTiles, colour, building, digging, rectangle)') == 2
+assert 'inputManager.mLStartDragX, inputManager.mLStartDragY' in update
+assert 'SelectedAction::sellBuilding' in update and 'SelectedAction::destroyRoom' in update and 'SelectedAction::destroyTrap' in update
 assert 'SelectedAction::buildRoom' in update and 'SelectedAction::buildTrap' in update
 assert 'SelectedAction::none' in update and 'SelectedAction::selectTile' in update
 print('Construction action dispatch checks passed')

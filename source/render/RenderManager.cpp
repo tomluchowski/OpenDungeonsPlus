@@ -4733,12 +4733,95 @@ static Ogre::Vector3 getWallFramePoint(float centreX, float centreY, const Ogre:
         centreY + WALL_FRAME_OUTWARD_SCALE * (start.y - centreY + along * (end.y - start.y)), height);
 }
 
+// Lowest height of the preview borders: just above the floor.
+static const float PREVIEW_FLOOR_HEIGHT = 0.04f;
+// Half width of a tile and of the inner edge of its filled preview border.
+static const float PREVIEW_TILE_HALF = 0.5f;
+static const float PREVIEW_BORDER_INNER_HALF = 0.44f;
+
+//! \brief Adds the filled border band along one edge of a preview frame (two triangles).
+//! \param object The manual object, which must be inside a triangle list section.
+//! \param outerStart Start corner of the edge on the outer rim.
+//! \param outerEnd End corner of the edge on the outer rim.
+//! \param innerEnd End corner of the edge on the inner rim.
+//! \param innerStart Start corner of the edge on the inner rim.
+//! \param colour Colour of the band.
+static void addPreviewBorderBand(Ogre::ManualObject* object, const Ogre::Vector3& outerStart,
+        const Ogre::Vector3& outerEnd, const Ogre::Vector3& innerEnd, const Ogre::Vector3& innerStart,
+        const Ogre::ColourValue& colour)
+{
+    for(const Ogre::Vector3& point : {outerStart, outerEnd, innerEnd, outerStart, innerEnd, innerStart})
+    {
+        object->position(point);
+        object->colour(colour);
+    }
+}
+
+//! \brief Draws one outline around the bounding rectangle of the given tiles.
+//! \param tilePreview The manual object of the preview, already cleared.
+//! \param sceneManager The scene manager holding the rendered tile meshes.
+//! \param tiles The tiles to enclose. Must not be empty.
+//! \param colour Colour of the outline.
+//! \param digging Also draws the thick filled border of a digging selection.
+static void drawTileRectangle(Ogre::ManualObject* tilePreview, Ogre::SceneManager* sceneManager,
+        const std::vector<Tile*>& tiles, const Ogre::ColourValue& colour, bool digging)
+{
+    int minX = tiles.front()->getX();
+    int maxX = minX;
+    int minY = tiles.front()->getY();
+    int maxY = minY;
+    float z = PREVIEW_FLOOR_HEIGHT;
+    for(Tile* tile : tiles)
+    {
+        minX = std::min(minX, tile->getX());
+        maxX = std::max(maxX, tile->getX());
+        minY = std::min(minY, tile->getY());
+        maxY = std::max(maxY, tile->getY());
+        // The outline rises above the tallest rendered surface, including unexplored tiles.
+        float height = 0.0f;
+        if(getWallPreviewHeight(sceneManager, tile, height))
+            z = std::max(z, height);
+    }
+    const Ogre::Vector3 outer[] = {
+        Ogre::Vector3(minX - PREVIEW_TILE_HALF, minY - PREVIEW_TILE_HALF, z),
+        Ogre::Vector3(maxX + PREVIEW_TILE_HALF, minY - PREVIEW_TILE_HALF, z),
+        Ogre::Vector3(maxX + PREVIEW_TILE_HALF, maxY + PREVIEW_TILE_HALF, z),
+        Ogre::Vector3(minX - PREVIEW_TILE_HALF, maxY + PREVIEW_TILE_HALF, z)
+    };
+    tilePreview->begin("debug_draw", Ogre::RenderOperation::OT_LINE_LIST, "Graphics");
+    for(int i = 0; i < 4; ++i)
+    {
+        tilePreview->position(outer[i]);
+        tilePreview->colour(colour);
+        tilePreview->position(outer[(i + 1) % 4]);
+        tilePreview->colour(colour);
+    }
+    tilePreview->end();
+    if(!digging)
+        return;
+    const Ogre::Vector3 inner[] = {
+        Ogre::Vector3(minX - PREVIEW_BORDER_INNER_HALF, minY - PREVIEW_BORDER_INNER_HALF, z),
+        Ogre::Vector3(maxX + PREVIEW_BORDER_INNER_HALF, minY - PREVIEW_BORDER_INNER_HALF, z),
+        Ogre::Vector3(maxX + PREVIEW_BORDER_INNER_HALF, maxY + PREVIEW_BORDER_INNER_HALF, z),
+        Ogre::Vector3(minX - PREVIEW_BORDER_INNER_HALF, maxY + PREVIEW_BORDER_INNER_HALF, z)
+    };
+    tilePreview->begin("debug_draw", Ogre::RenderOperation::OT_TRIANGLE_LIST, "Graphics");
+    for(int i = 0; i < 4; ++i)
+    {
+        const int next = (i + 1) % 4;
+        addPreviewBorderBand(tilePreview, outer[i], outer[next], inner[next], inner[i], colour);
+    }
+    tilePreview->end();
+}
+
 //! \brief Draws the tile selection preview.
 //! \param tiles The selected tiles. An empty list removes the preview.
 //! \param colour Colour of the borders.
 //! \param construction Also draws the filled border of building floors.
 //! \param digging Also draws the filled borders of selected walls (digging selection).
-void RenderManager::rrDrawTilePreview(const std::vector<Tile*>& tiles, const Ogre::ColourValue& colour, bool construction, bool digging)
+//! \param singleRectangle Draws one outline around all given tiles instead of one frame per tile
+//!        (the rectangle of a drag selection).
+void RenderManager::rrDrawTilePreview(const std::vector<Tile*>& tiles, const Ogre::ColourValue& colour, bool construction, bool digging, bool singleRectangle)
 {
     if(mTilePreview == nullptr)
     {
@@ -4752,6 +4835,11 @@ void RenderManager::rrDrawTilePreview(const std::vector<Tile*>& tiles, const Ogr
     mTilePreview->clear();
     if(tiles.empty())
         return;
+    if(singleRectangle)
+    {
+        drawTileRectangle(mTilePreview, mSceneManager, tiles, colour, digging);
+        return;
+    }
     mTilePreview->begin("debug_draw", Ogre::RenderOperation::OT_LINE_LIST, "Graphics");
     for(Tile* tile : tiles)
     {
@@ -4805,11 +4893,7 @@ void RenderManager::rrDrawTilePreview(const std::vector<Tile*>& tiles, const Ogr
             for(int i = 0; i < 4; ++i)
             {
                 const int next = (i + 1) % 4;
-                for(const Ogre::Vector3& point : {outer[i], outer[next], inner[next], outer[i], inner[next], inner[i]})
-                {
-                    mTilePreview->position(point);
-                    mTilePreview->colour(colour);
-                }
+                addPreviewBorderBand(mTilePreview, outer[i], outer[next], inner[next], inner[i], colour);
                 if(!tile->isFullTile())
                     continue;
                 // Offset side frames just outside the wall to avoid surface flicker.
