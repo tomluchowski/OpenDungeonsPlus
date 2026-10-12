@@ -133,7 +133,7 @@ struct RoomDungeonTemple:Room {
  RoomDungeonTemple(GameMap* m,Seat* s):Room(m,s){}
  RoomType getType() const override{return RoomType::dungeonTemple;}
  INLINE_METHODS
- static const double HEART_MAX_HP;static const double HEART_HEAL_PER_SECOND;double getHeartMaxHP()const;
+ static const double HEART_MAX_HP;static const double HEART_HEAL_PER_SECOND;static const double HEART_CRITICAL_FRACTION;double getHeartMaxHP()const;
  bool canAttackHeart(Tile*,Seat*)const;double getHP(Tile*)const override;
  double takeHeartDamage(GameEntity*,double,double,double,double,Tile*);
  bool removeCoveredTile(Tile*)override;void doUpkeep()override;

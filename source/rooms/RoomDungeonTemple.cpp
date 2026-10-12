@@ -143,6 +143,7 @@ static RoomRegister reg(new RoomDungeonTempleFactory);
 
 const double RoomDungeonTemple::HEART_MAX_HP = 10000.0;
 const double RoomDungeonTemple::HEART_HEAL_PER_SECOND = 2.5;
+const double RoomDungeonTemple::HEART_CRITICAL_FRACTION = 0.11;
 
 RoomDungeonTemple::RoomDungeonTemple(GameMap* gameMap) :
     Room(gameMap),
@@ -212,7 +213,7 @@ double RoomDungeonTemple::takeHeartDamage(GameEntity* attacker, double absoluteD
         fireEntityDead();
     }
     else if(!mCriticalWarningSent && !getGameMap()->isInEditorMode()
-        && mHeartHP <= 0.11 * getHeartMaxHP())
+        && mHeartHP <= HEART_CRITICAL_FRACTION * getHeartMaxHP())
     {
         // Warn the owner once, at the first hit after the heart is already at or
         // below 11 % of its durability. The killing hit sends nothing (defeat handles it).
@@ -259,7 +260,7 @@ void RoomDungeonTemple::doUpkeep()
         mHeartHP = std::min(getHeartMaxHP(),
             mHeartHP + HEART_HEAL_PER_SECOND / ODApplication::turnsPerSecond);
         // Healing above the critical level re-arms the warning for the next drop below it
-        if(mHeartHP > 0.11 * getHeartMaxHP())
+        if(mHeartHP > HEART_CRITICAL_FRACTION * getHeartMaxHP())
             mCriticalWarningSent = false;
     }
     Room::doUpkeep();
@@ -292,7 +293,8 @@ bool RoomDungeonTemple::importFromStream(std::istream& is)
         {
             // Saves from when the heart had 10000 health per room tile: keep the same share of
             // the fixed maximum.
-            const double oldMaxHP = 10000.0 * static_cast<double>(numCoveredTiles());
+            const double oldHPPerTile = 10000.0;
+            const double oldMaxHP = oldHPPerTile * static_cast<double>(numCoveredTiles());
             mHeartHP = oldMaxHP > 0.0
                 ? std::min(1.0, value / oldMaxHP) * getHeartMaxHP() : 0.0;
         }

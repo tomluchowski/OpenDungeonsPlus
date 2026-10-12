@@ -89,6 +89,8 @@ private:
     static const double HEART_MAX_HP;
     //! Health a living, damaged heart regains per second
     static const double HEART_HEAL_PER_SECOND;
+    //! Share of the maximum at or below which the owner is warned that the heart is critical
+    static const double HEART_CRITICAL_FRACTION;
 
     //! True once the critical-health warning was sent to the owner. Not saved: a reloaded
     //! game with an already critical heart warns once again at the next hit.

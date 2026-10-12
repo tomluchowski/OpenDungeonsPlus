@@ -804,9 +804,10 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
 
         case ServerNotificationType::playerDefeated:
         {
-            int32_t conquerorSeatId;
-            int32_t heartTileX;
-            int32_t heartTileY;
+            // -1 is "unknown", which is what a packet that is too short leaves behind
+            int32_t conquerorSeatId = -1;
+            int32_t heartTileX = -1;
+            int32_t heartTileY = -1;
             OD_ASSERT_TRUE(packetReceived >> conquerorSeatId >> heartTileX >> heartTileY);
             // Ignored when the client is not in the game mode (menu, editor, replay)
             if(frameListener->getModeManager()->getCurrentModeType() == ModeManager::GAME)
@@ -817,7 +818,7 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
         case ServerNotificationType::levelStatistics:
         {
             LevelStatistics statistics;
-            int32_t seatCount;
+            int32_t seatCount = 0;
             OD_ASSERT_TRUE(packetReceived >> statistics.mElapsedSeconds >> statistics.mLevelWon >> seatCount);
             for(int32_t i = 0; i < seatCount; ++i)
             {
@@ -839,10 +840,11 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
 
         case ServerNotificationType::heartHealth:
         {
-            float healthFraction;
-            bool underAttack;
-            double heartHP;
-            double heartMaxHP;
+            // The values of a full, undamaged heart with unknown points, for a packet that is too short
+            float healthFraction = 1.0f;
+            bool underAttack = false;
+            double heartHP = -1.0;
+            double heartMaxHP = -1.0;
             OD_ASSERT_TRUE(packetReceived >> healthFraction >> underAttack >> heartHP >> heartMaxHP);
             mHeartBadge.receive(healthFraction, underAttack);
             mHeartBadge.setPoints(heartHP, heartMaxHP);

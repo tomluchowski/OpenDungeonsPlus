@@ -39,6 +39,9 @@ namespace HeartHealthRing
     //! The server only tells the owner about changes of at least one percentage point.
     const float NOTIFY_STEP = 0.01f;
 
+    //! A change of exactly NOTIFY_STEP must count although float rounding can leave it a little short.
+    const float NOTIFY_TOLERANCE = 0.0001f;
+
     //! Seconds without a further message after which the "under attack" glow is switched off.
     const float ATTACK_GLOW_SECONDS = 3.0f;
 
@@ -107,7 +110,7 @@ namespace HeartHealthRing
         // A destroyed heart is always announced
         if(fraction <= 0.0f)
             return lastSent > 0.0f;
-        return std::abs(fraction - lastSent) >= NOTIFY_STEP - 0.0001f;
+        return std::abs(fraction - lastSent) >= NOTIFY_STEP - NOTIFY_TOLERANCE;
     }
 
     //! \brief Server side: may a message that only carries a new whole HP be sent? At most one per

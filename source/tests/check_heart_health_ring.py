@@ -127,6 +127,7 @@ struct RoomDungeonTemple : Room {
     GameMap* getGameMap() const {return mMap;}
     static const double HEART_MAX_HP;
     static const double HEART_HEAL_PER_SECOND;
+    static const double HEART_CRITICAL_FRACTION;
     double getHeartMaxHP() const;
     double getHP(Tile* tile) const override;
     double getHeartHealthFraction() const;
@@ -558,7 +559,7 @@ case = case[:case.index('break;')]
 assert 'packetReceived >> healthFraction >> underAttack >> heartHP >> heartMaxHP' in case
 assert 'mHeartBadge.receive(healthFraction, underAttack);' in case
 assert 'mHeartBadge.setPoints(heartHP, heartMaxHP);' in case
-assert 'float healthFraction;' in case and 'bool underAttack;' in case
+assert 'float healthFraction = 1.0f;' in case and 'bool underAttack = false;' in case
 accepted = client[client.index('case ServerNotificationType::clientAccepted:'):]
 accepted = accepted[:accepted.index('break;')]
 assert 'mHeartBadge = HeartHealthRing::BadgeState();' in accepted
