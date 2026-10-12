@@ -33,7 +33,8 @@ ODMainMenuBackground.imageset          Bertram                 GPLv3+
 ODMainMenuBackground.png               Vagner                  CC-BY-SA 3.0            http://opengameart.org/content/mammon-angel-of-darkness
 ODMainMenuButtons.imageset             Bertram                 GPLv3+
 ODMainMenuButtons.png                  StumpyStrust            CC-BY-SA 3.0            http://opengameart.org/content/fantasy-ui-box
-ODMainMenuLogo.imageset                OD Team                 GPLv3+
+ODMainMenuLogo.imageset                Mario                   GPLv3+
+ODMainMenuLogo.png                     AI-generated with Codex  GPLv3+                  AI-generated for this project (Codex, 2026-09), see "Generated assets" below
 OpenDungeons.looknfeel                 OD Team                 MIT                     CEGUI file based on the TaharezLook gui sample - http://cegui.org.uk
 OpenDungeonsIcons.imageset             OD Team                 GPLv3+
 OpenDungeonsIcons.png                  OD Team                 CC-BY-SA 3.0
@@ -491,5 +492,28 @@ hicolor/*/apps/opendungeons.*          Svenskmand              CC-BY-SA 3.0
   except hicolor/16x16/apps/opendungeons.png  OD Team          CC-BY-SA 3.0
 icon.rc                                OD Team                 GPLv3+
 logo.svg                               Svenskmand              CC-BY-SA 3.0
-OD-Logo.ico                            Svenskmand              CC-BY-SA 3.0
+OD-Logo.ico                            AI-generated with Codex  GPLv3+                  AI-generated for this project (Codex, 2026-09), see "Generated assets" below
 opendungeons.appdata.xml               OD Team                 GPLv3+
+
+
+=====================================================
+==  Source assets, metadata and artwork            ==
+=====================================================
+
+Name                                   Author                  License                 Source URL
+------------------------------------------------------------------------------------------------------------------------
+meta/gui/application-icon.png          AI-generated with Codex  GPLv3+                  AI-generated for this project (Codex, 2026-09), see "Generated assets" below
+
+
+=========================
+==  Generated assets   ==
+=========================
+
+The following assets are AI-generated and were created for this project. They are distributed
+under GPLv3+ together with the project. The prompts are kept next to the assets.
+
+Name                                   Author                  License                 Source URL
+------------------------------------------------------------------------------------------------------------------------
+gui/ODMainMenuLogo.png                 AI-generated with Codex  GPLv3+                  AI-generated for this project (Codex, 2026-09)
+meta/gui/application-icon.png          AI-generated with Codex  GPLv3+                  AI-generated for this project (Codex, 2026-09)
+dist/OD-Logo.ico                       AI-generated with Codex  GPLv3+                  AI-generated for this project (Codex, 2026-09)
