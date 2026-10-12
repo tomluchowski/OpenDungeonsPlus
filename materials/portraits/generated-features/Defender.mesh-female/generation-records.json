@@ -1,0 +1,212 @@
+[
+  {
+    "id": "Defender.mesh-female",
+    "slot": "build",
+    "n": 1,
+    "name": "slim",
+    "prompt": "Generate a NEW standalone customization asset for an adult female Defender. Reference ONLY for anatomy, palette, clothing and brushwork. Variation: a slimmer shoulder and chest build, preserving the exact reference clothing, colors and coverage; modest bust variation under identical coverage, original neckline unchanged. Output ONLY the isolated clothed shoulders and chest, NO head, face, hair or ears. Hand-painted dark fantasy strategy-game style matching reference. Preserve species anatomy and reference clothing coverage; never invent tusks absent from reference. No beard or moustache. Complete contour centered with transparent padding and genuine alpha background. No scenery, text, glow, fog or full portrait. Direct isolated-feature generation, never full-image cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-390b98bc-670a-4bbc-b102-d3ebf6a001ac.png",
+    "file": "build-1-slim.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "Defender.mesh-female",
+    "slot": "build",
+    "n": 2,
+    "name": "sturdy",
+    "prompt": "Generate a NEW standalone customization asset for an adult female Defender. Reference ONLY for anatomy, palette, clothing and brushwork. Variation: a sturdier shoulder and chest build, preserving the exact reference clothing, colors and coverage; modest bust variation under identical coverage, original neckline unchanged. Output ONLY the isolated clothed shoulders and chest, NO head, face, hair or ears. Hand-painted dark fantasy strategy-game style matching reference. Preserve species anatomy and reference clothing coverage; never invent tusks absent from reference. No beard or moustache. Complete contour centered with transparent padding and genuine alpha background. No scenery, text, glow, fog or full portrait. Direct isolated-feature generation, never full-image cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-207c2d1e-7395-4fda-a142-9aa38003c3c5.png",
+    "file": "build-2-sturdy.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "Defender.mesh-female",
+    "slot": "chin",
+    "n": 1,
+    "name": "square",
+    "prompt": "Generate a NEW standalone customization asset for an adult female Defender. Reference ONLY for anatomy, palette, clothing and brushwork. Variation: a squarer chin and jaw, preserving species-specific anatomy and reference skin; no beard. Output ONLY the isolated chin and jaw BELOW the mouth, absolutely NO lips, teeth, mouth, nose, eyes, head or body; STOP at the jaw underside, absolutely NO NECK, no throat, no shoulders. Hand-painted dark fantasy strategy-game style matching reference. Preserve species anatomy and reference clothing coverage; never invent tusks absent from reference. No beard or moustache. Complete contour centered with transparent padding and genuine alpha background. No scenery, text, glow, fog or full portrait. Direct isolated-feature generation, never full-image cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-b916b1f0-fced-4d3f-bad7-4a95a7602cad.png",
+    "file": "chin-1-square.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "Defender.mesh-female",
+    "slot": "chin",
+    "n": 2,
+    "name": "rounded",
+    "prompt": "Generate a NEW standalone customization asset for an adult female Defender. Reference ONLY for anatomy, palette, clothing and brushwork. Variation: a softer rounded chin and jaw, preserving species-specific anatomy and reference skin; no beard. Output ONLY the isolated chin and jaw BELOW the mouth, absolutely NO lips, teeth, mouth, nose, eyes, head or body; STOP at the jaw underside, absolutely NO NECK, no throat, no shoulders. Hand-painted dark fantasy strategy-game style matching reference. Preserve species anatomy and reference clothing coverage; never invent tusks absent from reference. No beard or moustache. Complete contour centered with transparent padding and genuine alpha background. No scenery, text, glow, fog or full portrait. Direct isolated-feature generation, never full-image cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-94e65ccd-f134-46a8-b03c-c2dc6016e135.png",
+    "file": "chin-2-rounded.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "Defender.mesh-female",
+    "slot": "ears",
+    "n": 1,
+    "name": "notched",
+    "prompt": "Generate a NEW standalone customization asset for an adult female Defender. Reference ONLY for anatomy, palette, clothing and brushwork. Variation: the visible ear with a small healed notch near its tip, preserving its species-specific anatomy and reference skin. Output ONLY one isolated ear, NO head, face or body. Hand-painted dark fantasy strategy-game style matching reference. Preserve species anatomy and reference clothing coverage; never invent tusks absent from reference. No beard or moustache. Complete contour centered with transparent padding and genuine alpha background. No scenery, text, glow, fog or full portrait. Direct isolated-feature generation, never full-image cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-0ad033df-960f-4e0f-9979-21e217fe3ce1.png",
+    "file": "ears-1-notched.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "Defender.mesh-female",
+    "slot": "ears",
+    "n": 2,
+    "name": "rounder",
+    "prompt": "Generate a NEW standalone customization asset for an adult female Defender. Reference ONLY for anatomy, palette, clothing and brushwork. Variation: the visible ear with a shorter and rounder tip, preserving its species-specific anatomy and reference skin. Output ONLY one isolated ear, NO head, face or body. Hand-painted dark fantasy strategy-game style matching reference. Preserve species anatomy and reference clothing coverage; never invent tusks absent from reference. No beard or moustache. Complete contour centered with transparent padding and genuine alpha background. No scenery, text, glow, fog or full portrait. Direct isolated-feature generation, never full-image cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-46811a73-afc3-45f7-be4d-534a4ed1992e.png",
+    "file": "ears-2-rounder.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "Defender.mesh-female",
+    "slot": "eyes",
+    "n": 1,
+    "name": "narrow",
+    "prompt": "Generate a NEW standalone customization asset for an adult female Defender. Reference ONLY for anatomy, palette, clothing and brushwork. Variation: narrow suspicious eyes with heavy lids and brows, preserving the exact reference eye and skin colors. Output ONLY isolated eyes with lids, brows and a thin rim of nearby skin, or the requested eye patch with strap, NO helmet, armor, headwear, nasal guard, nose, mouth, full face, head or body. Hand-painted dark fantasy strategy-game style matching reference. Preserve species anatomy and reference clothing coverage; never invent tusks absent from reference. No beard or moustache. Complete contour centered with transparent padding and genuine alpha background. No scenery, text, glow, fog or full portrait. Direct isolated-feature generation, never full-image cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-ce89bf92-e40d-46c1-989e-c64f815ac001.png",
+    "file": "eyes-1-narrow.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "Defender.mesh-female",
+    "slot": "eyes",
+    "n": 2,
+    "name": "round",
+    "prompt": "Generate a NEW standalone customization asset for an adult female Defender. Reference ONLY for anatomy, palette, clothing and brushwork. Variation: rounder alert eyes with raised brows, preserving the exact reference eye and skin colors. Output ONLY isolated eyes with lids, brows and a thin rim of nearby skin, or the requested eye patch with strap, NO helmet, armor, headwear, nasal guard, nose, mouth, full face, head or body. Hand-painted dark fantasy strategy-game style matching reference. Preserve species anatomy and reference clothing coverage; never invent tusks absent from reference. No beard or moustache. Complete contour centered with transparent padding and genuine alpha background. No scenery, text, glow, fog or full portrait. Direct isolated-feature generation, never full-image cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-2f18d432-13f0-4929-adf3-6a69344c51fe.png",
+    "file": "eyes-2-round.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "Defender.mesh-female",
+    "slot": "eyes",
+    "n": 3,
+    "name": "eyepatch",
+    "prompt": "Generate a NEW standalone customization asset for an adult female Defender. Reference ONLY for anatomy, palette, clothing and brushwork. Variation: a worn dark leather eye patch over the near eye, with a plain leather strap. Output ONLY isolated eyes with lids, brows and a thin rim of nearby skin, or the requested eye patch with strap, NO helmet, armor, headwear, nasal guard, nose, mouth, full face, head or body. Hand-painted dark fantasy strategy-game style matching reference. Preserve species anatomy and reference clothing coverage; never invent tusks absent from reference. No beard or moustache. Complete contour centered with transparent padding and genuine alpha background. No scenery, text, glow, fog or full portrait. Direct isolated-feature generation, never full-image cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-13146016-0c7b-462a-89a9-aa178930cfa1.png",
+    "file": "eyes-3-eyepatch.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "Defender.mesh-female",
+    "slot": "hair",
+    "n": 1,
+    "name": "swept",
+    "prompt": "Generate a NEW standalone customization asset for an adult female Defender. Reference ONLY for anatomy, palette, clothing and brushwork. Variation: a swept-back hairstyle with the exact reference hair color and texture; only hair that can show outside any headwear. Output ONLY isolated SCALP HAIR, NO beard, NO moustache, NO facial hair, NO head, NO face, NO skin, NO helmet, NO body. Hand-painted dark fantasy strategy-game style matching reference. Preserve species anatomy and reference clothing coverage; never invent tusks absent from reference. No beard or moustache. Complete contour centered with transparent padding and genuine alpha background. No scenery, text, glow, fog or full portrait. Direct isolated-feature generation, never full-image cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-d7f0f2b1-e085-489a-9c5f-45d0d1cded0a.png",
+    "file": "hair-1-swept.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "Defender.mesh-female",
+    "slot": "hair",
+    "n": 2,
+    "name": "waves",
+    "prompt": "Generate a NEW standalone customization asset for an adult female Defender. Reference ONLY for anatomy, palette, clothing and brushwork. Variation: a fuller wavy hairstyle with the exact reference hair color and texture; only hair that can show outside any headwear; visibly different from swept-back hair: loose flowing waves, no ponytail or hair tie. Output ONLY isolated SCALP HAIR, NO beard, NO moustache, NO facial hair, NO head, NO face, NO skin, NO helmet, NO body. Hand-painted dark fantasy strategy-game style matching reference. Preserve species anatomy and reference clothing coverage; never invent tusks absent from reference. No beard or moustache. Complete contour centered with transparent padding and genuine alpha background. No scenery, text, glow, fog or full portrait. Direct isolated-feature generation, never full-image cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-585b33a9-9a7f-4812-9ee5-b0192bd8319e.png",
+    "file": "hair-2-waves.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "Defender.mesh-female",
+    "slot": "mouth",
+    "n": 1,
+    "name": "teeth",
+    "prompt": "Generate a NEW standalone customization asset for an adult female Defender. Reference ONLY for anatomy, palette, clothing and brushwork. Variation: a tighter crooked grin with uneven teeth, preserving the species-specific lips and teeth, including tusks ONLY IF PRESENT in reference. Output ONLY isolated lips and teeth, NO beard, moustache, chin hair, nose, eyes, head or body; a cigar ONLY when explicitly requested in Variation, otherwise NO cigar, cigarette, pipe or other accessory. Hand-painted dark fantasy strategy-game style matching reference. Preserve species anatomy and reference clothing coverage; never invent tusks absent from reference. No beard or moustache. Complete contour centered with transparent padding and genuine alpha background. No scenery, text, glow, fog or full portrait. Direct isolated-feature generation, never full-image cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-9f54bd9f-83a7-47c4-a605-a0a134752185.png",
+    "file": "mouth-1-teeth.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "Defender.mesh-female",
+    "slot": "mouth",
+    "n": 2,
+    "name": "grin",
+    "prompt": "Generate a NEW standalone customization asset for an adult female Defender. Reference ONLY for anatomy, palette, clothing and brushwork. Variation: a broader lopsided grin, preserving the species-specific lips and teeth, including tusks ONLY IF PRESENT in reference. Output ONLY isolated lips and teeth, NO beard, moustache, chin hair, nose, eyes, head or body; a cigar ONLY when explicitly requested in Variation, otherwise NO cigar, cigarette, pipe or other accessory. Hand-painted dark fantasy strategy-game style matching reference. Preserve species anatomy and reference clothing coverage; never invent tusks absent from reference. No beard or moustache. Complete contour centered with transparent padding and genuine alpha background. No scenery, text, glow, fog or full portrait. Direct isolated-feature generation, never full-image cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-18fd37db-d56c-4b7c-9b06-b9dedd550cd7.png",
+    "file": "mouth-2-grin.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "Defender.mesh-female",
+    "slot": "mouth",
+    "n": 3,
+    "name": "cigar",
+    "prompt": "Generate a NEW standalone customization asset for an adult female Defender. Reference ONLY for anatomy, palette, clothing and brushwork. Variation: a short fat brown cigar clamped in the corner of the mouth, preserving the species-specific lips and teeth, including tusks ONLY IF PRESENT in reference. Output ONLY isolated lips and teeth, NO beard, moustache, chin hair, nose, eyes, head or body; a cigar ONLY when explicitly requested in Variation, otherwise NO cigar, cigarette, pipe or other accessory. Hand-painted dark fantasy strategy-game style matching reference. Preserve species anatomy and reference clothing coverage; never invent tusks absent from reference. No beard or moustache. Complete contour centered with transparent padding and genuine alpha background. No scenery, text, glow, fog or full portrait. Direct isolated-feature generation, never full-image cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-357c4141-d8fa-4e10-bc96-f64a6bd0bbe8.png",
+    "file": "mouth-3-cigar.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "Defender.mesh-female",
+    "slot": "neck",
+    "n": 1,
+    "name": "teeth",
+    "prompt": "Generate a NEW standalone customization asset for an adult female Defender. Reference ONLY for anatomy, palette, clothing and brushwork. Variation: a plain cord necklace with three small yellowed animal teeth. Output ONLY the isolated necklace or neck torque, NO neck skin, head or body. Hand-painted dark fantasy strategy-game style matching reference. Preserve species anatomy and reference clothing coverage; never invent tusks absent from reference. No beard or moustache. Complete contour centered with transparent padding and genuine alpha background. No scenery, text, glow, fog or full portrait. Direct isolated-feature generation, never full-image cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-81355e5f-891e-49f2-a81a-be8e7b6fca28.png",
+    "file": "neck-1-teeth.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "Defender.mesh-female",
+    "slot": "neck",
+    "n": 2,
+    "name": "torque",
+    "prompt": "Generate a NEW standalone customization asset for an adult female Defender. Reference ONLY for anatomy, palette, clothing and brushwork. Variation: a plain aged bronze neck torque, no symbols. Output ONLY the isolated necklace or neck torque, NO neck skin, head or body. Hand-painted dark fantasy strategy-game style matching reference. Preserve species anatomy and reference clothing coverage; never invent tusks absent from reference. No beard or moustache. Complete contour centered with transparent padding and genuine alpha background. No scenery, text, glow, fog or full portrait. Direct isolated-feature generation, never full-image cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-17efc1c8-dcbd-43d3-a732-8be35f391ccf.png",
+    "file": "neck-2-torque.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "Defender.mesh-female",
+    "slot": "nose",
+    "n": 1,
+    "name": "crooked",
+    "prompt": "Generate a NEW standalone customization asset for an adult female Defender. Reference ONLY for anatomy, palette, clothing and brushwork. Variation: a crooked broken nose with a healed bump, preserving the species-specific anatomy and reference skin. Output ONLY an isolated nose with nostrils, NO eyes, mouth, chin, head or body. Hand-painted dark fantasy strategy-game style matching reference. Preserve species anatomy and reference clothing coverage; never invent tusks absent from reference. No beard or moustache. Complete contour centered with transparent padding and genuine alpha background. No scenery, text, glow, fog or full portrait. Direct isolated-feature generation, never full-image cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-d0465d17-5847-4a07-a32a-0f660f43e236.png",
+    "file": "nose-1-crooked.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "Defender.mesh-female",
+    "slot": "nose",
+    "n": 2,
+    "name": "broad",
+    "prompt": "Generate a NEW standalone customization asset for an adult female Defender. Reference ONLY for anatomy, palette, clothing and brushwork. Variation: a broader flatter nose with wider nostrils, preserving the species-specific anatomy and reference skin. Output ONLY an isolated nose with nostrils, NO eyes, mouth, chin, head or body. Hand-painted dark fantasy strategy-game style matching reference. Preserve species anatomy and reference clothing coverage; never invent tusks absent from reference. No beard or moustache. Complete contour centered with transparent padding and genuine alpha background. No scenery, text, glow, fog or full portrait. Direct isolated-feature generation, never full-image cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-22e3ea43-f656-4c33-8b25-047df14ef33a.png",
+    "file": "nose-2-broad.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "Defender.mesh-female",
+    "slot": "scar",
+    "n": 1,
+    "name": "diagonal",
+    "prompt": "Generate a NEW standalone customization asset for an adult female Defender. Reference ONLY for anatomy, palette, clothing and brushwork. Variation: one pale healed diagonal scar. Output ONLY the requested isolated scar or paint marks, NO face, head, body or rectangular skin patch. Hand-painted dark fantasy strategy-game style matching reference. Preserve species anatomy and reference clothing coverage; never invent tusks absent from reference. No beard or moustache. Complete contour centered with transparent padding and genuine alpha background. No scenery, text, glow, fog or full portrait. Direct isolated-feature generation, never full-image cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-4bc6a05e-1309-4581-81b2-2f5327e44c08.png",
+    "file": "scar-1-diagonal.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "Defender.mesh-female",
+    "slot": "scar",
+    "n": 2,
+    "name": "scratches",
+    "prompt": "Generate a NEW standalone customization asset for an adult female Defender. Reference ONLY for anatomy, palette, clothing and brushwork. Variation: three small parallel healed scratches; EXACTLY THREE separately visible parallel scars, count one, two, three. Output ONLY the requested isolated scar or paint marks, NO face, head, body or rectangular skin patch. Hand-painted dark fantasy strategy-game style matching reference. Preserve species anatomy and reference clothing coverage; never invent tusks absent from reference. No beard or moustache. Complete contour centered with transparent padding and genuine alpha background. No scenery, text, glow, fog or full portrait. Direct isolated-feature generation, never full-image cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-57d553f1-85dc-4dd9-956e-6c68503e9495.png",
+    "file": "scar-2-scratches.png",
+    "method": "direct generation; unmodified file copy"
+  },
+  {
+    "id": "Defender.mesh-female",
+    "slot": "scar",
+    "n": 3,
+    "name": "warpaint",
+    "prompt": "Generate a NEW standalone customization asset for an adult female Defender. Reference ONLY for anatomy, palette, clothing and brushwork. Variation: simple dark red war-paint streaks, no symbols. Output ONLY the requested isolated scar or paint marks, NO face, head, body or rectangular skin patch. Hand-painted dark fantasy strategy-game style matching reference. Preserve species anatomy and reference clothing coverage; never invent tusks absent from reference. No beard or moustache. Complete contour centered with transparent padding and genuine alpha background. No scenery, text, glow, fog or full portrait. Direct isolated-feature generation, never full-image cropping.",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-6bfc1319-e651-44ad-8b5a-b5627ea2e166.png",
+    "file": "scar-3-warpaint.png",
+    "method": "direct generation; unmodified file copy"
+  }
+]

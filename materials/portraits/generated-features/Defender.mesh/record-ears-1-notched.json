@@ -1,0 +1,10 @@
+﻿{
+  "id": "Defender.mesh",
+  "slot": "ears",
+  "n": 1,
+  "name": "notched",
+  "prompt": "Generate a NEW standalone customization asset for an adult male Defender. Reference ONLY for anatomy, palette, clothing and brushwork. Variation: the visible ear with a small healed notch near its tip, preserving its species-specific anatomy and reference skin. Output ONLY one isolated ear, NO head, face or body. Hand-painted dark fantasy strategy-game style matching reference. Preserve species anatomy and reference clothing coverage; never invent tusks absent from reference. Complete contour centered with transparent padding and genuine alpha background. No scenery, text, glow, fog or full portrait. Direct isolated-feature generation, never full-image cropping.",
+  "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-63da648e-2045-4e22-b320-43af28c1e304.png",
+  "file": "ears-1-notched.png",
+  "method": "direct generation; unmodified file copy"
+}
