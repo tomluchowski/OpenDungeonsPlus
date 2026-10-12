@@ -71,6 +71,7 @@ class ODSocketClient
         void setPlayer(Player* player) { mPlayer = player; }
         //! \brief Whether the other side agreed to nickname changes during the game.
         bool supportsLiveNickname() const { return mSupportsLiveNickname; }
+        //! \brief Stores whether the other side agreed to nickname changes during the game.
         void setSupportsLiveNickname(bool supported) { mSupportsLiveNickname = supported; }
         int64_t getLastTurnAck() { return mLastTurnAck; }
         void setLastTurnAck(int64_t lastTurnAck) { mLastTurnAck = lastTurnAck; }
