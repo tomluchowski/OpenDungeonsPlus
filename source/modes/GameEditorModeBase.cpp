@@ -29,6 +29,7 @@
 #include "rooms/RoomType.h"
 #include "traps/TrapType.h"
 #include "utils/Helper.h"
+#include "utils/ConfigManager.h"
 #include "utils/MakeUnique.h"
 
 #include <Ogre.h>
@@ -94,6 +95,7 @@ GameEditorModeBase::GameEditorModeBase(ModeManager* modeManager, ModeManager::Mo
     mChatMessageDisplayTime(0),
     mChatMessageBoxDisplay(ChatMessageBoxDisplay::hide),
     mMiniMap(MiniMap::createMiniMap(rootWindow->getChild(Gui::MINIMAP))),
+    mMiniMapType(ConfigManager::getSingleton().getGameValue(Config::MINIMAP_TYPE, MiniMap::DEFAULT_MINIMAP, false)),
     mMainCullingManager( new CullingManager(mGameMap, CullingType::SHOW_MAIN_WINDOW)),
     mKeepReplayAtDisconnect(false),
     mCameraTilesIntersections(std::vector<Ogre::Vector3>(4, Ogre::Vector3::ZERO)),
@@ -192,6 +194,14 @@ bool GameEditorModeBase::onMinimapClick(const CEGUI::EventArgs& arg)
 
 void GameEditorModeBase::onFrameStarted(const Ogre::FrameEvent& evt)
 {
+    const std::string miniMapType = ConfigManager::getSingleton().getGameValue(Config::MINIMAP_TYPE, MiniMap::DEFAULT_MINIMAP, false);
+    if(miniMapType != mMiniMapType)
+    {
+        delete mMiniMap;
+        mMiniMap = nullptr;
+        mMiniMap = MiniMap::createMiniMap(mRootWindow->getChild(Gui::MINIMAP));
+        mMiniMapType = miniMapType;
+    }
     updateMessages(evt.timeSinceLastFrame);
     if(mMainCullingManager != nullptr)
     {
@@ -336,4 +346,3 @@ void GameEditorModeBase::leaveConsole()
     mCurrentInputMode = InputModeNormal;
     activate();
 }
-

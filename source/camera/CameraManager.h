@@ -37,7 +37,7 @@ class TileContainer;
 class GameMap;
 class TileContainer;
 
-// The min/max camera height in tile size
+// The default min/max camera height in tile size, used when the user config has no zoom heights
 const Ogre::Real MIN_CAMERA_Z = 3.0;
 const Ogre::Real MAX_CAMERA_Z = 16.0;
 
@@ -62,6 +62,7 @@ public:
 
         randomRotateX, zeroRandomRotateX,
         randomRotateY, zeroRandomRotateY,
+        //! Stops every movement and view animation of the camera at once.
         fullStop
     };
 
@@ -131,6 +132,30 @@ public:
     */
     void move(const Direction direction, double aux = 0.0);
 
+    //! The number of user views that can be stored and loaded.
+    static const unsigned int USER_VIEW_COUNT = 3;
+
+    //! Continuous input is sampled once per frame, independent of key repeat.
+    void setControls(const Ogre::Vector2& pan, Ogre::Real zoom, Ogre::Real swivel, bool fast);
+    //! Moves the zoom by whole levels (positive zooms out). Input beyond the first or last level is ignored.
+    void zoomStep(int levels);
+    //! Pointer motion while zooming: every full ZOOM_DRAG_DISTANCE of accumulated motion is one zoom level.
+    void zoomBy(Ogre::Real distance);
+    //! Moves the camera to the zoom level nearest to its current height
+    void snapToZoomLevel();
+    //! The camera height of a zoom level (0 .. number of levels - 1)
+    Ogre::Real getZoomLevelHeight(int level) const;
+    //! \brief Turns the camera around the point it looks at by the given degrees. The tilt is limited.
+    void orbitBy(Ogre::Real swivel, Ogre::Real pitch);
+    //! \brief Changes the tilt of the current view by the given degrees around its own axes.
+    //! A change that would make the camera look up from the ground is ignored.
+    void adjustUserView(Ogre::Real roll, Ogre::Real yaw, Ogre::Real pitch);
+    //! \brief Restores the stored view of the slot (0 to USER_VIEW_COUNT - 1). An empty slot selects the default tilt.
+    void loadUserView(unsigned int slot);
+    //! \brief Stores the current view in the slot (0 to USER_VIEW_COUNT - 1) and saves the user config.
+    //! \return false if the slot is invalid or the config could not be saved.
+    bool storeUserView(unsigned int slot);
+
     void createCameraNode(const std::string& name);
 
     void destroyCameraNode(const std::string& name);
@@ -163,6 +188,9 @@ public:
     Ogre::Viewport* getViewport()
     { return mViewport; }
 
+    //! \brief Move the main camera viewport to another render window.
+    void setRenderWindow(Ogre::RenderWindow* renderWindow);
+
     void resetHCSNodes(int nodeValue)
     {
         mXHCS.resetNodes(nodeValue);
@@ -191,6 +219,9 @@ private:
     //! \brief Moves the position so that the ground point the camera looks at from it
     //! stays within the map.
     void clampToMap(Ogre::Vector3& position) const;
+    //! \brief Sets the orientation of the camera node (root) and of its tilt child node (tilt) while the
+    //! ground point the camera looks at stays where it is.
+    void setViewOrientation(const Ogre::Quaternion& root, const Ogre::Quaternion& tilt);
 
     //! \brief HermiteCatmullSpline members for each axices.
     HermiteCatmullSpline mXHCS;
@@ -235,8 +266,23 @@ private:
     //! \brief The current (or last) default view mode requested.
     ViewModes       mCurrentDefaultViewMode;
 
-    //! \brief The user height change value.
-    Ogre::Real      mZChange;
+    //! \brief The zoom levels, read from the user config: the number of levels, the heights of the first
+    //! and the last level (the levels in between are evenly spaced) and the speed of the animation between
+    //! two levels in tile size per second.
+    int             mZoomLevels;
+    Ogre::Real      mZoomMinZ;
+    Ogre::Real      mZoomMaxZ;
+    Ogre::Real      mZoomSpeed;
+
+    //! \brief The zoom level whose height is nearest to the given camera height
+    int getNearestZoomLevel(Ogre::Real height) const;
+
+    //! \brief The camera height the zoom animation moves to, only valid while mZoomAnimating is set.
+    Ogre::Real      mZoomTargetZ;
+    bool            mZoomAnimating;
+
+    //! \brief Pointer motion accumulated towards the next zoom level
+    Ogre::Real      mZoomDragDistance;
 
     //! \brief The Z-axis rotation, left or right from the user point of view.
     Ogre::Degree    mSwivelDegrees;
@@ -244,6 +290,9 @@ private:
     //! \brief Carry out the acceleration/deceleration calculations on the camera translation.
     Ogre::Vector3   mTranslateVector;
     Ogre::Vector3   mTranslateVectorAccel;
+
+    //! \brief Maximum pan speed per axis, used to scale mouse-edge scrolling.
+    Ogre::Vector2   mTranslateMaxSpeedFactor;
 
     //! \brief The X-axis rotation vector, tilting the point of view (look down or up).
     Ogre::Vector3   mRotateLocalVector;
@@ -269,6 +318,12 @@ private:
     //! \brief User-tunable multiplier on the keyboard/autoscroll pan speed
     //! (1.0 keeps the historic speed). Set from the settings window.
     Ogre::Real mPanSpeedFactor;
+    //! \brief Multiplier on the pan speed, raised while the fast key is held.
+    Ogre::Real mFastPanFactor = 1.0f;
+    //! \brief Zoom key state of the previous frame, a key press is one zoom level
+    Ogre::Real mControlZoom = 0.0f;
+    //! \brief Swivel direction (-1 to 1) of the continuous input.
+    Ogre::Real mControlSwivel = 0.0f;
 };
 
 #endif // CAMERAMANAGER_H_

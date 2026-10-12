@@ -122,6 +122,10 @@ class ODPacket
          */
         operator bool() const;
 
+        //! \brief Whether all data of the packet has been read.
+        bool endOfPacket() const
+        { return mPacket.endOfPacket(); }
+
         /*! \brief Clears the packet. After calling Clear, the packet should
          * be empty.
          */
@@ -158,4 +162,3 @@ class ODPacket
 };
 
 #endif // ODPACKET_H
-

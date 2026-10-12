@@ -63,11 +63,16 @@ const std::string KEYBOARD_GRAB = "Keyboard Grab";
 const std::string MOUSE_GRAB = "Mouse Grab";
 const std::string AUTOSCROLL = "Autoscroll";
 const std::string PAN_SPEED = "Pan Speed";
+const std::string ZOOM_LEVELS = "Zoom Levels";
+const std::string ZOOM_MIN_HEIGHT = "Zoom Min Height";
+const std::string ZOOM_MAX_HEIGHT = "Zoom Max Height";
+const std::string ZOOM_SPEED = "Zoom Speed";
 // Game
 const std::string NICKNAME = "Nickname";
 const std::string KEEPERVOICE = "KeeperVoice";
 const std::string MINIMAP_TYPE = "MinimapType";
 const std::string LIGHT_FACTOR = "LightFactor";
+const std::string UI_SCALE = "UI Scale";
 }
 
 typedef std::map<TileVisual,std::map<int,float>> HighMap;

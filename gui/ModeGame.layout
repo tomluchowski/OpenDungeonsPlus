@@ -120,7 +120,7 @@
             <Property name="Area" value="{{1,-232},{1,-171},{1,-202},{1,-141}}" />
             <Property name="ButtonImage" value="OpenDungeonsIcons/ObjectivesIcon" />
             <Property name="AlwaysOnTop" value="True" />
-            <Property name="TooltipText" value="Objectives (F3)" />
+            <Property name="TooltipText" value="Objectives" />
             <Property name="ClippedByParent" value="False" />
             <Property name="Visible" value="True" />
         </Window>
@@ -151,6 +151,7 @@
         <LayoutImport type="DefaultWindow" filename="WindowObjectives.layout" name="ObjectivesWindowImport" />
         <LayoutImport type="DefaultWindow" filename="WindowSkillTree.layout" name="SkillTreeWindowImport" />
         <LayoutImport type="DefaultWindow" filename="WindowGameOptions.layout" name="GameOptionsMenuImport" />
+        <LayoutImport type="DefaultWindow" filename="WindowUserCameras.layout" name="UserCamerasImport" />
         <LayoutImport type="DefaultWindow" filename="WindowEvent.layout" name="EventWindowImport" />
         <LayoutImport type="DefaultWindow" filename="WindowChat.layout" name="ChatWindowImport" />
         <LayoutImport type="DefaultWindow" filename="WindowHelp.layout" name="HelpWindowImport" />

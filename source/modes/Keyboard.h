@@ -8,6 +8,8 @@ class Keyboard
 {
 public:
     bool isModifierDown(OIS::Keyboard::Modifier code);
+    //! \brief Whether the key is held down right now.
+    bool isKeyDown(OIS::KeyCode code);
 #ifndef OD_USE_SFML_WINDOW
     Keyboard(OIS::Keyboard* kb) : mKeyboard(kb) {}
 

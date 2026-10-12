@@ -157,6 +157,9 @@ protected:
     //! \brief The minimap used in this mode
     MiniMap* mMiniMap;
 
+    //! \brief The configured minimap type the current minimap was created for. The minimap is created again when it changes.
+    std::string mMiniMapType;
+
     //! \brief Culling manager for the main map
     CullingManager* mMainCullingManager;
 
