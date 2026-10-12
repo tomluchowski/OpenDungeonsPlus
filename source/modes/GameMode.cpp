@@ -72,7 +72,19 @@ const std::string TEXT_SEAT_PLAYER_NICKNAME_PREFIX = "TextSeatPlayerNick";
 const std::string TEXT_SEAT_TEAM_ID_PREFIX = "TextSeatTeam";
 
 //! \brief The pointer movement in pixels up to which a middle button press and release is a click, not a camera rotation
-const float MIDDLE_CLICK_MAX_DRAG = 4.0f;
+//! (measured from where the button went down, scaled with the display height, so that the hand jitter of a
+//! click on a high resolution screen does not count as a drag)
+const float MIDDLE_CLICK_MAX_DRAG = 6.0f;
+//! \brief A creature is picked by a middle click if the pointer ray passes it within this distance (in tiles)
+const float MIDDLE_CLICK_PICK_RADIUS = 0.7f;
+//! \brief Height above the floor at which the pointer ray is checked against creatures and other entities
+const float MIDDLE_CLICK_BODY_HEIGHT = 0.4f;
+//! \brief The display height in pixels at which MIDDLE_CLICK_MAX_DRAG applies unscaled
+const float MIDDLE_CLICK_REFERENCE_HEIGHT = 1080.0f;
+//! \brief Number of heights above the floor at which the pointer ray is sampled for tiles
+const int MIDDLE_CLICK_RAY_STEPS = 6;
+//! \brief Distance in tiles between two sample heights of the pointer ray
+const float MIDDLE_CLICK_RAY_STEP_HEIGHT = 0.25f;
 
 GameMode::GameMode(ModeManager *modeManager):
     GameEditorModeBase(modeManager, ModeManager::GAME, modeManager->getGui().getGuiSheet(Gui::guiSheet::inGameMenu)),
@@ -85,6 +97,8 @@ GameMode::GameMode(ModeManager *modeManager):
     mCurrentSkillProgress(0.0),
     mPreviousMousePosition(MouseMoveEvent{0, 0}),
     mMiddleDragDistance(0.0f),
+    mMiddlePressX(0.0f),
+    mMiddlePressY(0.0f),
     directionKeyPressed(false),
     showTileDebugWindow(false),
     config(ConfigManager::getSingleton())
@@ -374,7 +388,9 @@ bool GameMode::mouseMoved(const OIS::MouseEvent &arg)
     // TODO: Here we should check whether the terminal is active...
     if(inputManager.mMMouseDown)
     {
-        mMiddleDragDistance += std::abs(static_cast<float>(mouseDelta.x)) + std::abs(static_cast<float>(mouseDelta.y));
+        float dragX = static_cast<float>(mouseEvent.x) - mMiddlePressX;
+        float dragY = static_cast<float>(mouseEvent.y) - mMiddlePressY;
+        mMiddleDragDistance = std::max(mMiddleDragDistance, std::sqrt(dragX * dragX + dragY * dragY));
         ODFrameListener::getSingleton().moveCamera(CameraManager::randomRotateX,mouseDelta.x);
         ODFrameListener::getSingleton().moveCamera(CameraManager::randomRotateY,mouseDelta.y);
     }
@@ -527,49 +543,61 @@ void GameMode::openStatsWindowUnderPointer(const OIS::MouseEvent& arg)
     if(mGameMap->getGamePaused())
         return;
 
-    if(!ODFrameListener::getSingleton().findWorldPositionFromMouse(arg, inputManager.mKeeperHandPos,RenderManager::KEEPER_HAND_WORLD_Z))
+    // The pointer ray is checked against the bodies of the entities. Intersecting it with a plane at a fixed
+    // height misses a creature that is clicked on its body, because the ray reaches that plane in front of it.
+    const CEGUI::Vector2f mouse = CEGUI::System::getSingleton().getDefaultGUIContext().getMouseCursor().getPosition();
+    const Ogre::Ray ray = ODFrameListener::getSingleton().getCameraManager()->getActiveCamera()->getCameraToViewportRay(
+        mouse.d_x / arg.state.width, mouse.d_y / arg.state.height);
+    if(ray.getDirection().z >= 0)
         return;
 
-    int tileX = Helper::round(inputManager.mKeeperHandPos.x);
-    int tileY = Helper::round(inputManager.mKeeperHandPos.y);
-    Tile* tileClicked = mGameMap->getTile(tileX, tileY);
-    if(tileClicked == nullptr)
-        return;
-
-    // See if the mouse is over any entity that might display a stats window
-    std::vector<GameEntity*> entities;
-    tileClicked->fillWithEntities(entities, SelectionEntityWanted::any, mGameMap->getLocalPlayer());
-    // We search the closest creature alive
-    GameEntity* closestEntity = nullptr;
-    double closestDist = 0;
-    for(GameEntity* entity : entities)
+    // The tiles the ray crosses between the floor and above the creatures
+    std::vector<Tile*> tiles;
+    for(int step = 0; step <= MIDDLE_CLICK_RAY_STEPS; ++step)
     {
-        if(!entity->canDisplayStatsWindow(mGameMap->getLocalPlayer()->getSeat()))
-            continue;
+        const Ogre::Vector3 point = ray.getPoint((ray.getOrigin().z - MIDDLE_CLICK_RAY_STEP_HEIGHT * static_cast<float>(step)) / -ray.getDirection().z);
+        Tile* tile = mGameMap->getTile(Helper::round(point.x), Helper::round(point.y));
+        if((tile != nullptr) && (std::find(tiles.begin(), tiles.end(), tile) == tiles.end()))
+            tiles.push_back(tile);
+    }
 
-        const Ogre::Vector3& entityPos = entity->getPosition();
-        double dist = Pathfinding::squaredDistance(entityPos.x, inputManager.mKeeperHandPos.x, entityPos.y, inputManager.mKeeperHandPos.y);
-        if(closestEntity == nullptr)
+    GameEntity* closestEntity = nullptr;
+    float closestDist = MIDDLE_CLICK_PICK_RADIUS;
+    for(Tile* tile : tiles)
+    {
+        std::vector<GameEntity*> entities;
+        tile->fillWithEntities(entities, SelectionEntityWanted::any, mGameMap->getLocalPlayer());
+        for(GameEntity* entity : entities)
         {
+            if(!entity->canDisplayStatsWindow(mGameMap->getLocalPlayer()->getSeat()))
+                continue;
+
+            Ogre::Vector3 body = entity->getPosition();
+            body.z += MIDDLE_CLICK_BODY_HEIGHT;
+            const float dist = ray.getDirection().crossProduct(body - ray.getOrigin()).length();
+            if(dist >= closestDist)
+                continue;
+
             closestDist = dist;
             closestEntity = entity;
-            continue;
         }
-
-        if(dist >= closestDist)
-            continue;
-
-        closestDist = dist;
-        closestEntity = entity;
     }
 
-    if(closestEntity == nullptr)
+    if(closestEntity != nullptr)
     {
-        if(showTileDebugWindow)
-            tileClicked->createStatsWindow();
-    }
-    else
         closestEntity->createStatsWindow();
+        return;
+    }
+
+    if(!showTileDebugWindow)
+        return;
+
+    if(!ODFrameListener::getSingleton().findWorldPositionFromMouse(arg, inputManager.mKeeperHandPos, RenderManager::KEEPER_HAND_WORLD_Z))
+        return;
+
+    Tile* tileClicked = mGameMap->getTile(Helper::round(inputManager.mKeeperHandPos.x), Helper::round(inputManager.mKeeperHandPos.y));
+    if(tileClicked != nullptr)
+        tileClicked->createStatsWindow();
 }
 
 bool GameMode::mousePressed(const OIS::MouseEvent& arg, OIS::MouseButtonID id)
@@ -624,6 +652,8 @@ bool GameMode::mousePressed(const OIS::MouseEvent& arg, OIS::MouseButtonID id)
     {
         inputManager.mMMouseDown = true;
         mMiddleDragDistance = 0.0f;
+        mMiddlePressX = static_cast<float>(arg.state.X.abs);
+        mMiddlePressY = static_cast<float>(arg.state.Y.abs);
     }
 
     int tileX = Helper::round(inputManager.mKeeperHandPos.x);
@@ -788,7 +818,8 @@ bool GameMode::mouseReleased(const OIS::MouseEvent &arg, OIS::MouseButtonID id)
     {
         // A middle click that did not move is a request for the stats window. mMMouseDown is only set when
         // the press was on the map, so a press on a GUI window never gets here as a click
-        bool isClick = inputManager.mMMouseDown && (mMiddleDragDistance <= MIDDLE_CLICK_MAX_DRAG);
+        float maxDrag = MIDDLE_CLICK_MAX_DRAG * std::max(1.0f, static_cast<float>(arg.state.height) / MIDDLE_CLICK_REFERENCE_HEIGHT);
+        bool isClick = inputManager.mMMouseDown && (mMiddleDragDistance <= maxDrag);
         inputManager.mMMouseDown = false;
         ODFrameListener::getSingleton().moveCamera(CameraManager::zeroRandomRotateX, 0.0);
         ODFrameListener::getSingleton().moveCamera(CameraManager::zeroRandomRotateY, 0.0);

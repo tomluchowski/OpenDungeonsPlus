@@ -258,6 +258,9 @@ private:
     //! \brief Pointer movement in pixels since the middle button was pressed. A middle click that moved
     //! is a camera rotation and must not open a stats window.
     float mMiddleDragDistance;
+    //! \brief Pointer position in pixels where the middle button went down
+    float mMiddlePressX;
+    float mMiddlePressY;
 
     //! \brief Opens the stats window of the entity under the pointer (or the tile debug window if enabled)
     void openStatsWindowUnderPointer(const OIS::MouseEvent& arg);
