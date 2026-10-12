@@ -98,6 +98,9 @@ public:
 
     //! \brief Sets/Updates the overall world lighting value with given factor.
     void setWorldAmbientLightingFactor(float lightFactor);
+    //! \brief Switches the dynamic shadows on or off: shadow technique, shadow camera setup,
+    //! shadow receiver render state and the shadowingEnabled constants of the shaders.
+    void setDynamicShadowsEnabled(bool enabled);
 
     //! \brief Set the entity's opacity
     void setEntityOpacity(Ogre::Entity* ent, float opacity);

@@ -7,6 +7,7 @@
 uniform    mat4 projectionMatrix;
 uniform    mat4 viewMatrix;
 uniform    mat4 worldMatrix;
+uniform    mat4 lightMatrix;
 uniform    float height;
 layout (location = 0) in vec4 position;
 layout (location = 2)  in vec3 normal;
@@ -17,6 +18,7 @@ layout (location = 8) in vec2 uv_1;
 out vec2 out_UV0;
 out vec2 out_UV1; 
 out vec3 FragPos;
+out vec4 VertexPos;
  
 out mat3 TBN;
  
@@ -49,6 +51,7 @@ void main() {
  
     gl_Position = projectionMatrix * viewMatrix * vec4(P, 1.0);
     FragPos = P;
+    VertexPos = lightMatrix * vec4(P, 1.0);
  
     out_UV0 = uv_0;
     out_UV1 = uv_1;
