@@ -1,0 +1,10 @@
+﻿{
+  "id": "Gnome.mesh",
+  "slot": "build",
+  "n": 2,
+  "name": "sturdy",
+  "prompt": "Generate a NEW standalone customization asset for an adult male Gnome. Reference ONLY for anatomy, palette, clothing and brushwork. Variation: a sturdier shoulder and chest build, preserving the exact reference clothing, colors and coverage. Output ONLY the isolated clothed shoulders and chest, NO head, face, hair or ears. Hand-painted dark fantasy strategy-game style matching reference. Preserve species anatomy and reference clothing coverage; never invent tusks absent from reference. Complete contour centered with transparent padding and genuine alpha background. No scenery, text, glow, fog or full portrait. Direct isolated-feature generation, never full-image cropping.",
+  "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-19f8c3d3-7071-4ae5-b6f7-00b0358a45be.png",
+  "file": "build-2-sturdy.png",
+  "method": "direct generation; unmodified file copy"
+}

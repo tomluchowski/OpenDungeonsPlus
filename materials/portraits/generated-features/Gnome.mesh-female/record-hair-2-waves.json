@@ -1,0 +1,10 @@
+﻿{
+  "id": "Gnome.mesh-female",
+  "slot": "hair",
+  "n": 2,
+  "name": "waves",
+  "prompt": "Generate a NEW standalone customization asset for an adult female Gnome. Reference ONLY for anatomy, palette, clothing and brushwork. Variation: a fuller wavy hairstyle with the exact reference hair color and texture; only hair that can show outside any headwear; visibly different from swept-back hair: loose flowing waves, no ponytail or hair tie; ONLY two DISCONNECTED copper-brown side hair strands emerging below the cap sides, transparent gap between strands, NO upper scalp hair, NO crown, NO continuous wig or arch, no cap, no beard or moustache. Output ONLY isolated SCALP HAIR, NO beard, NO moustache, NO facial hair, NO head, NO face, NO skin, NO helmet, NO body. Hand-painted dark fantasy strategy-game style matching reference. Preserve species anatomy and reference clothing coverage; never invent tusks absent from reference. No beard or moustache. Complete contour centered with transparent padding and genuine alpha background. No scenery, text, glow, fog or full portrait. Direct isolated-feature generation, never full-image cropping.",
+  "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-537bb270-ab7c-4a8a-a6f5-8055a49a8bc4.png",
+  "file": "hair-2-waves.png",
+  "method": "direct generation; unmodified file copy"
+}
