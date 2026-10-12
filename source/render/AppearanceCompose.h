@@ -44,6 +44,11 @@ struct RgbaImage
 //! One chosen part with its slot position on the base
 struct Part
 {
+    Part() : mFlipX(false)
+    {
+    }
+
+    bool mFlipX;
     std::string mSlot;
     uint32_t mX;
     uint32_t mY;
@@ -65,7 +70,7 @@ void tintPart(Part& part, const std::string& catalogId, const std::string& optio
 
 //! \brief Draws the parts onto a copy of the base, in the order of the vector (the order of the Slot
 //! lines of the manifest), with plain alpha blending ("source over") at the slot position. Parts that are
-//! invalid or reach outside of the base are cut at its border. Nothing else is applied at runtime: the masks
+//! invalid or reach outside of the base are cut at its border. mFlipX reflects an option inside its slot. The masks
 //! of scars against hair and ears and of helmet damage against the helmet are baked into the part images
 //! (composition-rules.json of the delivered manifests: "literal source-over in frozen manifest order").
 //! An invalid base gives an empty image.

@@ -186,3 +186,20 @@ BOOST_AUTO_TEST_CASE(test_ConfigDefaultsAndValues)
     BOOST_CHECK_EQUAL(partial.getMaxCacheMegabytes(), DungeonbookAppearanceConfig::DEFAULT_MAX_CACHE_MEGABYTES);
     BOOST_CHECK(!partial.getWarnings().empty());
 }
+
+BOOST_AUTO_TEST_CASE(test_OptionReflection)
+{
+    std::string header = "Base\t../../neutral-bases/Knight.mesh-male.png\nSlot\thair\t4\t2\t8\t8\n";
+    std::istringstream input(header +
+        "Option\thair\t1\tbraid\thair-1-braid.png\tflip-x\n"
+        "Option\thair\t2\tbald\thair-2-bald.png\n");
+    PortraitManifest manifest;
+    BOOST_REQUIRE(manifest.loadFromStream(input, getManifestDirectory("Knight.mesh-male"), "reflection"));
+    BOOST_REQUIRE(manifest.findOption("hair", 1) != nullptr);
+    BOOST_CHECK(manifest.findOption("hair", 1)->mFlipX);
+    BOOST_REQUIRE(manifest.findOption("hair", 2) != nullptr);
+    BOOST_CHECK(!manifest.findOption("hair", 2)->mFlipX);
+    std::istringstream invalid(header + "Option\thair\t1\tbraid\thair-1-braid.png\trotate\n");
+    BOOST_CHECK(!manifest.loadFromStream(invalid, getManifestDirectory("Knight.mesh-male"), "invalid"));
+    BOOST_CHECK(!manifest.getErrors().empty());
+}

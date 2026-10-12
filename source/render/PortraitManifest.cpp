@@ -200,12 +200,19 @@ bool PortraitManifest::loadFromStream(std::istream& is, const std::string& direc
             RawOption raw;
             raw.mLine = lineNumber;
             raw.mOption.mNumber = 0;
+            raw.mOption.mFlipX = false;
             if((columns.size() < 5) || columns[1].empty() || !parseUint(columns[2], raw.mOption.mNumber) ||
                 (raw.mOption.mNumber == 0) || columns[3].empty() || columns[4].empty())
             {
                 addError(source, lineNumber, "bad Option line");
                 continue;
             }
+            if((columns.size() > 6) || ((columns.size() == 6) && (columns[5] != "flip-x")))
+            {
+                addError(source, lineNumber, "unknown Option transform");
+                continue;
+            }
+            raw.mOption.mFlipX = (columns.size() == 6);
             raw.mOption.mSlot = columns[1];
             raw.mOption.mName = columns[3];
             raw.mOption.mFile = columns[4];

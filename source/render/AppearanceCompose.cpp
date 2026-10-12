@@ -125,7 +125,8 @@ RgbaImage compose(const RgbaImage& base, const std::vector<Part>& parts)
                 if(canvasX >= result.mWidth)
                     break;
 
-                const uint8_t* src = &part.mImage.mPixels[(static_cast<size_t>(y) * part.mImage.mWidth + x) * 4];
+                uint32_t sourceX = part.mFlipX ? part.mImage.mWidth - 1 - x : x;
+                const uint8_t* src = &part.mImage.mPixels[(static_cast<size_t>(y) * part.mImage.mWidth + sourceX) * 4];
                 uint32_t alpha = src[3];
 
                 uint8_t* dst = &result.mPixels[(static_cast<size_t>(canvasY) * result.mWidth + canvasX) * 4];

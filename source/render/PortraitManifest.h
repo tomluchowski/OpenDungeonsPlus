@@ -16,7 +16,7 @@
 //! by TAB and '#' starts a comment:
 //!   Base<TAB>path of the neutral base png, relative to the manifest
 //!   Slot<TAB>slot<TAB>x<TAB>y<TAB>w<TAB>h      (one per slot, in draw order)
-//!   Option<TAB>slot<TAB>n<TAB>name<TAB>file    (one per part, n starts at 1, never renumbered)
+//!   Option<TAB>slot<TAB>n<TAB>name<TAB>file[<TAB>flip-x] (n starts at 1, never renumbered)
 //! Invalid entries are dropped and collected in getErrors() (the caller logs them once). If nothing
 //! usable is left, loadFromFile() returns false and the caller falls back to the preview portrait.
 class PortraitManifest
@@ -40,6 +40,8 @@ public:
         std::string mFile;
         //! Path of the file: directory of the manifest plus mFile
         std::string mPath;
+        //! Optional horizontal reflection of this option inside its slot
+        bool mFlipX;
     };
 
     PortraitManifest() :

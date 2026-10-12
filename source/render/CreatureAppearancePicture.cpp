@@ -240,6 +240,7 @@ const CEGUI::Image* buildPicture(PictureState& state, const std::string& creatur
             continue;
 
         AppearanceCompose::Part part;
+        part.mFlipX = option->mFlipX;
         part.mSlot = it->mName;
         part.mX = it->mX;
         part.mY = it->mY;
