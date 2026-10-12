@@ -1,0 +1,164 @@
+[
+  {
+    "method": "visible-alpha-v2",
+    "file": "build-1-slim.png",
+    "source": "materials/portraits/generated-features/Cultist.mesh-female/build-1-slim.png",
+    "source_sha256": "3fd3c08878c7a0ec135add392503f4b2d83dc7218e01e78dfee7ea04983ec52e",
+    "rect": [
+      0,
+      930,
+      887,
+      844
+    ],
+    "scale": 0.7250859106529209,
+    "offset": [
+      7.360824742268058,
+      -65.98281786941581
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "build-2-sturdy.png",
+    "source": "materials/portraits/generated-features/Cultist.mesh-female/build-2-sturdy.png",
+    "source_sha256": "9701b0bbdf92793bdee830cf44e71ca45b65a6df90f9e4dd9ee5a3faab0accb1",
+    "rect": [
+      0,
+      930,
+      887,
+      844
+    ],
+    "scale": 0.6963696369636964,
+    "offset": [
+      44.82838283828386,
+      -81.47524752475248
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "hair-1-swept.png",
+    "source": "materials/portraits/generated-features/Cultist.mesh-female/hair-1-swept.png",
+    "source_sha256": "ad3657d0dfe0ca88104217cee7ec06d306d5f2293d38f090c418735a3f751ff2",
+    "rect": [
+      120,
+      640,
+      660,
+      970
+    ],
+    "scale": 0.7096045197740113,
+    "offset": [
+      -265.7129943502825,
+      -62.056497175141246
+    ],
+    "visual_acceptance": "native-review-pending"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "hair-2-waves.png",
+    "source": "materials/portraits/generated-features/Cultist.mesh-female/hair-2-waves.png",
+    "source_sha256": "19f20b6ed00432d8f37fb34a14a5092721525216bf0b0b432370937a6398ebc7",
+    "rect": [
+      120,
+      640,
+      660,
+      970
+    ],
+    "scale": 0.6514522821576764,
+    "offset": [
+      -259.5643153526971,
+      -42.630705394190876
+    ],
+    "visual_acceptance": "native-review-pending"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "scar-1-diagonal.png",
+    "source": "materials/portraits/generated-features/Cultist.mesh-female/scar-1-diagonal.png",
+    "source_sha256": "29d8a8f77a09529a86c51bd86c09ba4dc9e2de0c30ecc45158dd4f6acbbdd12d",
+    "rect": [
+      300,
+      465,
+      220,
+      280
+    ],
+    "scale": 0.1745589600742804,
+    "offset": [
+      -40.207985143918286,
+      49.05478180129991
+    ],
+    "visual_acceptance": "native-review-pending"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "scar-2-scratches.png",
+    "source": "materials/portraits/generated-features/Cultist.mesh-female/scar-2-scratches.png",
+    "source_sha256": "0930a3f8d91c122967fb5bf2c4ff097eeecda65d2a6ffe3baa03da844044d297",
+    "rect": [
+      300,
+      465,
+      220,
+      280
+    ],
+    "scale": 0.24769433465085638,
+    "offset": [
+      -92.4901185770751,
+      15.03820816864295
+    ],
+    "visual_acceptance": "native-review-pending"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "scar-3-warpaint.png",
+    "source": "materials/portraits/generated-features/Cultist.mesh-female/scar-3-warpaint.png",
+    "source_sha256": "9c247b81f08172332976d6d5c93be90edaed082b76e5062824b39952ad7321ec",
+    "rect": [
+      300,
+      465,
+      220,
+      280
+    ],
+    "scale": 0.21123595505617979,
+    "offset": [
+      -26.458426966292137,
+      7.977528089887635
+    ],
+    "visual_acceptance": "native-review-pending"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "neck-1-teeth.png",
+    "source": "materials/portraits/generated-features/Cultist.mesh-female/neck-1-teeth.png",
+    "source_sha256": "3d9683b51defca9cb08747408d36107e0f85c16035d02d0853beee738acfcf7b",
+    "rect": [
+      230,
+      850,
+      450,
+      300
+    ],
+    "scale": 0.2863247863247863,
+    "offset": [
+      5.675213675213691,
+      5.692307692307693
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "neck-2-torque.png",
+    "source": "materials/portraits/generated-features/Cultist.mesh-female/neck-2-torque.png",
+    "source_sha256": "352db0bae24b0ce4d04008c2936fa5b16c540c52809c6430ff75f1dfc835d1a4",
+    "rect": [
+      230,
+      850,
+      450,
+      300
+    ],
+    "scale": 0.3270735524256651,
+    "offset": [
+      -26.1924882629108,
+      -19.587636932707355
+    ],
+    "visual_acceptance": "needs-correction"
+  }
+]

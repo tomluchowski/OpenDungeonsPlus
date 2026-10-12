@@ -42,3 +42,10 @@ Identity reference: `build/portrait-export/portrait-Goblin.mesh.png`.
 Output: `materials/textures/portrait-Goblin.mesh.png`.
 
 Create a finished 2D painted game portrait from this original project's goblin model reference, preserving its identity rather than rendering the model. One narrow vertical portrait, exactly 1:2 width-to-height composition. Subject: bald gray-olive green goblin, huge pointed ears, bright pale green eyes, wide nose, small pointed teeth, lean bare upper torso; all these identity features must match the supplied reference. Reinterpret as an expressive, mischievous hand-painted late-1990s dark-fantasy strategy-game character card: prominent face with a sly crooked grin and slightly raised eyebrow, bold painterly contours, deliberately illustrated shadows, readable shapes at 50x100 pixels, humorous sinister personality. Head fully visible including ears, upper body down to mid-chest, slight three-quarter pose, head occupies upper half, shoulders lower half. Flat very dark desaturated blue backdrop, opaque image. No 3D-rendered surfaces, no photorealism, no UI frame, no text, numbers or symbols, no added equipment, no reference-game characters. Output a single portrait image ready to use as game art.
+
+
+## Existing feature placement candidates
+
+The [feature delivery](variants/README.md) contains 632 derived patches and 34 manifests made from the existing isolated assets.
+All source features and base portraits are unchanged. Technical checks passed, but 422 option composites have documented fit problems and visual acceptance remains open.
+No new artwork was generated for this preparation; game composition is a separate task.

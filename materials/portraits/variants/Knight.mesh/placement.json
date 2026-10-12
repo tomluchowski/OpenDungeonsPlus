@@ -1,0 +1,164 @@
+[
+  {
+    "method": "visible-alpha-v2",
+    "file": "build-1-slim.png",
+    "source": "materials/portraits/generated-features/Knight.mesh/build-1-slim.png",
+    "source_sha256": "b18527238408822450f3d3a0eaba347724b18671b9c3c5e38e1cdc4565df12d9",
+    "rect": [
+      0,
+      590,
+      887,
+      1184
+    ],
+    "scale": 0.7821869488536155,
+    "offset": [
+      -43.020282186948855,
+      82.79629629629633
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "build-2-sturdy.png",
+    "source": "materials/portraits/generated-features/Knight.mesh/build-2-sturdy.png",
+    "source_sha256": "069dacd267019bae8a920a8adc768555c9bf4713c902b77d13802832379b71fc",
+    "rect": [
+      0,
+      590,
+      887,
+      1184
+    ],
+    "scale": 0.6362984218077475,
+    "offset": [
+      -8.908177905308522,
+      239.17252510760397
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "hair-1-swept.png",
+    "source": "materials/portraits/generated-features/Knight.mesh/hair-1-swept.png",
+    "source_sha256": "5983e29af1dc22230300123bb469ac553f705de1c0eef3f092265cec493fcc91",
+    "rect": [
+      120,
+      590,
+      650,
+      700
+    ],
+    "scale": 0.939209726443769,
+    "offset": [
+      -451.72644376899694,
+      -286.4255319148936
+    ],
+    "visual_acceptance": "native-review-pending"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "hair-2-waves.png",
+    "source": "materials/portraits/generated-features/Knight.mesh/hair-2-waves.png",
+    "source_sha256": "f0bf54d144c5dae51a7d5a77ed6796dbea1f3a90572a9168e711d00e238292fb",
+    "rect": [
+      120,
+      590,
+      650,
+      700
+    ],
+    "scale": 0.6450939457202505,
+    "offset": [
+      -251.0688935281837,
+      -91.08559498956159
+    ],
+    "visual_acceptance": "native-review-pending"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "scar-1-diagonal.png",
+    "source": "materials/portraits/generated-features/Knight.mesh/scar-1-diagonal.png",
+    "source_sha256": "123d42e4f3273d76e3eef142746b03b15fa5fa09e365e3cf5b503e53b32fac30",
+    "rect": [
+      290,
+      280,
+      250,
+      230
+    ],
+    "scale": 0.22244897959183674,
+    "offset": [
+      -11.13877551020408,
+      -29.925510204081625
+    ],
+    "visual_acceptance": "native-review-pending"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "scar-2-scratches.png",
+    "source": "materials/portraits/generated-features/Knight.mesh/scar-2-scratches.png",
+    "source_sha256": "4416d1fd72a45cdadfe325a9d21fd97effb9906117e9caa6f0358ddf0372ceb5",
+    "rect": [
+      290,
+      280,
+      250,
+      230
+    ],
+    "scale": 0.1936056838365897,
+    "offset": [
+      -27.94849023090586,
+      16.84191829484903
+    ],
+    "visual_acceptance": "native-review-pending"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "scar-3-warpaint.png",
+    "source": "materials/portraits/generated-features/Knight.mesh/scar-3-warpaint.png",
+    "source_sha256": "26447528f9cdc008f2981c1ca01dcd8390135f925f697857b97351be7fbb1d25",
+    "rect": [
+      290,
+      280,
+      250,
+      230
+    ],
+    "scale": 0.23655913978494625,
+    "offset": [
+      -23.913978494623656,
+      -37.225806451612904
+    ],
+    "visual_acceptance": "native-review-pending"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "neck-1-teeth.png",
+    "source": "materials/portraits/generated-features/Knight.mesh/neck-1-teeth.png",
+    "source_sha256": "79c5cd7cf7a6c1aa4ae5a0796e512910f17c7cc1e5bead75d3eb5105465abb8f",
+    "rect": [
+      210,
+      695,
+      450,
+      260
+    ],
+    "scale": 0.26855123674911663,
+    "offset": [
+      18.752650176678415,
+      -7.632508833922277
+    ],
+    "visual_acceptance": "native-review-pending"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "neck-2-torque.png",
+    "source": "materials/portraits/generated-features/Knight.mesh/neck-2-torque.png",
+    "source_sha256": "a65e72d2abb7c91a31706aeeabf07381040baf5a3462aa0907d6f42a94831a48",
+    "rect": [
+      210,
+      695,
+      450,
+      260
+    ],
+    "scale": 0.26450116009280744,
+    "offset": [
+      21.466357308584676,
+      -8.598607888631108
+    ],
+    "visual_acceptance": "native-review-pending"
+  }
+]
