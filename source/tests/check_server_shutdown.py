@@ -5,6 +5,8 @@ from pathlib import Path
 import subprocess
 import tempfile
 
+# Seconds a probe scenario may run before it counts as hung
+SCENARIO_TIMEOUT_SECONDS = 5
 repo = Path(__file__).resolve().parents[2]
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--source-ref', help='Compare an older implementation')
@@ -148,10 +150,10 @@ with tempfile.TemporaryDirectory(prefix='odp-server-shutdown-') as temporary:
                    cwd=work, check=True)
     for scenario in ('queued-exit', 'notify-exit', 'owner-stop'):
         try:
-            result = subprocess.run([str(work / 'check.exe'), scenario], cwd=work, timeout=5)
+            result = subprocess.run([str(work / 'check.exe'), scenario], cwd=work, timeout=SCENARIO_TIMEOUT_SECONDS)
             failed |= result.returncode != 0
         except subprocess.TimeoutExpired:
-            print('FAIL', scenario, 'hung for 5 seconds', flush=True)
+            print('FAIL', scenario, 'hung for the scenario timeout', flush=True)
             failed = True
 
 # Guard the actual production loop, not just the isolated worker fixture.

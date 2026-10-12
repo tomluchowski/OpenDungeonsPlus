@@ -29,16 +29,18 @@ class ODSocketServer
 {
     public:
         ODSocketServer();
+        //! \brief Stops the server and joins its thread if it is still running.
         ~ODSocketServer();
 
         bool isConnected();
 
         // Data Transimission
         virtual bool createServer(int listeningPort);
+        //! \brief Requests the exit, joins the worker thread and releases the sockets. Called by the owner only.
         virtual void stopServer();
 
     protected:
-        // Request worker exit without joining it or touching its owned resources.
+        //! \brief Requests the worker exit without joining it or touching its owned resources.
         void requestStop();
 
         /*! \brief Function called when a new client connects. If the server returns an ODSocketClient,

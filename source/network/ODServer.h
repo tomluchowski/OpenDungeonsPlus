@@ -88,6 +88,7 @@ class ODServer: public Ogre::Singleton<ODServer>,
     //! for messages that need to show reactivity (after a player does something like building a room or tried to pickup a creature).
     void sendAsyncMsg(ServerNotification& notif);
 
+    //! \brief Asks the server to stop. Only clears the running flag; the owner does the cleanup in stopServer().
     void notifyExit();
 
     //! This function will block the calling thread until the game is launched and
@@ -100,6 +101,7 @@ class ODServer: public Ogre::Singleton<ODServer>,
 protected:
     ODSocketClient* notifyNewConnection(sf::TcpListener& sockListener) override;
     bool notifyClientMessage(ODSocketClient *sock) override;
+    //! \brief Server main loop: runs turns until the server is asked to stop.
     void serverThread() override;
 
 private:
