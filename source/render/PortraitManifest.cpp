@@ -151,6 +151,7 @@ bool PortraitManifest::loadFromStream(std::istream& is, const std::string& direc
     uint32_t baseLine = 0;
     std::vector<RawSlot> rawSlots;
     std::vector<RawOption> rawOptions;
+    std::vector<std::vector<std::string> > geometryRows;
 
     std::string line;
     uint32_t lineNumber = 0;
@@ -164,7 +165,11 @@ bool PortraitManifest::loadFromStream(std::istream& is, const std::string& direc
             continue;
         std::vector<std::string> columns = splitColumns(line);
         const std::string& key = columns[0];
-        if(key == "Base")
+        if((key == "Rule") || (key == "Mask") || (key == "SourcePolygonMask"))
+        {
+            geometryRows.push_back(columns);
+        }
+        else if(key == "Base")
         {
             if((columns.size() < 2) || columns[1].empty())
                 addError(source, lineNumber, "Base without a path");
@@ -200,19 +205,12 @@ bool PortraitManifest::loadFromStream(std::istream& is, const std::string& direc
             RawOption raw;
             raw.mLine = lineNumber;
             raw.mOption.mNumber = 0;
-            raw.mOption.mFlipX = false;
-            if((columns.size() < 5) || columns[1].empty() || !parseUint(columns[2], raw.mOption.mNumber) ||
+            if((columns.size() != 5) || columns[1].empty() || !parseUint(columns[2], raw.mOption.mNumber) ||
                 (raw.mOption.mNumber == 0) || columns[3].empty() || columns[4].empty())
             {
                 addError(source, lineNumber, "bad Option line");
                 continue;
             }
-            if((columns.size() > 6) || ((columns.size() == 6) && (columns[5] != "flip-x")))
-            {
-                addError(source, lineNumber, "unknown Option transform");
-                continue;
-            }
-            raw.mOption.mFlipX = (columns.size() == 6);
             raw.mOption.mSlot = columns[1];
             raw.mOption.mName = columns[3];
             raw.mOption.mFile = columns[4];
@@ -288,6 +286,90 @@ bool PortraitManifest::loadFromStream(std::istream& is, const std::string& direc
             continue;
         }
         mOptions.push_back(option);
+    }
+
+    // Optional per-option destination placement and earlier-part alpha mask.
+    // Source PNG dimensions and option identities continue to use the original Slot.
+    for(const std::vector<std::string>& row : geometryRows)
+    {
+        uint32_t number = 0;
+        if(row[0] == "SourcePolygonMask")
+        {
+            uint32_t feather = 0;
+            bool valid = (row.size() >= 10) && (row.size() % 2 == 0) &&
+                parseUint(row[2], number) && parseUint(row[3], feather);
+            Option* option = nullptr;
+            if(valid)
+                for(Option& candidate : mOptions)
+                    if((candidate.mSlot == row[1]) && (candidate.mNumber == number))
+                        option = &candidate;
+            const Slot* slot = valid ? findSlot(row[1]) : nullptr;
+            std::vector<uint32_t> coordinates;
+            if((option == nullptr) || (slot == nullptr) || !option->mSourcePolygon.empty())
+                valid = false;
+            for(size_t column = 4; valid && (column < row.size()); ++column)
+            {
+                uint32_t value = 0;
+                uint32_t limit = column % 2 == 0 ? slot->mWidth : slot->mHeight;
+                valid = parseUint(row[column], value) && (value <= limit);
+                coordinates.push_back(value);
+            }
+            if(!valid || (feather > std::max(slot->mWidth, slot->mHeight)))
+                addError(source, 0, "invalid or duplicate source polygon mask");
+            else
+            {
+                option->mSourcePolygon = coordinates;
+                option->mMaskFeather = feather;
+            }
+            continue;
+        }
+        if(row[0] == "Mask")
+        {
+            if((row.size() != 4) || !parseUint(row[2], number) ||
+                (getSlotRank(row[3]) < 0) || (getSlotRank(row[3]) >= getSlotRank(row[1])) ||
+                (findSlot(row[3]) == nullptr))
+            {
+                addError(source, 0, "invalid earlier-slot option mask");
+                continue;
+            }
+            Option* option = nullptr;
+            for(Option& candidate : mOptions)
+                if((candidate.mSlot == row[1]) && (candidate.mNumber == number))
+                    option = &candidate;
+            if((option == nullptr) || !option->mMaskSlot.empty())
+                addError(source, 0, "duplicate or missing masked option");
+            else
+                option->mMaskSlot = row[3];
+            continue;
+        }
+        Slot rectangle;
+        rectangle.mX = rectangle.mY = rectangle.mWidth = rectangle.mHeight = 0;
+        if((row.size() != 7) || !parseUint(row[2], number) ||
+            !parseUint(row[3], rectangle.mX) || !parseUint(row[4], rectangle.mY) ||
+            !parseUint(row[5], rectangle.mWidth) || !parseUint(row[6], rectangle.mHeight) ||
+            (rectangle.mWidth == 0) || (rectangle.mHeight == 0))
+        {
+            addError(source, 0, "invalid option geometry");
+            continue;
+        }
+        Option* option = nullptr;
+        for(Option& candidate : mOptions)
+            if((candidate.mSlot == row[1]) && (candidate.mNumber == number))
+                option = &candidate;
+        const Slot* slot = findSlot(row[1]);
+        if((option == nullptr) || (slot == nullptr))
+        {
+            addError(source, 0, "geometry has no usable option");
+            continue;
+        }
+        uint32_t width = mBaseWidth;
+        uint32_t height = mBaseHeight;
+        Slot& target = option->mPlacement;
+        if((target.mWidth != 0) || (rectangle.mWidth > width) || (rectangle.mHeight > height) ||
+            (rectangle.mX > width - rectangle.mWidth) || (rectangle.mY > height - rectangle.mHeight))
+            addError(source, 0, "duplicate or out-of-bounds option geometry");
+        else
+            target = rectangle;
     }
 
     // A slot without any usable part is not part of the picture

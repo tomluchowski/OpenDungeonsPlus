@@ -9,6 +9,7 @@
 #include "render/PortraitTint.h"
 
 #include <algorithm>
+#include <cmath>
 
 namespace AppearanceCompose
 {
@@ -20,6 +21,36 @@ namespace
 const float BACKGROUND_RED = 0.025f;
 const float BACKGROUND_GREEN = 0.018f;
 const float BACKGROUND_BLUE = 0.015f;
+
+//! Exclude only the measured source-space contour, with an optional narrow outside feather.
+uint32_t polygonCoverage(const Part& part, uint32_t sourceX, uint32_t sourceY)
+{
+    const std::vector<uint32_t>& points = part.mSourcePolygon;
+    if(points.empty())
+        return 255;
+    double x = sourceX + 0.5;
+    double y = sourceY + 0.5;
+    bool inside = false;
+    double distanceSquared = 1.0e30;
+    for(size_t i = 0, j = points.size() - 2; i < points.size(); j = i, i += 2)
+    {
+        double ax = points[j], ay = points[j + 1];
+        double bx = points[i], by = points[i + 1];
+        if(((ay > y) != (by > y)) && (x < (bx - ax) * (y - ay) / (by - ay) + ax))
+            inside = !inside;
+        double dx = bx - ax, dy = by - ay;
+        double lengthSquared = dx * dx + dy * dy;
+        double t = lengthSquared ? ((x - ax) * dx + (y - ay) * dy) / lengthSquared : 0;
+        t = std::max(0.0, std::min(1.0, t));
+        double px = x - (ax + t * dx), py = y - (ay + t * dy);
+        distanceSquared = std::min(distanceSquared, px * px + py * py);
+    }
+    if(inside)
+        return 0;
+    if(!part.mMaskFeather || (distanceSquared >= part.mMaskFeather * part.mMaskFeather))
+        return 255;
+    return static_cast<uint32_t>(255 * std::sqrt(distanceSquared) / part.mMaskFeather + 0.5);
+}
 
 //! Normal "over" blending of a non premultiplied source pixel with the given alpha on the destination
 void blendPixel(uint8_t* dst, const uint8_t* src, uint32_t srcAlpha)
@@ -113,21 +144,45 @@ RgbaImage compose(const RgbaImage& base, const std::vector<Part>& parts)
         if(!part.mImage.isValid())
             continue;
 
-        for(uint32_t y = 0; y < part.mImage.mHeight; ++y)
+        uint32_t width = part.mWidth ? part.mWidth : part.mImage.mWidth;
+        uint32_t height = part.mHeight ? part.mHeight : part.mImage.mHeight;
+        for(uint32_t y = 0; y < height; ++y)
         {
             uint32_t canvasY = part.mY + y;
             if(canvasY >= result.mHeight)
                 break;
 
-            for(uint32_t x = 0; x < part.mImage.mWidth; ++x)
+            for(uint32_t x = 0; x < width; ++x)
             {
                 uint32_t canvasX = part.mX + x;
                 if(canvasX >= result.mWidth)
                     break;
 
-                uint32_t sourceX = part.mFlipX ? part.mImage.mWidth - 1 - x : x;
-                const uint8_t* src = &part.mImage.mPixels[(static_cast<size_t>(y) * part.mImage.mWidth + sourceX) * 4];
-                uint32_t alpha = src[3];
+                uint32_t sourceX = (static_cast<uint64_t>(x) * 2 + 1) * part.mImage.mWidth / (static_cast<uint64_t>(width) * 2);
+                uint32_t sourceY = (static_cast<uint64_t>(y) * 2 + 1) * part.mImage.mHeight / (static_cast<uint64_t>(height) * 2);
+                const uint8_t* src = &part.mImage.mPixels[(static_cast<size_t>(sourceY) * part.mImage.mWidth + sourceX) * 4];
+                uint32_t alpha = src[3] * polygonCoverage(part, sourceX, sourceY) / 255;
+                if(!part.mMaskSlot.empty())
+                {
+                    for(std::vector<Part>::const_iterator mask = parts.begin(); mask != it; ++mask)
+                    {
+                        if((mask->mSlot != part.mMaskSlot) || !mask->mImage.isValid())
+                            continue;
+                        uint32_t maskWidth = mask->mWidth ? mask->mWidth : mask->mImage.mWidth;
+                        uint32_t maskHeight = mask->mHeight ? mask->mHeight : mask->mImage.mHeight;
+                        if((canvasX < mask->mX) || (canvasY < mask->mY) ||
+                            (canvasX - mask->mX >= maskWidth) || (canvasY - mask->mY >= maskHeight))
+                            continue;
+                        uint32_t maskX = (static_cast<uint64_t>(canvasX - mask->mX) * 2 + 1) *
+                            mask->mImage.mWidth / (static_cast<uint64_t>(maskWidth) * 2);
+                        uint32_t maskY = (static_cast<uint64_t>(canvasY - mask->mY) * 2 + 1) *
+                            mask->mImage.mHeight / (static_cast<uint64_t>(maskHeight) * 2);
+                        uint32_t maskAlpha = mask->mImage.mPixels[(static_cast<size_t>(maskY) *
+                            mask->mImage.mWidth + maskX) * 4 + 3];
+                        maskAlpha = maskAlpha * polygonCoverage(*mask, maskX, maskY) / 255;
+                        alpha = alpha * (255 - maskAlpha) / 255;
+                    }
+                }
 
                 uint8_t* dst = &result.mPixels[(static_cast<size_t>(canvasY) * result.mWidth + canvasX) * 4];
                 blendPixel(dst, src, alpha);

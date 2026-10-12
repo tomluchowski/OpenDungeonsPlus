@@ -240,10 +240,19 @@ const CEGUI::Image* buildPicture(PictureState& state, const std::string& creatur
             continue;
 
         AppearanceCompose::Part part;
-        part.mFlipX = option->mFlipX;
         part.mSlot = it->mName;
         part.mX = it->mX;
         part.mY = it->mY;
+        if(option->mPlacement.mWidth != 0)
+        {
+            part.mX = option->mPlacement.mX;
+            part.mY = option->mPlacement.mY;
+            part.mWidth = option->mPlacement.mWidth;
+            part.mHeight = option->mPlacement.mHeight;
+        }
+        part.mMaskSlot = option->mMaskSlot;
+        part.mSourcePolygon = option->mSourcePolygon;
+        part.mMaskFeather = option->mMaskFeather;
         if(!loadRgbaImage(option->mPath, it->mWidth, it->mHeight, part.mImage, error))
             return nullptr;
 

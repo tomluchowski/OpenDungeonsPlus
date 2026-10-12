@@ -602,21 +602,3 @@ BOOST_AUTO_TEST_CASE(test_CacheLruAndLimits)
     // The game keeps at least a few pictures
     BOOST_CHECK_GT(CACHE_KEEP_NEWEST, 0u);
 }
-
-BOOST_AUTO_TEST_CASE(test_OptionReflection)
-{
-    RgbaImage patch = makeSolid(3, 1, 0, 0, 0, 255);
-    patch.mPixels[0] = 10;
-    patch.mPixels[4] = 20;
-    patch.mPixels[8] = 30;
-    Part part = makePart("ears", 1, 0, patch);
-    RgbaImage base = makeSolid(3, 1, 0, 0, 0, 255);
-    std::vector<Part> parts(1, part);
-    checkPixel(compose(base, parts), 1, 0, 10, 0, 0, 255);
-    parts[0].mFlipX = true;
-    RgbaImage result = compose(base, parts);
-    checkPixel(result, 0, 0, 0, 0, 0, 255);
-    checkPixel(result, 1, 0, 30, 0, 0, 255);
-    checkPixel(result, 2, 0, 20, 0, 0, 255);
-    BOOST_CHECK(parts[0].mImage.mPixels == patch.mPixels);
-}
