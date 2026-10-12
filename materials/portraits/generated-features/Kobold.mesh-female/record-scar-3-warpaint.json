@@ -1,0 +1,10 @@
+﻿{
+  "id": "Kobold.mesh-female",
+  "slot": "scar",
+  "n": 3,
+  "name": "warpaint",
+  "prompt": "Generate a NEW standalone painted game asset for an adult female Kobold. Reference image supplies anatomy, color, lighting, clothing and brushwork only. Requested variation: a small dark russet war paint smear on the cheek on the left of the image, no symbols. Output ONLY requested scar, paint or damage marks, no face or skin silhouette. Complete contour, centered with transparent padding. Genuine transparent alpha, clean edges, no halo. Hand-painted late-1990s dark fantasy strategy game style matching reference. Neutral character customization asset, reference clothing coverage unchanged. No full portrait, surrounding anatomy, scenery, text or weapons. No beard or moustache. Generate this feature directly, never a full image for cropping.",
+  "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-42da3c60-7a88-4657-8ad1-3fa7da346ab3.png",
+  "file": "scar-3-warpaint.png",
+  "method": "direct generation; unmodified file copy"
+}

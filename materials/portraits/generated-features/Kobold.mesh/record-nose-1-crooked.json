@@ -1,0 +1,10 @@
+﻿{
+  "id": "Kobold.mesh",
+  "slot": "nose",
+  "n": 1,
+  "name": "crooked",
+  "prompt": "Generate a NEW standalone painted game asset for an adult MALE Kobold. Image 1 is ONLY an anatomy, color, lighting, costume and brushwork reference. Requested variation: a crooked violet hooked nose with a healed bump. Output ONE isolated nose with its entire contour and nostrils; no eyes, mouth or entire face. Center the part with transparent padding and its complete contour. Genuine transparent alpha background, clean edges, no outer glow or shadow halo. Hand-painted late-1990s dark-fantasy strategy-game style matching the reference. Neutral character-customization asset, reference clothing coverage unchanged. No full portrait, surrounding anatomy, scenery, text, labels, symbols, weapons or modern objects.  Generate the feature directly, not a full image for cropping.",
+  "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-2c38e5f0-835d-45a5-8b19-e6ad46270f4b.png",
+  "file": "nose-1-crooked.png",
+  "method": "direct generation; unmodified file copy"
+}

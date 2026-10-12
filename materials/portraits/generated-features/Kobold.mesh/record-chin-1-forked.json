@@ -1,0 +1,10 @@
+﻿{
+  "id": "Kobold.mesh",
+  "slot": "chin",
+  "n": 1,
+  "name": "forked",
+  "prompt": "Generate a NEW standalone painted game asset for an adult MALE Kobold. Image 1 is ONLY an anatomy, color, lighting, costume and brushwork reference. Requested variation: a short dark forked beard with two tapered ends, preserving the original moustache above the region. Output ONLY the requested chin, jaw or beard; no mouth, nose or entire head. Center the part with transparent padding and its complete contour. Genuine transparent alpha background, clean edges, no outer glow or shadow halo. Hand-painted late-1990s dark-fantasy strategy-game style matching the reference. Neutral character-customization asset, reference clothing coverage unchanged. No full portrait, surrounding anatomy, scenery, text, labels, symbols, weapons or modern objects.  Generate the feature directly, not a full image for cropping.",
+  "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-7d294a12-1230-486d-8819-80fd0b7b9863.png",
+  "file": "chin-1-forked.png",
+  "method": "direct generation; unmodified file copy"
+}

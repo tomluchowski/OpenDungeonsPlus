@@ -1,0 +1,10 @@
+﻿{
+  "id": "Kobold.mesh-female",
+  "slot": "build",
+  "n": 1,
+  "name": "slim",
+  "prompt": "Generate a NEW standalone painted game asset for an adult FEMALE Kobold. Image 1 is ONLY an anatomy, color, lighting, costume and brushwork reference. Requested variation: a slimmer upper torso and chest, same brown leather straps and clothing coverage; keep the torso geometry unchanged at the top edge of the region; modest bust size variation under the same fully covering brown leather wrapping, original neckline unchanged. Output ONLY shoulders and upper chest with the exact same reference clothing or armor; end at the upper ribs, no head, abdomen, waist or lower body. Center the part with transparent padding and its complete contour. Genuine transparent alpha background, clean edges, no outer glow or shadow halo. Hand-painted late-1990s dark-fantasy strategy-game style matching the reference. Neutral character-customization asset, reference clothing coverage unchanged. No full portrait, surrounding anatomy, scenery, text, labels, symbols, weapons or modern objects. No beard or moustache. Generate the feature directly, not a full image for cropping.",
+  "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-f52bf926-bcec-4817-92eb-a6a262d1a3c5.png",
+  "file": "build-1-slim.png",
+  "method": "direct generation; unmodified file copy"
+}

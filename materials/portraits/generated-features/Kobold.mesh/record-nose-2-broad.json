@@ -1,0 +1,10 @@
+﻿{
+  "id": "Kobold.mesh",
+  "slot": "nose",
+  "n": 2,
+  "name": "broad",
+  "prompt": "Generate a NEW standalone painted game asset for an adult MALE Kobold. Image 1 is ONLY an anatomy, color, lighting, costume and brushwork reference. Requested variation: a broader flatter violet nose with wider nostrils. Output ONE isolated nose with its entire contour and nostrils; no eyes, mouth or entire face. Center the part with transparent padding and its complete contour. Genuine transparent alpha background, clean edges, no outer glow or shadow halo. Hand-painted late-1990s dark-fantasy strategy-game style matching the reference. Neutral character-customization asset, reference clothing coverage unchanged. No full portrait, surrounding anatomy, scenery, text, labels, symbols, weapons or modern objects.  Generate the feature directly, not a full image for cropping.",
+  "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-71cf290d-a20a-40a5-b65e-93121c049ef4.png",
+  "file": "nose-2-broad.png",
+  "method": "direct generation; unmodified file copy"
+}

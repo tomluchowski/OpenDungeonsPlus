@@ -1,0 +1,10 @@
+﻿{
+  "id": "Kobold.mesh",
+  "slot": "build",
+  "n": 2,
+  "name": "sturdy",
+  "prompt": "Generate a NEW standalone painted game asset for an adult MALE Kobold. Image 1 is ONLY a reference for species anatomy, skin/material and hair colors, three-quarter orientation, lighting direction, costume, brush texture and palette. Requested variation: a sturdier upper torso and chest, same brown leather straps and clothing coverage; keep the torso geometry unchanged at the top edge of the region. Output ONLY shoulders and upper chest with the exact same reference clothing or armor; end the sprite at the upper ribs, no head, abdomen, waist or lower body. Center the requested part with transparent padding and preserve its complete contour. True transparent alpha background with clean edges, no outer glow or shadow halo. Hand-painted late-1990s dark-fantasy strategy-game style matching the reference. Neutral character-customization asset, modest reference clothing coverage unchanged. No full portrait, surrounding anatomy, scenery, text, labels, symbols, weapons or modern objects.  Generate this individual feature directly; do not produce a full image for cropping.",
+  "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-5cb9548c-a7c7-4d9d-b86e-72d19fa0379b.png",
+  "file": "build-2-sturdy.png",
+  "method": "direct generation; unmodified file copy"
+}

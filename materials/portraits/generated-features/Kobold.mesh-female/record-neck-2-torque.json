@@ -1,0 +1,10 @@
+﻿{
+  "id": "Kobold.mesh-female",
+  "slot": "neck",
+  "n": 2,
+  "name": "torque",
+  "prompt": "Generate a NEW standalone painted game asset for an adult female Kobold. Reference image supplies anatomy, color, lighting, clothing and brushwork only. Requested variation: a plain aged bronze neck torque, no symbols, entirely within the neck region. Output ONLY requested jewelry, no skin or body. Complete contour, centered with transparent padding. Genuine transparent alpha, clean edges, no halo. Hand-painted late-1990s dark fantasy strategy game style matching reference. Neutral character customization asset, reference clothing coverage unchanged. No full portrait, surrounding anatomy, scenery, text or weapons. No beard or moustache. Generate this feature directly, never a full image for cropping.",
+  "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-76a05abe-354d-4d0d-8924-898d71b4e363.png",
+  "file": "neck-2-torque.png",
+  "method": "direct generation; unmodified file copy"
+}

@@ -1,0 +1,10 @@
+﻿{
+  "id": "Kobold.mesh",
+  "slot": "mouth",
+  "n": 3,
+  "name": "cigar",
+  "prompt": "Generate a NEW standalone painted game asset for an adult MALE Kobold. Image 1 is ONLY an anatomy, color, lighting, costume and brushwork reference. Requested variation: a short fat brown cigar clamped in the corner of the grin, wholly within the mouth region, no smoke outside the region. Output ONE isolated mouth with lips, teeth, tusks if present and the requested mouth-held accessory; no nose, eyes, chin or entire face. Center the part with transparent padding and its complete contour. Genuine transparent alpha background, clean edges, no outer glow or shadow halo. Hand-painted late-1990s dark-fantasy strategy-game style matching the reference. Neutral character-customization asset, reference clothing coverage unchanged. No full portrait, surrounding anatomy, scenery, text, labels, symbols, weapons or modern objects.  Generate the feature directly, not a full image for cropping.",
+  "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-1f8ea08d-070c-4f7c-9cf5-b2523c8bb547.png",
+  "file": "mouth-3-cigar.png",
+  "method": "direct generation; unmodified file copy"
+}

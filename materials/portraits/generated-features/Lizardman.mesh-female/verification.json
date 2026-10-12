@@ -1,0 +1,268 @@
+[
+  {
+    "file": "build-1-slim.png",
+    "size": [
+      1375,
+      1144
+    ],
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      255
+    ],
+    "sha256": "132d2c17f8e448bf588bba6b3738db595b1f27078bc70dca69c74e5ed6a77e61",
+    "exact_generator_copy": true
+  },
+  {
+    "file": "build-2-sturdy.png",
+    "size": [
+      1374,
+      1145
+    ],
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      255
+    ],
+    "sha256": "8f566e2b1b1f0ff7b127acaad303b9174319e51b8d7e9c1584f92c669c62c5f2",
+    "exact_generator_copy": true
+  },
+  {
+    "file": "hair-1-shortfrill.png",
+    "size": [
+      1536,
+      1024
+    ],
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      254
+    ],
+    "sha256": "123e396ed1ed02da24eb7c6d74e1802509fd9c06703904d067260ea7d9f90965",
+    "exact_generator_copy": true
+  },
+  {
+    "file": "hair-2-wavefrill.png",
+    "size": [
+      1374,
+      1145
+    ],
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      255
+    ],
+    "sha256": "92a522086e0caa3de45a4917d2721a43f9387a0d8168961cb43190e7cece5fa2",
+    "exact_generator_copy": true
+  },
+  {
+    "file": "eyes-1-narrow.png",
+    "size": [
+      2172,
+      724
+    ],
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      255
+    ],
+    "sha256": "0401ab08604b657973b728b794ffc4d4643e9144fe06990cc16ace670d4115db",
+    "exact_generator_copy": true
+  },
+  {
+    "file": "eyes-2-round.png",
+    "size": [
+      1774,
+      887
+    ],
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      255
+    ],
+    "sha256": "4745063cb438f9b756d5b2f91c993ddd412469077709297bd3b0d0d55c0f7654",
+    "exact_generator_copy": true
+  },
+  {
+    "file": "eyes-3-eyepatch.png",
+    "size": [
+      1774,
+      887
+    ],
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      255
+    ],
+    "sha256": "be83b091123dda119d91926d3f3bd7153b9d9ad9e534bc73197a636cd8f2e7a3",
+    "exact_generator_copy": true
+  },
+  {
+    "file": "nose-1-crooked.png",
+    "size": [
+      1223,
+      1286
+    ],
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      255
+    ],
+    "sha256": "2e68868e0d5c1d6aa575eb9e360f88c42f894f0f4659091b7b02cb15ab123511",
+    "exact_generator_copy": true
+  },
+  {
+    "file": "nose-2-broad.png",
+    "size": [
+      1536,
+      1024
+    ],
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      254
+    ],
+    "sha256": "62d647fe68ee60a8b2fd6c73ca1091568fca62400dfe79abb3c785e1e15bb0b3",
+    "exact_generator_copy": true
+  },
+  {
+    "file": "mouth-1-teeth.png",
+    "size": [
+      1774,
+      887
+    ],
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      255
+    ],
+    "sha256": "c18d3fa9af0e64c4d918b795ce0131d0c7abb4fdcbb6bec85fba44d4f882d278",
+    "exact_generator_copy": true
+  },
+  {
+    "file": "mouth-2-grin.png",
+    "size": [
+      1774,
+      887
+    ],
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      255
+    ],
+    "sha256": "c18d4aa889b5bab3b08643393987ed1da07558417a809ee14547787dde96ae76",
+    "exact_generator_copy": true
+  },
+  {
+    "file": "mouth-3-cigar.png",
+    "size": [
+      1774,
+      887
+    ],
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      255
+    ],
+    "sha256": "9620cd0723fd819490c5cc0ae8cf613de4c0ebee894f19bebe2361b70ecd2a32",
+    "exact_generator_copy": true
+  },
+  {
+    "file": "chin-1-square.png",
+    "size": [
+      1528,
+      1029
+    ],
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      255
+    ],
+    "sha256": "75f660161a1c31ab280bddbb9357cb9cbebf567016348cc98d66c3a3c0179e9e",
+    "exact_generator_copy": true
+  },
+  {
+    "file": "chin-2-rounded.png",
+    "size": [
+      1536,
+      1024
+    ],
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      254
+    ],
+    "sha256": "dde5bbeaf4489afa1a1f875e2fd936bc646267e023d14b975f1e44e4629fc771",
+    "exact_generator_copy": true
+  },
+  {
+    "file": "scar-1-diagonal.png",
+    "size": [
+      1246,
+      1263
+    ],
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      255
+    ],
+    "sha256": "9df9a57ddf9fee97bb277ed2e5d40350f5a863dc5ffec32c5b647795a06e52fe",
+    "exact_generator_copy": true
+  },
+  {
+    "file": "scar-2-scratches.png",
+    "size": [
+      1536,
+      1024
+    ],
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      254
+    ],
+    "sha256": "8e6ebf35cb845195a45d68e0709e01a6e63da901f8195d38ad23139e6a52aed1",
+    "exact_generator_copy": true
+  },
+  {
+    "file": "scar-3-warpaint.png",
+    "size": [
+      1024,
+      1536
+    ],
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      254
+    ],
+    "sha256": "2c1fc0bfa2e1eca9a9026c8721ed1611030ce9a442612385df85296b44255026",
+    "exact_generator_copy": true
+  },
+  {
+    "file": "neck-1-teeth.png",
+    "size": [
+      1536,
+      1024
+    ],
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      254
+    ],
+    "sha256": "30b10353bcf96e4204a0d9b24d6bdc9c5bb4c8969cd577bdd4df84cd2546dfa0",
+    "exact_generator_copy": true
+  },
+  {
+    "file": "neck-2-torque.png",
+    "size": [
+      1536,
+      1024
+    ],
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      254
+    ],
+    "sha256": "47c41dcbe64ab76515b334b14d20af5f9d14383619426e9f8d52fbde3418f5cb",
+    "exact_generator_copy": true
+  }
+]

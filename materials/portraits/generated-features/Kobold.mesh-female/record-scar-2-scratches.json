@@ -1,0 +1,10 @@
+﻿{
+  "id": "Kobold.mesh-female",
+  "slot": "scar",
+  "n": 2,
+  "name": "scratches",
+  "prompt": "Generate a NEW standalone painted game asset for an adult female Kobold. Reference image supplies anatomy, color, lighting, clothing and brushwork only. Requested variation: two short pale healed scratches on the cheek on the left of the image. Output ONLY requested scar, paint or damage marks, no face or skin silhouette. Complete contour, centered with transparent padding. Genuine transparent alpha, clean edges, no halo. Hand-painted late-1990s dark fantasy strategy game style matching reference. Neutral character customization asset, reference clothing coverage unchanged. No full portrait, surrounding anatomy, scenery, text or weapons. No beard or moustache. Generate this feature directly, never a full image for cropping.",
+  "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-6bec46f0-82b0-430c-acb9-55a17729692a.png",
+  "file": "scar-2-scratches.png",
+  "method": "direct generation; unmodified file copy"
+}

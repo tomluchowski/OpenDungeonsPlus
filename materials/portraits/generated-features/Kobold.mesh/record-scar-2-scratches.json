@@ -1,0 +1,10 @@
+﻿{
+  "id": "Kobold.mesh",
+  "slot": "scar",
+  "n": 2,
+  "name": "scratches",
+  "prompt": "Generate a NEW standalone painted game asset for an adult MALE Kobold. Image 1 is ONLY an anatomy, color, lighting, costume and brushwork reference. Requested variation: two short pale healed scratches on the cheek on the left of the image. Output ONLY the requested scar, crack, scale damage, war-paint or helmet-damage marks; no face, skin silhouette or complete helmet. Center the part with transparent padding and its complete contour. Genuine transparent alpha background, clean edges, no outer glow or shadow halo. Hand-painted late-1990s dark-fantasy strategy-game style matching the reference. Neutral character-customization asset, reference clothing coverage unchanged. No full portrait, surrounding anatomy, scenery, text, labels, symbols, weapons or modern objects.  Generate the feature directly, not a full image for cropping.",
+  "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-2faa2a3d-1775-46d7-8aa1-e2043b3456f8.png",
+  "file": "scar-2-scratches.png",
+  "method": "direct generation; unmodified file copy"
+}
