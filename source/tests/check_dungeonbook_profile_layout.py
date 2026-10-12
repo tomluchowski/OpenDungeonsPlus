@@ -19,7 +19,9 @@ after = re.search(r'textRowsAfter\[\] = \{([^}]*)\}', body)[1]
 assert 'QuirksText' not in before, 'the remarks must not come before status and latest post'
 rows = [r.strip(' "') for r in after.split(',')]
 assert rows == ['StatusText', 'LatestText', 'QuirksText'], rows
-assert 'i < 4' in body and 'i < 3' in body, 'row counts do not match the row lists'
+# The loop bounds must match the lengths of the two row lists
+before_rows = [r for r in before.split(',') if r.strip()]
+assert 'i < ' + str(len(before_rows)) + ';' in body and 'i < 3;' in body, 'row counts do not match the row lists'
 
 layout = (repo / 'gui/WindowCreatureProfile.layout').read_text()
 m = re.search(r'name="Area" value="\{\{0\.5,(-?\d+)\},\{0\.5,(-?\d+)\},\{0\.5,(\d+)\},\{0\.5,(\d+)\}\}"', layout)
