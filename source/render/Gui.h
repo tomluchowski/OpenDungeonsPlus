@@ -111,7 +111,8 @@ public:
     CEGUI::Window* createCreatureProfilePage(CEGUI::Window* holder);
     //! \brief Stacks the text rows of the profile page (bio to latest post) one below the other, each as
     //! high as its wrapped text, so no gap is left between short rows. Returns the bottom edge of the
-    //! last visible row in design pixels, relative to the page.
+    //! last visible row in design pixels, relative to the page. If the rows are higher than the page, the page
+    //! scrolls (scrollbar at its right edge, shown only then) and the height of the page is returned.
     float layoutCreatureProfilePage(CEGUI::Window* page);
     //! \brief Sets the area of a registered window given in design pixels (the scale is applied here).
     void setScaledArea(CEGUI::Window* window, const CEGUI::URect& designArea);
@@ -190,6 +191,12 @@ public:
 private:
     //! \brief Places one text row of the profile page at y (design pixels) as high as its text, returns the y of the next row.
     float layoutProfileTextRow(CEGUI::Window* window, float y, float scale);
+    //! \brief Moves all children of the profile page (except the scrollbar) from their unscrolled areas up by offset.
+    void applyProfileScroll(CEGUI::Window* page, float offset);
+    //! \brief The scrollbar of a profile page was moved.
+    bool onProfileScrolled(const CEGUI::EventArgs& e);
+    //! \brief The mouse wheel turned over the profile page or one of its rows: scrolls the page if it scrolls.
+    bool onProfileWheel(const CEGUI::EventArgs& e);
     //! \brief Layout values of a window as loaded, used to re-apply the UI scale from the original values.
     struct WindowScaleData
     {
@@ -208,6 +215,8 @@ private:
     std::map<guiSheet, CEGUI::Window*> mSheets;
     //! \brief The windows that take part in UI scaling, with their original layout values.
     std::map<CEGUI::Window*, WindowScaleData> mScaledWindows;
+    //! \brief The unscrolled design areas of the children of the profile pages, see layoutCreatureProfilePage.
+    std::map<CEGUI::Window*, CEGUI::URect> mProfileBaseAreas;
 
     //! \brief UI scale chosen by the user (1.0 = 100%), on top of the scale derived from the display size.
     float mUserScale;

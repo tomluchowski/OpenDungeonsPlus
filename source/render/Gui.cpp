@@ -37,6 +37,7 @@
 #include <CEGUI/WindowManager.h>
 #include <CEGUI/widgets/PushButton.h>
 #include <CEGUI/widgets/TabControl.h>
+#include <CEGUI/widgets/Scrollbar.h>
 #include <CEGUI/Event.h>
 
 #include <algorithm>
@@ -293,6 +294,14 @@ CEGUI::Window* Gui::createCreatureProfilePage(CEGUI::Window* holder)
     page->setName("Content");
     holder->addChild(page);
     registerWindowHierarchy(page);
+    page->getChild("ProfileScrollbar")->subscribeEvent(CEGUI::Scrollbar::EventScrollPositionChanged,
+        CEGUI::Event::Subscriber(&Gui::onProfileScrolled, this));
+
+    // The rows pass the mouse wheel on to the page, which scrolls (only while its scrollbar is shown)
+    for(std::size_t i = 0; i < page->getChildCount(); ++i)
+        page->getChildAtIdx(i)->setMouseInputPropagationEnabled(true);
+
+    page->subscribeEvent(CEGUI::Window::EventMouseWheel, CEGUI::Event::Subscriber(&Gui::onProfileWheel, this));
     return page;
 }
 
@@ -314,6 +323,14 @@ const float PROFILE_TEXT_WIDTH_FACTOR = 0.96f;
 //! Number of rows with a label and links (friends, foe) and the most windows in such a row (label and two links)
 const std::size_t PROFILE_LINK_ROWS = 2;
 const std::size_t PROFILE_LINK_ROW_WINDOWS = 3;
+//! Scroll step of the profile page (design pixels), about two lines
+const float PROFILE_SCROLL_STEP = 28.0f;
+//! Tolerance (design pixels) before the rows count as higher than the page
+const float PROFILE_OVERFLOW_TOLERANCE = 0.5f;
+//! Names of the rows that flow from top to bottom and so change their position when the texts change
+const char* const PROFILE_FLOW_ROWS[] = {"BioText", "LikesText", "DislikesText", "FriendsLabel",
+    "FriendLink0", "FriendLink1", "FoeLabel", "FoeLink", "StatusText", "LatestText"};
+const std::size_t PROFILE_FLOW_ROW_COUNT = sizeof(PROFILE_FLOW_ROWS) / sizeof(PROFILE_FLOW_ROWS[0]);
 
 //! \brief Number of lines the text needs when it is wrapped at the given pixel width
 std::size_t countWrappedLines(const CEGUI::Font* font, const std::string& text, float width)
@@ -416,7 +433,91 @@ float Gui::layoutCreatureProfilePage(CEGUI::Window* page)
     for(std::size_t i = 0; i < 2; ++i)
         y = layoutProfileTextRow(page->getChild(textRowsAfter[i]), y, scale);
 
-    return y;
+    // Remember where every row sits without scrolling. The rows laid out above are fresh, the rows of the
+    // header (portrait to experience bar) are never moved by the layout and are noted once.
+    for(std::size_t i = 0; i < page->getChildCount(); ++i)
+    {
+        CEGUI::Window* child = page->getChildAtIdx(i);
+        if(child->getName() == "ProfileScrollbar")
+            continue;
+
+        bool isFlowRow = false;
+        for(std::size_t k = 0; k < PROFILE_FLOW_ROW_COUNT; ++k)
+            isFlowRow = isFlowRow || (child->getName() == PROFILE_FLOW_ROWS[k]);
+
+        std::map<CEGUI::Window*, WindowScaleData>::const_iterator data = mScaledWindows.find(child);
+        if((data != mScaledWindows.end()) && (isFlowRow || (mProfileBaseAreas.find(child) == mProfileBaseAreas.end())))
+            mProfileBaseAreas[child] = data->second.area;
+    }
+
+    // Everything is visible as long as the content fits the page; otherwise the page scrolls and a scrollbar
+    // appears, so no row is ever cut off without a way to reach it
+    CEGUI::Window* bar = page->getChild("ProfileScrollbar");
+    const float viewport = page->getPixelSize().d_height / scale;
+    const bool overflow = (y > viewport + PROFILE_OVERFLOW_TOLERANCE);
+    float offset = 0.0f;
+    if(overflow)
+    {
+        CEGUI::Scrollbar* scrollbar = static_cast<CEGUI::Scrollbar*>(bar);
+        offset = std::max(0.0f, std::min(scrollbar->getScrollPosition(), y - viewport));
+        // Setting the position below must not scroll the rows a second time through onProfileScrolled
+        page->setUserString("ProfileScrolling", "true");
+        scrollbar->setDocumentSize(y);
+        scrollbar->setPageSize(viewport);
+        scrollbar->setStepSize(PROFILE_SCROLL_STEP);
+        scrollbar->setScrollPosition(offset);
+        page->setUserString("ProfileScrolling", "false");
+    }
+    bar->setVisible(overflow);
+    applyProfileScroll(page, offset);
+
+    // The caller puts what follows the profile below the visible part
+    return overflow ? viewport : y;
+}
+
+void Gui::applyProfileScroll(CEGUI::Window* page, float offset)
+{
+    for(std::map<CEGUI::Window*, CEGUI::URect>::const_iterator it = mProfileBaseAreas.begin();
+        it != mProfileBaseAreas.end(); ++it)
+    {
+        if(it->first->getParent() != page)
+            continue;
+
+        CEGUI::URect area = it->second;
+        area.d_min.d_y.d_offset -= offset;
+        area.d_max.d_y.d_offset -= offset;
+        setScaledArea(it->first, area);
+    }
+}
+
+bool Gui::onProfileWheel(const CEGUI::EventArgs& e)
+{
+    const CEGUI::MouseEventArgs& args = static_cast<const CEGUI::MouseEventArgs&>(e);
+    CEGUI::Window* page = args.window;
+    while((page != nullptr) && !page->isChild("ProfileScrollbar"))
+        page = page->getParent();
+
+    if(page == nullptr)
+        return false;
+
+    CEGUI::Scrollbar* scrollbar = static_cast<CEGUI::Scrollbar*>(page->getChild("ProfileScrollbar"));
+    if(!scrollbar->isVisible())
+        return false;
+
+    scrollbar->setScrollPosition(scrollbar->getScrollPosition() - args.wheelChange * PROFILE_SCROLL_STEP);
+    return true;
+}
+
+bool Gui::onProfileScrolled(const CEGUI::EventArgs& e)
+{
+    const CEGUI::WindowEventArgs& args = static_cast<const CEGUI::WindowEventArgs&>(e);
+    CEGUI::Window* page = args.window->getParent();
+    if((page == nullptr) ||
+       (page->isUserStringDefined("ProfileScrolling") && (page->getUserString("ProfileScrolling") == "true")))
+        return true;
+
+    applyProfileScroll(page, static_cast<CEGUI::Scrollbar*>(args.window)->getScrollPosition());
+    return true;
 }
 
 void Gui::setScaledArea(CEGUI::Window* window, const CEGUI::URect& designArea)
@@ -456,6 +557,7 @@ bool Gui::onWindowDestroyed(const CEGUI::EventArgs& e)
 {
     const CEGUI::WindowEventArgs& windowEvent = static_cast<const CEGUI::WindowEventArgs&>(e);
     mScaledWindows.erase(windowEvent.window);
+    mProfileBaseAreas.erase(windowEvent.window);
     return true;
 }
 
