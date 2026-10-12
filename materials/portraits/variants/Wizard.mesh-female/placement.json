@@ -1,0 +1,380 @@
+[
+  {
+    "method": "visible-alpha-v2",
+    "file": "build-1-slim.png",
+    "source": "materials/portraits/generated-features/Wizard.mesh-female/build-1-slim.png",
+    "source_sha256": "7708230beec0dab09224712da324a629f1ca43d0ffc06af189d4ecac76eb5d3b",
+    "rect": [
+      0,
+      1050,
+      887,
+      724
+    ],
+    "scale": 0.6301131418624891,
+    "offset": [
+      58.500870322019125,
+      -86.9556135770235
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "build-2-sturdy.png",
+    "source": "materials/portraits/generated-features/Wizard.mesh-female/build-2-sturdy.png",
+    "source_sha256": "2b76b4ede5a2e1b1ff33e2a463d0dbbf223302aa75a82ec0a24953c9e7c1f66a",
+    "rect": [
+      0,
+      1050,
+      887,
+      724
+    ],
+    "scale": 0.6404332129963899,
+    "offset": [
+      -7.044765342960289,
+      -39.55162454873644
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "hair-1-swept.png",
+    "source": "materials/portraits/generated-features/Wizard.mesh-female/hair-1-swept.png",
+    "source_sha256": "19773fa9bcaf4a1cee87beeb44ff7585c81eea0ee891cf3fc8d1ac4e023e0f6d",
+    "rect": [
+      160,
+      750,
+      610,
+      650
+    ],
+    "scale": 0.4294205052005943,
+    "offset": [
+      -25.65378900445765,
+      -33.81277860326894
+    ],
+    "visual_acceptance": "native-review-pending"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "hair-2-waves.png",
+    "source": "materials/portraits/generated-features/Wizard.mesh-female/hair-2-waves.png",
+    "source_sha256": "3a4e7f69e25581305011909fdd3af5d5d8f582c572dcb9cf7fbe7e0ed3e48b24",
+    "rect": [
+      160,
+      750,
+      610,
+      650
+    ],
+    "scale": 0.44223412394797246,
+    "offset": [
+      -34.41469013006886,
+      -18.05202754399388
+    ],
+    "visual_acceptance": "native-review-pending"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "ears-1-notched.png",
+    "source": "materials/portraits/generated-features/Wizard.mesh-female/ears-1-notched.png",
+    "source_sha256": "d3caa990d274d3f80e1ab9b3423b75390f8df4b4a2a953ebcb902c8fa040d077",
+    "rect": [
+      550,
+      730,
+      120,
+      160
+    ],
+    "scale": 0.12573673870333987,
+    "offset": [
+      -21.037328094302552,
+      1.0373280943025627
+    ],
+    "visual_acceptance": "native-review-pending"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "ears-2-rounder.png",
+    "source": "materials/portraits/generated-features/Wizard.mesh-female/ears-2-rounder.png",
+    "source_sha256": "5cc28f5899f70df5c664e74f2c2c55e305d32db74120e1f096a06bc63451b8b3",
+    "rect": [
+      550,
+      730,
+      120,
+      160
+    ],
+    "scale": 0.12846715328467154,
+    "offset": [
+      -25.36642335766423,
+      3.3693430656934265
+    ],
+    "visual_acceptance": "native-review-pending"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "eyes-1-narrow.png",
+    "source": "materials/portraits/generated-features/Wizard.mesh-female/eyes-1-narrow.png",
+    "source_sha256": "a2812263390cce6d4fbe32bc35350643549afaafcd3d76862d1fa5b36b84e76a",
+    "rect": [
+      312,
+      695,
+      305,
+      110
+    ],
+    "scale": 0.14800759013282733,
+    "offset": [
+      -7.644212523719169,
+      -0.8728652751423169
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "eyes-2-round.png",
+    "source": "materials/portraits/generated-features/Wizard.mesh-female/eyes-2-round.png",
+    "source_sha256": "406f6317a0d87c06fb1704646e96ee6464a5c827148700464a1f94c049536d23",
+    "rect": [
+      312,
+      695,
+      305,
+      110
+    ],
+    "scale": 0.14471243042671614,
+    "offset": [
+      -3.572356215213354,
+      -1.220779220779221
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "eyes-3-eyepatch.png",
+    "source": "materials/portraits/generated-features/Wizard.mesh-female/eyes-3-eyepatch.png",
+    "source_sha256": "64169c1eecce430916c4136b76c2b78d18133c47bfbb3f83db340726065589ba",
+    "rect": [
+      312,
+      695,
+      305,
+      110
+    ],
+    "scale": 0.13829787234042554,
+    "offset": [
+      6.664893617021271,
+      3.0
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "nose-1-crooked.png",
+    "source": "materials/portraits/generated-features/Wizard.mesh-female/nose-1-crooked.png",
+    "source_sha256": "26c74294a3be8f08006cbc1f2140a157eb704e0499a846ed3edb8b5c6f1c1317",
+    "rect": [
+      400,
+      740,
+      180,
+      150
+    ],
+    "scale": 0.1632088520055325,
+    "offset": [
+      -36.405255878284926,
+      -5.543568464730292
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "nose-2-broad.png",
+    "source": "materials/portraits/generated-features/Wizard.mesh-female/nose-2-broad.png",
+    "source_sha256": "9772b3de343838ea7c203e2f12a31a98513c881c2f4d952e4538403f3f51bfff",
+    "rect": [
+      400,
+      740,
+      180,
+      150
+    ],
+    "scale": 0.17585692995529062,
+    "offset": [
+      -44.970193740685545,
+      -13.719821162444116
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "mouth-1-teeth.png",
+    "source": "materials/portraits/generated-features/Wizard.mesh-female/mouth-1-teeth.png",
+    "source_sha256": "b63170e60c3ce3c2382edcaa280a8eff7cd7e1df00a1fb59e2e9e3feecf32d11",
+    "rect": [
+      345,
+      815,
+      270,
+      100
+    ],
+    "scale": 0.12546125461254612,
+    "offset": [
+      22.210332103321043,
+      -7.58671586715867
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "mouth-2-grin.png",
+    "source": "materials/portraits/generated-features/Wizard.mesh-female/mouth-2-grin.png",
+    "source_sha256": "aa39582dc202206a3535193a6998109a0315a033d90522c56946301dc23bddea",
+    "rect": [
+      345,
+      815,
+      270,
+      100
+    ],
+    "scale": 0.12363636363636364,
+    "offset": [
+      24.345454545454544,
+      -7.985454545454548
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "mouth-3-cigar.png",
+    "source": "materials/portraits/generated-features/Wizard.mesh-female/mouth-3-cigar.png",
+    "source_sha256": "1cb9febe7606c03fc66a6338e5888266771f4cd4b3fd364ead0349304e6f98e7",
+    "rect": [
+      345,
+      815,
+      270,
+      100
+    ],
+    "scale": 0.1471861471861472,
+    "offset": [
+      -8.506493506493527,
+      -14.614718614718619
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "chin-1-square.png",
+    "source": "materials/portraits/generated-features/Wizard.mesh-female/chin-1-square.png",
+    "source_sha256": "ba5d9c8920fcac5ec58afb6a2b663b86ad82d39ca40f714da2cb769f7d92bda6",
+    "rect": [
+      315,
+      850,
+      320,
+      190
+    ],
+    "scale": 0.27586206896551724,
+    "offset": [
+      -51.58620689655173,
+      -49.0
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "chin-2-rounded.png",
+    "source": "materials/portraits/generated-features/Wizard.mesh-female/chin-2-rounded.png",
+    "source_sha256": "501215ad4344c9f82d3cbbf166c6e6fddd6aa8cbc5f0c4498d87fd046a749b5d",
+    "rect": [
+      315,
+      850,
+      320,
+      190
+    ],
+    "scale": 0.21801665404996215,
+    "offset": [
+      -33.27176381529144,
+      3.6510219530658574
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "scar-1-diagonal.png",
+    "source": "materials/portraits/generated-features/Wizard.mesh-female/scar-1-diagonal.png",
+    "source_sha256": "ecf62cd8937e4b17d7ac208697b95c5dd2dbc72711b8271f1ca2f7ad798f2897",
+    "rect": [
+      310,
+      855,
+      150,
+      120
+    ],
+    "scale": 0.09253417455310199,
+    "offset": [
+      15.546792849631974,
+      -0.5636172450052577
+    ],
+    "visual_acceptance": "native-review-pending"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "scar-2-scratches.png",
+    "source": "materials/portraits/generated-features/Wizard.mesh-female/scar-2-scratches.png",
+    "source_sha256": "ed9d2613eaf0db37e1db2645070ad44ae8ec1d7101faf028728ff0b3a16986c1",
+    "rect": [
+      310,
+      855,
+      150,
+      120
+    ],
+    "scale": 0.12154696132596685,
+    "offset": [
+      -27.22099447513812,
+      -3.082872928176794
+    ],
+    "visual_acceptance": "native-review-pending"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "scar-3-warpaint.png",
+    "source": "materials/portraits/generated-features/Wizard.mesh-female/scar-3-warpaint.png",
+    "source_sha256": "015ee48687f1c5c80bc553df439f177d2e1d20163db38a69adb8e4075e0959cf",
+    "rect": [
+      310,
+      855,
+      150,
+      120
+    ],
+    "scale": 0.09320695102685624,
+    "offset": [
+      -7.488151658767773,
+      18.988941548183256
+    ],
+    "visual_acceptance": "native-review-pending"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "neck-1-teeth.png",
+    "source": "materials/portraits/generated-features/Wizard.mesh-female/neck-1-teeth.png",
+    "source_sha256": "120ccdf7eb9644f2dde173cd5b071807592fff0362aaa67051bb74b202f28663",
+    "rect": [
+      240,
+      920,
+      450,
+      240
+    ],
+    "scale": 0.22413793103448276,
+    "offset": [
+      53.310344827586206,
+      8.155172413793103
+    ],
+    "visual_acceptance": "native-review-pending"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "neck-2-torque.png",
+    "source": "materials/portraits/generated-features/Wizard.mesh-female/neck-2-torque.png",
+    "source_sha256": "af07b0c245ad123367d80f99826da148d488ab86a1bce9bb7e23c9da76fecf75",
+    "rect": [
+      240,
+      920,
+      450,
+      240
+    ],
+    "scale": 0.24242424242424243,
+    "offset": [
+      38.696969696969695,
+      -3.3939393939393945
+    ],
+    "visual_acceptance": "native-review-pending"
+  }
+]

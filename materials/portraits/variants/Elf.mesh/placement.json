@@ -1,0 +1,380 @@
+[
+  {
+    "method": "visible-alpha-v2",
+    "file": "build-1-slim.png",
+    "source": "materials/portraits/generated-features/Elf.mesh/build-1-slim.png",
+    "source_sha256": "84b3148741dac5f90a4615704d4f81ab0bf547acef5ac4db88e77fdd5dff398d",
+    "rect": [
+      0,
+      890,
+      887,
+      884
+    ],
+    "scale": 0.647918188458729,
+    "offset": [
+      -28.508400292184017,
+      71.71475529583643
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "build-2-sturdy.png",
+    "source": "materials/portraits/generated-features/Elf.mesh/build-2-sturdy.png",
+    "source_sha256": "c9a4f20d5158e0571a77a950d7c7146e2be68d465e36b4bbbce04210a1c3eccb",
+    "rect": [
+      0,
+      890,
+      887,
+      884
+    ],
+    "scale": 0.7318481848184818,
+    "offset": [
+      -2.9273927392738703,
+      -75.41666666666663
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "hair-1-swept.png",
+    "source": "materials/portraits/generated-features/Elf.mesh/hair-1-swept.png",
+    "source_sha256": "913d712cc46c160afb449e3b50320ea84a017139592709909d817684dec64b20",
+    "rect": [
+      210,
+      115,
+      570,
+      865
+    ],
+    "scale": 0.4765279007971656,
+    "offset": [
+      -7.349867139061114,
+      -0.6784765279007949
+    ],
+    "visual_acceptance": "native-review-pending"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "hair-2-waves.png",
+    "source": "materials/portraits/generated-features/Elf.mesh/hair-2-waves.png",
+    "source_sha256": "90551992a85ad8423d75b53e18f08623fe4ac01bf523fa2df6bb55a113217d2f",
+    "rect": [
+      210,
+      115,
+      570,
+      865
+    ],
+    "scale": 0.4686411149825784,
+    "offset": [
+      0.06620209059233595,
+      0.06620209059233595
+    ],
+    "visual_acceptance": "native-review-pending"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "ears-1-notched.png",
+    "source": "materials/portraits/generated-features/Elf.mesh/ears-1-notched.png",
+    "source_sha256": "c43623260108f4a0bef1caeb62198018fb3ebd70889e17eb0ceeafedbc43d192",
+    "rect": [
+      160,
+      350,
+      250,
+      275
+    ],
+    "scale": 0.22131147540983606,
+    "offset": [
+      -1.0368852459016331,
+      -3.475409836065573
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "ears-2-rounder.png",
+    "source": "materials/portraits/generated-features/Elf.mesh/ears-2-rounder.png",
+    "source_sha256": "be2fd5bce461f74dc7deb59688cf23809907df4f22c3e5febeb495b2510e6519",
+    "rect": [
+      160,
+      350,
+      250,
+      275
+    ],
+    "scale": 0.29101796407185626,
+    "offset": [
+      -36.51497005988023,
+      -53.26227544910178
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "eyes-1-narrow.png",
+    "source": "materials/portraits/generated-features/Elf.mesh/eyes-1-narrow.png",
+    "source_sha256": "8a9991e2dc5ccca1deadf2358001562057e21cd986dceb5876b594a175ba0c30",
+    "rect": [
+      427,
+      595,
+      225,
+      120
+    ],
+    "scale": 0.1261437908496732,
+    "offset": [
+      -24.492156862745098,
+      12.128431372549018
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "eyes-2-round.png",
+    "source": "materials/portraits/generated-features/Elf.mesh/eyes-2-round.png",
+    "source_sha256": "32925a507e3d342e61b46e9fd6d7e6d3f2910b84d7ce67c5758886f0e5844eb0",
+    "rect": [
+      427,
+      595,
+      225,
+      120
+    ],
+    "scale": 0.1597682119205298,
+    "offset": [
+      -28.575331125827816,
+      -13.573261589403977
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "eyes-3-eyepatch.png",
+    "source": "materials/portraits/generated-features/Elf.mesh/eyes-3-eyepatch.png",
+    "source_sha256": "b5b08f4e5c85f55b34e618b0686980d87b68b0955c94e5e865465c28c6911cc1",
+    "rect": [
+      427,
+      595,
+      225,
+      120
+    ],
+    "scale": 0.11855036855036855,
+    "offset": [
+      7.345823095823096,
+      7.007985257985261
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "nose-1-crooked.png",
+    "source": "materials/portraits/generated-features/Elf.mesh/nose-1-crooked.png",
+    "source_sha256": "c7a30f49d4b005ff6bd99892a2175d69344a4d907cb4f74009d881c6fbcf9475",
+    "rect": [
+      490,
+      697,
+      150,
+      155
+    ],
+    "scale": 0.14009111617312073,
+    "offset": [
+      -22.853644646924828,
+      -4.453302961275625
+    ],
+    "visual_acceptance": "native-review-pending"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "nose-2-broad.png",
+    "source": "materials/portraits/generated-features/Elf.mesh/nose-2-broad.png",
+    "source_sha256": "0f0b4cc810838d2fbc57d2b3574a287c7c66a57ddc6e15b03b1dc06d2e7b0b93",
+    "rect": [
+      490,
+      697,
+      150,
+      155
+    ],
+    "scale": 0.17107093184979139,
+    "offset": [
+      -58.606397774687075,
+      -10.858136300417247
+    ],
+    "visual_acceptance": "native-review-pending"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "mouth-1-teeth.png",
+    "source": "materials/portraits/generated-features/Elf.mesh/mouth-1-teeth.png",
+    "source_sha256": "6051025f95c9010e0024572d1b47eb1ab8422685c21226500f20887cd93ec4ca",
+    "rect": [
+      462,
+      807,
+      205,
+      85
+    ],
+    "scale": 0.08983050847457627,
+    "offset": [
+      22.910169491525423,
+      3.0644067796610166
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "mouth-2-grin.png",
+    "source": "materials/portraits/generated-features/Elf.mesh/mouth-2-grin.png",
+    "source_sha256": "98a4d1519fecdb0e92aef6ef8a92731d24a8920aa5b3f22fa9f2a8a5c33104b4",
+    "rect": [
+      462,
+      807,
+      205,
+      85
+    ],
+    "scale": 0.09075342465753425,
+    "offset": [
+      20.504280821917806,
+      1.2071917808219172
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "mouth-3-cigar.png",
+    "source": "materials/portraits/generated-features/Elf.mesh/mouth-3-cigar.png",
+    "source_sha256": "0a33972b57e20c23054e2efbf2a58a1ba9b907dd3c4fe0b17d59ae88da0e4ede",
+    "rect": [
+      462,
+      807,
+      205,
+      85
+    ],
+    "scale": 0.1017274472168906,
+    "offset": [
+      10.792706333973118,
+      -1.5988483685220736
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "chin-1-square.png",
+    "source": "materials/portraits/generated-features/Elf.mesh/chin-1-square.png",
+    "source_sha256": "1c8f4902326b1b16bc8f9f1581e1c1475d59acf0926cfa1a2e6a910d8bb2e912",
+    "rect": [
+      390,
+      855,
+      290,
+      150
+    ],
+    "scale": 0.18351477449455678,
+    "offset": [
+      4.427682737169508,
+      -15.013996889580095
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "chin-2-rounded.png",
+    "source": "materials/portraits/generated-features/Elf.mesh/chin-2-rounded.png",
+    "source_sha256": "342fcbc9f69ab81595b2bf21ed0ca01ad94321ae76f87a2f82c09dc7a03619cb",
+    "rect": [
+      390,
+      855,
+      290,
+      150
+    ],
+    "scale": 0.1875,
+    "offset": [
+      -1.0625,
+      -16.6875
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "scar-1-diagonal.png",
+    "source": "materials/portraits/generated-features/Elf.mesh/scar-1-diagonal.png",
+    "source_sha256": "b6240f754b4268708272f742d762b490d98173ced468b259d62d7cdba9de2890",
+    "rect": [
+      355,
+      580,
+      160,
+      130
+    ],
+    "scale": 0.0807914262159934,
+    "offset": [
+      29.868920032976092,
+      13.65704863973619
+    ],
+    "visual_acceptance": "native-review-pending"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "scar-2-scratches.png",
+    "source": "materials/portraits/generated-features/Elf.mesh/scar-2-scratches.png",
+    "source_sha256": "76aaccf454cfde2e659f42ce18fd2d77396133a564eed527de7c69add73ef7cb",
+    "rect": [
+      355,
+      580,
+      160,
+      130
+    ],
+    "scale": 0.10925306577480491,
+    "offset": [
+      14.229654403567444,
+      -9.346711259754738
+    ],
+    "visual_acceptance": "native-review-pending"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "scar-3-warpaint.png",
+    "source": "materials/portraits/generated-features/Elf.mesh/scar-3-warpaint.png",
+    "source_sha256": "acb37e138a4e91083bb09e74dda716bea8c77d0d7af16e1581be74db4612c5d6",
+    "rect": [
+      355,
+      580,
+      160,
+      130
+    ],
+    "scale": 0.09607843137254903,
+    "offset": [
+      21.296078431372546,
+      1.3960784313725476
+    ],
+    "visual_acceptance": "native-review-pending"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "neck-1-teeth.png",
+    "source": "materials/portraits/generated-features/Elf.mesh/neck-1-teeth.png",
+    "source_sha256": "115dc0c21cff5c4d8e1041bffa443877f9ec970780c94a6d352c91c40e32cf33",
+    "rect": [
+      330,
+      950,
+      380,
+      210
+    ],
+    "scale": 0.20649651972157773,
+    "offset": [
+      31.72041763341067,
+      -1.1392111368909532
+    ],
+    "visual_acceptance": "native-review-pending"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "neck-2-torque.png",
+    "source": "materials/portraits/generated-features/Elf.mesh/neck-2-torque.png",
+    "source_sha256": "072fcdade543319afeaf6f90a4e6820edbdefd919fe4e06c23cf66d3efb434fd",
+    "rect": [
+      330,
+      950,
+      380,
+      210
+    ],
+    "scale": 0.2236180904522613,
+    "offset": [
+      18.1494974874372,
+      -10.834170854271356
+    ],
+    "visual_acceptance": "needs-correction"
+  }
+]
