@@ -569,6 +569,8 @@ void RenderManager::rrSetChickenPose(ChickenEntity* chicken, const std::string& 
         createChickenFeatherEffect(position + Ogre::Vector3(0.0f, 0.0f, 0.12f));
     else if(pose == ChickenPose::fight)
         createChickenFeatherEffect(position + Ogre::Vector3(0.0f, 0.0f, 0.15f));
+    else if(pose == ChickenPose::protest)
+        createChickenFeatherEffect(position + Ogre::Vector3(0.0f, 0.0f, 0.2f));
     else if(pose == ChickenPose::emerge)
     {
         createChickenFeatherEffect(position + Ogre::Vector3(0.0f, 0.0f, 0.1f));
@@ -700,10 +702,10 @@ void RenderManager::updateChickenLooks(Ogre::Real timeSinceLastFrame)
             }
             else if(pose == ChickenPose::guard)
             {
-                // Puffed up and flapping
+                // Puffed up and flapping, with a lunge of the head at the creature in front of him, then back
                 const Ogre::Real puff = 1.28f + 0.03f * std::sin(t * 20.0f);
                 stretch = Ogre::Vector3(puff + 0.15f * std::fabs(std::sin(t * 18.0f)), puff, puff);
-                pitch = 10.0f;
+                pitch = 10.0f + 24.0f * std::max(0.0f, std::sin(t * 7.0f));
             }
             else if(pose == ChickenPose::lead)
             {
@@ -719,6 +721,15 @@ void RenderManager::updateChickenLooks(Ogre::Real timeSinceLastFrame)
                 pitch = 12.0f + 16.0f * std::sin(t * 11.0f);
                 roll = 9.0f * std::sin(t * 7.0f);
                 lift = 0.035f * std::fabs(std::sin(t * 8.0f));
+            }
+            else if(pose == ChickenPose::protest)
+            {
+                // Held in the hand: puffed up, wings beating, kicking and rolling about
+                const Ogre::Real puff = 1.25f + 0.05f * std::sin(t * 24.0f);
+                stretch = Ogre::Vector3(puff + 0.3f * std::fabs(std::sin(t * 21.0f)), puff, puff);
+                pitch = -12.0f;
+                roll = 14.0f * std::sin(t * 22.0f);
+                lift = 0.03f * std::fabs(std::sin(t * 14.0f));
             }
             else if(pose == ChickenPose::lay)
             {
@@ -801,8 +812,19 @@ void RenderManager::updateChickenLooks(Ogre::Real timeSinceLastFrame)
             Room* room = (tile == nullptr) ? nullptr : tile->getCoveringRoom();
             if(room != nullptr)
             {
+                // The rooster alone does not keep a hatchery alive: hens, chicks and eggs do
                 for(Tile* roomTile : room->getCoveredTiles())
-                    animals += roomTile->countEntitiesOnTile(GameEntityType::chickenEntity);
+                {
+                    for(GameEntity* entity : roomTile->getEntitiesInTile())
+                    {
+                        if((entity == nullptr) || (entity->getObjectType() != GameEntityType::chickenEntity))
+                            continue;
+
+                        ChickenEntity* animal = static_cast<ChickenEntity*>(entity);
+                        if(animal->getKind() != ChickenKind::rooster)
+                            ++animals;
+                    }
+                }
             }
             decor.mNest->setVisible(animals > 0);
             decor.mFeathers->setVisible(animals == 0);

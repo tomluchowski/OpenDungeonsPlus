@@ -28,7 +28,7 @@ assert 'destroyMesh()' in body(chicken, 'void ChickenEntity::setKindFromServer')
 assert 'rrChickenHatched' in body(chicken, 'void ChickenEntity::setKindFromServer')
 
 # Poses reach the client as animation names and are turned into skeleton animations plus motion.
-for name in ('strut', 'chase', 'flee', 'mount', 'cackle', 'perch', 'crow', 'guard', 'lead', 'roost', 'lay', 'wobble', 'emerge'):
+for name in ('strut', 'chase', 'flee', 'mount', 'cackle', 'perch', 'crow', 'guard', 'lead', 'roost', 'lay', 'wobble', 'emerge', 'fight', 'protest'):
     assert 'static const std::string %s =' % name in pose, name
 hook = body(render, 'void RenderManager::rrSetObjectAnimationState')
 assert 'ChickenPose::isPose(animation)' in hook and 'rrSetChickenPose' in hook
@@ -79,3 +79,16 @@ assert 'call ' in rooster_h and 'mCallPercent' in rooster_h
 assert 'RoosterMood::call' in room
 assert 'HatcheryRoosterCallPercent' in config and 'HatcheryRoosterCallTurns' in config
 assert 'ChickenKind::hen' in body(chicken, 'void ChickenEntity::doUpkeep')
+
+# The rooster fight is shown with feather clouds between the two animals, the interval is a setting
+assert 'HatcheryFightFeatherSeconds' in looks and 'rrChickenFight' in looks and 'ChickenPose::fight' in looks
+# The rooster guarding the flock lunges with his head, the rooster in the hand protests (pose and look)
+assert 'std::sin(t * 7.0f)' in body(looks, 'void RenderManager::updateChickenLooks')
+assert 'ChickenPose::protest' in body(chicken, 'void ChickenEntity::pickup') and 'protest)' in pose
+assert 'ChickenPose::protest' in looks
+# A hatchery with only the rooster looks abandoned: loose feathers, no nest. The rooster is not counted.
+decor = body(looks, 'const bool check = mCoopDecorTimer')
+assert 'ChickenKind::rooster' in decor and 'getEntitiesInTile' in decor
+assert 'decor.mFeathers->setVisible(animals == 0)' in decor and 'decor.mNest->setVisible(animals > 0)' in decor
+assert 'countEntitiesOnTile(GameEntityType::chickenEntity)' not in decor
+print('hatchery rooster look checks passed')
