@@ -16,6 +16,8 @@
  */
 
 #include "traps/TrapDoor.h"
+#include "game/SkillManager.h"
+#include "game/SkillType.h"
 
 #include "creatureaction/CreatureAction.h"
 #include "entities/Creature.h"
@@ -76,51 +78,33 @@ class TrapDoorFactory : public TrapFactory
 
         int32_t pricePerTarget = TrapManager::costPerTile(type);
         int32_t playerGold = static_cast<int32_t>(player->getSeat()->getGold());
-        if(inputManager.mCommandState == InputCommandState::infoOnly)
-        {
-            if(playerGold < pricePerTarget)
-            {
-                std::string txt = formatBuildTrap(type, pricePerTarget);
-                inputCommand.displayText(Ogre::ColourValue::Red, txt);
-            }
-            else
-            {
-                std::string txt = formatBuildTrap(type, pricePerTarget);
-                inputCommand.displayText(Ogre::ColourValue::White, txt);
-            }
-            inputCommand.selectSquaredTiles(inputManager.mXPos, inputManager.mYPos, inputManager.mXPos,
-                inputManager.mYPos);
-            return;
-        }
+        if(inputManager.mCommandState != InputCommandState::validated)
+            inputCommand.selectSquaredTiles(inputManager.mXPos, inputManager.mYPos,
+                inputManager.mXPos, inputManager.mYPos);
 
-        if(inputManager.mCommandState == InputCommandState::building)
+        if(!tile->isBuildableUpon(player->getSeat()))
         {
-            std::vector<Tile*> tiles;
-            tiles.push_back(tile);
-            inputCommand.selectTiles(tiles);
-            if(!tile->isBuildableUpon(player->getSeat()) ||
-               !TrapDoor::canDoorBeOnTile(gameMap, tile))
-            {
-                inputCommand.displayText(Ogre::ColourValue::Red, "Cannot place door on this tile");
-            }
-            else if(playerGold < pricePerTarget)
-            {
-                std::string txt = formatBuildTrap(type, pricePerTarget);
-                inputCommand.displayText(Ogre::ColourValue::Red, txt);
-            }
-            else
-            {
-                std::string txt = formatBuildTrap(type, pricePerTarget);
-                inputCommand.displayText(Ogre::ColourValue::White, txt);
-            }
+            inputCommand.displayTileBuildFailure(tile, player->getSeat());
+            inputCommand.displayPointerText(Ogre::ColourValue::Red, Helper::toString(pricePerTarget));
             return;
         }
-
-        if(!tile->isBuildableUpon(player->getSeat()) ||
-           !TrapDoor::canDoorBeOnTile(gameMap, tile))
+        if(!TrapDoor::canDoorBeOnTile(gameMap, tile))
         {
+            inputCommand.displayText(Ogre::ColourValue::Red, "A door needs walls on two opposite sides.");
+            inputCommand.displayPointerText(Ogre::ColourValue::Red, Helper::toString(pricePerTarget));
             return;
         }
+        if(playerGold < pricePerTarget)
+        {
+            inputCommand.displayText(Ogre::ColourValue::Red,
+                "Not enough gold. " + formatBuildTrap(type, pricePerTarget));
+            inputCommand.displayPointerText(Ogre::ColourValue::Red, Helper::toString(pricePerTarget));
+            return;
+        }
+        inputCommand.displayText(Ogre::ColourValue::White, formatBuildTrap(type, pricePerTarget));
+        inputCommand.displayPointerText(Ogre::ColourValue::Red, Helper::toString(pricePerTarget));
+        if(inputManager.mCommandState != InputCommandState::validated)
+            return;
 
         ClientNotification *clientNotification = TrapManager::createTrapClientNotification(type);
         gameMap->tileToPacket(clientNotification->mPacket, tile);
@@ -291,6 +275,20 @@ static TrapRegister reg(new TrapDoorFactory);
 
 const std::string TrapDoor::ANIMATION_OPEN = "Open";
 const std::string TrapDoor::ANIMATION_CLOSE = "Close";
+
+double TrapDoor::getHP(Tile* tile) const
+{
+    return SkillManager::getResearchValue(getSeat(), SkillType::trapDoorWooden, Building::getHP(tile));
+}
+
+double TrapDoor::takeDamage(GameEntity* attacker, double absoluteDamage, double physicalDamage, double magicalDamage,
+    double elementDamage, Tile* tileTakingDamage, bool ko)
+{
+    // Store health in base units, preserving its fraction across research and ownership changes.
+    const double factor = SkillManager::getResearchValue(getSeat(), SkillType::trapDoorWooden, 1.0);
+    return Building::takeDamage(attacker, absoluteDamage / factor, physicalDamage / factor,
+        magicalDamage / factor, elementDamage / factor, tileTakingDamage, ko) * factor;
+}
 
 TrapDoor::TrapDoor(GameMap* gameMap) :
     Trap(gameMap),
