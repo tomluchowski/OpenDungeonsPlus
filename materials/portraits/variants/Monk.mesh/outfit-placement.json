@@ -1,0 +1,35 @@
+[
+  {
+    "id": "Monk.mesh",
+    "n": 1,
+    "name": "robe",
+    "build": 0,
+    "file": "outfit-1-robe-build0.png",
+    "source": "materials/portraits/generated-outfits/Monk.mesh/outfit-1-robe.png",
+    "source_sha256": "c9ee44810efd4b5c54f25979db621ad10137bbf8aaf7ced4b479e697c4acb6b6",
+    "source_size": [
+      887,
+      1774
+    ],
+    "canvas_registration": "canonical canvas",
+    "body_span_fit": "continuous outer sleeve sector extensions clipped to uncovered body",
+    "bottom_rows_repeated": 0,
+    "horizontal_scale": 1.075,
+    "vertical_scale": 1.0,
+    "offset": [
+      -33.26249999999998,
+      0.0
+    ],
+    "mesh_warp": null,
+    "torso_margin": 1.1111111111111112,
+    "sleeve_warp": null,
+    "head_occlusion": {
+      "warm_neutral_skin_above_row": 700
+    },
+    "native_uncovered_body_pixels": 0,
+    "coarse_uncovered_body_pixels": 0,
+    "coarse_body_pixels": 8986,
+    "visual_acceptance": "accepted-native-and-50x100",
+    "prompt": "Generate one isolated EMPTY Monk clothing overlay for the attached neutral dummy, exact pose and registration reference only. Full887x1774 transparentRGBA canvas. A simple dark earth-brown closed long-sleeved monk robe, plain cloth waist sash, no emblems or religious symbols. Follow the broad rounded torso, lowered arms, slight three-quarter view, upper-left warm lighting, coarse painted fantasy style. Collar y710-830, shoulders y820-1010, broad chest x20-880 y1100, waist sash y1490. Cover all visible torso, shoulders and arms down to the bottom crop with modest fitting margin. Empty robe only, no dummy, body, skin, head, face, ears, eyes, nose, hair, beard, helmet, jewelry, weapon, writing, symbols, tools, background or modern objects. Preserve fullcanvas, upper space blank transparent, never recenter or tightly crop."
+  }
+]
