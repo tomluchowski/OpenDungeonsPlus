@@ -22,7 +22,6 @@ def function(text, signature):
 
 probe = r'''
 #include <cstdint>
-#include <functional>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -64,10 +63,11 @@ struct GameMapMock {int64_t turn=0;int64_t getTurnNumber()const{return turn;}std
  std::vector<Seat*>& getSeats(){return seats;}
  void fireRelativeSound(std::vector<Seat*>&,SoundRelativeKeeperStatements){++sounds;}};
 METHOD
-int main(){int checks=0,failures=0;
+int gChecks=0,gFailures=0;
+void check(bool ok,const char* msg){++gChecks;if(!ok){++gFailures;std::cout<<"FAIL "<<msg<<'\n';}}
+int count(Player* p,ServerNotificationType t){int n=0;for(ServerNotification* s:ODServer::getSingleton().queue)if(s->player==p&&s->type==t)++n;return n;}
+int main(){
  ODServer& server=ODServer::getSingleton();
- std::function<void(bool,const char*)> check=[&](bool ok,const char* msg){++checks;if(!ok){++failures;std::cout<<"FAIL "<<msg<<'\n';}};
- std::function<int(Player*,ServerNotificationType)> count=[&](Player* p,ServerNotificationType t){int n=0;for(ServerNotification* s:server.queue)if(s->player==p&&s->type==t)++n;return n;};
  {// 1v1, human loses, whole team lost: conqueror data recorded before the loss is sent
   server.queue.clear();GameMapMock map;Seat a{1,1},b{2,2};Player pa(&a,true),pb(&b,false);a.player=&pa;b.player=&pb;
   pa.mGameMap=&map;map.seats={&a,&b};
@@ -103,7 +103,7 @@ int main(){int checks=0,failures=0;
   a.player=&pa;ally.player=&pally;pa.mGameMap=&map;map.seats={&a,&ally};
   pa.notifyNoMoreDungeonTemple();
   check(count(&pa,ServerNotificationType::playerDefeated)==1&&count(&pally,ServerNotificationType::playerDefeated)==0,"team loss notifies only the defeated player");}
- std::cout<<"CHECKS="<<checks<<" FAILURES="<<failures<<'\n';return failures?1:0;
+ std::cout<<"CHECKS="<<gChecks<<" FAILURES="<<gFailures<<'\n';return gFailures?1:0;
 }
 '''
 record = function(header, 'inline void recordHeartDestroyed(')
