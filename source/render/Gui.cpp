@@ -304,7 +304,7 @@ float badgeCoinHeight(float x, float y)
     const float angle = std::atan2(x, -y);
     const float ridge = badgeClamp((radius - 14.9f) / 4.4f, 0.0f, 1.0f);
     float height = 0.7f + 0.5f * badgeFbm(x * 0.9f, y * 0.9f) - 0.25f * badgeSmoothstep(0.0f, 14.0f, radius);
-    height += 2.6f * std::pow(std::sin(3.14159265f * ridge), 0.75f) * (1.0f + 0.10f * std::cos(angle * 64.0f));
+    height += 2.6f * std::pow(std::sin(HeartHealthRing::PI * ridge), 0.75f) * (1.0f + 0.10f * std::cos(angle * 64.0f));
     const float pearl = (radius - 13.4f) / 0.75f;
     height += 0.9f * std::exp(-pearl * pearl) * (0.5f + 0.5f * std::cos(angle * 44.0f));
     const float skull = badgeSkullDistance(x, y);
@@ -323,6 +323,19 @@ void badgeNormal(float (*height)(float, float), float x, float y, float* normal)
     normal[0] = -gradientX / length;
     normal[1] = -gradientY / length;
     normal[2] = 1.0f / length;
+}
+
+//! \brief Diffuse light on a surface with the given unit normal, from a light at the top left.
+float badgeDiffuse(const float* normal)
+{
+    return std::max(0.0f, normal[0] * -0.50f + normal[1] * -0.60f + normal[2] * 0.62f);
+}
+
+//! \brief Strength of the highlight on a surface with the given unit normal (the same light, seen
+//! from the picture): high where the surface faces halfway between the light and the viewer.
+float badgeHalfway(const float* normal)
+{
+    return std::max(0.0f, normal[0] * -0.26f + normal[1] * -0.31f + normal[2] * 0.91f);
 }
 
 //! \brief How much lower than its surroundings the relief lies at a point (0 to 1): dirt and shadow collect there.
@@ -344,9 +357,9 @@ void badgeFrame(float* colour, float dx, float dy, float radius, float light, fl
         badgeSet(colour, 196, 136, 66, 0.62f + 0.38f * light);
     if(radius < 26.2f)
         badgeSet(colour, 224, 166, 88, 0.72f + 0.38f * light);
-    const float degrees = std::atan2(dx, -dy) * 57.29578f;
+    const float degrees = std::atan2(dx, -dy) * HeartHealthRing::RADIANS_TO_DEGREES;
     const float step = std::fmod(degrees + 375.0f, 30.0f);
-    const float tangent = (step > 15 ? step - 30 : step) * 0.0174533f * radius;
+    const float tangent = (step > 15 ? step - 30 : step) * HeartHealthRing::DEGREES_TO_RADIANS * radius;
     const float rivet = std::sqrt(tangent * tangent + (radius - 28.2f) * (radius - 28.2f));
     if(rivet < 1.35f)
         badgeSet(colour, 190, 132, 70, 0.55f + 0.75f * (1 - rivet / 1.35f) * (0.5f + 0.5f * light) + 0.3f * light);
@@ -365,11 +378,11 @@ void badgeFrame(float* colour, float dx, float dy, float radius, float light, fl
 void badgeGemRing(float* colour, float dx, float dy, float radius, float light, bool lit)
 {
     const float across = (radius - 20.8f) / 4.6f;
-    const float dome = std::sin(3.14159265f * badgeClamp(across, 0.0f, 1.0f));
+    const float dome = std::sin(HeartHealthRing::PI * badgeClamp(across, 0.0f, 1.0f));
     const float inSegment = std::fmod(HeartHealthRing::ringDegrees(dx, dy), HeartHealthRing::SEGMENT_DEGREES);
     if(HeartHealthRing::isSpoke(dx, dy))
     {
-        const float offset = std::abs(inSegment < 30.0f ? inSegment : inSegment - HeartHealthRing::SEGMENT_DEGREES)
+        const float offset = std::abs(inSegment < HeartHealthRing::SEGMENT_DEGREES / 2.0f ? inSegment : inSegment - HeartHealthRing::SEGMENT_DEGREES)
             / HeartHealthRing::SPOKE_HALF_DEGREES;
         badgeSet(colour, 226, 168, 92, (0.76f + 0.30f * light) * (0.68f + 0.32f * dome) * (1.08f - 0.30f * offset));
         if(offset > 0.82f)
@@ -378,7 +391,7 @@ void badgeGemRing(float* colour, float dx, float dy, float radius, float light, 
     }
     const float edge = std::min(inSegment - HeartHealthRing::SPOKE_HALF_DEGREES,
         HeartHealthRing::SEGMENT_DEGREES - HeartHealthRing::SPOKE_HALF_DEGREES - inSegment);
-    const float bevel = badgeClamp(edge * 0.0174533f * radius / 1.3f, 0.0f, 1.0f);
+    const float bevel = badgeClamp(edge * HeartHealthRing::DEGREES_TO_RADIANS * radius / 1.3f, 0.0f, 1.0f);
     const float relief = dome * (0.45f + 0.55f * bevel);
     const float shine = std::pow(std::max(0.0f, light), 5.0f) * dome * dome * bevel;
     if(lit)
@@ -402,7 +415,7 @@ void badgeGemRing(float* colour, float dx, float dy, float radius, float light, 
 void badgeBeadRing(float* colour, float dx, float dy, float radius, float light)
 {
     const float phase = std::fmod(HeartHealthRing::ringDegrees(dx, dy), 15.0f) - 7.5f;
-    const float along = phase * 0.0174533f * radius;
+    const float along = phase * HeartHealthRing::DEGREES_TO_RADIANS * radius;
     const float across = radius - 23.1f;
     const float distance = std::sqrt(along * along + across * across) / 2.15f;
     if(distance >= 1.0f)
@@ -447,8 +460,8 @@ void badgeHeartWell(float* colour, float dx, float dy, float radius, float light
     badgeNormal(badgeHeartHeight, dx, dy, normal);
     const float depth = std::max(0.0f, -outline);
     const float veins = badgeHeartVeins(dx, dy) * badgeSmoothstep(0.3f, 1.5f, depth);
-    const float diffuse = std::max(0.0f, normal[0] * -0.50f + normal[1] * -0.60f + normal[2] * 0.62f);
-    const float halfway = std::max(0.0f, normal[0] * -0.26f + normal[1] * -0.31f + normal[2] * 0.91f);
+    const float diffuse = badgeDiffuse(normal);
+    const float halfway = badgeHalfway(normal);
     const float grain = badgeFbm(dx * 0.8f + 11.0f, dy * 0.8f);
     const float cavity = badgeCavity(badgeHeartHeight, dx, dy, 1.6f);
     const float occlusion = (0.52f + 0.48f * badgeSmoothstep(0.0f, 3.4f, depth)) * (1.0f - 0.55f * cavity);
@@ -497,8 +510,8 @@ void badgeCoinWell(float* colour, float dx, float dy, float radius, float light)
     }
     float normal[3];
     badgeNormal(badgeCoinHeight, dx, dy, normal);
-    const float diffuse = std::max(0.0f, normal[0] * -0.50f + normal[1] * -0.60f + normal[2] * 0.62f);
-    const float halfway = std::max(0.0f, normal[0] * -0.26f + normal[1] * -0.31f + normal[2] * 0.91f);
+    const float diffuse = badgeDiffuse(normal);
+    const float halfway = badgeHalfway(normal);
     const float cavity = badgeCavity(badgeCoinHeight, dx, dy, 1.4f);
     const float socket = std::min(badgeCircle(dx, dy, -3.5f, -1.6f, 2.6f), badgeCircle(dx, dy, 3.5f, -1.6f, 2.6f));
     const float hollow = 1.0f - badgeSmoothstep(-0.3f, 0.5f, socket);
