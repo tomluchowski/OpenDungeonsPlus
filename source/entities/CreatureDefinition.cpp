@@ -71,6 +71,7 @@ CreatureDefinition::CreatureDefinition(
             int32_t                 sleepHeal,
             int32_t                 turnsStunDropped) :
         mCreatureJob (job),
+        mCombatClass (CombatBlocker),
         mChampion (false),
         mClassName   (className),
         mMeshName    (meshName),
@@ -123,6 +124,7 @@ CreatureDefinition::CreatureDefinition(
 
 CreatureDefinition::CreatureDefinition(const CreatureDefinition& def) :
         mCreatureJob(def.mCreatureJob),
+        mCombatClass(def.mCombatClass),
         mChampion(def.mChampion),
         mClassName(def.mClassName),
         mMeshName(def.mMeshName),
@@ -252,6 +254,36 @@ CreatureDefinition::CreatureJob CreatureDefinition::creatureJobFromString(const 
     return Fighter;
 }
 
+CreatureDefinition::CombatClass CreatureDefinition::combatClassFromString(const std::string& s)
+{
+    if (s.compare("Blitzer") == 0)
+        return CombatBlitzer;
+    if (s.compare("Flanker") == 0)
+        return CombatFlanker;
+    if (s.compare("Support") == 0)
+        return CombatSupport;
+
+    // Use Blocker as a default value
+    return CombatBlocker;
+}
+
+std::string CreatureDefinition::combatClassToString(CombatClass c)
+{
+    switch (c)
+    {
+    case CombatBlitzer:
+        return "Blitzer";
+    case CombatFlanker:
+        return "Flanker";
+    case CombatSupport:
+        return "Support";
+
+    default:
+    case CombatBlocker:
+        return "Blocker";
+    }
+}
+
 std::string CreatureDefinition::creatureJobToString(CreatureJob c)
 {
     switch (c)
@@ -304,6 +336,7 @@ ODPacket& operator<<(ODPacket& os, const CreatureDefinition* c)
     os << c->mSoundFamilyAttack;
     os << c->mSoundFamilyDie;
     os << c->mSoundFamilySlap;
+    os << CreatureDefinition::combatClassToString(c->mCombatClass);
     os << c->mChampion;
     os << c->mTortureTimeToConvert;
 
@@ -344,6 +377,8 @@ ODPacket& operator>>(ODPacket& is, CreatureDefinition* c)
     is >> c->mSoundFamilyAttack;
     is >> c->mSoundFamilyDie;
     is >> c->mSoundFamilySlap;
+    is >> tempString;
+    c->mCombatClass = CreatureDefinition::combatClassFromString(tempString);
     is >> c->mChampion;
     is >> c->mTortureTimeToConvert;
 
@@ -470,6 +505,12 @@ bool CreatureDefinition::update(CreatureDefinition* creatureDef, std::stringstre
             {
                 defFile >> nextParam;
                 creatureDef->mCreatureJob = CreatureDefinition::creatureJobFromString(nextParam);
+                continue;
+            }
+            else if (nextParam == "CombatClass")
+            {
+                defFile >> nextParam;
+                creatureDef->mCombatClass = CreatureDefinition::combatClassFromString(nextParam);
                 continue;
             }
             else if (nextParam == "Champion")
@@ -763,6 +804,8 @@ void CreatureDefinition::writeCreatureDefinitionDiff(
     if(def1 == nullptr || (def1->mCreatureJob != def2->mCreatureJob))
         file << "    CreatureJob\t" << creatureJobToString(def2->mCreatureJob) << std::endl;
 
+    if(def1 == nullptr || (def1->mCombatClass != def2->mCombatClass))
+        file << "    CombatClass\t" << combatClassToString(def2->mCombatClass) << std::endl;
     if(def1 == nullptr || (def1->mChampion != def2->mChampion))
         file << "    Champion\t" << (def2->mChampion ? 1 : 0) << std::endl;
 

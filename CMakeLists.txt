@@ -276,6 +276,7 @@ set(OD_SOURCEFILES
     ${SRC}/creaturebehaviour/CreatureBehaviour.cpp
     ${SRC}/creaturebehaviour/CreatureBehaviourAttackEnemy.cpp
     ${SRC}/creaturebehaviour/CreatureBehaviourEngageNaturalEnemy.cpp
+    ${SRC}/creaturebehaviour/CreatureBehaviourFleeWhenOutmatched.cpp
     ${SRC}/creaturebehaviour/CreatureBehaviourFleeWhenWeak.cpp
     ${SRC}/creaturebehaviour/CreatureBehaviourLeaveDungeonWhenFurious.cpp
     ${SRC}/creaturebehaviour/CreatureBehaviourManager.cpp
@@ -299,7 +300,13 @@ set(OD_SOURCEFILES
     ${SRC}/creaturemood/CreatureMoodCreature.cpp
     ${SRC}/creaturemood/CreatureMoodFee.cpp
     ${SRC}/creaturemood/CreatureMoodHunger.cpp
+    ${SRC}/creaturemood/CreatureMoodHeldInHand.cpp
     ${SRC}/creaturemood/CreatureMoodHpLoss.cpp
+    ${SRC}/creaturemood/CreatureMoodNoLair.cpp
+    ${SRC}/creaturemood/CreatureMoodOutOfWork.cpp
+    ${SRC}/creaturemood/CreatureMoodSlapped.cpp
+    ${SRC}/creaturemood/CreatureMoodTortured.cpp
+    ${SRC}/creaturemood/CreatureMoodRested.cpp
     ${SRC}/creaturemood/CreatureMoodManager.cpp
     ${SRC}/creaturemood/CreatureMoodTurnsWithoutFight.cpp
 
