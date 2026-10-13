@@ -36,6 +36,8 @@
 #include "game/Skill.h"
 #include "game/SkillType.h"
 #include "game/Seat.h"
+#include "gamemap/LevelScript.h"
+#include "gamemap/LevelScriptRunner.h"
 #include "gamemap/MapHandler.h"
 #include "gamemap/Pathfinding.h"
 #include "gamemap/TileSet.h"
@@ -175,12 +177,23 @@ GameMap::GameMap(bool isServerGameMap, NodeType nt) :
         mHighMap(nullptr),
         generator(42)
 {
+    mLevelScript.reset(new LevelScript());
     resetUniqueNumbers();
 }
 
 GameMap::~GameMap()
 {
     clearAll();
+}
+
+LevelScript& GameMap::getLevelScript()
+{
+    return *mLevelScript;
+}
+
+const LevelScript& GameMap::getLevelScript() const
+{
+    return *mLevelScript;
 }
 
 std::string GameMap::serverStr()
@@ -302,6 +315,7 @@ void GameMap::clearAll()
         processDeletionQueues();
 
         clearGoalsForAllSeats();
+        mLevelScript->clear();
         clearSeats();
         mLocalPlayer = nullptr;
         clearPlayers();
@@ -1110,6 +1124,9 @@ void GameMap::doTurn(double timeSinceLastTurn)
     unsigned int numCallsTo_path_atStart = mNumCallsTo_path;
 
     uint32_t miscUpkeepTime = doMiscUpkeep(timeSinceLastTurn);
+
+    if(isServerGameMap())
+        LevelScriptRunner::doTurn(*this);
 
     for (Seat* seat : mSeats)
     {

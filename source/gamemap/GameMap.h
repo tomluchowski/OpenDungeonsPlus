@@ -45,6 +45,7 @@ class Player;
 class Trap;
 class Seat;
 class Goal;
+class LevelScript;
 class MapLight;
 class MovableGameEntity;
 class CreatureDefinition;
@@ -94,6 +95,9 @@ friend class RenderManager;
 friend class ODServer;
     
 public:
+    //! \brief Creates an empty game map with an empty level script.
+    //! \param isServerGameMap True for the map of the server, false for the one of a client.
+    //! \param nt The kind of tile node the map uses.
     GameMap(bool isServerGameMap, NodeType nt = NodeType::MTILES_NODE);
     virtual ~GameMap();
 
@@ -300,6 +304,10 @@ public:
     inline const std::vector<std::unique_ptr<Goal>>& getGoalsForAllSeats() const
     { return mGoalsForAllSeats; }
     void clearGoalsForAllSeats();
+
+    //! \brief The triggers and actions of the level ([Triggers] section of the level file)
+    LevelScript& getLevelScript();
+    const LevelScript& getLevelScript() const;
 
     bool withdrawFromTreasuries(int gold, Seat* seat);
 
@@ -653,6 +661,9 @@ private:
 
     //! \brief Common player goals
     std::vector<std::unique_ptr<Goal>> mGoalsForAllSeats;
+
+    //! \brief Level triggers and their state (flags, triggers already fired)
+    std::unique_ptr<LevelScript> mLevelScript;
 
     //! \brief Tells whether the map color flood filling is enabled.
     bool mFloodFillEnabled;
