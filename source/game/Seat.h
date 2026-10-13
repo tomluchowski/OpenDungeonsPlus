@@ -400,7 +400,7 @@ private:
     //! above the free four. Server side only, not saved with the level.
     double mManaShortageSeconds;
 
-    //! \brief Mana taken in one go (spells, trap shots, possession, champion, mana losses) since
+    //! \brief Mana taken in one go (spells, trap shots, other mana losses) since
     //! the last turn. Server side only, moved into mManaOneOffWindow by GameMap::updateSeatMana.
     double mManaOneOffPending;
 
