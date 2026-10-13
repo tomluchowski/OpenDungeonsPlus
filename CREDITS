@@ -80,6 +80,7 @@ skirmish/
 -> FallingKeeper.level                 OD Team                 GPLv3+
 -> ForgottenTreasures.level            OD Team                 GPLv3+
 -> StonekeepSiege.level                OD Team                 GPLv3+
+-> TestCreatureShowcase.level          OD Team                 GPLv3+
 -> TestLegacy.level                    OD Team                 GPLv3+
 -> TestModelsFair.level                OD Team                 GPLv3+
 -> TestSingleplayerSmall.level         OD Team                 GPLv3+
@@ -494,3 +495,10 @@ icon.rc                                OD Team                 GPLv3+
 logo.svg                               Svenskmand              CC-BY-SA 3.0
 OD-Logo.ico                            Svenskmand              CC-BY-SA 3.0
 opendungeons.appdata.xml               OD Team                 GPLv3+
+
+
+====================================
+==  Test level generator: tools/  ==
+====================================
+
+tools/gen_creature_showcase_level.py    OD Team                 GPLv3+                  Writes levels/skirmish/TestCreatureShowcase.level
