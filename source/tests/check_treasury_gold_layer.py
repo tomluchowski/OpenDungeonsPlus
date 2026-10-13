@@ -34,7 +34,7 @@ assert (repo / 'materials/textures/TreasuryGoldPile.png').exists()
 assert 'TreasuryGoldPile.png' in read('CREDITS')
 assert 'TreasuryGoldMesh.cpp' in read('CMakeLists.txt')
 assert 'addBand(surface, 1 + (rings - 1) * PileSectors, 1 + rings * PileSectors)' not in mesh
-assert 'buildRoundSurface(shape, rings, surface)' in mesh
+assert 'buildRoundSurface(shape, rings, roundSurface)' in mesh
 # The classic stack names stay for free gold on the floor; room storage always uses round piles.
 assert 'GoldstackLv1' in read('source/entities/TreasuryObject.cpp')
 
@@ -143,6 +143,30 @@ int main()
     wall.mVariant = 3;
     check(heightAt(wall, 0.0f, 0.5f) < 0.01f, "an edge towards a wall slopes down to the floor");
     check(heightAt(wall, 0.5f, 0.5f) > 0.3f, "a full pile has a high middle");
+
+    // Coins on top: a sea of coins on a full pile, growing with the level, none on a thin layer
+    int previousCoins = 0;
+    bool coinsGrow = true;
+    for(int level = 0; level <= maxLevel; ++level)
+    {
+        int coins = topCoinCount(flatShape(level, 0));
+        if(coins < previousCoins || coins > TreasurySettings::current().maxTopCoins)
+            coinsGrow = false;
+        previousCoins = coins;
+    }
+    check(coinsGrow, "top coins never drop with the level and never exceed the maximum");
+    check(topCoinCount(flatShape(1, 0)) == 0, "a thin layer carries no coins on top");
+    check(topCoinCount(flatShape(maxLevel, 0)) == 8, "a full pile carries eight coins (the triangle budget of round coins)");
+    check(topCoinCount(flatShape(maxLevel, 0)) == TreasurySettings::current().maxTopCoins, "a full pile carries every coin the setting allows, none fewer");
+    check(topCoinCount(flatShape(maxLevel, 0)) > 3 * topCoinCount(flatShape(2, 0)) / 2, "coins grow in several steps");
+    check(gemCount(flatShape(4, 3)) == 0 && gemCount(flatShape(maxLevel, 3)) == 2, "rich piles carry up to two gems");
+    int gemsMax = 0;
+    for(int variant = 0; variant < variantCount; ++variant)
+        for(int level = 0; level <= maxLevel; ++level)
+            if(gemCount(flatShape(level, variant)) > gemsMax)
+                gemsMax = gemCount(flatShape(level, variant));
+    check(gemsMax <= TreasurySettings::current().maxGems, "gems never exceed the maximum");
+    check(maxSpillCoins() == 4, "four spilled coins by default");
 
     bool nonNegative = true;
     for(int variant = 0; variant < variantCount; ++variant)

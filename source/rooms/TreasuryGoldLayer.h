@@ -176,6 +176,80 @@ inline float heightAt(const PileShape& shape, float u, float v)
     return height + 0.004f;
 }
 
+//! Small details lying on a pile (coins, gems, spilled coins at open edges). Their number and place follow
+//! from the shape alone, so every client builds the same pile from its name.
+//! The numbers come from config/treasury.cfg (see TreasurySettings.h); the references follow the live values.
+static const int& maxTopCoins = TreasurySettings::current().maxTopCoins;
+static const int& maxGems = TreasurySettings::current().maxGems;
+//! Coins lying at the foot of the pile on every open edge of a full pile (per edge, four edges)
+inline int maxSpillCoins()
+{
+    return 4 * TreasurySettings::current().spillCoinsFull;
+}
+//! Coins scattered on the bare floor of a tile without gold
+static const int& scatterCoins = TreasurySettings::current().scatterCoins;
+
+//! Pseudo random number 0..1 from two integers (the same everywhere, no random state)
+inline float hash01(int a, int b)
+{
+    unsigned int h = static_cast<unsigned int>(a) * 73856093u ^ static_cast<unsigned int>(b) * 19349663u;
+    h ^= h >> 13;
+    h *= 1274126177u;
+    h ^= h >> 16;
+    return static_cast<float>(h & 0xFFFFu) / 65535.0f;
+}
+
+//! Single coins on top of the heap: none on a thin layer, then growing evenly up to maxTopCoins on a full one
+//! (a sea of coins on the fullest piles)
+inline int topCoinCount(const PileShape& shape)
+{
+    const int first = TreasurySettings::current().topCoinMinLevel;
+    const int most = TreasurySettings::current().maxTopCoins;
+    if(shape.mLevel < first || most <= 0)
+        return 0;
+    if(shape.mLevel >= maxLevel)
+        return most;
+    // From a few coins on the first covered step in even steps to the full number
+    const int span = maxLevel - first;
+    const int count = 1 + (most - 1) * (shape.mLevel - first + 1) / (span + 1);
+    return count > most ? most : count;
+}
+
+//! Gems scattered in rich piles: none below level 5, one in some level 5 piles, one or two in level 6 ones, one
+//! up to maxGems in full ones (the variant of the pile decides, so rich rooms show several gems)
+inline int gemCount(const PileShape& shape)
+{
+    if(shape.mLevel < 5)
+        return 0;
+    if(shape.mLevel < maxLevel - 1)
+        return (shape.mVariant % 2 == 0) ? 1 : 0;
+    if(shape.mLevel < maxLevel)
+        return 1 + (shape.mVariant % 2);
+    return 1 + (shape.mVariant % TreasurySettings::current().maxGems);
+}
+
+//! Edge 0 north, 1 east, 2 south, 3 west. It is open when both of its corners are lower than the pile
+//! itself, i.e. it faces a wall, the outside of the room or a lower pile.
+inline bool edgeOpen(const PileShape& shape, int edge)
+{
+    return shape.mCorner[edge] < shape.mLevel && shape.mCorner[(edge + 1) % 4] < shape.mLevel;
+}
+
+//! Slight overflow of a nearly full pile at its open edges: one coin (level 6) or spillCoinsFull (full) per open edge
+inline int spillCoinsPerEdge(const PileShape& shape)
+{
+    if(shape.mLevel >= maxLevel)
+        return TreasurySettings::current().spillCoinsFull;
+    return shape.mLevel == maxLevel - 1 ? 1 : 0;
+}
+
+//! Whether an empty tile of a treasury gets a few scattered coins (a quarter of them, so the bare floor
+//! of an empty room is dotted with coins without an object on every tile)
+inline bool hasFloorScatter(int x, int y)
+{
+    return (x * 3 + y * 5) % 4 == 0;
+}
+
 //! Level of detail by distance: whether a pile at the given distance (tiles) from the camera uses the reduced mesh.
 //! A pile that is reduced already stays so until it is clearly closer again (hysteresis), so it never flips.
 inline bool lodReducedAt(bool currentlyReduced, float distance)

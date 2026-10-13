@@ -33,6 +33,15 @@ struct TreasurySettings
     // Gold layer (TreasuryGoldLayer.h)
     //! Height of a pile corner per fill step, in tile units
     float levelHeight = 0.055f;
+    //! Coins lying on top of a full pile, and the lowest fill step that carries any
+    int maxTopCoins = 8;
+    int topCoinMinLevel = 2;
+    //! Gems in the fullest piles (1..4, the pile has four variants)
+    int maxGems = 2;
+    //! Coins spilled per open edge of a full pile
+    int spillCoinsFull = 1;
+    //! Coins scattered on the bare floor of an empty tile
+    int scatterCoins = 3;
 
     // Draw batches (TreasuryGoldBatch.h)
     //! Seconds between two rebuilds of the draw batch of a changed room
@@ -94,6 +103,11 @@ struct TreasurySettings
     {
         TreasurySettings s;
         s.levelHeight = readFloat(config, "LevelHeight", s.levelHeight, 0.01f, 0.2f);
+        s.maxTopCoins = readInt(config, "MaxTopCoins", s.maxTopCoins, 0, 40);
+        s.topCoinMinLevel = readInt(config, "TopCoinMinLevel", s.topCoinMinLevel, 1, 7);
+        s.maxGems = readInt(config, "MaxGems", s.maxGems, 1, 4);
+        s.spillCoinsFull = readInt(config, "SpillCoinsFull", s.spillCoinsFull, 0, 4);
+        s.scatterCoins = readInt(config, "ScatterCoins", s.scatterCoins, 0, 8);
         s.batchRebuildInterval = readFloat(config, "BatchRebuildInterval", s.batchRebuildInterval, 0.05f, 5.0f);
         s.lodFarDistance = readFloat(config, "LodFarDistance", s.lodFarDistance, 1.0f, 500.0f);
         s.lodHysteresis = readFloat(config, "LodHysteresis", s.lodHysteresis, 0.0f, 100.0f);
