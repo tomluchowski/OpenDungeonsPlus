@@ -25,7 +25,6 @@
 #include "render/Gui.h"
 #include "render/ODFrameListener.h"
 #include "utils/LogManager.h"
-#include "utils/MakeUnique.h"
 #include "modes/GameEditorModeBase.h"
 
 #include <CEGUI/widgets/MultiLineEditbox.h>
@@ -49,6 +48,42 @@ std::unordered_map<std::string,std::multimap<std::vector<int>,std::string>> Game
 
 
 namespace py = pybind11;
+
+namespace
+{
+// Python snippet that saves modules, path, arguments, streams and builtins into _session_state when a console starts
+const char* const BEGIN_SCRIPT_SESSION = R"python(
+import sys as _sys
+import builtins as _builtins
+_session_state = {
+    'modules': dict(_sys.modules),
+    'path': list(_sys.path),
+    'argv': list(_sys.argv),
+    'streams': (_sys.stdin, _sys.stdout, _sys.stderr, _sys.displayhook),
+    'builtins': dict(vars(_builtins)),
+    'embedded': {name: dict(vars(_sys.modules[name])) for name in ('cheats', 'my_sys')},
+}
+del _sys, _builtins
+)python";
+
+// Python snippet that restores everything saved by BEGIN_SCRIPT_SESSION when the console is destroyed
+const char* const END_SCRIPT_SESSION = R"python(
+import sys as _sys
+import builtins as _builtins
+_sys.stdin, _sys.stdout, _sys.stderr, _sys.displayhook = _session_state['streams']
+_sys.path[:] = _session_state['path']
+_sys.argv[:] = _session_state['argv']
+for _name, _values in _session_state['embedded'].items():
+    vars(_session_state['modules'][_name]).clear()
+    vars(_session_state['modules'][_name]).update(_values)
+_sys.modules.clear()
+_sys.modules.update(_session_state['modules'])
+_builtins_state = vars(_builtins)
+_builtins_state.clear()
+_builtins_state.update(_session_state['builtins'])
+)python";
+}
+
 
 struct my_stream
 {
@@ -144,7 +179,6 @@ PYBIND11_EMBEDDED_MODULE(my_sys, m)
 template<>GameEditorModeConsole* Ogre::Singleton<GameEditorModeConsole>::msSingleton = nullptr;
 
 GameEditorModeConsole::GameEditorModeConsole(ModeManager* modeManager):
-    guard{},
     mConsoleInterface(std::bind(&GameEditorModeConsole::printToConsole, this, std::placeholders::_1)),
     mModeManager(modeManager),
     freshlyEnabled(false)
@@ -188,15 +222,22 @@ GameEditorModeConsole::GameEditorModeConsole(ModeManager* modeManager):
         );
     {
         pybind11::gil_scoped_acquire acquire;
+        // Embedded modules are shared by the runtime; game globals and imported modules are not.
+        pybind11::module::import("my_sys");
+        pybind11::module::import("cheats");
+        mScriptScope = pybind11::dict();
+        pybind11::exec(BEGIN_SCRIPT_SESSION, mScriptScope);
+        mScriptState = mScriptScope.attr("pop")("_session_state");
+        pybind11::module gameModule = pybind11::reinterpret_steal<pybind11::module>(PyModule_New("__main__"));
+        mScriptScope = gameModule.attr("__dict__");
+        pybind11::module::import("sys").attr("modules")["__main__"] = gameModule;
         pybind11::module::import("my_sys").attr("hook_streams")();
    
-        pybind11::exec("import cheats");
+        pybind11::exec("import cheats", mScriptScope);
 
     }
     
     GameEditorModeConsole::getSingleton().printToConsole("The up to now console commands are in the package cheats. \n For example to call command fps with argument 30 type cheats.fps(30) \n For more type help('cheats') ");
-    // Creatte a persistent release so main thread does not reacquire the GIL
-    mMainThreadGilRelease = Utils::make_unique<pybind11::gil_scoped_release>();
     startInterpreterThread();
 
     // register an anwser to an Event we want, since GameEditorModeConsole is EventHandler as well
@@ -242,6 +283,14 @@ GameEditorModeConsole::GameEditorModeConsole(ModeManager* modeManager):
 GameEditorModeConsole::~GameEditorModeConsole()
 {
     stopInterpreterThread();
+    {
+        pybind11::gil_scoped_acquire acquire;
+        mScriptScope.attr("clear")();
+        mScriptScope["_session_state"] = mScriptState;
+        pybind11::exec(END_SCRIPT_SESSION, mScriptScope);
+        mScriptScope = pybind11::object();
+        mScriptState = pybind11::object();
+    }
     //Disconnect all event connections.
     for(CEGUI::Event::Connection& c : mEventConnections)
     {
@@ -428,10 +477,10 @@ void GameEditorModeConsole::interpreterLoop()
         }
 
         // Execute the command under GIL
+        pybind11::gil_scoped_acquire acquire;
         try
         {
-            pybind11::gil_scoped_acquire acquire;
-            pybind11::object scope = pybind11::module::import("__main__").attr("__dict__");
+            pybind11::object scope = mScriptScope;
             run_line(cmd, scope);
             Command::String_t currentPrompt(cmd);
             //currentPrompt.erase(currentPrompt.end() - 1);
@@ -483,7 +532,7 @@ void GameEditorModeConsole::run_line(const std::string& code, pybind11::object s
 void GameEditorModeConsole::run_script(std::string script_code, std::vector<int> mParameters)
 {
     pybind11::gil_scoped_acquire acquire;
-    pybind11::object scope = pybind11::module::import("__main__").attr("__dict__");
+    pybind11::object scope = mScriptScope;
     run_line(script_code, scope);
 
     
@@ -517,11 +566,7 @@ void GameEditorModeConsole::stopInterpreterThread()
     mStdinCond.notify_all();
 
     
-    if (mMainThreadGilRelease)
-    {
-        mMainThreadGilRelease.reset();
-    }
-    
+    // The application keeps the main thread GIL released while this thread exits.
     if (mPythonThread.joinable())
         mPythonThread.join();
 }

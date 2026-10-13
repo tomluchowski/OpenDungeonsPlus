@@ -31,6 +31,7 @@
 #include "game/Seat.h"
 #include "gamemap/GameMap.h"
 #include "gamemap/DraggableTileContainer.h"
+#include "gamemap/LevelScript.h"
 #include "gamemap/MapHandler.h"
 #include "modes/ConsoleCommands.h"
 #include "network/ODClient.h"
@@ -2561,6 +2562,42 @@ bool ODServer::processClientNotifications(ODSocketClient* clientSocket)
             // The map is saved from the server side, so this is what ends up in the level
             // file when the editor saves it.
             roomPortalWave->importWaveConfig(config);
+            break;
+        }
+
+        case ClientNotificationType::editorRegionEdit:
+        {
+            if(mServerMode != ServerMode::ModeEditor)
+            {
+                OD_LOG_ERR("Received editor command while wrong mode=" + Helper::toString(static_cast<int>(mServerMode)));
+                break;
+            }
+            Player* player = clientSocket->getPlayer();
+            int32_t operation = 0;
+            std::string regionName;
+            int32_t x1 = 0;
+            int32_t y1 = 0;
+            int32_t x2 = 0;
+            int32_t y2 = 0;
+            if(!(packetReceived >> operation >> regionName >> x1 >> y1 >> x2 >> y2))
+            {
+                OD_LOG_ERR("Truncated editorRegionEdit packet");
+                break;
+            }
+
+            // The markers belong to the level script, which is saved from the server side
+            LevelScript& levelScript = gameMap->getLevelScript();
+            if(operation == static_cast<int32_t>(EditorRegionOperation::set))
+                levelScript.setRegion(LevelScriptRegion(regionName, x1, y1, x2, y2));
+            else if(operation == static_cast<int32_t>(EditorRegionOperation::remove))
+                levelScript.removeRegion(regionName);
+
+            ServerNotification notif(ServerNotificationType::editorRegionData, player);
+            notif.mPacket << static_cast<uint32_t>(levelScript.getRegions().size());
+            for(const LevelScriptRegion& region : levelScript.getRegions())
+                notif.mPacket << region.mName << region.mX1 << region.mY1 << region.mX2 << region.mY2;
+
+            sendAsyncMsg(notif);
             break;
         }
 

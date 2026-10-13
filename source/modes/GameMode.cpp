@@ -70,6 +70,42 @@ const std::string TEXT_SEAT_ID_PREFIX = "TextSeat";
 const std::string TEXT_SEAT_PLAYER_NICKNAME_PREFIX = "TextSeatPlayerNick";
 const std::string TEXT_SEAT_TEAM_ID_PREFIX = "TextSeatTeam";
 
+//! Text colour of the time limit display (ARGB)
+static const char* const TIME_LIMIT_COLOUR = "FFF6CB62";
+//! Text colour of the time limit display during its last minute (ARGB)
+static const char* const TIME_LIMIT_WARNING_COLOUR = "FFE05A4A";
+//! From this many seconds left the time limit is shown in the warning colour
+static const int32_t TIME_LIMIT_WARNING_SECONDS = 60;
+//! Tooltip of the display while it shows a countdown that ends without a defeat
+static const char* const TIME_LIMIT_TOOLTIP_COUNTDOWN = "Time left until the next stage of the level";
+//! Tooltip of the display while it shows a time limit
+static const char* const TIME_LIMIT_TOOLTIP_LIMIT = "Time left until the level is lost";
+static const int64_t SECONDS_PER_HOUR = 3600;
+static const int64_t SECONDS_PER_MINUTE = 60;
+
+//! \brief Formats seconds as mm:ss, or h:mm:ss from one hour on. Negative values give 00:00.
+//! \param seconds The time to show
+//! \return The text shown on the countdown displays
+static std::string formatCountdownTime(int64_t seconds)
+{
+    if(seconds < 0)
+        seconds = 0;
+
+    const int64_t hours = seconds / SECONDS_PER_HOUR;
+    const int64_t minutes = (seconds / SECONDS_PER_MINUTE) % SECONDS_PER_MINUTE;
+    const int64_t rest = seconds % SECONDS_PER_MINUTE;
+    std::string result;
+    if(hours > 0)
+        result += std::to_string(hours) + ":";
+    if(minutes < 10)
+        result += "0";
+    result += std::to_string(minutes) + ":";
+    if(rest < 10)
+        result += "0";
+    result += std::to_string(rest);
+    return result;
+}
+
 GameMode::GameMode(ModeManager *modeManager):
     GameEditorModeBase(modeManager, ModeManager::GAME, modeManager->getGui().getGuiSheet(Gui::guiSheet::inGameMenu)),
     mDigSetBool(false),
@@ -1157,6 +1193,52 @@ void GameMode::onFrameStarted(const Ogre::FrameEvent& evt)
     // After frameStarted, so that the countdown shown is the one just computed.
     refreshSpellCooldownText();
 
+    // The countdown of a level with a time limit (the server sends -1 when there is none)
+    CEGUI::Window* timeLimitDisplay = mRootWindow->getChild("HorizontalPipe/TimeLimitDisplay");
+    const int32_t timeLimitReceived = ODClient::getSingleton().getTimeLimitSeconds();
+    const bool isCountdown = (timeLimitReceived >= 0) && ((timeLimitReceived & GameMap::TIME_LIMIT_COUNTDOWN_FLAG) != 0);
+    int32_t timeLimitSeconds = timeLimitReceived;
+    if(isCountdown)
+        timeLimitSeconds = timeLimitReceived & ~GameMap::TIME_LIMIT_COUNTDOWN_FLAG;
+    if(timeLimitReceived < 0)
+    {
+        if(mTimeLimitShown >= 0)
+        {
+            timeLimitDisplay->hide();
+            mTimeLimitShown = -1;
+        }
+    }
+    else if(timeLimitReceived != mTimeLimitShown)
+    {
+        mTimeLimitShown = timeLimitReceived;
+        timeLimitDisplay->setText(formatCountdownTime(timeLimitSeconds));
+        // The last minute of a time limit is shown in red
+        if(!isCountdown && (timeLimitSeconds <= TIME_LIMIT_WARNING_SECONDS))
+            timeLimitDisplay->setProperty("TextColours", TIME_LIMIT_WARNING_COLOUR);
+        else
+            timeLimitDisplay->setProperty("TextColours", TIME_LIMIT_COLOUR);
+        updateTimeLimitTooltip(isCountdown);
+        timeLimitDisplay->show();
+    }
+
+    // The countdown to the next hero wave of the level script, beside the time limit
+    CEGUI::Window* waveCountdownDisplay = mRootWindow->getChild("HorizontalPipe/WaveCountdownDisplay");
+    const int32_t waveCountdownReceived = ODClient::getSingleton().getWaveCountdownSeconds();
+    if(waveCountdownReceived < 0)
+    {
+        if(mWaveCountdownShown >= 0)
+        {
+            waveCountdownDisplay->hide();
+            mWaveCountdownShown = -1;
+        }
+    }
+    else if(waveCountdownReceived != mWaveCountdownShown)
+    {
+        mWaveCountdownShown = waveCountdownReceived;
+        waveCountdownDisplay->setText("Next wave in " + formatCountdownTime(waveCountdownReceived));
+        waveCountdownDisplay->show();
+    }
+
     if((mSkillCurrentCompletion.mProgressBar != nullptr) &&
        (mSkillCurrentCompletion.mCompletenessDisplayed < mSkillCurrentCompletion.mCompleteness))
     {
@@ -1693,6 +1775,15 @@ void GameMode::refreshSpellButtonCoolDowns()
             progressBar->hide();
         }
     });
+}
+
+void GameMode::updateTimeLimitTooltip(bool isCountdown)
+{
+    CEGUI::Window* timeLimitDisplay = mRootWindow->getChild("HorizontalPipe/TimeLimitDisplay");
+    if(isCountdown)
+        timeLimitDisplay->setTooltipText(TIME_LIMIT_TOOLTIP_COUNTDOWN);
+    else
+        timeLimitDisplay->setTooltipText(TIME_LIMIT_TOOLTIP_LIMIT);
 }
 
 void GameMode::refreshSpellCooldownText()

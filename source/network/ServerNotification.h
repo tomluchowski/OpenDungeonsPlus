@@ -102,7 +102,15 @@ enum class ServerNotificationType
     //! \brief Answer to the editor asking what the waves of a wave portal are
     editorPortalWaveData,
 
-    exit
+    exit,
+
+    //! Answer to editorRegionEdit, all the region markers of the level script:
+    //! + uint32_t count, then per region: string name and 4 int32_t (the corners).
+    editorRegionData,
+    //! The time left until the level is lost: + int32_t seconds (-1: there is no time limit; a countdown that
+    //! ends without a defeat has GameMap::TIME_LIMIT_COUNTDOWN_FLAG added), then an int32_t with the seconds
+    //! left until the next hero wave of a level script (-1: none is shown)
+    timeLimit
 };
 
 ODPacket& operator<<(ODPacket& os, const ServerNotificationType& nt);

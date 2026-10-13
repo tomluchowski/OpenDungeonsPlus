@@ -91,6 +91,32 @@
                     <Property name="VerticalAlignment" value="Centre" />
                 </Window>
             </Window>
+            <Window type="OD/StaticText" name="WaveCountdownDisplay" >
+                <Property name="Visible" value="False" />
+                <Property name="Area" value="{{0.5,-320},{0,6},{0.5,-110},{0,42}}" />
+                <Property name="Text" value="" />
+                <Property name="Font" value="MedievalSharp-13" />
+                <Property name="TextColours" value="FFF6CB62" />
+                <Property name="TooltipText" value="Time left until the next hero wave" />
+                <Property name="HorzFormatting" value="CentreAligned" />
+                <Property name="VertFormatting" value="CentreAligned" />
+                <Property name="FrameEnabled" value="False" />
+                <Property name="BackgroundEnabled" value="False" />
+                <Property name="MaxSize" value="{{1,0},{1,0}}" />
+            </Window>
+            <Window type="OD/StaticText" name="TimeLimitDisplay" >
+                <Property name="Visible" value="False" />
+                <Property name="Area" value="{{0.5,-100},{0,6},{0.5,100},{0,42}}" />
+                <Property name="Text" value="" />
+                <Property name="Font" value="MedievalSharp-20" />
+                <Property name="TextColours" value="FFF6CB62" />
+                <Property name="TooltipText" value="Time left until the level is lost" />
+                <Property name="HorzFormatting" value="CentreAligned" />
+                <Property name="VertFormatting" value="CentreAligned" />
+                <Property name="FrameEnabled" value="False" />
+                <Property name="BackgroundEnabled" value="False" />
+                <Property name="MaxSize" value="{{1,0},{1,0}}" />
+            </Window>
         </Window>
         <Window type="OD/ImageButton" name="HelpButton" >
             <Property name="Area" value="{{1,-53},{0,5},{1,-28},{0,30}}" />
