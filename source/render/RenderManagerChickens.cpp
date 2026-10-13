@@ -83,6 +83,7 @@ private:
     uint32_t mState;
 };
 
+//! \brief Adds one textured quad (two triangles) with a common normal to the shape and advances the vertex index by four.
 void addQuad(Ogre::ManualObject* object, uint32_t& index, const Ogre::Vector3& p0, const Ogre::Vector3& p1,
     const Ogre::Vector3& p2, const Ogre::Vector3& p3, const Ogre::Vector3& normal)
 {
@@ -251,12 +252,15 @@ void hideEggStraw(Ogre::Entity* entity)
 
 } // namespace
 
+//! \brief Makes the named procedural mesh if it does not exist yet.
+//! \param meshName One of the mesh names of the hatchery shapes (egg, comb, tail, nest, feathers).
 void RenderManager::rrEnsureChickenMesh(const std::string& meshName)
 {
     if(meshName == MeshFeathers)
         ensureMesh(mSceneManager, MeshFeathers, buildFeathers);
 }
 
+//! \brief Moves the entity of the animal to a child node that carries scale and procedural motion, then applies the kind look.
 void RenderManager::rrCreateChickenLook(ChickenEntity* chicken)
 {
     Ogre::SceneNode* node = chicken->getEntityNode();
@@ -286,6 +290,7 @@ void RenderManager::rrCreateChickenLook(ChickenEntity* chicken)
     applyChickenKindLook(chicken);
 }
 
+//! \brief Gives the entity back to the node of the animal and removes the look, its accessories and fight links to it.
 void RenderManager::rrDestroyChickenLook(ChickenEntity* chicken)
 {
     std::map<ChickenEntity*, ChickenLook>::iterator it = mChickenLooks.find(chicken);
@@ -315,6 +320,7 @@ void RenderManager::rrDestroyChickenLook(ChickenEntity* chicken)
     mChickenLooks.erase(it);
 }
 
+//! \brief Forgets all animal looks and coop decors.
 void RenderManager::clearChickenLooks()
 {
     mChickenLooks.clear();
@@ -323,6 +329,7 @@ void RenderManager::clearChickenLooks()
     mServerNests.clear();
 }
 
+//! \brief Sets scale, tinted materials and the comb and tail of the rooster for the current kind of the animal.
 void RenderManager::applyChickenKindLook(ChickenEntity* chicken)
 {
     std::map<ChickenEntity*, ChickenLook>::iterator it = mChickenLooks.find(chicken);
@@ -343,16 +350,19 @@ void RenderManager::applyChickenKindLook(ChickenEntity* chicken)
     look.mNode->setScale(Ogre::Vector3::UNIT_SCALE * kindScale(kind));
 }
 
+//! \brief The kind of the animal changed: applies the new look.
 void RenderManager::rrUpdateChickenLook(ChickenEntity* chicken)
 {
     applyChickenKindLook(chicken);
 }
 
+//! \brief The egg hatched: lets the shell pieces fly.
 void RenderManager::rrChickenHatched(ChickenEntity* chicken)
 {
     createChickenFeatherEffect(chicken->getPosition() + Ogre::Vector3(0.0f, 0.0f, 0.05f), "ChickenEggShell");
 }
 
+<<<<<<< HEAD
 void RenderManager::rrEggTrampled(const Ogre::Vector3& position)
 {
     // Shell pieces and yolk (one system with two emitters), and the feathers of a hen that is startled by it
@@ -360,6 +370,7 @@ void RenderManager::rrEggTrampled(const Ogre::Vector3& position)
     createChickenFeatherEffect(position + Ogre::Vector3(0.0f, 0.0f, 0.1f));
 }
 
+<<<<<<< HEAD
 void RenderManager::rrSetHatcheryNests(const std::string& roomName, const std::vector<HatcheryNestField::Place>& places,
     const std::vector<HatcheryNestField::Place>& feathers)
 {
@@ -380,6 +391,12 @@ void RenderManager::rrSetHatcheryNests(const std::string& roomName, const std::v
     ++nests.mVersion;
 }
 
+=======
+=======
+//! \brief Starts or ends the brawl of two roosters; the first one makes the feather clouds, the loser goes down in a last cloud.
+//! \param phase 0 when the fight starts, 1 when it is over.
+>>>>>>> feature/hatchery-flee
+>>>>>>> feature/hatchery-nest-field
 void RenderManager::rrChickenFight(ChickenEntity* first, ChickenEntity* second, uint32_t phase)
 {
     std::map<ChickenEntity*, ChickenLook>::iterator firstLook = mChickenLooks.find(first);
@@ -406,6 +423,7 @@ void RenderManager::rrChickenFight(ChickenEntity* first, ChickenEntity* second, 
     }
 }
 
+//! \brief Sets the pose the server chose and starts the feather effect (and the door shake) that belongs to it.
 void RenderManager::rrSetChickenPose(ChickenEntity* chicken, const std::string& pose)
 {
     std::map<ChickenEntity*, ChickenLook>::iterator it = mChickenLooks.find(chicken);
@@ -467,6 +485,7 @@ void RenderManager::rrSetChickenPose(ChickenEntity* chicken, const std::string& 
     }
 }
 
+//! \brief Creates the hidden nest and feathers next to the coop; the update shows them when needed.
 void RenderManager::rrCreateCoopDecor(BuildingObject* coop)
 {
     Ogre::SceneNode* node = coop->getEntityNode();
@@ -501,6 +520,7 @@ void RenderManager::rrCreateCoopDecor(BuildingObject* coop)
     mCoopDecorTimer = 10.0f;
 }
 
+//! \brief Removes the nest and the feathers next to the coop.
 void RenderManager::rrDestroyCoopDecor(BuildingObject* coop)
 {
     std::map<BuildingObject*, CoopDecor>::iterator it = mCoopDecors.find(coop);
@@ -517,6 +537,8 @@ void RenderManager::rrDestroyCoopDecor(BuildingObject* coop)
     mCoopDecors.erase(it);
 }
 
+//! \brief Moves every animal look by its pose (rocking egg, strut, chase, mount, fight ...) and updates the coop decor.
+//! \param timeSinceLastFrame Seconds since the last frame.
 void RenderManager::updateChickenLooks(Ogre::Real timeSinceLastFrame)
 {
     const Ogre::Real pi = Ogre::Math::PI;
@@ -796,6 +818,7 @@ void RenderManager::updateChickenLooks(Ogre::Real timeSinceLastFrame)
         updateNestFields();
 }
 
+//! \brief Removes the nest entities and nodes of one hatchery.
 void RenderManager::destroyNestField(NestField& field)
 {
     for(uint32_t i = 0; i < field.mEntities.size(); ++i)
