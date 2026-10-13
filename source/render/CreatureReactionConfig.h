@@ -115,6 +115,7 @@ struct ReactionProp
         kick
     };
 
+    //! \brief No prop: no path, one piece of size 0.1 world units that takes no time
     ReactionProp() :
         mPath(Path::none),
         mCount(1),
@@ -136,6 +137,7 @@ struct ReactionProp
 //! \brief A particle effect put on the creature
 struct ReactionEffect
 {
+    //! \brief An effect without a name that is shown for 2 seconds
     ReactionEffect() :
         mTime(2.0)
     {}
