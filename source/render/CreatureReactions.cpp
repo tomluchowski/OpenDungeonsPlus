@@ -90,6 +90,10 @@ static const double TURN_PHASE = 0.25;
 static const double ROTATION_EPSILON = 0.00001;
 //! Seconds a done moment waits at most for the creature to finish its get-up or meal
 static const double DONE_WAIT_MAX = 8.0;
+//! Seconds after the end of the meal animation in the hatchery before the creature shows how it liked it
+static const double HATCHERY_MEAL_DONE_DELAY = 0.5;
+//! Value of the wait time of a queued reaction that stands for the usual waiting time
+static const double USUAL_WAIT_TIME = -1.0;
 //! Seconds a creature has to sleep or pray until the end of it is shown
 static const double SLEEP_DONE_MIN = 6.0;
 static const double PRAYER_DONE_MIN = 8.0;
@@ -1025,7 +1029,7 @@ void CreatureReactions::noteAnimation(MovableGameEntity* entity, const std::stri
     else if((clip == "EatChicken") && (getRoomName(creature) == "Hatchery"))
     {
         // The meal in the hatchery is over when the animation is: then the creature shows how it liked it
-        queueReaction(creature, "HatcheryMealDone", DONE_WAIT_MAX, 0.5);
+        queueReaction(creature, "HatcheryMealDone", DONE_WAIT_MAX, HATCHERY_MEAL_DONE_DELAY);
     }
     else if(startsWith(clip, "Attack") || (clip == "CombatAttack") || (clip == "RangedAttack") ||
             startsWith(clip, "Cast"))
@@ -1505,7 +1509,7 @@ void CreatureReactions::noteRelease(Creature* carrier, GameEntity* carried)
     }
 
     // The work with the gold follows the done moment (it is queued first, the running reaction would refuse it)
-    queueReaction(carrier, "TreasuryWork", -1.0, TREASURY_WORK_DELAY);
+    queueReaction(carrier, "TreasuryWork", USUAL_WAIT_TIME, TREASURY_WORK_DELAY);
     trigger(carrier, "GoldDelivered");
 }
 
