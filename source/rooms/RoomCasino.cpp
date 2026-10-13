@@ -47,6 +47,10 @@ const std::string RoomCasinoNameDisplay = "Casino room";
 const RoomType RoomCasino::mRoomType = RoomType::casino;
 const TileVisual RoomCasino::mRoomVisual= TileVisual::casinoRoom;
 
+//! \brief Saved payout value that stands for the money payout level
+static const uint32_t SavedPayoutMoney = 0;
+//! \brief Highest saved payout value that is valid in a level file (1 and 2 both mean smiles)
+static const uint32_t SavedPayoutMax = 2;
 
 namespace
 {
@@ -228,16 +232,19 @@ bool RoomCasino::importFromStream(std::istream& is)
         return true;
     }
 
-    uint32_t payout;
+    uint32_t payout = SavedPayoutMoney;
     if(!(is >> payout))
         return false;
 
     // Saved values: 0 = money, 1 and 2 = smiles. The file format allows the values 0 to 2,
     // anything above is invalid.
-    if(payout > 2)
+    if(payout > SavedPayoutMax)
         return false;
 
-    mPayout = (payout == 0) ? CasinoPayout::money : CasinoPayout::smiles;
+    if(payout == SavedPayoutMoney)
+        mPayout = CasinoPayout::money;
+    else
+        mPayout = CasinoPayout::smiles;
     return true;
 }
 
