@@ -190,6 +190,9 @@ public:
     static bool creatureNeedsSleep(const Creature* creature);
 
 private:
+    //! Worker reactions (dig hits, claiming, carrying, danger, idling) use the internals too
+    friend class WorkerReactions;
+
     struct RunningReaction
     {
         RunningReaction() :
