@@ -4,13 +4,16 @@
 # and the textures made by tools/gen_door_textures.py. Run with exec() inside Blender; it fills the collection
 # "Door_Assets" and returns the names of the variants.
 import math
+import os
 import random
 
 import bpy
 import bmesh
 from mathutils import Matrix, Vector
 
-TEXTURES = r"C:\Users\mario\GitHub\ODP-trap-polish\materials\textures"
+# Folder with the door textures: set ODP_TEXTURES to its full path, otherwise the folder materials/textures
+# below the current working directory is used.
+TEXTURES = os.environ.get("ODP_TEXTURES", os.path.join("materials", "textures"))
 LEFT = "LeftDoorBone"
 RIGHT = "RigthDoorBone"
 ROOT_BONE = "RootBone"
