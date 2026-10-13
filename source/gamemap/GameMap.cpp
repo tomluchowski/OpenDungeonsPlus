@@ -1390,14 +1390,9 @@ void GameMap::updateSeatMana(Seat* seat)
     seat->mManaUpkeepPerSecond = manaUpkeepPerSecond(seat->getNumCreaturesWorkers());
     seat->mManaDelta = (seat->mManaIncomePerSecond - seat->mManaUpkeepPerSecond)
         / ODApplication::turnsPerSecond;
-    seat->mMana += seat->mManaDelta;
 
     // Worker upkeep never brings the mana below 0 and the stored mana has a maximum
-    if (seat->mMana < 0.0)
-        seat->mMana = 0.0;
-    const double maxMana = ConfigManager::getSingleton().getMaxManaPerSeat();
-    if (seat->mMana > maxMana)
-        seat->mMana = maxMana;
+    seat->addMana(seat->mManaDelta);
 }
 
 void GameMap::updateSeatAutoWorkers(Seat* seat, double timeSinceLastTurn)
@@ -1549,7 +1544,8 @@ Tile* GameMap::getHeartDefenceTargetTile(Creature& runner, Seat* seat)
         return nullptr;
 
     // A damaged heart takes the runners; otherwise they rally the nearest fighter
-    if (!seat->getHeartDefenceHeartDamaged())
+    Tile* runnerTile = runner.getPositionTile();
+    if (!seat->getHeartDefenceHeartDamaged() && runnerTile != nullptr)
     {
         Tile* nearestFighterTile = nullptr;
         bool foundFighter = false;
@@ -1567,7 +1563,7 @@ Tile* GameMap::getHeartDefenceTargetTile(Creature& runner, Seat* seat)
             Tile* fighterTile = creature->getPositionTile();
             if (fighterTile == nullptr)
                 continue;
-            const int distanceSquared = Pathfinding::squaredDistanceTile(*runner.getPositionTile(), *fighterTile);
+            const int distanceSquared = Pathfinding::squaredDistanceTile(*runnerTile, *fighterTile);
             if (!foundFighter || distanceSquared < nearestDistanceSquared)
             {
                 foundFighter = true;
