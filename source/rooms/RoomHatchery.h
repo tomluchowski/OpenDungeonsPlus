@@ -54,6 +54,9 @@ public:
 
     void creatureDropped(Creature& creature) override;
 
+    //! \brief The rooster protests loudly (picked up by the keeper's hand): plays the angry cackle where he was.
+    static void fireProtest(Tile& tile);
+
     //! \brief The settings of the nest places from the config (only the server reads them, the clients draw the
     //! places they get).
     static HatcheryNestField::Settings getNestFieldSettings();
@@ -134,6 +137,8 @@ private:
     void leaveNest(ChickenEntity* chick);
     //! An egg is trampled: shell pieces, yolk and feathers fly where it lay (the clients show it).
     void fireEggTrample(const ChickenEntity& egg);
+    //! Plays a hatchery animal sound (family below Rooms/, e.g. "Hatchery/Crow") where the animal is.
+    void fireAnimalSound(const ChickenEntity& animal, const std::string& family);
     //! Lets the eggs appear whose laying timer has run out and whose hen has shown herself laying (see mPendingEggs).
     //! Incubation starts at actual laying. The new eggs are added to eggs.
     void releasePendingEggs(const HatcheryCycleSettings& settings, std::vector<ChickenEntity*>& eggs);

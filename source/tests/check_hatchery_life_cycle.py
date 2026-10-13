@@ -136,7 +136,7 @@ assert 'RoosterMood::lead' not in room_cpp + rooster_cpp and 'mLead' not in roos
 rooster_h = (root / 'source/rooms/HatcheryRooster.h').read_text()
 rooster_cpp = (root / 'source/rooms/HatcheryRooster.cpp').read_text()
 for member in ('mCrowTurns', 'mGuardFar', 'mGuardNear', 'mGuardApproachGap', 'mCatchDistance',
-               'mWalkGap', 'mHopDistance', 'mFightStandFactor'):
+               'mWalkGap', 'mHopDistance', 'mFightStandFactor', 'mChickPeepChance'):
     assert member in rooster_h and ('settings.' + member in room_cpp or 'Settings.' + member in room_cpp), member
 assert 'settings.mCrowTurns' in rooster_cpp
 assert 'mTurns = 4;' not in rooster_cpp and '/ 10)' not in rooster_cpp

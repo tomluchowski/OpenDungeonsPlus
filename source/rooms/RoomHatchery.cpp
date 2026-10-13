@@ -168,6 +168,23 @@ void RoomHatchery::notifyActiveSpotRemoved(ActiveSpotPlace place, Tile* tile)
     }
 }
 
+//! \brief Plays a hatchery animal sound where the animal is.
+//! \param animal The animal that makes the sound.
+//! \param family The sound family below Rooms/, e.g. "Hatchery/Crow".
+void RoomHatchery::fireAnimalSound(const ChickenEntity& animal, const std::string& family)
+{
+    Tile* tile = animal.getPositionTile();
+    if(tile != nullptr)
+        fireRoomSound(*tile, family);
+}
+
+//! \brief The rooster protests loudly when the keeper's hand takes him: plays the angry cackle on his tile.
+//! \param tile The tile the rooster was picked up from.
+void RoomHatchery::fireProtest(Tile& tile)
+{
+    fireRoomSound(tile, "Hatchery/Protest");
+}
+
 //! \brief Saves the waiting counters of the coops and the number of the last day the rooster crowed for.
 void RoomHatchery::exportToStream(std::ostream& os) const
 {
@@ -695,6 +712,7 @@ void RoomHatchery::updateNestTrips(const std::vector<ChickenEntity*>& hens, cons
         // She sits down and shows herself laying until the egg lies in the nest
         hen->clearFollowTarget();
         hen->playPose(ChickenPose::lay, std::max<uint32_t>(2, settings.mLayShowTurns));
+        fireAnimalSound(*hen, "Hatchery/Cluck");
         it->mPosing = true;
         it->mTurns = (settings.mLayShowTurns > 0) ? settings.mLayShowTurns - 1 : 0;
         ++it;
@@ -957,7 +975,10 @@ void RoomHatchery::updateFlock(const std::vector<ChickenEntity*>& hens)
                     continue;
 
                 if(hen->scatterTo(spot, scatterTurns))
+                {
+                    fireAnimalSound(*hen, "Hatchery/Cluck");
                     break;
+                }
             }
             break;
         }
@@ -1112,6 +1133,7 @@ void RoomHatchery::doUpkeep()
             if((enemyPos.distance(eggPos) <= trampleRadius) &&
                HatcheryCycle::tramples(settings, true, true, Random::Uint(0, 99)) && egg->trample(enemy))
             {
+                fireAnimalSound(*egg, "Hatchery/EggCrack");
                 fireEggTrample(*egg);
                 --counts.mEggs;
                 eggIt = eggs.erase(eggIt);
@@ -1204,6 +1226,7 @@ void RoomHatchery::doUpkeep()
                 continue;
             }
 
+            fireAnimalSound(*egg, "Hatchery/EggCrack");
             egg->setKind(ChickenKind::chick);
             // A late egg hatches with the age it would have had, the chick grows on time
             egg->setAge(eggAge - settings.mHatchTurns);
@@ -1235,6 +1258,9 @@ void RoomHatchery::doUpkeep()
     // only go to a nest to lay or brood)
     const RoosterSettings& roosterSettings = mRoosterSettings;
     updateFlock(hens);
+    // Now and then a chick peeps (at most one peep per turn and hatchery)
+    if(!chicks.empty() && (Random::Uint(1, std::max<uint32_t>(1, roosterSettings.mChickPeepChance)) == 1))
+        fireAnimalSound(*chicks[Random::Uint(0, chicks.size() - 1)], "Hatchery/Peep");
     updateChickLine(hens, chicks);
     for(ChickenEntity* oneRooster : roosters)
     {
@@ -1319,6 +1345,7 @@ void RoomHatchery::updateFight(std::vector<ChickenEntity*>& roosters, const Hatc
             fighter->setMood(RoosterMood::strut, 0);
             climbDown(fighter);
         }
+        fireAnimalSound(*first, "Hatchery/Cluck");
         first->notifyFight(mFightSecond, 0);
     }
 
@@ -1387,6 +1414,7 @@ void RoomHatchery::endFight(ChickenEntity* first, ChickenEntity* second, bool fi
     ChickenEntity* winner = mFightFirstWins ? first : second;
     ChickenEntity* loser = mFightFirstWins ? second : first;
     winner->notifyFight(loser->getName(), 1);
+    fireAnimalSound(*loser, "Hatchery/Cluck");
     if(loser->loseFight() && (counts.mRoosters > 0))
         --counts.mRoosters;
 
@@ -1396,6 +1424,7 @@ void RoomHatchery::endFight(ChickenEntity* first, ChickenEntity* second, bool fi
     winner->setMood(RoosterMood::strut, 0);
     winner->resetSinceCrow();
     winner->playPose(ChickenPose::crow, 3);
+    fireAnimalSound(*winner, "Hatchery/Crow");
 }
 
 RoosterSettings RoomHatchery::getRoosterSettings() const
@@ -1415,6 +1444,7 @@ RoosterSettings RoomHatchery::getRoosterSettings() const
     settings.mWalkGap = config.getRoomConfigDoubleOrDefault("HatcheryRoosterWalkGap", settings.mWalkGap);
     settings.mHopDistance = config.getRoomConfigDoubleOrDefault("HatcheryRoosterHopDistance", settings.mHopDistance);
     settings.mFightStandFactor = config.getRoomConfigDoubleOrDefault("HatcheryFightStandFactor", settings.mFightStandFactor);
+    settings.mChickPeepChance = static_cast<uint32_t>(config.getRoomConfigDoubleOrDefault("HatcheryChickPeepChance", settings.mChickPeepChance));
     return settings;
 }
 
@@ -1536,6 +1566,7 @@ void RoomHatchery::beginRoosterMood(ChickenEntity* rooster, const RoosterPlan& p
     if(plan.mMood == RoosterMood::crow)
     {
         rooster->resetSinceCrow();
+        fireAnimalSound(*rooster, "Hatchery/Crow");
         mCrowInterval = HatcheryRooster::crowInterval(getRoosterSettings(), Random::Uint(0, 1000));
     }
 }

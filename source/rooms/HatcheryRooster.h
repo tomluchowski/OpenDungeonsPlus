@@ -45,7 +45,8 @@ struct RoosterSettings
         mCatchDistance(0.55),
         mWalkGap(0.3),
         mHopDistance(0.6),
-        mFightStandFactor(0.5)
+        mFightStandFactor(0.5),
+        mChickPeepChance(12)
     {}
 
     //! Turns between two crows (random value in [mCrowMin, mCrowMax]).
@@ -71,6 +72,8 @@ struct RoosterSettings
     double mHopDistance;
     //! Fraction of the fighting reach at which a rooster stops in front of the other one.
     double mFightStandFactor;
+    //! One in this many turns a chick of the hatchery peeps (at most one peep per turn and hatchery).
+    uint32_t mChickPeepChance;
 };
 
 //! \brief What the rooster sees around him.
