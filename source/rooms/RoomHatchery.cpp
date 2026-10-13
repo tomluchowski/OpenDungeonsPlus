@@ -16,7 +16,6 @@
  */
 
 #include "rooms/RoomHatchery.h"
-#include "ODApplication.h"
 #include <algorithm>
 #include <cmath>
 #include "game/SkillManager.h"
@@ -579,7 +578,8 @@ bool RoomHatchery::getNestStandPoint(const Ogre::Vector3& nestSpot, Ogre::Vector
 uint32_t RoomHatchery::nestWalkTurns(ChickenEntity& hen, const Ogre::Vector2& standing) const
 {
     const double arrive = ConfigManager::getSingleton().getRoomConfigDoubleOrDefault("HatcheryNestArrive", 0.3);
-    const double tilesPerTurn = hen.getMoveSpeed() / ODApplication::turnsPerSecond;
+    // Movement already expresses speed per turn; the frame update multiplies by turnsPerSecond.
+    const double tilesPerTurn = hen.getMoveSpeed();
     const double distance = Ogre::Vector2(hen.getPosition().x, hen.getPosition().y).distance(standing);
     const uint32_t walk = HatcheryCycle::walkTurns(distance - arrive, tilesPerTurn);
     return (walk > 0) ? walk + 1 : 0;

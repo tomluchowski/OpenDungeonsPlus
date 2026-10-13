@@ -195,7 +195,7 @@ assert 'plan.mNest = true' in lay, 'every new egg reserves a nest'
 # The hen plans her egg early, walks to the place next to the nest (real distance, real walking speed) and lays there
 assert 'getNestStandPoint(eggSpot, standing)' in lay and 'plan.mHen = hen->getName()' in lay
 walk_body = body(room_cpp, 'uint32_t RoomHatchery::nestWalkTurns')
-assert 'HatcheryCycle::walkTurns(' in walk_body and 'getMoveSpeed()' in walk_body and 'ODApplication::turnsPerSecond' in walk_body, 'the walk window follows the real distance and speed'
+assert 'HatcheryCycle::walkTurns(' in walk_body and 'getMoveSpeed()' in walk_body and '/ ODApplication::turnsPerSecond' not in walk_body, 'the walk window follows speed per server turn'
 assert 'nestWalkTurns(*hen, standing)' in lay and 'walkFits' not in lay
 assert 'leadTurns' not in room_cpp and 'mNestWalkTurns' not in room_cpp and 'mNestWalkTurns' not in cycle
 assert 'planned->mDue = true' in lay, 'the egg is laid when the laying timer runs out, not when the hen arrives'
@@ -254,3 +254,26 @@ assert 'if(egg.mDue && egg.mPosing)' in room_cpp
 assert 'is >> pending.mHen' in room_cpp, 'saving a laying egg preserves its hen and does not restart an unarrived trip'
 assert 'bool nestExists = false;' in trips and 'if(!nestExists)' in trips, 'removed nests invalidate old reservations'
 print('hatchery delayed egg checks passed')
+
+# Movement cancels the clock: the speed of an entity is tiles per turn (a frame moves it by turnsPerSecond * speed * seconds).
+movement = (root / 'source/entities/MovableGameEntity.cpp').read_text()
+assert 'double moveDist = ODApplication::turnsPerSecond' in movement and '* getMoveSpeed()' in movement
+for clock in (0.7, 1.4, 2.8):
+    delta = 1 / clock
+    assert abs(clock * .4 * delta - .4) < 1e-12
+# Save records contain only actual arrivals; hen identity survives delayed pose completion.
+records = [(1.2, 2.3, .1, 1, 'henA', True, True),
+           (3.2, 4.3, .1, 0, 'henB', True, False),
+           (2.2, 1.3, .1, 0, '', True, True)]
+saved = [r for r in records if r[5] and r[6]]
+tokens = ['HatcheryNestLays', str(len(saved))]
+for x, y, z, turns, hen, due, posing in saved:
+    tokens.extend(map(str, (x, y, z, turns, hen or '-')))
+loaded = []
+for i in range(int(tokens[1])):
+    x, y, z, turns, hen = tokens[2 + 5*i:7 + 5*i]
+    loaded.append((float(x), float(y), float(z), int(turns), '' if hen == '-' else hen))
+assert loaded == [(r[0], r[1], r[2], r[3], r[4]) for r in saved]
+assert 'henB' not in tokens and loaded[0][4] == 'henA' and loaded[0][3] == 1
+assert 'pending.mPosing = true;' in room_cpp and 'pending.mHen.clear();' in room_cpp
+print('hatchery speed-per-turn and arrived-only save record checks passed')
