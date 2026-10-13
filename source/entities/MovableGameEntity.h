@@ -37,6 +37,11 @@ namespace EntityAnimation
     static const std::string claim_anim = "Claim";
     static const std::string walk_anim = "Walk";
     static const std::string sleep_anim = "Sleep";
+    static const std::string drop_anim = "Drop";
+    static const std::string getup_anim = "GetUp";
+    static const std::string combat_attack_anim = "CombatAttack";
+    static const std::string ranged_attack_anim = "RangedAttack";
+    static const std::string eat_chicken_anim = "EatChicken";
 };
 
 class MovableGameEntity : public GameEntity
@@ -54,9 +59,11 @@ public:
     /*! \brief Replaces an object's current walk queue with a new path. During the
      * walk, the entity will play walkAnim (looped). When it gets to the wanted position,
      * it will play endAnim (looped or not depending on loopEndAnim).
+     * pathAlreadyRefined is for fully validated interaction routes with an exact endpoint.
      */
     void setWalkPath(const std::string& walkAnim, const std::string& endAnim, bool loopEndAnim,
-                     bool playIdleWhenAnimationEnds, const std::vector<Ogre::Vector2>& path, bool walkDistortion);
+                     bool playIdleWhenAnimationEnds, const std::vector<Ogre::Vector2>& path, bool walkDistortion,
+                     bool pathAlreadyRefined = false);
 
     /*! \brief Converts a tile list to a vector of Ogre::Vector3
      *
@@ -95,6 +102,8 @@ public:
     virtual void update(Ogre::Real timeSinceLastFrame);
 
     void setWalkDirection(const Ogre::Vector3& direction);
+    const Ogre::Vector3& getWalkDirection() const
+    { return mWalkDirection; }
 
     virtual void setPosition(const Ogre::Vector3& v, GameMap *gameMap = nullptr ) override;
 

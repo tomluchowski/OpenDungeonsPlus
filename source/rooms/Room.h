@@ -109,6 +109,23 @@ public:
     virtual Creature* getCreatureUsingRoom(unsigned index);
     virtual bool hasOpenCreatureSpot(Creature* c) { return false; }
 
+    //! Where, and facing which way, a creature stands while it works at a building object of this room
+    struct InteractionPosition
+    {
+        const BuildingObject* object;
+        Ogre::Vector2 position;
+        Ogre::Vector2 direction;
+    };
+    //! The currently reserved standing positions, so that other creatures keep clear of them
+    const std::map<Creature*, InteractionPosition>& getInteractionPositions() const
+    { return mInteractionPositions; }
+    //! Reserves the position for the creature, replacing a previous reservation of the same creature
+    void reserveInteractionPosition(Creature* creature, const InteractionPosition& position)
+    { mInteractionPositions[creature] = position; }
+    //! Drops the creature's reservation, if any
+    void releaseInteractionPosition(Creature* creature)
+    { mInteractionPositions.erase(creature); }
+
     //! \brief Called by the creature during its upkeep when using the room when it is ready
     //! to do something (no cooldown or no other action).
     //! Returns true if the action queue should continue to be proceeded and false otherwise
@@ -207,6 +224,8 @@ protected:
         activeSpotRight
     };
     std::vector<Creature*> mCreaturesUsingRoom;
+    //! Standing positions reserved by the creatures working at the room's objects
+    std::map<Creature*, InteractionPosition> mInteractionPositions;
 
     //! \brief Lists the active spots in the middle of 3x3 squares.
     std::vector<Tile*> mCentralActiveSpotTiles;
