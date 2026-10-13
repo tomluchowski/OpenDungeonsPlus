@@ -118,7 +118,7 @@ assert 'startDefeatSequence(conquerorSeatId, heartTileX, heartTileY)' in handler
 assert 'ModeManager::GAME' in handler
 enum_body = notification_header[notification_header.index('enum class ServerNotificationType'):]
 enum_body = enum_body[:enum_body.index('};')]
-assert 'playerDefeated,' in enum_body and 'levelStatistics,' in enum_body and 'heartHealth,' in enum_body and enum_body.rstrip().endswith('chickenFight')
+assert 'playerDefeated,' in enum_body and 'levelStatistics,' in enum_body and 'heartHealth,' in enum_body and enum_body.rstrip().endswith('hatcheryNests')
 print('WIRING OK: enum value is not moved (only levelStatistics was appended after it), client handler reads 3 int32 and guards on GAME mode')
 
 with tempfile.TemporaryDirectory(prefix='odp-defeat-notification-') as directory:

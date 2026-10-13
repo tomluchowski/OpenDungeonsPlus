@@ -26,6 +26,7 @@
 #include "rooms/RoomType.h"
 
 class Creature;
+class Player;
 enum class TileVisual;
 
 class RoomHatchery: public Room
@@ -40,6 +41,7 @@ public:
     { return mRoomType; }
 
     void doUpkeep() override;
+    void removeFromGameMap(GameMap* gameMap = nullptr) override;
     bool hasOpenCreatureSpot(Creature* c) override;
     bool shouldStopUseIfHungrySleepy(Creature& creature, bool forced) override
     { return false; }
@@ -51,8 +53,13 @@ public:
 
     void creatureDropped(Creature& creature) override;
 
-    //! \brief The settings of the nest places from the config (the server and the clients read the same keys).
+    //! \brief The settings of the nest places from the config (only the server reads them, the clients draw the
+    //! places they get).
     static HatcheryNestField::Settings getNestFieldSettings();
+
+    //! \brief Server side: sends the nest places of this hatchery to the human player (see
+    //! ServerNotificationType::hatcheryNests).
+    void sendNestPlaces(Player* player) const;
 
     //! \brief Saves the number of the last day the rooster crowed for.
     void exportToStream(std::ostream& os) const override;
@@ -82,12 +89,19 @@ private:
     HatcheryCycleSettings getCycleSettings() const;
     //! Creates a hatchery animal at the given position.
     ChickenEntity* spawnAnimal(ChickenKind kind, const Ogre::Vector3& position, const HatcheryCycleSettings& settings);
-    //! The entrances of a hatchery with the given tiles: the tiles that lie next to (not diagonal) a walkable tile
-    //! (fullness 0: door, corridor, other room) that is not one of the given tiles. Only the fullness of the tiles
-    //! is used, so the server and every client find the same ones.
-    static std::vector<HatcheryNestField::TileCoord> collectEntrances(const std::vector<Tile*>& coveredTiles);
-    //! The nest places of this hatchery, computed again when its tiles or coops change.
+    //! Server side. The entrances of a hatchery with the given tiles: the tiles that lie next to (not diagonal) a
+    //! walkable tile (fullness 0: door, corridor, other room) that is not one of the given tiles. A door of the given
+    //! seat or of an allied seat counts as an entrance, also when it is locked; a door of a seat that is not allied
+    //! does not.
+    static std::vector<HatcheryNestField::TileCoord> collectEntrances(const std::vector<Tile*>& coveredTiles, const Seat* seat);
+    //! Server side. The nest places of this hatchery, computed again when its tiles, coops or entrances change (then
+    //! they are sent to the clients, see sendNestPlaces). The clients never compute them.
     const std::vector<HatcheryNestField::Place>& getNestPlaces() const;
+    //! Server side. The places of the loose feathers that lie scattered over the hatchery while it is empty (computed
+    //! together with the nest places, sent with them).
+    const std::vector<HatcheryNestField::Place>& getFeatherPlaces() const;
+    //! Server side: sends the nest places to every human player when they changed since they were sent last.
+    void updateNestSync();
     //! A free egg place in the nests scattered over the hatchery, the nest closest to the hen first. eggPositions
     //! are the places of the eggs that lie in the hatchery. False if all nests are full (or there is none): the egg
     //! then lies at the hen.
@@ -198,11 +212,15 @@ private:
         uint32_t mLate;
     };
     std::vector<PendingEgg> mPendingEggs;
-    //! The nest places, computed from the tiles and the coops when they change (not saved, not sent: the clients
-    //! compute the same places from the same tiles).
+    //! The nest places, computed by the server from the tiles, the coops and the entrances when they change (not
+    //! saved: they are derived; sent to the clients when they change and to a client that joins).
     mutable std::vector<HatcheryNestField::Place> mNestPlaces;
+    //! The places of the loose feathers of an empty hatchery, computed together with the nests (see computeFeathers)
+    mutable std::vector<HatcheryNestField::Place> mFeatherPlaces;
     mutable uint32_t mNestFieldKey;
     mutable bool mNestFieldValid;
+    //! The places changed and the clients have not been told yet
+    mutable bool mNestSendPending;
     //! Turns the hatchery has been empty (no hen, chick or egg)
     uint32_t mCoopHenWait;
     //! Turns the hatchery has been without rooster

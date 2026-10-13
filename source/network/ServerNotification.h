@@ -147,8 +147,13 @@ enum class ServerNotificationType
     //! Two roosters of one hatchery fight: + string first rooster, string second rooster, uint32_t phase
     //! (0 = the fight starts, 1 = it is over and the first rooster won, 2 = it was called off). The server draws
     //! the winner. Sent to the human players that see the first rooster, only when the phase changes.
+    chickenFight,
+    //! The places of the straw nests of a hatchery (the server alone computes them, the clients only draw them):
+    //! + string room name, uint32_t count, then per nest: float x, float y, float angle in degrees, then
+    //! uint32_t count of the places of loose feathers and per place: float x, float y, float angle in degrees. Sent to
+    //! the human players when the places of the hatchery change and once to a client that joined or loaded.
     //! Appended last so that no existing numeric value changes.
-    chickenFight
+    hatcheryNests
 };
 
 ODPacket& operator<<(ODPacket& os, const ServerNotificationType& nt);

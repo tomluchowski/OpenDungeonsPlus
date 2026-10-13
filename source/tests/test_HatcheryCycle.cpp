@@ -714,7 +714,7 @@ BOOST_AUTO_TEST_CASE(test_NestField)
         }
     }
 
-    // The places depend on the tiles only, not on their order (the server and the clients list them differently)
+    // The places depend on the tiles only, not on their order (the server lists the tiles in the order of the room, which changes when rooms merge)
     std::vector<HatcheryNestField::TileCoord> reversedTiles(tiles.rbegin(), tiles.rend());
     std::vector<HatcheryNestField::TileCoord> reversedCoops(coops.rbegin(), coops.rend());
     std::vector<HatcheryNestField::TileCoord> reversedEntrances(entrances.rbegin(), entrances.rend());
@@ -767,6 +767,85 @@ BOOST_AUTO_TEST_CASE(test_NestField)
 
     // A hatchery without a tile has no nest
     BOOST_CHECK(HatcheryNestField::compute(std::vector<HatcheryNestField::TileCoord>(), coops, entrances, settings).empty());
+}
+
+BOOST_AUTO_TEST_CASE(test_NestFieldFeathers)
+{
+    const HatcheryNestField::Settings settings;
+    const std::vector<HatcheryNestField::TileCoord> tiles = nestTestBlock(0, 0, 7, 7);
+    std::vector<HatcheryNestField::TileCoord> coops;
+    coops.push_back(HatcheryNestField::TileCoord(1, 3));
+    coops.push_back(HatcheryNestField::TileCoord(4, 3));
+    std::vector<HatcheryNestField::TileCoord> entrances;
+    entrances.push_back(HatcheryNestField::TileCoord(0, 3));
+    const std::vector<HatcheryNestField::Place> nests = HatcheryNestField::compute(tiles, coops, entrances, settings);
+    const std::vector<HatcheryNestField::Place> feathers = HatcheryNestField::computeFeathers(tiles, coops, entrances,
+        nests, settings);
+
+    // About one place per six tiles, at least two, at most eight
+    BOOST_CHECK(feathers.size() >= settings.mMinFeathers);
+    BOOST_CHECK(feathers.size() <= settings.mMaxFeathers);
+    BOOST_CHECK(feathers.size() <= std::max<uint32_t>(tiles.size() / settings.mTilesPerFeather, settings.mMinFeathers));
+
+    for(uint32_t i = 0; i < feathers.size(); ++i)
+    {
+        const double x = feathers[i].mX;
+        const double y = feathers[i].mY;
+
+        // On the hatchery (the block is 0..6), away from the walls
+        BOOST_CHECK(x >= -0.5 + settings.mEdge - 1e-9);
+        BOOST_CHECK(x <= 6.5 - settings.mEdge + 1e-9);
+        BOOST_CHECK(y >= -0.5 + settings.mEdge - 1e-9);
+        BOOST_CHECK(y <= 6.5 - settings.mEdge + 1e-9);
+
+        // Not at the coops, their aprons or the walking strip from the entrance
+        for(uint32_t c = 0; c < coops.size(); ++c)
+        {
+            const double cx = coops[c].first;
+            const double cy = coops[c].second;
+            BOOST_CHECK(HatcheryNestField::rectDistanceSquared(x, y, cx + HatcheryNestField::coopMinX,
+                cy + HatcheryNestField::coopMinY, cx + HatcheryNestField::coopMaxX, cy + HatcheryNestField::coopMaxY) >=
+                settings.mCoopClearance * settings.mCoopClearance - 1e-9);
+            BOOST_CHECK(HatcheryNestField::rectDistanceSquared(x, y, cx + HatcheryNestField::coopMaxX,
+                cy - settings.mLaneHalfWidth, cx + HatcheryNestField::coopMaxX + settings.mLaneLength,
+                cy + settings.mLaneHalfWidth) >= settings.mLaneClearance * settings.mLaneClearance - 1e-9);
+            const double clear = settings.mPathHalfWidth + settings.mPathClearance;
+            BOOST_CHECK(HatcheryNestField::segmentDistanceSquared(x, y, entrances[0].first, entrances[0].second,
+                cx + HatcheryNestField::coopMaxX + settings.mLaneLength * 0.5, cy) >= clear * clear - 1e-9);
+        }
+
+        // Away from the nests and from each other
+        for(uint32_t n = 0; n < nests.size(); ++n)
+        {
+            const double dx = nests[n].mX - x;
+            const double dy = nests[n].mY - y;
+            BOOST_CHECK(dx * dx + dy * dy >= settings.mFeatherNestClearance * settings.mFeatherNestClearance - 1e-9);
+        }
+        for(uint32_t j = 0; j < i; ++j)
+        {
+            const double dx = feathers[j].mX - x;
+            const double dy = feathers[j].mY - y;
+            BOOST_CHECK(dx * dx + dy * dy >= settings.mFeatherSpacing * settings.mFeatherSpacing - 1e-9);
+        }
+    }
+
+    // The places do not depend on the order of the tiles
+    std::vector<HatcheryNestField::TileCoord> reversedTiles(tiles.rbegin(), tiles.rend());
+    std::vector<HatcheryNestField::TileCoord> reversedCoops(coops.rbegin(), coops.rend());
+    const std::vector<HatcheryNestField::Place> again = HatcheryNestField::computeFeathers(reversedTiles, reversedCoops,
+        entrances, nests, settings);
+    BOOST_REQUIRE_EQUAL(again.size(), feathers.size());
+    for(uint32_t i = 0; i < feathers.size(); ++i)
+    {
+        BOOST_CHECK_EQUAL(again[i].mX, feathers[i].mX);
+        BOOST_CHECK_EQUAL(again[i].mY, feathers[i].mY);
+    }
+
+    // A hatchery without a tile has no feathers, one without a coop has them all the same
+    BOOST_CHECK(HatcheryNestField::computeFeathers(std::vector<HatcheryNestField::TileCoord>(), coops, entrances, nests,
+        settings).empty());
+    BOOST_CHECK(HatcheryNestField::computeFeathers(tiles, std::vector<HatcheryNestField::TileCoord>(),
+        std::vector<HatcheryNestField::TileCoord>(), std::vector<HatcheryNestField::Place>(), settings).size() >= 2u);
 }
 
 BOOST_AUTO_TEST_CASE(test_RoosterDay)

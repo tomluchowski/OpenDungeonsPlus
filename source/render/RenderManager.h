@@ -32,6 +32,8 @@
 #include <OgreDefaultDebugDrawer.h>
 #include <cstdint>
 #include "entities/GameEntity.h"
+#include "rooms/HatcheryNestField.h"
+#include <OgreVector2.h>
 
 class DraggableTileContainer;
 class GameMap;
@@ -227,6 +229,10 @@ public:
     void rrChickenFight(ChickenEntity* first, ChickenEntity* second, uint32_t phase);
     //! \brief The server set a pose (see ChickenPose.h), an empty pose is the normal walking and idling.
     void rrSetChickenPose(ChickenEntity* chicken, const std::string& pose);
+    //! \brief The server sent the nest places and the places of the loose feathers of a hatchery (by room name); the
+    //! nests are drawn at the places. An empty list of nests means that the hatchery is gone.
+    void rrSetHatcheryNests(const std::string& roomName, const std::vector<HatcheryNestField::Place>& places,
+        const std::vector<HatcheryNestField::Place>& feathers);
     //! \brief Loose feathers next to a coop of the hatchery (the straw nests lie scattered over the hatchery, see updateNestFields)
     void rrCreateCoopDecor(BuildingObject* coop);
     void rrDestroyCoopDecor(BuildingObject* coop);
@@ -443,20 +449,33 @@ private:
         Ogre::Real mShake;
     };
     std::map<BuildingObject*, CoopDecor> mCoopDecors;
-    //! The straw nests of one hatchery (one entity each, at the places of HatcheryNestField). mKey is the fingerprint
-    //! of the tiles and coops they were made for.
+    //! The nest places the server sent, by room name (the clients compute nothing). mVersion counts the messages.
+    struct ServerNests
+    {
+        ServerNests() :
+            mVersion(0)
+        {}
+
+        std::vector<HatcheryNestField::Place> mPlaces;
+        std::vector<HatcheryNestField::Place> mFeathers;
+        uint32_t mVersion;
+    };
+    std::map<std::string, ServerNests> mServerNests;
+    //! The straw nests of one hatchery (one entity each, at the places the server sent). mKey is the version of
+    //! the places they were made for.
     struct NestField
     {
         std::vector<Ogre::SceneNode*> mNodes;
         std::vector<Ogre::Entity*> mEntities;
         uint32_t mKey;
     };
-    std::map<Room*, NestField> mNestFields;
-    //! Makes, updates and removes the nests of the hatcheries that have coops (roomCoops: their coop tiles). The nests
-    //! show while the hatchery has hens, chicks or eggs (roomAnimals).
-    void updateNestFields(const std::map<Room*, std::vector<Tile*> >& roomCoops,
-        const std::map<Room*, uint32_t>& roomAnimals);
+    std::map<std::string, NestField> mNestFields;
+    //! Draws the server-provided nests by room name (a client has no Room objects of its own). A nest shows while
+    //! its tile is visible to the local player and still belongs to a hatchery.
+    void updateNestFields();
     void destroyNestField(NestField& field);
+    //! Set while a game is shown
+    GameMap* mGameMap = nullptr;
     Ogre::Real mCoopDecorTimer = 0.0f;
     uint64_t mChickenLookNumber = 0;
 

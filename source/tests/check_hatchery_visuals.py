@@ -89,8 +89,7 @@ assert 'ChickenPose::protest' in looks
 # A hatchery with only the rooster looks abandoned: loose feathers, no nest. The rooster is not counted.
 decor = body(looks, 'const bool check = mCoopDecorTimer')
 assert 'ChickenKind::rooster' in decor and 'getEntitiesInTile' in decor
-assert 'decor.mFeathers->setVisible(animals == 0)' in decor and 'roomAnimals[room] = animals' in decor
-assert '(animals->second > 0)' in body(looks, 'void RenderManager::updateNestFields')
+assert 'decor.mFeathers->setVisible(animals == 0)' in decor
 assert 'countEntitiesOnTile(GameEntityType::chickenEntity)' not in decor
 print('hatchery rooster look checks passed')
 

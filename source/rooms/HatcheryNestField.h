@@ -27,7 +27,7 @@
 
 //! \brief Places of the straw nests that lie scattered over a hatchery. The places are computed from the tiles of the
 //! hatchery, the tiles of its coops and its entrances alone, with integer hashes of the tile coordinates and no random numbers, so
-//! the server and every client get the same places without anything being sent. The header has no dependency on the
+//! the places do not depend on the order of the tiles. Only the server computes them and sends them to the clients (ServerNotificationType::hatcheryNests). The header has no dependency on the
 //! game map, so it can be tested alone (a python port of the rules is in the check scripts).
 //!
 //! Rules (see Settings for the numbers): a nest lies on a tile of the hatchery, at least mEdge from every tile that is
@@ -36,7 +36,7 @@
 //! walking strips (half width mPathHalfWidth) that lead from the middle of every entrance tile to the apron of every
 //! coop, and at least mSpacing from every other nest. An entrance is a tile of the hatchery that lies next to a
 //! walkable tile that is not part of it (door, corridor, other room); the caller finds them (see
-//! RoomHatchery::collectEntrances) from the fullness of the tiles, which the server and every client know. There is about one nest per mTilesPerNest tiles (at most mMaxNests), but at least one per coop.
+//! RoomHatchery::collectEntrances) from the fullness of the tiles and the doors on them (the server alone). There is about one nest per mTilesPerNest tiles (at most mMaxNests), but at least one per coop.
 namespace HatcheryNestField
 {
     typedef std::pair<int, int> TileCoord;
@@ -64,7 +64,12 @@ namespace HatcheryNestField
             mLaneClearance(0.2),
             mPathHalfWidth(0.35),
             mPathClearance(0.2),
-            mSpacing(0.6)
+            mSpacing(0.6),
+            mTilesPerFeather(6),
+            mMinFeathers(2),
+            mMaxFeathers(8),
+            mFeatherNestClearance(0.5),
+            mFeatherSpacing(0.9)
         {}
 
         //! About one nest per this many tiles of the hatchery.
@@ -88,6 +93,15 @@ namespace HatcheryNestField
         double mPathClearance;
         //! Smallest distance in tiles between the middles of two nests.
         double mSpacing;
+        //! About one place of loose feathers per this many tiles of the hatchery (they show while it is empty).
+        uint32_t mTilesPerFeather;
+        //! Fewest and most places of loose feathers (a small hatchery can have fewer when the rules leave no room).
+        uint32_t mMinFeathers;
+        uint32_t mMaxFeathers;
+        //! Distance in tiles from the middle of a place of feathers to the middle of every nest...
+        double mFeatherNestClearance;
+        //! ... and to the middle of every other place of feathers.
+        double mFeatherSpacing;
     };
 
     //! A nest: the middle in the world (tiles) and a turn in degrees (for the look only).
@@ -143,8 +157,8 @@ namespace HatcheryNestField
     //! Squared distance from a point to a rectangle (0 inside).
     inline double rectDistanceSquared(double x, double y, double minX, double minY, double maxX, double maxY)
     {
-        const double dx = std::max(std::max(minX - x, 0.0), x - maxX);
-        const double dy = std::max(std::max(minY - y, 0.0), y - maxY);
+        const double dx = (std::max)((std::max)(minX - x, 0.0), x - maxX);
+        const double dy = (std::max)((std::max)(minY - y, 0.0), y - maxY);
         return dx * dx + dy * dy;
     }
 
@@ -156,7 +170,7 @@ namespace HatcheryNestField
         const double lengthSquared = sx * sx + sy * sy;
         double t = 0.0;
         if(lengthSquared > 0.0)
-            t = std::min(1.0, std::max(0.0, ((x - ax) * sx + (y - ay) * sy) / lengthSquared));
+            t = (std::min)(1.0, (std::max)(0.0, ((x - ax) * sx + (y - ay) * sy) / lengthSquared));
         const double dx = x - (ax + t * sx);
         const double dy = y - (ay + t * sy);
         return dx * dx + dy * dy;
@@ -219,7 +233,7 @@ namespace HatcheryNestField
     //! The places of the nests of a hatchery with the given tiles and coop tiles. Without coop there are nests all the
     //! same (a coop that is not built yet does not take the eggs away), and without entrance there is no walking strip.
     //! The tiles can be in any order. When the strips leave room for fewer nests than wanted, there are fewer nests,
-    //! but more places are tried while there are fewer nests than coops.
+    //! but more places are tried while there are fewer nests than coops. mMaxNests remains the hard upper limit.
     inline std::vector<Place> compute(const std::vector<TileCoord>& roomTilesIn, const std::vector<TileCoord>& coopsIn,
         const std::vector<TileCoord>& entrancesIn, const Settings& settings)
     {
@@ -233,9 +247,9 @@ namespace HatcheryNestField
         std::sort(entrances.begin(), entrances.end());
         entrances.erase(std::unique(entrances.begin(), entrances.end()), entrances.end());
 
-        const uint32_t perNest = std::max<uint32_t>(1, settings.mTilesPerNest);
-        uint32_t wanted = std::min(static_cast<uint32_t>(roomTiles.size()) / perNest, settings.mMaxNests);
-        wanted = std::max(wanted, static_cast<uint32_t>(coops.size()));
+        const uint32_t perNest = (std::max<uint32_t>)(1, settings.mTilesPerNest);
+        uint32_t wanted = (std::min)(static_cast<uint32_t>(roomTiles.size()) / perNest, settings.mMaxNests);
+        wanted = (std::min)(settings.mMaxNests, (std::max)(wanted, static_cast<uint32_t>(coops.size())));
 
         // Each round (attempt) goes over the tiles in the order of their hash and tries one place on each tile (the place on
         // the tile is moved by up to 0.4 tiles each way, by the hash). More rounds try other places on the same tiles.
@@ -262,6 +276,66 @@ namespace HatcheryNestField
             }
         }
         return places;
+    }
+
+    //! The places of the loose feathers that lie scattered over an empty hatchery (the same inputs as compute, plus the
+    //! nests that compute returned). They follow the rules of the nests (tiles of the hatchery, mEdge from the walls,
+    //! away from the coops, their aprons and the walking strips from the entrances, mFeatherNestClearance from every
+    //! nest) and keep mFeatherSpacing from each other, so they never lie at a coop. About one place per
+    //! mTilesPerFeather tiles, at least mMinFeathers and at most mMaxFeathers (fewer when the rules leave no room). No
+    //! random numbers: the angle and the shift on the tile come from the hash of the tile.
+    inline std::vector<Place> computeFeathers(const std::vector<TileCoord>& roomTilesIn, const std::vector<TileCoord>& coopsIn,
+        const std::vector<TileCoord>& entrancesIn, const std::vector<Place>& nests, const Settings& settings)
+    {
+        std::vector<Place> feathers;
+        const std::set<TileCoord> roomTiles(roomTilesIn.begin(), roomTilesIn.end());
+        std::vector<TileCoord> coops(coopsIn.begin(), coopsIn.end());
+        std::sort(coops.begin(), coops.end());
+        coops.erase(std::unique(coops.begin(), coops.end()), coops.end());
+
+        std::vector<TileCoord> entrances(entrancesIn.begin(), entrancesIn.end());
+        std::sort(entrances.begin(), entrances.end());
+        entrances.erase(std::unique(entrances.begin(), entrances.end()), entrances.end());
+
+        const uint32_t perFeather = (std::max<uint32_t>)(1, settings.mTilesPerFeather);
+        uint32_t wanted = static_cast<uint32_t>(roomTiles.size()) / perFeather;
+        wanted = (std::min)((std::max)(wanted, settings.mMinFeathers), settings.mMaxFeathers);
+
+        // The hash attempts start at 100, so the places differ from those of the nests on the same tiles
+        const uint32_t rounds = 8;
+        Settings nestSettings = settings;
+        nestSettings.mSpacing = settings.mFeatherNestClearance;
+        for(uint32_t attempt = 0; (feathers.size() < wanted) && (attempt < rounds); ++attempt)
+        {
+            std::vector<std::pair<uint32_t, TileCoord> > order;
+            for(std::set<TileCoord>::const_iterator it = roomTiles.begin(); it != roomTiles.end(); ++it)
+                order.push_back(std::make_pair(hashTile(it->first, it->second, 100u + attempt), *it));
+            std::sort(order.begin(), order.end());
+
+            for(std::vector<std::pair<uint32_t, TileCoord> >::const_iterator it = order.begin();
+                (it != order.end()) && (feathers.size() < wanted); ++it)
+            {
+                const uint32_t h = it->first;
+                const int tileX = it->second.first;
+                const int tileY = it->second.second;
+                const double x = tileX + (static_cast<int>((h >> 8) % 81u) - 40) / 100.0;
+                const double y = tileY + (static_cast<int>((h >> 16) % 81u) - 40) / 100.0;
+                if(!placeIsFree(x, y, tileX, tileY, roomTiles, coops, entrances, nests, nestSettings))
+                    continue;
+
+                bool apart = true;
+                for(std::vector<Place>::const_iterator other = feathers.begin(); other != feathers.end(); ++other)
+                {
+                    const double dx = other->mX - x;
+                    const double dy = other->mY - y;
+                    if(dx * dx + dy * dy < settings.mFeatherSpacing * settings.mFeatherSpacing)
+                        apart = false;
+                }
+                if(apart)
+                    feathers.push_back(Place(x, y, static_cast<double>(h % 360u)));
+            }
+        }
+        return feathers;
     }
 }
 

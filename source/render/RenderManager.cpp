@@ -889,6 +889,7 @@ void RenderManager::initGameRenderer(GameMap* gameMap)
     OD_ASSERT_TRUE(gameMap);
     OD_ASSERT_TRUE(mHandKeeperNode);
     mCreatureTextOverlayDisplayed = false;
+    mGameMap = gameMap;
 
     // Create the light which follows the single tile selection mesh
     if(mHandLight == nullptr)
@@ -1140,6 +1141,7 @@ void RenderManager::preRenderTargetUpdate(const Ogre::RenderTargetEvent& evt)
 
 void RenderManager::stopGameRenderer(GameMap* gameMap)
 {
+    mGameMap = nullptr;
     rrCancelIdleHandAnimation();
     cancelCreatureStep();
     cancelCreatureSleepAnimation();

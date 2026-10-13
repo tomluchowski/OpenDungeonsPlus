@@ -38,6 +38,8 @@
 #include "network/ODServer.h"
 #include "network/ServerNotification.h"
 #include "rooms/RoomManager.h"
+#include "traps/Trap.h"
+#include "traps/TrapType.h"
 #include "utils/ConfigManager.h"
 #include "utils/Helper.h"
 #include "utils/LogManager.h"
@@ -137,6 +139,7 @@ RoomHatchery::RoomHatchery(GameMap* gameMap) :
     mLastCrowDay(-1),
     mNestFieldKey(0),
     mNestFieldValid(false),
+    mNestSendPending(false),
     mCoopHenWait(0),
     mCoopRoosterWait(0),
     mFightActive(false),
@@ -312,10 +315,15 @@ HatcheryNestField::Settings RoomHatchery::getNestFieldSettings()
     settings.mPathHalfWidth = config.getRoomConfigDoubleOrDefault("HatcheryNestPathHalfWidth", settings.mPathHalfWidth);
     settings.mPathClearance = config.getRoomConfigDoubleOrDefault("HatcheryNestPathClearance", settings.mPathClearance);
     settings.mSpacing = config.getRoomConfigDoubleOrDefault("HatcheryNestSpacing", settings.mSpacing);
+    settings.mTilesPerFeather = static_cast<uint32_t>(config.getRoomConfigDoubleOrDefault("HatcheryFeatherTilesPerPlace", settings.mTilesPerFeather));
+    settings.mMinFeathers = static_cast<uint32_t>(config.getRoomConfigDoubleOrDefault("HatcheryFeatherMin", settings.mMinFeathers));
+    settings.mMaxFeathers = static_cast<uint32_t>(config.getRoomConfigDoubleOrDefault("HatcheryFeatherMax", settings.mMaxFeathers));
+    settings.mFeatherNestClearance = config.getRoomConfigDoubleOrDefault("HatcheryFeatherNestClearance", settings.mFeatherNestClearance);
+    settings.mFeatherSpacing = config.getRoomConfigDoubleOrDefault("HatcheryFeatherSpacing", settings.mFeatherSpacing);
     return settings;
 }
 
-std::vector<HatcheryNestField::TileCoord> RoomHatchery::collectEntrances(const std::vector<Tile*>& coveredTiles)
+std::vector<HatcheryNestField::TileCoord> RoomHatchery::collectEntrances(const std::vector<Tile*>& coveredTiles, const Seat* seat)
 {
     std::set<HatcheryNestField::TileCoord> own;
     for(Tile* tile : coveredTiles)
@@ -334,8 +342,14 @@ std::vector<HatcheryNestField::TileCoord> RoomHatchery::collectEntrances(const s
                 continue;
             if(own.count(HatcheryNestField::TileCoord(neighbor->getX(), neighbor->getY())) > 0)
                 continue;
-            if(neighbor->getFullness() <= 0.0)
-                entrance = true;
+            if(neighbor->getFullness() > 0.0)
+                continue;
+            // A door of our seat (or an allied one) is an entrance, locked or not; a door of a seat that is not
+            // allied with ours is shut for our animals
+            Trap* trap = neighbor->getCoveringTrap();
+            if((trap != nullptr) && trap->isDoor() && !trap->getSeat()->isAlliedSeat(seat))
+                continue;
+            entrance = true;
         }
         if(entrance)
             entrances.push_back(HatcheryNestField::TileCoord(tile->getX(), tile->getY()));
@@ -352,16 +366,79 @@ const std::vector<HatcheryNestField::Place>& RoomHatchery::getNestPlaces() const
     for(Tile* tile : mCentralActiveSpotTiles)
         coops.push_back(HatcheryNestField::TileCoord(tile->getX(), tile->getY()));
 
-    const std::vector<HatcheryNestField::TileCoord> entrances = collectEntrances(mCoveredTiles);
+    const std::vector<HatcheryNestField::TileCoord> entrances = collectEntrances(mCoveredTiles, getSeat());
 
     const uint32_t key = HatcheryNestField::fingerprint(room, coops, entrances);
     if(!mNestFieldValid || (key != mNestFieldKey))
     {
-        mNestPlaces = HatcheryNestField::compute(room, coops, entrances, getNestFieldSettings());
+        const HatcheryNestField::Settings settings = getNestFieldSettings();
+        mNestPlaces = HatcheryNestField::compute(room, coops, entrances, settings);
+        mFeatherPlaces = HatcheryNestField::computeFeathers(room, coops, entrances, mNestPlaces, settings);
         mNestFieldKey = key;
         mNestFieldValid = true;
+        mNestSendPending = true;
     }
     return mNestPlaces;
+}
+
+const std::vector<HatcheryNestField::Place>& RoomHatchery::getFeatherPlaces() const
+{
+    getNestPlaces();
+    return mFeatherPlaces;
+}
+
+void RoomHatchery::sendNestPlaces(Player* player) const
+{
+    if((player == nullptr) || !player->getIsHuman())
+        return;
+
+    const std::vector<HatcheryNestField::Place>& places = getNestPlaces();
+    ServerNotification* serverNotification = new ServerNotification(ServerNotificationType::hatcheryNests, player);
+    serverNotification->mPacket << getName() << static_cast<uint32_t>(places.size());
+    for(const HatcheryNestField::Place& place : places)
+    {
+        serverNotification->mPacket << static_cast<float>(place.mX) << static_cast<float>(place.mY)
+            << static_cast<float>(place.mAngle);
+    }
+    // Then the places of the loose feathers of an empty hatchery
+    const std::vector<HatcheryNestField::Place>& feathers = getFeatherPlaces();
+    serverNotification->mPacket << static_cast<uint32_t>(feathers.size());
+    for(const HatcheryNestField::Place& place : feathers)
+    {
+        serverNotification->mPacket << static_cast<float>(place.mX) << static_cast<float>(place.mY)
+            << static_cast<float>(place.mAngle);
+    }
+    ODServer::getSingleton().queueServerNotification(serverNotification);
+}
+
+void RoomHatchery::removeFromGameMap(GameMap* gameMap)
+{
+    // The clients drop the nests of the hatchery: an empty list of places means that it is gone
+    GameMap* map = (gameMap == nullptr) ? getGameMap() : gameMap;
+    if(map->isServerGameMap())
+    {
+        for(Player* player : map->getPlayers())
+        {
+            if(!player->getIsHuman())
+                continue;
+            ServerNotification* notification = new ServerNotification(ServerNotificationType::hatcheryNests, player);
+            notification->mPacket << getName() << uint32_t(0) << uint32_t(0);
+            ODServer::getSingleton().queueServerNotification(notification);
+        }
+    }
+    Room::removeFromGameMap(gameMap);
+}
+
+void RoomHatchery::updateNestSync()
+{
+    // The places are computed again when the tiles, the coops or the entrances changed; then the clients are told
+    getNestPlaces();
+    if(!mNestSendPending)
+        return;
+
+    mNestSendPending = false;
+    for(Player* player : getGameMap()->getPlayers())
+        sendNestPlaces(player);
 }
 
 bool RoomHatchery::findNestSpot(const Ogre::Vector3& henPosition, const std::vector<Ogre::Vector2>& eggPositions,
@@ -772,6 +849,8 @@ void RoomHatchery::doUpkeep()
 
     if(mCoveredTiles.empty())
         return;
+
+    updateNestSync();
 
     const HatcheryCycleSettings settings = getCycleSettings();
     mRoosterSettings = getRoosterSettings();

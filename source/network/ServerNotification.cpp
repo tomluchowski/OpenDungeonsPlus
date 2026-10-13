@@ -162,6 +162,8 @@ std::string ServerNotification::typeString(ServerNotificationType type)
             return "levelStatistics";
         case ServerNotificationType::heartHealth:
             return "heartHealth";
+        case ServerNotificationType::hatcheryNests:
+            return "hatcheryNests";
         default:
             OD_LOG_ERR("Unknown enum for ServerNotificationType="
                 + Helper::toString(static_cast<int>(type)));

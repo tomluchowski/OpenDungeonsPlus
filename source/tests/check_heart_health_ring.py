@@ -549,7 +549,7 @@ probe = (probe.replace('RULES_HEADER', rules.as_posix())
 enum_body = notification_header[notification_header.index('enum class ServerNotificationType'):]
 enum_body = enum_body[:enum_body.index('};')]
 enumerators = re.findall(r'^\s*([A-Za-z_]\w*)\s*,?\s*(?://.*)?$', enum_body, re.M)
-enumerators = [name for name in enumerators if name not in ('chickenKindChanged', 'chickenFight')]
+enumerators = [name for name in enumerators if name not in ('chickenKindChanged', 'chickenFight', 'hatcheryNests')]
 assert enumerators[-1] == 'heartHealth', enumerators[-3:]
 assert enumerators[-2] == 'levelStatistics' and enumerators[-3] == 'playerDefeated'
 assert enumerators.count('heartHealth') == 1
