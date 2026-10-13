@@ -16,9 +16,15 @@
  */
 
 #include "rooms/RoomCasino.h"
+#include "game/SkillManager.h"
+#include "game/SkillType.h"
 
+#include "ODApplication.h"
 #include "creatureaction/CreatureActionFightFriendly.h"
 #include "entities/BuildingObject.h"
+#include "gamemap/RoomObjectNavigation.h"
+#include "creatureaction/CreatureActionWalkToTile.h"
+#include "utils/MakeUnique.h"
 #include "entities/Creature.h"
 #include "entities/CreatureDefinition.h"
 #include "entities/GameEntityType.h"
@@ -41,6 +47,10 @@ const std::string RoomCasinoNameDisplay = "Casino room";
 const RoomType RoomCasino::mRoomType = RoomType::casino;
 const TileVisual RoomCasino::mRoomVisual= TileVisual::casinoRoom;
 
+//! \brief Saved payout value that stands for the money payout level
+static const uint32_t SavedPayoutMoney = 0;
+//! \brief Highest saved payout value that is valid in a level file (1 and 2 both mean smiles)
+static const uint32_t SavedPayoutMax = 2;
 
 namespace
 {
@@ -127,7 +137,8 @@ static RoomRegister reg(new RoomCasinoFactory);
 static const Ogre::Real OFFSET_CREATURE = 0.3;
 
 RoomCasino::RoomCasino(GameMap* gameMap) :
-    Room(gameMap)
+    Room(gameMap),
+    mPayout(CasinoPayout::smiles)
 {
     setMeshName("Casino");
 }
@@ -167,6 +178,74 @@ BuildingObject* RoomCasino::notifyActiveSpotCreated(ActiveSpotPlace place, Tile*
             break;
     }
     return nullptr;
+}
+
+double RoomCasino::getFeeForPayout(CasinoPayout payout)
+{
+    double fee = ConfigManager::getSingleton().getRoomConfigDouble("CasinoFee");
+    switch(payout)
+    {
+        case CasinoPayout::money:
+            fee = ConfigManager::getSingleton().getRoomConfigDoubleOrDefault("CasinoFeeStingy", fee);
+            break;
+        case CasinoPayout::smiles:
+            fee = ConfigManager::getSingleton().getRoomConfigDoubleOrDefault("CasinoFeeGenerous", fee);
+            break;
+        default:
+            break;
+    }
+    return std::max(0.0, std::min(fee, 1.0));
+}
+
+//! \brief Gives the room that takes over tiles of this casino the payout set for this one.
+//! \param newRoom The room the tiles were handed to
+//! \param tiles The handed over tiles, not needed because the payout belongs to the whole room
+void RoomCasino::splitRoom(Room& newRoom, const std::vector<Tile*>& /*tiles*/)
+{
+    // The room that gets the tiles keeps the payout level set for this one
+    if(newRoom.getType() == getType())
+        static_cast<RoomCasino&>(newRoom).setPayout(mPayout);
+}
+
+//! \brief Saves the room and, after it, the payout level of the casino.
+void RoomCasino::exportToStream(std::ostream& os) const
+{
+    Room::exportToStream(os);
+    os << "CasinoPayout " << static_cast<uint32_t>(mPayout) << std::endl;
+}
+
+//! \brief Loads the room and, if present, the payout level of the casino.
+//! \return false if the stream could not be read or holds an invalid payout level
+bool RoomCasino::importFromStream(std::istream& is)
+{
+    if(!Room::importFromStream(is))
+        return false;
+
+    // Levels saved before the payout could be set do not have this line. In that case
+    // the stream is put back where it was and the default payout is kept.
+    std::streampos pos = is.tellg();
+    std::string tag;
+    if(!(is >> tag) || (tag != "CasinoPayout"))
+    {
+        is.clear();
+        is.seekg(pos);
+        return true;
+    }
+
+    uint32_t payout = SavedPayoutMoney;
+    if(!(is >> payout))
+        return false;
+
+    // Saved values: 0 = money, 1 and 2 = smiles. The file format allows the values 0 to 2,
+    // anything above is invalid.
+    if(payout > SavedPayoutMax)
+        return false;
+
+    if(payout == SavedPayoutMoney)
+        mPayout = CasinoPayout::money;
+    else
+        mPayout = CasinoPayout::smiles;
+    return true;
 }
 
 void RoomCasino::absorbRoom(Room* room)
@@ -356,6 +435,13 @@ void RoomCasino::doUpkeep()
     if (mCoveredTiles.empty())
         return;
 
+    // Every creature in the casino gets cheered up (smiles) or annoyed (money), in mood points per second
+    double moodPerSecond = ConfigManager::getSingleton().getRoomConfigDoubleOrDefault(
+        (mPayout == CasinoPayout::smiles) ? "CasinoMoodSmiles" : "CasinoMoodMoney", 0.0);
+    double moodPerTurn = moodPerSecond / ODApplication::turnsPerSecond;
+    for(Creature* creature : mCreaturesUsingRoom)
+        creature->addCasinoMood(moodPerTurn);
+
     for(std::pair<Tile* const,RoomCasinoGame>& p : mCreaturesSpots)
     {
         if(p.second.mCooldown > 0)
@@ -388,7 +474,8 @@ void RoomCasino::doUpkeep()
         // We set anim for both creatures
         uint32_t cooldown = Random::Uint(ConfigManager::getSingleton().getRoomConfigUInt32("CasinoCooldownWorkMin"),
             ConfigManager::getSingleton().getRoomConfigUInt32("CasinoCooldownWorkMax"));
-        double feePercent = std::min(ConfigManager::getSingleton().getRoomConfigDouble("CasinoFee"), 1.0);
+        double feePercent = std::min(SkillManager::getResearchValue(getSeat(), SkillType::roomCasino,
+            getFeeForPayout(mPayout)), 1.0);
         double wakefullness = ConfigManager::getSingleton().getRoomConfigDouble("CasinoWakefulnessPerWork");
         int32_t creatureBet = ConfigManager::getSingleton().getRoomConfigInt32("CasinoBet");
         creatureBet = std::min(creatureBet, p.second.mCreature1.mCreature->getGoldCarried());
@@ -516,17 +603,18 @@ bool RoomCasino::useRoom(Creature& creature, bool forced)
     Ogre::Real wantedY = static_cast<Ogre::Real>(tileSpot->getY());
     wantedY += creaturePositionOffset;
 
-    // We consider that the creature is in the good place if it near from where we want it to go
-    if(Pathfinding::squaredDistance(creature.getPosition().x, wantedX, creature.getPosition().y, wantedY) > 0.4)
+    BuildingObject* object = getBuildingObjectFromTile(tileSpot);
+    std::vector<Ogre::Vector2> approach;
+    if(object == nullptr || !RoomObjectNavigation::workApproach(creature, *object,
+        {wantedX, wantedY}, {0, 0}, approach))
     {
-        // We go there
-        std::list<Tile*> pathToSpot = getGameMap()->path(&creature, tileSpot);
-        std::vector<Ogre::Vector2> path;
-        Creature::tileToVector2(pathToSpot, path, true, 0.0);
-        // We add the last step to take account of the offset
-        Ogre::Vector2 dest(wantedX, wantedY);
-        path.push_back(dest);
-        creature.setWalkPath(EntityAnimation::walk_anim, EntityAnimation::idle_anim, true, true, path,true);
+        creature.popAction();
+        return false;
+    }
+    if(!approach.empty())
+    {
+        creature.setWalkPath(EntityAnimation::walk_anim, EntityAnimation::idle_anim, true, true, approach, false);
+        creature.pushAction(Utils::make_unique<CreatureActionWalkToTile>(creature));
         return false;
     }
 

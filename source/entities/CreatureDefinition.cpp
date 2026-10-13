@@ -114,7 +114,8 @@ CreatureDefinition::CreatureDefinition(
         mSoundFamilyDrop    ("Default/Drop"),
         mSoundFamilyAttack  ("Default/Attack"),
         mSoundFamilyDie     ("Default/Die"),
-        mSoundFamilySlap    ("Default/Slap")
+        mSoundFamilySlap    ("Default/Slap"),
+        mTortureTimeToConvert (120.0)
 {
     mXPTable.assign(MAX_LEVEL - 1, 100.0);
 }
@@ -165,7 +166,8 @@ CreatureDefinition::CreatureDefinition(const CreatureDefinition& def) :
         mSoundFamilyDrop(def.mSoundFamilyDrop),
         mSoundFamilyAttack(def.mSoundFamilyAttack),
         mSoundFamilyDie(def.mSoundFamilyDie),
-        mSoundFamilySlap(def.mSoundFamilySlap)
+        mSoundFamilySlap(def.mSoundFamilySlap),
+        mTortureTimeToConvert(def.mTortureTimeToConvert)
 {
     for(const double& xp : def.mXPTable)
     {
@@ -300,6 +302,7 @@ ODPacket& operator<<(ODPacket& os, const CreatureDefinition* c)
     os << c->mSoundFamilyAttack;
     os << c->mSoundFamilyDie;
     os << c->mSoundFamilySlap;
+    os << c->mTortureTimeToConvert;
 
     for (unsigned int i = 0; i < c->mXPTable.size(); ++i)
         os << c->mXPTable[i];
@@ -338,6 +341,7 @@ ODPacket& operator>>(ODPacket& is, CreatureDefinition* c)
     is >> c->mSoundFamilyAttack;
     is >> c->mSoundFamilyDie;
     is >> c->mSoundFamilySlap;
+    is >> c->mTortureTimeToConvert;
 
     for (unsigned int i = 0; i < c->mXPTable.size(); ++i)
     {
@@ -706,6 +710,12 @@ bool CreatureDefinition::update(CreatureDefinition* creatureDef, std::stringstre
                 defFile >> creatureDef->mSoundFamilySlap;
                 continue;
             }
+            else if (nextParam == "TortureTimeToConvert")
+            {
+                defFile >> nextParam;
+                creatureDef->mTortureTimeToConvert = Helper::toDouble(nextParam);
+                continue;
+            }
         }
     }
 
@@ -862,6 +872,9 @@ void CreatureDefinition::writeCreatureDefinitionDiff(
 
     if(def1 == nullptr || (def1->mSoundFamilySlap.compare(def2->mSoundFamilySlap) != 0))
         file << "    SoundFamilySlap\t" << def2->mSoundFamilySlap << std::endl;
+
+    if(def1 == nullptr || (def1->mTortureTimeToConvert != def2->mTortureTimeToConvert))
+        file << "    TortureTimeToConvert\t" << def2->mTortureTimeToConvert << std::endl;
 
     file << "    [/Stats]" << std::endl;
 
