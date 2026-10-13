@@ -501,6 +501,8 @@ materials/textures/CreatureEmoteGear.png  OD Team              GPLv3+           
 materials/textures/CreatureEmoteSmoke.png  OD Team             GPLv3+                  Drawn from simple shapes by tools/gen_creature_reaction_art.py (script generated, original work)
 materials/textures/ReactionParticleGlow.png  OD Team           GPLv3+                  Drawn from simple shapes by tools/gen_creature_reaction_art.py (script generated, original work)
 materials/textures/ReactionParticleSmoke.png  OD Team          GPLv3+                  Drawn from simple shapes by tools/gen_creature_reaction_art.py (script generated, original work)
+materials/textures/CreatureEmoteChicken.png  OD Team           GPLv3+                  Drawn from simple shapes by tools/gen_creature_reaction_art.py (script generated, original work)
+materials/textures/CreatureEmoteSack.png  OD Team              GPLv3+                  Drawn from simple shapes by tools/gen_creature_reaction_art.py (script generated, original work)
 tools/gen_creature_reaction_art.py     OD Team                 GPLv3+
 tools/check_creature_reactions.py      OD Team                 GPLv3+
 

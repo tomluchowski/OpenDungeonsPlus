@@ -1733,6 +1733,8 @@ void Creature::updateFromPacket(ODPacket& is)
     int seatId;
     unsigned int oldLevel = mLevel;
     uint32_t oldMoodValue = mOverlayMoodValue;
+    Seat* oldSeat = getSeat();
+    Seat* oldSeatPrison = mSeatPrison;
     OD_ASSERT_TRUE(is >> mLevel);
     OD_ASSERT_TRUE(is >> seatId);
     OD_ASSERT_TRUE(is >> mOverlayHealthValue);
@@ -1774,7 +1776,7 @@ void Creature::updateFromPacket(ODPacket& is)
 
     // Level up and payday are shown as cosmetic reactions of the creature
     if(CreatureReactions::getSingletonPtr() != nullptr)
-        CreatureReactions::getSingleton().noteCreatureUpdate(this, oldLevel, oldMoodValue);
+        CreatureReactions::getSingleton().noteCreatureUpdate(this, oldLevel, oldMoodValue, oldSeat, oldSeatPrison);
 }
 
 void Creature::updateTilesInSight()

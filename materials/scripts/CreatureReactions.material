@@ -325,6 +325,36 @@ material CreatureEmote_Smoke
     }
 }
 
+material CreatureEmote_Chicken
+{
+    technique
+    {
+        pass
+        {
+            scene_blend alpha_blend
+            texture_unit
+            {
+                texture CreatureEmoteChicken.png
+            }
+        }
+    }
+}
+
+material CreatureEmote_Sack
+{
+    technique
+    {
+        pass
+        {
+            scene_blend alpha_blend
+            texture_unit
+            {
+                texture CreatureEmoteSack.png
+            }
+        }
+    }
+}
+
 material ReactionParticleGlow
 {
     technique

@@ -88,6 +88,19 @@ static const double TURN_MIN_LENGTH = 0.01;
 static const double TURN_PHASE = 0.25;
 //! Smallest change of the turn angle (radians) that is applied to the node
 static const double ROTATION_EPSILON = 0.00001;
+//! Seconds a done moment waits at most for the creature to finish its get-up or meal
+static const double DONE_WAIT_MAX = 8.0;
+//! Seconds a creature has to sleep or pray until the end of it is shown
+static const double SLEEP_DONE_MIN = 6.0;
+static const double PRAYER_DONE_MIN = 8.0;
+static const double CLAIM_DONE_MIN = 2.5;
+//! Seconds between a prisoner breaking under torture and the first sign of its new loyalty
+static const double CONVERTED_DELAY = 2.8;
+//! A creature that delivers gold this many times within the window is out of breath
+static const double DELIVERY_WINDOW = 90.0;
+static const uint32_t DELIVERY_TIRED_COUNT = 3;
+//! The treasury work follows the done moment of a delivery after this time
+static const double TREASURY_WORK_DELAY = 2.6;
 //! Seconds after its last work a creature counts as the one that finished the result of the room
 static const double ROOM_WORK_MEMORY = 20.0;
 //! The other creatures in the room react to the result after this time
@@ -245,7 +258,7 @@ ReactionPriority CreatureReactions::getCreaturePriority(const Creature* creature
 
     // The event decorates the work or sleep animation: that is what the creature is expected to do
     if((event != nullptr) && event->mWhileWorking &&
-       (startsWith(clip, "Sleep") || (clip == "Dig") || (clip == "Claim")))
+       (startsWith(clip, "Sleep") || (clip == "Dig") || (clip == "Claim") || (clip == "Flee")))
     {
         return ReactionPriority::none;
     }
@@ -470,6 +483,7 @@ void CreatureReactions::triggerGroup(const std::string& eventName, const std::ve
         pending.mEventName = eventName;
         pending.mDelay = delay;
         pending.mWaited = 0.0;
+        pending.mWaitMax = PENDING_WAIT_MAX;
         pending.mForced = forced;
         mPending.push_back(pending);
 
@@ -897,7 +911,7 @@ void CreatureReactions::update(Ogre::Real timeSinceLastFrame)
         Creature* creature = mGameMap->getCreature(pending.mCreatureName);
         const ReactionEvent* event = mConfig.getEvent(pending.mEventName);
         if((creature != nullptr) && (event != nullptr) && !pending.mForced &&
-           !(event->mPriority < getCreaturePriority(creature, event)) && (pending.mWaited < PENDING_WAIT_MAX))
+           !(event->mPriority < getCreaturePriority(creature, event)) && (pending.mWaited < pending.mWaitMax))
         {
             // Still busy (for example finishing the last blow): look again in a moment
             it->mDelay = PENDING_WAIT_STEP;
@@ -965,6 +979,14 @@ void CreatureReactions::pruneCooldowns()
             ++it;
     }
 
+    for(std::map<std::string, Delivery>::iterator it = mDeliveries.begin(); it != mDeliveries.end();)
+    {
+        if((mTime - it->second.mSince) > DELIVERY_WINDOW)
+            mDeliveries.erase(it++);
+        else
+            ++it;
+    }
+
     for(std::map<std::string, HandDrop>::iterator it = mHandDrops.begin(); it != mHandDrops.end();)
     {
         if((mTime - it->second.mTime) > HAND_DROP_MEMORY)
@@ -983,9 +1005,8 @@ void CreatureReactions::noteAnimation(MovableGameEntity* entity, const std::stri
 
     // Something that goes on for a while is shown now and then, until the creature does something else
     std::string ongoingEvent = getOngoingEvent(creature, clip);
-    if(ongoingEvent.empty())
-        stopOngoing(creature->getName());
-    else
+    finishOngoing(creature, ongoingEvent);
+    if(!ongoingEvent.empty())
         startOngoing(creature, ongoingEvent);
 
     if((clip == "Die") || (clip == "die"))
@@ -995,6 +1016,15 @@ void CreatureReactions::noteAnimation(MovableGameEntity* entity, const std::stri
     else if(clip == "Flee")
     {
         celebrateVictory(creature, true);
+    }
+    else if(clip == "Dig")
+    {
+        noteDigging(creature);
+    }
+    else if((clip == "EatChicken") && (getRoomName(creature) == "Hatchery"))
+    {
+        // The meal in the hatchery is over when the animation is: then the creature shows how it liked it
+        queueReaction(creature, "HatcheryMealDone", DONE_WAIT_MAX, 0.5);
     }
     else if(startsWith(clip, "Attack") || (clip == "CombatAttack") || (clip == "RangedAttack") ||
             startsWith(clip, "Cast"))
@@ -1021,6 +1051,8 @@ void CreatureReactions::noteRoomWork(Creature* creature)
         eventName = "WorkshopWork";
     else if(room->getType() == RoomType::trainingHall)
         eventName = "TrainingWork";
+    else if(room->getType() == RoomType::hatchery)
+        eventName = "HatcheryWork";
     else
         return;
 
@@ -1033,7 +1065,8 @@ void CreatureReactions::noteRoomWork(Creature* creature)
     queueReaction(creature, eventName);
 }
 
-void CreatureReactions::queueReaction(Creature* creature, const std::string& eventName)
+void CreatureReactions::queueReaction(Creature* creature, const std::string& eventName, double waitMax,
+        double delay)
 {
     const ReactionEvent* event = mConfig.getEvent(eventName);
     if(event == nullptr)
@@ -1063,8 +1096,9 @@ void CreatureReactions::queueReaction(Creature* creature, const std::string& eve
     PendingReaction pending;
     pending.mCreatureName = creature->getName();
     pending.mEventName = eventName;
-    pending.mDelay = PENDING_WAIT_STEP;
+    pending.mDelay = (delay >= 0.0) ? delay : PENDING_WAIT_STEP;
     pending.mWaited = 0.0;
+    pending.mWaitMax = (waitMax > 0.0) ? waitMax : PENDING_WAIT_MAX;
     pending.mForced = false;
     mPending.push_back(pending);
 }
@@ -1153,9 +1187,35 @@ std::string CreatureReactions::getRoomName(const Creature* creature) const
 
 std::string CreatureReactions::getOngoingEvent(const Creature* creature, const std::string& clip) const
 {
+    // Digging and claiming are one animation for as long as the creature does it
+    if(clip == "Dig")
+        return "DigWork";
+
+    if(clip == "Claim")
+        return "ClaimWork";
+
+    std::string roomName = getRoomName(creature);
+
     // Creatures that wait in the arena while others fight watch the bouts
-    if((clip == "Idle") && (getRoomName(creature) == "Arena"))
+    if((clip == "Idle") && (roomName == "Arena"))
         return "ArenaWork";
+
+    // Sleeping in a bed and praying (the prayer is the idle animation in the temple)
+    if(startsWith(clip, "Sleep") && (roomName == "Dormitory"))
+        return "DormitoryWork";
+
+    if((clip == "Idle") && (roomName == "Temple"))
+        return "TempleWork";
+
+    // Prisoners wait in their cell, and struggle or glare while they are tortured
+    if(creature->isInContainment())
+    {
+        if((clip == "Idle") && (roomName == "Prison"))
+            return "PrisonWork";
+
+        if(((clip == "Idle") || (clip == "Flee")) && (roomName == "Torture"))
+            return "TortureWork";
+    }
 
     return std::string();
 }
@@ -1173,9 +1233,25 @@ void CreatureReactions::startOngoing(Creature* creature, const std::string& even
     mOngoing[creature->getName()] = work;
 }
 
-void CreatureReactions::stopOngoing(const std::string& creatureName)
+void CreatureReactions::finishOngoing(Creature* creature, const std::string& newEvent)
 {
-    mOngoing.erase(creatureName);
+    std::map<std::string, OngoingWork>::iterator it = mOngoing.find(creature->getName());
+    if((it == mOngoing.end()) || (it->second.mEventName == newEvent))
+        return;
+
+    // The end of a long sleep or prayer is shown
+    std::string doneEvent;
+    double duration = mTime - it->second.mSince;
+    if((it->second.mEventName == "DormitoryWork") && (duration >= SLEEP_DONE_MIN))
+        doneEvent = "WakeRested";
+    else if((it->second.mEventName == "TempleWork") && (duration >= PRAYER_DONE_MIN))
+        doneEvent = "TempleDone";
+    else if((it->second.mEventName == "ClaimWork") && (duration >= CLAIM_DONE_MIN))
+        doneEvent = "ClaimDone";
+
+    mOngoing.erase(it);
+    if(!doneEvent.empty())
+        queueReaction(creature, doneEvent, DONE_WAIT_MAX);
 }
 
 void CreatureReactions::updateOngoing()
@@ -1309,7 +1385,8 @@ void CreatureReactions::celebrateVictory(Creature* loser, bool fled)
     }
 }
 
-void CreatureReactions::noteCreatureUpdate(Creature* creature, uint32_t oldLevel, uint32_t oldMood)
+void CreatureReactions::noteCreatureUpdate(Creature* creature, uint32_t oldLevel, uint32_t oldMood, Seat* oldSeat,
+        Seat* oldSeatPrison)
 {
     if((mMode == Mode::off) || !mConfigLoaded || !creature->getIsOnMap())
         return;
@@ -1318,6 +1395,29 @@ void CreatureReactions::noteCreatureUpdate(Creature* creature, uint32_t oldLevel
     {
         // A trainee that reached a new level shows its success with a punch into the air
         trigger(creature, (getRoomName(creature) == "TrainingHall") ? "TrainingDone" : "LevelUp");
+    }
+
+    // A prisoner that now serves another keeper was converted (after a torture it shows that it broke)
+    if((oldSeatPrison != nullptr) && (creature->getSeatPrison() == nullptr) && (creature->getSeat() != oldSeat))
+    {
+        std::map<std::string, OngoingWork>::const_iterator itOngoing = mOngoing.find(creature->getName());
+        if((itOngoing != mOngoing.end()) && (itOngoing->second.mEventName == "TortureWork"))
+        {
+            queueReaction(creature, "PrisonConverted", DONE_WAIT_MAX, CONVERTED_DELAY);
+            trigger(creature, "TortureBroken");
+        }
+        else
+        {
+            trigger(creature, "PrisonConverted");
+        }
+    }
+
+    // A prisoner that was just put into a cell waits there. The animation that tells so may have come first.
+    if((creature->getSeatPrison() != nullptr) && (oldSeatPrison == nullptr))
+    {
+        std::string ongoingEvent = getOngoingEvent(creature, "Idle");
+        if(!ongoingEvent.empty())
+            startOngoing(creature, ongoingEvent);
     }
 
     // A creature knocked out in the arena ends the bout
@@ -1336,6 +1436,67 @@ void CreatureReactions::noteCreatureUpdate(Creature* creature, uint32_t oldLevel
         bool paid = (room != nullptr) && (room->getType() == RoomType::treasury);
         trigger(creature, paid ? "PaydayPaid" : "PaydayUnpaid");
     }
+}
+
+void CreatureReactions::noteDigging(Creature* creature)
+{
+    Tile* tile = creature->getPositionTile();
+    if(tile == nullptr)
+        return;
+
+    // The client knows what the tiles around the digger are made of
+    for(int dx = -1; dx <= 1; ++dx)
+    {
+        for(int dy = -1; dy <= 1; ++dy)
+        {
+            Tile* neighbour = mGameMap->getTile(tile->getX() + dx, tile->getY() + dy);
+            if((neighbour == nullptr) || (neighbour->getFullness() <= 0.0))
+                continue;
+
+            if((neighbour->getType() == TileType::gold) || (neighbour->getType() == TileType::gem))
+            {
+                trigger(creature, "DigGold");
+                return;
+            }
+        }
+    }
+}
+
+void CreatureReactions::noteCarry(Creature* carrier, GameEntity* carried)
+{
+    if((mMode == Mode::off) || !mConfigLoaded || (carried->getObjectType() != GameEntityType::treasuryObject))
+        return;
+
+    trigger(carrier, "CarryGold");
+}
+
+void CreatureReactions::noteRelease(Creature* carrier, GameEntity* carried)
+{
+    if((mMode == Mode::off) || !mConfigLoaded || (carried->getObjectType() != GameEntityType::treasuryObject))
+        return;
+
+    if(getRoomName(carrier) != "Treasury")
+        return;
+
+    // Delivering again and again is tiring: after some deliveries the creature is out of breath
+    Delivery& delivery = mDeliveries[carrier->getName()];
+    if((delivery.mCount == 0) || ((mTime - delivery.mSince) > DELIVERY_WINDOW))
+    {
+        delivery.mCount = 0;
+        delivery.mSince = mTime;
+    }
+
+    ++delivery.mCount;
+    if(delivery.mCount >= DELIVERY_TIRED_COUNT)
+    {
+        delivery.mCount = 0;
+        trigger(carrier, "TreasuryFull");
+        return;
+    }
+
+    // The work with the gold follows the done moment (it is queued first, the running reaction would refuse it)
+    queueReaction(carrier, "TreasuryWork", -1.0, TREASURY_WORK_DELAY);
+    trigger(carrier, "GoldDelivered");
 }
 
 void CreatureReactions::noteHandDrop(GameEntity* entity, Tile* tile)

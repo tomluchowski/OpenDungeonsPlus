@@ -193,6 +193,36 @@ def glyph_smoke(draw):
     draw.ellipse((90, 94, 170, 158), fill=grey)
 
 
+def glyph_chicken(draw):
+    cream = (250, 242, 220, 255)
+    wing = (232, 218, 184, 255)
+    dark = (120, 100, 70, 255)
+    red = (205, 40, 40, 255)
+    orange = (240, 150, 30, 255)
+    # Tail, round body with a wing, head with comb, beak, eye and two legs
+    draw.polygon([(70, 104), (42, 66), (92, 92)], fill=cream, outline=dark)
+    draw.ellipse((62, 84, 178, 166), fill=cream, outline=dark, width=5)
+    draw.ellipse((88, 108, 146, 150), fill=wing, outline=dark, width=4)
+    draw.line((112, 164, 112, 184), fill=orange, width=7)
+    draw.line((142, 164, 142, 184), fill=orange, width=7)
+    for cx in (162, 176, 190):
+        draw.ellipse((cx - 10, 34, cx + 10, 60), fill=red, outline=dark, width=3)
+    draw.ellipse((146, 50, 206, 108), fill=cream, outline=dark, width=5)
+    draw.polygon([(202, 74), (230, 82), (202, 92)], fill=orange, outline=dark)
+    draw.ellipse((182, 68, 192, 78), fill=OUTLINE)
+
+
+def glyph_sack(draw):
+    brown = (176, 130, 76, 255)
+    dark = (96, 64, 30, 255)
+    # A bag tied at the top with a coin on it
+    points = [(104, 66), (152, 66), (172, 88), (198, 132), (182, 170), (74, 170), (58, 132), (84, 88)]
+    draw.polygon(points, fill=brown)
+    draw.line(points + [points[0]], fill=dark, width=6, joint="curve")
+    draw.rounded_rectangle((98, 54, 158, 76), radius=9, fill=(150, 106, 56, 255), outline=dark, width=4)
+    coin(draw, 128, 128, 28)
+
+
 EMOTES = [
     ("Exclamation", glyph_exclamation),
     ("Question", glyph_question),
@@ -208,6 +238,8 @@ EMOTES = [
     ("Book", glyph_book),
     ("Gear", glyph_gear),
     ("Smoke", glyph_smoke),
+    ("Chicken", glyph_chicken),
+    ("Sack", glyph_sack),
 ]
 
 
