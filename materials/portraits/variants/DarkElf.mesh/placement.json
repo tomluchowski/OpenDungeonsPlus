@@ -1,380 +1,630 @@
 [
   {
-    "method": "visible-alpha-v2",
     "file": "build-1-slim.png",
     "source": "materials/portraits/generated-features/DarkElf.mesh/build-1-slim.png",
     "source_sha256": "76f715c8bb175df219a6f70636786ecc0202103483d5f68d5b31ec78a069dea0",
+    "source_bounds": [
+      12,
+      159,
+      1203,
+      1197
+    ],
     "rect": [
       0,
-      940,
+      810,
       887,
-      834
+      964
     ],
     "scale": 0.744752308984047,
+    "vertical_scale": 0.9595375722543352,
     "offset": [
       -8.937027707808564,
-      -87.94206549118384
+      -152.5664739884393
     ],
-    "visual_acceptance": "needs-correction"
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "b7b51bb2e67135a429d2dc3608fd4005b6da5150ab05d9cc7381aa7f5fafa597"
   },
   {
-    "method": "visible-alpha-v2",
     "file": "build-2-sturdy.png",
     "source": "materials/portraits/generated-features/DarkElf.mesh/build-2-sturdy.png",
     "source_sha256": "825c23223005a64b57787280ef0876ac88e14a2509e96cc1d1333e25b6d289a5",
+    "source_bounds": [
+      6,
+      223,
+      1145,
+      1202
+    ],
     "rect": [
       0,
-      940,
+      810,
       887,
-      834
+      964
     ],
     "scale": 0.7787532923617209,
+    "vertical_scale": 1.017364657814096,
     "offset": [
-      -4.6725197541703825,
-      -137.8617208077261
+      -4.672519754170326,
+      -226.87231869254342
     ],
-    "visual_acceptance": "needs-correction"
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "b7b51bb2e67135a429d2dc3608fd4005b6da5150ab05d9cc7381aa7f5fafa597"
   },
   {
-    "method": "visible-alpha-v2",
     "file": "hair-1-swept.png",
     "source": "materials/portraits/generated-features/DarkElf.mesh/hair-1-swept.png",
     "source_sha256": "3815b35411a25a0c386171d840512b556c61f06c04b8c4aa9a9be1453186eda8",
+    "source_bounds": [
+      113,
+      44,
+      1074,
+      1290
+    ],
     "rect": [
-      180,
-      120,
-      610,
-      920
+      130,
+      190,
+      630,
+      1050
     ],
-    "scale": 0.6014568158168574,
+    "scale": 0.6389177939646202,
+    "vertical_scale": 0.6389177939646202,
     "offset": [
-      -51.96462018730489,
-      -10.464099895941725
+      -64.19771071800209,
+      -20.11238293444329
     ],
-    "visual_acceptance": "native-review-pending"
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "b7b51bb2e67135a429d2dc3608fd4005b6da5150ab05d9cc7381aa7f5fafa597"
   },
   {
-    "method": "visible-alpha-v2",
     "file": "hair-2-waves.png",
     "source": "materials/portraits/generated-features/DarkElf.mesh/hair-2-waves.png",
     "source_sha256": "5edefa685e5229092c9341c83a16e94db660fbb401b29dd38dcf68ebd0f6bc13",
+    "source_bounds": [
+      133,
+      68,
+      1136,
+      1219
+    ],
     "rect": [
-      180,
-      120,
-      610,
-      920
+      130,
+      190,
+      630,
+      1050
     ],
-    "scale": 0.576271186440678,
+    "scale": 0.6121635094715853,
+    "vertical_scale": 0.6121635094715853,
     "offset": [
-      -60.64406779661017,
-      -23.186440677966104
+      -73.41774675972084,
+      -33.6271186440678
     ],
-    "visual_acceptance": "native-review-pending"
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "b7b51bb2e67135a429d2dc3608fd4005b6da5150ab05d9cc7381aa7f5fafa597"
   },
   {
-    "method": "visible-alpha-v2",
     "file": "ears-1-notched.png",
     "source": "materials/portraits/generated-features/DarkElf.mesh/ears-1-notched.png",
     "source_sha256": "0f52bf5694be165d3306f5b912dcc1d3de3a72df813cfdaa640c340a69564570",
+    "source_bounds": [
+      86,
+      75,
+      1159,
+      1207
+    ],
     "rect": [
-      130,
-      365,
-      250,
-      310
+      95,
+      440,
+      235,
+      320
     ],
-    "scale": 0.2031686859273066,
+    "scale": 0.20410065237651445,
+    "vertical_scale": 0.20410065237651445,
     "offset": [
-      -1.4725069897483678,
-      24.76887232059647
+      -9.552656104380244,
+      29.171481826654237
     ],
-    "visual_acceptance": "needs-correction"
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "b7b51bb2e67135a429d2dc3608fd4005b6da5150ab05d9cc7381aa7f5fafa597"
   },
   {
-    "method": "visible-alpha-v2",
     "file": "ears-2-rounder.png",
     "source": "materials/portraits/generated-features/DarkElf.mesh/ears-2-rounder.png",
     "source_sha256": "b2def041f915cc1fb759dc6b803d76679c2cb3190f64311e3c7e14b0762998ff",
+    "source_bounds": [
+      195,
+      134,
+      1026,
+      1122
+    ],
     "rect": [
-      130,
-      365,
-      250,
-      310
+      95,
+      440,
+      235,
+      320
     ],
-    "scale": 0.26233453670276774,
+    "scale": 0.26353790613718414,
+    "vertical_scale": 0.26353790613718414,
     "offset": [
-      -35.155234657039706,
-      -9.746089049338131
+      -43.38989169675092,
+      -5.501805054151632
     ],
-    "visual_acceptance": "needs-correction"
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "b7b51bb2e67135a429d2dc3608fd4005b6da5150ab05d9cc7381aa7f5fafa597"
   },
   {
-    "method": "visible-alpha-v2",
     "file": "eyes-1-narrow.png",
     "source": "materials/portraits/generated-features/DarkElf.mesh/eyes-1-narrow.png",
     "source_sha256": "34baecd5cacac107d20ef3a3ba602f877fa2d260c567b62187595e086f7fe0b0",
+    "source_bounds": [
+      321,
+      104,
+      1851,
+      637
+    ],
     "rect": [
-      342,
-      495,
-      285,
-      140
+      300,
+      480,
+      335,
+      160
     ],
-    "scale": 0.165359477124183,
+    "scale": 0.2084967320261438,
+    "vertical_scale": 0.2084967320261438,
     "offset": [
-      -37.08039215686274,
-      8.7343137254902
+      -58.927450980392166,
+      2.7519607843137237
     ],
-    "visual_acceptance": "needs-correction"
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "b7b51bb2e67135a429d2dc3608fd4005b6da5150ab05d9cc7381aa7f5fafa597"
   },
   {
-    "method": "visible-alpha-v2",
     "file": "eyes-2-round.png",
     "source": "materials/portraits/generated-features/DarkElf.mesh/eyes-2-round.png",
     "source_sha256": "93994f91a616f0175b8dd715864f2b20d23e077bf1e3efdff47617bf1e36e8ef",
+    "source_bounds": [
+      321,
+      111,
+      1775,
+      653
+    ],
     "rect": [
-      342,
-      495,
-      285,
-      140
+      300,
+      480,
+      335,
+      160
     ],
-    "scale": 0.17400275103163687,
+    "scale": 0.21939477303988997,
+    "vertical_scale": 0.21939477303988997,
     "offset": [
-      -39.854883081155435,
-      3.5309491059147184
+      -62.425722145804684,
+      -3.8088033012379654
     ],
-    "visual_acceptance": "needs-correction"
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "b7b51bb2e67135a429d2dc3608fd4005b6da5150ab05d9cc7381aa7f5fafa597"
   },
   {
-    "method": "visible-alpha-v2",
     "file": "eyes-3-eyepatch.png",
     "source": "materials/portraits/generated-features/DarkElf.mesh/eyes-3-eyepatch.png",
     "source_sha256": "2276979900d9a0f04d9a6ded69847681e59815731c8a74fc54e69f172665d414",
+    "source_bounds": [
+      81,
+      175,
+      1693,
+      746
+    ],
     "rect": [
-      342,
-      495,
-      285,
-      140
+      300,
+      480,
+      335,
+      160
     ],
-    "scale": 0.15694789081885857,
+    "scale": 0.1978908188585608,
+    "vertical_scale": 0.1978908188585608,
     "offset": [
-      3.2872208436724417,
-      -2.274503722084372
+      -8.029156327543426,
+      -11.128722084367247
     ],
-    "visual_acceptance": "needs-correction"
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "b7b51bb2e67135a429d2dc3608fd4005b6da5150ab05d9cc7381aa7f5fafa597"
   },
   {
-    "method": "visible-alpha-v2",
     "file": "nose-1-crooked.png",
     "source": "materials/portraits/generated-features/DarkElf.mesh/nose-1-crooked.png",
     "source_sha256": "a339ccaf60c915cec652a5afa9d4e72508f4014cf9e42a69e0f75424b5425ddb",
+    "source_bounds": [
+      480,
+      157,
+      1056,
+      867
+    ],
     "rect": [
-      422,
-      562,
-      155,
-      175
+      430,
+      595,
+      170,
+      180
     ],
-    "scale": 0.20140845070422536,
+    "scale": 0.23098591549295774,
+    "vertical_scale": 0.23098591549295774,
     "offset": [
-      -77.18169014084508,
-      -15.621126760563381
+      -92.39718309859154,
+      -28.264788732394365
     ],
-    "visual_acceptance": "native-review-pending"
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "b7b51bb2e67135a429d2dc3608fd4005b6da5150ab05d9cc7381aa7f5fafa597"
   },
   {
-    "method": "visible-alpha-v2",
     "file": "nose-2-broad.png",
     "source": "materials/portraits/generated-features/DarkElf.mesh/nose-2-broad.png",
     "source_sha256": "6ec4d5f1a2716d46e0489abbf6ccf92c94961fd02fe0e2a7b8b689503c1b3706",
+    "source_bounds": [
+      488,
+      171,
+      1050,
+      839
+    ],
     "rect": [
-      422,
-      562,
-      155,
-      175
+      430,
+      595,
+      170,
+      180
     ],
-    "scale": 0.21407185628742514,
+    "scale": 0.24550898203592814,
+    "vertical_scale": 0.24550898203592814,
     "offset": [
-      -87.12125748502994,
-      -20.606287425149702
+      -103.79640718562874,
+      -33.98203592814371
     ],
-    "visual_acceptance": "native-review-pending"
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "b7b51bb2e67135a429d2dc3608fd4005b6da5150ab05d9cc7381aa7f5fafa597"
   },
   {
-    "method": "visible-alpha-v2",
     "file": "mouth-1-teeth.png",
     "source": "materials/portraits/generated-features/DarkElf.mesh/mouth-1-teeth.png",
     "source_sha256": "6e82dd470ff771a16245762c9daf50e39fca54f25211e68a8fbc58742564bd67",
+    "source_bounds": [
+      289,
+      188,
+      1490,
+      738
+    ],
     "rect": [
-      390,
-      692,
-      220,
-      85
+      350,
+      735,
+      285,
+      125
     ],
-    "scale": 0.09636363636363636,
+    "scale": 0.19818181818181818,
+    "vertical_scale": 0.19818181818181818,
     "offset": [
-      24.284545454545455,
-      -2.116363636363637
+      -33.782727272727264,
+      -29.258181818181818
     ],
-    "visual_acceptance": "needs-correction"
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "b7b51bb2e67135a429d2dc3608fd4005b6da5150ab05d9cc7381aa7f5fafa597"
   },
   {
-    "method": "visible-alpha-v2",
     "file": "mouth-2-grin.png",
     "source": "materials/portraits/generated-features/DarkElf.mesh/mouth-2-grin.png",
     "source_sha256": "cf44311aa89c94c3629bb5e9871b9bb947943b03a8b21b624d68de0ec90c8e94",
+    "source_bounds": [
+      300,
+      206,
+      1467,
+      732
+    ],
     "rect": [
-      390,
-      692,
-      220,
-      85
+      350,
+      735,
+      285,
+      125
     ],
-    "scale": 0.10076045627376426,
+    "scale": 0.20722433460076045,
+    "vertical_scale": 0.20722433460076045,
     "offset": [
-      20.978136882129277,
-      -4.756653992395439
+      -40.58269961977185,
+      -34.68821292775665
     ],
-    "visual_acceptance": "needs-correction"
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "b7b51bb2e67135a429d2dc3608fd4005b6da5150ab05d9cc7381aa7f5fafa597"
   },
   {
-    "method": "visible-alpha-v2",
     "file": "mouth-3-cigar.png",
     "source": "materials/portraits/generated-features/DarkElf.mesh/mouth-3-cigar.png",
     "source_sha256": "0b4208432da5f000688c1ce76363b28435ecd29b8b2d707df0df228c5bf4f2c7",
+    "source_bounds": [
+      285,
+      269,
+      1400,
+      751
+    ],
     "rect": [
-      390,
-      692,
-      220,
-      85
+      350,
+      735,
+      285,
+      125
     ],
-    "scale": 0.10995850622406639,
+    "scale": 0.22614107883817428,
+    "vertical_scale": 0.22614107883817428,
     "offset": [
-      17.359958506224064,
-      -13.578838174273859
+      -48.02385892116183,
+      -52.83195020746888
     ],
-    "visual_acceptance": "needs-correction"
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "b7b51bb2e67135a429d2dc3608fd4005b6da5150ab05d9cc7381aa7f5fafa597"
   },
   {
-    "method": "visible-alpha-v2",
     "file": "chin-1-square.png",
     "source": "materials/portraits/generated-features/DarkElf.mesh/chin-1-square.png",
     "source_sha256": "21ad88124d4cd9d209023f0ef8a91977b796eb89024a3080293cc5325b40bbf1",
+    "source_bounds": [
+      155,
+      275,
+      1328,
+      835
+    ],
     "rect": [
-      335,
-      745,
-      290,
-      150
+      350,
+      765,
+      285,
+      145
     ],
-    "scale": 0.21071428571428572,
+    "scale": 0.22932651321398123,
+    "vertical_scale": 0.22932651321398123,
     "offset": [
-      -11.244642857142857,
-      -41.94642857142857
+      -27.545609548167093,
+      -54.77621483375958
     ],
-    "visual_acceptance": "needs-correction"
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "b7b51bb2e67135a429d2dc3608fd4005b6da5150ab05d9cc7381aa7f5fafa597"
   },
   {
-    "method": "visible-alpha-v2",
     "file": "chin-2-rounded.png",
     "source": "materials/portraits/generated-features/DarkElf.mesh/chin-2-rounded.png",
     "source_sha256": "8b19665a423828245f274a9670d42f10e9dfaa99ce8754d1560368575c51a918",
+    "source_bounds": [
+      197,
+      232,
+      1340,
+      747
+    ],
     "rect": [
-      335,
-      745,
-      290,
-      150
+      350,
+      765,
+      285,
+      145
     ],
-    "scale": 0.22572178477690288,
+    "scale": 0.23534558180227472,
+    "vertical_scale": 0.23534558180227472,
     "offset": [
-      -28.46719160104987,
-      -35.490813648293965
+      -38.36307961504812,
+      -42.70166229221347
     ],
-    "visual_acceptance": "needs-correction"
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "b7b51bb2e67135a429d2dc3608fd4005b6da5150ab05d9cc7381aa7f5fafa597"
   },
   {
-    "method": "visible-alpha-v2",
     "file": "scar-1-diagonal.png",
     "source": "materials/portraits/generated-features/DarkElf.mesh/scar-1-diagonal.png",
     "source_sha256": "b72f18a82b884425fbae812ba5c96d3326c296cf7f9921404a557168210da727",
+    "source_bounds": [
+      256,
+      83,
+      1114,
+      1182
+    ],
     "rect": [
-      305,
-      600,
-      160,
-      130
+      290,
+      610,
+      180,
+      155
     ],
-    "scale": 0.08917197452229299,
+    "scale": 0.1264786169244768,
+    "vertical_scale": 0.1264786169244768,
     "offset": [
-      18.917197452229306,
-      8.598726114649683
+      3.362147406733399,
+      -2.497725204731573
     ],
-    "visual_acceptance": "native-review-pending"
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": "union of all hair and ear alpha",
+    "source_mask_polygon": null,
+    "base_sha256": "b7b51bb2e67135a429d2dc3608fd4005b6da5150ab05d9cc7381aa7f5fafa597"
   },
   {
-    "method": "visible-alpha-v2",
     "file": "scar-2-scratches.png",
     "source": "materials/portraits/generated-features/DarkElf.mesh/scar-2-scratches.png",
     "source_sha256": "2efb6faf1a0aecb601938b910573c018555877766d153f8f91d21ea0e86bf94f",
+    "source_bounds": [
+      102,
+      51,
+      1123,
+      1218
+    ],
     "rect": [
-      305,
-      600,
-      160,
-      130
+      290,
+      610,
+      180,
+      155
     ],
-    "scale": 0.08397600685518423,
+    "scale": 0.11910882604970009,
+    "vertical_scale": 0.11910882604970009,
     "offset": [
-      28.564695801199658,
-      11.717223650385604
+      17.045844044558695,
+      1.925449871465295
     ],
-    "visual_acceptance": "native-review-pending"
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": "union of all hair and ear alpha",
+    "source_mask_polygon": null,
+    "base_sha256": "b7b51bb2e67135a429d2dc3608fd4005b6da5150ab05d9cc7381aa7f5fafa597"
   },
   {
-    "method": "visible-alpha-v2",
     "file": "scar-3-warpaint.png",
     "source": "materials/portraits/generated-features/DarkElf.mesh/scar-3-warpaint.png",
     "source_sha256": "043f13fe18de01f43d44806fcbc26e20fbaffc51e003725b20b27bdf1aeb8140",
+    "source_bounds": [
+      137,
+      72,
+      1400,
+      958
+    ],
     "rect": [
-      305,
-      600,
-      160,
-      130
+      290,
+      610,
+      180,
+      155
     ],
-    "scale": 0.10134600158353127,
+    "scale": 0.12984956452889945,
+    "vertical_scale": 0.12984956452889945,
     "offset": [
-      2.1155977830562165,
-      12.806809184481398
+      -9.789390340459224,
+      10.627474267616778
     ],
-    "visual_acceptance": "native-review-pending"
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": "union of all hair and ear alpha",
+    "source_mask_polygon": null,
+    "base_sha256": "b7b51bb2e67135a429d2dc3608fd4005b6da5150ab05d9cc7381aa7f5fafa597"
   },
   {
-    "method": "visible-alpha-v2",
     "file": "neck-1-teeth.png",
     "source": "materials/portraits/generated-features/DarkElf.mesh/neck-1-teeth.png",
     "source_sha256": "0cd2d59ddd18d98da0ac64a0db61d732407ded177c163e2a21318a372f3f0434",
+    "source_bounds": [
+      210,
+      135,
+      1334,
+      883
+    ],
     "rect": [
-      270,
-      820,
-      400,
-      230
+      265,
+      950,
+      390,
+      270
     ],
-    "scale": 0.2647058823529412,
+    "scale": 0.33274021352313166,
+    "vertical_scale": 0.33274021352313166,
     "offset": [
-      -4.352941176470601,
-      -19.735294117647058
+      -61.87544483985765,
+      -34.36476868327402
     ],
-    "visual_acceptance": "native-review-pending"
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "b7b51bb2e67135a429d2dc3608fd4005b6da5150ab05d9cc7381aa7f5fafa597"
   },
   {
-    "method": "visible-alpha-v2",
     "file": "neck-2-torque.png",
     "source": "materials/portraits/generated-features/DarkElf.mesh/neck-2-torque.png",
     "source_sha256": "6cd0f3b9aef4ef340b502078d0c8ace7d76c77f23637b0e319dbd045460d8849",
+    "source_bounds": [
+      68,
+      102,
+      1470,
+      909
+    ],
     "rect": [
-      270,
-      820,
-      400,
-      230
+      265,
+      950,
+      390,
+      270
     ],
-    "scale": 0.24535315985130113,
+    "scale": 0.26676176890156916,
+    "vertical_scale": 0.26676176890156916,
     "offset": [
-      11.323420074349425,
-      -9.026022304832715
+      -10.139800285306674,
+      0.15192582025678192
     ],
-    "visual_acceptance": "needs-correction"
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "b7b51bb2e67135a429d2dc3608fd4005b6da5150ab05d9cc7381aa7f5fafa597"
+  },
+  {
+    "id": "DarkElf.mesh",
+    "n": 1,
+    "name": "tunic",
+    "build": 0,
+    "file": "outfit-1-tunic-build0.png",
+    "source": "materials/portraits/generated-outfits/DarkElf.mesh/outfit-1-tunic.png",
+    "source_sha256": "b03a7f3b3905278711f36b4786974e9718b57986ca0cf309be5ef8c3a01f99f0",
+    "source_size": [
+      887,
+      1774
+    ],
+    "canvas_registration": "canonical canvas",
+    "body_span_fit": "continuous outer sleeve sector extensions clipped to uncovered body",
+    "bottom_rows_repeated": 0,
+    "horizontal_scale": 1.175,
+    "vertical_scale": 1.08,
+    "offset": [
+      -77.61250000000003,
+      -57.60000000000005
+    ],
+    "mesh_warp": null,
+    "torso_margin": 1.1111111111111112,
+    "sleeve_warp": null,
+    "head_occlusion": {
+      "warm_neutral_skin_above_row": 820
+    },
+    "native_uncovered_body_pixels": 15971,
+    "coarse_uncovered_body_pixels": 872,
+    "coarse_body_pixels": 8071,
+    "visual_acceptance": "accepted-native-and-50x100",
+    "prompt": "Generate ONE isolated EMPTY Dark Elf clothing overlay registered exactly to the attached blue-grey neutral dummy reference, using it solely for pose and geometry. Exact887x1774 transparentRGBA canvas. Plain dark charcoal/slate long-sleeved tunic with muted leather shoulder panels, plain waist belt and cuffs, no emblems. Slight three-quarter view, lowered slender arms, cool upper-left lighting, coarse painted fantasy brushwork matching the reference. Male reference collar around y900-1030, female around y880-1000; match the actual attached reference precisely, shoulders y980-1150, chest x40-850 y1250, belt y1510. Cover all visible shoulders, entire torso and arms with fitting margin, continue beyond bottomcrop. Empty garments only, no dummy, body, skin, head, face, ears, eyes, nose, hair, beard, helmet, necklace, weapons, tools, symbols, writing, modern objects or background. Retain all blank upper canvas, no tight crop or recentering.",
+    "rect": [
+      0,
+      0,
+      887,
+      1774
+    ],
+    "base_sha256": "b7b51bb2e67135a429d2dc3608fd4005b6da5150ab05d9cc7381aa7f5fafa597"
   }
 ]
