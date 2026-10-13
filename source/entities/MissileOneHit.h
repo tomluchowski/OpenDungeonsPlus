@@ -50,7 +50,7 @@ protected:
     void exportToStream(std::ostream& os) const override;
     bool importFromStream(std::istream& is) override;
 
-private:
+protected:
     double mPhysicalDamage;
     double mMagicalDamage;
     double mElementDamage;

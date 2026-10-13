@@ -296,6 +296,7 @@ set(OD_SOURCEFILES
     ${SRC}/creatureeffect/CreatureEffectSlap.cpp
     ${SRC}/creatureeffect/CreatureEffectSpeedChange.cpp
     ${SRC}/creatureeffect/CreatureEffectStrengthChange.cpp
+    ${SRC}/creatureeffect/CreatureEffectAreaDamage.cpp
 
     ${SRC}/creaturemood/CreatureMood.cpp
     ${SRC}/creaturemood/CreatureMoodWakefulness.cpp
@@ -329,6 +330,8 @@ set(OD_SOURCEFILES
     ${SRC}/creatureskill/CreatureSkillWeak.cpp
     ${SRC}/creatureskill/CreatureSkillWhirlwind.cpp
     ${SRC}/creatureskill/CreatureSkillTeleport.cpp
+    ${SRC}/creatureskill/CreatureSkillAreaDamage.cpp
+    ${SRC}/creatureskill/CreatureSkillGuidedBolt.cpp
 
     ${SRC}/entities/Building.cpp
     ${SRC}/entities/BuildingObject.cpp
@@ -343,6 +346,7 @@ set(OD_SOURCEFILES
     ${SRC}/entities/GiftBoxEntity.cpp
     ${SRC}/entities/MapLight.cpp
     ${SRC}/entities/MissileBoulder.cpp
+    ${SRC}/entities/MissileBlast.cpp
     ${SRC}/entities/MissileObject.cpp
     ${SRC}/entities/MissileOneHit.cpp
     ${SRC}/entities/MovableGameEntity.cpp

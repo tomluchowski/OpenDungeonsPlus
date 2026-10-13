@@ -33,7 +33,8 @@ class ODPacket;
 enum class MissileObjectType
 {
     oneHit,
-    boulder
+    boulder,
+    blast
 };
 
 ODPacket& operator<<(ODPacket& os, const MissileObjectType& rot);
@@ -95,6 +96,16 @@ public:
     static MissileObject* getMissileObjectFromStream(GameMap* gameMap, std::istream& is);
     static MissileObject* getMissileObjectFromPacket(GameMap* gameMap, ODPacket& is);
 protected:
+    //! \brief Called each turn before the missile moves. A missile that follows its target sets its new direction here
+    virtual void updateDirection()
+    {}
+
+    GameEntity* getEntityTarget() const
+    { return mEntityTarget; }
+
+    void setDirection(const Ogre::Vector3& direction)
+    { mDirection = direction; }
+
     virtual void exportHeadersToStream(std::ostream& os) const override;
     virtual void exportHeadersToPacket(ODPacket& os) const override;
     void exportToStream(std::ostream& os) const override;

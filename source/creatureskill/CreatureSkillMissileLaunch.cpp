@@ -101,9 +101,8 @@ bool CreatureSkillMissileLaunch::tryUseFight(GameMap& gameMap, Creature* creatur
         eleAtk +=creature->getWeaponR()->getElementDamage();
     }
 
-    MissileOneHit* missile = new MissileOneHit(&gameMap, creature->getSeat(), creature->getName(),
-        mMissileMesh, mMissilePartScript, missileDirection, mMissileSpeed, phyAtk, magAtk, eleAtk,
-        attackedObject, false, ko, notifyPlayerIfHit);
+    MissileOneHit* missile = createMissile(gameMap, creature, missileDirection, phyAtk, magAtk, eleAtk,
+        attackedObject, ko, notifyPlayerIfHit);
     missile->addToGameMap();
     missile->createMesh();
     missile->setPosition(position);
@@ -116,6 +115,14 @@ bool CreatureSkillMissileLaunch::tryUseFight(GameMap& gameMap, Creature* creatur
     missile->doUpkeep();
 
     return true;
+}
+
+MissileOneHit* CreatureSkillMissileLaunch::createMissile(GameMap& gameMap, Creature* creature,
+        const Ogre::Vector3& direction, double phyAtk, double magAtk, double eleAtk, GameEntity* attackedObject,
+        bool ko, bool notifyPlayerIfHit) const
+{
+    return new MissileOneHit(&gameMap, creature->getSeat(), creature->getName(), mMissileMesh, mMissilePartScript,
+        direction, mMissileSpeed, phyAtk, magAtk, eleAtk, attackedObject, false, ko, notifyPlayerIfHit);
 }
 
 CreatureSkillMissileLaunch* CreatureSkillMissileLaunch::clone() const
