@@ -21,12 +21,13 @@
 #include "Trap.h"
 #include "traps/TrapType.h"
 
-//! \brief A post that never fires. Guards of the owner's guard rooms patrol to it, and it calls them
-//! when it notices an enemy within its aura.
+//! \brief A post that shoots nothing. Guards of the owner's guard rooms patrol to it, and it calls them
+//! when it notices an enemy within its aura. Calling the guards is its "shot": the clients are told (flag flares), and
+//! the post then reloads for GuardRoomDistressSeconds (the flag hangs) until it may call again.
 class TrapWatchBanner : public Trap
 {
 public:
-    //! \brief Creates a watch banner that has not called the guards yet.
+    //! \brief Creates a watch banner that has not called the guards yet and starts loaded.
     TrapWatchBanner(GameMap* gameMap);
 
     //! \brief The type of this trap.
@@ -53,7 +54,8 @@ public:
     { return true; }
 
     //! \brief Looks for enemy creatures within the aura of an installed banner and, if there is one,
-    //! sends the guards of the owner's guard rooms to it (at most once per distress period).
+    //! sends the guards of the owner's guard rooms to it (at most once per distress period). The call is reported to
+    //! the clients as the shot of the post, then as a reload, and once more when the post is loaded again.
     virtual void doUpkeep() override;
 
     //! \brief Creates the entity shown on the given tile.
@@ -65,6 +67,8 @@ public:
 private:
     //! \brief Turn from which the post may call the guards again
     int64_t mNextDistressTurn;
+    //! \brief The post has called the guards and is reloading (not saved: a loaded post starts loaded)
+    bool mReloading;
 };
 
 #endif // TRAPWATCHBANNER_H

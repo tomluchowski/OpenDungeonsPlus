@@ -379,6 +379,7 @@ Troll.*                                Dm3d                    CC-BY-SA 3.0     
 TrollBed.mesh                          Eugeneloza              CC0                     http://forum.freegamedev.net/viewtopic.php?f=38&t=5866&p=62444#p62444
 TrollRock.mesh                         Dm3d                    CC-BY-SA 3.0            http://opengameart.org/content/rock-golem
 WarBanner.*                            Danimal, Atmostatic     CC-BY 3.0               https://github.com/OpenDungeons/OpenDungeons/pull/838#issuecomment-118964220
+WarBanner.skeleton (clip Droop)        OD Team                 GPLv3+                  Still pose of the watch banner while it reloads (the cloth hangs plumb), AI-generated with a script (tools/blender-assets/banner_droop_clip.py, computed from the bind pose, original work)
 Water*                                 Skorpio                 CC-BY-SA 3.0, GPLv3+
 WeaponShield1.mesh                     YD, Danimal             CC-BY 3.0               http://opengameart.org/users/yd
 WeaponShield2.mesh                     YD, Rshackleford, Danimal CC-BY 3.0             http://opengameart.org/users/rshackleford
@@ -507,6 +508,7 @@ materials/textures/SpellBolt.png                OD Team                 GPLv3+  
 tools/gen_spell_bolt.py                 OD Team                 GPLv3+
 models/SpellBolt.mesh                   OD Team                 GPLv3+                  Zigzag lightning bolt of crossed ribbons, AI-generated with a Blender script (tools/blender-assets/spell_bolt.py, original work, material SpellBolt)
 tools/blender-assets/spell_bolt.py      OD Team                 GPLv3+
+tools/blender-assets/banner_droop_clip.py  OD Team             GPLv3+
 particles/RoomAmbienceSpellsExtra.particle  OD Team             GPLv3+                  Particle scripts of the heal, haste, defense, slow, flight trail and end effects (original work, only existing sprites)
 
 =======================================================
