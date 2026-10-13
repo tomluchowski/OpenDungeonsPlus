@@ -14,6 +14,7 @@
 #include "network/ClientNotification.h"
 #include "network/ODClient.h"
 #include "network/ODServer.h"
+#include "render/CreatureReactions.h"
 #include "render/ODFrameListener.h"
 #include "render/RenderManager.h"
 #include "rooms/Room.h"
@@ -131,6 +132,7 @@ const std::string HELPMESSAGE =
         "\n\tseatvisdebug - Turns on visual debugging for a given seat."
         "\n\tsetcreaturedest - Sets the creature destination/"
         "\n\tlistmeshanims - Lists all the animations for the given mesh."
+        "\n\treaction - Shows a creature reaction: reaction <event> [creature|all|group], reaction list, reaction reload."
         "\n\ttriggercompositor - Starts the given Ogre Compositor."
         "\n\tcatmullspline - Triggers the catmullspline camera movement type."
         "\n\tcirclearound - Triggers the circle camera movement type."
@@ -707,6 +709,94 @@ Command::Result cListMeshAnims(const Command::ArgumentList_t& args, ConsoleInter
     return Command::Result::SUCCESS;
 }
 
+//! \brief Console command "reaction": lists the reaction events, reloads the file or shows an event on a
+//! creature (the one under the pointer, a named one, all visible ones or as a staggered group).
+Command::Result cCreatureReaction(const Command::ArgumentList_t& args, ConsoleInterface& c, AbstractModeManager&)
+{
+    CreatureReactions* reactions = CreatureReactions::getSingletonPtr();
+    if(reactions == nullptr)
+    {
+        c.print("\nCreature reactions are not available");
+        return Command::Result::FAILED;
+    }
+
+    if((args.size() < 2) || (args[1] == "list"))
+    {
+        c.print("\nCreature reactions mode: " + CreatureReactions::modeToString(reactions->getMode())
+            + ", running: " + Helper::toString(reactions->getNbRunning()));
+        const std::map<std::string, ReactionEvent>& events = reactions->getConfig().getEvents();
+        for(std::map<std::string, ReactionEvent>::const_iterator it = events.begin(); it != events.end(); ++it)
+        {
+            c.print("\nEvent: " + it->first + " (" + CreatureReactionConfig::priorityToString(it->second.mPriority)
+                + ", " + Helper::toString(it->second.mVariants.size()) + " variants)");
+        }
+        c.print("\nUsage: reaction <event> [creature name | all | group]. Without a name, the creature under the pointer is used.");
+        return Command::Result::SUCCESS;
+    }
+
+    if(args[1] == "reload")
+    {
+        bool loaded = reactions->reloadConfig();
+        c.print(loaded ? "\nCreature reactions reloaded" : "\nCreature reactions could not be loaded, see the log");
+        return loaded ? Command::Result::SUCCESS : Command::Result::FAILED;
+    }
+
+    const std::string& eventName = args[1];
+    if(reactions->getConfig().getEvent(eventName) == nullptr)
+    {
+        c.print("\nERROR : Unknown reaction event " + eventName + ". Type reaction list.");
+        return Command::Result::INVALID_ARGUMENT;
+    }
+
+    GameMap* gameMap = ODFrameListener::getSingleton().getClientGameMap();
+    bool asGroup = (args.size() >= 3) && (args[2] == "group");
+    std::vector<Creature*> creatures;
+    if((args.size() >= 3) && ((args[2] == "all") || asGroup))
+    {
+        for(Creature* creature : gameMap->getCreatures())
+        {
+            if(reactions->isCreatureNearCamera(creature))
+                creatures.push_back(creature);
+        }
+    }
+    else if(args.size() >= 3)
+    {
+        Creature* creature = gameMap->getCreature(args[2]);
+        if(creature == nullptr)
+        {
+            c.print("\nERROR : Unknown creature " + args[2]);
+            return Command::Result::INVALID_ARGUMENT;
+        }
+        creatures.push_back(creature);
+    }
+    else if(InputManager::getSingleton().mHighlightedCreature != nullptr)
+    {
+        creatures.push_back(InputManager::getSingleton().mHighlightedCreature);
+    }
+    else
+    {
+        c.print("\nERROR : No creature under the pointer. Give a creature name, all or group.");
+        return Command::Result::INVALID_ARGUMENT;
+    }
+
+    if(asGroup)
+    {
+        reactions->triggerGroup(eventName, creatures, true);
+        c.print("\nGroup reaction " + eventName + " asked for " + Helper::toString(creatures.size()) + " creatures");
+        return Command::Result::SUCCESS;
+    }
+
+    uint32_t nbStarted = 0;
+    for(Creature* creature : creatures)
+    {
+        if(reactions->trigger(creature, eventName, true))
+            ++nbStarted;
+    }
+    c.print("\nReaction " + eventName + " started on " + Helper::toString(nbStarted) + " of "
+        + Helper::toString(creatures.size()) + " creatures");
+    return Command::Result::SUCCESS;
+}
+
 Command::Result cSetLogLevel(const Command::ArgumentList_t& args, ConsoleInterface& c, AbstractModeManager&)
 {
     if(args.size() < 2)
@@ -896,6 +986,10 @@ namespace ConsoleCommands
                          Command::cStubServer,
                          {AbstractModeManager::ModeType::GAME, AbstractModeManager::ModeType::EDITOR });
  
+        cl.addCommand("reaction",
+                         cCreatureReaction,
+                         Command::cStubServer,
+                         {AbstractModeManager::ModeType::GAME});
         cl.addCommand("printentities",
                          cPrintEntities,
                          Command::cStubServer,

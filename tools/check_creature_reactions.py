@@ -170,6 +170,8 @@ def main():
     if block is not None or event is not None or variant is not None or group is not None:
         error("a block, event, variant or group is not closed")
 
+    check_material_lookups(error)
+
     default_group = None
     for words in lines:
         if words[0] == "DefaultGroup" and len(words) >= 2:
@@ -228,6 +230,16 @@ def check_variant(key, words, variant, event, creatures, groups, materials, part
                 error("%s: unknown job %s" % (where, name))
     if key == "RequiresSleepNeed" and words[1] not in ("yes", "no"):
         error("%s: RequiresSleepNeed must be yes or no" % where)
+
+
+def check_material_lookups(error):
+    """The materials live in the resource group Graphics; a lookup without the group never finds them."""
+    path = os.path.join(ROOT, "source", "render", "CreatureReactions.cpp")
+    with open(path, encoding="utf-8") as source:
+        text = source.read()
+    for found in re.finditer(r"MaterialManager::getSingleton\(\)\.resourceExists\(([^;]*?)\)\)", text):
+        if "," not in found.group(1):
+            error("CreatureReactions.cpp: MaterialManager resourceExists(%s) needs the group \"Graphics\"" % found.group(1))
 
 
 def finish(errors, nb_events=0):
