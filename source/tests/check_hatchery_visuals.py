@@ -72,3 +72,10 @@ assert 'particles/ChickenEggShell.particle' in credits and 'ChickenHatchery.mate
 assert 'ChickenEgg.mesh' in credits and 'ChickenRoosterTail.mesh' in credits
 
 print('hatchery visuals checks passed')
+
+# The rooster calls the hens to food: mood, config, hens follow him
+rooster_h = (root / 'source/rooms/HatcheryRooster.h').read_text()
+assert 'call ' in rooster_h and 'mCallPercent' in rooster_h
+assert 'RoosterMood::call' in room
+assert 'HatcheryRoosterCallPercent' in config and 'HatcheryRoosterCallTurns' in config
+assert 'ChickenKind::hen' in body(chicken, 'void ChickenEntity::doUpkeep')
