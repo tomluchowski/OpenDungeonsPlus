@@ -25,7 +25,7 @@ assert 'static_cast<double>(x), static_cast<double>(y), 0.0, 0.0, false' in trea
 # Neighbours are refreshed when a tile leaves the room and when gold changes.
 assert 'The piles next to the removed tile lose a neighbour' in treasury
 # The renderer builds the pile from its name, and the option reaches it.
-assert 'TreasuryGoldMesh::prepareMesh(mSceneManager, meshName)' in render
+assert 'TreasuryGoldMesh::prepareMesh(mSceneManager, meshName, pileFar)' in render
 assert 'classicMeshForLevel' in mesh and 'Detail::off' in mesh
 assert 'TREASURY_DETAIL' in read('source/utils/ConfigManager.h')
 assert 'TreasuryDetail' in read('gui/WindowSettings.layout')
