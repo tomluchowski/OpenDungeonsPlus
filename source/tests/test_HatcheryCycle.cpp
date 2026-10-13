@@ -663,7 +663,11 @@ BOOST_AUTO_TEST_CASE(test_NestField)
     std::vector<HatcheryNestField::TileCoord> coops;
     coops.push_back(HatcheryNestField::TileCoord(1, 2));
     coops.push_back(HatcheryNestField::TileCoord(3, 2));
-    const std::vector<HatcheryNestField::Place> places = HatcheryNestField::compute(tiles, coops, settings);
+    // Two entrances (the middle of the west and of the east edge), the way to the coops must stay free of nests
+    std::vector<HatcheryNestField::TileCoord> entrances;
+    entrances.push_back(HatcheryNestField::TileCoord(0, 2));
+    entrances.push_back(HatcheryNestField::TileCoord(4, 2));
+    const std::vector<HatcheryNestField::Place> places = HatcheryNestField::compute(tiles, coops, entrances, settings);
 
     // One nest per coop at least, about one per three tiles, never more than the size asks for
     BOOST_CHECK(places.size() >= coops.size());
@@ -691,6 +695,14 @@ BOOST_AUTO_TEST_CASE(test_NestField)
             BOOST_CHECK(HatcheryNestField::rectDistanceSquared(x, y, cx + HatcheryNestField::coopMaxX,
                 cy - settings.mLaneHalfWidth, cx + HatcheryNestField::coopMaxX + settings.mLaneLength,
                 cy + settings.mLaneHalfWidth) >= settings.mLaneClearance * settings.mLaneClearance - 1e-9);
+
+            // Away from the walking strips from the entrances to the middle of the apron
+            const double clear = settings.mPathHalfWidth + settings.mPathClearance;
+            for(uint32_t e = 0; e < entrances.size(); ++e)
+            {
+                BOOST_CHECK(HatcheryNestField::segmentDistanceSquared(x, y, entrances[e].first, entrances[e].second,
+                    cx + HatcheryNestField::coopMaxX + settings.mLaneLength * 0.5, cy) >= clear * clear - 1e-9);
+            }
         }
 
         // Away from each other
@@ -705,27 +717,56 @@ BOOST_AUTO_TEST_CASE(test_NestField)
     // The places depend on the tiles only, not on their order (the server and the clients list them differently)
     std::vector<HatcheryNestField::TileCoord> reversedTiles(tiles.rbegin(), tiles.rend());
     std::vector<HatcheryNestField::TileCoord> reversedCoops(coops.rbegin(), coops.rend());
-    const std::vector<HatcheryNestField::Place> again = HatcheryNestField::compute(reversedTiles, reversedCoops, settings);
+    std::vector<HatcheryNestField::TileCoord> reversedEntrances(entrances.rbegin(), entrances.rend());
+    const std::vector<HatcheryNestField::Place> again = HatcheryNestField::compute(reversedTiles, reversedCoops,
+        reversedEntrances, settings);
     BOOST_REQUIRE_EQUAL(again.size(), places.size());
     for(uint32_t i = 0; i < places.size(); ++i)
     {
         BOOST_CHECK_EQUAL(again[i].mX, places[i].mX);
         BOOST_CHECK_EQUAL(again[i].mY, places[i].mY);
     }
-    BOOST_CHECK_EQUAL(HatcheryNestField::fingerprint(tiles, coops), HatcheryNestField::fingerprint(reversedTiles, reversedCoops));
+    BOOST_CHECK_EQUAL(HatcheryNestField::fingerprint(tiles, coops, entrances),
+        HatcheryNestField::fingerprint(reversedTiles, reversedCoops, reversedEntrances));
 
     // A change of the tiles changes the fingerprint, so the places are computed again
     std::vector<HatcheryNestField::TileCoord> moreTiles = tiles;
     moreTiles.push_back(HatcheryNestField::TileCoord(5, 2));
-    BOOST_CHECK(HatcheryNestField::fingerprint(moreTiles, coops) != HatcheryNestField::fingerprint(tiles, coops));
+    BOOST_CHECK(HatcheryNestField::fingerprint(moreTiles, coops, entrances) != HatcheryNestField::fingerprint(tiles, coops, entrances));
+
+    // A new entrance (a dug corridor, a door) changes the fingerprint too, and the places are computed again
+    std::vector<HatcheryNestField::TileCoord> moreEntrances = entrances;
+    moreEntrances.push_back(HatcheryNestField::TileCoord(2, 0));
+    BOOST_CHECK(HatcheryNestField::fingerprint(tiles, coops, moreEntrances) != HatcheryNestField::fingerprint(tiles, coops, entrances));
+    BOOST_CHECK(HatcheryNestField::fingerprint(tiles, coops, std::vector<HatcheryNestField::TileCoord>()) !=
+        HatcheryNestField::fingerprint(tiles, coops, entrances));
+
+    // Without an entrance the strips do not exist, so the entrances change the places (a door at the west wall of a
+    // 5x5 hatchery with a coop at (3, 2) lies on the way to its apron)
+    std::vector<HatcheryNestField::TileCoord> westDoor;
+    westDoor.push_back(HatcheryNestField::TileCoord(0, 2));
+    std::vector<HatcheryNestField::TileCoord> oneCoop;
+    oneCoop.push_back(HatcheryNestField::TileCoord(3, 2));
+    const std::vector<HatcheryNestField::Place> withoutDoor = HatcheryNestField::compute(tiles, oneCoop,
+        std::vector<HatcheryNestField::TileCoord>(), settings);
+    const std::vector<HatcheryNestField::Place> withDoor = HatcheryNestField::compute(tiles, oneCoop, westDoor, settings);
+    BOOST_CHECK(!withoutDoor.empty());
+    BOOST_CHECK(!withDoor.empty());
+    for(uint32_t i = 0; i < withDoor.size(); ++i)
+    {
+        const double clear = settings.mPathHalfWidth + settings.mPathClearance;
+        BOOST_CHECK(HatcheryNestField::segmentDistanceSquared(withDoor[i].mX, withDoor[i].mY, 0.0, 2.0,
+            3.0 + HatcheryNestField::coopMaxX + settings.mLaneLength * 0.5, 2.0) >= clear * clear - 1e-9);
+    }
 
     // The size caps the number of nests, the coops come on top
     HatcheryNestField::Settings capped = settings;
     capped.mMaxNests = 2;
-    BOOST_CHECK(HatcheryNestField::compute(nestTestBlock(0, 0, 9, 9), std::vector<HatcheryNestField::TileCoord>(), capped).size() <= 2u);
+    BOOST_CHECK(HatcheryNestField::compute(nestTestBlock(0, 0, 9, 9), std::vector<HatcheryNestField::TileCoord>(),
+        std::vector<HatcheryNestField::TileCoord>(), capped).size() <= 2u);
 
     // A hatchery without a tile has no nest
-    BOOST_CHECK(HatcheryNestField::compute(std::vector<HatcheryNestField::TileCoord>(), coops, settings).empty());
+    BOOST_CHECK(HatcheryNestField::compute(std::vector<HatcheryNestField::TileCoord>(), coops, entrances, settings).empty());
 }
 
 BOOST_AUTO_TEST_CASE(test_RoosterDay)

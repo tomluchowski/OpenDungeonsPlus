@@ -82,6 +82,10 @@ private:
     HatcheryCycleSettings getCycleSettings() const;
     //! Creates a hatchery animal at the given position.
     ChickenEntity* spawnAnimal(ChickenKind kind, const Ogre::Vector3& position, const HatcheryCycleSettings& settings);
+    //! The entrances of a hatchery with the given tiles: the tiles that lie next to (not diagonal) a walkable tile
+    //! (fullness 0: door, corridor, other room) that is not one of the given tiles. Only the fullness of the tiles
+    //! is used, so the server and every client find the same ones.
+    static std::vector<HatcheryNestField::TileCoord> collectEntrances(const std::vector<Tile*>& coveredTiles);
     //! The nest places of this hatchery, computed again when its tiles or coops change.
     const std::vector<HatcheryNestField::Place>& getNestPlaces() const;
     //! A free egg place in the nests scattered over the hatchery, the nest closest to the hen first. eggPositions

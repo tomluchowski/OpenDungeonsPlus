@@ -966,7 +966,7 @@ void RenderManager::updateNestFields(const std::map<Room*, std::vector<Tile*> >&
     {
         Room* room = it->first;
 
-        // The places depend on the tiles and the coops of the hatchery only, the server computes the same ones
+        // The places depend on the tiles, the coops and the entrances (fullness of the tiles around) of the hatchery only, the server computes the same ones
         std::vector<HatcheryNestField::TileCoord> roomTiles;
         const std::vector<Tile*> coveredTiles = room->getCoveredTiles();
         for(Tile* roomTile : coveredTiles)
@@ -974,7 +974,8 @@ void RenderManager::updateNestFields(const std::map<Room*, std::vector<Tile*> >&
         std::vector<HatcheryNestField::TileCoord> coops;
         for(Tile* coopTile : it->second)
             coops.push_back(HatcheryNestField::TileCoord(coopTile->getX(), coopTile->getY()));
-        const uint32_t key = HatcheryNestField::fingerprint(roomTiles, coops);
+        const std::vector<HatcheryNestField::TileCoord> entrances = RoomHatchery::collectEntrances(coveredTiles);
+        const uint32_t key = HatcheryNestField::fingerprint(roomTiles, coops, entrances);
 
         std::map<Room*, NestField>::iterator existing = mNestFields.find(room);
         if((existing != mNestFields.end()) && (existing->second.mKey != key))
@@ -987,7 +988,7 @@ void RenderManager::updateNestFields(const std::map<Room*, std::vector<Tile*> >&
         {
             NestField created;
             created.mKey = key;
-            const std::vector<HatcheryNestField::Place> places = HatcheryNestField::compute(roomTiles, coops,
+            const std::vector<HatcheryNestField::Place> places = HatcheryNestField::compute(roomTiles, coops, entrances,
                 RoomHatchery::getNestFieldSettings());
             for(uint32_t i = 0; i < places.size(); ++i)
             {

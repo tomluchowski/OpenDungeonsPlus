@@ -309,8 +309,38 @@ HatcheryNestField::Settings RoomHatchery::getNestFieldSettings()
     settings.mLaneLength = config.getRoomConfigDoubleOrDefault("HatcheryNestLaneLength", settings.mLaneLength);
     settings.mLaneHalfWidth = config.getRoomConfigDoubleOrDefault("HatcheryNestLaneHalfWidth", settings.mLaneHalfWidth);
     settings.mLaneClearance = config.getRoomConfigDoubleOrDefault("HatcheryNestLaneClearance", settings.mLaneClearance);
+    settings.mPathHalfWidth = config.getRoomConfigDoubleOrDefault("HatcheryNestPathHalfWidth", settings.mPathHalfWidth);
+    settings.mPathClearance = config.getRoomConfigDoubleOrDefault("HatcheryNestPathClearance", settings.mPathClearance);
     settings.mSpacing = config.getRoomConfigDoubleOrDefault("HatcheryNestSpacing", settings.mSpacing);
     return settings;
+}
+
+std::vector<HatcheryNestField::TileCoord> RoomHatchery::collectEntrances(const std::vector<Tile*>& coveredTiles)
+{
+    std::set<HatcheryNestField::TileCoord> own;
+    for(Tile* tile : coveredTiles)
+        own.insert(HatcheryNestField::TileCoord(tile->getX(), tile->getY()));
+
+    std::vector<HatcheryNestField::TileCoord> entrances;
+    for(Tile* tile : coveredTiles)
+    {
+        bool entrance = false;
+        for(Tile* neighbor : tile->getAllNeighbors())
+        {
+            if(neighbor == nullptr)
+                continue;
+            // Only the neighbors that share an edge
+            if((neighbor->getX() != tile->getX()) && (neighbor->getY() != tile->getY()))
+                continue;
+            if(own.count(HatcheryNestField::TileCoord(neighbor->getX(), neighbor->getY())) > 0)
+                continue;
+            if(neighbor->getFullness() <= 0.0)
+                entrance = true;
+        }
+        if(entrance)
+            entrances.push_back(HatcheryNestField::TileCoord(tile->getX(), tile->getY()));
+    }
+    return entrances;
 }
 
 const std::vector<HatcheryNestField::Place>& RoomHatchery::getNestPlaces() const
@@ -322,10 +352,12 @@ const std::vector<HatcheryNestField::Place>& RoomHatchery::getNestPlaces() const
     for(Tile* tile : mCentralActiveSpotTiles)
         coops.push_back(HatcheryNestField::TileCoord(tile->getX(), tile->getY()));
 
-    const uint32_t key = HatcheryNestField::fingerprint(room, coops);
+    const std::vector<HatcheryNestField::TileCoord> entrances = collectEntrances(mCoveredTiles);
+
+    const uint32_t key = HatcheryNestField::fingerprint(room, coops, entrances);
     if(!mNestFieldValid || (key != mNestFieldKey))
     {
-        mNestPlaces = HatcheryNestField::compute(room, coops, getNestFieldSettings());
+        mNestPlaces = HatcheryNestField::compute(room, coops, entrances, getNestFieldSettings());
         mNestFieldKey = key;
         mNestFieldValid = true;
     }

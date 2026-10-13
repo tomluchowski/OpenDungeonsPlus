@@ -26,14 +26,17 @@
 #include <vector>
 
 //! \brief Places of the straw nests that lie scattered over a hatchery. The places are computed from the tiles of the
-//! hatchery and the tiles of its coops alone, with integer hashes of the tile coordinates and no random numbers, so
+//! hatchery, the tiles of its coops and its entrances alone, with integer hashes of the tile coordinates and no random numbers, so
 //! the server and every client get the same places without anything being sent. The header has no dependency on the
 //! game map, so it can be tested alone (a python port of the rules is in the check scripts).
 //!
 //! Rules (see Settings for the numbers): a nest lies on a tile of the hatchery, at least mEdge from every tile that is
 //! not part of the hatchery (walls, other rooms), at least mCoopClearance from the footprint of every coop, outside
-//! of the apron in front of the ramp of every coop (the way the animals walk to it) and at least mSpacing from every
-//! other nest. There is about one nest per mTilesPerNest tiles (at most mMaxNests), but at least one per coop.
+//! of the apron in front of the ramp of every coop (the way the animals walk to it), at least mPathClearance from the
+//! walking strips (half width mPathHalfWidth) that lead from the middle of every entrance tile to the apron of every
+//! coop, and at least mSpacing from every other nest. An entrance is a tile of the hatchery that lies next to a
+//! walkable tile that is not part of it (door, corridor, other room); the caller finds them (see
+//! RoomHatchery::collectEntrances) from the fullness of the tiles, which the server and every client know. There is about one nest per mTilesPerNest tiles (at most mMaxNests), but at least one per coop.
 namespace HatcheryNestField
 {
     typedef std::pair<int, int> TileCoord;
@@ -59,6 +62,8 @@ namespace HatcheryNestField
             mLaneLength(1.0),
             mLaneHalfWidth(0.5),
             mLaneClearance(0.2),
+            mPathHalfWidth(0.35),
+            mPathClearance(0.2),
             mSpacing(0.6)
         {}
 
@@ -76,6 +81,11 @@ namespace HatcheryNestField
         double mLaneHalfWidth;
         //! Distance in tiles from the middle of a nest to the apron.
         double mLaneClearance;
+        //! Half of the width in tiles of the walking strip from the middle of an entrance tile to the middle of the apron
+        //! of every coop...
+        double mPathHalfWidth;
+        //! ... and the distance in tiles from the middle of a nest to that strip.
+        double mPathClearance;
         //! Smallest distance in tiles between the middles of two nests.
         double mSpacing;
     };
@@ -116,13 +126,17 @@ namespace HatcheryNestField
     }
 
     //! Number that changes when the tiles of the hatchery or its coops change (does not depend on their order).
-    inline uint32_t fingerprint(const std::vector<TileCoord>& roomTiles, const std::vector<TileCoord>& coops)
+    inline uint32_t fingerprint(const std::vector<TileCoord>& roomTiles, const std::vector<TileCoord>& coops,
+        const std::vector<TileCoord>& entrances)
     {
-        uint32_t sum = static_cast<uint32_t>(roomTiles.size()) * 7919u + static_cast<uint32_t>(coops.size()) * 104729u;
+        uint32_t sum = static_cast<uint32_t>(roomTiles.size()) * 7919u + static_cast<uint32_t>(coops.size()) * 104729u +
+            static_cast<uint32_t>(entrances.size()) * 1299709u;
         for(std::vector<TileCoord>::const_iterator it = roomTiles.begin(); it != roomTiles.end(); ++it)
             sum += hashTile(it->first, it->second, 7u);
         for(std::vector<TileCoord>::const_iterator it = coops.begin(); it != coops.end(); ++it)
             sum += 31u * hashTile(it->first, it->second, 9u);
+        for(std::vector<TileCoord>::const_iterator it = entrances.begin(); it != entrances.end(); ++it)
+            sum += 37u * hashTile(it->first, it->second, 11u);
         return sum;
     }
 
@@ -134,10 +148,25 @@ namespace HatcheryNestField
         return dx * dx + dy * dy;
     }
 
+    //! Squared distance from a point to the segment from (ax, ay) to (bx, by).
+    inline double segmentDistanceSquared(double x, double y, double ax, double ay, double bx, double by)
+    {
+        const double sx = bx - ax;
+        const double sy = by - ay;
+        const double lengthSquared = sx * sx + sy * sy;
+        double t = 0.0;
+        if(lengthSquared > 0.0)
+            t = std::min(1.0, std::max(0.0, ((x - ax) * sx + (y - ay) * sy) / lengthSquared));
+        const double dx = x - (ax + t * sx);
+        const double dy = y - (ay + t * sy);
+        return dx * dx + dy * dy;
+    }
+
     //! True if a nest can lie at (x, y) on the tile (tileX, tileY) of the hatchery: far enough from the tiles that are
     //! not part of the hatchery, from the coops and their aprons, and from the nests that are taken already.
     inline bool placeIsFree(double x, double y, int tileX, int tileY, const std::set<TileCoord>& roomTiles,
-        const std::vector<TileCoord>& coops, const std::vector<Place>& taken, const Settings& settings)
+        const std::vector<TileCoord>& coops, const std::vector<TileCoord>& entrances,
+        const std::vector<Place>& taken, const Settings& settings)
     {
         for(int dx = -1; dx <= 1; ++dx)
         {
@@ -166,6 +195,15 @@ namespace HatcheryNestField
                    cx + coopMaxX + settings.mLaneLength, cy + settings.mLaneHalfWidth) <
                settings.mLaneClearance * settings.mLaneClearance)
                 return false;
+
+            // The walking strips from the entrances to the middle of the apron of this coop
+            const double clear = settings.mPathHalfWidth + settings.mPathClearance;
+            for(std::vector<TileCoord>::const_iterator entrance = entrances.begin(); entrance != entrances.end(); ++entrance)
+            {
+                if(segmentDistanceSquared(x, y, entrance->first, entrance->second, cx + coopMaxX + settings.mLaneLength * 0.5,
+                       cy) < clear * clear)
+                    return false;
+            }
         }
 
         for(std::vector<Place>::const_iterator it = taken.begin(); it != taken.end(); ++it)
@@ -179,15 +217,21 @@ namespace HatcheryNestField
     }
 
     //! The places of the nests of a hatchery with the given tiles and coop tiles. Without coop there are nests all the
-    //! same (a coop that is not built yet does not take the eggs away). The tiles can be in any order.
+    //! same (a coop that is not built yet does not take the eggs away), and without entrance there is no walking strip.
+    //! The tiles can be in any order. When the strips leave room for fewer nests than wanted, there are fewer nests,
+    //! but more places are tried while there are fewer nests than coops.
     inline std::vector<Place> compute(const std::vector<TileCoord>& roomTilesIn, const std::vector<TileCoord>& coopsIn,
-        const Settings& settings)
+        const std::vector<TileCoord>& entrancesIn, const Settings& settings)
     {
         std::vector<Place> places;
         const std::set<TileCoord> roomTiles(roomTilesIn.begin(), roomTilesIn.end());
         std::vector<TileCoord> coops(coopsIn.begin(), coopsIn.end());
         std::sort(coops.begin(), coops.end());
         coops.erase(std::unique(coops.begin(), coops.end()), coops.end());
+
+        std::vector<TileCoord> entrances(entrancesIn.begin(), entrancesIn.end());
+        std::sort(entrances.begin(), entrances.end());
+        entrances.erase(std::unique(entrances.begin(), entrances.end()), entrances.end());
 
         const uint32_t perNest = std::max<uint32_t>(1, settings.mTilesPerNest);
         uint32_t wanted = std::min(static_cast<uint32_t>(roomTiles.size()) / perNest, settings.mMaxNests);
@@ -196,7 +240,9 @@ namespace HatcheryNestField
         // Each round (attempt) goes over the tiles in the order of their hash and tries one place on each tile (the place on
         // the tile is moved by up to 0.4 tiles each way, by the hash). More rounds try other places on the same tiles.
         const uint32_t rounds = 6;
-        for(uint32_t attempt = 0; (attempt < rounds) && (places.size() < wanted); ++attempt)
+        const uint32_t extraRounds = 18;
+        for(uint32_t attempt = 0; (places.size() < wanted) &&
+            ((attempt < rounds) || ((places.size() < coops.size()) && (attempt < rounds + extraRounds))); ++attempt)
         {
             std::vector<std::pair<uint32_t, TileCoord> > order;
             for(std::set<TileCoord>::const_iterator it = roomTiles.begin(); it != roomTiles.end(); ++it)
@@ -211,7 +257,7 @@ namespace HatcheryNestField
                 const int tileY = it->second.second;
                 const double x = tileX + (static_cast<int>((h >> 8) % 81u) - 40) / 100.0;
                 const double y = tileY + (static_cast<int>((h >> 16) % 81u) - 40) / 100.0;
-                if(placeIsFree(x, y, tileX, tileY, roomTiles, coops, places, settings))
+                if(placeIsFree(x, y, tileX, tileY, roomTiles, coops, entrances, places, settings))
                     places.push_back(Place(x, y, static_cast<double>(h % 360u)));
             }
         }
