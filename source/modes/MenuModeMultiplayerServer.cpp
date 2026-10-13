@@ -230,7 +230,10 @@ bool MenuModeMultiplayerServer::serverButtonPressed(const CEGUI::EventArgs&)
     bool useMasterServer = (getModeType() == ModeManager::MENU_MASTERSERVER_HOST);
 
     // We are a server
-    if(!ODServer::getSingleton().startServer(nick, level, ServerMode::ModeGameMultiPlayer, useMasterServer))
+    CEGUI::ToggleButton* relationshipsCheckbox = static_cast<CEGUI::ToggleButton*>(
+        mainWin->getChild(Gui::MPM_CHECK_RELATIONSHIPS));
+    if(!ODServer::getSingleton().startServer(nick, level, ServerMode::ModeGameMultiPlayer, useMasterServer,
+        relationshipsCheckbox->isSelected()))
     {
         OD_LOG_ERR("Could not start server for multi player game !!!");
         mainWin->getChild(Gui::MPM_TEXT_LOADING)->setText("ERROR: Could not start server for multi player game !!!");

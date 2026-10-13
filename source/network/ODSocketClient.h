@@ -50,6 +50,7 @@ class ODSocketClient
             mSource(ODSource::none),
             mPlayer(nullptr),
             mLastTurnAck(-1),
+            mRelationshipsSynced(false),
             mPendingTimestamp(-1)
         {}
 
@@ -70,6 +71,8 @@ class ODSocketClient
         void setPlayer(Player* player) { mPlayer = player; }
         int64_t getLastTurnAck() { return mLastTurnAck; }
         void setLastTurnAck(int64_t lastTurnAck) { mLastTurnAck = lastTurnAck; }
+        bool getRelationshipsSynced() const { return mRelationshipsSynced; }
+        void setRelationshipsSynced(bool synced) { mRelationshipsSynced = synced; }
         const std::string& getState() {return mState;}
         bool isDataAvailable(int miliseconds=5);
         int32_t getGameTimeMillis()
@@ -123,6 +126,8 @@ class ODSocketClient
         sf::TcpSocket mSockClient;
         Player* mPlayer;
         int64_t mLastTurnAck;
+        //! True once the client got the current relationship tiers
+        bool mRelationshipsSynced;
         std::string mState;
 
 

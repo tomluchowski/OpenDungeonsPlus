@@ -102,7 +102,13 @@ enum class ServerNotificationType
     //! \brief Answer to the editor asking what the waves of a wave portal are
     editorPortalWaveData,
 
-    exit
+    exit,
+
+    //! Owner-only tier of a creature pair that changed (or the current tier, sent once when a
+    //! client joins or a game is loaded): + string creatureA, string creatureB, int32_t tier
+    //! (RelationshipTier). Only sent when the creature relationships option is on.
+    //! Appended last so that no existing numeric value changes.
+    relationshipTier
 };
 
 ODPacket& operator<<(ODPacket& os, const ServerNotificationType& nt);

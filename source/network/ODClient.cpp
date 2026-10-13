@@ -27,6 +27,7 @@
 #include "entities/RenderedMovableEntity.h"
 #include "entities/Tile.h"
 #include "entities/Weapon.h"
+#include "game/CreatureRelationships.h"
 #include "game/Player.h"
 #include "game/Seat.h"
 #include "game/Skill.h"
@@ -374,6 +375,11 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
             ServerMode serverMode;
             OD_ASSERT_TRUE(packetReceived >> serverMode);
 
+            bool relationships = false;
+            if(!packetReceived.endOfPacket())
+                OD_ASSERT_TRUE(packetReceived >> relationships);
+            gameMap->setRelationshipsEnabled(relationships);
+
             // Now that the we have received all needed information, we can launch the requested mode
             OD_LOG_INF("Starting game map");
             resetGameClock();
@@ -659,6 +665,21 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
             OD_ASSERT_TRUE(packetReceived >> goalsString);
 
             refreshMainUI(goalsString);
+            break;
+        }
+
+        case ServerNotificationType::relationshipTier:
+        {
+            std::string creatureA;
+            std::string creatureB;
+            int32_t tier;
+            OD_ASSERT_TRUE(packetReceived >> creatureA >> creatureB >> tier);
+            CreatureRelationships* relationships = gameMap->getCreatureRelationships();
+            if((relationships != nullptr) && (tier >= static_cast<int32_t>(RelationshipTier::nemesis))
+                && (tier <= static_cast<int32_t>(RelationshipTier::lovers)))
+            {
+                relationships->setTier(creatureA, creatureB, static_cast<RelationshipTier>(tier));
+            }
             break;
         }
 

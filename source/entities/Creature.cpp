@@ -58,6 +58,7 @@
 
 
 
+#include "game/CreatureRelationships.h"
 #include "game/Player.h"
 #include "game/Skill.h"
 #include "game/SkillType.h"
@@ -366,6 +367,10 @@ void Creature::removeFromGameMap(GameMap* gameMap)
     getGameMap()->removeCreature(this);
     getGameMap()->removeAnimatedObject(this);
     getGameMap()->removeClientUpkeepEntity(this);
+
+    // Relationships only exist between creatures of the same keeper that are on the map
+    if(getGameMap()->isRelationshipsEnabled())
+        getGameMap()->getCreatureRelationships()->removeCreature(getName());
 
     if(!getIsOnServerMap())
         return;
@@ -3421,6 +3426,8 @@ void Creature::changeSeat(Seat* newSeat)
     OD_LOG_INF("creature=" + getName() + " changes side from seatId=" + Helper::toString(getSeat()->getId()) + " to seatId=" + Helper::toString(newSeat->getId()));
     OD_ASSERT_TRUE_MSG(getSeat() != newSeat, "creature=" + getName() + ", seatId=" + Helper::toString(newSeat->getId()));
     setSeat(newSeat);
+    if(getGameMap()->isRelationshipsEnabled())
+        getGameMap()->getCreatureRelationships()->removeCreature(getName());
     mMoodValue = CreatureMoodLevel::Neutral;
     mMoodPoints = 0;
     mWakefulness = 100;
