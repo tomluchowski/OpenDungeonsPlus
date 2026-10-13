@@ -78,7 +78,7 @@ struct ConfigManager {static double maxManaPerSeat;
 double ConfigManager::maxManaPerSeat=200000.0;
 struct Seat {
  int team;int id;Player* mPlayer=nullptr;GameMap* mGameMap=nullptr;void* mCurrentSkill=nullptr;SeatStatistics stats;
- double mMana=0.0;double getMana()const{return mMana;}void addMana(double mana);
+ double mMana=0.0;bool mHadLibrary=false;double getMana()const{return mMana;}void addMana(double mana);
  std::vector<uint32_t> mNbRooms=std::vector<uint32_t>(static_cast<uint32_t>(RoomType::nbRooms),0);
  Seat(int t,int i):team(t),id(i){}
  void addSkillPoints(int){}
