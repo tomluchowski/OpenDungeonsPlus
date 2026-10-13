@@ -877,7 +877,7 @@ BOOST_AUTO_TEST_CASE(test_RoosterCrowInterval)
     BOOST_CHECK_EQUAL(HatcheryRooster::crowInterval(settings, 7), 40u);
 }
 
-//! The rooster mood follows the dice, the animals present, the crow timer and a threat (which always wins); a mood with turns left goes on and a finished mood is followed by strutting.
+//! The rooster mood follows the dice (he chases or struts, he never calls the hens or leads the chicks), the animals present, the crow timer and a threat (which always wins); a mood with turns left goes on and a finished mood is followed by strutting.
 BOOST_AUTO_TEST_CASE(test_RoosterDecide)
 {
     RoosterSettings settings;
