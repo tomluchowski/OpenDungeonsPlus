@@ -197,8 +197,8 @@ bool RoomGuardRoom::useRoom(Creature& creature, bool forced)
         return false;
     }
 
-    // On duty: the guard stands still, watching. Enemies in sight are handled by the
-    // creature behaviours that run before this action.
+    // On duty: the guard stands still, watching, until it is time to patrol. Enemies in sight are
+    // handled by the creature behaviours that run before this action.
     // After a while on duty the guard patrols to a watch banner
     int64_t turn = getGameMap()->getTurnNumber();
     std::map<Creature*, int64_t>::iterator patrolIt = mNextPatrolTurn.find(&creature);
