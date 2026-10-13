@@ -27,6 +27,7 @@
 #include "game/SkillManager.h"
 #include "game/SkillType.h"
 #include "gamemap/GameMap.h"
+#include "gamemap/LevelScript.h"
 #include "gamemap/DraggableTileContainer.h"
 #include "goals/Goal.h"
 #include "network/ODServer.h"
@@ -2011,6 +2012,10 @@ const CreatureDefinition* Seat::getNextFighterClassToSpawn(const GameMap& gameMa
     {
         // Only check for fighter creatures.
         if (!def.first || def.first->isWorker())
+            continue;
+
+        // A level script can keep a creature class away from this seat
+        if(gameMap.getLevelScript().isCreatureBlocked(getId(), def.first->getClassName()))
             continue;
 
         const std::vector<const SpawnCondition*>& conditions = configManager.getCreatureSpawnConditions(def.first);

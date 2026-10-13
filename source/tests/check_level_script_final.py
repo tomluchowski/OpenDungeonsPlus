@@ -1,5 +1,5 @@
-"""Static wiring check for the make action and the time limit of level scripting: the make action,
-the time limit and the two HUD countdowns.
+"""Static wiring check for the later stages of level scripting: the make action, the time limit,
+the two HUD countdowns and the story state conditions.
 
 The parser and the writer are run by check_level_script.py; this script checks that the pieces
 that need the running game are connected, so a missing hook is found without playing.
@@ -90,4 +90,20 @@ time_up = function(player, 'void Player::notifyTimeUp(')
 assert 'mHasLost' in time_up and 'notifyDefeat(true)' in time_up
 assert 'notifyDefeat(hasTeamLost)' in function(player, 'void Player::notifyNoMoreDungeonTemple(')
 
-print('level script make and time limit wiring: ok')
+# story state: the conditions are evaluated by the runner and the portal and class state reach the game
+script_h = read('source/gamemap/LevelScript.h')
+for kind in ('seatDefeated', 'ownsCreature', 'creatureHealth', 'spellKnown', 'trapsBuilt', 'roomTiles', 'largestRoom',
+             'portalActive', 'creatureAlive', 'creatureReached'):
+    assert 'case LevelScriptConditionType::%s:' % kind in runner, kind
+    assert 'case LevelScriptConditionType::%s:' % kind in script_cpp, kind
+for kind in ('portalStatus', 'creatureAvailable', 'removeCreature'):
+    assert 'case LevelScriptActionType::%s:' % kind in runner, kind
+    assert 'case LevelScriptActionType::%s:' % kind in script_cpp, kind
+for name in ('defeated', 'owns', 'health', 'spell', 'built', 'roomtiles', 'roomsize', 'portal', 'alive', 'reached', 'available', 'remove'):
+    assert 'type == "%s"' % name in script_cpp or '(type == "%s")' % name in script_cpp, name
+assert 'key == "PortalOff"' in script_cpp and 'key == "Block"' in script_cpp
+assert 'mPortalOff' in script_h and 'mBlocked' in script_h
+assert 'isPortalOff(getSeat()->getId())' in read('source/rooms/RoomPortal.cpp')
+assert 'isCreatureBlocked(getId()' in read('source/game/Seat.cpp')
+
+print('level script make, time limit and story state wiring: ok')

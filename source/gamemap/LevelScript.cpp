@@ -230,6 +230,84 @@ bool parseCondition(const std::vector<std::string>& t, LevelScriptCondition& con
         }
         return parseInt(value, cond.mNumber);
     }
+    if(type == "portal")
+    {
+        cond.mType = LevelScriptConditionType::portalActive;
+        if((t.size() != 4) || ((t[3] != "on") && (t[3] != "off")))
+            return false;
+
+        cond.mNumber = (t[3] == "on") ? 1 : 0;
+        return parseInt32(t[2], cond.mSeatId);
+    }
+    if(type == "alive")
+    {
+        cond.mType = LevelScriptConditionType::creatureAlive;
+        if((t.size() != 3) && (t.size() != 4))
+            return false;
+
+        cond.mName = t[2];
+        cond.mNumber = 1;
+        if(t.size() == 4)
+        {
+            if((t[3] != "0") && (t[3] != "1"))
+                return false;
+
+            cond.mNumber = (t[3] == "1") ? 1 : 0;
+        }
+        return true;
+    }
+    if(type == "reached")
+    {
+        cond.mType = LevelScriptConditionType::creatureReached;
+        if(t.size() != 5)
+            return false;
+
+        cond.mName = t[2];
+        if(t[3] == "region")
+        {
+            cond.mName2 = t[4];
+            return !cond.mName2.empty();
+        }
+        return (t[3] == "heart") && parseInt32(t[4], cond.mSeatId);
+    }
+    if(type == "defeated")
+    {
+        cond.mType = LevelScriptConditionType::seatDefeated;
+        return (t.size() == 3) && parseInt32(t[2], cond.mSeatId);
+    }
+    if((type == "owns") || (type == "spell"))
+    {
+        cond.mType = (type == "owns") ? LevelScriptConditionType::ownsCreature : LevelScriptConditionType::spellKnown;
+        if(t.size() != 4)
+            return false;
+
+        cond.mName = t[3];
+        return parseInt32(t[2], cond.mSeatId);
+    }
+    if(type == "health")
+    {
+        cond.mType = LevelScriptConditionType::creatureHealth;
+        if(t.size() != 5)
+            return false;
+
+        cond.mName = t[2];
+        return parseOperator(t[3], cond) && parseInt(t[4], cond.mNumber);
+    }
+    if((type == "built") || (type == "roomtiles") || (type == "roomsize"))
+    {
+        if(type == "built")
+            cond.mType = LevelScriptConditionType::trapsBuilt;
+        else if(type == "roomtiles")
+            cond.mType = LevelScriptConditionType::roomTiles;
+        else
+            cond.mType = LevelScriptConditionType::largestRoom;
+
+        if(t.size() != 6)
+            return false;
+
+        cond.mName = t[3];
+        return parseInt32(t[2], cond.mSeatId) && parseOperator(t[4], cond) && parseInt(t[5], cond.mNumber);
+    }
     if(type == "timer")
     {
         cond.mType = LevelScriptConditionType::timer;
@@ -352,6 +430,34 @@ bool parseAction(const std::string& line, const std::vector<std::string>& t, Lev
         action.mType = LevelScriptActionType::waveCountdown;
         return (t.size() == 3) && parseInt(t[2], action.mNumber) && (action.mNumber >= 0);
     }
+    if(type == "portal")
+    {
+        action.mType = LevelScriptActionType::portalStatus;
+        if((t.size() != 4) || ((t[3] != "on") && (t[3] != "off")))
+            return false;
+
+        action.mNumber = (t[3] == "on") ? 1 : 0;
+        return parseInt32(t[2], action.mSeatId);
+    }
+    if(type == "available")
+    {
+        action.mType = LevelScriptActionType::creatureAvailable;
+        if((t.size() != 5) || ((t[4] != "0") && (t[4] != "1")))
+            return false;
+
+        action.mText = t[3];
+        action.mNumber = (t[4] == "1") ? 1 : 0;
+        return parseInt32(t[2], action.mSeatId);
+    }
+    if(type == "remove")
+    {
+        action.mType = LevelScriptActionType::removeCreature;
+        if(t.size() != 3)
+            return false;
+
+        action.mText = t[2];
+        return true;
+    }
     if(type == "timer")
     {
         action.mType = LevelScriptActionType::startTimer;
@@ -391,6 +497,41 @@ void writeCondition(std::ostream& os, const LevelScriptCondition& c)
             os << "creatures\t" << c.mSeatId << "\t" << levelScriptCompareToken(c.mCompare) << "\t" << c.mNumber;
             if(!c.mName2.empty())
                 os << "\t" << c.mName2;
+            break;
+        case LevelScriptConditionType::seatDefeated:
+            os << "defeated\t" << c.mSeatId;
+            break;
+        case LevelScriptConditionType::portalActive:
+            os << "portal\t" << c.mSeatId << "\t" << (c.mNumber != 0 ? "on" : "off");
+            break;
+        case LevelScriptConditionType::creatureAlive:
+            os << "alive\t" << c.mName;
+            if(c.mNumber == 0)
+                os << "\t0";
+            break;
+        case LevelScriptConditionType::creatureReached:
+            if(c.mName2.empty())
+                os << "reached\t" << c.mName << "\theart\t" << c.mSeatId;
+            else
+                os << "reached\t" << c.mName << "\tregion\t" << c.mName2;
+            break;
+        case LevelScriptConditionType::ownsCreature:
+            os << "owns\t" << c.mSeatId << "\t" << c.mName;
+            break;
+        case LevelScriptConditionType::spellKnown:
+            os << "spell\t" << c.mSeatId << "\t" << c.mName;
+            break;
+        case LevelScriptConditionType::creatureHealth:
+            os << "health\t" << c.mName << "\t" << levelScriptCompareToken(c.mCompare) << "\t" << c.mNumber;
+            break;
+        case LevelScriptConditionType::trapsBuilt:
+            os << "built\t" << c.mSeatId << "\t" << c.mName << "\t" << levelScriptCompareToken(c.mCompare) << "\t" << c.mNumber;
+            break;
+        case LevelScriptConditionType::roomTiles:
+            os << "roomtiles\t" << c.mSeatId << "\t" << c.mName << "\t" << levelScriptCompareToken(c.mCompare) << "\t" << c.mNumber;
+            break;
+        case LevelScriptConditionType::largestRoom:
+            os << "roomsize\t" << c.mSeatId << "\t" << c.mName << "\t" << levelScriptCompareToken(c.mCompare) << "\t" << c.mNumber;
             break;
         case LevelScriptConditionType::room:
             os << "room\t" << c.mSeatId << "\t" << c.mName << "\t";
@@ -489,6 +630,15 @@ void writeAction(std::ostream& os, const LevelScriptAction& a)
         case LevelScriptActionType::startTimer:
             os << "timer\t" << a.mText << "\t" << a.mNumber;
             break;
+        case LevelScriptActionType::portalStatus:
+            os << "portal\t" << a.mSeatId << "\t" << (a.mNumber != 0 ? "on" : "off");
+            break;
+        case LevelScriptActionType::creatureAvailable:
+            os << "available\t" << a.mSeatId << "\t" << a.mText << "\t" << (a.mNumber != 0 ? 1 : 0);
+            break;
+        case LevelScriptActionType::removeCreature:
+            os << "remove\t" << a.mText;
+            break;
     }
     os << "\n";
 }
@@ -554,6 +704,22 @@ bool LevelScript::importFromStream(std::istream& is)
 
             timer.mRunning = (running != 0);
             mTimers[t[1]] = timer;
+        }
+        else if(key == "PortalOff")
+        {
+            int32_t seatId = 0;
+            if(inTrigger || (t.size() != 2) || !parseInt32(t[1], seatId))
+                return false;
+
+            mPortalOff.insert(seatId);
+        }
+        else if(key == "Block")
+        {
+            int32_t seatId = 0;
+            if(inTrigger || (t.size() != 3) || !parseInt32(t[1], seatId))
+                return false;
+
+            mBlocked.insert(std::make_pair(seatId, t[2]));
         }
         else if(key == "TimeLimit")
         {
@@ -652,6 +818,12 @@ void LevelScript::exportToStream(std::ostream& os) const
     for(const std::pair<const std::string, LevelScriptTimer>& timer : mTimers)
         os << "Timer\t" << timer.first << "\t" << (timer.second.mRunning ? 1 : 0) << "\t" << timer.second.mTurns << "\n";
 
+    for(int32_t seatId : mPortalOff)
+        os << "PortalOff\t" << seatId << "\n";
+
+    for(const std::pair<int32_t, std::string>& block : mBlocked)
+        os << "Block\t" << block.first << "\t" << block.second << "\n";
+
     if(mTimeLimitSeconds != TIME_LIMIT_NOT_SET)
         os << "TimeLimit\t" << mTimeLimitSeconds << "\n";
 
@@ -695,6 +867,8 @@ void LevelScript::clear()
     mTriggers.clear();
     mFlags.clear();
     mTimers.clear();
+    mPortalOff.clear();
+    mBlocked.clear();
     mRegions.clear();
     mTimeLimitSeconds = TIME_LIMIT_NOT_SET;
     mCountdownSeconds = COUNTDOWN_NOT_SET;
@@ -874,4 +1048,30 @@ bool levelScriptParseCompare(const std::string& token, LevelScriptCompare& op)
         }
     }
     return false;
+}
+
+void LevelScript::setPortalOff(int32_t seatId, bool off)
+{
+    if(off)
+        mPortalOff.insert(seatId);
+    else
+        mPortalOff.erase(seatId);
+}
+
+bool LevelScript::isPortalOff(int32_t seatId) const
+{
+    return mPortalOff.count(seatId) > 0;
+}
+
+void LevelScript::setCreatureBlocked(int32_t seatId, const std::string& className, bool blocked)
+{
+    if(blocked)
+        mBlocked.insert(std::make_pair(seatId, className));
+    else
+        mBlocked.erase(std::make_pair(seatId, className));
+}
+
+bool LevelScript::isCreatureBlocked(int32_t seatId, const std::string& className) const
+{
+    return mBlocked.count(std::make_pair(seatId, className)) > 0;
 }

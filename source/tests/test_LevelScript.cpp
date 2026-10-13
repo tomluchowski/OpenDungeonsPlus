@@ -388,3 +388,108 @@ BOOST_AUTO_TEST_CASE(test_flag_operators_and_timers)
         BOOST_CHECK_MESSAGE(!invalid.importFromStream(isBad), entry);
     }
 }
+
+//! The story state conditions (seats, named creatures, spells, traps, rooms, portal state, reaching a place)
+//! and the actions portal, available and remove, with the portal and creature class state they keep
+BOOST_AUTO_TEST_CASE(test_story_state)
+{
+    static const std::string text =
+        "PortalOff\t3\n"
+        "Block\t1\tTroll\n"
+        "Region\tExit\t5\t6\t7\t8\n"
+        "[Trigger]\n"
+        "Name\tmany\n"
+        "Mode\tonce\n"
+        "Cond\tdefeated\t4\n"
+        "Cond\towns\t1\tLordKnight3\n"
+        "Cond\thealth\tLordKnight3\t<\t50\n"
+        "Cond\tspell\t1\tspellPossess\n"
+        "Cond\tbuilt\t1\tCannon\t>=\t2\n"
+        "Cond\tbuilt\t2\tany\t==\t0\n"
+        "Cond\troomtiles\t1\tTreasury\t>=\t12\n"
+        "Cond\troomsize\t1\tHatchery\t>=\t9\n"
+        "Cond\tportal\t2\toff\n"
+        "Cond\talive\tWarden\n"
+        "Cond\talive\tKing\t0\n"
+        "Cond\treached\tWarden\tregion\tExit\n"
+        "Cond\treached\tCarrier\theart\t1\n"
+        "Action\tportal\t2\ton\n"
+        "Action\tavailable\t1\tTroll\t0\n"
+        "Action\tavailable\t1\tTroll\t1\n"
+        "Action\tremove\tKnight_5\n"
+        "[/Trigger]\n"
+        "[/Triggers]\n";
+    LevelScript script;
+    std::istringstream is(text);
+    BOOST_REQUIRE(script.importFromStream(is));
+    BOOST_CHECK(script.isPortalOff(3));
+    BOOST_CHECK(!script.isPortalOff(2));
+    BOOST_CHECK(script.isCreatureBlocked(1, "Troll"));
+    BOOST_CHECK(!script.isCreatureBlocked(2, "Troll"));
+    script.setPortalOff(2, true);
+    script.setCreatureBlocked(1, "Troll", false);
+    BOOST_CHECK(script.isPortalOff(2));
+    BOOST_CHECK(!script.isCreatureBlocked(1, "Troll"));
+    script.setPortalOff(2, false);
+    script.setCreatureBlocked(1, "Troll", true);
+
+    BOOST_REQUIRE_EQUAL(script.getTriggers().size(), 1u);
+    const LevelScriptTrigger& trigger = script.getTriggers()[0];
+    BOOST_REQUIRE_EQUAL(trigger.mConditions.size(), 12u);
+    BOOST_CHECK(trigger.mConditions[0].mType == LevelScriptConditionType::seatDefeated);
+    BOOST_CHECK_EQUAL(trigger.mConditions[0].mSeatId, 4);
+    BOOST_CHECK(trigger.mConditions[1].mType == LevelScriptConditionType::ownsCreature);
+    BOOST_CHECK_EQUAL(trigger.mConditions[1].mName, "LordKnight3");
+    BOOST_CHECK(trigger.mConditions[2].mType == LevelScriptConditionType::creatureHealth);
+    BOOST_CHECK(trigger.mConditions[2].mCompare == LevelScriptCompare::less);
+    BOOST_CHECK_EQUAL(trigger.mConditions[2].mNumber, 50);
+    BOOST_CHECK(trigger.mConditions[3].mType == LevelScriptConditionType::spellKnown);
+    BOOST_CHECK(trigger.mConditions[4].mType == LevelScriptConditionType::trapsBuilt);
+    BOOST_CHECK_EQUAL(trigger.mConditions[4].mName, "Cannon");
+    BOOST_CHECK(trigger.mConditions[5].mCompare == LevelScriptCompare::equal);
+    BOOST_CHECK(trigger.mConditions[6].mType == LevelScriptConditionType::roomTiles);
+    BOOST_CHECK(trigger.mConditions[7].mType == LevelScriptConditionType::largestRoom);
+    BOOST_CHECK(trigger.mConditions[8].mType == LevelScriptConditionType::portalActive);
+    BOOST_CHECK_EQUAL(trigger.mConditions[8].mSeatId, 2);
+    BOOST_CHECK_EQUAL(trigger.mConditions[8].mNumber, 0);
+    BOOST_CHECK(trigger.mConditions[9].mType == LevelScriptConditionType::creatureAlive);
+    BOOST_CHECK_EQUAL(trigger.mConditions[9].mNumber, 1);
+    BOOST_CHECK_EQUAL(trigger.mConditions[10].mNumber, 0);
+    BOOST_CHECK(trigger.mConditions[11].mType == LevelScriptConditionType::creatureReached);
+    BOOST_CHECK_EQUAL(trigger.mConditions[11].mName, "Warden");
+    BOOST_CHECK_EQUAL(trigger.mConditions[11].mName2, "Exit");
+    BOOST_REQUIRE_EQUAL(trigger.mActions.size(), 4u);
+    BOOST_CHECK(trigger.mActions[0].mType == LevelScriptActionType::portalStatus);
+    BOOST_CHECK_EQUAL(trigger.mActions[0].mNumber, 1);
+    BOOST_CHECK(trigger.mActions[1].mType == LevelScriptActionType::creatureAvailable);
+    BOOST_CHECK_EQUAL(trigger.mActions[1].mNumber, 0);
+    BOOST_CHECK_EQUAL(trigger.mActions[2].mNumber, 1);
+    BOOST_CHECK(trigger.mActions[3].mType == LevelScriptActionType::removeCreature);
+    BOOST_CHECK_EQUAL(trigger.mActions[3].mText, "Knight_5");
+
+    std::ostringstream os;
+    script.exportToStream(os);
+    std::string written = os.str();
+    LevelScript again;
+    std::istringstream is2(written.substr(11));
+    BOOST_REQUIRE(again.importFromStream(is2));
+    std::ostringstream os2;
+    again.exportToStream(os2);
+    BOOST_CHECK_EQUAL(os2.str(), written);
+
+    static const char* bad[] = {
+        "[Trigger]\nName\tx\nMode\tonce\nCond\tdefeated\nAction\tmessage\t1\tx\n[/Trigger]\n[/Triggers]\n",
+        "[Trigger]\nName\tx\nMode\tonce\nCond\thealth\tA\t>=\nAction\tmessage\t1\tx\n[/Trigger]\n[/Triggers]\n",
+        "[Trigger]\nName\tx\nMode\tonce\nCond\tbuilt\t1\tCannon\t2\nAction\tmessage\t1\tx\n[/Trigger]\n[/Triggers]\n",
+        "[Trigger]\nName\tx\nMode\tonce\nCond\tportal\t2\tmaybe\nAction\tgold\t1\t1\n[/Trigger]\n[/Triggers]\n",
+        "[Trigger]\nName\tx\nMode\tonce\nCond\talive\tKing\t2\nAction\tgold\t1\t1\n[/Trigger]\n[/Triggers]\n",
+        "[Trigger]\nName\tx\nMode\tonce\nCond\treached\tKing\tcorner\tExit\nAction\tgold\t1\t1\n[/Trigger]\n[/Triggers]\n",
+        "[Trigger]\nName\tx\nMode\tonce\nCond\ttime\t1\nAction\tportal\t1\tmaybe\n[/Trigger]\n[/Triggers]\n",
+        "[Trigger]\nName\tx\nMode\tonce\nCond\ttime\t1\nAction\tavailable\t1\tTroll\t2\n[/Trigger]\n[/Triggers]\n"};
+    for(const char* entry : bad)
+    {
+        LevelScript invalid;
+        std::istringstream isBad(entry);
+        BOOST_CHECK_MESSAGE(!invalid.importFromStream(isBad), entry);
+    }
+}

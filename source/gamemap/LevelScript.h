@@ -21,6 +21,7 @@
 #include <cstdint>
 #include <iosfwd>
 #include <map>
+#include <set>
 #include <string>
 #include <utility>
 #include <vector>
@@ -34,6 +35,8 @@
 //!   [Triggers]
 //!   Flag    <name>  <value>                   # initial value of a flag (unset flags are 0)
 //!   Timer   <name> <running 0|1> <turns>      # written by the game: a timer started by an action, in game turns
+//!   PortalOff <seatId>                        # written by the game: a seat whose portals are switched off
+//!   Block   <seatId> <class>                  # written by the game: a creature class that cannot come to the seat
 //!   Countdown <seconds>                       # written by the game: the HUD countdown set by an action, in level seconds
 //!   WaveCountdown <seconds>                   # written by the game: the HUD wave countdown set by an action, in level seconds
 //!   TimeLimit <seconds>                       # written by the game: the time limit set by an action, in level seconds (-2: removed)
@@ -46,6 +49,17 @@
 //!   Cond    region <seatId> <regionName>          # the same, with the rectangle of a named region
 //!   Cond    region <seatId> <regionName> <op> <count> [<class>]   # number of living creatures (of that class) of the seat in the region
 //!   Cond    creatures <seatId> <op> <count> [<class>]   # living creatures of the seat, optionally of one creature class
+//!   Cond    defeated <seatId>                 # the seat has lost its dungeon (its player is out of the game)
+//!   Cond    owns <seatId> <creatureName>      # the creature with that name is alive and belongs to the seat
+//!   Cond    portal <seatId> on | off          # the portals of the seat attract creatures (on) or are switched off (off) by an action portal
+//!   Cond    alive <creatureName> [1 | 0]      # the creature with that name is alive, whatever its seat (0: it is dead or not there)
+//!   Cond    reached <creatureName> region <regionName>   # the living creature with that name stands inside the region
+//!   Cond    reached <creatureName> heart <seatId>        # the living creature with that name stands on the dungeon heart room of the seat
+//!   Cond    health <creatureName> <op> <percent>   # health of that living creature in percent of its maximum
+//!   Cond    spell <seatId> <skillName>        # the seat has the spell (or any other skill) researched
+//!   Cond    built <seatId> <trapName> <op> <count>   # tiles of traps or doors of that type (Cannon, DoorSteel, ...) of the seat; trapName any counts all
+//!   Cond    roomtiles <seatId> <roomName> <op> <count>   # tiles of all rooms of that type of the seat
+//!   Cond    roomsize <seatId> <roomName> <op> <count>    # tiles of the largest room of that type of the seat
 //!   Cond    room <seatId> <roomName> <count>  # seat owns at least count rooms of that type
 //!   Cond    gold <seatId> >= | <= <amount>    # gold of the seat
 //!   Cond    mana <seatId> >= | <= <amount>    # mana of the seat
@@ -64,6 +78,9 @@
 //!   Action  gold <seatId> <amount>
 //!   Action  setflag <name> <value>
 //!   Action  addflag <name> <delta>            # adds to the flag (a negative value subtracts)
+//!   Action  portal <seatId> on | off          # the portals of the seat do (not) attract creatures
+//!   Action  available <seatId> <class> 1 | 0  # a creature class can (not) come to the dungeon of the seat
+//!   Action  remove <creatureName>             # the creature leaves the map
 //!   Action  timer <name> [<seconds>]          # starts (or restarts) the timer at that value, 0 if it is left out
 //!   Action  win <seatId>                      # seat -1: every human player
 //!   Action  lose <seatId>
@@ -113,7 +130,17 @@ enum class LevelScriptConditionType
     mana,
     goldMined,
     claimed,
-    timer
+    timer,
+    seatDefeated,
+    ownsCreature,
+    creatureHealth,
+    spellKnown,
+    trapsBuilt,
+    roomTiles,
+    largestRoom,
+    portalActive,
+    creatureAlive,
+    creatureReached
 };
 
 //! \brief The kinds of actions a trigger can run (see the format above).
@@ -132,7 +159,10 @@ enum class LevelScriptActionType
     timeLimit,
     countdown,
     waveCountdown,
-    startTimer
+    startTimer,
+    portalStatus,
+    creatureAvailable,
+    removeCreature
 };
 
 //! \brief One condition of a trigger. The fields that are used depend on the type.
@@ -269,7 +299,6 @@ struct LevelScriptTimer
 class LevelScript
 {
 public:
-    //! \brief Creates an empty script without a time limit and without countdowns
     LevelScript() :
         mTimeLimitSeconds(TIME_LIMIT_NOT_SET),
         mCountdownSeconds(COUNTDOWN_NOT_SET),
@@ -288,7 +317,7 @@ public:
 
     //! \brief True if the script holds nothing that a level file has to store.
     inline bool isEmpty() const
-    { return mTriggers.empty() && mFlags.empty() && mTimers.empty() && mRegions.empty() && (mTimeLimitSeconds == TIME_LIMIT_NOT_SET) && (mCountdownSeconds == COUNTDOWN_NOT_SET) && (mWaveCountdownSeconds == COUNTDOWN_NOT_SET); }
+    { return mTriggers.empty() && mFlags.empty() && mTimers.empty() && mPortalOff.empty() && mBlocked.empty() && mRegions.empty() && (mTimeLimitSeconds == TIME_LIMIT_NOT_SET) && (mCountdownSeconds == COUNTDOWN_NOT_SET) && (mWaveCountdownSeconds == COUNTDOWN_NOT_SET); }
 
     //! \brief The triggers of the script. The caller may change them.
     inline std::vector<LevelScriptTrigger>& getTriggers()
@@ -313,6 +342,23 @@ public:
     //! \brief All timers that were started.
     inline const std::map<std::string, LevelScriptTimer>& getTimers() const
     { return mTimers; }
+
+    //! \brief Switches the portals of a seat off or on again (the portal action)
+    //! \param seatId The seat whose portals change
+    //! \param off true to stop the portals from attracting creatures
+    void setPortalOff(int32_t seatId, bool off);
+
+    //! \brief True if the portals of the seat are switched off by the script
+    bool isPortalOff(int32_t seatId) const;
+
+    //! \brief Keeps a creature class away from the dungeon of a seat or lets it come again (the available action)
+    //! \param seatId The seat whose portals attract the class
+    //! \param className The creature class
+    //! \param blocked true to keep the class away
+    void setCreatureBlocked(int32_t seatId, const std::string& className, bool blocked);
+
+    //! \brief True if the script keeps the creature class away from the dungeon of the seat
+    bool isCreatureBlocked(int32_t seatId, const std::string& className) const;
 
     //! \brief All flags that were set.
     inline const std::map<std::string, int64_t>& getFlags() const
@@ -344,12 +390,11 @@ public:
     static const int64_t TIME_LIMIT_REMOVED = -2;
 
     //! \brief The time limit set by a script action, as the level second at which it runs out.
-    //! TIME_LIMIT_NOT_SET if no action set one, TIME_LIMIT_REMOVED if an action removed the limit.
+    //! TIME_LIMIT_NOT_SET if no action set one (the game duration setting applies),
+    //! TIME_LIMIT_REMOVED if an action removed the limit.
     inline int64_t getTimeLimitSeconds() const
     { return mTimeLimitSeconds; }
 
-    //! \brief Sets the time limit
-    //! \param seconds The level second at which it runs out, TIME_LIMIT_NOT_SET or TIME_LIMIT_REMOVED
     inline void setTimeLimitSeconds(int64_t seconds)
     { mTimeLimitSeconds = seconds; }
 
@@ -360,8 +405,6 @@ public:
     inline int64_t getCountdownSeconds() const
     { return mCountdownSeconds; }
 
-    //! \brief Sets the HUD countdown
-    //! \param seconds The level second at which it ends, or COUNTDOWN_NOT_SET
     inline void setCountdownSeconds(int64_t seconds)
     { mCountdownSeconds = seconds; }
 
@@ -370,8 +413,6 @@ public:
     inline int64_t getWaveCountdownSeconds() const
     { return mWaveCountdownSeconds; }
 
-    //! \brief Sets the HUD wave countdown
-    //! \param seconds The level second at which it ends, or COUNTDOWN_NOT_SET
     inline void setWaveCountdownSeconds(int64_t seconds)
     { mWaveCountdownSeconds = seconds; }
 
@@ -384,6 +425,8 @@ private:
     std::vector<LevelScriptTrigger> mTriggers;
     std::map<std::string, int64_t> mFlags;
     std::map<std::string, LevelScriptTimer> mTimers;
+    std::set<int32_t> mPortalOff;
+    std::set<std::pair<int32_t, std::string> > mBlocked;
     std::vector<LevelScriptRegion> mRegions;
     int64_t mTimeLimitSeconds;
     int64_t mCountdownSeconds;

@@ -35,6 +35,9 @@
 #include "spells/Spell.h"
 #include "spells/SpellCallToWar.h"
 #include "spells/SpellType.h"
+#include "traps/Trap.h"
+#include "traps/TrapManager.h"
+#include "traps/TrapType.h"
 #include "utils/ConfigManager.h"
 #include "utils/Helper.h"
 #include "utils/LogManager.h"
@@ -155,6 +158,102 @@ bool isConditionMet(GameMap& gameMap, const LevelScript& script, const LevelScri
         }
         case LevelScriptConditionType::timer:
             return levelScriptCompare(script.getTimerTurns(cond.mName), cond.mCompare, secondsToTurns(cond.mNumber));
+        case LevelScriptConditionType::portalActive:
+            return script.isPortalOff(cond.mSeatId) == (cond.mNumber == 0);
+        case LevelScriptConditionType::creatureAlive:
+        {
+            Creature* creature = gameMap.getCreature(cond.mName);
+            bool isAlive = (creature != nullptr) && creature->isAlive();
+            return isAlive == (cond.mNumber != 0);
+        }
+        case LevelScriptConditionType::creatureReached:
+        {
+            Creature* creature = gameMap.getCreature(cond.mName);
+            if((creature == nullptr) || !creature->isAlive() || (creature->getPositionTile() == nullptr))
+                return false;
+
+            Tile* tile = creature->getPositionTile();
+            if(!cond.mName2.empty())
+            {
+                const LevelScriptRegion* region = script.getRegion(cond.mName2);
+                if(region == nullptr)
+                {
+                    OD_LOG_ERR("Level script: unknown region name=" + cond.mName2);
+                    return false;
+                }
+                return region->contains(tile->getX(), tile->getY());
+            }
+
+            Room* room = tile->getCoveringRoom();
+            return (room != nullptr) && (room->getType() == RoomType::dungeonTemple) &&
+                (room->getSeat() != nullptr) && (room->getSeat()->getId() == cond.mSeatId);
+        }
+        case LevelScriptConditionType::seatDefeated:
+        {
+            Player* player = gameMap.getPlayerBySeatId(cond.mSeatId);
+            return (player != nullptr) && player->getHasLost();
+        }
+        case LevelScriptConditionType::ownsCreature:
+        {
+            Creature* creature = gameMap.getCreature(cond.mName);
+            return (creature != nullptr) && creature->isAlive() && isSeatMatching(creature, cond.mSeatId);
+        }
+        case LevelScriptConditionType::creatureHealth:
+        {
+            Creature* creature = gameMap.getCreature(cond.mName);
+            if((creature == nullptr) || !creature->isAlive() || (creature->getMaxHp() <= 0.0))
+                return false;
+
+            int64_t percent = static_cast<int64_t>(100.0 * creature->getHP() / creature->getMaxHp());
+            return levelScriptCompare(percent, cond.mCompare, cond.mNumber);
+        }
+        case LevelScriptConditionType::spellKnown:
+        {
+            Seat* seat = gameMap.getSeatById(cond.mSeatId);
+            SkillType skillType = Skills::fromString(cond.mName);
+            return (seat != nullptr) && (skillType != SkillType::nullSkillType) && seat->isSkillDone(skillType);
+        }
+        case LevelScriptConditionType::trapsBuilt:
+        {
+            Seat* seat = gameMap.getSeatById(cond.mSeatId);
+            if(seat == nullptr)
+                return false;
+
+            bool anyType = (cond.mName == "any");
+            TrapType trapType = anyType ? TrapType::nullTrapType : TrapManager::getTrapTypeFromTrapName(cond.mName);
+            int64_t numTiles = 0;
+            for(Trap* trap : gameMap.getTraps())
+            {
+                if((trap->getSeat() == seat) && (anyType || (trap->getType() == trapType)))
+                    numTiles += static_cast<int64_t>(trap->numCoveredTiles());
+            }
+            return levelScriptCompare(numTiles, cond.mCompare, cond.mNumber);
+        }
+        case LevelScriptConditionType::roomTiles:
+        case LevelScriptConditionType::largestRoom:
+        {
+            Seat* seat = gameMap.getSeatById(cond.mSeatId);
+            if(seat == nullptr)
+                return false;
+
+            RoomType roomType = RoomManager::getRoomTypeFromRoomName(cond.mName);
+            if(roomType == RoomType::nullRoomType)
+            {
+                OD_LOG_ERR("Level script: unknown room name=" + cond.mName);
+                return false;
+            }
+
+            int64_t numTiles = 0;
+            for(Room* room : gameMap.getRoomsByTypeAndSeat(roomType, seat))
+            {
+                int64_t roomTiles = static_cast<int64_t>(room->numCoveredTiles());
+                if(cond.mType == LevelScriptConditionType::roomTiles)
+                    numTiles += roomTiles;
+                else
+                    numTiles = std::max(numTiles, roomTiles);
+            }
+            return levelScriptCompare(numTiles, cond.mCompare, cond.mNumber);
+        }
         case LevelScriptConditionType::gold:
         case LevelScriptConditionType::mana:
         case LevelScriptConditionType::goldMined:
@@ -380,6 +479,18 @@ void makeSkillAvailable(GameMap& gameMap, const LevelScriptAction& action)
     }
 }
 
+//! \brief The creature with that name leaves the map (the remove action). Nothing happens if there is none on the map.
+void removeCreature(GameMap& gameMap, const std::string& name)
+{
+    Creature* creature = gameMap.getCreature(name);
+    if((creature == nullptr) || !creature->getIsOnMap())
+        return;
+
+    creature->clearDestinations(EntityAnimation::idle_anim, true, true);
+    creature->removeFromGameMap();
+    creature->deleteYourself();
+}
+
 //! \brief Carries out one action of a trigger that fired.
 void runAction(GameMap& gameMap, LevelScript& script, const LevelScriptAction& action)
 {
@@ -438,6 +549,15 @@ void runAction(GameMap& gameMap, LevelScript& script, const LevelScriptAction& a
             break;
         case LevelScriptActionType::startTimer:
             script.startTimer(action.mText, secondsToTurns(action.mNumber));
+            break;
+        case LevelScriptActionType::portalStatus:
+            script.setPortalOff(action.mSeatId, action.mNumber == 0);
+            break;
+        case LevelScriptActionType::creatureAvailable:
+            script.setCreatureBlocked(action.mSeatId, action.mText, action.mNumber == 0);
+            break;
+        case LevelScriptActionType::removeCreature:
+            removeCreature(gameMap, action.mText);
             break;
     }
 }
