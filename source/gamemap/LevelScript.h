@@ -404,6 +404,7 @@ public:
 
     //! Timers: a timer that was never started does not exist and counts 0 turns
     int64_t getTimerTurns(const std::string& name) const;
+    //! \brief Starts the timer with the given name (or restarts it) and sets it to the given number of turns.
     void startTimer(const std::string& name, int64_t turns);
 
     //! Adds one turn to every running timer
@@ -433,19 +434,23 @@ public:
     //! Counts an event of a creature (and of the party it belongs to). Only the creatures and parties
     //! that a condition of the script names are counted.
     void recordEvent(const std::string& creatureName, const std::string& eventName);
+    //! \brief Gets how often the event was counted for a creature name or a party tag, 0 if never.
     int64_t getEventCount(const std::string& tag, const std::string& eventName) const;
 
     //! Puts a creature into a party
     void addPartyMember(const std::string& party, const std::string& creatureName);
 
+    //! \brief All counted events, by (creature name or party tag, event name), with their counts.
     inline const std::map<std::pair<std::string, std::string>, int64_t>& getEvents() const
     { return mEvents; }
 
+    //! \brief All party memberships, by creature name, with the name of the party of the creature.
     inline const std::map<std::string, std::string>& getPartyMembers() const
     { return mPartyMembers; }
 
     //! Standing orders of the creatures (by creature name)
     void setOrder(const std::string& creatureName, const LevelScriptOrder& order);
+    //! \brief Removes the standing order of the creature, if it has one.
     void clearOrder(const std::string& creatureName);
     //! Returns nullptr if the creature has no order
     const LevelScriptOrder* getOrder(const std::string& creatureName) const;
@@ -457,10 +462,13 @@ public:
 
     //! Counts a slap the player of the seat tries. Returns false if the slap limit refuses it.
     bool registerSlap(int32_t seatId);
+    //! \brief Gets how many slaps the player of the seat tried so far, 0 if none.
     int64_t getSlaps(int32_t seatId) const;
+    //! \brief Gets the number of slaps each player may do, a negative value means there is no limit.
     inline int64_t getSlapLimit() const
     { return mSlapLimit; }
 
+    //! \brief Sets the number of slaps each player may do, a negative value removes the limit.
     inline void setSlapLimit(int64_t limit)
     { mSlapLimit = limit; }
 
@@ -490,6 +498,7 @@ public:
     //! \brief Replaces all the regions, used by the editor when the server sends them
     void setRegions(const std::vector<LevelScriptRegion>& regions);
 
+    //! \brief All slap counts, by seat id.
     inline const std::map<int32_t, int64_t>& getSlapCounts() const
     { return mSlaps; }
 
