@@ -41,6 +41,12 @@ bool HatcheryCycle::needCoopHen(const HatcheryCounts& counts, uint32_t nbCoops)
     return (nbCoops > 0) && (counts.population() == 0);
 }
 
+uint32_t HatcheryCycle::coopHenCount(const HatcheryCycleSettings& settings, uint32_t capacity)
+{
+    uint32_t count = (settings.mCoopBatch == 0) ? capacity : std::min(settings.mCoopBatch, capacity);
+    return std::max<uint32_t>(1, count);
+}
+
 bool HatcheryCycle::needCoopRooster(const HatcheryCounts& counts, uint32_t nbCoops)
 {
     return (nbCoops > 0) && (counts.mRoosters == 0);

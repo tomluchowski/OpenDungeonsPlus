@@ -31,6 +31,7 @@
 #include "gamemap/RoomObjectNavigation.h"
 #include "rooms/Room.h"
 #include "rooms/RoomType.h"
+#include "utils/ConfigManager.h"
 #include "utils/Helper.h"
 #include "utils/Random.h"
 #include "utils/LogManager.h"
@@ -50,6 +51,7 @@ ChickenEntity::ChickenEntity(GameMap* gameMap, const std::string& hatcheryName, 
     mNbTurnLay(0),
     mAge(0),
     mBusyTurns(0),
+    mScatterTurns(0),
     mCalm(false),
     mRoomDriven(false),
     mFighting(false),
@@ -76,6 +78,7 @@ ChickenEntity::ChickenEntity(GameMap* gameMap) :
     mNbTurnLay(0),
     mAge(0),
     mBusyTurns(0),
+    mScatterTurns(0),
     mCalm(false),
     mRoomDriven(false),
     mFighting(false),
@@ -174,6 +177,16 @@ void ChickenEntity::doUpkeep()
         return;
     }
 
+    // Eggs and chicks that are dropped anywhere but in a hatchery are lost soon
+    if(((mKind == ChickenKind::egg) || (mKind == ChickenKind::chick)) && (currentHatchery == nullptr) &&
+       (mNbTurnOutsideHatchery >= static_cast<int32_t>(ConfigManager::getSingleton().getRoomConfigDoubleOrDefault("HatcheryYoungLostTurns", 2.0))))
+    {
+        removeEntityFromPositionTile();
+        mChickenState = ChickenState::eaten;
+        clearDestinations(EntityAnimation::idle_anim, true, true);
+        return;
+    }
+
     // If we are outside a hatchery for too long, we die
     if(mIsSlapped || (mNbTurnOutsideHatchery >= NB_TURNS_OUTSIDE_HATCHERY_BEFORE_DIE))
     {
@@ -185,6 +198,9 @@ void ChickenEntity::doUpkeep()
     // An egg does not move
     if(mKind == ChickenKind::egg)
         return;
+
+    if(mScatterTurns > 0)
+        --mScatterTurns;
 
     // The pose of a laying hen or a cackling one: the animal stays where it is for a moment
     if(mBusyTurns > 0)
@@ -309,6 +325,17 @@ void ChickenEntity::playPose(const std::string& pose, uint32_t turns)
 {
     mBusyTurns = turns;
     clearDestinations(pose, true, false);
+}
+
+bool ChickenEntity::scatterTo(const Ogre::Vector2& spot, uint32_t turns)
+{
+    mFollowing = false;
+    mBusyTurns = 0;
+    if(!walkToward(spot, 0.0, ChickenPose::flee))
+        return false;
+
+    mScatterTurns = turns;
+    return true;
 }
 
 void ChickenEntity::setFollowTarget(const Ogre::Vector2& target, double gap)
@@ -489,6 +516,7 @@ bool ChickenEntity::tryPickup(Seat* seat)
 
 void ChickenEntity::pickup()
 {
+    mScatterTurns = 0;
     mOnRoof = false;
     mFighting = false;
     mRoomDriven = false;

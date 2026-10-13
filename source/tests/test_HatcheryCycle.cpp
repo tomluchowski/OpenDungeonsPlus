@@ -115,6 +115,17 @@ BOOST_AUTO_TEST_CASE(test_RoosterFight)
     BOOST_CHECK(settings.mFightTurns > 0u);
     BOOST_CHECK(settings.mFightApproachTurns > 0u);
 }
+
+BOOST_AUTO_TEST_CASE(test_CoopHenCount)
+{
+    HatcheryCycleSettings settings;
+    // By default one hen per coop comes out, at least one
+    BOOST_CHECK_EQUAL(HatcheryCycle::coopHenCount(settings, 3), 3u);
+    BOOST_CHECK_EQUAL(HatcheryCycle::coopHenCount(settings, 0), 1u);
+    settings.mCoopBatch = 2;
+    BOOST_CHECK_EQUAL(HatcheryCycle::coopHenCount(settings, 3), 2u);
+    BOOST_CHECK_EQUAL(HatcheryCycle::coopHenCount(settings, 1), 1u);
+}
 BOOST_AUTO_TEST_CASE(test_LayInterval)
 {
     HatcheryCycleSettings settings;
@@ -261,7 +272,10 @@ uint32_t simulateNew(uint32_t nbCoops, uint32_t eatPercent, uint32_t nbTurns, co
             ++coopWait;
             if(coopWait >= settings.mCoopWait)
             {
-                hens.push_back(SimAnimal(HatcheryCycle::layInterval(settings, rng.next())));
+                // One hen per coop comes out
+                uint32_t nbFromCoops = HatcheryCycle::coopHenCount(settings, capacity);
+                for(uint32_t i = 0; i < nbFromCoops; ++i)
+                    hens.push_back(SimAnimal(HatcheryCycle::layInterval(settings, rng.next())));
                 coopWait = 0;
             }
         }
@@ -301,7 +315,7 @@ BOOST_AUTO_TEST_CASE(test_BalanceParity)
             double newPerMinute = newEaten / (nbTurns / 1.4 / 60.0);
             std::cout << "parity coops=" << coops[c] << " eatPercent/turn=" << demands[d]
                 << " old=" << oldPerMinute << " new=" << newPerMinute << " per minute" << std::endl;
-            BOOST_CHECK_CLOSE(newPerMinute, oldPerMinute, 15.0);
+            BOOST_CHECK_CLOSE(newPerMinute, oldPerMinute, 3.0);
         }
     }
 }

@@ -160,15 +160,16 @@ void RoomHatchery::notifyActiveSpotRemoved(ActiveSpotPlace place, Tile* tile)
     }
 }
 
-//! \brief Saves the number of the last day the rooster crowed for, so a loaded game does not crow twice.
+//! \brief Saves the waiting counters of the coops and the number of the last day the rooster crowed for.
 void RoomHatchery::exportToStream(std::ostream& os) const
 {
     Room::exportToStream(os);
+    os << "HatcheryWaits " << mCoopHenWait << " " << mCoopRoosterWait << " " << mCrowInterval << std::endl;
     os << "HatcheryDay " << mLastCrowDay << std::endl;
 }
 
-//! \brief Loads the line written by exportToStream. A save without it loads as before: the stream is put back
-//! and the day is learned again from the first turn.
+//! \brief Loads what exportToStream wrote. A save without the lines loads as before: the stream is put back
+//! and the counters start from zero.
 bool RoomHatchery::importFromStream(std::istream& is)
 {
     if(!Room::importFromStream(is))
@@ -176,18 +177,48 @@ bool RoomHatchery::importFromStream(std::istream& is)
 
     std::streampos pos = is.tellg();
     std::string tag;
-    if(!(is >> tag) || (tag != "HatcheryDay"))
+    if(!(is >> tag) || (tag != "HatcheryWaits"))
     {
         is.clear();
         is.seekg(pos);
         return true;
     }
 
-    int64_t crowDay;
-    if(!(is >> crowDay))
+    uint32_t henWait;
+    uint32_t roosterWait;
+    uint32_t crowInterval;
+    if(!(is >> henWait >> roosterWait >> crowInterval))
         return false;
 
-    mLastCrowDay = crowDay;
+    mCoopHenWait = henWait;
+    mCoopRoosterWait = roosterWait;
+    mCrowInterval = crowInterval;
+
+    // Lines that later versions write after the waiting counters. A save without them loads as before, a line that
+    // is not one of them is put back for the reader after us.
+    for(;;)
+    {
+        pos = is.tellg();
+        if(!(is >> tag))
+        {
+            is.clear();
+            is.seekg(pos);
+            break;
+        }
+        if(tag == "HatcheryDay")
+        {
+            int64_t crowDay;
+            if(!(is >> crowDay))
+                return false;
+
+            mLastCrowDay = crowDay;
+            continue;
+        }
+
+        is.clear();
+        is.seekg(pos);
+        break;
+    }
     return true;
 }
 
@@ -205,6 +236,7 @@ HatcheryCycleSettings RoomHatchery::getCycleSettings() const
     settings.mTramplePercent = static_cast<uint32_t>(config.getRoomConfigDoubleOrDefault("HatcheryTramplePercent", settings.mTramplePercent));
     settings.mFightTurns = static_cast<uint32_t>(config.getRoomConfigDoubleOrDefault("HatcheryFightTurns", settings.mFightTurns));
     settings.mFightApproachTurns = static_cast<uint32_t>(config.getRoomConfigDoubleOrDefault("HatcheryFightApproachTurns", settings.mFightApproachTurns));
+    settings.mCoopBatch = static_cast<uint32_t>(config.getRoomConfigDoubleOrDefault("HatcheryCoopBatch", settings.mCoopBatch));
 
     // The research of the hatchery shortens the waiting times
     double coopWait = config.getRoomConfigDoubleOrDefault("HatcheryChickenSpawnRate", settings.mCoopWait);
@@ -226,14 +258,15 @@ ChickenEntity* RoomHatchery::spawnAnimal(ChickenKind kind, const Ogre::Vector3& 
     return chicken;
 }
 
-bool RoomHatchery::spawnFromCoop(ChickenKind kind, const HatcheryCycleSettings& settings)
+bool RoomHatchery::spawnFromCoop(ChickenKind kind, const HatcheryCycleSettings& settings, uint32_t count)
 {
     if(mCentralActiveSpotTiles.empty())
         return false;
 
     const std::vector<RoomObjectPath::Obstacle> obstacles = RoomObjectNavigation::collect(*getGameMap(), 0.1f);
     uint32_t first = Random::Uint(0, mCentralActiveSpotTiles.size() - 1);
-    for(uint32_t i = 0; i < mCentralActiveSpotTiles.size(); ++i)
+    uint32_t spawned = 0;
+    for(uint32_t i = 0; (i < mCentralActiveSpotTiles.size()) && (spawned < count); ++i)
     {
         Tile* coopTile = mCentralActiveSpotTiles[(first + i) % mCentralActiveSpotTiles.size()];
         Ogre::Vector2 freePosition;
@@ -243,9 +276,76 @@ bool RoomHatchery::spawnFromCoop(ChickenKind kind, const HatcheryCycleSettings& 
 
         ChickenEntity* animal = spawnAnimal(kind, Ogre::Vector3(freePosition.x, freePosition.y, 0.0f), settings);
         animal->playPose(ChickenPose::emerge, 2);
-        return true;
+        ++spawned;
     }
-    return false;
+    return spawned > 0;
+}
+
+void RoomHatchery::collectHungry(std::vector<Creature*>& hungry) const
+{
+    for(Creature* creature : getGameMap()->getCreatures())
+    {
+        if((creature == nullptr) || !creature->getIsOnMap() || (creature->getSeat() == nullptr))
+            continue;
+
+        Tile* tile = creature->getPositionTile();
+        if((tile == nullptr) || (tile->getCoveringRoom() != this))
+            continue;
+
+        if(creature->isActionInList(CreatureActionType::eatChicken))
+            hungry.push_back(creature);
+    }
+}
+
+void RoomHatchery::updateFlock(const std::vector<ChickenEntity*>& hens, bool calm)
+{
+    const ConfigManager& config = ConfigManager::getSingleton();
+    double radius = config.getRoomConfigDoubleOrDefault("HatcheryScatterRadius", 2.0);
+    uint32_t scatterTurns = static_cast<uint32_t>(config.getRoomConfigDoubleOrDefault("HatcheryScatterTurns", 6.0));
+    uint32_t scatterAttempts = static_cast<uint32_t>(config.getRoomConfigDoubleOrDefault("HatcheryScatterAttempts", 4.0));
+    double scatterMargin = config.getRoomConfigDoubleOrDefault("HatcheryScatterMargin", 1.0);
+    uint32_t flutterPercent = static_cast<uint32_t>(config.getRoomConfigDoubleOrDefault("HatcheryFlutterPercent", 3.0));
+    uint32_t scratchPercent = static_cast<uint32_t>(config.getRoomConfigDoubleOrDefault("HatcheryScratchPercent", 6.0));
+
+    std::vector<Creature*> hungry;
+    collectHungry(hungry);
+    for(ChickenEntity* hen : hens)
+    {
+        if(hen->isBusy() || hen->isScattering())
+            continue;
+
+        // A hungry creature comes close: the hen runs off cackling to another part of the hatchery
+        const Ogre::Vector2 henPos(hen->getPosition().x, hen->getPosition().y);
+        bool threatened = false;
+        for(Creature* creature : hungry)
+        {
+            const Ogre::Vector2 creaturePos(creature->getPosition().x, creature->getPosition().y);
+            if(henPos.distance(creaturePos) > radius)
+                continue;
+
+            threatened = true;
+            for(uint32_t attempt = 0; attempt < scatterAttempts; ++attempt)
+            {
+                Tile* away = mCoveredTiles[Random::Uint(0, mCoveredTiles.size() - 1)];
+                const Ogre::Vector2 spot(away->getX(), away->getY());
+                if(spot.distance(creaturePos) < radius + scatterMargin)
+                    continue;
+
+                if(hen->scatterTo(spot, scatterTurns))
+                    break;
+            }
+            break;
+        }
+        if(threatened || calm || hen->isMoving())
+            continue;
+
+        // Otherwise she scratches the ground or flutters up for a moment now and then
+        uint32_t roll = Random::Uint(0, 99);
+        if(roll < flutterPercent)
+            hen->playPose(ChickenPose::flutter, 1);
+        else if(roll < flutterPercent + scratchPercent)
+            hen->playPose(ChickenPose::scratch, 2);
+    }
 }
 
 void RoomHatchery::collectEnemies(std::vector<Creature*>& enemies) const
@@ -444,6 +544,7 @@ void RoomHatchery::doUpkeep()
         hen->setCalm(night || full);
     for(ChickenEntity* chick : chicks)
         chick->setCalm(night);
+    updateFlock(hens, night || full);
     ChickenEntity* rooster = roosters.empty() ? nullptr : roosters.front();
     updateChickLine(hens, chicks, rooster, night);
     for(ChickenEntity* oneRooster : roosters)
@@ -471,7 +572,8 @@ void RoomHatchery::doUpkeep()
     if(HatcheryCycle::needCoopHen(counts, mNumActiveSpots))
     {
         ++mCoopHenWait;
-        if((mCoopHenWait >= settings.mCoopWait) && spawnFromCoop(ChickenKind::hen, settings))
+        if((mCoopHenWait >= settings.mCoopWait) &&
+           spawnFromCoop(ChickenKind::hen, settings, HatcheryCycle::coopHenCount(settings, capacity)))
             mCoopHenWait = 0;
     }
     else

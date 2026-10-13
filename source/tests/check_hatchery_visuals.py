@@ -28,7 +28,7 @@ assert 'destroyMesh()' in body(chicken, 'void ChickenEntity::setKindFromServer')
 assert 'rrChickenHatched' in body(chicken, 'void ChickenEntity::setKindFromServer')
 
 # Poses reach the client as animation names and are turned into skeleton animations plus motion.
-for name in ('strut', 'chase', 'flee', 'mount', 'cackle', 'perch', 'crow', 'guard', 'lead', 'roost', 'lay', 'wobble', 'emerge', 'fight', 'protest'):
+for name in ('strut', 'chase', 'flee', 'mount', 'cackle', 'perch', 'crow', 'guard', 'lead', 'roost', 'lay', 'wobble', 'emerge', 'fight', 'protest', 'scratch', 'flutter'):
     assert 'static const std::string %s =' % name in pose, name
 hook = body(render, 'void RenderManager::rrSetObjectAnimationState')
 assert 'ChickenPose::isPose(animation)' in hook and 'rrSetChickenPose' in hook
@@ -92,3 +92,15 @@ assert 'ChickenKind::rooster' in decor and 'getEntitiesInTile' in decor
 assert 'decor.mFeathers->setVisible(animals == 0)' in decor and 'decor.mNest->setVisible(animals > 0)' in decor
 assert 'countEntitiesOnTile(GameEntityType::chickenEntity)' not in decor
 print('hatchery rooster look checks passed')
+
+# Flocking of the hens: scratching, fluttering and scattering from a hungry creature
+assert 'updateFlock' in body(room, 'void RoomHatchery::doUpkeep')
+flock = body(room, 'void RoomHatchery::updateFlock')
+for call in ('ChickenPose::flutter', 'ChickenPose::scratch', 'scatterTo', 'collectHungry'):
+    assert call in flock, call
+assert 'CreatureActionType::eatChicken' in body(room, 'void RoomHatchery::collectHungry')
+for key in ('HatcheryScatterRadius', 'HatcheryScatterTurns', 'HatcheryFlutterPercent', 'HatcheryScratchPercent'):
+    assert key in config and key in room, key
+assert 'ChickenPose::scratch' in looks and 'ChickenPose::flutter' in looks
+# Eggs and chicks dropped outside a hatchery are lost
+assert 'HatcheryYoungLostTurns' in chickUpkeep and 'HatcheryYoungLostTurns' in config

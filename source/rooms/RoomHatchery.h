@@ -62,6 +62,10 @@ protected:
     BuildingObject* notifyActiveSpotCreated(ActiveSpotPlace place, Tile* tile) override;
     void notifyActiveSpotRemoved(ActiveSpotPlace place, Tile* tile) override;
 private:
+    //! Creatures of the hatchery that are after a chicken (hungry, on their way to eat).
+    void collectHungry(std::vector<Creature*>& hungry) const;
+    //! Hens that peck, scratch and flutter now and then; they scatter cackling when a hungry creature comes close.
+    void updateFlock(const std::vector<ChickenEntity*>& hens, bool night);
     //! Creatures of an enemy seat that stand on a tile of the hatchery.
     void collectEnemies(std::vector<Creature*>& enemies) const;
     //! True if an enemy creature stands on the tile of the egg (the egg does not hatch then).
@@ -75,7 +79,7 @@ private:
     //! Creates a hatchery animal at the given position.
     ChickenEntity* spawnAnimal(ChickenKind kind, const Ogre::Vector3& position, const HatcheryCycleSettings& settings);
     //! Lets a hen or a rooster come out of a coop. Returns false if no coop has a free place.
-    bool spawnFromCoop(ChickenKind kind, const HatcheryCycleSettings& settings);
+    bool spawnFromCoop(ChickenKind kind, const HatcheryCycleSettings& settings, uint32_t count = 1);
 
     //! Settings of the rooster, the day and the chick line from the config.
     RoosterSettings getRoosterSettings() const;

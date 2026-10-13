@@ -126,3 +126,13 @@ acting = room_cpp[room_cpp.index('void RoomHatchery::actRoosterMood'):room_cpp.i
 for number in ('2.2', '0.9', '1.8', '0.55f', 'Random::Int(1, 3)', 'Random::Int(1, 2)'):
     assert number not in acting, number
 print('hatchery rooster settings checks passed')
+
+# The waiting counters of the room are saved (old saves without the line still load), one hen per coop comes out
+room_h = (root / 'source/rooms/RoomHatchery.h').read_text()
+assert 'exportToStream' in room_h and 'importFromStream' in room_h
+exp = room_cpp[room_cpp.index('void RoomHatchery::exportToStream'):][:300]
+assert 'HatcheryWaits' in exp and 'mCoopHenWait' in exp and 'mCoopRoosterWait' in exp
+stream_reader = room_cpp[room_cpp.index('bool RoomHatchery::importFromStream'):][:900]
+assert 'seekg(pos)' in stream_reader and 'HatcheryWaits' in stream_reader
+assert 'coopHenCount' in room_cpp and 'HatcheryCoopBatch' in cfg
+print('hatchery saved waits checks passed')

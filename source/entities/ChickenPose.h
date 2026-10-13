@@ -39,6 +39,8 @@ namespace ChickenPose
     static const std::string emerge = "Emerge";
     static const std::string fight = "Fight";
     static const std::string protest = "Protest";
+    static const std::string scratch = "Scratch";
+    static const std::string flutter = "Flutter";
 
     //! \brief True if the name is one of the poses above.
     inline bool isPose(const std::string& name)
@@ -46,7 +48,7 @@ namespace ChickenPose
         return (name == strut) || (name == chase) || (name == flee) || (name == mount) ||
             (name == cackle) || (name == perch) || (name == crow) || (name == guard) ||
             (name == lead) || (name == roost) || (name == lay) || (name == wobble) ||
-            (name == emerge) || (name == fight) || (name == protest);
+            (name == emerge) || (name == fight) || (name == protest) || (name == scratch) || (name == flutter);
     }
 
     //! \brief True if the pose is a way of walking.
