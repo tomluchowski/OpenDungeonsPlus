@@ -21,7 +21,7 @@ EFFECT_KEYS = ("Name", "Target", "Match", "When", "Event", "Kind", "System", "Mo
                "Amount", "Speed", "Flicker", "Duration", "Chance", "Spacing", "MaxDistance", "Priority", "Reduced",
                "NeedWall", "Clips", "Every")
 TARGETS = ("Object", "Tile", "Event")
-WHENS = ("Always", "Occupied", "Empty")
+WHENS = ("Always", "Occupied", "Empty", "Reloading", "Ready")
 KINDS = ("Particle", "Motion", "Clip")
 MOTIONS = ("Sway", "Wobble", "Spin", "Bob", "Pulse", "Flicker")
 # Room tile visuals that only some builds have
@@ -169,6 +169,8 @@ def check_effect(effect, where, problems, visuals, systems, mats, counts):
     when = effect.get("When", ["Always"])[0]
     if when not in WHENS:
         problems.append("%s: bad When %s" % (where, when))
+    if when in ("Reloading", "Ready") and target != "Object":
+        problems.append("%s: When %s only works on objects" % (where, when))
     if target == "Event":
         counts["events"] += 1
         if "Event" not in effect:

@@ -112,6 +112,23 @@ static const std::string TRAP_PREFIX = "trap:";
 static const std::string MESH_SUFFIX = ".mesh";
 //! A full turn in radians
 const double TWO_PI = 6.283185307179586;
+//! Seconds that a trap counts as reloading after the server sent the start of the reload; the long time only
+//! protects against a ready message that was missed out of sight
+const double RELOAD_STATE_SECONDS = 300.0;
+//! Seconds that the reload look is kept after the server said that the trap is loaded, so that a short reload is seen at all
+const double RELOAD_FADE_OUT_SECONDS = 2.0;
+
+//! \brief The key "x,y" under which the state of a trap on a tile is kept
+std::string getTileKey(int32_t tileX, int32_t tileY)
+{
+    return Helper::toString(tileX) + "," + Helper::toString(tileY);
+}
+
+//! \brief The key of the tile that the given position lies on
+std::string getPositionKey(const Ogre::Vector3& position)
+{
+    return getTileKey(static_cast<int32_t>(std::floor(position.x + 0.5f)), static_cast<int32_t>(std::floor(position.y + 0.5f)));
+}
 
 //! \brief True if the name fits the pattern, which is a plain name or has * as first or last character as wildcard
 bool matchesPattern(const std::string& pattern, const std::string& name)
@@ -594,6 +611,15 @@ void RoomAmbience::scanObjects(Ogre::Camera* camera, const Ogre::Vector3& camera
             if(effect.mWhen == AmbienceWhen::always)
             {
                 candidate.mActive = true;
+            }
+            else if((effect.mWhen == AmbienceWhen::reloading) || (effect.mWhen == AmbienceWhen::ready))
+            {
+                std::map<std::string, double>::const_iterator reloadIt = mReloadingUntil.find(getPositionKey(position));
+                bool reloading = (reloadIt != mReloadingUntil.end()) && (reloadIt->second > mClock);
+                if(effect.mWhen == AmbienceWhen::reloading)
+                    candidate.mActive = reloading;
+                else
+                    candidate.mActive = !reloading;
             }
             else
             {
@@ -1330,6 +1356,18 @@ void RoomAmbience::notifyTrapEffect(int32_t kind, int32_t tileX, int32_t tileY, 
         case TrapEffectKind::linked:
             triggerEvent("TrapLinked", position, false, typeName);
             break;
+        case TrapEffectKind::reloading:
+            // Reloading, or empty after the last shot: the state is kept until the server says ready
+            mReloadingUntil[getTileKey(tileX, tileY)] = mClock + RELOAD_STATE_SECONDS;
+            break;
+        case TrapEffectKind::ready:
+        {
+            // The reload look fades out for a moment, so that a short reload is seen at all
+            std::map<std::string, double>::iterator reloadIt = mReloadingUntil.find(getTileKey(tileX, tileY));
+            if((reloadIt != mReloadingUntil.end()) && (reloadIt->second > (mClock + RELOAD_FADE_OUT_SECONDS)))
+                reloadIt->second = mClock + RELOAD_FADE_OUT_SECONDS;
+            break;
+        }
         default:
             break;
     }

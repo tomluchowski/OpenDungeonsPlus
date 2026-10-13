@@ -70,6 +70,10 @@ bool RoomAmbienceConfig::whenFromString(const std::string& text, AmbienceWhen& w
         when = AmbienceWhen::occupied;
     else if(text == "Empty")
         when = AmbienceWhen::empty;
+    else if(text == "Reloading")
+        when = AmbienceWhen::reloading;
+    else if(text == "Ready")
+        when = AmbienceWhen::ready;
     else
         return false;
 

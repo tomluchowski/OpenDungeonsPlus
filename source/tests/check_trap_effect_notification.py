@@ -36,7 +36,8 @@ if '"trapEffect"' not in read("source", "network", "ServerNotification.cpp"):
 trap_h = read("source", "traps", "Trap.h")
 kinds = re.search(r"enum class TrapEffectKind[^{]*\{(.*?)\}", trap_h, re.S)
 values = re.findall(r"(\w+)\s*=\s*(\d+)", kinds.group(1)) if kinds else []
-if [name for name, _ in values] != ["fired", "linked"] or [int(number) for _, number in values] != [0, 1]:
+if [name for name, _ in values] != ["fired", "linked", "reloading", "ready"] or \
+        [int(number) for _, number in values] != [0, 1, 4, 5]:
     problems.append("TrapEffectKind values changed: %s" % values)
 
 trap_cpp = read("source", "traps", "Trap.cpp")
@@ -60,6 +61,23 @@ if raised != configured:
 
 if "TrapEffectKind::linked" not in read("source", "traps", "TrapTrigger.cpp"):
     problems.append("the trigger trap does not send the linked effect")
+
+# Reload state: sent once per change (not per turn), only for traps, and used by the client
+doup = trap_cpp[trap_cpp.index("void Trap::doUpkeep"):]
+doup = doup[:doup.index("bool Trap::fireTile")]
+if "wasReloading" not in doup or "TrapEffectKind::ready" not in doup:
+    problems.append("the end of a reload is not sent once")
+fire = trap_cpp[trap_cpp.index("bool Trap::fireTile"):trap_cpp.index("void Trap::fireTrapEffect")]
+if "TrapEffectKind::reloading" not in fire or "!isDoor()" not in fire:
+    problems.append("the start of a reload is not sent for traps only")
+if "TrapEffectKind::reloading" not in ambience or "TrapEffectKind::ready" not in ambience or \
+        "mReloadingUntil" not in ambience:
+    problems.append("the client does not keep the reload state")
+for word in ("AmbienceWhen::reloading", "AmbienceWhen::ready"):
+    if word not in ambience:
+        problems.append("the client does not use " + word)
+if "When        Reloading" not in config or "When        Ready" not in config:
+    problems.append("the config has no effects for reloading and ready")
 
 if problems:
     for problem in problems:

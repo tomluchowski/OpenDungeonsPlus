@@ -1,4 +1,26 @@
-// Effects of the production rooms. Only the embers that the fire burst trap also uses are here for now.
+// Effects of the production rooms. Only the glow and embers that the fire burst trap also uses are here for now.
+
+// The glow of a fire: one steady billboard, the game makes it flicker
+particle_system RoomAmbEmberGlow
+{
+    material        RoomAmbGlow
+    point_rendering false
+    particle_width  0.7
+    particle_height 0.7
+    cull_each       false
+    quota           1
+    billboard_type  point
+
+    emitter Point
+    {
+        angle               0
+        colour              1.0 0.5 0.15 0.7
+        emission_rate       2
+        time_to_live        100000
+        direction           0 0 1
+        velocity            0
+    }
+}
 
 // Embers rising from a fire
 particle_system RoomAmbEmbers

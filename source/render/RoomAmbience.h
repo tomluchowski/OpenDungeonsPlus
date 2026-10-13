@@ -94,7 +94,8 @@ public:
     //! \param tileX X of the tile of the trap.
     //! \param tileY Y of the tile of the trap.
     //! \param typeName The type of the trap (Alarm, Gas, ...), matched like a tile visual in "Match" of the event effects.
-    //! Shows the event TrapFired or TrapLinked at the tile; a kind that is not known is ignored.
+    //! Shows the event TrapFired or TrapLinked at the tile. The kinds reloading and ready only set the state
+    //! for the effects "When Reloading" and "When Ready"; a kind that is not known is ignored.
     void notifyTrapEffect(int32_t kind, int32_t tileX, int32_t tileY, const std::string& typeName);
 
     //! \brief The number of particle systems that run now (for the console)
@@ -320,6 +321,9 @@ private:
     std::map<std::string, BusyInfo> mBusy;
     //! When an event was last raised at a place, so that the same event does not start twice at once
     std::map<std::string, double> mLastEventTime;
+    //! Time until which a trap (key "x,y" of its tile) counts as reloading or empty, for the effects
+    //! "When Reloading" and "When Ready"
+    std::map<std::string, double> mReloadingUntil;
 
     //! Positions of the creatures on the map at the last scan
     std::vector<Ogre::Vector3> mCreaturePositions;

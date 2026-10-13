@@ -199,7 +199,12 @@ enum class TrapEffectKind : int32_t
     //! The trap went off just now
     fired = 0,
     //! A trigger trap set this (linked) trap off or marked it
-    linked = 1
+    linked = 1,
+    //! The trap fired and now reloads (or is empty if it was the last shot); sent once, not every turn.
+    //! The values 2 and 3 are left free for the door effects.
+    reloading = 4,
+    //! The trap is loaded again; sent once when the reload ends
+    ready = 5
 };
 
 /*! \class Trap Trap.h

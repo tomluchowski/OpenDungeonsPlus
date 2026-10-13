@@ -44,7 +44,11 @@ enum class AmbienceWhen
     //! A creature is close to the target
     occupied,
     //! No creature was close to the target for the time given in mAfter
-    empty
+    empty,
+    //! The target (a trap) reloads or is empty, as the server reported it
+    reloading,
+    //! The target (a trap) is loaded and ready, the opposite of reloading
+    ready
 };
 
 //! \brief What an ambience effect does when it is shown
