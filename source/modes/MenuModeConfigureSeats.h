@@ -53,6 +53,7 @@ public:
     void addPlayer(const std::string& nick, int32_t id);
     void removePlayer(int32_t id);
 
+    //! \brief Enables the seat settings for this player. A campaign level is started at once, because its seats are predefined.
     void activatePlayerConfig();
     void refreshSeatConfiguration(ODPacket& packet);
 
