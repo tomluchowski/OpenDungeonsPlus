@@ -584,6 +584,15 @@ SkillManager::SkillManager() :
     def->mapSkill(mSkillsFamily);
     mSkills[index] = def;
     lvl4depends.push_back(skill);
+
+    resType = SkillType::roomTemple;
+    index = static_cast<uint32_t>(resType);
+    points = ConfigManager::getSingleton().getSkillPoints(Skills::toString(resType));
+    skill = new Skill(resType, points, lvl3depends);
+    def = new SkillDefRoom("MagicSkills/", "PrayerTempleButton", skill, RoomType::temple);
+    def->mapSkill(mSkillsFamily);
+    mSkills[index] = def;
+    lvl4depends.push_back(skill);
 }
 
 SkillManager::~SkillManager()
