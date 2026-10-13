@@ -1,0 +1,324 @@
+// Effects of the casino, the guard room, the portal wave and of things that lie around
+// (gold and gem seams, a finished research book, gift boxes); see config/roomAmbienceOther.cfg.
+// Spark, glow, smoke and dust systems are shared with the other room ambience particle files.
+
+// ---- Seams ----
+
+// Glitter in a seam of gold
+particle_system RoomAmbSeamGlint
+{
+    material        RoomAmbSpark
+    point_rendering false
+    particle_width  0.2
+    particle_height 0.2
+    cull_each       false
+    quota           3
+    billboard_type  point
+
+    emitter Box
+    {
+        angle               0
+        colour              1.0 0.88 0.4 0.0
+        emission_rate       0.6
+        time_to_live        0.9
+        direction           0 0 1
+        velocity            0
+        position            0 0 1.0
+        width               0.9
+        height              0.9
+        depth               0.6
+    }
+
+    affector ColourInterpolator
+    {
+        time0   0
+        colour0 1.0 0.88 0.4 0.0
+        time1   0.4
+        colour1 1.0 0.95 0.55 1.0
+        time2   1
+        colour2 1.0 0.88 0.4 0.0
+    }
+}
+
+// Colourful sparkle in a seam of gems
+particle_system RoomAmbGemGlint
+{
+    material        RoomAmbSpark
+    point_rendering false
+    particle_width  0.22
+    particle_height 0.22
+    cull_each       false
+    quota           4
+    billboard_type  point
+
+    emitter Box
+    {
+        angle               0
+        colour              0.8 0.9 1.0 0.0
+        emission_rate       0.9
+        time_to_live        1.0
+        direction           0 0 1
+        velocity            0
+        position            0 0 1.0
+        width               0.9
+        height              0.9
+        depth               0.6
+    }
+
+    affector ColourInterpolator
+    {
+        time0   0
+        colour0 0.6 0.8 1.0 0.0
+        time1   0.4
+        colour1 1.0 0.85 1.0 1.0
+        time2   1
+        colour2 0.8 0.9 1.0 0.0
+    }
+
+    affector Rotator
+    {
+        rotation_speed_range_start  -90
+        rotation_speed_range_end    90
+        rotation_range_start        0
+        rotation_range_end          90
+    }
+}
+
+// ---- Things that lie around ----
+
+// A finished research book that waits to be picked up
+particle_system RoomAmbGrimoireGlow
+{
+    material        RoomAmbGlow
+    point_rendering false
+    particle_width  0.6
+    particle_height 0.6
+    cull_each       false
+    quota           1
+    billboard_type  point
+
+    emitter Point
+    {
+        angle               0
+        colour              0.55 0.7 1.0 0.5
+        emission_rate       2
+        time_to_live        100000
+        direction           0 0 1
+        velocity            0
+    }
+}
+
+// A gift box: a soft purple glow
+particle_system RoomAmbGiftGlow
+{
+    material        RoomAmbGlow
+    point_rendering false
+    particle_width  0.7
+    particle_height 0.7
+    cull_each       false
+    quota           1
+    billboard_type  point
+
+    emitter Point
+    {
+        angle               0
+        colour              0.85 0.55 1.0 0.5
+        emission_rate       2
+        time_to_live        100000
+        direction           0 0 1
+        velocity            0
+    }
+}
+
+// A gift box: twinkling sparks
+particle_system RoomAmbGiftGlint
+{
+    material        RoomAmbSpark
+    point_rendering false
+    particle_width  0.18
+    particle_height 0.18
+    cull_each       false
+    quota           5
+    billboard_type  point
+
+    emitter Box
+    {
+        angle               0
+        colour              1.0 0.85 1.0 0.0
+        emission_rate       1.6
+        time_to_live        0.9
+        direction           0 0 1
+        velocity            0
+        position            0 0 0.4
+        width               0.5
+        height              0.5
+        depth               0.4
+    }
+
+    affector ColourInterpolator
+    {
+        time0   0
+        colour0 1.0 0.85 1.0 0.0
+        time1   0.4
+        colour1 1.0 0.9 1.0 1.0
+        time2   1
+        colour2 1.0 0.85 1.0 0.0
+    }
+
+    affector Rotator
+    {
+        rotation_speed_range_start  -90
+        rotation_speed_range_end    90
+        rotation_range_start        0
+        rotation_range_end          90
+    }
+}
+
+// ---- Portal wave ----
+
+// The hostile swirl of the portal wave, lying flat and turning the other way
+particle_system RoomAmbWaveSwirl
+{
+    material        RoomAmbSwirl
+    point_rendering false
+    particle_width  2.0
+    particle_height 2.0
+    cull_each       false
+    quota           1
+    billboard_type  perpendicular_common
+    common_direction 0 0 1
+    common_up_vector 0 1 0
+
+    emitter Point
+    {
+        angle               0
+        colour              1.0 0.38 0.22 0.7
+        emission_rate       2
+        time_to_live        100000
+        direction           0 0 1
+        velocity            0
+        position            0 0 0.12
+    }
+
+    affector Rotator
+    {
+        rotation_speed_range_start  -85
+        rotation_speed_range_end    -85
+        rotation_range_start        0
+        rotation_range_end          0
+    }
+}
+
+particle_system RoomAmbWaveGlow
+{
+    material        RoomAmbGlow
+    point_rendering false
+    particle_width  2.8
+    particle_height 2.8
+    cull_each       false
+    quota           1
+    billboard_type  perpendicular_common
+    common_direction 0 0 1
+    common_up_vector 0 1 0
+
+    emitter Point
+    {
+        angle               0
+        colour              1.0 0.3 0.15 0.28
+        emission_rate       2
+        time_to_live        100000
+        direction           0 0 1
+        velocity            0
+        position            0 0 0.06
+    }
+}
+
+particle_system RoomAmbWaveSparks
+{
+    material        RoomAmbSpark
+    point_rendering false
+    particle_width  0.1
+    particle_height 0.1
+    cull_each       false
+    quota           12
+    billboard_type  point
+
+    emitter Box
+    {
+        angle               20
+        colour_range_start  1.0 0.3 0.15 1.0
+        colour_range_end    1.0 0.6 0.3 1.0
+        emission_rate       5
+        time_to_live        1.7
+        direction           0 0 1
+        velocity_min        0.4
+        velocity_max        1.0
+        position            0 0 0.15
+        width               1.2
+        height              1.2
+        depth               0.05
+    }
+
+    affector ColourFader
+    {
+        alpha   -0.55
+    }
+}
+
+// ---- Casino ----
+
+// Amber drops from the taps
+particle_system RoomAmbTapDrip
+{
+    material        RoomAmbDrop
+    point_rendering false
+    particle_width  0.045
+    particle_height 0.045
+    cull_each       false
+    quota           3
+    billboard_type  point
+
+    emitter Point
+    {
+        angle               0
+        colour              1.0 0.78 0.3 0.95
+        emission_rate       0.5
+        time_to_live        0.5
+        direction           0 0 -1
+        velocity            0.15
+        position            0 0.4 0.75
+    }
+
+    affector LinearForce
+    {
+        force_vector        0 0 -5
+        force_application   add
+    }
+}
+
+// ---- Guard room ----
+
+// A warm pool of light on the floor, like a lantern by the door
+particle_system RoomAmbGuardLight
+{
+    material        RoomAmbGlow
+    point_rendering false
+    particle_width  1.7
+    particle_height 1.7
+    cull_each       false
+    quota           1
+    billboard_type  perpendicular_common
+    common_direction 0 0 1
+    common_up_vector 0 1 0
+
+    emitter Point
+    {
+        angle               0
+        colour              1.0 0.8 0.45 0.15
+        emission_rate       2
+        time_to_live        100000
+        direction           0 0 1
+        velocity            0
+        position            0 0 0.03
+    }
+}
