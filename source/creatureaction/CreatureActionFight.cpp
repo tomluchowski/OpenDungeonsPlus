@@ -83,6 +83,12 @@ bool CreatureActionFight::handleFight(Creature& creature, GameEntity* entityAtta
             creature.popAction();
             return true;
         }
+        // Workers fight creatures only, also when they were given a target: never a room or a heart
+        if(creature.getDefinition()->isWorker() && entityAttack->getObjectType() != GameEntityType::creature)
+        {
+            creature.popAction();
+            return true;
+        }
 
         enemyPrioritaryTargets.push_back(entityAttack);
     }

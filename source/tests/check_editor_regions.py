@@ -24,9 +24,9 @@ client_enum = client_h.split('};')[0]
 assert client_enum.rstrip().endswith('editorRegionEdit'), 'client message not last'
 assert 'case ClientNotificationType::editorRegionEdit:' in client_cpp
 server_enum = server_h.split('};')[0]
-# timeLimit stays the last server message, editorRegionData sits directly before it
+# timeLimit stays the last server message, trapEffect sits before it and editorRegionData before that
 server_ids = re.findall(r'^\s*([A-Za-z_]\w*)\s*,?\s*(?://.*)?$', server_enum, re.M)
-assert server_ids[-2:] == ['editorRegionData', 'timeLimit'], server_ids[-3:]
+assert server_ids[-3:] == ['editorRegionData', 'trapEffect', 'timeLimit'], server_ids[-4:]
 assert 'case ServerNotificationType::editorRegionData:' in server_cpp
 
 # The three operations of the request are named, the editor and the server use the names.

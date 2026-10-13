@@ -51,6 +51,9 @@ enum class ClientNotificationType
     askCastSpell,
     askSetSkillTree,
     askSetPlayerSettings,
+    //! \brief Asks for the payout level of the casino on a tile and optionally sets it:
+    //! + int tileX, int tileY, uint32_t payoutLevel (a CasinoPayout value), bool isSet
+    askCasinoPayout,
 
     askSaveMap,
     askExecuteConsoleCommand,
@@ -80,6 +83,13 @@ enum class ClientNotificationType
     editorSetCreatureLevel,
     editorAskPortalWaveData,
     editorSetPortalWaveData,
+
+    // Append new messages to preserve existing network and replay identifiers.
+    changeNick,
+    askHandDropAll,
+
+    askTrapProductionQueue,
+    askMoveTrapProductionOrder,
     //! Editor: change or list the region markers of the level script:
     //! + int32_t operation (an EditorRegionOperation), string name, 4 int32_t (the corners, used by set only).
     //! The server always answers with editorRegionData.
