@@ -25,6 +25,18 @@ class Creature;
 class Tile;
 enum class TileVisual;
 
+//! \brief How much of the bets the casino pays back to the gamblers. The keeper sets it per room.
+enum class CasinoPayout
+{
+    //! \brief Keeper keeps a large share of the bets ($)
+    stingy,
+    //! \brief Default level, the share configured by CasinoFee
+    normal,
+    //! \brief Keeper keeps little or nothing (smiley)
+    generous,
+    nbValues
+};
+
 class RoomCasinoGameCreatureInfo
 {
 public:
@@ -65,6 +77,18 @@ public:
     void removeCreatureUsingRoom(Creature* creature) override;
     void absorbRoom(Room* room) override;
     bool useRoom(Creature& creature, bool forced) override;
+    void splitRoom(Room& newRoom, const std::vector<Tile*>& tiles) override;
+    void exportToStream(std::ostream& os) const override;
+    bool importFromStream(std::istream& is) override;
+
+    inline CasinoPayout getPayout() const
+    { return mPayout; }
+
+    void setPayout(CasinoPayout payout)
+    { mPayout = payout; }
+
+    //! \brief The share of the bets the keeper keeps for the given payout level (0.0 to 1.0)
+    static double getFeeForPayout(CasinoPayout payout);
 
     static const RoomType mRoomType;
     static const TileVisual mRoomVisual;
@@ -77,6 +101,7 @@ private:
     void setCreatureWinning(Creature& creature, const Ogre::Vector3& gamePosition);
     void setCreatureLoosing(Creature& creature, const Ogre::Vector3& gamePosition);
     std::map<Tile*,RoomCasinoGame> mCreaturesSpots;
+    CasinoPayout mPayout;
 };
 
 #endif // ROOMCASINO_H

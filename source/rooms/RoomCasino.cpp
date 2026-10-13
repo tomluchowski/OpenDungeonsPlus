@@ -132,7 +132,8 @@ static RoomRegister reg(new RoomCasinoFactory);
 static const Ogre::Real OFFSET_CREATURE = 0.3;
 
 RoomCasino::RoomCasino(GameMap* gameMap) :
-    Room(gameMap)
+    Room(gameMap),
+    mPayout(CasinoPayout::normal)
 {
     setMeshName("Casino");
 }
@@ -172,6 +173,63 @@ BuildingObject* RoomCasino::notifyActiveSpotCreated(ActiveSpotPlace place, Tile*
             break;
     }
     return nullptr;
+}
+
+double RoomCasino::getFeeForPayout(CasinoPayout payout)
+{
+    double fee = ConfigManager::getSingleton().getRoomConfigDouble("CasinoFee");
+    switch(payout)
+    {
+        case CasinoPayout::stingy:
+            fee = ConfigManager::getSingleton().getRoomConfigDoubleOrDefault("CasinoFeeStingy", fee);
+            break;
+        case CasinoPayout::generous:
+            fee = ConfigManager::getSingleton().getRoomConfigDoubleOrDefault("CasinoFeeGenerous", fee);
+            break;
+        default:
+            break;
+    }
+    return std::max(0.0, std::min(fee, 1.0));
+}
+
+void RoomCasino::splitRoom(Room& newRoom, const std::vector<Tile*>& tiles)
+{
+    // The room that gets the tiles keeps the payout level set for this one
+    if(newRoom.getType() == getType())
+        static_cast<RoomCasino&>(newRoom).setPayout(mPayout);
+}
+
+void RoomCasino::exportToStream(std::ostream& os) const
+{
+    Room::exportToStream(os);
+    os << "CasinoPayout " << static_cast<uint32_t>(mPayout) << std::endl;
+}
+
+bool RoomCasino::importFromStream(std::istream& is)
+{
+    if(!Room::importFromStream(is))
+        return false;
+
+    // Levels saved before the payout could be set do not have this line. In that case
+    // the stream is put back where it was and the default payout is kept.
+    std::streampos pos = is.tellg();
+    std::string tag;
+    if(!(is >> tag) || (tag != "CasinoPayout"))
+    {
+        is.clear();
+        is.seekg(pos);
+        return true;
+    }
+
+    uint32_t payout;
+    if(!(is >> payout))
+        return false;
+
+    if(payout >= static_cast<uint32_t>(CasinoPayout::nbValues))
+        return false;
+
+    mPayout = static_cast<CasinoPayout>(payout);
+    return true;
 }
 
 void RoomCasino::absorbRoom(Room* room)
@@ -388,13 +446,11 @@ void RoomCasino::doUpkeep()
 
         ro->setAnimationState("Triggered", false);
 
-        // TODO: we could use the wall active spots to change feePercent/bets
-
         // We set anim for both creatures
         uint32_t cooldown = Random::Uint(ConfigManager::getSingleton().getRoomConfigUInt32("CasinoCooldownWorkMin"),
             ConfigManager::getSingleton().getRoomConfigUInt32("CasinoCooldownWorkMax"));
         double feePercent = std::min(SkillManager::getResearchValue(getSeat(), SkillType::roomCasino,
-            ConfigManager::getSingleton().getRoomConfigDouble("CasinoFee")), 1.0);
+            getFeeForPayout(mPayout)), 1.0);
         double wakefullness = ConfigManager::getSingleton().getRoomConfigDouble("CasinoWakefulnessPerWork");
         int32_t creatureBet = ConfigManager::getSingleton().getRoomConfigInt32("CasinoBet");
         creatureBet = std::min(creatureBet, p.second.mCreature1.mCreature->getGoldCarried());
