@@ -300,7 +300,9 @@ MiniMap::TileColour MiniMap::colourFromTile(Tile& tile, Seat& playerSeat, unsign
 
     const TileVisual visual = tile.getTileVisual();
     Seat* owner = tile.getSeat();
-    const bool room = visual >= TileVisual::dungeonTempleRoom && visual < TileVisual::countTileVisual;
+    // The mana well ground lies inside the room visual range but is not a room
+    const bool room = visual >= TileVisual::dungeonTempleRoom && visual < TileVisual::countTileVisual &&
+        visual != TileVisual::manaWellGround;
     result.priority = 1;
     if(room || visual == TileVisual::claimedGround || visual == TileVisual::claimedFull)
     {
@@ -351,6 +353,10 @@ MiniMap::TileColour MiniMap::colourFromTile(Tile& tile, Seat& playerSeat, unsign
                 break;
             case TileVisual::lavaGround:
                 result.colour = Ogre::ColourValue(0.72f, 0.30f, 0.15f);
+                result.priority = 2;
+                break;
+            case TileVisual::manaWellGround:
+                result.colour = Ogre::ColourValue(0.18f, 0.37f, 0.78f);
                 result.priority = 2;
                 break;
             default:

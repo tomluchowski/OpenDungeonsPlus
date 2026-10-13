@@ -64,6 +64,7 @@ enum class TileType
     water = 4,
     lava = 5,
     gem = 6,
+    manaWell = 7,
     countTileType
 };
 
@@ -113,6 +114,7 @@ enum class TileVisual
     casinoRoom,
     tortureRoom,
     guardRoom,
+    manaWellGround,
     templeRoom,
     countTileVisual
 };

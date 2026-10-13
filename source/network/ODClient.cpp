@@ -213,6 +213,15 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
                 tile->setType(TileType::lava);
                 tile->setTileVisualIfArgNotNull(TileVisual::lavaGround);
             }
+            // Mana well
+            OD_ASSERT_TRUE(packetReceived >> nb);
+            while(nb > 0)
+            {
+                --nb;
+                Tile* tile = gameMap->tileFromPacket(packetReceived);
+                tile->setType(TileType::manaWell);
+                tile->setTileVisualIfArgNotNull(TileVisual::manaWellGround);
+            }
 
             
             gameMap->setAllFullnessAndNeighbors();

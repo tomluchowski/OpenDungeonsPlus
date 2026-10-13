@@ -692,8 +692,9 @@ private:
 
     //! \brief Applies the per-second mana income and worker upkeep of one seat for the current
     //! turn. A seat without a living dungeon heart gains and spends nothing.
+    //! \param nbManaWellTiles Number of mana well tiles the seat has claimed.
     //! \param timeSinceLastTurn Seconds since the previous turn, used by the worker countdown.
-    void updateSeatMana(Seat* seat, double timeSinceLastTurn);
+    void updateSeatMana(Seat* seat, uint32_t nbManaWellTiles, double timeSinceLastTurn);
 
     //! \brief Pops the workers above the free four when the seat's mana stays too low to
     //! pay their upkeep: after a period of shortage a countdown starts, and when it ends

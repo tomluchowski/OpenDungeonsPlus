@@ -61,6 +61,7 @@ ConfigManager::ConfigManager(const std::string& configPath, const std::string& u
     mTimePayDay(300),
     mNbTurnsFuriousMax(120),
     mMaxManaPerSeat(200000.0),
+    mManaWellBonusPerTile(10.0),
     mClaimingWallPenalty(0.8),
     mDigCoefGold(5.0),
     mDigCoefGem(1.0),
@@ -524,6 +525,13 @@ bool ConfigManager::loadGlobalGameConfig(std::stringstream& configFile)
         {
             configFile >> nextParam;
             mMaxManaPerSeat = Helper::toDouble(nextParam);
+            // Not mandatory
+        }
+
+        if(nextParam == "ManaWellBonusPerTile")
+        {
+            configFile >> nextParam;
+            mManaWellBonusPerTile = Helper::toDouble(nextParam);
             // Not mandatory
         }
 
@@ -1202,6 +1210,8 @@ bool ConfigManager::loadTilesets(const std::string& fileName)
         if(!loadTilesetValues(defFile, TileVisual::tortureRoom, tileSet->configureTileValues(TileVisual::tortureRoom),*mHighMap))
             return false;
         if(!loadTilesetValues(defFile, TileVisual::guardRoom, tileSet->configureTileValues(TileVisual::guardRoom),*mHighMap))
+            return false;
+        if(!loadTilesetValues(defFile, TileVisual::manaWellGround, tileSet->configureTileValues(TileVisual::manaWellGround),*mHighMap))
             return false;
         if(!loadTilesetValues(defFile, TileVisual::templeRoom, tileSet->configureTileValues(TileVisual::templeRoom),*mHighMap))
             return false;

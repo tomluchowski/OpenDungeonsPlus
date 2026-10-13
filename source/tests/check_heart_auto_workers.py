@@ -170,9 +170,9 @@ assert "++seat->mNumCreaturesWorkers;" in auto_workers, "the seat count follows 
 assert "AUTO_WORKERS_TARGET" in auto_workers and "AUTO_WORKER_INTERVAL_SECONDS" in auto_workers
 
 misc = function(game_map, "unsigned long int GameMap::doMiscUpkeep(")
-assert "updateSeatMana(seat, timeSinceLastTurn);" in misc and "updateSeatAutoWorkers(seat, timeSinceLastTurn);" in misc, \
+assert "updateSeatMana(seat, nbManaWellTiles, timeSinceLastTurn);" in misc and "updateSeatAutoWorkers(seat, timeSinceLastTurn);" in misc, \
     "each seat gets its automatic workers every turn"
-assert misc.index("updateSeatMana(seat, timeSinceLastTurn);") < misc.index("updateSeatAutoWorkers(seat, timeSinceLastTurn);"), \
+assert misc.index("updateSeatMana(seat, nbManaWellTiles, timeSinceLastTurn);") < misc.index("updateSeatAutoWorkers(seat, timeSinceLastTurn);"), \
     "the workers are created after the mana upkeep, with the fresh worker count"
 assert "void updateSeatAutoWorkers(Seat* seat, double timeSinceLastTurn);" in read("source/gamemap/GameMap.h")
 assert "#include \"rooms/RoomDungeonTemple.h\"" in game_map, "the heart tile needs the temple room type"
