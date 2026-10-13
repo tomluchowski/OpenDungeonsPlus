@@ -49,11 +49,11 @@ public:
     std::function<bool()> action() override;
 
     //! \brief Runs the creature away from visible enemies for nbTurns turns
-    //! \return true while the creature is still fleeing
+    //! \return True when the flight is over and the action was removed, false while the creature keeps running
     static bool handleFlee(Creature& creature, int32_t nbTurns);
 
     //! \brief Runs the creature away from the fear tile for fearTurns turns, even if no enemy is visible
-    //! \return true while the creature is still fleeing
+    //! \return True when the flight is over and the action was removed, false while the creature keeps running
     static bool handleFear(Creature& creature, int32_t nbTurns, int32_t fearTurns, Tile* fearTile);
 
 private:
