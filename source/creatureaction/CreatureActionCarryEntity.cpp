@@ -63,7 +63,7 @@ CreatureActionCarryEntity::CreatureActionCarryEntity(Creature& creature, GameEnt
     mEntityToCarry(&entityToCarry),
     mTileDest(nullptr),
     mBuildingDest(&buildingDest),
-    mIsDrag(isPulledOverGround(entityToCarry)),
+    mIsDrag(isPulledOverGround(creature, entityToCarry)),
     mDragPhase(0),
     mDragLayTurns(0),
     mDragFollowArc(0.0)
@@ -123,15 +123,16 @@ std::function<bool()> CreatureActionCarryEntity::action()
         std::ref(mCreature), mEntityToCarry, mTileDest);
 }
 
-bool CreatureActionCarryEntity::isPulledOverGround(GameEntity& entity)
+bool CreatureActionCarryEntity::isPulledOverGround(const Creature& carrier, GameEntity& entity)
 {
     if(entity.getObjectType() != GameEntityType::creature)
         return false;
 
-    // Creatures knocked out to death and dead ones are carried as before, only the hurt ones that are
-    // still on their feet or knocked out for a while are pulled
+    // Every living creature of the own seat that is brought to its bed is pulled, also one knocked out to death.
+    // Dead ones are carried as before, and so are the knocked out enemy creatures: they are not of the seat of the
+    // worker and go to a prison, where they are carried into the cell
     Creature& creature = static_cast<Creature&>(entity);
-    return creature.isAlive() && (creature.getKoTurnCounter() >= 0);
+    return creature.isAlive() && (creature.getSeat() == carrier.getSeat());
 }
 
 bool CreatureActionCarryEntity::handleCarryEntity(Creature& creature, GameEntity* entityToCarry, Tile* tileDest)
@@ -236,12 +237,18 @@ void CreatureActionCarryEntity::startLaying(Creature& dragged)
 bool CreatureActionCarryEntity::stopDragging(bool standUp)
 {
     // A creature that is let go in the middle of the way gets up where it lies (a dead one keeps its own
-    // animation). At the bed the dormitory puts it to sleep.
+    // animation, one knocked out to death stays lying and goes on dying). At the bed the dormitory puts it
+    // to sleep.
     if(standUp && (mEntityToCarry != nullptr))
     {
         Creature* dragged = static_cast<Creature*>(mEntityToCarry);
         if(dragged->isAlive() && dragged->getIsOnMap())
-            dragged->clearDestinations(EntityAnimation::idle_anim, true, true);
+        {
+            if(dragged->getKoTurnCounter() < 0)
+                dragged->clearDestinations(EntityAnimation::die_anim, false, false);
+            else
+                dragged->clearDestinations(EntityAnimation::idle_anim, true, true);
+        }
     }
 
     // The worker stops where it is
@@ -261,6 +268,11 @@ bool CreatureActionCarryEntity::handleDragCreature()
     Creature* dragged = static_cast<Creature*>(mEntityToCarry);
     ConfigManager& config = ConfigManager::getSingleton();
 
+    // The bed is the own bed of the creature and nothing else: when it is gone, destroyed or given to someone
+    // else on the way, the worker lets go and the creature lies where it is (its death is not held back)
+    if((dragged->getSeat() != mBuildingDest->getSeat()) || (mBuildingDest->askSpotForCarriedEntity(dragged) != mTileDest))
+        return stopDragging(true);
+
     if(mDragPhase == 1)
     {
         // The creature slides the last steps into its bed. Once it is there (or when that takes too long) the
@@ -273,8 +285,9 @@ bool CreatureActionCarryEntity::handleDragCreature()
         return false;
     }
 
-    // The creature is let go where it lies when it died or got knocked out to death, when a hostile creature
-    // comes close, when pulling takes too long or when the creature is left too far behind
+    // The creature is let go where it lies when it died (also on the way: a creature knocked out to death
+    // keeps counting down while it is pulled and dies on the spot when the counter ends), when a hostile
+    // creature comes close, when pulling takes too long or when the creature is left too far behind
     double enemyRadius = config.getRoomConfigDoubleOrDefault("DormitoryWoundedCarryEnemyRadius", 6.0);
     double maxTurns = config.getRoomConfigDoubleOrDefault("DormitoryWoundedCarryMaxTurns", 400.0);
     double maxDistance = config.getRoomConfigDoubleOrDefault("DormitoryWoundedDragMaxDistance", 3.5);
@@ -282,7 +295,7 @@ bool CreatureActionCarryEntity::handleDragCreature()
     const Ogre::Vector3& draggedPos = dragged->getPosition();
     Ogre::Vector2 workerPoint(workerPos.x, workerPos.y);
     Ogre::Vector2 draggedPoint(draggedPos.x, draggedPos.y);
-    if(!dragged->isAlive() || (dragged->getKoTurnCounter() < 0) || !dragged->getIsOnMap() ||
+    if(!dragged->isAlive() || !dragged->getIsOnMap() ||
        mCreature.isHostileNear(enemyRadius) || (static_cast<double>(getNbTurnsActive()) > maxTurns) ||
        (static_cast<double>(workerPoint.distance(draggedPoint)) > maxDistance))
     {

@@ -433,10 +433,17 @@ public:
 
     //! \brief Server side. True if the creature is hurt enough to be pulled to its bed by a worker:
     //! alive, own bed in a dormitory, not standing on it, hit points below the configured share,
-    //! no fight or flight going on, no hostile creature close, not in jail, not possessed, not a
-    //! worker or in the hand and not on cooldown after the last time. The worker and the distance
-    //! are not considered here.
+    //! no fight or flight going on, no hostile creature close, not in jail, not a worker and not
+    //! on cooldown after the last time. The worker and the distance are not considered here.
     bool isWoundedForBedCarry() const;
+
+    //! \brief Server side. True if the creature is knocked out to death and a worker may pull it to its
+    //! bed: alive, own bed in a dormitory of its seat, no hostile creature close, not in jail and
+    //! not a worker. Without an own bed it is not moved at all.
+    bool isKoToDeathForBedPull() const;
+
+    //! \brief True if the creature owns a bed (home tile) in a dormitory of its seat
+    bool hasOwnBedInDormitory() const;
 
     //! \brief Server side. True while a worker pulls this creature over the ground
     inline bool isBeingDragged() const
@@ -847,8 +854,9 @@ private:
     //! reaches 0.
     //! If < 0, the creature is KO to death. The counter will increase each turn and
     //! if it reaches 0, the creature will die.
-    //! While KO to death, if a kobold carries the creature to its bed, the counter will
-    //! stop during the travel (and reset to 0 when the creature is dropped in its bed).
+    //! While KO to death, a worker pulls the creature over the ground to its own bed (it stays on
+    //! the map, so the counter keeps running during the way) and the counter is reset to 0 when
+    //! the creature reaches its bed.
     int32_t                         mKoTurnCounter;
 
     //! \brief If nullptr, the creature is not in prison. If not, it is in the prison of

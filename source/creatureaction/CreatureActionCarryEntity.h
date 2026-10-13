@@ -45,9 +45,10 @@ public:
 
     static bool handleCarryEntity(Creature& creature, GameEntity* entityToCarry, Tile* tileDest);
 
-    //! \brief True if the entity is not carried but pulled over the ground: a hurt creature (alive and not
-    //! knocked out to death) on its way to its bed. Everything else is carried.
-    static bool isPulledOverGround(GameEntity& entity);
+    //! \brief True if the entity is not carried but pulled over the ground: a living creature of the seat of the
+    //! carrier (hurt, knocked out for a while or knocked out to death) on its way to its own bed. Everything else
+    //! is carried: gold, bodies, traps and the knocked out enemy creatures that are taken to a prison.
+    static bool isPulledOverGround(const Creature& carrier, GameEntity& entity);
 
     //! \brief One turn of pulling a hurt creature (see mIsDrag). The worker walks backwards to the bed with
     //! the creature on the ground behind it: the creature is not in the carry node of the worker, it keeps

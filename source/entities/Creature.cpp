@@ -956,8 +956,9 @@ void Creature::doUpkeep()
         return;
     }
 
-    // A creature a worker pulls to its bed does nothing on its own (a KO to death one goes on below)
-    if(mIsBeingDragged && (mKoTurnCounter == 0))
+    // A creature a worker pulls to its bed does nothing on its own (a KO to death one and a dead one go on below,
+    // nothing here holds back a death)
+    if(mIsBeingDragged && (mKoTurnCounter == 0) && isAlive())
         return;
 
     if(mKoTurnCounter < 0)
@@ -2867,9 +2868,16 @@ EntityCarryType Creature::getEntityCarryType(Creature* carrier)
     if(getDefinition()->isWorker())
         return EntityCarryType::notCarryable;
 
-    // KO to death entities can be carried
+    // A creature knocked out to death is carried to a prison when it is an enemy. A creature of the seat of the
+    // carrier is not carried: it is pulled to its own bed (same priority as before), and without an own bed it is
+    // not touched and dies where it lies
     if(mKoTurnCounter < 0)
+    {
+        if((carrier != nullptr) && (carrier->getSeat() == getSeat()))
+            return isKoToDeathForBedPull() ? EntityCarryType::koCreature : EntityCarryType::notCarryable;
+
         return EntityCarryType::koCreature;
+    }
 
     // Dead creatures are carryable
     if(getHP() <= 0.0)
@@ -2920,7 +2928,7 @@ bool Creature::isWoundedForBedCarry() const
     if((mKoTurnCounter != 0) && (config.getRoomConfigDoubleOrDefault("DormitoryWoundedCarryTempKo", 1.0) <= 0.0))
         return false;
 
-    // KO to death creatures are handled by the usual carrying of KO creatures
+    // Creatures knocked out to death are handled by isKoToDeathForBedPull
     if(mKoTurnCounter < 0)
         return false;
 
@@ -2928,12 +2936,8 @@ bool Creature::isWoundedForBedCarry() const
         return false;
 
     // It only goes to its own bed in a dormitory of its seat, and not when it already lies in it
-    if((mHomeTile == nullptr) || (mHomeTile->getCoveringRoom() == nullptr) ||
-       (mHomeTile->getCoveringRoom()->getType() != RoomType::dormitory) ||
-       (mHomeTile->getCoveringRoom()->getSeat() != getSeat()))
-    {
+    if(!hasOwnBedInDormitory())
         return false;
-    }
 
     Tile* myTile = getPositionTile();
     if((myTile == nullptr) || (myTile == mHomeTile))
@@ -2948,6 +2952,30 @@ bool Creature::isWoundedForBedCarry() const
     }
 
     double enemyRadius = config.getRoomConfigDoubleOrDefault("DormitoryWoundedCarryEnemyRadius", 6.0);
+    return !isHostileNear(enemyRadius);
+}
+
+bool Creature::hasOwnBedInDormitory() const
+{
+    return (mHomeTile != nullptr) && (mHomeTile->getCoveringRoom() != nullptr) &&
+        (mHomeTile->getCoveringRoom()->getType() == RoomType::dormitory) &&
+        (mHomeTile->getCoveringRoom()->getSeat() == getSeat());
+}
+
+bool Creature::isKoToDeathForBedPull() const
+{
+    if(!getIsOnServerMap() || !getIsOnMap() || !isAlive() || (mKoTurnCounter >= 0) || mIsBeingDragged ||
+       isInPrison() || getDefinition()->isWorker())
+    {
+        return false;
+    }
+
+    // Only to its own bed: without one it is not picked up, not moved and dies where it lies. The percent of
+    // health, the radius, the pause and the fights do not matter here, the counter to death is running
+    if(!hasOwnBedInDormitory())
+        return false;
+
+    double enemyRadius = ConfigManager::getSingleton().getRoomConfigDoubleOrDefault("DormitoryWoundedCarryEnemyRadius", 6.0);
     return !isHostileNear(enemyRadius);
 }
 
@@ -2996,9 +3024,10 @@ void Creature::notifyDragStart()
 {
     mIsBeingDragged = true;
 
-    // A hurt creature that is not knocked out to death stops what it did, it lies on the ground and the worker
-    // pulls it. It stays on the map (it is not carried): the walk paths the worker gives it move it.
-    if(getIsOnServerMap() && (mKoTurnCounter >= 0))
+    // A hurt creature stops what it did, it lies on the ground and the worker pulls it (one knocked out to death
+    // included: its counter goes on running). It stays on the map (it is not carried): the walk paths the worker
+    // gives it move it.
+    if(getIsOnServerMap())
     {
         clearDestinations(EntityAnimation::idle_anim, true, true);
         clearActionQueue();

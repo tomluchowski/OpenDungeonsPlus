@@ -520,9 +520,12 @@ bool RoomDormitory::hasCarryEntitySpot(GameEntity* carriedEntity)
         return false;
 
     Creature* creature = static_cast<Creature*>(carriedEntity);
-    // Only ko to death creatures (carried) and hurt creatures (pulled over the ground, see
-    // Creature::isWoundedForBedCarry) owning a bed in this dormitory should be brought here
-    if((creature->getKoTurnCounter() >= 0) && !creature->isWoundedForBedCarry())
+    // Only ko to death creatures and hurt creatures (all pulled over the ground, see
+    // Creature::isKoToDeathForBedPull and Creature::isWoundedForBedCarry) owning a bed in this
+    // dormitory should be brought here
+    bool pullable = (creature->getKoTurnCounter() < 0) ? creature->isKoToDeathForBedPull() :
+        creature->isWoundedForBedCarry();
+    if(!pullable)
         return false;
 
     Tile* homeTile = creature->getHomeTile();
@@ -530,6 +533,10 @@ bool RoomDormitory::hasCarryEntitySpot(GameEntity* carriedEntity)
         return false;
 
     if(homeTile->getCoveringRoom() != this)
+        return false;
+
+    // Only the own bed counts, a creature without a bed of its own in here is not brought anywhere
+    if(askSpotForCarriedEntity(carriedEntity) == nullptr)
         return false;
 
     return true;
