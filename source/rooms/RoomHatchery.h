@@ -41,6 +41,7 @@ public:
     { return mRoomType; }
 
     void doUpkeep() override;
+    //! \brief Tells the clients that the hatchery is gone (an empty list of nests) before the room is removed.
     void removeFromGameMap(GameMap* gameMap = nullptr) override;
     bool hasOpenCreatureSpot(Creature* c) override;
     bool shouldStopUseIfHungrySleepy(Creature& creature, bool forced) override
