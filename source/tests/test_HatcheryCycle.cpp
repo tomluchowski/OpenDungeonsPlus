@@ -29,6 +29,7 @@
 #include <string>
 #include <vector>
 
+//! The number of animals a hatchery holds follows its tiles and the tiles-per-animal setting, and never exceeds the room size.
 BOOST_AUTO_TEST_CASE(test_Capacity)
 {
     HatcheryCycleSettings settings;
@@ -41,6 +42,7 @@ BOOST_AUTO_TEST_CASE(test_Capacity)
     BOOST_CHECK_EQUAL(HatcheryCycle::capacity(9, 3, settings), 3u);
 }
 
+//! The coop supplies a hen or a rooster only while the hatchery lacks one (an egg or a chick already counts as a hen source), eggs may hatch only with a rooster present, and a full hatchery stops laying.
 BOOST_AUTO_TEST_CASE(test_Rules)
 {
     HatcheryCounts counts;
@@ -118,6 +120,7 @@ BOOST_AUTO_TEST_CASE(test_RoosterFight)
     BOOST_CHECK(settings.mFightApproachTurns > 0u);
 }
 
+//! One hen per coop comes out by default (at least one), and a batch limit caps the number of hens in one go.
 BOOST_AUTO_TEST_CASE(test_CoopHenCount)
 {
     HatcheryCycleSettings settings;
@@ -129,6 +132,7 @@ BOOST_AUTO_TEST_CASE(test_CoopHenCount)
     BOOST_CHECK_EQUAL(HatcheryCycle::coopHenCount(settings, 1), 1u);
 }
 
+//! The lay interval stays inside the configured minimum and maximum (plus the rounding of the lay factor, whose average is exact) and is never zero turns, and scaling the settings scales both bounds.
 BOOST_AUTO_TEST_CASE(test_LayInterval)
 {
     HatcheryCycleSettings settings;
@@ -407,6 +411,7 @@ uint32_t simulateNew(uint32_t nbCoops, uint32_t eatPercent, uint32_t nbTurns, co
 }
 }
 
+//! The walk to the nest takes as many turns as the real distance at the walking speed of a hen; the hen sets off, and a nest is used, only when the walk and the lay pose fit into the turns left until the egg.
 BOOST_AUTO_TEST_CASE(test_Walk)
 {
     // The walk window follows the real distance at the walking speed of a hen (0.4 tiles per second, 1.4 turns per second)
@@ -436,6 +441,7 @@ BOOST_AUTO_TEST_CASE(test_Walk)
     BOOST_CHECK(!HatcheryCycle::walkFits(12, 13, settings));
 }
 
+//! An egg is on time when the walk and the lay pose fit into the interval the hen has run through, otherwise it is exactly that many turns late, and a walk that fits is never late.
 BOOST_AUTO_TEST_CASE(test_LateEgg)
 {
     // The egg is on time when walk and pose fit into the interval she has run through, otherwise it is that late
@@ -528,6 +534,7 @@ BOOST_AUTO_TEST_CASE(test_BalanceParity)
     }
 }
 
+//! Light and calm add to a care bonus that shortens the laying times through the lay factor, only while all tiles are claimed and never below one turn; eggs do not hatch while enemies stand in the hatchery.
 BOOST_AUTO_TEST_CASE(test_Care)
 {
     // The two bonuses (light 10, no enemies 15) add up, but only while all tiles are claimed
@@ -576,6 +583,7 @@ BOOST_AUTO_TEST_CASE(test_Care)
     BOOST_CHECK(!HatcheryCycle::canHatch(counts, false));
 }
 
+//! Only enemies trample, only eggs get trampled, and the configured percentage decides with the dice roll.
 BOOST_AUTO_TEST_CASE(test_Trample)
 {
     HatcheryCycleSettings settings;
@@ -592,6 +600,7 @@ BOOST_AUTO_TEST_CASE(test_Trample)
     BOOST_CHECK(HatcheryCycle::tramples(settings, true, true, 99));
 }
 
+//! An egg goes to the nest with the fewest eggs and a free place first, full nests are skipped, the gap of a picked up egg is filled again, and with no free place the egg lies on the ground.
 BOOST_AUTO_TEST_CASE(test_NestPlace)
 {
     // Two nests with three places each (as in the coop mesh)
@@ -629,6 +638,8 @@ BOOST_AUTO_TEST_CASE(test_NestPlace)
     BOOST_CHECK_EQUAL(HatcheryCycle::pickNestPlace(last, 3), 2);
 }
 
+
+//! Night is the last part of each day, a new day starts on its first turn, and without a day length or a night share it is never night.
 BOOST_AUTO_TEST_CASE(test_RoosterDay)
 {
     RoosterSettings settings;
@@ -652,6 +663,7 @@ BOOST_AUTO_TEST_CASE(test_RoosterDay)
     BOOST_CHECK(!HatcheryRooster::isNewDay(0, settings));
 }
 
+//! The crow interval always lies between the configured minimum and maximum, and a maximum below the minimum falls back to the minimum.
 BOOST_AUTO_TEST_CASE(test_RoosterCrowInterval)
 {
     RoosterSettings settings;
@@ -667,6 +679,7 @@ BOOST_AUTO_TEST_CASE(test_RoosterCrowInterval)
     BOOST_CHECK_EQUAL(HatcheryRooster::crowInterval(settings, 7), 40u);
 }
 
+//! The rooster mood follows the dice, the animals present, the crow timer, a threat (which always wins) and the night.
 BOOST_AUTO_TEST_CASE(test_RoosterDecide)
 {
     RoosterSettings settings;
@@ -755,6 +768,7 @@ BOOST_AUTO_TEST_CASE(test_RoosterDecide)
     BOOST_CHECK(HatcheryRooster::decide(context, settings).mMood == RoosterMood::strut);
 }
 
+//! The crow for a new day stays owed until he has crowed for it, also when he was busy on the first turn, and a threat is handled before the crow.
 BOOST_AUTO_TEST_CASE(test_RoosterNewDayCrow)
 {
     RoosterSettings settings;
