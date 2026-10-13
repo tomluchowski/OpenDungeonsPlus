@@ -79,15 +79,15 @@ skirmish/
 -> DuelToDeath.level                   OD Team                 GPLv3+
 -> FallingKeeper.level                 OD Team                 GPLv3+
 -> ForgottenTreasures.level            OD Team                 GPLv3+
--> FourThrones.level                   OD Team                 GPLv3+                  Own work
+-> FourThrones.level                   OD Team                 GPLv3+
 -> StonekeepSiege.level                OD Team                 GPLv3+
 -> TestLegacy.level                    OD Team                 GPLv3+
 -> TestModelsFair.level                OD Team                 GPLv3+
 -> TestSingleplayerSmall.level         OD Team                 GPLv3+
 -> TestSingleplayerSmallEmpty.level    OD Team                 GPLv3+
 -> TestSingleplayerSmallPassability.level OD Team              GPLv3+
--> TriadDeeps.level                    OD Team                 GPLv3+                  Own work
--> TwinDelve.level                     OD Team                 GPLv3+                  Own work
+-> TriadDeeps.level                    OD Team                 GPLv3+
+-> TwinDelve.level                     OD Team                 GPLv3+
 
 template.level                         OD Team                 GPLv3+
 
