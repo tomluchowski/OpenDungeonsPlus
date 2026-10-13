@@ -89,6 +89,8 @@ struct CosmeticEvent
     //! \brief True if this build knows what the kind means
     bool isKnownType() const;
 
+    //! \brief True if this event is of the given kind
+    //! \param type The kind to compare with
     bool is(CosmeticEventType type) const
     { return mType == static_cast<int32_t>(type); }
 
