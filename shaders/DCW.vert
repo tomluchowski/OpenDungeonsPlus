@@ -24,8 +24,11 @@ out mat3 TBN;
 float freq = 3.1415; 
  
 vec3 deform(vec3 pos) {
-    pos.x += perlin(pos.x,pos.y);
-    pos.y += perlin(pos.y,pos.x);
+    // The noise displacement fades out towards the tile borders (at n + 0.5) so that shared
+    // border edges stay straight and identical for neighbouring tile meshes.
+    float fade = tileBorderFade(pos.xy);
+    pos.x += fade * perlin(pos.x,pos.y);
+    pos.y += fade * perlin(pos.y,pos.x);
     return pos;
 }
  

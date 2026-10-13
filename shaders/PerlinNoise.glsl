@@ -81,3 +81,34 @@ float perlin(float x, float y) {
 }
  
  
+
+/* Fades the tile noise displacement to zero on the tile borders (tiles are centred on integer
+ * coordinates, borders at n + 0.5). Border vertices therefore never move, so neighbouring tile
+ * meshes keep a watertight shared edge even when their vertex sets differ there.
+ * The transition band is TILE_BORDER_FADE world units wide. */
+#define TILE_BORDER_FADE 0.15
+
+float tileBorderFade(vec2 p) {
+    vec2 u = fract(p + 0.5);
+    vec2 d = min(u, 1.0 - u);
+    vec2 f = smoothstep(0.0, TILE_BORDER_FADE, d);
+    return f.x * f.y;
+}
+
+
+/* Up component of the world space normal where the world space UV start to blend in, and from
+ * which on they are used fully. */
+#define WORLD_UV_NORMAL_MIN 0.6
+#define WORLD_UV_NORMAL_FULL 0.9
+
+/* Weight (0..1) for switching from the per tile mesh UV to world space UV on upward facing
+ * surfaces. The tileset rotates the tile meshes by multiples of 90 degrees and every mesh has
+ * its own UV layout, so the mesh UV of two neighbouring tiles do not line up on the shared
+ * border. World space UV (one texture repeat per tile, tile borders at n + 0.5) do. */
+float worldUvWeight(vec3 worldNormal) {
+    return smoothstep(WORLD_UV_NORMAL_MIN, WORLD_UV_NORMAL_FULL, worldNormal.z);
+}
+
+vec2 worldTileUV(vec3 worldPos) {
+    return vec2(worldPos.x + 0.5, 0.5 - worldPos.y);
+}
