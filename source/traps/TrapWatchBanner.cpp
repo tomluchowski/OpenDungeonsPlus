@@ -146,7 +146,7 @@ void TrapWatchBanner::doUpkeep()
 
         for(Creature* creature : getGameMap()->getCreatures())
         {
-            if(!creature->isAlive() || !creature->getIsOnMap())
+            if(!creature->isAlive() || !creature->getIsOnMap() || creature->isInvisible())
                 continue;
 
             if((creature->getSeat() == nullptr) || getSeat()->isAlliedSeat(creature->getSeat()))
