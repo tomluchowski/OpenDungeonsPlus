@@ -38,9 +38,12 @@ public:
     static const uint32_t NB_WAVES;
     //! \brief Number of heroes in a wave
     static const uint32_t NB_HEROES_PER_WAVE;
-    //! \brief Highest level of a hero (the level selector of the toolbox goes from 1 to this)
+    //! \brief Lowest level of a hero (the level selector of the toolbox starts here)
+    static const uint32_t MIN_HERO_LEVEL;
+    //! \brief Highest level of a hero (the level selector of the toolbox goes up to this)
     static const uint32_t MAX_HERO_LEVEL;
 
+    //! \brief Creates the sandbox logic of the given map. No wave is launched yet.
     SandboxMode(GameMap& gameMap);
 
     //! \brief Forgets the waves and the toolbox heroes
@@ -61,25 +64,30 @@ public:
     static bool isHeroSeat(const Seat* seat);
 
 private:
+    //! \brief The map this sandbox logic belongs to
     GameMap& mGameMap;
     //! \brief Number of waves already launched. The next one is mNbWavesLaunched + 1.
     uint32_t mNbWavesLaunched;
+    //! \brief True while a continual invasion goes through its waves
     bool mIsContinual;
     //! \brief True from the launch of a wave until its last hero is dead
     bool mIsWaveActive;
     //! \brief Turns before the next wave of a continual invasion is launched
     int32_t mTurnsBeforeNextWave;
+    //! \brief Turns before the heroes of the current wave are checked again
     int32_t mTurnsBeforeCheck;
     //! \brief Names of the heroes of the current wave that are still alive
     std::vector<std::string> mWaveHeroes;
     //! \brief Name of the living toolbox hero for each class
     std::map<std::string, std::string> mToolboxHeroes;
 
+    //! \brief Returns the first seat of the hero faction, or nullptr if the level has none
     Seat* getHeroSeat() const;
     //! \brief Launches the given wave. Returns false if it could not be launched.
     bool launchWave(uint32_t waveNumber);
     //! \brief Sends a message to every human player
     void sendMessage(const std::string& message) const;
+    //! \brief Sends a message to the given player only
     void sendMessage(Player* player, const std::string& message) const;
 };
 

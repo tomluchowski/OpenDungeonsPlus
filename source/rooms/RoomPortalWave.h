@@ -207,7 +207,7 @@ private:
     //! Returns true if a path was found to the dungeon and false otherwise
     bool findBestDiggablePath(Tile* tileStart, Tile* tileDest, Creature* creature, std::vector<Tile*>& tiles);
 
-    //! \brief Spawns a wave
+    //! \brief Spawns a wave. If spawnedNames is not null, the names of the created creatures are added to it.
     void spawnWave(RoomPortalWaveData* roomPortalWaveData, uint32_t maxCreaturesToSpawn,
         std::vector<std::string>* spawnedNames = nullptr);
 

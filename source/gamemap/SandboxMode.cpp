@@ -37,6 +37,7 @@
 
 const uint32_t SandboxMode::NB_WAVES = 10;
 const uint32_t SandboxMode::NB_HEROES_PER_WAVE = 8;
+const uint32_t SandboxMode::MIN_HERO_LEVEL = 1;
 const uint32_t SandboxMode::MAX_HERO_LEVEL = 10;
 
 namespace
@@ -46,7 +47,12 @@ const std::string HERO_FACTION = "Hero";
 const int32_t TURNS_BETWEEN_CHECKS = 5;
 //! \brief The turns between the end of a wave and the next wave of a continual invasion
 const int32_t TURNS_BETWEEN_WAVES = 14;
+//! \brief The class names of the dwarf heroes start with this
+const std::string DWARF_PREFIX = "Dwarf";
+//! \brief The class names of the hero lords contain this (in lower case)
+const std::string LORD_MARK = "lord";
 
+//! \brief Returns the given text in lower case
 std::string toLower(const std::string& str)
 {
     std::string ret = str;
@@ -59,12 +65,13 @@ std::string toLower(const std::string& str)
 //! \brief A hero the invasions can bring. The lords are left to the toolbox.
 bool isInvasionHero(const std::string& className)
 {
-    return toLower(className).find("lord") == std::string::npos;
+    return toLower(className).find(LORD_MARK) == std::string::npos;
 }
 
+//! \brief Tells if the hero class is a dwarf
 bool isDwarf(const std::string& className)
 {
-    return className.compare(0, 5, "Dwarf") == 0;
+    return className.compare(0, DWARF_PREFIX.size(), DWARF_PREFIX) == 0;
 }
 
 //! \brief Tells if the creature of the given name is still fighting
@@ -183,8 +190,8 @@ void SandboxMode::takeHero(Player* player, const std::string& className, uint32_
         mToolboxHeroes.erase(it);
     }
 
-    if(level < 1)
-        level = 1;
+    if(level < MIN_HERO_LEVEL)
+        level = MIN_HERO_LEVEL;
     if(level > MAX_HERO_LEVEL)
         level = MAX_HERO_LEVEL;
 

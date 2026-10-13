@@ -339,9 +339,11 @@ public:
     inline bool isSandbox() const
     { return mIsSandbox; }
 
+    //! \brief Marks the level as a sandbox level (read from the level file or the server packet)
     inline void setSandbox(bool isSandbox)
     { mIsSandbox = isSandbox; }
 
+    //! \brief The server side logic of the sandbox (hero toolbox and invasions)
     inline SandboxMode& getSandboxMode()
     { return mSandboxMode; }
 
@@ -643,7 +645,9 @@ private:
     std::string mMapInfoDescription;
     std::string mMapInfoMusicFile;
     std::string mMapInfoFightMusicFile;
+    //! \brief True for a sandbox level
     bool mIsSandbox;
+    //! \brief The hero toolbox and invasion logic of a sandbox level
     SandboxMode mSandboxMode;
 
     std::vector<Creature*> mCreatures;

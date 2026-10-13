@@ -138,13 +138,17 @@ class GameMode final : public GameEditorModeBase, public InputCommand
     bool hideObjectivesWindow(const CEGUI::EventArgs& = {});
     bool toggleObjectivesWindow(const CEGUI::EventArgs& = {});
 
-    //! \brief Sandbox panel: toggles the window, changes the level of the heroes (left click up,
-    //! right click down), takes a hero in the hand and starts hero invasions
+    //! \brief Sandbox panel: shows or hides the window
     bool toggleSandboxWindow(const CEGUI::EventArgs& = {});
+    //! \brief Sandbox panel: hides the window
     bool hideSandboxWindow(const CEGUI::EventArgs& = {});
+    //! \brief Sandbox panel: changes the level of the heroes (left click up, right click down)
     bool onSandboxHeroLevelClicked(const CEGUI::EventArgs& e);
+    //! \brief Sandbox panel: asks the server for the selected hero at the chosen level in the hand
     bool takeSandboxHero(const CEGUI::EventArgs& = {});
+    //! \brief Sandbox panel: asks the server for a single hero wave
     bool startSandboxSingleInvasion(const CEGUI::EventArgs& = {});
+    //! \brief Sandbox panel: asks the server for all hero waves one after the other
     bool startSandboxContinualInvasion(const CEGUI::EventArgs& = {});
 
     //! \brief Shows/hides/toggles the player settings window

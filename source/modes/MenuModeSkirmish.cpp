@@ -65,7 +65,7 @@ MenuModeSkirmish::MenuModeSkirmish(ModeManager* modeManager):
     item->setSelectionBrushImage(selImg);
     levelTypeCb->addItem(item);
 
-    item = new CEGUI::ListboxTextItem("Sandbox Levels", 4);
+    item = new CEGUI::ListboxTextItem("Sandbox Levels", static_cast<uint32_t>(LEVEL_TYPE_SANDBOX));
     item->setSelectionBrushImage(selImg);
     levelTypeCb->addItem(item);
 

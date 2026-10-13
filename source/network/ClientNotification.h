@@ -82,8 +82,8 @@ enum class ClientNotificationType
     editorSetPortalWaveData,
 
     // Sandbox mode
-    askSandboxTakeHero,
-    askSandboxInvasion
+    askSandboxTakeHero, // Asks for a hero in the hand: + string className + uint32_t level
+    askSandboxInvasion // Asks for hero waves: + bool continual (false = one wave)
 };
 
 ODPacket& operator<<(ODPacket& os, const ClientNotificationType& nt);
