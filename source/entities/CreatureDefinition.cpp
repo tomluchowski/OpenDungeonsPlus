@@ -817,7 +817,7 @@ void CreatureDefinition::writeCreatureDefinitionDiff(
     if(def1 == nullptr || (def1->mCombatClass != def2->mCombatClass))
         file << "    CombatClass\t" << combatClassToString(def2->mCombatClass) << std::endl;
     if(def1 == nullptr || (def1->mFearless != def2->mFearless))
-        file << "    Fearless	" << (def2->mFearless ? 1 : 0) << std::endl;
+        file << "    Fearless\t" << (def2->mFearless ? 1 : 0) << std::endl;
 
     if(def1 == nullptr || (def1->mChampion != def2->mChampion))
         file << "    Champion\t" << (def2->mChampion ? 1 : 0) << std::endl;
