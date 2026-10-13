@@ -158,18 +158,17 @@ assert 'henMayReturn' in chicken and 'failReturn()' in return_walk
 assert 'mReturnTurns' in return_walk and 'mReturnRetryTurns' in return_walk
 print('hatchery hen return checks passed')
 
-# Eggs are laid in a free place of a coop nest (closest coop first), the place rules are the pure pickNestPlace
+# Eggs are laid in a free straw nest of the nest field (closest nest first), the place rules are the pure pickNestPlace
+# (the places of the field are checked in check_hatchery_nest_field.py)
 cycle_cpp = (root / 'source/rooms/HatcheryCycle.cpp').read_text()
 cycle_h = (root / 'source/rooms/HatcheryCycle.h').read_text()
-coop_h = (root / 'source/rooms/HatcheryCoopHouse.h').read_text()
 assert 'pickNestPlace' in cycle_h and 'int32_t HatcheryCycle::pickNestPlace' in cycle_cpp
 nest = body(room_cpp, 'bool RoomHatchery::findNestSpot')
-assert 'HatcheryCoopHouse::nestEggSpotWorld' in nest and 'HatcheryCycle::pickNestPlace' in nest
-assert 'getCoveringRoom() != this' in nest, 'a nest place outside of the hatchery is not used'
-assert 'mCentralActiveSpotTiles' in nest and 'squaredDistance' in nest, 'closest coop first'
+assert 'getNestPlaces()' in nest and 'HatcheryCycle::pickNestPlace(occupied, 1)' in nest
+assert 'squaredDistance' in nest, 'closest nest first'
 assert 'HatcheryNestEggs' in nest and 'HatcheryNestSameRadius' in nest
 assert 'HatcheryNestEggs' in cfg and 'HatcheryNestSameRadius' in cfg
-assert 'nestEggSpot' in coop_h and 'nestCount' in coop_h and 'eggsPerNest' in coop_h
+assert (root / 'source/rooms/HatcheryNestField.h').exists()
 lay = doUpkeep[doUpkeep.index('Hens lay eggs while the hatchery is not full'):doUpkeep.index('Eggs hatch while there is a rooster')]
 assert 'findNestSpot(' in lay and 'eggs.push_back(spawnAnimal(ChickenKind::egg, eggSpot, settings))' in lay
 assert 'eggPositions.push_back' in lay, 'an egg laid this turn takes its place at once'
@@ -195,14 +194,14 @@ assert 'egg->setAge(it->mLate)' in body(room_cpp, 'void RoomHatchery::releasePen
 assert 'setAge(eggAge - settings.mHatchTurns)' in doUpkeep and 'chicks.push_back(egg)' in doUpkeep
 assert 'void setAge' in chicken_h or 'inline void setAge' in chicken_h
 assert 'eggs.erase(eggIt)' in doUpkeep and doUpkeep.index('eggs.erase(eggIt)') < doUpkeep.index('eggPositions.push_back'),     'trampled eggs free their place'
-# The chick from a nest stands next to the coop, the nest lies in the footprint of the coop
+# The chick from a nest (and a hen that sat in a coop) stands on the ground at a free spot next to where it is
 assert 'leaveNest(egg)' in doUpkeep and 'chick->teleport(' in body(room_cpp, 'void RoomHatchery::leaveNest')
 assert 'standingPosition' in body(room_cpp, 'void RoomHatchery::leaveNest')
 teleport_pos = chicken_h.index('void teleport(')
 assert 'private:' not in chicken_h[chicken_h.index('void hopDown('):teleport_pos], 'teleport is public'
 # Egg save/load: the position (with the height) is saved by the entity, nothing new is saved
 assert 'mPosition.z' in body(chicken, 'void ChickenEntity::exportToStream') or 'mPosition.z' in chicken
-# Client: the egg in a nest has no straw of its own, the coop mesh has the nests
+# Client: the egg in a nest has no straw of its own, the nest mesh has the straw
 render = (root / 'source/render/RenderManagerChickens.cpp').read_text()
 assert 'hideEggStraw' in render and 'mNestEgg' in render and 'ChickenStraw' in render
 

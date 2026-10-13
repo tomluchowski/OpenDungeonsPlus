@@ -20,6 +20,7 @@
 
 #include "entities/ChickenEntity.h"
 #include "rooms/HatcheryCycle.h"
+#include "rooms/HatcheryNestField.h"
 #include "rooms/HatcheryRooster.h"
 #include "rooms/Room.h"
 #include "rooms/RoomType.h"
@@ -50,6 +51,9 @@ public:
 
     void creatureDropped(Creature& creature) override;
 
+    //! \brief The settings of the nest places from the config (the server and the clients read the same keys).
+    static HatcheryNestField::Settings getNestFieldSettings();
+
     //! \brief Saves the number of the last day the rooster crowed for.
     void exportToStream(std::ostream& os) const override;
     //! \brief Loads what exportToStream wrote. Saves written without it still load.
@@ -78,19 +82,22 @@ private:
     HatcheryCycleSettings getCycleSettings() const;
     //! Creates a hatchery animal at the given position.
     ChickenEntity* spawnAnimal(ChickenKind kind, const Ogre::Vector3& position, const HatcheryCycleSettings& settings);
-    //! A free egg place in the nests of the coops, the coop closest to the hen first. eggPositions are the places
-    //! of the eggs that lie in the hatchery. False if all nests are full (or there is no coop): the egg then lies
-    //! at the hen.
+    //! The nest places of this hatchery, computed again when its tiles or coops change.
+    const std::vector<HatcheryNestField::Place>& getNestPlaces() const;
+    //! A free egg place in the nests scattered over the hatchery, the nest closest to the hen first. eggPositions
+    //! are the places of the eggs that lie in the hatchery. False if all nests are full (or there is none): the egg
+    //! then lies at the hen.
     bool findNestSpot(const Ogre::Vector3& henPosition, const std::vector<Ogre::Vector2>& eggPositions,
         Ogre::Vector3& spot) const;
-    //! A chick that hatched in a nest stands next to the coop (the coop itself is in its way).
+    //! Puts an animal on a free spot next to where it is (the coop is in the way of an animal that sat in it). A chick
+    //! that hatched in a nest comes out on the ground there.
     void leaveNest(ChickenEntity* chick);
     //! An egg is trampled: shell pieces, yolk and feathers fly where it lay (the clients show it).
     void fireEggTrample(const ChickenEntity& egg);
     //! Lets the eggs appear whose laying timer has run out and whose hen has shown herself laying (see mPendingEggs).
     //! A late egg gets the age it would have had on time. The new eggs are added to eggs.
     void releasePendingEggs(const HatcheryCycleSettings& settings, std::vector<ChickenEntity*>& eggs);
-    //! A free place next to the nest where a hen can stand (the nests lie inside the footprint of the coop).
+    //! A free place next to the nest where a hen can stand (she does not stand in the nest).
     bool getNestStandPoint(const Ogre::Vector3& nestSpot, Ogre::Vector2& standing) const;
     //! Turns the hen needs to walk from where she is to the place next to the nest: the real distance at her walking
     //! speed, and a turn for setting off. 0 when she is there already.
@@ -187,6 +194,11 @@ private:
         uint32_t mLate;
     };
     std::vector<PendingEgg> mPendingEggs;
+    //! The nest places, computed from the tiles and the coops when they change (not saved, not sent: the clients
+    //! compute the same places from the same tiles).
+    mutable std::vector<HatcheryNestField::Place> mNestPlaces;
+    mutable uint32_t mNestFieldKey;
+    mutable bool mNestFieldValid;
     //! Turns the hatchery has been empty (no hen, chick or egg)
     uint32_t mCoopHenWait;
     //! Turns the hatchery has been without rooster

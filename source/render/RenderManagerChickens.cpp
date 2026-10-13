@@ -15,8 +15,8 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-// Looks and motion of the hatchery animals on the client: eggs in straw, chicks, the rooster, and the
-// nest or loose feathers next to the coops. Everything is procedural: the chicken mesh is scaled and tinted,
+// Looks and motion of the hatchery animals on the client: eggs in straw, chicks, the rooster, the
+// straw nests scattered over the hatchery and loose feathers next to the coops. Everything is procedural: the chicken mesh is scaled and tinted,
 // the egg, straw, comb and tail are meshes made in code, the motion comes from a pose name that the server
 // sends as animation name (see ChickenPose.h). Nothing here changes the game state.
 
@@ -27,7 +27,9 @@
 #include "entities/ChickenPose.h"
 #include "entities/GameEntityType.h"
 #include "entities/Tile.h"
+#include "rooms/HatcheryNestField.h"
 #include "rooms/Room.h"
+#include "rooms/RoomHatchery.h"
 #include "utils/ConfigManager.h"
 #include "utils/Helper.h"
 #include "utils/LogManager.h"
@@ -52,7 +54,7 @@ namespace
 const std::string MeshEgg = "ChickenEgg";
 const std::string MeshComb = "ChickenRoosterComb";
 const std::string MeshTail = "ChickenRoosterTail";
-const std::string MeshNest = "ChickenCoopNest";
+const std::string MeshNest = "ChickenNest";
 const std::string MeshFeathers = "ChickenLooseFeathers";
 const std::string MaterialGroup = "Graphics";
 
@@ -187,22 +189,6 @@ void buildEgg(Ogre::SceneManager* sceneManager)
     addEgg(object, index, Ogre::Vector3(0.0f, 0.0f, 0.012f), 0.03f, 0.08f);
     object->end();
     finishShape(sceneManager, object, MeshEgg);
-}
-
-//! \brief Makes the nest with eggs that shows next to a coop.
-void buildNest(Ogre::SceneManager* sceneManager)
-{
-    Ogre::ManualObject* object = beginShape(sceneManager, "ChickenStraw");
-    uint32_t index = 0;
-    addStraw(object, index, Ogre::Vector3(0.0f, 0.0f, 0.0f), 0.03f, 0.17f, 46, 23u);
-    object->end();
-    object->begin("ChickenEgg", Ogre::RenderOperation::OT_TRIANGLE_LIST, MaterialGroup);
-    index = 0;
-    addEgg(object, index, Ogre::Vector3(-0.045f, -0.03f, 0.012f), 0.03f, 0.08f);
-    addEgg(object, index, Ogre::Vector3(0.05f, -0.035f, 0.012f), 0.03f, 0.08f);
-    addEgg(object, index, Ogre::Vector3(0.0f, 0.05f, 0.012f), 0.03f, 0.08f);
-    object->end();
-    finishShape(sceneManager, object, MeshNest);
 }
 
 //! \brief Makes the loose feathers that show next to a coop of an abandoned hatchery.
@@ -425,8 +411,6 @@ void RenderManager::rrEnsureChickenMesh(const std::string& meshName)
         ensureMesh(mSceneManager, MeshComb, buildComb);
     else if(meshName == MeshTail)
         ensureMesh(mSceneManager, MeshTail, buildTail);
-    else if(meshName == MeshNest)
-        ensureMesh(mSceneManager, MeshNest, buildNest);
     else if(meshName == MeshFeathers)
         ensureMesh(mSceneManager, MeshFeathers, buildFeathers);
 }
@@ -493,6 +477,7 @@ void RenderManager::clearChickenLooks()
 {
     mChickenLooks.clear();
     mCoopDecors.clear();
+    mNestFields.clear();
 }
 
 void RenderManager::applyChickenKindLook(ChickenEntity* chicken)
@@ -638,15 +623,10 @@ void RenderManager::rrCreateCoopDecor(BuildingObject* coop)
     CoopDecor decor;
     decor.mShake = 0.0f;
     decor.mNode = node->createChildSceneNode(name + "_node", Ogre::Vector3(0.9f, 0.0f, 0.0f));
-    rrEnsureChickenMesh(MeshNest);
     rrEnsureChickenMesh(MeshFeathers);
-    decor.mNest = mSceneManager->createEntity(name + "_nest", MeshNest + ".mesh");
     decor.mFeathers = mSceneManager->createEntity(name + "_feathers", MeshFeathers + ".mesh");
-    decor.mNest->setQueryFlags(0);
     decor.mFeathers->setQueryFlags(0);
-    decor.mNode->attachObject(decor.mNest);
     decor.mNode->attachObject(decor.mFeathers);
-    decor.mNest->setVisible(false);
     decor.mFeathers->setVisible(false);
     mCoopDecors[coop] = decor;
     // The first check is done at once
@@ -660,9 +640,7 @@ void RenderManager::rrDestroyCoopDecor(BuildingObject* coop)
         return;
 
     CoopDecor& decor = it->second;
-    decor.mNode->detachObject(decor.mNest);
     decor.mNode->detachObject(decor.mFeathers);
-    mSceneManager->destroyEntity(decor.mNest);
     mSceneManager->destroyEntity(decor.mFeathers);
     if(coop->getEntityNode() != nullptr)
     {
@@ -694,7 +672,7 @@ void RenderManager::updateChickenLooks(Ogre::Real timeSinceLastFrame)
 
         if(kind == ChickenKind::egg)
         {
-            // An egg a little above the ground lies in a nest of a coop (the server puts it there)
+            // An egg a little above the ground lies in a nest (the server puts it there)
             if(!look.mNestEgg && (chicken->getPosition().z > 0.01f))
             {
                 look.mNestEgg = true;
@@ -888,11 +866,14 @@ void RenderManager::updateChickenLooks(Ogre::Real timeSinceLastFrame)
             Ogre::Quaternion(Ogre::Degree(roll), Ogre::Vector3::UNIT_Y));
     }
 
-    // Coops: a nest with eggs while the hatchery lives, a few loose feathers when it is empty, a shaking door
+    // Coops: loose feathers when the hatchery is empty, a shaking door. The straw nests of the hatchery show while it
+    // lives (see updateNestFields).
     mCoopDecorTimer += timeSinceLastFrame;
     const bool check = mCoopDecorTimer >= 1.5f;
     if(check)
         mCoopDecorTimer = 0.0f;
+    std::map<Room*, std::vector<Tile*> > roomCoops;
+    std::map<Room*, uint32_t> roomAnimals;
     for(std::map<BuildingObject*, CoopDecor>::iterator it = mCoopDecors.begin(); it != mCoopDecors.end(); ++it)
     {
         BuildingObject* coop = it->first;
@@ -918,7 +899,11 @@ void RenderManager::updateChickenLooks(Ogre::Real timeSinceLastFrame)
                     }
                 }
             }
-            decor.mNest->setVisible(animals > 0);
+            if(room != nullptr)
+            {
+                roomCoops[room].push_back(tile);
+                roomAnimals[room] = animals;
+            }
             decor.mFeathers->setVisible(animals == 0);
         }
 
@@ -943,5 +928,87 @@ void RenderManager::updateChickenLooks(Ogre::Real timeSinceLastFrame)
         {
             // Resting
         }
+    }
+
+    if(check)
+        updateNestFields(roomCoops, roomAnimals);
+}
+
+void RenderManager::destroyNestField(NestField& field)
+{
+    for(uint32_t i = 0; i < field.mEntities.size(); ++i)
+    {
+        field.mNodes[i]->detachObject(field.mEntities[i]);
+        mSceneManager->destroyEntity(field.mEntities[i]);
+        mSceneManager->destroySceneNode(field.mNodes[i]);
+    }
+    field.mEntities.clear();
+    field.mNodes.clear();
+}
+
+void RenderManager::updateNestFields(const std::map<Room*, std::vector<Tile*> >& roomCoops,
+    const std::map<Room*, uint32_t>& roomAnimals)
+{
+    // A hatchery without a coop (gone, or its coops are gone) loses its nests
+    std::map<Room*, NestField>::iterator field = mNestFields.begin();
+    while(field != mNestFields.end())
+    {
+        if(roomCoops.count(field->first) == 0)
+        {
+            destroyNestField(field->second);
+            field = mNestFields.erase(field);
+        }
+        else
+            ++field;
+    }
+
+    for(std::map<Room*, std::vector<Tile*> >::const_iterator it = roomCoops.begin(); it != roomCoops.end(); ++it)
+    {
+        Room* room = it->first;
+
+        // The places depend on the tiles and the coops of the hatchery only, the server computes the same ones
+        std::vector<HatcheryNestField::TileCoord> roomTiles;
+        const std::vector<Tile*> coveredTiles = room->getCoveredTiles();
+        for(Tile* roomTile : coveredTiles)
+            roomTiles.push_back(HatcheryNestField::TileCoord(roomTile->getX(), roomTile->getY()));
+        std::vector<HatcheryNestField::TileCoord> coops;
+        for(Tile* coopTile : it->second)
+            coops.push_back(HatcheryNestField::TileCoord(coopTile->getX(), coopTile->getY()));
+        const uint32_t key = HatcheryNestField::fingerprint(roomTiles, coops);
+
+        std::map<Room*, NestField>::iterator existing = mNestFields.find(room);
+        if((existing != mNestFields.end()) && (existing->second.mKey != key))
+        {
+            destroyNestField(existing->second);
+            mNestFields.erase(existing);
+            existing = mNestFields.end();
+        }
+        if(existing == mNestFields.end())
+        {
+            NestField created;
+            created.mKey = key;
+            const std::vector<HatcheryNestField::Place> places = HatcheryNestField::compute(roomTiles, coops,
+                RoomHatchery::getNestFieldSettings());
+            for(uint32_t i = 0; i < places.size(); ++i)
+            {
+                const std::string name = "HatcheryNest_" + room->getName() + "_" + std::to_string(i);
+                Ogre::SceneNode* node = mSceneManager->getRootSceneNode()->createChildSceneNode(name + "_node",
+                    Ogre::Vector3(static_cast<Ogre::Real>(places[i].mX), static_cast<Ogre::Real>(places[i].mY), 0.0f));
+                node->setOrientation(Ogre::Quaternion(Ogre::Degree(static_cast<Ogre::Real>(places[i].mAngle)),
+                    Ogre::Vector3::UNIT_Z));
+                Ogre::Entity* entity = mSceneManager->createEntity(name, MeshNest + ".mesh");
+                entity->setQueryFlags(0);
+                node->attachObject(entity);
+                created.mNodes.push_back(node);
+                created.mEntities.push_back(entity);
+            }
+            existing = mNestFields.insert(std::make_pair(room, created)).first;
+        }
+
+        // The nests show while the hatchery has hens, chicks or eggs
+        std::map<Room*, uint32_t>::const_iterator animals = roomAnimals.find(room);
+        const bool visible = (animals != roomAnimals.end()) && (animals->second > 0);
+        for(Ogre::Entity* nest : existing->second.mEntities)
+            nest->setVisible(visible);
     }
 }

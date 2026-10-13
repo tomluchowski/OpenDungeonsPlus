@@ -40,6 +40,7 @@ class BuildingObject;
 class ChickenEntity;
 class Seat;
 class Tile;
+class Room;
 class GameEntity;
 class MovableGameEntity;
 class MapLight;
@@ -226,10 +227,10 @@ public:
     void rrChickenFight(ChickenEntity* first, ChickenEntity* second, uint32_t phase);
     //! \brief The server set a pose (see ChickenPose.h), an empty pose is the normal walking and idling.
     void rrSetChickenPose(ChickenEntity* chicken, const std::string& pose);
-    //! \brief Nest with eggs or loose feathers next to a coop of the hatchery
+    //! \brief Loose feathers next to a coop of the hatchery (the straw nests lie scattered over the hatchery, see updateNestFields)
     void rrCreateCoopDecor(BuildingObject* coop);
     void rrDestroyCoopDecor(BuildingObject* coop);
-    //! \brief Makes the procedural meshes of the hatchery (egg in straw, comb, tail, nest, feathers) if needed
+    //! \brief Makes the procedural meshes of the hatchery (egg in straw, comb, tail, feathers) if needed
     void rrEnsureChickenMesh(const std::string& meshName);
 
     //! \brief Toggles the creatures text overlay
@@ -438,11 +439,24 @@ private:
     struct CoopDecor
     {
         Ogre::SceneNode* mNode;
-        Ogre::Entity* mNest;
         Ogre::Entity* mFeathers;
         Ogre::Real mShake;
     };
     std::map<BuildingObject*, CoopDecor> mCoopDecors;
+    //! The straw nests of one hatchery (one entity each, at the places of HatcheryNestField). mKey is the fingerprint
+    //! of the tiles and coops they were made for.
+    struct NestField
+    {
+        std::vector<Ogre::SceneNode*> mNodes;
+        std::vector<Ogre::Entity*> mEntities;
+        uint32_t mKey;
+    };
+    std::map<Room*, NestField> mNestFields;
+    //! Makes, updates and removes the nests of the hatcheries that have coops (roomCoops: their coop tiles). The nests
+    //! show while the hatchery has hens, chicks or eggs (roomAnimals).
+    void updateNestFields(const std::map<Room*, std::vector<Tile*> >& roomCoops,
+        const std::map<Room*, uint32_t>& roomAnimals);
+    void destroyNestField(NestField& field);
     Ogre::Real mCoopDecorTimer = 0.0f;
     uint64_t mChickenLookNumber = 0;
 

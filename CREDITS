@@ -502,7 +502,9 @@ Name                                   Author                  License          
 materials/scripts/ChickenHatchery.material   OD Team           GPLv3+                  Plain colours, no textures (original work, not AI generated)
 particles/ChickenEggShell.particle     OD Team                 GPLv3+                  Original work, not AI generated
 ChickenEgg.mesh                        OD Team                 GPLv3+                  Made in code at run time (source/render/RenderManagerChickens.cpp): egg in straw, no file (original work, not AI generated)
-ChickenCoopNest.mesh                   OD Team                 GPLv3+                  Made in code at run time (source/render/RenderManagerChickens.cpp): nest with eggs, no file (original work, not AI generated)
+ChickenNest.mesh                       OD Team                 GPLv3+                  Straw nest without eggs, AI-generated with a Blender script (tools/blender-assets/chicken_nest.py, original work); uses ChickenNest.png and the material ChickenNest
+materials/scripts/ChickenNest.material OD Team                 GPLv3+                  Material ChickenNest (straw texture) (original work, not AI generated)
+materials/textures/ChickenNest.png     OD Team                 GPLv3+                  Straw texture, AI-generated with a Blender script (tools/blender-assets/chicken_nest.py, original work)
 ChickenLooseFeathers.mesh              OD Team                 GPLv3+                  Made in code at run time (source/render/RenderManagerChickens.cpp): loose feathers, no file (original work, not AI generated)
 ChickenRoosterComb.mesh                OD Team                 GPLv3+                  Made in code at run time (source/render/RenderManagerChickens.cpp): rooster comb, no file (original work, not AI generated)
 ChickenRoosterTail.mesh                OD Team                 GPLv3+                  Made in code at run time (source/render/RenderManagerChickens.cpp): rooster tail feathers, no file (original work, not AI generated)
