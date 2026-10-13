@@ -70,7 +70,7 @@ assert heart in change and change.index(heart) < change.index('handTilesOverToSe
 hand = function_body(room, 'Room* Room::handTilesOverToSeat(')
 assert heart in hand and hand.index(heart) < hand.index('RoomManager::createRoom('), 'Room::handTilesOverToSeat'
 assert 'return nullptr' in hand[:hand.index('RoomManager::createRoom(')]
-assert 'Room* Room::handTileOverToSeat(' in room and 'return handTilesOverToSeat(' in room  # bridges go through it
+assert 'handTileOverToSeat' not in room and 'handTileOverToSeat' not in room_h, 'no square by square hand over is left (bridges go through changeOwner like every room)'
 assert heart in function_body(tile, 'void Tile::claimForSeat(') and     function_body(tile, 'void Tile::claimForSeat(').index(heart) < function_body(tile, 'void Tile::claimForSeat(').index('isClaimable(seat)')
 tile_claim = function_body(tile, 'void Tile::claimTile(')
 assert heart in tile_claim and tile_claim.index(heart) < tile_claim.index('setSeat(seat)') and 'isServerGameMap()' in tile_claim
@@ -92,6 +92,12 @@ def inline_body(source, signature):
 assert 'secondsPerTile * static_cast<double>(numTiles)' in inline_body(claim_h, 'inline double takeoverSeconds(')
 for rule in ('inline double healthLostPerDance(', 'inline double healthRepairedPerDance('):
     assert 'takeoverSeconds(secondsPerTile, numTiles)' in inline_body(claim_h, rule), rule + ' uses the pool size'
+# The pool is saved for every kind of room (first tile line, optional, only when worn down); the portal and the
+# bridge keep their own old number as well
+assert 'RoomClaim::writeClaimPool(os, mClaimHealth)' in function_body(room, 'void Room::exportTileDataToStream(')
+assert 'mClaimHealth = RoomClaim::readClaimPool(is, mClaimHealth)' in function_body(room, 'bool Room::importTileDataFromStream(')
+assert 'inline void writeClaimPool(' in claim_h and 'inline double readClaimPool(' in claim_h
+assert 'Saved with the first tile' in room_h
 # One duration value in the config (no second key with the same meaning), documented with the pool formula
 assert len(re.findall(r'^\s+RoomConvertSecondsPerTile\s', rooms_cfg, re.M)) == 1, 'one set value'
 assert len(re.findall(r'^\s+# RoomConvertSecondsPerTile\s', rooms_cfg, re.M)) == 1, 'one documented value'
@@ -105,10 +111,21 @@ assert 'handTilesOverToSeat(seat, tiles)' in function_body(room, 'void Room::cha
 # the part that breaks off keeps the share, the taker's new room starts full
 assert 'mClaimHealth = (mClaimHealth * nbTilesThis' in function_body(room, 'void Room::absorbRoom(')
 assert 'newRoom->mClaimHealth = mClaimHealth;' in function_body(room, 'void Room::checkForSplit(')
-# Bridges keep their own square by square rule and are not rooms of one pool
+# Bridges are taken over at once with the same pool as every room: all squares together make the pool
+# (squares x RoomConvertSecondsPerTile), a dance on any square lowers it, all squares change hands together.
+# The only difference is the research of the owner that slows the dance
 bridge = read('source/rooms/RoomBridge.cpp')
+bridge_h = read('source/rooms/RoomBridge.h')
 bridge_claim = function_body(bridge, 'void RoomBridge::claimForSeat(')
-assert 'mClaimedValue' in bridge_claim and 'handTileOverToSeat(seat, tile)' in bridge_claim and 'mClaimHealth' not in bridge_claim
+assert 'Room::claimForSeat(seat, tile, danceRate)' in bridge_claim and 'getResearchValue(' in bridge_claim
+assert 'mClaimedValue' not in bridge and 'mClaimedValue' not in bridge_h and 'handTileOver' not in bridge, 'no per square claim value any more'
+assert 'isBridge' not in price and 'numCoveredTiles()' in price, 'the price of a bridge is for all squares'
+assert 'square by square' not in rooms_cfg and 'square by square' not in room_h
+# The stream of a bridge keeps its number (the pool as a number of squares), so older versions read it
+bridge_export = function_body(bridge, 'void RoomBridge::exportToStream(')
+assert 'mClaimHealth * static_cast<double>(numCoveredTiles())' in bridge_export
+bridge_import = function_body(bridge, 'bool RoomBridge::importFromStream(')
+assert 'mClaimHealth = std::min(1.0, std::max(0.0, claimedValue / static_cast<double>(numCoveredTiles())))' in bridge_import
 # The portal changes hands as a whole and restarts at a full pool
 assert 'mClaimHealth = 1.0;' in function_body(read('source/rooms/RoomPortal.cpp'), 'void RoomPortal::changeOwner(')
 if '--probe' in sys.argv:

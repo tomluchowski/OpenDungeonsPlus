@@ -103,6 +103,29 @@ check('mClaimedValue' not in portal_source and 'mClaimedValue' not in portal_hea
 check('numCoveredTiles()' in function(portal_source, 'void RoomPortal::exportToStream('),
       'the portal file format still stores the claim value as a number of tiles')
 
+# A bridge is one room with one pool: no square by square claim value, the research only scales the dance
+bridge_source = read('source/rooms/RoomBridge.cpp')
+bridge_claim = function(bridge_source, 'void RoomBridge::claimForSeat(')
+check('Room::claimForSeat(seat, tile, danceRate)' in bridge_claim and 'getResearchValue(' in bridge_claim,
+      'a bridge is taken over with the pool of Room, slowed by the research of its owner')
+check('mClaimedValue' not in bridge_source and 'mClaimedValue' not in read('source/rooms/RoomBridge.h'),
+      'a bridge has no claim value per square any more')
+check('numCoveredTiles()' in function(bridge_source, 'void RoomBridge::exportToStream('),
+      'the bridge file format still stores the claim value as a number of squares')
+
+# The pool is saved for every kind of room, as an optional field on the first tile line (older versions skip it,
+# a save without it loads full, an untouched room writes nothing extra)
+tile_export = function(room_source, 'void Room::exportTileDataToStream(')
+tile_import = function(room_source, 'bool Room::importTileDataFromStream(')
+check('RoomClaim::writeClaimPool(os, mClaimHealth)' in tile_export and 'mCoveredTiles.front() == tile' in tile_export,
+      'the pool is written with the first tile of every room')
+check(tile_export.index('seatsToSave') < tile_export.index('writeClaimPool'), 'the pool follows the fields older versions know')
+check('mClaimHealth = RoomClaim::readClaimPool(is, mClaimHealth)' in tile_import, 'the pool is read back for every room')
+check(tile_import.index('mSeatsVision.push_back(seat)') < tile_import.index('readClaimPool'), 'the pool is read behind the known fields')
+claim_header = read('source/rooms/RoomClaim.h')
+check('if(health < 1.0)' in function(claim_header, 'inline void writeClaimPool(')
+      and 'std::min(1.0, std::max(0.0, health))' in function(claim_header, 'inline double readClaimPool('),
+      'only a worn down pool is written, a read value stays between empty and full')
 check('mClaimHealth(1.0)' in function(room_source, 'Room::Room('), 'a new room starts with a full pool')
 check('double getClaimHealth() const' in room_header and 'double mClaimHealth;' in room_header
       and 'virtual void changeOwner(Seat* seat);' in room_header, 'Room.h declares the pool and changeOwner')
@@ -140,6 +163,7 @@ probe = r'''
 #include <cmath>
 #include <cstdlib>
 #include <iostream>
+#include <sstream>
 
 static int gFailures = 0;
 static void check(bool ok, const char* msg)
@@ -200,6 +224,11 @@ int main()
     check(std::fabs(turnsLeft / TPS - 0.5 * 25 * ENEMY) < 1.0, "the time left follows the new size of the room");
     check(std::fabs((turns + turnsLeft) / TPS - (0.5 * 50 + 0.5 * 25) * ENEMY) < 1.5, "half a 50 tile pool and half a 25 tile pool in all");
 
+    // A bridge is one room: its pool is all its squares times the duration of one square
+    check(std::fabs(RoomClaim::takeoverSeconds(ENEMY, 8) - 8 * ENEMY) < 1e-9, "a bridge of 8 squares has the pool of 8 tiles");
+    check(RoomClaim::healthLostPerDance(workerRate, REFERENCE, ENEMY, TPS, 8) > RoomClaim::healthLostPerDance(workerRate, REFERENCE, ENEMY, TPS, 25),
+          "a short bridge is taken faster than a big room");
+
     check(RoomClaim::healthLostPerDance(workerRate, REFERENCE, ENEMY, TPS, 25) > 0.0, "a dance lowers the pool");
     check(RoomClaim::healthLostPerDance(workerRate, REFERENCE, ENEMY, TPS, 0) >= 1.0, "a room without tiles is taken at once");
 
@@ -219,6 +248,35 @@ int main()
     check(!RoomClaim::isClaimableBy(true, false, true), "the enemy dungeon heart is never claimable");
     check(!RoomClaim::isClaimableBy(true, true, true), "an allied heart is not claimable");
     check(!RoomClaim::isClaimableBy(false, false, false), "nothing is claimable when the setting is off");
+
+    // The takeover pool in the file: a room nobody touched writes nothing extra, a worn down one writes the
+    // field behind the data of its first tile line, and a version that does not know it reads its own fields
+    // as before. A file without the field loads a full pool.
+    std::ostringstream untouched;
+    RoomClaim::writeClaimPool(untouched, 1.0);
+    check(untouched.str().empty(), "an untouched room writes nothing extra");
+    std::ostringstream worn;
+    worn << "5\t6\t100\t1\t3";
+    RoomClaim::writeClaimPool(worn, 0.375);
+    std::istringstream older(worn.str());
+    int tx = 0, ty = 0, seatsCount = 0, seatId = 0;
+    double hp = 0.0;
+    older >> tx >> ty >> hp >> seatsCount >> seatId;
+    check(tx == 5 && ty == 6 && hp == 100.0 && seatsCount == 1 && seatId == 3, "an older version reads the fields it knows unchanged");
+    std::istringstream newer(worn.str());
+    newer >> tx >> ty >> hp >> seatsCount >> seatId;
+    check(std::fabs(RoomClaim::readClaimPool(newer, 1.0) - 0.375) < 1e-6, "the pool of a worn down room survives the round trip");
+    std::istringstream oldFile("5\t6\t100\t0");
+    oldFile >> tx >> ty >> hp >> seatsCount;
+    check(RoomClaim::readClaimPool(oldFile, 1.0) == 1.0, "a file without the field loads a full pool");
+    std::istringstream other("SomethingElse 0.5");
+    check(RoomClaim::readClaimPool(other, 1.0) == 1.0, "another field is not taken for the pool");
+    std::istringstream broken("ClaimPool");
+    check(RoomClaim::readClaimPool(broken, 1.0) == 1.0, "a cut field loads a full pool");
+    std::istringstream outside("ClaimPool 7.5");
+    check(RoomClaim::readClaimPool(outside, 1.0) == 1.0, "a value above full is held at full");
+    std::istringstream negative("ClaimPool -2");
+    check(RoomClaim::readClaimPool(negative, 1.0) == 0.0, "a value below empty is held at empty");
 
     std::cout << "FAILURES=" << gFailures << '\n';
     return gFailures ? 1 : 0;

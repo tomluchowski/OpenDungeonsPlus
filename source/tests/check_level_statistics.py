@@ -540,7 +540,9 @@ assert 'mRoomsCaptured++' in handover
 assert handover.index('mCoveredTiles.erase(itTile)') < handover.index('mRoomsCaptured++') < handover.index('newRoom->mCoveredTiles.push_back(tile)')
 assert 'handTilesOverToSeat(seat, tiles)' in function(room_source, 'void Room::changeOwner(')
 assert 'changeOwner(seat);' in function(room_source, 'void Room::claimForSeat(')
-assert 'handTilesOverToSeat(seat, std::vector<Tile*>(1, tile))' in function(room_source, 'Room* Room::handTileOverToSeat(')
+# A bridge no longer has a square by square hand over: it is taken as a whole through Room::claimForSeat
+assert 'Room::claimForSeat(seat, tile, danceRate)' in function(read('source/rooms/RoomBridge.cpp'), 'void RoomBridge::claimForSeat(')
+assert 'handTileOverToSeat' not in room_source
 assert 'mRoomsCaptured++' in function(read('source/rooms/RoomPortal.cpp'), 'void RoomPortal::changeOwner(')
 wiring_checks += 5
 

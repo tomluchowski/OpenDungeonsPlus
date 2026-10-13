@@ -18,7 +18,11 @@
 #ifndef ROOMCLAIM_H
 #define ROOMCLAIM_H
 
+#include <algorithm>
 #include <cstdint>
+#include <istream>
+#include <ostream>
+#include <string>
 
 //! \brief The rules for taking over a room, without any game state so that they
 //! can be checked on their own (see source/tests/check_room_capture.py).
@@ -96,6 +100,32 @@ namespace RoomClaim
             return 1.0;
 
         return repairFactor * (danceRate / referenceClaimRate) / (seconds * turnsPerSecond);
+    }
+
+    //! \brief The optional field of the file format that keeps the takeover pool of a worn down room: the word
+    //! ClaimPool and the fraction (1.0 = full), written behind the data of the first tile of the room. Older
+    //! versions stop reading a tile line after the data they know, so they skip it. A room that was not touched
+    //! writes nothing.
+    inline void writeClaimPool(std::ostream& os, double health)
+    {
+        if(health < 1.0)
+            os << "\tClaimPool " << health;
+    }
+
+    //! \brief Reads the field written by writeClaimPool from what is left of the tile line. Without the field
+    //! (a file from before it, or an untouched room) the room is full: defaultHealth is returned. The value is
+    //! kept between 0 and 1.
+    inline double readClaimPool(std::istream& is, double defaultHealth)
+    {
+        std::string tag;
+        if(!(is >> tag) || (tag != "ClaimPool"))
+            return defaultHealth;
+
+        double health;
+        if(!(is >> health))
+            return defaultHealth;
+
+        return std::min(1.0, std::max(0.0, health));
     }
 }
 

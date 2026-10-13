@@ -55,8 +55,6 @@ GameEntityType Room::getObjectType() const
     return GameEntityType::room;
 }
 
-const double CLAIMED_VALUE_PER_TILE = 1.0;
-
 Room::ClaimMode Room::getClaimMode()
 {
     ConfigManager& config = ConfigManager::getSingleton();
@@ -83,9 +81,8 @@ int32_t Room::getTakeoverPrice() const
     if(getSeat()->isRogueSeat())
         return 0;
 
-    // A bridge changes hands square by square, every other room as a whole
-    bool isBridge = (getType() == RoomType::bridgeWooden) || (getType() == RoomType::bridgeStone);
-    uint32_t nbTiles = isBridge ? 1 : static_cast<uint32_t>(numCoveredTiles());
+    // Every room changes hands as a whole, a bridge too
+    uint32_t nbTiles = static_cast<uint32_t>(numCoveredTiles());
     double percent = ConfigManager::getSingleton().getRoomConfigDoubleOrDefault("RoomTakeoverCostPercent", 0.0);
     return RoomClaim::takeoverPrice(RoomManager::costPerTile(getType()), nbTiles, percent);
 }
@@ -262,11 +259,6 @@ double Room::takeDamage(GameEntity* attacker, double absoluteDamage, double phys
     return Building::takeDamage(attacker, absoluteDamage, physicalDamage, magicalDamage, elementDamage, tileTakingDamage, ko);
 }
 
-Room* Room::handTileOverToSeat(Seat* seat, Tile* tile)
-{
-    return handTilesOverToSeat(seat, std::vector<Tile*>(1, tile));
-}
-
 Room* Room::handTilesOverToSeat(Seat* seat, const std::vector<Tile*>& tiles)
 {
     // Lowest common point of every owner change of a room: the dungeon heart stays with its owner
@@ -298,11 +290,9 @@ Room* Room::handTilesOverToSeat(Seat* seat, const std::vector<Tile*>& tiles)
         std::map<Tile*, TileData*>::iterator itData = mTileData.find(tile);
         if(itData != mTileData.end())
         {
-            TileData* newData = itData->second->cloneTileData();
-            // The new owner starts with the tile fully claimed, so it can be danced
-            // back just as it was danced away.
-            newData->mClaimedValue = CLAIMED_VALUE_PER_TILE;
-            newRoom->mTileData[tile] = newData;
+            // The new room starts with a full takeover pool (mClaimHealth), so it can be
+            // danced back just as it was danced away.
+            newRoom->mTileData[tile] = itData->second->cloneTileData();
             itData->second->mHP = 0.0;
         }
 
@@ -978,6 +968,11 @@ void Room::exportTileDataToStream(std::ostream& os, Tile* tile, TileData* tileDa
     os << "\t" << nbSeatsVision;
     for(Seat* seat : seatsToSave)
         os << "\t" << seat->getId();
+
+    // The pool of the whole room against being taken over, with its first tile and only while an enemy has
+    // worn it down. Older versions ignore the rest of the line, a save without it loads a full pool
+    if(!mCoveredTiles.empty() && (mCoveredTiles.front() == tile))
+        RoomClaim::writeClaimPool(os, mClaimHealth);
 }
 
 bool Room::importTileDataFromStream(std::istream& is, Tile* tile, TileData* tileData)
@@ -1025,6 +1020,9 @@ bool Room::importTileDataFromStream(std::istream& is, Tile* tile, TileData* tile
 
         tileData->mSeatsVision.push_back(seat);
     }
+
+    // The takeover pool of a worn down room (on the first tile line of the room only); without it the pool is full
+    mClaimHealth = RoomClaim::readClaimPool(is, mClaimHealth);
 
     return true;
 }

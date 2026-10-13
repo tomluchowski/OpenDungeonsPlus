@@ -88,8 +88,9 @@ public:
     //! pool (mClaimHealth, a fraction of tiles times RoomConvertSecondsPerTile) that
     //! every dance on any of its tiles lowers; when it is empty all the tiles change
     //! hands at once (changeOwner). The dungeon temple is
-    //! never claimable: it can only be destroyed. Bridges override this pair with
-    //! their own claiming rules (square by square).
+    //! never claimable: it can only be destroyed. A bridge is one room like any other
+    //! (all its squares together make the pool); it only scales the dance by the research
+    //! of its owner and decides on its own who may claim it.
     virtual bool isClaimable(Seat* seat) const override;
     virtual void claimForSeat(Seat* seat, Tile* tile, double danceRate) override;
 
@@ -210,16 +211,13 @@ public:
 protected:
     static void fireRoomSound(Tile& tile, const std::string& soundFamily);
 
-    //! \brief Hands the given tile of this room over to a room of the same type
+    //! \brief Hands the given tiles of this room over to a room of the same type
     //! owned by the claiming seat, merging it with an adjacent room of theirs
     //! when there is one and splitting this room when the loss cuts it in two.
     //! Room-level state gets shared out through splitRoom(), so e.g. a treasury
-    //! tile takes its share of the stored gold with it. Returns the room the
-    //! tile ended up in, or nullptr if no room could be created.
-    Room* handTileOverToSeat(Seat* seat, Tile* tile);
-
-    //! \brief Same as handTileOverToSeat for several tiles at once. Counts as a
-    //! captured room for the claimer when this room is left without a tile.
+    //! tile takes its share of the stored gold with it. Counts as a captured room
+    //! for the claimer when this room is left without a tile. Returns the room the
+    //! tiles ended up in, or nullptr if no room could be created.
     Room* handTilesOverToSeat(Seat* seat, const std::vector<Tile*>& tiles);
 
     //! \brief Called when the claim health of the room is used up. By default every
@@ -232,8 +230,9 @@ protected:
     //! nullptr when the room was nobody's.
     void notifyOwnerChanged(Seat* oldSeat, Seat* newSeat);
 
-    //! \brief 1.0 when full. Not saved (a room loaded from a file starts full), except
-    //! for the portal, which keeps the value its files always had.
+    //! \brief 1.0 when full. Saved with the first tile of the room only while it is worn down (a room
+    //! that was never touched writes nothing extra, and a save without it loads full); portals and
+    //! bridges also keep the value their files always had.
     double mClaimHealth;
 
     /*! \brief Exports the headers needed to recreate the Room. It allows to extend Room as much as wanted.
