@@ -360,7 +360,7 @@ void RenderManager::rrChickenHatched(ChickenEntity* chicken)
     createChickenFeatherEffect(chicken->getPosition() + Ogre::Vector3(0.0f, 0.0f, 0.05f), "ChickenEggShell");
 }
 
-<<<<<<< HEAD
+//! \brief An egg was trampled: lets shell pieces and yolk fly and startles the feathers of a hen.
 void RenderManager::rrEggTrampled(const Ogre::Vector3& position)
 {
     // Shell pieces and yolk (one system with two emitters), and the feathers of a hen that is startled by it
@@ -368,7 +368,6 @@ void RenderManager::rrEggTrampled(const Ogre::Vector3& position)
     createChickenFeatherEffect(position + Ogre::Vector3(0.0f, 0.0f, 0.1f));
 }
 
-<<<<<<< HEAD
 void RenderManager::rrSetHatcheryNests(const std::string& roomName, const std::vector<HatcheryNestField::Place>& places,
     const std::vector<HatcheryNestField::Place>& feathers)
 {
@@ -389,12 +388,8 @@ void RenderManager::rrSetHatcheryNests(const std::string& roomName, const std::v
     ++nests.mVersion;
 }
 
-=======
-=======
 //! \brief Starts or ends the brawl of two roosters; the first one makes the feather clouds, the loser goes down in a last cloud.
 //! \param phase 0 when the fight starts, 1 when it is over.
->>>>>>> feature/hatchery-flee
->>>>>>> feature/hatchery-nest-field
 void RenderManager::rrChickenFight(ChickenEntity* first, ChickenEntity* second, uint32_t phase)
 {
     std::map<ChickenEntity*, ChickenLook>::iterator firstLook = mChickenLooks.find(first);
