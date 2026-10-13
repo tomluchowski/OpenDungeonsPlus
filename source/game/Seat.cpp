@@ -382,7 +382,7 @@ void Seat::addMana(double mana)
     mMana += mana;
     if (mMana < 0.0)
         mMana = 0.0;
-    // A one-off loss (possession death, conquest transfer) counts for the HUD like a spell cost
+    // A one-off loss counts for the HUD like a spell cost
     if (mMana < manaBefore)
         mManaOneOffPending += manaBefore - mMana;
     double maxMana = ConfigManager::getSingleton().getMaxManaPerSeat();
