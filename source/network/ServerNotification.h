@@ -153,7 +153,12 @@ enum class ServerNotificationType
     //! uint32_t count of the places of loose feathers and per place: float x, float y, float angle in degrees. Sent to
     //! the human players when the places of the hatchery change and once to a client that joined or loaded.
     //! Appended last so that no existing numeric value changes.
-    hatcheryNests
+    hatcheryNests,
+    //! Rooster flight to or from a coop roof: string name, start Vector3, goal Vector3, uint32_t total turns,
+    //! float turns that are over (a client that joins in the middle starts there).
+    chickenRoofFlight,
+    //! Exact rooster/hen pair for the mounting pose: two animal names (rooster, hen).
+    chickenMount
 };
 
 ODPacket& operator<<(ODPacket& os, const ServerNotificationType& nt);

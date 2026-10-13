@@ -127,7 +127,7 @@ assert 'mFighting = false' in pick, 'a picked up rooster leaves the fight'
 # the event is appended last, right after chickenKindChanged (no existing numeric value changes)
 enum_body = notif[notif.index('enum class ServerNotificationType'):notif.index('};')]
 assert enum_body.index('chickenKindChanged') < enum_body.index('chickenFight')
-assert enum_body.rstrip().endswith('hatcheryNests')
+assert enum_body.rstrip().endswith('chickenMount')
 assert 'ServerNotificationType::chickenFight' in chicken and 'ServerNotificationType::chickenFight' in client
 assert 'case ServerNotificationType::chickenFight' in (root / 'source/network/ServerNotification.cpp').read_text()
 print('hatchery rooster fight checks passed')

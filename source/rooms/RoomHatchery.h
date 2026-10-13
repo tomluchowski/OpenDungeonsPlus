@@ -177,9 +177,12 @@ private:
     //! \brief Does one turn of the current mood: walks, chases, guards against the threat position or plays a pose.
     void actRoosterMood(ChickenEntity* rooster, const std::vector<ChickenEntity*>& hens,
         const RoosterSettings& settings, const Ogre::Vector2& threat);
-    //! Sits the rooster on the roof of the nearest coop with the pose. Without coop he stays on the ground.
-    void roostOnRoof(ChickenEntity* rooster, const std::string& pose, bool hopFromFar);
-    //! \brief Lets the rooster jump down from a coop roof to a free place next to the coop.
+    //! Sits the rooster on the roof of the nearest coop with the pose: he walks to the ground next to the coop,
+    //! flutters up from there and then sits on the roof. Without coop he stays on the ground. True when he sits
+    //! there (on the roof or on the ground without coop), false while he is on his way or in the air.
+    bool roostOnRoof(ChickenEntity* rooster, const std::string& pose);
+    //! \brief Lets the rooster flutter down from a coop roof to a free place next to the coop (he stays on the roof
+    //! when there is none).
     void climbDown(ChickenEntity* rooster);
     //! The chicks follow the nearest hen in a line, never the rooster.
     void updateChickLine(const std::vector<ChickenEntity*>& hens, const std::vector<ChickenEntity*>& chicks);
@@ -187,6 +190,8 @@ private:
     bool findThreat(const ChickenEntity& rooster, double radius, Ogre::Vector2& position) const;
     //! \brief The coop tile of this hatchery closest to the position, null without a coop.
     Tile* getNearestCoop(const Ogre::Vector2& position) const;
+    //! \brief Height of the roof of the coop above the floor (the same for every coop mesh, from the config).
+    double getRoofHeight(const Tile& coopTile) const;
     //! \brief The point on the roof of the coop where the rooster sits.
     Ogre::Vector2 getPerchSpot(const Tile& coopTile) const;
     //! A free place next to a coop, where an animal can stand after jumping down.

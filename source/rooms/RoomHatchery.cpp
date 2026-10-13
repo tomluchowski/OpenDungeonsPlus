@@ -51,6 +51,16 @@ const std::string RoomHatcheryNameDisplay = "Hatchery room";
 const RoomType RoomHatchery::mRoomType = RoomType::hatchery;
 const TileVisual RoomHatchery::mRoomVisual= TileVisual::hatcheryRoom;
 
+//! Where an animal stands inside a coop, where the door in front of it is and where the search for a free place on the
+//! floor starts (tiles from the center of the coop tile, along x)
+const Ogre::Real COOP_INSIDE_OFFSET = 0.3f;
+const Ogre::Real COOP_DOOR_OFFSET = 0.9f;
+const Ogre::Real COOP_EXIT_SEARCH_OFFSET = 1.1f;
+//! Free space the rooster needs around him, per unit of his scale (the long tail), tiles
+const Ogre::Real ROOSTER_CLEARANCE_PER_SCALE = 0.4f;
+//! Grid of the search for a landing place next to a coop: points per tile
+const float LAND_SEARCH_STEPS_PER_TILE = 8.0f;
+
 
 namespace
 {
@@ -675,6 +685,12 @@ void RoomHatchery::updateNestTrips(const std::vector<ChickenEntity*>& hens, cons
             continue;
         }
 
+        if(hen->isLeavingCoop())
+        {
+            ++it;
+            continue;
+        }
+
         if(it->mPosing)
         {
             if(it->mTurns > 0)
@@ -730,13 +746,24 @@ bool RoomHatchery::spawnFromCoop(ChickenKind kind, const HatcheryCycleSettings& 
     for(uint32_t i = 0; (i < mCentralActiveSpotTiles.size()) && (spawned < count); ++i)
     {
         Tile* coopTile = mCentralActiveSpotTiles[(first + i) % mCentralActiveSpotTiles.size()];
-        Ogre::Vector2 freePosition;
-        if(!RoomObjectNavigation::standingPosition(obstacles,
-            Ogre::Vector2(coopTile->getX(), coopTile->getY()), freePosition))
+        // The door of the coop faces the next tile in x: it has to belong to this hatchery
+        Tile* floorTile = getGameMap()->getTile(coopTile->getX() + 1, coopTile->getY());
+        if((floorTile == nullptr) || (floorTile->getCoveringRoom() != this))
             continue;
 
-        ChickenEntity* animal = spawnAnimal(kind, Ogre::Vector3(freePosition.x, freePosition.y, 0.0f), settings);
-        animal->playPose(ChickenPose::emerge, 2);
+        const Ogre::Vector2 inside(coopTile->getX() + COOP_INSIDE_OFFSET, coopTile->getY());
+        const Ogre::Vector2 door(coopTile->getX() + COOP_DOOR_OFFSET, coopTile->getY());
+        Ogre::Vector2 freePosition;
+        if(!RoomObjectNavigation::standingPosition(obstacles,
+            Ogre::Vector2(coopTile->getX() + COOP_EXIT_SEARCH_OFFSET, coopTile->getY()), freePosition) ||
+           (freePosition.x <= coopTile->getX() + COOP_DOOR_OFFSET) ||
+           (getGameMap()->getTile(Helper::round(freePosition.x), Helper::round(freePosition.y)) != floorTile) ||
+           !RoomObjectPath::clearSegment(obstacles, inside, door, true) ||
+           !RoomObjectPath::clearSegment(obstacles, door, freePosition))
+            continue;
+
+        ChickenEntity* animal = spawnAnimal(kind, Ogre::Vector3(inside.x, inside.y, 0.0f), settings);
+        animal->emergeFromCoop(door, freePosition);
         ++spawned;
     }
     return spawned > 0;
@@ -953,7 +980,7 @@ void RoomHatchery::updateFlock(const std::vector<ChickenEntity*>& hens)
     collectHungry(hungry);
     for(ChickenEntity* hen : hens)
     {
-        if(hen->isBusy() || hen->isScattering() || isOnNestTrip(*hen))
+        if(hen->isBusy() || hen->isLeavingCoop() || hen->isScattering() || isOnNestTrip(*hen))
             continue;
 
         // A hungry creature comes close: the hen runs off cackling to another part of the hatchery
@@ -1154,7 +1181,7 @@ void RoomHatchery::doUpkeep()
     uint32_t capacity = HatcheryCycle::capacity(mCoveredTiles.size(), mNumActiveSpots, settings);
     for(ChickenEntity* hen : hens)
     {
-        if((findPendingEgg(*hen) != nullptr) || !HatcheryCycle::canLay(counts, capacity))
+        if(hen->isLeavingCoop() || (findPendingEgg(*hen) != nullptr) || !HatcheryCycle::canLay(counts, capacity))
             continue;
         Ogre::Vector3 eggSpot;
         Ogre::Vector2 standing;
@@ -1175,6 +1202,8 @@ void RoomHatchery::doUpkeep()
 
     for(ChickenEntity* hen : hens)
     {
+        if(hen->isLeavingCoop())
+            continue;
         PendingEgg* planned = findPendingEgg(*hen);
         if(!hen->countDownLay())
             continue;
@@ -1464,6 +1493,14 @@ Tile* RoomHatchery::getNearestCoop(const Ogre::Vector2& position) const
     return nearest;
 }
 
+//! \brief The height of the roof of a coop above the floor (the same for every coop mesh, from the config).
+//! \param coopTile The tile of the coop.
+double RoomHatchery::getRoofHeight(const Tile& coopTile) const
+{
+    return ConfigManager::getSingleton().getRoomConfigDoubleOrDefault("HatcheryCoopRoofHeight",
+        HatcheryCoopHouse::roofPerchHeight);
+}
+
 Ogre::Vector2 RoomHatchery::getPerchSpot(const Tile& coopTile) const
 {
     // The lookout plank of the coop mesh lies over the roof ridge, 0.3 along the tile
@@ -1474,8 +1511,30 @@ Ogre::Vector2 RoomHatchery::getPerchSpot(const Tile& coopTile) const
 
 bool RoomHatchery::getGroundSpot(const Tile& coopTile, Ogre::Vector2& spot) const
 {
-    const std::vector<RoomObjectPath::Obstacle> obstacles = RoomObjectNavigation::collect(*getGameMap(), 0.1f);
-    return RoomObjectNavigation::standingPosition(obstacles, Ogre::Vector2(coopTile.getX(), coopTile.getY()), spot);
+    // The long tail must clear the entire coop footprint before the vertical leg of the flight.
+    const Ogre::Real clearance = ROOSTER_CLEARANCE_PER_SCALE * static_cast<Ogre::Real>(
+        ConfigManager::getSingleton().getRoomConfigDoubleOrDefault("HatcheryRoosterScale", 1.25));
+    const std::vector<RoomObjectPath::Obstacle> obstacles = RoomObjectNavigation::collect(*getGameMap(), clearance);
+    const Ogre::Vector2 coopCenter(coopTile.getX(), coopTile.getY());
+    const double reach = ConfigManager::getSingleton().getRoomConfigDoubleOrDefault("HatcheryRoosterLandReach", 1.0);
+    const int steps = static_cast<int>(std::ceil(reach * LAND_SEARCH_STEPS_PER_TILE));
+    Ogre::Real nearest = static_cast<Ogre::Real>(reach * reach);
+    bool found = false;
+    for(int y = -steps; y <= steps; ++y)
+    {
+        for(int x = -steps; x <= steps; ++x)
+        {
+            const Ogre::Vector2 candidate = coopCenter + Ogre::Vector2(x / LAND_SEARCH_STEPS_PER_TILE, y / LAND_SEARCH_STEPS_PER_TILE);
+            Tile* tile = getGameMap()->getTile(Helper::round(candidate.x), Helper::round(candidate.y));
+            if(tile == nullptr || tile->getCoveringRoom() != this || candidate.squaredDistance(coopCenter) > nearest ||
+                !RoomObjectPath::clearPoint(obstacles, candidate))
+                continue;
+            spot = candidate;
+            nearest = candidate.squaredDistance(coopCenter);
+            found = true;
+        }
+    }
+    return found && spot.distance(coopCenter) <= reach;
 }
 
 bool RoomHatchery::findThreat(const ChickenEntity& rooster, double radius, Ogre::Vector2& position) const
@@ -1516,11 +1575,15 @@ void RoomHatchery::climbDown(ChickenEntity* rooster)
     Tile* coopTile = getNearestCoop(Ogre::Vector2(rooster->getPosition().x, rooster->getPosition().y));
     Ogre::Vector2 spot(rooster->getPosition().x, rooster->getPosition().y);
     if(coopTile != nullptr)
-        getGroundSpot(*coopTile, spot);
+    {
+        // No free place next to the coop: he stays on the roof for now
+        if(!getGroundSpot(*coopTile, spot))
+            return;
+    }
     rooster->hopDown(spot);
 }
 
-void RoomHatchery::roostOnRoof(ChickenEntity* rooster, const std::string& pose, bool hopFromFar)
+bool RoomHatchery::roostOnRoof(ChickenEntity* rooster, const std::string& pose)
 {
     const Ogre::Vector2 position(rooster->getPosition().x, rooster->getPosition().y);
     Tile* coopTile = getNearestCoop(position);
@@ -1528,31 +1591,43 @@ void RoomHatchery::roostOnRoof(ChickenEntity* rooster, const std::string& pose, 
     {
         // No coop: he sits on the ground
         rooster->setAnimationState(pose, true);
-        return;
+        return true;
     }
 
     if(rooster->isOnRoof())
     {
         rooster->setAnimationState(pose, true);
-        return;
+        return true;
     }
 
-    const Ogre::Vector2 spot = getPerchSpot(*coopTile);
-    if(hopFromFar || (position.distance(spot) < mRoosterSettings.mHopDistance))
+    // He first walks to the ground next to the coop and only flutters up from there, never from far away
+    Ogre::Vector2 approach(position);
+    if(!getGroundSpot(*coopTile, approach))
     {
-        double roofHeight = ConfigManager::getSingleton().getRoomConfigDoubleOrDefault("HatcheryCoopRoofHeight",
-            HatcheryCoopHouse::roofPerchHeight);
-        rooster->hopToRoof(Ogre::Vector3(spot.x, spot.y, static_cast<Ogre::Real>(roofHeight)));
-        rooster->setAnimationState(pose, true);
-        return;
+        // No free place next to the coop: forget about the roof
+        rooster->setMood(RoosterMood::strut, 0);
+        rooster->setRoomDriven(false);
+        return false;
     }
 
-    if(!rooster->isMoving() && !rooster->walkToward(spot, mRoosterSettings.mWalkGap, ChickenPose::strut))
+    const Ogre::Real clearance = ROOSTER_CLEARANCE_PER_SCALE * static_cast<Ogre::Real>(
+        ConfigManager::getSingleton().getRoomConfigDoubleOrDefault("HatcheryRoosterScale", 1.25));
+    const std::vector<RoomObjectPath::Obstacle> obstacles = RoomObjectNavigation::collect(*getGameMap(), clearance);
+    if(position.distance(approach) < mRoosterSettings.mHopDistance && RoomObjectPath::clearPoint(obstacles, position))
+    {
+        const Ogre::Vector2 spot = getPerchSpot(*coopTile);
+        double roofHeight = getRoofHeight(*coopTile);
+        rooster->hopToRoof(Ogre::Vector3(spot.x, spot.y, static_cast<Ogre::Real>(roofHeight)));
+        return false;
+    }
+
+    if(!rooster->isMoving() && !rooster->walkToward(approach, 0.0, ChickenPose::strut))
     {
         // No way to the coop: forget about the roof
         rooster->setMood(RoosterMood::strut, 0);
         rooster->setRoomDriven(false);
     }
+    return false;
 }
 
 void RoomHatchery::beginRoosterMood(ChickenEntity* rooster, const RoosterPlan& plan)
@@ -1566,6 +1641,7 @@ void RoomHatchery::beginRoosterMood(ChickenEntity* rooster, const RoosterPlan& p
     if(plan.mMood == RoosterMood::crow)
     {
         rooster->resetSinceCrow();
+        rooster->resetApproachTurns();
         fireAnimalSound(*rooster, "Hatchery/Crow");
         mCrowInterval = HatcheryRooster::crowInterval(getRoosterSettings(), Random::Uint(0, 1000));
     }
@@ -1580,9 +1656,9 @@ void RoomHatchery::actRoosterMood(ChickenEntity* rooster, const std::vector<Chic
         case RoosterMood::strut:
             break;
         case RoosterMood::crow:
-            // He crows from the roof when it is close
-            roostOnRoof(rooster, ChickenPose::crow, true);
-            rooster->playPose(ChickenPose::crow, 2);
+            // He crows from the roof; on the way (walking, fluttering up) he does not stand still for the pose
+            if(roostOnRoof(rooster, ChickenPose::crow))
+                rooster->playPose(ChickenPose::crow, 2);
             break;
         case RoosterMood::chase:
         {
@@ -1610,9 +1686,7 @@ void RoomHatchery::actRoosterMood(ChickenEntity* rooster, const std::vector<Chic
             // Caught: he jumps on her for a moment, feathers fly and she cackles
             if(nearestDistance < static_cast<float>(settings.mCatchDistance * settings.mCatchDistance))
             {
-                // The climb on the hen, the treading and the climb down last three turns together
-                rooster->playPose(ChickenPose::mount, 3);
-                target->playPose(ChickenPose::cackle, 3);
+                rooster->mountHen(*target);
                 fireAnimalSound(*target, "Hatchery/Cluck");
                 rooster->setMood(RoosterMood::strut, 0);
                 rooster->setRoomDriven(false);
@@ -1657,11 +1731,36 @@ void RoomHatchery::updateRooster(ChickenEntity* rooster, const std::vector<Chick
 {
     rooster->setHomeSeat(getSeat());
     rooster->incrementSinceCrow();
-    rooster->countDownMood();
+
+    // The flight to or from a roof is not part of the crow: the mood only counts down once he has landed
+    if(rooster->isHopping())
+        return;
+
+    // On his way to the coop he has a time limit of his own; when it is over (blocked or too long a way) he gives up
+    // the crow and strolls on. The crow time starts on the roof.
+    bool onTheWay = (rooster->getMood() == RoosterMood::crow) && !rooster->isOnRoof() && !mCentralActiveSpotTiles.empty();
+    if(onTheWay)
+    {
+        uint32_t limit = static_cast<uint32_t>(std::max(1.0,
+            ConfigManager::getSingleton().getRoomConfigDoubleOrDefault("HatcheryRoosterApproachTurns", 15.0)));
+        if(rooster->countApproachTurn() > limit)
+        {
+            rooster->setMood(RoosterMood::strut, 0);
+            rooster->setRoomDriven(false);
+            return;
+        }
+    }
+    else
+        rooster->countDownMood();
 
     // He stays in his pose while it lasts
-    if(rooster->isBusy())
+    if(rooster->isBusy() || rooster->isLeavingCoop())
         return;
+
+    // The roof is only for the crow: a rooster that sits there without crowing (the mood is not saved, so after
+    // loading he may still be on the roof) jumps down
+    if(rooster->isOnRoof() && (rooster->getMood() != RoosterMood::crow))
+        climbDown(rooster);
 
     double guardRadius = ConfigManager::getSingleton().getRoomConfigDoubleOrDefault("HatcheryRoosterGuardRadius", 4.0);
     Ogre::Vector2 threat(0.0f, 0.0f);

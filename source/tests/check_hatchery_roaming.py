@@ -83,7 +83,11 @@ assert 'RoosterMood::crow' in rooster_cpp and 'mSinceCrow >= context.mCrowInterv
 assert 'HatcheryRoosterCrowMin' in config and 'HatcheryRoosterCrowMax' in config
 begin = body(room, 'void RoomHatchery::beginRoosterMood(')
 assert 'bool roofMood = (plan.mMood == RoosterMood::crow);' in begin and 'climbDown(rooster)' in begin
-assert 'roostOnRoof(rooster, ChickenPose::crow, true)' in room
+assert 'if(roostOnRoof(rooster, ChickenPose::crow))' in room, 'the crow pose only where he crows, not on the way'
+assert 'hopFromFar' not in room + room_h, 'no flight to the roof from far away: he walks to the coop first'
+roost_body = body(room, 'bool RoomHatchery::roostOnRoof(')
+assert roost_body.index('position.distance(approach) < mRoosterSettings.mHopDistance') < roost_body.index('rooster->hopToRoof('), 'flutter up only after the arrival test'
+assert 'rooster->walkToward(approach' in roost_body, 'otherwise he walks to the coop first'
 assert room.count('roostOnRoof(rooster') == 1, 'the crow is the only reason for the roof'
 
 # The numbers are settings with a comment in the config

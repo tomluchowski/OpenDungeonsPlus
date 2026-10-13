@@ -40,6 +40,8 @@
 #include "utils/LogManager.h"
 
 #include <OgreAnimationState.h>
+#include <OgreBone.h>
+#include <OgreCamera.h>
 #include <OgreEntity.h>
 #include <OgreManualObject.h>
 #include <OgreMesh.h>
@@ -49,6 +51,7 @@
 #include <OgreSceneNode.h>
 #include <OgreSkeletonInstance.h>
 #include <OgreSubEntity.h>
+#include <OgreViewport.h>
 
 #include <algorithm>
 #include <cmath>
@@ -268,6 +271,11 @@ static const float MOUNT_HEN_QUIVER = 0.4f;
 //! Mating: seconds before the end of the Mount clip at which the Tread clip follows (an ended clip would send the
 //! animal to idle and end the pose)
 static const float MOUNT_CLIP_OVERLAP_SECONDS = 0.05f;
+//! Coop exit: the door of a coop lies this far in front of the coop tile (tiles), an animal at the door is within the
+//! square root of DOOR_REACH_SQUARED of it, and the door opens when the animal is DOOR_OPEN_MARGIN before it
+static const float COOP_DOOR_OFFSET = 0.9f;
+static const float COOP_DOOR_REACH_SQUARED = 0.16f;
+static const float COOP_DOOR_OPEN_MARGIN = 0.2f;
 
 //! An egg in a nest lies on the straw of the nest: the straw of the egg mesh is hidden
 void hideEggStraw(Ogre::Entity* entity)
@@ -309,6 +317,9 @@ void RenderManager::rrCreateChickenLook(ChickenEntity* chicken)
     look.mPoseTime = 0.0f;
     look.mPhase = static_cast<Ogre::Real>(++mChickenLookNumber % 97) * 0.37f;
     look.mFeatherBursts = 0;
+    look.mEmergeFeathersPending = false;
+    look.mCoopDoorReplayPending = false;
+    look.mCoopExitWalking = false;
     look.mFightPartner = nullptr;
     look.mFightLeader = false;
     look.mFightTimer = 0.0f;
@@ -385,6 +396,23 @@ void RenderManager::rrUpdateChickenLook(ChickenEntity* chicken)
     applyChickenKindLook(chicken);
 }
 
+//! \brief True when the animal can be seen (in the scene, in the view of the camera) and its clip is playing.
+//! Feathers only fly for what the keeper can see.
+//! \param chicken The animal.
+//! \param clip The name of the clip that has to be playing.
+bool RenderManager::chickenClipVisible(ChickenEntity* chicken, const std::string& clip) const
+{
+    std::map<ChickenEntity*, ChickenLook>::const_iterator it = mChickenLooks.find(chicken);
+    if(it == mChickenLooks.end() || it->second.mEntity == nullptr || !it->second.mEntity->isVisible() ||
+       it->second.mNode == nullptr || !it->second.mNode->isInSceneGraph() || mViewport == nullptr ||
+       mViewport->getCamera() == nullptr || !mViewport->getCamera()->isVisible(it->second.mNode->_getDerivedPosition()) ||
+       !it->second.mEntity->hasAnimationState(clip))
+        return false;
+
+    const Ogre::AnimationState* animation = it->second.mEntity->getAnimationState(clip);
+    return animation->getEnabled() && !animation->hasEnded();
+}
+
 void RenderManager::rrChickenHatched(ChickenEntity* chicken)
 {
     createChickenFeatherEffect(chicken->getPosition() + Ogre::Vector3(0.0f, 0.0f, 0.05f), "ChickenEggShell");
@@ -392,9 +420,8 @@ void RenderManager::rrChickenHatched(ChickenEntity* chicken)
 
 void RenderManager::rrEggTrampled(const Ogre::Vector3& position)
 {
-    // Shell pieces and yolk (one system with two emitters), and the feathers of a hen that is startled by it
+    // Shell pieces and yolk have no chicken feather trigger.
     createChickenFeatherEffect(position + Ogre::Vector3(0.0f, 0.0f, 0.04f), "ChickenEggTrample");
-    createChickenFeatherEffect(position + Ogre::Vector3(0.0f, 0.0f, 0.1f));
 }
 
 void RenderManager::rrSetHatcheryNests(const std::string& roomName, const std::vector<HatcheryNestField::Place>& places,
@@ -417,6 +444,16 @@ void RenderManager::rrSetHatcheryNests(const std::string& roomName, const std::v
     ++nests.mVersion;
 }
 
+//! \brief The server says which hen the rooster mounts: the mounting look uses exactly this pair.
+//! \param rooster The rooster that climbs on the hen.
+//! \param hen The hen he climbs on.
+void RenderManager::rrChickenMount(ChickenEntity* rooster, ChickenEntity* hen)
+{
+    std::map<ChickenEntity*, ChickenLook>::iterator look = mChickenLooks.find(rooster);
+    if(look != mChickenLooks.end())
+        look->second.mMountPartner = hen;
+}
+
 void RenderManager::rrChickenFight(ChickenEntity* first, ChickenEntity* second, uint32_t phase)
 {
     std::map<ChickenEntity*, ChickenLook>::iterator firstLook = mChickenLooks.find(first);
@@ -433,14 +470,6 @@ void RenderManager::rrChickenFight(ChickenEntity* first, ChickenEntity* second, 
         secondLook->second.mFightLeader = false;
         secondLook->second.mFightTimer = 0.0f;
     }
-
-    // The fight is over: the loser goes down in a last cloud of feathers
-    if(phase == 1)
-    {
-        const Ogre::Vector3 middle = (first->getPosition() + second->getPosition()) * 0.5f;
-        createChickenFeatherEffect(middle + Ogre::Vector3(0.0f, 0.0f, 0.15f), featherSystem(first->getKind()));
-        createChickenFeatherEffect(second->getPosition() + Ogre::Vector3(0.0f, 0.0f, 0.1f), featherSystem(second->getKind()));
-    }
 }
 
 void RenderManager::rrSetChickenPose(ChickenEntity* chicken, const std::string& pose)
@@ -456,6 +485,12 @@ void RenderManager::rrSetChickenPose(ChickenEntity* chicken, const std::string& 
     look.mPose = pose;
     look.mPoseTime = 0.0f;
     look.mFeatherBursts = 0;
+    if((pose != ChickenPose::emerge) && !pose.empty())
+    {
+        look.mEmergeFeathersPending = false;
+        look.mCoopDoorReplayPending = false;
+        look.mCoopExitWalking = false;
+    }
     const Ogre::Vector3 position = chicken->getPosition();
 
     look.mMountPartner = nullptr;
@@ -471,6 +506,8 @@ void RenderManager::rrSetChickenPose(ChickenEntity* chicken, const std::string& 
             if((other->first == chicken) || (other->first->getKind() != ChickenKind::hen))
                 continue;
 
+            if(!chicken->getMountHenName().empty() && other->first->getName() != chicken->getMountHenName())
+                continue;
             const Ogre::Real distance = other->first->getPosition().squaredDistance(position);
             if(distance < nearestDistance)
             {
@@ -479,21 +516,11 @@ void RenderManager::rrSetChickenPose(ChickenEntity* chicken, const std::string& 
             }
         }
     }
-    else if((pose == ChickenPose::flee) && (chicken->getKind() == ChickenKind::hen))
-    {
-        // A hen scatters from a hungry creature: a few feathers fly
-        createChickenFeatherEffect(position + Ogre::Vector3(0.0f, 0.0f, 0.12f));
-    }
-    else if(pose == ChickenPose::flutter)
-        createChickenFeatherEffect(position + Ogre::Vector3(0.0f, 0.0f, 0.1f), featherSystem(chicken->getKind()));
-    else if(pose == ChickenPose::fight)
-        createChickenFeatherEffect(position + Ogre::Vector3(0.0f, 0.0f, 0.15f), featherSystem(chicken->getKind()));
-    else if(pose == ChickenPose::protest)
-        createChickenFeatherEffect(position + Ogre::Vector3(0.0f, 0.0f, 0.2f), featherSystem(chicken->getKind()));
     else if(pose == ChickenPose::emerge)
     {
-        createChickenFeatherEffect(position + Ogre::Vector3(0.0f, 0.0f, 0.1f), featherSystem(chicken->getKind()));
-
+        look.mEmergeFeathersPending = true;
+        look.mCoopDoorReplayPending = true;
+        look.mCoopExitWalking = false;
         // The door of the closest coop swings
         std::map<BuildingObject*, CoopDecor>::iterator nearest = mCoopDecors.end();
         Ogre::Real nearestDistance = 4.0f;
@@ -544,12 +571,7 @@ void RenderManager::rrCreateCoopDecor(BuildingObject* coop)
         }
     }
 
-    decor.mNode = node->createChildSceneNode(name + "_node", Ogre::Vector3(0.9f, 0.0f, 0.0f));
-    rrEnsureChickenMesh(MeshFeathers);
-    decor.mFeathers = mSceneManager->createEntity(name + "_feathers", MeshFeathers + ".mesh");
-    decor.mFeathers->setQueryFlags(0);
-    decor.mNode->attachObject(decor.mFeathers);
-    decor.mFeathers->setVisible(false);
+    decor.mNode = node->createChildSceneNode(name + "_node", Ogre::Vector3(COOP_DOOR_OFFSET, 0.0f, 0.0f));
     mCoopDecors[coop] = decor;
     // The first check is done at once
     mCoopDecorTimer = 10.0f;
@@ -562,8 +584,6 @@ void RenderManager::rrDestroyCoopDecor(BuildingObject* coop)
         return;
 
     CoopDecor& decor = it->second;
-    decor.mNode->detachObject(decor.mFeathers);
-    mSceneManager->destroyEntity(decor.mFeathers);
     if(coop->getEntityNode() != nullptr)
     {
         coop->getEntityNode()->removeAndDestroyChild(decor.mNode->getName());
@@ -584,6 +604,7 @@ void RenderManager::updateChickenLooks(Ogre::Real timeSinceLastFrame)
         const Ogre::Real p = look.mPoseTime;
         const ChickenKind kind = chicken->getKind();
         const std::string& pose = look.mPose;
+        const bool moving = chicken->isMoving();
 
         Ogre::Real lift = 0.0f;
         // Sideways shift of the look against the node of the animal (a sleeping chick tucks in under a hen)
@@ -622,7 +643,6 @@ void RenderManager::updateChickenLooks(Ogre::Real timeSinceLastFrame)
         }
         else
         {
-            const bool moving = chicken->isMoving();
             if(pose == ChickenPose::strut)
             {
                 // Chest out, head up, a proud little bounce with each step
@@ -741,6 +761,15 @@ void RenderManager::updateChickenLooks(Ogre::Real timeSinceLastFrame)
             }
             else if(pose == ChickenPose::mount)
             {
+                // A hen that becomes visible later still resolves to the server-selected partner.
+                if(look.mMountPartner == nullptr && !chicken->getMountHenName().empty())
+                {
+                    for(std::map<ChickenEntity*, ChickenLook>::iterator other = mChickenLooks.begin(); other != mChickenLooks.end(); ++other)
+                    {
+                        if(other->first->getName() == chicken->getMountHenName())
+                            look.mMountPartner = other->first;
+                    }
+                }
                 // He climbs on the back of the hen he caught, treads and beats his wings there, and climbs down
                 std::map<ChickenEntity*, ChickenLook>::iterator hen = (look.mMountPartner != nullptr) ?
                     mChickenLooks.find(look.mMountPartner) : mChickenLooks.end();
@@ -782,23 +811,34 @@ void RenderManager::updateChickenLooks(Ogre::Real timeSinceLastFrame)
                     Ogre::SceneNode* henParent = hen->second.mNode->getParentSceneNode();
                     if((parent != nullptr) && (henParent != nullptr))
                     {
-                        Ogre::Vector3 toHen = parent->convertWorldToLocalPosition(henParent->_getDerivedPosition());
-                        toHen.z = 0.0f;
-                        shift = toHen * on;
+                        // His head goes over her head: the way from his head to hers in the frame of his node
+                        look.mEntity->_updateAnimation();
+                        hen->second.mEntity->_updateAnimation();
+                        const Ogre::Vector3 henHead = hen->second.mEntity->getSkeleton()->getBone("Head")->_getDerivedPosition();
+                        const Ogre::Vector3 roosterHead = look.mEntity->getSkeleton()->getBone("Head")->_getDerivedPosition();
+                        const Ogre::Vector3 targetHead = parent->convertWorldToLocalPosition(
+                            hen->second.mNode->convertLocalToWorldPosition(henHead));
+                        const Ogre::Quaternion lean = Ogre::Quaternion(Ogre::Degree(pitch), Ogre::Vector3::UNIT_X);
+                        const Ogre::Vector3 headOffset = lean * (roosterHead * kindScale(kind) * stretch);
+                        shift = (targetHead - headOffset) * on;
+                        shift.z = 0.0f;
                     }
                 }
-                if((look.mFeatherBursts == 0) && (p > climb))
+                if((look.mFeatherBursts == 0) && (p > climb) && (look.mMountPartner != nullptr) &&
+                   chickenClipVisible(chicken, "Tread") && chickenClipVisible(look.mMountPartner, "Duck"))
                 {
                     // He has landed: the feathers of both fly
                     look.mFeatherBursts = 1;
-                    createChickenFeatherEffect(chicken->getPosition() + Ogre::Vector3(0.0f, 0.0f, 0.25f), featherSystem(kind));
-                    if(look.mMountPartner != nullptr)
-                    {
-                        createChickenFeatherEffect(look.mMountPartner->getPosition() + Ogre::Vector3(0.0f, 0.0f, 0.15f),
-                            featherSystem(ChickenKind::hen));
-                    }
+                    Ogre::SceneNode* parent = look.mNode->getParentSceneNode();
+                    if(parent != nullptr)
+                        createChickenFeatherEffect(parent->convertLocalToWorldPosition(shift + Ogre::Vector3(0.0f, 0.0f, lift + 0.25f)),
+                            featherSystem(kind));
+                    createChickenFeatherEffect(look.mMountPartner->getPosition() + Ogre::Vector3(0.0f, 0.0f, 0.15f),
+                        featherSystem(ChickenKind::hen));
                 }
-                else if((look.mFeatherBursts == 1) && (p > MOUNT_SECOND_BURST_SECONDS) && (look.mMountPartner != nullptr))
+                else if((look.mFeatherBursts == 1) && (p > MOUNT_SECOND_BURST_SECONDS) &&
+                    (look.mMountPartner != nullptr) && chickenClipVisible(chicken, "Tread") &&
+                    chickenClipVisible(look.mMountPartner, "Duck"))
                 {
                     look.mFeatherBursts = 2;
                     createChickenFeatherEffect(look.mMountPartner->getPosition() + Ogre::Vector3(0.0f, 0.0f, 0.2f),
@@ -827,17 +867,48 @@ void RenderManager::updateChickenLooks(Ogre::Real timeSinceLastFrame)
             }
         }
 
-        // Feather clouds between two fighting roosters, made by the first of the two
-        if((look.mFightPartner != nullptr) && look.mFightLeader && (pose == ChickenPose::fight) &&
-           (mChickenLooks.count(look.mFightPartner) > 0))
+        // A hen that flutters up shakes out a few feathers while the clip is seen
+        if((kind == ChickenKind::hen) && (pose == ChickenPose::flutter) && (look.mFeatherBursts == 0) &&
+           chickenClipVisible(chicken, "Flutter"))
         {
-            look.mFightTimer += timeSinceLastFrame;
-            if(look.mFightTimer >= configValue("HatcheryFightFeatherSeconds", 0.7f))
+            look.mFeatherBursts = 1;
+            createChickenFeatherEffect(chicken->getPosition() + Ogre::Vector3(0.0f, 0.0f, 0.1f), featherSystem(kind));
+        }
+
+        // The door of the coop swings and the feathers fly when the animal walks through it
+        if((look.mEmergeFeathersPending || look.mCoopDoorReplayPending) && moving)
+        {
+            look.mCoopExitWalking = true;
+            for(std::map<BuildingObject*, CoopDecor>::iterator coop = mCoopDecors.begin(); coop != mCoopDecors.end(); ++coop)
             {
-                look.mFightTimer = 0.0f;
-                const Ogre::Vector3 middle = (chicken->getPosition() + look.mFightPartner->getPosition()) * 0.5f;
-                createChickenFeatherEffect(middle + Ogre::Vector3(0.0f, 0.0f, 0.15f), featherSystem(ChickenKind::rooster));
+                const Ogre::Vector3 door = coop->first->getPosition() + Ogre::Vector3(COOP_DOOR_OFFSET, 0.0f, 0.0f);
+                if(chicken->getPosition().squaredDistance(door) > COOP_DOOR_REACH_SQUARED)
+                    continue;
+                if(look.mCoopDoorReplayPending && chicken->getPosition().x >= door.x - COOP_DOOR_OPEN_MARGIN)
+                {
+                    look.mCoopDoorReplayPending = false;
+                    if(coop->second.mDoor != nullptr)
+                    {
+                        coop->second.mDoor->setTimePosition(0.0f);
+                        coop->second.mDoor->setEnabled(true);
+                    }
+                }
+                if(look.mEmergeFeathersPending && chicken->getPosition().x >= door.x &&
+                   chickenClipVisible(chicken, EntityAnimation::walk_anim))
+                {
+                    look.mEmergeFeathersPending = false;
+                    createChickenFeatherEffect(chicken->getPosition() + Ogre::Vector3(0.0f, 0.0f, 0.1f), featherSystem(kind));
+                }
+                if(!look.mEmergeFeathersPending && !look.mCoopDoorReplayPending)
+                    break;
             }
+        }
+
+        if(look.mCoopExitWalking && !moving)
+        {
+            look.mEmergeFeathersPending = false;
+            look.mCoopDoorReplayPending = false;
+            look.mCoopExitWalking = false;
         }
 
         // The duck of a hen under a rooster is set again by him in every frame
@@ -848,7 +919,7 @@ void RenderManager::updateChickenLooks(Ogre::Real timeSinceLastFrame)
             Ogre::Quaternion(Ogre::Degree(roll), Ogre::Vector3::UNIT_Y));
     }
 
-    // Coops: loose feathers when the hatchery is empty, a shaking door. The straw nests of the hatchery are drawn from
+    // Coops: a shaking door. The straw nests of the hatchery are drawn from
     // the places the server sent (see updateNestFields).
     mCoopDecorTimer += timeSinceLastFrame;
     const bool check = mCoopDecorTimer >= 1.5f;
@@ -858,30 +929,6 @@ void RenderManager::updateChickenLooks(Ogre::Real timeSinceLastFrame)
     {
         BuildingObject* coop = it->first;
         CoopDecor& decor = it->second;
-        if(check)
-        {
-            uint32_t animals = 0;
-            Tile* tile = coop->getPositionTile();
-            Room* room = (tile == nullptr) ? nullptr : tile->getCoveringRoom();
-            if(room != nullptr)
-            {
-                // The rooster alone does not keep a hatchery alive: hens, chicks and eggs do
-                for(Tile* roomTile : room->getCoveredTiles())
-                {
-                    for(GameEntity* entity : roomTile->getEntitiesInTile())
-                    {
-                        if((entity == nullptr) || (entity->getObjectType() != GameEntityType::chickenEntity))
-                            continue;
-
-                        ChickenEntity* animal = static_cast<ChickenEntity*>(entity);
-                        if(animal->getKind() != ChickenKind::rooster)
-                            ++animals;
-                    }
-                }
-            }
-            decor.mFeathers->setVisible(animals == 0);
-        }
-
         // The door clip of the coop mesh plays once and then rests closed
         if((decor.mDoor != nullptr) && decor.mDoor->getEnabled())
         {

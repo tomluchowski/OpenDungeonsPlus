@@ -38,7 +38,13 @@ assert hook.index('rrSetChickenPose') < hook.index('hasSkeleton')
 upkeep = body(room, 'void RoomHatchery::doUpkeep')
 for call in ('updateChickLine', 'updateRooster', 'updateNestTrips', 'ChickenPose::wobble'):
     assert call in upkeep, call
-assert 'ChickenPose::emerge' in body(room, 'bool RoomHatchery::spawnFromCoop')
+coop_spawn = body(room, 'bool RoomHatchery::spawnFromCoop')
+assert 'spawnAnimal(kind, Ogre::Vector3(inside.x, inside.y, 0.0f), settings)' in coop_spawn
+assert 'animal->emergeFromCoop(door, freePosition)' in coop_spawn
+assert 'clearSegment(obstacles, inside, door, true)' in coop_spawn
+assert 'getX() + 1' in coop_spawn and 'clearSegment(obstacles' in coop_spawn
+assert 'playPose(ChickenPose::emerge, 1)' in body(chicken, 'void ChickenEntity::emergeFromCoop')
+assert 'setWalkPath(EntityAnimation::walk_anim' in body(chicken, 'void ChickenEntity::doUpkeep')
 assert 'ChickenPose::lay' in body(room, 'void RoomHatchery::updateNestTrips')
 assert 'new ChickenEntity' not in upkeep
 
@@ -101,17 +107,20 @@ assert 'HatcheryRoosterCall' not in config and 'HatcheryRoosterCall' not in room
 assert 'RoosterMood::crow' in rooster_cpp and 'ChickenPose::crow' in room
 assert 'ChickenKind::hen' in body(chicken, 'void ChickenEntity::doUpkeep')
 
-# The rooster fight is shown with feather clouds between the two animals, the interval is a setting
-assert 'HatcheryFightFeatherSeconds' in looks and 'rrChickenFight' in looks and 'ChickenPose::fight' in looks
+# The two fighting roosters are partners of each other in the client until the fight is over (the pose shows the fight)
+assert 'rrChickenFight' in looks and 'ChickenPose::fight' in looks
 # The rooster guarding the flock lunges with his head, the rooster in the hand protests (pose and look)
 assert 'std::sin(t * 7.0f)' in body(looks, 'void RenderManager::updateChickenLooks')
 assert 'ChickenPose::protest' in body(chicken, 'void ChickenEntity::pickup') and 'protest)' in pose
 assert 'ChickenPose::protest' in looks
-# A hatchery with only the rooster looks abandoned: loose feathers, no nest. The rooster is not counted.
+# Feathers only fly for actions that can be seen: no loose feathers at the coops, none without a visible clip
 decor = body(looks, 'const bool check = mCoopDecorTimer')
-assert 'ChickenKind::rooster' in decor and 'getEntitiesInTile' in decor
-assert 'decor.mFeathers->setVisible(animals == 0)' in decor
-assert 'countEntitiesOnTile(GameEntityType::chickenEntity)' not in decor
+assert 'mFeathers' not in decor and 'mFeathers' not in body(looks, 'void RenderManager::rrCreateCoopDecor')
+assert 'chickenClipVisible(chicken, "Flutter")' in looks
+assert 'chickenClipVisible(chicken, "Tread")' in looks
+assert 'chickenClipVisible(chicken, EntityAnimation::walk_anim)' in looks
+assert 'feeding.mAnimation->getEnabled()' in render
+assert 'isVisible(position)' in render
 print('hatchery rooster look checks passed')
 
 # Flocking of the hens: scratching, fluttering and scattering from a hungry creature

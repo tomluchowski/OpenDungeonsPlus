@@ -222,10 +222,12 @@ public:
     void rrUpdateChickenLook(ChickenEntity* chicken);
     //! \brief The egg hatched: shell pieces fly.
     void rrChickenHatched(ChickenEntity* chicken);
-    //! \brief An egg was trampled at the position: shell pieces and yolk fly, a few feathers of a startled hen.
+    //! \brief An egg was trampled at the position: shell pieces and yolk fly.
     void rrEggTrampled(const Ogre::Vector3& position);
-    //! \brief Two roosters fight (phase as in ServerNotificationType::chickenFight): while they brawl, feather
-    //! clouds fly between them at the configured interval, when it is over a last cloud flies.
+    //! \brief The server-selected rooster/hen pair of the mounting pose.
+    void rrChickenMount(ChickenEntity* rooster, ChickenEntity* hen);
+    //! \brief Two roosters fight (phase as in ServerNotificationType::chickenFight): they are partners of each other
+    //! until the fight is over.
     void rrChickenFight(ChickenEntity* first, ChickenEntity* second, uint32_t phase);
     //! \brief The server set a pose (see ChickenPose.h), an empty pose is the normal walking and idling.
     void rrSetChickenPose(ChickenEntity* chicken, const std::string& pose);
@@ -435,6 +437,12 @@ private:
         Ogre::Real mPoseTime;
         Ogre::Real mPhase;
         int mFeatherBursts;
+        //! The feathers of the coop exit are still to fly (they fly when the animal walks through the door)
+        bool mEmergeFeathersPending;
+        //! The door of the coop still has to swing again when the animal reaches it
+        bool mCoopDoorReplayPending;
+        //! The animal walks out of the coop (the flags above end when it stops)
+        bool mCoopExitWalking;
         //! The rooster this one fights (set by the server event), the first of the two makes the feather clouds
         ChickenEntity* mFightPartner;
         bool mFightLeader;
@@ -453,7 +461,6 @@ private:
     struct CoopDecor
     {
         Ogre::SceneNode* mNode;
-        Ogre::Entity* mFeathers;
         Ogre::Real mShake;
         //! The door clip of the coop mesh, null for the old coop mesh (the coop shakes then)
         Ogre::AnimationState* mDoor;
@@ -562,6 +569,8 @@ private:
     Ogre::Vector3 updateCreatureFeedingReach(CreatureFeedingAnimation& feeding, Ogre::Real progress);
     void cancelCreatureFeedingAnimation(Creature* creature = nullptr);
     void createChickenFeatherEffect(const Ogre::Vector3& position, const std::string& particleName = "ChickenFeathers");
+    //! True when the animal is in the scene, in the view of the camera and plays the clip (feathers only fly for that).
+    bool chickenClipVisible(ChickenEntity* chicken, const std::string& clip) const;
     void updateChickenLooks(Ogre::Real timeSinceLastFrame);
     void applyChickenKindLook(ChickenEntity* chicken);
     void clearChickenLooks();
