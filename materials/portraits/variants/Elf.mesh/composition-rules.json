@@ -1,0 +1,32 @@
+{
+  "draw_order": [
+    "build",
+    "outfit",
+    "hair",
+    "ears",
+    "eyes",
+    "nose",
+    "mouth",
+    "chin",
+    "helmet",
+    "scar",
+    "neck"
+  ],
+  "face_visibility": "literal source-over in frozen manifest order",
+  "scar_visibility": "non-helmet scars have a baked inverse union hair/ears mask; helmet damage is baked to the common helmet alpha",
+  "rear_neck_mask": "species neck polygons and beard/chin occlusion as recorded in registration recipe",
+  "build_mask": "species colour/silhouette masks as recorded in registration recipe; source pixels unchanged",
+  "runtime_integration": "separate task",
+  "combined_visual_acceptance": "accepted-native-and-50x100",
+  "registration_recipe": {
+    "file": "tools/portraits/prepare_neutral_features.py",
+    "sha256": "b81b4d3d9a05df8d4e6ce778de2a57259706f20bfb2c7d24a1e327b196645067",
+    "portrait": "Elf.mesh",
+    "layouts": "tools/portraits/neutral-feature-layouts.json"
+  },
+  "outfit_registration_recipe": {
+    "file": "tools/portraits/prepare_outfit_variants.py",
+    "sha256": "604379ead0af016fa8c6a37ba5a58ce60c30c91fd9d4a071e947ecf24b64f451",
+    "portrait": "Elf.mesh"
+  }
+}
