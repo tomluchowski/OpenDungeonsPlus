@@ -243,6 +243,12 @@ public:
     void removeTrap(Trap *t);
     inline const std::vector<Trap*>& getTraps() const
     { return mTraps; }
+    //! \brief Moves the trap with the given name one place earlier or later in the
+    //! production order of the seat, skipping traps of other seats and traps that need
+    //! no more crafted items. Returns false (and changes nothing) if the trap is not a
+    //! pending trap of the seat, is already first/last, or this is not the server map
+    //! in a running game.
+    bool moveTrapProductionOrder(Seat* seat, const std::string& name, bool earlier);
 
     //! \brief Map Lights related functions.
     void clearMapLights();

@@ -16,6 +16,7 @@
             <Property name="BackgroundEnabled" value="False" />
         </Window>
         <Window type="OD/StaticImage" name="WelcomeBanner" >
+            <Property name="Visible" value="False" />
             <Property name="Area" value="{{0.5,-320},{0,52},{0.5,320},{0,191}}" />
             <Property name="Image" value="ODLogo/Logo" />
             <Property name="MaxSize" value="{{1,0},{1,0}}" />

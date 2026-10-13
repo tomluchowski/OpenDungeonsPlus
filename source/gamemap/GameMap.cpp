@@ -2029,6 +2029,33 @@ void GameMap::addTrap(Trap *trap)
     mTraps.push_back(trap);
 }
 
+bool GameMap::moveTrapProductionOrder(Seat* seat, const std::string& name, bool earlier)
+{
+    if(seat == nullptr || !isServerGameMap() || isInEditorMode())
+        return false;
+    std::vector<Trap*>::iterator selected = mTraps.begin();
+    while(selected != mTraps.end() && !((*selected)->getName() == name &&
+        (*selected)->getSeat() == seat && (*selected)->getNbNeededCraftedTrap() > 0))
+    {
+        ++selected;
+    }
+    if(selected == mTraps.end())
+        return false;
+    std::vector<Trap*>::iterator adjacent = selected;
+    while(earlier ? adjacent != mTraps.begin() : adjacent + 1 != mTraps.end())
+    {
+        if(earlier)
+            --adjacent;
+        else
+            ++adjacent;
+        if((*adjacent)->getSeat() != seat || (*adjacent)->getNbNeededCraftedTrap() <= 0)
+            continue;
+        std::iter_swap(selected, adjacent);
+        return true;
+    }
+    return false;
+}
+
 void GameMap::removeTrap(Trap *t)
 {
     OD_LOG_INF(serverStr() + "Removing trap " + t->getName());

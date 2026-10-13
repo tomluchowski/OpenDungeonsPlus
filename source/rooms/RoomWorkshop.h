@@ -54,6 +54,11 @@ public:
     { return mRoomType; }
 
     void doUpkeep() override;
+    //! \brief Returns the trap type currently being crafted, or TrapType::nullTrapType if
+    //! the workshop is idle.
+    TrapType getCurrentProductionType() const { return mTrapType; }
+    //! \brief Returns the work points collected for the trap currently being crafted.
+    int32_t getProductionPoints() const { return mPoints; }
     bool hasOpenCreatureSpot(Creature* c) override;
     bool addCreatureUsingRoom(Creature* c) override;
     void removeCreatureUsingRoom(Creature* c) override;
