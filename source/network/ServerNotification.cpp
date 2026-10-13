@@ -140,6 +140,14 @@ std::string ServerNotification::typeString(ServerNotificationType type)
             return "displayText";
         case ServerNotificationType::editorPortalWaveData:
             return "editorPortalWaveData";
+        case ServerNotificationType::playerNickChanged:
+            return "playerNickChanged";
+        case ServerNotificationType::creaturePanel:
+            return "creaturePanel";
+        case ServerNotificationType::roomConstructionEffect:
+            return "roomConstructionEffect";
+        case ServerNotificationType::creatureCombatImpact:
+            return "creatureCombatImpact";
         case ServerNotificationType::cosmeticEvent:
             return "cosmeticEvent";
         default:

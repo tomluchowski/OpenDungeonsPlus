@@ -83,6 +83,10 @@ class ODServer: public Ogre::Singleton<ODServer>,
     //! \brief Adds a server notification to the server notification queue. The message will be sent to the concerned player
     void queueServerNotification(ServerNotification* n);
 
+    //! Whether the recipient negotiated full mood in creature snapshots and updates.
+    bool supportsCreatureMood(Player* player);
+    bool supportsCreatureActivity(Player* player);
+
     //! Whether the recipient negotiated cosmetic events (see CosmeticEvent.h)
     bool supportsCosmeticEvents(Player* player);
 
