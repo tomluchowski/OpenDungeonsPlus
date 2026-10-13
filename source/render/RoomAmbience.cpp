@@ -88,6 +88,8 @@ const uint32_t TILE_HASH_SHIFT = 3;
 const double TILE_OCCUPIED_MARGIN = 1.0;
 //! Distance in tiles from the middle of a tile to the edge that an effect with WallSide is moved to
 const float WALL_SIDE_SHIFT = 0.45f;
+//! Distance in tiles within which an effect belongs to a dungeon heart for its beat
+const double HEART_RATE_RADIUS = 3.0;
 //! Seconds after the start during which changes count as a map being loaded, not as events
 const double SETTLE_SECONDS = 3.0;
 //! Seconds within which the same event does not start again
@@ -490,6 +492,25 @@ bool RoomAmbience::isCreatureNear(double x, double y, double radius) const
     return false;
 }
 
+double RoomAmbience::getHeartRateFactor(const Ogre::Vector3& position) const
+{
+    double best = 1.0;
+    double bestDistance = HEART_RATE_RADIUS * HEART_RATE_RADIUS;
+    for(std::vector<HeartRate>::const_iterator it = mHeartRates.begin(); it != mHeartRates.end(); ++it)
+    {
+        double dx = it->mPosition.x - position.x;
+        double dy = it->mPosition.y - position.y;
+        double distance = dx * dx + dy * dy;
+        if(distance <= bestDistance)
+        {
+            bestDistance = distance;
+            best = it->mFactor;
+        }
+    }
+
+    return best;
+}
+
 bool RoomAmbience::isIdleLongEnough(const std::string& key, bool busy, double after)
 {
     std::map<std::string, BusyInfo>::iterator it = mBusy.find(key);
@@ -700,6 +721,7 @@ void RoomAmbience::stopAll()
     mKnownEntities.clear();
     mEntitiesInitialized = false;
     mScanTimer = 0.0;
+    mHeartRates.clear();
 }
 
 void RoomAmbience::update(Ogre::Real timeSinceLastFrame)
@@ -763,6 +785,7 @@ void RoomAmbience::scan()
     scanObjects(camera, cameraPosition);
     scanTiles(camera, cameraPosition, lookPoint);
     scanEntityEvents(camera, cameraPosition);
+    mExtras.scan(*this, mGameMap);
     reconcile();
     playClips();
 
@@ -1511,8 +1534,16 @@ void RoomAmbience::updateEmitters(double timeSinceLastFrame)
         else if(effects[emitter.mEffect].mFlicker > 0.0)
         {
             double flicker = effects[emitter.mEffect].mFlicker;
-            double rate = TWO_PI * effects[emitter.mEffect].mSpeed;
-            double noise = 0.5 * (std::sin(rate * mClock + emitter.mPhase) + std::sin(FLICKER_SECOND_WAVE_RATE * rate * mClock + 2.0 * emitter.mPhase));
+            double cycles = effects[emitter.mEffect].mSpeed * mClock;
+            if(effects[emitter.mEffect].mHeartRate)
+            {
+                // The beat is summed up, so a change of the heart rate does not make the glow jump
+                emitter.mCycle += effects[emitter.mEffect].mSpeed
+                    * getHeartRateFactor(emitter.mNode->_getDerivedPosition()) * timeSinceLastFrame;
+                cycles = emitter.mCycle;
+            }
+            double rate = TWO_PI * cycles;
+            double noise = 0.5 * (std::sin(rate + emitter.mPhase) + std::sin(FLICKER_SECOND_WAVE_RATE * rate + 2.0 * emitter.mPhase));
             double factor = 1.0 + flicker * noise;
             emitter.mSystem->setDefaultDimensions(static_cast<Ogre::Real>(emitter.mBaseWidth * factor),
                 static_cast<Ogre::Real>(emitter.mBaseHeight * factor));
@@ -1575,6 +1606,12 @@ void RoomAmbience::updateMotions(double timeSinceLastFrame)
             }
 
             double wave = std::sin(TWO_PI * effect.mSpeed * motionNode.mClock + instance.mPhase);
+            if(effect.mHeartRate)
+            {
+                // The beat is summed up, so a change of the heart rate does not make the object jump
+                instance.mCycle += effect.mSpeed * getHeartRateFactor(motionNode.mBasePosition) * timeSinceLastFrame;
+                wave = std::sin(TWO_PI * instance.mCycle + instance.mPhase);
+            }
             switch(effect.mMotion)
             {
                 case AmbienceMotion::sway:

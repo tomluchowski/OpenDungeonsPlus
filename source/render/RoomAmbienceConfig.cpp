@@ -418,6 +418,10 @@ bool RoomAmbienceConfig::loadEffect(std::istream& file)
         {
             effect.mWallSide = toBool(words[1]);
         }
+        else if(key == "HeartRate")
+        {
+            effect.mHeartRate = toBool(words[1]);
+        }
         else if(key == "OwnerOnly")
         {
             effect.mOwnerOnly = toBool(words[1]);

@@ -1,5 +1,3 @@
-// Materials of the sprites of the heart, portal, bridges, doors and traps. Only the swirl sprite that the spells also use is here for now.
-
 // Materials of the sprites of the heart, portal, bridges, doors and traps (see particles/RoomAmbienceCoreObjects.particle).
 
 material RoomAmbSwirl

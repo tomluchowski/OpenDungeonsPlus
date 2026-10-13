@@ -129,6 +129,7 @@ struct AmbienceEffect
         mReduced(false),
         mNeedWall(false),
         mWallSide(false),
+        mHeartRate(false),
         mOwnerOnly(false)
     {}
 
@@ -191,6 +192,9 @@ struct AmbienceEffect
     bool mNeedWall;
     //! Tile targets: the effect is moved to the edge of the tile that touches a wall (decorations look away from it)
     bool mWallSide;
+    //! Particle flicker or motion of a dungeon heart: Speed is the beat of a calm heart, which the heart rate of the
+    //! heart near the target (faster the more it is hurt) multiplies
+    bool mHeartRate;
     //! Shown (or heard) only by the keeper the object or the thing of the event belongs to (the glint and the sounds of a
     //! secret door must not give it away)
     bool mOwnerOnly;

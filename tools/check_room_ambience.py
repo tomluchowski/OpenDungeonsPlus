@@ -20,7 +20,7 @@ SETTINGS = ("ScanInterval", "MaxParticles", "MaxParticlesReduced", "MaxMotions",
 EFFECT_KEYS = ("Name", "Target", "Match", "When", "Event", "Kind", "System", "Motion", "After", "Offset", "Axis",
                "Amount", "Speed", "Flicker", "Duration", "Chance", "Spacing", "MaxDistance", "Priority", "Reduced",
                "NeedWall", "Clips", "Every", "Family", "Delay", "Mesh", "Land", "From",
-               "OwnerOnly", "WallSide")
+               "OwnerOnly", "WallSide", "HeartRate")
 TARGETS = ("Object", "Tile", "Event")
 WHENS = ("Always", "Occupied", "Empty", "Hit", "Locked", "Reloading", "Ready")
 KINDS = ("Particle", "Motion", "Clip", "Shake", "Turn", "Sound", "Beam", "Projectile", "Mark", "Model")
@@ -289,7 +289,7 @@ def check_effect(effect, where, problems, visuals, systems, mats, counts):
     for key in ("Offset", "Axis", "From"):
         if key in effect and (len(effect[key]) != 3 or not all(is_number(v) for v in effect[key])):
             problems.append("%s: %s needs three numbers" % (where, key))
-    for key in ("Reduced", "NeedWall", "OwnerOnly", "WallSide"):
+    for key in ("Reduced", "NeedWall", "OwnerOnly", "WallSide", "HeartRate"):
         if key in effect and effect[key][0] not in ("yes", "no", "true", "false", "1", "0"):
             problems.append("%s: %s needs yes or no" % (where, key))
     for match in effect.get("Match", []):

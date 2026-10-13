@@ -19,6 +19,7 @@
 #define ROOMAMBIENCE_H
 
 #include "render/RoomAmbienceConfig.h"
+#include "render/RoomAmbienceExtras.h"
 
 #include <OgrePrerequisites.h>
 #include <OgreQuaternion.h>
@@ -116,6 +117,13 @@ public:
     void applyShake();
     //! \brief Takes the offset of applyShake() from the camera again; does nothing when no shake was applied
     void clearShake();
+
+    //! \brief Forgets the heart rates of the last scan; RoomAmbienceExtras gives the current ones after every scan
+    inline void clearHeartRates()
+    { mHeartRates.clear(); }
+    //! \brief Tells that the dungeon heart at the position beats faster by the given factor (1 = calm)
+    inline void addHeartRate(const Ogre::Vector3& position, double factor)
+    { mHeartRates.push_back(HeartRate(position, factor)); }
 
     //! \brief The number of particle systems that run now (for the console)
     inline uint32_t getNbParticleSystems() const
@@ -295,13 +303,15 @@ private:
     {
         //! \brief Creates a motion that is not started yet
         MotionInstance() :
-            mEffect(0), mPhase(0.0), mIntensity(0.0), mWanted(false)
+            mEffect(0), mPhase(0.0), mCycle(0.0), mIntensity(0.0), mWanted(false)
         {}
 
         //! Index of the effect in the configuration
         uint32_t mEffect;
         //! Start phase of the motion, so that equal objects do not move together
         double mPhase;
+        //! Beats so far of a motion that follows the heart rate, summed up so that a change of the rate does not jump
+        double mCycle;
         //! How far the motion has eased in, from 0 to 1
         double mIntensity;
         //! True while the last scan still wanted this motion
@@ -363,6 +373,20 @@ private:
         double mYaw;
         //! True if the conditions of the effect hold now
         bool mActive;
+    };
+
+    //! \brief How fast a dungeon heart beats, as told by RoomAmbienceExtras
+    struct HeartRate
+    {
+        //! \brief Creates the beat of the heart at the given position
+        HeartRate(const Ogre::Vector3& position, double factor) :
+            mPosition(position), mFactor(factor)
+        {}
+
+        //! Where the heart stands
+        Ogre::Vector3 mPosition;
+        //! Beats per second as a multiple of the calm beat
+        double mFactor;
     };
 
     //! \brief When a creature was last close to a target (used for the effects that need an empty room)
@@ -445,6 +469,8 @@ private:
 
     //! \brief True if a creature was within the radius of the point at the last scan
     bool isCreatureNear(double x, double y, double radius) const;
+    //! \brief The heart rate factor of the heart nearest to the position (1 when no heart is near)
+    double getHeartRateFactor(const Ogre::Vector3& position) const;
     //! \brief Updates and returns the state "no creature for a while" of a target
     bool isIdleLongEnough(const std::string& key, bool busy, double after);
     //! \brief The distance to the camera up to which the effect runs in the current mode
@@ -544,6 +570,10 @@ private:
     std::vector<Candidate> mClipCandidates;
     //! Time at which an object plays its next clip (kind clip)
     std::map<std::string, double> mClipTimers;
+    //! How fast the dungeon hearts beat, found at the last scan
+    std::vector<HeartRate> mHeartRates;
+    //! Moments that are read from what the client already knows (heart rate)
+    RoomAmbienceExtras mExtras;
     //! Dice of its own, so the game random sequence is untouched
     std::mt19937 mRandom;
 
