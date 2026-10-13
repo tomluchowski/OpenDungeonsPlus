@@ -19,6 +19,7 @@
 #include "game/SkillManager.h"
 #include "game/SkillType.h"
 
+#include "ODApplication.h"
 #include "creatureaction/CreatureActionFightFriendly.h"
 #include "entities/BuildingObject.h"
 #include "gamemap/RoomObjectNavigation.h"
@@ -133,7 +134,7 @@ static const Ogre::Real OFFSET_CREATURE = 0.3;
 
 RoomCasino::RoomCasino(GameMap* gameMap) :
     Room(gameMap),
-    mPayout(CasinoPayout::normal)
+    mPayout(CasinoPayout::smiles)
 {
     setMeshName("Casino");
 }
@@ -180,10 +181,10 @@ double RoomCasino::getFeeForPayout(CasinoPayout payout)
     double fee = ConfigManager::getSingleton().getRoomConfigDouble("CasinoFee");
     switch(payout)
     {
-        case CasinoPayout::stingy:
+        case CasinoPayout::money:
             fee = ConfigManager::getSingleton().getRoomConfigDoubleOrDefault("CasinoFeeStingy", fee);
             break;
-        case CasinoPayout::generous:
+        case CasinoPayout::smiles:
             fee = ConfigManager::getSingleton().getRoomConfigDoubleOrDefault("CasinoFeeGenerous", fee);
             break;
         default:
@@ -225,10 +226,12 @@ bool RoomCasino::importFromStream(std::istream& is)
     if(!(is >> payout))
         return false;
 
-    if(payout >= static_cast<uint32_t>(CasinoPayout::nbValues))
+    // Former levels: 0 = stingy, 1 = normal, 2 = generous. Only the stingy one keeps the
+    // money stance, the other ones were on the generous side of it
+    if(payout > 2)
         return false;
 
-    mPayout = static_cast<CasinoPayout>(payout);
+    mPayout = (payout == 0) ? CasinoPayout::money : CasinoPayout::smiles;
     return true;
 }
 
@@ -418,6 +421,13 @@ void RoomCasino::doUpkeep()
 
     if (mCoveredTiles.empty())
         return;
+
+    // Every creature in the casino gets cheered up (smiles) or annoyed (money), in mood points per second
+    double moodPerSecond = ConfigManager::getSingleton().getRoomConfigDoubleOrDefault(
+        (mPayout == CasinoPayout::smiles) ? "CasinoMoodSmiles" : "CasinoMoodMoney", 0.0);
+    double moodPerTurn = moodPerSecond / ODApplication::turnsPerSecond;
+    for(Creature* creature : mCreaturesUsingRoom)
+        creature->addCasinoMood(moodPerTurn);
 
     for(std::pair<Tile* const,RoomCasinoGame>& p : mCreaturesSpots)
     {

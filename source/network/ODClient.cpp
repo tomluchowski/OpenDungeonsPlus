@@ -1597,6 +1597,23 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
 
         }
 
+        case ServerNotificationType::casinoPayout:
+        {
+            if(frameListener->getModeManager()->getCurrentModeType() != ModeManager::ModeType::GAME)
+            {
+                OD_LOG_ERR("Wrong mode " + Helper::toString(frameListener->getModeManager()->getCurrentModeType()));
+                break;
+            }
+            int xx;
+            int yy;
+            uint32_t level;
+            OD_ASSERT_TRUE(packetReceived >> xx >> yy >> level);
+
+            GameMode* gameMode = static_cast<GameMode*>(frameListener->getModeManager()->getCurrentMode());
+            gameMode->setCasinoPayoutShown(xx, yy, level);
+            break;
+        }
+
         case ServerNotificationType::editorPortalWaveData:
         {
             if(frameListener->getModeManager()->getCurrentModeType() != ModeManager::ModeType::EDITOR)

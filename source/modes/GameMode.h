@@ -155,6 +155,14 @@ class GameMode final : public GameEditorModeBase, public InputCommand
     bool toggleObjectivesWindow(const CEGUI::EventArgs& = {});
 
     //! \brief Shows/hides/toggles the player settings window
+    //! \brief Casino payout control, opened by clicking on one of the player's casinos
+    void showCasinoPayoutWindow(Tile* tile);
+    bool hideCasinoPayoutWindow(const CEGUI::EventArgs& = {});
+    bool cycleCasinoPayout(const CEGUI::EventArgs& = {});
+    //! \brief Called when the server tells the payout level of a casino. It is only shown if
+    //! it is the casino the window is open for.
+    void setCasinoPayoutShown(int tileX, int tileY, uint32_t level);
+
     bool showPlayerSettingsWindow(const CEGUI::EventArgs& = {});
     bool togglePlayerSettingsWindow(const CEGUI::EventArgs& = {});
     bool cancelPlayerSettings(const CEGUI::EventArgs& = {});
@@ -362,6 +370,11 @@ private:
     size_t mIndexPortal = 0;
     bool mMapKeyDown = false;
 
+
+    //! \brief Tile of the casino whose payout window is open and the payout level shown
+    int mCasinoX;
+    int mCasinoY;
+    uint32_t mCasinoPayout;
 
     //! \brief whether to allow showing the window with debug Tile info under middlemouse button click
     bool showTileDebugWindow;

@@ -25,15 +25,15 @@ class Creature;
 class Tile;
 enum class TileVisual;
 
-//! \brief How much of the bets the casino pays back to the gamblers. The keeper sets it per room.
+//! \brief What the casino aims at. The keeper sets it per room. There are two settings:
+//! Money keeps a share of the bets and annoys the gamblers, Smiles keeps little and cheers them up.
+//! Levels saved with the former three settings are mapped on these two when loaded.
 enum class CasinoPayout
 {
-    //! \brief Keeper keeps a large share of the bets ($)
-    stingy,
-    //! \brief Default level, the share configured by CasinoFee
-    normal,
-    //! \brief Keeper keeps little or nothing (smiley)
-    generous,
+    //! \brief Keeper keeps a large share of the bets and the gamblers get annoyed ($)
+    money,
+    //! \brief Default level, keeper keeps little or nothing and the gamblers get cheered up (smiley)
+    smiles,
     nbValues
 };
 
