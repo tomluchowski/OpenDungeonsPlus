@@ -22,6 +22,7 @@
 #define CREATURE_H
 
 #include "entities/MovableGameEntity.h"
+#include "entities/DefenceChance.h"
 #include "eventsystem/CreatureMoved.h"
 #include "eventsystem/Subject.h"
 
@@ -420,6 +421,12 @@ public:
     void fireHitResult(const std::string& attackerName, double damageDone, double rawDamage, bool missile);
     //! \brief A shot of the attacker that was aimed at this creature ended without hurting it (cosmetic event hitResult)
     void fireHitMissed(const std::string& attackerName);
+    //! \brief Tells the keepers who see this creature that it dodged or parried a melee blow (hitResult)
+    void fireHitDefended(const std::string& attackerName, DefenceChance::Outcome outcome);
+    //! \brief Server only: rolls whether this creature dodges or parries a melee blow before its damage is
+    //! calculated. Only a living, not knocked out creature on the map that nobody holds or drags, and that no
+    //! keeper possesses, can defend itself. Gives DefenceChance::none if MeleeDodgeParry is off.
+    DefenceChance::Outcome rollMeleeDefence() const;
     //! \brief The creature arrived through a portal: tells the keeper what mood it would have (cosmetic only)
     void fireArrivalEvent();
 

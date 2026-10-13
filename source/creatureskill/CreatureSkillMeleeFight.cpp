@@ -101,6 +101,18 @@ bool CreatureSkillMeleeFight::tryUseFight(GameMap& gameMap, Creature* creature, 
         magAtk *= modifier;
         eleAtk *= modifier;
     }
+    // The defending creature may dodge or parry the blow (the server rolls it, before the damage is calculated).
+    // The blow then does no damage; it is still made, so the animation, the warmup and the cooldown of the
+    // attacker stay as they are, and takeDamage still runs with no damage for what it records besides the damage.
+    DefenceChance::Outcome defence = DefenceChance::none;
+    if(attackedObject->getObjectType() == GameEntityType::creature)
+        defence = static_cast<Creature*>(attackedObject)->rollMeleeDefence();
+    if(defence != DefenceChance::none)
+    {
+        phyAtk = 0.0;
+        magAtk = 0.0;
+        eleAtk = 0.0;
+    }
     const double damageDone = attackedObject->takeDamage(creature, 0.0,
         phyAtk, magAtk, eleAtk, attackedTile, ko);
     if(attackedObject->getObjectType() == GameEntityType::creature)
@@ -115,7 +127,10 @@ bool CreatureSkillMeleeFight::tryUseFight(GameMap& gameMap, Creature* creature, 
         share = std::max(0.0, std::min(1.0, share));
         // The newer kind first (hit, glancing, blocked and how hard in relation to the health); the clients that
         // got it ignore the older kind below
-        target->fireHitResult(creature->getName(), damageDone, rawDamage, false);
+        if(defence != DefenceChance::none)
+            target->fireHitDefended(creature->getName(), defence);
+        else
+            target->fireHitResult(creature->getName(), damageDone, rawDamage, false);
         CosmeticEvent event(CosmeticEventType::meleeResult);
         event.mSubject = creature->getName();
         event.mObject = target->getName();

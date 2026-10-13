@@ -50,10 +50,10 @@ assert dict(kinds)['hitResult'] == '17' and dict(kinds)['portalArrival'] == '8' 
 assert 'return "hitResult";' in event_cpp
 known = function_body(event_cpp, 'bool CosmeticEvent::isKnownType() const')
 assert 'CosmeticEventType::portalArrival' in known and 'CosmeticEventType::hitResult' in known
-# The results: only what the game really has (there is no random miss or dodge)
+# The results: hit, glancing, blocked, shot missed, then the real dodge and parry of a melee blow
 results = re.findall(r'^\s+(\w+) = (\d+),?\s*$', event_h.split('enum class CosmeticHitResult')[1].split('};')[0], re.M)
-assert results == [('hit', '0'), ('glanced', '1'), ('blocked', '2'), ('missed', '3')], results
-assert 'no random miss or dodge' in event_h
+assert results == [('hit', '0'), ('glanced', '1'), ('blocked', '2'), ('missed', '3'), ('dodged', '4'), ('parried', '5')], results
+assert '9 to 16 are kept free' in event_h
 
 # Server: emitters in the damage places, serverauthoritative, no change of damage or timing
 fire = function_body(creature, 'void Creature::fireHitResult(')
@@ -68,6 +68,7 @@ assert 'CosmeticHitResult::missed' in miss and 'getHitEvents()' in miss and 'tak
 assert 'void fireHitResult(' in creature_h and 'void fireHitMissed(' in creature_h
 melee_body = function_body(melee, 'bool CreatureSkillMeleeFight::tryUseFight(')
 assert 'target->fireHitResult(creature->getName(), damageDone, rawDamage, false);' in melee_body
+assert 'target->fireHitDefended(creature->getName(), defence);' in melee_body
 # After the damage was calculated, before the older kind; the older kind is still sent for clients without hitResult
 assert melee_body.index('takeDamage(') < melee_body.index('fireHitResult(') < melee_body.index('CosmeticEventType::meleeResult')
 hurt = function_body(one_hit, 'void MissileOneHit::hurt(')

@@ -605,7 +605,24 @@ void noteHitResult(CreatureReactions& reactions, const CosmeticEvent& event)
             if((attacker != nullptr) && !info.mMissile)
                 queueReaction(reactions, attacker->getName(), "BlowMissed", MISS_DELAY);
             break;
+        case static_cast<int32_t>(CosmeticHitResult::dodged):
+            // The server decided that the defender dodged: it gets out of the way, the attacker overreaches
+            sSoftened[event.mObject] = now;
+            if(target != nullptr)
+                queueReaction(reactions, target->getName(), "BlowDodged", DODGE_DELAY);
+            if(attacker != nullptr)
+                queueReaction(reactions, attacker->getName(), "BlowMissed", MISS_DELAY);
+            break;
+        case static_cast<int32_t>(CosmeticHitResult::parried):
+            // The server decided that the defender parried: it stops the blow with its weapon, the attacker is thrown back
+            sSoftened[event.mObject] = now;
+            if(target != nullptr)
+                queueReaction(reactions, target->getName(), "BlowParried", DODGE_DELAY);
+            if(attacker != nullptr)
+                queueReaction(reactions, attacker->getName(), "BlowDeflected", MISS_DELAY);
+            break;
         default:
+            // A result this client does not know (a newer server): nothing is shown
             break;
     }
 }

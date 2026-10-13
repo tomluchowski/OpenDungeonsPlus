@@ -105,6 +105,7 @@
 
 #include <cmath>
 #include <algorithm>
+#include <cctype>
 
 
 
@@ -3078,6 +3079,64 @@ void Creature::fireHitMissed(const std::string& attackerName)
     event.mValue2 = 0;
     event.mPosition = getPosition();
     fireCosmeticEvent(event, false);
+}
+
+void Creature::fireHitDefended(const std::string& attackerName, DefenceChance::Outcome outcome)
+{
+    if(!ConfigManager::getSingleton().getHitEvents())
+        return;
+
+    if(outcome == DefenceChance::none)
+        return;
+
+    CosmeticEvent event(CosmeticEventType::hitResult);
+    event.mSubject = attackerName;
+    event.mObject = getName();
+    event.mText = "melee";
+    event.mValue = static_cast<int32_t>((outcome == DefenceChance::parried) ? CosmeticHitResult::parried : CosmeticHitResult::dodged);
+    event.mValue2 = 0;
+    event.mPosition = getPosition();
+    fireCosmeticEvent(event, false);
+}
+
+DefenceChance::Outcome Creature::rollMeleeDefence() const
+{
+    ConfigManager& config = ConfigManager::getSingleton();
+    if(!config.getMeleeDodgeParry())
+        return DefenceChance::none;
+
+    // Only a creature that can really move out of the way: alive, awake and on the map (a creature that is held
+    // in the hand of a keeper is not on the map)
+    if(!getIsOnServerMap() || !getIsOnMap() || !isAlive() || isKo())
+        return DefenceChance::none;
+
+    // A weapon that strikes parries, a shield makes the parry better; a shield alone does not parry
+    bool hasWeapon = false;
+    bool hasShield = false;
+    const Weapon* weapons[2] = {getWeaponL(), getWeaponR()};
+    for(uint32_t i = 0; i < 2; ++i)
+    {
+        if(weapons[i] == nullptr)
+            continue;
+
+        std::string mesh = weapons[i]->getMeshName();
+        std::transform(mesh.begin(), mesh.end(), mesh.begin(), ::tolower);
+        if(DefenceChance::isShieldMesh(mesh))
+            hasShield = true;
+        else if(DefenceChance::isParryWeaponMesh(mesh))
+            hasWeapon = true;
+    }
+
+    double dodge = DefenceChance::dodgeChance(getLevel(), config.getDodgeBase(), config.getDodgePerLevel(),
+        config.getDodgeMax());
+    double parry = DefenceChance::parryChance(getLevel(), hasWeapon, hasShield, config.getParryBase(),
+        config.getParryPerLevel(), config.getParryMax(), config.getParryShieldBase(),
+        config.getParryShieldPerLevel(), config.getParryShieldMax());
+
+    // Dodging is rolled first, parrying only if the creature did not dodge. The server draws the dice.
+    double dodgeRoll = Random::Double(0.0, 100.0);
+    double parryRoll = Random::Double(0.0, 100.0);
+    return DefenceChance::decide(dodge, parry, dodgeRoll, parryRoll);
 }
 
 void Creature::fireArrivalEvent()

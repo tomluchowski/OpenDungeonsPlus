@@ -61,6 +61,16 @@ ConfigManager::ConfigManager(const std::string& configPath, const std::string& u
     mHitEvents(true),
     mHitGlanceShare(0.34),
     mHitStrongShare(0.15),
+    mMeleeDodgeParry(true),
+    mDodgeBase(3.0),
+    mDodgePerLevel(0.5),
+    mDodgeMax(15.0),
+    mParryBase(3.0),
+    mParryPerLevel(0.5),
+    mParryMax(15.0),
+    mParryShieldBase(6.0),
+    mParryShieldPerLevel(1.0),
+    mParryShieldMax(25.0),
     mTimePayDay(300),
     mNbTurnsFuriousMax(120),
     mMaxManaPerSeat(250000.0),
@@ -527,6 +537,76 @@ bool ConfigManager::loadGlobalGameConfig(std::stringstream& configFile)
         {
             configFile >> nextParam;
             mHitStrongShare = Helper::toDouble(nextParam);
+            // Not mandatory
+        }
+
+        if(nextParam == "MeleeDodgeParry")
+        {
+            configFile >> nextParam;
+            mMeleeDodgeParry = Helper::toInt(nextParam) != 0;
+            // Not mandatory
+        }
+
+        if(nextParam == "DodgeBase")
+        {
+            configFile >> nextParam;
+            mDodgeBase = Helper::toDouble(nextParam);
+            // Not mandatory
+        }
+
+        if(nextParam == "DodgePerLevel")
+        {
+            configFile >> nextParam;
+            mDodgePerLevel = Helper::toDouble(nextParam);
+            // Not mandatory
+        }
+
+        if(nextParam == "DodgeMax")
+        {
+            configFile >> nextParam;
+            mDodgeMax = Helper::toDouble(nextParam);
+            // Not mandatory
+        }
+
+        if(nextParam == "ParryBase")
+        {
+            configFile >> nextParam;
+            mParryBase = Helper::toDouble(nextParam);
+            // Not mandatory
+        }
+
+        if(nextParam == "ParryPerLevel")
+        {
+            configFile >> nextParam;
+            mParryPerLevel = Helper::toDouble(nextParam);
+            // Not mandatory
+        }
+
+        if(nextParam == "ParryMax")
+        {
+            configFile >> nextParam;
+            mParryMax = Helper::toDouble(nextParam);
+            // Not mandatory
+        }
+
+        if(nextParam == "ParryShieldBase")
+        {
+            configFile >> nextParam;
+            mParryShieldBase = Helper::toDouble(nextParam);
+            // Not mandatory
+        }
+
+        if(nextParam == "ParryShieldPerLevel")
+        {
+            configFile >> nextParam;
+            mParryShieldPerLevel = Helper::toDouble(nextParam);
+            // Not mandatory
+        }
+
+        if(nextParam == "ParryShieldMax")
+        {
+            configFile >> nextParam;
+            mParryShieldMax = Helper::toDouble(nextParam);
             // Not mandatory
         }
 

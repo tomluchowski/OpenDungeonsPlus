@@ -147,6 +147,46 @@ public:
     inline double getHitStrongShare() const
     { return std::max(0.01, std::min(1.0, mHitStrongShare)); }
 
+    //! \brief True if melee blows can be dodged or parried (decided by the server, global.cfg MeleeDodgeParry)
+    inline bool getMeleeDodgeParry() const
+    { return mMeleeDodgeParry; }
+
+    //! \brief Dodge chance of every creature in percent, base value (0 - 100)
+    inline double getDodgeBase() const
+    { return std::max(0.0, std::min(100.0, mDodgeBase)); }
+
+    //! \brief Dodge chance in percent that every level adds (0 - 10)
+    inline double getDodgePerLevel() const
+    { return std::max(0.0, std::min(10.0, mDodgePerLevel)); }
+
+    //! \brief Highest dodge chance in percent (0 - 100)
+    inline double getDodgeMax() const
+    { return std::max(0.0, std::min(100.0, mDodgeMax)); }
+
+    //! \brief Parry chance with a weapon in percent, base value (0 - 100)
+    inline double getParryBase() const
+    { return std::max(0.0, std::min(100.0, mParryBase)); }
+
+    //! \brief Parry chance in percent that every level adds (0 - 10)
+    inline double getParryPerLevel() const
+    { return std::max(0.0, std::min(10.0, mParryPerLevel)); }
+
+    //! \brief Highest parry chance with a weapon in percent (0 - 100)
+    inline double getParryMax() const
+    { return std::max(0.0, std::min(100.0, mParryMax)); }
+
+    //! \brief Parry chance with weapon and shield in percent, base value (0 - 100)
+    inline double getParryShieldBase() const
+    { return std::max(0.0, std::min(100.0, mParryShieldBase)); }
+
+    //! \brief Parry chance with weapon and shield in percent that every level adds (0 - 10)
+    inline double getParryShieldPerLevel() const
+    { return std::max(0.0, std::min(10.0, mParryShieldPerLevel)); }
+
+    //! \brief Highest parry chance with weapon and shield in percent (0 - 100)
+    inline double getParryShieldMax() const
+    { return std::max(0.0, std::min(100.0, mParryShieldMax)); }
+
     inline int64_t getTimePayDay() const
     { return mTimePayDay; }
 
@@ -348,6 +388,16 @@ private:
     bool mHitEvents;
     double mHitGlanceShare;
     double mHitStrongShare;
+    bool mMeleeDodgeParry;
+    double mDodgeBase;
+    double mDodgePerLevel;
+    double mDodgeMax;
+    double mParryBase;
+    double mParryPerLevel;
+    double mParryMax;
+    double mParryShieldBase;
+    double mParryShieldPerLevel;
+    double mParryShieldMax;
     int64_t mTimePayDay;
     int32_t mNbTurnsFuriousMax;
     double mMaxManaPerSeat;
