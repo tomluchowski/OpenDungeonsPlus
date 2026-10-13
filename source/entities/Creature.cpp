@@ -110,6 +110,8 @@
 static const Ogre::Real CANNON_MISSILE_HEIGHT = 0.3;
 //! A creature only starts a nemesis brawl if its health is this many percent above the health that stops the brawl
 static const int32_t BRAWL_START_HEALTH_MARGIN_PERCENT = 25;
+//! Factor between a fraction and percent, used to compare health with the percent settings of the brawl
+static const double BRAWL_PERCENT_FACTOR = 100.0;
 
 const int32_t Creature::NB_TURNS_BEFORE_CHECKING_TASK = 15;
 const uint32_t Creature::NB_OVERLAY_HEALTH_VALUES = 8;
@@ -2187,7 +2189,7 @@ bool Creature::canStartBrawl() const
         return false;
 
     int32_t stopPercent = getGameMap()->getCreatureRelationships()->getSettings().mBrawlStopHealthPercent;
-    return (getHP() * 100.0) > (mMaxHP * static_cast<double>(stopPercent + BRAWL_START_HEALTH_MARGIN_PERCENT));
+    return (getHP() * BRAWL_PERCENT_FACTOR) > (mMaxHP * static_cast<double>(stopPercent + BRAWL_START_HEALTH_MARGIN_PERCENT));
 }
 
 void Creature::startBrawl(Creature& opponent)
@@ -2228,7 +2230,7 @@ void Creature::updateBrawl()
     }
 
     const RelationshipSettings& settings = relationships->getSettings();
-    double stopRatio = static_cast<double>(settings.mBrawlStopHealthPercent) / 100.0;
+    double stopRatio = static_cast<double>(settings.mBrawlStopHealthPercent) / BRAWL_PERCENT_FACTOR;
     bool stop = !isAlive() || !opponent->isAlive() || isKo() || opponent->isKo()
         || (getHP() <= (mMaxHP * stopRatio)) || (opponent->getHP() <= (opponent->mMaxHP * stopRatio))
         || ((getGameMap()->getTurnNumber() - mBrawlStartTurn) >= settings.mBrawlMaxTurns)

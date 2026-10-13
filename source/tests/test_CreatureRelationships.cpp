@@ -341,6 +341,8 @@ BOOST_AUTO_TEST_CASE(test_RacialStartValue)
     BOOST_CHECK_EQUAL(withTable.getValue("Orc1", "Orc1"), 0);
 }
 
+// The combat bonus of a creature follows its best friend nearby (bonuses are not added up) and a nemesis
+// nearby takes part of it away
 BOOST_AUTO_TEST_CASE(test_CombatModifier)
 {
     CreatureRelationships relationships;
@@ -372,6 +374,8 @@ BOOST_AUTO_TEST_CASE(test_CombatModifier)
     BOOST_CHECK_EQUAL(relationships.combatModifier("A", onlyFoe), -settings.mCombatPenaltyNemesis);
 }
 
+// The mood penalty counts hated creatures and nemeses (at most the configured number of hated ones) and
+// the helpers isHated and isNemesis tell the two apart
 BOOST_AUTO_TEST_CASE(test_MoodModifier)
 {
     CreatureRelationships relationships;
@@ -400,6 +404,8 @@ BOOST_AUTO_TEST_CASE(test_MoodModifier)
     BOOST_CHECK(!relationships.isNemesis("A", "Hated"));
 }
 
+// A creature has a limited number of friends and nemeses: a stronger new one pushes the weakest one back
+// below the threshold, a weaker one does not get in, and the limit counts for both creatures of a pair
 BOOST_AUTO_TEST_CASE(test_LimitsPerCreature)
 {
     CreatureRelationships relationships;
@@ -448,6 +454,7 @@ BOOST_AUTO_TEST_CASE(test_LimitsPerCreature)
     BOOST_CHECK_EQUAL(pairs.size(), 2u);
 }
 
+// Settings read from the config keep the default when a key is missing or not a number
 BOOST_AUTO_TEST_CASE(test_ConfigValues)
 {
     std::map<std::string, std::string> config;
