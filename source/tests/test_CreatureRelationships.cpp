@@ -468,6 +468,7 @@ BOOST_AUTO_TEST_CASE(test_LimitsPerCreature)
     BOOST_CHECK_EQUAL(pairs.size(), 2u);
 }
 
+// A trainee learns faster next to a friend who is high enough in level, never from a lower level creature or without the friendship
 BOOST_AUTO_TEST_CASE(test_Mentoring)
 {
     CreatureRelationships relationships;
@@ -485,6 +486,7 @@ BOOST_AUTO_TEST_CASE(test_Mentoring)
     BOOST_CHECK_EQUAL(relationships.mentoringFactor("Pupil", 4, trainees), 1.0);
 }
 
+// getFriends lists only the creatures at friend level, from the point of view of either creature, and nothing for an unknown creature
 BOOST_AUTO_TEST_CASE(test_Friends)
 {
     CreatureRelationships relationships;
@@ -502,6 +504,7 @@ BOOST_AUTO_TEST_CASE(test_Friends)
     BOOST_CHECK(friends.empty());
 }
 
+// When a friend becomes friends with a third creature, the other friend gets jealous of it once; without friends nobody is jealous
 BOOST_AUTO_TEST_CASE(test_Jealousy)
 {
     CreatureRelationships relationships;
@@ -524,6 +527,7 @@ BOOST_AUTO_TEST_CASE(test_Jealousy)
     BOOST_CHECK_EQUAL(relationships.getNbPairs(), 4u);
 }
 
+// getBestFriend returns the partner with the highest value at best friend level or nothing when there is none
 BOOST_AUTO_TEST_CASE(test_BestFriend)
 {
     CreatureRelationships relationships;
