@@ -68,6 +68,10 @@ HEADER = ('<Imageset autoScaled="false" imagefile="ODIcons.png" name="OpenDungeo
 SMALL_ROW = ("GoldCoin", "TerritoryIcon", "ManaIcon", "OptionsIcon", "CreaturesIcon", "HelpIcon", "LoadIcon", "SaveIcon",
              "AbortIcon", "CheckIcon", "ObjectivesIcon", "SkillIcon", "SeatIcon", "CogIcon", "HourglassIcon", "HammerAnvilIcon")
 SECOND_ROW = ("CameraIcon", "MenuReturn", "MapLightButton")
+ATLAS_W = 1024
+BIG_ROWS = 9   # rows of 8 slot emblems (128 px) below the two small rows
+BIG_SLOTS = 8 * BIG_ROWS
+ATLAS_H = 128 + 128 * BIG_ROWS
 PLAY_ROW = ("PlayIcon",)   # after the seven terrain swatches of the second row
 
 
@@ -88,7 +92,7 @@ def build_atlas():
     names = list(fm.ICONS)
     with multiprocessing.Pool() as pool:
         tiles = dict(zip(names, pool.map(render_icon, names)))
-    atlas = Image.new("RGBA", (1024, 1024), (0, 0, 0, 0))
+    atlas = Image.new("RGBA", (ATLAS_W, ATLAS_H), (0, 0, 0, 0))
     entries = []
 
     def put(name, image, x, y):
@@ -107,7 +111,7 @@ def build_atlas():
     for i, name in enumerate(SWATCHES):
         put(name, swatches[name], 192 + 64 * i, 64)
     big = [n for n in names if fm.ICONS[n]["cells"] == 128]
-    assert len(big) <= 56, len(big)
+    assert len(big) <= BIG_SLOTS, len(big)
     for i, name in enumerate(big):
         put(name, to_image(name), 128 * (i % 8), 128 + 128 * (i // 8))
     atlas.save(ATLAS, optimize=True)
