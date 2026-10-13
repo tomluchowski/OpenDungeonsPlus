@@ -32,6 +32,11 @@
 
 #include <OgreAnimationState.h>
 
+//! Facing sign of an entity that looks along the way it moves
+static const Ogre::Real FACING_WITH_MOVE = 1.0f;
+//! Facing sign of an entity that looks against the way it moves (pulling or being pulled backwards)
+static const Ogre::Real FACING_AGAINST_MOVE = -1.0f;
+
 MovableGameEntity::MovableGameEntity(GameMap* gameMap) :
     GameEntity(gameMap),
     mAnimationState(nullptr),
@@ -275,7 +280,7 @@ void MovableGameEntity::update(Ogre::Real timeSinceLastFrame)
     // The worker that pulls a hurt creature walks backwards and the creature that is pulled lies with its
     // head to the rear: both look against the way they move (server and clients, by the clip they play)
     const Ogre::Real facing = ((mPrevAnimationState == EntityAnimation::drag_anim) ||
-        (mPrevAnimationState == EntityAnimation::dragged_anim)) ? -1.0f : 1.0f;
+        (mPrevAnimationState == EntityAnimation::dragged_anim)) ? FACING_AGAINST_MOVE : FACING_WITH_MOVE;
 
     while(moveDist > 0.0)
     {

@@ -30,6 +30,11 @@
 namespace
 {
 
+//! Shortest distance in tiles the worker has to move for a new point to be added to the trail the pulled creature follows
+static const double DRAG_TRAIL_MIN_STEP = 0.01;
+//! Smallest gain in length of the trail that is sent to the pulled creature as a new walk path
+static const double DRAG_FOLLOW_MIN_ARC_GAIN = 0.001;
+
 //! \brief Appends the part of the trail between the two lengths to the path: the points of the trail that lie
 //! strictly between them and then the point at the length 'to' itself
 void appendTrailSection(const std::vector<Ogre::Vector2>& trail, const std::vector<double>& arcs,
@@ -194,7 +199,7 @@ void CreatureActionCarryEntity::startDrag()
     mDragTrail.push_back(draggedPoint);
     mDragTrailArc.push_back(0.0);
     double distance = static_cast<double>(workerPoint.distance(draggedPoint));
-    if(distance > 0.01)
+    if(distance > DRAG_TRAIL_MIN_STEP)
     {
         mDragTrail.push_back(workerPoint);
         mDragTrailArc.push_back(distance);
@@ -203,7 +208,7 @@ void CreatureActionCarryEntity::startDrag()
 
 void CreatureActionCarryEntity::followTrail(Creature& dragged, double targetArc)
 {
-    if(targetArc <= (mDragFollowArc + 0.001))
+    if(targetArc <= (mDragFollowArc + DRAG_FOLLOW_MIN_ARC_GAIN))
         return;
 
     // What the creature still has to walk stays, the new part of the way of the worker is added behind it. The
@@ -278,7 +283,7 @@ bool CreatureActionCarryEntity::handleDragCreature()
         // The creature slides the last steps into its bed. Once it is there (or when that takes too long) the
         // worker lets go and the dormitory puts the creature to sleep
         ++mDragLayTurns;
-        double layTurns = config.getRoomConfigDoubleOrDefault("DormitoryWoundedDragLayTurns", 12.0);
+        double layTurns = config.getRoomConfigDoubleOrDefault("DormitoryWoundedDragLayTurns", Creature::WOUNDED_DRAG_LAY_TURNS_DEFAULT);
         if(!dragged->isAlive() || !dragged->isMoving() || (static_cast<double>(mDragLayTurns) > layTurns))
             return stopDragging(false);
 
@@ -288,9 +293,9 @@ bool CreatureActionCarryEntity::handleDragCreature()
     // The creature is let go where it lies when it died (also on the way: a creature knocked out to death
     // keeps counting down while it is pulled and dies on the spot when the counter ends), when a hostile
     // creature comes close, when pulling takes too long or when the creature is left too far behind
-    double enemyRadius = config.getRoomConfigDoubleOrDefault("DormitoryWoundedCarryEnemyRadius", 6.0);
-    double maxTurns = config.getRoomConfigDoubleOrDefault("DormitoryWoundedCarryMaxTurns", 400.0);
-    double maxDistance = config.getRoomConfigDoubleOrDefault("DormitoryWoundedDragMaxDistance", 3.5);
+    double enemyRadius = config.getRoomConfigDoubleOrDefault("DormitoryWoundedCarryEnemyRadius", Creature::WOUNDED_CARRY_ENEMY_RADIUS_DEFAULT);
+    double maxTurns = config.getRoomConfigDoubleOrDefault("DormitoryWoundedCarryMaxTurns", Creature::WOUNDED_CARRY_MAX_TURNS_DEFAULT);
+    double maxDistance = config.getRoomConfigDoubleOrDefault("DormitoryWoundedDragMaxDistance", Creature::WOUNDED_DRAG_MAX_DISTANCE_DEFAULT);
     const Ogre::Vector3& workerPos = mCreature.getPosition();
     const Ogre::Vector3& draggedPos = dragged->getPosition();
     Ogre::Vector2 workerPoint(workerPos.x, workerPos.y);
@@ -304,12 +309,12 @@ bool CreatureActionCarryEntity::handleDragCreature()
 
     // The creature follows the way of the worker at a fixed distance behind it (config)
     double step = static_cast<double>(workerPoint.distance(mDragTrail.back()));
-    if(step > 0.01)
+    if(step > DRAG_TRAIL_MIN_STEP)
     {
         mDragTrail.push_back(workerPoint);
         mDragTrailArc.push_back(mDragTrailArc.back() + step);
     }
-    double gap = std::max(0.0, config.getRoomConfigDoubleOrDefault("DormitoryWoundedDragGap", 0.9));
+    double gap = std::max(0.0, config.getRoomConfigDoubleOrDefault("DormitoryWoundedDragGap", Creature::WOUNDED_DRAG_GAP_DEFAULT));
     followTrail(*dragged, std::max(0.0, mDragTrailArc.back() - gap));
 
     // The worker walks backwards to the bed. The way is walked in one go, so it keeps its turn and this check

@@ -132,6 +132,35 @@ public:
 
     static const uint32_t NB_OVERLAY_HEALTH_VALUES;
 
+    //! \brief Defaults of the dormitory settings for carrying and pulling hurt creatures to their bed. They are used
+    //! when the key is missing in the room config (the name of each key is the one without the _DEFAULT suffix).
+    //! Number of turns a pulled creature may take to slide into its bed (DormitoryWoundedDragLayTurns)
+    static const double WOUNDED_DRAG_LAY_TURNS_DEFAULT;
+    //! Radius in tiles around a hurt creature in which a hostile creature stops the carrying (DormitoryWoundedCarryEnemyRadius)
+    static const double WOUNDED_CARRY_ENEMY_RADIUS_DEFAULT;
+    //! Number of turns after which a worker gives up pulling (DormitoryWoundedCarryMaxTurns)
+    static const double WOUNDED_CARRY_MAX_TURNS_DEFAULT;
+    //! Distance in tiles at which the worker lets go of a creature that is left behind (DormitoryWoundedDragMaxDistance)
+    static const double WOUNDED_DRAG_MAX_DISTANCE_DEFAULT;
+    //! Distance in tiles the pulled creature keeps behind the worker (DormitoryWoundedDragGap)
+    static const double WOUNDED_DRAG_GAP_DEFAULT;
+    //! Speed factor of the pulled creature against a worker, so that it can follow (DormitoryWoundedDragFollowSpeedFactor)
+    static const double WOUNDED_DRAG_FOLLOW_SPEED_FACTOR_DEFAULT;
+    //! Speed factor of a worker that pulls a creature (DormitoryWoundedDragWorkerSpeedFactor)
+    static const double WOUNDED_DRAG_WORKER_SPEED_FACTOR_DEFAULT;
+    //! Radius in tiles in which a worker looks for a hurt creature (DormitoryWoundedCarryRadius)
+    static const double WOUNDED_CARRY_RADIUS_DEFAULT;
+    //! Priority against the other things a worker can carry (DormitoryWoundedCarryPriority)
+    static const double WOUNDED_CARRY_PRIORITY_DEFAULT;
+    //! Percent of health below which a creature is hurt enough to be carried (DormitoryWoundedCarryHpPercent)
+    static const double WOUNDED_CARRY_HP_PERCENT_DEFAULT;
+    //! Whether a creature knocked out for a while may be carried, 1 = yes (DormitoryWoundedCarryTempKo)
+    static const double WOUNDED_CARRY_TEMP_KO_DEFAULT;
+    //! Number of turns before a creature can be pulled again (DormitoryWoundedCarryCooldown)
+    static const double WOUNDED_CARRY_COOLDOWN_DEFAULT;
+    //! Factor that turns a fraction into percent
+    static const double PERCENT_FACTOR;
+
     virtual GameEntityType getObjectType() const override;
 
     virtual void addToGameMap(GameMap* gameMap = nullptr) override;

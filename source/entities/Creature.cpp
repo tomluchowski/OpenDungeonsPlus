@@ -132,6 +132,19 @@ static const double IDLE_BREATH_FACTOR_LIGHT = 0.92;
 
 const int32_t Creature::NB_TURNS_BEFORE_CHECKING_TASK = 15;
 const uint32_t Creature::NB_OVERLAY_HEALTH_VALUES = 8;
+const double Creature::WOUNDED_DRAG_LAY_TURNS_DEFAULT = 12.0;
+const double Creature::WOUNDED_CARRY_ENEMY_RADIUS_DEFAULT = 6.0;
+const double Creature::WOUNDED_CARRY_MAX_TURNS_DEFAULT = 400.0;
+const double Creature::WOUNDED_DRAG_MAX_DISTANCE_DEFAULT = 3.5;
+const double Creature::WOUNDED_DRAG_GAP_DEFAULT = 0.9;
+const double Creature::WOUNDED_DRAG_FOLLOW_SPEED_FACTOR_DEFAULT = 1.3;
+const double Creature::WOUNDED_DRAG_WORKER_SPEED_FACTOR_DEFAULT = 0.6;
+const double Creature::WOUNDED_CARRY_RADIUS_DEFAULT = 8.0;
+const double Creature::WOUNDED_CARRY_PRIORITY_DEFAULT = 1.0;
+const double Creature::WOUNDED_CARRY_HP_PERCENT_DEFAULT = 35.0;
+const double Creature::WOUNDED_CARRY_TEMP_KO_DEFAULT = 1.0;
+const double Creature::WOUNDED_CARRY_COOLDOWN_DEFAULT = 150.0;
+const double Creature::PERCENT_FACTOR = 100.0;
 
 CreatureParticleEffect::CreatureParticleEffect(Creature& creature, const std::string& name, const std::string& script, int32_t nbTurnsEffect,
         CreatureEffect* effect) :
@@ -1681,7 +1694,7 @@ double Creature::getMoveSpeed(Tile* tile) const
         double workerSpeed = (workerDefinition != nullptr) ? workerDefinition->getMoveSpeedGround() : 1.0;
         ConfigManager& config = ConfigManager::getSingleton();
         return workerSpeed * getDragWorkerSpeedFactor() *
-            std::max(1.0, config.getRoomConfigDoubleOrDefault("DormitoryWoundedDragFollowSpeedFactor", 1.3));
+            std::max(1.0, config.getRoomConfigDoubleOrDefault("DormitoryWoundedDragFollowSpeedFactor", WOUNDED_DRAG_FOLLOW_SPEED_FACTOR_DEFAULT));
     }
 
     if(getIsOnServerMap())
@@ -1766,7 +1779,7 @@ void Creature::updateClientPose(double timeSinceLastFrame)
 
 double Creature::getDragWorkerSpeedFactor()
 {
-    double factor = ConfigManager::getSingleton().getRoomConfigDoubleOrDefault("DormitoryWoundedDragWorkerSpeedFactor", 0.6);
+    double factor = ConfigManager::getSingleton().getRoomConfigDoubleOrDefault("DormitoryWoundedDragWorkerSpeedFactor", WOUNDED_DRAG_WORKER_SPEED_FACTOR_DEFAULT);
     return std::max(0.1, std::min(1.0, factor));
 }
 
@@ -2890,7 +2903,7 @@ EntityCarryType Creature::getEntityCarryType(Creature* carrier)
     {
         Tile* myTile = getPositionTile();
         Tile* carrierTile = carrier->getPositionTile();
-        double radius = ConfigManager::getSingleton().getRoomConfigDoubleOrDefault("DormitoryWoundedCarryRadius", 8.0);
+        double radius = ConfigManager::getSingleton().getRoomConfigDoubleOrDefault("DormitoryWoundedCarryRadius", WOUNDED_CARRY_RADIUS_DEFAULT);
         if((myTile == nullptr) || (carrierTile == nullptr) ||
            (Pathfinding::squaredDistanceTile(*myTile, *carrierTile) > (radius * radius)))
         {
@@ -2899,7 +2912,7 @@ EntityCarryType Creature::getEntityCarryType(Creature* carrier)
 
         // The priority against the other things a worker can carry is configurable:
         // 0 = lowest, 1 = like gold, 2 = like a creature knocked out to death
-        int32_t priority = static_cast<int32_t>(ConfigManager::getSingleton().getRoomConfigDoubleOrDefault("DormitoryWoundedCarryPriority", 1.0));
+        int32_t priority = static_cast<int32_t>(ConfigManager::getSingleton().getRoomConfigDoubleOrDefault("DormitoryWoundedCarryPriority", WOUNDED_CARRY_PRIORITY_DEFAULT));
         if(priority <= 0)
             return EntityCarryType::woundedCreature;
         if(priority == 1)
@@ -2920,12 +2933,12 @@ bool Creature::isWoundedForBedCarry() const
 
     ConfigManager& config = ConfigManager::getSingleton();
     // 0 percent switches the whole behaviour off
-    double hpPercent = config.getRoomConfigDoubleOrDefault("DormitoryWoundedCarryHpPercent", 35.0);
-    if((hpPercent <= 0.0) || (getMaxHp() <= 0.0) || ((getHP() * 100.0) >= (getMaxHp() * hpPercent)))
+    double hpPercent = config.getRoomConfigDoubleOrDefault("DormitoryWoundedCarryHpPercent", WOUNDED_CARRY_HP_PERCENT_DEFAULT);
+    if((hpPercent <= 0.0) || (getMaxHp() <= 0.0) || ((getHP() * PERCENT_FACTOR) >= (getMaxHp() * hpPercent)))
         return false;
 
     // A creature knocked out for a while may be carried too, unless the config says no
-    if((mKoTurnCounter != 0) && (config.getRoomConfigDoubleOrDefault("DormitoryWoundedCarryTempKo", 1.0) <= 0.0))
+    if((mKoTurnCounter != 0) && (config.getRoomConfigDoubleOrDefault("DormitoryWoundedCarryTempKo", WOUNDED_CARRY_TEMP_KO_DEFAULT) <= 0.0))
         return false;
 
     // Creatures knocked out to death are handled by isKoToDeathForBedPull
@@ -2951,7 +2964,7 @@ bool Creature::isWoundedForBedCarry() const
         return false;
     }
 
-    double enemyRadius = config.getRoomConfigDoubleOrDefault("DormitoryWoundedCarryEnemyRadius", 6.0);
+    double enemyRadius = config.getRoomConfigDoubleOrDefault("DormitoryWoundedCarryEnemyRadius", WOUNDED_CARRY_ENEMY_RADIUS_DEFAULT);
     return !isHostileNear(enemyRadius);
 }
 
@@ -2975,7 +2988,7 @@ bool Creature::isKoToDeathForBedPull() const
     if(!hasOwnBedInDormitory())
         return false;
 
-    double enemyRadius = ConfigManager::getSingleton().getRoomConfigDoubleOrDefault("DormitoryWoundedCarryEnemyRadius", 6.0);
+    double enemyRadius = ConfigManager::getSingleton().getRoomConfigDoubleOrDefault("DormitoryWoundedCarryEnemyRadius", WOUNDED_CARRY_ENEMY_RADIUS_DEFAULT);
     return !isHostileNear(enemyRadius);
 }
 
@@ -3044,7 +3057,7 @@ void Creature::notifyDragEnd()
         return;
 
     // The pause before it can be pulled again, whatever the end of the drag was
-    double cooldown = ConfigManager::getSingleton().getRoomConfigDoubleOrDefault("DormitoryWoundedCarryCooldown", 150.0);
+    double cooldown = ConfigManager::getSingleton().getRoomConfigDoubleOrDefault("DormitoryWoundedCarryCooldown", WOUNDED_CARRY_COOLDOWN_DEFAULT);
     mWoundedCarryNextTurn = getGameMap()->getTurnNumber() + static_cast<int64_t>(std::max(0.0, cooldown));
 }
 
