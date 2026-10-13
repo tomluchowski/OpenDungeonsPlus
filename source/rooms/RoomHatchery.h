@@ -20,6 +20,7 @@
 
 #include "entities/ChickenEntity.h"
 #include "rooms/HatcheryCycle.h"
+#include "rooms/HatcheryRooster.h"
 #include "rooms/Room.h"
 #include "rooms/RoomType.h"
 
@@ -71,6 +72,29 @@ private:
     //! Lets a hen or a rooster come out of a coop. Returns false if no coop has a free place.
     bool spawnFromCoop(ChickenKind kind, const HatcheryCycleSettings& settings);
 
+    //! Settings of the rooster, the day and the chick line from the config.
+    RoosterSettings getRoosterSettings() const;
+    //! Moves the rooster: perching, crowing, chasing a hen, guarding the flock, leading the chicks, sleeping.
+    void updateRooster(ChickenEntity* rooster, const std::vector<ChickenEntity*>& hens,
+        const std::vector<ChickenEntity*>& chicks, const RoosterSettings& settings);
+    void beginRoosterMood(ChickenEntity* rooster, const RoosterPlan& plan);
+    void actRoosterMood(ChickenEntity* rooster, const std::vector<ChickenEntity*>& hens,
+        const RoosterSettings& settings, const Ogre::Vector2& threat);
+    //! Sits the rooster on the roof of the nearest coop with the pose. Without coop he stays on the ground.
+    void roostOnRoof(ChickenEntity* rooster, const std::string& pose, bool hopFromFar);
+    void climbDown(ChickenEntity* rooster);
+    //! The chicks follow the hen (or the rooster when he leads) in a line, at night they huddle under the hen.
+    void updateChickLine(const std::vector<ChickenEntity*>& hens, const std::vector<ChickenEntity*>& chicks,
+        ChickenEntity* rooster, bool night);
+    //! A creature inside the hatchery that wants to eat chickens or is an enemy, close to the rooster.
+    bool findThreat(const ChickenEntity& rooster, double radius, Ogre::Vector2& position) const;
+    Tile* getNearestCoop(const Ogre::Vector2& position) const;
+    Ogre::Vector2 getPerchSpot(const Tile& coopTile) const;
+    //! A free place next to a coop, where an animal can stand after jumping down.
+    bool getGroundSpot(const Tile& coopTile, Ogre::Vector2& spot) const;
+
+    //! Turns until the rooster crows next
+    uint32_t mCrowInterval;
     //! Turns the hatchery has been empty (no hen, chick or egg)
     uint32_t mCoopHenWait;
     //! Turns the hatchery has been without rooster

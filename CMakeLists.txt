@@ -442,6 +442,7 @@ set(OD_SOURCEFILES
     
     ${SRC}/rooms/FencedRoom.cpp
     ${SRC}/rooms/HatcheryCycle.cpp
+    ${SRC}/rooms/HatcheryRooster.cpp
     ${SRC}/rooms/Room.cpp
     ${SRC}/rooms/RoomArena.cpp
     ${SRC}/rooms/RoomBridge.cpp
