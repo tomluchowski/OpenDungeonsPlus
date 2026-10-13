@@ -191,6 +191,9 @@ public:
     //! the nearest hatchery of this seat.
     inline void setHomeSeat(Seat* seat)
     { mHomeSeat = seat; }
+    //! \brief The seat of the hatchery the animal belongs to (null while unknown).
+    inline const Seat* getHomeSeat() const
+    { return mHomeSeat; }
 
     //! \brief Walks toward a point and stops stopDistance before it. False if there is no way.
     bool walkToward(const Ogre::Vector2& target, double stopDistance, const std::string& walkAnim);

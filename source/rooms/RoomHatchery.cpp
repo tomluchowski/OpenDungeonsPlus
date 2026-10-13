@@ -433,6 +433,10 @@ void RoomHatchery::doUpkeep()
             ChickenEntity* chicken = static_cast<ChickenEntity*>(entity);
             if(!chicken->isFree())
                 continue;
+            // Young animals dropped in another keeper's hatchery are lost, not raised here.
+            if(((chicken->getKind() == ChickenKind::egg) || (chicken->getKind() == ChickenKind::chick)) &&
+               (chicken->getHomeSeat() != nullptr) && (chicken->getHomeSeat() != getSeat()))
+                continue;
 
             switch(chicken->getKind())
             {

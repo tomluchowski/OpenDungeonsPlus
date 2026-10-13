@@ -136,3 +136,15 @@ stream_reader = room_cpp[room_cpp.index('bool RoomHatchery::importFromStream'):]
 assert 'seekg(pos)' in stream_reader and 'HatcheryWaits' in stream_reader
 assert 'coopHenCount' in room_cpp and 'HatcheryCoopBatch' in cfg
 print('hatchery saved waits checks passed')
+
+doUpkeep = body(room_cpp, 'void RoomHatchery::doUpkeep')
+# Pickup captures the keeper before detach; allied hatcheries cannot adopt young animals.
+pickup = body(chicken, 'void ChickenEntity::pickup')
+assert 'mHomeSeat = tile->getSeat();' in pickup
+assert pickup.index('mHomeSeat = tile->getSeat();') < pickup.index('RenderedMovableEntity::pickup();')
+upkeep = body(chicken, 'void ChickenEntity::doUpkeep')
+assert '(room->getSeat() == mHomeSeat)' in upkeep and '(mHomeSeat == nullptr)' in upkeep
+assert 'HatcheryYoungLostTurns' in upkeep and '(currentHatchery == nullptr)' in upkeep
+assert 'chicken->getHomeSeat() != getSeat()' in doUpkeep
+assert doUpkeep.index('chicken->getHomeSeat() != getSeat()') < doUpkeep.index('switch(chicken->getKind())')
+print('young animal same-keeper lifecycle source contracts passed; C++ not executed')
