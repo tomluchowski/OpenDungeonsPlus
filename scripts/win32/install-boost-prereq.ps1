@@ -1,6 +1,6 @@
 $ErrorActionPreference = 'Stop'
-$taskRoot = 'C:\Users\mario\od-deps'
-$taskVsPath = 'C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools'
+. (Join-Path $PSScriptRoot 'windows-paths.ps1')
+$taskRoot = $taskDependencyRoot
 Import-Module "$taskVsPath\Common7\Tools\Microsoft.VisualStudio.DevShell.dll"
 Enter-VsDevShell -VsInstallPath $taskVsPath -SkipAutomaticLocation -DevCmdArguments '-arch=x64 -host_arch=x64'
 Set-Location -LiteralPath "$taskRoot\src\boost_1_82_0"
