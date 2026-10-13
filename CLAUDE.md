@@ -27,8 +27,7 @@ These instructions apply to every change made to this repository with an AI assi
 - Never copy or derive levels, maps, graphics, models, sounds, texts or data tables from
   commercial games. Only general ideas and generic terms may be used; everything else is
   created independently.
-- Never use distinctive names from other games. Use the alias table in
-  `docs/development/NAME-ALIASES.md` as the reference for our own names.
+- Never use distinctive names from other games. Use our own names.
 - Never cite another game, its publisher or any outside source for rules, values or names
   in code, comments, docs, commits, branch names or PR texts.
 - Data from commercial games used for local testing stays outside the repository
