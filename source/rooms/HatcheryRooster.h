@@ -24,16 +24,14 @@
 enum class RoosterMood : uint32_t
 {
     strut,  //! Walks around proudly
-    perch,  //! Sits on a coop roof as lookout
-    crow,   //! Crows (from the roof if possible)
+    crow,   //! Jumps on a coop roof, crows from there (after a random time, see mCrowMin) and jumps down again
     chase,  //! Runs after a hen
     guard,  //! Defends the flock against a threat
     lead,   //! Leads the chicks
-    roost,  //! Sleeps (on the roof if possible)
     call    //! Scratches up food and calls the hens (and chicks) to him
 };
 
-//! \brief Times, chances and the length of the day for the rooster, read from the config.
+//! \brief Times and chances for the rooster, read from the config.
 struct RoosterSettings
 {
     RoosterSettings() :
@@ -41,25 +39,18 @@ struct RoosterSettings
         mCrowMax(90),
         mChasePercent(4),
         mLeadPercent(3),
-        mPerchPercent(4),
-        mPerchTurns(25),
         mChaseTurns(10),
         mGuardTurns(6),
         mLeadTurns(8),
         mCallPercent(3),
         mCallTurns(6),
-        mDayTurns(1680),
-        mNightPercent(30),
         mCrowTurns(4),
-        mRoostDivisor(10),
         mGuardFar(2.2),
         mGuardNear(0.9),
         mGuardApproachGap(1.8),
         mCatchDistance(0.55),
         mWalkGap(0.3),
         mHopDistance(0.6),
-        mCallFollowGap(0.4),
-        mSnuggleGap(0.1),
         mLeadScratchChance(3),
         mCallScratchChance(2),
         mFightStandFactor(0.5)
@@ -68,24 +59,18 @@ struct RoosterSettings
     //! Turns between two crows (random value in [mCrowMin, mCrowMax]).
     uint32_t mCrowMin;
     uint32_t mCrowMax;
-    //! Chance (percent per turn) to start chasing a hen, leading the chicks or sitting on a roof.
+    //! Chance (percent per turn) to start chasing a hen or leading the chicks.
     uint32_t mChasePercent;
     uint32_t mLeadPercent;
-    uint32_t mPerchPercent;
-    //! Length in turns of a stay on the roof, a chase, a guard and a lead.
-    uint32_t mPerchTurns;
+    //! Length in turns of a chase, a guard and a lead.
     uint32_t mChaseTurns;
     uint32_t mGuardTurns;
     uint32_t mLeadTurns;
     //! Chance (percent per turn) that the strutting rooster calls the hens to food, and for how many turns.
     uint32_t mCallPercent;
     uint32_t mCallTurns;
-    //! Turns of a whole day and the part of it (percent, at its end) that is night.
-    uint32_t mDayTurns;
-    uint32_t mNightPercent;
-    //! Turns a crow lasts, and the divisor of the day length that gives the turns of one sleep period (night).
+    //! Turns a crow lasts.
     uint32_t mCrowTurns;
-    uint32_t mRoostDivisor;
     //! Guarding: farther than mGuardFar the rooster runs up to the creature (to mGuardApproachGap from it), between
     //! mGuardFar and mGuardNear he puffs up and pecks, closer than mGuardNear he runs off (tiles).
     double mGuardFar;
@@ -97,9 +82,6 @@ struct RoosterSettings
     //! roof place within which he hops up at once.
     double mWalkGap;
     double mHopDistance;
-    //! Distance (tiles) a hen keeps to the calling rooster, and a chick to the hen at night.
-    double mCallFollowGap;
-    double mSnuggleGap;
     //! One in N: a leading or calling rooster scratches the ground this turn.
     uint32_t mLeadScratchChance;
     uint32_t mCallScratchChance;
@@ -120,8 +102,7 @@ struct RoosterContext
         mHasHen(false),
         mHasChick(false),
         mThreat(false),
-        mRoll(0),
-        mCrowDay(-1)
+        mRoll(0)
     {}
 
     int64_t mTurn;
@@ -138,8 +119,6 @@ struct RoosterContext
     bool mThreat;
     //! Random number in [0, 99].
     uint32_t mRoll;
-    //! Number of the last day for which the rooster crowed (see HatcheryRooster::dayNumber), -1 if none yet.
-    int64_t mCrowDay;
 };
 
 struct RoosterPlan
@@ -152,25 +131,11 @@ struct RoosterPlan
 class HatcheryRooster
 {
 public:
-    //! True during the last part of each day.
-    static bool isNight(int64_t turn, const RoosterSettings& settings);
-
-    //! True on the first turn of a day.
-    static bool isNewDay(int64_t turn, const RoosterSettings& settings);
-
-    //! Number of the day the turn belongs to (0 for the first day), -1 without day length or for a negative turn.
-    static int64_t dayNumber(int64_t turn, const RoosterSettings& settings);
-
-    //! True while the crow for the day of the turn is still owed: the day is later than the last one he crowed
-    //! for. Unlike isNewDay this does not depend on hitting the first turn of the day, so a rooster that is busy
-    //! at that moment crows as soon as he is free.
-    static bool newDayCrowOwed(int64_t turn, int64_t crowDay, const RoosterSettings& settings);
-
     //! Turns until the next crow for a random number.
     static uint32_t crowInterval(const RoosterSettings& settings, uint32_t random);
 
     //! Chooses what the rooster does now. A mood with turns left is kept, except that a threat always
-    //! wins and that the night and a new day send him to the roof.
+    //! wins.
     static RoosterPlan decide(const RoosterContext& context, const RoosterSettings& settings);
 };
 

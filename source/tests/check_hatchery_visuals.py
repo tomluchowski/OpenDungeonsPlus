@@ -28,7 +28,7 @@ assert 'destroyMesh()' in body(chicken, 'void ChickenEntity::setKindFromServer')
 assert 'rrChickenHatched' in body(chicken, 'void ChickenEntity::setKindFromServer')
 
 # Poses reach the client as animation names and are turned into skeleton animations plus motion.
-for name in ('strut', 'chase', 'flee', 'mount', 'cackle', 'perch', 'crow', 'guard', 'lead', 'roost', 'lay', 'wobble', 'emerge', 'fight', 'protest', 'scratch', 'flutter'):
+for name in ('strut', 'chase', 'flee', 'mount', 'cackle', 'perch', 'crow', 'guard', 'lead', 'lay', 'wobble', 'emerge', 'fight', 'protest', 'scratch', 'flutter'):
     assert 'static const std::string %s =' % name in pose, name
 hook = body(render, 'void RenderManager::rrSetObjectAnimationState')
 assert 'ChickenPose::isPose(animation)' in hook and 'rrSetChickenPose' in hook
@@ -36,7 +36,7 @@ assert hook.index('rrSetChickenPose') < hook.index('hasSkeleton')
 
 # The server drives the behaviour from the hatchery upkeep.
 upkeep = body(room, 'void RoomHatchery::doUpkeep')
-for call in ('updateChickLine', 'updateRooster', 'ChickenPose::lay', 'ChickenPose::wobble', 'setCalm'):
+for call in ('updateChickLine', 'updateRooster', 'ChickenPose::lay', 'ChickenPose::wobble'):
     assert call in upkeep, call
 assert 'ChickenPose::emerge' in body(room, 'bool RoomHatchery::spawnFromCoop')
 assert 'new ChickenEntity' not in upkeep
@@ -57,9 +57,9 @@ assert 'updateChickenLooks' in render and 'rrCreateCoopDecor' in render
 assert 'RenderManagerChickens.cpp' in cmake and 'HatcheryRooster.cpp' in cmake
 
 # Values come from the config.
-for key in ('HatcheryDayTurns', 'HatcheryNightPercent', 'HatcheryRoosterCrowMin', 'HatcheryRoosterCrowMax',
-            'HatcheryRoosterChasePercent', 'HatcheryRoosterLeadPercent', 'HatcheryRoosterPerchPercent',
-            'HatcheryRoosterPerchTurns', 'HatcheryRoosterGuardRadius', 'HatcheryCoopRoofHeight', 'HatcheryChickGap'):
+for key in ('HatcheryRoosterCrowMin', 'HatcheryRoosterCrowMax',
+            'HatcheryRoosterChasePercent', 'HatcheryRoosterLeadPercent',
+            'HatcheryRoosterGuardRadius', 'HatcheryCoopRoofHeight', 'HatcheryChickGap'):
     assert key in config and key in room, key
 for key in ('HatcheryChickScale', 'HatcheryRoosterScale', 'HatcheryChickTintR', 'HatcheryRoosterTintR'):
     assert key in config and key in looks, key
@@ -73,7 +73,7 @@ assert 'ChickenEgg.mesh' in credits and 'ChickenRoosterTail.mesh' in credits
 
 print('hatchery visuals checks passed')
 
-# The rooster calls the hens to food: mood, config, hens follow him
+# The rooster calls the hens to food: mood, config (the hens no longer run to him)
 rooster_h = (root / 'source/rooms/HatcheryRooster.h').read_text()
 assert 'call ' in rooster_h and 'mCallPercent' in rooster_h
 assert 'RoosterMood::call' in room
@@ -105,10 +105,8 @@ assert 'ChickenPose::scratch' in looks and 'ChickenPose::flutter' in looks
 # Eggs and chicks dropped outside a hatchery are lost
 assert 'HatcheryYoungLostTurns' in chickUpkeep and 'HatcheryYoungLostTurns' in config
 
-# at night each chick goes to the hen nearest to it and sleeps tucked in under her (client offset, server position stays)
+# there is no night: no sleeping pose, no chick tucked in under a hen, the chicks always walk in a line behind the hen
 chick_line = body(room, 'void RoomHatchery::updateChickLine')
-night_part = chick_line[chick_line.index('if(night)'):chick_line.index('Each chick follows the one in front')]
-assert 'for(ChickenEntity* hen : hens)' in night_part and 'mSnuggleGap' in night_part
-roost_part = looks[looks.index('pose == ChickenPose::roost'):looks.index('pose == ChickenPose::guard')]
-assert 'ChickenKind::chick' in roost_part and 'ChickenKind::hen' in roost_part and 'shift = toHen' in roost_part
+assert 'night' not in chick_line.lower() and 'Each chick follows the one in front' in chick_line
+assert 'ChickenPose::roost' not in looks and 'mSnuggleGap' not in room
 print('hatchery chicks under hen checks passed')

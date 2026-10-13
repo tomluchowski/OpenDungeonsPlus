@@ -738,46 +738,6 @@ void RenderManager::updateChickenLooks(Ogre::Real timeSinceLastFrame)
             }
             else if(pose == ChickenPose::perch)
                 pitch = -6.0f;
-            else if(pose == ChickenPose::roost)
-            {
-                // Asleep: sunk down, rounded, breathing
-                const Ogre::Real breath = 0.025f * std::sin(t * 1.8f);
-                stretch = Ogre::Vector3(1.12f + breath, 1.08f + breath, 0.68f + breath * 2.0f);
-                lift = -0.004f;
-
-                // A sleeping chick tucks in under the nearest hen (look only, the server position stays)
-                Ogre::SceneNode* parent = look.mNode->getParentSceneNode();
-                if((kind == ChickenKind::chick) && (parent != nullptr))
-                {
-                    std::map<ChickenEntity*, ChickenLook>::iterator nearestHen = mChickenLooks.end();
-                    Ogre::Real nearestDistance = 0.4f * 0.4f;
-                    for(std::map<ChickenEntity*, ChickenLook>::iterator other = mChickenLooks.begin(); other != mChickenLooks.end(); ++other)
-                    {
-                        if(other->first->getKind() != ChickenKind::hen)
-                            continue;
-                        Ogre::SceneNode* otherParent = other->second.mNode->getParentSceneNode();
-                        if(otherParent == nullptr)
-                            continue;
-                        Ogre::Vector3 way = otherParent->_getDerivedPosition() - parent->_getDerivedPosition();
-                        way.z = 0.0f;
-                        if(way.squaredLength() <= nearestDistance)
-                        {
-                            nearestDistance = way.squaredLength();
-                            nearestHen = other;
-                        }
-                    }
-                    if(nearestHen != mChickenLooks.end())
-                    {
-                        // Under the hen: to her middle, a little to the side (each chick on its own side), sunk down
-                        Ogre::Vector3 toHen = parent->convertWorldToLocalPosition(
-                            nearestHen->second.mNode->getParentSceneNode()->_getDerivedPosition());
-                        toHen.z = 0.0f;
-                        shift = toHen + Ogre::Vector3(std::cos(look.mPhase), std::sin(look.mPhase), 0.0f) * 0.05f;
-                        lift = -0.02f;
-                        stretch.z *= 0.8f;
-                    }
-                }
-            }
             else if(pose == ChickenPose::guard)
             {
                 // Puffed up and flapping, with a lunge of the head at the creature in front of him, then back

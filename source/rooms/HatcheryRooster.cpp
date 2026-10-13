@@ -19,38 +19,6 @@
 
 #include <algorithm>
 
-bool HatcheryRooster::isNight(int64_t turn, const RoosterSettings& settings)
-{
-    if((settings.mDayTurns == 0) || (turn < 0))
-        return false;
-
-    uint32_t nightPercent = std::min<uint32_t>(settings.mNightPercent, 100);
-    uint64_t phase = static_cast<uint64_t>(turn) % settings.mDayTurns;
-    uint64_t nightStart = static_cast<uint64_t>(settings.mDayTurns) * (100 - nightPercent) / 100;
-    return (nightPercent > 0) && (phase >= nightStart);
-}
-
-bool HatcheryRooster::isNewDay(int64_t turn, const RoosterSettings& settings)
-{
-    if((settings.mDayTurns == 0) || (turn < 0))
-        return false;
-
-    return (static_cast<uint64_t>(turn) % settings.mDayTurns) == 0;
-}
-
-int64_t HatcheryRooster::dayNumber(int64_t turn, const RoosterSettings& settings)
-{
-    if((settings.mDayTurns == 0) || (turn < 0))
-        return -1;
-
-    return turn / static_cast<int64_t>(settings.mDayTurns);
-}
-
-bool HatcheryRooster::newDayCrowOwed(int64_t turn, int64_t crowDay, const RoosterSettings& settings)
-{
-    return dayNumber(turn, settings) > crowDay;
-}
-
 uint32_t HatcheryRooster::crowInterval(const RoosterSettings& settings, uint32_t random)
 {
     uint32_t minTurns = std::max<uint32_t>(1, settings.mCrowMin);
@@ -75,33 +43,9 @@ RoosterPlan HatcheryRooster::decide(const RoosterContext& context, const Rooster
         return plan;
     }
 
-    // A new day starts with a crow, as soon as he is free for it (the day is remembered, not only its first turn).
-    // At night the rooster sleeps.
-    if((context.mMood != RoosterMood::crow) && newDayCrowOwed(context.mTurn, context.mCrowDay, settings))
-    {
-        plan.mMood = RoosterMood::crow;
-        plan.mTurns = settings.mCrowTurns;
-        return plan;
-    }
-    if(isNight(context.mTurn, settings))
-    {
-        plan.mMood = RoosterMood::roost;
-        plan.mTurns = std::max<uint32_t>(1, settings.mDayTurns / std::max<uint32_t>(1, settings.mRoostDivisor));
-        return plan;
-    }
-
     // The moods go on until their time is over
-    if((context.mMoodTurns > 0) && (context.mMood != RoosterMood::strut) &&
-       (context.mMood != RoosterMood::roost))
+    if((context.mMoodTurns > 0) && (context.mMood != RoosterMood::strut))
         return plan;
-
-    // After a crow the rooster stays on the roof for a while
-    if(context.mMood == RoosterMood::crow)
-    {
-        plan.mMood = context.mHasCoop ? RoosterMood::perch : RoosterMood::strut;
-        plan.mTurns = context.mHasCoop ? std::max<uint32_t>(1, settings.mPerchTurns / 3) : 0;
-        return plan;
-    }
 
     if(context.mSinceCrow >= context.mCrowInterval)
     {
@@ -110,13 +54,12 @@ RoosterPlan HatcheryRooster::decide(const RoosterContext& context, const Rooster
         return plan;
     }
 
-    // Strutting (also when the night is over): sometimes something else comes to his mind
+    // Strutting: sometimes something else comes to his mind
     plan.mMood = RoosterMood::strut;
     plan.mTurns = 0;
     uint32_t chaseLimit = settings.mChasePercent;
     uint32_t leadLimit = chaseLimit + settings.mLeadPercent;
-    uint32_t perchLimit = leadLimit + settings.mPerchPercent;
-    uint32_t callLimit = perchLimit + settings.mCallPercent;
+    uint32_t callLimit = leadLimit + settings.mCallPercent;
     if(context.mHasHen && (context.mRoll < chaseLimit))
     {
         plan.mMood = RoosterMood::chase;
@@ -127,12 +70,7 @@ RoosterPlan HatcheryRooster::decide(const RoosterContext& context, const Rooster
         plan.mMood = RoosterMood::lead;
         plan.mTurns = settings.mLeadTurns;
     }
-    else if(context.mHasCoop && (context.mRoll >= leadLimit) && (context.mRoll < perchLimit))
-    {
-        plan.mMood = RoosterMood::perch;
-        plan.mTurns = settings.mPerchTurns;
-    }
-    else if(context.mHasHen && (context.mRoll >= perchLimit) && (context.mRoll < callLimit))
+    else if(context.mHasHen && (context.mRoll >= leadLimit) && (context.mRoll < callLimit))
     {
         plan.mMood = RoosterMood::call;
         plan.mTurns = settings.mCallTurns;

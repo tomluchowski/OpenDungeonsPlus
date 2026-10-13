@@ -31,6 +31,7 @@
 #include "gamemap/GameMap.h"
 #include "gamemap/RoomObjectNavigation.h"
 #include "rooms/Room.h"
+#include "rooms/RoomHatchery.h"
 #include "rooms/RoomType.h"
 #include "ODApplication.h"
 #include "utils/ConfigManager.h"
@@ -54,7 +55,6 @@ ChickenEntity::ChickenEntity(GameMap* gameMap, const std::string& hatcheryName, 
     mAge(0),
     mBusyTurns(0),
     mScatterTurns(0),
-    mCalm(false),
     mRoomDriven(false),
     mFighting(false),
     mOnRoof(false),
@@ -83,7 +83,6 @@ ChickenEntity::ChickenEntity(GameMap* gameMap) :
     mAge(0),
     mBusyTurns(0),
     mScatterTurns(0),
-    mCalm(false),
     mRoomDriven(false),
     mFighting(false),
     mOnRoof(false),
@@ -251,42 +250,37 @@ void ChickenEntity::doUpkeep()
             if(mKind == ChickenKind::hen)
                 setAnimationState("Pick", true);
             else
-                setAnimationState(mCalm ? ChickenPose::roost : EntityAnimation::idle_anim, true);
+                setAnimationState(EntityAnimation::idle_anim, true);
             return;
         }
     }
 
-    // Sleeping hens and chicks (night, full hatchery) sit still
-    if(mCalm && (mKind != ChickenKind::rooster))
-    {
-        setAnimationState(ChickenPose::roost, true);
-        return;
-    }
-
-    wander(tile, currentHatchery);
+    wander(currentHatchery);
 }
 
-void ChickenEntity::wander(Tile* tile, Room* currentHatchery)
+void ChickenEntity::wander(Room* currentHatchery)
 {
-    // We might not move
-    if(Random::Int(1,2) == 1)
+    // Short pauses: the animal pecks instead of walking
+    const uint32_t pausePercent = static_cast<uint32_t>(
+        ConfigManager::getSingleton().getRoomConfigDoubleOrDefault("HatcheryWanderPausePercent", 50.0));
+    if(Random::Uint(0, 99) < pausePercent)
     {
         setAnimationState("Pick");
         return;
     }
 
-    const Ogre::Vector2 start(getPosition().x, getPosition().y);
-    std::vector<Ogre::Vector2> positions;
-    collectMovePositions(tile, currentHatchery, positions);
-    if(positions.empty())
+    // Outside of a hatchery the animal does not roam
+    if((currentHatchery == nullptr) || (currentHatchery->getType() != RoomType::hatchery))
         return;
-    const Ogre::Vector2 v = positions[Random::Uint(0, positions.size() - 1)];
+
+    // Free points anywhere in the room (not bound to the tiles), reached over one soft curve. No walk distortion:
+    // the way already keeps its distance to the walls
+    const Ogre::Vector2 start(getPosition().x, getPosition().y);
     std::vector<Ogre::Vector2> path;
-    path.push_back(v);
-    const bool distortion = RoomObjectPath::clearSegment(
-        RoomObjectNavigation::collect(*getGameMap(), 0.525f), start, v);
+    if(!static_cast<RoomHatchery*>(currentHatchery)->planWanderPath(start, path))
+        return;
     const std::string& walkAnim = (mKind == ChickenKind::rooster) ? ChickenPose::strut : EntityAnimation::walk_anim;
-    setWalkPath(walkAnim, EntityAnimation::idle_anim, true, true, path, distortion);
+    setWalkPath(walkAnim, EntityAnimation::idle_anim, true, true, path, false);
 }
 
 void ChickenEntity::collectMovePositions(Tile* tile, Room* currentHatchery, std::vector<Ogre::Vector2>& positions)

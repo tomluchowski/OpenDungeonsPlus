@@ -848,29 +848,6 @@ BOOST_AUTO_TEST_CASE(test_NestFieldFeathers)
         std::vector<HatcheryNestField::TileCoord>(), std::vector<HatcheryNestField::Place>(), settings).size() >= 2u);
 }
 
-BOOST_AUTO_TEST_CASE(test_RoosterDay)
-{
-    RoosterSettings settings;
-    settings.mDayTurns = 100;
-    settings.mNightPercent = 30;
-    BOOST_CHECK(!HatcheryRooster::isNight(0, settings));
-    BOOST_CHECK(!HatcheryRooster::isNight(69, settings));
-    BOOST_CHECK(HatcheryRooster::isNight(70, settings));
-    BOOST_CHECK(HatcheryRooster::isNight(99, settings));
-    BOOST_CHECK(!HatcheryRooster::isNight(100, settings));
-    BOOST_CHECK(HatcheryRooster::isNewDay(0, settings));
-    BOOST_CHECK(HatcheryRooster::isNewDay(300, settings));
-    BOOST_CHECK(!HatcheryRooster::isNewDay(301, settings));
-
-    // No night and no day length: never night
-    settings.mNightPercent = 0;
-    BOOST_CHECK(!HatcheryRooster::isNight(99, settings));
-    settings.mNightPercent = 30;
-    settings.mDayTurns = 0;
-    BOOST_CHECK(!HatcheryRooster::isNight(99, settings));
-    BOOST_CHECK(!HatcheryRooster::isNewDay(0, settings));
-}
-
 BOOST_AUTO_TEST_CASE(test_RoosterCrowInterval)
 {
     RoosterSettings settings;
@@ -889,12 +866,8 @@ BOOST_AUTO_TEST_CASE(test_RoosterCrowInterval)
 BOOST_AUTO_TEST_CASE(test_RoosterDecide)
 {
     RoosterSettings settings;
-    settings.mDayTurns = 1000;
-    settings.mNightPercent = 30;
     RoosterContext context;
     context.mTurn = 100;
-    // He has crowed for the first day already
-    context.mCrowDay = 0;
     context.mHasCoop = true;
     context.mHasHen = true;
     context.mHasChick = true;
@@ -905,22 +878,20 @@ BOOST_AUTO_TEST_CASE(test_RoosterDecide)
     RoosterPlan plan = HatcheryRooster::decide(context, settings);
     BOOST_CHECK(plan.mMood == RoosterMood::strut);
 
-    // The dice decide what comes to his mind: chase, lead, perch
+    // The dice decide what comes to his mind: chase, lead, call (no roof sitting by chance)
     context.mRoll = 0;
     BOOST_CHECK(HatcheryRooster::decide(context, settings).mMood == RoosterMood::chase);
     context.mRoll = settings.mChasePercent;
     BOOST_CHECK(HatcheryRooster::decide(context, settings).mMood == RoosterMood::lead);
-    context.mRoll = settings.mChasePercent + settings.mLeadPercent;
-    BOOST_CHECK(HatcheryRooster::decide(context, settings).mMood == RoosterMood::perch);
     // He calls the hens to food, only when there is a hen
-    context.mRoll = settings.mChasePercent + settings.mLeadPercent + settings.mPerchPercent;
+    context.mRoll = settings.mChasePercent + settings.mLeadPercent;
     plan = HatcheryRooster::decide(context, settings);
     BOOST_CHECK(plan.mMood == RoosterMood::call);
     BOOST_CHECK_EQUAL(plan.mTurns, settings.mCallTurns);
     context.mHasHen = false;
     BOOST_CHECK(HatcheryRooster::decide(context, settings).mMood == RoosterMood::strut);
     context.mHasHen = true;
-    context.mRoll = settings.mChasePercent + settings.mLeadPercent + settings.mPerchPercent + settings.mCallPercent;
+    context.mRoll = settings.mChasePercent + settings.mLeadPercent + settings.mCallPercent;
     BOOST_CHECK(HatcheryRooster::decide(context, settings).mMood == RoosterMood::strut);
 
     // Without a hen, chick or coop those moods are not chosen
@@ -929,23 +900,20 @@ BOOST_AUTO_TEST_CASE(test_RoosterDecide)
     BOOST_CHECK(HatcheryRooster::decide(context, settings).mMood == RoosterMood::strut);
     context.mHasHen = true;
 
-    // A crow when the time is up, then he sits on the roof for a while
+    // A crow when the time is up, then he goes on strutting (he does not stay on the roof)
     context.mRoll = 99;
     context.mSinceCrow = 60;
     BOOST_CHECK(HatcheryRooster::decide(context, settings).mMood == RoosterMood::crow);
     context.mSinceCrow = 0;
     context.mMood = RoosterMood::crow;
     context.mMoodTurns = 0;
-    BOOST_CHECK(HatcheryRooster::decide(context, settings).mMood == RoosterMood::perch);
-    context.mHasCoop = false;
     BOOST_CHECK(HatcheryRooster::decide(context, settings).mMood == RoosterMood::strut);
-    context.mHasCoop = true;
 
     // A mood with turns left goes on
-    context.mMood = RoosterMood::perch;
+    context.mMood = RoosterMood::crow;
     context.mMoodTurns = 5;
     context.mRoll = 0;
-    BOOST_CHECK(HatcheryRooster::decide(context, settings).mMood == RoosterMood::perch);
+    BOOST_CHECK(HatcheryRooster::decide(context, settings).mMood == RoosterMood::crow);
 
     // A threat always wins, also against the mood in progress
     context.mThreat = true;
@@ -959,96 +927,38 @@ BOOST_AUTO_TEST_CASE(test_RoosterDecide)
     BOOST_CHECK_EQUAL(plan.mTurns, 3u);
     context.mThreat = false;
 
-    // Night: he sleeps, even in the middle of a chase. A new day starts with a crow.
+    // A mood that is over (no turns left) is followed by strutting, whatever the turn is
     context.mMood = RoosterMood::chase;
-    context.mMoodTurns = 5;
+    context.mMoodTurns = 0;
     context.mTurn = 800;
-    BOOST_CHECK(HatcheryRooster::decide(context, settings).mMood == RoosterMood::roost);
-    context.mMood = RoosterMood::roost;
-    context.mTurn = 2000;
-    BOOST_CHECK(HatcheryRooster::decide(context, settings).mMood == RoosterMood::crow);
-    // After the night he gets up (he has crowed for the new day by now)
-    context.mCrowDay = 2;
-    context.mTurn = 2100;
     context.mRoll = 99;
+    context.mSinceCrow = 0;
     BOOST_CHECK(HatcheryRooster::decide(context, settings).mMood == RoosterMood::strut);
 }
 
-BOOST_AUTO_TEST_CASE(test_RoosterNewDayCrow)
+BOOST_AUTO_TEST_CASE(test_RoosterCrowTimer)
 {
     RoosterSettings settings;
-    settings.mDayTurns = 1000;
-    settings.mNightPercent = 30;
-
-    // The day of a turn, none without a day length
-    BOOST_CHECK_EQUAL(HatcheryRooster::dayNumber(0, settings), 0);
-    BOOST_CHECK_EQUAL(HatcheryRooster::dayNumber(999, settings), 0);
-    BOOST_CHECK_EQUAL(HatcheryRooster::dayNumber(1000, settings), 1);
-    BOOST_CHECK_EQUAL(HatcheryRooster::dayNumber(2500, settings), 2);
-    BOOST_CHECK_EQUAL(HatcheryRooster::dayNumber(-1, settings), -1);
-    RoosterSettings noDay = settings;
-    noDay.mDayTurns = 0;
-    BOOST_CHECK_EQUAL(HatcheryRooster::dayNumber(500, noDay), -1);
-    BOOST_CHECK(!HatcheryRooster::newDayCrowOwed(500, -1, noDay));
-
-    // The crow is owed from the first turn of a new day until he has crowed for it, not only on that turn
-    BOOST_CHECK(!HatcheryRooster::newDayCrowOwed(999, 0, settings));
-    BOOST_CHECK(HatcheryRooster::newDayCrowOwed(1000, 0, settings));
-    BOOST_CHECK(HatcheryRooster::newDayCrowOwed(1001, 0, settings));
-    BOOST_CHECK(HatcheryRooster::newDayCrowOwed(1400, 0, settings));
-    BOOST_CHECK(!HatcheryRooster::newDayCrowOwed(1400, 1, settings));
-    // Several days missed (the hatchery was not looked at): one crow settles it
-    BOOST_CHECK(HatcheryRooster::newDayCrowOwed(3500, 0, settings));
-    BOOST_CHECK(!HatcheryRooster::newDayCrowOwed(3500, 3, settings));
-
+    settings.mCrowTurns = 7;
     RoosterContext context;
-    context.mTurn = 1001;
-    context.mCrowDay = 0;
     context.mCrowInterval = 60;
     context.mRoll = 99;
 
-    // He was busy on the first turn of the day: he crows as soon as he is free
-    RoosterPlan plan = HatcheryRooster::decide(context, settings);
-    BOOST_CHECK(plan.mMood == RoosterMood::crow);
-    BOOST_CHECK_EQUAL(plan.mTurns, settings.mCrowTurns);
-    context.mTurn = 1350;
-    BOOST_CHECK(HatcheryRooster::decide(context, settings).mMood == RoosterMood::crow);
-
-    // Having crowed for the day, he does not crow again for it
-    context.mCrowDay = 1;
-    BOOST_CHECK(HatcheryRooster::decide(context, settings).mMood == RoosterMood::strut);
-
-    // A threat comes first, the crow follows when it is gone (the day is still owed)
-    context.mCrowDay = 0;
-    context.mThreat = true;
-    BOOST_CHECK(HatcheryRooster::decide(context, settings).mMood == RoosterMood::guard);
-    context.mThreat = false;
-    BOOST_CHECK(HatcheryRooster::decide(context, settings).mMood == RoosterMood::crow);
-
-    // The crow also interrupts a mood that still has turns left
-    context.mMood = RoosterMood::chase;
-    context.mMoodTurns = 5;
-    BOOST_CHECK(HatcheryRooster::decide(context, settings).mMood == RoosterMood::crow);
+    // The time of the day does not matter: only the crow timer starts a crow
+    for(int64_t turn = 0; turn < 5000; turn += 250)
+    {
+        context.mTurn = turn;
+        context.mSinceCrow = 0;
+        BOOST_CHECK(HatcheryRooster::decide(context, settings).mMood == RoosterMood::strut);
+        context.mSinceCrow = 60;
+        RoosterPlan plan = HatcheryRooster::decide(context, settings);
+        BOOST_CHECK(plan.mMood == RoosterMood::crow);
+        BOOST_CHECK_EQUAL(plan.mTurns, 7u);
+    }
 
     // A crow in progress is not started again
     context.mMood = RoosterMood::crow;
     context.mMoodTurns = 2;
     BOOST_CHECK(HatcheryRooster::decide(context, settings).mMood == RoosterMood::crow);
     BOOST_CHECK_EQUAL(HatcheryRooster::decide(context, settings).mTurns, 2u);
-
-    // The sleep period is the day divided by the divisor, the crow length comes from the settings
-    settings.mCrowTurns = 7;
-    settings.mRoostDivisor = 20;
-    context.mMood = RoosterMood::strut;
-    context.mMoodTurns = 0;
-    context.mCrowDay = 1;
-    context.mTurn = 1800;
-    plan = HatcheryRooster::decide(context, settings);
-    BOOST_CHECK(plan.mMood == RoosterMood::roost);
-    BOOST_CHECK_EQUAL(plan.mTurns, 50u);
-    context.mTurn = 1400;
-    context.mSinceCrow = 60;
-    plan = HatcheryRooster::decide(context, settings);
-    BOOST_CHECK(plan.mMood == RoosterMood::crow);
-    BOOST_CHECK_EQUAL(plan.mTurns, 7u);
 }

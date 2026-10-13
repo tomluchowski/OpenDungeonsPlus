@@ -70,16 +70,34 @@ assert 'isAlliedSeat' in room_cpp[room_cpp.index('void RoomHatchery::collectEnem
 
 rooster_h = (root / 'source/rooms/HatcheryRooster.h').read_text()
 rooster_cpp = (root / 'source/rooms/HatcheryRooster.cpp').read_text()
-# The new day crow is remembered as a state (the day he crowed for), it is saved, and old saves still load
-assert 'newDayCrowOwed' in rooster_cpp and 'isNewDay(context.mTurn' not in rooster_cpp
-assert 'int64_t mCrowDay' in rooster_h
-assert 'context.mCrowDay = mLastCrowDay' in room_cpp
-assert 'mLastCrowDay = std::max(mLastCrowDay' in body(room_cpp, 'void RoomHatchery::beginRoosterMood')
-assert '"HatcheryDay "' in room_cpp[room_cpp.index('void RoomHatchery::exportToStream'):][:400]
-imp_day = room_cpp[room_cpp.index('bool RoomHatchery::importFromStream'):][:1800]
-assert 'HatcheryDay' in imp_day and 'seekg(pos)' in imp_day
-assert 'test_RoosterNewDayCrow' in (root / 'source/tests/test_HatcheryCycle.cpp').read_text()
-print('hatchery new day crow checks passed')
+# There is no day and night: no day length, night share, sleep mood or day state in the rooster rules, the room, the
+# config, the entities, the client and the unit tests. Old saves with the day line still load (the number is dropped).
+night_terms = ('isNight', 'isNewDay', 'dayNumber', 'newDayCrowOwed', 'mDayTurns', 'mNightPercent', 'mRoostDivisor',
+               'mCrowDay', 'mLastCrowDay', 'HatcheryNightPercent', 'HatcheryDayTurns', 'HatcheryRoosterRoostDivisor',
+               'HatcheryChickSnuggleGap', 'mSnuggleGap', 'setCalm', 'mCalm', 'RoosterMood::roost', 'ChickenPose::roost')
+for path in ('source/rooms/HatcheryRooster.h', 'source/rooms/HatcheryRooster.cpp', 'source/rooms/RoomHatchery.h',
+             'source/rooms/RoomHatchery.cpp', 'source/rooms/HatcheryCycle.h', 'source/rooms/HatcheryCycle.cpp',
+             'source/entities/ChickenEntity.h', 'source/entities/ChickenEntity.cpp', 'source/entities/ChickenPose.h',
+             'source/render/RenderManagerChickens.cpp', 'config/rooms.cfg', 'source/tests/test_HatcheryCycle.cpp'):
+    text = (root / path).read_text()
+    for term in night_terms:
+        assert term not in text, (path, term)
+assert 'night' not in room_cpp.lower() and 'night' not in rooster_cpp.lower()
+# the egg plan runs on its own turn counters and does not look at the time of day
+cycle_cpp = (root / 'source/rooms/HatcheryCycle.cpp').read_text()
+assert 'getTurnNumber' not in cycle_cpp and 'getTurnNumber' not in (root / 'source/rooms/HatcheryCycle.h').read_text()
+assert 'getTurnNumber' not in room_cpp[room_cpp.index('void RoomHatchery::doUpkeep'):room_cpp.index('void RoomHatchery::updateFight')]
+# a save of an older version has the day line after the waiting counters: it is read, dropped and not written again
+exp = room_cpp[room_cpp.index('void RoomHatchery::exportToStream'):][:900]
+assert '"HatcheryDay' not in exp and '"HatcheryWaits "' in exp
+imp_day = room_cpp[room_cpp.index('bool RoomHatchery::importFromStream'):][:2600]
+assert 'tag == "HatcheryDay"' in imp_day and 'seekg(pos)' in imp_day
+assert 'test_RoosterCrowTimer' in (root / 'source/tests/test_HatcheryCycle.cpp').read_text()
+print('hatchery no day and night checks passed')
+
+# The hens roam: they walk to free points anywhere in the room, they neither sit in the coops nor follow the rooster
+assert 'updateFlock(hens);' in room_cpp and 'planWanderPath' in (root / 'source/entities/ChickenEntity.cpp').read_text()
+assert 'updateCoopSitting' not in room_cpp and 'HatcheryCoopSit' not in config and 'HatcheryCallFollowGap' not in config
 
 # The new rooster comes after the same wait as a hen (HatcheryChickenSpawnRate); the own rooster wait is gone,
 # the saved counter stays so that old saves still load
@@ -116,11 +134,11 @@ print('hatchery rooster fight checks passed')
 # The numbers of the rooster and the flock are settings read from the config, not fixed numbers in the room code
 rooster_h = (root / 'source/rooms/HatcheryRooster.h').read_text()
 rooster_cpp = (root / 'source/rooms/HatcheryRooster.cpp').read_text()
-for member in ('mCrowTurns', 'mRoostDivisor', 'mGuardFar', 'mGuardNear', 'mGuardApproachGap', 'mCatchDistance',
-               'mWalkGap', 'mHopDistance', 'mCallFollowGap', 'mSnuggleGap', 'mLeadScratchChance',
+for member in ('mCrowTurns', 'mGuardFar', 'mGuardNear', 'mGuardApproachGap', 'mCatchDistance',
+               'mWalkGap', 'mHopDistance', 'mLeadScratchChance',
                'mCallScratchChance', 'mFightStandFactor'):
     assert member in rooster_h and ('settings.' + member in room_cpp or 'Settings.' + member in room_cpp), member
-assert 'settings.mCrowTurns' in rooster_cpp and 'settings.mRoostDivisor' in rooster_cpp
+assert 'settings.mCrowTurns' in rooster_cpp
 assert 'mTurns = 4;' not in rooster_cpp and '/ 10)' not in rooster_cpp
 acting = room_cpp[room_cpp.index('void RoomHatchery::actRoosterMood'):room_cpp.index('void RoomHatchery::updateRooster')]
 for number in ('2.2', '0.9', '1.8', '0.55f', 'Random::Int(1, 3)', 'Random::Int(1, 2)'):

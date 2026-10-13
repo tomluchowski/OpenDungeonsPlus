@@ -20,6 +20,7 @@
 
 #include "entities/ChickenEntity.h"
 #include "rooms/HatcheryCycle.h"
+#include "gamemap/RoomObjectPath.h"
 #include "rooms/HatcheryNestField.h"
 #include "rooms/HatcheryRooster.h"
 #include "rooms/Room.h"
@@ -57,6 +58,15 @@ public:
     //! places they get).
     static HatcheryNestField::Settings getNestFieldSettings();
 
+    //! \brief Server side: plans the next walk of a roaming animal that is at from: a free point anywhere in the room
+    //! (any position on the room tiles, not bound to the tiles, at least HatcheryWanderEdge from every wall, away from
+    //! the coops and the nests, at most HatcheryWanderReach from the animal) and one soft bend on the way. False when no
+    //! free point was found in a few tries.
+    bool planWanderPath(const Ogre::Vector2& from, std::vector<Ogre::Vector2>& path) const;
+
+    //! \brief Server side: a free point anywhere in the room (rules as for planWanderPath, without the reach).
+    bool pickFreePoint(Ogre::Vector2& point) const;
+
     //! \brief Server side: sends the nest places of this hatchery to the human player (see
     //! ServerNotificationType::hatcheryNests).
     void sendNestPlaces(Player* player) const;
@@ -75,8 +85,14 @@ protected:
 private:
     //! Creatures of the hatchery that are after a chicken (hungry, on their way to eat).
     void collectHungry(std::vector<Creature*>& hungry) const;
+    //! True if the point lies on a tile of the hatchery, at least edge from every tile that is not part of it, on no
+    //! obstacle (coop, room object) and at least nestClearance from the middle of every nest.
+    bool isFreeWanderPoint(const Ogre::Vector2& point, const std::vector<RoomObjectPath::Obstacle>& obstacles, double edge,
+        double nestClearance) const;
+    //! True if the straight way from from to to stays on tiles of the hatchery.
+    bool isSegmentInRoom(const Ogre::Vector2& from, const Ogre::Vector2& to) const;
     //! Hens that peck, scratch and flutter now and then; they scatter cackling when a hungry creature comes close.
-    void updateFlock(const std::vector<ChickenEntity*>& hens, bool night);
+    void updateFlock(const std::vector<ChickenEntity*>& hens);
     //! Creatures of an enemy seat that stand on a tile of the hatchery.
     void collectEnemies(std::vector<Creature*>& enemies) const;
     //! True if an enemy creature stands on the tile of the egg (the egg does not hatch then).
@@ -132,7 +148,7 @@ private:
     //! Lets a hen or a rooster come out of a coop. Returns false if no coop has a free place.
     bool spawnFromCoop(ChickenKind kind, const HatcheryCycleSettings& settings, uint32_t count = 1);
 
-    //! Settings of the rooster, the day and the chick line from the config.
+    //! Settings of the rooster and the chick line from the config.
     RoosterSettings getRoosterSettings() const;
     //! A hatchery has room for one rooster: when it has two or more, two of them fight until one is dead. The
     //! server draws the winner when the fight starts. Fighters are moved here, not by updateRooster. The loser
@@ -154,9 +170,9 @@ private:
     void roostOnRoof(ChickenEntity* rooster, const std::string& pose, bool hopFromFar);
     //! \brief Lets the rooster jump down from a coop roof to a free place next to the coop.
     void climbDown(ChickenEntity* rooster);
-    //! The chicks follow the hen (or the rooster when he leads) in a line, at night they huddle under the hen.
+    //! The chicks follow the hen (or the rooster when he leads) in a line.
     void updateChickLine(const std::vector<ChickenEntity*>& hens, const std::vector<ChickenEntity*>& chicks,
-        ChickenEntity* rooster, bool night);
+        ChickenEntity* rooster);
     //! A creature inside the hatchery that wants to eat chickens or is an enemy, close to the rooster.
     bool findThreat(const ChickenEntity& rooster, double radius, Ogre::Vector2& position) const;
     //! \brief The coop tile of this hatchery closest to the position, null without a coop.
@@ -170,8 +186,6 @@ private:
     RoosterSettings mRoosterSettings;
     //! Turns until the rooster crows next
     uint32_t mCrowInterval;
-    //! Number of the last day the rooster crowed for (HatcheryRooster::dayNumber), -1 until he is first seen
-    int64_t mLastCrowDay;
     //! An egg that a hen is going to lay. The egg is laid when the laying timer of the hen runs out (it is due then,
     //! counts as an egg for the capacity and is saved in the "HatcheryLays" line). Before that the hen has planned it:
     //! she chose the place in a nest, sets off when the turns left are as many as the walk and the Lay pose, waits at the

@@ -146,10 +146,6 @@ public:
     //! \brief The chick no longer follows anybody.
     void clearFollowTarget();
 
-    //! \brief Hens and chicks sit still (night, full hatchery).
-    inline void setCalm(bool calm)
-    { mCalm = calm; }
-
     //! \brief The hatchery controls the rooster itself (perching, guarding, chasing). Otherwise he struts around.
     inline void setRoomDriven(bool driven)
     { mRoomDriven = driven; }
@@ -253,7 +249,6 @@ private:
     uint32_t mAge;
     uint32_t mBusyTurns;
     uint32_t mScatterTurns;
-    bool mCalm;
     bool mRoomDriven;
     bool mFighting;
     bool mOnRoof;
@@ -283,8 +278,9 @@ private:
     //! \brief The search for the way back found nothing: no new search for HatcheryReturnRetryTurns turns.
     void failReturn();
 
-    //! \brief Server side: one random step inside the hatchery (or around if outside).
-    void wander(Tile* tile, Room* currentHatchery);
+    //! \brief Server side: pecks for a moment or walks to a free point anywhere in the hatchery (see
+    //! RoomHatchery::planWanderPath). Does nothing outside of a hatchery.
+    void wander(Room* currentHatchery);
 
     //! \brief Places (inside the room) the chicken could walk to from the given tile in one step.
     void collectMovePositions(Tile* tile, Room* currentHatchery, std::vector<Ogre::Vector2>& positions);
