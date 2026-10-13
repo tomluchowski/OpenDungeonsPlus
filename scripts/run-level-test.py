@@ -22,7 +22,7 @@ if all levels passed.
 Usage:
     python scripts/run-level-test.py --exe build/windows/Release/opendungeons-plus.exe
     python scripts/run-level-test.py --exe ... --seconds 60 levels/campaign/Mossgate.level
-    python scripts/run-level-test.py --exe ... --markdown   # result paragraph for CAMPAIGN-STATE.md
+    python scripts/run-level-test.py --exe ... --markdown   # result paragraph as markdown
 """
 
 import argparse
@@ -121,7 +121,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--exe", required=True, help="built game executable")
     parser.add_argument("--seconds", type=int, default=120, help="game time per level (default 120)")
-    parser.add_argument("--markdown", action="store_true", help="print the results as a CAMPAIGN-STATE.md paragraph")
+    parser.add_argument("--markdown", action="store_true", help="print the results as a markdown paragraph")
     parser.add_argument("--progress-file", help="append one progress line per finished level to this file")
     parser.add_argument("levels", nargs="*", help="level files (default: all levels of Campaign.cfg)")
     args = parser.parse_args()

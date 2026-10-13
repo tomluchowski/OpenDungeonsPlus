@@ -23,6 +23,11 @@
 
 class GameMap;
 
+namespace Ogre
+{
+class RenderTarget;
+}
+
 //! \brief Debug mode for automated level load tests (command line: --run-level <file> --seconds <N>).
 //! The game starts a local single player game on the level, lets it run for N seconds of game time,
 //! then fires the win of the human seat and checks that it is reported. One result line (PASS/FAIL
@@ -42,7 +47,9 @@ public:
     };
 
     //! \brief Activates the test mode and starts the watchdog.
-    static void configure(const std::string& levelFile, int32_t seconds);
+    //! If seed is not 0, the random generator is set to it when the first turn runs and the game
+    //! state at the end of the run is written to run-level-state.txt (for seeded comparisons).
+    static void configure(const std::string& levelFile, int32_t seconds, uint32_t seed = 0);
 
     static bool isActive();
 
@@ -65,6 +72,17 @@ public:
 
     //! \brief Called by the server thread after every turn of the game.
     static void onServerTurn(GameMap& gameMap);
+
+    //! \brief Called by the render loop after every frame. Once the game runs, it appends one line per
+    //! second to run-level-frames.txt in the user data folder (average fps, worst and best frame time
+    //! in ms of that second), so that frame times can be compared between runs.
+    static void onFrameRendered(Ogre::RenderTarget& target);
+
+    //! \brief Called by the server thread with the time (microseconds) it needed to process one turn.
+    static void onServerTurnTime(int64_t microseconds);
+
+    //! \brief Called by the client thread for every frame with the time since the last frame (seconds).
+    static void onFrame(double seconds);
 };
 
 #endif // RUNLEVELTEST_H

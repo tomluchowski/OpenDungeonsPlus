@@ -264,6 +264,8 @@ bool ODFrameListener::frameEnded(const Ogre::FrameEvent& evt)
 
 bool ODFrameListener::frameStarted(const Ogre::FrameEvent& evt)
 {
+    if(RunLevelTest::isActive())
+        RunLevelTest::onFrame(evt.timeSinceLastFrame);
     AbstractApplicationMode* currentMode = mModeManager->getCurrentMode();
     if(currentMode)
         currentMode->onFrameStarted(evt);

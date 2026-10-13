@@ -161,6 +161,10 @@ public:
     inline int32_t getRunLevelSeconds() const
     { return mRunLevelSeconds; }
 
+    //! \brief Debug option --seed: fixed random seed for the automated load test (0 if not used)
+    inline uint32_t getRunLevelSeed() const
+    { return mRunLevelSeed; }
+
 private:
     //! \brief used when the executable is launched in server mode
     bool mServerMode;
@@ -170,6 +174,7 @@ private:
     //! \brief used by the automated level load test
     std::string mRunLevel;
     int32_t mRunLevelSeconds;
+    uint32_t mRunLevelSeed;
 
     //! \brief used when the network port is forced
     int32_t mForcedNetworkPort;

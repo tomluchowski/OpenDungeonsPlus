@@ -30,6 +30,7 @@
 #include "utils/ConfigManager.h"
 #include "utils/LogManager.h"
 #include "utils/Helper.h"
+#include "utils/RunLevelTest.h"
 
 #include <CEGUI/CEGUI.h>
 
@@ -111,6 +112,13 @@ void MenuModeConfigureSeats::activate()
     msgWin->setVisible(false);
 
     tmpWin->setText(reinterpret_cast<const CEGUI::utf8*>(std::string("Configure map : " + gameMap->getLevelName()).c_str()));
+    // A --run-level test has predefined seats: the page is not shown, the game starts
+    // as soon as the server is ready (see activatePlayerConfig)
+    if(RunLevelTest::isActive())
+    {
+        tmpWin->setVisible(false);
+        msgWin->setVisible(true);
+    }
 
     // Reset the chat
     CEGUI::Window* chatWin = tmpWin->getChild("GameChatText");
@@ -481,6 +489,13 @@ void MenuModeConfigureSeats::activatePlayerConfig()
 
     CEGUI::Window* startButton = getModeManager().getGui().getGuiSheet(Gui::guiSheet::configureSeats)->getChild("ListPlayers/LaunchGameButton");
     startButton->setEnabled(enabled);
+
+    // The seats of a --run-level test are predefined, so the game is started without asking
+    if(RunLevelTest::isActive())
+    {
+        CEGUI::EventArgs args;
+        launchSelectedButtonPressed(args);
+    }
 }
 
 void MenuModeConfigureSeats::refreshSeatConfiguration(ODPacket& packet)

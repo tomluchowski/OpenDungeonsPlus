@@ -56,6 +56,8 @@
 #include <SFML/Network.hpp>
 #include <SFML/System.hpp>
 
+#include <chrono>
+
 #include <boost/algorithm/string/join.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/filesystem.hpp>
@@ -457,8 +459,12 @@ void ODServer::startNewTurn(double timeSinceLastTurn)
         case ServerMode::ModeGameMultiPlayer:
         case ServerMode::ModeGameLoaded:
         {
+            std::chrono::steady_clock::time_point turnStart = std::chrono::steady_clock::now();
             gameMap->doTurn(timeSinceLastTurn);
             gameMap->doPlayerAITurn(timeSinceLastTurn);
+            if(RunLevelTest::isActive())
+                RunLevelTest::onServerTurnTime(std::chrono::duration_cast<std::chrono::microseconds>(
+                    std::chrono::steady_clock::now() - turnStart).count());
             break;
         }
         case ServerMode::ModeEditor:
