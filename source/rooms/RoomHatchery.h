@@ -56,6 +56,12 @@ protected:
     BuildingObject* notifyActiveSpotCreated(ActiveSpotPlace place, Tile* tile) override;
     void notifyActiveSpotRemoved(ActiveSpotPlace place, Tile* tile) override;
 private:
+    //! Creatures of an enemy seat that stand on a tile of the hatchery.
+    void collectEnemies(std::vector<Creature*>& enemies) const;
+    //! True if a map light is within HatcheryCareLightRadius tiles of the hatchery.
+    bool isLit() const;
+    //! Claimed by the keeper, lit and free of enemies (see HatcheryCycle::wellCared).
+    HatcheryCare getCare(const std::vector<Creature*>& enemies) const;
     //! Settings of the life cycle from the config, laying times scaled by the research.
     HatcheryCycleSettings getCycleSettings() const;
     //! Creates a hatchery animal at the given position.

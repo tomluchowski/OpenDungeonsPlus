@@ -46,6 +46,25 @@ bool HatcheryCycle::needCoopRooster(const HatcheryCounts& counts, uint32_t nbCoo
     return (nbCoops > 0) && (counts.mRoosters == 0);
 }
 
+bool HatcheryCycle::canHatch(const HatcheryCounts& counts, bool enemiesPresent)
+{
+    return eggsMayHatch(counts) && !enemiesPresent;
+}
+
+bool HatcheryCycle::wellCared(const HatcheryCare& care)
+{
+    return care.mClaimed && care.mLit && !care.mEnemies;
+}
+
+HatcheryCycleSettings HatcheryCycle::withCare(const HatcheryCycleSettings& settings, const HatcheryCare& care)
+{
+    if(!wellCared(care))
+        return settings;
+
+    uint32_t percent = std::min<uint32_t>(settings.mCareLayPercent, 90);
+    return scaled(settings, (100 - percent) / 100.0);
+}
+
 uint32_t HatcheryCycle::layInterval(const HatcheryCycleSettings& settings, uint32_t random)
 {
     uint32_t minTurns = std::max<uint32_t>(1, settings.mLayMin);

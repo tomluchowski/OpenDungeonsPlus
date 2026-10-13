@@ -27,6 +27,7 @@
 #include "entities/Creature.h"
 #include "entities/Tile.h"
 #include "entities/ChickenEntity.h"
+#include "entities/MapLight.h"
 #include "game/Player.h"
 #include "game/Seat.h"
 #include "gamemap/GameMap.h"
@@ -160,6 +161,7 @@ HatcheryCycleSettings RoomHatchery::getCycleSettings() const
     settings.mGrowTurns = static_cast<uint32_t>(config.getRoomConfigDoubleOrDefault("HatcheryGrowTurns", settings.mGrowTurns));
     settings.mRoosterWait = static_cast<uint32_t>(config.getRoomConfigDoubleOrDefault("HatcheryRoosterSpawnRate", settings.mRoosterWait));
     settings.mTilesPerChicken = static_cast<uint32_t>(config.getRoomConfigDoubleOrDefault("HatcheryTilesPerChicken", settings.mTilesPerChicken));
+    settings.mCareLayPercent = static_cast<uint32_t>(config.getRoomConfigDoubleOrDefault("HatcheryCareLayPercent", settings.mCareLayPercent));
 
     // The research of the hatchery shortens the waiting times
     double coopWait = config.getRoomConfigDoubleOrDefault("HatcheryChickenSpawnRate", settings.mCoopWait);
@@ -200,6 +202,56 @@ bool RoomHatchery::spawnFromCoop(ChickenKind kind, const HatcheryCycleSettings& 
         return true;
     }
     return false;
+}
+
+void RoomHatchery::collectEnemies(std::vector<Creature*>& enemies) const
+{
+    for(Creature* creature : getGameMap()->getCreatures())
+    {
+        if((creature == nullptr) || !creature->getIsOnMap() || (creature->getSeat() == nullptr))
+            continue;
+
+        Tile* tile = creature->getPositionTile();
+        if((tile == nullptr) || (tile->getCoveringRoom() != this))
+            continue;
+
+        if(!creature->getSeat()->isAlliedSeat(getSeat()))
+            enemies.push_back(creature);
+    }
+}
+
+bool RoomHatchery::isLit() const
+{
+    double radius = ConfigManager::getSingleton().getRoomConfigDoubleOrDefault("HatcheryCareLightRadius", 8.0);
+    double radiusSquared = radius * radius;
+    for(MapLight* light : getGameMap()->getMapLights())
+    {
+        for(Tile* tile : mCoveredTiles)
+        {
+            double dx = light->getPosition().x - tile->getX();
+            double dy = light->getPosition().y - tile->getY();
+            if((dx * dx + dy * dy) <= radiusSquared)
+                return true;
+        }
+    }
+    return false;
+}
+
+HatcheryCare RoomHatchery::getCare(const std::vector<Creature*>& enemies) const
+{
+    HatcheryCare care;
+    care.mClaimed = true;
+    for(Tile* tile : mCoveredTiles)
+    {
+        if(!tile->isClaimedForSeat(getSeat()))
+        {
+            care.mClaimed = false;
+            break;
+        }
+    }
+    care.mLit = isLit();
+    care.mEnemies = !enemies.empty();
+    return care;
 }
 
 void RoomHatchery::doUpkeep()
@@ -247,6 +299,12 @@ void RoomHatchery::doUpkeep()
     counts.mChicks = chicks.size();
     counts.mEggs = eggs.size();
 
+    // Breeding needs care: hens lay faster in a claimed, lit hatchery without enemies
+    std::vector<Creature*> enemies;
+    collectEnemies(enemies);
+    const HatcheryCare care = getCare(enemies);
+    const HatcheryCycleSettings layingSettings = HatcheryCycle::withCare(settings, care);
+
     // Hens lay eggs while the hatchery is not full
     uint32_t capacity = HatcheryCycle::capacity(mCoveredTiles.size(), mNumActiveSpots, settings);
     for(ChickenEntity* hen : hens)
@@ -254,7 +312,7 @@ void RoomHatchery::doUpkeep()
         if(!hen->countDownLay())
             continue;
 
-        hen->setLayTimer(HatcheryCycle::layInterval(settings, Random::Uint(0, 1000)));
+        hen->setLayTimer(HatcheryCycle::layInterval(layingSettings, Random::Uint(0, 1000)));
         if(!HatcheryCycle::canLay(counts, capacity))
             continue;
 
@@ -262,8 +320,8 @@ void RoomHatchery::doUpkeep()
         ++counts.mEggs;
     }
 
-    // Eggs hatch while there is a rooster
-    if(HatcheryCycle::eggsMayHatch(counts))
+    // Eggs hatch while there is a rooster and no enemy stands in the hatchery
+    if(HatcheryCycle::canHatch(counts, care.mEnemies))
     {
         for(ChickenEntity* egg : eggs)
         {
@@ -283,7 +341,7 @@ void RoomHatchery::doUpkeep()
             continue;
 
         chick->setKind(ChickenKind::hen);
-        chick->setLayTimer(HatcheryCycle::layInterval(settings, Random::Uint(0, 1000)));
+        chick->setLayTimer(HatcheryCycle::layInterval(layingSettings, Random::Uint(0, 1000)));
         --counts.mChicks;
         ++counts.mHens;
     }

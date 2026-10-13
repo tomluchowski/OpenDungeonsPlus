@@ -46,3 +46,11 @@ for key in ('HatcheryLayMin', 'HatcheryLayMax', 'HatcheryHatchTurns', 'HatcheryG
     assert key in config and key in room, key
 
 print('hatchery life cycle checks passed')
+
+# Breeding needs care: lay faster when claimed, lit and without enemies; eggs wait while enemies stand in the hatchery
+cycle = (root / 'source/rooms/HatcheryCycle.cpp').read_text()
+room_cpp = (root / 'source/rooms/RoomHatchery.cpp').read_text()
+cfg = (root / 'config/rooms.cfg').read_text()
+assert 'wellCared' in cycle and 'canHatch' in cycle
+assert 'HatcheryCycle::withCare' in room_cpp and 'HatcheryCycle::canHatch(counts, care.mEnemies)' in room_cpp
+assert 'HatcheryCareLayPercent' in cfg and 'HatcheryCareLightRadius' in cfg

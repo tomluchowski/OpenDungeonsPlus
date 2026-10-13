@@ -30,7 +30,8 @@ struct HatcheryCycleSettings
         mGrowTurns(3),
         mCoopWait(15),
         mRoosterWait(15),
-        mTilesPerChicken(1)
+        mTilesPerChicken(1),
+        mCareLayPercent(25)
     {}
 
     //! Turns between two eggs of one hen (random value in [mLayMin, mLayMax]).
@@ -46,6 +47,25 @@ struct HatcheryCycleSettings
     uint32_t mRoosterWait;
     //! Number of hatchery tiles needed for one hen, chick or egg.
     uint32_t mTilesPerChicken;
+    //! Percent by which the laying times are shorter while the hatchery is well cared for.
+    uint32_t mCareLayPercent;
+};
+
+//! \brief How well the keeper looks after a hatchery.
+struct HatcheryCare
+{
+    HatcheryCare() :
+        mClaimed(false),
+        mLit(false),
+        mEnemies(false)
+    {}
+
+    //! All tiles of the hatchery are claimed by its keeper.
+    bool mClaimed;
+    //! A light is close to the hatchery.
+    bool mLit;
+    //! An enemy creature stands in the hatchery.
+    bool mEnemies;
 };
 
 //! \brief Number of animals of a hatchery per kind.
@@ -86,6 +106,16 @@ public:
 
     //! A rooster comes out of a coop only when the hatchery has a coop and no rooster.
     static bool needCoopRooster(const HatcheryCounts& counts, uint32_t nbCoops);
+
+    //! Eggs only hatch while the hatchery has a rooster and no enemy stands in it.
+    static bool canHatch(const HatcheryCounts& counts, bool enemiesPresent);
+
+    //! Breeding needs care: claimed, lit and without enemies.
+    static bool wellCared(const HatcheryCare& care);
+
+    //! The settings with the laying times shortened by mCareLayPercent (at most 90) when the hatchery is
+    //! well cared for, otherwise unchanged.
+    static HatcheryCycleSettings withCare(const HatcheryCycleSettings& settings, const HatcheryCare& care);
 
     //! Turns until the next egg of a hen. random is any random number.
     static uint32_t layInterval(const HatcheryCycleSettings& settings, uint32_t random);
