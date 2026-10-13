@@ -72,6 +72,24 @@ bool HatcheryCycle::canHatch(const HatcheryCounts& counts, bool enemiesPresent)
     return eggsMayHatch(counts) && !enemiesPresent;
 }
 
+uint32_t HatcheryCycle::walkTurns(double distance, double tilesPerTurn)
+{
+    if((distance <= 0.0) || (tilesPerTurn <= 0.0))
+        return 0;
+
+    return static_cast<uint32_t>(std::ceil(distance / tilesPerTurn));
+}
+
+bool HatcheryCycle::tripDue(uint32_t remaining, uint32_t walk, const HatcheryCycleSettings& settings)
+{
+    return remaining <= walk + settings.mLayShowTurns;
+}
+
+bool HatcheryCycle::walkFits(uint32_t walk, uint32_t remaining, const HatcheryCycleSettings& settings)
+{
+    return walk + settings.mLayShowTurns <= remaining;
+}
+
 uint32_t HatcheryCycle::carePercent(const HatcheryCycleSettings& settings, const HatcheryCare& care)
 {
     if(!care.mClaimed)
@@ -91,7 +109,9 @@ HatcheryCycleSettings HatcheryCycle::withCare(const HatcheryCycleSettings& setti
     if(percent == 0)
         return settings;
 
-    return scaled(settings, (100 - percent) / 100.0);
+    HatcheryCycleSettings ret = settings;
+    ret.mLayFactor = settings.mLayFactor * ((100 - percent) / 100.0);
+    return ret;
 }
 
 bool HatcheryCycle::tramples(const HatcheryCycleSettings& settings, bool enemyCreature, bool isEgg, uint32_t roll)
@@ -139,7 +159,12 @@ uint32_t HatcheryCycle::layInterval(const HatcheryCycleSettings& settings, uint3
 {
     uint32_t minTurns = std::max<uint32_t>(1, settings.mLayMin);
     uint32_t maxTurns = std::max(minTurns, settings.mLayMax);
-    return minTurns + (random % (maxTurns - minTurns + 1));
+    const uint32_t span = maxTurns - minTurns + 1;
+    const double value = (minTurns + (random % span)) * std::max(0.0, settings.mLayFactor);
+    const uint32_t whole = static_cast<uint32_t>(value);
+    // The fraction decides by chance whether the time is rounded up, so the average time is exact
+    const bool roundUp = static_cast<double>((random / span) % 1000) < (value - whole) * 1000.0;
+    return std::max<uint32_t>(1, whole + (roundUp ? 1 : 0));
 }
 
 HatcheryCycleSettings HatcheryCycle::scaled(const HatcheryCycleSettings& settings, double factor)

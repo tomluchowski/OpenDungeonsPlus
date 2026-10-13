@@ -170,24 +170,30 @@ assert 'mCentralActiveSpotTiles' in nest and 'squaredDistance' in nest, 'closest
 assert 'HatcheryNestEggs' in nest and 'HatcheryNestSameRadius' in nest
 assert 'HatcheryNestEggs' in cfg and 'HatcheryNestSameRadius' in cfg
 assert 'nestEggSpot' in coop_h and 'nestCount' in coop_h and 'eggsPerNest' in coop_h
-lay = doUpkeep[doUpkeep.index('hen->countDownLay()'):doUpkeep.index('Eggs hatch while there is a rooster')]
-assert 'findNestSpot(' in lay and 'spawnAnimal(ChickenKind::egg, eggSpot, settings)' in lay
+lay = doUpkeep[doUpkeep.index('Hens lay eggs while the hatchery is not full'):doUpkeep.index('Eggs hatch while there is a rooster')]
+assert 'findNestSpot(' in lay and 'eggs.push_back(spawnAnimal(ChickenKind::egg, eggSpot, settings))' in lay
 assert 'eggPositions.push_back' in lay, 'an egg laid this turn takes its place at once'
 assert 'HatcheryCycle::canLay(counts, capacity)' in lay, 'capacity still limits the eggs'
-assert 'ChickenPose::lay' in lay, 'the hen sits down where she is (robust variant)'
-# The hen walks to the place next to the nest first and lays there (the egg lies in the nest)
-assert 'getNestStandPoint(eggSpot, standing)' in lay and 'trip.mHen = hen->getName()' in lay and 'setFollowTarget(standing' in lay
-assert doUpkeep.index('isOnNestTrip(*hen)') < doUpkeep.index('hen->countDownLay()'), 'a hen on her way does not start a second egg'
+assert 'ChickenPose::lay' in lay, 'the hen sits down where she is when the egg has no nest'
+# The hen plans her egg early, walks to the place next to the nest (real distance, real walking speed) and lays there
+assert 'getNestStandPoint(eggSpot, standing)' in lay and 'plan.mHen = hen->getName()' in lay
+walk_body = body(room_cpp, 'uint32_t RoomHatchery::nestWalkTurns')
+assert 'HatcheryCycle::walkTurns(' in walk_body and 'getMoveSpeed()' in walk_body and 'ODApplication::turnsPerSecond' in walk_body, 'the walk window follows the real distance and speed'
+assert 'nestWalkTurns(*hen, standing)' in lay and 'HatcheryCycle::walkFits(walk, hen->getLayTimer(), settings)' in lay
+assert 'leadTurns' not in room_cpp and 'mNestWalkTurns' not in room_cpp and 'mNestWalkTurns' not in cycle
+assert 'planned->mDue = true' in lay, 'the egg is laid when the laying timer runs out, not when the hen arrives'
 trips = body(room_cpp, 'void RoomHatchery::updateNestTrips')
-assert 'HatcheryNestArrive' in trips and 'ChickenPose::lay' in trips and 'it->mWalkTurns' in trips, 'arrival or timeout starts the Lay pose'
-assert 'hen == nullptr' in trips and '--counts.mEggs' in trips, 'a hen that is gone takes her egg with her'
+assert 'HatcheryNestArrive' in trips and 'ChickenPose::lay' in trips and 'HatcheryCycle::tripDue(' in trips, 'she sets off when the turns left are as many as walk and pose'
+assert 'setFollowTarget(it->mStand' in trips and 'hen == nullptr' in trips and 'it->mDue' in trips, 'a hen that is gone takes a planned egg with her, a laid one still appears'
+assert 'uint32_t HatcheryCycle::walkTurns' in cycle_cpp and 'bool HatcheryCycle::tripDue' in cycle_cpp and 'layDelay' not in cycle_cpp
 assert 'standingPosition' in body(room_cpp, 'bool RoomHatchery::getNestStandPoint')
-assert '!it->mHen.empty()' in body(room_cpp, 'void RoomHatchery::releasePendingEggs'), 'the egg waits for the hen'
-assert doUpkeep.index('updateNestTrips(hens, counts)') < doUpkeep.index('releasePendingEggs(settings)')
-assert 'HatcheryNestWalkTurns' in cfg and 'HatcheryNestArrive' in cfg
-# The walk must not delay the hatching (balance parity): the egg takes the turns since the hen started as its age
-assert '++it->mAge' in body(room_cpp, 'void RoomHatchery::releasePendingEggs') and '->setAge(it->mAge)' in room_cpp
-assert 'void setAge(' in chicken_h
+assert doUpkeep.index('updateNestTrips(hens, settings)') < doUpkeep.index('hen->countDownLay()') < doUpkeep.index('releasePendingEggs(settings, eggs)')
+assert 'HatcheryNestWalkTurns' not in cfg and 'HatcheryNestArrive' in cfg and 'HatcheryLayFactor' in cfg and 'HatcheryLayFactor' in room_cpp
+# A late egg (the walk was longer than the time left) gets the age it would have had, and so does the chick: the rhythm
+# of the cycle does not depend on the way to the nest. The parity test in the unit tests models exactly this.
+assert 'egg->setAge(it->mLate)' in body(room_cpp, 'void RoomHatchery::releasePendingEggs')
+assert 'setAge(eggAge - settings.mHatchTurns)' in doUpkeep and 'chicks.push_back(egg)' in doUpkeep
+assert 'void setAge' in chicken_h or 'inline void setAge' in chicken_h
 assert 'eggs.erase(eggIt)' in doUpkeep and doUpkeep.index('eggs.erase(eggIt)') < doUpkeep.index('eggPositions.push_back'),     'trampled eggs free their place'
 # The chick from a nest stands next to the coop, the nest lies in the footprint of the coop
 assert 'leaveNest(egg)' in doUpkeep and 'chick->teleport(' in body(room_cpp, 'void RoomHatchery::leaveNest')
@@ -216,8 +222,8 @@ assert 'mLayShowTurns' in (root / 'source/rooms/HatcheryCycle.h').read_text()
 assert 'HatcheryLayShowTurns' in room_cpp and 'HatcheryLayShowTurns' in config
 laying = body(room_cpp, 'void RoomHatchery::doUpkeep')
 assert 'mPendingEggs.push_back(PendingEgg(eggSpot, settings.mLayShowTurns))' in laying
-assert 'releasePendingEggs(settings)' in laying and 'eggs.size() + mPendingEggs.size()' in laying
-assert laying.index('releasePendingEggs(settings)') < laying.index('hen->countDownLay()')
+assert 'releasePendingEggs(settings, eggs)' in laying and 'if(pending.mDue)' in laying
+assert laying.index('hen->countDownLay()') < laying.index('releasePendingEggs(settings, eggs)')
 release = body(room_cpp, 'void RoomHatchery::releasePendingEggs')
 assert 'spawnAnimal(ChickenKind::egg' in release and 'erase(it)' in release
 # the egg is created in one place only (here or at once without delay), never in both

@@ -87,15 +87,23 @@ private:
     void leaveNest(ChickenEntity* chick);
     //! An egg is trampled: shell pieces, yolk and feathers fly where it lay (the clients show it).
     void fireEggTrample(const ChickenEntity& egg);
-    //! Lets the eggs appear whose hen has shown herself laying for long enough (see mPendingEggs).
-    void releasePendingEggs(const HatcheryCycleSettings& settings);
+    //! Lets the eggs appear whose laying timer has run out and whose hen has shown herself laying (see mPendingEggs).
+    //! A late egg gets the age it would have had on time. The new eggs are added to eggs.
+    void releasePendingEggs(const HatcheryCycleSettings& settings, std::vector<ChickenEntity*>& eggs);
     //! A free place next to the nest where a hen can stand (the nests lie inside the footprint of the coop).
     bool getNestStandPoint(const Ogre::Vector3& nestSpot, Ogre::Vector2& standing) const;
-    //! True while the hen walks to the nest to lay her egg there (see PendingEgg::mHen).
+    //! Turns the hen needs to walk from where she is to the place next to the nest: the real distance at her walking
+    //! speed, and a turn for setting off. 0 when she is there already.
+    uint32_t nestWalkTurns(ChickenEntity& hen, const Ogre::Vector2& standing) const;
+    //! True from the moment the hen sets off for the nest until her egg appears (see PendingEgg::mHen).
     bool isOnNestTrip(const ChickenEntity& hen) const;
-    //! Hens on their way to a nest: when one arrives (or needs too long) she sits down and lays (Lay pose), a hen
-    //! that is gone takes her egg with her.
-    void updateNestTrips(const std::vector<ChickenEntity*>& hens, HatcheryCounts& counts);
+    struct PendingEgg;
+    //! The planned egg of a hen (set off or not), nullptr if she has none.
+    PendingEgg* findPendingEgg(const ChickenEntity& hen);
+    //! Hens with a planned egg: one sets off when the turns left until the egg are as many as the walk and the Lay
+    //! pose, waits at the nest until the pose has to start, and sits down. A hen that is gone loses an egg that is not
+    //! due yet, a due egg still appears.
+    void updateNestTrips(const std::vector<ChickenEntity*>& hens, const HatcheryCycleSettings& settings);
     //! Lets a hen or a rooster come out of a coop. Returns false if no coop has a free place.
     bool spawnFromCoop(ChickenKind kind, const HatcheryCycleSettings& settings, uint32_t count = 1);
 
@@ -139,30 +147,44 @@ private:
     uint32_t mCrowInterval;
     //! Number of the last day the rooster crowed for (HatcheryRooster::dayNumber), -1 until he is first seen
     int64_t mLastCrowDay;
-    //! An egg a hen is still laying: the hen shows herself sitting (Lay pose) for HatcheryLayShowTurns turns, then the
-    //! egg appears at the place in the nest that was chosen when she started. Saved in the "HatcheryLays" line, so
-    //! a save in between neither loses nor doubles the egg. Pending eggs count as eggs for the capacity.
+    //! An egg that a hen is going to lay. The egg is laid when the laying timer of the hen runs out (it is due then,
+    //! counts as an egg for the capacity and is saved in the "HatcheryLays" line). Before that the hen has planned it:
+    //! she chose the place in a nest, sets off when the turns left are as many as the walk and the Lay pose, waits at the
+    //! nest and shows herself sitting (Lay pose) for HatcheryLayShowTurns turns, so that the egg appears just when the
+    //! timer runs out. A hen that is late (a long walk) lets the egg appear later, it then gets the age it would have had.
     struct PendingEgg
     {
         PendingEgg(const Ogre::Vector3& spot, uint32_t turns) :
             mSpot(spot),
             mTurns(turns),
             mStand(0.0f, 0.0f),
-            mWalkTurns(0),
-            mAge(0)
+            mWalk(0),
+            mWalked(0),
+            mNest(false),
+            mStarted(false),
+            mPosing(false),
+            mDue(true),
+            mLate(0)
         {}
 
         Ogre::Vector3 mSpot;
+        //! Turns until the egg may appear (counts down while the hen sits, or at once without a hen).
         uint32_t mTurns;
-        //! Not empty while the hen is still on her way to the nest: her name, the place next to the nest where she
-        //! stands to lay, and the turns left for the walk. mTurns only counts down once she has started to lay.
-        //! Not saved: a save in between lets the egg appear as it would after the walk.
+        //! Not empty while the egg is planned by a hen: her name and the place next to the nest where she stands to lay.
+        //! Not saved: a save in between lets a due egg appear after mTurns, a planned one is planned again.
         std::string mHen;
         Ogre::Vector2 mStand;
-        uint32_t mWalkTurns;
-        //! Turns since the hen started (walk and Lay pose). The egg takes them with it as its age, so the walk does
-        //! not make the hatching later (balance parity of the life cycle).
-        uint32_t mAge;
+        //! Turns the walk to mStand takes (real distance and walking speed), turns she has been walking.
+        uint32_t mWalk;
+        uint32_t mWalked;
+        //! The egg lies in a nest (she walks to mStand). Otherwise it lies where she sits down.
+        bool mNest;
+        //! She has set off / sits and shows herself laying.
+        bool mStarted;
+        bool mPosing;
+        //! The laying timer has run out: the egg exists for the capacity. mLate counts the turns since then.
+        bool mDue;
+        uint32_t mLate;
     };
     std::vector<PendingEgg> mPendingEggs;
     //! Turns the hatchery has been empty (no hen, chick or egg)

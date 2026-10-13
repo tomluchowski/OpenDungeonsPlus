@@ -27,6 +27,7 @@ struct HatcheryCycleSettings
     HatcheryCycleSettings() :
         mLayMin(3),
         mLayMax(7),
+        mLayFactor(1.021),
         mHatchTurns(2),
         mGrowTurns(4),
         mCoopWait(15),
@@ -34,15 +35,19 @@ struct HatcheryCycleSettings
         mCareLightPercent(10),
         mCareCalmPercent(15),
         mTramplePercent(30),
+        mCoopBatch(0),
         mFightTurns(14),
         mFightApproachTurns(40),
-        mLayShowTurns(2),
-        mCoopBatch(0)
+        mLayShowTurns(2)
     {}
 
-    //! Turns between two eggs of one hen (random value in [mLayMin, mLayMax]).
+    //! Turns between two eggs of one hen (random value in [mLayMin, mLayMax], multiplied by mLayFactor).
     uint32_t mLayMin;
     uint32_t mLayMax;
+    //! Factor on the laying times. It balances the cycle against the spawning before it (the parity test of the unit
+    //! tests): 1.021 makes the edible chickens per minute equal to the old ones within 3 percent. The care bonus and
+    //! the research multiply it, the times stay whole turns (the fraction is rounded up or down by chance).
+    double mLayFactor;
     //! Turns an egg needs to hatch, once the hatchery has a rooster.
     uint32_t mHatchTurns;
     //! Turns a chick needs to grow into a hen.
@@ -58,14 +63,14 @@ struct HatcheryCycleSettings
     uint32_t mCareCalmPercent;
     //! Chance (percent per turn) that an enemy creature next to an egg tramples it.
     uint32_t mTramplePercent;
+    //! Hens that come out of the coops together once the wait is over (0 = one hen per coop, as many as the capacity allows).
+    uint32_t mCoopBatch;
     //! Turns two roosters of one hatchery fight once they stand face to face.
     uint32_t mFightTurns;
     //! Turns two roosters get at most to walk up to each other before the fight starts where they stand.
     uint32_t mFightApproachTurns;
     //! Turns a laying hen shows herself sitting before the egg appears in the nest (0 = the egg appears at once).
     uint32_t mLayShowTurns;
-    //! Hens that come out of the coops together once the wait is over (0 = one hen per coop, as many as the capacity allows).
-    uint32_t mCoopBatch;
 };
 
 //! \brief How well the keeper looks after a hatchery.
@@ -140,11 +145,23 @@ public:
     //! Eggs only hatch while the hatchery has a rooster and no enemy stands in it.
     static bool canHatch(const HatcheryCounts& counts, bool enemiesPresent);
 
+    //! Turns a hen needs to walk the distance (tiles) at tilesPerTurn, rounded up. 0 when she is there already.
+    static uint32_t walkTurns(double distance, double tilesPerTurn);
+
+    //! A hen sets off for her nest (or sits down where she is, walk 0) when the turns left until her egg are no more
+    //! than the walk and the Lay pose together. remaining counts the turn in which the timer runs out as 1.
+    static bool tripDue(uint32_t remaining, uint32_t walk, const HatcheryCycleSettings& settings);
+
+    //! The nest is used only when the walk to it and the Lay pose fit into the turns left until her egg (remaining, as
+    //! in tripDue): the window is the real way in the time she has, so the egg appears when the timer runs out and the
+    //! rate of the eggs does not depend on how far the nest is. Otherwise she lays where she sits.
+    static bool walkFits(uint32_t walk, uint32_t remaining, const HatcheryCycleSettings& settings);
+
     //! Percent by which the laying times are shorter: nothing unless all tiles are claimed, then mCareLightPercent
     //! while a light is close plus mCareCalmPercent while no enemy stands in the hatchery (at most 90).
     static uint32_t carePercent(const HatcheryCycleSettings& settings, const HatcheryCare& care);
 
-    //! The settings with the laying times shortened by carePercent, unchanged without care.
+    //! The settings with the laying times shortened by carePercent (through mLayFactor), unchanged without care.
     static HatcheryCycleSettings withCare(const HatcheryCycleSettings& settings, const HatcheryCare& care);
 
     //! Enemy creatures and heroes trample eggs. Creatures of the keeper never harm eggs, and nothing
@@ -157,7 +174,8 @@ public:
     //! egg then lies on a free tile of the hatchery next to the hen.
     static int32_t pickNestPlace(const std::vector<bool>& occupied, uint32_t slotsPerNest);
 
-    //! Turns until the next egg of a hen. random is any random number.
+    //! Turns until the next egg of a hen. random is any random number (the game draws it from 0 to 999999: the low
+    //! part picks the time in [mLayMin, mLayMax], the rest decides how the fraction of mLayFactor is rounded).
     static uint32_t layInterval(const HatcheryCycleSettings& settings, uint32_t random);
 
     //! Copy of the settings where the laying times are multiplied by factor (research).
