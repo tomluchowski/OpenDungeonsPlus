@@ -51,6 +51,11 @@ protected:
     virtual BuildingObject* notifyActiveSpotCreated(ActiveSpotPlace place, Tile* tile) override;
     virtual void notifyActiveSpotRemoved(ActiveSpotPlace place, Tile* tile) override;
 private:
+    //! \brief Gets the tile where a worker delivers a corpse for the given grave spot.
+    //! \param spot The grave spot.
+    //! \return The default delivery tile, or the first free neighbouring tile of this crypt if a
+    //! building object stands on it. nullptr if no such tile exists.
+    Tile* getDeliveryTile(Tile* spot);
     std::map<Tile*,std::pair<Creature*, int32_t> > mRottingCreatures;
     int32_t mRottenPoints;
 };
