@@ -241,6 +241,30 @@ void CameraManager::createViewport(Ogre::RenderWindow* renderWindow)
     OD_LOG_INF("Creating viewport...");
 }
 
+void CameraManager::setRenderWindow(Ogre::RenderWindow* renderWindow)
+{
+    Ogre::Viewport* previousViewport = mViewport;
+    Ogre::RenderTarget* previousTarget = previousViewport->getTarget();
+    Ogre::Viewport* viewport = renderWindow->addViewport(mActiveCamera,
+        previousViewport->getZOrder(), previousViewport->getLeft(), previousViewport->getTop(),
+        previousViewport->getWidth(), previousViewport->getHeight());
+    viewport->setBackgroundColour(previousViewport->getBackgroundColour());
+    viewport->setClearEveryFrame(previousViewport->getClearEveryFrame(), previousViewport->getClearBuffers());
+    viewport->setMaterialScheme(previousViewport->getMaterialScheme());
+    viewport->setOverlaysEnabled(previousViewport->getOverlaysEnabled());
+    viewport->setSkiesEnabled(previousViewport->getSkiesEnabled());
+    viewport->setShadowsEnabled(previousViewport->getShadowsEnabled());
+    viewport->setVisibilityMask(previousViewport->getVisibilityMask());
+
+    mViewport = viewport;
+    previousTarget->removeViewport(previousViewport->getZOrder());
+    if(viewport->getActualHeight() > 0)
+    {
+        mActiveCamera->setAspectRatio(static_cast<Ogre::Real>(viewport->getActualWidth())
+            / static_cast<Ogre::Real>(viewport->getActualHeight()));
+    }
+}
+
 const Ogre::Vector3& CameraManager::getActiveCameraPosition() const
 {
     return getActiveCameraNode()->getPosition();

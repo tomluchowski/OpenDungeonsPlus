@@ -61,8 +61,7 @@
                     </Window>
                     <Window type="OD/Checkbox" name="VSyncCheckbox" >
                         <Property name="Area" value="{{0,22},{0,120},{0,166},{0,135}}" />
-                        <Property name="Text" value="VSync*" />
-                        <Property name="TooltipText" value="* Needs a restart to be potentially applied." />
+                        <Property name="Text" value="VSync" />
                     </Window>
                 </Window>
             </Window>
@@ -102,12 +101,12 @@
                     <Window type="OD/Checkbox" name="KeyboardGrabCheckbox" >
                         <Property name="Area" value="{{0,32},{0,40},{0,150},{0,60}}" />
                         <Property name="Text" value="Keyboard grab" />
-                        <Property name="TooltipText" value="When checked, the keyboard is grabbed and can't be used in other applications (requires restart)." />
+                        <Property name="TooltipText" value="When checked, the keyboard is grabbed and can't be used in other applications." />
                     </Window>
                     <Window type="OD/Checkbox" name="MouseGrabCheckbox" >
                         <Property name="Area" value="{{0,32},{0,80},{0,150},{0,100}}" />
                         <Property name="Text" value="Mouse grab" />
-                        <Property name="TooltipText" value="When checked, the mouse is grabbed and can't be used in other applications (requires restart)." />
+                        <Property name="TooltipText" value="When checked, the mouse is grabbed and can't be used in other applications." />
                     </Window>
                     <Window type="OD/Checkbox" name="AutoscrollCheckbox" >
                         <Property name="Area" value="{{0,32},{0,120},{0,150},{0,140}}" />
