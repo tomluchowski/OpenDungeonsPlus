@@ -83,6 +83,17 @@ struct RelationshipSettings
     int32_t mEventDefeatedEnemiesTogether;
     int32_t mEventArenaLoss;
     int32_t mEventChickenSnatched;
+    //! Training together counts at most once per pair in this number of turns (one training cycle)
+    int64_t mTrainingTogetherCooldownTurns;
+    //! Creatures that hit the same enemy within this number of turns took part in defeating it
+    int64_t mFightParticipantTurns;
+
+    //! Start value of a pair of creature classes (sorted pair of class names), see config
+    //! entries "Racial_<ClassA>_<ClassB>".
+    std::map<std::pair<std::string, std::string>, int32_t> mRacialStart;
+
+    //! \brief Start value for a pair of creature classes, 0 if the table has no entry.
+    int32_t getRacialStart(const std::string& classA, const std::string& classB) const;
 };
 
 //! \brief A change of the tier of a pair, to be sent to the clients.
@@ -116,8 +127,11 @@ public:
 
     //! \brief Single entry point for all gameplay hooks. Changes the value of the
     //! pair according to the amount configured for the event.
+    //! When the pair has no value yet, the racial start value of the two classes is applied first
+    //! (classes may be left empty to skip that).
     void onRelationshipEvent(RelationshipEvent event, const std::string& creatureA,
-        const std::string& creatureB, int64_t turn);
+        const std::string& creatureB, int64_t turn, const std::string& classA = std::string(),
+        const std::string& classB = std::string());
 
     //! \brief Adds amount to the pair (clamped to -100..100). A value of 0 removes the pair.
     void changeValue(const std::string& creatureA, const std::string& creatureB,
@@ -183,6 +197,8 @@ private:
 
     RelationshipSettings mSettings;
     std::map<Pair, PairData> mPairs;
+    //! Turn of the last counted training event per pair
+    std::map<Pair, int64_t> mLastTrainingTurn;
     std::vector<RelationshipTierChange> mTierChanges;
     int64_t mLastDriftTurn;
 };

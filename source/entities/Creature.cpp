@@ -2097,10 +2097,92 @@ std::string Creature::getStatsText()
     return tempSS.str();
 }
 
+bool Creature::canHaveRelationships() const
+{
+    if(!getIsOnServerMap() || !getGameMap()->isRelationshipsEnabled())
+        return false;
+
+    if((getSeat() == nullptr) || getSeat()->isRogueSeat() || (getSeat()->getFaction() == "Hero"))
+        return false;
+
+    return !getDefinition()->isWorker() && !isInPrison();
+}
+
+void Creature::reportRelationshipEvent(RelationshipEvent event, Creature& creatureA, Creature& creatureB)
+{
+    if(!creatureA.canHaveRelationships() || !creatureB.canHaveRelationships())
+        return;
+
+    if(creatureA.getSeat() != creatureB.getSeat())
+        return;
+
+    GameMap* gameMap = creatureA.getGameMap();
+    gameMap->getCreatureRelationships()->onRelationshipEvent(event, creatureA.getName(), creatureB.getName(),
+        gameMap->getTurnNumber(), creatureA.getDefinition()->getClassName(), creatureB.getDefinition()->getClassName());
+}
+
+void Creature::reportFightParticipants(Creature& killer)
+{
+    if(getDefinition()->isWorker() || !killer.canHaveRelationships() || (killer.getSeat() == getSeat()) || killer.getSeat()->isAlliedSeat(getSeat()))
+        return;
+
+    static const size_t MAX_PARTICIPANTS = 8;
+    int64_t turn = getGameMap()->getTurnNumber();
+    int64_t window = getGameMap()->getCreatureRelationships()->getSettings().mFightParticipantTurns;
+    std::vector<Creature*> participants;
+    participants.push_back(&killer);
+    for(std::map<std::string, int64_t>::const_iterator it = mRecentAttackers.begin(); it != mRecentAttackers.end(); ++it)
+    {
+        if(participants.size() >= MAX_PARTICIPANTS)
+            break;
+
+        if((turn - it->second) > window)
+            continue;
+
+        Creature* participant = getGameMap()->getCreature(it->first);
+        if((participant == nullptr) || (participant == &killer) || !participant->isAlive()
+           || (participant->getSeat() != killer.getSeat()) || !participant->canHaveRelationships())
+        {
+            continue;
+        }
+
+        participants.push_back(participant);
+    }
+    mRecentAttackers.clear();
+
+    for(size_t i = 0; i < participants.size(); ++i)
+    {
+        for(size_t j = i + 1; j < participants.size(); ++j)
+            reportRelationshipEvent(RelationshipEvent::defeatedEnemiesTogether, *participants[i], *participants[j]);
+    }
+}
+
 double Creature::takeDamage(GameEntity* attacker, double absoluteDamage, double physicalDamage, double magicalDamage, double elementDamage,
         Tile *tileTakingDamage, bool ko)
 {
+    bool wasAlive = isAlive();
+    bool wasKo = isKo();
     mNbTurnsWithoutBattle = 0;
+
+    // Remember who hurt us, to know who took part in the fight if we are defeated
+    Creature* creatureAttacking = nullptr;
+    if((attacker != nullptr) && (attacker->getObjectType() == GameEntityType::creature))
+        creatureAttacking = static_cast<Creature*>(attacker);
+    if((creatureAttacking != nullptr) && getIsOnServerMap() && getGameMap()->isRelationshipsEnabled()
+       && (creatureAttacking != this) && creatureAttacking->canHaveRelationships())
+    {
+        int64_t turn = getGameMap()->getTurnNumber();
+        int64_t window = getGameMap()->getCreatureRelationships()->getSettings().mFightParticipantTurns;
+        std::map<std::string, int64_t>::iterator itAttacker = mRecentAttackers.begin();
+        while(itAttacker != mRecentAttackers.end())
+        {
+            if((turn - itAttacker->second) > window)
+                itAttacker = mRecentAttackers.erase(itAttacker);
+            else
+                ++itAttacker;
+        }
+        mRecentAttackers[creatureAttacking->getName()] = turn;
+    }
     physicalDamage = std::max(physicalDamage - getPhysicalDefense(), 0.0);
     magicalDamage = std::max(magicalDamage - getMagicalDefense(), 0.0);
     elementDamage = std::max(elementDamage - getElementDefense(), 0.0);
@@ -2116,6 +2198,17 @@ double Creature::takeDamage(GameEntity* attacker, double absoluteDamage, double 
             mKoTurnCounter = -ConfigManager::getSingleton().getNbTurnsKoCreatureAttacked();
             OD_LOG_INF("creature=" + getName() + " has been KO by " + attacker->getName());
             dropCarriedEquipment();
+
+            // The loser of a fight in the arena gets a worse relationship with the winner
+            if(!wasKo && (creatureAttacking != nullptr) && (getPositionTile() != nullptr)
+               && (creatureAttacking->getPositionTile() != nullptr)
+               && (getPositionTile()->getCoveringRoom() != nullptr)
+               && (creatureAttacking->getPositionTile()->getCoveringRoom() != nullptr)
+               && (getPositionTile()->getCoveringRoom()->getType() == RoomType::arena)
+               && (creatureAttacking->getPositionTile()->getCoveringRoom()->getType() == RoomType::arena))
+            {
+                reportRelationshipEvent(RelationshipEvent::arenaLoss, *this, *creatureAttacking);
+            }
         }
     }
 
@@ -2123,7 +2216,11 @@ double Creature::takeDamage(GameEntity* attacker, double absoluteDamage, double 
     computeCreatureOverlayMoodValue();
 
     if(!isAlive())
+    {
+        if(wasAlive && (creatureAttacking != nullptr) && getIsOnServerMap() && getGameMap()->isRelationshipsEnabled())
+            reportFightParticipants(*creatureAttacking);
         fireEntityDead();
+    }
 
     if(!getIsOnServerMap())
         return damageDone;

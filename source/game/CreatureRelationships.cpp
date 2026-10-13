@@ -37,12 +37,16 @@ namespace
     static const int32_t DEFAULT_THRESHOLD_HATED = -50;
     static const int32_t DEFAULT_THRESHOLD_NEMESIS = -80;
     static const int32_t DEFAULT_DRIFT_AMOUNT = 1;
-    static const int64_t DEFAULT_DRIFT_INTERVAL_TURNS = 10;
-    static const int64_t DEFAULT_DRIFT_IDLE_TURNS = 30;
-    static const int32_t DEFAULT_EVENT_TRAINING_TOGETHER = 2;
+    static const int64_t DEFAULT_DRIFT_INTERVAL_TURNS = 30;
+    static const int64_t DEFAULT_DRIFT_IDLE_TURNS = 420;
+    static const int32_t DEFAULT_EVENT_TRAINING_TOGETHER = 3;
     static const int32_t DEFAULT_EVENT_DEFEATED_ENEMIES_TOGETHER = 8;
     static const int32_t DEFAULT_EVENT_ARENA_LOSS = -10;
     static const int32_t DEFAULT_EVENT_CHICKEN_SNATCHED = -12;
+    //! Training together counts once per pair in this many turns (one training cycle)
+    static const int64_t DEFAULT_TRAINING_TOGETHER_COOLDOWN_TURNS = 40;
+    //! Creatures that hit the same enemy within this many turns took part in defeating it
+    static const int64_t DEFAULT_FIGHT_PARTICIPANT_TURNS = 100;
 
     //! Largest absolute value a config setting may have; larger values are cut to it
     static const int64_t SETTING_LIMIT = 1000000;
@@ -89,8 +93,21 @@ RelationshipSettings::RelationshipSettings() :
     mEventTrainingTogether(DEFAULT_EVENT_TRAINING_TOGETHER),
     mEventDefeatedEnemiesTogether(DEFAULT_EVENT_DEFEATED_ENEMIES_TOGETHER),
     mEventArenaLoss(DEFAULT_EVENT_ARENA_LOSS),
-    mEventChickenSnatched(DEFAULT_EVENT_CHICKEN_SNATCHED)
+    mEventChickenSnatched(DEFAULT_EVENT_CHICKEN_SNATCHED),
+    mTrainingTogetherCooldownTurns(DEFAULT_TRAINING_TOGETHER_COOLDOWN_TURNS),
+    mFightParticipantTurns(DEFAULT_FIGHT_PARTICIPANT_TURNS)
 {
+}
+
+int32_t RelationshipSettings::getRacialStart(const std::string& classA, const std::string& classB) const
+{
+    std::pair<std::string, std::string> key = (classA < classB) ?
+        std::pair<std::string, std::string>(classA, classB) : std::pair<std::string, std::string>(classB, classA);
+    std::map<std::pair<std::string, std::string>, int32_t>::const_iterator it = mRacialStart.find(key);
+    if(it == mRacialStart.end())
+        return 0;
+
+    return it->second;
 }
 
 RelationshipSettings RelationshipSettings::fromConfig(const std::map<std::string, std::string>& config)
@@ -124,7 +141,9 @@ RelationshipSettings RelationshipSettings::fromConfig(const std::map<std::string
     TurnEntry turnEntries[] =
     {
         {"DriftIntervalTurns", &settings.mDriftIntervalTurns},
-        {"DriftIdleTurns", &settings.mDriftIdleTurns}
+        {"DriftIdleTurns", &settings.mDriftIdleTurns},
+        {"TrainingTogetherCooldownTurns", &settings.mTrainingTogetherCooldownTurns},
+        {"FightParticipantTurns", &settings.mFightParticipantTurns}
     };
 
     std::string missing;
@@ -147,6 +166,31 @@ RelationshipSettings RelationshipSettings::fromConfig(const std::map<std::string
             continue;
         }
         *entry.mTarget = value;
+    }
+
+    // Racial start values: "Racial_<ClassA>_<ClassB>  <value>"
+    static const std::string racialPrefix = "Racial_";
+    for(std::map<std::string, std::string>::const_iterator it = config.begin(); it != config.end(); ++it)
+    {
+        if(it->first.compare(0, racialPrefix.size(), racialPrefix) != 0)
+            continue;
+
+        std::string classes = it->first.substr(racialPrefix.size());
+        std::string::size_type pos = classes.find('_');
+        int64_t value;
+        if((pos == std::string::npos) || (pos == 0) || (pos + 1 >= classes.size())
+            || !parseInt(it->second, value))
+        {
+            missing += " " + it->first;
+            continue;
+        }
+
+        std::string classA = classes.substr(0, pos);
+        std::string classB = classes.substr(pos + 1);
+        if(classB < classA)
+            std::swap(classA, classB);
+        value = std::max<int64_t>(RelationshipSettings::VALUE_MIN, std::min<int64_t>(RelationshipSettings::VALUE_MAX, value));
+        settings.mRacialStart[std::pair<std::string, std::string>(classA, classB)] = static_cast<int32_t>(value);
     }
 
     // Logged once per process, not once per game
@@ -180,8 +224,33 @@ CreatureRelationships::Pair CreatureRelationships::makePair(const std::string& c
 }
 
 void CreatureRelationships::onRelationshipEvent(RelationshipEvent event, const std::string& creatureA,
-    const std::string& creatureB, int64_t turn)
+    const std::string& creatureB, int64_t turn, const std::string& classA, const std::string& classB)
 {
+    // A creature has no relationship with itself
+    if(creatureA == creatureB)
+        return;
+
+    Pair pair = makePair(creatureA, creatureB);
+    if(event == RelationshipEvent::trainingTogether)
+    {
+        // Counts once per training cycle, not once per blow
+        std::map<Pair, int64_t>::iterator itTraining = mLastTrainingTurn.find(pair);
+        if((itTraining != mLastTrainingTurn.end()) &&
+           ((turn - itTraining->second) < mSettings.mTrainingTogetherCooldownTurns))
+        {
+            return;
+        }
+        mLastTrainingTurn[pair] = turn;
+    }
+
+    // The racial start value is applied when the pair first gets a value
+    if(!classA.empty() && !classB.empty() && (mPairs.find(pair) == mPairs.end()))
+    {
+        int32_t start = mSettings.getRacialStart(classA, classB);
+        if(start != 0)
+            changeValue(creatureA, creatureB, start, turn);
+    }
+
     int32_t amount = 0;
     switch(event)
     {
@@ -302,6 +371,15 @@ bool CreatureRelationships::isFriend(const std::string& creatureA, const std::st
 
 void CreatureRelationships::removeCreature(const std::string& creature)
 {
+    std::map<Pair, int64_t>::iterator itTraining = mLastTrainingTurn.begin();
+    while(itTraining != mLastTrainingTurn.end())
+    {
+        if((itTraining->first.first == creature) || (itTraining->first.second == creature))
+            itTraining = mLastTrainingTurn.erase(itTraining);
+        else
+            ++itTraining;
+    }
+
     std::map<Pair, PairData>::iterator it = mPairs.begin();
     while(it != mPairs.end())
     {
@@ -318,6 +396,15 @@ void CreatureRelationships::doTurn(int64_t turn)
         return;
 
     mLastDriftTurn = turn;
+    std::map<Pair, int64_t>::iterator itTraining = mLastTrainingTurn.begin();
+    while(itTraining != mLastTrainingTurn.end())
+    {
+        if((turn - itTraining->second) >= mSettings.mTrainingTogetherCooldownTurns)
+            itTraining = mLastTrainingTurn.erase(itTraining);
+        else
+            ++itTraining;
+    }
+
     std::map<Pair, PairData>::iterator it = mPairs.begin();
     while(it != mPairs.end())
     {
