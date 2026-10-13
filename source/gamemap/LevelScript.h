@@ -437,6 +437,7 @@ public:
 
     //! Standing orders of the creatures (by creature name)
     void setOrder(const std::string& creatureName, const LevelScriptOrder& order);
+    //! \brief Removes the standing order of the creature, if it has one.
     void clearOrder(const std::string& creatureName);
     //! Returns nullptr if the creature has no order
     const LevelScriptOrder* getOrder(const std::string& creatureName) const;
@@ -448,10 +449,13 @@ public:
 
     //! Counts a slap the player of the seat tries. Returns false if the slap limit refuses it.
     bool registerSlap(int32_t seatId);
+    //! \brief Gets how many slaps the player of the seat tried so far, 0 if none.
     int64_t getSlaps(int32_t seatId) const;
+    //! \brief Gets the number of slaps each player may do, a negative value means there is no limit.
     inline int64_t getSlapLimit() const
     { return mSlapLimit; }
 
+    //! \brief Sets the number of slaps each player may do, a negative value removes the limit.
     inline void setSlapLimit(int64_t limit)
     { mSlapLimit = limit; }
 
@@ -481,6 +485,7 @@ public:
     //! \brief Replaces all the regions, used by the editor when the server sends them
     void setRegions(const std::vector<LevelScriptRegion>& regions);
 
+    //! \brief All slap counts, by seat id.
     inline const std::map<int32_t, int64_t>& getSlapCounts() const
     { return mSlaps; }
 
