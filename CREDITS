@@ -492,3 +492,7 @@ icon.rc                                OD Team                 GPLv3+
 logo.svg                               Svenskmand              CC-BY-SA 3.0
 OD-Logo.ico                            Svenskmand              CC-BY-SA 3.0
 opendungeons.appdata.xml               OD Team                 GPLv3+
+tools/gen_walk_hurt.py                   OD Team                 GPLv3+
+tools/fix_walk_feet.py                  OD Team                 GPLv3+
+tools/fix_walk_feet_rigs.py             OD Team                 GPLv3+
+tools/fix_walk_hurt_feet.py             OD Team                 GPLv3+
