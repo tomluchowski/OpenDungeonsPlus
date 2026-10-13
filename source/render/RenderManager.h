@@ -96,8 +96,12 @@ public:
     //! \brief setup the scene
     void createScene(Ogre::Viewport*);
 
+    void setViewport(Ogre::Viewport* viewport)
+    { mViewport = viewport; }
+
     //! \brief Sets/Updates the overall world lighting value with given factor.
     void setWorldAmbientLightingFactor(float lightFactor);
+    void setDynamicShadowsEnabled(bool enabled);
 
     //! \brief Set the entity's opacity
     void setEntityOpacity(Ogre::Entity* ent, float opacity);
@@ -106,6 +110,7 @@ public:
     //! moveCursor allows to move the cursor on GUI
     //!  moveWorldCoords sends the world coords where the map light is
     void moveCursor(float relX, float relY);
+    Ogre::FloatRect getHandCursorBounds(float relX, float relY) const;
     void moveWorldCoords(Ogre::Real x, Ogre::Real y);
     void entitySlapped();
 
@@ -148,6 +153,8 @@ public:
     void rrPickUpEntity(GameEntity* curEntity, Player* localPlayer);
     void rrDropHand(GameEntity* curEntity, Player* localPlayer);
     void rrRotateHand(Player* localPlayer);
+    void rrEnableHeldCreatureDisplay(bool enabled, Player* localPlayer);
+    bool isKeeperHandVisible() const { return mHandKeeperHandVisibility == 0; }
     void rrAddOutliner(Creature* creature);
     void rrRemoveOutliner(Creature* creature);
     void rrIncreaseAmbient(Creature* creature);
@@ -165,6 +172,9 @@ public:
         const std::string& particleScript);
     void rrEntityRemoveParticleEffect(GameEntity* entity, Ogre::ParticleSystem* particleSystem);
     void rrToggleHandSelectorVisibility();
+    void rrSetHandPose(bool pointing, bool digging);
+    void rrPlayDigAnimation();
+    void rrDrawTilePreview(const std::vector<Tile*>& tiles, const Ogre::ColourValue& colour);
 
     //! \brief Toggles the creatures text overlay
     void rrSetCreaturesTextOverlay(GameMap& gameMap, bool value);
@@ -178,7 +188,7 @@ public:
     //! \brief Does requested stuff for rendering in the minimap. Each time the minimap is rendered, this function will be
     //! called once before rendering is done with postRender = false and once when it is rendered with postRender = true.
     //! That allows to hide stuff that we don't want to display in the minimap
-    void rrMinimapRendering(bool postRender);
+    void rrMinimapRendering(bool postRender, bool keepWorldLighting = false);
 
     Ogre::Light* addPointLightMenu(const std::string& name, const Ogre::Vector3& pos,
         const Ogre::ColourValue& diffuse, const Ogre::ColourValue& specular, Ogre::Real attenuationRange,
@@ -229,6 +239,7 @@ private:
     template<typename Manager> bool removeIfExists(std::string, std::string);
     //! \brief Correctly places entities in hand next to the keeper hand
     void rrOrderHand(Player* localPlayer);
+    void rrUpdateHeldCreature();
 
     //! \brief Colorize the material with the corresponding team id color.
     //! \note If the material (wall tiles only) is marked for digging, a yellow color is added
@@ -260,7 +271,70 @@ private:
     Ogre::SceneNode* mMainMenuSceneNode;
 
     Ogre::AnimationState* mHandAnimationState;
+    std::string mHandPose = "Idle";
+    Ogre::ManualObject* mHandPickaxe = nullptr;
+    Ogre::ManualObject* mTilePreview = nullptr;
 
+    //! \brief A creature falling from the hand to the ground. When the drop animation is
+    //! requested for the creature, it lies down at the end (by its own animation, or by
+    //! rotating the node to mLieOrientation at mLiePosition if mUseFallbackLie is set).
+    struct CreatureDropAnimation
+    {
+        Creature* mCreature;
+        Ogre::SceneNode* mNode;
+        Ogre::Vector3 mStart;
+        Ogre::Vector3 mEnd;
+        Ogre::Quaternion mStartOrientation;
+        Ogre::Quaternion mLieOrientation;
+        Ogre::Vector3 mLiePosition;
+        Ogre::Real mElapsed;
+        bool mLieOnGround;
+        bool mUseFallbackLie;
+    };
+    //! Drops that are currently falling, updated every frame.
+    std::vector<CreatureDropAnimation> mCreatureDropAnimations;
+
+    //! \brief The standing orientation and height of a creature that was rotated to lie
+    //! on the ground, kept to restore it when it gets up or is picked up.
+    struct CreatureGroundPose
+    {
+        Creature* mCreature;
+        Ogre::SceneNode* mNode;
+        Ogre::Quaternion mStandingOrientation;
+        Ogre::Real mStandingZ;
+    };
+    //! Creatures that currently lie on the ground by a rotated node.
+    std::vector<CreatureGroundPose> mCreatureGroundPoses;
+
+    //! \brief A creature getting up after a drop. It either plays its "Die" animation
+    //! backwards (mAnimationState) or, if mUseFallback is set, blends the node back to
+    //! the end orientation and position.
+    struct CreatureGetUpAnimation
+    {
+        Creature* mCreature;
+        Ogre::SceneNode* mNode;
+        Ogre::AnimationState* mAnimationState;
+        Ogre::Quaternion mStartOrientation;
+        Ogre::Quaternion mEndOrientation;
+        Ogre::Vector3 mStartPosition;
+        Ogre::Vector3 mEndPosition;
+        Ogre::Real mElapsed;
+        bool mUseFallback;
+    };
+    //! Creatures that are currently getting up, updated every frame.
+    std::vector<CreatureGetUpAnimation> mCreatureGetUpAnimations;
+
+    //! \brief Stops the drop and get-up animations of the creature and puts it back in
+    //! its standing pose.
+    void cancelCreatureDropAnimation(Creature* creature);
+    //! \brief Stops the get-up animation of the creature and moves it to its final pose.
+    void cancelCreatureGetUpAnimation(Creature* creature);
+    //! \brief Starts the get-up animation of a creature that lies on the ground.
+    void startCreatureGetUpAnimation(Creature* creature);
+    //! \brief Restores the standing pose of a creature that was rotated to lie down.
+    void restoreCreatureGroundPose(Creature* creature);
+    //! \brief Plays the animation the creature shows while it lies on the ground.
+    void setCreatureDropGroundAnimation(Creature* creature);
 
     Ogre::TexturePtr m_texture;
 
@@ -269,11 +343,15 @@ private:
 
     //! For the keeper hand
     Ogre::SceneNode* mHandKeeperNode;
+    Ogre::SceneNode* mHeldCreatureGrip = nullptr;
+    Ogre::SceneNode* mHeldCreatureStorage = nullptr;
+    bool mHeldCreatureDisplayEnabled = false;
     Ogre::SceneNode* mDummyNode;
     Ogre::SceneNode* mHandLightNode;
     Ogre::SceneNode* mHandLightNode2;
     Ogre::Camera* mShadowCam;
     Ogre::Radian mCurrentFOVy;
+    Ogre::Real mCurrentAspectRatio;
     Ogre::Real mFactorWidth;
     Ogre::Real mFactorHeight;
 
