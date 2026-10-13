@@ -66,6 +66,7 @@ bool CreatureSkillMissileLaunch::canBeUsedBy(const Creature* creature) const
     return true;
 }
 
+//! \brief Launches a missile at the attacked tile; the elemental damage channel uses the elemental base attack.
 bool CreatureSkillMissileLaunch::tryUseFight(GameMap& gameMap, Creature* creature, float range,
         GameEntity* attackedObject, Tile* attackedTile, bool ko, bool notifyPlayerIfHit) const
 {
@@ -86,7 +87,7 @@ bool CreatureSkillMissileLaunch::tryUseFight(GameMap& gameMap, Creature* creatur
     double level = static_cast<double>(creature->getLevel());
     double phyAtk = mPhyAtk + (level * mPhyAtkPerLvl);
     double magAtk = mMagAtk + (level * mMagAtkPerLvl);
-    double eleAtk = mMagAtk + (level * mEleAtkPerLvl);
+    double eleAtk = mEleAtk + (level * mEleAtkPerLvl);
     if(creature->getWeaponL() != nullptr)
     {
         phyAtk +=creature->getWeaponL()->getPhysicalDamage();
