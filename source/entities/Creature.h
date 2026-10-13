@@ -22,6 +22,7 @@
 #define CREATURE_H
 
 #include "entities/MovableGameEntity.h"
+#include "entities/CreatureActivity.h"
 #include "eventsystem/CreatureMoved.h"
 #include "eventsystem/Subject.h"
 
@@ -187,6 +188,14 @@ public:
 
     inline CreatureMoodLevel getMoodValue() const
     { return mMoodValue; }
+
+    CreatureActivity getActivity() const;
+
+    double getExperienceProgress() const;
+    uint32_t getAttackRecoveryTurns() const { return mAttackRecoveryTurns; }
+    uint32_t getAttackRecoveryDuration() const { return mAttackRecoveryDuration; }
+    uint32_t getAttackRecoverySerial() const { return mAttackRecoverySerial; }
+    bool hasProgressInformation() const { return mHasProgressInformation; }
 
     inline int32_t getNbTurnFurious() const
     { return mNbTurnFurious; }
@@ -406,6 +415,10 @@ public:
     void slap() override;
 
     void fireCreatureSound(CreatureSound sound);
+    void fireCombatImpact(bool weaponClash, bool bodyDamage,
+        const Ogre::Vector3& attackerPosition);
+    void fireChickenFeeding(const std::string& chickenName,
+        const Ogre::Vector3& chickenPosition);
 
     void itsPayDay();
 
@@ -535,7 +548,7 @@ public:
 
     //! Checks if the creature current walk path is still valid. This will be called if tiles passability changes (for
     //! example if a door is closed)
-    void checkWalkPathValid();
+    void checkWalkPathValid(bool includeWalkDistortion = false);
 
     bool isTired() const;
 
@@ -732,6 +745,7 @@ private:
     //! \brief Mood value. Depending on this value, the creature will be in bad mood and
     //! might attack allied creatures or refuse to work or to go to combat
     CreatureMoodLevel               mMoodValue;
+    CreatureActivity                mActivity;
     //! \brief Mood points. Computed by the creature MoodModifiers. It is promoted to class variable for debug purposes and
     //! should not be used to check mood. If the mood is to be tested, mMoodValue should be used
     int32_t                         mMoodPoints;
@@ -791,6 +805,12 @@ private:
     //! \brief Skills the creature can use
     std::vector<CreatureSkillData> mSkillData;
 
+    uint32_t mAttackRecoveryTurns = 0;
+    uint32_t mAttackRecoveryDuration = 0;
+    uint32_t mAttackRecoverySerial = 0;
+    double mExperienceProgress = 0.0;
+    bool mHasProgressInformation = false;
+
     //! \brief A sub-function called by doTurn()
     //! This one checks if there is something prioritary to do (like fighting). If it is the case,
     //! it should empty the action list before adding what to do.
@@ -807,6 +827,13 @@ private:
     void increaseHunger(double value);
 
     void computeMood();
+
+    void exportMoodToPacket(ODPacket& os, const Seat* seat) const;
+    void importMoodFromPacket(ODPacket& is);
+    void exportActivityToPacket(ODPacket& os, const Seat* seat) const;
+    void importActivityFromPacket(ODPacket& is);
+    void exportProgressToPacket(ODPacket& os, const Seat* seat) const;
+    void importProgressFromPacket(ODPacket& is);
 
     void computeCreatureOverlayMoodValue();
 };

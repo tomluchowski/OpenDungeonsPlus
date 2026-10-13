@@ -1,0 +1,62 @@
+# Forged minimap and corner controls
+
+## Goal
+
+The dungeon heart and gold badge in the top left corner use a forged look: blackened iron with
+grain, a bronze edge line, bronze rivets, lit materials and warm glow tones. The minimap in the
+lower left was still a thin silver ring around a black disc with cold blue-grey corner panels and
+thin outline symbols. It now uses the same look. Behaviour is unchanged: clicks, tooltips, hit
+tests, the map image, the view trapezoid, the direction line and click navigation keep their code.
+
+## What is drawn where
+
+Everything is drawn procedurally in `source/render/Gui.cpp` (`createMiniMapCornerImages`), in the
+style and with the helpers of `drawBadgePixels` (`badgeSet`, `badgeMix`, `badgeFbm`, `badgeNormal`
+and so on). No image asset is added. All light comes from the top left, like the badges.
+
+- **Frame** (`OpenDungeonsIcons/MiniMapRim`, 384 px, 2x2 samples): an iron ring 8.4 layout units
+  wide with a dark contour, a bronze edge line, sixteen domed bronze rivets and a bright bronze
+  inner lip. Inside the ring lies a translucent warm stone haze (grain from smooth noise) that
+  darkens towards the ring and under the upper left edge. The black of unexplored ground reads as
+  dark stone and the map colours stay readable, because the haze is only 13 to 22 percent opaque
+  in the middle. The map texture itself, which is opaque, is not touched.
+- **Compass marker** (`OpenDungeonsIcons/MiniMapNorth`): a bronze boss with a dark well and a raised
+  gold N replaces the white font glyph. It still moves to the north direction of the rotated map,
+  now on the inner part of the ring.
+- **Corner plates** (`MiniMapCorner0` to `3`, plus `...Hover` and `...Pressed`, 128 px, 3x3
+  samples): a blackened iron plate with a bevel, a bronze edge line, two rivets and a bronze
+  medallion around a dark well, cut by the map circle exactly as before. The hovered plate has a
+  gold bezel, glowing embers in the well and an ember halo on the plate; the pressed plate is
+  sunk in with inverted lighting. They are used by `OD/MiniMapCornerButton`
+  (`CornerHoverBackground` and `CornerPushedBackground`, set in `ModeGame.layout`).
+- **Symbols** (`NavHelp`, `NavSell`, `NavOptions`, `MapZoom`, 64 px, 3x3 samples): embossed gold
+  question mark, a steel bomb with a bronze cap, rope fuse and glowing spark (still the Sell
+  button), a gold gear with recessed dots (Options) and a gold magnifier with a dark glass and a
+  bronze grip (minimap zoom). The game options window and chat still use the old `HelpIcon` and
+  `OptionsIcon`.
+
+`MiniMap.cpp` only draws the two images instead of the old grey bands and the font glyph; the
+frame is drawn after the map layers, as before.
+
+## Verification
+
+`source/tests/check_navigation_style_textures.py` cuts the drawing functions out of `Gui.cpp`,
+builds them with the compiler of the environment and checks the geometry (172 checks): the frame
+is opaque on the ring and clear in the map area, the plates mirror each other exactly and are
+empty where the map circle cuts them, hover is warmer and pressed not brighter than resting,
+every symbol has an opaque body, warm metal, a glint and stays inside its texture. With
+`--preview DIRECTORY` it also writes enlarged textures and a mock-up at the size of the 1920x1200
+game (176 units at scale 1.7). The generated previews of this change were inspected at that size
+and enlarged, also placed on a real game screenshot. `check_navigation_icon_shading.py`,
+`check_heart_health_ring.py` and `check_heart_badge_texture.py` still pass.
+
+The game has since been built with this change and is in use. Not verified: the colour blending
+of the haze over the real map texture beyond the screenshot mock-up, and the hover and pressed
+states of the plates as CEGUI draws them.
+
+## Not changed
+
+The category buttons, the tab panel and the two buttons above the minimap (production and
+research) still use the shared navigation frame of `OD/GameTabButton`. Restyling them touches
+every tab and panel of the game and is left for a separate change. The map does not show fixed
+compass ticks: the map can rotate, so a fixed graduation would point in the wrong directions.

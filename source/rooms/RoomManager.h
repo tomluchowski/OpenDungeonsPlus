@@ -124,6 +124,8 @@ public:
     //! An ODPacket should be sent to the server if the action is validated with relevant data. On server side,
     //! sellRoomTiles will be called with the data from the client and it should sell the tiles if it is validated.
     static void checkSellRoomTiles(GameMap* gameMap, const InputManager& inputManager, InputCommand& inputCommand);
+    static void checkSellRoomTiles(GameMap* gameMap, const InputManager& inputManager, InputCommand& inputCommand,
+        const std::vector<Tile*>& tiles);
 
     //! \brief Called on server side. Sells room tiles according to the information in the packet
     static void sellRoomTiles(GameMap* gameMap, Player* player, ODPacket& packet);

@@ -34,6 +34,33 @@ public:
     //! \brief Updates the temple position when in editor mode.
     void updateActiveSpots(GameMap* gameMap = nullptr) override;
 
+    bool canSeatSellBuilding(Seat* seat) const override
+    { return false; }
+    bool isAttackable(Tile* tile, Seat* seat) const override
+    { return false; }
+    bool canAttackHeart(Tile* tile, Seat* seat) const;
+    double getHP(Tile* tile) const override;
+    //! Health of an undamaged heart: HEART_MAX_HP, independent of the number of tiles of the
+    //! room and of the floor tiles' own durability.
+    double getHeartMaxHP() const;
+    //! \brief Remaining heart health divided by getHeartMaxHP(), from 0 to 1.
+    double getHeartHealthFraction() const;
+    double takeDamage(GameEntity* attacker, double absoluteDamage, double physicalDamage,
+        double magicalDamage, double elementDamage, Tile* tileTakingDamage, bool ko) override
+    { return 0.0; }
+    double takeHeartDamage(GameEntity* attacker, double absoluteDamage, double physicalDamage,
+        double magicalDamage, double elementDamage, Tile* tileTakingDamage);
+    bool removeCoveredTile(Tile* tile) override;
+    void doUpkeep() override;
+    void exportToStream(std::ostream& os) const override;
+    bool importFromStream(std::istream& is) override;
+
+    void checkForSplit() override
+    {
+        // Damaged floor must not create another dungeon core. Keep the original
+        // room and persistent object until the whole temple is destroyed.
+    }
+
     bool hasCarryEntitySpot(GameEntity* carriedEntity) override;
     Tile* askSpotForCarriedEntity(GameEntity* carriedEntity) override;
     void notifyCarryingStateChanged(Creature* carrier, GameEntity* carriedEntity) override;
@@ -55,6 +82,17 @@ protected:
 private:
     //! \brief The reference of the temple object
     BuildingObject* mTempleObject;
+
+    //! One health pool for the heart, independent of individual floor tiles.
+    double mHeartHP;
+    //! Health of an undamaged heart
+    static const double HEART_MAX_HP;
+    //! Health a living, damaged heart regains per second
+    static const double HEART_HEAL_PER_SECOND;
+
+    //! True once the critical-health warning was sent to the owner. Not saved: a reloaded
+    //! game with an already critical heart warns once again at the next hit.
+    bool mCriticalWarningSent;
 
     //! \brief Updates the temple mesh position.
     void updateTemplePosition();
