@@ -118,7 +118,8 @@ enum class ServerNotificationType
 
     //! Owner-only tier of a creature pair that changed (or the current tier, sent once when a
     //! client joins or a game is loaded): + string creatureA, string creatureB, int32_t tier
-    //! (RelationshipTier). Only sent when the creature relationships option is on.
+    //! (RelationshipTier), bool replay (true: replay of the current tier, no Dungeonbook post or emote).
+    //! Only sent when the creature relationships option is on.
     //! Appended last so that no existing numeric value changes.
     relationshipTier
 };

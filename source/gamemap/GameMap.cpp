@@ -1198,7 +1198,7 @@ void GameMap::sendRelationshipTierChanges()
         ServerNotification* serverNotification = new ServerNotification(
             ServerNotificationType::relationshipTier, seat->getPlayer());
         writeRelationshipTier(serverNotification->mPacket, change.mCreatureA, change.mCreatureB,
-            change.mNewTier);
+            change.mNewTier, false);
         ODServer::getSingleton().queueServerNotification(serverNotification);
     }
 }
@@ -1219,7 +1219,7 @@ void GameMap::sendRelationshipTiers(Seat* seat)
         ServerNotification* serverNotification = new ServerNotification(
             ServerNotificationType::relationshipTier, seat->getPlayer());
         writeRelationshipTier(serverNotification->mPacket, tier.mCreatureA, tier.mCreatureB,
-            tier.mNewTier);
+            tier.mNewTier, true);
         ODServer::getSingleton().queueServerNotification(serverNotification);
     }
 }

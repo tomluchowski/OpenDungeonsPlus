@@ -558,71 +558,82 @@ BOOST_AUTO_TEST_CASE(test_BrawlEndChangesValue)
 // Network round trip
 // ---------------------------------------------------------------------------------------------
 
-//! Covers: the relationshipTier payload (names, tier) survives writing and reading for every tier;
-//! the notification type in front of it is read first as the client does.
+//! Covers: the relationshipTier payload (names, tier, replay flag) survives writing and reading
+//! for every tier and for both values of the replay flag; the notification type in front of it
+//! is read first as the client does.
 BOOST_AUTO_TEST_CASE(test_RelationshipTierPacketRoundTrip)
 {
     RelationshipTier tiers[6] = {RelationshipTier::nemesis, RelationshipTier::hated, RelationshipTier::neutral,
         RelationshipTier::friends, RelationshipTier::bestFriends, RelationshipTier::lovers};
     for(int i = 0; i < 6; ++i)
     {
-        ODPacket packet;
-        packet << static_cast<int32_t>(ServerNotificationType::relationshipTier);
-        writeRelationshipTier(packet, "Orc 1", "Troll_2", tiers[i]);
+        for(int replayValue = 0; replayValue < 2; ++replayValue)
+        {
+            bool replay = (replayValue != 0);
+            ODPacket packet;
+            packet << static_cast<int32_t>(ServerNotificationType::relationshipTier);
+            writeRelationshipTier(packet, "Orc 1", "Troll_2", tiers[i], replay);
 
-        int32_t type = -1;
-        packet >> type;
-        BOOST_CHECK_EQUAL(type, static_cast<int32_t>(ServerNotificationType::relationshipTier));
-        std::string creatureA;
-        std::string creatureB;
-        int32_t tier = -1;
-        BOOST_REQUIRE(readRelationshipTier(packet, creatureA, creatureB, tier));
-        BOOST_CHECK_EQUAL(creatureA, "Orc 1");
-        BOOST_CHECK_EQUAL(creatureB, "Troll_2");
-        BOOST_CHECK_EQUAL(tier, static_cast<int32_t>(tiers[i]));
-        BOOST_CHECK(packet.endOfPacket());
+            int32_t type = -1;
+            packet >> type;
+            BOOST_CHECK_EQUAL(type, static_cast<int32_t>(ServerNotificationType::relationshipTier));
+            std::string creatureA;
+            std::string creatureB;
+            int32_t tier = -1;
+            bool outReplay = !replay;
+            BOOST_REQUIRE(readRelationshipTier(packet, creatureA, creatureB, tier, outReplay));
+            BOOST_CHECK_EQUAL(creatureA, "Orc 1");
+            BOOST_CHECK_EQUAL(creatureB, "Troll_2");
+            BOOST_CHECK_EQUAL(tier, static_cast<int32_t>(tiers[i]));
+            BOOST_CHECK_EQUAL(outReplay, replay);
+            BOOST_CHECK(packet.endOfPacket());
+        }
     }
 }
 
-//! Covers: a packet that is cut off (missing tier) is reported as invalid instead of being read as a
-//! tier change.
+//! Covers: a packet that is cut off (missing replay flag or tier) is reported as invalid instead
+//! of being read as a tier change.
 BOOST_AUTO_TEST_CASE(test_RelationshipTierPacketTooShort)
 {
     ODPacket packet;
-    packet << std::string("Orc1") << std::string("Troll1");
+    packet << std::string("Orc1") << std::string("Troll1") << static_cast<int32_t>(RelationshipTier::friends);
     std::string creatureA;
     std::string creatureB;
     int32_t tier = 0;
-    BOOST_CHECK(!readRelationshipTier(packet, creatureA, creatureB, tier));
+    bool replay = false;
+    BOOST_CHECK(!readRelationshipTier(packet, creatureA, creatureB, tier, replay));
 
     ODPacket empty;
-    BOOST_CHECK(!readRelationshipTier(empty, creatureA, creatureB, tier));
+    BOOST_CHECK(!readRelationshipTier(empty, creatureA, creatureB, tier, replay));
 }
 
-//! Covers: several tier messages in a row (as sent when a client joins or loads) are read one
-//! after the other.
+//! Covers: several tier messages in a row (as sent for the replay at join or load) are read one
+//! after the other, each with its own replay flag.
 BOOST_AUTO_TEST_CASE(test_RelationshipTierPacketsInSequence)
 {
     ODPacket first;
-    writeRelationshipTier(first, "A", "B", RelationshipTier::friends);
+    writeRelationshipTier(first, "A", "B", RelationshipTier::friends, true);
     ODPacket second;
-    writeRelationshipTier(second, "C", "D", RelationshipTier::hated);
+    writeRelationshipTier(second, "C", "D", RelationshipTier::hated, false);
 
     std::string a;
     std::string b;
     int32_t tier = 0;
-    BOOST_REQUIRE(readRelationshipTier(first, a, b, tier));
+    bool replay = false;
+    BOOST_REQUIRE(readRelationshipTier(first, a, b, tier, replay));
     BOOST_CHECK_EQUAL(a, "A");
     BOOST_CHECK_EQUAL(tier, static_cast<int32_t>(RelationshipTier::friends));
-    BOOST_REQUIRE(readRelationshipTier(second, a, b, tier));
+    BOOST_CHECK(replay);
+    BOOST_REQUIRE(readRelationshipTier(second, a, b, tier, replay));
     BOOST_CHECK_EQUAL(a, "C");
     BOOST_CHECK_EQUAL(tier, static_cast<int32_t>(RelationshipTier::hated));
+    BOOST_CHECK(!replay);
 }
 
-//! Covers: the whole path of the tiers for a joining client. The server table is listed with
-//! getTiers, written as tier messages, read and stored with setTier on a client table; the
+//! Covers: the whole path of the replay for a joining client. The server table is listed with
+//! getTiers, written as replay messages, read and stored with setTier on a client table; the
 //! client sees the same tiers (friends, nemesis, lovers) and no pair for neutral creatures.
-BOOST_AUTO_TEST_CASE(test_TierMessagesRebuildClientTable)
+BOOST_AUTO_TEST_CASE(test_TierReplayRebuildsClientTable)
 {
     CreatureRelationships server;
     genders.clear();
@@ -632,7 +643,7 @@ BOOST_AUTO_TEST_CASE(test_TierMessagesRebuildClientTable)
     server.changeValue("Orc1", "Orc2", 60, 0);
     server.changeValue("Orc1", "Troll1", -90, 0);
     server.changeValue("Adam", "Eve", 95, 0);
-    server.changeValue("Kob1", "Kob2", 10, 0);
+    server.changeValue("Imp1", "Imp2", 10, 0);
     BOOST_REQUIRE(server.isLovers("Adam", "Eve"));
 
     std::vector<RelationshipTierChange> tiers;
@@ -643,11 +654,13 @@ BOOST_AUTO_TEST_CASE(test_TierMessagesRebuildClientTable)
     for(size_t i = 0; i < tiers.size(); ++i)
     {
         ODPacket packet;
-        writeRelationshipTier(packet, tiers[i].mCreatureA, tiers[i].mCreatureB, tiers[i].mNewTier);
+        writeRelationshipTier(packet, tiers[i].mCreatureA, tiers[i].mCreatureB, tiers[i].mNewTier, true);
         std::string a;
         std::string b;
         int32_t tier = 0;
-        BOOST_REQUIRE(readRelationshipTier(packet, a, b, tier));
+        bool replay = false;
+        BOOST_REQUIRE(readRelationshipTier(packet, a, b, tier, replay));
+        BOOST_CHECK(replay);
         BOOST_REQUIRE(tier >= static_cast<int32_t>(RelationshipTier::nemesis));
         BOOST_REQUIRE(tier <= static_cast<int32_t>(RelationshipTier::lovers));
         client.setTier(a, b, static_cast<RelationshipTier>(tier));
@@ -656,12 +669,13 @@ BOOST_AUTO_TEST_CASE(test_TierMessagesRebuildClientTable)
     BOOST_CHECK(client.tierOf("Orc1", "Orc2", true) == RelationshipTier::friends);
     BOOST_CHECK(client.tierOf("Orc1", "Troll1", true) == RelationshipTier::nemesis);
     BOOST_CHECK(client.tierOf("Adam", "Eve", true) == RelationshipTier::lovers);
-    BOOST_CHECK(client.tierOf("Kob1", "Kob2", true) == RelationshipTier::neutral);
+    BOOST_CHECK(client.tierOf("Imp1", "Imp2", true) == RelationshipTier::neutral);
     BOOST_CHECK_EQUAL(client.getNbPairs(), 3u);
 }
 
-//! Covers: a live tier change as GameMap::sendRelationshipTierChanges writes it: the change recorded
-//! by the table is sent with the new tier.
+//! Covers: a live tier change (replay false) as GameMap::sendRelationshipTierChanges writes it:
+//! the change recorded by the table is sent with the new tier and the client can tell it from a
+//! replay.
 BOOST_AUTO_TEST_CASE(test_LiveTierChangePacket)
 {
     CreatureRelationships server;
@@ -671,11 +685,13 @@ BOOST_AUTO_TEST_CASE(test_LiveTierChangePacket)
     BOOST_REQUIRE_EQUAL(changes.size(), 1u);
 
     ODPacket packet;
-    writeRelationshipTier(packet, changes[0].mCreatureA, changes[0].mCreatureB, changes[0].mNewTier);
+    writeRelationshipTier(packet, changes[0].mCreatureA, changes[0].mCreatureB, changes[0].mNewTier, false);
     std::string a;
     std::string b;
     int32_t tier = 0;
-    BOOST_REQUIRE(readRelationshipTier(packet, a, b, tier));
+    bool replay = true;
+    BOOST_REQUIRE(readRelationshipTier(packet, a, b, tier, replay));
+    BOOST_CHECK(!replay);
     BOOST_CHECK_EQUAL(tier, static_cast<int32_t>(RelationshipTier::friends));
 
     // Nothing is left to send afterwards

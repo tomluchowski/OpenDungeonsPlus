@@ -26,24 +26,28 @@
 
 //! \brief Packet layout of the relationship system, shared by server and client.
 
-//! \brief Writes the payload of ServerNotificationType::relationshipTier: both creature names and the new tier.
+//! \brief Writes the payload of ServerNotificationType::relationshipTier: both creature names, the new tier and
+//! whether the message is part of the replay for a client that joins or loads (replay messages show no posts or
+//! emotes).
 //! \param packet The packet to write to.
 //! \param creatureA Name of the first creature of the pair.
 //! \param creatureB Name of the second creature of the pair.
 //! \param tier The new tier of the pair.
+//! \param replay True if the message only repeats the current tier.
 inline void writeRelationshipTier(ODPacket& packet, const std::string& creatureA, const std::string& creatureB,
-    RelationshipTier tier)
+    RelationshipTier tier, bool replay)
 {
-    packet << creatureA << creatureB << static_cast<int32_t>(tier);
+    packet << creatureA << creatureB << static_cast<int32_t>(tier) << replay;
 }
 
 //! \brief Reads the payload written by writeRelationshipTier. The tier is returned as sent (the receiver
 //! checks the range).
+//! \param replay Receives the replay flag.
 //! \return False if the packet is too short.
 inline bool readRelationshipTier(ODPacket& packet, std::string& creatureA, std::string& creatureB,
-    int32_t& tier)
+    int32_t& tier, bool& replay)
 {
-    packet >> creatureA >> creatureB >> tier;
+    packet >> creatureA >> creatureB >> tier >> replay;
     return static_cast<bool>(packet);
 }
 
