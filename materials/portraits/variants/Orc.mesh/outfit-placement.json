@@ -1,0 +1,101 @@
+[
+  {
+    "id": "Orc.mesh",
+    "n": 1,
+    "name": "leather",
+    "build": 0,
+    "file": "outfit-1-leather-build0.png",
+    "source": "materials/portraits/generated-outfits/Orc.mesh/outfit-1-leather.png",
+    "source_sha256": "521625fe2db4628fbd53870f9d602c6e697bf8c7d3017a3abb6f87d6330df351",
+    "source_size": [
+      887,
+      1774
+    ],
+    "canvas_registration": "canonical canvas",
+    "body_span_fit": "whole garment spans expanded over adjacent body pixels",
+    "bottom_rows_repeated": 0,
+    "horizontal_scale": 1.125,
+    "vertical_scale": 1.06,
+    "offset": [
+      -55.4375,
+      -43.20000000000004
+    ],
+    "mesh_warp": null,
+    "torso_margin": 1.1111111111111112,
+    "sleeve_warp": null,
+    "head_occlusion": {
+      "warm_neutral_skin_above_row": 850
+    },
+    "native_uncovered_body_pixels": 49,
+    "coarse_uncovered_body_pixels": 0,
+    "coarse_body_pixels": 7870,
+    "visual_acceptance": "accepted-native-and-50x100",
+    "prompt": "Generate ONE isolated empty outfit overlay: Orc male outfit option 1, a rugged dark brown stitched leather jerkin over a dark ochre long-sleeved undershirt, plain broad shoulder reinforcement and closed modest torso. Attached neutral mannequin is a registration reference ONLY for exact three-quarter head direction, very broad neck/shoulders and upper-body silhouette, coarse painted fantasy texture, upper-left light and olive/brown palette. Fixed 887x1774 canvas. Empty transparent head area above y=840; neck opening beneath the jaw around x=480,y=890, shoulder clothing follows the reference near y=930. Cover all shoulders, torso and visible arms with a slight coverage margin; garment continues through the bottom and both cropped frame edges with no exposed flanks or raised hem. Output ONLY the empty clothes on genuine transparent RGBA alpha; no head, face, neck skin, body, mannequin, person, hand skin, hair, helmet, jewelry, weapon, text, symbol, checkerboard, background or outside shadow. No dressed full portrait, no organs or sexualized contours; original reference unchanged. Hand-painted dark-fantasy game part, not photorealistic product photography."
+  },
+  {
+    "id": "Orc.mesh",
+    "n": 2,
+    "name": "chain",
+    "build": 0,
+    "file": "outfit-2-chain-build0.png",
+    "source": "materials/portraits/generated-outfits/Orc.mesh/outfit-2-chain.png",
+    "source_sha256": "dbcf005b5c4d0bf1d2d7aa1011539bc59bd1dcc7068f00349ebe63f534d9a074",
+    "source_size": [
+      887,
+      1774
+    ],
+    "canvas_registration": "canonical canvas",
+    "body_span_fit": "whole garment spans expanded over adjacent body pixels",
+    "bottom_rows_repeated": 0,
+    "horizontal_scale": 1.25,
+    "vertical_scale": 1.0,
+    "offset": [
+      -110.875,
+      0.0
+    ],
+    "mesh_warp": null,
+    "torso_margin": 1.1111111111111112,
+    "sleeve_warp": null,
+    "head_occlusion": {
+      "warm_neutral_skin_above_row": 850
+    },
+    "native_uncovered_body_pixels": 641,
+    "coarse_uncovered_body_pixels": 191,
+    "coarse_body_pixels": 7870,
+    "visual_acceptance": "accepted-native-and-50x100",
+    "prompt": "Generate ONE isolated empty outfit overlay: Orc male outfit option 2, dark iron chain mail over a padded brown long-sleeved tunic, leather shoulder caps, plain waist belt and dark cloth lower torso continuing through the bottom frame. Clearly distinct chain-mail outfit, not a leather vest or quilted coat. Attached neutral mannequin is a reference ONLY for exact three-quarter perspective, broad shoulders and neck, torso/arm silhouette, coarse hand-painted fantasy brushwork, upper-left lighting and olive/brown palette. Fixed 887x1774 portrait canvas, transparent empty head space above the clothing. Neck opening below the reference's jaw at about x=480,y=900; shoulder armor at the actual shoulder contour near y=950. Cover all shoulders, torso and visible arms with a slight outside overlap margin; no exposed abdomen or flanks. Output only the empty clothing shell on genuine transparent RGBA: no head, face, neck skin, body, mannequin, person, hand skin, hair, helmet, jewelry, weapon, letters, emblem, checkerboard, background or external shadow. No full portrait, no organs, no sexualization. Preserve the reference unchanged."
+  },
+  {
+    "id": "Orc.mesh",
+    "n": 3,
+    "name": "padded",
+    "build": 0,
+    "file": "outfit-3-padded-build0.png",
+    "source": "materials/portraits/generated-outfits/Orc.mesh/outfit-3-padded.png",
+    "source_sha256": "dca9e260ca29f02d21255879e9da230532ade2776a49c8cb70d1ab374a1a543f",
+    "source_size": [
+      887,
+      1774
+    ],
+    "canvas_registration": "canonical canvas",
+    "body_span_fit": "whole garment spans expanded over adjacent body pixels",
+    "bottom_rows_repeated": 0,
+    "horizontal_scale": 1.0,
+    "vertical_scale": 1.0,
+    "offset": [
+      0.0,
+      0.0
+    ],
+    "mesh_warp": null,
+    "torso_margin": 1.1111111111111112,
+    "sleeve_warp": null,
+    "head_occlusion": {
+      "warm_neutral_skin_above_row": 850
+    },
+    "native_uncovered_body_pixels": 359,
+    "coarse_uncovered_body_pixels": 72,
+    "coarse_body_pixels": 7870,
+    "visual_acceptance": "accepted-native-and-50x100",
+    "prompt": "Generate ONE isolated empty outfit overlay: Orc male option 3, thick dark ochre quilted gambeson with full padded long sleeves, dark brown reinforced cloth shoulder panels and a plain leather waist belt, lower padded coat continuing through the bottom frame. Primarily quilted cloth, distinctly unlike leather jerkin or chain mail. Use the attached neutral mannequin ONLY as exact registration reference: retain its three-quarter orientation, extremely broad neck and shoulders, arms, upper-body crop, coarse painted brushwork, upper-left light and olive/brown palette. Fixed 887x1774 canvas. IMPORTANT preserve the original garment position rather than enlarging it to fill empty head space: clothing begins only below the jaw/neck around y=850-900, shoulder contours around y=950; upper head region is entirely transparent. Cover all shoulders, torso and visible arms with a slight outside overlap margin, no exposed abdomen/flanks or raised hem. Output only the empty clothes in genuine transparent RGBA, no head, face, neck skin, body, mannequin, person, hand skin, hair, helmet, jewelry, weapon, text, symbol, checkerboard, background or external shadow. No full portrait, no organs, no sexualization; original reference unchanged."
+  }
+]
