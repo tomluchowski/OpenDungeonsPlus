@@ -1629,21 +1629,43 @@ double Creature::getMoveSpeed(Tile* tile) const
         return 1.0;
     }
 
+    // A badly hurt creature limps along: it moves slower (see getLowHealthWalkFactor)
+    double hurtFactor = getLowHealthWalkFactor();
+
     if(getIsOnServerMap())
     {
         // Check if the covering building allows this creature to go through
         if(tile->getCoveringBuilding() != nullptr)
-            return tile->getCoveringBuilding()->getCreatureSpeed(this, tile);
+            return tile->getCoveringBuilding()->getCreatureSpeed(this, tile) * hurtFactor;
         else
-            return tile->getCreatureSpeedDefault(this);
+            return tile->getCreatureSpeedDefault(this) * hurtFactor;
     }
     else
     {
         if(tile->getHasBridge())
-            return getMoveSpeedGround();
+            return getMoveSpeedGround() * hurtFactor;
         else
-            return tile->getCreatureSpeedDefault(this);
+            return tile->getCreatureSpeedDefault(this) * hurtFactor;
     }
+}
+
+bool Creature::isLowHealthWalkStage(uint32_t healthStage)
+{
+    // The health stage (0 = unhurt, 1 to 6 = lost a sixth more each, 7 = no health left) is known on the
+    // server and on the clients. Stage s means the health is below 100 * (1 - (s - 1) / 6) percent, so
+    // a creature is badly hurt from the first stage that lies completely below the configured percent
+    const double nbSteps = static_cast<double>(NB_OVERLAY_HEALTH_VALUES - 2);
+    double thresholdPercent = ConfigManager::getSingleton().getLowHealthWalkThresholdPercent();
+    double firstStage = std::ceil((100.0 - thresholdPercent) / 100.0 * nbSteps - 0.000001) + 1.0;
+    return static_cast<double>(healthStage) >= firstStage;
+}
+
+double Creature::getLowHealthWalkFactor() const
+{
+    if(!isLowHealthWalking())
+        return 1.0;
+
+    return ConfigManager::getSingleton().getLowHealthWalkSpeedFactor();
 }
 
 double Creature::getPhysicalDefense() const
@@ -1743,12 +1765,21 @@ void Creature::updateFromPacket(ODPacket& is)
     int seatId;
     OD_ASSERT_TRUE(is >> mLevel);
     OD_ASSERT_TRUE(is >> seatId);
+    uint32_t oldHealthValue = mOverlayHealthValue;
     OD_ASSERT_TRUE(is >> mOverlayHealthValue);
     OD_ASSERT_TRUE(is >> mOverlayMoodValue);
     OD_ASSERT_TRUE(is >> mGroundSpeed);
     OD_ASSERT_TRUE(is >> mWaterSpeed);
     OD_ASSERT_TRUE(is >> mLavaSpeed);
     OD_ASSERT_TRUE(is >> mSpeedModifier);
+
+    // A creature that walks changes between the walk clip and the hurt walk clip when it becomes badly hurt or
+    // recovers (the clip is chosen in RenderManager::rrSetObjectAnimationState)
+    if(!getIsOnServerMap() && getIsOnMap() && (getAnimationStateName() == EntityAnimation::walk_anim) &&
+       (isLowHealthWalkStage(oldHealthValue) != isLowHealthWalking()))
+    {
+        RenderManager::getSingleton().rrSetObjectAnimationState(this, EntityAnimation::walk_anim, true);
+    }
 
     // We do not scale the creature if it is picked up (because it is already not at its normal size). It will be
     // resized anyway when dropped

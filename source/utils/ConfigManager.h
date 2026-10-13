@@ -24,6 +24,7 @@
 #include <boost/filesystem.hpp>
 #include <boost/circular_buffer.hpp>
 
+#include <algorithm>
 #include <cstdint>
 
 
@@ -131,6 +132,14 @@ public:
 
     inline uint32_t getSlapEffectDuration() const
     { return mSlapEffectDuration; }
+
+    //! \brief Factor on the walking speed of a badly hurt creature (1 = no slowdown), limited to 0.2 - 1
+    inline double getLowHealthWalkSpeedFactor() const
+    { return std::max(0.2, std::min(1.0, mLowHealthWalkSpeedFactor)); }
+
+    //! \brief A creature with less than this percent of its health is badly hurt and walks slower, limited to 1 - 100
+    inline double getLowHealthWalkThresholdPercent() const
+    { return std::max(1.0, std::min(100.0, mLowHealthWalkThresholdPercent)); }
 
     inline int64_t getTimePayDay() const
     { return mTimePayDay; }
@@ -330,6 +339,8 @@ private:
     int32_t mCreatureMoodFurious;
     double mSlapDamagePercent;
     uint32_t mSlapEffectDuration;
+    double mLowHealthWalkSpeedFactor;
+    double mLowHealthWalkThresholdPercent;
     int64_t mTimePayDay;
     int32_t mNbTurnsFuriousMax;
     double mMaxManaPerSeat;

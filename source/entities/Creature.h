@@ -202,6 +202,18 @@ public:
     //! \brief Gets the move speed on the current tile.
     double getMoveSpeed(Tile* tile) const;
 
+    //! \brief Factor on the walking speed that comes from the health of the creature (1 for a creature that is not
+    //! badly hurt). Uses the health stage that server and clients both know, so both move it at the same speed
+    double getLowHealthWalkFactor() const;
+
+    //! \brief True if a creature with this health stage counts as badly hurt for walking (the stage test of
+    //! getLowHealthWalkFactor, without the factor). The client shows the clip WalkHurt for it
+    static bool isLowHealthWalkStage(uint32_t healthStage);
+
+    //! \brief True if this creature is badly hurt for walking (see isLowHealthWalkStage)
+    bool isLowHealthWalking() const
+    { return isLowHealthWalkStage(mOverlayHealthValue); }
+
     //! \brief Gets the creature depending the terrain type.
     inline double getMoveSpeedGround() const
     { return mGroundSpeed; }
