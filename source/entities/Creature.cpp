@@ -111,6 +111,25 @@ static const Ogre::Real CANNON_MISSILE_HEIGHT = 0.3;
 //! \brief Tolerance that keeps a health border that falls exactly on a stage in the lower stage (see isLowHealthWalkStage)
 static const double HEALTH_STAGE_ROUNDING_TOLERANCE = 0.000001;
 
+//! \brief Lowest ratio between the speed of the tile under a creature and its ground speed (see getTileSpeedRatio)
+static const double TILE_SPEED_RATIO_MIN = 0.2;
+
+//! \brief Highest ratio between the speed of the tile under a creature and its ground speed (see getTileSpeedRatio)
+static const double TILE_SPEED_RATIO_MAX = 4.0;
+
+//! \brief Most the shown tile speed ratio of the walk clips changes per second (see updateClientPose)
+static const double TILE_SPEED_RATIO_MAX_CHANGE_PER_SECOND = 4.0;
+
+//! \brief Health stages (see mOverlayHealthValue) from which a standing creature breathes slower, from the worst to the lightest
+static const uint32_t IDLE_BREATH_STAGE_HEAVY = 6;
+static const uint32_t IDLE_BREATH_STAGE_MEDIUM = 5;
+static const uint32_t IDLE_BREATH_STAGE_LIGHT = 4;
+
+//! \brief Speed factors of the idle clip of a hurt creature in the stages IDLE_BREATH_STAGE_HEAVY, _MEDIUM and _LIGHT
+static const double IDLE_BREATH_FACTOR_HEAVY = 0.78;
+static const double IDLE_BREATH_FACTOR_MEDIUM = 0.85;
+static const double IDLE_BREATH_FACTOR_LIGHT = 0.92;
+
 const int32_t Creature::NB_TURNS_BEFORE_CHECKING_TASK = 15;
 const uint32_t Creature::NB_OVERLAY_HEALTH_VALUES = 8;
 
@@ -1673,7 +1692,7 @@ double Creature::getLowHealthWalkFactor() const
 
     // A creature type can have its own factor (same limits as the global one), the global one is the default
     if((mDefinition != nullptr) && (mDefinition->getLowHealthWalkSpeedFactor() >= 0.0))
-        return std::max(0.2, std::min(1.0, mDefinition->getLowHealthWalkSpeedFactor()));
+        return ConfigManager::limitLowHealthWalkSpeedFactor(mDefinition->getLowHealthWalkSpeedFactor());
 
     return ConfigManager::getSingleton().getLowHealthWalkSpeedFactor();
 }
@@ -1690,7 +1709,7 @@ double Creature::getTileSpeedRatio() const
     if(tileSpeed <= 0.0)
         return 1.0;
 
-    return std::max(0.2, std::min(4.0, tileSpeed / groundSpeed));
+    return std::max(TILE_SPEED_RATIO_MIN, std::min(TILE_SPEED_RATIO_MAX, tileSpeed / groundSpeed));
 }
 
 void Creature::updateClientPose(double timeSinceLastFrame)
@@ -1709,7 +1728,7 @@ void Creature::updateClientPose(double timeSinceLastFrame)
     }
 
     // The ratio changes by 4 per second at most, so a step between two tile types takes a fraction of a second
-    double maxStep = std::max(0.0, timeSinceLastFrame) * 4.0;
+    double maxStep = std::max(0.0, timeSinceLastFrame) * TILE_SPEED_RATIO_MAX_CHANGE_PER_SECOND;
     double diff = target - mClientTileSpeedRatio;
     if(std::abs(diff) <= maxStep)
         mClientTileSpeedRatio = target;
@@ -1723,12 +1742,12 @@ double Creature::getClientPoseSpeedFactor() const
     if(getAnimationStateName() == EntityAnimation::idle_anim)
     {
         // Hurt creatures breathe a little slower when they stand
-        if(mOverlayHealthValue >= 6)
-            factor = 0.78;
-        else if(mOverlayHealthValue == 5)
-            factor = 0.85;
-        else if(mOverlayHealthValue == 4)
-            factor = 0.92;
+        if(mOverlayHealthValue >= IDLE_BREATH_STAGE_HEAVY)
+            factor = IDLE_BREATH_FACTOR_HEAVY;
+        else if(mOverlayHealthValue == IDLE_BREATH_STAGE_MEDIUM)
+            factor = IDLE_BREATH_FACTOR_MEDIUM;
+        else if(mOverlayHealthValue == IDLE_BREATH_STAGE_LIGHT)
+            factor = IDLE_BREATH_FACTOR_LIGHT;
     }
     else
     {

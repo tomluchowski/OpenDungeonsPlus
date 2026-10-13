@@ -38,7 +38,10 @@ for key in ('LowHealthWalkSpeedFactor', 'WalkClipRate', 'WalkHurtClipRate'):
     assert ('nextParam == "' + key + '"') in definition, key + ' not parsed'
     assert ('"    ' + key + '\\t"') in definition, key + ' not saved'
     assert re.search(r'^# ' + key + r' ', creatures_cfg, re.M), key + ' not documented'
-assert 'std::max(0.2, std::min(8.0, mWalkClipRate))' in definition_h
+assert 'limitWalkClipRate(mWalkClipRate)' in definition_h and 'limitWalkClipRate(mWalkHurtClipRate)' in definition_h
+assert 'std::max(WALK_CLIP_RATE_MIN, std::min(WALK_CLIP_RATE_MAX, rate))' in definition_h
+assert 'static const double WALK_CLIP_RATE_MIN = 0.2;' in definition_h
+assert 'static const double WALK_CLIP_RATE_MAX = 8.0;' in definition_h
 assert 'getWalkClipRate();' in definition_h   # WalkHurtClipRate falls back to the walk rate
 
 # Rates in the types: within the limits
@@ -53,6 +56,7 @@ assert 'virtual double getClientPoseSpeedFactor() const override;' in creature_h
 assert 'updateClientPose(static_cast<double>(timeSinceLastFrame));' in movable
 assert movable.count('getClientPoseSpeedFactor()') == 1
 ratio = function_body(creature, 'void Creature::updateClientPose(double timeSinceLastFrame)')
-assert 'timeSinceLastFrame) * 4.0' in ratio
+assert 'timeSinceLastFrame) * TILE_SPEED_RATIO_MAX_CHANGE_PER_SECOND' in ratio
+assert 'static const double TILE_SPEED_RATIO_MAX_CHANGE_PER_SECOND = 4.0;' in creature
 
 print('check_walk_clip_rate: ok')
