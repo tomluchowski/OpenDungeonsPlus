@@ -301,6 +301,7 @@ kills_probe = (kills_probe.replace('KILL_METHOD', kill_method)
 # ---------------------------------------------------------------------------
 notify_method = function(player_source, 'void Player::notifyNoMoreDungeonTemple(')
 notify_method += function(player_source, 'void Player::notifyDefeat(')
+notify_method += function(player_source, 'void Player::sendLevelStatistics(')
 
 notify_probe = r'''
 #include <cstdint>
@@ -363,6 +364,7 @@ struct Player
     bool getIsHuman() const { return mIsHuman; }
     void notifyNoMoreDungeonTemple();
     void notifyDefeat(bool hasTeamLost);
+    void sendLevelStatistics(bool levelWon);
     Seat* mSeat;
     bool mIsHuman;
     bool mHasLost;

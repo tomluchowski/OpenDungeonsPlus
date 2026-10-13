@@ -984,3 +984,38 @@ BOOST_AUTO_TEST_CASE(test_possession_script)
         BOOST_CHECK_MESSAGE(!invalid.importFromStream(isBad), entry);
     }
 }
+
+//! \brief The discover action that reveals a bonus level of the campaign is read and written, and refused
+//! without a level file
+BOOST_AUTO_TEST_CASE(test_discover_action)
+{
+    static const std::string text =
+        "[Trigger]\n"
+        "Name\tbonus\n"
+        "Mode\tonce\n"
+        "Cond\ttime\t60\n"
+        "Action\tdiscover\tcampaign/Bonus1.level\n"
+        "[/Trigger]\n"
+        "[/Triggers]\n";
+    LevelScript script;
+    std::istringstream is(text);
+    BOOST_REQUIRE(script.importFromStream(is));
+    const LevelScriptTrigger& trigger = script.getTriggers()[0];
+    BOOST_REQUIRE_EQUAL(trigger.mActions.size(), 1u);
+    BOOST_CHECK(trigger.mActions[0].mType == LevelScriptActionType::discoverLevel);
+    BOOST_CHECK_EQUAL(trigger.mActions[0].mText, "campaign/Bonus1.level");
+
+    std::ostringstream os;
+    script.exportToStream(os);
+    std::string written = os.str();
+    LevelScript again;
+    std::istringstream is2(written.substr(11));
+    BOOST_REQUIRE(again.importFromStream(is2));
+    std::ostringstream os2;
+    again.exportToStream(os2);
+    BOOST_CHECK_EQUAL(os2.str(), written);
+
+    LevelScript invalid;
+    std::istringstream isBad("[Trigger]\nName\tx\nMode\tonce\nCond\ttime\t1\nAction\tdiscover\n[/Trigger]\n[/Triggers]\n");
+    BOOST_CHECK(!invalid.importFromStream(isBad));
+}

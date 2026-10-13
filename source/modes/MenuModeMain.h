@@ -59,6 +59,13 @@ private:
     bool toggleSubMenu(const std::string& name);
 
     //! \brief Sub menu button triggers
+    bool toggleCampaignSubMenu(const CEGUI::EventArgs&);
+    bool newCampaignPressed(const CEGUI::EventArgs&);
+    bool newCampaignConfirmed(const CEGUI::EventArgs&);
+
+    //! \brief Shows or hides the question that asks whether the saved campaign progress
+    //! may be replaced by a new campaign, in place of the two campaign buttons
+    void showNewCampaignConfirm(bool visible);
     bool toggleSkirmishSubMenu(const CEGUI::EventArgs&);
     bool toggleMultiplayerSubMenu(const CEGUI::EventArgs&);
     bool toggleEditorSubMenu(const CEGUI::EventArgs&);

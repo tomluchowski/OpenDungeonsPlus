@@ -93,6 +93,7 @@ struct Player {
  RECORD
  void notifyNoMoreDungeonTemple();
  void notifyDefeat(bool hasTeamLost);
+ void sendLevelStatistics(bool levelWon);
 };
 enum class GameEntityType {creature, other};
 struct CreatureDefinition {bool isWorker()const{return false;}};
@@ -306,6 +307,7 @@ methods += '\n' + '\n'.join([
     function(seat_data, 'uint32_t SeatData::getNbRooms(').replace('SeatData::', 'Seat::'),
     function(player, 'void Player::notifyNoMoreDungeonTemple('),
     function(player, 'void Player::notifyDefeat('),
+    function(player, 'void Player::sendLevelStatistics('),
     function(treasury_object, 'const char* TreasuryObject::getMeshNameForGold('),
 ])
 probe = probe.replace('INLINE_METHODS', inline).replace('RECORD', function(player_header, 'inline void recordHeartDestroyed('))

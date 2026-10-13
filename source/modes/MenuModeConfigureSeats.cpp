@@ -18,6 +18,7 @@
 #include "gamemap/GameMap.h"
 
 #include "ai/KeeperAIType.h"
+#include "game/Campaign.h"
 #include "game/Seat.h"
 #include "modes/MenuModeConfigureSeats.h"
 #include "modes/ModeManager.h"
@@ -111,6 +112,14 @@ void MenuModeConfigureSeats::activate()
     msgWin->setVisible(false);
 
     tmpWin->setText(reinterpret_cast<const CEGUI::utf8*>(std::string("Configure map : " + gameMap->getLevelName()).c_str()));
+
+    // A campaign level is fully predefined: the page is not shown, the game starts
+    // as soon as the server is ready (see activatePlayerConfig)
+    if(Campaign::getSingleton().isActive())
+    {
+        tmpWin->setVisible(false);
+        msgWin->setVisible(true);
+    }
 
     // Reset the chat
     CEGUI::Window* chatWin = tmpWin->getChild("GameChatText");
@@ -483,6 +492,13 @@ void MenuModeConfigureSeats::activatePlayerConfig()
 
     CEGUI::Window* startButton = getModeManager().getGui().getGuiSheet(Gui::guiSheet::configureSeats)->getChild("ListPlayers/LaunchGameButton");
     startButton->setEnabled(enabled);
+
+    // The seats of a campaign level are predefined, so the game is started without asking
+    if(Campaign::getSingleton().isActive())
+    {
+        CEGUI::EventArgs args;
+        launchSelectedButtonPressed(args);
+    }
 }
 
 void MenuModeConfigureSeats::refreshSeatConfiguration(ODPacket& packet)

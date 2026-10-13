@@ -128,6 +128,7 @@
 //!   Action  stonecreate <x> <y>                 # a portal stone lies on the tile
 //!   Action  stoneattach <creatureName>          # the creature carries a portal stone; it drops where the creature dies
 //!   Action  terrain <x1> <y1> <x2> <y2> bridge <seatId>   # also: a wooden bridge of the seat over lava or water
+//!   Action  discover <levelFile>              # campaign: reveals a bonus level (level file as in Campaign.cfg)
 //!   State   <timesFired> <lastFiredTurn>      # written by the game, only needed in savegames
 //!   [/Trigger]
 //!   [/Triggers]
@@ -211,6 +212,7 @@ enum class LevelScriptActionType
     win,
     lose,
     reveal,
+    discoverLevel,
     make,
     timeLimit,
     countdown,
@@ -296,7 +298,8 @@ struct LevelScriptAction
     //! \brief Gold amount (gold), flag value (setflag), amount added to a flag (addflag) or
     //! seconds (timeLimit)
     int64_t mNumber;
-    //! \brief Message text (message, objective), flag name (setflag), timer name (timer), region name (reveal) or skill type name (make)
+    //! \brief Message text (message, objective), flag name (setflag), timer name (timer), region name (reveal),
+    //! level file (discoverLevel) or skill type name (make)
     std::string mText;
     //! \brief spawn: creature class name and level
     std::vector<std::pair<std::string, uint32_t> > mCreatures;

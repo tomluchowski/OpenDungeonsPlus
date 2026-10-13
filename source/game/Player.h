@@ -180,6 +180,10 @@ public:
     //! and the whole team loses with the player.
     void notifyTimeUp();
 
+    //! \brief Sends the debriefing counters of every seat with a player to this (human) player.
+    //! Server side only. levelWon tells how the level ended for this player.
+    void sendLevelStatistics(bool levelWon);
+
     inline bool getIsHuman() const
     { return mIsHuman; }
 

@@ -32,6 +32,7 @@
 #include "entities/RenderedMovableEntity.h"
 #include "entities/Tile.h"
 #include "entities/Weapon.h"
+#include "game/Campaign.h"
 #include "game/Player.h"
 #include "game/Skill.h"
 #include "game/SkillType.h"
@@ -2751,6 +2752,19 @@ void GameMap::addWinningSeat(Seat *s)
             ServerNotificationType::chatServer, player);
         serverNotification->mPacket << "You Won" << EventShortNoticeType::majorGameEvent;
         ODServer::getSingleton().queueServerNotification(serverNotification);
+
+        // The numbers of the level at the moment of the victory (the campaign menu shows them)
+        player->sendLevelStatistics(true);
+
+        // In a campaign, the progress is saved and the player is told how to go on
+        if(Campaign::getSingleton().onLevelWon())
+        {
+            ServerNotification* campaignNotification = new ServerNotification(
+                ServerNotificationType::chatServer, player);
+            campaignNotification->mPacket << "Campaign progress saved. Open the menu and quit to see the debriefing."
+                << EventShortNoticeType::majorGameEvent;
+            ODServer::getSingleton().queueServerNotification(campaignNotification);
+        }
     }
 
     std::vector<Seat*> seats;

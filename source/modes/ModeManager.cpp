@@ -20,6 +20,7 @@
 #include "modes/InputManager.h"
 #include "modes/AdvertMode.h"
 #include "modes/MenuModeMain.h"
+#include "modes/MenuModeCampaign.h"
 #include "modes/MenuModeConfigureSeats.h"
 #include "modes/MenuModeSkirmish.h"
 #include "modes/MenuModeMasterServerJoin.h"
@@ -108,6 +109,9 @@ void ModeManager::checkModeChange()
         break;
     case MENU_SKIRMISH:
         mCurrentApplicationMode = Utils::make_unique<MenuModeSkirmish>(this);
+        break;
+    case MENU_CAMPAIGN:
+        mCurrentApplicationMode = Utils::make_unique<MenuModeCampaign>(this);
         break;
     case MENU_REPLAY:
         mCurrentApplicationMode = Utils::make_unique<MenuModeReplay>(this);

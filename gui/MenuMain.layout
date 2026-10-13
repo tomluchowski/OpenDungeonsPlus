@@ -25,7 +25,6 @@
             <Property name="Font" value="MedievalSharp-12" />
             <Property name="Area" value="{{0.5,-160},{0.5,-40},{0.5,160},{0.5,-4}}" />
             <Property name="Text" value="Campaign" />
-            <Property name="Disabled" value="True" />
         </Window>
         <Window type="OD/MenuTextButton" name="StartSkirmishButton" >
             <Property name="Font" value="MedievalSharp-12" />
@@ -58,6 +57,7 @@
             <Property name="Area" value="{{0.5,-160},{0.5,196},{0.5,160},{0.5,232}}" />
             <Property name="Text" value="Quit" />
         </Window>
+        <LayoutImport type="DefaultWindow" filename="WindowCampaignSubMenu.layout" name="CampaignSubMenuMenuImport" />
         <LayoutImport type="DefaultWindow" filename="WindowSkirmishSubMenu.layout" name="SkirmishSubMenuMenuImport" />
         <LayoutImport type="DefaultWindow" filename="WindowMultiplayerSubMenu.layout" name="MultiplayerSubMenuMenuImport" />
         <LayoutImport type="DefaultWindow" filename="WindowEditorSubMenu.layout" name="EditorSubMenuMenuImport" />

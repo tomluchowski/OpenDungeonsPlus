@@ -56,6 +56,7 @@ struct Player {
  RECORD
  void notifyNoMoreDungeonTemple();
  void notifyDefeat(bool hasTeamLost);
+ void sendLevelStatistics(bool levelWon);
 };
 struct Seat {int id,team;Player* player=nullptr;SeatStatistics stats;
  bool isRogueSeat()const{return id==0;}const SeatStatistics& getStatistics()const{return stats;}
@@ -110,6 +111,7 @@ int main(){int checks=0,failures=0;
 record = function(header, 'inline void recordHeartDestroyed(')
 method = function(source, 'void Player::notifyNoMoreDungeonTemple(')
 method += function(source, 'void Player::notifyDefeat(')
+method += function(source, 'void Player::sendLevelStatistics(')
 probe = probe.replace('RECORD', record).replace('METHOD', method)
 
 # Static wiring checks on the production sources (client handler and enum position).

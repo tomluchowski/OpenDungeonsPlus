@@ -27,6 +27,7 @@
 #include "entities/MissileStone.h"
 #include "entities/RenderedMovableEntity.h"
 #include "entities/Tile.h"
+#include "game/Campaign.h"
 #include "game/Player.h"
 #include "game/Seat.h"
 #include "game/SkillType.h"
@@ -1216,6 +1217,13 @@ void runAction(GameMap& gameMap, LevelScript& script, const LevelScriptAction& a
         case LevelScriptActionType::slapLimit:
             script.setSlapLimit(action.mNumber);
             break;
+        case LevelScriptActionType::discoverLevel:
+        {
+            if(Campaign::getSingleton().discoverBonusLevel(action.mText))
+                sendMessage(gameMap, -1, "You have found a hidden land. Go there when you have conquered this land.");
+
+            break;
+        }
     }
 }
 

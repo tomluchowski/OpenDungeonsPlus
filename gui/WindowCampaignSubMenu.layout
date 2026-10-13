@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<GUILayout version="4" >
+    <Window type="DefaultWindow" name="CampaignSubMenuWindow" >
+        <Property name="Area" value="{{0,0},{0,0},{1,0},{1,0}}" />
+        <Property name="Visible" value="False" />
+        <Window type="OD/MenuTitle" name="Title" >
+            <Property name="Font" value="MedievalSharp-20" />
+            <Property name="Area" value="{{0.5,-300},{0.5,-60},{0.5,300},{0.5,0}}" />
+            <Property name="Text" value="Campaign" />
+            <Property name="HorzFormatting" value="CentreAligned" />
+            <Property name="FrameEnabled" value="False" />
+            <Property name="BackgroundEnabled" value="False" />
+            <Property name="MousePassThroughEnabled" value="True" />
+        </Window>
+        <Window type="OD/MenuTextButton" name="NewCampaignButton" >
+            <Property name="Font" value="MedievalSharp-12" />
+            <Property name="Area" value="{{0.5,-160},{0.5,32},{0.5,160},{0.5,68}}" />
+            <Property name="Text" value="New Campaign" />
+        </Window>
+        <Window type="OD/MenuTextButton" name="ContinueCampaignButton" >
+            <Property name="Font" value="MedievalSharp-12" />
+            <Property name="Area" value="{{0.5,-160},{0.5,68},{0.5,160},{0.5,104}}" />
+            <Property name="Text" value="Continue Campaign" />
+        </Window>
+        <Window type="OD/StaticText" name="NewCampaignConfirmText" >
+            <Property name="Area" value="{{0.5,-300},{0.5,32},{0.5,300},{0.5,104}}" />
+            <Property name="Text" value="Begin a new campaign? Your saved campaign progress will be lost." />
+            <Property name="Visible" value="False" />
+            <Property name="MaxSize" value="{{1,0},{1,0}}" />
+            <Property name="FrameEnabled" value="False" />
+            <Property name="HorzFormatting" value="WordWrapCentreAligned" />
+            <Property name="BackgroundEnabled" value="False" />
+        </Window>
+        <Window type="OD/MenuSymbolButton" name="NewCampaignConfirmButton" >
+            <Property name="Area" value="{{1,-92.8},{1,-92.8},{1,-16},{1,-16}}" />
+            <Property name="Visible" value="False" />
+            <Property name="NormalImage" value="OpenDungeonsIcons/CheckIcon" />
+            <Property name="HoverImage" value="OpenDungeonsIcons/CheckIcon" />
+            <Property name="PushedImage" value="OpenDungeonsIcons/CheckIcon" />
+            <Property name="TooltipText" value="Begin a new campaign" />
+        </Window>
+        <Window type="OD/MenuSymbolButton" name="BackButton" >
+            <Property name="Area" value="{{1,-176},{1,-92.8},{1,-99.2},{1,-16}}" />
+            <Property name="NormalImage" value="OpenDungeonsIcons/AbortIcon" />
+            <Property name="HoverImage" value="OpenDungeonsIcons/AbortIcon" />
+            <Property name="PushedImage" value="OpenDungeonsIcons/AbortIcon" />
+            <Property name="TooltipText" value="Back" />
+        </Window>
+    </Window>
+</GUILayout>

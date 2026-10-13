@@ -974,6 +974,7 @@ Gui::Gui(SoundEffectsManager* soundEffectsManager, const std::string& ceguiLogFi
     mSheets[advertisment] = wmgr->loadLayoutFromFile("Advertisment.layout");
     mSheets[mainMenu] = wmgr->loadLayoutFromFile("MenuMain.layout");
     mSheets[skirmishMenu] = wmgr->loadLayoutFromFile("MenuSkirmish.layout");
+    mSheets[campaignMenu] = wmgr->loadLayoutFromFile("MenuCampaign.layout");
     mSheets[multiplayerClientMenu] = wmgr->loadLayoutFromFile("MenuMultiplayerClient.layout");
     mSheets[multiplayerServerMenu] = wmgr->loadLayoutFromFile("MenuMultiplayerServer.layout");
     mSheets[multiMasterServerJoinMenu] = wmgr->loadLayoutFromFile("MenuMasterServerJoin.layout");
@@ -999,6 +1000,7 @@ Gui::Gui(SoundEffectsManager* soundEffectsManager, const std::string& ceguiLogFi
     // Set the game version
     mSheets[mainMenu]->getChild("VersionText")->setText(ODApplication::VERSION);
     mSheets[skirmishMenu]->getChild("VersionText")->setText(ODApplication::VERSION);
+    mSheets[campaignMenu]->getChild("VersionText")->setText(ODApplication::VERSION);
     mSheets[multiplayerServerMenu]->getChild("VersionText")->setText(ODApplication::VERSION);
     mSheets[multiplayerClientMenu]->getChild("VersionText")->setText(ODApplication::VERSION);
     mSheets[editorNewMenu]->getChild("VersionText")->setText(ODApplication::VERSION);

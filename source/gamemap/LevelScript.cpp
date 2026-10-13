@@ -758,6 +758,15 @@ bool parseAction(const std::string& line, const std::vector<std::string>& t, Lev
         action.mText = t[2];
         return (t.size() == 3) || (parseInt(t[3], action.mNumber) && (action.mNumber >= 0));
     }
+    if(type == "discover")
+    {
+        action.mType = LevelScriptActionType::discoverLevel;
+        if(t.size() != 3)
+            return false;
+
+        action.mText = t[2];
+        return true;
+    }
     return false;
 }
 
@@ -1019,6 +1028,9 @@ void writeAction(std::ostream& os, const LevelScriptAction& a)
             os << "generate\t" << a.mSeatId << "\t";
             if(!a.mCreatures.empty())
                 os << a.mCreatures[0].first << ":" << a.mCreatures[0].second;
+            break;
+        case LevelScriptActionType::discoverLevel:
+            os << "discover\t" << a.mText;
             break;
         case LevelScriptActionType::creatureOrder:
             os << "order\t" << a.mText << "\t" << a.mSeatId << "\t";

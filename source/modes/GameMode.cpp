@@ -25,6 +25,7 @@
 #include "entities/GameEntityType.h"
 #include "entities/RenderedMovableEntity.h"
 #include "entities/Tile.h"
+#include "game/Campaign.h"
 #include "game/HeartHealthRing.h"
 #include "game/Player.h"
 #include "game/Skill.h"
@@ -1925,8 +1926,13 @@ bool GameMode::onClickDefeatDebriefingConfirm(const CEGUI::EventArgs& /*arg*/)
 {
     if(!mDefeatSequence.confirmDebriefing())
         return true;
-    // Same way out as the quit menu, but the main menu opens with the skirmish sub-menu
-    mModeManager->requestMainMenuWithSkirmishSubMenu();
+    // In a campaign the way out of a lost level is the campaign menu, where the level can be
+    // played again. Otherwise it is the same way out as the quit menu, but the main menu
+    // opens with the skirmish sub-menu.
+    if(Campaign::getSingleton().isActive())
+        mModeManager->requestMode(AbstractModeManager::MENU_CAMPAIGN);
+    else
+        mModeManager->requestMainMenuWithSkirmishSubMenu();
     return true;
 }
 
@@ -1934,6 +1940,8 @@ bool GameMode::onClickYesQuitMenu(const CEGUI::EventArgs& /*arg*/)
 {
     if(mExitToDesktop)
         ODFrameListener::getSingleton().requestExit();
+    else if(Campaign::getSingleton().isActive())
+        mModeManager->requestMode(AbstractModeManager::MENU_CAMPAIGN);
     else
         mModeManager->requestMode(AbstractModeManager::MENU_MAIN);
     return true;

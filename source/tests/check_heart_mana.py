@@ -96,6 +96,7 @@ struct Player {
  bool redemWorkerInHeart(GameEntity* entity,Tile* tile);
  void notifyNoMoreDungeonTemple();
  void notifyDefeat(bool hasTeamLost);
+ void sendLevelStatistics(bool levelWon);
 };
 struct CreatureDefinition {bool worker=false;bool isWorker()const{return worker;}};
 struct GameEntity {Seat* seat;int deaths=0;
@@ -392,6 +393,7 @@ methods += '\n' + '\n'.join([
     function(player, 'bool Player::redemWorkerInHeart('),
     function(player, 'void Player::notifyNoMoreDungeonTemple('),
     function(player, 'void Player::notifyDefeat('),
+    function(player, 'void Player::sendLevelStatistics('),
 ])
 mana_helpers = game_map[game_map.index('const double MANA_HEART_INCOME_PER_SECOND')
     : game_map.index('double manaUpkeepPerSecond(') + len(function(game_map, 'double manaUpkeepPerSecond('))]
