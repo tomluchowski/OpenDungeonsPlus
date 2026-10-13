@@ -391,6 +391,7 @@ public:
 
     //! Timers: a timer that was never started does not exist and counts 0 turns
     int64_t getTimerTurns(const std::string& name) const;
+    //! \brief Starts the timer with the given name (or restarts it) and sets it to the given number of turns.
     void startTimer(const std::string& name, int64_t turns);
 
     //! Adds one turn to every running timer
@@ -420,14 +421,17 @@ public:
     //! Counts an event of a creature (and of the party it belongs to). Only the creatures and parties
     //! that a condition of the script names are counted.
     void recordEvent(const std::string& creatureName, const std::string& eventName);
+    //! \brief Gets how often the event was counted for a creature name or a party tag, 0 if never.
     int64_t getEventCount(const std::string& tag, const std::string& eventName) const;
 
     //! Puts a creature into a party
     void addPartyMember(const std::string& party, const std::string& creatureName);
 
+    //! \brief All counted events, by (creature name or party tag, event name), with their counts.
     inline const std::map<std::pair<std::string, std::string>, int64_t>& getEvents() const
     { return mEvents; }
 
+    //! \brief All party memberships, by creature name, with the name of the party of the creature.
     inline const std::map<std::string, std::string>& getPartyMembers() const
     { return mPartyMembers; }
 
