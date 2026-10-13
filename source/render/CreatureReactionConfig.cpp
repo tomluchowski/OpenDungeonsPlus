@@ -26,6 +26,15 @@
 namespace
 {
 
+//! Default number of reactions that may play at the same time
+static const uint32_t DEFAULT_MAX_SIMULTANEOUS = 6;
+//! Default distance from the camera in tiles beyond which a creature shows no reaction
+static const double DEFAULT_MAX_CAMERA_DISTANCE = 45.0;
+//! Default shortest delay in seconds between the reactions of the creatures of one group
+static const double DEFAULT_GROUP_STAGGER_MIN = 0.12;
+//! Default longest delay in seconds between the reactions of the creatures of one group
+static const double DEFAULT_GROUP_STAGGER_MAX = 0.45;
+
 //! \brief Reads the next not empty line and splits it in words. Returns false at the end of the file
 bool readWords(std::istream& file, std::vector<std::string>& words)
 {
@@ -51,10 +60,10 @@ bool toBool(const std::string& text)
 } // namespace
 
 CreatureReactionConfig::CreatureReactionConfig() :
-    mMaxSimultaneous(6),
-    mMaxCameraDistance(45.0),
-    mGroupStaggerMin(0.12),
-    mGroupStaggerMax(0.45),
+    mMaxSimultaneous(DEFAULT_MAX_SIMULTANEOUS),
+    mMaxCameraDistance(DEFAULT_MAX_CAMERA_DISTANCE),
+    mGroupStaggerMin(DEFAULT_GROUP_STAGGER_MIN),
+    mGroupStaggerMax(DEFAULT_GROUP_STAGGER_MAX),
     mMoodInterval(0.5),
     mMoodPerTick(4),
     mMoodWalkingChance(0.3),
