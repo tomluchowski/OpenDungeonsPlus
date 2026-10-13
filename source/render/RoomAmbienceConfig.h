@@ -72,6 +72,9 @@ enum class AmbienceKind
     turn,
     //! A sound of the family given by Family: played at the event, or now and then (Every) at an object
     sound,
+    //! A small static decoration mesh (Mesh) placed on a tile (a weapon rack, a banner), with an optional motion
+    //! (tiles only; Amount 0 = stands still)
+    model,
     //! A mesh (Mesh) that is stretched from the point From to the target for a moment and flickers: a lightning bolt
     //! (events only). Amount = width, Speed = flickers per second, Duration in seconds
     beam,
@@ -125,6 +128,7 @@ struct AmbienceEffect
         mPriority(5),
         mReduced(false),
         mNeedWall(false),
+        mWallSide(false),
         mOwnerOnly(false)
     {}
 
@@ -160,7 +164,8 @@ struct AmbienceEffect
     double mFlicker;
     //! Seconds a one-shot effect is kept
     double mDuration;
-    //! Mesh name without extension (kinds beam and projectile)
+    //! Mesh name without extension (kinds beam and projectile), mesh file name (kind model: looks along the Y axis,
+    //! turned away from the wall)
     std::string mMesh;
     //! Event raised at the target when a projectile arrives
     std::string mLand;
@@ -184,6 +189,8 @@ struct AmbienceEffect
     bool mReduced;
     //! Tile targets: only tiles beside a wall
     bool mNeedWall;
+    //! Tile targets: the effect is moved to the edge of the tile that touches a wall (decorations look away from it)
+    bool mWallSide;
     //! Shown (or heard) only by the keeper the object or the thing of the event belongs to (the glint and the sounds of a
     //! secret door must not give it away)
     bool mOwnerOnly;

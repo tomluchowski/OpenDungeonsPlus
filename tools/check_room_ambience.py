@@ -20,10 +20,10 @@ SETTINGS = ("ScanInterval", "MaxParticles", "MaxParticlesReduced", "MaxMotions",
 EFFECT_KEYS = ("Name", "Target", "Match", "When", "Event", "Kind", "System", "Motion", "After", "Offset", "Axis",
                "Amount", "Speed", "Flicker", "Duration", "Chance", "Spacing", "MaxDistance", "Priority", "Reduced",
                "NeedWall", "Clips", "Every", "Family", "Delay", "Mesh", "Land", "From",
-               "OwnerOnly")
+               "OwnerOnly", "WallSide")
 TARGETS = ("Object", "Tile", "Event")
 WHENS = ("Always", "Occupied", "Empty", "Hit", "Locked", "Reloading", "Ready")
-KINDS = ("Particle", "Motion", "Clip", "Shake", "Turn", "Sound", "Beam", "Projectile", "Mark")
+KINDS = ("Particle", "Motion", "Clip", "Shake", "Turn", "Sound", "Beam", "Projectile", "Mark", "Model")
 MOTIONS = ("Sway", "Wobble", "Spin", "Bob", "Pulse", "Flicker")
 # Room tile visuals that only some builds have
 OPTIONAL_VISUALS = ("guardRoom", "templeRoom")
@@ -230,8 +230,8 @@ def check_effect(effect, where, problems, visuals, systems, mats, counts):
             counts["lands"].append((where, effect["Land"][0]))
         if kind == "Beam" and "Land" in effect:
             problems.append("%s: only projectiles have Land" % where)
-    elif "Land" in effect or "From" in effect or "Mesh" in effect:
-        problems.append("%s: Mesh, Land and From only belong to beams and projectiles" % where)
+    elif "Land" in effect or "From" in effect or ("Mesh" in effect and kind != "Model"):
+        problems.append("%s: Mesh, Land and From only belong to beams and projectiles (Mesh also to models)" % where)
     if kind == "Turn":
         if target != "Object":
             problems.append("%s: turns only work on objects" % where)
@@ -260,6 +260,16 @@ def check_effect(effect, where, problems, visuals, systems, mats, counts):
                 for texture in mats[material]:
                     if not os.path.exists(os.path.join(ROOT, "materials", "textures", texture)):
                         problems.append("%s: material %s uses missing texture %s" % (where, material, texture))
+    elif kind == "Model":
+        mesh = effect.get("Mesh", [None])[0]
+        if mesh is None:
+            problems.append("%s: model without Mesh" % where)
+        elif not os.path.exists(os.path.join(ROOT, "models", mesh)):
+            problems.append("%s: no mesh file %s" % (where, mesh))
+        if target != "Tile":
+            problems.append("%s: models only work on tiles" % where)
+        if "Motion" in effect and effect["Motion"][0] not in MOTIONS:
+            problems.append("%s: bad Motion %s" % (where, effect["Motion"][0]))
     elif kind == "Motion":
         bridges = target == "Tile" and all(m.startswith("bridge:") for m in effect.get("Match", []))
         if target != "Object" and not bridges:
@@ -279,7 +289,7 @@ def check_effect(effect, where, problems, visuals, systems, mats, counts):
     for key in ("Offset", "Axis", "From"):
         if key in effect and (len(effect[key]) != 3 or not all(is_number(v) for v in effect[key])):
             problems.append("%s: %s needs three numbers" % (where, key))
-    for key in ("Reduced", "NeedWall", "OwnerOnly"):
+    for key in ("Reduced", "NeedWall", "OwnerOnly", "WallSide"):
         if key in effect and effect[key][0] not in ("yes", "no", "true", "false", "1", "0"):
             problems.append("%s: %s needs yes or no" % (where, key))
     for match in effect.get("Match", []):

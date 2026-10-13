@@ -129,8 +129,9 @@ private:
     {
         //! \brief Creates an emitter that is not attached to anything yet
         Emitter() :
-            mEffect(0), mNode(nullptr), mSystem(nullptr), mFade(-1.0), mBaseWidth(1.0), mBaseHeight(1.0),
-            mPhase(0.0), mSeen(false)
+            mEffect(0), mNode(nullptr), mSystem(nullptr), mEntity(nullptr), mBaseOrientation(Ogre::Quaternion::IDENTITY),
+            mBasePosition(Ogre::Vector3::ZERO), mFade(-1.0), mBaseWidth(1.0), mBaseHeight(1.0), mPhase(0.0), mCycle(0.0),
+            mSeen(false)
         {}
 
         //! Index of the effect in the configuration
@@ -139,6 +140,12 @@ private:
         Ogre::SceneNode* mNode;
         //! The running particle system (none for an effect of the kind model)
         Ogre::ParticleSystem* mSystem;
+        //! The decoration mesh of an effect of the kind model (no particle system then)
+        Ogre::Entity* mEntity;
+        //! Orientation of the decoration when it was placed, its motion moves around it
+        Ogre::Quaternion mBaseOrientation;
+        //! Position of the decoration when it was placed, its motion moves around it
+        Ogre::Vector3 mBasePosition;
         //! Seconds since the emitter was told to stop, negative while it is running
         double mFade;
         //! Particle width at creation, the flicker scales it
@@ -147,6 +154,8 @@ private:
         double mBaseHeight;
         //! Start phase of the flicker, so that equal effects do not flicker together
         double mPhase;
+        //! Radians turned so far by a decoration with the motion spin
+        double mCycle;
         //! True while the last scan still wanted this emitter
         bool mSeen;
     };
@@ -335,7 +344,7 @@ private:
     {
         //! \brief Creates a candidate that is not set yet
         Candidate() :
-            mEffect(0), mPosition(Ogre::Vector3::ZERO), mDistance(0.0), mPriority(0), mActive(false)
+            mEffect(0), mPosition(Ogre::Vector3::ZERO), mDistance(0.0), mPriority(0), mYaw(0.0), mActive(false)
         {}
 
         //! Index of the effect in the configuration
@@ -350,6 +359,8 @@ private:
         double mDistance;
         //! Priority of the effect, higher ones are served first
         int32_t mPriority;
+        //! Degrees around the vertical axis (kind model): the decoration looks away from the wall
+        double mYaw;
         //! True if the conditions of the effect hold now
         bool mActive;
     };
@@ -417,6 +428,18 @@ private:
     void updateMotions(double timeSinceLastFrame);
     //! \brief Removes the particle system or model of an emitter and its scene node
     void destroyEmitter(Emitter& emitter);
+    //! \brief Creates the scene node and mesh of a decoration (effect kind model)
+    //! \param mesh The mesh file of the decoration.
+    //! \param position Where it stands.
+    //! \param yaw Degrees around the vertical axis.
+    //! \param baseName Start of the names of the scene objects.
+    //! \param node Receives the scene node.
+    //! \param entity Receives the entity.
+    //! \return False if the mesh does not exist (then nothing was created).
+    bool createModel(const std::string& mesh, const Ogre::Vector3& position, double yaw, const std::string& baseName,
+        Ogre::SceneNode*& node, Ogre::Entity*& entity);
+    //! \brief Moves a decoration by the motion of its effect, around the pose it was placed in
+    void moveModel(Emitter& emitter, const AmbienceEffect& effect, double timeSinceLastFrame);
     //! \brief Puts a moved node back to the position, orientation and scale it had before
     void restoreMotionNode(MotionNode& motionNode);
 

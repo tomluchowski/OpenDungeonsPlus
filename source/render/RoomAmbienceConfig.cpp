@@ -309,6 +309,8 @@ bool RoomAmbienceConfig::loadEffect(std::istream& file)
                 effect.mKind = AmbienceKind::projectile;
             else if(words[1] == "Mark")
                 effect.mKind = AmbienceKind::mark;
+            else if(words[1] == "Model")
+                effect.mKind = AmbienceKind::model;
             else
             {
                 OD_LOG_ERR("Unknown room ambience kind: " + words[1]);
@@ -411,6 +413,10 @@ bool RoomAmbienceConfig::loadEffect(std::istream& file)
         else if(key == "NeedWall")
         {
             effect.mNeedWall = toBool(words[1]);
+        }
+        else if(key == "WallSide")
+        {
+            effect.mWallSide = toBool(words[1]);
         }
         else if(key == "OwnerOnly")
         {

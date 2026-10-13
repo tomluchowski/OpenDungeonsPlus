@@ -1,4 +1,48 @@
-// Effects of the production rooms. Only the glow, embers and dust that the traps and doors also use are here for now.
+// Effects of the production rooms: workshop, library, training hall, treasury and hatchery
+// (see config/roomAmbienceProduction.cfg).
+
+// ---- Workshop ----
+
+// Dark smoke rising from a chimney
+particle_system RoomAmbForgeSmoke
+{
+    material        RoomAmbSmoke
+    point_rendering false
+    particle_width  0.35
+    particle_height 0.35
+    cull_each       false
+    quota           14
+    billboard_type  point
+
+    emitter Point
+    {
+        angle               14
+        colour_range_start  0.28 0.27 0.26 0.5
+        colour_range_end    0.4 0.38 0.36 0.55
+        emission_rate       3
+        time_to_live        3.6
+        direction           0 0 1
+        velocity_min        0.45
+        velocity_max        0.8
+    }
+
+    affector Scaler
+    {
+        rate    0.3
+    }
+
+    affector ColourFader
+    {
+        alpha   -0.14
+    }
+
+    affector DirectionRandomiser
+    {
+        randomness  0.25
+        scope       0.4
+        keep_velocity true
+    }
+}
 
 // The glow of a fire: one steady billboard, the game makes it flicker
 particle_system RoomAmbEmberGlow
@@ -61,6 +105,494 @@ particle_system RoomAmbEmbers
     }
 }
 
+// Sparks thrown up now and then where something is hammered
+particle_system RoomAmbAnvilSparks
+{
+    material        RoomAmbSpark
+    point_rendering false
+    particle_width  0.09
+    particle_height 0.09
+    cull_each       false
+    quota           30
+    billboard_type  point
+
+    emitter Point
+    {
+        angle               75
+        colour_range_start  1.0 0.85 0.4 1.0
+        colour_range_end    1.0 1.0 0.8 1.0
+        emission_rate       90
+        time_to_live        0.55
+        direction           0 0 1
+        velocity_min        1.2
+        velocity_max        2.6
+        duration            0.14
+        repeat_delay_min    0.7
+        repeat_delay_max    2.0
+    }
+
+    affector LinearForce
+    {
+        force_vector        0 0 -6
+        force_application   add
+    }
+
+    affector ColourFader
+    {
+        alpha   -1.5
+    }
+}
+
+// A steady stream of sparks from a grindstone
+particle_system RoomAmbGrindSparks
+{
+    material        RoomAmbSpark
+    point_rendering false
+    particle_width  0.07
+    particle_height 0.07
+    cull_each       false
+    quota           24
+    billboard_type  point
+
+    emitter Point
+    {
+        angle               35
+        colour_range_start  1.0 0.8 0.35 1.0
+        colour_range_end    1.0 0.95 0.7 1.0
+        emission_rate       22
+        time_to_live        0.5
+        direction           0 0 1
+        velocity_min        1.0
+        velocity_max        2.2
+    }
+
+    affector LinearForce
+    {
+        force_vector        0 0 -5
+        force_application   add
+    }
+
+    affector ColourFader
+    {
+        alpha   -1.8
+    }
+}
+
+// Light steam from a working machine
+particle_system RoomAmbSteam
+{
+    material        RoomAmbSmoke
+    point_rendering false
+    particle_width  0.28
+    particle_height 0.28
+    cull_each       false
+    quota           8
+    billboard_type  point
+
+    emitter Point
+    {
+        angle               20
+        colour_range_start  0.85 0.85 0.85 0.4
+        colour_range_end    0.95 0.95 0.95 0.45
+        emission_rate       1.8
+        time_to_live        2.2
+        direction           0 0 1
+        velocity_min        0.35
+        velocity_max        0.7
+    }
+
+    affector Scaler
+    {
+        rate    0.35
+    }
+
+    affector ColourFader
+    {
+        alpha   -0.2
+    }
+}
+
+// Something was finished: a puff of steam
+particle_system RoomAmbCraftedSteam
+{
+    material        RoomAmbSmoke
+    point_rendering false
+    particle_width  0.5
+    particle_height 0.5
+    cull_each       false
+    quota           20
+    billboard_type  point
+
+    emitter Box
+    {
+        angle               50
+        colour_range_start  0.9 0.9 0.9 0.5
+        colour_range_end    1.0 1.0 1.0 0.55
+        emission_rate       50
+        time_to_live        1.6
+        direction           0 0 1
+        velocity_min        0.4
+        velocity_max        1.0
+        duration            0.35
+        width               0.4
+        height              0.4
+        depth               0.1
+    }
+
+    affector Scaler
+    {
+        rate    0.5
+    }
+
+    affector ColourFader
+    {
+        alpha   -0.32
+    }
+}
+
+// A short bright flash that fades
+particle_system RoomAmbFlash
+{
+    material        RoomAmbGlow
+    point_rendering false
+    particle_width  1.3
+    particle_height 1.3
+    cull_each       false
+    quota           2
+    billboard_type  point
+
+    emitter Point
+    {
+        angle               0
+        colour              1.0 0.85 0.45 0.8
+        emission_rate       20
+        time_to_live        0.7
+        direction           0 0 1
+        velocity            0
+        duration            0.08
+    }
+
+    affector ColourFader
+    {
+        alpha   -1.1
+    }
+}
+
+// A burst of sparks
+particle_system RoomAmbSparkBurst
+{
+    material        RoomAmbSpark
+    point_rendering false
+    particle_width  0.12
+    particle_height 0.12
+    cull_each       false
+    quota           24
+    billboard_type  point
+
+    emitter Point
+    {
+        angle               180
+        colour_range_start  1.0 0.85 0.4 1.0
+        colour_range_end    1.0 1.0 0.85 1.0
+        emission_rate       100
+        time_to_live        0.8
+        direction           0 0 1
+        velocity_min        0.8
+        velocity_max        2.0
+        duration            0.15
+    }
+
+    affector LinearForce
+    {
+        force_vector        0 0 -3
+        force_application   add
+    }
+
+    affector ColourFader
+    {
+        alpha   -1.1
+    }
+}
+
+// ---- Library ----
+
+// The warm light of a reading lamp
+particle_system RoomAmbCandleGlow
+{
+    material        RoomAmbGlow
+    point_rendering false
+    particle_width  0.45
+    particle_height 0.45
+    cull_each       false
+    quota           1
+    billboard_type  point
+
+    emitter Point
+    {
+        angle               0
+        colour              1.0 0.82 0.4 0.65
+        emission_rate       2
+        time_to_live        100000
+        direction           0 0 1
+        velocity            0
+    }
+}
+
+// Specks of dust in a beam of light
+particle_system RoomAmbMotes
+{
+    material        RoomAmbDust
+    point_rendering false
+    particle_width  0.05
+    particle_height 0.05
+    cull_each       false
+    quota           10
+    billboard_type  point
+
+    emitter Box
+    {
+        angle               180
+        colour              1.0 0.95 0.7 0.0
+        emission_rate       2
+        time_to_live        5
+        direction           0 0 1
+        velocity_min        0.02
+        velocity_max        0.08
+        position            0 0 0.5
+        width               1.0
+        height              1.0
+        depth               0.8
+    }
+
+    affector ColourInterpolator
+    {
+        time0   0
+        colour0 1.0 0.95 0.7 0.0
+        time1   0.5
+        colour1 1.0 0.95 0.7 0.7
+        time2   1
+        colour2 1.0 0.95 0.7 0.0
+    }
+
+    affector DirectionRandomiser
+    {
+        randomness  0.1
+        scope       0.5
+        keep_velocity true
+    }
+}
+
+// Pages lifted by an air current
+particle_system RoomAmbPages
+{
+    material        RoomAmbPage
+    point_rendering false
+    particle_width  0.14
+    particle_height 0.14
+    cull_each       false
+    quota           4
+    billboard_type  point
+
+    emitter Box
+    {
+        angle               40
+        colour              1.0 1.0 1.0 0.0
+        emission_rate       0.7
+        time_to_live        3.2
+        direction           0 0 1
+        velocity_min        0.25
+        velocity_max        0.5
+        width               0.3
+        height              0.3
+        depth               0.05
+    }
+
+    affector ColourInterpolator
+    {
+        time0   0
+        colour0 1.0 1.0 1.0 0.0
+        time1   0.3
+        colour1 1.0 1.0 1.0 0.9
+        time2   1
+        colour2 1.0 1.0 1.0 0.0
+    }
+
+    affector Rotator
+    {
+        rotation_speed_range_start  -90
+        rotation_speed_range_end    90
+        rotation_range_start        0
+        rotation_range_end          360
+    }
+
+    affector DirectionRandomiser
+    {
+        randomness  0.3
+        scope       0.5
+        keep_velocity true
+    }
+}
+
+// Runes hanging in the air above a desk
+particle_system RoomAmbRunes
+{
+    material        RoomAmbRune
+    point_rendering false
+    particle_width  0.2
+    particle_height 0.2
+    cull_each       false
+    quota           4
+    billboard_type  point
+
+    emitter Box
+    {
+        angle               20
+        colour              0.55 0.65 1.0 0.0
+        emission_rate       0.6
+        time_to_live        4
+        direction           0 0 1
+        velocity_min        0.06
+        velocity_max        0.15
+        width               0.3
+        height              0.3
+        depth               0.05
+    }
+
+    affector ColourInterpolator
+    {
+        time0   0
+        colour0 0.55 0.65 1.0 0.0
+        time1   0.5
+        colour1 0.55 0.65 1.0 0.8
+        time2   1
+        colour2 0.55 0.65 1.0 0.0
+    }
+
+    affector Rotator
+    {
+        rotation_speed_range_start  -30
+        rotation_speed_range_end    30
+        rotation_range_start        0
+        rotation_range_end          360
+    }
+}
+
+// A book glowing for a moment
+particle_system RoomAmbBookGlow
+{
+    material        RoomAmbGlow
+    point_rendering false
+    particle_width  0.7
+    particle_height 0.7
+    cull_each       false
+    quota           2
+    billboard_type  point
+
+    emitter Box
+    {
+        angle               0
+        colour              0.55 0.7 1.0 0.0
+        emission_rate       0.2
+        time_to_live        3
+        direction           0 0 1
+        velocity            0
+        width               0.7
+        height              0.2
+        depth               0.5
+    }
+
+    affector ColourInterpolator
+    {
+        time0   0
+        colour0 0.55 0.7 1.0 0.0
+        time1   0.5
+        colour1 0.55 0.7 1.0 0.5
+        time2   1
+        colour2 0.55 0.7 1.0 0.0
+    }
+}
+
+// Research is finished: a column of light
+particle_system RoomAmbLightPillar
+{
+    material        RoomAmbGlow
+    point_rendering false
+    particle_width  0.5
+    particle_height 2.6
+    cull_each       false
+    quota           6
+    billboard_type  oriented_common
+    common_direction 0 0 1
+    billboard_origin bottom_center
+
+    emitter Point
+    {
+        angle               0
+        colour              0.75 0.85 1.0 0.8
+        emission_rate       12
+        time_to_live        1.6
+        direction           0 0 1
+        velocity            0
+        duration            0.5
+    }
+
+    affector ColourFader
+    {
+        alpha   -0.5
+    }
+}
+
+// Pages swirling up
+particle_system RoomAmbPageSwirl
+{
+    material        RoomAmbPage
+    point_rendering false
+    particle_width  0.16
+    particle_height 0.16
+    cull_each       false
+    quota           14
+    billboard_type  point
+
+    emitter Ring
+    {
+        angle               25
+        colour              1.0 1.0 1.0 1.0
+        emission_rate       18
+        time_to_live        2.2
+        direction           0 0 1
+        velocity_min        0.7
+        velocity_max        1.5
+        duration            0.7
+        width               0.7
+        height              0.7
+        inner_width         0.7
+        inner_height        0.7
+        depth               0.1
+    }
+
+    affector Rotator
+    {
+        rotation_speed_range_start  -240
+        rotation_speed_range_end    240
+        rotation_range_start        0
+        rotation_range_end          360
+    }
+
+    affector DirectionRandomiser
+    {
+        randomness  0.8
+        scope       0.8
+        keep_velocity true
+    }
+
+    affector ColourFader
+    {
+        alpha   -0.45
+    }
+}
+
+// ---- Training hall ----
+
 // Dust shaken off at a blow
 particle_system RoomAmbHitDust
 {
@@ -98,5 +630,428 @@ particle_system RoomAmbHitDust
     affector ColourFader
     {
         alpha   -0.5
+    }
+}
+
+// Sweat flying off a trainee
+particle_system RoomAmbSweat
+{
+    material        RoomAmbDrop
+    point_rendering false
+    particle_width  0.06
+    particle_height 0.06
+    cull_each       false
+    quota           8
+    billboard_type  point
+
+    emitter Box
+    {
+        angle               60
+        colour              1.0 1.0 1.0 0.9
+        emission_rate       3
+        time_to_live        0.8
+        direction           0 0 1
+        velocity_min        0.3
+        velocity_max        0.9
+        position            0 0 1.0
+        width               0.5
+        height              0.5
+        depth               0.1
+    }
+
+    affector LinearForce
+    {
+        force_vector        0 0 -4
+        force_application   add
+    }
+
+    affector ColourFader
+    {
+        alpha   -0.9
+    }
+}
+
+// Old straw dust trickling from a practice dummy
+particle_system RoomAmbDummyDust
+{
+    material        RoomAmbDust
+    point_rendering false
+    particle_width  0.05
+    particle_height 0.05
+    cull_each       false
+    quota           6
+    billboard_type  point
+
+    emitter Box
+    {
+        angle               50
+        colour_range_start  0.8 0.7 0.5 0.6
+        colour_range_end    0.9 0.8 0.6 0.6
+        emission_rate       0.8
+        time_to_live        1.8
+        direction           0 0 -1
+        velocity_min        0.05
+        velocity_max        0.15
+        position            0 0 0.9
+        width               0.3
+        height              0.2
+        depth               0.05
+    }
+
+    affector ColourFader
+    {
+        alpha   -0.4
+    }
+}
+
+// ---- Treasury ----
+
+// Twinkling on a heap of gold
+particle_system RoomAmbGoldGlint
+{
+    material        RoomAmbSpark
+    point_rendering false
+    particle_width  0.22
+    particle_height 0.22
+    cull_each       false
+    quota           4
+    billboard_type  point
+
+    emitter Box
+    {
+        angle               0
+        colour              1.0 0.9 0.5 0.0
+        emission_rate       0.8
+        time_to_live        0.9
+        direction           0 0 1
+        velocity            0
+        width               0.5
+        height              0.5
+        depth               0.1
+    }
+
+    affector ColourInterpolator
+    {
+        time0   0
+        colour0 1.0 0.9 0.5 0.0
+        time1   0.4
+        colour1 1.0 0.95 0.6 1.0
+        time2   1
+        colour2 1.0 0.9 0.5 0.0
+    }
+
+    affector Rotator
+    {
+        rotation_speed_range_start  -60
+        rotation_speed_range_end    60
+        rotation_range_start        0
+        rotation_range_end          90
+    }
+}
+
+// More glitter for a heap that is high
+particle_system RoomAmbGoldGlintRich
+{
+    material        RoomAmbSpark
+    point_rendering false
+    particle_width  0.32
+    particle_height 0.32
+    cull_each       false
+    quota           7
+    billboard_type  point
+
+    emitter Box
+    {
+        angle               0
+        colour              1.0 0.9 0.5 0.0
+        emission_rate       2.0
+        time_to_live        0.9
+        direction           0 0 1
+        velocity            0
+        width               0.6
+        height              0.6
+        depth               0.15
+    }
+
+    affector ColourInterpolator
+    {
+        time0   0
+        colour0 1.0 0.9 0.5 0.0
+        time1   0.4
+        colour1 1.0 0.95 0.6 1.0
+        time2   1
+        colour2 1.0 0.9 0.5 0.0
+    }
+
+    affector Rotator
+    {
+        rotation_speed_range_start  -60
+        rotation_speed_range_end    60
+        rotation_range_start        0
+        rotation_range_end          90
+    }
+}
+
+// A soft golden shine over a very full heap, the game lets it pulse
+particle_system RoomAmbGoldShine
+{
+    material        RoomAmbGlow
+    point_rendering false
+    particle_width  1.1
+    particle_height 1.1
+    cull_each       false
+    quota           1
+    billboard_type  point
+
+    emitter Point
+    {
+        angle               0
+        colour              1.0 0.8 0.3 0.4
+        emission_rate       2
+        time_to_live        100000
+        direction           0 0 1
+        velocity            0
+    }
+}
+
+// A single coin sliding off the heap
+particle_system RoomAmbCoinSlide
+{
+    material        RoomAmbCoin
+    point_rendering false
+    particle_width  0.07
+    particle_height 0.07
+    cull_each       false
+    quota           3
+    billboard_type  point
+
+    emitter Box
+    {
+        angle               80
+        colour              1.0 1.0 1.0 1.0
+        emission_rate       0.25
+        time_to_live        1.1
+        direction           0 0 1
+        velocity_min        0.4
+        velocity_max        0.9
+        width               0.3
+        height              0.3
+        depth               0.05
+    }
+
+    affector LinearForce
+    {
+        force_vector        0 0 -3.5
+        force_application   add
+    }
+
+    affector Rotator
+    {
+        rotation_speed_range_start  -300
+        rotation_speed_range_end    300
+        rotation_range_start        0
+        rotation_range_end          360
+    }
+
+    affector ColourFader
+    {
+        alpha   -0.3
+    }
+}
+
+// Gold was put in: coins rain down
+particle_system RoomAmbCoinRain
+{
+    material        RoomAmbCoin
+    point_rendering false
+    particle_width  0.08
+    particle_height 0.08
+    cull_each       false
+    quota           24
+    billboard_type  point
+
+    emitter Box
+    {
+        angle               20
+        colour              1.0 1.0 1.0 1.0
+        emission_rate       36
+        time_to_live        1.0
+        direction           0 0 -1
+        velocity_min        0.2
+        velocity_max        0.8
+        position            0 0 1.3
+        duration            0.6
+        width               0.5
+        height              0.5
+        depth               0.1
+    }
+
+    affector LinearForce
+    {
+        force_vector        0 0 -2.5
+        force_application   add
+    }
+
+    affector Rotator
+    {
+        rotation_speed_range_start  -360
+        rotation_speed_range_end    360
+        rotation_range_start        0
+        rotation_range_end          360
+    }
+}
+
+// ---- Hatchery ----
+
+// A few grains lying on the floor
+particle_system RoomAmbGrain
+{
+    material        RoomAmbGrain
+    point_rendering false
+    particle_width  0.4
+    particle_height 0.4
+    cull_each       false
+    quota           1
+    billboard_type  perpendicular_common
+    common_direction 0 0 1
+    common_up_vector 0 1 0
+
+    emitter Point
+    {
+        angle               0
+        colour              1.0 1.0 1.0 0.9
+        emission_rate       2
+        time_to_live        100000
+        direction           0 0 1
+        velocity            0
+        position            0 0 0.02
+    }
+}
+
+// Feathers drifting down
+particle_system RoomAmbFeatherDrift
+{
+    material        RoomAmbFeather
+    point_rendering false
+    particle_width  0.1
+    particle_height 0.1
+    cull_each       false
+    quota           5
+    billboard_type  point
+
+    emitter Box
+    {
+        angle               90
+        colour              1.0 1.0 1.0 1.0
+        emission_rate       0.9
+        time_to_live        2.6
+        direction           0 0 1
+        velocity_min        0.1
+        velocity_max        0.3
+        position            0 0 0.6
+        width               0.5
+        height              0.5
+        depth               0.1
+    }
+
+    affector LinearForce
+    {
+        force_vector        0 0 -0.35
+        force_application   add
+    }
+
+    affector Rotator
+    {
+        rotation_speed_range_start  -120
+        rotation_speed_range_end    120
+        rotation_range_start        0
+        rotation_range_end          360
+    }
+
+    affector ColourFader
+    {
+        alpha   -0.3
+    }
+
+    affector DirectionRandomiser
+    {
+        randomness  0.5
+        scope       0.5
+        keep_velocity true
+    }
+}
+
+// Dust kicked up in the straw
+particle_system RoomAmbStrawDust
+{
+    material        RoomAmbSmoke
+    point_rendering false
+    particle_width  0.22
+    particle_height 0.22
+    cull_each       false
+    quota           6
+    billboard_type  point
+
+    emitter Box
+    {
+        angle               80
+        colour_range_start  0.85 0.78 0.55 0.35
+        colour_range_end    0.92 0.86 0.62 0.4
+        emission_rate       2
+        time_to_live        1.2
+        direction           0 0 1
+        velocity_min        0.1
+        velocity_max        0.35
+        width               0.6
+        height              0.6
+        depth               0.05
+    }
+
+    affector Scaler
+    {
+        rate    0.25
+    }
+
+    affector ColourFader
+    {
+        alpha   -0.3
+    }
+}
+
+// A little dust where a chicken hops away; small, so that it never hides the animals
+particle_system RoomAmbHatchDust
+{
+    material        RoomAmbSmoke
+    point_rendering false
+    particle_width  0.1
+    particle_height 0.1
+    cull_each       false
+    quota           4
+    billboard_type  point
+
+    emitter Box
+    {
+        angle               70
+        colour_range_start  0.72 0.64 0.5 0.35
+        colour_range_end    0.82 0.74 0.6 0.4
+        emission_rate       18
+        time_to_live        0.6
+        direction           0 0 1
+        velocity_min        0.1
+        velocity_max        0.3
+        duration            0.15
+        width               0.12
+        height              0.12
+        depth               0.02
+    }
+
+    affector Scaler
+    {
+        rate    0.15
+    }
+
+    affector ColourFader
+    {
+        alpha   -0.6
     }
 }

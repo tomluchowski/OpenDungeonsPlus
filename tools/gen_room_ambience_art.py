@@ -109,6 +109,16 @@ def sprite_web(path):
     finish(image, path)
 
 
+def sprite_page(path):
+    """Loose page of parchment with a few lines of writing."""
+    image, draw = new_canvas()
+    draw.polygon([(70, 30), (190, 20), (200, 220), (60, 232)], fill=(232, 220, 180, 255), outline=(120, 96, 60, 255))
+    for i in range(6):
+        y = 60 + i * 26
+        draw.line((84, y + 2, 176 - (i % 3) * 14, y), fill=(110, 84, 60, 255), width=5)
+    finish(image, path)
+
+
 def sprite_rune(path):
     """Glowing ring with an angular mark, white so the particle colour tints it."""
     image, draw = new_canvas()
@@ -130,6 +140,17 @@ def sprite_coin(path):
     draw.ellipse((c - 80, c - 80, c + 80, c + 80), fill=(236, 190, 52, 255))
     draw.ellipse((c - 56, c - 56, c + 56, c + 56), outline=(184, 132, 30, 255), width=8)
     draw.polygon([(c - 60, c - 30), (c - 24, c - 66), (c - 8, c - 56), (c - 50, c - 12)], fill=(255, 244, 170, 255))
+    finish(image, path)
+
+
+def sprite_drop(path):
+    """Water drop."""
+    image, draw = new_canvas()
+    c = CANVAS // 2
+    draw.polygon([(c, 30), (c - 56, 150), (c + 56, 150)], fill=(150, 200, 235, 230))
+    draw.ellipse((c - 60, 100, c + 60, 220), fill=(150, 200, 235, 230))
+    draw.ellipse((c - 34, 130, c - 12, 168), fill=(255, 255, 255, 220))
+    image = image.filter(ImageFilter.GaussianBlur(1.5))
     finish(image, path)
 
 
@@ -176,8 +197,10 @@ SPRITES = {
     "RoomAmbSmoke": sprite_smoke,
     "RoomAmbDust": sprite_dust,
     "RoomAmbWeb": sprite_web,
+    "RoomAmbPage": sprite_page,
     "RoomAmbRune": sprite_rune,
     "RoomAmbCoin": sprite_coin,
+    "RoomAmbDrop": sprite_drop,
     "RoomAmbFeather": sprite_feather,
     "RoomAmbGrain": sprite_grain,
     "RoomAmbSwirl": sprite_swirl,
