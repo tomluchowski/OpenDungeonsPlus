@@ -22,6 +22,9 @@ following resources to learn the basic gameplay concepts:
 You can play singleplayer levels using the Skirmish menu, or host/join a
 multiplayer game by using the corresponding menus.
 
+The [creature portrait exporter](tools/portraits/README.md) builds a standalone
+tool for rendering the configured creature models to PNG files.
+
 ### Be part of the community
 
 As free software aficionados, we value community-based development and
