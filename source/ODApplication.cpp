@@ -65,6 +65,7 @@
 #include <string>
 #include <sstream>
 #include <fstream>
+#include <exception>
 
 void ODApplication::startGame(boost::program_options::variables_map& options)
 {
@@ -80,10 +81,20 @@ void ODApplication::startGame(boost::program_options::variables_map& options)
     logMgr.setLevel(resMgr.getLogLevel());
 
 
-    if(resMgr.isServerMode())
-        startServer();
-    else
-        startClient();
+    try
+    {
+        if(resMgr.isServerMode())
+            startServer();
+        else
+            startClient();
+    }
+    catch(const std::exception& error)
+    {
+        // Preserve the exception before the log manager is destroyed and main
+        // displays its Windows error dialog.
+        OD_LOG_ERR("Unhandled exception: " + std::string(error.what()));
+        throw;
+    }
 }
 
 void ODApplication::startServer()
@@ -235,7 +246,7 @@ void ODApplication::startClient()
     HWND hwnd;
     renderWindow->getCustomAttribute("WINDOW", static_cast<void*>(&hwnd));
     HINSTANCE hInst = static_cast<HINSTANCE>(GetModuleHandle(nullptr));
-    SetClassLong(hwnd, GCL_HICON, reinterpret_cast<LONG>(LoadIcon(hInst, MAKEINTRESOURCE(IDI_ICON1))));
+    SetClassLongPtr(hwnd, GCLP_HICON, reinterpret_cast<LONG_PTR>(LoadIcon(hInst, MAKEINTRESOURCE(IDI_ICON1))));
 #endif
 
     //Initialise RTshader system
