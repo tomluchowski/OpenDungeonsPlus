@@ -20,6 +20,9 @@
 
 #include "gamemap/LevelScript.h"
 
+#include <cstdlib>
+#include <fstream>
+#include <set>
 #include <sstream>
 #include <string>
 
@@ -61,6 +64,7 @@ static const std::string sample =
     "Cond\tregion\t1\tGate\n"
     "Cond\tgold\t1\t>=\t500\n"
     "Cond\tmana\t1\t<=\t100\n"
+    "Cond\tkills\t1\t>=\t7\n"
     "Cond\tmined\t1\t>=\t900\n"
     "Cond\tclaimed\t1\tGate\t4\n"
     "Cond\tclaimed\t2\tGate\tall\n"
@@ -76,6 +80,18 @@ static const std::string sample =
     "Action\tcountdown\t60\n"
     "Action\twavecountdown\t30\n"
     "[/Trigger]\n"
+    "[Trigger]\n"
+    "Name\tcreatureEvents\n"
+    "Mode\tonce\n"
+    "Cond\thappy\t1\t>=\t2\n"
+    "Cond\tangry\t1\t<=\t0\n"
+    "Cond\tatlevel\t1\t3\t>=\t2\n"
+    "Cond\tlost\t1\t>=\t1\n"
+    "Cond\tpickedup\t1\t>=\t4\n"
+    "Cond\tdropped\t1\t>=\t3\n"
+    "Cond\tslapped\t1\t<=\t5\n"
+    "Action\tmessage\t1\tEvents\n"
+    "[/Trigger]\n"
     "[/Triggers]\n";
 
 //! \brief The triggers, conditions and actions of the sample are read with the values written there
@@ -84,7 +100,7 @@ BOOST_AUTO_TEST_CASE(test_parse)
     LevelScript script;
     std::istringstream is(sample);
     BOOST_REQUIRE(script.importFromStream(is));
-    BOOST_REQUIRE_EQUAL(script.getTriggers().size(), 4u);
+    BOOST_REQUIRE_EQUAL(script.getTriggers().size(), 5u);
     BOOST_CHECK_EQUAL(script.getFlag("gateOpen"), 1);
     BOOST_CHECK_EQUAL(script.getFlag("unknown"), 0);
 
@@ -117,16 +133,17 @@ BOOST_AUTO_TEST_CASE(test_parse)
     BOOST_CHECK(watch.mActions[0].mType == LevelScriptActionType::reveal);
     BOOST_CHECK_EQUAL(watch.mActions[0].mText, "Gate");
 
-    BOOST_REQUIRE_EQUAL(watch.mConditions.size(), 6u);
+    BOOST_REQUIRE_EQUAL(watch.mConditions.size(), 7u);
     BOOST_CHECK(watch.mConditions[1].mType == LevelScriptConditionType::gold);
     BOOST_CHECK(watch.mConditions[1].mAtLeast);
     BOOST_CHECK_EQUAL(watch.mConditions[1].mNumber, 500);
     BOOST_CHECK(watch.mConditions[2].mType == LevelScriptConditionType::mana);
     BOOST_CHECK(!watch.mConditions[2].mAtLeast);
-    BOOST_CHECK(watch.mConditions[3].mType == LevelScriptConditionType::goldMined);
-    BOOST_CHECK_EQUAL(watch.mConditions[3].mNumber, 900);
-    BOOST_CHECK_EQUAL(watch.mConditions[4].mNumber, 4);
-    BOOST_CHECK_EQUAL(watch.mConditions[5].mNumber, -1);
+    BOOST_CHECK(watch.mConditions[3].mType == LevelScriptConditionType::kills);
+    BOOST_CHECK_EQUAL(watch.mConditions[3].mNumber, 7);
+    BOOST_CHECK(watch.mConditions[4].mType == LevelScriptConditionType::goldMined);
+    BOOST_CHECK_EQUAL(watch.mConditions[5].mNumber, 4);
+    BOOST_CHECK_EQUAL(watch.mConditions[6].mNumber, -1);
     BOOST_REQUIRE_EQUAL(watch.mActions.size(), 2u);
     BOOST_CHECK(watch.mActions[1].mType == LevelScriptActionType::addFlag);
     BOOST_CHECK_EQUAL(watch.mActions[1].mNumber, -2);
@@ -142,6 +159,25 @@ BOOST_AUTO_TEST_CASE(test_parse)
     BOOST_CHECK_EQUAL(unlock.mActions[2].mNumber, 60);
     BOOST_CHECK(unlock.mActions[3].mType == LevelScriptActionType::waveCountdown);
     BOOST_CHECK_EQUAL(unlock.mActions[3].mNumber, 30);
+
+    const LevelScriptTrigger& events = script.getTriggers()[4];
+    BOOST_REQUIRE_EQUAL(events.mConditions.size(), 7u);
+    BOOST_CHECK(events.mConditions[0].mType == LevelScriptConditionType::happyCreatures);
+    BOOST_CHECK(events.mConditions[0].mAtLeast);
+    BOOST_CHECK_EQUAL(events.mConditions[0].mNumber, 2);
+    BOOST_CHECK(events.mConditions[1].mType == LevelScriptConditionType::angryCreatures);
+    BOOST_CHECK(!events.mConditions[1].mAtLeast);
+    BOOST_CHECK(events.mConditions[2].mType == LevelScriptConditionType::creaturesAtLevel);
+    BOOST_CHECK_EQUAL(events.mConditions[2].mSeatId, 1);
+    BOOST_CHECK_EQUAL(events.mConditions[2].mX1, 3);
+    BOOST_CHECK(events.mConditions[2].mAtLeast);
+    BOOST_CHECK_EQUAL(events.mConditions[2].mNumber, 2);
+    BOOST_CHECK(events.mConditions[3].mType == LevelScriptConditionType::creaturesLost);
+    BOOST_CHECK(events.mConditions[4].mType == LevelScriptConditionType::creaturesPickedUp);
+    BOOST_CHECK_EQUAL(events.mConditions[4].mNumber, 4);
+    BOOST_CHECK(events.mConditions[5].mType == LevelScriptConditionType::creaturesDropped);
+    BOOST_CHECK(events.mConditions[6].mType == LevelScriptConditionType::creaturesSlapped);
+    BOOST_CHECK(!events.mConditions[6].mAtLeast);
 }
 
 //! \brief The time limit and the two countdowns are read, moved to a new level start, written and cleared
@@ -280,6 +316,12 @@ BOOST_AUTO_TEST_CASE(test_invalid)
         "[Trigger]\nName\tx\nRegion\tA\t1\t2\t3\t4\nCond\ttime\t1\nAction\twin\t1\n[/Trigger]\n[/Triggers]\n",
         // reveal without a region name
         "[Trigger]\nName\tx\nCond\ttime\t1\nAction\treveal\t1\n[/Trigger]\n[/Triggers]\n",
+        // atlevel without a level
+        "[Trigger]\nName\tx\nCond\tatlevel\t1\t>=\t2\nAction\twin\t1\n[/Trigger]\n[/Triggers]\n",
+        // atlevel with level 0
+        "[Trigger]\nName\tx\nCond\tatlevel\t1\t0\t>=\t2\nAction\twin\t1\n[/Trigger]\n[/Triggers]\n",
+        // A creature event with a wrong comparison
+        "[Trigger]\nName\tx\nCond\tslapped\t1\t=\t2\nAction\twin\t1\n[/Trigger]\n[/Triggers]\n",
         // A negative time limit
         "[Trigger]\nName\tx\nCond\ttime\t1\nAction\ttimelimit\t-5\n[/Trigger]\n[/Triggers]\n",
         // TimeLimit inside a trigger
@@ -294,6 +336,66 @@ BOOST_AUTO_TEST_CASE(test_invalid)
         std::istringstream is(text);
         BOOST_CHECK_MESSAGE(!script.importFromStream(is), text);
     }
+}
+
+//! \brief Reads the [Triggers] section of the level file named by the environment variable
+//! OD_TEST_LEVEL_FILE (the region test level). Does nothing when the variable is not set.
+BOOST_AUTO_TEST_CASE(test_region_level)
+{
+    const char* path = std::getenv("OD_TEST_LEVEL_FILE");
+    if(path == nullptr)
+        return;
+
+    std::ifstream file(path);
+    BOOST_REQUIRE(file.good());
+    std::string line;
+    bool found = false;
+    while(std::getline(file, line))
+    {
+        if(line.compare(0, 10, "[Triggers]") == 0)
+        {
+            found = true;
+            break;
+        }
+    }
+    BOOST_REQUIRE(found);
+
+    LevelScript script;
+    BOOST_REQUIRE(script.importFromStream(file));
+    BOOST_CHECK(script.getRegion("Gate") != nullptr);
+    BOOST_CHECK(script.getRegion("Home") != nullptr);
+    BOOST_CHECK(script.getRegion("Far") != nullptr);
+
+    // Every condition and action kind that the level is meant to exercise is used
+    std::set<int> conditions;
+    std::set<int> actions;
+    for(const LevelScriptTrigger& trigger : script.getTriggers())
+    {
+        for(const LevelScriptCondition& cond : trigger.mConditions)
+        {
+            conditions.insert(static_cast<int>(cond.mType));
+            // A named region has to exist
+            if(!cond.mName.empty() && ((cond.mType == LevelScriptConditionType::region) ||
+               (cond.mType == LevelScriptConditionType::claimed)))
+            {
+                BOOST_CHECK_MESSAGE(script.getRegion(cond.mName) != nullptr, cond.mName);
+            }
+        }
+        for(const LevelScriptAction& action : trigger.mActions)
+        {
+            actions.insert(static_cast<int>(action.mType));
+            if(action.mType == LevelScriptActionType::reveal)
+                BOOST_CHECK_MESSAGE(script.getRegion(action.mText) != nullptr, action.mText);
+        }
+    }
+    BOOST_CHECK(conditions.count(static_cast<int>(LevelScriptConditionType::region)) == 1);
+    BOOST_CHECK(conditions.count(static_cast<int>(LevelScriptConditionType::claimed)) == 1);
+    BOOST_CHECK(conditions.count(static_cast<int>(LevelScriptConditionType::gold)) == 1);
+    BOOST_CHECK(conditions.count(static_cast<int>(LevelScriptConditionType::kills)) == 1);
+    BOOST_CHECK(actions.count(static_cast<int>(LevelScriptActionType::reveal)) == 1);
+    BOOST_CHECK(actions.count(static_cast<int>(LevelScriptActionType::make)) == 1);
+    BOOST_CHECK(actions.count(static_cast<int>(LevelScriptActionType::timeLimit)) == 1);
+    BOOST_CHECK(actions.count(static_cast<int>(LevelScriptActionType::win)) == 1);
 }
 
 //! \brief A section with only the end tag is valid and empty

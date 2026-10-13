@@ -82,6 +82,7 @@ skirmish/
 -> StonekeepSiege.level                OD Team                 GPLv3+
 -> TestLegacy.level                    OD Team                 GPLv3+
 -> TestModelsFair.level                OD Team                 GPLv3+
+-> TestRegionScripting.level          OD Team                 GPLv3+
 -> TestSingleplayerSmall.level         OD Team                 GPLv3+
 -> TestSingleplayerSmallEmpty.level    OD Team                 GPLv3+
 -> TestSingleplayerSmallPassability.level OD Team              GPLv3+
@@ -134,6 +135,7 @@ textures/
 -> Crossbow.png                        Lamoot                  CC-BY 3.0               http://opengameart.org/content/low-poly-crossbow
 -> Crypt*.png                          Yughues                 CC0                     http://forum.freegamedev.net/viewtopic.php?p=60771#p60771
 -> Cultist*.png                        Danimal,Dread Knight,Katarzyna Zalecka                 CC-BY-SA 3.0                     http://opengameart.org/content/dark-priest
+-> DefeatFireball.png                  AI-generated            GPLv3+                  AI-generated, created for this project
 -> Defender*.png                       Anthony Myers           CC-BY 3.0               http://forum.freegamedev.net/viewtopic.php?p=61450#p61450
 -> Dirt*.png
 -> Dojo*.png
