@@ -210,8 +210,8 @@ assert 'HatcheryNestWalkTurns' not in cfg and 'HatcheryNestArrive' in cfg and 'H
 assert 'egg->setAge(0)' in body(room_cpp, 'void RoomHatchery::releasePendingEggs')
 assert 'const bool arrived = distance <= arrive;' in trips
 assert 'mWalked >' not in trips and 'it->mSpot = hen->getPosition()' not in trips
-assert 'hen->setLayTimer' not in lay
-assert 'hen->setLayTimer' in body(room_cpp, 'void RoomHatchery::releasePendingEggs')
+assert lay.index('hen->countDownLay()') < lay.index('hen->setLayTimer') < lay.index('if(planned->mDue)')
+assert 'hen->setLayTimer' not in body(room_cpp, 'void RoomHatchery::releasePendingEggs'), 'arrival cannot reset the established interval a second time'
 assert 'setAge(eggAge - settings.mHatchTurns)' in doUpkeep and 'chicks.push_back(egg)' in doUpkeep
 assert 'void setAge' in chicken_h or 'inline void setAge' in chicken_h
 assert 'eggs.erase(eggIt)' in doUpkeep and doUpkeep.index('eggs.erase(eggIt)') < doUpkeep.index('eggPositions.push_back'),     'trampled eggs free their place'
@@ -277,3 +277,18 @@ assert loaded == [(r[0], r[1], r[2], r[3], r[4]) for r in saved]
 assert 'henB' not in tokens and loaded[0][4] == 'henA' and loaded[0][3] == 1
 assert 'pending.mPosing = true;' in room_cpp and 'pending.mHen.clear();' in room_cpp
 print('hatchery speed-per-turn and arrived-only save record checks passed')
+
+# Due-time cadence survives a long blocked trip; actual arrival does not change the next timer.
+intervals = iter((5, 4, 6))
+timer = 1
+resets = []
+for turn in range(1, 13):
+    if timer > 1:
+        timer -= 1
+    else:
+        timer = next(intervals)
+        resets.append(turn)
+    if turn == 8:  # actual laying after a late arrival
+        assert timer == 2
+assert resets == [1, 6, 10]
+print('hatchery original due-time interval start preserved across late arrival')

@@ -560,9 +560,6 @@ void RoomHatchery::releasePendingEggs(const HatcheryCycleSettings& settings, std
             // Incubation starts when the egg actually appears in its nest.
             ChickenEntity* egg = spawnAnimal(ChickenKind::egg, it->mSpot, settings);
             egg->setAge(0);
-            ChickenEntity* hen = static_cast<ChickenEntity*>(getGameMap()->getRenderedMovableEntity(it->mHen));
-            if(hen != nullptr)
-                hen->setLayTimer(HatcheryCycle::layInterval(settings, Random::Uint(0, 999999)));
             eggs.push_back(egg);
         }
         it = mPendingEggs.erase(it);
@@ -1103,7 +1100,8 @@ void RoomHatchery::doUpkeep()
         if(!hen->countDownLay())
             continue;
 
-        // The timer is due; actual laying still waits for arrival and the laying pose.
+        // Keep the existing interval start at its due date; actual laying still waits for arrival and the pose.
+        hen->setLayTimer(HatcheryCycle::layInterval(layingSettings, Random::Uint(0, 999999)));
         if(planned != nullptr)
         {
             if(planned->mDue)
