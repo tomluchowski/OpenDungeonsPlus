@@ -38,6 +38,7 @@ FORBIDDEN_RE = re.compile(r"synthesi[sz]ed|generated|\bscript\b", re.I)
 
 
 def expand_braces(text):
+    """Expand {a,b} groups in a CREDITS file pattern into the list of plain patterns."""
     match = re.search(r"\{([^{}]*)\}", text)
     if match is None:
         return [text]
@@ -80,6 +81,7 @@ def parse_credits(text):
 
 
 def list_files(root):
+    """Return the audio files of the sounds and music folders as paths relative to each folder."""
     files = {"sounds": [], "music": []}
     for base in files:
         folder = os.path.join(root, base)
@@ -92,6 +94,7 @@ def list_files(root):
 
 
 def matches(base, pattern, path):
+    """Return True if the CREDITS pattern matches the file path (case-insensitive)."""
     # file names differ in case between CREDITS and disk (Die*.ogg, die1.ogg)
     if base == "music":
         return fnmatch.fnmatchcase(os.path.basename(path).lower(), pattern.lower())
@@ -126,6 +129,7 @@ def check_entry(pattern, rest):
 
 
 def run(credits_text, files):
+    """Check the CREDITS text against the files on disk and return the list of problems."""
     problems = []
     entries = parse_credits(credits_text)
     covered = set()
@@ -146,6 +150,7 @@ def run(credits_text, files):
 
 
 def self_test():
+    """Run the check on a small made-up CREDITS text and report whether it finds the problems."""
     credits = "\n".join([
         "==  Music: music/ ==",
         "theme.ogg                              Someone  CC-BY 3.0  http://example.org/a",
@@ -179,6 +184,7 @@ def self_test():
 
 
 def main():
+    """Entry point: run the self test or check the real CREDITS file; return the exit code."""
     parser = argparse.ArgumentParser()
     parser.add_argument("--self-test", action="store_true")
     args = parser.parse_args()
