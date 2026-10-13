@@ -790,8 +790,18 @@ int32_t TrapManager::getNeededWorkshopPointsPerTrap(TrapType trapType)
             return ConfigManager::getSingleton().getTrapConfigInt32("FireburstWorkshopPointsPerTile");
         case TrapType::doorWooden:
             return ConfigManager::getSingleton().getTrapConfigInt32("WoodenDoorPointsPerTile");
+        case TrapType::doorIronbound:
+            return ConfigManager::getSingleton().getTrapConfigInt32("IronboundDoorPointsPerTile");
+        case TrapType::doorSteel:
+            return ConfigManager::getSingleton().getTrapConfigInt32("SteelDoorPointsPerTile");
+        case TrapType::doorBarricade:
+            return ConfigManager::getSingleton().getTrapConfigInt32("BarricadeDoorPointsPerTile");
         case TrapType::alarm:
             return ConfigManager::getSingleton().getTrapConfigInt32("AlarmWorkshopPointsPerTile");
+        case TrapType::doorSecret:
+            return ConfigManager::getSingleton().getTrapConfigInt32("SecretDoorPointsPerTile");
+        case TrapType::doorRuned:
+            return ConfigManager::getSingleton().getTrapConfigInt32("RunedDoorPointsPerTile");
         default:
             OD_LOG_ERR("Asked for wrong trap type=" + getTrapNameFromTrapType(trapType));
             break;

@@ -352,6 +352,8 @@ public:
 
     void claimForSeat(Seat* seat, double nDanceRate);
     void claimTile(Seat* seat);
+    //! \brief Makes the tile be sent again to every seat that sees it
+    void setDirtyForAllSeats();
     void unclaimTile();
     double digOut(double digRate);
 
@@ -653,8 +655,6 @@ private:
      */
     inline void setFullnessValue(double f)
     { mFullness = f; }
-
-    void setDirtyForAllSeats();
 
     //! \brief Vector with the number of workers digging the tile. The index corresponds
     //! to the index in mNeighbors

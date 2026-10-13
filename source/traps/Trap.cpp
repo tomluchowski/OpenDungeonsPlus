@@ -368,7 +368,7 @@ void Trap::setupTrap(const std::string& name, Seat* seat, const std::vector<Tile
         mCoveredTiles.push_back(tile);
         TrapTileData* trapTileData = createTileData(tile);
         mTileData[tile] = trapTileData;
-        trapTileData->mHP = DEFAULT_TILE_HP;
+        trapTileData->mHP = getDefaultTileHP();
         trapTileData->setReloadTime(mReloadTime);
         // Allied seats with the creator do see the trap from the start
         trapTileData->seatsSawTriggering(alliedSeats);
@@ -570,7 +570,7 @@ bool Trap::importTileDataFromStream(std::istream& is, Tile* tile, TileData* tile
     if(is.eof())
     {
         // Default initialization
-        trapTileData->mHP = DEFAULT_TILE_HP;
+        trapTileData->mHP = getDefaultTileHP();
         mCoveredTiles.push_back(tile);
         tile->setCoveringBuilding(this);
         if(isTrapActiv != 0)

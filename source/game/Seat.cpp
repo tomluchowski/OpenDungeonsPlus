@@ -1836,7 +1836,13 @@ void Seat::updateTileStateForSeat(Tile* tile, bool hideSeatId)
     }
     
     jj->second.mTileVisual = tile->getTileVisual();
-    
+    // A building that is still hidden from this seat looks like a wall to it
+    if((tile->getCoveringBuilding() != nullptr) &&
+       tile->getCoveringBuilding()->appearsAsWallForSeat(tile, this))
+    {
+        jj->second.mTileVisual = TileVisual::claimedFull;
+    }
+
     switch(jj->second.mTileVisual)
     {
         case TileVisual::claimedFull:

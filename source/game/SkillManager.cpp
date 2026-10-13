@@ -487,6 +487,62 @@ SkillManager::SkillManager() :
     def->mapSkill(mSkillsFamily);
     mSkills[index] = def;
     lvl2depends.push_back(skill);
+    const Skill* woodenDoorSkill = skill;
+
+    // Stronger doors. Each one requires the previous door
+    std::vector<const Skill*> doorDepends;
+    doorDepends.push_back(skill);
+    resType = SkillType::trapDoorIronbound;
+    index = static_cast<uint32_t>(resType);
+    points = ConfigManager::getSingleton().getSkillPoints(Skills::toString(resType));
+    skill = new Skill(resType, points, doorDepends);
+    def = new SkillDefTrap("TacticSkills/", "IronboundDoorTrapButton", skill, TrapType::doorIronbound);
+    def->mapSkill(mSkillsFamily);
+    mSkills[index] = def;
+
+    doorDepends.clear();
+    doorDepends.push_back(skill);
+    resType = SkillType::trapDoorSteel;
+    index = static_cast<uint32_t>(resType);
+    points = ConfigManager::getSingleton().getSkillPoints(Skills::toString(resType));
+    skill = new Skill(resType, points, doorDepends);
+    def = new SkillDefTrap("TacticSkills/", "SteelDoorTrapButton", skill, TrapType::doorSteel);
+    def->mapSkill(mSkillsFamily);
+    mSkills[index] = def;
+    const Skill* steelDoorSkill = skill;
+
+    // The barricade only requires the wooden door
+    doorDepends.clear();
+    doorDepends.push_back(woodenDoorSkill);
+    resType = SkillType::trapDoorBarricade;
+    index = static_cast<uint32_t>(resType);
+    points = ConfigManager::getSingleton().getSkillPoints(Skills::toString(resType));
+    skill = new Skill(resType, points, doorDepends);
+    def = new SkillDefTrap("TacticSkills/", "BarricadeTrapButton", skill, TrapType::doorBarricade);
+    def->mapSkill(mSkillsFamily);
+    mSkills[index] = def;
+
+    // The secret door only requires the wooden door
+    doorDepends.clear();
+    doorDepends.push_back(woodenDoorSkill);
+    resType = SkillType::trapDoorSecret;
+    index = static_cast<uint32_t>(resType);
+    points = ConfigManager::getSingleton().getSkillPoints(Skills::toString(resType));
+    skill = new Skill(resType, points, doorDepends);
+    def = new SkillDefTrap("TacticSkills/", "SecretDoorTrapButton", skill, TrapType::doorSecret);
+    def->mapSkill(mSkillsFamily);
+    mSkills[index] = def;
+
+    // The runed door requires the steel door
+    doorDepends.clear();
+    doorDepends.push_back(steelDoorSkill);
+    resType = SkillType::trapDoorRuned;
+    index = static_cast<uint32_t>(resType);
+    points = ConfigManager::getSingleton().getSkillPoints(Skills::toString(resType));
+    skill = new Skill(resType, points, doorDepends);
+    def = new SkillDefTrap("TacticSkills/", "RunedDoorTrapButton", skill, TrapType::doorRuned);
+    def->mapSkill(mSkillsFamily);
+    mSkills[index] = def;
 
     // Lvl 3 skills
     resType = SkillType::trapCannon;
@@ -507,8 +563,8 @@ SkillManager::SkillManager() :
     mSkills[index] = def;
     lvl3depends.push_back(skill);
 
-    // The tactic tree row after the wooden door has no room left for a fifth node,
-    // so the alarm trap follows cannon and spike
+    // The tactic tree row after the wooden door has no room left for a fifth node
+    // (cannon, spike, ironbound door, barricade), so the alarm trap follows cannon and spike
     resType = SkillType::trapAlarm;
     index = static_cast<uint32_t>(resType);
     points = ConfigManager::getSingleton().getSkillPoints(Skills::toString(resType));
@@ -907,6 +963,15 @@ std::string SkillManager::getResearchDescription(SkillType type, uint32_t level)
         case SkillType::roomGuardRoom: return "Wakefulness cost per duty turn: " + room("GuardRoomWakefulnessPerDuty") + ".";
         case SkillType::roomTemple: return "Default prayer mana per second: " + room("TemplePrayerManaPerSecond") + "; most creature types have their own value.";
         case SkillType::trapDoorWooden: return "Door health: " + value(10) + ".";
+        // The health of every door type grows with the wooden door research level (TrapDoor::getHP)
+        case SkillType::trapDoorIronbound: return "Door health: " + value(config.getTrapConfigDouble("IronboundDoorHP")) + " before Wooden door upgrades.";
+        case SkillType::trapDoorSteel: return "Door health: " + value(config.getTrapConfigDouble("SteelDoorHP")) + " before Wooden door upgrades.";
+        case SkillType::trapDoorBarricade: return "Barricade health: " + value(config.getTrapConfigDouble("BarricadeDoorHP")) + " before Wooden door upgrades.";
+        case SkillType::trapDoorSecret: return "Door health: " + value(config.getTrapConfigDouble("SecretDoorHP")) +
+            " before Wooden door upgrades; enemies see a wall until they see one of your creatures pass.";
+        case SkillType::trapDoorRuned: return "Door health: " + value(config.getTrapConfigDouble("RunedDoorHP")) +
+            " before Wooden door upgrades; deals " + value(config.getTrapConfigDouble("RunedDoorDamage")) +
+            " fire damage to enemies on the door every " + value(config.getTrapConfigDouble("RunedDoorReloadTurns")) + " turns.";
         case SkillType::trapAlarm: return "Reload time: " + value(config.getTrapConfigDouble("AlarmReloadTurns")) + " turns.";
         case SkillType::trapGas: return "Damage: " + value(config.getTrapConfigDouble("GasDamagePerHitMin")) +
             " to every creature nearby (radius " + value(config.getTrapConfigDouble("GasRadius")) + ").";

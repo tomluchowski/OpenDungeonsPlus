@@ -38,26 +38,52 @@
 #include "utils/Random.h"
 #include "utils/LogManager.h"
 
-const std::string TrapDoorName = "DoorWooden";
-const std::string TrapDoorNameDisplay = "Wooden door";
-const TrapType TrapDoor::mTrapType = TrapType::doorWooden;
+#include <algorithm>
 
 namespace
 {
+//! \brief Factory shared by all door types. The doors only differ by name, price and health
 class TrapDoorFactory : public TrapFactory
 {
+public:
+    TrapDoorFactory(TrapType doorType, const std::string& name, const std::string& nameReadable,
+            const std::string& configPrefix) :
+        mDoorType(doorType),
+        mName(name),
+        mNameReadable(nameReadable),
+        mConfigPrefix(configPrefix)
+    {
+    }
+
+private:
+    //! \brief Doors need walls on both sides. The barricade can be placed anywhere
+    bool canBuildOn(GameMap* gameMap, Tile* tile) const
+    {
+        if(mDoorType == TrapType::doorBarricade)
+            return true;
+
+        return TrapDoor::canDoorBeOnTile(gameMap, tile);
+    }
+
+    TrapType mDoorType;
+    std::string mName;
+    std::string mNameReadable;
+    //! \brief Prefix of the doors parameters in traps.cfg
+    std::string mConfigPrefix;
+
     TrapType getTrapType() const override
-    { return TrapDoor::mTrapType; }
+    { return mDoorType; }
 
     const std::string& getName() const override
-    { return TrapDoorName; }
+    { return mName; }
 
     const std::string& getNameReadable() const override
-    { return TrapDoorNameDisplay; }
+    { return mNameReadable; }
 
     int getCostPerTile() const override
-    { return ConfigManager::getSingleton().getTrapConfigInt32("WoodenDoorCostPerTile"); }
+    { return ConfigManager::getSingleton().getTrapConfigInt32(mConfigPrefix + "DoorCostPerTile"); }
 
+    // No dedicated models exist yet for the stronger doors. They use the wooden door model
     const std::string& getMeshName() const override
     {
         static const std::string meshName = "WoodenDoor";
@@ -67,7 +93,7 @@ class TrapDoorFactory : public TrapFactory
     virtual void checkBuildTrap(GameMap* gameMap, const InputManager& inputManager, InputCommand& inputCommand) const override
     {
         Player* player = gameMap->getLocalPlayer();
-        TrapType type = TrapType::doorWooden;
+        TrapType type = mDoorType;
         // We only allow 1 tile for door trap
         Tile* tile = gameMap->getTile(inputManager.mXPos, inputManager.mYPos);
         if(tile == nullptr)
@@ -88,7 +114,7 @@ class TrapDoorFactory : public TrapFactory
             inputCommand.displayPointerText(Ogre::ColourValue::Red, Helper::toString(pricePerTarget));
             return;
         }
-        if(!TrapDoor::canDoorBeOnTile(gameMap, tile))
+        if(!canBuildOn(gameMap, tile))
         {
             inputCommand.displayText(Ogre::ColourValue::Red, "A door needs walls on two opposite sides.");
             inputCommand.displayPointerText(Ogre::ColourValue::Red, Helper::toString(pricePerTarget));
@@ -121,15 +147,15 @@ class TrapDoorFactory : public TrapFactory
         if(!tile->isBuildableUpon(player->getSeat()))
             return false;
 
-        if(!TrapDoor::canDoorBeOnTile(gameMap, tile))
+        if(!canBuildOn(gameMap, tile))
             return false;
 
         // The door tile is ok
-        int32_t pricePerTarget = TrapManager::costPerTile(TrapType::doorWooden);
+        int32_t pricePerTarget = TrapManager::costPerTile(mDoorType);
         if(!gameMap->withdrawFromTreasuries(pricePerTarget, player->getSeat()))
             return false;
 
-        TrapDoor* trap = new TrapDoor(gameMap);
+        TrapDoor* trap = new TrapDoor(gameMap, mDoorType);
         std::vector<Tile*> tiles;
         tiles.push_back(tile);
         return buildTrapDefault(gameMap, trap, player->getSeat(), tiles);
@@ -144,7 +170,7 @@ class TrapDoorFactory : public TrapFactory
             return;
         }
 
-        TrapType type = TrapType::doorWooden;
+        TrapType type = mDoorType;
         // We only allow 1 tile for door trap
         Tile* tile = gameMap->getTile(inputManager.mXPos, inputManager.mYPos);
         if(tile == nullptr)
@@ -169,7 +195,7 @@ class TrapDoorFactory : public TrapFactory
             inputCommand.selectTiles(tiles);
             // We accept any tile if there is no building and there are 2 full surrounding tiles
             if(tile->getIsBuilding() ||
-               !TrapDoor::canDoorBeOnTile(gameMap, tile))
+               !canBuildOn(gameMap, tile))
             {
                 inputCommand.displayText(Ogre::ColourValue::Red, "Cannot place door on this tile");
             }
@@ -181,7 +207,7 @@ class TrapDoorFactory : public TrapFactory
             return;
         }
 
-        if(!TrapDoor::canDoorBeOnTile(gameMap, tile))
+        if(!canBuildOn(gameMap, tile))
             return;
 
         ClientNotification *clientNotification = TrapManager::createTrapClientNotificationEditor(type);
@@ -219,7 +245,7 @@ class TrapDoorFactory : public TrapFactory
             return false;
         }
 
-        if(!TrapDoor::canDoorBeOnTile(gameMap, tile))
+        if(!canBuildOn(gameMap, tile))
             return false;
 
         if((tile->getType() != TileType::gold) &&
@@ -233,13 +259,13 @@ class TrapDoorFactory : public TrapFactory
 
         std::vector<Tile*> tiles;
         tiles.push_back(tile);
-        TrapDoor* trap = new TrapDoor(gameMap);
+        TrapDoor* trap = new TrapDoor(gameMap, mDoorType);
         return buildTrapDefault(gameMap, trap, seatTrap, tiles);
     }
 
     Trap* getTrapFromStream(GameMap* gameMap, std::istream& is) const override
     {
-        TrapDoor* trap = new TrapDoor(gameMap);
+        TrapDoor* trap = new TrapDoor(gameMap, mDoorType);
         if(!Trap::importTrapFromStream(*trap, is))
         {
             OD_LOG_ERR("Error while building a trap from the stream");
@@ -258,19 +284,24 @@ class TrapDoorFactory : public TrapFactory
         if(tiles.size() != 1)
             return false;
 
-        int32_t pricePerTarget = TrapManager::costPerTile(TrapType::spike);
+        int32_t pricePerTarget = TrapManager::costPerTile(mDoorType);
         int32_t price = static_cast<int32_t>(tiles.size()) * pricePerTarget;
         if(!noFee)
             if(!gameMap->withdrawFromTreasuries(price, seatPtr))
                 return false;
 
-        TrapDoor* trap = new TrapDoor(gameMap);
+        TrapDoor* trap = new TrapDoor(gameMap, mDoorType);
         return buildTrapDefault(gameMap, trap, seatPtr, tiles);
     }
 };
 
-// Register the factory
-static TrapRegister reg(new TrapDoorFactory);
+// Register the factories
+static TrapRegister regWooden(new TrapDoorFactory(TrapType::doorWooden, "DoorWooden", "Wooden door", "Wooden"));
+static TrapRegister regIronbound(new TrapDoorFactory(TrapType::doorIronbound, "DoorIronbound", "Ironbound door", "Ironbound"));
+static TrapRegister regSteel(new TrapDoorFactory(TrapType::doorSteel, "DoorSteel", "Steel door", "Steel"));
+static TrapRegister regBarricade(new TrapDoorFactory(TrapType::doorBarricade, "DoorBarricade", "Barricade", "Barricade"));
+static TrapRegister regSecret(new TrapDoorFactory(TrapType::doorSecret, "DoorSecret", "Secret door", "Secret"));
+static TrapRegister regRuned(new TrapDoorFactory(TrapType::doorRuned, "DoorRuned", "Runed door", "Runed"));
 }
 
 const std::string TrapDoor::ANIMATION_OPEN = "Open";
@@ -290,10 +321,12 @@ double TrapDoor::takeDamage(GameEntity* attacker, double absoluteDamage, double 
         magicalDamage / factor, elementDamage / factor, tileTakingDamage, ko) * factor;
 }
 
-TrapDoor::TrapDoor(GameMap* gameMap) :
+TrapDoor::TrapDoor(GameMap* gameMap, TrapType doorType) :
     Trap(gameMap),
-    mIsLocked(false),
-    mIsLockedState(false)
+    mDoorType(doorType),
+    mIsLocked(doorType == TrapType::doorBarricade),
+    mIsLockedState(false),
+    mFireCooldownTurns(0)
 {
     mReloadTime = 0;
     mMinDamage = 0;
@@ -315,17 +348,89 @@ TrapEntity* TrapDoor::getTrapEntity(Tile* tile)
     {
         rotation = 0.0;
     }
-    return new DoorEntity(getGameMap(), *this, reg.getTrapFactory()->getMeshName(), tile, rotation, false, isActivated(tile) ? 1.0f : 0.5f,
+    return new DoorEntity(getGameMap(), *this, TrapManager::getMeshFromTrapType(mDoorType), tile, rotation, false, isActivated(tile) ? 1.0f : 0.5f,
         ANIMATION_OPEN, false);
+}
+
+double TrapDoor::getDefaultTileHP() const
+{
+    switch(mDoorType)
+    {
+        case TrapType::doorIronbound:
+            return ConfigManager::getSingleton().getTrapConfigDouble("IronboundDoorHP");
+        case TrapType::doorSteel:
+            return ConfigManager::getSingleton().getTrapConfigDouble("SteelDoorHP");
+        case TrapType::doorBarricade:
+            return ConfigManager::getSingleton().getTrapConfigDouble("BarricadeDoorHP");
+        case TrapType::doorSecret:
+            return ConfigManager::getSingleton().getTrapConfigDouble("SecretDoorHP");
+        case TrapType::doorRuned:
+            return ConfigManager::getSingleton().getTrapConfigDouble("RunedDoorHP");
+        default:
+            return ConfigManager::getSingleton().getTrapConfigDouble("WoodenDoorHP");
+    }
+}
+
+bool TrapDoor::shoot(Tile* tile)
+{
+    if(mDoorType == TrapType::doorSecret)
+    {
+        // Enemies discover the secret door when they see a creature of the owner (or of
+        // an ally) pass through it. The seats with vision on the tile are then notified
+        for(GameEntity* entity : tile->getEntitiesInTile())
+        {
+            if(entity->getObjectType() != GameEntityType::creature)
+                continue;
+
+            const Creature* creature = static_cast<const Creature*>(entity);
+            if(getSeat()->isAlliedSeat(creature->getSeat()))
+                return true;
+        }
+
+        return false;
+    }
+
+    // The doors return true to make sure every creature with vision on the door tile can see it.
+    // The runed door also fires a fireball at the enemies standing on it, then has to recharge
+    if(mDoorType != TrapType::doorRuned)
+        return true;
+
+    if(mFireCooldownTurns > 0)
+        return true;
+
+    std::vector<Tile*> doorTiles;
+    doorTiles.push_back(tile);
+    std::vector<GameEntity*> enemyCreatures = getGameMap()->getVisibleCreatures(doorTiles, getSeat(), true);
+    if(enemyCreatures.empty())
+        return true;
+
+    // The runed door does not fire if its owner cannot pay the mana
+    double manaToFire = ConfigManager::getSingleton().getTrapConfigDouble("RunedDoorManaToFire");
+    if(!getSeat()->takeMana(manaToFire))
+        return true;
+
+    double damage = ConfigManager::getSingleton().getTrapConfigDouble("RunedDoorDamage");
+    for(GameEntity* target : enemyCreatures)
+    {
+        Tile* targetTile = target->getCoveredTile(0);
+        target->takeDamage(this, 0.0, 0.0, 0.0, damage, targetTile, false);
+        target->notifyFightPlayer(targetTile);
+    }
+    mFireCooldownTurns = ConfigManager::getSingleton().getTrapConfigUInt32("RunedDoorReloadTurns");
+    return true;
 }
 
 void TrapDoor::doUpkeep()
 {
+    if(mFireCooldownTurns > 0)
+        --mFireCooldownTurns;
+
     for(Tile* tile : mCoveredTiles)
     {
-        if(!canDoorBeOnTile(getGameMap(), tile))
+        if((mDoorType != TrapType::doorBarricade) &&
+           !canDoorBeOnTile(getGameMap(), tile))
         {
-            auto it = mTileData.find(tile);
+            std::map<Tile*, TileData*>::iterator it = mTileData.find(tile);
             if(it == mTileData.end())
             {
                 OD_LOG_ERR("trap=" + getName() + ", tile=" + Tile::displayAsString(tile));
@@ -334,6 +439,14 @@ void TrapDoor::doUpkeep()
 
             TrapTileData* trapTileData = static_cast<TrapTileData*>(it->second);
             trapTileData->mHP = 0.0;
+        }
+
+        // The runed door slowly repairs itself
+        if((mDoorType == TrapType::doorRuned) &&
+           (mTileData[tile]->mHP > 0.0))
+        {
+            double regen = ConfigManager::getSingleton().getTrapConfigDouble("RunedDoorRegenPerTurn");
+            mTileData[tile]->mHP = std::min(getDefaultTileHP(), mTileData[tile]->mHP + regen);
         }
 
         // We need to look for destroyed door before calling Trap::doUpkeep otherwise, they will be removed
@@ -368,11 +481,57 @@ void TrapDoor::doUpkeep()
     }
     mIsLockedState = mIsLocked;
 
+    // When a seat discovers a secret door, the tile has to be sent again to the seats
+    // that saw it as a wall
+    Tile* secretTile = nullptr;
+    uint32_t nbSeatsVisionBefore = 0;
+    if((mDoorType == TrapType::doorSecret) &&
+       !mCoveredTiles.empty())
+    {
+        secretTile = mCoveredTiles.front();
+        std::map<Tile*, TileData*>::iterator itBefore = mTileData.find(secretTile);
+        if(itBefore != mTileData.end())
+            nbSeatsVisionBefore = itBefore->second->mSeatsVision.size();
+    }
+
     Trap::doUpkeep();
+
+    if(secretTile != nullptr)
+    {
+        std::map<Tile*, TileData*>::iterator itAfter = mTileData.find(secretTile);
+        if((itAfter != mTileData.end()) &&
+           (itAfter->second->mSeatsVision.size() != nbSeatsVisionBefore))
+        {
+            secretTile->setDirtyForAllSeats();
+        }
+    }
+}
+
+bool TrapDoor::appearsAsWallForSeat(Tile* tile, Seat* seat) const
+{
+    if(mDoorType != TrapType::doorSecret)
+        return false;
+
+    if(getGameMap()->isInEditorMode())
+        return false;
+
+    if(getSeat()->isAlliedSeat(seat))
+        return false;
+
+    std::map<Tile*, TileData*>::const_iterator it = mTileData.find(tile);
+    if(it == mTileData.end())
+        return false;
+
+    const std::vector<Seat*>& seatsVision = it->second->mSeatsVision;
+    return std::find(seatsVision.begin(), seatsVision.end(), seat) == seatsVision.end();
 }
 
 void TrapDoor::notifyDoorSlapped(DoorEntity* doorEntity, Tile* tile)
 {
+    // A barricade cannot be opened
+    if(mDoorType == TrapType::doorBarricade)
+        return;
+
     mIsLocked = !mIsLocked;
     changeDoorState(doorEntity, tile, mIsLocked);
 
@@ -423,8 +582,16 @@ bool TrapDoor::canDoorBeOnTile(GameMap* gameMap, Tile* tile)
 
 bool TrapDoor::permitsVision(Tile* tile)
 {
+    // A secret door blocks the sight like a wall, otherwise it would give itself away
+    if(mDoorType == TrapType::doorSecret)
+        return false;
+
     TrapTileData* trapTileData = static_cast<TrapTileData*>(mTileData.at(tile));
     if (!trapTileData->isActivated())
+        return true;
+
+    // A barricade does not hide what is behind it
+    if(mDoorType == TrapType::doorBarricade)
         return true;
 
     return !mIsLockedState;
@@ -432,12 +599,20 @@ bool TrapDoor::permitsVision(Tile* tile)
 
 double TrapDoor::getCreatureSpeed(const Creature* creature, Tile* tile) const
 {
+    // Seats that did not discover a secret door see a wall and cannot walk through it
+    if(appearsAsWallForSeat(tile, creature->getSeat()))
+        return 0.0;
+
     const TrapTileData* trapTileData = static_cast<const TrapTileData*>(mTileData.at(tile));
     if (!trapTileData->isActivated())
         return tile->getCreatureSpeedDefault(creature);
 
     if(!mIsLocked)
         return tile->getCreatureSpeedDefault(creature);
+
+    // No creature can pass a barricade, not even the flying ones. Enemies have to destroy it
+    if(mDoorType == TrapType::doorBarricade)
+        return 0.0;
 
     // Enemy units can go through doors. We need that otherwise, they won't be able to
     // get to the door. But in any case, if they are not fighting, we let them go. If

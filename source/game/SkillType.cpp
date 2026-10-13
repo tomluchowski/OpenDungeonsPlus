@@ -218,6 +218,16 @@ std::string skillTypeToPlayerVisibleString(SkillType type)
             return "The Fireburst Trap";
         case SkillType::trapDoorWooden:
             return "The Wooden Door";
+        case SkillType::trapDoorIronbound:
+            return "The Ironbound Door";
+        case SkillType::trapDoorSteel:
+            return "The Steel Door";
+        case SkillType::trapDoorBarricade:
+            return "The Barricade";
+        case SkillType::trapDoorSecret:
+            return "The Secret Door";
+        case SkillType::trapDoorRuned:
+            return "The Runed Door";
         case SkillType::spellEyeEvil:
             return "The 'Eye of evil' spell";
         case SkillType::spellSummonChampion:

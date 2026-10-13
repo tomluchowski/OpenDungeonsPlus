@@ -44,6 +44,41 @@
             <Property name="InheritsAlpha" value="False" />
             <Property name="Visible" value="False" />
         </Window>
+        <Window type="OD/GameTabButton" name="IronboundDoorTrapButton" >
+            <Property name="Area" value="{{0,340},{0,25},{0,400},{0,85}}" />
+            <Property name="NormalImage" value="OpenDungeonsIcons/IronboundDoorTrapButton" />
+            <Property name="TooltipText" value="Build a ironbound door" />
+            <Property name="InheritsAlpha" value="False" />
+            <Property name="Visible" value="False" />
+        </Window>
+        <Window type="OD/GameTabButton" name="SteelDoorTrapButton" >
+            <Property name="Area" value="{{0,400},{0,25},{0,460},{0,85}}" />
+            <Property name="NormalImage" value="OpenDungeonsIcons/SteelDoorTrapButton" />
+            <Property name="TooltipText" value="Build a steel door" />
+            <Property name="InheritsAlpha" value="False" />
+            <Property name="Visible" value="False" />
+        </Window>
+        <Window type="OD/GameTabButton" name="BarricadeTrapButton" >
+            <Property name="Area" value="{{0,460},{0,25},{0,520},{0,85}}" />
+            <Property name="NormalImage" value="OpenDungeonsIcons/BarricadeTrapButton" />
+            <Property name="TooltipText" value="Build a barricade" />
+            <Property name="InheritsAlpha" value="False" />
+            <Property name="Visible" value="False" />
+        </Window>
+        <Window type="OD/GameTabButton" name="SecretDoorTrapButton" >
+            <Property name="Area" value="{{0,880},{0,25},{0,940},{0,85}}" />
+            <Property name="NormalImage" value="OpenDungeonsIcons/SecretDoorTrapButton" />
+            <Property name="TooltipText" value="Build a secret door" />
+            <Property name="InheritsAlpha" value="False" />
+            <Property name="Visible" value="False" />
+        </Window>
+        <Window type="OD/GameTabButton" name="RunedDoorTrapButton" >
+            <Property name="Area" value="{{0,940},{0,25},{0,1000},{0,85}}" />
+            <Property name="NormalImage" value="OpenDungeonsIcons/RunedDoorTrapButton" />
+            <Property name="TooltipText" value="Build a runed door" />
+            <Property name="InheritsAlpha" value="False" />
+            <Property name="Visible" value="False" />
+        </Window>
         <Window type="OD/GameTabButton" name="AlarmTrapButton" >
             <Property name="Area" value="{{0,520},{0,25},{0,580},{0,85}}" />
             <Property name="NormalImage" value="OpenDungeonsIcons/AlarmTrapButton" />
