@@ -68,6 +68,10 @@ public:
     //! should be done on server side to avoid cheating
     static bool isSpellAvailable(SpellType type, const Seat* seat);
 
+    //! \brief True for a spell that the seat cannot cast because it lost its library
+    //! (an enemy took it over), even though the spell was researched.
+    static bool isLockedByLostLibrary(SkillType type, const Seat* seat);
+
     //! \brief Checks if the given trap is available for the given trap. This check
     //! should be done on server side to avoid cheating
     static bool isTrapAvailable(TrapType type, const Seat* seat);

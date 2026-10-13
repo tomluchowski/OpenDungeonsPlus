@@ -43,6 +43,7 @@ SeatData::SeatData() :
     mGold(0),
     mGoldMax(0),
     mNbRooms(std::vector<uint32_t>(static_cast<uint32_t>(RoomType::nbRooms), 0)),
+    mHadLibrary(false),
     mCurrentSkillType(SkillType::nullSkillType),
     mCurrentSkillProgress(0.0f)
 {
@@ -73,6 +74,11 @@ uint32_t SeatData::getNbRooms(RoomType roomType) const
     return mNbRooms.at(index);
 }
 
+bool SeatData::isLibraryLost() const
+{
+    return mHadLibrary && (getNbRooms(RoomType::library) == 0);
+}
+
 bool SeatData::importFromPacketForUpdate(ODPacket& is)
 {
     // We only refresh data that changes over time (gold, mana, ...)
@@ -99,6 +105,7 @@ bool SeatData::importFromPacketForUpdate(ODPacket& is)
     }
     OD_ASSERT_TRUE(is >> mCurrentSkillType);
     OD_ASSERT_TRUE(is >> mCurrentSkillProgress);
+    OD_ASSERT_TRUE(is >> mHadLibrary);
     return true;
 }
 
@@ -122,7 +129,7 @@ void SeatData::exportToPacketForUpdate(ODPacket& os) const
 
     os << mCurrentSkillType;
     os << mCurrentSkillProgress;
-
+    os << mHadLibrary;
 }
 
 void SeatData::exportToPacket(ODPacket& os) const

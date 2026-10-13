@@ -710,8 +710,27 @@ bool SkillManager::isSpellAvailable(SpellType type, const Seat* seat)
         OD_LOG_ERR("wrong index=" + Helper::toString(index) + ", size=" + Helper::toString(family.size()));
         return false;
     }
+    // The spells researched in a library cannot be cast while that library is lost.
+    // Summoning a worker needs no research, so it stays.
+    if(seat->isLibraryLost() && (type != SpellType::summonWorker))
+        return false;
+
     SkillType resType = family.at(index);
     return seat->isSkillDone(resType);
+}
+
+bool SkillManager::isLockedByLostLibrary(SkillType type, const Seat* seat)
+{
+    if(!seat->isLibraryLost() || (type == SkillType::spellSummonWorker))
+        return false;
+
+    for(const SkillDef* skill : getSkillManager().mSkills)
+    {
+        if((skill != nullptr) && (skill->mSkill->getType() == type))
+            return skill->getSkillFamily() == SkillFamily::spells;
+    }
+
+    return false;
 }
 
 bool SkillManager::isTrapAvailable(TrapType type, const Seat* seat)

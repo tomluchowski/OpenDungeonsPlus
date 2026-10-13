@@ -315,6 +315,9 @@ private:
 
     bool mIsSkillWindowOpen;
 
+    //! \brief Whether the spell buttons were last shown locked because the library was lost
+    bool mIsLibraryLostShown;
+
     SkillType mCurrentSkillType;
     float mCurrentSkillProgress;
 

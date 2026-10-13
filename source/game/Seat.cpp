@@ -970,6 +970,9 @@ void Seat::computeSeatBeginTurn()
             }
             ++mNbRooms[index];
         }
+
+        if(getNbRooms(RoomType::library) > 0)
+            mHadLibrary = true;
     }
 }
 
