@@ -19,6 +19,7 @@
 
 #include "creatureeffect/CreatureEffectHexenHen.h"
 #include "entities/Creature.h"
+#include "entities/CreatureDefinition.h"
 #include "entities/GameEntityType.h"
 #include "entities/Tile.h"
 #include "game/Player.h"

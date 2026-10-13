@@ -100,9 +100,11 @@ protected:
     virtual void updateDirection()
     {}
 
+    //! \brief The entity the missile was aimed at, nullptr if it has no target
     GameEntity* getEntityTarget() const
     { return mEntityTarget; }
 
+    //! \brief Changes the flight direction of the missile, used by missiles that follow their target
     void setDirection(const Ogre::Vector3& direction)
     { mDirection = direction; }
 
