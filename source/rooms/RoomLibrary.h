@@ -75,8 +75,6 @@ protected:
     BuildingObject* notifyActiveSpotCreated(ActiveSpotPlace place, Tile* tile) override;
     void notifyActiveSpotRemoved(ActiveSpotPlace place, Tile* tile) override;
 private:
-    //!\brief checks how many items are on the library
-    uint32_t countSkillItemsOnRoom();
     Tile* checkIfAvailableSpot();
     void getCreatureWantedPos(Creature* creature, Tile* tileSpot,
         Ogre::Real& wantedX, Ogre::Real& wantedY);
