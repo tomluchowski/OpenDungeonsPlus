@@ -235,7 +235,8 @@ struct ReactionEvent
         mCooldown(10.0),
         mProbability(1.0),
         mGroupMax(3),
-        mWhileWorking(false)
+        mWhileWorking(false),
+        mInHand(false)
     {}
 
     std::string mName;
@@ -249,6 +250,8 @@ struct ReactionEvent
     //! The event decorates a long running work or sleep animation of the creature (sleeping, digging,
     //! claiming): that animation does not count as busy for this event, and no clip is put over it
     bool mWhileWorking;
+    //! The event is shown on a creature that the keeper holds in the hand (it is not on the map then)
+    bool mInHand;
     std::vector<ReactionVariant> mVariants;
 };
 

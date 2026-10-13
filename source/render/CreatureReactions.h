@@ -139,6 +139,26 @@ public:
     //! a delivery.
     void noteRelease(Creature* carrier, GameEntity* carried);
 
+    //! \brief Client hook: the local keeper asks to slap the entity. The slap that the server confirms next
+    //! (it does not tell what was hit) is shown on that creature.
+    void noteSlapRequest(GameEntity* entity);
+
+    //! \brief Client hook: the slap of the keeper hit. handPosition is where the hand is.
+    void noteSlapped(const Ogre::Vector3& handPosition);
+
+    //! \brief Client hook: the keeper picked the creature up
+    void noteHandPicked(Creature* creature);
+
+    //! \brief Client hook: the keeper dropped the creature
+    void noteHandDropped(Creature* creature);
+
+    //! \brief Client hook: the hand of the keeper moved over the creature
+    void noteHandHover(Creature* creature);
+
+    //! \brief Ends the running reaction of the creature and forgets the waiting ones. Needed before the creature
+    //! changes its parent node and size (picked up and dropped).
+    void endForCreature(Creature* creature);
+
     //! \brief Stops all the running and waiting reactions
     void stopAll();
 
@@ -185,7 +205,8 @@ private:
             mLateEmoteTime(2.0),
             mLateEffectDelay(0.0),
             mLateEffectTime(1.0),
-            mEndsWhenMoving(false)
+            mEndsWhenMoving(false),
+            mInHand(false)
         {}
 
         std::string mCreatureName;
@@ -243,6 +264,9 @@ private:
 
         //! The reaction needs the creature to stand and ends when it sets off
         bool mEndsWhenMoving;
+
+        //! The creature is held in the hand of the keeper (and not on the map) while the reaction runs
+        bool mInHand;
     };
 
     struct PendingReaction
@@ -338,6 +362,10 @@ private:
     bool isWorkingInRoom(const Creature* creature) const;
     //! \brief True if the creature type, group, job and sleep need allow the variant.
     bool isVariantAllowed(const Creature* creature, const ReactionVariant& variant) const;
+    //! \brief True if the local keeper holds the creature in the hand
+    bool isInHand(const Creature* creature) const;
+    //! \brief A creature appeared on the client map: one of the keeper arrives through a portal
+    void noteCreatureAdded(Creature* creature);
 
     //! \brief Looks at the moods of a few creatures at a time (round robin) and lets them show a feeling now and
     //! then. Not every creature every frame.
@@ -449,6 +477,12 @@ private:
     //! Where the creature that is triggered now has to look (set around one trigger call only)
     Ogre::Vector3 mNextLookTarget;
     bool mHasNextLookTarget;
+
+    //! The creature the keeper asked to slap last, and when
+    std::string mSlapTarget;
+    double mSlapTime;
+    //! Time a creature was slapped last ("creature" -> mTime)
+    std::map<std::string, double> mSlappedAt;
 
     //! Time before which a creature may not show a reaction of a kind again ("creature|event")
     std::map<std::string, double> mCooldownEnd;

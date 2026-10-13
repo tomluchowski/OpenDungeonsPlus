@@ -22,7 +22,7 @@ ROOMS = ("Hatchery", "Treasury", "Portal", "Dormitory", "Library", "Workshop", "
 SETTINGS = ("MaxSimultaneous", "MaxCameraDistance", "GroupStaggerMin", "GroupStaggerMax", "DefaultGroup",
             "MoodInterval", "MoodPerTick", "MoodWalkingChance", "ImpatientAfter", "ProudSeconds", "BoredAfter",
             "AmbientAfter", "SitAfter", "LieAfter", "LookRadius")
-EVENT_KEYS = ("Name", "Priority", "Cooldown", "Probability", "GroupMax", "WhileWorking")
+EVENT_KEYS = ("Name", "Priority", "Cooldown", "Probability", "GroupMax", "WhileWorking", "InHand")
 VARIANT_KEYS = ("Name", "Weight", "Clip", "Fallback", "Emote", "Effect", "Motion", "Cooldown", "Probability",
                 "Creatures", "Groups", "Jobs", "RequiresSleepNeed", "RequiresWall", "RequiresNeighbour", "LookAtRoom",
                 "LateEmote", "LateEffect", "Prop", "Spreads")

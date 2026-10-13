@@ -162,6 +162,19 @@ static const float DIRECTION_MIN_LENGTH = 0.01f;
 //! Number of juggling balls that have a colour of their own
 static const uint32_t NB_BALL_COLOURS = 3;
 
+//! Seconds the target of a slap request is remembered until the server confirms the slap
+const double SLAP_MEMORY = 3.0;
+//! Without a remembered target, a creature this close (world units) to the hand got the slap
+const double SLAP_FALLBACK_RADIUS = 2.0;
+//! A creature slapped within this time ducks when the hand comes over it
+const double SLAP_DUCK_MEMORY = 90.0;
+//! Creatures that are on the map when the game starts did not arrive: nothing is shown in this time
+const double ARRIVAL_QUIET_TIME = 3.0;
+//! Seconds the reactions of a picked up, a dropped and an arrived creature wait for the creature to be ready
+const double PICKED_UP_DELAY = 0.4;
+const double DROPPED_DELAY = 0.35;
+const double ARRIVAL_DELAY = 0.9;
+
 //! Cosmetic dice of their own: the reactions must not draw from the generator the game logic uses
 std::mt19937& cosmeticRng()
 {
@@ -231,7 +244,8 @@ CreatureReactions::CreatureReactions(GameMap* gameMap, const std::string& config
     mMoodTimer(0.0),
     mMoodIndex(0),
     mNextLookTarget(Ogre::Vector3::ZERO),
-    mHasNextLookTarget(false)
+    mHasNextLookTarget(false),
+    mSlapTime(0.0)
 {
     mConfigLoaded = mConfig.load(mConfigFileName);
     if(!mConfigLoaded)
@@ -381,6 +395,16 @@ bool CreatureReactions::isWorkingInRoom(const Creature* creature) const
     RoomType type = room->getType();
     return (type == RoomType::library) || (type == RoomType::workshop) || (type == RoomType::trainingHall) ||
         (type == RoomType::casino) || (type == RoomType::hatchery);
+}
+
+bool CreatureReactions::isInHand(const Creature* creature) const
+{
+    Player* localPlayer = mGameMap->getLocalPlayer();
+    if(localPlayer == nullptr)
+        return false;
+
+    const std::vector<GameEntity*>& hand = localPlayer->getObjectsInHand();
+    return std::find(hand.begin(), hand.end(), creature) != hand.end();
 }
 
 bool CreatureReactions::isVariantAllowed(const Creature* creature, const ReactionVariant& variant) const
@@ -606,7 +630,7 @@ bool CreatureReactions::trigger(Creature* creature, const std::string& eventName
     if((mMode == Mode::off) || !mConfigLoaded || (creature == nullptr))
         return false;
 
-    if(!creature->getIsOnMap() || !creature->isAlive())
+    if(!creature->isAlive())
         return false;
 
     const ReactionEvent* event = mConfig.getEvent(eventName);
@@ -616,9 +640,22 @@ bool CreatureReactions::trigger(Creature* creature, const std::string& eventName
         return false;
     }
 
+    // A creature in the hand is not on the map: only the events made for the hand are shown on it
+    bool inHand = isInHand(creature);
+    if(event->mInHand)
+    {
+        if(!inHand && !(forced && creature->getIsOnMap()))
+            return false;
+    }
+    else if(!creature->getIsOnMap())
+    {
+        return false;
+    }
+
     if(!forced)
     {
-        if(!isCreatureNearCamera(creature))
+        // The hand is always on the screen
+        if(!inHand && !isCreatureNearCamera(creature))
             return false;
 
         std::map<std::string, double>::const_iterator itCooldown =
@@ -716,6 +753,7 @@ bool CreatureReactions::startReaction(Creature* creature, const ReactionEvent& e
     reaction.mEventName = event.mName;
     reaction.mPriority = event.mPriority;
     reaction.mWhileWorking = event.mWhileWorking;
+    reaction.mInHand = isInHand(creature);
 
     // The place the creature turns its head to: the place of an event, or the wall, neighbour or room of the variant
     if(mHasNextLookTarget)
@@ -1290,8 +1328,8 @@ void CreatureReactions::update(Ogre::Real timeSinceLastFrame)
     for(std::vector<RunningReaction>::iterator it = mRunning.begin(); it != mRunning.end();)
     {
         Creature* creature = mGameMap->getCreature(it->mCreatureName);
-        bool stillRunning = (creature != nullptr) && creature->getIsOnMap() && creature->isAlive() &&
-            updateReaction(*it, creature, timeSinceLastFrame);
+        bool stillRunning = (creature != nullptr) && (it->mInHand ? isInHand(creature) : creature->getIsOnMap()) &&
+            creature->isAlive() && updateReaction(*it, creature, timeSinceLastFrame);
         if(stillRunning)
         {
             ++it;
@@ -1370,6 +1408,14 @@ void CreatureReactions::pruneCooldowns()
     {
         if((mTime - it->second.mSince) > DELIVERY_WINDOW)
             mDeliveries.erase(it++);
+        else
+            ++it;
+    }
+
+    for(std::map<std::string, double>::iterator it = mSlappedAt.begin(); it != mSlappedAt.end();)
+    {
+        if((mTime - it->second) > SLAP_DUCK_MEMORY)
+            mSlappedAt.erase(it++);
         else
             ++it;
     }
@@ -1488,7 +1534,7 @@ void CreatureReactions::queueReaction(Creature* creature, const std::string& eve
             return;
     }
 
-    if(!isCreatureNearCamera(creature))
+    if(!isInHand(creature) && !isCreatureNearCamera(creature))
         return;
 
     PendingReaction pending;
@@ -1505,6 +1551,12 @@ void CreatureReactions::noteEntityAdded(GameEntity* entity)
 {
     if((mMode == Mode::off) || !mConfigLoaded)
         return;
+
+    if(entity->getObjectType() == GameEntityType::creature)
+    {
+        noteCreatureAdded(static_cast<Creature*>(entity));
+        return;
+    }
 
     RoomType roomType = RoomType::nbRooms;
     std::string resultEvent;
@@ -1953,6 +2005,122 @@ void CreatureReactions::noteEntityRemoved(GameEntity* entity)
             continue;
 
         trigger(creature, "GoldGift");
+    }
+}
+
+void CreatureReactions::noteCreatureAdded(Creature* creature)
+{
+    Player* localPlayer = mGameMap->getLocalPlayer();
+    if((localPlayer == nullptr) || (mTime < ARRIVAL_QUIET_TIME) || creature->isInContainment())
+        return;
+
+    // A creature of the keeper that appears on a portal has just arrived in the dungeon
+    if(creature->getSeat() == localPlayer->getSeat())
+    {
+        Tile* tile = creature->getPositionTile();
+        Room* room = (tile != nullptr) ? tile->getCoveringRoom() : nullptr;
+        if((room != nullptr) && ((room->getType() == RoomType::portal) || (room->getType() == RoomType::portalWave)))
+            queueReaction(creature, "PortalArrival", DONE_WAIT_MAX, ARRIVAL_DELAY);
+    }
+}
+
+void CreatureReactions::noteSlapRequest(GameEntity* entity)
+{
+    // The server confirms a slap without telling what was hit, so the target of the request is remembered
+    mSlapTarget.clear();
+    if(entity->getObjectType() != GameEntityType::creature)
+        return;
+
+    mSlapTarget = entity->getName();
+    mSlapTime = mTime;
+}
+
+void CreatureReactions::noteSlapped(const Ogre::Vector3& handPosition)
+{
+    if((mMode == Mode::off) || !mConfigLoaded)
+        return;
+
+    Creature* target = nullptr;
+    if(!mSlapTarget.empty() && ((mTime - mSlapTime) <= SLAP_MEMORY))
+        target = mGameMap->getCreature(mSlapTarget);
+
+    mSlapTarget.clear();
+
+    // Without a request (for example a slap the client did not ask for) it is the creature closest to the hand
+    if(target == nullptr)
+    {
+        double best = SLAP_FALLBACK_RADIUS;
+        for(Creature* creature : mGameMap->getCreatures())
+        {
+            if(!creature->getIsOnMap() || !creature->isAlive())
+                continue;
+
+            Ogre::Vector3 difference = creature->getPosition() - handPosition;
+            difference.z = 0.0f;
+            double distance = difference.length();
+            if(distance >= best)
+                continue;
+
+            best = distance;
+            target = creature;
+        }
+    }
+
+    if(target == nullptr)
+        return;
+
+    mSlappedAt[target->getName()] = mTime;
+    trigger(target, "Slapped");
+}
+
+void CreatureReactions::noteHandPicked(Creature* creature)
+{
+    if((mMode == Mode::off) || !mConfigLoaded)
+        return;
+
+    // The creature is in the hand after a moment, the reaction waits for the hand to be ready
+    queueReaction(creature, "PickedUp", DONE_WAIT_MAX, PICKED_UP_DELAY);
+}
+
+void CreatureReactions::noteHandDropped(Creature* creature)
+{
+    if((mMode == Mode::off) || !mConfigLoaded)
+        return;
+
+    queueReaction(creature, "Dropped", DONE_WAIT_MAX, DROPPED_DELAY);
+}
+
+void CreatureReactions::noteHandHover(Creature* creature)
+{
+    if((mMode == Mode::off) || !mConfigLoaded || (creature == nullptr))
+        return;
+
+    // Only the creatures of the keeper look up to the hand
+    Player* localPlayer = mGameMap->getLocalPlayer();
+    if((localPlayer == nullptr) || (creature->getSeat() != localPlayer->getSeat()))
+        return;
+
+    // A creature that was slapped lately knows what the hand can do
+    std::map<std::string, double>::const_iterator itSlapped = mSlappedAt.find(creature->getName());
+    bool ducks = (itSlapped != mSlappedAt.end()) && ((mTime - itSlapped->second) <= SLAP_DUCK_MEMORY);
+    trigger(creature, ducks ? "HandHoverDuck" : "HandHover");
+}
+
+void CreatureReactions::endForCreature(Creature* creature)
+{
+    for(std::vector<PendingReaction>::iterator it = mPending.begin(); it != mPending.end();)
+    {
+        if(it->mCreatureName == creature->getName())
+            it = mPending.erase(it);
+        else
+            ++it;
+    }
+
+    RunningReaction* running = findRunning(creature->getName());
+    if(running != nullptr)
+    {
+        endReaction(*running, creature);
+        eraseRunning(creature->getName());
     }
 }
 

@@ -276,6 +276,14 @@ void Player::pickUpEntity(GameEntity *entity)
     }
 
     OD_LOG_INF("player seatId=" + Helper::toString(getSeat()->getId()) + " picked up " + entity->getName());
+
+    // A reaction on the creature has to end before it changes its parent node and its size
+    if(!mGameMap->isServerGameMap() && (CreatureReactions::getSingletonPtr() != nullptr) &&
+       (entity->getObjectType() == GameEntityType::creature))
+    {
+        CreatureReactions::getSingleton().endForCreature(static_cast<Creature*>(entity));
+    }
+
     entity->pickup();
 
     // Start tracking this creature as being in this player's hand
@@ -293,6 +301,10 @@ void Player::pickUpEntity(GameEntity *entity)
         return;
     }
     RenderManager::getSingleton().rrPickUpEntity(entity, this);
+
+    // The creature in the hand shows what it thinks of it
+    if((CreatureReactions::getSingletonPtr() != nullptr) && (entity->getObjectType() == GameEntityType::creature))
+        CreatureReactions::getSingleton().noteHandPicked(static_cast<Creature*>(entity));
 }
 
 
@@ -330,6 +342,10 @@ void Player::dropHand(Tile *t, unsigned int index)
         return;
     }
 
+    // A reaction on the creature has to end before it changes its parent node and its size
+    if((CreatureReactions::getSingletonPtr() != nullptr) && (entity->getObjectType() == GameEntityType::creature))
+        CreatureReactions::getSingleton().endForCreature(static_cast<Creature*>(entity));
+
     entity->correctDropPosition(pos);
     OD_LOG_INF("player seatId=" + Helper::toString(getSeat()->getId()) + " drop " + entity->getName() + " on tile=" + Tile::displayAsString(t));
     entity->drop(pos);
@@ -348,6 +364,10 @@ void Player::dropHand(Tile *t, unsigned int index)
     }
     // Send a render request to rearrange the creatures in the hand to move them all forward 1 place
     RenderManager::getSingleton().rrDropHand(entity, this);
+
+    // The creature lands and shows how it took it
+    if((CreatureReactions::getSingletonPtr() != nullptr) && (entity->getObjectType() == GameEntityType::creature))
+        CreatureReactions::getSingleton().noteHandDropped(static_cast<Creature*>(entity));
 }
 
 void Player::rotateHand(Direction d)

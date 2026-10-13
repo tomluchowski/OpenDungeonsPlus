@@ -362,6 +362,10 @@ bool CreatureReactionConfig::loadEvent(std::istream& file, ReactionEvent& event)
         {
             event.mWhileWorking = toBool(words[1]);
         }
+        else if(words[0] == "InHand")
+        {
+            event.mInHand = toBool(words[1]);
+        }
         else
         {
             OD_LOG_WRN("Unknown creature reaction event key: " + words[0]);

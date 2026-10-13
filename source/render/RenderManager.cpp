@@ -2469,6 +2469,8 @@ void RenderManager::entitySlapped()
     // The creatures that stand around look at the hand that slaps
     if((CreatureReactions::getSingletonPtr() != nullptr) && (mHandLightNode != nullptr))
     {
+        // The creature that was slapped reacts, the ones around only look
+        CreatureReactions::getSingleton().noteSlapped(mHandLightNode->getPosition());
         CreatureReactions::getSingleton().noteNearbyEvent("AmbientLookSlap", mHandLightNode->getPosition(), nullptr,
             SLAP_LOOK_INTERVAL);
     }
