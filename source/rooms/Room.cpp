@@ -342,14 +342,14 @@ bool Room::hasHatedCoworker(Creature* c) const
     if(!c->canHaveRelationships())
         return false;
 
-    CreatureRelationships* relationships = c->getGameMap()->getCreatureRelationships();
+    std::vector<std::string> coworkers;
     for(Creature* other : mCreaturesUsingRoom)
     {
-        if((other != c) && (other->getSeat() == c->getSeat()) && relationships->isHated(c->getName(), other->getName()))
-            return true;
+        if((other != c) && (other->getSeat() == c->getSeat()))
+            coworkers.push_back(other->getName());
     }
 
-    return false;
+    return anyHatedCoworker(*c->getGameMap()->getCreatureRelationships(), true, c->getName(), coworkers);
 }
 
 Creature* Room::getCreatureUsingRoom(unsigned index)

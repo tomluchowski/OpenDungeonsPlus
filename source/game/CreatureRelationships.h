@@ -406,4 +406,108 @@ private:
     GenderLookup mGenderLookup;
 };
 
+//! \brief What decides whether a creature may be part of a relationship (see Creature::canHaveRelationships).
+//! The option must be on, the creature must be on the server map and belong to a keeper seat
+//! (no rogue, no hero), and it must not be a worker or a prisoner.
+bool relationshipsAllowed(bool optionOnServerMap, bool hasSeat, bool rogueSeat, bool heroFaction,
+    bool worker, bool inPrison);
+
+//! \brief A gameplay event only changes a pair when both creatures may have relationships and
+//! belong to the same seat (see Creature::reportRelationshipEvent).
+bool relationshipEventAllowed(bool firstAllowed, bool secondAllowed, bool sameSeat);
+
+//! \brief True if one of the coworkers (the caller selects them: same seat, not the creature itself)
+//! is hated by the creature or is its nemesis (see Room::hasHatedCoworker). Without relationships
+//! (creatureAllowed false) nobody is hated.
+bool anyHatedCoworker(const CreatureRelationships& relationships, bool creatureAllowed,
+    const std::string& creature, const std::vector<std::string>& coworkers);
+
+//! \brief The creature stays in a room it does not like only if no other suitable room exists
+//! (see CreatureActionSearchJob).
+bool useDislikedRoomAsFallback(bool haveDislikedRoom, size_t nbOtherSuitableRooms);
+
+//! \brief State of a creature that is checked before a nemesis brawl (see Creature::canStartBrawl).
+struct BrawlCandidateState
+{
+    BrawlCandidateState() :
+        mAllowed(false),
+        mOnMap(false),
+        mAlive(false),
+        mKo(false),
+        mBrawling(false),
+        mHasTile(false),
+        mFighting(false),
+        mInArenaOrCasino(false),
+        mHp(0.0),
+        mMaxHp(0.0)
+    {}
+
+    //! The creature may have relationships at all
+    bool mAllowed;
+    //! The creature is on the map
+    bool mOnMap;
+    bool mAlive;
+    //! The creature is knocked out
+    bool mKo;
+    //! The creature already brawls
+    bool mBrawling;
+    //! The creature stands on a tile
+    bool mHasTile;
+    //! Has a fight or friendly fight action queued
+    bool mFighting;
+    //! The creature stands in an arena or a casino
+    bool mInArenaOrCasino;
+    //! Current and maximum health
+    double mHp;
+    double mMaxHp;
+};
+
+//! \brief True if the creature may start a brawl: not busy, not hurt (health must be more than
+//! the stop percentage plus the start margin of the maximum).
+bool canStartBrawl(const BrawlCandidateState& state, const RelationshipSettings& settings);
+
+//! \brief State of one fighter of a running brawl (see Creature::updateBrawl).
+struct BrawlFighterState
+{
+    BrawlFighterState() :
+        mAlive(false),
+        mKo(false),
+        mHp(0.0),
+        mMaxHp(0.0)
+    {}
+
+    bool mAlive;
+    //! The fighter is knocked out
+    bool mKo;
+    //! Current and maximum health
+    double mHp;
+    double mMaxHp;
+};
+
+//! \brief True if a running brawl ends: someone died or is knocked out, someone is at or
+//! below the stop percentage of the maximum health, the brawl lasted mBrawlMaxTurns turns or
+//! the fight action of the creature is gone.
+bool shouldStopBrawl(const BrawlFighterState& first, const BrawlFighterState& second, int64_t turnsSinceStart,
+    bool stillFighting, const RelationshipSettings& settings);
+
+//! \brief Brawls are only looked for every mBrawlCheckIntervalTurns turns.
+bool isBrawlCheckTurn(int64_t turn, const RelationshipSettings& settings);
+
+//! \brief True if the two creatures (distance given as tile differences) are close enough to notice each other.
+bool isWithinBrawlDistance(double dx, double dy, const RelationshipSettings& settings);
+
+//! \brief True if a roll of 0 to 99 starts a brawl.
+bool brawlChanceHit(int32_t roll, const RelationshipSettings& settings);
+
+//! \brief Mood points a creature loses when a friend of it dies: the partner grieves more than a friend.
+//! \param partner True if the dead creature was the partner of the mourner.
+//! \param settings The settings of the relationships.
+int32_t getGriefMoodPenalty(bool partner, const RelationshipSettings& settings);
+
+//! \brief Chance in percent that the partner or the best friend of a creature that leaves the dungeon unhappy
+//! leaves with it.
+//! \param partner True if the one that may follow is the partner, false if it is the best friend.
+//! \param settings The settings of the relationships.
+int32_t getLeaveTogetherChancePercent(bool partner, const RelationshipSettings& settings);
+
 #endif // CREATURERELATIONSHIPS_H

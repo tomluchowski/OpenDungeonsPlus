@@ -45,6 +45,7 @@
 #include "modes/ModeManager.h"
 #include "network/ODClient.h"
 #include "network/ODServer.h"
+#include "network/RelationshipPacket.h"
 #include "network/ServerMode.h"
 #include "network/ServerNotification.h"
 #include "render/CreatureOverlayStatus.h"
@@ -1132,12 +1133,11 @@ void GameMap::checkRelationshipBrawls()
         return;
 
     const RelationshipSettings& settings = mCreatureRelationships->getSettings();
-    if((mTurnNumber % settings.mBrawlCheckIntervalTurns) != 0)
+    if(!isBrawlCheckTurn(mTurnNumber, settings))
         return;
 
     std::vector<CreatureRelationships::Pair> pairs;
     mCreatureRelationships->getNemesisPairs(pairs);
-    double maxDistance = static_cast<double>(settings.mBrawlMaxDistanceTiles);
     for(size_t i = 0; i < pairs.size(); ++i)
     {
         Creature* creatureA = getCreature(pairs[i].first);
@@ -1152,10 +1152,10 @@ void GameMap::checkRelationshipBrawls()
         Tile* tileB = creatureB->getPositionTile();
         double dx = static_cast<double>(tileA->getX() - tileB->getX());
         double dy = static_cast<double>(tileA->getY() - tileB->getY());
-        if((dx * dx + dy * dy) > (maxDistance * maxDistance))
+        if(!isWithinBrawlDistance(dx, dy, settings))
             continue;
 
-        if(Random::Int(0, BRAWL_CHANCE_ROLL_MAX) >= settings.mBrawlChancePercent)
+        if(!brawlChanceHit(Random::Int(0, BRAWL_CHANCE_ROLL_MAX), settings))
             continue;
 
         if(!pathExists(creatureA, tileA, tileB))
@@ -1186,8 +1186,8 @@ void GameMap::sendRelationshipTierChanges()
 
         ServerNotification* serverNotification = new ServerNotification(
             ServerNotificationType::relationshipTier, seat->getPlayer());
-        serverNotification->mPacket << change.mCreatureA << change.mCreatureB
-            << static_cast<int32_t>(change.mNewTier);
+        writeRelationshipTier(serverNotification->mPacket, change.mCreatureA, change.mCreatureB,
+            change.mNewTier);
         ODServer::getSingleton().queueServerNotification(serverNotification);
     }
 }
@@ -1207,8 +1207,8 @@ void GameMap::sendRelationshipTiers(Seat* seat)
 
         ServerNotification* serverNotification = new ServerNotification(
             ServerNotificationType::relationshipTier, seat->getPlayer());
-        serverNotification->mPacket << tier.mCreatureA << tier.mCreatureB
-            << static_cast<int32_t>(tier.mNewTier);
+        writeRelationshipTier(serverNotification->mPacket, tier.mCreatureA, tier.mCreatureB,
+            tier.mNewTier);
         ODServer::getSingleton().queueServerNotification(serverNotification);
     }
 }

@@ -109,10 +109,6 @@
 
 
 static const Ogre::Real CANNON_MISSILE_HEIGHT = 0.3;
-//! A creature only starts a nemesis brawl if its health is this many percent above the health that stops the brawl
-static const int32_t BRAWL_START_HEALTH_MARGIN_PERCENT = 25;
-//! Factor between a fraction and percent, used to compare health with the percent settings of the brawl
-static const double BRAWL_PERCENT_FACTOR = 100.0;
 //! Turns a brawl restored from a saved game waits for both fighters to be ready before it is dropped
 static const int64_t BRAWL_RESUME_WAIT_TURNS = 100;
 
@@ -2125,13 +2121,14 @@ std::string Creature::getStatsText()
 
 bool Creature::canHaveRelationships() const
 {
-    if(!getIsOnServerMap() || !getGameMap()->isRelationshipsEnabled())
+    bool optionOnServerMap = getIsOnServerMap() && getGameMap()->isRelationshipsEnabled();
+    if(!optionOnServerMap)
         return false;
 
-    if((getSeat() == nullptr) || getSeat()->isRogueSeat() || (getSeat()->getFaction() == "Hero"))
-        return false;
-
-    return !getDefinition()->isWorker() && !isInPrison();
+    Seat* seat = getSeat();
+    bool hasSeat = (seat != nullptr);
+    return relationshipsAllowed(optionOnServerMap, hasSeat, hasSeat && seat->isRogueSeat(),
+        hasSeat && (seat->getFaction() == "Hero"), getDefinition()->isWorker(), isInPrison());
 }
 
 double Creature::getRelationshipCombatModifier() const
@@ -2220,7 +2217,8 @@ void Creature::reportDeathToFriends(GameEntity* killer)
             continue;
         }
 
-        mourner->addRelationshipMood(-settings.mGriefMoodPenalty);
+        // The partner grieves more than a friend
+        mourner->addRelationshipMood(-getGriefMoodPenalty(relationships->isLovers(getName(), mourner->getName()), settings));
         if((killer != nullptr) && (killer->getSeat() != nullptr) && (killer->getSeat() != getSeat()))
         {
             mourner->mRageUntilTurn = turn + settings.mGriefRageTurns;
@@ -2310,7 +2308,11 @@ void Creature::reportLeavingToBestFriend()
         return;
 
     CreatureRelationships* relationships = getGameMap()->getCreatureRelationships();
-    std::string bestFriend = relationships->getBestFriend(getName());
+    // The partner comes first, then the best friend
+    std::string bestFriend = relationships->getPartner(getName());
+    bool isPartner = !bestFriend.empty();
+    if(!isPartner)
+        bestFriend = relationships->getBestFriend(getName());
     if(bestFriend.empty())
         return;
 
@@ -2325,10 +2327,11 @@ void Creature::reportLeavingToBestFriend()
 
     // The chance is in percent: a roll from 0 to 99 below it succeeds
     const int32_t maxPercentRoll = 99;
-    if(Random::Int(0, maxPercentRoll) >= relationships->getSettings().mLeaveTogetherChancePercent)
+    if(Random::Int(0, maxPercentRoll) >= getLeaveTogetherChancePercent(isPartner, relationships->getSettings()))
         return;
 
-    OD_LOG_INF("creature=" + friendCreature->getName() + " leaves its dungeon together with its best friend " + getName());
+    OD_LOG_INF("creature=" + friendCreature->getName() + " leaves its dungeon together with its " +
+        (isPartner ? "partner " : "best friend ") + getName());
     friendCreature->leaveDungeon();
 }
 
@@ -2348,22 +2351,22 @@ double Creature::getRelationshipRageFactor(const Seat* victimSeat) const
 
 bool Creature::canStartBrawl() const
 {
-    if(!canHaveRelationships() || !getIsOnMap() || !isAlive() || isKo() || isBrawling())
+    if(!canHaveRelationships())
         return false;
 
-    if(getPositionTile() == nullptr)
-        return false;
-
-    // Not while fighting, in the arena or the casino, and not when badly hurt
-    if(isActionInList(CreatureActionType::fight) || isActionInList(CreatureActionType::fightFriendly))
-        return false;
-
-    Room* room = getPositionTile()->getCoveringRoom();
-    if((room != nullptr) && ((room->getType() == RoomType::arena) || (room->getType() == RoomType::casino)))
-        return false;
-
-    int32_t stopPercent = getGameMap()->getCreatureRelationships()->getSettings().mBrawlStopHealthPercent;
-    return (getHP() * BRAWL_PERCENT_FACTOR) > (mMaxHP * static_cast<double>(stopPercent + BRAWL_START_HEALTH_MARGIN_PERCENT));
+    BrawlCandidateState state;
+    state.mAllowed = true;
+    state.mOnMap = getIsOnMap();
+    state.mAlive = isAlive();
+    state.mKo = isKo();
+    state.mBrawling = isBrawling();
+    state.mHasTile = (getPositionTile() != nullptr);
+    state.mFighting = isActionInList(CreatureActionType::fight) || isActionInList(CreatureActionType::fightFriendly);
+    Room* room = state.mHasTile ? getPositionTile()->getCoveringRoom() : nullptr;
+    state.mInArenaOrCasino = (room != nullptr) && ((room->getType() == RoomType::arena) || (room->getType() == RoomType::casino));
+    state.mHp = getHP();
+    state.mMaxHp = mMaxHP;
+    return ::canStartBrawl(state, getGameMap()->getCreatureRelationships()->getSettings());
 }
 
 void Creature::startBrawl(Creature& opponent)
@@ -2403,14 +2406,21 @@ void Creature::updateBrawl()
         return;
     }
 
-    const RelationshipSettings& settings = relationships->getSettings();
-    double stopRatio = static_cast<double>(settings.mBrawlStopHealthPercent) / BRAWL_PERCENT_FACTOR;
-    bool stop = !isAlive() || !opponent->isAlive() || isKo() || opponent->isKo()
-        || (getHP() <= (mMaxHP * stopRatio)) || (opponent->getHP() <= (opponent->mMaxHP * stopRatio))
-        || ((getGameMap()->getTurnNumber() - mBrawlStartTurn) >= settings.mBrawlMaxTurns)
-        || !isActionInList(CreatureActionType::fightFriendly);
-    if(stop)
+    BrawlFighterState own;
+    own.mAlive = isAlive();
+    own.mKo = isKo();
+    own.mHp = getHP();
+    own.mMaxHp = mMaxHP;
+    BrawlFighterState other;
+    other.mAlive = opponent->isAlive();
+    other.mKo = opponent->isKo();
+    other.mHp = opponent->getHP();
+    other.mMaxHp = opponent->mMaxHP;
+    if(shouldStopBrawl(own, other, getGameMap()->getTurnNumber() - mBrawlStartTurn,
+        isActionInList(CreatureActionType::fightFriendly), relationships->getSettings()))
+    {
         endBrawl();
+    }
 }
 
 void Creature::endBrawl()
@@ -2545,11 +2555,11 @@ void Creature::resumeBrawl()
 
 void Creature::reportRelationshipEvent(RelationshipEvent event, Creature& creatureA, Creature& creatureB)
 {
-    if(!creatureA.canHaveRelationships() || !creatureB.canHaveRelationships())
+    if(!relationshipEventAllowed(creatureA.canHaveRelationships(), creatureB.canHaveRelationships(),
+        creatureA.getSeat() == creatureB.getSeat()))
+    {
         return;
-
-    if(creatureA.getSeat() != creatureB.getSeat())
-        return;
+    }
 
     GameMap* gameMap = creatureA.getGameMap();
     gameMap->getCreatureRelationships()->onRelationshipEvent(event, creatureA.getName(), creatureB.getName(),

@@ -26,6 +26,7 @@
 #include "entities/Creature.h"
 #include "entities/CreatureDefinition.h"
 #include "entities/Tile.h"
+#include "game/CreatureRelationships.h"
 #include "game/Seat.h"
 #include "gamemap/GameMap.h"
 #include "rooms/Room.h"
@@ -209,7 +210,7 @@ bool CreatureActionSearchJob::handleSearchJob(Creature& creature, bool forced)
         if(rooms.empty())
         {
             // No other room: we stay in the room we do not like so much
-            if(dislikedRoom != nullptr)
+            if(useDislikedRoomAsFallback(dislikedRoom != nullptr, rooms.size()))
             {
                 creature.pushAction(Utils::make_unique<CreatureActionUseRoom>(creature, *dislikedRoom, forced));
                 return true;

@@ -40,6 +40,10 @@ namespace
     static const size_t STATE_FIELD_BRAWL_TURNS = 5;
     //! A saved grief mood is limited to this many points in both directions, whatever the file says
     static const int64_t STATE_GRIEF_LIMIT = 100000;
+    //! A creature only starts a brawl if its health is this many percent above the health that stops the brawl
+    static const int32_t BRAWL_START_HEALTH_MARGIN_PERCENT = 25;
+    //! Factor between a fraction and percent, used to compare health with the percent settings of the brawl
+    static const double BRAWL_PERCENT_FACTOR = 100.0;
 
     //! Default values used when config/relationships.cfg is missing or lacks an entry
     static const int32_t DEFAULT_THRESHOLD_FRIENDS = 50;
@@ -1191,4 +1195,93 @@ bool readRelationshipCreatureStates(std::istream& is, std::vector<RelationshipCr
         state.mBrawlTurnsLeft = std::max<int64_t>(0, brawlTurns);
         states.push_back(state);
     }
+}
+
+bool relationshipsAllowed(bool optionOnServerMap, bool hasSeat, bool rogueSeat, bool heroFaction,
+    bool worker, bool inPrison)
+{
+    if(!optionOnServerMap)
+        return false;
+
+    if(!hasSeat || rogueSeat || heroFaction)
+        return false;
+
+    return !worker && !inPrison;
+}
+
+bool relationshipEventAllowed(bool firstAllowed, bool secondAllowed, bool sameSeat)
+{
+    return firstAllowed && secondAllowed && sameSeat;
+}
+
+bool anyHatedCoworker(const CreatureRelationships& relationships, bool creatureAllowed,
+    const std::string& creature, const std::vector<std::string>& coworkers)
+{
+    if(!creatureAllowed)
+        return false;
+
+    for(size_t i = 0; i < coworkers.size(); ++i)
+    {
+        if(relationships.isHated(creature, coworkers[i]))
+            return true;
+    }
+
+    return false;
+}
+
+bool useDislikedRoomAsFallback(bool haveDislikedRoom, size_t nbOtherSuitableRooms)
+{
+    return haveDislikedRoom && (nbOtherSuitableRooms == 0);
+}
+
+bool canStartBrawl(const BrawlCandidateState& state, const RelationshipSettings& settings)
+{
+    if(!state.mAllowed || !state.mOnMap || !state.mAlive || state.mKo || state.mBrawling)
+        return false;
+
+    if(!state.mHasTile)
+        return false;
+
+    // Not while fighting, in the arena or the casino, and not when badly hurt
+    if(state.mFighting || state.mInArenaOrCasino)
+        return false;
+
+    return (state.mHp * BRAWL_PERCENT_FACTOR) >
+        (state.mMaxHp * static_cast<double>(settings.mBrawlStopHealthPercent + BRAWL_START_HEALTH_MARGIN_PERCENT));
+}
+
+bool shouldStopBrawl(const BrawlFighterState& first, const BrawlFighterState& second, int64_t turnsSinceStart,
+    bool stillFighting, const RelationshipSettings& settings)
+{
+    double stopRatio = static_cast<double>(settings.mBrawlStopHealthPercent) / BRAWL_PERCENT_FACTOR;
+    return !first.mAlive || !second.mAlive || first.mKo || second.mKo
+        || (first.mHp <= (first.mMaxHp * stopRatio)) || (second.mHp <= (second.mMaxHp * stopRatio))
+        || (turnsSinceStart >= settings.mBrawlMaxTurns)
+        || !stillFighting;
+}
+
+bool isBrawlCheckTurn(int64_t turn, const RelationshipSettings& settings)
+{
+    return (turn % settings.mBrawlCheckIntervalTurns) == 0;
+}
+
+bool isWithinBrawlDistance(double dx, double dy, const RelationshipSettings& settings)
+{
+    double maxDistance = static_cast<double>(settings.mBrawlMaxDistanceTiles);
+    return (dx * dx + dy * dy) <= (maxDistance * maxDistance);
+}
+
+bool brawlChanceHit(int32_t roll, const RelationshipSettings& settings)
+{
+    return roll < settings.mBrawlChancePercent;
+}
+
+int32_t getGriefMoodPenalty(bool partner, const RelationshipSettings& settings)
+{
+    return partner ? settings.mPartnerGriefMoodPenalty : settings.mGriefMoodPenalty;
+}
+
+int32_t getLeaveTogetherChancePercent(bool partner, const RelationshipSettings& settings)
+{
+    return partner ? settings.mLeavePartnerChancePercent : settings.mLeaveTogetherChancePercent;
 }
