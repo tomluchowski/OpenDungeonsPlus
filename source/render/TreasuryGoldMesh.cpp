@@ -35,6 +35,8 @@ const float TextureRepeat = 2.0f;
 
 Detail currentDetail = Detail::full;
 
+//! \brief A point of the pile surface: x and y centred on the tile, z from the height of the pile at (u, v).
+//! \param u,v Position inside the tile, each from 0 to 1.
 Ogre::Vector3 pilePoint(const TreasuryGoldLayer::PileShape& shape, float u, float v)
 {
     return Ogre::Vector3(u - 0.5f, v - 0.5f, TreasuryGoldLayer::heightAt(shape, u, v));
@@ -51,6 +53,9 @@ Ogre::Vector3 pileNormal(const TreasuryGoldLayer::PileShape& shape, float u, flo
     return normal;
 }
 
+//! \brief Builds the mesh of one pile as a grid of triangles with the given number of divisions per side.
+//! \param resourceName Name the mesh gets in the Graphics group.
+//! \param divisions Grid cells per side (fewer for the reduced detail).
 void buildPileMesh(Ogre::SceneManager* sceneManager, const std::string& resourceName,
     const TreasuryGoldLayer::PileShape& shape, int divisions)
 {
@@ -90,6 +95,7 @@ void buildPileMesh(Ogre::SceneManager* sceneManager, const std::string& resource
 }
 }
 
+//! \brief Reads the detail option text ("full", "reduced" or "off"); anything else means full.
 Detail detailFromString(const std::string& text)
 {
     if(text == "reduced")
@@ -99,6 +105,7 @@ Detail detailFromString(const std::string& text)
     return Detail::full;
 }
 
+//! \brief The option text of the detail ("full", "reduced" or "off").
 const char* detailToString(Detail detail)
 {
     switch(detail)
@@ -112,11 +119,13 @@ const char* detailToString(Detail detail)
     }
 }
 
+//! \brief Sets how much of the gold layer is drawn; the piles are built with this detail from now on.
 void setDetail(Detail detail)
 {
     currentDetail = detail;
 }
 
+//! \brief The detail the gold layer is drawn with at the moment.
 Detail getDetail()
 {
     return currentDetail;
