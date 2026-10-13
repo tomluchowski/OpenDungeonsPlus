@@ -15,12 +15,17 @@ of development.
 Future versions will have an in-game tutorial, but for now, you can use the
 following resources to learn the basic gameplay concepts:
 
-- In-game help screen, toggled with the F1 key
+- In-game help screen, available through Options
 - Video tutorial (version 0.5.0): https://www.youtube.com/watch?v=P4MClQUdb0E
 - Wiki page: https://github.com/OpenDungeons/OpenDungeons/wiki/Gameplay
 
 You can play singleplayer levels using the Skirmish menu, or host/join a
 multiplayer game by using the corresponding menus.
+
+Use Load Game in the game options, or F8 while hosting a local game, to open
+the saved-game browser; Back preserves the current game until another save is
+selected. Loaded single-player saves resume their stored side without a new
+seat-selection step. Long save descriptions can be scrolled.
 
 ### Be part of the community
 

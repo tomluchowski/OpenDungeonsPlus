@@ -1963,4 +1963,5 @@ void ConfigManager::loadDefaultValuesForUserConfig(void)
     setGameValue("LightFactor",	"100");
     setGameValue("MinimapType",	"MiniMapDrawn");
     setGameValue("Nickname", "Player");
+    setGameValue("UI Scale", "100");
 }

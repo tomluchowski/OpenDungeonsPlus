@@ -17,10 +17,43 @@
 
 #include "renderscene/RenderSceneMenu.h"
 
+#include "camera/CameraManager.h"
+#include "render/RenderManager.h"
 #include "renderscene/RenderScene.h"
 #include "renderscene/RenderSceneGroup.h"
 #include "utils/Helper.h"
 #include "utils/LogManager.h"
+
+#include <OgreMaterialManager.h>
+#include <OgreRectangle2D.h>
+#include <OgreSceneManager.h>
+#include <OgreSceneNode.h>
+#include <OgreTextureManager.h>
+#include <OgreViewport.h>
+
+#include <CEGUI/System.h>
+#include <CEGUI/GUIContext.h>
+#include <CEGUI/MouseCursor.h>
+#include <CEGUI/widgets/ButtonBase.h>
+#include <CEGUI/widgets/FrameWindow.h>
+
+#include <algorithm>
+
+//! Scene node holding the full screen background rectangle created by the render manager.
+static const std::string BACKGROUND_NODE_NAME = "Background";
+//! Material used by the background rectangle outside of the menus.
+static const std::string DEFAULT_BACKGROUND_MATERIAL = "Background";
+//! Material and texture of the static menu background.
+static const std::string MENU_BACKGROUND_MATERIAL = "MainMenuBackground";
+static const std::string MENU_BACKGROUND_TEXTURE = "MainMenuBackground.png";
+static const std::string BACKGROUND_RESOURCE_GROUP = "Graphics";
+
+//! \brief Returns the full screen background rectangle of the scene.
+static Ogre::Rectangle2D* getBackgroundRectangle(RenderManager& renderManager)
+{
+    return static_cast<Ogre::Rectangle2D*>(
+        renderManager.getSceneManager()->getSceneNode(BACKGROUND_NODE_NAME)->getAttachedObject(0));
+}
 
 RenderSceneMenu::RenderSceneMenu()
 {
@@ -42,21 +75,57 @@ void RenderSceneMenu::dispatchSyncPost(const std::string& event)
 
 void RenderSceneMenu::resetMenu(CameraManager& cameraManager, RenderManager& renderManager)
 {
-    for(RenderSceneGroup* sceneGroup : mSceneGroups)
-        sceneGroup->reset(cameraManager, renderManager);
+    Ogre::Rectangle2D* background = getBackgroundRectangle(renderManager);
+    Ogre::TextureManager::getSingleton().load(MENU_BACKGROUND_TEXTURE, BACKGROUND_RESOURCE_GROUP);
+    background->setMaterial(Ogre::MaterialManager::getSingleton().getByName(MENU_BACKGROUND_MATERIAL,
+        BACKGROUND_RESOURCE_GROUP));
+    updateMenu(cameraManager, renderManager, 0.0f);
 }
 
 void RenderSceneMenu::freeMenu(CameraManager& cameraManager, RenderManager& renderManager)
 {
-    for(RenderSceneGroup* sceneGroup : mSceneGroups)
-        sceneGroup->freeGroup(cameraManager, renderManager);
+    renderManager.rrSetHandPose(false, false);
+    Ogre::Rectangle2D* background = getBackgroundRectangle(renderManager);
+    background->setMaterial(Ogre::MaterialManager::getSingleton().getByName(DEFAULT_BACKGROUND_MATERIAL,
+        BACKGROUND_RESOURCE_GROUP));
+    background->setCorners(-1.0f, 1.0f, 1.0f, -1.0f);
 }
 
 void RenderSceneMenu::updateMenu(CameraManager& cameraManager, RenderManager& renderManager,
         Ogre::Real timeSinceLastFrame)
 {
-    for(RenderSceneGroup* sceneGroup : mSceneGroups)
-        sceneGroup->update(cameraManager, renderManager, timeSinceLastFrame);
+    bool pointing = false;
+    for(CEGUI::Window* window = CEGUI::System::getSingleton().getDefaultGUIContext().getWindowContainingMouse();
+        window != nullptr; window = window->getParent())
+    {
+        if(window->isDisabled())
+            break;
+        if(CEGUI::ButtonBase* button = dynamic_cast<CEGUI::ButtonBase*>(window))
+        {
+            pointing = button->isHovering();
+            break;
+        }
+        if(dynamic_cast<CEGUI::FrameWindow*>(window) != nullptr)
+        {
+            pointing = window->isHit(window->getGUIContext().getMouseCursor().getPosition());
+            break;
+        }
+    }
+    renderManager.rrSetHandPose(pointing, false);
+
+    Ogre::Viewport* viewport = cameraManager.getViewport();
+    if(viewport->getActualWidth() == 0 || viewport->getActualHeight() == 0)
+        return;
+    const Ogre::TexturePtr texture = Ogre::TextureManager::getSingleton().getByName(MENU_BACKGROUND_TEXTURE,
+        BACKGROUND_RESOURCE_GROUP);
+    if(texture.isNull() || texture->getHeight() == 0)
+        return;
+    const Ogre::Real imageAspect = static_cast<Ogre::Real>(texture->getWidth()) / texture->getHeight();
+    const Ogre::Real viewportAspect = static_cast<Ogre::Real>(viewport->getActualWidth()) / viewport->getActualHeight();
+    const Ogre::Real halfWidth = std::min(1.0f, imageAspect / viewportAspect);
+    const Ogre::Real halfHeight = std::min(1.0f, viewportAspect / imageAspect);
+    Ogre::Rectangle2D* background = getBackgroundRectangle(renderManager);
+    background->setCorners(-halfWidth, halfHeight, halfWidth, -halfHeight);
 }
 
 void RenderSceneMenu::readSceneMenu(const std::string& fileName)
