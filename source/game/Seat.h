@@ -380,6 +380,14 @@ private:
     //! creates for this seat. Server side only, not saved with the level.
     double mAutoWorkerTimer;
 
+    //! \brief Seconds the seat's mana has been too low to pay the upkeep of the workers
+    //! above the free four. Server side only, not saved with the level.
+    double mManaShortageSeconds;
+
+    //! \brief Seconds left until the workers above the free four pop, or a negative
+    //! value while that countdown is not running. Server side only, not saved with the level.
+    double mWorkerPopCountdown;
+
     //! \brief True while an enemy creature is within range of the seat's living heart.
     //! Server side only, not saved with the level.
     bool mHeartDefenceActive;

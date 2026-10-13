@@ -91,11 +91,17 @@ const double MANA_HEART_INCOME_PER_SECOND = 30.0;
 //! The tile part of the mana income is capped: one mana per second per claimed
 //! tile, up to this many tiles.
 const double MANA_INCOME_TILES_CAP = 500.0;
-//! Mana each worker costs to keep, per second.
+//! Mana each worker above the free ones costs to keep, per second.
 const double MANA_WORKER_UPKEEP_PER_SECOND = 7.0;
 
-//! Workers a seat holds before its living heart stops creating more.
+//! Workers a seat holds before its living heart stops creating more. The heart sustains
+//! these workers on its own, only the ones above them are paid from the mana reserves.
 const int AUTO_WORKERS_TARGET = 4;
+//! Seconds the mana has to stay too low to pay the upkeep before the workers above the
+//! free ones are doomed.
+const double WORKER_MANA_EVALUATION_SECONDS = 10.0;
+//! Seconds the doomed workers have left, if the mana is still too low when it ends they pop.
+const double WORKER_POP_COUNTDOWN_SECONDS = 10.0;
 //! Seconds the living dungeon heart waits between two workers it creates.
 const double AUTO_WORKER_INTERVAL_SECONDS = 5.0;
 
@@ -115,10 +121,14 @@ double manaIncomePerSecond(unsigned int numClaimedTiles, unsigned int numHeartTi
     return MANA_HEART_INCOME_PER_SECOND + tilesIncome;
 }
 
-//! \brief Mana per second all the workers of a seat cost together.
+//! \brief Mana per second the workers of a seat cost together. The first four are free.
 double manaUpkeepPerSecond(unsigned int numWorkers)
 {
-    return static_cast<double>(numWorkers) * MANA_WORKER_UPKEEP_PER_SECOND;
+    if(numWorkers <= static_cast<unsigned int>(AUTO_WORKERS_TARGET))
+        return 0.0;
+
+    return static_cast<double>(numWorkers - static_cast<unsigned int>(AUTO_WORKERS_TARGET))
+        * MANA_WORKER_UPKEEP_PER_SECOND;
 }
 }
 
@@ -1321,7 +1331,7 @@ unsigned long int GameMap::doMiscUpkeep(double timeSinceLastTurn)
         {
             seat->getPlayer()->notifyNoMoreDungeonTemple();
         }
-        updateSeatMana(seat);
+        updateSeatMana(seat, timeSinceLastTurn);
         updateSeatAutoWorkers(seat, timeSinceLastTurn);
         updateSeatHeartDefense(seat);
 
@@ -1363,7 +1373,7 @@ unsigned long int GameMap::doMiscUpkeep(double timeSinceLastTurn)
     return timeTaken;
 }
 
-void GameMap::updateSeatMana(Seat* seat)
+void GameMap::updateSeatMana(Seat* seat, double timeSinceLastTurn)
 {
     if (seat->getNbRooms(RoomType::dungeonTemple) == 0)
     {
@@ -1387,17 +1397,88 @@ void GameMap::updateSeatMana(Seat* seat)
     }
 
     seat->mManaIncomePerSecond = manaIncomePerSecond(seat->getNumClaimedTiles(), numHeartTiles);
-    seat->mManaUpkeepPerSecond = manaUpkeepPerSecond(seat->getNumCreaturesWorkers());
+    // The armed traps keep draining mana as well
+    double trapUpkeepPerSecond = 0.0;
+    for (Trap* trap : getTraps())
+    {
+        if (trap->getSeat() != seat)
+            continue;
+        trapUpkeepPerSecond += trap->getManaUpkeepPerSecond() * trap->getNbActivatedTiles();
+    }
+    seat->mManaUpkeepPerSecond = manaUpkeepPerSecond(seat->getNumCreaturesWorkers()) + trapUpkeepPerSecond;
     seat->mManaDelta = (seat->mManaIncomePerSecond - seat->mManaUpkeepPerSecond)
         / ODApplication::turnsPerSecond;
     seat->mMana += seat->mManaDelta;
 
-    // Worker upkeep never brings the mana below 0 and the stored mana has a maximum
+    // Upkeep never brings the mana below 0, running dry is what makes the workers pop
+    bool shortage = false;
     if (seat->mMana < 0.0)
+    {
         seat->mMana = 0.0;
+        shortage = true;
+    }
+    updateSeatWorkerPop(seat, shortage, timeSinceLastTurn);
     const double maxMana = ConfigManager::getSingleton().getMaxManaPerSeat();
     if (seat->mMana > maxMana)
         seat->mMana = maxMana;
+}
+
+void GameMap::updateSeatWorkerPop(Seat* seat, bool shortage, double timeSinceLastTurn)
+{
+    if (!shortage || seat->getNumCreaturesWorkers() <= AUTO_WORKERS_TARGET)
+    {
+        // The mana covers the upkeep again or there is nothing left to pop
+        seat->mManaShortageSeconds = 0.0;
+        seat->mWorkerPopCountdown = -1.0;
+        return;
+    }
+
+    if (seat->mWorkerPopCountdown < 0.0)
+    {
+        seat->mManaShortageSeconds += timeSinceLastTurn;
+        if (seat->mManaShortageSeconds >= WORKER_MANA_EVALUATION_SECONDS)
+            seat->mWorkerPopCountdown = WORKER_POP_COUNTDOWN_SECONDS;
+        return;
+    }
+
+    seat->mWorkerPopCountdown -= timeSinceLastTurn;
+    if (seat->mWorkerPopCountdown > 0.0)
+        return;
+
+    // Every worker above the free four is lost
+    int numToPop = seat->getNumCreaturesWorkers() - AUTO_WORKERS_TARGET;
+    std::vector<Creature*> workers;
+    for (Creature* creature : mCreatures)
+    {
+        if (numToPop <= 0)
+            break;
+        if (creature->getSeat() != seat || !creature->isAlive())
+            continue;
+        if (!creature->getDefinition()->isWorker())
+            continue;
+        workers.push_back(creature);
+        --numToPop;
+    }
+    for (Creature* worker : workers)
+    {
+        worker->fireRemoveEntityToSeatsWithVision(this);
+        worker->removeEntityFromPositionTile();
+        worker->removeFromGameMap(this);
+        worker->deleteYourself(this, getNodeType());
+    }
+
+    if (seat->getPlayer() != nullptr)
+    {
+        ServerNotification* serverNotification = new ServerNotification(
+            ServerNotificationType::chatServer, seat->getPlayer());
+        serverNotification->mPacket
+            << "Your workers vanished because the mana ran out"
+            << EventShortNoticeType::majorGameEvent;
+        ODServer::getSingleton().queueServerNotification(serverNotification);
+    }
+
+    seat->mManaShortageSeconds = 0.0;
+    seat->mWorkerPopCountdown = -1.0;
 }
 
 void GameMap::updateSeatAutoWorkers(Seat* seat, double timeSinceLastTurn)

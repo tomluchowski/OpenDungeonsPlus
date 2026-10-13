@@ -73,6 +73,8 @@ Seat::Seat(GameMap* gameMap) :
     mPlayer(nullptr),
     mGoldMined(0),
     mAutoWorkerTimer(0.0),
+    mManaShortageSeconds(0.0),
+    mWorkerPopCountdown(-1.0),
     mHeartDefenceActive(false),
     mHeartDefenceHeartDamaged(false),
     mDefaultWorkerClass(nullptr),

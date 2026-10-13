@@ -72,6 +72,7 @@ struct Seat {
  int team;int id;Player* mPlayer=nullptr;GameMap* mGameMap=nullptr;void* mCurrentSkill=nullptr;SeatStatistics stats;
  std::vector<uint32_t> mNbRooms=std::vector<uint32_t>(static_cast<uint32_t>(RoomType::nbRooms),0);
  double mMana=0.0,mManaDelta=0.0,mManaIncomePerSecond=0.0,mManaUpkeepPerSecond=0.0;
+ double mManaShortageSeconds=0.0,mWorkerPopCountdown=-1.0;
  unsigned int mNumClaimedTiles=0;int mNumCreaturesWorkers=0;
  Seat(int t,int i):team(t),id(i){}
  void addSkillPoints(int){}
@@ -106,7 +107,12 @@ struct GameEntity {Seat* seat;int deaths=0;
 int GameEntity::removed=0,GameEntity::removedFromTile=0,GameEntity::removedFromMap=0,GameEntity::removedVision=0;
 struct Creature:GameEntity {using GameEntity::GameEntity;
  GameEntityType getObjectType()const override{return GameEntityType::creature;}
- CreatureDefinition definition;const CreatureDefinition* getDefinition()const{return &definition;}};
+ CreatureDefinition definition;const CreatureDefinition* getDefinition()const{return &definition;}
+ bool isAlive()const{return true;}};
+struct Trap {Seat* seat;double upkeep;uint32_t nbActivated;
+ Trap(Seat* s,double u,uint32_t n):seat(s),upkeep(u),nbActivated(n){}
+ Seat* getSeat()const{return seat;}double getManaUpkeepPerSecond()const{return upkeep;}
+ uint32_t getNbActivatedTiles()const{return nbActivated;}};
 struct BuildingObject;
 struct Room {Seat* seat;double hp=250.0;std::vector<Tile*> mCoveredTiles;
  Room(Seat* s):seat(s){}virtual ~Room()=default;
@@ -122,10 +128,13 @@ struct RoomDungeonTemple:Room {
  Tile* getHeartTile() const;
 };
 struct GameMap {std::vector<Room*> mRooms;std::vector<Seat*> seats;
+ std::vector<Trap*> mTraps;std::vector<Creature*> mCreatures;
+ std::vector<Trap*>& getTraps(){return mTraps;}
  std::vector<Room*>& getRooms(){return mRooms;}std::vector<Seat*>& getSeats(){return seats;}
  int64_t getTurnNumber()const{return 0;}NodeType getNodeType()const{return NodeType::MTILES_NODE;}
  void fireRelativeSound(std::vector<Seat*>&,SoundRelativeKeeperStatements){}
- std::vector<Room*> getRoomsByType(RoomType type) const;void updateSeatMana(Seat* seat);};
+ std::vector<Room*> getRoomsByType(RoomType type) const;void updateSeatMana(Seat* seat, double timeSinceLastTurn);
+ void updateSeatWorkerPop(Seat* seat, bool shortage, double timeSinceLastTurn);};
 struct SpellSummonWorker {static int32_t nextPrice;
  static int32_t getNextWorkerPriceForPlayer(GameMap*,Player*){return nextPrice;}};
 int32_t SpellSummonWorker::nextPrice=1500;
@@ -154,8 +163,10 @@ int main(){
 
  // The worker upkeep
  check(manaUpkeepPerSecond(0)==0.0,"no worker costs nothing");
- check(manaUpkeepPerSecond(1)==7.0,"one worker costs 7 per second");
- check(manaUpkeepPerSecond(4)==28.0,"four workers cost 28 per second");
+ check(manaUpkeepPerSecond(1)==0.0,"the first workers are free");
+ check(manaUpkeepPerSecond(4)==0.0,"the heart sustains four workers");
+ check(manaUpkeepPerSecond(5)==7.0,"the fifth worker costs 7 per second");
+ check(manaUpkeepPerSecond(8)==28.0,"eight workers cost 28 per second");
 
  // A seat with a living heart
  GameMap map;
@@ -172,14 +183,14 @@ int main(){
  heart.mTempleObject=new BuildingObject(&centre);
  PlainRoom storage(&owner);
  map.mRooms.push_back(&storage);map.mRooms.push_back(&heart);
- owner.mNumClaimedTiles=9+100;owner.mNumCreaturesWorkers=4;
+ owner.mNumClaimedTiles=9+100;owner.mNumCreaturesWorkers=8;
 
  owner.computeSeatBeginTurn();
  check(owner.getNbRooms(RoomType::dungeonTemple)==1,"the living heart counts as the seat temple");
  owner.mMana=0.0;
- map.updateSeatMana(&owner);
+ map.updateSeatMana(&owner,0.0);
  check(near(owner.mManaIncomePerSecond,130.0),"income is the heart plus 100 tiles, the 9 heart tiles not added");
- check(near(owner.mManaUpkeepPerSecond,28.0),"upkeep is the four workers at 7 per second");
+ check(near(owner.mManaUpkeepPerSecond,28.0),"upkeep is the four workers above the free four at 7 per second");
  check(near(owner.mManaDelta,(130.0-28.0)/ODApplication::turnsPerSecond),"the delta converts the net of both to turns");
  check(near(owner.mMana,(130.0-28.0)/ODApplication::turnsPerSecond),"the accrued mana lands on the seat");
 
@@ -190,22 +201,46 @@ int main(){
  orphan.mMana=42.0;orphan.mManaDelta=5.0;orphan.mManaIncomePerSecond=8.0;orphan.mManaUpkeepPerSecond=2.0;
  orphan.computeSeatBeginTurn();
  check(orphan.getNbRooms(RoomType::dungeonTemple)==0,"a seat without a heart has no temple");
- map.updateSeatMana(&orphan);
+ map.updateSeatMana(&orphan,0.0);
  check(orphan.mMana==42.0&&orphan.mManaDelta==0.0
   &&orphan.mManaIncomePerSecond==0.0&&orphan.mManaUpkeepPerSecond==0.0,
   "without a heart there is no income, no upkeep and the mana is untouched");
 
  // Upkeep never brings the mana below 0
- owner.mMana=1.0;owner.mNumClaimedTiles=9;owner.mNumCreaturesWorkers=8;
- map.updateSeatMana(&owner);
  check(near(owner.mMana,0.0),"the mana stops at 0, the upkeep never makes it negative");
- owner.mNumClaimedTiles=9+100;owner.mNumCreaturesWorkers=4;
+ owner.mNumClaimedTiles=9+100;owner.mNumCreaturesWorkers=8;
+
+ // The armed traps drain mana as well
+ Trap trapA(&owner,25.0,2),trapB(&enemy,5.0,1);
+ map.mTraps.push_back(&trapA);map.mTraps.push_back(&trapB);
+ owner.mMana=0.0;
+ map.updateSeatMana(&owner,0.0);
+ check(near(owner.mManaUpkeepPerSecond,28.0+50.0),"each armed trap tile adds its upkeep, other seats traps do not");
+ map.mTraps.clear();
 
  // The stored mana has a maximum
  owner.mMana=199990.0;owner.mNumClaimedTiles=500;owner.mNumCreaturesWorkers=0;
- map.updateSeatMana(&owner);
+ map.updateSeatMana(&owner,0.0);
  check(near(owner.mMana,200000.0),"the stored mana is clamped at the maximum");
  owner.mNumClaimedTiles=9+100;owner.mNumCreaturesWorkers=4;
+
+ // Workers pop when the mana stays too low
+ std::vector<Creature*> popWorkers;
+ for(int i=0;i<6;++i){Creature* w=new Creature(&owner);w->definition.worker=true;popWorkers.push_back(w);map.mCreatures.push_back(w);}
+ owner.mNumCreaturesWorkers=6;
+ int removedBeforePop=GameEntity::removed;
+ map.updateSeatWorkerPop(&owner,true,5.0);
+ check(owner.mWorkerPopCountdown<0.0&&GameEntity::removed==removedBeforePop,"a short shortage only counts up");
+ map.updateSeatWorkerPop(&owner,true,5.0);
+ check(owner.mWorkerPopCountdown>0.0&&GameEntity::removed==removedBeforePop,"after the evaluation period the countdown runs");
+ map.updateSeatWorkerPop(&owner,false,1.0);
+ check(owner.mWorkerPopCountdown<0.0&&owner.mManaShortageSeconds==0.0,"recovered mana cancels the countdown");
+ map.updateSeatWorkerPop(&owner,true,10.0);
+ map.updateSeatWorkerPop(&owner,true,5.0);
+ check(GameEntity::removed==removedBeforePop,"the workers survive while the countdown runs");
+ map.updateSeatWorkerPop(&owner,true,5.0);
+ check(GameEntity::removed==removedBeforePop+2,"the workers above the free four pop when the countdown ends");
+ owner.mNumCreaturesWorkers=4;
 
  // A worker redeemed on the heart
  Tile otherTile(7,8);
@@ -325,6 +360,7 @@ methods = function(temple, 'Tile* RoomDungeonTemple::getHeartTile(')
 methods += '\n' + '\n'.join([
     function(game_map, 'std::vector<Room*> GameMap::getRoomsByType('),
     function(game_map, 'void GameMap::updateSeatMana('),
+    function(game_map, 'void GameMap::updateSeatWorkerPop('),
     function(seat, 'void Seat::computeSeatBeginTurn('),
     function(seat, 'void Seat::addMana('),
     function(seat_data, 'uint32_t SeatData::getNbRooms(').replace('SeatData::', 'Seat::'),
@@ -344,9 +380,9 @@ assert 'if(redemWorkerInHeart(entity, t))' in drop, 'the server drop must try th
 assert drop.index('redemWorkerInHeart(entity, t)') < drop.index('entity->drop(pos);'), 'redemption comes before the regular drop'
 assert 'mGameMap->isServerGameMap()' in drop, 'the redemption is a server side rule'
 misc = function(game_map, 'unsigned long int GameMap::doMiscUpkeep(')
-assert 'seat->computeSeatBeginTurn();' in misc and 'updateSeatMana(seat);' in misc, 'each seat gets its mana every turn'
+assert 'seat->computeSeatBeginTurn();' in misc and 'updateSeatMana(seat, timeSinceLastTurn);' in misc, 'each seat gets its mana every turn'
 assert 'seat->getPlayer()->notifyNoMoreDungeonTemple();' in misc, 'a lost temple still starts the defeat path'
-assert 'void updateSeatMana(Seat* seat);' in read('source/gamemap/GameMap.h')
+assert 'void updateSeatMana(Seat* seat, double timeSinceLastTurn);' in read('source/gamemap/GameMap.h')
 
 client = read('source/network/ODClient.cpp')
 assert '#include <OgreSceneNode.h>' in client, 'the scene node needs its full type'
