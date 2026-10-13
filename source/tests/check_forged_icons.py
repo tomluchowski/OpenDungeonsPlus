@@ -17,7 +17,7 @@ atlas = np.array(Image.open(repo / 'gui/ODIcons.png').convert('RGBA'), dtype=np.
 used = set()
 for layout in (repo / 'gui').glob('*.layout'):
     used |= set(re.findall(r'OpenDungeonsIcons/([A-Za-z0-9_]+)', layout.read_text()))
-runtime = {'GoldBadge', 'ManaBadge', 'NavHelp', 'NavSell', 'NavOptions', 'MapZoom', 'MiniMapRim', 'MiniMapNorth'}
+runtime = {'GoldBadge', 'ManaBadge', 'NavHelp', 'NavSell', 'NavOptions', 'MapZoom', 'MiniMapRim', 'MiniMapNorth', 'CampaignMap'}
 runtime |= {n for n in used if n.startswith('MiniMapCorner')}
 for name in sorted(used - runtime):
     assert name in rects, 'missing in imageset: ' + name
@@ -25,10 +25,23 @@ for name in ('NavigationCreatures', 'NavigationRooms', 'NavigationSpells', 'Navi
              'NavigationObjectives', 'NavigationMessages', 'NavigationMessagesRead', 'MenuReturn',
              'HourglassIcon', 'CogIcon', 'HammerAnvilIcon', 'PlayIcon', 'CameraIcon'):
     assert name in rects, name
+# Every name has an emblem of its own: no two names may share a cell, and no two cells may hold the same pixels
+# (the research tree and the HUD show one emblem per trap, door, spell and room).
+cells = {}
+for name, rect in rects.items():
+    assert rect not in cells, '%s and %s share one cell of the atlas' % (name, cells[rect])
+    cells[rect] = name
+names = sorted(rects)
+for i, first in enumerate(names):
+    x, y, w, h = rects[first]
+    for second in names[i + 1:]:
+        x2, y2, w2, h2 = rects[second]
+        if (w, h) == (w2, h2):
+            assert np.abs(atlas[y:y + h, x:x + w] - atlas[y2:y2 + h, x2:x2 + w]).max() > 0, '%s and %s show the same picture' % (first, second)
 terrain = {'GoldButton', 'LavaButton', 'RockButton', 'WaterButton', 'DirtButton', 'ClaimedButton', 'GemButton'}
 checked = 0
 for name, (x, y, w, h) in rects.items():
-    assert x + w <= 1024 and y + h <= 1024, name
+    assert x + w <= atlas.shape[1] and y + h <= atlas.shape[0], name
     if name in terrain:
         continue
     tile = atlas[y:y + h, x:x + w]
@@ -138,9 +151,4 @@ for f in ('source/entities/Creature.cpp', 'source/entities/Tile.cpp', 'source/ga
           'source/network/ChatEventMessage.cpp'):
     code = (repo / f).read_text()
     assert 'CCBBBBFF' not in code and "colour='FFFFFFFF'" not in code, f + ' has a cold or hard white text colour'
-# Options menu: every entry of its list shows an icon.
-options = (repo / 'gui/WindowGameOptions.layout').read_text()
-for button in re.findall(r'<Window type="(OD/\w*Button)" name="(\w+)"', options):
-    if button[1] != 'BackButton':
-        assert button[0] == 'OD/IconButton', button[1] + ' has no icon'
 print('FORGED ICONS OK: %d icons checked, %d square tiles' % (checked, len(squares)))

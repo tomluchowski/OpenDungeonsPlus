@@ -33,7 +33,7 @@ STONE = Mat((144, 126, 108), (98, 84, 72), spec=0.16, shin=12, mottle=0.18, grai
 STONE_DARK = Mat((96, 82, 70), (60, 50, 44), spec=0.12, shin=10, mottle=0.2, grain=0.10)
 BLOOD = Mat((160, 32, 30), (100, 16, 18), spec=0.5, shin=26, mottle=0.1)
 CONTOUR = Mat((16, 10, 8), spec=0.0, shin=4, mottle=0.0, grain=0.0)
-WORKER_EMBLEM = Mat((238, 120, 56), (164, 58, 26), spec=0.4, shin=20, mottle=0.14, emit=(30, 8, 0))
+WORKER = Mat((238, 120, 56), (164, 58, 26), spec=0.4, shin=20, mottle=0.14, emit=(30, 8, 0))
 SKIN = Mat((232, 158, 108), (178, 104, 66), spec=0.3, shin=16, mottle=0.12)
 FLESH = Mat((214, 170, 120), (160, 116, 76), spec=0.25, shin=14, mottle=0.12)
 YELLOW = Mat((255, 222, 96), (240, 176, 50), spec=0.4, shin=16, mottle=0.08)
@@ -528,8 +528,8 @@ def m_worker_imp(c):
         c.add(c.seg(sx * 0.20, -0.16, sx * 0.40, -0.52, 0.075, 0.018), BONE, z=0.10, bevel=0.07, base=0.10, shadow=0.5)
     head = c.smooth_union(c.ellipse(0, 0.02, 0.34, 0.31), c.ellipse(0, 0.26, 0.20, 0.17), 0.10)
     ears = c.union(c.poly([(-0.28, -0.02), (-0.62, -0.20), (-0.34, 0.16)]), c.poly([(0.28, -0.02), (0.62, -0.20), (0.34, 0.16)]))
-    c.add(ears, WORKER_EMBLEM, z=0.06, bevel=0.06, base=0.08, shadow=0.5)
-    c.add(head, WORKER_EMBLEM, z=0.16, bevel=0.20, base=0.10, shadow=0.6)
+    c.add(ears, WORKER, z=0.06, bevel=0.06, base=0.08, shadow=0.5)
+    c.add(head, WORKER, z=0.16, bevel=0.20, base=0.10, shadow=0.6)
     for sx in (-1, 1):
         c.add(c.ellipse(sx * 0.15, 0.0, 0.085, 0.06, deg(sx * 18)), CONTOUR, z=0.02, bevel=0.03, base=0.24)
         c.add(c.ellipse(sx * 0.15, 0.0, 0.06, 0.04, deg(sx * 18)), EMBER_HOT, z=0.02, bevel=0.03, base=0.25)
@@ -779,7 +779,7 @@ def m_banner(c):
 def m_creatures(c):
     c.add(c.seg(-0.28, -0.20, -0.50, -0.70, 0.11, 0.03), BONE, z=0.10, bevel=0.07, base=0.10, shadow=0.5)
     c.add(c.seg(0.28, -0.20, 0.50, -0.70, 0.11, 0.03), BONE, z=0.10, bevel=0.07, base=0.10, shadow=0.5)
-    c.add(c.smooth_union(c.ellipse(0, 0.0, 0.52, 0.44), c.ellipse(0, 0.32, 0.30, 0.24), 0.12), WORKER_EMBLEM, z=0.18, bevel=0.22, base=0.10, shadow=0.6)
+    c.add(c.smooth_union(c.ellipse(0, 0.0, 0.52, 0.44), c.ellipse(0, 0.32, 0.30, 0.24), 0.12), WORKER, z=0.18, bevel=0.22, base=0.10, shadow=0.6)
     for sx in (-1, 1):
         c.add(c.ellipse(sx * 0.23, -0.04, 0.13, 0.09, deg(sx * 20)), CONTOUR, z=0.02, bevel=0.04, base=0.28)
         c.add(c.ellipse(sx * 0.23, -0.04, 0.09, 0.055, deg(sx * 20)), EMBER_HOT, z=0.02, bevel=0.04, base=0.29)
@@ -916,6 +916,312 @@ def m_message_read(c):
 
 
 # ---------------------------------------------------------------------------------------------
+# Traps, doors, spells and rooms that used to share the emblem of another entry
+# ---------------------------------------------------------------------------------------------
+GAS = Mat((190, 196, 84), (118, 130, 44), spec=0.12, shin=8, mottle=0.2)
+GAS_DARK = Mat((146, 152, 60), (88, 98, 34), spec=0.10, shin=8, mottle=0.2)
+FROST = Mat((244, 236, 214), (206, 190, 164), spec=0.9, shin=60, mottle=0.04, grain=0.02)
+CLOUD = Mat((118, 102, 92), (74, 62, 56), spec=0.1, shin=8, mottle=0.2)
+FEATHER = Mat((246, 236, 214), (206, 188, 156), spec=0.15, shin=10, mottle=0.1)
+
+
+def floor_plate(c, y=0.42, hw=0.64):
+    c.add(c.box(0.0, y, hw, 0.12, 0.03), IRON, z=0.08, bevel=0.05, base=0.06, shadow=0.6)
+    for sx in (-1, 1):
+        c.add(c.circle(sx * (hw - 0.09), y, 0.032), GOLD_DARK, z=0.03, bevel=0.03, base=0.14)
+
+
+def m_alarm_trap(c):
+    c.glow(0.0, -0.05, 0.7, (150, 70, 14), 0.5)
+    c.add(c.box(0.0, -0.60, 0.20, 0.05, 0.02), IRON, z=0.06, bevel=0.04, base=0.06, shadow=0.5)
+    bell = c.smooth_union(c.ellipse(0.0, -0.12, 0.30, 0.38), c.poly([(-0.26, 0.05), (0.26, 0.05), (0.46, 0.34), (-0.46, 0.34)]), 0.10)
+    c.add(bell, BRONZE, z=0.22, bevel=0.20, base=0.08, shadow=0.6)
+    c.add(c.box(0.0, 0.36, 0.48, 0.04, 0.02), GOLD, z=0.05, bevel=0.03, base=0.20, shadow=0.4)
+    c.add(c.ellipse(-0.12, -0.22, 0.05, 0.14, deg(14)), GOLD, z=0.02, bevel=0.03, base=0.34)
+    c.add(c.circle(0.0, 0.46, 0.085), GOLD_DARK, z=0.08, bevel=0.085, base=0.10, shadow=0.5)
+    for sx in (-1, 1):
+        for r in (0.64, 0.78):
+            a = 0.0 if sx > 0 else np.pi
+            c.add(c.arc(0.0, -0.02, r, 0.02, a - deg(26), a + deg(26)), GOLD, z=0.03, bevel=0.02, base=0.10)
+
+
+def m_fear_trap(c):
+    c.glow(0.0, -0.05, 0.8, (170, 40, 12), 0.6)
+    for k in range(12):
+        a = deg(15 + 30 * k)
+        c.add(c.seg(0.50 * np.cos(a), -0.05 + 0.50 * np.sin(a), 0.78 * np.cos(a), -0.05 + 0.78 * np.sin(a), 0.016), EMBER, z=0.03, bevel=0.016, base=0.06)
+    skull(c, 0.0, -0.05, 1.15, base=0.20, eye=EMBER_HOT)
+    for sx in (-1, 1):
+        c.glow(sx * 0.14, -0.05, 0.12, (255, 150, 40), 0.9)
+    c.add(c.box(0.0, 0.50, 0.30, 0.07, 0.02), IRON, z=0.06, bevel=0.04, base=0.06, shadow=0.5)
+
+
+def m_gas_trap(c):
+    c.glow(0.0, -0.1, 0.7, (150, 160, 30), 0.5)
+    floor_plate(c)
+    for x in (-0.30, -0.10, 0.10, 0.30):
+        c.paint(c.box(x, 0.42, 0.025, 0.07), (24, 18, 14), 0.9)
+    for x, y, r, m in ((-0.26, -0.02, 0.22, GAS_DARK), (0.26, -0.10, 0.24, GAS_DARK), (0.0, -0.22, 0.30, GAS), (-0.18, -0.44, 0.17, GAS),
+                       (0.20, -0.46, 0.18, GAS), (0.0, 0.16, 0.20, GAS)):
+        c.add(c.circle(x, y, r), m, z=0.14, bevel=r * 0.9, base=0.06, shadow=0.35)
+
+
+def m_lightning_trap(c):
+    c.glow(0.0, -0.05, 0.7, (230, 150, 30), 0.6)
+    floor_plate(c, 0.50)
+    for sx in (-1, 1):
+        c.add(c.box(sx * 0.46, 0.14, 0.055, 0.34), IRON, z=0.08, bevel=0.05, base=0.08, shadow=0.5)
+        for i in range(4):
+            c.add(c.seg(sx * 0.46 - 0.075, -0.18 + 0.06 * i, sx * 0.46 + 0.075, -0.15 + 0.06 * i, 0.020), GOLD, z=0.03, bevel=0.02, base=0.18)
+        c.add(c.circle(sx * 0.46, -0.28, 0.07), GOLD, z=0.08, bevel=0.07, base=0.14, shadow=0.4)
+    zig = [(-0.40, -0.28), (-0.22, -0.14), (-0.12, -0.38), (0.02, -0.10), (0.14, -0.36), (0.24, -0.16), (0.40, -0.28)]
+    for (ax, ay), (bx, by) in zip(zig, zig[1:]):
+        c.add(c.seg(ax, ay, bx, by, 0.034), EMBER_HOT, z=0.03, bevel=0.034, base=0.30)
+        c.glow((ax + bx) / 2, (ay + by) / 2, 0.14, (255, 190, 60), 0.7)
+
+
+def m_fireburst_trap(c):
+    c.glow(0.0, 0.0, 0.8, (255, 100, 20), 0.6)
+    floor_plate(c)
+    for x in (-0.36, 0.0, 0.36):
+        c.add(c.box(x, 0.30, 0.07, 0.05, 0.02), IRON_DARK, z=0.05, bevel=0.03, base=0.14)
+    for x, s in ((-0.36, 1.5), (0.36, 1.5), (0.0, 2.3)):
+        c.add(flame_sdf(c, x, 0.02 - 0.12 * (s - 1.5), s), EMBER, z=0.10, bevel=0.10, base=0.10, shadow=0.3)
+        c.add(flame_sdf(c, x, 0.08 - 0.12 * (s - 1.5), s * 0.5), EMBER_HOT, z=0.06, bevel=0.06, base=0.22)
+    sparks(c, ((-0.12, -0.50, 0.025), (0.22, -0.54, 0.02), (0.50, -0.30, 0.02), (-0.52, -0.26, 0.02)))
+
+
+def m_freeze_trap(c):
+    c.glow(0.0, 0.0, 0.7, (200, 150, 110), 0.4)
+    floor_plate(c, 0.58, 0.60)
+    for k in range(6):
+        a = deg(60 * k - 90)
+        ex, ey = 0.62 * np.cos(a), -0.08 + 0.62 * np.sin(a)
+        c.add(c.seg(0.0, -0.08, ex, ey, 0.04), FROST, z=0.08, bevel=0.04, base=0.12, shadow=0.4)
+        mx, my = 0.36 * np.cos(a), -0.08 + 0.36 * np.sin(a)
+        for s in (-1, 1):
+            b = a + s * deg(50)
+            c.add(c.seg(mx, my, mx + 0.20 * np.cos(b), my + 0.20 * np.sin(b), 0.026), FROST, z=0.05, bevel=0.026, base=0.14)
+    c.add(c.poly(star(6, 0.16, 0.10, 0.0, -0.08, deg(0))), FROST, z=0.06, bevel=0.05, base=0.20)
+    for x, h in ((-0.40, 0.18), (-0.18, 0.28), (0.14, 0.22), (0.38, 0.16)):
+        c.add(c.poly([(x - 0.06, 0.50), (x + 0.06, 0.50), (x, 0.50 - h)]), FROST, z=0.05, bevel=0.05, base=0.10)
+
+
+def m_watch_banner_trap(c):
+    c.glow(0.0, 0.0, 0.7, (130, 56, 14), 0.5)
+    c.add(c.seg(0.50, 0.66, 0.50, -0.46, 0.028), WOOD, z=0.06, bevel=0.028, base=0.06, shadow=0.5)
+    c.add(c.poly([(0.50, -0.78), (0.58, -0.46), (0.42, -0.46)]), STEEL, z=0.05, bevel=0.05, base=0.10, shadow=0.4)
+    shield = c.poly([(-0.46, -0.44), (0.34, -0.44), (0.34, 0.06), (-0.06, 0.66), (-0.46, 0.06)])
+    c.add(shield, GOLD_DARK, z=0.10, bevel=0.07, base=0.08, shadow=0.6)
+    c.add(shield + 0.06, IRON, z=0.04, bevel=0.04, base=0.20)
+    c.add(c.box(-0.06, -0.10, 0.045, 0.40), GOLD, z=0.04, bevel=0.03, base=0.26, shadow=0.3)
+    c.add(c.box(-0.06, -0.14, 0.30, 0.045), GOLD, z=0.04, bevel=0.03, base=0.27, shadow=0.3)
+    c.add(c.circle(-0.06, -0.14, 0.07), RUBY, z=0.05, bevel=0.07, base=0.30)
+
+
+def m_trigger_trap(c):
+    c.glow(0.0, 0.2, 0.6, (130, 54, 14), 0.4)
+    c.add(c.box(0.0, 0.34, 0.66, 0.30, 0.04), IRON, z=0.08, bevel=0.05, base=0.04, shadow=0.6)
+    c.add(c.box(0.0, 0.38, 0.54, 0.20, 0.03), STONE, z=0.05, bevel=0.04, base=0.14)
+    c.add(c.ring(0.0, 0.38, 0.12, 0.02), GOLD, z=0.04, bevel=0.02, base=0.24)
+    c.add(c.circle(0.0, 0.38, 0.05), GOLD, z=0.04, bevel=0.05, base=0.26)
+    c.add(c.seg(-0.42, 0.20, -0.18, -0.46, 0.030), IRON, z=0.05, bevel=0.03, base=0.14, shadow=0.5)
+    c.add(c.circle(-0.18, -0.46, 0.10), RUBY, z=0.08, bevel=0.10, base=0.16, shadow=0.5)
+    c.add(c.circle(-0.42, 0.22, 0.06), GOLD_DARK, z=0.05, bevel=0.06, base=0.12)
+    for k in range(3):
+        c.add(c.arc(0.14, -0.50, 0.14 + 0.12 * k, 0.014, deg(-70), deg(30)), EMBER, z=0.02, bevel=0.014, base=0.10)
+
+
+def _door_body(c, mat):
+    door = arch_sdf(c, 0.0, -0.62, 0.58, 0.46)
+    c.add(door - 0.07, STONE, z=0.08, bevel=0.05, base=0.04, shadow=0.6)
+    c.add(door, mat, z=0.08, bevel=0.06, base=0.10)
+    return door
+
+
+def m_door_ironbound(c):
+    _door_body(c, WOOD)
+    for x in (-0.15, 0.15):
+        c.paint(c.seg(x, -0.6, x, 0.58, 0.008), (50, 30, 16), 0.9)
+    c.add(c.seg(-0.38, -0.30, 0.38, 0.50, 0.060), WOOD_DARK, z=0.05, bevel=0.05, base=0.20, shadow=0.5)
+    c.add(c.seg(0.38, -0.30, -0.38, 0.50, 0.060), WOOD_DARK, z=0.05, bevel=0.05, base=0.20, shadow=0.5)
+    for x, y in ((-0.38, -0.30), (0.38, -0.30), (-0.38, 0.50), (0.38, 0.50), (0.0, 0.10)):
+        c.add(c.circle(x, y, 0.035), IRON, z=0.04, bevel=0.035, base=0.26)
+    c.add(c.ring(0.0, 0.10, 0.07, 0.016), GOLD, z=0.04, bevel=0.016, base=0.28)
+
+
+def m_door_steel(c):
+    door = _door_body(c, STEEL)
+    c.add(door - 0.10, IRON, z=0.04, bevel=0.04, base=0.20)
+    for x in (-0.28, 0.0, 0.28):
+        c.paint(c.seg(x, -0.6, x, 0.58, 0.008), (30, 24, 20), 0.9)
+    for y in (-0.30, 0.0, 0.30):
+        c.paint(c.seg(-0.4, y, 0.4, y, 0.008), (30, 24, 20), 0.9)
+    for x in (-0.28, 0.0, 0.28):
+        for y in (-0.30, 0.0, 0.30, 0.50):
+            c.add(c.circle(x, y, 0.02), STEEL, z=0.03, bevel=0.02, base=0.26)
+    c.add(c.ring(0.0, 0.02, 0.13, 0.02), GOLD, z=0.05, bevel=0.02, base=0.26, shadow=0.4)
+    for k in range(4):
+        a = deg(45 + 90 * k)
+        c.add(c.seg(0.0, 0.02, 0.13 * np.cos(a), 0.02 + 0.13 * np.sin(a), 0.014), GOLD, z=0.04, bevel=0.014, base=0.27)
+
+
+def m_barricade(c):
+    c.glow(0.0, 0.1, 0.7, (130, 54, 14), 0.4)
+    for x, a, hh in ((-0.52, -8, 0.50), (-0.18, 6, 0.58), (0.20, -5, 0.54), (0.54, 9, 0.48)):
+        f = Xf(x, 0.10, deg(a))
+        c.add(c.poly(f.pts([(-0.07, hh), (0.07, hh), (0.07, -hh + 0.12), (0.0, -hh - 0.12), (-0.07, -hh + 0.12)])), WOOD, z=0.10, bevel=0.06, base=0.06, shadow=0.5)
+    for y, a in ((-0.22, -6), (0.26, 5)):
+        c.add(c.box(0.0, y, 0.70, 0.075, 0.02, deg(a)), WOOD_DARK, z=0.08, bevel=0.05, base=0.20, shadow=0.55)
+        for x in (-0.50, -0.18, 0.20, 0.54):
+            c.add(c.circle(x, y + x * np.tan(deg(a)), 0.026), IRON, z=0.03, bevel=0.026, base=0.30)
+
+
+def m_door_secret(c):
+    c.glow(0.0, 0.0, 0.7, (130, 54, 14), 0.4)
+    c.add(c.box(0.0, 0.0, 0.74, 0.74, 0.04), STONE, z=0.08, bevel=0.05, base=0.04, shadow=0.5)
+    for j, y in enumerate((-0.52, -0.24, 0.04, 0.32, 0.60)):
+        c.paint(c.seg(-0.72, y, 0.72, y, 0.010), (46, 34, 26), 0.9)
+        off = 0.0 if j % 2 == 0 else 0.22
+        for x in (-0.50 + off, -0.06 + off, 0.38 + off):
+            if abs(x) < 0.72:
+                c.paint(c.seg(x, y, x, y + 0.28, 0.010), (46, 34, 26), 0.9)
+    door = arch_sdf(c, 0.0, -0.46, 0.60, 0.34)
+    c.carve(np.abs(door) - 0.012, 0.05, 0.012, colour=(28, 18, 12))
+    c.add(c.circle(0.16, 0.10, 0.045), GOLD, z=0.05, bevel=0.045, base=0.10, shadow=0.4)
+    c.paint(c.box(0.16, 0.12, 0.014, 0.04), (24, 16, 10), 0.95)
+    c.add(c.ring(-0.30, -0.10, 0.06, 0.014), GOLD_DARK, z=0.03, bevel=0.014, base=0.08)
+
+
+def m_door_magic(c):
+    c.glow(0.0, 0.0, 0.8, (200, 110, 20), 0.7)
+    _door_body(c, WOOD_DARK)
+    c.add(c.box(0.0, -0.30, 0.46, 0.04, 0.02), IRON, z=0.05, bevel=0.03, base=0.20)
+    c.add(c.box(0.0, 0.40, 0.46, 0.04, 0.02), IRON, z=0.05, bevel=0.03, base=0.20)
+    c.add(c.ring(0.0, 0.04, 0.30, 0.022), GOLD, z=0.04, bevel=0.022, base=0.22, shadow=0.4)
+    c.add(c.poly(star(5, 0.30, 0.115, 0.0, 0.04, deg(-90))), AMBER, z=0.04, bevel=0.03, base=0.24)
+    c.glow(0.0, 0.04, 0.34, (255, 170, 40), 0.9)
+    sparks(c, ((-0.56, -0.40, 0.025), (0.56, -0.20, 0.02), (0.50, 0.46, 0.025), (-0.52, 0.38, 0.02)))
+
+
+def m_lightning_spell(c):
+    c.glow(0.0, 0.1, 0.8, (230, 150, 30), 0.7)
+    for x, y, r in ((-0.38, -0.60, 0.20), (-0.10, -0.68, 0.26), (0.24, -0.62, 0.22), (0.46, -0.54, 0.15)):
+        c.add(c.circle(x, y, r), CLOUD, z=0.14, bevel=r, base=0.06, shadow=0.4)
+    bolt = c.poly([(0.10, -0.52), (-0.20, -0.04), (0.0, -0.04), (-0.18, 0.46), (0.28, -0.14), (0.06, -0.14), (0.30, -0.52)])
+    c.add(bolt, EMBER_HOT, z=0.10, bevel=0.05, base=0.14, shadow=0.5)
+    c.add(c.seg(0.06, -0.20, 0.40, 0.10, 0.026), AMBER, z=0.04, bevel=0.026, base=0.22)
+    c.add(c.seg(-0.14, 0.14, -0.46, 0.30, 0.024), AMBER, z=0.04, bevel=0.024, base=0.22)
+    c.add(c.ellipse(-0.18, 0.58, 0.34, 0.07), EMBER, z=0.03, bevel=0.05, base=0.06)
+    sparks(c, ((0.20, 0.50, 0.03), (-0.50, 0.50, 0.025), (0.46, 0.34, 0.02)))
+
+
+def m_tremor(c):
+    c.glow(0.0, 0.3, 0.7, (255, 100, 20), 0.7)
+    c.add(c.poly([(-0.72, 0.0), (-0.10, -0.02), (-0.20, 0.30), (0.02, 0.50), (-0.12, 0.74), (-0.72, 0.74)]), STONE, z=0.10, bevel=0.06, base=0.04, shadow=0.6)
+    c.add(c.poly([(0.72, 0.0), (0.12, -0.02), (0.02, 0.28), (0.20, 0.50), (0.08, 0.74), (0.72, 0.74)]), STONE_DARK, z=0.10, bevel=0.06, base=0.04, shadow=0.6)
+    c.add(c.union(c.seg(-0.04, 0.0, -0.08, 0.30, 0.020), c.seg(-0.08, 0.30, 0.06, 0.50, 0.020), c.seg(0.06, 0.50, -0.02, 0.74, 0.020)), EMBER_HOT, z=0.0, bevel=0.02, base=0.02)
+    for x, y, r in ((-0.30, -0.30, 0.10), (0.18, -0.46, 0.12), (0.40, -0.22, 0.08), (-0.06, -0.14, 0.06)):
+        c.add(c.circle(x, y, r), STONE, z=0.10, bevel=r, base=0.10, shadow=0.5)
+    for sx in (-1, 1):
+        for k in range(2):
+            c.add(c.arc(0.0, 0.34, 0.80 + 0.07 * k, 0.018, deg(-20) if sx > 0 else deg(160), deg(20) if sx > 0 else deg(200)), EMBER, z=0.03, bevel=0.018, base=0.08)
+
+
+def m_defector(c):
+    c.glow(0.0, 0.0, 0.7, (170, 60, 20), 0.6)
+    disc = c.circle(0.0, 0.0, 0.34)
+    c.add(c.intersect(disc, c.box(-0.5, 0.0, 0.5, 1.0)), RUBY, z=0.14, bevel=0.25, base=0.10, shadow=0.5)
+    c.add(c.intersect(disc, c.box(0.5, 0.0, 0.5, 1.0)), IRON, z=0.14, bevel=0.25, base=0.10, shadow=0.5)
+    c.add(c.seg(0.0, -0.34, 0.0, 0.34, 0.014), CONTOUR, z=0.0, bevel=0.01, base=0.24)
+    for a0 in (deg(200), deg(20)):
+        c.add(c.arc(0.0, 0.0, 0.58, 0.05, a0, a0 + deg(120)), GOLD, z=0.05, bevel=0.05, base=0.12, shadow=0.4)
+        e = a0 + deg(120)
+        f = Xf(0.58 * np.cos(e), 0.58 * np.sin(e), e + np.pi / 2)
+        c.add(c.poly(f.pts([(-0.12, -0.02), (0.12, -0.02), (0.0, 0.18)])), GOLD, z=0.05, bevel=0.04, base=0.14, shadow=0.4)
+
+
+def m_possess(c):
+    c.glow(0.0, -0.05, 0.8, (150, 70, 40), 0.6)
+    swirl(c, 0.0, 0.46, 0.50, EMBER, GOLD_DARK, turns=1.3, width=0.04)
+    wave = c.poly([(-0.34, 0.14), (-0.34, 0.36), (-0.17, 0.28), (0.0, 0.40), (0.17, 0.28), (0.34, 0.36), (0.34, 0.14)])
+    c.add(c.union(c.circle(0.0, -0.26, 0.34), c.box(0.0, -0.02, 0.34, 0.20), wave), FEATHER, z=0.18, bevel=0.20, base=0.12, shadow=0.5)
+    for sx in (-1, 1):
+        c.add(c.ellipse(sx * 0.13, -0.28, 0.065, 0.09), EMBER_HOT, z=0.02, bevel=0.04, base=0.30)
+        c.glow(sx * 0.13, -0.28, 0.12, (255, 150, 40), 0.9)
+    c.add(c.ellipse(0.0, -0.06, 0.07, 0.10), CONTOUR, z=0.02, bevel=0.04, base=0.30)
+
+
+def m_create_gold(c):
+    c.glow(0.0, 0.1, 0.8, (230, 170, 40), 0.45)
+    coin_stack(c, -0.34, 0.50, 3, r=0.24)
+    coin_stack(c, 0.30, 0.50, 5, r=0.24)
+    coin_stack(c, -0.02, 0.58, 2, r=0.2)
+    for x, y, s in ((-0.40, -0.26, 0.16), (0.10, -0.50, 0.20), (0.54, -0.20, 0.13)):
+        c.add(c.poly(star(4, s, s * 0.28, x, y, deg(0))), GOLD, z=0.04, bevel=0.04, base=0.28)
+        c.glow(x, y, s * 1.6, (255, 220, 100), 0.6)
+
+
+def m_inferno(c):
+    c.glow(0.0, 0.0, 0.9, (255, 90, 14), 0.8)
+    for x, y, s in ((-0.50, 0.26, 1.7), (0.50, 0.26, 1.7), (0.0, 0.18, 3.0)):
+        c.add(flame_sdf(c, x, y, s), EMBER, z=0.12, bevel=0.12, base=0.08, shadow=0.3)
+    c.add(flame_sdf(c, 0.0, 0.26, 1.7), EMBER_HOT, z=0.12, bevel=0.12, base=0.20)
+    c.add(flame_sdf(c, 0.0, 0.36, 0.9), EMBER_HOT, z=0.06, bevel=0.06, base=0.30)
+    sparks(c, ((-0.62, -0.20, 0.025), (0.60, -0.30, 0.03), (0.0, -0.70, 0.025), (-0.24, -0.58, 0.02), (0.30, -0.62, 0.02)))
+
+
+def m_guard_room(c):
+    c.glow(0.0, 0.1, 0.7, (130, 56, 14), 0.5)
+    c.add(c.box(0.0, 0.24, 0.44, 0.50, 0.02), STONE, z=0.12, bevel=0.05, base=0.05, shadow=0.6)
+    for x in (-0.44, -0.15, 0.15, 0.44):
+        c.add(c.box(x, -0.34, 0.08, 0.10, 0.01), STONE, z=0.12, bevel=0.04, base=0.05, shadow=0.5)
+    c.add(c.box(0.0, -0.20, 0.52, 0.06, 0.015), STONE_DARK, z=0.08, bevel=0.04, base=0.12, shadow=0.4)
+    door = arch_sdf(c, 0.0, 0.22, 0.74, 0.17)
+    c.fill_well(door, (60, 26, 12), (12, 6, 4), r=0.4, z=0.02)
+    c.add(c.box(0.0, -0.02, 0.025, 0.12), CONTOUR, z=0.02, bevel=0.02, base=0.2)
+    c.add(c.seg(0.0, 0.0, 0.0, -0.70, 0.020), WOOD, z=0.05, bevel=0.02, base=0.10)
+    c.add(c.poly([(0.02, -0.70), (0.40, -0.60), (0.02, -0.50)]), CLOTH_RED, z=0.05, bevel=0.04, base=0.14, shadow=0.4)
+    c.add(c.seg(-0.64, 0.66, -0.64, 0.10, 0.026), WOOD, z=0.05, bevel=0.026, base=0.08, shadow=0.5)
+    c.add(c.poly([(-0.64, -0.06), (-0.58, 0.12), (-0.70, 0.12)]), STEEL, z=0.04, bevel=0.04, base=0.12)
+
+
+def m_prayer_temple(c):
+    c.glow(0.0, -0.1, 0.7, (200, 100, 20), 0.8)
+    win = arch_sdf(c, 0.0, -0.62, 0.20, 0.34)
+    c.add(win, STONE, z=0.10, bevel=0.05, base=0.05, shadow=0.55)
+    c.fill_well(win - 0.07, (200, 120, 30), (110, 50, 14), r=0.5, z=0.02)
+    c.add(c.box(0.0, -0.22, 0.03, 0.30), GOLD, z=0.04, bevel=0.03, base=0.18, shadow=0.3)
+    c.add(c.box(0.0, -0.30, 0.17, 0.03), GOLD, z=0.04, bevel=0.03, base=0.19, shadow=0.3)
+    c.add(c.ring(0.0, -0.62, 0.40, 0.014), GOLD, z=0.03, bevel=0.014, base=0.14)
+    c.add(c.box(0.0, 0.42, 0.56, 0.22, 0.02), STONE, z=0.12, bevel=0.05, base=0.05, shadow=0.55)
+    c.add(c.box(0.0, 0.24, 0.62, 0.04, 0.015), STONE_DARK, z=0.06, bevel=0.03, base=0.14)
+    c.add(c.box(0.0, 0.14, 0.18, 0.045, 0.015), PARCHMENT, z=0.05, bevel=0.03, base=0.20, shadow=0.3)
+    for sx in (-1, 1):
+        c.add(c.box(sx * 0.40, 0.08, 0.03, 0.12), BONE, z=0.06, bevel=0.03, base=0.18, shadow=0.4)
+        c.add(flame_sdf(c, sx * 0.40, -0.10, 0.55), EMBER, z=0.05, bevel=0.05, base=0.24)
+        c.glow(sx * 0.40, -0.08, 0.14, (255, 170, 50), 0.7)
+
+
+def m_chicken(c):
+    c.glow(0.0, 0.1, 0.7, (200, 110, 30), 0.5)
+    c.add(c.ellipse(0.0, 0.64, 0.46, 0.06), LEATHER, z=0.03, bevel=0.05, base=0.04, shadow=0.4)
+    for sx in (-0.12, 0.10):
+        c.add(c.seg(sx, 0.38, sx - 0.02, 0.62, 0.020), YELLOW, z=0.04, bevel=0.02, base=0.08, shadow=0.3)
+        for dy in (-0.04, 0.0, 0.04):
+            c.add(c.seg(sx - 0.02, 0.62, sx + 0.08, 0.62 + dy, 0.014), YELLOW, z=0.03, bevel=0.014, base=0.08)
+    c.add(c.poly([(-0.34, 0.0), (-0.66, -0.34), (-0.50, -0.02), (-0.70, -0.12), (-0.44, 0.16)]), FEATHER, z=0.06, bevel=0.05, base=0.10, shadow=0.4)
+    c.add(c.ellipse(-0.02, 0.10, 0.40, 0.32, deg(-12)), FEATHER, z=0.20, bevel=0.30, base=0.08, shadow=0.55)
+    c.add(c.ellipse(-0.04, 0.12, 0.20, 0.13, deg(-24)), BONE, z=0.04, bevel=0.06, base=0.30, shadow=0.3)
+    c.add(c.circle(0.34, -0.26, 0.17), FEATHER, z=0.14, bevel=0.17, base=0.14, shadow=0.5)
+    c.add(c.poly([(0.48, -0.30), (0.66, -0.22), (0.48, -0.16)]), EMBER, z=0.04, bevel=0.03, base=0.26, shadow=0.3)
+    for i, (x, y) in enumerate(((0.28, -0.46), (0.36, -0.48), (0.43, -0.42))):
+        c.add(c.circle(x, y, 0.065 - 0.008 * i), RUBY, z=0.06, bevel=0.06, base=0.24)
+    c.add(c.circle(0.40, -0.28, 0.026), CONTOUR, z=0.02, bevel=0.02, base=0.30)
+    c.add(c.ellipse(0.46, -0.10, 0.04, 0.07), RUBY, z=0.04, bevel=0.04, base=0.22)
+
+
+# ---------------------------------------------------------------------------------------------
 # The icon table. kind None: a frameless symbol. cells: pixel size of the cell in the atlas.
 # ---------------------------------------------------------------------------------------------
 def _slot(fn, kind, zoom=1.05):
@@ -941,6 +1247,8 @@ ICONS = {
     "LibraryButton": _slot(m_library, "room"),
     "HatcheryButton": _slot(m_hatchery, "room"),
     "CryptButton": _slot(m_crypt, "room"),
+    "PrayerTempleButton": _slot(m_prayer_temple, "room"),
+    "GuardRoomButton": _slot(m_guard_room, "room"),
     "DestroyRoomButton": _slot(m_destroy_room, "room"),
     "WorkshopButton": _slot(m_workshop, "room"),
     "PrisonButton": _slot(m_prison, "room"),
@@ -955,20 +1263,41 @@ ICONS = {
     "CannonButton": _slot(m_cannon, "trap"),
     "SpikeTrapButton": _slot(m_spike_trap, "trap"),
     "BoulderTrapButton": _slot(m_boulder, "trap"),
+    "AlarmTrapButton": _slot(m_alarm_trap, "trap"),
+    "FearTrapButton": _slot(m_fear_trap, "trap"),
+    "GasTrapButton": _slot(m_gas_trap, "trap"),
+    "LightningTrapButton": _slot(m_lightning_trap, "trap"),
+    "FireburstTrapButton": _slot(m_fireburst_trap, "trap"),
+    "FreezeTrapButton": _slot(m_freeze_trap, "trap"),
+    "WatchBannerTrapButton": _slot(m_watch_banner_trap, "trap"),
+    "TriggerTrapButton": _slot(m_trigger_trap, "trap"),
     "WavePortalButton": _slot(m_wave_portal, "trap"),
     "WoodenDoorTrapButton": _slot(m_door, "trap"),
+    "IronboundDoorTrapButton": _slot(m_door_ironbound, "trap"),
+    "SteelDoorTrapButton": _slot(m_door_steel, "trap"),
+    "BarricadeTrapButton": _slot(m_barricade, "trap"),
+    "SecretDoorTrapButton": _slot(m_door_secret, "trap"),
+    "RunedDoorTrapButton": _slot(m_door_magic, "trap"),
     "DestroyTrapButton": _slot(m_destroy_trap, "trap"),
     # spells
     "SummonWorkerButton": _slot(m_worker_imp, "spell"),
     "CallToWarButton": _slot(m_call_to_war, "spell"),
     "CreatureHealButton": _slot(m_heal, "spell"),
     "CreatureExplosionButton": _slot(m_explosion, "spell"),
+    "LightningButton": _slot(m_lightning_spell, "spell"),
+    "TremorButton": _slot(m_tremor, "spell"),
+    "DefectorButton": _slot(m_defector, "spell"),
+    "PossessButton": _slot(m_possess, "spell"),
+    "CreateGoldButton": _slot(m_create_gold, "spell"),
+    "InfernoButton": _slot(m_inferno, "spell"),
+    "HexenHenButton": _slot(m_chicken, "spell"),
     "CreatureHasteButton": _slot(m_haste, "spell"),
     "CreatureDefenseButton": _slot(m_defense, "spell"),
     "CreatureSlowButton": _slot(m_slow, "spell"),
     "CreatureStrengthButton": _slot(m_strength, "spell"),
     "CreatureWeakButton": _slot(m_weak, "spell"),
     "SpellEyeEvilButton": _slot(m_eye, "spell"),
+    "SummonChampionButton": _slot(m_fighter, "spell"),
     # creatures
     "WorkerButton": _slot(m_worker, "creature"),
     "FighterButton": _slot(m_fighter, "creature"),
