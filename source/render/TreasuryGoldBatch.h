@@ -31,9 +31,10 @@ class StaticGeometry;
 }
 
 //! \brief Draws the settled gold piles of a treasury as one static batch per room instead of one scene object
-//! per tile. The piles stay ordinary entities (so anything that moves or changes a pile keeps working with its
-//! entity); a pile that is not settling is hidden and drawn by the batch of its room instead. A change marks only its room dirty; the batch of the room is rebuilt at most every
-//! TreasurySettings::batchRebuildInterval seconds.
+//! per tile. The piles stay ordinary entities (so the settle animation, the creature heights and the objects
+//! buried in the gold keep working); a pile that is not settling is hidden and drawn by the batch of its
+//! room instead. A change marks only its room dirty; the batch of the room is rebuilt at most every
+//! TreasuryCreatureRules::batchRebuildInterval seconds.
 //! Everything here only touches client scene objects.
 class TreasuryGoldBatch
 {

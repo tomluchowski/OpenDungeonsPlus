@@ -1,0 +1,131 @@
+// Effects on the gold of a treasury: coins that slide down a heap, coins that roll away from the dent where
+// gold was taken, and a soft sparkle on rich piles (see RenderManager::updateTreasuryAmbient and
+// RenderManager::startTreasuryPileChange). The sprites are the ones of the creature reaction particles.
+
+// A few coins that slide down the slope of a heap now and then (see RenderManager::updateTreasuryAmbient).
+particle_system TreasuryCoinSlide
+{
+    material        ReactionParticleCoin
+    point_rendering false
+    particle_width  0.05
+    particle_height 0.05
+    cull_each       false
+    quota           6
+    billboard_type  point
+
+    emitter Ring
+    {
+        angle               75
+        colour_range_start  1.0 0.9 0.5 1.0
+        colour_range_end    1.0 0.75 0.25 1.0
+        emission_rate       6
+        time_to_live_min    0.7
+        time_to_live_max    1.1
+        direction           0 0 -1
+        velocity_min        0.12
+        velocity_max        0.3
+        width               0.3
+        height              0.3
+        depth               0.02
+        duration            0.6
+    }
+
+    affector LinearForce
+    {
+        force_vector      0 0 -0.5
+        force_application add
+    }
+
+    affector Rotator
+    {
+        rotation_speed_range_start  -150
+        rotation_speed_range_end    150
+        rotation_range_start        0
+        rotation_range_end          360
+    }
+
+    affector ColourFader
+    {
+        alpha -0.8
+    }
+}
+
+// Coins that roll away from the dent when gold is taken out of a pile.
+particle_system TreasuryCoinRoll
+{
+    material        ReactionParticleCoin
+    point_rendering false
+    particle_width  0.055
+    particle_height 0.055
+    cull_each       false
+    quota           10
+    billboard_type  point
+
+    emitter Point
+    {
+        angle               80
+        colour_range_start  1.0 0.9 0.5 1.0
+        colour_range_end    1.0 0.75 0.25 1.0
+        emission_rate       30
+        time_to_live_min    0.6
+        time_to_live_max    1.0
+        direction           0 0 -1
+        velocity_min        0.25
+        velocity_max        0.6
+        position            0 0 0.1
+        duration            0.3
+    }
+
+    affector LinearForce
+    {
+        force_vector      0 0 -1.2
+        force_application add
+    }
+
+    affector Rotator
+    {
+        rotation_speed_range_start  -250
+        rotation_speed_range_end    250
+        rotation_range_start        0
+        rotation_range_end          360
+    }
+
+    affector ColourFader
+    {
+        alpha -1.0
+    }
+}
+
+// Soft sparkle on the gold and gems of a rich treasury.
+particle_system TreasuryGlint
+{
+    material        ReactionParticleSpark
+    point_rendering false
+    particle_width  0.08
+    particle_height 0.08
+    cull_each       false
+    quota           8
+    billboard_type  point
+
+    emitter Box
+    {
+        angle               0
+        colour_range_start  1.0 0.95 0.7 0.9
+        colour_range_end    1.0 0.85 0.4 0.7
+        emission_rate       5
+        time_to_live_min    0.35
+        time_to_live_max    0.6
+        direction           0 0 1
+        velocity_min        0.0
+        velocity_max        0.02
+        width               0.7
+        height              0.7
+        depth               0.05
+        duration            1.5
+    }
+
+    affector ColourFader
+    {
+        alpha -1.4
+    }
+}

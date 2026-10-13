@@ -17,7 +17,7 @@
 
 #include "render/TreasuryGoldBatch.h"
 
-#include "rooms/TreasurySettings.h"
+#include "render/TreasuryCreatureRules.h"
 #include "utils/Helper.h"
 
 #include <OgreEntity.h>
@@ -53,7 +53,7 @@ void TreasuryGoldBatch::addPile(Ogre::SceneManager* sceneManager, const std::str
     {
         // A new room batch is built at once
         chunkIt = mChunks.insert(std::make_pair(member.mKey, Chunk())).first;
-        chunkIt->second.mSinceRebuild = TreasurySettings::current().batchRebuildInterval;
+        chunkIt->second.mSinceRebuild = TreasuryCreatureRules::batchRebuildInterval;
     }
     chunkIt->second.mMembers.insert(entityName);
     // A batch that was not touched for a while is rebuilt at once, a busy one when its interval is over
@@ -107,7 +107,7 @@ void TreasuryGoldBatch::update(float timeSinceLastFrame)
     {
         Chunk& chunk = it->second;
         chunk.mSinceRebuild += timeSinceLastFrame;
-        if(!chunk.mDirty || chunk.mSinceRebuild < TreasurySettings::current().batchRebuildInterval)
+        if(!chunk.mDirty || chunk.mSinceRebuild < TreasuryCreatureRules::batchRebuildInterval)
         {
             ++it;
             continue;

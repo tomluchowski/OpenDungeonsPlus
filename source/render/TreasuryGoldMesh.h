@@ -19,9 +19,11 @@
 #define TREASURYGOLDMESH_H
 
 #include <string>
+#include <vector>
 
 namespace Ogre
 {
+class ManualObject;
 class SceneManager;
 }
 
@@ -51,6 +53,43 @@ Detail getDetail();
 //! A pile far from the camera (farAway) uses the reduced mesh at the detail full: coarse surface, no coins and
 //! gems, and nothing at all for a tile without gold.
 std::string prepareMesh(Ogre::SceneManager* sceneManager, const std::string& meshName, bool farAway = false);
+
+//! A dynamic copy of the pile with the given name (full detail only, null for any other case) that can be dented:
+//! the dent lies at (u, v) across the tile (0..1) with the given radius in tile units. The caller owns the object
+//! (SceneManager::destroyManualObject) and draws it in place of the entity of the pile while the dent lasts.
+Ogre::ManualObject* createDentedPile(Ogre::SceneManager* sceneManager, const std::string& meshName, float u, float v,
+    float radius);
+//! Rewrites a dented pile with the dent at the given depth (tile units, 0 = no dent)
+void updateDentedPile(Ogre::ManualObject* object, const std::string& meshName, float u, float v, float radius,
+    float depth);
+
+//! \brief The piles drawn on this client, by tile, so objects can stand in the gold and effects can find the piles.
+//! Names that are not pile names, and every pile while the detail is off, are ignored.
+//! The room (any pointer identifying it, may be null) lets effects share a budget per room.
+//! Returns the level this tile had when it was last registered (-1 when it never was, or the pile is
+//! ignored), so the caller can tell a pile that grew from one that was taken from.
+int registerPile(const std::string& entityName, float x, float y, const std::string& meshName,
+    const void* room = nullptr);
+//! Forgets the pile, if the tile still holds the pile of that entity (a newer pile stays)
+void unregisterPile(const std::string& entityName, float x, float y);
+//! Forgets every registered pile (the scene is cleared)
+void clearPiles();
+
+//! Height of the gold surface at the given map position, 0 when there is no pile. The level of the
+//! pile of that tile (0 when none) is returned in level.
+float surfaceHeight(float x, float y, int& level);
+
+//! A pile: its tile, its level and the room it was registered for
+struct FullPile
+{
+    int mX;
+    int mY;
+    const void* mRoom;
+    int mLevel;
+};
+
+//! Lists the piles of at least the given level (sparkles and sliding coins need a deep pile)
+void collectPiles(std::vector<FullPile>& piles, int minLevel);
 }
 
 #endif // TREASURYGOLDMESH_H

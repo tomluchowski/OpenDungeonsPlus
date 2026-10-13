@@ -250,17 +250,6 @@ inline bool hasFloorScatter(int x, int y)
     return (x * 3 + y * 5) % 4 == 0;
 }
 
-//! Level of detail by distance: whether a pile at the given distance (tiles) from the camera uses the reduced mesh.
-//! A pile that is reduced already stays so until it is clearly closer again (hysteresis), so it never flips.
-inline bool lodReducedAt(bool currentlyReduced, float distance)
-{
-    const TreasurySettings& settings = TreasurySettings::current();
-    float limit = settings.lodFarDistance;
-    if(currentlyReduced)
-        limit -= settings.lodHysteresis;
-    return distance > limit;
-}
-
 //! The pot mesh used when the treasury detail option is off (one of the four classic stacks)
 inline const char* classicMeshForLevel(int level)
 {
