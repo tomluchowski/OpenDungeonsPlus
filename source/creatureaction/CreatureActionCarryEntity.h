@@ -43,7 +43,8 @@ public:
     bool notifyPickedUp(GameEntity* entity) override;
     bool notifyDropped(GameEntity* entity) override;
 
-    static bool handleCarryEntity(Creature& creature, GameEntity* entityToCarry, Tile* tileDest);
+    static bool handleCarryEntity(Creature& creature, GameEntity* entityToCarry, Tile* tileDest,
+        int32_t nbTurnsActive);
 
 private:
     GameEntity* mEntityToCarry;

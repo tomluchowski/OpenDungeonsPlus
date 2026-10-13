@@ -20,6 +20,7 @@
 #include "entities/Building.h"
 #include "entities/Creature.h"
 #include "entities/Tile.h"
+#include "utils/ConfigManager.h"
 #include "utils/Helper.h"
 #include "utils/LogManager.h"
 
@@ -61,10 +62,11 @@ CreatureActionCarryEntity::~CreatureActionCarryEntity()
 std::function<bool()> CreatureActionCarryEntity::action()
 {
     return std::bind(&CreatureActionCarryEntity::handleCarryEntity,
-        std::ref(mCreature), mEntityToCarry, mTileDest);
+        std::ref(mCreature), mEntityToCarry, mTileDest, getNbTurnsActive());
 }
 
-bool CreatureActionCarryEntity::handleCarryEntity(Creature& creature, GameEntity* entityToCarry, Tile* tileDest)
+bool CreatureActionCarryEntity::handleCarryEntity(Creature& creature, GameEntity* entityToCarry, Tile* tileDest,
+    int32_t nbTurnsActive)
 {
     if(tileDest == nullptr)
     {
@@ -86,6 +88,24 @@ bool CreatureActionCarryEntity::handleCarryEntity(Creature& creature, GameEntity
         OD_LOG_ERR("creature=" + creature.getName());
         creature.popAction();
         return false;
+    }
+
+    // A hurt creature is carried carefully: the worker puts it down where it stands when a hostile
+    // creature comes close or when the way takes too long (no endless carrying)
+    if(entityToCarry->getObjectType() == GameEntityType::creature)
+    {
+        Creature* carried = static_cast<Creature*>(entityToCarry);
+        if(carried->isAlive() && (carried->getKoTurnCounter() >= 0))
+        {
+            ConfigManager& config = ConfigManager::getSingleton();
+            double enemyRadius = config.getRoomConfigDoubleOrDefault("DormitoryWoundedCarryEnemyRadius", 6.0);
+            double maxTurns = config.getRoomConfigDoubleOrDefault("DormitoryWoundedCarryMaxTurns", 400.0);
+            if(creature.isHostileNear(enemyRadius) || (static_cast<double>(nbTurnsActive) > maxTurns))
+            {
+                creature.popAction();
+                return false;
+            }
+        }
     }
 
     // We check if we are on the entity position tile. If yes, we carry it to a building

@@ -210,7 +210,9 @@ Creature::Creature(GameMap* gameMap, const CreatureDefinition* definition, Seat*
     mSeatPrison              (nullptr),
     mNbTurnsTorture          (0),
     mNbTurnsPrison           (0),
-    mActiveSlapsCount        (0)
+    mActiveSlapsCount        (0),
+    mIsBeingCarried          (false),
+    mWoundedCarryNextTurn    (0)
 {
     //TODO: This should be set in initialiser list in parent classes
     setSeat(seat);
@@ -297,7 +299,9 @@ Creature::Creature(GameMap* gameMap) :
     mSeatPrison              (nullptr),
     mNbTurnsTorture          (0),
     mNbTurnsPrison           (0),
-    mActiveSlapsCount        (0)
+    mActiveSlapsCount        (0),
+    mIsBeingCarried          (false),
+    mWoundedCarryNextTurn    (0)
 {
     if(!getIsOnServerMap())
     {
@@ -951,6 +955,10 @@ void Creature::doUpkeep()
         computeCreatureOverlayMoodValue();
         return;
     }
+
+    // A creature a worker carries to its bed does nothing on its own (a KO to death one goes on below)
+    if(mIsBeingCarried && (mKoTurnCounter == 0))
+        return;
 
     if(mKoTurnCounter < 0)
     {
@@ -2840,18 +2848,136 @@ EntityCarryType Creature::getEntityCarryType(Creature* carrier)
     if(getHP() <= 0.0)
         return EntityCarryType::corpse;
 
+    // A hurt creature of the carrier's seat close enough is carried to its bed
+    if((carrier != nullptr) && (carrier->getSeat() == getSeat()) && getIsOnServerMap() &&
+       isWoundedForBedCarry())
+    {
+        Tile* myTile = getPositionTile();
+        Tile* carrierTile = carrier->getPositionTile();
+        double radius = ConfigManager::getSingleton().getRoomConfigDoubleOrDefault("DormitoryWoundedCarryRadius", 8.0);
+        if((myTile == nullptr) || (carrierTile == nullptr) ||
+           (Pathfinding::squaredDistanceTile(*myTile, *carrierTile) > (radius * radius)))
+        {
+            return EntityCarryType::notCarryable;
+        }
+
+        // The priority against the other things a worker can carry is configurable:
+        // 0 = lowest, 1 = like gold, 2 = like a creature knocked out to death
+        int32_t priority = static_cast<int32_t>(ConfigManager::getSingleton().getRoomConfigDoubleOrDefault("DormitoryWoundedCarryPriority", 1.0));
+        if(priority <= 0)
+            return EntityCarryType::woundedCreature;
+        if(priority == 1)
+            return EntityCarryType::gold;
+        return EntityCarryType::koCreature;
+    }
+
     return EntityCarryType::notCarryable;
+}
+
+bool Creature::isWoundedForBedCarry() const
+{
+    if(!getIsOnServerMap() || !getIsOnMap() || !isAlive() || mIsBeingCarried ||
+       isInPrison() || getDefinition()->isWorker())
+    {
+        return false;
+    }
+
+    ConfigManager& config = ConfigManager::getSingleton();
+    // 0 percent switches the whole behaviour off
+    double hpPercent = config.getRoomConfigDoubleOrDefault("DormitoryWoundedCarryHpPercent", 35.0);
+    if((hpPercent <= 0.0) || (getMaxHp() <= 0.0) || ((getHP() * 100.0) >= (getMaxHp() * hpPercent)))
+        return false;
+
+    // A creature knocked out for a while may be carried too, unless the config says no
+    if((mKoTurnCounter != 0) && (config.getRoomConfigDoubleOrDefault("DormitoryWoundedCarryTempKo", 1.0) <= 0.0))
+        return false;
+
+    // KO to death creatures are handled by the usual carrying of KO creatures
+    if(mKoTurnCounter < 0)
+        return false;
+
+    if(getGameMap()->getTurnNumber() < mWoundedCarryNextTurn)
+        return false;
+
+    // It only goes to its own bed in a dormitory of its seat, and not when it already lies in it
+    if((mHomeTile == nullptr) || (mHomeTile->getCoveringRoom() == nullptr) ||
+       (mHomeTile->getCoveringRoom()->getType() != RoomType::dormitory) ||
+       (mHomeTile->getCoveringRoom()->getSeat() != getSeat()))
+    {
+        return false;
+    }
+
+    Tile* myTile = getPositionTile();
+    if((myTile == nullptr) || (myTile == mHomeTile))
+        return false;
+
+    // No fight, flight or call to war going on
+    if(isActionInList(CreatureActionType::fight) || isActionInList(CreatureActionType::fightFriendly) ||
+       isActionInList(CreatureActionType::flee) || isActionInList(CreatureActionType::goCallToWar) ||
+       isActionInList(CreatureActionType::leaveDungeon))
+    {
+        return false;
+    }
+
+    double enemyRadius = config.getRoomConfigDoubleOrDefault("DormitoryWoundedCarryEnemyRadius", 6.0);
+    return !isHostileNear(enemyRadius);
+}
+
+bool Creature::isHostileNear(double radius) const
+{
+    Tile* myTile = getPositionTile();
+    if(myTile == nullptr)
+        return false;
+
+    double squaredRadius = radius * radius;
+    const std::vector<Creature*>& creatures = getGameMap()->getCreatures();
+    for(Creature* other : creatures)
+    {
+        if((other == this) || !other->isAlive() || !other->getIsOnMap() || other->isKo())
+            continue;
+
+        // Workers are no threat
+        if(other->getDefinition()->isWorker())
+            continue;
+
+        if(getSeat()->isAlliedSeat(other->getSeat()))
+            continue;
+
+        Tile* otherTile = other->getPositionTile();
+        if(otherTile == nullptr)
+            continue;
+
+        if(Pathfinding::squaredDistanceTile(*myTile, *otherTile) <= squaredRadius)
+            return true;
+    }
+    return false;
 }
 
 void Creature::notifyEntityCarryOn(Creature* carrier)
 {
     removeEntityFromPositionTile();
+    mIsBeingCarried = true;
+
+    // A hurt creature that is not knocked out to death stops what it did: it is held still
+    if(getIsOnServerMap() && (mKoTurnCounter >= 0))
+    {
+        clearDestinations(EntityAnimation::idle_anim, true, true);
+        clearActionQueue();
+    }
 }
 
 void Creature::notifyEntityCarryOff(const Ogre::Vector3& position)
 {
     mPosition = position;
     addEntityToPositionTile();
+    if(mIsBeingCarried && getIsOnServerMap())
+    {
+        // The pause before it can be carried again, whatever the end of the carry was (also for the
+        // KO to death ones, which are not affected by it)
+        double cooldown = ConfigManager::getSingleton().getRoomConfigDoubleOrDefault("DormitoryWoundedCarryCooldown", 150.0);
+        mWoundedCarryNextTurn = getGameMap()->getTurnNumber() + static_cast<int64_t>(std::max(0.0, cooldown));
+    }
+    mIsBeingCarried = false;
 }
 
 void Creature::carryEntity(GameEntity* carriedEntity)

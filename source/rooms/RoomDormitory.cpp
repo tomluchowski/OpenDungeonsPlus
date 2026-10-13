@@ -520,8 +520,9 @@ bool RoomDormitory::hasCarryEntitySpot(GameEntity* carriedEntity)
         return false;
 
     Creature* creature = static_cast<Creature*>(carriedEntity);
-    // Only ko to death creatures owning a bed in this dormitory should be carried here
-    if(creature->getKoTurnCounter() >= 0)
+    // Only ko to death creatures and hurt creatures (see Creature::isWoundedForBedCarry) owning
+    // a bed in this dormitory should be carried here
+    if((creature->getKoTurnCounter() >= 0) && !creature->isWoundedForBedCarry())
         return false;
 
     Tile* homeTile = creature->getHomeTile();
@@ -569,10 +570,23 @@ void RoomDormitory::notifyCarryingStateChanged(Creature* carrier, GameEntity* ca
         return;
     }
 
-    if(posTile != creature->getHomeTile())
+    // The carrier stops on the tile owning the bed, the creature sleeps on its home tile of the bed
+    bool isAtBed = (posTile == creature->getHomeTile());
+    if(!isAtBed)
+    {
+        for(const BedRoomObjectInfo& bed : mBedRoomObjectsInfo)
+        {
+            if((bed.getCreature() == creature) && (bed.getOwningTile() == posTile))
+                isAtBed = true;
+        }
+    }
+    if(!isAtBed)
         return;
 
-    creature->resetKoTurns();
+    // A hurt creature that was only knocked out for a while keeps its knock out counter and wakes
+    // up in its bed; a KO to death one is revived
+    if(creature->getKoTurnCounter() < 0)
+        creature->resetKoTurns();
     creature->sleep();
 }
 

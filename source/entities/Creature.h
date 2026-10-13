@@ -427,6 +427,20 @@ public:
     virtual void notifyEntityCarryOn(Creature* carrier) override;
     virtual void notifyEntityCarryOff(const Ogre::Vector3& position) override;
 
+    //! \brief Server side. True if the creature is hurt enough to be carried to its bed by a worker:
+    //! alive, own bed in a dormitory, not standing on it, hit points below the configured share,
+    //! no fight or flight going on, no hostile creature close, not in jail, not possessed, not a
+    //! worker or in the hand and not on cooldown after the last carry. The carrier and the distance
+    //! are not considered here.
+    bool isWoundedForBedCarry() const;
+
+    //! \brief Server side. True while a worker carries this creature
+    inline bool isBeingCarried() const
+    { return mIsBeingCarried; }
+
+    //! \brief Server side. True if a living creature of a seat that is not allied is within the radius (tiles)
+    bool isHostileNear(double radius) const;
+
     bool canSlap(Seat* seat) override;
     void slap() override;
 
@@ -833,6 +847,12 @@ private:
 
     //! \brief Counts the number of active slaps affecting the creature
     uint32_t                        mActiveSlapsCount;
+
+    //! \brief Used on server side. True while a worker carries the creature (not saved: carry actions are not saved)
+    bool                            mIsBeingCarried;
+
+    //! \brief Used on server side. No worker carries the creature to its bed again before this turn (not saved)
+    int64_t                         mWoundedCarryNextTurn;
 
     //! \brief Skills the creature can use
     std::vector<CreatureSkillData> mSkillData;
