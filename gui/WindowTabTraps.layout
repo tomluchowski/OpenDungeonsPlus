@@ -44,5 +44,12 @@
             <Property name="InheritsAlpha" value="False" />
             <Property name="Visible" value="False" />
         </Window>
+        <Window type="OD/GameTabButton" name="AlarmTrapButton" >
+            <Property name="Area" value="{{0,300},{0,6},{0,352},{0,58}}" />
+            <Property name="NormalImage" value="OpenDungeonsIcons/AlarmTrapButton" />
+            <Property name="TooltipText" value="Build an alarm trap" />
+            <Property name="InheritsAlpha" value="False" />
+            <Property name="Visible" value="False" />
+        </Window>
     </Window>
 </GUILayout>

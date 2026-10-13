@@ -499,6 +499,7 @@ set(OD_SOURCEFILES
     ${SRC}/spells/SpellType.cpp
 
     ${SRC}/traps/Trap.cpp
+    ${SRC}/traps/TrapAlarm.cpp
     ${SRC}/traps/TrapBoulder.cpp
     ${SRC}/traps/TrapCannon.cpp
     ${SRC}/traps/TrapDoor.cpp

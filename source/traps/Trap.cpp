@@ -141,8 +141,16 @@ void Trap::doUpkeep()
         if(trapTileData->decreaseReloadTime())
             continue;
 
+        // A trap fizzles if its owner cannot pay the mana needed to fire
+        double manaToFire = getManaToFire();
+        if((manaToFire > 0.0) && (getSeat()->getMana() < manaToFire))
+            continue;
+
         if(shoot(tile))
         {
+            if(manaToFire > 0.0)
+                getSeat()->takeMana(manaToFire);
+
             trapTileData->setReloadTime(mReloadTime);
             if(!trapTileData->decreaseShoot())
                 deactivate(tile);
@@ -153,6 +161,17 @@ void Trap::doUpkeep()
             for(Seat* seat : trapTileData->mSeatsVision)
                 seat->setVisibleBuildingOnTile(this, tile);
         }
+    }
+}
+
+double Trap::getManaToFire() const
+{
+    switch(getType())
+    {
+        case TrapType::cannon:
+            return ConfigManager::getSingleton().getTrapConfigDouble("CannonManaToFire");
+        default:
+            return 0.0;
     }
 }
 
@@ -169,6 +188,9 @@ double Trap::getManaUpkeepPerSecond() const
             break;
         case TrapType::boulder:
             key = "BoulderManaUpkeepPerSecond";
+            break;
+        case TrapType::alarm:
+            key = "AlarmManaUpkeepPerSecond";
             break;
         default:
             return 0.0;

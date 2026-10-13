@@ -507,6 +507,16 @@ SkillManager::SkillManager() :
     mSkills[index] = def;
     lvl3depends.push_back(skill);
 
+    // The tactic tree row after the wooden door has no room left for a fifth node,
+    // so the alarm trap follows cannon and spike
+    resType = SkillType::trapAlarm;
+    index = static_cast<uint32_t>(resType);
+    points = ConfigManager::getSingleton().getSkillPoints(Skills::toString(resType));
+    skill = new Skill(resType, points, lvl3depends);
+    def = new SkillDefTrap("TacticSkills/", "AlarmTrapButton", skill, TrapType::alarm);
+    def->mapSkill(mSkillsFamily);
+    mSkills[index] = def;
+
     // Lvl 4 research
     resType = SkillType::trapBoulder;
     index = static_cast<uint32_t>(resType);
@@ -869,6 +879,7 @@ std::string SkillManager::getResearchDescription(SkillType type, uint32_t level)
         case SkillType::roomGuardRoom: return "Wakefulness cost per duty turn: " + room("GuardRoomWakefulnessPerDuty") + ".";
         case SkillType::roomTemple: return "Default prayer mana per second: " + room("TemplePrayerManaPerSecond") + "; most creature types have their own value.";
         case SkillType::trapDoorWooden: return "Door health: " + value(10) + ".";
+        case SkillType::trapAlarm: return "Reload time: " + value(config.getTrapConfigDouble("AlarmReloadTurns")) + " turns.";
         case SkillType::trapCannon:
         case SkillType::trapSpike:
         case SkillType::trapBoulder:

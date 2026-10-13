@@ -784,6 +784,8 @@ int32_t TrapManager::getNeededWorkshopPointsPerTrap(TrapType trapType)
             return ConfigManager::getSingleton().getTrapConfigInt32("BoulderWorkshopPointsPerTile");
         case TrapType::doorWooden:
             return ConfigManager::getSingleton().getTrapConfigInt32("WoodenDoorPointsPerTile");
+        case TrapType::alarm:
+            return ConfigManager::getSingleton().getTrapConfigInt32("AlarmWorkshopPointsPerTile");
         default:
             OD_LOG_ERR("Asked for wrong trap type=" + getTrapNameFromTrapType(trapType));
             break;
