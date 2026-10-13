@@ -21,7 +21,9 @@
 #include "entities/CreatureDefinition.h"
 #include "game/Player.h"
 #include "game/Seat.h"
+#include "game/SkillType.h"
 #include "gamemap/GameMap.h"
+#include "ODApplication.h"
 #include "network/ODServer.h"
 #include "network/ServerNotification.h"
 #include "rooms/Room.h"
@@ -51,6 +53,32 @@ const int32_t TURNS_BETWEEN_WAVES = 14;
 const std::string DWARF_PREFIX = "Dwarf";
 //! \brief The class names of the hero lords contain this (in lower case)
 const std::string LORD_MARK = "lord";
+//! \brief Number of rooms that become available over time
+const uint32_t NB_UNLOCK_ROOMS = 12;
+//! \brief The rooms that become available one after the other, in this order. The Dormitory (the
+//! lair), the Hatchery and the Treasury are available from the start.
+const SkillType ROOM_UNLOCK_ORDER[NB_UNLOCK_ROOMS] =
+{
+    SkillType::roomLibrary,
+    SkillType::roomTrainingHall,
+    SkillType::roomBridgeWooden,
+    SkillType::roomGuardRoom,
+    SkillType::roomWorkshop,
+    SkillType::roomPrison,
+    SkillType::roomTorture,
+    SkillType::roomTemple,
+    SkillType::roomCrypt,
+    SkillType::roomCasino,
+    SkillType::roomArena,
+    SkillType::roomBridgeStone
+};
+
+//! \brief The turns between two rooms becoming available (SandboxRoomUnlockIntervalSeconds of rooms.cfg)
+int32_t getRoomUnlockIntervalTurns()
+{
+    return static_cast<int32_t>(ConfigManager::getSingleton().getRoomConfigDouble("SandboxRoomUnlockIntervalSeconds")
+        * ODApplication::turnsPerSecond);
+}
 
 //! \brief Returns the given text in lower case
 std::string toLower(const std::string& str)
@@ -91,7 +119,9 @@ SandboxMode::SandboxMode(GameMap& gameMap) :
     mIsContinual(false),
     mIsWaveActive(false),
     mTurnsBeforeNextWave(0),
-    mTurnsBeforeCheck(0)
+    mTurnsBeforeCheck(0),
+    mTurnsBeforeRoomUnlock(-1),
+    mNbRoomsUnlocked(0)
 {
 }
 
@@ -102,6 +132,8 @@ void SandboxMode::reset()
     mIsWaveActive = false;
     mTurnsBeforeNextWave = 0;
     mTurnsBeforeCheck = 0;
+    mTurnsBeforeRoomUnlock = -1;
+    mNbRoomsUnlocked = 0;
     mWaveHeroes.clear();
     mToolboxHeroes.clear();
 }
@@ -310,8 +342,68 @@ void SandboxMode::startInvasion(Player* player, bool continual)
     launchWave(waveNumber);
 }
 
+void SandboxMode::updateRoomUnlocks()
+{
+    // The seats of the human keepers. Waiting rooms are the same for all of them
+    std::vector<Seat*> keeperSeats;
+    for(Seat* seat : mGameMap.getSeats())
+    {
+        if(seat->isRogueSeat() || isHeroSeat(seat))
+            continue;
+
+        if((seat->getPlayer() == nullptr) || !seat->getPlayer()->getIsHuman())
+            continue;
+
+        keeperSeats.push_back(seat);
+    }
+
+    if(keeperSeats.empty())
+        return;
+
+    // Rooms the level already gives at the start (or that were researched) are skipped
+    while(mNbRoomsUnlocked < NB_UNLOCK_ROOMS)
+    {
+        bool isDone = true;
+        for(Seat* seat : keeperSeats)
+        {
+            if(!seat->isSkillDone(ROOM_UNLOCK_ORDER[mNbRoomsUnlocked]))
+                isDone = false;
+        }
+
+        if(!isDone)
+            break;
+
+        ++mNbRoomsUnlocked;
+    }
+
+    if(mNbRoomsUnlocked >= NB_UNLOCK_ROOMS)
+        return;
+
+    if(mTurnsBeforeRoomUnlock < 0)
+    {
+        sendMessage("A Dormitory and a Hatchery are yours to begin with. Build them to start your dungeon, "
+            "so that your minions may sleep and eat. The other rooms become available over time.");
+        mTurnsBeforeRoomUnlock = getRoomUnlockIntervalTurns();
+    }
+
+    if(mTurnsBeforeRoomUnlock > 0)
+    {
+        --mTurnsBeforeRoomUnlock;
+        return;
+    }
+
+    // The next room is available. The seats tell their player with the usual notice
+    for(Seat* seat : keeperSeats)
+        seat->addSkill(ROOM_UNLOCK_ORDER[mNbRoomsUnlocked]);
+
+    ++mNbRoomsUnlocked;
+    mTurnsBeforeRoomUnlock = getRoomUnlockIntervalTurns();
+}
+
 void SandboxMode::doTurn()
 {
+    updateRoomUnlocks();
+
     if(mIsWaveActive)
     {
         if(mTurnsBeforeCheck > 0)

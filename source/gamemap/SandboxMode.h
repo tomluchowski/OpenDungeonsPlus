@@ -76,6 +76,10 @@ private:
     int32_t mTurnsBeforeNextWave;
     //! \brief Turns before the heroes of the current wave are checked again
     int32_t mTurnsBeforeCheck;
+    //! \brief Turns before the next room of the unlock order becomes available, -1 until the first turn
+    int32_t mTurnsBeforeRoomUnlock;
+    //! \brief Number of rooms of the unlock order already available
+    uint32_t mNbRoomsUnlocked;
     //! \brief Names of the heroes of the current wave that are still alive
     std::vector<std::string> mWaveHeroes;
     //! \brief Name of the living toolbox hero for each class
@@ -83,6 +87,9 @@ private:
 
     //! \brief Returns the first seat of the hero faction, or nullptr if the level has none
     Seat* getHeroSeat() const;
+    //! \brief Makes the next room of the unlock order available once the delay is over. A level that
+    //! already has every room available at the start has nothing to unlock.
+    void updateRoomUnlocks();
     //! \brief Launches the given wave. Returns false if it could not be launched.
     bool launchWave(uint32_t waveNumber);
     //! \brief Sends a message to every human player
