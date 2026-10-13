@@ -42,9 +42,21 @@ const std::string COMBOBOX_PLAYER_PREFIX = "ComboPlayerSeat";
 const std::string COMBOBOX_GOLD_DENSITY = "ComboGoldDensity";
 const std::string COMBOBOX_MANA_REGENERATION = "ComboManaRegeneration";
 const std::string COMBOBOX_MAX_CREATURES = "ComboMaxCreatures";
+//! \brief The percentages that the gold density and the mana regeneration offer
+static const uint32_t SETTING_PERCENT_CHOICES[] = {50, 100, 400};
+//! \brief The percentage that stands for "unchanged"
+static const uint32_t SETTING_PERCENT_DEFAULT = GameMap::SKIRMISH_PERCENT_DEFAULT;
+//! \brief The numbers of creatures that the maximum number of creatures offers, besides the default of the configuration
+static const uint32_t SETTING_MAX_CREATURES_CHOICES[] = {5, 15, 20, 30};
+//! \brief The value of the maximum number of creatures that stands for the default of the configuration
+static const uint32_t SETTING_MAX_CREATURES_DEFAULT = 0;
 
 namespace
 {
+//! \brief Adds a choice to a skirmish setting combo
+//! \param combo The combo to add to
+//! \param text The text shown for the choice
+//! \param value The value the choice stands for, kept as the id of the list item
 void addSettingItem(CEGUI::Combobox* combo, const std::string& text, uint32_t value)
 {
     const CEGUI::Image* selImg = &CEGUI::ImageManager::getSingleton().get("OpenDungeonsSkin/SelectionBrush");
@@ -54,6 +66,9 @@ void addSettingItem(CEGUI::Combobox* combo, const std::string& text, uint32_t va
 }
 
 //! \brief Returns the id of the selected item or defaultValue if nothing is selected
+//! \param playersWin The window that holds the combo
+//! \param comboName The name of the combo
+//! \param defaultValue The value to return if nothing is selected
 uint32_t getSettingValue(CEGUI::Window* playersWin, const std::string& comboName, uint32_t defaultValue)
 {
     CEGUI::Combobox* combo = static_cast<CEGUI::Combobox*>(playersWin->getChild(comboName));
@@ -64,6 +79,10 @@ uint32_t getSettingValue(CEGUI::Window* playersWin, const std::string& comboName
     return selItem->getID();
 }
 
+//! \brief Selects the choice of a skirmish setting combo that stands for the value, and shows its text
+//! \param playersWin The window that holds the combo
+//! \param comboName The name of the combo
+//! \param value The value to select; nothing changes in the text if the combo has no such choice
 void selectSettingValue(CEGUI::Window* playersWin, const std::string& comboName, uint32_t value)
 {
     CEGUI::Combobox* combo = static_cast<CEGUI::Combobox*>(playersWin->getChild(comboName));
@@ -139,7 +158,6 @@ MenuModeConfigureSeats::~MenuModeConfigureSeats()
 void MenuModeConfigureSeats::initSettingCombos()
 {
     CEGUI::Window* playersWin = getModeManager().getGui().getGuiSheet(Gui::guiSheet::configureSeats)->getChild("ListPlayers");
-    uint32_t percents[] = {50, 100, 400};
     const std::string percentCombos[] = {COMBOBOX_GOLD_DENSITY, COMBOBOX_MANA_REGENERATION};
     for(const std::string& comboName : percentCombos)
     {
@@ -147,10 +165,10 @@ void MenuModeConfigureSeats::initSettingCombos()
         combo->resetList();
         combo->setReadOnly(true);
         combo->setEnabled(false);
-        for(uint32_t percent : percents)
+        for(uint32_t percent : SETTING_PERCENT_CHOICES)
             addSettingItem(combo, Helper::toString(percent) + "%", percent);
 
-        selectSettingValue(playersWin, comboName, 100);
+        selectSettingValue(playersWin, comboName, SETTING_PERCENT_DEFAULT);
         addEventConnection(
             combo->subscribeEvent(CEGUI::Combobox::EventListSelectionAccepted,
                 CEGUI::Event::Subscriber(&MenuModeConfigureSeats::comboChanged, this))
@@ -162,14 +180,13 @@ void MenuModeConfigureSeats::initSettingCombos()
     combo->setReadOnly(true);
     combo->setEnabled(false);
     uint32_t defaultMax = ConfigManager::getSingleton().getMaxCreaturesPerSeatDefault();
-    addSettingItem(combo, "Default (" + Helper::toString(defaultMax) + ")", 0);
-    uint32_t maxChoices[] = {5, 15, 20, 30};
-    for(uint32_t maxChoice : maxChoices)
+    addSettingItem(combo, "Default (" + Helper::toString(defaultMax) + ")", SETTING_MAX_CREATURES_DEFAULT);
+    for(uint32_t maxChoice : SETTING_MAX_CREATURES_CHOICES)
     {
         if(maxChoice <= ConfigManager::getSingleton().getMaxCreaturesPerSeatAbsolute())
             addSettingItem(combo, Helper::toString(maxChoice), maxChoice);
     }
-    selectSettingValue(playersWin, COMBOBOX_MAX_CREATURES, 0);
+    selectSettingValue(playersWin, COMBOBOX_MAX_CREATURES, SETTING_MAX_CREATURES_DEFAULT);
     addEventConnection(
         combo->subscribeEvent(CEGUI::Combobox::EventListSelectionAccepted,
             CEGUI::Event::Subscriber(&MenuModeConfigureSeats::comboChanged, this))
@@ -527,9 +544,9 @@ void MenuModeConfigureSeats::fireSeatConfigurationToServer()
         }
     }
 
-    notif->mPacket << getSettingValue(playersWin, COMBOBOX_GOLD_DENSITY, 100);
-    notif->mPacket << getSettingValue(playersWin, COMBOBOX_MANA_REGENERATION, 100);
-    notif->mPacket << getSettingValue(playersWin, COMBOBOX_MAX_CREATURES, 0);
+    notif->mPacket << getSettingValue(playersWin, COMBOBOX_GOLD_DENSITY, SETTING_PERCENT_DEFAULT);
+    notif->mPacket << getSettingValue(playersWin, COMBOBOX_MANA_REGENERATION, SETTING_PERCENT_DEFAULT);
+    notif->mPacket << getSettingValue(playersWin, COMBOBOX_MAX_CREATURES, SETTING_MAX_CREATURES_DEFAULT);
     ODClient::getSingleton().queueClientNotification(notif);
 }
 
@@ -665,12 +682,14 @@ void MenuModeConfigureSeats::refreshSeatConfiguration(ODPacket& packet)
         }
     }
 
-    uint32_t goldDensityPercent;
-    uint32_t manaRegenerationPercent;
-    uint32_t maxCreaturesSetting;
-    OD_ASSERT_TRUE(packet >> goldDensityPercent);
-    OD_ASSERT_TRUE(packet >> manaRegenerationPercent);
-    OD_ASSERT_TRUE(packet >> maxCreaturesSetting);
+    uint32_t goldDensityPercent = SETTING_PERCENT_DEFAULT;
+    uint32_t manaRegenerationPercent = SETTING_PERCENT_DEFAULT;
+    uint32_t maxCreaturesSetting = SETTING_MAX_CREATURES_DEFAULT;
+    if(!(packet >> goldDensityPercent >> manaRegenerationPercent >> maxCreaturesSetting))
+    {
+        OD_LOG_ERR("Truncated seat configuration refresh packet: the skirmish game settings are not updated");
+        return;
+    }
     selectSettingValue(playersWin, COMBOBOX_GOLD_DENSITY, goldDensityPercent);
     selectSettingValue(playersWin, COMBOBOX_MANA_REGENERATION, manaRegenerationPercent);
     selectSettingValue(playersWin, COMBOBOX_MAX_CREATURES, maxCreaturesSetting);

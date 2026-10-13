@@ -218,9 +218,9 @@ bool ODClientTest::processMessage(ServerNotificationType cmd, ODPacket& packetRe
             }
 
             // Skirmish game settings follow the seats
-            uint32_t goldDensityPercent;
-            uint32_t manaRegenerationPercent;
-            uint32_t maxCreaturesSetting;
+            uint32_t goldDensityPercent = 0;
+            uint32_t manaRegenerationPercent = 0;
+            uint32_t maxCreaturesSetting = 0;
             BOOST_CHECK(packetReceived >> goldDensityPercent);
             BOOST_CHECK(packetReceived >> manaRegenerationPercent);
             BOOST_CHECK(packetReceived >> maxCreaturesSetting);

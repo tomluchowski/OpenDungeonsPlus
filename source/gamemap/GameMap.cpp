@@ -162,8 +162,8 @@ GameMap::GameMap(bool isServerGameMap, NodeType nt) :
         everVisitedFlagPool(nullptr),
         mIsServerGameMap(isServerGameMap),
         mNodeType(nt),
-        mGoldDensityPercent(100),
-        mManaRegenerationPercent(100),
+        mGoldDensityPercent(SKIRMISH_PERCENT_DEFAULT),
+        mManaRegenerationPercent(SKIRMISH_PERCENT_DEFAULT),
         mMaxCreaturesSetting(0),
         mLocalPlayer(nullptr),
         mLocalPlayerNick(DEFAULT_NICK),
@@ -311,6 +311,9 @@ void GameMap::clearAll()
 
         clearAiManager();
 
+        mGoldDensityPercent = SKIRMISH_PERCENT_DEFAULT;
+        mManaRegenerationPercent = SKIRMISH_PERCENT_DEFAULT;
+        mMaxCreaturesSetting = 0;
         mLocalPlayerNick = DEFAULT_NICK;
         mTurnNumber = -1;
         resetUniqueNumbers();
@@ -3088,8 +3091,8 @@ uint32_t GameMap::getMaxNumberCreatures(Seat* seat) const
 void GameMap::setSkirmishSettings(uint32_t goldDensityPercent, uint32_t manaRegenerationPercent,
     uint32_t maxCreaturesSetting)
 {
-    mGoldDensityPercent = std::min<uint32_t>(std::max<uint32_t>(goldDensityPercent, 10), 500);
-    mManaRegenerationPercent = std::min<uint32_t>(std::max<uint32_t>(manaRegenerationPercent, 10), 500);
+    mGoldDensityPercent = std::min<uint32_t>(std::max<uint32_t>(goldDensityPercent, SKIRMISH_PERCENT_MIN), SKIRMISH_PERCENT_MAX);
+    mManaRegenerationPercent = std::min<uint32_t>(std::max<uint32_t>(manaRegenerationPercent, SKIRMISH_PERCENT_MIN), SKIRMISH_PERCENT_MAX);
     mMaxCreaturesSetting = std::min<uint32_t>(maxCreaturesSetting, ConfigManager::getSingleton().getMaxCreaturesPerSeatAbsolute());
 }
 

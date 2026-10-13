@@ -455,9 +455,11 @@ public:
 
     //! \brief Skirmish game settings, chosen by the host in the seat configuration. They are
     //! only used on the server game map. The percentages scale the base value (100 = unchanged).
+    //! \return The share of the normal gold that a worker gets when it digs gold, in percent
     inline uint32_t getGoldDensityPercent() const
     { return mGoldDensityPercent; }
 
+    //! \brief The share of the normal mana income of a seat, in percent
     inline uint32_t getManaRegenerationPercent() const
     { return mManaRegenerationPercent; }
 
@@ -465,6 +467,16 @@ public:
     inline uint32_t getMaxCreaturesSetting() const
     { return mMaxCreaturesSetting; }
 
+    //! \brief Smallest and largest value that the gold density and the mana regeneration can have, in percent
+    static const uint32_t SKIRMISH_PERCENT_MIN = 10;
+    static const uint32_t SKIRMISH_PERCENT_MAX = 500;
+    //! rief The gold density and the mana regeneration of a game without settings: unchanged
+    static const uint32_t SKIRMISH_PERCENT_DEFAULT = 100;
+
+    //! \brief Sets the skirmish game settings, as chosen by the host
+    //! \param goldDensityPercent Gold density in percent, kept between SKIRMISH_PERCENT_MIN and SKIRMISH_PERCENT_MAX
+    //! \param manaRegenerationPercent Mana regeneration in percent, kept in the same range
+    //! \param maxCreaturesSetting Maximum number of creatures of a seat, 0 for the default of the configuration
     void setSkirmishSettings(uint32_t goldDensityPercent, uint32_t manaRegenerationPercent,
         uint32_t maxCreaturesSetting);
 

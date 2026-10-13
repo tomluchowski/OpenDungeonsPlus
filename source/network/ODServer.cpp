@@ -1087,13 +1087,17 @@ bool ODServer::processClientNotifications(ODSocketClient* clientSocket)
             }
 
             // The skirmish game settings follow the seats
-            uint32_t goldDensityPercent;
-            uint32_t manaRegenerationPercent;
-            uint32_t maxCreaturesSetting;
-            OD_ASSERT_TRUE(packetReceived >> goldDensityPercent);
-            OD_ASSERT_TRUE(packetReceived >> manaRegenerationPercent);
-            OD_ASSERT_TRUE(packetReceived >> maxCreaturesSetting);
-            gameMap->setSkirmishSettings(goldDensityPercent, manaRegenerationPercent, maxCreaturesSetting);
+            uint32_t goldDensityPercent = GameMap::SKIRMISH_PERCENT_DEFAULT;
+            uint32_t manaRegenerationPercent = GameMap::SKIRMISH_PERCENT_DEFAULT;
+            uint32_t maxCreaturesSetting = 0;
+            if(packetReceived >> goldDensityPercent >> manaRegenerationPercent >> maxCreaturesSetting)
+            {
+                gameMap->setSkirmishSettings(goldDensityPercent, manaRegenerationPercent, maxCreaturesSetting);
+            }
+            else
+            {
+                OD_LOG_ERR("Truncated seat configuration packet: the skirmish game settings are ignored");
+            }
             fireSeatConfigurationRefresh();
             break;
         }
