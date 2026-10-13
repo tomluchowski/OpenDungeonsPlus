@@ -32,6 +32,8 @@
 
 namespace
 {
+//! Collects the visible, enabled windows that Escape may close (frame windows, popup menus
+//! and combo boxes with an open drop-down list), searching the given window recursively.
 void collectEscapeWindows(CEGUI::Window* window, std::vector<CEGUI::Window*>& windows)
 {
     if(window == nullptr || !window->isVisible() || window->isDisabled())
@@ -45,6 +47,12 @@ void collectEscapeWindows(CEGUI::Window* window, std::vector<CEGUI::Window*>& wi
 
     for(size_t i = 0; i < window->getChildCount(); ++i)
         collectEscapeWindows(window->getChildAtIdx(i), windows);
+}
+
+//! Ordering for std::sort: the window in front of the other one comes first.
+bool isEscapeWindowInFront(CEGUI::Window* left, CEGUI::Window* right)
+{
+    return left->isInFront(*right);
 }
 }
 
@@ -139,10 +147,7 @@ bool AbstractApplicationMode::closeTopWindow()
     std::vector<CEGUI::Window*> windows;
     collectEscapeWindows(context.getModalWindow() != nullptr ?
         context.getModalWindow() : context.getRootWindow(), windows);
-    std::sort(windows.begin(), windows.end(), [](CEGUI::Window* left, CEGUI::Window* right)
-    {
-        return left->isInFront(*right);
-    });
+    std::sort(windows.begin(), windows.end(), isEscapeWindowInFront);
 
     for(CEGUI::Window* window : windows)
     {
