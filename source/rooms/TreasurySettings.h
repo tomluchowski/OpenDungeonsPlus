@@ -43,7 +43,18 @@ struct TreasurySettings
     //! Coins scattered on the bare floor of an empty tile
     int scatterCoins = 3;
 
-    // Effects and settling on the gold (TreasuryCreatureRules.h)
+    // Creatures and effects on the gold (TreasuryCreatureRules.h)
+    //! From this fill step on the gold is deep enough for creatures to splash and clink in it
+    int deepLevel = 4;
+    //! Distance a creature walks between two splashes, in tiles
+    float stepDistance = 0.55f;
+    //! Seconds a splash counts against the budget of its room
+    float splashLifetime = 1.4f;
+    //! Seconds a worker spends climbing the pile, pouring out the gold and coming back down
+    float pourDuration = 1.4f;
+    //! Splashes a room may show at once at the full and at the reduced detail
+    int splashBudgetFull = 6;
+    int splashBudgetReduced = 2;
     //! Seconds between two attempts to start a sparkle, sliding coins or rolling coins, and how long such an
     //! effect counts against the budget of its room
     float ambientInterval = 0.9f;
@@ -132,6 +143,12 @@ struct TreasurySettings
         s.maxGems = readInt(config, "MaxGems", s.maxGems, 1, 4);
         s.spillCoinsFull = readInt(config, "SpillCoinsFull", s.spillCoinsFull, 0, 4);
         s.scatterCoins = readInt(config, "ScatterCoins", s.scatterCoins, 0, 8);
+        s.deepLevel = readInt(config, "DeepLevel", s.deepLevel, 1, 7);
+        s.stepDistance = readFloat(config, "StepDistance", s.stepDistance, 0.1f, 5.0f);
+        s.splashLifetime = readFloat(config, "SplashLifetime", s.splashLifetime, 0.1f, 10.0f);
+        s.pourDuration = readFloat(config, "PourDuration", s.pourDuration, 0.2f, 10.0f);
+        s.splashBudgetFull = readInt(config, "SplashBudgetFull", s.splashBudgetFull, 0, 50);
+        s.splashBudgetReduced = readInt(config, "SplashBudgetReduced", s.splashBudgetReduced, 0, 50);
         s.ambientInterval = readFloat(config, "AmbientInterval", s.ambientInterval, 0.1f, 30.0f);
         s.ambientLifetime = readFloat(config, "AmbientLifetime", s.ambientLifetime, 0.1f, 30.0f);
         s.ambientBudgetFull = readInt(config, "AmbientBudgetFull", s.ambientBudgetFull, 0, 50);

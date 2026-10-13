@@ -25,13 +25,36 @@
 #include <cmath>
 #include <map>
 
-//! \brief Client side rules for the effects on the treasury gold: how a pile settles when gold is added or taken,
-//! how deep objects stand in the gold, when coins slide, roll or sparkle and how many effects a room may show at
-//! once. Nothing here touches the renderer, the server or the creature position used for pathing.
+//! \brief Client side rules for creatures and effects on the treasury gold: how far creatures are lifted, when a step
+//! splashes coins, how a worker pours out its gold, how a pile settles when gold is added or taken, how deep objects
+//! stand in the gold, when coins slide, roll or sparkle and how many effects a room may show at once. Nothing here
+//! touches the renderer, the server or the creature position used for pathing.
 //! The tunable numbers live in config/treasury.cfg (see TreasurySettings.h); the constants below are references
 //! to the live values, so a value is read when it is used.
 namespace TreasuryCreatureRules
 {
+//! From this pile level on the gold is deep enough to splash and clink
+static const int& deepLevel = TreasurySettings::current().deepLevel;
+//! Distance walked between two splashes, in tiles
+static const float& stepDistance = TreasurySettings::current().stepDistance;
+//! Seconds a splash counts against the budget of its room
+static const float& splashLifetime = TreasurySettings::current().splashLifetime;
+//! Creatures higher above the floor than this (flying ones) are not lifted
+static const float groundHeightLimit = 0.3f;
+
+//! Seconds a worker spends climbing the pile, pouring out the gold and coming back down
+static const float& pourDuration = TreasurySettings::current().pourDuration;
+
+//! Names of the worker clips that replace the procedural climb and tip (skeleton clips, played by the
+//! client while the worker delivers gold). Without them the procedural motion is used.
+static const char* const pourClimbClip = "ClimbGold";
+static const char* const pourTipClip = "PourGold";
+//! Share of the pour time (0..1) spent climbing up, and when the descent starts
+static const float pourClimbEnd = 0.3f;
+static const float pourDescendStart = 0.85f;
+//! Clip time kept free at the end of a clip so that it never counts as ended before the phase changes
+static const float pourClipMargin = 0.1f;
+
 //! A smooth ramp from 0 at edgeStart to 1 at edgeEnd (cubic, flat at both ends)
 inline float smoothStep(float edgeStart, float edgeEnd, float t)
 {
@@ -41,6 +64,104 @@ inline float smoothStep(float edgeStart, float edgeEnd, float t)
         return 1.0f;
     const float x = (t - edgeStart) / (edgeEnd - edgeStart);
     return x * x * (3.0f - 2.0f * x);
+}
+
+//! Extra height of a pouring worker above the gold surface of its tile at time t (seconds): up to the
+//! top of the heap, held while pouring, then down again. Higher piles are climbed higher.
+inline float pourRise(float t, int level)
+{
+    const float amplitude = 0.035f * static_cast<float>(level < 0 ? 0 : level);
+    const float progress = t / pourDuration;
+    return amplitude * (smoothStep(0.0f, 0.3f, progress) - smoothStep(0.85f, 1.0f, progress));
+}
+
+//! Forward lean (radians, negative leans forward) of a pouring worker: tips over the heap, rocks a little
+//! while the coins run out, then straightens up.
+inline float pourLean(float t)
+{
+    const float progress = t / pourDuration;
+    const float tip = smoothStep(0.3f, 0.5f, progress) - smoothStep(0.85f, 1.0f, progress);
+    const float rock = std::sin(progress * 6.2831853f * 3.0f) * 0.07f * smoothStep(0.45f, 0.55f, progress)
+        * (1.0f - smoothStep(0.8f, 0.9f, progress));
+    return -0.5f * tip + rock;
+}
+
+//! Sideways sway (radians) of the climb: the worker wobbles while it scrambles up and down the heap
+inline float pourSway(float t)
+{
+    const float progress = t / pourDuration;
+    const float climbing = smoothStep(0.0f, 0.1f, progress) * (1.0f - smoothStep(0.3f, 0.4f, progress))
+        + smoothStep(0.85f, 0.9f, progress) * (1.0f - smoothStep(0.97f, 1.0f, progress));
+    return std::sin(progress * 6.2831853f * 6.0f) * 0.12f * climbing;
+}
+
+//! Phase of the delivery clip at time t (seconds): 0 climb up, 1 pour, 2 climb down (the climb clip backwards)
+inline int pourClipPhase(float t)
+{
+    const float progress = t / pourDuration;
+    if(progress < pourClimbEnd)
+        return 0;
+    return progress < pourDescendStart ? 1 : 2;
+}
+
+//! Time position inside the clip of the current phase for the time t (seconds)
+inline float pourClipTime(float t, float climbLength, float pourLength)
+{
+    const float progress = t / pourDuration;
+    float time = 0.0f;
+    float length = climbLength;
+    switch(pourClipPhase(t))
+    {
+        case 0:
+            time = climbLength * progress / pourClimbEnd;
+            break;
+        case 1:
+            time = pourLength * (progress - pourClimbEnd) / (pourDescendStart - pourClimbEnd);
+            length = pourLength;
+            break;
+        default:
+            time = climbLength * (1.0f - (progress - pourDescendStart) / (1.0f - pourDescendStart));
+            break;
+    }
+    const float limit = length - pourClipMargin;
+    if(time > limit)
+        time = limit;
+    return time < 0.0f ? 0.0f : time;
+}
+
+//! True when the gold of the given pile level is deep enough to splash
+inline bool isDeep(int level)
+{
+    return level >= deepLevel;
+}
+
+//! Visual lift of a creature standing at the given height above the floor on a pile of the given
+//! surface height. Only a render offset: the position of the creature itself is not changed.
+inline float liftOnGold(float surfaceHeight, float creatureHeight)
+{
+    if(surfaceHeight <= 0.0f || creatureHeight > groundHeightLimit)
+        return 0.0f;
+    return surfaceHeight;
+}
+
+//! True when the creature walked far enough since its last splash for the next one
+inline bool stepDue(float dx, float dy)
+{
+    return dx * dx + dy * dy >= stepDistance * stepDistance;
+}
+
+//! Particle budget of one room by the "Treasury detail" option (number of splashes it may show at once)
+inline int splashBudget(TreasuryGoldMesh::Detail detail)
+{
+    switch(detail)
+    {
+        case TreasuryGoldMesh::Detail::full:
+            return TreasurySettings::current().splashBudgetFull;
+        case TreasuryGoldMesh::Detail::reduced:
+            return TreasurySettings::current().splashBudgetReduced;
+        default:
+            return 0;
+    }
 }
 
 //! Sparkles and sliding coins on the gold of rich treasuries, and the coins that roll away when gold is taken:

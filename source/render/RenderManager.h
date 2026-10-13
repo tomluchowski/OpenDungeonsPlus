@@ -176,6 +176,8 @@ public:
     void rrDestroySeatVisionVisualDebug(int seatId, Tile* tile);
     void rrSetObjectAnimationState(MovableGameEntity* curAnimatedObject, const std::string& animation, bool loop);
     void rrMoveEntity(GameEntity* entity, const Ogre::Vector3& position);
+    //! A worker poured gold onto the treasury tile (x, y): coins fall onto the top of the pile
+    void rrTreasuryDeposit(GameMap* gameMap, int x, int y);
     void rrMoveMapLightFlicker(MapLight* mapLight, const Ogre::Vector3& position);
     void rrCarryEntity(Creature* carrier, GameEntity* carried);
     void rrReleaseCarriedEntity(Creature* carrier, GameEntity* carried);
@@ -471,6 +473,7 @@ private:
     //! The kinds of treasury effect; each has a budget per room of its own
     enum class TreasuryEffectKind
     {
+        splash,
         ambient
     };
     struct TreasuryEffect
@@ -481,11 +484,29 @@ private:
         TreasuryEffectKind mKind;
     };
     std::vector<TreasuryEffect> mTreasuryEffects;
+    TreasuryCreatureRules::SplashBudget mTreasurySplashBudget;
     //! Sparkles, sliding coins and rolling coins on rich piles have a budget per room of their own
     TreasuryCreatureRules::SplashBudget mTreasuryAmbientBudget;
     Ogre::Real mTreasuryAmbientTimer = 0.0f;
     size_t mTreasuryAmbientCursor = 0;
+    //! Where a creature last splashed coins, to space the splashes along its way
+    std::map<Creature*, Ogre::Vector2> mTreasuryLastSplash;
     int mTreasuryEffectNumber = 0;
+
+    //! A worker pouring its gold out on top of a pile (procedural climb and tilt of the render node)
+    struct TreasuryPour
+    {
+        Creature* mCreature;
+        Ogre::Real mElapsed;
+        int mLevel;
+        float mRise;
+        Ogre::Quaternion mTilt;
+        //! Skeleton clips of the worker (climb and pour); null when the mesh has none (procedural motion)
+        Ogre::Entity* mEntity;
+        Ogre::AnimationState* mClip;
+        int mPhase;
+    };
+    std::vector<TreasuryPour> mTreasuryPours;
 
     //! The gold piles of this client with the node type they were created for and whether they use the reduced
     //! mesh because they are far from the camera. The level of detail switches piles by creating their mesh again;
@@ -566,10 +587,22 @@ private:
     void updateCreatureStep(Creature* creature);
     void cancelCreatureStep(Creature* creature = nullptr);
     void clearRoomConstructionEffects();
+    //! \brief The creatures on the tile follow the gold of its pile (a pile was created or removed there).
+    void refreshCreaturesOnTile(Tile* tile);
+    //! \brief A creature walked on deep gold: splashes coins and clinks after every step of the given length.
+    void treasuryCreatureStep(Creature* creature, const Ogre::Vector3& position, float surfaceHeight, int level);
+    //! \brief The worker standing on the tile climbs the pile and tips its gold out (only what is in view).
+    void startTreasuryPour(Tile* tile, int level);
+    //! \brief Moves the pouring workers (clips or procedural climb and tilt).
+    void updateTreasuryPours(Ogre::Real timeSinceLastFrame);
+    //! \brief Ends the pour of the creature (of every creature without a creature) and straightens it up.
+    void cancelTreasuryPour(Creature* creature);
+    //! \brief The extra height of the pouring worker above the gold of its tile (0 when it does not pour).
+    float getTreasuryPourRise(Creature* creature) const;
     //! \brief Starts an effect of the given kind at the position, when it is in view and its room still has a place
     //! in the budget of the kind. Returns whether the effect was started.
     bool createTreasuryEffect(const void* roomKey, const std::string& script, const Ogre::Vector3& position,
-        TreasuryEffectKind kind = TreasuryEffectKind::ambient);
+        TreasuryEffectKind kind = TreasuryEffectKind::splash);
     //! \brief Ends the effects whose time is over and gives their places back to the budget of their room.
     void updateTreasuryEffects(Ogre::Real timeSinceLastFrame);
     //! \brief Now and then starts sliding coins or a sparkle on a rich pile in view.
