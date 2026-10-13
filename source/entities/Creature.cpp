@@ -1344,6 +1344,10 @@ void Creature::handleHeartDefence()
     if(isActionInList(CreatureActionType::goDefendHeart))
         return;
 
+    // Existing combat and retreat decisions take priority over gathering at the defence point.
+    if(isActionInList(CreatureActionType::fight) || isActionInList(CreatureActionType::flee))
+        return;
+
     // The heart defence is on: drop the current job and run to the defence point
     clearActionQueue();
     pushAction(Utils::make_unique<CreatureActionGoDefendHeart>(*this));
