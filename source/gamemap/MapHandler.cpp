@@ -52,6 +52,7 @@
 
 #include "ODApplication.h"
 
+#include <algorithm>
 #include <iostream>
 #include <sstream>
 #include <fstream>
@@ -873,7 +874,13 @@ bool writeGameMapToFile(const std::string& fileName, GameMap& gameMap)
     if(!gameMap.getLevelScript().isEmpty())
     {
         levelFile << "\n";
-        gameMap.getLevelScript().exportToStream(levelFile);
+        // The turn counter starts at 0 again when the game is loaded, so a time limit is
+        // written as the time that is left
+        LevelScript script = gameMap.getLevelScript();
+        int64_t elapsedSeconds = static_cast<int64_t>(static_cast<double>(std::max<int64_t>(0, gameMap.getTurnNumber()))
+            / ODApplication::turnsPerSecond);
+        script.rebaseTimeLimit(elapsedSeconds);
+        script.exportToStream(levelFile);
     }
 
     if (!levelFile.good()) {

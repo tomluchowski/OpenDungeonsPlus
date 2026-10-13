@@ -27,6 +27,9 @@
 static const std::string sample =
     "# comment\n"
     "Flag\tgateOpen\t1\n"
+    "TimeLimit\t300\n"
+    "Countdown\t900\n"
+    "WaveCountdown\t240\n"
     "Region\tGate\t30\t12\t28\t10\n"
     "[Trigger]\n"
     "Name\tambush\n"
@@ -64,6 +67,15 @@ static const std::string sample =
     "Action\treveal\t1\tGate\n"
     "Action\taddflag\tvisits\t-2\n"
     "[/Trigger]\n"
+    "[Trigger]\n"
+    "Name\tunlock\n"
+    "Mode\tonce\n"
+    "Cond\tflag\tvisits\t-2\n"
+    "Action\tmake\t1\troomHatchery\n"
+    "Action\ttimelimit\t120\n"
+    "Action\tcountdown\t60\n"
+    "Action\twavecountdown\t30\n"
+    "[/Trigger]\n"
     "[/Triggers]\n";
 
 //! \brief The triggers, conditions and actions of the sample are read with the values written there
@@ -72,7 +84,7 @@ BOOST_AUTO_TEST_CASE(test_parse)
     LevelScript script;
     std::istringstream is(sample);
     BOOST_REQUIRE(script.importFromStream(is));
-    BOOST_REQUIRE_EQUAL(script.getTriggers().size(), 3u);
+    BOOST_REQUIRE_EQUAL(script.getTriggers().size(), 4u);
     BOOST_CHECK_EQUAL(script.getFlag("gateOpen"), 1);
     BOOST_CHECK_EQUAL(script.getFlag("unknown"), 0);
 
@@ -118,6 +130,68 @@ BOOST_AUTO_TEST_CASE(test_parse)
     BOOST_REQUIRE_EQUAL(watch.mActions.size(), 2u);
     BOOST_CHECK(watch.mActions[1].mType == LevelScriptActionType::addFlag);
     BOOST_CHECK_EQUAL(watch.mActions[1].mNumber, -2);
+
+    const LevelScriptTrigger& unlock = script.getTriggers()[3];
+    BOOST_REQUIRE_EQUAL(unlock.mActions.size(), 4u);
+    BOOST_CHECK(unlock.mActions[0].mType == LevelScriptActionType::make);
+    BOOST_CHECK_EQUAL(unlock.mActions[0].mSeatId, 1);
+    BOOST_CHECK_EQUAL(unlock.mActions[0].mText, "roomHatchery");
+    BOOST_CHECK(unlock.mActions[1].mType == LevelScriptActionType::timeLimit);
+    BOOST_CHECK_EQUAL(unlock.mActions[1].mNumber, 120);
+    BOOST_CHECK(unlock.mActions[2].mType == LevelScriptActionType::countdown);
+    BOOST_CHECK_EQUAL(unlock.mActions[2].mNumber, 60);
+    BOOST_CHECK(unlock.mActions[3].mType == LevelScriptActionType::waveCountdown);
+    BOOST_CHECK_EQUAL(unlock.mActions[3].mNumber, 30);
+}
+
+//! \brief The time limit and the two countdowns are read, moved to a new level start, written and cleared
+BOOST_AUTO_TEST_CASE(test_time_limit)
+{
+    LevelScript script;
+    BOOST_CHECK_EQUAL(script.getTimeLimitSeconds(), LevelScript::TIME_LIMIT_NOT_SET);
+    BOOST_CHECK_EQUAL(script.getCountdownSeconds(), LevelScript::COUNTDOWN_NOT_SET);
+    BOOST_CHECK_EQUAL(script.getWaveCountdownSeconds(), LevelScript::COUNTDOWN_NOT_SET);
+    BOOST_CHECK(script.isEmpty());
+
+    std::istringstream is(sample);
+    BOOST_REQUIRE(script.importFromStream(is));
+    BOOST_CHECK_EQUAL(script.getTimeLimitSeconds(), 300);
+    BOOST_CHECK_EQUAL(script.getCountdownSeconds(), 900);
+    BOOST_CHECK_EQUAL(script.getWaveCountdownSeconds(), 240);
+
+    // A saved game counts the limit from its new start, which is later than the old one
+    script.rebaseTimeLimit(100);
+    BOOST_CHECK_EQUAL(script.getTimeLimitSeconds(), 200);
+    BOOST_CHECK_EQUAL(script.getCountdownSeconds(), 800);
+    BOOST_CHECK_EQUAL(script.getWaveCountdownSeconds(), 140);
+    script.rebaseTimeLimit(500);
+    BOOST_CHECK_EQUAL(script.getTimeLimitSeconds(), 0);
+    BOOST_CHECK_EQUAL(script.getCountdownSeconds(), 300);
+    BOOST_CHECK_EQUAL(script.getWaveCountdownSeconds(), 0);
+
+    // No limit and a removed limit stay what they are
+    script.setTimeLimitSeconds(LevelScript::TIME_LIMIT_REMOVED);
+    script.rebaseTimeLimit(10);
+    BOOST_CHECK_EQUAL(script.getTimeLimitSeconds(), LevelScript::TIME_LIMIT_REMOVED);
+    script.setTimeLimitSeconds(LevelScript::TIME_LIMIT_NOT_SET);
+    script.rebaseTimeLimit(10);
+    BOOST_CHECK_EQUAL(script.getTimeLimitSeconds(), LevelScript::TIME_LIMIT_NOT_SET);
+
+    // The limit alone is a script worth writing, and it survives the round trip
+    LevelScript onlyLimit;
+    onlyLimit.setTimeLimitSeconds(42);
+    BOOST_CHECK(!onlyLimit.isEmpty());
+    std::ostringstream os;
+    onlyLimit.exportToStream(os);
+    std::string written = os.str();
+    BOOST_REQUIRE_EQUAL(written.compare(0, 11, "[Triggers]\n"), 0);
+    LevelScript again;
+    std::istringstream is2(written.substr(11));
+    BOOST_REQUIRE(again.importFromStream(is2));
+    BOOST_CHECK_EQUAL(again.getTimeLimitSeconds(), 42);
+
+    again.clear();
+    BOOST_CHECK_EQUAL(again.getTimeLimitSeconds(), LevelScript::TIME_LIMIT_NOT_SET);
 }
 
 //! \brief Regions: the corners may come in any order, names are unique and the editor helpers work
@@ -205,7 +279,13 @@ BOOST_AUTO_TEST_CASE(test_invalid)
         // Region inside a trigger
         "[Trigger]\nName\tx\nRegion\tA\t1\t2\t3\t4\nCond\ttime\t1\nAction\twin\t1\n[/Trigger]\n[/Triggers]\n",
         // reveal without a region name
-        "[Trigger]\nName\tx\nCond\ttime\t1\nAction\treveal\t1\n[/Trigger]\n[/Triggers]\n"
+        "[Trigger]\nName\tx\nCond\ttime\t1\nAction\treveal\t1\n[/Trigger]\n[/Triggers]\n",
+        // A negative time limit
+        "[Trigger]\nName\tx\nCond\ttime\t1\nAction\ttimelimit\t-5\n[/Trigger]\n[/Triggers]\n",
+        // TimeLimit inside a trigger
+        "[Trigger]\nName\tx\nTimeLimit\t5\nCond\ttime\t1\nAction\twin\t1\n[/Trigger]\n[/Triggers]\n",
+        // make without a skill name
+        "[Trigger]\nName\tx\nCond\ttime\t1\nAction\tmake\t1\n[/Trigger]\n[/Triggers]\n"
     };
 
     for(const char* text : invalid)

@@ -34,6 +34,9 @@
 //!   [Triggers]
 //!   Flag    <name>  <value>                   # initial value of a flag (unset flags are 0)
 //!   Timer   <name> <running 0|1> <turns>      # written by the game: a timer started by an action, in game turns
+//!   Countdown <seconds>                       # written by the game: the HUD countdown set by an action, in level seconds
+//!   WaveCountdown <seconds>                   # written by the game: the HUD wave countdown set by an action, in level seconds
+//!   TimeLimit <seconds>                       # written by the game: the time limit set by an action, in level seconds (-2: removed)
 //!   Region  <name> <x1> <y1> <x2> <y2>        # a named rectangle of tiles (placed in the level editor)
 //!   [Trigger]
 //!   Name    <name>
@@ -65,6 +68,10 @@
 //!   Action  win <seatId>                      # seat -1: every human player
 //!   Action  lose <seatId>
 //!   Action  reveal <seatId> <regionName>      # the tiles of the region stay visible to the seat
+//!   Action  make <seatId> <skillName>         # room, trap, door or spell becomes available (skill type name such as roomHatchery); seat -1: every human player
+//!   Action  countdown <seconds>               # shows a countdown on the HUD that ends without a defeat (0 removes it); a running time limit is shown instead of it
+//!   Action  wavecountdown <seconds>           # shows "Next wave in mm:ss" on the HUD, beside the other countdown; it has no effect when it ends (0 removes it)
+//!   Action  timelimit <seconds>               # the level is lost for every keeper when that many seconds have passed from now (0: removes any time limit); the remaining time is shown on the HUD
 //!   State   <timesFired> <lastFiredTurn>      # written by the game, only needed in savegames
 //!   [/Trigger]
 //!   [/Triggers]
@@ -121,6 +128,10 @@ enum class LevelScriptActionType
     win,
     lose,
     reveal,
+    make,
+    timeLimit,
+    countdown,
+    waveCountdown,
     startTimer
 };
 
@@ -181,9 +192,9 @@ struct LevelScriptAction
     //! \brief spawn: seat whose dungeon the spawned group attacks (-1: none)
     int32_t mTargetSeatId;
     //! \brief Gold amount (gold), flag value (setflag), amount added to a flag (addflag) or
-    //! seconds (timer)
+    //! seconds (timeLimit)
     int64_t mNumber;
-    //! \brief Message text (message, objective), flag name (setflag), timer name (timer) or region name (reveal)
+    //! \brief Message text (message, objective), flag name (setflag), timer name (timer), region name (reveal) or skill type name (make)
     std::string mText;
     //! \brief spawn: creature class name and level
     std::vector<std::pair<std::string, uint32_t> > mCreatures;
@@ -258,6 +269,13 @@ struct LevelScriptTimer
 class LevelScript
 {
 public:
+    //! \brief Creates an empty script without a time limit and without countdowns
+    LevelScript() :
+        mTimeLimitSeconds(TIME_LIMIT_NOT_SET),
+        mCountdownSeconds(COUNTDOWN_NOT_SET),
+        mWaveCountdownSeconds(COUNTDOWN_NOT_SET)
+    {}
+
     //! \brief Reads the lines after the [Triggers] tag, up to and including [/Triggers].
     //! Returns false on a malformed section. Existing content is replaced.
     bool importFromStream(std::istream& is);
@@ -270,7 +288,7 @@ public:
 
     //! \brief True if the script holds nothing that a level file has to store.
     inline bool isEmpty() const
-    { return mTriggers.empty() && mFlags.empty() && mTimers.empty() && mRegions.empty(); }
+    { return mTriggers.empty() && mFlags.empty() && mTimers.empty() && mRegions.empty() && (mTimeLimitSeconds == TIME_LIMIT_NOT_SET) && (mCountdownSeconds == COUNTDOWN_NOT_SET) && (mWaveCountdownSeconds == COUNTDOWN_NOT_SET); }
 
     //! \brief The triggers of the script. The caller may change them.
     inline std::vector<LevelScriptTrigger>& getTriggers()
@@ -322,11 +340,54 @@ public:
     //! \brief Replaces all the regions, used by the editor when the server sends them
     void setRegions(const std::vector<LevelScriptRegion>& regions);
 
+    static const int64_t TIME_LIMIT_NOT_SET = -1;
+    static const int64_t TIME_LIMIT_REMOVED = -2;
+
+    //! \brief The time limit set by a script action, as the level second at which it runs out.
+    //! TIME_LIMIT_NOT_SET if no action set one, TIME_LIMIT_REMOVED if an action removed the limit.
+    inline int64_t getTimeLimitSeconds() const
+    { return mTimeLimitSeconds; }
+
+    //! \brief Sets the time limit
+    //! \param seconds The level second at which it runs out, TIME_LIMIT_NOT_SET or TIME_LIMIT_REMOVED
+    inline void setTimeLimitSeconds(int64_t seconds)
+    { mTimeLimitSeconds = seconds; }
+
+    static const int64_t COUNTDOWN_NOT_SET = -1;
+
+    //! \brief The HUD countdown set by a script action, as the level second at which it ends.
+    //! COUNTDOWN_NOT_SET if there is none. Unlike a time limit, running out has no effect.
+    inline int64_t getCountdownSeconds() const
+    { return mCountdownSeconds; }
+
+    //! \brief Sets the HUD countdown
+    //! \param seconds The level second at which it ends, or COUNTDOWN_NOT_SET
+    inline void setCountdownSeconds(int64_t seconds)
+    { mCountdownSeconds = seconds; }
+
+    //! \brief The HUD wave countdown set by a script action, as the level second at which it ends.
+    //! COUNTDOWN_NOT_SET if there is none. Running out has no effect.
+    inline int64_t getWaveCountdownSeconds() const
+    { return mWaveCountdownSeconds; }
+
+    //! \brief Sets the HUD wave countdown
+    //! \param seconds The level second at which it ends, or COUNTDOWN_NOT_SET
+    inline void setWaveCountdownSeconds(int64_t seconds)
+    { mWaveCountdownSeconds = seconds; }
+
+    //! \brief Moves a time limit and a countdown that are set so that it counts from a new level start, which is
+    //! elapsedSeconds later than the current one. Used when a game is saved: the turn counter
+    //! starts at 0 again when it is loaded.
+    void rebaseTimeLimit(int64_t elapsedSeconds);
+
 private:
     std::vector<LevelScriptTrigger> mTriggers;
     std::map<std::string, int64_t> mFlags;
     std::map<std::string, LevelScriptTimer> mTimers;
     std::vector<LevelScriptRegion> mRegions;
+    int64_t mTimeLimitSeconds;
+    int64_t mCountdownSeconds;
+    int64_t mWaveCountdownSeconds;
 };
 
 #endif // LEVELSCRIPT_H

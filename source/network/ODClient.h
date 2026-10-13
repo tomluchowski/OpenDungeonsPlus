@@ -92,6 +92,15 @@ class ODClient: public Ogre::Singleton<ODClient>,
     inline void resume()
     { mGameClock.start(); }
 
+    //! \brief Seconds left until the level is lost, -1 if there is no time limit. A countdown that ends
+    //! without a defeat has GameMap::TIME_LIMIT_COUNTDOWN_FLAG added.
+    inline int32_t getTimeLimitSeconds() const
+    { return mTimeLimitSeconds; }
+
+    //! \brief Seconds left until the next hero wave of a level script, -1 if none is shown
+    inline int32_t getWaveCountdownSeconds() const
+    { return mWaveCountdownSeconds; }
+
     
  protected:
     bool processMessage(ServerNotificationType cmd, ODPacket& packetReceived) override;
@@ -111,6 +120,11 @@ class ODClient: public Ogre::Singleton<ODClient>,
 
     // true if the server told us we are allowed to configure the game. False otherwise
     bool mIsPlayerConfig;
+
+    //! \brief Last time limit received with timeLimit, -1 when there is none
+    int32_t mTimeLimitSeconds;
+    //! \brief Last wave countdown received with timeLimit, -1 when none is shown
+    int32_t mWaveCountdownSeconds;
 
 };
 

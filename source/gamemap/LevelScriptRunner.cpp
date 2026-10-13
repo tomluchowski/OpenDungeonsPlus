@@ -22,6 +22,7 @@
 #include "entities/Tile.h"
 #include "game/Player.h"
 #include "game/Seat.h"
+#include "game/SkillType.h"
 #include "gamemap/GameMap.h"
 #include "gamemap/LevelScript.h"
 #include "goals/Goal.h"
@@ -353,6 +354,32 @@ void revealRegion(GameMap& gameMap, const LevelScript& script, const LevelScript
         player->getSeat()->revealTiles(tiles, REVEAL_REGION_TURNS);
 }
 
+//! \brief A room, trap, door or spell becomes available to the seat, as if it was researched.
+//! A skill the level had forbidden is allowed again.
+void makeSkillAvailable(GameMap& gameMap, const LevelScriptAction& action)
+{
+    SkillType skillType = Skills::fromString(action.mText);
+    if(skillType == SkillType::nullSkillType)
+    {
+        OD_LOG_ERR("Level script: make of unknown skill name=" + action.mText);
+        return;
+    }
+
+    for(Player* player : getTargetPlayers(gameMap, action.mSeatId))
+    {
+        Seat* seat = player->getSeat();
+        if(seat->isSkillDone(skillType))
+            continue;
+
+        // A forbidden skill cannot be queued, so only the forbidden list needs a change
+        const std::vector<SkillType>& notAllowed = seat->getSkillNotAllowed();
+        if(std::find(notAllowed.begin(), notAllowed.end(), skillType) != notAllowed.end())
+            seat->setSkillAvailability(skillType, true, false);
+
+        seat->addSkill(skillType);
+    }
+}
+
 //! \brief Carries out one action of a trigger that fired.
 void runAction(GameMap& gameMap, LevelScript& script, const LevelScriptAction& action)
 {
@@ -396,6 +423,18 @@ void runAction(GameMap& gameMap, LevelScript& script, const LevelScriptAction& a
         }
         case LevelScriptActionType::reveal:
             revealRegion(gameMap, script, action);
+            break;
+        case LevelScriptActionType::make:
+            makeSkillAvailable(gameMap, action);
+            break;
+        case LevelScriptActionType::timeLimit:
+            gameMap.setScriptTimeLimit(action.mNumber);
+            break;
+        case LevelScriptActionType::countdown:
+            gameMap.setScriptCountdown(action.mNumber);
+            break;
+        case LevelScriptActionType::waveCountdown:
+            gameMap.setScriptWaveCountdown(action.mNumber);
             break;
         case LevelScriptActionType::startTimer:
             script.startTimer(action.mText, secondsToTurns(action.mNumber));

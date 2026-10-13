@@ -328,6 +328,30 @@ bool parseAction(const std::string& line, const std::vector<std::string>& t, Lev
         action.mText = t[3];
         return parseInt32(t[2], action.mSeatId);
     }
+    if(type == "make")
+    {
+        action.mType = LevelScriptActionType::make;
+        if(t.size() != 4)
+            return false;
+
+        action.mText = t[3];
+        return parseInt32(t[2], action.mSeatId);
+    }
+    if(type == "timelimit")
+    {
+        action.mType = LevelScriptActionType::timeLimit;
+        return (t.size() == 3) && parseInt(t[2], action.mNumber) && (action.mNumber >= 0);
+    }
+    if(type == "countdown")
+    {
+        action.mType = LevelScriptActionType::countdown;
+        return (t.size() == 3) && parseInt(t[2], action.mNumber) && (action.mNumber >= 0);
+    }
+    if(type == "wavecountdown")
+    {
+        action.mType = LevelScriptActionType::waveCountdown;
+        return (t.size() == 3) && parseInt(t[2], action.mNumber) && (action.mNumber >= 0);
+    }
     if(type == "timer")
     {
         action.mType = LevelScriptActionType::startTimer;
@@ -450,6 +474,18 @@ void writeAction(std::ostream& os, const LevelScriptAction& a)
         case LevelScriptActionType::reveal:
             os << "reveal\t" << a.mSeatId << "\t" << a.mText;
             break;
+        case LevelScriptActionType::make:
+            os << "make\t" << a.mSeatId << "\t" << a.mText;
+            break;
+        case LevelScriptActionType::timeLimit:
+            os << "timelimit\t" << a.mNumber;
+            break;
+        case LevelScriptActionType::countdown:
+            os << "countdown\t" << a.mNumber;
+            break;
+        case LevelScriptActionType::waveCountdown:
+            os << "wavecountdown\t" << a.mNumber;
+            break;
         case LevelScriptActionType::startTimer:
             os << "timer\t" << a.mText << "\t" << a.mNumber;
             break;
@@ -458,6 +494,10 @@ void writeAction(std::ostream& os, const LevelScriptAction& a)
 }
 
 } // namespace
+
+const int64_t LevelScript::TIME_LIMIT_NOT_SET;
+const int64_t LevelScript::TIME_LIMIT_REMOVED;
+const int64_t LevelScript::COUNTDOWN_NOT_SET;
 
 bool LevelScript::importFromStream(std::istream& is)
 {
@@ -514,6 +554,21 @@ bool LevelScript::importFromStream(std::istream& is)
 
             timer.mRunning = (running != 0);
             mTimers[t[1]] = timer;
+        }
+        else if(key == "TimeLimit")
+        {
+            if(inTrigger || (t.size() != 2) || !parseInt(t[1], mTimeLimitSeconds))
+                return false;
+        }
+        else if(key == "Countdown")
+        {
+            if(inTrigger || (t.size() != 2) || !parseInt(t[1], mCountdownSeconds))
+                return false;
+        }
+        else if(key == "WaveCountdown")
+        {
+            if(inTrigger || (t.size() != 2) || !parseInt(t[1], mWaveCountdownSeconds))
+                return false;
         }
         else if(key == "Region")
         {
@@ -597,6 +652,15 @@ void LevelScript::exportToStream(std::ostream& os) const
     for(const std::pair<const std::string, LevelScriptTimer>& timer : mTimers)
         os << "Timer\t" << timer.first << "\t" << (timer.second.mRunning ? 1 : 0) << "\t" << timer.second.mTurns << "\n";
 
+    if(mTimeLimitSeconds != TIME_LIMIT_NOT_SET)
+        os << "TimeLimit\t" << mTimeLimitSeconds << "\n";
+
+    if(mCountdownSeconds != COUNTDOWN_NOT_SET)
+        os << "Countdown\t" << mCountdownSeconds << "\n";
+
+    if(mWaveCountdownSeconds != COUNTDOWN_NOT_SET)
+        os << "WaveCountdown\t" << mWaveCountdownSeconds << "\n";
+
     for(const LevelScriptRegion& region : mRegions)
     {
         os << "Region\t" << region.mName << "\t" << region.mX1 << "\t" << region.mY1
@@ -632,6 +696,21 @@ void LevelScript::clear()
     mFlags.clear();
     mTimers.clear();
     mRegions.clear();
+    mTimeLimitSeconds = TIME_LIMIT_NOT_SET;
+    mCountdownSeconds = COUNTDOWN_NOT_SET;
+    mWaveCountdownSeconds = COUNTDOWN_NOT_SET;
+}
+
+void LevelScript::rebaseTimeLimit(int64_t elapsedSeconds)
+{
+    if(mTimeLimitSeconds >= 0)
+        mTimeLimitSeconds = std::max<int64_t>(0, mTimeLimitSeconds - elapsedSeconds);
+
+    if(mCountdownSeconds >= 0)
+        mCountdownSeconds = std::max<int64_t>(0, mCountdownSeconds - elapsedSeconds);
+
+    if(mWaveCountdownSeconds >= 0)
+        mWaveCountdownSeconds = std::max<int64_t>(0, mWaveCountdownSeconds - elapsedSeconds);
 }
 
 bool LevelScriptRegion::contains(int32_t x, int32_t y) const

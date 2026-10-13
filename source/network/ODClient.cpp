@@ -64,7 +64,9 @@ template<> ODClient* Ogre::Singleton<ODClient>::msSingleton = nullptr;
 
 ODClient::ODClient() :
     ODSocketClient(),
-    mIsPlayerConfig(false)
+    mIsPlayerConfig(false),
+    mTimeLimitSeconds(-1),
+    mWaveCountdownSeconds(-1)
 {
 }
 
@@ -317,6 +319,8 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
         {
             int32_t nbPlayers;
             OD_ASSERT_TRUE(packetReceived >> ODApplication::turnsPerSecond);
+            mTimeLimitSeconds = -1;
+            mWaveCountdownSeconds = -1;
 
             OD_ASSERT_TRUE(packetReceived >> nbPlayers);
             for(int i = 0; i < nbPlayers; ++i)
@@ -1389,6 +1393,21 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
 
             EditorMode* editorMode = static_cast<EditorMode*>(frameListener->getModeManager()->getCurrentMode());
             editorMode->setRegions(regions);
+            break;
+        }
+
+        case ServerNotificationType::timeLimit:
+        {
+            int32_t timeLimitSeconds = -1;
+            int32_t waveCountdownSeconds = -1;
+            if(!(packetReceived >> timeLimitSeconds >> waveCountdownSeconds))
+            {
+                OD_LOG_ERR("Truncated timeLimit packet");
+                break;
+            }
+
+            mTimeLimitSeconds = timeLimitSeconds;
+            mWaveCountdownSeconds = waveCountdownSeconds;
             break;
         }
 

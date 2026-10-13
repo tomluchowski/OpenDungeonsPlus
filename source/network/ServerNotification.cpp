@@ -142,6 +142,8 @@ std::string ServerNotification::typeString(ServerNotificationType type)
             return "editorPortalWaveData";
         case ServerNotificationType::editorRegionData:
             return "editorRegionData";
+        case ServerNotificationType::timeLimit:
+            return "timeLimit";
         default:
             OD_LOG_ERR("Unknown enum for ServerNotificationType="
                 + Helper::toString(static_cast<int>(type)));

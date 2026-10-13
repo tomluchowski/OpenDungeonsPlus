@@ -260,6 +260,11 @@ public:
     //! otherwise
     bool isSkillDone(SkillType type) const;
 
+    //! \brief Sets how a skill is available before the game starts (skirmish Game Settings).
+    //! Not allowed skills cannot be researched, done skills are available from the start and
+    //! the others have to be researched.
+    void setSkillAvailability(SkillType type, bool allowed, bool done);
+
     //! \brief Called when the skill entity reaches its destination. From there, the
     //! skilled thing is available
     //! Returns true if the type was inserted and false otherwise

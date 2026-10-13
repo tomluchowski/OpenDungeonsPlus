@@ -1,5 +1,6 @@
 """Static check that the region marker messages of the level editor are wired end to end."""
 from pathlib import Path
+import re
 
 repo = Path(__file__).resolve().parents[2]
 
@@ -23,7 +24,9 @@ client_enum = client_h.split('};')[0]
 assert client_enum.rstrip().endswith('editorRegionEdit'), 'client message not last'
 assert 'case ClientNotificationType::editorRegionEdit:' in client_cpp
 server_enum = server_h.split('};')[0]
-assert server_enum.rstrip().endswith('editorRegionData'), 'server message not last'
+# timeLimit stays the last server message, editorRegionData sits directly before it
+server_ids = re.findall(r'^\s*([A-Za-z_]\w*)\s*,?\s*(?://.*)?$', server_enum, re.M)
+assert server_ids[-2:] == ['editorRegionData', 'timeLimit'], server_ids[-3:]
 assert 'case ServerNotificationType::editorRegionData:' in server_cpp
 
 # The three operations of the request are named, the editor and the server use the names.

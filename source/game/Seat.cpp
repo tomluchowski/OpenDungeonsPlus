@@ -44,6 +44,7 @@
 #include "utils/LogManager.h"
 #include "utils/Random.h"
 
+#include <algorithm>
 #include <istream>
 #include <ostream>
 
@@ -1441,6 +1442,17 @@ bool Seat::addSkill(SkillType type)
     }
 
     return true;
+}
+
+void Seat::setSkillAvailability(SkillType type, bool allowed, bool done)
+{
+    mSkillDone.erase(std::remove(mSkillDone.begin(), mSkillDone.end(), type), mSkillDone.end());
+    mSkillNotAllowed.erase(std::remove(mSkillNotAllowed.begin(), mSkillNotAllowed.end(), type), mSkillNotAllowed.end());
+    mSkillPending.erase(std::remove(mSkillPending.begin(), mSkillPending.end(), type), mSkillPending.end());
+    if(!allowed)
+        mSkillNotAllowed.push_back(type);
+    else if(done)
+        mSkillDone.push_back(type);
 }
 
 bool Seat::isSkillDone(SkillType type) const

@@ -461,6 +461,33 @@ public:
 
     uint32_t getMaxNumberCreatures(Seat* seat) const;
 
+    //! \brief Called on the server each turn: sends the time limit and the countdowns of the level script to the
+    //! players and makes every keeper lose once a time limit of the level script has run out
+    void checkGameDuration();
+
+    //! \brief Level script action: the time runs out after that many seconds from now, for every
+    //! keeper (0 removes any time limit). Server only.
+    //! \param seconds Level seconds from now until the time is up
+    void setScriptTimeLimit(int64_t seconds);
+
+    //! \brief Level script action: shows a HUD countdown of that many seconds from now. It has no
+    //! effect when it ends (0 removes it). Server only.
+    //! \param seconds Level seconds from now until the countdown ends
+    void setScriptCountdown(int64_t seconds);
+
+    //! \brief Level script action: shows the HUD wave countdown of that many seconds from now. It has no
+    //! effect when it ends (0 removes it). Server only.
+    //! \param seconds Level seconds from now until the wave countdown ends
+    void setScriptWaveCountdown(int64_t seconds);
+
+    //! Added to the seconds that sendTimeLimit sends when they are a countdown, not a time limit
+    static const int32_t TIME_LIMIT_COUNTDOWN_FLAG = 0x40000000;
+
+    //! \brief Tells the human players how many seconds are left (-1: there is no time limit), and the
+    //! wave countdown that checkGameDuration set. Nothing is sent when both are the same as last time.
+    //! \param remainingSeconds Seconds left, with TIME_LIMIT_COUNTDOWN_FLAG added for a countdown
+    void sendTimeLimit(int32_t remainingSeconds);
+
     void logFloodFileTiles();
     void consoleSetCreatureDestination(const std::string& creatureName, int x, int y);
     void consoleToggleCreatureVisualDebug(const std::string& creatureName);
@@ -664,6 +691,15 @@ private:
 
     //! \brief Level triggers and their state (flags, triggers already fired)
     std::unique_ptr<LevelScript> mLevelScript;
+
+    //! \brief True once the end of the time limit has been announced and the keepers have lost
+    bool mGameDurationAnnounced;
+    //! \brief Last remaining time sent to the players, -1 when none was sent or there is no limit
+    int32_t mTimeLimitSentSeconds;
+    //! \brief Last wave countdown sent to the players (with the time limit), -1 when none was sent or none is shown
+    int32_t mWaveCountdownSentSeconds;
+    //! \brief The wave countdown that the next sendTimeLimit sends, -1 when none is shown
+    int32_t mWaveCountdownToSend;
 
     //! \brief Tells whether the map color flood filling is enabled.
     bool mFloodFillEnabled;
