@@ -1110,7 +1110,7 @@ void Gui::arrangeRoomButtons(CEGUI::Window* rooms)
     rooms->getChild("DestroyRoomButton")->hide();
     arrangeActionButtons(rooms, {"DormitoryButton", "HatcheryButton", "LibraryButton", "TrainingHallButton",
         "TreasuryButton", "WorkshopButton", "CasinoButton", "PrisonButton", "WoodenBridgeButton",
-        "TortureButton", "StoneBridgeButton", "CryptButton", "ArenaButton", "GuardRoomButton"});
+        "TortureButton", "StoneBridgeButton", "CryptButton", "ArenaButton", "GuardRoomButton", "PrayerTempleButton"});
 }
 
 void Gui::arrangeTrapButtons(CEGUI::Window* traps)
@@ -1362,6 +1362,7 @@ const std::string Gui::EDITOR_WATER_BUTTON = "MainTabControl/Tiles/WaterButton";
 const std::string Gui::EDITOR_ROCK_BUTTON = "MainTabControl/Tiles/RockButton";
 const std::string Gui::EDITOR_CLAIMED_BUTTON = "MainTabControl/Tiles/ClaimedButton";
 const std::string Gui::EDITOR_GEM_BUTTON = "MainTabControl/Tiles/GemButton";
+const std::string Gui::EDITOR_MANAWELL_BUTTON = "MainTabControl/Tiles/ManaWellButton";
 const std::string Gui::EDITOR_FULLNESS = "HorizontalPipe/FullnessDisplay";
 const std::string Gui::EDITOR_CURSOR_POS = "HorizontalPipe/PositionDisplay";
 const std::string Gui::EDITOR_SEAT_ID = "HorizontalPipe/SeatIdDisplay";

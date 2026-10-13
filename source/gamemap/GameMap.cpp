@@ -1342,6 +1342,10 @@ unsigned long int GameMap::doMiscUpkeep(double timeSinceLastTurn)
         spell->computeVisibleTiles();
     }
 
+    // Tiles revealed by game events (like a tortured creature) stay visible for their number of turns
+    for (Seat* seat : mSeats)
+        seat->applyRevealedTiles();
+
     // Seats that got the whole map revealed (gift box) see every tile
     for (Seat* seat : mSeats)
     {
@@ -1356,9 +1360,6 @@ unsigned long int GameMap::doMiscUpkeep(double timeSinceLastTurn)
             }
         }
     }
-
-    for (Seat* seat : mSeats)
-        seat->applyRevealedTiles();
 
     for (Seat* seat : mSeats)
     {
@@ -1379,6 +1380,20 @@ unsigned long int GameMap::doMiscUpkeep(double timeSinceLastTurn)
     for(GameEntity* ge : activeObjects)
         ge->doUpkeep();
 
+    // Count the mana well tiles owned by each seat. They give extra mana each turn
+    std::map<Seat*, uint32_t> nbManaWellTilesPerSeat;
+    for (int jj = 0; jj < getMapSizeY(); ++jj)
+    {
+        for (int ii = 0; ii < getMapSizeX(); ++ii)
+        {
+            Tile* vaultTile = getTile(ii,jj);
+            if((vaultTile->getType() != TileType::manaWell) || !vaultTile->isClaimed())
+                continue;
+
+            ++nbManaWellTilesPerSeat[vaultTile->getSeat()];
+        }
+    }
+
     // Carry out the upkeep round for each seat. This means recomputing how much gold is
     // available in their treasuries, how much mana they gain/lose during this turn, etc.
     for (Seat* seat : mSeats)
@@ -1393,7 +1408,11 @@ unsigned long int GameMap::doMiscUpkeep(double timeSinceLastTurn)
         {
             seat->getPlayer()->notifyNoMoreDungeonTemple();
         }
-        updateSeatMana(seat, timeSinceLastTurn);
+        uint32_t nbManaWellTiles = 0;
+        std::map<Seat*, uint32_t>::const_iterator itVault = nbManaWellTilesPerSeat.find(seat);
+        if(itVault != nbManaWellTilesPerSeat.end())
+            nbManaWellTiles = itVault->second;
+        updateSeatMana(seat, nbManaWellTiles, timeSinceLastTurn);
         updateSeatAutoWorkers(seat, timeSinceLastTurn);
         updateSeatHeartDefense(seat);
 
@@ -1435,7 +1454,7 @@ unsigned long int GameMap::doMiscUpkeep(double timeSinceLastTurn)
     return timeTaken;
 }
 
-void GameMap::updateSeatMana(Seat* seat, double timeSinceLastTurn)
+void GameMap::updateSeatMana(Seat* seat, uint32_t nbManaWellTiles, double timeSinceLastTurn)
 {
     if (seat->getNbRooms(RoomType::dungeonTemple) == 0)
     {
@@ -1459,7 +1478,9 @@ void GameMap::updateSeatMana(Seat* seat, double timeSinceLastTurn)
     }
 
     // The skirmish mana regeneration setting scales the income, not the worker upkeep
-    seat->mManaIncomePerSecond = manaIncomePerSecond(seat->getNumClaimedTiles(), numHeartTiles)
+    // Each claimed mana well tile adds its bonus on top of the claimed tile income
+    seat->mManaIncomePerSecond = (manaIncomePerSecond(seat->getNumClaimedTiles(), numHeartTiles)
+        + nbManaWellTiles * ConfigManager::getSingleton().getManaWellBonusPerTile())
         * mManaRegenerationPercent / 100.0;
     // The armed traps keep draining mana as well
     double trapUpkeepPerSecond = 0.0;
@@ -2797,6 +2818,7 @@ bool GameMap::doFloodFill(Seat* seat, Tile* tile)
             case TileType::dirt:
             case TileType::gold:
             case TileType::rock:           
+            case TileType::manaWell:
             {
                 hasChanged |= tile->updateFloodFillFromTile(seat, FloodFillType::ground, neigh);
                 hasChanged |= tile->updateFloodFillFromTile(seat, FloodFillType::groundWater, neigh);
@@ -2993,6 +3015,7 @@ void GameMap::enableFloodFill()
                 {
                     if(((tile->getType() == TileType::dirt) ||
                         (tile->getType() == TileType::gold) ||
+                        (tile->getType() == TileType::manaWell) ||
                         (tile->getType() == TileType::rock)) &&
                        (tile->getFloodFillValue(rogueSeat, FloodFillType::ground) == Tile::NO_FLOODFILL))
                     {

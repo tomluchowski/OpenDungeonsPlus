@@ -17,6 +17,7 @@
 
 #include "entities/Creature.h"
 
+#include "ODApplication.h"
 #include "creatureaction/CreatureAction.h"
 #include "creatureaction/CreatureActionClaimGroundTile.h"
 #include "creatureaction/CreatureActionClaimWallTile.h"
@@ -110,6 +111,11 @@
 
 static const Ogre::Real CANNON_MISSILE_HEIGHT = 0.3;
 
+//! \brief Casino mood points lost per second when the room config has no CasinoMoodDecay
+static const double DEFAULT_CASINO_MOOD_DECAY_PER_SECOND = 3.0;
+//! \brief Largest casino mood (positive or negative) when the room config has no CasinoMoodMax
+static const double DEFAULT_CASINO_MOOD_MAX = 1500.0;
+
 const int32_t Creature::NB_TURNS_BEFORE_CHECKING_TASK = 15;
 const uint32_t Creature::NB_OVERLAY_HEALTH_VALUES = 8;
 
@@ -173,10 +179,12 @@ Creature::Creature(GameMap* gameMap, const CreatureDefinition* definition, Seat*
     mWeaponDropDeath         ("none"),
     mStatsWindow             (nullptr),
     mNbTurnsWithoutBattle    (0),
+    mCasinoMood              (0.0),
     mCarriedEntity           (nullptr),
     mMoodCooldownTurns       (0),
     mMoodValue               (gameMap->isServerGameMap() ? CreatureMoodLevel::Neutral : CreatureMoodLevel::Unknown),
     mMoodPoints              (0),
+    mPrayerRelief            (0),
     mNbTurnFurious           (-1),
     mOverlayHealthValue      (0),
     mOverlayMoodValue        (CreatureMoodValues::Nothing),
@@ -258,10 +266,12 @@ Creature::Creature(GameMap* gameMap) :
     mWeaponDropDeath         ("none"),
     mStatsWindow             (nullptr),
     mNbTurnsWithoutBattle    (0),
+    mCasinoMood              (0.0),
     mCarriedEntity           (nullptr),
     mMoodCooldownTurns       (0),
     mMoodValue               (gameMap->isServerGameMap() ? CreatureMoodLevel::Neutral : CreatureMoodLevel::Unknown),
     mMoodPoints              (0),
+    mPrayerRelief            (0),
     mNbTurnFurious           (-1),
     mOverlayHealthValue      (0),
     mOverlayMoodValue        (0),
@@ -1044,6 +1054,14 @@ void Creature::doUpkeep()
     mVisibleAlliedObjects        = getVisibleAlliedObjects();
     mReachableAlliedObjects      = getReachableAttackableObjects(mVisibleAlliedObjects);
 
+    // The relief from praying fades
+    if(mPrayerRelief > 0)
+    {
+        mPrayerRelief -= ConfigManager::getSingleton().getRoomConfigInt32("TemplePrayerReliefDecayPerTurn");
+        if(mPrayerRelief < 0)
+            mPrayerRelief = 0;
+    }
+
     // Check if we should compute mood
     if(mMoodCooldownTurns > 0)
     {
@@ -1080,6 +1098,17 @@ void Creature::doUpkeep()
     }
 
     ++mNbTurnsWithoutBattle;
+
+    // The casino mood fades towards 0
+    if(mCasinoMood != 0.0)
+    {
+        double decay = ConfigManager::getSingleton().getRoomConfigDoubleOrDefault("CasinoMoodDecay", DEFAULT_CASINO_MOOD_DECAY_PER_SECOND)
+            / ODApplication::turnsPerSecond;
+        if(mCasinoMood > 0.0)
+            mCasinoMood = std::max(0.0, mCasinoMood - decay);
+        else
+            mCasinoMood = std::min(0.0, mCasinoMood + decay);
+    }
 
     bool isWarmUp = false;
     // We use creature skills if we can
@@ -3211,6 +3240,17 @@ void Creature::decreaseWakefulness(double value)
     mWakefulness = std::max(0.0, mWakefulness - value);
 }
 
+void Creature::addCasinoMood(double points)
+{
+    double maxPoints = ConfigManager::getSingleton().getRoomConfigDoubleOrDefault("CasinoMoodMax", DEFAULT_CASINO_MOOD_MAX);
+    mCasinoMood = std::max(-maxPoints, std::min(maxPoints, mCasinoMood + points));
+}
+
+void Creature::addPrayerRelief(int32_t relief, int32_t maxRelief)
+{
+    mPrayerRelief = std::min(mPrayerRelief + relief, maxRelief);
+}
+
 void Creature::computeMood()
 {
     mMoodPoints = CreatureMoodManager::computeCreatureMoodModifiers(*this);
@@ -3625,11 +3665,13 @@ void Creature::changeSeat(Seat* newSeat)
     setSeat(newSeat);
     mMoodValue = CreatureMoodLevel::Neutral;
     mMoodPoints = 0;
+    mPrayerRelief = 0;
     mWakefulness = 100;
     mHunger = 0;
     mNbTurnsTorture = 0;
     mNbTurnsPrison = 0;
     mActiveSlapsCount = 0;
+    mCasinoMood = 0.0;
     clearDestinations(EntityAnimation::idle_anim, true, true);
     clearActionQueue();
     mNeedFireRefresh = true;

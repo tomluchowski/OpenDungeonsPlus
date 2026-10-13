@@ -480,6 +480,13 @@ public:
     inline void setNbTurnsWithoutBattle(int32_t nbTurnsWithoutBattle)
     { mNbTurnsWithoutBattle = nbTurnsWithoutBattle; }
 
+    //! \brief Mood points the casino gave to the creature (positive) or took from it (negative). Fades over time
+    inline double getCasinoMood() const
+    { return mCasinoMood; }
+
+    //! \brief Changes the casino mood points. They are limited by the CasinoMoodMax room setting
+    void addCasinoMood(double points);
+
     inline GameEntity* getCarriedEntity() const
     { return mCarriedEntity; }
 
@@ -559,6 +566,13 @@ public:
 
     inline bool isInContainment() const
     { return (mSeatPrison != nullptr); }
+
+    //! \brief Mood relief the creature got from praying in a temple. It fades over time
+    inline int32_t getPrayerRelief() const
+    { return mPrayerRelief; }
+
+    //! \brief Adds relief from praying, up to maxRelief
+    void addPrayerRelief(int32_t relief, int32_t maxRelief);
 
     inline int32_t getNbTurnsTorture() const
     { return mNbTurnsTorture; }
@@ -714,6 +728,9 @@ private:
     CEGUI::Window*  mStatsWindow;
     int32_t         mNbTurnsWithoutBattle;
 
+    //! \brief Used on server side for the mood. Set by the casino, fades by CasinoMoodDecay per second
+    double          mCasinoMood;
+
     //! \brief Every tiles within the creature sight radius, used for common actions.
     std::vector<Tile*>              mTilesWithinSightRadius;
 
@@ -743,6 +760,9 @@ private:
     //! \brief Mood points. Computed by the creature MoodModifiers. It is promoted to class variable for debug purposes and
     //! should not be used to check mood. If the mood is to be tested, mMoodValue should be used
     int32_t                         mMoodPoints;
+
+    //! \brief Mood points gained by praying in a temple. They fade every turn
+    int32_t                         mPrayerRelief;
 
     //! \brief Counts turns the creature is furious. If it stays like this for too long, it will become rogue
     int32_t                         mNbTurnFurious;

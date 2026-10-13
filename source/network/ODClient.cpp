@@ -215,6 +215,15 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
                 tile->setType(TileType::lava);
                 tile->setTileVisualIfArgNotNull(TileVisual::lavaGround);
             }
+            // Mana well
+            OD_ASSERT_TRUE(packetReceived >> nb);
+            while(nb > 0)
+            {
+                --nb;
+                Tile* tile = gameMap->tileFromPacket(packetReceived);
+                tile->setType(TileType::manaWell);
+                tile->setTileVisualIfArgNotNull(TileVisual::manaWellGround);
+            }
 
             
             gameMap->setAllFullnessAndNeighbors();
@@ -1599,6 +1608,23 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
 
             break;
 
+        }
+
+        case ServerNotificationType::casinoPayout:
+        {
+            if(frameListener->getModeManager()->getCurrentModeType() != ModeManager::ModeType::GAME)
+            {
+                OD_LOG_ERR("Wrong mode " + Helper::toString(frameListener->getModeManager()->getCurrentModeType()));
+                break;
+            }
+            int xx = 0;
+            int yy = 0;
+            uint32_t level = 0;
+            OD_ASSERT_TRUE(packetReceived >> xx >> yy >> level);
+
+            GameMode* gameMode = static_cast<GameMode*>(frameListener->getModeManager()->getCurrentMode());
+            gameMode->setCasinoPayoutShown(xx, yy, level);
+            break;
         }
 
         case ServerNotificationType::editorPortalWaveData:

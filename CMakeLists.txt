@@ -461,6 +461,7 @@ set(OD_SOURCEFILES
     ${SRC}/rooms/RoomPrison.cpp
     ${SRC}/rooms/RoomTorture.cpp
     ${SRC}/rooms/RoomGuardRoom.cpp
+    ${SRC}/rooms/RoomTemple.cpp
     ${SRC}/rooms/RoomTrainingHall.cpp
     ${SRC}/rooms/RoomTreasury.cpp
     ${SRC}/rooms/RoomType.cpp

@@ -79,6 +79,8 @@ std::string ClientNotification::typeString(ClientNotificationType type)
             return "askSetSkillTree";
         case ClientNotificationType::askSetPlayerSettings:
             return "askSetPlayerSettings";
+        case ClientNotificationType::askCasinoPayout:
+            return "askCasinoPayout";
         case ClientNotificationType::askSaveMap:
             return "askSaveMap";
         case ClientNotificationType::askExecuteConsoleCommand:

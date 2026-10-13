@@ -143,6 +143,7 @@ bool Tile::isDiggable(const Seat* seat) const
         case TileVisual::casinoRoom:
         case TileVisual::tortureRoom:        
         case TileVisual::guardRoom:
+        case TileVisual::templeRoom:
         case TileVisual::claimedGround:
         case TileVisual::dirtGround:
         case TileVisual::goldGround:
@@ -150,6 +151,7 @@ bool Tile::isDiggable(const Seat* seat) const
         case TileVisual::waterGround:
         case TileVisual::rockGround:
         case TileVisual::gemGround:
+        case TileVisual::manaWellGround:
         case TileVisual::rockFull:
             return false;
         case TileVisual::goldFull:
@@ -351,6 +353,10 @@ std::string Tile::tileTypeToString(TileType t)
 
         case TileType::gem:
             return "Gem";
+
+        case TileType::manaWell:
+            return "ManaWell";
+
         default:
             return "Unknown tile type=" + Helper::toString(static_cast<uint32_t>(t));
     }
@@ -395,6 +401,9 @@ std::string Tile::tileVisualToString(TileVisual tileVisual)
 
         case TileVisual::gemFull:
             return "gemFull";
+
+        case TileVisual::manaWellGround:
+            return "manaWellGround";
 
         case TileVisual::claimedFull:
             return "claimedFull";
@@ -443,6 +452,9 @@ std::string Tile::tileVisualToString(TileVisual tileVisual)
 
         case TileVisual::guardRoom:
             return "guardRoom";
+
+        case TileVisual::templeRoom:
+            return "templeRoom";
   
             
         default:
@@ -615,6 +627,7 @@ bool Tile::isFloodFillPossible(Seat* seat, FloodFillType type) const
         case TileType::dirt:
         case TileType::gold:
         case TileType::rock:
+        case TileType::manaWell:
         {
             switch(type)
             {
@@ -837,6 +850,7 @@ bool Tile::isClaimed() const
             case TileVisual::casinoRoom:
             case TileVisual::tortureRoom:  
             case TileVisual::guardRoom:
+            case TileVisual::templeRoom:
                 return true;
         }
         
@@ -975,6 +989,9 @@ void Tile::computeTileVisual()
                            case RoomType::guardRoom:
                                mTileVisual = TileVisual::guardRoom;
                                return;
+                           case RoomType::temple:
+                               mTileVisual = TileVisual::templeRoom;
+                               return;
                            default:
                                OD_LOG_ERR("Computing tile visual for unknown room type tile=" + Tile::displayAsString(this) + ", TileType=" + roomTypeToString(getCoveringRoom()->getType()));
                                mTileVisual = TileVisual::nullTileVisual;
@@ -1054,6 +1071,9 @@ void Tile::computeTileVisual()
                            case RoomType::guardRoom:
                                mTileVisual = TileVisual::guardRoom;
                                return;
+                           case RoomType::temple:
+                               mTileVisual = TileVisual::templeRoom;
+                               return;
                            default:
                                OD_LOG_ERR("Computing tile visual for unknown room type tile=" + Tile::displayAsString(this) + ", TileType=" + roomTypeToString(getCoveringRoom()->getType()));
                                mTileVisual = TileVisual::nullTileVisual;
@@ -1077,6 +1097,14 @@ void Tile::computeTileVisual()
                 mTileVisual = TileVisual::gemFull;
             else
                 mTileVisual = TileVisual::gemGround;
+            return;
+
+        case TileType::manaWell:
+            // A mana well is always ground. Once claimed, it looks like any claimed ground
+            if(isClaimed())
+                mTileVisual = TileVisual::claimedGround;
+            else
+                mTileVisual = TileVisual::manaWellGround;
             return;
             
         default:
@@ -1195,6 +1223,9 @@ bool Tile::isBuildableUpon(Seat* seat) const
         return false;
     if(getIsBuilding())
         return false;
+    // Nothing can be built on a mana well
+    if(mType == TileType::manaWell)
+        return false;
     if(!isClaimedForSeat(seat))
         return false;
 
@@ -1280,7 +1311,7 @@ bool Tile::isGroundClaimable(Seat* seat) const
     if(getCoveringBuilding() != nullptr)
         return getCoveringBuilding()->isClaimable(seat);
 
-    if(mType != TileType::dirt && mType != TileType::gold)
+    if(mType != TileType::dirt && mType != TileType::gold && mType != TileType::manaWell)
         return false;
 
     if(isClaimedForSeat(seat))
@@ -1393,6 +1424,7 @@ void Tile::loadFromLine(const std::string& line, Tile *t)
     {
         case TileType::water:
         case TileType::lava:
+        case TileType::manaWell:
             fullness = 0.0;
             break;
 
@@ -1406,7 +1438,7 @@ void Tile::loadFromLine(const std::string& line, Tile *t)
     // We allow to set seat if the tile is dirt (full or not) or if it is gold (ground only)
     if(elems.size() >= 5)
     {
-        if(tileType == TileType::dirt)
+        if((tileType == TileType::dirt) || (tileType == TileType::manaWell))
         {
             shouldSetSeat = true;
         }
@@ -2146,9 +2178,11 @@ double Tile::getCreatureSpeedDefault(const Creature* creature) const
         case TileVisual::casinoRoom:
         case TileVisual::tortureRoom:        
         case TileVisual::guardRoom:
+        case TileVisual::templeRoom:
         case TileVisual::dirtGround:
         case TileVisual::goldGround:
         case TileVisual::rockGround:
+        case TileVisual::manaWellGround:
         case TileVisual::claimedGround:
             return creature->getMoveSpeedGround();
         case TileVisual::waterGround:

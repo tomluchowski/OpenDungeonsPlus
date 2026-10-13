@@ -41,6 +41,7 @@
 #include "network/ServerMode.h"
 #include "network/ServerNotification.h"
 #include "rooms/Room.h"
+#include "rooms/RoomCasino.h"
 #include "rooms/RoomDungeonTemple.h"
 #include "rooms/RoomManager.h"
 #include "rooms/RoomPortalWave.h"
@@ -914,6 +915,7 @@ bool ODServer::processClientNotifications(ODSocketClient* clientSocket)
             std::vector<Tile*> gemTiles;
             std::vector<Tile*> waterTiles;
             std::vector<Tile*> lavaTiles;
+            std::vector<Tile*> manaWellTiles;
             
             for (int xxx = 0; xxx < mapSizeX; ++xxx)
             {
@@ -936,6 +938,9 @@ bool ODServer::processClientNotifications(ODSocketClient* clientSocket)
                             break;
                         case TileType::lava:
                             lavaTiles.push_back(tile);
+                            break;
+                        case TileType::manaWell:
+                            manaWellTiles.push_back(tile);
                             break;
                             
                         default:
@@ -974,6 +979,12 @@ bool ODServer::processClientNotifications(ODSocketClient* clientSocket)
             nb = lavaTiles.size();
             packet << nb;
             for(Tile* tile : lavaTiles)
+            {
+                gameMap->tileToPacket(packet, tile);
+            }
+            nb = manaWellTiles.size();
+            packet << nb;
+            for(Tile* tile : manaWellTiles)
             {
                 gameMap->tileToPacket(packet, tile);
             }
@@ -2889,6 +2900,39 @@ bool ODServer::processClientNotifications(ODSocketClient* clientSocket)
         }
 
         
+        case ClientNotificationType::askCasinoPayout:
+        {
+            Player* player = clientSocket->getPlayer();
+            if(player == nullptr)
+                break;
+
+            int xx = 0;
+            int yy = 0;
+            uint32_t level = 0;
+            bool isSet = false;
+            OD_ASSERT_TRUE(packetReceived >> xx >> yy >> level >> isSet);
+            Tile* tile = gameMap->getTile(xx, yy);
+            if(tile == nullptr)
+                break;
+
+            Room* room = tile->getCoveringRoom();
+            if((room == nullptr) || (room->getType() != RoomType::casino))
+                break;
+
+            // Only the owner of the casino can set the payout
+            if(room->getSeat() != player->getSeat())
+                break;
+
+            RoomCasino* roomCasino = static_cast<RoomCasino*>(room);
+            if(isSet && (level < static_cast<uint32_t>(CasinoPayout::nbValues)))
+                roomCasino->setPayout(static_cast<CasinoPayout>(level));
+
+            ServerNotification notif(ServerNotificationType::casinoPayout, player);
+            notif.mPacket << xx << yy << static_cast<uint32_t>(roomCasino->getPayout());
+            sendAsyncMsg(notif);
+            break;
+        }
+
         case ClientNotificationType::askExecuteConsoleCommand:
         {
             uint32_t nbArgs;

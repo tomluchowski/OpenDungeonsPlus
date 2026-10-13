@@ -584,6 +584,15 @@ SkillManager::SkillManager() :
     def->mapSkill(mSkillsFamily);
     mSkills[index] = def;
     lvl4depends.push_back(skill);
+
+    resType = SkillType::roomTemple;
+    index = static_cast<uint32_t>(resType);
+    points = ConfigManager::getSingleton().getSkillPoints(Skills::toString(resType));
+    skill = new Skill(resType, points, lvl3depends);
+    def = new SkillDefRoom("MagicSkills/", "PrayerTempleButton", skill, RoomType::temple);
+    def->mapSkill(mSkillsFamily);
+    mSkills[index] = def;
+    lvl4depends.push_back(skill);
 }
 
 SkillManager::~SkillManager()
@@ -756,8 +765,9 @@ std::string SkillManager::getResearchDescription(SkillType type, uint32_t level)
         case SkillType::roomPrison: return "New converted creatures start at level " + value(1) + ".";
         case SkillType::roomArena: return "Arena training cap: level " + value(config.getRoomConfigUInt32("ArenaMaxTrainingLevel")) + ".";
         case SkillType::roomCasino: return "Keeper share of bets: " + value(config.getRoomConfigDouble("CasinoFee") * 100) + "%.";
-        case SkillType::roomTorture: return "Conversion chance per session: " + value(config.getRoomConfigDouble("TortureRallyPercent") * 100) + "%.";
+        case SkillType::roomTorture: return "Conversion speed: x" + value(1) + ".";
         case SkillType::roomGuardRoom: return "Wakefulness cost per duty turn: " + room("GuardRoomWakefulnessPerDuty") + ".";
+        case SkillType::roomTemple: return "Default prayer mana per second: " + room("TemplePrayerManaPerSecond") + "; most creature types have their own value.";
         case SkillType::trapDoorWooden: return "Door health: " + value(10) + ".";
         case SkillType::trapCannon:
         case SkillType::trapSpike:

@@ -292,6 +292,11 @@ void MiniMap::updateMapOverlay(CEGUI::Window* window, GameMap& map,
     window->invalidate();
 }
 
+//! \brief Minimap colour channels (0 to 1) of a mana well ground tile (blue).
+static const float MANA_WELL_COLOUR_RED = 0.18f;
+static const float MANA_WELL_COLOUR_GREEN = 0.37f;
+static const float MANA_WELL_COLOUR_BLUE = 0.78f;
+
 MiniMap::TileColour MiniMap::colourFromTile(Tile& tile, Seat& playerSeat, unsigned int phase)
 {
     TileColour result;
@@ -300,7 +305,9 @@ MiniMap::TileColour MiniMap::colourFromTile(Tile& tile, Seat& playerSeat, unsign
 
     const TileVisual visual = tile.getTileVisual();
     Seat* owner = tile.getSeat();
-    const bool room = visual >= TileVisual::dungeonTempleRoom && visual < TileVisual::countTileVisual;
+    // The mana well ground lies inside the room visual range but is not a room
+    const bool room = visual >= TileVisual::dungeonTempleRoom && visual < TileVisual::countTileVisual &&
+        visual != TileVisual::manaWellGround;
     result.priority = 1;
     if(room || visual == TileVisual::claimedGround || visual == TileVisual::claimedFull)
     {
@@ -351,6 +358,11 @@ MiniMap::TileColour MiniMap::colourFromTile(Tile& tile, Seat& playerSeat, unsign
                 break;
             case TileVisual::lavaGround:
                 result.colour = Ogre::ColourValue(0.72f, 0.30f, 0.15f);
+                result.priority = 2;
+                break;
+            case TileVisual::manaWellGround:
+                result.colour = Ogre::ColourValue(MANA_WELL_COLOUR_RED, MANA_WELL_COLOUR_GREEN,
+                    MANA_WELL_COLOUR_BLUE);
                 result.priority = 2;
                 break;
             default:
