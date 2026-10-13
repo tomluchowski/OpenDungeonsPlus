@@ -47,6 +47,9 @@ public:
     //! \brief Change the text color
     void setColor(const std::string& ID, const Ogre::ColourValue& color);
 
+    //! \brief Change the character height (in pixels) of an existing text box
+    void setCharacterHeight(const std::string& ID, Ogre::Real height);
+
     void moveText(const std::string& ID, Ogre::Real left, Ogre::Real top);
 
 private:
