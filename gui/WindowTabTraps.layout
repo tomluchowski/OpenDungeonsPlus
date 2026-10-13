@@ -45,9 +45,30 @@
             <Property name="Visible" value="False" />
         </Window>
         <Window type="OD/GameTabButton" name="AlarmTrapButton" >
-            <Property name="Area" value="{{0,300},{0,6},{0,352},{0,58}}" />
+            <Property name="Area" value="{{0,520},{0,25},{0,580},{0,85}}" />
             <Property name="NormalImage" value="OpenDungeonsIcons/AlarmTrapButton" />
             <Property name="TooltipText" value="Build an alarm trap" />
+            <Property name="InheritsAlpha" value="False" />
+            <Property name="Visible" value="False" />
+        </Window>
+        <Window type="OD/GameTabButton" name="GasTrapButton" >
+            <Property name="Area" value="{{0,640},{0,25},{0,700},{0,85}}" />
+            <Property name="NormalImage" value="OpenDungeonsIcons/GasTrapButton" />
+            <Property name="TooltipText" value="Build a gas trap" />
+            <Property name="InheritsAlpha" value="False" />
+            <Property name="Visible" value="False" />
+        </Window>
+        <Window type="OD/GameTabButton" name="LightningTrapButton" >
+            <Property name="Area" value="{{0,700},{0,25},{0,760},{0,85}}" />
+            <Property name="NormalImage" value="OpenDungeonsIcons/LightningTrapButton" />
+            <Property name="TooltipText" value="Build a lightning trap" />
+            <Property name="InheritsAlpha" value="False" />
+            <Property name="Visible" value="False" />
+        </Window>
+        <Window type="OD/GameTabButton" name="FireburstTrapButton" >
+            <Property name="Area" value="{{0,760},{0,25},{0,820},{0,85}}" />
+            <Property name="NormalImage" value="OpenDungeonsIcons/FireburstTrapButton" />
+            <Property name="TooltipText" value="Build a fireburst trap" />
             <Property name="InheritsAlpha" value="False" />
             <Property name="Visible" value="False" />
         </Window>

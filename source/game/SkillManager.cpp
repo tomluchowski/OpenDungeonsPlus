@@ -527,6 +527,34 @@ SkillManager::SkillManager() :
     mSkills[index] = def;
     lvl4depends.push_back(skill);
 
+    resType = SkillType::trapGas;
+    index = static_cast<uint32_t>(resType);
+    points = ConfigManager::getSingleton().getSkillPoints(Skills::toString(resType));
+    skill = new Skill(resType, points, lvl3depends);
+    def = new SkillDefTrap("TacticSkills/", "GasTrapButton", skill, TrapType::gas);
+    def->mapSkill(mSkillsFamily);
+    mSkills[index] = def;
+
+    // Lvl 5 research
+    resType = SkillType::trapLightning;
+    index = static_cast<uint32_t>(resType);
+    points = ConfigManager::getSingleton().getSkillPoints(Skills::toString(resType));
+    skill = new Skill(resType, points, lvl4depends);
+    def = new SkillDefTrap("TacticSkills/", "LightningTrapButton", skill, TrapType::lightning);
+    def->mapSkill(mSkillsFamily);
+    mSkills[index] = def;
+    std::vector<const Skill*> lvl5depends;
+    lvl5depends.push_back(skill);
+
+    // Lvl 6 research
+    resType = SkillType::trapFireburst;
+    index = static_cast<uint32_t>(resType);
+    points = ConfigManager::getSingleton().getSkillPoints(Skills::toString(resType));
+    skill = new Skill(resType, points, lvl5depends);
+    def = new SkillDefTrap("TacticSkills/", "FireburstTrapButton", skill, TrapType::fireburst);
+    def->mapSkill(mSkillsFamily);
+    mSkills[index] = def;
+
     resType = SkillType::spellDefector;
     index = static_cast<uint32_t>(resType);
     points = ConfigManager::getSingleton().getSkillPoints(Skills::toString(resType));
@@ -880,6 +908,13 @@ std::string SkillManager::getResearchDescription(SkillType type, uint32_t level)
         case SkillType::roomTemple: return "Default prayer mana per second: " + room("TemplePrayerManaPerSecond") + "; most creature types have their own value.";
         case SkillType::trapDoorWooden: return "Door health: " + value(10) + ".";
         case SkillType::trapAlarm: return "Reload time: " + value(config.getTrapConfigDouble("AlarmReloadTurns")) + " turns.";
+        case SkillType::trapGas: return "Damage: " + value(config.getTrapConfigDouble("GasDamagePerHitMin")) +
+            " to every creature nearby (radius " + value(config.getTrapConfigDouble("GasRadius")) + ").";
+        case SkillType::trapLightning: return "Damage: " + value(config.getTrapConfigDouble("LightningDamagePerHitMin")) +
+            " to one enemy within " + value(config.getTrapConfigDouble("LightningRange")) + " tiles, stunned for " +
+            value(config.getTrapConfigDouble("LightningStunTurns")) + " turns.";
+        case SkillType::trapFireburst: return "Damage: " + value(config.getTrapConfigDouble("FireburstDamagePerHitMin")) +
+            " to every creature nearby (radius " + value(config.getTrapConfigDouble("FireburstRadius")) + ").";
         case SkillType::trapCannon:
         case SkillType::trapSpike:
         case SkillType::trapBoulder:

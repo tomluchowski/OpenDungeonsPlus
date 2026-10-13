@@ -357,10 +357,61 @@
                     </Window>
                 </Window>
                 <Window type="OD/ImageButton" name="AlarmTrapButton" >
-                    <Property name="Area" value="{{0.8,-25},{0,195},{0.8,25},{0,245}}" />
+                    <Property name="Area" value="{{0.11,-25},{0,195},{0.11,25},{0,245}}" />
                     <Property name="ButtonImage" value="OpenDungeonsIcons/AlarmTrapButton" />
                     <Property name="TooltipText" value="Trap: Alarm trap" />
                     <Window type="OD/ProgressBar" name="AlarmTrapButtonProgressBar" >
+                        <Property name="Area" value="{{0.0,-20},{0.0,0},{1.0,20},{1.0,0}}" />
+                        <Property name="InheritsTooltipText" value="True" />
+                        <Property name="CurrentProgress" value="0.0" />
+                        <Property name="MousePassThroughEnabled" value="True" />
+                        <Property name="StepSize" value="0.1" />
+                        <Property name="Visible" value="False" />
+                        <Property name="VerticalProgress" value="True" />
+                        <Property name="Alpha" value="0.2" />
+                        <Property name="ProgressImage" value="OpenDungeonsSkin/SelectionBrush" />
+                        <Property name="ReversedProgress" value="True" />
+                    </Window>
+                </Window>
+                <Window type="OD/ImageButton" name="GasTrapButton" >
+                    <Property name="Area" value="{{0.734,-25},{0,195},{0.734,25},{0,245}}" />
+                    <Property name="ButtonImage" value="OpenDungeonsIcons/GasTrapButton" />
+                    <Property name="TooltipText" value="Trap: Gas trap" />
+                    <Window type="OD/ProgressBar" name="GasTrapButtonProgressBar" >
+                        <Property name="Area" value="{{0.0,-20},{0.0,0},{1.0,20},{1.0,0}}" />
+                        <Property name="InheritsTooltipText" value="True" />
+                        <Property name="CurrentProgress" value="0.0" />
+                        <Property name="MousePassThroughEnabled" value="True" />
+                        <Property name="StepSize" value="0.1" />
+                        <Property name="Visible" value="False" />
+                        <Property name="VerticalProgress" value="True" />
+                        <Property name="Alpha" value="0.2" />
+                        <Property name="ProgressImage" value="OpenDungeonsSkin/SelectionBrush" />
+                        <Property name="ReversedProgress" value="True" />
+                    </Window>
+                </Window>
+                <Window type="OD/ImageButton" name="LightningTrapButton" >
+                    <Property name="Area" value="{{0.5,-25},{0,255},{0.5,25},{0,305}}" />
+                    <Property name="ButtonImage" value="OpenDungeonsIcons/LightningTrapButton" />
+                    <Property name="TooltipText" value="Trap: Lightning trap" />
+                    <Window type="OD/ProgressBar" name="LightningTrapButtonProgressBar" >
+                        <Property name="Area" value="{{0.0,-20},{0.0,0},{1.0,20},{1.0,0}}" />
+                        <Property name="InheritsTooltipText" value="True" />
+                        <Property name="CurrentProgress" value="0.0" />
+                        <Property name="MousePassThroughEnabled" value="True" />
+                        <Property name="StepSize" value="0.1" />
+                        <Property name="Visible" value="False" />
+                        <Property name="VerticalProgress" value="True" />
+                        <Property name="Alpha" value="0.2" />
+                        <Property name="ProgressImage" value="OpenDungeonsSkin/SelectionBrush" />
+                        <Property name="ReversedProgress" value="True" />
+                    </Window>
+                </Window>
+                <Window type="OD/ImageButton" name="FireburstTrapButton" >
+                    <Property name="Area" value="{{0.5,-25},{0,315},{0.5,25},{0,365}}" />
+                    <Property name="ButtonImage" value="OpenDungeonsIcons/FireburstTrapButton" />
+                    <Property name="TooltipText" value="Trap: Fireburst trap" />
+                    <Window type="OD/ProgressBar" name="FireburstTrapButtonProgressBar" >
                         <Property name="Area" value="{{0.0,-20},{0.0,0},{1.0,20},{1.0,0}}" />
                         <Property name="InheritsTooltipText" value="True" />
                         <Property name="CurrentProgress" value="0.0" />
