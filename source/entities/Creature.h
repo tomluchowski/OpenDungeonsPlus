@@ -195,10 +195,17 @@ public:
 
     CreatureActivity getActivity() const;
 
+    //! \brief Experience gathered towards the next level, between 0 and 1 (1 at the maximum level)
     double getExperienceProgress() const;
+    //! \brief Turns left until the creature can attack again
     uint32_t getAttackRecoveryTurns() const { return mAttackRecoveryTurns; }
+    //! \brief Turns the recovery after the last attack lasts in total
     uint32_t getAttackRecoveryDuration() const { return mAttackRecoveryDuration; }
+    //! \brief Counter increased at every attack, so that a client can tell two attacks with the same
+    //! remaining turns apart
     uint32_t getAttackRecoverySerial() const { return mAttackRecoverySerial; }
+    //! \brief Whether experience and attack recovery were received from the server. Only a client sets it,
+    //! and only if the server sent them.
     bool hasProgressInformation() const { return mHasProgressInformation; }
 
     inline int32_t getNbTurnFurious() const
@@ -212,9 +219,11 @@ public:
     inline int32_t getNbTurnsOutOfWork() const
     { return mNbTurnsOutOfWork; }
 
+    //! \brief Counts one more turn in which the creature wanted to work but found no job
     inline void increaseNbTurnsOutOfWork()
     { ++mNbTurnsOutOfWork; }
 
+    //! \brief Forgets the turns without a job, called when the creature works again
     inline void resetNbTurnsOutOfWork()
     { mNbTurnsOutOfWork = 0; }
 
@@ -953,7 +962,9 @@ private:
     void importMoodFromPacket(ODPacket& is);
     void exportActivityToPacket(ODPacket& os, const Seat* seat) const;
     void importActivityFromPacket(ODPacket& is);
+    //! \brief Writes the experience progress and the attack recovery of the creature to the packet
     void exportProgressToPacket(ODPacket& os, const Seat* seat) const;
+    //! \brief Reads the experience progress and the attack recovery written by exportProgressToPacket
     void importProgressFromPacket(ODPacket& is);
 
     void computeCreatureOverlayMoodValue();
