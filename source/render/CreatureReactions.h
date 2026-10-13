@@ -397,6 +397,19 @@ private:
     bool findRoomTile(const Creature* creature, const std::string& roomName, Ogre::Vector3& point) const;
     //! \brief The point the variant turns to (wall, neighbour or room), false if the variant has none or it is not there
     bool findLookTarget(const Creature* creature, const ReactionVariant& variant, Ogre::Vector3& point) const;
+    //! \brief A short meeting of two creatures close by (chat, sparring, a wave, a grumble in the corridor). Nothing
+    //! is stored: it is a dice throw now and then, over the creatures that are looked at for their moods.
+    void examineInteraction(Creature* creature, bool idle, bool moving);
+    //! \brief The first creature shows its event and the second one answers after a moment
+    bool startMeeting(Creature* first, const std::string& firstEvent, Creature* second, const std::string& secondEvent,
+        double secondDelay);
+    //! \brief True if the creature stands still and plays its idle animation, and is free for a meeting
+    bool isFreeAndIdle(Creature* creature);
+    //! \brief True if the creature belongs to the group of the configuration
+    bool isInGroup(const Creature* creature, const std::string& group) const;
+    //! \brief True if the two creatures walk towards each other
+    static bool areFacingEachOther(const Creature* first, const Creature* second);
+
     //! \brief Another idle creature close by shows the event a moment later (the yawn that spreads)
     //! \param creature The creature that shows the event first
     //! \param eventName The event the neighbours show
@@ -495,6 +508,8 @@ private:
     double mSlapTime;
     //! Time a creature was slapped last ("creature" -> mTime)
     std::map<std::string, double> mSlappedAt;
+    //! Time before which no new meeting of two creatures starts
+    double mNextInteraction;
 
     //! Time before which a creature may not show a reaction of a kind again ("creature|event")
     std::map<std::string, double> mCooldownEnd;

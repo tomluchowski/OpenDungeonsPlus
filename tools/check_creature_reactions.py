@@ -21,7 +21,8 @@ ROOMS = ("Hatchery", "Treasury", "Portal", "Dormitory", "Library", "Workshop", "
          "Arena", "Temple", "Casino", "GuardRoom", "Crypt", "DungeonTemple")
 SETTINGS = ("MaxSimultaneous", "MaxCameraDistance", "GroupStaggerMin", "GroupStaggerMax", "DefaultGroup",
             "MoodInterval", "MoodPerTick", "MoodWalkingChance", "ImpatientAfter", "ProudSeconds", "BoredAfter",
-            "AmbientAfter", "SitAfter", "LieAfter", "LookRadius")
+            "AmbientAfter", "SitAfter", "LieAfter", "LookRadius", "InteractionChance", "InteractionRadius",
+            "InteractionPause")
 EVENT_KEYS = ("Name", "Priority", "Cooldown", "Probability", "GroupMax", "WhileWorking", "InHand", "Dying")
 VARIANT_KEYS = ("Name", "Weight", "Clip", "Fallback", "Emote", "Effect", "Motion", "Cooldown", "Probability",
                 "Creatures", "Groups", "Jobs", "RequiresSleepNeed", "RequiresWall", "RequiresNeighbour", "LookAtRoom",

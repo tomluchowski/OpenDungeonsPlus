@@ -65,6 +65,9 @@ CreatureReactionConfig::CreatureReactionConfig() :
     mSitAfter(45.0),
     mLieAfter(100.0),
     mLookRadius(12.0),
+    mInteractionChance(0.05),
+    mInteractionRadius(3.5),
+    mInteractionPause(5.0),
     mDefaultGroup("Fighters")
 {
 }
@@ -221,6 +224,12 @@ bool CreatureReactionConfig::loadSettings(std::istream& file)
             mLieAfter = Helper::toDouble(words[1]);
         else if(words[0] == "LookRadius")
             mLookRadius = Helper::toDouble(words[1]);
+        else if(words[0] == "InteractionChance")
+            mInteractionChance = Helper::toDouble(words[1]);
+        else if(words[0] == "InteractionRadius")
+            mInteractionRadius = Helper::toDouble(words[1]);
+        else if(words[0] == "InteractionPause")
+            mInteractionPause = Helper::toDouble(words[1]);
         else if(words[0] == "DefaultGroup")
             mDefaultGroup = words[1];
         else

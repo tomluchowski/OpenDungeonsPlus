@@ -347,6 +347,18 @@ public:
     inline double getLookRadius() const
     { return mLookRadius; }
 
+    //! Chance (0 to 1) that a creature that is looked at starts a short meeting with a creature close by
+    inline double getInteractionChance() const
+    { return mInteractionChance; }
+
+    //! Creatures closer than this (world units) can have a short meeting
+    inline double getInteractionRadius() const
+    { return mInteractionRadius; }
+
+    //! Seconds between the starts of two meetings, over all creatures
+    inline double getInteractionPause() const
+    { return mInteractionPause; }
+
 private:
     //! \brief Reads the [Settings] block up to its closing tag. Returns false if it is malformed.
     bool loadSettings(std::istream& file);
@@ -402,6 +414,15 @@ private:
 
     //! \brief Distance (world units) within which creatures turn their head to an event
     double mLookRadius;
+
+    //! \brief Chance (0 to 1) that two creatures that meet show a short interaction
+    double mInteractionChance;
+
+    //! \brief Distance (world units) within which creatures that meet interact
+    double mInteractionRadius;
+
+    //! \brief Seconds a creature pauses after an interaction before it can take part in another
+    double mInteractionPause;
 
     //! \brief Group used for a creature that is in no group
     std::string mDefaultGroup;
