@@ -111,6 +111,11 @@
 
 static const Ogre::Real CANNON_MISSILE_HEIGHT = 0.3;
 
+//! \brief Casino mood points lost per second when the room config has no CasinoMoodDecay
+static const double DEFAULT_CASINO_MOOD_DECAY_PER_SECOND = 3.0;
+//! \brief Largest casino mood (positive or negative) when the room config has no CasinoMoodMax
+static const double DEFAULT_CASINO_MOOD_MAX = 1500.0;
+
 const int32_t Creature::NB_TURNS_BEFORE_CHECKING_TASK = 15;
 const uint32_t Creature::NB_OVERLAY_HEALTH_VALUES = 8;
 
@@ -1097,7 +1102,7 @@ void Creature::doUpkeep()
     // The casino mood fades towards 0
     if(mCasinoMood != 0.0)
     {
-        double decay = ConfigManager::getSingleton().getRoomConfigDoubleOrDefault("CasinoMoodDecay", 3.0)
+        double decay = ConfigManager::getSingleton().getRoomConfigDoubleOrDefault("CasinoMoodDecay", DEFAULT_CASINO_MOOD_DECAY_PER_SECOND)
             / ODApplication::turnsPerSecond;
         if(mCasinoMood > 0.0)
             mCasinoMood = std::max(0.0, mCasinoMood - decay);
@@ -3237,7 +3242,7 @@ void Creature::decreaseWakefulness(double value)
 
 void Creature::addCasinoMood(double points)
 {
-    double maxPoints = ConfigManager::getSingleton().getRoomConfigDoubleOrDefault("CasinoMoodMax", 1500.0);
+    double maxPoints = ConfigManager::getSingleton().getRoomConfigDoubleOrDefault("CasinoMoodMax", DEFAULT_CASINO_MOOD_MAX);
     mCasinoMood = std::max(-maxPoints, std::min(maxPoints, mCasinoMood + points));
 }
 

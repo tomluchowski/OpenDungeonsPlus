@@ -51,7 +51,8 @@ enum class ClientNotificationType
     askCastSpell,
     askSetSkillTree,
     askSetPlayerSettings,
-    //! \brief Asks for the payout level of the casino on a tile and optionally sets it
+    //! \brief Asks for the payout level of the casino on a tile and optionally sets it:
+    //! + int tileX, int tileY, uint32_t payoutLevel (a CasinoPayout value), bool isSet
     askCasinoPayout,
 
     askSaveMap,

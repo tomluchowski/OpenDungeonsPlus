@@ -2778,10 +2778,10 @@ bool ODServer::processClientNotifications(ODSocketClient* clientSocket)
         case ClientNotificationType::askCasinoPayout:
         {
             Player* player = clientSocket->getPlayer();
-            int xx;
-            int yy;
-            uint32_t level;
-            bool isSet;
+            int xx = 0;
+            int yy = 0;
+            uint32_t level = 0;
+            bool isSet = false;
             OD_ASSERT_TRUE(packetReceived >> xx >> yy >> level >> isSet);
             Tile* tile = gameMap->getTile(xx, yy);
             if(tile == nullptr)

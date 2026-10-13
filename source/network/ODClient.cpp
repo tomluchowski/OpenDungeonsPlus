@@ -1604,9 +1604,9 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
                 OD_LOG_ERR("Wrong mode " + Helper::toString(frameListener->getModeManager()->getCurrentModeType()));
                 break;
             }
-            int xx;
-            int yy;
-            uint32_t level;
+            int xx = 0;
+            int yy = 0;
+            uint32_t level = 0;
             OD_ASSERT_TRUE(packetReceived >> xx >> yy >> level);
 
             GameMode* gameMode = static_cast<GameMode*>(frameListener->getModeManager()->getCurrentMode());

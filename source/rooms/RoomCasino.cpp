@@ -193,19 +193,25 @@ double RoomCasino::getFeeForPayout(CasinoPayout payout)
     return std::max(0.0, std::min(fee, 1.0));
 }
 
-void RoomCasino::splitRoom(Room& newRoom, const std::vector<Tile*>& tiles)
+//! \brief Gives the room that takes over tiles of this casino the payout set for this one.
+//! \param newRoom The room the tiles were handed to
+//! \param tiles The handed over tiles, not needed because the payout belongs to the whole room
+void RoomCasino::splitRoom(Room& newRoom, const std::vector<Tile*>& /*tiles*/)
 {
     // The room that gets the tiles keeps the payout level set for this one
     if(newRoom.getType() == getType())
         static_cast<RoomCasino&>(newRoom).setPayout(mPayout);
 }
 
+//! \brief Saves the room and, after it, the payout level of the casino.
 void RoomCasino::exportToStream(std::ostream& os) const
 {
     Room::exportToStream(os);
     os << "CasinoPayout " << static_cast<uint32_t>(mPayout) << std::endl;
 }
 
+//! \brief Loads the room and, if present, the payout level of the casino.
+//! \return false if the stream could not be read or holds an invalid payout level
 bool RoomCasino::importFromStream(std::istream& is)
 {
     if(!Room::importFromStream(is))
@@ -226,8 +232,8 @@ bool RoomCasino::importFromStream(std::istream& is)
     if(!(is >> payout))
         return false;
 
-    // Former levels: 0 = stingy, 1 = normal, 2 = generous. Only the stingy one keeps the
-    // money stance, the other ones were on the generous side of it
+    // Saved values: 0 = money, 1 and 2 = smiles. The file format allows the values 0 to 2,
+    // anything above is invalid.
     if(payout > 2)
         return false;
 
@@ -455,6 +461,8 @@ void RoomCasino::doUpkeep()
         }
 
         ro->setAnimationState("Triggered", false);
+
+        // TODO: we could use the wall active spots to change feePercent/bets
 
         // We set anim for both creatures
         uint32_t cooldown = Random::Uint(ConfigManager::getSingleton().getRoomConfigUInt32("CasinoCooldownWorkMin"),

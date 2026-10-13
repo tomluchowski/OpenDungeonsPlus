@@ -155,18 +155,21 @@ class GameMode final : public GameEditorModeBase, public InputCommand
     bool toggleObjectivesWindow(const CEGUI::EventArgs& = {});
 
     //! \brief Shows/hides/toggles the player settings window
-    //! \brief Casino payout control, opened by clicking on one of the player's casinos
-    void showCasinoPayoutWindow(Tile* tile);
-    bool hideCasinoPayoutWindow(const CEGUI::EventArgs& = {});
-    bool cycleCasinoPayout(const CEGUI::EventArgs& = {});
-    //! \brief Called when the server tells the payout level of a casino. It is only shown if
-    //! it is the casino the window is open for.
-    void setCasinoPayoutShown(int tileX, int tileY, uint32_t level);
-
     bool showPlayerSettingsWindow(const CEGUI::EventArgs& = {});
     bool togglePlayerSettingsWindow(const CEGUI::EventArgs& = {});
     bool cancelPlayerSettings(const CEGUI::EventArgs& = {});
     bool applyPlayerSettings(const CEGUI::EventArgs& = {});
+
+    //! \brief Casino payout control, opened by clicking on one of the player's casinos
+    //! \param tile A tile of the casino the window is opened for
+    void showCasinoPayoutWindow(Tile* tile);
+    //! \brief Hides the casino payout window
+    bool hideCasinoPayoutWindow(const CEGUI::EventArgs& = {});
+    //! \brief Asks the server to switch the casino shown in the window to the next payout setting
+    bool cycleCasinoPayout(const CEGUI::EventArgs& = {});
+    //! \brief Called when the server tells the payout level of a casino. It is only shown if
+    //! it is the casino the window is open for.
+    void setCasinoPayoutShown(int tileX, int tileY, uint32_t level);
     //! \brief Synchronize settings displayed in the menu with settings in the seat
     void syncPlayerSettings();
 

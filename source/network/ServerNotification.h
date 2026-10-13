@@ -141,7 +141,8 @@ enum class ServerNotificationType
     // Appended after levelStatistics so that no existing numeric value changes.
     heartHealth,
 
-    //! Tile and payout level of a casino, the answer to the owner asking for its payout
+    //! Tile and payout level of a casino, the answer to the owner asking for its payout:
+    //! + int tileX, int tileY, uint32_t payoutLevel (a CasinoPayout value)
     // Appended after heartHealth so that no existing numeric value changes.
     casinoPayout,
     //! The player now possesses the creature: + string creatureName
