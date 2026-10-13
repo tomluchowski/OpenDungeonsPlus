@@ -501,3 +501,28 @@ icon.rc                                OD Team                 GPLv3+
 logo.svg                               Svenskmand              CC-BY-SA 3.0
 OD-Logo.ico                            Svenskmand              CC-BY-SA 3.0
 opendungeons.appdata.xml               OD Team                 GPLv3+
+
+
+===================================
+==  Hollowmark campaign artwork  ==
+===================================
+
+gui/campaign/campaign-world.json    AI-generated for this project, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/sites/B01_done.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/sites/B01_found.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/sites/B01_hidden.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/sites/B02_done.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/sites/B02_found.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/sites/B02_hidden.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/sites/B03_done.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/sites/B03_found.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/sites/B03_hidden.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/sites/B04_done.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/sites/B04_found.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/sites/B04_hidden.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/sites/B05_done.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/sites/B05_found.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/sites/B05_hidden.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/world_idmap.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+tools/artwork/campaign-map/PROMPTS.md    AI-generated for this project, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+tools/artwork/campaign-map/validate_world.py    AI-generated for this project, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
