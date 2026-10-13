@@ -36,9 +36,10 @@ assert hook.index('rrSetChickenPose') < hook.index('hasSkeleton')
 
 # The server drives the behaviour from the hatchery upkeep.
 upkeep = body(room, 'void RoomHatchery::doUpkeep')
-for call in ('updateChickLine', 'updateRooster', 'ChickenPose::lay', 'ChickenPose::wobble'):
+for call in ('updateChickLine', 'updateRooster', 'updateNestTrips', 'ChickenPose::wobble'):
     assert call in upkeep, call
 assert 'ChickenPose::emerge' in body(room, 'bool RoomHatchery::spawnFromCoop')
+assert 'ChickenPose::lay' in body(room, 'void RoomHatchery::updateNestTrips')
 assert 'new ChickenEntity' not in upkeep
 
 # Chicks follow, the rooster that is dropped outside runs back to a hatchery of his keeper.

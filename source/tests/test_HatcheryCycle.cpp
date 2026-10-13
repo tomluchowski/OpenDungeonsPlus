@@ -467,6 +467,7 @@ BOOST_AUTO_TEST_CASE(test_LateEgg)
 //! spawning. A Python port of the model (the same generators and order) gives the worst deviation per case without
 //! bonus: 2.44 percent (no walk, ways of 0 to 6 or 0 to 60 turns, no free nest), 2.80 (enemies trample, 5 percent of
 //! the turns, 30 percent per egg). With the bonuses (light 10, calm 15) it is 7.0 percent, which is intended.
+// Historical fits-or-floor model only; required nest waiting and actual-arrival parity must be checked separately.
 BOOST_AUTO_TEST_CASE(test_BalanceParity)
 {
     HatcheryCycleSettings settings;

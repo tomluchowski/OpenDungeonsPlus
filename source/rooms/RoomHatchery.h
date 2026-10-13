@@ -120,7 +120,7 @@ private:
     void updateNestSync();
     //! A free egg place in the nests scattered over the hatchery, the nest closest to the hen first. eggPositions
     //! are the places of the eggs that lie in the hatchery. False if all nests are full (or there is none): the egg
-    //! then lies at the hen.
+    //! waits until a nest becomes available.
     bool findNestSpot(const Ogre::Vector3& henPosition, const std::vector<Ogre::Vector2>& eggPositions,
         Ogre::Vector3& spot) const;
     //! Puts an animal on a free spot next to where it is (the coop is in the way of an animal that sat in it). A chick
@@ -129,7 +129,7 @@ private:
     //! An egg is trampled: shell pieces, yolk and feathers fly where it lay (the clients show it).
     void fireEggTrample(const ChickenEntity& egg);
     //! Lets the eggs appear whose laying timer has run out and whose hen has shown herself laying (see mPendingEggs).
-    //! A late egg gets the age it would have had on time. The new eggs are added to eggs.
+    //! Incubation starts at actual laying. The new eggs are added to eggs.
     void releasePendingEggs(const HatcheryCycleSettings& settings, std::vector<ChickenEntity*>& eggs);
     //! A free place next to the nest where a hen can stand (she does not stand in the nest).
     bool getNestStandPoint(const Ogre::Vector3& nestSpot, Ogre::Vector2& standing) const;
@@ -143,7 +143,7 @@ private:
     PendingEgg* findPendingEgg(const ChickenEntity& hen);
     //! Hens with a planned egg: one sets off when the turns left until the egg are as many as the walk and the Lay
     //! pose, waits at the nest until the pose has to start, and sits down. A hen that is gone loses an egg that is not
-    //! due yet, a due egg still appears.
+    //! laid yet, an egg whose laying pose started still appears.
     void updateNestTrips(const std::vector<ChickenEntity*>& hens, const HatcheryCycleSettings& settings);
     //! Lets a hen or a rooster come out of a coop. Returns false if no coop has a free place.
     bool spawnFromCoop(ChickenKind kind, const HatcheryCycleSettings& settings, uint32_t count = 1);
@@ -187,10 +187,10 @@ private:
     //! Turns until the rooster crows next
     uint32_t mCrowInterval;
     //! An egg that a hen is going to lay. The egg is laid when the laying timer of the hen runs out (it is due then,
-    //! counts as an egg for the capacity and is saved in the "HatcheryLays" line). Before that the hen has planned it:
+    //! counts as an egg for the capacity; once laying has started it is saved in "HatcheryNestLays"). Before that:
     //! she chose the place in a nest, sets off when the turns left are as many as the walk and the Lay pose, waits at the
     //! nest and shows herself sitting (Lay pose) for HatcheryLayShowTurns turns, so that the egg appears just when the
-    //! timer runs out. A hen that is late (a long walk) lets the egg appear later, it then gets the age it would have had.
+    //! timer runs out when possible. A late hen waits until actual arrival; incubation starts when the egg appears.
     struct PendingEgg
     {
         PendingEgg(const Ogre::Vector3& spot, uint32_t turns) :

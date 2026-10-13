@@ -173,18 +173,18 @@ void RoomHatchery::exportToStream(std::ostream& os) const
 {
     Room::exportToStream(os);
     os << "HatcheryWaits " << mCoopHenWait << " " << mCoopRoosterWait << " " << mCrowInterval << std::endl;
-    // Only eggs whose laying timer has run out are saved: a planned egg is planned again from the timer of its hen
+    // Save eggs whose hen has arrived and started laying; other trips are replanned from the saved hen timer.
     uint32_t nbLays = 0;
     for(const PendingEgg& egg : mPendingEggs)
     {
-        if(egg.mDue)
+        if(egg.mDue && egg.mPosing)
             ++nbLays;
     }
-    os << "HatcheryLays " << nbLays;
+    os << "HatcheryNestLays " << nbLays;
     for(const PendingEgg& egg : mPendingEggs)
     {
-        if(egg.mDue)
-            os << " " << egg.mSpot.x << " " << egg.mSpot.y << " " << egg.mSpot.z << " " << egg.mTurns;
+        if(egg.mDue && egg.mPosing)
+            os << " " << egg.mSpot.x << " " << egg.mSpot.y << " " << egg.mSpot.z << " " << egg.mTurns << " " << (egg.mHen.empty() ? "-" : egg.mHen);
     }
     os << std::endl;
 }
@@ -235,7 +235,7 @@ bool RoomHatchery::importFromStream(std::istream& is)
 
             continue;
         }
-        if(tag == "HatcheryLays")
+        if((tag == "HatcheryLays") || (tag == "HatcheryNestLays"))
         {
             uint32_t nbLays;
             if(!(is >> nbLays))
@@ -249,7 +249,17 @@ bool RoomHatchery::importFromStream(std::istream& is)
                 if(!(is >> spot.x >> spot.y >> spot.z >> turns))
                     return false;
 
-                mPendingEggs.push_back(PendingEgg(spot, turns));
+                PendingEgg pending(spot, turns);
+                pending.mNest = true;
+                pending.mPosing = true;
+                if(tag == "HatcheryNestLays")
+                {
+                    if(!(is >> pending.mHen))
+                        return false;
+                    if(pending.mHen == "-")
+                        pending.mHen.clear();
+                }
+                mPendingEggs.push_back(pending);
             }
             continue;
         }
@@ -548,9 +558,12 @@ void RoomHatchery::releasePendingEggs(const HatcheryCycleSettings& settings, std
         Tile* spotTile = getGameMap()->getTile(Helper::round(it->mSpot.x), Helper::round(it->mSpot.y));
         if((spotTile != nullptr) && (spotTile->getCoveringRoom() == this))
         {
-            // A late egg gets the age it would have had on time
+            // Incubation starts when the egg actually appears in its nest.
             ChickenEntity* egg = spawnAnimal(ChickenKind::egg, it->mSpot, settings);
-            egg->setAge(it->mLate);
+            egg->setAge(0);
+            ChickenEntity* hen = static_cast<ChickenEntity*>(getGameMap()->getRenderedMovableEntity(it->mHen));
+            if(hen != nullptr)
+                hen->setLayTimer(HatcheryCycle::layInterval(settings, Random::Uint(0, 999999)));
             eggs.push_back(egg);
         }
         it = mPendingEggs.erase(it);
@@ -599,6 +612,21 @@ void RoomHatchery::updateNestTrips(const std::vector<ChickenEntity*>& hens, cons
     std::vector<PendingEgg>::iterator it = mPendingEggs.begin();
     while(it != mPendingEggs.end())
     {
+        // A room edit may have moved or removed the reserved nest. Retry with a current nest next upkeep.
+        bool nestExists = false;
+        for(const HatcheryNestField::Place& place : getNestPlaces())
+            if(Ogre::Vector2(it->mSpot.x, it->mSpot.y).squaredDistance(
+                Ogre::Vector2(static_cast<Ogre::Real>(place.mX), static_cast<Ogre::Real>(place.mY))) <= 0.000001f)
+                nestExists = true;
+        if(!nestExists)
+        {
+            for(ChickenEntity* hen : hens)
+                if(hen->getName() == it->mHen)
+                    hen->clearFollowTarget();
+            it = mPendingEggs.erase(it);
+            continue;
+        }
+
         // An egg without a hen (from a save): its turns just run down
         if(it->mHen.empty())
         {
@@ -621,7 +649,7 @@ void RoomHatchery::updateNestTrips(const std::vector<ChickenEntity*>& hens, cons
         // The hen was eaten, picked up or lost: a planned egg is gone with her, a laid one still appears
         if(hen == nullptr)
         {
-            if(!it->mDue)
+            if(!it->mPosing)
             {
                 it = mPendingEggs.erase(it);
                 continue;
@@ -640,20 +668,9 @@ void RoomHatchery::updateNestTrips(const std::vector<ChickenEntity*>& hens, cons
             continue;
         }
 
-        // She sets off when the turns left until the egg are as many as the walk and the Lay pose (at once when it is due).
-        // Until then she wanders, so the walk is measured again from where she is: when it does not fit into the time
-        // left any more, the egg lies where she sits down
+        // Recalculate the walk while she wanders; a long walk delays laying instead of changing the egg place.
         if(!it->mStarted && it->mNest && !it->mDue)
-        {
             it->mWalk = nestWalkTurns(*hen, it->mStand);
-            if(!HatcheryCycle::walkFits(it->mWalk, hen->getLayTimer(), settings))
-            {
-                it->mNest = false;
-                it->mWalk = 0;
-                it->mSpot = hen->getPosition();
-                it->mStand = Ogre::Vector2(hen->getPosition().x, hen->getPosition().y);
-            }
-        }
         if(!it->mStarted)
         {
             if(!it->mDue && !HatcheryCycle::tripDue(hen->getLayTimer(), it->mWalk, settings))
@@ -665,12 +682,10 @@ void RoomHatchery::updateNestTrips(const std::vector<ChickenEntity*>& hens, cons
         }
 
         // She waits at the nest (pecking) until the pose has to start, so that the egg appears when the timer runs out.
-        // A walk that takes much longer than planned (blocked way) ends after a few turns more
+        // A blocked way keeps her waiting until she actually arrives.
         ++it->mWalked;
-        if(!it->mNest)
-            it->mStand = Ogre::Vector2(hen->getPosition().x, hen->getPosition().y);
         const double distance = Ogre::Vector2(hen->getPosition().x, hen->getPosition().y).distance(it->mStand);
-        const bool arrived = (distance <= arrive) || (it->mWalk == 0) || (it->mWalked > it->mWalk + 3);
+        const bool arrived = distance <= arrive;
         if(!arrived || (!it->mDue && (hen->getLayTimer() > settings.mLayShowTurns)))
         {
             if(!hen->isBusy() && !hen->isScattering())
@@ -684,9 +699,6 @@ void RoomHatchery::updateNestTrips(const std::vector<ChickenEntity*>& hens, cons
         hen->playPose(ChickenPose::lay, std::max<uint32_t>(2, settings.mLayShowTurns));
         it->mPosing = true;
         it->mTurns = (settings.mLayShowTurns > 0) ? settings.mLayShowTurns - 1 : 0;
-        // Without a nest the egg lies where she sits
-        if(!it->mNest)
-            it->mSpot = hen->getPosition();
         ++it;
     }
 }
@@ -1062,44 +1074,24 @@ void RoomHatchery::doUpkeep()
     for(const PendingEgg& pending : mPendingEggs)
         eggPositions.push_back(Ogre::Vector2(pending.mSpot.x, pending.mSpot.y));
 
-    // Hens lay eggs while the hatchery is not full. The egg appears when the laying timer of the hen runs out, so the
-    // rate of the eggs does not depend on the way to the nest: the hen plans her egg at the start of her laying
-    // interval, uses the nest only if the real way (distance at her walking speed) and the Lay pose fit into the time
-    // left, and sets off when they would not fit any more (updateNestTrips).
+    // Reserve a nest before starting the trip. Without one the hen keeps her due timer and retries next turn.
     uint32_t capacity = HatcheryCycle::capacity(mCoveredTiles.size(), mNumActiveSpots, settings);
     for(ChickenEntity* hen : hens)
     {
-        if((findPendingEgg(*hen) == nullptr) && (settings.mLayShowTurns > 0) && HatcheryCycle::canLay(counts, capacity))
-        {
-            // The egg lies in a free nest (the closest one first), she walks to the place next to it (she does not
-            // stand in the nest). Without a free nest, or when the way to it does not fit into the time left, she
-            // sits down where she is and the egg lies there.
-            Ogre::Vector3 eggSpot = hen->getPosition();
-            Ogre::Vector2 standing(hen->getPosition().x, hen->getPosition().y);
-            uint32_t walk = 0;
-            bool nest = findNestSpot(hen->getPosition(), eggPositions, eggSpot) && getNestStandPoint(eggSpot, standing);
-            if(nest)
-            {
-                walk = nestWalkTurns(*hen, standing);
-                if(!HatcheryCycle::walkFits(walk, hen->getLayTimer(), settings))
-                    nest = false;
-            }
-            if(!nest)
-            {
-                eggSpot = hen->getPosition();
-                standing = Ogre::Vector2(hen->getPosition().x, hen->getPosition().y);
-                walk = 0;
-            }
-            eggPositions.push_back(Ogre::Vector2(eggSpot.x, eggSpot.y));
-
-            PendingEgg plan(eggSpot, settings.mLayShowTurns);
-            plan.mHen = hen->getName();
-            plan.mStand = standing;
-            plan.mWalk = walk;
-            plan.mNest = nest;
-            plan.mDue = false;
-            mPendingEggs.push_back(plan);
-        }
+        if((findPendingEgg(*hen) != nullptr) || !HatcheryCycle::canLay(counts, capacity))
+            continue;
+        Ogre::Vector3 eggSpot;
+        Ogre::Vector2 standing;
+        if(!findNestSpot(hen->getPosition(), eggPositions, eggSpot) || !getNestStandPoint(eggSpot, standing))
+            continue;
+        eggPositions.push_back(Ogre::Vector2(eggSpot.x, eggSpot.y));
+        PendingEgg plan(eggSpot, settings.mLayShowTurns);
+        plan.mHen = hen->getName();
+        plan.mStand = standing;
+        plan.mWalk = nestWalkTurns(*hen, standing);
+        plan.mNest = true;
+        plan.mDue = false;
+        mPendingEggs.push_back(plan);
     }
 
     // Hens with a planned egg set off for the nest, wait there and sit down
@@ -1111,8 +1103,7 @@ void RoomHatchery::doUpkeep()
         if(!hen->countDownLay())
             continue;
 
-        // The timer has run out: the egg is laid now
-        hen->setLayTimer(HatcheryCycle::layInterval(layingSettings, Random::Uint(0, 999999)));
+        // The timer is due; actual laying still waits for arrival and the laying pose.
         if(planned != nullptr)
         {
             if(planned->mDue)
@@ -1137,22 +1128,9 @@ void RoomHatchery::doUpkeep()
             continue;
         }
 
-        if(!HatcheryCycle::canLay(counts, capacity))
-            continue;
-
-        // No plan (no Lay pose configured, or the hatchery had no room until now): the egg lies in a nest or at the
-        // hen, it appears after the Lay pose (at once without one)
-        Ogre::Vector3 eggSpot = hen->getPosition();
-        findNestSpot(hen->getPosition(), eggPositions, eggSpot);
-        eggPositions.push_back(Ogre::Vector2(eggSpot.x, eggSpot.y));
-        if(settings.mLayShowTurns > 0)
-            mPendingEggs.push_back(PendingEgg(eggSpot, settings.mLayShowTurns));
-        else
-            eggs.push_back(spawnAnimal(ChickenKind::egg, eggSpot, settings));
-        hen->playPose(ChickenPose::lay, std::max<uint32_t>(2, settings.mLayShowTurns));
-        ++counts.mEggs;
+        // No nest reservation yet: keep waiting and retry on the next upkeep.
     }
-    releasePendingEggs(settings, eggs);
+    releasePendingEggs(layingSettings, eggs);
 
     // Eggs hatch while there is a rooster and no enemy stands on that egg's tile
     if(HatcheryCycle::canHatch(counts, false))
