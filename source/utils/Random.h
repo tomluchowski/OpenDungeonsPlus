@@ -28,6 +28,9 @@ namespace Random
     //! \brief initializes the semaphore and seeds the generator
     void initialize();
 
+    //! \brief sets the seed of the generator to a fixed value (automated tests)
+    void setSeed(unsigned long seed);
+
     /*! \brief generate a random double
      *
      *  \param min, max One or both can be negative
