@@ -240,6 +240,8 @@ std::string skillTypeToPlayerVisibleString(SkillType type)
             return "The 'Eye of evil' spell";
         case SkillType::spellSummonChampion:
             return "The 'Summon Champion' spell";
+        case SkillType::spellPossess:
+            return "The 'Possess' spell";
         default:
             return "Unknown enum value:" + Helper::toString(static_cast<int>(type));
     }

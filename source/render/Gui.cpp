@@ -1128,7 +1128,7 @@ void Gui::arrangeSpellButtons(CEGUI::Window* spells)
         "CreatureExplosionButton", "CreatureHasteButton", "CreatureDefenseButton", "CreatureSlowButton",
         "CreatureStrengthButton", "CreatureWeakButton", "SpellEyeEvilButton", "CreateGoldButton",
         "LightningButton", "TremorButton", "DefectorButton",
-        "HexenHenButton", "InfernoButton", "SummonChampionButton"});
+        "HexenHenButton", "InfernoButton", "PossessButton", "SummonChampionButton"});
 }
 
 void Gui::arrangeActionButtons(CEGUI::Window* panel, std::initializer_list<const char*> names)

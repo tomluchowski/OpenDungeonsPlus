@@ -80,6 +80,9 @@ void PlayerSelection::setNewSpellType(SpellType newSpellType)
     case SpellType::creatureHeal:
         mInputManager.mCreatureTypeForOutliner = SelectionEntityWanted::creatureAliveOwnedHurt;
         break;
+    case SpellType::possess:
+        mInputManager.mCreatureTypeForOutliner = SelectionEntityWanted::creatureAliveOwned;
+        break;
 
     default:
         OD_LOG_ERR("Unkown enum SpellType Choosen ");

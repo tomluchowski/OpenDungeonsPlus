@@ -89,7 +89,15 @@ enum class ClientNotificationType
     askHandDropAll,
 
     askTrapProductionQueue,
-    askMoveTrapProductionOrder
+    askMoveTrapProductionOrder,
+    //! Possession: the direction the possessed creature should walk (Vector2, zero to stop)
+    askPossessMove,
+    //! Possession: the player wants to leave the possessed creature
+    askPossessExit,
+    //! Possession: left click attack, the direction the creature looks at (Vector2)
+    askPossessAttack,
+    //! Possession: use the creature skill of the given slot (uint32_t, 0 to 3) in the given direction (Vector2)
+    askPossessSkill
 };
 
 ODPacket& operator<<(ODPacket& os, const ClientNotificationType& nt);

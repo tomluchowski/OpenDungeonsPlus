@@ -257,6 +257,17 @@ public:
     void notifyWorkerAction(Creature& worker, CreatureActionType actionType);
     void notifyWorkerStopsAction(Creature& worker, CreatureActionType actionType);
 
+    //! \brief Name of the creature the player currently possesses, empty if none.
+    //! Used on both server and client sides.
+    inline const std::string& getPossessedCreatureName() const
+    { return mPossessedCreatureName; }
+
+    inline void setPossessedCreatureName(const std::string& name)
+    { mPossessedCreatureName = name; }
+
+    inline bool isPossessing() const
+    { return !mPossessedCreatureName.empty(); }
+
     //! \brief Returns how many workers are doing the given action
     uint32_t getNbWorkersDoing(CreatureActionType actionType) const;
 
@@ -327,6 +338,9 @@ private:
     //! \brief Used to know what the workers are doing. That will help to change
     //! probability to choose the action to do
     std::vector<uint32_t> mWorkersActions;
+
+    //! \brief The creature the player possesses. Empty if none
+    std::string mPossessedCreatureName;
 
     //! \brief A simple mutator function to put the given entity into the player's hand,
     //! note this should NOT be called directly for creatures on the map,

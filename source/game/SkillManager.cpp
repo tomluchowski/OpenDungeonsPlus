@@ -244,6 +244,7 @@ public:
             case SpellType::defector: key = "DefectorPrice"; break;
             case SpellType::hexenHen: key = "HexenHenPrice"; break;
             case SpellType::inferno: key = "InfernoPrice"; break;
+            case SpellType::possess: key = "PossessPrice"; break;
             case SpellType::summonChampion: key = "SummonChampionPrice"; break;
             default: return "";
         }
@@ -251,7 +252,7 @@ public:
             mSpellType == SpellType::createGold || mSpellType == SpellType::lightning ||
             mSpellType == SpellType::tremor || mSpellType == SpellType::defector ||
             mSpellType == SpellType::hexenHen || mSpellType == SpellType::inferno ||
-            mSpellType == SpellType::summonChampion) ?
+            mSpellType == SpellType::possess || mSpellType == SpellType::summonChampion) ?
             " mana" : " mana per creature";
         return Helper::toString(ConfigManager::getSingleton().getSpellConfigInt32(key)) + unit;
     }
@@ -794,6 +795,15 @@ SkillManager::SkillManager() :
     mSkills[index] = def;
     lvl4depends.push_back(skill);
 
+    resType = SkillType::spellPossess;
+    index = static_cast<uint32_t>(resType);
+    points = ConfigManager::getSingleton().getSkillPoints(Skills::toString(resType));
+    skill = new Skill(resType, points, lvl3depends);
+    def = new SkillDefSpell("MagicSkills/", "PossessButton", skill, SpellType::possess);
+    def->mapSkill(mSkillsFamily);
+    mSkills[index] = def;
+    lvl4depends.push_back(skill);
+
     // Not researchable: the campaign Heartstone unlocks it. It has no dependency and no node in the skill tree window
     resType = SkillType::spellSummonChampion;
     index = static_cast<uint32_t>(resType);
@@ -1057,6 +1067,8 @@ std::string SkillManager::getResearchDescription(SkillType type, uint32_t level)
             spell("SummonChampionPrice") + " mana, free for " + Helper::toString(config.getSpellConfigDouble("SummonChampionPrice") /
             config.getSpellConfigDouble("SummonChampionDrainPerSecond")) + " seconds, then " + spell("SummonChampionDrainPerSecond") +
             " mana per second. Unlocked by the complete Heartstone.";
+        case SkillType::spellPossess: return "Control one of your creatures in first person; costs " +
+            spell("PossessDrainPerSecond") + " mana per second while possessed.";
         default: return "";
     }
 }

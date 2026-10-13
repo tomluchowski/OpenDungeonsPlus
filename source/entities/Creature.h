@@ -45,6 +45,7 @@ class CreatureSkill;
 class DraggableTileContainer;
 class GameMap;
 class ODPacket;
+class Player;
 class Room;
 class Weapon;
 
@@ -734,7 +735,48 @@ public:
     void maxAmbient();
 
     void normalizeAmbient();
-    
+
+    //! Called on server side. True if a player controls this creature (possession)
+    inline bool isPossessed() const
+    { return mPossessor != nullptr; }
+
+    inline Player* getPossessor() const
+    { return mPossessor; }
+
+    //! Called on server side. Puts the creature under the control of the given player. Its
+    //! current actions are paused and replaced by the possessed action.
+    void startPossession(Player& player);
+
+    //! Called on server side. Gives the creature back to the AI and tells the player
+    //! the possession is over.
+    void endPossession();
+
+    //! Called on server side. Makes the possessed creature walk in the given direction (world
+    //! x/y, does not need to be normalized). A zero vector makes it stop.
+    void possessedMove(const Ogre::Vector2& direction);
+
+    //! Called on server side. The left mouse button attack of the possessed creature: it uses
+    //! its melee or ranged attack on the enemy in front of it (aim is the view direction on
+    //! the ground plane). Same range, damage and cooldown as in a normal fight.
+    void possessedAttack(const Ogre::Vector2& aim);
+
+    //! Called on server side. Uses the creature skill (other than melee and ranged attack) of
+    //! the given slot (0 is the first one the creature can use). Skills that need a target
+    //! use the enemy in front of the creature.
+    void possessedUseSkill(uint32_t slot, const Ogre::Vector2& aim);
+
+    //! Called on server side. True if the creature follows a possessed leader (possession group)
+    inline bool isInPossessionGroup() const
+    { return !mGroupLeaderName.empty(); }
+
+    //! Called on server side. Puts the creature in the possession group of the given leader.
+    //! It leaves what it was doing and follows the leader until the group is released.
+    void joinPossessionGroup(const std::string& leaderName);
+
+    //! Called on server side. The creature leaves the possession group and goes back to its
+    //! normal behaviour.
+    void leavePossessionGroup();
+
 protected:
     virtual void exportToPacket(ODPacket& os, const Seat* seat) const override;
     virtual void importFromPacket(ODPacket& is) override;
@@ -952,6 +994,27 @@ private:
     uint32_t mAttackRecoverySerial = 0;
     double mExperienceProgress = 0.0;
     bool mHasProgressInformation = false;
+    //! \brief Used on server side. The player controlling the creature (possession), nullptr if none
+    Player*                         mPossessor = nullptr;
+
+    //! \brief Used on server side. The names of the creatures following this possessed creature
+    std::vector<std::string>        mGroupMemberNames;
+
+    //! \brief Used on server side. The name of the possessed creature this creature follows, empty if none
+    std::string                     mGroupLeaderName;
+
+    //! \brief Used on server side by the possession. Picks the nearby fighting creatures of the
+    //! possessor and makes them follow this creature
+    void formPossessionGroup();
+
+    //! \brief Used on server side by the possession group. Makes the creature walk to the leader if
+    //! it is too far away. Returns true if the creature has to wait for the leader (nothing else to do)
+    bool followPossessionLeader();
+
+    //! \brief Used on server side by the possession. Searches the enemy in front of the creature
+    //! (view direction aim) the given skill can reach. Returns true if one is found.
+    bool possessedFindTarget(const Ogre::Vector2& aim, const CreatureSkillData& skillData,
+        GameEntity*& entityAttack, Tile*& tileAttack);
 
     //! \brief A sub-function called by doTurn()
     //! This one checks if there is something prioritary to do (like fighting). If it is the case,

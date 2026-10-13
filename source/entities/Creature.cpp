@@ -33,6 +33,7 @@
 #include "creatureaction/CreatureActionLeaveDungeon.h"
 #include "creatureaction/CreatureActionParkToTile.h"
 #include "creatureaction/CreatureActionReloadTrap.h"
+#include "creatureaction/CreatureActionPossessed.h"
 #include "creatureaction/CreatureActionSearchEntityToCarry.h"
 #include "creatureaction/CreatureActionSearchFood.h"
 #include "creatureaction/CreatureActionSearchGroundTileToClaim.h"
@@ -911,6 +912,10 @@ void Creature::dropCarriedEquipment()
 
 void Creature::doUpkeep()
 {
+    // A creature that cannot be controlled anymore is given back to the AI
+    if(isPossessed() && (!isAlive() || isKo() || !getIsOnMap()))
+        endPossession();
+
     // If the creature is in jail, we check if it is still standing on it (if not picked up). If
     // not, it is free
     if((mSeatPrison != nullptr) &&
@@ -1240,6 +1245,28 @@ void Creature::doUpkeep()
         return;
     }
 
+    // If a player controls the creature, its other actions are paused. Only the possessed
+    // action runs and the movement comes from the player input
+    if(isPossessed())
+    {
+        if(mActions.empty() || (mActions.back()->getType() != CreatureActionType::possessed))
+            pushAction(Utils::make_unique<CreatureActionPossessed>(*this));
+
+        // The creature skills keep recovering while the player controls the creature
+        for(CreatureSkillData& skillData : mSkillData)
+        {
+            if(skillData.mWarmup > 0)
+                --skillData.mWarmup;
+
+            if(skillData.mCooldown > 0)
+                --skillData.mCooldown;
+        }
+
+        std::function<bool()> possessedFunc = mActions.back()->action();
+        possessedFunc();
+        return;
+    }
+
     bool isWarmUp = false;
     if(mAttackRecoveryTurns > 0)
     {
@@ -1394,6 +1421,10 @@ bool Creature::handleIdleAction()
         handleChampionIdle();
         return false;
     }
+    // A creature in the group of a possessed creature follows it. Fights are handled by the
+    // prioritary actions as usual
+    if(isInPossessionGroup() && followPossessionLeader())
+        return false;
 
     // We check if we are looking for our fee
     if(!mDefinition->isWorker() &&
@@ -2679,6 +2710,10 @@ bool Creature::tryPickup(Seat* seat)
     if(isKo())
         return false;
 
+    // A creature controlled by a player cannot be picked up
+    if(isPossessed())
+        return false;
+
     // The champion cannot be held in the hand
     if(getDefinition()->isChampion())
         return false;
@@ -3109,6 +3144,10 @@ bool Creature::canSlap(Seat* seat)
         return true;
 
     if(getHP() <= 0.0)
+        return false;
+
+    // A creature controlled by a player cannot be slapped
+    if(isPossessed())
         return false;
 
     // If the creature is in prison, it can be slapped by the jail owner only
@@ -4335,4 +4374,385 @@ void Creature::dismissChampion()
     clearDestinations(EntityAnimation::idle_anim, true, true);
     removeFromGameMap();
     deleteYourself();
+}
+
+namespace
+{
+//! \brief Computes where the possessed creature can walk from the given position in the given
+//! direction (unit vector). Returns false if it cannot move at all in this direction.
+bool computePossessedDestination(const Creature& creature, const Ogre::Vector2& position,
+    const Ogre::Vector2& direction, Ogre::Vector2& destination)
+{
+    const Ogre::Real stepLength = 0.25f;
+    const Ogre::Real maxLength = 2.0f;
+    destination = position;
+    for(Ogre::Real length = stepLength; length <= maxLength; length += stepLength)
+    {
+        Ogre::Vector2 next = position + direction * length;
+        Tile* nextTile = creature.getGameMap()->getTile(Helper::round(next.x), Helper::round(next.y));
+        if(!creature.canGoThroughTile(nextTile))
+            break;
+
+        destination = next;
+    }
+
+    return (destination != position);
+}
+}
+
+void Creature::startPossession(Player& player)
+{
+    mPossessor = &player;
+    player.setPossessedCreatureName(getName());
+
+    // The creature stops what it is doing. Its actions are kept and will go on after the possession
+    clearDestinations(EntityAnimation::idle_anim, true, true);
+    pushAction(Utils::make_unique<CreatureActionPossessed>(*this));
+
+    // Nearby fighting creatures of the player follow the possessed one
+    formPossessionGroup();
+
+    if(!player.getIsHuman())
+        return;
+
+    ServerNotification* serverNotification = new ServerNotification(
+        ServerNotificationType::possessionStart, &player);
+    const std::string& name = getName();
+    serverNotification->mPacket << name;
+    ODServer::getSingleton().queueServerNotification(serverNotification);
+}
+
+void Creature::endPossession()
+{
+    if(mPossessor == nullptr)
+        return;
+
+    Player* player = mPossessor;
+    mPossessor = nullptr;
+    player->setPossessedCreatureName(std::string());
+
+    // The group does not follow anymore and goes back to its normal behaviour
+    for(const std::string& memberName : mGroupMemberNames)
+    {
+        Creature* member = getGameMap()->getCreature(memberName);
+        if((member != nullptr) && (member->mGroupLeaderName == getName()))
+            member->leavePossessionGroup();
+    }
+    mGroupMemberNames.clear();
+
+    for(std::vector<std::unique_ptr<CreatureAction>>::iterator it = mActions.begin(); it != mActions.end();)
+    {
+        if((*it)->getType() == CreatureActionType::possessed)
+            it = mActions.erase(it);
+        else
+            ++it;
+    }
+
+    if(isAlive() && getIsOnMap())
+        clearDestinations(EntityAnimation::idle_anim, true, true);
+
+    if(!player->getIsHuman())
+        return;
+
+    ServerNotification* serverNotification = new ServerNotification(
+        ServerNotificationType::possessionEnd, player);
+    ODServer::getSingleton().queueServerNotification(serverNotification);
+}
+
+void Creature::formPossessionGroup()
+{
+    mGroupMemberNames.clear();
+
+    uint32_t maxSize = ConfigManager::getSingleton().getSpellConfigUInt32("PossessGroupSize");
+    int32_t radius = ConfigManager::getSingleton().getSpellConfigInt32("PossessGroupRadiusTiles");
+    int32_t radiusSquared = radius * radius;
+    Tile* myTile = getPositionTile();
+    if((maxSize == 0) || (myTile == nullptr))
+        return;
+
+    std::vector<std::pair<int, Creature*>> candidates;
+    for(Creature* creature : getGameMap()->getCreaturesBySeat(getSeat()))
+    {
+        if((creature == this) || creature->getDefinition()->isWorker() || !creature->isAlive() ||
+           creature->isKo() || !creature->getIsOnMap() || creature->isInPrison() ||
+           creature->isPossessed() || creature->isInPossessionGroup())
+        {
+            continue;
+        }
+
+        Tile* tile = creature->getPositionTile();
+        if(tile == nullptr)
+            continue;
+
+        int distance = Pathfinding::squaredDistanceTile(*tile, *myTile);
+        if(distance > radiusSquared)
+            continue;
+
+        candidates.push_back(std::make_pair(distance, creature));
+    }
+
+    std::sort(candidates.begin(), candidates.end());
+    for(const std::pair<int, Creature*>& candidate : candidates)
+    {
+        if(mGroupMemberNames.size() >= maxSize)
+            break;
+
+        candidate.second->joinPossessionGroup(getName());
+        mGroupMemberNames.push_back(candidate.second->getName());
+    }
+}
+
+void Creature::joinPossessionGroup(const std::string& leaderName)
+{
+    mGroupLeaderName = leaderName;
+
+    // The creature leaves what it was doing. The group behaviour is handled when it is idle
+    clearDestinations(EntityAnimation::idle_anim, true, true);
+    clearActionQueue();
+}
+
+void Creature::leavePossessionGroup()
+{
+    mGroupLeaderName.clear();
+}
+
+bool Creature::followPossessionLeader()
+{
+    Creature* leader = getGameMap()->getCreature(mGroupLeaderName);
+    if((leader == nullptr) || !leader->isPossessed() || !leader->getIsOnMap())
+    {
+        leavePossessionGroup();
+        return false;
+    }
+
+    Tile* myTile = getPositionTile();
+    Tile* leaderTile = leader->getPositionTile();
+    if((myTile == nullptr) || (leaderTile == nullptr))
+        return true;
+
+    // The creature stays around the leader. If it is further than 3 tiles, it walks to him
+    if(Pathfinding::squaredDistanceTile(*myTile, *leaderTile) <= 9)
+        return true;
+
+    if(!getGameMap()->pathExists(this, myTile, leaderTile))
+        return true;
+
+    std::list<Tile*> tempPath = getGameMap()->path(this, leaderTile);
+    // The group does not stand on the leader
+    for(int i = 0; (i < 2) && (tempPath.size() > 1); ++i)
+        tempPath.pop_back();
+
+    std::vector<Ogre::Vector2> path;
+    tileToVector2(tempPath, path, true, 0.0);
+    setWalkPath(EntityAnimation::walk_anim, EntityAnimation::idle_anim, true, true, path, true);
+    pushAction(Utils::make_unique<CreatureActionGoCallToWar>(*this));
+    return true;
+}
+
+void Creature::possessedMove(const Ogre::Vector2& direction)
+{
+    if(!isPossessed() || !getIsOnMap())
+        return;
+
+    Ogre::Vector2 position(mPosition.x, mPosition.y);
+    Ogre::Vector2 destination = position;
+    bool canMove = false;
+    if(direction.squaredLength() > 0.0001f)
+    {
+        Ogre::Vector2 dir = direction;
+        dir.normalise();
+        // If the creature is blocked, it tries to slide along the obstacle
+        canMove = computePossessedDestination(*this, position, dir, destination);
+        if(!canMove)
+            canMove = computePossessedDestination(*this, position, Ogre::Vector2(dir.x, 0.0f), destination);
+        if(!canMove)
+            canMove = computePossessedDestination(*this, position, Ogre::Vector2(0.0f, dir.y), destination);
+    }
+
+    if(!canMove)
+    {
+        if(isMoving())
+            clearDestinations(EntityAnimation::idle_anim, true, true);
+
+        return;
+    }
+
+    std::vector<Ogre::Vector2> path;
+    path.push_back(destination);
+    setWalkPath(EntityAnimation::walk_anim, EntityAnimation::idle_anim, true, true, path, true);
+}
+
+namespace
+{
+//! \brief The attacks used with the left mouse button while possessing (melee and ranged).
+//! The other skills of the creature are used with the number keys.
+bool isPossessedBasicAttack(const CreatureSkill& skill)
+{
+    return (skill.getSkillName() == "Melee") || (skill.getSkillName() == "MissileLaunch");
+}
+
+bool isPossessedSkillReady(const Creature& creature, const CreatureSkillData& skillData)
+{
+    return (skillData.mCooldown == 0) && (skillData.mWarmup == 0) &&
+        skillData.mSkill->canBeUsedBy(&creature);
+}
+}
+
+bool Creature::possessedFindTarget(const Ogre::Vector2& aim, const CreatureSkillData& skillData,
+    GameEntity*& entityAttack, Tile*& tileAttack)
+{
+    entityAttack = nullptr;
+    tileAttack = nullptr;
+    Tile* myTile = getPositionTile();
+    if(myTile == nullptr)
+        return false;
+
+    if(aim.squaredLength() < 0.0001f)
+        return false;
+
+    Ogre::Vector2 aimDir = aim;
+    aimDir.normalise();
+
+    // The target has to be in front of the creature (45 degrees to each side)
+    const Ogre::Real minCos = 0.7f;
+    bool bestIsCreature = false;
+    Ogre::Real bestDist = 0.0f;
+    for(GameEntity* entity : mVisibleEnemyObjects)
+    {
+        bool isCreature = (entity->getObjectType() == GameEntityType::creature);
+        if(isCreature)
+        {
+            Creature* enemy = static_cast<Creature*>(entity);
+            if(!enemy->isAlive())
+                continue;
+
+            // Workers attack workers only
+            if(getDefinition()->isWorker() && !enemy->getDefinition()->isWorker())
+                continue;
+        }
+        else if(getDefinition()->isWorker())
+            continue;
+
+        if(entity->getHP(nullptr) <= 0)
+            continue;
+
+        double skillRange = skillData.mSkill->getRangeMax(this, entity);
+        if(skillRange <= 0.0)
+            continue;
+
+        for(Tile* tile : entity->getCoveredTiles())
+        {
+            if(!entity->isAttackable(tile, getSeat()))
+                continue;
+
+            // Same range check as in a normal fight
+            int squaredDist = Pathfinding::squaredDistanceTile(*tile, *myTile);
+            if(static_cast<double>(squaredDist) > (skillRange * skillRange))
+                continue;
+
+            Ogre::Vector2 toTile(tile->getX() - mPosition.x, tile->getY() - mPosition.y);
+            Ogre::Real dist = toTile.length();
+            if(dist > 0.5f)
+            {
+                toTile /= dist;
+                if(toTile.dotProduct(aimDir) < minCos)
+                    continue;
+            }
+
+            // Creatures are attacked before the other objects, then the closest one
+            if((entityAttack != nullptr) && ((bestIsCreature && !isCreature) ||
+               ((bestIsCreature == isCreature) && (dist >= bestDist))))
+                continue;
+
+            entityAttack = entity;
+            tileAttack = tile;
+            bestIsCreature = isCreature;
+            bestDist = dist;
+        }
+    }
+
+    return (entityAttack != nullptr);
+}
+
+void Creature::possessedAttack(const Ogre::Vector2& aim)
+{
+    if(!isPossessed() || !getIsOnMap() || !isAlive() || isKo())
+        return;
+
+    // The melee attack is preferred. The ranged attack is used if no enemy is within melee range
+    CreatureSkillData* bestSkill = nullptr;
+    GameEntity* bestEntity = nullptr;
+    Tile* bestTile = nullptr;
+    double bestRange = 0.0;
+    for(CreatureSkillData& skillData : mSkillData)
+    {
+        if(!isPossessedBasicAttack(*skillData.mSkill))
+            continue;
+
+        if(!isPossessedSkillReady(*this, skillData))
+            continue;
+
+        GameEntity* entity = nullptr;
+        Tile* tile = nullptr;
+        if(!possessedFindTarget(aim, skillData, entity, tile))
+            continue;
+
+        double range = skillData.mSkill->getRangeMax(this, entity);
+        if((bestSkill != nullptr) && (range >= bestRange))
+            continue;
+
+        bestSkill = &skillData;
+        bestEntity = entity;
+        bestTile = tile;
+        bestRange = range;
+    }
+
+    if(bestSkill == nullptr)
+        return;
+
+    useAttack(*bestSkill, *bestEntity, *bestTile, false, true);
+}
+
+void Creature::possessedUseSkill(uint32_t slot, const Ogre::Vector2& aim)
+{
+    if(!isPossessed() || !getIsOnMap() || !isAlive() || isKo())
+        return;
+
+    uint32_t index = 0;
+    for(CreatureSkillData& skillData : mSkillData)
+    {
+        if(isPossessedBasicAttack(*skillData.mSkill))
+            continue;
+
+        if(!skillData.mSkill->canBeUsedBy(this))
+            continue;
+
+        if(index != slot)
+        {
+            ++index;
+            continue;
+        }
+
+        if(!isPossessedSkillReady(*this, skillData))
+            return;
+
+        // Skills without range (haste, heal, ...) are used on the creature itself
+        if(skillData.mSkill->getRangeMax(this, this) <= 0.0)
+        {
+            if(!skillData.mSkill->tryUseSupport(*getGameMap(), this))
+                return;
+
+            skillData.mCooldown = skillData.mSkill->getCooldownNbTurns();
+            skillData.mWarmup = skillData.mSkill->getWarmupNbTurns();
+            return;
+        }
+
+        GameEntity* entity = nullptr;
+        Tile* tile = nullptr;
+        if(!possessedFindTarget(aim, skillData, entity, tile))
+            return;
+
+        useAttack(skillData, *entity, *tile, false, true);
+        return;
+    }
 }

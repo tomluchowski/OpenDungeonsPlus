@@ -1737,6 +1737,76 @@ bool ODServer::processClientNotifications(ODSocketClient* clientSocket)
             break;
         }
 
+        case ClientNotificationType::askPossessMove:
+        {
+            Ogre::Vector2 direction;
+            OD_ASSERT_TRUE(packetReceived >> direction);
+            Player* player = clientSocket->getPlayer();
+            if(!player->isPossessing())
+                break;
+
+            Creature* creature = gameMap->getCreature(player->getPossessedCreatureName());
+            if(creature == nullptr || creature->getPossessor() != player)
+                break;
+
+            creature->possessedMove(direction);
+            break;
+        }
+
+        case ClientNotificationType::askPossessAttack:
+        {
+            Ogre::Vector2 aim;
+            OD_ASSERT_TRUE(packetReceived >> aim);
+            Player* player = clientSocket->getPlayer();
+            if(!player->isPossessing())
+                break;
+
+            Creature* creature = gameMap->getCreature(player->getPossessedCreatureName());
+            if(creature == nullptr || creature->getPossessor() != player)
+                break;
+
+            creature->possessedAttack(aim);
+            break;
+        }
+
+        case ClientNotificationType::askPossessSkill:
+        {
+            uint32_t slot;
+            Ogre::Vector2 aim;
+            OD_ASSERT_TRUE(packetReceived >> slot >> aim);
+            Player* player = clientSocket->getPlayer();
+            if(!player->isPossessing())
+                break;
+
+            Creature* creature = gameMap->getCreature(player->getPossessedCreatureName());
+            if(creature == nullptr || creature->getPossessor() != player)
+                break;
+
+            creature->possessedUseSkill(slot, aim);
+            break;
+        }
+
+        case ClientNotificationType::askPossessExit:
+        {
+            Player* player = clientSocket->getPlayer();
+            if(!player->isPossessing())
+                break;
+
+            Creature* creature = gameMap->getCreature(player->getPossessedCreatureName());
+            if(creature == nullptr || creature->getPossessor() != player)
+            {
+                // The creature is gone, we only have to tell the client
+                player->setPossessedCreatureName(std::string());
+                ServerNotification* serverNotification = new ServerNotification(
+                    ServerNotificationType::possessionEnd, player);
+                queueServerNotification(serverNotification);
+                break;
+            }
+
+            creature->endPossession();
+            break;
+        }
+
         case ClientNotificationType::askSellTrapTiles:
         {
             Player* player = clientSocket->getPlayer();
