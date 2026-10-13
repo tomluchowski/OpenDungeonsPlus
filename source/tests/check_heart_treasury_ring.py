@@ -65,6 +65,7 @@ probe = r"""
 #include <map>
 #include <string>
 #include <vector>
+#include "rooms/TreasuryGoldLayer.h"
 
 #define OD_LOG_ERR(x)
 #define OD_LOG_INF(x)
@@ -317,35 +318,47 @@ probe += r"""
  heart.doUpkeep();
  BuildingObject* a1=heart.mBuildingObjects[ringA];
  check(goldIn(heart,ringA)==250,"250 gold sits on ringA");
- check(dataOf(heart,ringA)->mMeshOfTile=="GoldstackLv1","250 gold shows a level 1 stack");
+ check(dataOf(heart,ringA)->mMeshOfTile=="TreasuryGold_2_0000_2R","250 gold shows a level 2 pile");
  check(a1!=nullptr,"a stack object stands on the tile");
  heart.depositGold(250,ringA);
  heart.doUpkeep();
- check(dataOf(heart,ringA)->mMeshOfTile=="GoldstackLv2"&&heart.mBuildingObjects[ringA]!=a1,"500 gold upgrades the stack");
+ check(dataOf(heart,ringA)->mMeshOfTile=="TreasuryGold_4_0000_2R"&&heart.mBuildingObjects[ringA]!=a1,"500 gold upgrades the pile");
  BuildingObject* a2=heart.mBuildingObjects[ringA];
  heart.depositGold(250,ringA);
  heart.doUpkeep();
- check(dataOf(heart,ringA)->mMeshOfTile=="GoldstackLv3"&&heart.mBuildingObjects[ringA]!=a2,"750 gold upgrades the stack");
+ check(dataOf(heart,ringA)->mMeshOfTile=="TreasuryGold_6_0000_2R"&&heart.mBuildingObjects[ringA]!=a2,"750 gold upgrades the pile");
  BuildingObject* a3=heart.mBuildingObjects[ringA];
  heart.depositGold(250,ringA);
  heart.doUpkeep();
- check(dataOf(heart,ringA)->mMeshOfTile=="GoldstackLv4"&&heart.mBuildingObjects[ringA]!=a3,"1000 gold shows a level 4 stack");
+ check(dataOf(heart,ringA)->mMeshOfTile=="TreasuryGold_7_0000_2R"&&heart.mBuildingObjects[ringA]!=a3,"1000 gold shows a full pile");
 
  Tile* ringB=tileAt(heart,11,8);
  check(heart.isTreasuryTile(ringB),"a south-west tile two away is a ring tile");
  heart.depositGold(200,ringB);
  heart.doUpkeep();
  BuildingObject* b1=heart.mBuildingObjects[ringB];
- check(dataOf(heart,ringB)->mMeshOfTile=="GoldstackLv1"&&b1!=nullptr,"200 gold on a second tile shows a level 1 stack");
+ check(dataOf(heart,ringB)->mMeshOfTile=="TreasuryGold_2_0000_1R"&&b1!=nullptr,"200 gold on a second tile shows a level 2 pile");
  heart.depositGold(50,ringB);
  heart.doUpkeep();
- check(goldIn(heart,ringB)==250&&dataOf(heart,ringB)->mMeshOfTile=="GoldstackLv1"&&heart.mBuildingObjects[ringB]==b1,"250 gold keeps the level 1 stack");
+ check(goldIn(heart,ringB)==250&&dataOf(heart,ringB)->mMeshOfTile=="TreasuryGold_2_0000_1R"&&heart.mBuildingObjects[ringB]==b1,"250 gold keeps the level 2 pile");
 
  check(heart.withdrawGold(9999999)==1250,"draining the ring takes the 1250 stored");
  heart.doUpkeep();
  check(heart.getTotalGoldStored()==0,"the ring is empty");
  check(heart.mBuildingObjects.empty(),"every gold stack object is removed");
  check(dataOf(heart,ringA)->mMeshOfTile.empty()&&dataOf(heart,ringB)->mMeshOfTile.empty(),"the tile data forgets its stack");
+
+ // Neighbouring ring tiles record each other's level in their stable mesh names
+ Tile* ringN=tileAt(heart,12,11);
+ check(heart.isTreasuryTile(ringN),"the tile north of ringA is a ring tile");
+ heart.depositGold(1000,ringA);
+ heart.depositGold(500,ringN);
+ heart.doUpkeep();
+ check(dataOf(heart,ringA)->mMeshOfTile=="TreasuryGold_7_4000_2R","a full pile records its lower north neighbour");
+ check(dataOf(heart,ringN)->mMeshOfTile=="TreasuryGold_4_0040_3R","the neighbour records the full pile to its south");
+ check(heart.withdrawGold(9999999)==1500,"draining the pair takes the 1500 stored");
+ heart.doUpkeep();
+ check(heart.mBuildingObjects.empty(),"the pair of piles is removed");
 
  // Editor: releasing a ring tile turns its gold into a treasury object
  int spawnedBefore=static_cast<int>(TreasuryObject::spawned.size());

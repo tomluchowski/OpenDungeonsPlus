@@ -99,4 +99,15 @@ assert 'static const int& rebuildPerFrame' in rules
 assert 'TreasuryEffectKind::ambient' in render and 'ambientBudget(TreasuryGoldMesh::getDetail())' in render
 assert 'case TreasuryGoldMesh::Detail::full:' in rules.split('inline int ambientBudget')[1]
 assert 'camera->isVisible' in render.split('void RenderManager::startTreasuryPileChange')[1].split('float RenderManager::getTreasuryCameraDistance')[0]
+
+# Dungeon heart ring: the classic stacks are drawn as piles on the client (server names and tests untouched).
+assert 'pileNameForClassicStack' in render and 'replacesClassicStack' in render
+# The server names the heart ring piles with the levels of the ring neighbours, so the piles run into each other
+temple = read('source/rooms/RoomDungeonTemple.cpp')
+assert 'TreasuryGoldLayer::ringPileShape(' in temple and 'inline PileShape ringPileShape(' in layer
+assert 'getMeshNameForGold' not in temple.split('void RoomDungeonTemple::updateTreasuryMeshesForTile')[1].split(chr(10) + '}' + chr(10))[0]
+classic = mesh.split('std::string pileNameForClassicStack')[1].split('int registerPile')[0]
+assert 'Detail::off' not in classic and 'TreasuryGoldLayer::meshName(shape)' in classic
+ring = classic
+assert 'mCorner[i] = level' not in ring and 'mCorner' not in ring
 print('ok')

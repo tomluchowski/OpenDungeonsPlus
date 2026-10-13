@@ -68,7 +68,8 @@ struct PileShape
 {
     PileShape() :
         mLevel(0),
-        mVariant(0)
+        mVariant(0),
+        mRing(false)
     {
         for(int i = 0; i < 4; ++i)
             mCorner[i] = 0;
@@ -79,6 +80,9 @@ struct PileShape
     int mCorner[4];
     //! Selects one of a few lumpy variants so neighbouring piles do not look alike
     int mVariant;
+    //! A pile of a single-row ring. mCorner then records the level of each adjacent ring tile
+    //! (north, east, south, west; 0 when no ring tile lies there).
+    bool mRing;
 };
 
 static const int variantCount = 4;
@@ -94,6 +98,8 @@ inline std::string meshName(const PileShape& shape)
         name += static_cast<char>('0' + shape.mCorner[i]);
     name += '_';
     name += static_cast<char>('0' + shape.mVariant);
+    if(shape.mRing)
+        name += 'R';
     return name;
 }
 
@@ -102,7 +108,9 @@ inline bool parseMeshName(const std::string& name, PileShape& shape)
 {
     const std::string prefix = meshNamePrefix;
     // prefix + level + '_' + four corners + '_' + variant
-    if(name.size() != prefix.size() + 8 || name.compare(0, prefix.size(), prefix) != 0)
+    // A ring pile has an 'R' after the variant
+    const bool ring = name.size() == prefix.size() + 9 && name[name.size() - 1] == 'R';
+    if((name.size() != prefix.size() + 8 && !ring) || name.compare(0, prefix.size(), prefix) != 0)
         return false;
     const char* text = name.c_str() + prefix.size();
     if(text[1] != '_' || text[6] != '_')
@@ -119,7 +127,29 @@ inline bool parseMeshName(const std::string& name, PileShape& shape)
     for(int i = 0; i < 4; ++i)
         shape.mCorner[i] = values[1 + i];
     shape.mVariant = values[5];
+    shape.mRing = ring;
     return true;
+}
+
+//! The shape of a pile on a tile of a single-row ring (the treasury ring of the dungeon heart).
+//! around[dx + 1][dy + 1] is the level of the ring tile at that offset (0 for an empty one), -1 for a tile that
+//! is not part of the ring; around[1][1] is the tile itself.
+inline PileShape ringPileShape(int x, int y, const int (&around)[3][3])
+{
+    PileShape shape;
+    shape.mLevel = around[1][1];
+    shape.mVariant = (x * 7 + y * 13) % variantCount;
+    shape.mRing = true;
+    // North is towards +y: north, east, south, west
+    const int sideX[4] = {0, 1, 0, -1};
+    const int sideY[4] = {1, 0, -1, 0};
+    for(int i = 0; i < 4; ++i)
+    {
+        const int neighbour = around[sideX[i] + 1][sideY[i] + 1];
+        if(neighbour > 0)
+            shape.mCorner[i] = neighbour < shape.mLevel ? neighbour : shape.mLevel;
+    }
+    return shape;
 }
 
 //! Radius (tile units, the tile is 1 wide) of the round heap of a pile: a little gold is a small heap in the middle
@@ -232,6 +262,8 @@ inline int gemCount(const PileShape& shape)
 //! itself, i.e. it faces a wall, the outside of the room or a lower pile.
 inline bool edgeOpen(const PileShape& shape, int edge)
 {
+    if(shape.mRing)
+        return shape.mCorner[edge] < shape.mLevel;
     return shape.mCorner[edge] < shape.mLevel && shape.mCorner[(edge + 1) % 4] < shape.mLevel;
 }
 
@@ -248,6 +280,28 @@ inline int spillCoinsPerEdge(const PileShape& shape)
 inline bool hasFloorScatter(int x, int y)
 {
     return (x * 3 + y * 5) % 4 == 0;
+}
+
+//! Fill step of the pile that the classic stack mesh names stand for ("GoldstackLv1" is 2 ... "GoldstackLv4" is 7)
+//! Returns 0 for any other name
+inline int levelForClassicName(const std::string& name)
+{
+    const std::string prefix = "GoldstackLv";
+    if(name.size() != prefix.size() + 1 || name.compare(0, prefix.size(), prefix) != 0)
+        return 0;
+    switch(name[prefix.size()])
+    {
+        case '1':
+            return 2;
+        case '2':
+            return 4;
+        case '3':
+            return 6;
+        case '4':
+            return maxLevel;
+        default:
+            return 0;
+    }
 }
 
 //! The pot mesh used when the treasury detail option is off (one of the four classic stacks)

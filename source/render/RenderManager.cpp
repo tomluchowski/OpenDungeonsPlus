@@ -3448,6 +3448,11 @@ void RenderManager::rrCreateRenderedMovableEntity(RenderedMovableEntity* rendere
     if(isBuildingObject)
     {
         Tile* pileTile = renderedMovableEntity->getPositionTile();
+        // The classic stacks of the dungeon heart ring are drawn as piles as well
+        const std::string pileName = TreasuryGoldMesh::pileNameForClassicStack(meshName,
+            renderedMovableEntity->getPosition().x, renderedMovableEntity->getPosition().y);
+        const bool classicStack = (pileName != meshName);
+        meshName = pileName;
         TreasuryGoldLayer::PileShape pileShape;
         isPileEntity = TreasuryGoldLayer::parseMeshName(meshName, pileShape);
         if(isPileEntity && TreasuryGoldMesh::getDetail() != TreasuryGoldMesh::Detail::off)
@@ -3455,7 +3460,8 @@ void RenderManager::rrCreateRenderedMovableEntity(RenderedMovableEntity* rendere
         previousPileLevel = TreasuryGoldMesh::registerPile(renderedMovableEntity->getName(),
             renderedMovableEntity->getPosition().x, renderedMovableEntity->getPosition().y, meshName,
             (pileTile != nullptr && pileTile->getCoveringRoom() != nullptr) ?
-            static_cast<const void*>(pileTile->getCoveringRoom()) : static_cast<const void*>(pileTile));
+            static_cast<const void*>(pileTile->getCoveringRoom()) : static_cast<const void*>(pileTile),
+            classicStack);
         pileMeshName = meshName;
         if(isPileEntity && TreasuryGoldMesh::getDetail() == TreasuryGoldMesh::Detail::full)
         {
@@ -3526,8 +3532,9 @@ void RenderManager::rrCreateRenderedMovableEntity(RenderedMovableEntity* rendere
     renderedMovableEntity->setParentSceneNode(node->getParentSceneNode());
     renderedMovableEntity->setEntityNode(node);
 
-    // A pile is listed, so its mesh can be created again
-    if(isPileEntity && (nt == NodeType::MTILES_NODE))
+    // Piles (and the classic stacks drawn as piles) are listed, so their mesh can be created again
+    if(isBuildingObject && nt == NodeType::MTILES_NODE &&
+        (isPileEntity || TreasuryGoldLayer::levelForClassicName(renderedMovableEntity->getMeshName()) > 0))
     {
         TreasuryPileInfo pileInfo;
         pileInfo.mNodeType = nt;
@@ -5109,6 +5116,9 @@ void RenderManager::updateCreatureStep(Creature* creature)
     for(RenderedMovableEntity* candidate : creature->getGameMap()->getRenderedMovableEntities())
     {
         if(candidate->getObjectType() != GameEntityType::buildingObject || candidate->getEntityNode() == nullptr)
+            continue;
+        // A classic stack drawn as a gold pile is not stepped over, the pile lifts the creature instead
+        if(TreasuryGoldMesh::replacesClassicStack(candidate->getPosition().x, candidate->getPosition().y))
             continue;
         for(const RoomObjectPath::MeshBounds& bounds : RoomObjectPath::meshBounds)
         {

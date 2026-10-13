@@ -70,6 +70,7 @@ struct RegisteredPile
     std::string mEntityName;
     TreasuryGoldLayer::PileShape mShape;
     const void* mRoom;
+    bool mReplacesClassicStack;
 };
 
 std::map<std::pair<int, int>, RegisteredPile> registeredPiles;
@@ -542,7 +543,24 @@ void updateDentedPile(Ogre::ManualObject* object, const std::string& meshName, f
     fillPile(object, shape, DentDivisions, true, &dent, true);
 }
 
-int registerPile(const std::string& entityName, float x, float y, const std::string& meshName, const void* room)
+std::string pileNameForClassicStack(const std::string& meshName, float x, float y)
+{
+    const int level = TreasuryGoldLayer::levelForClassicName(meshName);
+    if(level <= 0)
+        return meshName;
+
+    // The ring tiles lie in a single row (the heart on one side, the floor on the other), so, as for any pile whose
+    // neighbours do not reach the corner, all four corners are on the floor: a mound that runs out flat at the
+    // tile edges instead of a plateau with a cut edge
+    const std::pair<int, int> tile = tileOf(x, y);
+    TreasuryGoldLayer::PileShape shape;
+    shape.mLevel = level;
+    shape.mVariant = (tile.first * 7 + tile.second * 13) % TreasuryGoldLayer::variantCount;
+    return TreasuryGoldLayer::meshName(shape);
+}
+
+int registerPile(const std::string& entityName, float x, float y, const std::string& meshName, const void* room,
+    bool replacesClassicStack)
 {
     if(currentDetail == Detail::off)
         return -1;
@@ -553,6 +571,7 @@ int registerPile(const std::string& entityName, float x, float y, const std::str
 
     pile.mEntityName = entityName;
     pile.mRoom = room;
+    pile.mReplacesClassicStack = replacesClassicStack;
     const std::pair<int, int> tile = tileOf(x, y);
     registeredPiles[tile] = pile;
 
@@ -575,6 +594,12 @@ void clearPiles()
 {
     registeredPiles.clear();
     lastLevels.clear();
+}
+
+bool replacesClassicStack(float x, float y)
+{
+    std::map<std::pair<int, int>, RegisteredPile>::const_iterator it = registeredPiles.find(tileOf(x, y));
+    return it != registeredPiles.end() && it->second.mReplacesClassicStack;
 }
 
 void collectPiles(std::vector<FullPile>& piles, int minLevel)

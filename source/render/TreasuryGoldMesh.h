@@ -63,17 +63,26 @@ Ogre::ManualObject* createDentedPile(Ogre::SceneManager* sceneManager, const std
 void updateDentedPile(Ogre::ManualObject* object, const std::string& meshName, float u, float v, float radius,
     float depth);
 
+//! The dungeon heart still names its treasury ring tiles with the classic stacks. On this client those
+//! are drawn as gold piles too: returns the pile name for the classic stack name at the given tile, or
+//! the name unchanged (not a classic stack name, or the detail is off).
+std::string pileNameForClassicStack(const std::string& meshName, float x, float y);
+
 //! \brief The piles drawn on this client, by tile, so objects can stand in the gold and effects can find the piles.
 //! Names that are not pile names, and every pile while the detail is off, are ignored.
 //! The room (any pointer identifying it, may be null) lets effects share a budget per room.
 //! Returns the level this tile had when it was last registered (-1 when it never was, or the pile is
 //! ignored), so the caller can tell a pile that grew from one that was taken from.
 int registerPile(const std::string& entityName, float x, float y, const std::string& meshName,
-    const void* room = nullptr);
+    const void* room = nullptr, bool replacesClassicStack = false);
 //! Forgets the pile, if the tile still holds the pile of that entity (a newer pile stays)
 void unregisterPile(const std::string& entityName, float x, float y);
 //! Forgets every registered pile (the scene is cleared)
 void clearPiles();
+
+//! True when the pile on that tile stands in for a classic stack of the server (dungeon heart ring), so the
+//! stack is not to be treated as an obstacle to step over any more
+bool replacesClassicStack(float x, float y);
 
 //! Height of the gold surface at the given map position, 0 when there is no pile. The level of the
 //! pile of that tile (0 when none) is returned in level.

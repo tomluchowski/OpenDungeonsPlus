@@ -38,6 +38,7 @@
 #include "network/ServerNotification.h"
 #include "rooms/RoomManager.h"
 #include "rooms/RoomTreasury.h"
+#include "rooms/TreasuryGoldLayer.h"
 #include "utils/Helper.h"
 #include "utils/LogManager.h"
 #include "utils/Random.h"
@@ -585,8 +586,29 @@ void RoomDungeonTemple::updateTreasuryMeshesForTile(Tile* tile, RoomTreasuryTile
         return;
     }
 
+    // The pile of a ring tile blends into the piles of the ring tiles next to it, so the fill step of the
+    // tiles around this one decides its name (-1: not a ring tile)
+    int around[3][3];
+    for(int i = 0; i < 3; ++i)
+    {
+        for(int j = 0; j < 3; ++j)
+            around[i][j] = -1;
+    }
+    for(const std::pair<Tile* const, TileData*>& p : mTileData)
+    {
+        const int offsetX = p.first->getX() - tile->getX();
+        const int offsetY = p.first->getY() - tile->getY();
+        if((offsetX < -1) || (offsetX > 1) || (offsetY < -1) || (offsetY > 1) || !isTreasuryTile(p.first))
+            continue;
+
+        RoomTreasuryTileData* neighbourData = static_cast<RoomTreasuryTileData*>(p.second);
+        around[offsetX + 1][offsetY + 1] = TreasuryGoldLayer::levelForGold(neighbourData->mGoldInTile,
+            treasuryTileCapacity);
+    }
+
     // If the mesh has not changed we do not need to do anything.
-    std::string newMeshName = TreasuryObject::getMeshNameForGold(gold);
+    std::string newMeshName = TreasuryGoldLayer::meshName(TreasuryGoldLayer::ringPileShape(tile->getX(),
+        tile->getY(), around));
     if(roomTreasuryTileData->mMeshOfTile.compare(newMeshName) == 0)
         return;
 
@@ -596,14 +618,9 @@ void RoomDungeonTemple::updateTreasuryMeshesForTile(Tile* tile, RoomTreasuryTile
 
     if(gold > 0)
     {
-        const double offset = 0.2;
-        double posX = static_cast<double>(tile->getX());
-        double posY = static_cast<double>(tile->getY());
-        double posZ = 0;
-        posX += Random::Double(-offset, offset);
-        posY += Random::Double(-offset, offset);
-        double angle = Random::Double(0.0, 360);
-        BuildingObject* ro = new BuildingObject(getGameMap(), *this, newMeshName, tile, posX, posY, posZ, angle, false);
+        // The pile fills its tile exactly so it joins the piles next to it
+        BuildingObject* ro = new BuildingObject(getGameMap(), *this, newMeshName, tile,
+            static_cast<double>(tile->getX()), static_cast<double>(tile->getY()), 0.0, 0.0, false);
         addBuildingObject(tile, ro);
     }
 
