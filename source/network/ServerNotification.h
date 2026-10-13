@@ -102,7 +102,11 @@ enum class ServerNotificationType
     //! \brief Answer to the editor asking what the waves of a wave portal are
     editorPortalWaveData,
 
-    exit
+    exit,
+
+    //! Answer to editorRegionEdit, all the region markers of the level script:
+    //! + uint32_t count, then per region: string name and 4 int32_t (the corners).
+    editorRegionData
 };
 
 ODPacket& operator<<(ODPacket& os, const ServerNotificationType& nt);
