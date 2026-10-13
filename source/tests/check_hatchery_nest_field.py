@@ -276,7 +276,8 @@ assert 'HatcheryNestField::fingerprint' in room_cpp and 'HatcheryNestField::comp
 for key in ('HatcheryNestTilesPerNest', 'HatcheryNestMax', 'HatcheryNestEdge', 'HatcheryNestCoopClearance',
             'HatcheryNestLaneLength', 'HatcheryNestLaneHalfWidth', 'HatcheryNestLaneClearance', 'HatcheryNestSpacing'):
     assert key in room_cpp and key in config, key
-assert not (root / 'source/rooms/HatcheryCoopHouse.h').exists(), 'the coop nest places are gone'
+coop_h = (root / 'source/rooms/HatcheryCoopHouse.h').read_text()
+assert 'nestEggSpot' not in coop_h and 'eggsPerNest' not in coop_h and 'nestCenter' not in coop_h, 'the coop nest places are gone'
 assert 'nestEggSpot' not in room_cpp and 'eggsPerNest' not in room_cpp
 
 # Server -> client: only the server computes the places and sends them (hatcheryNests); sent when they change, to a

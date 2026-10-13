@@ -1,4 +1,4 @@
-// Material of the hatchery nests: loose straw nest with a small own texture.
+// Materials of the hatchery nests: loose straw nest (small own texture) and the matt straw inside the coop.
 
 material ChickenNest
 {
@@ -17,6 +17,22 @@ material ChickenNest
                 texture ChickenNest.png
                 tex_address_mode wrap
             }
+        }
+    }
+}
+
+material ChickenCoopStraw
+{
+    receive_shadows on
+    technique
+    {
+        pass
+        {
+            cull_hardware none
+            cull_software none
+            ambient 0.44 0.35 0.2 1.0
+            diffuse 0.5 0.4 0.23 1.0
+            specular 0.0 0.0 0.0 1.0 1
         }
     }
 }

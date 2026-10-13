@@ -36,6 +36,7 @@
 #include "gamemap/RoomObjectNavigation.h"
 #include "network/ODServer.h"
 #include "network/ServerNotification.h"
+#include "rooms/HatcheryCoopHouse.h"
 #include "rooms/RoomManager.h"
 #include "traps/Trap.h"
 #include "traps/TrapType.h"
@@ -153,7 +154,7 @@ BuildingObject* RoomHatchery::notifyActiveSpotCreated(ActiveSpotPlace place, Til
 {
     // We add chicken coops on center tiles only
     if(place == ActiveSpotPlace::activeSpotCenter)
-        return new BuildingObject(getGameMap(), *this, "ChickenCoop", *tile, 0.0, false);
+        return new BuildingObject(getGameMap(), *this, HatcheryCoopHouse::meshName, *tile, 0.0, false);
 
     return nullptr;
 }
@@ -1435,8 +1436,9 @@ Tile* RoomHatchery::getNearestCoop(const Ogre::Vector2& position) const
 
 Ogre::Vector2 RoomHatchery::getPerchSpot(const Tile& coopTile) const
 {
-    // The coop mesh reaches from -0.2 to +0.8 along the tile, its roof is above the middle
-    double offset = ConfigManager::getSingleton().getRoomConfigDoubleOrDefault("HatcheryCoopPerchOffset", 0.3);
+    // The lookout plank of the coop mesh lies over the roof ridge, 0.3 along the tile
+    double offset = ConfigManager::getSingleton().getRoomConfigDoubleOrDefault("HatcheryCoopPerchOffset",
+        HatcheryCoopHouse::roofPerchOffset);
     return Ogre::Vector2(coopTile.getX() + static_cast<Ogre::Real>(offset), coopTile.getY());
 }
 
@@ -1508,7 +1510,8 @@ void RoomHatchery::roostOnRoof(ChickenEntity* rooster, const std::string& pose, 
     const Ogre::Vector2 spot = getPerchSpot(*coopTile);
     if(hopFromFar || (position.distance(spot) < mRoosterSettings.mHopDistance))
     {
-        double roofHeight = ConfigManager::getSingleton().getRoomConfigDoubleOrDefault("HatcheryCoopRoofHeight", 0.95);
+        double roofHeight = ConfigManager::getSingleton().getRoomConfigDoubleOrDefault("HatcheryCoopRoofHeight",
+            HatcheryCoopHouse::roofPerchHeight);
         rooster->hopToRoof(Ogre::Vector3(spot.x, spot.y, static_cast<Ogre::Real>(roofHeight)));
         rooster->setAnimationState(pose, true);
         return;

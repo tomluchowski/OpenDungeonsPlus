@@ -2636,7 +2636,7 @@ void RenderManager::rrCreateRenderedMovableEntity(RenderedMovableEntity* rendere
 
     renderedMovableEntity->setParentSceneNode(node->getParentSceneNode());
     renderedMovableEntity->setEntityNode(node);
-    if(meshName == "ChickenCoop")
+    if(HatcheryCoopHouse::isCoopMesh(meshName))
         rrCreateCoopDecor(static_cast<BuildingObject*>(renderedMovableEntity));
 
     // If it is required, we hide the tile
@@ -2665,7 +2665,7 @@ void RenderManager::rrDestroyRenderedMovableEntity(RenderedMovableEntity* curRen
     std::string tempString = curRenderedMovableEntity->getOgreNamePrefix()
                              + curRenderedMovableEntity->getName()+  (static_cast<bool>(nt) ?  "" : "_dtc" );
     Ogre::SceneNode* node = curRenderedMovableEntity->getEntityNode();
-    if(curRenderedMovableEntity->getMeshName() == "ChickenCoop")
+    if(HatcheryCoopHouse::isCoopMesh(curRenderedMovableEntity->getMeshName()))
         rrDestroyCoopDecor(static_cast<BuildingObject*>(curRenderedMovableEntity));
     if(mSceneManager->hasEntity(tempString))
     {
@@ -3214,7 +3214,12 @@ void RenderManager::rrSetObjectAnimationState(MovableGameEntity* curAnimatedObje
         const bool isChick = static_cast<ChickenEntity*>(curAnimatedObject)->getKind() == ChickenKind::chick;
         const std::string clip = ChickenPose::skeletonClip(animation, isChick);
         if(!clip.empty() && objectEntity->getSkeleton()->hasAnimation(clip))
+        {
             anim = clip;
+            // Laying and fluttering play once, the pose ends with the clip
+            if(ChickenPose::isOneShotClip(clip))
+                loop = false;
+        }
     }
     Creature* dropCreature = nullptr;
     if(curAnimatedObject->getObjectType() == GameEntityType::creature)

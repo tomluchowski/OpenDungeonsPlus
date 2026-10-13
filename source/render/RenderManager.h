@@ -447,6 +447,8 @@ private:
         Ogre::SceneNode* mNode;
         Ogre::Entity* mFeathers;
         Ogre::Real mShake;
+        //! The door clip of the coop mesh, null for the old coop mesh (the coop shakes then)
+        Ogre::AnimationState* mDoor;
     };
     std::map<BuildingObject*, CoopDecor> mCoopDecors;
     //! The nest places the server sent, by room name (the clients compute nothing). mVersion counts the messages.

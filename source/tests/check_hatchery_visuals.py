@@ -131,3 +131,62 @@ chick_line = body(room, 'void RoomHatchery::updateChickLine')
 assert 'night' not in chick_line.lower() and 'Each chick follows the one in front' in chick_line
 assert 'ChickenPose::roost' not in looks and 'mSnuggleGap' not in room
 print('hatchery chicks under hen checks passed')
+# Coop mesh with nests, door clip and roof lookout, and the real hen clips Lay and Flutter (text checks only)
+coop_h = (root / 'source/rooms/HatcheryCoopHouse.h').read_text()
+for name in ('meshName = "ChickenCoopHouse"', 'oldMeshName = "ChickenCoop"', 'doorClip = "Door"', 'roofPerchHeight',
+             'roofPerchOffset', 'isCoopMesh'):
+    assert name in coop_h, name
+assert 'HatcheryCoopHouse::meshName' in body(room, 'BuildingObject* RoomHatchery::notifyActiveSpotCreated')
+assert 'HatcheryCoopHouse::roofPerchHeight' in room and 'HatcheryCoopHouse::roofPerchOffset' in room
+assert 'ChickenCoop"' not in room
+assert render.count('HatcheryCoopHouse::isCoopMesh') == 2
+coop_mesh = (models / 'ChickenCoopHouse.mesh').read_bytes()
+assert b'ChickenCoopHouse.skeleton' in coop_mesh and b'ChickenCoop' in coop_mesh and b'ChickenCoopStraw' in coop_mesh
+coop_skeleton = (models / 'ChickenCoopHouse.skeleton').read_bytes()
+for name in (b'Root', b'Door', b'Lookout', b'Idle'):
+    assert name in coop_skeleton, name
+assert (models / 'ChickenCoop.mesh').exists()
+bounds = (root / 'source/gamemap/RoomObjectBounds.h').read_text()
+assert '{"ChickenCoopHouse", -.203275f, -.4f, .796725f, .4f}' in bounds
+assert 'ChickenCoopHouse.mesh' in credits and 'ChickenCoopHouse.skeleton' in credits and 'clips Lay, Flutter' in credits
+# The door of the coop swings with the animal that comes out, the old mesh shakes as before
+assert 'mDoor' in looks and 'HatcheryCoopHouse::doorClip' in body(looks, 'void RenderManager::rrCreateCoopDecor')
+assert 'mDoor->setEnabled(true)' in body(looks, 'void RenderManager::rrSetChickenPose')
+assert 'mShake = 0.8f' in body(looks, 'void RenderManager::rrSetChickenPose')
+assert 'mDoor->addTime' in body(looks, 'void RenderManager::updateChickenLooks')
+assert 'mNest' not in body(looks, 'void RenderManager::rrDestroyCoopDecor'), 'the nests belong to the hatchery, not to a coop'
+# Hen clips: used when the skeleton has them, procedural motion stays as fallback
+for name in (b'Lay', b'Flutter', b'Peep', b'Run', b'Crow', b'Hatch', b'Die', b'Pick', b'Paw', b'Sleep', b'Walk', b'Idle'):
+    assert name in skeleton, name
+assert 'return "Lay"' in pose and 'return "Flutter"' in pose and 'isOneShotClip' in pose
+assert 'ChickenPose::isOneShotClip(clip)' in hook and 'hasAnimation(clip)' in hook
+assert 'hasAnimation("Lay")' in looks and 'hasAnimation("Flutter")' in looks
+assert 'stretch = Ogre::Vector3(1.14f, 1.1f' in looks and 'lift = 0.14f * rise' in looks
+for name in ('hen_lay_flutter.py', 'coop_house.py'):
+    assert (root / 'tools/blender-assets' / name).exists(), name
+# Lay and Flutter keep their translations in the parent frame (the frame fix tool says why ogre_fix must not touch them)
+fix_tool = (root / 'tools/blender-assets/chicken_frame_fix.py').read_text()
+assert 'ogre_fix.py must NOT be applied' in fix_tool and 'T_new = q_bind * T_old' in fix_tool
+import shutil
+import subprocess
+import sys
+import tempfile
+if shutil.which('OgreXMLConverter') is not None:
+    sys.path.insert(0, str(root / 'tools/blender-assets'))
+    import chicken_frame_fix as frame_fix
+    import xml.etree.ElementTree as ET
+    with tempfile.TemporaryDirectory() as tmp:
+        out_xml = str(Path(tmp) / 'Chicken.xml')
+        subprocess.check_call(['OgreXMLConverter', '-q', str(models / 'Chicken.skeleton'), out_xml],
+                              stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        skeleton_xml = ET.parse(out_xml).getroot()
+    assert len(frame_fix.structure(skeleton_xml)[0]) == frame_fix.BONE_COUNT
+    assert frame_fix.structure(skeleton_xml)[2] == sorted(frame_fix.CLIP_NAMES)
+    lay_hip = frame_fix.track_values(skeleton_xml, 'Lay', 'Hip', 'z')
+    flutter_root = frame_fix.track_values(skeleton_xml, 'Flutter', 'Root', 'z')
+    assert abs(min(lay_hip) + 0.05) < 0.002, min(lay_hip)
+    assert abs(max(flutter_root) - 0.075) < 0.002, max(flutter_root)
+    assert max(abs(v) for v in frame_fix.track_values(skeleton_xml, 'Lay', 'Hip', 'y')) < 0.002
+else:
+    print('OgreXMLConverter not on the PATH: skeleton frame check skipped')
+print('hatchery coop and hen clip checks passed')
