@@ -1,0 +1,95 @@
+[
+  {
+    "id": "Knight.mesh",
+    "n": 1,
+    "name": "plate",
+    "build": 0,
+    "file": "outfit-1-plate-build0.png",
+    "source": "materials/portraits/generated-outfits/Knight.mesh/outfit-1-plate.png",
+    "source_sha256": "ea33fc568f86c6c4591a6f29918609e8d4e73fa9f492e0c902fbd5ca3f020d69",
+    "source_size": [
+      887,
+      1774
+    ],
+    "canvas_registration": "canonical canvas",
+    "body_span_fit": null,
+    "bottom_rows_repeated": 0,
+    "horizontal_scale": 1.25,
+    "vertical_scale": 1.1,
+    "offset": [
+      -110.875,
+      -72.00000000000006
+    ],
+    "mesh_warp": null,
+    "torso_margin": 1.1111111111111112,
+    "sleeve_warp": "row-wise sleeve width registered to neutral forearm bounds, outer 220-pixel sectors, rows 1050-1599",
+    "head_occlusion": "mandatory helmet covers collar",
+    "native_uncovered_body_pixels": 8950,
+    "coarse_uncovered_body_pixels": 270,
+    "coarse_body_pixels": 8468,
+    "visual_acceptance": "accepted-native-and-50x100",
+    "prompt": "Generate ONE isolated empty clothing/armor overlay: Knight male outfit option 1, full dark steel plate cuirass with broad segmented shoulder pauldrons, metal upper-arm protection and articulated elbow guards over a muted burgundy padded long-sleeved tunic, plain unmarked armor, modest closed torso, a simple belt and burgundy lower coat filling the bottom frame. Input neutral mannequin is a registration reference ONLY: preserve its exact three-quarter head direction, shoulders, torso width, bent arms with hands resting at the waist, crop and upper-left painted light. Canvas 887x1774; retain empty transparent head space. Collar at base of neck below y=650; shoulders around y=700, torso and bent arms extend to bottom edge; cover the entire torso, shoulders and visible arms, with slight overlap outside the mannequin's silhouette. No helmet or head: those are separate layers. Output only the empty armor-and-clothing shell, genuine transparent RGBA, no body, face, neck skin, mannequin, hand skin, person, hair, jewelry, weapon, text, emblem, heraldic symbol, checkerboard, background or external shadow. Do not regenerate a full portrait. Coarse hand-painted dark-fantasy brushwork matching the reference, not photorealistic product photography. Preserve the original reference unchanged."
+  },
+  {
+    "id": "Knight.mesh",
+    "n": 2,
+    "name": "chain",
+    "build": 0,
+    "file": "outfit-2-chain-build0.png",
+    "source": "materials/portraits/generated-outfits/Knight.mesh/outfit-2-chain-corrected.png",
+    "source_sha256": "87c4623ae58b31f0411f76fa5f48ed2068351d6fbbc54093e8e2226304f3af11",
+    "source_size": [
+      887,
+      1774
+    ],
+    "canvas_registration": "canonical canvas",
+    "body_span_fit": null,
+    "bottom_rows_repeated": 0,
+    "horizontal_scale": 1.075,
+    "vertical_scale": 1.04,
+    "offset": [
+      -33.26249999999998,
+      -28.800000000000026
+    ],
+    "mesh_warp": null,
+    "torso_margin": 1.1111111111111112,
+    "sleeve_warp": "row-wise sleeve width registered to neutral forearm bounds, outer 220-pixel sectors, rows 1050-1599",
+    "head_occlusion": "mandatory helmet covers collar",
+    "native_uncovered_body_pixels": 1794,
+    "coarse_uncovered_body_pixels": 7,
+    "coarse_body_pixels": 8468,
+    "visual_acceptance": "accepted-native-and-50x100",
+    "prompt": "Generate ONE isolated empty outfit overlay: Knight male outfit option 2, a dark iron mail hauberk over long burgundy padded sleeves, a plain burgundy sleeveless surcoat with modest closed neckline and a simple brown waist belt; no plate cuirass, a clearly distinct chain-mail outfit. Use the attached neutral mannequin ONLY as registration reference for exact three-quarter perspective, head tilt, wide shoulders, torso silhouette, bent arms and hands at hips, upper-left painted light and crop. 887x1774 canvas with empty transparent space above the collar. Cover shoulders, torso and visible arms, follow the bent elbows, plain leather gloves may cover the hands; clothing continues through the bottom frame with no exposed abdomen or flanks. Slight coverage margin outside the mannequin silhouette. Output ONLY the empty outfit on genuine RGBA transparency, no head, neck skin, face, body, mannequin, person, hair, helmet, jewelry, weapon, emblem, letters, checkerboard, background or external shadow. Coarse painted dark-fantasy brushwork matching the reference; muted steel gray and burgundy palette, no photorealistic product photography or sexualization. No full dressed portrait, only a new isolated clothing part; original reference unchanged.\n\nCorrection prompt: Create ONE isolated Knight chain-mail clothing overlay registered EXACTLY to the attached neutral mannequin image. Mandatory output canvas 887 pixels wide by 1774 pixels high, matching reference canvas and crop; do not crop away empty space above the collar. Keep the reference three-quarter viewing angle and pose. Empty garment only, no mannequin/body/head/skin/background. Collar at image y620-700, shoulders at y720-800, broad chest fills x100-800 at y950, waist belt at y1300-1380. Upper arms leave the side edges around y1100-1200; bent forearms reenter from left and right at y1250; glove cuffs around x150,y1450 and x750,y1450. Use dark iron chain mail, burgundy sleeveless surcoat, burgundy padded long sleeves and brown belt/gloves. Slight silhouette coverage margin. Preserve coarse painterly fantasy brushwork and upper-left light of the reference. Cloth continues through bottom frame. Transparent RGBA background including all empty top space. No helmet, face, neck skin, anatomy, jewelry, text, weapon, symbols, checkerboard or full dressed portrait. This is a new separate clothing asset, not editing the reference."
+  },
+  {
+    "id": "Knight.mesh",
+    "n": 3,
+    "name": "padded",
+    "build": 0,
+    "file": "outfit-3-padded-build0.png",
+    "source": "materials/portraits/generated-outfits/Knight.mesh/outfit-3-padded-corrected.png",
+    "source_sha256": "005c86e240089f221d193d05ef12df87dd2bbba5164917652d2b58905ebc2e35",
+    "source_size": [
+      887,
+      1774
+    ],
+    "canvas_registration": "canonical canvas",
+    "body_span_fit": null,
+    "bottom_rows_repeated": 0,
+    "horizontal_scale": 1.075,
+    "vertical_scale": 1.1,
+    "offset": [
+      -33.26249999999998,
+      -72.00000000000006
+    ],
+    "mesh_warp": null,
+    "torso_margin": 1.1111111111111112,
+    "sleeve_warp": "row-wise sleeve width registered to neutral forearm bounds, outer 220-pixel sectors, rows 1050-1599",
+    "head_occlusion": "mandatory helmet covers collar",
+    "native_uncovered_body_pixels": 7785,
+    "coarse_uncovered_body_pixels": 105,
+    "coarse_body_pixels": 8468,
+    "visual_acceptance": "accepted-native-and-50x100",
+    "prompt": "Generate ONE isolated empty clothing overlay: Knight male outfit option 3, a thick burgundy quilted gambeson with full long padded sleeves, a high modest collar, dark brown leather shoulder reinforcements and a plain leather belt, simple dark steel forearm guards and leather gloves following hands at hips; lower burgundy padded coat fills the bottom edge. Clearly distinct from full plate and chain mail: primarily quilted cloth, no breastplate or mail. Attached neutral mannequin is a registration reference ONLY for exact three-quarter orientation, wide shoulder/torso geometry, bent arms, elbows, waist pose, crop and upper-left painted light. Fixed 887x1774 canvas, head area transparent, garment covers all visible shoulders, torso and arms with a slight overlap margin and no exposed abdomen or flanks. Output ONLY empty clothing on genuine transparent RGBA alpha: no head, neck skin, face, body, mannequin, person, hand skin, hair, helmet, jewelry, weapon, letters, emblems, checkerboard, background or outside shadow. Painted dark fantasy brushwork matching the reference, muted burgundy, brown and dark gray palette, no photorealistic product photography or sexualization. Do not make a dressed portrait or regenerate organs; original reference unchanged.\n\nCorrection prompt: Generate ONE empty isolated Knight padded clothing overlay. Match attached neutral mannequin's EXACT 887x1774 canvas, three-quarter perspective, wide torso and bent arms at hips. Transparent empty top space must remain. Collar y620-700, shoulders y720-800, chest spans x100-800 at y950, waist belt y1300-1380. Upper arms extend beyond side frame around y1150, bent forearms reenter side frame at y1250, closed brown glove cuffs around x150,y1450 and x750,y1450. Garment covers the neutral body's whole torso and visible arms with a small silhouette margin, down through bottom crop. Distinctive muted ochre/brown quilted padded gambeson with long sleeves, leather shoulder reinforcement and plain waist belt: no chain-mail or plate cuirass. Same coarse painted dark fantasy style and upper-left light. Output ONLY the separate clothing part, no mannequin, body, head, skin, helmet, hair, jewelry, weapons, letters, emblem, backdrop or checkerboard; real RGBA transparency, EXACT canvas887x1774, no tight product crop."
+  }
+]
