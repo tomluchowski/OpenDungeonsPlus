@@ -458,9 +458,6 @@ private:
     //! \brief Tiles revealed by an outside source (like a tortured creature) with the number of turns left.
     std::vector<std::pair<Tile*, uint32_t> > mRevealedTiles;
 
-    //! \brief Tiles revealed by an outside source (like a tortured creature) with the number of turns left.
-    std::vector<std::pair<Tile*, uint32_t> > mRevealedTiles;
-
     //! \brief The notified state of the tile, whether it belongs to the game map or to the
     //! draggable container, or nullptr if it belongs to neither. Never inserts anything:
     //! both maps are filled once, when their container is sized, and a tile missing from
