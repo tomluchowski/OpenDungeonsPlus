@@ -64,7 +64,9 @@ struct ReactionMotion
         //! Tips over onto the side (amount is the angle in degrees), stays and gets up again
         lie,
         //! Nods off (count nods, amount is their depth) and jumps up in the end
-        startle
+        startle,
+        //! Steps forward (backward with a negative amount) along where it looks and returns, like a thrust or a recoil
+        lunge
     };
 
     //! \brief No motion: one hop of 0.2 world units that takes no time
