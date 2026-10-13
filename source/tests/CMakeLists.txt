@@ -39,6 +39,12 @@ add_boost_test(00-Pathfinding
         SOURCES
         test_Pathfinding.cpp)
 
+add_boost_test(00-DungeonHeartTier
+        SOURCES
+        test_DungeonHeartTier.cpp
+        ${SRC}/rooms/HeartHealthTier.h
+        ${SRC}/rooms/HeartHealthTier.cpp)
+
 add_boost_test(aa-LaunchGame
         SOURCES
         ${SRC}/tests/mocks/ODClientTest.cpp

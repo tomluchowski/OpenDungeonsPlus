@@ -134,6 +134,7 @@ textures/
 -> Crossbow.png                        Lamoot                  CC-BY 3.0               http://opengameart.org/content/low-poly-crossbow
 -> Crypt*.png                          Yughues                 CC0                     http://forum.freegamedev.net/viewtopic.php?p=60771#p60771
 -> Cultist*.png                        Danimal,Dread Knight,Katarzyna Zalecka                 CC-BY-SA 3.0                     http://opengameart.org/content/dark-priest
+-> DefeatFireball.png                  AI-generated            GPLv3+                  AI-generated, created for this project
 -> Defender*.png                       Anthony Myers           CC-BY 3.0               http://forum.freegamedev.net/viewtopic.php?p=61450#p61450
 -> Dirt*.png
 -> Dojo*.png
@@ -141,6 +142,7 @@ textures/
 -> DragonBed.png                       Dm3d                    GPL 2.0/GPLv3+/CC-BY-SA 3.0  http://opengameart.org/content/goldpile
 -> DungeonClaimedWall*.png             Nobiax, Danimal         CC-BY-SA 3.0            http://opengameart.org/users/danimal
 -> Dragon{,Normal}.png
+-> DungeonHeart{Healthy,Damaged,Critical}{,Normal,Glow}.pngMario                   GPLv3+                  Procedural, tools/heart-textures/generate_heart_textures.py
 -> DungeonTemple*.png
 -> Dwarf*.png
 -> DarkElf*.png                        Contmike, Danimal       CC-BY-SA 3.0
@@ -289,6 +291,8 @@ Dormitory.mesh                         Skorpio                 CC-BY-SA 3.0, GPL
 Dragon.*                               Andrew Buck, Skorpio    CC-BY-SA 3.0, GPLv3+
 DragonBed.mesh                         Dm3d                    GPL 2.0/GPLv3+/CC-BY-SA 3.0  http://opengameart.org/content/goldpile
 DungeonTemple*.*                       Skorpio                 CC-BY-SA 3.0, GPLv3+
+DungeonHeartObject{Healthy,Damaged,Critical}.mesh/.skeleton  Mario                   GPLv3+                  Built from assets-src/ by tools/heart-on-temple (heart model redesign); made with Blender, AI-assisted (Claude Code)
+DungeonHeartPedestal.png               Skorpio (derived)       CC-BY-SA 3.0, GPLv3+
 Dwarf1.*                               Skorpio                 CC-BY-SA 3.0, GPLv3+
 Dwarf2.*                               Skorpio                 CC-BY-SA 3.0, GPLv3+
 DarkElf*.png                           Contmike, Danimal       CC-BY-SA 3.0            http://opengameart.org/content/dark-elf-game-ready-and-animated
@@ -481,6 +485,16 @@ Relative/Default/Keeper/WeAreUnderAttack/
 
 Relative/KeeperGroan/Keeper/Lost
 -> OD_voice_keeper(groan)_defeat*.ogg            eugeneloza    CC-BY-SA 3.0            http://opengameart.org/content/voice-acting-sketch-open-dungeons
+
+=====================================================
+==  Source assets                                  ==
+=====================================================
+
+Name                                   Author                  License                 Source URL
+------------------------------------------------------------------------------------------------------------------------
+assets-src/DungeonHeartObject.blend    Mario                   GPLv3+                  Editable source of the dungeon heart model (first commit 7e4aa7023); made with Blender, AI-assisted (Claude Code)
+assets-src/DungeonHeartObject{Healthy,Damaged,Critical}.glbMario                   GPLv3+                  Exports of DungeonHeartObject.blend; made with Blender, AI-assisted (Claude Code)
+
 
 ================================
 ==  Distribution data: dist/  ==

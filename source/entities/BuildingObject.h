@@ -19,6 +19,7 @@
 #define BUILDINGOBJECT_H
 
 #include "entities/RenderedMovableEntity.h"
+#include <OgreVector2.h>
 
 #include <string>
 #include <iosfwd>
@@ -49,7 +50,15 @@ public:
 
     void fireRefresh();
 
+    const Ogre::Vector2& getFurnitureScale() const { return mFurnitureScale; }
+    void setFurnitureScale(const Ogre::Vector2& scale) { mFurnitureScale = scale; }
+    void exportToPacket(ODPacket& os, const Seat* seat) const override;
+    void importFromPacket(ODPacket& is) override;
+
     static BuildingObject* getBuildingObjectFromPacket( GameMap* gameMap,   ODPacket& is);
+
+private:
+    Ogre::Vector2 mFurnitureScale = Ogre::Vector2::ZERO;
 };
 
 #endif // BUILDINGOBJECT_H
