@@ -243,6 +243,7 @@ public:
     void removeTrap(Trap *t);
     inline const std::vector<Trap*>& getTraps() const
     { return mTraps; }
+    bool moveTrapProductionOrder(Seat* seat, const std::string& name, bool earlier);
 
     //! \brief Map Lights related functions.
     void clearMapLights();
@@ -371,6 +372,11 @@ public:
     std::list<Tile*> path(Tile *t1, Tile *t2, const Creature* creature, Seat* seat, bool throughDiggableTiles = false);
     //! \note Returns a path for the given creature to the given destination.
     std::list<Tile*> path(const Creature* creature, Tile* destination, bool throughDiggableTiles = false);
+
+    //! \brief The tile a runner of the seat moves to during the heart defence: the heart
+    //! tile while the heart is damaged, otherwise the nearest allied fighter, and the
+    //! heart tile when there is no fighter to rally.
+    Tile* getHeartDefenceTargetTile(Creature& runner, Seat* seat);
 
     //! \brief Loops over the visibleTiles and returns any creature/room/trap in those tiles allied with the given seat
     //! (or if enemyForce is true, is not allied)
@@ -683,6 +689,19 @@ private:
     //! \brief Updates different entities states.
     //! Updates active objects (creatures, rooms, ...), goals, count each team Workers, gold, mana and claimed tiles
     unsigned long int doMiscUpkeep(double timeSinceLastTurn);
+
+    //! \brief Applies the per-second mana income and worker upkeep of one seat for the current
+    //! turn. A seat without a living dungeon heart gains and spends nothing.
+    void updateSeatMana(Seat* seat);
+
+    //! \brief Creates a worker at the dungeon heart of one seat, one every few seconds,
+    //! until the seat has four workers. A seat without a living dungeon heart creates none.
+    void updateSeatAutoWorkers(Seat* seat, double timeSinceLastTurn);
+
+    //! \brief Checks each turn whether an enemy creature is within range of the seat's
+    //! living heart. While one is, the seat's runners defend the heart. The alarm call
+    //! sounds once, when the defence starts, not the combat music.
+    void updateSeatHeartDefense(Seat* seat);
 
     //! \brief Resets the unique numbers
     void resetUniqueNumbers();
