@@ -102,7 +102,25 @@ enum class ServerNotificationType
     //! \brief Answer to the editor asking what the waves of a wave portal are
     editorPortalWaveData,
 
-    exit
+    exit,
+
+    // Sent only to clients that negotiated live nickname changes.
+    playerNickChanged,
+
+    // Owner-only aggregate counts, sent only after creature-panel negotiation.
+    creaturePanel,
+
+    // Presentation-only burst for successfully built or sold gameplay room tiles.
+    roomConstructionEffect,
+
+    // Presentation-only creature melee impact.
+    creatureCombatImpact,
+
+    // Presentation-only consumption of an authoritative chicken.
+    creatureChickenFeeding,
+
+    // Owner-only reply to a production query or reorder request.
+    trapProductionQueue
 };
 
 ODPacket& operator<<(ODPacket& os, const ServerNotificationType& nt);

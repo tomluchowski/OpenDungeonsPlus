@@ -54,3 +54,32 @@ BOOST_AUTO_TEST_CASE(test_ODPacket)
 
     }
 }
+
+BOOST_AUTO_TEST_CASE(test_optional_nickname_capability)
+{
+    // The original handshake must remain readable without an extension byte.
+    ODPacket legacy;
+    legacy << std::string("Keeper");
+    std::string nickname;
+    legacy >> nickname;
+    BOOST_REQUIRE(legacy);
+    BOOST_CHECK(legacy.endOfPacket());
+
+    // Updated peers append their capability after the unchanged nickname field.
+    ODPacket extended;
+    extended << std::string("Keeper") << true;
+    extended >> nickname;
+    BOOST_REQUIRE(extended);
+    BOOST_CHECK_EQUAL(nickname, "Keeper");
+    BOOST_REQUIRE(!extended.endOfPacket());
+    bool liveNickname = false;
+    extended >> liveNickname;
+    BOOST_REQUIRE(extended);
+    BOOST_CHECK(liveNickname);
+    BOOST_CHECK(extended.endOfPacket());
+
+    extended.clear();
+    BOOST_CHECK(extended.endOfPacket());
+    extended << false;
+    BOOST_CHECK(!extended.endOfPacket());
+}

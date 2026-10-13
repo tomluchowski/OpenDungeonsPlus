@@ -34,9 +34,12 @@ public:
     //! Used to call the corresponding Gui Sheet.
     void activate() final override;
 
+    bool goBack(const CEGUI::EventArgs& e = {}) override;
+
 private:
     //! \brief The Settings window
     SettingsWindow mSettings;
+    bool mSettingsPageOpen = false;
 
     //! \brief Helper functions to connect a button to a mode change
     void connectModeChangeEvent(const std::string& buttonName, AbstractModeManager::ModeType mode);
@@ -45,6 +48,10 @@ private:
     //! \brief Function triggered when pushing a button
     bool quitButtonPressed(const CEGUI::EventArgs&);
     bool toggleSettings(const CEGUI::EventArgs&);
+    bool openSettingsPage(const std::string& name);
+    bool settingsPageClosed(const CEGUI::EventArgs&);
+    void showMainMenuButtons(bool visible);
+    bool toggleSubMenu(const std::string& name);
 
     //! \brief Sub menu button triggers
     bool toggleSkirmishSubMenu(const CEGUI::EventArgs&);
