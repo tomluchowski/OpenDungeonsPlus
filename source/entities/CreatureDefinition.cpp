@@ -72,6 +72,7 @@ CreatureDefinition::CreatureDefinition(
             int32_t                 turnsStunDropped) :
         mCreatureJob (job),
         mCombatClass (CombatBlocker),
+        mFearless (false),
         mChampion (false),
         mClassName   (className),
         mMeshName    (meshName),
@@ -125,6 +126,7 @@ CreatureDefinition::CreatureDefinition(
 CreatureDefinition::CreatureDefinition(const CreatureDefinition& def) :
         mCreatureJob(def.mCreatureJob),
         mCombatClass(def.mCombatClass),
+        mFearless(def.mFearless),
         mChampion(def.mChampion),
         mClassName(def.mClassName),
         mMeshName(def.mMeshName),
@@ -337,6 +339,7 @@ ODPacket& operator<<(ODPacket& os, const CreatureDefinition* c)
     os << c->mSoundFamilyDie;
     os << c->mSoundFamilySlap;
     os << CreatureDefinition::combatClassToString(c->mCombatClass);
+    os << c->mFearless;
     os << c->mChampion;
     os << c->mTortureTimeToConvert;
 
@@ -379,6 +382,7 @@ ODPacket& operator>>(ODPacket& is, CreatureDefinition* c)
     is >> c->mSoundFamilySlap;
     is >> tempString;
     c->mCombatClass = CreatureDefinition::combatClassFromString(tempString);
+    is >> c->mFearless;
     is >> c->mChampion;
     is >> c->mTortureTimeToConvert;
 
@@ -511,6 +515,12 @@ bool CreatureDefinition::update(CreatureDefinition* creatureDef, std::stringstre
             {
                 defFile >> nextParam;
                 creatureDef->mCombatClass = CreatureDefinition::combatClassFromString(nextParam);
+                continue;
+            }
+            else if (nextParam == "Fearless")
+            {
+                defFile >> nextParam;
+                creatureDef->mFearless = Helper::toBool(nextParam);
                 continue;
             }
             else if (nextParam == "Champion")
@@ -806,6 +816,9 @@ void CreatureDefinition::writeCreatureDefinitionDiff(
 
     if(def1 == nullptr || (def1->mCombatClass != def2->mCombatClass))
         file << "    CombatClass\t" << combatClassToString(def2->mCombatClass) << std::endl;
+    if(def1 == nullptr || (def1->mFearless != def2->mFearless))
+        file << "    Fearless	" << (def2->mFearless ? 1 : 0) << std::endl;
+
     if(def1 == nullptr || (def1->mChampion != def2->mChampion))
         file << "    Champion\t" << (def2->mChampion ? 1 : 0) << std::endl;
 

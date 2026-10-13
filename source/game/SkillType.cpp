@@ -210,6 +210,8 @@ std::string skillTypeToPlayerVisibleString(SkillType type)
             return "The Spike Trap";
         case SkillType::trapAlarm:
             return "The Alarm Trap";
+        case SkillType::trapFear:
+            return "The Fear Trap";
         case SkillType::trapGas:
             return "The Gas Trap";
         case SkillType::trapLightning:

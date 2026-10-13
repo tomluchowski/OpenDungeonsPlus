@@ -583,6 +583,14 @@ SkillManager::SkillManager() :
     mSkills[index] = def;
     lvl4depends.push_back(skill);
 
+    resType = SkillType::trapFear;
+    index = static_cast<uint32_t>(resType);
+    points = ConfigManager::getSingleton().getSkillPoints(Skills::toString(resType));
+    skill = new Skill(resType, points, lvl3depends);
+    def = new SkillDefTrap("TacticSkills/", "FearTrapButton", skill, TrapType::fear);
+    def->mapSkill(mSkillsFamily);
+    mSkills[index] = def;
+
     resType = SkillType::trapGas;
     index = static_cast<uint32_t>(resType);
     points = ConfigManager::getSingleton().getSkillPoints(Skills::toString(resType));
@@ -1007,6 +1015,8 @@ std::string SkillManager::getResearchDescription(SkillType type, uint32_t level)
             " before Wooden door upgrades; deals " + value(config.getTrapConfigDouble("RunedDoorDamage")) +
             " fire damage to enemies on the door every " + value(config.getTrapConfigDouble("RunedDoorReloadTurns")) + " turns.";
         case SkillType::trapAlarm: return "Reload time: " + value(config.getTrapConfigDouble("AlarmReloadTurns")) + " turns.";
+        case SkillType::trapFear: return "Enemies within " + value(config.getTrapConfigDouble("FearRadius")) +
+            " tiles run away for " + value(config.getTrapConfigDouble("FearDurationTurns")) + " turns.";
         case SkillType::trapGas: return "Damage: " + value(config.getTrapConfigDouble("GasDamagePerHitMin")) +
             " to every creature nearby (radius " + value(config.getTrapConfigDouble("GasRadius")) + ").";
         case SkillType::trapLightning: return "Damage: " + value(config.getTrapConfigDouble("LightningDamagePerHitMin")) +

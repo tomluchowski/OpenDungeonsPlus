@@ -1118,7 +1118,7 @@ void Gui::arrangeTrapButtons(CEGUI::Window* traps)
     traps->getChild("DestroyTrapButton")->hide();
     arrangeActionButtons(traps, {"WoodenDoorTrapButton", "IronboundDoorTrapButton", "SteelDoorTrapButton",
         "BarricadeTrapButton", "SecretDoorTrapButton", "RunedDoorTrapButton", "CannonButton", "SpikeTrapButton",
-        "BoulderTrapButton", "AlarmTrapButton", "GasTrapButton", "LightningTrapButton", "FireburstTrapButton",
+        "BoulderTrapButton", "AlarmTrapButton", "FearTrapButton", "GasTrapButton", "LightningTrapButton", "FireburstTrapButton",
         "FreezeTrapButton", "WatchBannerTrapButton", "TriggerTrapButton"});
 }
 

@@ -164,6 +164,7 @@ public:
 
     inline CreatureJob          getCreatureJob  () const    { return mCreatureJob; }
     inline CombatClass          getCombatClass  () const    { return mCombatClass; }
+    inline bool                 isFearless      () const    { return mFearless; }
     inline bool                 isChampion      () const    { return mChampion; }
     inline const std::string&   getClassName    () const    { return mClassName; }
 
@@ -260,6 +261,8 @@ private:
 
     //! \brief The role in group fights (default blocker)
     CombatClass mCombatClass;
+    //! \brief True for creatures that are never scared by a Fear trap
+    bool mFearless;
     //! \brief True for the summoned champion: it cannot be hurt, possessed or turned, needs no fee and charges at enemies
     bool mChampion;
 

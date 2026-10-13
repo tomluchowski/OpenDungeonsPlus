@@ -199,6 +199,8 @@ double Trap::getManaToFire() const
     {
         case TrapType::cannon:
             return ConfigManager::getSingleton().getTrapConfigDouble("CannonManaToFire");
+        case TrapType::fear:
+            return ConfigManager::getSingleton().getTrapConfigDouble("FearManaToFire");
         case TrapType::lightning:
             return ConfigManager::getSingleton().getTrapConfigDouble("LightningManaToFire");
         case TrapType::fireburst:
@@ -224,6 +226,9 @@ double Trap::getManaUpkeepPerSecond() const
             break;
         case TrapType::alarm:
             key = "AlarmManaUpkeepPerSecond";
+            break;
+        case TrapType::fear:
+            key = "FearManaUpkeepPerSecond";
             break;
         case TrapType::gas:
             key = "GasManaUpkeepPerSecond";
