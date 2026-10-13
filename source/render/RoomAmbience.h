@@ -395,13 +395,15 @@ private:
     {
         //! \brief Creates the info of a target that nobody was close to yet
         BusyInfo() :
-            mLastBusy(0.0), mLastTouched(0.0)
+            mLastBusy(0.0), mLastTouched(0.0), mEverBusy(false)
         {}
 
         //! Clock time at which a creature was last close
         double mLastBusy;
         //! Clock time at which the info was last asked for, old infos are dropped
         double mLastTouched;
+        //! True when a creature was close at some time while the target was watched (used for "Vacated")
+        bool mEverBusy;
     };
 
     //! \brief Sorts the effects of the configuration by tile visual, object and event, so that a scan finds them quickly
@@ -484,6 +486,13 @@ private:
     double getHeartRateFactor(const Ogre::Vector3& position) const;
     //! \brief Updates and returns the state "no creature for a while" of a target
     bool isIdleLongEnough(const std::string& key, bool busy, double after);
+    //! \brief The state "empty" (When Empty) or "left behind" (When Vacated) of a target
+    //! \param effect The effect; mWhen tells which of the two is asked and mAfter is the time in seconds.
+    //! \param key The key under which the state of the target is kept.
+    //! \param busy True if a creature is close to the target now.
+    //! \return For When Empty true once no creature was close for mAfter seconds; for When Vacated the same, but only
+    //! for a target that was used at some time while it was watched.
+    bool isIdleState(const AmbienceEffect& effect, const std::string& key, bool busy);
     //! \brief The distance to the camera up to which the effect runs in the current mode
     double getDistanceLimit(const AmbienceEffect& effect) const;
     //! \brief True if the effect is shown in the current mode

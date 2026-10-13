@@ -22,7 +22,7 @@ EFFECT_KEYS = ("Name", "Target", "Match", "When", "Event", "Kind", "System", "Mo
                "NeedWall", "Clips", "Every", "Family", "Delay", "Mesh", "Land", "From",
                "OwnerOnly", "WallSide", "HeartRate", "Below")
 TARGETS = ("Object", "Tile", "Event")
-WHENS = ("Always", "Occupied", "Empty", "Hit", "Locked", "Reloading", "Ready", "LowHealth")
+WHENS = ("Always", "Occupied", "Empty", "Hit", "Locked", "Reloading", "Ready", "LowHealth", "Vacated")
 KINDS = ("Particle", "Motion", "Clip", "Shake", "Turn", "Sound", "Beam", "Projectile", "Mark", "Model")
 MOTIONS = ("Sway", "Wobble", "Spin", "Bob", "Pulse", "Flicker")
 # Room tile visuals that only some builds have
@@ -172,6 +172,8 @@ def check_effect(effect, where, problems, visuals, systems, mats, counts):
     when = effect.get("When", ["Always"])[0]
     if when not in WHENS:
         problems.append("%s: bad When %s" % (where, when))
+    if when == "Vacated" and target == "Event":
+        problems.append("%s: When Vacated does not work on events" % where)
     if when in ("Hit", "Locked", "Reloading", "Ready", "LowHealth") and target != "Object":
         problems.append("%s: When %s only works on objects" % (where, when))
     if target == "Event":

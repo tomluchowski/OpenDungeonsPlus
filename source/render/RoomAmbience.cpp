@@ -557,9 +557,23 @@ bool RoomAmbience::isIdleLongEnough(const std::string& key, bool busy, double af
 
     it->second.mLastTouched = mClock;
     if(busy)
+    {
         it->second.mLastBusy = mClock;
+        it->second.mEverBusy = true;
+    }
 
     return (mClock - it->second.mLastBusy) >= after;
+}
+
+bool RoomAmbience::isIdleState(const AmbienceEffect& effect, const std::string& key, bool busy)
+{
+    bool idle = isIdleLongEnough(key, busy, effect.mAfter);
+    if(effect.mWhen != AmbienceWhen::vacated)
+        return idle;
+
+    // Only a target that was used while it was watched counts as left behind
+    std::map<std::string, BusyInfo>::iterator it = mBusy.find(key);
+    return idle && (it != mBusy.end()) && it->second.mEverBusy;
 }
 
 bool RoomAmbience::isVisibleNear(Ogre::Camera* camera, const Ogre::Vector3& cameraPosition,
@@ -972,7 +986,7 @@ void RoomAmbience::scanObjects(Ogre::Camera* camera, const Ogre::Vector3& camera
                 if(effect.mWhen == AmbienceWhen::occupied)
                     candidate.mActive = (busy == 1);
                 else
-                    candidate.mActive = isIdleLongEnough("o" + entity->getName(), busy == 1, effect.mAfter);
+                    candidate.mActive = isIdleState(effect, "o" + entity->getName(), busy == 1);
             }
 
             if(effect.mKind == AmbienceKind::particle)
@@ -1156,7 +1170,7 @@ void RoomAmbience::scanTiles(Ogre::Camera* camera, const Ogre::Vector3& cameraPo
                     if(effect.mWhen == AmbienceWhen::occupied)
                         candidate.mActive = (busy == 1);
                     else
-                        candidate.mActive = isIdleLongEnough(key, busy == 1, effect.mAfter);
+                        candidate.mActive = isIdleState(effect, key, busy == 1);
                 }
 
                 if(effect.mKind == AmbienceKind::motion)

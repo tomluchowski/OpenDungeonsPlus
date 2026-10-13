@@ -54,7 +54,9 @@ enum class AmbienceWhen
     //! The target (a trap) is loaded and ready, the opposite of reloading
     ready,
     //! The target (the dungeon heart of the local keeper) has less health than mBelow, as the heart badge reports it
-    lowHealth
+    lowHealth,
+    //! The target was used while it was in view and has been empty for mAfter seconds (a bed that was slept in)
+    vacated
 };
 
 //! \brief What an ambience effect does when it is shown

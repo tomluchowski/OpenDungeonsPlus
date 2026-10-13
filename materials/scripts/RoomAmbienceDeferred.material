@@ -1,0 +1,96 @@
+// Materials of the extra room effects (see particles/RoomAmbienceDeferred.particle). Sprites are drawn by tools/gen_room_effects_art.py.
+
+material RoomAmbFlame
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend add
+            depth_write off
+            diffuse vertexcolour
+
+            texture_unit
+            {
+                texture RoomAmbFlame.png
+            }
+        }
+    }
+}
+
+material RoomAmbGear
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_write off
+            diffuse vertexcolour
+
+            texture_unit
+            {
+                texture RoomAmbGear.png
+            }
+        }
+    }
+}
+
+material RoomAmbRat
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_write off
+            diffuse vertexcolour
+
+            texture_unit
+            {
+                texture RoomAmbRat.png
+            }
+        }
+    }
+}
+
+material RoomAmbRatL
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_write off
+            diffuse vertexcolour
+
+            texture_unit
+            {
+                texture RoomAmbRatL.png
+            }
+        }
+    }
+}
+
+material RoomAmbRumple
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_write off
+            diffuse vertexcolour
+
+            texture_unit
+            {
+                texture RoomAmbRumple.png
+            }
+        }
+    }
+}

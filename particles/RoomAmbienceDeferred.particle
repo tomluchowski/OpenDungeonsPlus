@@ -1,0 +1,198 @@
+// Extra room effects: unmade beds, altar fire, rats and turning gears (see config/roomAmbienceDeferred.cfg).
+// Spark, glow and ember systems are shared with the other room ambience particle files.
+
+
+// ---- Unmade beds ----
+
+// Folds of a blanket that nobody has smoothed out, lying flat on the bed
+particle_system RoomAmbRumple
+{
+    material        RoomAmbRumple
+    point_rendering false
+    particle_width  0.85
+    particle_height 0.85
+    cull_each       false
+    quota           1
+    billboard_type  perpendicular_common
+    common_direction 0 0 1
+    common_up_vector 0 1 0
+
+    emitter Point
+    {
+        angle               0
+        colour              1.0 1.0 1.0 0.8
+        emission_rate       2
+        time_to_live        100000
+        direction           0 0 1
+        velocity            0
+    }
+}
+
+// ---- Temple ----
+
+// A big flame in the altar fire, grows upward, the game makes it flicker
+particle_system RoomAmbAltarFlame
+{
+    material        RoomAmbFlame
+    point_rendering false
+    particle_width  0.45
+    particle_height 0.75
+    cull_each       false
+    quota           1
+    billboard_type  point
+    billboard_origin bottom_center
+
+    emitter Point
+    {
+        angle               0
+        colour              1.0 0.95 0.9 0.95
+        emission_rate       2
+        time_to_live        100000
+        direction           0 0 1
+        velocity            0
+    }
+}
+
+// ---- Prison ----
+
+// A rat that runs along the wall now and then, head to the right
+particle_system RoomAmbRatRight
+{
+    material        RoomAmbRat
+    point_rendering false
+    particle_width  0.36
+    particle_height 0.36
+    cull_each       false
+    quota           1
+    billboard_type  perpendicular_common
+    common_direction 0 0 1
+    common_up_vector 0 1 0
+
+    emitter Point
+    {
+        angle               0
+        colour              1.0 1.0 1.0 0.95
+        emission_rate       10
+        time_to_live        5.5
+        direction           1 0 0
+        velocity            0.38
+        position            -1.0 0 0.04
+        duration            0.1
+        repeat_delay_min    9
+        repeat_delay_max    34
+    }
+
+    affector ColourInterpolator
+    {
+        time0   0
+        colour0 1 1 1 0
+        time1   0.12
+        colour1 1 1 1 0.95
+        time2   0.88
+        colour2 1 1 1 0.95
+        time3   1
+        colour3 1 1 1 0
+    }
+}
+
+// A rat that runs along the wall now and then, head to the left
+particle_system RoomAmbRatLeft
+{
+    material        RoomAmbRatL
+    point_rendering false
+    particle_width  0.36
+    particle_height 0.36
+    cull_each       false
+    quota           1
+    billboard_type  perpendicular_common
+    common_direction 0 0 1
+    common_up_vector 0 1 0
+
+    emitter Point
+    {
+        angle               0
+        colour              1.0 1.0 1.0 0.95
+        emission_rate       10
+        time_to_live        5.5
+        direction           -1 0 0
+        velocity            0.38
+        position            1.0 0 0.04
+        duration            0.1
+        repeat_delay_min    11
+        repeat_delay_max    40
+    }
+
+    affector ColourInterpolator
+    {
+        time0   0
+        colour0 1 1 1 0
+        time1   0.12
+        colour1 1 1 1 0.95
+        time2   0.88
+        colour2 1 1 1 0.95
+        time3   1
+        colour3 1 1 1 0
+    }
+}
+
+// ---- Workshop ----
+
+// A big cog that turns while the machine is worked
+particle_system RoomAmbGearBig
+{
+    material        RoomAmbGear
+    point_rendering false
+    particle_width  0.5
+    particle_height 0.5
+    cull_each       false
+    quota           1
+    billboard_type  point
+
+    emitter Point
+    {
+        angle               0
+        colour              1.0 1.0 1.0 0.95
+        emission_rate       2
+        time_to_live        100000
+        direction           0 0 1
+        velocity            0
+    }
+
+    affector Rotator
+    {
+        rotation_speed_range_start  75
+        rotation_speed_range_end    75
+        rotation_range_start        0
+        rotation_range_end          0
+    }
+}
+
+// A small cog that turns the other way, faster
+particle_system RoomAmbGearSmall
+{
+    material        RoomAmbGear
+    point_rendering false
+    particle_width  0.3
+    particle_height 0.3
+    cull_each       false
+    quota           1
+    billboard_type  point
+
+    emitter Point
+    {
+        angle               0
+        colour              1.0 1.0 1.0 0.95
+        emission_rate       2
+        time_to_live        100000
+        direction           0 0 1
+        velocity            0
+    }
+
+    affector Rotator
+    {
+        rotation_speed_range_start  -125
+        rotation_speed_range_end    -125
+        rotation_range_start        22
+        rotation_range_end          22
+    }
+}

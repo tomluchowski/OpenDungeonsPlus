@@ -82,6 +82,8 @@ bool RoomAmbienceConfig::whenFromString(const std::string& text, AmbienceWhen& w
         when = AmbienceWhen::ready;
     else if(text == "LowHealth")
         when = AmbienceWhen::lowHealth;
+    else if(text == "Vacated")
+        when = AmbienceWhen::vacated;
     else
         return false;
 
