@@ -16,6 +16,8 @@
  */
 
 #include "rooms/RoomHatchery.h"
+#include <algorithm>
+#include <cmath>
 #include "game/SkillManager.h"
 #include "game/SkillType.h"
 
@@ -33,6 +35,7 @@
 #include "utils/ConfigManager.h"
 #include "utils/LogManager.h"
 #include "utils/MakeUnique.h"
+#include "utils/Random.h"
 
 const std::string RoomHatcheryName = "Hatchery";
 const std::string RoomHatcheryNameDisplay = "Hatchery room";
@@ -123,7 +126,8 @@ static RoomRegister reg(new RoomHatcheryFactory);
 
 RoomHatchery::RoomHatchery(GameMap* gameMap) :
     Room(gameMap),
-    mSpawnChickenCooldown(0)
+    mCoopHenWait(0),
+    mCoopRoosterWait(0)
 {
     setMeshName("Farm");
 }
@@ -146,13 +150,56 @@ void RoomHatchery::notifyActiveSpotRemoved(ActiveSpotPlace place, Tile* tile)
     }
 }
 
-uint32_t RoomHatchery::getNbChickens()
+HatcheryCycleSettings RoomHatchery::getCycleSettings() const
 {
-    std::vector<GameEntity*> chickens;
-    for(Tile* tile : mCoveredTiles)
-        tile->fillWithEntities(chickens, SelectionEntityWanted::chicken, getSeat()->getPlayer());
+    const ConfigManager& config = ConfigManager::getSingleton();
+    HatcheryCycleSettings settings;
+    settings.mLayMin = static_cast<uint32_t>(config.getRoomConfigDoubleOrDefault("HatcheryLayMin", settings.mLayMin));
+    settings.mLayMax = static_cast<uint32_t>(config.getRoomConfigDoubleOrDefault("HatcheryLayMax", settings.mLayMax));
+    settings.mHatchTurns = static_cast<uint32_t>(config.getRoomConfigDoubleOrDefault("HatcheryHatchTurns", settings.mHatchTurns));
+    settings.mGrowTurns = static_cast<uint32_t>(config.getRoomConfigDoubleOrDefault("HatcheryGrowTurns", settings.mGrowTurns));
+    settings.mRoosterWait = static_cast<uint32_t>(config.getRoomConfigDoubleOrDefault("HatcheryRoosterSpawnRate", settings.mRoosterWait));
+    settings.mTilesPerChicken = static_cast<uint32_t>(config.getRoomConfigDoubleOrDefault("HatcheryTilesPerChicken", settings.mTilesPerChicken));
 
-    return chickens.size();
+    // The research of the hatchery shortens the waiting times
+    double coopWait = config.getRoomConfigDoubleOrDefault("HatcheryChickenSpawnRate", settings.mCoopWait);
+    double researchedWait = std::max(1.0, std::round(SkillManager::getResearchValue(
+        getSeat(), SkillType::roomHatchery, coopWait)));
+    settings.mCoopWait = static_cast<uint32_t>(researchedWait);
+    double factor = (coopWait > 0.0) ? (researchedWait / coopWait) : 1.0;
+    return HatcheryCycle::scaled(settings, factor);
+}
+
+ChickenEntity* RoomHatchery::spawnAnimal(ChickenKind kind, const Ogre::Vector3& position, const HatcheryCycleSettings& settings)
+{
+    ChickenEntity* chicken = new ChickenEntity(getGameMap(), getName(), kind);
+    chicken->addToGameMap();
+    chicken->createMesh();
+    chicken->setPosition(position);
+    if(kind == ChickenKind::hen)
+        chicken->setLayTimer(HatcheryCycle::layInterval(settings, Random::Uint(0, 1000)));
+    return chicken;
+}
+
+bool RoomHatchery::spawnFromCoop(ChickenKind kind, const HatcheryCycleSettings& settings)
+{
+    if(mCentralActiveSpotTiles.empty())
+        return false;
+
+    const std::vector<RoomObjectPath::Obstacle> obstacles = RoomObjectNavigation::collect(*getGameMap(), 0.1f);
+    uint32_t first = Random::Uint(0, mCentralActiveSpotTiles.size() - 1);
+    for(uint32_t i = 0; i < mCentralActiveSpotTiles.size(); ++i)
+    {
+        Tile* coopTile = mCentralActiveSpotTiles[(first + i) % mCentralActiveSpotTiles.size()];
+        Ogre::Vector2 freePosition;
+        if(!RoomObjectNavigation::standingPosition(obstacles,
+            Ogre::Vector2(coopTile->getX(), coopTile->getY()), freePosition))
+            continue;
+
+        spawnAnimal(kind, Ogre::Vector3(freePosition.x, freePosition.y, 0.0f), settings);
+        return true;
+    }
+    return false;
 }
 
 void RoomHatchery::doUpkeep()
@@ -162,35 +209,104 @@ void RoomHatchery::doUpkeep()
     if(mCoveredTiles.empty())
         return;
 
-    uint32_t nbChickens = getNbChickens();
-    if(nbChickens >= mNumActiveSpots)
-        return;
+    const HatcheryCycleSettings settings = getCycleSettings();
 
-    // Chickens have been eaten. We check when we will spawn another one
-    ++mSpawnChickenCooldown;
-    if(mSpawnChickenCooldown < std::max(1.0, std::round(SkillManager::getResearchValue(
-        getSeat(), SkillType::roomHatchery, ConfigManager::getSingleton().getRoomConfigUInt32("HatcheryChickenSpawnRate")))))
-        return;
-
-    // We spawn 1 chicken per chicken coop (until chickens are maxed)
-    const std::vector<RoomObjectPath::Obstacle> obstacles = RoomObjectNavigation::collect(*getGameMap(), 0.1f);
-    for(Tile* chickenCoopTile : mCentralActiveSpotTiles)
+    // Sort the animals of the hatchery by kind. Eaten or dying ones do not count.
+    std::vector<ChickenEntity*> hens;
+    std::vector<ChickenEntity*> chicks;
+    std::vector<ChickenEntity*> eggs;
+    HatcheryCounts counts;
+    for(Tile* tile : mCoveredTiles)
     {
-        Ogre::Vector2 freePosition;
-        if(!RoomObjectNavigation::standingPosition(obstacles,
-            Ogre::Vector2(chickenCoopTile->getX(), chickenCoopTile->getY()), freePosition))
+        std::vector<GameEntity*> entities;
+        tile->fillWithEntities(entities, SelectionEntityWanted::chicken, getSeat()->getPlayer());
+        for(GameEntity* entity : entities)
+        {
+            ChickenEntity* chicken = static_cast<ChickenEntity*>(entity);
+            if(!chicken->isFree())
+                continue;
+
+            switch(chicken->getKind())
+            {
+                case ChickenKind::hen:
+                    hens.push_back(chicken);
+                    break;
+                case ChickenKind::chick:
+                    chicks.push_back(chicken);
+                    break;
+                case ChickenKind::egg:
+                    eggs.push_back(chicken);
+                    break;
+                case ChickenKind::rooster:
+                    ++counts.mRoosters;
+                    break;
+            }
+        }
+    }
+    counts.mHens = hens.size();
+    counts.mChicks = chicks.size();
+    counts.mEggs = eggs.size();
+
+    // Hens lay eggs while the hatchery is not full
+    uint32_t capacity = HatcheryCycle::capacity(mCoveredTiles.size(), mNumActiveSpots, settings);
+    for(ChickenEntity* hen : hens)
+    {
+        if(!hen->countDownLay())
             continue;
-        ChickenEntity* chicken = new ChickenEntity(getGameMap(), getName());
-        chicken->addToGameMap();
-        chicken->createMesh();
-        Ogre::Vector3 spawnPosition(freePosition.x, freePosition.y, 0.0f);
-        chicken->setPosition(spawnPosition);
-        ++nbChickens;
-        if(nbChickens >= mNumActiveSpots)
-            break;
+
+        hen->setLayTimer(HatcheryCycle::layInterval(settings, Random::Uint(0, 1000)));
+        if(!HatcheryCycle::canLay(counts, capacity))
+            continue;
+
+        spawnAnimal(ChickenKind::egg, hen->getPosition(), settings);
+        ++counts.mEggs;
     }
 
-    mSpawnChickenCooldown = 0;
+    // Eggs hatch while there is a rooster
+    if(HatcheryCycle::eggsMayHatch(counts))
+    {
+        for(ChickenEntity* egg : eggs)
+        {
+            if(egg->incrementAge() < settings.mHatchTurns)
+                continue;
+
+            egg->setKind(ChickenKind::chick);
+            --counts.mEggs;
+            ++counts.mChicks;
+        }
+    }
+
+    // Chicks grow up
+    for(ChickenEntity* chick : chicks)
+    {
+        if(chick->incrementAge() < settings.mGrowTurns)
+            continue;
+
+        chick->setKind(ChickenKind::hen);
+        chick->setLayTimer(HatcheryCycle::layInterval(settings, Random::Uint(0, 1000)));
+        --counts.mChicks;
+        ++counts.mHens;
+    }
+
+    // Coops are the last resort: only when there is no hen, chick or egg at all
+    if(HatcheryCycle::needCoopHen(counts, mNumActiveSpots))
+    {
+        ++mCoopHenWait;
+        if((mCoopHenWait >= settings.mCoopWait) && spawnFromCoop(ChickenKind::hen, settings))
+            mCoopHenWait = 0;
+    }
+    else
+        mCoopHenWait = 0;
+
+    // The same for the rooster
+    if(HatcheryCycle::needCoopRooster(counts, mNumActiveSpots))
+    {
+        ++mCoopRoosterWait;
+        if((mCoopRoosterWait >= settings.mRoosterWait) && spawnFromCoop(ChickenKind::rooster, settings))
+            mCoopRoosterWait = 0;
+    }
+    else
+        mCoopRoosterWait = 0;
 }
 
 bool RoomHatchery::hasOpenCreatureSpot(Creature* c)
@@ -225,6 +341,8 @@ bool RoomHatchery::useRoom(Creature& creature, bool forced)
         for(GameEntity* chickenEnt : chickens)
         {
             ChickenEntity* chicken = static_cast<ChickenEntity*>(chickenEnt);
+            if(!chicken->isEdible())
+                continue;
             if(chicken->getLockEat(creature))
                 continue;
 

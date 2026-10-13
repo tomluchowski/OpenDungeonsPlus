@@ -18,6 +18,8 @@
 #ifndef ROOMHATCHERY_H
 #define ROOMHATCHERY_H
 
+#include "entities/ChickenEntity.h"
+#include "rooms/HatcheryCycle.h"
 #include "rooms/Room.h"
 #include "rooms/RoomType.h"
 
@@ -54,8 +56,17 @@ protected:
     BuildingObject* notifyActiveSpotCreated(ActiveSpotPlace place, Tile* tile) override;
     void notifyActiveSpotRemoved(ActiveSpotPlace place, Tile* tile) override;
 private:
-    uint32_t getNbChickens();
-    uint32_t mSpawnChickenCooldown;
+    //! Settings of the life cycle from the config, laying times scaled by the research.
+    HatcheryCycleSettings getCycleSettings() const;
+    //! Creates a hatchery animal at the given position.
+    ChickenEntity* spawnAnimal(ChickenKind kind, const Ogre::Vector3& position, const HatcheryCycleSettings& settings);
+    //! Lets a hen or a rooster come out of a coop. Returns false if no coop has a free place.
+    bool spawnFromCoop(ChickenKind kind, const HatcheryCycleSettings& settings);
+
+    //! Turns the hatchery has been empty (no hen, chick or egg)
+    uint32_t mCoopHenWait;
+    //! Turns the hatchery has been without rooster
+    uint32_t mCoopRoosterWait;
 };
 
 #endif // ROOMHATCHERY_H

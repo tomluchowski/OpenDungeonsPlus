@@ -21,6 +21,9 @@
 #include "entities/GameEntityType.h"
 #include "entities/Tile.h"
 #include "network/ODPacket.h"
+#include "network/ODServer.h"
+#include "network/ServerNotification.h"
+#include "game/Player.h"
 #include "game/Seat.h"
 #include "gamemap/GameMap.h"
 #include "gamemap/RoomObjectNavigation.h"
@@ -34,9 +37,12 @@
 const int32_t NB_TURNS_OUTSIDE_HATCHERY_BEFORE_DIE = 30;
 const int32_t NB_TURNS_DIE_BEFORE_REMOVE = 5;
 
-ChickenEntity::ChickenEntity(GameMap* gameMap, const std::string& hatcheryName) :
+ChickenEntity::ChickenEntity(GameMap* gameMap, const std::string& hatcheryName, ChickenKind kind) :
     RenderedMovableEntity(gameMap, hatcheryName, "Chicken", 0.0f, false),
     mChickenState(ChickenState::free),
+    mKind(kind),
+    mNbTurnLay(0),
+    mAge(0),
     mNbTurnOutsideHatchery(0),
     mNbTurnDie(0),
     mIsSlapped(false),
@@ -47,6 +53,9 @@ ChickenEntity::ChickenEntity(GameMap* gameMap, const std::string& hatcheryName) 
 ChickenEntity::ChickenEntity(GameMap* gameMap) :
     RenderedMovableEntity(gameMap),
     mChickenState(ChickenState::free),
+    mKind(ChickenKind::hen),
+    mNbTurnLay(0),
+    mAge(0),
     mNbTurnOutsideHatchery(0),
     mNbTurnDie(0),
     mIsSlapped(false),
@@ -111,6 +120,10 @@ void ChickenEntity::doUpkeep()
         clearDestinations(EntityAnimation::die_anim, false, false);
         return;
     }
+
+    // An egg does not move
+    if(mKind == ChickenKind::egg)
+        return;
 
     // Handle normal behaviour : move or pick (if not already moving)
     if(isMoving())
@@ -265,9 +278,48 @@ void ChickenEntity::correctEntityMovePosition(Ogre::Vector2& position)
     //     position.z += Random::Double(-offset, offset);
 }
 
+void ChickenEntity::setKind(ChickenKind kind)
+{
+    if(mKind == kind)
+        return;
+
+    mKind = kind;
+    mAge = 0;
+    if(!getIsOnServerMap())
+        return;
+
+    for(Seat* seat : mSeatsWithVisionNotified)
+    {
+        if(seat->getPlayer() == nullptr || !seat->getPlayer()->getIsHuman())
+            continue;
+
+        ServerNotification* notification = new ServerNotification(
+            ServerNotificationType::chickenKindChanged, seat->getPlayer());
+        notification->mPacket << getName() << static_cast<uint32_t>(mKind);
+        ODServer::getSingleton().queueServerNotification(notification);
+    }
+}
+
+void ChickenEntity::setKindFromServer(ChickenKind kind)
+{
+    mKind = kind;
+    mAge = 0;
+}
+
+bool ChickenEntity::countDownLay()
+{
+    if(mNbTurnLay > 1)
+    {
+        --mNbTurnLay;
+        return false;
+    }
+
+    return true;
+}
+
 bool ChickenEntity::eatChicken(Creature* creature)
 {
-    if(mChickenState != ChickenState::free)
+    if(!isEdible())
         return false;
 
     OD_LOG_INF("chicken=" + getName() + " eaten by " + creature->getName());
@@ -281,6 +333,9 @@ bool ChickenEntity::eatChicken(Creature* creature)
 bool ChickenEntity::canSlap(Seat* seat)
 {
     if(!getIsOnMap())
+        return false;
+
+    if(mKind != ChickenKind::hen)
         return false;
 
     // We do not let it be picked up as it will be removed during next upkeep. However, this is
@@ -322,10 +377,25 @@ ChickenEntity* ChickenEntity::getChickenEntityFromPacket(GameMap* gameMap, ODPac
     return obj;
 }
 
+void ChickenEntity::exportToPacket(ODPacket& os, const Seat* seat) const
+{
+    RenderedMovableEntity::exportToPacket(os, seat);
+    os << static_cast<uint32_t>(mKind);
+}
+
+void ChickenEntity::importFromPacket(ODPacket& is)
+{
+    RenderedMovableEntity::importFromPacket(is);
+    uint32_t kind = 0;
+    OD_ASSERT_TRUE(is >> kind);
+    mKind = static_cast<ChickenKind>(kind);
+}
+
 void ChickenEntity::exportToStream(std::ostream& os) const
 {
     RenderedMovableEntity::exportToStream(os);
     os << mPosition.x << "\t" << mPosition.y << "\t" << mPosition.z << "\t";
+    os << static_cast<uint32_t>(mKind) << "\t" << mNbTurnLay << "\t" << mAge << "\t";
 }
 
 bool ChickenEntity::importFromStream(std::istream& is)
@@ -334,6 +404,20 @@ bool ChickenEntity::importFromStream(std::istream& is)
         return false;
     if(!(is >> mPosition.x >> mPosition.y >> mPosition.z))
         return false;
+
+    // Saves written before the life cycle end here: those chickens are hens
+    uint32_t kind = 0;
+    uint32_t nbTurnLay = 0;
+    uint32_t age = 0;
+    if(is >> kind >> nbTurnLay >> age)
+    {
+        if(kind <= static_cast<uint32_t>(ChickenKind::egg))
+            mKind = static_cast<ChickenKind>(kind);
+        mNbTurnLay = nbTurnLay;
+        mAge = age;
+    }
+    else
+        is.clear();
 
     return true;
 }
@@ -344,7 +428,7 @@ std::string ChickenEntity::getChickenEntityStreamFormat()
     if(!format.empty())
         format += "\t";
 
-    format += "PosX\tPosY\tPosZ";
+    format += "PosX\tPosY\tPosZ\tKind\tLayTimer\tAge";
 
     return format;
 }

@@ -18,6 +18,7 @@
 #include "network/ODClient.h"
 #include "camera/CullingManager.h"
 #include "entities/Building.h"
+#include "entities/ChickenEntity.h"
 #include "entities/Creature.h"
 #include "entities/Creature.h"
 #include "entities/CreatureDefinition.h"
@@ -1188,6 +1189,20 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
             {
                 RenderManager::getSingleton().rrSetFeedingChicken(creature,
                     gameMap->getAnimatedObject(chickenName), chickenPosition);
+            }
+            break;
+        }
+
+        case ServerNotificationType::chickenKindChanged:
+        {
+            std::string chickenName;
+            uint32_t kind;
+            OD_ASSERT_TRUE(packetReceived >> chickenName >> kind);
+            GameEntity* entity = gameMap->getEntityFromTypeAndName(GameEntityType::chickenEntity, chickenName);
+            if((entity != nullptr) && (entity->getObjectType() == GameEntityType::chickenEntity) &&
+               (kind <= static_cast<uint32_t>(ChickenKind::egg)))
+            {
+                static_cast<ChickenEntity*>(entity)->setKindFromServer(static_cast<ChickenKind>(kind));
             }
             break;
         }
