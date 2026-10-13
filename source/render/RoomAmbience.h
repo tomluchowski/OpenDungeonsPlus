@@ -27,6 +27,7 @@
 #include <OgreVector3.h>
 
 #include <cstdint>
+#include <limits>
 #include <map>
 #include <random>
 #include <set>
@@ -413,6 +414,9 @@ private:
     void scanTiles(Ogre::Camera* camera, const Ogre::Vector3& cameraPosition, const Ogre::Vector3& lookPoint);
     //! \brief Raises the events for rooms that were built or sold and for objects that appeared or vanished
     void scanEntityEvents(Ogre::Camera* camera, const Ogre::Vector3& cameraPosition);
+    //! \brief Raises the events of creatures: one that wakes in a dormitory (CreatureWoke), an enemy that enters a guard
+    //! room (EnemyEntered) and one that is healed in a temple (CreatureHealed)
+    void scanCreatureEvents();
     //! \brief Starts the emitters and motions that the candidates ask for within the limits and stops the others
     void reconcile();
     //! \brief Plays the clips of the objects whose time has come
@@ -603,6 +607,30 @@ private:
     };
     //! What was seen of each object at the last scan, by object name
     std::map<std::string, EntitySnapshot> mKnownEntities;
+
+    //! \brief What was seen of a creature at the last scan
+    struct CreatureSnapshot
+    {
+        //! \brief Creates a snapshot that is not set yet
+        CreatureSnapshot() :
+            mHp(0.0), mSleeping(false), mEnemyInGuardRoom(false), mLastHealed(-std::numeric_limits<double>::max()), mGeneration(0)
+        {}
+
+        //! Health of the creature
+        double mHp;
+        //! True while the creature plays its sleep clip
+        bool mSleeping;
+        //! True while the creature of another keeper stands in a guard room
+        bool mEnemyInGuardRoom;
+        //! Clock time at which a healing effect was last shown for the creature (never at the start)
+        double mLastHealed;
+        //! Number of the scan that last saw the creature
+        uint32_t mGeneration;
+    };
+    //! What was seen of each creature at the last scan, by creature name
+    std::map<std::string, CreatureSnapshot> mKnownCreatures;
+    //! False until the first scan has filled mKnownCreatures, so that nothing is raised for the first look
+    bool mCreaturesInitialized;
     //! Number of the current scan
     uint32_t mGeneration;
     //! False until the first scan has filled mKnownEntities, so that nothing is raised for the first look

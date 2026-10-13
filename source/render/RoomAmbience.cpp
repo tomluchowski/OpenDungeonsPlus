@@ -90,6 +90,10 @@ const double TILE_OCCUPIED_MARGIN = 1.0;
 const float WALL_SIDE_SHIFT = 0.45f;
 //! Distance in tiles within which an effect belongs to a dungeon heart for its beat
 const double HEART_RATE_RADIUS = 3.0;
+//! A creature has to gain at least this much health between two scans for a healing effect
+const double MIN_HEAL_AMOUNT = 0.5;
+//! Seconds between two healing effects of the same creature
+const double HEAL_SPACING_SECONDS = 4.0;
 //! Seconds after the start during which changes count as a map being loaded, not as events
 const double SETTLE_SECONDS = 3.0;
 //! Seconds within which the same event does not start again
@@ -316,7 +320,8 @@ RoomAmbience::RoomAmbience(GameMap* gameMap, const std::string& configPath) :
     mShakeApplied(Ogre::Vector3::ZERO),
     mRandom(RANDOM_SEED),
     mGeneration(0),
-    mEntitiesInitialized(false)
+    mEntitiesInitialized(false),
+    mCreaturesInitialized(false)
 {
     reloadConfig();
 }
@@ -719,6 +724,8 @@ void RoomAmbience::stopAll()
     mSeenSizeX = 0;
     mSeenSizeY = 0;
     mKnownEntities.clear();
+    mKnownCreatures.clear();
+    mCreaturesInitialized = false;
     mEntitiesInitialized = false;
     mScanTimer = 0.0;
     mHeartRates.clear();
@@ -785,6 +792,7 @@ void RoomAmbience::scan()
     scanObjects(camera, cameraPosition);
     scanTiles(camera, cameraPosition, lookPoint);
     scanEntityEvents(camera, cameraPosition);
+    scanCreatureEvents();
     mExtras.scan(*this, mGameMap);
     reconcile();
     playClips();
@@ -1263,6 +1271,112 @@ void RoomAmbience::scanEntityEvents(Ogre::Camera* camera, const Ogre::Vector3& c
     // Many changes at once are a map being loaded or revealed, not things being made
     bool settled = (mClock > SETTLE_SECONDS) && mEntitiesInitialized && (changes.size() <= MAX_EVENTS_PER_SCAN);
     mEntitiesInitialized = true;
+    if(!settled)
+        return;
+
+    for(const Change& change : changes)
+        triggerEvent(change.mEvent, change.mPosition, false, change.mVisual);
+}
+
+void RoomAmbience::scanCreatureEvents()
+{
+    struct Change
+    {
+        //! \brief Creates a change that is not set yet
+        Change() :
+            mPosition(Ogre::Vector3::ZERO)
+        {}
+
+        //! Name of the event
+        std::string mEvent;
+        //! Where the creature is
+        Ogre::Vector3 mPosition;
+        //! Tile visual (room) the creature stands in
+        std::string mVisual;
+    };
+
+    std::vector<Change> changes;
+    for(Creature* creature : mGameMap->getCreatures())
+    {
+        if(!creature->getIsOnMap())
+            continue;
+
+        std::string key = creature->getName();
+        Tile* tile = creature->getPositionTile();
+        std::string visual;
+        if(tile != nullptr)
+            visual = Tile::tileVisualToString(tile->getTileVisual());
+
+        bool sleeping = false;
+        Ogre::AnimationState* animationState = creature->getAnimationState();
+        if(animationState != nullptr)
+            sleeping = (animationState->getAnimationName() == EntityAnimation::sleep_anim);
+
+        bool enemyInGuardRoom = false;
+        if((tile != nullptr) && (tile->getTileVisual() == TileVisual::guardRoom) && (tile->getSeat() != nullptr) &&
+           (creature->getSeat() != nullptr))
+        {
+            enemyInGuardRoom = !tile->getSeat()->isAlliedSeat(creature->getSeat());
+        }
+
+        double hp = creature->getHP();
+        std::map<std::string, CreatureSnapshot>::iterator it = mKnownCreatures.find(key);
+        if(it == mKnownCreatures.end())
+        {
+            // A creature seen for the first time only teaches its state
+            CreatureSnapshot snapshot;
+            snapshot.mHp = hp;
+            snapshot.mSleeping = sleeping;
+            snapshot.mEnemyInGuardRoom = enemyInGuardRoom;
+            snapshot.mGeneration = mGeneration;
+            mKnownCreatures.insert(std::make_pair(key, snapshot));
+            continue;
+        }
+
+        CreatureSnapshot& snapshot = it->second;
+        snapshot.mGeneration = mGeneration;
+        if(mCreaturesInitialized)
+        {
+            Change change;
+            change.mPosition = creature->getPosition();
+            change.mVisual = visual;
+            if(snapshot.mSleeping && !sleeping && (visual == "dormitoryRoom"))
+            {
+                change.mEvent = "CreatureWoke";
+                changes.push_back(change);
+            }
+
+            if(enemyInGuardRoom && !snapshot.mEnemyInGuardRoom)
+            {
+                change.mEvent = "EnemyEntered";
+                changes.push_back(change);
+            }
+
+            if((visual == "templeRoom") && (hp >= (snapshot.mHp + MIN_HEAL_AMOUNT)) &&
+               ((mClock - snapshot.mLastHealed) >= HEAL_SPACING_SECONDS))
+            {
+                snapshot.mLastHealed = mClock;
+                change.mEvent = "CreatureHealed";
+                changes.push_back(change);
+            }
+        }
+
+        snapshot.mHp = hp;
+        snapshot.mSleeping = sleeping;
+        snapshot.mEnemyInGuardRoom = enemyInGuardRoom;
+    }
+
+    for(std::map<std::string, CreatureSnapshot>::iterator it = mKnownCreatures.begin(); it != mKnownCreatures.end();)
+    {
+        if(it->second.mGeneration == mGeneration)
+            ++it;
+        else
+            mKnownCreatures.erase(it++);
+    }
+
+    // Many changes at once are a map being loaded or revealed, not creatures acting
+    bool settled = (mClock > SETTLE_SECONDS) && mCreaturesInitialized && (changes.size() <= MAX_EVENTS_PER_SCAN);
+    mCreaturesInitialized = true;
     if(!settled)
         return;
 
