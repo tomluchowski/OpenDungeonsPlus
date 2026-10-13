@@ -2,23 +2,41 @@
 
 <GUILayout version="4" >
     <Window type="DefaultWindow" name="Creatures" >
+        <UserString name="NavigationColour" value="FF718C28" />
+        <UserString name="NavigationImage" value="OpenDungeonsIcons/NavigationCreatures" />
         <Property name="Area" value="{{0,0},{0,0},{1,0},{1,0}}" />
-        <Property name="Text" value="[image-size='w:30 h:30'][image='OpenDungeonsIcons/CreaturesIcon']" />
+        <Property name="Text" value="[image-size='w:40 h:40'][image='OpenDungeonsIcons/CreaturesIcon']" />
         <Property name="TooltipText" value="Creatures" />
         <Property name="MaxSize" value="{{1,0},{1,0}}" />
         <Property name="Visible" value="False" />
         <Property name="RiseOnClickEnabled" value="False" />
         <Window type="OD/GameTabButton" name="WorkerButton" >
-            <Property name="Area" value="{{0,20},{0,25},{0,80},{0,85}}" />
+            <Property name="Area" value="{{1,-42},{0,6},{1,-6},{0,42}}" />
             <Property name="NormalImage" value="OpenDungeonsIcons/WorkerButton" />
             <Property name="TooltipText" value="Add a worker in hand if available" />
             <Property name="InheritsAlpha" value="False" />
-        </Window>
+                        <Window type="OD/StaticText" name="Count" >
+                    <Property name="Area" value="{{0,2},{1,-17},{1,-2},{1,-1}}" />
+                    <Property name="Text" value="0" />
+                    <Property name="HorzFormatting" value="CentreAligned" />
+                    <Property name="MousePassThroughEnabled" value="True" />
+                    <Property name="FrameEnabled" value="False" />
+                    <Property name="BackgroundEnabled" value="False" />
+                </Window>
+            </Window>
         <Window type="OD/GameTabButton" name="FighterButton" >
-            <Property name="Area" value="{{0,80},{0,25},{0,140},{0,85}}" />
+            <Property name="Area" value="{{1,-42},{0,48},{1,-6},{0,84}}" />
             <Property name="NormalImage" value="OpenDungeonsIcons/FighterButton" />
             <Property name="TooltipText" value="Add a fighter in hand if available" />
             <Property name="InheritsAlpha" value="False" />
-        </Window>
+                        <Window type="OD/StaticText" name="Count" >
+                    <Property name="Area" value="{{0,2},{1,-17},{1,-2},{1,-1}}" />
+                    <Property name="Text" value="0" />
+                    <Property name="HorzFormatting" value="CentreAligned" />
+                    <Property name="MousePassThroughEnabled" value="True" />
+                    <Property name="FrameEnabled" value="False" />
+                    <Property name="BackgroundEnabled" value="False" />
+                </Window>
+            </Window>
     </Window>
 </GUILayout>

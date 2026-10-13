@@ -1,0 +1,37 @@
+particle_system ChickenFeathers
+{
+    material ChickenFeathers
+    particle_width 0.035
+    particle_height 0.14
+    quota 24
+    billboard_type point
+    emitter Point
+    {
+        angle 65
+        colour_range_start 1.0 0.95 0.82 0.95
+        colour_range_end 0.75 0.72 0.64 0.8
+        emission_rate 90
+        time_to_live_min 0.8
+        time_to_live_max 1.3
+        direction 0 0 1
+        velocity_min 0.5
+        velocity_max 1.2
+        duration 0.13
+    }
+    affector LinearForce
+    {
+        force_vector 0.15 0 -1.1
+        force_application add
+    }
+    affector Rotator
+    {
+        rotation_range_start 0
+        rotation_range_end 360
+        rotation_speed_range_start -140
+        rotation_speed_range_end 180
+    }
+    affector ColourFader
+    {
+        alpha -0.7
+    }
+}
