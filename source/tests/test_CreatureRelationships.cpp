@@ -42,6 +42,7 @@ namespace
 
 BOOST_FIXTURE_TEST_SUITE(CreatureRelationshipsSuite, LogFixture)
 
+// Values are clamped to -100..100, a pair is stored once for both orders and a value of 0 or a self pair is not stored
 BOOST_AUTO_TEST_CASE(test_ClampingAndSparseStorage)
 {
     CreatureRelationships relationships;
@@ -67,6 +68,7 @@ BOOST_AUTO_TEST_CASE(test_ClampingAndSparseStorage)
     BOOST_CHECK_EQUAL(relationships.getNbPairs(), 0u);
 }
 
+// The value thresholds give the right tier (also for lovers) and isFriend/tierOf work in both directions
 BOOST_AUTO_TEST_CASE(test_Tiers)
 {
     CreatureRelationships relationships;
@@ -89,6 +91,7 @@ BOOST_AUTO_TEST_CASE(test_Tiers)
     BOOST_CHECK(!relationships.isFriend("Orc1", "Troll2"));
 }
 
+// A relationship event changes the value of the pair by the amount set for that event
 BOOST_AUTO_TEST_CASE(test_EventAmounts)
 {
     CreatureRelationships relationships;
@@ -99,6 +102,7 @@ BOOST_AUTO_TEST_CASE(test_EventAmounts)
     BOOST_CHECK_EQUAL(relationships.getValue("Orc1", "Troll2"), relationships.getSettings().mEventArenaLoss);
 }
 
+// A change of tier is recorded once and is gone after it was taken
 BOOST_AUTO_TEST_CASE(test_TierChangesAreRecordedOnce)
 {
     CreatureRelationships relationships;
@@ -120,6 +124,7 @@ BOOST_AUTO_TEST_CASE(test_TierChangesAreRecordedOnce)
     BOOST_CHECK(changes.empty());
 }
 
+// Pairs drift towards 0 only after the idle time, one step per interval, never overshoot and are removed at 0
 BOOST_AUTO_TEST_CASE(test_Drift)
 {
     RelationshipSettings settings;
@@ -164,6 +169,7 @@ BOOST_AUTO_TEST_CASE(test_Drift)
     BOOST_CHECK_EQUAL(relationships.getValue("Orc2", "Troll2"), 0);
 }
 
+// Removing a creature drops all pairs it belongs to and ignores unknown names
 BOOST_AUTO_TEST_CASE(test_Removal)
 {
     CreatureRelationships relationships;
@@ -181,6 +187,7 @@ BOOST_AUTO_TEST_CASE(test_Removal)
     BOOST_CHECK_EQUAL(relationships.getNbPairs(), 1u);
 }
 
+// A saved table loads back with the same values, replaces old content, reports no tier changes and keeps the idle time
 BOOST_AUTO_TEST_CASE(test_SaveLoadRoundTrip)
 {
     CreatureRelationships relationships;
@@ -215,6 +222,7 @@ BOOST_AUTO_TEST_CASE(test_SaveLoadRoundTrip)
     BOOST_CHECK_EQUAL(loaded.getValue("Orc1", "Troll1"), 84);
 }
 
+// An empty table round trips as an empty section and a save without the section leaves the table empty
 BOOST_AUTO_TEST_CASE(test_SaveLoadWithoutPairs)
 {
     // An empty table (option on, nothing happened yet) round trips as an empty section
@@ -233,6 +241,7 @@ BOOST_AUTO_TEST_CASE(test_SaveLoadWithoutPairs)
     BOOST_CHECK_EQUAL(untouched.getNbPairs(), 0u);
 }
 
+// Malformed sections are rejected, out of range values are clamped and zero values are dropped
 BOOST_AUTO_TEST_CASE(test_LoadInvalidSection)
 {
     CreatureRelationships relationships;
@@ -256,6 +265,7 @@ BOOST_AUTO_TEST_CASE(test_LoadInvalidSection)
     BOOST_CHECK_EQUAL(relationships.getNbPairs(), 1u);
 }
 
+// Settings read from the config keep the default for missing or invalid entries
 BOOST_AUTO_TEST_CASE(test_SettingsFromConfig)
 {
     RelationshipSettings defaults;
@@ -279,6 +289,7 @@ BOOST_AUTO_TEST_CASE(test_SettingsFromConfig)
     BOOST_CHECK_EQUAL(fromEmpty.mEventTrainingTogether, defaults.mEventTrainingTogether);
 }
 
+// A client table filled from the tiers of the server shows the same tiers and drops a pair set back to neutral
 BOOST_AUTO_TEST_CASE(test_ClientTiers)
 {
     CreatureRelationships server;
@@ -457,6 +468,7 @@ BOOST_AUTO_TEST_CASE(test_LimitsPerCreature)
     BOOST_CHECK_EQUAL(pairs.size(), 2u);
 }
 
+// A trainee learns faster next to a friend who is high enough in level, never from a lower level creature or without the friendship
 BOOST_AUTO_TEST_CASE(test_Mentoring)
 {
     CreatureRelationships relationships;
@@ -474,6 +486,7 @@ BOOST_AUTO_TEST_CASE(test_Mentoring)
     BOOST_CHECK_EQUAL(relationships.mentoringFactor("Pupil", 4, trainees), 1.0);
 }
 
+// getFriends lists only the creatures at friend level, from the point of view of either creature, and nothing for an unknown creature
 BOOST_AUTO_TEST_CASE(test_Friends)
 {
     CreatureRelationships relationships;
@@ -491,6 +504,7 @@ BOOST_AUTO_TEST_CASE(test_Friends)
     BOOST_CHECK(friends.empty());
 }
 
+// When a friend becomes friends with a third creature, the other friend gets jealous of it once; without friends nobody is jealous
 BOOST_AUTO_TEST_CASE(test_Jealousy)
 {
     CreatureRelationships relationships;
@@ -513,6 +527,7 @@ BOOST_AUTO_TEST_CASE(test_Jealousy)
     BOOST_CHECK_EQUAL(relationships.getNbPairs(), 4u);
 }
 
+// getBestFriend returns the partner with the highest value at best friend level or nothing when there is none
 BOOST_AUTO_TEST_CASE(test_BestFriend)
 {
     CreatureRelationships relationships;
