@@ -142,7 +142,6 @@ textures/
 -> DungeonClaimedWall*.png             Nobiax, Danimal         CC-BY-SA 3.0            http://opengameart.org/users/danimal
 -> Dragon{,Normal}.png
 -> DungeonHeart{Healthy,Damaged,Critical}{,Normal,Glow}.pngMario                   GPLv3+                  Procedural, tools/heart-textures/generate_heart_textures.py
--> DungeonHeartPedestal.png            Mario                   GPLv3+                  Procedural, tools/heart-textures/generate_pedestal_texture.py
 -> DungeonTemple*.png
 -> Dwarf*.png
 -> DarkElf*.png                        Contmike, Danimal       CC-BY-SA 3.0
