@@ -170,6 +170,10 @@ void RoomHatchery::exportToStream(std::ostream& os) const
     Room::exportToStream(os);
     os << "HatcheryWaits " << mCoopHenWait << " " << mCoopRoosterWait << " " << mCrowInterval << std::endl;
     os << "HatcheryDay " << mLastCrowDay << std::endl;
+    os << "HatcheryLays " << mPendingEggs.size();
+    for(const PendingEgg& egg : mPendingEggs)
+        os << " " << egg.mSpot.x << " " << egg.mSpot.y << " " << egg.mSpot.z << " " << egg.mTurns;
+    os << std::endl;
 }
 
 //! \brief Loads what exportToStream wrote. A save without the lines loads as before: the stream is put back
@@ -218,6 +222,24 @@ bool RoomHatchery::importFromStream(std::istream& is)
             mLastCrowDay = crowDay;
             continue;
         }
+        if(tag == "HatcheryLays")
+        {
+            uint32_t nbLays;
+            if(!(is >> nbLays))
+                return false;
+
+            mPendingEggs.clear();
+            for(uint32_t i = 0; i < nbLays; ++i)
+            {
+                Ogre::Vector3 spot;
+                uint32_t turns;
+                if(!(is >> spot.x >> spot.y >> spot.z >> turns))
+                    return false;
+
+                mPendingEggs.push_back(PendingEgg(spot, turns));
+            }
+            continue;
+        }
 
         is.clear();
         is.seekg(pos);
@@ -241,6 +263,7 @@ HatcheryCycleSettings RoomHatchery::getCycleSettings() const
     settings.mFightTurns = static_cast<uint32_t>(config.getRoomConfigDoubleOrDefault("HatcheryFightTurns", settings.mFightTurns));
     settings.mFightApproachTurns = static_cast<uint32_t>(config.getRoomConfigDoubleOrDefault("HatcheryFightApproachTurns", settings.mFightApproachTurns));
     settings.mCoopBatch = static_cast<uint32_t>(config.getRoomConfigDoubleOrDefault("HatcheryCoopBatch", settings.mCoopBatch));
+    settings.mLayShowTurns = static_cast<uint32_t>(config.getRoomConfigDoubleOrDefault("HatcheryLayShowTurns", settings.mLayShowTurns));
 
     // The research of the hatchery shortens the waiting times
     double coopWait = config.getRoomConfigDoubleOrDefault("HatcheryChickenSpawnRate", settings.mCoopWait);
@@ -356,6 +379,27 @@ void RoomHatchery::fireEggTrample(const ChickenEntity& egg)
             ServerNotificationType::playSpatialSound, seat->getPlayer());
         serverNotification->mPacket << effect << xHundredths << yHundredths;
         ODServer::getSingleton().queueServerNotification(serverNotification);
+    }
+}
+
+void RoomHatchery::releasePendingEggs(const HatcheryCycleSettings& settings)
+{
+    std::vector<PendingEgg>::iterator it = mPendingEggs.begin();
+    while(it != mPendingEggs.end())
+    {
+        if(it->mTurns > 0)
+            --it->mTurns;
+        if(it->mTurns > 0)
+        {
+            ++it;
+            continue;
+        }
+
+        // The place must still belong to the hatchery, otherwise the egg is not laid
+        Tile* spotTile = getGameMap()->getTile(Helper::round(it->mSpot.x), Helper::round(it->mSpot.y));
+        if((spotTile != nullptr) && (spotTile->getCoveringRoom() == this))
+            spawnAnimal(ChickenKind::egg, it->mSpot, settings);
+        it = mPendingEggs.erase(it);
     }
 }
 
@@ -559,7 +603,8 @@ void RoomHatchery::doUpkeep()
     }
     counts.mHens = hens.size();
     counts.mChicks = chicks.size();
-    counts.mEggs = eggs.size();
+    // Eggs that a hen is still laying take their place in the hatchery already
+    counts.mEggs = eggs.size() + mPendingEggs.size();
 
     // Breeding needs care: hens lay faster in a claimed, lit hatchery without enemies
     std::vector<Creature*> enemies;
@@ -593,6 +638,9 @@ void RoomHatchery::doUpkeep()
     std::vector<Ogre::Vector2> eggPositions;
     for(ChickenEntity* egg : eggs)
         eggPositions.push_back(Ogre::Vector2(egg->getPosition().x, egg->getPosition().y));
+    for(const PendingEgg& pending : mPendingEggs)
+        eggPositions.push_back(Ogre::Vector2(pending.mSpot.x, pending.mSpot.y));
+    releasePendingEggs(settings);
 
     // Hens lay eggs while the hatchery is not full
     uint32_t capacity = HatcheryCycle::capacity(mCoveredTiles.size(), mNumActiveSpots, settings);
@@ -609,9 +657,14 @@ void RoomHatchery::doUpkeep()
         // Without a free nest it lies at the hen, as before.
         Ogre::Vector3 eggSpot = hen->getPosition();
         findNestSpot(hen->getPosition(), eggPositions, eggSpot);
-        spawnAnimal(ChickenKind::egg, eggSpot, settings);
         eggPositions.push_back(Ogre::Vector2(eggSpot.x, eggSpot.y));
-        hen->playPose(ChickenPose::lay, 2);
+
+        // The hen sits down and shows herself laying, the egg appears after the clip (or at once without a delay)
+        if(settings.mLayShowTurns > 0)
+            mPendingEggs.push_back(PendingEgg(eggSpot, settings.mLayShowTurns));
+        else
+            spawnAnimal(ChickenKind::egg, eggSpot, settings);
+        hen->playPose(ChickenPose::lay, std::max<uint32_t>(2, settings.mLayShowTurns));
         ++counts.mEggs;
     }
 

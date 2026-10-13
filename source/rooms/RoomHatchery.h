@@ -87,6 +87,8 @@ private:
     void leaveNest(ChickenEntity* chick);
     //! An egg is trampled: shell pieces, yolk and feathers fly where it lay (the clients show it).
     void fireEggTrample(const ChickenEntity& egg);
+    //! Lets the eggs appear whose hen has shown herself laying for long enough (see mPendingEggs).
+    void releasePendingEggs(const HatcheryCycleSettings& settings);
     //! Lets a hen or a rooster come out of a coop. Returns false if no coop has a free place.
     bool spawnFromCoop(ChickenKind kind, const HatcheryCycleSettings& settings, uint32_t count = 1);
 
@@ -130,6 +132,20 @@ private:
     uint32_t mCrowInterval;
     //! Number of the last day the rooster crowed for (HatcheryRooster::dayNumber), -1 until he is first seen
     int64_t mLastCrowDay;
+    //! An egg a hen is still laying: the hen shows herself sitting (Lay pose) for HatcheryLayShowTurns turns, then the
+    //! egg appears at the place in the nest that was chosen when she started. Saved in the "HatcheryLays" line, so
+    //! a save in between neither loses nor doubles the egg. Pending eggs count as eggs for the capacity.
+    struct PendingEgg
+    {
+        PendingEgg(const Ogre::Vector3& spot, uint32_t turns) :
+            mSpot(spot),
+            mTurns(turns)
+        {}
+
+        Ogre::Vector3 mSpot;
+        uint32_t mTurns;
+    };
+    std::vector<PendingEgg> mPendingEggs;
     //! Turns the hatchery has been empty (no hen, chick or egg)
     uint32_t mCoopHenWait;
     //! Turns the hatchery has been without rooster
