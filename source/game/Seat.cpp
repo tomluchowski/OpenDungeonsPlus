@@ -1504,7 +1504,7 @@ void Seat::exportTilesVisualInitialStates(TileVisual tileVisual, std::ostream& o
     os << "[/" + Tile::tileVisualToString(tileVisual) + "]" << std::endl;
 }
 
-bool Seat::addSkill(SkillType type)
+bool Seat::addSkill(SkillType type, bool notify)
 {
     if(std::find(mSkillDone.begin(), mSkillDone.end(), type) != mSkillDone.end())
         return false;
@@ -1520,7 +1520,8 @@ bool Seat::addSkill(SkillType type)
     }
 
     // Tells the player a new room/trap/spell is available.
-    if((getPlayer() != nullptr) &&
+    if(notify &&
+       (getPlayer() != nullptr) &&
        getPlayer()->getIsHuman() &&
        !getPlayer()->getHasLost())
     {
@@ -1533,6 +1534,11 @@ bool Seat::addSkill(SkillType type)
     }
 
     return true;
+}
+
+bool Seat::isSkillNotAllowed(SkillType type) const
+{
+    return std::find(mSkillNotAllowed.begin(), mSkillNotAllowed.end(), type) != mSkillNotAllowed.end();
 }
 
 void Seat::setSkillAvailability(SkillType type, bool allowed, bool done)

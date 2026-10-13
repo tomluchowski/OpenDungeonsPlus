@@ -307,8 +307,12 @@ public:
 
     //! \brief Called when the skill entity reaches its destination. From there, the
     //! skilled thing is available
-    //! Returns true if the type was inserted and false otherwise
-    bool addSkill(SkillType type);
+    //! Returns true if the type was inserted and false otherwise. The player is told about the new
+    //! skill unless notify is false (the caller then sends its own notice)
+    bool addSkill(SkillType type, bool notify = true);
+
+    //! \brief Returns true if the level does not allow the skill to be researched
+    bool isSkillNotAllowed(SkillType type) const;
 
     //! \brief Server side function. Called when a fresh grimoire is brought to the dungeon
     //! temple. When enough points are gathered, the corresponding skill will become available
