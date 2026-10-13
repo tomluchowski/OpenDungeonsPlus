@@ -67,3 +67,16 @@ assert 'HatcheryTramplePercent' in cfg and 'HatcheryTrampleRadius' in cfg
 assert 'bool ChickenEntity::trample' in chicken and 'ChickenKind::egg' in chicken[chicken.index('bool ChickenEntity::trample'):][:200]
 # only enemies are collected for trampling (allied seats are skipped)
 assert 'isAlliedSeat' in room_cpp[room_cpp.index('void RoomHatchery::collectEnemies'):][:600]
+
+rooster_h = (root / 'source/rooms/HatcheryRooster.h').read_text()
+rooster_cpp = (root / 'source/rooms/HatcheryRooster.cpp').read_text()
+# The new day crow is remembered as a state (the day he crowed for), it is saved, and old saves still load
+assert 'newDayCrowOwed' in rooster_cpp and 'isNewDay(context.mTurn' not in rooster_cpp
+assert 'int64_t mCrowDay' in rooster_h
+assert 'context.mCrowDay = mLastCrowDay' in room_cpp
+assert 'mLastCrowDay = std::max(mLastCrowDay' in body(room_cpp, 'void RoomHatchery::beginRoosterMood')
+assert '"HatcheryDay "' in room_cpp[room_cpp.index('void RoomHatchery::exportToStream'):][:400]
+imp_day = room_cpp[room_cpp.index('bool RoomHatchery::importFromStream'):][:1800]
+assert 'HatcheryDay' in imp_day and 'seekg(pos)' in imp_day
+assert 'test_RoosterNewDayCrow' in (root / 'source/tests/test_HatcheryCycle.cpp').read_text()
+print('hatchery new day crow checks passed')

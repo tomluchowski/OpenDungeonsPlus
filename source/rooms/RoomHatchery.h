@@ -50,6 +50,11 @@ public:
 
     void creatureDropped(Creature& creature) override;
 
+    //! \brief Saves the number of the last day the rooster crowed for.
+    void exportToStream(std::ostream& os) const override;
+    //! \brief Loads what exportToStream wrote. Saves written without it still load.
+    bool importFromStream(std::istream& is) override;
+
     static const RoomType mRoomType;
     static const TileVisual mRoomVisual;
     
@@ -77,24 +82,31 @@ private:
     //! Moves the rooster: perching, crowing, chasing a hen, guarding the flock, leading the chicks, sleeping.
     void updateRooster(ChickenEntity* rooster, const std::vector<ChickenEntity*>& hens,
         const std::vector<ChickenEntity*>& chicks, const RoosterSettings& settings);
+    //! \brief Starts the mood the rules chose: sets it on the rooster and prepares the move (down from the roof, crow timer).
     void beginRoosterMood(ChickenEntity* rooster, const RoosterPlan& plan);
+    //! \brief Does one turn of the current mood: walks, chases, guards against the threat position or plays a pose.
     void actRoosterMood(ChickenEntity* rooster, const std::vector<ChickenEntity*>& hens,
         const RoosterSettings& settings, const Ogre::Vector2& threat);
     //! Sits the rooster on the roof of the nearest coop with the pose. Without coop he stays on the ground.
     void roostOnRoof(ChickenEntity* rooster, const std::string& pose, bool hopFromFar);
+    //! \brief Lets the rooster jump down from a coop roof to a free place next to the coop.
     void climbDown(ChickenEntity* rooster);
     //! The chicks follow the hen (or the rooster when he leads) in a line, at night they huddle under the hen.
     void updateChickLine(const std::vector<ChickenEntity*>& hens, const std::vector<ChickenEntity*>& chicks,
         ChickenEntity* rooster, bool night);
     //! A creature inside the hatchery that wants to eat chickens or is an enemy, close to the rooster.
     bool findThreat(const ChickenEntity& rooster, double radius, Ogre::Vector2& position) const;
+    //! \brief The coop tile of this hatchery closest to the position, null without a coop.
     Tile* getNearestCoop(const Ogre::Vector2& position) const;
+    //! \brief The point on the roof of the coop where the rooster sits.
     Ogre::Vector2 getPerchSpot(const Tile& coopTile) const;
     //! A free place next to a coop, where an animal can stand after jumping down.
     bool getGroundSpot(const Tile& coopTile, Ogre::Vector2& spot) const;
 
     //! Turns until the rooster crows next
     uint32_t mCrowInterval;
+    //! Number of the last day the rooster crowed for (HatcheryRooster::dayNumber), -1 until he is first seen
+    int64_t mLastCrowDay;
     //! Turns the hatchery has been empty (no hen, chick or egg)
     uint32_t mCoopHenWait;
     //! Turns the hatchery has been without rooster

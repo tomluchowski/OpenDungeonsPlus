@@ -85,7 +85,8 @@ struct RoosterContext
         mHasHen(false),
         mHasChick(false),
         mThreat(false),
-        mRoll(0)
+        mRoll(0),
+        mCrowDay(-1)
     {}
 
     int64_t mTurn;
@@ -102,6 +103,8 @@ struct RoosterContext
     bool mThreat;
     //! Random number in [0, 99].
     uint32_t mRoll;
+    //! Number of the last day for which the rooster crowed (see HatcheryRooster::dayNumber), -1 if none yet.
+    int64_t mCrowDay;
 };
 
 struct RoosterPlan
@@ -119,6 +122,14 @@ public:
 
     //! True on the first turn of a day.
     static bool isNewDay(int64_t turn, const RoosterSettings& settings);
+
+    //! Number of the day the turn belongs to (0 for the first day), -1 without day length or for a negative turn.
+    static int64_t dayNumber(int64_t turn, const RoosterSettings& settings);
+
+    //! True while the crow for the day of the turn is still owed: the day is later than the last one he crowed
+    //! for. Unlike isNewDay this does not depend on hitting the first turn of the day, so a rooster that is busy
+    //! at that moment crows as soon as he is free.
+    static bool newDayCrowOwed(int64_t turn, int64_t crowDay, const RoosterSettings& settings);
 
     //! Turns until the next crow for a random number.
     static uint32_t crowInterval(const RoosterSettings& settings, uint32_t random);

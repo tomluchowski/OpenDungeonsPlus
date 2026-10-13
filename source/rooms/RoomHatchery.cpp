@@ -130,6 +130,7 @@ static RoomRegister reg(new RoomHatcheryFactory);
 RoomHatchery::RoomHatchery(GameMap* gameMap) :
     Room(gameMap),
     mCrowInterval(60),
+    mLastCrowDay(-1),
     mCoopHenWait(0),
     mCoopRoosterWait(0)
 {
@@ -152,6 +153,37 @@ void RoomHatchery::notifyActiveSpotRemoved(ActiveSpotPlace place, Tile* tile)
         // We remove the chicken coop
         removeBuildingObject(tile);
     }
+}
+
+//! \brief Saves the number of the last day the rooster crowed for, so a loaded game does not crow twice.
+void RoomHatchery::exportToStream(std::ostream& os) const
+{
+    Room::exportToStream(os);
+    os << "HatcheryDay " << mLastCrowDay << std::endl;
+}
+
+//! \brief Loads the line written by exportToStream. A save without it loads as before: the stream is put back
+//! and the day is learned again from the first turn.
+bool RoomHatchery::importFromStream(std::istream& is)
+{
+    if(!Room::importFromStream(is))
+        return false;
+
+    std::streampos pos = is.tellg();
+    std::string tag;
+    if(!(is >> tag) || (tag != "HatcheryDay"))
+    {
+        is.clear();
+        is.seekg(pos);
+        return true;
+    }
+
+    int64_t crowDay;
+    if(!(is >> crowDay))
+        return false;
+
+    mLastCrowDay = crowDay;
+    return true;
 }
 
 HatcheryCycleSettings RoomHatchery::getCycleSettings() const
@@ -580,6 +612,8 @@ void RoomHatchery::beginRoosterMood(ChickenEntity* rooster, const RoosterPlan& p
     if(plan.mMood == RoosterMood::crow)
     {
         rooster->resetSinceCrow();
+        // Whatever the reason for the crow, it counts for the day it happens on
+        mLastCrowDay = std::max(mLastCrowDay, HatcheryRooster::dayNumber(getGameMap()->getTurnNumber(), getRoosterSettings()));
         mCrowInterval = HatcheryRooster::crowInterval(getRoosterSettings(), Random::Uint(0, 1000));
     }
 }
@@ -682,6 +716,9 @@ void RoomHatchery::updateRooster(ChickenEntity* rooster, const std::vector<Chick
     const std::vector<ChickenEntity*>& chicks, const RoosterSettings& settings)
 {
     rooster->setHomeSeat(getSeat());
+    // The first time he is seen the day counts as crowed, a hatchery that is built or loaded does not start with a crow
+    if(mLastCrowDay < 0)
+        mLastCrowDay = HatcheryRooster::dayNumber(getGameMap()->getTurnNumber(), settings);
     rooster->incrementSinceCrow();
     rooster->countDownMood();
 
@@ -702,6 +739,7 @@ void RoomHatchery::updateRooster(ChickenEntity* rooster, const std::vector<Chick
     context.mHasChick = !chicks.empty();
     context.mThreat = findThreat(*rooster, guardRadius, threat);
     context.mRoll = Random::Uint(0, 99);
+    context.mCrowDay = mLastCrowDay;
 
     RoosterPlan plan = HatcheryRooster::decide(context, settings);
     if(plan.mMood != rooster->getMood())

@@ -38,6 +38,19 @@ bool HatcheryRooster::isNewDay(int64_t turn, const RoosterSettings& settings)
     return (static_cast<uint64_t>(turn) % settings.mDayTurns) == 0;
 }
 
+int64_t HatcheryRooster::dayNumber(int64_t turn, const RoosterSettings& settings)
+{
+    if((settings.mDayTurns == 0) || (turn < 0))
+        return -1;
+
+    return turn / static_cast<int64_t>(settings.mDayTurns);
+}
+
+bool HatcheryRooster::newDayCrowOwed(int64_t turn, int64_t crowDay, const RoosterSettings& settings)
+{
+    return dayNumber(turn, settings) > crowDay;
+}
+
 uint32_t HatcheryRooster::crowInterval(const RoosterSettings& settings, uint32_t random)
 {
     uint32_t minTurns = std::max<uint32_t>(1, settings.mCrowMin);
@@ -62,8 +75,9 @@ RoosterPlan HatcheryRooster::decide(const RoosterContext& context, const Rooster
         return plan;
     }
 
-    // A new day starts with a crow. At night the rooster sleeps.
-    if((context.mMood != RoosterMood::crow) && isNewDay(context.mTurn, settings))
+    // A new day starts with a crow, as soon as he is free for it (the day is remembered, not only its first turn).
+    // At night the rooster sleeps.
+    if((context.mMood != RoosterMood::crow) && newDayCrowOwed(context.mTurn, context.mCrowDay, settings))
     {
         plan.mMood = RoosterMood::crow;
         plan.mTurns = 4;
