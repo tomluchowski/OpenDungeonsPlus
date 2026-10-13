@@ -62,6 +62,14 @@ check('isLockedByLostLibrary(resType, localPlayerSeat)' in game_mode
 check('mIsLibraryLostShown != localPlayerSeat->isLibraryLost()' in function(game_mode, 'void GameMode::refreshGuiSkill('),
       'the spell buttons refresh when the library is lost or regained')
 
+# The flag is part of the savegame, so the lock survives a load
+check('[HadLibrary]' in function(seat, 'bool Seat::exportSeatToStream(')
+      and 'mHadLibrary' in function(seat, 'bool Seat::exportSeatToStream('),
+      'the savegame stores that the seat had a library')
+check('str == "[HadLibrary]"' in function(seat, 'bool Seat::importSeatFromStream(')
+      and 'is >> mHadLibrary' in function(seat, 'bool Seat::importSeatFromStream('),
+      'the savegame load restores it, and old savegames without the block still load')
+
 # Server side spell casting goes through isSpellAvailable
 check('SkillManager::isSpellAvailable(spellType, player->getSeat())' in read('source/network/ODServer.cpp'),
       'casting on the server checks isSpellAvailable')

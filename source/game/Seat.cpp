@@ -1160,6 +1160,12 @@ bool Seat::importSeatFromStream(std::istream& is)
         if(!(is >> str) || str != "[/ResearchProgress]" || !(is >> str))
             return false;
     }
+    // Optional: the seat once owned a library (keeps the lost library rule after a load)
+    if(str == "[HadLibrary]")
+    {
+        if(!(is >> mHadLibrary) || !(is >> str))
+            return false;
+    }
     if(str != "[SkillNotAllowed]")
     {
         OD_LOG_INF("WARNING: expected [SkillNotAllowed] and read " + str);
@@ -1396,6 +1402,9 @@ bool Seat::exportSeatToStream(std::ostream& os) const
     for(SkillType type : mSkillDone)
         os << Skills::toString(type) << "\t" << getSkillLevel(type) << "\n";
     os << "[/ResearchProgress]\n";
+
+    if(mHadLibrary)
+        os << "[HadLibrary]\t1\n";
 
     os << "[SkillNotAllowed]" << std::endl;
     for(SkillType type : mSkillNotAllowed)
