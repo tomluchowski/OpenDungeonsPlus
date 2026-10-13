@@ -85,8 +85,8 @@ skirmish/
 -> TestSingleplayerSmall.level         OD Team                 GPLv3+
 -> TestSingleplayerSmallEmpty.level    OD Team                 GPLv3+
 -> TestSingleplayerSmallPassability.level OD Team              GPLv3+
--> TriadDeeps.level                    OD Team                 GPLv3+                  Own work
--> TwinDelve.level                     OD Team                 GPLv3+                  Own work
+-> TriadDeeps.level                    OD Team                 GPLv3+
+-> TwinDelve.level                     OD Team                 GPLv3+
 
 template.level                         OD Team                 GPLv3+
 
