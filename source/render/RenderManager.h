@@ -219,6 +219,9 @@ public:
     void rrUpdateChickenLook(ChickenEntity* chicken);
     //! \brief The egg hatched: shell pieces fly.
     void rrChickenHatched(ChickenEntity* chicken);
+    //! \brief Two roosters fight (phase as in ServerNotificationType::chickenFight): while they brawl, feather
+    //! clouds fly between them at the configured interval, when it is over a last cloud flies.
+    void rrChickenFight(ChickenEntity* first, ChickenEntity* second, uint32_t phase);
     //! \brief The server set a pose (see ChickenPose.h), an empty pose is the normal walking and idling.
     void rrSetChickenPose(ChickenEntity* chicken, const std::string& pose);
     //! \brief Nest with eggs or loose feathers next to a coop of the hatchery
@@ -421,6 +424,10 @@ private:
         Ogre::Real mPoseTime;
         Ogre::Real mPhase;
         int mFeatherBursts;
+        //! The rooster this one fights (set by the server event), the first of the two makes the feather clouds
+        ChickenEntity* mFightPartner;
+        bool mFightLeader;
+        Ogre::Real mFightTimer;
     };
     std::map<ChickenEntity*, ChickenLook> mChickenLooks;
 

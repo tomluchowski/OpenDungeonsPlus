@@ -1213,7 +1213,15 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
             std::string secondName;
             uint32_t phase;
             OD_ASSERT_TRUE(packetReceived >> firstName >> secondName >> phase);
-            // The brawl itself is shown by the chicken look of the client; the packet is only consumed here
+            GameEntity* first = gameMap->getEntityFromTypeAndName(GameEntityType::chickenEntity, firstName);
+            GameEntity* second = gameMap->getEntityFromTypeAndName(GameEntityType::chickenEntity, secondName);
+            if((first != nullptr) && (second != nullptr) &&
+               (first->getObjectType() == GameEntityType::chickenEntity) &&
+               (second->getObjectType() == GameEntityType::chickenEntity))
+            {
+                RenderManager::getSingleton().rrChickenFight(static_cast<ChickenEntity*>(first),
+                    static_cast<ChickenEntity*>(second), phase);
+            }
             break;
         }
 

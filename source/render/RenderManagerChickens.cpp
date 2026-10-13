@@ -431,6 +431,9 @@ void RenderManager::rrCreateChickenLook(ChickenEntity* chicken)
     look.mPoseTime = 0.0f;
     look.mPhase = static_cast<Ogre::Real>(++mChickenLookNumber % 97) * 0.37f;
     look.mFeatherBursts = 0;
+    look.mFightPartner = nullptr;
+    look.mFightLeader = false;
+    look.mFightTimer = 0.0f;
     mChickenLooks[chicken] = look;
     applyChickenKindLook(chicken);
 }
@@ -442,6 +445,11 @@ void RenderManager::rrDestroyChickenLook(ChickenEntity* chicken)
         return;
 
     ChickenLook& look = it->second;
+    for(std::map<ChickenEntity*, ChickenLook>::iterator other = mChickenLooks.begin(); other != mChickenLooks.end(); ++other)
+    {
+        if(other->second.mFightPartner == chicken)
+            other->second.mFightPartner = nullptr;
+    }
     for(Ogre::Entity* accessory : look.mAccessories)
     {
         look.mNode->detachObject(accessory);
@@ -514,6 +522,32 @@ void RenderManager::rrChickenHatched(ChickenEntity* chicken)
     createChickenFeatherEffect(chicken->getPosition() + Ogre::Vector3(0.0f, 0.0f, 0.05f), "ChickenEggShell");
 }
 
+void RenderManager::rrChickenFight(ChickenEntity* first, ChickenEntity* second, uint32_t phase)
+{
+    std::map<ChickenEntity*, ChickenLook>::iterator firstLook = mChickenLooks.find(first);
+    std::map<ChickenEntity*, ChickenLook>::iterator secondLook = mChickenLooks.find(second);
+    if(firstLook != mChickenLooks.end())
+    {
+        firstLook->second.mFightPartner = (phase == 0) ? second : nullptr;
+        firstLook->second.mFightLeader = true;
+        firstLook->second.mFightTimer = 0.0f;
+    }
+    if(secondLook != mChickenLooks.end())
+    {
+        secondLook->second.mFightPartner = (phase == 0) ? first : nullptr;
+        secondLook->second.mFightLeader = false;
+        secondLook->second.mFightTimer = 0.0f;
+    }
+
+    // The fight is over: the loser goes down in a last cloud of feathers
+    if(phase == 1)
+    {
+        const Ogre::Vector3 middle = (first->getPosition() + second->getPosition()) * 0.5f;
+        createChickenFeatherEffect(middle + Ogre::Vector3(0.0f, 0.0f, 0.15f));
+        createChickenFeatherEffect(second->getPosition() + Ogre::Vector3(0.0f, 0.0f, 0.1f));
+    }
+}
+
 void RenderManager::rrSetChickenPose(ChickenEntity* chicken, const std::string& pose)
 {
     std::map<ChickenEntity*, ChickenLook>::iterator it = mChickenLooks.find(chicken);
@@ -533,6 +567,8 @@ void RenderManager::rrSetChickenPose(ChickenEntity* chicken, const std::string& 
         createChickenFeatherEffect(position + Ogre::Vector3(0.0f, 0.0f, 0.2f));
     else if(pose == ChickenPose::cackle)
         createChickenFeatherEffect(position + Ogre::Vector3(0.0f, 0.0f, 0.12f));
+    else if(pose == ChickenPose::fight)
+        createChickenFeatherEffect(position + Ogre::Vector3(0.0f, 0.0f, 0.15f));
     else if(pose == ChickenPose::emerge)
     {
         createChickenFeatherEffect(position + Ogre::Vector3(0.0f, 0.0f, 0.1f));
@@ -675,6 +711,15 @@ void RenderManager::updateChickenLooks(Ogre::Real timeSinceLastFrame)
                 pitch = 18.0f + 12.0f * std::sin(t * 9.0f);
                 lift = 0.004f * std::fabs(std::sin(t * 9.0f));
             }
+            else if(pose == ChickenPose::fight)
+            {
+                // Puffed up, wings beating, pecking and lunging at the other rooster, little hops
+                const Ogre::Real puff = 1.15f + 0.03f * std::sin(t * 20.0f);
+                stretch = Ogre::Vector3(puff + 0.2f * std::fabs(std::sin(t * 19.0f)), puff, puff);
+                pitch = 12.0f + 16.0f * std::sin(t * 11.0f);
+                roll = 9.0f * std::sin(t * 7.0f);
+                lift = 0.035f * std::fabs(std::sin(t * 8.0f));
+            }
             else if(pose == ChickenPose::lay)
             {
                 // Sits down and fluffs up, then stands up proudly
@@ -718,6 +763,19 @@ void RenderManager::updateChickenLooks(Ogre::Real timeSinceLastFrame)
                 // A chick peeps now and then with a little hop
                 const Ogre::Real peep = std::max(0.0f, std::sin(t * 2.1f));
                 lift = 0.012f * std::pow(peep, 12.0f);
+            }
+        }
+
+        // Feather clouds between two fighting roosters, made by the first of the two
+        if((look.mFightPartner != nullptr) && look.mFightLeader && (pose == ChickenPose::fight) &&
+           (mChickenLooks.count(look.mFightPartner) > 0))
+        {
+            look.mFightTimer += timeSinceLastFrame;
+            if(look.mFightTimer >= configValue("HatcheryFightFeatherSeconds", 0.7f))
+            {
+                look.mFightTimer = 0.0f;
+                const Ogre::Vector3 middle = (chicken->getPosition() + look.mFightPartner->getPosition()) * 0.5f;
+                createChickenFeatherEffect(middle + Ogre::Vector3(0.0f, 0.0f, 0.15f));
             }
         }
 
