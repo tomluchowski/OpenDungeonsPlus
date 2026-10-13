@@ -58,7 +58,7 @@ void CreatureEffectHexenHen::applyEffect(Creature& creature)
     // The clients show the end of the spell where the creature stands
     Tile* posTile = creature.getPositionTile();
     if(posTile != nullptr)
-        Spell::fireSpellEffect(*posTile, "HenEnd", "");
+        Spell::fireSpellEffect(*posTile, "HenEnd", "HexenHenEnd");
 }
 
 CreatureEffectHexenHen* CreatureEffectHexenHen::load(std::istream& is)

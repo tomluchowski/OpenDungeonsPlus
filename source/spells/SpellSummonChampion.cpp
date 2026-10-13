@@ -163,7 +163,7 @@ bool SpellSummonChampion::castSpell(GameMap* gameMap, Player* player, ODPacket& 
     champion->addParticleEffect("SpellCreatureChampion", CHAMPION_AURA_TURNS);
     champion->createMesh();
     champion->setPosition(spawnPosition);
-    fireSpellEffect(*tile, "Champion", "");
+    fireSpellEffect(*tile, "Champion", "ChampionCast");
 
     return true;
 }

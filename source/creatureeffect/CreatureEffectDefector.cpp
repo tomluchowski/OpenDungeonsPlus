@@ -81,7 +81,7 @@ void CreatureEffectDefector::applyEffect(Creature& creature)
     Tile* posTile = creature.getPositionTile();
     creature.changeSeat(originalSeat);
     if(posTile != nullptr)
-        Spell::fireSpellEffect(*posTile, "DefectorEnd", "");
+        Spell::fireSpellEffect(*posTile, "DefectorEnd", "DefectorEnd");
 }
 
 CreatureEffectDefector* CreatureEffectDefector::load(std::istream& is)

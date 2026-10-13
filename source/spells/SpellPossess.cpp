@@ -180,7 +180,7 @@ bool SpellPossess::castSpell(GameMap* gameMap, Player* player, ODPacket& packet)
     creature->addParticleEffect(Creature::POSSESSION_AURA_SCRIPT, -1);
     Tile* pos = creature->getPositionTile();
     if(pos != nullptr)
-        fireSpellEffect(*pos, "Possess", "");
+        fireSpellEffect(*pos, "Possess", "PossessCast");
     return true;
 }
 

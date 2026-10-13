@@ -154,7 +154,7 @@ bool SpellEyeEvil::castSpell(GameMap* gameMap, Player* player, ODPacket& packet)
         player->getSeat(), SkillType::spellEyeEvil,
         ConfigManager::getSingleton().getSpellConfigInt32("EyeEvilNbTurns")))));
     spell->addToGameMap();
-    fireSpellEffect(*tile, "EyeEvil", "");
+    fireSpellEffect(*tile, "EyeEvil", "EyeEvilCast");
     Ogre::Vector3 spawnPosition(static_cast<Ogre::Real>(tile->getX()),
                                 static_cast<Ogre::Real>(tile->getY()),
                                 static_cast<Ogre::Real>(3.0));

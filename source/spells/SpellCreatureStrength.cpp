@@ -178,7 +178,7 @@ bool SpellCreatureStrength::castSpell(GameMap* gameMap, Player* player, ODPacket
         ConfigManager::getSingleton().getSpellConfigDouble("CreatureStrengthValue"));
     CreatureEffectStrengthChange* effect = new CreatureEffectStrengthChange(duration, value, "SpellCreatureStrength");
     creature->addCreatureEffect(effect);
-    fireSpellEffect(*pos, "Strength", "");
+    fireSpellEffect(*pos, "Strength", "StrengthCast");
 
     return true;
 }

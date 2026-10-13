@@ -119,7 +119,7 @@ bool SpellTremor::castSpell(GameMap* gameMap, Player* player, ODPacket& packet)
     if(!player->getSeat()->takeMana(price))
         return false;
 
-    fireSpellEffect(*tileTarget, "Tremor", "");
+    fireSpellEffect(*tileTarget, "Tremor", "TremorCast");
 
     int radius = static_cast<int>(ConfigManager::getSingleton().getSpellConfigUInt32("TremorRadiusTiles"));
     double damage = ConfigManager::getSingleton().getSpellConfigDouble("TremorDamage");

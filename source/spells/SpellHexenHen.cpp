@@ -186,7 +186,7 @@ bool SpellHexenHen::castSpell(GameMap* gameMap, Player* player, ODPacket& packet
 
     int32_t nbTurns = static_cast<int32_t>(ConfigManager::getSingleton().getSpellConfigUInt32("HexenHenNbTurns"));
     creature->addCreatureEffect(new CreatureEffectHexenHen(nbTurns));
-    fireSpellEffect(*pos, "Hen", "");
+    fireSpellEffect(*pos, "Hen", "HexenHenCast");
 
     return true;
 }
