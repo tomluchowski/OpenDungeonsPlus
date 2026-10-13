@@ -115,6 +115,7 @@ struct ODServer {
 };
 struct Seat {
     GameMap world;GameMap* mGameMap=&world;Player player;
+    bool mHadLibrary=false;
     int32_t mSkillPoints=0;const Skill* mCurrentSkill=nullptr;
     SkillType mCurrentSkillType=SkillType::nullSkillType;float mCurrentSkillProgress=0;
     bool mGuiSkillNeedsRefresh=false;
@@ -190,6 +191,12 @@ int main(int argc,char** argv){try {
     check(loaded.getSkillLevel(SkillType::trapCannon)==2 && loaded.mSkillPending==std::vector<SkillType>{SkillType::trapSpike},"resume partial upgrade with order retained");
     std::stringstream old("[SkillDone] roomLibrary [/SkillDone] [SkillNotAllowed] [/SkillNotAllowed] [SkillPending] roomTrainingHall [/SkillPending]");
     Seat legacy;check(legacy.load(old) && legacy.getSkillLevel(SkillType::roomLibrary)==1 && legacy.mSkillPoints==0,"old save without extension");
+    check(!legacy.mHadLibrary,"old save has no lost library");
+    {Seat keeper;keeper.setSkillsDone(all);keeper.mHadLibrary=true;
+     std::stringstream kept;keeper.save(kept);Seat restored;
+     check(restored.load(kept) && restored.mHadLibrary,"the lost library state survives a save and load");
+     std::stringstream nothing;Seat plain;plain.setSkillsDone(all);plain.save(nothing);Seat plainLoaded;
+     check(plainLoaded.load(nothing) && !plainLoaded.mHadLibrary,"a seat without a library saves no block");}
     for(const std::string& block:{"-1 0", "0 1 roomLibrary 4", "0 1 trapCannon 2", "0 2 roomLibrary 2 roomLibrary 3"}){
         std::stringstream bad("[SkillDone] roomLibrary [/SkillDone] [ResearchProgress] "+block+" [/ResearchProgress] [SkillNotAllowed] [/SkillNotAllowed] [SkillPending] [/SkillPending]");
         Seat rejected;check(!rejected.load(bad),"malformed save rejected");
