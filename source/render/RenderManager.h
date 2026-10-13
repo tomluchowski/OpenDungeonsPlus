@@ -146,6 +146,9 @@ public:
     void rrUpdateEntityOpacity(RenderedMovableEntity* entity);
     void rrCreateCreature(Creature* curCreature);
     void rrDestroyCreature(Creature* curCreature);
+    //! \brief Replaces the mesh of an already rendered creature by its current mesh (for example the chicken mesh of a
+    //! creature hit by Hexen Hen), keeping the running animation if the new mesh has it.
+    //! \param curCreature The creature whose mesh changed.
     void rrChangeCreatureMesh(Creature* curCreature);
     void rrOrientEntityToward(MovableGameEntity* gameEntity, const Ogre::Vector3& direction);
     void rrPitchAroundAxis(RenderedMovableEntity* gameEntity, Ogre::Degree dd);
