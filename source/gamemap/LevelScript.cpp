@@ -479,6 +479,27 @@ void writeCondition(std::ostream& os, const LevelScriptCondition& c)
         case LevelScriptConditionType::creaturesSlapped:
             os << "slapped\t" << c.mSeatId << "\t" << levelScriptCompareToken(c.mCompare) << "\t" << c.mNumber;
             break;
+        case LevelScriptConditionType::happyCreatures:
+            os << "happy\t" << c.mSeatId << "\t" << (c.mAtLeast ? ">=" : "<=") << "\t" << c.mNumber;
+            break;
+        case LevelScriptConditionType::angryCreatures:
+            os << "angry\t" << c.mSeatId << "\t" << (c.mAtLeast ? ">=" : "<=") << "\t" << c.mNumber;
+            break;
+        case LevelScriptConditionType::creaturesAtLevel:
+            os << "atlevel\t" << c.mSeatId << "\t" << c.mX1 << "\t" << (c.mAtLeast ? ">=" : "<=") << "\t" << c.mNumber;
+            break;
+        case LevelScriptConditionType::creaturesLost:
+            os << "lost\t" << c.mSeatId << "\t" << (c.mAtLeast ? ">=" : "<=") << "\t" << c.mNumber;
+            break;
+        case LevelScriptConditionType::creaturesPickedUp:
+            os << "pickedup\t" << c.mSeatId << "\t" << (c.mAtLeast ? ">=" : "<=") << "\t" << c.mNumber;
+            break;
+        case LevelScriptConditionType::creaturesDropped:
+            os << "dropped\t" << c.mSeatId << "\t" << (c.mAtLeast ? ">=" : "<=") << "\t" << c.mNumber;
+            break;
+        case LevelScriptConditionType::creaturesSlapped:
+            os << "slapped\t" << c.mSeatId << "\t" << (c.mAtLeast ? ">=" : "<=") << "\t" << c.mNumber;
+            break;
         case LevelScriptConditionType::claimed:
             os << "claimed\t" << c.mSeatId << "\t" << c.mName << "\t";
             if(c.mNumber < 0)

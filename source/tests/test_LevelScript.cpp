@@ -77,6 +77,18 @@ static const std::string sample =
     "Action\tcountdown\t60\n"
     "Action\twavecountdown\t30\n"
     "[/Trigger]\n"
+    "[Trigger]\n"
+    "Name\tcreatureEvents\n"
+    "Mode\tonce\n"
+    "Cond\thappy\t1\t>=\t2\n"
+    "Cond\tangry\t1\t<=\t0\n"
+    "Cond\tatlevel\t1\t3\t>=\t2\n"
+    "Cond\tlost\t1\t>=\t1\n"
+    "Cond\tpickedup\t1\t>=\t4\n"
+    "Cond\tdropped\t1\t>=\t3\n"
+    "Cond\tslapped\t1\t<=\t5\n"
+    "Action\tmessage\t1\tEvents\n"
+    "[/Trigger]\n"
     "[/Triggers]\n";
 
 //! \brief The triggers, conditions and actions of the sample are read with the values written there
@@ -85,7 +97,7 @@ BOOST_AUTO_TEST_CASE(test_parse)
     LevelScript script;
     std::istringstream is(sample);
     BOOST_REQUIRE(script.importFromStream(is));
-    BOOST_REQUIRE_EQUAL(script.getTriggers().size(), 4u);
+    BOOST_REQUIRE_EQUAL(script.getTriggers().size(), 5u);
     BOOST_CHECK_EQUAL(script.getFlag("gateOpen"), 1);
     BOOST_CHECK_EQUAL(script.getFlag("unknown"), 0);
 
@@ -144,6 +156,25 @@ BOOST_AUTO_TEST_CASE(test_parse)
     BOOST_CHECK_EQUAL(unlock.mActions[2].mNumber, 60);
     BOOST_CHECK(unlock.mActions[3].mType == LevelScriptActionType::waveCountdown);
     BOOST_CHECK_EQUAL(unlock.mActions[3].mNumber, 30);
+
+    const LevelScriptTrigger& events = script.getTriggers()[4];
+    BOOST_REQUIRE_EQUAL(events.mConditions.size(), 7u);
+    BOOST_CHECK(events.mConditions[0].mType == LevelScriptConditionType::happyCreatures);
+    BOOST_CHECK(events.mConditions[0].mAtLeast);
+    BOOST_CHECK_EQUAL(events.mConditions[0].mNumber, 2);
+    BOOST_CHECK(events.mConditions[1].mType == LevelScriptConditionType::angryCreatures);
+    BOOST_CHECK(!events.mConditions[1].mAtLeast);
+    BOOST_CHECK(events.mConditions[2].mType == LevelScriptConditionType::creaturesAtLevel);
+    BOOST_CHECK_EQUAL(events.mConditions[2].mSeatId, 1);
+    BOOST_CHECK_EQUAL(events.mConditions[2].mX1, 3);
+    BOOST_CHECK(events.mConditions[2].mAtLeast);
+    BOOST_CHECK_EQUAL(events.mConditions[2].mNumber, 2);
+    BOOST_CHECK(events.mConditions[3].mType == LevelScriptConditionType::creaturesLost);
+    BOOST_CHECK(events.mConditions[4].mType == LevelScriptConditionType::creaturesPickedUp);
+    BOOST_CHECK_EQUAL(events.mConditions[4].mNumber, 4);
+    BOOST_CHECK(events.mConditions[5].mType == LevelScriptConditionType::creaturesDropped);
+    BOOST_CHECK(events.mConditions[6].mType == LevelScriptConditionType::creaturesSlapped);
+    BOOST_CHECK(!events.mConditions[6].mAtLeast);
 }
 
 //! \brief The time limit and the two countdowns are read, moved to a new level start, written and cleared
@@ -282,6 +313,12 @@ BOOST_AUTO_TEST_CASE(test_invalid)
         "[Trigger]\nName\tx\nRegion\tA\t1\t2\t3\t4\nCond\ttime\t1\nAction\twin\t1\n[/Trigger]\n[/Triggers]\n",
         // reveal without a region name
         "[Trigger]\nName\tx\nCond\ttime\t1\nAction\treveal\t1\n[/Trigger]\n[/Triggers]\n",
+        // atlevel without a level
+        "[Trigger]\nName\tx\nCond\tatlevel\t1\t>=\t2\nAction\twin\t1\n[/Trigger]\n[/Triggers]\n",
+        // atlevel with level 0
+        "[Trigger]\nName\tx\nCond\tatlevel\t1\t0\t>=\t2\nAction\twin\t1\n[/Trigger]\n[/Triggers]\n",
+        // A creature event with a wrong comparison
+        "[Trigger]\nName\tx\nCond\tslapped\t1\t=\t2\nAction\twin\t1\n[/Trigger]\n[/Triggers]\n",
         // A negative time limit
         "[Trigger]\nName\tx\nCond\ttime\t1\nAction\ttimelimit\t-5\n[/Trigger]\n[/Triggers]\n",
         // TimeLimit inside a trigger
