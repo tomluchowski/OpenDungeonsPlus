@@ -17,6 +17,7 @@
 
 #include "entities/MovableGameEntity.h"
 
+#include "entities/GameEntityType.h"
 #include "entities/Tile.h"
 #include "game/Player.h"
 #include "game/Seat.h"
@@ -225,7 +226,18 @@ void MovableGameEntity::setAnimationState(const std::string& state, bool loop, c
     mPrevAnimationStateLoop = loop;
 
     if(direction != Ogre::Vector3::ZERO)
-        setWalkDirection(direction);
+    {
+        // Before a blow the creature turns to its target in a short smooth movement instead of snapping round
+        const bool blow = (state == EntityAnimation::combat_attack_anim) || (state == EntityAnimation::ranged_attack_anim) ||
+            (state == EntityAnimation::attack_anim);
+        if(blow && getObjectType() == GameEntityType::creature)
+        {
+            mWalkDirection = direction;
+            RenderManager::getSingleton().rrOrientEntityTowardSmoothly(this, direction);
+        }
+        else
+            setWalkDirection(direction);
+    }
 
     RenderManager::getSingleton().rrSetObjectAnimationState(this, state, loop);
 

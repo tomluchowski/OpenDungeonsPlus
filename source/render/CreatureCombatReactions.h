@@ -44,6 +44,9 @@ public:
     //! moment the blow lands, or staggers if the hit was a strong one. Replaces the guess made from the attack animation.
     static void noteHitEvent(CreatureReactions& reactions, Creature* attacker, Creature* target, bool strong, bool missile);
 
+    //! \brief True if the weapon the creature strikes with is a sword (the sword blows of the attack clips)
+    static bool carriesSword(const Creature* creature);
+
     //! \brief The creature runs from a fight: it draws its weapon
     static void noteAlarm(CreatureReactions& reactions, Creature* creature);
 

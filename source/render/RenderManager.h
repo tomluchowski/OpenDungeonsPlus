@@ -145,6 +145,9 @@ public:
     void rrCreateCreature(Creature* curCreature);
     void rrDestroyCreature(Creature* curCreature);
     void rrOrientEntityToward(MovableGameEntity* gameEntity, const Ogre::Vector3& direction);
+
+    //! \brief Like rrOrientEntityToward but a creature turns in a short smooth movement (clients, before a blow)
+    void rrOrientEntityTowardSmoothly(MovableGameEntity* gameEntity, const Ogre::Vector3& direction);
     void rrPitchAroundAxis(RenderedMovableEntity* gameEntity, Ogre::Degree dd);
     void rrScaleCreature(Creature& creature);
     //! Where a weapon model sits on a skeleton: the bone, the offset on it and the rotation of the model
@@ -319,6 +322,22 @@ private:
     uint64_t mCreatureCombatEffectNumber = 0;
     //! Index of the next attack variant to play, per creature, so that attacks alternate.
     std::map<Creature*, uint32_t> mCreatureAttackVariants;
+
+    //! A smooth turn of a creature towards its target before a blow (cosmetic, ends by itself)
+    struct CreatureTurn
+    {
+        Creature* mCreature;
+        Ogre::SceneNode* mNode;
+        Ogre::Quaternion mFrom;
+        Ogre::Quaternion mTo;
+        //! The orientation the turn set last, to notice when somebody else changes it
+        Ogre::Quaternion mLast;
+        Ogre::Real mElapsed;
+        Ogre::Real mDuration;
+    };
+    std::vector<CreatureTurn> mCreatureTurns;
+    //! \brief Advances the smooth turns of the creatures and removes the finished ones
+    void updateCreatureTurns(Ogre::Real timeSinceLastFrame);
 
     struct CreatureDropAnimation
     {

@@ -465,6 +465,11 @@ void CreatureCombatReactions::scheduleHit(CreatureReactions& reactions, Creature
     sHits.push_back(hit);
 }
 
+bool CreatureCombatReactions::carriesSword(const Creature* creature)
+{
+    return mainWeaponKind(creature) == "Sword";
+}
+
 void CreatureCombatReactions::noteAttack(CreatureReactions& reactions, Creature* attacker, const std::string& clip)
 {
     if(!isActive(reactions))
