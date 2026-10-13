@@ -67,6 +67,12 @@ public:
     //! \brief Server side: a free point anywhere in the room (rules as for planWanderPath, without the reach).
     bool pickFreePoint(Ogre::Vector2& point) const;
 
+    //! \brief Server side: plans a short hop of a chicken that is at from away from a hungry creature at threat: a free
+    //! point (rules as for planWanderPath) at most HatcheryFleeReach and at least HatcheryFleeMinLeg from the chicken,
+    //! within HatcheryFleeSpread degrees of the direction away from the creature and HatcheryFleeGain tiles farther from
+    //! it than the chicken is now. False when no such point was found in HatcheryFleeAttempts tries.
+    bool planFleePath(const Ogre::Vector2& from, const Ogre::Vector2& threat, std::vector<Ogre::Vector2>& path) const;
+
     //! \brief Server side: sends the nest places of this hatchery to the human player (see
     //! ServerNotificationType::hatcheryNests).
     void sendNestPlaces(Player* player) const;
@@ -158,9 +164,9 @@ private:
     //! Ends the fight: the one that won stays and crows, the other one dies. Without a winner (one of them was
     //! picked up or is gone) the fight is called off and the survivor goes on as before.
     void endFight(ChickenEntity* first, ChickenEntity* second, bool finished, HatcheryCounts& counts);
-    //! Moves the rooster: perching, crowing, chasing a hen, guarding the flock, leading the chicks, sleeping.
+    //! Moves the rooster: crowing, chasing a hen, guarding the flock.
     void updateRooster(ChickenEntity* rooster, const std::vector<ChickenEntity*>& hens,
-        const std::vector<ChickenEntity*>& chicks, const RoosterSettings& settings);
+        const RoosterSettings& settings);
     //! \brief Starts the mood the rules chose: sets it on the rooster and prepares the move (down from the roof, crow timer).
     void beginRoosterMood(ChickenEntity* rooster, const RoosterPlan& plan);
     //! \brief Does one turn of the current mood: walks, chases, guards against the threat position or plays a pose.
@@ -170,9 +176,8 @@ private:
     void roostOnRoof(ChickenEntity* rooster, const std::string& pose, bool hopFromFar);
     //! \brief Lets the rooster jump down from a coop roof to a free place next to the coop.
     void climbDown(ChickenEntity* rooster);
-    //! The chicks follow the hen (or the rooster when he leads) in a line.
-    void updateChickLine(const std::vector<ChickenEntity*>& hens, const std::vector<ChickenEntity*>& chicks,
-        ChickenEntity* rooster);
+    //! The chicks follow the nearest hen in a line, never the rooster.
+    void updateChickLine(const std::vector<ChickenEntity*>& hens, const std::vector<ChickenEntity*>& chicks);
     //! A creature inside the hatchery that wants to eat chickens or is an enemy, close to the rooster.
     bool findThreat(const ChickenEntity& rooster, double radius, Ogre::Vector2& position) const;
     //! \brief The coop tile of this hatchery closest to the position, null without a coop.

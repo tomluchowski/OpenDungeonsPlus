@@ -32,7 +32,6 @@ namespace ChickenPose
     static const std::string perch = "Perch";
     static const std::string crow = "Crow";
     static const std::string guard = "Guard";
-    static const std::string lead = "Lead";
     static const std::string lay = "Lay";
     static const std::string wobble = "Wobble";
     static const std::string emerge = "Emerge";
@@ -46,7 +45,7 @@ namespace ChickenPose
     {
         return (name == strut) || (name == chase) || (name == flee) || (name == mount) ||
             (name == cackle) || (name == perch) || (name == crow) || (name == guard) ||
-            (name == lead) || (name == lay) || (name == wobble) ||
+            (name == lay) || (name == wobble) ||
             (name == emerge) || (name == fight) || (name == protest) || (name == scratch) || (name == flutter);
     }
 

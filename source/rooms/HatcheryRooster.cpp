@@ -58,22 +58,10 @@ RoosterPlan HatcheryRooster::decide(const RoosterContext& context, const Rooster
     plan.mMood = RoosterMood::strut;
     plan.mTurns = 0;
     uint32_t chaseLimit = settings.mChasePercent;
-    uint32_t leadLimit = chaseLimit + settings.mLeadPercent;
-    uint32_t callLimit = leadLimit + settings.mCallPercent;
     if(context.mHasHen && (context.mRoll < chaseLimit))
     {
         plan.mMood = RoosterMood::chase;
         plan.mTurns = settings.mChaseTurns;
-    }
-    else if(context.mHasChick && (context.mRoll >= chaseLimit) && (context.mRoll < leadLimit))
-    {
-        plan.mMood = RoosterMood::lead;
-        plan.mTurns = settings.mLeadTurns;
-    }
-    else if(context.mHasHen && (context.mRoll >= leadLimit) && (context.mRoll < callLimit))
-    {
-        plan.mMood = RoosterMood::call;
-        plan.mTurns = settings.mCallTurns;
     }
     return plan;
 }

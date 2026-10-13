@@ -28,7 +28,7 @@ assert 'destroyMesh()' in body(chicken, 'void ChickenEntity::setKindFromServer')
 assert 'rrChickenHatched' in body(chicken, 'void ChickenEntity::setKindFromServer')
 
 # Poses reach the client as animation names and are turned into skeleton animations plus motion.
-for name in ('strut', 'chase', 'flee', 'mount', 'cackle', 'perch', 'crow', 'guard', 'lead', 'lay', 'wobble', 'emerge', 'fight', 'protest', 'scratch', 'flutter'):
+for name in ('strut', 'chase', 'flee', 'mount', 'cackle', 'perch', 'crow', 'guard', 'lay', 'wobble', 'emerge', 'fight', 'protest', 'scratch', 'flutter'):
     assert 'static const std::string %s =' % name in pose, name
 hook = body(render, 'void RenderManager::rrSetObjectAnimationState')
 assert 'ChickenPose::isPose(animation)' in hook and 'rrSetChickenPose' in hook
@@ -59,7 +59,7 @@ assert 'RenderManagerChickens.cpp' in cmake and 'HatcheryRooster.cpp' in cmake
 
 # Values come from the config.
 for key in ('HatcheryRoosterCrowMin', 'HatcheryRoosterCrowMax',
-            'HatcheryRoosterChasePercent', 'HatcheryRoosterLeadPercent',
+            'HatcheryRoosterChasePercent',
             'HatcheryRoosterGuardRadius', 'HatcheryCoopRoofHeight', 'HatcheryChickGap'):
     assert key in config and key in room, key
 for key in ('HatcheryChickScale', 'HatcheryRoosterScale', 'HatcheryChickTintR', 'HatcheryRoosterTintR'):
@@ -74,11 +74,13 @@ assert 'ChickenEgg.mesh' in credits and 'ChickenRoosterTail.mesh' in credits
 
 print('hatchery visuals checks passed')
 
-# The rooster calls the hens to food: mood, config (the hens no longer run to him)
+# The rooster does not call the hens or chicks: no call mood, no call settings; the crow stays (pose)
 rooster_h = (root / 'source/rooms/HatcheryRooster.h').read_text()
-assert 'call ' in rooster_h and 'mCallPercent' in rooster_h
-assert 'RoosterMood::call' in room
-assert 'HatcheryRoosterCallPercent' in config and 'HatcheryRoosterCallTurns' in config
+rooster_cpp = (root / 'source/rooms/HatcheryRooster.cpp').read_text()
+for text in (rooster_h, rooster_cpp, room):
+    assert 'RoosterMood::call' not in text and 'mCallPercent' not in text and 'mCallTurns' not in text and 'mCallScratchChance' not in text
+assert 'HatcheryRoosterCall' not in config and 'HatcheryRoosterCall' not in room
+assert 'RoosterMood::crow' in rooster_cpp and 'ChickenPose::crow' in room
 assert 'ChickenKind::hen' in body(chicken, 'void ChickenEntity::doUpkeep')
 
 # The rooster fight is shown with feather clouds between the two animals, the interval is a setting

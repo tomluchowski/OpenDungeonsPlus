@@ -23,7 +23,7 @@ DIST_MIN = constant('TRIGGER_DISTANCE_MIN')
 COOLDOWN = constant('COOLDOWN_SECONDS')
 MAX_HOPS = int(constant('MAX_HOPS_IN_ROW'))
 HOLD = constant('HOLD_STILL_SECONDS')
-TPS = 20.0
+TPS = float(re.search(r'double ODApplication::turnsPerSecond\s*=\s*([0-9.]+);', read('source/ODApplication.cpp')).group(1))
 
 
 class State:
@@ -103,14 +103,22 @@ upkeep = upkeep[:upkeep.index('\n}\n')]
 assert upkeep.index('ChickenFlight::tick(mFlight);') < upkeep.index('if(isMoving())') < upkeep.index('tryFlee(tile, currentHatchery)')
 flee = cpp[cpp.index('bool ChickenEntity::tryFlee('):]
 flee = flee[:flee.index('\n}\n')]
-for needle in ('!mLockedEat', 'currentHatchery == nullptr', 'mChickenState != ChickenState::free', 'collectMovePositions(tile, currentHatchery, positions)',
-               'ChickenFlight::shouldFlee(', 'ChickenFlight::registerFlight(', 'setWalkPath('):
+for needle in ('!mLockedEat', 'currentHatchery == nullptr', 'mChickenState != ChickenState::free', 'planFleePath(start, eaterPosition, path)',
+               'ChickenFlight::shouldFlee(mFlight, distance, true)', 'ChickenFlight::registerFlight(', 'setWalkPath('):
     assert needle in flee, needle
 # Report only: nothing in the flight touches the lock, the state, the hunger or the creature
 for forbidden in ('setLockEat', 'mChickenState =', 'foodEaten', 'setHunger', 'popAction', 'clearActionQueue', 'eatChicken'):
     assert forbidden not in flee, forbidden
-# The positions are only inside the room the chicken stands in (the normal wander rule)
-assert 'currentHatchery != tile->getCoveringBuilding()' in cpp
+# The hop goes to a free point of the hatchery the chicken stands in, short, away from the creature, over a way inside the room
+assert 'collectMovePositions' not in cpp
+room_cpp = read('source/rooms/RoomHatchery.cpp')
+plan = room_cpp[room_cpp.index('bool RoomHatchery::planFleePath('):]
+plan = plan[:plan.index('\n}\n')]
+for needle in ('HatcheryFleeReach', 'isFreeWanderPoint(goal', 'isSegmentInRoom(from, goal)', 'goal.distance(threat) < distanceNow + gain'):
+    assert needle in plan, needle
+# no longer than the old hop to a neighbour tile (at most 1.5 along and 0.5 across)
+reach = float(re.search(r'^[ \t]+HatcheryFleeReach[ \t]+([0-9.]+)', read('config/rooms.cfg'), re.M).group(1))
+assert 0.0 < reach <= (1.5 ** 2 + 0.5 ** 2) ** 0.5
 # Not saved: the stream format is unchanged
 assert 'mFlight' not in cpp[cpp.index('void ChickenEntity::exportToStream'):]
 

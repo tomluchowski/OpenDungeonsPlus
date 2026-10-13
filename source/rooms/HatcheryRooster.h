@@ -26,9 +26,7 @@ enum class RoosterMood : uint32_t
     strut,  //! Walks around proudly
     crow,   //! Jumps on a coop roof, crows from there (after a random time, see mCrowMin) and jumps down again
     chase,  //! Runs after a hen
-    guard,  //! Defends the flock against a threat
-    lead,   //! Leads the chicks
-    call    //! Scratches up food and calls the hens (and chicks) to him
+    guard   //! Defends the flock against a threat
 };
 
 //! \brief Times and chances for the rooster, read from the config.
@@ -38,12 +36,8 @@ struct RoosterSettings
         mCrowMin(40),
         mCrowMax(90),
         mChasePercent(4),
-        mLeadPercent(3),
         mChaseTurns(10),
         mGuardTurns(6),
-        mLeadTurns(8),
-        mCallPercent(3),
-        mCallTurns(6),
         mCrowTurns(4),
         mGuardFar(2.2),
         mGuardNear(0.9),
@@ -51,24 +45,17 @@ struct RoosterSettings
         mCatchDistance(0.55),
         mWalkGap(0.3),
         mHopDistance(0.6),
-        mLeadScratchChance(3),
-        mCallScratchChance(2),
         mFightStandFactor(0.5)
     {}
 
     //! Turns between two crows (random value in [mCrowMin, mCrowMax]).
     uint32_t mCrowMin;
     uint32_t mCrowMax;
-    //! Chance (percent per turn) to start chasing a hen or leading the chicks.
+    //! Chance (percent per turn) to start chasing a hen.
     uint32_t mChasePercent;
-    uint32_t mLeadPercent;
-    //! Length in turns of a chase, a guard and a lead.
+    //! Length in turns of a chase and a guard.
     uint32_t mChaseTurns;
     uint32_t mGuardTurns;
-    uint32_t mLeadTurns;
-    //! Chance (percent per turn) that the strutting rooster calls the hens to food, and for how many turns.
-    uint32_t mCallPercent;
-    uint32_t mCallTurns;
     //! Turns a crow lasts.
     uint32_t mCrowTurns;
     //! Guarding: farther than mGuardFar the rooster runs up to the creature (to mGuardApproachGap from it), between
@@ -82,9 +69,6 @@ struct RoosterSettings
     //! roof place within which he hops up at once.
     double mWalkGap;
     double mHopDistance;
-    //! One in N: a leading or calling rooster scratches the ground this turn.
-    uint32_t mLeadScratchChance;
-    uint32_t mCallScratchChance;
     //! Fraction of the fighting reach at which a rooster stops in front of the other one.
     double mFightStandFactor;
 };
@@ -100,7 +84,6 @@ struct RoosterContext
         mCrowInterval(60),
         mHasCoop(false),
         mHasHen(false),
-        mHasChick(false),
         mThreat(false),
         mRoll(0)
     {}
@@ -114,7 +97,6 @@ struct RoosterContext
     uint32_t mCrowInterval;
     bool mHasCoop;
     bool mHasHen;
-    bool mHasChick;
     //! A creature that is after the chickens is close.
     bool mThreat;
     //! Random number in [0, 99].

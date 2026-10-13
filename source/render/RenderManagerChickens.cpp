@@ -745,12 +745,6 @@ void RenderManager::updateChickenLooks(Ogre::Real timeSinceLastFrame)
                 stretch = Ogre::Vector3(puff + 0.15f * std::fabs(std::sin(t * 18.0f)), puff, puff);
                 pitch = 10.0f + 24.0f * std::max(0.0f, std::sin(t * 7.0f));
             }
-            else if(pose == ChickenPose::lead)
-            {
-                // Scratches the ground
-                pitch = 18.0f + 12.0f * std::sin(t * 9.0f);
-                lift = 0.004f * std::fabs(std::sin(t * 9.0f));
-            }
             else if(pose == ChickenPose::fight)
             {
                 // Puffed up, wings beating, pecking and lunging at the other rooster, little hops

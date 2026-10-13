@@ -21,7 +21,7 @@
 #include <cstdint>
 
 //! \brief Decision whether a chicken of a hatchery hops away from a hungry creature that comes to eat it.
-//! The hop is short (one step inside the room), rare (cooldown) and limited (after a few hops in a row the
+//! The hop is short (a free point at most HatcheryFleeReach tiles away inside the room), rare (cooldown) and limited (after a few hops in a row the
 //! chicken stays put for a long time), so the chicken can always be caught. Pure numbers, no game state.
 namespace ChickenFlight
 {

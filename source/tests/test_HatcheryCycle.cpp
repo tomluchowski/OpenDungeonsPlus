@@ -871,7 +871,6 @@ BOOST_AUTO_TEST_CASE(test_RoosterDecide)
     context.mTurn = 100;
     context.mHasCoop = true;
     context.mHasHen = true;
-    context.mHasChick = true;
     context.mCrowInterval = 60;
     context.mRoll = 99;
 
@@ -879,23 +878,19 @@ BOOST_AUTO_TEST_CASE(test_RoosterDecide)
     RoosterPlan plan = HatcheryRooster::decide(context, settings);
     BOOST_CHECK(plan.mMood == RoosterMood::strut);
 
-    // The dice decide what comes to his mind: chase, lead, call (no roof sitting by chance)
+    // The dice decide what comes to his mind: chase (no roof sitting by chance, no calling of the hens, no leading of the chicks)
     context.mRoll = 0;
     BOOST_CHECK(HatcheryRooster::decide(context, settings).mMood == RoosterMood::chase);
+    // Past the chase chance he only struts: the rooster never calls the hens or chicks to him
     context.mRoll = settings.mChasePercent;
-    BOOST_CHECK(HatcheryRooster::decide(context, settings).mMood == RoosterMood::lead);
-    // He calls the hens to food, only when there is a hen
-    context.mRoll = settings.mChasePercent + settings.mLeadPercent;
-    plan = HatcheryRooster::decide(context, settings);
-    BOOST_CHECK(plan.mMood == RoosterMood::call);
-    BOOST_CHECK_EQUAL(plan.mTurns, settings.mCallTurns);
-    context.mHasHen = false;
     BOOST_CHECK(HatcheryRooster::decide(context, settings).mMood == RoosterMood::strut);
-    context.mHasHen = true;
-    context.mRoll = settings.mChasePercent + settings.mLeadPercent + settings.mCallPercent;
-    BOOST_CHECK(HatcheryRooster::decide(context, settings).mMood == RoosterMood::strut);
+    for(uint32_t roll = settings.mChasePercent; roll < 100; ++roll)
+    {
+        context.mRoll = roll;
+        BOOST_CHECK(HatcheryRooster::decide(context, settings).mMood == RoosterMood::strut);
+    }
 
-    // Without a hen, chick or coop those moods are not chosen
+    // Without a hen that mood is not chosen
     context.mHasHen = false;
     context.mRoll = 0;
     BOOST_CHECK(HatcheryRooster::decide(context, settings).mMood == RoosterMood::strut);

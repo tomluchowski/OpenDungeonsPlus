@@ -27,8 +27,9 @@ for forbidden in ('collectMovePositions', 'addTileToListIfPossible', 'getTile(',
     assert forbidden not in wander, 'wander is not tied to tiles: ' + forbidden
 assert 'wander(currentHatchery);' in chicken and 'wander(tile' not in chicken
 assert 'void wander(Room* currentHatchery);' in chicken_h
-# the only user of the neighbour tile positions is the short flight from a hungry creature (see ChickenFlight.h)
-assert len(re.findall(r'collectMovePositions\(', chicken)) == 2, 'definition and the flight only'
+# nothing in the chicken moves from tile to tile any more: the short flight from a hungry creature hops to a free point too
+assert 'collectMovePositions' not in chicken + chicken_h, 'no neighbour tile positions'
+assert 'planFleePath(' in body(chicken, 'bool ChickenEntity::tryFlee(')
 
 plan = body(room, 'bool RoomHatchery::planWanderPath(')
 free = body(room, 'bool RoomHatchery::isFreeWanderPoint(')
@@ -58,6 +59,22 @@ assert 'pickFreePoint(away)' in guard and 'mCoveredTiles[' not in guard
 assert 'caller' not in room and 'mCallFollowGap' not in room + rooster_h and 'CallFollowGap' not in config
 hen_follow = [line for line in room.splitlines() if 'hen->setFollowTarget(' in line]
 assert hen_follow == ['                hen->setFollowTarget(it->mStand, 0.1);'], 'only the nest walk of a hen sets a follow target'
+
+# The rooster does not call: no call mood, no settings, no config keys; chicks do not follow a crow
+mood_enum = re.search(r'enum class RoosterMood[^}]*\}', rooster_h).group(0)
+assert re.findall(r'^\s+(\w+)[,\s]', mood_enum, re.M) == ['strut', 'crow', 'chase', 'guard'], 'exactly strut, crow, chase, guard: no call and no lead mood'
+for text in (rooster_h, rooster_cpp, room):
+    for needle in ('RoosterMood::call', 'mCallPercent', 'mCallTurns', 'mCallScratchChance', 'callLimit', 'FoodCall'):
+        assert needle not in text, needle
+assert 'HatcheryRoosterCall' not in config
+# The rooster does not lead the chicks: no lead mood, no lead settings or config keys, no lead pose; the chick line has the hen in front only
+for text in (rooster_h, rooster_cpp, room, config):
+    for needle in ('RoosterMood::lead', 'mLeadPercent', 'mLeadTurns', 'mLeadScratchChance', 'leadLimit', 'HatcheryRoosterLead', 'HatcheryLookLead', 'ChickenPose::lead', 'mHasChick'):
+        assert needle not in text, needle
+chick_line = body(room, 'void RoomHatchery::updateChickLine(')
+assert 'rooster' not in chick_line and 'RoosterMood' not in chick_line, 'the chicks follow the hen, never the rooster'
+assert 'RoosterMood::crow' not in chick_line, 'chicks do not follow a crowing rooster'
+assert 'setFollowTarget(previous, gap)' in chick_line and 'rooster->setFollowTarget' not in room, 'no follow target from the rooster call'
 
 # The rooster does not stay on a roof: no perch mood, the roof only for the crow, then down again
 assert 'perch' not in rooster_h and 'perch' not in rooster_cpp and 'RoosterMood::perch' not in room
