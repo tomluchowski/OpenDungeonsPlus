@@ -91,6 +91,7 @@ bool CreatureActionDigTile::handleDigTile(Creature& creature, Tile& tileDig, Til
         {
             OD_LOG_ERR("creature=" + creature.getName() + ", myTile=" + Tile::displayAsString(myTile) + ", tileDig=" + Tile::displayAsString(&tileDig) + ", tilePos=" + Tile::displayAsString(&tilePos));
             creature.popAction();
+            return false;
         }
         return true;
     }

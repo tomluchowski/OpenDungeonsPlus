@@ -633,6 +633,8 @@ void MenuModeConfigureSeats::activate()
         offset += 30;
     }
 
+    getModeManager().getGui().registerWindowHierarchy(tmpWin);
+
     tmpWin = getModeManager().getGui().getGuiSheet(Gui::guiSheet::configureSeats)->getChild("ListPlayers/LaunchGameButton");
     tmpWin->setEnabled(enabled);
 

@@ -33,6 +33,7 @@ class Seat;
 class Tile;
 
 enum class CreatureActionType;
+enum class GameEntityType;
 enum class SpellType;
 
 enum class PlayerEventType
@@ -153,8 +154,19 @@ public:
     //! \brief Check to see the first object in hand can be dropped on Tile t and do so if possible.
     bool isDropHandPossible(Tile *t, unsigned int index = 0);
 
+    //! Returns the held object's index, or the hand size if it is not held.
+    unsigned int getHandIndex(GameEntityType type, const std::string& name) const;
+
     //! \brief Drops the creature on tile t. Returns the dropped creature
     void dropHand(Tile *t, unsigned int index = 0);
+
+    //! \brief Removes an entity from the hand without dropping it on the map.
+    void removeEntityFromHand(GameEntity* entity);
+
+    //! \brief Redeems an own worker dropped on the tile of a living own dungeon heart: the worker
+    //! is removed from the game and half of the summoning price (current worker count) is paid
+    //! back in mana. Returns true when the drop was redeemed.
+    bool redemWorkerInHeart(GameEntity* entity, Tile* tile);
 
     void rotateHand(Direction d);
 
@@ -179,6 +191,15 @@ public:
 
     inline bool getHasLost() const
     { return mHasLost; }
+
+    //! \brief Remembers who destroyed this player's dungeon heart and where it stood. Called by the
+    //! heart room when its health reaches 0 (the heart object is removed shortly after). Use -1 for unknown values.
+    inline void recordHeartDestroyed(int32_t conquerorSeatId, int32_t heartTileX, int32_t heartTileY)
+    {
+        mConquerorSeatId = conquerorSeatId;
+        mDefeatHeartTileX = heartTileX;
+        mDefeatHeartTileY = heartTileY;
+    }
 
     //! \brief Notify the player is fighting
     //! Should be called on the server game map for human players only. tile represents
@@ -291,6 +312,12 @@ private:
     float mCreatureCannotFindFood;
 
     bool mHasLost;
+
+    //! \brief Seat id that dealt the final blow to the heart, and the heart centre tile. -1 if unknown.
+    //! Filled on the server by recordHeartDestroyed and sent with the playerDefeated notification.
+    int32_t mConquerorSeatId;
+    int32_t mDefeatHeartTileX;
+    int32_t mDefeatHeartTileY;
 
     //! \brief List of tiles there is an event on. Used on client and server
     std::vector<PlayerEvent*> mEvents;
