@@ -281,6 +281,8 @@ bool RoomAmbienceConfig::loadEffect(std::istream& file)
                 effect.mKind = AmbienceKind::particle;
             else if(words[1] == "Motion")
                 effect.mKind = AmbienceKind::motion;
+            else if(words[1] == "Clip")
+                effect.mKind = AmbienceKind::clip;
             else
             {
                 OD_LOG_ERR("Unknown room ambience kind: " + words[1]);
@@ -290,6 +292,15 @@ bool RoomAmbienceConfig::loadEffect(std::istream& file)
         else if(key == "System")
         {
             effect.mSystem = words[1];
+        }
+        else if(key == "Clips")
+        {
+            for(uint32_t i = 1; i < words.size(); ++i)
+                effect.mClips.push_back(words[i]);
+        }
+        else if(key == "Every")
+        {
+            effect.mEvery = Helper::toDouble(words[1]);
         }
         else if(key == "Motion")
         {

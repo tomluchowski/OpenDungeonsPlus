@@ -19,13 +19,15 @@ SETTINGS = ("ScanInterval", "MaxParticles", "MaxParticlesReduced", "MaxMotions",
             "ReducedDistanceFactor")
 EFFECT_KEYS = ("Name", "Target", "Match", "When", "Event", "Kind", "System", "Motion", "After", "Offset", "Axis",
                "Amount", "Speed", "Flicker", "Duration", "Chance", "Spacing", "MaxDistance", "Priority", "Reduced",
-               "NeedWall")
+               "NeedWall", "Clips", "Every")
 TARGETS = ("Object", "Tile", "Event")
 WHENS = ("Always", "Occupied", "Empty")
-KINDS = ("Particle", "Motion")
+KINDS = ("Particle", "Motion", "Clip")
 MOTIONS = ("Sway", "Wobble", "Spin", "Bob", "Pulse", "Flicker")
 # Room tile visuals that only some builds have
 OPTIONAL_VISUALS = ("guardRoom", "templeRoom")
+# Tile visuals a bridge can lie over
+BRIDGE_VISUALS = ("lavaGround", "waterGround")
 
 
 def read_lines(path):
@@ -79,6 +81,70 @@ def materials():
     return result
 
 
+SYSTEM_KEYS = ("material", "point_rendering", "particle_width", "particle_height", "cull_each", "quota",
+               "billboard_type", "common_direction", "common_up_vector", "billboard_origin", "sorted")
+EMITTER_KEYS = ("angle", "colour", "colour_range_start", "colour_range_end", "direction", "emission_rate", "position",
+                "velocity", "velocity_min", "velocity_max", "time_to_live", "time_to_live_min", "time_to_live_max",
+                "duration", "duration_min", "duration_max", "repeat_delay", "repeat_delay_min", "repeat_delay_max",
+                "width", "height", "depth", "inner_width", "inner_height", "inner_depth")
+EMITTERS = ("Point", "Box", "Ring")
+AFFECTOR_KEYS = {
+    "ColourFader": ("red", "green", "blue", "alpha"),
+    "ColourInterpolator": tuple("time%d" % i for i in range(6)) + tuple("colour%d" % i for i in range(6)),
+    "Scaler": ("rate",),
+    "Rotator": ("rotation_speed_range_start", "rotation_speed_range_end", "rotation_range_start", "rotation_range_end"),
+    "LinearForce": ("force_vector", "force_application"),
+    "DirectionRandomiser": ("randomness", "scope", "keep_velocity"),
+}
+BILLBOARD_TYPES = ("point", "oriented_common", "oriented_self", "perpendicular_common", "perpendicular_self")
+
+
+def check_particle_files(problems):
+    """Looks for misspelled keys in the particle files of the room ambience (OGRE only logs them when it loads them)."""
+    for path in sorted(glob.glob(os.path.join(ROOT, "particles", "RoomAmbience*.particle"))):
+        base = os.path.basename(path)
+        context = []
+        pending = None
+        with open(path, encoding="utf-8") as handle:
+            for number, raw in enumerate(handle, 1):
+                line = raw.split("//", 1)[0].strip()
+                if not line:
+                    continue
+                where = "%s:%d" % (base, number)
+                if line == "{":
+                    context.append(pending)
+                    pending = None
+                    continue
+                if line == "}":
+                    context.pop()
+                    continue
+                words = line.split()
+                if words[0] == "particle_system":
+                    pending = ("system",)
+                elif words[0] == "emitter":
+                    pending = ("emitter",)
+                    if len(words) < 2 or words[1] not in EMITTERS:
+                        problems.append("%s: unknown emitter %s" % (where, line))
+                elif words[0] == "affector":
+                    kind = words[1] if len(words) > 1 else "?"
+                    pending = ("affector", kind)
+                    if kind not in AFFECTOR_KEYS:
+                        problems.append("%s: unknown affector %s" % (where, kind))
+                elif context:
+                    scope = context[-1]
+                    if scope == ("system",):
+                        if words[0] not in SYSTEM_KEYS:
+                            problems.append("%s: unknown system key %s" % (where, words[0]))
+                        elif words[0] == "billboard_type" and words[1] not in BILLBOARD_TYPES:
+                            problems.append("%s: unknown billboard type %s" % (where, words[1]))
+                    elif scope == ("emitter",):
+                        if words[0] not in EMITTER_KEYS:
+                            problems.append("%s: unknown emitter key %s" % (where, words[0]))
+                    elif scope and scope[0] == "affector":
+                        if words[0] not in AFFECTOR_KEYS.get(scope[1], ()):
+                            problems.append("%s: unknown key %s for affector %s" % (where, words[0], scope[1]))
+
+
 def mesh_exists(name):
     return os.path.exists(os.path.join(ROOT, "models", name + ".mesh"))
 
@@ -123,12 +189,18 @@ def check_effect(effect, where, problems, visuals, systems, mats, counts):
                     if not os.path.exists(os.path.join(ROOT, "materials", "textures", texture)):
                         problems.append("%s: material %s uses missing texture %s" % (where, material, texture))
     elif kind == "Motion":
-        if target != "Object":
-            problems.append("%s: motions only work on objects" % where)
+        bridges = target == "Tile" and all(m.startswith("bridge:") for m in effect.get("Match", []))
+        if target != "Object" and not bridges:
+            problems.append("%s: motions only work on objects and bridges" % where)
         motion = effect.get("Motion", [None])[0]
         if motion not in MOTIONS:
             problems.append("%s: bad Motion %s" % (where, motion))
-    for key in ("After", "Amount", "Speed", "Flicker", "Duration", "Chance", "Spacing", "MaxDistance", "Priority"):
+    elif kind == "Clip":
+        if target != "Object":
+            problems.append("%s: clips only work on objects" % where)
+        if not effect.get("Clips"):
+            problems.append("%s: clip effect without Clips" % where)
+    for key in ("After", "Amount", "Speed", "Flicker", "Duration", "Every", "Chance", "Spacing", "MaxDistance", "Priority"):
         if key in effect and not is_number(effect[key][0]):
             problems.append("%s: %s is not a number" % (where, key))
     for key in ("Offset", "Axis"):
@@ -138,13 +210,20 @@ def check_effect(effect, where, problems, visuals, systems, mats, counts):
         if key in effect and effect[key][0] not in ("yes", "no", "true", "false", "1", "0"):
             problems.append("%s: %s needs yes or no" % (where, key))
     for match in effect.get("Match", []):
-        if target == "Object":
+        if target == "Object" and match.startswith("trap:"):
+            if not re.match(r"^[A-Za-z*]+$", match[len("trap:"):]):
+                problems.append("%s: bad trap type %s" % (where, match))
+        elif target == "Object":
             if "*" not in match and not mesh_exists(match):
                 problems.append("%s: no mesh %s" % (where, match))
             elif "*" in match:
                 pattern = match.replace("*", "")
                 if not any(f.startswith(pattern) or f.endswith(pattern + ".mesh") for f in os.listdir(os.path.join(ROOT, "models"))):
                     problems.append("%s: wildcard %s matches no mesh" % (where, match))
+        elif match.startswith("bridge:"):
+            name = match[len("bridge:"):]
+            if name not in BRIDGE_VISUALS and not mesh_exists(name):
+                problems.append("%s: unknown bridge mesh or visual %s" % (where, name))
         elif match not in visuals:
             problems.append("%s: unknown tile visual %s" % (where, match))
     counts["effects"] += 1
@@ -202,6 +281,7 @@ def main():
     counts = {"effects": 0, "events": 0}
     check_file(os.path.join(ROOT, "config", "roomAmbience.cfg"), problems, tile_visuals(), particle_systems(),
                materials(), counts)
+    check_particle_files(problems)
     if problems:
         for problem in problems:
             print("PROBLEM:", problem)

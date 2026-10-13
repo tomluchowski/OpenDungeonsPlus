@@ -54,10 +54,14 @@ const double MOTION_EASE_SPEED = 1.5;
 const double MAX_SCAN_RADIUS = 45.0;
 //! Room tiles changing in one scan above this number are a map load, not building
 const uint32_t MAX_EVENTS_PER_SCAN = 6;
+//! Seed of the dice of the ambience, which are separate from the game random sequence
+const uint32_t RANDOM_SEED = 12345;
 //! Seconds between two prunings of the lists of old entries
 const double PRUNE_INTERVAL_SECONDS = 30.0;
 //! Seconds after which the busy info of a target that nobody asked for is dropped
 const double BUSY_KEEP_SECONDS = 600.0;
+//! Seconds after which the clip timer of an object that was not seen is dropped
+const double CLIP_TIMER_KEEP_SECONDS = 120.0;
 //! An effect that already runs is kept this much beyond its view distance, so it does not flicker at the limit
 const double VIEW_DISTANCE_MARGIN = 1.2;
 //! Radius in tiles that must be in view for an object or an event to count as seen
@@ -66,6 +70,8 @@ const double OBJECT_VISIBLE_RADIUS = 1.5;
 const double TILE_VISIBLE_RADIUS = 1.0;
 //! Value in the list of seen tile visuals for a tile that was never seen
 const uint8_t NEVER_SEEN_VISUAL = 255;
+//! Tile visual value of a tile that is not known yet
+const uint8_t UNKNOWN_VISUAL = 0;
 //! Multipliers and shift that mix the tile coordinates into the hash that picks every n-th tile
 const int32_t TILE_HASH_X = 73856093;
 const int32_t TILE_HASH_Y = 19349663;
@@ -92,10 +98,18 @@ const float MIN_LOOK_DOWN = 0.05f;
 const double DEFAULT_SCAN_RADIUS = 30.0;
 //! Smallest scan radius in tiles
 const double MIN_SCAN_RADIUS = 10.0;
+//! Most clips that one scan starts, so that not all objects of a room move at once
+const uint32_t MAX_CLIPS_PER_SCAN = 3;
+//! The next clip of an object comes after the interval of the effect times a factor between these two
+const double CLIP_INTERVAL_MIN_FACTOR = 0.6;
+const double CLIP_INTERVAL_MAX_FACTOR = 1.4;
+//! Start of a Match name that stands for a bridge (followed by the bridge mesh or the tile visual)
+static const std::string BRIDGE_PREFIX = "bridge:";
+//! Start of a Match name that stands for the type of a trap or door (Alarm, Gas, DoorSteel...)
+static const std::string TRAP_PREFIX = "trap:";
+//! The end of a mesh file name
+static const std::string MESH_SUFFIX = ".mesh";
 //! A full turn in radians
-//! Radians per second of the two waves that make up the flicker of a glow (first version of the flicker)
-const double EMITTER_FLICKER_RATE_A = 8.0;
-const double EMITTER_FLICKER_RATE_B = 13.7;
 const double TWO_PI = 6.283185307179586;
 
 //! \brief True if the name fits the pattern, which is a plain name or has * as first or last character as wildcard
@@ -135,6 +149,24 @@ bool candidateBefore(const std::pair<int32_t, double>& a, const std::pair<int32_
     return a.second < b.second;
 }
 
+//! Orders indices by priority (high first) and then by distance (near first)
+struct IndexOrder
+{
+    //! \brief Creates the order over the given priority and distance pairs, which must outlive it
+    explicit IndexOrder(const std::vector<std::pair<int32_t, double> >& order) :
+        mOrder(order)
+    {}
+
+    //! \brief True if the entry with index a comes before the entry with index b
+    bool operator()(uint32_t a, uint32_t b) const
+    {
+        return candidateBefore(mOrder[a], mOrder[b]);
+    }
+
+    //! The priority and distance pairs the indices point into
+    const std::vector<std::pair<int32_t, double> >& mOrder;
+};
+
 } // namespace
 
 RoomAmbience::RoomAmbience(GameMap* gameMap, const std::string& configPath) :
@@ -149,6 +181,7 @@ RoomAmbience::RoomAmbience(GameMap* gameMap, const std::string& configPath) :
     mSeenSizeX(0),
     mSeenSizeY(0),
     mEventsThisScan(0),
+    mRandom(RANDOM_SEED),
     mGeneration(0),
     mEntitiesInitialized(false)
 {
@@ -205,6 +238,7 @@ void RoomAmbience::buildIndex()
     mTileEffects.assign(static_cast<size_t>(TileVisual::countTileVisual), std::vector<uint32_t>());
     mObjectEffectsMemo.clear();
     mEventEffects.clear();
+    mBridgeEffects.clear();
     mScanRadius = MIN_SCAN_RADIUS;
 
     const std::vector<AmbienceEffect>& effects = mConfig.getEffects();
@@ -216,6 +250,13 @@ void RoomAmbience::buildIndex()
         {
             for(const std::string& name : effect.mMatch)
             {
+                // Bridges are not rooms for the client: "bridge:<mesh>" or "bridge:<tile visual>"
+                if(name.compare(0, BRIDGE_PREFIX.size(), BRIDGE_PREFIX) == 0)
+                {
+                    mBridgeEffects[name.substr(BRIDGE_PREFIX.size())].push_back(i);
+                    continue;
+                }
+
                 // A room that this build does not have is simply never found
                 TileVisual visual = Tile::tileVisualFromString(name);
                 if(visual == TileVisual::nullTileVisual)
@@ -233,9 +274,10 @@ void RoomAmbience::buildIndex()
     mScanRadius = std::min(mScanRadius, MAX_SCAN_RADIUS);
 }
 
-const std::vector<uint32_t>& RoomAmbience::getObjectEffects(const std::string& meshName)
+const std::vector<uint32_t>& RoomAmbience::getObjectEffects(const std::string& meshName, const std::string& kind)
 {
-    std::map<std::string, std::vector<uint32_t> >::iterator it = mObjectEffectsMemo.find(meshName);
+    std::string memoKey = meshName + "|" + kind;
+    std::map<std::string, std::vector<uint32_t> >::iterator it = mObjectEffectsMemo.find(memoKey);
     if(it != mObjectEffectsMemo.end())
         return it->second;
 
@@ -249,7 +291,10 @@ const std::vector<uint32_t>& RoomAmbience::getObjectEffects(const std::string& m
 
         for(const std::string& pattern : effect.mMatch)
         {
-            if(matchesPattern(pattern, meshName))
+            // "trap:<type>" matches the type of a trap or door (Alarm, Gas, DoorSteel...), all others the mesh
+            bool matches = (pattern.compare(0, TRAP_PREFIX.size(), TRAP_PREFIX) == 0) ?
+                (!kind.empty() && matchesPattern(pattern.substr(TRAP_PREFIX.size()), kind)) : matchesPattern(pattern, meshName);
+            if(matches)
             {
                 list.push_back(i);
                 break;
@@ -258,8 +303,27 @@ const std::vector<uint32_t>& RoomAmbience::getObjectEffects(const std::string& m
     }
 
     std::pair<std::map<std::string, std::vector<uint32_t> >::iterator, bool> inserted =
-        mObjectEffectsMemo.insert(std::make_pair(meshName, list));
+        mObjectEffectsMemo.insert(std::make_pair(memoKey, list));
     return inserted.first->second;
+}
+
+std::vector<uint32_t> RoomAmbience::getBridgeEffects(Tile* tile) const
+{
+    std::vector<uint32_t> list;
+    std::string meshName = tile->getMeshName();
+    if((meshName.size() > MESH_SUFFIX.size())
+        && (meshName.compare(meshName.size() - MESH_SUFFIX.size(), MESH_SUFFIX.size(), MESH_SUFFIX) == 0))
+        meshName = meshName.substr(0, meshName.size() - MESH_SUFFIX.size());
+
+    std::map<std::string, std::vector<uint32_t> >::const_iterator it = mBridgeEffects.find(meshName);
+    if(it != mBridgeEffects.end())
+        list.insert(list.end(), it->second.begin(), it->second.end());
+
+    it = mBridgeEffects.find(Tile::tileVisualToString(tile->getTileVisual()));
+    if(it != mBridgeEffects.end())
+        list.insert(list.end(), it->second.begin(), it->second.end());
+
+    return list;
 }
 
 bool RoomAmbience::isEffectUsable(const AmbienceEffect& effect) const
@@ -300,8 +364,9 @@ bool RoomAmbience::isIdleLongEnough(const std::string& key, bool busy, double af
     std::map<std::string, BusyInfo>::iterator it = mBusy.find(key);
     if(it == mBusy.end())
     {
+        // A target counts as empty only after it was seen without a creature for the given time
         BusyInfo info;
-        info.mLastBusy = 0.0;
+        info.mLastBusy = mClock;
         it = mBusy.insert(std::make_pair(key, info)).first;
     }
 
@@ -361,9 +426,12 @@ void RoomAmbience::restoreMotionNode(MotionNode& motionNode)
         return;
 
     Ogre::SceneNode* node = sceneManager->getSceneNode(motionNode.mNodeName);
-    node->setOrientation(motionNode.mBaseOrientation);
-    node->setPosition(motionNode.mBasePosition);
-    node->setScale(motionNode.mBaseScale);
+    if(motionNode.mMovesOrientation)
+        node->setOrientation(motionNode.mBaseOrientation);
+    if(motionNode.mMovesPosition)
+        node->setPosition(motionNode.mBasePosition);
+    if(motionNode.mMovesScale)
+        node->setScale(motionNode.mBaseScale);
 }
 
 void RoomAmbience::stopAll()
@@ -390,6 +458,8 @@ void RoomAmbience::stopAll()
     mMotionNodes.clear();
     mParticleCandidates.clear();
     mMotionCandidates.clear();
+    mClipCandidates.clear();
+    mClipTimers.clear();
     mSeenVisual.clear();
     mSeenSizeX = 0;
     mSeenSizeY = 0;
@@ -437,6 +507,7 @@ void RoomAmbience::scan()
     mEventsThisScan = 0;
     mParticleCandidates.clear();
     mMotionCandidates.clear();
+    mClipCandidates.clear();
 
     mCreaturePositions.clear();
     for(Creature* creature : mGameMap->getCreatures())
@@ -449,6 +520,7 @@ void RoomAmbience::scan()
     scanTiles(camera, cameraPosition, lookPoint);
     scanEntityEvents(camera, cameraPosition);
     reconcile();
+    playClips();
 
     mPruneTimer += mConfig.getScanInterval();
     if(mPruneTimer >= PRUNE_INTERVAL_SECONDS)
@@ -458,6 +530,14 @@ void RoomAmbience::scan()
         {
             if((mClock - it->second.mLastTouched) > BUSY_KEEP_SECONDS)
                 mBusy.erase(it++);
+            else
+                ++it;
+        }
+
+        for(std::map<std::string, double>::iterator it = mClipTimers.begin(); it != mClipTimers.end();)
+        {
+            if(it->second < (mClock - CLIP_TIMER_KEEP_SECONDS))
+                mClipTimers.erase(it++);
             else
                 ++it;
         }
@@ -473,12 +553,19 @@ void RoomAmbience::scanObjects(Ogre::Camera* camera, const Ogre::Vector3& camera
         if(entity->getEntityNode() == nullptr)
             continue;
 
-        const std::vector<uint32_t>& list = getObjectEffects(entity->getMeshName());
+        // The trap and door types share meshes; their entity names start with the type (Alarm_3_...)
+        std::string kind;
+        if(entity->getObjectType() == GameEntityType::trapEntity)
+            kind = entity->getName().substr(0, entity->getName().find('_'));
+
+        const std::vector<uint32_t>& list = getObjectEffects(entity->getMeshName(), kind);
         if(list.empty())
             continue;
 
         const Ogre::Vector3& position = entity->getPosition();
         double distance = (position - cameraPosition).length();
+        // Offsets are given for the object as it is modelled, so they turn with the object
+        Ogre::Quaternion turn(Ogre::Degree(entity->getRotationAngle()), Ogre::Vector3::UNIT_Z);
         int32_t visible = -1;
         int32_t busy = -1;
         for(uint32_t index : list)
@@ -500,7 +587,7 @@ void RoomAmbience::scanObjects(Ogre::Camera* camera, const Ogre::Vector3& camera
             Candidate candidate;
             candidate.mEffect = index;
             candidate.mTarget = entity->getName();
-            candidate.mPosition = position + effect.mOffset;
+            candidate.mPosition = position + turn * effect.mOffset;
             candidate.mDistance = distance;
             candidate.mPriority = effect.mPriority;
             if(effect.mWhen == AmbienceWhen::always)
@@ -522,6 +609,11 @@ void RoomAmbience::scanObjects(Ogre::Camera* camera, const Ogre::Vector3& camera
             {
                 if(candidate.mActive)
                     mParticleCandidates.push_back(candidate);
+            }
+            else if(effect.mKind == AmbienceKind::clip)
+            {
+                if(candidate.mActive)
+                    mClipCandidates.push_back(candidate);
             }
             else
             {
@@ -560,11 +652,15 @@ void RoomAmbience::scanTiles(Ogre::Camera* camera, const Ogre::Vector3& cameraPo
                 continue;
 
             uint8_t current = static_cast<uint8_t>(tile->getTileVisual());
+            if(current >= mTileEffects.size())
+                continue;
+
             size_t seenIndex = static_cast<size_t>(x) * static_cast<size_t>(sizeY) + static_cast<size_t>(y);
             uint8_t previous = mSeenVisual[seenIndex];
             mSeenVisual[seenIndex] = current;
             bool currentRoom = (current >= firstRoomVisual) && (current < static_cast<uint8_t>(TileVisual::countTileVisual));
-            if((previous != NEVER_SEEN_VISUAL) && (previous != current))
+            // A tile that was not known yet (visual 0) coming into view is not a room being built
+            if((previous != NEVER_SEEN_VISUAL) && (previous != UNKNOWN_VISUAL) && (previous != current))
             {
                 bool previousRoom = (previous >= firstRoomVisual);
                 if(currentRoom && !previousRoom)
@@ -590,12 +686,23 @@ void RoomAmbience::scanTiles(Ogre::Camera* camera, const Ogre::Vector3& cameraPo
                 }
             }
 
-            if(!currentRoom)
+            std::vector<uint32_t> bridgeList;
+            const std::vector<uint32_t>* listPointer = &mNoEffects;
+            if(!mTileEffects[current].empty())
+            {
+                listPointer = &mTileEffects[current];
+            }
+            else if(!mBridgeEffects.empty() && tile->getHasBridge()
+                && ((tile->getTileVisual() == TileVisual::lavaGround) || (tile->getTileVisual() == TileVisual::waterGround)))
+            {
+                bridgeList = getBridgeEffects(tile);
+                listPointer = &bridgeList;
+            }
+
+            if(listPointer->empty())
                 continue;
 
-            const std::vector<uint32_t>& list = mTileEffects[current];
-            if(list.empty())
-                continue;
+            const std::vector<uint32_t>& list = *listPointer;
 
             const Ogre::Vector3& position = tile->getPosition();
             double distance = (position - cameraPosition).length();
@@ -665,6 +772,17 @@ void RoomAmbience::scanTiles(Ogre::Camera* camera, const Ogre::Vector3& cameraPo
                         candidate.mActive = isIdleLongEnough(key, busy == 1, effect.mAfter);
                 }
 
+                if(effect.mKind == AmbienceKind::motion)
+                {
+                    // Only the bridge of a tile can be moved; a motion of another tile has nothing to move
+                    if(listPointer == &bridgeList)
+                    {
+                        candidate.mNodeName = tile->getOgreNamePrefix() + tile->getName() + "_bridgeMesh_node";
+                        mMotionCandidates.push_back(candidate);
+                    }
+                    continue;
+                }
+
                 if(!candidate.mActive)
                     continue;
 
@@ -725,6 +843,31 @@ void RoomAmbience::scanEntityEvents(Ogre::Camera* camera, const Ogre::Vector3& c
             changes.push_back(change);
     }
 
+    // Creatures that appear on a portal
+    for(Creature* creature : mGameMap->getCreatures())
+    {
+        std::string key = "c:" + creature->getName();
+        std::map<std::string, EntitySnapshot>::iterator it = mKnownEntities.find(key);
+        if(it != mKnownEntities.end())
+        {
+            it->second.mGeneration = mGeneration;
+            continue;
+        }
+
+        EntitySnapshot snapshot;
+        snapshot.mType = static_cast<uint32_t>(GameEntityType::creature);
+        snapshot.mPosition = creature->getPosition();
+        snapshot.mGeneration = mGeneration;
+        mKnownEntities.insert(std::make_pair(key, snapshot));
+        if(mEntitiesInitialized)
+        {
+            Change change;
+            change.mEvent = "CreatureArrived";
+            change.mPosition = snapshot.mPosition;
+            changes.push_back(change);
+        }
+    }
+
     for(std::map<std::string, EntitySnapshot>::iterator it = mKnownEntities.begin(); it != mKnownEntities.end();)
     {
         if(it->second.mGeneration == mGeneration)
@@ -766,18 +909,7 @@ void RoomAmbience::reconcile()
     std::vector<uint32_t> sorted;
     for(uint32_t i = 0; i < order.size(); ++i)
         sorted.push_back(i);
-    for(uint32_t i = 1; i < sorted.size(); ++i)
-    {
-        // insertion sort: stable and the lists are short
-        uint32_t current = sorted[i];
-        uint32_t j = i;
-        while((j > 0) && candidateBefore(order[current], order[sorted[j - 1]]))
-        {
-            sorted[j] = sorted[j - 1];
-            --j;
-        }
-        sorted[j] = current;
-    }
+    std::stable_sort(sorted.begin(), sorted.end(), IndexOrder(order));
 
     for(std::map<std::string, Emitter>::iterator it = mEmitters.begin(); it != mEmitters.end(); ++it)
         it->second.mSeen = false;
@@ -835,17 +967,7 @@ void RoomAmbience::reconcile()
     sorted.clear();
     for(uint32_t i = 0; i < order.size(); ++i)
         sorted.push_back(i);
-    for(uint32_t i = 1; i < sorted.size(); ++i)
-    {
-        uint32_t current = sorted[i];
-        uint32_t j = i;
-        while((j > 0) && candidateBefore(order[current], order[sorted[j - 1]]))
-        {
-            sorted[j] = sorted[j - 1];
-            --j;
-        }
-        sorted[j] = current;
-    }
+    std::stable_sort(sorted.begin(), sorted.end(), IndexOrder(order));
 
     for(std::map<std::string, MotionNode>::iterator it = mMotionNodes.begin(); it != mMotionNodes.end(); ++it)
     {
@@ -854,6 +976,7 @@ void RoomAmbience::reconcile()
             instance.mWanted = false;
     }
 
+    Ogre::SceneManager* sceneManager = RenderManager::getSingleton().getSceneManager();
     uint32_t maxMotions = mConfig.getMaxMotions();
     for(uint32_t i = 0; i < sorted.size(); ++i)
     {
@@ -865,11 +988,22 @@ void RoomAmbience::reconcile()
             if(!candidate.mActive || (mMotionNodes.size() >= maxMotions))
                 continue;
 
-            RenderedMovableEntity* entity = mGameMap->getRenderedMovableEntity(candidate.mTarget);
-            if((entity == nullptr) || (entity->getEntityNode() == nullptr))
+            Ogre::SceneNode* node = nullptr;
+            if(!candidate.mNodeName.empty())
+            {
+                if(sceneManager->hasSceneNode(candidate.mNodeName))
+                    node = sceneManager->getSceneNode(candidate.mNodeName);
+            }
+            else
+            {
+                RenderedMovableEntity* entity = mGameMap->getRenderedMovableEntity(candidate.mTarget);
+                if(entity != nullptr)
+                    node = entity->getEntityNode();
+            }
+
+            if(node == nullptr)
                 continue;
 
-            Ogre::SceneNode* node = entity->getEntityNode();
             MotionNode motionNode;
             motionNode.mNodeName = node->getName();
             motionNode.mBaseOrientation = node->getOrientation();
@@ -899,12 +1033,58 @@ void RoomAmbience::reconcile()
             instance.mEffect = candidate.mEffect;
             instance.mPhase = hashPhase(candidate.mTarget + effects[candidate.mEffect].mName);
             motionNode.mMotions.push_back(instance);
+            switch(effects[candidate.mEffect].mMotion)
+            {
+                case AmbienceMotion::bob:
+                    motionNode.mMovesPosition = true;
+                    break;
+                case AmbienceMotion::pulse:
+                case AmbienceMotion::flicker:
+                    motionNode.mMovesScale = true;
+                    break;
+                default:
+                    motionNode.mMovesOrientation = true;
+                    break;
+            }
             found = &motionNode.mMotions.back();
         }
 
         found->mWanted = candidate.mActive;
     }
+}
 
+void RoomAmbience::playClips()
+{
+    const std::vector<AmbienceEffect>& effects = mConfig.getEffects();
+    uint32_t nbPlayed = 0;
+    for(const Candidate& candidate : mClipCandidates)
+    {
+        const AmbienceEffect& effect = effects[candidate.mEffect];
+        if(effect.mClips.empty())
+            continue;
+
+        std::map<std::string, double>::iterator timerIt = mClipTimers.find(candidate.mTarget);
+        if(timerIt == mClipTimers.end())
+        {
+            // The first clip comes after a random part of the interval, so not all objects move together
+            std::uniform_real_distribution<double> first(0.0, effect.mEvery);
+            mClipTimers[candidate.mTarget] = mClock + first(mRandom);
+            continue;
+        }
+
+        if((mClock < timerIt->second) || (nbPlayed >= MAX_CLIPS_PER_SCAN))
+            continue;
+
+        RenderedMovableEntity* entity = mGameMap->getRenderedMovableEntity(candidate.mTarget);
+        if((entity == nullptr) || entity->isMoving())
+            continue;
+
+        std::uniform_int_distribution<size_t> pick(0, effect.mClips.size() - 1);
+        entity->setAnimationState(effect.mClips[pick(mRandom)], false, Ogre::Vector3::ZERO, true);
+        std::uniform_real_distribution<double> next(CLIP_INTERVAL_MIN_FACTOR, CLIP_INTERVAL_MAX_FACTOR);
+        timerIt->second = mClock + effect.mEvery * next(mRandom);
+        ++nbPlayed;
+    }
 }
 
 void RoomAmbience::updateEmitters(double timeSinceLastFrame)
@@ -926,7 +1106,8 @@ void RoomAmbience::updateEmitters(double timeSinceLastFrame)
         else if(effects[emitter.mEffect].mFlicker > 0.0)
         {
             double flicker = effects[emitter.mEffect].mFlicker;
-            double noise = 0.5 * (std::sin(EMITTER_FLICKER_RATE_A * mClock + emitter.mPhase) + std::sin(EMITTER_FLICKER_RATE_B * mClock + 2.0 * emitter.mPhase));
+            double rate = TWO_PI * effects[emitter.mEffect].mSpeed;
+            double noise = 0.5 * (std::sin(rate * mClock + emitter.mPhase) + std::sin(FLICKER_SECOND_WAVE_RATE * rate * mClock + 2.0 * emitter.mPhase));
             double factor = 1.0 + flicker * noise;
             emitter.mSystem->setDefaultDimensions(static_cast<Ogre::Real>(emitter.mBaseWidth * factor),
                 static_cast<Ogre::Real>(emitter.mBaseHeight * factor));
@@ -1035,19 +1216,21 @@ void RoomAmbience::updateMotions(double timeSinceLastFrame)
             ++mit;
         }
 
-        Ogre::SceneNode* node = sceneManager->getSceneNode(motionNode.mNodeName);
         if(motionNode.mMotions.empty())
         {
-            node->setOrientation(motionNode.mBaseOrientation);
-            node->setPosition(motionNode.mBasePosition);
-            node->setScale(motionNode.mBaseScale);
+            restoreMotionNode(motionNode);
             mMotionNodes.erase(it++);
             continue;
         }
 
-        node->setOrientation(orientation);
-        node->setPosition(position);
-        node->setScale(scale);
+        // Only what the motions drive is written, so an object that is moved by something else keeps its place
+        Ogre::SceneNode* node = sceneManager->getSceneNode(motionNode.mNodeName);
+        if(motionNode.mMovesOrientation)
+            node->setOrientation(orientation);
+        if(motionNode.mMovesPosition)
+            node->setPosition(position);
+        if(motionNode.mMovesScale)
+            node->setScale(scale);
         ++it;
     }
 }
@@ -1083,7 +1266,6 @@ uint32_t RoomAmbience::triggerEvent(const std::string& eventName, const Ogre::Ve
             visual = Tile::tileVisualToString(tile->getTileVisual());
     }
 
-    static std::mt19937 generator(12345);
     const std::vector<AmbienceEffect>& effects = mConfig.getEffects();
     uint32_t nbStarted = 0;
     for(uint32_t index : listIt->second)
@@ -1110,7 +1292,7 @@ uint32_t RoomAmbience::triggerEvent(const std::string& eventName, const Ogre::Ve
             if(effect.mChance < 1.0)
             {
                 std::uniform_real_distribution<double> dice(0.0, 1.0);
-                if(dice(generator) > effect.mChance)
+                if(dice(mRandom) > effect.mChance)
                     continue;
             }
 

@@ -27,11 +27,13 @@
 
 #include <cstdint>
 #include <map>
+#include <random>
 #include <set>
 #include <string>
 #include <vector>
 
 class GameMap;
+class Tile;
 
 /*! \brief Cosmetic life in the rooms (dust, glow, sparks, moving objects), client side only.
  *
@@ -160,11 +162,18 @@ private:
     {
         //! \brief Creates a motion node that is not attached to a scene node yet
         MotionNode() :
+            mMovesPosition(false), mMovesOrientation(false), mMovesScale(false),
             mBasePosition(Ogre::Vector3::ZERO), mBaseScale(Ogre::Vector3::UNIT_SCALE), mClock(0.0), mSeen(false)
         {}
 
         //! Name of the scene node that is moved
         std::string mNodeName;
+        //! Which parts of the node are driven by the motions (put back only these)
+        bool mMovesPosition;
+        //! True if a motion drives the orientation of the node
+        bool mMovesOrientation;
+        //! True if a motion drives the scale of the node
+        bool mMovesScale;
         //! Orientation the node is put back to
         Ogre::Quaternion mBaseOrientation;
         //! Position the node is put back to
@@ -191,6 +200,8 @@ private:
         uint32_t mEffect;
         //! Name of the entity (objects) or the tile (tiles)
         std::string mTarget;
+        //! Name of the scene node to move when the target is not an entity (bridge of a tile)
+        std::string mNodeName;
         //! Where the effect would be shown
         Ogre::Vector3 mPosition;
         //! Distance of the place to the camera
@@ -227,6 +238,8 @@ private:
     void scanEntityEvents(Ogre::Camera* camera, const Ogre::Vector3& cameraPosition);
     //! \brief Starts the emitters and motions that the candidates ask for within the limits and stops the others
     void reconcile();
+    //! \brief Plays the clips of the objects whose time has come
+    void playClips();
     //! \brief Flickers the running emitters and removes those that were stopped long enough
     void updateEmitters(double timeSinceLastFrame);
     //! \brief Removes the one-shot effects whose time is over
@@ -248,8 +261,10 @@ private:
     bool isEffectUsable(const AmbienceEffect& effect) const;
     bool createParticleSystem(const std::string& system, const Ogre::Vector3& position, const std::string& baseName,
         Ogre::SceneNode*& node, Ogre::ParticleSystem*& particleSystem);
-    //! \brief The effects of the objects with the given mesh name, remembered per mesh
-    const std::vector<uint32_t>& getObjectEffects(const std::string& meshName);
+    //! \brief The effects of the given kind for the objects with the given mesh name, remembered per mesh
+    const std::vector<uint32_t>& getObjectEffects(const std::string& meshName, const std::string& kind);
+    //! \brief The effects for a bridge tile, found by the mesh of its bridge and the visual of the ground under it
+    std::vector<uint32_t> getBridgeEffects(Tile* tile) const;
     bool isVisibleNear(Ogre::Camera* camera, const Ogre::Vector3& cameraPosition, const Ogre::Vector3& position,
         double radius, double limit) const;
 
@@ -278,6 +293,8 @@ private:
     std::map<std::string, std::vector<uint32_t> > mObjectEffectsMemo;
     //! Effects per event name
     std::map<std::string, std::vector<uint32_t> > mEventEffects;
+    //! Effects of bridge tiles, per bridge mesh and per tile visual (lavaGround, waterGround)
+    std::map<std::string, std::vector<uint32_t> > mBridgeEffects;
     //! Empty list returned when nothing matches
     std::vector<uint32_t> mNoEffects;
     //! Effects of objects that are matched by a wildcard
@@ -302,6 +319,12 @@ private:
     std::vector<Candidate> mParticleCandidates;
     //! The objects that could be moved, found by the last scan
     std::vector<Candidate> mMotionCandidates;
+    //! The objects that could play a clip, found by the last scan
+    std::vector<Candidate> mClipCandidates;
+    //! Time at which an object plays its next clip (kind clip)
+    std::map<std::string, double> mClipTimers;
+    //! Dice of its own, so the game random sequence is untouched
+    std::mt19937 mRandom;
 
     //! Tile visual seen at the last scan per tile (255 = never seen), used to find rooms built or sold
     std::vector<uint8_t> mSeenVisual;

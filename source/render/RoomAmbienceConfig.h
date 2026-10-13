@@ -53,7 +53,9 @@ enum class AmbienceKind
     //! A particle system (also used as glow, with a flicker)
     particle,
     //! A procedural movement of the object node
-    motion
+    motion,
+    //! Now and then a clip of the object's own mesh (a chicken scratching)
+    clip
 };
 
 //! \brief How an effect of the kind motion moves the node of its object
@@ -89,6 +91,7 @@ struct AmbienceEffect
         mSpeed(1.0),
         mFlicker(0.0),
         mDuration(3.0),
+        mEvery(10.0),
         mChance(1.0),
         mSpacing(1),
         mMaxDistance(28.0),
@@ -111,6 +114,8 @@ struct AmbienceEffect
     AmbienceKind mKind;
     //! Particle system template (kind particle)
     std::string mSystem;
+    //! Clips to choose from (kind clip)
+    std::vector<std::string> mClips;
     //! How the object is moved (kind motion)
     AmbienceMotion mMotion;
     //! Seconds without a creature before an empty room effect starts
@@ -127,6 +132,8 @@ struct AmbienceEffect
     double mFlicker;
     //! Seconds a one-shot effect is kept
     double mDuration;
+    //! Average seconds between two clips (kind clip)
+    double mEvery;
     //! Chance that an event effect is shown
     double mChance;
     //! Tile targets: only every n-th tile gets the effect
