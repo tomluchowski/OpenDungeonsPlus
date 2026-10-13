@@ -18,12 +18,14 @@
 #ifndef CHICKENENTITY_H
 #define CHICKENENTITY_H
 
+#include "entities/ChickenFlight.h"
 #include "entities/RenderedMovableEntity.h"
 #include "rooms/HatcheryRooster.h"
 
 #include <cstdint>
 #include <string>
 #include <iosfwd>
+#include <vector>
 
 class Creature;
 class Room;
@@ -206,8 +208,9 @@ public:
     inline bool getLockEat(const Creature& worker) const
     { return mLockedEat; }
 
-    inline void setLockEat(const Creature& worker, bool lock)
-    { mLockedEat = lock; }
+    //! \brief Locks the chicken for the creature that comes to eat it, or releases it. The creature is remembered, so
+    //! the chicken can hop away from it when it comes close.
+    void setLockEat(const Creature& worker, bool lock);
 
     //! \brief Writes the entity and its kind to a packet for the clients.
     virtual void exportToPacket(ODPacket& os, const Seat* seat) const override;
@@ -254,6 +257,10 @@ private:
     int32_t mNbTurnDie;
     bool mIsSlapped;
     bool mLockedEat;
+    //! Name of the creature that holds the lock to eat this chicken (empty while nobody does)
+    std::string mLockOwner;
+    //! The state of the flight from a hungry creature (see ChickenFlight.h)
+    ChickenFlight::State mFlight;
 
     //! \brief Server side: the rooster is outside of any hatchery. Walks to the nearest hatchery of its seat.
     //! Returns true if he is on his way.
@@ -265,6 +272,11 @@ private:
     //! \brief Server side: one random step inside the hatchery (or around if outside).
     void wander(Tile* tile, Room* currentHatchery);
 
+    //! \brief Places (inside the room) the chicken could walk to from the given tile in one step.
+    void collectMovePositions(Tile* tile, Room* currentHatchery, std::vector<Ogre::Vector2>& positions);
+    //! \brief A hungry creature that locked this chicken comes close: hop away from it (see ChickenFlight.h).
+    //! Returns true if the chicken started to hop.
+    bool tryFlee(Tile* tile, Room* currentHatchery);
     void addTileToListIfPossible(int x, int y, Room* currentHatchery, std::vector<Tile*>& possibleTileMove);
 };
 
