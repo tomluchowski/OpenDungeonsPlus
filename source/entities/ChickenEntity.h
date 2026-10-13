@@ -253,6 +253,8 @@ private:
     uint32_t mSinceCrow;
     Seat* mHomeSeat;
     bool mReturningHome;
+    uint32_t mReturnTurns;
+    uint32_t mReturnRetryTurns;
     int32_t mNbTurnOutsideHatchery;
     int32_t mNbTurnDie;
     bool mIsSlapped;
@@ -262,9 +264,12 @@ private:
     //! The state of the flight from a hungry creature (see ChickenFlight.h)
     ChickenFlight::State mFlight;
 
-    //! \brief Server side: the rooster is outside of any hatchery. Walks to the nearest hatchery of its seat.
-    //! Returns true if he is on his way.
+    //! \brief Server side: the rooster or a hen is outside of any hatchery. Walks to the nearest hatchery of its
+    //! seat (of any seat if it has none). Returns true if it is on its way, false if there is none to reach.
     bool runBackToHatchery(Tile* tile);
+
+    //! \brief The search for the way back found nothing: no new search for HatcheryReturnRetryTurns turns.
+    void failReturn();
 
     //! \brief Server side: puts the animal somewhere else at once and tells the clients.
     void teleport(const Ogre::Vector3& position);

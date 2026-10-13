@@ -66,6 +66,8 @@ ChickenEntity::ChickenEntity(GameMap* gameMap, const std::string& hatcheryName, 
     mSinceCrow(0),
     mHomeSeat(nullptr),
     mReturningHome(false),
+    mReturnTurns(0),
+    mReturnRetryTurns(0),
     mNbTurnOutsideHatchery(0),
     mNbTurnDie(0),
     mIsSlapped(false),
@@ -93,6 +95,8 @@ ChickenEntity::ChickenEntity(GameMap* gameMap) :
     mSinceCrow(0),
     mHomeSeat(nullptr),
     mReturningHome(false),
+    mReturnTurns(0),
+    mReturnRetryTurns(0),
     mNbTurnOutsideHatchery(0),
     mNbTurnDie(0),
     mIsSlapped(false),
@@ -170,12 +174,18 @@ void ChickenEntity::doUpkeep()
     {
         mNbTurnOutsideHatchery = 0;
         mReturningHome = false;
+        mReturnTurns = 0;
+        mReturnRetryTurns = 0;
+        // The hatchery it is in is its home (also for a chicken loaded from a save)
+        mHomeSeat = currentHatchery->getSeat();
     }
     else
         ++mNbTurnOutsideHatchery;
 
-    // A rooster that was dropped outside of a hatchery runs back to the nearest hatchery of his keeper
-    if((mKind == ChickenKind::rooster) && (currentHatchery == nullptr) && !mIsSlapped && runBackToHatchery(tile))
+    // A rooster that was dropped outside of a hatchery runs back to the nearest hatchery of his keeper. A hen
+    // does the same as long as nobody is after it
+    const bool henMayReturn = (mKind == ChickenKind::hen) && !mLockedEat;
+    if(((mKind == ChickenKind::rooster) || henMayReturn) && (currentHatchery == nullptr) && !mIsSlapped && runBackToHatchery(tile))
     {
         mNbTurnOutsideHatchery = 0;
         return;
@@ -452,17 +462,48 @@ void ChickenEntity::teleport(const Ogre::Vector3& position)
 
 bool ChickenEntity::runBackToHatchery(Tile* tile)
 {
+    ConfigManager& config = ConfigManager::getSingleton();
+    const bool isHen = (mKind == ChickenKind::hen);
+    if(isHen)
+        ++mReturnTurns;
+
     if(mReturningHome && isMoving())
         return true;
-    if(mHomeSeat == nullptr)
-        return false;
 
-    std::vector<Room*> hatcheries = getGameMap()->getRoomsByTypeAndSeat(RoomType::hatchery, mHomeSeat);
+    if(isHen)
+    {
+        // A hen does not search every turn and gives up after a while: then the rule of the turns
+        // outside of a hatchery decides (it dies if it found no way)
+        const uint32_t maxReturnTurns = static_cast<uint32_t>(std::max(0.0,
+            config.getRoomConfigDoubleOrDefault("HatcheryReturnMaxTurns", 300.0)));
+        if((maxReturnTurns > 0) && (mReturnTurns > maxReturnTurns))
+            return false;
+
+        if(mReturnRetryTurns > 0)
+        {
+            --mReturnRetryTurns;
+            return false;
+        }
+    }
+
+    // The hatchery of the keeper the animal belongs to; without that link, any hatchery will do
+    Seat* seat = mHomeSeat;
+    if(seat == nullptr)
+        seat = tile->getSeat();
+    std::vector<Room*> hatcheries;
+    if(seat != nullptr)
+        hatcheries = getGameMap()->getRoomsByTypeAndSeat(RoomType::hatchery, seat);
+    else
+        hatcheries = getGameMap()->getRoomsByType(RoomType::hatchery);
     if(hatcheries.empty())
+    {
+        failReturn();
         return false;
+    }
 
     // Breadth-first search over the free tiles to the closest tile of a hatchery of the keeper
-    const uint32_t maxTiles = 4000;
+    const uint32_t maxTiles = static_cast<uint32_t>(std::max(1.0,
+        config.getRoomConfigDoubleOrDefault("HatcheryReturnSearchTiles", 4000.0)));
     std::map<Tile*, Tile*> parents;
     std::deque<Tile*> open;
     parents[tile] = nullptr;
@@ -473,7 +514,7 @@ bool ChickenEntity::runBackToHatchery(Tile* tile)
         Tile* current = open.front();
         open.pop_front();
         Room* room = current->getCoveringRoom();
-        if((room != nullptr) && (room->getType() == RoomType::hatchery) && (room->getSeat() == mHomeSeat))
+        if((room != nullptr) && (room->getType() == RoomType::hatchery) && ((seat == nullptr) || (room->getSeat() == seat)))
         {
             goal = current;
             break;
@@ -496,22 +537,35 @@ bool ChickenEntity::runBackToHatchery(Tile* tile)
         }
     }
     if(goal == nullptr)
+    {
+        failReturn();
         return false;
+    }
 
     std::vector<Tile*> reversed;
     for(Tile* step = goal; (step != nullptr) && (step != tile); step = parents[step])
         reversed.push_back(step);
 
     // Walk the first part of the way, the next turns go on from there
+    const uint32_t maxPathTiles = static_cast<uint32_t>(std::max(1.0,
+        config.getRoomConfigDoubleOrDefault("HatcheryReturnPathTiles", 30.0)));
     std::vector<Ogre::Vector2> path;
-    for(std::vector<Tile*>::reverse_iterator it = reversed.rbegin(); (it != reversed.rend()) && (path.size() < 30); ++it)
+    for(std::vector<Tile*>::reverse_iterator it = reversed.rbegin(); (it != reversed.rend()) && (path.size() < maxPathTiles); ++it)
         path.push_back(Ogre::Vector2((*it)->getX(), (*it)->getY()));
     if(path.empty())
         return false;
 
     mReturningHome = true;
-    setWalkPath(ChickenPose::flee, EntityAnimation::idle_anim, true, true, path, false);
+    // The server walk path sends the walk to the clients like any other movement
+    setWalkPath(isHen ? EntityAnimation::walk_anim : ChickenPose::flee, EntityAnimation::idle_anim, true, true, path, false);
     return true;
+}
+
+void ChickenEntity::failReturn()
+{
+    // No way back found: wait before looking again (the turns outside a hatchery keep counting)
+    mReturnRetryTurns = static_cast<uint32_t>(std::max(0.0,
+        ConfigManager::getSingleton().getRoomConfigDoubleOrDefault("HatcheryReturnRetryTurns", 5.0)));
 }
 
 void ChickenEntity::addTileToListIfPossible(int x, int y, Room* currentHatchery, std::vector<Tile*>& possibleTileMove)

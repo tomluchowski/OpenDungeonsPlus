@@ -148,3 +148,12 @@ assert 'HatcheryYoungLostTurns' in upkeep and '(currentHatchery == nullptr)' in 
 assert 'chicken->getHomeSeat() != getSeat()' in doUpkeep
 assert doUpkeep.index('chicken->getHomeSeat() != getSeat()') < doUpkeep.index('switch(chicken->getKind())')
 print('young animal same-keeper lifecycle source contracts passed; C++ not executed')
+
+# A hen outside a hatchery walks back to one like the rooster: the search and the way are limited by settings, the
+# hen gives up after a while and the old turn rule applies again
+return_walk = body(chicken, 'bool ChickenEntity::runBackToHatchery')
+for key in ('HatcheryReturnPathTiles', 'HatcheryReturnSearchTiles', 'HatcheryReturnRetryTurns', 'HatcheryReturnMaxTurns'):
+    assert key in config and key in chicken, key
+assert 'henMayReturn' in chicken and 'failReturn()' in return_walk
+assert 'mReturnTurns' in return_walk and 'mReturnRetryTurns' in return_walk
+print('hatchery hen return checks passed')
