@@ -84,6 +84,9 @@ public:
     //! (phase as in ServerNotificationType::chickenFight, this animal is the first one named).
     void notifyFight(const std::string& partnerName, uint32_t phase);
 
+    //! \brief Name of the mesh for a kind (the egg has a mesh of its own).
+    static std::string getMeshNameForKind(ChickenKind kind);
+
     //! \brief Changes the kind (egg hatches, chick grows). On the server, the clients are told.
     void setKind(ChickenKind kind);
 
@@ -205,6 +208,8 @@ public:
     static ChickenEntity* getChickenEntityFromPacket(GameMap* gameMap, ODPacket& is);
     static std::string getChickenEntityStreamFormat();
 protected:
+    void createMeshLocal(NodeType nt = NodeType::MTILES_NODE) override;
+    void destroyMeshLocal(NodeType nt = NodeType::MTILES_NODE) override;
     void exportToStream(std::ostream& os) const override;
     bool importFromStream(std::istream& is) override;
 

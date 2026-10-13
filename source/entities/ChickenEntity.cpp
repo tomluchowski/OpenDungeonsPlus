@@ -26,6 +26,7 @@
 #include "network/ServerNotification.h"
 #include "game/Player.h"
 #include "game/Seat.h"
+#include "render/RenderManager.h"
 #include "gamemap/GameMap.h"
 #include "gamemap/RoomObjectNavigation.h"
 #include "rooms/Room.h"
@@ -43,7 +44,7 @@ const int32_t NB_TURNS_OUTSIDE_HATCHERY_BEFORE_DIE = 30;
 const int32_t NB_TURNS_DIE_BEFORE_REMOVE = 5;
 
 ChickenEntity::ChickenEntity(GameMap* gameMap, const std::string& hatcheryName, ChickenKind kind) :
-    RenderedMovableEntity(gameMap, hatcheryName, "Chicken", 0.0f, false),
+    RenderedMovableEntity(gameMap, hatcheryName, getMeshNameForKind(kind), 0.0f, false),
     mChickenState(ChickenState::free),
     mKind(kind),
     mNbTurnLay(0),
@@ -93,6 +94,25 @@ ChickenEntity::ChickenEntity(GameMap* gameMap) :
     mLockedEat(false)
 {
     setMeshName("Chicken");
+}
+
+std::string ChickenEntity::getMeshNameForKind(ChickenKind kind)
+{
+    return (kind == ChickenKind::egg) ? "ChickenEgg" : "Chicken";
+}
+
+void ChickenEntity::createMeshLocal(NodeType nt)
+{
+    RenderedMovableEntity::createMeshLocal(nt);
+    if(!getIsOnServerMap())
+        RenderManager::getSingleton().rrCreateChickenLook(this);
+}
+
+void ChickenEntity::destroyMeshLocal(NodeType nt)
+{
+    if(!getIsOnServerMap())
+        RenderManager::getSingleton().rrDestroyChickenLook(this);
+    RenderedMovableEntity::destroyMeshLocal(nt);
 }
 
 void ChickenEntity::doUpkeep()
@@ -526,6 +546,7 @@ void ChickenEntity::setKind(ChickenKind kind)
 
     mKind = kind;
     mAge = 0;
+    setMeshName(getMeshNameForKind(kind));
     if(!getIsOnServerMap())
         return;
 
@@ -543,8 +564,28 @@ void ChickenEntity::setKind(ChickenKind kind)
 
 void ChickenEntity::setKindFromServer(ChickenKind kind)
 {
+    ChickenKind oldKind = mKind;
     mKind = kind;
     mAge = 0;
+
+    // The egg has a mesh of its own: when it hatches the shell breaks and the chick takes its place
+    if(getMeshName() != getMeshNameForKind(kind))
+    {
+        bool hadMesh = getEntityNode() != nullptr;
+        if(hadMesh)
+            destroyMesh();
+        setMeshName(getMeshNameForKind(kind));
+        if(hadMesh)
+        {
+            createMesh();
+            RenderManager::getSingleton().rrSetObjectAnimationState(this, EntityAnimation::idle_anim, true);
+        }
+    }
+    else
+        RenderManager::getSingleton().rrUpdateChickenLook(this);
+
+    if((oldKind == ChickenKind::egg) && (kind != ChickenKind::egg))
+        RenderManager::getSingleton().rrChickenHatched(this);
 }
 
 bool ChickenEntity::countDownLay()
@@ -677,6 +718,7 @@ void ChickenEntity::importFromPacket(ODPacket& is)
     uint32_t kind = 0;
     OD_ASSERT_TRUE(is >> kind);
     mKind = static_cast<ChickenKind>(kind);
+    setMeshName(getMeshNameForKind(mKind));
 }
 
 void ChickenEntity::exportToStream(std::ostream& os) const
@@ -706,7 +748,8 @@ bool ChickenEntity::importFromStream(std::istream& is)
             mKind = static_cast<ChickenKind>(kind);
         mNbTurnLay = nbTurnLay;
         mAge = age;
-        }
+        setMeshName(getMeshNameForKind(mKind));
+    }
     else
         is.clear();
 

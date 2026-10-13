@@ -492,3 +492,17 @@ icon.rc                                OD Team                 GPLv3+
 logo.svg                               Svenskmand              CC-BY-SA 3.0
 OD-Logo.ico                            Svenskmand              CC-BY-SA 3.0
 opendungeons.appdata.xml               OD Team                 GPLv3+
+
+=======================================================
+==  Hatchery visuals: egg, nest, rooster, effects    ==
+=======================================================
+
+Name                                   Author                  License                 Source URL
+------------------------------------------------------------------------------------------------------------------------
+materials/scripts/ChickenHatchery.material   OD Team           GPLv3+                  Plain colours, no textures (original work, not AI generated)
+particles/ChickenEggShell.particle     OD Team                 GPLv3+                  Original work, not AI generated
+ChickenEgg.mesh                        OD Team                 GPLv3+                  Made in code at run time (source/render/RenderManagerChickens.cpp): egg in straw, no file (original work, not AI generated)
+ChickenCoopNest.mesh                   OD Team                 GPLv3+                  Made in code at run time (source/render/RenderManagerChickens.cpp): nest with eggs, no file (original work, not AI generated)
+ChickenLooseFeathers.mesh              OD Team                 GPLv3+                  Made in code at run time (source/render/RenderManagerChickens.cpp): loose feathers, no file (original work, not AI generated)
+ChickenRoosterComb.mesh                OD Team                 GPLv3+                  Made in code at run time (source/render/RenderManagerChickens.cpp): rooster comb, no file (original work, not AI generated)
+ChickenRoosterTail.mesh                OD Team                 GPLv3+                  Made in code at run time (source/render/RenderManagerChickens.cpp): rooster tail feathers, no file (original work, not AI generated)

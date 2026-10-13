@@ -36,6 +36,8 @@
 class DraggableTileContainer;
 class GameMap;
 class Building;
+class BuildingObject;
+class ChickenEntity;
 class Seat;
 class Tile;
 class GameEntity;
@@ -209,6 +211,21 @@ public:
         bool bodyDamage, const Ogre::Vector3& attackerPosition);
     void rrSetFeedingChicken(Creature* creature, MovableGameEntity* chicken,
         const Ogre::Vector3& position);
+
+    //! \brief Hatchery animals: scale, tint and procedural motion by kind and pose
+    void rrCreateChickenLook(ChickenEntity* chicken);
+    void rrDestroyChickenLook(ChickenEntity* chicken);
+    //! \brief The kind of the animal changed (chick grown up): new scale and tint.
+    void rrUpdateChickenLook(ChickenEntity* chicken);
+    //! \brief The egg hatched: shell pieces fly.
+    void rrChickenHatched(ChickenEntity* chicken);
+    //! \brief The server set a pose (see ChickenPose.h), an empty pose is the normal walking and idling.
+    void rrSetChickenPose(ChickenEntity* chicken, const std::string& pose);
+    //! \brief Nest with eggs or loose feathers next to a coop of the hatchery
+    void rrCreateCoopDecor(BuildingObject* coop);
+    void rrDestroyCoopDecor(BuildingObject* coop);
+    //! \brief Makes the procedural meshes of the hatchery (egg in straw, comb, tail, nest, feathers) if needed
+    void rrEnsureChickenMesh(const std::string& meshName);
 
     //! \brief Toggles the creatures text overlay
     void rrSetCreaturesTextOverlay(GameMap& gameMap, bool value);
@@ -394,6 +411,30 @@ private:
     std::vector<ChickenFeatherEffect> mChickenFeatherEffects;
     uint64_t mChickenFeatherEffectNumber = 0;
 
+    struct ChickenLook
+    {
+        Ogre::SceneNode* mNode;
+        Ogre::Entity* mEntity;
+        std::vector<Ogre::Entity*> mAccessories;
+        std::string mPose;
+        Ogre::Real mTime;
+        Ogre::Real mPoseTime;
+        Ogre::Real mPhase;
+        int mFeatherBursts;
+    };
+    std::map<ChickenEntity*, ChickenLook> mChickenLooks;
+
+    struct CoopDecor
+    {
+        Ogre::SceneNode* mNode;
+        Ogre::Entity* mNest;
+        Ogre::Entity* mFeathers;
+        Ogre::Real mShake;
+    };
+    std::map<BuildingObject*, CoopDecor> mCoopDecors;
+    Ogre::Real mCoopDecorTimer = 0.0f;
+    uint64_t mChickenLookNumber = 0;
+
     struct CreatureSleepAnimation
     {
         Creature* mCreature;
@@ -466,7 +507,10 @@ private:
     void prepareCreatureFeedingReach(CreatureFeedingAnimation& feeding);
     Ogre::Vector3 updateCreatureFeedingReach(CreatureFeedingAnimation& feeding, Ogre::Real progress);
     void cancelCreatureFeedingAnimation(Creature* creature = nullptr);
-    void createChickenFeatherEffect(const Ogre::Vector3& position);
+    void createChickenFeatherEffect(const Ogre::Vector3& position, const std::string& particleName = "ChickenFeathers");
+    void updateChickenLooks(Ogre::Real timeSinceLastFrame);
+    void applyChickenKindLook(ChickenEntity* chicken);
+    void clearChickenLooks();
     void clearChickenFeatherEffects();
     void startCreatureSleepAnimation(Creature* creature, Ogre::Entity* entity);
     void fitCreatureToBed(CreatureSleepAnimation& sleeping);
