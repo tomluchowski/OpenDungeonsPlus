@@ -21,6 +21,11 @@
 #include "creatureaction/CreatureAction.h"
 #include "entities/GameEntity.h"
 
+#include <OgreVector2.h>
+
+#include <string>
+#include <vector>
+
 class Building;
 class GameEntity;
 class Tile;
