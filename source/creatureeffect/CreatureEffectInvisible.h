@@ -38,6 +38,7 @@ public:
 
     virtual const std::string& getEffectName() const override;
 
+    //! \brief Creates the effect from the stream (used when loading a saved game).
     static CreatureEffectInvisible* load(std::istream& is);
 
 protected:
