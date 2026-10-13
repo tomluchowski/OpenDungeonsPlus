@@ -767,6 +767,7 @@ std::string SkillManager::getResearchDescription(SkillType type, uint32_t level)
         case SkillType::roomCasino: return "Keeper share of bets: " + value(config.getRoomConfigDouble("CasinoFee") * 100) + "%.";
         case SkillType::roomTorture: return "Conversion chance per session: " + value(config.getRoomConfigDouble("TortureRallyPercent") * 100) + "%.";
         case SkillType::roomGuardRoom: return "Wakefulness cost per duty turn: " + room("GuardRoomWakefulnessPerDuty") + ".";
+        case SkillType::roomTemple: return "Default prayer mana per second: " + room("TemplePrayerManaPerSecond") + "; most creature types have their own value.";
         case SkillType::trapDoorWooden: return "Door health: " + value(10) + ".";
         case SkillType::trapCannon:
         case SkillType::trapSpike:
@@ -787,15 +788,6 @@ std::string SkillManager::getResearchDescription(SkillType type, uint32_t level)
         case SkillType::spellCreatureStrength: return "Strength: x" + spell("CreatureStrengthValue") + ".";
         case SkillType::spellCreatureWeak: return "Target strength: x" + spell("CreatureWeakValue") + ".";
         case SkillType::spellEyeEvil: return "Revealed-area lifetime: " + spell("EyeEvilNbTurns") + " turns.";
-        case SkillType::spellCreateGold: return "Gold per cast: " + spell("CreateGoldValue") + ".";
-        // The health of every door type grows with the wooden door research level (TrapDoor::getHP)
-        case SkillType::trapDoorBraced: return "Door health: " + value(config.getTrapConfigDouble("BracedDoorHP")) + " before Wooden door upgrades.";
-        case SkillType::trapDoorSteel: return "Door health: " + value(config.getTrapConfigDouble("SteelDoorHP")) + " before Wooden door upgrades.";
-        case SkillType::trapDoorBarricade: return "Barricade health: " + value(config.getTrapConfigDouble("BarricadeDoorHP")) + " before Wooden door upgrades.";
-        case SkillType::roomGuardRoom: return "Wakefulness cost per duty turn: " + room("GuardRoomWakefulnessPerDuty") + ".";
-        case SkillType::roomTemple: return "Default prayer mana per second: " + room("TemplePrayerManaPerSecond") + "; most creature types have their own value.";
-        case SkillType::roomTemple: return "Default prayer mana per second: " + room("TemplePrayerManaPerSecond") + "; most creature types have their own value.";
-        case SkillType::trapAlarm: return "Reload time: " + value(config.getTrapConfigDouble("AlarmReloadTurns")) + " turns.";
         default: return "";
     }
 }

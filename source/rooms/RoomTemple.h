@@ -35,6 +35,8 @@ enum class TileVisual;
 class RoomTemple: public Room
 {
 public:
+    //! \brief Creates an empty temple on the given map
+    //! \param gameMap The map the temple belongs to
     RoomTemple(GameMap* gameMap);
 
     RoomType getType() const override
@@ -42,15 +44,30 @@ public:
 
     //! \brief One praying creature per outer tile, the pool is not used for praying
     bool hasOpenCreatureSpot(Creature* c) override;
+    //! \brief Releases the creature from the room and forgets its prayer spot
+    //! \param c The creature that stops using the room
     void removeCreatureUsingRoom(Creature* c) override;
+
+    //! \brief Lets the creature walk to its prayer spot and pray there: the keeper gets mana
+    //! and the creature feels better
+    //! \param creature The creature using the room
+    //! \param forced True if the creature was ordered to use the room
+    //! \return False, the creature keeps using the room until it decides otherwise
     bool useRoom(Creature& creature, bool forced) override;
 
     //! \brief Praying relieves bad mood, so even unhappy creatures keep praying
     bool shouldNotUseIfBadMood(Creature& creature, bool forced) override
     { return false; }
 
+    //! \brief A creature dropped on a pool tile is queued for sacrifice, otherwise the default applies
+    //! \param creature The dropped creature
     void creatureDropped(Creature& creature) override;
+
+    //! \brief Merges another room into this one; for a temple it also takes over the sacrifice queues
+    //! \param r The room that is absorbed
     void absorbRoom(Room* r) override;
+
+    //! \brief Once per turn: sacrifices the creatures that were dropped in the pool
     void doUpkeep() override;
 
     static const RoomType mRoomType;

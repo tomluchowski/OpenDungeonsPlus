@@ -42,28 +42,36 @@ const TileVisual RoomTemple::mRoomVisual = TileVisual::templeRoom;
 
 namespace
 {
+//! \brief Creates and registers temples; it also gives the temple name, visual and price
 class RoomTempleFactory : public RoomFactory
 {
+    //! \brief Returns the room type this factory builds
     RoomType getRoomType() const override
     { return RoomTemple::mRoomType; }
 
+    //! \brief Returns the tile visual used by temple tiles
     TileVisual getVisualType() const override
     { return RoomTemple::mRoomVisual; }
 
+    //! \brief Returns the internal name of the room
     const std::string& getName() const override
     { return RoomTempleName; }
 
+    //! \brief Returns the name shown to the player
     const std::string& getNameReadable() const override
     { return RoomTempleNameDisplay; }
 
+    //! \brief Returns the gold price of one temple tile from the room config
     int getCostPerTile() const override
     { return ConfigManager::getSingleton().getRoomConfigInt32("TempleCostPerTile"); }
 
+    //! \brief Checks in the client whether the selected tiles can be built as a temple
     void checkBuildRoom(GameMap* gameMap, const InputManager& inputManager, InputCommand& inputCommand) const override
     {
         checkBuildRoomDefault(gameMap, RoomTemple::mRoomType, inputManager, inputCommand);
     }
 
+    //! \brief Builds a temple for the player on the tiles from the packet and withdraws the price
     bool buildRoom(GameMap* gameMap, Player* player, ODPacket& packet) const override
     {
         std::vector<Tile*> tiles;
@@ -79,11 +87,13 @@ class RoomTempleFactory : public RoomFactory
         return buildRoomDefault(gameMap, room, player->getSeat(), tiles);
     }
 
+    //! \brief Checks in the level editor whether the selected tiles can be built as a temple
     void checkBuildRoomEditor(GameMap* gameMap, const InputManager& inputManager, InputCommand& inputCommand) const override
     {
         checkBuildRoomDefaultEditor(gameMap, RoomTemple::mRoomType, inputManager, inputCommand);
     }
 
+    //! \brief Builds a temple from the packet in the level editor, without a price
     bool buildRoomEditor(GameMap* gameMap, ODPacket& packet) const override
     {
         RoomTemple* room = new RoomTemple(gameMap);
@@ -94,6 +104,7 @@ class RoomTempleFactory : public RoomFactory
     Room* createRoom(GameMap* gameMap) const override
     { return new RoomTemple(gameMap); }
 
+    //! \brief Reads a temple from a saved game or level stream
     Room* getRoomFromStream(GameMap* gameMap, std::istream& is) const override
     {
         RoomTemple* room = new RoomTemple(gameMap);
@@ -104,6 +115,7 @@ class RoomTempleFactory : public RoomFactory
         return room;
     }
 
+    //! \brief Builds a temple on the given tiles; the price is only withdrawn when noFee is false
     bool buildRoomOnTiles(GameMap* gameMap, Player* player, const std::vector<Tile*>& tiles, bool noFee =false) const override
     {
         int32_t pricePerTarget = RoomManager::costPerTile(RoomTemple::mRoomType);
