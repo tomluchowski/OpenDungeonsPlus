@@ -233,6 +233,10 @@ public:
     inline const std::string& getSoundFamilySlap() const
     { return mSoundFamilySlap; }
 
+    //! \brief Seconds a captured enemy of this kind must be tortured at level 1 before it changes side
+    inline double getTortureTimeToConvert() const
+    { return mTortureTimeToConvert; }
+
 private:
     //! \brief The job of the creature (e.g. worker, fighter, ...)
     CreatureJob mCreatureJob;
@@ -355,6 +359,9 @@ private:
     std::string mSoundFamilyAttack;
     std::string mSoundFamilyDie;
     std::string mSoundFamilySlap;
+
+    //! \brief Seconds of torture at level 1 before an enemy of this kind changes side
+    double mTortureTimeToConvert;
 
     //! \brief Loads the creature XP values for the given definition.
     static void loadXPTable(std::stringstream& defFile, CreatureDefinition* creatureDef);

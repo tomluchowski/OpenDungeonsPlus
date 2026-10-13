@@ -59,6 +59,8 @@ public:
     void removeCreatureUsingRoom(Creature* creature) override;
 
     uint32_t countPrisoners();
+    //! \brief Number of prisoners the prison can hold
+    uint32_t getCapacity() const;
 
     bool hasCarryEntitySpot(GameEntity* carriedEntity) override;
     Tile* askSpotForCarriedEntity(GameEntity* carriedEntity) override;
@@ -84,6 +86,13 @@ protected:
 
 private:
     
+    //! \brief Chickens dropped in the prison are eaten by the nearest prisoner
+    void feedPrisoners();
+    //! \brief An enemy creature standing in the prison frees the prisoners allied to it
+    void freePrisonersIfLiberated();
+    //! Enemy able to free prisoners (not a worker)
+    bool isLiberator(Creature* creature) const;
+
     void deleteFenceMeshes();
     void putFenceMeshes();
     BuildingObject* createFencingMesh(FencingDirection hd, Tile*  tt);
