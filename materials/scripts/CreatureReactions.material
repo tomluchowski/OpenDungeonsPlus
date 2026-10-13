@@ -1,0 +1,232 @@
+// Emote icons shown above a creature and sprites of the creature reaction particles.
+// The images are drawn by tools/gen_creature_reaction_art.py
+
+material CreatureEmote_Exclamation
+{
+    technique
+    {
+        pass
+        {
+            scene_blend alpha_blend
+            texture_unit
+            {
+                texture CreatureEmoteExclamation.png
+            }
+        }
+    }
+}
+
+material CreatureEmote_Question
+{
+    technique
+    {
+        pass
+        {
+            scene_blend alpha_blend
+            texture_unit
+            {
+                texture CreatureEmoteQuestion.png
+            }
+        }
+    }
+}
+
+material CreatureEmote_Bulb
+{
+    technique
+    {
+        pass
+        {
+            scene_blend alpha_blend
+            texture_unit
+            {
+                texture CreatureEmoteBulb.png
+            }
+        }
+    }
+}
+
+material CreatureEmote_Heart
+{
+    technique
+    {
+        pass
+        {
+            scene_blend alpha_blend
+            texture_unit
+            {
+                texture CreatureEmoteHeart.png
+            }
+        }
+    }
+}
+
+material CreatureEmote_Coin
+{
+    technique
+    {
+        pass
+        {
+            scene_blend alpha_blend
+            texture_unit
+            {
+                texture CreatureEmoteCoin.png
+            }
+        }
+    }
+}
+
+material CreatureEmote_Z
+{
+    technique
+    {
+        pass
+        {
+            scene_blend alpha_blend
+            texture_unit
+            {
+                texture CreatureEmoteZ.png
+            }
+        }
+    }
+}
+
+material CreatureEmote_Sweat
+{
+    technique
+    {
+        pass
+        {
+            scene_blend alpha_blend
+            texture_unit
+            {
+                texture CreatureEmoteSweat.png
+            }
+        }
+    }
+}
+
+material CreatureEmote_Steam
+{
+    technique
+    {
+        pass
+        {
+            scene_blend alpha_blend
+            texture_unit
+            {
+                texture CreatureEmoteSteam.png
+            }
+        }
+    }
+}
+
+material CreatureEmote_Note
+{
+    technique
+    {
+        pass
+        {
+            scene_blend alpha_blend
+            texture_unit
+            {
+                texture CreatureEmoteNote.png
+            }
+        }
+    }
+}
+
+material ReactionParticleSpark
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend add
+            depth_write off
+            diffuse vertexcolour
+
+            texture_unit
+            {
+                texture ReactionParticleSpark.png
+            }
+        }
+    }
+}
+
+material ReactionParticleCoin
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_write off
+            diffuse vertexcolour
+
+            texture_unit
+            {
+                texture ReactionParticleCoin.png
+            }
+        }
+    }
+}
+
+material ReactionParticleDust
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_write off
+            diffuse vertexcolour
+
+            texture_unit
+            {
+                texture ReactionParticleDust.png
+            }
+        }
+    }
+}
+
+material ReactionParticleZ
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_write off
+            diffuse vertexcolour
+
+            texture_unit
+            {
+                texture ReactionParticleZ.png
+            }
+        }
+    }
+}
+
+material ReactionParticleSteam
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_write off
+            diffuse vertexcolour
+
+            texture_unit
+            {
+                texture ReactionParticleSteam.png
+            }
+        }
+    }
+}

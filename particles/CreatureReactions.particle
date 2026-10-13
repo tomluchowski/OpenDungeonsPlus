@@ -1,0 +1,179 @@
+// Short effects of the creature reactions (see config/creatureReactions.cfg).
+// They are put on the creature for the time the reaction takes and are removed afterwards.
+
+particle_system ReactionSparks
+{
+    material        ReactionParticleSpark
+    point_rendering false
+    particle_width  0.2
+    particle_height 0.2
+    cull_each       false
+    quota           40
+    billboard_type  point
+
+    emitter Box
+    {
+        angle               180
+        colour_range_start  1.0 0.9 0.5 1.0
+        colour_range_end    1.0 1.0 0.8 1.0
+        emission_rate       40
+        time_to_live        0.7
+        direction           0 0 1
+        velocity_min        0.3
+        velocity_max        1.0
+        duration            0.9
+        position            0 0 0.7
+        width               0.6
+        height              0.6
+        depth               0.6
+    }
+
+    affector ColourFader
+    {
+        alpha -1.4
+    }
+}
+
+particle_system ReactionCoins
+{
+    material        ReactionParticleCoin
+    point_rendering false
+    particle_width  0.2
+    particle_height 0.2
+    cull_each       false
+    quota           24
+    billboard_type  point
+
+    emitter Point
+    {
+        angle               55
+        colour              1.0 1.0 1.0 1.0
+        emission_rate       14
+        time_to_live        1.1
+        direction           0 0 1
+        velocity_min        1.8
+        velocity_max        2.6
+        duration            0.6
+        position            0 0 1.0
+    }
+
+    affector LinearForce
+    {
+        force_vector      0 0 -4.5
+        force_application add
+    }
+
+    affector Rotator
+    {
+        rotation_speed_range_start  -200
+        rotation_speed_range_end    200
+        rotation_range_start        0
+        rotation_range_end          360
+    }
+
+    affector ColourFader
+    {
+        alpha -0.6
+    }
+}
+
+particle_system ReactionDust
+{
+    material        ReactionParticleDust
+    point_rendering false
+    particle_width  0.35
+    particle_height 0.35
+    cull_each       false
+    quota           30
+    billboard_type  point
+
+    emitter Box
+    {
+        angle               90
+        colour              1.0 1.0 1.0 1.0
+        emission_rate       25
+        time_to_live        0.9
+        direction           0 0 1
+        velocity_min        0.25
+        velocity_max        0.6
+        duration            0.5
+        position            0 0 0.05
+        width               0.7
+        height              0.7
+        depth               0.1
+    }
+
+    affector Scaler
+    {
+        rate 0.5
+    }
+
+    affector ColourFader
+    {
+        alpha -0.9
+    }
+}
+
+particle_system ReactionZ
+{
+    material        ReactionParticleZ
+    point_rendering false
+    particle_width  0.28
+    particle_height 0.28
+    cull_each       false
+    quota           8
+    billboard_type  point
+
+    emitter Point
+    {
+        angle               15
+        colour              1.0 1.0 1.0 1.0
+        emission_rate       1.2
+        time_to_live        1.8
+        direction           0.3 0 1
+        velocity            0.35
+        position            0.1 0 1.1
+    }
+
+    affector Scaler
+    {
+        rate 0.15
+    }
+
+    affector ColourFader
+    {
+        alpha -0.5
+    }
+}
+
+particle_system ReactionSteam
+{
+    material        ReactionParticleSteam
+    point_rendering false
+    particle_width  0.3
+    particle_height 0.3
+    cull_each       false
+    quota           24
+    billboard_type  point
+
+    emitter Point
+    {
+        angle               25
+        colour              1.0 0.85 0.8 1.0
+        emission_rate       14
+        time_to_live        0.9
+        direction           0 0 1
+        velocity            0.6
+        position            0 0 1.0
+    }
+
+    affector Scaler
+    {
+        rate 0.35
+    }
+
+    affector ColourFader
+    {
+        alpha -1.0
+    }
+}
