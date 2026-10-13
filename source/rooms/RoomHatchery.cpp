@@ -536,7 +536,6 @@ void RoomHatchery::updateFight(std::vector<ChickenEntity*>& roosters, const Hatc
             fighter->setMood(RoosterMood::strut, 0);
             climbDown(fighter);
         }
-        fireAnimalSound(*first, "Hatchery/Cluck");
         first->notifyFight(mFightSecond, 0);
     }
 
@@ -605,7 +604,6 @@ void RoomHatchery::endFight(ChickenEntity* first, ChickenEntity* second, bool fi
     ChickenEntity* winner = mFightFirstWins ? first : second;
     ChickenEntity* loser = mFightFirstWins ? second : first;
     winner->notifyFight(loser->getName(), 1);
-    fireAnimalSound(*loser, "Hatchery/Cluck");
     if(loser->loseFight() && (counts.mRoosters > 0))
         --counts.mRoosters;
 
@@ -615,7 +613,6 @@ void RoomHatchery::endFight(ChickenEntity* first, ChickenEntity* second, bool fi
     winner->setMood(RoosterMood::strut, 0);
     winner->resetSinceCrow();
     winner->playPose(ChickenPose::crow, 3);
-    fireAnimalSound(*winner, "Hatchery/Crow");
 }
 
 RoosterSettings RoomHatchery::getRoosterSettings() const
