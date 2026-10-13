@@ -127,6 +127,7 @@
 //!   Action  golfball <seatId> <x> <y>         # a boulder lies on the tile; the seat rolls it by slapping it. A region named by a "boulder" condition is a hole: the ball stops in it
 //!   Action  stonecreate <x> <y>                 # a portal stone lies on the tile
 //!   Action  stoneattach <creatureName>          # the creature carries a portal stone; it drops where the creature dies
+//!   Action  keepminion <seatId>              # campaign: the strongest fighter of the seat comes along to the next level if this level is won (it starts at the dungeon temple)
 //!   Action  terrain <x1> <y1> <x2> <y2> bridge <seatId>   # also: a wooden bridge of the seat over lava or water
 //!   Action  discover <levelFile>              # campaign: reveals a bonus level (level file as in Campaign.cfg)
 //!   State   <timesFired> <lastFiredTurn>      # written by the game, only needed in savegames
@@ -231,7 +232,8 @@ enum class LevelScriptActionType
     slapLimit,
     golfBall,
     stoneCreate,
-    stoneAttach
+    stoneAttach,
+    keepMinion
 };
 
 //! \brief One condition of a trigger. The fields that are used depend on the type.

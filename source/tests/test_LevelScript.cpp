@@ -1019,3 +1019,38 @@ BOOST_AUTO_TEST_CASE(test_discover_action)
     std::istringstream isBad("[Trigger]\nName\tx\nMode\tonce\nCond\ttime\t1\nAction\tdiscover\n[/Trigger]\n[/Triggers]\n");
     BOOST_CHECK(!invalid.importFromStream(isBad));
 }
+
+//! \brief The keepminion action that lets the strongest fighter of a seat come along to the next campaign level
+//! is read and written, and refused without a seat
+BOOST_AUTO_TEST_CASE(test_keep_minion_action)
+{
+    static const std::string text =
+        "[Trigger]\n"
+        "Name\tkeep\n"
+        "Mode\tonce\n"
+        "Cond\ttime\t60\n"
+        "Action\tkeepminion\t1\n"
+        "[/Trigger]\n"
+        "[/Triggers]\n";
+    LevelScript script;
+    std::istringstream is(text);
+    BOOST_REQUIRE(script.importFromStream(is));
+    const LevelScriptTrigger& trigger = script.getTriggers()[0];
+    BOOST_REQUIRE_EQUAL(trigger.mActions.size(), 1u);
+    BOOST_CHECK(trigger.mActions[0].mType == LevelScriptActionType::keepMinion);
+    BOOST_CHECK_EQUAL(trigger.mActions[0].mSeatId, 1);
+
+    std::ostringstream os;
+    script.exportToStream(os);
+    std::string written = os.str();
+    LevelScript again;
+    std::istringstream is2(written.substr(11));
+    BOOST_REQUIRE(again.importFromStream(is2));
+    std::ostringstream os2;
+    again.exportToStream(os2);
+    BOOST_CHECK_EQUAL(os2.str(), written);
+
+    LevelScript invalid;
+    std::istringstream isBad("[Trigger]\nName\tx\nMode\tonce\nCond\ttime\t1\nAction\tkeepminion\n[/Trigger]\n[/Triggers]\n");
+    BOOST_CHECK(!invalid.importFromStream(isBad));
+}

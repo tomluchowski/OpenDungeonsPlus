@@ -157,4 +157,12 @@ assert 'key == "FreePossession"' in script_cpp and 'os << "FreePossession' in sc
 assert 'isFreePossession()' in read('source/creatureaction/CreatureActionPossessed.cpp')
 assert 'script.setFreePossession(true)' in runner
 
-print('level script make, time limit, creature events, stones, possession and region test level wiring: ok')
+# kept minion: the strongest fighter is chosen by the keepminion action, saved with the campaign progress and
+# given out when the next level of the campaign starts
+campaign = read('source/game/Campaign.cpp')
+assert 'case LevelScriptActionType::keepMinion:' in runner and 'setKeptMinion(' in runner
+assert 'type == "keepminion"' in script_cpp and 'os << "keepminion' in script_cpp
+assert 'takeKeptMinion(' in runner and 'KeptMinion' in campaign
+assert 'LevelScriptRunner::spawnKeptMinion(*gameMap);' in read('source/network/ODServer.cpp')
+
+print('level script make, time limit, creature events, stones, possession, kept minion and region test level wiring: ok')

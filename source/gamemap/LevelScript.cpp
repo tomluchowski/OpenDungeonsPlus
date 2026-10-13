@@ -669,6 +669,11 @@ bool parseAction(const std::string& line, const std::vector<std::string>& t, Lev
         action.mText = t[2];
         return true;
     }
+    if(type == "keepminion")
+    {
+        action.mType = LevelScriptActionType::keepMinion;
+        return (t.size() == 3) && parseInt32(t[2], action.mSeatId);
+    }
     if(type == "possess")
     {
         action.mType = LevelScriptActionType::possessCreature;
@@ -1020,6 +1025,9 @@ void writeAction(std::ostream& os, const LevelScriptAction& a)
             break;
         case LevelScriptActionType::stoneAttach:
             os << "stoneattach\t" << a.mText;
+            break;
+        case LevelScriptActionType::keepMinion:
+            os << "keepminion\t" << a.mSeatId;
             break;
         case LevelScriptActionType::alliance:
             os << "alliance\t" << a.mSeatId << "\t" << a.mTargetSeatId << "\t" << (a.mNumber != 0 ? "make" : "break");

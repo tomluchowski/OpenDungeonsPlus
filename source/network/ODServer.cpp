@@ -37,6 +37,7 @@
 #include "gamemap/GameMap.h"
 #include "gamemap/DraggableTileContainer.h"
 #include "gamemap/LevelScript.h"
+#include "gamemap/LevelScriptRunner.h"
 #include "gamemap/MapHandler.h"
 #include "modes/ConsoleCommands.h"
 #include "network/ODClient.h"
@@ -1408,6 +1409,9 @@ bool ODServer::processClientNotifications(ODSocketClient* clientSocket)
                 // We initialize the seats
                 seat->initSeat();
             }
+
+            // A creature that the last campaign level brought along comes to the dungeon
+            LevelScriptRunner::spawnKeptMinion(*gameMap);
 
             mSeatsConfigured = true;
             gameMap->notifySeatsConfigured();

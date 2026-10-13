@@ -44,7 +44,9 @@ Campaign::Campaign():
     mActive(false),
     mPlayedLevel(0),
     mPlayedLevelWon(false),
-    mDifficulty(getDefaultDifficulty())
+    mDifficulty(getDefaultDifficulty()),
+    mKeptPendingLevel(0),
+    mKeptLevel(0)
 {
 }
 
@@ -138,6 +140,8 @@ bool Campaign::importProgress(std::istream& is)
     mCompleted.assign(mLevels.size(), false);
     mDiscovered.assign(mLevels.size(), false);
     mDifficulty = getDefaultDifficulty();
+    mKeptClass.clear();
+    mKeptLevel = 0;
 
     std::string line;
     while(std::getline(is, line))
@@ -150,6 +154,17 @@ bool Campaign::importProgress(std::istream& is)
             uint32_t difficulty;
             if((ss >> difficulty) && (difficulty < static_cast<uint32_t>(KeeperAIType::nbAI)))
                 mDifficulty = difficulty;
+            continue;
+        }
+        if(keyword == "KeptMinion")
+        {
+            std::string className;
+            uint32_t level;
+            if((ss >> className >> level) && !className.empty())
+            {
+                mKeptClass = className;
+                mKeptLevel = level;
+            }
             continue;
         }
         if((keyword != "Completed") && (keyword != "Discovered"))
@@ -185,6 +200,8 @@ void Campaign::exportProgress(std::ostream& os) const
     }
     os << "\n";
     os << "Difficulty " << mDifficulty << "\n";
+    if(!mKeptClass.empty())
+        os << "KeptMinion " << mKeptClass << " " << mKeptLevel << "\n";
 }
 
 void Campaign::setProgressPath(const std::string& path)
@@ -377,6 +394,29 @@ bool Campaign::hasProgress() const
     return false;
 }
 
+void Campaign::setKeptMinion(const std::string& className, uint32_t level)
+{
+    std::lock_guard<std::mutex> lock(mMutex);
+    mKeptPendingClass = className;
+    mKeptPendingLevel = level;
+}
+
+bool Campaign::takeKeptMinion(std::string& className, uint32_t& level)
+{
+    {
+        std::lock_guard<std::mutex> lock(mMutex);
+        if(mKeptClass.empty())
+            return false;
+
+        className = mKeptClass;
+        level = mKeptLevel;
+        mKeptClass.clear();
+        mKeptLevel = 0;
+    }
+    saveProgress();
+    return true;
+}
+
 void Campaign::resetProgress()
 {
     {
@@ -386,6 +426,8 @@ void Campaign::resetProgress()
         mPlayedLevel = mLevels.size();
         mPlayedLevelWon = false;
         mDifficulty = getDefaultDifficulty();
+        mKeptClass.clear();
+        mKeptLevel = 0;
     }
     saveProgress();
 }
@@ -420,6 +462,8 @@ void Campaign::startLevel(size_t index)
     mPlayedLevel = index;
     mPlayedLevelWon = false;
     mLevelSummary.clear();
+    mKeptPendingClass.clear();
+    mKeptPendingLevel = 0;
 }
 
 void Campaign::stopCampaign()
@@ -480,6 +524,13 @@ bool Campaign::onLevelWon()
 
         mCompleted[mPlayedLevel] = true;
         mPlayedLevelWon = true;
+        if(!mKeptPendingClass.empty())
+        {
+            mKeptClass = mKeptPendingClass;
+            mKeptLevel = mKeptPendingLevel;
+            mKeptPendingClass.clear();
+            mKeptPendingLevel = 0;
+        }
     }
     saveProgress();
     return true;

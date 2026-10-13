@@ -287,3 +287,38 @@ BOOST_AUTO_TEST_CASE(test_world_map)
     std::istringstream broken("{\"size\":[4,2]}");
     BOOST_CHECK(!world.importDefinition(broken));
 }
+
+//! \brief A kept minion is chosen while a level is played, comes along only when that level is won, is saved with the
+//! progress and is given out once
+BOOST_AUTO_TEST_CASE(test_kept_minion)
+{
+    Campaign& campaign = Campaign::getSingleton();
+    std::istringstream is(sample);
+    BOOST_REQUIRE(campaign.importDefinition(is));
+    campaign.resetProgress();
+
+    // A minion of a level that was lost does not come along
+    campaign.startLevel(0);
+    campaign.setKeptMinion("Knight", 4);
+    campaign.stopCampaign();
+    std::string className;
+    uint32_t level = 0;
+    BOOST_CHECK(!campaign.takeKeptMinion(className, level));
+
+    // A minion of a won level is saved with the progress and read again
+    campaign.startLevel(0);
+    campaign.setKeptMinion("Knight", 4);
+    BOOST_CHECK(campaign.onLevelWon());
+    std::ostringstream os;
+    campaign.exportProgress(os);
+    BOOST_CHECK(os.str().find("KeptMinion Knight 4") != std::string::npos);
+    campaign.resetProgress();
+    std::istringstream saved(os.str());
+    BOOST_REQUIRE(campaign.importProgress(saved));
+    BOOST_CHECK(campaign.takeKeptMinion(className, level));
+    BOOST_CHECK_EQUAL(className, "Knight");
+    BOOST_CHECK_EQUAL(level, 4u);
+
+    // It is given out once
+    BOOST_CHECK(!campaign.takeKeptMinion(className, level));
+}

@@ -129,6 +129,12 @@ public:
     size_t getHeartstoneTotal() const;
     //! \brief True if the campaign has bonus levels and all were discovered.
     bool isHeartstoneComplete() const;
+    //! \brief The kept minion special was used in the level that is played: the creature (class and level)
+    //! comes along to the next level, if this level is won.
+    void setKeptMinion(const std::string& className, uint32_t level);
+    //! \brief The creature that came along from the last level won. Returns false if there is none; the
+    //! creature is taken (it comes to one level only).
+    bool takeKeptMinion(std::string& className, uint32_t& level);
     //! \brief True if any level was completed (a campaign can be continued).
     bool hasProgress() const;
     //! \brief Forgets all progress (New Campaign).
@@ -180,6 +186,12 @@ private:
     bool mPlayedLevelWon;
     std::string mLevelSummary;
     uint32_t mDifficulty;
+    //! The creature chosen by the kept minion special in the level that is played, and the one that came
+    //! from the last level won (saved)
+    std::string mKeptPendingClass;
+    uint32_t mKeptPendingLevel;
+    std::string mKeptClass;
+    uint32_t mKeptLevel;
 
     size_t getCurrentLevelNoLock() const;
     bool isUnlockedNoLock(size_t index) const;

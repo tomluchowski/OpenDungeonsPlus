@@ -1096,6 +1096,27 @@ void changeRoomOwner(GameMap& gameMap, const LevelScriptAction& action)
 }
 
 //! \brief The creature with that name leaves the map (the remove action). Nothing happens if there is none on the map.
+//! The strongest fighter of the seat comes along to the next level of the campaign (when this level is won)
+void keepMinion(GameMap& gameMap, int32_t seatId)
+{
+    Seat* seat = gameMap.getSeatById(seatId);
+    if(seat == nullptr)
+        return;
+
+    Creature* best = nullptr;
+    std::vector<Creature*> creatures = gameMap.getCreaturesBySeat(seat);
+    for(Creature* creature : creatures)
+    {
+        if(!creature->isAlive() || creature->getDefinition()->isWorker())
+            continue;
+
+        if((best == nullptr) || (creature->getLevel() > best->getLevel()))
+            best = creature;
+    }
+    if(best != nullptr)
+        Campaign::getSingleton().setKeptMinion(best->getDefinition()->getClassName(), best->getLevel());
+}
+
 void removeCreature(GameMap& gameMap, const std::string& name)
 {
     Creature* creature = gameMap.getCreature(name);
@@ -1178,6 +1199,9 @@ void runAction(GameMap& gameMap, LevelScript& script, const LevelScriptAction& a
         case LevelScriptActionType::removeCreature:
             removeCreature(gameMap, action.mText);
             break;
+        case LevelScriptActionType::keepMinion:
+            keepMinion(gameMap, action.mSeatId);
+            break;
         case LevelScriptActionType::possessCreature:
         {
             Creature* creature = gameMap.getCreature(action.mText);
@@ -1228,6 +1252,40 @@ void runAction(GameMap& gameMap, LevelScript& script, const LevelScriptAction& a
 }
 
 } // namespace
+
+void LevelScriptRunner::spawnKeptMinion(GameMap& gameMap)
+{
+    if(!Campaign::getSingleton().isActive())
+        return;
+
+    for(Seat* seat : gameMap.getSeats())
+    {
+        if(seat->isRogueSeat() || (seat->getPlayer() == nullptr) || !seat->getPlayer()->getIsHuman())
+            continue;
+
+        for(Room* room : gameMap.getRoomsByType(RoomType::dungeonTemple))
+        {
+            Tile* tile = room->getCentralTile();
+            if((room->getSeat() != seat) || (tile == nullptr))
+                continue;
+
+            std::string className;
+            uint32_t level = 0;
+            if(!Campaign::getSingleton().takeKeptMinion(className, level))
+                return;
+
+            LevelScriptAction action;
+            action.mType = LevelScriptActionType::spawn;
+            action.mSeatId = seat->getId();
+            action.mX = tile->getX();
+            action.mY = tile->getY();
+            action.mCreatures.push_back(std::make_pair(className, level));
+            action.mCreatureNames.push_back(std::string());
+            spawnCreatures(gameMap, action);
+            return;
+        }
+    }
+}
 
 void LevelScriptRunner::doTurn(GameMap& gameMap)
 {
