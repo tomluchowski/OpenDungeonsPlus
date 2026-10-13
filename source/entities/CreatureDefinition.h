@@ -134,6 +134,11 @@ public:
     inline bool isWorker() const
     { return (mCreatureJob == Worker); }
 
+    //! \brief The runners of the heart defence: the workers, plus the two cheap and
+    //! fast scout creatures, the hornet and the goblin.
+    inline bool isHeartDefenceRunner() const
+    { return isWorker() || mClassName == "CaveHornet" || mClassName == "Goblin"; }
+
     friend ODPacket& operator <<(ODPacket& os, const CreatureDefinition *c);
     friend ODPacket& operator >>(ODPacket& is, CreatureDefinition *c);
 
@@ -227,6 +232,10 @@ public:
     { return mSoundFamilyDie; }
     inline const std::string& getSoundFamilySlap() const
     { return mSoundFamilySlap; }
+
+    //! \brief Seconds a captured enemy of this kind must be tortured at level 1 before it changes side
+    inline double getTortureTimeToConvert() const
+    { return mTortureTimeToConvert; }
 
 private:
     //! \brief The job of the creature (e.g. worker, fighter, ...)
@@ -350,6 +359,9 @@ private:
     std::string mSoundFamilyAttack;
     std::string mSoundFamilyDie;
     std::string mSoundFamilySlap;
+
+    //! \brief Seconds of torture at level 1 before an enemy of this kind changes side
+    double mTortureTimeToConvert;
 
     //! \brief Loads the creature XP values for the given definition.
     static void loadXPTable(std::stringstream& defFile, CreatureDefinition* creatureDef);

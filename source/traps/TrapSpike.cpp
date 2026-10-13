@@ -16,6 +16,8 @@
  */
 
 #include "traps/TrapSpike.h"
+#include "game/SkillManager.h"
+#include "game/SkillType.h"
 
 #include "entities/RenderedMovableEntity.h"
 #include "entities/Tile.h"
@@ -141,14 +143,18 @@ bool TrapSpike::shoot(Tile* tile)
     for(GameEntity* target : enemyCreatures)
     {
         Tile* tile = target->getCoveredTile(0);
-        target->takeDamage(this, 0.0, Random::Double(mMinDamage, mMaxDamage), 0.0, 0.0, tile, false);
+        target->takeDamage(this, 0.0, Random::Double(
+            SkillManager::getResearchValue(getSeat(), SkillType::trapSpike, mMinDamage),
+            SkillManager::getResearchValue(getSeat(), SkillType::trapSpike, mMaxDamage, true)), 0.0, 0.0, tile, false);
         target->notifyFightPlayer(tile);
     }
     std::vector<GameEntity*> alliedCreatures = getGameMap()->getVisibleCreatures(visibleTiles, getSeat(), false);
     for(GameEntity* target : alliedCreatures)
     {
         Tile* tile = target->getCoveredTile(0);
-        target->takeDamage(this, 0.0, Random::Double(mMinDamage, mMaxDamage), 0.0, 0.0, tile, false);
+        target->takeDamage(this, 0.0, Random::Double(
+            SkillManager::getResearchValue(getSeat(), SkillType::trapSpike, mMinDamage),
+            SkillManager::getResearchValue(getSeat(), SkillType::trapSpike, mMaxDamage, true)), 0.0, 0.0, tile, false);
         target->notifyFightPlayer(tile);
     }
     return true;

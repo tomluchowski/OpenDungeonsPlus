@@ -79,6 +79,8 @@ std::string ClientNotification::typeString(ClientNotificationType type)
             return "askSetSkillTree";
         case ClientNotificationType::askSetPlayerSettings:
             return "askSetPlayerSettings";
+        case ClientNotificationType::askCasinoPayout:
+            return "askCasinoPayout";
         case ClientNotificationType::askSaveMap:
             return "askSaveMap";
         case ClientNotificationType::askExecuteConsoleCommand:
@@ -127,6 +129,14 @@ std::string ClientNotification::typeString(ClientNotificationType type)
             return "editorAskPortalWaveData";
         case ClientNotificationType::editorSetPortalWaveData:
             return "editorSetPortalWaveData";
+        case ClientNotificationType::changeNick:
+            return "changeNick";
+        case ClientNotificationType::askHandDropAll:
+            return "askHandDropAll";
+        case ClientNotificationType::askTrapProductionQueue:
+            return "askTrapProductionQueue";
+        case ClientNotificationType::askMoveTrapProductionOrder:
+            return "askMoveTrapProductionOrder";
         default:
             OD_LOG_ERR("Unknown enum for ClientNotificationType="
                 + Helper::toString(static_cast<int>(type)));

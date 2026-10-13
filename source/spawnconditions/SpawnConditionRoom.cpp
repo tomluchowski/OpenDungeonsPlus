@@ -27,7 +27,7 @@ bool SpawnConditionRoom::computePointsForSeat(const GameMap& gameMap, const Seat
     std::vector<const Room*> rooms = gameMap.getRoomsByTypeAndSeat(mRoomType, &seat);
     for(const Room* room : rooms)
     {
-        nbActiveSpots += room->getNumActiveSpots();
+        nbActiveSpots += mCountTiles ? room->numCoveredTiles() : room->getNumActiveSpots();
     }
     if(nbActiveSpots < mNbActiveSpotsMin)
         return false;

@@ -2,11 +2,11 @@
 
 <GUILayout version="4" >
     <Window type="OD/FrameWindow" name="SkillTreeWindow" >
-        <Property name="Area" value="{{0.5,-305},{0.5,-196},{0.5,305},{0.5,196}}" />
+        <Property name="Area" value="{{0.5,-305},{0.5,-220},{0.5,305},{0.5,220}}" />
         <Property name="Text" value="Skill Tree" />
         <Property name="SizingEnabled" value="False" />
         <Window type="OD/StaticImage" name="Skills" >
-            <Property name="Area" value="{{0,20},{0,35},{1,-20},{1,-60}}" />
+            <Property name="Area" value="{{0,20},{0,35},{1,-20},{1,-108}}" />
             <Property name="MaxSize" value="{{1,0},{1,0}}" />
             <Window type="OD/StaticImage" name="AttackSkills" >
                 <Property name="Area" value="{{0,10},{0,10},{0,190},{1,-10}}" />
@@ -237,6 +237,23 @@
                         <Property name="ReversedProgress" value="True" />
                     </Window>
                 </Window>
+                <Window type="OD/ImageButton" name="GuardRoomButton" >
+                    <Property name="Area" value="{{0.5,-25},{0,75},{0.5,25},{0,125}}" />
+                    <Property name="ButtonImage" value="OpenDungeonsIcons/GuardRoomButton" />
+                    <Property name="TooltipText" value="Room: Guard room" />
+                    <Window type="OD/ProgressBar" name="GuardRoomButtonProgressBar" >
+                        <Property name="Area" value="{{0.0,-20},{0.0,0},{1.0,20},{1.0,0}}" />
+                        <Property name="InheritsTooltipText" value="True" />
+                        <Property name="CurrentProgress" value="0.0" />
+                        <Property name="MousePassThroughEnabled" value="True" />
+                        <Property name="StepSize" value="0.1" />
+                        <Property name="Visible" value="False" />
+                        <Property name="VerticalProgress" value="True" />
+                        <Property name="Alpha" value="0.2" />
+                        <Property name="ProgressImage" value="OpenDungeonsSkin/ProgressBarLitSegment" />
+                        <Property name="ReversedProgress" value="True" />
+                    </Window>
+                </Window>
                 <Window type="OD/ImageButton" name="WoodenDoorTrapButton" >
                     <Property name="Area" value="{{0.7,-25},{0,75},{0.7,25},{0,125}}" />
                     <Property name="ButtonImage" value="OpenDungeonsIcons/WoodenDoorTrapButton" />
@@ -447,7 +464,7 @@
                     </Window>
                 </Window>
                 <Window type="OD/ImageButton" name="CreatureStrengthButton" >
-                    <Property name="Area" value="{{0.3,-25},{0,195},{0.3,25},{0,245}}" />
+                    <Property name="Area" value="{{0.11,-25},{0,195},{0.11,25},{0,245}}" />
                     <Property name="ButtonImage" value="OpenDungeonsIcons/CreatureStrengthButton" />
                     <Property name="TooltipText" value="Spell: Increase creature strength" />
                     <Window type="OD/ProgressBar" name="CreatureStrengthButtonProgressBar" >
@@ -464,10 +481,44 @@
                     </Window>
                 </Window>
                 <Window type="OD/ImageButton" name="CreatureWeakButton" >
-                    <Property name="Area" value="{{0.7,-25},{0,195},{0.7,25},{0,245}}" />
+                    <Property name="Area" value="{{0.734,-25},{0,195},{0.734,25},{0,245}}" />
                     <Property name="ButtonImage" value="OpenDungeonsIcons/CreatureWeakButton" />
                     <Property name="TooltipText" value="Spell: Decrease creature strength" />
                     <Window type="OD/ProgressBar" name="CreatureWeakButtonProgressBar" >
+                        <Property name="Area" value="{{0.0,-20},{0.0,0},{1.0,20},{1.0,0}}" />
+                        <Property name="InheritsTooltipText" value="True" />
+                        <Property name="CurrentProgress" value="0.0" />
+                        <Property name="MousePassThroughEnabled" value="True" />
+                        <Property name="StepSize" value="0.1" />
+                        <Property name="Visible" value="False" />
+                        <Property name="VerticalProgress" value="True" />
+                        <Property name="Alpha" value="0.2" />
+                        <Property name="ProgressImage" value="OpenDungeonsSkin/SelectionBrush" />
+                        <Property name="ReversedProgress" value="True" />
+                    </Window>
+                </Window>
+                <Window type="OD/ImageButton" name="CreateGoldButton" >
+                    <Property name="Area" value="{{0.266,-25},{0,195},{0.266,25},{0,245}}" />
+                    <Property name="ButtonImage" value="OpenDungeonsIcons/CreateGoldButton" />
+                    <Property name="TooltipText" value="Spell: Create Gold" />
+                    <Window type="OD/ProgressBar" name="CreateGoldButtonProgressBar" >
+                        <Property name="Area" value="{{0.0,-20},{0.0,0},{1.0,20},{1.0,0}}" />
+                        <Property name="InheritsTooltipText" value="True" />
+                        <Property name="CurrentProgress" value="0.0" />
+                        <Property name="MousePassThroughEnabled" value="True" />
+                        <Property name="StepSize" value="0.1" />
+                        <Property name="Visible" value="False" />
+                        <Property name="VerticalProgress" value="True" />
+                        <Property name="Alpha" value="0.2" />
+                        <Property name="ProgressImage" value="OpenDungeonsSkin/SelectionBrush" />
+                        <Property name="ReversedProgress" value="True" />
+                    </Window>
+                </Window>
+                <Window type="OD/ImageButton" name="PrayerTempleButton" >
+                    <Property name="Area" value="{{0.89,-25},{0,195},{0.89,25},{0,245}}" />
+                    <Property name="ButtonImage" value="OpenDungeonsIcons/PrayerTempleButton" />
+                    <Property name="TooltipText" value="Room: Temple" />
+                    <Window type="OD/ProgressBar" name="PrayerTempleButtonProgressBar" >
                         <Property name="Area" value="{{0.0,-20},{0.0,0},{1.0,20},{1.0,0}}" />
                         <Property name="InheritsTooltipText" value="True" />
                         <Property name="CurrentProgress" value="0.0" />
@@ -492,14 +543,18 @@
             <Property name="Text" value="Unselect All" />
             <Property name="TooltipText" value="Unselect all pending skills in the tree" />
         </Window>
-        <Window type="OD/Button" name="CancelButton" >
-            <Property name="Area" value="{{1,-190},{1,-50},{1,-110},{1,-20}}" />
-            <Property name="Text" value="Cancel" />
+        <Window type="OD/MenuSymbolButton" name="CancelButton" >
+            <Property name="Area" value="{{1,-176},{1,-92.8},{1,-99.2},{1,-16}}" />
+            <Property name="NormalImage" value="OpenDungeonsSkin/CloseButtonNormal" />
+            <Property name="HoverImage" value="OpenDungeonsSkin/CloseButtonNormal" />
+            <Property name="PushedImage" value="OpenDungeonsSkin/CloseButtonNormal" />
             <Property name="TooltipText" value="Do not save modifications to the skill tree" />
         </Window>
-        <Window type="OD/Button" name="ApplyButton" >
-            <Property name="Area" value="{{1,-100},{1,-50},{1,-20},{1,-20}}" />
-            <Property name="Text" value="Apply" />
+        <Window type="OD/MenuSymbolButton" name="ApplyButton" >
+            <Property name="Area" value="{{1,-92.8},{1,-92.8},{1,-16},{1,-16}}" />
+            <Property name="NormalImage" value="OpenDungeonsIcons/CheckIcon" />
+            <Property name="HoverImage" value="OpenDungeonsIcons/CheckIcon" />
+            <Property name="PushedImage" value="OpenDungeonsIcons/CheckIcon" />
             <Property name="TooltipText" value="Save modifications to the skill tree" />
         </Window>
     </Window>
