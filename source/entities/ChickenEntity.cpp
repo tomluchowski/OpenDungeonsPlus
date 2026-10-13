@@ -477,6 +477,10 @@ void ChickenEntity::pickup()
     mReturningHome = false;
     removeEntityFromPositionTile();
     RenderedMovableEntity::pickup();
+
+    // In the hand he puffs up and flaps until he is put down (the pose ends with the next animation he gets)
+    if(getIsOnServerMap() && (mKind == ChickenKind::rooster))
+        clearDestinations(ChickenPose::protest, true, false);
 }
 
 bool ChickenEntity::tryDrop(Seat* seat, Tile* tile)
