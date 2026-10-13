@@ -1041,11 +1041,28 @@ void RoomHatchery::updateChickLine(const std::vector<ChickenEntity*>& hens, cons
 
     const Ogre::Vector2 leaderPos(leader->getPosition().x, leader->getPosition().y);
 
-    // At night every chick snuggles up to the hen
+    // At night every chick snuggles up to the hen nearest to it (the client tucks it in under her)
     if(night)
     {
         for(ChickenEntity* chick : chicks)
-            chick->setFollowTarget(leaderPos, mRoosterSettings.mSnuggleGap);
+        {
+            Ogre::Vector2 target = leaderPos;
+            const Ogre::Vector2 chickPos(chick->getPosition().x, chick->getPosition().y);
+            float nearestDistance = 0.0f;
+            bool found = false;
+            for(ChickenEntity* hen : hens)
+            {
+                const Ogre::Vector2 henPos(hen->getPosition().x, hen->getPosition().y);
+                float distance = chickPos.squaredDistance(henPos);
+                if(!found || (distance < nearestDistance))
+                {
+                    target = henPos;
+                    nearestDistance = distance;
+                    found = true;
+                }
+            }
+            chick->setFollowTarget(target, mRoosterSettings.mSnuggleGap);
+        }
         return;
     }
 

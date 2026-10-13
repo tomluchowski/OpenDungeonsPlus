@@ -104,3 +104,11 @@ for key in ('HatcheryScatterRadius', 'HatcheryScatterTurns', 'HatcheryFlutterPer
 assert 'ChickenPose::scratch' in looks and 'ChickenPose::flutter' in looks
 # Eggs and chicks dropped outside a hatchery are lost
 assert 'HatcheryYoungLostTurns' in chickUpkeep and 'HatcheryYoungLostTurns' in config
+
+# at night each chick goes to the hen nearest to it and sleeps tucked in under her (client offset, server position stays)
+chick_line = body(room, 'void RoomHatchery::updateChickLine')
+night_part = chick_line[chick_line.index('if(night)'):chick_line.index('Each chick follows the one in front')]
+assert 'for(ChickenEntity* hen : hens)' in night_part and 'mSnuggleGap' in night_part
+roost_part = looks[looks.index('pose == ChickenPose::roost'):looks.index('pose == ChickenPose::guard')]
+assert 'ChickenKind::chick' in roost_part and 'ChickenKind::hen' in roost_part and 'shift = toHen' in roost_part
+print('hatchery chicks under hen checks passed')
