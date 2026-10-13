@@ -39,6 +39,7 @@
 #include <OgreViewport.h>
 
 #include <algorithm>
+#include <cmath>
 
 const Ogre::Real Z_MOVE_SPEED = 1.0;
 const Ogre::Real Z_MOVE_SPEED_ACCELERATION = 2.0f * Z_MOVE_SPEED;
@@ -57,6 +58,12 @@ const Ogre::Real DEFAULT_X_AXIS_VIEW = 25.0;
 
 const Ogre::String BACKGROUND_RECT_NAME = "BackgroundRect";
 
+//! The scripted main-menu scene and its GUI were authored on an 800x600 plane.
+const Ogre::Real MAIN_MENU_REFERENCE_ASPECT_RATIO = 4.0f / 3.0f;
+
+//! Vertical field of view in degrees used until the main menu projection stores the camera's own value.
+const float MAIN_MENU_DEFAULT_FOV_Y_DEGREES = 45.0f;
+
 CameraManager::CameraManager(Ogre::SceneManager* sceneManager, GameMap* gm, Ogre::RenderWindow* renderWindow) :
     mCircleMode(false),
     mCatmullSplineMode(false),
@@ -67,6 +74,8 @@ CameraManager::CameraManager(Ogre::SceneManager* sceneManager, GameMap* gm, Ogre
     mAlpha(0.0),
     mActiveCamera(nullptr),
     mActiveCameraNode(nullptr),
+    mMainMenuProjection(false),
+    mMainMenuBaseFovY(Ogre::Degree(MAIN_MENU_DEFAULT_FOV_Y_DEGREES)),
     mGameMap(gm),
     mCameraIsFlying(false),
     mCameraFlightDestination(Ogre::Vector3(0.0, 0.0, 0.0)),
@@ -241,6 +250,26 @@ void CameraManager::createViewport(Ogre::RenderWindow* renderWindow)
     OD_LOG_INF("Creating viewport...");
 }
 
+void CameraManager::setRenderWindow(Ogre::RenderWindow* renderWindow)
+{
+    Ogre::Viewport* previousViewport = mViewport;
+    Ogre::RenderTarget* previousTarget = previousViewport->getTarget();
+    Ogre::Viewport* viewport = renderWindow->addViewport(mActiveCamera,
+        previousViewport->getZOrder(), previousViewport->getLeft(), previousViewport->getTop(),
+        previousViewport->getWidth(), previousViewport->getHeight());
+    viewport->setBackgroundColour(previousViewport->getBackgroundColour());
+    viewport->setClearEveryFrame(previousViewport->getClearEveryFrame(), previousViewport->getClearBuffers());
+    viewport->setMaterialScheme(previousViewport->getMaterialScheme());
+    viewport->setOverlaysEnabled(previousViewport->getOverlaysEnabled());
+    viewport->setSkiesEnabled(previousViewport->getSkiesEnabled());
+    viewport->setShadowsEnabled(previousViewport->getShadowsEnabled());
+    viewport->setVisibilityMask(previousViewport->getVisibilityMask());
+
+    mViewport = viewport;
+    previousTarget->removeViewport(previousViewport->getZOrder());
+    setViewportSize(viewport->getActualWidth(), viewport->getActualHeight());
+}
+
 const Ogre::Vector3& CameraManager::getActiveCameraPosition() const
 {
     return getActiveCameraNode()->getPosition();
@@ -267,9 +296,45 @@ void CameraManager::setActiveCamera(const Ogre::String& ss)
 {
     mActiveCamera = mSceneManager->getCamera(ss);
     mViewport->setCamera(mActiveCamera);
-    mActiveCamera->setAspectRatio(Ogre::Real(mViewport->getActualWidth()) / Ogre::Real(mViewport->getActualHeight()));
+    setViewportSize(mViewport->getActualWidth(), mViewport->getActualHeight());
 
     OD_LOG_INF("Setting Active Camera to " + ss + " ...");
+}
+
+void CameraManager::setViewportSize(unsigned int width, unsigned int height)
+{
+    if(mActiveCamera == nullptr || height == 0)
+        return;
+
+    const Ogre::Real aspectRatio = static_cast<Ogre::Real>(width) / static_cast<Ogre::Real>(height);
+    mActiveCamera->setAspectRatio(aspectRatio);
+    if(!mMainMenuProjection)
+        return;
+
+    const Ogre::Real halfFovY = mMainMenuBaseFovY.valueRadians() * 0.5f;
+    const Ogre::Real menuFovY = 2.0f * std::atan(std::tan(halfFovY)
+        * MAIN_MENU_REFERENCE_ASPECT_RATIO / aspectRatio);
+    mActiveCamera->setFOVy(Ogre::Radian(menuFovY));
+}
+
+void CameraManager::setMainMenuProjection(bool enabled)
+{
+    if(mActiveCamera == nullptr)
+        return;
+
+    if(enabled && !mMainMenuProjection)
+    {
+        mMainMenuBaseFovY = mActiveCamera->getFOVy();
+        mMainMenuProjection = true;
+    }
+    else if(!enabled && mMainMenuProjection)
+    {
+        mMainMenuProjection = false;
+        mActiveCamera->setFOVy(mMainMenuBaseFovY);
+    }
+
+    if(mViewport != nullptr)
+        setViewportSize(mViewport->getActualWidth(), mViewport->getActualHeight());
 }
 
 void CameraManager::updateCameraFrameTime(const Ogre::Real frameTime)
