@@ -33,19 +33,21 @@
 #include "utils/ResourceManager.h"
 
 #include <CEGUI/CEGUI.h>
+#include <CEGUI/widgets/Scrollbar.h>
 #include "boost/filesystem.hpp"
 
 const std::string SAVEGAME_EXTENSION = ".level";
 
-MenuModeLoad::MenuModeLoad(ModeManager *modeManager):
-    AbstractApplicationMode(modeManager, ModeManager::MENU_LOAD_SAVEDGAME)
+MenuModeLoad::MenuModeLoad(ModeManager *modeManager, bool inGame, const std::string& savedGame):
+    AbstractApplicationMode(modeManager, ModeManager::MENU_LOAD_SAVEDGAME),
+    mInGame(inGame),
+    mSavedGame(savedGame)
 {
     CEGUI::Window* window = modeManager->getGui().getGuiSheet(Gui::guiSheet::loadSavedGameMenu);
     addEventConnection(
         window->getChild("LevelWindowFrame/BackButton")->subscribeEvent(
             CEGUI::PushButton::EventClicked,
-            CEGUI::Event::Subscriber(&AbstractApplicationMode::goBack,
-                                     static_cast<AbstractApplicationMode*>(this))
+            CEGUI::Event::Subscriber(&MenuModeLoad::closeBrowser, this)
         )
     );
     addEventConnection(
@@ -75,10 +77,25 @@ MenuModeLoad::MenuModeLoad(ModeManager *modeManager):
     addEventConnection(
         window->getChild("LevelWindowFrame")->subscribeEvent(
             CEGUI::FrameWindow::EventCloseClicked,
-            CEGUI::Event::Subscriber(&AbstractApplicationMode::goBack,
-                                     static_cast<AbstractApplicationMode*>(this))
+            CEGUI::Event::Subscriber(&MenuModeLoad::closeBrowser, this)
         )
     );
+}
+
+MenuModeLoad::~MenuModeLoad()
+{
+    if(isOpenInGame())
+        closeBrowser();
+}
+
+bool MenuModeLoad::closeBrowser(const CEGUI::EventArgs&)
+{
+    if(!mInGame)
+        return goBack();
+    mOpen = false;
+    ODFrameListener::getSingleton().getClientGameMap()->setGamePaused(mWasPaused);
+    getModeManager().getGui().loadGuiSheet(Gui::inGameMenu);
+    return true;
 }
 
 void MenuModeLoad::activate()
@@ -86,15 +103,29 @@ void MenuModeLoad::activate()
     // Loads the corresponding Gui sheet.
     getModeManager().getGui().loadGuiSheet(Gui::guiSheet::loadSavedGameMenu);
 
-    giveFocus();
-
-    // Play the main menu music
-    MusicPlayer::getSingleton().play(ConfigManager::getSingleton().getMainMenuMusic());
-
-
     GameMap* gameMap = ODFrameListener::getSingleton().getClientGameMap();
-    gameMap->clearAll();
-    gameMap->setGamePaused(true);
+    CEGUI::Window* sheet = getModeManager().getGui().getGuiSheet(Gui::loadSavedGameMenu);
+    sheet->getChild("WelcomeBanner")->setVisible(!mInGame);
+    sheet->getChild("VersionText")->setVisible(!mInGame);
+    if(mInGame)
+    {
+        if(!mOpen)
+            mWasPaused = gameMap->getGamePaused();
+        mOpen = true;
+        gameMap->setGamePaused(true);
+    }
+    else
+    {
+        giveFocus();
+        MusicPlayer::getSingleton().play(ConfigManager::getSingleton().getMainMenuMusic());
+        gameMap->clearAll();
+        gameMap->setGamePaused(true);
+        if(!mSavedGame.empty())
+        {
+            ODFrameListener::getSingleton().stopGameRenderer();
+            ODFrameListener::getSingleton().createMainMenuScene();
+        }
+    }
 
     CEGUI::Window* tmpWin = getModeManager().getGui().getGuiSheet(Gui::loadSavedGameMenu)->getChild("LevelWindowFrame/SaveGameSelect");
     CEGUI::Listbox* levelSelectList = static_cast<CEGUI::Listbox*>(tmpWin);
@@ -103,6 +134,7 @@ void MenuModeLoad::activate()
     tmpWin->hide();
     mFilesList.clear();
     levelSelectList->resetList();
+    sheet->getChild("LevelWindowFrame/MapDescriptionText")->setText("");
 
     std::string levelPath = ResourceManager::getSingleton().getSaveGamePath();
     if(Helper::fillFilesList(levelPath, mFilesList, SAVEGAME_EXTENSION))
@@ -116,6 +148,13 @@ void MenuModeLoad::activate()
             levelSelectList->addItem(item);
         }
     }
+    if(!mSavedGame.empty())
+    {
+        const std::string filename = mSavedGame;
+        mSavedGame.clear();
+        launchSavedGame(filename);
+    }
+
 }
 
 bool MenuModeLoad::launchSelectedButtonPressed(const CEGUI::EventArgs&)
@@ -131,18 +170,27 @@ bool MenuModeLoad::launchSelectedButtonPressed(const CEGUI::EventArgs&)
         return true;
     }
 
-    std::string nickname = ConfigManager::getSingleton().getGameValue(Config::NICKNAME, std::string(), false);
-    if (!nickname.empty())
-        ODFrameListener::getSingleton().getClientGameMap()->setLocalPlayerNick(nickname);
+    const uint32_t id = levelSelectList->getFirstSelectedItem()->getID();
+    if(id >= mFilesList.size())
+        return true;
+    const std::string level = mFilesList[id];
+    if(mInGame)
+    {
+        getModeManager().requestSavedGame(level);
+        return true;
+    }
+    return launchSavedGame(level);
+}
 
-    tmpWin = getModeManager().getGui().getGuiSheet(Gui::loadSavedGameMenu)->getChild("LoadingText");
+bool MenuModeLoad::launchSavedGame(const std::string& level)
+{
+    std::string nickname = ConfigManager::getSingleton().getGameValue(Config::NICKNAME, std::string(), false);
+    if(!nickname.empty())
+        ODFrameListener::getSingleton().getClientGameMap()->setLocalPlayerNick(nickname);
+    CEGUI::Window* tmpWin = getModeManager().getGui().getGuiSheet(Gui::loadSavedGameMenu)->getChild("LoadingText");
     tmpWin->setText("Loading...");
     tmpWin->show();
 
-    CEGUI::ListboxItem* selItem = levelSelectList->getFirstSelectedItem();
-    int id = selItem->getID();
-
-    const std::string& level = mFilesList[id];
     // In single player mode, we act as a server
     if(!ODServer::getSingleton().startServer(nickname, level, ServerMode::ModeGameLoaded, false))
     {
@@ -159,6 +207,7 @@ bool MenuModeLoad::launchSelectedButtonPressed(const CEGUI::EventArgs&)
         + ResourceManager::getSingleton().buildReplayFilename();
     if(!ODClient::getSingleton().connect("localhost", port, timeout, replayFilename))
     {
+        ODServer::getSingleton().stopServer();
         OD_LOG_ERR("Could not connect to server for single player game !!!");
         tmpWin = getModeManager().getGui().getGuiSheet(Gui::loadSavedGameMenu)->getChild("LoadingText");
         tmpWin->setText("Error: Couldn't connect to local server!");
@@ -227,6 +276,7 @@ bool MenuModeLoad::updateDescription(const CEGUI::EventArgs&)
         mapDescription = "invalid map";
 
     descTxt->setText(mapDescription);
+    static_cast<CEGUI::Scrollbar*>(descTxt->getChild("__auto_vscrollbar__"))->setScrollPosition(0);
 
     return true;
 }

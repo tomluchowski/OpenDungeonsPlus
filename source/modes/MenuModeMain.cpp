@@ -37,11 +37,16 @@ const std::string BUTTON_MAPEDITOR = "MapEditorButton";
 const std::string BUTTON_MULTIPLAYER = "MultiplayerModeButton";
 const std::string BUTTON_SETTINGS = "SettingsButton";
 const std::string BUTTON_QUIT = "QuitButton";
+const std::string BUTTON_START_CAMPAIGN = "StartCampaignButton";
+
+//! Buttons of the settings sub menu are named like the settings page they open plus this suffix.
+const std::string SETTINGS_PAGE_BUTTON_SUFFIX = "Button";
 
 // Sub-menus windows & buttons
 const std::string WINDOW_SKIRMISH = "SkirmishSubMenuWindow";
 const std::string WINDOW_MULTIPLAYER = "MultiplayerSubMenuWindow";
 const std::string WINDOW_EDITOR = "EditorSubMenuWindow";
+const std::string WINDOW_SETTINGS = "SettingsSubMenuWindow";
 
 const std::string BUTTON_START_SKIRMISH = "StartSkirmishButton";
 const std::string BUTTON_LOAD_SKIRMISH = "LoadSkirmishButton";
@@ -71,7 +76,7 @@ public:
 
 MenuModeMain::MenuModeMain(ModeManager *modeManager):
     AbstractApplicationMode(modeManager, ModeManager::MENU_MAIN),
-    mSettings(SettingsWindow(getModeManager().getGui().getGuiSheet(Gui::mainMenu)))
+    mSettings(getModeManager().getGui().getGuiSheet(Gui::mainMenu), modeManager->getGui(), true)
 {
     CEGUI::Window* rootWin = getModeManager().getGui().getGuiSheet(Gui::mainMenu);
     OD_ASSERT_TRUE(rootWin != nullptr);
@@ -132,6 +137,22 @@ MenuModeMain::MenuModeMain(ModeManager *modeManager):
                            AbstractModeManager::ModeType::MENU_EDITOR_NEW);
     connectModeChangeEvent(editorWin->getChild(BUTTON_EDITOR_LOAD),
                            AbstractModeManager::ModeType::MENU_EDITOR_LOAD);
+
+    for(const std::string& page : {std::string("Video"), std::string("Audio"), std::string("Input"), std::string("Game")})
+        addEventConnection(rootWin->getChild(WINDOW_SETTINGS + "/" + page + SETTINGS_PAGE_BUTTON_SUFFIX)->subscribeEvent(
+            CEGUI::PushButton::EventClicked,
+            CEGUI::Event::Subscriber(&MenuModeMain::settingsPageButtonClicked, this)));
+    addEventConnection(rootWin->getChild("SettingsWindow")->subscribeEvent(
+        CEGUI::Window::EventHidden,
+        CEGUI::Event::Subscriber(&MenuModeMain::settingsPageClosed, this)));
+
+    for(const std::string& name : {WINDOW_SKIRMISH, WINDOW_MULTIPLAYER, WINDOW_EDITOR, WINDOW_SETTINGS})
+        addEventConnection(
+            rootWin->getChild(name + "/BackButton")->subscribeEvent(
+                CEGUI::PushButton::EventClicked,
+                CEGUI::Event::Subscriber(&MenuModeMain::goBack, this)
+            )
+        );
 }
 
 void MenuModeMain::activate()
@@ -144,6 +165,9 @@ void MenuModeMain::activate()
     window->getChild(WINDOW_SKIRMISH)->hide();
     window->getChild(WINDOW_MULTIPLAYER)->hide();
     window->getChild(WINDOW_EDITOR)->hide();
+    window->getChild(WINDOW_SETTINGS)->hide();
+    mSettingsPageOpen = false;
+    showMainMenuButtons(true);
 
     giveFocus();
 
@@ -185,45 +209,80 @@ bool MenuModeMain::quitButtonPressed(const CEGUI::EventArgs&)
 
 bool MenuModeMain::toggleSettings(const CEGUI::EventArgs&)
 {
-    if (mSettings.isVisible())
-        mSettings.onCancelSettings();
-    else
-        mSettings.show();
+    return toggleSubMenu(WINDOW_SETTINGS);
+}
+
+bool MenuModeMain::openSettingsPage(const std::string& name)
+{
+    getModeManager().getGui().getGuiSheet(Gui::mainMenu)->getChild(WINDOW_SETTINGS)->hide();
+    mSettingsPageOpen = true;
+    mSettings.showPage(name);
     return true;
+}
+
+bool MenuModeMain::settingsPageButtonClicked(const CEGUI::EventArgs& e)
+{
+    const CEGUI::WindowEventArgs& windowArgs = static_cast<const CEGUI::WindowEventArgs&>(e);
+    std::string buttonName = windowArgs.window->getName().c_str();
+    return openSettingsPage(buttonName.substr(0, buttonName.size() - SETTINGS_PAGE_BUTTON_SUFFIX.size()));
+}
+
+bool MenuModeMain::settingsPageClosed(const CEGUI::EventArgs&)
+{
+    if(mSettingsPageOpen)
+    {
+        mSettingsPageOpen = false;
+        getModeManager().getGui().getGuiSheet(Gui::mainMenu)->getChild(WINDOW_SETTINGS)->show();
+    }
+    return true;
+}
+
+bool MenuModeMain::goBack(const CEGUI::EventArgs&)
+{
+    CEGUI::Window* mainWin = getModeManager().getGui().getGuiSheet(Gui::mainMenu);
+    for(const std::string& name : {WINDOW_SKIRMISH, WINDOW_MULTIPLAYER, WINDOW_EDITOR, WINDOW_SETTINGS})
+    {
+        CEGUI::Window* window = mainWin->getChild(name);
+        if(window->isVisible())
+        {
+            window->hide();
+            showMainMenuButtons(true);
+            break;
+        }
+    }
+    return true;
+}
+
+void MenuModeMain::showMainMenuButtons(bool visible)
+{
+    CEGUI::Window* mainWin = getModeManager().getGui().getGuiSheet(Gui::mainMenu);
+    for(const std::string& name : {BUTTON_START_CAMPAIGN, BUTTON_SKIRMISH,
+        BUTTON_MULTIPLAYER, BUTTON_START_REPLAY, BUTTON_MAPEDITOR, BUTTON_SETTINGS, BUTTON_QUIT})
+        mainWin->getChild(name)->setVisible(visible);
 }
 
 bool MenuModeMain::toggleSkirmishSubMenu(const CEGUI::EventArgs&)
 {
-    CEGUI::Window* mainWin = getModeManager().getGui().getGuiSheet(Gui::mainMenu);
-    OD_ASSERT_TRUE(mainWin);
-    CEGUI::Window* window = mainWin->getChild(WINDOW_SKIRMISH);
-    OD_ASSERT_TRUE(window);
-    window->setVisible(!window->isVisible());
-    mainWin->getChild(WINDOW_MULTIPLAYER)->hide();
-    mainWin->getChild(WINDOW_EDITOR)->hide();
-    return true;
+    return toggleSubMenu(WINDOW_SKIRMISH);
 }
 
 bool MenuModeMain::toggleMultiplayerSubMenu(const CEGUI::EventArgs&)
 {
-    CEGUI::Window* mainWin = getModeManager().getGui().getGuiSheet(Gui::mainMenu);
-    OD_ASSERT_TRUE(mainWin);
-    CEGUI::Window* window = mainWin->getChild(WINDOW_MULTIPLAYER);
-    OD_ASSERT_TRUE(window);
-    window->setVisible(!window->isVisible());
-    mainWin->getChild(WINDOW_SKIRMISH)->hide();
-    mainWin->getChild(WINDOW_EDITOR)->hide();
-    return true;
+    return toggleSubMenu(WINDOW_MULTIPLAYER);
 }
 
 bool MenuModeMain::toggleEditorSubMenu(const CEGUI::EventArgs&)
 {
+    return toggleSubMenu(WINDOW_EDITOR);
+}
+
+bool MenuModeMain::toggleSubMenu(const std::string& name)
+{
     CEGUI::Window* mainWin = getModeManager().getGui().getGuiSheet(Gui::mainMenu);
     OD_ASSERT_TRUE(mainWin);
-    CEGUI::Window* window = mainWin->getChild(WINDOW_EDITOR);
-    OD_ASSERT_TRUE(window);
-    window->setVisible(!window->isVisible());
-    mainWin->getChild(WINDOW_MULTIPLAYER)->hide();
-    mainWin->getChild(WINDOW_SKIRMISH)->hide();
+    const bool visible = !mainWin->getChild(name)->isVisible();
+    for(const std::string& other : {WINDOW_SKIRMISH, WINDOW_MULTIPLAYER, WINDOW_EDITOR, WINDOW_SETTINGS})
+        mainWin->getChild(other)->setVisible(visible && other == name);
+    showMainMenuButtons(!visible);
     return true;
 }

@@ -42,7 +42,7 @@ class Tile;
 class MiniMapDrawnFull : public MiniMap
 {
 public:
-    MiniMapDrawnFull(CEGUI::Window* miniMapWindow);
+    MiniMapDrawnFull(CEGUI::Window* miniMapWindow, const std::string& suffix = "");
     ~MiniMapDrawnFull();
 
     Ogre::uint getWidth() const
@@ -53,28 +53,22 @@ public:
 
     void update(Ogre::Real timeSinceLastFrame, const std::vector<Ogre::Vector3>& cornerTiles) override;
 
-    void updateTileState(uint32_t minimapXMin, uint32_t xMinimapMax,
+    bool updateTileState(uint32_t minimapXMin, uint32_t xMinimapMax,
         uint32_t minimapYMin, uint32_t minimapYMax, uint32_t tileXMin,
         uint32_t tileXMax, uint32_t tileYMin, uint32_t tileYMax);
 
     Ogre::Vector2 camera_2dPositionFromClick(int xx, int yy) override;
 
 private:
-    //! \brief Returns true is the segment between p1 and p2 (using x and y only)
-    //! crosses the values within xMin, xMax, yMin and yMax
-    bool crossSegment(const Ogre::Vector3& p1, const Ogre::Vector3& p2,
-        uint32_t xMin, uint32_t xMax, uint32_t yMin, uint32_t yMax);
-
     CEGUI::Window* mMiniMapWindow;
+    std::string mResourceSuffix;
+    Ogre::Vector2 mViewOrigin = Ogre::Vector2::ZERO;
+    Ogre::Vector2 mViewSize = Ogre::Vector2::UNIT_SCALE;
 
     GameMap& mGameMap;
     CameraManager& mCameraManager;
 
     std::vector<MiniMapDrawnFullTileStateListener*> mTileStateListeners;
-
-    std::vector<MiniMapDrawnFullTileStateListener*> mVisibleRectangle;
-
-    std::vector<Ogre::Vector3> mLastCornerTiles;
 
     int mTopLeftCornerX;
     int mTopLeftCornerY;
@@ -83,6 +77,8 @@ private:
 
     Ogre::Vector2 mCamera_2dPosition;
 
+    std::vector<Ogre::uint8> mPixels;
+    bool mPixelsDirty = true;
     Ogre::PixelBox mPixelBox;
     Ogre::TexturePtr mMiniMapOgreTexture;
     Ogre::HardwarePixelBufferSharedPtr mPixelBuffer;
