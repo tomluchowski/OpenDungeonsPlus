@@ -305,6 +305,7 @@ public:
 
     //! Timers: a timer that was never started does not exist and counts 0 turns
     int64_t getTimerTurns(const std::string& name) const;
+    //! \brief Starts the timer with the given name (or restarts it) and sets it to the given number of turns.
     void startTimer(const std::string& name, int64_t turns);
 
     //! Adds one turn to every running timer
