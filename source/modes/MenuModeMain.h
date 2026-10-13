@@ -31,7 +31,8 @@ public:
     {}
 
     //! \brief Called when the game mode is activated
-    //! Used to call the corresponding Gui Sheet.
+    //! Used to call the corresponding Gui Sheet, and to start a level again if a restart was requested
+    //! from the game.
     void activate() final override;
 
     //! \brief Opens the skirmish sub-menu once the flight into the menu (after the defeat debriefing) ended
