@@ -297,6 +297,7 @@ set(OD_SOURCEFILES
     ${SRC}/creatureeffect/CreatureEffectSpeedChange.cpp
     ${SRC}/creatureeffect/CreatureEffectStrengthChange.cpp
     ${SRC}/creatureeffect/CreatureEffectAreaDamage.cpp
+    ${SRC}/creatureeffect/CreatureEffectTemporary.cpp
 
     ${SRC}/creaturemood/CreatureMood.cpp
     ${SRC}/creaturemood/CreatureMoodWakefulness.cpp
@@ -332,6 +333,10 @@ set(OD_SOURCEFILES
     ${SRC}/creatureskill/CreatureSkillTeleport.cpp
     ${SRC}/creatureskill/CreatureSkillAreaDamage.cpp
     ${SRC}/creatureskill/CreatureSkillGuidedBolt.cpp
+    ${SRC}/creatureskill/CreatureSkillGrenade.cpp
+    ${SRC}/creatureskill/CreatureSkillSummon.cpp
+    ${SRC}/creatureskill/CreatureSkillRaiseDead.cpp
+    ${SRC}/creatureskill/CreatureSkillSkeletonArmy.cpp
 
     ${SRC}/entities/Building.cpp
     ${SRC}/entities/BuildingObject.cpp
