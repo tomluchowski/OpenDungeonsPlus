@@ -40,7 +40,7 @@ update = function(gui, 'void Gui::updateHeartBadge(').replace('void Gui::updateH
 badge_helpers = ('float badgeClamp(', 'void badgeMix(', 'void badgeSet(', 'float badgeNoise(', 'float badgeSmoothstep(', 'float badgeSmoothMin(',
                  'float badgeHash(', 'float badgeValueNoise(', 'float badgeFbm(', 'float badgeCircle(', 'float badgeTaper(', 'float badgeBox(',
                  'float badgeRound(', 'float badgeHeartDistance(', 'float badgeHeartVeins(', 'float badgeHeartHeight(', 'float badgeSkullDistance(',
-                 'float badgeCoinHeight(', 'void badgeNormal(', 'float badgeCavity(', 'void badgeFrame(', 'void badgeGemRing(', 'void badgeBeadRing(',
+                 'float badgeCoinHeight(', 'void badgeNormal(', 'float badgeDiffuse(', 'float badgeHalfway(', 'float badgeCavity(', 'void badgeFrame(', 'void badgeGemRing(', 'void badgeBeadRing(',
                  'void badgeHeartWell(', 'void badgeCoinWell(', 'void drawBadgePixels(')
 badge_code = 'const int BADGE_SIZE = 128;\n' + '\n'.join(function(gui, signature) for signature in badge_helpers) + '\n'
 
