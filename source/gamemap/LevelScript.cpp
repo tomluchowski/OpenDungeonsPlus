@@ -210,14 +210,30 @@ bool parseCondition(const std::vector<std::string>& t, LevelScriptCondition& con
 
         return parseInt32(t[2], cond.mSeatId) && parseInt(t[4], cond.mNumber);
     }
-    if((type == "gold") || (type == "mana") || (type == "mined"))
+    if((type == "gold") || (type == "mana") || (type == "kills") || (type == "mined") ||
+       (type == "happy") || (type == "angry") || (type == "lost") || (type == "pickedup") ||
+       (type == "dropped") || (type == "slapped"))
     {
         if(type == "gold")
             cond.mType = LevelScriptConditionType::gold;
         else if(type == "mana")
             cond.mType = LevelScriptConditionType::mana;
-        else
+        else if(type == "kills")
+            cond.mType = LevelScriptConditionType::kills;
+        else if(type == "mined")
             cond.mType = LevelScriptConditionType::goldMined;
+        else if(type == "happy")
+            cond.mType = LevelScriptConditionType::happyCreatures;
+        else if(type == "angry")
+            cond.mType = LevelScriptConditionType::angryCreatures;
+        else if(type == "lost")
+            cond.mType = LevelScriptConditionType::creaturesLost;
+        else if(type == "pickedup")
+            cond.mType = LevelScriptConditionType::creaturesPickedUp;
+        else if(type == "dropped")
+            cond.mType = LevelScriptConditionType::creaturesDropped;
+        else
+            cond.mType = LevelScriptConditionType::creaturesSlapped;
 
         if(t.size() != 5)
             return false;
@@ -225,6 +241,17 @@ bool parseCondition(const std::vector<std::string>& t, LevelScriptCondition& con
             return false;
 
         return parseInt32(t[2], cond.mSeatId) && parseInt(t[4], cond.mNumber);
+    }
+    if(type == "atlevel")
+    {
+        cond.mType = LevelScriptConditionType::creaturesAtLevel;
+        if(t.size() != 6)
+            return false;
+        if(!parseOperator(t[4], cond))
+            return false;
+
+        return parseInt32(t[2], cond.mSeatId) && parseInt32(t[3], cond.mX1) && (cond.mX1 >= 1) &&
+            parseInt(t[5], cond.mNumber);
     }
     if(type == "claimed")
     {
@@ -795,8 +822,32 @@ void writeCondition(std::ostream& os, const LevelScriptCondition& c)
         case LevelScriptConditionType::mana:
             os << "mana\t" << c.mSeatId << "\t" << levelScriptCompareToken(c.mCompare) << "\t" << c.mNumber;
             break;
+        case LevelScriptConditionType::kills:
+            os << "kills\t" << c.mSeatId << "\t" << levelScriptCompareToken(c.mCompare) << "\t" << c.mNumber;
+            break;
         case LevelScriptConditionType::goldMined:
             os << "mined\t" << c.mSeatId << "\t" << levelScriptCompareToken(c.mCompare) << "\t" << c.mNumber;
+            break;
+        case LevelScriptConditionType::happyCreatures:
+            os << "happy\t" << c.mSeatId << "\t" << levelScriptCompareToken(c.mCompare) << "\t" << c.mNumber;
+            break;
+        case LevelScriptConditionType::angryCreatures:
+            os << "angry\t" << c.mSeatId << "\t" << levelScriptCompareToken(c.mCompare) << "\t" << c.mNumber;
+            break;
+        case LevelScriptConditionType::creaturesAtLevel:
+            os << "atlevel\t" << c.mSeatId << "\t" << c.mX1 << "\t" << levelScriptCompareToken(c.mCompare) << "\t" << c.mNumber;
+            break;
+        case LevelScriptConditionType::creaturesLost:
+            os << "lost\t" << c.mSeatId << "\t" << levelScriptCompareToken(c.mCompare) << "\t" << c.mNumber;
+            break;
+        case LevelScriptConditionType::creaturesPickedUp:
+            os << "pickedup\t" << c.mSeatId << "\t" << levelScriptCompareToken(c.mCompare) << "\t" << c.mNumber;
+            break;
+        case LevelScriptConditionType::creaturesDropped:
+            os << "dropped\t" << c.mSeatId << "\t" << levelScriptCompareToken(c.mCompare) << "\t" << c.mNumber;
+            break;
+        case LevelScriptConditionType::creaturesSlapped:
+            os << "slapped\t" << c.mSeatId << "\t" << levelScriptCompareToken(c.mCompare) << "\t" << c.mNumber;
             break;
         case LevelScriptConditionType::claimed:
             os << "claimed\t" << c.mSeatId << "\t" << c.mName << "\t";

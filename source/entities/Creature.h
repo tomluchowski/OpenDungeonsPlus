@@ -373,7 +373,8 @@ public:
     double getPitDamageFactor(GameEntity* attacker);
 
     //! \brief Conform: AttackableObject - Deducts a given amount of HP from this creature. On the server it also
-    //! counts the attacked, incapacitated and killed events for the conditions of the level script.
+    //! counts the attacked, incapacitated and killed events for the conditions of the level script and the
+    //! creatures lost in the statistics of the seat.
     double takeDamage(GameEntity* attacker, double absoluteDamage, double physicalDamage, double magicalDamage, double elementDamage,
         Tile *tileTakingDamage, bool ko) override;
 
@@ -425,9 +426,11 @@ public:
     //! to prepare for the pickup (removing creature from GameMap, changing states, ...).
     //! Returns true if the creature can be picked up
     bool tryPickup(Seat* seat) override;
-    //! \brief Server side: stops the creature when it is picked up and counts the pickedup event for the level script.
+    //! \brief Server side: stops the creature when it is picked up. It also counts the pickup in the statistics of
+    //! the seat and the pickedup event for the level script.
     void pickup() override;
     bool tryDrop(Seat* seat, Tile* tile) override;
+    //! \brief Server side: puts the creature down again. It also counts the drop in the statistics of the seat.
     void drop(const Ogre::Vector3& v) override;
     bool resizeMeshAfterDrop() override;
 
@@ -477,7 +480,8 @@ public:
     virtual void notifyEntityCarryOff(const Ogre::Vector3& position) override;
 
     bool canSlap(Seat* seat) override;
-    //! \brief Server side: the creature is slapped. It also counts the slapped event for the level script.
+    //! \brief Server side: the creature is slapped. It also counts the slap in the statistics of the seat and the
+    //! slapped event for the level script.
     void slap() override;
 
     void fireCreatureSound(CreatureSound sound);

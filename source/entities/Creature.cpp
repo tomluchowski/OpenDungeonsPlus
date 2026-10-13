@@ -2606,6 +2606,8 @@ double Creature::takeDamage(GameEntity* attacker, double absoluteDamage, double 
         // The killing blow counts once for the debriefing (a KO does not get here)
         if(wasAlive && (attacker != nullptr) && (attacker->getSeat() != nullptr))
             attacker->getSeat()->recordCreatureKill(getSeat());
+        if(wasAlive && (getSeat() != nullptr))
+            ++getSeat()->getStatistics().mCreaturesLost;
         if(wasAlive)
         {
             recordScriptEvent(*this, "killed");
@@ -2782,6 +2784,8 @@ void Creature::pickup()
         computeVisualDebugEntities();
 
     mIsInHand = true;
+    if(getSeat() != nullptr)
+        ++getSeat()->getStatistics().mCreaturesPickedUp;
 
     recordScriptEvent(*this, "pickedup");
 
@@ -2862,6 +2866,8 @@ void Creature::drop(const Ogre::Vector3& v)
     fireCreatureSound(CreatureSound::Drop);
 
     mIsInHand = false;
+    if(getSeat() != nullptr)
+        ++getSeat()->getStatistics().mCreaturesDropped;
 
     // The creature is temporary KO
     mKoTurnCounter = mDefinition->getTurnsStunDropped();
@@ -3230,6 +3236,9 @@ void Creature::slap()
         dismissChampion();
         return;
     }
+
+    if(getSeat() != nullptr)
+        ++getSeat()->getStatistics().mCreaturesSlapped;
 
     recordScriptEvent(*this, "slapped");
 

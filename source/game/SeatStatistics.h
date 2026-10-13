@@ -37,6 +37,10 @@ struct SeatStatistics
         mRoomsCaptured = 0;
         mItemsMade = 0;
         mCreaturesConverted = 0;
+        mCreaturesLost = 0;
+        mCreaturesPickedUp = 0;
+        mCreaturesDropped = 0;
+        mCreaturesSlapped = 0;
     }
 
     //! \brief Enemy dungeon hearts destroyed by a final blow of this seat
@@ -51,6 +55,14 @@ struct SeatStatistics
     uint32_t mItemsMade;
     //! \brief Creatures of other seats converted by this seat's torture rooms
     uint32_t mCreaturesConverted;
+    //! \brief Creatures of this seat that died. Only read by level script conditions, not sent to the clients
+    uint32_t mCreaturesLost;
+    //! \brief Times a creature of this seat was picked up with the hand (level script conditions only)
+    uint32_t mCreaturesPickedUp;
+    //! \brief Times a creature of this seat was dropped from the hand (level script conditions only)
+    uint32_t mCreaturesDropped;
+    //! \brief Times a creature of this seat was slapped (level script conditions only)
+    uint32_t mCreaturesSlapped;
 };
 
 #endif // SEATSTATISTICS_H
