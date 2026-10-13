@@ -15,7 +15,7 @@ import sys
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PRIORITIES = ("death", "combat", "held", "event", "work", "mood", "ambient")
 JOBS = ("Fighter", "Worker")
-MOTIONS = ("hop", "shake", "squash", "spin", "turn", "look", "lookat", "sit", "startle")
+MOTIONS = ("hop", "shake", "squash", "spin", "turn", "look", "lookat", "sit", "lie", "startle")
 PROPS = ("juggle", "yoyo", "flip", "stack", "toss", "critter", "balance", "doodle", "shadow", "kick")
 ROOMS = ("Hatchery", "Treasury", "Portal", "Dormitory", "Library", "Workshop", "TrainingHall", "Prison", "Torture",
          "Arena", "Temple", "Casino", "GuardRoom", "Crypt")

@@ -35,6 +35,7 @@
 #include "gamemap/TileSet.h"
 #include "modes/ModeManager.h"
 #include "render/CreatureOverlayStatus.h"
+#include "render/CreatureReactions.h"
 #include "render/DebugDrawer.h"
 #include "render/MovableTextOverlay.h"
 #include "render/ODFrameListener.h"
@@ -83,6 +84,9 @@ const Ogre::Real RenderManager::BLENDER_UNITS_PER_OGRE_UNIT = 10.0f;
 
 const Ogre::Real KEEPER_HAND_POS_Z = 20.0;
 const Ogre::Real RenderManager::KEEPER_HAND_WORLD_Z = KEEPER_HAND_POS_Z / RenderManager::BLENDER_UNITS_PER_OGRE_UNIT;
+
+//! Seconds before the creatures that stand around look at the hand that slaps again
+const double SLAP_LOOK_INTERVAL = 1.0;
 
 const Ogre::Real KEEPER_HAND_CREATURE_PICKED_OFFSET = 0.05f;
 const Ogre::Real KEEPER_HAND_CREATURE_PICKED_SCALE = 0.05f;
@@ -2461,6 +2465,13 @@ void RenderManager::entitySlapped()
     Ogre::Entity* ent = mSceneManager->getEntity("keeperHandEnt");
     if(ent->hasAnimationState("Slap"))
         mHandAnimationState = setEntityAnimation(ent, "Slap", false);
+
+    // The creatures that stand around look at the hand that slaps
+    if((CreatureReactions::getSingletonPtr() != nullptr) && (mHandLightNode != nullptr))
+    {
+        CreatureReactions::getSingleton().noteNearbyEvent("AmbientLookSlap", mHandLightNode->getPosition(), nullptr,
+            SLAP_LOOK_INTERVAL);
+    }
 }
 
 std::string RenderManager::rrBuildSkullFlagMaterial(const std::string& materialNameBase,

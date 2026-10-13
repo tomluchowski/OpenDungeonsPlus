@@ -61,6 +61,8 @@ struct ReactionMotion
         lookat,
         //! Sinks down (amount is the share of the height), stays and gets up again
         sit,
+        //! Tips over onto the side (amount is the angle in degrees), stays and gets up again
+        lie,
         //! Nods off (count nods, amount is their depth) and jumps up in the end
         startle
     };
@@ -326,6 +328,18 @@ public:
     inline double getBoredAfter() const
     { return mBoredAfter; }
 
+    //! Seconds a creature has to stand idle until it shows small habits, sits down or lies down
+    inline double getAmbientAfter() const
+    { return mAmbientAfter; }
+    inline double getSitAfter() const
+    { return mSitAfter; }
+    inline double getLieAfter() const
+    { return mLieAfter; }
+
+    //! Creatures closer than this to an event (world units) turn their head to it
+    inline double getLookRadius() const
+    { return mLookRadius; }
+
 private:
     //! \brief Reads the [Settings] block up to its closing tag. Returns false if it is malformed.
     bool loadSettings(std::istream& file);
@@ -369,6 +383,18 @@ private:
 
     //! \brief Seconds a creature has to stand idle until it is bored
     double mBoredAfter;
+
+    //! \brief Seconds a creature has to stand idle until it shows small habits
+    double mAmbientAfter;
+
+    //! \brief Seconds a creature has to stand idle until it sits down
+    double mSitAfter;
+
+    //! \brief Seconds a creature has to stand idle until it lies down
+    double mLieAfter;
+
+    //! \brief Distance (world units) within which creatures turn their head to an event
+    double mLookRadius;
 
     //! \brief Group used for a creature that is in no group
     std::string mDefaultGroup;

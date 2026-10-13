@@ -61,6 +61,10 @@ CreatureReactionConfig::CreatureReactionConfig() :
     mImpatientAfter(6.0),
     mProudSeconds(25.0),
     mBoredAfter(20.0),
+    mAmbientAfter(3.0),
+    mSitAfter(45.0),
+    mLieAfter(100.0),
+    mLookRadius(12.0),
     mDefaultGroup("Fighters")
 {
 }
@@ -209,6 +213,14 @@ bool CreatureReactionConfig::loadSettings(std::istream& file)
             mProudSeconds = Helper::toDouble(words[1]);
         else if(words[0] == "BoredAfter")
             mBoredAfter = Helper::toDouble(words[1]);
+        else if(words[0] == "AmbientAfter")
+            mAmbientAfter = Helper::toDouble(words[1]);
+        else if(words[0] == "SitAfter")
+            mSitAfter = Helper::toDouble(words[1]);
+        else if(words[0] == "LieAfter")
+            mLieAfter = Helper::toDouble(words[1]);
+        else if(words[0] == "LookRadius")
+            mLookRadius = Helper::toDouble(words[1]);
         else if(words[0] == "DefaultGroup")
             mDefaultGroup = words[1];
         else
@@ -434,6 +446,8 @@ bool CreatureReactionConfig::loadVariant(std::istream& file, ReactionVariant& va
                 type = ReactionMotion::Type::lookat;
             else if(words[1] == "sit")
                 type = ReactionMotion::Type::sit;
+            else if(words[1] == "lie")
+                type = ReactionMotion::Type::lie;
             else if(words[1] == "startle")
                 type = ReactionMotion::Type::startle;
 
