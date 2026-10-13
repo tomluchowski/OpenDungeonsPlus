@@ -32,6 +32,7 @@ public:
     //! \brief Frees the reservation of the trap tile and ends the worker's reload job count
     virtual ~CreatureActionReloadTrap();
 
+    //! \brief Returns the action type that identifies this action as a trap reload
     CreatureActionType getType() const override
     { return CreatureActionType::reloadTrap; }
 
