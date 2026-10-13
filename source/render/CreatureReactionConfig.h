@@ -111,6 +111,7 @@ struct ReactionProp
         kick
     };
 
+    //! \brief No prop: no path, one piece of size 0.1 world units that takes no time
     ReactionProp() :
         mPath(Path::none),
         mCount(1),
