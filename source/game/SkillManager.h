@@ -56,6 +56,7 @@ class SkillDef;
 class SkillManager
 {
 public:
+    //! \brief Builds the research tree: every room, trap, door and spell skill with the skills it depends on.
     SkillManager();
     virtual ~SkillManager();
 

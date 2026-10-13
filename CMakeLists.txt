@@ -475,6 +475,7 @@ set(OD_SOURCEFILES
 
     ${SRC}/spells/Spell.cpp
     ${SRC}/spells/SpellCallToWar.cpp
+    ${SRC}/spells/SpellCreateGold.cpp
     ${SRC}/spells/SpellCreatureDefense.cpp
     ${SRC}/spells/SpellCreatureExplosion.cpp
     ${SRC}/spells/SpellCreatureHaste.cpp

@@ -238,9 +238,11 @@ public:
             case SpellType::creatureStrength: key = "CreatureStrengthPrice"; break;
             case SpellType::creatureWeak: key = "CreatureWeakPrice"; break;
             case SpellType::eyeEvil: key = "EyeEvilPrice"; break;
+            case SpellType::createGold: key = "CreateGoldPrice"; break;
             default: return "";
         }
-        const std::string unit = (mSpellType == SpellType::callToWar || mSpellType == SpellType::eyeEvil) ?
+        const std::string unit = (mSpellType == SpellType::callToWar || mSpellType == SpellType::eyeEvil ||
+            mSpellType == SpellType::createGold) ?
             " mana" : " mana per creature";
         return Helper::toString(ConfigManager::getSingleton().getSpellConfigInt32(key)) + unit;
     }
@@ -585,6 +587,15 @@ SkillManager::SkillManager() :
     mSkills[index] = def;
     lvl4depends.push_back(skill);
 
+    resType = SkillType::spellCreateGold;
+    index = static_cast<uint32_t>(resType);
+    points = ConfigManager::getSingleton().getSkillPoints(Skills::toString(resType));
+    skill = new Skill(resType, points, lvl3depends);
+    def = new SkillDefSpell("MagicSkills/", "CreateGoldButton", skill, SpellType::createGold);
+    def->mapSkill(mSkillsFamily);
+    mSkills[index] = def;
+    lvl4depends.push_back(skill);
+
     resType = SkillType::roomTemple;
     index = static_cast<uint32_t>(resType);
     points = ConfigManager::getSingleton().getSkillPoints(Skills::toString(resType));
@@ -788,6 +799,7 @@ std::string SkillManager::getResearchDescription(SkillType type, uint32_t level)
         case SkillType::spellCreatureStrength: return "Strength: x" + spell("CreatureStrengthValue") + ".";
         case SkillType::spellCreatureWeak: return "Target strength: x" + spell("CreatureWeakValue") + ".";
         case SkillType::spellEyeEvil: return "Revealed-area lifetime: " + spell("EyeEvilNbTurns") + " turns.";
+        case SkillType::spellCreateGold: return "Gold per cast: " + spell("CreateGoldValue") + ".";
         default: return "";
     }
 }
