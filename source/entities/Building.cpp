@@ -18,6 +18,8 @@
 #include "entities/Building.h"
 
 #include "entities/BuildingObject.h"
+#include "entities/Creature.h"
+#include "entities/GameEntityType.h"
 #include "entities/RenderedMovableEntity.h"
 #include "entities/Tile.h"
 #include "game/Player.h"
@@ -86,6 +88,9 @@ void Building::addBuildingObject(Tile* targetTile, BuildingObject* obj, GameMap*
     mBuildingObjects[targetTile] = obj;
     obj->addToGameMap(gameMap);
     obj->setPosition(obj->getPosition(),gameMap);
+    if(getIsOnServerMap() && getObjectType() == GameEntityType::room)
+        for(Creature* creature : gameMap->getCreatures())
+            creature->checkWalkPathValid(true);
 }
 
 void Building::removeBuildingObject(Tile* tile)
