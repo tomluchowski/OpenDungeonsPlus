@@ -28,6 +28,11 @@
 #include "rooms/RoomManager.h"
 #include "utils/LogManager.h"
 
+#include <algorithm>
+#include <cmath>
+#include <istream>
+#include <ostream>
+
 const std::string RoomDungeonTempleName = "DungeonTemple";
 const std::string RoomDungeonTempleNameDisplay = "Dungeon temple room";
 const RoomType RoomDungeonTemple::mRoomType = RoomType::dungeonTemple;
@@ -35,6 +40,37 @@ const TileVisual RoomDungeonTemple::mRoomVisual = TileVisual::dungeonTempleRoom;
 
 namespace
 {
+//! \brief The persistent object of the heart. It is the combat target and forwards health and damage to the room.
+class DungeonHeartObject : public PersistentObject
+{
+public:
+    DungeonHeartObject(GameMap* gameMap, RoomDungeonTemple& room, Tile* tile) :
+        PersistentObject(gameMap, room, "DungeonTempleObject", tile, 0.0, false),
+        mRoom(room)
+    {
+        setSeat(room.getSeat());
+    }
+
+    bool isAttackable(Tile* tile, Seat* seat) const override
+    { return mRoom.canAttackHeart(tile, seat); }
+
+    double getHP(Tile* tile) const override
+    { return mRoom.getHP(nullptr); }
+
+    double takeDamage(GameEntity* attacker, double absoluteDamage, double physicalDamage,
+        double magicalDamage, double elementDamage, Tile* tile, bool ko) override
+    {
+        const double damage = mRoom.takeHeartDamage(attacker, absoluteDamage,
+            physicalDamage, magicalDamage, elementDamage, tile);
+        if(damage > 0.0 && getHP(nullptr) <= 0.0)
+            fireEntityDead();
+        return damage;
+    }
+
+private:
+    RoomDungeonTemple& mRoom;
+};
+
 class RoomDungeonTempleFactory : public RoomFactory
 {
     TileVisual getVisualType() const override
@@ -102,9 +138,89 @@ static RoomRegister reg(new RoomDungeonTempleFactory);
 
 RoomDungeonTemple::RoomDungeonTemple(GameMap* gameMap) :
     Room(gameMap),
-    mTempleObject(nullptr)
+    mTempleObject(nullptr),
+    mHeartHP(-1.0)
 {
     setMeshName("DungeonTemple");
+}
+
+double RoomDungeonTemple::getHP(Tile* tile) const
+{
+    return mHeartHP < 0.0 ? Building::getHP(nullptr) : mHeartHP;
+}
+
+bool RoomDungeonTemple::canAttackHeart(Tile* tile, Seat* seat) const
+{
+    return seat != nullptr && getSeat() != nullptr && !getSeat()->isAlliedSeat(seat)
+        && mTempleObject != nullptr && tile == mTempleObject->getPositionTile()
+        && getHP(nullptr) > 0.0;
+}
+
+double RoomDungeonTemple::takeHeartDamage(GameEntity* attacker, double absoluteDamage,
+    double physicalDamage, double magicalDamage, double elementDamage,
+    Tile* tileTakingDamage)
+{
+    if(attacker == nullptr || !canAttackHeart(tileTakingDamage, attacker->getSeat()))
+        return 0.0;
+
+    if(mHeartHP < 0.0)
+        mHeartHP = Building::getHP(nullptr);
+    const double damage = std::max(0.0, absoluteDamage)
+        + std::max(0.0, physicalDamage - getPhysicalDefense())
+        + std::max(0.0, magicalDamage - getMagicalDefense())
+        + std::max(0.0, elementDamage - getElementDefense());
+    const double damageDone = std::min(mHeartHP, damage);
+    mHeartHP -= damageDone;
+    if(mHeartHP <= 0.0)
+        fireEntityDead();
+    if(getSeat()->getPlayer() != nullptr)
+        getGameMap()->playerIsFighting(getSeat()->getPlayer(), tileTakingDamage);
+    return damageDone;
+}
+
+bool RoomDungeonTemple::removeCoveredTile(Tile* tile)
+{
+    if(!getGameMap()->isInEditorMode() && getHP(nullptr) > 0.0)
+        return false;
+    return Room::removeCoveredTile(tile);
+}
+
+void RoomDungeonTemple::doUpkeep()
+{
+    if(getHP(nullptr) <= 0.0)
+    {
+        // Only destruction of the heart releases its floor and triggers the
+        // existing last-temple defeat and persistent-object cleanup paths.
+        const std::vector<Tile*> tiles = mCoveredTiles;
+        for(Tile* tile : tiles)
+            Room::removeCoveredTile(tile);
+    }
+    Room::doUpkeep();
+}
+
+void RoomDungeonTemple::exportToStream(std::ostream& os) const
+{
+    Room::exportToStream(os);
+    if(!getGameMap()->isInEditorMode())
+        os << "HeartHP " << getHP(nullptr) << '\n';
+}
+
+bool RoomDungeonTemple::importFromStream(std::istream& is)
+{
+    if(!Room::importFromStream(is))
+        return false;
+    // Old maps and saves have no room-level health record; retain their total
+    // remaining durability without interpreting the following room as health.
+    mHeartHP = Building::getHP(nullptr);
+    is >> std::ws;
+    if(is.peek() == 'H')
+    {
+        std::string marker;
+        if(!(is >> marker >> mHeartHP) || marker != "HeartHP"
+            || !std::isfinite(mHeartHP) || mHeartHP < 0.0)
+            return false;
+    }
+    return true;
 }
 
 void RoomDungeonTemple::updateActiveSpots(GameMap* gameMap)
@@ -157,7 +273,7 @@ void RoomDungeonTemple::updateTemplePosition()
     if (centralTile == nullptr)
         return;
 
-    mTempleObject = new PersistentObject(getGameMap(), *this, "DungeonTempleObject", centralTile, 0.0, false);
+    mTempleObject = new DungeonHeartObject(getGameMap(), *this, centralTile);
     addBuildingObject(centralTile, mTempleObject);
 }
 

@@ -26,6 +26,7 @@
 #include "game/Seat.h"
 #include "gamemap/GameMap.h"
 #include "gamemap/Pathfinding.h"
+#include "gamemap/RoomObjectBounds.h"
 #include "network/ODClient.h"
 #include "network/ODPacket.h"
 #include "network/ClientNotification.h"
@@ -509,6 +510,7 @@ bool Tile::isMarkedForDiggingByAnySeat()
 void Tile::addPlayerMarkingTile(const Player *p)
 {
     mPlayersMarkingTile.push_back(p);
+    fireTileStateChanged();
 }
 
 void Tile::removePlayerMarkingTile(const Player *p)
@@ -518,6 +520,7 @@ void Tile::removePlayerMarkingTile(const Player *p)
         return;
 
     mPlayersMarkingTile.erase(it);
+    fireTileStateChanged();
 }
 
 void Tile::addNeighbor(Tile *n)
@@ -1183,6 +1186,30 @@ bool Tile::isBuildableUpon(Seat* seat) const
         return false;
     if(!isClaimedForSeat(seat))
         return false;
+
+    // The heart mesh extends beyond its room tiles. Protect that visible
+    // footprint on both client and server without blocking navigation.
+    if(!getGameMap()->isInEditorMode())
+    {
+        for(RenderedMovableEntity* object : getGameMap()->getRenderedMovableEntities())
+        {
+            if(object->getMeshName() != "DungeonTempleObject")
+                continue;
+            for(const RoomObjectPath::MeshBounds& bounds : RoomObjectPath::meshBounds)
+            {
+                if(object->getMeshName() != bounds.name)
+                    continue;
+                const Ogre::Vector3 position = object->getPosition();
+                // The tile reaches half a unit from its centre in each direction.
+                if(getX() + 0.5f > position.x + bounds.minX &&
+                    getX() - 0.5f < position.x + bounds.maxX &&
+                    getY() + 0.5f > position.y + bounds.minY &&
+                    getY() - 0.5f < position.y + bounds.maxY)
+                    return false;
+                break;
+            }
+        }
+    }
 
     return true;
 }
@@ -2448,6 +2475,7 @@ Creature* Tile::getClosestCreature(SelectionEntityWanted se)
 
 void Tile::setLocalPlayerHasVision(bool localPlayerHasVision)
 {
+    const bool visionChanged = mLocalPlayerHasVision != localPlayerHasVision;
     bool mEverVisibleOld = mEverVisible;
     
     mEverVisible = mEverVisible || localPlayerHasVision;
@@ -2464,7 +2492,8 @@ void Tile::setLocalPlayerHasVision(bool localPlayerHasVision)
     }
 
     mLocalPlayerHasVision = localPlayerHasVision;
-
+    if(visionChanged)
+        fireTileStateChanged();
 }
 
 
