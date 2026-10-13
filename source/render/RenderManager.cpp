@@ -179,9 +179,10 @@ void RenderManager::saveTexture(Ogre::TexturePtr texture, const std::string& fil
 }
 
 
-// Switches the shadowingEnabled uniform of every fragment program that has a
-// shadow texture. Includes material clones and techniques created since the
-// game started.
+//! \brief Switches the shadowingEnabled uniform of every fragment program that has a
+//! shadow texture. Includes material clones and techniques created since the
+//! game started.
+//! \param enabled true to switch shadow receiving on, false to switch it off
 static void setShadowingEnabledParameters(bool enabled)
 {
     Ogre::ResourceManager::ResourceMapIterator materials = Ogre::MaterialManager::getSingleton().getResourceIterator();
