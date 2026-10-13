@@ -854,3 +854,78 @@ BOOST_AUTO_TEST_CASE(test_bridges_and_mana_wells)
     again.exportToStream(os2);
     BOOST_CHECK_EQUAL(os2.str(), written);
 }
+
+//! \brief The boulder and stone conditions and the golf ball and portal stone actions are read, written
+//! (also the stone carriers kept by the script) and refused when malformed
+BOOST_AUTO_TEST_CASE(test_stone_and_ball)
+{
+    static const std::string text =
+        "Stone\tCarrier\n"
+        "Region\tHole\t5\t5\t7\t7\n"
+        "[Trigger]\n"
+        "Name\tball\n"
+        "Mode\tonce\n"
+        "Cond\tboulder\tHole\t>=\t1\n"
+        "Cond\tstone\tHole\t==\t2\n"
+        "Action\tgolfball\t1\t6\t6\n"
+        "Action\tstonecreate\t8\t9\n"
+        "Action\tstoneattach\tCarrier\n"
+        "[/Trigger]\n"
+        "[/Triggers]\n";
+    LevelScript script;
+    std::istringstream is(text);
+    BOOST_REQUIRE(script.importFromStream(is));
+    BOOST_CHECK(script.isBoulderHole(6, 6));
+    BOOST_CHECK(!script.isBoulderHole(8, 8));
+    BOOST_REQUIRE_EQUAL(script.getStoneCarriers().size(), 1u);
+    BOOST_CHECK(script.getStoneCarriers().count("Carrier") == 1u);
+
+    const LevelScriptTrigger& trigger = script.getTriggers()[0];
+    BOOST_REQUIRE_EQUAL(trigger.mConditions.size(), 2u);
+    BOOST_CHECK(trigger.mConditions[0].mType == LevelScriptConditionType::boulderInRegion);
+    BOOST_CHECK_EQUAL(trigger.mConditions[0].mName, "Hole");
+    BOOST_CHECK(trigger.mConditions[1].mType == LevelScriptConditionType::stoneInRegion);
+    BOOST_CHECK_EQUAL(trigger.mConditions[1].mNumber, 2);
+    BOOST_REQUIRE_EQUAL(trigger.mActions.size(), 3u);
+    BOOST_CHECK(trigger.mActions[0].mType == LevelScriptActionType::golfBall);
+    BOOST_CHECK_EQUAL(trigger.mActions[0].mSeatId, 1);
+    BOOST_CHECK_EQUAL(trigger.mActions[0].mX, 6);
+    BOOST_CHECK(trigger.mActions[1].mType == LevelScriptActionType::stoneCreate);
+    BOOST_CHECK_EQUAL(trigger.mActions[1].mY, 9);
+    BOOST_CHECK(trigger.mActions[2].mType == LevelScriptActionType::stoneAttach);
+    BOOST_CHECK_EQUAL(trigger.mActions[2].mText, "Carrier");
+
+    // A carrier is remembered with its last tile until it is removed
+    script.setStoneCarrierTile("Carrier", 3, 4);
+    int32_t x = 0;
+    int32_t y = 0;
+    BOOST_CHECK(script.getStoneCarrierTile("Carrier", x, y));
+    BOOST_CHECK_EQUAL(x, 3);
+    BOOST_CHECK_EQUAL(y, 4);
+    script.removeStoneCarrier("Carrier");
+    BOOST_CHECK(!script.getStoneCarrierTile("Carrier", x, y));
+    script.addStoneCarrier("Carrier");
+
+    std::ostringstream os;
+    script.exportToStream(os);
+    std::string written = os.str();
+    LevelScript again;
+    std::istringstream is2(written.substr(11));
+    BOOST_REQUIRE(again.importFromStream(is2));
+    std::ostringstream os2;
+    again.exportToStream(os2);
+    BOOST_CHECK_EQUAL(os2.str(), written);
+
+    static const char* bad[] = {
+        "[Trigger]\nName\tx\nMode\tonce\nCond\tboulder\tHole\t1\nAction\tmessage\t1\tx\n[/Trigger]\n[/Triggers]\n",
+        "[Trigger]\nName\tx\nMode\tonce\nCond\tstone\tHole\t>=\nAction\tmessage\t1\tx\n[/Trigger]\n[/Triggers]\n",
+        "[Trigger]\nName\tx\nMode\tonce\nCond\ttime\t1\nAction\tgolfball\t1\t6\n[/Trigger]\n[/Triggers]\n",
+        "[Trigger]\nName\tx\nMode\tonce\nCond\ttime\t1\nAction\tstonecreate\t8\n[/Trigger]\n[/Triggers]\n",
+        "[Trigger]\nName\tx\nMode\tonce\nCond\ttime\t1\nAction\tstoneattach\n[/Trigger]\n[/Triggers]\n"};
+    for(const char* entry : bad)
+    {
+        LevelScript invalid;
+        std::istringstream isBad(entry);
+        BOOST_CHECK_MESSAGE(!invalid.importFromStream(isBad), entry);
+    }
+}

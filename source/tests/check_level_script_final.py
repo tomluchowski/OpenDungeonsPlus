@@ -133,4 +133,20 @@ for word in ('Cond	pickedup', 'Cond	dropped', 'Cond	slapped', 'Cond	happy', 'Con
              'Action	timelimit', 'Action	win'):
     assert word in section, word
 
-print('level script make, time limit, creature events and region test level wiring: ok')
+# portal stone and golf ball: the stone lies on a tile and is carried by a creature, the ball is slapped by the keeper
+stone_h = read('source/entities/MissileStone.h')
+assert 'class MissileStone' in stone_h and 'MissileObjectType::stone' in stone_h
+assert 'MissileStone.cpp' in read('CMakeLists.txt')
+for name in ('stoneCreate', 'stoneAttach', 'golfBall'):
+    assert 'case LevelScriptActionType::%s:' % name in runner, name
+for name in ('boulderInRegion', 'stoneInRegion'):
+    assert 'case LevelScriptConditionType::%s:' % name in runner, name
+for token in ('stonecreate', 'stoneattach', 'golfball', 'boulder', 'stone'):
+    assert 'type == "%s"' % token in script_cpp, token
+assert 'key == "Stone"' in script_cpp and 'os << "Stone' in script_cpp
+assert 'updateStoneCarriers(gameMap, script);' in function(runner, 'void LevelScriptRunner::doTurn(')
+assert 'isBoulderHole(' in script_cpp and 'slapFrom(' in read('source/entities/MissileBoulder.h')
+assert 'slapFrom(handX, handY)' in read('source/network/ODServer.cpp')
+assert 'inputManager.mKeeperHandPos.x' in function(read('source/modes/GameMode.cpp'), 'bool GameMode::mousePressed(')
+
+print('level script make, time limit, creature events, stones and region test level wiring: ok')

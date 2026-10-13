@@ -977,7 +977,9 @@ bool GameMode::mousePressed(const OIS::MouseEvent& arg, OIS::MouseButtonID id)
             {
                 ODClient::getSingleton().queueClientNotification(ClientNotificationType::askSlapEntity,
                      closestEntity->getObjectType(),
-                     closestEntity->getName());
+                     closestEntity->getName(),
+                     inputManager.mKeeperHandPos.x,
+                     inputManager.mKeeperHandPos.y);
                 return true;
             }
         }

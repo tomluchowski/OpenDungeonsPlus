@@ -61,6 +61,7 @@
 //!   Cond    slabs <seatId> <regionName> <kind> <op> <count>   # tiles of the region of that kind: rock (earth wall), path (dug floor), gold, gems, claimed (claimed floor), wall (reinforced wall), water, lava, impenetrable, manawell or a room name; seat -1 any owner, 0 unclaimed
 //!   Cond    tagged <seatId> <regionName> <op> <count>   # tiles of the region marked for digging by the seat
 //!   Cond    tagged <seatId> <regionName> all            # every diggable tile of the region is marked for digging by the seat (and there is one)
+//!   Cond    boulder <regionName> <op> <count>   # rolling boulders (from boulder traps) that are inside the region right now
 //!   Cond    defeated <seatId>                 # the seat has lost its dungeon (its player is out of the game)
 //!   Cond    slaps <seatId> <op> <count>       # slaps the player of the seat has tried to do (a slap that the slap limit refuses counts too)
 //!   Cond    furniture <seatId> <roomName> <op> <count>   # furniture objects (bookcases, beds, ...) in the rooms of that type of the seat
@@ -70,6 +71,7 @@
 //!   Cond    alive <creatureName> [1 | 0]      # the creature with that name is alive, whatever its seat (0: it is dead or not there)
 //!   Cond    reached <creatureName> region <regionName>   # the living creature with that name stands inside the region
 //!   Cond    reached <creatureName> heart <seatId>        # the living creature with that name stands on the dungeon heart room of the seat
+//!   Cond    stone <regionName> <op> <count>   # portal stones lying on the ground inside the region (see stonecreate, stoneattach)
 //!   Cond    health <creatureName> <op> <percent>   # health of that living creature in percent of its maximum
 //!   Cond    spell <seatId> <skillName>        # the seat has the spell (or any other skill) researched
 //!   Cond    built <seatId> <trapName> <op> <count>   # tiles of traps or doors of that type (Cannon, DoorSteel, ...) of the seat; trapName any counts all
@@ -119,6 +121,9 @@
 //!   Action  countdown <seconds>               # shows a countdown on the HUD that ends without a defeat (0 removes it); a running time limit is shown instead of it
 //!   Action  wavecountdown <seconds>           # shows "Next wave in mm:ss" on the HUD, beside the other countdown; it has no effect when it ends (0 removes it)
 //!   Action  timelimit <seconds>               # the level is lost for every keeper when that many seconds have passed from now (0: removes any time limit); the remaining time is shown on the HUD
+//!   Action  golfball <seatId> <x> <y>         # a boulder lies on the tile; the seat rolls it by slapping it. A region named by a "boulder" condition is a hole: the ball stops in it
+//!   Action  stonecreate <x> <y>                 # a portal stone lies on the tile
+//!   Action  stoneattach <creatureName>          # the creature carries a portal stone; it drops where the creature dies
 //!   Action  terrain <x1> <y1> <x2> <y2> bridge <seatId>   # also: a wooden bridge of the seat over lava or water
 //!   State   <timesFired> <lastFiredTurn>      # written by the game, only needed in savegames
 //!   [/Trigger]
@@ -180,12 +185,14 @@ enum class LevelScriptConditionType
     creatureEvent,
     tileKinds,
     tilesTagged,
+    boulderInRegion,
     playerSlaps,
     roomFurniture,
     dungeonBreached,
     portalActive,
     creatureAlive,
-    creatureReached
+    creatureReached,
+    stoneInRegion
 };
 
 //! \brief The kinds of actions a trigger can run (see the format above).
@@ -214,7 +221,10 @@ enum class LevelScriptActionType
     creatureOrder,
     creatureSpeed,
     roomOwner,
-    slapLimit
+    slapLimit,
+    golfBall,
+    stoneCreate,
+    stoneAttach
 };
 
 //! \brief One condition of a trigger. The fields that are used depend on the type.
@@ -400,7 +410,7 @@ public:
 
     //! \brief True if the script holds nothing that a level file has to store.
     inline bool isEmpty() const
-    { return mTriggers.empty() && mFlags.empty() && mTimers.empty() && mEvents.empty() && mPortalOff.empty() && mBlocked.empty() && mRegions.empty() && (mTimeLimitSeconds == TIME_LIMIT_NOT_SET) && (mCountdownSeconds == COUNTDOWN_NOT_SET) && (mWaveCountdownSeconds == COUNTDOWN_NOT_SET) && mOrders.empty() && mSlaps.empty() && (mSlapLimit < 0); }
+    { return mTriggers.empty() && mFlags.empty() && mTimers.empty() && mEvents.empty() && mPortalOff.empty() && mBlocked.empty() && mRegions.empty() && (mTimeLimitSeconds == TIME_LIMIT_NOT_SET) && (mCountdownSeconds == COUNTDOWN_NOT_SET) && (mWaveCountdownSeconds == COUNTDOWN_NOT_SET) && mOrders.empty() && mSlaps.empty() && (mSlapLimit < 0) && mStoneCarriers.empty(); }
 
     //! \brief The triggers of the script. The caller may change them.
     inline std::vector<LevelScriptTrigger>& getTriggers()
@@ -518,6 +528,20 @@ public:
     inline const std::map<int32_t, int64_t>& getSlapCounts() const
     { return mSlaps; }
 
+    //! True if the tile is in a region that a boulder condition names: a golf ball stops there
+    bool isBoulderHole(int32_t x, int32_t y) const;
+
+    //! Creatures that carry a portal stone (it drops where they die)
+    void addStoneCarrier(const std::string& creatureName);
+    void removeStoneCarrier(const std::string& creatureName);
+
+    inline const std::set<std::string>& getStoneCarriers() const
+    { return mStoneCarriers; }
+
+    //! The last tile a stone carrier was seen on (not saved)
+    void setStoneCarrierTile(const std::string& creatureName, int32_t x, int32_t y);
+    bool getStoneCarrierTile(const std::string& creatureName, int32_t& x, int32_t& y) const;
+
     static const int64_t TIME_LIMIT_NOT_SET = -1;
     static const int64_t TIME_LIMIT_REMOVED = -2;
 
@@ -572,6 +596,8 @@ private:
     std::map<std::string, LevelScriptOrder> mOrders;
     std::map<int32_t, int64_t> mSlaps;
     int64_t mSlapLimit;
+    std::set<std::string> mStoneCarriers;
+    std::map<std::string, std::pair<int32_t, int32_t> > mStoneCarrierTiles;
 };
 
 #endif // LEVELSCRIPT_H

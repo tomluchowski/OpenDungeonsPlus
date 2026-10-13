@@ -21,6 +21,7 @@
 #include "entities/GameEntityType.h"
 #include "entities/MissileBlast.h"
 #include "entities/MissileBoulder.h"
+#include "entities/MissileStone.h"
 #include "entities/MissileOneHit.h"
 #include "entities/Tile.h"
 #include "game/Seat.h"
@@ -78,6 +79,9 @@ void MissileObject::doUpkeep()
     {
         if(!isMoving())
         {
+            if(staysWhenStopped())
+                return;
+
             removeFromGameMap();
             deleteYourself();
         }
@@ -94,6 +98,10 @@ void MissileObject::doUpkeep()
     }
 
     updateDirection();
+
+    // updateDirection can stop the missile
+    if(!mIsMissileAlive)
+        return;
 
     // We check if a creature is in our way. We start by taking the tile we will be on
     Ogre::Vector3 position3f = getPosition();
@@ -163,6 +171,14 @@ void MissileObject::doUpkeep()
         }
         lastTile = tmpTile;
 
+        if(stopsOnTile(tmpTile))
+        {
+            mIsMissileAlive = false;
+            destination.x = static_cast<Ogre::Real>(tmpTile->getX());
+            destination.y = static_cast<Ogre::Real>(tmpTile->getY());
+            break;
+        }
+
         // If we are aiming a specific entity, we check if we hit
         GameEntity* target = mEntityTarget;
         if(target != nullptr)
@@ -216,6 +232,13 @@ void MissileObject::doUpkeep()
 
     path.push_back(Ogre::Vector2(destination.x,destination.y));
     setWalkPath(EntityAnimation::idle_anim, EntityAnimation::idle_anim, true, true, path, false);
+}
+
+void MissileObject::launch(const Ogre::Vector3& direction, double speed)
+{
+    mDirection = direction;
+    mSpeed = speed;
+    mIsMissileAlive = true;
 }
 
 bool MissileObject::computeDestination(const Ogre::Vector3& position, double moveDist, const Ogre::Vector3& direction,
@@ -371,6 +394,11 @@ MissileObject* MissileObject::getMissileObjectFromStream(GameMap* gameMap, std::
             obj = MissileBlast::getMissileBlastFromStream(gameMap, is);
             break;
         }
+        case MissileObjectType::stone:
+        {
+            obj = MissileStone::getMissileStoneFromStream(gameMap, is);
+            break;
+        }
         default:
             OD_LOG_ERR("Unknown enum value : " + Helper::toString(
                 static_cast<int>(type)));
@@ -399,6 +427,11 @@ MissileObject* MissileObject::getMissileObjectFromPacket(GameMap* gameMap, ODPac
         case MissileObjectType::blast:
         {
             obj = MissileBlast::getMissileBlastFromPacket(gameMap, is);
+            break;
+        }
+        case MissileObjectType::stone:
+        {
+            obj = MissileStone::getMissileStoneFromPacket(gameMap, is);
             break;
         }
         default:

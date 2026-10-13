@@ -21,6 +21,11 @@
 #include "creaturemood/CreatureMood.h"
 #include "entities/Creature.h"
 #include "entities/CreatureDefinition.h"
+#include "entities/GameEntityType.h"
+#include "entities/MissileBoulder.h"
+#include "entities/MissileObject.h"
+#include "entities/MissileStone.h"
+#include "entities/RenderedMovableEntity.h"
 #include "entities/Tile.h"
 #include "game/Player.h"
 #include "game/Seat.h"
@@ -207,6 +212,30 @@ bool isConditionMet(GameMap& gameMap, const LevelScript& script, const LevelScri
         }
         case LevelScriptConditionType::timer:
             return levelScriptCompare(script.getTimerTurns(cond.mName), cond.mCompare, secondsToTurns(cond.mNumber));
+        case LevelScriptConditionType::boulderInRegion:
+        {
+            const LevelScriptRegion* region = script.getRegion(cond.mName);
+            if(region == nullptr)
+            {
+                OD_LOG_ERR("Level script: unknown region name=" + cond.mName);
+                return false;
+            }
+
+            int64_t numBoulders = 0;
+            for(RenderedMovableEntity* entity : gameMap.getRenderedMovableEntities())
+            {
+                if(entity->getObjectType() != GameEntityType::missileObject)
+                    continue;
+
+                if(static_cast<MissileObject*>(entity)->getMissileType() != MissileObjectType::boulder)
+                    continue;
+
+                Tile* tile = entity->getPositionTile();
+                if((tile != nullptr) && region->contains(tile->getX(), tile->getY()))
+                    ++numBoulders;
+            }
+            return levelScriptCompare(numBoulders, cond.mCompare, cond.mNumber);
+        }
         case LevelScriptConditionType::tileKinds:
         case LevelScriptConditionType::tilesTagged:
         {
@@ -339,6 +368,30 @@ bool isConditionMet(GameMap& gameMap, const LevelScript& script, const LevelScri
             Room* room = tile->getCoveringRoom();
             return (room != nullptr) && (room->getType() == RoomType::dungeonTemple) &&
                 (room->getSeat() != nullptr) && (room->getSeat()->getId() == cond.mSeatId);
+        }
+        case LevelScriptConditionType::stoneInRegion:
+        {
+            const LevelScriptRegion* region = script.getRegion(cond.mName);
+            if(region == nullptr)
+            {
+                OD_LOG_ERR("Level script: unknown region name=" + cond.mName);
+                return false;
+            }
+
+            int64_t numStones = 0;
+            for(RenderedMovableEntity* entity : gameMap.getRenderedMovableEntities())
+            {
+                if(entity->getObjectType() != GameEntityType::missileObject)
+                    continue;
+
+                if(static_cast<MissileObject*>(entity)->getMissileType() != MissileObjectType::stone)
+                    continue;
+
+                Tile* tile = entity->getPositionTile();
+                if((tile != nullptr) && region->contains(tile->getX(), tile->getY()))
+                    ++numStones;
+            }
+            return levelScriptCompare(numStones, cond.mCompare, cond.mNumber);
         }
         case LevelScriptConditionType::seatDefeated:
         {
@@ -816,6 +869,64 @@ void alterTerrain(GameMap& gameMap, const LevelScriptAction& action)
     }
 }
 
+//! Puts a golf ball on the tile: a boulder that the seat rolls by slapping it
+void createGolfBall(GameMap& gameMap, const LevelScriptAction& action)
+{
+    Seat* seat = gameMap.getSeatById(action.mSeatId);
+    Tile* tile = gameMap.getTile(action.mX, action.mY);
+    if((seat == nullptr) || (tile == nullptr))
+    {
+        OD_LOG_ERR("Level script: golf ball with an unknown seat or tile");
+        return;
+    }
+
+    MissileBoulder* ball = MissileBoulder::createGolfBall(&gameMap, seat, "GolfBall");
+    ball->addToGameMap();
+    ball->createMesh();
+    ball->setPosition(Ogre::Vector3(static_cast<Ogre::Real>(action.mX), static_cast<Ogre::Real>(action.mY), 0.0f));
+}
+
+//! The mesh of the portal stone
+const std::string PORTAL_STONE_MESH = "MysteryBox";
+
+//! Puts a portal stone on the tile
+void createStone(GameMap& gameMap, int32_t x, int32_t y)
+{
+    Tile* tile = gameMap.getTile(x, y);
+    if(tile == nullptr)
+    {
+        OD_LOG_ERR("Level script: portal stone on an unknown tile");
+        return;
+    }
+
+    MissileStone* stone = new MissileStone(&gameMap, gameMap.getSeatById(0), PORTAL_STONE_MESH);
+    stone->addToGameMap();
+    stone->createMesh();
+    stone->setPosition(Ogre::Vector3(static_cast<Ogre::Real>(x), static_cast<Ogre::Real>(y), 0.0f));
+}
+
+//! A creature that carries a portal stone drops it where it dies (or leaves the map)
+void updateStoneCarriers(GameMap& gameMap, LevelScript& script)
+{
+    std::vector<std::string> carriers(script.getStoneCarriers().begin(), script.getStoneCarriers().end());
+    for(const std::string& name : carriers)
+    {
+        Creature* creature = gameMap.getCreature(name);
+        if((creature != nullptr) && creature->isAlive() && (creature->getPositionTile() != nullptr))
+        {
+            script.setStoneCarrierTile(name, creature->getPositionTile()->getX(), creature->getPositionTile()->getY());
+            continue;
+        }
+
+        int32_t x = 0;
+        int32_t y = 0;
+        if(script.getStoneCarrierTile(name, x, y))
+            createStone(gameMap, x, y);
+
+        script.removeStoneCarrier(name);
+    }
+}
+
 //! Alliances join the seats into one team. Breaking one puts the seat into a team of its own.
 void changeAlliance(GameMap& gameMap, const LevelScriptAction& action)
 {
@@ -1043,6 +1154,15 @@ void runAction(GameMap& gameMap, LevelScript& script, const LevelScriptAction& a
         case LevelScriptActionType::removeCreature:
             removeCreature(gameMap, action.mText);
             break;
+        case LevelScriptActionType::golfBall:
+            createGolfBall(gameMap, action);
+            break;
+        case LevelScriptActionType::stoneCreate:
+            createStone(gameMap, action.mX, action.mY);
+            break;
+        case LevelScriptActionType::stoneAttach:
+            script.addStoneCarrier(action.mText);
+            break;
         case LevelScriptActionType::alliance:
             changeAlliance(gameMap, action);
             break;
@@ -1071,6 +1191,7 @@ void LevelScriptRunner::doTurn(GameMap& gameMap)
     LevelScript& script = gameMap.getLevelScript();
     int64_t turn = gameMap.getTurnNumber();
     script.advanceTimers();
+    updateStoneCarriers(gameMap, script);
     for(LevelScriptTrigger& trigger : script.getTriggers())
     {
         if(trigger.mTimesFired > 0)

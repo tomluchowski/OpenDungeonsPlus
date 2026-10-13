@@ -22,6 +22,7 @@
 #include "entities/CreatureDefinition.h"
 #include "entities/GameEntityType.h"
 #include "entities/MapLight.h"
+#include "entities/MissileBoulder.h"
 #include "entities/Tile.h"
 #include "entities/Weapon.h"
 #include "game/HeartHealthRing.h"
@@ -1583,8 +1584,10 @@ bool ODServer::processClientNotifications(ODSocketClient* clientSocket)
         {
             GameEntityType entityType;
             std::string entityName;
+            float handX;
+            float handY;
             Player* player = clientSocket->getPlayer();
-            OD_ASSERT_TRUE(packetReceived >> entityType >> entityName);
+            OD_ASSERT_TRUE(packetReceived >> entityType >> entityName >> handX >> handY);
             GameEntity* entity = gameMap->getEntityFromTypeAndName(entityType, entityName);
             if(entity == nullptr)
             {
@@ -1609,7 +1612,11 @@ bool ODServer::processClientNotifications(ODSocketClient* clientSocket)
             }
 
             OD_LOG_INF("player seatId=" + Helper::toString(player->getSeat()->getId()) + " slapped entity " + entity->getName());
-            entity->slap();
+            MissileBoulder* ball = (entityType == GameEntityType::missileObject) ? dynamic_cast<MissileBoulder*>(entity) : nullptr;
+            if(ball != nullptr)
+                ball->slapFrom(handX, handY);
+            else
+                entity->slap();
 
             ServerNotification notif(ServerNotificationType::entitySlapped, player);
             sendAsyncMsg(notif);

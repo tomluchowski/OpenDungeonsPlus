@@ -310,6 +310,15 @@ bool parseCondition(const std::vector<std::string>& t, LevelScriptCondition& con
         }
         return parseInt(value, cond.mNumber);
     }
+    if(type == "boulder")
+    {
+        cond.mType = LevelScriptConditionType::boulderInRegion;
+        if(t.size() != 5)
+            return false;
+
+        cond.mName = t[2];
+        return parseOperator(t[3], cond) && parseInt(t[4], cond.mNumber);
+    }
     if(type == "slabs")
     {
         cond.mType = LevelScriptConditionType::tileKinds;
@@ -406,6 +415,15 @@ bool parseCondition(const std::vector<std::string>& t, LevelScriptCondition& con
             return !cond.mName2.empty();
         }
         return (t[3] == "heart") && parseInt32(t[4], cond.mSeatId);
+    }
+    if(type == "stone")
+    {
+        cond.mType = LevelScriptConditionType::stoneInRegion;
+        if(t.size() != 5)
+            return false;
+
+        cond.mName = t[2];
+        return parseOperator(t[3], cond) && parseInt(t[4], cond.mNumber);
     }
     if(type == "defeated")
     {
@@ -619,6 +637,26 @@ bool parseAction(const std::string& line, const std::vector<std::string>& t, Lev
         action.mNumber = (t[4] == "1") ? 1 : 0;
         return parseInt32(t[2], action.mSeatId);
     }
+    if(type == "golfball")
+    {
+        action.mType = LevelScriptActionType::golfBall;
+        return (t.size() == 5) && parseInt32(t[2], action.mSeatId) && parseInt32(t[3], action.mX) &&
+            parseInt32(t[4], action.mY);
+    }
+    if(type == "stonecreate")
+    {
+        action.mType = LevelScriptActionType::stoneCreate;
+        return (t.size() == 4) && parseInt32(t[2], action.mX) && parseInt32(t[3], action.mY);
+    }
+    if(type == "stoneattach")
+    {
+        action.mType = LevelScriptActionType::stoneAttach;
+        if(t.size() != 3)
+            return false;
+
+        action.mText = t[2];
+        return true;
+    }
     if(type == "remove")
     {
         action.mType = LevelScriptActionType::removeCreature;
@@ -755,6 +793,12 @@ void writeCondition(std::ostream& os, const LevelScriptCondition& c)
                 os << "reached\t" << c.mName << "\theart\t" << c.mSeatId;
             else
                 os << "reached\t" << c.mName << "\tregion\t" << c.mName2;
+            break;
+        case LevelScriptConditionType::stoneInRegion:
+            os << "stone\t" << c.mName << "\t" << levelScriptCompareToken(c.mCompare) << "\t" << c.mNumber;
+            break;
+        case LevelScriptConditionType::boulderInRegion:
+            os << "boulder\t" << c.mName << "\t" << levelScriptCompareToken(c.mCompare) << "\t" << c.mNumber;
             break;
         case LevelScriptConditionType::tileKinds:
             os << "slabs\t" << c.mSeatId << "\t" << c.mName << "\t" << c.mName2 << "\t" << levelScriptCompareToken(c.mCompare) << "\t" << c.mNumber;
@@ -930,6 +974,15 @@ void writeAction(std::ostream& os, const LevelScriptAction& a)
         case LevelScriptActionType::removeCreature:
             os << "remove\t" << a.mText;
             break;
+        case LevelScriptActionType::golfBall:
+            os << "golfball\t" << a.mSeatId << "\t" << a.mX << "\t" << a.mY;
+            break;
+        case LevelScriptActionType::stoneCreate:
+            os << "stonecreate\t" << a.mX << "\t" << a.mY;
+            break;
+        case LevelScriptActionType::stoneAttach:
+            os << "stoneattach\t" << a.mText;
+            break;
         case LevelScriptActionType::alliance:
             os << "alliance\t" << a.mSeatId << "\t" << a.mTargetSeatId << "\t" << (a.mNumber != 0 ? "make" : "break");
             break;
@@ -1044,6 +1097,13 @@ bool LevelScript::importFromStream(std::istream& is)
                 return false;
 
             mEvents[std::make_pair(t[1], t[2])] = count;
+        }
+        else if(key == "Stone")
+        {
+            if(inTrigger || (t.size() != 2))
+                return false;
+
+            mStoneCarriers.insert(t[1]);
         }
         else if(key == "Member")
         {
@@ -1211,6 +1271,9 @@ void LevelScript::exportToStream(std::ostream& os) const
         writeWaypoints(os, order.second.mWaypoints);
         os << "\n";
     }
+    for(const std::string& carrier : mStoneCarriers)
+        os << "Stone\t" << carrier << "\n";
+
     for(const LevelScriptRegion& region : mRegions)
     {
         os << "Region\t" << region.mName << "\t" << region.mX1 << "\t" << region.mY1
@@ -1258,6 +1321,52 @@ void LevelScript::clear()
     mOrders.clear();
     mSlaps.clear();
     mSlapLimit = -1;
+    mStoneCarriers.clear();
+    mStoneCarrierTiles.clear();
+}
+
+bool LevelScript::isBoulderHole(int32_t x, int32_t y) const
+{
+    for(const LevelScriptTrigger& trigger : mTriggers)
+    {
+        for(const LevelScriptCondition& cond : trigger.mConditions)
+        {
+            if(cond.mType != LevelScriptConditionType::boulderInRegion)
+                continue;
+
+            const LevelScriptRegion* region = getRegion(cond.mName);
+            if((region != nullptr) && region->contains(x, y))
+                return true;
+        }
+    }
+    return false;
+}
+
+void LevelScript::addStoneCarrier(const std::string& creatureName)
+{
+    mStoneCarriers.insert(creatureName);
+}
+
+void LevelScript::removeStoneCarrier(const std::string& creatureName)
+{
+    mStoneCarriers.erase(creatureName);
+    mStoneCarrierTiles.erase(creatureName);
+}
+
+void LevelScript::setStoneCarrierTile(const std::string& creatureName, int32_t x, int32_t y)
+{
+    mStoneCarrierTiles[creatureName] = std::make_pair(x, y);
+}
+
+bool LevelScript::getStoneCarrierTile(const std::string& creatureName, int32_t& x, int32_t& y) const
+{
+    std::map<std::string, std::pair<int32_t, int32_t> >::const_iterator it = mStoneCarrierTiles.find(creatureName);
+    if(it == mStoneCarrierTiles.end())
+        return false;
+
+    x = it->second.first;
+    y = it->second.second;
+    return true;
 }
 
 void LevelScript::rebaseTimeLimit(int64_t elapsedSeconds)
