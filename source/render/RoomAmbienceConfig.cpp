@@ -70,6 +70,10 @@ bool RoomAmbienceConfig::whenFromString(const std::string& text, AmbienceWhen& w
         when = AmbienceWhen::occupied;
     else if(text == "Empty")
         when = AmbienceWhen::empty;
+    else if(text == "Hit")
+        when = AmbienceWhen::hit;
+    else if(text == "Locked")
+        when = AmbienceWhen::locked;
     else if(text == "Reloading")
         when = AmbienceWhen::reloading;
     else if(text == "Ready")
@@ -373,6 +377,10 @@ bool RoomAmbienceConfig::loadEffect(std::istream& file)
         else if(key == "NeedWall")
         {
             effect.mNeedWall = toBool(words[1]);
+        }
+        else if(key == "OwnerOnly")
+        {
+            effect.mOwnerOnly = toBool(words[1]);
         }
         else
         {

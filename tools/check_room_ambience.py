@@ -19,17 +19,18 @@ SETTINGS = ("ScanInterval", "MaxParticles", "MaxParticlesReduced", "MaxMotions",
             "ReducedDistanceFactor")
 EFFECT_KEYS = ("Name", "Target", "Match", "When", "Event", "Kind", "System", "Motion", "After", "Offset", "Axis",
                "Amount", "Speed", "Flicker", "Duration", "Chance", "Spacing", "MaxDistance", "Priority", "Reduced",
-               "NeedWall", "Clips", "Every")
+               "NeedWall", "Clips", "Every", "OwnerOnly")
 TARGETS = ("Object", "Tile", "Event")
-WHENS = ("Always", "Occupied", "Empty", "Reloading", "Ready")
+WHENS = ("Always", "Occupied", "Empty", "Hit", "Locked", "Reloading", "Ready")
 KINDS = ("Particle", "Motion", "Clip", "Shake", "Turn")
 MOTIONS = ("Sway", "Wobble", "Spin", "Bob", "Pulse", "Flicker")
 # Room tile visuals that only some builds have
 OPTIONAL_VISUALS = ("guardRoom", "templeRoom")
-# Events of the trap messages of the server; their Match names the type of the trap
-TRAP_EVENTS = ("TrapFired", "TrapLinked")
+# Events of the trap and door messages of the server (and the ones the client finds); their Match names the type
+# of the trap or door
+TRAP_EVENTS = ("TrapFired", "TrapLinked", "DoorHit", "DoorHurt", "DoorWrecked", "TrapBuilt", "TrapSold")
 TRAP_TYPES = ("Spike", "Alarm", "Fear", "Gas", "Lightning", "Fireburst", "Freeze", "WatchBanner", "Trigger", "Cannon",
-              "Boulder")
+              "Boulder", "DoorWooden", "DoorIronbound", "DoorSteel", "DoorBarricade", "DoorSecret", "DoorRuned")
 # Tile visuals a bridge can lie over
 BRIDGE_VISUALS = ("lavaGround", "waterGround")
 
@@ -169,7 +170,7 @@ def check_effect(effect, where, problems, visuals, systems, mats, counts):
     when = effect.get("When", ["Always"])[0]
     if when not in WHENS:
         problems.append("%s: bad When %s" % (where, when))
-    if when in ("Reloading", "Ready") and target != "Object":
+    if when in ("Hit", "Locked", "Reloading", "Ready") and target != "Object":
         problems.append("%s: When %s only works on objects" % (where, when))
     if target == "Event":
         counts["events"] += 1
@@ -228,7 +229,7 @@ def check_effect(effect, where, problems, visuals, systems, mats, counts):
     for key in ("Offset", "Axis"):
         if key in effect and (len(effect[key]) != 3 or not all(is_number(v) for v in effect[key])):
             problems.append("%s: %s needs three numbers" % (where, key))
-    for key in ("Reduced", "NeedWall"):
+    for key in ("Reduced", "NeedWall", "OwnerOnly"):
         if key in effect and effect[key][0] not in ("yes", "no", "true", "false", "1", "0"):
             problems.append("%s: %s needs yes or no" % (where, key))
     for match in effect.get("Match", []):

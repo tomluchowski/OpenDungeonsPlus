@@ -45,6 +45,10 @@ enum class AmbienceWhen
     occupied,
     //! No creature was close to the target for the time given in mAfter
     empty,
+    //! The target (a door) took a hit a moment ago
+    hit,
+    //! The target (a door) is closed, which is what a lock by the keeper does
+    locked,
     //! The target (a trap) reloads or is empty, as the server reported it
     reloading,
     //! The target (a trap) is loaded and ready, the opposite of reloading
@@ -107,7 +111,8 @@ struct AmbienceEffect
         mMaxDistance(28.0),
         mPriority(5),
         mReduced(false),
-        mNeedWall(false)
+        mNeedWall(false),
+        mOwnerOnly(false)
     {}
 
     //! Name of the effect, used in the log
@@ -156,6 +161,8 @@ struct AmbienceEffect
     bool mReduced;
     //! Tile targets: only tiles beside a wall
     bool mNeedWall;
+    //! Object targets: shown only to the keeper the object belongs to (the glint of a secret door must not give it away)
+    bool mOwnerOnly;
 };
 
 /*! \brief Settings and effects of config/roomAmbience.cfg

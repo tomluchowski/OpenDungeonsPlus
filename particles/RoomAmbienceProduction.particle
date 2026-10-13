@@ -1,4 +1,4 @@
-// Effects of the production rooms. Only the glow and embers that the fire burst trap also uses are here for now.
+// Effects of the production rooms. Only the glow, embers and dust that the traps and doors also use are here for now.
 
 // The glow of a fire: one steady billboard, the game makes it flicker
 particle_system RoomAmbEmberGlow
@@ -58,5 +58,45 @@ particle_system RoomAmbEmbers
         randomness  0.4
         scope       0.5
         keep_velocity true
+    }
+}
+
+// Dust shaken off at a blow
+particle_system RoomAmbHitDust
+{
+    material        RoomAmbSmoke
+    point_rendering false
+    particle_width  0.28
+    particle_height 0.28
+    cull_each       false
+    quota           10
+    billboard_type  point
+
+    emitter Box
+    {
+        angle               70
+        colour_range_start  0.72 0.64 0.5 0.45
+        colour_range_end    0.82 0.74 0.6 0.5
+        emission_rate       30
+        time_to_live        1.0
+        direction           0 0 1
+        velocity_min        0.2
+        velocity_max        0.6
+        duration            0.2
+        repeat_delay_min    0.8
+        repeat_delay_max    2.4
+        width               0.4
+        height              0.4
+        depth               0.1
+    }
+
+    affector Scaler
+    {
+        rate    0.5
+    }
+
+    affector ColourFader
+    {
+        alpha   -0.5
     }
 }

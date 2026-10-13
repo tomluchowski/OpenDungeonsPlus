@@ -341,8 +341,21 @@ double TrapDoor::takeDamage(GameEntity* attacker, double absoluteDamage, double 
 {
     // Store health in base units, preserving its fraction across research and ownership changes.
     const double factor = SkillManager::getResearchValue(getSeat(), SkillType::trapDoorWooden, 1.0);
-    return Building::takeDamage(attacker, absoluteDamage / factor, physicalDamage / factor,
+    double damageDone = Building::takeDamage(attacker, absoluteDamage / factor, physicalDamage / factor,
         magicalDamage / factor, elementDamage / factor, tileTakingDamage, ko) * factor;
+
+    // The clients show splinters, sparks or the collapse; they need to know how much health is left
+    if(damageDone > 0.0)
+    {
+        double defaultHP = getDefaultTileHP();
+        double fraction = (defaultHP > 0.0) ? (Building::getHP(tileTakingDamage) / defaultHP) : 0.0;
+        fraction = std::max(0.0, std::min(1.0, fraction));
+        if(fraction <= 0.0)
+            fireTrapEffect(TrapEffectKind::doorWrecked, tileTakingDamage, fraction);
+        else
+            fireTrapEffect(TrapEffectKind::doorHit, tileTakingDamage, fraction);
+    }
+    return damageDone;
 }
 
 TrapDoor::TrapDoor(GameMap* gameMap, TrapType doorType) :
@@ -433,6 +446,7 @@ bool TrapDoor::shoot(Tile* tile)
     if(!getSeat()->takeMana(manaToFire))
         return true;
 
+    fireTrapEffect(TrapEffectKind::fired, tile, 1.0);
     double damage = ConfigManager::getSingleton().getTrapConfigDouble("RunedDoorDamage");
     for(GameEntity* target : enemyCreatures)
     {

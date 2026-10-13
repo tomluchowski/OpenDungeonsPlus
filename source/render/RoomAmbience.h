@@ -90,14 +90,17 @@ public:
     uint32_t triggerEvent(const std::string& eventName, const Ogre::Vector3& position, bool forced,
         const std::string& visualName = std::string());
 
-    //! \brief A trap effect sent by the server (ServerNotificationType::trapEffect).
+    //! \brief A trap or door effect sent by the server (ServerNotificationType::trapEffect).
     //! \param kind A TrapEffectKind value.
-    //! \param tileX X of the tile of the trap.
-    //! \param tileY Y of the tile of the trap.
-    //! \param typeName The type of the trap (Alarm, Gas, ...), matched like a tile visual in "Match" of the event effects.
-    //! Shows the event TrapFired or TrapLinked at the tile. The kinds reloading and ready only set the state
-    //! for the effects "When Reloading" and "When Ready"; a kind that is not known is ignored.
-    void notifyTrapEffect(int32_t kind, int32_t tileX, int32_t tileY, const std::string& typeName);
+    //! \param tileX X of the tile of the trap or door.
+    //! \param tileY Y of the tile of the trap or door.
+    //! \param typeName The type of the trap or door (Alarm, DoorSteel, ...), matched like a tile visual in "Match" of
+    //! the event effects.
+    //! \param fraction The health a door has left (0 to 1); 1 for every trap.
+    //! Shows the events TrapFired, TrapLinked, DoorHit, DoorHurt (health at half or less) or DoorWrecked at the tile.
+    //! The kinds reloading and ready only set the state for the effects "When Reloading" and "When Ready"; a kind
+    //! that is not known is ignored.
+    void notifyTrapEffect(int32_t kind, int32_t tileX, int32_t tileY, const std::string& typeName, float fraction);
 
     //! \brief Moves the camera by the current shake. Called just before the frame is rendered; clearShake()
     //! takes it away again after the frame, so nothing else ever sees the shaken camera.
@@ -137,6 +140,27 @@ private:
         double mPhase;
         //! True while the last scan still wanted this emitter
         bool mSeen;
+    };
+
+    //! \brief The remains of a destroyed door, which plays the clip Collapse (barricade) or Destroyed (every other
+    //! door) and then sinks into the floor
+    struct Collapse
+    {
+        //! \brief Creates remains that are not attached to a scene node yet
+        Collapse() :
+            mNode(nullptr), mEntity(nullptr), mAge(0.0), mBaseHeight(0.0)
+        {}
+
+        //! The scene node of the ghost copy of the door
+        Ogre::SceneNode* mNode;
+        //! The ghost copy of the door that plays the clip
+        Ogre::Entity* mEntity;
+        //! Seconds since the clip started
+        double mAge;
+        //! Height of the node at the start, from which it sinks
+        double mBaseHeight;
+        //! Name of the clip that is played
+        std::string mClip;
     };
 
     //! \brief A cannon (or another object of an effect of kind turn) that follows creatures in range with its barrel
@@ -298,6 +322,13 @@ private:
     //! \brief Removes the one-shot effects whose time is over
     void updateOneShots(double timeSinceLastFrame);
     //! \brief Moves the objects by their motions and puts back the ones that are not moved any more
+    //! \brief Lets a destroyed door (the door entity of the given type on the tile, which the server is about to
+    //! remove) play the clip Collapse (barricade) or Destroyed (every other door) of its skeleton on a ghost copy
+    void startCollapse(int32_t tileX, int32_t tileY, const std::string& typeName);
+    //! \brief Moves the clips of the remains of destroyed doors on, lets them lie a moment and sinks them
+    void updateCollapses(double timeSinceLastFrame);
+    //! \brief Removes the ghost copy of a destroyed door from the scene
+    void destroyCollapse(Collapse& collapse);
     //! \brief Lets the objects of effects of kind turn follow the creatures near them, or go back to rest
     void updateTurrets(double timeSinceLastFrame);
     //! \brief Turns the object of a turret back to the direction it looked in when it was first seen
@@ -379,6 +410,12 @@ private:
     //! Time until which a trap (key "x,y" of its tile) counts as reloading or empty, for the effects
     //! "When Reloading" and "When Ready"
     std::map<std::string, double> mReloadingUntil;
+    //! Time until which a door (key "x,y" of its tile) counts as hit, for the effects "When Hit"
+    std::map<std::string, double> mHitUntil;
+    //! Time until which a door (key "x,y" of its tile) counts as destroyed, so that it is not also reported as sold
+    std::map<std::string, double> mWreckedUntil;
+    //! The remains of destroyed doors that are shown
+    std::vector<Collapse> mCollapses;
     //! Objects that follow creatures (kind turn), per entity name
     std::map<std::string, Turret> mTurrets;
     //! Time until which a trap (key "x,y" of its tile) keeps its turn, because the server aims it for a shot

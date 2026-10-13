@@ -22,6 +22,7 @@
 #include "entities/GameEntityType.h"
 #include "entities/RenderedMovableEntity.h"
 #include "entities/Tile.h"
+#include "game/Player.h"
 #include "game/Seat.h"
 #include "gamemap/GameMap.h"
 #include "render/ODFrameListener.h"
@@ -30,8 +31,11 @@
 #include "utils/Helper.h"
 #include "utils/LogManager.h"
 
+#include <OgreAnimationState.h>
 #include <OgreAxisAlignedBox.h>
 #include <OgreCamera.h>
+#include <OgreEntity.h>
+#include <OgreException.h>
 #include <OgreMath.h>
 #include <OgreParticleSystem.h>
 #include <OgreParticleSystemManager.h>
@@ -119,6 +123,24 @@ const double TWO_PI = 6.283185307179586;
 const double RELOAD_STATE_SECONDS = 300.0;
 //! Seconds that the reload look is kept after the server said that the trap is loaded, so that a short reload is seen at all
 const double RELOAD_FADE_OUT_SECONDS = 2.0;
+//! Seconds that a door counts as hit after the server sent a hit, for the effects "When Hit"
+const double HIT_STATE_SECONDS = 1.0;
+//! Seconds that a destroyed door counts as destroyed, so that its removal is not also reported as a sale
+const double WRECKED_STATE_SECONDS = 5.0;
+//! A door with this fraction of its health or less is hurt (the event DoorHurt)
+const float DOOR_HURT_FRACTION = 0.5f;
+//! At most this many remains of destroyed doors are shown at once
+const size_t MAX_COLLAPSES = 4;
+//! Seconds the remains of a door lie there after their clip, and seconds and depth of their sinking into the floor
+const double COLLAPSE_HOLD_SECONDS = 2.0;
+const double COLLAPSE_SINK_SECONDS = 1.0;
+const double COLLAPSE_SINK_DEPTH = 0.3;
+//! The type name of the barricade, which falls into a heap (clip Collapse) while every other door breaks (clip Destroyed)
+static const std::string BARRICADE_TYPE = "DoorBarricade";
+static const std::string COLLAPSE_CLIP = "Collapse";
+static const std::string DESTROYED_CLIP = "Destroyed";
+//! The state of the animation of a door that is closed
+static const std::string DOOR_CLOSED_STATE = "Close";
 //! How long the barrel of a cannon keeps the aim of the server after a shot, in seconds
 const double TURRET_HOLD_SECONDS = 1.5;
 //! A direction whose flat parts add up to less than this is no direction to turn toward
@@ -541,10 +563,14 @@ void RoomAmbience::stopAll()
 
         for(std::map<std::string, Turret>::iterator it = mTurrets.begin(); it != mTurrets.end(); ++it)
             restoreTurret(it->second);
+
+        for(Collapse& collapse : mCollapses)
+            destroyCollapse(collapse);
     }
 
     mEmitters.clear();
     mOneShots.clear();
+    mCollapses.clear();
     mTurrets.clear();
     mShakeTime = 0.0;
     clearShake();
@@ -577,6 +603,7 @@ void RoomAmbience::update(Ogre::Real timeSinceLastFrame)
 
     updateEmitters(dt);
     updateOneShots(dt);
+    updateCollapses(dt);
     updateShake(dt);
     updateMotions(dt);
     updateTurrets(dt);
@@ -678,6 +705,17 @@ void RoomAmbience::scanObjects(Ogre::Camera* camera, const Ogre::Vector3& camera
             if(!isEffectUsable(effect))
                 continue;
 
+            // Only the keeper the object belongs to sees it (the glint of a secret door must not give it away)
+            if(effect.mOwnerOnly)
+            {
+                Player* localPlayer = mGameMap->getLocalPlayer();
+                if((localPlayer == nullptr) || (localPlayer->getSeat() == nullptr) ||
+                   (entity->getSeat() != localPlayer->getSeat()))
+                {
+                    continue;
+                }
+            }
+
             // An effect that already runs is kept a bit beyond its distance
             double limit = getDistanceLimit(effect) * VIEW_DISTANCE_MARGIN;
             if(distance > limit)
@@ -722,6 +760,16 @@ void RoomAmbience::scanObjects(Ogre::Camera* camera, const Ogre::Vector3& camera
             if(effect.mWhen == AmbienceWhen::always)
             {
                 candidate.mActive = true;
+            }
+            else if(effect.mWhen == AmbienceWhen::locked)
+            {
+                // A door that is closed was locked by its keeper
+                candidate.mActive = (entity->getAnimationStateName() == DOOR_CLOSED_STATE);
+            }
+            else if(effect.mWhen == AmbienceWhen::hit)
+            {
+                std::map<std::string, double>::const_iterator hitIt = mHitUntil.find(getPositionKey(position));
+                candidate.mActive = (hitIt != mHitUntil.end()) && (hitIt->second > mClock);
             }
             else if((effect.mWhen == AmbienceWhen::reloading) || (effect.mWhen == AmbienceWhen::ready))
             {
@@ -935,7 +983,11 @@ void RoomAmbience::scanEntityEvents(Ogre::Camera* camera, const Ogre::Vector3& c
 {
     struct Change
     {
+        //! Name of the event
         std::string mEvent;
+        //! Trap or door type the event is about (empty = use the tile)
+        std::string mVisual;
+        //! Where the thing is
         Ogre::Vector3 mPosition;
     };
 
@@ -972,6 +1024,11 @@ void RoomAmbience::scanEntityEvents(Ogre::Camera* camera, const Ogre::Vector3& c
                 break;
             case GameEntityType::chickenEntity:
                 change.mEvent = "ChickenArrived";
+                break;
+            case GameEntityType::trapEntity:
+                // A trap or door that was built (or that the client sees for the first time)
+                change.mEvent = "TrapBuilt";
+                change.mVisual = name.substr(0, name.find('_'));
                 break;
             default:
                 break;
@@ -1021,6 +1078,26 @@ void RoomAmbience::scanEntityEvents(Ogre::Camera* camera, const Ogre::Vector3& c
             change.mPosition = it->second.mPosition;
             changes.push_back(change);
         }
+        else if(mEntitiesInitialized && (it->second.mType == static_cast<uint32_t>(GameEntityType::trapEntity)))
+        {
+            // A trap or door that is gone: sold, unless it was destroyed (reported with its own effect) or the
+            // client only lost sight of it
+            int32_t soldX = static_cast<int32_t>(std::floor(it->second.mPosition.x + 0.5f));
+            int32_t soldY = static_cast<int32_t>(std::floor(it->second.mPosition.y + 0.5f));
+            Tile* soldTile = mGameMap->getTile(soldX, soldY);
+            std::map<std::string, double>::const_iterator wreckedIt = mWreckedUntil.find(getTileKey(soldX, soldY));
+            bool wrecked = (wreckedIt != mWreckedUntil.end()) && (wreckedIt->second > mClock);
+            // The state of a trap that reloads is not needed any more
+            mReloadingUntil.erase(getTileKey(soldX, soldY));
+            if(!wrecked && (soldTile != nullptr) && soldTile->getLocalPlayerHasVision())
+            {
+                Change change;
+                change.mEvent = "TrapSold";
+                change.mVisual = it->first.substr(0, it->first.find('_'));
+                change.mPosition = it->second.mPosition;
+                changes.push_back(change);
+            }
+        }
 
         mKnownEntities.erase(it++);
     }
@@ -1032,7 +1109,7 @@ void RoomAmbience::scanEntityEvents(Ogre::Camera* camera, const Ogre::Vector3& c
         return;
 
     for(const Change& change : changes)
-        triggerEvent(change.mEvent, change.mPosition, false);
+        triggerEvent(change.mEvent, change.mPosition, false, change.mVisual);
 }
 
 void RoomAmbience::reconcile()
@@ -1469,6 +1546,118 @@ uint32_t RoomAmbience::triggerEvent(const std::string& eventName, const Ogre::Ve
     return nbStarted;
 }
 
+void RoomAmbience::startCollapse(int32_t tileX, int32_t tileY, const std::string& typeName)
+{
+    if(mGameMap == nullptr)
+        return;
+
+    // Only the remains of the door the server is about to remove are shown, so a few at most
+    if(mCollapses.size() >= MAX_COLLAPSES)
+        return;
+
+    // The barricade falls into a heap, every other door breaks with the clip Destroyed
+    const std::string& clipName = (typeName == BARRICADE_TYPE) ? COLLAPSE_CLIP : DESTROYED_CLIP;
+    const std::string entityPrefix = typeName + "_";
+
+    const std::vector<RenderedMovableEntity*>& entities = mGameMap->getRenderedMovableEntities();
+    for(RenderedMovableEntity* entity : entities)
+    {
+        if((entity->getObjectType() != GameEntityType::trapEntity) || (entity->getEntityNode() == nullptr))
+            continue;
+
+        if(entity->getName().compare(0, entityPrefix.length(), entityPrefix) != 0)
+            continue;
+
+        const Ogre::Vector3& position = entity->getPosition();
+        if((static_cast<int32_t>(std::floor(position.x + 0.5f)) != tileX) ||
+           (static_cast<int32_t>(std::floor(position.y + 0.5f)) != tileY))
+        {
+            continue;
+        }
+
+        if(entity->getMeshName().empty())
+            return;
+
+        Ogre::SceneManager* sceneManager = RenderManager::getSingleton().getSceneManager();
+        std::string name = "RoomAmbience_Collapse_" + Helper::toString(++mUniqueNumber);
+        Ogre::Entity* ghost = nullptr;
+        try
+        {
+            ghost = sceneManager->createEntity(name, entity->getMeshName() + MESH_SUFFIX);
+        }
+        catch(const Ogre::Exception&)
+        {
+            return;
+        }
+
+        // Without the clip (an old skeleton) there is nothing to show
+        if(!ghost->hasSkeleton() || !ghost->getAllAnimationStates()->hasAnimationState(clipName))
+        {
+            sceneManager->destroyEntity(ghost);
+            return;
+        }
+
+        Collapse collapse;
+        collapse.mEntity = ghost;
+        collapse.mClip = clipName;
+        collapse.mNode = sceneManager->getRootSceneNode()->createChildSceneNode(name + "_node",
+            entity->getEntityNode()->_getDerivedPosition(), entity->getEntityNode()->_getDerivedOrientation());
+        collapse.mNode->setScale(entity->getEntityNode()->_getDerivedScale());
+        collapse.mNode->attachObject(ghost);
+        collapse.mBaseHeight = collapse.mNode->getPosition().z;
+        Ogre::AnimationState* state = ghost->getAnimationState(clipName);
+        state->setLoop(false);
+        state->setTimePosition(0.0f);
+        state->setEnabled(true);
+        mCollapses.push_back(collapse);
+        return;
+    }
+}
+
+void RoomAmbience::updateCollapses(double timeSinceLastFrame)
+{
+    for(std::vector<Collapse>::iterator it = mCollapses.begin(); it != mCollapses.end();)
+    {
+        // The length of the clip of the door skeleton
+        const double clipLength = static_cast<double>(it->mEntity->getAnimationState(it->mClip)->getLength());
+        it->mAge += timeSinceLastFrame;
+        if(it->mAge >= clipLength + COLLAPSE_HOLD_SECONDS + COLLAPSE_SINK_SECONDS)
+        {
+            destroyCollapse(*it);
+            it = mCollapses.erase(it);
+            continue;
+        }
+
+        if(it->mAge < clipLength)
+        {
+            it->mEntity->getAnimationState(it->mClip)->addTime(static_cast<Ogre::Real>(timeSinceLastFrame));
+        }
+        else if(it->mAge > clipLength + COLLAPSE_HOLD_SECONDS)
+        {
+            double sunk = (it->mAge - clipLength - COLLAPSE_HOLD_SECONDS) / COLLAPSE_SINK_SECONDS;
+            Ogre::Vector3 position = it->mNode->getPosition();
+            position.z = static_cast<Ogre::Real>(it->mBaseHeight - sunk * COLLAPSE_SINK_DEPTH);
+            it->mNode->setPosition(position);
+        }
+
+        ++it;
+    }
+}
+
+void RoomAmbience::destroyCollapse(Collapse& collapse)
+{
+    Ogre::SceneManager* sceneManager = RenderManager::getSingleton().getSceneManager();
+    if(collapse.mNode != nullptr)
+        collapse.mNode->detachAllObjects();
+    if(collapse.mEntity != nullptr)
+        sceneManager->destroyEntity(collapse.mEntity);
+    if(collapse.mNode != nullptr)
+        sceneManager->destroySceneNode(collapse.mNode);
+
+    collapse.mNode = nullptr;
+    collapse.mEntity = nullptr;
+}
+
 void RoomAmbience::restoreTurret(const Turret& turret)
 {
     Ogre::SceneManager* sceneManager = RenderManager::getSingleton().getSceneManager();
@@ -1626,7 +1815,7 @@ void RoomAmbience::clearShake()
     viewNode->setPosition(viewNode->getPosition() - applied);
 }
 
-void RoomAmbience::notifyTrapEffect(int32_t kind, int32_t tileX, int32_t tileY, const std::string& typeName)
+void RoomAmbience::notifyTrapEffect(int32_t kind, int32_t tileX, int32_t tileY, const std::string& typeName, float fraction)
 {
     if(mMode == Mode::off)
         return;
@@ -1641,6 +1830,17 @@ void RoomAmbience::notifyTrapEffect(int32_t kind, int32_t tileX, int32_t tileY, 
             break;
         case TrapEffectKind::linked:
             triggerEvent("TrapLinked", position, false, typeName);
+            break;
+        case TrapEffectKind::doorHit:
+            mHitUntil[getTileKey(tileX, tileY)] = mClock + HIT_STATE_SECONDS;
+            triggerEvent("DoorHit", position, false, typeName);
+            if(fraction <= DOOR_HURT_FRACTION)
+                triggerEvent("DoorHurt", position, false, typeName);
+            break;
+        case TrapEffectKind::doorWrecked:
+            mWreckedUntil[getTileKey(tileX, tileY)] = mClock + WRECKED_STATE_SECONDS;
+            triggerEvent("DoorWrecked", position, false, typeName);
+            startCollapse(tileX, tileY, typeName);
             break;
         case TrapEffectKind::reloading:
             // Reloading, or empty after the last shot: the state is kept until the server says ready

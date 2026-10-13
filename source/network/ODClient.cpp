@@ -1684,8 +1684,7 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
 
         case ServerNotificationType::trapEffect:
         {
-            // Cosmetic only: tells the room ambience what the trap on the tile just did. The health
-            // fraction is read to keep the packet in step; it only matters for doors
+            // Cosmetic only: tells the room ambience what the trap or door on the tile just did
             int32_t effectKind = 0;
             int32_t tileX = 0;
             int32_t tileY = 0;
@@ -1695,7 +1694,7 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
             if((RoomAmbience::getSingletonPtr() != nullptr) &&
                (frameListener->getModeManager()->getCurrentModeType() == ModeManager::ModeType::GAME))
             {
-                RoomAmbience::getSingleton().notifyTrapEffect(effectKind, tileX, tileY, typeName);
+                RoomAmbience::getSingleton().notifyTrapEffect(effectKind, tileX, tileY, typeName, fraction);
             }
             break;
         }
