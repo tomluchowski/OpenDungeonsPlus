@@ -63,15 +63,7 @@
 //!   Cond    room <seatId> <roomName> <count>  # seat owns at least count rooms of that type
 //!   Cond    gold <seatId> >= | <= <amount>    # gold of the seat
 //!   Cond    mana <seatId> >= | <= <amount>    # mana of the seat
-//!   Cond    kills <seatId> >= | <= <count>    # creatures the seat has killed
 //!   Cond    mined <seatId> >= | <= <amount>   # gold the seat has mined
-//!   Cond    happy <seatId> >= | <= <count>   # creatures of the seat that are happy
-//!   Cond    angry <seatId> >= | <= <count>   # creatures of the seat that are angry or furious
-//!   Cond    atlevel <seatId> <level> >= | <= <count>   # creatures of the seat of that level or higher
-//!   Cond    lost <seatId> >= | <= <count>    # creatures of the seat that died
-//!   Cond    pickedup <seatId> >= | <= <count>   # times a creature of the seat was picked up with the hand
-//!   Cond    dropped <seatId> >= | <= <count>    # times a creature of the seat was dropped from the hand
-//!   Cond    slapped <seatId> >= | <= <count>    # times a creature of the seat was slapped
 //!   Cond    claimed <seatId> <regionName> <count> | all   # tiles of the region claimed by the seat
 //!   Cond    goal <seatId> <goalName>          # seat completed a goal with that name
 //!   Cond    flag <name> <value>               # flag has exactly that value
@@ -136,16 +128,8 @@ enum class LevelScriptConditionType
     flag,
     gold,
     mana,
-    kills,
     goldMined,
     claimed,
-    happyCreatures,
-    angryCreatures,
-    creaturesAtLevel,
-    creaturesLost,
-    creaturesPickedUp,
-    creaturesDropped,
-    creaturesSlapped,
     timer,
     seatDefeated,
     ownsCreature,
@@ -208,7 +192,7 @@ struct LevelScriptCondition
     //! The same comparison with all the operators (mAtLeast is true when it is atLeast)
     LevelScriptCompare mCompare;
     //! \brief Seconds (time), count (creatures, room, claimed, -1 for all of the region),
-    //! amount (gold, mana, goldMined), count (kills and the creature conditions) or value (flag)
+    //! amount (gold, mana, goldMined) or value (flag)
     int64_t mNumber;
     //! \brief Room name (room), goal name (goal), flag name (flag) or, for region, the
     //! name of a region of the script (empty when the rectangle is given by mX1 to mY2)

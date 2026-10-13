@@ -90,7 +90,6 @@ bool CreatureActionClaimWallTile::handleClaimWallTile(Creature& creature, Tile& 
         {
             OD_LOG_ERR("creature=" + creature.getName() + ", myTile=" + Tile::displayAsString(myTile) + ", tileClaim=" + Tile::displayAsString(&tileClaim) + ", tileDest=" + Tile::displayAsString(tileDest));
             creature.popAction();
-            return false;
         }
         return true;
     }

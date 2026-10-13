@@ -152,10 +152,14 @@ void MissileObject::doUpkeep()
 
         if(lastTile != nullptr)
         {
-            const Ogre::Vector2 lastPos(static_cast<Ogre::Real>(lastTile->getX()),
-                static_cast<Ogre::Real>(lastTile->getY()));
-            const Ogre::Vector2 curPos(static_cast<Ogre::Real>(tmpTile->getX()),
-                static_cast<Ogre::Real>(tmpTile->getY()));
+            Ogre::Vector3 lastPos;
+            lastPos.x = static_cast<Ogre::Real>(lastTile->getX());
+            lastPos.y = static_cast<Ogre::Real>(lastTile->getY());
+            // lastPos.z = position.z;
+            Ogre::Vector3 curPos;
+            curPos.x = static_cast<Ogre::Real>(tmpTile->getX());
+            curPos.y = static_cast<Ogre::Real>(tmpTile->getY());
+            // curPos.z = position.z;
             moveDist -= lastPos.distance(curPos);
         }
         lastTile = tmpTile;
@@ -173,7 +177,6 @@ void MissileObject::doUpkeep()
                 mIsMissileAlive = false;
                 destination.x = static_cast<Ogre::Real>(tmpTile->getX());
                 destination.y = static_cast<Ogre::Real>(tmpTile->getY());
-                break;
             }
         }
 
@@ -186,8 +189,7 @@ void MissileObject::doUpkeep()
             OD_LOG_INF("missile=" + getName() + " hit creature=" + creature->getName() + ", on tile=" + Tile::displayAsString(tmpTile));
             if(!hitCreature(tmpTile, creature))
             {
-                destination.x = static_cast<Ogre::Real>(tmpTile->getX());
-                destination.y = static_cast<Ogre::Real>(tmpTile->getY());
+                destination -= moveDist * mDirection;
                 mIsMissileAlive = false;
                 break;
             }
@@ -203,8 +205,7 @@ void MissileObject::doUpkeep()
             OD_LOG_INF("missile=" + getName() + " hit creature=" + creature->getName() + ", on tile=" + Tile::displayAsString(tmpTile));
             if(!hitCreature(tmpTile, creature))
             {
-                destination.x = static_cast<Ogre::Real>(tmpTile->getX());
-                destination.y = static_cast<Ogre::Real>(tmpTile->getY());
+                destination -= moveDist * mDirection;
                 mIsMissileAlive = false;
                 break;
             }
@@ -212,7 +213,7 @@ void MissileObject::doUpkeep()
     }
 
     path.push_back(Ogre::Vector2(destination.x,destination.y));
-    setWalkPath(EntityAnimation::idle_anim, EntityAnimation::idle_anim, true, true, path, false);
+    setWalkPath(EntityAnimation::idle_anim, EntityAnimation::idle_anim, true, true, path,true);
 }
 
 bool MissileObject::computeDestination(const Ogre::Vector3& position, double moveDist, const Ogre::Vector3& direction,

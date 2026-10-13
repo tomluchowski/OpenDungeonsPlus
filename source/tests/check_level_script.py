@@ -97,12 +97,9 @@ with tempfile.TemporaryDirectory() as tmp:
 
     # Windows application control sometimes blocks a freshly built program (WinError 4551),
     # which goes away when the start is repeated
-    # test_region_level reads the region test level when this variable is set
-    environment = dict(os.environ)
-    environment['OD_TEST_LEVEL_FILE'] = str(repo / 'levels/skirmish/TestRegionScripting.level')
     for attempt in range(8):
         try:
-            result = subprocess.run([str(exe)], env=environment)
+            result = subprocess.run([str(exe)])
             break
         except OSError:
             if attempt == 7:

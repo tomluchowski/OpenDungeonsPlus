@@ -16,14 +16,11 @@
  */
 
 #include "rooms/RoomArena.h"
-#include "game/SkillManager.h"
-#include "game/SkillType.h"
 
 #include "creatureaction/CreatureAction.h"
 #include "creatureaction/CreatureActionFightFriendly.h"
 #include "entities/BuildingObject.h"
 #include "entities/Creature.h"
-#include "entities/CreatureDefinition.h"
 #include "entities/Tile.h"
 #include "game/Player.h"
 #include "gamemap/GameMap.h"
@@ -149,8 +146,7 @@ bool RoomArena::hasOpenCreatureSpot(Creature* c)
         return false;
 
     // We allow using arena only if level is not too high
-    if (c->getLevel() >= std::min(static_cast<double>(MAX_LEVEL), std::round(SkillManager::getResearchValue(
-        getSeat(), SkillType::roomArena, ConfigManager::getSingleton().getRoomConfigUInt32("ArenaMaxTrainingLevel")))))
+    if (c->getLevel() >= ConfigManager::getSingleton().getRoomConfigUInt32("ArenaMaxTrainingLevel"))
         return false;
 
     return true;
@@ -408,3 +404,4 @@ bool RoomArena::notifyDropped(GameEntity* entity)
     OD_LOG_ERR("name=" + getName() + ", entity=" + entity->getName());
     return true;
 }
+

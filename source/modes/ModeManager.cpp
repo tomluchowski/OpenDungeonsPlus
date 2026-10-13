@@ -73,12 +73,6 @@ void ModeManager::requestPreviousMode()
     mStoreCurrentModeAtChange = false;
 }
 
-void ModeManager::requestSavedGame(const std::string& filename)
-{
-    mRequestedSavedGame = filename;
-    requestMode(MENU_LOAD_SAVEDGAME, false);
-}
-
 void ModeManager::checkModeChange()
 {
     if (mRequestedMode == NONE)
@@ -134,10 +128,7 @@ void ModeManager::checkModeChange()
         mCurrentApplicationMode = Utils::make_unique<EditorMode>(this);
         break;
     case MENU_LOAD_SAVEDGAME:
-        mCurrentApplicationMode = Utils::make_unique<MenuModeLoad>(this, false, mRequestedSavedGame);
-        mRequestedSavedGame.clear();
-        if(previousMode == GAME)
-            mPreviousModeTypes.clear();
+        mCurrentApplicationMode = Utils::make_unique<MenuModeLoad>(this);
         break;
     case MENU_MASTERSERVER_HOST:
         mCurrentApplicationMode = Utils::make_unique<MenuModeMultiplayerServer>(this, true);
@@ -163,7 +154,6 @@ void ModeManager::checkModeChange()
 void ModeManager::update(const Ogre::FrameEvent& evt)
 {
     checkModeChange();
-    mInputManager.refreshSettings();
 
     // We update the current mode
     AbstractApplicationMode* currentMode = getCurrentMode();
@@ -174,6 +164,5 @@ void ModeManager::update(const Ogre::FrameEvent& evt)
 #endif
     //currentMode->mouseMoved(OIS::MouseEvent(nullptr, currentMode->getMouse()->getMouseState()));
 
-    currentMode->updateCameraControls(evt.timeSinceLastFrame);
     currentMode->onFrameStarted(evt);
 }

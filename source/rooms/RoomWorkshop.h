@@ -54,8 +54,6 @@ public:
     { return mRoomType; }
 
     void doUpkeep() override;
-    TrapType getCurrentProductionType() const { return mTrapType; }
-    int32_t getProductionPoints() const { return mPoints; }
     bool hasOpenCreatureSpot(Creature* c) override;
     bool addCreatureUsingRoom(Creature* c) override;
     void removeCreatureUsingRoom(Creature* c) override;

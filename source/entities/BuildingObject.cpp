@@ -115,18 +115,6 @@ void BuildingObject::addParticleEffect(const std::string& effectScript, uint32_t
     mEntityParticleEffects.push_back(effect);
 }
 
-void BuildingObject::exportToPacket(ODPacket& os, const Seat* seat) const
-{
-    RenderedMovableEntity::exportToPacket(os, seat);
-    os << mFurnitureScale.x << mFurnitureScale.y;
-}
-
-void BuildingObject::importFromPacket(ODPacket& is)
-{
-    RenderedMovableEntity::importFromPacket(is);
-    OD_ASSERT_TRUE(is >> mFurnitureScale.x >> mFurnitureScale.y);
-}
-
 void BuildingObject::fireRefresh()
 {
     for(Seat* seat : mSeatsWithVisionNotified)

@@ -16,13 +16,8 @@
  */
 
 #include "rooms/RoomWorkshop.h"
-#include "game/SkillManager.h"
-#include "game/SkillType.h"
 
 #include "entities/BuildingObject.h"
-#include "gamemap/RoomObjectNavigation.h"
-#include "creatureaction/CreatureActionWalkToTile.h"
-#include "utils/MakeUnique.h"
 #include "entities/CraftedTrap.h"
 #include "entities/Creature.h"
 #include "entities/CreatureDefinition.h"
@@ -30,7 +25,6 @@
 #include "entities/RenderedMovableEntity.h"
 #include "entities/Tile.h"
 #include "game/Player.h"
-#include "game/Seat.h"
 #include "gamemap/GameMap.h"
 #include "rooms/RoomManager.h"
 #include "traps/Trap.h"
@@ -314,7 +308,7 @@ void RoomWorkshop::doUpkeep()
     // we check that no reachable Workshop can supply the trap before starting crafting
     if(mTrapType == TrapType::nullTrapType)
     {
-        std::vector<Trap*> orderedTraps;
+        std::map<TrapType, int> neededTraps;
         Creature* worker = getGameMap()->getWorkerForPathFinding(getSeat());
         if (worker != nullptr)
         {
@@ -331,45 +325,51 @@ void RoomWorkshop::doUpkeep()
                 if(nbNeededCraftedTrap <= 0)
                     continue;
 
-                orderedTraps.push_back(trap);
+                neededTraps[trap->getType()] += nbNeededCraftedTrap;
             }
         }
 
-        if(!orderedTraps.empty())
+        if(!neededTraps.empty())
         {
-            std::map<TrapType, int> availableTraps;
+            // We check if there are enough owned reachable crafted traps
             const std::vector<RenderedMovableEntity*>& renderables = getGameMap()->getRenderedMovableEntities();
-            for(RenderedMovableEntity* renderable : renderables)
+            for(std::pair<TrapType const, int>& p : neededTraps)
             {
-                if(renderable->getObjectType() != GameEntityType::craftedTrap)
-                    continue;
+                for(RenderedMovableEntity* renderable : renderables)
+                {
+                    if(renderable->getObjectType() != GameEntityType::craftedTrap)
+                        continue;
 
-                if(renderable->getSeat() != getSeat())
-                    continue;
+                    if(renderable->getSeat() != getSeat())
+                        continue;
 
-                // If the crafted trap is being carried, it should not be counted because
-                // the trap it is carried to should have booked a spot
-                if(!renderable->getIsOnMap())
-                    continue;
+                    // If the crafted trap is being carried, it should not be counted because
+                    // the trap it is carried to should have booked a spot
+                    if(!renderable->getIsOnMap())
+                        continue;
 
-                CraftedTrap* craftedTrap = static_cast<CraftedTrap*>(renderable);
-                ++availableTraps[craftedTrap->getTrapType()];
+                    CraftedTrap* craftedTrap = static_cast<CraftedTrap*>(renderable);
+                    if(craftedTrap->getTrapType() != p.first)
+                        continue;
+
+                    --p.second;
+                }
             }
 
-            // Reachable buildings retain the order in which the trap orders were added.
-            for(Trap* trap : orderedTraps)
+            std::vector<TrapType> trapsToCraft;
+            for(std::pair<TrapType const, int>& p : neededTraps)
             {
-                const TrapType trapType = trap->getType();
-                int32_t nbNeededCraftedTrap = trap->getNbNeededCraftedTrap();
-                int& nbAvailableCraftedTrap = availableTraps[trapType];
-                if(nbAvailableCraftedTrap >= nbNeededCraftedTrap)
-                {
-                    nbAvailableCraftedTrap -= nbNeededCraftedTrap;
+                if(p.second <= 0)
                     continue;
-                }
 
-                mTrapType = trapType;
-                break;
+                trapsToCraft.push_back(p.first);
+            }
+
+            // We randomly pickup the trap to craft if any
+            if(!trapsToCraft.empty())
+            {
+                uint32_t index = Random::Uint(0, trapsToCraft.size() - 1);
+                mTrapType = trapsToCraft[index];
             }
         }
     }
@@ -424,7 +424,6 @@ void RoomWorkshop::doUpkeep()
 
     CraftedTrap* craftedTrap = new CraftedTrap(getGameMap(), getName(), mTrapType);
     craftedTrap->setSeat(getSeat());
-    getSeat()->getStatistics().mItemsMade++;
     craftedTrap->addToGameMap();
     Ogre::Vector3 spawnPosition(static_cast<Ogre::Real>(tileCraftedTrap->getX()), static_cast<Ogre::Real>(tileCraftedTrap->getY()), static_cast<Ogre::Real>(0.0));
     craftedTrap->createMesh();
@@ -460,16 +459,16 @@ bool RoomWorkshop::useRoom(Creature& creature, bool forced)
         OD_LOG_ERR("unexpected null building object");
         return false;
     }
-    std::vector<Ogre::Vector2> approach;
-    if(!RoomObjectNavigation::workApproach(creature, *ro, {wantedX, wantedY}, {-1, 1}, approach))
+    // We consider that the creature is in the good place if it is in the expected tile and not moving
+    Tile* expectedDest = getGameMap()->getTile(Helper::round(wantedX), Helper::round(wantedY));
+    if(expectedDest == nullptr)
     {
-        creature.popAction();
+        OD_LOG_ERR("room=" + getName() + ", creature=" + creature.getName());
         return false;
     }
-    if(!approach.empty())
+    if(tileCreature != expectedDest)
     {
-        creature.setWalkPath(EntityAnimation::walk_anim, EntityAnimation::idle_anim, true, true, approach, false);
-        creature.pushAction(Utils::make_unique<CreatureActionWalkToTile>(creature));
+        creature.setDestination(expectedDest);
         return false;
     }
 
@@ -483,8 +482,7 @@ bool RoomWorkshop::useRoom(Creature& creature, bool forced)
     OD_ASSERT_TRUE_MSG(creatureRoomAffinity.getRoomType() == getType(), "name=" + getName() + ", creature=" + creature.getName()
         + ", creatureRoomAffinityType=" + Helper::toString(static_cast<int>(creatureRoomAffinity.getRoomType())));
 
-    mPoints += static_cast<int32_t>(creatureRoomAffinity.getEfficiency() * SkillManager::getResearchValue(
-        getSeat(), SkillType::roomWorkshop, ConfigManager::getSingleton().getRoomConfigDouble("WorkshopPointsPerWork")));
+    mPoints += static_cast<int32_t>(creatureRoomAffinity.getEfficiency() * ConfigManager::getSingleton().getRoomConfigDouble("WorkshopPointsPerWork"));
     creature.jobDone(ConfigManager::getSingleton().getRoomConfigDouble("WorkshopWakefulnessPerWork"));
     creature.setJobCooldown(Random::Uint(ConfigManager::getSingleton().getRoomConfigUInt32("WorkshopCooldownWorkMin"),
         ConfigManager::getSingleton().getRoomConfigUInt32("WorkshopCooldownWorkMax")));

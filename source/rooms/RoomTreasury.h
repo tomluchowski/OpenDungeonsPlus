@@ -91,7 +91,6 @@ protected:
     {}
 
 private:
-    int getGoldCapacityPerTile() const;
     void updateMeshesForTile(Tile* tile, RoomTreasuryTileData* roomTreasuryTileData);
     bool mGoldChanged;
 };

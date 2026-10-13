@@ -16,14 +16,9 @@
  */
 
 #include "rooms/RoomCasino.h"
-#include "game/SkillManager.h"
-#include "game/SkillType.h"
 
 #include "creatureaction/CreatureActionFightFriendly.h"
 #include "entities/BuildingObject.h"
-#include "gamemap/RoomObjectNavigation.h"
-#include "creatureaction/CreatureActionWalkToTile.h"
-#include "utils/MakeUnique.h"
 #include "entities/Creature.h"
 #include "entities/CreatureDefinition.h"
 #include "entities/GameEntityType.h"
@@ -393,8 +388,7 @@ void RoomCasino::doUpkeep()
         // We set anim for both creatures
         uint32_t cooldown = Random::Uint(ConfigManager::getSingleton().getRoomConfigUInt32("CasinoCooldownWorkMin"),
             ConfigManager::getSingleton().getRoomConfigUInt32("CasinoCooldownWorkMax"));
-        double feePercent = std::min(SkillManager::getResearchValue(getSeat(), SkillType::roomCasino,
-            ConfigManager::getSingleton().getRoomConfigDouble("CasinoFee")), 1.0);
+        double feePercent = std::min(ConfigManager::getSingleton().getRoomConfigDouble("CasinoFee"), 1.0);
         double wakefullness = ConfigManager::getSingleton().getRoomConfigDouble("CasinoWakefulnessPerWork");
         int32_t creatureBet = ConfigManager::getSingleton().getRoomConfigInt32("CasinoBet");
         creatureBet = std::min(creatureBet, p.second.mCreature1.mCreature->getGoldCarried());
@@ -522,18 +516,17 @@ bool RoomCasino::useRoom(Creature& creature, bool forced)
     Ogre::Real wantedY = static_cast<Ogre::Real>(tileSpot->getY());
     wantedY += creaturePositionOffset;
 
-    BuildingObject* object = getBuildingObjectFromTile(tileSpot);
-    std::vector<Ogre::Vector2> approach;
-    if(object == nullptr || !RoomObjectNavigation::workApproach(creature, *object,
-        {wantedX, wantedY}, {0, 0}, approach))
+    // We consider that the creature is in the good place if it near from where we want it to go
+    if(Pathfinding::squaredDistance(creature.getPosition().x, wantedX, creature.getPosition().y, wantedY) > 0.4)
     {
-        creature.popAction();
-        return false;
-    }
-    if(!approach.empty())
-    {
-        creature.setWalkPath(EntityAnimation::walk_anim, EntityAnimation::idle_anim, true, true, approach, false);
-        creature.pushAction(Utils::make_unique<CreatureActionWalkToTile>(creature));
+        // We go there
+        std::list<Tile*> pathToSpot = getGameMap()->path(&creature, tileSpot);
+        std::vector<Ogre::Vector2> path;
+        Creature::tileToVector2(pathToSpot, path, true, 0.0);
+        // We add the last step to take account of the offset
+        Ogre::Vector2 dest(wantedX, wantedY);
+        path.push_back(dest);
+        creature.setWalkPath(EntityAnimation::walk_anim, EntityAnimation::idle_anim, true, true, path,true);
         return false;
     }
 

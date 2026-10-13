@@ -104,44 +104,6 @@ enum class ServerNotificationType
 
     exit,
 
-    // Sent only to clients that negotiated live nickname changes.
-    playerNickChanged,
-
-    // Owner-only aggregate counts, sent only after creature-panel negotiation.
-    creaturePanel,
-
-    // Presentation-only burst for newly built gameplay room tiles.
-    roomConstructionEffect,
-
-    // Presentation-only creature melee impact.
-    creatureCombatImpact,
-
-    // Presentation-only consumption of an authoritative chicken.
-    creatureChickenFeeding,
-
-    // Owner-only reply to a production query or reorder request.
-    trapProductionQueue,
-
-    // Owner-only start of the defeat sequence for a defeated human player:
-    // + int32_t conquerorSeatId (-1 if unknown), int32_t heartTileX, int32_t heartTileY (-1/-1 if unknown).
-    // Appended last so that no existing numeric value changes.
-    playerDefeated,
-
-    // Owner-only debriefing counters, sent right after playerDefeated:
-    // + int32_t elapsedSeconds, bool levelWon, int32_t seatCount, then per seat:
-    // int32_t seatId and 6 uint32_t (keepers defeated, creatures killed, heroes destroyed,
-    // rooms captured, items made, creatures converted).
-    // Appended last so that no existing numeric value changes.
-    levelStatistics,
-
-    // Owner-only dungeon heart health for the ring of the top-left badge:
-    // + float healthFraction (0 to 1, heart health / maximum heart health), bool underAttack,
-    // double heartHP (whole points, for the tooltip), double heartMaxHP.
-    // Sent to a human owner when the fraction changed by at least one percentage point or the whole
-    // heart HP changed, when the heart is destroyed, and once when the game starts or is loaded.
-    // Appended last so that no existing numeric value changes.
-    heartHealth,
-
     //! Answer to editorRegionEdit, all the region markers of the level script:
     //! + uint32_t count, then per region: string name and 4 int32_t (the corners).
     editorRegionData,

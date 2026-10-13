@@ -1806,13 +1806,6 @@ std::vector<GameEntity*> GameMap::getVisibleForce(const std::vector<Tile*>& visi
         if(enemyForce)
         {
             tile->fillWithEntities(returnList, SelectionEntityWanted::creatureAliveEnemyAttackable, seat->getPlayer());
-            for(GameEntity* entity : tile->getEntitiesInTile())
-            {
-                if(entity->getObjectType() == GameEntityType::persistentObject
-                    && entity->isAttackable(tile, seat)
-                    && std::find(returnList.begin(), returnList.end(), entity) == returnList.end())
-                    returnList.push_back(entity);
-            }
             Building* building = tile->getCoveringBuilding();
             if((building != nullptr) &&
                (!building->getSeat()->isAlliedSeat(seat)) &&
@@ -2067,32 +2060,6 @@ void GameMap::addTrap(Trap *trap)
         + Helper::toString(nbTiles) + ", seatId=" + Helper::toString(trap->getSeat()->getId()));
 
     mTraps.push_back(trap);
-}
-
-bool GameMap::moveTrapProductionOrder(Seat* seat, const std::string& name, bool earlier)
-{
-    if(seat == nullptr || !isServerGameMap() || isInEditorMode())
-        return false;
-    std::vector<Trap*>::iterator selected = std::find_if(mTraps.begin(), mTraps.end(), [&](Trap* trap)
-    {
-        return trap->getName() == name && trap->getSeat() == seat &&
-            trap->getNbNeededCraftedTrap() > 0;
-    });
-    if(selected == mTraps.end())
-        return false;
-    std::vector<Trap*>::iterator adjacent = selected;
-    while(earlier ? adjacent != mTraps.begin() : adjacent + 1 != mTraps.end())
-    {
-        if(earlier)
-            --adjacent;
-        else
-            ++adjacent;
-        if((*adjacent)->getSeat() != seat || (*adjacent)->getNbNeededCraftedTrap() <= 0)
-            continue;
-        std::iter_swap(selected, adjacent);
-        return true;
-    }
-    return false;
 }
 
 void GameMap::removeTrap(Trap *t)

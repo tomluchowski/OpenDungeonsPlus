@@ -47,9 +47,6 @@ public:
 
     void update(Ogre::Real timeSinceLastFrame, const std::vector<Ogre::Vector3>& cornerTiles) override;
 
-    //! Use the same minimap camera as a full-map detail view.
-    void setViewCenter(const Ogre::Vector2& center);
-
     //! This functions allow to hook minimap rendering to adjust nodes we want to display or not
     virtual void preRenderTargetUpdate(const Ogre::RenderTargetEvent& rte) override;
     virtual void postRenderTargetUpdate(const Ogre::RenderTargetEvent& rte) override;
@@ -75,8 +72,6 @@ private:
 
     int mCurCamPosX;
     int mCurCamPosY;
-    bool mUseViewCenter = false;
-    Ogre::Vector2 mViewCenter = Ogre::Vector2::ZERO;
     Ogre::Camera* mMiniMapCam;
     Ogre::SceneNode* mMiniMapCamNode;
 

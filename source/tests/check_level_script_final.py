@@ -4,7 +4,6 @@ the two HUD countdowns and the story state conditions.
 The parser and the writer are run by check_level_script.py; this script checks that the pieces
 that need the running game are connected, so a missing hook is found without playing.
 """
-import re
 from pathlib import Path
 
 repo = Path(__file__).resolve().parents[2]
@@ -90,32 +89,6 @@ player = read('source/game/Player.cpp')
 time_up = function(player, 'void Player::notifyTimeUp(')
 assert 'mHasLost' in time_up and 'notifyDefeat(true)' in time_up
 assert 'notifyDefeat(hasTeamLost)' in function(player, 'void Player::notifyNoMoreDungeonTemple(')
-
-# creature event conditions: the counters are filled where the event happens
-creature = read('source/entities/Creature.cpp')
-stats_h = read('source/game/SeatStatistics.h')
-for counter in ('mCreaturesLost', 'mCreaturesPickedUp', 'mCreaturesDropped', 'mCreaturesSlapped'):
-    assert counter in stats_h and counter + ' = 0;' in stats_h, counter
-assert '++getSeat()->getStatistics().mCreaturesPickedUp' in function(creature, 'void Creature::pickup()')
-assert '++getSeat()->getStatistics().mCreaturesDropped' in function(creature, 'void Creature::drop(')
-assert '++getSeat()->getStatistics().mCreaturesSlapped' in function(creature, 'void Creature::slap()')
-assert '++getSeat()->getStatistics().mCreaturesLost' in function(creature, 'double Creature::takeDamage(') or     '++getSeat()->getStatistics().mCreaturesLost' in creature
-for name in ('happy', 'angry', 'atlevel', 'lost', 'pickedup', 'dropped', 'slapped'):
-    assert 'type == "%s"' % name in script_cpp, name
-for kind in ('happyCreatures', 'angryCreatures', 'creaturesAtLevel', 'creaturesLost', 'creaturesPickedUp',
-             'creaturesDropped', 'creaturesSlapped'):
-    assert 'case LevelScriptConditionType::%s:' % kind in runner, kind
-    assert 'case LevelScriptConditionType::%s:' % kind in script_cpp, kind
-
-# the region test level: a skirmish with 100 start mana, found by the level list
-level = read('levels/skirmish/TestRegionScripting.level')
-assert 'Region scripting' in level
-assert re.search(r'^mana	100$', level, re.M), 'start mana must be 100'
-section = level[level.index('[Triggers]'):level.index('[/Triggers]')]
-for word in ('Cond	pickedup', 'Cond	dropped', 'Cond	slapped', 'Cond	happy', 'Cond	lost', 'Cond	kills',
-             'Cond	claimed', 'Cond	region', 'Cond	gold', 'Action	make', 'Action	reveal',
-             'Action	timelimit', 'Action	win'):
-    assert word in section, word
 
 # story state: the conditions are evaluated by the runner and the portal and class state reach the game
 script_h = read('source/gamemap/LevelScript.h')

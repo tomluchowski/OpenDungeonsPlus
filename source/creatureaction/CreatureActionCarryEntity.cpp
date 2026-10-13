@@ -96,7 +96,6 @@ bool CreatureActionCarryEntity::handleCarryEntity(Creature& creature, GameEntity
         {
             OD_LOG_ERR("creature=" + creature.getName() + ", myTile=" + Tile::displayAsString(myTile) + ", tileDest=" + Tile::displayAsString(tileDest));
             creature.popAction();
-            return false;
         }
         return true;
     }

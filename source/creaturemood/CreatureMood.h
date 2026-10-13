@@ -31,8 +31,7 @@ enum class CreatureMoodLevel
     Neutral,
     Upset,
     Angry,
-    Furious,
-    Unknown = -1
+    Furious
 };
 
 class CreatureMood

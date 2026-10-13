@@ -125,10 +125,7 @@ bool CreatureActionUseRoom::handleJob(Creature& creature, Room* room, bool force
         }
 
         if(!creature.setDestination(dest))
-        {
             creature.popAction();
-            return false;
-        }
 
         return true;
     }

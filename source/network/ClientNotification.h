@@ -80,14 +80,6 @@ enum class ClientNotificationType
     editorSetCreatureLevel,
     editorAskPortalWaveData,
     editorSetPortalWaveData,
-
-    // Append new messages to preserve existing network and replay identifiers.
-    changeNick,
-    askHandDropAll,
-
-    askTrapProductionQueue,
-    askMoveTrapProductionOrder,
-
     //! Editor: change or list the region markers of the level script:
     //! + int32_t operation (an EditorRegionOperation), string name, 4 int32_t (the corners, used by set only).
     //! The server always answers with editorRegionData.

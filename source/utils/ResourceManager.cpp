@@ -495,7 +495,7 @@ void ResourceManager::setupOgreResources(uint16_t shaderLanguageVersion)
             const Ogre::String& typeName = setting.first;
             Ogre::String archName = setting.second;
 
-            if(!archName.empty() && !boost::filesystem::path(archName).is_absolute())
+            if(!archName.empty() && archName.front() != '/') // do not modify absolute paths
                 archName = mGameDataPath + archName;
             else
                 archName = Ogre::FileSystemLayer::resolveBundlePath(archName);

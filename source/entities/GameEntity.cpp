@@ -274,8 +274,6 @@ void GameEntity::fireDropEntity(Player* playerPicking, Tile* tile)
     // possible. If it is an AI, we queue the message because it might have been created
     // during this turn (and, thus, not exist on client side)
     int seatId = playerPicking->getSeat()->getId();
-    const GameEntityType entityType = getObjectType();
-    const std::string& entityName = getName();
     for(Seat* seat : getGameMap()->getSeats())
     {
         if(seat->getPlayer() == nullptr)
@@ -302,7 +300,6 @@ void GameEntity::fireDropEntity(Player* playerPicking, Tile* tile)
                 ServerNotificationType::entityDropped, seat->getPlayer());
             serverNotification.mPacket << seatId;
             getGameMap()->tileToPacket(serverNotification.mPacket, tile);
-            serverNotification.mPacket << entityType << entityName;
             ODServer::getSingleton().sendAsyncMsg(serverNotification);
         }
         else
@@ -311,7 +308,6 @@ void GameEntity::fireDropEntity(Player* playerPicking, Tile* tile)
                 ServerNotificationType::entityDropped, seat->getPlayer());
             serverNotification->mPacket << seatId;
             getGameMap()->tileToPacket(serverNotification->mPacket, tile);
-            serverNotification->mPacket << entityType << entityName;
             ODServer::getSingleton().queueServerNotification(serverNotification);
         }
     }

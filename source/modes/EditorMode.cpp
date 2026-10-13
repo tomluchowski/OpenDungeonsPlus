@@ -123,7 +123,7 @@ EditorMode::EditorMode(ModeManager* modeManager):
     mRegionsRequested(false),
     mMouseX(0),
     mMouseY(0),
-    mSettings(mRootWindow, modeManager->getGui()),
+    mSettings(SettingsWindow(mRootWindow)),
     mModifiedMapBit(false)
 {
 
@@ -341,6 +341,11 @@ EditorMode::EditorMode(ModeManager* modeManager):
             CEGUI::FrameWindow::EventCloseClicked,
             CEGUI::Event::Subscriber(&EditorMode::toggleOptionsWindow, this)
     ));
+    addEventConnection(
+        mRootWindow->getChild("EditorOptionsWindow")->subscribeEvent(
+            CEGUI::FrameWindow::EventCloseClicked,
+            CEGUI::Event::Subscriber(&EditorMode::toggleOptionsWindow, this)
+    ));    
     addEventConnection(
         mRootWindow->getChild("EditorOptionsWindow/SaveLevelButton")
         ->subscribeEvent(
@@ -826,8 +831,6 @@ bool EditorMode::mousePressed(const OIS::MouseEvent &arg, OIS::MouseButtonID id)
                     ClientNotification *clientNotification = new ClientNotification(
                         ClientNotificationType::askHandDrop);
                     mGameMap->tileToPacket(clientNotification->mPacket, curTile);
-                    GameEntity* entity = mGameMap->getLocalPlayer()->getObjectsInHand().front();
-                    clientNotification->mPacket << entity->getObjectType() << entity->getName();
                     ODClient::getSingleton().queueClientNotification(clientNotification);
                     mModifiedMapBit = true;
                 }
@@ -1507,13 +1510,8 @@ bool EditorMode::hidePortalWaveWindow(const CEGUI::EventArgs& /*arg*/)
 bool EditorMode::keyPressed(const OIS::KeyEvent &arg)
 {
     // Inject key to the gui currently displayed
-    const bool guiHandledKey = CEGUI::System::getSingleton().getDefaultGUIContext().injectKeyDown(
-        static_cast<CEGUI::Key::Scan>(arg.key));
+    CEGUI::System::getSingleton().getDefaultGUIContext().injectKeyDown(static_cast<CEGUI::Key::Scan>(arg.key));
     CEGUI::System::getSingleton().getDefaultGUIContext().injectChar(arg.text);
-
-    if(arg.key == OIS::KC_ESCAPE && mCurrentInputMode != InputModeConsole &&
-       mCurrentInputMode != InputModeChat && (guiHandledKey || closeTopWindow()))
-        return true;
 
     if (mCurrentInputMode == InputModeChat || mCurrentInputMode == InputModeSave || mCurrentInputMode == InputModeLoad || mCurrentInputMode == InputModeNew)
         return true;

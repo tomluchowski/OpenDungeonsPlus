@@ -127,14 +127,6 @@ std::string ClientNotification::typeString(ClientNotificationType type)
             return "editorAskPortalWaveData";
         case ClientNotificationType::editorSetPortalWaveData:
             return "editorSetPortalWaveData";
-        case ClientNotificationType::changeNick:
-            return "changeNick";
-        case ClientNotificationType::askHandDropAll:
-            return "askHandDropAll";
-        case ClientNotificationType::askTrapProductionQueue:
-            return "askTrapProductionQueue";
-        case ClientNotificationType::askMoveTrapProductionOrder:
-            return "askMoveTrapProductionOrder";
         case ClientNotificationType::editorRegionEdit:
             return "editorRegionEdit";
         default:

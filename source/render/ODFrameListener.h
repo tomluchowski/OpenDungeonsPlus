@@ -36,7 +36,6 @@
 #include <OgreWindowEventUtilities.h>
 
 #include <memory>
-#include <map>
 #include <vector>
 
 
@@ -153,13 +152,6 @@ public:
     inline Ogre::RenderWindow* getRenderWindow()
     { return mWindow; }
 
-    void requestRenderWindowRecreation(
-        const std::map<std::string, std::string>& previousRendererOptions,
-        const std::map<std::string, std::string>& previousVideoConfig);
-
-    //! \brief Release window-dependent objects before ODApplication destroys the primary window.
-    void prepareRenderWindowShutdown();
-
     inline bool getIsMainMenuCreated()
     { return mIsMainMenuCreated; }
 
@@ -167,9 +159,6 @@ public:
     void stopGameRenderer();
     void createMainMenuScene();
     void freeMainMenuScene();
-    //! Starts the zoom flight of the main menu scene (only after createMainMenuScene)
-    void startMainMenuFlight();
-    bool isMainMenuFlightActive() const;
     void updateMenuScene(Ogre::Real timeSinceLastFrame);
 
     //! \brief Accessors for camera manager
@@ -226,14 +215,6 @@ private:
     //! \brief The Ogre render window reference. Don't delete it.
     Ogre::RenderWindow* mWindow;
 
-    //! \brief The first window owns the main OpenGL context and remains alive as an anchor.
-    Ogre::RenderWindow* mPrimaryWindow;
-
-    bool mRenderWindowRecreationPending;
-    uint32_t mRenderWindowSequence;
-    std::map<std::string, std::string> mPreviousRendererOptions;
-    std::map<std::string, std::string> mPreviousVideoConfig;
-
     //! \brief Foreign reference to gui.
     Gui*                 mGui;
 
@@ -259,9 +240,6 @@ private:
 
     //! \brief Actually exit application
     void exitApplication();
-
-    void applyPendingRenderWindowRecreation();
-    void restorePreviousVideoSettings();
 
     //! \brief Updates server-turn independent creature animation, audio, and overall rendering.
     void updateAnimations(Ogre::Real timeSinceLastFrame);

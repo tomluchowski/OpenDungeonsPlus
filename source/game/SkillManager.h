@@ -32,7 +32,6 @@ enum class TrapType;
 
 class GameEditorModeBase;
 class GameMode;
-class GameMap;
 class PlayerSelection;
 class Seat;
 
@@ -85,10 +84,6 @@ public:
 
     static const Skill* getSkill(SkillType resType);
 
-    static double getResearchValue(SkillType type, uint32_t level, double base, bool secondary = false);
-    static double getResearchValue(const Seat* seat, SkillType type, double base, bool secondary = false);
-    static std::string getResearchDescription(SkillType type, uint32_t level);
-
     //! \brief Lists all the skills and calls the given function for each one with parameters:
     //! - Gui skill button name
     //! - Gui use button name
@@ -105,11 +100,6 @@ public:
     static void connectSkills(GameMode* mode, CEGUI::Window* rootWindow);
 
     static void connectGuiButtons(GameEditorModeBase* mode, CEGUI::Window* rootWindow, PlayerSelection& playerSelection);
-
-    static void updateCostTooltip(GameMap* gameMap, CEGUI::Window* rootWindow, CEGUI::Window* hoveredWindow);
-
-    //! Return the action-bar button corresponding to the current room, trap or spell.
-    static std::string getSelectedButton(const PlayerSelection& playerSelection);
 
 private:
     //! \brief Allowed skills

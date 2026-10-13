@@ -27,8 +27,6 @@
 #include "network/ODClient.h"
 #include "spells/SpellManager.h"
 #include "utils/ConfigManager.h"
-#include "game/SkillManager.h"
-#include "game/SkillType.h"
 #include "utils/Helper.h"
 #include "utils/LogManager.h"
 
@@ -103,23 +101,31 @@ void SpellEyeEvil::checkSpellCast(GameMap* gameMap, const InputManager& inputMan
 
     Tile* tile = gameMap->getTile(inputManager.mXPos, inputManager.mYPos);
     if(tile == nullptr)
-    {
-        inputCommand.displayText(Ogre::ColourValue::Red, "Point at a tile inside the map.");
         return;
-    }
 
     int32_t playerMana = static_cast<int32_t>(player->getSeat()->getMana());
     int32_t price = ConfigManager::getSingleton().getSpellConfigInt32("EyeEvilPrice");
-    if(playerMana < price)
+    if(inputManager.mCommandState == InputCommandState::infoOnly)
     {
-        inputCommand.displayText(Ogre::ColourValue::Red, "Not enough mana. " +
-            formatCastSpell(SpellType::eyeEvil, price));
+        if(playerMana < price)
+        {
+            std::string txt = formatCastSpell(SpellType::eyeEvil, price);
+            inputCommand.displayText(Ogre::ColourValue::Red, txt);
+        }
+        else
+        {
+            std::string txt = formatCastSpell(SpellType::eyeEvil, price);
+            inputCommand.displayText(Ogre::ColourValue::White, txt);
+        }
+        inputCommand.selectSquaredTiles(inputManager.mXPos, inputManager.mYPos, inputManager.mXPos,
+            inputManager.mYPos);
         return;
     }
-    inputCommand.displayText(Ogre::ColourValue::White, formatCastSpell(SpellType::eyeEvil, price));
 
-    if(inputManager.mCommandState != InputCommandState::validated)
+    if(inputManager.mCommandState == InputCommandState::building)
     {
+        std::string txt = formatCastSpell(SpellType::eyeEvil, price);
+        inputCommand.displayText(Ogre::ColourValue::White, txt);
         std::vector<Tile*> tiles;
         tiles.push_back(tile);
         inputCommand.selectTiles(tiles);
@@ -150,9 +156,6 @@ bool SpellEyeEvil::castSpell(GameMap* gameMap, Player* player, ODPacket& packet)
 
     SpellEyeEvil* spell = new SpellEyeEvil(gameMap);
     spell->setSeat(player->getSeat());
-    spell->setDuration(static_cast<int32_t>(std::round(SkillManager::getResearchValue(
-        player->getSeat(), SkillType::spellEyeEvil,
-        ConfigManager::getSingleton().getSpellConfigInt32("EyeEvilNbTurns")))));
     spell->addToGameMap();
     Ogre::Vector3 spawnPosition(static_cast<Ogre::Real>(tile->getX()),
                                 static_cast<Ogre::Real>(tile->getY()),
@@ -176,3 +179,4 @@ Spell* SpellEyeEvil::getSpellFromPacket(GameMap* gameMap, ODPacket &is)
     spell->importFromPacket(is);
     return spell;
 }
+

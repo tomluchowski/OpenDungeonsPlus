@@ -23,7 +23,6 @@
 #include "entities/Tile.h"
 #include "gamemap/GameMap.h"
 #include "gamemap/Pathfinding.h"
-#include "gamemap/RoomObjectNavigation.h"
 #include "utils/ConfigManager.h"
 #include "utils/Helper.h"
 #include "utils/LogManager.h"
@@ -81,75 +80,42 @@ bool CreatureActionEatChicken::handleEatChicken(Creature& creature, ChickenEntit
     }
 
     float dist = Pathfinding::squaredDistanceTile(*myTile, *chickenTile);
-    const Ogre::Vector2 foodPosition(chicken->getPosition().x, chicken->getPosition().y);
-    const bool clearReach = RoomObjectPath::clearSegment(
-        RoomObjectNavigation::collect(*creature.getGameMap(), 0.0f),
-        Ogre::Vector2(creature.getPosition().x, creature.getPosition().y), foodPosition);
-    const std::vector<RoomObjectPath::Obstacle> bodyObstacles = RoomObjectNavigation::bodyObstacles(creature);
-    const bool clearBody = RoomObjectPath::clearPoint(bodyObstacles,
-        Ogre::Vector2(creature.getPosition().x, creature.getPosition().y),
-        foodPosition - Ogre::Vector2(creature.getPosition().x, creature.getPosition().y));
-    if(dist > 1 || !clearReach || !clearBody)
+    if(dist > 1)
     {
-        std::vector<Ogre::Vector2> path;
-        const bool furnitureApproach = !clearReach || !clearBody ||
-            !RoomObjectPath::clearPoint(bodyObstacles, foodPosition);
-        if(furnitureApproach)
+        // We walk to the chicken
+        std::list<Tile*> pathToChicken = creature.getGameMap()->path(&creature, chickenTile);
+        if(pathToChicken.empty())
         {
-            if(!RoomObjectNavigation::foodApproach(creature, foodPosition, path))
-            {
-                creature.popAction();
-                return false;
-            }
-        }
-        else
-        {
-            const std::list<Tile*> tiles = creature.getGameMap()->path(&creature, chickenTile);
-            if(tiles.empty())
-            {
-                creature.popAction();
-                return true;
-            }
-            // Preserve the original tile-based chase away from furniture.
-            std::list<Tile*> chase = tiles;
-            if(chase.size() > 2)
-                chase.resize(8 * chase.size() / 10);
-            creature.tileToVector2(chase, path, true, 0.0);
+            OD_LOG_ERR("creature=" + creature.getName() + " posTile=" + Tile::displayAsString(myTile) + " empty path to chicken tile=" + Tile::displayAsString(chickenTile));
+            creature.popAction();
+            return true;
         }
 
         // We make sure we don't go too far as the chicken is also moving
-        if(furnitureApproach && path.size() > 2)
+        if(pathToChicken.size() > 2)
         {
             // We only keep 80% of the path
-            path.resize(8 * path.size() / 10);
+            int nbTiles = 8 * pathToChicken.size() / 10;
+            pathToChicken.resize(nbTiles);
         }
 
-        // The route is already clearance-checked; independent client offsets
-        // would be able to move the eater back into the coop.
-        creature.setWalkPath(EntityAnimation::walk_anim, EntityAnimation::idle_anim, true, true, path, !furnitureApproach);
+        std::vector<Ogre::Vector2> path;
+        creature.tileToVector2(pathToChicken, path, true, 0.0);
+        creature.setWalkPath(EntityAnimation::walk_anim, EntityAnimation::idle_anim, true, true, path, true);
         creature.pushAction(Utils::make_unique<CreatureActionWalkToTile>(creature));
         return false;
     }
 
     // We can eat the chicken
-    if(!chicken->eatChicken(&creature))
-    {
-        creature.popAction();
-        return false;
-    }
+    chicken->eatChicken(&creature);
     creature.foodEaten(ConfigManager::getSingleton().getRoomConfigDouble("HatcheryHungerPerChicken"));
     creature.setJobCooldown(Random::Int(ConfigManager::getSingleton().getRoomConfigUInt32("HatcheryCooldownChickenMin"),
         ConfigManager::getSingleton().getRoomConfigUInt32("HatcheryCooldownChickenMax")));
     creature.setHP(creature.getHP() + ConfigManager::getSingleton().getRoomConfigDouble("HatcheryHpRecoveredPerChicken"));
     creature.computeCreatureOverlayHealthValue();
-    Ogre::Vector3 walkDirection = chicken->getPosition() - creature.getPosition();
-    walkDirection.z = 0;
+    Ogre::Vector3 walkDirection = Ogre::Vector3(chickenTile->getX(), chickenTile->getY(), 0) - creature.getPosition();
     walkDirection.normalise();
-    // Stop any remaining client interpolation before attaching the consumed chicken.
-    creature.clearDestinations(EntityAnimation::eat_chicken_anim, false, false);
-    creature.setAnimationState(EntityAnimation::eat_chicken_anim, false,
-        walkDirection, false);
-    creature.fireChickenFeeding(chicken->getName(), chicken->getPosition());
+    creature.setAnimationState(EntityAnimation::attack_anim, false, walkDirection);
     return false;
 }
 

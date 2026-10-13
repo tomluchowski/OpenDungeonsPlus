@@ -19,7 +19,6 @@
 
 #include "creatureskill/CreatureSkillManager.h"
 #include "entities/Creature.h"
-#include "entities/GameEntityType.h"
 #include "entities/Tile.h"
 #include "entities/Weapon.h"
 #include "gamemap/GameMap.h"
@@ -86,18 +85,7 @@ bool CreatureSkillMeleeFight::tryUseFight(GameMap& gameMap, Creature* creature, 
         magAtk *= modifier;
         eleAtk *= modifier;
     }
-    const double damageDone = attackedObject->takeDamage(creature, 0.0,
-        phyAtk, magAtk, eleAtk, attackedTile, ko);
-    if(attackedObject->getObjectType() == GameEntityType::creature)
-    {
-        Creature* target = static_cast<Creature*>(attackedObject);
-        const bool attackerArmed = creature->getWeaponL() != nullptr ||
-            creature->getWeaponR() != nullptr;
-        const bool targetArmed = target->getWeaponL() != nullptr ||
-            target->getWeaponR() != nullptr;
-        target->fireCombatImpact(attackerArmed && targetArmed,
-            damageDone > 0.0, creature->getPosition());
-    }
+    attackedObject->takeDamage(creature, 0.0, phyAtk, magAtk, eleAtk, attackedTile, ko);
     if(notifyPlayerIfHit)
         attackedObject->notifyFightPlayer(attackedTile);
 

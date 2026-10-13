@@ -19,7 +19,6 @@
 
 #include "entities/Creature.h"
 #include "entities/CreatureDefinition.h"
-#include "creaturemood/CreatureMood.h"
 #include "entities/Tile.h"
 #include "game/Player.h"
 #include "game/Seat.h"
@@ -257,7 +256,6 @@ bool isConditionMet(GameMap& gameMap, const LevelScript& script, const LevelScri
         }
         case LevelScriptConditionType::gold:
         case LevelScriptConditionType::mana:
-        case LevelScriptConditionType::kills:
         case LevelScriptConditionType::goldMined:
         {
             Seat* seat = gameMap.getSeatById(cond.mSeatId);
@@ -269,63 +267,8 @@ bool isConditionMet(GameMap& gameMap, const LevelScript& script, const LevelScri
                 amount = static_cast<int64_t>(seat->getGold());
             else if(cond.mType == LevelScriptConditionType::mana)
                 amount = static_cast<int64_t>(seat->getMana());
-            else if(cond.mType == LevelScriptConditionType::kills)
-                amount = static_cast<int64_t>(seat->getStatistics().mCreaturesKilled);
             else
                 amount = static_cast<int64_t>(seat->getGoldMined());
-
-            return levelScriptCompare(amount, cond.mCompare, cond.mNumber);
-        }
-        case LevelScriptConditionType::happyCreatures:
-        case LevelScriptConditionType::angryCreatures:
-        case LevelScriptConditionType::creaturesAtLevel:
-        {
-            int64_t count = 0;
-            for(Creature* creature : gameMap.getCreatures())
-            {
-                if(!creature->isAlive())
-                    continue;
-
-                if(!isSeatMatching(creature, cond.mSeatId))
-                    continue;
-
-                CreatureMoodLevel mood = creature->getMoodValue();
-                if(cond.mType == LevelScriptConditionType::happyCreatures)
-                {
-                    if(mood == CreatureMoodLevel::Happy)
-                        ++count;
-                }
-                else if(cond.mType == LevelScriptConditionType::angryCreatures)
-                {
-                    if((mood == CreatureMoodLevel::Angry) || (mood == CreatureMoodLevel::Furious))
-                        ++count;
-                }
-                else if(static_cast<int32_t>(creature->getLevel()) >= cond.mX1)
-                {
-                    ++count;
-                }
-            }
-            return levelScriptCompare(count, cond.mCompare, cond.mNumber);
-        }
-        case LevelScriptConditionType::creaturesLost:
-        case LevelScriptConditionType::creaturesPickedUp:
-        case LevelScriptConditionType::creaturesDropped:
-        case LevelScriptConditionType::creaturesSlapped:
-        {
-            Seat* seat = gameMap.getSeatById(cond.mSeatId);
-            if(seat == nullptr)
-                return false;
-
-            const SeatStatistics& statistics = seat->getStatistics();
-            int64_t amount = 0;
-            if(cond.mType == LevelScriptConditionType::creaturesLost)
-                amount = static_cast<int64_t>(statistics.mCreaturesLost);
-            else if(cond.mType == LevelScriptConditionType::creaturesPickedUp)
-                amount = static_cast<int64_t>(statistics.mCreaturesPickedUp);
-            else if(cond.mType == LevelScriptConditionType::creaturesDropped)
-                amount = static_cast<int64_t>(statistics.mCreaturesDropped);
-            else
-                amount = static_cast<int64_t>(statistics.mCreaturesSlapped);
 
             return levelScriptCompare(amount, cond.mCompare, cond.mNumber);
         }

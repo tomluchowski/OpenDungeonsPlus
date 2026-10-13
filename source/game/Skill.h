@@ -33,7 +33,8 @@ public:
     virtual ~Skill()
     {}
 
-    int32_t getNeededSkillPoints(uint32_t level = 1) const;
+    inline int32_t getNeededSkillPoints() const
+    { return mNeededSkillPoints; }
 
     inline SkillType getType() const
     { return mType; }

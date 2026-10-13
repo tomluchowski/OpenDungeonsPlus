@@ -258,10 +258,7 @@ public:
 
     inline void setEverVisible(bool s)
     {
-        if(mEverVisible == s)
-            return;
         mEverVisible = s;
-        fireTileStateChanged();
     }
 
     
