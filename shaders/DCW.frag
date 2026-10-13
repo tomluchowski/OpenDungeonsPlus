@@ -1,4 +1,7 @@
 #version 330  core
+#extension GL_ARB_shading_language_include : enable
+#include "ShadowMapping.glsl"
+#include "LightAttenuation.glsl"
 
 
 uniform sampler2D decalmap;
@@ -33,15 +36,10 @@ void main (void)
     
     
     vec4 shadow = vec4(1.0, 1.0, 1.0,1.0);
-    vec4 tmpVertexPos = VertexPos;
     
     // compute shadowmap
-    if(shadowingEnabled){
-		if(tmpVertexPos.z > 0 ){
-		    tmpVertexPos /= tmpVertexPos.w;
-		    shadow = texture(shadowmap, tmpVertexPos.xy); 
-		}
-    }
+    if(shadowingEnabled)
+        shadow = vec4(sampleShadow(shadowmap, VertexPos));
     // compute lightDir
     vec3 lightDir =  normalize(lightPos.xyz - FragPos*lightPos.w);
     
@@ -61,7 +59,7 @@ void main (void)
     vec3 result;
         
     // precompute the lighting term
-    vec3 lightingTerm =  (diffuse + specular + ambientLightColour.rgb/2.0 ) * shadow.rgb;
+    vec3 lightingTerm = (diffuse + specular) * getLightAttenuation(lightPos, FragPos) * shadow.rgb + ambientLightColour.rgb/2.0;
     
     vec4 crossMap = texture(crossmap, out_UV2.st);   
     if(crossMap.r < 0.00005)
