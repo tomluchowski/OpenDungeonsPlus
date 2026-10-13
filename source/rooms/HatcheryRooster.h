@@ -107,6 +107,7 @@ struct RoosterContext
     int64_t mCrowDay;
 };
 
+//! \brief What the rooster does next: the mood to start and for how many turns it lasts.
 struct RoosterPlan
 {
     RoosterMood mMood;
