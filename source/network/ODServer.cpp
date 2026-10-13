@@ -22,6 +22,7 @@
 #include "entities/CreatureDefinition.h"
 #include "entities/GameEntityType.h"
 #include "entities/MapLight.h"
+#include "entities/MissileBoulder.h"
 #include "entities/Tile.h"
 #include "entities/Weapon.h"
 #include "game/HeartHealthRing.h"
@@ -34,6 +35,7 @@
 #include "game/Seat.h"
 #include "gamemap/GameMap.h"
 #include "gamemap/DraggableTileContainer.h"
+#include "gamemap/LevelScript.h"
 #include "gamemap/MapHandler.h"
 #include "modes/ConsoleCommands.h"
 #include "network/ODClient.h"
@@ -1583,8 +1585,10 @@ bool ODServer::processClientNotifications(ODSocketClient* clientSocket)
         {
             GameEntityType entityType;
             std::string entityName;
+            float handX;
+            float handY;
             Player* player = clientSocket->getPlayer();
-            OD_ASSERT_TRUE(packetReceived >> entityType >> entityName);
+            OD_ASSERT_TRUE(packetReceived >> entityType >> entityName >> handX >> handY);
             GameEntity* entity = gameMap->getEntityFromTypeAndName(entityType, entityName);
             if(entity == nullptr)
             {
@@ -1601,8 +1605,19 @@ bool ODServer::processClientNotifications(ODSocketClient* clientSocket)
                 break;
             }
 
+            // The slap limit of the level script: a slap beyond it is counted but does nothing
+            if(!gameMap->getLevelScript().registerSlap(player->getSeat()->getId()))
+            {
+                OD_LOG_INF("player seatId=" + Helper::toString(player->getSeat()->getId()) + " is over the slap limit of the level");
+                break;
+            }
+
             OD_LOG_INF("player seatId=" + Helper::toString(player->getSeat()->getId()) + " slapped entity " + entity->getName());
-            entity->slap();
+            MissileBoulder* ball = (entityType == GameEntityType::missileObject) ? dynamic_cast<MissileBoulder*>(entity) : nullptr;
+            if(ball != nullptr)
+                ball->slapFrom(handX, handY);
+            else
+                entity->slap();
 
             ServerNotification notif(ServerNotificationType::entitySlapped, player);
             sendAsyncMsg(notif);
@@ -1732,6 +1747,9 @@ bool ODServer::processClientNotifications(ODSocketClient* clientSocket)
 
             if(!SpellManager::castSpell(gameMap, spellType, player, packetReceived))
                 break;
+
+            gameMap->getLevelScript().recordEvent("Seat" + Helper::toString(player->getSeat()->getId()),
+                "cast:" + SpellManager::getSpellNameFromSpellType(spellType));
 
             uint32_t newCooldown = SpellManager::getSpellCooldown(spellType);
             player->setSpellCooldownTurns(spellType, newCooldown);
@@ -2816,6 +2834,42 @@ bool ODServer::processClientNotifications(ODSocketClient* clientSocket)
             // The map is saved from the server side, so this is what ends up in the level
             // file when the editor saves it.
             roomPortalWave->importWaveConfig(config);
+            break;
+        }
+
+        case ClientNotificationType::editorRegionEdit:
+        {
+            if(mServerMode != ServerMode::ModeEditor)
+            {
+                OD_LOG_ERR("Received editor command while wrong mode=" + Helper::toString(static_cast<int>(mServerMode)));
+                break;
+            }
+            Player* player = clientSocket->getPlayer();
+            int32_t operation = 0;
+            std::string regionName;
+            int32_t x1 = 0;
+            int32_t y1 = 0;
+            int32_t x2 = 0;
+            int32_t y2 = 0;
+            if(!(packetReceived >> operation >> regionName >> x1 >> y1 >> x2 >> y2))
+            {
+                OD_LOG_ERR("Truncated editorRegionEdit packet");
+                break;
+            }
+
+            // The markers belong to the level script, which is saved from the server side
+            LevelScript& levelScript = gameMap->getLevelScript();
+            if(operation == static_cast<int32_t>(EditorRegionOperation::set))
+                levelScript.setRegion(LevelScriptRegion(regionName, x1, y1, x2, y2));
+            else if(operation == static_cast<int32_t>(EditorRegionOperation::remove))
+                levelScript.removeRegion(regionName);
+
+            ServerNotification notif(ServerNotificationType::editorRegionData, player);
+            notif.mPacket << static_cast<uint32_t>(levelScript.getRegions().size());
+            for(const LevelScriptRegion& region : levelScript.getRegions())
+                notif.mPacket << region.mName << region.mX1 << region.mY1 << region.mX2 << region.mY2;
+
+            sendAsyncMsg(notif);
             break;
         }
 

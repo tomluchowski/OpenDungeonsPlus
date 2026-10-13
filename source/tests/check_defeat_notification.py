@@ -55,6 +55,7 @@ struct Player {
  Seat* getSeat(){return mSeat;}bool getIsHuman()const{return mIsHuman;}
  RECORD
  void notifyNoMoreDungeonTemple();
+ void notifyDefeat(bool hasTeamLost);
 };
 struct Seat {int id,team;Player* player=nullptr;SeatStatistics stats;
  bool isRogueSeat()const{return id==0;}const SeatStatistics& getStatistics()const{return stats;}
@@ -108,6 +109,7 @@ int main(){int checks=0,failures=0;
 '''
 record = function(header, 'inline void recordHeartDestroyed(')
 method = function(source, 'void Player::notifyNoMoreDungeonTemple(')
+method += function(source, 'void Player::notifyDefeat(')
 probe = probe.replace('RECORD', record).replace('METHOD', method)
 
 # Static wiring checks on the production sources (client handler and enum position).
@@ -118,7 +120,7 @@ assert 'startDefeatSequence(conquerorSeatId, heartTileX, heartTileY)' in handler
 assert 'ModeManager::GAME' in handler
 enum_body = notification_header[notification_header.index('enum class ServerNotificationType'):]
 enum_body = enum_body[:enum_body.index('};')]
-assert 'playerDefeated,' in enum_body and 'levelStatistics,' in enum_body and enum_body.rstrip().endswith('trapEffect')
+assert 'playerDefeated,' in enum_body and 'levelStatistics,' in enum_body and enum_body.rstrip().endswith('timeLimit')
 print('WIRING OK: enum value is not moved (only later values were appended after it), client handler reads 3 int32 and guards on GAME mode')
 
 with tempfile.TemporaryDirectory(prefix='odp-defeat-notification-') as directory:

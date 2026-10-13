@@ -27,6 +27,7 @@
 #include "game/SkillManager.h"
 #include "game/SkillType.h"
 #include "gamemap/GameMap.h"
+#include "gamemap/LevelScript.h"
 #include "gamemap/DraggableTileContainer.h"
 #include "goals/Goal.h"
 #include "network/ODServer.h"
@@ -44,6 +45,7 @@
 #include "utils/LogManager.h"
 #include "utils/Random.h"
 
+#include <algorithm>
 #include <istream>
 #include <ostream>
 
@@ -1533,6 +1535,17 @@ bool Seat::addSkill(SkillType type)
     return true;
 }
 
+void Seat::setSkillAvailability(SkillType type, bool allowed, bool done)
+{
+    mSkillDone.erase(std::remove(mSkillDone.begin(), mSkillDone.end(), type), mSkillDone.end());
+    mSkillNotAllowed.erase(std::remove(mSkillNotAllowed.begin(), mSkillNotAllowed.end(), type), mSkillNotAllowed.end());
+    mSkillPending.erase(std::remove(mSkillPending.begin(), mSkillPending.end(), type), mSkillPending.end());
+    if(!allowed)
+        mSkillNotAllowed.push_back(type);
+    else if(done)
+        mSkillDone.push_back(type);
+}
+
 bool Seat::isSkillDone(SkillType type) const
 {
     for(SkillType skillDone : mSkillDone)
@@ -2148,6 +2161,10 @@ const CreatureDefinition* Seat::getNextFighterClassToSpawn(const GameMap& gameMa
     {
         // Only check for fighter creatures.
         if (!def.first || def.first->isWorker())
+            continue;
+
+        // A level script can keep a creature class away from this seat
+        if(gameMap.getLevelScript().isCreatureBlocked(getId(), def.first->getClassName()))
             continue;
 
         const std::vector<const SpawnCondition*>& conditions = configManager.getCreatureSpawnConditions(def.first);

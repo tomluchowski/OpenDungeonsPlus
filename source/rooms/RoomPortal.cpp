@@ -25,6 +25,7 @@
 #include "game/Player.h"
 #include "game/Seat.h"
 #include "gamemap/GameMap.h"
+#include "gamemap/LevelScript.h"
 #include "network/ODServer.h"
 #include "network/ServerNotification.h"
 #include "ODApplication.h"
@@ -233,6 +234,10 @@ void RoomPortal::doUpkeep()
     // anyway since there is no spawning list for rogue seat but no need to compute
     // everything in this case)
     if(getSeat()->isRogueSeat())
+        return;
+
+    // A level script can switch the portals of a seat off
+    if(getGameMap()->getLevelScript().isPortalOff(getSeat()->getId()))
         return;
 
     if(getSeat()->getPlayer() == nullptr)

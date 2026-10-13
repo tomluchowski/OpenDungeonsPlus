@@ -369,9 +369,12 @@ public:
     Tile* getCoveredTile(int index) override;
     uint32_t numCoveredTiles() const override;
 
-    //! \brief Conform: AttackableObject - Deducts a given amount of HP from this creature.
     //! \brief Share of the damage taken from the attacker: reduced when both fight inside an arena
     double getPitDamageFactor(GameEntity* attacker);
+
+    //! \brief Conform: AttackableObject - Deducts a given amount of HP from this creature. On the server it also
+    //! counts the attacked, incapacitated and killed events for the conditions of the level script and the
+    //! creatures lost in the statistics of the seat.
     double takeDamage(GameEntity* attacker, double absoluteDamage, double physicalDamage, double magicalDamage, double elementDamage,
         Tile *tileTakingDamage, bool ko) override;
 
@@ -426,8 +429,11 @@ public:
 
     //! \brief In a sandbox level, the player can pick up and drop the heroes of the hero seat
     bool isSandboxHeroFor(const Seat* seat) const;
+    //! \brief Server side: stops the creature when it is picked up. It also counts the pickup in the statistics of
+    //! the seat and the pickedup event for the level script.
     void pickup() override;
     bool tryDrop(Seat* seat, Tile* tile) override;
+    //! \brief Server side: puts the creature down again. It also counts the drop in the statistics of the seat.
     void drop(const Ogre::Vector3& v) override;
     bool resizeMeshAfterDrop() override;
 
@@ -477,6 +483,8 @@ public:
     virtual void notifyEntityCarryOff(const Ogre::Vector3& position) override;
 
     bool canSlap(Seat* seat) override;
+    //! \brief Server side: the creature is slapped. It also counts the slap in the statistics of the seat and the
+    //! slapped event for the level script.
     void slap() override;
 
     void fireCreatureSound(CreatureSound sound);
@@ -741,7 +749,8 @@ public:
     bool searchBestTargetInList(const std::vector<GameEntity*>& listObjects, const std::vector<Tile*>& tilesFilter, GameEntity*& attackedEntity,
         Tile*& attackedTile, Tile*& positionTile, CreatureSkillData*& creatureSkillData);
 
-    //! \brief Called when the creature changes seat (for example when it becomes rogue or after torture)
+    //! \brief Called when the creature changes seat (for example when it becomes rogue or after torture). A neutral
+    //! creature that joins a keeper counts as claimed for the level script.
     void changeSeat(Seat* newSeat);
 
     void stopWalking();
@@ -1066,7 +1075,8 @@ private:
     void handleHeartDefence();
 
     //! \brief A sub-function called by doTurn()
-    //! This functions will handle the creature idle action logic.
+    //! This functions will handle the creature idle action logic. A standing order of the level
+    //! script comes before the needs of the creature.
     //! \return true when another action should handled after that one.
     bool handleIdleAction();
 

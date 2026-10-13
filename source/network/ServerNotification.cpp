@@ -140,6 +140,12 @@ std::string ServerNotification::typeString(ServerNotificationType type)
             return "displayText";
         case ServerNotificationType::editorPortalWaveData:
             return "editorPortalWaveData";
+        case ServerNotificationType::seatTeam:
+            return "seatTeam";
+        case ServerNotificationType::editorRegionData:
+            return "editorRegionData";
+        case ServerNotificationType::timeLimit:
+            return "timeLimit";
         case ServerNotificationType::playerNickChanged:
             return "playerNickChanged";
         case ServerNotificationType::creaturePanel:

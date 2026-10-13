@@ -36,6 +36,8 @@
 #include "game/Skill.h"
 #include "game/SkillType.h"
 #include "game/Seat.h"
+#include "gamemap/LevelScript.h"
+#include "gamemap/LevelScriptRunner.h"
 #include "gamemap/MapHandler.h"
 #include "gamemap/Pathfinding.h"
 #include "gamemap/TileSet.h"
@@ -63,6 +65,7 @@
 #include "utils/Helper.h"
 #include "utils/LogManager.h"
 #include "utils/ResourceManager.h"
+#include "ODApplication.h"
 
 #include "ODApplication.h"
 
@@ -219,6 +222,10 @@ GameMap::GameMap(bool isServerGameMap, NodeType nt) :
         mTimePayDay(0),
         mIsSandbox(false),
         mSandboxMode(*this),
+        mGameDurationAnnounced(false),
+        mTimeLimitSentSeconds(-1),
+        mWaveCountdownSentSeconds(-1),
+        mWaveCountdownToSend(-1),
         mFloodFillEnabled(false),
         mIsFOWActivated(true),
         mNumCallsTo_path(0),
@@ -227,12 +234,23 @@ GameMap::GameMap(bool isServerGameMap, NodeType nt) :
         mHighMap(nullptr),
         generator(42)
 {
+    mLevelScript.reset(new LevelScript());
     resetUniqueNumbers();
 }
 
 GameMap::~GameMap()
 {
     clearAll();
+}
+
+LevelScript& GameMap::getLevelScript()
+{
+    return *mLevelScript;
+}
+
+const LevelScript& GameMap::getLevelScript() const
+{
+    return *mLevelScript;
 }
 
 std::string GameMap::serverStr()
@@ -354,6 +372,11 @@ void GameMap::clearAll()
         processDeletionQueues();
 
         clearGoalsForAllSeats();
+        mLevelScript->clear();
+        mGameDurationAnnounced = false;
+        mTimeLimitSentSeconds = -1;
+        mWaveCountdownSentSeconds = -1;
+        mWaveCountdownToSend = -1;
         clearSeats();
         mLocalPlayer = nullptr;
         clearPlayers();
@@ -1165,6 +1188,12 @@ void GameMap::doTurn(double timeSinceLastTurn)
 
     uint32_t miscUpkeepTime = doMiscUpkeep(timeSinceLastTurn);
 
+    if(isServerGameMap())
+    {
+        LevelScriptRunner::doTurn(*this);
+        checkGameDuration();
+    }
+
     for (Seat* seat : mSeats)
     {
         if(seat->getPlayer() == nullptr)
@@ -1196,6 +1225,7 @@ unsigned long int GameMap::doMiscUpkeep(double timeSinceLastTurn)
     if((mTimePayDay >= ConfigManager::getSingleton().getTimePayDay()))
     {
         mTimePayDay = 0;
+        getLevelScript().recordEvent("Level", "payday");
         // We only notify players with a dungeon temple
         for(Player* player : getPlayers())
         {
@@ -2585,6 +2615,135 @@ Seat* GameMap::getSeatById(int id) const
     }
 
     return nullptr;
+}
+
+void GameMap::setScriptTimeLimit(int64_t seconds)
+{
+    if(seconds <= 0)
+    {
+        mLevelScript->setTimeLimitSeconds(LevelScript::TIME_LIMIT_REMOVED);
+        return;
+    }
+
+    int64_t elapsedSeconds = static_cast<int64_t>(static_cast<double>(mTurnNumber) / ODApplication::turnsPerSecond);
+    mLevelScript->setTimeLimitSeconds(elapsedSeconds + seconds);
+    // A new limit can run out again, even after an earlier one did
+    mGameDurationAnnounced = false;
+}
+
+void GameMap::setScriptCountdown(int64_t seconds)
+{
+    if(seconds <= 0)
+    {
+        mLevelScript->setCountdownSeconds(LevelScript::COUNTDOWN_NOT_SET);
+        return;
+    }
+
+    int64_t elapsedSeconds = static_cast<int64_t>(static_cast<double>(mTurnNumber) / ODApplication::turnsPerSecond);
+    mLevelScript->setCountdownSeconds(elapsedSeconds + seconds);
+}
+
+void GameMap::setScriptWaveCountdown(int64_t seconds)
+{
+    if(seconds <= 0)
+    {
+        mLevelScript->setWaveCountdownSeconds(LevelScript::COUNTDOWN_NOT_SET);
+        return;
+    }
+
+    int64_t elapsedSeconds = static_cast<int64_t>(static_cast<double>(mTurnNumber) / ODApplication::turnsPerSecond);
+    mLevelScript->setWaveCountdownSeconds(elapsedSeconds + seconds);
+}
+
+void GameMap::sendTimeLimit(int32_t remainingSeconds)
+{
+    if((remainingSeconds == mTimeLimitSentSeconds) && (mWaveCountdownToSend == mWaveCountdownSentSeconds))
+        return;
+
+    mTimeLimitSentSeconds = remainingSeconds;
+    mWaveCountdownSentSeconds = mWaveCountdownToSend;
+    for(Player* player : getPlayers())
+    {
+        if(!player->getIsHuman())
+            continue;
+
+        ServerNotification* serverNotification = new ServerNotification(
+            ServerNotificationType::timeLimit, player);
+        serverNotification->mPacket << remainingSeconds;
+        serverNotification->mPacket << mWaveCountdownToSend;
+        ODServer::getSingleton().queueServerNotification(serverNotification);
+    }
+}
+
+void GameMap::checkGameDuration()
+{
+    // The wave countdown of the script is shown beside the other displays, whatever else runs;
+    // sendTimeLimit below sends it together with the time limit
+    const int64_t waveCountdown = mLevelScript->getWaveCountdownSeconds();
+    double waveCountdownLeft = -1.0;
+    if(waveCountdown >= 0)
+    {
+        waveCountdownLeft = static_cast<double>(waveCountdown)
+            - static_cast<double>(mTurnNumber) / ODApplication::turnsPerSecond;
+    }
+    mWaveCountdownToSend = (waveCountdownLeft > 0.0) ? static_cast<int32_t>(std::ceil(waveCountdownLeft)) : -1;
+
+    // The limit counts game time, not real time, so the game speed does not change it
+    const int64_t scriptLimit = mLevelScript->getTimeLimitSeconds();
+    double endTurn = -1.0;
+    if(scriptLimit >= 0)
+        endTurn = static_cast<double>(scriptLimit) * ODApplication::turnsPerSecond;
+
+    if(endTurn < 0.0)
+    {
+        // Without a limit, a countdown of the script is shown until it ends
+        const int64_t countdown = mLevelScript->getCountdownSeconds();
+        double countdownLeft = -1.0;
+        if(countdown >= 0)
+        {
+            countdownLeft = static_cast<double>(countdown)
+                - static_cast<double>(mTurnNumber) / ODApplication::turnsPerSecond;
+        }
+        if(countdownLeft > 0.0)
+            sendTimeLimit(static_cast<int32_t>(std::ceil(countdownLeft)) | TIME_LIMIT_COUNTDOWN_FLAG);
+        else
+            sendTimeLimit(-1);
+        return;
+    }
+
+    double secondsLeft = (endTurn - static_cast<double>(mTurnNumber)) / ODApplication::turnsPerSecond;
+    int32_t secondsToSend = 0;
+    if(secondsLeft > 0.0)
+        secondsToSend = static_cast<int32_t>(std::ceil(secondsLeft));
+    sendTimeLimit(secondsToSend);
+
+    if(mGameDurationAnnounced)
+        return;
+
+    if(static_cast<double>(mTurnNumber) < endTurn)
+        return;
+
+    mGameDurationAnnounced = true;
+    for(Player* player : getPlayers())
+    {
+        if(!player->getIsHuman())
+            continue;
+
+        ServerNotification* serverNotification = new ServerNotification(
+            ServerNotificationType::chatServer, player);
+        serverNotification->mPacket << "Time is up! The time limit of this level has run out."
+            << EventShortNoticeType::majorGameEvent;
+        ODServer::getSingleton().queueServerNotification(serverNotification);
+    }
+
+    // When the time runs out every keeper loses, there is no winner
+    for(Seat* seat : mSeats)
+    {
+        if(seat->getPlayer() == nullptr)
+            continue;
+
+        seat->getPlayer()->notifyTimeUp();
+    }
 }
 
 void GameMap::addWinningSeat(Seat *s)

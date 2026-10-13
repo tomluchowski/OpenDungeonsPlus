@@ -352,6 +352,7 @@ set(OD_SOURCEFILES
     ${SRC}/entities/MapLight.cpp
     ${SRC}/entities/MissileBoulder.cpp
     ${SRC}/entities/MissileBlast.cpp
+    ${SRC}/entities/MissileStone.cpp
     ${SRC}/entities/MissileObject.cpp
     ${SRC}/entities/MissileOneHit.cpp
     ${SRC}/entities/MovableGameEntity.cpp
@@ -384,6 +385,8 @@ set(OD_SOURCEFILES
 
     ${SRC}/gamemap/DraggableTileContainer.cpp
     ${SRC}/gamemap/GameMap.cpp
+    ${SRC}/gamemap/LevelScript.cpp
+    ${SRC}/gamemap/LevelScriptRunner.cpp
     ${SRC}/gamemap/RoomObjectNavigation.cpp
     ${SRC}/gamemap/MapHandler.cpp
     ${SRC}/gamemap/MiniMap.cpp
