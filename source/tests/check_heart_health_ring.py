@@ -127,6 +127,7 @@ struct RoomDungeonTemple : Room {
     GameMap* getGameMap() const {return mMap;}
     static const double HEART_MAX_HP;
     static const double HEART_HEAL_PER_SECOND;
+    static const double HEART_CRITICAL_FRACTION;
     double getHeartMaxHP() const;
     double getHP(Tile* tile) const override;
     double getHeartHealthFraction() const;
@@ -537,7 +538,7 @@ badge_start = gui.index('const int BADGE_SIZE = 128;')
 badge_helpers = ('float badgeClamp(', 'void badgeMix(', 'void badgeSet(', 'float badgeNoise(', 'float badgeSmoothstep(', 'float badgeSmoothMin(',
                  'float badgeHash(', 'float badgeValueNoise(', 'float badgeFbm(', 'float badgeCircle(', 'float badgeTaper(', 'float badgeBox(',
                  'float badgeRound(', 'float badgeHeartDistance(', 'float badgeHeartVeins(', 'float badgeHeartHeight(', 'float badgeSkullDistance(',
-                 'float badgeCoinHeight(', 'void badgeNormal(', 'float badgeCavity(', 'void badgeFrame(', 'void badgeGemRing(', 'void badgeBeadRing(',
+                 'float badgeCoinHeight(', 'void badgeNormal(', 'float badgeDiffuse(', 'float badgeHalfway(', 'float badgeCavity(', 'void badgeFrame(', 'void badgeGemRing(', 'void badgeBeadRing(',
                  'void badgeHeartWell(', 'void badgeCoinWell(', 'void drawBadgePixels(')
 badge_code = 'const int BADGE_SIZE = 128;\n' + '\n'.join(function(gui, signature) for signature in badge_helpers) + '\n'
 probe = (probe.replace('RULES_HEADER', rules.as_posix())
@@ -559,7 +560,7 @@ case = case[:case.index('break;')]
 assert 'packetReceived >> healthFraction >> underAttack >> heartHP >> heartMaxHP' in case
 assert 'mHeartBadge.receive(healthFraction, underAttack);' in case
 assert 'mHeartBadge.setPoints(heartHP, heartMaxHP);' in case
-assert 'float healthFraction;' in case and 'bool underAttack;' in case
+assert 'float healthFraction = 1.0f;' in case and 'bool underAttack = false;' in case
 accepted = client[client.index('case ServerNotificationType::clientAccepted:'):]
 accepted = accepted[:accepted.index('break;')]
 assert 'mHeartBadge = HeartHealthRing::BadgeState();' in accepted
