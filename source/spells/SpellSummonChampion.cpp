@@ -80,6 +80,7 @@ bool SpellSummonChampion::hasChampion(GameMap* gameMap, const Seat* seat)
     return false;
 }
 
+//! \brief Shows the cast preview on the hovered tile and queues the cast request when the player clicks.
 void SpellSummonChampion::checkSpellCast(GameMap* gameMap, const InputManager& inputManager, InputCommand& inputCommand)
 {
     Player* player = gameMap->getLocalPlayer();
@@ -126,6 +127,7 @@ void SpellSummonChampion::checkSpellCast(GameMap* gameMap, const InputManager& i
     ODClient::getSingleton().queueClientNotification(clientNotification);
 }
 
+//! \brief Server side cast: pays the price and spawns the champion on the requested tile.
 bool SpellSummonChampion::castSpell(GameMap* gameMap, Player* player, ODPacket& packet)
 {
     Tile* tile = gameMap->tileFromPacket(packet);
@@ -162,12 +164,14 @@ bool SpellSummonChampion::castSpell(GameMap* gameMap, Player* player, ODPacket& 
     return true;
 }
 
+//! \brief The champion is not a saved spell, so reading it from a stream is not supported.
 Spell* SpellSummonChampion::getSpellFromStream(GameMap* gameMap, std::istream &is)
 {
     OD_LOG_ERR("SpellSummonChampion cannot be read from stream");
     return nullptr;
 }
 
+//! \brief The champion is not a sent spell, so reading it from a packet is not supported.
 Spell* SpellSummonChampion::getSpellFromPacket(GameMap* gameMap, ODPacket &is)
 {
     OD_LOG_ERR("SpellSummonChampion cannot be read from packet");
