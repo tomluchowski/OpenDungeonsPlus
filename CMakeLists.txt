@@ -410,6 +410,7 @@ set(OD_SOURCEFILES
     ${SRC}/render/CreatureReactionConfig.cpp
     ${SRC}/render/CreatureReactions.cpp
     ${SRC}/render/WorkerReactions.cpp
+    ${SRC}/render/WorkerExtras.cpp
     ${SRC}/render/DebugDrawer.cpp    
     ${SRC}/render/Gui.cpp
     ${SRC}/render/MovableTextOverlay.cpp
