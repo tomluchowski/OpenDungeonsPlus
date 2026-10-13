@@ -15,12 +15,16 @@ of development.
 Future versions will have an in-game tutorial, but for now, you can use the
 following resources to learn the basic gameplay concepts:
 
-- In-game help screen, toggled with the F1 key
+- In-game help screen, available through Options
 - Video tutorial (version 0.5.0): https://www.youtube.com/watch?v=P4MClQUdb0E
 - Wiki page: https://github.com/OpenDungeons/OpenDungeons/wiki/Gameplay
 
 You can play singleplayer levels using the Skirmish menu, or host/join a
 multiplayer game by using the corresponding menus.
+
+Creature health and needs indicators are visible by default; press Alt to toggle
+them, and zoom in to enlarge their level, experience and attack-recovery display.
+Depleted health segments disappear so creatures remain visible through the gaps.
 
 ### Be part of the community
 

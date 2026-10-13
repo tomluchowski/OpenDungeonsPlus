@@ -38,7 +38,8 @@ class ChildOverlay
     friend class MovableTextOverlay;
 private:
     ChildOverlay(const Ogre::String& fontName, Ogre::Real charHeight,
-        const Ogre::ColourValue& color, const Ogre::String& materialName);
+        const Ogre::ColourValue& color, const Ogre::String& materialName,
+        bool stackWithPrevious);
 
     //! Computes the best size for the text to display
     void computeTextArea();
@@ -46,6 +47,9 @@ private:
     void setCaption(const Ogre::String& caption);
 
     void forceTextArea(Ogre::Real textWidth, Ogre::Real textHeight);
+
+    void centerCaption();
+    void setScale(Ogre::Real scale);
 
     void displayOverlay(Ogre::Real time);
 
@@ -64,6 +68,7 @@ private:
 
     Ogre::OverlayContainer* mOverlayContainer;
     Ogre::OverlayElement* mOverlayText;
+    std::vector<Ogre::OverlayElement*> mCaptionOutline;
 
     //! the Material used in the overlay
     Ogre::String mMaterialName;
@@ -85,11 +90,18 @@ private:
 
     //! Height a char has for the wanted font
     Ogre::Real mCharHeight;
+    Ogre::Real mScale = 1.0f;
 
     Ogre::Real mTimeToDisplay;
 
     //! Font used to display the text
     Ogre::FontPtr mFont;
+
+    //! Whether this child is placed above the preceding child instead of centred over it
+    bool mStackWithPrevious;
+
+    //! Whether the caption is centred within the child overlay area
+    bool mCenterCaption;
 };
 
 class MovableTextOverlay
@@ -102,7 +114,8 @@ public:
 
     //! Creates a new ChildOverlay associated with this Text Overlay and returns its ID
     uint32_t createChildOverlay(const Ogre::String& fontName, Ogre::Real charHeight,
-        const Ogre::ColourValue& color, const Ogre::String& materialName);
+        const Ogre::ColourValue& color, const Ogre::String& materialName,
+        bool stackWithPrevious = true);
 
     //! \brief Set if the overlays should be displayed or not
     void setVisible(bool visible);
@@ -114,16 +127,23 @@ public:
     //! Forces the text area size
     void forceTextArea(uint32_t childOverlayId, Ogre::Real textWidth, Ogre::Real textHeight);
 
+    //! Centres the caption within its child overlay area
+    void centerCaption(uint32_t childOverlayId);
+    void setCaptionSize(uint32_t childOverlayId, Ogre::Real height);
+    void setCaptionOutline(uint32_t childOverlayId, const Ogre::ColourValue& colour);
+
     void setMaterialName(uint32_t childOverlayId, const Ogre::String& materialName);
+    void setAtlasFrame(uint32_t childOverlayId, uint32_t frame, uint32_t columns);
 
     //! Displays the overlay during time seconds. If time < 0, the overlay will be always displayed
     void displayOverlay(uint32_t childOverlayId, Ogre::Real time);
+    bool isDisplayed(uint32_t childOverlayId);
     void update(Ogre::Real timeSincelastFrame);
 
 private:
     //! Computes the position of the head of the followed entity in the screen coordinates. Returns true if
     //! the entity is on screen and position contains the position where the text should be displayed and false otherwise
-    bool computeOverlayPositionHead(Ogre::Vector2& position);
+    bool computeOverlayPositionHead(Ogre::Vector2& position, Ogre::Real& scale);
 
     const Ogre::String mName;
     const Ogre::MovableObject* mFollowedMov;
