@@ -447,6 +447,8 @@ set(OD_SOURCEFILES
     ${SRC}/render/CreaturePortrait.cpp
     ${SRC}/render/CreaturePanel.cpp
     ${SRC}/render/MovableTextOverlay.cpp
+    ${SRC}/render/RoomAmbience.cpp
+    ${SRC}/render/RoomAmbienceConfig.cpp
     ${SRC}/render/ODFrameListener.cpp
     ${SRC}/render/RenderManager.cpp
     ${SRC}/render/TextRenderer.cpp

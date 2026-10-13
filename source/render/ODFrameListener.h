@@ -44,6 +44,7 @@ class ChatMessage;
 class GameMap;
 class Gui;
 class MovableTextOverlay;
+class RoomAmbience;
 class ModeManager;
 class RenderManager;
 class RenderSceneMenu;
@@ -238,6 +239,8 @@ private:
     Gui*                 mGui;
 
     std::unique_ptr<GameMap>       mGameMap;
+    //! The cosmetic life in the rooms (client side only)
+    std::unique_ptr<RoomAmbience>  mRoomAmbience;
     std::unique_ptr<ModeManager>   mModeManager;
     std::unique_ptr<RenderSceneMenu>   mMainScene;
 
