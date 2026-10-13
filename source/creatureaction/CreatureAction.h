@@ -53,6 +53,7 @@ enum class CreatureActionType
     stealFreeGold, // (fighters only) check in the visible tiles if there is gold not protected by a treasury
     goCallToWar, // (fighters only) When a creature goes to a call to war spell
     goDefendHeart, // (workers and scouts) While the heart defence is on, run to the seat's fighters, or to the heart while it is damaged
+    watchBanner, // (fighters only) Stand guard on a watch banner
     nb // Must be the last value of this enum
 };
 

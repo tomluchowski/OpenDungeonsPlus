@@ -257,6 +257,7 @@ set(OD_SOURCEFILES
     ${SRC}/creatureaction/CreatureActionGetFee.cpp
     ${SRC}/creatureaction/CreatureActionGoCallToWar.cpp
     ${SRC}/creatureaction/CreatureActionGoDefendHeart.cpp
+    ${SRC}/creatureaction/CreatureActionWatchBanner.cpp
     ${SRC}/creatureaction/CreatureActionGrabEntity.cpp
     ${SRC}/creatureaction/CreatureActionLeaveDungeon.cpp
     ${SRC}/creatureaction/CreatureActionParkToTile.cpp
@@ -509,6 +510,7 @@ set(OD_SOURCEFILES
     ${SRC}/traps/TrapManager.cpp
     ${SRC}/traps/TrapSpike.cpp
     ${SRC}/traps/TrapType.cpp
+    ${SRC}/traps/TrapWatchBanner.cpp
 
     ${SRC}/utils/ConfigManager.cpp
     ${SRC}/utils/FrameRateLimiter.cpp

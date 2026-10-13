@@ -17,10 +17,12 @@
 
 #include "rooms/RoomGuardRoom.h"
 
+#include "creatureaction/CreatureActionWatchBanner.h"
 #include "entities/Creature.h"
 #include "entities/Tile.h"
 #include "game/Player.h"
 #include "gamemap/GameMap.h"
+#include "ODApplication.h"
 #include "rooms/RoomManager.h"
 #include "utils/ConfigManager.h"
 #include "utils/LogManager.h"
@@ -130,6 +132,7 @@ void RoomGuardRoom::removeCreatureUsingRoom(Creature* c)
 {
     Room::removeCreatureUsingRoom(c);
     mGuardPosts.erase(c);
+    mNextPatrolTurn.erase(c);
 }
 
 Tile* RoomGuardRoom::getPostForCreature(Creature& creature)
@@ -196,6 +199,25 @@ bool RoomGuardRoom::useRoom(Creature& creature, bool forced)
 
     // On duty: the guard stands still, watching. Enemies in sight are handled by the
     // creature behaviours that run before this action.
+    // After a while on duty the guard patrols to a watch banner
+    int64_t turn = getGameMap()->getTurnNumber();
+    std::map<Creature*, int64_t>::iterator patrolIt = mNextPatrolTurn.find(&creature);
+    if(patrolIt == mNextPatrolTurn.end())
+    {
+        mNextPatrolTurn[&creature] = turn + static_cast<int64_t>(
+            ConfigManager::getSingleton().getRoomConfigDouble("GuardRoomPatrolSeconds") * ODApplication::turnsPerSecond);
+    }
+    else if(turn >= patrolIt->second)
+    {
+        int64_t stayTurns = static_cast<int64_t>(
+            ConfigManager::getSingleton().getRoomConfigDouble("GuardRoomPostStaySeconds") * ODApplication::turnsPerSecond);
+        // The next patrol starts a full duty period after the guard is back
+        patrolIt->second = turn + stayTurns + static_cast<int64_t>(
+            ConfigManager::getSingleton().getRoomConfigDouble("GuardRoomPatrolSeconds") * ODApplication::turnsPerSecond);
+        if(CreatureActionWatchBanner::tryPatrol(creature, stayTurns))
+            return false;
+    }
+
     creature.setAnimationState(EntityAnimation::idle_anim);
     creature.jobDone(ConfigManager::getSingleton().getRoomConfigDouble("GuardRoomWakefulnessPerDuty"));
     creature.setJobCooldown(Random::Uint(ConfigManager::getSingleton().getRoomConfigUInt32("GuardRoomCooldownDutyMin"),

@@ -611,6 +611,14 @@ SkillManager::SkillManager() :
     def->mapSkill(mSkillsFamily);
     mSkills[index] = def;
 
+    resType = SkillType::trapWatchBanner;
+    index = static_cast<uint32_t>(resType);
+    points = ConfigManager::getSingleton().getSkillPoints(Skills::toString(resType));
+    skill = new Skill(resType, points, lvl3depends);
+    def = new SkillDefTrap("TacticSkills/", "WatchBannerTrapButton", skill, TrapType::watchBanner);
+    def->mapSkill(mSkillsFamily);
+    mSkills[index] = def;
+
     resType = SkillType::spellDefector;
     index = static_cast<uint32_t>(resType);
     points = ConfigManager::getSingleton().getSkillPoints(Skills::toString(resType));
@@ -967,6 +975,7 @@ std::string SkillManager::getResearchDescription(SkillType type, uint32_t level)
         case SkillType::trapDoorIronbound: return "Door health: " + value(config.getTrapConfigDouble("IronboundDoorHP")) + " before Wooden door upgrades.";
         case SkillType::trapDoorSteel: return "Door health: " + value(config.getTrapConfigDouble("SteelDoorHP")) + " before Wooden door upgrades.";
         case SkillType::trapDoorBarricade: return "Barricade health: " + value(config.getTrapConfigDouble("BarricadeDoorHP")) + " before Wooden door upgrades.";
+        case SkillType::trapWatchBanner: return "One idle fighter stands guard on each post and returns to it after a fight.";
         case SkillType::trapDoorSecret: return "Door health: " + value(config.getTrapConfigDouble("SecretDoorHP")) +
             " before Wooden door upgrades; enemies see a wall until they see one of your creatures pass.";
         case SkillType::trapDoorRuned: return "Door health: " + value(config.getTrapConfigDouble("RunedDoorHP")) +
