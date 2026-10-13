@@ -222,6 +222,16 @@ void RoomHatchery::collectEnemies(std::vector<Creature*>& enemies) const
     }
 }
 
+bool RoomHatchery::isEnemyOnEggTile(const ChickenEntity& egg, const std::vector<Creature*>& enemies) const
+{
+    for(Creature* enemy : enemies)
+    {
+        if(enemy->getPositionTile() == egg.getPositionTile())
+            return true;
+    }
+    return false;
+}
+
 bool RoomHatchery::isLit() const
 {
     double radius = ConfigManager::getSingleton().getRoomConfigDoubleOrDefault("HatcheryCareLightRadius", 8.0);
@@ -343,11 +353,14 @@ void RoomHatchery::doUpkeep()
         ++counts.mEggs;
     }
 
-    // Eggs hatch while there is a rooster and no enemy stands in the hatchery
-    if(HatcheryCycle::canHatch(counts, care.mEnemies))
+    // Eggs hatch while there is a rooster and no enemy stands on that egg's tile
+    if(HatcheryCycle::canHatch(counts, false))
     {
         for(ChickenEntity* egg : eggs)
         {
+            if(isEnemyOnEggTile(*egg, enemies))
+                continue;
+
             if(egg->incrementAge() < settings.mHatchTurns)
                 continue;
 

@@ -52,7 +52,11 @@ cycle = (root / 'source/rooms/HatcheryCycle.cpp').read_text()
 room_cpp = (root / 'source/rooms/RoomHatchery.cpp').read_text()
 cfg = (root / 'config/rooms.cfg').read_text()
 assert 'carePercent' in cycle and 'canHatch' in cycle
-assert 'HatcheryCycle::withCare' in room_cpp and 'HatcheryCycle::canHatch(counts, care.mEnemies)' in room_cpp
+assert 'HatcheryCycle::withCare' in room_cpp and 'HatcheryCycle::canHatch(counts, false)' in room_cpp
+hatching = room_cpp[room_cpp.index('// Eggs hatch while'):room_cpp.index('// Chicks grow up')]
+assert 'isEnemyOnEggTile(*egg, enemies)' in hatching
+assert hatching.index('isEnemyOnEggTile') < hatching.index('egg->incrementAge()')
+assert 'enemy->getPositionTile() == egg.getPositionTile()' in room_cpp
 assert 'HatcheryCareLightPercent' in cfg and 'HatcheryCareCalmPercent' in cfg and 'HatcheryCareLightRadius' in cfg
 assert 'HatcheryCareLayPercent' not in cfg
 

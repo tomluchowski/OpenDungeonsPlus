@@ -58,6 +58,8 @@ protected:
 private:
     //! Creatures of an enemy seat that stand on a tile of the hatchery.
     void collectEnemies(std::vector<Creature*>& enemies) const;
+    //! True if an enemy creature stands on the tile of the egg (the egg does not hatch then).
+    bool isEnemyOnEggTile(const ChickenEntity& egg, const std::vector<Creature*>& enemies) const;
     //! True if a map light is within HatcheryCareLightRadius tiles of the hatchery.
     bool isLit() const;
     //! Claimed by the keeper, lit and free of enemies (see HatcheryCycle::carePercent).
