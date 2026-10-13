@@ -16,6 +16,8 @@
  */
 
 #include "rooms/RoomLibrary.h"
+#include "game/SkillManager.h"
+#include "game/SkillType.h"
 
 #include "entities/BuildingObject.h"
 #include "entities/Creature.h"
@@ -384,7 +386,8 @@ bool RoomLibrary::useRoom(Creature& creature, bool forced)
     OD_ASSERT_TRUE_MSG(creatureRoomAffinity.getRoomType() == getType(), "name=" + getName() + ", creature=" + creature.getName()
         + ", creatureRoomAffinityType=" + Helper::toString(static_cast<int>(creatureRoomAffinity.getRoomType())));
 
-    int32_t pointsEarned = static_cast<int32_t>(creatureRoomAffinity.getEfficiency() * ConfigManager::getSingleton().getRoomConfigDouble("LibraryPointsPerWork"));
+    int32_t pointsEarned = static_cast<int32_t>(creatureRoomAffinity.getEfficiency() * SkillManager::getResearchValue(
+        getSeat(), SkillType::roomLibrary, ConfigManager::getSingleton().getRoomConfigDouble("LibraryPointsPerWork")));
     creature.jobDone(ConfigManager::getSingleton().getRoomConfigDouble("LibraryWakefulnessPerWork"));
     creature.setJobCooldown(Random::Uint(ConfigManager::getSingleton().getRoomConfigUInt32("LibraryCooldownWorkMin"),
         ConfigManager::getSingleton().getRoomConfigUInt32("LibraryCooldownWorkMax")));

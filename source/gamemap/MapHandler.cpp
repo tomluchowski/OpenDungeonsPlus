@@ -81,7 +81,7 @@ bool readGameMapFromFile(const std::string& fileName, GameMap& gameMap)
     CreatureMoved::GAME_MAP_WIDTH = mapSizeX;
     
     levelFile >> nextParam;
-    if (nextParam.compare(ODApplication::VERSIONSTRING) != 0)
+    if (nextParam.compare(ODApplication::VERSIONSTRING) != 0 && nextParam != "OpenDungeons_Version:0.7.1")
     {
         OD_LOG_WRN("Attempting to load a file produced by a different version of OpenDungeons, filename="
             + fileName + ", file version=" + nextParam + ", odversion=" + ODApplication::VERSION);
@@ -727,7 +727,9 @@ bool writeGameMapToFile(const std::string& fileName, GameMap& gameMap)
     levelFile << "[/Rooms]" << std::endl;
 
     std::vector<Trap*> traps = gameMap.getTraps();
-    std::sort(traps.begin(), traps.end(), Trap::sortForMapSave);
+    // Gameplay saves retain the order used to schedule workshop production.
+    if(gameMap.isInEditorMode())
+        std::sort(traps.begin(), traps.end(), Trap::sortForMapSave);
 
     // Write out the traps to the file
     levelFile << "\n[Traps]\n";
@@ -875,7 +877,7 @@ bool getMapInfo(const std::string& fileName, LevelInfo& levelInfo)
     std::string nextParam;
     // Read in the version number from the level file
     levelFile >> nextParam;
-    if (nextParam.compare(ODApplication::VERSIONSTRING) != 0)
+    if (nextParam.compare(ODApplication::VERSIONSTRING) != 0 && nextParam != "OpenDungeons_Version:0.7.1")
         return false;
 
     levelFile >> nextParam;

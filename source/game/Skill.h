@@ -33,11 +33,15 @@ public:
     virtual ~Skill()
     {}
 
-    inline int32_t getNeededSkillPoints() const
-    { return mNeededSkillPoints; }
+    int32_t getNeededSkillPoints(uint32_t level = 1) const;
 
     inline SkillType getType() const
     { return mType; }
+
+    //! \brief Returns the skills that must be done before this one, without the skills
+    //! they depend on themselves.
+    const std::vector<const Skill*>& getDependencies() const
+    { return mSkillDepends; }
 
     bool canBeSkilled(const std::vector<SkillType>& skillsDone) const;
 

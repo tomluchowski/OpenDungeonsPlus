@@ -16,6 +16,8 @@
  */
 
 #include "rooms/RoomPrison.h"
+#include "game/SkillManager.h"
+#include "game/SkillType.h"
 
 #include "creatureaction/CreatureActionUseRoom.h"
 #include "entities/BuildingObject.h"
@@ -342,6 +344,9 @@ void RoomPrison::doUpkeep()
             }
             // Create a new creature and copy over the class-based creature parameters.
             Creature* newCreature = new Creature(getGameMap(), classToSpawn, getSeat());
+            newCreature->setLevel(static_cast<uint32_t>(SkillManager::getResearchValue(
+                getSeat(), SkillType::roomPrison, 1.0)));
+            newCreature->setHP(newCreature->getMaxHp());
 
             // Add the creature to the gameMap and create meshes so it is visible.
             newCreature->addToGameMap();

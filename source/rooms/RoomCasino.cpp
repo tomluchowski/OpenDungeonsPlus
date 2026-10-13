@@ -16,6 +16,8 @@
  */
 
 #include "rooms/RoomCasino.h"
+#include "game/SkillManager.h"
+#include "game/SkillType.h"
 
 #include "creatureaction/CreatureActionFightFriendly.h"
 #include "entities/BuildingObject.h"
@@ -388,7 +390,8 @@ void RoomCasino::doUpkeep()
         // We set anim for both creatures
         uint32_t cooldown = Random::Uint(ConfigManager::getSingleton().getRoomConfigUInt32("CasinoCooldownWorkMin"),
             ConfigManager::getSingleton().getRoomConfigUInt32("CasinoCooldownWorkMax"));
-        double feePercent = std::min(ConfigManager::getSingleton().getRoomConfigDouble("CasinoFee"), 1.0);
+        double feePercent = std::min(SkillManager::getResearchValue(getSeat(), SkillType::roomCasino,
+            ConfigManager::getSingleton().getRoomConfigDouble("CasinoFee")), 1.0);
         double wakefullness = ConfigManager::getSingleton().getRoomConfigDouble("CasinoWakefulnessPerWork");
         int32_t creatureBet = ConfigManager::getSingleton().getRoomConfigInt32("CasinoBet");
         creatureBet = std::min(creatureBet, p.second.mCreature1.mCreature->getGoldCarried());
