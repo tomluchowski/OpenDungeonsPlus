@@ -100,6 +100,7 @@ CreatureReactions::CreatureReactions(GameMap* gameMap, const std::string& config
         OD_LOG_WRN("Creature reactions are not available");
 }
 
+//! \brief Destroys the reactions. The members clean up themselves, so the body is empty.
 CreatureReactions::~CreatureReactions()
 {
 }

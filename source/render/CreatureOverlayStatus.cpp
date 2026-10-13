@@ -28,6 +28,11 @@
 
 const std::string CREATURE_OVERLAY_STATUS_PREFIX = "CreatureOverlayStatus_";
 
+//! Character height of the overlay that shows the emote of a reaction
+static const Ogre::Real EMOTE_CHAR_HEIGHT = 16;
+//! Width and height in pixels of the area of the emote picture
+static const Ogre::Real EMOTE_SIZE = 32;
+
 enum class CreatureOverlays
 {
     health,
@@ -84,8 +89,8 @@ void CreatureOverlayStatus::showEmote(const std::string& materialName, Ogre::Rea
     if(!mEmoteCreated)
     {
         // The material is given at once: it has to be a valid one when the overlay is created
-        mEmoteId = mMovableTextOverlay->createChildOverlay("MedievalSharp", 16, Ogre::ColourValue::White, materialName);
-        mMovableTextOverlay->forceTextArea(mEmoteId, 32, 32);
+        mEmoteId = mMovableTextOverlay->createChildOverlay("MedievalSharp", EMOTE_CHAR_HEIGHT, Ogre::ColourValue::White, materialName);
+        mMovableTextOverlay->forceTextArea(mEmoteId, EMOTE_SIZE, EMOTE_SIZE);
         mEmoteCreated = true;
     }
     else
