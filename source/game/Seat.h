@@ -192,6 +192,15 @@ public:
     inline bool getIsDebuggingVision()
     { return mIsDebuggingVision; }
 
+    //! \brief Server side. Gives this seat vision on the whole map for the rest of the game,
+    //! as done by a reveal map gift box
+    inline void revealMapPermanently()
+    { mIsMapRevealed = true; }
+
+    //! \brief Server side. Returns true if the map is revealed to this seat. Called once per turn
+    inline bool isMapRevealed() const
+    { return mIsMapRevealed; }
+
     inline const std::vector<SkillType>& getSkillDone() const
     { return mSkillDone; }
 
@@ -441,6 +450,10 @@ private:
     uint32_t mTeamIndex;
 
     bool mIsDebuggingVision;
+
+    //! \brief True if the whole map is visible for the rest of the game. Only used on server
+    //! side and not saved: a reveal is lost when the game is saved and loaded
+    bool mIsMapRevealed;
 
     //! \brief Counter for skill points
     int32_t mSkillPoints;
