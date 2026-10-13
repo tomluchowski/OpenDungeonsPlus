@@ -1,0 +1,36 @@
+// Short effects of the combat reactions (see config/creatureReactions.cfg). They use the textures of the
+// creature reaction effects and are put on the creature for the time the reaction takes.
+
+// A short bright flash: a strong blow, a weapon that is drawn or raised
+particle_system ReactionFlash
+{
+    material        ReactionParticleGlow
+    point_rendering false
+    particle_width  0.8
+    particle_height 0.8
+    cull_each       false
+    quota           8
+    billboard_type  point
+
+    emitter Point
+    {
+        angle               180
+        colour              1.0 1.0 0.9 1.0
+        emission_rate       40
+        time_to_live        0.25
+        direction           0 0 1
+        velocity            0.1
+        duration            0.1
+        position            0 0 0.8
+    }
+
+    affector Scaler
+    {
+        rate 3.0
+    }
+
+    affector ColourFader
+    {
+        alpha -4.0
+    }
+}

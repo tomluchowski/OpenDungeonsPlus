@@ -476,6 +476,8 @@ bool CreatureReactionConfig::loadVariant(std::istream& file, ReactionVariant& va
                 type = ReactionMotion::Type::lie;
             else if(words[1] == "startle")
                 type = ReactionMotion::Type::startle;
+            else if(words[1] == "lunge")
+                type = ReactionMotion::Type::lunge;
 
             if((type == ReactionMotion::Type::none) || (words.size() < 5))
             {

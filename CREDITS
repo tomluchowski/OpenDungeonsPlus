@@ -491,6 +491,8 @@ Name                                   Author                  License          
 config/creatureReactions.cfg           OD Team                 GPLv3+
 materials/scripts/CreatureReactions.material   OD Team        GPLv3+
 particles/CreatureReactions.particle   OD Team                 GPLv3+
+particles/CreatureCombatReactions.particle   OD Team          GPLv3+
+particles/WorkerReactions.particle   OD Team                   GPLv3+
 materials/textures/CreatureEmote*.png  OD Team                 GPLv3+                  Drawn from simple shapes by tools/gen_creature_reaction_art.py (script generated, original work)
 materials/textures/ReactionParticle*.png  OD Team              GPLv3+                  Drawn from simple shapes by tools/gen_creature_reaction_art.py (script generated, original work)
 materials/textures/CreatureEmoteStar.png  OD Team              GPLv3+                  Drawn from simple shapes by tools/gen_creature_reaction_art.py (script generated, original work)
