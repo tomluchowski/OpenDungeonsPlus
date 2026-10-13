@@ -20,6 +20,7 @@
 #include "creatureaction/CreatureActionWalkToTile.h"
 #include "entities/ChickenEntity.h"
 #include "entities/Creature.h"
+#include "entities/CreatureDefinition.h"
 #include "entities/Tile.h"
 #include "gamemap/GameMap.h"
 #include "gamemap/Pathfinding.h"
@@ -30,12 +31,21 @@
 #include "utils/MakeUnique.h"
 #include "utils/Random.h"
 
-CreatureActionEatChicken::CreatureActionEatChicken(Creature& creature, ChickenEntity& chicken) :
+#include <algorithm>
+
+CreatureActionEatChicken::CreatureActionEatChicken(Creature& creature, ChickenEntity& chicken, bool gift) :
     CreatureAction(creature),
-    mChicken(&chicken)
+    mChicken(&chicken),
+    mGift(gift)
 {
     mChicken->addGameEntityListener(this);
     mChicken->setLockEat(mCreature, true);
+    if(mGift)
+    {
+        // The creature sniffs at the chicken before it goes for it (the action waits for the cooldown)
+        mCreature.setJobCooldown(static_cast<int>(
+            ConfigManager::getSingleton().getRoomConfigDoubleOrDefault("HatcheryGiftSniffTurns", 4.0)));
+    }
 }
 
 CreatureActionEatChicken::~CreatureActionEatChicken()
@@ -49,6 +59,9 @@ CreatureActionEatChicken::~CreatureActionEatChicken()
 
 std::function<bool()> CreatureActionEatChicken::action()
 {
+    if(mGift)
+        return std::bind(&CreatureActionEatChicken::handleGiftChicken, std::ref(mCreature), mChicken);
+
     return std::bind(&CreatureActionEatChicken::handleEatChicken,
         std::ref(mCreature), mChicken);
 }
@@ -156,6 +169,47 @@ bool CreatureActionEatChicken::handleEatChicken(Creature& creature, ChickenEntit
 std::string CreatureActionEatChicken::getListenerName() const
 {
     return toString(getType()) + ", creature=" + mCreature.getName();
+}
+
+bool CreatureActionEatChicken::canAcceptGift(const Creature& creature)
+{
+    const CreatureDefinition* definition = creature.getDefinition();
+    if(definition->isWorker())
+        return false;
+
+    // Only an idle creature takes the gift. A hungry one looks for food itself
+    if(!creature.getActions().empty() || creature.isHungry())
+        return false;
+
+    if(!creature.getIsOnMap() || (creature.getPositionTile() == nullptr) || !creature.isAlive() ||
+       creature.isKo() || creature.isInPrison())
+    {
+        return false;
+    }
+
+    return true;
+}
+
+bool CreatureActionEatChicken::handleGiftChicken(Creature& creature, ChickenEntity* chicken)
+{
+    const bool edibleBefore = (chicken != nullptr) && chicken->isEdible();
+    const double hungerBefore = creature.getHunger();
+    const double hpBefore = creature.getHP();
+    const bool result = handleEatChicken(creature, chicken);
+
+    // The chicken was not reached yet (or the meal did not happen)
+    if(!edibleBefore || chicken->isEdible())
+        return result;
+
+    // The meal happened: the creature was not hungry, so it gets less out of it and rests longer
+    ConfigManager& config = ConfigManager::getSingleton();
+    creature.setHunger(hungerBefore - config.getRoomConfigDoubleOrDefault("HatcheryGiftHungerPerChicken", 4.0));
+    creature.setHP(hpBefore + config.getRoomConfigDoubleOrDefault("HatcheryGiftHpRecoveredPerChicken", 2.0));
+    const uint32_t cooldownMin = static_cast<uint32_t>(config.getRoomConfigDoubleOrDefault("HatcheryGiftCooldownMin", 12.0));
+    const uint32_t cooldownMax = static_cast<uint32_t>(config.getRoomConfigDoubleOrDefault("HatcheryGiftCooldownMax", 20.0));
+    creature.setJobCooldown(static_cast<int>(Random::Int(static_cast<int>(cooldownMin),
+        static_cast<int>(std::max(cooldownMin, cooldownMax)))));
+    return result;
 }
 
 bool CreatureActionEatChicken::notifyDead(GameEntity* entity)

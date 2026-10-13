@@ -673,6 +673,139 @@ void solveFeedingLimb(Ogre::Bone* upper, Ogre::Bone* lower,
         target - lower->_getDerivedPosition());
 }
 
+//! Values of the chicken meal (E05): the creature grabs the chicken, holds it in front of its mouth, bites
+//! twice while the chicken struggles, and the chicken is gone after the second bite. All values are in the
+//! room configuration (rooms.cfg), the numbers here are only the defaults.
+struct ChickenMealSettings
+{
+    Ogre::Real mGrab;
+    Ogre::Real mHold;
+    Ogre::Real mBite;
+    Ogre::Real mPause;
+    Ogre::Real mSwallow;
+    Ogre::Real mFirstBite;
+    Ogre::Real mSecondBite;
+    Ogre::Real mTotal;
+    Ogre::Real mLookAngle;
+    Ogre::Real mBiteAngle;
+    Ogre::Real mJawAngle;
+    Ogre::Real mBiteLean;
+    Ogre::Real mLungeSmall;
+    Ogre::Real mLungeBig;
+    Ogre::Real mMouthForward;
+    Ogre::Real mMouthForwardLunge;
+    Ogre::Real mMouthForwardHeavy;
+    Ogre::Real mHoldLift;
+    Ogre::Real mHandDrop;
+    Ogre::Real mHandSpread;
+    Ogre::Real mHandSpreadHeight;
+    Ogre::Real mReachRatio;
+    Ogre::Real mGap;
+    Ogre::Real mStruggleYaw;
+    Ogre::Real mStruggleRoll;
+};
+
+Ogre::Real getChickenMealValue(const char* key, double defaultValue)
+{
+    return static_cast<Ogre::Real>(ConfigManager::getSingleton().getRoomConfigDoubleOrDefault(key, defaultValue));
+}
+
+ChickenMealSettings getChickenMealSettings()
+{
+    ChickenMealSettings meal;
+    meal.mGrab = std::max(static_cast<Ogre::Real>(0.2), getChickenMealValue("ChickenMealGrabSeconds", 0.8));
+    meal.mHold = std::max(static_cast<Ogre::Real>(0.1), getChickenMealValue("ChickenMealHoldSeconds", 0.6));
+    meal.mBite = std::max(static_cast<Ogre::Real>(0.2), getChickenMealValue("ChickenMealBiteSeconds", 0.4));
+    meal.mPause = std::max(static_cast<Ogre::Real>(0.0), getChickenMealValue("ChickenMealPauseSeconds", 0.3));
+    meal.mSwallow = std::max(static_cast<Ogre::Real>(0.2), getChickenMealValue("ChickenMealSwallowSeconds", 0.5));
+    meal.mFirstBite = meal.mGrab + meal.mHold;
+    meal.mSecondBite = meal.mFirstBite + meal.mBite + meal.mPause;
+    meal.mTotal = meal.mSecondBite + meal.mBite + meal.mSwallow;
+    meal.mLookAngle = getChickenMealValue("ChickenMealLookDegrees", 9.0);
+    meal.mBiteAngle = getChickenMealValue("ChickenMealBiteDegrees", 24.0);
+    meal.mJawAngle = getChickenMealValue("ChickenMealJawDegrees", 24.0);
+    meal.mBiteLean = getChickenMealValue("ChickenMealBiteLeanDegrees", 10.0);
+    meal.mLungeSmall = getChickenMealValue("ChickenMealLungeSmall", 0.07);
+    meal.mLungeBig = getChickenMealValue("ChickenMealLungeBig", 0.14);
+    meal.mMouthForward = getChickenMealValue("ChickenMealMouthForward", 0.14);
+    meal.mMouthForwardLunge = getChickenMealValue("ChickenMealMouthForwardLunge", 0.18);
+    meal.mMouthForwardHeavy = getChickenMealValue("ChickenMealMouthForwardHeavy", 0.22);
+    meal.mHoldLift = getChickenMealValue("ChickenMealHoldLift", 0.10);
+    meal.mHandDrop = getChickenMealValue("ChickenMealHandDrop", 0.12);
+    meal.mHandSpread = getChickenMealValue("ChickenMealHandSpread", 0.32);
+    meal.mHandSpreadHeight = getChickenMealValue("ChickenMealHandSpreadHeight", 0.12);
+    meal.mReachRatio = getChickenMealValue("ChickenMealReachRatio", 1.5);
+    meal.mGap = getChickenMealValue("ChickenMealGap", 0.02);
+    meal.mStruggleYaw = getChickenMealValue("ChickenMealStruggleYawDegrees", 22.0);
+    meal.mStruggleRoll = getChickenMealValue("ChickenMealStruggleRollDegrees", 14.0);
+    return meal;
+}
+
+Ogre::Real chickenMealSmooth(Ogre::Real value)
+{
+    value = std::max(static_cast<Ogre::Real>(0.0), std::min(value, static_cast<Ogre::Real>(1.0)));
+    return value * value * (3.0f - 2.0f * value);
+}
+
+//! 0 -> 1 -> 0 over one bite: the head dips towards the chicken and comes back
+Ogre::Real chickenMealBite(Ogre::Real time, Ogre::Real start, Ogre::Real length)
+{
+    const Ogre::Real progress = (time - start) / length;
+    if((progress <= 0.0f) || (progress >= 1.0f))
+        return 0.0f;
+
+    const Ogre::Real wave = Ogre::Math::Sin(Ogre::Math::PI * progress);
+    return wave * wave;
+}
+
+//! The jaw opens on the way down and snaps shut at the lowest point of the dip
+Ogre::Real chickenMealJaw(Ogre::Real time, Ogre::Real start, Ogre::Real length)
+{
+    const Ogre::Real progress = (time - start) / length;
+    if((progress <= 0.0f) || (progress >= 1.0f))
+        return 0.0f;
+
+    return chickenMealSmooth(progress / 0.4f) * (1.0f - chickenMealSmooth((progress - 0.4f) / 0.15f));
+}
+
+struct ChickenMealPhase
+{
+    Ogre::Real mReach;
+    Ogre::Real mLift;
+    Ogre::Real mRelease;
+    Ogre::Real mDip;
+    Ogre::Real mJaw;
+    Ogre::Real mPresent;
+    Ogre::Real mSize;
+    Ogre::Real mStruggle;
+};
+
+//! Everything that changes during the meal, as a function of the time since the meal started: grab (reach),
+//! lift to the mouth, two bites (dip), the chicken getting smaller with each bite, struggling that weakens
+//! with the first bite and stops with the second, release of the empty hands after the second bite.
+ChickenMealPhase getChickenMealPhase(Ogre::Real time, const ChickenMealSettings& meal)
+{
+    const Ogre::Real secondEnd = meal.mSecondBite + meal.mBite;
+    const Ogre::Real afterMeal = secondEnd + 0.1f * meal.mSwallow;
+    ChickenMealPhase phase;
+    phase.mReach = chickenMealSmooth(time / (0.55f * meal.mGrab));
+    phase.mLift = chickenMealSmooth((time - 0.5f * meal.mGrab) /
+        (meal.mFirstBite - 0.5f * meal.mGrab - 0.3f * meal.mHold));
+    phase.mRelease = chickenMealSmooth((time - afterMeal) / (0.6f * meal.mSwallow));
+    phase.mDip = chickenMealBite(time, meal.mFirstBite, meal.mBite) +
+        chickenMealBite(time, meal.mSecondBite, meal.mBite);
+    phase.mJaw = chickenMealJaw(time, meal.mFirstBite, meal.mBite) +
+        chickenMealJaw(time, meal.mSecondBite, meal.mBite);
+    phase.mPresent = chickenMealSmooth(time / meal.mGrab) *
+        (1.0f - chickenMealSmooth((time - afterMeal) / (0.7f * meal.mSwallow)));
+    const Ogre::Real firstChunk = chickenMealSmooth((time - (meal.mFirstBite + 0.4f * meal.mBite)) / (0.2f * meal.mBite));
+    const Ogre::Real rest = chickenMealSmooth((time - (meal.mSecondBite + 0.4f * meal.mBite)) / (0.3f * meal.mBite));
+    phase.mSize = 1.0f - 0.25f * firstChunk - 0.75f * rest;
+    phase.mStruggle = chickenMealSmooth((time - 0.45f * meal.mGrab) / (0.25f * meal.mGrab)) *
+        (1.0f - 0.35f * firstChunk) * (1.0f - rest);
+    return phase;
+}
+
 Ogre::AxisAlignedBox getSleepingPoseBounds(Ogre::Entity* entity,
     const Ogre::Quaternion& orientation, const Ogre::Vector3& scale)
 {
@@ -1553,75 +1686,80 @@ void RenderManager::updateRenderAnimations(Ogre::Real timeSinceLastFrame)
     }
     for(CreatureFeedingAnimation& feeding : mCreatureFeedingAnimations)
     {
+        const ChickenMealSettings meal = getChickenMealSettings();
         feeding.mElapsed += timeSinceLastFrame;
-        const Ogre::Real progress = std::min(feeding.mElapsed / 2.2f, 1.0f);
-        const Ogre::Real envelope = Ogre::Math::Sin(Ogre::Math::PI * progress);
-        const Ogre::Real frequency = feeding.mStyle == CreatureFeedingStyle::peck ? 7.0f :
-            (feeding.mStyle == CreatureFeedingStyle::heavy ? 2.0f : 4.0f);
-        const Ogre::Real chew = 0.5f - 0.5f * Ogre::Math::Cos(
-            Ogre::Math::TWO_PI * frequency * progress);
+        const Ogre::Real time = std::min(feeding.mElapsed, meal.mTotal);
+        const Ogre::Real progress = time / meal.mTotal;
+        const ChickenMealPhase phase = getChickenMealPhase(time, meal);
+        const bool usesHands = !feeding.mReachBones.empty();
         feeding.mAnimation->setTimePosition(progress * feeding.mAnimation->getLength());
+        // Without hands the whole body lunges at the chicken with each bite
         Ogre::Vector3 offset = Ogre::Vector3::ZERO;
-        Ogre::Vector3 scale = Ogre::Vector3::UNIT_SCALE;
-        if(feeding.mStyle == CreatureFeedingStyle::peck)
-            offset.y = -0.045f * chew * envelope;
-        else if(feeding.mStyle == CreatureFeedingStyle::lunge)
-            offset.y = -0.12f * chew * envelope;
-        else if(feeding.mStyle == CreatureFeedingStyle::heavy)
-            scale = Ogre::Vector3(1.0f + 0.025f * chew * envelope, 1.0f,
-                1.0f - 0.035f * chew * envelope);
-        else if(feeding.mStyle == CreatureFeedingStyle::coil)
+        if(!usesHands)
         {
-            offset.x = 0.06f * Ogre::Math::Sin(progress * Ogre::Math::TWO_PI) * envelope;
-            offset.y = -0.08f * envelope;
+            const bool big = (feeding.mStyle == CreatureFeedingStyle::lunge) || (feeding.mStyle == CreatureFeedingStyle::heavy);
+            offset.y = -(big ? meal.mLungeBig : meal.mLungeSmall) * phase.mDip * phase.mPresent;
         }
         feeding.mNode->setPosition(feeding.mBasePosition + feeding.mBaseOrientation * offset);
-        feeding.mNode->setScale(feeding.mBaseScale * scale);
+        feeding.mNode->setScale(feeding.mBaseScale);
         feeding.mEntity->_updateAnimation();
-        const Ogre::Vector3 mouth = feeding.mHead != nullptr ?
-            feeding.mHead->_getDerivedPosition() + Ogre::Vector3(0, -0.10f,
-                -feeding.mEntity->getBoundingBox().getSize().z * 0.06f) :
-            Ogre::Vector3(0, -0.25f, feeding.mEntity->getBoundingBox().getSize().z * 0.7f);
+        const Ogre::Real height = feeding.mEntity->getBoundingBox().getSize().z;
+        Ogre::Vector3 mouth = getCreatureFeedingMouth(feeding, height, 0.0f, !usesHands);
 
         if(feeding.mChickenNode != nullptr)
         {
-            const bool usesHands = !feeding.mReachBones.empty();
+            const Ogre::AxisAlignedBox& chickenBox = feeding.mChickenEntity->getBoundingBox();
+            const Ogre::Vector3 chickenSize = chickenBox.getSize() * feeding.mChickenScale;
+            const Ogre::Vector3 chickenCentre = chickenBox.getCenter();
             Ogre::Vector3 handPosition = Ogre::Vector3::ZERO;
             if(usesHands)
-                handPosition = updateCreatureFeedingReach(feeding, progress);
-            const Ogre::Real lift = std::min(progress / 0.32f, 1.0f);
-            const Ogre::Real smoothLift = lift * lift * (3.0f - 2.0f * lift);
-            Ogre::Vector3 position = feeding.mChickenStart +
-                (mouth - feeding.mChickenStart) * smoothLift;
-            if(!usesHands && feeding.mStyle == CreatureFeedingStyle::magical)
-                position += Ogre::Vector3(0.09f * Ogre::Math::Sin(lift * Ogre::Math::TWO_PI),
-                    0, 0.18f * Ogre::Math::Sin(lift * Ogre::Math::PI));
-            const Ogre::Real remaining = 1.0f - std::min(std::max((progress - (usesHands ? 0.64f : 0.48f)) /
-                (usesHands ? 0.18f : 0.22f), 0.0f), 1.0f);
-            feeding.mChickenNode->setVisible(remaining > 0.0f);
-            feeding.mChickenNode->setScale(feeding.mChickenScale * std::max(remaining, 0.001f));
-            feeding.mChickenNode->setOrientation(Ogre::Quaternion(
-                Ogre::Degree(80.0f * smoothLift), Ogre::Vector3::UNIT_X) * Ogre::Quaternion(
-                Ogre::Degree(16.0f * Ogre::Math::Sin(feeding.mElapsed * 22.0f)),
-                Ogre::Vector3::UNIT_Y));
-            position -= feeding.mChickenNode->getOrientation() *
-                (feeding.mChickenNode->getScale() * feeding.mChickenEntity->getBoundingBox().getCenter()) * smoothLift;
+            {
+                handPosition = updateCreatureFeedingReach(feeding, progress, phase.mReach, phase.mLift,
+                    phase.mRelease, phase.mDip, meal.mBiteLean * phase.mDip * phase.mPresent);
+            }
+            mouth = getCreatureFeedingMouth(feeding, height, chickenSize.z, !usesHands);
+            const Ogre::Vector3 ground = feeding.mChickenStart + feeding.mChickenScale * chickenCentre;
+            Ogre::Quaternion held = Ogre::Quaternion::IDENTITY;
+            Ogre::Vector3 centre = ground;
             if(usesHands)
             {
-                const Ogre::Real carried = std::max(0.0f, std::min((progress - 0.28f) / 0.26f, 1.0f));
-                feeding.mChickenNode->setOrientation(Ogre::Quaternion(
-                    Ogre::Degree(80.0f * carried), Ogre::Vector3::UNIT_X));
-                position = progress < 0.28f ? feeding.mChickenStart : handPosition -
-                    feeding.mChickenNode->getOrientation() * (feeding.mChickenNode->getScale() *
-                        feeding.mChickenEntity->getBoundingBox().getCenter());
+                // Held crosswise above the hands, belly to the creature, so that it is seen from above
+                held = Ogre::Quaternion(Ogre::Degree(90.0f), Ogre::Vector3::UNIT_Z) *
+                    Ogre::Quaternion(Ogre::Degree(50.0f), Ogre::Vector3::UNIT_Y);
+                if(time >= 0.55f * meal.mGrab)
+                    centre = handPosition + Ogre::Vector3(0, 0, meal.mHandDrop * height);
             }
-            feeding.mChickenNode->setPosition(position);
+            else
+            {
+                // Lengthwise in the jaws
+                const Ogre::Vector3 hold = mouth +
+                    Ogre::Vector3(0, -chickenSize.y * 0.5f * (0.75f - 0.4f * phase.mDip), 0);
+                centre = ground + (hold - ground) * phase.mLift;
+            }
+            const Ogre::Real struggle = phase.mStruggle;
+            const Ogre::Quaternion wiggle =
+                Ogre::Quaternion(Ogre::Degree(meal.mStruggleYaw * struggle *
+                    Ogre::Math::Sin(Ogre::Math::TWO_PI * 6.5f * feeding.mElapsed)), Ogre::Vector3::UNIT_Z) *
+                Ogre::Quaternion(Ogre::Degree(meal.mStruggleRoll * struggle *
+                    Ogre::Math::Sin(Ogre::Math::TWO_PI * 9.3f * feeding.mElapsed + 0.7f)), Ogre::Vector3::UNIT_Y);
+            const Ogre::Vector3 jitter = Ogre::Vector3(
+                0.014f * Ogre::Math::Sin(Ogre::Math::TWO_PI * 11.0f * feeding.mElapsed + 1.3f),
+                0.010f * Ogre::Math::Sin(Ogre::Math::TWO_PI * 7.9f * feeding.mElapsed),
+                0.016f * Ogre::Math::Sin(Ogre::Math::TWO_PI * 8.3f * feeding.mElapsed + 0.4f)) * struggle;
+            const Ogre::Real flap = 0.14f * Ogre::Math::Sin(Ogre::Math::TWO_PI * 12.0f * feeding.mElapsed) * struggle;
+            const Ogre::Quaternion orientation = wiggle * Ogre::Quaternion::Slerp(
+                chickenMealSmooth(phase.mLift), feeding.mChickenOrientation, held, true);
+            const Ogre::Vector3 scale = feeding.mChickenScale * phase.mSize *
+                Ogre::Vector3(1.0f + flap, 1.0f, 1.0f - 0.5f * flap);
+            feeding.mChickenNode->setVisible(phase.mSize > 0.03f);
+            feeding.mChickenNode->setOrientation(orientation);
+            feeding.mChickenNode->setScale(scale);
+            feeding.mChickenNode->setPosition(centre + jitter - orientation * (scale * chickenCentre));
             if(feeding.mChickenEntity->hasAnimationState(EntityAnimation::idle_anim))
                 feeding.mChickenEntity->getAnimationState(EntityAnimation::idle_anim)->addTime(timeSinceLastFrame * 3.0f);
         }
-        // The feathers only fly while the keeper can see the meal: the clip plays and both animals are shown
-        if(feeding.mFeatherBursts < 2 && progress >= (feeding.mReachBones.empty() ?
-            0.38f + feeding.mFeatherBursts * 0.24f : 0.58f + feeding.mFeatherBursts * 0.14f) &&
+        if(feeding.mFeatherBursts < 2 && time >= meal.mFirstBite + 0.45f * meal.mBite +
+            feeding.mFeatherBursts * (meal.mSecondBite - meal.mFirstBite) &&
             feeding.mAnimation != nullptr && feeding.mAnimation->getEnabled() && !feeding.mAnimation->hasEnded() &&
             feeding.mEntity->isVisible() && feeding.mChickenNode != nullptr &&
             feeding.mChickenNode->isInSceneGraph() && feeding.mChickenEntity != nullptr &&
@@ -3645,9 +3783,9 @@ void RenderManager::startCreatureFeedingAnimation(Creature* creature, Ogre::Enti
         style = CreatureFeedingStyle::coil;
 
     Ogre::Skeleton* skeleton = entity->getMesh()->getSkeleton().get();
-    const Ogre::Real duration = 2.2f;
-    const Ogre::Real bites = style == CreatureFeedingStyle::peck ? 7.0f :
-        (style == CreatureFeedingStyle::heavy ? 2.0f : 4.0f);
+    // Two clear bites for every creature, the times and angles are in the room configuration
+    const ChickenMealSettings meal = getChickenMealSettings();
+    const Ogre::Real duration = meal.mTotal;
     if(!skeleton->hasAnimation(EntityAnimation::eat_chicken_anim))
     {
         const Ogre::Animation* idle = skeleton->getAnimation(EntityAnimation::idle_anim);
@@ -3667,21 +3805,20 @@ void RenderManager::startCreatureFeedingAnimation(Creature* creature, Ogre::Enti
                  name == "ForeArm_L" || name == "ForeArm_R" || name == "ArmLower.L" ||
                  name == "ArmLower.R" || name == "forearm.L" || name == "forearm.R");
             Ogre::NodeAnimationTrack* track = feeding->createNodeTrack(boneIndex);
-            for(unsigned int key = 0; key <= 66; ++key)
+            for(unsigned int key = 0; key <= 90; ++key)
             {
-                const Ogre::Real progress = key / 66.0f;
+                const Ogre::Real progress = key / 90.0f;
                 const Ogre::Real envelope = Ogre::Math::Sin(Ogre::Math::PI * progress);
-                const Ogre::Real chew = 0.5f - 0.5f * Ogre::Math::Cos(
-                    Ogre::Math::TWO_PI * bites * progress);
+                const ChickenMealPhase phase = getChickenMealPhase(progress * duration, meal);
                 Ogre::TransformKeyFrame rest(nullptr, 0);
                 if(idle->hasNodeTrack(boneIndex))
                     idle->getNodeTrack(boneIndex)->getInterpolatedKeyFrame(Ogre::TimeIndex(0), &rest);
                 Ogre::TransformKeyFrame* frame = track->createNodeKeyFrame(progress * duration);
                 frame->setTranslate(rest.getTranslate());
                 frame->setScale(rest.getScale());
-                Ogre::Real angle = head ? (8.0f + 12.0f * chew) * envelope : 0.0f;
+                Ogre::Real angle = head ? meal.mLookAngle * phase.mPresent + meal.mBiteAngle * phase.mDip : 0.0f;
                 if(jaw)
-                    angle = -24.0f * chew * envelope;
+                    angle = -meal.mJawAngle * phase.mJaw;
                 if(arm)
                     angle = -65.0f * envelope;
                 const Ogre::Quaternion basis = bone->_getDerivedOrientation();
@@ -3690,8 +3827,8 @@ void RenderManager::startCreatureFeedingAnimation(Creature* creature, Ogre::Enti
                     basis * rest.getRotation());
                 if(name == "slime_mid" || name == "slime_head")
                     frame->setScale(rest.getScale() * Ogre::Vector3(
-                        1.0f + 0.13f * chew * envelope, 1.0f + 0.13f * chew * envelope,
-                        1.0f - 0.10f * chew * envelope));
+                        1.0f + 0.13f * phase.mDip, 1.0f + 0.13f * phase.mDip,
+                        1.0f - 0.10f * phase.mDip));
             }
         }
     }
@@ -3712,6 +3849,11 @@ void RenderManager::startCreatureFeedingAnimation(Creature* creature, Ogre::Enti
     mCreatureFeedingAnimations.push_back({creature, node, entity, node->getPosition(),
         node->getOrientation(), node->getScale(), 0.0f, style, animation,
         nullptr, nullptr, Ogre::Vector3::ZERO, Ogre::Vector3::UNIT_SCALE, head, 0});
+    CreatureFeedingAnimation& started = mCreatureFeedingAnimations.back();
+    started.mMouthForward = style == CreatureFeedingStyle::heavy ? meal.mMouthForwardHeavy :
+        (style == CreatureFeedingStyle::lunge ? meal.mMouthForwardLunge : meal.mMouthForward);
+    started.mJaw = findFeedingBone(entity->getSkeleton(),
+        {"Jaw", "jaws", "Mouth", "JawL", "JawR", "Zahn_L", "Zahn_R"});
 }
 
 void RenderManager::prepareCreatureFeedingReach(CreatureFeedingAnimation& feeding)
@@ -3741,6 +3883,23 @@ void RenderManager::prepareCreatureFeedingReach(CreatureFeedingAnimation& feedin
         return;
     skeleton->setAnimationState(*feeding.mEntity->getAllAnimationStates());
     skeleton->_updateTransforms();
+    {
+        // Arms too short for the mouth (small arms, long neck): the chicken goes into the jaws instead
+        const ChickenMealSettings meal = getChickenMealSettings();
+        const Ogre::Real height = feeding.mEntity->getBoundingBox().getSize().z;
+        const Ogre::Vector3 chickenSize = feeding.mChickenEntity->getBoundingBox().getSize() * feeding.mChickenScale;
+        const Ogre::Vector3 holdAtRest = getCreatureFeedingMouth(feeding, height, 0.0f, false) +
+            Ogre::Vector3(0, -(chickenSize.x * 0.5f + meal.mGap), meal.mHoldLift * height);
+        const Ogre::Vector3 shoulders = (left.mUpper->_getDerivedPosition() + right.mUpper->_getDerivedPosition()) * 0.5f;
+        Ogre::Real armLength = Ogre::Math::POS_INFINITY;
+        for(const CreatureFeedingLimb* arm : {&left, &right})
+        {
+            armLength = std::min(armLength, arm->mUpper->_getDerivedPosition().distance(arm->mLower->_getDerivedPosition()) +
+                arm->mLower->_getDerivedPosition().distance(arm->mTip->_getDerivedPosition()));
+        }
+        if(holdAtRest.distance(shoulders) > armLength * meal.mReachRatio)
+            return;
+    }
     std::function<void(Ogre::Bone*)> retain = [&feeding](Ogre::Bone* bone)
     {
         for(const CreatureFeedingBone& pose : feeding.mReachBones)
@@ -3805,26 +3964,37 @@ void RenderManager::prepareCreatureFeedingReach(CreatureFeedingAnimation& feedin
     }
 }
 
-Ogre::Vector3 RenderManager::updateCreatureFeedingReach(CreatureFeedingAnimation& feeding, Ogre::Real progress)
+Ogre::Vector3 RenderManager::getCreatureFeedingMouth(const CreatureFeedingAnimation& feeding,
+    Ogre::Real height, Ogre::Real chickenHeight, bool withoutHands) const
 {
-    std::function<Ogre::Real(Ogre::Real)> smooth = [](Ogre::Real value)
+    if(feeding.mHead == nullptr)
+        return Ogre::Vector3(0, -0.25f, height * 0.7f);
+
+    Ogre::Vector3 mouth = feeding.mHead->_getDerivedPosition() + Ogre::Vector3(0, -feeding.mMouthForward, -height * 0.06f);
+    if(withoutHands)
     {
-        value = std::max(0.0f, std::min(value, 1.0f));
-        return value * value * (3.0f - 2.0f * value);
-    };
+        // The chicken is taken into the jaws: in front of the fangs or jaw, not below the head
+        if(feeding.mJaw != nullptr)
+            mouth.y = std::min(mouth.y, feeding.mJaw->_getDerivedPosition().y - 0.04f);
+        mouth.z = std::max(mouth.z, chickenHeight * 0.5f);
+    }
+    return mouth;
+}
+
+Ogre::Vector3 RenderManager::updateCreatureFeedingReach(CreatureFeedingAnimation& feeding, Ogre::Real progress,
+    Ogre::Real reach, Ogre::Real lift, Ogre::Real release, Ogre::Real dip, Ogre::Real biteLean)
+{
+    const ChickenMealSettings meal = getChickenMealSettings();
     for(const CreatureFeedingBone& pose : feeding.mReachBones)
     {
         pose.mBone->setPosition(pose.mPosition);
         pose.mBone->setOrientation(pose.mOrientation);
         pose.mBone->setScale(pose.mScale);
         if(feeding.mEntity->getMesh()->getName() == "Kobold.mesh" && pose.mBone->getName() == "Pick")
-            pose.mBone->setScale(pose.mScale * (1.0f - smooth(progress / 0.12f) *
-                (1.0f - smooth((progress - 0.88f) / 0.12f))));
+            pose.mBone->setScale(pose.mScale * (1.0f - chickenMealSmooth(progress / 0.12f) *
+                (1.0f - chickenMealSmooth((progress - 0.88f) / 0.12f))));
     }
     feeding.mEntity->getSkeleton()->_updateTransforms();
-    const Ogre::Real reach = smooth(progress / 0.28f);
-    const Ogre::Real lift = smooth((progress - 0.28f) / 0.26f);
-    const Ogre::Real release = smooth((progress - 0.82f) / 0.18f);
     const Ogre::Real crouch = reach * (1.0f - lift);
     const Ogre::Real height = feeding.mEntity->getBoundingBox().getSize().z;
     for(Ogre::Bone* root : feeding.mRoots)
@@ -3832,21 +4002,26 @@ Ogre::Vector3 RenderManager::updateCreatureFeedingReach(CreatureFeedingAnimation
         root->translate(Ogre::Vector3(0, -height * 0.10f, -height * 0.28f) * crouch, Ogre::Node::TS_WORLD);
         root->_update(true, false);
     }
-    const Ogre::Quaternion bend(Ogre::Degree(35.0f * crouch), Ogre::Vector3::UNIT_X);
+    const Ogre::Quaternion bend(Ogre::Degree(35.0f * crouch + biteLean), Ogre::Vector3::UNIT_X);
     const Ogre::Quaternion parent = feeding.mSpine->getParent() != nullptr ?
         feeding.mSpine->getParent()->_getDerivedOrientation() : Ogre::Quaternion::IDENTITY;
     feeding.mSpine->setOrientation(parent.Inverse() * bend * feeding.mSpine->_getDerivedOrientation());
     feeding.mSpine->_update(true, false);
     const Ogre::Vector3 ground = feeding.mChickenStart + feeding.mChickenScale *
         feeding.mChickenEntity->getBoundingBox().getCenter();
-    const Ogre::Vector3 mouth = feeding.mHead->_getDerivedPosition() + Ogre::Vector3(0, -0.10f, -height * 0.06f);
-    const Ogre::Vector3 held = ground + (mouth - ground) * lift;
-    const Ogre::Real spread = feeding.mChickenScale.x * feeding.mChickenEntity->getBoundingBox().getSize().x * 0.38f;
+    const Ogre::Vector3 chickenSize = feeding.mChickenEntity->getBoundingBox().getSize() * feeding.mChickenScale;
+    // The chicken is held crosswise, above the hands and just in front of the mouth; the head dips to it
+    const Ogre::Vector3 mouth = getCreatureFeedingMouth(feeding, height, chickenSize.z, false);
+    const Ogre::Vector3 hold = mouth + Ogre::Vector3(0, -(chickenSize.x * 0.5f + meal.mGap) * (1.0f - 0.8f * dip),
+        meal.mHoldLift * height);
+    const Ogre::Vector3 held = ground + (hold - ground) * lift;
+    const Ogre::Real spread = std::max(chickenSize.y * meal.mHandSpread, meal.mHandSpreadHeight * height);
+    const Ogre::Real drop = meal.mHandDrop * height;
     Ogre::Vector3 targets[2];
     for(unsigned int side = 0; side < 2; ++side)
     {
         const CreatureFeedingLimb& arm = feeding.mArms[side];
-        const Ogre::Vector3 grip = held + Ogre::Vector3(side == 0 ? spread : -spread, 0, 0);
+        const Ogre::Vector3 grip = held + Ogre::Vector3(side == 0 ? spread : -spread, 0, -drop);
         targets[side] = arm.mRestTip + (grip - arm.mRestTip) * reach * (1.0f - release);
     }
     // Move the crouched torso only as far as required by the actual arm lengths.
@@ -3937,6 +4112,8 @@ void RenderManager::rrSetFeedingChicken(Creature* creature, MovableGameEntity* c
         if(chicken != nullptr && chicken->getEntityNode() != nullptr)
         {
             feeding.mChickenScale = chicken->getEntityNode()->_getDerivedScale() / feeding.mBaseScale;
+            feeding.mChickenOrientation = feeding.mNode->_getDerivedOrientation().Inverse() *
+                chicken->getEntityNode()->_getDerivedOrientation();
             chicken->getEntityNode()->setVisible(false);
         }
         feeding.mChickenNode->setPosition(feeding.mChickenStart);

@@ -17,6 +17,7 @@
 
 #include "entities/ChickenEntity.h"
 
+#include "creatureaction/CreatureActionEatChicken.h"
 #include "entities/ChickenFlight.h"
 #include "entities/ChickenPose.h"
 #include "entities/Creature.h"
@@ -29,6 +30,7 @@
 #include "game/Seat.h"
 #include "render/RenderManager.h"
 #include "gamemap/GameMap.h"
+#include "gamemap/Pathfinding.h"
 #include "gamemap/RoomObjectNavigation.h"
 #include "rooms/Room.h"
 #include "rooms/RoomHatchery.h"
@@ -38,6 +40,7 @@
 #include "utils/Helper.h"
 #include "utils/Random.h"
 #include "utils/LogManager.h"
+#include "utils/MakeUnique.h"
 
 #include <OgreAnimationState.h>
 
@@ -83,7 +86,8 @@ ChickenEntity::ChickenEntity(GameMap* gameMap, const std::string& hatcheryName, 
     mNbTurnOutsideHatchery(0),
     mNbTurnDie(0),
     mIsSlapped(false),
-    mLockedEat(false)
+    mLockedEat(false),
+    mGiftTurns(0)
 {
 }
 
@@ -120,7 +124,8 @@ ChickenEntity::ChickenEntity(GameMap* gameMap) :
     mNbTurnOutsideHatchery(0),
     mNbTurnDie(0),
     mIsSlapped(false),
-    mLockedEat(false)
+    mLockedEat(false),
+    mGiftTurns(0)
 {
     setMeshName("Chicken");
 }
@@ -213,8 +218,8 @@ void ChickenEntity::doUpkeep()
         ++mNbTurnOutsideHatchery;
 
     // A rooster that was dropped outside of a hatchery runs back to the nearest hatchery of his keeper. A hen
-    // does the same as long as nobody is after it
-    const bool henMayReturn = (mKind == ChickenKind::hen) && !mLockedEat;
+    // does the same, once the gift offer is over (see offerGift) and as long as nobody is after it
+    const bool henMayReturn = (mKind == ChickenKind::hen) && (mGiftTurns == 0) && !mLockedEat;
     if(((mKind == ChickenKind::rooster) || henMayReturn) && (currentHatchery == nullptr) && !mIsSlapped && runBackToHatchery(tile))
     {
         mNbTurnOutsideHatchery = 0;
@@ -238,6 +243,9 @@ void ChickenEntity::doUpkeep()
         clearDestinations(EntityAnimation::die_anim, false, false);
         return;
     }
+
+    if(mGiftTurns > 0)
+        offerGift(*tile);
 
     ChickenFlight::tick(mFlight);
 
@@ -828,12 +836,29 @@ void ChickenEntity::pickup()
     mLeavingCoop = false;
     mFollowing = false;
     mReturningHome = false;
+    mGiftTurns = 0;
     removeEntityFromPositionTile();
     RenderedMovableEntity::pickup();
 
     // In the hand he puffs up and flaps until he is put down (the pose ends with the next animation he gets)
     if(getIsOnServerMap() && (mKind == ChickenKind::rooster))
         clearDestinations(ChickenPose::protest, true, false);
+}
+
+void ChickenEntity::drop(const Ogre::Vector3& v)
+{
+    RenderedMovableEntity::drop(v);
+    if(!getIsOnServerMap() || (mKind != ChickenKind::hen) || getGameMap()->isInEditorMode())
+        return;
+
+    // A hen the keeper drops next to the creatures (not back into a hatchery, whose meals follow
+    // their own rules) is offered to the creatures that are not hungry
+    Tile* dropTile = getGameMap()->getTile(static_cast<int>(v.x + 0.5), static_cast<int>(v.y + 0.5));
+    if((dropTile == nullptr) || dropTile->checkCoveringRoomType(RoomType::hatchery))
+        return;
+
+    mGiftTurns = static_cast<uint32_t>(std::max(0.0,
+        ConfigManager::getSingleton().getRoomConfigDoubleOrDefault("HatcheryGiftOfferTurns", 14.0)));
 }
 
 bool ChickenEntity::tryDrop(Seat* seat, Tile* tile)
@@ -922,6 +947,47 @@ void ChickenEntity::setKindFromServer(ChickenKind kind)
 
     if((oldKind == ChickenKind::egg) && (kind != ChickenKind::egg))
         RenderManager::getSingleton().rrChickenHatched(this);
+}
+
+void ChickenEntity::offerGift(Tile& tile)
+{
+    --mGiftTurns;
+    if(!isEdible() || mLockedEat || (tile.getSeat() == nullptr))
+    {
+        // Somebody is already after this chicken (or it is gone): nothing to offer anymore
+        if(!isEdible() || mLockedEat)
+            mGiftTurns = 0;
+        return;
+    }
+
+    const double radius = ConfigManager::getSingleton().getRoomConfigDoubleOrDefault("HatcheryGiftOfferRadius", 6.0);
+    Creature* closest = nullptr;
+    float closestDist = 0.0f;
+    for(Creature* creature : getGameMap()->getCreaturesBySeat(tile.getSeat()))
+    {
+        Tile* creatureTile = creature->getPositionTile();
+        if(creatureTile == nullptr)
+            continue;
+
+        float dist = Pathfinding::squaredDistanceTile(*creatureTile, tile);
+        if(dist > static_cast<float>(radius * radius))
+            continue;
+
+        if((closest != nullptr) && (dist >= closestDist))
+            continue;
+
+        if(!CreatureActionEatChicken::canAcceptGift(*creature))
+            continue;
+
+        closest = creature;
+        closestDist = dist;
+    }
+
+    if(closest == nullptr)
+        return;
+
+    closest->pushAction(Utils::make_unique<CreatureActionEatChicken>(*closest, *this, true));
+    mGiftTurns = 0;
 }
 
 bool ChickenEntity::countDownLay()
@@ -1072,6 +1138,8 @@ void ChickenEntity::exportToStream(std::ostream& os) const
     RenderedMovableEntity::exportToStream(os);
     os << mPosition.x << "\t" << mPosition.y << "\t" << mPosition.z << "\t";
     os << static_cast<uint32_t>(mKind) << "\t" << mNbTurnLay << "\t" << mAge << "\t";
+    // Appended later: turns the keeper's gift is still offered to a creature that is not hungry
+    os << mGiftTurns << "\t";
     // Appended later: the way out of the coop (saves without it load with the animal outside)
     os << mLeavingCoop << "\t" << mCoopExit.x << "\t" << mCoopExit.y << "\t"
        << mCoopDoor.x << "\t" << mCoopDoor.y << "\t";
@@ -1098,6 +1166,11 @@ bool ChickenEntity::importFromStream(std::istream& is)
         mNbTurnLay = nbTurnLay;
         mAge = age;
         setMeshName(getMeshNameForKind(mKind));
+
+        // Saves written before the gift offer end here: nothing is offered
+        uint32_t giftTurns = 0;
+        if(is >> giftTurns)
+            mGiftTurns = giftTurns;
 
         bool leavingCoop = false;
         Ogre::Vector2 coopExit;
@@ -1133,7 +1206,7 @@ std::string ChickenEntity::getChickenEntityStreamFormat()
     if(!format.empty())
         format += "\t";
 
-    format += "PosX\tPosY\tPosZ\tKind\tLayTimer\tAge\tLeavingCoop\tCoopExitX\tCoopExitY\tCoopDoorX\tCoopDoorY";
+    format += "PosX\tPosY\tPosZ\tKind\tLayTimer\tAge\tGiftTurns\tLeavingCoop\tCoopExitX\tCoopExitY\tCoopDoorX\tCoopDoorY";
 
     return format;
 }

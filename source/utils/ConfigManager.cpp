@@ -58,6 +58,8 @@ ConfigManager::ConfigManager(const std::string& configPath, const std::string& u
     mCreatureMoodFurious(-2000),
     mSlapDamagePercent(15),
     mSlapEffectDuration(15),
+    mTiredWakefulness(20.0),
+    mTiredWalkSpeedFactor(0.8),
     mTimePayDay(300),
     mNbTurnsFuriousMax(120),
     mMaxManaPerSeat(200000.0),
@@ -503,6 +505,20 @@ bool ConfigManager::loadGlobalGameConfig(std::stringstream& configFile)
         {
             configFile >> nextParam;
             mSlapEffectDuration = Helper::toDouble(nextParam);
+            // Not mandatory
+        }
+
+        if(nextParam == "TiredWakefulness")
+        {
+            configFile >> nextParam;
+            mTiredWakefulness = Helper::toDouble(nextParam);
+            // Not mandatory
+        }
+
+        if(nextParam == "TiredWalkSpeedFactor")
+        {
+            configFile >> nextParam;
+            mTiredWalkSpeedFactor = Helper::toDouble(nextParam);
             // Not mandatory
         }
 

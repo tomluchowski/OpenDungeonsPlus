@@ -71,6 +71,12 @@ public:
     virtual bool tryPickup(Seat* seat) override;
     virtual void pickup() override;
     virtual bool tryDrop(Seat* seat, Tile* tile) override;
+    virtual void drop(const Ogre::Vector3& v) override;
+
+    //! \brief Turns left in which this chicken, dropped by the keeper outside a hatchery, is offered to
+    //! a creature that is not hungry (0 = not offered, see offerGift).
+    inline uint32_t getGiftTurns() const
+    { return mGiftTurns; }
 
     virtual void correctEntityMovePosition(Ogre::Vector2& position) override;
 
@@ -321,6 +327,9 @@ private:
     int32_t mNbTurnDie;
     bool mIsSlapped;
     bool mLockedEat;
+    //! Turns left in which a hen dropped by the keeper outside a hatchery is offered to a creature that
+    //! is not hungry (0 = not offered, see offerGift)
+    uint32_t mGiftTurns;
     //! Name of the creature that holds the lock to eat this chicken (empty while nobody does)
     std::string mLockOwner;
     //! The state of the flight from a hungry creature (see ChickenFlight.h)
@@ -335,6 +344,9 @@ private:
     void continueHop();
     //! \brief Puts the animal at the position and tells the clients, without touching the animation.
     void moveTo(const Ogre::Vector3& position);
+    //! \brief Server side: the chicken was dropped by the keeper. Offers it to the closest idle creature of
+    //! the keeper that is not hungry, which sniffs at it and eats it slowly anyway (see CreatureActionEatChicken).
+    void offerGift(Tile& tile);
 
     //! \brief Server side: the rooster or a hen is outside of any hatchery. Walks to the nearest hatchery of its
     //! seat (of any seat if it has none). Returns true if it is on its way, false if there is none to reach.

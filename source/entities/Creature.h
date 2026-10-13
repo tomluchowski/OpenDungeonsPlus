@@ -398,6 +398,16 @@ public:
             mHunger = 0.0;
     }
 
+    //! \brief Sets the hunger (0 = full, 100 = starving), server side
+    inline void setHunger(double val)
+    {
+        mHunger = val;
+        if(mHunger < 0.0)
+            mHunger = 0.0;
+        else if(mHunger > 100.0)
+            mHunger = 100.0;
+    }
+
     //! \brief Tells whether the creature can go through the given tile.
     bool canGoThroughTile(Tile* tile) const;
 

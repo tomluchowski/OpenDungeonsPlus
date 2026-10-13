@@ -1650,20 +1650,26 @@ double Creature::getMoveSpeed(Tile* tile) const
         return 1.0;
     }
 
+    // A tired creature drags its feet. Server and clients both use the mood bit Tired
+    // (see isTired), so both move it at the same slower speed
+    double tiredFactor = 1.0;
+    if(isTired())
+        tiredFactor = ConfigManager::getSingleton().getTiredWalkSpeedFactor();
+
     if(getIsOnServerMap())
     {
         // Check if the covering building allows this creature to go through
         if(tile->getCoveringBuilding() != nullptr)
-            return tile->getCoveringBuilding()->getCreatureSpeed(this, tile);
+            return tile->getCoveringBuilding()->getCreatureSpeed(this, tile) * tiredFactor;
         else
-            return tile->getCreatureSpeedDefault(this);
+            return tile->getCreatureSpeedDefault(this) * tiredFactor;
     }
     else
     {
         if(tile->getHasBridge())
-            return getMoveSpeedGround();
+            return getMoveSpeedGround() * tiredFactor;
         else
-            return tile->getCreatureSpeedDefault(this);
+            return tile->getCreatureSpeedDefault(this) * tiredFactor;
     }
 }
 
@@ -3452,7 +3458,7 @@ void Creature::setJobCooldown(int val)
 bool Creature::isTired() const
 {
     if(getIsOnServerMap())
-        return mWakefulness <= 20.0;
+        return mWakefulness <= ConfigManager::getSingleton().getTiredWakefulness();
 
     return (mOverlayMoodValue & CreatureMoodValues::Tired) != 0;
 }
