@@ -259,6 +259,7 @@ BOOST_AUTO_TEST_CASE(test_BalanceParity)
     }
 }
 
+//! Light and calm add to a care bonus that shortens the laying times, only while all tiles are claimed and never below one turn; eggs do not hatch while enemies stand in the hatchery.
 BOOST_AUTO_TEST_CASE(test_Care)
 {
     // The two bonuses (light 10, no enemies 15) add up, but only while all tiles are claimed
@@ -304,6 +305,7 @@ BOOST_AUTO_TEST_CASE(test_Care)
     BOOST_CHECK(!HatcheryCycle::canHatch(counts, false));
 }
 
+//! Only enemies trample, only eggs get trampled, and the configured percentage decides with the dice roll.
 BOOST_AUTO_TEST_CASE(test_Trample)
 {
     HatcheryCycleSettings settings;
