@@ -1838,11 +1838,13 @@ void addDefeatShardTriangle(Ogre::ManualObject* object, const Ogre::Vector3& a, 
 {
     const Ogre::Vector3 normal = (b - a).crossProduct(c - a).normalisedCopy();
     const Ogre::Vector3 corners[3] = {a, b, c};
+    // The texture covers a square of this side length, centred on the shard
+    const float textureSize = 0.6f;
     for(int i = 0; i < 3; ++i)
     {
         object->position(corners[i]);
         object->normal(normal);
-        object->textureCoord(corners[i].x / 0.6f + 0.5f, corners[i].y / 0.6f + 0.5f);
+        object->textureCoord(corners[i].x / textureSize + 0.5f, corners[i].y / textureSize + 0.5f);
     }
 }
 
@@ -1852,6 +1854,8 @@ void createDefeatShardMesh(Ogre::SceneManager* sceneManager)
     const float angles[5] = {0.0f, 75.0f, 150.0f, 220.0f, 290.0f};
     const float radii[5] = {0.32f, 0.22f, 0.36f, 0.19f, 0.28f};
     const float halfThickness = 0.035f;
+    // The lower face is this much smaller than the upper one
+    const float bottomScale = 0.8f;
     Ogre::Vector3 top[5];
     Ogre::Vector3 bottom[5];
     for(int i = 0; i < 5; ++i)
@@ -1859,7 +1863,7 @@ void createDefeatShardMesh(Ogre::SceneManager* sceneManager)
         const float x = radii[i] * Ogre::Math::Cos(Ogre::Degree(angles[i]));
         const float y = radii[i] * Ogre::Math::Sin(Ogre::Degree(angles[i]));
         top[i] = Ogre::Vector3(x, y, halfThickness);
-        bottom[i] = Ogre::Vector3(0.8f * x, 0.8f * y, -halfThickness);
+        bottom[i] = Ogre::Vector3(bottomScale * x, bottomScale * y, -halfThickness);
     }
     Ogre::ManualObject* object = sceneManager->createManualObject();
     object->begin(DEFEAT_SHARD_MATERIAL, Ogre::RenderOperation::OT_TRIANGLE_LIST, "Graphics");
