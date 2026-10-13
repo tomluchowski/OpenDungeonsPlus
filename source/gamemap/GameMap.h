@@ -243,6 +243,7 @@ public:
     void removeTrap(Trap *t);
     inline const std::vector<Trap*>& getTraps() const
     { return mTraps; }
+    bool moveTrapProductionOrder(Seat* seat, const std::string& name, bool earlier);
 
     //! \brief Map Lights related functions.
     void clearMapLights();

@@ -61,6 +61,7 @@ ConfigManager::ConfigManager(const std::string& configPath, const std::string& u
     mTimePayDay(300),
     mNbTurnsFuriousMax(120),
     mMaxManaPerSeat(250000.0),
+    mBedStepMaxHeight(0.09),
     mClaimingWallPenalty(0.8),
     mDigCoefGold(5.0),
     mDigCoefGem(1.0),
@@ -524,6 +525,13 @@ bool ConfigManager::loadGlobalGameConfig(std::stringstream& configFile)
         {
             configFile >> nextParam;
             mMaxManaPerSeat = Helper::toDouble(nextParam);
+            // Not mandatory
+        }
+
+        if(nextParam == "BedStepMaxHeight")
+        {
+            configFile >> nextParam;
+            mBedStepMaxHeight = Helper::toDouble(nextParam);
             // Not mandatory
         }
 
@@ -1963,4 +1971,6 @@ void ConfigManager::loadDefaultValuesForUserConfig(void)
     setGameValue("LightFactor",	"100");
     setGameValue("MinimapType",	"MiniMapDrawn");
     setGameValue("Nickname", "Player");
+    setGameValue("UI Scale", "100");
+    setGameValue("Blood Effects", "Yes");
 }

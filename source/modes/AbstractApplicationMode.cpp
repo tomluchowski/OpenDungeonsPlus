@@ -24,6 +24,29 @@
 #include <CEGUI/System.h>
 #include <CEGUI/GUIContext.h>
 #include <CEGUI/widgets/PushButton.h>
+#include <CEGUI/widgets/FrameWindow.h>
+#include <CEGUI/widgets/Combobox.h>
+#include <CEGUI/widgets/PopupMenu.h>
+
+#include <algorithm>
+
+namespace
+{
+void collectEscapeWindows(CEGUI::Window* window, std::vector<CEGUI::Window*>& windows)
+{
+    if(window == nullptr || !window->isVisible() || window->isDisabled())
+        return;
+
+    CEGUI::Combobox* combo = dynamic_cast<CEGUI::Combobox*>(window);
+    if(dynamic_cast<CEGUI::FrameWindow*>(window) != nullptr ||
+       dynamic_cast<CEGUI::PopupMenu*>(window) != nullptr ||
+       (combo != nullptr && combo->isDropDownListVisible()))
+        windows.push_back(window);
+
+    for(size_t i = 0; i < window->getChildCount(); ++i)
+        collectEscapeWindows(window->getChildAtIdx(i), windows);
+}
+}
 
 AbstractApplicationMode::~AbstractApplicationMode()
 {
@@ -78,6 +101,11 @@ bool AbstractApplicationMode::keyPressed(const OIS::KeyEvent& arg)
 {
     switch (arg.key)
     {
+    case OIS::KC_ESCAPE:
+        if(!CEGUI::System::getSingleton().getDefaultGUIContext().injectKeyDown(CEGUI::Key::Escape) &&
+           !closeTopWindow() && mModeType != ModeManager::ADVERTISMENT)
+            goBack();
+        break;
     default:
         CEGUI::System::getSingleton().getDefaultGUIContext().injectChar(
             static_cast<CEGUI::String::value_type>(arg.text));
@@ -103,4 +131,35 @@ bool AbstractApplicationMode::goBack(const CEGUI::EventArgs&)
 {
     mModeManager->requestPreviousMode();
     return true;
+}
+
+bool AbstractApplicationMode::closeTopWindow()
+{
+    CEGUI::GUIContext& context = CEGUI::System::getSingleton().getDefaultGUIContext();
+    std::vector<CEGUI::Window*> windows;
+    collectEscapeWindows(context.getModalWindow() != nullptr ?
+        context.getModalWindow() : context.getRootWindow(), windows);
+    std::sort(windows.begin(), windows.end(), [](CEGUI::Window* left, CEGUI::Window* right)
+    {
+        return left->isInFront(*right);
+    });
+
+    for(CEGUI::Window* window : windows)
+    {
+        if(CEGUI::Combobox* combo = dynamic_cast<CEGUI::Combobox*>(window))
+        {
+            combo->hideDropList();
+            return true;
+        }
+        if(CEGUI::PopupMenu* popup = dynamic_cast<CEGUI::PopupMenu*>(window))
+        {
+            popup->closePopupMenu();
+            return true;
+        }
+        CEGUI::WindowEventArgs args(window);
+        window->fireEvent(CEGUI::FrameWindow::EventCloseClicked, args);
+        if(args.handled != 0)
+            return true;
+    }
+    return false;
 }

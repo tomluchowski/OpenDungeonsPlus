@@ -68,6 +68,8 @@ const std::string NICKNAME = "Nickname";
 const std::string KEEPERVOICE = "KeeperVoice";
 const std::string MINIMAP_TYPE = "MinimapType";
 const std::string LIGHT_FACTOR = "LightFactor";
+const std::string UI_SCALE = "UI Scale";
+const std::string BLOOD_EFFECTS = "Blood Effects";
 }
 
 typedef std::map<TileVisual,std::map<int,float>> HighMap;
@@ -147,6 +149,9 @@ public:
 
     inline double getMaxManaPerSeat() const
     { return mMaxManaPerSeat; }
+
+    inline double getBedStepMaxHeight() const
+    { return mBedStepMaxHeight; }
 
     inline double getClaimingWallPenalty() const
     { return mClaimingWallPenalty; }
@@ -331,6 +336,7 @@ private:
     int64_t mTimePayDay;
     int32_t mNbTurnsFuriousMax;
     double mMaxManaPerSeat;
+    double mBedStepMaxHeight;
     double mClaimingWallPenalty;
     double mDigCoefGold;
     double mDigCoefGem;

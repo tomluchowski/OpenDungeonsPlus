@@ -74,6 +74,8 @@ public:
     static const TileVisual mRoomVisual;   
 
     double getCreatureSpeed(const Creature* creature, Tile* tile) const override;
+
+    const std::map<Tile*, BuildingObject*>& getFencingObjects() const { return mFencingObjects; }
     
 protected:
     virtual BuildingObject* notifyActiveSpotCreated(ActiveSpotPlace place, Tile* tile) override;
