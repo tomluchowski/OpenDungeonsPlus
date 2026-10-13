@@ -222,6 +222,8 @@ static const double TREASURY_FULL_DELAY = 0.3;
 static const double MOOD_CHANGE_DELAY = 1.0;
 static const double SCARED_DELAY = 0.8;
 static const double IMPATIENT_DELAY = 0.3;
+//! Seconds a creature waits after the last healing step in the temple before it shows that it is done
+static const double TEMPLE_DONE_DELAY = 0.6;
 
 //! Cosmetic dice of their own: the reactions must not draw from the generator the game logic uses
 std::mt19937& cosmeticRng()
@@ -1571,6 +1573,10 @@ void CreatureReactions::noteAnimation(MovableGameEntity* entity, const std::stri
     {
         celebrateVictory(creature, true);
 
+        // A fighter that runs from the arena ends the bout too
+        if(getRoomName(creature) == "Arena")
+            celebrateBout(creature);
+
         // A prisoner that struggles is not fleeing
         if(!creature->isInContainment())
             queueReaction(creature, "FleePanic", -1.0, FLEE_PANIC_DELAY);
@@ -1861,6 +1867,14 @@ void CreatureReactions::celebrateBout(Creature* loser)
     if((room == nullptr) || (RoomManager::getRoomNameFromRoomType(room->getType()) != "Arena"))
         return;
 
+    // One bout is cheered once, however it ended
+    std::string boutKey = "Bout:" + loser->getName();
+    std::map<std::string, double>::const_iterator itBout = mLastCelebration.find(boutKey);
+    if((itBout != mLastCelebration.end()) && ((mTime - itBout->second) < CELEBRATION_PAUSE))
+        return;
+
+    mLastCelebration[boutKey] = mTime;
+
     // The winners fought the loser a moment ago, the others in the arena watched
     std::vector<Creature*> winners;
     std::vector<Creature*> spectators;
@@ -2006,7 +2020,10 @@ void CreatureReactions::noteCreatureUpdate(Creature* creature, uint32_t oldLevel
     if(health < oldHealth)
     {
         uint32_t steps = oldHealth - health;
-        if((steps >= HEAL_MIN_STEPS) || ((steps >= 1) && (oldHealth >= HURT_STAGE) && (getRoomName(creature) == "Temple")))
+        bool inTemple = (getRoomName(creature) == "Temple");
+        if(inTemple && (health == 0) && (oldHealth >= HURT_STAGE))
+            queueReaction(creature, "TempleDone", DONE_WAIT_MAX, TEMPLE_DONE_DELAY);
+        else if((steps >= HEAL_MIN_STEPS) || ((steps >= 1) && (oldHealth >= HURT_STAGE) && inTemple))
             trigger(creature, "Healed");
     }
 
