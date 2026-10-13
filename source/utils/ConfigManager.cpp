@@ -1629,6 +1629,15 @@ double ConfigManager::getRoomConfigDoubleOrDefault(const std::string& param, dou
     return Helper::toDouble(it->second);
 }
 
+std::string ConfigManager::getRoomConfigStringOrDefault(const std::string& param, const std::string& defaultValue) const
+{
+    std::map<const std::string, std::string>::const_iterator it = mRoomsConfig.find(param);
+    if((it == mRoomsConfig.end()) || it->second.empty())
+        return defaultValue;
+
+    return it->second;
+}
+
 const std::string& ConfigManager::getTrapConfigString(const std::string& param) const
 {
     auto it = mTrapsConfig.find(param);

@@ -249,7 +249,8 @@ void MovableGameEntity::update(Ogre::Real timeSinceLastFrame)
         {
             double shownTime = addedTime;
             updateClientPose(static_cast<double>(timeSinceLastFrame));
-            if(mPrevAnimationState == EntityAnimation::walk_anim || mPrevAnimationState == EntityAnimation::idle_anim)
+            if(mPrevAnimationState == EntityAnimation::walk_anim || mPrevAnimationState == EntityAnimation::idle_anim ||
+               mPrevAnimationState == EntityAnimation::drag_anim)
                 shownTime *= getClientPoseSpeedFactor();
             getAnimationState()->addTime(static_cast<Ogre::Real>(shownTime));
         }
@@ -271,6 +272,11 @@ void MovableGameEntity::update(Ogre::Real timeSinceLastFrame)
     Ogre::Vector2 walkDirection = nextDest - newPosition;
     walkDirection.normalise();
 
+    // The worker that pulls a hurt creature walks backwards and the creature that is pulled lies with its
+    // head to the rear: both look against the way they move (server and clients, by the clip they play)
+    const Ogre::Real facing = ((mPrevAnimationState == EntityAnimation::drag_anim) ||
+        (mPrevAnimationState == EntityAnimation::dragged_anim)) ? -1.0f : 1.0f;
+
     while(moveDist > 0.0)
     {
         Ogre::Real distToNextDest = newPosition.distance(nextDest);
@@ -289,7 +295,7 @@ void MovableGameEntity::update(Ogre::Real timeSinceLastFrame)
             {
                 // Apply travel facing before the queued end animation can turn
                 // toward its target; do not overwrite that facing afterwards.
-                setWalkDirection(Ogre::Vector3(walkDirection.x,walkDirection.y,0));
+                setWalkDirection(Ogre::Vector3(walkDirection.x * facing,walkDirection.y * facing,0));
                 stopWalking();
                 break;
             }
@@ -301,7 +307,7 @@ void MovableGameEntity::update(Ogre::Real timeSinceLastFrame)
     }
 
     if(!mWalkQueue.empty())
-        setWalkDirection(Ogre::Vector3(walkDirection.x,walkDirection.y,0));
+        setWalkDirection(Ogre::Vector3(walkDirection.x * facing,walkDirection.y * facing,0));
     setPosition(Ogre::Vector3(newPosition.x,newPosition.y,newPosition3f.z));
 }
 

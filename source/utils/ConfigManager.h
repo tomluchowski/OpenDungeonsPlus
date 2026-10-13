@@ -221,6 +221,9 @@ public:
     //! logging an error when the parameter is not in the configuration file.
     //! Useful for newly introduced parameters older config files do not have.
     double getRoomConfigDoubleOrDefault(const std::string& param, double defaultValue) const;
+    //! \brief Same as getRoomConfigString but returns defaultValue instead of logging an error when the
+    //! parameter is not in the configuration file (or has no value).
+    std::string getRoomConfigStringOrDefault(const std::string& param, const std::string& defaultValue) const;
 
     //! Traps configuration
     const std::string& getTrapConfigString(const std::string& param) const;

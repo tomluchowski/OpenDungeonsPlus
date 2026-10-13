@@ -520,8 +520,8 @@ bool RoomDormitory::hasCarryEntitySpot(GameEntity* carriedEntity)
         return false;
 
     Creature* creature = static_cast<Creature*>(carriedEntity);
-    // Only ko to death creatures and hurt creatures (see Creature::isWoundedForBedCarry) owning
-    // a bed in this dormitory should be carried here
+    // Only ko to death creatures (carried) and hurt creatures (pulled over the ground, see
+    // Creature::isWoundedForBedCarry) owning a bed in this dormitory should be brought here
     if((creature->getKoTurnCounter() >= 0) && !creature->isWoundedForBedCarry())
         return false;
 
@@ -556,6 +556,10 @@ Tile* RoomDormitory::askSpotForCarriedEntity(GameEntity* carriedEntity)
 
 void RoomDormitory::notifyCarryingStateChanged(Creature* carrier, GameEntity* carriedEntity)
 {
+    // The creature died or was removed on the way
+    if(carriedEntity == nullptr)
+        return;
+
     if(carriedEntity->getObjectType() != GameEntityType::creature)
     {
         OD_LOG_ERR("room=" + getName() + ", entity=" + carriedEntity->getName());
@@ -570,13 +574,19 @@ void RoomDormitory::notifyCarryingStateChanged(Creature* carrier, GameEntity* ca
         return;
     }
 
-    // The carrier stops on the tile owning the bed, the creature sleeps on its home tile of the bed
+    // The carrier stops on the tile owning the bed, the creature sleeps on its home tile of the bed. A hurt
+    // creature that a worker pulls lies on the ground behind the worker: it counts as brought when the worker
+    // stands on the tile owning its bed (it slides the last steps into the bed by itself)
+    Tile* carrierTile = (carrier != nullptr) ? carrier->getPositionTile() : nullptr;
     bool isAtBed = (posTile == creature->getHomeTile());
     if(!isAtBed)
     {
         for(const BedRoomObjectInfo& bed : mBedRoomObjectsInfo)
         {
-            if((bed.getCreature() == creature) && (bed.getOwningTile() == posTile))
+            if((bed.getCreature() != creature) || (bed.getOwningTile() == nullptr))
+                continue;
+
+            if((bed.getOwningTile() == posTile) || (bed.getOwningTile() == carrierTile))
                 isAtBed = true;
         }
     }

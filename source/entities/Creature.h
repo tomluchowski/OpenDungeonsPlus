@@ -214,6 +214,10 @@ public:
     bool isLowHealthWalking() const
     { return isLowHealthWalkStage(mOverlayHealthValue); }
 
+    //! \brief Share of its normal speed a worker walks at while it pulls a hurt creature (from the room
+    //! configuration, between 0.1 and 1)
+    static double getDragWorkerSpeedFactor();
+
     //! \brief Gets the creature depending the terrain type.
     inline double getMoveSpeedGround() const
     { return mGroundSpeed; }
@@ -427,16 +431,28 @@ public:
     virtual void notifyEntityCarryOn(Creature* carrier) override;
     virtual void notifyEntityCarryOff(const Ogre::Vector3& position) override;
 
-    //! \brief Server side. True if the creature is hurt enough to be carried to its bed by a worker:
+    //! \brief Server side. True if the creature is hurt enough to be pulled to its bed by a worker:
     //! alive, own bed in a dormitory, not standing on it, hit points below the configured share,
     //! no fight or flight going on, no hostile creature close, not in jail, not possessed, not a
-    //! worker or in the hand and not on cooldown after the last carry. The carrier and the distance
+    //! worker or in the hand and not on cooldown after the last time. The worker and the distance
     //! are not considered here.
     bool isWoundedForBedCarry() const;
 
-    //! \brief Server side. True while a worker carries this creature
-    inline bool isBeingCarried() const
-    { return mIsBeingCarried; }
+    //! \brief Server side. True while a worker pulls this creature over the ground
+    inline bool isBeingDragged() const
+    { return mIsBeingDragged; }
+
+    //! \brief Server side. A worker starts pulling this creature by the legs: it stops what it did, stays on the
+    //! map and lies on the ground (clip dragged_anim). It moves with the paths the worker gives it.
+    void notifyDragStart();
+
+    //! \brief Server side. The worker stopped pulling (arrived, gave up, the creature died or was picked up):
+    //! starts the pause before it can be pulled again
+    void notifyDragEnd();
+
+    //! \brief Server side. Walks the worker to the tile with the clip of a worker that pulls somebody (drag_anim)
+    //! and without queuing a walk action, so the caller keeps its turn. Returns false if there is no way.
+    bool setDragDestination(Tile* tile);
 
     //! \brief Server side. True if a living creature of a seat that is not allied is within the radius (tiles)
     bool isHostileNear(double radius) const;
@@ -848,10 +864,10 @@ private:
     //! \brief Counts the number of active slaps affecting the creature
     uint32_t                        mActiveSlapsCount;
 
-    //! \brief Used on server side. True while a worker carries the creature (not saved: carry actions are not saved)
-    bool                            mIsBeingCarried;
+    //! \brief Used on server side. True while a worker pulls the creature to its bed (not saved: actions are not saved)
+    bool                            mIsBeingDragged;
 
-    //! \brief Used on server side. No worker carries the creature to its bed again before this turn (not saved)
+    //! \brief Used on server side. No worker pulls the creature to its bed again before this turn (not saved)
     int64_t                         mWoundedCarryNextTurn;
 
     //! \brief Skills the creature can use
