@@ -160,6 +160,8 @@ Ogre::Vector3 detailPoint(const TreasuryGoldLayer::PileShape& shape, float u, fl
     return point;
 }
 
+//! \brief The colour of one coin: a gold tone that varies a little with its position, so neighbouring coins differ.
+//! \param a,b Position of the coin in the tile (0 to 1), used as the seed of the variation.
 Ogre::ColourValue goldColour(float a, float b)
 {
     const float shade = 0.8f + 0.3f * TreasuryGoldLayer::hash01(static_cast<int>(a * 1000.0f),
@@ -247,6 +249,9 @@ void addGem(Ogre::ManualObject* object, const Ogre::Vector3& centre, float size,
     }
 }
 
+//! \brief The colour of one gem: red, green, blue or purple, chosen from the pile variant and the index of the gem.
+//! \param variant Variant of the pile shape.
+//! \param index Number of the gem in the pile.
 Ogre::ColourValue gemColour(int variant, int index)
 {
     switch((variant + index) % 4)
