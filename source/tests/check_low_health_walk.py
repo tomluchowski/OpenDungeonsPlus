@@ -33,12 +33,18 @@ for key, value in (('LowHealthWalkSpeedFactor', 0.7), ('LowHealthWalkThresholdPe
     assert float(re.search(r'^    ' + key + r'\t([\d.]+)', global_cfg, re.M)[1]) == value, key
     assert ('"' + key + '"') in config_cpp, key + ' not read'
 assert 'mLowHealthWalkSpeedFactor(0.7)' in config_cpp and 'mLowHealthWalkThresholdPercent(50.0)' in config_cpp
-assert 'std::max(0.2, std::min(1.0, mLowHealthWalkSpeedFactor))' in config_h
-assert 'std::max(1.0, std::min(100.0, mLowHealthWalkThresholdPercent))' in config_h
+assert 'limitLowHealthWalkSpeedFactor(mLowHealthWalkSpeedFactor)' in config_h
+assert 'std::max(LOW_HEALTH_WALK_SPEED_FACTOR_MIN, std::min(LOW_HEALTH_WALK_SPEED_FACTOR_MAX, factor))' in config_h
+assert 'std::max(LOW_HEALTH_WALK_THRESHOLD_PERCENT_MIN, std::min(FULL_HEALTH_PERCENT, mLowHealthWalkThresholdPercent))' in config_h
+for name, value in (('LOW_HEALTH_WALK_SPEED_FACTOR_MIN', '0.2'), ('LOW_HEALTH_WALK_SPEED_FACTOR_MAX', '1.0'),
+                    ('LOW_HEALTH_WALK_THRESHOLD_PERCENT_MIN', '1.0'), ('FULL_HEALTH_PERCENT', '100.0')):
+    assert 'static const double ' + name + ' = ' + value + ';' in config_h, name
+assert 'static const double HEALTH_STAGE_ROUNDING_TOLERANCE = 0.000001;' in creature
 
 # One rule on the health stage (known on server and clients, no new message)
 stage = function_body(creature, 'bool Creature::isLowHealthWalkStage(uint32_t healthStage)')
-assert 'std::ceil((100.0 - thresholdPercent) / 100.0 * nbSteps - 0.000001) + 1.0' in stage
+assert ('std::ceil((FULL_HEALTH_PERCENT - thresholdPercent) / FULL_HEALTH_PERCENT * nbSteps\n'
+        '        - HEALTH_STAGE_ROUNDING_TOLERANCE) + 1.0') in stage
 assert 'NB_OVERLAY_HEALTH_VALUES - 2' in stage
 assert 'getIsOnServerMap' not in stage
 factor = function_body(creature, 'double Creature::getLowHealthWalkFactor() const')

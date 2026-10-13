@@ -130,7 +130,8 @@ def smooth(u):
 class Skeleton(object):
     def __init__(self, path):
         self.path = path
-        self.text = open(path, encoding="utf-8").read()
+        with open(path, encoding="utf-8") as f:
+            self.text = f.read()
         root = ET.fromstring(self.text)
         self.order = []
         self.pos = {}
