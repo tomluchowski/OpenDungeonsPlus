@@ -204,6 +204,7 @@ public:
     //! \brief Gives the camera back to the RTS view, as it was before startPossession.
     void stopPossession();
 
+    //! \brief True while the camera looks through the eyes of a possessed creature
     inline bool isPossessing() const
     { return mPossessing; }
 
