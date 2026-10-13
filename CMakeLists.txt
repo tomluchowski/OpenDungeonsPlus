@@ -406,6 +406,7 @@ set(OD_SOURCEFILES
     ${SRC}/network/ServerNotification.cpp
 
     ${SRC}/render/CreatureOverlayStatus.cpp
+    ${SRC}/render/CreatureReactionConfig.cpp
     ${SRC}/render/DebugDrawer.cpp    
     ${SRC}/render/Gui.cpp
     ${SRC}/render/MovableTextOverlay.cpp
