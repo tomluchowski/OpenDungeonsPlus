@@ -66,6 +66,8 @@ public:
 private:
     typedef const void* ChunkKey;
 
+    //! \brief One pile: the room it belongs to, its entity and node, whether it is still settling and whether it is
+    //! currently hidden because the batch of its room draws it.
     struct Member
     {
         ChunkKey mKey;
@@ -75,6 +77,8 @@ private:
         bool mBatched;
     };
 
+    //! \brief The batch of one room: its static geometry, the names of its piles, whether it has to be rebuilt and the
+    //! seconds since the last rebuild.
     struct Chunk
     {
         Ogre::StaticGeometry* mGeometry = nullptr;
@@ -83,6 +87,9 @@ private:
         float mSinceRebuild = 0.0f;
     };
 
+    //! \brief Rebuilds the static geometry of one room from its settled piles and hides those piles; settling piles stay
+    //! visible entities.
+    //! \param chunk The batch of the room.
     void rebuild(Chunk& chunk);
 
     Ogre::SceneManager* mSceneManager = nullptr;
