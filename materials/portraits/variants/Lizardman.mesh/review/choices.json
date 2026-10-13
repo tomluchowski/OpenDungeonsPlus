@@ -1,0 +1,116 @@
+[
+  {
+    "outfit": "outfit-1-leather-build0.png",
+    "eyes": "eyes-1-narrow.png",
+    "nose": "nose-1-crooked.png",
+    "mouth": "mouth-1-teeth.png",
+    "chin": "chin-1-square.png",
+    "scar": "scar-1-diagonal.png",
+    "neck": "neck-1-teeth.png"
+  },
+  {
+    "outfit": "outfit-1-leather-build0.png",
+    "eyes": "eyes-2-round.png",
+    "nose": "nose-2-broad.png",
+    "mouth": "mouth-2-grin.png",
+    "chin": "chin-2-rounded.png",
+    "scar": "scar-2-scratches.png",
+    "neck": "neck-2-torque.png"
+  },
+  {
+    "outfit": "outfit-1-leather-build0.png",
+    "eyes": "eyes-3-eyepatch.png",
+    "nose": "nose-1-crooked.png",
+    "mouth": "mouth-3-cigar.png",
+    "chin": "chin-1-square.png",
+    "scar": "scar-3-warpaint.png",
+    "neck": "neck-1-teeth.png"
+  },
+  {
+    "build": "build-1-slim.png",
+    "outfit": "outfit-1-leather-build0.png",
+    "eyes": "eyes-1-narrow.png",
+    "nose": "nose-2-broad.png",
+    "mouth": "mouth-1-teeth.png",
+    "chin": "chin-2-rounded.png",
+    "scar": "scar-1-diagonal.png",
+    "neck": "neck-2-torque.png"
+  },
+  {
+    "build": "build-1-slim.png",
+    "outfit": "outfit-1-leather-build0.png",
+    "eyes": "eyes-2-round.png",
+    "nose": "nose-1-crooked.png",
+    "mouth": "mouth-2-grin.png",
+    "chin": "chin-1-square.png",
+    "scar": "scar-2-scratches.png",
+    "neck": "neck-1-teeth.png"
+  },
+  {
+    "build": "build-1-slim.png",
+    "outfit": "outfit-1-leather-build0.png",
+    "eyes": "eyes-3-eyepatch.png",
+    "nose": "nose-2-broad.png",
+    "mouth": "mouth-3-cigar.png",
+    "chin": "chin-2-rounded.png",
+    "scar": "scar-3-warpaint.png",
+    "neck": "neck-2-torque.png"
+  },
+  {
+    "build": "build-2-sturdy.png",
+    "outfit": "outfit-1-leather-build0.png",
+    "eyes": "eyes-1-narrow.png",
+    "nose": "nose-1-crooked.png",
+    "mouth": "mouth-1-teeth.png",
+    "chin": "chin-1-square.png",
+    "scar": "scar-1-diagonal.png",
+    "neck": "neck-1-teeth.png"
+  },
+  {
+    "build": "build-2-sturdy.png",
+    "outfit": "outfit-1-leather-build0.png",
+    "eyes": "eyes-2-round.png",
+    "nose": "nose-2-broad.png",
+    "mouth": "mouth-2-grin.png",
+    "chin": "chin-2-rounded.png",
+    "scar": "scar-2-scratches.png",
+    "neck": "neck-2-torque.png"
+  },
+  {
+    "build": "build-2-sturdy.png",
+    "outfit": "outfit-1-leather-build0.png",
+    "eyes": "eyes-3-eyepatch.png",
+    "nose": "nose-1-crooked.png",
+    "mouth": "mouth-3-cigar.png",
+    "chin": "chin-1-square.png",
+    "scar": "scar-3-warpaint.png",
+    "neck": "neck-1-teeth.png"
+  },
+  {
+    "outfit": "outfit-1-leather-build0.png",
+    "eyes": "eyes-1-narrow.png",
+    "nose": "nose-2-broad.png",
+    "mouth": "mouth-1-teeth.png",
+    "chin": "chin-2-rounded.png",
+    "scar": "scar-1-diagonal.png",
+    "neck": "neck-2-torque.png"
+  },
+  {
+    "outfit": "outfit-1-leather-build0.png",
+    "eyes": "eyes-2-round.png",
+    "nose": "nose-1-crooked.png",
+    "mouth": "mouth-2-grin.png",
+    "chin": "chin-1-square.png",
+    "scar": "scar-2-scratches.png",
+    "neck": "neck-1-teeth.png"
+  },
+  {
+    "outfit": "outfit-1-leather-build0.png",
+    "eyes": "eyes-3-eyepatch.png",
+    "nose": "nose-2-broad.png",
+    "mouth": "mouth-3-cigar.png",
+    "chin": "chin-2-rounded.png",
+    "scar": "scar-3-warpaint.png",
+    "neck": "neck-2-torque.png"
+  }
+]
