@@ -77,7 +77,8 @@ bool readGameMapFromFile(const std::string& fileName, GameMap& gameMap)
     // Read in the version number from the level file
 
     // std::vector CreatureMoved::alreadyVisited also depends on map Size : 
-    CreatureMoved::alreadyVisited.resize(mapSizeX*mapSizeY, false);
+    CreatureMoved::alreadyVisited.assign(mapSizeX*mapSizeY, false);
+    GameEditorModeConsole::scriptRegister.clear();
     /// int CreatureMoved::GAME_MAP_WIDTH also depends on map Size:
     CreatureMoved::GAME_MAP_WIDTH = mapSizeX;
     
