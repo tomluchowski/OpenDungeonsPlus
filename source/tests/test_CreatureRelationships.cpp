@@ -880,6 +880,7 @@ BOOST_AUTO_TEST_CASE(test_LoversConfigValues)
     BOOST_CHECK_EQUAL(settings.mLoversJealousyValueLoss, 9);
 }
 
+// The grief, rage and brawl state of creatures is written and read back unchanged, and a creature with nothing to save is not written
 BOOST_AUTO_TEST_CASE(test_CreatureStateSaveLoadRoundTrip)
 {
     std::vector<RelationshipCreatureState> states;
@@ -924,6 +925,7 @@ BOOST_AUTO_TEST_CASE(test_CreatureStateSaveLoadRoundTrip)
     BOOST_CHECK_EQUAL(loaded[1].mBrawlTurnsLeft, 75);
 }
 
+// Nothing to save writes nothing, an old save without the state section still loads, an empty section is valid and broken or unfinished sections are refused
 BOOST_AUTO_TEST_CASE(test_CreatureStateOldSaveAndEmptyState)
 {
     // Nothing to save writes nothing at all
