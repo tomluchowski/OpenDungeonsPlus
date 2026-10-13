@@ -969,6 +969,13 @@ void CreatureReactions::noteAnimation(MovableGameEntity* entity, const std::stri
     }
 }
 
+//! Seconds before the winners start to cheer when the loser ran away
+static const double VICTORY_FLED_DELAY = 0.6;
+//! Seconds before the winners start to cheer when the loser went down
+static const double VICTORY_DELAY = 0.8;
+//! Seconds before the other creatures nearby join in the cheering
+static const double GROUP_VICTORY_DELAY = 1.8;
+
 void CreatureReactions::celebrateVictory(Creature* loser, bool fled)
 {
     // The same creature going down or running away several times leads to one celebration
@@ -1007,11 +1014,11 @@ void CreatureReactions::celebrateVictory(Creature* loser, bool fled)
         const std::vector<Creature*>& winners = it->second;
         if(fled)
         {
-            triggerGroup("VictoryFled", winners, false, 0.6);
+            triggerGroup("VictoryFled", winners, false, VICTORY_FLED_DELAY);
             continue;
         }
 
-        triggerGroup("Victory", winners, false, 0.8);
+        triggerGroup("Victory", winners, false, VICTORY_DELAY);
 
         // The battle is over if no fighter of the loser's side is left close by. Then the others
         // of the winning side nearby join in the cheering.
@@ -1038,7 +1045,7 @@ void CreatureReactions::celebrateVictory(Creature* loser, bool fled)
         }
 
         if(battleOver && (neighbours.size() >= 2))
-            triggerGroup("GroupVictory", neighbours, false, 1.8);
+            triggerGroup("GroupVictory", neighbours, false, GROUP_VICTORY_DELAY);
     }
 }
 
