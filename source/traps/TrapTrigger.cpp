@@ -57,7 +57,7 @@ class TrapTriggerFactory : public TrapFactory
 
     const std::string& getMeshName() const override
     {
-        static const std::string meshName = "Spiketrap";
+        static const std::string meshName = "TriggerTrap";
         return meshName;
     }
 

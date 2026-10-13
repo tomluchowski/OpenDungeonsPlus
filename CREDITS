@@ -482,6 +482,24 @@ Relative/Default/Keeper/WeAreUnderAttack/
 Relative/KeeperGroan/Keeper/Lost
 -> OD_voice_keeper(groan)_defeat*.ogg            eugeneloza    CC-BY-SA 3.0            http://opengameart.org/content/voice-acting-sketch-open-dungeons
 
+=============================================================
+==  Own trap models                                        ==
+=============================================================
+
+Name                                   Author                  License                 Source URL
+------------------------------------------------------------------------------------------------------------------------
+models/AlarmTrap.mesh                  OD Team                 GPLv3+                  Bell and warning lamps on a plate, built in Blender by tools/blender-assets/trap_meshes.py (script generated, original work)
+models/FearTrap.mesh                   OD Team                 GPLv3+                  Skull with glowing eyes on a dark plate, built in Blender by tools/blender-assets/trap_meshes.py (script generated, original work)
+models/GasTrap.mesh                    OD Team                 GPLv3+                  Barred vent with a pipe stub, built in Blender by tools/blender-assets/trap_meshes.py (script generated, original work)
+models/LightningTrap.mesh              OD Team                 GPLv3+                  Rod with copper coils and insulators, built in Blender by tools/blender-assets/trap_meshes.py (script generated, original work)
+models/FireburstTrap.mesh              OD Team                 GPLv3+                  Iron grate over embers, built in Blender by tools/blender-assets/trap_meshes.py (script generated, original work)
+models/FrostTrap.mesh                  OD Team                 GPLv3+                  Ice crystals on a frosted plate, built in Blender by tools/blender-assets/trap_meshes.py (script generated, original work)
+models/TriggerTrap.mesh                OD Team                 GPLv3+                  Rune slab, built in Blender by tools/blender-assets/trap_meshes.py (script generated, original work)
+materials/scripts/TrapTypes.material   OD Team                 GPLv3+                  Plain colour materials of the own trap models, written by tools/blender-assets/trap_meshes.py
+tools/blender-assets/trap_meshes.py    OD Team                 GPLv3+
+tools/blender-assets/trap_preview.py   OD Team                 GPLv3+
+source/tests/check_trap_meshes.py      OD Team                 GPLv3+
+
 ================================
 ==  Distribution data: dist/  ==
 ================================
