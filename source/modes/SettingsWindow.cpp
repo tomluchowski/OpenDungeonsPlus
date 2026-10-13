@@ -20,6 +20,7 @@
 #include "gamemap/MiniMap.h"
 #include "network/ODClient.h"
 #include "camera/CameraManager.h"
+#include "render/TreasuryGoldMesh.h"
 #include "render/Gui.h"
 #include "render/ODFrameListener.h"
 #include "render/RenderManager.h"
@@ -291,6 +292,28 @@ void SettingsWindow::initConfig()
     float lightFactor = lightStr.empty() ? 0.0f : Helper::toFloat(lightStr);
     setLightFactorValue(lightFactor);
 
+    CEGUI::Combobox* treasuryDetail = static_cast<CEGUI::Combobox*>(
+            mRootWindow->getChild("SettingsWindow/MainTabControl/Game/GameSP/TreasuryDetail"));
+    treasuryDetail->resetList();
+    std::string treasuryDetailCurrent = TreasuryGoldMesh::detailToString(TreasuryGoldMesh::detailFromString(
+        config.getGameValue(Config::TREASURY_DETAIL, "full", false)));
+    std::vector<std::string> treasuryDetailModes;
+    treasuryDetailModes.push_back("full");
+    treasuryDetailModes.push_back("reduced");
+    treasuryDetailModes.push_back("off");
+    uint32_t cptTreasuryDetail = 0;
+    for(const std::string& treasuryDetailMode : treasuryDetailModes)
+    {
+        CEGUI::ListboxTextItem* item = new CEGUI::ListboxTextItem(treasuryDetailMode, cptTreasuryDetail);
+        item->setSelectionBrushImage(selImg);
+        treasuryDetail->addItem(item);
+        if(treasuryDetailMode == treasuryDetailCurrent)
+        {
+            treasuryDetail->setText(item->getText());
+            treasuryDetail->setItemSelectState(item, true);
+        }
+        ++cptTreasuryDetail;
+    }
     CEGUI::ToggleButton* bloodEffectsCheckbox = static_cast<CEGUI::ToggleButton*>(
         mRootWindow->getChild("SettingsWindow/MainTabControl/Game/GameSP/BloodEffectsCheckbox"));
     bloodEffectsCheckbox->setSelected(
@@ -532,6 +555,13 @@ bool SettingsWindow::saveConfig()
             mRootWindow->getChild("SettingsWindow/MainTabControl/Game/GameSP/LightSlider"));
     config.setGameValue(Config::LIGHT_FACTOR, Helper::toString(lightSlider->getCurrentValue()));
 
+    CEGUI::Combobox* treasuryDetail = static_cast<CEGUI::Combobox*>(
+            mRootWindow->getChild("SettingsWindow/MainTabControl/Game/GameSP/TreasuryDetail"));
+    CEGUI::ListboxItem* treasuryDetailItem = treasuryDetail->getSelectedItem();
+    std::string treasuryDetailMode = (treasuryDetailItem != nullptr) ?
+        std::string(treasuryDetailItem->getText().c_str()) : std::string("full");
+    config.setGameValue(Config::TREASURY_DETAIL, treasuryDetailMode);
+    TreasuryGoldMesh::setDetail(TreasuryGoldMesh::detailFromString(treasuryDetailMode));
     CEGUI::ToggleButton* bloodEffectsCheckbox = static_cast<CEGUI::ToggleButton*>(
         mRootWindow->getChild("SettingsWindow/MainTabControl/Game/GameSP/BloodEffectsCheckbox"));
     config.setGameValue(Config::BLOOD_EFFECTS,

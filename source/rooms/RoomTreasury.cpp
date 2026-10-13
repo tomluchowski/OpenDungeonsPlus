@@ -16,6 +16,7 @@
  */
 
 #include "rooms/RoomTreasury.h"
+#include "rooms/TreasuryGoldLayer.h"
 #include "game/SkillManager.h"
 #include "game/SkillType.h"
 
@@ -38,6 +39,7 @@
 #include "utils/LogManager.h"
 #include "utils/Random.h"
 
+#include <algorithm>
 #include <string>
 
 const std::string RoomTreasuryName = "Treasury";
@@ -281,10 +283,20 @@ void RoomTreasury::doUpkeep()
 
     if(mGoldChanged)
     {
+        // The pile of a tile blends into its neighbours, so the fill step of every tile is
+        // needed before any pile is (re)built
+        std::map<Tile*, int> levels;
+        const int capacity = getGoldCapacityPerTile();
         for (std::pair<Tile* const, TileData*>& p : mTileData)
         {
             RoomTreasuryTileData* roomTreasuryTileData = static_cast<RoomTreasuryTileData*>(p.second);
-            updateMeshesForTile(p.first, roomTreasuryTileData);
+            levels[p.first] = TreasuryGoldLayer::levelForGold(roomTreasuryTileData->mGoldInTile, capacity);
+        }
+
+        for (std::pair<Tile* const, TileData*>& p : mTileData)
+        {
+            RoomTreasuryTileData* roomTreasuryTileData = static_cast<RoomTreasuryTileData*>(p.second);
+            updateMeshesForTile(p.first, roomTreasuryTileData, levels);
         }
         mGoldChanged = false;
     }
@@ -317,6 +329,8 @@ bool RoomTreasury::removeCoveredTile(Tile* t)
 
     roomTreasuryTileData->mMeshOfTile.clear();
     roomTreasuryTileData->mGoldInTile = 0;
+    // The piles next to the removed tile lose a neighbour
+    mGoldChanged = true;
     return Room::removeCoveredTile(t);
 }
 
@@ -435,7 +449,21 @@ int RoomTreasury::withdrawGold(int gold)
     return withdrawlAmount;
 }
 
-void RoomTreasury::updateMeshesForTile(Tile* tile, RoomTreasuryTileData* roomTreasuryTileData)
+int RoomTreasury::getLevelOfTile(const std::map<Tile*, int>& levels, int x, int y) const
+{
+    Tile* neighbour = getGameMap()->getTile(x, y);
+    if(neighbour == nullptr)
+        return 0;
+
+    std::map<Tile*, int>::const_iterator it = levels.find(neighbour);
+    if(it == levels.end())
+        return 0;
+
+    return it->second;
+}
+
+void RoomTreasury::updateMeshesForTile(Tile* tile, RoomTreasuryTileData* roomTreasuryTileData,
+    const std::map<Tile*, int>& levels)
 {
     int gold = roomTreasuryTileData->mGoldInTile;
     // Capturing an upgraded treasury must preserve gold above the new owner's capacity.
@@ -453,8 +481,27 @@ void RoomTreasury::updateMeshesForTile(Tile* tile, RoomTreasuryTileData* roomTre
         return;
     }
 
+    // The name of the pile says how full the tile is and how its corners meet the neighbours. It is
+    // also what the clients get, so a change of fill step or of a neighbour is a change of name.
+    const int x = tile->getX();
+    const int y = tile->getY();
+    TreasuryGoldLayer::PileShape shape;
+    shape.mLevel = getLevelOfTile(levels, x, y);
+    shape.mVariant = (x * 7 + y * 13) % TreasuryGoldLayer::variantCount;
+    // North is towards +y. Each corner takes the lowest level of the four tiles that meet there.
+    const int dx[4] = {-1, 1, 1, -1};
+    const int dy[4] = {1, 1, -1, -1};
+    for(int i = 0; i < 4; ++i)
+    {
+        int corner = shape.mLevel;
+        corner = std::min(corner, getLevelOfTile(levels, x + dx[i], y));
+        corner = std::min(corner, getLevelOfTile(levels, x, y + dy[i]));
+        corner = std::min(corner, getLevelOfTile(levels, x + dx[i], y + dy[i]));
+        shape.mCorner[i] = corner;
+    }
+    std::string newMeshName = TreasuryGoldLayer::meshName(shape);
+
     // If the mesh has not changed we do not need to do anything.
-    std::string newMeshName = TreasuryObject::getMeshNameForGold(gold);
     if (roomTreasuryTileData->mMeshOfTile.compare(newMeshName) == 0)
         return;
 
@@ -462,18 +509,10 @@ void RoomTreasury::updateMeshesForTile(Tile* tile, RoomTreasuryTileData* roomTre
     if (!roomTreasuryTileData->mMeshOfTile.empty())
         removeBuildingObject(tile);
 
-    if (gold > 0)
-    {
-        const double offset = 0.2;
-        double posX = static_cast<double>(tile->getX());
-        double posY = static_cast<double>(tile->getY());
-        double posZ = 0;
-        posX += Random::Double(-offset, offset);
-        posY += Random::Double(-offset, offset);
-        double angle = Random::Double(0.0, 360);
-        BuildingObject* ro = new BuildingObject(getGameMap(), *this, newMeshName, tile, posX, posY, posZ, angle, false);
-        addBuildingObject(tile, ro);
-    }
+    // The pile fills its tile exactly so it joins the piles next to it
+    BuildingObject* ro = new BuildingObject(getGameMap(), *this, newMeshName, tile,
+        static_cast<double>(x), static_cast<double>(y), 0.0, 0.0, false);
+    addBuildingObject(tile, ro);
 
     roomTreasuryTileData->mMeshOfTile = newMeshName;
 }

@@ -1,0 +1,23 @@
+// Gold layer of the treasuries (meshes built at run time by source/render/TreasuryGoldMesh.cpp)
+material TreasuryGoldPile
+{
+    receive_shadows on
+
+    technique
+    {
+        pass
+        {
+            ambient 0.8 0.7 0.4 1.0
+            diffuse 0.95 0.82 0.45 1.0
+            specular 0.55 0.45 0.2 1.0 18.0
+            emissive 0.08 0.06 0.02 1.0
+
+            texture_unit
+            {
+                texture TreasuryGoldPile.png
+                tex_address_mode wrap
+                filtering trilinear
+            }
+        }
+    }
+}

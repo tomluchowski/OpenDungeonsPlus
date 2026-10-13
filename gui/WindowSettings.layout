@@ -213,6 +213,18 @@
                         <Property name="MaximumValue" value="250" />
                         <Property name="ClickStepSize" value="5" />
                     </Window>
+                    <Window type="OD/StaticText" name="TreasuryDetailText" >
+                        <Property name="Area" value="{{0,32},{0,378},{0,150},{0,398}}" />
+                        <Property name="MaxSize" value="{{1,0},{1,0}}" />
+                        <Property name="Text" value="Treasury detail:" />
+                        <Property name="BackgroundEnabled" value="False" />
+                        <Property name="FrameEnabled" value="False" />
+                    </Window>
+                    <Window type="OD/Combobox" name="TreasuryDetail" >
+                        <Property name="Area" value="{{0,160},{0,378},{0,320},{0,458}}" />
+                        <Property name="ReadOnly" value="True" />
+                        <Property name="TooltipText" value="full: gold piles that fill the treasury floor. reduced: simpler piles. off: the classic small gold stacks. Applies to treasuries drawn after the change." />
+                    </Window>
                     <Window type="OD/Checkbox" name="BloodEffectsCheckbox" >
                         <Property name="Area" value="{{0,32},{0,250},{1,-48},{0,276}}" />
                         <Property name="Text" value="Blood effects" />
