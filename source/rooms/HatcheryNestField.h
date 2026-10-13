@@ -52,6 +52,7 @@ namespace HatcheryNestField
     static const double coopMinY = -0.4;
     static const double coopMaxY = 0.4;
 
+    //! \brief Distances and counts that decide where the nests go (see compute).
     struct Settings
     {
         Settings() :

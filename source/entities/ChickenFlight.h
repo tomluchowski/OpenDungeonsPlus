@@ -36,6 +36,7 @@ const int32_t MAX_HOPS_IN_ROW = 2;
 //! Seconds without a hop after the last of the hops in a row
 const double HOLD_STILL_SECONDS = 12.0;
 
+//! \brief Flee state of one chicken: the turns left until the next hop and the hops done in a row.
 struct State
 {
     State() :
