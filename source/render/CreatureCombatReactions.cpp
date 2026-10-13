@@ -25,6 +25,7 @@
 #include "game/Seat.h"
 #include "gamemap/GameMap.h"
 #include "render/CreatureReactions.h"
+#include "render/CreatureWeaponVisuals.h"
 #include "render/RenderManager.h"
 #include "utils/Helper.h"
 
@@ -621,6 +622,10 @@ void CreatureCombatReactions::processHits(CreatureReactions& reactions)
         {
             // A blow in front of a creature: not every one shows (the server alone knows if it did damage)
             if(combatRandom(0.0, 1.0) >= FLINCH_CHANCE)
+                continue;
+
+            // The server told that the blow was dodged or only scraped: no flinch (a dodge is shown instead)
+            if(CreatureWeaponVisuals::wasBlowSoftened(hit.mTarget, reactions.mTime))
                 continue;
 
             if(hit.mShield && !external && (combatRandom(0.0, 1.0) < SHIELD_SPARKS_CHANCE))

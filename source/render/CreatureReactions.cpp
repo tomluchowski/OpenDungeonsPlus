@@ -33,6 +33,7 @@
 #include "network/CosmeticEvent.h"
 #include "network/ODClient.h"
 #include "render/CreatureCombatReactions.h"
+#include "render/CreatureWeaponVisuals.h"
 #include "render/CreatureOverlayStatus.h"
 #include "render/ODFrameListener.h"
 #include "render/RenderManager.h"
@@ -1399,6 +1400,7 @@ void CreatureReactions::update(Ogre::Real timeSinceLastFrame)
     updateOngoing();
     updateMoods(timeSinceLastFrame);
     CreatureCombatReactions::update(*this, timeSinceLastFrame);
+    CreatureWeaponVisuals::update(*this, timeSinceLastFrame);
 
     for(std::vector<PendingReaction>::iterator it = mPending.begin(); it != mPending.end();)
     {
@@ -2377,6 +2379,10 @@ void CreatureReactions::noteCosmeticEvent(const CosmeticEvent& event)
     if(localPlayer == nullptr)
         return;
 
+    // Blow results and launched missiles (dodges, trails, arrows) are handled in their own file
+    if(CreatureWeaponVisuals::noteCosmeticEvent(*this, event))
+        return;
+
     if(event.is(CosmeticEventType::portalArrival))
     {
         // Can arrive before the creature does: the mood is remembered by name
@@ -3164,6 +3170,7 @@ void CreatureReactions::removeProps(RunningReaction& reaction)
 void CreatureReactions::stopAll()
 {
     CreatureCombatReactions::stopAll(*this);
+    CreatureWeaponVisuals::stopAll(*this);
     mPending.clear();
     mOngoing.clear();
     for(RunningReaction& reaction : mRunning)
