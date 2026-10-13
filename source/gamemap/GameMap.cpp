@@ -81,6 +81,8 @@
 #include <string>
 
 const std::string DEFAULT_NICK = "You";
+//! Highest value of the roll (0 to this value) that is compared with a chance in percent for a nemesis brawl
+static const int32_t BRAWL_CHANCE_ROLL_MAX = 99;
 
 using namespace std;
 
@@ -1153,7 +1155,7 @@ void GameMap::checkRelationshipBrawls()
         if((dx * dx + dy * dy) > (maxDistance * maxDistance))
             continue;
 
-        if(Random::Int(0, 99) >= settings.mBrawlChancePercent)
+        if(Random::Int(0, BRAWL_CHANCE_ROLL_MAX) >= settings.mBrawlChancePercent)
             continue;
 
         if(!pathExists(creatureA, tileA, tileB))
