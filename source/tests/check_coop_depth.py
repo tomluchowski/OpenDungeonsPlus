@@ -11,7 +11,8 @@ from PIL import Image
 ROOT = Path(__file__).resolve().parents[2]
 OUT = ROOT / 'out' / 'coop-depth-check'
 OUT.mkdir(parents=True, exist_ok=True)
-CONVERTER = Path(r'C:/Users/mario/od-deps/build/ogre/bin/release/OgreXMLConverter.exe')
+# Converter executable: set OGRE_XML_CONVERTER to its full path, otherwise it is looked up on the PATH.
+CONVERTER = Path(os.environ.get('OGRE_XML_CONVERTER', 'OgreXMLConverter'))
 
 
 def convert(source, target):
