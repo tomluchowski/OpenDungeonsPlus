@@ -321,9 +321,9 @@ RoomAmbience::RoomAmbience(GameMap* gameMap, const std::string& configPath) :
     mShakePhase(0.0),
     mShakeApplied(Ogre::Vector3::ZERO),
     mRandom(RANDOM_SEED),
+    mCreaturesInitialized(false),
     mGeneration(0),
-    mEntitiesInitialized(false),
-    mCreaturesInitialized(false)
+    mEntitiesInitialized(false)
 {
     reloadConfig();
 }
