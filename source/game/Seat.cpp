@@ -245,6 +245,32 @@ void Seat::addAlliedSeat(Seat* seat)
     mAlliedSeats.push_back(seat);
 }
 
+//! \brief Gives this seat vision on the given tiles for the given number of turns (server side).
+//! \param tiles The tiles to reveal
+//! \param turns For how many turns the tiles stay visible
+void Seat::revealTiles(const std::vector<Tile*>& tiles, uint32_t turns)
+{
+    for(Tile* tile : tiles)
+        mRevealedTiles.push_back(std::pair<Tile*, uint32_t>(tile, turns));
+}
+
+//! \brief Applies the vision granted by revealTiles and counts the remaining turns down.
+void Seat::applyRevealedTiles()
+{
+    std::vector<std::pair<Tile*, uint32_t> >::iterator it = mRevealedTiles.begin();
+    while(it != mRevealedTiles.end())
+    {
+        it->first->notifyVision(this);
+        if(it->second <= 1)
+            it = mRevealedTiles.erase(it);
+        else
+        {
+            --it->second;
+            ++it;
+        }
+    }
+}
+
 void Seat::clearTilesWithVision()
 {
     if(mPlayer == nullptr)
@@ -268,28 +294,6 @@ void Seat::clearTilesWithVision()
     }
 
     
-}
-
-void Seat::revealTiles(const std::vector<Tile*>& tiles, uint32_t turns)
-{
-    for(Tile* tile : tiles)
-        mRevealedTiles.push_back(std::pair<Tile*, uint32_t>(tile, turns));
-}
-
-void Seat::applyRevealedTiles()
-{
-    std::vector<std::pair<Tile*, uint32_t> >::iterator it = mRevealedTiles.begin();
-    while(it != mRevealedTiles.end())
-    {
-        it->first->notifyVision(this);
-        if(it->second <= 1)
-            it = mRevealedTiles.erase(it);
-        else
-        {
-            --it->second;
-            ++it;
-        }
-    }
 }
 
 void Seat::notifyVisionOnTile(Tile* tile, NodeType nt)
