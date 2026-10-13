@@ -85,6 +85,7 @@ struct ReactionMotion
 //! \brief A particle effect put on the creature
 struct ReactionEffect
 {
+    //! \brief An effect without a name that is shown for 2 seconds
     ReactionEffect() :
         mTime(2.0)
     {}
