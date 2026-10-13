@@ -168,6 +168,10 @@ public:
     //! values of config/relationships.cfg) or off (the table is deleted).
     void setRelationshipsEnabled(bool enabled);
 
+    //! \brief Gender ("Male", "Female" or empty) of the creature with the given name. Used by the
+    //! relationships to decide which pairs can become lovers.
+    std::string getCreatureGender(const std::string& creatureName) const;
+
     //! \brief Server side. Sends the tier changes recorded since the last call to the keepers
     //! the creatures belong to.
     void sendRelationshipTierChanges();
