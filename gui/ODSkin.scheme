@@ -2,6 +2,7 @@
     <Imageset filename="ODSkin.imageset" name="OpenDungeonsSkin" />
     <Imageset filename="ODIcons.imageset" name="OpenDungeonsIcons" />
     <Imageset filename="ODLogo.imageset" name="ODLogo" />
+    <Imageset filename="ODMainMenuLogo.imageset" name="ODMainMenuLogo" />
     <Imageset filename="ODBackgrounds.imageset" name="ODBackgrounds" />
     <Imageset filename="ODMainMenuButtons.imageset" name="ODMainMenuButtons" />
     <Imageset filename="ODMainMenuBackground.imageset" name="ODMainMenuBackground" />
