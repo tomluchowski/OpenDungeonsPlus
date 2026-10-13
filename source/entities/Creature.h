@@ -202,6 +202,18 @@ public:
     //! \brief Gets the move speed on the current tile.
     double getMoveSpeed(Tile* tile) const;
 
+    //! \brief Factor on the walking speed that comes from the health of the creature (1 for a creature that is not
+    //! badly hurt). Uses the health stage that server and clients both know, so both move it at the same speed
+    double getLowHealthWalkFactor() const;
+
+    //! \brief True if a creature with this health stage counts as badly hurt for walking (the stage test of
+    //! getLowHealthWalkFactor, without the factor). The client shows the clip WalkHurt for it
+    static bool isLowHealthWalkStage(uint32_t healthStage);
+
+    //! \brief True if this creature is badly hurt for walking (see isLowHealthWalkStage)
+    bool isLowHealthWalking() const
+    { return isLowHealthWalkStage(mOverlayHealthValue); }
+
     //! \brief Gets the creature depending the terrain type.
     inline double getMoveSpeedGround() const
     { return mGroundSpeed; }
@@ -375,6 +387,16 @@ public:
     virtual double getAnimationSpeedFactor() const override
     { return mSpeedModifier; }
 
+    //! \brief Walk clips keep up with the slower speed of badly hurt creatures and with the clip rate of the type,
+    //! hurt creatures breathe a little slower when standing (clients only)
+    virtual double getClientPoseSpeedFactor() const override;
+
+    //! \brief Clients only: blends the tile speed ratio of the walk clips (see mClientTileSpeedRatio)
+    virtual void updateClientPose(double timeSinceLastFrame) override;
+
+    //! \brief Speed of the tile under the creature divided by its ground speed (1 when unknown), client side, no hurt factor
+    double getTileSpeedRatio() const;
+
     inline void jobDone(double val)
     {
         mWakefulness -= val;
@@ -482,6 +504,14 @@ public:
 
     inline GameEntity* getCarriedEntity() const
     { return mCarriedEntity; }
+
+    //! \brief Client side only: true while the carry message of the server is in effect for this creature
+    inline bool getClientCarrying() const
+    { return mClientCarrying; }
+
+    //! \brief Client side only: set by the carry and release messages
+    inline void setClientCarrying(bool carrying)
+    { mClientCarrying = carrying; }
 
     void carryEntity(GameEntity* carriedEntity);
 
@@ -734,6 +764,9 @@ private:
 
     GameEntity*                     mCarriedEntity;
 
+    //! \brief Client side only: the creature carries something (set by the carry and release messages)
+    bool                            mClientCarrying;
+
     //! \brief The mood do not have to be computed at every turn. This cooldown will
     //! count how many turns the creature should wait before computing it
     int32_t                         mMoodCooldownTurns;
@@ -755,6 +788,11 @@ private:
 
     //! \brief Represents the mood of the creature. It is a bit array
     uint32_t                        mOverlayMoodValue;
+
+    //! \brief Clients only (cosmetic): ratio between the speed of the tile the creature walks on and its ground speed,
+    //! blended over a short time when the tile changes, so that the walk clips keep up with the real ground speed. Negative
+    //! while no walk clip plays (the next value is taken over without blending)
+    double                          mClientTileSpeedRatio;
 
     //! Used by the renderer to save this entity's overlay. It is its responsibility
     //! to allocate/delete this pointer

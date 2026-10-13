@@ -59,6 +59,8 @@ ConfigManager::ConfigManager(const std::string& configPath, const std::string& u
     mCreatureMoodFurious(-2000),
     mSlapDamagePercent(15),
     mSlapEffectDuration(15),
+    mLowHealthWalkSpeedFactor(0.7),
+    mLowHealthWalkThresholdPercent(50.0),
     mTimePayDay(300),
     mNbTurnsFuriousMax(120),
     mMaxManaPerSeat(200000.0),
@@ -506,6 +508,20 @@ bool ConfigManager::loadGlobalGameConfig(std::stringstream& configFile)
         {
             configFile >> nextParam;
             mSlapEffectDuration = Helper::toDouble(nextParam);
+            // Not mandatory
+        }
+
+        if(nextParam == "LowHealthWalkSpeedFactor")
+        {
+            configFile >> nextParam;
+            mLowHealthWalkSpeedFactor = Helper::toDouble(nextParam);
+            // Not mandatory
+        }
+
+        if(nextParam == "LowHealthWalkThresholdPercent")
+        {
+            configFile >> nextParam;
+            mLowHealthWalkThresholdPercent = Helper::toDouble(nextParam);
             // Not mandatory
         }
 

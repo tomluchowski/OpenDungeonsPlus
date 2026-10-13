@@ -110,6 +110,28 @@
 
 static const Ogre::Real CANNON_MISSILE_HEIGHT = 0.3;
 
+//! \brief Tolerance that keeps a health border that falls exactly on a stage in the lower stage (see isLowHealthWalkStage)
+static const double HEALTH_STAGE_ROUNDING_TOLERANCE = 0.000001;
+
+//! \brief Lowest ratio between the speed of the tile under a creature and its ground speed (see getTileSpeedRatio)
+static const double TILE_SPEED_RATIO_MIN = 0.2;
+
+//! \brief Highest ratio between the speed of the tile under a creature and its ground speed (see getTileSpeedRatio)
+static const double TILE_SPEED_RATIO_MAX = 4.0;
+
+//! \brief Most the shown tile speed ratio of the walk clips changes per second (see updateClientPose)
+static const double TILE_SPEED_RATIO_MAX_CHANGE_PER_SECOND = 4.0;
+
+//! \brief Health stages (see mOverlayHealthValue) from which a standing creature breathes slower, from the worst to the lightest
+static const uint32_t IDLE_BREATH_STAGE_HEAVY = 6;
+static const uint32_t IDLE_BREATH_STAGE_MEDIUM = 5;
+static const uint32_t IDLE_BREATH_STAGE_LIGHT = 4;
+
+//! \brief Speed factors of the idle clip of a hurt creature in the stages IDLE_BREATH_STAGE_HEAVY, _MEDIUM and _LIGHT
+static const double IDLE_BREATH_FACTOR_HEAVY = 0.78;
+static const double IDLE_BREATH_FACTOR_MEDIUM = 0.85;
+static const double IDLE_BREATH_FACTOR_LIGHT = 0.92;
+
 const int32_t Creature::NB_TURNS_BEFORE_CHECKING_TASK = 15;
 const uint32_t Creature::NB_OVERLAY_HEALTH_VALUES = 8;
 
@@ -175,12 +197,14 @@ Creature::Creature(GameMap* gameMap, const CreatureDefinition* definition, Seat*
     mStatsWindow             (nullptr),
     mNbTurnsWithoutBattle    (0),
     mCarriedEntity           (nullptr),
+    mClientCarrying          (false),
     mMoodCooldownTurns       (0),
     mMoodValue               (gameMap->isServerGameMap() ? CreatureMoodLevel::Neutral : CreatureMoodLevel::Unknown),
     mMoodPoints              (0),
     mNbTurnFurious           (-1),
     mOverlayHealthValue      (0),
     mOverlayMoodValue        (CreatureMoodValues::Nothing),
+    mClientTileSpeedRatio    (-1.0),
     mOverlayStatus           (nullptr),
     mNeedFireRefresh         (false),
     mDropCooldown            (0),
@@ -261,12 +285,14 @@ Creature::Creature(GameMap* gameMap) :
     mStatsWindow             (nullptr),
     mNbTurnsWithoutBattle    (0),
     mCarriedEntity           (nullptr),
+    mClientCarrying          (false),
     mMoodCooldownTurns       (0),
     mMoodValue               (gameMap->isServerGameMap() ? CreatureMoodLevel::Neutral : CreatureMoodLevel::Unknown),
     mMoodPoints              (0),
     mNbTurnFurious           (-1),
     mOverlayHealthValue      (0),
     mOverlayMoodValue        (0),
+    mClientTileSpeedRatio    (-1.0),
     mOverlayStatus           (nullptr),
     mNeedFireRefresh         (false),
     mDropCooldown            (0),
@@ -1655,21 +1681,123 @@ double Creature::getMoveSpeed(Tile* tile) const
         return 1.0;
     }
 
+    // A badly hurt creature limps along: it moves slower (see getLowHealthWalkFactor)
+    double hurtFactor = getLowHealthWalkFactor();
+
     if(getIsOnServerMap())
     {
         // Check if the covering building allows this creature to go through
         if(tile->getCoveringBuilding() != nullptr)
-            return tile->getCoveringBuilding()->getCreatureSpeed(this, tile);
+            return tile->getCoveringBuilding()->getCreatureSpeed(this, tile) * hurtFactor;
         else
-            return tile->getCreatureSpeedDefault(this);
+            return tile->getCreatureSpeedDefault(this) * hurtFactor;
     }
     else
     {
         if(tile->getHasBridge())
-            return getMoveSpeedGround();
+            return getMoveSpeedGround() * hurtFactor;
         else
-            return tile->getCreatureSpeedDefault(this);
+            return tile->getCreatureSpeedDefault(this) * hurtFactor;
     }
+}
+
+bool Creature::isLowHealthWalkStage(uint32_t healthStage)
+{
+    // The health stage (0 = unhurt, 1 to 6 = lost a sixth more each, 7 = no health left) is known on the
+    // server and on the clients. Stage s means the health is below 100 * (1 - (s - 1) / 6) percent, so
+    // a creature is badly hurt from the first stage that lies completely below the configured percent
+    const double nbSteps = static_cast<double>(NB_OVERLAY_HEALTH_VALUES - 2);
+    double thresholdPercent = ConfigManager::getSingleton().getLowHealthWalkThresholdPercent();
+    double firstStage = std::ceil((FULL_HEALTH_PERCENT - thresholdPercent) / FULL_HEALTH_PERCENT * nbSteps
+        - HEALTH_STAGE_ROUNDING_TOLERANCE) + 1.0;
+    return static_cast<double>(healthStage) >= firstStage;
+}
+
+double Creature::getLowHealthWalkFactor() const
+{
+    if(!isLowHealthWalking())
+        return 1.0;
+
+    // A creature type can have its own factor (same limits as the global one), the global one is the default
+    if((mDefinition != nullptr) && (mDefinition->getLowHealthWalkSpeedFactor() >= 0.0))
+        return ConfigManager::limitLowHealthWalkSpeedFactor(mDefinition->getLowHealthWalkSpeedFactor());
+
+    return ConfigManager::getSingleton().getLowHealthWalkSpeedFactor();
+}
+
+double Creature::getTileSpeedRatio() const
+{
+    // The same tile speed the client moves the creature with (see getMoveSpeed): no covering building on the client
+    Tile* tile = getPositionTile();
+    double groundSpeed = getMoveSpeedGround();
+    if((tile == nullptr) || (groundSpeed <= 0.0))
+        return 1.0;
+
+    double tileSpeed = tile->getHasBridge() ? groundSpeed : tile->getCreatureSpeedDefault(this);
+    if(tileSpeed <= 0.0)
+        return 1.0;
+
+    return std::max(TILE_SPEED_RATIO_MIN, std::min(TILE_SPEED_RATIO_MAX, tileSpeed / groundSpeed));
+}
+
+void Creature::updateClientPose(double timeSinceLastFrame)
+{
+    if(getAnimationStateName() != EntityAnimation::walk_anim)
+    {
+        mClientTileSpeedRatio = -1.0;
+        return;
+    }
+
+    double target = getTileSpeedRatio();
+    if(mClientTileSpeedRatio < 0.0)
+    {
+        mClientTileSpeedRatio = target;
+        return;
+    }
+
+    // The ratio changes by 4 per second at most, so a step between two tile types takes a fraction of a second
+    double maxStep = std::max(0.0, timeSinceLastFrame) * TILE_SPEED_RATIO_MAX_CHANGE_PER_SECOND;
+    double diff = target - mClientTileSpeedRatio;
+    if(std::abs(diff) <= maxStep)
+        mClientTileSpeedRatio = target;
+    else
+        mClientTileSpeedRatio += (diff > 0.0) ? maxStep : -maxStep;
+}
+
+double Creature::getClientPoseSpeedFactor() const
+{
+    double factor = 1.0;
+    if(getAnimationStateName() == EntityAnimation::idle_anim)
+    {
+        // Hurt creatures breathe a little slower when they stand
+        if(mOverlayHealthValue >= IDLE_BREATH_STAGE_HEAVY)
+            factor = IDLE_BREATH_FACTOR_HEAVY;
+        else if(mOverlayHealthValue == IDLE_BREATH_STAGE_MEDIUM)
+            factor = IDLE_BREATH_FACTOR_MEDIUM;
+        else if(mOverlayHealthValue == IDLE_BREATH_STAGE_LIGHT)
+            factor = IDLE_BREATH_FACTOR_LIGHT;
+    }
+    else
+    {
+        // The walk clip keeps up with the slower speed of a badly hurt creature (see getMoveSpeed)
+        factor = getLowHealthWalkFactor();
+    }
+
+    // The walk clips (Walk, WalkHurt) of a type can run faster or slower than the move speed so that the feet do
+    // not slide (WalkClipRate, WalkHurtClipRate for the clip WalkHurt). Only the shown clip, the move speed is not
+    // touched. The rate follows the clip that plays (the client switches it when the health stage crosses the threshold)
+    if((getAnimationStateName() == EntityAnimation::walk_anim) && (mDefinition != nullptr))
+    {
+        Ogre::AnimationState* clipState = getAnimationState();
+        bool playsHurtClip = (clipState != nullptr) && (clipState->getAnimationName() == EntityAnimation::walk_hurt_anim);
+        double clipRate = playsHurtClip ? mDefinition->getWalkHurtClipRate() : mDefinition->getWalkClipRate();
+        factor *= clipRate;
+
+        // The creature moves with the speed of the tile it stands on (water, lava, ...) while the clip rate is fitted
+        // to the ground speed: the clip keeps up with the ratio (the hurt factor above is already in both)
+        factor *= (mClientTileSpeedRatio >= 0.0) ? mClientTileSpeedRatio : getTileSpeedRatio();
+    }
+    return factor;
 }
 
 double Creature::getPhysicalDefense() const
@@ -1771,12 +1899,21 @@ void Creature::updateFromPacket(ODPacket& is)
     int seatId;
     OD_ASSERT_TRUE(is >> mLevel);
     OD_ASSERT_TRUE(is >> seatId);
+    uint32_t oldHealthValue = mOverlayHealthValue;
     OD_ASSERT_TRUE(is >> mOverlayHealthValue);
     OD_ASSERT_TRUE(is >> mOverlayMoodValue);
     OD_ASSERT_TRUE(is >> mGroundSpeed);
     OD_ASSERT_TRUE(is >> mWaterSpeed);
     OD_ASSERT_TRUE(is >> mLavaSpeed);
     OD_ASSERT_TRUE(is >> mSpeedModifier);
+
+    // A creature that walks changes between the walk clip and the hurt walk clip when it becomes badly hurt or
+    // recovers (the clip is chosen in RenderManager::rrSetObjectAnimationState)
+    if(!getIsOnServerMap() && getIsOnMap() && (getAnimationStateName() == EntityAnimation::walk_anim) &&
+       (isLowHealthWalkStage(oldHealthValue) != isLowHealthWalking()))
+    {
+        RenderManager::getSingleton().rrSetObjectAnimationState(this, EntityAnimation::walk_anim, true);
+    }
 
     // We do not scale the creature if it is picked up (because it is already not at its normal size). It will be
     // resized anyway when dropped

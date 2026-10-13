@@ -108,6 +108,9 @@ CreatureDefinition::CreatureDefinition(
         mFeePerLevel        (feePerLevel),
         mSleepHeal          (sleepHeal),
         mTurnsStunDropped   (turnsStunDropped),
+        mLowHealthWalkSpeedFactor (-1.0),
+        mWalkClipRate (1.0),
+        mWalkHurtClipRate (-1.0),
         mWeaponSpawnL       ("none"),
         mWeaponSpawnR       ("none"),
         mSoundFamilyPickup  ("Default/Pickup"),
@@ -158,6 +161,9 @@ CreatureDefinition::CreatureDefinition(const CreatureDefinition& def) :
         mFeePerLevel(def.mFeePerLevel),
         mSleepHeal(def.mSleepHeal),
         mTurnsStunDropped(def.mTurnsStunDropped),
+        mLowHealthWalkSpeedFactor(def.mLowHealthWalkSpeedFactor),
+        mWalkClipRate(def.mWalkClipRate),
+        mWalkHurtClipRate(def.mWalkHurtClipRate),
         mWeaponSpawnL(def.mWeaponSpawnL),
         mWeaponSpawnR(def.mWeaponSpawnR),
         mMoodModifierName(def.mMoodModifierName),
@@ -292,6 +298,9 @@ ODPacket& operator<<(ODPacket& os, const CreatureDefinition* c)
     os << c->mFeePerLevel;
     os << c->mSleepHeal;
     os << c->mTurnsStunDropped;
+    os << c->mLowHealthWalkSpeedFactor;
+    os << c->mWalkClipRate;
+    os << c->mWalkHurtClipRate;
     os << c->mMoodModifierName;
     os << c->mWeaponSpawnL;
     os << c->mWeaponSpawnR;
@@ -330,6 +339,9 @@ ODPacket& operator>>(ODPacket& is, CreatureDefinition* c)
     is >> c->mFeePerLevel;
     is >> c->mSleepHeal;
     is >> c->mTurnsStunDropped;
+    is >> c->mLowHealthWalkSpeedFactor;
+    is >> c->mWalkClipRate;
+    is >> c->mWalkHurtClipRate;
     is >> c->mMoodModifierName;
     is >> c->mWeaponSpawnL;
     is >> c->mWeaponSpawnR;
@@ -706,6 +718,24 @@ bool CreatureDefinition::update(CreatureDefinition* creatureDef, std::stringstre
                 defFile >> creatureDef->mSoundFamilySlap;
                 continue;
             }
+            else if (nextParam == "LowHealthWalkSpeedFactor")
+            {
+                defFile >> nextParam;
+                creatureDef->mLowHealthWalkSpeedFactor = Helper::toDouble(nextParam);
+                continue;
+            }
+            else if (nextParam == "WalkClipRate")
+            {
+                defFile >> nextParam;
+                creatureDef->mWalkClipRate = Helper::toDouble(nextParam);
+                continue;
+            }
+            else if (nextParam == "WalkHurtClipRate")
+            {
+                defFile >> nextParam;
+                creatureDef->mWalkHurtClipRate = Helper::toDouble(nextParam);
+                continue;
+            }
         }
     }
 
@@ -862,6 +892,21 @@ void CreatureDefinition::writeCreatureDefinitionDiff(
 
     if(def1 == nullptr || (def1->mSoundFamilySlap.compare(def2->mSoundFamilySlap) != 0))
         file << "    SoundFamilySlap\t" << def2->mSoundFamilySlap << std::endl;
+
+    if((def1 == nullptr) ? (def2->mLowHealthWalkSpeedFactor >= 0.0) :
+        (def1->mLowHealthWalkSpeedFactor != def2->mLowHealthWalkSpeedFactor))
+    {
+        file << "    LowHealthWalkSpeedFactor\t" << def2->mLowHealthWalkSpeedFactor << std::endl;
+    }
+
+    if((def1 == nullptr) ? (def2->mWalkClipRate != 1.0) : (def1->mWalkClipRate != def2->mWalkClipRate))
+        file << "    WalkClipRate\t" << def2->mWalkClipRate << std::endl;
+
+    if((def1 == nullptr) ? (def2->mWalkHurtClipRate >= 0.0) : (def1->mWalkHurtClipRate != def2->mWalkHurtClipRate))
+    {
+        if(def2->mWalkHurtClipRate >= 0.0)
+            file << "    WalkHurtClipRate\t" << def2->mWalkHurtClipRate << std::endl;
+    }
 
     file << "    [/Stats]" << std::endl;
 

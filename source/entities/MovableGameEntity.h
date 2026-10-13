@@ -36,6 +36,12 @@ namespace EntityAnimation
     static const std::string attack_anim = "Attack1";
     static const std::string claim_anim = "Claim";
     static const std::string walk_anim = "Walk";
+    //! Clip of a badly hurt creature that walks (limping walk, same length and key times as Walk; clients only, chosen
+    //! where the Walk clip is applied when the skeleton has it, the entity state stays Walk)
+    static const std::string walk_hurt_anim = "WalkHurt";
+    //! Clip of a creature that walks with something in its arms (clients only, chosen where the Walk clip is
+    //! applied when the skeleton has it, the entity state stays Walk). It wins over WalkHurt
+    static const std::string carry_walk_anim = "CarryWalk";
     static const std::string sleep_anim = "Sleep";
     static const std::string drop_anim = "Drop";
     static const std::string getup_anim = "GetUp";
@@ -92,6 +98,15 @@ public:
     virtual double getAnimationSpeedFactor() const
     { return 1.0; }
 
+    //! \brief Only the clients: how fast the walk and idle clips play on screen (cosmetic, the movement
+    //! speed and every timing of the game stay as they are)
+    virtual double getClientPoseSpeedFactor() const
+    { return 1.0; }
+
+    //! \brief Only the clients: called every frame before the clip time is advanced (cosmetic blending of getClientPoseSpeedFactor)
+    virtual void updateClientPose(double timeSinceLastFrame)
+    {}
+
     //! \brief Updates the entity path, movement, and direction. Note that entities
     //! are not expected to remove themselves or other entities from the gamemap
     //! in the update function. If they do, it might lead to crashes as the gamemap
@@ -110,6 +125,10 @@ public:
 
     inline Ogre::AnimationState* getAnimationState() const
     { return mAnimationState; }
+
+    //! \brief Name of the animation the entity was last told to play (empty if none yet)
+    inline const std::string& getAnimationStateName() const
+    { return mPrevAnimationState; }
 
     virtual void restoreEntityState() override;
 

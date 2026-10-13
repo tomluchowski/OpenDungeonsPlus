@@ -252,7 +252,13 @@ void MovableGameEntity::update(Ogre::Real timeSinceLastFrame)
         if(mDestinationPlayIdleWhenAnimationEnds && getAnimationState()->hasEnded())
             RenderManager::getSingleton().rrSetObjectAnimationState(this, EntityAnimation::idle_anim, true);
         else
-            getAnimationState()->addTime(static_cast<Ogre::Real>(addedTime));
+        {
+            double shownTime = addedTime;
+            updateClientPose(static_cast<double>(timeSinceLastFrame));
+            if(mPrevAnimationState == EntityAnimation::walk_anim || mPrevAnimationState == EntityAnimation::idle_anim)
+                shownTime *= getClientPoseSpeedFactor();
+            getAnimationState()->addTime(static_cast<Ogre::Real>(shownTime));
+        }
     }
 
     if (mWalkQueue.empty())

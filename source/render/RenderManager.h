@@ -403,6 +403,7 @@ private:
     std::vector<ChickenFeatherEffect> mChickenFeatherEffects;
     uint64_t mChickenFeatherEffectNumber = 0;
 
+    //! \brief State of a creature that lies down in a bed or sleeps in it.
     struct CreatureSleepAnimation
     {
         Creature* mCreature;
@@ -410,8 +411,11 @@ private:
         Ogre::SceneNode* mNode;
         Ogre::Vector3 mBaseScale;
         Ogre::AnimationState* mAnimation;
+        //! Seconds since the creature started to lie down.
         Ogre::Real mElapsed;
+        //! True if the mesh has its own sleep entry animation, false if one is generated.
         bool mNativeEntry;
+        //! Position and orientation of the node before sleeping and when lying in the bed.
         Ogre::Vector3 mBasePosition, mRestPosition;
         Ogre::Quaternion mBaseOrientation, mRestOrientation;
     };
@@ -581,8 +585,12 @@ private:
     void cancelCreatureFeedingAnimation(Creature* creature = nullptr);
     void createChickenFeatherEffect(const Ogre::Vector3& position);
     void clearChickenFeatherEffects();
+    //! \brief Starts the movement of the creature into its bed.
     void startCreatureSleepAnimation(Creature* creature, Ogre::Entity* entity);
+    //! \brief Finds the nearest bed and computes where the creature has to lie on it.
     void fitCreatureToBed(CreatureSleepAnimation& sleeping);
+    //! \brief Ends the sleep animation of the given creature, or of all creatures if null,
+    //! and restores position, orientation and scale.
     void cancelCreatureSleepAnimation(Creature* creature = nullptr);
     void updateCreatureStep(Creature* creature);
     void cancelCreatureStep(Creature* creature = nullptr);
