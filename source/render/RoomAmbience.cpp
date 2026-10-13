@@ -325,10 +325,10 @@ RoomAmbience::RoomAmbience(GameMap* gameMap, const std::string& configPath) :
     mShakePhase(0.0),
     mShakeApplied(Ogre::Vector3::ZERO),
     mRandom(RANDOM_SEED),
-    mGeneration(0),
-    mEntitiesInitialized(false),
     mCreaturesInitialized(false),
-    mLastHeartHP(-1.0)
+    mLastHeartHP(-1.0),
+    mGeneration(0),
+    mEntitiesInitialized(false)
 {
     reloadConfig();
 }
