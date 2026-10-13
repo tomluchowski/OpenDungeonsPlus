@@ -212,7 +212,8 @@ private:
             mLateEffectDelay(0.0),
             mLateEffectTime(1.0),
             mEndsWhenMoving(false),
-            mInHand(false)
+            mInHand(false),
+            mDying(false)
         {}
 
         std::string mCreatureName;
@@ -273,6 +274,9 @@ private:
 
         //! The creature is held in the hand of the keeper (and not on the map) while the reaction runs
         bool mInHand;
+
+        //! The event decorates the death animation of the creature
+        bool mDying;
     };
 
     struct PendingReaction

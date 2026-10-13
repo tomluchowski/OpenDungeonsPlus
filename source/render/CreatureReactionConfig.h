@@ -236,7 +236,8 @@ struct ReactionEvent
         mProbability(1.0),
         mGroupMax(3),
         mWhileWorking(false),
-        mInHand(false)
+        mInHand(false),
+        mDying(false)
     {}
 
     std::string mName;
@@ -252,6 +253,9 @@ struct ReactionEvent
     bool mWhileWorking;
     //! The event is shown on a creature that the keeper holds in the hand (it is not on the map then)
     bool mInHand;
+    //! The event decorates the death animation of a creature: the death animation does not count as busy for
+    //! it, no clip is put over it and it goes on although the creature is no longer alive
+    bool mDying;
     std::vector<ReactionVariant> mVariants;
 };
 

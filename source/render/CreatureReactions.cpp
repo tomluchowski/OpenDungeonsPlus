@@ -97,6 +97,8 @@ static const double DONE_WAIT_MAX = 8.0;
 static const double SLEEP_DONE_MIN = 6.0;
 static const double PRAYER_DONE_MIN = 8.0;
 static const double CLAIM_DONE_MIN = 2.5;
+//! Seconds a creature has to run away until it sulks over the lost fight
+static const double FLEE_DONE_MIN = 2.0;
 //! Seconds between a prisoner breaking under torture and the first sign of its new loyalty
 static const double CONVERTED_DELAY = 2.8;
 //! A creature that delivers gold this many times within the window is out of breath
@@ -363,7 +365,13 @@ ReactionPriority CreatureReactions::getCreaturePriority(const Creature* creature
 
     const std::string& clip = animState->getAnimationName();
     if((clip == "Die") || (clip == "die") || (clip == "Rot"))
+    {
+        // The death animation is what an event of the dying creature decorates
+        if((event != nullptr) && event->mDying)
+            return ReactionPriority::none;
+
         return ReactionPriority::death;
+    }
 
     // The event decorates the work or sleep animation: that is what the creature is expected to do
     if((event != nullptr) && event->mWhileWorking &&
@@ -640,15 +648,16 @@ bool CreatureReactions::trigger(Creature* creature, const std::string& eventName
     if((mMode == Mode::off) || !mConfigLoaded || (creature == nullptr))
         return false;
 
-    if(!creature->isAlive())
-        return false;
-
     const ReactionEvent* event = mConfig.getEvent(eventName);
     if(event == nullptr)
     {
         logMissingOnce("reaction event", eventName);
         return false;
     }
+
+    // Only the events of the dying creature are shown on a creature that is no longer alive
+    if(!creature->isAlive() && !event->mDying)
+        return false;
 
     // A creature in the hand is not on the map: only the events made for the hand are shown on it
     bool inHand = isInHand(creature);
@@ -657,7 +666,7 @@ bool CreatureReactions::trigger(Creature* creature, const std::string& eventName
         if(!inHand && !(forced && creature->getIsOnMap()))
             return false;
     }
-    else if(!creature->getIsOnMap())
+    else if(!creature->getIsOnMap() && !event->mDying)
     {
         return false;
     }
@@ -764,6 +773,7 @@ bool CreatureReactions::startReaction(Creature* creature, const ReactionEvent& e
     reaction.mPriority = event.mPriority;
     reaction.mWhileWorking = event.mWhileWorking;
     reaction.mInHand = isInHand(creature);
+    reaction.mDying = event.mDying;
 
     // The place the creature turns its head to: the place of an event, or the wall, neighbour or room of the variant
     if(mHasNextLookTarget)
@@ -803,12 +813,13 @@ bool CreatureReactions::startReaction(Creature* creature, const ReactionEvent& e
         reaction.mLateEmoteDelay = variant.mLateEmoteDelay;
         reaction.mLateEmoteTime = variant.mLateEmoteTime;
         reaction.mDuration = std::max(reaction.mDuration, variant.mLateEmoteDelay + variant.mLateEmoteTime);
+        shown = true;
     }
 
     if(mMode == Mode::full)
     {
         // Tier C / B: a clip, only while the creature stands still (it must not slide while posing)
-        if(!creature->isMoving() && !event.mWhileWorking && startClip(reaction, creature, variant))
+        if(!creature->isMoving() && !event.mWhileWorking && !event.mDying && startClip(reaction, creature, variant))
             shown = true;
 
         for(const ReactionEffect& effect : variant.mEffects)
@@ -826,6 +837,7 @@ bool CreatureReactions::startReaction(Creature* creature, const ReactionEvent& e
             reaction.mLateEffectDelay = variant.mLateEffectDelay;
             reaction.mLateEffectTime = variant.mLateEffectTime;
             reaction.mDuration = std::max(reaction.mDuration, variant.mLateEffectDelay + variant.mLateEffectTime);
+            shown = true;
         }
 
         Ogre::SceneNode* node = creature->getEntityNode();
@@ -1212,7 +1224,8 @@ bool CreatureReactions::updateReaction(RunningReaction& reaction, Creature* crea
         return false;
 
     // Something more important than the reaction now happens to the creature
-    const ReactionEvent* runningEvent = reaction.mWhileWorking ? mConfig.getEvent(reaction.mEventName) : nullptr;
+    const ReactionEvent* runningEvent = (reaction.mWhileWorking || reaction.mDying) ?
+        mConfig.getEvent(reaction.mEventName) : nullptr;
     if(!(reaction.mPriority < getCreaturePriority(creature, runningEvent)))
         return false;
 
@@ -1338,8 +1351,20 @@ void CreatureReactions::update(Ogre::Real timeSinceLastFrame)
     for(std::vector<RunningReaction>::iterator it = mRunning.begin(); it != mRunning.end();)
     {
         Creature* creature = mGameMap->getCreature(it->mCreatureName);
-        bool stillRunning = (creature != nullptr) && (it->mInHand ? isInHand(creature) : creature->getIsOnMap()) &&
-            creature->isAlive() && updateReaction(*it, creature, timeSinceLastFrame);
+        bool stillRunning = false;
+        if(creature != nullptr)
+        {
+            if(it->mDying)
+            {
+                // The creature is no longer alive, its reaction goes on as long as it can be seen
+                stillRunning = (creature->getEntityNode() != nullptr) && updateReaction(*it, creature, timeSinceLastFrame);
+            }
+            else
+            {
+                stillRunning = (it->mInHand ? isInHand(creature) : creature->getIsOnMap()) && creature->isAlive() &&
+                    updateReaction(*it, creature, timeSinceLastFrame);
+            }
+        }
         if(stillRunning)
         {
             ++it;
@@ -1460,6 +1485,9 @@ void CreatureReactions::noteAnimation(MovableGameEntity* entity, const std::stri
     {
         celebrateVictory(creature, false);
         noteAllyDied(creature);
+
+        // Small touches on the death animation, nothing that changes how long it takes
+        trigger(creature, "Death");
     }
     else if(clip == "Flee")
     {
@@ -1717,6 +1745,8 @@ void CreatureReactions::finishOngoing(Creature* creature, const std::string& new
         doneEvent = "TempleDone";
     else if((it->second.mEventName == "ClaimWork") && (duration >= CLAIM_DONE_MIN))
         doneEvent = "ClaimDone";
+    else if((it->second.mEventName == "FleePanic") && (duration >= FLEE_DONE_MIN))
+        doneEvent = "LostFight";
 
     mOngoing.erase(it);
     if(!doneEvent.empty())
