@@ -46,6 +46,11 @@ namespace
 class TrapDoorFactory : public TrapFactory
 {
 public:
+    //! \brief Creates the factory of one door type.
+    //! \param doorType The door type this factory builds.
+    //! \param name The internal name used in level files and the config.
+    //! \param nameReadable The name shown to the player.
+    //! \param configPrefix The prefix of the config keys of this door type (for example Wooden for WoodenDoorCostPerTile).
     TrapDoorFactory(TrapType doorType, const std::string& name, const std::string& nameReadable,
             const std::string& configPrefix) :
         mDoorType(doorType),
