@@ -64,6 +64,7 @@ enum class TileType
     water = 4,
     lava = 5,
     gem = 6,
+    manaWell = 7,
     countTileType
 };
 
@@ -111,7 +112,10 @@ enum class TileVisual
     prisonRoom,
     arenaRoom,
     casinoRoom,
-    tortureRoom,    
+    tortureRoom,
+    guardRoom,
+    manaWellGround,
+    templeRoom,
     countTileVisual
 };
 
@@ -258,7 +262,10 @@ public:
 
     inline void setEverVisible(bool s)
     {
+        if(mEverVisible == s)
+            return;
         mEverVisible = s;
+        fireTileStateChanged();
     }
 
     

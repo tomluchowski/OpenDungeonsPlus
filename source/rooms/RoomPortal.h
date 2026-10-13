@@ -64,6 +64,9 @@ public:
 
     virtual void setupRoom(const std::string& name, Seat* seat, const std::vector<Tile*>& tiles) override;
 
+    //! \brief An own creature dropped into its portal is sacked: it leaves the dungeon
+    void creatureDropped(Creature& creature) override;
+
     virtual void restoreInitialEntityState() override;
 
     static const RoomType mRoomType;

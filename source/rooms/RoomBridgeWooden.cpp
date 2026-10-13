@@ -22,6 +22,7 @@
 #include "game/Seat.h"
 #include "gamemap/GameMap.h"
 #include "modes/InputManager.h"
+#include "ODApplication.h"
 #include "network/ODPacket.h"
 #include "rooms/RoomManager.h"
 #include "utils/ConfigManager.h"
@@ -35,7 +36,7 @@ const TileVisual RoomBridgeWooden::mRoomVisual= TileVisual::nullTileVisual;
 
 
 
-static const std::vector<TileVisual> allowedTilesVisual = {TileVisual::waterGround};
+static const std::vector<TileVisual> allowedTilesVisual = {TileVisual::waterGround, TileVisual::lavaGround};
 
 namespace
 {
@@ -137,6 +138,31 @@ RoomBridgeWooden::RoomBridgeWooden(GameMap* gameMap) :
     RoomBridge(gameMap)
 {
     setMeshName("WoodBridge");
+}
+
+void RoomBridgeWooden::doUpkeep()
+{
+    // Wood over lava burns: the hit points of such a tile run down on their own
+    // and the tile is removed by the usual destroyed-tile handling. The time left
+    // is the tile hit points, so it is saved and loaded with the room.
+    double burnTurns = ConfigManager::getSingleton().getRoomConfigDouble("WoodenBridgeLavaBurnSeconds") * ODApplication::turnsPerSecond;
+    if(burnTurns >= 1.0)
+    {
+        double burnPerTurn = DEFAULT_TILE_HP / burnTurns;
+        for(Tile* tile : mCoveredTiles)
+        {
+            if(tile->getType() != TileType::lava)
+                continue;
+
+            std::map<Tile*, TileData*>::iterator it = mTileData.find(tile);
+            if(it == mTileData.end())
+                continue;
+
+            it->second->mHP -= burnPerTurn;
+        }
+    }
+
+    RoomBridge::doUpkeep();
 }
 
 void RoomBridgeWooden::updateFloodFillTileRemoved(Seat* seat, Tile* tile)

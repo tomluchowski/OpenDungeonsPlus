@@ -34,6 +34,9 @@ public:
     static const RoomType mRoomType;
     static const TileVisual mRoomVisual;
     
+    //! \brief Tiles over lava burn down over time, see WoodenBridgeLavaBurnSeconds
+    virtual void doUpkeep() override;
+
 protected:
     void updateFloodFillTileRemoved(Seat* seat, Tile* tile) override;
 };
