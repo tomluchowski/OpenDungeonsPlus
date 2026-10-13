@@ -53,6 +53,7 @@
 const int32_t NB_TURNS_OUTSIDE_HATCHERY_BEFORE_DIE = 30;
 const int32_t NB_TURNS_DIE_BEFORE_REMOVE = 5;
 
+//! \brief Creates an animal of the given hatchery in the given stage of life, with all counters at zero.
 ChickenEntity::ChickenEntity(GameMap* gameMap, const std::string& hatcheryName, ChickenKind kind) :
     RenderedMovableEntity(gameMap, hatcheryName, getMeshNameForKind(kind), 0.0f, false),
     mChickenState(ChickenState::free),
