@@ -224,6 +224,22 @@ bool ODClientTest::processMessage(ServerNotificationType cmd, ODPacket& packetRe
             BOOST_CHECK(packetReceived >> goldDensityPercent);
             BOOST_CHECK(packetReceived >> manaRegenerationPercent);
             BOOST_CHECK(packetReceived >> maxCreaturesSetting);
+            uint32_t nbCreatureLimits = 0;
+            BOOST_CHECK(packetReceived >> nbCreatureLimits);
+            for(uint32_t i = 0; i < nbCreatureLimits; ++i)
+            {
+                std::string className;
+                uint32_t limit = 0;
+                BOOST_CHECK(packetReceived >> className >> limit);
+            }
+            uint32_t nbSkillStates = 0;
+            BOOST_CHECK(packetReceived >> nbSkillStates);
+            for(uint32_t i = 0; i < nbSkillStates; ++i)
+            {
+                uint32_t skillType = 0;
+                uint32_t skillState = 0;
+                BOOST_CHECK(packetReceived >> skillType >> skillState);
+            }
 
             if(isConfigured)
             {
@@ -247,7 +263,9 @@ bool ODClientTest::processMessage(ServerNotificationType cmd, ODPacket& packetRe
                 packSend << true << player.mPlayerId;
                 packSend << true << player.mWantedTeamId;
             }
-            packSend << static_cast<uint32_t>(100) << static_cast<uint32_t>(100) << static_cast<uint32_t>(0);
+            // Gold density, mana regeneration, maximum creatures, no creature limits and no skill states
+            packSend << static_cast<uint32_t>(100) << static_cast<uint32_t>(100) << static_cast<uint32_t>(0)
+                << static_cast<uint32_t>(0) << static_cast<uint32_t>(0);
             send(packSend);
             return true;
         }

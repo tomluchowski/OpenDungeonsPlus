@@ -61,6 +61,7 @@ enum class GameEntityType;
 enum class FloodFillType;
 enum class KeeperAIType;
 enum class RoomType;
+enum class SkillType;
 enum class SpellType;
 enum class TrapType;
 enum class TileVisual;
@@ -480,6 +481,43 @@ public:
     void setSkirmishSettings(uint32_t goldDensityPercent, uint32_t manaRegenerationPercent,
         uint32_t maxCreaturesSetting);
 
+    //! \brief Availability of a room, spell, trap or door in a skirmish game (Game Settings page)
+    enum class SkirmishItemState : uint32_t
+    {
+        notAvailable,
+        availableAtStart,
+        needsResearch,
+        //! Only used in the packets: the page has not chosen a value, the server value is kept
+        unchosen
+    };
+
+    //! \brief Highest limit that can be set for one creature type. It means no limit
+    static const uint32_t SKIRMISH_CREATURE_LIMIT_NONE = 32;
+
+    //! \brief Sent instead of a setting that the Game Settings page has not shown yet
+    static const uint32_t SKIRMISH_SETTING_UNCHOSEN = 0xFFFFFFFF;
+
+    //! \brief Maximum number of creatures of the given class a seat may own.
+    //! SKIRMISH_CREATURE_LIMIT_NONE if unlimited
+    uint32_t getCreatureClassLimit(const std::string& className) const;
+
+    //! \brief Sets the maximum number of creatures of the given class a seat may own
+    //! \param className The class name of the creature definition
+    //! \param limit The new limit. SKIRMISH_CREATURE_LIMIT_NONE or more removes the limit
+    void setCreatureClassLimit(const std::string& className, uint32_t limit);
+
+    //! \brief The state of every skill chosen on the Game Settings page. The index is the SkillType. It is
+    //! filled from the level the first time it is needed.
+    const std::vector<SkirmishItemState>& getSkirmishSkillStates();
+
+    //! \brief Sets the state of one skill chosen on the Game Settings page
+    //! \param type The skill to change. Invalid skill types are ignored
+    //! \param state The new state. The state unchosen is ignored
+    void setSkirmishSkillState(SkillType type, SkirmishItemState state);
+
+    //! \brief Applies the states that differ from the level to every seat. To be called before the seats are initialized.
+    void applySkirmishSkillStates();
+
     void logFloodFileTiles();
     void consoleSetCreatureDestination(const std::string& creatureName, int x, int y);
     void consoleToggleCreatureVisualDebug(const std::string& creatureName);
@@ -630,6 +668,9 @@ private:
     uint32_t mGoldDensityPercent;
     uint32_t mManaRegenerationPercent;
     uint32_t mMaxCreaturesSetting;
+    std::map<std::string, uint32_t> mCreatureClassLimits;
+    std::vector<SkirmishItemState> mSkirmishSkillStates;
+    std::vector<SkirmishItemState> mSkirmishSkillStatesLevel;
 
     //! \brief the Local player reference. The local player will also be in the player list so this pointer
     //! should not be deleted as it will be handled like every other in the list.
