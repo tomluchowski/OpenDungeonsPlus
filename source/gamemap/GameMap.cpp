@@ -112,6 +112,19 @@ const double AUTO_WORKER_INTERVAL_SECONDS = 5.0;
 //! \brief Squared distance within which an enemy creature triggers the heart defence.
 const int HEART_DEFENCE_RANGE_SQUARED = 7 * 7;
 
+//! \brief True if the seat has completed a goal that is more than keeping its dungeon temple. A seat
+//! whose only goal is to protect its temple does not win through its goals at once: the level script
+//! wins it (campaign levels do that).
+bool hasCompletedWinningGoal(Seat* seat)
+{
+    for(unsigned int i = 0; i < seat->numCompletedGoals(); ++i)
+    {
+        if(seat->getCompletedGoal(i)->getName() != "ProtectDungeonTemple")
+            return true;
+    }
+    return false;
+}
+
 //! \brief Mana a seat gains per second: the heart plus one per claimed tile,
 //! the tile part capped. The tiles of the heart area are not counted again.
 double manaIncomePerSecond(unsigned int numClaimedTiles, unsigned int numHeartTiles)
@@ -1269,7 +1282,7 @@ unsigned long int GameMap::doMiscUpkeep(double timeSinceLastTurn)
 
         // Check the goals and move completed ones to the completedGoals list for the seat.
         //NOTE: Once seats are placed on this list, they stay there even if goals are unmet.  We may want to change this.
-        if (seat->checkAllGoals() == 0 && seat->numFailedGoals() == 0)
+        if (seat->checkAllGoals() == 0 && seat->numFailedGoals() == 0 && hasCompletedWinningGoal(seat))
             addWinningSeat(seat);
 
         seat->mNumCreaturesFightersMax = getMaxNumberCreatures(seat);

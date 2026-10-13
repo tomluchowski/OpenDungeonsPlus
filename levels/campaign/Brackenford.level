@@ -1,0 +1,1430 @@
+OpenDungeons_Version:0.7.1  # The version of OpenDungeons which created this file (for compatibility reasons).
+
+[Info]
+Name	Brackenford
+Description	The ford folk of Brackenford send what few heroes they have.
+Music	Searching_yd.ogg
+FightMusic	TheDarkAmulet_MP.ogg
+[/Info]
+
+[Seats]
+[Seat]
+seatId	1
+teamId	1
+player	Human
+faction	Keeper
+startingX	9
+startingY	38
+colorId	1
+gold	2500
+goldMined	0
+mana	100
+[SkillDone]
+roomDormitory
+roomHatchery
+roomLibrary
+roomTrainingHall
+[/SkillDone]
+[SkillNotAllowed]
+roomArena
+roomBridgeStone
+roomBridgeWooden
+roomCasino
+roomCrypt
+roomGuardRoom
+roomPrison
+roomTemple
+roomTorture
+roomTreasury
+roomWorkshop
+spellCallToWar
+spellHexenHen
+spellCreateGold
+spellCreatureDefense
+spellCreatureExplosion
+spellCreatureHaste
+spellCreatureHeal
+spellCreatureSlow
+spellCreatureStrength
+spellCreatureWeak
+spellEyeEvil
+spellInferno
+spellPossess
+spellTremor
+spellDefector
+trapAlarm
+trapBoulder
+trapCannon
+trapDoorIronbound
+trapDoorRuned
+trapDoorSecret
+trapDoorSteel
+trapDoorWooden
+trapFear
+trapFireburst
+trapFreeze
+trapGas
+trapLightning
+trapSpike
+trapTrigger
+[/SkillNotAllowed]
+[SkillPending]
+spellLightning
+spellSummonWorker
+trapDoorBarricade
+trapWatchBanner
+[/SkillPending]
+[/Seat]
+[Seat]
+seatId	2
+teamId	2
+player	Inactive
+faction	Hero
+startingX	47
+startingY	8
+colorId	2
+gold	0
+goldMined	0
+mana	0
+[SkillDone]
+[/SkillDone]
+[SkillNotAllowed]
+[/SkillNotAllowed]
+[SkillPending]
+[/SkillPending]
+[/Seat]
+[Seat]
+seatId	3
+teamId	2
+player	Inactive
+faction	Hero
+startingX	35
+startingY	22
+colorId	3
+gold	0
+goldMined	0
+mana	0
+[SkillDone]
+[/SkillDone]
+[SkillNotAllowed]
+[/SkillNotAllowed]
+[SkillPending]
+[/SkillPending]
+[/Seat]
+[/Seats]
+
+[Goals]
+# goalName	arguments
+KillAllEnemies	NULL
+ProtectDungeonTemple	NULL
+[/Goals]
+
+[Tiles]
+# Map Size
+56 # MapSizeX
+46 # MapSizeY
+# posX	posY	type	fullness	seatId(optional)
+0	0	3	100
+0	1	3	100
+0	2	3	100
+0	3	3	100
+0	4	3	100
+0	5	3	100
+0	6	3	100
+0	7	3	100
+0	8	3	100
+0	9	3	100
+0	10	3	100
+0	11	3	100
+0	12	3	100
+0	13	3	100
+0	14	3	100
+0	15	3	100
+0	16	3	100
+0	17	3	100
+0	18	3	100
+0	19	3	100
+0	20	3	100
+0	21	3	100
+0	22	3	100
+0	23	3	100
+0	24	3	100
+0	25	3	100
+0	26	3	100
+0	27	3	100
+0	28	3	100
+0	29	3	100
+0	30	3	100
+0	31	3	100
+0	32	3	100
+0	33	3	100
+0	34	3	100
+0	35	3	100
+0	36	3	100
+0	37	3	100
+0	38	3	100
+0	39	3	100
+0	40	3	100
+0	41	3	100
+0	42	3	100
+0	43	3	100
+0	44	3	100
+0	45	3	100
+1	0	3	100
+1	38	2	100
+1	39	2	100
+1	40	2	100
+1	42	2	100
+1	45	3	100
+2	0	3	100
+2	13	2	100
+2	15	2	100
+2	36	2	100
+2	37	2	100
+2	45	3	100
+3	0	3	100
+3	14	2	100
+3	15	2	100
+3	16	2	100
+3	36	2	100
+3	37	2	100
+3	38	2	100
+3	39	2	100
+3	42	2	100
+3	44	2	100
+3	45	3	100
+4	0	3	100
+4	13	2	100
+4	14	2	100
+4	15	2	100
+4	16	1	0
+4	17	1	0
+4	18	1	0
+4	19	1	0
+4	20	1	0
+4	45	3	100
+5	0	3	100
+5	15	1	0
+5	16	1	0
+5	17	1	0
+5	18	1	0
+5	19	1	0
+5	20	1	0
+5	21	1	0
+5	40	1	0
+5	45	3	100
+6	0	3	100
+6	15	1	0
+6	16	1	0
+6	17	1	0
+6	18	1	0
+6	19	1	0
+6	20	1	0
+6	21	1	0
+6	40	1	0
+6	45	3	100
+7	0	3	100
+7	15	1	0
+7	16	1	0
+7	17	1	0
+7	18	1	0
+7	19	1	0
+7	20	1	0
+7	21	1	0
+7	36	1	0	1
+7	37	1	0	1
+7	38	1	0	1
+7	39	1	0	1
+7	40	1	0	1
+7	45	3	100
+8	0	3	100
+8	7	1	0
+8	8	1	0
+8	9	1	0
+8	10	1	0
+8	15	1	0
+8	16	1	0
+8	17	1	0
+8	18	1	0
+8	19	1	0
+8	20	1	0
+8	21	1	0
+8	35	4	0
+8	36	1	0	1
+8	37	1	0	1
+8	38	1	0	1
+8	39	1	0	1
+8	40	1	0	1
+8	45	3	100
+9	0	3	100
+9	6	1	0
+9	7	1	0
+9	8	1	0
+9	9	1	0
+9	10	1	0
+9	11	1	0
+9	15	1	0
+9	16	1	0
+9	17	1	0
+9	18	1	0
+9	19	1	0
+9	20	1	0
+9	21	1	0
+9	22	1	0
+9	35	4	0
+9	36	1	0	1
+9	37	1	0	1
+9	38	1	0	1
+9	39	1	0	1
+9	40	1	0	1
+9	45	3	100
+10	0	3	100
+10	6	1	0
+10	7	1	0
+10	8	1	0
+10	9	1	0
+10	10	1	0
+10	11	1	0
+10	13	1	0
+10	14	1	0
+10	15	1	0
+10	16	1	0
+10	17	1	0
+10	18	1	0
+10	19	1	0
+10	20	1	0
+10	21	1	0
+10	22	1	0
+10	36	1	0	1
+10	37	1	0	1
+10	38	1	0	1
+10	39	1	0	1
+10	40	1	0	1
+10	45	3	100
+11	0	3	100
+11	5	1	0
+11	6	1	0
+11	7	1	0
+11	8	1	0
+11	9	1	0
+11	10	1	0
+11	11	1	0
+11	12	1	0
+11	13	1	0
+11	14	1	0
+11	17	1	0
+11	18	1	0
+11	19	1	0
+11	20	1	0
+11	22	1	0
+11	27	1	0
+11	28	1	0
+11	29	1	0
+11	33	1	0
+11	34	1	0
+11	35	1	0
+11	36	1	0	1
+11	37	1	0	1
+11	38	1	0	1
+11	39	1	0	1
+11	40	1	0	1
+11	45	3	100
+12	0	3	100
+12	5	1	0
+12	6	1	0
+12	7	1	0
+12	8	1	0
+12	9	1	0
+12	10	1	0
+12	11	1	0
+12	12	1	0
+12	13	1	0
+12	17	1	0
+12	18	1	0
+12	19	1	0
+12	20	1	0
+12	22	1	0
+12	27	1	0
+12	28	1	0
+12	29	1	0
+12	30	1	0
+12	31	1	0
+12	32	1	0
+12	33	1	0
+12	40	1	0
+12	41	1	0
+12	45	3	100
+13	0	3	100
+13	5	1	0
+13	6	1	0
+13	7	1	0
+13	8	1	0
+13	9	1	0
+13	10	1	0
+13	11	1	0
+13	18	1	0
+13	19	1	0
+13	22	1	0
+13	27	1	0
+13	28	1	0
+13	29	1	0
+13	34	2	100
+13	35	2	100
+13	36	2	100
+13	45	3	100
+14	0	3	100
+14	5	1	0
+14	6	1	0
+14	7	1	0
+14	8	1	0
+14	9	1	0
+14	10	1	0
+14	11	1	0
+14	22	1	0
+14	26	4	0
+14	27	4	0
+14	28	4	0
+14	33	2	100
+14	35	2	100
+14	42	2	100
+14	44	2	100
+14	45	3	100
+15	0	3	100
+15	5	1	0
+15	6	1	0
+15	7	1	0
+15	8	1	0
+15	9	1	0
+15	10	1	0
+15	26	4	0
+15	27	4	0
+15	28	4	0
+15	37	2	100
+15	45	3	100
+16	0	3	100
+16	5	1	0
+16	6	1	0
+16	7	1	0
+16	8	1	0
+16	9	1	0
+16	10	1	0
+16	26	4	0
+16	27	4	0
+16	28	4	0
+16	33	2	100
+16	45	3	100
+17	0	3	100
+17	6	1	0
+17	7	1	0
+17	8	1	0
+17	9	1	0
+17	27	4	0
+17	37	2	100
+17	38	2	100
+17	45	3	100
+18	0	3	100
+18	6	1	0
+18	7	1	0
+18	8	1	0
+18	9	1	0
+18	45	3	100
+19	0	3	100
+19	6	1	0
+19	7	1	0
+19	8	1	0
+19	9	1	0
+19	37	2	100
+19	45	3	100
+20	0	3	100
+20	3	2	100
+20	4	2	100
+20	9	1	0
+20	37	2	100
+20	38	2	100
+20	40	2	100
+20	45	3	100
+21	0	3	100
+21	4	2	100
+21	9	1	0
+21	45	3	100
+22	0	3	100
+22	4	2	100
+22	6	2	100
+22	8	2	100
+22	9	1	0
+22	10	1	0
+22	12	2	100
+22	29	4	0
+22	30	4	0
+22	31	4	0
+22	32	4	0
+22	33	4	0
+22	34	4	0
+22	35	4	0
+22	36	4	0
+22	37	4	0
+22	45	3	100
+23	0	3	100
+23	8	2	100
+23	9	1	0
+23	10	1	0
+23	22	1	0
+23	26	4	0
+23	27	4	0
+23	28	4	0
+23	29	4	0
+23	30	4	0
+23	31	4	0
+23	32	4	0
+23	33	4	0
+23	34	4	0
+23	35	4	0
+23	36	4	0
+23	37	4	0
+23	38	4	0
+23	39	4	0
+23	40	4	0
+23	45	3	100
+24	0	3	100
+24	1	1	0
+24	21	1	0
+24	22	1	0
+24	24	4	0
+24	25	4	0
+24	26	4	0
+24	27	4	0
+24	28	4	0
+24	29	4	0
+24	30	4	0
+24	31	4	0
+24	32	4	0
+24	33	4	0
+24	34	4	0
+24	35	4	0
+24	36	4	0
+24	37	4	0
+24	38	4	0
+24	39	4	0
+24	40	4	0
+24	41	4	0
+24	42	4	0
+24	45	3	100
+25	0	3	100
+25	1	4	0
+25	2	1	0
+25	3	1	0
+25	19	1	0
+25	20	1	0
+25	21	4	0
+25	22	4	0
+25	23	4	0
+25	24	4	0
+25	25	4	0
+25	26	4	0
+25	27	4	0
+25	28	4	0
+25	29	4	0
+25	30	4	0
+25	31	4	0
+25	32	4	0
+25	33	4	0
+25	34	4	0
+25	35	4	0
+25	36	4	0
+25	37	4	0
+25	38	4	0
+25	39	4	0
+25	40	4	0
+25	41	4	0
+25	42	4	0
+25	43	4	0
+25	44	4	0
+25	45	3	100
+26	0	3	100
+26	1	4	0
+26	2	4	0
+26	3	4	0
+26	4	1	0
+26	5	1	0
+26	6	1	0
+26	16	1	0
+26	17	1	0
+26	18	1	0
+26	19	4	0
+26	20	4	0
+26	21	4	0
+26	22	4	0
+26	23	4	0
+26	24	4	0
+26	25	4	0
+26	26	4	0
+26	27	4	0
+26	28	4	0
+26	29	4	0
+26	30	4	0
+26	31	4	0
+26	32	4	0
+26	33	4	0
+26	34	4	0
+26	35	4	0
+26	36	4	0
+26	37	4	0
+26	38	4	0
+26	39	4	0
+26	40	4	0
+26	41	4	0
+26	42	4	0
+26	43	4	0
+26	44	4	0
+26	45	3	100
+27	0	3	100
+27	1	4	0
+27	2	4	0
+27	3	4	0
+27	4	4	0
+27	5	4	0
+27	6	4	0
+27	7	1	0
+27	8	1	0
+27	9	1	0
+27	10	1	0
+27	11	1	0
+27	12	1	0
+27	13	1	0
+27	14	1	0
+27	15	1	0
+27	16	4	0
+27	17	4	0
+27	18	4	0
+27	19	4	0
+27	20	4	0
+27	21	4	0
+27	22	4	0
+27	23	4	0
+27	24	4	0
+27	25	4	0
+27	26	4	0
+27	27	4	0
+27	28	4	0
+27	29	1	0
+27	30	1	0
+27	31	1	0
+27	32	1	0
+27	33	1	0
+27	34	1	0
+27	35	1	0
+27	36	1	0
+27	37	1	0
+27	38	4	0
+27	39	4	0
+27	40	4	0
+27	41	4	0
+27	42	4	0
+27	43	4	0
+27	44	4	0
+27	45	3	100
+28	0	3	100
+28	1	4	0
+28	2	4	0
+28	3	4	0
+28	4	4	0
+28	5	4	0
+28	6	4	0
+28	7	4	0
+28	8	4	0
+28	9	4	0
+28	10	4	0
+28	11	4	0
+28	12	4	0
+28	13	4	0
+28	14	4	0
+28	15	4	0
+28	16	4	0
+28	17	4	0
+28	18	4	0
+28	19	4	0
+28	20	4	0
+28	21	4	0
+28	22	4	0
+28	23	4	0
+28	24	4	0
+28	25	4	0
+28	26	1	0
+28	27	1	0
+28	28	1	0
+28	38	1	0
+28	39	1	0
+28	40	1	0
+28	41	4	0
+28	42	4	0
+28	43	4	0
+28	44	4	0
+28	45	3	100
+29	0	3	100
+29	1	4	0
+29	2	4	0
+29	3	4	0
+29	4	4	0
+29	5	4	0
+29	6	4	0
+29	7	4	0
+29	8	4	0
+29	9	4	0
+29	10	4	0
+29	11	4	0
+29	12	4	0
+29	13	4	0
+29	14	4	0
+29	15	4	0
+29	16	4	0
+29	17	4	0
+29	18	4	0
+29	19	4	0
+29	20	4	0
+29	21	4	0
+29	22	4	0
+29	23	4	0
+29	24	1	0
+29	25	1	0
+29	41	1	0
+29	42	1	0
+29	43	4	0
+29	44	4	0
+29	45	3	100
+30	0	3	100
+30	1	1	0
+30	2	4	0
+30	3	4	0
+30	4	4	0
+30	5	4	0
+30	6	4	0
+30	7	4	0
+30	8	4	0
+30	9	4	0
+30	10	4	0
+30	11	4	0
+30	12	4	0
+30	13	4	0
+30	14	4	0
+30	15	4	0
+30	16	4	0
+30	17	4	0
+30	18	4	0
+30	19	4	0
+30	20	4	0
+30	21	1	0
+30	22	1	0
+30	23	1	0
+30	24	1	0
+30	25	1	0
+30	43	1	0
+30	44	1	0
+30	45	3	100
+31	0	3	100
+31	2	1	0
+31	3	1	0
+31	4	4	0
+31	5	4	0
+31	6	4	0
+31	7	4	0
+31	8	4	0
+31	9	4	0
+31	10	4	0
+31	11	4	0
+31	12	4	0
+31	13	4	0
+31	14	4	0
+31	15	4	0
+31	16	4	0
+31	17	4	0
+31	18	4	0
+31	19	1	0
+31	20	1	0
+31	21	1	0
+31	22	1	0
+31	23	1	0
+31	24	1	0
+31	25	1	0
+31	26	1	0
+31	45	3	100
+32	0	3	100
+32	4	1	0
+32	5	1	0
+32	6	1	0
+32	7	4	0
+32	8	4	0
+32	9	4	0
+32	10	4	0
+32	11	4	0
+32	12	4	0
+32	13	4	0
+32	14	4	0
+32	15	4	0
+32	16	1	0
+32	17	1	0
+32	18	1	0
+32	20	1	0
+32	21	1	0
+32	22	1	0
+32	23	1	0
+32	24	1	0
+32	25	1	0
+32	26	1	0
+32	45	3	100
+33	0	3	100
+33	7	1	0
+33	8	1	0
+33	9	1	0
+33	10	1	0
+33	11	1	0
+33	12	1	0
+33	13	1	0
+33	14	1	0
+33	15	1	0
+33	20	1	0
+33	21	1	0
+33	23	1	0
+33	24	1	0
+33	25	1	0
+33	26	1	0
+33	45	3	100
+34	0	3	100
+34	8	2	100
+34	10	1	0
+34	20	1	0
+34	21	1	0
+34	22	1	0
+34	23	1	0
+34	24	1	0
+34	25	1	0
+34	26	1	0
+34	45	3	100
+35	0	3	100
+35	8	2	100
+35	10	1	0
+35	11	1	0
+35	13	1	0
+35	14	1	0
+35	15	1	0
+35	19	1	0
+35	20	1	0
+35	21	1	0
+35	22	1	0
+35	23	1	0
+35	24	1	0
+35	25	1	0
+35	26	1	0
+35	45	3	100
+36	0	3	100
+36	7	2	100
+36	8	2	100
+36	9	2	100
+36	10	1	0
+36	11	1	0
+36	12	1	0
+36	13	1	0
+36	14	1	0
+36	15	1	0
+36	16	1	0
+36	18	1	0
+36	19	1	0
+36	20	1	0
+36	21	1	0
+36	22	1	0
+36	23	1	0
+36	24	1	0
+36	25	1	0
+36	45	3	100
+37	0	3	100
+37	6	2	100
+37	7	2	100
+37	11	1	0
+37	12	1	0
+37	13	1	0
+37	14	1	0
+37	15	1	0
+37	16	1	0
+37	17	1	0
+37	18	1	0
+37	20	1	0
+37	21	1	0
+37	22	1	0
+37	23	1	0
+37	24	1	0
+37	25	1	0
+37	45	3	100
+38	0	3	100
+38	7	2	100
+38	12	1	0
+38	13	1	0
+38	14	1	0
+38	15	1	0
+38	16	1	0
+38	17	1	0
+38	21	1	0
+38	22	1	0
+38	23	1	0
+38	24	1	0
+38	25	1	0
+38	31	1	0
+38	45	3	100
+39	0	3	100
+39	12	1	0
+39	13	1	0
+39	14	1	0
+39	15	1	0
+39	16	1	0
+39	17	1	0
+39	22	1	0
+39	23	1	0
+39	25	1	0
+39	26	1	0
+39	30	1	0
+39	31	1	0
+39	32	1	0
+39	33	1	0
+39	45	3	100
+40	0	3	100
+40	12	1	0
+40	13	1	0
+40	14	1	0
+40	15	4	0
+40	16	1	0
+40	17	1	0
+40	26	1	0
+40	27	1	0
+40	28	1	0
+40	29	1	0
+40	30	1	0
+40	31	1	0
+40	32	1	0
+40	33	1	0
+40	34	1	0
+40	40	1	0
+40	41	1	0
+40	45	3	100
+41	0	3	100
+41	11	1	0
+41	12	1	0
+41	13	1	0
+41	14	4	0
+41	15	4	0
+41	16	4	0
+41	17	1	0
+41	27	1	0
+41	28	1	0
+41	29	1	0
+41	30	1	0
+41	31	1	0
+41	32	1	0
+41	33	1	0
+41	34	1	0
+41	39	1	0
+41	40	1	0
+41	41	1	0
+41	42	1	0
+41	45	3	100
+42	0	3	100
+42	11	1	0
+42	12	1	0
+42	13	1	0
+42	14	1	0
+42	15	4	0
+42	16	1	0
+42	26	1	0
+42	27	1	0
+42	28	1	0
+42	29	1	0
+42	30	1	0
+42	31	4	0
+42	32	1	0
+42	33	1	0
+42	34	1	0
+42	38	1	0
+42	39	1	0
+42	40	1	0
+42	41	1	0
+42	42	1	0
+42	45	3	100
+43	0	3	100
+43	6	1	0
+43	7	1	0
+43	8	1	0
+43	9	1	0
+43	10	1	0
+43	11	1	0
+43	12	1	0
+43	13	1	0
+43	14	1	0
+43	15	1	0
+43	16	1	0
+43	26	1	0
+43	27	1	0
+43	28	1	0
+43	29	1	0
+43	30	1	0
+43	31	4	0
+43	32	4	0
+43	33	1	0
+43	34	1	0
+43	38	1	0
+43	39	1	0
+43	40	1	0
+43	41	1	0
+43	42	1	0
+43	43	1	0
+43	45	3	100
+44	0	3	100
+44	5	1	0
+44	6	1	0
+44	7	1	0
+44	8	1	0
+44	9	1	0
+44	10	1	0
+44	11	1	0
+44	12	1	0
+44	13	1	0
+44	14	1	0
+44	15	1	0
+44	25	1	0
+44	26	1	0
+44	27	1	0
+44	28	1	0
+44	29	1	0
+44	30	4	0
+44	31	4	0
+44	32	4	0
+44	33	1	0
+44	34	1	0
+44	37	1	0
+44	38	1	0
+44	39	1	0
+44	40	1	0
+44	41	1	0
+44	42	1	0
+44	43	1	0
+44	45	3	100
+45	0	3	100
+45	5	1	0
+45	6	1	0
+45	7	1	0
+45	8	1	0
+45	9	1	0
+45	10	1	0
+45	11	1	0
+45	13	1	0
+45	14	1	0
+45	15	1	0
+45	25	1	0
+45	26	1	0
+45	27	1	0
+45	28	1	0
+45	30	4	0
+45	31	4	0
+45	32	4	0
+45	33	1	0
+45	34	1	0
+45	37	1	0
+45	38	1	0
+45	39	1	0
+45	40	1	0
+45	41	1	0
+45	42	1	0
+45	43	1	0
+45	45	3	100
+46	0	3	100
+46	5	1	0
+46	6	1	0
+46	7	1	0
+46	8	1	0
+46	9	1	0
+46	10	1	0
+46	11	1	0
+46	26	1	0
+46	27	1	0
+46	28	1	0
+46	31	1	0
+46	32	1	0
+46	33	1	0
+46	37	1	0
+46	38	1	0
+46	39	1	0
+46	40	1	0
+46	41	1	0
+46	42	1	0
+46	43	1	0
+46	45	3	100
+47	0	3	100
+47	5	1	0
+47	6	1	0
+47	7	1	0
+47	8	1	0
+47	9	1	0
+47	10	1	0
+47	11	1	0
+47	26	1	0
+47	27	1	0
+47	28	1	0
+47	29	1	0
+47	30	1	0
+47	31	1	0
+47	32	1	0
+47	33	1	0
+47	37	1	0
+47	38	1	0
+47	39	1	0
+47	40	1	0
+47	41	1	0
+47	42	1	0
+47	43	1	0
+47	45	3	100
+48	0	3	100
+48	5	1	0
+48	6	1	0
+48	7	1	0
+48	8	1	0
+48	9	1	0
+48	10	1	0
+48	11	1	0
+48	27	1	0
+48	28	1	0
+48	29	1	0
+48	30	1	0
+48	31	1	0
+48	32	1	0
+48	33	1	0
+48	38	1	0
+48	39	1	0
+48	40	1	0
+48	41	1	0
+48	42	1	0
+48	45	3	100
+49	0	3	100
+49	6	1	0
+49	7	1	0
+49	8	1	0
+49	9	1	0
+49	10	1	0
+49	28	1	0
+49	29	1	0
+49	30	1	0
+49	31	1	0
+49	32	1	0
+49	38	1	0
+49	39	1	0
+49	40	1	0
+49	41	1	0
+49	42	1	0
+49	45	3	100
+50	0	3	100
+50	6	1	0
+50	7	1	0
+50	8	1	0
+50	9	1	0
+50	10	1	0
+50	21	2	100
+50	35	2	100
+50	36	2	100
+50	37	2	100
+50	45	3	100
+51	0	3	100
+51	7	1	0
+51	8	1	0
+51	9	1	0
+51	10	1	0
+51	19	2	100
+51	20	2	100
+51	21	2	100
+51	22	2	100
+51	35	2	100
+51	36	2	100
+51	45	3	100
+52	0	3	100
+52	7	1	0
+52	8	1	0
+52	9	1	0
+52	20	2	100
+52	22	2	100
+52	33	2	100
+52	35	2	100
+52	36	2	100
+52	45	3	100
+53	0	3	100
+53	19	2	100
+53	21	2	100
+53	45	3	100
+54	0	3	100
+54	45	3	100
+55	0	3	100
+55	1	3	100
+55	2	3	100
+55	3	3	100
+55	4	3	100
+55	5	3	100
+55	6	3	100
+55	7	3	100
+55	8	3	100
+55	9	3	100
+55	10	3	100
+55	11	3	100
+55	12	3	100
+55	13	3	100
+55	14	3	100
+55	15	3	100
+55	16	3	100
+55	17	3	100
+55	18	3	100
+55	19	3	100
+55	20	3	100
+55	21	3	100
+55	22	3	100
+55	23	3	100
+55	24	3	100
+55	25	3	100
+55	26	3	100
+55	27	3	100
+55	28	3	100
+55	29	3	100
+55	30	3	100
+55	31	3	100
+55	32	3	100
+55	33	3	100
+55	34	3	100
+55	35	3	100
+55	36	3	100
+55	37	3	100
+55	38	3	100
+55	39	3	100
+55	40	3	100
+55	41	3	100
+55	42	3	100
+55	43	3	100
+55	44	3	100
+55	45	3	100
+[/Tiles]
+
+[Rooms]
+# typeRoom	name	seatId	numTiles		Subsequent Lines: tileX	tileY
+[Room]
+12	WoodenBridge1	0	15
+25	22
+26	22
+27	22
+28	22
+29	22
+25	23
+26	23
+27	23
+28	23
+29	23
+24	24
+25	24
+26	24
+27	24
+28	24
+1
+[/Room]
+[Room]
+12	WoodenBridge2	0	5
+28	9
+29	9
+30	9
+31	9
+32	9
+1
+[/Room]
+[Room]
+12	WoodenBridge3	0	5
+22	36
+23	36
+24	36
+25	36
+26	36
+1
+[/Room]
+[Room]
+1	DungeonTemple1	1	25
+7	36
+7	37
+7	38
+7	39
+7	40
+8	36
+8	37
+8	38
+8	39
+8	40
+9	36
+9	37
+9	38
+9	39
+9	40
+10	36
+10	37
+10	38
+10	39
+10	40
+11	36
+11	37
+11	38
+11	39
+11	40
+[/Room]
+[Room]
+4	Portal1	0	9
+7	17
+7	18
+7	19
+8	17
+8	18
+8	19
+9	17
+9	18
+9	19
+9	5
+[/Room]
+[/Rooms]
+
+[Traps]
+# typeTrap	name	seatId	numTiles		Subsequent Lines: tileX	tileY	isActivated(0/1)		Subsequent Lines: optional specific data
+[/Traps]
+
+[Lights]
+# posX	posY	posZ	diffuseR	diffuseG	diffuseB	specularR	specularG	specularB	attenRange	attenConst	attenLin	attenQuad
+[/Lights]
+
+[CreatureDefinitions]
+[/CreatureDefinitions]
+
+[EquipmentDefinitions]
+[/EquipmentDefinitions]
+
+[Creatures]
+# SeatId	Name	MeshName	PosX	PosY	PosZ	ClassName	Level	CurrentXP	CurrentHP	CurrentWakefulness	CurrentHunger	GoldToDeposit	LeftWeapon	RightWeapon	CarriedSkill	CarriedWeapon	NbCreatureEffects	N*CreatureEffects
+1	DefaultWorker1	Kobold.mesh	5	40	0	DefaultWorker	1	0	max	100	0	0	none	none	nullSkillType	none	0
+1	DefaultWorker2	Kobold.mesh	12	41	0	DefaultWorker	1	0	max	100	0	0	none	none	nullSkillType	none	0
+1	DefaultWorker3	Kobold.mesh	11	35	0	DefaultWorker	1	0	max	100	0	0	none	none	nullSkillType	none	0
+2	ElsaBrack	Knight.mesh	47	8	0	Knight	3	0	max	100	0	0	none	none	nullSkillType	none	0
+3	FordGuard1	Adventurer.mesh	35	22	0	Adventurer	1	0	max	100	0	0	none	none	nullSkillType	none	0
+3	FordGuard2	Adventurer.mesh	33	25	0	Adventurer	1	0	max	100	0	0	none	none	nullSkillType	none	0
+3	VillageMonk	Monk.mesh	44	29	0	Monk	1	0	max	100	0	0	none	none	nullSkillType	none	0
+3	MillHand	Adventurer.mesh	40	14	0	Adventurer	1	0	max	100	0	0	none	none	nullSkillType	none	0
+[/Creatures]
+
+[Spells]
+# typeSpell	SeatId	Name	MeshName	PosX	PosY	PosZ	opacity	rotationAngle	optionalData
+[/Spells]
+
+[CraftedTraps]
+# SeatId	Name	MeshName	PosX	PosY	PosZ	opacity	rotationAngle	trapType	PosX	PosY	PosZ
+[/CraftedTraps]
+
+[SkillEntity]
+# SeatId	Name	MeshName	PosX	PosY	PosZ	opacity	rotationAngle	skillPoints	PosX	PosY	PosZ
+[/SkillEntity]
+
+[GiftBoxEntity]
+# GiftBoxType	SeatId	Name	MeshName	PosX	PosY	PosZ	opacity	rotationAngle	optionalData
+[/GiftBoxEntity]
+
+[Missiles]
+# missileType	SeatId	Name	MeshName	PosX	PosY	PosZ	opacity	rotationAngle	directionX	directionY	directionZ	missileAlive	damageAllies	speed	optionalData
+[/Missiles]
+
+[TreasuryObject]
+# SeatId	Name	MeshName	PosX	PosY	PosZ	opacity	rotationAngle	value
+[/TreasuryObject]
+
+[Chickens]
+# SeatId	Name	MeshName	PosX	PosY	PosZ	opacity	rotationAngle	PosX	PosY	PosZ
+[/Chickens]
+
+[Triggers]
+Block	1	CaveHornet
+Block	1	Spider
+Block	1	Rat
+Block	1	Roach
+Block	1	LavaSpawn
+Block	1	LizardMan
+Block	1	DarkElf
+Block	1	Orc
+Block	1	PitDemon
+Block	1	Troll
+Region	Grove	8	22	21	31
+Region	Landing	29	18	38	28
+Region	Village	38	25	51	35
+Region	Keep	41	4	53	12
+[Trigger]
+Name	ferns
+Mode	once
+Cond	time	3
+Action	message	1	My lord, Brackenford is rich in gold and thin in soldiers. You have gold to spend, so spend it on rooms.
+Action	objective	1	Destroy Warden Elsa Brack and take her keep.
+Action	objective	1	Lay out a dormitory for your creatures.
+[/Trigger]
+[Trigger]
+Name	bedsReady
+Mode	once
+Cond	room	1	Dormitory	1
+Action	message	1	Beds at last. The creatures from the old portal will want food as well.
+Action	objective	1	Build a hatchery.
+[/Trigger]
+[Trigger]
+Name	larderReady
+Mode	once
+Cond	room	1	Hatchery	1
+Action	message	1	The larder is stocked. Now take the fern grove east of here and make it yours.
+Action	gold	1	400
+Action	objective	1	Claim the fern grove.
+[/Trigger]
+[Trigger]
+Name	groveClaimed
+Mode	once
+Cond	claimed	1	Grove	22
+Action	message	1	Two goblins have heard about your grove and want a share. Let them stay.
+Action	spawn	1	12	28	-1	Goblin:2	Goblin:2
+Action	reveal	1	Landing
+Action	objective	1	Cross the ford and clear the landing yard.
+Action	generate	1	Goblin:1
+[/Trigger]
+[Trigger]
+Name	landingSeen
+Mode	once
+Cond	region	1	Landing
+Action	message	1	The ford folk have seen you. Expect them to come down the bank.
+Action	spawn	3	36	23	1	Adventurer:1	Adventurer:1
+Action	setflag	fordRaised	1
+[/Trigger]
+[Trigger]
+Name	villageOpen
+Mode	once
+Cond	flag	fordRaised	1
+Cond	kills	1	>=	4
+Action	message	1	The landing is clear. The village and the keep lie behind it.
+Action	reveal	1	Village
+Action	reveal	1	Keep
+Action	objective	1	Fight your way to the keep and slay the warden.
+[/Trigger]
+[Trigger]
+Name	firstFolk
+Mode	once
+Cond	time	480
+Action	message	1	A few villagers have taken up spades and swords. They are coming over the ford.
+Action	spawn	3	37	24	1	Adventurer:1	Adventurer:1	Monk:1
+[/Trigger]
+[Trigger]
+Name	secondFolk
+Mode	once
+Cond	time	960
+Action	message	1	The warden has called in the last of her riders.
+Action	spawn	3	38	12	1	Adventurer:2	Adventurer:1	Knight:1
+[/Trigger]
+[Trigger]
+Name	wardenGone
+Mode	once
+Cond	time	5
+Cond	creatures	2	<=	0
+Action	message	1	Warden Brack is dead. The ford folk are laying down their tools.
+Action	win	1
+[/Trigger]
+[/Triggers]
