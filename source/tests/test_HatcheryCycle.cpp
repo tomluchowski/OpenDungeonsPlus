@@ -27,6 +27,7 @@
 #include <iostream>
 #include <vector>
 
+//! The number of animals a hatchery holds follows its tiles and the tiles-per-animal setting, and never exceeds the room size.
 BOOST_AUTO_TEST_CASE(test_Capacity)
 {
     HatcheryCycleSettings settings;
@@ -39,6 +40,7 @@ BOOST_AUTO_TEST_CASE(test_Capacity)
     BOOST_CHECK_EQUAL(HatcheryCycle::capacity(9, 3, settings), 3u);
 }
 
+//! The coop supplies a hen or a rooster only while the hatchery lacks one (an egg or a chick already counts as a hen source), eggs may hatch only with a rooster present, and a full hatchery stops laying.
 BOOST_AUTO_TEST_CASE(test_Rules)
 {
     HatcheryCounts counts;
@@ -65,6 +67,7 @@ BOOST_AUTO_TEST_CASE(test_Rules)
     BOOST_CHECK(HatcheryCycle::canLay(counts, 4));
 }
 
+//! The lay interval stays inside the configured minimum and maximum and is never zero turns, and scaling the settings scales both bounds.
 BOOST_AUTO_TEST_CASE(test_LayInterval)
 {
     HatcheryCycleSettings settings;
@@ -126,6 +129,7 @@ uint32_t simulateOld(uint32_t nbCoops, uint32_t eatPercent, uint32_t nbTurns, ui
     return eaten;
 }
 
+//! One simulated egg or chick with the turns left until it hatches or grows.
 struct SimAnimal
 {
     SimAnimal(uint32_t timer) : mTimer(timer) {}
@@ -256,6 +260,7 @@ BOOST_AUTO_TEST_CASE(test_BalanceParity)
     }
 }
 
+//! Light and calm add to a care bonus that shortens the laying times, only while all tiles are claimed and never below one turn; eggs do not hatch while enemies stand in the hatchery.
 BOOST_AUTO_TEST_CASE(test_Care)
 {
     // The two bonuses (light 10, no enemies 15) add up, but only while all tiles are claimed
@@ -301,6 +306,7 @@ BOOST_AUTO_TEST_CASE(test_Care)
     BOOST_CHECK(!HatcheryCycle::canHatch(counts, false));
 }
 
+//! Only enemies trample, only eggs get trampled, and the configured percentage decides with the dice roll.
 BOOST_AUTO_TEST_CASE(test_Trample)
 {
     HatcheryCycleSettings settings;
