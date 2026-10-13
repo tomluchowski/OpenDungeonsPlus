@@ -159,6 +159,7 @@ bool Trap::fireTile(Tile* tile, TrapTileData* trapTileData)
     if(manaToFire > 0.0)
         getSeat()->takeMana(manaToFire);
 
+    ++getSeat()->getStatistics().mTrapsFired;
     trapTileData->setReloadTime(mReloadTime);
     if(!trapTileData->decreaseShoot())
     {

@@ -161,6 +161,9 @@ bool readGameMapFromFile(const std::string& fileName, GameMap& gameMap)
             gameMap.setSandbox(nextParam.substr(param.size()) == "1");
             continue;
         }
+
+        if(gameMap.getSandboxMode().importInfoLine(nextParam))
+            continue;
     }
 
     levelFile >> nextParam;
@@ -675,7 +678,10 @@ bool writeGameMapToFile(const std::string& fileName, GameMap& gameMap)
     if(!gameMap.getTileSetName().empty())
         levelFile << "TileSet\t" << gameMap.getTileSetName() << std::endl;
     if(gameMap.isSandbox())
+    {
         levelFile << "Sandbox\t1" << std::endl;
+        gameMap.getSandboxMode().exportInfo(levelFile);
+    }
 
     levelFile << "[/Info]" << std::endl;
 
@@ -953,6 +959,20 @@ bool getMapInfo(const std::string& fileName, LevelInfo& levelInfo)
         if (nextParam == "Sandbox\t1")
         {
             levelInfo.mIsSandbox = true;
+            continue;
+        }
+
+        param = "SandboxRealm\t";
+        if (nextParam.compare(0, param.size(), param) == 0)
+        {
+            levelInfo.mSandboxRealm = nextParam.substr(param.size());
+            continue;
+        }
+
+        param = "SandboxNext\t";
+        if (nextParam.compare(0, param.size(), param) == 0)
+        {
+            levelInfo.mSandboxNext = nextParam.substr(param.size());
             continue;
         }
 

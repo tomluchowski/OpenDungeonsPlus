@@ -124,6 +124,13 @@ enum class ServerNotificationType
 
     //! The team of a seat changed (an alliance of a level script): + int32_t seatId, int32_t teamId
     seatTeam,
+    //! Score and room timer of a sandbox level: + int32_t score, int32_t target (0: none), string name of the
+    //! next room that becomes available (empty: none), int32_t seconds until it, uint32_t number of bonus
+    //! objectives, then per bonus: string text, int32_t points, bool awarded.
+    sandboxStatus,
+    //! The score of a sandbox realm reached its target: + string name of the realm, string level file of the
+    //! next realm (empty: none), string text.
+    sandboxRealmComplete,
 
     // Owner-only start of the defeat sequence for a defeated human player:
     // + int32_t conquerorSeatId (-1 if unknown), int32_t heartTileX, int32_t heartTileY (-1/-1 if unknown).

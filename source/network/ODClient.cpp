@@ -70,7 +70,8 @@ ODClient::ODClient() :
     mIsPlayerConfig(false),
     mTimeLimitSeconds(-1),
     mWaveCountdownSeconds(-1),
-    mHasLevelStatistics(false)
+    mHasLevelStatistics(false),
+    mHasSandboxRealmComplete(false)
 {
 }
 
@@ -427,6 +428,8 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
             mHasLevelStatistics = false;
             mLevelStatistics = LevelStatistics();
             mHeartBadge = HeartHealthRing::BadgeState();
+            mSandboxStatus = SandboxStatus();
+            mHasSandboxRealmComplete = false;
 
             OD_ASSERT_TRUE(packetReceived >> nbPlayers);
             for(int i = 0; i < nbPlayers; ++i)
@@ -874,6 +877,30 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
                 mLevelStatistics = statistics;
                 mHasLevelStatistics = true;
             }
+            break;
+        }
+
+        case ServerNotificationType::sandboxStatus:
+        {
+            SandboxStatus status;
+            uint32_t nbBonuses;
+            OD_ASSERT_TRUE(packetReceived >> status.mScore >> status.mTarget >> status.mNextRoom
+                >> status.mSecondsLeft >> nbBonuses);
+            for(uint32_t i = 0; i < nbBonuses; ++i)
+            {
+                SandboxBonusStatus bonus;
+                OD_ASSERT_TRUE(packetReceived >> bonus.mText >> bonus.mPoints >> bonus.mAwarded);
+                status.mBonuses.push_back(bonus);
+            }
+            status.mIsReceived = true;
+            mSandboxStatus = status;
+            break;
+        }
+
+        case ServerNotificationType::sandboxRealmComplete:
+        {
+            OD_ASSERT_TRUE(packetReceived >> mSandboxRealmId >> mSandboxNextLevel >> mSandboxRealmText);
+            mHasSandboxRealmComplete = true;
             break;
         }
 

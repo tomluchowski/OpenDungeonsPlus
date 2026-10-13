@@ -26,6 +26,8 @@
 #include <OgreSingleton.h>
 
 #include <deque>
+#include <string>
+#include <vector>
 
 class GameMap;
 class ODPacket;
@@ -100,6 +102,46 @@ class ODClient: public Ogre::Singleton<ODClient>,
     inline HeartHealthRing::BadgeState& getHeartBadge()
     { return mHeartBadge; }
 
+    //! \brief A bonus objective of a sandbox realm as the server last told it
+    struct SandboxBonusStatus
+    {
+        std::string mText;
+        int32_t mPoints = 0;
+        bool mAwarded = false;
+    };
+
+    //! \brief Score and room timer of a sandbox level as the server last told it
+    struct SandboxStatus
+    {
+        bool mIsReceived = false;
+        int32_t mScore = 0;
+        //! \brief 0 if the level has no target score
+        int32_t mTarget = 0;
+        //! \brief Name of the next room that becomes available, empty if there is none
+        std::string mNextRoom;
+        int32_t mSecondsLeft = 0;
+        std::vector<SandboxBonusStatus> mBonuses;
+    };
+
+    inline const SandboxStatus& getSandboxStatus() const
+    { return mSandboxStatus; }
+
+    //! \brief True from the moment the server tells that the sandbox realm is complete, until the GUI took it
+    inline bool hasSandboxRealmComplete() const
+    { return mHasSandboxRealmComplete; }
+
+    inline const std::string& getSandboxRealmId() const
+    { return mSandboxRealmId; }
+
+    inline const std::string& getSandboxNextLevel() const
+    { return mSandboxNextLevel; }
+
+    inline const std::string& getSandboxRealmText() const
+    { return mSandboxRealmText; }
+
+    inline void clearSandboxRealmComplete()
+    { mHasSandboxRealmComplete = false; }
+
     inline void pause()
     { mGameClock.pause(); }
 
@@ -147,6 +189,13 @@ class ODClient: public Ogre::Singleton<ODClient>,
 
     // Heart health received with heartHealth
     HeartHealthRing::BadgeState mHeartBadge;
+
+    // Received with sandboxStatus and sandboxRealmComplete
+    SandboxStatus mSandboxStatus;
+    bool mHasSandboxRealmComplete;
+    std::string mSandboxRealmId;
+    std::string mSandboxNextLevel;
+    std::string mSandboxRealmText;
 
 };
 

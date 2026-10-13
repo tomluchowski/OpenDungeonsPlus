@@ -30,14 +30,25 @@
 #include "gamemap/MapHandler.h"
 #include "utils/ConfigManager.h"
 #include "utils/ResourceManager.h"
+#include "game/SandboxProgress.h"
 
 #include <CEGUI/CEGUI.h>
 #include "boost/filesystem.hpp"
+
+#include <algorithm>
+#include <map>
+#include <set>
 
 bool MenuModeSkirmish::sStartWithSandboxLevels = false;
 
 //! \brief The index of the level type listing the sandbox levels
 static const size_t LEVEL_TYPE_SANDBOX = 4;
+
+//! \brief Orders two level files by their file name, whatever the folder
+static bool compareLevelFileNames(const std::string& first, const std::string& second)
+{
+    return boost::filesystem::path(first).filename().string() < boost::filesystem::path(second).filename().string();
+}
 
 MenuModeSkirmish::MenuModeSkirmish(ModeManager* modeManager):
     AbstractApplicationMode(modeManager, ModeManager::MENU_SKIRMISH)
@@ -181,6 +192,26 @@ bool MenuModeSkirmish::updateFilesList(const CEGUI::EventArgs&)
     }
 
     Helper::fillFilesList(levelPath, levelFiles, MapHandler::LEVEL_EXTENSION);
+
+    // The realms of the sandbox are listed in the order of their file names
+    // A realm is open once the realm before it (the one that names it as its next realm) is complete
+    std::map<std::string, std::string> realmPredecessors;
+    std::set<std::string> completedRealms;
+    if(selection == LEVEL_TYPE_SANDBOX)
+    {
+        std::sort(levelFiles.begin(), levelFiles.end(), compareLevelFileNames);
+        completedRealms = SandboxProgress::loadCompleted();
+        for (uint32_t n = 0; n < levelFiles.size(); ++n)
+        {
+            LevelInfo realmInfo;
+            if(MapHandler::getMapInfo(levelFiles[n], realmInfo) && !realmInfo.mSandboxRealm.empty() &&
+               !realmInfo.mSandboxNext.empty())
+            {
+                realmPredecessors[SandboxProgress::getLevelStem(realmInfo.mSandboxNext)] = realmInfo.mSandboxRealm;
+            }
+        }
+    }
+
     for (uint32_t n = 0; n < levelFiles.size(); ++n)
     {
         std::string filename = levelFiles[n];
@@ -188,6 +219,7 @@ bool MenuModeSkirmish::updateFilesList(const CEGUI::EventArgs&)
         LevelInfo levelInfo;
         std::string mapName;
         std::string mapDescription;
+        bool isLocked = false;
         if(MapHandler::getMapInfo(filename, levelInfo))
         {
             mapName = levelInfo.mLevelName;
@@ -196,6 +228,15 @@ bool MenuModeSkirmish::updateFilesList(const CEGUI::EventArgs&)
             // Sandbox levels are only listed with the sandbox levels
             if(levelInfo.mIsSandbox != (selection == LEVEL_TYPE_SANDBOX))
                 continue;
+
+            std::map<std::string, std::string>::const_iterator predecessor = realmPredecessors.find(levelInfo.mSandboxRealm);
+            if(!levelInfo.mSandboxRealm.empty() && (predecessor != realmPredecessors.end()) &&
+               (completedRealms.find(predecessor->second) == completedRealms.end()))
+            {
+                isLocked = true;
+                mapName += " (locked)";
+                mapDescription = "Complete the realm before this one to open it.";
+            }
         }
         else
         {
@@ -212,6 +253,7 @@ bool MenuModeSkirmish::updateFilesList(const CEGUI::EventArgs&)
         CEGUI::ListboxTextItem* item = new CEGUI::ListboxTextItem(mapName);
         item->setID(id);
         item->setSelectionBrushImage("OpenDungeonsSkin/SelectionBrush");
+        item->setDisabled(isLocked);
         levelSelectList->addItem(item);
     }
 

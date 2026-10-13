@@ -43,6 +43,7 @@ struct SeatStatistics
         mCreaturesSlapped = 0;
         mGoldTilesMined = 0;
         mCreaturesEntered = 0;
+        mTrapsFired = 0;
     }
 
     //! \brief Enemy dungeon hearts destroyed by a final blow of this seat
@@ -69,6 +70,8 @@ struct SeatStatistics
     uint32_t mGoldTilesMined;
     //! \brief Creatures that came through a portal of this seat (sandbox score only)
     uint32_t mCreaturesEntered;
+    //! rief Times a trap of this seat fired (sandbox bonus objectives only)
+    uint32_t mTrapsFired;
 };
 
 #endif // SEATSTATISTICS_H

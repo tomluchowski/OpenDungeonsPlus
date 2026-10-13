@@ -25,6 +25,7 @@
 #include "entities/GameEntityType.h"
 #include "entities/RenderedMovableEntity.h"
 #include "entities/Tile.h"
+#include "game/SandboxProgress.h"
 #include "game/HeartHealthRing.h"
 #include "game/Player.h"
 #include "game/Skill.h"
@@ -337,6 +338,24 @@ GameMode::GameMode(ModeManager *modeManager):
             CEGUI::Event::Subscriber(&GameMode::startSandboxContinualInvasion, this)
         )
     );
+    addEventConnection(
+        guiSheet->getChild("SandboxRealmWindow")->subscribeEvent(
+            CEGUI::FrameWindow::EventCloseClicked,
+            CEGUI::Event::Subscriber(&GameMode::onSandboxStay, this)
+        )
+    );
+    addEventConnection(
+        guiSheet->getChild("SandboxRealmWindow/NextRealmButton")->subscribeEvent(
+            CEGUI::PushButton::EventClicked,
+            CEGUI::Event::Subscriber(&GameMode::onSandboxNextRealm, this)
+        )
+    );
+    addEventConnection(
+        guiSheet->getChild("SandboxRealmWindow/StayButton")->subscribeEvent(
+            CEGUI::PushButton::EventClicked,
+            CEGUI::Event::Subscriber(&GameMode::onSandboxStay, this)
+        )
+    );
 
     //Player settings window
     addEventConnection(
@@ -596,6 +615,11 @@ void GameMode::activate()
     mProductionRequestPending = false;
     mReturningToSettingsNavigation = false;
     guiSheet->getChild("SandboxWindow")->hide();
+    guiSheet->getChild("SandboxRealmWindow")->hide();
+    mSandboxScoreShown.clear();
+    mSandboxRoomShown.clear();
+    guiSheet->getChild("HorizontalPipe/SandboxScoreDisplay")->hide();
+    guiSheet->getChild("HorizontalPipe/SandboxRoomDisplay")->hide();
     guiSheet->getChild("SettingsWindow")->hide();
     guiSheet->getChild("SettingsNavigationWindow")->setModalState(false);
     guiSheet->getChild("SettingsNavigationWindow")->hide();
@@ -1912,6 +1936,8 @@ void GameMode::onFrameStarted(const Ogre::FrameEvent& evt)
         waveCountdownDisplay->show();
     }
 
+    updateSandboxStatus();
+
     if((mSkillCurrentCompletion.mProgressBar != nullptr) &&
        (mSkillCurrentCompletion.mCompletenessDisplayed < mSkillCurrentCompletion.mCompleteness))
     {
@@ -2126,6 +2152,96 @@ bool GameMode::startSandboxSingleInvasion(const CEGUI::EventArgs&)
 bool GameMode::startSandboxContinualInvasion(const CEGUI::EventArgs&)
 {
     ODClient::getSingleton().queueClientNotification(ClientNotificationType::askSandboxInvasion, true);
+    return true;
+}
+
+void GameMode::updateSandboxStatus()
+{
+    if(!mGameMap->isSandbox())
+        return;
+
+    ODClient& client = ODClient::getSingleton();
+    const ODClient::SandboxStatus& status = client.getSandboxStatus();
+    if(status.mIsReceived)
+    {
+        // Score and target, on the HUD and in the sandbox window
+        std::string scoreText = "Score " + Helper::toString(status.mScore);
+        if(status.mTarget > 0)
+            scoreText += " / " + Helper::toString(status.mTarget);
+
+        if(scoreText != mSandboxScoreShown)
+        {
+            mSandboxScoreShown = scoreText;
+            CEGUI::Window* scoreDisplay = mRootWindow->getChild("HorizontalPipe/SandboxScoreDisplay");
+            scoreDisplay->setText(scoreText);
+            scoreDisplay->show();
+            mRootWindow->getChild("SandboxWindow/ScoreText")->setText(scoreText);
+            std::string bonusText;
+            for(const ODClient::SandboxBonusStatus& bonus : status.mBonuses)
+            {
+                if(!bonusText.empty())
+                    bonusText += "\n";
+
+                if(bonus.mAwarded)
+                    bonusText += "[done] " + bonus.mText;
+                else
+                    bonusText += "+" + Helper::toString(bonus.mPoints) + ": " + bonus.mText;
+            }
+            mRootWindow->getChild("SandboxWindow/BonusText")->setText(bonusText);
+        }
+
+        // The next room and the time until it becomes available
+        std::string roomText;
+        if(!status.mNextRoom.empty())
+        {
+            roomText = status.mNextRoom;
+            if(status.mSecondsLeft > 0)
+                roomText += " in " + formatCountdownTime(status.mSecondsLeft);
+        }
+
+        if(roomText != mSandboxRoomShown)
+        {
+            mSandboxRoomShown = roomText;
+            CEGUI::Window* roomDisplay = mRootWindow->getChild("HorizontalPipe/SandboxRoomDisplay");
+            roomDisplay->setText(roomText);
+            roomDisplay->setVisible(!roomText.empty());
+            mRootWindow->getChild("SandboxWindow/RoomTimerText")->setText(roomText.empty() ? "" : "Next room: " + roomText);
+        }
+    }
+
+    if(client.hasSandboxRealmComplete())
+    {
+        mSandboxNextLevel = client.getSandboxNextLevel();
+        if(!client.getSandboxRealmId().empty())
+            SandboxProgress::markCompleted(client.getSandboxRealmId());
+
+        CEGUI::Window* realmWindow = mRootWindow->getChild("SandboxRealmWindow");
+        realmWindow->getChild("RealmText")->setText(client.getSandboxRealmText());
+        // The last realm has no next one to go to
+        realmWindow->getChild("NextRealmButton")->setVisible(!mSandboxNextLevel.empty());
+        realmWindow->getChild("StayButton")->setText(mSandboxNextLevel.empty() ? "Continue" : "Stay here");
+        realmWindow->show();
+        realmWindow->moveToFront();
+        client.clearSandboxRealmComplete();
+    }
+}
+
+bool GameMode::onSandboxNextRealm(const CEGUI::EventArgs&)
+{
+    mRootWindow->getChild("SandboxRealmWindow")->hide();
+    if(mSandboxNextLevel.empty())
+        return true;
+
+    // The main menu starts the level once this mode has been left and the running server and client have been stopped
+    ODFrameListener::getSingleton().setPendingRestartLevel(ResourceManager::getSingleton().getGameDataPath()
+        + "levels/" + mSandboxNextLevel);
+    mModeManager->requestMode(AbstractModeManager::MENU_MAIN);
+    return true;
+}
+
+bool GameMode::onSandboxStay(const CEGUI::EventArgs&)
+{
+    mRootWindow->getChild("SandboxRealmWindow")->hide();
     return true;
 }
 
