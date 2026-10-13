@@ -16,10 +16,13 @@
  */
 
 #include "rooms/RoomTorture.h"
+#include "game/SkillManager.h"
+#include "game/SkillType.h"
 
 #include "creatureaction/CreatureActionUseRoom.h"
 #include "entities/BuildingObject.h"
 #include "entities/Creature.h"
+#include "entities/CreatureDefinition.h"
 #include "entities/GameEntityType.h"
 #include "entities/Tile.h"
 #include "game/Player.h"
@@ -27,6 +30,7 @@
 #include "gamemap/GameMap.h"
 #include "network/ODServer.h"
 #include "network/ServerNotification.h"
+#include "ODApplication.h"
 #include "rooms/RoomManager.h"
 #include "utils/ConfigManager.h"
 #include "utils/Helper.h"
@@ -284,6 +288,23 @@ void RoomTorture::removeCreatureUsingRoom(Creature* creature)
     infoToUse->mState = 0;
 }
 
+//! \brief Torture time multipliers in percent for the creature levels 1 to 10 (higher levels use the last one)
+static const double TORTURE_LEVEL_PERCENT[] = {100.0, 105.0, 110.0, 115.0, 120.0, 130.0, 140.0, 150.0, 200.0, 300.0};
+
+//! \brief Computes how many turns a creature must be tortured before it changes side.
+//! \param creature The tortured creature; its kind and level set the time
+//! \param torturingSeat The seat that tortures it; its torture research makes the conversion faster
+//! \return The number of turns of torture needed
+static double tortureTurnsToConvert(const Creature& creature, const Seat* torturingSeat)
+{
+    uint32_t nbLevels = sizeof(TORTURE_LEVEL_PERCENT) / sizeof(TORTURE_LEVEL_PERCENT[0]);
+    uint32_t index = std::min(std::max(creature.getLevel(), 1u), nbLevels) - 1;
+    double seconds = creature.getDefinition()->getTortureTimeToConvert() * TORTURE_LEVEL_PERCENT[index] / 100.0;
+    // The torture research makes the conversion faster
+    double speed = SkillManager::getResearchValue(torturingSeat, SkillType::roomTorture, 1.0);
+    return seconds * ODApplication::turnsPerSecond / speed;
+}
+
 void RoomTorture::doUpkeep()
 {
     Room::doUpkeep();
@@ -307,9 +328,63 @@ void RoomTorture::doUpkeep()
             break;
         }
         creature->increaseTurnsTorture();
-        double damage = config.getRoomConfigDouble("TortureDamagePerTurn");
+        double damage = creature->getMaxHp() * config.getRoomConfigDouble("TortureDamagePercentPerSecond") / ODApplication::turnsPerSecond;
+        if(creature->getHP() <= damage)
+            revealEnemyInformation(*creature);
+
         creature->takeDamage(this, damage, 0.0, 0.0, 0.0, tileCreature, false);
+    }
+}
+
+//! \brief A tortured enemy creature that is about to die gives away one room of its owner that was not seen yet.
+//! \param creature The tortured creature
+void RoomTorture::revealEnemyInformation(Creature& creature)
+{
+    if(creature.getSeat() == getSeat())
+        return;
+
+    // AI seats see every tile anyway
+    if((getSeat()->getPlayer() == nullptr) || !getSeat()->getPlayer()->getIsHuman())
+        return;
+
+    // The first room of the victim's owner whose first tile this seat has not seen yet is
+    // revealed completely and for good (it stays known like any explored tile)
+    Room* roomToReveal = nullptr;
+    const std::vector<Room*>& rooms = getGameMap()->getRooms();
+    for(Room* room : rooms)
+    {
+        if(room->getSeat() != creature.getSeat())
+            continue;
+
+        if(room->getHP(nullptr) <= 0.0)
+            continue;
+
+        Tile* firstTile = room->getCoveredTile(0);
+        if(firstTile == nullptr)
+            continue;
+
+        if(getSeat()->hasSeenTile(firstTile))
+            continue;
+
+        roomToReveal = room;
         break;
+    }
+    if(roomToReveal == nullptr)
+        return;
+
+    OD_LOG_INF("Torture information: seat " + Helper::toString(getSeat()->getId()) + " reveals room "
+        + roomToReveal->getName() + " of seat " + Helper::toString(creature.getSeat()->getId()));
+    getSeat()->revealTiles(roomToReveal->getCoveredTiles(), 1);
+
+    if((getSeat()->getPlayer() != nullptr) &&
+       getSeat()->getPlayer()->getIsHuman() &&
+       !getSeat()->getPlayer()->getHasLost())
+    {
+        ServerNotification *serverNotification = new ServerNotification(
+            ServerNotificationType::chatServer, getSeat()->getPlayer());
+        std::string msg = "A tortured prisoner has given away an enemy room";
+        serverNotification->mPacket << msg << EventShortNoticeType::aboutCreatures;
+        ODServer::getSingleton().queueServerNotification(serverNotification);
     }
 }
 
@@ -337,11 +412,13 @@ bool RoomTorture::useRoom(Creature& creature, bool forced)
         // The creature is on the good tile
         p.second.mIsReady = true;
 
+        // An enemy changes side once it has been tortured long enough for its kind and level
         if((getSeat() != creature.getSeat()) &&
-           (Random::Double(0.0, 1.0) <= config.getRoomConfigDouble("TortureRallyPercent")))
+           (static_cast<double>(creature.getNbTurnsTorture()) >= tortureTurnsToConvert(creature, getSeat())))
         {
             // The creature changes side
             creature.changeSeat(getSeat());
+            getSeat()->getStatistics().mCreaturesConverted++;
             creature.clearActionQueue();
 
             // We return false because we don't want to choose an action before a next complete turn

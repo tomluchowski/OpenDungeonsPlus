@@ -77,8 +77,11 @@ protected:
         mNbTurnsEffect(0)
     {}
 
-private:
+    //! Number of turns the effect lasts. Protected so that derived effects (Defector, Hexen Hen) can check the remaining
+    //! time and end themselves early.
     int32_t mNbTurnsEffect;
+
+private:
     std::string mParticleEffectScript;
 };
 

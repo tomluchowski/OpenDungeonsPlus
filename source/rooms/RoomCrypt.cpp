@@ -16,6 +16,8 @@
  */
 
 #include "rooms/RoomCrypt.h"
+#include "game/SkillManager.h"
+#include "game/SkillType.h"
 
 #include "entities/BuildingObject.h"
 #include "entities/Creature.h"
@@ -230,7 +232,8 @@ void RoomCrypt::doUpkeep()
         ConfigManager& configManager = ConfigManager::getSingleton();
 
         ++p.second.second;
-        if(p.second.second < configManager.getRoomConfigInt32("CryptRotNbTurns"))
+        if(p.second.second < std::max(1.0, std::round(SkillManager::getResearchValue(
+            getSeat(), SkillType::roomCrypt, configManager.getRoomConfigInt32("CryptRotNbTurns")))))
             continue;
 
         // We add the rotten creature points to the room and release the active spot

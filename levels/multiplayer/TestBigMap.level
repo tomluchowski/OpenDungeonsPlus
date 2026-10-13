@@ -5975,7 +5975,7 @@ ProtectDungeonTemple	NULL
 9	5
 [/Room]
 [Room]
-1	DungeonTemple11	4	20
+1	DungeonTemple11	4	25
 264	91
 264	92
 264	93
@@ -5996,6 +5996,11 @@ ProtectDungeonTemple	NULL
 267	93
 267	94
 267	95
+268	91
+268	92
+268	93
+268	94
+268	95
 [/Room]
 [Room]
 3	Treasury13	4	5

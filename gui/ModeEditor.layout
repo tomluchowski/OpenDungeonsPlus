@@ -249,6 +249,12 @@
                     <Property name="TooltipText" value="Place gem tiles." />
                     <Property name="InheritsAlpha" value="False" />
                 </Window>
+                <Window type="OD/GameTabButton" name="ManaWellButton" >
+                    <Property name="Area" value="{{0,440},{0,25},{0,500},{0,85}}" />
+                    <Property name="NormalImage" value="OpenDungeonsIcons/GemButton" />
+                    <Property name="TooltipText" value="Place mana well tiles." />
+                    <Property name="InheritsAlpha" value="False" />
+                </Window>
             </Window>
             <LayoutImport type="DefaultWindow" filename="WindowTabRooms.layout" name="RoomsImport" />
             <LayoutImport type="DefaultWindow" filename="WindowTabTraps.layout" name="TrapImport" />

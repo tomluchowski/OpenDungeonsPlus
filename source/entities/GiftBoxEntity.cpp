@@ -23,6 +23,7 @@
 #include "network/ODPacket.h"
 #include "game/Skill.h"
 #include "gamemap/GameMap.h"
+#include "giftboxes/GiftBoxBonus.h"
 #include "giftboxes/GiftBoxSkill.h"
 #include "utils/Helper.h"
 #include "utils/LogManager.h"
@@ -41,6 +42,13 @@ GiftBoxEntity::GiftBoxEntity(GameMap* gameMap, const std::string& baseName, cons
 GiftBoxEntity::GiftBoxEntity(GameMap* gameMap) :
     RenderedMovableEntity(gameMap),
     mGiftBoxType(GiftBoxType::nbTypes)
+{
+}
+
+//! \brief Creates a gift box whose type is already known, used when loading from a stream
+GiftBoxEntity::GiftBoxEntity(GameMap* gameMap, GiftBoxType type) :
+    RenderedMovableEntity(gameMap),
+    mGiftBoxType(type)
 {
 }
 
@@ -70,6 +78,13 @@ GiftBoxEntity* GiftBoxEntity::getGiftBoxEntityFromStream(GameMap* gameMap, std::
     {
         case GiftBoxType::skill:
             entity = new GiftBoxSkill(gameMap);
+            break;
+
+        case GiftBoxType::mana:
+        case GiftBoxType::gold:
+        case GiftBoxType::revealMap:
+        case GiftBoxType::levelUp:
+            entity = new GiftBoxBonus(gameMap, type);
             break;
 
         default:

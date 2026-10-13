@@ -22,6 +22,7 @@
 #define CREATURE_H
 
 #include "entities/MovableGameEntity.h"
+#include "entities/CreatureActivity.h"
 #include "eventsystem/CreatureMoved.h"
 #include "eventsystem/Subject.h"
 
@@ -187,6 +188,8 @@ public:
 
     inline CreatureMoodLevel getMoodValue() const
     { return mMoodValue; }
+
+    CreatureActivity getActivity() const;
 
     inline int32_t getNbTurnFurious() const
     { return mNbTurnFurious; }
@@ -406,6 +409,10 @@ public:
     void slap() override;
 
     void fireCreatureSound(CreatureSound sound);
+    void fireCombatImpact(bool weaponClash, bool bodyDamage,
+        const Ogre::Vector3& attackerPosition);
+    void fireChickenFeeding(const std::string& chickenName,
+        const Ogre::Vector3& chickenPosition);
 
     void itsPayDay();
 
@@ -473,6 +480,13 @@ public:
     inline void setNbTurnsWithoutBattle(int32_t nbTurnsWithoutBattle)
     { mNbTurnsWithoutBattle = nbTurnsWithoutBattle; }
 
+    //! \brief Mood points the casino gave to the creature (positive) or took from it (negative). Fades over time
+    inline double getCasinoMood() const
+    { return mCasinoMood; }
+
+    //! \brief Changes the casino mood points. They are limited by the CasinoMoodMax room setting
+    void addCasinoMood(double points);
+
     inline GameEntity* getCarriedEntity() const
     { return mCarriedEntity; }
 
@@ -509,6 +523,23 @@ public:
 
     bool removeCreatureEffect(CreatureEffect* effectForDeletion);
 
+    //! \brief Returns true (server side) if the creature is temporarily converted by the Defector spell
+    bool isDefector() const;
+
+    //! \brief Returns true if the creature is temporarily turned into a chicken by the Hexen Hen spell. On server
+    //! side, it is deduced from the active effect. On client side, from the state sent by the server
+    bool isHexenHen() const;
+
+    //! \brief Name of the mesh to display (the chicken mesh while the creature is a chicken)
+    const std::string& getCurrentMeshName() const;
+
+    //! \brief Called on server side to tell that something changed that needs to be sent to the clients
+    void requestRefresh()
+    { mNeedFireRefresh = true; }
+
+    //! \brief Called on client side. Replaces the displayed mesh if the chicken state changed
+    void updateHexenHenMesh();
+
     //!\brief Returns true if the creature has an active slap effect
     bool hasSlapEffect() const
     { return mActiveSlapsCount > 0; }
@@ -535,13 +566,17 @@ public:
 
     //! Checks if the creature current walk path is still valid. This will be called if tiles passability changes (for
     //! example if a door is closed)
-    void checkWalkPathValid();
+    void checkWalkPathValid(bool includeWalkDistortion = false);
 
     bool isTired() const;
 
     bool isHungry() const;
 
     void resetKoTurns();
+
+    //! \brief Knocks the creature down for the given number of turns (server side). Does nothing if dead or KO.
+    //! \param nbTurns How many turns the creature stays knocked down; values of zero or less are ignored.
+    void stun(int32_t nbTurns);
 
     //! \brief Called when the creature is set in jail by dropping or brought by
     //! a worker. if prison is nullptr, the creature is freed
@@ -552,6 +587,13 @@ public:
 
     inline bool isInContainment() const
     { return (mSeatPrison != nullptr); }
+
+    //! \brief Mood relief the creature got from praying in a temple. It fades over time
+    inline int32_t getPrayerRelief() const
+    { return mPrayerRelief; }
+
+    //! \brief Adds relief from praying, up to maxRelief
+    void addPrayerRelief(int32_t relief, int32_t maxRelief);
 
     inline int32_t getNbTurnsTorture() const
     { return mNbTurnsTorture; }
@@ -707,6 +749,9 @@ private:
     CEGUI::Window*  mStatsWindow;
     int32_t         mNbTurnsWithoutBattle;
 
+    //! \brief Used on server side for the mood. Set by the casino, fades by CasinoMoodDecay per second
+    double          mCasinoMood;
+
     //! \brief Every tiles within the creature sight radius, used for common actions.
     std::vector<Tile*>              mTilesWithinSightRadius;
 
@@ -732,9 +777,13 @@ private:
     //! \brief Mood value. Depending on this value, the creature will be in bad mood and
     //! might attack allied creatures or refuse to work or to go to combat
     CreatureMoodLevel               mMoodValue;
+    CreatureActivity                mActivity;
     //! \brief Mood points. Computed by the creature MoodModifiers. It is promoted to class variable for debug purposes and
     //! should not be used to check mood. If the mood is to be tested, mMoodValue should be used
     int32_t                         mMoodPoints;
+
+    //! \brief Mood points gained by praying in a temple. They fade every turn
+    int32_t                         mPrayerRelief;
 
     //! \brief Counts turns the creature is furious. If it stays like this for too long, it will become rogue
     int32_t                         mNbTurnFurious;
@@ -788,6 +837,12 @@ private:
     //! \brief Counts the number of active slaps affecting the creature
     uint32_t                        mActiveSlapsCount;
 
+    //! \brief Used on client side. True if the server told us that the creature is a chicken
+    bool                            mIsHexenHen;
+
+    //! \brief Used on client side. True if the mesh currently displayed is the chicken one
+    bool                            mHexenHenMeshShown;
+
     //! \brief Skills the creature can use
     std::vector<CreatureSkillData> mSkillData;
 
@@ -795,6 +850,12 @@ private:
     //! This one checks if there is something prioritary to do (like fighting). If it is the case,
     //! it should empty the action list before adding what to do.
     void decidePrioritaryAction();
+
+    //! \brief A sub-function called by doTurn()
+    //! While the seat's heart defence is on, the runners (the workers and the two cheap,
+    //! fast scout creatures) drop their current job and run to the seat's fighters, or to
+    //! the heart while it is damaged. A runner that is already fighting or fleeing keeps doing so.
+    void handleHeartDefence();
 
     //! \brief A sub-function called by doTurn()
     //! This functions will handle the creature idle action logic.
@@ -808,7 +869,15 @@ private:
 
     void computeMood();
 
+    void exportMoodToPacket(ODPacket& os, const Seat* seat) const;
+    void importMoodFromPacket(ODPacket& is);
+    void exportActivityToPacket(ODPacket& os, const Seat* seat) const;
+    void importActivityFromPacket(ODPacket& is);
+
     void computeCreatureOverlayMoodValue();
+
+    //! \brief Called on server side each turn when the creature is a chicken. It only wanders around
+    void handleHexenHenUpkeep();
 };
 
 #endif // CREATURE_H
