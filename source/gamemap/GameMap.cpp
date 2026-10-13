@@ -1290,6 +1290,7 @@ unsigned long int GameMap::doMiscUpkeep(double timeSinceLastTurn)
         spell->computeVisibleTiles();
     }
 
+    // Tiles revealed by game events (like a tortured creature) stay visible for their number of turns
     for (Seat* seat : mSeats)
         seat->applyRevealedTiles();
 

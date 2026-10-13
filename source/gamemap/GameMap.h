@@ -308,6 +308,7 @@ public:
 
     //! \brief The triggers and actions of the level ([Triggers] section of the level file)
     LevelScript& getLevelScript();
+    //! \brief Read-only access to the triggers and actions of the level, for code that does not change the script
     const LevelScript& getLevelScript() const;
 
     bool withdrawFromTreasuries(int gold, Seat* seat);
