@@ -28,7 +28,8 @@ import tempfile
 import xml.etree.ElementTree as ET
 
 CLIPS = ("Lay", "Flutter")
-CLIP_NAMES = ["Crow", "Die", "Flutter", "Hatch", "Idle", "Lay", "Paw", "Peep", "Pick", "Run", "Sleep", "Walk"]
+CLIP_NAMES = ["Crow", "Die", "Dismount", "Duck", "Flutter", "Hatch", "Idle", "Lay", "Mount", "MountCycle", "Paw", "Peep", "Pick",
+              "Run", "Sleep", "Tread", "Walk"]
 BONE_COUNT = 22
 
 

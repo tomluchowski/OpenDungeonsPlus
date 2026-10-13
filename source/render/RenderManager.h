@@ -411,6 +411,8 @@ private:
         Ogre::Bone* mSpine = nullptr;
         CreatureFeedingLimb mArms[2] = {};
         CreatureFeedingLimb mLegs[2] = {};
+        //! The eaten animal is a rooster: its feathers have the colours of the rooster
+        bool mRoosterFeathers = false;
     };
     std::vector<CreatureFeedingAnimation> mCreatureFeedingAnimations;
 
@@ -437,6 +439,12 @@ private:
         ChickenEntity* mFightPartner;
         bool mFightLeader;
         Ogre::Real mFightTimer;
+        //! The hen the rooster climbs on while he mounts (set when the pose starts, null when none is near)
+        ChickenEntity* mMountPartner;
+        //! How far the hen is ducked down under the rooster (0 to 1), set by the rooster every frame
+        Ogre::Real mMountCrouch;
+        //! The clip phase of the rooster while he mounts: 1 climbing on, 2 treading, 3 climbing down (0 when not mounting)
+        int mMountPhase;
         //! The egg lies in a nest of a coop: its own straw is hidden, the nest has straw
         bool mNestEgg;
     };

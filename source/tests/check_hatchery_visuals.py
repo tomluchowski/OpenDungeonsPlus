@@ -159,6 +159,26 @@ assert 'mNest' not in body(looks, 'void RenderManager::rrDestroyCoopDecor'), 'th
 for name in (b'Lay', b'Flutter', b'Peep', b'Run', b'Crow', b'Hatch', b'Die', b'Pick', b'Paw', b'Sleep', b'Walk', b'Idle'):
     assert name in skeleton, name
 assert 'return "Lay"' in pose and 'return "Flutter"' in pose and 'isOneShotClip' in pose
+# Mating clips: the rooster plays Mount, Tread (looped) and Dismount by the phase of the pose, the hen ducks, once
+for name in (b'MountCycle', b'Mount', b'Tread', b'Dismount', b'Duck'):
+    assert name in skeleton, name
+assert 'return "Mount"' in pose and 'return "Duck"' in pose and '(clip == "Mount")' in pose and '(clip == "Dismount")' in pose
+assert '(clip == "Tread")' not in pose
+update = body(looks, 'void RenderManager::updateChickenLooks')
+assert 'hasAnimation("Tread")' in update and '{"Mount", "Tread", "Dismount"}' in update and 'phase == 2' in update
+# The phases fit the clips: Mount 0.4 s, Tread 2 x 0.55 s, Dismount 0.4 s = the 1.9 s of the pose and of the Duck clip
+clips = (root / 'tools/blender-assets/hatchery_clips.py').read_text()
+for line in ('MOUNT_SECONDS = 0.4', 'TREAD_SECONDS = 0.55', 'DISMOUNT_SECONDS = 0.4', 'DUCK_SECONDS = 1.9', 'TREAD_CYCLES = 2'):
+    assert line in clips, line
+assert 'MOUNT_CLIMB_SECONDS = 0.4f' in looks and 'MOUNT_SECONDS = 1.9f' in looks
+# With the Duck clip the procedural duck of the hen (MOUNT_HEN_CROUCH) is not added again
+assert 'look.mMountCrouch > 0.0f) && look.mEntity->getSkeleton()->hasAnimation("Duck")' in update
+# Feathers are real feather particles in the plumage of the animal, the old sliver shader is gone
+assert not (root / 'shaders/ChickenFeather.vert').exists() and not (root / 'shaders/ChickenFeather.frag').exists()
+assert 'ChickenFeather.png' in (root / 'materials/scripts/ChickenFeathers.material').read_text()
+assert 'particle_system ChickenFeathersRooster' in (root / 'particles/ChickenFeathers.particle').read_text()
+assert 'featherSystem(' in looks and 'CHICKEN_FEATHER_EFFECT_DURATION' in (root / 'source/render/RenderManager.cpp').read_text()
+assert 'ChickenFeather.png' in credits and 'gen_chicken_feather.py' in credits and 'clips Duck, Mount, Tread, Dismount' in credits
 assert 'ChickenPose::isOneShotClip(clip)' in hook and 'hasAnimation(clip)' in hook
 assert 'hasAnimation("Lay")' in looks and 'hasAnimation("Flutter")' in looks
 assert 'stretch = Ogre::Vector3(1.14f, 1.1f' in looks and 'lift = 0.14f * rise' in looks
@@ -187,6 +207,23 @@ if shutil.which('OgreXMLConverter') is not None:
     assert abs(min(lay_hip) + 0.05) < 0.002, min(lay_hip)
     assert abs(max(flutter_root) - 0.075) < 0.002, max(flutter_root)
     assert max(abs(v) for v in frame_fix.track_values(skeleton_xml, 'Lay', 'Hip', 'y')) < 0.002
+    # The Lay clip is as long as the Lay pose of the server (HatcheryLayShowTurns turns of 1 / turnsPerSecond seconds)
+    import re
+    show_turns = max(2, int(re.search(r'^\s*HatcheryLayShowTurns\s+(\d+)', config, re.M).group(1)))
+    turns_per_second = float(re.search(r'turnsPerSecond = ([0-9.]+);', (root / 'source/ODApplication.cpp').read_text()).group(1))
+    lay = [a for a in skeleton_xml.find('animations').findall('animation') if a.get('name') == 'Lay'][0]
+    assert abs(float(lay.get('length')) - show_turns / turns_per_second) < 0.01, lay.get('length')
+    last_times = set()
+    for track in lay.find('tracks').findall('track'):
+        last_times.add(round(float(track.find('keyframes').findall('keyframe')[-1].get('time')), 3))
+    assert last_times == {round(float(lay.get('length')), 3)}, last_times
+    # Idle starts on the pose of its second frame (the first frame used to be a one frame glitch with the hip sunk)
+    idle = [a for a in skeleton_xml.find('animations').findall('animation') if a.get('name') == 'Idle'][0]
+    for track in idle.find('tracks').findall('track'):
+        first, second = track.find('keyframes').findall('keyframe')[:2]
+        assert first.get('time') == '0', track.get('bone')
+        for tag in ('translate', 'rotate'):
+            assert first.find(tag).attrib == second.find(tag).attrib, (track.get('bone'), tag)
 else:
     print('OgreXMLConverter not on the PATH: skeleton frame check skipped')
 print('hatchery coop and hen clip checks passed')

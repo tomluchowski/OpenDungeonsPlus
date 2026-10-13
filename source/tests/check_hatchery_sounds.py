@@ -29,6 +29,8 @@ begin = begin[:begin.index('\n}\n')]
 assert 'if(plan.mMood == RoosterMood::crow)' in begin and 'fireAnimalSound(*rooster, "Hatchery/Crow")' in begin
 assert room.count('fireAnimalSound(*rooster, "Hatchery/Crow")') == 1, 'the roof crow is the only mood that crows'
 assert 'fireAnimalSound(*winner, "Hatchery/Crow")' in room, 'the winner of a fight crows'
+# the hen caught by the rooster cackles
+assert 'fireAnimalSound(*target, "Hatchery/Cluck")' in room
 # the chick peeps now and then, with the chance from the config
 assert 'mChickPeepChance' in room and 'HatcheryChickPeepChance' in (root / 'config/rooms.cfg').read_text()
 # the rooster does not call the hens: there is no food call sound (files, credits, code)
