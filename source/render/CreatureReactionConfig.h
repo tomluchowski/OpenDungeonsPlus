@@ -373,6 +373,14 @@ public:
     inline double getInteractionPause() const
     { return mInteractionPause; }
 
+    //! Which arm shows the blow of a creature with an attack weapon in each hand (TwoWeaponStrike::MODE_*)
+    inline uint32_t getTwoWeaponMode() const
+    { return mTwoWeaponMode; }
+
+    //! Strength of the arm movement of the blows of a creature with two weapons (1 = like one weapon)
+    inline double getTwoWeaponArmStrength() const
+    { return mTwoWeaponArmStrength; }
+
     //! Archers take the arrow from the pulling hand and draw it with the hand (false: straight back on the bow)
     inline bool getArrowFollowsHand() const
     { return mArrowFollowsHand; }
@@ -504,6 +512,8 @@ private:
 
     //! \brief Seconds a creature pauses after an interaction before it can take part in another
     double mInteractionPause;
+    uint32_t mTwoWeaponMode;
+    double mTwoWeaponArmStrength;
     bool mArrowFollowsHand;
     double mArrowPullDistance;
     double mArrowDrawTime;

@@ -22,7 +22,7 @@ ROOMS = ("Hatchery", "Treasury", "Portal", "Dormitory", "Library", "Workshop", "
 SETTINGS = ("MaxSimultaneous", "MaxCameraDistance", "GroupStaggerMin", "GroupStaggerMax", "DefaultGroup",
             "MoodInterval", "MoodPerTick", "MoodWalkingChance", "ImpatientAfter", "ProudSeconds", "BoredAfter",
             "AmbientAfter", "SitAfter", "LieAfter", "LookRadius", "InteractionChance", "InteractionRadius",
-            "InteractionPause", "ArrowFollowsHand",
+            "InteractionPause", "TwoWeaponMode", "TwoWeaponArmStrength", "ArrowFollowsHand",
             "ArrowPullDistance", "ArrowDrawTime", "ArrowRetakeGap", "ArrowReloadTime", "ArrowHandOffset",
             "CrossbowReloadTime", "CrossbowReloadJolt", "WeaponTrail", "WeaponTrailLife",
             "WeaponTrailWidth", "WeaponTrailLength", "WeaponTrailColour", "WeaponTrailBrightness",

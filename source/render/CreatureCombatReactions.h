@@ -47,6 +47,10 @@ public:
     //! \brief True if the weapon the creature strikes with is a sword (the sword blows of the attack clips)
     static bool carriesSword(const Creature* creature);
 
+    //! \brief True if the creature carries an attack weapon in each hand (two swords, two axes ...). A shield, a
+    //! bow, a staff or a missing weapon in either hand make it false.
+    static bool carriesTwoAttackWeapons(const Creature* creature);
+
     //! \brief The creature runs from a fight: it draws its weapon
     static void noteAlarm(CreatureReactions& reactions, Creature* creature);
 
