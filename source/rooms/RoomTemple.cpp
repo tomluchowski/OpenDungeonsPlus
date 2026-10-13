@@ -23,6 +23,7 @@
 #include "game/Player.h"
 #include "game/Seat.h"
 #include "gamemap/GameMap.h"
+#include "ODApplication.h"
 #include "rooms/RoomManager.h"
 #include "utils/ConfigManager.h"
 #include "utils/LogManager.h"
@@ -118,6 +119,9 @@ static RoomRegister reg(new RoomTempleFactory);
 
 RoomTemple::RoomTemple(GameMap* gameMap) :
     Room(gameMap)
+    Room(gameMap),
+    mTurnsSinceSacrifice(0),
+    mPrayerManaPending(0.0)
 {
     // Placeholder: the crypt look is used until the temple has its own
     setMeshName("Crypt");
@@ -125,7 +129,18 @@ RoomTemple::RoomTemple(GameMap* gameMap) :
 
 bool RoomTemple::hasOpenCreatureSpot(Creature* c)
 {
-    return mCreaturesUsingRoom.size() < mCoveredTiles.size();
+    return mCreaturesUsingRoom.size() < getOuterTiles().size();
+}
+
+std::vector<Tile*> RoomTemple::getOuterTiles() const
+{
+    std::vector<Tile*> outerTiles;
+    for(Tile* tile : mCoveredTiles)
+    {
+        if(!isPoolTile(*tile))
+            outerTiles.push_back(tile);
+    }
+    return outerTiles;
 }
 
 void RoomTemple::removeCreatureUsingRoom(Creature* c)
@@ -146,12 +161,14 @@ Tile* RoomTemple::getPrayerSpotForCreature(Creature& creature)
         mPrayerSpots.erase(it);
     }
 
-    if(mCoveredTiles.empty())
+    // Creatures pray on the outer tiles, the pool is only for sacrifices
+    std::vector<Tile*> outerTiles = getOuterTiles();
+    if(outerTiles.empty())
         return nullptr;
 
     // We prefer a tile where nobody prays yet
     std::vector<Tile*> freeTiles;
-    for(Tile* tile : mCoveredTiles)
+    for(Tile* tile : outerTiles)
     {
         bool isTaken = false;
         for(const std::pair<Creature* const, Tile*>& spot : mPrayerSpots)
@@ -170,7 +187,7 @@ Tile* RoomTemple::getPrayerSpotForCreature(Creature& creature)
     if(!freeTiles.empty())
         spot = freeTiles[Random::Uint(0, freeTiles.size() - 1)];
     else
-        spot = mCoveredTiles[Random::Uint(0, mCoveredTiles.size() - 1)];
+        spot = outerTiles[Random::Uint(0, outerTiles.size() - 1)];
 
     mPrayerSpots[&creature] = spot;
     return spot;
@@ -197,12 +214,18 @@ bool RoomTemple::useRoom(Creature& creature, bool forced)
     }
 
     ConfigManager& configManager = ConfigManager::getSingleton();
-    const CreatureRoomAffinity& creatureRoomAffinity = creature.getDefinition()->getRoomAffinity(getType());
 
     // The creature prays. Its keeper gets mana and the creature feels better
     creature.setAnimationState(EntityAnimation::idle_anim);
     creature.jobDone(configManager.getRoomConfigDouble("TemplePrayerWakefulnessPerTurn"));
-    int32_t mana = static_cast<int32_t>(creatureRoomAffinity.getEfficiency() * configManager.getRoomConfigDouble("TemplePrayerManaPerTurn"));
+    // Each creature type has its own prayer mana per second (TemplePrayerMana<ClassName>), the generic value is the fallback.
+    // The creature prays once per turn, so the rate is converted to turns. Fractions are kept for the next prayer.
+    double defaultManaPerSecond = configManager.getRoomConfigDouble("TemplePrayerManaPerSecond");
+    double manaPerSecond = configManager.getRoomConfigDoubleOrDefault(
+        "TemplePrayerMana" + creature.getDefinition()->getClassName(), defaultManaPerSecond);
+    mPrayerManaPending += manaPerSecond / ODApplication::turnsPerSecond;
+    int32_t mana = static_cast<int32_t>(mPrayerManaPending);
+    mPrayerManaPending -= mana;
     getGameMap()->addManaToSeat(mana, getSeat()->getId());
     creature.addPrayerRelief(configManager.getRoomConfigInt32("TemplePrayerReliefPerTurn"),
         configManager.getRoomConfigInt32("TemplePrayerReliefMax"));
