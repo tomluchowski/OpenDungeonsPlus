@@ -24,7 +24,9 @@
 #ifndef GUI_H_
 #define GUI_H_
 
+#include <CEGUI/Event.h>
 #include <CEGUI/InputEvent.h>
+#include <CEGUI/Window.h>
 
 #include <OISMouse.h>
 
@@ -85,7 +87,28 @@ public:
 
     CEGUI::Window* getGuiSheet(guiSheet sheet);
 
+    //! \brief Move CEGUI rendering to another Ogre render target.
+    void setRenderTarget(Ogre::RenderTarget& renderTarget);
+
+    enum
+    {
+        MIN_UI_SCALE_PERCENT = 80,
+        MAX_UI_SCALE_PERCENT = 120
+    };
+
+    //! \brief Registers a window tree for resolution-independent scaling.
+    void registerWindowHierarchy(CEGUI::Window* window);
+
+    //! \brief Creates a fixed size information window with a text area named "TextDisplay" from
+    //! WindowStats.layout, registered for scaling. The caller adds it to the root window.
+    CEGUI::Window* createInfoWindow(const std::string& name);
+
+    //! \brief Sets the user-selected UI scale and applies it immediately.
+    void setUserScalePercent(float scalePercent);
+
     // Access names of the GUI elements
+    //! Name of the text area inside the window created by createInfoWindow().
+    static const std::string INFO_WINDOW_TEXT;
     static const std::string ROOT;
     static const std::string DISPLAY_GOLD;
     static const std::string DISPLAY_MANA;
@@ -152,9 +175,33 @@ public:
     bool playButtonClickSound(const CEGUI::EventArgs& e = {});
 
 private:
+    struct WindowScaleData
+    {
+        CEGUI::URect area;
+        CEGUI::USize minSize;
+        CEGUI::USize maxSize;
+        CEGUI::String text;
+        CEGUI::UDim tabHeight;
+        bool hasFormattedImageSize;
+        bool hasTabHeight;
+    };
+
     std::map<guiSheet, CEGUI::Window*> mSheets;
+    std::map<CEGUI::Window*, WindowScaleData> mScaledWindows;
+
+    float mUserScale;
+
+    CEGUI::Event::ScopedConnection mDisplaySizeChangedConnection;
+    CEGUI::Event::ScopedConnection mWindowDestroyedConnection;
 
     SoundEffectsManager* mSoundEffectsManager;
+
+    bool onDisplaySizeChanged(const CEGUI::EventArgs& e);
+    bool onWindowDestroyed(const CEGUI::EventArgs& e);
+    void registerWindow(CEGUI::Window* window);
+    void applyScale(const CEGUI::Sizef& displaySize);
+    void applyScale(CEGUI::Window* window, const WindowScaleData& data, float scale);
+    void updateResourceScaling(const CEGUI::Sizef& displaySize);
 };
 
 #endif // GUI_H_
