@@ -379,6 +379,16 @@ BOOST_AUTO_TEST_CASE(test_RoosterDecide)
     BOOST_CHECK(HatcheryRooster::decide(context, settings).mMood == RoosterMood::lead);
     context.mRoll = settings.mChasePercent + settings.mLeadPercent;
     BOOST_CHECK(HatcheryRooster::decide(context, settings).mMood == RoosterMood::perch);
+    // He calls the hens to food, only when there is a hen
+    context.mRoll = settings.mChasePercent + settings.mLeadPercent + settings.mPerchPercent;
+    plan = HatcheryRooster::decide(context, settings);
+    BOOST_CHECK(plan.mMood == RoosterMood::call);
+    BOOST_CHECK_EQUAL(plan.mTurns, settings.mCallTurns);
+    context.mHasHen = false;
+    BOOST_CHECK(HatcheryRooster::decide(context, settings).mMood == RoosterMood::strut);
+    context.mHasHen = true;
+    context.mRoll = settings.mChasePercent + settings.mLeadPercent + settings.mPerchPercent + settings.mCallPercent;
+    BOOST_CHECK(HatcheryRooster::decide(context, settings).mMood == RoosterMood::strut);
 
     // Without a hen, chick or coop those moods are not chosen
     context.mHasHen = false;

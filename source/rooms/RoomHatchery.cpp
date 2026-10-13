@@ -407,6 +407,21 @@ void RoomHatchery::doUpkeep()
     for(ChickenEntity* oneRooster : roosters)
         updateRooster(oneRooster, hens, chicks, roosterSettings);
 
+    // The hens run to the rooster while he calls them to food, otherwise they go their own way
+    ChickenEntity* caller = nullptr;
+    for(ChickenEntity* oneRooster : roosters)
+    {
+        if((oneRooster->getMood() == RoosterMood::call) && !oneRooster->isOnRoof())
+            caller = oneRooster;
+    }
+    for(ChickenEntity* hen : hens)
+    {
+        if((caller != nullptr) && !hen->isBusy() && !night)
+            hen->setFollowTarget(Ogre::Vector2(caller->getPosition().x, caller->getPosition().y), 0.4);
+        else
+            hen->clearFollowTarget();
+    }
+
     // Coops are the last resort: only when there is no hen, chick or egg at all
     if(HatcheryCycle::needCoopHen(counts, mNumActiveSpots))
     {
@@ -441,6 +456,8 @@ RoosterSettings RoomHatchery::getRoosterSettings() const
     settings.mChaseTurns = static_cast<uint32_t>(config.getRoomConfigDoubleOrDefault("HatcheryRoosterChaseTurns", settings.mChaseTurns));
     settings.mGuardTurns = static_cast<uint32_t>(config.getRoomConfigDoubleOrDefault("HatcheryRoosterGuardTurns", settings.mGuardTurns));
     settings.mLeadTurns = static_cast<uint32_t>(config.getRoomConfigDoubleOrDefault("HatcheryRoosterLeadTurns", settings.mLeadTurns));
+    settings.mCallPercent = static_cast<uint32_t>(config.getRoomConfigDoubleOrDefault("HatcheryRoosterCallPercent", settings.mCallPercent));
+    settings.mCallTurns = static_cast<uint32_t>(config.getRoomConfigDoubleOrDefault("HatcheryRoosterCallTurns", settings.mCallTurns));
     settings.mDayTurns = static_cast<uint32_t>(config.getRoomConfigDoubleOrDefault("HatcheryDayTurns", settings.mDayTurns));
     settings.mNightPercent = static_cast<uint32_t>(config.getRoomConfigDoubleOrDefault("HatcheryNightPercent", settings.mNightPercent));
     return settings;
@@ -591,6 +608,11 @@ void RoomHatchery::actRoosterMood(ChickenEntity* rooster, const std::vector<Chic
             if(!rooster->isMoving() && (Random::Int(1, 3) == 1))
                 rooster->playPose(ChickenPose::lead, 2);
             break;
+        case RoosterMood::call:
+            // Scratches the ground while the hens and chicks gather around him
+            if(!rooster->isMoving() && (Random::Int(1, 2) == 1))
+                rooster->playPose(ChickenPose::lead, 2);
+            break;
         case RoosterMood::chase:
         {
             ChickenEntity* target = nullptr;
@@ -700,7 +722,7 @@ void RoomHatchery::updateChickLine(const std::vector<ChickenEntity*>& hens, cons
 
     // The animal in front of the line: the rooster when he leads, otherwise the nearest hen (or the rooster)
     ChickenEntity* leader = nullptr;
-    if((rooster != nullptr) && (rooster->getMood() == RoosterMood::lead))
+    if((rooster != nullptr) && ((rooster->getMood() == RoosterMood::lead) || (rooster->getMood() == RoosterMood::call)))
         leader = rooster;
     else
     {

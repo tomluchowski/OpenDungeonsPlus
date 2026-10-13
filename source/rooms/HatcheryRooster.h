@@ -29,7 +29,8 @@ enum class RoosterMood : uint32_t
     chase,  //! Runs after a hen
     guard,  //! Defends the flock against a threat
     lead,   //! Leads the chicks
-    roost   //! Sleeps (on the roof if possible)
+    roost,  //! Sleeps (on the roof if possible)
+    call    //! Scratches up food and calls the hens (and chicks) to him
 };
 
 //! \brief Times, chances and the length of the day for the rooster, read from the config.
@@ -45,6 +46,8 @@ struct RoosterSettings
         mChaseTurns(10),
         mGuardTurns(6),
         mLeadTurns(8),
+        mCallPercent(3),
+        mCallTurns(6),
         mDayTurns(1680),
         mNightPercent(30)
     {}
@@ -61,6 +64,9 @@ struct RoosterSettings
     uint32_t mChaseTurns;
     uint32_t mGuardTurns;
     uint32_t mLeadTurns;
+    //! Chance (percent per turn) that the strutting rooster calls the hens to food, and for how many turns.
+    uint32_t mCallPercent;
+    uint32_t mCallTurns;
     //! Turns of a whole day and the part of it (percent, at its end) that is night.
     uint32_t mDayTurns;
     uint32_t mNightPercent;

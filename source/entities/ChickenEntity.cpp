@@ -181,16 +181,19 @@ void ChickenEntity::doUpkeep()
     if(isMoving())
         return;
 
-    // Chicks stay in line behind the animal in front of them
-    if((mKind == ChickenKind::chick) && mFollowing)
+    // Chicks stay in line behind the animal in front of them, hens run to the rooster when he calls them
+    if(((mKind == ChickenKind::chick) || (mKind == ChickenKind::hen)) && mFollowing)
     {
         if(walkToward(mFollowTarget, mFollowGap, EntityAnimation::walk_anim))
             return;
 
-        // Close enough: wait there
+        // Close enough: wait there (a hen pecks at the food)
         if(Ogre::Vector2(getPosition().x, getPosition().y).distance(mFollowTarget) <= mFollowGap + 0.3)
         {
-            setAnimationState(mCalm ? ChickenPose::roost : EntityAnimation::idle_anim, true);
+            if(mKind == ChickenKind::hen)
+                setAnimationState("Pick", true);
+            else
+                setAnimationState(mCalm ? ChickenPose::roost : EntityAnimation::idle_anim, true);
             return;
         }
     }
