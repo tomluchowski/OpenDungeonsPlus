@@ -182,6 +182,8 @@ struct AmbienceEffect
     Ogre::Vector3 mFrom;
     //! Sound family, as in the folders below sounds/Spatial (kind sound)
     std::string mFamily;
+    //! Event effects of the kind particle: sound family played when the effect starts (only in the mode full)
+    std::string mSound;
     //! Seconds after the event until the sound is played (kind sound, events only)
     double mDelay;
     //! Average seconds between two clips (kind clip)

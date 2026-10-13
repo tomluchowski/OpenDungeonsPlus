@@ -6,8 +6,8 @@ another work. Run it from the repository root to write the images again:
 
     python tools/gen_room_effects_art.py
 
-Output (all 64x64 RGBA, in materials/textures): RoomAmbFlame, RoomAmbGear, RoomAmbRat, RoomAmbRatL and
-RoomAmbRumple, used by particles/RoomAmbienceDeferred.particle.
+Output (all 64x64 RGBA, in materials/textures): RoomAmbFlame, RoomAmbGear, RoomAmbRat, RoomAmbRatL,
+RoomAmbRumple and RoomAmbSoftRing, used by particles/RoomAmbienceDeferred.particle.
 
 Needs Pillow. The helpers are the ones of tools/gen_room_ambience_art.py.
 """
@@ -134,12 +134,23 @@ def sprite_rumple(path):
     finish(image, path)
 
 
+def sprite_ring(path):
+    """A thin soft ring, white so the particle colour tints it (drawn for additive blending)."""
+    image, draw = new_canvas()
+    c = CANVAS / 2
+    for radius, width, alpha in ((112, 16, 90), (108, 8, 255)):
+        draw.ellipse((c - radius, c - radius, c + radius, c + radius), outline=(255, 255, 255, alpha), width=width)
+    image = image.filter(ImageFilter.GaussianBlur(4))
+    finish(image, path)
+
+
 SPRITES = {
     "RoomAmbFlame": sprite_flame,
     "RoomAmbGear": sprite_gear,
     "RoomAmbRat": sprite_rat,
     "RoomAmbRatL": sprite_rat_left,
     "RoomAmbRumple": sprite_rumple,
+    "RoomAmbSoftRing": sprite_ring,
 }
 
 

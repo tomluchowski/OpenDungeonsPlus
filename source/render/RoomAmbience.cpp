@@ -772,6 +772,7 @@ void RoomAmbience::stopAll()
     mEntitiesInitialized = false;
     mScanTimer = 0.0;
     mHeartRates.clear();
+    mExtras.reset();
 }
 
 void RoomAmbience::update(Ogre::Real timeSinceLastFrame)
@@ -838,7 +839,7 @@ void RoomAmbience::scan()
     scanTiles(camera, cameraPosition, lookPoint);
     scanEntityEvents(camera, cameraPosition);
     scanCreatureEvents();
-    mExtras.scan(*this, mGameMap);
+    mExtras.scan(*this, mGameMap, mClock);
     reconcile();
     playClips();
 
@@ -2025,6 +2026,10 @@ uint32_t RoomAmbience::triggerEvent(const std::string& eventName, const Ogre::Ve
             }
             continue;
         }
+
+        // A particle effect may come with a sound of its own (the gong of the temple)
+        if(!effect.mSound.empty() && (mMode == Mode::full))
+            playSound(effect.mSound, position);
 
         OneShot oneShot;
         if(!createParticleSystem(effect.mSystem, position + effect.mOffset, effect.mName, oneShot.mNode, oneShot.mSystem))

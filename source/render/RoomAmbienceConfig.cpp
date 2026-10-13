@@ -341,6 +341,10 @@ bool RoomAmbienceConfig::loadEffect(std::istream& file)
         {
             effect.mFamily = words[1];
         }
+        else if(key == "Sound")
+        {
+            effect.mSound = words[1];
+        }
         else if(key == "Delay")
         {
             effect.mDelay = Helper::toDouble(words[1]);

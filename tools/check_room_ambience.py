@@ -20,7 +20,7 @@ SETTINGS = ("ScanInterval", "MaxParticles", "MaxParticlesReduced", "MaxMotions",
 EFFECT_KEYS = ("Name", "Target", "Match", "When", "Event", "Kind", "System", "Motion", "After", "Offset", "Axis",
                "Amount", "Speed", "Flicker", "Duration", "Chance", "Spacing", "MaxDistance", "Priority", "Reduced",
                "NeedWall", "Clips", "Every", "Family", "Delay", "Mesh", "Land", "From",
-               "OwnerOnly", "WallSide", "HeartRate", "Below")
+               "OwnerOnly", "WallSide", "HeartRate", "Below", "Sound")
 TARGETS = ("Object", "Tile", "Event")
 WHENS = ("Always", "Occupied", "Empty", "Hit", "Locked", "Reloading", "Ready", "LowHealth", "Vacated")
 KINDS = ("Particle", "Motion", "Clip", "Shake", "Turn", "Sound", "Beam", "Projectile", "Mark", "Model")
@@ -203,6 +203,11 @@ def check_effect(effect, where, problems, visuals, systems, mats, counts):
             problems.append("%s: a sound on an object needs Every" % where)
     elif "Family" in effect or "Delay" in effect:
         problems.append("%s: Family and Delay only belong to sounds" % where)
+    if "Sound" in effect:
+        if kind != "Particle" or target != "Event":
+            problems.append("%s: the key Sound only belongs to particle effects of events" % where)
+        elif not glob.glob(os.path.join(ROOT, "sounds", "Spatial", *effect["Sound"][0].split("/"), "*.ogg")):
+            problems.append("%s: no .ogg file for sound family %s" % (where, effect["Sound"][0]))
     if kind in ("Shake", "Mark", "Beam", "Projectile") and target != "Event":
         problems.append("%s: shakes, marks, beams and projectiles only work as events" % where)
     if kind in ("Beam", "Projectile"):

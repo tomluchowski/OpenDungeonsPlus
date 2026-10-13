@@ -68,7 +68,7 @@ if 'key == "HeartRate"' not in config_cpp or "mHeartRate" not in read("source", 
     problems.append("the key HeartRate is not read from the config")
 ambience = read("source", "render", "RoomAmbience.cpp")
 for needle in ("double RoomAmbience::getHeartRateFactor", "emitter.mCycle +=", "instance.mCycle +=",
-               "mExtras.scan(*this, mGameMap)"):
+               "mExtras.scan(*this, mGameMap"):
     if needle not in ambience:
         problems.append("RoomAmbience.cpp lacks %s" % needle)
 extras = read("source", "render", "RoomAmbienceExtras.cpp")
