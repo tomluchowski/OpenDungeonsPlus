@@ -40,12 +40,14 @@ class Image;
 class MenuModeCampaign: public AbstractApplicationMode
 {
 public:
+    //! \brief Connects the buttons and the map of the campaign sheet to this mode
     MenuModeCampaign(ModeManager*);
 
     //! \brief Called when the mode is activated
     //! Used to call the corresponding Gui Sheet.
     void activate() final override;
 
+    //! \brief Fades the lift layer of the province under the mouse
     void onFrameStarted(const Ogre::FrameEvent& evt) override;
 
     //! \brief Reads the campaign definition and the saved progress from disk.
@@ -78,12 +80,16 @@ private:
     //! Level of the open briefing, or the number of levels if none
     size_t mBriefingLevel;
 
+    //! \brief Reads the world description and the id map once. Returns false if one of them cannot be read.
     bool loadWorld();
     //! \brief The image of the world art file (relative to gui/campaign), loaded on first use.
     //! Returns NULL if it cannot be read.
     CEGUI::Image* loadWorldImage(const std::string& file);
+    //! \brief Draws the province layers, the bonus site markers and the progress panel on the map
     void fillMap();
+    //! \brief Removes everything fillMap drew
     void clearMap();
+    //! \brief Places a window on the map. The values are map pixels, the window gets the share of the map they cover.
     void setMapArea(CEGUI::Window* window, float x, float y, float width, float height) const;
     CEGUI::Window* createMapWindow(const std::string& type, const std::string& name, float x, float y,
         float width, float height);
@@ -91,20 +97,34 @@ private:
     State getProvinceState(size_t province, size_t& level) const;
     //! \brief Found bonus site at the map pixel, or the number of sites if none.
     size_t findSiteAt(float x, float y) const;
+    //! \brief Moves the lift layer towards the province under the mouse. \param elapsed Seconds since the last frame
     void updateLift(float elapsed);
+    //! \brief Shows the tooltip of the province or bonus site under the mouse, or hides it when there is none
     void updateTooltip(const CEGUI::Vector2f& position, size_t province, size_t site);
+    //! \brief Opens the briefing of a level that can be played
     void showBriefing(size_t level);
+    //! \brief Opens the debriefing of the level that was played last
     void showDebriefing();
+    //! \brief Closes the briefing or debriefing panel
     void hideBriefing();
+    //! \brief Starts the server and the client for a campaign level
     void startLevel(size_t index);
 
+    //! \brief The mouse moves over the map: the province or site below it is highlighted
     bool mapMoved(const CEGUI::EventArgs& e);
+    //! \brief The mouse leaves the map: the highlight and the tooltip are removed
     bool mapLeft(const CEGUI::EventArgs& e);
+    //! \brief A click on a province or found bonus site opens its briefing
     bool mapClicked(const CEGUI::EventArgs& e);
+    //! \brief Starts the level of the open briefing
     bool briefingStartPressed(const CEGUI::EventArgs&);
+    //! \brief Closes the briefing without starting the level
     bool briefingClosePressed(const CEGUI::EventArgs&);
+    //! \brief Chooses the next difficulty while no level is completed
     bool difficultyButtonPressed(const CEGUI::EventArgs&);
+    //! \brief Shows the difficulty of the campaign on its button
     void updateDifficultyButton();
+    //! \brief Leaves the campaign and shows the main menu
     bool backButtonPressed(const CEGUI::EventArgs&);
 };
 

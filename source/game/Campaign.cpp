@@ -28,6 +28,7 @@
 
 namespace
 {
+//! Removes the white space at both ends of a text
 std::string trim(const std::string& text)
 {
     const std::string whitespace = " \t\r\n";

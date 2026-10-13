@@ -26,6 +26,7 @@ namespace
 {
 typedef boost::property_tree::ptree Tree;
 
+//! Packs the mask colour of a province into one number to look it up in the id map
 uint32_t maskKey(int red, int green, int blue)
 {
     return (static_cast<uint32_t>(red) << 16) | (static_cast<uint32_t>(green) << 8) | static_cast<uint32_t>(blue);
@@ -40,6 +41,7 @@ bool readInts(const Tree& node, size_t count, std::vector<int>& values)
     return values.size() >= count;
 }
 
+//! Reads the rectangle (x, y, width, height) with that key; returns false if it is missing or too short
 bool readRect(const Tree& parent, const char* key, CampaignWorldRect& rect)
 {
     boost::optional<const Tree&> node = parent.get_child_optional(key);
@@ -54,6 +56,7 @@ bool readRect(const Tree& parent, const char* key, CampaignWorldRect& rect)
     return true;
 }
 
+//! Reads the point (x, y) with that key; returns false if it is missing or too short
 bool readPoint(const Tree& parent, const char* key, int& x, int& y)
 {
     boost::optional<const Tree&> node = parent.get_child_optional(key);

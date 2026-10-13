@@ -29,6 +29,7 @@
 //! The level file name is relative to the "levels" directory.
 struct CampaignLevel
 {
+    //! \brief Creates a main level (no bonus level) that counts as a Heartstone piece when it is a bonus level
     CampaignLevel():
         mBonus(false),
         mHeartstone(true),
@@ -95,33 +96,42 @@ struct CampaignLevel
 class Campaign
 {
 public:
+    //! \brief The one campaign of the process
     static Campaign& getSingleton();
 
     //! \brief Reads the level sequence. Returns false if no level was found.
     bool importDefinition(std::istream& is);
     //! \brief Reads the saved progress. Unknown or out of range indices are ignored.
     bool importProgress(std::istream& is);
+    //! \brief Writes the progress (completed and discovered levels, difficulty) in the format importProgress reads
     void exportProgress(std::ostream& os) const;
 
     //! \brief Sets the file the progress is written to by saveProgress() and
     //! onLevelWon(). Without a path nothing is written.
     void setProgressPath(const std::string& path);
+    //! \brief Writes the progress to the progress file. Returns false if there is no path or it cannot be written.
     bool saveProgress() const;
 
+    //! \brief Number of levels of the campaign, bonus levels included
     size_t getNumLevels() const;
+    //! \brief The level with that index in the order of the definition file
     const CampaignLevel& getLevel(size_t index) const;
     //! \brief Index of the level on the province or bonus site with that id,
     //! or getNumLevels() if there is none.
     size_t findLevelByProvince(const std::string& province) const;
+    //! \brief True if the level was won
     bool isCompleted(size_t index) const;
+    //! \brief True if the level can be played: its main levels before it are done, or the bonus level was found
     bool isUnlocked(size_t index) const;
     //! \brief First main (non bonus) level not completed. Equals the number of levels if all are done.
     size_t getCurrentLevel() const;
+    //! \brief True if every main level was won
     bool isFinished() const;
     //! \brief A level script found the bonus level with that file name. Only
     //! counts while a campaign level is played. Returns true if it is newly
     //! discovered (progress is saved).
     bool discoverBonusLevel(const std::string& file);
+    //! \brief True if the bonus level was found by a level script
     bool isDiscovered(size_t index) const;
     //! \brief Number of discovered bonus levels (found Heartstone pieces).
     size_t getHeartstonePieces() const;
@@ -153,9 +163,11 @@ public:
     void startLevel(size_t index);
     //! \brief Leaving the campaign (the main menu is shown).
     void stopCampaign();
+    //! \brief True while a campaign level is played
     bool isActive() const;
     //! \brief The level that was started last, or getNumLevels() if none.
     size_t getPlayedLevel() const;
+    //! \brief True if the level that was played last was won
     bool getPlayedLevelWon() const;
     //! \brief Clears the "last played" result once the menu has shown it.
     void clearPlayedLevel();
@@ -163,6 +175,7 @@ public:
     //! \brief The statistics of the level that was just won, as text lines. Set by the client when the
     //! server sends them at the victory, shown by the campaign menu. Empty if there are none.
     void setLevelSummary(const std::string& summary);
+    //! \brief The statistics text of the level that was just won, empty if there is none
     std::string getLevelSummary() const;
 
     //! \brief Called by the server when a human seat completed all its goals.
@@ -174,6 +187,7 @@ public:
     static std::string unescapeText(const std::string& text);
 
 private:
+    //! \brief The campaign is created by getSingleton only
     Campaign();
 
     mutable std::mutex mMutex;
@@ -193,8 +207,11 @@ private:
     std::string mKeptClass;
     uint32_t mKeptLevel;
 
+    //! \brief getCurrentLevel for callers that hold the mutex already
     size_t getCurrentLevelNoLock() const;
+    //! \brief isUnlocked for callers that hold the mutex already
     bool isUnlockedNoLock(size_t index) const;
+    //! \brief Index of the branch sister of the level, or the number of levels if it has none. The mutex is held by the caller.
     size_t findBranchSisterNoLock(size_t index) const;
 };
 
