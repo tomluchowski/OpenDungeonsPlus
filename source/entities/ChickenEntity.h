@@ -91,7 +91,9 @@ private:
     int32_t mNbTurnDie;
     bool mIsSlapped;
     bool mLockedEat;
+    //! Name of the creature that holds the lock on this chicken, empty while it is not locked
     std::string mLockOwner;
+    //! Name of the creature that lost the lock on this chicken to another one, empty if nobody did
     std::string mSnatchedFrom;
 
     void addTileToListIfPossible(int x, int y, Room* currentHatchery, std::vector<Tile*>& possibleTileMove);
