@@ -16,6 +16,8 @@
  */
 
 #include "rooms/RoomCrypt.h"
+#include "game/SkillManager.h"
+#include "game/SkillType.h"
 
 #include "entities/BuildingObject.h"
 #include "entities/Creature.h"
@@ -184,6 +186,8 @@ void RoomCrypt::notifyActiveSpotRemoved(ActiveSpotPlace place, Tile* tile)
         return;
 
     rottingCreature.first->addEntityToPositionTile();
+    rottingCreature.first->clearDestinations(EntityAnimation::die_anim, false, false);
+    rottingCreature.first->setAnimationState(EntityAnimation::die_anim, false, Ogre::Vector3::ZERO, false);
 }
 
 void RoomCrypt::absorbRoom(Room *r)
@@ -230,7 +234,8 @@ void RoomCrypt::doUpkeep()
         ConfigManager& configManager = ConfigManager::getSingleton();
 
         ++p.second.second;
-        if(p.second.second < configManager.getRoomConfigInt32("CryptRotNbTurns"))
+        if(p.second.second < std::max(1.0, std::round(SkillManager::getResearchValue(
+            getSeat(), SkillType::roomCrypt, configManager.getRoomConfigInt32("CryptRotNbTurns")))))
             continue;
 
         // We add the rotten creature points to the room and release the active spot
@@ -365,6 +370,8 @@ void RoomCrypt::notifyCarryingStateChanged(Creature* carrier, GameEntity* carrie
                 return;
             }
             // Start rotting
+            deadCreature->clearDestinations(EntityAnimation::rot_anim, false, false);
+            deadCreature->setAnimationState(EntityAnimation::rot_anim, false, Ogre::Vector3::ZERO, false);
             deadCreature->removeEntityFromPositionTile();
             p.second.second = 0;
             return;
