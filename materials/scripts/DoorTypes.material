@@ -1,0 +1,166 @@
+// Materials of the door models DoorIronbound, DoorSteel, DoorBarricade, DoorSecret and DoorRune
+// (textures drawn by tools/gen_door_textures.py)
+material DoorIronboundWood
+{
+    receive_shadows on
+
+    technique
+    {
+        pass decal
+        {
+            ambient 0.8 0.8 0.8 1.0
+            diffuse 0.65 0.65 0.65 1.0
+            specular 0.1 0.1 0.1 0.0 2.0
+            emissive 0.0 0.0 0.0 0.0
+
+            texture_unit decalmap
+            {
+                texture DoorIronboundWood.png
+                tex_address_mode wrap
+                scale 1.0 1.0
+                colour_op modulate
+            }
+        }
+    }
+}
+
+material DoorMetal
+{
+    receive_shadows on
+
+    technique
+    {
+        pass decal
+        {
+            ambient 0.8 0.8 0.8 1.0
+            diffuse 0.65 0.65 0.65 1.0
+            specular 0.35 0.35 0.4 0.0 2.0
+            emissive 0.0 0.0 0.0 0.0
+
+            texture_unit decalmap
+            {
+                texture DoorMetal.png
+                tex_address_mode wrap
+                scale 1.0 1.0
+                colour_op modulate
+            }
+        }
+    }
+}
+
+material DoorSteel
+{
+    receive_shadows on
+
+    technique
+    {
+        pass decal
+        {
+            ambient 0.8 0.8 0.8 1.0
+            diffuse 0.65 0.65 0.65 1.0
+            specular 0.5 0.5 0.55 0.0 2.0
+            emissive 0.0 0.0 0.0 0.0
+
+            texture_unit decalmap
+            {
+                texture DoorSteel.png
+                tex_address_mode wrap
+                scale 1.0 1.0
+                colour_op modulate
+            }
+        }
+    }
+}
+
+material DoorBarricade
+{
+    receive_shadows on
+
+    technique
+    {
+        pass decal
+        {
+            ambient 0.8 0.8 0.8 1.0
+            diffuse 0.65 0.65 0.65 1.0
+            specular 0.1 0.1 0.1 0.0 2.0
+            emissive 0.0 0.0 0.0 0.0
+
+            texture_unit decalmap
+            {
+                texture DoorBarricade.png
+                tex_address_mode wrap
+                scale 1.0 1.0
+                colour_op modulate
+            }
+        }
+    }
+}
+
+material DoorSecret
+{
+    receive_shadows on
+
+    technique
+    {
+        pass decal
+        {
+            ambient 0.8 0.8 0.8 1.0
+            diffuse 0.65 0.65 0.65 1.0
+            specular 0.1 0.1 0.1 0.0 2.0
+            emissive 0.0 0.0 0.0 0.0
+
+            texture_unit decalmap
+            {
+                texture DoorSecret.png
+                tex_address_mode wrap
+                scale 1.0 1.0
+                colour_op modulate
+            }
+        }
+    }
+}
+
+material DoorRune
+{
+    receive_shadows on
+
+    technique
+    {
+        pass decal
+        {
+            ambient 0.8 0.8 0.8 1.0
+            diffuse 0.65 0.65 0.65 1.0
+            specular 0.1 0.1 0.1 0.0 2.0
+            emissive 0.0 0.0 0.0 0.0
+
+            texture_unit decalmap
+            {
+                texture DoorRune.png
+                tex_address_mode wrap
+                scale 1.0 1.0
+                colour_op modulate
+            }
+        }
+    }
+}
+
+material DoorRuneGlow
+{
+    receive_shadows off
+
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend add
+            depth_write off
+
+            texture_unit
+            {
+                texture DoorRuneGlow.png
+                tex_address_mode clamp
+            }
+        }
+    }
+}

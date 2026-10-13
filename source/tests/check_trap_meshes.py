@@ -28,8 +28,8 @@ TRAPS = {
     "Freeze": "FrostTrap",
     "Trigger": "TriggerTrap",
 }
-# The watch banner and the door types are added to these lists by the changes that give them their own mesh
-DOORS = ("WoodenDoor",)
+# The watch banner is added to the list of traps by the change that gives it its own mesh
+DOORS = ("WoodenDoor", "DoorIronbound", "DoorSteel", "DoorBarricade", "DoorSecret", "DoorRune")
 
 
 def read(*parts, binary=False):
