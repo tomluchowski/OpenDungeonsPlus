@@ -63,6 +63,10 @@ std::string toString(SkillType type)
             return "roomLibrary";
         case SkillType::roomPrison:
             return "roomPrison";
+        case SkillType::roomGuardRoom:
+            return "roomGuardRoom";
+        case SkillType::roomTemple:
+            return "roomTemple";
         case SkillType::roomTorture:
             return "roomTorture";
         case SkillType::roomTrainingHall:
@@ -93,10 +97,52 @@ std::string toString(SkillType type)
             return "trapCannon";
         case SkillType::trapSpike:
             return "trapSpike";
+        case SkillType::trapAlarm:
+            return "trapAlarm";
         case SkillType::trapDoorWooden:
             return "trapDoorWooden";
+        case SkillType::trapDoorIronbound:
+            return "trapDoorIronbound";
+        case SkillType::trapDoorSteel:
+            return "trapDoorSteel";
+        case SkillType::trapDoorBarricade:
+            return "trapDoorBarricade";
+        case SkillType::trapFear:
+            return "trapFear";
+        case SkillType::trapGas:
+            return "trapGas";
+        case SkillType::trapLightning:
+            return "trapLightning";
+        case SkillType::trapFireburst:
+            return "trapFireburst";
+        case SkillType::trapWatchBanner:
+            return "trapWatchBanner";
+        case SkillType::trapDoorSecret:
+            return "trapDoorSecret";
+        case SkillType::trapDoorRuned:
+            return "trapDoorRuned";
         case SkillType::spellEyeEvil:
             return "spellEyeEvil";
+        case SkillType::spellCreateGold:
+            return "spellCreateGold";
+        case SkillType::spellLightning:
+            return "spellLightning";
+        case SkillType::spellTremor:
+            return "spellTremor";
+        case SkillType::spellDefector:
+            return "spellDefector";
+        case SkillType::spellHexenHen:
+            return "spellHexenHen";
+        case SkillType::spellInferno:
+            return "spellInferno";
+        case SkillType::spellSummonChampion:
+            return "spellSummonChampion";
+        case SkillType::spellPossess:
+            return "spellPossess";
+        case SkillType::trapTrigger:
+            return "trapTrigger";
+        case SkillType::trapFreeze:
+            return "trapFreeze";
         default:
             return "Unknown enum value:" + Helper::toString(static_cast<int>(type));
     }
@@ -132,6 +178,10 @@ std::string skillTypeToPlayerVisibleString(SkillType type)
             return "The Treasury Room";
         case SkillType::roomPrison:
             return "The Prison Room";
+        case SkillType::roomGuardRoom:
+            return "The Guard Room";
+        case SkillType::roomTemple:
+            return "The Temple";
         case SkillType::roomTorture:
             return "The Torture Room";
         case SkillType::spellCallToWar:

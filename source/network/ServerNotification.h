@@ -138,8 +138,21 @@ enum class ServerNotificationType
     // + float healthFraction (0 to 1, heart health / maximum heart health), bool underAttack.
     // Sent to a human owner when the fraction changed by at least one percentage point, when the
     // heart is destroyed, and once when the game starts or is loaded.
-    // Appended last so that no existing numeric value changes.
-    heartHealth
+    // Appended after levelStatistics so that no existing numeric value changes.
+    heartHealth,
+
+    //! Tile and payout level of a casino, the answer to the owner asking for its payout
+    // Appended after heartHealth so that no existing numeric value changes.
+    casinoPayout,
+    //! The player now possesses the creature: + string creatureName
+    possessionStart,
+    //! The player no longer possesses a creature: + bool lost (the creature fell: dead, knocked out or gone)
+    possessionEnd,
+    //! Presentation-only effect of a trap or door, sent to the human seats that see the tile:
+    //! + int32_t kind (TrapEffectKind), int32_t tileX, int32_t tileY, string type name of the trap or door
+    //! (e.g. Alarm, DoorSteel), float health fraction (0 to 1, doors only, else 1).
+    //! Appended last so that no existing numeric value changes.
+    trapEffect
 };
 
 ODPacket& operator<<(ODPacket& os, const ServerNotificationType& nt);
