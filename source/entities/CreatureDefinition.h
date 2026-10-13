@@ -134,6 +134,11 @@ public:
     inline bool isWorker() const
     { return (mCreatureJob == Worker); }
 
+    //! \brief The runners of the heart defence: the workers, plus the two cheap and
+    //! fast scout creatures, the hornet and the goblin.
+    inline bool isHeartDefenceRunner() const
+    { return isWorker() || mClassName == "CaveHornet" || mClassName == "Goblin"; }
+
     friend ODPacket& operator <<(ODPacket& os, const CreatureDefinition *c);
     friend ODPacket& operator >>(ODPacket& is, CreatureDefinition *c);
 

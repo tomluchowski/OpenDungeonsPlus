@@ -40,7 +40,10 @@ void PlayerSelection::setCurrentAction(SelectedAction action)
     mNewRoomType = RoomType::nullRoomType;
     mNewSpellType = SpellType::nullSpellType;
     InputManager& mInputManager = InputManager::getSingleton();
-    mInputManager.mCreatureTypeForOutliner = SelectionEntityWanted::creatureAliveAllied;
+    mInputManager.mCreatureTypeForOutliner = action == SelectedAction::queryEntity ?
+        SelectionEntityWanted::creatureAliveOrDead : SelectionEntityWanted::creatureAliveAllied;
+    if(action == SelectedAction::sellBuilding)
+        mInputManager.mCreatureTypeForOutliner = SelectionEntityWanted::none;
 }
 
 void PlayerSelection::setNewSpellType(SpellType newSpellType)

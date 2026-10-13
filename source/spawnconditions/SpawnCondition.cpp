@@ -51,8 +51,9 @@ SpawnCondition* SpawnCondition::load(std::istream& defFile)
             OD_LOG_ERR("nextParam=" + nextParam);
             return condition;
         }
-        if (nextParam == "Room")
+        if ((nextParam == "Room") || (nextParam == "RoomTiles"))
         {
+            bool countTiles = (nextParam == "RoomTiles");
             if(!(defFile >> nextParam))
                 break;
             RoomType roomType = RoomManager::getRoomTypeFromRoomName(nextParam);
@@ -68,7 +69,7 @@ SpawnCondition* SpawnCondition::load(std::istream& defFile)
                 break;
             int32_t pointsPerAdditionalActiveSpots = Helper::toInt(nextParam);
 
-            condition = new SpawnConditionRoom(roomType, nbActiveSpotsMin, pointsPerAdditionalActiveSpots);
+            condition = new SpawnConditionRoom(roomType, nbActiveSpotsMin, pointsPerAdditionalActiveSpots, countTiles);
         }
 
         if (nextParam == "Creature")
