@@ -148,6 +148,7 @@ public:
     static bool update(CreatureDefinition* creatureDef, std::stringstream& defFile, const std::map<std::string, CreatureDefinition*>& defMap);
 
     inline CreatureJob          getCreatureJob  () const    { return mCreatureJob; }
+    //! \brief True for the champion definition (the creature the Summon champion spell calls).
     inline bool                 isChampion      () const    { return mChampion; }
     inline const std::string&   getClassName    () const    { return mClassName; }
 
