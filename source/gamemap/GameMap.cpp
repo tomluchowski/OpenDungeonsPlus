@@ -1412,6 +1412,21 @@ unsigned long int GameMap::doMiscUpkeep(double timeSinceLastTurn)
 
 void GameMap::updateSeatMana(Seat* seat, uint32_t nbManaWellTiles, double timeSinceLastTurn)
 {
+    // The one-off mana taken this turn joins the turns of the last second, the HUD shows their
+    // average per second. The mana itself was already reduced where it was taken.
+    seat->mManaOneOffWindow.push_back(seat->mManaOneOffPending);
+    seat->mManaOneOffPending = 0.0;
+    size_t windowTurns = static_cast<size_t>(ODApplication::turnsPerSecond + 0.5);
+    if (windowTurns < 1)
+        windowTurns = 1;
+    while (seat->mManaOneOffWindow.size() > windowTurns)
+        seat->mManaOneOffWindow.erase(seat->mManaOneOffWindow.begin());
+    double oneOffInWindow = 0.0;
+    for (size_t i = 0; i < seat->mManaOneOffWindow.size(); ++i)
+        oneOffInWindow += seat->mManaOneOffWindow[i];
+    seat->mManaOneOffPerSecond = oneOffInWindow * ODApplication::turnsPerSecond
+        / static_cast<double>(windowTurns);
+
     if (seat->getNbRooms(RoomType::dungeonTemple) == 0)
     {
         seat->mManaDelta = 0.0;

@@ -91,6 +91,9 @@ public:
     inline double getManaUpkeepPerSecond() const
     { return mManaUpkeepPerSecond; }
 
+    inline double getManaOneOffPerSecond() const
+    { return mManaOneOffPerSecond; }
+
     inline int getNumCreaturesFighters() const
     { return mNumCreaturesFighters; }
 
@@ -149,6 +152,10 @@ protected:
 
     //! \brief The mana upkeep per second of all the workers, updated in GameMap::doTurn().
     double mManaUpkeepPerSecond;
+
+    //! \brief The one-off mana taken (spells, trap shots, possession, ...) averaged over the
+    //! last second, updated in GameMap::doTurn().
+    double mManaOneOffPerSecond;
 
     //! \brief The starting camera location (in tile coordinates) of this seat.
     int mStartingX;

@@ -1333,10 +1333,10 @@ void GameMode::refreshMainUI()
     // the net of both
     tempSS.str("");
     tempSS << "+" << static_cast<long>(mySeat->getManaIncomePerSecond())
-        << " / -" << static_cast<long>(mySeat->getManaUpkeepPerSecond());
+        << " / -" << static_cast<long>(mySeat->getManaUpkeepPerSecond() + mySeat->getManaOneOffPerSecond());
     widget->getChild("Change")->setText(tempSS.str());
     widget->getChild("Change")->setProperty("TextColours",
-        mySeat->getManaIncomePerSecond() >= mySeat->getManaUpkeepPerSecond() ? "FF7FE3A6" : "FFFF4848");
+        mySeat->getManaIncomePerSecond() >= mySeat->getManaUpkeepPerSecond() + mySeat->getManaOneOffPerSecond() ? "FF7FE3A6" : "FFFF4848");
     unsigned int workers = 0;
     unsigned int fighters = 0;
     for(Creature* creature : mGameMap->getCreaturesBySeat(mySeat))

@@ -74,6 +74,7 @@ Seat::Seat(GameMap* gameMap) :
     mGoldMined(0),
     mAutoWorkerTimer(0.0),
     mManaShortageSeconds(0.0),
+    mManaOneOffPending(0.0),
     mWorkerPopCountdown(-1.0),
     mHeartDefenceActive(false),
     mHeartDefenceHeartDamaged(false),
@@ -371,14 +372,19 @@ bool Seat::takeMana(double mana)
         return false;
 
     mMana -= mana;
+    mManaOneOffPending += mana;
     return true;
 }
 
 void Seat::addMana(double mana)
 {
+    double manaBefore = mMana;
     mMana += mana;
     if (mMana < 0.0)
         mMana = 0.0;
+    // A one-off loss (possession death, conquest transfer) counts for the HUD like a spell cost
+    if (mMana < manaBefore)
+        mManaOneOffPending += manaBefore - mMana;
     double maxMana = ConfigManager::getSingleton().getMaxManaPerSeat();
     if (mMana > maxMana)
         mMana = maxMana;

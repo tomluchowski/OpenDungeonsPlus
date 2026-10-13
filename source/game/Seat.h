@@ -400,6 +400,14 @@ private:
     //! above the free four. Server side only, not saved with the level.
     double mManaShortageSeconds;
 
+    //! \brief Mana taken in one go (spells, trap shots, possession, champion, mana losses) since
+    //! the last turn. Server side only, moved into mManaOneOffWindow by GameMap::updateSeatMana.
+    double mManaOneOffPending;
+
+    //! \brief The one-off mana taken in each of the last turns covering one second, used for
+    //! the per second average shown on the HUD. Server side only.
+    std::vector<double> mManaOneOffWindow;
+
     //! \brief Seconds left until the workers above the free four pop, or a negative
     //! value while that countdown is not running. Server side only, not saved with the level.
     double mWorkerPopCountdown;
