@@ -1266,6 +1266,9 @@ unsigned long int GameMap::doMiscUpkeep(double timeSinceLastTurn)
     }
 
     for (Seat* seat : mSeats)
+        seat->applyRevealedTiles();
+
+    for (Seat* seat : mSeats)
     {
         if(!seat->getIsDebuggingVision())
             continue;
