@@ -344,7 +344,8 @@ public:
     static const int64_t TIME_LIMIT_REMOVED = -2;
 
     //! \brief The time limit set by a script action, as the level second at which it runs out.
-    //! TIME_LIMIT_NOT_SET if no action set one, TIME_LIMIT_REMOVED if an action removed the limit.
+    //! TIME_LIMIT_NOT_SET if no action set one (the game duration setting applies),
+    //! TIME_LIMIT_REMOVED if an action removed the limit.
     inline int64_t getTimeLimitSeconds() const
     { return mTimeLimitSeconds; }
 

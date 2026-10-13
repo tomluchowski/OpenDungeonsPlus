@@ -477,10 +477,11 @@ void ODServer::serverThread()
 {
     GameMap* gameMap = mGameMap;
     sf::Clock clock;
-    double turnLengthMs = 1000.0 / ODApplication::turnsPerSecond;
     bool isClientConnected = true;
     while(isConnected() && isClientConnected)
     {
+        // The game speed setting changes the real time length of a turn
+        double turnLengthMs = 1000.0 / (ODApplication::turnsPerSecond * gameMap->getGameSpeedFactor());
         // doTask should return after the length of 1 turn even if their are communications. When
         // it returns, we can launch next turn.
         doTask(static_cast<int32_t>(turnLengthMs));
@@ -593,7 +594,7 @@ void ODServer::serverThread()
         // to wait for server. If server is in advance, he might send commands before the
         // creatures arrive at their destination. That could result in weird issues like
         // creatures going through walls.
-        startNewTurn(static_cast<double>(clock.restart().asSeconds()) * 0.95);
+        startNewTurn(static_cast<double>(clock.restart().asSeconds()) * 0.95 * gameMap->getGameSpeedFactor());
 
         processServerNotifications();
     }
@@ -1092,9 +1093,13 @@ bool ODServer::processClientNotifications(ODSocketClient* clientSocket)
             uint32_t goldDensityPercent = GameMap::SKIRMISH_SETTING_UNCHOSEN;
             uint32_t manaRegenerationPercent = GameMap::SKIRMISH_SETTING_UNCHOSEN;
             uint32_t maxCreaturesSetting = GameMap::SKIRMISH_SETTING_UNCHOSEN;
+            uint32_t gameSpeedPercent = GameMap::SKIRMISH_SETTING_UNCHOSEN;
+            uint32_t gameDurationMinutes = GameMap::SKIRMISH_SETTING_UNCHOSEN;
+            uint32_t fogOfWar = GameMap::SKIRMISH_SETTING_UNCHOSEN;
             uint32_t nbCreatureLimits = 0;
             bool isSettingsPacketValid = static_cast<bool>(packetReceived >> goldDensityPercent
-                >> manaRegenerationPercent >> maxCreaturesSetting >> nbCreatureLimits);
+                >> manaRegenerationPercent >> maxCreaturesSetting >> gameSpeedPercent >> gameDurationMinutes
+                >> fogOfWar >> nbCreatureLimits);
             std::vector<std::pair<std::string, uint32_t> > creatureLimits;
             for(uint32_t i = 0; isSettingsPacketValid && (i < nbCreatureLimits); ++i)
             {
@@ -1125,6 +1130,14 @@ bool ODServer::processClientNotifications(ODSocketClient* clientSocket)
                 if(maxCreaturesSetting == GameMap::SKIRMISH_SETTING_UNCHOSEN)
                     maxCreaturesSetting = gameMap->getMaxCreaturesSetting();
                 gameMap->setSkirmishSettings(goldDensityPercent, manaRegenerationPercent, maxCreaturesSetting);
+
+                if(gameSpeedPercent == GameMap::SKIRMISH_SETTING_UNCHOSEN)
+                    gameSpeedPercent = gameMap->getGameSpeedPercent();
+                if(gameDurationMinutes == GameMap::SKIRMISH_SETTING_UNCHOSEN)
+                    gameDurationMinutes = gameMap->getGameDurationMinutes();
+                if(fogOfWar == GameMap::SKIRMISH_SETTING_UNCHOSEN)
+                    fogOfWar = gameMap->getIsFOWActivated() ? 1 : 0;
+                gameMap->setGameRules(gameSpeedPercent, gameDurationMinutes, fogOfWar != 0);
 
                 for(const std::pair<std::string, uint32_t>& creatureLimit : creatureLimits)
                 {
@@ -2857,6 +2870,8 @@ void ODServer::fireSeatConfigurationRefresh()
     }
     packetSend << mGameMap->getGoldDensityPercent() << mGameMap->getManaRegenerationPercent()
         << mGameMap->getMaxCreaturesSetting();
+    packetSend << mGameMap->getGameSpeedPercent() << mGameMap->getGameDurationMinutes()
+        << static_cast<uint32_t>(mGameMap->getIsFOWActivated() ? 1 : 0);
 
     // The limit of each fighter class
     std::vector<const CreatureDefinition*> fighterDefs;

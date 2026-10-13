@@ -43,7 +43,10 @@ const std::string COMBOBOX_PLAYER_FACTION_PREFIX = "ComboPlayerFactionSeat";
 const std::string COMBOBOX_PLAYER_PREFIX = "ComboPlayerSeat";
 const std::string COMBOBOX_GOLD_DENSITY = "ComboGoldDensity";
 const std::string COMBOBOX_MANA_REGENERATION = "ComboManaRegeneration";
+const std::string COMBOBOX_FOG_OF_WAR = "ComboFogOfWar";
 const std::string SPINNER_MAX_CREATURES = "SpinMaxCreatures";
+const std::string SPINNER_GAME_SPEED = "SpinGameSpeed";
+const std::string SPINNER_GAME_DURATION = "SpinGameDuration";
 //! \brief The percentages that the gold density and the mana regeneration offer
 static const uint32_t SETTING_PERCENT_CHOICES[] = {50, 100, 400};
 //! \brief The percentage that stands for "unchanged"
@@ -80,6 +83,11 @@ static const double SETTING_CREATURE_LIMIT_MIN = 0.0;
 static const double SETTING_MAX_CREATURES_MIN = 1.0;
 //! \brief Step size of the spinners of the Game settings window
 static const double SETTING_SPINNER_STEP = 1.0;
+//! \brief Step size of the game speed spinner, in percent
+static const double SETTING_GAME_SPEED_STEP = 25.0;
+//! \brief The values of the fog of war combo
+static const uint32_t SETTING_FOG_OFF = 0;
+static const uint32_t SETTING_FOG_ON = 1;
 
 //! \brief The text on the button of a room, spell, trap or door
 //! \param state The availability, a GameMap::SkirmishItemState
@@ -281,19 +289,52 @@ void MenuModeConfigureSeats::initSettingCombos()
         );
     }
 
-    // The maximum number of creatures of a seat, from one to the absolute maximum of the configuration
-    CEGUI::Spinner* spinner = static_cast<CEGUI::Spinner*>(generalPage->getChild(SPINNER_MAX_CREATURES));
-    spinner->setTextInputMode(CEGUI::Spinner::Integer);
-    spinner->setMinimumValue(SETTING_MAX_CREATURES_MIN);
-    spinner->setMaximumValue(static_cast<double>(ConfigManager::getSingleton().getMaxCreaturesPerSeatAbsolute()));
-    spinner->setStepSize(SETTING_SPINNER_STEP);
-    spinner->setCurrentValue(static_cast<double>(ConfigManager::getSingleton().getMaxCreaturesPerSeatDefault()));
-    spinner->setEnabled(false);
-    mHostSettingWindows.push_back(spinner);
+    CEGUI::Combobox* fogCombo = static_cast<CEGUI::Combobox*>(generalPage->getChild(COMBOBOX_FOG_OF_WAR));
+    fogCombo->resetList();
+    fogCombo->setReadOnly(true);
+    fogCombo->setEnabled(false);
+    mHostSettingWindows.push_back(fogCombo);
+    addSettingItem(fogCombo, "On", SETTING_FOG_ON);
+    addSettingItem(fogCombo, "Off", SETTING_FOG_OFF);
+    selectSettingValue(generalPage, COMBOBOX_FOG_OF_WAR, SETTING_FOG_ON);
     addEventConnection(
-        spinner->subscribeEvent(CEGUI::Spinner::EventValueChanged,
-            CEGUI::Event::Subscriber(&MenuModeConfigureSeats::settingChanged, this))
+        fogCombo->subscribeEvent(CEGUI::Combobox::EventListSelectionAccepted,
+            CEGUI::Event::Subscriber(&MenuModeConfigureSeats::comboChanged, this))
     );
+
+    // The spinners: maximum number of creatures of a seat (from one to the absolute maximum of the
+    // configuration), game speed and game duration
+    struct SpinnerSetting
+    {
+        const std::string* name;
+        double minimum;
+        double maximum;
+        double step;
+        double initial;
+    };
+    const double maxCreaturesAbsolute = ConfigManager::getSingleton().getMaxCreaturesPerSeatAbsolute();
+    const double maxCreaturesDefault = ConfigManager::getSingleton().getMaxCreaturesPerSeatDefault();
+    const SpinnerSetting spinners[] = {
+        {&SPINNER_MAX_CREATURES, SETTING_MAX_CREATURES_MIN, maxCreaturesAbsolute, SETTING_SPINNER_STEP, maxCreaturesDefault},
+        {&SPINNER_GAME_SPEED, static_cast<double>(GameMap::SKIRMISH_SPEED_MIN), static_cast<double>(GameMap::SKIRMISH_SPEED_MAX),
+            SETTING_GAME_SPEED_STEP, static_cast<double>(GameMap::SKIRMISH_SPEED_DEFAULT)},
+        {&SPINNER_GAME_DURATION, 0.0, static_cast<double>(GameMap::SKIRMISH_DURATION_MAX), SETTING_SPINNER_STEP, 0.0}
+    };
+    for(const SpinnerSetting& setting : spinners)
+    {
+        CEGUI::Spinner* spinner = static_cast<CEGUI::Spinner*>(generalPage->getChild(*setting.name));
+        spinner->setTextInputMode(CEGUI::Spinner::Integer);
+        spinner->setMinimumValue(setting.minimum);
+        spinner->setMaximumValue(setting.maximum);
+        spinner->setStepSize(setting.step);
+        spinner->setCurrentValue(setting.initial);
+        spinner->setEnabled(false);
+        mHostSettingWindows.push_back(spinner);
+        addEventConnection(
+            spinner->subscribeEvent(CEGUI::Spinner::EventValueChanged,
+                CEGUI::Event::Subscriber(&MenuModeConfigureSeats::settingChanged, this))
+        );
+    }
 }
 
 void MenuModeConfigureSeats::initSettingPages()
@@ -780,6 +821,9 @@ void MenuModeConfigureSeats::fireSeatConfigurationToServer()
     notif->mPacket << (mSettingsReceived ? getSettingValue(generalPage, COMBOBOX_GOLD_DENSITY, notChosen) : notChosen);
     notif->mPacket << (mSettingsReceived ? getSettingValue(generalPage, COMBOBOX_MANA_REGENERATION, notChosen) : notChosen);
     notif->mPacket << (mSettingsReceived ? getSpinnerValue(generalPage, SPINNER_MAX_CREATURES) : notChosen);
+    notif->mPacket << (mSettingsReceived ? getSpinnerValue(generalPage, SPINNER_GAME_SPEED) : notChosen);
+    notif->mPacket << (mSettingsReceived ? getSpinnerValue(generalPage, SPINNER_GAME_DURATION) : notChosen);
+    notif->mPacket << (mSettingsReceived ? getSettingValue(generalPage, COMBOBOX_FOG_OF_WAR, notChosen) : notChosen);
 
     uint32_t nbCreatureLimits = mSettingsReceived ? static_cast<uint32_t>(mLimitSpinners.size()) : 0;
     notif->mPacket << nbCreatureLimits;
@@ -933,8 +977,12 @@ void MenuModeConfigureSeats::refreshSeatConfiguration(ODPacket& packet)
     uint32_t goldDensityPercent = SETTING_PERCENT_DEFAULT;
     uint32_t manaRegenerationPercent = SETTING_PERCENT_DEFAULT;
     uint32_t maxCreaturesSetting = SETTING_MAX_CREATURES_DEFAULT;
+    uint32_t gameSpeedPercent = GameMap::SKIRMISH_SPEED_DEFAULT;
+    uint32_t gameDurationMinutes = 0;
+    uint32_t fogOfWar = SETTING_FOG_ON;
     uint32_t nbCreatureLimits = 0;
-    if(!(packet >> goldDensityPercent >> manaRegenerationPercent >> maxCreaturesSetting >> nbCreatureLimits))
+    if(!(packet >> goldDensityPercent >> manaRegenerationPercent >> maxCreaturesSetting >> gameSpeedPercent
+        >> gameDurationMinutes >> fogOfWar >> nbCreatureLimits))
     {
         OD_LOG_ERR("Truncated seat configuration refresh packet: the skirmish game settings are not updated");
         return;
@@ -975,10 +1023,13 @@ void MenuModeConfigureSeats::refreshSeatConfiguration(ODPacket& packet)
     CEGUI::Window* generalPage = getGeneralPage(getModeManager().getGui().getGuiSheet(Gui::guiSheet::configureSeats));
     selectSettingValue(generalPage, COMBOBOX_GOLD_DENSITY, goldDensityPercent);
     selectSettingValue(generalPage, COMBOBOX_MANA_REGENERATION, manaRegenerationPercent);
+    selectSettingValue(generalPage, COMBOBOX_FOG_OF_WAR, fogOfWar);
     // 0 means that the default number of creatures is used
     if(maxCreaturesSetting == SETTING_MAX_CREATURES_DEFAULT)
         maxCreaturesSetting = ConfigManager::getSingleton().getMaxCreaturesPerSeatDefault();
     static_cast<CEGUI::Spinner*>(generalPage->getChild(SPINNER_MAX_CREATURES))->setCurrentValue(maxCreaturesSetting);
+    static_cast<CEGUI::Spinner*>(generalPage->getChild(SPINNER_GAME_SPEED))->setCurrentValue(gameSpeedPercent);
+    static_cast<CEGUI::Spinner*>(generalPage->getChild(SPINNER_GAME_DURATION))->setCurrentValue(gameDurationMinutes);
 
     for(const std::pair<std::string, uint32_t>& creatureLimit : creatureLimits)
     {
@@ -998,6 +1049,10 @@ void MenuModeConfigureSeats::refreshSeatConfiguration(ODPacket& packet)
     }
     mIsRefreshing = false;
     mSettingsReceived = true;
+
+    // The speed of the game is also needed to animate the game when it starts
+    ODFrameListener::getSingleton().getClientGameMap()->setGameRules(gameSpeedPercent, gameDurationMinutes,
+        fogOfWar != 0);
 }
 
 void MenuModeConfigureSeats::receiveChat(const ChatMessage& chat)

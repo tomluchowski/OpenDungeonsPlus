@@ -509,6 +509,32 @@ public:
     //! SKIRMISH_CREATURE_LIMIT_NONE if unlimited
     uint32_t getCreatureClassLimit(const std::string& className) const;
 
+    //! \brief Smallest, largest and default game speed, in percent of the default turn rate
+    static const uint32_t SKIRMISH_SPEED_MIN = 25;
+    static const uint32_t SKIRMISH_SPEED_MAX = 400;
+    static const uint32_t SKIRMISH_SPEED_DEFAULT = 100;
+
+    //! \brief Longest game duration that can be set, in minutes
+    static const uint32_t SKIRMISH_DURATION_MAX = 9999;
+
+    //! \brief Game speed is a percentage of the default turn rate
+    inline uint32_t getGameSpeedPercent() const
+    { return mGameSpeedPercent; }
+
+    //! \brief The factor applied to the real time speed of the game (1.0 = default speed)
+    inline double getGameSpeedFactor() const
+    { return static_cast<double>(mGameSpeedPercent) / static_cast<double>(SKIRMISH_SPEED_DEFAULT); }
+
+    //! \brief The game duration in minutes of game time, 0 means no limit
+    inline uint32_t getGameDurationMinutes() const
+    { return mGameDurationMinutes; }
+
+    //! \brief Sets the rules chosen on the Game Settings page
+    //! \param gameSpeedPercent Game speed in percent, kept between SKIRMISH_SPEED_MIN and SKIRMISH_SPEED_MAX
+    //! \param gameDurationMinutes Game duration in minutes of game time, 0 for no limit
+    //! \param fogOfWar True if the fog of war is on
+    void setGameRules(uint32_t gameSpeedPercent, uint32_t gameDurationMinutes, bool fogOfWar);
+
     //! \brief Sets the maximum number of creatures of the given class a seat may own
     //! \param className The class name of the creature definition
     //! \param limit The new limit. SKIRMISH_CREATURE_LIMIT_NONE or more removes the limit
@@ -527,7 +553,8 @@ public:
     void applySkirmishSkillStates();
 
     //! \brief Called on the server each turn: sends the time limit and the countdowns of the level script to the
-    //! players and makes every keeper lose once a time limit of the level script has run out
+    //! players and makes every keeper lose once a time limit of the level script or the game duration of the
+    //! skirmish settings has run out. The limit of the level script wins over the game duration.
     void checkGameDuration();
 
     //! \brief Level script action: the time runs out after that many seconds from now, for every
@@ -703,6 +730,8 @@ private:
     uint32_t mGoldDensityPercent;
     uint32_t mManaRegenerationPercent;
     uint32_t mMaxCreaturesSetting;
+    uint32_t mGameSpeedPercent;
+    uint32_t mGameDurationMinutes;
     std::map<std::string, uint32_t> mCreatureClassLimits;
     std::vector<SkirmishItemState> mSkirmishSkillStates;
     std::vector<SkirmishItemState> mSkirmishSkillStatesLevel;

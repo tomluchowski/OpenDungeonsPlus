@@ -100,6 +100,7 @@ class ODServer: public Ogre::Singleton<ODServer>,
 protected:
     ODSocketClient* notifyNewConnection(sf::TcpListener& sockListener) override;
     bool notifyClientMessage(ODSocketClient *sock) override;
+    //! \brief Runs the game turns of the server. The length of a turn follows the game speed of the game settings
     void serverThread() override;
 
 private:

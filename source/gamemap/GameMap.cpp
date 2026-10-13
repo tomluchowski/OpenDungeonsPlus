@@ -168,6 +168,8 @@ GameMap::GameMap(bool isServerGameMap, NodeType nt) :
         mGoldDensityPercent(SKIRMISH_PERCENT_DEFAULT),
         mManaRegenerationPercent(SKIRMISH_PERCENT_DEFAULT),
         mMaxCreaturesSetting(0),
+        mGameSpeedPercent(SKIRMISH_SPEED_DEFAULT),
+        mGameDurationMinutes(0),
         mLocalPlayer(nullptr),
         mLocalPlayerNick(DEFAULT_NICK),
         mTurnNumber(-1),
@@ -337,6 +339,8 @@ void GameMap::clearAll()
         mGoldDensityPercent = SKIRMISH_PERCENT_DEFAULT;
         mManaRegenerationPercent = SKIRMISH_PERCENT_DEFAULT;
         mMaxCreaturesSetting = 0;
+        mGameSpeedPercent = SKIRMISH_SPEED_DEFAULT;
+        mGameDurationMinutes = 0;
         mCreatureClassLimits.clear();
         mSkirmishSkillStates.clear();
         mSkirmishSkillStatesLevel.clear();
@@ -2269,11 +2273,14 @@ void GameMap::checkGameDuration()
     }
     mWaveCountdownToSend = (waveCountdownLeft > 0.0) ? static_cast<int32_t>(std::ceil(waveCountdownLeft)) : -1;
 
-    // The limit counts game time, not real time, so the game speed does not change it
+    // The limit of a script action wins over the game duration of the game settings.
+    // Both count game time, not real time, so the game speed does not change them.
     const int64_t scriptLimit = mLevelScript->getTimeLimitSeconds();
     double endTurn = -1.0;
     if(scriptLimit >= 0)
         endTurn = static_cast<double>(scriptLimit) * ODApplication::turnsPerSecond;
+    else if((scriptLimit == LevelScript::TIME_LIMIT_NOT_SET) && (mGameDurationMinutes > 0))
+        endTurn = static_cast<double>(mGameDurationMinutes) * 60.0 * ODApplication::turnsPerSecond;
 
     if(endTurn < 0.0)
     {
@@ -2312,8 +2319,16 @@ void GameMap::checkGameDuration()
 
         ServerNotification* serverNotification = new ServerNotification(
             ServerNotificationType::chatServer, player);
-        serverNotification->mPacket << "Time is up! The time limit of this level has run out."
-            << EventShortNoticeType::majorGameEvent;
+        if(scriptLimit >= 0)
+        {
+            serverNotification->mPacket << "Time is up! The time limit of this level has run out."
+                << EventShortNoticeType::majorGameEvent;
+        }
+        else
+        {
+            serverNotification->mPacket << "Time is up! The game time of " + Helper::toString(mGameDurationMinutes)
+                + " minutes has run out." << EventShortNoticeType::majorGameEvent;
+        }
         ODServer::getSingleton().queueServerNotification(serverNotification);
     }
 
@@ -3258,6 +3273,13 @@ void GameMap::setSkirmishSettings(uint32_t goldDensityPercent, uint32_t manaRege
     mGoldDensityPercent = std::min<uint32_t>(std::max<uint32_t>(goldDensityPercent, SKIRMISH_PERCENT_MIN), SKIRMISH_PERCENT_MAX);
     mManaRegenerationPercent = std::min<uint32_t>(std::max<uint32_t>(manaRegenerationPercent, SKIRMISH_PERCENT_MIN), SKIRMISH_PERCENT_MAX);
     mMaxCreaturesSetting = std::min<uint32_t>(maxCreaturesSetting, ConfigManager::getSingleton().getMaxCreaturesPerSeatAbsolute());
+}
+
+void GameMap::setGameRules(uint32_t gameSpeedPercent, uint32_t gameDurationMinutes, bool fogOfWar)
+{
+    mGameSpeedPercent = std::min<uint32_t>(std::max<uint32_t>(gameSpeedPercent, SKIRMISH_SPEED_MIN), SKIRMISH_SPEED_MAX);
+    mGameDurationMinutes = std::min<uint32_t>(gameDurationMinutes, SKIRMISH_DURATION_MAX);
+    mIsFOWActivated = fogOfWar;
 }
 
 uint32_t GameMap::getCreatureClassLimit(const std::string& className) const

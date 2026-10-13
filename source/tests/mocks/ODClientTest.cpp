@@ -224,6 +224,12 @@ bool ODClientTest::processMessage(ServerNotificationType cmd, ODPacket& packetRe
             BOOST_CHECK(packetReceived >> goldDensityPercent);
             BOOST_CHECK(packetReceived >> manaRegenerationPercent);
             BOOST_CHECK(packetReceived >> maxCreaturesSetting);
+            uint32_t gameSpeedPercent = 0;
+            uint32_t gameDurationMinutes = 0;
+            uint32_t fogOfWar = 0;
+            BOOST_CHECK(packetReceived >> gameSpeedPercent);
+            BOOST_CHECK(packetReceived >> gameDurationMinutes);
+            BOOST_CHECK(packetReceived >> fogOfWar);
             uint32_t nbCreatureLimits = 0;
             BOOST_CHECK(packetReceived >> nbCreatureLimits);
             for(uint32_t i = 0; i < nbCreatureLimits; ++i)
@@ -263,8 +269,10 @@ bool ODClientTest::processMessage(ServerNotificationType cmd, ODPacket& packetRe
                 packSend << true << player.mPlayerId;
                 packSend << true << player.mWantedTeamId;
             }
-            // Gold density, mana regeneration, maximum creatures, no creature limits and no skill states
+            // Gold density, mana regeneration, maximum creatures, game speed, game duration, fog of war,
+            // no creature limits and no skill states
             packSend << static_cast<uint32_t>(100) << static_cast<uint32_t>(100) << static_cast<uint32_t>(0)
+                << static_cast<uint32_t>(100) << static_cast<uint32_t>(0) << static_cast<uint32_t>(1)
                 << static_cast<uint32_t>(0) << static_cast<uint32_t>(0);
             send(packSend);
             return true;
