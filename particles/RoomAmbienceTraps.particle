@@ -1209,3 +1209,80 @@ particle_system RoomAmbTriggerDim
         colour2 0.6 0.8 1.0 0.0
     }
 }
+
+// Dust kicked up behind a boulder that rolls through the dungeon (follows the boulder)
+particle_system RoomAmbBoulderTrail
+{
+    material        RoomAmbSmoke
+    point_rendering false
+    particle_width  0.3
+    particle_height 0.3
+    cull_each       false
+    quota           40
+    billboard_type  point
+
+    emitter Box
+    {
+        angle               60
+        colour_range_start  0.62 0.55 0.44 0.5
+        colour_range_end    0.78 0.7 0.58 0.55
+        emission_rate       28
+        time_to_live        1.1
+        direction           0 0 1
+        velocity_min        0.1
+        velocity_max        0.45
+        width               0.4
+        height              0.4
+        depth               0.05
+    }
+
+    affector Scaler
+    {
+        rate    0.45
+    }
+
+    affector ColourFader
+    {
+        alpha   -0.45
+    }
+}
+
+// Chunks and dust in the niche when the boulder trap launches its boulder
+particle_system RoomAmbBoulderBreak
+{
+    material        RoomAmbGrain
+    point_rendering false
+    particle_width  0.14
+    particle_height 0.14
+    cull_each       false
+    quota           50
+    billboard_type  point
+
+    emitter Box
+    {
+        angle               75
+        colour_range_start  0.5 0.45 0.38 1
+        colour_range_end    0.68 0.62 0.52 1
+        emission_rate       120
+        time_to_live        1.3
+        direction           0 0 1
+        velocity_min        1.0
+        velocity_max        2.8
+        position            0 0 0.2
+        duration            0.25
+        width               0.5
+        height              0.5
+        depth               0.1
+    }
+
+    affector LinearForce
+    {
+        force_vector        0 0 -7
+        force_application   add
+    }
+
+    affector ColourFader
+    {
+        alpha   -0.6
+    }
+}

@@ -33,6 +33,7 @@
 #include <vector>
 
 class GameMap;
+class Seat;
 class Tile;
 
 /*! \brief Cosmetic life in the rooms (dust, glow, sparks, moving objects), client side only.
@@ -109,7 +110,7 @@ public:
     { return static_cast<uint32_t>(mEmitters.size() + mOneShots.size()); }
     //! \brief The number of objects that are moved now (for the console)
     inline uint32_t getNbMovedObjects() const
-    { return static_cast<uint32_t>(mMotionNodes.size()); }
+    { return static_cast<uint32_t>(mMotionNodes.size() + mTurrets.size()); }
 
 private:
     struct Emitter
@@ -136,6 +137,43 @@ private:
         double mPhase;
         //! True while the last scan still wanted this emitter
         bool mSeen;
+    };
+
+    //! \brief A cannon (or another object of an effect of kind turn) that follows creatures in range with its barrel
+    struct Turret
+    {
+        //! \brief Creates a turret that is not attached to an object yet
+        Turret() :
+            mEffect(0), mPosition(Ogre::Vector3::ZERO), mRestFront(Ogre::Vector3::NEGATIVE_UNIT_Y), mSeat(nullptr),
+            mGeneration(0)
+        {}
+
+        //! Name of the scene node of the object that is turned
+        std::string mNodeName;
+        //! Index of the effect (kind turn) that drives the turret
+        uint32_t mEffect;
+        //! Where the object stands
+        Ogre::Vector3 mPosition;
+        //! Direction (flat) the object looked in when it was first seen, where it turns back to
+        Ogre::Vector3 mRestFront;
+        //! The seat the object belongs to, to tell enemies from friends
+        Seat* mSeat;
+        //! Scan in which the object was last seen; an older turret is sent back to rest and removed
+        uint32_t mGeneration;
+    };
+
+    //! \brief Where a creature was at the last scan and whose it is
+    struct CreatureSpot
+    {
+        //! \brief Creates a spot at the origin that belongs to nobody
+        CreatureSpot() :
+            mPosition(Ogre::Vector3::ZERO), mSeat(nullptr)
+        {}
+
+        //! Where the creature was
+        Ogre::Vector3 mPosition;
+        //! The seat the creature belongs to
+        Seat* mSeat;
     };
 
     //! \brief A particle system of an event effect that is removed after its duration
@@ -260,6 +298,10 @@ private:
     //! \brief Removes the one-shot effects whose time is over
     void updateOneShots(double timeSinceLastFrame);
     //! \brief Moves the objects by their motions and puts back the ones that are not moved any more
+    //! \brief Lets the objects of effects of kind turn follow the creatures near them, or go back to rest
+    void updateTurrets(double timeSinceLastFrame);
+    //! \brief Turns the object of a turret back to the direction it looked in when it was first seen
+    void restoreTurret(const Turret& turret);
     //! \brief Lets a running view shake fade out and moves its phase on
     void updateShake(double timeSinceLastFrame);
     //! \brief Starts a view shake of the effect (kind shake) for an event at the given place
@@ -337,6 +379,12 @@ private:
     //! Time until which a trap (key "x,y" of its tile) counts as reloading or empty, for the effects
     //! "When Reloading" and "When Ready"
     std::map<std::string, double> mReloadingUntil;
+    //! Objects that follow creatures (kind turn), per entity name
+    std::map<std::string, Turret> mTurrets;
+    //! Time until which a trap (key "x,y" of its tile) keeps its turn, because the server aims it for a shot
+    std::map<std::string, double> mTurretHoldUntil;
+    //! Where the creatures were at the last scan
+    std::vector<CreatureSpot> mCreatureSpots;
     //! View shake: seconds left and in total, strength in world units at the start, shakes per second, phase
     double mShakeTime;
     double mShakeTotal;

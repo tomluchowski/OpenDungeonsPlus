@@ -62,7 +62,10 @@ enum class AmbienceKind
     clip,
     //! A short shake of the view (events only): Amount = strength in world units, Speed = shakes per second,
     //! Duration in seconds, MaxDistance = distance of the event from the middle of the view beyond which it is not felt
-    shake
+    shake,
+    //! Slowly turns an object (a cannon) toward creatures within Amount tiles and back to where it stood when none
+    //! is near, at Speed degrees per second (objects only)
+    turn
 };
 
 //! \brief How an effect of the kind motion moves the node of its object

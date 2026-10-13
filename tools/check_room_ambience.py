@@ -22,7 +22,7 @@ EFFECT_KEYS = ("Name", "Target", "Match", "When", "Event", "Kind", "System", "Mo
                "NeedWall", "Clips", "Every")
 TARGETS = ("Object", "Tile", "Event")
 WHENS = ("Always", "Occupied", "Empty", "Reloading", "Ready")
-KINDS = ("Particle", "Motion", "Clip", "Shake")
+KINDS = ("Particle", "Motion", "Clip", "Shake", "Turn")
 MOTIONS = ("Sway", "Wobble", "Spin", "Bob", "Pulse", "Flicker")
 # Room tile visuals that only some builds have
 OPTIONAL_VISUALS = ("guardRoom", "templeRoom")
@@ -182,6 +182,12 @@ def check_effect(effect, where, problems, visuals, systems, mats, counts):
             problems.append("%s: no Match" % where)
     if kind == "Shake" and target != "Event":
         problems.append("%s: shakes only work as events" % where)
+    if kind == "Turn":
+        if target != "Object":
+            problems.append("%s: turns only work on objects" % where)
+        for key in ("Amount", "Speed"):
+            if key not in effect:
+                problems.append("%s: turn without %s" % (where, key))
     if kind == "Shake":
         for key in ("Amount", "Duration", "Speed", "MaxDistance"):
             if key not in effect:

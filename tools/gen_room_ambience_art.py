@@ -122,6 +122,14 @@ def sprite_rune(path):
     finish(image, path)
 
 
+def sprite_grain(path):
+    """A few grains of seed lying together."""
+    image, draw = new_canvas()
+    for x, y, a in ((90, 100, 20), (150, 80, -15), (120, 150, 35), (170, 150, -30), (80, 170, 10)):
+        draw.ellipse((x - 18, y - 9, x + 18, y + 9), fill=(214, 178, 96, 255), outline=(150, 118, 60, 255))
+    finish(image, path)
+
+
 SPRITES = {
     "RoomAmbSpark": sprite_spark,
     "RoomAmbGlow": sprite_glow,
@@ -129,6 +137,7 @@ SPRITES = {
     "RoomAmbDust": sprite_dust,
     "RoomAmbWeb": sprite_web,
     "RoomAmbRune": sprite_rune,
+    "RoomAmbGrain": sprite_grain,
 }
 
 

@@ -187,6 +187,11 @@ bool TrapCannon::shoot(Tile* tile)
 
     fireTrapSound(*tile, "Cannon/Fire");
 
+    // The barrel kicks back and runs out again (clip of the cannon skeleton)
+    RenderedMovableEntity* cannon = getBuildingObjectFromTile(tile);
+    if(cannon != nullptr)
+        cannon->setAnimationState("Triggered", false);
+
     return true;
 }
 
