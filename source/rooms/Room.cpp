@@ -169,6 +169,10 @@ Room* Room::handTileOverToSeat(Seat* seat, Tile* tile)
         mBuildingObjects.erase(itObject);
     }
 
+    // Counts as captured when the claimer takes the last tile of a room of an enemy seat
+    if(mCoveredTiles.empty() && (getSeat() != nullptr) && !getSeat()->isAlliedSeat(seat))
+        seat->getStatistics().mRoomsCaptured++;
+
     mCoveredTilesDestroyed.push_back(tile);
     newRoom->mCoveredTiles.push_back(tile);
     tile->setCoveringBuilding(newRoom);

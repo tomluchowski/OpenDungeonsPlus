@@ -34,9 +34,17 @@ public:
     //! Used to call the corresponding Gui Sheet.
     void activate() final override;
 
+    //! \brief Opens the skirmish sub-menu once the flight into the menu (after the defeat debriefing) ended
+    void onFrameStarted(const Ogre::FrameEvent& evt) override;
+
+    bool goBack(const CEGUI::EventArgs& e = {}) override;
+
 private:
     //! \brief The Settings window
     SettingsWindow mSettings;
+    bool mSettingsPageOpen = false;
+    //! True while the menu waits for the flight to end before it shows the skirmish sub-menu
+    bool mSkirmishSubMenuPending = false;
 
     //! \brief Helper functions to connect a button to a mode change
     void connectModeChangeEvent(const std::string& buttonName, AbstractModeManager::ModeType mode);
@@ -45,6 +53,10 @@ private:
     //! \brief Function triggered when pushing a button
     bool quitButtonPressed(const CEGUI::EventArgs&);
     bool toggleSettings(const CEGUI::EventArgs&);
+    bool openSettingsPage(const std::string& name);
+    bool settingsPageClosed(const CEGUI::EventArgs&);
+    void showMainMenuButtons(bool visible);
+    bool toggleSubMenu(const std::string& name);
 
     //! \brief Sub menu button triggers
     bool toggleSkirmishSubMenu(const CEGUI::EventArgs&);
