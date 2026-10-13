@@ -185,3 +185,13 @@ BOOST_AUTO_TEST_CASE(test_variant_is_reproducible)
     BOOST_CHECK(add(second, 10, "Orc1", PostCategory::Eat));
     BOOST_CHECK_EQUAL(first.getPosts().back().mVariant, second.getPosts().back().mVariant);
 }
+
+BOOST_AUTO_TEST_CASE(test_relationship_post_keeps_other_name)
+{
+    PostLog log;
+    log.start(0, TURNS_PER_SECOND);
+    BOOST_CHECK(log.addPost(10, "Orc1", "Orc", false, PostCategory::Friendship, 0, "Gruk Stonefist"));
+    BOOST_CHECK_EQUAL(log.getPosts().back().mOther, "Gruk Stonefist");
+    BOOST_CHECK_EQUAL(social::getPostCategoryName(PostCategory::Friendship), "friendship");
+    BOOST_CHECK_EQUAL(social::getPostCategoryName(PostCategory::Breakup), "breakup");
+}

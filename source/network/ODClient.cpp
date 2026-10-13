@@ -48,7 +48,9 @@
 #include "render/ODFrameListener.h"
 #include "render/RenderManager.h"
 #include "rooms/RoomPortalWave.h"
+#include "social/CreaturePosts.h"
 #include "social/PostLog.h"
+#include "social/SocialProfileCache.h"
 #include "sound/MusicPlayer.h"
 #include "sound/SoundEffectsManager.h"
 #include "spells/SpellType.h"
@@ -65,6 +67,30 @@
 #include <string>
 
 template<> ODClient* Ogre::Singleton<ODClient>::msSingleton = nullptr;
+
+namespace
+{
+//! \brief Dungeonbook post for a tier change of two creatures of the local player.
+void reportRelationshipPost(GameMap* gameMap, const std::string& creatureA, const std::string& creatureB,
+    RelationshipTier oldTier, RelationshipTier newTier)
+{
+    if(!social::PostLog::getSingleton().isActive())
+        return;
+
+    Creature* a = gameMap->getCreature(creatureA);
+    Creature* b = gameMap->getCreature(creatureB);
+    if((a == nullptr) || (b == nullptr))
+        return;
+
+    social::SocialProfileCache& cache = social::SocialProfileCache::getSingleton();
+    const std::string& classA = a->getDefinition()->getClassName();
+    const std::string& classB = b->getDefinition()->getClassName();
+    std::string nameA = cache.getProfile(creatureA, classA, false).getFullName();
+    std::string nameB = cache.getProfile(creatureB, classB, false).getFullName();
+    social::CreaturePosts::reportRelationshipChange(gameMap->getTurnNumber(), creatureA, classA, nameA,
+        creatureB, classB, nameB, oldTier, newTier);
+}
+}
 
 ODClient::ODClient() :
     ODSocketClient(),
@@ -786,7 +812,9 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
             if((relationships != nullptr) && (tier >= static_cast<int32_t>(RelationshipTier::nemesis))
                 && (tier <= static_cast<int32_t>(RelationshipTier::lovers)))
             {
+                RelationshipTier oldTier = relationships->tierOf(creatureA, creatureB, true);
                 relationships->setTier(creatureA, creatureB, static_cast<RelationshipTier>(tier));
+                reportRelationshipPost(gameMap, creatureA, creatureB, oldTier, static_cast<RelationshipTier>(tier));
             }
             break;
         }

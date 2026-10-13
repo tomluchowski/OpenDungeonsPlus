@@ -126,7 +126,7 @@ std::string renderPostText(const social::Post& post, const social::CreatureProfi
         room = social::CreaturePosts::getRoomName(post.mArgument);
 
     return social::SocialGenerator::renderPost(cache.getData(), profile, post.mIsWorker,
-        social::getPostCategoryName(post.mCategory), post.mVariant, level, room);
+        social::getPostCategoryName(post.mCategory), post.mVariant, level, room, post.mOther);
 }
 
 //! \brief One entry of the feed: name and age on the first line, the text below

@@ -285,6 +285,90 @@ std::string getProfileNameOfCreature(GameMap* gameMap, const std::string& creatu
         definition->isWorker()).getFullName();
 }
 
+//! \brief The relationships of a creature as the client knows them (tiers sent by the server).
+struct ProfileRelations
+{
+    ProfileRelations() :
+        mHasPartner(false),
+        mHasHated(false),
+        mHasNemesis(false)
+    {
+    }
+
+    //! Friends, best friends and partners, the strongest first
+    std::vector<std::string> mClose;
+    //! Hated creatures and nemeses, the worst first
+    std::vector<std::string> mAgainst;
+    //! Shown text per creature name, e.g. "Name (best friend)"
+    std::map<std::string, std::string> mTierText;
+    bool mHasPartner;
+    bool mHasHated;
+    bool mHasNemesis;
+};
+
+//! \brief Orders two (creature name, relationship value) pairs: the stronger value first, equal values by name.
+bool isStrongerRelationship(const std::pair<std::string, int32_t>& a, const std::pair<std::string, int32_t>& b)
+{
+    if(a.second != b.second)
+        return a.second > b.second;
+
+    return a.first < b.first;
+}
+
+//! \brief Fills the relations of a creature from the tiers of the client: who is close to it (friends, best friends,
+//! partner), who is against it (hated, nemesis) and the text that is shown per creature.
+//! \param gameMap The map the creatures are looked up in
+//! \param relationships The relationship table of the map
+//! \param name Name of the creature the profile belongs to
+//! \param result Receives the lists and texts
+void collectProfileRelations(GameMap* gameMap, CreatureRelationships& relationships, const std::string& name,
+    ProfileRelations& result)
+{
+    std::vector<std::pair<std::string, int32_t> > partners;
+    relationships.getPartners(name, partners);
+    std::sort(partners.begin(), partners.end(), isStrongerRelationship);
+
+    for(const std::pair<std::string, int32_t>& partner : partners)
+    {
+        std::string partnerName = getProfileNameOfCreature(gameMap, partner.first);
+        if(partnerName.empty())
+            continue;
+
+        RelationshipTier tier = relationships.tierOfValue(partner.second, true);
+        const char* label = nullptr;
+        switch(tier)
+        {
+            case RelationshipTier::lovers:
+                label = "partner";
+                result.mHasPartner = true;
+                result.mClose.push_back(partner.first);
+                break;
+            case RelationshipTier::bestFriends:
+                label = "best friend";
+                result.mClose.push_back(partner.first);
+                break;
+            case RelationshipTier::friends:
+                label = "friend";
+                result.mClose.push_back(partner.first);
+                break;
+            case RelationshipTier::hated:
+                label = "dislikes";
+                result.mHasHated = true;
+                result.mAgainst.insert(result.mAgainst.begin(), partner.first);
+                break;
+            case RelationshipTier::nemesis:
+                label = "nemesis";
+                result.mHasNemesis = true;
+                result.mAgainst.insert(result.mAgainst.begin(), partner.first);
+                break;
+            default:
+                break;
+        }
+        if(label != nullptr)
+            result.mTierText[partner.first] = partnerName + " (" + label + ")";
+    }
+}
+
 std::string joinProfileList(const std::vector<std::string>& values)
 {
     std::string result;
@@ -2718,7 +2802,22 @@ float Creature::fillProfilePage(CEGUI::Window* page)
     if(!profile.mGender.empty())
         age += " - " + profile.mGender;
     page->getChild("AgeText")->setText(age);
-    page->getChild("RelationText")->setText("Relationship: " + profile.mRelationship);
+    // With the relationship option the status of the own creatures comes from the real relationships
+    // and nothing changes for other creatures or with the option off
+    ProfileRelations relations;
+    bool showRelations = isAllied && getGameMap()->isRelationshipsEnabled() &&
+        (getGameMap()->getCreatureRelationships() != nullptr);
+    if(showRelations)
+        collectProfileRelations(getGameMap(), *getGameMap()->getCreatureRelationships(), getName(), relations);
+    if(showRelations)
+    {
+        page->getChild("RelationText")->setText("Relationship: " + social::CreaturePosts::getRelationshipStatus(
+            relations.mHasPartner, !relations.mClose.empty(), relations.mHasHated, relations.mHasNemesis));
+    }
+    else
+    {
+        page->getChild("RelationText")->setText("Relationship: " + profile.mRelationship);
+    }
     page->getChild("FromText")->setText("From: " + profile.mHometown);
     page->getChild("JobText")->setText("Job: " + profile.mJob);
     page->getChild("BioText")->setText("\"" + profile.mBio + "\"");
@@ -2763,6 +2862,8 @@ float Creature::fillProfilePage(CEGUI::Window* page)
     CEGUI::Window* foeLink = page->getChild("FoeLink");
     CEGUI::Window* statusText = page->getChild("StatusText");
     CEGUI::Window* latestText = page->getChild("LatestText");
+    CEGUI::Window* relationsText = page->getChild("RelationsText");
+    relationsText->setVisible(showRelations);
     friendsLabel->setVisible(isAllied);
     foeLabel->setVisible(isAllied);
     for(CEGUI::Window* friendLink : friendLinks)
@@ -2775,15 +2876,41 @@ float Creature::fillProfilePage(CEGUI::Window* page)
 
     // The friends only change when a creature is added, removed or changes seat, so they are
     // computed again only when the roster version of the post log changed
-    uint32_t rosterVersion = social::PostLog::getSingleton().getRosterVersion();
-    const social::SocialProfileCache::FriendsAndFoe* cachedFriends = cache.findFriendsAndFoe(getName(), rosterVersion);
-    if(cachedFriends == nullptr)
+    social::SocialProfileCache::FriendsAndFoe relationFriends;
+    const social::SocialProfileCache::FriendsAndFoe* cachedFriends = nullptr;
+    if(showRelations)
     {
-        social::SocialProfileCache::FriendsAndFoe computed;
-        computed.mRosterVersion = rosterVersion;
-        findFriendsAndFoe(getName(), getGameMap()->getCreaturesBySeat(localSeat), computed.mFriends, computed.mFoe);
-        cache.storeFriendsAndFoe(getName(), computed);
+        // The real friends and the worst enemy replace the ones derived from the names
+        relationFriends.mFriends = relations.mClose;
+        if(!relations.mAgainst.empty())
+            relationFriends.mFoe = relations.mAgainst[0];
+        cachedFriends = &relationFriends;
+
+        // The web: everybody the creature has a friendship or a grudge with
+        std::string web = "Close: ";
+        for(std::size_t i = 0; i < relations.mClose.size(); ++i)
+            web += (i > 0 ? ", " : "") + relations.mTierText[relations.mClose[i]];
+        if(relations.mClose.empty())
+            web += "nobody yet";
+        web += "\nAgainst: ";
+        for(std::size_t i = 0; i < relations.mAgainst.size(); ++i)
+            web += (i > 0 ? ", " : "") + relations.mTierText[relations.mAgainst[i]];
+        if(relations.mAgainst.empty())
+            web += "nobody";
+        relationsText->setText(web);
+    }
+    else
+    {
+        uint32_t rosterVersion = social::PostLog::getSingleton().getRosterVersion();
         cachedFriends = cache.findFriendsAndFoe(getName(), rosterVersion);
+        if(cachedFriends == nullptr)
+        {
+            social::SocialProfileCache::FriendsAndFoe computed;
+            computed.mRosterVersion = rosterVersion;
+            findFriendsAndFoe(getName(), getGameMap()->getCreaturesBySeat(localSeat), computed.mFriends, computed.mFoe);
+            cache.storeFriendsAndFoe(getName(), computed);
+            cachedFriends = cache.findFriendsAndFoe(getName(), rosterVersion);
+        }
     }
     // Each name is a button of its own, so no name is cut off; the label shares the first line with the first name
     std::size_t nbFriendLinks = 0;

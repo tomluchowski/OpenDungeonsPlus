@@ -46,6 +46,11 @@ enum class PostCategory : uint8_t
     Arrived,
     Left,
     Died,
+    //! A friendship was formed, a hatred or a nemesis arose, a friendship broke (relationship option)
+    Friendship,
+    Hatred,
+    Nemesis,
+    Breakup,
     Nb
 };
 
@@ -70,6 +75,8 @@ struct Post
     uint32_t mVariant;
     //! Level for level-up and payday posts, room type for work and train posts
     int32_t mArgument;
+    //! Profile name of the second creature of a relationship post, empty for other posts
+    std::string mOther;
     std::string mCreature;
     std::string mClassName;
     bool mIsWorker;
@@ -117,7 +124,7 @@ public:
 
     //! \brief Adds a post unless a limit applies. Returns true if it was added.
     bool addPost(int64_t turn, const std::string& creature, const std::string& className,
-        bool isWorker, PostCategory category, int32_t argument);
+        bool isWorker, PostCategory category, int32_t argument, const std::string& other = std::string());
 
     inline const std::deque<Post>& getPosts() const
     { return mPosts; }

@@ -125,6 +125,15 @@
             <Property name="VertFormatting" value="TopAligned" />
             <Property name="HorzFormatting" value="WordWrapLeftAligned" />
         </Window>
+        <Window type="OD/StaticText" name="RelationsText" >
+            <Property name="Area" value="{{0.0,16},{0.0,262},{1.0,-16},{0.0,282}}" />
+            <Property name="Visible" value="False" />
+            <Property name="FrameEnabled" value="False" />
+            <Property name="BackgroundEnabled" value="False" />
+            <Property name="Font" value="MedievalSharp-8" />
+            <Property name="VertFormatting" value="TopAligned" />
+            <Property name="HorzFormatting" value="WordWrapLeftAligned" />
+        </Window>
         <Window type="OD/StaticText" name="FriendsLabel" >
             <Property name="Area" value="{{0.0,16},{0.0,262},{0.0,88},{0.0,282}}" />
             <Property name="FrameEnabled" value="False" />

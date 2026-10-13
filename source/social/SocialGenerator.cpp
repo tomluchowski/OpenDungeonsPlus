@@ -335,7 +335,8 @@ std::string SocialGenerator::postTemplate(const SocialData& data, const std::str
 }
 
 std::string SocialGenerator::renderPost(const SocialData& data, const CreatureProfile& profile, bool isWorker,
-    const std::string& category, uint32_t variant, int32_t level, const std::string& room)
+    const std::string& category, uint32_t variant, int32_t level, const std::string& room,
+    const std::string& friendName)
 {
     std::string text = postTemplate(data, profile.mCreatureName, profile.mClassName, isWorker, category, variant);
     if(text.empty())
@@ -355,6 +356,7 @@ std::string SocialGenerator::renderPost(const SocialData& data, const CreaturePr
         slots["level"] = levelStream.str();
     }
     slots["room"] = room;
+    slots["friend"] = friendName;
     return renderText(text, slots);
 }
 

@@ -265,6 +265,21 @@ BOOST_AUTO_TEST_CASE(test_SocialMoodAndPosts)
         social::SocialGenerator::postTemplate(data, "Orc17", "Orc", false, "eat", 3));
 }
 
+BOOST_AUTO_TEST_CASE(test_SocialRelationshipPosts)
+{
+    social::SocialData data;
+    data.loadFromDirectory(getConfigDirectory());
+    social::CreatureProfile profile = social::SocialGenerator::makeProfile(data, "Orc17", "Orc", false);
+    const char* categories[] = {"friendship", "hatred", "nemesis", "breakup"};
+    for(std::size_t i = 0; i < sizeof(categories) / sizeof(categories[0]); ++i)
+    {
+        std::string text = social::SocialGenerator::renderPost(data, profile, false, categories[i], 1, 0, "",
+            "Gruk Stonefist");
+        BOOST_CHECK_MESSAGE(!text.empty(), categories[i]);
+        BOOST_CHECK_MESSAGE(text.find("Gruk Stonefist") != std::string::npos, text);
+    }
+}
+
 BOOST_AUTO_TEST_CASE(test_SocialFallbacks)
 {
     // Missing directory: errors are collected, profiles still work

@@ -20,6 +20,7 @@
 
 #include "creaturemood/CreatureMood.h"
 #include "entities/CreatureActivity.h"
+#include "game/CreatureRelationships.h"
 #include "social/PostLog.h"
 
 #include <stdint.h>
@@ -61,6 +62,18 @@ public:
     //! removals do not post.
     static void reportRemoval(int64_t turn, const std::string& creature, const std::string& className,
         bool isWorker, uint32_t lastMoodBits);
+
+    //! \brief The tier of a pair of creatures of the local player changed. A friendship formed, a
+    //! hatred or a nemesis arose or a friendship broke; other changes do not post. One of the two
+    //! creatures posts (alternating by turn), the other one is named in the text.
+    static void reportRelationshipChange(int64_t turn, const std::string& creatureA, const std::string& classA,
+        const std::string& nameA, const std::string& creatureB, const std::string& classB,
+        const std::string& nameB, RelationshipTier oldTier, RelationshipTier newTier);
+
+    //! \brief The relationship status of the profile: "In a relationship" (needs a partner, the lovers
+    //! tier), "Sworn enemies", "It's complicated" (friends and enemies at the
+    //! same time) or "Single".
+    static std::string getRelationshipStatus(bool hasPartner, bool hasFriends, bool hasHated, bool hasNemesis);
 
     //! \brief Name of a room type as used in the post texts ("training hall", "library", ...).
     static std::string getRoomName(int32_t roomType);

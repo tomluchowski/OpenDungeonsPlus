@@ -383,11 +383,11 @@ float Gui::layoutCreatureProfilePage(CEGUI::Window* page)
 
     // Bio, likes and dislikes, then the rows with friends and foe, then status and latest post. The quirks of the
     // picture come last, so they never move the status and the latest post (the creature card has a fixed height).
-    const char* const textRowsBefore[] = {"BioText", "LikesText", "DislikesText"};
+    const char* const textRowsBefore[] = {"BioText", "LikesText", "DislikesText", "RelationsText"};
     const char* const textRowsAfter[] = {"StatusText", "LatestText", "QuirksText"};
     const char* const linkRows[2][3] = {{"FriendsLabel", "FriendLink0", "FriendLink1"}, {"FoeLabel", "FoeLink", nullptr}};
 
-    for(std::size_t i = 0; i < 3; ++i)
+    for(std::size_t i = 0; i < 4; ++i)
         y = layoutProfileTextRow(page->getChild(textRowsBefore[i]), y, scale);
 
     for(std::size_t row = 0; row < 2; ++row)
