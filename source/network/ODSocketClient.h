@@ -71,7 +71,11 @@ class ODSocketClient
         void setPlayer(Player* player) { mPlayer = player; }
         int64_t getLastTurnAck() { return mLastTurnAck; }
         void setLastTurnAck(int64_t lastTurnAck) { mLastTurnAck = lastTurnAck; }
+        //! \brief Tells whether the client already got the current relationship tiers from the server
+        //! \return True once the tiers were received
         bool getRelationshipsSynced() const { return mRelationshipsSynced; }
+        //! \brief Remembers whether the client got the current relationship tiers from the server
+        //! \param synced True once the tiers were received
         void setRelationshipsSynced(bool synced) { mRelationshipsSynced = synced; }
         const std::string& getState() {return mState;}
         bool isDataAvailable(int miliseconds=5);
