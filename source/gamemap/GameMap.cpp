@@ -1168,6 +1168,7 @@ unsigned long int GameMap::doMiscUpkeep(double timeSinceLastTurn)
     if((mTimePayDay >= ConfigManager::getSingleton().getTimePayDay()))
     {
         mTimePayDay = 0;
+        getLevelScript().recordEvent("Level", "payday");
         // We only notify players with a dungeon temple
         for(Player* player : getPlayers())
         {

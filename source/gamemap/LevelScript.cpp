@@ -230,6 +230,20 @@ bool parseCondition(const std::vector<std::string>& t, LevelScriptCondition& con
         }
         return parseInt(value, cond.mNumber);
     }
+    if(type == "event")
+    {
+        cond.mType = LevelScriptConditionType::creatureEvent;
+        cond.mNumber = 1;
+        if((t.size() != 4) && (t.size() != 6))
+            return false;
+
+        cond.mName = t[2];
+        cond.mName2 = t[3];
+        if(t.size() == 6)
+            return parseOperator(t[4], cond) && parseInt(t[5], cond.mNumber);
+
+        return true;
+    }
     if(type == "portal")
     {
         cond.mType = LevelScriptConditionType::portalActive;
@@ -357,15 +371,36 @@ bool parseAction(const std::string& line, const std::vector<std::string>& t, Lev
 
         for(std::size_t i = 6; i < t.size(); ++i)
         {
+            if(t[i].compare(0, 6, "party=") == 0)
+            {
+                action.mParty = t[i].substr(6);
+                if(action.mParty.empty())
+                    return false;
+
+                continue;
+            }
+
             std::string::size_type colon = t[i].find(':');
             if((colon == std::string::npos) || (colon == 0))
                 return false;
 
+            std::string levelText = t[i].substr(colon + 1);
+            std::string creatureName;
+            std::string::size_type at = levelText.find('@');
+            if(at != std::string::npos)
+            {
+                creatureName = levelText.substr(at + 1);
+                levelText = levelText.substr(0, at);
+                if(creatureName.empty())
+                    return false;
+            }
+
             int64_t level = 0;
-            if(!parseInt(t[i].substr(colon + 1), level) || (level < 1))
+            if(!parseInt(levelText, level) || (level < 1))
                 return false;
 
             action.mCreatures.push_back(std::pair<std::string, uint32_t>(t[i].substr(0, colon), static_cast<uint32_t>(level)));
+            action.mCreatureNames.push_back(creatureName);
         }
         return true;
     }
@@ -515,6 +550,11 @@ void writeCondition(std::ostream& os, const LevelScriptCondition& c)
             else
                 os << "reached\t" << c.mName << "\tregion\t" << c.mName2;
             break;
+        case LevelScriptConditionType::creatureEvent:
+            os << "event\t" << c.mName << "\t" << c.mName2;
+            if((c.mCompare != LevelScriptCompare::atLeast) || (c.mNumber != 1))
+                os << "\t" << levelScriptCompareToken(c.mCompare) << "\t" << c.mNumber;
+            break;
         case LevelScriptConditionType::ownsCreature:
             os << "owns\t" << c.mSeatId << "\t" << c.mName;
             break;
@@ -594,8 +634,14 @@ void writeAction(std::ostream& os, const LevelScriptAction& a)
             break;
         case LevelScriptActionType::spawn:
             os << "spawn\t" << a.mSeatId << "\t" << a.mX << "\t" << a.mY << "\t" << a.mTargetSeatId;
+            if(!a.mParty.empty())
+                os << "\tparty=" << a.mParty;
             for(std::size_t i = 0; i < a.mCreatures.size(); ++i)
+            {
                 os << "\t" << a.mCreatures[i].first << ":" << a.mCreatures[i].second;
+                if((i < a.mCreatureNames.size()) && !a.mCreatureNames[i].empty())
+                    os << "@" << a.mCreatureNames[i];
+            }
             break;
         case LevelScriptActionType::gold:
             os << "gold\t" << a.mSeatId << "\t" << a.mNumber;
@@ -721,6 +767,21 @@ bool LevelScript::importFromStream(std::istream& is)
 
             mBlocked.insert(std::make_pair(seatId, t[2]));
         }
+        else if(key == "Event")
+        {
+            int64_t count = 0;
+            if(inTrigger || (t.size() != 4) || !parseInt(t[3], count))
+                return false;
+
+            mEvents[std::make_pair(t[1], t[2])] = count;
+        }
+        else if(key == "Member")
+        {
+            if(inTrigger || (t.size() != 3))
+                return false;
+
+            mPartyMembers[t[1]] = t[2];
+        }
         else if(key == "TimeLimit")
         {
             if(inTrigger || (t.size() != 2) || !parseInt(t[1], mTimeLimitSeconds))
@@ -824,6 +885,12 @@ void LevelScript::exportToStream(std::ostream& os) const
     for(const std::pair<int32_t, std::string>& block : mBlocked)
         os << "Block\t" << block.first << "\t" << block.second << "\n";
 
+    for(const std::pair<const std::pair<std::string, std::string>, int64_t>& event : mEvents)
+        os << "Event\t" << event.first.first << "\t" << event.first.second << "\t" << event.second << "\n";
+
+    for(const std::pair<const std::string, std::string>& member : mPartyMembers)
+        os << "Member\t" << member.first << "\t" << member.second << "\n";
+
     if(mTimeLimitSeconds != TIME_LIMIT_NOT_SET)
         os << "TimeLimit\t" << mTimeLimitSeconds << "\n";
 
@@ -867,8 +934,12 @@ void LevelScript::clear()
     mTriggers.clear();
     mFlags.clear();
     mTimers.clear();
+    mEvents.clear();
     mPortalOff.clear();
     mBlocked.clear();
+    mPartyMembers.clear();
+    mWatched.clear();
+    mWatchedValid = false;
     mRegions.clear();
     mTimeLimitSeconds = TIME_LIMIT_NOT_SET;
     mCountdownSeconds = COUNTDOWN_NOT_SET;
@@ -1048,6 +1119,59 @@ bool levelScriptParseCompare(const std::string& token, LevelScriptCompare& op)
         }
     }
     return false;
+}
+
+void LevelScript::recordEvent(const std::string& creatureName, const std::string& eventName)
+{
+    if(!mWatchedValid)
+    {
+        mWatched.clear();
+        for(const LevelScriptTrigger& trigger : mTriggers)
+        {
+            for(const LevelScriptCondition& cond : trigger.mConditions)
+            {
+                if(cond.mType == LevelScriptConditionType::creatureEvent)
+                    mWatched.insert(cond.mName);
+            }
+        }
+        mWatchedValid = true;
+    }
+
+    if(mWatched.empty())
+        return;
+
+    if(mWatched.count(creatureName) > 0)
+        ++mEvents[std::make_pair(creatureName, eventName)];
+
+    std::map<std::string, std::string>::const_iterator member = mPartyMembers.find(creatureName);
+    if((member != mPartyMembers.end()) && (mWatched.count(member->second) > 0))
+        ++mEvents[std::make_pair(member->second, eventName)];
+}
+
+int64_t LevelScript::getEventCount(const std::string& tag, const std::string& eventName) const
+{
+    std::map<std::pair<std::string, std::string>, int64_t>::const_iterator it =
+        mEvents.find(std::make_pair(tag, eventName));
+    if(it == mEvents.end())
+        return 0;
+
+    return it->second;
+}
+
+void LevelScript::addPartyMember(const std::string& party, const std::string& creatureName)
+{
+    mPartyMembers[creatureName] = party;
+}
+
+std::vector<std::string> LevelScript::getPartyMemberNames(const std::string& party) const
+{
+    std::vector<std::string> names;
+    for(const std::pair<const std::string, std::string>& member : mPartyMembers)
+    {
+        if(member.second == party)
+            names.push_back(member.first);
+    }
+    return names;
 }
 
 void LevelScript::setPortalOff(int32_t seatId, bool off)

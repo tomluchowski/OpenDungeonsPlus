@@ -493,3 +493,57 @@ BOOST_AUTO_TEST_CASE(test_story_state)
         BOOST_CHECK_MESSAGE(!invalid.importFromStream(isBad), entry);
     }
 }
+
+//! \brief Creature event conditions count the events of creatures and parties, and spawn actions can name them
+BOOST_AUTO_TEST_CASE(test_creature_events)
+{
+    static const std::string text =
+        "Event\tLordKnight3\tkilled\t1\n"
+        "Member\tKnight_7\tPartyA\n"
+        "[Trigger]\n"
+        "Name\tlord\n"
+        "Mode\tonce\n"
+        "Cond\tevent\tLordKnight3\tkilled\n"
+        "Cond\tevent\tPartyA\tincapacitated\t>=\t2\n"
+        "Cond\troom\t1\tTreasury\t>\t0\n"
+        "Cond\troom\t1\tHatchery\t2\n"
+        "Action\tspawn\t2\t5\t6\t-1\tparty=PartyA\tKnight:2\n"
+        "[/Trigger]\n"
+        "[/Triggers]\n";
+    LevelScript script;
+    std::istringstream is(text);
+    BOOST_REQUIRE(script.importFromStream(is));
+    const LevelScriptTrigger& trigger = script.getTriggers()[0];
+    BOOST_REQUIRE_EQUAL(trigger.mConditions.size(), 4u);
+    BOOST_CHECK(trigger.mConditions[0].mType == LevelScriptConditionType::creatureEvent);
+    BOOST_CHECK_EQUAL(trigger.mConditions[0].mName2, "killed");
+    BOOST_CHECK_EQUAL(trigger.mConditions[0].mNumber, 1);
+    BOOST_CHECK_EQUAL(trigger.mConditions[1].mNumber, 2);
+    BOOST_CHECK(trigger.mConditions[2].mCompare == LevelScriptCompare::greater);
+    BOOST_CHECK(trigger.mConditions[3].mCompare == LevelScriptCompare::atLeast);
+    BOOST_CHECK_EQUAL(trigger.mActions[0].mParty, "PartyA");
+    BOOST_CHECK_EQUAL(trigger.mActions[0].mCreatures.size(), 1u);
+
+    BOOST_CHECK_EQUAL(script.getEventCount("LordKnight3", "killed"), 1);
+    script.recordEvent("Unwatched", "killed");
+    BOOST_CHECK_EQUAL(script.getEventCount("Unwatched", "killed"), 0);
+    // A member counts for its own name only if watched, and always for its party
+    script.recordEvent("Knight_7", "incapacitated");
+    BOOST_CHECK_EQUAL(script.getEventCount("PartyA", "incapacitated"), 1);
+    BOOST_CHECK_EQUAL(script.getEventCount("Knight_7", "incapacitated"), 0);
+    script.addPartyMember("PartyA", "Knight_8");
+    script.recordEvent("Knight_8", "incapacitated");
+    BOOST_CHECK_EQUAL(script.getEventCount("PartyA", "incapacitated"), 2);
+
+    std::ostringstream os;
+    script.exportToStream(os);
+    std::string written = os.str();
+    LevelScript again;
+    std::istringstream is2(written.substr(11));
+    BOOST_REQUIRE(again.importFromStream(is2));
+    BOOST_CHECK_EQUAL(again.getEventCount("PartyA", "incapacitated"), 2);
+    BOOST_CHECK_EQUAL(again.getPartyMembers().size(), 2u);
+    std::ostringstream os2;
+    again.exportToStream(os2);
+    BOOST_CHECK_EQUAL(os2.str(), written);
+}

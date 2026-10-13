@@ -63,6 +63,7 @@
 #include "game/SkillType.h"
 #include "game/Seat.h"
 #include "gamemap/GameMap.h"
+#include "gamemap/LevelScript.h"
 #include "gamemap/Pathfinding.h"
 #include "giftboxes/GiftBoxSkill.h"
 
@@ -2092,15 +2093,33 @@ std::string Creature::getStatsText()
     return tempSS.str();
 }
 
+namespace
+{
+//! \brief Counts an event of the creature for the conditions of the level script (server only)
+//! \param creature The creature the event happened to
+//! \param eventName The name of the event, for example "killed" or "slapped"
+void recordScriptEvent(const Creature& creature, const std::string& eventName)
+{
+    if(!creature.getIsOnServerMap())
+        return;
+
+    creature.getGameMap()->getLevelScript().recordEvent(creature.getName(), eventName);
+}
+} // namespace
+
 double Creature::takeDamage(GameEntity* attacker, double absoluteDamage, double physicalDamage, double magicalDamage, double elementDamage,
         Tile *tileTakingDamage, bool ko)
 {
+    bool wasAlive = isAlive();
     mNbTurnsWithoutBattle = 0;
     physicalDamage = std::max(physicalDamage - getPhysicalDefense(), 0.0);
     magicalDamage = std::max(magicalDamage - getMagicalDefense(), 0.0);
     elementDamage = std::max(elementDamage - getElementDefense(), 0.0);
     double damageDone = std::min(mHp, absoluteDamage + physicalDamage + magicalDamage + elementDamage);
     mHp -= damageDone;
+    if(wasAlive && (damageDone > 0.0))
+        recordScriptEvent(*this, "attacked");
+
     if(mHp <= 0)
     {
         // If the attacking entity is a creature and its seat is configured to KO creatures
@@ -2108,6 +2127,7 @@ double Creature::takeDamage(GameEntity* attacker, double absoluteDamage, double 
         if(ko && !getDefinition()->isWorker())
         {
             mHp = 1.0;
+            recordScriptEvent(*this, "incapacitated");
             mKoTurnCounter = -ConfigManager::getSingleton().getNbTurnsKoCreatureAttacked();
             OD_LOG_INF("creature=" + getName() + " has been KO by " + attacker->getName());
             dropCarriedEquipment();
@@ -2118,7 +2138,14 @@ double Creature::takeDamage(GameEntity* attacker, double absoluteDamage, double 
     computeCreatureOverlayMoodValue();
 
     if(!isAlive())
+    {
+        if(wasAlive)
+        {
+            recordScriptEvent(*this, "killed");
+            recordScriptEvent(*this, "incapacitated");
+        }
         fireEntityDead();
+    }
 
     if(!getIsOnServerMap())
         return damageDone;
@@ -2266,6 +2293,8 @@ void Creature::pickup()
 
     if(getHasVisualDebuggingEntities())
         computeVisualDebugEntities();
+
+    recordScriptEvent(*this, "pickedup");
 
     fireCreatureSound(CreatureSound::Pickup);
 }
@@ -2683,6 +2712,8 @@ void Creature::slap()
         deleteYourself();
         return;
     }
+
+    recordScriptEvent(*this, "slapped");
 
     CreatureEffectSlap* effect = new CreatureEffectSlap(
         ConfigManager::getSingleton().getSlapEffectDuration(), "");
@@ -3420,6 +3451,10 @@ void Creature::changeSeat(Seat* newSeat)
 {
     OD_LOG_INF("creature=" + getName() + " changes side from seatId=" + Helper::toString(getSeat()->getId()) + " to seatId=" + Helper::toString(newSeat->getId()));
     OD_ASSERT_TRUE_MSG(getSeat() != newSeat, "creature=" + getName() + ", seatId=" + Helper::toString(newSeat->getId()));
+    // A neutral creature that joins a keeper is claimed
+    if(getSeat()->isRogueSeat() && !newSeat->isRogueSeat())
+        recordScriptEvent(*this, "claimed");
+
     setSeat(newSeat);
     mMoodValue = CreatureMoodLevel::Neutral;
     mMoodPoints = 0;

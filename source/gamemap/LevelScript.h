@@ -37,6 +37,8 @@
 //!   Timer   <name> <running 0|1> <turns>      # written by the game: a timer started by an action, in game turns
 //!   PortalOff <seatId>                        # written by the game: a seat whose portals are switched off
 //!   Block   <seatId> <class>                  # written by the game: a creature class that cannot come to the seat
+//!   Event   <tag> <eventName> <count>         # written by the game: events of creatures and parties counted so far
+//!   Member  <creatureName> <partyTag>         # written by the game: a creature that a spawn action created for a party
 //!   Countdown <seconds>                       # written by the game: the HUD countdown set by an action, in level seconds
 //!   WaveCountdown <seconds>                   # written by the game: the HUD wave countdown set by an action, in level seconds
 //!   TimeLimit <seconds>                       # written by the game: the time limit set by an action, in level seconds (-2: removed)
@@ -49,6 +51,10 @@
 //!   Cond    region <seatId> <regionName>          # the same, with the rectangle of a named region
 //!   Cond    region <seatId> <regionName> <op> <count> [<class>]   # number of living creatures (of that class) of the seat in the region
 //!   Cond    creatures <seatId> <op> <count> [<class>]   # living creatures of the seat, optionally of one creature class
+//!   Cond    event <tag> <eventName> [<op> <count>]   # a creature (its name) or a party (its tag) had that event that many times, default at least once.
+//!           # events: killed (dies), incapacitated (dies or is knocked out), attacked (takes damage), slapped, pickedup,
+//!           # steals (takes gold), claimed (a neutral creature joins a keeper), created (the creature or a member of the party exists; counts them).
+//!           # Two more tags: Seat<id> with the event cast:<spellName> (the player cast that spell, spell type names such as callToWar) and the tag Level with the event payday.
 //!   Cond    defeated <seatId>                 # the seat has lost its dungeon (its player is out of the game)
 //!   Cond    owns <seatId> <creatureName>      # the creature with that name is alive and belongs to the seat
 //!   Cond    portal <seatId> on | off          # the portals of the seat attract creatures (on) or are switched off (off) by an action portal
@@ -74,7 +80,7 @@
 //! only had >= and <=).
 //!   Action  message <seatId> <text>           # seat -1: every human player
 //!   Action  objective <seatId> <text>
-//!   Action  spawn <seatId> <x> <y> <targetSeatId> <class:level> [...]   # creatures of that class and level appear on the tile; the target seat is the one whose dungeon they attack (-1: none)
+//!   Action  spawn <seatId> <x> <y> <targetSeatId> [party=<tag>] <class:level>[@<name>] [...]   # the tag names the group for event conditions, a name is the creature name (if no creature has it)
 //!   Action  gold <seatId> <amount>
 //!   Action  setflag <name> <value>
 //!   Action  addflag <name> <delta>            # adds to the flag (a negative value subtracts)
@@ -138,6 +144,7 @@ enum class LevelScriptConditionType
     trapsBuilt,
     roomTiles,
     largestRoom,
+    creatureEvent,
     portalActive,
     creatureAlive,
     creatureReached
@@ -228,6 +235,10 @@ struct LevelScriptAction
     std::string mText;
     //! \brief spawn: creature class name and level
     std::vector<std::pair<std::string, uint32_t> > mCreatures;
+    //! \brief spawn: name of each creature of mCreatures (empty: the game chooses one)
+    std::vector<std::string> mCreatureNames;
+    //! \brief spawn: tag of the party the created creatures belong to (empty: none)
+    std::string mParty;
 };
 
 //! \brief A named rectangle of tiles, both corners included. The level editor places them
@@ -300,6 +311,7 @@ class LevelScript
 {
 public:
     LevelScript() :
+        mWatchedValid(false),
         mTimeLimitSeconds(TIME_LIMIT_NOT_SET),
         mCountdownSeconds(COUNTDOWN_NOT_SET),
         mWaveCountdownSeconds(COUNTDOWN_NOT_SET)
@@ -317,11 +329,14 @@ public:
 
     //! \brief True if the script holds nothing that a level file has to store.
     inline bool isEmpty() const
-    { return mTriggers.empty() && mFlags.empty() && mTimers.empty() && mPortalOff.empty() && mBlocked.empty() && mRegions.empty() && (mTimeLimitSeconds == TIME_LIMIT_NOT_SET) && (mCountdownSeconds == COUNTDOWN_NOT_SET) && (mWaveCountdownSeconds == COUNTDOWN_NOT_SET); }
+    { return mTriggers.empty() && mFlags.empty() && mTimers.empty() && mEvents.empty() && mPortalOff.empty() && mBlocked.empty() && mRegions.empty() && (mTimeLimitSeconds == TIME_LIMIT_NOT_SET) && (mCountdownSeconds == COUNTDOWN_NOT_SET) && (mWaveCountdownSeconds == COUNTDOWN_NOT_SET); }
 
     //! \brief The triggers of the script. The caller may change them.
     inline std::vector<LevelScriptTrigger>& getTriggers()
-    { return mTriggers; }
+    {
+        mWatchedValid = false;
+        return mTriggers;
+    }
 
     //! \brief The triggers of the script.
     inline const std::vector<LevelScriptTrigger>& getTriggers() const
@@ -359,6 +374,23 @@ public:
 
     //! \brief True if the script keeps the creature class away from the dungeon of the seat
     bool isCreatureBlocked(int32_t seatId, const std::string& className) const;
+
+    //! Counts an event of a creature (and of the party it belongs to). Only the creatures and parties
+    //! that a condition of the script names are counted.
+    void recordEvent(const std::string& creatureName, const std::string& eventName);
+    int64_t getEventCount(const std::string& tag, const std::string& eventName) const;
+
+    //! Puts a creature into a party
+    void addPartyMember(const std::string& party, const std::string& creatureName);
+
+    inline const std::map<std::pair<std::string, std::string>, int64_t>& getEvents() const
+    { return mEvents; }
+
+    inline const std::map<std::string, std::string>& getPartyMembers() const
+    { return mPartyMembers; }
+
+    //! Names of the creatures of a party (tag) that were created by a spawn action
+    std::vector<std::string> getPartyMemberNames(const std::string& party) const;
 
     //! \brief All flags that were set.
     inline const std::map<std::string, int64_t>& getFlags() const
@@ -427,6 +459,12 @@ private:
     std::map<std::string, LevelScriptTimer> mTimers;
     std::set<int32_t> mPortalOff;
     std::set<std::pair<int32_t, std::string> > mBlocked;
+    std::map<std::pair<std::string, std::string>, int64_t> mEvents;
+    //! creature name -> party tag
+    std::map<std::string, std::string> mPartyMembers;
+    //! The creature names and party tags that the event conditions of the triggers name
+    mutable std::set<std::string> mWatched;
+    mutable bool mWatchedValid;
     std::vector<LevelScriptRegion> mRegions;
     int64_t mTimeLimitSeconds;
     int64_t mCountdownSeconds;

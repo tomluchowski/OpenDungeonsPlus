@@ -1506,6 +1506,9 @@ bool ODServer::processClientNotifications(ODSocketClient* clientSocket)
             if(!SpellManager::castSpell(gameMap, spellType, player, packetReceived))
                 break;
 
+            gameMap->getLevelScript().recordEvent("Seat" + Helper::toString(player->getSeat()->getId()),
+                "cast:" + SpellManager::getSpellNameFromSpellType(spellType));
+
             uint32_t newCooldown = SpellManager::getSpellCooldown(spellType);
             player->setSpellCooldownTurns(spellType, newCooldown);
             break;

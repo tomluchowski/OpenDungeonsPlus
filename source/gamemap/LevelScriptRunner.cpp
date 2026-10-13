@@ -158,6 +158,22 @@ bool isConditionMet(GameMap& gameMap, const LevelScript& script, const LevelScri
         }
         case LevelScriptConditionType::timer:
             return levelScriptCompare(script.getTimerTurns(cond.mName), cond.mCompare, secondsToTurns(cond.mNumber));
+        case LevelScriptConditionType::creatureEvent:
+        {
+            if(cond.mName2 == "created")
+            {
+                // The creature (or the party) is there: it was placed by the level or created by an action
+                int64_t numCreated = (gameMap.getCreature(cond.mName) != nullptr) ? 1 : 0;
+                std::vector<std::string> members = script.getPartyMemberNames(cond.mName);
+                for(const std::string& member : members)
+                {
+                    if(gameMap.getCreature(member) != nullptr)
+                        ++numCreated;
+                }
+                return levelScriptCompare(numCreated, cond.mCompare, cond.mNumber);
+            }
+            return levelScriptCompare(script.getEventCount(cond.mName, cond.mName2), cond.mCompare, cond.mNumber);
+        }
         case LevelScriptConditionType::portalActive:
             return script.isPortalOff(cond.mSeatId) == (cond.mNumber == 0);
         case LevelScriptConditionType::creatureAlive:
@@ -379,6 +395,12 @@ void spawnCreatures(GameMap& gameMap, const LevelScriptAction& action)
         }
 
         Creature* newCreature = new Creature(&gameMap, classToSpawn, seat, spawnPosition);
+        // A creature that conditions refer to by name gets that name, if it is free
+        if((index < action.mCreatureNames.size()) && !action.mCreatureNames[index].empty() &&
+           (gameMap.getCreature(action.mCreatureNames[index]) == nullptr))
+        {
+            newCreature->setName(action.mCreatureNames[index]);
+        }
         newCreature->setLevel(p.second);
         newCreature->setHP(newCreature->getMaxHp());
 
@@ -386,6 +408,8 @@ void spawnCreatures(GameMap& gameMap, const LevelScriptAction& action)
             + ", name=" + newCreature->getName() + ", seatId=" + Helper::toString(seat->getId()));
 
         newCreature->addToGameMap();
+        if(!action.mParty.empty())
+            gameMap.getLevelScript().addPartyMember(action.mParty, newCreature->getName());
 
         newCreature->createMesh();
         newCreature->setPosition(newCreature->getPosition());
