@@ -261,6 +261,7 @@ set(OD_SOURCEFILES
     ${SRC}/creatureaction/CreatureActionGrabEntity.cpp
     ${SRC}/creatureaction/CreatureActionLeaveDungeon.cpp
     ${SRC}/creatureaction/CreatureActionParkToTile.cpp
+    ${SRC}/creatureaction/CreatureActionReloadTrap.cpp
     ${SRC}/creatureaction/CreatureActionSearchEntityToCarry.cpp
     ${SRC}/creatureaction/CreatureActionSearchFood.cpp
     ${SRC}/creatureaction/CreatureActionSearchGroundTileToClaim.cpp

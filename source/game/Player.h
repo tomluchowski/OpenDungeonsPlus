@@ -264,6 +264,10 @@ public:
     //! of this seat are doing. The worker should try the actions on the given order
     std::vector<CreatureActionType> getWorkerPreferredActions(Creature& worker) const;
 
+    //! \brief Returns true if one more worker may reload a trap: the workers reloading traps stay within the
+    //! configured share (TrapReloadWorkerSharePercent) of the workers doing the listed jobs
+    bool isWorkerReloadShareOpen() const;
+
 private:
     //! \brief Player ID is only used during seat configuration phase
     //! During the game, one should use the seat ID to identify a player because

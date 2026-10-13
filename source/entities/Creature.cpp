@@ -31,6 +31,7 @@
 #include "creatureaction/CreatureActionGrabEntity.h"
 #include "creatureaction/CreatureActionLeaveDungeon.h"
 #include "creatureaction/CreatureActionParkToTile.h"
+#include "creatureaction/CreatureActionReloadTrap.h"
 #include "creatureaction/CreatureActionSearchEntityToCarry.h"
 #include "creatureaction/CreatureActionSearchFood.h"
 #include "creatureaction/CreatureActionSearchGroundTileToClaim.h"
@@ -1261,6 +1262,11 @@ bool Creature::handleIdleAction()
 
     if (mDefinition->isWorker())
     {
+        // A trap of the keeper that used up its shots is armed again before the other jobs
+        if(!hasActionBeenTried(CreatureActionType::reloadTrap) && getSeat()->getPlayer()->isWorkerReloadShareOpen() &&
+           CreatureActionReloadTrap::tryStart(*this))
+            return true;
+
         // Decide what to do
         std::vector<CreatureActionType> workerActions = getSeat()->getPlayer()->getWorkerPreferredActions(*this);
         for(CreatureActionType actionType : workerActions)

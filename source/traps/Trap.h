@@ -55,7 +55,10 @@ public:
         mNbShootsBeforeDeactivation(0),
         mTrapEntity(nullptr),
         mIsWorking(false),
-        mRemoveTrap(false)
+        mRemoveTrap(false),
+        mIsExhausted(false),
+        mReloadWorker(nullptr),
+        mReloadNextTurn(0)
     {}
 
     TrapTileData(const TrapTileData* trapTileData) :
@@ -66,7 +69,10 @@ public:
         mNbShootsBeforeDeactivation(trapTileData->mNbShootsBeforeDeactivation),
         mTrapEntity(trapTileData->mTrapEntity),
         mIsWorking(trapTileData->mIsWorking),
-        mRemoveTrap(trapTileData->mRemoveTrap)
+        mRemoveTrap(trapTileData->mRemoveTrap),
+        mIsExhausted(trapTileData->mIsExhausted),
+        mReloadWorker(nullptr),
+        mReloadNextTurn(trapTileData->mReloadNextTurn)
     {}
 
     virtual ~TrapTileData()
@@ -143,6 +149,30 @@ public:
     inline void setRemoveTrap(bool removeTrap)
     { mRemoveTrap = removeTrap; }
 
+    //! \brief True once the trap tile has used up its shots (saved). A tile that never was loaded is not exhausted.
+    inline bool isExhausted() const
+    { return mIsExhausted; }
+
+    //! \brief Sets whether the trap tile has used up its shots
+    inline void setExhausted(bool exhausted)
+    { mIsExhausted = exhausted; }
+
+    //! \brief The worker on its way to reload this tile (runtime only, not saved)
+    inline Creature* getReloadWorker() const
+    { return mReloadWorker; }
+
+    //! \brief Sets the worker that reloads this tile (nullptr to free it)
+    inline void setReloadWorker(Creature* worker)
+    { mReloadWorker = worker; }
+
+    //! \brief Turn number before which no worker reloads this tile (runtime only, not saved)
+    inline int64_t getReloadNextTurn() const
+    { return mReloadNextTurn; }
+
+    //! \brief Sets the turn number before which no worker reloads this tile
+    inline void setReloadNextTurn(int64_t turn)
+    { mReloadNextTurn = turn; }
+
     void fireSeatsSawTriggering();
     void seatSawTriggering(Seat* seat);
     void seatsSawTriggering(const std::vector<Seat*>& seats);
@@ -157,6 +187,9 @@ private:
     TrapEntity* mTrapEntity;
     bool mIsWorking;
     bool mRemoveTrap;
+    bool mIsExhausted;
+    Creature* mReloadWorker;
+    int64_t mReloadNextTurn;
 };
 
 /*! \class Trap Trap.h
@@ -208,6 +241,22 @@ public:
 
     //! \brief Tells whether the trap is activated.
     bool isActivated(Tile* tile) const;
+
+    //! \brief Tells whether a free worker of the owner may reload the tile now: the tile used up its shots,
+    //! no crafted trap is on its way to it, nobody else reloads it and the pause after a refusal is over.
+    //! Server only; doors and traps without shot limit are never reloaded this way.
+    bool canBeReloadedByWorker(Tile* tile, const Creature* worker) const;
+
+    //! \brief The worker that reserved the tile for reloading (nullptr if none)
+    Creature* getReloadWorker(Tile* tile) const;
+    //! \brief Reserves the tile for the worker (nullptr frees it)
+    void setReloadWorker(Tile* tile, Creature* worker);
+
+    //! \brief No worker reloads the tile before the given turn number
+    void postponeReload(Tile* tile, int64_t untilTurn);
+
+    //! \brief Gold a worker needs to reload one tile (per trap type from the configuration)
+    int32_t getReloadPrice() const;
 
     //! \brief Sets the name, seat and associates the given tiles with the trap
     virtual void setupTrap(const std::string& name, Seat* seat, const std::vector<Tile*>& tiles);

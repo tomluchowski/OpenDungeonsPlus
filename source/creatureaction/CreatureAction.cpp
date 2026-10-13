@@ -104,6 +104,9 @@ std::string CreatureAction::toString(CreatureActionType actionType)
     case CreatureActionType::watchBanner:
         return "watchBanner";
 
+    case CreatureActionType::reloadTrap:
+        return "reloadTrap";
+
     default:
         assert(false);
         break;
