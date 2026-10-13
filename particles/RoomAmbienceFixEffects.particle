@@ -1,5 +1,5 @@
 // Room ambience: the last effects of rooms, traps, doors and the keeper's hand (hit heart, wave portal, crypt,
-// prison, torture chamber, hand cast). Format: see particles/RoomAmbience.particle.
+// prison, torture chamber, cannon, rune door, hand cast). Format: see particles/RoomAmbience.particle.
 // Only the materials of the other files are used, nothing new is drawn.
 
 // ---- Dungeon heart: hit ----
@@ -353,6 +353,151 @@ particle_system RoomAmbTortureLinks
     affector ColourFader
     {
         alpha   -0.8
+    }
+}
+
+// ---- Cannon ----
+
+// Fire at the muzzle
+particle_system RoomAmbCannonMuzzle
+{
+    material        RoomAmbGlow
+    point_rendering false
+    particle_width  1.5
+    particle_height 1.5
+    cull_each       false
+    quota           3
+    billboard_type  point
+
+    emitter Point
+    {
+        angle               0
+        colour              1.0 0.7 0.25 0.95
+        emission_rate       24
+        time_to_live        0.4
+        direction           0 0 1
+        velocity            0
+        position            0 0 0.55
+        duration            0.08
+    }
+
+    affector ColourFader
+    {
+        alpha   -2.2
+    }
+}
+
+// A ring of smoke that grows out of the muzzle
+particle_system RoomAmbCannonSmokeRing
+{
+    material        RoomAmbRingDust
+    point_rendering false
+    particle_width  0.3
+    particle_height 0.3
+    cull_each       false
+    quota           3
+    billboard_type  perpendicular_common
+    common_direction 0 0 1
+    common_up_vector 0 1 0
+
+    emitter Point
+    {
+        angle               0
+        colour              0.6 0.6 0.6 0.7
+        emission_rate       6
+        time_to_live        1.3
+        direction           0 0 1
+        velocity            0.35
+        position            0 0 0.6
+        duration            0.2
+    }
+
+    affector Scaler
+    {
+        rate                3.4
+    }
+
+    affector ColourFader
+    {
+        alpha               -0.55
+    }
+}
+
+// ---- Rune door: damage ----
+
+// Cracks that run across the runes
+particle_system RoomAmbDoorRuneCracks
+{
+    material        RoomAmbMarkCracks
+    point_rendering false
+    particle_width  0.9
+    particle_height 0.9
+    cull_each       false
+    quota           4
+    billboard_type  point
+
+    emitter Point
+    {
+        angle               0
+        colour              0.65 0.75 1.0 0.0
+        emission_rate       8
+        time_to_live        1.6
+        direction           0 0 1
+        velocity            0
+        position            0 0 0.55
+        duration            0.3
+    }
+
+    affector ColourInterpolator
+    {
+        time0   0
+        colour0 0.65 0.75 1.0 0.0
+        time1   0.15
+        colour1 0.65 0.75 1.0 0.85
+        time2   0.5
+        colour2 0.65 0.75 1.0 0.5
+        time3   1
+        colour3 0.65 0.75 1.0 0.0
+    }
+}
+
+// Runes that flicker on and off, with sparks falling away
+particle_system RoomAmbDoorRuneFlicker
+{
+    material        RoomAmbRune
+    point_rendering false
+    particle_width  0.7
+    particle_height 0.7
+    cull_each       false
+    quota           6
+    billboard_type  point
+
+    emitter Point
+    {
+        angle               0
+        colour              0.6 0.75 1.0 0.0
+        emission_rate       5
+        time_to_live        1.5
+        direction           0 0 1
+        velocity            0
+        position            0 0 0.55
+        duration            0.35
+    }
+
+    affector ColourInterpolator
+    {
+        time0   0
+        colour0 0.6 0.75 1.0 0.0
+        time1   0.12
+        colour1 0.6 0.75 1.0 0.9
+        time2   0.25
+        colour2 0.6 0.75 1.0 0.1
+        time3   0.4
+        colour3 0.6 0.75 1.0 0.8
+        time4   0.55
+        colour4 0.6 0.75 1.0 0.0
+        time5   0.7
+        colour5 0.6 0.75 1.0 0.5
     }
 }
 
