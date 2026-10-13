@@ -146,6 +146,7 @@ public:
     void rrUpdateEntityOpacity(RenderedMovableEntity* entity);
     void rrCreateCreature(Creature* curCreature);
     void rrDestroyCreature(Creature* curCreature);
+    void rrChangeCreatureMesh(Creature* curCreature);
     void rrOrientEntityToward(MovableGameEntity* gameEntity, const Ogre::Vector3& direction);
     void rrPitchAroundAxis(RenderedMovableEntity* gameEntity, Ogre::Degree dd);
     void rrScaleCreature(Creature& creature);

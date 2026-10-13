@@ -2718,7 +2718,7 @@ void RenderManager::rrUpdateEntityOpacity(RenderedMovableEntity* entity)
 
 void RenderManager::rrCreateCreature(Creature* curCreature)
 {
-    const std::string& meshName = curCreature->getDefinition()->getMeshName();
+    const std::string& meshName = curCreature->getCurrentMeshName();
 
     // Load the mesh for the creature
 
@@ -2751,6 +2751,60 @@ void RenderManager::rrCreateCreature(Creature* curCreature)
     creatureOverlay->displayHealthOverlay(mCreatureTextOverlayDisplayed ? -1.0 : 0.0);
 
     curCreature->showOutliner();
+}
+
+void RenderManager::rrChangeCreatureMesh(Creature* curCreature)
+{
+    Ogre::SceneNode* node = curCreature->getEntityNode();
+    std::string creatureName = curCreature->getOgreNamePrefix() + curCreature->getName();
+    if((node == nullptr) || !mSceneManager->hasEntity(creatureName))
+    {
+        OD_LOG_ERR("creature=" + curCreature->getName());
+        return;
+    }
+
+    if(curCreature->getOverlayStatus() != nullptr)
+    {
+        delete curCreature->getOverlayStatus();
+        curCreature->setOverlayStatus(nullptr);
+    }
+
+    // We keep the current animation if the new mesh has it
+    std::string animName = EntityAnimation::idle_anim;
+    bool animLoop = true;
+    if(curCreature->getAnimationState() != nullptr)
+    {
+        animName = curCreature->getAnimationState()->getAnimationName();
+        animLoop = curCreature->getAnimationState()->getLoop();
+        curCreature->setAnimationState(static_cast<Ogre::AnimationState*>(nullptr));
+    }
+
+    Ogre::Entity* oldEnt = mSceneManager->getEntity(creatureName);
+    node->detachObject(oldEnt);
+    mSceneManager->destroyEntity(oldEnt);
+
+    const std::string& meshName = curCreature->getCurrentMeshName();
+    if(!Ogre::MeshManager::getSingleton().resourceExists(meshName, "Graphics"))
+        Ogre::MeshManager::getSingleton().load(meshName, "Graphics");
+
+    Ogre::MeshPtr meshPtr = Ogre::MeshManager::getSingleton().getByName(meshName, "Graphics");
+    unsigned short src, dest;
+    if(!meshPtr->suggestTangentVectorBuildParams(Ogre::VES_TANGENT, src, dest))
+    {
+        meshPtr->buildTangentVectors(Ogre::VES_TANGENT, src, dest);
+    }
+
+    Ogre::Entity* ent = mSceneManager->createEntity(creatureName, meshPtr);
+    node->attachObject(ent);
+
+    Ogre::Camera* cam = mViewport->getCamera();
+    CreatureOverlayStatus* creatureOverlay = new CreatureOverlayStatus(curCreature, ent, cam);
+    curCreature->setOverlayStatus(creatureOverlay);
+    creatureOverlay->displayHealthOverlay(mCreatureTextOverlayDisplayed ? -1.0 : 0.0);
+
+    curCreature->showOutliner();
+
+    rrSetObjectAnimationState(curCreature, animName, animLoop);
 }
 
 void RenderManager::rrDestroyCreature(Creature* curCreature)

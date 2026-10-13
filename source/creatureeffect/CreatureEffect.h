@@ -77,8 +77,9 @@ protected:
         mNbTurnsEffect(0)
     {}
 
-private:
     int32_t mNbTurnsEffect;
+
+private:
     std::string mParticleEffectScript;
 };
 

@@ -241,12 +241,15 @@ public:
             case SpellType::createGold: key = "CreateGoldPrice"; break;
             case SpellType::lightning: key = "LightningPrice"; break;
             case SpellType::tremor: key = "TremorPrice"; break;
+            case SpellType::defector: key = "DefectorPrice"; break;
+            case SpellType::hexenHen: key = "HexenHenPrice"; break;
             case SpellType::inferno: key = "InfernoPrice"; break;
             default: return "";
         }
         const std::string unit = (mSpellType == SpellType::callToWar || mSpellType == SpellType::eyeEvil ||
             mSpellType == SpellType::createGold || mSpellType == SpellType::lightning ||
-            mSpellType == SpellType::tremor || mSpellType == SpellType::inferno) ?
+            mSpellType == SpellType::tremor || mSpellType == SpellType::defector ||
+            mSpellType == SpellType::hexenHen || mSpellType == SpellType::inferno) ?
             " mana" : " mana per creature";
         return Helper::toString(ConfigManager::getSingleton().getSpellConfigInt32(key)) + unit;
     }
@@ -508,6 +511,28 @@ SkillManager::SkillManager() :
     points = ConfigManager::getSingleton().getSkillPoints(Skills::toString(resType));
     skill = new Skill(resType, points, lvl3depends);
     def = new SkillDefTrap("TacticSkills/", "BoulderTrapButton", skill, TrapType::boulder);
+    def->mapSkill(mSkillsFamily);
+    mSkills[index] = def;
+    lvl4depends.push_back(skill);
+
+    resType = SkillType::spellDefector;
+    index = static_cast<uint32_t>(resType);
+    points = ConfigManager::getSingleton().getSkillPoints(Skills::toString(resType));
+    // The tactic row after cannon and spike trap is full, so Defector follows the boulder trap
+    skill = new Skill(resType, points, lvl4depends);
+    def = new SkillDefSpell("TacticSkills/", "DefectorButton", skill, SpellType::defector);
+    def->mapSkill(mSkillsFamily);
+    mSkills[index] = def;
+
+    // The tactic rows after cannon and spike trap and after the boulder trap are full,
+    // so Hexen Hen follows Defector
+    std::vector<const Skill*> defectorDepends;
+    defectorDepends.push_back(skill);
+    resType = SkillType::spellHexenHen;
+    index = static_cast<uint32_t>(resType);
+    points = ConfigManager::getSingleton().getSkillPoints(Skills::toString(resType));
+    skill = new Skill(resType, points, defectorDepends);
+    def = new SkillDefSpell("TacticSkills/", "HexenHenButton", skill, SpellType::hexenHen);
     def->mapSkill(mSkillsFamily);
     mSkills[index] = def;
 
@@ -834,6 +859,10 @@ std::string SkillManager::getResearchDescription(SkillType type, uint32_t level)
         case SkillType::spellLightning: return "Damage: " + spell("LightningDamage") + " to one enemy creature, which is stunned.";
         case SkillType::spellTremor: return "Damage: " + spell("TremorDamage") + " to enemies within " + spell("TremorRadiusTiles") +
             " tiles, knocked down for " + spell("TremorNbTurns") + " turns.";
+        case SkillType::spellDefector: return "One enemy creature on your claimed land fights for you for " +
+            spell("DefectorNbTurns") + " turns.";
+        case SkillType::spellHexenHen: return "One enemy creature becomes a harmless chicken for " +
+            spell("HexenHenNbTurns") + " turns.";
         case SkillType::spellInferno: return "Damage: " + spell("InfernoDamagePerTurn") + " per turn to enemy creatures within " +
             spell("InfernoRadiusTiles") + " tiles, which burn for " + spell("InfernoNbTurns") + " turns.";
         default: return "";

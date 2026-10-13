@@ -280,10 +280,12 @@ set(OD_SOURCEFILES
 
     ${SRC}/creatureeffect/CreatureEffect.cpp
     ${SRC}/creatureeffect/CreatureEffectBurn.cpp
+    ${SRC}/creatureeffect/CreatureEffectDefector.cpp
     ${SRC}/creatureeffect/CreatureEffectDefense.cpp
     ${SRC}/creatureeffect/CreatureEffectDigTile.cpp
     ${SRC}/creatureeffect/CreatureEffectExplosion.cpp
     ${SRC}/creatureeffect/CreatureEffectHeal.cpp
+    ${SRC}/creatureeffect/CreatureEffectHexenHen.cpp
     ${SRC}/creatureeffect/CreatureEffectManager.cpp
     ${SRC}/creatureeffect/CreatureEffectSlap.cpp
     ${SRC}/creatureeffect/CreatureEffectSpeedChange.cpp
@@ -485,7 +487,9 @@ set(OD_SOURCEFILES
     ${SRC}/spells/SpellCreatureSlow.cpp
     ${SRC}/spells/SpellCreatureStrength.cpp
     ${SRC}/spells/SpellCreatureWeak.cpp
+    ${SRC}/spells/SpellDefector.cpp
     ${SRC}/spells/SpellEyeEvil.cpp
+    ${SRC}/spells/SpellHexenHen.cpp
     ${SRC}/spells/SpellInferno.cpp
     ${SRC}/spells/SpellLightning.cpp
     ${SRC}/spells/SpellManager.cpp

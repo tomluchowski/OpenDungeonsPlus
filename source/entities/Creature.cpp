@@ -196,7 +196,9 @@ Creature::Creature(GameMap* gameMap, const CreatureDefinition* definition, Seat*
     mSeatPrison              (nullptr),
     mNbTurnsTorture          (0),
     mNbTurnsPrison           (0),
-    mActiveSlapsCount        (0)
+    mActiveSlapsCount        (0),
+    mIsHexenHen              (false),
+    mHexenHenMeshShown       (false)
 {
     //TODO: This should be set in initialiser list in parent classes
     setSeat(seat);
@@ -283,7 +285,9 @@ Creature::Creature(GameMap* gameMap) :
     mSeatPrison              (nullptr),
     mNbTurnsTorture          (0),
     mNbTurnsPrison           (0),
-    mActiveSlapsCount        (0)
+    mActiveSlapsCount        (0),
+    mIsHexenHen              (false),
+    mHexenHenMeshShown       (false)
 {
     if(!getIsOnServerMap())
     {
@@ -311,6 +315,7 @@ void Creature::createMeshLocal(NodeType nt)
     MovableGameEntity::createMeshLocal(nt);
     if(!getIsOnServerMap())
     {
+        mHexenHenMeshShown = isHexenHen();
         RenderManager::getSingleton().rrCreateCreature(this);
 
         // By default, we set the creature in idle state
@@ -336,6 +341,9 @@ void Creature::createMeshWeapons()
     if(getIsOnServerMap())
         return;
 
+    if(mHexenHenMeshShown)
+        return;
+
     if(mWeaponL != nullptr)
         RenderManager::getSingleton().rrCreateWeapon(this, mWeaponL, "L");
 
@@ -346,6 +354,9 @@ void Creature::createMeshWeapons()
 void Creature::destroyMeshWeapons()
 {
     if(getIsOnServerMap())
+        return;
+
+    if(mHexenHenMeshShown)
         return;
 
     if(mWeaponL != nullptr)
@@ -622,6 +633,7 @@ void Creature::exportToPacket(ODPacket& os, const Seat* seat) const
     else
         os << "none";
 
+    os << isHexenHen();
     exportMoodToPacket(os, seat);
     exportActivityToPacket(os, seat);
 }
@@ -676,6 +688,7 @@ void Creature::importFromPacket(ODPacket& is)
         }
     }
 
+    OD_ASSERT_TRUE(is >> mIsHexenHen);
     importMoodFromPacket(is);
     importActivityFromPacket(is);
     setupDefinition(*getGameMap(), *ConfigManager::getSingleton().getCreatureDefinitionDefaultWorker());
@@ -1108,6 +1121,13 @@ void Creature::doUpkeep()
             mCasinoMood = std::max(0.0, mCasinoMood - decay);
         else
             mCasinoMood = std::min(0.0, mCasinoMood + decay);
+    }
+
+    // A chicken cannot fight, use skills or work. It only wanders around
+    if(isHexenHen())
+    {
+        handleHexenHenUpkeep();
+        return;
     }
 
     bool isWarmUp = false;
@@ -1782,6 +1802,7 @@ void Creature::exportToPacketForUpdate(ODPacket& os, Seat* seat)
         seatPrisonId = mSeatPrison->getId();
 
     os << seatPrisonId;
+    os << isHexenHen();
     exportMoodToPacket(os, seat);
     exportActivityToPacket(os, seat);
 }
@@ -1829,6 +1850,9 @@ void Creature::updateFromPacket(ODPacket& is)
             OD_LOG_ERR("Creature " + getName() + ", wrong seatId=" + Helper::toString(seatId));
         }
     }
+
+    OD_ASSERT_TRUE(is >> mIsHexenHen);
+    updateHexenHenMesh();
 
     importMoodFromPacket(is);
     importActivityFromPacket(is);
@@ -2506,6 +2530,7 @@ void Creature::drop(const Ogre::Vector3& v)
     if(!getIsOnServerMap())
     {
         mDropCooldown = 2;
+        updateHexenHenMesh();
         return;
     }
 
@@ -3394,6 +3419,99 @@ bool Creature::removeCreatureEffect(CreatureEffect* effectForDeletion)
     return false;
 }
 
+bool Creature::isDefector() const
+{
+    for(const EntityParticleEffect* effect : mEntityParticleEffects)
+    {
+        if(effect->getEntityParticleEffectType() != EntityParticleEffectType::creature)
+            continue;
+
+        const CreatureParticleEffect* creatureEffect = static_cast<const CreatureParticleEffect*>(effect);
+        if((creatureEffect->mEffect->getEffectName() == "Defector") &&
+           (creatureEffect->mEffect->getNbTurnsEffect() > 0))
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+bool Creature::isHexenHen() const
+{
+    if(!getIsOnServerMap())
+        return mIsHexenHen;
+
+    for(const EntityParticleEffect* effect : mEntityParticleEffects)
+    {
+        if(effect->getEntityParticleEffectType() != EntityParticleEffectType::creature)
+            continue;
+
+        const CreatureParticleEffect* creatureEffect = static_cast<const CreatureParticleEffect*>(effect);
+        if((creatureEffect->mEffect->getEffectName() == "HexenHen") &&
+           (creatureEffect->mEffect->getNbTurnsEffect() > 0))
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+const std::string& Creature::getCurrentMeshName() const
+{
+    static const std::string chickenMeshName = "Chicken.mesh";
+    if(isHexenHen())
+        return chickenMeshName;
+
+    return getDefinition()->getMeshName();
+}
+
+void Creature::updateHexenHenMesh()
+{
+    if(getIsOnServerMap() || !isMeshExisting() || !getIsOnMap())
+        return;
+
+    if(mHexenHenMeshShown == mIsHexenHen)
+        return;
+
+    destroyMeshWeapons();
+    mHexenHenMeshShown = mIsHexenHen;
+    RenderManager::getSingleton().rrChangeCreatureMesh(this);
+    createMeshWeapons();
+    RenderManager::getSingleton().rrScaleCreature(*this);
+}
+
+void Creature::handleHexenHenUpkeep()
+{
+    if(!mActions.empty())
+    {
+        clearActionQueue();
+        clearDestinations(EntityAnimation::idle_anim, true, true);
+    }
+
+    if(isMoving())
+        return;
+
+    if(Random::Int(0, 3) != 0)
+        return;
+
+    Tile* myTile = getPositionTile();
+    if(myTile == nullptr)
+        return;
+
+    Tile* destTile = getGameMap()->getTile(myTile->getX() + Random::Int(-2, 2), myTile->getY() + Random::Int(-2, 2));
+    if((destTile == nullptr) || (destTile == myTile) || !canGoThroughTile(destTile))
+        return;
+
+    std::list<Tile*> tempPath = getGameMap()->path(this, destTile);
+    if(tempPath.empty())
+        return;
+
+    std::vector<Ogre::Vector2> path;
+    tileToVector2(tempPath, path, true, 0.0);
+    setWalkPath(EntityAnimation::walk_anim, EntityAnimation::idle_anim, true, true, path, true);
+}
 
 bool Creature::isHurt() const
 {
@@ -3545,6 +3663,9 @@ void Creature::setInJail(Room* prison)
 bool Creature::isDangerous(const Creature* creature, int distance) const
 {
     if(getDefinition()->isWorker())
+        return false;
+
+    if(isHexenHen())
         return false;
 
     return true;
