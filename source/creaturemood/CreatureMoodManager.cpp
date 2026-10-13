@@ -80,6 +80,9 @@ int32_t CreatureMoodManager::computeCreatureMoodModifiers(const Creature& creatu
         moodValue += mood->computeMood(creature);
     }
 
+    // Praying in a temple makes the creature feel better, whatever its other moods are
+    moodValue += creature.getPrayerRelief();
+
     return moodValue;
 }
 

@@ -20,6 +20,7 @@
 
 #include "entities/NodeType.h"
 #include "game/SeatData.h"
+#include "game/SeatStatistics.h"
 
 
 #include <Ogre.h>
@@ -28,6 +29,7 @@
 #include <vector>
 #include <iosfwd>
 #include <cstdint>
+#include <map>
 
 class Building;
 class ConfigManager;
@@ -130,6 +132,16 @@ public:
     inline bool isRogueSeat() const
     { return mId == 0; }
 
+    inline SeatStatistics& getStatistics()
+    { return mStatistics; }
+
+    inline const SeatStatistics& getStatistics() const
+    { return mStatistics; }
+
+    //! \brief Counts a creature of victimSeat killed on behalf of this seat: nothing if the seats are
+    //! allied, a hero if the victim seat plays the Hero faction, a creature otherwise.
+    void recordCreatureKill(const Seat* victimSeat);
+
     inline uint32_t getTeamIndex() const
     { return mTeamIndex; }
 
@@ -168,6 +180,9 @@ public:
 
     bool takeMana(double mana);
 
+    //! \brief Adds mana to the seat's mana, clamped between 0 and the maximum per seat
+    void addMana(double mana);
+
     inline Ogre::Vector3 getStartingPosition() const
     { return Ogre::Vector3(static_cast<Ogre::Real>(mStartingX), static_cast<Ogre::Real>(mStartingY), 0); }
 
@@ -176,6 +191,15 @@ public:
 
     inline bool getIsDebuggingVision()
     { return mIsDebuggingVision; }
+
+    //! \brief Server side. Gives this seat vision on the whole map for the rest of the game,
+    //! as done by a reveal map gift box
+    inline void revealMapPermanently()
+    { mIsMapRevealed = true; }
+
+    //! \brief Server side. Returns true if the map is revealed to this seat. Called once per turn
+    inline bool isMapRevealed() const
+    { return mIsMapRevealed; }
 
     inline const std::vector<SkillType>& getSkillDone() const
     { return mSkillDone; }
@@ -199,6 +223,17 @@ public:
     //! \brief Returns the first (default) worker class definition.
     inline const CreatureDefinition* getWorkerClassToSpawn()
     { return mDefaultWorkerClass; }
+
+    //! \brief True while an enemy creature is within range of the seat's living heart.
+    //! Server side only, not saved with the level: the first turn after a load
+    //! decides the defence state again.
+    inline bool getHeartDefenceActive() const
+    { return mHeartDefenceActive; }
+
+    //! \brief True while the seat's heart has lost health during the current heart
+    //! defence: the runners head to the heart instead of rallying the fighters.
+    inline bool getHeartDefenceHeartDamaged() const
+    { return mHeartDefenceHeartDamaged; }
 
     //! \brief Returns true if the given seat is allied. False otherwise
     bool isAlliedSeat(const Seat *seat) const;
@@ -254,6 +289,9 @@ public:
     //! \brief Returns true if the given SkillType is already done for this player. False
     //! otherwise
     bool isSkillDone(SkillType type) const;
+
+    uint32_t getSkillLevel(SkillType type) const;
+    void setResearchLevels(const std::map<SkillType, uint32_t>& levels);
 
     //! \brief Called when the skill entity reaches its destination. From there, the
     //! skilled thing is available
@@ -341,8 +379,32 @@ private:
     //! \brief The player sitting on this seat
     Player* mPlayer;
 
+    //! \brief Counters shown in the level debriefing (server side, not saved)
+    SeatStatistics mStatistics;
+
     //! \brief The total amount of gold coins mined by workers under this seat's control.
     int mGoldMined;
+
+    //! \brief Seconds accumulated towards the next worker the living dungeon heart
+    //! creates for this seat. Server side only, not saved with the level.
+    double mAutoWorkerTimer;
+
+    //! \brief Seconds the seat's mana has been too low to pay the upkeep of the workers
+    //! above the free four. Server side only, not saved with the level.
+    double mManaShortageSeconds;
+
+    //! \brief Seconds left until the workers above the free four pop, or a negative
+    //! value while that countdown is not running. Server side only, not saved with the level.
+    double mWorkerPopCountdown;
+
+    //! \brief True while an enemy creature is within range of the seat's living heart.
+    //! Server side only, not saved with the level.
+    bool mHeartDefenceActive;
+
+    //! \brief True while the seat's heart has lost health during the current heart
+    //! defence, so the runners head to the heart instead of rallying the fighters.
+    //! Server side only, not saved with the level.
+    bool mHeartDefenceHeartDamaged;
 
     //! \brief The actual color that this color index translates into.
     Ogre::ColourValue mColorValue;
@@ -389,6 +451,10 @@ private:
 
     bool mIsDebuggingVision;
 
+    //! \brief True if the whole map is visible for the rest of the game. Only used on server
+    //! side and not saved: a reveal is lost when the game is saved and loaded
+    bool mIsMapRevealed;
+
     //! \brief Counter for skill points
     int32_t mSkillPoints;
 
@@ -401,6 +467,8 @@ private:
 
     //! \brief Skills already done. This is used on both client and server side and should be updated
     std::vector<SkillType> mSkillDone;
+
+    std::map<SkillType, uint32_t> mResearchLevels;
 
     //! \brief Skills pending. Used on both client and server side and should be updated.
     std::vector<SkillType> mSkillPending;
@@ -417,6 +485,7 @@ private:
     //! list in empty, mCurrentSkill will be set to null
     //! researchedType is the currently researched type if any (nullSkillType if none)
     void setNextSkill(SkillType researchedType);
+    void completeResearch(SkillType type);
 
     //! Fills mTilesStateLoaded with the tiles of the given tileVisual is the given istream.
     //! Returns 0 if the seat end tile has been reached, 1 if the read success and -1 if there is an error

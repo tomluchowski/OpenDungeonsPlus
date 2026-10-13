@@ -75,6 +75,8 @@ public:
     void setWidthAndHeight(int width, int height);
     void setCurrentAMode(AbstractApplicationMode& mode);
     void handleSFMLEvent(const sf::Event& evt);
+    void refreshSettings();
+    bool setRenderWindow(Ogre::RenderWindow* renderWindow);
 
     OIS::InputManager*  mInputManager;
 
@@ -104,6 +106,11 @@ public:
     
     private:
     AbstractApplicationMode* mCurrentAMode;
+    Ogre::RenderWindow* mRenderWindow;
+    bool mMouseGrab;
+    bool mKeyboardGrab;
+    void createInputDevices(bool mouseGrab, bool keyboardGrab);
+    void destroyInputDevices();
 #ifdef OD_USE_SFML_WINDOW
     std::unique_ptr<SFMLToOISListener> mListener;
 #endif

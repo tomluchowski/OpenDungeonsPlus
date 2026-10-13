@@ -22,6 +22,7 @@
 #define CREATURE_H
 
 #include "entities/MovableGameEntity.h"
+#include "entities/CreatureActivity.h"
 #include "eventsystem/CreatureMoved.h"
 #include "eventsystem/Subject.h"
 
@@ -187,6 +188,8 @@ public:
 
     inline CreatureMoodLevel getMoodValue() const
     { return mMoodValue; }
+
+    CreatureActivity getActivity() const;
 
     inline int32_t getNbTurnFurious() const
     { return mNbTurnFurious; }
@@ -406,6 +409,10 @@ public:
     void slap() override;
 
     void fireCreatureSound(CreatureSound sound);
+    void fireCombatImpact(bool weaponClash, bool bodyDamage,
+        const Ogre::Vector3& attackerPosition);
+    void fireChickenFeeding(const std::string& chickenName,
+        const Ogre::Vector3& chickenPosition);
 
     void itsPayDay();
 
@@ -535,7 +542,7 @@ public:
 
     //! Checks if the creature current walk path is still valid. This will be called if tiles passability changes (for
     //! example if a door is closed)
-    void checkWalkPathValid();
+    void checkWalkPathValid(bool includeWalkDistortion = false);
 
     bool isTired() const;
 
@@ -552,6 +559,13 @@ public:
 
     inline bool isInContainment() const
     { return (mSeatPrison != nullptr); }
+
+    //! \brief Mood relief the creature got from praying in a temple. It fades over time
+    inline int32_t getPrayerRelief() const
+    { return mPrayerRelief; }
+
+    //! \brief Adds relief from praying, up to maxRelief
+    void addPrayerRelief(int32_t relief, int32_t maxRelief);
 
     inline int32_t getNbTurnsTorture() const
     { return mNbTurnsTorture; }
@@ -732,9 +746,13 @@ private:
     //! \brief Mood value. Depending on this value, the creature will be in bad mood and
     //! might attack allied creatures or refuse to work or to go to combat
     CreatureMoodLevel               mMoodValue;
+    CreatureActivity                mActivity;
     //! \brief Mood points. Computed by the creature MoodModifiers. It is promoted to class variable for debug purposes and
     //! should not be used to check mood. If the mood is to be tested, mMoodValue should be used
     int32_t                         mMoodPoints;
+
+    //! \brief Mood points gained by praying in a temple. They fade every turn
+    int32_t                         mPrayerRelief;
 
     //! \brief Counts turns the creature is furious. If it stays like this for too long, it will become rogue
     int32_t                         mNbTurnFurious;
@@ -797,6 +815,12 @@ private:
     void decidePrioritaryAction();
 
     //! \brief A sub-function called by doTurn()
+    //! While the seat's heart defence is on, the runners (the workers and the two cheap,
+    //! fast scout creatures) drop their current job and run to the seat's fighters, or to
+    //! the heart while it is damaged. A runner that is already fighting or fleeing keeps doing so.
+    void handleHeartDefence();
+
+    //! \brief A sub-function called by doTurn()
     //! This functions will handle the creature idle action logic.
     //! \return true when another action should handled after that one.
     bool handleIdleAction();
@@ -807,6 +831,11 @@ private:
     void increaseHunger(double value);
 
     void computeMood();
+
+    void exportMoodToPacket(ODPacket& os, const Seat* seat) const;
+    void importMoodFromPacket(ODPacket& is);
+    void exportActivityToPacket(ODPacket& os, const Seat* seat) const;
+    void importActivityFromPacket(ODPacket& is);
 
     void computeCreatureOverlayMoodValue();
 };

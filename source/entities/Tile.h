@@ -111,7 +111,9 @@ enum class TileVisual
     prisonRoom,
     arenaRoom,
     casinoRoom,
-    tortureRoom,    
+    tortureRoom,
+    guardRoom,
+    templeRoom,
     countTileVisual
 };
 
@@ -258,7 +260,10 @@ public:
 
     inline void setEverVisible(bool s)
     {
+        if(mEverVisible == s)
+            return;
         mEverVisible = s;
+        fireTileStateChanged();
     }
 
     
