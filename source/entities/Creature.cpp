@@ -64,6 +64,7 @@
 #include "game/Seat.h"
 #include "gamemap/GameMap.h"
 #include "gamemap/LevelScript.h"
+#include "gamemap/LevelScriptRunner.h"
 #include "gamemap/Pathfinding.h"
 #include "giftboxes/GiftBoxSkill.h"
 
@@ -1190,6 +1191,10 @@ bool Creature::handleIdleAction()
             }
         }
     }
+
+    // A standing order of the level script (go to a point, attack a dungeon, wait, ...) comes first
+    if(LevelScriptRunner::doCreatureOrder(*this))
+        return false;
 
     // We check if we are looking for our fee
     if(!mDefinition->isWorker() &&

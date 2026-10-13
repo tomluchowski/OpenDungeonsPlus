@@ -102,6 +102,59 @@ bool parseOperator(const std::string& token, LevelScriptCondition& cond)
     return true;
 }
 
+//! Reads "x,y;x,y;..." (or "-" for none) into a list of tile coordinates
+bool parseWaypoints(const std::string& text, std::vector<std::pair<int32_t, int32_t> >& waypoints)
+{
+    waypoints.clear();
+    if(text == "-")
+        return true;
+
+    std::string::size_type start = 0;
+    while(start < text.size())
+    {
+        std::string::size_type end = text.find(';', start);
+        if(end == std::string::npos)
+            end = text.size();
+
+        std::string item = text.substr(start, end - start);
+        std::string::size_type comma = item.find(',');
+        std::pair<int32_t, int32_t> point;
+        if((comma == std::string::npos) || !parseInt32(item.substr(0, comma), point.first) ||
+           !parseInt32(item.substr(comma + 1), point.second))
+        {
+            return false;
+        }
+
+        waypoints.push_back(point);
+        start = end + 1;
+    }
+    return true;
+}
+
+//! \brief Writes the waypoints in the form that parseWaypoints reads.
+void writeWaypoints(std::ostream& os, const std::vector<std::pair<int32_t, int32_t> >& waypoints)
+{
+    if(waypoints.empty())
+    {
+        os << "-";
+        return;
+    }
+
+    for(std::size_t i = 0; i < waypoints.size(); ++i)
+    {
+        if(i > 0)
+            os << ";";
+
+        os << waypoints[i].first << "," << waypoints[i].second;
+    }
+}
+
+//! \brief True if the text names a standing order.
+bool parseOrderJob(const std::string& job)
+{
+    return (job == "killplayer") || (job == "goto") || (job == "killcreatures") || (job == "wait") || (job == "stealgold");
+}
+
 //! \brief Reads a Cond line.
 //! \param t The tokens of the line, t[0] is "Cond".
 //! \param cond The condition to fill.
@@ -243,6 +296,25 @@ bool parseCondition(const std::vector<std::string>& t, LevelScriptCondition& con
             return parseOperator(t[4], cond) && parseInt(t[5], cond.mNumber);
 
         return true;
+    }
+    if(type == "slaps")
+    {
+        cond.mType = LevelScriptConditionType::playerSlaps;
+        return (t.size() == 5) && parseInt32(t[2], cond.mSeatId) && parseOperator(t[3], cond) && parseInt(t[4], cond.mNumber);
+    }
+    if(type == "furniture")
+    {
+        cond.mType = LevelScriptConditionType::roomFurniture;
+        if(t.size() != 6)
+            return false;
+
+        cond.mName = t[3];
+        return parseInt32(t[2], cond.mSeatId) && parseOperator(t[4], cond) && parseInt(t[5], cond.mNumber);
+    }
+    if(type == "breached")
+    {
+        cond.mType = LevelScriptConditionType::dungeonBreached;
+        return (t.size() == 3) && parseInt32(t[2], cond.mSeatId);
     }
     if(type == "portal")
     {
@@ -493,6 +565,68 @@ bool parseAction(const std::string& line, const std::vector<std::string>& t, Lev
         action.mText = t[2];
         return true;
     }
+    if(type == "alliance")
+    {
+        action.mType = LevelScriptActionType::alliance;
+        if((t.size() != 5) || ((t[4] != "make") && (t[4] != "break")))
+            return false;
+
+        action.mNumber = (t[4] == "make") ? 1 : 0;
+        return parseInt32(t[2], action.mSeatId) && parseInt32(t[3], action.mTargetSeatId);
+    }
+    if(type == "generate")
+    {
+        action.mType = LevelScriptActionType::generateCreature;
+        if(t.size() != 4)
+            return false;
+
+        std::string::size_type colon = t[3].find(':');
+        int64_t level = 0;
+        if((colon == std::string::npos) || (colon == 0) || !parseInt(t[3].substr(colon + 1), level) || (level < 1))
+            return false;
+
+        action.mCreatures.push_back(std::pair<std::string, uint32_t>(t[3].substr(0, colon), static_cast<uint32_t>(level)));
+        action.mCreatureNames.push_back(std::string());
+        return parseInt32(t[2], action.mSeatId);
+    }
+    if(type == "order")
+    {
+        action.mType = LevelScriptActionType::creatureOrder;
+        if((t.size() < 6) || !parseOrderJob(t[2]) || !parseInt32(t[3], action.mSeatId) ||
+           !parseWaypoints(t[4], action.mWaypoints))
+        {
+            return false;
+        }
+
+        action.mText = t[2];
+        for(std::size_t i = 5; i < t.size(); ++i)
+            action.mCreatureNames.push_back(t[i]);
+
+        return true;
+    }
+    if(type == "speed")
+    {
+        action.mType = LevelScriptActionType::creatureSpeed;
+        if((t.size() < 4) || ((t[2] != "run") && (t[2] != "walk")))
+            return false;
+
+        action.mNumber = (t[2] == "run") ? 1 : 0;
+        for(std::size_t i = 3; i < t.size(); ++i)
+            action.mCreatureNames.push_back(t[i]);
+
+        return true;
+    }
+    if(type == "roomowner")
+    {
+        action.mType = LevelScriptActionType::roomOwner;
+        return (t.size() == 5) && parseInt32(t[2], action.mX) && parseInt32(t[3], action.mY) &&
+            parseInt32(t[4], action.mSeatId);
+    }
+    if(type == "slaplimit")
+    {
+        action.mType = LevelScriptActionType::slapLimit;
+        return (t.size() == 3) && parseInt(t[2], action.mNumber) && (action.mNumber >= 0);
+    }
     if(type == "timer")
     {
         action.mType = LevelScriptActionType::startTimer;
@@ -535,6 +669,15 @@ void writeCondition(std::ostream& os, const LevelScriptCondition& c)
             break;
         case LevelScriptConditionType::seatDefeated:
             os << "defeated\t" << c.mSeatId;
+            break;
+        case LevelScriptConditionType::playerSlaps:
+            os << "slaps\t" << c.mSeatId << "\t" << levelScriptCompareToken(c.mCompare) << "\t" << c.mNumber;
+            break;
+        case LevelScriptConditionType::roomFurniture:
+            os << "furniture\t" << c.mSeatId << "\t" << c.mName << "\t" << levelScriptCompareToken(c.mCompare) << "\t" << c.mNumber;
+            break;
+        case LevelScriptConditionType::dungeonBreached:
+            os << "breached\t" << c.mSeatId;
             break;
         case LevelScriptConditionType::portalActive:
             os << "portal\t" << c.mSeatId << "\t" << (c.mNumber != 0 ? "on" : "off");
@@ -685,6 +828,31 @@ void writeAction(std::ostream& os, const LevelScriptAction& a)
         case LevelScriptActionType::removeCreature:
             os << "remove\t" << a.mText;
             break;
+        case LevelScriptActionType::alliance:
+            os << "alliance\t" << a.mSeatId << "\t" << a.mTargetSeatId << "\t" << (a.mNumber != 0 ? "make" : "break");
+            break;
+        case LevelScriptActionType::generateCreature:
+            os << "generate\t" << a.mSeatId << "\t";
+            if(!a.mCreatures.empty())
+                os << a.mCreatures[0].first << ":" << a.mCreatures[0].second;
+            break;
+        case LevelScriptActionType::creatureOrder:
+            os << "order\t" << a.mText << "\t" << a.mSeatId << "\t";
+            writeWaypoints(os, a.mWaypoints);
+            for(const std::string& name : a.mCreatureNames)
+                os << "\t" << name;
+            break;
+        case LevelScriptActionType::creatureSpeed:
+            os << "speed\t" << (a.mNumber != 0 ? "run" : "walk");
+            for(const std::string& name : a.mCreatureNames)
+                os << "\t" << name;
+            break;
+        case LevelScriptActionType::roomOwner:
+            os << "roomowner\t" << a.mX << "\t" << a.mY << "\t" << a.mSeatId;
+            break;
+        case LevelScriptActionType::slapLimit:
+            os << "slaplimit\t" << a.mNumber;
+            break;
     }
     os << "\n";
 }
@@ -797,6 +965,34 @@ bool LevelScript::importFromStream(std::istream& is)
             if(inTrigger || (t.size() != 2) || !parseInt(t[1], mWaveCountdownSeconds))
                 return false;
         }
+        else if(key == "SlapLimit")
+        {
+            if(inTrigger || (t.size() != 2) || !parseInt(t[1], mSlapLimit))
+                return false;
+        }
+        else if(key == "Slaps")
+        {
+            int32_t seatId = 0;
+            int64_t count = 0;
+            if(inTrigger || (t.size() != 3) || !parseInt32(t[1], seatId) || !parseInt(t[2], count))
+                return false;
+
+            mSlaps[seatId] = count;
+        }
+        else if(key == "Order")
+        {
+            LevelScriptOrder order;
+            int64_t index = 0;
+            if(inTrigger || (t.size() != 6) || !parseOrderJob(t[2]) || !parseInt32(t[3], order.mSeatId) ||
+               !parseInt(t[4], index) || (index < 0) || !parseWaypoints(t[5], order.mWaypoints))
+            {
+                return false;
+            }
+
+            order.mJob = t[2];
+            order.mIndex = static_cast<uint32_t>(index);
+            mOrders[t[1]] = order;
+        }
         else if(key == "Region")
         {
             LevelScriptRegion region;
@@ -900,6 +1096,19 @@ void LevelScript::exportToStream(std::ostream& os) const
     if(mWaveCountdownSeconds != COUNTDOWN_NOT_SET)
         os << "WaveCountdown\t" << mWaveCountdownSeconds << "\n";
 
+    if(mSlapLimit >= 0)
+        os << "SlapLimit\t" << mSlapLimit << "\n";
+
+    for(const std::pair<const int32_t, int64_t>& slaps : mSlaps)
+        os << "Slaps\t" << slaps.first << "\t" << slaps.second << "\n";
+
+    for(const std::pair<const std::string, LevelScriptOrder>& order : mOrders)
+    {
+        os << "Order\t" << order.first << "\t" << order.second.mJob << "\t" << order.second.mSeatId << "\t"
+           << order.second.mIndex << "\t";
+        writeWaypoints(os, order.second.mWaypoints);
+        os << "\n";
+    }
     for(const LevelScriptRegion& region : mRegions)
     {
         os << "Region\t" << region.mName << "\t" << region.mX1 << "\t" << region.mY1
@@ -944,6 +1153,9 @@ void LevelScript::clear()
     mTimeLimitSeconds = TIME_LIMIT_NOT_SET;
     mCountdownSeconds = COUNTDOWN_NOT_SET;
     mWaveCountdownSeconds = COUNTDOWN_NOT_SET;
+    mOrders.clear();
+    mSlaps.clear();
+    mSlapLimit = -1;
 }
 
 void LevelScript::rebaseTimeLimit(int64_t elapsedSeconds)
@@ -1163,6 +1375,48 @@ void LevelScript::addPartyMember(const std::string& party, const std::string& cr
     mPartyMembers[creatureName] = party;
 }
 
+void LevelScript::setOrder(const std::string& creatureName, const LevelScriptOrder& order)
+{
+    mOrders[creatureName] = order;
+}
+
+void LevelScript::clearOrder(const std::string& creatureName)
+{
+    mOrders.erase(creatureName);
+}
+
+const LevelScriptOrder* LevelScript::getOrder(const std::string& creatureName) const
+{
+    if(mOrders.empty())
+        return nullptr;
+
+    std::map<std::string, LevelScriptOrder>::const_iterator it = mOrders.find(creatureName);
+    if(it == mOrders.end())
+        return nullptr;
+
+    return &it->second;
+}
+
+void LevelScript::advanceOrder(const std::string& creatureName)
+{
+    std::map<std::string, LevelScriptOrder>::iterator it = mOrders.find(creatureName);
+    if(it == mOrders.end())
+        return;
+
+    LevelScriptOrder& order = it->second;
+    if(order.mJob != "goto")
+        return;
+
+    ++order.mIndex;
+    if(order.mIndex >= order.mWaypoints.size())
+    {
+        // The last waypoint is reached, the creature stays there
+        order.mJob = "wait";
+        order.mWaypoints.clear();
+        order.mIndex = 0;
+    }
+}
+
 std::vector<std::string> LevelScript::getPartyMemberNames(const std::string& party) const
 {
     std::vector<std::string> names;
@@ -1172,6 +1426,22 @@ std::vector<std::string> LevelScript::getPartyMemberNames(const std::string& par
             names.push_back(member.first);
     }
     return names;
+}
+
+bool LevelScript::registerSlap(int32_t seatId)
+{
+    int64_t& count = mSlaps[seatId];
+    ++count;
+    return (mSlapLimit < 0) || (count <= mSlapLimit);
+}
+
+int64_t LevelScript::getSlaps(int32_t seatId) const
+{
+    std::map<int32_t, int64_t>::const_iterator it = mSlaps.find(seatId);
+    if(it == mSlaps.end())
+        return 0;
+
+    return it->second;
 }
 
 void LevelScript::setPortalOff(int32_t seatId, bool off)

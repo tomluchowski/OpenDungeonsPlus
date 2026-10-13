@@ -801,7 +801,8 @@ private:
     void decidePrioritaryAction();
 
     //! \brief A sub-function called by doTurn()
-    //! This functions will handle the creature idle action logic.
+    //! This functions will handle the creature idle action logic. A standing order of the level
+    //! script comes before the needs of the creature.
     //! \return true when another action should handled after that one.
     bool handleIdleAction();
 

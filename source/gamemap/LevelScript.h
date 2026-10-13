@@ -42,6 +42,9 @@
 //!   Countdown <seconds>                       # written by the game: the HUD countdown set by an action, in level seconds
 //!   WaveCountdown <seconds>                   # written by the game: the HUD wave countdown set by an action, in level seconds
 //!   TimeLimit <seconds>                       # written by the game: the time limit set by an action, in level seconds (-2: removed)
+//!   SlapLimit <count>                         # written by the game: the number of slaps a player may do (action slaplimit)
+//!   Slaps   <seatId> <count>                  # written by the game: slaps a player has tried so far
+//!   Order   <creatureName> <job> <seatId> <index> <x,y;x,y;...|->   # written by the game: the standing order of a creature (action order), index is the waypoint it walks to
 //!   Region  <name> <x1> <y1> <x2> <y2>        # a named rectangle of tiles (placed in the level editor)
 //!   [Trigger]
 //!   Name    <name>
@@ -56,6 +59,9 @@
 //!           # steals (takes gold), claimed (a neutral creature joins a keeper), created (the creature or a member of the party exists; counts them).
 //!           # Two more tags: Seat<id> with the event cast:<spellName> (the player cast that spell, spell type names such as callToWar) and the tag Level with the event payday.
 //!   Cond    defeated <seatId>                 # the seat has lost its dungeon (its player is out of the game)
+//!   Cond    slaps <seatId> <op> <count>       # slaps the player of the seat has tried to do (a slap that the slap limit refuses counts too)
+//!   Cond    furniture <seatId> <roomName> <op> <count>   # furniture objects (bookcases, beds, ...) in the rooms of that type of the seat
+//!   Cond    breached <seatId>                 # a creature of a seat that is not allied with the seat stands on tiles that the seat has claimed (inside the dungeon)
 //!   Cond    owns <seatId> <creatureName>      # the creature with that name is alive and belongs to the seat
 //!   Cond    portal <seatId> on | off          # the portals of the seat attract creatures (on) or are switched off (off) by an action portal
 //!   Cond    alive <creatureName> [1 | 0]      # the creature with that name is alive, whatever its seat (0: it is dead or not there)
@@ -87,7 +93,13 @@
 //!   Action  portal <seatId> on | off          # the portals of the seat do (not) attract creatures
 //!   Action  available <seatId> <class> 1 | 0  # a creature class can (not) come to the dungeon of the seat
 //!   Action  remove <creatureName>             # the creature leaves the map
+//!   Action  alliance <seatA> <seatB> make | break   # the seats become allies (they join one team) or the seat leaves its team
+//!   Action  generate <seatId> <class:level>   # a creature comes through a portal of the seat now
 //!   Action  timer <name> [<seconds>]          # starts (or restarts) the timer at that value, 0 if it is left out
+//!   Action  order <job> <seatId> <x,y;x,y;...|-> <name> [<name> ...]   # standing order for creatures (names or party tags): job killplayer (go to the dungeon of the seat and fight), goto (walk the waypoints, then wait), killcreatures (hunt the creatures of the seat, -1: of any other seat), wait (stand still), stealgold (go to the treasury of the seat and take its gold)
+//!   Action  speed <run|walk> <name> [<name> ...]   # the creatures (names or party tags) run or walk again
+//!   Action  roomowner <x> <y> <seatId>        # the room that covers the tile belongs to the seat from now on
+//!   Action  slaplimit <count>                 # the players may only slap that many times (a slap beyond the limit does nothing)
 //!   Action  win <seatId>                      # seat -1: every human player
 //!   Action  lose <seatId>
 //!   Action  reveal <seatId> <regionName>      # the tiles of the region stay visible to the seat
@@ -145,6 +157,9 @@ enum class LevelScriptConditionType
     roomTiles,
     largestRoom,
     creatureEvent,
+    playerSlaps,
+    roomFurniture,
+    dungeonBreached,
     portalActive,
     creatureAlive,
     creatureReached
@@ -169,7 +184,13 @@ enum class LevelScriptActionType
     startTimer,
     portalStatus,
     creatureAvailable,
-    removeCreature
+    removeCreature,
+    alliance,
+    generateCreature,
+    creatureOrder,
+    creatureSpeed,
+    roomOwner,
+    slapLimit
 };
 
 //! \brief One condition of a trigger. The fields that are used depend on the type.
@@ -239,6 +260,8 @@ struct LevelScriptAction
     std::vector<std::string> mCreatureNames;
     //! \brief spawn: tag of the party the created creatures belong to (empty: none)
     std::string mParty;
+    //! \brief order: the waypoints (tile coordinates) of a goto order
+    std::vector<std::pair<int32_t, int32_t> > mWaypoints;
 };
 
 //! \brief A named rectangle of tiles, both corners included. The level editor places them
@@ -293,6 +316,24 @@ struct LevelScriptTrigger
     int64_t mLastFiredTurn;
 };
 
+//! \brief The standing order of a creature, given by an order action (the AI of the creature carries it out)
+struct LevelScriptOrder
+{
+    LevelScriptOrder() :
+        mSeatId(-1),
+        mIndex(0)
+    {}
+
+    //! killplayer, goto, killcreatures, wait or stealgold
+    std::string mJob;
+    //! The seat that is attacked, hunted or robbed (-1: none)
+    int32_t mSeatId;
+    //! goto: the tiles to walk to, one after the other
+    std::vector<std::pair<int32_t, int32_t> > mWaypoints;
+    //! goto: the waypoint the creature walks to now
+    uint32_t mIndex;
+};
+
 //! A timer that an action started: it counts game turns while it runs
 struct LevelScriptTimer
 {
@@ -314,7 +355,8 @@ public:
         mWatchedValid(false),
         mTimeLimitSeconds(TIME_LIMIT_NOT_SET),
         mCountdownSeconds(COUNTDOWN_NOT_SET),
-        mWaveCountdownSeconds(COUNTDOWN_NOT_SET)
+        mWaveCountdownSeconds(COUNTDOWN_NOT_SET),
+        mSlapLimit(-1)
     {}
 
     //! \brief Reads the lines after the [Triggers] tag, up to and including [/Triggers].
@@ -329,7 +371,7 @@ public:
 
     //! \brief True if the script holds nothing that a level file has to store.
     inline bool isEmpty() const
-    { return mTriggers.empty() && mFlags.empty() && mTimers.empty() && mEvents.empty() && mPortalOff.empty() && mBlocked.empty() && mRegions.empty() && (mTimeLimitSeconds == TIME_LIMIT_NOT_SET) && (mCountdownSeconds == COUNTDOWN_NOT_SET) && (mWaveCountdownSeconds == COUNTDOWN_NOT_SET); }
+    { return mTriggers.empty() && mFlags.empty() && mTimers.empty() && mEvents.empty() && mPortalOff.empty() && mBlocked.empty() && mRegions.empty() && (mTimeLimitSeconds == TIME_LIMIT_NOT_SET) && (mCountdownSeconds == COUNTDOWN_NOT_SET) && (mWaveCountdownSeconds == COUNTDOWN_NOT_SET) && mOrders.empty() && mSlaps.empty() && (mSlapLimit < 0); }
 
     //! \brief The triggers of the script. The caller may change them.
     inline std::vector<LevelScriptTrigger>& getTriggers()
@@ -389,8 +431,25 @@ public:
     inline const std::map<std::string, std::string>& getPartyMembers() const
     { return mPartyMembers; }
 
+    //! Standing orders of the creatures (by creature name)
+    void setOrder(const std::string& creatureName, const LevelScriptOrder& order);
+    void clearOrder(const std::string& creatureName);
+    //! Returns nullptr if the creature has no order
+    const LevelScriptOrder* getOrder(const std::string& creatureName) const;
+    //! Moves a goto order to the next waypoint, the order is a wait order after the last one
+    void advanceOrder(const std::string& creatureName);
+
     //! Names of the creatures of a party (tag) that were created by a spawn action
     std::vector<std::string> getPartyMemberNames(const std::string& party) const;
+
+    //! Counts a slap the player of the seat tries. Returns false if the slap limit refuses it.
+    bool registerSlap(int32_t seatId);
+    int64_t getSlaps(int32_t seatId) const;
+    inline int64_t getSlapLimit() const
+    { return mSlapLimit; }
+
+    inline void setSlapLimit(int64_t limit)
+    { mSlapLimit = limit; }
 
     //! \brief All flags that were set.
     inline const std::map<std::string, int64_t>& getFlags() const
@@ -417,6 +476,9 @@ public:
 
     //! \brief Replaces all the regions, used by the editor when the server sends them
     void setRegions(const std::vector<LevelScriptRegion>& regions);
+
+    inline const std::map<int32_t, int64_t>& getSlapCounts() const
+    { return mSlaps; }
 
     static const int64_t TIME_LIMIT_NOT_SET = -1;
     static const int64_t TIME_LIMIT_REMOVED = -2;
@@ -469,6 +531,9 @@ private:
     int64_t mTimeLimitSeconds;
     int64_t mCountdownSeconds;
     int64_t mWaveCountdownSeconds;
+    std::map<std::string, LevelScriptOrder> mOrders;
+    std::map<int32_t, int64_t> mSlaps;
+    int64_t mSlapLimit;
 };
 
 #endif // LEVELSCRIPT_H

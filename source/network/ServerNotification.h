@@ -104,6 +104,9 @@ enum class ServerNotificationType
 
     exit,
 
+    //! The team of a seat changed (an alliance of a level script): + int32_t seatId, int32_t teamId
+    seatTeam,
+
     //! Answer to editorRegionEdit, all the region markers of the level script:
     //! + uint32_t count, then per region: string name and 4 int32_t (the corners).
     editorRegionData,

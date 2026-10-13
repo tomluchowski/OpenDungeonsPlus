@@ -547,3 +547,110 @@ BOOST_AUTO_TEST_CASE(test_creature_events)
     again.exportToStream(os2);
     BOOST_CHECK_EQUAL(os2.str(), written);
 }
+
+//! \brief Standing orders of creatures, the slap counter and the conditions and actions that go with them
+BOOST_AUTO_TEST_CASE(test_orders_and_slaps)
+{
+    const std::string text =
+        "SlapLimit\t10\n"
+        "Slaps\t3\t4\n"
+        "Order\tKnight1\tgoto\t-1\t1\t5,6;7,8\n"
+        "Order\tKnight2\tkillplayer\t1\t0\t-\n"
+        "[Trigger]\n"
+        "Name\tt1\n"
+        "Mode\tonce\n"
+        "Cond\tslaps\t3\t>=\t11\n"
+        "Cond\tfurniture\t3\tLibrary\t>=\t1\n"
+        "Cond\tbreached\t3\n"
+        "Cond\tevent\tSeat3\tcast:callToWar\n"
+        "Cond\tevent\tLevel\tpayday\n"
+        "Action\torder\tgoto\t-1\t5,6;7,8\tKnight3\tParty1\n"
+        "Action\torder\twait\t-1\t-\tKnight4\n"
+        "Action\tspeed\trun\tKnight3\n"
+        "Action\troomowner\t40\t40\t3\n"
+        "Action\tslaplimit\t10\n"
+        "[/Trigger]\n"
+        "[/Triggers]\n";
+    LevelScript script;
+    std::istringstream is(text);
+    BOOST_REQUIRE(script.importFromStream(is));
+    BOOST_CHECK(!script.isEmpty());
+    BOOST_CHECK_EQUAL(script.getSlapLimit(), 10);
+    BOOST_CHECK_EQUAL(script.getSlaps(3), 4);
+    BOOST_REQUIRE(script.getOrder("Knight1") != nullptr);
+    BOOST_CHECK(script.getOrder("Knight1")->mJob == "goto");
+    BOOST_CHECK_EQUAL(script.getOrder("Knight1")->mIndex, 1u);
+    BOOST_CHECK_EQUAL(script.getOrder("Knight1")->mWaypoints.size(), 2u);
+    BOOST_CHECK(script.getOrder("Knight1")->mWaypoints[1] == std::make_pair(7, 8));
+    BOOST_REQUIRE(script.getOrder("Knight2") != nullptr);
+    BOOST_CHECK_EQUAL(script.getOrder("Knight2")->mSeatId, 1);
+    BOOST_CHECK(script.getOrder("Nobody") == nullptr);
+
+    BOOST_REQUIRE_EQUAL(script.getTriggers().size(), 1u);
+    const LevelScriptTrigger& trigger = script.getTriggers()[0];
+    BOOST_REQUIRE_EQUAL(trigger.mConditions.size(), 5u);
+    BOOST_CHECK(trigger.mConditions[0].mType == LevelScriptConditionType::playerSlaps);
+    BOOST_CHECK_EQUAL(trigger.mConditions[0].mNumber, 11);
+    BOOST_CHECK(trigger.mConditions[1].mType == LevelScriptConditionType::roomFurniture);
+    BOOST_CHECK(trigger.mConditions[1].mName == "Library");
+    BOOST_CHECK(trigger.mConditions[2].mType == LevelScriptConditionType::dungeonBreached);
+    BOOST_CHECK(trigger.mConditions[3].mType == LevelScriptConditionType::creatureEvent);
+    BOOST_CHECK(trigger.mConditions[3].mName2 == "cast:callToWar");
+    BOOST_REQUIRE_EQUAL(trigger.mActions.size(), 5u);
+    BOOST_CHECK(trigger.mActions[0].mType == LevelScriptActionType::creatureOrder);
+    BOOST_CHECK_EQUAL(trigger.mActions[0].mCreatureNames.size(), 2u);
+    BOOST_CHECK_EQUAL(trigger.mActions[0].mWaypoints.size(), 2u);
+    BOOST_CHECK(trigger.mActions[1].mWaypoints.empty());
+    BOOST_CHECK(trigger.mActions[2].mType == LevelScriptActionType::creatureSpeed);
+    BOOST_CHECK_EQUAL(trigger.mActions[2].mNumber, 1);
+    BOOST_CHECK(trigger.mActions[3].mType == LevelScriptActionType::roomOwner);
+    BOOST_CHECK_EQUAL(trigger.mActions[3].mX, 40);
+    BOOST_CHECK(trigger.mActions[4].mType == LevelScriptActionType::slapLimit);
+
+    // Written and read again
+    std::ostringstream os;
+    script.exportToStream(os);
+    std::string written = os.str();
+    LevelScript again;
+    std::istringstream isAgain(written.substr(written.find('\n') + 1));
+    BOOST_REQUIRE(again.importFromStream(isAgain));
+    std::ostringstream os2;
+    again.exportToStream(os2);
+    BOOST_CHECK(written == os2.str());
+
+    // A goto order moves on and turns into a wait order after the last waypoint
+    script.advanceOrder("Knight1");
+    BOOST_CHECK(script.getOrder("Knight1")->mJob == "wait");
+    script.advanceOrder("Knight2");
+    BOOST_CHECK(script.getOrder("Knight2")->mJob == "killplayer");
+    script.clearOrder("Knight2");
+    BOOST_CHECK(script.getOrder("Knight2") == nullptr);
+
+    // A slap beyond the limit is refused, but counted
+    LevelScript limited;
+    limited.setSlapLimit(2);
+    BOOST_CHECK(limited.registerSlap(3));
+    BOOST_CHECK(limited.registerSlap(3));
+    BOOST_CHECK(!limited.registerSlap(3));
+    BOOST_CHECK_EQUAL(limited.getSlaps(3), 3);
+    BOOST_CHECK(limited.registerSlap(4));
+    LevelScript unlimited;
+    BOOST_CHECK(unlimited.registerSlap(3));
+
+    // Malformed lines
+    const char* invalid[] = {
+        "[Trigger]\nName\tx\nMode\tonce\nCond\ttime\t1\nAction\torder\tdance\t-1\t-\tKnight1\n[/Trigger]\n[/Triggers]\n",
+        "[Trigger]\nName\tx\nMode\tonce\nCond\ttime\t1\nAction\torder\twait\t-1\t-\n[/Trigger]\n[/Triggers]\n",
+        "[Trigger]\nName\tx\nMode\tonce\nCond\ttime\t1\nAction\torder\tgoto\t-1\t5;6\tKnight1\n[/Trigger]\n[/Triggers]\n",
+        "[Trigger]\nName\tx\nMode\tonce\nCond\ttime\t1\nAction\tspeed\tfly\tKnight1\n[/Trigger]\n[/Triggers]\n",
+        "[Trigger]\nName\tx\nMode\tonce\nCond\ttime\t1\nAction\troomowner\t1\t2\n[/Trigger]\n[/Triggers]\n",
+        "[Trigger]\nName\tx\nMode\tonce\nCond\tslaps\t3\t11\nAction\tslaplimit\t1\n[/Trigger]\n[/Triggers]\n",
+        "Order\tKnight1\tgoto\t-1\t0\n[/Triggers]\n"
+    };
+    for(const char* entry : invalid)
+    {
+        LevelScript bad;
+        std::istringstream isBad(entry);
+        BOOST_CHECK_MESSAGE(!bad.importFromStream(isBad), entry);
+    }
+}

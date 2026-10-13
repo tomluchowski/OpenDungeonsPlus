@@ -1359,6 +1359,22 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
             break;
         }
 
+        case ServerNotificationType::seatTeam:
+        {
+            int32_t seatId = -1;
+            int32_t teamId = -1;
+            if(!(packetReceived >> seatId >> teamId))
+            {
+                OD_LOG_ERR("Truncated seatTeam packet");
+                break;
+            }
+            Seat* seat = gameMap->getSeatById(seatId);
+            if(seat != nullptr)
+                seat->setTeamId(teamId);
+
+            break;
+        }
+
         case ServerNotificationType::editorRegionData:
         {
             if(frameListener->getModeManager()->getCurrentModeType() != ModeManager::ModeType::EDITOR)

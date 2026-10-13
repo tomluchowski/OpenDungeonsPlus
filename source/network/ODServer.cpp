@@ -1374,6 +1374,13 @@ bool ODServer::processClientNotifications(ODSocketClient* clientSocket)
                 break;
             }
 
+            // The slap limit of the level script: a slap beyond it is counted but does nothing
+            if(!gameMap->getLevelScript().registerSlap(player->getSeat()->getId()))
+            {
+                OD_LOG_INF("player seatId=" + Helper::toString(player->getSeat()->getId()) + " is over the slap limit of the level");
+                break;
+            }
+
             OD_LOG_INF("player seatId=" + Helper::toString(player->getSeat()->getId()) + " slapped entity " + entity->getName());
             entity->slap();
 

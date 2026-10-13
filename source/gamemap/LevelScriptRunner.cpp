@@ -17,6 +17,7 @@
 
 #include "gamemap/LevelScriptRunner.h"
 
+#include "creatureaction/CreatureActionWalkToTile.h"
 #include "entities/Creature.h"
 #include "entities/CreatureDefinition.h"
 #include "entities/Tile.h"
@@ -41,8 +42,11 @@
 #include "utils/ConfigManager.h"
 #include "utils/Helper.h"
 #include "utils/LogManager.h"
+#include "utils/MakeUnique.h"
 
 #include <algorithm>
+#include <cstdlib>
+#include <list>
 #include <vector>
 
 namespace
@@ -173,6 +177,47 @@ bool isConditionMet(GameMap& gameMap, const LevelScript& script, const LevelScri
                 return levelScriptCompare(numCreated, cond.mCompare, cond.mNumber);
             }
             return levelScriptCompare(script.getEventCount(cond.mName, cond.mName2), cond.mCompare, cond.mNumber);
+        }
+        case LevelScriptConditionType::playerSlaps:
+            return levelScriptCompare(script.getSlaps(cond.mSeatId), cond.mCompare, cond.mNumber);
+        case LevelScriptConditionType::roomFurniture:
+        {
+            Seat* seat = gameMap.getSeatById(cond.mSeatId);
+            if(seat == nullptr)
+                return false;
+
+            RoomType roomType = RoomManager::getRoomTypeFromRoomName(cond.mName);
+            if(roomType == RoomType::nullRoomType)
+            {
+                OD_LOG_ERR("Level script: unknown room name=" + cond.mName);
+                return false;
+            }
+
+            int64_t numObjects = 0;
+            for(Room* room : gameMap.getRoomsByTypeAndSeat(roomType, seat))
+                numObjects += static_cast<int64_t>(room->getBuildingObjects().size());
+
+            return levelScriptCompare(numObjects, cond.mCompare, cond.mNumber);
+        }
+        case LevelScriptConditionType::dungeonBreached:
+        {
+            Seat* seat = gameMap.getSeatById(cond.mSeatId);
+            if(seat == nullptr)
+                return false;
+
+            for(Creature* creature : gameMap.getCreatures())
+            {
+                if(!creature->isAlive() || !creature->getIsOnMap() || (creature->getSeat() == nullptr))
+                    continue;
+
+                if(creature->getSeat()->isRogueSeat() || creature->getSeat()->isAlliedSeat(seat))
+                    continue;
+
+                Tile* tile = creature->getPositionTile();
+                if((tile != nullptr) && tile->isClaimedForSeat(seat))
+                    return true;
+            }
+            return false;
         }
         case LevelScriptConditionType::portalActive:
             return script.isPortalOff(cond.mSeatId) == (cond.mNumber == 0);
@@ -503,6 +548,150 @@ void makeSkillAvailable(GameMap& gameMap, const LevelScriptAction& action)
     }
 }
 
+//! Alliances join the seats into one team. Breaking one puts the seat into a team of its own.
+void changeAlliance(GameMap& gameMap, const LevelScriptAction& action)
+{
+    Seat* first = gameMap.getSeatById(action.mSeatId);
+    Seat* second = gameMap.getSeatById(action.mTargetSeatId);
+    if((first == nullptr) || (second == nullptr))
+    {
+        OD_LOG_ERR("Level script: alliance with an unknown seat");
+        return;
+    }
+
+    std::vector<Seat*> changed;
+    if(action.mNumber != 0)
+    {
+        int oldTeam = first->getTeamId();
+        for(Seat* seat : gameMap.getSeats())
+        {
+            if(seat->getTeamId() != oldTeam)
+                continue;
+
+            seat->setTeamId(second->getTeamId());
+            changed.push_back(seat);
+        }
+    }
+    else
+    {
+        first->setTeamId(first->getId());
+        changed.push_back(first);
+    }
+
+    for(Seat* seat : changed)
+    {
+        for(Player* player : gameMap.getPlayers())
+        {
+            if(!player->getIsHuman())
+                continue;
+
+            ServerNotification* serverNotification = new ServerNotification(ServerNotificationType::seatTeam, player);
+            serverNotification->mPacket << static_cast<int32_t>(seat->getId()) << static_cast<int32_t>(seat->getTeamId());
+            ODServer::getSingleton().queueServerNotification(serverNotification);
+        }
+    }
+}
+
+//! A creature comes through a portal of the seat (at the heart if the seat has none)
+void generateCreature(GameMap& gameMap, const LevelScriptAction& action)
+{
+    Seat* seat = gameMap.getSeatById(action.mSeatId);
+    if(seat == nullptr)
+        return;
+
+    Tile* tile = nullptr;
+    std::vector<Room*> portals = gameMap.getRoomsByTypeAndSeat(RoomType::portal, seat);
+    if(!portals.empty())
+        tile = portals[0]->getCentralTile();
+
+    if(tile == nullptr)
+    {
+        std::vector<Room*> hearts = gameMap.getRoomsByTypeAndSeat(RoomType::dungeonTemple, seat);
+        if(!hearts.empty())
+            tile = hearts[0]->getCentralTile();
+    }
+    if(tile == nullptr)
+        return;
+
+    LevelScriptAction spawn = action;
+    spawn.mX = tile->getX();
+    spawn.mY = tile->getY();
+    spawn.mTargetSeatId = -1;
+    spawnCreatures(gameMap, spawn);
+}
+
+//! The creatures an order or speed action is meant for: names of creatures or tags of parties
+std::vector<std::string> resolveCreatureNames(GameMap& gameMap, const LevelScript& script,
+                                              const std::vector<std::string>& tokens)
+{
+    std::vector<std::string> names;
+    for(const std::string& token : tokens)
+    {
+        if(gameMap.getCreature(token) != nullptr)
+        {
+            names.push_back(token);
+            continue;
+        }
+
+        std::vector<std::string> members = script.getPartyMemberNames(token);
+        names.insert(names.end(), members.begin(), members.end());
+    }
+    return names;
+}
+
+//! Running creatures move this much faster than walking ones (own tuning value)
+const double RUN_SPEED_FACTOR = 1.5;
+
+//! The creatures (names or party tags) run or walk again (the speed action)
+void changeCreatureSpeed(GameMap& gameMap, const LevelScript& script, const LevelScriptAction& action)
+{
+    std::vector<std::string> names = resolveCreatureNames(gameMap, script, action.mCreatureNames);
+    for(const std::string& name : names)
+    {
+        Creature* creature = gameMap.getCreature(name);
+        if((creature == nullptr) || !creature->isAlive())
+            continue;
+
+        creature->setMoveSpeedModifier((action.mNumber != 0) ? RUN_SPEED_FACTOR : 1.0);
+    }
+}
+
+//! The creatures (names or party tags) get the standing order of the action (the order action)
+void giveCreatureOrder(GameMap& gameMap, LevelScript& script, const LevelScriptAction& action)
+{
+    LevelScriptOrder order;
+    order.mJob = action.mText;
+    order.mSeatId = action.mSeatId;
+    order.mWaypoints = action.mWaypoints;
+    std::vector<std::string> names = resolveCreatureNames(gameMap, script, action.mCreatureNames);
+    for(const std::string& name : names)
+        script.setOrder(name, order);
+}
+
+//! The room that covers the tile belongs to the seat: it is worn down at once, as the dance of a worker does
+void changeRoomOwner(GameMap& gameMap, const LevelScriptAction& action)
+{
+    Seat* seat = gameMap.getSeatById(action.mSeatId);
+    Tile* tile = gameMap.getTile(action.mX, action.mY);
+    if((seat == nullptr) || (tile == nullptr))
+    {
+        OD_LOG_ERR("Level script: room owner change with an unknown seat or tile");
+        return;
+    }
+
+    Room* room = tile->getCoveringRoom();
+    if((room == nullptr) || (room->getSeat() == seat))
+        return;
+
+    if(room->getType() == RoomType::dungeonTemple)
+    {
+        OD_LOG_WRN("Level script: the dungeon temple cannot change its owner");
+        return;
+    }
+
+    room->claimForSeat(seat, tile, 1.0e9);
+}
+
 //! \brief The creature with that name leaves the map (the remove action). Nothing happens if there is none on the map.
 void removeCreature(GameMap& gameMap, const std::string& name)
 {
@@ -583,6 +772,24 @@ void runAction(GameMap& gameMap, LevelScript& script, const LevelScriptAction& a
         case LevelScriptActionType::removeCreature:
             removeCreature(gameMap, action.mText);
             break;
+        case LevelScriptActionType::alliance:
+            changeAlliance(gameMap, action);
+            break;
+        case LevelScriptActionType::generateCreature:
+            generateCreature(gameMap, action);
+            break;
+        case LevelScriptActionType::creatureOrder:
+            giveCreatureOrder(gameMap, script, action);
+            break;
+        case LevelScriptActionType::creatureSpeed:
+            changeCreatureSpeed(gameMap, script, action);
+            break;
+        case LevelScriptActionType::roomOwner:
+            changeRoomOwner(gameMap, action);
+            break;
+        case LevelScriptActionType::slapLimit:
+            script.setSlapLimit(action.mNumber);
+            break;
     }
 }
 
@@ -623,4 +830,203 @@ void LevelScriptRunner::doTurn(GameMap& gameMap)
         for(const LevelScriptAction& action : trigger.mActions)
             runAction(gameMap, script, action);
     }
+}
+
+namespace
+{
+
+//! The creature walks to the tile. False if there is no way.
+bool walkToTile(Creature& creature, Tile* destination)
+{
+    std::list<Tile*> tilePath = creature.getGameMap()->path(&creature, destination);
+    if(tilePath.empty())
+        return false;
+
+    std::vector<Ogre::Vector2> vectorPath;
+    Creature::tileToVector2(tilePath, vectorPath, true, 0.0);
+    if(vectorPath.empty())
+        return false;
+
+    creature.setWalkPath(EntityAnimation::walk_anim, EntityAnimation::idle_anim, true, true, vectorPath, true);
+    creature.pushAction(Utils::make_unique<CreatureActionWalkToTile>(creature));
+    return true;
+}
+
+//! Walks to the nearest of the tiles. False if none can be reached.
+bool walkToNearest(Creature& creature, Tile* myTile, const std::vector<Tile*>& tiles)
+{
+    Tile* chosenTile = nullptr;
+    std::list<Tile*> tilePath = creature.getGameMap()->findBestPath(&creature, myTile, tiles, chosenTile);
+    if(tilePath.empty() || (chosenTile == nullptr))
+        return false;
+
+    std::vector<Ogre::Vector2> vectorPath;
+    Creature::tileToVector2(tilePath, vectorPath, true, 0.0);
+    if(vectorPath.empty())
+        return false;
+
+    creature.setWalkPath(EntityAnimation::walk_anim, EntityAnimation::idle_anim, true, true, vectorPath, true);
+    creature.pushAction(Utils::make_unique<CreatureActionWalkToTile>(creature));
+    return true;
+}
+
+//! True if the tiles are at most that many tiles apart in both directions
+bool isNear(const Tile* first, const Tile* second, int32_t distance)
+{
+    return (std::abs(first->getX() - second->getX()) <= distance) && (std::abs(first->getY() - second->getY()) <= distance);
+}
+
+} // namespace
+
+bool LevelScriptRunner::doCreatureOrder(Creature& creature)
+{
+    GameMap* gameMap = creature.getGameMap();
+    if((gameMap == nullptr) || !creature.getIsOnServerMap())
+        return false;
+
+    LevelScript& script = gameMap->getLevelScript();
+    const LevelScriptOrder* order = script.getOrder(creature.getName());
+    if(order == nullptr)
+        return false;
+
+    Tile* myTile = creature.getPositionTile();
+    if(myTile == nullptr)
+        return false;
+
+    // Copy: the script can change the order below
+    LevelScriptOrder current = *order;
+    const std::string& name = creature.getName();
+    if(current.mJob == "wait")
+        return true;
+
+    if(current.mJob == "goto")
+    {
+        if(current.mIndex >= current.mWaypoints.size())
+        {
+            script.advanceOrder(name);
+            return true;
+        }
+
+        Tile* target = gameMap->getTile(current.mWaypoints[current.mIndex].first, current.mWaypoints[current.mIndex].second);
+        if((target == nullptr) || isNear(myTile, target, 1) || !gameMap->pathExists(&creature, myTile, target))
+        {
+            script.advanceOrder(name);
+            return true;
+        }
+
+        if(!walkToTile(creature, target))
+            script.advanceOrder(name);
+
+        return true;
+    }
+
+    Seat* targetSeat = gameMap->getSeatById(current.mSeatId);
+    if(current.mJob == "killplayer")
+    {
+        if(targetSeat == nullptr)
+        {
+            script.clearOrder(name);
+            return false;
+        }
+
+        std::vector<Tile*> tiles;
+        for(Room* room : gameMap->getRoomsByTypeAndSeat(RoomType::dungeonTemple, targetSeat))
+        {
+            for(Tile* tile : room->getCoveredTiles())
+                tiles.push_back(tile);
+        }
+        if(tiles.empty())
+        {
+            // The dungeon is gone: the order is done
+            script.clearOrder(name);
+            return false;
+        }
+
+        // Near the heart the creature stays and fights what comes
+        for(Tile* tile : tiles)
+        {
+            if(isNear(myTile, tile, 4))
+                return true;
+        }
+
+        return walkToNearest(creature, myTile, tiles);
+    }
+
+    if(current.mJob == "killcreatures")
+    {
+        Creature* nearest = nullptr;
+        int32_t nearestDistance = 0;
+        for(Creature* other : gameMap->getCreatures())
+        {
+            if(!other->isAlive() || !other->getIsOnMap() || (other->getSeat() == nullptr) || (other == &creature))
+                continue;
+
+            if(other->getSeat()->isAlliedSeat(creature.getSeat()))
+                continue;
+
+            if((current.mSeatId >= 0) && (other->getSeat()->getId() != current.mSeatId))
+                continue;
+
+            Tile* otherTile = other->getPositionTile();
+            if(otherTile == nullptr)
+                continue;
+
+            int32_t distance = std::abs(otherTile->getX() - myTile->getX()) + std::abs(otherTile->getY() - myTile->getY());
+            if((nearest == nullptr) || (distance < nearestDistance))
+            {
+                nearest = other;
+                nearestDistance = distance;
+            }
+        }
+        if(nearest == nullptr)
+            return false;
+
+        Tile* target = nearest->getPositionTile();
+        if(isNear(myTile, target, 2) || !gameMap->pathExists(&creature, myTile, target))
+            return false;
+
+        return walkToTile(creature, target);
+    }
+
+    if(current.mJob == "stealgold")
+    {
+        std::vector<Tile*> tiles;
+        std::vector<Room*> treasuries;
+        if(targetSeat != nullptr)
+            treasuries = gameMap->getRoomsByTypeAndSeat(RoomType::treasury, targetSeat);
+
+        for(Room* room : treasuries)
+        {
+            for(Tile* tile : room->getCoveredTiles())
+                tiles.push_back(tile);
+        }
+        if(tiles.empty())
+        {
+            script.clearOrder(name);
+            return false;
+        }
+
+        Room* room = myTile->getCoveringRoom();
+        if((room != nullptr) && (room->getType() == RoomType::treasury) && (room->getSeat() == targetSeat))
+        {
+            int32_t amount = static_cast<int32_t>(creature.getDefinition()->getStealGold());
+            if(amount <= 0)
+                amount = 200;
+
+            int32_t gold = room->withdrawGold(amount);
+            creature.addGoldCarried(gold);
+            if(gold > 0)
+                gameMap->getLevelScript().recordEvent(name, "steals");
+
+            // The theft is done: the creature stays where it is
+            LevelScriptOrder done;
+            done.mJob = "wait";
+            script.setOrder(name, done);
+            return true;
+        }
+
+        return walkToNearest(creature, myTile, tiles);
+    }
+
+    return false;
 }
