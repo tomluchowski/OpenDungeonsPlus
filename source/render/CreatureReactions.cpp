@@ -140,6 +140,7 @@ CreatureReactions::CreatureReactions(GameMap* gameMap, const std::string& config
         OD_LOG_WRN("Creature reactions are not available");
 }
 
+//! \brief Destroys the reactions. The members clean up themselves, so the body is empty.
 CreatureReactions::~CreatureReactions()
 {
 }
@@ -1007,6 +1008,15 @@ void CreatureReactions::noteAnimation(MovableGameEntity* entity, const std::stri
     }
 }
 
+//! Seconds before the winners start to cheer when the loser ran away
+static const double VICTORY_FLED_DELAY = 0.6;
+//! Seconds before the winners start to cheer when the loser went down
+static const double VICTORY_DELAY = 0.8;
+//! Seconds before the other creatures nearby join in the cheering
+static const double GROUP_VICTORY_DELAY = 1.8;
+//! Seconds before the spectators of an arena bout cheer after it is over
+static const double ARENA_BOUT_OVER_DELAY = 1.6;
+
 void CreatureReactions::noteRoomWork(Creature* creature)
 {
     Tile* tile = creature->getPositionTile();
@@ -1230,10 +1240,10 @@ void CreatureReactions::celebrateBout(Creature* loser)
     }
 
     if(!winners.empty())
-        triggerGroup("Victory", winners, false, 0.8);
+        triggerGroup("Victory", winners, false, VICTORY_DELAY);
 
     if(!spectators.empty())
-        triggerGroup("ArenaBoutOver", spectators, false, 1.6);
+        triggerGroup("ArenaBoutOver", spectators, false, ARENA_BOUT_OVER_DELAY);
 }
 
 void CreatureReactions::celebrateVictory(Creature* loser, bool fled)
@@ -1274,11 +1284,11 @@ void CreatureReactions::celebrateVictory(Creature* loser, bool fled)
         const std::vector<Creature*>& winners = it->second;
         if(fled)
         {
-            triggerGroup("VictoryFled", winners, false, 0.6);
+            triggerGroup("VictoryFled", winners, false, VICTORY_FLED_DELAY);
             continue;
         }
 
-        triggerGroup("Victory", winners, false, 0.8);
+        triggerGroup("Victory", winners, false, VICTORY_DELAY);
 
         // The battle is over if no fighter of the loser's side is left close by. Then the others
         // of the winning side nearby join in the cheering.
@@ -1305,7 +1315,7 @@ void CreatureReactions::celebrateVictory(Creature* loser, bool fled)
         }
 
         if(battleOver && (neighbours.size() >= 2))
-            triggerGroup("GroupVictory", neighbours, false, 1.8);
+            triggerGroup("GroupVictory", neighbours, false, GROUP_VICTORY_DELAY);
     }
 }
 
