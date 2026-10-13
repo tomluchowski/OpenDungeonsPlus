@@ -25,6 +25,7 @@
 #include "gamemap/GameMap.h"
 #include "render/ODFrameListener.h"
 #include "render/RenderManager.h"
+#include "traps/Trap.h"
 #include "utils/Helper.h"
 #include "utils/LogManager.h"
 
@@ -1313,4 +1314,23 @@ uint32_t RoomAmbience::triggerEvent(const std::string& eventName, const Ogre::Ve
         mLastEventTime[eventName] = mClock;
 
     return nbStarted;
+}
+
+void RoomAmbience::notifyTrapEffect(int32_t kind, int32_t tileX, int32_t tileY, const std::string& typeName)
+{
+    if(mMode == Mode::off)
+        return;
+
+    Ogre::Vector3 position(static_cast<Ogre::Real>(tileX), static_cast<Ogre::Real>(tileY), 0.0f);
+    switch(static_cast<TrapEffectKind>(kind))
+    {
+        case TrapEffectKind::fired:
+            triggerEvent("TrapFired", position, false, typeName);
+            break;
+        case TrapEffectKind::linked:
+            triggerEvent("TrapLinked", position, false, typeName);
+            break;
+        default:
+            break;
+    }
 }

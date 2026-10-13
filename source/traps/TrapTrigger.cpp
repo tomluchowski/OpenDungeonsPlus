@@ -173,6 +173,8 @@ bool TrapTrigger::shoot(Tile* tile)
             if(!triggerChainTiles.insert(neighbor).second)
                 continue;
 
+            // The linked trap is highlighted for the players that see it, even if it cannot fire now
+            trap->fireTrapEffect(TrapEffectKind::linked, neighbor, 1.0);
             if(trap->forceTrigger(neighbor))
                 fired = true;
         }

@@ -109,12 +109,26 @@ def sprite_web(path):
     finish(image, path)
 
 
+def sprite_rune(path):
+    """Glowing ring with an angular mark, white so the particle colour tints it."""
+    image, draw = new_canvas()
+    c = CANVAS // 2
+    draw.ellipse((c - 100, c - 100, c + 100, c + 100), outline=(255, 255, 255, 255), width=10)
+    draw.line((c - 40, c - 60, c + 40, c - 20), fill=(255, 255, 255, 255), width=12)
+    draw.line((c + 40, c - 20, c - 30, c + 10), fill=(255, 255, 255, 255), width=12)
+    draw.line((c - 30, c + 10, c + 36, c + 64), fill=(255, 255, 255, 255), width=12)
+    image = image.filter(ImageFilter.GaussianBlur(4))
+    radial(image, (255, 255, 255, 120), 126, 2.0)
+    finish(image, path)
+
+
 SPRITES = {
     "RoomAmbSpark": sprite_spark,
     "RoomAmbGlow": sprite_glow,
     "RoomAmbSmoke": sprite_smoke,
     "RoomAmbDust": sprite_dust,
     "RoomAmbWeb": sprite_web,
+    "RoomAmbRune": sprite_rune,
 }
 
 

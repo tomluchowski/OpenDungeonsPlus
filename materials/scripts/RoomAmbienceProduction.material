@@ -1,0 +1,20 @@
+// Materials of the sprites of the production rooms. Only the rune sprite that the traps also use is here for now.
+
+material RoomAmbRune
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend add
+            depth_write off
+            diffuse vertexcolour
+
+            texture_unit
+            {
+                texture RoomAmbRune.png
+            }
+        }
+    }
+}

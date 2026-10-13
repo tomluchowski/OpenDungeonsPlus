@@ -89,6 +89,14 @@ public:
     uint32_t triggerEvent(const std::string& eventName, const Ogre::Vector3& position, bool forced,
         const std::string& visualName = std::string());
 
+    //! \brief A trap effect sent by the server (ServerNotificationType::trapEffect).
+    //! \param kind A TrapEffectKind value.
+    //! \param tileX X of the tile of the trap.
+    //! \param tileY Y of the tile of the trap.
+    //! \param typeName The type of the trap (Alarm, Gas, ...), matched like a tile visual in "Match" of the event effects.
+    //! Shows the event TrapFired or TrapLinked at the tile; a kind that is not known is ignored.
+    void notifyTrapEffect(int32_t kind, int32_t tileX, int32_t tileY, const std::string& typeName);
+
     //! \brief The number of particle systems that run now (for the console)
     inline uint32_t getNbParticleSystems() const
     { return static_cast<uint32_t>(mEmitters.size() + mOneShots.size()); }

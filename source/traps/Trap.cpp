@@ -159,6 +159,10 @@ bool Trap::fireTile(Tile* tile, TrapTileData* trapTileData)
     if(manaToFire > 0.0)
         getSeat()->takeMana(manaToFire);
 
+    // A door reports its own effects, so only the other traps report here
+    if(!isDoor())
+        fireTrapEffect(TrapEffectKind::fired, tile, 1.0);
+
     trapTileData->setReloadTime(mReloadTime);
     if(!trapTileData->decreaseShoot())
     {
@@ -174,6 +178,25 @@ bool Trap::fireTile(Tile* tile, TrapTileData* trapTileData)
         seat->setVisibleBuildingOnTile(this, tile);
 
     return true;
+}
+
+void Trap::fireTrapEffect(TrapEffectKind kind, Tile* tile, double fraction)
+{
+    if(tile == nullptr)
+        return;
+
+    const std::string& typeName = TrapManager::getTrapNameFromTrapType(getType());
+    for(Seat* seat : tile->getSeatsWithVision())
+    {
+        if((seat->getPlayer() == nullptr) || !seat->getPlayer()->getIsHuman())
+            continue;
+
+        ServerNotification* notification = new ServerNotification(
+            ServerNotificationType::trapEffect, seat->getPlayer());
+        notification->mPacket << static_cast<int32_t>(kind) << tile->getX() << tile->getY()
+            << typeName << static_cast<float>(fraction);
+        ODServer::getSingleton().queueServerNotification(notification);
+    }
 }
 
 bool Trap::forceTrigger(Tile* tile)

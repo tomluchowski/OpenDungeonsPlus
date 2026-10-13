@@ -26,6 +26,10 @@ KINDS = ("Particle", "Motion", "Clip")
 MOTIONS = ("Sway", "Wobble", "Spin", "Bob", "Pulse", "Flicker")
 # Room tile visuals that only some builds have
 OPTIONAL_VISUALS = ("guardRoom", "templeRoom")
+# Events of the trap messages of the server; their Match names the type of the trap
+TRAP_EVENTS = ("TrapFired", "TrapLinked")
+TRAP_TYPES = ("Spike", "Alarm", "Fear", "Gas", "Lightning", "Fireburst", "Freeze", "WatchBanner", "Trigger", "Cannon",
+              "Boulder")
 # Tile visuals a bridge can lie over
 BRIDGE_VISUALS = ("lavaGround", "waterGround")
 
@@ -224,6 +228,9 @@ def check_effect(effect, where, problems, visuals, systems, mats, counts):
             name = match[len("bridge:"):]
             if name not in BRIDGE_VISUALS and not mesh_exists(name):
                 problems.append("%s: unknown bridge mesh or visual %s" % (where, name))
+        elif target == "Event" and effect.get("Event", [""])[0] in TRAP_EVENTS:
+            if match not in TRAP_TYPES:
+                problems.append("%s: unknown trap type %s" % (where, match))
         elif match not in visuals:
             problems.append("%s: unknown tile visual %s" % (where, match))
     counts["effects"] += 1

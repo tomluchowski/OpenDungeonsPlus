@@ -45,6 +45,7 @@
 #include "network/ServerNotification.h"
 #include "render/ODFrameListener.h"
 #include "render/RenderManager.h"
+#include "render/RoomAmbience.h"
 #include "rooms/RoomPortalWave.h"
 #include "sound/MusicPlayer.h"
 #include "sound/SoundEffectsManager.h"
@@ -1677,6 +1678,24 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
             {
                 GameMode* gm = static_cast<GameMode*>(frameListener->getModeManager()->getCurrentMode());
                 gm->notifyPossessionEnded();
+            }
+            break;
+        }
+
+        case ServerNotificationType::trapEffect:
+        {
+            // Cosmetic only: tells the room ambience what the trap on the tile just did. The health
+            // fraction is read to keep the packet in step; it only matters for doors
+            int32_t effectKind = 0;
+            int32_t tileX = 0;
+            int32_t tileY = 0;
+            std::string typeName;
+            float fraction = 1.0f;
+            OD_ASSERT_TRUE(packetReceived >> effectKind >> tileX >> tileY >> typeName >> fraction);
+            if((RoomAmbience::getSingletonPtr() != nullptr) &&
+               (frameListener->getModeManager()->getCurrentModeType() == ModeManager::ModeType::GAME))
+            {
+                RoomAmbience::getSingleton().notifyTrapEffect(effectKind, tileX, tileY, typeName);
             }
             break;
         }

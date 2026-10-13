@@ -1,0 +1,40 @@
+// Effects of the production rooms. Only the embers that the fire burst trap also uses are here for now.
+
+// Embers rising from a fire
+particle_system RoomAmbEmbers
+{
+    material        RoomAmbSpark
+    point_rendering false
+    particle_width  0.07
+    particle_height 0.07
+    cull_each       false
+    quota           10
+    billboard_type  point
+
+    emitter Box
+    {
+        angle               30
+        colour_range_start  1.0 0.55 0.15 1.0
+        colour_range_end    1.0 0.8 0.3 1.0
+        emission_rate       2.5
+        time_to_live        1.8
+        direction           0 0 1
+        velocity_min        0.4
+        velocity_max        1.0
+        width               0.3
+        height              0.3
+        depth               0.05
+    }
+
+    affector ColourFader
+    {
+        alpha   -0.55
+    }
+
+    affector DirectionRandomiser
+    {
+        randomness  0.4
+        scope       0.5
+        keep_velocity true
+    }
+}

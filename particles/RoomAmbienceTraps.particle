@@ -1,0 +1,596 @@
+// Effects of the traps (see config/roomAmbienceTraps.cfg). Only textures and materials of the room
+// ambience are used.
+
+// ---------------------------------------------------------------- Alarm
+
+// A fast flashing light when the alarm goes off
+particle_system RoomAmbAlarmFlash
+{
+    material        RoomAmbGlow
+    point_rendering false
+    particle_width  1.0
+    particle_height 1.0
+    cull_each       false
+    quota           4
+    billboard_type  point
+
+    emitter Point
+    {
+        angle               0
+        colour              1.0 0.3 0.12 0.8
+        emission_rate       4
+        time_to_live        0.3
+        direction           0 0 1
+        velocity            0
+        position            0 0 0.3
+    }
+
+    affector ColourFader
+    {
+        alpha   -2.6
+    }
+}
+
+// Rings that spread outward over the floor
+particle_system RoomAmbAlarmRing
+{
+    material        RoomAmbGlow
+    point_rendering false
+    particle_width  0.3
+    particle_height 0.3
+    cull_each       false
+    quota           4
+    billboard_type  perpendicular_common
+    common_direction 0 0 1
+    common_up_vector 0 1 0
+
+    emitter Point
+    {
+        angle               0
+        colour              1.0 0.55 0.3 0.6
+        emission_rate       1.6
+        time_to_live        1.2
+        direction           0 0 1
+        velocity            0
+        position            0 0 0.05
+    }
+
+    affector Scaler
+    {
+        rate    2.4
+    }
+
+    affector ColourFader
+    {
+        alpha   -0.5
+    }
+}
+
+// ---------------------------------------------------------------- Fear
+
+// Dark mist that settles on the floor
+particle_system RoomAmbFearMist
+{
+    material        RoomAmbSmoke
+    point_rendering false
+    particle_width  0.9
+    particle_height 0.9
+    cull_each       false
+    quota           4
+    billboard_type  point
+
+    emitter Box
+    {
+        angle               90
+        colour              0.35 0.22 0.5 0.0
+        emission_rate       0.7
+        time_to_live        5
+        direction           1 0 0
+        velocity_min        0.03
+        velocity_max        0.09
+        position            0 0 0.12
+        width               0.9
+        height              0.9
+        depth               0.05
+    }
+
+    affector ColourInterpolator
+    {
+        time0   0
+        colour0 0.35 0.22 0.5 0.0
+        time1   0.5
+        colour1 0.35 0.22 0.5 0.3
+        time2   1
+        colour2 0.35 0.22 0.5 0.0
+    }
+
+    affector Scaler
+    {
+        rate    0.08
+    }
+}
+
+// A ghostly shape that bursts upward when the trap goes off
+particle_system RoomAmbFearBurst
+{
+    material        RoomAmbSmoke
+    point_rendering false
+    particle_width  0.5
+    particle_height 0.5
+    cull_each       false
+    quota           14
+    billboard_type  point
+
+    emitter Point
+    {
+        angle               25
+        colour_range_start  0.75 0.82 1.0 0.5
+        colour_range_end    0.9 0.95 1.0 0.55
+        emission_rate       40
+        time_to_live        1.3
+        direction           0 0 1
+        velocity_min        0.6
+        velocity_max        1.4
+        duration            0.3
+        repeat_delay_min    1.2
+        repeat_delay_max    3.0
+        position            0 0 0.2
+    }
+
+    affector Scaler
+    {
+        rate    0.6
+    }
+
+    affector ColourFader
+    {
+        alpha   -0.55
+    }
+}
+
+// A faint green haze over the vent
+particle_system RoomAmbGasHaze
+{
+    material        RoomAmbSmoke
+    point_rendering false
+    particle_width  0.6
+    particle_height 0.6
+    cull_each       false
+    quota           3
+    billboard_type  point
+
+    emitter Box
+    {
+        angle               60
+        colour              0.5 0.85 0.3 0.0
+        emission_rate       0.6
+        time_to_live        4
+        direction           0 0 1
+        velocity_min        0.05
+        velocity_max        0.12
+        position            0 0 0.15
+        width               0.6
+        height              0.6
+        depth               0.05
+    }
+
+    affector ColourInterpolator
+    {
+        time0   0
+        colour0 0.5 0.85 0.3 0.0
+        time1   0.5
+        colour1 0.5 0.85 0.3 0.2
+        time2   1
+        colour2 0.5 0.85 0.3 0.0
+    }
+
+    affector Scaler
+    {
+        rate    0.1
+    }
+}
+
+// A cloud that billows and spreads when the trap goes off
+particle_system RoomAmbGasCloud
+{
+    material        RoomAmbSmoke
+    point_rendering false
+    particle_width  0.6
+    particle_height 0.6
+    cull_each       false
+    quota           24
+    billboard_type  point
+
+    emitter Box
+    {
+        angle               80
+        colour_range_start  0.45 0.8 0.25 0.45
+        colour_range_end    0.6 0.9 0.35 0.5
+        emission_rate       12
+        time_to_live        3.0
+        direction           0 0 1
+        velocity_min        0.25
+        velocity_max        0.7
+        position            0 0 0.2
+        width               0.6
+        height              0.6
+        depth               0.1
+    }
+
+    affector Scaler
+    {
+        rate    0.6
+    }
+
+    affector ColourFader
+    {
+        alpha   -0.15
+    }
+}
+
+// The flash of a bolt
+particle_system RoomAmbBoltFlash
+{
+    material        RoomAmbGlow
+    point_rendering false
+    particle_width  1.7
+    particle_height 1.7
+    cull_each       false
+    quota           3
+    billboard_type  point
+
+    emitter Point
+    {
+        angle               0
+        colour              0.7 0.85 1.0 0.9
+        emission_rate       30
+        time_to_live        0.25
+        direction           0 0 1
+        velocity            0
+        position            0 0 0.7
+        duration            0.08
+        repeat_delay_min    0.7
+        repeat_delay_max    2.0
+    }
+
+    affector ColourFader
+    {
+        alpha   -3.6
+    }
+}
+
+// Sparks that fly from the bolt
+particle_system RoomAmbBoltSparks
+{
+    material        RoomAmbSpark
+    point_rendering false
+    particle_width  0.1
+    particle_height 0.1
+    cull_each       false
+    quota           24
+    billboard_type  point
+
+    emitter Point
+    {
+        angle               180
+        colour_range_start  0.6 0.8 1.0 1.0
+        colour_range_end    1.0 1.0 1.0 1.0
+        emission_rate       100
+        time_to_live        0.7
+        direction           0 0 1
+        velocity_min        1.0
+        velocity_max        2.6
+        position            0 0 0.7
+        duration            0.15
+        repeat_delay_min    0.6
+        repeat_delay_max    1.8
+    }
+
+    affector LinearForce
+    {
+        force_vector        0 0 -3
+        force_application   add
+    }
+
+    affector ColourFader
+    {
+        alpha   -1.2
+    }
+}
+
+// ---------------------------------------------------------------- Fire burst
+
+// A jet of flame when the trap goes off
+particle_system RoomAmbFlameJet
+{
+    material        RoomAmbGlow
+    point_rendering false
+    particle_width  0.4
+    particle_height 0.4
+    cull_each       false
+    quota           36
+    billboard_type  point
+
+    emitter Point
+    {
+        angle               10
+        colour_range_start  1.0 0.6 0.15 0.9
+        colour_range_end    1.0 0.85 0.35 0.9
+        emission_rate       70
+        time_to_live        0.7
+        direction           0 0 1
+        velocity_min        1.8
+        velocity_max        3.0
+        position            0 0 0.2
+        duration            0.5
+        repeat_delay_min    1.0
+        repeat_delay_max    2.6
+    }
+
+    affector ColourInterpolator
+    {
+        time0   0
+        colour0 1.0 0.8 0.3 0.9
+        time1   0.5
+        colour1 1.0 0.35 0.1 0.6
+        time2   1
+        colour2 0.3 0.1 0.05 0.0
+    }
+}
+
+// Heat that shimmers above the grate
+particle_system RoomAmbHeatShimmer
+{
+    material        RoomAmbSmoke
+    point_rendering false
+    particle_width  0.5
+    particle_height 0.5
+    cull_each       false
+    quota           10
+    billboard_type  point
+
+    emitter Box
+    {
+        angle               20
+        colour              1.0 0.9 0.8 0.12
+        emission_rate       6
+        time_to_live        1.5
+        direction           0 0 1
+        velocity_min        0.5
+        velocity_max        0.9
+        position            0 0 0.2
+        width               0.5
+        height              0.5
+        depth               0.05
+    }
+
+    affector Scaler
+    {
+        rate    0.3
+    }
+
+    affector ColourFader
+    {
+        alpha   -0.08
+    }
+}
+
+// Ice that bursts when the trap goes off
+particle_system RoomAmbIceBurst
+{
+    material        RoomAmbSpark
+    point_rendering false
+    particle_width  0.12
+    particle_height 0.12
+    cull_each       false
+    quota           24
+    billboard_type  point
+
+    emitter Point
+    {
+        angle               160
+        colour_range_start  0.7 0.9 1.0 1.0
+        colour_range_end    0.95 1.0 1.0 1.0
+        emission_rate       100
+        time_to_live        0.9
+        direction           0 0 1
+        velocity_min        0.8
+        velocity_max        2.0
+        position            0 0 0.2
+        duration            0.15
+        repeat_delay_min    0.8
+        repeat_delay_max    2.2
+    }
+
+    affector LinearForce
+    {
+        force_vector        0 0 -3.5
+        force_application   add
+    }
+
+    affector ColourFader
+    {
+        alpha   -1.0
+    }
+}
+
+// A cold mist near the floor
+particle_system RoomAmbFrostMist
+{
+    material        RoomAmbSmoke
+    point_rendering false
+    particle_width  0.9
+    particle_height 0.9
+    cull_each       false
+    quota           5
+    billboard_type  point
+
+    emitter Box
+    {
+        angle               90
+        colour              0.75 0.92 1.0 0.0
+        emission_rate       0.8
+        time_to_live        5
+        direction           1 0 0
+        velocity_min        0.03
+        velocity_max        0.09
+        position            0 0 0.1
+        width               0.9
+        height              0.9
+        depth               0.05
+    }
+
+    affector ColourInterpolator
+    {
+        time0   0
+        colour0 0.75 0.92 1.0 0.0
+        time1   0.5
+        colour1 0.75 0.92 1.0 0.28
+        time2   1
+        colour2 0.75 0.92 1.0 0.0
+    }
+
+    affector Scaler
+    {
+        rate    0.07
+    }
+}
+
+// ---------------------------------------------------------------- Guard banner
+
+// Motes that drift up from the flag
+particle_system RoomAmbBannerMotes
+{
+    material        RoomAmbGlow
+    point_rendering false
+    particle_width  0.08
+    particle_height 0.08
+    cull_each       false
+    quota           6
+    billboard_type  point
+
+    emitter Box
+    {
+        angle               25
+        colour_range_start  1.0 0.75 0.3 0.7
+        colour_range_end    1.0 0.5 0.25 0.8
+        emission_rate       1.5
+        time_to_live        2.4
+        direction           0 0 1
+        velocity_min        0.15
+        velocity_max        0.35
+        position            0 0 0.5
+        width               0.4
+        height              0.4
+        depth               0.3
+    }
+
+    affector ColourFader
+    {
+        alpha   -0.3
+    }
+}
+
+// A rally glow that pulses around the banner
+particle_system RoomAmbRallyGlow
+{
+    material        RoomAmbGlow
+    point_rendering false
+    particle_width  1.5
+    particle_height 1.5
+    cull_each       false
+    quota           3
+    billboard_type  point
+
+    emitter Point
+    {
+        angle               0
+        colour              1.0 0.75 0.3 0.0
+        emission_rate       1.0
+        time_to_live        1.6
+        direction           0 0 1
+        velocity            0
+        position            0 0 0.4
+    }
+
+    affector ColourInterpolator
+    {
+        time0   0
+        colour0 1.0 0.75 0.3 0.0
+        time1   0.4
+        colour1 1.0 0.75 0.3 0.4
+        time2   1
+        colour2 1.0 0.75 0.3 0.0
+    }
+}
+
+// The rune flashes when the trigger trap goes off
+particle_system RoomAmbTriggerFlash
+{
+    material        RoomAmbRune
+    point_rendering false
+    particle_width  1.0
+    particle_height 1.0
+    cull_each       false
+    quota           4
+    billboard_type  perpendicular_common
+    common_direction 0 0 1
+    common_up_vector 0 1 0
+
+    emitter Point
+    {
+        angle               0
+        colour              0.85 0.95 1.0 0.95
+        emission_rate       12
+        time_to_live        0.5
+        direction           0 0 1
+        velocity            0
+        position            0 0 0.04
+        duration            0.1
+        repeat_delay_min    0.6
+        repeat_delay_max    1.5
+    }
+
+    affector ColourFader
+    {
+        alpha   -1.9
+    }
+}
+
+// ---------------------------------------------------------------- Linked traps
+
+// A trap that a trigger trap sets off lights up in a short ring of glow
+particle_system RoomAmbLinkedGlow
+{
+    material        RoomAmbGlow
+    point_rendering false
+    particle_width  1.4
+    particle_height 1.4
+    cull_each       false
+    quota           4
+    billboard_type  point
+
+    emitter Point
+    {
+        angle               0
+        colour              0.6 0.9 1.0 0.0
+        emission_rate       4
+        time_to_live        0.9
+        direction           0 0 1
+        velocity            0
+        position            0 0 0.3
+        duration            0.8
+        repeat_delay_min    5
+        repeat_delay_max    6
+    }
+
+    affector ColourInterpolator
+    {
+        time0   0
+        colour0 0.6 0.9 1.0 0.0
+        time1   0.3
+        colour1 0.6 0.9 1.0 0.75
+        time2   1
+        colour2 0.6 0.9 1.0 0.0
+    }
+}
