@@ -51,6 +51,9 @@ enum class ClientNotificationType
     askCastSpell,
     askSetSkillTree,
     askSetPlayerSettings,
+    //! \brief Asks for the payout level of the casino on a tile and optionally sets it:
+    //! + int tileX, int tileY, uint32_t payoutLevel (a CasinoPayout value), bool isSet
+    askCasinoPayout,
 
     askSaveMap,
     askExecuteConsoleCommand,
@@ -79,7 +82,14 @@ enum class ClientNotificationType
     editorAskCreateMapLight,
     editorSetCreatureLevel,
     editorAskPortalWaveData,
-    editorSetPortalWaveData
+    editorSetPortalWaveData,
+
+    // Append new messages to preserve existing network and replay identifiers.
+    changeNick,
+    askHandDropAll,
+
+    askTrapProductionQueue,
+    askMoveTrapProductionOrder
 };
 
 ODPacket& operator<<(ODPacket& os, const ClientNotificationType& nt);

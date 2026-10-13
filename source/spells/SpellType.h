@@ -36,6 +36,14 @@ enum class SpellType
     creatureStrength,
     creatureWeak,
     eyeEvil,
+    createGold,
+    lightning,
+    tremor,
+    defector,
+    hexenHen,
+    inferno,
+    possess,
+    summonChampion,
     nbSpells     // Must be the last in this enum
 };
 

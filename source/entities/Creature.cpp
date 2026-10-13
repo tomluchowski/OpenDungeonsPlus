@@ -17,6 +17,7 @@
 
 #include "entities/Creature.h"
 
+#include "ODApplication.h"
 #include "creatureaction/CreatureAction.h"
 #include "creatureaction/CreatureActionClaimGroundTile.h"
 #include "creatureaction/CreatureActionClaimWallTile.h"
@@ -26,6 +27,7 @@
 #include "creatureaction/CreatureActionFlee.h"
 #include "creatureaction/CreatureActionGetFee.h"
 #include "creatureaction/CreatureActionGoCallToWar.h"
+#include "creatureaction/CreatureActionGoDefendHeart.h"
 #include "creatureaction/CreatureActionGrabEntity.h"
 #include "creatureaction/CreatureActionLeaveDungeon.h"
 #include "creatureaction/CreatureActionParkToTile.h"
@@ -37,6 +39,7 @@
 #include "creatureaction/CreatureActionSearchWallTileToClaim.h"
 #include "creatureaction/CreatureActionSleep.h"
 #include "creatureaction/CreatureActionStealFreeGold.h"
+#include "creatureaction/CreatureActionUseRoom.h"
 #include "creatureaction/CreatureActionWalkToTile.h"
 #include "creaturebehaviour/CreatureBehaviour.h"
 #include "creatureeffect/CreatureEffect.h"
@@ -64,6 +67,7 @@
 #include "game/Seat.h"
 #include "gamemap/GameMap.h"
 #include "gamemap/Pathfinding.h"
+#include "gamemap/RoomObjectNavigation.h"
 #include "giftboxes/GiftBoxSkill.h"
 
 #include "modes/GameEditorModeConsole.h"
@@ -106,6 +110,11 @@
 
 
 static const Ogre::Real CANNON_MISSILE_HEIGHT = 0.3;
+
+//! \brief Casino mood points lost per second when the room config has no CasinoMoodDecay
+static const double DEFAULT_CASINO_MOOD_DECAY_PER_SECOND = 3.0;
+//! \brief Largest casino mood (positive or negative) when the room config has no CasinoMoodMax
+static const double DEFAULT_CASINO_MOOD_MAX = 1500.0;
 
 const int32_t Creature::NB_TURNS_BEFORE_CHECKING_TASK = 15;
 const uint32_t Creature::NB_OVERLAY_HEALTH_VALUES = 8;
@@ -170,10 +179,12 @@ Creature::Creature(GameMap* gameMap, const CreatureDefinition* definition, Seat*
     mWeaponDropDeath         ("none"),
     mStatsWindow             (nullptr),
     mNbTurnsWithoutBattle    (0),
+    mCasinoMood              (0.0),
     mCarriedEntity           (nullptr),
     mMoodCooldownTurns       (0),
-    mMoodValue               (CreatureMoodLevel::Neutral),
+    mMoodValue               (gameMap->isServerGameMap() ? CreatureMoodLevel::Neutral : CreatureMoodLevel::Unknown),
     mMoodPoints              (0),
+    mPrayerRelief            (0),
     mNbTurnFurious           (-1),
     mOverlayHealthValue      (0),
     mOverlayMoodValue        (CreatureMoodValues::Nothing),
@@ -255,10 +266,12 @@ Creature::Creature(GameMap* gameMap) :
     mWeaponDropDeath         ("none"),
     mStatsWindow             (nullptr),
     mNbTurnsWithoutBattle    (0),
+    mCasinoMood              (0.0),
     mCarriedEntity           (nullptr),
     mMoodCooldownTurns       (0),
-    mMoodValue               (CreatureMoodLevel::Neutral),
+    mMoodValue               (gameMap->isServerGameMap() ? CreatureMoodLevel::Neutral : CreatureMoodLevel::Unknown),
     mMoodPoints              (0),
+    mPrayerRelief            (0),
     mNbTurnFurious           (-1),
     mOverlayHealthValue      (0),
     mOverlayMoodValue        (0),
@@ -608,6 +621,9 @@ void Creature::exportToPacket(ODPacket& os, const Seat* seat) const
         os << mWeaponR->getName();
     else
         os << "none";
+
+    exportMoodToPacket(os, seat);
+    exportActivityToPacket(os, seat);
 }
 
 void Creature::importFromPacket(ODPacket& is)
@@ -660,6 +676,8 @@ void Creature::importFromPacket(ODPacket& is)
         }
     }
 
+    importMoodFromPacket(is);
+    importActivityFromPacket(is);
     setupDefinition(*getGameMap(), *ConfigManager::getSingleton().getCreatureDefinitionDefaultWorker());
 }
 
@@ -913,6 +931,9 @@ void Creature::doUpkeep()
         if(mKoTurnCounter > 0)
             return;
 
+        if(!getGameMap()->isInEditorMode())
+            setAnimationState(EntityAnimation::getup_anim, false,
+                Ogre::Vector3::ZERO, false);
         computeCreatureOverlayMoodValue();
         return;
     }
@@ -1033,6 +1054,14 @@ void Creature::doUpkeep()
     mVisibleAlliedObjects        = getVisibleAlliedObjects();
     mReachableAlliedObjects      = getReachableAttackableObjects(mVisibleAlliedObjects);
 
+    // The relief from praying fades
+    if(mPrayerRelief > 0)
+    {
+        mPrayerRelief -= ConfigManager::getSingleton().getRoomConfigInt32("TemplePrayerReliefDecayPerTurn");
+        if(mPrayerRelief < 0)
+            mPrayerRelief = 0;
+    }
+
     // Check if we should compute mood
     if(mMoodCooldownTurns > 0)
     {
@@ -1070,6 +1099,17 @@ void Creature::doUpkeep()
 
     ++mNbTurnsWithoutBattle;
 
+    // The casino mood fades towards 0
+    if(mCasinoMood != 0.0)
+    {
+        double decay = ConfigManager::getSingleton().getRoomConfigDoubleOrDefault("CasinoMoodDecay", DEFAULT_CASINO_MOOD_DECAY_PER_SECOND)
+            / ODApplication::turnsPerSecond;
+        if(mCasinoMood > 0.0)
+            mCasinoMood = std::max(0.0, mCasinoMood - decay);
+        else
+            mCasinoMood = std::min(0.0, mCasinoMood + decay);
+    }
+
     bool isWarmUp = false;
     // We use creature skills if we can
     for(CreatureSkillData& skillData : mSkillData)
@@ -1104,6 +1144,7 @@ void Creature::doUpkeep()
         return;
 
     decidePrioritaryAction();
+    handleHeartDefence();
 
     // The loopback variable allows creatures to begin processing a new
     // action immediately after some other action happens.
@@ -1154,6 +1195,27 @@ void Creature::decidePrioritaryAction()
         if(!behaviour->processBehaviour(*this))
             return;
     }
+}
+
+void Creature::handleHeartDefence()
+{
+    if(!getDefinition()->isHeartDefenceRunner())
+        return;
+
+    Seat* seat = getSeat();
+    if(seat == nullptr || !seat->getHeartDefenceActive())
+        return;
+
+    if(isActionInList(CreatureActionType::goDefendHeart))
+        return;
+
+    // Existing combat and retreat decisions take priority over gathering at the defence point.
+    if(isActionInList(CreatureActionType::fight) || isActionInList(CreatureActionType::flee))
+        return;
+
+    // The heart defence is on: drop the current job and run to the defence point
+    clearActionQueue();
+    pushAction(Utils::make_unique<CreatureActionGoDefendHeart>(*this));
 }
 
 bool Creature::handleIdleAction()
@@ -1376,7 +1438,8 @@ bool Creature::handleIdleAction()
     if(setDestination(tileDest))
         return false;
 
-    return true;
+    // Retry failed wandering next turn, not repeatedly in this upkeep.
+    return false;
 }
 
 bool Creature::searchBestTargetInList(const std::vector<GameEntity*>& listObjects, const std::vector<Tile*>& tilesFilter, GameEntity*& attackedEntity,
@@ -1723,6 +1786,8 @@ void Creature::exportToPacketForUpdate(ODPacket& os, Seat* seat)
         seatPrisonId = mSeatPrison->getId();
 
     os << seatPrisonId;
+    exportMoodToPacket(os, seat);
+    exportActivityToPacket(os, seat);
 }
 
 void Creature::updateFromPacket(ODPacket& is)
@@ -1768,6 +1833,119 @@ void Creature::updateFromPacket(ODPacket& is)
             OD_LOG_ERR("Creature " + getName() + ", wrong seatId=" + Helper::toString(seatId));
         }
     }
+
+    importMoodFromPacket(is);
+    importActivityFromPacket(is);
+}
+
+void Creature::exportMoodToPacket(ODPacket& os, const Seat* seat) const
+{
+    if(!ODServer::getSingleton().supportsCreatureMood(seat->getPlayer()))
+        return;
+
+    int32_t mood = static_cast<int32_t>(seat->isAlliedSeat(getSeat()) ?
+        mMoodValue : CreatureMoodLevel::Unknown);
+    os << mood;
+}
+
+void Creature::importMoodFromPacket(ODPacket& is)
+{
+    mMoodValue = CreatureMoodLevel::Unknown;
+    if(!ODClient::getSingleton().supportsCreatureMood())
+        return;
+
+    int32_t mood = static_cast<int32_t>(CreatureMoodLevel::Unknown);
+    OD_ASSERT_TRUE(is >> mood);
+    if(mood < static_cast<int32_t>(CreatureMoodLevel::Unknown) ||
+       mood > static_cast<int32_t>(CreatureMoodLevel::Furious))
+    {
+        OD_LOG_ERR("Invalid creature mood=" + Helper::toString(mood));
+        return;
+    }
+    mMoodValue = static_cast<CreatureMoodLevel>(mood);
+}
+
+CreatureActivity Creature::getActivity() const
+{
+    CreatureActivity activity;
+    if(!getIsOnMap() || !isAlive() || isKo())
+        return activity;
+
+    if(!getIsOnServerMap())
+        return mActivity;
+
+    activity.known = true;
+    if(!mActions.empty())
+        activity.action = mActions.back()->getType();
+
+    for(std::vector<std::unique_ptr<CreatureAction>>::const_reverse_iterator it = mActions.rbegin(); it != mActions.rend(); ++it)
+    {
+        const CreatureActionType type = (*it)->getType();
+        if(activity.task == CreatureActionType::nb && type != CreatureActionType::walkToTile &&
+           type != CreatureActionType::parkToTile)
+            activity.task = type;
+
+        if(type != CreatureActionType::useRoom)
+            continue;
+
+        const Room* room = static_cast<const CreatureActionUseRoom*>(it->get())->getRoom();
+        if(room != nullptr)
+        {
+            activity.assignedRoom = room->getType();
+            const Tile* tile = getPositionTile();
+            activity.inAssignedRoom = tile != nullptr && tile->getCoveringRoom() == room;
+        }
+        break;
+    }
+    return activity;
+}
+
+void Creature::exportActivityToPacket(ODPacket& os, const Seat* seat) const
+{
+    if(!ODServer::getSingleton().supportsCreatureActivity(seat->getPlayer()))
+        return;
+
+    const CreatureActivity activity = seat->isAlliedSeat(getSeat()) ? getActivity() : CreatureActivity();
+    os << activity.known;
+    if(!activity.known)
+        return;
+
+    os << static_cast<int32_t>(activity.action) << static_cast<int32_t>(activity.task)
+       << static_cast<int32_t>(activity.assignedRoom) << activity.inAssignedRoom;
+}
+
+void Creature::importActivityFromPacket(ODPacket& is)
+{
+    mActivity = CreatureActivity();
+    if(!ODClient::getSingleton().supportsCreatureActivity())
+        return;
+
+    CreatureActivity activity;
+    if(!(is >> activity.known))
+    {
+        OD_LOG_ERR("Missing creature activity for " + getName());
+        return;
+    }
+    if(!activity.known)
+        return;
+
+    int32_t action, task, room;
+    if(!(is >> action >> task >> room >> activity.inAssignedRoom))
+    {
+        OD_LOG_ERR("Incomplete creature activity for " + getName());
+        return;
+    }
+    if(action < 0 || action > static_cast<int32_t>(CreatureActionType::nb) ||
+       task < 0 || task > static_cast<int32_t>(CreatureActionType::nb) ||
+       room < 0 || room >= static_cast<int32_t>(RoomType::nbRooms))
+    {
+        OD_LOG_ERR("Invalid creature activity for " + getName());
+        return;
+    }
+    activity.action = static_cast<CreatureActionType>(action);
+    activity.task = static_cast<CreatureActionType>(task);
+    activity.assignedRoom = static_cast<RoomType>(room);
+    mActivity = activity;
 }
 
 void Creature::updateTilesInSight()
@@ -2095,6 +2273,7 @@ std::string Creature::getStatsText()
 double Creature::takeDamage(GameEntity* attacker, double absoluteDamage, double physicalDamage, double magicalDamage, double elementDamage,
         Tile *tileTakingDamage, bool ko)
 {
+    bool wasAlive = isAlive();
     mNbTurnsWithoutBattle = 0;
     physicalDamage = std::max(physicalDamage - getPhysicalDefense(), 0.0);
     magicalDamage = std::max(magicalDamage - getMagicalDefense(), 0.0);
@@ -2118,7 +2297,12 @@ double Creature::takeDamage(GameEntity* attacker, double absoluteDamage, double 
     computeCreatureOverlayMoodValue();
 
     if(!isAlive())
+    {
+        // The killing blow counts once for the debriefing (a KO does not get here)
+        if(wasAlive && (attacker != nullptr) && (attacker->getSeat() != nullptr))
+            attacker->getSeat()->recordCreatureKill(getSeat());
         fireEntityDead();
+    }
 
     if(!getIsOnServerMap())
         return damageDone;
@@ -2163,11 +2347,15 @@ void Creature::receiveExp(double experience)
 void Creature::useAttack(CreatureSkillData& skillData, GameEntity& entityAttack,
         Tile& tileAttack, bool ko, bool notifyPlayerIfHit)
 {
-    // Turn to face the entity we are attacking and set the animation state to Attack.
+    // Keep ranged skills visually distinct, including shots at adjacent targets.
     const Ogre::Vector3& pos = getPosition();
-    Ogre::Vector3 walkDirection(tileAttack.getX() - pos.x, tileAttack.getY() - pos.y, 0);
+    const Ogre::Vector3 target = entityAttack.getObjectType() == GameEntityType::creature ?
+        entityAttack.getPosition() : Ogre::Vector3(tileAttack.getX(), tileAttack.getY(), 0);
+    Ogre::Vector3 walkDirection(target.x - pos.x, target.y - pos.y, 0);
     walkDirection.normalise();
-    setAnimationState(EntityAnimation::attack_anim, false, walkDirection, true);
+    const bool ranged = skillData.mSkill->getRangeMax(this, &entityAttack) > 1.0;
+    setAnimationState(ranged ? EntityAnimation::ranged_attack_anim :
+        EntityAnimation::combat_attack_anim, false, walkDirection, true);
     fireCreatureSound(CreatureSound::Attack);
     setNbTurnsWithoutBattle(0);
 
@@ -2260,6 +2448,7 @@ void Creature::pickup()
     removeEntityFromPositionTile();
     clearDestinations(EntityAnimation::idle_anim, true, true);
     clearActionQueue();
+    mActivity = CreatureActivity();
 
     if(!getIsOnServerMap())
         return;
@@ -2518,6 +2707,8 @@ bool Creature::setDestination(Tile* tile)
     std::vector<Ogre::Vector2> path;
     tileToVector2(result, path, true, 0.0);
     setWalkPath(EntityAnimation::walk_anim, EntityAnimation::idle_anim, true, true, path,true);
+    if(!isMoving() && posTile != tile)
+        return false;
     pushAction(Utils::make_unique<CreatureActionWalkToTile>(*this));
     return true;
 }
@@ -2755,6 +2946,13 @@ void Creature::fireRemoveEntity(Seat* seat,NodeType nt)
 
 void Creature::fireCreatureRefreshIfNeeded()
 {
+    const CreatureActivity activity = getActivity();
+    if(!(mActivity == activity))
+    {
+        mActivity = activity;
+        mNeedFireRefresh = true;
+    }
+
     if(!mNeedFireRefresh)
         return;
 
@@ -2990,6 +3188,37 @@ void Creature::fireCreatureSound(CreatureSound sound)
     }
 }
 
+void Creature::fireCombatImpact(bool weaponClash, bool bodyDamage,
+    const Ogre::Vector3& attackerPosition)
+{
+    for(Seat* seat : mSeatsWithVisionNotified)
+    {
+        if(seat->getPlayer() == nullptr || !seat->getPlayer()->getIsHuman())
+            continue;
+
+        ServerNotification* notification = new ServerNotification(
+            ServerNotificationType::creatureCombatImpact, seat->getPlayer());
+        notification->mPacket << getName() << weaponClash << bodyDamage
+            << attackerPosition;
+        ODServer::getSingleton().queueServerNotification(notification);
+    }
+}
+
+void Creature::fireChickenFeeding(const std::string& chickenName,
+    const Ogre::Vector3& chickenPosition)
+{
+    for(Seat* seat : mSeatsWithVisionNotified)
+    {
+        if(seat->getPlayer() == nullptr || !seat->getPlayer()->getIsHuman())
+            continue;
+
+        ServerNotification* notification = new ServerNotification(
+            ServerNotificationType::creatureChickenFeeding, seat->getPlayer());
+        notification->mPacket << getName() << chickenName << chickenPosition;
+        ODServer::getSingleton().queueServerNotification(notification);
+    }
+}
+
 void Creature::itsPayDay()
 {
     // Rogue creatures do not have to be paid
@@ -3015,6 +3244,17 @@ void Creature::decreaseWakefulness(double value)
     mWakefulness = std::max(0.0, mWakefulness - value);
 }
 
+void Creature::addCasinoMood(double points)
+{
+    double maxPoints = ConfigManager::getSingleton().getRoomConfigDoubleOrDefault("CasinoMoodMax", DEFAULT_CASINO_MOOD_MAX);
+    mCasinoMood = std::max(-maxPoints, std::min(maxPoints, mCasinoMood + points));
+}
+
+void Creature::addPrayerRelief(int32_t relief, int32_t maxRelief)
+{
+    mPrayerRelief = std::min(mPrayerRelief + relief, maxRelief);
+}
+
 void Creature::computeMood()
 {
     mMoodPoints = CreatureMoodManager::computeCreatureMoodModifiers(*this);
@@ -3023,6 +3263,8 @@ void Creature::computeMood()
     mMoodValue = CreatureMoodManager::getCreatureMoodLevel(mMoodPoints);
     if(mMoodValue == oldMoodValue)
         return;
+
+    mNeedFireRefresh = true;
 
     if((mMoodValue >= CreatureMoodLevel::Furious) &&
        (oldMoodValue < CreatureMoodLevel::Furious))
@@ -3212,7 +3454,7 @@ void Creature::correctEntityMovePosition(Ogre::Vector2& position)
     //     position.z += Random::Double(-offset, offset);
 }
 
-void Creature::checkWalkPathValid()
+void Creature::checkWalkPathValid(bool includeWalkDistortion)
 {
     bool stop = false;
     for(const Ogre::Vector2& dest : mWalkQueue)
@@ -3230,6 +3472,10 @@ void Creature::checkWalkPathValid()
             break;
         }
     }
+
+    if(!stop && getIsOnServerMap())
+        stop = RoomObjectNavigation::blocked(*this,
+            std::vector<Ogre::Vector2>(mWalkQueue.begin(), mWalkQueue.end()), includeWalkDistortion);
 
     if(!stop)
         return;
@@ -3423,11 +3669,13 @@ void Creature::changeSeat(Seat* newSeat)
     setSeat(newSeat);
     mMoodValue = CreatureMoodLevel::Neutral;
     mMoodPoints = 0;
+    mPrayerRelief = 0;
     mWakefulness = 100;
     mHunger = 0;
     mNbTurnsTorture = 0;
     mNbTurnsPrison = 0;
     mActiveSlapsCount = 0;
+    mCasinoMood = 0.0;
     clearDestinations(EntityAnimation::idle_anim, true, true);
     clearActionQueue();
     mNeedFireRefresh = true;
@@ -3471,9 +3719,3 @@ void Creature::normalizeAmbient()
     RenderManager::getSingleton().rrNormalizeAmbient(this);
 
 }
-
-
-
-
-
-

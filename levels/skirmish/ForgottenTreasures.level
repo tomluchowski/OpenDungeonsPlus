@@ -3334,29 +3334,26 @@ ProtectDungeonTemple	NULL
 [Rooms]
 # typeRoom	name	seatId	numTiles		Subsequent Lines: tileX	tileY
 [Room]
-1	DungeonTemple_1	1	9
-84	59
-84	60
-84	61
-85	59
-85	60
-85	61
-86	59
-86	60
-86	61
-[/Room]
-[Room]
-3	Treasury_5	1	16
+1	DungeonTemple_1	1	25
 83	58
 83	59
 83	60
 83	61
 83	62
 84	58
+84	59
+84	60
+84	61
 84	62
 85	58
+85	59
+85	60
+85	61
 85	62
 86	58
+86	59
+86	60
+86	61
 86	62
 87	58
 87	59
@@ -3378,29 +3375,26 @@ ProtectDungeonTemple	NULL
 9	5
 [/Room]
 [Room]
-1	DungeonTemple_7	2	9
-28	17
-28	18
-28	19
-29	17
-29	18
-29	19
-30	17
-30	18
-30	19
-[/Room]
-[Room]
-3	Treasury_11	2	16
+1	DungeonTemple_7	2	25
 27	16
 27	17
 27	18
 27	19
 27	20
 28	16
+28	17
+28	18
+28	19
 28	20
 29	16
+29	17
+29	18
+29	19
 29	20
 30	16
+30	17
+30	18
+30	19
 30	20
 31	16
 31	17
