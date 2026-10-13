@@ -41,6 +41,8 @@ struct SeatStatistics
         mCreaturesPickedUp = 0;
         mCreaturesDropped = 0;
         mCreaturesSlapped = 0;
+        mGoldTilesMined = 0;
+        mCreaturesEntered = 0;
     }
 
     //! \brief Enemy dungeon hearts destroyed by a final blow of this seat
@@ -63,6 +65,10 @@ struct SeatStatistics
     uint32_t mCreaturesDropped;
     //! \brief Times a creature of this seat was slapped (level script conditions only)
     uint32_t mCreaturesSlapped;
+    //! \brief Gold tiles this seat's workers dug out completely (sandbox score only)
+    uint32_t mGoldTilesMined;
+    //! \brief Creatures that came through a portal of this seat (sandbox score only)
+    uint32_t mCreaturesEntered;
 };
 
 #endif // SEATSTATISTICS_H
