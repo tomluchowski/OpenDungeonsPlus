@@ -243,6 +243,7 @@ public:
     void removeTrap(Trap *t);
     inline const std::vector<Trap*>& getTraps() const
     { return mTraps; }
+    bool moveTrapProductionOrder(Seat* seat, const std::string& name, bool earlier);
 
     //! \brief Map Lights related functions.
     void clearMapLights();
@@ -683,6 +684,14 @@ private:
     //! \brief Updates different entities states.
     //! Updates active objects (creatures, rooms, ...), goals, count each team Workers, gold, mana and claimed tiles
     unsigned long int doMiscUpkeep(double timeSinceLastTurn);
+
+    //! \brief Applies the per-second mana income and worker upkeep of one seat for the current
+    //! turn. A seat without a living dungeon heart gains and spends nothing.
+    void updateSeatMana(Seat* seat);
+
+    //! \brief Creates a worker at the dungeon heart of one seat, one every few seconds,
+    //! until the seat has four workers. A seat without a living dungeon heart creates none.
+    void updateSeatAutoWorkers(Seat* seat, double timeSinceLastTurn);
 
     //! \brief Resets the unique numbers
     void resetUniqueNumbers();
