@@ -43,6 +43,7 @@ const std::string COMBOBOX_PLAYER_FACTION_PREFIX = "ComboPlayerFactionSeat";
 const std::string COMBOBOX_PLAYER_PREFIX = "ComboPlayerSeat";
 const std::string COMBOBOX_GOLD_DENSITY = "ComboGoldDensity";
 const std::string COMBOBOX_MANA_REGENERATION = "ComboManaRegeneration";
+const std::string COMBOBOX_HEART_DESTROYED = "ComboHeartDestroyed";
 const std::string COMBOBOX_FOG_OF_WAR = "ComboFogOfWar";
 const std::string SPINNER_MAX_CREATURES = "SpinMaxCreatures";
 const std::string SPINNER_GAME_SPEED = "SpinGameSpeed";
@@ -288,6 +289,21 @@ void MenuModeConfigureSeats::initSettingCombos()
                 CEGUI::Event::Subscriber(&MenuModeConfigureSeats::comboChanged, this))
         );
     }
+
+    // What the keeper that destroys a dungeon heart receives
+    CEGUI::Combobox* heartCombo = static_cast<CEGUI::Combobox*>(generalPage->getChild(COMBOBOX_HEART_DESTROYED));
+    heartCombo->resetList();
+    heartCombo->setReadOnly(true);
+    heartCombo->setEnabled(false);
+    mHostSettingWindows.push_back(heartCombo);
+    addSettingItem(heartCombo, "Gain mana", GameMap::SKIRMISH_HEART_REWARD_MANA);
+    addSettingItem(heartCombo, "Gain mana and specials", GameMap::SKIRMISH_HEART_REWARD_SPECIALS);
+    addSettingItem(heartCombo, "Gain mana, rooms and land", GameMap::SKIRMISH_HEART_REWARD_ROOMS_AND_LAND);
+    selectSettingValue(generalPage, COMBOBOX_HEART_DESTROYED, GameMap::SKIRMISH_HEART_REWARD_MANA);
+    addEventConnection(
+        heartCombo->subscribeEvent(CEGUI::Combobox::EventListSelectionAccepted,
+            CEGUI::Event::Subscriber(&MenuModeConfigureSeats::comboChanged, this))
+    );
 
     CEGUI::Combobox* fogCombo = static_cast<CEGUI::Combobox*>(generalPage->getChild(COMBOBOX_FOG_OF_WAR));
     fogCombo->resetList();
@@ -826,6 +842,7 @@ void MenuModeConfigureSeats::fireSeatConfigurationToServer()
     notif->mPacket << (mSettingsReceived ? getSpinnerValue(generalPage, SPINNER_GAME_SPEED) : notChosen);
     notif->mPacket << (mSettingsReceived ? getSpinnerValue(generalPage, SPINNER_GAME_DURATION) : notChosen);
     notif->mPacket << (mSettingsReceived ? getSettingValue(generalPage, COMBOBOX_FOG_OF_WAR, notChosen) : notChosen);
+    notif->mPacket << (mSettingsReceived ? getSettingValue(generalPage, COMBOBOX_HEART_DESTROYED, notChosen) : notChosen);
 
     uint32_t nbCreatureLimits = mSettingsReceived ? static_cast<uint32_t>(mLimitSpinners.size()) : 0;
     notif->mPacket << nbCreatureLimits;
@@ -982,9 +999,10 @@ void MenuModeConfigureSeats::refreshSeatConfiguration(ODPacket& packet)
     uint32_t gameSpeedPercent = GameMap::SKIRMISH_SPEED_DEFAULT;
     uint32_t gameDurationMinutes = 0;
     uint32_t fogOfWar = SETTING_FOG_ON;
+    uint32_t heartDestroyedReward = GameMap::SKIRMISH_HEART_REWARD_MANA;
     uint32_t nbCreatureLimits = 0;
     if(!(packet >> goldDensityPercent >> manaRegenerationPercent >> maxCreaturesSetting >> gameSpeedPercent
-        >> gameDurationMinutes >> fogOfWar >> nbCreatureLimits))
+        >> gameDurationMinutes >> fogOfWar >> heartDestroyedReward >> nbCreatureLimits))
     {
         OD_LOG_ERR("Truncated seat configuration refresh packet: the skirmish game settings are not updated");
         return;
@@ -1026,6 +1044,7 @@ void MenuModeConfigureSeats::refreshSeatConfiguration(ODPacket& packet)
     selectSettingValue(generalPage, COMBOBOX_GOLD_DENSITY, goldDensityPercent);
     selectSettingValue(generalPage, COMBOBOX_MANA_REGENERATION, manaRegenerationPercent);
     selectSettingValue(generalPage, COMBOBOX_FOG_OF_WAR, fogOfWar);
+    selectSettingValue(generalPage, COMBOBOX_HEART_DESTROYED, heartDestroyedReward);
     // 0 means that the default number of creatures is used
     if(maxCreaturesSetting == SETTING_MAX_CREATURES_DEFAULT)
         maxCreaturesSetting = ConfigManager::getSingleton().getMaxCreaturesPerSeatDefault();
@@ -1054,7 +1073,7 @@ void MenuModeConfigureSeats::refreshSeatConfiguration(ODPacket& packet)
 
     // The speed of the game is also needed to animate the game when it starts
     ODFrameListener::getSingleton().getClientGameMap()->setGameRules(gameSpeedPercent, gameDurationMinutes,
-        fogOfWar != 0);
+        fogOfWar != 0, heartDestroyedReward);
 }
 
 void MenuModeConfigureSeats::receiveChat(const ChatMessage& chat)

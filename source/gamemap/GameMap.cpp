@@ -220,6 +220,7 @@ GameMap::GameMap(bool isServerGameMap, NodeType nt) :
         mMaxCreaturesSetting(0),
         mGameSpeedPercent(SKIRMISH_SPEED_DEFAULT),
         mGameDurationMinutes(0),
+        mHeartDestroyedReward(SKIRMISH_HEART_REWARD_MANA),
         mLocalPlayer(nullptr),
         mLocalPlayerNick(DEFAULT_NICK),
         mTurnNumber(-1),
@@ -391,6 +392,7 @@ void GameMap::clearAll()
         mMaxCreaturesSetting = 0;
         mGameSpeedPercent = SKIRMISH_SPEED_DEFAULT;
         mGameDurationMinutes = 0;
+        mHeartDestroyedReward = SKIRMISH_HEART_REWARD_MANA;
         mCreatureClassLimits.clear();
         mSkirmishSkillStates.clear();
         mSkirmishSkillStatesLevel.clear();
@@ -3660,11 +3662,13 @@ void GameMap::setSkirmishSettings(uint32_t goldDensityPercent, uint32_t manaRege
     mMaxCreaturesSetting = std::min<uint32_t>(maxCreaturesSetting, ConfigManager::getSingleton().getMaxCreaturesPerSeatAbsolute());
 }
 
-void GameMap::setGameRules(uint32_t gameSpeedPercent, uint32_t gameDurationMinutes, bool fogOfWar)
+void GameMap::setGameRules(uint32_t gameSpeedPercent, uint32_t gameDurationMinutes, bool fogOfWar,
+    uint32_t heartDestroyedReward)
 {
     mGameSpeedPercent = std::min<uint32_t>(std::max<uint32_t>(gameSpeedPercent, SKIRMISH_SPEED_MIN), SKIRMISH_SPEED_MAX);
     mGameDurationMinutes = std::min<uint32_t>(gameDurationMinutes, SKIRMISH_DURATION_MAX);
     mIsFOWActivated = fogOfWar;
+    mHeartDestroyedReward = std::min<uint32_t>(heartDestroyedReward, SKIRMISH_HEART_REWARD_ROOMS_AND_LAND);
 }
 
 uint32_t GameMap::getCreatureClassLimit(const std::string& className) const

@@ -53,6 +53,8 @@ public:
     double takeDamage(GameEntity* attacker, double absoluteDamage, double physicalDamage,
         double magicalDamage, double elementDamage, Tile* tileTakingDamage, bool ko) override
     { return 0.0; }
+    //! \brief Damages the heart. When it is destroyed, the attacker keeper receives the reward of the game
+    //! settings (the mana of the owner, and optionally four specials or the rooms and land of the owner).
     double takeHeartDamage(GameEntity* attacker, double absoluteDamage, double physicalDamage,
         double magicalDamage, double elementDamage, Tile* tileTakingDamage);
     bool removeCoveredTile(Tile* tile) override;

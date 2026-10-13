@@ -50,11 +50,11 @@ check("Default (" not in mode, "the max creatures choices must be sorted, not a 
 
 # The order of the values in the packet is the same on the server and on the client
 write_order = ["getGoldDensityPercent", "getManaRegenerationPercent", "getMaxCreaturesSetting", "getGameSpeedPercent",
-               "getGameDurationMinutes", "getIsFOWActivated", "getCreatureClassLimit", "SkirmishSkillStates"]
+               "getGameDurationMinutes", "getIsFOWActivated", "getHeartDestroyedReward", "getCreatureClassLimit", "SkirmishSkillStates"]
 positions = [server.index(token, server.index("void ODServer::fireSeatConfigurationRefresh")) for token in write_order]
 check(positions == sorted(positions), "ODServer::fireSeatConfigurationRefresh writes the settings in another order")
 read_order = ["goldDensityPercent", "manaRegenerationPercent", "maxCreaturesSetting", "gameSpeedPercent",
-              "gameDurationMinutes", "fogOfWar", "nbCreatureLimits", "nbSkillStates"]
+              "gameDurationMinutes", "fogOfWar", "heartDestroyedReward", "nbCreatureLimits", "nbSkillStates"]
 for source, start, label in [(server, "case ClientNotificationType::seatConfigurationRefresh", "server read"),
                              (mode, "void MenuModeConfigureSeats::refreshSeatConfiguration", "client read")]:
     base = source.index(start)
@@ -62,7 +62,7 @@ for source, start, label in [(server, "case ClientNotificationType::seatConfigur
     check(reads == sorted(reads), label + " reads the settings in another order")
 send = mode[mode.index("void MenuModeConfigureSeats::fireSeatConfigurationToServer"):]
 send_tokens = ["COMBOBOX_GOLD_DENSITY", "COMBOBOX_MANA_REGENERATION", "SPINNER_MAX_CREATURES", "SPINNER_GAME_SPEED",
-               "SPINNER_GAME_DURATION", "COMBOBOX_FOG_OF_WAR", "nbCreatureLimits", "nbSkillStates"]
+               "SPINNER_GAME_DURATION", "COMBOBOX_FOG_OF_WAR", "COMBOBOX_HEART_DESTROYED", "nbCreatureLimits", "nbSkillStates"]
 sends = [send.index(token) for token in send_tokens]
 check(sends == sorted(sends), "the client sends the settings in another order")
 
@@ -74,6 +74,16 @@ names = [n for n in names if n]
 check(names[:3] == ["notAvailable", "availableAtStart", "needsResearch"], "item state order changed")
 check("SKIRMISH_CREATURE_LIMIT_NONE = 32" in header, "creature limit range is 0 to 32")
 check("SKIRMISH_SPEED_MIN = 25" in header and "SKIRMISH_SPEED_MAX = 400" in header, "game speed range is 25 to 400 percent")
+
+# The destroyed heart reward: given when the heart dies, before the heart is announced as dead
+temple = (root / "source/rooms/RoomDungeonTemple.cpp").read_text(encoding="utf-8")
+take_damage = temple[temple.index("double RoomDungeonTemple::takeHeartDamage"):]
+check("giveDestroyedHeartReward(" in take_damage, "the heart reward is not given when the heart is destroyed")
+check(take_damage.index("giveDestroyedHeartReward(") < take_damage.index("fireEntityDead();"),
+      "the heart reward must be given before the heart is announced as dead")
+check("SKIRMISH_HEART_REWARD_ROOMS_AND_LAND = 2" in header, "heart reward range is 0 to 2")
+weights = [int(w) for w in re.findall(r"\{ GiftBoxType::\w+, (\d+) \}", temple)]
+check(len(weights) > 0 and all(w > 0 for w in weights), "every special of the reward pool needs a positive weight")
 
 if failures:
     print("\n".join(failures))

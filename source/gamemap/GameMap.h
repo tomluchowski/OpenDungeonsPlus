@@ -535,11 +535,24 @@ public:
     inline uint32_t getGameDurationMinutes() const
     { return mGameDurationMinutes; }
 
+    //! \brief What the keeper that destroys a dungeon heart receives from the owner of the heart:
+    //! its mana only, its mana and four specials, or its mana, rooms and land
+    static const uint32_t SKIRMISH_HEART_REWARD_MANA = 0;
+    static const uint32_t SKIRMISH_HEART_REWARD_SPECIALS = 1;
+    static const uint32_t SKIRMISH_HEART_REWARD_ROOMS_AND_LAND = 2;
+
+    //! \brief The reward for destroying a dungeon heart, one of the SKIRMISH_HEART_REWARD values
+    inline uint32_t getHeartDestroyedReward() const
+    { return mHeartDestroyedReward; }
+
     //! \brief Sets the rules chosen on the Game Settings page
     //! \param gameSpeedPercent Game speed in percent, kept between SKIRMISH_SPEED_MIN and SKIRMISH_SPEED_MAX
     //! \param gameDurationMinutes Game duration in minutes of game time, 0 for no limit
     //! \param fogOfWar True if the fog of war is on
-    void setGameRules(uint32_t gameSpeedPercent, uint32_t gameDurationMinutes, bool fogOfWar);
+    //! \param heartDestroyedReward The reward for destroying a dungeon heart, kept at or below
+    //! SKIRMISH_HEART_REWARD_ROOMS_AND_LAND
+    void setGameRules(uint32_t gameSpeedPercent, uint32_t gameDurationMinutes, bool fogOfWar,
+        uint32_t heartDestroyedReward);
 
     //! \brief Sets the maximum number of creatures of the given class a seat may own
     //! \param className The class name of the creature definition
@@ -738,6 +751,7 @@ private:
     uint32_t mMaxCreaturesSetting;
     uint32_t mGameSpeedPercent;
     uint32_t mGameDurationMinutes;
+    uint32_t mHeartDestroyedReward;
     std::map<std::string, uint32_t> mCreatureClassLimits;
     std::vector<SkirmishItemState> mSkirmishSkillStates;
     std::vector<SkirmishItemState> mSkirmishSkillStatesLevel;

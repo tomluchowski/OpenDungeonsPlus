@@ -115,42 +115,52 @@
                         <Property name="Area" value="{{0,320},{0,54},{0,560},{0,154}}" />
                         <Property name="ReadOnly" value="True" />
                     </Window>
-                    <Window type="OD/StaticText" name="TextFogOfWar" >
+                    <Window type="OD/StaticText" name="TextHeartDestroyed" >
                         <Property name="Area" value="{{0,20},{0,94},{0,300},{0,122}}" />
+                        <Property name="Text" value="Dungeon heart destroyed" />
+                        <Property name="FrameEnabled" value="False" />
+                        <Property name="BackgroundEnabled" value="False" />
+                    </Window>
+                    <Window type="OD/Combobox" name="ComboHeartDestroyed" >
+                        <Property name="Area" value="{{0,320},{0,94},{0,560},{0,204}}" />
+                        <Property name="ReadOnly" value="True" />
+                    </Window>
+                    <Window type="OD/StaticText" name="TextFogOfWar" >
+                        <Property name="Area" value="{{0,20},{0,134},{0,300},{0,162}}" />
                         <Property name="Text" value="Fog of war" />
                         <Property name="FrameEnabled" value="False" />
                         <Property name="BackgroundEnabled" value="False" />
                     </Window>
                     <Window type="OD/Combobox" name="ComboFogOfWar" >
-                        <Property name="Area" value="{{0,320},{0,94},{0,560},{0,194}}" />
+                        <Property name="Area" value="{{0,320},{0,134},{0,560},{0,234}}" />
                         <Property name="ReadOnly" value="True" />
                     </Window>
                     <Window type="OD/StaticText" name="TextMaxCreatures" >
-                        <Property name="Area" value="{{0,20},{0,134},{0,300},{0,162}}" />
+                        <Property name="Area" value="{{0,20},{0,174},{0,300},{0,202}}" />
                         <Property name="Text" value="Max creatures" />
                         <Property name="FrameEnabled" value="False" />
                         <Property name="BackgroundEnabled" value="False" />
                     </Window>
                     <Window type="OD/Spinner" name="SpinMaxCreatures" >
-                        <Property name="Area" value="{{0,320},{0,134},{0,440},{0,162}}" />
+                        <Property name="Area" value="{{0,320},{0,174},{0,440},{0,202}}" />
                     </Window>
                     <Window type="OD/StaticText" name="TextGameSpeed" >
-                        <Property name="Area" value="{{0,20},{0,174},{0,300},{0,202}}" />
+                        <Property name="Area" value="{{0,20},{0,214},{0,300},{0,242}}" />
                         <Property name="Text" value="Game speed (%)" />
                         <Property name="FrameEnabled" value="False" />
                         <Property name="BackgroundEnabled" value="False" />
                     </Window>
                     <Window type="OD/Spinner" name="SpinGameSpeed" >
-                        <Property name="Area" value="{{0,320},{0,174},{0,440},{0,202}}" />
+                        <Property name="Area" value="{{0,320},{0,214},{0,440},{0,242}}" />
                     </Window>
                     <Window type="OD/StaticText" name="TextGameDuration" >
-                        <Property name="Area" value="{{0,20},{0,214},{0,300},{0,242}}" />
+                        <Property name="Area" value="{{0,20},{0,254},{0,300},{0,282}}" />
                         <Property name="Text" value="Game duration (minutes, 0 = no limit)" />
                         <Property name="FrameEnabled" value="False" />
                         <Property name="BackgroundEnabled" value="False" />
                     </Window>
                     <Window type="OD/Spinner" name="SpinGameDuration" >
-                        <Property name="Area" value="{{0,320},{0,214},{0,440},{0,242}}" />
+                        <Property name="Area" value="{{0,320},{0,254},{0,440},{0,282}}" />
                     </Window>
                 </Window>
                 <Window type="DefaultWindow" name="Creatures" >

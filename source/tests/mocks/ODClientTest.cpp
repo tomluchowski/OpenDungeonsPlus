@@ -227,9 +227,11 @@ bool ODClientTest::processMessage(ServerNotificationType cmd, ODPacket& packetRe
             uint32_t gameSpeedPercent = 0;
             uint32_t gameDurationMinutes = 0;
             uint32_t fogOfWar = 0;
+            uint32_t heartDestroyedReward = 0;
             BOOST_CHECK(packetReceived >> gameSpeedPercent);
             BOOST_CHECK(packetReceived >> gameDurationMinutes);
             BOOST_CHECK(packetReceived >> fogOfWar);
+            BOOST_CHECK(packetReceived >> heartDestroyedReward);
             uint32_t nbCreatureLimits = 0;
             BOOST_CHECK(packetReceived >> nbCreatureLimits);
             for(uint32_t i = 0; i < nbCreatureLimits; ++i)
@@ -270,10 +272,10 @@ bool ODClientTest::processMessage(ServerNotificationType cmd, ODPacket& packetRe
                 packSend << true << player.mWantedTeamId;
             }
             // Gold density, mana regeneration, maximum creatures, game speed, game duration, fog of war,
-            // no creature limits and no skill states
+            // heart reward, no creature limits and no skill states
             packSend << static_cast<uint32_t>(100) << static_cast<uint32_t>(100) << static_cast<uint32_t>(0)
                 << static_cast<uint32_t>(100) << static_cast<uint32_t>(0) << static_cast<uint32_t>(1)
-                << static_cast<uint32_t>(0) << static_cast<uint32_t>(0);
+                << static_cast<uint32_t>(0) << static_cast<uint32_t>(0) << static_cast<uint32_t>(0);
             send(packSend);
             return true;
         }

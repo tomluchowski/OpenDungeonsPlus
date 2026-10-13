@@ -1232,10 +1232,11 @@ bool ODServer::processClientNotifications(ODSocketClient* clientSocket)
             uint32_t gameSpeedPercent = GameMap::SKIRMISH_SETTING_UNCHOSEN;
             uint32_t gameDurationMinutes = GameMap::SKIRMISH_SETTING_UNCHOSEN;
             uint32_t fogOfWar = GameMap::SKIRMISH_SETTING_UNCHOSEN;
+            uint32_t heartDestroyedReward = GameMap::SKIRMISH_SETTING_UNCHOSEN;
             uint32_t nbCreatureLimits = 0;
             bool isSettingsPacketValid = static_cast<bool>(packetReceived >> goldDensityPercent
                 >> manaRegenerationPercent >> maxCreaturesSetting >> gameSpeedPercent >> gameDurationMinutes
-                >> fogOfWar >> nbCreatureLimits);
+                >> fogOfWar >> heartDestroyedReward >> nbCreatureLimits);
             std::vector<std::pair<std::string, uint32_t> > creatureLimits;
             for(uint32_t i = 0; isSettingsPacketValid && (i < nbCreatureLimits); ++i)
             {
@@ -1273,7 +1274,9 @@ bool ODServer::processClientNotifications(ODSocketClient* clientSocket)
                     gameDurationMinutes = gameMap->getGameDurationMinutes();
                 if(fogOfWar == GameMap::SKIRMISH_SETTING_UNCHOSEN)
                     fogOfWar = gameMap->getIsFOWActivated() ? 1 : 0;
-                gameMap->setGameRules(gameSpeedPercent, gameDurationMinutes, fogOfWar != 0);
+                if(heartDestroyedReward == GameMap::SKIRMISH_SETTING_UNCHOSEN)
+                    heartDestroyedReward = gameMap->getHeartDestroyedReward();
+                gameMap->setGameRules(gameSpeedPercent, gameDurationMinutes, fogOfWar != 0, heartDestroyedReward);
 
                 for(const std::pair<std::string, uint32_t>& creatureLimit : creatureLimits)
                 {
@@ -3136,7 +3139,7 @@ void ODServer::fireSeatConfigurationRefresh()
     packetSend << mGameMap->getGoldDensityPercent() << mGameMap->getManaRegenerationPercent()
         << mGameMap->getMaxCreaturesSetting();
     packetSend << mGameMap->getGameSpeedPercent() << mGameMap->getGameDurationMinutes()
-        << static_cast<uint32_t>(mGameMap->getIsFOWActivated() ? 1 : 0);
+        << static_cast<uint32_t>(mGameMap->getIsFOWActivated() ? 1 : 0) << mGameMap->getHeartDestroyedReward();
 
     // The limit of each fighter class
     std::vector<const CreatureDefinition*> fighterDefs;
