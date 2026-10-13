@@ -182,6 +182,23 @@
                         <Property name="ReversedProgress" value="True" />
                     </Window>
                 </Window>
+                <Window type="OD/ImageButton" name="TremorButton" >
+                    <Property name="Area" value="{{0.8,-25},{0,195},{0.8,25},{0,245}}" />
+                    <Property name="ButtonImage" value="OpenDungeonsIcons/TremorButton" />
+                    <Property name="TooltipText" value="Spell: Tremor" />
+                    <Window type="OD/ProgressBar" name="TremorButtonProgressBar" >
+                        <Property name="Area" value="{{0.0,-20},{0.0,0},{1.0,20},{1.0,0}}" />
+                        <Property name="InheritsTooltipText" value="True" />
+                        <Property name="CurrentProgress" value="0.0" />
+                        <Property name="MousePassThroughEnabled" value="True" />
+                        <Property name="StepSize" value="0.1" />
+                        <Property name="Visible" value="False" />
+                        <Property name="VerticalProgress" value="True" />
+                        <Property name="Alpha" value="0.2" />
+                        <Property name="ProgressImage" value="OpenDungeonsSkin/SelectionBrush" />
+                        <Property name="ReversedProgress" value="True" />
+                    </Window>
+                </Window>
             </Window>
             <Window type="OD/StaticImage" name="TacticSkills" >
                 <Property name="Area" value="{{0,195},{0,10},{0,375},{1,-10}}" />
@@ -536,6 +553,23 @@
                     <Property name="ButtonImage" value="OpenDungeonsIcons/PrayerTempleButton" />
                     <Property name="TooltipText" value="Room: Temple" />
                     <Window type="OD/ProgressBar" name="PrayerTempleButtonProgressBar" >
+                        <Property name="Area" value="{{0.0,-20},{0.0,0},{1.0,20},{1.0,0}}" />
+                        <Property name="InheritsTooltipText" value="True" />
+                        <Property name="CurrentProgress" value="0.0" />
+                        <Property name="MousePassThroughEnabled" value="True" />
+                        <Property name="StepSize" value="0.1" />
+                        <Property name="Visible" value="False" />
+                        <Property name="VerticalProgress" value="True" />
+                        <Property name="Alpha" value="0.2" />
+                        <Property name="ProgressImage" value="OpenDungeonsSkin/SelectionBrush" />
+                        <Property name="ReversedProgress" value="True" />
+                    </Window>
+                </Window>
+                <Window type="OD/ImageButton" name="InfernoButton" >
+                    <Property name="Area" value="{{0.422,-25},{0,195},{0.422,25},{0,245}}" />
+                    <Property name="ButtonImage" value="OpenDungeonsIcons/InfernoButton" />
+                    <Property name="TooltipText" value="Spell: Inferno" />
+                    <Window type="OD/ProgressBar" name="InfernoButtonProgressBar" >
                         <Property name="Area" value="{{0.0,-20},{0.0,0},{1.0,20},{1.0,0}}" />
                         <Property name="InheritsTooltipText" value="True" />
                         <Property name="CurrentProgress" value="0.0" />

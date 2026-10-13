@@ -279,6 +279,7 @@ set(OD_SOURCEFILES
     ${SRC}/creaturebehaviour/CreatureBehaviourManager.cpp
 
     ${SRC}/creatureeffect/CreatureEffect.cpp
+    ${SRC}/creatureeffect/CreatureEffectBurn.cpp
     ${SRC}/creatureeffect/CreatureEffectDefense.cpp
     ${SRC}/creatureeffect/CreatureEffectDigTile.cpp
     ${SRC}/creatureeffect/CreatureEffectExplosion.cpp
@@ -474,6 +475,7 @@ set(OD_SOURCEFILES
     ${SRC}/spawnconditions/SpawnConditionRoom.cpp
 
     ${SRC}/spells/Spell.cpp
+    ${SRC}/spells/SpellArea.cpp
     ${SRC}/spells/SpellCallToWar.cpp
     ${SRC}/spells/SpellCreateGold.cpp
     ${SRC}/spells/SpellCreatureDefense.cpp
@@ -484,9 +486,11 @@ set(OD_SOURCEFILES
     ${SRC}/spells/SpellCreatureStrength.cpp
     ${SRC}/spells/SpellCreatureWeak.cpp
     ${SRC}/spells/SpellEyeEvil.cpp
+    ${SRC}/spells/SpellInferno.cpp
     ${SRC}/spells/SpellLightning.cpp
     ${SRC}/spells/SpellManager.cpp
     ${SRC}/spells/SpellSummonWorker.cpp
+    ${SRC}/spells/SpellTremor.cpp
     ${SRC}/spells/SpellType.cpp
 
     ${SRC}/traps/Trap.cpp
