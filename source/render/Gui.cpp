@@ -1110,7 +1110,7 @@ void Gui::arrangeRoomButtons(CEGUI::Window* rooms)
     rooms->getChild("DestroyRoomButton")->hide();
     arrangeActionButtons(rooms, {"DormitoryButton", "HatcheryButton", "LibraryButton", "TrainingHallButton",
         "TreasuryButton", "WorkshopButton", "CasinoButton", "PrisonButton", "WoodenBridgeButton",
-        "TortureButton", "StoneBridgeButton", "CryptButton", "ArenaButton"});
+        "TortureButton", "StoneBridgeButton", "CryptButton", "ArenaButton", "GuardRoomButton"});
 }
 
 void Gui::arrangeTrapButtons(CEGUI::Window* traps)
