@@ -77,6 +77,14 @@ CreatureReactionConfig::CreatureReactionConfig() :
     mInteractionChance(0.05),
     mInteractionRadius(3.5),
     mInteractionPause(5.0),
+    mArrowFollowsHand(true),
+    mArrowPullDistance(0.12),
+    mArrowDrawTime(1.6),
+    mArrowRetakeGap(0.3),
+    mArrowReloadTime(0.45),
+    mArrowHandOffset(Ogre::Vector3::ZERO),
+    mCrossbowReloadTime(1.1),
+    mCrossbowReloadJolt(5.0),
     mDefaultGroup("Fighters")
 {
 }
@@ -239,6 +247,30 @@ bool CreatureReactionConfig::loadSettings(std::istream& file)
             mInteractionRadius = Helper::toDouble(words[1]);
         else if(words[0] == "InteractionPause")
             mInteractionPause = Helper::toDouble(words[1]);
+        else if(words[0] == "ArrowFollowsHand")
+            mArrowFollowsHand = (Helper::toUInt32(words[1]) != 0);
+        else if(words[0] == "ArrowPullDistance")
+            mArrowPullDistance = Helper::toDouble(words[1]);
+        else if(words[0] == "ArrowDrawTime")
+            mArrowDrawTime = Helper::toDouble(words[1]);
+        else if(words[0] == "ArrowRetakeGap")
+            mArrowRetakeGap = Helper::toDouble(words[1]);
+        else if(words[0] == "ArrowReloadTime")
+            mArrowReloadTime = Helper::toDouble(words[1]);
+        else if(words[0] == "ArrowHandOffset")
+        {
+            if(words.size() < 4)
+            {
+                OD_LOG_ERR("ArrowHandOffset needs three values");
+                return false;
+            }
+            mArrowHandOffset = Ogre::Vector3(static_cast<Ogre::Real>(Helper::toDouble(words[1])),
+                static_cast<Ogre::Real>(Helper::toDouble(words[2])), static_cast<Ogre::Real>(Helper::toDouble(words[3])));
+        }
+        else if(words[0] == "CrossbowReloadTime")
+            mCrossbowReloadTime = Helper::toDouble(words[1]);
+        else if(words[0] == "CrossbowReloadJolt")
+            mCrossbowReloadJolt = Helper::toDouble(words[1]);
         else if(words[0] == "DefaultGroup")
             mDefaultGroup = words[1];
         else

@@ -34,9 +34,12 @@ class GameMap;
 /*! \brief Client side visuals for blows and shots, driven by the cosmetic events of the server:
  * - the result of a melee blow (dodged, glancing, strong) as reactions of the attacker and the target and a short
  *   trail behind the weapon after a strong blow,
- * - the arrow or bolt of archers: it lies on the string or the rail while an enemy is near, is drawn slowly, leaves
- *   at the moment the server launches the missile (the missile entity is the same arrow) and a new one is taken or
- *   loaded a moment later.
+ * - the arrow or bolt of archers: it lies on the string or the rail while an enemy is near. A bow arrow is taken from
+ *   the pulling hand and follows that hand while the string is drawn (the bone is derived from the side of the
+ *   weapon bone; without one it stays on the bow). It leaves at the moment the server launches the missile (the
+ *   missile entity is the same arrow). A crossbow is reloaded visibly after a shot: the bolt comes out of the hand,
+ *   slides onto the rail and the weapon tips when the string is cocked; the reload is never longer than the time
+ *   between the shots. The times and distances are settings of config/creatureReactions.cfg.
  *
  * Nothing here touches the game: no animation state, no activity, no refresh and no message is sent. The arrow is
  * an extra entity on the bone of the bow and exists only in the option 'Creature reactions: full'.
