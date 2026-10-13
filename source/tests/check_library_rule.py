@@ -55,6 +55,8 @@ check('SpellType::summonWorker' in available, 'summoning a worker needs no resea
 locked = function(skill_manager, 'bool SkillManager::isLockedByLostLibrary(')
 check('SkillType::spellSummonWorker' in locked and 'SkillFamily::spells' in locked,
       'the client lock covers the same spells as the server')
+check('Skills::isRewardSkill(resType)' in available and 'Skills::isRewardSkill(type)' in locked,
+      'reward skills (Summon champion) come from the Heartstone, not from research, and are not locked')
 check('isLockedByLostLibrary(resType, localPlayerSeat)' in game_mode
       and 'castButtonName)->setEnabled(!isLockedByLibrary)' in game_mode, 'the cast button is locked on the client')
 check('mIsLibraryLostShown != localPlayerSeat->isLibraryLost()' in function(game_mode, 'void GameMode::refreshGuiSkill('),
