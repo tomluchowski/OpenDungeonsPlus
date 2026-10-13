@@ -53,6 +53,7 @@ SKILL_ALIASES = {
 
 
 def hash_name(name):
+    """Return the 64-bit FNV-1a hash of the lower-case name."""
     value = 14695981039346656037
     for byte in name.lower().encode("utf-8"):
         value ^= byte
@@ -61,14 +62,17 @@ def hash_name(name):
 
 
 def resolve_skill(name):
+    """Return the readable skill name for a hashed name, or the name itself."""
     return SKILL_ALIASES.get(hash_name(name), name)
 
 
 def repository_root():
+    """Return the folder that contains the scripts folder."""
     return os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
 def run_git(args, cwd):
+    """Run git with the given arguments in cwd and return (exit code, decoded stdout)."""
     try:
         proc = subprocess.run(["git"] + args, cwd=cwd, stdout=subprocess.PIPE,
                               stderr=subprocess.PIPE)
@@ -91,6 +95,7 @@ class Progression:
     """The unlock data of one level file."""
 
     def __init__(self):
+        """Start with empty skill sets and no human seat."""
         self.done = set()
         self.pending = set()
         self.not_allowed = set()
@@ -100,6 +105,7 @@ class Progression:
         self.has_human = False
 
     def state(self, skill):
+        """Return "done", "pending", "not allowed" or "unlisted" for the skill."""
         if skill in self.done:
             return "done"
         if skill in self.pending:
@@ -109,6 +115,7 @@ class Progression:
         return "unlisted"
 
     def listed(self):
+        """Return all skills that the level lists in any state."""
         return self.done | self.pending | self.not_allowed
 
 
@@ -208,6 +215,7 @@ def compare(reference, level):
 
 
 def allowed_creatures(progression, pool):
+    """Return the creatures of the pool that the level does not block (or unblocks again)."""
     return [c for c in pool if c not in progression.blocked or c in progression.unblocked]
 
 
@@ -225,6 +233,7 @@ def compare_creatures(reference, level, pool):
 
 
 def load_map(against):
+    """Load the level mapping file from the comparison folder, or return None if missing."""
     path = os.path.join(against, MAP_FILE)
     if not os.path.isfile(path):
         return None
@@ -268,6 +277,7 @@ def check_file(path, against, mapping, levels_dir):
 
 
 def default_files(levels_dir):
+    """Return the .level files of the levels folder in name order."""
     files = []
     if os.path.isdir(levels_dir):
         for name in sorted(os.listdir(levels_dir)):
@@ -277,6 +287,7 @@ def default_files(levels_dir):
 
 
 def check_files(files, against, levels_dir):
+    """Check the level files; return (result lines, True if any check failed)."""
     mapping = load_map(against)
     if mapping is None:
         return ["check-campaign-progression: skipped, %s does not exist" %
@@ -297,6 +308,7 @@ def check_files(files, against, levels_dir):
 # ---------------------------------------------------------------------------------------
 
 def make_level(done, pending, not_allowed, make_lines=(), blocks=()):
+    """Build the text of a small level with the given skill lists for the self test."""
     lines = ["[Seats]", "[Seat]", "seatId\t1", "player\tHuman", "[SkillDone]"]
     lines += done + ["[/SkillDone]", "[SkillNotAllowed]"] + not_allowed
     lines += ["[/SkillNotAllowed]", "[SkillPending]"] + pending + ["[/SkillPending]", "[/Seat]"]
@@ -311,6 +323,7 @@ def make_level(done, pending, not_allowed, make_lines=(), blocks=()):
 
 
 def self_test():
+    """Run the check on generated levels and return the exit code."""
     failures = []
     work = tempfile.mkdtemp(prefix="progression-selftest-")
     try:
@@ -324,6 +337,7 @@ def self_test():
                        "Two": {"previous": "One"}, "Three": {"source": "S1"}}, handle)
 
         def write(path, text):
+            """Write text to the file at path."""
             with open(path, "w") as handle:
                 handle.write(text)
 
@@ -375,6 +389,7 @@ def self_test():
 
 
 def main(argv):
+    """Entry point: parse the arguments, run the check and return the exit code."""
     against = None
     files = []
     index = 1

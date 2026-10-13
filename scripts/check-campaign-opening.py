@@ -87,7 +87,10 @@ NEIGHBOURS = ((1, 0), (-1, 0), (0, 1), (0, -1))
 
 
 class Level(object):
+    """A parsed level: tiles, seats, rooms, creatures, traps and triggers."""
+
     def __init__(self, path):
+        """Create an empty level for the given file path."""
         self.path = path
         self.width = 0
         self.height = 0
@@ -104,6 +107,7 @@ class Level(object):
 
 
 def to_int(text):
+    """Convert text to an integer, or return None if it is not a number."""
     try:
         return int(float(text))
     except ValueError:
@@ -111,6 +115,7 @@ def to_int(text):
 
 
 def parse_level(path):
+    """Parse a level file into a Level object."""
     with open(path, "r", encoding="utf-8", errors="replace") as handle:
         lines = [l.rstrip("\r") for l in handle.read().split("\n")]
     level = Level(path)
@@ -222,6 +227,7 @@ def parse_level(path):
 
 
 def human_seat(level):
+    """Return the id of the first human seat, or None if there is none."""
     for seat_id in sorted(level.seats):
         if level.seats[seat_id].get("player") == "Human":
             return seat_id
@@ -250,6 +256,7 @@ def build_grids(level):
 
 
 def bfs(sources, allowed, width, height):
+    """Breadth-first search from the sources over allowed tiles; return {tile: distance}."""
     dist = {}
     queue = deque()
     for pos in sources:
@@ -269,6 +276,7 @@ def bfs(sources, allowed, width, height):
 
 
 def nearest(dist, tiles):
+    """Return the smallest distance among the tiles that were reached, or None."""
     best = None
     for pos in tiles:
         if pos in dist and (best is None or dist[pos] < best):
@@ -277,6 +285,7 @@ def nearest(dist, tiles):
 
 
 def heart_tiles(level, seat_id):
+    """Return the tiles of the seat's temple, or its starting position if it has no temple."""
     tiles = []
     for room_type, owner, room in level.rooms:
         if room_type == ROOM_TEMPLE and owner == seat_id:
@@ -289,6 +298,7 @@ def heart_tiles(level, seat_id):
 
 
 def enemy_sources(level, seat_id):
+    """Return the tiles where enemies of the seat start: other teams' temples and portals."""
     team = level.seats[seat_id].get("teamId")
     sources = []
     for other_id, seat in level.seats.items():
@@ -310,6 +320,7 @@ def enemy_sources(level, seat_id):
 
 
 def check_enemy_distance(level, seat_id):
+    """Check how close enemies are to the seat's heart; return (reasons, shortest distance)."""
     walkable, passable, _ = build_grids(level)
     hearts = heart_tiles(level, seat_id)
     walk = bfs(hearts, walkable, level.width, level.height)
@@ -349,6 +360,7 @@ def largest_open_square(open_tiles, x0, y0, x1, y1):
 
 
 def check_open_areas(level, seat_id):
+    """Check the open area around the seat's heart; return (reasons, size, corner)."""
     walkable, _, room_tiles = build_grids(level)
     hearts = heart_tiles(level, seat_id)
     cx = sum(p[0] for p in hearts) // len(hearts)
@@ -428,6 +440,7 @@ def is_enemy_seat(level, seat_id, owner):
 
 
 def bfs_parents(sources, allowed, width, height):
+    """Like bfs, but return (distances, parents) so that a path can be rebuilt."""
     dist = {}
     parent = {}
     queue = deque()
@@ -568,10 +581,12 @@ def check_level(path, campaign_index, radius=SAFE_RADIUS, full=False):
 
 
 def repo_root():
+    """Return the folder that contains the scripts folder."""
     return os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
 def campaign_files(root):
+    """Return the level files listed in the campaign config."""
     cfg = os.path.join(root, "levels", "Campaign.cfg")
     if not os.path.isfile(cfg):
         cfg = os.path.join(root, "levels", "campaign", "Campaign.cfg")
@@ -585,6 +600,7 @@ def campaign_files(root):
 
 
 def read_allowlist(root):
+    """Return the set of level names that are allowed to fail the check for now."""
     names = set()
     path = os.path.join(root, "scripts", "check-campaign-opening.allowlist")
     if os.path.isfile(path):
@@ -597,6 +613,7 @@ def read_allowlist(root):
 
 
 def all_level_files(root):
+    """Return all .level files below the levels folder, except the template."""
     result = []
     for folder, _, names in os.walk(os.path.join(root, "levels")):
         for name in sorted(names):
@@ -606,6 +623,7 @@ def all_level_files(root):
 
 
 def run(files, root, use_allowlist, order, radius=SAFE_RADIUS, full=False):
+    """Check the level files, print one line per level and return the exit code."""
     allow = read_allowlist(root) if use_allowlist else set()
     failed = 0
     counts = {"PASS": 0, "FAIL": 0, "FAIL known": 0, "SKIP": 0}
@@ -713,6 +731,7 @@ def synthetic_level(path, heart_x, enemy_x, rooms_gap, open_hall, portal_x=None,
 
 
 def self_test():
+    """Run the check on generated levels and return the exit code."""
     directory = tempfile.mkdtemp()
     try:
         good = os.path.join(directory, "good.level")
@@ -780,6 +799,7 @@ def self_test():
 
 
 def main(argv):
+    """Entry point: parse the arguments, run the check and return the exit code."""
     if "--self-test" in argv:
         return self_test()
     use_allowlist = "--no-allowlist" not in argv
