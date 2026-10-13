@@ -59,7 +59,10 @@ enum class AmbienceKind
     //! A procedural movement of the object node
     motion,
     //! Now and then a clip of the object's own mesh (a chicken scratching)
-    clip
+    clip,
+    //! A short shake of the view (events only): Amount = strength in world units, Speed = shakes per second,
+    //! Duration in seconds, MaxDistance = distance of the event from the middle of the view beyond which it is not felt
+    shake
 };
 
 //! \brief How an effect of the kind motion moves the node of its object

@@ -287,6 +287,8 @@ bool RoomAmbienceConfig::loadEffect(std::istream& file)
                 effect.mKind = AmbienceKind::motion;
             else if(words[1] == "Clip")
                 effect.mKind = AmbienceKind::clip;
+            else if(words[1] == "Shake")
+                effect.mKind = AmbienceKind::shake;
             else
             {
                 OD_LOG_ERR("Unknown room ambience kind: " + words[1]);

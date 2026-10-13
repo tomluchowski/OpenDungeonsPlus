@@ -446,6 +446,7 @@ bool ODFrameListener::frameEnded(const Ogre::FrameEvent& evt)
         currentMode->onFrameEnded(evt);
 
     mCameraManager.onFrameEnded();
+    mRoomAmbience->clearShake();
 
     return true;
 }
@@ -455,6 +456,8 @@ bool ODFrameListener::frameStarted(const Ogre::FrameEvent& evt)
     AbstractApplicationMode* currentMode = mModeManager->getCurrentMode();
     if(currentMode)
         currentMode->onFrameStarted(evt);
+    // View shake of the room ambience effects, only while this frame is rendered (see clearShake in frameEnded)
+    mRoomAmbience->applyShake();
     if(mRenderManager  && mRenderManager->mRenderTarget != nullptr)
     {
         // preRenderTargetUpdate:

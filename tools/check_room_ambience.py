@@ -22,7 +22,7 @@ EFFECT_KEYS = ("Name", "Target", "Match", "When", "Event", "Kind", "System", "Mo
                "NeedWall", "Clips", "Every")
 TARGETS = ("Object", "Tile", "Event")
 WHENS = ("Always", "Occupied", "Empty", "Reloading", "Ready")
-KINDS = ("Particle", "Motion", "Clip")
+KINDS = ("Particle", "Motion", "Clip", "Shake")
 MOTIONS = ("Sway", "Wobble", "Spin", "Bob", "Pulse", "Flicker")
 # Room tile visuals that only some builds have
 OPTIONAL_VISUALS = ("guardRoom", "templeRoom")
@@ -175,11 +175,21 @@ def check_effect(effect, where, problems, visuals, systems, mats, counts):
         counts["events"] += 1
         if "Event" not in effect:
             problems.append("%s: event effect without Event" % where)
-        if kind != "Particle":
-            problems.append("%s: event effects must be particles" % where)
+        if kind not in ("Particle", "Shake"):
+            problems.append("%s: event effects must be particles or shakes" % where)
     else:
         if "Match" not in effect:
             problems.append("%s: no Match" % where)
+    if kind == "Shake" and target != "Event":
+        problems.append("%s: shakes only work as events" % where)
+    if kind == "Shake":
+        for key in ("Amount", "Duration", "Speed", "MaxDistance"):
+            if key not in effect:
+                problems.append("%s: shake without %s" % (where, key))
+        if "Amount" in effect and is_number(effect["Amount"][0]) and float(effect["Amount"][0]) > 0.5:
+            problems.append("%s: shake Amount above 0.5 is too strong" % where)
+        if "Duration" in effect and is_number(effect["Duration"][0]) and float(effect["Duration"][0]) > 2.0:
+            problems.append("%s: shake Duration above 2 seconds" % where)
     if kind == "Particle":
         system = effect.get("System", [None])[0]
         if system is None:
