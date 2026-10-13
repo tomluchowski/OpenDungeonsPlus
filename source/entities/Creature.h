@@ -226,6 +226,23 @@ public:
     inline int32_t getNbTurnsRested() const
     { return mNbTurnsRested; }
 
+    //! \brief Number of turns spent near a creature of the opposite alignment, fading after leaving it
+    inline int32_t getNbTurnsHatedCompany() const
+    { return mNbTurnsHatedCompany; }
+
+    //! \brief Good creatures are the ones of the hero faction, all others are evil
+    bool isGoodAligned() const;
+
+    //! \brief True if a creature of the opposite alignment of an allied seat is close
+    bool isHatedCompanyNear() const;
+
+    //! \brief Mood points the arena gave to the creature (positive) or took from it (negative). Fades over time
+    inline double getPitMood() const
+    { return mPitMood; }
+
+    //! \brief Changes the pit mood points. They are limited by the PitMoodMax room setting
+    void addPitMood(double points);
+
     //! \brief Called on server side each turn the creature sleeps in its lair
     inline void markRested()
     { mRestedThisTurn = true; }
@@ -343,6 +360,8 @@ public:
     uint32_t numCoveredTiles() const override;
 
     //! \brief Conform: AttackableObject - Deducts a given amount of HP from this creature.
+    //! \brief Share of the damage taken from the attacker: reduced when both fight inside an arena
+    double getPitDamageFactor(GameEntity* attacker);
     double takeDamage(GameEntity* attacker, double absoluteDamage, double physicalDamage, double magicalDamage, double elementDamage,
         Tile *tileTakingDamage, bool ko) override;
 
@@ -620,6 +639,10 @@ public:
     //! \brief Knocks the creature down for the given number of turns (server side). Does nothing if dead or KO.
     //! \param nbTurns How many turns the creature stays knocked down; values of zero or less are ignored.
     void stun(int32_t nbTurns);
+
+    //! \brief Knocks the creature out so that it can be carried away (used when
+    //! the last enemy standing in an arena has won its fights)
+    void knockOutToDeath();
 
     //! \brief Called when the creature is set in jail by dropping or brought by
     //! a worker. if prison is nullptr, the creature is freed
@@ -911,6 +934,12 @@ private:
     int32_t                         mNbTurnsRested;
     bool                            mTorturedThisTurn;
     bool                            mRestedThisTurn;
+
+    //! \brief Used on server side for the mood. Turns spent near a creature of the opposite alignment
+    int32_t                         mNbTurnsHatedCompany;
+
+    //! \brief Used on server side for the mood. Set by the arena, fades by PitMoodDecay per second
+    double                          mPitMood;
 
     //! \brief Used on server side for the mood. Turn numbers of the latest slaps
     std::vector<int64_t>            mSlapTurns;

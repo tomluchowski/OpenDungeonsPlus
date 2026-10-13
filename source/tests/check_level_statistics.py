@@ -130,6 +130,7 @@ struct Creature : public GameEntity
     void computeCreatureOverlayHealthValue() {}
     void computeCreatureOverlayMoodValue() {}
     void fireEntityDead() { ++mDeaths; }
+    double getPitDamageFactor(GameEntity*) { return 1.0; }
     double takeDamage(GameEntity* attacker, double absoluteDamage, double physicalDamage, double magicalDamage,
         double elementDamage, Tile* tileTakingDamage, bool ko);
     double mHp;

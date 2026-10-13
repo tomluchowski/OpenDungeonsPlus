@@ -232,7 +232,9 @@ Creature::Creature(GameMap* gameMap, const CreatureDefinition* definition, Seat*
     mNbTurnsTortureMood      (0),
     mNbTurnsRested           (0),
     mTorturedThisTurn        (false),
-    mRestedThisTurn          (false)
+    mRestedThisTurn          (false),
+    mNbTurnsHatedCompany     (0),
+    mPitMood                 (0.0)
 {
     //TODO: This should be set in initialiser list in parent classes
     setSeat(seat);
@@ -329,7 +331,9 @@ Creature::Creature(GameMap* gameMap) :
     mNbTurnsTortureMood      (0),
     mNbTurnsRested           (0),
     mTorturedThisTurn        (false),
-    mRestedThisTurn          (false)
+    mRestedThisTurn          (false),
+    mNbTurnsHatedCompany     (0),
+    mPitMood                 (0.0)
 {
     if(!getIsOnServerMap())
     {
@@ -997,6 +1001,12 @@ void Creature::doUpkeep()
     else if(mNbTurnsRested > 0)
         --mNbTurnsRested;
 
+    // Staying near a creature of the opposite alignment annoys, the annoyance fades afterwards
+    if(isHatedCompanyNear())
+        ++mNbTurnsHatedCompany;
+    else if(mNbTurnsHatedCompany > 0)
+        --mNbTurnsHatedCompany;
+
     mTorturedThisTurn = false;
     mRestedThisTurn = false;
 
@@ -1185,6 +1195,17 @@ void Creature::doUpkeep()
     }
 
     ++mNbTurnsWithoutBattle;
+
+    // The pit mood fades towards 0
+    if(mPitMood != 0.0)
+    {
+        double decay = ConfigManager::getSingleton().getRoomConfigDoubleOrDefault("PitMoodDecay", 3.0)
+            / ODApplication::turnsPerSecond;
+        if(mPitMood > 0.0)
+            mPitMood = std::max(0.0, mPitMood - decay);
+        else
+            mPitMood = std::min(0.0, mPitMood + decay);
+    }
 
     // The casino mood fades towards 0
     if(mCasinoMood != 0.0)
@@ -2459,6 +2480,25 @@ std::string Creature::getStatsText()
     return tempSS.str();
 }
 
+double Creature::getPitDamageFactor(GameEntity* attacker)
+{
+    // Fights between creatures inside an arena only hurt a fraction of normal combat
+    if((attacker == nullptr) || (attacker->getObjectType() != GameEntityType::creature))
+        return 1.0;
+
+    Tile* tileVictim = getPositionTile();
+    Tile* tileAttacker = attacker->getPositionTile();
+    if((tileVictim == nullptr) || (tileAttacker == nullptr) ||
+       (tileVictim->getCoveringRoom() == nullptr) || (tileAttacker->getCoveringRoom() == nullptr))
+        return 1.0;
+
+    if((tileVictim->getCoveringRoom()->getType() != RoomType::arena) ||
+       (tileAttacker->getCoveringRoom()->getType() != RoomType::arena))
+        return 1.0;
+
+    return ConfigManager::getSingleton().getRoomConfigDouble("ArenaDamageTakenPercent");
+}
+
 double Creature::takeDamage(GameEntity* attacker, double absoluteDamage, double physicalDamage, double magicalDamage, double elementDamage,
         Tile *tileTakingDamage, bool ko)
 {
@@ -2470,7 +2510,8 @@ double Creature::takeDamage(GameEntity* attacker, double absoluteDamage, double 
     physicalDamage = std::max(physicalDamage - getPhysicalDefense(), 0.0);
     magicalDamage = std::max(magicalDamage - getMagicalDefense(), 0.0);
     elementDamage = std::max(elementDamage - getElementDefense(), 0.0);
-    double damageDone = std::min(mHp, absoluteDamage + physicalDamage + magicalDamage + elementDamage);
+    double totalDamage = (absoluteDamage + physicalDamage + magicalDamage + elementDamage) * getPitDamageFactor(attacker);
+    double damageDone = std::min(mHp, totalDamage);
     mHp -= damageDone;
     if(mHp <= 0)
     {
@@ -3484,6 +3525,57 @@ void Creature::addCasinoMood(double points)
     mCasinoMood = std::max(-maxPoints, std::min(maxPoints, mCasinoMood + points));
 }
 
+void Creature::addPitMood(double points)
+{
+    double maxPoints = ConfigManager::getSingleton().getRoomConfigDoubleOrDefault("PitMoodMax", 1500.0);
+    mPitMood = std::max(-maxPoints, std::min(maxPoints, mPitMood + points));
+}
+
+bool Creature::isGoodAligned() const
+{
+    const std::vector<std::string>& heroClasses = ConfigManager::getSingleton().getFactionSpawnPool("Hero");
+    return std::find(heroClasses.begin(), heroClasses.end(), mDefinition->getClassName()) != heroClasses.end();
+}
+
+bool Creature::isHatedCompanyNear() const
+{
+    // Only creatures that have moods can be annoyed
+    if(mDefinition->getCreatureMoods().empty() || !getIsOnMap() || !isAlive())
+        return false;
+
+    Tile* myTile = getPositionTile();
+    if(myTile == nullptr)
+        return false;
+
+    bool isGood = isGoodAligned();
+    double radius = ConfigManager::getSingleton().getRoomConfigDoubleOrDefault("HatedCompanyRadius", 5.0);
+    double squaredRadius = radius * radius;
+    const std::vector<Creature*>& creatures = getGameMap()->getCreatures();
+    for(Creature* other : creatures)
+    {
+        if((other == this) || !other->isAlive() || !other->getIsOnMap())
+            continue;
+
+        // Workers have no alignment
+        if(other->getDefinition()->isWorker())
+            continue;
+
+        if(!getSeat()->isAlliedSeat(other->getSeat()))
+            continue;
+
+        if(other->isGoodAligned() == isGood)
+            continue;
+
+        Tile* otherTile = other->getPositionTile();
+        if(otherTile == nullptr)
+            continue;
+
+        if(Pathfinding::squaredDistanceTile(*myTile, *otherTile) <= squaredRadius)
+            return true;
+    }
+    return false;
+}
+
 void Creature::addPrayerRelief(int32_t relief, int32_t maxRelief)
 {
     mPrayerRelief = std::min(mPrayerRelief + relief, maxRelief);
@@ -3871,6 +3963,17 @@ void Creature::stun(int32_t nbTurns)
     mKoTurnCounter = std::max(mKoTurnCounter, nbTurns);
     computeCreatureOverlayMoodValue();
     clearActionQueue();
+}
+
+void Creature::knockOutToDeath()
+{
+    if(mKoTurnCounter < 0)
+        return;
+
+    mKoTurnCounter = -ConfigManager::getSingleton().getNbTurnsKoCreatureAttacked();
+    OD_LOG_INF("creature=" + getName() + " has been knocked out");
+    dropCarriedEquipment();
+    computeCreatureOverlayMoodValue();
     mNeedFireRefresh = true;
 }
 
@@ -4077,6 +4180,8 @@ void Creature::changeSeat(Seat* newSeat)
     mNbTurnsOutOfWork = 0;
     mNbTurnsTortureMood = 0;
     mNbTurnsRested = 0;
+    mNbTurnsHatedCompany = 0;
+    mPitMood = 0.0;
     mTorturedThisTurn = false;
     mRestedThisTurn = false;
     mSlapTurns.clear();
