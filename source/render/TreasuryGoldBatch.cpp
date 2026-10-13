@@ -125,6 +125,9 @@ void TreasuryGoldBatch::update(float timeSinceLastFrame)
     }
 }
 
+//! \brief Rebuilds the static geometry of one room from its settled piles and hides those piles; settling piles stay
+//! visible entities.
+//! \param chunk The batch of the room.
 void TreasuryGoldBatch::rebuild(Chunk& chunk)
 {
     chunk.mDirty = false;

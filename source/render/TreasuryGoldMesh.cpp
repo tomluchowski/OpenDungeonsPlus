@@ -160,6 +160,8 @@ Ogre::Vector3 detailPoint(const TreasuryGoldLayer::PileShape& shape, float u, fl
     return point;
 }
 
+//! \brief The colour of one coin: a gold tone that varies a little with its position, so neighbouring coins differ.
+//! \param a,b Position of the coin in the tile (0 to 1), used as the seed of the variation.
 Ogre::ColourValue goldColour(float a, float b)
 {
     const float shade = 0.8f + 0.3f * TreasuryGoldLayer::hash01(static_cast<int>(a * 1000.0f),
@@ -247,6 +249,9 @@ void addGem(Ogre::ManualObject* object, const Ogre::Vector3& centre, float size,
     }
 }
 
+//! \brief The colour of one gem: red, green, blue or purple, chosen from the pile variant and the index of the gem.
+//! \param variant Variant of the pile shape.
+//! \param index Number of the gem in the pile.
 Ogre::ColourValue gemColour(int variant, int index)
 {
     switch((variant + index) % 4)
@@ -388,6 +393,7 @@ void buildPileMesh(Ogre::SceneManager* sceneManager, const std::string& resource
 }
 }
 
+//! \brief Reads the detail option text ("full", "reduced" or "off"); anything else means full.
 Detail detailFromString(const std::string& text)
 {
     if(text == "reduced")
@@ -397,6 +403,7 @@ Detail detailFromString(const std::string& text)
     return Detail::full;
 }
 
+//! \brief The option text of the detail ("full", "reduced" or "off").
 const char* detailToString(Detail detail)
 {
     switch(detail)
@@ -410,11 +417,13 @@ const char* detailToString(Detail detail)
     }
 }
 
+//! \brief Sets how much of the gold layer is drawn; the piles are built with this detail from now on.
 void setDetail(Detail detail)
 {
     currentDetail = detail;
 }
 
+//! \brief The detail the gold layer is drawn with at the moment.
 Detail getDetail()
 {
     return currentDetail;
