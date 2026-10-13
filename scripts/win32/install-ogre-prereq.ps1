@@ -1,5 +1,6 @@
 $ErrorActionPreference = 'Stop'
-$taskRoot = 'C:\Users\mario\od-deps'
+. (Join-Path $PSScriptRoot 'windows-paths.ps1')
+$taskRoot = $taskDependencyRoot
 $taskCmake = "$taskRoot\tools\cmake-3.31.8-windows-x86_64\bin\cmake.exe"
 $taskPatch = Join-Path $PSScriptRoot 'patches/ogre-multiwindow-settings.patch'
 $ErrorActionPreference = 'Continue'
