@@ -387,6 +387,13 @@ void RoomHatchery::releasePendingEggs(const HatcheryCycleSettings& settings)
     std::vector<PendingEgg>::iterator it = mPendingEggs.begin();
     while(it != mPendingEggs.end())
     {
+        // The hen is still on her way to the nest, she has not started to lay
+        if(!it->mHen.empty())
+        {
+            ++it;
+            continue;
+        }
+
         if(it->mTurns > 0)
             --it->mTurns;
         if(it->mTurns > 0)
@@ -400,6 +407,73 @@ void RoomHatchery::releasePendingEggs(const HatcheryCycleSettings& settings)
         if((spotTile != nullptr) && (spotTile->getCoveringRoom() == this))
             spawnAnimal(ChickenKind::egg, it->mSpot, settings);
         it = mPendingEggs.erase(it);
+    }
+}
+
+bool RoomHatchery::getNestStandPoint(const Ogre::Vector3& nestSpot, Ogre::Vector2& standing) const
+{
+    const std::vector<RoomObjectPath::Obstacle> obstacles = RoomObjectNavigation::collect(*getGameMap(), 0.1f);
+    return RoomObjectNavigation::standingPosition(obstacles, Ogre::Vector2(nestSpot.x, nestSpot.y), standing);
+}
+
+bool RoomHatchery::isOnNestTrip(const ChickenEntity& hen) const
+{
+    for(const PendingEgg& pending : mPendingEggs)
+    {
+        if(!pending.mHen.empty() && (pending.mHen == hen.getName()))
+            return true;
+    }
+    return false;
+}
+
+void RoomHatchery::updateNestTrips(const std::vector<ChickenEntity*>& hens, HatcheryCounts& counts)
+{
+    // The hen has arrived when she is this close to the place next to the nest
+    const double arrive = ConfigManager::getSingleton().getRoomConfigDoubleOrDefault("HatcheryNestArrive", 0.3);
+    std::vector<PendingEgg>::iterator it = mPendingEggs.begin();
+    while(it != mPendingEggs.end())
+    {
+        if(it->mHen.empty())
+        {
+            ++it;
+            continue;
+        }
+
+        ChickenEntity* hen = nullptr;
+        for(ChickenEntity* candidate : hens)
+        {
+            if(candidate->getName() == it->mHen)
+            {
+                hen = candidate;
+                break;
+            }
+        }
+
+        // The hen was eaten, picked up or lost on the way: there is no egg
+        if(hen == nullptr)
+        {
+            if(counts.mEggs > 0)
+                --counts.mEggs;
+            it = mPendingEggs.erase(it);
+            continue;
+        }
+
+        if(it->mWalkTurns > 0)
+            --it->mWalkTurns;
+        const double distance = Ogre::Vector2(hen->getPosition().x, hen->getPosition().y).distance(it->mStand);
+        if((distance > arrive) && (it->mWalkTurns > 0))
+        {
+            if(!hen->isBusy() && !hen->isScattering())
+                hen->setFollowTarget(it->mStand, 0.1);
+            ++it;
+            continue;
+        }
+
+        // She is there (or has needed too long): she sits down and lays, the egg appears in the nest after the clip
+        hen->clearFollowTarget();
+        hen->playPose(ChickenPose::lay, std::max<uint32_t>(2, it->mTurns));
+        it->mHen.clear();
+        ++it;
     }
 }
 
@@ -456,7 +530,7 @@ void RoomHatchery::updateFlock(const std::vector<ChickenEntity*>& hens, bool cal
     collectHungry(hungry);
     for(ChickenEntity* hen : hens)
     {
-        if(hen->isBusy() || hen->isScattering())
+        if(hen->isBusy() || hen->isScattering() || isOnNestTrip(*hen))
             continue;
 
         // A hungry creature comes close: the hen runs off cackling to another part of the hatchery
@@ -634,6 +708,9 @@ void RoomHatchery::doUpkeep()
         }
     }
 
+    // Hens that walk to a nest sit down when they arrive
+    updateNestTrips(hens, counts);
+
     // Places of the eggs of the hatchery: the nests of the coops are filled place by place
     std::vector<Ogre::Vector2> eggPositions;
     for(ChickenEntity* egg : eggs)
@@ -644,8 +721,14 @@ void RoomHatchery::doUpkeep()
 
     // Hens lay eggs while the hatchery is not full
     uint32_t capacity = HatcheryCycle::capacity(mCoveredTiles.size(), mNumActiveSpots, settings);
+    const uint32_t nestWalkTurns = static_cast<uint32_t>(
+        ConfigManager::getSingleton().getRoomConfigDoubleOrDefault("HatcheryNestWalkTurns", 40.0));
     for(ChickenEntity* hen : hens)
     {
+        // She is on her way to a nest and lays when she arrives
+        if(isOnNestTrip(*hen))
+            continue;
+
         if(!hen->countDownLay())
             continue;
 
@@ -656,8 +739,23 @@ void RoomHatchery::doUpkeep()
         // The hen sits down where she is, the egg lies in a free place of a coop nest (the closest coop first).
         // Without a free nest it lies at the hen, as before.
         Ogre::Vector3 eggSpot = hen->getPosition();
-        findNestSpot(hen->getPosition(), eggPositions, eggSpot);
+        const bool nestFound = findNestSpot(hen->getPosition(), eggPositions, eggSpot);
         eggPositions.push_back(Ogre::Vector2(eggSpot.x, eggSpot.y));
+
+        // With a free nest she first walks to the place next to it (the nests lie inside the footprint of the coop,
+        // she cannot stand in them) and lays there, see updateNestTrips. HatcheryNestWalkTurns 0 = she lays where she is.
+        Ogre::Vector2 standing;
+        if(nestFound && (settings.mLayShowTurns > 0) && (nestWalkTurns > 0) && getNestStandPoint(eggSpot, standing))
+        {
+            PendingEgg trip(eggSpot, settings.mLayShowTurns);
+            trip.mHen = hen->getName();
+            trip.mStand = standing;
+            trip.mWalkTurns = nestWalkTurns;
+            mPendingEggs.push_back(trip);
+            hen->setFollowTarget(standing, 0.1);
+            ++counts.mEggs;
+            continue;
+        }
 
         // The hen sits down and shows herself laying, the egg appears after the clip (or at once without a delay)
         if(settings.mLayShowTurns > 0)
@@ -734,6 +832,10 @@ void RoomHatchery::doUpkeep()
     }
     for(ChickenEntity* hen : hens)
     {
+        // A hen on her way to a nest keeps her own target
+        if(isOnNestTrip(*hen))
+            continue;
+
         if((caller != nullptr) && !hen->isBusy() && !night)
             hen->setFollowTarget(Ogre::Vector2(caller->getPosition().x, caller->getPosition().y), roosterSettings.mCallFollowGap);
         else

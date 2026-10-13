@@ -175,6 +175,16 @@ assert 'findNestSpot(' in lay and 'spawnAnimal(ChickenKind::egg, eggSpot, settin
 assert 'eggPositions.push_back' in lay, 'an egg laid this turn takes its place at once'
 assert 'HatcheryCycle::canLay(counts, capacity)' in lay, 'capacity still limits the eggs'
 assert 'ChickenPose::lay' in lay, 'the hen sits down where she is (robust variant)'
+# The hen walks to the place next to the nest first and lays there (the egg lies in the nest)
+assert 'getNestStandPoint(eggSpot, standing)' in lay and 'trip.mHen = hen->getName()' in lay and 'setFollowTarget(standing' in lay
+assert doUpkeep.index('isOnNestTrip(*hen)') < doUpkeep.index('hen->countDownLay()'), 'a hen on her way does not start a second egg'
+trips = body(room_cpp, 'void RoomHatchery::updateNestTrips')
+assert 'HatcheryNestArrive' in trips and 'ChickenPose::lay' in trips and 'it->mWalkTurns' in trips, 'arrival or timeout starts the Lay pose'
+assert 'hen == nullptr' in trips and '--counts.mEggs' in trips, 'a hen that is gone takes her egg with her'
+assert 'standingPosition' in body(room_cpp, 'bool RoomHatchery::getNestStandPoint')
+assert '!it->mHen.empty()' in body(room_cpp, 'void RoomHatchery::releasePendingEggs'), 'the egg waits for the hen'
+assert doUpkeep.index('updateNestTrips(hens, counts)') < doUpkeep.index('releasePendingEggs(settings)')
+assert 'HatcheryNestWalkTurns' in cfg and 'HatcheryNestArrive' in cfg
 assert 'eggs.erase(eggIt)' in doUpkeep and doUpkeep.index('eggs.erase(eggIt)') < doUpkeep.index('eggPositions.push_back'),     'trampled eggs free their place'
 # The chick from a nest stands next to the coop, the nest lies in the footprint of the coop
 assert 'leaveNest(egg)' in doUpkeep and 'chick->teleport(' in body(room_cpp, 'void RoomHatchery::leaveNest')

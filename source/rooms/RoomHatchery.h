@@ -89,6 +89,13 @@ private:
     void fireEggTrample(const ChickenEntity& egg);
     //! Lets the eggs appear whose hen has shown herself laying for long enough (see mPendingEggs).
     void releasePendingEggs(const HatcheryCycleSettings& settings);
+    //! A free place next to the nest where a hen can stand (the nests lie inside the footprint of the coop).
+    bool getNestStandPoint(const Ogre::Vector3& nestSpot, Ogre::Vector2& standing) const;
+    //! True while the hen walks to the nest to lay her egg there (see PendingEgg::mHen).
+    bool isOnNestTrip(const ChickenEntity& hen) const;
+    //! Hens on their way to a nest: when one arrives (or needs too long) she sits down and lays (Lay pose), a hen
+    //! that is gone takes her egg with her.
+    void updateNestTrips(const std::vector<ChickenEntity*>& hens, HatcheryCounts& counts);
     //! Lets a hen or a rooster come out of a coop. Returns false if no coop has a free place.
     bool spawnFromCoop(ChickenKind kind, const HatcheryCycleSettings& settings, uint32_t count = 1);
 
@@ -139,11 +146,19 @@ private:
     {
         PendingEgg(const Ogre::Vector3& spot, uint32_t turns) :
             mSpot(spot),
-            mTurns(turns)
+            mTurns(turns),
+            mStand(0.0f, 0.0f),
+            mWalkTurns(0)
         {}
 
         Ogre::Vector3 mSpot;
         uint32_t mTurns;
+        //! Not empty while the hen is still on her way to the nest: her name, the place next to the nest where she
+        //! stands to lay, and the turns left for the walk. mTurns only counts down once she has started to lay.
+        //! Not saved: a save in between lets the egg appear as it would after the walk.
+        std::string mHen;
+        Ogre::Vector2 mStand;
+        uint32_t mWalkTurns;
     };
     std::vector<PendingEgg> mPendingEggs;
     //! Turns the hatchery has been empty (no hen, chick or egg)
