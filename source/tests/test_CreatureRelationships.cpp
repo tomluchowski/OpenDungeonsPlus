@@ -303,6 +303,7 @@ BOOST_AUTO_TEST_CASE(test_ClientTiers)
     BOOST_CHECK_EQUAL(client.getNbPairs(), 1u);
 }
 
+// Training next to each other raises the value of the pair only once per cooldown, whichever of the two reports it
 BOOST_AUTO_TEST_CASE(test_TrainingTogetherCountsOncePerCycle)
 {
     CreatureRelationships relationships;
@@ -317,6 +318,8 @@ BOOST_AUTO_TEST_CASE(test_TrainingTogetherCountsOncePerCycle)
     BOOST_CHECK_EQUAL(relationships.getValue("Orc1", "Orc2"), 2 * amount);
 }
 
+// The start value of a pair comes from the table of the races (in both orders), is applied once when the pair
+// first gets a value and never applies to a creature with itself
 BOOST_AUTO_TEST_CASE(test_RacialStartValue)
 {
     std::map<std::string, std::string> config;
