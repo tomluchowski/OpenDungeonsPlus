@@ -292,3 +292,19 @@ BOOST_AUTO_TEST_CASE(test_Care)
     counts.mRoosters = 0;
     BOOST_CHECK(!HatcheryCycle::canHatch(counts, false));
 }
+
+BOOST_AUTO_TEST_CASE(test_Trample)
+{
+    HatcheryCycleSettings settings;
+    settings.mTramplePercent = 30;
+    // Only enemies trample, only eggs get trampled, the dice decide
+    BOOST_CHECK(HatcheryCycle::tramples(settings, true, true, 0));
+    BOOST_CHECK(HatcheryCycle::tramples(settings, true, true, 29));
+    BOOST_CHECK(!HatcheryCycle::tramples(settings, true, true, 30));
+    BOOST_CHECK(!HatcheryCycle::tramples(settings, false, true, 0));
+    BOOST_CHECK(!HatcheryCycle::tramples(settings, true, false, 0));
+    settings.mTramplePercent = 0;
+    BOOST_CHECK(!HatcheryCycle::tramples(settings, true, true, 0));
+    settings.mTramplePercent = 1000;
+    BOOST_CHECK(HatcheryCycle::tramples(settings, true, true, 99));
+}

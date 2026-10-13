@@ -54,3 +54,11 @@ cfg = (root / 'config/rooms.cfg').read_text()
 assert 'wellCared' in cycle and 'canHatch' in cycle
 assert 'HatcheryCycle::withCare' in room_cpp and 'HatcheryCycle::canHatch(counts, care.mEnemies)' in room_cpp
 assert 'HatcheryCareLayPercent' in cfg and 'HatcheryCareLightRadius' in cfg
+
+# Enemies trample eggs, own creatures never eat them
+cycle_h = (root / 'source/rooms/HatcheryCycle.h').read_text()
+assert 'tramples' in cycle_h and 'egg->trample(enemy)' in room_cpp
+assert 'HatcheryTramplePercent' in cfg and 'HatcheryTrampleRadius' in cfg
+assert 'bool ChickenEntity::trample' in chicken and 'ChickenKind::egg' in chicken[chicken.index('bool ChickenEntity::trample'):][:200]
+# only enemies are collected for trampling (allied seats are skipped)
+assert 'isAlliedSeat' in room_cpp[room_cpp.index('void RoomHatchery::collectEnemies'):][:600]

@@ -31,7 +31,8 @@ struct HatcheryCycleSettings
         mCoopWait(15),
         mRoosterWait(15),
         mTilesPerChicken(1),
-        mCareLayPercent(25)
+        mCareLayPercent(25),
+        mTramplePercent(30)
     {}
 
     //! Turns between two eggs of one hen (random value in [mLayMin, mLayMax]).
@@ -49,6 +50,8 @@ struct HatcheryCycleSettings
     uint32_t mTilesPerChicken;
     //! Percent by which the laying times are shorter while the hatchery is well cared for.
     uint32_t mCareLayPercent;
+    //! Chance (percent per turn) that an enemy creature next to an egg tramples it.
+    uint32_t mTramplePercent;
 };
 
 //! \brief How well the keeper looks after a hatchery.
@@ -116,6 +119,10 @@ public:
     //! The settings with the laying times shortened by mCareLayPercent (at most 90) when the hatchery is
     //! well cared for, otherwise unchanged.
     static HatcheryCycleSettings withCare(const HatcheryCycleSettings& settings, const HatcheryCare& care);
+
+    //! Enemy creatures and heroes trample eggs. Creatures of the keeper never harm eggs, and nothing
+    //! tramples hens, chicks or the rooster this way. roll is a random number in [0, 99].
+    static bool tramples(const HatcheryCycleSettings& settings, bool enemyCreature, bool isEgg, uint32_t roll);
 
     //! Turns until the next egg of a hen. random is any random number.
     static uint32_t layInterval(const HatcheryCycleSettings& settings, uint32_t random);

@@ -330,6 +330,19 @@ bool ChickenEntity::eatChicken(Creature* creature)
     return true;
 }
 
+bool ChickenEntity::trample(Creature* creature)
+{
+    if(!isFree() || (mKind != ChickenKind::egg))
+        return false;
+
+    OD_LOG_INF("egg=" + getName() + " trampled by " + creature->getName());
+
+    removeEntityFromPositionTile();
+    mChickenState = ChickenState::eaten;
+    clearDestinations(EntityAnimation::idle_anim, true, true);
+    return true;
+}
+
 bool ChickenEntity::canSlap(Seat* seat)
 {
     if(!getIsOnMap())

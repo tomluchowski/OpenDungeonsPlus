@@ -65,6 +65,11 @@ HatcheryCycleSettings HatcheryCycle::withCare(const HatcheryCycleSettings& setti
     return scaled(settings, (100 - percent) / 100.0);
 }
 
+bool HatcheryCycle::tramples(const HatcheryCycleSettings& settings, bool enemyCreature, bool isEgg, uint32_t roll)
+{
+    return enemyCreature && isEgg && (roll < std::min<uint32_t>(settings.mTramplePercent, 100));
+}
+
 uint32_t HatcheryCycle::layInterval(const HatcheryCycleSettings& settings, uint32_t random)
 {
     uint32_t minTurns = std::max<uint32_t>(1, settings.mLayMin);

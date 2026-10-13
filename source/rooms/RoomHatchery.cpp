@@ -162,6 +162,7 @@ HatcheryCycleSettings RoomHatchery::getCycleSettings() const
     settings.mRoosterWait = static_cast<uint32_t>(config.getRoomConfigDoubleOrDefault("HatcheryRoosterSpawnRate", settings.mRoosterWait));
     settings.mTilesPerChicken = static_cast<uint32_t>(config.getRoomConfigDoubleOrDefault("HatcheryTilesPerChicken", settings.mTilesPerChicken));
     settings.mCareLayPercent = static_cast<uint32_t>(config.getRoomConfigDoubleOrDefault("HatcheryCareLayPercent", settings.mCareLayPercent));
+    settings.mTramplePercent = static_cast<uint32_t>(config.getRoomConfigDoubleOrDefault("HatcheryTramplePercent", settings.mTramplePercent));
 
     // The research of the hatchery shortens the waiting times
     double coopWait = config.getRoomConfigDoubleOrDefault("HatcheryChickenSpawnRate", settings.mCoopWait);
@@ -304,6 +305,27 @@ void RoomHatchery::doUpkeep()
     collectEnemies(enemies);
     const HatcheryCare care = getCare(enemies);
     const HatcheryCycleSettings layingSettings = HatcheryCycle::withCare(settings, care);
+
+    // Enemy creatures and heroes trample eggs close to them, creatures of the keeper never do
+    double trampleRadius = ConfigManager::getSingleton().getRoomConfigDoubleOrDefault("HatcheryTrampleRadius", 0.6);
+    for(Creature* enemy : enemies)
+    {
+        const Ogre::Vector2 enemyPos(enemy->getPosition().x, enemy->getPosition().y);
+        std::vector<ChickenEntity*>::iterator eggIt = eggs.begin();
+        while(eggIt != eggs.end())
+        {
+            ChickenEntity* egg = *eggIt;
+            const Ogre::Vector2 eggPos(egg->getPosition().x, egg->getPosition().y);
+            if((enemyPos.distance(eggPos) <= trampleRadius) &&
+               HatcheryCycle::tramples(settings, true, true, Random::Uint(0, 99)) && egg->trample(enemy))
+            {
+                --counts.mEggs;
+                eggIt = eggs.erase(eggIt);
+            }
+            else
+                ++eggIt;
+        }
+    }
 
     // Hens lay eggs while the hatchery is not full
     uint32_t capacity = HatcheryCycle::capacity(mCoveredTiles.size(), mNumActiveSpots, settings);
