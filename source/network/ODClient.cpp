@@ -1207,6 +1207,16 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
             break;
         }
 
+        case ServerNotificationType::chickenFight:
+        {
+            std::string firstName;
+            std::string secondName;
+            uint32_t phase;
+            OD_ASSERT_TRUE(packetReceived >> firstName >> secondName >> phase);
+            // The brawl itself is shown by the chicken look of the client; the packet is only consumed here
+            break;
+        }
+
         case ServerNotificationType::creatureCombatImpact:
         {
             std::string creatureName;

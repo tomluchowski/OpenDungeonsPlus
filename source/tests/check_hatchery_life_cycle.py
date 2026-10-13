@@ -42,7 +42,7 @@ assert 'new ChickenEntity' not in doUpkeep
 
 # Values come from the config.
 for key in ('HatcheryLayMin', 'HatcheryLayMax', 'HatcheryHatchTurns', 'HatcheryGrowTurns',
-            'HatcheryRoosterSpawnRate', 'HatcheryTilesPerChicken', 'HatcheryChickenSpawnRate'):
+            'HatcheryTilesPerChicken', 'HatcheryChickenSpawnRate'):
     assert key in config and key in room, key
 
 print('hatchery life cycle checks passed')
@@ -80,3 +80,36 @@ imp_day = room_cpp[room_cpp.index('bool RoomHatchery::importFromStream'):][:1800
 assert 'HatcheryDay' in imp_day and 'seekg(pos)' in imp_day
 assert 'test_RoosterNewDayCrow' in (root / 'source/tests/test_HatcheryCycle.cpp').read_text()
 print('hatchery new day crow checks passed')
+
+# The new rooster comes after the same wait as a hen (HatcheryChickenSpawnRate); the own rooster wait is gone,
+# the saved counter stays so that old saves still load
+assert 'HatcheryRoosterSpawnRate' not in config and 'HatcheryRoosterSpawnRate' not in room_cpp
+assert 'mRoosterWait' not in room_cpp and 'mRoosterWait' not in cycle_h
+assert 'mCoopRoosterWait >= settings.mCoopWait' in room_cpp
+assert 'needCoopRooster(counts, mNumActiveSpots) && !mFightActive' in room_cpp
+spawn_rooster = room_cpp[room_cpp.index('needCoopRooster(counts, mNumActiveSpots)'):][:400]
+assert 'capacity' not in spawn_rooster
+
+# Only one rooster per hatchery: two fight, the server draws the winner, the clients get a small event
+assert 'needFight' in cycle_h and 'fightWinner' in cycle_h and 'fightContinues' in cycle_h
+fight = room_cpp[room_cpp.index('void RoomHatchery::updateFight'):room_cpp.index('RoosterSettings RoomHatchery::getRoosterSettings')]
+assert 'HatcheryCycle::fightWinner(Random::Uint(' in fight, 'winner is drawn by the server RNG'
+assert fight.count('fightWinner(') == 1, 'drawn once per fight, never per client'
+assert 'notifyFight(' in fight and 'loseFight()' in fight and 'ChickenPose::fight' in fight and 'ChickenPose::crow' in fight
+assert 'climbDown' in fight and 'fightContinues' in fight
+assert 'updateFight(roosters, settings, counts)' in room_cpp
+assert 'if(!oneRooster->isFighting())' in room_cpp
+for key in ('HatcheryFightTurns', 'HatcheryFightApproachTurns', 'HatcheryFightReach'):
+    assert key in config, key
+for key in ('HatcheryFightTurns', 'HatcheryFightApproachTurns', 'HatcheryFightReach'):
+    assert key in room_cpp, key
+assert 'bool ChickenEntity::loseFight' in chicken and 'ChickenState::dying' in body(chicken, 'bool ChickenEntity::loseFight')
+pick = body(chicken, 'void ChickenEntity::pickup')
+assert 'mFighting = false' in pick, 'a picked up rooster leaves the fight'
+# the event is appended last, right after chickenKindChanged (no existing numeric value changes)
+enum_body = notif[notif.index('enum class ServerNotificationType'):notif.index('};')]
+assert enum_body.index('chickenKindChanged') < enum_body.index('chickenFight')
+assert enum_body.rstrip().endswith('chickenFight')
+assert 'ServerNotificationType::chickenFight' in chicken and 'ServerNotificationType::chickenFight' in client
+assert 'case ServerNotificationType::chickenFight' in (root / 'source/network/ServerNotification.cpp').read_text()
+print('hatchery rooster fight checks passed')

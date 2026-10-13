@@ -68,6 +68,22 @@ public:
     inline ChickenKind getKind() const
     { return mKind; }
 
+    //! \brief The rooster lost a fight with another rooster: he dies like a chicken that is slapped. Only a free
+    //! rooster can lose. Server side.
+    bool loseFight();
+
+    //! \brief True while the rooster fights another one. The hatchery then moves him itself.
+    inline bool isFighting() const
+    { return mFighting; }
+
+    //! \brief Marks the rooster as fighting (or no longer fighting) another rooster.
+    inline void setFighting(bool fighting)
+    { mFighting = fighting; }
+
+    //! \brief Server side: tells the human players that see the animal how the fight with the partner goes
+    //! (phase as in ServerNotificationType::chickenFight, this animal is the first one named).
+    void notifyFight(const std::string& partnerName, uint32_t phase);
+
     //! \brief Changes the kind (egg hatches, chick grows). On the server, the clients are told.
     void setKind(ChickenKind kind);
 
@@ -206,6 +222,7 @@ private:
     uint32_t mBusyTurns;
     bool mCalm;
     bool mRoomDriven;
+    bool mFighting;
     bool mOnRoof;
     bool mFollowing;
     Ogre::Vector2 mFollowTarget;

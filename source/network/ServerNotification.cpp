@@ -152,6 +152,8 @@ std::string ServerNotification::typeString(ServerNotificationType type)
             return "creatureChickenFeeding";
         case ServerNotificationType::chickenKindChanged:
             return "chickenKindChanged";
+        case ServerNotificationType::chickenFight:
+            return "chickenFight";
         case ServerNotificationType::trapProductionQueue:
             return "trapProductionQueue";
         case ServerNotificationType::playerDefeated:

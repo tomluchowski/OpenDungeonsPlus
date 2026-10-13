@@ -65,6 +65,56 @@ BOOST_AUTO_TEST_CASE(test_Rules)
     BOOST_CHECK(HatcheryCycle::canLay(counts, 4));
 }
 
+//! A hatchery has room for one rooster: two or more fight, the server draws the winner, and a hatchery
+//! that lost its rooster gets a new one after the same wait as an empty hatchery gets its hens.
+BOOST_AUTO_TEST_CASE(test_RoosterFight)
+{
+    HatcheryCounts counts;
+    BOOST_CHECK(!HatcheryCycle::needFight(counts));
+    counts.mRoosters = 1;
+    BOOST_CHECK(!HatcheryCycle::needFight(counts));
+    counts.mRoosters = 2;
+    BOOST_CHECK(HatcheryCycle::needFight(counts));
+    // More than two fight pair by pair: while there are two or more there is a fight
+    counts.mRoosters = 3;
+    BOOST_CHECK(HatcheryCycle::needFight(counts));
+
+    // The winner is one of the two and depends on the random number only (same number, same winner)
+    uint32_t firstWins = 0;
+    uint32_t secondWins = 0;
+    for(uint32_t random = 0; random < 1000; ++random)
+    {
+        uint32_t winner = HatcheryCycle::fightWinner(random);
+        BOOST_CHECK(winner < 2u);
+        BOOST_CHECK_EQUAL(winner, HatcheryCycle::fightWinner(random));
+        if(winner == 0)
+            ++firstWins;
+        else
+            ++secondWins;
+    }
+    BOOST_CHECK_EQUAL(firstWins, 500u);
+    BOOST_CHECK_EQUAL(secondWins, 500u);
+
+    // The fight is called off when one of them is picked up or gone
+    BOOST_CHECK(HatcheryCycle::fightContinues(true, true));
+    BOOST_CHECK(!HatcheryCycle::fightContinues(true, false));
+    BOOST_CHECK(!HatcheryCycle::fightContinues(false, true));
+    BOOST_CHECK(!HatcheryCycle::fightContinues(false, false));
+
+    // Exactly one rooster is left afterwards, so no rooster has to come from a coop
+    counts.mRoosters = 2;
+    counts.mRoosters -= 1;
+    BOOST_CHECK(!HatcheryCycle::needFight(counts));
+    BOOST_CHECK(!HatcheryCycle::needCoopRooster(counts, 2));
+
+    // The rooster comes after the wait of the hens: there is no value of its own any more
+    HatcheryCycleSettings settings;
+    settings.mCoopWait = 21;
+    HatcheryCycleSettings scaledSettings = HatcheryCycle::scaled(settings, 0.5);
+    BOOST_CHECK_EQUAL(scaledSettings.mCoopWait, 21u);
+    BOOST_CHECK(settings.mFightTurns > 0u);
+    BOOST_CHECK(settings.mFightApproachTurns > 0u);
+}
 BOOST_AUTO_TEST_CASE(test_LayInterval)
 {
     HatcheryCycleSettings settings;
@@ -220,7 +270,7 @@ uint32_t simulateNew(uint32_t nbCoops, uint32_t eatPercent, uint32_t nbTurns, co
         if(HatcheryCycle::needCoopRooster(counts, nbCoops))
         {
             ++roosterWait;
-            if(roosterWait >= settings.mRoosterWait)
+            if(roosterWait >= settings.mCoopWait)
             {
                 ++roosters;
                 roosterWait = 0;

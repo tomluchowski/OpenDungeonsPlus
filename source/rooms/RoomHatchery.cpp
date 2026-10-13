@@ -132,7 +132,12 @@ RoomHatchery::RoomHatchery(GameMap* gameMap) :
     mCrowInterval(60),
     mLastCrowDay(-1),
     mCoopHenWait(0),
-    mCoopRoosterWait(0)
+    mCoopRoosterWait(0),
+    mFightActive(false),
+    mFightFirstWins(true),
+    mFightBrawling(false),
+    mFightApproach(0),
+    mFightTurnsLeft(0)
 {
     setMeshName("Farm");
 }
@@ -194,11 +199,12 @@ HatcheryCycleSettings RoomHatchery::getCycleSettings() const
     settings.mLayMax = static_cast<uint32_t>(config.getRoomConfigDoubleOrDefault("HatcheryLayMax", settings.mLayMax));
     settings.mHatchTurns = static_cast<uint32_t>(config.getRoomConfigDoubleOrDefault("HatcheryHatchTurns", settings.mHatchTurns));
     settings.mGrowTurns = static_cast<uint32_t>(config.getRoomConfigDoubleOrDefault("HatcheryGrowTurns", settings.mGrowTurns));
-    settings.mRoosterWait = static_cast<uint32_t>(config.getRoomConfigDoubleOrDefault("HatcheryRoosterSpawnRate", settings.mRoosterWait));
     settings.mTilesPerChicken = static_cast<uint32_t>(config.getRoomConfigDoubleOrDefault("HatcheryTilesPerChicken", settings.mTilesPerChicken));
     settings.mCareLightPercent = static_cast<uint32_t>(config.getRoomConfigDoubleOrDefault("HatcheryCareLightPercent", settings.mCareLightPercent));
     settings.mCareCalmPercent = static_cast<uint32_t>(config.getRoomConfigDoubleOrDefault("HatcheryCareCalmPercent", settings.mCareCalmPercent));
     settings.mTramplePercent = static_cast<uint32_t>(config.getRoomConfigDoubleOrDefault("HatcheryTramplePercent", settings.mTramplePercent));
+    settings.mFightTurns = static_cast<uint32_t>(config.getRoomConfigDoubleOrDefault("HatcheryFightTurns", settings.mFightTurns));
+    settings.mFightApproachTurns = static_cast<uint32_t>(config.getRoomConfigDoubleOrDefault("HatcheryFightApproachTurns", settings.mFightApproachTurns));
 
     // The research of the hatchery shortens the waiting times
     double coopWait = config.getRoomConfigDoubleOrDefault("HatcheryChickenSpawnRate", settings.mCoopWait);
@@ -426,6 +432,9 @@ void RoomHatchery::doUpkeep()
         ++counts.mHens;
     }
 
+    // A hatchery has one rooster only: two of them fight until one is dead
+    updateFight(roosters, settings, counts);
+
     // Behaviour for the eyes: sleeping at night, sitting calmly in a full hatchery, the chick line, the rooster
     const RoosterSettings roosterSettings = getRoosterSettings();
     bool night = HatcheryRooster::isNight(getGameMap()->getTurnNumber(), roosterSettings);
@@ -437,7 +446,10 @@ void RoomHatchery::doUpkeep()
     ChickenEntity* rooster = roosters.empty() ? nullptr : roosters.front();
     updateChickLine(hens, chicks, rooster, night);
     for(ChickenEntity* oneRooster : roosters)
-        updateRooster(oneRooster, hens, chicks, roosterSettings);
+    {
+        if(!oneRooster->isFighting())
+            updateRooster(oneRooster, hens, chicks, roosterSettings);
+    }
 
     // The hens run to the rooster while he calls them to food, otherwise they go their own way
     ChickenEntity* caller = nullptr;
@@ -464,15 +476,145 @@ void RoomHatchery::doUpkeep()
     else
         mCoopHenWait = 0;
 
-    // The same for the rooster
-    if(HatcheryCycle::needCoopRooster(counts, mNumActiveSpots))
+    // The same for the rooster, after the same wait as for the hens. It does not count towards the capacity of
+    // the hens, and no rooster comes while a fight is going on
+    if(HatcheryCycle::needCoopRooster(counts, mNumActiveSpots) && !mFightActive)
     {
         ++mCoopRoosterWait;
-        if((mCoopRoosterWait >= settings.mRoosterWait) && spawnFromCoop(ChickenKind::rooster, settings))
+        if((mCoopRoosterWait >= settings.mCoopWait) && spawnFromCoop(ChickenKind::rooster, settings))
             mCoopRoosterWait = 0;
     }
     else
         mCoopRoosterWait = 0;
+}
+
+void RoomHatchery::updateFight(std::vector<ChickenEntity*>& roosters, const HatcheryCycleSettings& settings,
+    HatcheryCounts& counts)
+{
+    ChickenEntity* first = nullptr;
+    ChickenEntity* second = nullptr;
+    if(mFightActive)
+    {
+        for(ChickenEntity* rooster : roosters)
+        {
+            if(rooster->getName() == mFightFirst)
+                first = rooster;
+            else if(rooster->getName() == mFightSecond)
+                second = rooster;
+        }
+
+        // One of them was picked up or is gone: the fight is called off
+        if(!HatcheryCycle::fightContinues(first != nullptr, second != nullptr))
+        {
+            endFight(first, second, false, counts);
+            return;
+        }
+    }
+    else
+    {
+        if(!HatcheryCycle::needFight(counts) || (roosters.size() < 2))
+            return;
+
+        // The first two roosters fight, if there are more the next pair follows when this one is over
+        first = roosters[0];
+        second = roosters[1];
+        mFightActive = true;
+        mFightFirst = first->getName();
+        mFightSecond = second->getName();
+        mFightFirstWins = (HatcheryCycle::fightWinner(Random::Uint(0, 1000)) == 0);
+        mFightBrawling = false;
+        mFightApproach = 0;
+        mFightTurnsLeft = std::max<uint32_t>(1, settings.mFightTurns);
+        for(ChickenEntity* fighter : roosters)
+        {
+            if((fighter != first) && (fighter != second))
+                continue;
+
+            fighter->setFighting(true);
+            fighter->setRoomDriven(true);
+            fighter->setMood(RoosterMood::strut, 0);
+            climbDown(fighter);
+        }
+        fireAnimalSound(*first, "Hatchery/Cluck");
+        first->notifyFight(mFightSecond, 0);
+    }
+
+    const double reach = ConfigManager::getSingleton().getRoomConfigDoubleOrDefault("HatcheryFightReach", 1.0);
+    const Ogre::Vector2 firstPos(first->getPosition().x, first->getPosition().y);
+    const Ogre::Vector2 secondPos(second->getPosition().x, second->getPosition().y);
+    if(!mFightBrawling)
+    {
+        // They walk up to each other
+        ++mFightApproach;
+        if((firstPos.distance(secondPos) <= reach) || (mFightApproach >= settings.mFightApproachTurns))
+            mFightBrawling = true;
+        else
+        {
+            if(!first->isMoving())
+                first->walkToward(secondPos, reach * 0.5, ChickenPose::chase);
+            if(!second->isMoving())
+                second->walkToward(firstPos, reach * 0.5, ChickenPose::chase);
+            return;
+        }
+    }
+
+    // They brawl: wings beating, pecking, puffed up. The client adds the clouds of feathers.
+    if(!first->isBusy())
+        first->playPose(ChickenPose::fight, 3);
+    if(!second->isBusy())
+        second->playPose(ChickenPose::fight, 3);
+    if(mFightTurnsLeft > 0)
+        --mFightTurnsLeft;
+    if(mFightTurnsLeft > 0)
+        return;
+
+    endFight(first, second, true, counts);
+    std::vector<ChickenEntity*>::iterator it = roosters.begin();
+    while(it != roosters.end())
+    {
+        if((*it)->isFree())
+            ++it;
+        else
+            it = roosters.erase(it);
+    }
+}
+
+void RoomHatchery::endFight(ChickenEntity* first, ChickenEntity* second, bool finished, HatcheryCounts& counts)
+{
+    mFightActive = false;
+    if(!finished)
+    {
+        // The survivor (if any) goes on as before
+        ChickenEntity* survivors[2] = {first, second};
+        for(uint32_t i = 0; i < 2; ++i)
+        {
+            if(survivors[i] == nullptr)
+                continue;
+
+            survivors[i]->setFighting(false);
+            survivors[i]->setRoomDriven(false);
+            survivors[i]->setAnimationState(EntityAnimation::idle_anim, true);
+        }
+        ChickenEntity* sender = (first != nullptr) ? first : second;
+        if(sender != nullptr)
+            sender->notifyFight((sender == first) ? mFightSecond : mFightFirst, 2);
+        return;
+    }
+
+    ChickenEntity* winner = mFightFirstWins ? first : second;
+    ChickenEntity* loser = mFightFirstWins ? second : first;
+    winner->notifyFight(loser->getName(), 1);
+    fireAnimalSound(*loser, "Hatchery/Cluck");
+    if(loser->loseFight() && (counts.mRoosters > 0))
+        --counts.mRoosters;
+
+    // The winner stands up straight and crows
+    winner->setFighting(false);
+    winner->setRoomDriven(false);
+    winner->setMood(RoosterMood::strut, 0);
+    winner->resetSinceCrow();
+    winner->playPose(ChickenPose::crow, 3);
+    fireAnimalSound(*winner, "Hatchery/Crow");
 }
 
 RoosterSettings RoomHatchery::getRoosterSettings() const

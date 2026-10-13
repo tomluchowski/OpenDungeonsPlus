@@ -51,6 +51,7 @@ ChickenEntity::ChickenEntity(GameMap* gameMap, const std::string& hatcheryName, 
     mBusyTurns(0),
     mCalm(false),
     mRoomDriven(false),
+    mFighting(false),
     mOnRoof(false),
     mFollowing(false),
     mFollowTarget(Ogre::Vector2::ZERO),
@@ -76,6 +77,7 @@ ChickenEntity::ChickenEntity(GameMap* gameMap) :
     mBusyTurns(0),
     mCalm(false),
     mRoomDriven(false),
+    mFighting(false),
     mOnRoof(false),
     mFollowing(false),
     mFollowTarget(Ogre::Vector2::ZERO),
@@ -468,6 +470,8 @@ bool ChickenEntity::tryPickup(Seat* seat)
 void ChickenEntity::pickup()
 {
     mOnRoof = false;
+    mFighting = false;
+    mRoomDriven = false;
     mBusyTurns = 0;
     mFollowing = false;
     mReturningHome = false;
@@ -574,6 +578,40 @@ bool ChickenEntity::trample(Creature* creature)
     mChickenState = ChickenState::eaten;
     clearDestinations(EntityAnimation::idle_anim, true, true);
     return true;
+}
+
+bool ChickenEntity::loseFight()
+{
+    if(!isFree() || (mKind != ChickenKind::rooster))
+        return false;
+
+    OD_LOG_INF("rooster=" + getName() + " lost a fight");
+
+    mFighting = false;
+    mRoomDriven = false;
+    mOnRoof = false;
+    mBusyTurns = 0;
+    mNbTurnDie = 0;
+    mChickenState = ChickenState::dying;
+    clearDestinations(EntityAnimation::die_anim, false, false);
+    return true;
+}
+
+void ChickenEntity::notifyFight(const std::string& partnerName, uint32_t phase)
+{
+    if(!getIsOnServerMap())
+        return;
+
+    for(Seat* seat : mSeatsWithVisionNotified)
+    {
+        if(seat->getPlayer() == nullptr || !seat->getPlayer()->getIsHuman())
+            continue;
+
+        ServerNotification* notification = new ServerNotification(
+            ServerNotificationType::chickenFight, seat->getPlayer());
+        notification->mPacket << getName() << partnerName << phase;
+        ODServer::getSingleton().queueServerNotification(notification);
+    }
 }
 
 bool ChickenEntity::canSlap(Seat* seat)

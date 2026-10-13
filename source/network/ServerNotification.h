@@ -143,8 +143,12 @@ enum class ServerNotificationType
 
     //! A hatchery animal changed its kind (egg hatched, chick grew up): + string name, uint32_t kind
     //! (ChickenKind). Sent to the human players that see it, only when the kind changes.
-    // Appended last so that no existing numeric value changes.
-    chickenKindChanged
+    chickenKindChanged,
+    //! Two roosters of one hatchery fight: + string first rooster, string second rooster, uint32_t phase
+    //! (0 = the fight starts, 1 = it is over and the first rooster won, 2 = it was called off). The server draws
+    //! the winner. Sent to the human players that see the first rooster, only when the phase changes.
+    //! Appended last so that no existing numeric value changes.
+    chickenFight
 };
 
 ODPacket& operator<<(ODPacket& os, const ServerNotificationType& nt);

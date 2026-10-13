@@ -46,6 +46,21 @@ bool HatcheryCycle::needCoopRooster(const HatcheryCounts& counts, uint32_t nbCoo
     return (nbCoops > 0) && (counts.mRoosters == 0);
 }
 
+bool HatcheryCycle::needFight(const HatcheryCounts& counts)
+{
+    return counts.mRoosters >= 2;
+}
+
+uint32_t HatcheryCycle::fightWinner(uint32_t random)
+{
+    return random % 2;
+}
+
+bool HatcheryCycle::fightContinues(bool firstPresent, bool secondPresent)
+{
+    return firstPresent && secondPresent;
+}
+
 bool HatcheryCycle::canHatch(const HatcheryCounts& counts, bool enemiesPresent)
 {
     return eggsMayHatch(counts) && !enemiesPresent;

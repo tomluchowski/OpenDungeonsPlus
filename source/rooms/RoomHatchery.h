@@ -79,6 +79,14 @@ private:
 
     //! Settings of the rooster, the day and the chick line from the config.
     RoosterSettings getRoosterSettings() const;
+    //! A hatchery has room for one rooster: when it has two or more, two of them fight until one is dead. The
+    //! server draws the winner when the fight starts. Fighters are moved here, not by updateRooster. The loser
+    //! is taken out of the roosters list when the fight is over.
+    void updateFight(std::vector<ChickenEntity*>& roosters, const HatcheryCycleSettings& settings,
+        HatcheryCounts& counts);
+    //! Ends the fight: the one that won stays and crows, the other one dies. Without a winner (one of them was
+    //! picked up or is gone) the fight is called off and the survivor goes on as before.
+    void endFight(ChickenEntity* first, ChickenEntity* second, bool finished, HatcheryCounts& counts);
     //! Moves the rooster: perching, crowing, chasing a hen, guarding the flock, leading the chicks, sleeping.
     void updateRooster(ChickenEntity* rooster, const std::vector<ChickenEntity*>& hens,
         const std::vector<ChickenEntity*>& chicks, const RoosterSettings& settings);
@@ -111,6 +119,17 @@ private:
     uint32_t mCoopHenWait;
     //! Turns the hatchery has been without rooster
     uint32_t mCoopRoosterWait;
+
+    //! A fight of two roosters is going on (not saved: after loading, two roosters start a new one)
+    bool mFightActive;
+    //! The two fighters by name and who wins (drawn by the server when the fight starts)
+    std::string mFightFirst;
+    std::string mFightSecond;
+    bool mFightFirstWins;
+    //! They walk up to each other first, then they brawl for mFightTurnsLeft turns
+    bool mFightBrawling;
+    uint32_t mFightApproach;
+    uint32_t mFightTurnsLeft;
 };
 
 #endif // ROOMHATCHERY_H
