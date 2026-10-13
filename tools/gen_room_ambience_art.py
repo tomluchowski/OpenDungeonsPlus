@@ -171,6 +171,19 @@ def sprite_grain(path):
     finish(image, path)
 
 
+def sprite_z(path):
+    """Letter Z, shown rising over a sleeping creature."""
+    image, draw = new_canvas()
+    pts = [(70, 70), (186, 70), (70, 190), (190, 190)]
+    outline = (60, 80, 140, 255)
+    for width, color in ((34, outline), (20, (235, 242, 255, 255))):
+        draw.line((pts[0], pts[1]), fill=color, width=width)
+        draw.line((pts[1], pts[2]), fill=color, width=width)
+        draw.line((pts[2], pts[3]), fill=color, width=width)
+    image = image.filter(ImageFilter.GaussianBlur(1.2))
+    finish(image, path)
+
+
 def sprite_swirl(path):
     """Spiral of light arms around a bright centre, white so the particle colour tints it."""
     image, draw = new_canvas()
@@ -203,6 +216,7 @@ SPRITES = {
     "RoomAmbDrop": sprite_drop,
     "RoomAmbFeather": sprite_feather,
     "RoomAmbGrain": sprite_grain,
+    "RoomAmbZ": sprite_z,
     "RoomAmbSwirl": sprite_swirl,
 }
 
