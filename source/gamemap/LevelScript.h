@@ -47,6 +47,7 @@
 //!   Cond    gold <seatId> >= | <= <amount>    # gold of the seat
 //!   Cond    mana <seatId> >= | <= <amount>    # mana of the seat
 //!   Cond    mined <seatId> >= | <= <amount>   # gold the seat has mined
+//!   Cond    claimed <seatId> <regionName> <count> | all   # tiles of the region claimed by the seat
 //!   Cond    goal <seatId> <goalName>          # seat completed a goal with that name
 //!   Cond    flag <name> <value>               # flag has exactly that value
 //!   Cond    flag <name> <op> <value>          # op is == != < <= > >=; value may be @<otherFlag>
@@ -63,6 +64,7 @@
 //!   Action  timer <name> [<seconds>]          # starts (or restarts) the timer at that value, 0 if it is left out
 //!   Action  win <seatId>                      # seat -1: every human player
 //!   Action  lose <seatId>
+//!   Action  reveal <seatId> <regionName>      # the tiles of the region stay visible to the seat
 //!   State   <timesFired> <lastFiredTurn>      # written by the game, only needed in savegames
 //!   [/Trigger]
 //!   [/Triggers]
@@ -103,6 +105,7 @@ enum class LevelScriptConditionType
     gold,
     mana,
     goldMined,
+    claimed,
     timer
 };
 
@@ -117,6 +120,7 @@ enum class LevelScriptActionType
     addFlag,
     win,
     lose,
+    reveal,
     startTimer
 };
 
@@ -146,8 +150,8 @@ struct LevelScriptCondition
     bool mAtLeast;
     //! The same comparison with all the operators (mAtLeast is true when it is atLeast)
     LevelScriptCompare mCompare;
-    //! \brief Seconds (time), count (creatures, room), amount (gold, mana, goldMined)
-    //! or value (flag)
+    //! \brief Seconds (time), count (creatures, room, claimed, -1 for all of the region),
+    //! amount (gold, mana, goldMined) or value (flag)
     int64_t mNumber;
     //! \brief Room name (room), goal name (goal), flag name (flag) or, for region, the
     //! name of a region of the script (empty when the rectangle is given by mX1 to mY2)
@@ -179,7 +183,7 @@ struct LevelScriptAction
     //! \brief Gold amount (gold), flag value (setflag), amount added to a flag (addflag) or
     //! seconds (timer)
     int64_t mNumber;
-    //! \brief Message text (message, objective), flag name (setflag) or timer name (timer)
+    //! \brief Message text (message, objective), flag name (setflag), timer name (timer) or region name (reveal)
     std::string mText;
     //! \brief spawn: creature class name and level
     std::vector<std::pair<std::string, uint32_t> > mCreatures;

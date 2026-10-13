@@ -59,6 +59,9 @@ static const std::string sample =
     "Cond\tgold\t1\t>=\t500\n"
     "Cond\tmana\t1\t<=\t100\n"
     "Cond\tmined\t1\t>=\t900\n"
+    "Cond\tclaimed\t1\tGate\t4\n"
+    "Cond\tclaimed\t2\tGate\tall\n"
+    "Action\treveal\t1\tGate\n"
     "Action\taddflag\tvisits\t-2\n"
     "[/Trigger]\n"
     "[/Triggers]\n";
@@ -99,8 +102,10 @@ BOOST_AUTO_TEST_CASE(test_parse)
     BOOST_REQUIRE_EQUAL(script.getRegions().size(), 1u);
     const LevelScriptTrigger& watch = script.getTriggers()[2];
     BOOST_CHECK_EQUAL(watch.mConditions[0].mName, "Gate");
+    BOOST_CHECK(watch.mActions[0].mType == LevelScriptActionType::reveal);
+    BOOST_CHECK_EQUAL(watch.mActions[0].mText, "Gate");
 
-    BOOST_REQUIRE_EQUAL(watch.mConditions.size(), 4u);
+    BOOST_REQUIRE_EQUAL(watch.mConditions.size(), 6u);
     BOOST_CHECK(watch.mConditions[1].mType == LevelScriptConditionType::gold);
     BOOST_CHECK(watch.mConditions[1].mAtLeast);
     BOOST_CHECK_EQUAL(watch.mConditions[1].mNumber, 500);
@@ -108,9 +113,11 @@ BOOST_AUTO_TEST_CASE(test_parse)
     BOOST_CHECK(!watch.mConditions[2].mAtLeast);
     BOOST_CHECK(watch.mConditions[3].mType == LevelScriptConditionType::goldMined);
     BOOST_CHECK_EQUAL(watch.mConditions[3].mNumber, 900);
-    BOOST_REQUIRE_EQUAL(watch.mActions.size(), 1u);
-    BOOST_CHECK(watch.mActions[0].mType == LevelScriptActionType::addFlag);
-    BOOST_CHECK_EQUAL(watch.mActions[0].mNumber, -2);
+    BOOST_CHECK_EQUAL(watch.mConditions[4].mNumber, 4);
+    BOOST_CHECK_EQUAL(watch.mConditions[5].mNumber, -1);
+    BOOST_REQUIRE_EQUAL(watch.mActions.size(), 2u);
+    BOOST_CHECK(watch.mActions[1].mType == LevelScriptActionType::addFlag);
+    BOOST_CHECK_EQUAL(watch.mActions[1].mNumber, -2);
 }
 
 //! \brief Regions: the corners may come in any order, names are unique and the editor helpers work
@@ -189,12 +196,16 @@ BOOST_AUTO_TEST_CASE(test_invalid)
         "[Trigger]\nName\tx\nCond\ttime\t1\nAction\twin\t1\n[/Trigger]\n",
         // Not a number
         "[Trigger]\nName\tx\nCond\ttime\tsoon\nAction\twin\t1\n[/Trigger]\n[/Triggers]\n",
+        // Nothing to claim
+        "[Trigger]\nName\tx\nCond\tclaimed\t1\tGate\t0\nAction\twin\t1\n[/Trigger]\n[/Triggers]\n",
         // Wrong comparison
         "[Trigger]\nName\tx\nCond\tgold\t1\t=\t5\nAction\twin\t1\n[/Trigger]\n[/Triggers]\n",
         // Region with a missing corner value
         "Region\tA\t1\t2\t3\n[/Triggers]\n",
         // Region inside a trigger
-        "[Trigger]\nName\tx\nRegion\tA\t1\t2\t3\t4\nCond\ttime\t1\nAction\twin\t1\n[/Trigger]\n[/Triggers]\n"
+        "[Trigger]\nName\tx\nRegion\tA\t1\t2\t3\t4\nCond\ttime\t1\nAction\twin\t1\n[/Trigger]\n[/Triggers]\n",
+        // reveal without a region name
+        "[Trigger]\nName\tx\nCond\ttime\t1\nAction\treveal\t1\n[/Trigger]\n[/Triggers]\n"
     };
 
     for(const char* text : invalid)

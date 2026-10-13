@@ -173,6 +173,20 @@ bool parseCondition(const std::vector<std::string>& t, LevelScriptCondition& con
 
         return parseInt32(t[2], cond.mSeatId) && parseInt(t[4], cond.mNumber);
     }
+    if(type == "claimed")
+    {
+        cond.mType = LevelScriptConditionType::claimed;
+        if(t.size() != 5)
+            return false;
+
+        cond.mName = t[3];
+        if(t[4] == "all")
+        {
+            cond.mNumber = -1;
+            return parseInt32(t[2], cond.mSeatId);
+        }
+        return parseInt32(t[2], cond.mSeatId) && parseInt(t[4], cond.mNumber) && (cond.mNumber > 0);
+    }
     if(type == "room")
     {
         cond.mType = LevelScriptConditionType::room;
@@ -305,6 +319,15 @@ bool parseAction(const std::string& line, const std::vector<std::string>& t, Lev
         action.mType = (type == "win") ? LevelScriptActionType::win : LevelScriptActionType::lose;
         return (t.size() == 3) && parseInt32(t[2], action.mSeatId);
     }
+    if(type == "reveal")
+    {
+        action.mType = LevelScriptActionType::reveal;
+        if(t.size() != 4)
+            return false;
+
+        action.mText = t[3];
+        return parseInt32(t[2], action.mSeatId);
+    }
     if(type == "timer")
     {
         action.mType = LevelScriptActionType::startTimer;
@@ -381,6 +404,13 @@ void writeCondition(std::ostream& os, const LevelScriptCondition& c)
         case LevelScriptConditionType::goldMined:
             os << "mined\t" << c.mSeatId << "\t" << levelScriptCompareToken(c.mCompare) << "\t" << c.mNumber;
             break;
+        case LevelScriptConditionType::claimed:
+            os << "claimed\t" << c.mSeatId << "\t" << c.mName << "\t";
+            if(c.mNumber < 0)
+                os << "all";
+            else
+                os << c.mNumber;
+            break;
     }
     os << "\n";
 }
@@ -416,6 +446,9 @@ void writeAction(std::ostream& os, const LevelScriptAction& a)
             break;
         case LevelScriptActionType::lose:
             os << "lose\t" << a.mSeatId;
+            break;
+        case LevelScriptActionType::reveal:
+            os << "reveal\t" << a.mSeatId << "\t" << a.mText;
             break;
         case LevelScriptActionType::startTimer:
             os << "timer\t" << a.mText << "\t" << a.mNumber;
