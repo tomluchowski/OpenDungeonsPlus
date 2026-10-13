@@ -482,6 +482,19 @@ Relative/Default/Keeper/WeAreUnderAttack/
 Relative/KeeperGroan/Keeper/Lost
 -> OD_voice_keeper(groan)_defeat*.ogg            eugeneloza    CC-BY-SA 3.0            http://opengameart.org/content/voice-acting-sketch-open-dungeons
 
+=======================================================
+==  Room ambience: effects, sprites, tools           ==
+=======================================================
+
+Name                                   Author                  License                 Source URL
+------------------------------------------------------------------------------------------------------------------------
+config/roomAmbience*.cfg               OD Team                 GPLv3+
+materials/scripts/RoomAmbience*.material   OD Team            GPLv3+
+particles/RoomAmbience*.particle       OD Team                 GPLv3+
+materials/textures/RoomAmb*.png        OD Team                 GPLv3+                  Drawn from simple shapes and gradients by tools/gen_room_ambience_art.py (script generated, original work, not AI generated)
+tools/gen_room_ambience_art.py         OD Team                 GPLv3+
+tools/check_room_ambience.py           OD Team                 GPLv3+
+
 ================================
 ==  Distribution data: dist/  ==
 ================================

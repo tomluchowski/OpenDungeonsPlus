@@ -1,0 +1,190 @@
+// Effects of the room ambience (see config/roomAmbience.cfg). The game puts them on rooms and
+// room objects that are in view and removes them again when the camera moves away.
+
+// Floating specks in a room nobody uses
+particle_system RoomAmbDust
+{
+    material        RoomAmbDust
+    point_rendering false
+    particle_width  0.07
+    particle_height 0.07
+    cull_each       false
+    quota           10
+    billboard_type  point
+
+    emitter Box
+    {
+        angle               180
+        colour_range_start  0.85 0.8 0.7 0.0
+        colour_range_end    0.95 0.9 0.8 0.0
+        emission_rate       2.5
+        time_to_live        5
+        direction           0 0 1
+        velocity_min        0.03
+        velocity_max        0.1
+        position            0 0 0.25
+        width               1.2
+        height              1.2
+        depth               0.6
+    }
+
+    affector ColourInterpolator
+    {
+        time0   0
+        colour0 0.9 0.85 0.75 0.0
+        time1   0.5
+        colour1 0.9 0.85 0.75 0.4
+        time2   1
+        colour2 0.9 0.85 0.75 0.0
+    }
+
+    affector DirectionRandomiser
+    {
+        randomness  0.15
+        scope       0.5
+        keep_velocity true
+    }
+}
+
+// A cobweb lying in a corner of a room nobody uses. It is one particle that stays for a long time.
+particle_system RoomAmbWeb
+{
+    material        RoomAmbWeb
+    point_rendering false
+    particle_width  0.55
+    particle_height 0.55
+    cull_each       false
+    quota           1
+    billboard_type  perpendicular_common
+    common_direction 0 0 1
+    common_up_vector 0 1 0
+
+    emitter Point
+    {
+        angle               0
+        colour              1.0 1.0 1.0 0.75
+        emission_rate       2
+        time_to_live        100000
+        direction           0 0 1
+        velocity            0
+        position            0 0 0.02
+    }
+}
+
+// Dust cloud when a room is built
+particle_system RoomAmbBuildPuff
+{
+    material        RoomAmbSmoke
+    point_rendering false
+    particle_width  0.8
+    particle_height 0.8
+    cull_each       false
+    quota           16
+    billboard_type  point
+
+    emitter Box
+    {
+        angle               60
+        colour_range_start  0.72 0.62 0.5 0.55
+        colour_range_end    0.82 0.72 0.6 0.6
+        emission_rate       40
+        time_to_live        1.4
+        direction           0 0 1
+        velocity_min        0.25
+        velocity_max        0.7
+        duration            0.35
+        position            0 0 0.1
+        width               0.8
+        height              0.8
+        depth               0.2
+    }
+
+    affector Scaler
+    {
+        rate    0.5
+    }
+
+    affector ColourFader
+    {
+        alpha   -0.4
+    }
+}
+
+// Dust cloud when a room is sold or collapses
+particle_system RoomAmbCrumble
+{
+    material        RoomAmbSmoke
+    point_rendering false
+    particle_width  0.9
+    particle_height 0.9
+    cull_each       false
+    quota           24
+    billboard_type  point
+
+    emitter Box
+    {
+        angle               80
+        colour_range_start  0.55 0.5 0.44 0.55
+        colour_range_end    0.7 0.64 0.56 0.6
+        emission_rate       60
+        time_to_live        1.8
+        direction           0 0 1
+        velocity_min        0.3
+        velocity_max        0.9
+        duration            0.45
+        position            0 0 0.2
+        width               0.9
+        height              0.9
+        depth               0.3
+    }
+
+    affector Scaler
+    {
+        rate    0.6
+    }
+
+    affector ColourFader
+    {
+        alpha   -0.32
+    }
+}
+
+// Small chips that fall when a room is sold
+particle_system RoomAmbDebris
+{
+    material        RoomAmbDust
+    point_rendering false
+    particle_width  0.1
+    particle_height 0.1
+    cull_each       false
+    quota           20
+    billboard_type  point
+
+    emitter Box
+    {
+        angle               70
+        colour_range_start  0.38 0.32 0.26 1.0
+        colour_range_end    0.5 0.44 0.36 1.0
+        emission_rate       50
+        time_to_live        1.0
+        direction           0 0 1
+        velocity_min        0.8
+        velocity_max        1.8
+        duration            0.3
+        position            0 0 0.3
+        width               0.7
+        height              0.7
+        depth               0.2
+    }
+
+    affector LinearForce
+    {
+        force_vector        0 0 -5
+        force_application   add
+    }
+
+    affector ColourFader
+    {
+        alpha   -0.9
+    }
+}
