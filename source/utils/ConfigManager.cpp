@@ -38,6 +38,9 @@ const std::string ConfigManager::DEFAULT_TILESET_NAME = "Default";
 
 const std::string ConfigManager::DEFAULT_KEEPER_VOICE = "Default";
 
+//! \brief Default extra mana per second for each claimed mana well tile; global.cfg can override it.
+static const double DEFAULT_MANA_WELL_BONUS_PER_TILE = 100.0;
+
 const std::string ConfigManager::DefaultWorkerCreatureDefinition = "DefaultWorker";
 
 template<> ConfigManager* Ogre::Singleton<ConfigManager>::msSingleton = nullptr;
@@ -61,7 +64,7 @@ ConfigManager::ConfigManager(const std::string& configPath, const std::string& u
     mTimePayDay(300),
     mNbTurnsFuriousMax(120),
     mMaxManaPerSeat(200000.0),
-    mManaWellBonusPerTile(10.0),
+    mManaWellBonusPerTile(DEFAULT_MANA_WELL_BONUS_PER_TILE),
     mClaimingWallPenalty(0.8),
     mDigCoefGold(5.0),
     mDigCoefGem(1.0),

@@ -292,6 +292,11 @@ void MiniMap::updateMapOverlay(CEGUI::Window* window, GameMap& map,
     window->invalidate();
 }
 
+//! \brief Minimap colour channels (0 to 1) of a mana well ground tile (blue).
+static const float MANA_WELL_COLOUR_RED = 0.18f;
+static const float MANA_WELL_COLOUR_GREEN = 0.37f;
+static const float MANA_WELL_COLOUR_BLUE = 0.78f;
+
 MiniMap::TileColour MiniMap::colourFromTile(Tile& tile, Seat& playerSeat, unsigned int phase)
 {
     TileColour result;
@@ -356,7 +361,8 @@ MiniMap::TileColour MiniMap::colourFromTile(Tile& tile, Seat& playerSeat, unsign
                 result.priority = 2;
                 break;
             case TileVisual::manaWellGround:
-                result.colour = Ogre::ColourValue(0.18f, 0.37f, 0.78f);
+                result.colour = Ogre::ColourValue(MANA_WELL_COLOUR_RED, MANA_WELL_COLOUR_GREEN,
+                    MANA_WELL_COLOUR_BLUE);
                 result.priority = 2;
                 break;
             default:
