@@ -39,10 +39,14 @@ enum class Detail
     off
 };
 
+//! \brief Reads the detail option text ("full", "reduced" or "off"); anything else means full.
 Detail detailFromString(const std::string& text);
+//! \brief The option text of the detail ("full", "reduced" or "off").
 const char* detailToString(Detail detail);
 
+//! \brief Sets how much of the gold layer is drawn; the piles are built with this detail from now on.
 void setDetail(Detail detail);
+//! \brief The detail the gold layer is drawn with at the moment.
 Detail getDetail();
 
 //! \brief Returns the name of the mesh to load for the given object mesh name. Names that are not
