@@ -1389,6 +1389,7 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
 
             carried->removeEntityFromPositionTile();
 
+            carrier->setClientCarrying(true);
             RenderManager::getSingleton().rrCarryEntity(carrier, carried);
             break;
         }
@@ -1414,6 +1415,7 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
                 break;
             }
 
+            carrier->setClientCarrying(false);
             RenderManager::getSingleton().rrReleaseCarriedEntity(carrier, carried);
             carried->setPosition(pos);
             break;

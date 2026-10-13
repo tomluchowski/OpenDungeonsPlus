@@ -505,6 +505,14 @@ public:
     inline GameEntity* getCarriedEntity() const
     { return mCarriedEntity; }
 
+    //! \brief Client side only: true while the carry message of the server is in effect for this creature
+    inline bool getClientCarrying() const
+    { return mClientCarrying; }
+
+    //! \brief Client side only: set by the carry and release messages
+    inline void setClientCarrying(bool carrying)
+    { mClientCarrying = carrying; }
+
     void carryEntity(GameEntity* carriedEntity);
 
     void releaseCarriedEntity();
@@ -753,6 +761,9 @@ private:
     std::vector<CreatureActionType> mActionTry;
 
     GameEntity*                     mCarriedEntity;
+
+    //! \brief Client side only: the creature carries something (set by the carry and release messages)
+    bool                            mClientCarrying;
 
     //! \brief The mood do not have to be computed at every turn. This cooldown will
     //! count how many turns the creature should wait before computing it

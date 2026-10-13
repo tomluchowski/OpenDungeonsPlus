@@ -2863,9 +2863,16 @@ void RenderManager::rrSetObjectAnimationState(MovableGameEntity* curAnimatedObje
         }
     }
 
-    // A badly hurt creature limps when the skeleton has the clip. Same clip length and key times as Walk and the
-    // same entity state, so the speed factors stay as they are
-    if((dropCreature != nullptr) && (anim == EntityAnimation::walk_anim) && dropCreature->isLowHealthWalking() &&
+    // A creature that carries something walks with raised arms when the skeleton has the clip. The entity state
+    // stays Walk, so the speed factors of the walk clip (badly hurt) apply unchanged
+    if((dropCreature != nullptr) && (anim == EntityAnimation::walk_anim) && dropCreature->getClientCarrying() &&
+       objectEntity->getSkeleton()->hasAnimation(EntityAnimation::carry_walk_anim))
+    {
+        anim = EntityAnimation::carry_walk_anim;
+    }
+    // A badly hurt creature limps when the skeleton has the clip. Carrying wins (CarryWalk is chosen above).
+    // Same clip length and key times as Walk and the same entity state, so the speed factors stay as they are
+    else if((dropCreature != nullptr) && (anim == EntityAnimation::walk_anim) && dropCreature->isLowHealthWalking() &&
        objectEntity->getSkeleton()->hasAnimation(EntityAnimation::walk_hurt_anim))
     {
         anim = EntityAnimation::walk_hurt_anim;
@@ -4069,6 +4076,10 @@ void RenderManager::rrCarryEntity(Creature* carrier, GameEntity* carried)
     carrierNode->addChild(carriedNode);
     // We want the carried object to be at half tile (z = 0.5)
     carriedNode->setPosition(Ogre::Vector3(0, 0, 0.5));
+
+    // The carrier that already walks changes to the carrying walk clip
+    if(carrier->getAnimationStateName() == EntityAnimation::walk_anim)
+        rrSetObjectAnimationState(carrier, EntityAnimation::walk_anim, true);
 }
 
 void RenderManager::rrReleaseCarriedEntity(Creature* carrier, GameEntity* carried)
@@ -4081,6 +4092,10 @@ void RenderManager::rrReleaseCarriedEntity(Creature* carrier, GameEntity* carrie
     carried->setParentNodeDetachFlags(
         EntityParentNodeAttach::DETACH_CARRIED, false);
     carriedNode->setInheritScale(true);
+
+    // The carrier that still walks changes back to the plain walk clip
+    if(carrier->getAnimationStateName() == EntityAnimation::walk_anim)
+        rrSetObjectAnimationState(carrier, EntityAnimation::walk_anim, true);
 }
 
 void RenderManager::rrSetCreaturesTextOverlay(GameMap& gameMap, bool value)
