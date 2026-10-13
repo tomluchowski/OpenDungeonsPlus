@@ -1,0 +1,35 @@
+[
+  {
+    "id": "Cultist.mesh-female",
+    "n": 1,
+    "name": "robe",
+    "build": 0,
+    "file": "outfit-1-robe-build0.png",
+    "source": "materials/portraits/generated-outfits/Cultist.mesh-female/outfit-1-robe.png",
+    "source_sha256": "a935bd0e8a7b908d172c6dcc83a1b9eedcc8936eb7282cc50a90f853c7ad8ce5",
+    "source_size": [
+      887,
+      1774
+    ],
+    "canvas_registration": "canonical canvas",
+    "body_span_fit": "continuous outer sleeve sector extensions clipped to uncovered body",
+    "bottom_rows_repeated": 0,
+    "horizontal_scale": 1.1,
+    "vertical_scale": 1.1,
+    "offset": [
+      -44.35000000000004,
+      -72.00000000000006
+    ],
+    "mesh_warp": null,
+    "torso_margin": 1.1111111111111112,
+    "sleeve_warp": null,
+    "head_occlusion": {
+      "warm_neutral_skin_above_row": 815
+    },
+    "native_uncovered_body_pixels": 8861,
+    "coarse_uncovered_body_pixels": 253,
+    "coarse_body_pixels": 6842,
+    "visual_acceptance": "accepted-native-and-50x100",
+    "prompt": "Generate ONE separate EMPTY Cultist robe overlay registered to the attached neutral dummy as exact pose/geometry reference only. Exact887x1774 transparentRGBA canvas. Plain closed dark burgundy-brown long-sleeved robe, simple cloth sash and cuffs, no hood, symbols or ornaments. Match narrow torso, lowered arms, slight three-quarter view and muted upper-left light, coarse painted fantasy style. Male collar around y780-910, female y850-980; shoulders y920-1080, chest x80-860 y1200, sash y1510. Cover every visible shoulder, torso and arm with a small fitting margin, continuing beyond bottom crop. Only empty garments, absolutely no dummy, body, skin, head, face, eyes, nose, ears, hair, beard, helmet, hood, mask, necklace, weapon, tools, writing, insignia, symbols, modern objects or background. Preserve blank upper canvas above collar and exactframe registration, no tightcrop or recentering."
+  }
+]

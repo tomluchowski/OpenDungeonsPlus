@@ -1,0 +1,92 @@
+[
+  {
+    "outfit": "outfit-1-robe-build0.png",
+    "hair": "hair-1-swept.png",
+    "helmet": "helmet-1-arch.png",
+    "scar": "scar-1-diagonal.png",
+    "neck": "neck-1-teeth.png"
+  },
+  {
+    "outfit": "outfit-1-robe-build0.png",
+    "hair": "hair-2-waves.png",
+    "helmet": "helmet-2-crown.png",
+    "scar": "scar-2-scratches.png",
+    "neck": "neck-2-torque.png"
+  },
+  {
+    "outfit": "outfit-1-robe-build0.png",
+    "hair": "hair-1-swept.png",
+    "helmet": "helmet-3-horned.png",
+    "scar": "scar-3-warpaint.png",
+    "neck": "neck-1-teeth.png"
+  },
+  {
+    "build": "build-1-slim.png",
+    "outfit": "outfit-1-robe-build0.png",
+    "hair": "hair-2-waves.png",
+    "helmet": "helmet-4-ridged-clean.png",
+    "scar": "scar-1-diagonal.png",
+    "neck": "neck-2-torque.png"
+  },
+  {
+    "build": "build-1-slim.png",
+    "outfit": "outfit-1-robe-build0.png",
+    "hair": "hair-1-swept.png",
+    "helmet": "helmet-1-arch.png",
+    "scar": "scar-2-scratches.png",
+    "neck": "neck-1-teeth.png"
+  },
+  {
+    "build": "build-1-slim.png",
+    "outfit": "outfit-1-robe-build0.png",
+    "hair": "hair-2-waves.png",
+    "helmet": "helmet-2-crown.png",
+    "scar": "scar-3-warpaint.png",
+    "neck": "neck-2-torque.png"
+  },
+  {
+    "build": "build-2-sturdy.png",
+    "outfit": "outfit-1-robe-build0.png",
+    "hair": "hair-1-swept.png",
+    "helmet": "helmet-3-horned.png",
+    "scar": "scar-1-diagonal.png",
+    "neck": "neck-1-teeth.png"
+  },
+  {
+    "build": "build-2-sturdy.png",
+    "outfit": "outfit-1-robe-build0.png",
+    "hair": "hair-2-waves.png",
+    "helmet": "helmet-4-ridged-clean.png",
+    "scar": "scar-2-scratches.png",
+    "neck": "neck-2-torque.png"
+  },
+  {
+    "build": "build-2-sturdy.png",
+    "outfit": "outfit-1-robe-build0.png",
+    "hair": "hair-1-swept.png",
+    "helmet": "helmet-1-arch.png",
+    "scar": "scar-3-warpaint.png",
+    "neck": "neck-1-teeth.png"
+  },
+  {
+    "outfit": "outfit-1-robe-build0.png",
+    "hair": "hair-2-waves.png",
+    "helmet": "helmet-2-crown.png",
+    "scar": "scar-1-diagonal.png",
+    "neck": "neck-2-torque.png"
+  },
+  {
+    "outfit": "outfit-1-robe-build0.png",
+    "hair": "hair-1-swept.png",
+    "helmet": "helmet-3-horned.png",
+    "scar": "scar-2-scratches.png",
+    "neck": "neck-1-teeth.png"
+  },
+  {
+    "outfit": "outfit-1-robe-build0.png",
+    "hair": "hair-2-waves.png",
+    "helmet": "helmet-4-ridged-clean.png",
+    "scar": "scar-3-warpaint.png",
+    "neck": "neck-2-torque.png"
+  }
+]
