@@ -323,6 +323,7 @@ BOOST_AUTO_TEST_CASE(test_Trample)
     BOOST_CHECK(HatcheryCycle::tramples(settings, true, true, 99));
 }
 
+//! Night is the last part of each day, a new day starts on its first turn, and without a day length or a night share it is never night.
 BOOST_AUTO_TEST_CASE(test_RoosterDay)
 {
     RoosterSettings settings;
@@ -346,6 +347,7 @@ BOOST_AUTO_TEST_CASE(test_RoosterDay)
     BOOST_CHECK(!HatcheryRooster::isNewDay(0, settings));
 }
 
+//! The crow interval always lies between the configured minimum and maximum, and a maximum below the minimum falls back to the minimum.
 BOOST_AUTO_TEST_CASE(test_RoosterCrowInterval)
 {
     RoosterSettings settings;
@@ -361,6 +363,7 @@ BOOST_AUTO_TEST_CASE(test_RoosterCrowInterval)
     BOOST_CHECK_EQUAL(HatcheryRooster::crowInterval(settings, 7), 40u);
 }
 
+//! The rooster mood follows the dice, the animals present, the crow timer, a threat (which always wins) and the night.
 BOOST_AUTO_TEST_CASE(test_RoosterDecide)
 {
     RoosterSettings settings;
@@ -449,6 +452,7 @@ BOOST_AUTO_TEST_CASE(test_RoosterDecide)
     BOOST_CHECK(HatcheryRooster::decide(context, settings).mMood == RoosterMood::strut);
 }
 
+//! The crow for a new day stays owed until he has crowed for it, also when he was busy on the first turn, and a threat is handled before the crow.
 BOOST_AUTO_TEST_CASE(test_RoosterNewDayCrow)
 {
     RoosterSettings settings;
