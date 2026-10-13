@@ -67,6 +67,48 @@ bool isSeatMatching(const Creature* creature, int32_t seatId)
     return (creature->getSeat() != nullptr) && (creature->getSeat()->getId() == seatId);
 }
 
+//! Seat -1 matches every tile, seat 0 the tiles that nobody claimed
+bool isTileOwnerMatching(const Tile* tile, int32_t seatId)
+{
+    if(seatId < 0)
+        return true;
+
+    if(tile->getSeat() == nullptr)
+        return seatId == 0;
+
+    return tile->getSeat()->getId() == seatId;
+}
+
+//! The tile kinds of the level scripts (see LevelScript.h)
+bool isTileOfKind(const Tile* tile, const std::string& kind)
+{
+    TileVisual visual = tile->getTileVisual();
+    if(kind == "rock")
+        return visual == TileVisual::dirtFull;
+    if(kind == "path")
+        return (visual == TileVisual::dirtGround) || (visual == TileVisual::goldGround) || (visual == TileVisual::gemGround);
+    if(kind == "gold")
+        return visual == TileVisual::goldFull;
+    if(kind == "gems")
+        return visual == TileVisual::gemFull;
+    if(kind == "claimed")
+        return visual == TileVisual::claimedGround;
+    if(kind == "wall")
+        return visual == TileVisual::claimedFull;
+    if(kind == "water")
+        return visual == TileVisual::waterGround;
+    if(kind == "lava")
+        return visual == TileVisual::lavaGround;
+    if(kind == "impenetrable")
+        return (visual == TileVisual::rockFull) || (visual == TileVisual::rockGround);
+    Room* room = tile->getCoveringRoom();
+    if(room == nullptr)
+        return false;
+
+    RoomType roomType = RoomManager::getRoomTypeFromRoomName(kind);
+    return (roomType != RoomType::nullRoomType) && (room->getType() == roomType);
+}
+
 //! An empty class name matches every creature
 bool isClassMatching(const Creature* creature, const std::string& className)
 {
@@ -162,6 +204,52 @@ bool isConditionMet(GameMap& gameMap, const LevelScript& script, const LevelScri
         }
         case LevelScriptConditionType::timer:
             return levelScriptCompare(script.getTimerTurns(cond.mName), cond.mCompare, secondsToTurns(cond.mNumber));
+        case LevelScriptConditionType::tileKinds:
+        case LevelScriptConditionType::tilesTagged:
+        {
+            const LevelScriptRegion* region = script.getRegion(cond.mName);
+            if(region == nullptr)
+            {
+                OD_LOG_ERR("Level script: unknown region name=" + cond.mName);
+                return false;
+            }
+
+            Seat* seat = gameMap.getSeatById(cond.mSeatId);
+            Player* player = (seat != nullptr) ? seat->getPlayer() : nullptr;
+            if((cond.mType == LevelScriptConditionType::tilesTagged) && (player == nullptr))
+                return false;
+
+            int64_t numTiles = 0;
+            int64_t numDiggable = 0;
+            for(int32_t x = std::min(region->mX1, region->mX2); x <= std::max(region->mX1, region->mX2); ++x)
+            {
+                for(int32_t y = std::min(region->mY1, region->mY2); y <= std::max(region->mY1, region->mY2); ++y)
+                {
+                    Tile* tile = gameMap.getTile(x, y);
+                    if(tile == nullptr)
+                        continue;
+
+                    if(cond.mType == LevelScriptConditionType::tileKinds)
+                    {
+                        if(isTileOwnerMatching(tile, cond.mSeatId) && isTileOfKind(tile, cond.mName2))
+                            ++numTiles;
+                    }
+                    else
+                    {
+                        if(tile->isDiggable(seat))
+                        {
+                            ++numDiggable;
+                            if(tile->getMarkedForDigging(player))
+                                ++numTiles;
+                        }
+                    }
+                }
+            }
+            if((cond.mType == LevelScriptConditionType::tilesTagged) && (cond.mNumber < 0))
+                return (numDiggable > 0) && (numTiles == numDiggable);
+
+            return levelScriptCompare(numTiles, cond.mCompare, cond.mNumber);
+        }
         case LevelScriptConditionType::creatureEvent:
         {
             if(cond.mName2 == "created")
@@ -548,6 +636,86 @@ void makeSkillAvailable(GameMap& gameMap, const LevelScriptAction& action)
     }
 }
 
+//! Changes the tiles of the rectangle, as digging or claiming does: the tile is recomputed and
+//! sent to every seat that sees it
+void alterTerrain(GameMap& gameMap, const LevelScriptAction& action)
+{
+    TileType type = TileType::dirt;
+    double fullness = 0.0;
+    bool claim = false;
+    if(action.mText == "rock")
+        fullness = 100.0;
+    else if(action.mText == "path")
+        fullness = 0.0;
+    else if(action.mText == "claimed")
+        claim = true;
+    else if(action.mText == "wall")
+    {
+        fullness = 100.0;
+        claim = true;
+    }
+    else if(action.mText == "gold")
+    {
+        type = TileType::gold;
+        fullness = 100.0;
+    }
+    else if(action.mText == "gems")
+    {
+        type = TileType::gem;
+        fullness = 100.0;
+    }
+    else if(action.mText == "water")
+        type = TileType::water;
+    else if(action.mText == "lava")
+        type = TileType::lava;
+    else if(action.mText == "impenetrable")
+    {
+        type = TileType::rock;
+        fullness = 100.0;
+    }
+    else
+    {
+        OD_LOG_ERR("Level script: unknown terrain kind=" + action.mText);
+        return;
+    }
+
+    Seat* seat = (action.mSeatId >= 0) ? gameMap.getSeatById(action.mSeatId) : nullptr;
+    if(claim && (seat == nullptr))
+    {
+        OD_LOG_ERR("Level script: terrain " + action.mText + " needs a seat");
+        return;
+    }
+
+    for(int32_t x = std::min(action.mX, action.mX2); x <= std::max(action.mX, action.mX2); ++x)
+    {
+        for(int32_t y = std::min(action.mY, action.mY2); y <= std::max(action.mY, action.mY2); ++y)
+        {
+            Tile* tile = gameMap.getTile(x, y);
+            if(tile == nullptr)
+                continue;
+
+            // Rooms, traps and doors stay, and a wall does not grow around creatures
+            if(tile->getCoveringBuilding() != nullptr)
+                continue;
+
+            if((fullness > 0.0 || type == TileType::lava || type == TileType::water) && (tile->numEntitiesInTile() > 0))
+                continue;
+
+            tile->setType(type);
+            tile->setFullness(fullness);
+            if(claim)
+                tile->claimTile(seat);
+            else
+                tile->unclaimTile();
+
+            tile->computeTileVisual();
+            tile->setDirtyForAllSeats();
+            for(Seat* other : gameMap.getSeats())
+                gameMap.refreshFloodFill(other, tile);
+        }
+    }
+}
+
 //! Alliances join the seats into one team. Breaking one puts the seat into a team of its own.
 void changeAlliance(GameMap& gameMap, const LevelScriptAction& action)
 {
@@ -762,6 +930,9 @@ void runAction(GameMap& gameMap, LevelScript& script, const LevelScriptAction& a
             break;
         case LevelScriptActionType::startTimer:
             script.startTimer(action.mText, secondsToTurns(action.mNumber));
+            break;
+        case LevelScriptActionType::alterTerrain:
+            alterTerrain(gameMap, action);
             break;
         case LevelScriptActionType::portalStatus:
             script.setPortalOff(action.mSeatId, action.mNumber == 0);

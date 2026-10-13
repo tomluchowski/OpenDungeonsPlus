@@ -654,3 +654,59 @@ BOOST_AUTO_TEST_CASE(test_orders_and_slaps)
         BOOST_CHECK_MESSAGE(!bad.importFromStream(isBad), entry);
     }
 }
+
+//! \brief Tile kind and tagged tile conditions and the terrain action are read, written and refused when malformed
+BOOST_AUTO_TEST_CASE(test_terrain)
+{
+    static const std::string text =
+        "Region\tHole\t5\t5\t7\t7\n"
+        "[Trigger]\n"
+        "Name\tworld\n"
+        "Mode\tonce\n"
+        "Cond\tslabs\t0\tHole\tpath\t>=\t4\n"
+        "Cond\tslabs\t-1\tHole\tTreasury\t==\t0\n"
+        "Cond\ttagged\t1\tHole\t>=\t2\n"
+        "Cond\ttagged\t1\tHole\tall\n"
+        "Action\tterrain\t5\t5\t7\t7\trock\n"
+        "Action\tterrain\t8\t8\t8\t8\tclaimed\t1\n"
+        "[/Trigger]\n"
+        "[/Triggers]\n";
+    LevelScript script;
+    std::istringstream is(text);
+    BOOST_REQUIRE(script.importFromStream(is));
+
+    const LevelScriptTrigger& trigger = script.getTriggers()[0];
+    BOOST_REQUIRE_EQUAL(trigger.mConditions.size(), 4u);
+    BOOST_CHECK(trigger.mConditions[0].mType == LevelScriptConditionType::tileKinds);
+    BOOST_CHECK_EQUAL(trigger.mConditions[0].mName2, "path");
+    BOOST_CHECK_EQUAL(trigger.mConditions[0].mSeatId, 0);
+    BOOST_CHECK(trigger.mConditions[2].mType == LevelScriptConditionType::tilesTagged);
+    BOOST_CHECK_EQUAL(trigger.mConditions[2].mNumber, 2);
+    BOOST_CHECK_EQUAL(trigger.mConditions[3].mNumber, -1);
+    BOOST_REQUIRE_EQUAL(trigger.mActions.size(), 2u);
+    BOOST_CHECK(trigger.mActions[0].mType == LevelScriptActionType::alterTerrain);
+    BOOST_CHECK_EQUAL(trigger.mActions[0].mX2, 7);
+    BOOST_CHECK_EQUAL(trigger.mActions[0].mSeatId, -1);
+    BOOST_CHECK_EQUAL(trigger.mActions[1].mSeatId, 1);
+
+    std::ostringstream os;
+    script.exportToStream(os);
+    std::string written = os.str();
+    LevelScript again;
+    std::istringstream is2(written.substr(11));
+    BOOST_REQUIRE(again.importFromStream(is2));
+    std::ostringstream os2;
+    again.exportToStream(os2);
+    BOOST_CHECK_EQUAL(os2.str(), written);
+
+    static const char* bad[] = {
+        "[Trigger]\nName\tx\nMode\tonce\nCond\ttime\t1\nAction\tterrain\t1\t1\t2\t2\nAction\tmessage\t1\tx\n[/Trigger]\n[/Triggers]\n",
+        "[Trigger]\nName\tx\nMode\tonce\nCond\tslabs\t1\tHole\tpath\t2\nAction\tmessage\t1\tx\n[/Trigger]\n[/Triggers]\n",
+        "[Trigger]\nName\tx\nMode\tonce\nCond\ttagged\t1\tHole\tsome\nAction\tmessage\t1\tx\n[/Trigger]\n[/Triggers]\n"};
+    for(const char* entry : bad)
+    {
+        LevelScript invalid;
+        std::istringstream isBad(entry);
+        BOOST_CHECK_MESSAGE(!invalid.importFromStream(isBad), entry);
+    }
+}

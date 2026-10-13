@@ -283,6 +283,30 @@ bool parseCondition(const std::vector<std::string>& t, LevelScriptCondition& con
         }
         return parseInt(value, cond.mNumber);
     }
+    if(type == "slabs")
+    {
+        cond.mType = LevelScriptConditionType::tileKinds;
+        if(t.size() != 7)
+            return false;
+
+        cond.mName = t[3];
+        cond.mName2 = t[4];
+        return parseInt32(t[2], cond.mSeatId) && parseOperator(t[5], cond) && parseInt(t[6], cond.mNumber);
+    }
+    if(type == "tagged")
+    {
+        cond.mType = LevelScriptConditionType::tilesTagged;
+        if((t.size() != 5) && (t.size() != 6))
+            return false;
+
+        cond.mName = t[3];
+        if(t.size() == 5)
+        {
+            cond.mNumber = -1;
+            return (t[4] == "all") && parseInt32(t[2], cond.mSeatId);
+        }
+        return parseInt32(t[2], cond.mSeatId) && parseOperator(t[4], cond) && parseInt(t[5], cond.mNumber);
+    }
     if(type == "event")
     {
         cond.mType = LevelScriptConditionType::creatureEvent;
@@ -537,6 +561,18 @@ bool parseAction(const std::string& line, const std::vector<std::string>& t, Lev
         action.mType = LevelScriptActionType::waveCountdown;
         return (t.size() == 3) && parseInt(t[2], action.mNumber) && (action.mNumber >= 0);
     }
+    if(type == "terrain")
+    {
+        action.mType = LevelScriptActionType::alterTerrain;
+        if((t.size() != 7) && (t.size() != 8))
+            return false;
+
+        action.mText = t[6];
+        action.mSeatId = -1;
+        return parseInt32(t[2], action.mX) && parseInt32(t[3], action.mY) &&
+            parseInt32(t[4], action.mX2) && parseInt32(t[5], action.mY2) &&
+            ((t.size() == 7) || parseInt32(t[7], action.mSeatId));
+    }
     if(type == "portal")
     {
         action.mType = LevelScriptActionType::portalStatus;
@@ -693,6 +729,16 @@ void writeCondition(std::ostream& os, const LevelScriptCondition& c)
             else
                 os << "reached\t" << c.mName << "\tregion\t" << c.mName2;
             break;
+        case LevelScriptConditionType::tileKinds:
+            os << "slabs\t" << c.mSeatId << "\t" << c.mName << "\t" << c.mName2 << "\t" << levelScriptCompareToken(c.mCompare) << "\t" << c.mNumber;
+            break;
+        case LevelScriptConditionType::tilesTagged:
+            os << "tagged\t" << c.mSeatId << "\t" << c.mName << "\t";
+            if(c.mNumber < 0)
+                os << "all";
+            else
+                os << levelScriptCompareToken(c.mCompare) << "\t" << c.mNumber;
+            break;
         case LevelScriptConditionType::creatureEvent:
             os << "event\t" << c.mName << "\t" << c.mName2;
             if((c.mCompare != LevelScriptCompare::atLeast) || (c.mNumber != 1))
@@ -818,6 +864,11 @@ void writeAction(std::ostream& os, const LevelScriptAction& a)
             break;
         case LevelScriptActionType::startTimer:
             os << "timer\t" << a.mText << "\t" << a.mNumber;
+            break;
+        case LevelScriptActionType::alterTerrain:
+            os << "terrain\t" << a.mX << "\t" << a.mY << "\t" << a.mX2 << "\t" << a.mY2 << "\t" << a.mText;
+            if(a.mSeatId >= 0)
+                os << "\t" << a.mSeatId;
             break;
         case LevelScriptActionType::portalStatus:
             os << "portal\t" << a.mSeatId << "\t" << (a.mNumber != 0 ? "on" : "off");

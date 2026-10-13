@@ -58,6 +58,9 @@
 //!           # events: killed (dies), incapacitated (dies or is knocked out), attacked (takes damage), slapped, pickedup,
 //!           # steals (takes gold), claimed (a neutral creature joins a keeper), created (the creature or a member of the party exists; counts them).
 //!           # Two more tags: Seat<id> with the event cast:<spellName> (the player cast that spell, spell type names such as callToWar) and the tag Level with the event payday.
+//!   Cond    slabs <seatId> <regionName> <kind> <op> <count>   # tiles of the region of that kind: rock (earth wall), path (dug floor), gold, gems, claimed (claimed floor), wall (reinforced wall), water, lava, impenetrable or a room name; seat -1 any owner, 0 unclaimed
+//!   Cond    tagged <seatId> <regionName> <op> <count>   # tiles of the region marked for digging by the seat
+//!   Cond    tagged <seatId> <regionName> all            # every diggable tile of the region is marked for digging by the seat (and there is one)
 //!   Cond    defeated <seatId>                 # the seat has lost its dungeon (its player is out of the game)
 //!   Cond    slaps <seatId> <op> <count>       # slaps the player of the seat has tried to do (a slap that the slap limit refuses counts too)
 //!   Cond    furniture <seatId> <roomName> <op> <count>   # furniture objects (bookcases, beds, ...) in the rooms of that type of the seat
@@ -90,6 +93,7 @@
 //!   Action  gold <seatId> <amount>
 //!   Action  setflag <name> <value>
 //!   Action  addflag <name> <delta>            # adds to the flag (a negative value subtracts)
+//!   Action  terrain <x1> <y1> <x2> <y2> <kind> [<seatId>]   # changes the tiles of the rectangle: rock, path, gold, gems, claimed, wall (claimed by the seat), water, lava, impenetrable
 //!   Action  portal <seatId> on | off          # the portals of the seat do (not) attract creatures
 //!   Action  available <seatId> <class> 1 | 0  # a creature class can (not) come to the dungeon of the seat
 //!   Action  remove <creatureName>             # the creature leaves the map
@@ -157,6 +161,8 @@ enum class LevelScriptConditionType
     roomTiles,
     largestRoom,
     creatureEvent,
+    tileKinds,
+    tilesTagged,
     playerSlaps,
     roomFurniture,
     dungeonBreached,
@@ -182,6 +188,7 @@ enum class LevelScriptActionType
     countdown,
     waveCountdown,
     startTimer,
+    alterTerrain,
     portalStatus,
     creatureAvailable,
     removeCreature,
@@ -239,6 +246,8 @@ struct LevelScriptAction
         mSeatId(-1),
         mX(0),
         mY(0),
+        mX2(0),
+        mY2(0),
         mTargetSeatId(-1),
         mNumber(0)
     {}
@@ -247,6 +256,9 @@ struct LevelScriptAction
     int32_t mSeatId;
     int32_t mX;
     int32_t mY;
+    //! \brief terrain: second corner of the rectangle
+    int32_t mX2;
+    int32_t mY2;
     //! \brief spawn: seat whose dungeon the spawned group attacks (-1: none)
     int32_t mTargetSeatId;
     //! \brief Gold amount (gold), flag value (setflag), amount added to a flag (addflag) or
