@@ -1408,6 +1408,7 @@ void GameMap::updateSeatMana(Seat* seat, double timeSinceLastTurn)
     seat->mManaUpkeepPerSecond = manaUpkeepPerSecond(seat->getNumCreaturesWorkers()) + trapUpkeepPerSecond;
     seat->mManaDelta = (seat->mManaIncomePerSecond - seat->mManaUpkeepPerSecond)
         / ODApplication::turnsPerSecond;
+
     seat->mMana += seat->mManaDelta;
 
     // Upkeep never brings the mana below 0, running dry is what makes the workers pop
@@ -1630,7 +1631,8 @@ Tile* GameMap::getHeartDefenceTargetTile(Creature& runner, Seat* seat)
         return nullptr;
 
     // A damaged heart takes the runners; otherwise they rally the nearest fighter
-    if (!seat->getHeartDefenceHeartDamaged())
+    Tile* runnerTile = runner.getPositionTile();
+    if (!seat->getHeartDefenceHeartDamaged() && runnerTile != nullptr)
     {
         Tile* nearestFighterTile = nullptr;
         bool foundFighter = false;
@@ -1648,7 +1650,7 @@ Tile* GameMap::getHeartDefenceTargetTile(Creature& runner, Seat* seat)
             Tile* fighterTile = creature->getPositionTile();
             if (fighterTile == nullptr)
                 continue;
-            const int distanceSquared = Pathfinding::squaredDistanceTile(*runner.getPositionTile(), *fighterTile);
+            const int distanceSquared = Pathfinding::squaredDistanceTile(*runnerTile, *fighterTile);
             if (!foundFighter || distanceSquared < nearestDistanceSquared)
             {
                 foundFighter = true;
