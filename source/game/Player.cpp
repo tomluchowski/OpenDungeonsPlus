@@ -19,6 +19,7 @@
 
 #include "creatureaction/CreatureAction.h"
 #include "entities/Creature.h"
+#include "entities/CreatureDefinition.h"
 #include "entities/GameEntityType.h"
 #include "entities/Tile.h"
 #include "game/SkillManager.h"
@@ -74,6 +75,9 @@ Player::Player(GameMap* gameMap, int32_t id) :
     mCreatureCannotFindBed(0.0f),
     mCreatureCannotFindFood(0.0f),
     mHasLost(false),
+    mConquerorSeatId(-1),
+    mDefeatHeartTileX(-1),
+    mDefeatHeartTileY(-1),
     mSpellsCooldown(std::vector<PlayerSpellData>(static_cast<uint32_t>(SpellType::nbSpells), PlayerSpellData(0, 0.0f))),
     mWorkersActions(std::vector<uint32_t>(static_cast<uint32_t>(CreatureActionType::nb), 0))
 {
@@ -295,6 +299,17 @@ void Player::pickUpEntity(GameEntity *entity)
 }
 
 
+unsigned int Player::getHandIndex(GameEntityType type, const std::string& name) const
+{
+    for(unsigned int index = 0; index < mObjectsInHand.size(); ++index)
+    {
+        GameEntity* entity = mObjectsInHand[index];
+        if(entity->getObjectType() == type && entity->getName() == name)
+            return index;
+    }
+    return static_cast<unsigned int>(mObjectsInHand.size());
+}
+
 bool Player::isDropHandPossible(Tile *t, unsigned int index)
 {
     // if we have a creature to drop
@@ -326,13 +341,19 @@ void Player::dropHand(Tile *t, unsigned int index)
     {
         entity->drop(pos);
         entity->fireDropEntity(this, t);
+        if(!mGameMap->isInEditorMode() && entity->getObjectType() == GameEntityType::creature)
+        {
+            Creature* creature = static_cast<Creature*>(entity);
+            if(creature->getDefinition()->getTurnsStunDropped() > 0)
+                creature->setAnimationState(EntityAnimation::drop_anim, false,
+                    Ogre::Vector3::ZERO, false);
+        }
         return;
     }
 
     entity->correctDropPosition(pos);
     OD_LOG_INF("player seatId=" + Helper::toString(getSeat()->getId()) + " drop " + entity->getName() + " on tile=" + Tile::displayAsString(t));
     entity->drop(pos);
-
     // If this is the result of another player dropping the creature it is currently not visible so we need to create a mesh for it
     //cout << "\nthis:  " << this << "\nme:  " << gameMap->getLocalPlayer() << endl;
     //cout.flush();
@@ -438,6 +459,39 @@ void Player::notifyNoMoreDungeonTemple()
             ODServer::getSingleton().queueServerNotification(serverNotification);
         }
         mGameMap->fireRelativeSound(seats, SoundRelativeKeeperStatements::AllyDefeated);
+    }
+
+    // Tell the defeated human player's client to start the defeat sequence (this player only, once)
+    if(getIsHuman())
+    {
+        ServerNotification *serverNotification = new ServerNotification(
+            ServerNotificationType::playerDefeated, this);
+        serverNotification->mPacket << mConquerorSeatId << mDefeatHeartTileX << mDefeatHeartTileY;
+        ODServer::getSingleton().queueServerNotification(serverNotification);
+
+        // Snapshot of the debriefing counters of every seat with a player (not the rogue seat)
+        std::vector<Seat*> statisticsSeats;
+        for(Seat* seat : mGameMap->getSeats())
+        {
+            if(seat->isRogueSeat() || (seat->getPlayer() == nullptr))
+                continue;
+
+            statisticsSeats.push_back(seat);
+        }
+
+        serverNotification = new ServerNotification(ServerNotificationType::levelStatistics, this);
+        int32_t elapsedSeconds = static_cast<int32_t>(mGameMap->getTurnNumber() / ODApplication::turnsPerSecond);
+        bool levelWon = false;
+        serverNotification->mPacket << elapsedSeconds << levelWon << static_cast<int32_t>(statisticsSeats.size());
+        for(Seat* seat : statisticsSeats)
+        {
+            const SeatStatistics& statistics = seat->getStatistics();
+            serverNotification->mPacket << static_cast<int32_t>(seat->getId());
+            serverNotification->mPacket << statistics.mKeepersDefeated << statistics.mCreaturesKilled
+                << statistics.mHeroesDestroyed << statistics.mRoomsCaptured << statistics.mItemsMade
+                << statistics.mCreaturesConverted;
+        }
+        ODServer::getSingleton().queueServerNotification(serverNotification);
     }
 }
 
