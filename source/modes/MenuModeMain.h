@@ -59,8 +59,11 @@ private:
     bool toggleSubMenu(const std::string& name);
 
     //! \brief Sub menu button triggers
+    //! \brief Shows or hides the campaign sub menu
     bool toggleCampaignSubMenu(const CEGUI::EventArgs&);
+    //! \brief Starts a new campaign, after a confirmation when there is saved progress that it would replace
     bool newCampaignPressed(const CEGUI::EventArgs&);
+    //! \brief Forgets the saved campaign progress and opens the campaign menu
     bool newCampaignConfirmed(const CEGUI::EventArgs&);
 
     //! \brief Shows or hides the question that asks whether the saved campaign progress
