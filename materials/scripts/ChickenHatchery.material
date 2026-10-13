@@ -79,6 +79,21 @@ material ChickenFeatherDecor
     }
 }
 
+material ChickenEggInside
+{
+    receive_shadows on
+    technique
+    {
+        pass
+        {
+            cull_hardware none
+            cull_software none
+            ambient 0.55 0.38 0.12 1.0
+            diffuse 0.62 0.42 0.14 1.0
+        }
+    }
+}
+
 material ChickenEggShell
 {
     technique

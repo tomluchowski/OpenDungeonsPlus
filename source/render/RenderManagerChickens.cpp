@@ -15,10 +15,13 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-// Looks and motion of the hatchery animals on the client: eggs in straw, chicks, the rooster, the
-// straw nests scattered over the hatchery and loose feathers next to the coops. Everything is procedural: the chicken mesh is scaled and tinted,
-// the egg, straw, comb and tail are meshes made in code, the motion comes from a pose name that the server
-// sends as animation name (see ChickenPose.h). Nothing here changes the game state.
+// Looks and motion of the hatchery animals on the client: eggs in straw, chicks, the rooster, the straw nests
+// scattered over the hatchery and loose feathers next to the coops. The egg, chick and rooster have meshes of their
+// own (ChickenEgg, ChickenEggCracked, ChickenChick, ChickenRooster, made in Blender, the chick and rooster share the
+// hen skeleton with its clips), so has the nest (ChickenNest). The loose feathers are a mesh made in code. The motion
+// comes from a pose name that the server sends as animation name (see ChickenPose.h), a little procedural motion is
+// added on top.
+// Nothing here changes the game state.
 
 #include "render/RenderManager.h"
 
@@ -37,24 +40,20 @@
 
 #include <OgreEntity.h>
 #include <OgreManualObject.h>
-#include <OgreMaterial.h>
-#include <OgreMaterialManager.h>
 #include <OgreMesh.h>
 #include <OgreMeshManager.h>
 #include <OgreParticleSystem.h>
 #include <OgreSceneManager.h>
 #include <OgreSceneNode.h>
+#include <OgreSkeletonInstance.h>
 #include <OgreSubEntity.h>
-#include <OgreTechnique.h>
 
 #include <algorithm>
 #include <cmath>
 
 namespace
 {
-const std::string MeshEgg = "ChickenEgg";
-const std::string MeshComb = "ChickenRoosterComb";
-const std::string MeshTail = "ChickenRoosterTail";
+const std::string MeshEggCracked = "ChickenEggCracked";
 const std::string MeshNest = "ChickenNest";
 const std::string MeshFeathers = "ChickenLooseFeathers";
 const std::string MaterialGroup = "Graphics";
@@ -178,20 +177,6 @@ void finishShape(Ogre::SceneManager* sceneManager, Ogre::ManualObject* object, c
     sceneManager->destroyManualObject(object);
 }
 
-//! \brief Makes the egg lying in straw.
-void buildEgg(Ogre::SceneManager* sceneManager)
-{
-    Ogre::ManualObject* object = beginShape(sceneManager, "ChickenStraw");
-    uint32_t index = 0;
-    addStraw(object, index, Ogre::Vector3(0.0f, 0.0f, 0.0f), 0.02f, 0.095f, 26, 11u);
-    object->end();
-    object->begin("ChickenEgg", Ogre::RenderOperation::OT_TRIANGLE_LIST, MaterialGroup);
-    index = 0;
-    addEgg(object, index, Ogre::Vector3(0.0f, 0.0f, 0.012f), 0.03f, 0.08f);
-    object->end();
-    finishShape(sceneManager, object, MeshEgg);
-}
-
 //! \brief Makes the loose feathers that show next to a coop of an abandoned hatchery.
 void buildFeathers(Ogre::SceneManager* sceneManager)
 {
@@ -222,87 +207,6 @@ void buildFeathers(Ogre::SceneManager* sceneManager)
     finishShape(sceneManager, object, MeshFeathers);
 }
 
-//! A flat shape in the y-z plane with some thickness along x
-void addComb(Ogre::ManualObject* object, uint32_t& index)
-{
-    // Outline of the comb (y, z), the head of the chicken looks along -y
-    static const float outline[][2] = {
-        {-0.150f, 0.165f}, {-0.141f, 0.198f}, {-0.130f, 0.172f}, {-0.120f, 0.207f},
-        {-0.109f, 0.172f}, {-0.099f, 0.195f}, {-0.090f, 0.163f}};
-    const int count = sizeof(outline) / sizeof(outline[0]);
-    const float half = 0.007f;
-    const float centerY = -0.12f;
-    const float centerZ = 0.166f;
-    for(int side = 0; side < 2; ++side)
-    {
-        const float x = side == 0 ? -half : half;
-        const Ogre::Vector3 normal(side == 0 ? -1.0f : 1.0f, 0.0f, 0.0f);
-        for(int i = 0; i + 1 < count; ++i)
-        {
-            object->position(x, centerY, centerZ);
-            object->normal(normal);
-            object->textureCoord(0.5f, 0.5f);
-            object->position(x, outline[i][0], outline[i][1]);
-            object->normal(normal);
-            object->textureCoord(0.0f, 0.0f);
-            object->position(x, outline[i + 1][0], outline[i + 1][1]);
-            object->normal(normal);
-            object->textureCoord(1.0f, 0.0f);
-            object->triangle(index, index + 1, index + 2);
-            index += 3;
-        }
-    }
-    // The upper edge
-    for(int i = 0; i + 1 < count; ++i)
-    {
-        Ogre::Vector3 edge(0.0f, outline[i + 1][0] - outline[i][0], outline[i + 1][1] - outline[i][1]);
-        Ogre::Vector3 normal(0.0f, -edge.z, edge.y);
-        normal.normalise();
-        addQuad(object, index, Ogre::Vector3(-half, outline[i][0], outline[i][1]),
-            Ogre::Vector3(half, outline[i][0], outline[i][1]), Ogre::Vector3(half, outline[i + 1][0], outline[i + 1][1]),
-            Ogre::Vector3(-half, outline[i + 1][0], outline[i + 1][1]), normal);
-    }
-}
-
-//! \brief Makes the comb of the rooster.
-void buildComb(Ogre::SceneManager* sceneManager)
-{
-    Ogre::ManualObject* object = beginShape(sceneManager, "ChickenRoosterComb");
-    uint32_t index = 0;
-    addComb(object, index);
-    object->end();
-    finishShape(sceneManager, object, MeshComb);
-}
-
-//! Long curved tail feathers that stand up behind the body
-//! \brief Makes the tail feathers of the rooster.
-void buildTail(Ogre::SceneManager* sceneManager)
-{
-    Ogre::ManualObject* object = beginShape(sceneManager, "ChickenRoosterTail");
-    uint32_t index = 0;
-    static const float spread[] = {-0.045f, -0.015f, 0.015f, 0.045f};
-    static const float lift[] = {0.19f, 0.25f, 0.25f, 0.19f};
-    for(int feather = 0; feather < 4; ++feather)
-    {
-        Ogre::Vector3 previous(0.0f, 0.12f, 0.1f);
-        float previousWidth = 0.008f;
-        for(int part = 1; part <= 4; ++part)
-        {
-            const float t = static_cast<float>(part) / 4.0f;
-            const Ogre::Vector3 next(spread[feather] * t, 0.12f + 0.11f * t + 0.05f * t * t,
-                0.1f + (lift[feather] - 0.1f) * std::sin(t * 1.35f) / std::sin(1.35f));
-            const float width = 0.012f * (1.0f - 0.55f * t);
-            const Ogre::Vector3 side(1.0f, 0.0f, 0.0f);
-            addQuad(object, index, previous - side * previousWidth, previous + side * previousWidth,
-                next + side * width, next - side * width, Ogre::Vector3(0.0f, 1.0f, 0.2f).normalisedCopy());
-            previous = next;
-            previousWidth = width;
-        }
-    }
-    object->end();
-    finishShape(sceneManager, object, MeshTail);
-}
-
 //! \brief Builds the named mesh with the given function unless it exists already.
 void ensureMesh(Ogre::SceneManager* sceneManager, const std::string& name, void (*build)(Ogre::SceneManager*))
 {
@@ -326,72 +230,13 @@ float kindScale(ChickenKind kind)
         case ChickenKind::chick:
             return configValue("HatcheryChickScale", 0.5f);
         case ChickenKind::rooster:
-            return configValue("HatcheryRoosterScale", 1.4f);
+            return configValue("HatcheryRoosterScale", 1.25f);
         default:
             return 1.0f;
     }
 }
 
-//! Tint of the animal by kind, the white of a hen is the texture itself
-Ogre::ColourValue kindTint(ChickenKind kind)
-{
-    switch(kind)
-    {
-        case ChickenKind::chick:
-            return Ogre::ColourValue(configValue("HatcheryChickTintR", 1.5f), configValue("HatcheryChickTintG", 1.35f),
-                configValue("HatcheryChickTintB", 0.45f), 1.0f);
-        case ChickenKind::rooster:
-            return Ogre::ColourValue(configValue("HatcheryRoosterTintR", 1.3f), configValue("HatcheryRoosterTintG", 0.7f),
-                configValue("HatcheryRoosterTintB", 0.5f), 1.0f);
-        default:
-            return Ogre::ColourValue(1.0f, 1.0f, 1.0f, 1.0f);
-    }
-}
-
-const std::string TintChick = "_Chick";
-const std::string TintRooster = "_Rooster";
-
-//! \brief Removes the tint suffix of a tinted hen mesh name, so the name of the plain mesh remains.
-std::string stripTintSuffix(const std::string& name)
-{
-    for(const std::string* suffix : {&TintChick, &TintRooster})
-    {
-        if(name.size() > suffix->size() && name.compare(name.size() - suffix->size(), suffix->size(), *suffix) == 0)
-            return name.substr(0, name.size() - suffix->size());
-    }
-    return name;
-}
-
-//! Name of the material for a kind: the original material, or a copy multiplied by the tint
-std::string tintedMaterial(const std::string& baseName, ChickenKind kind, const std::string& group)
-{
-    if((kind != ChickenKind::chick) && (kind != ChickenKind::rooster))
-        return baseName;
-
-    const std::string name = baseName + (kind == ChickenKind::chick ? TintChick : TintRooster);
-    Ogre::MaterialManager& materials = Ogre::MaterialManager::getSingleton();
-    if(materials.resourceExists(name, group))
-        return name;
-
-    Ogre::MaterialPtr original = materials.getByName(baseName, group);
-    if(original.isNull())
-        return baseName;
-
-    Ogre::MaterialPtr copy = original->clone(name);
-    const Ogre::ColourValue tint = kindTint(kind);
-    for(unsigned short t = 0; t < copy->getNumTechniques(); ++t)
-    {
-        Ogre::Technique* technique = copy->getTechnique(t);
-        for(unsigned short p = 0; p < technique->getNumPasses(); ++p)
-        {
-            Ogre::Pass* pass = technique->getPass(p);
-            pass->setAmbient(pass->getAmbient() * tint);
-            pass->setDiffuse(pass->getDiffuse() * tint);
-        }
-    }
-    return name;
-}
-//! An egg in a nest of the coop mesh lies on the straw of the nest: the straw of the egg mesh is hidden
+//! An egg in a nest lies on the straw of the nest: the straw of the egg mesh is hidden
 void hideEggStraw(Ogre::Entity* entity)
 {
     for(unsigned int i = 0; i < entity->getNumSubEntities(); ++i)
@@ -406,13 +251,7 @@ void hideEggStraw(Ogre::Entity* entity)
 
 void RenderManager::rrEnsureChickenMesh(const std::string& meshName)
 {
-    if(meshName == MeshEgg)
-        ensureMesh(mSceneManager, MeshEgg, buildEgg);
-    else if(meshName == MeshComb)
-        ensureMesh(mSceneManager, MeshComb, buildComb);
-    else if(meshName == MeshTail)
-        ensureMesh(mSceneManager, MeshTail, buildTail);
-    else if(meshName == MeshFeathers)
+    if(meshName == MeshFeathers)
         ensureMesh(mSceneManager, MeshFeathers, buildFeathers);
 }
 
@@ -490,34 +329,15 @@ void RenderManager::applyChickenKindLook(ChickenEntity* chicken)
 
     ChickenLook& look = it->second;
     const ChickenKind kind = chicken->getKind();
-    for(unsigned int sub = 0; sub < look.mEntity->getNumSubEntities(); ++sub)
-    {
-        Ogre::SubEntity* part = look.mEntity->getSubEntity(sub);
-        const std::string baseName = stripTintSuffix(part->getMaterialName());
-        const std::string name = tintedMaterial(baseName, kind, part->getMaterial()->getGroup());
-        if(name != part->getMaterialName())
-            part->setMaterialName(name, part->getMaterial()->getGroup());
-    }
 
-    // The rooster has a red comb and long tail feathers
+    // The shell of a cracked egg is gone
     for(Ogre::Entity* accessory : look.mAccessories)
     {
         look.mNode->detachObject(accessory);
         mSceneManager->destroyEntity(accessory);
     }
     look.mAccessories.clear();
-    if(kind == ChickenKind::rooster)
-    {
-        for(const std::string* meshName : {&MeshComb, &MeshTail})
-        {
-            rrEnsureChickenMesh(*meshName);
-            Ogre::Entity* accessory = mSceneManager->createEntity(
-                look.mNode->getName() + "_" + *meshName, *meshName + ".mesh");
-            accessory->setQueryFlags(0);
-            look.mNode->attachObject(accessory);
-            look.mAccessories.push_back(accessory);
-        }
-    }
+    look.mEntity->setVisible(true);
     look.mNode->setScale(Ogre::Vector3::UNIT_SCALE * kindScale(kind));
 }
 
@@ -704,6 +524,16 @@ void RenderManager::updateChickenLooks(Ogre::Real timeSinceLastFrame)
             // The egg rocks from side to side and gets more restless until it breaks
             if(pose == ChickenPose::wobble)
             {
+                // Shortly before it hatches the shell shows its cracks
+                if(look.mAccessories.empty() && (p > 0.8f))
+                {
+                    Ogre::Entity* cracked = mSceneManager->createEntity(
+                        look.mNode->getName() + "_" + MeshEggCracked, MeshEggCracked + ".mesh");
+                    cracked->setQueryFlags(0);
+                    look.mNode->attachObject(cracked);
+                    look.mAccessories.push_back(cracked);
+                    look.mEntity->setVisible(false);
+                }
                 const Ogre::Real strength = std::min(1.0f, p * 2.5f);
                 roll = 11.0f * strength * std::sin(p * 17.0f);
                 pitch = 7.0f * strength * std::cos(p * 13.0f);
@@ -722,19 +552,36 @@ void RenderManager::updateChickenLooks(Ogre::Real timeSinceLastFrame)
             }
             else if(pose == ChickenPose::chase || pose == ChickenPose::flee)
             {
-                // Head forward, wings out, quick hops
-                pitch = 14.0f;
-                stretch = Ogre::Vector3(1.0f + 0.2f * std::fabs(std::sin(t * 22.0f)), 1.0f, 1.0f);
-                lift = 0.022f * std::fabs(std::sin(t * 16.0f));
-                roll = 6.0f * std::sin(t * 8.0f);
+                if(look.mEntity->getSkeleton()->hasAnimation("Run"))
+                {
+                    // The run clip leans forward and spreads the wings, only the hops are added
+                    lift = 0.022f * std::fabs(std::sin(t * 16.0f));
+                    roll = 6.0f * std::sin(t * 8.0f);
+                }
+                else
+                {
+                    // Head forward, wings out, quick hops
+                    pitch = 14.0f;
+                    stretch = Ogre::Vector3(1.0f + 0.2f * std::fabs(std::sin(t * 22.0f)), 1.0f, 1.0f);
+                    lift = 0.022f * std::fabs(std::sin(t * 16.0f));
+                    roll = 6.0f * std::sin(t * 8.0f);
+                }
             }
             else if(pose == ChickenPose::crow)
             {
-                // Head thrown back, the body stretches, the wings beat
                 const Ogre::Real strength = std::min(1.0f, p * 4.0f);
-                pitch = -38.0f * strength;
-                stretch = Ogre::Vector3(1.0f + 0.3f * std::fabs(std::sin(t * 14.0f)) * strength, 1.0f, 1.0f + 0.14f * strength);
-                lift = 0.01f * strength;
+                if(look.mEntity->getSkeleton()->hasAnimation("Crow"))
+                {
+                    // The crow clip throws the head back and beats the wings, the body only rises a little
+                    lift = 0.01f * strength;
+                }
+                else
+                {
+                    // Head thrown back, the body stretches, the wings beat
+                    pitch = -38.0f * strength;
+                    stretch = Ogre::Vector3(1.0f + 0.3f * std::fabs(std::sin(t * 14.0f)) * strength, 1.0f, 1.0f + 0.14f * strength);
+                    lift = 0.01f * strength;
+                }
             }
             else if(pose == ChickenPose::perch)
                 pitch = -6.0f;

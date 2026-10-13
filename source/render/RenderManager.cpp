@@ -3207,6 +3207,15 @@ void RenderManager::rrSetObjectAnimationState(MovableGameEntity* curAnimatedObje
         return;
 
     std::string anim = poseAnimation;
+    if(curAnimatedObject->getObjectType() == GameEntityType::chickenEntity)
+    {
+        // The hatchery animals have clips for crowing, running and peeping, the plain walk and idle clips stay for
+        // skeletons without them
+        const bool isChick = static_cast<ChickenEntity*>(curAnimatedObject)->getKind() == ChickenKind::chick;
+        const std::string clip = ChickenPose::skeletonClip(animation, isChick);
+        if(!clip.empty() && objectEntity->getSkeleton()->hasAnimation(clip))
+            anim = clip;
+    }
     Creature* dropCreature = nullptr;
     if(curAnimatedObject->getObjectType() == GameEntityType::creature)
         dropCreature = static_cast<Creature*>(curAnimatedObject);

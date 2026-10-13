@@ -62,15 +62,33 @@ for key in ('HatcheryRoosterCrowMin', 'HatcheryRoosterCrowMax',
             'HatcheryRoosterChasePercent',
             'HatcheryRoosterGuardRadius', 'HatcheryCoopRoofHeight', 'HatcheryChickGap'):
     assert key in config and key in room, key
-for key in ('HatcheryChickScale', 'HatcheryRoosterScale', 'HatcheryChickTintR', 'HatcheryRoosterTintR'):
+for key in ('HatcheryChickScale', 'HatcheryRoosterScale'):
     assert key in config and key in looks, key
 
 # Every material the code asks for exists and the new assets have a credit.
-for name in ('ChickenEgg', 'ChickenStraw', 'ChickenRoosterComb', 'ChickenRoosterTail', 'ChickenFeatherDecor', 'ChickenEggShell'):
+for name in ('ChickenEgg', 'ChickenEggInside', 'ChickenStraw', 'ChickenRoosterComb', 'ChickenRoosterTail', 'ChickenFeatherDecor', 'ChickenEggShell'):
     assert 'material %s\n' % name in materials, name
+for name in ('ChickenStraw', 'ChickenFeatherDecor', 'ChickenEggShell'):
     assert '"%s"' % name in looks, name
 assert 'particles/ChickenEggShell.particle' in credits and 'ChickenHatchery.material' in credits
-assert 'ChickenEgg.mesh' in credits and 'ChickenRoosterTail.mesh' in credits
+
+# The egg, chick and rooster are meshes made in Blender (shared hen skeleton with the clips Peep, Run, Crow, Hatch).
+models = root / 'models'
+for mesh, names in (('ChickenEgg', ('ChickenEgg', 'ChickenStraw')), ('ChickenEggCracked', ('ChickenEggInside',)),
+                    ('ChickenChick', ('ChickenChick', 'Chicken.skeleton')),
+                    ('ChickenRooster', ('ChickenRooster', 'ChickenRoosterComb', 'ChickenRoosterTail', 'Chicken.skeleton'))):
+    data = (models / (mesh + '.mesh')).read_bytes()
+    for name in names:
+        assert name.encode() in data, (mesh, name)
+    assert mesh + '.mesh' in credits, mesh
+skeleton = (models / 'Chicken.skeleton').read_bytes()
+for clip in (b'Peep', b'Run', b'Crow', b'Hatch', b'Walk', b'Idle'):
+    assert clip in skeleton, clip
+breeds = (root / 'materials/scripts/ChickenBreeds.material').read_text()
+assert 'material ChickenChick' in breeds and 'material ChickenRooster' in breeds
+assert '"ChickenChick"' in chicken and '"ChickenRooster"' in chicken
+assert 'ChickenPose::skeletonClip' in hook and 'hatchClip' in body(chicken, 'void ChickenEntity::setKindFromServer')
+assert 'ChickenEggCracked' in looks
 
 print('hatchery visuals checks passed')
 

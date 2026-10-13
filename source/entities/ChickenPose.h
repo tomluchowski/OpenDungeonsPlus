@@ -40,6 +40,9 @@ namespace ChickenPose
     static const std::string scratch = "Scratch";
     static const std::string flutter = "Flutter";
 
+    //! \brief Clip of the chick breaking out of the egg, played once by the client when the egg hatches (not a pose).
+    static const std::string hatchClip = "Hatch";
+
     //! \brief True if the name is one of the poses above.
     inline bool isPose(const std::string& name)
     {
@@ -59,6 +62,19 @@ namespace ChickenPose
     inline std::string skeletonAnimation(const std::string& name)
     {
         return isWalkPose(name) ? "Walk" : "Idle";
+    }
+
+    //! \brief The own clip of the hatchery skeleton for an animation name of the server ("Crow", "Run" or "Peep"),
+    //! empty if the walk or idle clip is right. A chick peeps while it stands.
+    inline std::string skeletonClip(const std::string& name, bool isChick)
+    {
+        if(name == crow)
+            return "Crow";
+        if((name == chase) || (name == flee))
+            return "Run";
+        if(isChick && (name == "Idle"))
+            return "Peep";
+        return std::string();
     }
 }
 

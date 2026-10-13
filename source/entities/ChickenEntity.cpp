@@ -106,7 +106,17 @@ ChickenEntity::ChickenEntity(GameMap* gameMap) :
 
 std::string ChickenEntity::getMeshNameForKind(ChickenKind kind)
 {
-    return (kind == ChickenKind::egg) ? "ChickenEgg" : "Chicken";
+    switch(kind)
+    {
+        case ChickenKind::egg:
+            return "ChickenEgg";
+        case ChickenKind::chick:
+            return "ChickenChick";
+        case ChickenKind::rooster:
+            return "ChickenRooster";
+        default:
+            return "Chicken";
+    }
 }
 
 void ChickenEntity::createMeshLocal(NodeType nt)
@@ -683,7 +693,10 @@ void ChickenEntity::setKindFromServer(ChickenKind kind)
         if(hadMesh)
         {
             createMesh();
-            RenderManager::getSingleton().rrSetObjectAnimationState(this, EntityAnimation::idle_anim, true);
+            // The chick that comes out of the egg plays its hatching clip once
+            const bool hatching = (oldKind == ChickenKind::egg) && (kind == ChickenKind::chick);
+            RenderManager::getSingleton().rrSetObjectAnimationState(this,
+                hatching ? ChickenPose::hatchClip : EntityAnimation::idle_anim, !hatching);
         }
     }
     else
