@@ -1,0 +1,35 @@
+[
+  {
+    "id": "Adventurer.mesh",
+    "n": 1,
+    "name": "leather",
+    "build": 0,
+    "file": "outfit-1-leather-build0.png",
+    "source": "materials/portraits/generated-outfits/Adventurer.mesh/outfit-1-leather.png",
+    "source_sha256": "17c868c2341e2de268a87a60472ae657680b8b8c4af301b4cffe4af32732e7a9",
+    "source_size": [
+      887,
+      1774
+    ],
+    "canvas_registration": "canonical canvas",
+    "body_span_fit": "continuous outer sleeve sector extensions clipped to uncovered body",
+    "bottom_rows_repeated": 0,
+    "horizontal_scale": 1.075,
+    "vertical_scale": 1.1,
+    "offset": [
+      -33.26249999999998,
+      -72.00000000000006
+    ],
+    "mesh_warp": null,
+    "torso_margin": 1.1111111111111112,
+    "sleeve_warp": null,
+    "head_occlusion": {
+      "warm_neutral_skin_above_row": 630
+    },
+    "native_uncovered_body_pixels": 25638,
+    "coarse_uncovered_body_pixels": 310,
+    "coarse_body_pixels": 8622,
+    "visual_acceptance": "accepted-native-and-50x100",
+    "prompt": "Generate one new isolated EMPTY adventurer outfit overlay using the attached neutral dummy solely as the exact pose, silhouette and lighting reference. Exact887x1774 transparentRGBA canvas. A worn dark brown leather jerkin over a muted ochre-brown long-sleeved shirt, plain belt, wrist cuffs, no weapons or tools. Collar begins y680-800, shoulders y800-960, chest spans x30-880 around y1050, belt y1450-1570. Follow exact reference slight three-quarter view, narrow waist and lowered arms extending to bottom frame. Cover every visible shoulder and torso and arm with modest outer contour margin, continue past bottom crop. Match coarse painted fantasy game style, warm upper-left light. Only separate empty garments, no body, dummy, skin, head, face, eyes, nose, ears, hair, helmet, necklace, symbols, writing, modern items or background. Entire space above collar stays transparent. Do not recenter or tightly crop."
+  }
+]

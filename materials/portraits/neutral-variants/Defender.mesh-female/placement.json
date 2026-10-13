@@ -1,0 +1,630 @@
+[
+  {
+    "file": "build-1-slim.png",
+    "source": "materials/portraits/generated-features/Defender.mesh-female/build-1-slim.png",
+    "source_sha256": "15c4aefeaf94382fb96877e46d10a3f347f477934b02dabd16146be4687e6b13",
+    "source_bounds": [
+      30,
+      265,
+      1215,
+      1182
+    ],
+    "rect": [
+      0,
+      760,
+      887,
+      1014
+    ],
+    "scale": 0.7485232067510549,
+    "vertical_scale": 1.1406761177753544,
+    "offset": [
+      -22.455696202531648,
+      -302.2791712104689
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "af3e88cd0dace2e4d43a9eb2b1dbc61fec1cfebdf859f1dd0a1a030fe52e73b9"
+  },
+  {
+    "file": "build-2-sturdy.png",
+    "source": "materials/portraits/generated-features/Defender.mesh-female/build-2-sturdy.png",
+    "source_sha256": "441df15f5282ca6c663cc8bc0553c58bf1e7e706d63a025f9e2d80f3972366cd",
+    "source_bounds": [
+      1,
+      123,
+      1243,
+      1197
+    ],
+    "rect": [
+      0,
+      760,
+      887,
+      1014
+    ],
+    "scale": 0.714170692431562,
+    "vertical_scale": 0.9739292364990689,
+    "offset": [
+      -0.714170692431562,
+      -119.79329608938548
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "af3e88cd0dace2e4d43a9eb2b1dbc61fec1cfebdf859f1dd0a1a030fe52e73b9"
+  },
+  {
+    "file": "hair-1-swept.png",
+    "source": "materials/portraits/generated-features/Defender.mesh-female/hair-1-swept.png",
+    "source_sha256": "85e9782f6c89c8d42626cae56f2dce2651b2d2e582123bf21cd4dce21245b7ab",
+    "source_bounds": [
+      154,
+      39,
+      1135,
+      1268
+    ],
+    "rect": [
+      180,
+      210,
+      590,
+      980
+    ],
+    "scale": 0.5851172273190621,
+    "vertical_scale": 0.5851172273190621,
+    "offset": [
+      -82.10805300713557,
+      -14.819571865443422
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "af3e88cd0dace2e4d43a9eb2b1dbc61fec1cfebdf859f1dd0a1a030fe52e73b9"
+  },
+  {
+    "file": "hair-2-waves.png",
+    "source": "materials/portraits/generated-features/Defender.mesh-female/hair-2-waves.png",
+    "source_sha256": "d741e467c0f9b00554318e705b0e70dd9b8be0bb8e5a998fd183157b1e5d5310",
+    "source_bounds": [
+      34,
+      58,
+      1117,
+      1324
+    ],
+    "rect": [
+      180,
+      210,
+      590,
+      980
+    ],
+    "scale": 0.5300092336103417,
+    "vertical_scale": 0.5300092336103417,
+    "offset": [
+      -10.020313942751617,
+      -22.74053554939982
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "af3e88cd0dace2e4d43a9eb2b1dbc61fec1cfebdf859f1dd0a1a030fe52e73b9"
+  },
+  {
+    "file": "ears-1-notched.png",
+    "source": "materials/portraits/generated-features/Defender.mesh-female/ears-1-notched.png",
+    "source_sha256": "d2d6e1b391585001eded9bd22497ca9167215b64c71086458667fa874a50a431",
+    "source_bounds": [
+      352,
+      164,
+      999,
+      1085
+    ],
+    "rect": [
+      540,
+      475,
+      115,
+      155
+    ],
+    "scale": 0.15092290988056462,
+    "vertical_scale": 0.15092290988056462,
+    "offset": [
+      -44.448425624321395,
+      -16.751357220412597
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "af3e88cd0dace2e4d43a9eb2b1dbc61fec1cfebdf859f1dd0a1a030fe52e73b9"
+  },
+  {
+    "file": "ears-2-rounder.png",
+    "source": "materials/portraits/generated-features/Defender.mesh-female/ears-2-rounder.png",
+    "source_sha256": "3e353fab4587c5761801816c0dc4b2064630721cad707ca3eeb7227b54bfe23d",
+    "source_bounds": [
+      445,
+      176,
+      1007,
+      953
+    ],
+    "rect": [
+      540,
+      475,
+      115,
+      155
+    ],
+    "scale": 0.17615658362989323,
+    "vertical_scale": 0.17615658362989323,
+    "offset": [
+      -70.38967971530249,
+      -21.940391459074725
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "af3e88cd0dace2e4d43a9eb2b1dbc61fec1cfebdf859f1dd0a1a030fe52e73b9"
+  },
+  {
+    "file": "eyes-1-narrow.png",
+    "source": "materials/portraits/generated-features/Defender.mesh-female/eyes-1-narrow.png",
+    "source_sha256": "3012309ba274e227313eeb541d5bc8f7ff23ed1eb7794fa6e805e357fa44df5c",
+    "source_bounds": [
+      132,
+      157,
+      1654,
+      769
+    ],
+    "rect": [
+      310,
+      445,
+      310,
+      145
+    ],
+    "scale": 0.19316688567674112,
+    "vertical_scale": 0.19316688567674112,
+    "offset": [
+      -17.49802890932983,
+      -16.936268068331135
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "af3e88cd0dace2e4d43a9eb2b1dbc61fec1cfebdf859f1dd0a1a030fe52e73b9"
+  },
+  {
+    "file": "eyes-2-round.png",
+    "source": "materials/portraits/generated-features/Defender.mesh-female/eyes-2-round.png",
+    "source_sha256": "ad6aabbc5bbd095f0ed320f572a60334ce14968224b18598d85857b3ee440225",
+    "source_bounds": [
+      279,
+      156,
+      1544,
+      741
+    ],
+    "rect": [
+      310,
+      445,
+      310,
+      145
+    ],
+    "scale": 0.2205128205128205,
+    "vertical_scale": 0.2205128205128205,
+    "offset": [
+      -45.9974358974359,
+      -26.4
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "af3e88cd0dace2e4d43a9eb2b1dbc61fec1cfebdf859f1dd0a1a030fe52e73b9"
+  },
+  {
+    "file": "eyes-3-eyepatch.png",
+    "source": "materials/portraits/generated-features/Defender.mesh-female/eyes-3-eyepatch.png",
+    "source_sha256": "e2c4f9b26f65a1fd87e4ebebd0dec33131f3f1d77c3d9cc868a6b52778a2ed0e",
+    "source_bounds": [
+      227,
+      140,
+      1590,
+      743
+    ],
+    "rect": [
+      310,
+      445,
+      310,
+      145
+    ],
+    "scale": 0.21393034825870647,
+    "vertical_scale": 0.21393034825870647,
+    "offset": [
+      -39.355721393034834,
+      -21.950248756218905
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "af3e88cd0dace2e4d43a9eb2b1dbc61fec1cfebdf859f1dd0a1a030fe52e73b9"
+  },
+  {
+    "file": "nose-1-crooked.png",
+    "source": "materials/portraits/generated-features/Defender.mesh-female/nose-1-crooked.png",
+    "source_sha256": "4aa91f1212878784ff6b604aeffd05bd7bb2e36d15911377dc187332db72c314",
+    "source_bounds": [
+      495,
+      146,
+      1043,
+      892
+    ],
+    "rect": [
+      300,
+      520,
+      170,
+      170
+    ],
+    "scale": 0.2064343163538874,
+    "vertical_scale": 0.2064343163538874,
+    "offset": [
+      -73.7479892761394,
+      -22.13941018766756
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "af3e88cd0dace2e4d43a9eb2b1dbc61fec1cfebdf859f1dd0a1a030fe52e73b9"
+  },
+  {
+    "file": "nose-2-broad.png",
+    "source": "materials/portraits/generated-features/Defender.mesh-female/nose-2-broad.png",
+    "source_sha256": "e2f708513e8a3bd4d330db4fa21ed91d03fda65c17bd907de54b42cf6987ef91",
+    "source_bounds": [
+      359,
+      70,
+      1177,
+      933
+    ],
+    "rect": [
+      300,
+      520,
+      170,
+      170
+    ],
+    "scale": 0.17844727694090382,
+    "vertical_scale": 0.17844727694090382,
+    "offset": [
+      -52.04750869061412,
+      -4.491309385863268
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "af3e88cd0dace2e4d43a9eb2b1dbc61fec1cfebdf859f1dd0a1a030fe52e73b9"
+  },
+  {
+    "file": "mouth-1-teeth.png",
+    "source": "materials/portraits/generated-features/Defender.mesh-female/mouth-1-teeth.png",
+    "source_sha256": "5404045080fa23724c9cb1c4c55319b0bd871fb9353e4c2a8c429bfe4e34108b",
+    "source_bounds": [
+      292,
+      228,
+      1327,
+      815
+    ],
+    "rect": [
+      315,
+      650,
+      260,
+      110
+    ],
+    "scale": 0.16013628620102216,
+    "vertical_scale": 0.16013628620102216,
+    "offset": [
+      0.3696763202725606,
+      -28.51107325383306
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "af3e88cd0dace2e4d43a9eb2b1dbc61fec1cfebdf859f1dd0a1a030fe52e73b9"
+  },
+  {
+    "file": "mouth-2-grin.png",
+    "source": "materials/portraits/generated-features/Defender.mesh-female/mouth-2-grin.png",
+    "source_sha256": "9b7b23c1f2efba3046457f4c770ce90ce556cb2f7db4254351c1e5e3b720e179",
+    "source_bounds": [
+      291,
+      139,
+      1535,
+      741
+    ],
+    "rect": [
+      315,
+      650,
+      260,
+      110
+    ],
+    "scale": 0.15614617940199335,
+    "vertical_scale": 0.15614617940199335,
+    "offset": [
+      -12.561461794019934,
+      -13.704318936877076
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "af3e88cd0dace2e4d43a9eb2b1dbc61fec1cfebdf859f1dd0a1a030fe52e73b9"
+  },
+  {
+    "file": "mouth-3-cigar.png",
+    "source": "materials/portraits/generated-features/Defender.mesh-female/mouth-3-cigar.png",
+    "source_sha256": "41c025caf6fec7352f8bbca9d3212cb4f9a7d791de9b546c3d9f717a8f014099",
+    "source_bounds": [
+      272,
+      195,
+      1413,
+      755
+    ],
+    "rect": [
+      315,
+      650,
+      260,
+      110
+    ],
+    "scale": 0.16785714285714284,
+    "vertical_scale": 0.16785714285714284,
+    "offset": [
+      -11.41964285714284,
+      -24.732142857142847
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "af3e88cd0dace2e4d43a9eb2b1dbc61fec1cfebdf859f1dd0a1a030fe52e73b9"
+  },
+  {
+    "file": "chin-1-square.png",
+    "source": "materials/portraits/generated-features/Defender.mesh-female/chin-1-square.png",
+    "source_sha256": "cb728272424fd1bb9b56bf3545cc5ae0f5e59b47bb2e97189c4df90f0b421058",
+    "source_bounds": [
+      111,
+      189,
+      1432,
+      762
+    ],
+    "rect": [
+      305,
+      690,
+      275,
+      130
+    ],
+    "scale": 0.19606358819076458,
+    "vertical_scale": 0.19606358819076458,
+    "offset": [
+      -13.763058289174868,
+      -28.228236184708557
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "af3e88cd0dace2e4d43a9eb2b1dbc61fec1cfebdf859f1dd0a1a030fe52e73b9"
+  },
+  {
+    "file": "chin-2-rounded.png",
+    "source": "materials/portraits/generated-features/Defender.mesh-female/chin-2-rounded.png",
+    "source_sha256": "0c288978f9448e95e998617b992b00ea5b3537e093b6ef941e8b7cbecd537236",
+    "source_bounds": [
+      149,
+      175,
+      1408,
+      794
+    ],
+    "rect": [
+      305,
+      690,
+      275,
+      130
+    ],
+    "scale": 0.1841680129240711,
+    "vertical_scale": 0.1841680129240711,
+    "offset": [
+      -5.874798061389338,
+      -24.229402261712444
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "af3e88cd0dace2e4d43a9eb2b1dbc61fec1cfebdf859f1dd0a1a030fe52e73b9"
+  },
+  {
+    "file": "scar-1-diagonal.png",
+    "source": "materials/portraits/generated-features/Defender.mesh-female/scar-1-diagonal.png",
+    "source_sha256": "3e3d9d186124824d41398bf1ec30c90537484e7bf155aea8e6830d6a07f75393",
+    "source_bounds": [
+      93,
+      99,
+      1127,
+      1202
+    ],
+    "rect": [
+      440,
+      535,
+      170,
+      145
+    ],
+    "scale": 0.11695376246600181,
+    "vertical_scale": 0.11695376246600181,
+    "offset": [
+      13.658204895738894,
+      -3.5784224841341796
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": "union of all hair and ear alpha",
+    "source_mask_polygon": null,
+    "base_sha256": "af3e88cd0dace2e4d43a9eb2b1dbc61fec1cfebdf859f1dd0a1a030fe52e73b9"
+  },
+  {
+    "file": "scar-2-scratches.png",
+    "source": "materials/portraits/generated-features/Defender.mesh-female/scar-2-scratches.png",
+    "source_sha256": "3c536997b6207edd22d1b458212c83067875afa1cf30539b6eb7675f9335ce05",
+    "source_bounds": [
+      347,
+      80,
+      1227,
+      957
+    ],
+    "rect": [
+      440,
+      535,
+      170,
+      145
+    ],
+    "scale": 0.14709236031927023,
+    "vertical_scale": 0.14709236031927023,
+    "offset": [
+      -30.761687571265668,
+      -3.7673888255416177
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": "union of all hair and ear alpha",
+    "source_mask_polygon": null,
+    "base_sha256": "af3e88cd0dace2e4d43a9eb2b1dbc61fec1cfebdf859f1dd0a1a030fe52e73b9"
+  },
+  {
+    "file": "scar-3-warpaint.png",
+    "source": "materials/portraits/generated-features/Defender.mesh-female/scar-3-warpaint.png",
+    "source_sha256": "558560b0f2871942e1586a29f9c5c82e4e8ea99ff12c8aca4411fae7dda3c3c5",
+    "source_bounds": [
+      171,
+      86,
+      1375,
+      896
+    ],
+    "rect": [
+      440,
+      535,
+      170,
+      145
+    ],
+    "scale": 0.12790697674418605,
+    "vertical_scale": 0.12790697674418605,
+    "offset": [
+      -13.872093023255815,
+      9.697674418604649
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": "union of all hair and ear alpha",
+    "source_mask_polygon": null,
+    "base_sha256": "af3e88cd0dace2e4d43a9eb2b1dbc61fec1cfebdf859f1dd0a1a030fe52e73b9"
+  },
+  {
+    "file": "neck-1-teeth.png",
+    "source": "materials/portraits/generated-features/Defender.mesh-female/neck-1-teeth.png",
+    "source_sha256": "e2f760b07e37b9c0d64fff608f3bb55ec7924c164b431270d2356d0ee9706e2e",
+    "source_bounds": [
+      83,
+      42,
+      1454,
+      978
+    ],
+    "rect": [
+      300,
+      850,
+      380,
+      280
+    ],
+    "scale": 0.26549963530269877,
+    "vertical_scale": 0.26549963530269877,
+    "offset": [
+      -14.036469730123997,
+      4.595185995623632
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "af3e88cd0dace2e4d43a9eb2b1dbc61fec1cfebdf859f1dd0a1a030fe52e73b9"
+  },
+  {
+    "file": "neck-2-torque.png",
+    "source": "materials/portraits/generated-features/Defender.mesh-female/neck-2-torque.png",
+    "source_sha256": "bd020b8e172f37f91e906db6c030cf2c6249d95a0b4a8a9336ce19b6eba1935a",
+    "source_bounds": [
+      148,
+      63,
+      1626,
+      829
+    ],
+    "rect": [
+      300,
+      850,
+      380,
+      280
+    ],
+    "scale": 0.2462787550744249,
+    "vertical_scale": 0.2462787550744249,
+    "offset": [
+      -28.44925575101489,
+      30.159675236806493
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "af3e88cd0dace2e4d43a9eb2b1dbc61fec1cfebdf859f1dd0a1a030fe52e73b9"
+  },
+  {
+    "id": "Defender.mesh-female",
+    "n": 1,
+    "name": "padded",
+    "build": 0,
+    "file": "outfit-1-padded-build0.png",
+    "source": "materials/portraits/generated-outfits/Defender.mesh-female/outfit-1-padded.png",
+    "source_sha256": "43f549105122dbcc8777bb97ac8b6ad3f2d218b786a4a2d34f3e93bdab73c45f",
+    "source_size": [
+      887,
+      1774
+    ],
+    "canvas_registration": "canonical canvas",
+    "body_span_fit": "continuous outer sleeve sector extensions clipped to uncovered body",
+    "bottom_rows_repeated": 0,
+    "horizontal_scale": 1.15,
+    "vertical_scale": 1.1,
+    "offset": [
+      -66.52499999999996,
+      -72.00000000000006
+    ],
+    "mesh_warp": null,
+    "torso_margin": 1.1111111111111112,
+    "sleeve_warp": null,
+    "head_occlusion": {
+      "warm_neutral_skin_above_row": 780
+    },
+    "native_uncovered_body_pixels": 174,
+    "coarse_uncovered_body_pixels": 49,
+    "coarse_body_pixels": 7638,
+    "visual_acceptance": "accepted-native-and-50x100",
+    "prompt": "Create ONE separate EMPTY Defender clothing overlay fitted to the attached neutral dummy. Use its actual camera angle: three-quarter head and torso turned toward viewer LEFT, not mirrored. Exact887x1774 transparentRGBA canvas. Plain worn dark iron-grey padded defensive coat with leather shoulder reinforcements, long sleeves, leather waist belt and cuffs, no emblems or weapons. Collar around y790-900, shoulder line y850-1030, broad chest x20-880 at y1100, waist belt y1490-1600; lowered arms follow exact reference to bottom corners. Cover all visible shoulders, chest, torso and arms with contour fitting margin and continue beyond lower crop. Coarse warm fantasy painted brushwork, upper-left lighting matching reference. Empty garments only; no body, dummy, skin, head, face, ears, eyes, nose, hair, beard, helmet, necklace, tools, text, symbols, background or modern objects. Preserve upper blank canvas, no recentering or tight cropping.",
+    "rect": [
+      0,
+      0,
+      887,
+      1774
+    ],
+    "base_sha256": "af3e88cd0dace2e4d43a9eb2b1dbc61fec1cfebdf859f1dd0a1a030fe52e73b9"
+  }
+]

@@ -1,0 +1,486 @@
+[
+  {
+    "file": "build-1-slim.png",
+    "source": "materials/portraits/generated-features/Knight.mesh-female/build-1-slim.png",
+    "source_sha256": "e185d74d223f19bbb9d106999080945e3c91abc6b17b89d32828685fa9963be4",
+    "source_bounds": [
+      34,
+      56,
+      1206,
+      1269
+    ],
+    "rect": [
+      0,
+      690,
+      887,
+      1084
+    ],
+    "scale": 0.7568259385665529,
+    "vertical_scale": 0.920032976092333,
+    "offset": [
+      -25.7320819112628,
+      -51.52184666117065
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "16ca9ceec3b76e0d2552d5b4a6c8d02b4474790d0e158ee9311b351f5333ebac"
+  },
+  {
+    "file": "build-2-sturdy.png",
+    "source": "materials/portraits/generated-features/Knight.mesh-female/build-2-sturdy.png",
+    "source_sha256": "a2082c67e67f3181dbbc57e8097d8b358f7e0fb6c08d319ef8ba4abddb06c249",
+    "source_bounds": [
+      49,
+      66,
+      1488,
+      976
+    ],
+    "rect": [
+      0,
+      690,
+      887,
+      1084
+    ],
+    "scale": 0.6164002779708131,
+    "vertical_scale": 1.2263736263736265,
+    "offset": [
+      -30.20361362056984,
+      -80.94065934065935
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "16ca9ceec3b76e0d2552d5b4a6c8d02b4474790d0e158ee9311b351f5333ebac"
+  },
+  {
+    "file": "hair-1-swept.png",
+    "source": "materials/portraits/generated-features/Knight.mesh-female/hair-1-swept.png",
+    "source_sha256": "3b942b6b54d67c741bd8ea42380f427d8d8e49966d48e4e02e7c51797799eb83",
+    "source_bounds": [
+      457,
+      186,
+      1235,
+      945
+    ],
+    "rect": [
+      115,
+      465,
+      580,
+      660
+    ],
+    "scale": 0.7249357326478149,
+    "vertical_scale": 0.7249357326478149,
+    "offset": [
+      -323.2956298200514,
+      -79.95115681233932
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "16ca9ceec3b76e0d2552d5b4a6c8d02b4474790d0e158ee9311b351f5333ebac"
+  },
+  {
+    "file": "hair-2-waves.png",
+    "source": "materials/portraits/generated-features/Knight.mesh-female/hair-2-waves.png",
+    "source_sha256": "bef8b723631ff9cb0219d647fa09f1f11a27d983723e195256934ba65108aecb",
+    "source_bounds": [
+      441,
+      92,
+      1369,
+      734
+    ],
+    "rect": [
+      115,
+      465,
+      580,
+      660
+    ],
+    "scale": 0.6077586206896551,
+    "vertical_scale": 0.6077586206896551,
+    "offset": [
+      -260.0215517241379,
+      78.99568965517243
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "16ca9ceec3b76e0d2552d5b4a6c8d02b4474790d0e158ee9311b351f5333ebac"
+  },
+  {
+    "file": "scar-1-diagonal.png",
+    "source": "materials/portraits/generated-features/Knight.mesh-female/scar-1-diagonal.png",
+    "source_sha256": "4e335d0774cfab2b251f0198adb73c1c5f349d7772a99b96e08684ea97dee7bd",
+    "source_bounds": [
+      496,
+      177,
+      1112,
+      874
+    ],
+    "rect": [
+      280,
+      280,
+      255,
+      240
+    ],
+    "scale": 0.321377331420373,
+    "vertical_scale": 0.321377331420373,
+    "offset": [
+      -130.88737446197987,
+      -48.88378766140601
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "16ca9ceec3b76e0d2552d5b4a6c8d02b4474790d0e158ee9311b351f5333ebac"
+  },
+  {
+    "file": "scar-2-scratches.png",
+    "source": "materials/portraits/generated-features/Knight.mesh-female/scar-2-scratches.png",
+    "source_sha256": "c034f025c7ca3c46978c35a527a51b1d9305fe80c8398e934f7348c23cd21383",
+    "source_bounds": [
+      479,
+      54,
+      1215,
+      985
+    ],
+    "rect": [
+      280,
+      280,
+      255,
+      240
+    ],
+    "scale": 0.24060150375939848,
+    "vertical_scale": 0.24060150375939848,
+    "offset": [
+      -76.28947368421052,
+      -4.992481203007518
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "16ca9ceec3b76e0d2552d5b4a6c8d02b4474790d0e158ee9311b351f5333ebac"
+  },
+  {
+    "file": "scar-3-warpaint.png",
+    "source": "materials/portraits/generated-features/Knight.mesh-female/scar-3-warpaint.png",
+    "source_sha256": "0dbc4322ae54c7c031341cd220ab21da952885135ad7259b0a2560a16f16bceb",
+    "source_bounds": [
+      256,
+      146,
+      1158,
+      1074
+    ],
+    "rect": [
+      280,
+      280,
+      255,
+      240
+    ],
+    "scale": 0.2413793103448276,
+    "vertical_scale": 0.2413793103448276,
+    "offset": [
+      -43.15517241379312,
+      -27.241379310344826
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "16ca9ceec3b76e0d2552d5b4a6c8d02b4474790d0e158ee9311b351f5333ebac"
+  },
+  {
+    "file": "neck-1-teeth.png",
+    "source": "materials/portraits/generated-features/Knight.mesh-female/neck-1-teeth.png",
+    "source_sha256": "4d0bc4b82f01cb81e68980367bd12c502763a5d848722cf42fda71c994e7be01",
+    "source_bounds": [
+      250,
+      90,
+      1294,
+      936
+    ],
+    "rect": [
+      225,
+      680,
+      405,
+      275
+    ],
+    "scale": 0.3061465721040189,
+    "vertical_scale": 0.3061465721040189,
+    "offset": [
+      -33.845153664302586,
+      -19.5531914893617
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "16ca9ceec3b76e0d2552d5b4a6c8d02b4474790d0e158ee9311b351f5333ebac"
+  },
+  {
+    "file": "neck-2-torque.png",
+    "source": "materials/portraits/generated-features/Knight.mesh-female/neck-2-torque.png",
+    "source_sha256": "55d0aeeed67d7e16398078b872fc02246fb72c89261855de37bed9579870775f",
+    "source_bounds": [
+      227,
+      77,
+      1547,
+      809
+    ],
+    "rect": [
+      225,
+      680,
+      405,
+      275
+    ],
+    "scale": 0.2946969696969697,
+    "vertical_scale": 0.2946969696969697,
+    "offset": [
+      -58.896212121212116,
+      6.949242424242424
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "16ca9ceec3b76e0d2552d5b4a6c8d02b4474790d0e158ee9311b351f5333ebac"
+  },
+  {
+    "id": "Knight.mesh-female",
+    "n": 1,
+    "name": "greathelm",
+    "prompt": "Generate ONE new isolated face-covering helmet customization part for the female Knight catalog entry. The attached ORIGINAL PORTRAIT is a reference ONLY for the exact three-quarter viewing direction, head tilt, steel gray palette, light from upper left and coarse hand-painted dark-fantasy brushwork. Output ONLY a complete empty helmet, no head, skin, neck, body, armor shoulders, clothing, hair, person, background or full portrait. Variant 1: Angular peaked great helm with a broad closed faceplate, paired narrow eye slits and small round ventilation holes. Opaque dark interior behind all visor openings; no face visible. Match the reference helmet's orientation precisely; do not turn it frontal or mirror it. Entire contour visible with transparent padding, genuine RGBA alpha background, no baked checkerboard, no text, symbols, weapons, glow or shadow outside the object. Direct isolated-part generation, not portrait cropping.",
+    "file": "helmet-1-greathelm.png",
+    "reference": "materials/textures/portrait-Knight.mesh-female.png",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-1ee7a52b-1a9c-4988-8fea-598439d84302.png",
+    "source": "materials/portraits/generated-helmets/Knight.mesh-female/helmet-1-greathelm.png",
+    "source_sha256": "cedf19d908ddc057a3e629a454e79990c854fa3093dbcab22c74ebd2af2c6dff",
+    "source_bbox": [
+      156,
+      62,
+      1087,
+      1280
+    ],
+    "shell_top": 62,
+    "rect": [
+      0,
+      0,
+      887,
+      950
+    ],
+    "scale": 0.43705418719211825,
+    "horizontal_scale": 0.4617931034482759,
+    "offset": [
+      92.9955862068965,
+      74.49064039408867
+    ],
+    "head_anchor": [
+      205,
+      155,
+      350,
+      465
+    ],
+    "base": "materials/portraits/neutral-bases/Knight.mesh-female.png",
+    "combined_visual_acceptance": "open-existing-slot-registration",
+    "neutral_head_fit": {
+      "horizontal": 1.12,
+      "vertical": 1.06,
+      "anchor": [
+        380,
+        388
+      ]
+    },
+    "visual_acceptance": "accepted-native-and-50x100",
+    "base_sha256": "16ca9ceec3b76e0d2552d5b4a6c8d02b4474790d0e158ee9311b351f5333ebac"
+  },
+  {
+    "id": "Knight.mesh-female",
+    "n": 2,
+    "name": "bascinet",
+    "prompt": "Generate ONE new isolated face-covering helmet customization part for the female Knight catalog entry. The attached ORIGINAL PORTRAIT is a reference ONLY for the exact three-quarter viewing direction, head tilt, steel gray palette, light from upper left and coarse hand-painted dark-fantasy brushwork. Output ONLY a complete empty helmet, no head, skin, neck, body, armor shoulders, clothing, hair, person, background or full portrait. Variant 2: Rounded dome bascinet with a compact closed rounded visor and paired thin horizontal eye slits; no pointed roof or flat barrel top. Opaque dark interior behind all visor openings; no face visible. Match the reference helmet's orientation precisely; do not turn it frontal or mirror it. Entire contour visible with transparent padding, genuine RGBA alpha background, no baked checkerboard, no text, symbols, weapons, glow or shadow outside the object. Direct isolated-part generation, not portrait cropping.",
+    "file": "helmet-2-bascinet.png",
+    "reference": "materials/textures/portrait-Knight.mesh-female.png",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-b13269fd-f5bb-4f7b-86f1-9c5d97ee782e.png",
+    "source": "materials/portraits/generated-helmets/Knight.mesh-female/helmet-2-bascinet.png",
+    "source_sha256": "e47677696b51cdb431c8f8596772f974eeb1c796869177cea5e5c23884229896",
+    "source_bbox": [
+      193,
+      89,
+      1037,
+      1184
+    ],
+    "shell_top": 89,
+    "rect": [
+      0,
+      0,
+      887,
+      950
+    ],
+    "scale": 0.45013698630136983,
+    "horizontal_scale": 0.4756164383561644,
+    "offset": [
+      87.49589041095889,
+      100.95780821917808
+    ],
+    "head_anchor": [
+      205,
+      155,
+      350,
+      465
+    ],
+    "base": "materials/portraits/neutral-bases/Knight.mesh-female.png",
+    "combined_visual_acceptance": "open-existing-slot-registration",
+    "neutral_head_fit": {
+      "horizontal": 1.12,
+      "vertical": 1.06,
+      "anchor": [
+        380,
+        388
+      ]
+    },
+    "visual_acceptance": "accepted-native-and-50x100",
+    "base_sha256": "16ca9ceec3b76e0d2552d5b4a6c8d02b4474790d0e158ee9311b351f5333ebac"
+  },
+  {
+    "id": "Knight.mesh-female",
+    "n": 3,
+    "name": "houndskull",
+    "prompt": "Generate ONE new isolated face-covering helmet customization part for the female Knight catalog entry. The attached ORIGINAL PORTRAIT is a reference ONLY for the exact three-quarter viewing direction, head tilt, steel gray palette, light from upper left and coarse hand-painted dark-fantasy brushwork. Output ONLY a complete empty helmet, no head, skin, neck, body, armor shoulders, clothing, hair, person, background or full portrait. Variant 3: Pointed houndskull visor with a distinctly projecting tapered snout, closed cheek plates and narrow eye openings; rounded crown. Opaque dark interior behind all visor openings; no face visible. Match the reference helmet's orientation precisely; do not turn it frontal or mirror it. Entire contour visible with transparent padding, genuine RGBA alpha background, no baked checkerboard, no text, symbols, weapons, glow or shadow outside the object. Direct isolated-part generation, not portrait cropping.",
+    "file": "helmet-3-houndskull-corrected.png",
+    "reference": "materials/textures/portrait-Knight.mesh-female.png",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-329aced8-88bc-4022-ac8e-8bce5261b43d.png",
+    "rejected_original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-299a61b7-8a81-48ab-9f19-011d4563d210.png",
+    "correction_prompt": "Correct ONLY the viewing direction of this new isolated Knight helmet. Reference image 1 is the target isolated pointed houndskull helmet; image 2 is the ORIGINAL Knight female portrait defining the required direction. Repaint the EMPTY helmet to look toward IMAGE RIGHT: its pointed snout must project toward the RIGHT edge, not toward the left edge. Match image 2's three-quarter orientation and downward tilt, light from upper left. Keep the distinct pointed visor and steel palette, coarse painted brushwork; do not simply mirror the lighting. Output ONLY this one complete isolated helmet on genuine transparent RGBA background with padding, no person, face, skin, body, hair, costume, glow, backdrop or text.",
+    "source": "materials/portraits/generated-helmets/Knight.mesh-female/helmet-3-houndskull-corrected.png",
+    "source_sha256": "3eecf22923d01b37fd246b7ce9ea642e5278e2affe7569a0960d7bdcc1439223",
+    "source_bbox": [
+      113,
+      69,
+      1108,
+      1248
+    ],
+    "shell_top": 69,
+    "rect": [
+      0,
+      0,
+      887,
+      950
+    ],
+    "scale": 0.5016793893129772,
+    "horizontal_scale": 0.5300763358778626,
+    "offset": [
+      56.38839694656485,
+      55.52412213740458
+    ],
+    "head_anchor": [
+      205,
+      155,
+      350,
+      465
+    ],
+    "base": "materials/portraits/neutral-bases/Knight.mesh-female.png",
+    "combined_visual_acceptance": "open-existing-slot-registration",
+    "neutral_head_fit": {
+      "horizontal": 1.12,
+      "vertical": 1.06,
+      "anchor": [
+        380,
+        388
+      ]
+    },
+    "visual_acceptance": "accepted-native-and-50x100",
+    "base_sha256": "16ca9ceec3b76e0d2552d5b4a6c8d02b4474790d0e158ee9311b351f5333ebac"
+  },
+  {
+    "id": "Knight.mesh-female",
+    "n": 4,
+    "name": "barrel",
+    "prompt": "Generate ONE new isolated face-covering helmet customization part for the female Knight catalog entry. The attached ORIGINAL PORTRAIT is a reference ONLY for the exact three-quarter viewing direction, head tilt, steel gray palette, light from upper left and coarse hand-painted dark-fantasy brushwork. Output ONLY a complete empty helmet, no head, skin, neck, body, armor shoulders, clothing, hair, person, background or full portrait. Variant 4: Flat-topped cylindrical barrel great helm with broad closed front, straight narrow eye slit and a simple reinforced central ridge; no pointed dome. Opaque dark interior behind all visor openings; no face visible. Match the reference helmet's orientation precisely; do not turn it frontal or mirror it. Entire contour visible with transparent padding, genuine RGBA alpha background, no baked checkerboard, no text, symbols, weapons, glow or shadow outside the object. Direct isolated-part generation, not portrait cropping.",
+    "file": "helmet-4-barrel.png",
+    "reference": "materials/textures/portrait-Knight.mesh-female.png",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-6070c4d5-cca5-4016-a6ef-7b8283fe1c9a.png",
+    "source": "materials/portraits/generated-helmets/Knight.mesh-female/helmet-4-barrel.png",
+    "source_sha256": "3c28c0f5641a5768c171f7ff6ca496c7f8dac01e53008a195af12d824af305ab",
+    "source_bbox": [
+      110,
+      97,
+      1109,
+      1271
+    ],
+    "shell_top": 97,
+    "rect": [
+      0,
+      0,
+      887,
+      950
+    ],
+    "scale": 0.41984667802385006,
+    "horizontal_scale": 0.4436115843270869,
+    "offset": [
+      109.61873935264053,
+      100.29487223168658
+    ],
+    "head_anchor": [
+      205,
+      155,
+      350,
+      465
+    ],
+    "base": "materials/portraits/neutral-bases/Knight.mesh-female.png",
+    "combined_visual_acceptance": "open-existing-slot-registration",
+    "neutral_head_fit": {
+      "horizontal": 1.12,
+      "vertical": 1.06,
+      "anchor": [
+        380,
+        388
+      ]
+    },
+    "visual_acceptance": "accepted-native-and-50x100",
+    "base_sha256": "16ca9ceec3b76e0d2552d5b4a6c8d02b4474790d0e158ee9311b351f5333ebac"
+  },
+  {
+    "id": "Knight.mesh-female",
+    "n": 1,
+    "name": "plate",
+    "build": 0,
+    "file": "outfit-1-plate-build0.png",
+    "source": "materials/portraits/generated-outfits/Knight.mesh-female/outfit-1-plate-corrected.png",
+    "source_sha256": "9e1c9a03e8942fba0b7a4b51d92807519b7499e728abd94a0ec8b6c7966ed7a9",
+    "source_size": [
+      887,
+      1774
+    ],
+    "canvas_registration": "canonical canvas",
+    "body_span_fit": null,
+    "bottom_rows_repeated": 0,
+    "horizontal_scale": 1.125,
+    "vertical_scale": 1.02,
+    "offset": [
+      -55.4375,
+      -14.400000000000013
+    ],
+    "mesh_warp": null,
+    "torso_margin": 1.1111111111111112,
+    "sleeve_warp": "row-wise sleeve width registered to neutral forearm bounds, outer 220-pixel sectors, rows 1050-1599",
+    "head_occlusion": "mandatory helmet covers collar",
+    "native_uncovered_body_pixels": 572,
+    "coarse_uncovered_body_pixels": 43,
+    "coarse_body_pixels": 8344,
+    "visual_acceptance": "accepted-native-and-50x100",
+    "prompt": "Create one isolated empty suit of dark blue-gray plate armor for a Knight, using the attached neutral nonsexual mannequin only as exact pose, perspective, painted-style and lighting reference. Output canvas MUST887x1774 with all upper empty space retained. Collar y620-700, shoulder pauldrons y720-800, torso chest x130-750 at y950, belt at y1300-1380, bent arms go beyond left/right edges near y1150 and forearms return near y1250, leather gauntlets at hips around x150/y1450 and x750/y1450. Cover the entire visible shoulders, torso, arms and hands with small contour margin; continue through bottom crop. Simple iron cuirass over muted burgundy padded long sleeves and a plain brown waist belt. Painted dark fantasy brushwork, upper-left light and matching palette. Output ONLY empty armor/clothing, transparent RGBA: no dummy/person/body/head/neck skin, face, hair, helmet, jewelry, weapons, symbols, writing, modern objects or background; no full portrait or product crop.\n\nCorrection prompt: Edit ONLY the new empty plate-armor clothing overlay shown in image1; image2 is the neutral game dummy registration reference, do not alter or output the dummy. Preserve 887x1774 canvas, cuirass, metal style, collar, light, wide shoulders and blank transparent top. Correct the sleeve fit: the dummy's visible forearms fill the lower left and right wedges at y1250-1550, but image1 leaves exposed dummy forearms because its underarm holes are too large. Extend the existing burgundy padded elbow sleeves and leather/metal gauntlets so the entire dummy arm silhouette is covered, including x0-180 at y1250-1500 and x700-886 at y1250-1500, with a small coverage margin. Keep hands-at-hips bend and central torso width unchanged, do not introduce a second pair of arms. Replace the oversized empty triangular spaces beside the waist with naturally folded burgundy elbow sleeve cloth where the dummy arms are located. Preserve transparency wherever the reference background remains outside the body. Clothing continues through bottom frame. Output only empty clothes/armor with no body, head, skin, person, mannequin, helmet, jewelry, weapons, symbols, text or backdrop. EXACT887x1774 transparent RGBA overlay.",
+    "rect": [
+      0,
+      0,
+      887,
+      1774
+    ],
+    "base_sha256": "16ca9ceec3b76e0d2552d5b4a6c8d02b4474790d0e158ee9311b351f5333ebac"
+  }
+]

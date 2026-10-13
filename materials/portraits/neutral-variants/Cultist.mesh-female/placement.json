@@ -1,0 +1,456 @@
+[
+  {
+    "file": "build-1-slim.png",
+    "source": "materials/portraits/generated-features/Cultist.mesh-female/build-1-slim.png",
+    "source_sha256": "3fd3c08878c7a0ec135add392503f4b2d83dc7218e01e78dfee7ea04983ec52e",
+    "source_bounds": [
+      7,
+      91,
+      1196,
+      1255
+    ],
+    "rect": [
+      0,
+      720,
+      887,
+      1054
+    ],
+    "scale": 0.7460050462573591,
+    "vertical_scale": 0.9329896907216495,
+    "offset": [
+      -5.222035323801514,
+      -84.9020618556701
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "817d002078001f72f266323b7b8a8ebc5ca8f2b890584eeb41324a4dbdc908fc"
+  },
+  {
+    "file": "build-2-sturdy.png",
+    "source": "materials/portraits/generated-features/Cultist.mesh-female/build-2-sturdy.png",
+    "source_sha256": "9701b0bbdf92793bdee830cf44e71ca45b65a6df90f9e4dd9ee5a3faab0accb1",
+    "source_bounds": [
+      0,
+      117,
+      1145,
+      1329
+    ],
+    "rect": [
+      0,
+      720,
+      887,
+      1054
+    ],
+    "scale": 0.7746724890829695,
+    "vertical_scale": 0.8960396039603961,
+    "offset": [
+      0.0,
+      -104.83663366336634
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "817d002078001f72f266323b7b8a8ebc5ca8f2b890584eeb41324a4dbdc908fc"
+  },
+  {
+    "file": "hair-1-swept.png",
+    "source": "materials/portraits/generated-features/Cultist.mesh-female/hair-1-swept.png",
+    "source_sha256": "ad3657d0dfe0ca88104217cee7ec06d306d5f2293d38f090c418735a3f751ff2",
+    "source_bounds": [
+      397,
+      110,
+      1282,
+      956
+    ],
+    "rect": [
+      140,
+      410,
+      600,
+      700
+    ],
+    "scale": 0.6598870056497175,
+    "vertical_scale": 0.6598870056497175,
+    "offset": [
+      -253.9751412429378,
+      -1.7197740112993927
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "817d002078001f72f266323b7b8a8ebc5ca8f2b890584eeb41324a4dbdc908fc"
+  },
+  {
+    "file": "hair-2-waves.png",
+    "source": "materials/portraits/generated-features/Cultist.mesh-female/hair-2-waves.png",
+    "source_sha256": "19f20b6ed00432d8f37fb34a14a5092721525216bf0b0b432370937a6398ebc7",
+    "source_bounds": [
+      423,
+      90,
+      1387,
+      819
+    ],
+    "rect": [
+      140,
+      410,
+      600,
+      700
+    ],
+    "scale": 0.6058091286307054,
+    "vertical_scale": 0.6058091286307054,
+    "offset": [
+      -248.25726141078837,
+      74.65975103734442
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "817d002078001f72f266323b7b8a8ebc5ca8f2b890584eeb41324a4dbdc908fc"
+  },
+  {
+    "file": "scar-1-diagonal.png",
+    "source": "materials/portraits/generated-features/Cultist.mesh-female/scar-1-diagonal.png",
+    "source_sha256": "29d8a8f77a09529a86c51bd86c09ba4dc9e2de0c30ecc45158dd4f6acbbdd12d",
+    "source_bounds": [
+      322,
+      116,
+      1399,
+      926
+    ],
+    "rect": [
+      275,
+      390,
+      260,
+      245
+    ],
+    "scale": 0.2265552460538533,
+    "vertical_scale": 0.2265552460538533,
+    "offset": [
+      -64.95078922934076,
+      4.464716805942437
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "817d002078001f72f266323b7b8a8ebc5ca8f2b890584eeb41324a4dbdc908fc"
+  },
+  {
+    "file": "scar-2-scratches.png",
+    "source": "materials/portraits/generated-features/Cultist.mesh-female/scar-2-scratches.png",
+    "source_sha256": "0930a3f8d91c122967fb5bf2c4ff097eeecda65d2a6ffe3baa03da844044d297",
+    "source_bounds": [
+      438,
+      46,
+      1197,
+      963
+    ],
+    "rect": [
+      275,
+      390,
+      260,
+      245
+    ],
+    "scale": 0.24972737186477645,
+    "vertical_scale": 0.24972737186477645,
+    "offset": [
+      -74.15212649945474,
+      -3.487459105779717
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "817d002078001f72f266323b7b8a8ebc5ca8f2b890584eeb41324a4dbdc908fc"
+  },
+  {
+    "file": "scar-3-warpaint.png",
+    "source": "materials/portraits/generated-features/Cultist.mesh-female/scar-3-warpaint.png",
+    "source_sha256": "9c247b81f08172332976d6d5c93be90edaed082b76e5062824b39952ad7321ec",
+    "source_bounds": [
+      201,
+      100,
+      1091,
+      1150
+    ],
+    "rect": [
+      275,
+      390,
+      260,
+      245
+    ],
+    "scale": 0.2180952380952381,
+    "vertical_scale": 0.2180952380952381,
+    "offset": [
+      -10.889523809523816,
+      -13.80952380952381
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "817d002078001f72f266323b7b8a8ebc5ca8f2b890584eeb41324a4dbdc908fc"
+  },
+  {
+    "file": "neck-1-teeth.png",
+    "source": "materials/portraits/generated-features/Cultist.mesh-female/neck-1-teeth.png",
+    "source_sha256": "3d9683b51defca9cb08747408d36107e0f85c16035d02d0853beee738acfcf7b",
+    "source_bounds": [
+      120,
+      36,
+      1412,
+      972
+    ],
+    "rect": [
+      250,
+      820,
+      390,
+      285
+    ],
+    "scale": 0.28739316239316237,
+    "vertical_scale": 0.28739316239316237,
+    "offset": [
+      -25.143162393162363,
+      -2.346153846153845
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "817d002078001f72f266323b7b8a8ebc5ca8f2b890584eeb41324a4dbdc908fc"
+  },
+  {
+    "file": "neck-2-torque.png",
+    "source": "materials/portraits/generated-features/Cultist.mesh-female/neck-2-torque.png",
+    "source_sha256": "352db0bae24b0ce4d04008c2936fa5b16c540c52809c6430ff75f1dfc835d1a4",
+    "source_bounds": [
+      129,
+      134,
+      1407,
+      903
+    ],
+    "rect": [
+      250,
+      820,
+      390,
+      285
+    ],
+    "scale": 0.29264475743348983,
+    "vertical_scale": 0.29264475743348983,
+    "offset": [
+      -29.75117370892019,
+      -9.236306729264477
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "817d002078001f72f266323b7b8a8ebc5ca8f2b890584eeb41324a4dbdc908fc"
+  },
+  {
+    "id": "Cultist.mesh-female",
+    "n": 1,
+    "name": "arch",
+    "prompt": "Generate ONE new isolated face-covering helmet customization part for the female Cultist catalog entry. The attached ORIGINAL PORTRAIT is a reference ONLY for the exact three-quarter viewing direction, head tilt, steel gray palette, light from upper left and coarse hand-painted dark-fantasy brushwork. Output ONLY a complete empty helmet, no head, skin, neck, body, armor shoulders, clothing, hair, person, background or full portrait. Variant 1: Closed elongated steel grille mask below a broad arched spiked crest; long vertical dark visor openings backed by opaque shadow. Opaque dark interior behind all visor openings; no face visible. Match the reference helmet's orientation precisely; do not turn it frontal or mirror it. Entire contour visible with transparent padding, genuine RGBA alpha background, no baked checkerboard, no text, symbols, weapons, glow or shadow outside the object. Direct isolated-part generation, not portrait cropping.",
+    "file": "helmet-1-arch.png",
+    "reference": "materials/textures/portrait-Cultist.mesh-female.png",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-a20d11b9-a7b8-4c7b-9309-71e52d9d5d98.png",
+    "source": "materials/portraits/generated-helmets/Cultist.mesh-female/helmet-1-arch.png",
+    "source_sha256": "920504d2e5099b32793e4cb7cf5698c3adc9a6a904205a3d21ccf876f2bf0eb7",
+    "source_bbox": [
+      6,
+      21,
+      1129,
+      1292
+    ],
+    "shell_top": 479,
+    "rect": [
+      0,
+      0,
+      887,
+      950
+    ],
+    "scale": 0.5564575645756458,
+    "horizontal_scale": 0.7437269372693726,
+    "offset": [
+      -2.4623616236162356,
+      96.0568265682657
+    ],
+    "head_anchor": [
+      265,
+      380,
+      310,
+      435
+    ],
+    "base": "materials/portraits/neutral-bases/Cultist.mesh-female.png",
+    "combined_visual_acceptance": "open-existing-slot-registration",
+    "visual_acceptance": "accepted-native-and-50x100",
+    "base_sha256": "817d002078001f72f266323b7b8a8ebc5ca8f2b890584eeb41324a4dbdc908fc"
+  },
+  {
+    "id": "Cultist.mesh-female",
+    "n": 2,
+    "name": "crown",
+    "prompt": "Generate ONE new isolated face-covering helmet customization part for the female Cultist catalog entry. The attached ORIGINAL PORTRAIT is a reference ONLY for the exact three-quarter viewing direction, head tilt, steel gray palette, light from upper left and coarse hand-painted dark-fantasy brushwork. Output ONLY a complete empty helmet, no head, skin, neck, body, armor shoulders, clothing, hair, person, background or full portrait. Variant 2: Closed angular helmet with a compact ring of short metal crown spikes, a broad solid lower faceplate and paired narrow eye slits; no broad arch. Opaque dark interior behind all visor openings; no face visible. Match the reference helmet's orientation precisely; do not turn it frontal or mirror it. Entire contour visible with transparent padding, genuine RGBA alpha background, no baked checkerboard, no text, symbols, weapons, glow or shadow outside the object. Direct isolated-part generation, not portrait cropping.",
+    "file": "helmet-2-crown.png",
+    "reference": "materials/textures/portrait-Cultist.mesh-female.png",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-ab1b7d40-443a-48e0-bba1-c85f42febb31.png",
+    "source": "materials/portraits/generated-helmets/Cultist.mesh-female/helmet-2-crown.png",
+    "source_sha256": "2ee2fc926ffd5f659d59c76b1a84df2532c289abc459cbc3a369a0eb83b603ac",
+    "source_bbox": [
+      127,
+      37,
+      1062,
+      1299
+    ],
+    "shell_top": 289,
+    "rect": [
+      0,
+      0,
+      887,
+      950
+    ],
+    "scale": 0.4651485148514852,
+    "horizontal_scale": 0.5512871287128713,
+    "offset": [
+      92.259801980198,
+      210.7720792079208
+    ],
+    "head_anchor": [
+      265,
+      380,
+      310,
+      435
+    ],
+    "base": "materials/portraits/neutral-bases/Cultist.mesh-female.png",
+    "combined_visual_acceptance": "open-existing-slot-registration",
+    "visual_acceptance": "accepted-native-and-50x100",
+    "base_sha256": "817d002078001f72f266323b7b8a8ebc5ca8f2b890584eeb41324a4dbdc908fc"
+  },
+  {
+    "id": "Cultist.mesh-female",
+    "n": 3,
+    "name": "horned",
+    "prompt": "Generate ONE new isolated face-covering helmet customization part for the female Cultist catalog entry. The attached ORIGINAL PORTRAIT is a reference ONLY for the exact three-quarter viewing direction, head tilt, steel gray palette, light from upper left and coarse hand-painted dark-fantasy brushwork. Output ONLY a complete empty helmet, no head, skin, neck, body, armor shoulders, clothing, hair, person, background or full portrait. Variant 3: Closed tapered mask with two swept short steel horns attached to a rounded crown and a deep narrow central dark visor slit; no broad arch. Opaque dark interior behind all visor openings; no face visible. Match the reference helmet's orientation precisely; do not turn it frontal or mirror it. Entire contour visible with transparent padding, genuine RGBA alpha background, no baked checkerboard, no text, symbols, weapons, glow or shadow outside the object. Direct isolated-part generation, not portrait cropping.",
+    "file": "helmet-3-horned.png",
+    "reference": "materials/textures/portrait-Cultist.mesh-female.png",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-44812bf2-d91b-4770-b6dd-4775a5872331.png",
+    "source": "materials/portraits/generated-helmets/Cultist.mesh-female/helmet-3-horned.png",
+    "source_sha256": "d99c9e8f11ddf7fb4038cb36fa1ce899bde6354295e8b6c00709f27358e4aaa0",
+    "source_bbox": [
+      149,
+      62,
+      1083,
+      1304
+    ],
+    "shell_top": 286,
+    "rect": [
+      0,
+      0,
+      887,
+      950
+    ],
+    "scale": 0.46149312377210217,
+    "horizontal_scale": 0.5469548133595284,
+    "offset": [
+      83.07583497053048,
+      253.21296660117878
+    ],
+    "head_anchor": [
+      265,
+      380,
+      310,
+      435
+    ],
+    "base": "materials/portraits/neutral-bases/Cultist.mesh-female.png",
+    "combined_visual_acceptance": "open-existing-slot-registration",
+    "visual_acceptance": "accepted-native-and-50x100",
+    "base_sha256": "817d002078001f72f266323b7b8a8ebc5ca8f2b890584eeb41324a4dbdc908fc"
+  },
+  {
+    "id": "Cultist.mesh-female",
+    "n": 4,
+    "name": "ridged",
+    "prompt": "Generate ONE new isolated face-covering helmet customization part for the female Cultist catalog entry. The attached ORIGINAL PORTRAIT is a reference ONLY for the exact three-quarter viewing direction, head tilt, steel gray palette, light from upper left and coarse hand-painted dark-fantasy brushwork. Output ONLY a complete empty helmet, no head, skin, neck, body, armor shoulders, clothing, hair, person, background or full portrait. Variant 4: Tall sharply ridged closed steel helm with a single central blade crest and segmented broad faceplate with narrow vertical ventilation slits; no horns or arch. Opaque dark interior behind all visor openings; no face visible. Match the reference helmet's orientation precisely; do not turn it frontal or mirror it. Entire contour visible with transparent padding, genuine RGBA alpha background, no baked checkerboard, no text, symbols, weapons, glow or shadow outside the object. Direct isolated-part generation, not portrait cropping.",
+    "file": "helmet-4-ridged-clean.png",
+    "reference": "materials/textures/portrait-Cultist.mesh-female.png",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-fe5262ed-7862-4a22-b942-19d7a566e03a.png",
+    "rejected_original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-b31c4e26-aa42-4c47-9276-f9a0f14c6077.png",
+    "correction_prompt": "Generate a NEW standalone empty closed steel Cultist helmet with a tall central blade crest, segmented faceplate, and three long dark vertical visor slits. Reference 1 defines ORIGINAL female Cultist's three-quarter angle, downward head tilt and painted gray steel style. Reference 2 illustrates ONLY the requested ridged helmet shape. Output ONLY the isolated helmet with its full metal contour surrounded by clear TRANSPARENT RGBA alpha padding. Absolutely NO shadow, glow, haze, gray halo, background, black backdrop, fog, body, head, face, hair, clothing, text or weapons. Visor interior is opaque dark metal/shadow, no person. Not a full portrait. Use the coarse painted brushwork of reference 1, not photorealism.",
+    "source": "materials/portraits/generated-helmets/Cultist.mesh-female/helmet-4-ridged-clean.png",
+    "source_sha256": "e1751422b87db866b6672ec8d0d031b5fc23ea5283416c264a34d52dee976c23",
+    "source_bbox": [
+      235,
+      17,
+      1011,
+      1352
+    ],
+    "shell_top": 311,
+    "rect": [
+      0,
+      0,
+      887,
+      950
+    ],
+    "scale": 0.4512968299711816,
+    "horizontal_scale": 0.5348703170028819,
+    "offset": [
+      86.77579250720459,
+      204.8466858789625
+    ],
+    "head_anchor": [
+      265,
+      380,
+      310,
+      435
+    ],
+    "base": "materials/portraits/neutral-bases/Cultist.mesh-female.png",
+    "combined_visual_acceptance": "open-existing-slot-registration",
+    "visual_acceptance": "accepted-native-and-50x100",
+    "base_sha256": "817d002078001f72f266323b7b8a8ebc5ca8f2b890584eeb41324a4dbdc908fc"
+  },
+  {
+    "id": "Cultist.mesh-female",
+    "n": 1,
+    "name": "robe",
+    "build": 0,
+    "file": "outfit-1-robe-build0.png",
+    "source": "materials/portraits/generated-outfits/Cultist.mesh-female/outfit-1-robe.png",
+    "source_sha256": "a935bd0e8a7b908d172c6dcc83a1b9eedcc8936eb7282cc50a90f853c7ad8ce5",
+    "source_size": [
+      887,
+      1774
+    ],
+    "canvas_registration": "canonical canvas",
+    "body_span_fit": "continuous outer sleeve sector extensions clipped to uncovered body",
+    "bottom_rows_repeated": 0,
+    "horizontal_scale": 1.1,
+    "vertical_scale": 1.1,
+    "offset": [
+      -44.35000000000004,
+      -72.00000000000006
+    ],
+    "mesh_warp": null,
+    "torso_margin": 1.1111111111111112,
+    "sleeve_warp": null,
+    "head_occlusion": {
+      "warm_neutral_skin_above_row": 815
+    },
+    "native_uncovered_body_pixels": 8861,
+    "coarse_uncovered_body_pixels": 253,
+    "coarse_body_pixels": 6842,
+    "visual_acceptance": "accepted-native-and-50x100",
+    "prompt": "Generate ONE separate EMPTY Cultist robe overlay registered to the attached neutral dummy as exact pose/geometry reference only. Exact887x1774 transparentRGBA canvas. Plain closed dark burgundy-brown long-sleeved robe, simple cloth sash and cuffs, no hood, symbols or ornaments. Match narrow torso, lowered arms, slight three-quarter view and muted upper-left light, coarse painted fantasy style. Male collar around y780-910, female y850-980; shoulders y920-1080, chest x80-860 y1200, sash y1510. Cover every visible shoulder, torso and arm with a small fitting margin, continuing beyond bottom crop. Only empty garments, absolutely no dummy, body, skin, head, face, eyes, nose, ears, hair, beard, helmet, hood, mask, necklace, weapon, tools, writing, insignia, symbols, modern objects or background. Preserve blank upper canvas above collar and exactframe registration, no tightcrop or recentering.",
+    "rect": [
+      0,
+      0,
+      887,
+      1774
+    ],
+    "base_sha256": "817d002078001f72f266323b7b8a8ebc5ca8f2b890584eeb41324a4dbdc908fc"
+  }
+]

@@ -1,0 +1,560 @@
+[
+  {
+    "file": "build-1-slim.png",
+    "source": "materials/portraits/generated-features/Knight.mesh/build-1-slim.png",
+    "source_sha256": "b18527238408822450f3d3a0eaba347724b18671b9c3c5e38e1cdc4565df12d9",
+    "source_bounds": [
+      55,
+      69,
+      1189,
+      1233
+    ],
+    "rect": [
+      0,
+      690,
+      887,
+      1084
+    ],
+    "scale": 0.7821869488536155,
+    "vertical_scale": 0.9587628865979382,
+    "offset": [
+      -43.020282186948855,
+      -66.15463917525773
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "1ea7d0e1593f6052a4be10f4c5348c375cd49dd954487deabdf18dc012039e2a"
+  },
+  {
+    "file": "build-2-sturdy.png",
+    "source": "materials/portraits/generated-features/Knight.mesh/build-2-sturdy.png",
+    "source_sha256": "069dacd267019bae8a920a8adc768555c9bf4713c902b77d13802832379b71fc",
+    "source_bounds": [
+      14,
+      56,
+      1408,
+      1053
+    ],
+    "rect": [
+      0,
+      690,
+      887,
+      1084
+    ],
+    "scale": 0.6362984218077475,
+    "vertical_scale": 1.119358074222668,
+    "offset": [
+      -8.908177905308465,
+      -62.68405215646941
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "1ea7d0e1593f6052a4be10f4c5348c375cd49dd954487deabdf18dc012039e2a"
+  },
+  {
+    "file": "hair-1-swept.png",
+    "source": "materials/portraits/generated-features/Knight.mesh/hair-1-swept.png",
+    "source_sha256": "5983e29af1dc22230300123bb469ac553f705de1c0eef3f092265cec493fcc91",
+    "source_bounds": [
+      498,
+      322,
+      1156,
+      760
+    ],
+    "rect": [
+      115,
+      465,
+      580,
+      660
+    ],
+    "scale": 0.8571428571428571,
+    "vertical_scale": 0.8571428571428571,
+    "offset": [
+      -418.85714285714283,
+      -133.7142857142857
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "1ea7d0e1593f6052a4be10f4c5348c375cd49dd954487deabdf18dc012039e2a"
+  },
+  {
+    "file": "hair-2-waves.png",
+    "source": "materials/portraits/generated-features/Knight.mesh/hair-2-waves.png",
+    "source_sha256": "f0bf54d144c5dae51a7d5a77ed6796dbea1f3a90572a9168e711d00e238292fb",
+    "source_bounds": [
+      414,
+      166,
+      1372,
+      644
+    ],
+    "rect": [
+      115,
+      465,
+      580,
+      660
+    ],
+    "scale": 0.5887265135699373,
+    "vertical_scale": 0.5887265135699373,
+    "offset": [
+      -235.73277661795404,
+      91.56576200417538
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "1ea7d0e1593f6052a4be10f4c5348c375cd49dd954487deabdf18dc012039e2a"
+  },
+  {
+    "file": "scar-1-diagonal.png",
+    "source": "materials/portraits/generated-features/Knight.mesh/scar-1-diagonal.png",
+    "source_sha256": "123d42e4f3273d76e3eef142746b03b15fa5fa09e365e3cf5b503e53b32fac30",
+    "source_bounds": [
+      122,
+      219,
+      1102,
+      1084
+    ],
+    "rect": [
+      280,
+      280,
+      255,
+      240
+    ],
+    "scale": 0.24387755102040817,
+    "vertical_scale": 0.24387755102040817,
+    "offset": [
+      -21.753061224489798,
+      -38.88622448979593
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "1ea7d0e1593f6052a4be10f4c5348c375cd49dd954487deabdf18dc012039e2a"
+  },
+  {
+    "file": "scar-2-scratches.png",
+    "source": "materials/portraits/generated-features/Knight.mesh/scar-2-scratches.png",
+    "source_sha256": "4416d1fd72a45cdadfe325a9d21fd97effb9906117e9caa6f0358ddf0372ceb5",
+    "source_bounds": [
+      227,
+      48,
+      1353,
+      966
+    ],
+    "rect": [
+      280,
+      280,
+      255,
+      240
+    ],
+    "scale": 0.21225577264653642,
+    "vertical_scale": 0.21225577264653642,
+    "offset": [
+      -40.182060390763766,
+      12.386323268206032
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "1ea7d0e1593f6052a4be10f4c5348c375cd49dd954487deabdf18dc012039e2a"
+  },
+  {
+    "file": "scar-3-warpaint.png",
+    "source": "materials/portraits/generated-features/Knight.mesh/scar-3-warpaint.png",
+    "source_sha256": "26447528f9cdc008f2981c1ca01dcd8390135f925f697857b97351be7fbb1d25",
+    "source_bounds": [
+      254,
+      225,
+      1005,
+      1062
+    ],
+    "rect": [
+      280,
+      280,
+      255,
+      240
+    ],
+    "scale": 0.26762246117084826,
+    "vertical_scale": 0.26762246117084826,
+    "offset": [
+      -40.96833930704898,
+      -52.21505376344086
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "1ea7d0e1593f6052a4be10f4c5348c375cd49dd954487deabdf18dc012039e2a"
+  },
+  {
+    "file": "neck-1-teeth.png",
+    "source": "materials/portraits/generated-features/Knight.mesh/neck-1-teeth.png",
+    "source_sha256": "79c5cd7cf7a6c1aa4ae5a0796e512910f17c7cc1e5bead75d3eb5105465abb8f",
+    "source_bounds": [
+      234,
+      88,
+      1302,
+      937
+    ],
+    "rect": [
+      225,
+      680,
+      405,
+      275
+    ],
+    "scale": 0.3050647820965842,
+    "vertical_scale": 0.3050647820965842,
+    "offset": [
+      -31.78975265017668,
+      -18.84570082449941
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "1ea7d0e1593f6052a4be10f4c5348c375cd49dd954487deabdf18dc012039e2a"
+  },
+  {
+    "file": "neck-2-torque.png",
+    "source": "materials/portraits/generated-features/Knight.mesh/neck-2-torque.png",
+    "source_sha256": "a65e72d2abb7c91a31706aeeabf07381040baf5a3462aa0907d6f42a94831a48",
+    "source_bounds": [
+      43,
+      93,
+      1496,
+      955
+    ],
+    "rect": [
+      225,
+      680,
+      405,
+      275
+    ],
+    "scale": 0.2677219545767378,
+    "vertical_scale": 0.2677219545767378,
+    "offset": [
+      -3.5120440467997547,
+      -2.7863041982106154
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "1ea7d0e1593f6052a4be10f4c5348c375cd49dd954487deabdf18dc012039e2a"
+  },
+  {
+    "id": "Knight.mesh",
+    "n": 1,
+    "name": "greathelm",
+    "prompt": "Generate ONE new isolated face-covering helmet customization part for the male Knight catalog entry. The attached ORIGINAL PORTRAIT is a reference ONLY for the exact three-quarter viewing direction, downward head tilt, steel gray palette, light from upper left and coarse hand-painted dark-fantasy brushwork. Output ONLY a complete empty helmet, no head, skin, neck, body, armor shoulders, clothing, braid, person, background or full portrait. Variant 1: angular peaked great helm, broad closed lower faceplate, paired narrow dark eye slits and small ventilation holes, visibly distinct from a rounded bascinet, pointed visor and flat-topped barrel helmet. Opaque dark interior behind eye slits; no face visible. Match the reference helmet's orientation precisely; do not turn it frontal or mirror it. Entire contour visible with transparent padding, genuine RGBA alpha background, no baked checkerboard, no text, symbols, weapons, glow or shadow outside the object. Direct isolated-part generation, not portrait cropping.",
+    "file": "helmet-1-greathelm.png",
+    "reference": "materials/textures/portrait-Knight.mesh.png",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-b8670f97-8e41-46be-aa4b-3ae2b6281fe9.png",
+    "source": "materials/portraits/generated-helmets/Knight.mesh/helmet-1-greathelm.png",
+    "source_sha256": "64339238337150a1453a1a1003234b10dce665f8b2e923094b9f63477a2ae9fe",
+    "source_bbox": [
+      124,
+      44,
+      1083,
+      1315
+    ],
+    "shell_top": 44,
+    "rect": [
+      0,
+      0,
+      887,
+      950
+    ],
+    "scale": 0.41882926829268297,
+    "horizontal_scale": 0.4425365853658537,
+    "offset": [
+      112.92917073170729,
+      83.15951219512189
+    ],
+    "head_anchor": [
+      205,
+      155,
+      350,
+      465
+    ],
+    "base": "materials/portraits/neutral-bases/Knight.mesh.png",
+    "combined_visual_acceptance": "open-existing-slot-registration",
+    "neutral_head_fit": {
+      "horizontal": 1.12,
+      "vertical": 1.06,
+      "anchor": [
+        380,
+        388
+      ]
+    },
+    "visual_acceptance": "accepted-native-and-50x100",
+    "base_sha256": "1ea7d0e1593f6052a4be10f4c5348c375cd49dd954487deabdf18dc012039e2a"
+  },
+  {
+    "id": "Knight.mesh",
+    "n": 2,
+    "name": "bascinet",
+    "prompt": "Generate ONE new isolated face-covering helmet customization part for the male Knight catalog entry. The attached ORIGINAL PORTRAIT is a reference ONLY for the exact three-quarter viewing direction, head tilt, steel gray palette, light from upper left and coarse hand-painted dark-fantasy brushwork. Output ONLY a complete empty helmet, no head, skin, neck, body, armor shoulders, clothing, hair, person, background or full portrait. Variant 2: Rounded dome bascinet with a compact closed rounded visor and paired thin horizontal eye slits; no pointed roof or flat barrel top. Opaque dark interior behind all visor openings; no face visible. Match the reference helmet's orientation precisely; do not turn it frontal or mirror it. Entire contour visible with transparent padding, genuine RGBA alpha background, no baked checkerboard, no text, symbols, weapons, glow or shadow outside the object. Direct isolated-part generation, not portrait cropping.",
+    "file": "helmet-2-bascinet.png",
+    "reference": "materials/textures/portrait-Knight.mesh.png",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-b11b2e5e-c59e-4993-862d-fae4ab8b1f02.png",
+    "source": "materials/portraits/generated-helmets/Knight.mesh/helmet-2-bascinet.png",
+    "source_sha256": "03dc20d4ce8a071b5e82b6a76ae833e671bb00b9445d8281cfd4f9b7d871443e",
+    "source_bbox": [
+      167,
+      51,
+      1068,
+      1246
+    ],
+    "shell_top": 51,
+    "rect": [
+      0,
+      0,
+      887,
+      950
+    ],
+    "scale": 0.41246861924686196,
+    "horizontal_scale": 0.43581589958159,
+    "offset": [
+      110.88368200836815,
+      119.98410041841001
+    ],
+    "head_anchor": [
+      205,
+      155,
+      350,
+      465
+    ],
+    "base": "materials/portraits/neutral-bases/Knight.mesh.png",
+    "combined_visual_acceptance": "open-existing-slot-registration",
+    "neutral_head_fit": {
+      "horizontal": 1.12,
+      "vertical": 1.06,
+      "anchor": [
+        380,
+        388
+      ]
+    },
+    "visual_acceptance": "accepted-native-and-50x100",
+    "base_sha256": "1ea7d0e1593f6052a4be10f4c5348c375cd49dd954487deabdf18dc012039e2a"
+  },
+  {
+    "id": "Knight.mesh",
+    "n": 3,
+    "name": "houndskull",
+    "prompt": "Generate ONE new isolated face-covering helmet customization part for the male Knight catalog entry. The attached ORIGINAL PORTRAIT is a reference ONLY for the exact three-quarter viewing direction, head tilt, steel gray palette, light from upper left and coarse hand-painted dark-fantasy brushwork. Output ONLY a complete empty helmet, no head, skin, neck, body, armor shoulders, clothing, hair, person, background or full portrait. Variant 3: Pointed houndskull visor with a distinctly projecting tapered snout, closed cheek plates and narrow eye openings; rounded crown. Opaque dark interior behind all visor openings; no face visible. Match the reference helmet's orientation precisely; do not turn it frontal or mirror it. Entire contour visible with transparent padding, genuine RGBA alpha background, no baked checkerboard, no text, symbols, weapons, glow or shadow outside the object. Direct isolated-part generation, not portrait cropping.",
+    "file": "helmet-3-houndskull.png",
+    "reference": "materials/textures/portrait-Knight.mesh.png",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-45026b7e-6cd8-4ac3-a54c-0909619a6247.png",
+    "source": "materials/portraits/generated-helmets/Knight.mesh/helmet-3-houndskull.png",
+    "source_sha256": "7718da23c1f6d590dff346ef402afc9cb56e877d300cc8ac2a0b3cebc6aa62d2",
+    "source_bbox": [
+      111,
+      67,
+      1020,
+      1243
+    ],
+    "shell_top": 67,
+    "rect": [
+      0,
+      0,
+      887,
+      950
+    ],
+    "scale": 0.45266326530612255,
+    "horizontal_scale": 0.4782857142857144,
+    "offset": [
+      109.52942857142851,
+      71.25956122448972
+    ],
+    "head_anchor": [
+      205,
+      155,
+      350,
+      465
+    ],
+    "base": "materials/portraits/neutral-bases/Knight.mesh.png",
+    "combined_visual_acceptance": "open-existing-slot-registration",
+    "neutral_head_fit": {
+      "horizontal": 1.12,
+      "vertical": 1.06,
+      "anchor": [
+        380,
+        388
+      ]
+    },
+    "visual_acceptance": "accepted-native-and-50x100",
+    "base_sha256": "1ea7d0e1593f6052a4be10f4c5348c375cd49dd954487deabdf18dc012039e2a"
+  },
+  {
+    "id": "Knight.mesh",
+    "n": 4,
+    "name": "barrel",
+    "prompt": "Generate ONE new isolated face-covering helmet customization part for the male Knight catalog entry. The attached ORIGINAL PORTRAIT is a reference ONLY for the exact three-quarter viewing direction, head tilt, steel gray palette, light from upper left and coarse hand-painted dark-fantasy brushwork. Output ONLY a complete empty helmet, no head, skin, neck, body, armor shoulders, clothing, hair, person, background or full portrait. Variant 4: Flat-topped cylindrical barrel great helm with broad closed front, straight narrow eye slit and a simple reinforced central ridge; no pointed dome. Opaque dark interior behind all visor openings; no face visible. Match the reference helmet's orientation precisely; do not turn it frontal or mirror it. Entire contour visible with transparent padding, genuine RGBA alpha background, no baked checkerboard, no text, symbols, weapons, glow or shadow outside the object. Direct isolated-part generation, not portrait cropping.",
+    "file": "helmet-4-barrel.png",
+    "reference": "materials/textures/portrait-Knight.mesh.png",
+    "original": "C:\\Users\\mario\\.codex\\generated_images\\01a0f765-dd88-7a90-b3e3-6becedd2dd5f\\exec-7dc68419-1640-45a4-b1b0-1d8639a45712.png",
+    "source": "materials/portraits/generated-helmets/Knight.mesh/helmet-4-barrel.png",
+    "source_sha256": "249f2e7dd1f24f98dc462edf01a9f4f7e41ce65334e0a10ff61fd0c5b2f25eb4",
+    "source_bbox": [
+      182,
+      63,
+      1136,
+      1206
+    ],
+    "shell_top": 63,
+    "rect": [
+      0,
+      0,
+      887,
+      950
+    ],
+    "scale": 0.43123359580052495,
+    "horizontal_scale": 0.4556430446194226,
+    "offset": [
+      79.73123359580052,
+      113.85228346456694
+    ],
+    "head_anchor": [
+      205,
+      155,
+      350,
+      465
+    ],
+    "base": "materials/portraits/neutral-bases/Knight.mesh.png",
+    "combined_visual_acceptance": "open-existing-slot-registration",
+    "neutral_head_fit": {
+      "horizontal": 1.12,
+      "vertical": 1.06,
+      "anchor": [
+        380,
+        388
+      ]
+    },
+    "visual_acceptance": "accepted-native-and-50x100",
+    "base_sha256": "1ea7d0e1593f6052a4be10f4c5348c375cd49dd954487deabdf18dc012039e2a"
+  },
+  {
+    "id": "Knight.mesh",
+    "n": 1,
+    "name": "plate",
+    "build": 0,
+    "file": "outfit-1-plate-build0.png",
+    "source": "materials/portraits/generated-outfits/Knight.mesh/outfit-1-plate.png",
+    "source_sha256": "ea33fc568f86c6c4591a6f29918609e8d4e73fa9f492e0c902fbd5ca3f020d69",
+    "source_size": [
+      887,
+      1774
+    ],
+    "canvas_registration": "canonical canvas",
+    "body_span_fit": null,
+    "bottom_rows_repeated": 0,
+    "horizontal_scale": 1.25,
+    "vertical_scale": 1.1,
+    "offset": [
+      -110.875,
+      -72.00000000000006
+    ],
+    "mesh_warp": null,
+    "torso_margin": 1.1111111111111112,
+    "sleeve_warp": "row-wise sleeve width registered to neutral forearm bounds, outer 220-pixel sectors, rows 1050-1599",
+    "head_occlusion": "mandatory helmet covers collar",
+    "native_uncovered_body_pixels": 8950,
+    "coarse_uncovered_body_pixels": 270,
+    "coarse_body_pixels": 8468,
+    "visual_acceptance": "accepted-native-and-50x100",
+    "prompt": "Generate ONE isolated empty clothing/armor overlay: Knight male outfit option 1, full dark steel plate cuirass with broad segmented shoulder pauldrons, metal upper-arm protection and articulated elbow guards over a muted burgundy padded long-sleeved tunic, plain unmarked armor, modest closed torso, a simple belt and burgundy lower coat filling the bottom frame. Input neutral mannequin is a registration reference ONLY: preserve its exact three-quarter head direction, shoulders, torso width, bent arms with hands resting at the waist, crop and upper-left painted light. Canvas 887x1774; retain empty transparent head space. Collar at base of neck below y=650; shoulders around y=700, torso and bent arms extend to bottom edge; cover the entire torso, shoulders and visible arms, with slight overlap outside the mannequin's silhouette. No helmet or head: those are separate layers. Output only the empty armor-and-clothing shell, genuine transparent RGBA, no body, face, neck skin, mannequin, hand skin, person, hair, jewelry, weapon, text, emblem, heraldic symbol, checkerboard, background or external shadow. Do not regenerate a full portrait. Coarse hand-painted dark-fantasy brushwork matching the reference, not photorealistic product photography. Preserve the original reference unchanged.",
+    "rect": [
+      0,
+      0,
+      887,
+      1774
+    ],
+    "base_sha256": "1ea7d0e1593f6052a4be10f4c5348c375cd49dd954487deabdf18dc012039e2a"
+  },
+  {
+    "id": "Knight.mesh",
+    "n": 2,
+    "name": "chain",
+    "build": 0,
+    "file": "outfit-2-chain-build0.png",
+    "source": "materials/portraits/generated-outfits/Knight.mesh/outfit-2-chain-corrected.png",
+    "source_sha256": "87c4623ae58b31f0411f76fa5f48ed2068351d6fbbc54093e8e2226304f3af11",
+    "source_size": [
+      887,
+      1774
+    ],
+    "canvas_registration": "canonical canvas",
+    "body_span_fit": null,
+    "bottom_rows_repeated": 0,
+    "horizontal_scale": 1.075,
+    "vertical_scale": 1.04,
+    "offset": [
+      -33.26249999999998,
+      -28.800000000000026
+    ],
+    "mesh_warp": null,
+    "torso_margin": 1.1111111111111112,
+    "sleeve_warp": "row-wise sleeve width registered to neutral forearm bounds, outer 220-pixel sectors, rows 1050-1599",
+    "head_occlusion": "mandatory helmet covers collar",
+    "native_uncovered_body_pixels": 1794,
+    "coarse_uncovered_body_pixels": 7,
+    "coarse_body_pixels": 8468,
+    "visual_acceptance": "accepted-native-and-50x100",
+    "prompt": "Generate ONE isolated empty outfit overlay: Knight male outfit option 2, a dark iron mail hauberk over long burgundy padded sleeves, a plain burgundy sleeveless surcoat with modest closed neckline and a simple brown waist belt; no plate cuirass, a clearly distinct chain-mail outfit. Use the attached neutral mannequin ONLY as registration reference for exact three-quarter perspective, head tilt, wide shoulders, torso silhouette, bent arms and hands at hips, upper-left painted light and crop. 887x1774 canvas with empty transparent space above the collar. Cover shoulders, torso and visible arms, follow the bent elbows, plain leather gloves may cover the hands; clothing continues through the bottom frame with no exposed abdomen or flanks. Slight coverage margin outside the mannequin silhouette. Output ONLY the empty outfit on genuine RGBA transparency, no head, neck skin, face, body, mannequin, person, hair, helmet, jewelry, weapon, emblem, letters, checkerboard, background or external shadow. Coarse painted dark-fantasy brushwork matching the reference; muted steel gray and burgundy palette, no photorealistic product photography or sexualization. No full dressed portrait, only a new isolated clothing part; original reference unchanged.\n\nCorrection prompt: Create ONE isolated Knight chain-mail clothing overlay registered EXACTLY to the attached neutral mannequin image. Mandatory output canvas 887 pixels wide by 1774 pixels high, matching reference canvas and crop; do not crop away empty space above the collar. Keep the reference three-quarter viewing angle and pose. Empty garment only, no mannequin/body/head/skin/background. Collar at image y620-700, shoulders at y720-800, broad chest fills x100-800 at y950, waist belt at y1300-1380. Upper arms leave the side edges around y1100-1200; bent forearms reenter from left and right at y1250; glove cuffs around x150,y1450 and x750,y1450. Use dark iron chain mail, burgundy sleeveless surcoat, burgundy padded long sleeves and brown belt/gloves. Slight silhouette coverage margin. Preserve coarse painterly fantasy brushwork and upper-left light of the reference. Cloth continues through bottom frame. Transparent RGBA background including all empty top space. No helmet, face, neck skin, anatomy, jewelry, text, weapon, symbols, checkerboard or full dressed portrait. This is a new separate clothing asset, not editing the reference.",
+    "rect": [
+      0,
+      0,
+      887,
+      1774
+    ],
+    "base_sha256": "1ea7d0e1593f6052a4be10f4c5348c375cd49dd954487deabdf18dc012039e2a"
+  },
+  {
+    "id": "Knight.mesh",
+    "n": 3,
+    "name": "padded",
+    "build": 0,
+    "file": "outfit-3-padded-build0.png",
+    "source": "materials/portraits/generated-outfits/Knight.mesh/outfit-3-padded-corrected.png",
+    "source_sha256": "005c86e240089f221d193d05ef12df87dd2bbba5164917652d2b58905ebc2e35",
+    "source_size": [
+      887,
+      1774
+    ],
+    "canvas_registration": "canonical canvas",
+    "body_span_fit": null,
+    "bottom_rows_repeated": 0,
+    "horizontal_scale": 1.075,
+    "vertical_scale": 1.1,
+    "offset": [
+      -33.26249999999998,
+      -72.00000000000006
+    ],
+    "mesh_warp": null,
+    "torso_margin": 1.1111111111111112,
+    "sleeve_warp": "row-wise sleeve width registered to neutral forearm bounds, outer 220-pixel sectors, rows 1050-1599",
+    "head_occlusion": "mandatory helmet covers collar",
+    "native_uncovered_body_pixels": 7785,
+    "coarse_uncovered_body_pixels": 105,
+    "coarse_body_pixels": 8468,
+    "visual_acceptance": "accepted-native-and-50x100",
+    "prompt": "Generate ONE isolated empty clothing overlay: Knight male outfit option 3, a thick burgundy quilted gambeson with full long padded sleeves, a high modest collar, dark brown leather shoulder reinforcements and a plain leather belt, simple dark steel forearm guards and leather gloves following hands at hips; lower burgundy padded coat fills the bottom edge. Clearly distinct from full plate and chain mail: primarily quilted cloth, no breastplate or mail. Attached neutral mannequin is a registration reference ONLY for exact three-quarter orientation, wide shoulder/torso geometry, bent arms, elbows, waist pose, crop and upper-left painted light. Fixed 887x1774 canvas, head area transparent, garment covers all visible shoulders, torso and arms with a slight overlap margin and no exposed abdomen or flanks. Output ONLY empty clothing on genuine transparent RGBA alpha: no head, neck skin, face, body, mannequin, person, hand skin, hair, helmet, jewelry, weapon, letters, emblems, checkerboard, background or outside shadow. Painted dark fantasy brushwork matching the reference, muted burgundy, brown and dark gray palette, no photorealistic product photography or sexualization. Do not make a dressed portrait or regenerate organs; original reference unchanged.\n\nCorrection prompt: Generate ONE empty isolated Knight padded clothing overlay. Match attached neutral mannequin's EXACT 887x1774 canvas, three-quarter perspective, wide torso and bent arms at hips. Transparent empty top space must remain. Collar y620-700, shoulders y720-800, chest spans x100-800 at y950, waist belt y1300-1380. Upper arms extend beyond side frame around y1150, bent forearms reenter side frame at y1250, closed brown glove cuffs around x150,y1450 and x750,y1450. Garment covers the neutral body's whole torso and visible arms with a small silhouette margin, down through bottom crop. Distinctive muted ochre/brown quilted padded gambeson with long sleeves, leather shoulder reinforcement and plain waist belt: no chain-mail or plate cuirass. Same coarse painted dark fantasy style and upper-left light. Output ONLY the separate clothing part, no mannequin, body, head, skin, helmet, hair, jewelry, weapons, letters, emblem, backdrop or checkerboard; real RGBA transparency, EXACT canvas887x1774, no tight product crop.",
+    "rect": [
+      0,
+      0,
+      887,
+      1774
+    ],
+    "base_sha256": "1ea7d0e1593f6052a4be10f4c5348c375cd49dd954487deabdf18dc012039e2a"
+  }
+]

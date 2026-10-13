@@ -1,0 +1,630 @@
+[
+  {
+    "file": "build-1-slim.png",
+    "source": "materials/portraits/generated-features/Monk.mesh-female/build-1-slim.png",
+    "source_sha256": "0bf835ea0c060d7f1a96b07781d90c83f31647623810ebfd7aad6fed3f89221c",
+    "source_bounds": [
+      12,
+      185,
+      1181,
+      1255
+    ],
+    "rect": [
+      0,
+      670,
+      887,
+      1104
+    ],
+    "scale": 0.7587681779298546,
+    "vertical_scale": 1.0616822429906543,
+    "offset": [
+      -9.105218135158255,
+      -196.41121495327104
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "15c6341a6d8c46be37c24f9462a322ec43c704f190ec1ba33aed5961dbf14aaa"
+  },
+  {
+    "file": "build-2-sturdy.png",
+    "source": "materials/portraits/generated-features/Monk.mesh-female/build-2-sturdy.png",
+    "source_sha256": "1a82ebb907ae9d210219fd3e9cf4ba9e436ba6a154524b4c54a5d17822cce300",
+    "source_bounds": [
+      0,
+      151,
+      1186,
+      1296
+    ],
+    "rect": [
+      0,
+      670,
+      887,
+      1104
+    ],
+    "scale": 0.7478920741989882,
+    "vertical_scale": 0.9921397379912664,
+    "offset": [
+      0.0,
+      -149.81310043668122
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "15c6341a6d8c46be37c24f9462a322ec43c704f190ec1ba33aed5961dbf14aaa"
+  },
+  {
+    "file": "hair-1-swept.png",
+    "source": "materials/portraits/generated-features/Monk.mesh-female/hair-1-swept.png",
+    "source_sha256": "7db2254eab5f74749e637f83ed9e6eaeee41e58fae1818f2d118241093f9b554",
+    "source_bounds": [
+      302,
+      44,
+      955,
+      1245
+    ],
+    "rect": [
+      150,
+      110,
+      610,
+      1050
+    ],
+    "scale": 0.8609492089925063,
+    "vertical_scale": 0.8609492089925063,
+    "offset": [
+      -236.10657785179018,
+      -29.881765195670276
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "15c6341a6d8c46be37c24f9462a322ec43c704f190ec1ba33aed5961dbf14aaa"
+  },
+  {
+    "file": "hair-2-waves.png",
+    "source": "materials/portraits/generated-features/Monk.mesh-female/hair-2-waves.png",
+    "source_sha256": "ba97a39a301d63bf39b3af4c28b35e5a2e126bc9da967313f7f8749226cc6bfe",
+    "source_bounds": [
+      84,
+      9,
+      1219,
+      1266
+    ],
+    "rect": [
+      150,
+      110,
+      610,
+      1050
+    ],
+    "scale": 0.5233480176211454,
+    "vertical_scale": 0.5233480176211454,
+    "offset": [
+      -35.96123348017621,
+      3.2898678414096914
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "15c6341a6d8c46be37c24f9462a322ec43c704f190ec1ba33aed5961dbf14aaa"
+  },
+  {
+    "file": "ears-1-notched.png",
+    "source": "materials/portraits/generated-features/Monk.mesh-female/ears-1-notched.png",
+    "source_sha256": "ba1b9bcb1e1be04c3a03847aba6c5c32d08d267afd92acc4314c2153965ef9ee",
+    "source_bounds": [
+      247,
+      114,
+      962,
+      1134
+    ],
+    "rect": [
+      230,
+      415,
+      110,
+      145
+    ],
+    "scale": 0.1264705882352941,
+    "vertical_scale": 0.1264705882352941,
+    "offset": [
+      -21.451470588235292,
+      -6.41764705882353
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "15c6341a6d8c46be37c24f9462a322ec43c704f190ec1ba33aed5961dbf14aaa"
+  },
+  {
+    "file": "ears-2-rounder.png",
+    "source": "materials/portraits/generated-features/Monk.mesh-female/ears-2-rounder.png",
+    "source_sha256": "8f261c00cac819b8eca77e0fa3f974cba3b5ca15cb3a272ec139c0690105287f",
+    "source_bounds": [
+      346,
+      97,
+      960,
+      1082
+    ],
+    "rect": [
+      230,
+      415,
+      110,
+      145
+    ],
+    "scale": 0.13096446700507614,
+    "vertical_scale": 0.13096446700507614,
+    "offset": [
+      -30.51979695431472,
+      -4.703553299492386
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "15c6341a6d8c46be37c24f9462a322ec43c704f190ec1ba33aed5961dbf14aaa"
+  },
+  {
+    "file": "eyes-1-narrow.png",
+    "source": "materials/portraits/generated-features/Monk.mesh-female/eyes-1-narrow.png",
+    "source_sha256": "693a4c7de1bcf45fe3dfabeaee870eb5be05487aa56817f54c26579c9345d797",
+    "source_bounds": [
+      70,
+      150,
+      1707,
+      739
+    ],
+    "rect": [
+      325,
+      385,
+      290,
+      145
+    ],
+    "scale": 0.16737935247403787,
+    "vertical_scale": 0.16737935247403787,
+    "offset": [
+      -3.7165546731826513,
+      -1.9001221747098356
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "15c6341a6d8c46be37c24f9462a322ec43c704f190ec1ba33aed5961dbf14aaa"
+  },
+  {
+    "file": "eyes-2-round.png",
+    "source": "materials/portraits/generated-features/Monk.mesh-female/eyes-2-round.png",
+    "source_sha256": "6be311883919293d2e258f7d63232a289d91354fbfb9cc998d323d8c0709ce4a",
+    "source_bounds": [
+      187,
+      121,
+      1579,
+      760
+    ],
+    "rect": [
+      325,
+      385,
+      290,
+      145
+    ],
+    "scale": 0.1968390804597701,
+    "vertical_scale": 0.1968390804597701,
+    "offset": [
+      -28.808908045977013,
+      -14.207614942528732
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "15c6341a6d8c46be37c24f9462a322ec43c704f190ec1ba33aed5961dbf14aaa"
+  },
+  {
+    "file": "eyes-3-eyepatch.png",
+    "source": "materials/portraits/generated-features/Monk.mesh-female/eyes-3-eyepatch.png",
+    "source_sha256": "c3ae8a62040795ea1c3e690c4fce326b146ac5266f5dafc2a01dd5855fb34c49",
+    "source_bounds": [
+      246,
+      131,
+      1533,
+      753
+    ],
+    "rect": [
+      325,
+      385,
+      290,
+      145
+    ],
+    "scale": 0.20739549839228297,
+    "vertical_scale": 0.20739549839228297,
+    "offset": [
+      -39.47829581993569,
+      -19.168810289389068
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "15c6341a6d8c46be37c24f9462a322ec43c704f190ec1ba33aed5961dbf14aaa"
+  },
+  {
+    "file": "nose-1-crooked.png",
+    "source": "materials/portraits/generated-features/Monk.mesh-female/nose-1-crooked.png",
+    "source_sha256": "9ab2d12bb8a1177694dcccd907cdc8be374d04946c23c158f3b935af4f5cea59",
+    "source_bounds": [
+      447,
+      74,
+      1095,
+      878
+    ],
+    "rect": [
+      440,
+      465,
+      155,
+      165
+    ],
+    "scale": 0.1853233830845771,
+    "vertical_scale": 0.1853233830845771,
+    "offset": [
+      -65.38432835820895,
+      -5.713930348258705
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "15c6341a6d8c46be37c24f9462a322ec43c704f190ec1ba33aed5961dbf14aaa"
+  },
+  {
+    "file": "nose-2-broad.png",
+    "source": "materials/portraits/generated-features/Monk.mesh-female/nose-2-broad.png",
+    "source_sha256": "bd58b77d58d09cf4f10866480556b794088dcba6622b2f2754dbd9f6af3d8bf8",
+    "source_bounds": [
+      411,
+      159,
+      1125,
+      861
+    ],
+    "rect": [
+      440,
+      465,
+      155,
+      165
+    ],
+    "scale": 0.19467787114845939,
+    "vertical_scale": 0.19467787114845939,
+    "offset": [
+      -72.0126050420168,
+      -16.78571428571429
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "15c6341a6d8c46be37c24f9462a322ec43c704f190ec1ba33aed5961dbf14aaa"
+  },
+  {
+    "file": "mouth-1-teeth.png",
+    "source": "materials/portraits/generated-features/Monk.mesh-female/mouth-1-teeth.png",
+    "source_sha256": "2024fa2b73da331921b89ba9ad2f5fc2fa5d3eca67a7109d682980fd18b14d0b",
+    "source_bounds": [
+      200,
+      203,
+      1360,
+      833
+    ],
+    "rect": [
+      365,
+      580,
+      250,
+      110
+    ],
+    "scale": 0.1492063492063492,
+    "vertical_scale": 0.1492063492063492,
+    "offset": [
+      8.619047619047613,
+      -22.288888888888888
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "15c6341a6d8c46be37c24f9462a322ec43c704f190ec1ba33aed5961dbf14aaa"
+  },
+  {
+    "file": "mouth-2-grin.png",
+    "source": "materials/portraits/generated-features/Monk.mesh-female/mouth-2-grin.png",
+    "source_sha256": "b8c654f64cc5d2f815b6cc514b377f8b0224eab57bc03244783d9bba37a602f2",
+    "source_bounds": [
+      326,
+      155,
+      1452,
+      743
+    ],
+    "rect": [
+      365,
+      580,
+      250,
+      110
+    ],
+    "scale": 0.1598639455782313,
+    "vertical_scale": 0.1598639455782313,
+    "offset": [
+      -17.11904761904762,
+      -16.77891156462585
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "15c6341a6d8c46be37c24f9462a322ec43c704f190ec1ba33aed5961dbf14aaa"
+  },
+  {
+    "file": "mouth-3-cigar.png",
+    "source": "materials/portraits/generated-features/Monk.mesh-female/mouth-3-cigar.png",
+    "source_sha256": "122ca0d4d06aeb0fdb7725c9ea7742e77bfdf51a243a25cea723814e1b8fbc3f",
+    "source_bounds": [
+      350,
+      153,
+      1541,
+      684
+    ],
+    "rect": [
+      365,
+      580,
+      250,
+      110
+    ],
+    "scale": 0.17702448210922786,
+    "vertical_scale": 0.17702448210922786,
+    "offset": [
+      -42.37664783427494,
+      -19.08474576271186
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "15c6341a6d8c46be37c24f9462a322ec43c704f190ec1ba33aed5961dbf14aaa"
+  },
+  {
+    "file": "chin-1-square.png",
+    "source": "materials/portraits/generated-features/Monk.mesh-female/chin-1-square.png",
+    "source_sha256": "1e81dfb7597f71a405a7df23f96d5b8a32a4a37873e935e35932ee85e0efbcb9",
+    "source_bounds": [
+      260,
+      209,
+      1277,
+      847
+    ],
+    "rect": [
+      355,
+      630,
+      260,
+      145
+    ],
+    "scale": 0.20219435736677116,
+    "vertical_scale": 0.20219435736677116,
+    "offset": [
+      -25.38636363636364,
+      -34.258620689655174
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "15c6341a6d8c46be37c24f9462a322ec43c704f190ec1ba33aed5961dbf14aaa"
+  },
+  {
+    "file": "chin-2-rounded.png",
+    "source": "materials/portraits/generated-features/Monk.mesh-female/chin-2-rounded.png",
+    "source_sha256": "6d45108fbd80409e7b91e269df526ae6d0a227b0bc9ee344ce2dbdeeb86377f7",
+    "source_bounds": [
+      225,
+      105,
+      1311,
+      943
+    ],
+    "rect": [
+      355,
+      630,
+      260,
+      145
+    ],
+    "scale": 0.15393794749403342,
+    "vertical_scale": 0.15393794749403342,
+    "offset": [
+      11.775656324582329,
+      -8.163484486873507
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "15c6341a6d8c46be37c24f9462a322ec43c704f190ec1ba33aed5961dbf14aaa"
+  },
+  {
+    "file": "scar-1-diagonal.png",
+    "source": "materials/portraits/generated-features/Monk.mesh-female/scar-1-diagonal.png",
+    "source_sha256": "25927f58c29a11b4c40c24fa1116fdde26cbdf097d7cd05337929c212d891cd7",
+    "source_bounds": [
+      139,
+      60,
+      1130,
+      1250
+    ],
+    "rect": [
+      305,
+      480,
+      170,
+      145
+    ],
+    "scale": 0.10840336134453782,
+    "vertical_scale": 0.10840336134453782,
+    "offset": [
+      16.21806722689076,
+      1.495798319327731
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": "union of all hair and ear alpha",
+    "source_mask_polygon": null,
+    "base_sha256": "15c6341a6d8c46be37c24f9462a322ec43c704f190ec1ba33aed5961dbf14aaa"
+  },
+  {
+    "file": "scar-2-scratches.png",
+    "source": "materials/portraits/generated-features/Monk.mesh-female/scar-2-scratches.png",
+    "source_sha256": "c7b2dbe1e7fae594d0d26f76fa5c5b057a08232a64f9b74336a0249e5485f0fd",
+    "source_bounds": [
+      393,
+      145,
+      1158,
+      893
+    ],
+    "rect": [
+      305,
+      480,
+      170,
+      145
+    ],
+    "scale": 0.17245989304812834,
+    "vertical_scale": 0.17245989304812834,
+    "offset": [
+      -48.742647058823536,
+      -17.00668449197861
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": "union of all hair and ear alpha",
+    "source_mask_polygon": null,
+    "base_sha256": "15c6341a6d8c46be37c24f9462a322ec43c704f190ec1ba33aed5961dbf14aaa"
+  },
+  {
+    "file": "scar-3-warpaint.png",
+    "source": "materials/portraits/generated-features/Monk.mesh-female/scar-3-warpaint.png",
+    "source_sha256": "9d07198fed6e42cd60847be412692c932573fc749daaa473889d61777a259415",
+    "source_bounds": [
+      66,
+      144,
+      1471,
+      895
+    ],
+    "rect": [
+      305,
+      480,
+      170,
+      145
+    ],
+    "scale": 0.10960854092526691,
+    "vertical_scale": 0.10960854092526691,
+    "offset": [
+      0.7658362989323839,
+      15.558362989323838
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": "union of all hair and ear alpha",
+    "source_mask_polygon": null,
+    "base_sha256": "15c6341a6d8c46be37c24f9462a322ec43c704f190ec1ba33aed5961dbf14aaa"
+  },
+  {
+    "file": "neck-1-teeth.png",
+    "source": "materials/portraits/generated-features/Monk.mesh-female/neck-1-teeth.png",
+    "source_sha256": "a6c25f8c8980de06359a776bdace40eac0457a0f63b885e3a5db1c60bad563cc",
+    "source_bounds": [
+      64,
+      10,
+      1474,
+      973
+    ],
+    "rect": [
+      290,
+      740,
+      360,
+      280
+    ],
+    "scale": 0.24397163120567375,
+    "vertical_scale": 0.24397163120567375,
+    "offset": [
+      -7.61418439716312,
+      20.08794326241135
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "15c6341a6d8c46be37c24f9462a322ec43c704f190ec1ba33aed5961dbf14aaa"
+  },
+  {
+    "file": "neck-2-torque.png",
+    "source": "materials/portraits/generated-features/Monk.mesh-female/neck-2-torque.png",
+    "source_sha256": "d77d231b86bf9d8e47bab86f1b79b9654c96d0e584f2d20e4a421c8b7a14750a",
+    "source_bounds": [
+      95,
+      78,
+      1441,
+      957
+    ],
+    "rect": [
+      290,
+      740,
+      360,
+      280
+    ],
+    "scale": 0.2555720653789004,
+    "vertical_scale": 0.2555720653789004,
+    "offset": [
+      -16.27934621099554,
+      7.741456166419027
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "15c6341a6d8c46be37c24f9462a322ec43c704f190ec1ba33aed5961dbf14aaa"
+  },
+  {
+    "id": "Monk.mesh-female",
+    "n": 1,
+    "name": "robe",
+    "build": 0,
+    "file": "outfit-1-robe-build0.png",
+    "source": "materials/portraits/generated-outfits/Monk.mesh-female/outfit-1-robe.png",
+    "source_sha256": "8b622c5203cdc57af7831c4a818da9064f6b6f24724c4ec57aefb5fad70b1e25",
+    "source_size": [
+      887,
+      1774
+    ],
+    "canvas_registration": "canonical canvas",
+    "body_span_fit": "continuous outer sleeve sector extensions clipped to uncovered body",
+    "bottom_rows_repeated": 0,
+    "horizontal_scale": 1.075,
+    "vertical_scale": 1.0,
+    "offset": [
+      -33.26249999999998,
+      0.0
+    ],
+    "mesh_warp": null,
+    "torso_margin": 1.1111111111111112,
+    "sleeve_warp": null,
+    "head_occlusion": {
+      "warm_neutral_skin_above_row": 690
+    },
+    "native_uncovered_body_pixels": 0,
+    "coarse_uncovered_body_pixels": 0,
+    "coarse_body_pixels": 8824,
+    "visual_acceptance": "accepted-native-and-50x100",
+    "prompt": "Generate one isolated EMPTY Monk clothing overlay for the attached neutral dummy, exact pose and registration reference only. Full887x1774 transparentRGBA canvas. A simple dark earth-brown closed long-sleeved monk robe, plain cloth waist sash, no emblems or religious symbols. Follow the broad rounded torso, lowered arms, slight three-quarter view, upper-left warm lighting, coarse painted fantasy style. Collar y710-830, shoulders y820-1010, broad chest x20-880 y1100, waist sash y1490. Cover all visible torso, shoulders and arms down to the bottom crop with modest fitting margin. Empty robe only, no dummy, body, skin, head, face, ears, eyes, nose, hair, beard, helmet, jewelry, weapon, writing, symbols, tools, background or modern objects. Preserve fullcanvas, upper space blank transparent, never recenter or tightly crop.",
+    "rect": [
+      0,
+      0,
+      887,
+      1774
+    ],
+    "base_sha256": "15c6341a6d8c46be37c24f9462a322ec43c704f190ec1ba33aed5961dbf14aaa"
+  }
+]

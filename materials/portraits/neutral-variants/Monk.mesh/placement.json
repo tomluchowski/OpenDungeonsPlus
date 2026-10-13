@@ -1,0 +1,630 @@
+[
+  {
+    "file": "build-1-slim.png",
+    "source": "materials/portraits/generated-features/Monk.mesh/build-1-slim.png",
+    "source_sha256": "937bc39d344fd87c70453c8abfc13de511af04a9410b51563e722edfb6c6cfbc",
+    "source_bounds": [
+      19,
+      134,
+      1186,
+      1215
+    ],
+    "rect": [
+      0,
+      670,
+      887,
+      1104
+    ],
+    "scale": 0.7600685518423308,
+    "vertical_scale": 1.0508788159111933,
+    "offset": [
+      -14.441302485004286,
+      -140.8177613320999
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "806365e9d677b7dc3eb73af326cd1a71bf5e08207d1f72bb37661fdf453f0ac1"
+  },
+  {
+    "file": "build-2-sturdy.png",
+    "source": "materials/portraits/generated-features/Monk.mesh/build-2-sturdy.png",
+    "source_sha256": "ff714e3f85499e9d45d44493b2d19034ac6dba284400a1227fad66c1688ef072",
+    "source_bounds": [
+      13,
+      88,
+      1335,
+      1143
+    ],
+    "rect": [
+      0,
+      670,
+      887,
+      1104
+    ],
+    "scale": 0.6709531013615734,
+    "vertical_scale": 1.0767772511848341,
+    "offset": [
+      -8.722390317700453,
+      -94.7563981042654
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "806365e9d677b7dc3eb73af326cd1a71bf5e08207d1f72bb37661fdf453f0ac1"
+  },
+  {
+    "file": "hair-1-swept.png",
+    "source": "materials/portraits/generated-features/Monk.mesh/hair-1-swept.png",
+    "source_sha256": "378e70073fdec644ee11a68a0f952dc2839cc7dcfe0094f7bb485b43db66b631",
+    "source_bounds": [
+      225,
+      91,
+      1346,
+      892
+    ],
+    "rect": [
+      150,
+      110,
+      610,
+      1050
+    ],
+    "scale": 0.5298840321141838,
+    "vertical_scale": 0.5298840321141838,
+    "offset": [
+      -111.22390722569135,
+      -40.21944692239072
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "806365e9d677b7dc3eb73af326cd1a71bf5e08207d1f72bb37661fdf453f0ac1"
+  },
+  {
+    "file": "hair-2-waves.png",
+    "source": "materials/portraits/generated-features/Monk.mesh/hair-2-waves.png",
+    "source_sha256": "90b299da69e7f6a58385f7023dc7d5abaf6dae3805ecb3adcfee9ad02853b760",
+    "source_bounds": [
+      186,
+      110,
+      1348,
+      870
+    ],
+    "rect": [
+      150,
+      110,
+      610,
+      1050
+    ],
+    "scale": 0.5111876075731497,
+    "vertical_scale": 0.5111876075731497,
+    "offset": [
+      -87.08089500860585,
+      -48.23063683304647
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "806365e9d677b7dc3eb73af326cd1a71bf5e08207d1f72bb37661fdf453f0ac1"
+  },
+  {
+    "file": "ears-1-notched.png",
+    "source": "materials/portraits/generated-features/Monk.mesh/ears-1-notched.png",
+    "source_sha256": "7e47118db3a7a5aaf3e387679894d7e211c566c120058fbe576a3a7663471ded",
+    "source_bounds": [
+      382,
+      148,
+      967,
+      1070
+    ],
+    "rect": [
+      230,
+      415,
+      110,
+      145
+    ],
+    "scale": 0.1399132321041215,
+    "vertical_scale": 0.1399132321041215,
+    "offset": [
+      -39.37147505422995,
+      -12.70715835140998
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "806365e9d677b7dc3eb73af326cd1a71bf5e08207d1f72bb37661fdf453f0ac1"
+  },
+  {
+    "file": "ears-2-rounder.png",
+    "source": "materials/portraits/generated-features/Monk.mesh/ears-2-rounder.png",
+    "source_sha256": "2c7bd7faa08567e8857e849755c9b41239394cde0cbf6c3510bd994e63b86265",
+    "source_bounds": [
+      369,
+      138,
+      980,
+      1004
+    ],
+    "rect": [
+      230,
+      415,
+      110,
+      145
+    ],
+    "scale": 0.1489607390300231,
+    "vertical_scale": 0.1489607390300231,
+    "offset": [
+      -45.47401847575058,
+      -12.55658198614319
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "806365e9d677b7dc3eb73af326cd1a71bf5e08207d1f72bb37661fdf453f0ac1"
+  },
+  {
+    "file": "eyes-1-narrow.png",
+    "source": "materials/portraits/generated-features/Monk.mesh/eyes-1-narrow.png",
+    "source_sha256": "7a4ca43a126a37fb8c4d07d93dacd398d59dda64f95bcbe1b264d2a4eca1b600",
+    "source_bounds": [
+      216,
+      86,
+      1960,
+      663
+    ],
+    "rect": [
+      325,
+      385,
+      290,
+      145
+    ],
+    "scale": 0.15711009174311927,
+    "vertical_scale": 0.15711009174311927,
+    "offset": [
+      -25.935779816513765,
+      13.662270642201836
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "806365e9d677b7dc3eb73af326cd1a71bf5e08207d1f72bb37661fdf453f0ac1"
+  },
+  {
+    "file": "eyes-2-round.png",
+    "source": "materials/portraits/generated-features/Monk.mesh/eyes-2-round.png",
+    "source_sha256": "c58b6ffe0e5b642bd01af1b368ddf871ac48a13d54a61bceaf6d71c60385d508",
+    "source_bounds": [
+      232,
+      171,
+      1533,
+      761
+    ],
+    "rect": [
+      325,
+      385,
+      290,
+      145
+    ],
+    "scale": 0.21060722521137587,
+    "vertical_scale": 0.21060722521137587,
+    "offset": [
+      -40.8608762490392,
+      -25.642966948501154
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "806365e9d677b7dc3eb73af326cd1a71bf5e08207d1f72bb37661fdf453f0ac1"
+  },
+  {
+    "file": "eyes-3-eyepatch.png",
+    "source": "materials/portraits/generated-features/Monk.mesh/eyes-3-eyepatch.png",
+    "source_sha256": "2316e5c8fdf93326fb0f824051de1c7d91cb204720455bf82055a579b638a4b7",
+    "source_bounds": [
+      268,
+      167,
+      1528,
+      737
+    ],
+    "rect": [
+      325,
+      385,
+      290,
+      145
+    ],
+    "scale": 0.21746031746031746,
+    "vertical_scale": 0.21746031746031746,
+    "offset": [
+      -50.27936507936508,
+      -25.79206349206349
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "806365e9d677b7dc3eb73af326cd1a71bf5e08207d1f72bb37661fdf453f0ac1"
+  },
+  {
+    "file": "nose-1-crooked.png",
+    "source": "materials/portraits/generated-features/Monk.mesh/nose-1-crooked.png",
+    "source_sha256": "3ee5eff6193a60eb7bc182dafa5dea6abe46c695ca84e6f71108c2b06bc4059d",
+    "source_bounds": [
+      468,
+      186,
+      1083,
+      789
+    ],
+    "rect": [
+      440,
+      465,
+      155,
+      165
+    ],
+    "scale": 0.22601626016260162,
+    "vertical_scale": 0.22601626016260162,
+    "offset": [
+      -97.77560975609757,
+      -27.68292682926829
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "806365e9d677b7dc3eb73af326cd1a71bf5e08207d1f72bb37661fdf453f0ac1"
+  },
+  {
+    "file": "nose-2-broad.png",
+    "source": "materials/portraits/generated-features/Monk.mesh/nose-2-broad.png",
+    "source_sha256": "f29fff9280b8d1ad223cad3779d56e15b75ac214f865ffa38bec4e3b0e09c9ca",
+    "source_bounds": [
+      364,
+      128,
+      1173,
+      807
+    ],
+    "rect": [
+      440,
+      465,
+      155,
+      165
+    ],
+    "scale": 0.17181705809641531,
+    "vertical_scale": 0.17181705809641531,
+    "offset": [
+      -54.54140914709517,
+      2.175525339925837
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "806365e9d677b7dc3eb73af326cd1a71bf5e08207d1f72bb37661fdf453f0ac1"
+  },
+  {
+    "file": "mouth-1-teeth.png",
+    "source": "materials/portraits/generated-features/Monk.mesh/mouth-1-teeth.png",
+    "source_sha256": "1b817959bbc534e6540a1d675bbfd9ad8ea7ab67122011ee7da1db33a27f191e",
+    "source_bounds": [
+      323,
+      156,
+      1455,
+      743
+    ],
+    "rect": [
+      365,
+      580,
+      250,
+      110
+    ],
+    "scale": 0.16013628620102216,
+    "vertical_scale": 0.16013628620102216,
+    "offset": [
+      -17.36115843270869,
+      -16.981260647359463
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "806365e9d677b7dc3eb73af326cd1a71bf5e08207d1f72bb37661fdf453f0ac1"
+  },
+  {
+    "file": "mouth-2-grin.png",
+    "source": "materials/portraits/generated-features/Monk.mesh/mouth-2-grin.png",
+    "source_sha256": "2dd4a79b3abb09f1be7afef5d097a133945fca3c0a3ef020fc7780e58cb66fae",
+    "source_bounds": [
+      267,
+      163,
+      1572,
+      749
+    ],
+    "rect": [
+      365,
+      580,
+      250,
+      110
+    ],
+    "scale": 0.16040955631399317,
+    "vertical_scale": 0.16040955631399317,
+    "offset": [
+      -22.496587030716718,
+      -18.146757679180887
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "806365e9d677b7dc3eb73af326cd1a71bf5e08207d1f72bb37661fdf453f0ac1"
+  },
+  {
+    "file": "mouth-3-cigar.png",
+    "source": "materials/portraits/generated-features/Monk.mesh/mouth-3-cigar.png",
+    "source_sha256": "9db302921f337c00a601236477512785d1c1f12e2021bb92de6283c60dccfa65",
+    "source_bounds": [
+      246,
+      259,
+      1346,
+      783
+    ],
+    "rect": [
+      365,
+      580,
+      250,
+      110
+    ],
+    "scale": 0.17938931297709923,
+    "vertical_scale": 0.17938931297709923,
+    "offset": [
+      -17.793893129770986,
+      -38.4618320610687
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "806365e9d677b7dc3eb73af326cd1a71bf5e08207d1f72bb37661fdf453f0ac1"
+  },
+  {
+    "file": "chin-1-square.png",
+    "source": "materials/portraits/generated-features/Monk.mesh/chin-1-square.png",
+    "source_sha256": "a683960a5ac81cb46d183071d075f6689fab054819f3291e4b55e71b5614ce2b",
+    "source_bounds": [
+      204,
+      110,
+      1334,
+      918
+    ],
+    "rect": [
+      355,
+      630,
+      260,
+      145
+    ],
+    "scale": 0.15965346534653466,
+    "vertical_scale": 0.15965346534653466,
+    "offset": [
+      7.226485148514847,
+      -9.56188118811881
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "806365e9d677b7dc3eb73af326cd1a71bf5e08207d1f72bb37661fdf453f0ac1"
+  },
+  {
+    "file": "chin-2-rounded.png",
+    "source": "materials/portraits/generated-features/Monk.mesh/chin-2-rounded.png",
+    "source_sha256": "5f08a0d7b85897ed722cac9cc5a669a6e63f7db6c3adcf83db0375783a964689",
+    "source_bounds": [
+      194,
+      86,
+      1348,
+      935
+    ],
+    "rect": [
+      355,
+      630,
+      260,
+      145
+    ],
+    "scale": 0.1519434628975265,
+    "vertical_scale": 0.1519434628975265,
+    "offset": [
+      12.851590106007063,
+      -5.06713780918728
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "806365e9d677b7dc3eb73af326cd1a71bf5e08207d1f72bb37661fdf453f0ac1"
+  },
+  {
+    "file": "scar-1-diagonal.png",
+    "source": "materials/portraits/generated-features/Monk.mesh/scar-1-diagonal.png",
+    "source_sha256": "08c62cbe72fb86c0d03828849ba1343cdd07f9ce8cf36f690d7548d4d05fef8c",
+    "source_bounds": [
+      150,
+      109,
+      1139,
+      1161
+    ],
+    "rect": [
+      305,
+      480,
+      170,
+      145
+    ],
+    "scale": 0.12262357414448669,
+    "vertical_scale": 0.12262357414448669,
+    "offset": [
+      5.969106463878333,
+      -5.365969581749049
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": "union of all hair and ear alpha",
+    "source_mask_polygon": null,
+    "base_sha256": "806365e9d677b7dc3eb73af326cd1a71bf5e08207d1f72bb37661fdf453f0ac1"
+  },
+  {
+    "file": "scar-2-scratches.png",
+    "source": "materials/portraits/generated-features/Monk.mesh/scar-2-scratches.png",
+    "source_sha256": "b3771a4e634f52773bcbc979761cb5bf28dd4b3f2d58ee8eb8e18f205488e711",
+    "source_bounds": [
+      306,
+      198,
+      1017,
+      1093
+    ],
+    "rect": [
+      305,
+      480,
+      170,
+      145
+    ],
+    "scale": 0.1441340782122905,
+    "vertical_scale": 0.1441340782122905,
+    "offset": [
+      -10.344692737430158,
+      -20.53854748603352
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": "union of all hair and ear alpha",
+    "source_mask_polygon": null,
+    "base_sha256": "806365e9d677b7dc3eb73af326cd1a71bf5e08207d1f72bb37661fdf453f0ac1"
+  },
+  {
+    "file": "scar-3-warpaint.png",
+    "source": "materials/portraits/generated-features/Monk.mesh/scar-3-warpaint.png",
+    "source_sha256": "4e0e1c2566285a56df8441d66ec3900f1c5a403344cf47b713a97f7882688b3c",
+    "source_bounds": [
+      72,
+      86,
+      1178,
+      1140
+    ],
+    "rect": [
+      305,
+      480,
+      170,
+      145
+    ],
+    "scale": 0.12239089184060721,
+    "vertical_scale": 0.12239089184060721,
+    "offset": [
+      8.505692599620488,
+      -2.52561669829222
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": "union of all hair and ear alpha",
+    "source_mask_polygon": null,
+    "base_sha256": "806365e9d677b7dc3eb73af326cd1a71bf5e08207d1f72bb37661fdf453f0ac1"
+  },
+  {
+    "file": "neck-1-teeth.png",
+    "source": "materials/portraits/generated-features/Monk.mesh/neck-1-teeth.png",
+    "source_sha256": "999b397c892f28598eb0839ef6fdfdf3fe913a7283c5471581d19c5bec7ca17e",
+    "source_bounds": [
+      150,
+      59,
+      1387,
+      920
+    ],
+    "rect": [
+      290,
+      740,
+      360,
+      280
+    ],
+    "scale": 0.27809215844785773,
+    "vertical_scale": 0.27809215844785773,
+    "offset": [
+      -33.71382376717866,
+      3.873888439773644
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "806365e9d677b7dc3eb73af326cd1a71bf5e08207d1f72bb37661fdf453f0ac1"
+  },
+  {
+    "file": "neck-2-torque.png",
+    "source": "materials/portraits/generated-features/Monk.mesh/neck-2-torque.png",
+    "source_sha256": "4ad76da9e69b938c33168b24cd34c7fe576e7b96b7b4358dd3da848db71642d1",
+    "source_bounds": [
+      60,
+      112,
+      1477,
+      924
+    ],
+    "rect": [
+      290,
+      740,
+      360,
+      280
+    ],
+    "scale": 0.2427664079040226,
+    "vertical_scale": 0.2427664079040226,
+    "offset": [
+      -6.565984474241356,
+      14.247000705716296
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "806365e9d677b7dc3eb73af326cd1a71bf5e08207d1f72bb37661fdf453f0ac1"
+  },
+  {
+    "id": "Monk.mesh",
+    "n": 1,
+    "name": "robe",
+    "build": 0,
+    "file": "outfit-1-robe-build0.png",
+    "source": "materials/portraits/generated-outfits/Monk.mesh/outfit-1-robe.png",
+    "source_sha256": "c9ee44810efd4b5c54f25979db621ad10137bbf8aaf7ced4b479e697c4acb6b6",
+    "source_size": [
+      887,
+      1774
+    ],
+    "canvas_registration": "canonical canvas",
+    "body_span_fit": "continuous outer sleeve sector extensions clipped to uncovered body",
+    "bottom_rows_repeated": 0,
+    "horizontal_scale": 1.075,
+    "vertical_scale": 1.0,
+    "offset": [
+      -33.26249999999998,
+      0.0
+    ],
+    "mesh_warp": null,
+    "torso_margin": 1.1111111111111112,
+    "sleeve_warp": null,
+    "head_occlusion": {
+      "warm_neutral_skin_above_row": 700
+    },
+    "native_uncovered_body_pixels": 0,
+    "coarse_uncovered_body_pixels": 0,
+    "coarse_body_pixels": 8986,
+    "visual_acceptance": "accepted-native-and-50x100",
+    "prompt": "Generate one isolated EMPTY Monk clothing overlay for the attached neutral dummy, exact pose and registration reference only. Full887x1774 transparentRGBA canvas. A simple dark earth-brown closed long-sleeved monk robe, plain cloth waist sash, no emblems or religious symbols. Follow the broad rounded torso, lowered arms, slight three-quarter view, upper-left warm lighting, coarse painted fantasy style. Collar y710-830, shoulders y820-1010, broad chest x20-880 y1100, waist sash y1490. Cover all visible torso, shoulders and arms down to the bottom crop with modest fitting margin. Empty robe only, no dummy, body, skin, head, face, ears, eyes, nose, hair, beard, helmet, jewelry, weapon, writing, symbols, tools, background or modern objects. Preserve fullcanvas, upper space blank transparent, never recenter or tightly crop.",
+    "rect": [
+      0,
+      0,
+      887,
+      1774
+    ],
+    "base_sha256": "806365e9d677b7dc3eb73af326cd1a71bf5e08207d1f72bb37661fdf453f0ac1"
+  }
+]

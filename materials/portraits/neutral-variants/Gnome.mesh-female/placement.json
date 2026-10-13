@@ -1,0 +1,574 @@
+[
+  {
+    "file": "build-1-slim.png",
+    "source": "materials/portraits/generated-features/Gnome.mesh-female/build-1-slim.png",
+    "source_sha256": "e1a83e61663e26cce2226059188be901df17b3563889e01c12d53ebcb742d252",
+    "source_bounds": [
+      20,
+      118,
+      1160,
+      1258
+    ],
+    "rect": [
+      0,
+      790,
+      887,
+      984
+    ],
+    "scale": 0.7780701754385965,
+    "vertical_scale": 0.8912280701754386,
+    "offset": [
+      -15.56140350877193,
+      -105.16491228070176
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "2c91e78a34328f313ccf8790ae64d578966d9296d0d4356106b06835fdb4e7af"
+  },
+  {
+    "file": "build-2-sturdy.png",
+    "source": "materials/portraits/generated-features/Gnome.mesh-female/build-2-sturdy.png",
+    "source_sha256": "b05b7afaccc3ebeb7934a0074f1b79f9d5f1299d70ea71b3e2996d52b6e88799",
+    "source_bounds": [
+      6,
+      172,
+      1228,
+      1204
+    ],
+    "rect": [
+      0,
+      790,
+      887,
+      984
+    ],
+    "scale": 0.7258592471358429,
+    "vertical_scale": 0.9844961240310077,
+    "offset": [
+      -4.355155482815057,
+      -169.33333333333331
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "2c91e78a34328f313ccf8790ae64d578966d9296d0d4356106b06835fdb4e7af"
+  },
+  {
+    "file": "hair-1-swept.png",
+    "source": "materials/portraits/generated-features/Gnome.mesh-female/hair-1-swept.png",
+    "source_sha256": "a6c99de7712342677cf7436a0b085f0b6f4216855d1513f93aa21b1e241351a6",
+    "source_bounds": [
+      82,
+      78,
+      1255,
+      1157
+    ],
+    "rect": [
+      110,
+      180,
+      660,
+      950
+    ],
+    "scale": 0.5490196078431373,
+    "vertical_scale": 0.5490196078431373,
+    "offset": [
+      -37.01960784313726,
+      135.9803921568627
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "2c91e78a34328f313ccf8790ae64d578966d9296d0d4356106b06835fdb4e7af"
+  },
+  {
+    "file": "hair-2-waves.png",
+    "source": "materials/portraits/generated-features/Gnome.mesh-female/hair-2-waves.png",
+    "source_sha256": "bdfcc7ce5cd31f5fc49d9a31ae6d0694af3752252561bc75aa827514d0da577c",
+    "source_bounds": [
+      360,
+      67,
+      1250,
+      980
+    ],
+    "rect": [
+      110,
+      180,
+      660,
+      950
+    ],
+    "scale": 0.7235955056179775,
+    "vertical_scale": 0.7235955056179775,
+    "offset": [
+      -252.49438202247188,
+      96.19775280898878
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "2c91e78a34328f313ccf8790ae64d578966d9296d0d4356106b06835fdb4e7af"
+  },
+  {
+    "file": "eyes-1-narrow.png",
+    "source": "materials/portraits/generated-features/Gnome.mesh-female/eyes-1-narrow.png",
+    "source_sha256": "966606f06afe8e145289663b8746017955f68b9cc5ffb21b11ebb56a3885011b",
+    "source_bounds": [
+      233,
+      181,
+      1540,
+      715
+    ],
+    "rect": [
+      290,
+      460,
+      340,
+      150
+    ],
+    "scale": 0.24789594491201225,
+    "vertical_scale": 0.24789594491201225,
+    "offset": [
+      -49.759755164498856,
+      -36.057383320581486
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "2c91e78a34328f313ccf8790ae64d578966d9296d0d4356106b06835fdb4e7af"
+  },
+  {
+    "file": "eyes-2-round.png",
+    "source": "materials/portraits/generated-features/Gnome.mesh-female/eyes-2-round.png",
+    "source_sha256": "8f11e4067527a9a0932f0f39a86268981a4047fea810044e76ffdf75eb1dd3dd",
+    "source_bounds": [
+      271,
+      88,
+      1708,
+      707
+    ],
+    "rect": [
+      290,
+      460,
+      340,
+      150
+    ],
+    "scale": 0.21647819063004847,
+    "vertical_scale": 0.21647819063004847,
+    "offset": [
+      -44.20516962843297,
+      -11.050080775444265
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "2c91e78a34328f313ccf8790ae64d578966d9296d0d4356106b06835fdb4e7af"
+  },
+  {
+    "file": "eyes-3-eyepatch.png",
+    "source": "materials/portraits/generated-features/Gnome.mesh-female/eyes-3-eyepatch.png",
+    "source_sha256": "fa419777132ab6a36926fe343399d721782c28ba5df93e91b4083ac26a13b32b",
+    "source_bounds": [
+      260,
+      160,
+      1514,
+      740
+    ],
+    "rect": [
+      290,
+      460,
+      340,
+      150
+    ],
+    "scale": 0.23103448275862068,
+    "vertical_scale": 0.23103448275862068,
+    "offset": [
+      -34.92758620689654,
+      -28.96551724137931
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "2c91e78a34328f313ccf8790ae64d578966d9296d0d4356106b06835fdb4e7af"
+  },
+  {
+    "file": "nose-1-crooked.png",
+    "source": "materials/portraits/generated-features/Gnome.mesh-female/nose-1-crooked.png",
+    "source_sha256": "de224f2f0c1cee9a78b52f619109a4171243e581b0c28e446c1cad396d22b65b",
+    "source_bounds": [
+      294,
+      167,
+      1053,
+      1041
+    ],
+    "rect": [
+      430,
+      550,
+      180,
+      160
+    ],
+    "scale": 0.16475972540045766,
+    "vertical_scale": 0.16475972540045766,
+    "offset": [
+      -20.965675057208237,
+      -19.51487414187643
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "2c91e78a34328f313ccf8790ae64d578966d9296d0d4356106b06835fdb4e7af"
+  },
+  {
+    "file": "nose-2-broad.png",
+    "source": "materials/portraits/generated-features/Gnome.mesh-female/nose-2-broad.png",
+    "source_sha256": "ddab5d3f42f9c21e2cca29cd3eab34db97078176e37ee461d6eafbaeeedde7fd",
+    "source_bounds": [
+      396,
+      181,
+      1140,
+      848
+    ],
+    "rect": [
+      430,
+      550,
+      180,
+      160
+    ],
+    "scale": 0.2158920539730135,
+    "vertical_scale": 0.2158920539730135,
+    "offset": [
+      -75.80509745127438,
+      -31.076461769115447
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "2c91e78a34328f313ccf8790ae64d578966d9296d0d4356106b06835fdb4e7af"
+  },
+  {
+    "file": "mouth-1-teeth.png",
+    "source": "materials/portraits/generated-features/Gnome.mesh-female/mouth-1-teeth.png",
+    "source_sha256": "b4db49a74947969cde7c8454beef6224a972af52c64c0aeea0d8b3548cba891f",
+    "source_bounds": [
+      276,
+      177,
+      1501,
+      742
+    ],
+    "rect": [
+      345,
+      660,
+      290,
+      120
+    ],
+    "scale": 0.184070796460177,
+    "vertical_scale": 0.184070796460177,
+    "offset": [
+      -18.546902654867253,
+      -24.580530973451324
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "2c91e78a34328f313ccf8790ae64d578966d9296d0d4356106b06835fdb4e7af"
+  },
+  {
+    "file": "mouth-2-grin.png",
+    "source": "materials/portraits/generated-features/Gnome.mesh-female/mouth-2-grin.png",
+    "source_sha256": "f6dc5e029a75de1c9e410eed8e79b71fba1927ad0556033d052fa9fb01a16c7c",
+    "source_bounds": [
+      297,
+      127,
+      1545,
+      775
+    ],
+    "rect": [
+      345,
+      660,
+      290,
+      120
+    ],
+    "scale": 0.16049382716049382,
+    "vertical_scale": 0.16049382716049382,
+    "offset": [
+      -2.8148148148148024,
+      -12.382716049382715
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "2c91e78a34328f313ccf8790ae64d578966d9296d0d4356106b06835fdb4e7af"
+  },
+  {
+    "file": "mouth-3-cigar.png",
+    "source": "materials/portraits/generated-features/Gnome.mesh-female/mouth-3-cigar.png",
+    "source_sha256": "af12e8691522bad9f1d25087aa48756d832595c48b46aeae52ad620617eec3df",
+    "source_bounds": [
+      401,
+      220,
+      1457,
+      659
+    ],
+    "rect": [
+      345,
+      660,
+      290,
+      120
+    ],
+    "scale": 0.23690205011389523,
+    "vertical_scale": 0.23690205011389523,
+    "offset": [
+      -75.08200455580867,
+      -44.11845102505695
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "2c91e78a34328f313ccf8790ae64d578966d9296d0d4356106b06835fdb4e7af"
+  },
+  {
+    "file": "chin-1-square.png",
+    "source": "materials/portraits/generated-features/Gnome.mesh-female/chin-1-square.png",
+    "source_sha256": "d9010e4ecd7fb13a65dfc0cf246806059533f676e3d5c61bbaf98cb0949e82d3",
+    "source_bounds": [
+      306,
+      225,
+      1228,
+      846
+    ],
+    "rect": [
+      330,
+      730,
+      300,
+      130
+    ],
+    "scale": 0.18357487922705315,
+    "vertical_scale": 0.18357487922705315,
+    "offset": [
+      9.198067632850226,
+      -33.30434782608696
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "2c91e78a34328f313ccf8790ae64d578966d9296d0d4356106b06835fdb4e7af"
+  },
+  {
+    "file": "chin-2-rounded.png",
+    "source": "materials/portraits/generated-features/Gnome.mesh-female/chin-2-rounded.png",
+    "source_sha256": "2f24237c3eaeeb5d0509f5e1630e4bc8004da35fe23a5ed0b3842913c8c5cda0",
+    "source_bounds": [
+      237,
+      171,
+      1291,
+      864
+    ],
+    "rect": [
+      330,
+      730,
+      300,
+      130
+    ],
+    "scale": 0.1645021645021645,
+    "vertical_scale": 0.1645021645021645,
+    "offset": [
+      24.320346320346317,
+      -20.12987012987013
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "2c91e78a34328f313ccf8790ae64d578966d9296d0d4356106b06835fdb4e7af"
+  },
+  {
+    "file": "scar-1-diagonal.png",
+    "source": "materials/portraits/generated-features/Gnome.mesh-female/scar-1-diagonal.png",
+    "source_sha256": "8bf57d93d172de83cc6b11d38f112fa4e93e87a5270b52c483ffa6657081c001",
+    "source_bounds": [
+      333,
+      201,
+      926,
+      1106
+    ],
+    "rect": [
+      290,
+      550,
+      180,
+      150
+    ],
+    "scale": 0.14806629834254142,
+    "vertical_scale": 0.14806629834254142,
+    "offset": [
+      -3.20773480662983,
+      -21.761325966850826
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": "union of all hair and ear alpha",
+    "source_mask_polygon": null,
+    "base_sha256": "2c91e78a34328f313ccf8790ae64d578966d9296d0d4356106b06835fdb4e7af"
+  },
+  {
+    "file": "scar-2-scratches.png",
+    "source": "materials/portraits/generated-features/Gnome.mesh-female/scar-2-scratches.png",
+    "source_sha256": "a8e928efce9a68b7aaed797258ae4104bbb816c32d6b09c7ec7471450d2d1223",
+    "source_bounds": [
+      331,
+      224,
+      1023,
+      1144
+    ],
+    "rect": [
+      290,
+      550,
+      180,
+      150
+    ],
+    "scale": 0.14565217391304347,
+    "vertical_scale": 0.14565217391304347,
+    "offset": [
+      -8.606521739130429,
+      -24.62608695652174
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": "union of all hair and ear alpha",
+    "source_mask_polygon": null,
+    "base_sha256": "2c91e78a34328f313ccf8790ae64d578966d9296d0d4356106b06835fdb4e7af"
+  },
+  {
+    "file": "scar-3-warpaint.png",
+    "source": "materials/portraits/generated-features/Gnome.mesh-female/scar-3-warpaint.png",
+    "source_sha256": "68fe3f6f6aa36ee908d99518762a6acae6c1d523ef7ad4b72c4a9b6238e33b1d",
+    "source_bounds": [
+      65,
+      433,
+      1094,
+      817
+    ],
+    "rect": [
+      290,
+      550,
+      180,
+      150
+    ],
+    "scale": 0.15937803692905733,
+    "vertical_scale": 0.15937803692905733,
+    "offset": [
+      -2.3595724003887266,
+      -24.611273080660823
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": "union of all hair and ear alpha",
+    "source_mask_polygon": null,
+    "base_sha256": "2c91e78a34328f313ccf8790ae64d578966d9296d0d4356106b06835fdb4e7af"
+  },
+  {
+    "file": "neck-1-teeth.png",
+    "source": "materials/portraits/generated-features/Gnome.mesh-female/neck-1-teeth.png",
+    "source_sha256": "2d3b7f84e535e8f45296950ee163eef2d7cb6796a1848c29785372571468cb56",
+    "source_bounds": [
+      266,
+      116,
+      1268,
+      910
+    ],
+    "rect": [
+      280,
+      845,
+      390,
+      290
+    ],
+    "scale": 0.345088161209068,
+    "vertical_scale": 0.345088161209068,
+    "offset": [
+      -69.68261964735514,
+      -32.03022670025189
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "2c91e78a34328f313ccf8790ae64d578966d9296d0d4356106b06835fdb4e7af"
+  },
+  {
+    "file": "neck-2-torque.png",
+    "source": "materials/portraits/generated-features/Gnome.mesh-female/neck-2-torque.png",
+    "source_sha256": "62f3114ac3984324e3034b8be2e1fb21d7b398e3fe3d5d490693fc0324db9f06",
+    "source_bounds": [
+      95,
+      130,
+      1441,
+      905
+    ],
+    "rect": [
+      280,
+      845,
+      390,
+      290
+    ],
+    "scale": 0.27786032689450224,
+    "vertical_scale": 0.27786032689450224,
+    "offset": [
+      -18.396731054977714,
+      1.207280832095087
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "2c91e78a34328f313ccf8790ae64d578966d9296d0d4356106b06835fdb4e7af"
+  },
+  {
+    "id": "Gnome.mesh-female",
+    "n": 1,
+    "name": "tunic",
+    "build": 0,
+    "file": "outfit-1-tunic-build0.png",
+    "source": "materials/portraits/generated-outfits/Gnome.mesh-female/outfit-1-tunic.png",
+    "source_sha256": "b7eb684cd1463051698775d1685f5c7c0c76197431c2fe95bd502d802a06c9ea",
+    "source_size": [
+      887,
+      1774
+    ],
+    "canvas_registration": "canonical canvas",
+    "body_span_fit": "continuous outer sleeve sector extensions clipped to uncovered body",
+    "bottom_rows_repeated": 0,
+    "horizontal_scale": 1.05,
+    "vertical_scale": 1.06,
+    "offset": [
+      -22.17500000000002,
+      -43.20000000000004
+    ],
+    "mesh_warp": null,
+    "torso_margin": 1.1111111111111112,
+    "sleeve_warp": null,
+    "head_occlusion": {
+      "warm_neutral_skin_above_row": 800
+    },
+    "native_uncovered_body_pixels": 2079,
+    "coarse_uncovered_body_pixels": 89,
+    "coarse_body_pixels": 6768,
+    "visual_acceptance": "accepted-native-and-50x100",
+    "prompt": "Create ONE new isolated empty Gnome clothing overlay registered to the attached neutral dummy. Full exact887x1774 RGBA transparent canvas, reference is geometry and style only, no dummy in result. Plain muted dark olive-brown long-sleeved tunic, simple leather waist belt and cuff reinforcements, no tools or emblems. Match narrow small frame, sloping shoulders and arms lowered along sides, slight three-quarter view and upper-left lighting. Collar y820-940, shoulders from x120 to850 at y940-1070, arm contours follow the exact reference down to bottom corners, waist y1500. Cover all visible shoulders, torso, upper arms and forearms with a fitting margin; garment extends through bottom crop. Painted coarse fantasy style matching warm reference, not photography. ONLY empty clothing, absolutely no body, skin, head, face, ears, eyes, nose, hair, beard, helmet, jewelry, weapon, symbols, text, modern objects or background. Keep upper canvas above collar transparent; never tightly crop or recenter.",
+    "rect": [
+      0,
+      0,
+      887,
+      1774
+    ],
+    "base_sha256": "2c91e78a34328f313ccf8790ae64d578966d9296d0d4356106b06835fdb4e7af"
+  }
+]

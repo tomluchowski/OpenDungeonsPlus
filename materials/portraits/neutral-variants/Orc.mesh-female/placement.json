@@ -1,0 +1,710 @@
+[
+  {
+    "file": "build-1-slim.png",
+    "source": "materials/portraits/generated-features/Orc.mesh-female/build-1-slim.png",
+    "source_sha256": "6b08c00b02f383ffe4ef359e68f6cd669885235f8776b5021e28b8551a9de120",
+    "source_bounds": [
+      50,
+      37,
+      1364,
+      1127
+    ],
+    "rect": [
+      0,
+      690,
+      887,
+      1084
+    ],
+    "scale": 0.6750380517503806,
+    "vertical_scale": 1.0238532110091743,
+    "offset": [
+      -33.75190258751903,
+      -37.882568807339446
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "0adf22632fe3608598fc6eb050ffaef05a077715a6e91bbdd6324f46aa26cece"
+  },
+  {
+    "file": "build-2-sturdy.png",
+    "source": "materials/portraits/generated-features/Orc.mesh-female/build-2-sturdy.png",
+    "source_sha256": "39b24c571ea9eb042728aec0d33f0934ea271128230e899cfa470ebb7e8ee4c1",
+    "source_bounds": [
+      22,
+      50,
+      1352,
+      1124
+    ],
+    "rect": [
+      0,
+      690,
+      887,
+      1084
+    ],
+    "scale": 0.6669172932330827,
+    "vertical_scale": 1.0391061452513966,
+    "offset": [
+      -14.672180451127819,
+      -51.955307262569825
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "0adf22632fe3608598fc6eb050ffaef05a077715a6e91bbdd6324f46aa26cece"
+  },
+  {
+    "file": "hair-1-swept.png",
+    "source": "materials/portraits/generated-features/Orc.mesh-female/hair-1-swept.png",
+    "source_sha256": "502c769ebb209ce521a1616516721aeaac575614995622cc0a5a095ecb39b9d2",
+    "source_bounds": [
+      117,
+      27,
+      901,
+      1525
+    ],
+    "rect": [
+      70,
+      120,
+      640,
+      1100
+    ],
+    "scale": 0.7236315086782377,
+    "vertical_scale": 0.7236315086782377,
+    "offset": [
+      -48.328437917222956,
+      -11.538050734312417
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "0adf22632fe3608598fc6eb050ffaef05a077715a6e91bbdd6324f46aa26cece"
+  },
+  {
+    "file": "hair-2-waves.png",
+    "source": "materials/portraits/generated-features/Orc.mesh-female/hair-2-waves.png",
+    "source_sha256": "4b9431c6368b72ca05a2a0f4399cfd45ea9b364fae8cedaf441e9d8810ff14b8",
+    "source_bounds": [
+      74,
+      47,
+      968,
+      1518
+    ],
+    "rect": [
+      70,
+      120,
+      640,
+      1100
+    ],
+    "scale": 0.697986577181208,
+    "vertical_scale": 0.697986577181208,
+    "offset": [
+      -43.651006711409394,
+      3.825503355704761
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "0adf22632fe3608598fc6eb050ffaef05a077715a6e91bbdd6324f46aa26cece"
+  },
+  {
+    "file": "ears-1-notched.png",
+    "source": "materials/portraits/generated-features/Orc.mesh-female/ears-1-notched.png",
+    "source_sha256": "d6c58f1363b7c7458b05ebe28b651815db4e60ed70f02984065cf1aa6b27d8e2",
+    "source_bounds": [
+      104,
+      89,
+      1050,
+      1225
+    ],
+    "rect": [
+      80,
+      320,
+      250,
+      290
+    ],
+    "scale": 0.24119718309859156,
+    "vertical_scale": 0.24119718309859156,
+    "offset": [
+      -14.170774647887331,
+      -13.466549295774648
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "0adf22632fe3608598fc6eb050ffaef05a077715a6e91bbdd6324f46aa26cece"
+  },
+  {
+    "file": "ears-2-rounder.png",
+    "source": "materials/portraits/generated-features/Orc.mesh-female/ears-2-rounder.png",
+    "source_sha256": "2e00211c003613e0354831219323b23c203e0fe3a68f2ad7684112cbcdfd97ca",
+    "source_bounds": [
+      241,
+      129,
+      979,
+      1054
+    ],
+    "rect": [
+      80,
+      320,
+      250,
+      290
+    ],
+    "scale": 0.29621621621621624,
+    "vertical_scale": 0.29621621621621624,
+    "offset": [
+      -55.69189189189191,
+      -30.211891891891895
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "0adf22632fe3608598fc6eb050ffaef05a077715a6e91bbdd6324f46aa26cece"
+  },
+  {
+    "file": "eyes-1-narrow.png",
+    "source": "materials/portraits/generated-features/Orc.mesh-female/eyes-1-narrow.png",
+    "source_sha256": "eaa5b9322b6bacca4e16b55e58bb7783e38382b8237bb863379c6ca083fc86fa",
+    "source_bounds": [
+      166,
+      116,
+      1812,
+      712
+    ],
+    "rect": [
+      325,
+      390,
+      325,
+      170
+    ],
+    "scale": 0.18772782503037666,
+    "vertical_scale": 0.18772782503037666,
+    "offset": [
+      -23.162818955042525,
+      7.28068043742406
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "0adf22632fe3608598fc6eb050ffaef05a077715a6e91bbdd6324f46aa26cece"
+  },
+  {
+    "file": "eyes-2-round.png",
+    "source": "materials/portraits/generated-features/Orc.mesh-female/eyes-2-round.png",
+    "source_sha256": "ed5ba15fdbdf294282f4295af6f8a40342f94b704bab39f7d0abfdcaabd0a6e3",
+    "source_bounds": [
+      265,
+      140,
+      1770,
+      641
+    ],
+    "rect": [
+      325,
+      390,
+      325,
+      170
+    ],
+    "scale": 0.2053156146179402,
+    "vertical_scale": 0.2053156146179402,
+    "offset": [
+      -46.40863787375415,
+      4.824252491694352
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "0adf22632fe3608598fc6eb050ffaef05a077715a6e91bbdd6324f46aa26cece"
+  },
+  {
+    "file": "eyes-3-eyepatch.png",
+    "source": "materials/portraits/generated-features/Orc.mesh-female/eyes-3-eyepatch.png",
+    "source_sha256": "505f644751e8fa3a122ad54da3694dc4ce9db028bd0f0aa8ed36f76ff66d5272",
+    "source_bounds": [
+      226,
+      182,
+      1551,
+      731
+    ],
+    "rect": [
+      325,
+      390,
+      325,
+      170
+    ],
+    "scale": 0.23320754716981132,
+    "vertical_scale": 0.23320754716981132,
+    "offset": [
+      -44.70490566037736,
+      -21.45924528301886
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "0adf22632fe3608598fc6eb050ffaef05a077715a6e91bbdd6324f46aa26cece"
+  },
+  {
+    "file": "nose-1-crooked.png",
+    "source": "materials/portraits/generated-features/Orc.mesh-female/nose-1-crooked.png",
+    "source_sha256": "02c130e86db69c5f8a9bd08214e3b6e1cd545c32d191ac2dd8840e02121df438",
+    "source_bounds": [
+      344,
+      164,
+      1198,
+      864
+    ],
+    "rect": [
+      440,
+      505,
+      190,
+      175
+    ],
+    "scale": 0.20374707259953162,
+    "vertical_scale": 0.20374707259953162,
+    "offset": [
+      -62.08899297423888,
+      -17.22599531615925
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "0adf22632fe3608598fc6eb050ffaef05a077715a6e91bbdd6324f46aa26cece"
+  },
+  {
+    "file": "nose-2-broad.png",
+    "source": "materials/portraits/generated-features/Orc.mesh-female/nose-2-broad.png",
+    "source_sha256": "38bca851b550248d5aa5eae8b3fed17f668338be48a8c7d91031d2523d8cffae",
+    "source_bounds": [
+      185,
+      99,
+      1350,
+      931
+    ],
+    "rect": [
+      440,
+      505,
+      190,
+      175
+    ],
+    "scale": 0.14935622317596567,
+    "vertical_scale": 0.14935622317596567,
+    "offset": [
+      -19.630901287553648,
+      10.581545064377682
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "0adf22632fe3608598fc6eb050ffaef05a077715a6e91bbdd6324f46aa26cece"
+  },
+  {
+    "file": "mouth-1-tusks.png",
+    "source": "materials/portraits/generated-features/Orc.mesh-female/mouth-1-tusks.png",
+    "source_sha256": "cce445c5b1fe56774fb46687a3506c843e8add2dd676197568c453bdb00ecefa",
+    "source_bounds": [
+      206,
+      270,
+      1330,
+      741
+    ],
+    "rect": [
+      350,
+      605,
+      310,
+      145
+    ],
+    "scale": 0.2615658362989324,
+    "vertical_scale": 0.2615658362989324,
+    "offset": [
+      -45.88256227758007,
+      -59.72153024911031
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "0adf22632fe3608598fc6eb050ffaef05a077715a6e91bbdd6324f46aa26cece"
+  },
+  {
+    "file": "mouth-2-grin.png",
+    "source": "materials/portraits/generated-features/Orc.mesh-female/mouth-2-grin.png",
+    "source_sha256": "07fa1c04600f37137f261f269a8525f5a2c5419034be4c9820e2962cefb09f55",
+    "source_bounds": [
+      371,
+      177,
+      1343,
+      713
+    ],
+    "rect": [
+      350,
+      605,
+      310,
+      145
+    ],
+    "scale": 0.24067164179104478,
+    "vertical_scale": 0.24067164179104478,
+    "offset": [
+      -51.25559701492537,
+      -34.598880597014926
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "0adf22632fe3608598fc6eb050ffaef05a077715a6e91bbdd6324f46aa26cece"
+  },
+  {
+    "file": "mouth-3-cigar.png",
+    "source": "materials/portraits/generated-features/Orc.mesh-female/mouth-3-cigar.png",
+    "source_sha256": "0ef6f91ef9dfb78b845fdf213b065a3b9a4f4cb51247c56cfb3d918edd302eee",
+    "source_bounds": [
+      356,
+      173,
+      1409,
+      734
+    ],
+    "rect": [
+      350,
+      605,
+      310,
+      145
+    ],
+    "scale": 0.22994652406417113,
+    "vertical_scale": 0.22994652406417113,
+    "offset": [
+      -47.92780748663101,
+      -31.780748663101605
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "0adf22632fe3608598fc6eb050ffaef05a077715a6e91bbdd6324f46aa26cece"
+  },
+  {
+    "file": "chin-1-square.png",
+    "source": "materials/portraits/generated-features/Orc.mesh-female/chin-1-square.png",
+    "source_sha256": "94cf37031a8a961aa75760bd099d1142927a1cb6530521666af0236b8f0347fe",
+    "source_bounds": [
+      239,
+      144,
+      1298,
+      910
+    ],
+    "rect": [
+      350,
+      660,
+      300,
+      145
+    ],
+    "scale": 0.22013651877133106,
+    "vertical_scale": 0.22013651877133106,
+    "offset": [
+      -19.174914675767916,
+      -23.699658703071673
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": 730,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "0adf22632fe3608598fc6eb050ffaef05a077715a6e91bbdd6324f46aa26cece"
+  },
+  {
+    "file": "chin-2-rounded.png",
+    "source": "materials/portraits/generated-features/Orc.mesh-female/chin-2-rounded.png",
+    "source_sha256": "547d79f518e27f3f18295cd5f7407d384dd6425d07f1087a2b393d940d18bfe0",
+    "source_bounds": [
+      344,
+      182,
+      1198,
+      902
+    ],
+    "rect": [
+      350,
+      660,
+      300,
+      145
+    ],
+    "scale": 0.3325526932084309,
+    "vertical_scale": 0.3325526932084309,
+    "offset": [
+      -106.39812646370022,
+      -45.88875878220139
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": 530,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "0adf22632fe3608598fc6eb050ffaef05a077715a6e91bbdd6324f46aa26cece"
+  },
+  {
+    "file": "scar-1-diagonal.png",
+    "source": "materials/portraits/generated-features/Orc.mesh-female/scar-1-diagonal.png",
+    "source_sha256": "e0a138212734b53115adbc0fc5699943d21b6dd50bea1c874bf5276ad6506882",
+    "source_bounds": [
+      328,
+      122,
+      1026,
+      1084
+    ],
+    "rect": [
+      340,
+      530,
+      160,
+      130
+    ],
+    "scale": 0.11850311850311851,
+    "vertical_scale": 0.11850311850311851,
+    "offset": [
+      -0.226611226611233,
+      -6.457380457380458
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": "union of all hair and ear alpha",
+    "source_mask_polygon": null,
+    "base_sha256": "0adf22632fe3608598fc6eb050ffaef05a077715a6e91bbdd6324f46aa26cece"
+  },
+  {
+    "file": "scar-2-scratches.png",
+    "source": "materials/portraits/generated-features/Orc.mesh-female/scar-2-scratches.png",
+    "source_sha256": "32435024e4a6675d6e07bf7588dbabcd196b6b3891c24393fc1bf4439f61ef1e",
+    "source_bounds": [
+      391,
+      215,
+      1076,
+      810
+    ],
+    "rect": [
+      340,
+      530,
+      160,
+      130
+    ],
+    "scale": 0.1915966386554622,
+    "vertical_scale": 0.1915966386554622,
+    "offset": [
+      -60.53613445378153,
+      -33.19327731092438
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": "union of all hair and ear alpha",
+    "source_mask_polygon": null,
+    "base_sha256": "0adf22632fe3608598fc6eb050ffaef05a077715a6e91bbdd6324f46aa26cece"
+  },
+  {
+    "file": "scar-3-warpaint.png",
+    "source": "materials/portraits/generated-features/Orc.mesh-female/scar-3-warpaint.png",
+    "source_sha256": "21bdb2d9c141e16974fe8283944e7dc4cdaa9f669ec8d2652db8b11fbb1943d4",
+    "source_bounds": [
+      406,
+      155,
+      1143,
+      878
+    ],
+    "rect": [
+      340,
+      530,
+      160,
+      130
+    ],
+    "scale": 0.15767634854771784,
+    "vertical_scale": 0.15767634854771784,
+    "offset": [
+      -42.120331950207465,
+      -16.439834024896264
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": "union of all hair and ear alpha",
+    "source_mask_polygon": null,
+    "base_sha256": "0adf22632fe3608598fc6eb050ffaef05a077715a6e91bbdd6324f46aa26cece"
+  },
+  {
+    "file": "neck-1-teeth.png",
+    "source": "materials/portraits/generated-features/Orc.mesh-female/neck-1-teeth.png",
+    "source_sha256": "87769d269b0cd39ec3e7bf616408b78c7d7e13ad6731afa879c0270560cdcb86",
+    "source_bounds": [
+      262,
+      34,
+      1278,
+      958
+    ],
+    "rect": [
+      280,
+      780,
+      370,
+      240
+    ],
+    "scale": 0.24242424242424243,
+    "vertical_scale": 0.24242424242424243,
+    "offset": [
+      -1.6666666666666714,
+      -0.2424242424242422
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "0adf22632fe3608598fc6eb050ffaef05a077715a6e91bbdd6324f46aa26cece"
+  },
+  {
+    "file": "neck-2-torque.png",
+    "source": "materials/portraits/generated-features/Orc.mesh-female/neck-2-torque.png",
+    "source_sha256": "a713bb779093b00acc27b5e7c678b41e6557b743716640b05042f10e1d048613",
+    "source_bounds": [
+      119,
+      138,
+      1419,
+      886
+    ],
+    "rect": [
+      280,
+      780,
+      370,
+      240
+    ],
+    "scale": 0.2723076923076923,
+    "vertical_scale": 0.2723076923076923,
+    "offset": [
+      -24.404615384615383,
+      -19.42153846153846
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "0adf22632fe3608598fc6eb050ffaef05a077715a6e91bbdd6324f46aa26cece"
+  },
+  {
+    "id": "Orc.mesh-female",
+    "n": 1,
+    "name": "leather",
+    "build": 0,
+    "file": "outfit-1-leather-build0.png",
+    "source": "materials/portraits/generated-outfits/Orc.mesh-female/outfit-1-leather.png",
+    "source_sha256": "53e7efd28b319326316f407cad48639816eae889c8cc4aeb012f3fb9ec87f503",
+    "source_size": [
+      887,
+      1774
+    ],
+    "canvas_registration": "canonical canvas",
+    "body_span_fit": "continuous outer sleeve sector extensions clipped to uncovered body",
+    "bottom_rows_repeated": 0,
+    "horizontal_scale": 1.225,
+    "vertical_scale": 1.1,
+    "offset": [
+      -99.78750000000004,
+      -72.00000000000006
+    ],
+    "mesh_warp": null,
+    "torso_margin": 1.1111111111111112,
+    "sleeve_warp": null,
+    "head_occlusion": {
+      "warm_neutral_skin_above_row": 730
+    },
+    "native_uncovered_body_pixels": 2833,
+    "coarse_uncovered_body_pixels": 85,
+    "coarse_body_pixels": 8405,
+    "visual_acceptance": "accepted-native-and-50x100",
+    "prompt": "Generate ONE new isolated clothing overlay, not a portrait: outfit option 1 for the Orc female Dungeonbook catalog entry. Input image is a REFERENCE ONLY for exact pose, three-quarter viewing direction, shoulder and arm silhouette, neck opening location, coarse painted brushwork, upper-left light and olive/brown palette. Create a rugged brown stitched leather jerkin over a dark ochre long-sleeved undershirt, full modest coverage of shoulders, torso and visible arms, closed chest, no exposed breasts. Clothing must exactly follow the reference mannequin, including its crop at the bottom and both canvas edges, neck opening just below the neck. Output ONLY the empty clothing shell on genuine transparent RGBA background; all head, face, neck skin, arms/hand skin, mannequin, body and original background must be transparent. No head, person, naked body, hair, jewelry, helmet, weapons, text, symbols, checkerboard or shadow outside the clothing. Match reference's portrait canvas 887 by 1774 pixels and fixed registration: head space above y=720 empty; neck opening centred around x=465 y=850; shoulder clothing follows reference below y=810, garment extends continuously to bottom y=1774 and sleeves to left/right canvas edges. Do not show a complete dressed person, only the isolated garment painted in the same dark-fantasy style. This is a new outfit layer; do not modify the reference or regenerate its face or body.",
+    "rect": [
+      0,
+      0,
+      887,
+      1774
+    ],
+    "base_sha256": "0adf22632fe3608598fc6eb050ffaef05a077715a6e91bbdd6324f46aa26cece"
+  },
+  {
+    "id": "Orc.mesh-female",
+    "n": 2,
+    "name": "chain",
+    "build": 0,
+    "file": "outfit-2-chain-build0.png",
+    "source": "materials/portraits/generated-outfits/Orc.mesh-female/outfit-2-chain.png",
+    "source_sha256": "2db3dad366373081cbfafff17d7b494a9f2e3667f9a443551fbdbd4d5072ac20",
+    "source_size": [
+      887,
+      1774
+    ],
+    "canvas_registration": "canonical canvas",
+    "body_span_fit": "continuous outer sleeve sector extensions clipped to uncovered body",
+    "bottom_rows_repeated": 0,
+    "horizontal_scale": 1.25,
+    "vertical_scale": 1.0,
+    "offset": [
+      -110.875,
+      0.0
+    ],
+    "mesh_warp": null,
+    "torso_margin": 1.1111111111111112,
+    "sleeve_warp": null,
+    "head_occlusion": {
+      "warm_neutral_skin_above_row": 730
+    },
+    "native_uncovered_body_pixels": 11105,
+    "coarse_uncovered_body_pixels": 261,
+    "coarse_body_pixels": 8405,
+    "visual_acceptance": "accepted-native-and-50x100",
+    "prompt": "Generate ONE isolated empty outfit overlay: Orc female outfit option 2, a dark iron chain shirt over a padded brown long-sleeved tunic with leather shoulder caps, a simple high modest collar and plain dark cloth lower torso. The attached neutral mannequin is a registration reference ONLY; match its exact three-quarter pose, head direction, shoulder width, arm silhouette, coarse painted fantasy brushwork, upper-left light and olive/brown palette. Same 887x1774 portrait canvas. Transparent head space above the garment, collar below the mannequin jaw and neck, shoulders and visible arms fully enclosed by sleeves. Cover every torso pixel through the bottom frame, including flanks: garment must slightly overlap reference silhouette by 20 pixels, with no exposed skin between torso and sleeves and no hem above the bottom edge. Output ONLY clothing on genuine transparent RGBA alpha, no head, neck skin, body, mannequin, face, hand skin, jewelry, weapons, helmet, letters, emblems, checkerboard, background or external shadow. Do not generate a dressed portrait or organs. Avoid polished photorealism: use the reference's coarse hand-painted dark-fantasy texture. No sexualized contours, no breasts or deep neckline. Distinctly chain mail, unlike stitched leather or padded armor. The original reference must remain unchanged.",
+    "rect": [
+      0,
+      0,
+      887,
+      1774
+    ],
+    "base_sha256": "0adf22632fe3608598fc6eb050ffaef05a077715a6e91bbdd6324f46aa26cece"
+  },
+  {
+    "id": "Orc.mesh-female",
+    "n": 3,
+    "name": "padded",
+    "build": 0,
+    "file": "outfit-3-padded-build0.png",
+    "source": "materials/portraits/generated-outfits/Orc.mesh-female/outfit-3-padded.png",
+    "source_sha256": "631cafb5452d924ed3f779d172ae40c80d344f153521bb52307306ef1719d70c",
+    "source_size": [
+      887,
+      1774
+    ],
+    "canvas_registration": "canonical canvas",
+    "body_span_fit": "continuous outer sleeve sector extensions clipped to uncovered body",
+    "bottom_rows_repeated": 0,
+    "horizontal_scale": 1.25,
+    "vertical_scale": 1.0,
+    "offset": [
+      -110.875,
+      0.0
+    ],
+    "mesh_warp": null,
+    "torso_margin": 1.1111111111111112,
+    "sleeve_warp": null,
+    "head_occlusion": {
+      "warm_neutral_skin_above_row": 730
+    },
+    "native_uncovered_body_pixels": 10600,
+    "coarse_uncovered_body_pixels": 246,
+    "coarse_body_pixels": 8405,
+    "visual_acceptance": "accepted-native-and-50x100",
+    "prompt": "Generate ONE isolated empty outfit overlay: Orc female outfit option 3, a thick dark ochre quilted gambeson with long padded sleeves, reinforced brown cloth shoulder panels and a plain leather waist belt; a padded cloth outfit distinctly different from leather vest and chain mail. The attached neutral mannequin is a registration reference ONLY: match exact three-quarter pose, downward head direction, shoulder and arm silhouette, coarse hand-painted fantasy brushwork and upper-left light. Fixed 887x1774 portrait canvas. Transparent head space; a modest collar around the base of the neck; cover shoulders, entire torso and all visible arms through the bottom and both cropped frame edges. Include lower garment filling the bottom edge, no raised hem or exposed flanks, with slight coverage margin outside the reference torso silhouette. Output ONLY the empty garment on genuine transparent RGBA alpha; no head, face, neck skin, body, mannequin, hand skin, hair, helmet, jewelry, weapon, text, emblem, checkerboard, background or external cast shadow. No sexualized contours or breasts. Do not create a full dressed portrait. Keep the original reference untouched; only a new clothing layer is requested.",
+    "rect": [
+      0,
+      0,
+      887,
+      1774
+    ],
+    "base_sha256": "0adf22632fe3608598fc6eb050ffaef05a077715a6e91bbdd6324f46aa26cece"
+  }
+]

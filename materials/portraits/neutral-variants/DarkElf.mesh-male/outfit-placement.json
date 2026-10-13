@@ -1,0 +1,35 @@
+[
+  {
+    "id": "DarkElf.mesh-male",
+    "n": 1,
+    "name": "tunic",
+    "build": 0,
+    "file": "outfit-1-tunic-build0.png",
+    "source": "materials/portraits/generated-outfits/DarkElf.mesh-male/outfit-1-tunic.png",
+    "source_sha256": "120d5fbe56a74fe321d01dfc9efb2e26cabdfd29a805936e5530c9aeb8eb23d5",
+    "source_size": [
+      887,
+      1773
+    ],
+    "canvas_registration": "canonical canvas",
+    "body_span_fit": "continuous outer sleeve sector extensions clipped to uncovered body",
+    "bottom_rows_repeated": 1,
+    "horizontal_scale": 1.25,
+    "vertical_scale": 1.02,
+    "offset": [
+      -110.875,
+      -14.400000000000013
+    ],
+    "mesh_warp": null,
+    "torso_margin": 1.1111111111111112,
+    "sleeve_warp": null,
+    "head_occlusion": {
+      "warm_neutral_skin_above_row": 865
+    },
+    "native_uncovered_body_pixels": 618,
+    "coarse_uncovered_body_pixels": 455,
+    "coarse_body_pixels": 7909,
+    "visual_acceptance": "accepted-native-and-50x100",
+    "prompt": "Generate ONE isolated EMPTY Dark Elf clothing overlay registered exactly to the attached blue-grey neutral dummy reference, using it solely for pose and geometry. Exact887x1774 transparentRGBA canvas. Plain dark charcoal/slate long-sleeved tunic with muted leather shoulder panels, plain waist belt and cuffs, no emblems. Slight three-quarter view, lowered slender arms, cool upper-left lighting, coarse painted fantasy brushwork matching the reference. Male reference collar around y900-1030, female around y880-1000; match the actual attached reference precisely, shoulders y980-1150, chest x40-850 y1250, belt y1510. Cover all visible shoulders, entire torso and arms with fitting margin, continue beyond bottomcrop. Empty garments only, no dummy, body, skin, head, face, ears, eyes, nose, hair, beard, helmet, necklace, weapons, tools, symbols, writing, modern objects or background. Retain all blank upper canvas, no tight crop or recentering."
+  }
+]

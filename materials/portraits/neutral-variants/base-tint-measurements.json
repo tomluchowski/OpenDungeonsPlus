@@ -1,0 +1,886 @@
+[
+  {
+    "portrait": "Adventurer.mesh",
+    "source": "materials/portraits/neutral-bases/Adventurer.mesh.png",
+    "source_sha256": "5382878098af358bfccce70c80048ba9141ea7282c877f98eccf1e284b79ccc9",
+    "size": [
+      887,
+      1774
+    ],
+    "skin_pixel_bounds": [
+      0,
+      149,
+      887,
+      1774
+    ],
+    "skin_box": [
+      0.0,
+      0.08399098083427282,
+      1.0,
+      1.0
+    ],
+    "skin_pixels": 973741,
+    "hair": "absent",
+    "eyes": "absent",
+    "beard": "absent",
+    "method": "bounding rectangle of species-colour pixels in the actual neutral base; blank featureless bases visually inspected"
+  },
+  {
+    "portrait": "Adventurer.mesh-female",
+    "source": "materials/portraits/neutral-bases/Adventurer.mesh-female.png",
+    "source_sha256": "53192713d758834d6f70edc23680b2698c5f35ee6c6f3848b4139e0e706d2e88",
+    "size": [
+      887,
+      1774
+    ],
+    "skin_pixel_bounds": [
+      0,
+      147,
+      887,
+      1774
+    ],
+    "skin_box": [
+      0.0,
+      0.08286358511837655,
+      1.0,
+      1.0
+    ],
+    "skin_pixels": 950425,
+    "hair": "absent",
+    "eyes": "absent",
+    "beard": "absent",
+    "method": "bounding rectangle of species-colour pixels in the actual neutral base; blank featureless bases visually inspected"
+  },
+  {
+    "portrait": "Cultist.mesh",
+    "source": "materials/portraits/neutral-bases/Cultist.mesh.png",
+    "source_sha256": "a7f5300a669b5a452b897d4ac5dab300c674aec596bea2b02e70910a6a745ce0",
+    "size": [
+      887,
+      1774
+    ],
+    "skin_pixel_bounds": [
+      0,
+      301,
+      887,
+      1774
+    ],
+    "skin_box": [
+      0.0,
+      0.16967305524239007,
+      1.0,
+      1.0
+    ],
+    "skin_pixels": 804588,
+    "hair": "absent",
+    "eyes": "absent",
+    "beard": "absent",
+    "method": "bounding rectangle of species-colour pixels in the actual neutral base; blank featureless bases visually inspected"
+  },
+  {
+    "portrait": "Cultist.mesh-female",
+    "source": "materials/portraits/neutral-bases/Cultist.mesh-female.png",
+    "source_sha256": "817d002078001f72f266323b7b8a8ebc5ca8f2b890584eeb41324a4dbdc908fc",
+    "size": [
+      887,
+      1774
+    ],
+    "skin_pixel_bounds": [
+      0,
+      394,
+      887,
+      1774
+    ],
+    "skin_box": [
+      0.0,
+      0.22209695603156707,
+      1.0,
+      1.0
+    ],
+    "skin_pixels": 743592,
+    "hair": "absent",
+    "eyes": "absent",
+    "beard": "absent",
+    "method": "bounding rectangle of species-colour pixels in the actual neutral base; blank featureless bases visually inspected"
+  },
+  {
+    "portrait": "DarkElf.mesh",
+    "source": "materials/portraits/neutral-bases/DarkElf.mesh.png",
+    "source_sha256": "b7b51bb2e67135a429d2dc3608fd4005b6da5150ab05d9cc7381aa7f5fafa597",
+    "size": [
+      887,
+      1774
+    ],
+    "skin_pixel_bounds": [
+      257,
+      382,
+      758,
+      1255
+    ],
+    "skin_box": [
+      0.2897406989853439,
+      0.2153325817361894,
+      0.85456595264938,
+      0.7074408117249155
+    ],
+    "skin_pixels": 1483,
+    "hair": "absent",
+    "eyes": "absent",
+    "beard": "absent",
+    "method": "bounding rectangle of species-colour pixels in the actual neutral base; blank featureless bases visually inspected"
+  },
+  {
+    "portrait": "DarkElf.mesh-male",
+    "source": "materials/portraits/neutral-bases/DarkElf.mesh-male.png",
+    "source_sha256": "48eca9d62648bda43bd3cc0926880bd7c37be587c7b1f2147fe9b9a08e5e0fa4",
+    "size": [
+      887,
+      1774
+    ],
+    "skin_pixel_bounds": [
+      137,
+      338,
+      886,
+      1774
+    ],
+    "skin_box": [
+      0.1544532130777903,
+      0.19052987598647125,
+      0.9988726042841037,
+      1.0
+    ],
+    "skin_pixels": 2386,
+    "hair": "absent",
+    "eyes": "absent",
+    "beard": "absent",
+    "method": "bounding rectangle of species-colour pixels in the actual neutral base; blank featureless bases visually inspected"
+  },
+  {
+    "portrait": "Defender.mesh",
+    "source": "materials/portraits/neutral-bases/Defender.mesh.png",
+    "source_sha256": "6caf94887a5384f12fa46270fe0cf6e68b301d8ab6ea4ab95bcd5a75b1c5393b",
+    "size": [
+      887,
+      1774
+    ],
+    "skin_pixel_bounds": [
+      0,
+      270,
+      887,
+      1774
+    ],
+    "skin_box": [
+      0.0,
+      0.15219842164599776,
+      1.0,
+      1.0
+    ],
+    "skin_pixels": 952882,
+    "hair": "absent",
+    "eyes": "absent",
+    "beard": "absent",
+    "method": "bounding rectangle of species-colour pixels in the actual neutral base; blank featureless bases visually inspected"
+  },
+  {
+    "portrait": "Defender.mesh-female",
+    "source": "materials/portraits/neutral-bases/Defender.mesh-female.png",
+    "source_sha256": "af3e88cd0dace2e4d43a9eb2b1dbc61fec1cfebdf859f1dd0a1a030fe52e73b9",
+    "size": [
+      887,
+      1774
+    ],
+    "skin_pixel_bounds": [
+      0,
+      272,
+      887,
+      1774
+    ],
+    "skin_box": [
+      0.0,
+      0.15332581736189402,
+      1.0,
+      1.0
+    ],
+    "skin_pixels": 929389,
+    "hair": "absent",
+    "eyes": "absent",
+    "beard": "absent",
+    "method": "bounding rectangle of species-colour pixels in the actual neutral base; blank featureless bases visually inspected"
+  },
+  {
+    "portrait": "Dwarf1.mesh",
+    "source": "materials/portraits/neutral-bases/Dwarf1.mesh.png",
+    "source_sha256": "69752a62b0ee4ed6545552e717d584a9d5cabc74d5602cb4a5b3c655889f4f67",
+    "size": [
+      887,
+      1774
+    ],
+    "skin_pixel_bounds": [
+      0,
+      216,
+      887,
+      1774
+    ],
+    "skin_box": [
+      0.0,
+      0.12175873731679819,
+      1.0,
+      1.0
+    ],
+    "skin_pixels": 1086610,
+    "hair": "absent",
+    "eyes": "absent",
+    "beard": "absent",
+    "method": "bounding rectangle of species-colour pixels in the actual neutral base; blank featureless bases visually inspected"
+  },
+  {
+    "portrait": "Dwarf1.mesh-female",
+    "source": "materials/portraits/neutral-bases/Dwarf1.mesh-female.png",
+    "source_sha256": "24203d4c55b3f9bca60a2da0a05978eabec16a9438aed5e17b6a60cc97fa59b8",
+    "size": [
+      887,
+      1774
+    ],
+    "skin_pixel_bounds": [
+      0,
+      219,
+      887,
+      1774
+    ],
+    "skin_box": [
+      0.0,
+      0.12344983089064261,
+      1.0,
+      1.0
+    ],
+    "skin_pixels": 1030358,
+    "hair": "absent",
+    "eyes": "absent",
+    "beard": "absent",
+    "method": "bounding rectangle of species-colour pixels in the actual neutral base; blank featureless bases visually inspected"
+  },
+  {
+    "portrait": "Dwarf2.mesh",
+    "source": "materials/portraits/neutral-bases/Dwarf2.mesh.png",
+    "source_sha256": "6aa728d9b1f5c4a626b0ef1bc9987f2c1a5d80f49a2af695ea24b82762b11f47",
+    "size": [
+      887,
+      1774
+    ],
+    "skin_pixel_bounds": [
+      0,
+      255,
+      887,
+      1774
+    ],
+    "skin_box": [
+      0.0,
+      0.14374295377677565,
+      1.0,
+      1.0
+    ],
+    "skin_pixels": 1045647,
+    "hair": "absent",
+    "eyes": "absent",
+    "beard": "absent",
+    "method": "bounding rectangle of species-colour pixels in the actual neutral base; blank featureless bases visually inspected"
+  },
+  {
+    "portrait": "Dwarf2.mesh-female",
+    "source": "materials/portraits/neutral-bases/Dwarf2.mesh-female.png",
+    "source_sha256": "615d09717ed2187fae689956d34b341de46105ed80c243127d4dd7f131bd8b6a",
+    "size": [
+      887,
+      1774
+    ],
+    "skin_pixel_bounds": [
+      0,
+      276,
+      887,
+      1774
+    ],
+    "skin_box": [
+      0.0,
+      0.1555806087936866,
+      1.0,
+      1.0
+    ],
+    "skin_pixels": 993029,
+    "hair": "absent",
+    "eyes": "absent",
+    "beard": "absent",
+    "method": "bounding rectangle of species-colour pixels in the actual neutral base; blank featureless bases visually inspected"
+  },
+  {
+    "portrait": "Elf.mesh",
+    "source": "materials/portraits/neutral-bases/Elf.mesh.png",
+    "source_sha256": "9ccc03f8fa06a91727a734a6a2e32d640fa9c4a47151e0b9a3e212213bfcdf16",
+    "size": [
+      887,
+      1774
+    ],
+    "skin_pixel_bounds": [
+      0,
+      260,
+      887,
+      1774
+    ],
+    "skin_box": [
+      0.0,
+      0.14656144306651633,
+      1.0,
+      1.0
+    ],
+    "skin_pixels": 899864,
+    "hair": "absent",
+    "eyes": "absent",
+    "beard": "absent",
+    "method": "bounding rectangle of species-colour pixels in the actual neutral base; blank featureless bases visually inspected"
+  },
+  {
+    "portrait": "Elf.mesh-male",
+    "source": "materials/portraits/neutral-bases/Elf.mesh-male.png",
+    "source_sha256": "8bc2aed5e4489837e5db7af9e985d3f624312c5e1852538384ce16035ea4f192",
+    "size": [
+      887,
+      1774
+    ],
+    "skin_pixel_bounds": [
+      0,
+      275,
+      887,
+      1774
+    ],
+    "skin_box": [
+      0.0,
+      0.15501691093573844,
+      1.0,
+      1.0
+    ],
+    "skin_pixels": 913373,
+    "hair": "absent",
+    "eyes": "absent",
+    "beard": "absent",
+    "method": "bounding rectangle of species-colour pixels in the actual neutral base; blank featureless bases visually inspected"
+  },
+  {
+    "portrait": "Gnome.mesh",
+    "source": "materials/portraits/neutral-bases/Gnome.mesh.png",
+    "source_sha256": "7038a4edd78a8ecb36538bcb04455ce551a801b817047c2191e4747e4ec63edc",
+    "size": [
+      887,
+      1774
+    ],
+    "skin_pixel_bounds": [
+      0,
+      279,
+      887,
+      1774
+    ],
+    "skin_box": [
+      0.0,
+      0.157271702367531,
+      1.0,
+      1.0
+    ],
+    "skin_pixels": 886784,
+    "hair": "absent",
+    "eyes": "absent",
+    "beard": "absent",
+    "method": "bounding rectangle of species-colour pixels in the actual neutral base; blank featureless bases visually inspected"
+  },
+  {
+    "portrait": "Gnome.mesh-female",
+    "source": "materials/portraits/neutral-bases/Gnome.mesh-female.png",
+    "source_sha256": "2c91e78a34328f313ccf8790ae64d578966d9296d0d4356106b06835fdb4e7af",
+    "size": [
+      887,
+      1774
+    ],
+    "skin_pixel_bounds": [
+      0,
+      321,
+      887,
+      1774
+    ],
+    "skin_box": [
+      0.0,
+      0.18094701240135289,
+      1.0,
+      1.0
+    ],
+    "skin_pixels": 840851,
+    "hair": "absent",
+    "eyes": "absent",
+    "beard": "absent",
+    "method": "bounding rectangle of species-colour pixels in the actual neutral base; blank featureless bases visually inspected"
+  },
+  {
+    "portrait": "Goblin.mesh",
+    "source": "materials/portraits/neutral-bases/Goblin.mesh.png",
+    "source_sha256": "45a910da8f763fdac15fb2eefb651453343212836c3a9bc6deef2fd88676e38b",
+    "size": [
+      887,
+      1774
+    ],
+    "skin_pixel_bounds": [
+      0,
+      209,
+      887,
+      1774
+    ],
+    "skin_box": [
+      0.0,
+      0.11781285231116122,
+      1.0,
+      1.0
+    ],
+    "skin_pixels": 785312,
+    "hair": "absent",
+    "eyes": "absent",
+    "beard": "absent",
+    "method": "bounding rectangle of species-colour pixels in the actual neutral base; blank featureless bases visually inspected"
+  },
+  {
+    "portrait": "Goblin.mesh-female",
+    "source": "materials/portraits/neutral-bases/Goblin.mesh-female.png",
+    "source_sha256": "3a722052b9253dda6f758cc1847751194d1d4c482547b6235645e3c58cb3d309",
+    "size": [
+      887,
+      1774
+    ],
+    "skin_pixel_bounds": [
+      0,
+      223,
+      887,
+      1774
+    ],
+    "skin_box": [
+      0.0,
+      0.12570462232243518,
+      1.0,
+      1.0
+    ],
+    "skin_pixels": 808301,
+    "hair": "absent",
+    "eyes": "absent",
+    "beard": "absent",
+    "method": "bounding rectangle of species-colour pixels in the actual neutral base; blank featureless bases visually inspected"
+  },
+  {
+    "portrait": "Knight.mesh",
+    "source": "materials/portraits/neutral-bases/Knight.mesh.png",
+    "source_sha256": "1ea7d0e1593f6052a4be10f4c5348c375cd49dd954487deabdf18dc012039e2a",
+    "size": [
+      887,
+      1774
+    ],
+    "skin_pixel_bounds": [
+      0,
+      176,
+      887,
+      1774
+    ],
+    "skin_box": [
+      0.0,
+      0.0992108229988726,
+      1.0,
+      1.0
+    ],
+    "skin_pixels": 955926,
+    "hair": "absent",
+    "eyes": "absent",
+    "beard": "absent",
+    "method": "bounding rectangle of species-colour pixels in the actual neutral base; blank featureless bases visually inspected"
+  },
+  {
+    "portrait": "Knight.mesh-female",
+    "source": "materials/portraits/neutral-bases/Knight.mesh-female.png",
+    "source_sha256": "16ca9ceec3b76e0d2552d5b4a6c8d02b4474790d0e158ee9311b351f5333ebac",
+    "size": [
+      887,
+      1774
+    ],
+    "skin_pixel_bounds": [
+      0,
+      176,
+      887,
+      1774
+    ],
+    "skin_box": [
+      0.0,
+      0.0992108229988726,
+      1.0,
+      1.0
+    ],
+    "skin_pixels": 943584,
+    "hair": "absent",
+    "eyes": "absent",
+    "beard": "absent",
+    "method": "bounding rectangle of species-colour pixels in the actual neutral base; blank featureless bases visually inspected"
+  },
+  {
+    "portrait": "Kobold.mesh",
+    "source": "materials/portraits/neutral-bases/Kobold.mesh.png",
+    "source_sha256": "b28f2e677105b61d4943b837e77013f7e37d2452cf6f57d2339dc01b1b85d7cf",
+    "size": [
+      887,
+      1774
+    ],
+    "skin_pixel_bounds": [
+      0,
+      184,
+      887,
+      1774
+    ],
+    "skin_box": [
+      0.0,
+      0.10372040586245772,
+      1.0,
+      1.0
+    ],
+    "skin_pixels": 560578,
+    "hair": "absent",
+    "eyes": "absent",
+    "beard": "absent",
+    "method": "bounding rectangle of species-colour pixels in the actual neutral base; blank featureless bases visually inspected"
+  },
+  {
+    "portrait": "Kobold.mesh-female",
+    "source": "materials/portraits/neutral-bases/Kobold.mesh-female.png",
+    "source_sha256": "57ced1902b3e464f0fe8b7f2f5eb8af0a0d90cfd0810a49c978e919dd69541c7",
+    "size": [
+      887,
+      1774
+    ],
+    "skin_pixel_bounds": [
+      0,
+      177,
+      887,
+      1774
+    ],
+    "skin_box": [
+      0.0,
+      0.09977452085682074,
+      1.0,
+      1.0
+    ],
+    "skin_pixels": 490921,
+    "hair": "absent",
+    "eyes": "absent",
+    "beard": "absent",
+    "method": "bounding rectangle of species-colour pixels in the actual neutral base; blank featureless bases visually inspected"
+  },
+  {
+    "portrait": "Lizardman.mesh",
+    "source": "materials/portraits/neutral-bases/Lizardman.mesh.png",
+    "source_sha256": "ffc50c5eb5fe0a17092ea7427af06407b8ca7e77a235b836a4c1ede757e3daa6",
+    "size": [
+      887,
+      1774
+    ],
+    "skin_pixel_bounds": [
+      0,
+      285,
+      887,
+      1774
+    ],
+    "skin_box": [
+      0.0,
+      0.16065388951521983,
+      1.0,
+      1.0
+    ],
+    "skin_pixels": 904120,
+    "hair": "absent",
+    "eyes": "absent",
+    "beard": "absent",
+    "method": "bounding rectangle of species-colour pixels in the actual neutral base; blank featureless bases visually inspected"
+  },
+  {
+    "portrait": "Lizardman.mesh-female",
+    "source": "materials/portraits/neutral-bases/Lizardman.mesh-female.png",
+    "source_sha256": "ee349a65ee1fb5d488fe183c4394751a9d8b2583a271cbc205c66a658998581e",
+    "size": [
+      887,
+      1774
+    ],
+    "skin_pixel_bounds": [
+      0,
+      303,
+      887,
+      1774
+    ],
+    "skin_box": [
+      0.0,
+      0.17080045095828636,
+      1.0,
+      1.0
+    ],
+    "skin_pixels": 806805,
+    "hair": "absent",
+    "eyes": "absent",
+    "beard": "absent",
+    "method": "bounding rectangle of species-colour pixels in the actual neutral base; blank featureless bases visually inspected"
+  },
+  {
+    "portrait": "Monk.mesh",
+    "source": "materials/portraits/neutral-bases/Monk.mesh.png",
+    "source_sha256": "806365e9d677b7dc3eb73af326cd1a71bf5e08207d1f72bb37661fdf453f0ac1",
+    "size": [
+      887,
+      1774
+    ],
+    "skin_pixel_bounds": [
+      0,
+      215,
+      887,
+      1774
+    ],
+    "skin_box": [
+      0.0,
+      0.12119503945885006,
+      1.0,
+      1.0
+    ],
+    "skin_pixels": 1044571,
+    "hair": "absent",
+    "eyes": "absent",
+    "beard": "absent",
+    "method": "bounding rectangle of species-colour pixels in the actual neutral base; blank featureless bases visually inspected"
+  },
+  {
+    "portrait": "Monk.mesh-female",
+    "source": "materials/portraits/neutral-bases/Monk.mesh-female.png",
+    "source_sha256": "15c6341a6d8c46be37c24f9462a322ec43c704f190ec1ba33aed5961dbf14aaa",
+    "size": [
+      887,
+      1774
+    ],
+    "skin_pixel_bounds": [
+      0,
+      228,
+      887,
+      1774
+    ],
+    "skin_box": [
+      0.0,
+      0.12852311161217586,
+      1.0,
+      1.0
+    ],
+    "skin_pixels": 1018013,
+    "hair": "absent",
+    "eyes": "absent",
+    "beard": "absent",
+    "method": "bounding rectangle of species-colour pixels in the actual neutral base; blank featureless bases visually inspected"
+  },
+  {
+    "portrait": "Orc.mesh",
+    "source": "materials/portraits/neutral-bases/Orc.mesh.png",
+    "source_sha256": "a0e87424a95c01df28db09d5502b3ebabda6e14b58b200018664f48e9ace5fe6",
+    "size": [
+      887,
+      1774
+    ],
+    "skin_pixel_bounds": [
+      0,
+      245,
+      887,
+      1774
+    ],
+    "skin_box": [
+      0.0,
+      0.13810597519729426,
+      1.0,
+      1.0
+    ],
+    "skin_pixels": 982767,
+    "hair": "absent",
+    "eyes": "absent",
+    "beard": "absent",
+    "method": "bounding rectangle of species-colour pixels in the actual neutral base; blank featureless bases visually inspected"
+  },
+  {
+    "portrait": "Orc.mesh-female",
+    "source": "materials/portraits/neutral-bases/Orc.mesh-female.png",
+    "source_sha256": "0adf22632fe3608598fc6eb050ffaef05a077715a6e91bbdd6324f46aa26cece",
+    "size": [
+      887,
+      1774
+    ],
+    "skin_pixel_bounds": [
+      0,
+      215,
+      887,
+      1774
+    ],
+    "skin_box": [
+      0.0,
+      0.12119503945885006,
+      1.0,
+      1.0
+    ],
+    "skin_pixels": 988821,
+    "hair": "absent",
+    "eyes": "absent",
+    "beard": "absent",
+    "method": "bounding rectangle of species-colour pixels in the actual neutral base; blank featureless bases visually inspected"
+  },
+  {
+    "portrait": "RunelordDwarf.mesh",
+    "source": "materials/portraits/neutral-bases/RunelordDwarf.mesh.png",
+    "source_sha256": "33ec95c7454f236edb49ea54849ff259a4f6d577cfbc06ecea38fb53336ca8fe",
+    "size": [
+      887,
+      1774
+    ],
+    "skin_pixel_bounds": [
+      0,
+      326,
+      887,
+      1774
+    ],
+    "skin_box": [
+      0.0,
+      0.18376550169109357,
+      1.0,
+      1.0
+    ],
+    "skin_pixels": 994969,
+    "hair": "absent",
+    "eyes": "absent",
+    "beard": "absent",
+    "method": "bounding rectangle of species-colour pixels in the actual neutral base; blank featureless bases visually inspected"
+  },
+  {
+    "portrait": "RunelordDwarf.mesh-female",
+    "source": "materials/portraits/neutral-bases/RunelordDwarf.mesh-female.png",
+    "source_sha256": "8ba9ef5629cf7f73cbe248aa274a35c011e56efcd6947c75f32f192ca6e6b9ac",
+    "size": [
+      887,
+      1774
+    ],
+    "skin_pixel_bounds": [
+      0,
+      337,
+      887,
+      1774
+    ],
+    "skin_box": [
+      0.0,
+      0.18996617812852312,
+      1.0,
+      1.0
+    ],
+    "skin_pixels": 889818,
+    "hair": "absent",
+    "eyes": "absent",
+    "beard": "absent",
+    "method": "bounding rectangle of species-colour pixels in the actual neutral base; blank featureless bases visually inspected"
+  },
+  {
+    "portrait": "Troll.mesh",
+    "source": "materials/portraits/neutral-bases/Troll.mesh.png",
+    "source_sha256": "1704f1a49656f7ae75b5343f9c8d68a38a946fbe71354ff7eccb03e269712563",
+    "size": [
+      887,
+      1774
+    ],
+    "skin_pixel_bounds": [
+      0,
+      396,
+      887,
+      1774
+    ],
+    "skin_box": [
+      0.0,
+      0.22322435174746336,
+      1.0,
+      1.0
+    ],
+    "skin_pixels": 751697,
+    "hair": "absent",
+    "eyes": "absent",
+    "beard": "absent",
+    "method": "bounding rectangle of species-colour pixels in the actual neutral base; blank featureless bases visually inspected"
+  },
+  {
+    "portrait": "Troll.mesh-female",
+    "source": "materials/portraits/neutral-bases/Troll.mesh-female.png",
+    "source_sha256": "5a42009fd4ed3ee00a08ad602d742a069050b9f91c89a8751053c19113c93b43",
+    "size": [
+      887,
+      1774
+    ],
+    "skin_pixel_bounds": [
+      0,
+      353,
+      887,
+      1774
+    ],
+    "skin_box": [
+      0.0,
+      0.19898534385569336,
+      1.0,
+      1.0
+    ],
+    "skin_pixels": 816491,
+    "hair": "absent",
+    "eyes": "absent",
+    "beard": "absent",
+    "method": "bounding rectangle of species-colour pixels in the actual neutral base; blank featureless bases visually inspected"
+  },
+  {
+    "portrait": "Wizard.mesh",
+    "source": "materials/portraits/neutral-bases/Wizard.mesh.png",
+    "source_sha256": "d45b3bbaacf2239428125b5edb14cd24f63fd29c461065f0e44ad2e387e8444a",
+    "size": [
+      887,
+      1774
+    ],
+    "skin_pixel_bounds": [
+      0,
+      512,
+      887,
+      1774
+    ],
+    "skin_box": [
+      0.0,
+      0.28861330326944756,
+      1.0,
+      1.0
+    ],
+    "skin_pixels": 687861,
+    "hair": "absent",
+    "eyes": "absent",
+    "beard": "absent",
+    "method": "bounding rectangle of species-colour pixels in the actual neutral base; blank featureless bases visually inspected"
+  },
+  {
+    "portrait": "Wizard.mesh-female",
+    "source": "materials/portraits/neutral-bases/Wizard.mesh-female.png",
+    "source_sha256": "59d1431bfe0b0d01744ceb5db6632f2046ecb6c7d37b5590ea6880e97371a43f",
+    "size": [
+      887,
+      1774
+    ],
+    "skin_pixel_bounds": [
+      0,
+      560,
+      887,
+      1774
+    ],
+    "skin_box": [
+      0.0,
+      0.3156708004509583,
+      1.0,
+      1.0
+    ],
+    "skin_pixels": 657759,
+    "hair": "absent",
+    "eyes": "absent",
+    "beard": "absent",
+    "method": "bounding rectangle of species-colour pixels in the actual neutral base; blank featureless bases visually inspected"
+  }
+]

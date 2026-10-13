@@ -1,0 +1,35 @@
+[
+  {
+    "id": "Lizardman.mesh-female",
+    "n": 1,
+    "name": "leather",
+    "build": 0,
+    "file": "outfit-1-leather-build0.png",
+    "source": "materials/portraits/generated-outfits/Lizardman.mesh-female/outfit-1-leather.png",
+    "source_sha256": "6ff0b1db94c3026bc817609a22c182bb2121852b97ba4bf53960a37c6d45ef6d",
+    "source_size": [
+      887,
+      1774
+    ],
+    "canvas_registration": "canonical canvas",
+    "body_span_fit": "continuous outer sleeve extensions and 80/160-pixel inner-gap translations clipped to measured uncovered body",
+    "bottom_rows_repeated": 0,
+    "horizontal_scale": 1.15,
+    "vertical_scale": 1.08,
+    "offset": [
+      -66.52499999999996,
+      -57.60000000000005
+    ],
+    "mesh_warp": null,
+    "torso_margin": 1.1111111111111112,
+    "sleeve_warp": null,
+    "head_occlusion": {
+      "warm_neutral_skin_above_row": 780
+    },
+    "native_uncovered_body_pixels": 729,
+    "coarse_uncovered_body_pixels": 0,
+    "coarse_body_pixels": 6928,
+    "visual_acceptance": "accepted-native-and-50x100",
+    "prompt": "Create ONE isolated EMPTY Lizardman clothing layer registered to the attached golden reptilian neutral dummy, exact pose/silhouette reference only. Exact887x1774 transparentRGBA full canvas. Plain rugged dark brown leather long-sleeved tunic with layered leather shoulder guards, plain waist belt and cuffs, no symbols or weapons. Match long angled neck, reptilian shoulder anatomy, lowered arms and slight three-quarter view, warm upper-left illumination and coarse painted fantasy style. Collar y850-1000 following the long neck, shoulders y970-1160, chest x20-880 at y1250, belt y1510; cover every visible shoulder, torso and arm with fitting margin down beyond bottom crop. Empty clothes only, no dummy, body, golden skin, scales, head, face, snout, eyes, ears, hair, helmet, necklace, weapons, tools, writing, symbols, modern objects or background. Preserve upper transparent blank space and exact full-frame registration, no recenter or tight crop."
+  }
+]

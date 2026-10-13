@@ -1,0 +1,630 @@
+[
+  {
+    "file": "build-1-slim.png",
+    "source": "materials/portraits/generated-features/DarkElf.mesh-male/build-1-slim.png",
+    "source_sha256": "e963096cf87861ed0647f5d3907dfb39584a971efcd8de74578f1310c2074333",
+    "source_bounds": [
+      0,
+      133,
+      1168,
+      1285
+    ],
+    "rect": [
+      0,
+      810,
+      887,
+      964
+    ],
+    "scale": 0.759417808219178,
+    "vertical_scale": 0.8645833333333334,
+    "offset": [
+      0.0,
+      -114.98958333333334
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "48eca9d62648bda43bd3cc0926880bd7c37be587c7b1f2147fe9b9a08e5e0fa4"
+  },
+  {
+    "file": "build-2-sturdy.png",
+    "source": "materials/portraits/generated-features/DarkElf.mesh-male/build-2-sturdy.png",
+    "source_sha256": "a39076db4bfdaf6bc40f24b72f49c7cb216bd1e74e1a0a9400a5fbbf5c957094",
+    "source_bounds": [
+      3,
+      127,
+      1244,
+      1174
+    ],
+    "rect": [
+      0,
+      810,
+      887,
+      964
+    ],
+    "scale": 0.7147461724415793,
+    "vertical_scale": 0.9512893982808023,
+    "offset": [
+      -2.1442385173247382,
+      -120.81375358166189
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "48eca9d62648bda43bd3cc0926880bd7c37be587c7b1f2147fe9b9a08e5e0fa4"
+  },
+  {
+    "file": "hair-1-swept.png",
+    "source": "materials/portraits/generated-features/DarkElf.mesh-male/hair-1-swept.png",
+    "source_sha256": "97b90190ac4d00646f7c3f0b962260c679af158000bd20e6ea2d9f60bba3b5ad",
+    "source_bounds": [
+      87,
+      43,
+      1123,
+      1233
+    ],
+    "rect": [
+      130,
+      190,
+      630,
+      1050
+    ],
+    "scale": 0.5926640926640927,
+    "vertical_scale": 0.5926640926640927,
+    "offset": [
+      -43.561776061776065,
+      -17.484555984555985
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "48eca9d62648bda43bd3cc0926880bd7c37be587c7b1f2147fe9b9a08e5e0fa4"
+  },
+  {
+    "file": "hair-2-waves.png",
+    "source": "materials/portraits/generated-features/DarkElf.mesh-male/hair-2-waves.png",
+    "source_sha256": "d688cf835c7916fe31944b4ce6080282eb2ed811d78d7008dd4262a66668a6c1",
+    "source_bounds": [
+      50,
+      46,
+      1190,
+      1245
+    ],
+    "rect": [
+      130,
+      190,
+      630,
+      1050
+    ],
+    "scale": 0.5385964912280702,
+    "vertical_scale": 0.5385964912280702,
+    "offset": [
+      -18.92982456140351,
+      -16.775438596491227
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "48eca9d62648bda43bd3cc0926880bd7c37be587c7b1f2147fe9b9a08e5e0fa4"
+  },
+  {
+    "file": "ears-1-notched.png",
+    "source": "materials/portraits/generated-features/DarkElf.mesh-male/ears-1-notched.png",
+    "source_sha256": "a09ff60ab107dc3dac3ac62ea022d976b86e9d0b583fa2cd15fbee7c93f5bf47",
+    "source_bounds": [
+      108,
+      92,
+      1051,
+      1213
+    ],
+    "rect": [
+      95,
+      440,
+      235,
+      320
+    ],
+    "scale": 0.23223753976670203,
+    "vertical_scale": 0.23223753976670203,
+    "offset": [
+      -17.08165429480382,
+      8.465005302226935
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "48eca9d62648bda43bd3cc0926880bd7c37be587c7b1f2147fe9b9a08e5e0fa4"
+  },
+  {
+    "file": "ears-2-rounder.png",
+    "source": "materials/portraits/generated-features/DarkElf.mesh-male/ears-2-rounder.png",
+    "source_sha256": "2e21f7185d695fb931a6c5cdfea670e8cda0054e44f45af02f34fd37bb3ff542",
+    "source_bounds": [
+      199,
+      130,
+      986,
+      1143
+    ],
+    "rect": [
+      95,
+      440,
+      235,
+      320
+    ],
+    "scale": 0.2782719186785261,
+    "vertical_scale": 0.2782719186785261,
+    "offset": [
+      -47.376111817026704,
+      -17.120076238881836
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "48eca9d62648bda43bd3cc0926880bd7c37be587c7b1f2147fe9b9a08e5e0fa4"
+  },
+  {
+    "file": "eyes-1-narrow.png",
+    "source": "materials/portraits/generated-features/DarkElf.mesh-male/eyes-1-narrow.png",
+    "source_sha256": "3d143c98c904c9421d3abde24ab0b74292cad35c1e8f1c15b7a1b946fc439674",
+    "source_bounds": [
+      178,
+      81,
+      1894,
+      693
+    ],
+    "rect": [
+      300,
+      480,
+      335,
+      160
+    ],
+    "scale": 0.1858974358974359,
+    "vertical_scale": 0.1858974358974359,
+    "offset": [
+      -25.08974358974359,
+      8.057692307692305
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "48eca9d62648bda43bd3cc0926880bd7c37be587c7b1f2147fe9b9a08e5e0fa4"
+  },
+  {
+    "file": "eyes-2-round.png",
+    "source": "materials/portraits/generated-features/DarkElf.mesh-male/eyes-2-round.png",
+    "source_sha256": "0b6b5384d210b6c9c2f197162c171e46091f2c05c646179d16877633856a6664",
+    "source_bounds": [
+      422,
+      120,
+      1741,
+      636
+    ],
+    "rect": [
+      300,
+      480,
+      335,
+      160
+    ],
+    "scale": 0.24184988627748294,
+    "vertical_scale": 0.24184988627748294,
+    "offset": [
+      -94.0606520090978,
+      -11.41925701288855
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "48eca9d62648bda43bd3cc0926880bd7c37be587c7b1f2147fe9b9a08e5e0fa4"
+  },
+  {
+    "file": "eyes-3-eyepatch.png",
+    "source": "materials/portraits/generated-features/DarkElf.mesh-male/eyes-3-eyepatch.png",
+    "source_sha256": "62d6f85728a8659d37b940ca81d107189955e9b27e707907ead0bed4fcd601d5",
+    "source_bounds": [
+      90,
+      111,
+      1722,
+      798
+    ],
+    "rect": [
+      300,
+      480,
+      335,
+      160
+    ],
+    "scale": 0.1954656862745098,
+    "vertical_scale": 0.1954656862745098,
+    "offset": [
+      -9.591911764705884,
+      -8.839154411764703
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "48eca9d62648bda43bd3cc0926880bd7c37be587c7b1f2147fe9b9a08e5e0fa4"
+  },
+  {
+    "file": "nose-1-crooked.png",
+    "source": "materials/portraits/generated-features/DarkElf.mesh-male/nose-1-crooked.png",
+    "source_sha256": "2db4fd398ca17ba6b5a57dba0551348214b8805078ba235d81e603ea7131e61e",
+    "source_bounds": [
+      453,
+      249,
+      980,
+      920
+    ],
+    "rect": [
+      430,
+      595,
+      170,
+      180
+    ],
+    "scale": 0.2444113263785395,
+    "vertical_scale": 0.2444113263785395,
+    "offset": [
+      -90.12071535022355,
+      -52.85842026825633
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "48eca9d62648bda43bd3cc0926880bd7c37be587c7b1f2147fe9b9a08e5e0fa4"
+  },
+  {
+    "file": "nose-2-broad.png",
+    "source": "materials/portraits/generated-features/DarkElf.mesh-male/nose-2-broad.png",
+    "source_sha256": "542e1ebd9d4be47e8003e34fe7e0be2bc37d4b9d093b226b5efe062bd4a8df13",
+    "source_bounds": [
+      489,
+      221,
+      1049,
+      810
+    ],
+    "rect": [
+      430,
+      595,
+      170,
+      180
+    ],
+    "scale": 0.275,
+    "vertical_scale": 0.275,
+    "offset": [
+      -126.47500000000002,
+      -51.76250000000002
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "48eca9d62648bda43bd3cc0926880bd7c37be587c7b1f2147fe9b9a08e5e0fa4"
+  },
+  {
+    "file": "mouth-1-teeth.png",
+    "source": "materials/portraits/generated-features/DarkElf.mesh-male/mouth-1-teeth.png",
+    "source_sha256": "0da2105b2962895421a68fd2341b95c51d11e16b19f234cdc017303cb1c71258",
+    "source_bounds": [
+      273,
+      166,
+      1500,
+      729
+    ],
+    "rect": [
+      350,
+      735,
+      285,
+      125
+    ],
+    "scale": 0.1936056838365897,
+    "vertical_scale": 0.1936056838365897,
+    "offset": [
+      -29.13143872113676,
+      -24.138543516873888
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "48eca9d62648bda43bd3cc0926880bd7c37be587c7b1f2147fe9b9a08e5e0fa4"
+  },
+  {
+    "file": "mouth-2-grin.png",
+    "source": "materials/portraits/generated-features/DarkElf.mesh-male/mouth-2-grin.png",
+    "source_sha256": "4320d951008b68176c09a5041655de934df6b5c1739013c4e4ea2562ec24b897",
+    "source_bounds": [
+      227,
+      201,
+      1451,
+      792
+    ],
+    "rect": [
+      350,
+      735,
+      285,
+      125
+    ],
+    "scale": 0.1844331641285956,
+    "vertical_scale": 0.1844331641285956,
+    "offset": [
+      -12.2394247038917,
+      -29.07106598984771
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "48eca9d62648bda43bd3cc0926880bd7c37be587c7b1f2147fe9b9a08e5e0fa4"
+  },
+  {
+    "file": "mouth-3-cigar.png",
+    "source": "materials/portraits/generated-features/DarkElf.mesh-male/mouth-3-cigar.png",
+    "source_sha256": "6e70e2cc6d9f07fd0c85f65858c4be6f40494be9fbe3b1ebab7160dfdddd8613",
+    "source_bounds": [
+      394,
+      193,
+      1491,
+      697
+    ],
+    "rect": [
+      350,
+      735,
+      285,
+      125
+    ],
+    "scale": 0.21626984126984128,
+    "vertical_scale": 0.21626984126984128,
+    "offset": [
+      -61.334325396825406,
+      -33.74007936507937
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "48eca9d62648bda43bd3cc0926880bd7c37be587c7b1f2147fe9b9a08e5e0fa4"
+  },
+  {
+    "file": "chin-1-square.png",
+    "source": "materials/portraits/generated-features/DarkElf.mesh-male/chin-1-square.png",
+    "source_sha256": "0830fd04eefcc2f6ad5891fb662321234fdef2b56a1637fe2a397e7c14ca44ea",
+    "source_bounds": [
+      263,
+      138,
+      1512,
+      760
+    ],
+    "rect": [
+      350,
+      765,
+      285,
+      145
+    ],
+    "scale": 0.20739549839228297,
+    "vertical_scale": 0.20739549839228297,
+    "offset": [
+      -41.56350482315113,
+      -20.620578778135048
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "48eca9d62648bda43bd3cc0926880bd7c37be587c7b1f2147fe9b9a08e5e0fa4"
+  },
+  {
+    "file": "chin-2-rounded.png",
+    "source": "materials/portraits/generated-features/DarkElf.mesh-male/chin-2-rounded.png",
+    "source_sha256": "14ae4f45ec38b95e5e4e7c8961b160d78b3eb27a063663808185a62c3ea62d38",
+    "source_bounds": [
+      290,
+      117,
+      1474,
+      714
+    ],
+    "rect": [
+      350,
+      765,
+      285,
+      145
+    ],
+    "scale": 0.21608040201005024,
+    "vertical_scale": 0.21608040201005024,
+    "offset": [
+      -48.08291457286432,
+      -17.281407035175878
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "48eca9d62648bda43bd3cc0926880bd7c37be587c7b1f2147fe9b9a08e5e0fa4"
+  },
+  {
+    "file": "scar-1-diagonal.png",
+    "source": "materials/portraits/generated-features/DarkElf.mesh-male/scar-1-diagonal.png",
+    "source_sha256": "5fba5b5a7dd6a52b90793ff34a80023dc1b0562271658bd0b328831d9d31d643",
+    "source_bounds": [
+      192,
+      117,
+      1069,
+      1165
+    ],
+    "rect": [
+      290,
+      610,
+      180,
+      155
+    ],
+    "scale": 0.13263358778625955,
+    "vertical_scale": 0.13263358778625955,
+    "offset": [
+      6.374522900763353,
+      -7.518129770992369
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": "union of all hair and ear alpha",
+    "source_mask_polygon": null,
+    "base_sha256": "48eca9d62648bda43bd3cc0926880bd7c37be587c7b1f2147fe9b9a08e5e0fa4"
+  },
+  {
+    "file": "scar-2-scratches.png",
+    "source": "materials/portraits/generated-features/DarkElf.mesh-male/scar-2-scratches.png",
+    "source_sha256": "188702f3291247f5c3152945eeb21a8c5273683fe7bebe98488b326879e3b6f6",
+    "source_bounds": [
+      373,
+      56,
+      1151,
+      972
+    ],
+    "rect": [
+      290,
+      610,
+      180,
+      155
+    ],
+    "scale": 0.1517467248908297,
+    "vertical_scale": 0.1517467248908297,
+    "offset": [
+      -25.631004366812228,
+      -0.49781659388646204
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": "union of all hair and ear alpha",
+    "source_mask_polygon": null,
+    "base_sha256": "48eca9d62648bda43bd3cc0926880bd7c37be587c7b1f2147fe9b9a08e5e0fa4"
+  },
+  {
+    "file": "scar-3-warpaint.png",
+    "source": "materials/portraits/generated-features/DarkElf.mesh-male/scar-3-warpaint.png",
+    "source_sha256": "84a217917f93db913297497cc81d5c76dfa7c6d3264d388d6d0e2c2cfda52d56",
+    "source_bounds": [
+      93,
+      109,
+      1067,
+      1228
+    ],
+    "rect": [
+      290,
+      610,
+      180,
+      155
+    ],
+    "scale": 0.12421805183199285,
+    "vertical_scale": 0.12421805183199285,
+    "offset": [
+      17.953529937444152,
+      -5.539767649687221
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": "union of all hair and ear alpha",
+    "source_mask_polygon": null,
+    "base_sha256": "48eca9d62648bda43bd3cc0926880bd7c37be587c7b1f2147fe9b9a08e5e0fa4"
+  },
+  {
+    "file": "neck-1-teeth.png",
+    "source": "materials/portraits/generated-features/DarkElf.mesh-male/neck-1-teeth.png",
+    "source_sha256": "33fa9d69be5366de8d0e7cb183853cd9a2cf840cf8f744552e9210100413b3a4",
+    "source_bounds": [
+      299,
+      26,
+      1248,
+      939
+    ],
+    "rect": [
+      265,
+      950,
+      390,
+      270
+    ],
+    "scale": 0.2782037239868565,
+    "vertical_scale": 0.2782037239868565,
+    "offset": [
+      -20.190580503833516,
+      0.7667031763417453
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "48eca9d62648bda43bd3cc0926880bd7c37be587c7b1f2147fe9b9a08e5e0fa4"
+  },
+  {
+    "file": "neck-2-torque.png",
+    "source": "materials/portraits/generated-features/DarkElf.mesh-male/neck-2-torque.png",
+    "source_sha256": "0e2fbcfc73de63bdba5d80454fc01ddf72b48d9556f1f133fbd33395c06d13a6",
+    "source_bounds": [
+      66,
+      105,
+      1712,
+      814
+    ],
+    "rect": [
+      265,
+      950,
+      390,
+      270
+    ],
+    "scale": 0.22721749696233293,
+    "vertical_scale": 0.22721749696233293,
+    "offset": [
+      -6.996354799513973,
+      30.593560145808027
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "48eca9d62648bda43bd3cc0926880bd7c37be587c7b1f2147fe9b9a08e5e0fa4"
+  },
+  {
+    "id": "DarkElf.mesh-male",
+    "n": 1,
+    "name": "tunic",
+    "build": 0,
+    "file": "outfit-1-tunic-build0.png",
+    "source": "materials/portraits/generated-outfits/DarkElf.mesh-male/outfit-1-tunic.png",
+    "source_sha256": "120d5fbe56a74fe321d01dfc9efb2e26cabdfd29a805936e5530c9aeb8eb23d5",
+    "source_size": [
+      887,
+      1773
+    ],
+    "canvas_registration": "canonical canvas",
+    "body_span_fit": "continuous outer sleeve sector extensions clipped to uncovered body",
+    "bottom_rows_repeated": 1,
+    "horizontal_scale": 1.25,
+    "vertical_scale": 1.02,
+    "offset": [
+      -110.875,
+      -14.400000000000013
+    ],
+    "mesh_warp": null,
+    "torso_margin": 1.1111111111111112,
+    "sleeve_warp": null,
+    "head_occlusion": {
+      "warm_neutral_skin_above_row": 865
+    },
+    "native_uncovered_body_pixels": 618,
+    "coarse_uncovered_body_pixels": 455,
+    "coarse_body_pixels": 7909,
+    "visual_acceptance": "accepted-native-and-50x100",
+    "prompt": "Generate ONE isolated EMPTY Dark Elf clothing overlay registered exactly to the attached blue-grey neutral dummy reference, using it solely for pose and geometry. Exact887x1774 transparentRGBA canvas. Plain dark charcoal/slate long-sleeved tunic with muted leather shoulder panels, plain waist belt and cuffs, no emblems. Slight three-quarter view, lowered slender arms, cool upper-left lighting, coarse painted fantasy brushwork matching the reference. Male reference collar around y900-1030, female around y880-1000; match the actual attached reference precisely, shoulders y980-1150, chest x40-850 y1250, belt y1510. Cover all visible shoulders, entire torso and arms with fitting margin, continue beyond bottomcrop. Empty garments only, no dummy, body, skin, head, face, ears, eyes, nose, hair, beard, helmet, necklace, weapons, tools, symbols, writing, modern objects or background. Retain all blank upper canvas, no tight crop or recentering.",
+    "rect": [
+      0,
+      0,
+      887,
+      1774
+    ],
+    "base_sha256": "48eca9d62648bda43bd3cc0926880bd7c37be587c7b1f2147fe9b9a08e5e0fa4"
+  }
+]

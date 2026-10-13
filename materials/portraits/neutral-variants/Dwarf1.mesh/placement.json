@@ -1,0 +1,615 @@
+[
+  {
+    "file": "build-1-slim.png",
+    "source": "materials/portraits/generated-features/Dwarf1.mesh/build-1-slim.png",
+    "source_sha256": "36ef6d35cd64b231e5aabdaf092fe9dac13d21a72fcade5be2b14420c91dadd2",
+    "source_bounds": [
+      31,
+      150,
+      1345,
+      1076
+    ],
+    "rect": [
+      0,
+      780,
+      887,
+      994
+    ],
+    "scale": 0.6750380517503806,
+    "vertical_scale": 1.1079913606911447,
+    "offset": [
+      -20.926179604261797,
+      -166.1987041036717
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "69752a62b0ee4ed6545552e717d584a9d5cabc74d5602cb4a5b3c655889f4f67"
+  },
+  {
+    "file": "build-2-sturdy.png",
+    "source": "materials/portraits/generated-features/Dwarf1.mesh/build-2-sturdy.png",
+    "source_sha256": "a8248a6d8e5ea7a0b0ae0c87577bbcae96b447b27fb9a8fed4863f56e75252f4",
+    "source_bounds": [
+      23,
+      110,
+      1361,
+      1088
+    ],
+    "rect": [
+      0,
+      780,
+      887,
+      994
+    ],
+    "scale": 0.6629297458893871,
+    "vertical_scale": 1.049079754601227,
+    "offset": [
+      -15.247384155455904,
+      -115.39877300613496
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "69752a62b0ee4ed6545552e717d584a9d5cabc74d5602cb4a5b3c655889f4f67"
+  },
+  {
+    "file": "hair-1-braid.png",
+    "source": "materials/portraits/generated-features/Dwarf1.mesh/hair-1-braid.png",
+    "source_sha256": "410dda9a2dce455b9e4c4b8de1b5943bbb90b243fe6c1f262ac106041f8bb578",
+    "source_bounds": [
+      117,
+      231,
+      948,
+      1350
+    ],
+    "rect": [
+      140,
+      405,
+      240,
+      470
+    ],
+    "scale": 0.40571939231456655,
+    "vertical_scale": 0.40571939231456655,
+    "offset": [
+      16.33869526362824,
+      -85.72117962466484
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": [
+      [
+        80,
+        180
+      ],
+      [
+        230,
+        180
+      ],
+      [
+        280,
+        440
+      ],
+      [
+        310,
+        670
+      ],
+      [
+        345,
+        850
+      ],
+      [
+        340,
+        1100
+      ],
+      [
+        425,
+        1370
+      ],
+      [
+        325,
+        1430
+      ],
+      [
+        245,
+        1230
+      ],
+      [
+        155,
+        950
+      ]
+    ],
+    "base_sha256": "69752a62b0ee4ed6545552e717d584a9d5cabc74d5602cb4a5b3c655889f4f67"
+  },
+  {
+    "file": "hair-2-loose.png",
+    "source": "materials/portraits/generated-features/Dwarf1.mesh/hair-2-loose.png",
+    "source_sha256": "5686fb19bdf63d628d77900c07677a60b310a64b8646c248f194a7b26afa6bc3",
+    "source_bounds": [
+      341,
+      114,
+      860,
+      1115
+    ],
+    "rect": [
+      140,
+      405,
+      240,
+      470
+    ],
+    "scale": 0.43159922928709055,
+    "vertical_scale": 0.43159922928709055,
+    "offset": [
+      -139.17533718689788,
+      -30.21772639691715
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "69752a62b0ee4ed6545552e717d584a9d5cabc74d5602cb4a5b3c655889f4f67"
+  },
+  {
+    "file": "eyes-1-narrow.png",
+    "source": "materials/portraits/generated-features/Dwarf1.mesh/eyes-1-narrow.png",
+    "source_sha256": "1ebeba69be60fccc469c2ab0a5dbd7e4163188a9f1030257a32755ffb4ce7efa",
+    "source_bounds": [
+      208,
+      70,
+      1937,
+      667
+    ],
+    "rect": [
+      270,
+      430,
+      450,
+      190
+    ],
+    "scale": 0.25101214574898784,
+    "vertical_scale": 0.25101214574898784,
+    "offset": [
+      -44.210526315789444,
+      2.502024291497982
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "69752a62b0ee4ed6545552e717d584a9d5cabc74d5602cb4a5b3c655889f4f67"
+  },
+  {
+    "file": "eyes-2-round.png",
+    "source": "materials/portraits/generated-features/Dwarf1.mesh/eyes-2-round.png",
+    "source_sha256": "5bc85258a1baec304a5f66011c37ac67c654dd7ea1bf8bfcb57c4e87585d4206",
+    "source_bounds": [
+      134,
+      171,
+      1636,
+      739
+    ],
+    "rect": [
+      270,
+      430,
+      450,
+      190
+    ],
+    "scale": 0.28894806924101196,
+    "vertical_scale": 0.28894806924101196,
+    "offset": [
+      -30.719041278295578,
+      -36.47137150466044
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "69752a62b0ee4ed6545552e717d584a9d5cabc74d5602cb4a5b3c655889f4f67"
+  },
+  {
+    "file": "eyes-3-eyepatch.png",
+    "source": "materials/portraits/generated-features/Dwarf1.mesh/eyes-3-eyepatch.png",
+    "source_sha256": "4f5216ee533ead9f0413282a6cff7129c14db5c97f0195984cefe016f2cab002",
+    "source_bounds": [
+      165,
+      151,
+      1642,
+      733
+    ],
+    "rect": [
+      270,
+      430,
+      450,
+      190
+    ],
+    "scale": 0.2938388625592417,
+    "vertical_scale": 0.2938388625592417,
+    "offset": [
+      -40.48341232227488,
+      -34.876777251184826
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "69752a62b0ee4ed6545552e717d584a9d5cabc74d5602cb4a5b3c655889f4f67"
+  },
+  {
+    "file": "nose-1-crooked.png",
+    "source": "materials/portraits/generated-features/Dwarf1.mesh/nose-1-crooked.png",
+    "source_sha256": "efe49257d047ebd80e8cf61f4aa154996009efd7238c04d206f7407349530d27",
+    "source_bounds": [
+      383,
+      137,
+      1154,
+      877
+    ],
+    "rect": [
+      420,
+      530,
+      200,
+      170
+    ],
+    "scale": 0.20810810810810812,
+    "vertical_scale": 0.20810810810810812,
+    "offset": [
+      -59.93108108108109,
+      -20.510810810810813
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "69752a62b0ee4ed6545552e717d584a9d5cabc74d5602cb4a5b3c655889f4f67"
+  },
+  {
+    "file": "nose-2-broad.png",
+    "source": "materials/portraits/generated-features/Dwarf1.mesh/nose-2-broad.png",
+    "source_sha256": "a3a7091180ca9e0ac4fc8e5dece33c80a661a1c31e1548b5ff60684cbf8dda84",
+    "source_bounds": [
+      243,
+      105,
+      1295,
+      883
+    ],
+    "rect": [
+      420,
+      530,
+      200,
+      170
+    ],
+    "scale": 0.17490494296577946,
+    "vertical_scale": 0.17490494296577946,
+    "offset": [
+      -34.50190114068441,
+      -1.403041825095059
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "69752a62b0ee4ed6545552e717d584a9d5cabc74d5602cb4a5b3c655889f4f67"
+  },
+  {
+    "file": "mouth-1-scowl.png",
+    "source": "materials/portraits/generated-features/Dwarf1.mesh/mouth-1-scowl.png",
+    "source_sha256": "3cd554048b59a27b8edd4aa1b676f344055e033ded7f9d2f5889ee50aed99f47",
+    "source_bounds": [
+      103,
+      148,
+      1429,
+      945
+    ],
+    "rect": [
+      330,
+      635,
+      340,
+      150
+    ],
+    "scale": 0.16813048933500627,
+    "vertical_scale": 0.16813048933500627,
+    "offset": [
+      41.21204516938519,
+      -16.88331242158093
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "69752a62b0ee4ed6545552e717d584a9d5cabc74d5602cb4a5b3c655889f4f67"
+  },
+  {
+    "file": "mouth-2-grin.png",
+    "source": "materials/portraits/generated-features/Dwarf1.mesh/mouth-2-grin.png",
+    "source_sha256": "521710bb4fc32d82274d9322b12258ceb03735785907ee45a45c512e5365286a",
+    "source_bounds": [
+      289,
+      69,
+      1515,
+      867
+    ],
+    "rect": [
+      330,
+      635,
+      340,
+      150
+    ],
+    "scale": 0.16791979949874686,
+    "vertical_scale": 0.16791979949874686,
+    "offset": [
+      18.53634085213033,
+      -3.5864661654135332
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "69752a62b0ee4ed6545552e717d584a9d5cabc74d5602cb4a5b3c655889f4f67"
+  },
+  {
+    "file": "mouth-3-cigar.png",
+    "source": "materials/portraits/generated-features/Dwarf1.mesh/mouth-3-cigar.png",
+    "source_sha256": "89059c46490021d610911b8bfc6008ee6e3a7654d98036a5bc2e8da431bb0703",
+    "source_bounds": [
+      235,
+      67,
+      1557,
+      863
+    ],
+    "rect": [
+      330,
+      635,
+      340,
+      150
+    ],
+    "scale": 0.16834170854271358,
+    "vertical_scale": 0.16834170854271358,
+    "offset": [
+      19.165829145728637,
+      -3.2788944723618094
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "69752a62b0ee4ed6545552e717d584a9d5cabc74d5602cb4a5b3c655889f4f67"
+  },
+  {
+    "file": "chin-1-forked.png",
+    "source": "materials/portraits/generated-features/Dwarf1.mesh/chin-1-forked.png",
+    "source_sha256": "28587d931fe0ba92b0a5dde1dadc8dc1c5f199949059d7680ce18f78df1698ae",
+    "source_bounds": [
+      191,
+      36,
+      1163,
+      1160
+    ],
+    "rect": [
+      215,
+      680,
+      510,
+      465
+    ],
+    "scale": 0.3994661921708185,
+    "vertical_scale": 0.3994661921708185,
+    "offset": [
+      -15.438612099644132,
+      -6.3807829181494675
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "69752a62b0ee4ed6545552e717d584a9d5cabc74d5602cb4a5b3c655889f4f67"
+  },
+  {
+    "file": "chin-2-braided.png",
+    "source": "materials/portraits/generated-features/Dwarf1.mesh/chin-2-braided.png",
+    "source_sha256": "7ce8671cb768e703c7fd901acc84cda9a18f74c31d07e58707b28841263b82c4",
+    "source_bounds": [
+      139,
+      48,
+      1185,
+      1164
+    ],
+    "rect": [
+      215,
+      680,
+      510,
+      465
+    ],
+    "scale": 0.40232974910394265,
+    "vertical_scale": 0.40232974910394265,
+    "offset": [
+      -11.342293906810035,
+      -11.311827956989248
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "69752a62b0ee4ed6545552e717d584a9d5cabc74d5602cb4a5b3c655889f4f67"
+  },
+  {
+    "file": "scar-1-diagonal.png",
+    "source": "materials/portraits/generated-features/Dwarf1.mesh/scar-1-diagonal.png",
+    "source_sha256": "08caaab8920904ecc69ab3ad625acd44e2efd5db82c69a6779b55eb76fe80f0d",
+    "source_bounds": [
+      191,
+      83,
+      1317,
+      962
+    ],
+    "rect": [
+      250,
+      565,
+      220,
+      135
+    ],
+    "scale": 0.1353811149032992,
+    "vertical_scale": 0.1353811149032992,
+    "offset": [
+      7.9226393629123955,
+      -3.2366325369738345
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": "union of all hair and ear alpha",
+    "source_mask_polygon": null,
+    "base_sha256": "69752a62b0ee4ed6545552e717d584a9d5cabc74d5602cb4a5b3c655889f4f67"
+  },
+  {
+    "file": "scar-2-scratches.png",
+    "source": "materials/portraits/generated-features/Dwarf1.mesh/scar-2-scratches.png",
+    "source_sha256": "67489111128f19a7a8434164871e3c8d0949a30a55891ad626face84588c9fa2",
+    "source_bounds": [
+      463,
+      193,
+      1085,
+      795
+    ],
+    "rect": [
+      250,
+      565,
+      220,
+      135
+    ],
+    "scale": 0.19767441860465115,
+    "vertical_scale": 0.19767441860465115,
+    "offset": [
+      -42.99999999999999,
+      -30.151162790697676
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": "union of all hair and ear alpha",
+    "source_mask_polygon": null,
+    "base_sha256": "69752a62b0ee4ed6545552e717d584a9d5cabc74d5602cb4a5b3c655889f4f67"
+  },
+  {
+    "file": "scar-3-warpaint.png",
+    "source": "materials/portraits/generated-features/Dwarf1.mesh/scar-3-warpaint.png",
+    "source_sha256": "ae948fa0ca482fc567f86883ff7f69866b53c5596e7e78dc106fa7e81272d143",
+    "source_bounds": [
+      320,
+      210,
+      1320,
+      843
+    ],
+    "rect": [
+      250,
+      565,
+      220,
+      135
+    ],
+    "scale": 0.18799368088467613,
+    "vertical_scale": 0.18799368088467613,
+    "offset": [
+      -44.154818325434434,
+      -31.47867298578199
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": "union of all hair and ear alpha",
+    "source_mask_polygon": null,
+    "base_sha256": "69752a62b0ee4ed6545552e717d584a9d5cabc74d5602cb4a5b3c655889f4f67"
+  },
+  {
+    "file": "neck-1-pin.png",
+    "source": "materials/portraits/generated-features/Dwarf1.mesh/neck-1-pin.png",
+    "source_sha256": "2670b011ae046a92ad143e8feb7e1bf7699a7c3a31d720f0c0554db4492bb2ef",
+    "source_bounds": [
+      328,
+      236,
+      1007,
+      896
+    ],
+    "rect": [
+      265,
+      810,
+      520,
+      560
+    ],
+    "scale": 0.24153166421207659,
+    "vertical_scale": 0.24153166421207659,
+    "offset": [
+      243.77761413843888,
+      223.29307805596463
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "69752a62b0ee4ed6545552e717d584a9d5cabc74d5602cb4a5b3c655889f4f67"
+  },
+  {
+    "file": "neck-2-tooth.png",
+    "source": "materials/portraits/generated-features/Dwarf1.mesh/neck-2-tooth.png",
+    "source_sha256": "eb594de4e9e34d8667664c6d72c62468c028187ed3c310840d84afba13b375dc",
+    "source_bounds": [
+      135,
+      91,
+      1156,
+      1149
+    ],
+    "rect": [
+      265,
+      810,
+      520,
+      560
+    ],
+    "scale": 0.31243878550440746,
+    "vertical_scale": 0.42911153119092627,
+    "offset": [
+      0.8207639569049903,
+      18.950850661625708
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "69752a62b0ee4ed6545552e717d584a9d5cabc74d5602cb4a5b3c655889f4f67"
+  },
+  {
+    "id": "Dwarf1.mesh",
+    "n": 1,
+    "name": "apron",
+    "build": 0,
+    "file": "outfit-1-apron-build0.png",
+    "source": "materials/portraits/generated-outfits/Dwarf1.mesh/outfit-1-apron.png",
+    "source_sha256": "e4df9cc2c4c7db5d48a0f033e3e2510255610212fc14a13b8513e87f289c2be3",
+    "source_size": [
+      887,
+      1774
+    ],
+    "canvas_registration": "canonical canvas",
+    "body_span_fit": "continuous outer sleeve sector extensions clipped to uncovered body",
+    "bottom_rows_repeated": 0,
+    "horizontal_scale": 1.225,
+    "vertical_scale": 1.1,
+    "offset": [
+      -99.78750000000004,
+      -72.00000000000006
+    ],
+    "mesh_warp": null,
+    "torso_margin": 1.1111111111111112,
+    "sleeve_warp": null,
+    "head_occlusion": {
+      "warm_neutral_skin_above_row": 820
+    },
+    "native_uncovered_body_pixels": 1944,
+    "coarse_uncovered_body_pixels": 30,
+    "coarse_body_pixels": 8091,
+    "visual_acceptance": "accepted-native-and-50x100",
+    "prompt": "Create ONE new isolated empty Dwarf clothing overlay, using the attached neutral dummy as exact registration reference. EXACT887x1774 transparent RGBA canvas, same broad stout shoulders, barrel chest, lowered arms, slight three-quarter view, coarse orange-family fantasy brushwork and upper-left light. A worn dark brown leather work apron over a closed muted olive-brown long-sleeved padded shirt, broad plain waist belt, leather wrist cuffs; no tools or symbols. Collar around y850-950, shoulders y950-1080 with sides beyond both frame edges, chest broad from x50-840 at y1100, waist belt y1500-1600, all clothing continues beyond lower crop. Cover the entire visible torso, shoulders and arms with margin even for a slightly broader stout build. ONLY empty garment pieces, no body, dummy, head, skin, face, beard, hair, helmet, jewelry, weapon, writing, symbol, modern object or background. Preserve full canvas and upper blank space, no tightly cropped product view; hand-painted game part, no photorealism.",
+    "rect": [
+      0,
+      0,
+      887,
+      1774
+    ],
+    "base_sha256": "69752a62b0ee4ed6545552e717d584a9d5cabc74d5602cb4a5b3c655889f4f67"
+  }
+]

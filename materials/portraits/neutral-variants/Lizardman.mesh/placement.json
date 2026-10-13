@@ -1,0 +1,518 @@
+[
+  {
+    "file": "build-1-slim.png",
+    "source": "materials/portraits/generated-features/Lizardman.mesh/build-1-slim.png",
+    "source_sha256": "70b4899358e550e9f18bf9d716f6a3aaf2b1dd6689dad74fed0e9477dc7a1c99",
+    "source_bounds": [
+      3,
+      69,
+      1306,
+      1180
+    ],
+    "rect": [
+      0,
+      800,
+      887,
+      974
+    ],
+    "scale": 0.6807367613200307,
+    "vertical_scale": 0.9054905490549054,
+    "offset": [
+      -2.042210283960092,
+      -62.47884788478848
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "ffc50c5eb5fe0a17092ea7427af06407b8ca7e77a235b836a4c1ede757e3daa6"
+  },
+  {
+    "file": "build-2-sturdy.png",
+    "source": "materials/portraits/generated-features/Lizardman.mesh/build-2-sturdy.png",
+    "source_sha256": "dc9f8ece42327f99d54822117fe2fcd23fec46f21b00600d2b41d7475623898f",
+    "source_bounds": [
+      0,
+      25,
+      1337,
+      1177
+    ],
+    "rect": [
+      0,
+      800,
+      887,
+      974
+    ],
+    "scale": 0.6634255796559462,
+    "vertical_scale": 0.8732638888888888,
+    "offset": [
+      0.0,
+      -21.83159722222222
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "ffc50c5eb5fe0a17092ea7427af06407b8ca7e77a235b836a4c1ede757e3daa6"
+  },
+  {
+    "file": "eyes-1-narrow.png",
+    "source": "materials/portraits/generated-features/Lizardman.mesh/eyes-1-narrow.png",
+    "source_sha256": "9e2cba3b22f7c771f3b2f62a6c120f9dbf27d361c335c7596d0036af8e37c9fd",
+    "source_bounds": [
+      96,
+      193,
+      1678,
+      693
+    ],
+    "rect": [
+      280,
+      480,
+      330,
+      160
+    ],
+    "scale": 0.19848293299620734,
+    "vertical_scale": 0.19848293299620734,
+    "offset": [
+      -11.054361567635905,
+      -7.927939317319854
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "ffc50c5eb5fe0a17092ea7427af06407b8ca7e77a235b836a4c1ede757e3daa6"
+  },
+  {
+    "file": "eyes-2-round.png",
+    "source": "materials/portraits/generated-features/Lizardman.mesh/eyes-2-round.png",
+    "source_sha256": "f0e5913c5f87b95b6b6d3877592ba15b15953c0da8bf64c51eed8a8f67b2fe94",
+    "source_bounds": [
+      67,
+      87,
+      1715,
+      777
+    ],
+    "rect": [
+      280,
+      480,
+      330,
+      160
+    ],
+    "scale": 0.19053398058252427,
+    "vertical_scale": 0.19053398058252427,
+    "offset": [
+      -4.765776699029127,
+      -2.310679611650478
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "ffc50c5eb5fe0a17092ea7427af06407b8ca7e77a235b836a4c1ede757e3daa6"
+  },
+  {
+    "file": "eyes-3-eyepatch.png",
+    "source": "materials/portraits/generated-features/Lizardman.mesh/eyes-3-eyepatch.png",
+    "source_sha256": "c6beb9345c3ae589b289405627e0f5af7604ec303feeb75336301248e4d3f199",
+    "source_bounds": [
+      32,
+      147,
+      1758,
+      753
+    ],
+    "rect": [
+      280,
+      480,
+      330,
+      160
+    ],
+    "scale": 0.18192352259559674,
+    "vertical_scale": 0.18192352259559674,
+    "offset": [
+      2.1784472769409042,
+      -1.8655851680185336
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "ffc50c5eb5fe0a17092ea7427af06407b8ca7e77a235b836a4c1ede757e3daa6"
+  },
+  {
+    "file": "nose-1-crooked.png",
+    "source": "materials/portraits/generated-features/Lizardman.mesh/nose-1-crooked.png",
+    "source_sha256": "aad912c760ede84531077963a3b1a5631539d4b11d437a586b49f96849c360a3",
+    "source_bounds": [
+      277,
+      59,
+      1092,
+      1080
+    ],
+    "rect": [
+      430,
+      580,
+      190,
+      185
+    ],
+    "scale": 0.16552399608227228,
+    "vertical_scale": 0.16552399608227228,
+    "offset": [
+      -18.301175318315373,
+      -1.7659157688540645
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "ffc50c5eb5fe0a17092ea7427af06407b8ca7e77a235b836a4c1ede757e3daa6"
+  },
+  {
+    "file": "nose-2-broad.png",
+    "source": "materials/portraits/generated-features/Lizardman.mesh/nose-2-broad.png",
+    "source_sha256": "c9366219576f5e9dc0113eecaa1b7abf6aedf77d465b1f3ef09639d0c12598d5",
+    "source_bounds": [
+      177,
+      27,
+      1360,
+      1002
+    ],
+    "rect": [
+      430,
+      580,
+      190,
+      185
+    ],
+    "scale": 0.147083685545224,
+    "vertical_scale": 0.147083685545224,
+    "offset": [
+      -18.033812341504646,
+      16.82544378698225
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "ffc50c5eb5fe0a17092ea7427af06407b8ca7e77a235b836a4c1ede757e3daa6"
+  },
+  {
+    "file": "mouth-1-teeth.png",
+    "source": "materials/portraits/generated-features/Lizardman.mesh/mouth-1-teeth.png",
+    "source_sha256": "2cd64afe82bd71361594b384878ae3c5aa427f04a241b821e13b51118bcb228c",
+    "source_bounds": [
+      206,
+      86,
+      1592,
+      823
+    ],
+    "rect": [
+      345,
+      680,
+      300,
+      145
+    ],
+    "scale": 0.17503392130257803,
+    "vertical_scale": 0.17503392130257803,
+    "offset": [
+      -7.3554952510176435,
+      -7.052917232021711
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "ffc50c5eb5fe0a17092ea7427af06407b8ca7e77a235b836a4c1ede757e3daa6"
+  },
+  {
+    "file": "mouth-2-grin.png",
+    "source": "materials/portraits/generated-features/Lizardman.mesh/mouth-2-grin.png",
+    "source_sha256": "ee28a6683bb5b37be080587e6c5ab8982f6a6e451ff9dd3ce70b911ec5eaf224",
+    "source_bounds": [
+      214,
+      151,
+      1560,
+      729
+    ],
+    "rect": [
+      345,
+      680,
+      300,
+      145
+    ],
+    "scale": 0.21099554234769688,
+    "vertical_scale": 0.21099554234769688,
+    "offset": [
+      -37.153046062407135,
+      -20.338038632986624
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "ffc50c5eb5fe0a17092ea7427af06407b8ca7e77a235b836a4c1ede757e3daa6"
+  },
+  {
+    "file": "mouth-3-cigar.png",
+    "source": "materials/portraits/generated-features/Lizardman.mesh/mouth-3-cigar.png",
+    "source_sha256": "11e5bbf9f25e60c65ac88956184da99313d1504c2c946c1e0028df763c69f386",
+    "source_bounds": [
+      173,
+      177,
+      1661,
+      674
+    ],
+    "rect": [
+      345,
+      680,
+      300,
+      145
+    ],
+    "scale": 0.19086021505376344,
+    "vertical_scale": 0.19086021505376344,
+    "offset": [
+      -25.018817204301072,
+      -8.711021505376344
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "ffc50c5eb5fe0a17092ea7427af06407b8ca7e77a235b836a4c1ede757e3daa6"
+  },
+  {
+    "file": "chin-1-square.png",
+    "source": "materials/portraits/generated-features/Lizardman.mesh/chin-1-square.png",
+    "source_sha256": "dd4b10e23589d853689b440ac6d16e8b9fcc02791cffdc9da9e79ee05f24621b",
+    "source_bounds": [
+      200,
+      183,
+      1385,
+      844
+    ],
+    "rect": [
+      345,
+      755,
+      295,
+      150
+    ],
+    "scale": 0.2027231467473525,
+    "vertical_scale": 0.2027231467473525,
+    "offset": [
+      -13.15809379727687,
+      -29.09833585476551
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "ffc50c5eb5fe0a17092ea7427af06407b8ca7e77a235b836a4c1ede757e3daa6"
+  },
+  {
+    "file": "chin-2-rounded.png",
+    "source": "materials/portraits/generated-features/Lizardman.mesh/chin-2-rounded.png",
+    "source_sha256": "7bfc93e223b5a49ab46ba6f3eceb904330d5b4219c4f4895f46ec8f91ea8db44",
+    "source_bounds": [
+      253,
+      273,
+      1284,
+      751
+    ],
+    "rect": [
+      345,
+      755,
+      295,
+      150
+    ],
+    "scale": 0.27061105722599416,
+    "vertical_scale": 0.27061105722599416,
+    "offset": [
+      -60.464597478176515,
+      -63.55286129970901
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "ffc50c5eb5fe0a17092ea7427af06407b8ca7e77a235b836a4c1ede757e3daa6"
+  },
+  {
+    "file": "scar-1-diagonal.png",
+    "source": "materials/portraits/generated-features/Lizardman.mesh/scar-1-diagonal.png",
+    "source_sha256": "4150c312900801918de372ca832d7c045ad4a19b81c4bde839878d59c63a0f85",
+    "source_bounds": [
+      86,
+      45,
+      1172,
+      1243
+    ],
+    "rect": [
+      280,
+      595,
+      180,
+      155
+    ],
+    "scale": 0.11602671118530884,
+    "vertical_scale": 0.11602671118530884,
+    "offset": [
+      17.019198664440736,
+      2.778797996661102
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": "union of all hair and ear alpha",
+    "source_mask_polygon": null,
+    "base_sha256": "ffc50c5eb5fe0a17092ea7427af06407b8ca7e77a235b836a4c1ede757e3daa6"
+  },
+  {
+    "file": "scar-2-scratches.png",
+    "source": "materials/portraits/generated-features/Lizardman.mesh/scar-2-scratches.png",
+    "source_sha256": "f97c860e6241caf2abeef574b4b3dc73e23161a3e54a21f30475d5141dbb88e1",
+    "source_bounds": [
+      251,
+      85,
+      1355,
+      1000
+    ],
+    "rect": [
+      280,
+      595,
+      180,
+      155
+    ],
+    "scale": 0.14855072463768115,
+    "vertical_scale": 0.14855072463768115,
+    "offset": [
+      -29.28623188405797,
+      -3.088768115942024
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": "union of all hair and ear alpha",
+    "source_mask_polygon": null,
+    "base_sha256": "ffc50c5eb5fe0a17092ea7427af06407b8ca7e77a235b836a4c1ede757e3daa6"
+  },
+  {
+    "file": "scar-3-warpaint.png",
+    "source": "materials/portraits/generated-features/Lizardman.mesh/scar-3-warpaint.png",
+    "source_sha256": "8307b93211059f4e7fb147f76604c518d88a6a3f40cbd7a49c364e3e0a0da57d",
+    "source_bounds": [
+      40,
+      135,
+      1200,
+      1173
+    ],
+    "rect": [
+      280,
+      595,
+      180,
+      155
+    ],
+    "scale": 0.13391136801541426,
+    "vertical_scale": 0.13391136801541426,
+    "offset": [
+      6.974951830443159,
+      -10.078034682080926
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": "union of all hair and ear alpha",
+    "source_mask_polygon": null,
+    "base_sha256": "ffc50c5eb5fe0a17092ea7427af06407b8ca7e77a235b836a4c1ede757e3daa6"
+  },
+  {
+    "file": "neck-1-teeth.png",
+    "source": "materials/portraits/generated-features/Lizardman.mesh/neck-1-teeth.png",
+    "source_sha256": "40bcc15dde1941f7e469112899fd90dbe60ac38dbae34b81522a998a266e6b8c",
+    "source_bounds": [
+      157,
+      45,
+      1372,
+      951
+    ],
+    "rect": [
+      250,
+      900,
+      420,
+      280
+    ],
+    "scale": 0.2913907284768212,
+    "vertical_scale": 0.2913907284768212,
+    "offset": [
+      -12.7682119205298,
+      -5.112582781456954
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "ffc50c5eb5fe0a17092ea7427af06407b8ca7e77a235b836a4c1ede757e3daa6"
+  },
+  {
+    "file": "neck-2-torque.png",
+    "source": "materials/portraits/generated-features/Lizardman.mesh/neck-2-torque.png",
+    "source_sha256": "2e699b7dedd75a565c56bb00d8b381059b9e5add56c99220a8cf38bd93dc5a19",
+    "source_bounds": [
+      71,
+      89,
+      1464,
+      945
+    ],
+    "rect": [
+      250,
+      900,
+      420,
+      280
+    ],
+    "scale": 0.29002153625269206,
+    "vertical_scale": 0.29002153625269206,
+    "offset": [
+      -12.591529073941164,
+      -9.941134242641787
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "ffc50c5eb5fe0a17092ea7427af06407b8ca7e77a235b836a4c1ede757e3daa6"
+  },
+  {
+    "id": "Lizardman.mesh",
+    "n": 1,
+    "name": "leather",
+    "build": 0,
+    "file": "outfit-1-leather-build0.png",
+    "source": "materials/portraits/generated-outfits/Lizardman.mesh/outfit-1-leather.png",
+    "source_sha256": "6d348d822a7ced3783f5a77e8b4137a09970d53c2e839a5058e8998dc097ead6",
+    "source_size": [
+      887,
+      1774
+    ],
+    "canvas_registration": "canonical canvas",
+    "body_span_fit": "continuous outer sleeve sector extensions and 80-pixel inner-gap translations clipped to uncovered body",
+    "bottom_rows_repeated": 0,
+    "horizontal_scale": 1.25,
+    "vertical_scale": 1.1,
+    "offset": [
+      -110.875,
+      -72.00000000000006
+    ],
+    "mesh_warp": null,
+    "torso_margin": 1.1111111111111112,
+    "sleeve_warp": null,
+    "head_occlusion": {
+      "warm_neutral_skin_above_row": 835
+    },
+    "native_uncovered_body_pixels": 233,
+    "coarse_uncovered_body_pixels": 36,
+    "coarse_body_pixels": 7295,
+    "visual_acceptance": "accepted-native-and-50x100",
+    "prompt": "Create ONE isolated EMPTY Lizardman clothing layer registered to the attached golden reptilian neutral dummy, exact pose/silhouette reference only. Exact887x1774 transparentRGBA full canvas. Plain rugged dark brown leather long-sleeved tunic with layered leather shoulder guards, plain waist belt and cuffs, no symbols or weapons. Match long angled neck, reptilian shoulder anatomy, lowered arms and slight three-quarter view, warm upper-left illumination and coarse painted fantasy style. Collar y850-1000 following the long neck, shoulders y970-1160, chest x20-880 at y1250, belt y1510; cover every visible shoulder, torso and arm with fitting margin down beyond bottom crop. Empty clothes only, no dummy, body, golden skin, scales, head, face, snout, eyes, ears, hair, helmet, necklace, weapons, tools, writing, symbols, modern objects or background. Preserve upper transparent blank space and exact full-frame registration, no recenter or tight crop.",
+    "rect": [
+      0,
+      0,
+      887,
+      1774
+    ],
+    "base_sha256": "ffc50c5eb5fe0a17092ea7427af06407b8ca7e77a235b836a4c1ede757e3daa6"
+  }
+]

@@ -1,0 +1,574 @@
+[
+  {
+    "file": "build-1-slim.png",
+    "source": "materials/portraits/generated-features/Goblin.mesh/build-1-slim.png",
+    "source_sha256": "c3c0fb8ecd5edc5f32d288245462b34204d96de787db4121ac534da5589c014a",
+    "source_bounds": [
+      82,
+      190,
+      1278,
+      1026
+    ],
+    "rect": [
+      0,
+      850,
+      887,
+      924
+    ],
+    "scale": 0.7416387959866221,
+    "vertical_scale": 1.1435406698564594,
+    "offset": [
+      -60.81438127090301,
+      -217.27272727272728
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "45a910da8f763fdac15fb2eefb651453343212836c3a9bc6deef2fd88676e38b"
+  },
+  {
+    "file": "build-2-sturdy.png",
+    "source": "materials/portraits/generated-features/Goblin.mesh/build-2-sturdy.png",
+    "source_sha256": "fae509977d9ff148187c3d28c411c2ca0d6a8c139b429d8563004a237e34b044",
+    "source_bounds": [
+      50,
+      132,
+      1422,
+      1012
+    ],
+    "rect": [
+      0,
+      850,
+      887,
+      924
+    ],
+    "scale": 0.6465014577259475,
+    "vertical_scale": 1.0863636363636364,
+    "offset": [
+      -32.32507288629737,
+      -143.4
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "45a910da8f763fdac15fb2eefb651453343212836c3a9bc6deef2fd88676e38b"
+  },
+  {
+    "file": "ears-1-notched.png",
+    "source": "materials/portraits/generated-features/Goblin.mesh/ears-1-notched.png",
+    "source_sha256": "566cd8b0d5c2ddd2da3217617f0a70b69f6f356ed1bae74fc0c483216eec5ca2",
+    "source_bounds": [
+      149,
+      67,
+      958,
+      1443
+    ],
+    "rect": [
+      80,
+      330,
+      230,
+      300
+    ],
+    "scale": 0.2063953488372093,
+    "vertical_scale": 0.2063953488372093,
+    "offset": [
+      0.7601744186046488,
+      -5.828488372093023
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "45a910da8f763fdac15fb2eefb651453343212836c3a9bc6deef2fd88676e38b"
+  },
+  {
+    "file": "ears-2-rounder.png",
+    "source": "materials/portraits/generated-features/Goblin.mesh/ears-2-rounder.png",
+    "source_sha256": "307e7c407751da116a2cd71c0129026f63fb18a058f73b1a6023d57ec73b3dac",
+    "source_bounds": [
+      293,
+      219,
+      944,
+      1249
+    ],
+    "rect": [
+      80,
+      330,
+      230,
+      300
+    ],
+    "scale": 0.2757281553398058,
+    "vertical_scale": 0.2757281553398058,
+    "offset": [
+      -55.53786407766991,
+      -52.384466019417474
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "45a910da8f763fdac15fb2eefb651453343212836c3a9bc6deef2fd88676e38b"
+  },
+  {
+    "file": "eyes-1-narrow.png",
+    "source": "materials/portraits/generated-features/Goblin.mesh/eyes-1-narrow.png",
+    "source_sha256": "3a1b6ecffc0fced350bd916d62a96c238e2fdd0fa40e72cd6ffe527599a6f719",
+    "source_bounds": [
+      355,
+      96,
+      1813,
+      649
+    ],
+    "rect": [
+      265,
+      450,
+      350,
+      150
+    ],
+    "scale": 0.22908093278463648,
+    "vertical_scale": 0.22908093278463648,
+    "offset": [
+      -73.32373113854595,
+      -10.332647462277091
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "45a910da8f763fdac15fb2eefb651453343212836c3a9bc6deef2fd88676e38b"
+  },
+  {
+    "file": "eyes-2-round.png",
+    "source": "materials/portraits/generated-features/Goblin.mesh/eyes-2-round.png",
+    "source_sha256": "070a2e0bbd55cac2c2c602b959dd06d7e046a376dab2c52a597de464efb87487",
+    "source_bounds": [
+      372,
+      70,
+      1805,
+      662
+    ],
+    "rect": [
+      265,
+      450,
+      350,
+      150
+    ],
+    "scale": 0.22635135135135134,
+    "vertical_scale": 0.22635135135135134,
+    "offset": [
+      -71.38344594594592,
+      -7.844594594594595
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "45a910da8f763fdac15fb2eefb651453343212836c3a9bc6deef2fd88676e38b"
+  },
+  {
+    "file": "eyes-3-eyepatch.png",
+    "source": "materials/portraits/generated-features/Goblin.mesh/eyes-3-eyepatch.png",
+    "source_sha256": "72fbd0b0809e35213c7ec2369f473efd0947914de55bac6e6dfc073bb11614f0",
+    "source_bounds": [
+      179,
+      39,
+      1598,
+      784
+    ],
+    "rect": [
+      265,
+      450,
+      350,
+      150
+    ],
+    "scale": 0.17986577181208055,
+    "vertical_scale": 0.17986577181208055,
+    "offset": [
+      15.18926174496643,
+      0.9852348993288587
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "45a910da8f763fdac15fb2eefb651453343212836c3a9bc6deef2fd88676e38b"
+  },
+  {
+    "file": "nose-1-crooked.png",
+    "source": "materials/portraits/generated-features/Goblin.mesh/nose-1-crooked.png",
+    "source_sha256": "1ead9546af78025510cef085c219814f0f153758d512f7f5188e35babafab996",
+    "source_bounds": [
+      398,
+      111,
+      1141,
+      915
+    ],
+    "rect": [
+      435,
+      545,
+      155,
+      170
+    ],
+    "scale": 0.18707940780619112,
+    "vertical_scale": 0.18707940780619112,
+    "offset": [
+      -66.45760430686407,
+      -10.97173620457605
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "45a910da8f763fdac15fb2eefb651453343212836c3a9bc6deef2fd88676e38b"
+  },
+  {
+    "file": "nose-2-broad.png",
+    "source": "materials/portraits/generated-features/Goblin.mesh/nose-2-broad.png",
+    "source_sha256": "e451057bf9ac748bac3aa1ffc3dce9b1974a0f068d5780dabd28ebfdc6a03c47",
+    "source_bounds": [
+      339,
+      144,
+      1197,
+      880
+    ],
+    "rect": [
+      435,
+      545,
+      155,
+      170
+    ],
+    "scale": 0.16200466200466201,
+    "vertical_scale": 0.16200466200466201,
+    "offset": [
+      -46.91958041958042,
+      2.053613053613052
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "45a910da8f763fdac15fb2eefb651453343212836c3a9bc6deef2fd88676e38b"
+  },
+  {
+    "file": "mouth-1-teeth.png",
+    "source": "materials/portraits/generated-features/Goblin.mesh/mouth-1-teeth.png",
+    "source_sha256": "35c4df54974ce67912f93be297ee1ff558c7af4947a1b8d48002225f55008b5c",
+    "source_bounds": [
+      113,
+      123,
+      1661,
+      758
+    ],
+    "rect": [
+      325,
+      670,
+      280,
+      110
+    ],
+    "scale": 0.14803149606299212,
+    "vertical_scale": 0.14803149606299212,
+    "offset": [
+      8.696062992125984,
+      -10.207874015748033
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "45a910da8f763fdac15fb2eefb651453343212836c3a9bc6deef2fd88676e38b"
+  },
+  {
+    "file": "mouth-2-grin.png",
+    "source": "materials/portraits/generated-features/Goblin.mesh/mouth-2-grin.png",
+    "source_sha256": "cdaa960b62fe9a4b8e77dec248ef18cf3972ce9ebecea2d7c47cef1f3faf06b1",
+    "source_bounds": [
+      99,
+      35,
+      1676,
+      860
+    ],
+    "rect": [
+      325,
+      670,
+      280,
+      110
+    ],
+    "scale": 0.11393939393939394,
+    "vertical_scale": 0.11393939393939394,
+    "offset": [
+      38.878787878787875,
+      4.012121212121212
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "45a910da8f763fdac15fb2eefb651453343212836c3a9bc6deef2fd88676e38b"
+  },
+  {
+    "file": "mouth-3-cigar.png",
+    "source": "materials/portraits/generated-features/Goblin.mesh/mouth-3-cigar.png",
+    "source_sha256": "25afa9d83ae8282d7c907ec6fea23d37e67327c90360220d176668960a4540d5",
+    "source_bounds": [
+      230,
+      134,
+      1587,
+      757
+    ],
+    "rect": [
+      325,
+      670,
+      280,
+      110
+    ],
+    "scale": 0.1508828250401284,
+    "vertical_scale": 0.1508828250401284,
+    "offset": [
+      2.9229534510433552,
+      -12.2182985553772
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "45a910da8f763fdac15fb2eefb651453343212836c3a9bc6deef2fd88676e38b"
+  },
+  {
+    "file": "chin-1-square.png",
+    "source": "materials/portraits/generated-features/Goblin.mesh/chin-1-square.png",
+    "source_sha256": "d7483e482030b4fb118ec995656112b67dde4c51918c43a715c5b37bce3c6c05",
+    "source_bounds": [
+      174,
+      107,
+      1380,
+      769
+    ],
+    "rect": [
+      330,
+      730,
+      280,
+      145
+    ],
+    "scale": 0.19486404833836857,
+    "vertical_scale": 0.19486404833836857,
+    "offset": [
+      -11.40936555891237,
+      -12.850453172205437
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "45a910da8f763fdac15fb2eefb651453343212836c3a9bc6deef2fd88676e38b"
+  },
+  {
+    "file": "chin-2-rounded.png",
+    "source": "materials/portraits/generated-features/Goblin.mesh/chin-2-rounded.png",
+    "source_sha256": "e0ea78b6b5fe4b603bc91343f011e3c60b9e2778ebb2580d065614a13b31a149",
+    "source_bounds": [
+      64,
+      106,
+      1462,
+      847
+    ],
+    "rect": [
+      330,
+      730,
+      280,
+      145
+    ],
+    "scale": 0.17408906882591094,
+    "vertical_scale": 0.17408906882591094,
+    "offset": [
+      7.170040485829956,
+      -10.453441295546558
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "45a910da8f763fdac15fb2eefb651453343212836c3a9bc6deef2fd88676e38b"
+  },
+  {
+    "file": "scar-1-diagonal.png",
+    "source": "materials/portraits/generated-features/Goblin.mesh/scar-1-diagonal.png",
+    "source_sha256": "3f2290fb062458158121de5a7177af03be18ac8191c5b1ce6ee4eb1918f364d7",
+    "source_bounds": [
+      181,
+      73,
+      1048,
+      1206
+    ],
+    "rect": [
+      290,
+      570,
+      170,
+      135
+    ],
+    "scale": 0.10503089143865843,
+    "vertical_scale": 0.10503089143865843,
+    "offset": [
+      20.458517210944397,
+      0.3327449249779342
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": "union of all hair and ear alpha",
+    "source_mask_polygon": null,
+    "base_sha256": "45a910da8f763fdac15fb2eefb651453343212836c3a9bc6deef2fd88676e38b"
+  },
+  {
+    "file": "scar-2-scratches.png",
+    "source": "materials/portraits/generated-features/Goblin.mesh/scar-2-scratches.png",
+    "source_sha256": "b8f42d8ebe43289e4b33418bf8ced88efda16c61208acc137c2ba7cbb599ef72",
+    "source_bounds": [
+      399,
+      101,
+      1232,
+      917
+    ],
+    "rect": [
+      290,
+      570,
+      170,
+      135
+    ],
+    "scale": 0.14583333333333334,
+    "vertical_scale": 0.14583333333333334,
+    "offset": [
+      -33.92708333333334,
+      -6.729166666666675
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": "union of all hair and ear alpha",
+    "source_mask_polygon": null,
+    "base_sha256": "45a910da8f763fdac15fb2eefb651453343212836c3a9bc6deef2fd88676e38b"
+  },
+  {
+    "file": "scar-3-warpaint.png",
+    "source": "materials/portraits/generated-features/Goblin.mesh/scar-3-warpaint.png",
+    "source_sha256": "acdca804ef5cb641486ccf9d66b84b8a4b5bba835689829a0fcd83fbf78174d7",
+    "source_bounds": [
+      40,
+      124,
+      1083,
+      1193
+    ],
+    "rect": [
+      290,
+      570,
+      170,
+      135
+    ],
+    "scale": 0.11131898971000935,
+    "vertical_scale": 0.11131898971000935,
+    "offset": [
+      22.494387277829745,
+      -5.80355472404116
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": "union of all hair and ear alpha",
+    "source_mask_polygon": null,
+    "base_sha256": "45a910da8f763fdac15fb2eefb651453343212836c3a9bc6deef2fd88676e38b"
+  },
+  {
+    "file": "neck-1-teeth.png",
+    "source": "materials/portraits/generated-features/Goblin.mesh/neck-1-teeth.png",
+    "source_sha256": "e52452e377f76462400ece63f011e6795aad01e7ea8943be8f9336ce55e4adae",
+    "source_bounds": [
+      59,
+      46,
+      1472,
+      970
+    ],
+    "rect": [
+      270,
+      880,
+      350,
+      270
+    ],
+    "scale": 0.23637650389242745,
+    "vertical_scale": 0.23637650389242745,
+    "offset": [
+      -5.94621372965322,
+      14.92073602264685
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "45a910da8f763fdac15fb2eefb651453343212836c3a9bc6deef2fd88676e38b"
+  },
+  {
+    "file": "neck-2-torque.png",
+    "source": "materials/portraits/generated-features/Goblin.mesh/neck-2-torque.png",
+    "source_sha256": "b449ab7fc3d083961835613a4818e4304a3f79a4dc6bf001879f15de1a5d90ca",
+    "source_bounds": [
+      60,
+      117,
+      1476,
+      915
+    ],
+    "rect": [
+      270,
+      880,
+      350,
+      270
+    ],
+    "scale": 0.23587570621468926,
+    "vertical_scale": 0.23587570621468926,
+    "offset": [
+      -6.152542372881355,
+      13.288135593220346
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "45a910da8f763fdac15fb2eefb651453343212836c3a9bc6deef2fd88676e38b"
+  },
+  {
+    "id": "Goblin.mesh",
+    "n": 1,
+    "name": "patched",
+    "build": 0,
+    "file": "outfit-1-patched-build0.png",
+    "source": "materials/portraits/generated-outfits/Goblin.mesh/outfit-1-patched.png",
+    "source_sha256": "499c610995cdd8214ed4c9a43a06eba2c92a9f771a7c38c3ba8b4d61d2b7023d",
+    "source_size": [
+      887,
+      1774
+    ],
+    "canvas_registration": "canonical canvas",
+    "body_span_fit": "continuous outer sleeve sector extensions clipped to uncovered body",
+    "bottom_rows_repeated": 0,
+    "horizontal_scale": 1.5,
+    "vertical_scale": 1.0,
+    "offset": [
+      -221.75,
+      0.0
+    ],
+    "mesh_warp": null,
+    "torso_margin": 1.1111111111111112,
+    "sleeve_warp": null,
+    "head_occlusion": {
+      "warm_neutral_skin_above_row": 855
+    },
+    "native_uncovered_body_pixels": 1109,
+    "coarse_uncovered_body_pixels": 99,
+    "coarse_body_pixels": 7124,
+    "visual_acceptance": "accepted-native-and-50x100",
+    "prompt": "Generate ONE isolated empty clothing part registered to the attached olive-green Goblin game-dummy base, EXACT887x1774 RGBA transparent canvas, retain full blank space above the collar. Same slim torso, narrow shoulders, lowered arms, three-quarter pose and upper-left painterly light. Patched muted brown long-sleeved tunic with plain dark leather vest and simple cord belt, cloth wrist cuffs; a small practical Goblin outfit covering the entire visible torso, shoulders and arms with margin. Collar y850-960 for Goblin male or y810-940 for Goblin female, shoulders near y980-1080, chest x150-820 at y1100, belt near y1500, clothing through lower crop. Use the attached reference for its own exact shoulder/arm silhouette. ONLY empty clothing on genuine transparency: no dummy/person/body/head/skin, face, hair, ears, jewelry, weapons, lettering, symbols, modern items, backdrop or checkerboard; coarse hand-painted dark fantasy texture, not photorealistic product imagery. Preserve canvas and exact viewing direction; never a full dressed portrait.",
+    "rect": [
+      0,
+      0,
+      887,
+      1774
+    ],
+    "base_sha256": "45a910da8f763fdac15fb2eefb651453343212836c3a9bc6deef2fd88676e38b"
+  }
+]

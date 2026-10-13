@@ -1,0 +1,574 @@
+[
+  {
+    "file": "build-1-slim.png",
+    "source": "materials/portraits/generated-features/Troll.mesh-female/build-1-slim.png",
+    "source_sha256": "e0051b3ae0761dee891c381e607027bf9633475a57df61116788cc2145269be9",
+    "source_bounds": [
+      54,
+      140,
+      1197,
+      1221
+    ],
+    "rect": [
+      0,
+      840,
+      887,
+      934
+    ],
+    "scale": 0.7760279965004374,
+    "vertical_scale": 0.8936170212765957,
+    "offset": [
+      -41.90551181102362,
+      -125.1063829787234
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "5a42009fd4ed3ee00a08ad602d742a069050b9f91c89a8751053c19113c93b43"
+  },
+  {
+    "file": "build-2-sturdy.png",
+    "source": "materials/portraits/generated-features/Troll.mesh-female/build-2-sturdy.png",
+    "source_sha256": "50fed0f794af93149997b6d9d4fbbdd3177969665846d94a9f6f2c1ff368812c",
+    "source_bounds": [
+      56,
+      50,
+      1480,
+      1005
+    ],
+    "rect": [
+      0,
+      840,
+      887,
+      934
+    ],
+    "scale": 0.6228932584269663,
+    "vertical_scale": 1.0115183246073298,
+    "offset": [
+      -34.88202247191011,
+      -50.57591623036649
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "5a42009fd4ed3ee00a08ad602d742a069050b9f91c89a8751053c19113c93b43"
+  },
+  {
+    "file": "hair-1-mossstrands.png",
+    "source": "materials/portraits/generated-features/Troll.mesh-female/hair-1-mossstrands.png",
+    "source_sha256": "4a915345a58662fba878330d3145c7c6ba52a3ada6bdc3bb19fd0a85b5524b05",
+    "source_bounds": [
+      15,
+      35,
+      1210,
+      1263
+    ],
+    "rect": [
+      80,
+      270,
+      710,
+      1100
+    ],
+    "scale": 0.5807531380753138,
+    "vertical_scale": 0.5807531380753138,
+    "offset": [
+      -0.7112970711297066,
+      -12.326359832635983
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "5a42009fd4ed3ee00a08ad602d742a069050b9f91c89a8751053c19113c93b43"
+  },
+  {
+    "file": "hair-2-mossbraids.png",
+    "source": "materials/portraits/generated-features/Troll.mesh-female/hair-2-mossbraids.png",
+    "source_sha256": "8a9138fdba78718764ccd6dadf19a5f2a599f753d87f8adc526b2ed7fafc7162",
+    "source_bounds": [
+      190,
+      49,
+      1041,
+      1342
+    ],
+    "rect": [
+      80,
+      270,
+      710,
+      1100
+    ],
+    "scale": 0.8155111633372503,
+    "vertical_scale": 0.8155111633372503,
+    "offset": [
+      -146.94712103407755,
+      -31.96004700352526
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "5a42009fd4ed3ee00a08ad602d742a069050b9f91c89a8751053c19113c93b43"
+  },
+  {
+    "file": "eyes-1-narrow.png",
+    "source": "materials/portraits/generated-features/Troll.mesh-female/eyes-1-narrow.png",
+    "source_sha256": "615cfe43823510d6936c7fb04cf66f665f4f6efef144a4898eb51507b9433c2c",
+    "source_bounds": [
+      250,
+      117,
+      1921,
+      635
+    ],
+    "rect": [
+      280,
+      530,
+      340,
+      180
+    ],
+    "scale": 0.19389587073608616,
+    "vertical_scale": 0.19389587073608616,
+    "offset": [
+      -40.47396768402154,
+      17.095152603231604
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "5a42009fd4ed3ee00a08ad602d742a069050b9f91c89a8751053c19113c93b43"
+  },
+  {
+    "file": "eyes-2-round.png",
+    "source": "materials/portraits/generated-features/Troll.mesh-female/eyes-2-round.png",
+    "source_sha256": "d3edb0c28e3606770778c68d06c2108d554d072982619459ae87516fd65993d5",
+    "source_bounds": [
+      176,
+      204,
+      1599,
+      701
+    ],
+    "rect": [
+      280,
+      530,
+      340,
+      180
+    ],
+    "scale": 0.22768798313422348,
+    "vertical_scale": 0.22768798313422348,
+    "offset": [
+      -32.07308503162333,
+      -13.028812368236117
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "5a42009fd4ed3ee00a08ad602d742a069050b9f91c89a8751053c19113c93b43"
+  },
+  {
+    "file": "eyes-3-eyepatch.png",
+    "source": "materials/portraits/generated-features/Troll.mesh-female/eyes-3-eyepatch.png",
+    "source_sha256": "720a4b980e2a2647633767d1f2ca90deb625948911ec94f7596ea9e02570a669",
+    "source_bounds": [
+      20,
+      131,
+      1757,
+      746
+    ],
+    "rect": [
+      280,
+      530,
+      340,
+      180
+    ],
+    "scale": 0.18652849740932642,
+    "vertical_scale": 0.18652849740932642,
+    "offset": [
+      4.269430051813472,
+      8.207253886010367
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "5a42009fd4ed3ee00a08ad602d742a069050b9f91c89a8751053c19113c93b43"
+  },
+  {
+    "file": "nose-1-crooked.png",
+    "source": "materials/portraits/generated-features/Troll.mesh-female/nose-1-crooked.png",
+    "source_sha256": "7824b2c1f4071db250d8a98ee672d40af738d89e5a546ac3162226481ea6df8d",
+    "source_bounds": [
+      351,
+      100,
+      1185,
+      925
+    ],
+    "rect": [
+      300,
+      640,
+      210,
+      185
+    ],
+    "scale": 0.20484848484848484,
+    "vertical_scale": 0.20484848484848484,
+    "offset": [
+      -52.32363636363635,
+      -12.484848484848484
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "5a42009fd4ed3ee00a08ad602d742a069050b9f91c89a8751053c19113c93b43"
+  },
+  {
+    "file": "nose-2-broad.png",
+    "source": "materials/portraits/generated-features/Troll.mesh-female/nose-2-broad.png",
+    "source_sha256": "1e3df866f363f477916d2cbb8e1973d3183da485f830e24392183dcdd2b9d37a",
+    "source_bounds": [
+      326,
+      213,
+      1210,
+      854
+    ],
+    "rect": [
+      300,
+      640,
+      210,
+      185
+    ],
+    "scale": 0.21945701357466063,
+    "vertical_scale": 0.21945701357466063,
+    "offset": [
+      -63.542986425339365,
+      -24.580316742081443
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "5a42009fd4ed3ee00a08ad602d742a069050b9f91c89a8751053c19113c93b43"
+  },
+  {
+    "file": "mouth-1-teeth.png",
+    "source": "materials/portraits/generated-features/Troll.mesh-female/mouth-1-teeth.png",
+    "source_sha256": "252d54a6cc8bf94d53f0450a426097a459faae85b9b01486d0d3a2e57f3c2039",
+    "source_bounds": [
+      229,
+      241,
+      1575,
+      639
+    ],
+    "rect": [
+      285,
+      775,
+      340,
+      140
+    ],
+    "scale": 0.24071322436849926,
+    "vertical_scale": 0.24071322436849926,
+    "offset": [
+      -47.12332838038633,
+      -35.91381872213967
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "5a42009fd4ed3ee00a08ad602d742a069050b9f91c89a8751053c19113c93b43"
+  },
+  {
+    "file": "mouth-2-grin.png",
+    "source": "materials/portraits/generated-features/Troll.mesh-female/mouth-2-grin.png",
+    "source_sha256": "2e0878c9b7e51bd638e0831d51a020caba10787de20f106d31e9493aad828042",
+    "source_bounds": [
+      230,
+      165,
+      1538,
+      673
+    ],
+    "rect": [
+      285,
+      775,
+      340,
+      140
+    ],
+    "scale": 0.2440944881889764,
+    "vertical_scale": 0.2440944881889764,
+    "offset": [
+      -45.77952755905512,
+      -32.275590551181104
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "5a42009fd4ed3ee00a08ad602d742a069050b9f91c89a8751053c19113c93b43"
+  },
+  {
+    "file": "mouth-3-cigar.png",
+    "source": "materials/portraits/generated-features/Troll.mesh-female/mouth-3-cigar.png",
+    "source_sha256": "aaae4084daa77870825f2b2b5ead3cbbb6529f1514efe2367de81a473ed2093c",
+    "source_bounds": [
+      169,
+      230,
+      1650,
+      628
+    ],
+    "rect": [
+      285,
+      775,
+      340,
+      140
+    ],
+    "scale": 0.2187711006076975,
+    "vertical_scale": 0.2187711006076975,
+    "offset": [
+      -28.97231600270088,
+      -23.852802160702225
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "5a42009fd4ed3ee00a08ad602d742a069050b9f91c89a8751053c19113c93b43"
+  },
+  {
+    "file": "chin-1-square.png",
+    "source": "materials/portraits/generated-features/Troll.mesh-female/chin-1-square.png",
+    "source_sha256": "0e54a3e819cb976be6330cb4964841b7815d9d5c84ecc062d65fb648c957428d",
+    "source_bounds": [
+      279,
+      170,
+      1495,
+      719
+    ],
+    "rect": [
+      270,
+      850,
+      350,
+      170
+    ],
+    "scale": 0.2746710526315789,
+    "vertical_scale": 0.2746710526315789,
+    "offset": [
+      -68.63322368421052,
+      -37.09128289473683
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "5a42009fd4ed3ee00a08ad602d742a069050b9f91c89a8751053c19113c93b43"
+  },
+  {
+    "file": "chin-2-rounded.png",
+    "source": "materials/portraits/generated-features/Troll.mesh-female/chin-2-rounded.png",
+    "source_sha256": "fbba9048ca5ccf0b9a398e11bda42b48a765a1fd9b9b543db5894b2e885c0162",
+    "source_bounds": [
+      106,
+      204,
+      1433,
+      848
+    ],
+    "rect": [
+      270,
+      850,
+      350,
+      170
+    ],
+    "scale": 0.2391304347826087,
+    "vertical_scale": 0.2391304347826087,
+    "offset": [
+      -9.010869565217398,
+      -40.78260869565217
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "5a42009fd4ed3ee00a08ad602d742a069050b9f91c89a8751053c19113c93b43"
+  },
+  {
+    "file": "scar-1-diagonal.png",
+    "source": "materials/portraits/generated-features/Troll.mesh-female/scar-1-diagonal.png",
+    "source_sha256": "8558e49d1b277932df0a4a5982c0370cb39208593bbc663e11b58477f6f0130c",
+    "source_bounds": [
+      46,
+      84,
+      1199,
+      1208
+    ],
+    "rect": [
+      410,
+      630,
+      190,
+      165
+    ],
+    "scale": 0.13256227758007116,
+    "vertical_scale": 0.13256227758007116,
+    "offset": [
+      12.479982206405701,
+      -3.135231316725978
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": "union of all hair and ear alpha",
+    "source_mask_polygon": null,
+    "base_sha256": "5a42009fd4ed3ee00a08ad602d742a069050b9f91c89a8751053c19113c93b43"
+  },
+  {
+    "file": "scar-2-scratches.png",
+    "source": "materials/portraits/generated-features/Troll.mesh-female/scar-2-scratches.png",
+    "source_sha256": "afc8fbae11aac6249acd4894d51df65f3c489ed3b620ce398af216a253b14113",
+    "source_bounds": [
+      230,
+      78,
+      1421,
+      977
+    ],
+    "rect": [
+      410,
+      630,
+      190,
+      165
+    ],
+    "scale": 0.14609571788413098,
+    "vertical_scale": 0.14609571788413098,
+    "offset": [
+      -25.602015113350127,
+      5.434508816120903
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": "union of all hair and ear alpha",
+    "source_mask_polygon": null,
+    "base_sha256": "5a42009fd4ed3ee00a08ad602d742a069050b9f91c89a8751053c19113c93b43"
+  },
+  {
+    "file": "scar-3-warpaint.png",
+    "source": "materials/portraits/generated-features/Troll.mesh-female/scar-3-warpaint.png",
+    "source_sha256": "e9ce76cd2ae8d0f344c3409f43f8ab16d7d8c8551e98c912d4e90d16c1dab9ba",
+    "source_bounds": [
+      41,
+      83,
+      1181,
+      1234
+    ],
+    "rect": [
+      410,
+      630,
+      190,
+      165
+    ],
+    "scale": 0.12945264986967853,
+    "vertical_scale": 0.12945264986967853,
+    "offset": [
+      15.904430929626418,
+      -2.744569939183304
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": "union of all hair and ear alpha",
+    "source_mask_polygon": null,
+    "base_sha256": "5a42009fd4ed3ee00a08ad602d742a069050b9f91c89a8751053c19113c93b43"
+  },
+  {
+    "file": "neck-1-teeth.png",
+    "source": "materials/portraits/generated-features/Troll.mesh-female/neck-1-teeth.png",
+    "source_sha256": "f5c58bfb63c46756d1352f9f14f050b7fb2d2b86622f5805d2aa74ea85cc635a",
+    "source_bounds": [
+      93,
+      65,
+      1443,
+      928
+    ],
+    "rect": [
+      250,
+      980,
+      430,
+      280
+    ],
+    "scale": 0.30590961761297797,
+    "vertical_scale": 0.30590961761297797,
+    "offset": [
+      -19.938586326767076,
+      -11.88412514484357
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "5a42009fd4ed3ee00a08ad602d742a069050b9f91c89a8751053c19113c93b43"
+  },
+  {
+    "file": "neck-2-torque.png",
+    "source": "materials/portraits/generated-features/Troll.mesh-female/neck-2-torque.png",
+    "source_sha256": "ba6713b38119acc53b5826f1d220c015285d93428e7d3bccebf2b7fa3f108a10",
+    "source_bounds": [
+      110,
+      31,
+      1665,
+      863
+    ],
+    "rect": [
+      250,
+      980,
+      430,
+      280
+    ],
+    "scale": 0.2662379421221865,
+    "vertical_scale": 0.2662379421221865,
+    "offset": [
+      -21.286173633440512,
+      20.991639871382638
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "5a42009fd4ed3ee00a08ad602d742a069050b9f91c89a8751053c19113c93b43"
+  },
+  {
+    "id": "Troll.mesh-female",
+    "n": 1,
+    "name": "leather",
+    "build": 0,
+    "file": "outfit-1-leather-build0.png",
+    "source": "materials/portraits/generated-outfits/Troll.mesh-female/outfit-1-leather.png",
+    "source_sha256": "a8adb3bce4df93a583daf4b9dc61fbf9cb50aa1298053795f259fa1eed51ae13",
+    "source_size": [
+      887,
+      1774
+    ],
+    "canvas_registration": "canonical canvas",
+    "body_span_fit": "continuous outer sleeve sector extensions clipped to uncovered body",
+    "bottom_rows_repeated": 0,
+    "horizontal_scale": 1.25,
+    "vertical_scale": 1.08,
+    "offset": [
+      -110.875,
+      -57.60000000000005
+    ],
+    "mesh_warp": null,
+    "torso_margin": 1.1111111111111112,
+    "sleeve_warp": null,
+    "head_occlusion": {
+      "warm_neutral_skin_above_row": 860
+    },
+    "native_uncovered_body_pixels": 15,
+    "coarse_uncovered_body_pixels": 11,
+    "coarse_body_pixels": 6840,
+    "visual_acceptance": "accepted-native-and-50x100",
+    "prompt": "Create ONE isolated EMPTY Troll outfit overlay registered exactly to the attached stone-grey neutral dummy reference. Exact887x1774 transparentRGBA full canvas, no body rendered. Plain rugged dark brown-grey heavy leather coat over padded long sleeves, thick plain waist belt, no emblems or tools. Follow the massive stocky torso and lowered thick arms, slight three-quarter angle and upper-left light; female reference turns toward viewer LEFT, male reference toward viewer RIGHT, match attached reference exactly. Collar y880-1030, huge shoulders y850-1080 across frame sides, chest fills x0-887 y1200, belt around y1500. Cover all visible shoulders, torso and arms with outer contour fitting margin, continue beyond side and bottom crop. Coarse painted fantasy style matching stone reference, not photography. EMPTY garments only, no dummy, body, stone skin, head, face, eyes, nose, ears, hair, beard, helmet, necklace, weapon, text, symbols, modern objects or background. Retain blank upper canvas and exact coordinates, no recenter or tight crop.",
+    "rect": [
+      0,
+      0,
+      887,
+      1774
+    ],
+    "base_sha256": "5a42009fd4ed3ee00a08ad602d742a069050b9f91c89a8751053c19113c93b43"
+  }
+]

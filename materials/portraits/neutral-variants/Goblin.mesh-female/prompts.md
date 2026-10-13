@@ -1,0 +1,86 @@
+## build-1-slim.png
+
+Generate a NEW standalone customization asset for an adult female Goblin. Image is anatomy, palette, clothing and brushwork reference only. Variation: a slimmer shoulder and chest build, preserving the exact reference clothing, colors and coverage; modest bust variation under identical coverage, original neckline unchanged. Output ONLY shoulders and upper chest ending at upper ribs, preserving reference coverage; no head, abdomen or lower body. Hand-painted late-1990s dark fantasy strategy game style matching reference. Species anatomy unchanged, do not add tusks or fangs absent from reference. No beard or moustache. Complete contour centered with transparent padding, genuine alpha background, no glow, fog, shadows, scenery, text, symbols or complete portrait. Reference clothing coverage preserved. Direct isolated-feature generation, never full-image cropping.
+
+## build-2-sturdy.png
+
+Generate a NEW standalone customization asset for an adult female Goblin. Image is anatomy, palette, clothing and brushwork reference only. Variation: a sturdier shoulder and chest build, preserving the exact reference clothing, colors and coverage; modest bust variation under identical coverage, original neckline unchanged. Output ONLY shoulders and upper chest ending at upper ribs, preserving reference coverage; no head, abdomen or lower body. Hand-painted late-1990s dark fantasy strategy game style matching reference. Species anatomy unchanged, do not add tusks or fangs absent from reference. No beard or moustache. Complete contour centered with transparent padding, genuine alpha background, no glow, fog, shadows, scenery, text, symbols or complete portrait. Reference clothing coverage preserved. Direct isolated-feature generation, never full-image cropping.
+
+## chin-1-square.png
+
+Generate a NEW standalone customization asset for an adult female Goblin. Reference ONLY for anatomy, palette, clothing and brushwork. Variation: a squarer chin and jaw, preserving species-specific anatomy and reference skin; no beard. Output ONLY the isolated chin and jaw BELOW the mouth, absolutely NO lips, teeth, mouth, nose, eyes, head or body. Hand-painted dark fantasy strategy-game style matching reference. Preserve species anatomy and reference clothing coverage; never invent tusks absent from reference. No beard or moustache. Complete contour centered with transparent padding and genuine alpha background. No scenery, text, glow, fog or full portrait. Direct isolated-feature generation, never full-image cropping.
+
+## chin-2-rounded.png
+
+Generate a NEW standalone customization asset for an adult female Goblin. Reference ONLY for anatomy, palette, clothing and brushwork. Variation: a softer rounded chin and jaw, preserving species-specific anatomy and reference skin; no beard. Output ONLY the isolated chin and jaw BELOW the mouth, absolutely NO lips, teeth, mouth, nose, eyes, head or body. Hand-painted dark fantasy strategy-game style matching reference. Preserve species anatomy and reference clothing coverage; never invent tusks absent from reference. No beard or moustache. Complete contour centered with transparent padding and genuine alpha background. No scenery, text, glow, fog or full portrait. Direct isolated-feature generation, never full-image cropping.
+
+## ears-1-notched.png
+
+Generate a NEW standalone customization asset for an adult female Goblin. Image is anatomy, palette, clothing and brushwork reference only. Variation: the visible ear with a small healed notch near its tip, preserving its species-specific anatomy and reference skin. Output ONE isolated visible ear, entire contour, no head or hair. Hand-painted late-1990s dark fantasy strategy game style matching reference. Species anatomy unchanged, do not add tusks or fangs absent from reference. No beard or moustache. Complete contour centered with transparent padding, genuine alpha background, no glow, fog, shadows, scenery, text, symbols or complete portrait. Reference clothing coverage preserved. Direct isolated-feature generation, never full-image cropping.
+
+## ears-2-rounder.png
+
+Generate a NEW standalone customization asset for an adult female Goblin. Image is anatomy, palette, clothing and brushwork reference only. Variation: the visible ear with a shorter and rounder tip, preserving its species-specific anatomy and reference skin. Output ONE isolated visible ear, entire contour, no head or hair. Hand-painted late-1990s dark fantasy strategy game style matching reference. Species anatomy unchanged, do not add tusks or fangs absent from reference. No beard or moustache. Complete contour centered with transparent padding, genuine alpha background, no glow, fog, shadows, scenery, text, symbols or complete portrait. Reference clothing coverage preserved. Direct isolated-feature generation, never full-image cropping.
+
+## eyes-1-narrow.png
+
+Generate a NEW standalone customization asset for an adult female Goblin. Reference ONLY for anatomy, palette, clothing and brushwork. Variation: narrow suspicious eyes with heavy lids and brows, preserving the exact reference eye and skin colors. Output ONLY the isolated eyes with lids and brows, or requested eye patch with strap; NO nose, mouth, full face, head or body. Hand-painted dark fantasy strategy-game style matching reference. Preserve species anatomy and reference clothing coverage; never invent tusks absent from reference. No beard or moustache. Complete contour centered with transparent padding and genuine alpha background. No scenery, text, glow, fog or full portrait. Direct isolated-feature generation, never full-image cropping.
+
+## eyes-2-round.png
+
+Generate a NEW standalone customization asset for an adult female Goblin. Reference ONLY for anatomy, palette, clothing and brushwork. Variation: rounder alert eyes with raised brows, preserving the exact reference eye and skin colors. Output ONLY the isolated eyes with lids and brows, or requested eye patch with strap; NO nose, mouth, full face, head or body. Hand-painted dark fantasy strategy-game style matching reference. Preserve species anatomy and reference clothing coverage; never invent tusks absent from reference. No beard or moustache. Complete contour centered with transparent padding and genuine alpha background. No scenery, text, glow, fog or full portrait. Direct isolated-feature generation, never full-image cropping.
+
+## eyes-3-eyepatch.png
+
+Generate a NEW standalone customization asset for an adult female Goblin. Reference ONLY for anatomy, palette, clothing and brushwork. Variation: a worn dark leather eye patch over the near eye, with a plain leather strap. Output ONLY the isolated eyes with lids and brows, or requested eye patch with strap; NO nose, mouth, full face, head or body. Hand-painted dark fantasy strategy-game style matching reference. Preserve species anatomy and reference clothing coverage; never invent tusks absent from reference. No beard or moustache. Complete contour centered with transparent padding and genuine alpha background. No scenery, text, glow, fog or full portrait. Direct isolated-feature generation, never full-image cropping.
+
+## hair-1-swept.png
+
+Generate a NEW standalone customization asset for an adult female Goblin. Image is anatomy, palette, clothing and brushwork reference only. Variation: a swept-back hairstyle with the exact reference hair color and texture; only hair that can show outside any headwear. Output ONLY requested hair or crest, no head or face. Hand-painted late-1990s dark fantasy strategy game style matching reference. Species anatomy unchanged, do not add tusks or fangs absent from reference. No beard or moustache. Complete contour centered with transparent padding, genuine alpha background, no glow, fog, shadows, scenery, text, symbols or complete portrait. Reference clothing coverage preserved. Direct isolated-feature generation, never full-image cropping.
+
+## hair-2-waves.png
+
+Generate a NEW isolated hairstyle customization asset for an adult female goblin, using the reference ONLY for dark brown hair color and hand-painted brushwork. Make a visibly DIFFERENT hairstyle: FULLY LOOSE, FULLER WAVY SHOULDER-LENGTH HAIR with a broad center part, two masses of thick flowing waves framing the empty face opening. NO ponytail, NO topknot, NO hair tie, NO swept-back crest. Output hair only, NO head, face, skin, ears, neck or body. Complete hair contour centered with transparent padding and genuine alpha background. Dark fantasy strategy-game painterly style matching reference. No text, glow, scenery or full portrait. Direct isolated-feature generation; never crop a full image.
+
+## mouth-1-teeth.png
+
+Generate a NEW standalone customization asset for an adult female Goblin. Reference ONLY for anatomy, palette, clothing and brushwork. Variation: a tighter crooked grin with uneven teeth, preserving the species-specific lips and teeth, including tusks ONLY IF PRESENT in reference. Output ONLY an isolated mouth with lips and teeth, and the cigar if requested, NO nose, eyes, chin, head or body. Hand-painted dark fantasy strategy-game style matching reference. Preserve species anatomy and reference clothing coverage; never invent tusks absent from reference. No beard or moustache. Complete contour centered with transparent padding and genuine alpha background. No scenery, text, glow, fog or full portrait. Direct isolated-feature generation, never full-image cropping.
+
+## mouth-2-grin.png
+
+Generate a NEW standalone customization asset for an adult female Goblin. Reference ONLY for anatomy, palette, clothing and brushwork. Variation: a broader lopsided grin, preserving the species-specific lips and teeth, including tusks ONLY IF PRESENT in reference. Output ONLY an isolated mouth with lips and teeth, and the cigar if requested, NO nose, eyes, chin, head or body. Hand-painted dark fantasy strategy-game style matching reference. Preserve species anatomy and reference clothing coverage; never invent tusks absent from reference. No beard or moustache. Complete contour centered with transparent padding and genuine alpha background. No scenery, text, glow, fog or full portrait. Direct isolated-feature generation, never full-image cropping.
+
+## mouth-3-cigar.png
+
+Generate a NEW standalone customization asset for an adult female Goblin. Reference ONLY for anatomy, palette, clothing and brushwork. Variation: a short fat brown cigar clamped in the corner of the mouth, preserving the species-specific lips and teeth, including tusks ONLY IF PRESENT in reference. Output ONLY an isolated mouth with lips and teeth, and the cigar if requested, NO nose, eyes, chin, head or body. Hand-painted dark fantasy strategy-game style matching reference. Preserve species anatomy and reference clothing coverage; never invent tusks absent from reference. No beard or moustache. Complete contour centered with transparent padding and genuine alpha background. No scenery, text, glow, fog or full portrait. Direct isolated-feature generation, never full-image cropping.
+
+## neck-1-teeth.png
+
+Generate a NEW standalone customization asset for an adult female Goblin. Reference ONLY for anatomy, palette, clothing and brushwork. Variation: a plain cord necklace with three small yellowed animal teeth. Output ONLY the isolated necklace or neck torque, NO neck skin, head or body. Hand-painted dark fantasy strategy-game style matching reference. Preserve species anatomy and reference clothing coverage; never invent tusks absent from reference. No beard or moustache. Complete contour centered with transparent padding and genuine alpha background. No scenery, text, glow, fog or full portrait. Direct isolated-feature generation, never full-image cropping.
+
+## neck-2-torque.png
+
+Generate a NEW standalone customization asset for an adult female Goblin. Reference ONLY for anatomy, palette, clothing and brushwork. Variation: a plain aged bronze neck torque, no symbols. Output ONLY the isolated necklace or neck torque, NO neck skin, head or body. Hand-painted dark fantasy strategy-game style matching reference. Preserve species anatomy and reference clothing coverage; never invent tusks absent from reference. No beard or moustache. Complete contour centered with transparent padding and genuine alpha background. No scenery, text, glow, fog or full portrait. Direct isolated-feature generation, never full-image cropping.
+
+## nose-1-crooked.png
+
+Generate a NEW standalone customization asset for an adult female Goblin. Reference ONLY for anatomy, palette, clothing and brushwork. Variation: a crooked broken nose with a healed bump, preserving the species-specific anatomy and reference skin. Output ONLY an isolated nose with nostrils, NO eyes, mouth, chin, head or body. Hand-painted dark fantasy strategy-game style matching reference. Preserve species anatomy and reference clothing coverage; never invent tusks absent from reference. No beard or moustache. Complete contour centered with transparent padding and genuine alpha background. No scenery, text, glow, fog or full portrait. Direct isolated-feature generation, never full-image cropping.
+
+## nose-2-broad.png
+
+Generate a NEW standalone customization asset for an adult female Goblin. Reference ONLY for anatomy, palette, clothing and brushwork. Variation: a broader flatter nose with wider nostrils, preserving the species-specific anatomy and reference skin. Output ONLY an isolated nose with nostrils, NO eyes, mouth, chin, head or body. Hand-painted dark fantasy strategy-game style matching reference. Preserve species anatomy and reference clothing coverage; never invent tusks absent from reference. No beard or moustache. Complete contour centered with transparent padding and genuine alpha background. No scenery, text, glow, fog or full portrait. Direct isolated-feature generation, never full-image cropping.
+
+## scar-1-diagonal.png
+
+Generate a NEW standalone customization asset for an adult female Goblin. Reference ONLY for anatomy, palette, clothing and brushwork. Variation: one pale healed diagonal scar. Output ONLY the requested isolated scar or paint marks, NO face, head, body or rectangular skin patch. Hand-painted dark fantasy strategy-game style matching reference. Preserve species anatomy and reference clothing coverage; never invent tusks absent from reference. No beard or moustache. Complete contour centered with transparent padding and genuine alpha background. No scenery, text, glow, fog or full portrait. Direct isolated-feature generation, never full-image cropping.
+
+## scar-2-scratches.png
+
+Generate a NEW standalone customization asset for an adult female Goblin. Reference ONLY for anatomy, palette, clothing and brushwork. Variation: three small parallel healed scratches; EXACTLY THREE separately visible parallel scars, count one, two, three. Output ONLY the requested isolated scar or paint marks, NO face, head, body or rectangular skin patch. Hand-painted dark fantasy strategy-game style matching reference. Preserve species anatomy and reference clothing coverage; never invent tusks absent from reference. No beard or moustache. Complete contour centered with transparent padding and genuine alpha background. No scenery, text, glow, fog or full portrait. Direct isolated-feature generation, never full-image cropping.
+
+## scar-3-warpaint.png
+
+Generate a NEW standalone customization asset for an adult female Goblin. Reference ONLY for anatomy, palette, clothing and brushwork. Variation: simple dark red war-paint streaks, no symbols. Output ONLY the requested isolated scar or paint marks, NO face, head, body or rectangular skin patch. Hand-painted dark fantasy strategy-game style matching reference. Preserve species anatomy and reference clothing coverage; never invent tusks absent from reference. No beard or moustache. Complete contour centered with transparent padding and genuine alpha background. No scenery, text, glow, fog or full portrait. Direct isolated-feature generation, never full-image cropping.
+## outfit-1-patched-build0.png
+
+Generate ONE isolated empty clothing part registered to the attached olive-green Goblin game-dummy base, EXACT887x1774 RGBA transparent canvas, retain full blank space above the collar. Same slim torso, narrow shoulders, lowered arms, three-quarter pose and upper-left painterly light. Patched muted brown long-sleeved tunic with plain dark leather vest and simple cord belt, cloth wrist cuffs; a small practical Goblin outfit covering the entire visible torso, shoulders and arms with margin. Collar y850-960 for Goblin male or y810-940 for Goblin female, shoulders near y980-1080, chest x150-820 at y1100, belt near y1500, clothing through lower crop. Use the attached reference for its own exact shoulder/arm silhouette. ONLY empty clothing on genuine transparency: no dummy/person/body/head/skin, face, hair, ears, jewelry, weapons, lettering, symbols, modern items, backdrop or checkerboard; coarse hand-painted dark fantasy texture, not photorealistic product imagery. Preserve canvas and exact viewing direction; never a full dressed portrait.

@@ -1,0 +1,630 @@
+[
+  {
+    "file": "build-1-slim.png",
+    "source": "materials/portraits/generated-features/Adventurer.mesh/build-1-slim.png",
+    "source_sha256": "6007f8f322e9e813bd6c2ab6ea01fd56cc6afc37d4f2caa6963ec50e58877935",
+    "source_bounds": [
+      9,
+      118,
+      1202,
+      1219
+    ],
+    "rect": [
+      0,
+      600,
+      887,
+      1174
+    ],
+    "scale": 0.7435037720033529,
+    "vertical_scale": 1.095367847411444,
+    "offset": [
+      -6.691533948030177,
+      -129.2534059945504
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "5382878098af358bfccce70c80048ba9141ea7282c877f98eccf1e284b79ccc9"
+  },
+  {
+    "file": "build-2-sturdy.png",
+    "source": "materials/portraits/generated-features/Adventurer.mesh/build-2-sturdy.png",
+    "source_sha256": "1bb5da6b161cf6970b6d9572568214d8037d8b9723b60ac1859b76ecd7e6dc64",
+    "source_bounds": [
+      7,
+      99,
+      1306,
+      1183
+    ],
+    "rect": [
+      0,
+      600,
+      887,
+      1174
+    ],
+    "scale": 0.6828329484218629,
+    "vertical_scale": 1.1125461254612545,
+    "offset": [
+      -4.77983063895304,
+      -110.1420664206642
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "5382878098af358bfccce70c80048ba9141ea7282c877f98eccf1e284b79ccc9"
+  },
+  {
+    "file": "hair-1-swept.png",
+    "source": "materials/portraits/generated-features/Adventurer.mesh/hair-1-swept.png",
+    "source_sha256": "e299aabc02ab8a8298a112f6ac5249f2458f206046eb460fd9dc2968700a5986",
+    "source_bounds": [
+      62,
+      113,
+      1184,
+      1104
+    ],
+    "rect": [
+      150,
+      80,
+      600,
+      1000
+    ],
+    "scale": 0.5204991087344029,
+    "vertical_scale": 0.5204991087344029,
+    "offset": [
+      -24.27094474153298,
+      -50.816399286987526
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "5382878098af358bfccce70c80048ba9141ea7282c877f98eccf1e284b79ccc9"
+  },
+  {
+    "file": "hair-2-waves.png",
+    "source": "materials/portraits/generated-features/Adventurer.mesh/hair-2-waves.png",
+    "source_sha256": "96d302f69fe9f1afbcf4748e259d757c1484b77ad60f8590bec2ae16f01b5652",
+    "source_bounds": [
+      123,
+      111,
+      1311,
+      1016
+    ],
+    "rect": [
+      150,
+      80,
+      600,
+      1000
+    ],
+    "scale": 0.49158249158249157,
+    "vertical_scale": 0.49158249158249157,
+    "offset": [
+      -52.464646464646464,
+      -46.56565656565656
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "5382878098af358bfccce70c80048ba9141ea7282c877f98eccf1e284b79ccc9"
+  },
+  {
+    "file": "ears-1-notched.png",
+    "source": "materials/portraits/generated-features/Adventurer.mesh/ears-1-notched.png",
+    "source_sha256": "2f0a2cef9440247db256c19c834b368d94f9ee663d37b88a8f8fa5b8a65e04fe",
+    "source_bounds": [
+      342,
+      136,
+      938,
+      1034
+    ],
+    "rect": [
+      205,
+      360,
+      120,
+      155
+    ],
+    "scale": 0.15478841870824053,
+    "vertical_scale": 0.15478841870824053,
+    "offset": [
+      -39.064587973273944,
+      -13.051224944320712
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "5382878098af358bfccce70c80048ba9141ea7282c877f98eccf1e284b79ccc9"
+  },
+  {
+    "file": "ears-2-rounder.png",
+    "source": "materials/portraits/generated-features/Adventurer.mesh/ears-2-rounder.png",
+    "source_sha256": "3e63e1074050160fa4215077f74e23108936eeae67b0c0895f062a51239cc9a2",
+    "source_bounds": [
+      329,
+      155,
+      907,
+      1012
+    ],
+    "rect": [
+      205,
+      360,
+      120,
+      155
+    ],
+    "scale": 0.16219369894982497,
+    "vertical_scale": 0.16219369894982497,
+    "offset": [
+      -40.23570595099183,
+      -17.14002333722287
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "5382878098af358bfccce70c80048ba9141ea7282c877f98eccf1e284b79ccc9"
+  },
+  {
+    "file": "eyes-1-narrow.png",
+    "source": "materials/portraits/generated-features/Adventurer.mesh/eyes-1-narrow.png",
+    "source_sha256": "03cb2f2f056e86c84fa2edc9d5331975050f30ca507c102988895d7f8ee2e15a",
+    "source_bounds": [
+      350,
+      115,
+      1814,
+      642
+    ],
+    "rect": [
+      300,
+      330,
+      300,
+      150
+    ],
+    "scale": 0.19398907103825136,
+    "vertical_scale": 0.19398907103825136,
+    "offset": [
+      -59.89617486338797,
+      1.5751366120218613
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "5382878098af358bfccce70c80048ba9141ea7282c877f98eccf1e284b79ccc9"
+  },
+  {
+    "file": "eyes-2-round.png",
+    "source": "materials/portraits/generated-features/Adventurer.mesh/eyes-2-round.png",
+    "source_sha256": "1132f8afd8334420dce5d9b8f71e804289c4313674168d0d21ddc411352a67c2",
+    "source_bounds": [
+      258,
+      91,
+      1512,
+      787
+    ],
+    "rect": [
+      300,
+      330,
+      300,
+      150
+    ],
+    "scale": 0.1925287356321839,
+    "vertical_scale": 0.1925287356321839,
+    "offset": [
+      -20.387931034482747,
+      -9.520114942528735
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "5382878098af358bfccce70c80048ba9141ea7282c877f98eccf1e284b79ccc9"
+  },
+  {
+    "file": "eyes-3-eyepatch.png",
+    "source": "materials/portraits/generated-features/Adventurer.mesh/eyes-3-eyepatch.png",
+    "source_sha256": "ca4a8cdf39bdb8d2fbbdfd5493097698a6602c6de73c9901ded72deb333e97c0",
+    "source_bounds": [
+      163,
+      99,
+      1621,
+      806
+    ],
+    "rect": [
+      300,
+      330,
+      300,
+      150
+    ],
+    "scale": 0.18953323903818953,
+    "vertical_scale": 0.18953323903818953,
+    "offset": [
+      -19.063649222065052,
+      -10.763790664780764
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "5382878098af358bfccce70c80048ba9141ea7282c877f98eccf1e284b79ccc9"
+  },
+  {
+    "file": "nose-1-crooked.png",
+    "source": "materials/portraits/generated-features/Adventurer.mesh/nose-1-crooked.png",
+    "source_sha256": "5f31d58c3d62449a79a27eacc1fa0b9033e233979a30cb8eaf811cffa9124eb9",
+    "source_bounds": [
+      471,
+      192,
+      979,
+      907
+    ],
+    "rect": [
+      440,
+      420,
+      160,
+      170
+    ],
+    "scale": 0.2153846153846154,
+    "vertical_scale": 0.2153846153846154,
+    "offset": [
+      -76.15384615384616,
+      -33.353846153846156
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "5382878098af358bfccce70c80048ba9141ea7282c877f98eccf1e284b79ccc9"
+  },
+  {
+    "file": "nose-2-broad.png",
+    "source": "materials/portraits/generated-features/Adventurer.mesh/nose-2-broad.png",
+    "source_sha256": "d8fbef92bb1474e62ba311094d8a1f0f4124be33a2fc1ed674e2e5479511eda4",
+    "source_bounds": [
+      423,
+      93,
+      1114,
+      915
+    ],
+    "rect": [
+      440,
+      420,
+      160,
+      170
+    ],
+    "scale": 0.1873479318734793,
+    "vertical_scale": 0.1873479318734793,
+    "offset": [
+      -63.97688564476884,
+      -9.423357664233578
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "5382878098af358bfccce70c80048ba9141ea7282c877f98eccf1e284b79ccc9"
+  },
+  {
+    "file": "mouth-1-teeth.png",
+    "source": "materials/portraits/generated-features/Adventurer.mesh/mouth-1-teeth.png",
+    "source_sha256": "22a9a7b30eb51aa9de535c0518a273764a728660023ed606f67acd4bbc07c606",
+    "source_bounds": [
+      221,
+      120,
+      1570,
+      777
+    ],
+    "rect": [
+      350,
+      540,
+      260,
+      110
+    ],
+    "scale": 0.1430745814307458,
+    "vertical_scale": 0.1430745814307458,
+    "offset": [
+      1.8767123287671232,
+      -9.168949771689498
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "5382878098af358bfccce70c80048ba9141ea7282c877f98eccf1e284b79ccc9"
+  },
+  {
+    "file": "mouth-2-grin.png",
+    "source": "materials/portraits/generated-features/Adventurer.mesh/mouth-2-grin.png",
+    "source_sha256": "5a2c469c7b8101f33503324463fdac2e9b578cdc9375c8c46ef68d47bbca0cbf",
+    "source_bounds": [
+      232,
+      118,
+      1535,
+      783
+    ],
+    "rect": [
+      350,
+      540,
+      260,
+      110
+    ],
+    "scale": 0.14135338345864662,
+    "vertical_scale": 0.14135338345864662,
+    "offset": [
+      5.114285714285714,
+      -8.6796992481203
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "5382878098af358bfccce70c80048ba9141ea7282c877f98eccf1e284b79ccc9"
+  },
+  {
+    "file": "mouth-3-cigar.png",
+    "source": "materials/portraits/generated-features/Adventurer.mesh/mouth-3-cigar.png",
+    "source_sha256": "f9864362bea1785ebac84c9359987bb2e8002b86ccd06eed116e4b4deaf2ba03",
+    "source_bounds": [
+      308,
+      210,
+      1472,
+      728
+    ],
+    "rect": [
+      350,
+      540,
+      260,
+      110
+    ],
+    "scale": 0.18146718146718147,
+    "vertical_scale": 0.18146718146718147,
+    "offset": [
+      -31.505791505791514,
+      -30.108108108108105
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "5382878098af358bfccce70c80048ba9141ea7282c877f98eccf1e284b79ccc9"
+  },
+  {
+    "file": "chin-1-square.png",
+    "source": "materials/portraits/generated-features/Adventurer.mesh/chin-1-square.png",
+    "source_sha256": "60269b01bae3d4f0770466d8010cfb84eb354fee013ec86e33a01f3210334555",
+    "source_bounds": [
+      287,
+      103,
+      1383,
+      856
+    ],
+    "rect": [
+      350,
+      590,
+      260,
+      140
+    ],
+    "scale": 0.1646746347941567,
+    "vertical_scale": 0.1646746347941567,
+    "offset": [
+      -7.503320053120838,
+      -8.96148738379814
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "5382878098af358bfccce70c80048ba9141ea7282c877f98eccf1e284b79ccc9"
+  },
+  {
+    "file": "chin-2-rounded.png",
+    "source": "materials/portraits/generated-features/Adventurer.mesh/chin-2-rounded.png",
+    "source_sha256": "ef720caa2ac80894ad5f85e4518e1af0762829a10d6e46ac08be81cc684a9415",
+    "source_bounds": [
+      331,
+      92,
+      1249,
+      945
+    ],
+    "rect": [
+      350,
+      590,
+      260,
+      140
+    ],
+    "scale": 0.14536928487690504,
+    "vertical_scale": 0.14536928487690504,
+    "offset": [
+      15.158264947245016,
+      -5.373974208675264
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "5382878098af358bfccce70c80048ba9141ea7282c877f98eccf1e284b79ccc9"
+  },
+  {
+    "file": "scar-1-diagonal.png",
+    "source": "materials/portraits/generated-features/Adventurer.mesh/scar-1-diagonal.png",
+    "source_sha256": "5f9ad578c93849b81fbbddabe3effd0c1d6d7a27ed93883eb3d13aba6ec9bab2",
+    "source_bounds": [
+      86,
+      62,
+      1137,
+      1210
+    ],
+    "rect": [
+      300,
+      430,
+      170,
+      150
+    ],
+    "scale": 0.11672473867595819,
+    "vertical_scale": 0.11672473867595819,
+    "offset": [
+      13.622822299651569,
+      0.7630662020905925
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": "union of all hair and ear alpha",
+    "source_mask_polygon": null,
+    "base_sha256": "5382878098af358bfccce70c80048ba9141ea7282c877f98eccf1e284b79ccc9"
+  },
+  {
+    "file": "scar-2-scratches.png",
+    "source": "materials/portraits/generated-features/Adventurer.mesh/scar-2-scratches.png",
+    "source_sha256": "bcfbfcec7e04353fe3a9032fe2811eaf70ee08359aaba09af887e5d6012a5f5d",
+    "source_bounds": [
+      393,
+      143,
+      1184,
+      904
+    ],
+    "rect": [
+      300,
+      430,
+      170,
+      150
+    ],
+    "scale": 0.17608409986859397,
+    "vertical_scale": 0.17608409986859397,
+    "offset": [
+      -53.84231274638634,
+      -17.18002628120894
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": "union of all hair and ear alpha",
+    "source_mask_polygon": null,
+    "base_sha256": "5382878098af358bfccce70c80048ba9141ea7282c877f98eccf1e284b79ccc9"
+  },
+  {
+    "file": "scar-3-warpaint.png",
+    "source": "materials/portraits/generated-features/Adventurer.mesh/scar-3-warpaint.png",
+    "source_sha256": "392eb1018d84f0afc24739d8eb8e03fdc609c407de04532fadca39587fdb97a9",
+    "source_bounds": [
+      226,
+      197,
+      1319,
+      813
+    ],
+    "rect": [
+      300,
+      430,
+      170,
+      150
+    ],
+    "scale": 0.14089661482159194,
+    "vertical_scale": 0.14089661482159194,
+    "offset": [
+      -23.842634949679777,
+      3.8472095150960754
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": "union of all hair and ear alpha",
+    "source_mask_polygon": null,
+    "base_sha256": "5382878098af358bfccce70c80048ba9141ea7282c877f98eccf1e284b79ccc9"
+  },
+  {
+    "file": "neck-1-teeth.png",
+    "source": "materials/portraits/generated-features/Adventurer.mesh/neck-1-teeth.png",
+    "source_sha256": "3bd7c2b71791b1c0a67d06095120d3c2bc0060fed4baf698018c30a1e412e532",
+    "source_bounds": [
+      348,
+      91,
+      1189,
+      933
+    ],
+    "rect": [
+      290,
+      680,
+      360,
+      260
+    ],
+    "scale": 0.28978622327790976,
+    "vertical_scale": 0.28978622327790976,
+    "offset": [
+      -42.700712589073646,
+      -18.3705463182898
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "5382878098af358bfccce70c80048ba9141ea7282c877f98eccf1e284b79ccc9"
+  },
+  {
+    "file": "neck-2-torque.png",
+    "source": "materials/portraits/generated-features/Adventurer.mesh/neck-2-torque.png",
+    "source_sha256": "eb0cf75cbadc2291f9d36da88f5102354bad393581eb870beae9b41802c5f8ab",
+    "source_bounds": [
+      81,
+      214,
+      1459,
+      842
+    ],
+    "rect": [
+      290,
+      680,
+      360,
+      260
+    ],
+    "scale": 0.24963715529753266,
+    "vertical_scale": 0.24963715529753266,
+    "offset": [
+      -12.220609579100145,
+      -1.8084179970972514
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "5382878098af358bfccce70c80048ba9141ea7282c877f98eccf1e284b79ccc9"
+  },
+  {
+    "id": "Adventurer.mesh",
+    "n": 1,
+    "name": "leather",
+    "build": 0,
+    "file": "outfit-1-leather-build0.png",
+    "source": "materials/portraits/generated-outfits/Adventurer.mesh/outfit-1-leather.png",
+    "source_sha256": "17c868c2341e2de268a87a60472ae657680b8b8c4af301b4cffe4af32732e7a9",
+    "source_size": [
+      887,
+      1774
+    ],
+    "canvas_registration": "canonical canvas",
+    "body_span_fit": "continuous outer sleeve sector extensions clipped to uncovered body",
+    "bottom_rows_repeated": 0,
+    "horizontal_scale": 1.075,
+    "vertical_scale": 1.1,
+    "offset": [
+      -33.26249999999998,
+      -72.00000000000006
+    ],
+    "mesh_warp": null,
+    "torso_margin": 1.1111111111111112,
+    "sleeve_warp": null,
+    "head_occlusion": {
+      "warm_neutral_skin_above_row": 630
+    },
+    "native_uncovered_body_pixels": 25638,
+    "coarse_uncovered_body_pixels": 310,
+    "coarse_body_pixels": 8622,
+    "visual_acceptance": "accepted-native-and-50x100",
+    "prompt": "Generate one new isolated EMPTY adventurer outfit overlay using the attached neutral dummy solely as the exact pose, silhouette and lighting reference. Exact887x1774 transparentRGBA canvas. A worn dark brown leather jerkin over a muted ochre-brown long-sleeved shirt, plain belt, wrist cuffs, no weapons or tools. Collar begins y680-800, shoulders y800-960, chest spans x30-880 around y1050, belt y1450-1570. Follow exact reference slight three-quarter view, narrow waist and lowered arms extending to bottom frame. Cover every visible shoulder and torso and arm with modest outer contour margin, continue past bottom crop. Match coarse painted fantasy game style, warm upper-left light. Only separate empty garments, no body, dummy, skin, head, face, eyes, nose, ears, hair, helmet, necklace, symbols, writing, modern items or background. Entire space above collar stays transparent. Do not recenter or tightly crop.",
+    "rect": [
+      0,
+      0,
+      887,
+      1774
+    ],
+    "base_sha256": "5382878098af358bfccce70c80048ba9141ea7282c877f98eccf1e284b79ccc9"
+  }
+]

@@ -1,0 +1,607 @@
+[
+  {
+    "file": "build-1-slim.png",
+    "source": "materials/portraits/generated-features/Kobold.mesh/build-1-slim.png",
+    "source_sha256": "867ead724953f688804db2ae3f04af9a720923495dc9bcea4416b3d1720958f3",
+    "source_bounds": [
+      31,
+      121,
+      1409,
+      1014
+    ],
+    "rect": [
+      0,
+      765,
+      887,
+      1009
+    ],
+    "scale": 0.6320754716981132,
+    "vertical_scale": 0.6320754716981132,
+    "offset": [
+      -11.59433962264151,
+      -68.48113207547169
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "b28f2e677105b61d4943b837e77013f7e37d2452cf6f57d2339dc01b1b85d7cf"
+  },
+  {
+    "file": "build-2-sturdy.png",
+    "source": "materials/portraits/generated-features/Kobold.mesh/build-2-sturdy.png",
+    "source_sha256": "9c77c6e90713f4530931cc7da1acb8df2463de19fc011092f8a7d512a9a79321",
+    "source_bounds": [
+      3,
+      110,
+      1311,
+      1102
+    ],
+    "rect": [
+      0,
+      765,
+      887,
+      1009
+    ],
+    "scale": 0.6659021406727829,
+    "vertical_scale": 0.6659021406727829,
+    "offset": [
+      6.002293577981652,
+      -65.24923547400611
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "b28f2e677105b61d4943b837e77013f7e37d2452cf6f57d2339dc01b1b85d7cf"
+  },
+  {
+    "file": "ears-1-notched.png",
+    "source": "materials/portraits/generated-features/Kobold.mesh/ears-1-notched.png",
+    "source_sha256": "6244cd830c29f2833c81eff2f960a23736b60a703d8bc3675069ce6b18013d14",
+    "source_bounds": [
+      111,
+      99,
+      1013,
+      1357
+    ],
+    "rect": [
+      90,
+      330,
+      250,
+      275
+    ],
+    "scale": 0.20588235294117646,
+    "vertical_scale": 0.20588235294117646,
+    "offset": [
+      9.294117647058833,
+      -12.382352941176471
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "b28f2e677105b61d4943b837e77013f7e37d2452cf6f57d2339dc01b1b85d7cf"
+  },
+  {
+    "file": "ears-2-rounder.png",
+    "source": "materials/portraits/generated-features/Kobold.mesh/ears-2-rounder.png",
+    "source_sha256": "e0e945a0789c4400e44ff802620cb640d53b1edf9d396bf942534805fc36b3e8",
+    "source_bounds": [
+      222,
+      187,
+      919,
+      1141
+    ],
+    "rect": [
+      90,
+      330,
+      250,
+      275
+    ],
+    "scale": 0.27148846960167716,
+    "vertical_scale": 0.27148846960167716,
+    "offset": [
+      -29.884171907756816,
+      -42.76834381551363
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "b28f2e677105b61d4943b837e77013f7e37d2452cf6f57d2339dc01b1b85d7cf"
+  },
+  {
+    "file": "eyes-1-narrow.png",
+    "source": "materials/portraits/generated-features/Kobold.mesh/eyes-1-narrow.png",
+    "source_sha256": "00a6d48081546ab5a42c5d8aadc144e5943fababd7b529548b35fbfa20b86b8d",
+    "source_bounds": [
+      233,
+      190,
+      1546,
+      720
+    ],
+    "rect": [
+      255,
+      430,
+      335,
+      145
+    ],
+    "scale": 0.24295506473724296,
+    "vertical_scale": 0.24295506473724296,
+    "offset": [
+      -48.60853008377761,
+      -38.04455445544554
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "b28f2e677105b61d4943b837e77013f7e37d2452cf6f57d2339dc01b1b85d7cf"
+  },
+  {
+    "file": "eyes-2-round.png",
+    "source": "materials/portraits/generated-features/Kobold.mesh/eyes-2-round.png",
+    "source_sha256": "37c2bc04bbe2c30648fa43e1b668b72dd5b7f8c2255738116a531b76bb5f7de8",
+    "source_bounds": [
+      180,
+      166,
+      1595,
+      745
+    ],
+    "rect": [
+      255,
+      430,
+      335,
+      145
+    ],
+    "scale": 0.22279792746113988,
+    "vertical_scale": 0.22279792746113988,
+    "offset": [
+      -30.233160621761655,
+      -28.98445595854922
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "b28f2e677105b61d4943b837e77013f7e37d2452cf6f57d2339dc01b1b85d7cf"
+  },
+  {
+    "file": "eyes-3-eyepatch.png",
+    "source": "materials/portraits/generated-features/Kobold.mesh/eyes-3-eyepatch.png",
+    "source_sha256": "65a1cf64a0822facf0839d897c4a85f32ea739afd94d987e1a5badf5d04196b4",
+    "source_bounds": [
+      201,
+      161,
+      1600,
+      733
+    ],
+    "rect": [
+      255,
+      430,
+      335,
+      145
+    ],
+    "scale": 0.22552447552447552,
+    "vertical_scale": 0.22552447552447552,
+    "offset": [
+      -35.58479020979022,
+      -28.30944055944056
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "b28f2e677105b61d4943b837e77013f7e37d2452cf6f57d2339dc01b1b85d7cf"
+  },
+  {
+    "file": "nose-1-crooked.png",
+    "source": "materials/portraits/generated-features/Kobold.mesh/nose-1-crooked.png",
+    "source_sha256": "cace8a4bbbac981ee47da82f53c152bdd4b60a49eef6b7ce579ee7d446a32cfa",
+    "source_bounds": [
+      239,
+      84,
+      1165,
+      1044
+    ],
+    "rect": [
+      425,
+      500,
+      150,
+      170
+    ],
+    "scale": 0.1447084233261339,
+    "vertical_scale": 0.1447084233261339,
+    "offset": [
+      -26.585313174946002,
+      3.384449244060475
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "b28f2e677105b61d4943b837e77013f7e37d2452cf6f57d2339dc01b1b85d7cf"
+  },
+  {
+    "file": "nose-2-broad.png",
+    "source": "materials/portraits/generated-features/Kobold.mesh/nose-2-broad.png",
+    "source_sha256": "4f51df5d834992beb76f90ec1b1b1c4ea04d3b23a68a96ee8fdcc3b5d8d8590c",
+    "source_bounds": [
+      381,
+      110,
+      1154,
+      869
+    ],
+    "rect": [
+      425,
+      500,
+      150,
+      170
+    ],
+    "scale": 0.17335058214747737,
+    "vertical_scale": 0.17335058214747737,
+    "offset": [
+      -58.04657179818888,
+      0.14489003880983375
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "b28f2e677105b61d4943b837e77013f7e37d2452cf6f57d2339dc01b1b85d7cf"
+  },
+  {
+    "file": "mouth-1-teeth.png",
+    "source": "materials/portraits/generated-features/Kobold.mesh/mouth-1-teeth.png",
+    "source_sha256": "ec81f396880c97190bb641b0b9a0691960313cf8a2dc96dc25835b38d9e2f3ea",
+    "source_bounds": [
+      87,
+      188,
+      1454,
+      847
+    ],
+    "rect": [
+      315,
+      635,
+      295,
+      110
+    ],
+    "scale": 0.1426403641881639,
+    "vertical_scale": 0.1426403641881639,
+    "offset": [
+      37.59559939301972,
+      -18.81638846737481
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "b28f2e677105b61d4943b837e77013f7e37d2452cf6f57d2339dc01b1b85d7cf"
+  },
+  {
+    "file": "mouth-2-grin.png",
+    "source": "materials/portraits/generated-features/Kobold.mesh/mouth-2-grin.png",
+    "source_sha256": "66184a4b47f0bd117a82246973409a3550f85434287ad6834389b503a0db091b",
+    "source_bounds": [
+      252,
+      148,
+      1519,
+      745
+    ],
+    "rect": [
+      315,
+      635,
+      295,
+      110
+    ],
+    "scale": 0.1574539363484087,
+    "vertical_scale": 0.1574539363484087,
+    "offset": [
+      8.074539363484085,
+      -15.303182579564488
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "b28f2e677105b61d4943b837e77013f7e37d2452cf6f57d2339dc01b1b85d7cf"
+  },
+  {
+    "file": "mouth-3-cigar.png",
+    "source": "materials/portraits/generated-features/Kobold.mesh/mouth-3-cigar.png",
+    "source_sha256": "6fc4356ccaac6820a58cc1716e4c975db8f520806e115d3959558c98766f1f84",
+    "source_bounds": [
+      138,
+      107,
+      1677,
+      769
+    ],
+    "rect": [
+      315,
+      635,
+      295,
+      110
+    ],
+    "scale": 0.1419939577039275,
+    "vertical_scale": 0.1419939577039275,
+    "offset": [
+      18.64048338368579,
+      -7.193353474320251
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "b28f2e677105b61d4943b837e77013f7e37d2452cf6f57d2339dc01b1b85d7cf"
+  },
+  {
+    "file": "chin-1-forked.png",
+    "source": "materials/portraits/generated-features/Kobold.mesh/chin-1-forked.png",
+    "source_sha256": "03b4781089b8c0fcb4ee1a6cabcc481d9cf6eaeea17c29eb8c04badeb559e8c9",
+    "source_bounds": [
+      213,
+      65,
+      1261,
+      1013
+    ],
+    "rect": [
+      315,
+      705,
+      295,
+      170
+    ],
+    "scale": 0.16244725738396623,
+    "vertical_scale": 0.16244725738396623,
+    "offset": [
+      27.776371308016877,
+      -2.5590717299578056
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "b28f2e677105b61d4943b837e77013f7e37d2452cf6f57d2339dc01b1b85d7cf"
+  },
+  {
+    "file": "chin-2-braided.png",
+    "source": "materials/portraits/generated-features/Kobold.mesh/chin-2-braided.png",
+    "source_sha256": "e1e9063f402d23df27904929dfdff51f70f7ba59bb6003f9f56e9384b0ee57a8",
+    "source_bounds": [
+      261,
+      63,
+      1287,
+      908
+    ],
+    "rect": [
+      315,
+      705,
+      295,
+      170
+    ],
+    "scale": 0.18224852071005918,
+    "vertical_scale": 0.18224852071005918,
+    "offset": [
+      6.439644970414193,
+      -3.4816568047337277
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "b28f2e677105b61d4943b837e77013f7e37d2452cf6f57d2339dc01b1b85d7cf"
+  },
+  {
+    "file": "scar-1-diagonal.png",
+    "source": "materials/portraits/generated-features/Kobold.mesh/scar-1-diagonal.png",
+    "source_sha256": "8d9e14bad26c76b6a82c109cf058f678fc09a1d88ce1c6edf1a712d19d0902e7",
+    "source_bounds": [
+      325,
+      66,
+      1226,
+      972
+    ],
+    "rect": [
+      265,
+      525,
+      200,
+      150
+    ],
+    "scale": 0.1479028697571744,
+    "vertical_scale": 0.1479028697571744,
+    "offset": [
+      -14.69867549668875,
+      -1.7615894039735096
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": "union of all hair and ear alpha",
+    "source_mask_polygon": null,
+    "base_sha256": "b28f2e677105b61d4943b837e77013f7e37d2452cf6f57d2339dc01b1b85d7cf"
+  },
+  {
+    "file": "scar-2-scratches.png",
+    "source": "materials/portraits/generated-features/Kobold.mesh/scar-2-scratches.png",
+    "source_sha256": "fc64477db5c5e19f7ebb93299975434476fdaf2fa787245cd7782c6e71075987",
+    "source_bounds": [
+      417,
+      158,
+      1199,
+      909
+    ],
+    "rect": [
+      265,
+      525,
+      200,
+      150
+    ],
+    "scale": 0.17842876165113183,
+    "vertical_scale": 0.17842876165113183,
+    "offset": [
+      -44.17043941411451,
+      -20.19174434087883
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": "union of all hair and ear alpha",
+    "source_mask_polygon": null,
+    "base_sha256": "b28f2e677105b61d4943b837e77013f7e37d2452cf6f57d2339dc01b1b85d7cf"
+  },
+  {
+    "file": "scar-3-warpaint.png",
+    "source": "materials/portraits/generated-features/Kobold.mesh/scar-3-warpaint.png",
+    "source_sha256": "3260333c07e3e173b83afb35635c75c21300e06f48a739c3be527f940c7e08f3",
+    "source_bounds": [
+      383,
+      179,
+      1300,
+      888
+    ],
+    "rect": [
+      265,
+      525,
+      200,
+      150
+    ],
+    "scale": 0.18899858956276447,
+    "vertical_scale": 0.18899858956276447,
+    "offset": [
+      -59.0423131170663,
+      -25.830747531734843
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": "union of all hair and ear alpha",
+    "source_mask_polygon": null,
+    "base_sha256": "b28f2e677105b61d4943b837e77013f7e37d2452cf6f57d2339dc01b1b85d7cf"
+  },
+  {
+    "file": "neck-1-teeth.png",
+    "source": "materials/portraits/generated-features/Kobold.mesh/neck-1-teeth.png",
+    "source_sha256": "0ea5d81e9638c014390b469cf3e98e8adf24c6475f16c7652938f7fc5ff2b27a",
+    "source_bounds": [
+      81,
+      93,
+      1338,
+      1016
+    ],
+    "rect": [
+      275,
+      740,
+      340,
+      250
+    ],
+    "scale": 0.2535211267605634,
+    "vertical_scale": 0.2535211267605634,
+    "offset": [
+      -9.873239436619713,
+      -15.577464788732392
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "b28f2e677105b61d4943b837e77013f7e37d2452cf6f57d2339dc01b1b85d7cf"
+  },
+  {
+    "file": "neck-2-torque.png",
+    "source": "materials/portraits/generated-features/Kobold.mesh/neck-2-torque.png",
+    "source_sha256": "ea63479930a62f203116b9c4c94a9d816b2a789a64d680709c6a623cce642308",
+    "source_bounds": [
+      72,
+      49,
+      1702,
+      843
+    ],
+    "rect": [
+      275,
+      740,
+      340,
+      250
+    ],
+    "scale": 0.19877300613496932,
+    "vertical_scale": 0.19877300613496932,
+    "offset": [
+      -6.3116564417177905,
+      36.34723926380369
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "b28f2e677105b61d4943b837e77013f7e37d2452cf6f57d2339dc01b1b85d7cf"
+  },
+  {
+    "id": "Kobold.mesh",
+    "n": 1,
+    "name": "patched",
+    "build": 0,
+    "file": "outfit-1-patched-build0.png",
+    "source": "materials/portraits/generated-outfits/Kobold.mesh/outfit-1-patched.png",
+    "source_sha256": "2b6dfc1cfd4de57dbccb7f3a98957b3b99ff6638eafe3164dacf146e1da4ec56",
+    "source_size": [
+      887,
+      1774
+    ],
+    "canvas_registration": "canonical canvas",
+    "body_span_fit": "continuous outer sleeve sector extensions clipped to uncovered body",
+    "bottom_rows_repeated": 0,
+    "horizontal_scale": 1.1,
+    "vertical_scale": 1.1,
+    "offset": [
+      -44.35000000000004,
+      -72.00000000000006
+    ],
+    "mesh_warp": null,
+    "torso_margin": 1.1111111111111112,
+    "sleeve_warp": null,
+    "head_occlusion": {
+      "measured_head_polygon": [
+        [
+          180,
+          150
+        ],
+        [
+          670,
+          150
+        ],
+        [
+          670,
+          680
+        ],
+        [
+          595,
+          805
+        ],
+        [
+          510,
+          845
+        ],
+        [
+          335,
+          795
+        ],
+        [
+          245,
+          665
+        ],
+        [
+          175,
+          400
+        ]
+      ]
+    },
+    "native_uncovered_body_pixels": 1705,
+    "coarse_uncovered_body_pixels": 103,
+    "coarse_body_pixels": 6825,
+    "visual_acceptance": "accepted-native-and-50x100",
+    "prompt": "Generate ONE new isolated empty Kobold clothing part registered to the attached neutral game-dummy base, EXACT887x1774 canvas, preserve transparent blank space above clothing. Match its slight three-quarter pose, lean narrow shoulders, lowered arms, coarse purple-family fantasy painting and upper-left light. Outfit: modest patched dark brown sack-cloth tunic with a simple worn leather sleeveless vest, plain cord waist belt, full long sleeves and simple cloth wrist cuffs; no skin exposed on torso or visible arms. Collar at y850-940, shoulder caps y950-1050; torso covers x180-760 down through bottom1774; left sleeve follows left arm downward toward x0 at bottom; right sleeve follows arm at right edge downward. Cover the reference torso/shoulder/arm silhouette with small coverage margin. This is an empty garment for a purple Kobold dummy, not a body or character portrait. ONLY clothing on real RGBA transparency: no head, neck skin, face, dummy, body, hair, ears, jewelry, weapon, letters, symbols, equipment, backdrop or checkerboard; no tight crop, preserve entire reference canvas. Painterly muted brown fabrics and leather, not photorealistic.",
+    "rect": [
+      0,
+      0,
+      887,
+      1774
+    ],
+    "base_sha256": "b28f2e677105b61d4943b837e77013f7e37d2452cf6f57d2339dc01b1b85d7cf"
+  }
+]

@@ -1,0 +1,35 @@
+[
+  {
+    "id": "Defender.mesh-female",
+    "n": 1,
+    "name": "padded",
+    "build": 0,
+    "file": "outfit-1-padded-build0.png",
+    "source": "materials/portraits/generated-outfits/Defender.mesh-female/outfit-1-padded.png",
+    "source_sha256": "43f549105122dbcc8777bb97ac8b6ad3f2d218b786a4a2d34f3e93bdab73c45f",
+    "source_size": [
+      887,
+      1774
+    ],
+    "canvas_registration": "canonical canvas",
+    "body_span_fit": "continuous outer sleeve sector extensions clipped to uncovered body",
+    "bottom_rows_repeated": 0,
+    "horizontal_scale": 1.15,
+    "vertical_scale": 1.1,
+    "offset": [
+      -66.52499999999996,
+      -72.00000000000006
+    ],
+    "mesh_warp": null,
+    "torso_margin": 1.1111111111111112,
+    "sleeve_warp": null,
+    "head_occlusion": {
+      "warm_neutral_skin_above_row": 780
+    },
+    "native_uncovered_body_pixels": 174,
+    "coarse_uncovered_body_pixels": 49,
+    "coarse_body_pixels": 7638,
+    "visual_acceptance": "accepted-native-and-50x100",
+    "prompt": "Create ONE separate EMPTY Defender clothing overlay fitted to the attached neutral dummy. Use its actual camera angle: three-quarter head and torso turned toward viewer LEFT, not mirrored. Exact887x1774 transparentRGBA canvas. Plain worn dark iron-grey padded defensive coat with leather shoulder reinforcements, long sleeves, leather waist belt and cuffs, no emblems or weapons. Collar around y790-900, shoulder line y850-1030, broad chest x20-880 at y1100, waist belt y1490-1600; lowered arms follow exact reference to bottom corners. Cover all visible shoulders, chest, torso and arms with contour fitting margin and continue beyond lower crop. Coarse warm fantasy painted brushwork, upper-left lighting matching reference. Empty garments only; no body, dummy, skin, head, face, ears, eyes, nose, hair, beard, helmet, necklace, tools, text, symbols, background or modern objects. Preserve upper blank canvas, no recentering or tight cropping."
+  }
+]

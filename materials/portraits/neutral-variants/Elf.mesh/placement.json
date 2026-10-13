@@ -1,0 +1,630 @@
+[
+  {
+    "file": "build-1-slim.png",
+    "source": "materials/portraits/generated-features/Elf.mesh/build-1-slim.png",
+    "source_sha256": "84b3148741dac5f90a4615704d4f81ab0bf547acef5ac4db88e77fdd5dff398d",
+    "source_bounds": [
+      44,
+      93,
+      1413,
+      1050
+    ],
+    "rect": [
+      0,
+      880,
+      887,
+      894
+    ],
+    "scale": 0.647918188458729,
+    "vertical_scale": 0.96760710553814,
+    "offset": [
+      -28.508400292184074,
+      -89.98746081504702
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "9ccc03f8fa06a91727a734a6a2e32d640fa9c4a47151e0b9a3e212213bfcdf16"
+  },
+  {
+    "file": "build-2-sturdy.png",
+    "source": "materials/portraits/generated-features/Elf.mesh/build-2-sturdy.png",
+    "source_sha256": "c9a4f20d5158e0571a77a950d7c7146e2be68d465e36b4bbbce04210a1c3eccb",
+    "source_bounds": [
+      4,
+      210,
+      1216,
+      1204
+    ],
+    "rect": [
+      0,
+      880,
+      887,
+      894
+    ],
+    "scale": 0.7318481848184818,
+    "vertical_scale": 0.93158953722334,
+    "offset": [
+      -2.927392739273927,
+      -195.6338028169014
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "9ccc03f8fa06a91727a734a6a2e32d640fa9c4a47151e0b9a3e212213bfcdf16"
+  },
+  {
+    "file": "hair-1-swept.png",
+    "source": "materials/portraits/generated-features/Elf.mesh/hair-1-swept.png",
+    "source_sha256": "913d712cc46c160afb449e3b50320ea84a017139592709909d817684dec64b20",
+    "source_bounds": [
+      49,
+      35,
+      1178,
+      1288
+    ],
+    "rect": [
+      140,
+      220,
+      630,
+      1050
+    ],
+    "scale": 0.5438441098317095,
+    "vertical_scale": 0.5438441098317095,
+    "offset": [
+      -18.648361381753766,
+      -11.034543844109834
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "9ccc03f8fa06a91727a734a6a2e32d640fa9c4a47151e0b9a3e212213bfcdf16"
+  },
+  {
+    "file": "hair-2-waves.png",
+    "source": "materials/portraits/generated-features/Elf.mesh/hair-2-waves.png",
+    "source_sha256": "90551992a85ad8423d75b53e18f08623fe4ac01bf523fa2df6bb55a113217d2f",
+    "source_bounds": [
+      34,
+      34,
+      1182,
+      1278
+    ],
+    "rect": [
+      140,
+      220,
+      630,
+      1050
+    ],
+    "scale": 0.5348432055749129,
+    "vertical_scale": 0.5348432055749129,
+    "offset": [
+      -10.184668989547038,
+      -10.184668989547038
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "9ccc03f8fa06a91727a734a6a2e32d640fa9c4a47151e0b9a3e212213bfcdf16"
+  },
+  {
+    "file": "ears-1-notched.png",
+    "source": "materials/portraits/generated-features/Elf.mesh/ears-1-notched.png",
+    "source_sha256": "c43623260108f4a0bef1caeb62198018fb3ebd70889e17eb0ceeafedbc43d192",
+    "source_bounds": [
+      117,
+      88,
+      1022,
+      1186
+    ],
+    "rect": [
+      100,
+      500,
+      230,
+      320
+    ],
+    "scale": 0.23646408839779007,
+    "vertical_scale": 0.23646408839779007,
+    "offset": [
+      -19.666298342541438,
+      9.372375690607722
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "9ccc03f8fa06a91727a734a6a2e32d640fa9c4a47151e0b9a3e212213bfcdf16"
+  },
+  {
+    "file": "ears-2-rounder.png",
+    "source": "materials/portraits/generated-features/Elf.mesh/ears-2-rounder.png",
+    "source_sha256": "be2fd5bce461f74dc7deb59688cf23809907df4f22c3e5febeb495b2510e6519",
+    "source_bounds": [
+      230,
+      238,
+      880,
+      1073
+    ],
+    "rect": [
+      100,
+      500,
+      230,
+      320
+    ],
+    "scale": 0.3292307692307692,
+    "vertical_scale": 0.3292307692307692,
+    "offset": [
+      -67.72307692307692,
+      -55.81076923076921
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "9ccc03f8fa06a91727a734a6a2e32d640fa9c4a47151e0b9a3e212213bfcdf16"
+  },
+  {
+    "file": "eyes-1-narrow.png",
+    "source": "materials/portraits/generated-features/Elf.mesh/eyes-1-narrow.png",
+    "source_sha256": "8a9991e2dc5ccca1deadf2358001562057e21cd986dceb5876b594a175ba0c30",
+    "source_bounds": [
+      321,
+      92,
+      1851,
+      667
+    ],
+    "rect": [
+      310,
+      535,
+      335,
+      160
+    ],
+    "scale": 0.2084967320261438,
+    "vertical_scale": 0.2084967320261438,
+    "offset": [
+      -58.927450980392166,
+      0.8754901960784274
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "9ccc03f8fa06a91727a734a6a2e32d640fa9c4a47151e0b9a3e212213bfcdf16"
+  },
+  {
+    "file": "eyes-2-round.png",
+    "source": "materials/portraits/generated-features/Elf.mesh/eyes-2-round.png",
+    "source_sha256": "32925a507e3d342e61b46e9fd6d7e6d3f2910b84d7ce67c5758886f0e5844eb0",
+    "source_bounds": [
+      279,
+      205,
+      1487,
+      716
+    ],
+    "rect": [
+      310,
+      535,
+      335,
+      160
+    ],
+    "scale": 0.2640728476821192,
+    "vertical_scale": 0.2640728476821192,
+    "offset": [
+      -65.67632450331125,
+      -41.60554635761589
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "9ccc03f8fa06a91727a734a6a2e32d640fa9c4a47151e0b9a3e212213bfcdf16"
+  },
+  {
+    "file": "eyes-3-eyepatch.png",
+    "source": "materials/portraits/generated-features/Elf.mesh/eyes-3-eyepatch.png",
+    "source_sha256": "b5b08f4e5c85f55b34e618b0686980d87b68b0955c94e5e865465c28c6911cc1",
+    "source_bounds": [
+      73,
+      161,
+      1701,
+      733
+    ],
+    "rect": [
+      310,
+      535,
+      335,
+      160
+    ],
+    "scale": 0.19594594594594594,
+    "vertical_scale": 0.19594594594594594,
+    "offset": [
+      -6.304054054054054,
+      -7.587837837837839
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "9ccc03f8fa06a91727a734a6a2e32d640fa9c4a47151e0b9a3e212213bfcdf16"
+  },
+  {
+    "file": "nose-1-crooked.png",
+    "source": "materials/portraits/generated-features/Elf.mesh/nose-1-crooked.png",
+    "source_sha256": "c7a30f49d4b005ff6bd99892a2175d69344a4d907cb4f74009d881c6fbcf9475",
+    "source_bounds": [
+      395,
+      146,
+      1002,
+      1024
+    ],
+    "rect": [
+      435,
+      650,
+      170,
+      180
+    ],
+    "scale": 0.1867881548974943,
+    "vertical_scale": 0.1867881548974943,
+    "offset": [
+      -45.47152619589977,
+      -19.27107061503417
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "9ccc03f8fa06a91727a734a6a2e32d640fa9c4a47151e0b9a3e212213bfcdf16"
+  },
+  {
+    "file": "nose-2-broad.png",
+    "source": "materials/portraits/generated-features/Elf.mesh/nose-2-broad.png",
+    "source_sha256": "0f0b4cc810838d2fbc57d2b3574a287c7c66a57ddc6e15b03b1dc06d2e7b0b93",
+    "source_bounds": [
+      510,
+      157,
+      1052,
+      876
+    ],
+    "rect": [
+      435,
+      650,
+      170,
+      180
+    ],
+    "scale": 0.22809457579972184,
+    "vertical_scale": 0.22809457579972184,
+    "offset": [
+      -93.14186369958276,
+      -27.81084840055633
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "9ccc03f8fa06a91727a734a6a2e32d640fa9c4a47151e0b9a3e212213bfcdf16"
+  },
+  {
+    "file": "mouth-1-teeth.png",
+    "source": "materials/portraits/generated-features/Elf.mesh/mouth-1-teeth.png",
+    "source_sha256": "6051025f95c9010e0024572d1b47eb1ab8422685c21226500f20887cd93ec4ca",
+    "source_bounds": [
+      349,
+      144,
+      1423,
+      734
+    ],
+    "rect": [
+      355,
+      800,
+      285,
+      125
+    ],
+    "scale": 0.1847457627118644,
+    "vertical_scale": 0.1847457627118644,
+    "offset": [
+      -21.18474576271187,
+      -18.603389830508476
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "9ccc03f8fa06a91727a734a6a2e32d640fa9c4a47151e0b9a3e212213bfcdf16"
+  },
+  {
+    "file": "mouth-2-grin.png",
+    "source": "materials/portraits/generated-features/Elf.mesh/mouth-2-grin.png",
+    "source_sha256": "98a4d1519fecdb0e92aef6ef8a92731d24a8920aa5b3f22fa9f2a8a5c33104b4",
+    "source_bounds": [
+      252,
+      163,
+      1555,
+      747
+    ],
+    "rect": [
+      355,
+      800,
+      285,
+      125
+    ],
+    "scale": 0.18664383561643835,
+    "vertical_scale": 0.18664383561643835,
+    "offset": [
+      -26.132705479452056,
+      -22.42294520547945
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "9ccc03f8fa06a91727a734a6a2e32d640fa9c4a47151e0b9a3e212213bfcdf16"
+  },
+  {
+    "file": "mouth-3-cigar.png",
+    "source": "materials/portraits/generated-features/Elf.mesh/mouth-3-cigar.png",
+    "source_sha256": "0a33972b57e20c23054e2efbf2a58a1ba9b907dd3c4fe0b17d59ae88da0e4ede",
+    "source_bounds": [
+      279,
+      173,
+      1524,
+      694
+    ],
+    "rect": [
+      355,
+      800,
+      285,
+      125
+    ],
+    "scale": 0.2092130518234165,
+    "vertical_scale": 0.2092130518234165,
+    "offset": [
+      -46.10556621880999,
+      -28.19385796545106
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "9ccc03f8fa06a91727a734a6a2e32d640fa9c4a47151e0b9a3e212213bfcdf16"
+  },
+  {
+    "file": "chin-1-square.png",
+    "source": "materials/portraits/generated-features/Elf.mesh/chin-1-square.png",
+    "source_sha256": "1c8f4902326b1b16bc8f9f1581e1c1475d59acf0926cfa1a2e6a910d8bb2e912",
+    "source_bounds": [
+      115,
+      169,
+      1417,
+      812
+    ],
+    "rect": [
+      350,
+      825,
+      285,
+      145
+    ],
+    "scale": 0.2006220839813375,
+    "vertical_scale": 0.2006220839813375,
+    "offset": [
+      -11.176516329704505,
+      -25.905132192846033
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "9ccc03f8fa06a91727a734a6a2e32d640fa9c4a47151e0b9a3e212213bfcdf16"
+  },
+  {
+    "file": "chin-2-rounded.png",
+    "source": "materials/portraits/generated-features/Elf.mesh/chin-2-rounded.png",
+    "source_sha256": "342fcbc9f69ab81595b2bf21ed0ca01ad94321ae76f87a2f82c09dc7a03619cb",
+    "source_bounds": [
+      91,
+      211,
+      1467,
+      767
+    ],
+    "rect": [
+      350,
+      825,
+      285,
+      145
+    ],
+    "scale": 0.19549418604651161,
+    "vertical_scale": 0.19549418604651161,
+    "offset": [
+      -9.789970930232556,
+      -23.096656976744185
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "9ccc03f8fa06a91727a734a6a2e32d640fa9c4a47151e0b9a3e212213bfcdf16"
+  },
+  {
+    "file": "scar-1-diagonal.png",
+    "source": "materials/portraits/generated-features/Elf.mesh/scar-1-diagonal.png",
+    "source_sha256": "b6240f754b4268708272f742d762b490d98173ced468b259d62d7cdba9de2890",
+    "source_bounds": [
+      17,
+      29,
+      1224,
+      1242
+    ],
+    "rect": [
+      295,
+      665,
+      180,
+      155
+    ],
+    "scale": 0.1145919208573784,
+    "vertical_scale": 0.1145919208573784,
+    "offset": [
+      18.895713107996702,
+      4.676834295136026
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": "union of all hair and ear alpha",
+    "source_mask_polygon": null,
+    "base_sha256": "9ccc03f8fa06a91727a734a6a2e32d640fa9c4a47151e0b9a3e212213bfcdf16"
+  },
+  {
+    "file": "scar-2-scratches.png",
+    "source": "materials/portraits/generated-features/Elf.mesh/scar-2-scratches.png",
+    "source_sha256": "76aaccf454cfde2e659f42ce18fd2d77396133a564eed527de7c69add73ef7cb",
+    "source_bounds": [
+      293,
+      232,
+      911,
+      1129
+    ],
+    "rect": [
+      295,
+      665,
+      180,
+      155
+    ],
+    "scale": 0.15496098104793757,
+    "vertical_scale": 0.15496098104793757,
+    "offset": [
+      -3.28651059085842,
+      -27.950947603121513
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": "union of all hair and ear alpha",
+    "source_mask_polygon": null,
+    "base_sha256": "9ccc03f8fa06a91727a734a6a2e32d640fa9c4a47151e0b9a3e212213bfcdf16"
+  },
+  {
+    "file": "scar-3-warpaint.png",
+    "source": "materials/portraits/generated-features/Elf.mesh/scar-3-warpaint.png",
+    "source_sha256": "acb37e138a4e91083bb09e74dda716bea8c77d0d7af16e1581be74db4612c5d6",
+    "source_bounds": [
+      58,
+      152,
+      1164,
+      1172
+    ],
+    "rect": [
+      295,
+      665,
+      180,
+      155
+    ],
+    "scale": 0.13627450980392156,
+    "vertical_scale": 0.13627450980392156,
+    "offset": [
+      6.7362745098039225,
+      -12.713725490196076
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": "union of all hair and ear alpha",
+    "source_mask_polygon": null,
+    "base_sha256": "9ccc03f8fa06a91727a734a6a2e32d640fa9c4a47151e0b9a3e212213bfcdf16"
+  },
+  {
+    "file": "neck-1-teeth.png",
+    "source": "materials/portraits/generated-features/Elf.mesh/neck-1-teeth.png",
+    "source_sha256": "115dc0c21cff5c4d8e1041bffa443877f9ec970780c94a6d352c91c40e32cf33",
+    "source_bounds": [
+      62,
+      83,
+      1471,
+      945
+    ],
+    "rect": [
+      265,
+      1040,
+      390,
+      270
+    ],
+    "scale": 0.2654364797728886,
+    "vertical_scale": 0.2654364797728886,
+    "offset": [
+      -8.457061745919091,
+      -1.434350603264729
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "9ccc03f8fa06a91727a734a6a2e32d640fa9c4a47151e0b9a3e212213bfcdf16"
+  },
+  {
+    "file": "neck-2-torque.png",
+    "source": "materials/portraits/generated-features/Elf.mesh/neck-2-torque.png",
+    "source_sha256": "072fcdade543319afeaf6f90a4e6820edbdefd919fe4e06c23cf66d3efb434fd",
+    "source_bounds": [
+      102,
+      120,
+      1435,
+      916
+    ],
+    "rect": [
+      265,
+      1040,
+      390,
+      270
+    ],
+    "scale": 0.2805701425356339,
+    "vertical_scale": 0.2805701425356339,
+    "offset": [
+      -20.618154538634656,
+      -10.335333833458357
+    ],
+    "visual_acceptance": "accepted-native-and-50x100",
+    "source_lower_cutoff": null,
+    "static_foreground_avoidance": null,
+    "source_mask_polygon": null,
+    "base_sha256": "9ccc03f8fa06a91727a734a6a2e32d640fa9c4a47151e0b9a3e212213bfcdf16"
+  },
+  {
+    "id": "Elf.mesh",
+    "n": 1,
+    "name": "tunic",
+    "build": 0,
+    "file": "outfit-1-tunic-build0.png",
+    "source": "materials/portraits/generated-outfits/Elf.mesh/outfit-1-tunic.png",
+    "source_sha256": "3ecc2bd5d678fab21d682e996cdcea19034b4f44bca3f2750a1db0bd8a48475e",
+    "source_size": [
+      887,
+      1774
+    ],
+    "canvas_registration": "canonical canvas",
+    "body_span_fit": "continuous outer sleeve sector extensions clipped to uncovered body",
+    "bottom_rows_repeated": 0,
+    "horizontal_scale": 1.075,
+    "vertical_scale": 1.1,
+    "offset": [
+      -33.26249999999998,
+      -72.00000000000006
+    ],
+    "mesh_warp": null,
+    "torso_margin": 1.1111111111111112,
+    "sleeve_warp": null,
+    "head_occlusion": {
+      "warm_neutral_skin_above_row": 975
+    },
+    "native_uncovered_body_pixels": 13166,
+    "coarse_uncovered_body_pixels": 484,
+    "coarse_body_pixels": 6433,
+    "visual_acceptance": "accepted-native-and-50x100",
+    "prompt": "Create ONE isolated EMPTY Elf outfit overlay, exact887x1774 transparentRGBA canvas, registered to attached neutral dummy reference for geometry only. Plain muted forest-green long-sleeved tunic with dark brown leather shoulder panels and waist belt, no insignia or ornaments. Preserve slender torso, lowered arms, slight three-quarter pose and warm upper-left painted lighting. Collar y980-1120, shoulders y1030-1200, chest x40-850 y1350, waist belt y1570. Cover entire shoulder, torso and visible arms with slight fitting margin to outer contours, continue past bottom frame edge. Coarse fantasy painted brushwork matching reference. EMPTY GARMENTS ONLY, no body, dummy, skin, face, head, eyes, nose, ears, hair, beard, helmet, necklace, bow, weapon, tools, writing, symbols, modern items or background. Keep large upper canvas above collar transparent, no recentering or tight crop.",
+    "rect": [
+      0,
+      0,
+      887,
+      1774
+    ],
+    "base_sha256": "9ccc03f8fa06a91727a734a6a2e32d640fa9c4a47151e0b9a3e212213bfcdf16"
+  }
+]

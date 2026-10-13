@@ -1,0 +1,33 @@
+[
+  {
+    "id": "Knight.mesh-female",
+    "n": 1,
+    "name": "plate",
+    "build": 0,
+    "file": "outfit-1-plate-build0.png",
+    "source": "materials/portraits/generated-outfits/Knight.mesh-female/outfit-1-plate-corrected.png",
+    "source_sha256": "9e1c9a03e8942fba0b7a4b51d92807519b7499e728abd94a0ec8b6c7966ed7a9",
+    "source_size": [
+      887,
+      1774
+    ],
+    "canvas_registration": "canonical canvas",
+    "body_span_fit": null,
+    "bottom_rows_repeated": 0,
+    "horizontal_scale": 1.125,
+    "vertical_scale": 1.02,
+    "offset": [
+      -55.4375,
+      -14.400000000000013
+    ],
+    "mesh_warp": null,
+    "torso_margin": 1.1111111111111112,
+    "sleeve_warp": "row-wise sleeve width registered to neutral forearm bounds, outer 220-pixel sectors, rows 1050-1599",
+    "head_occlusion": "mandatory helmet covers collar",
+    "native_uncovered_body_pixels": 572,
+    "coarse_uncovered_body_pixels": 43,
+    "coarse_body_pixels": 8344,
+    "visual_acceptance": "accepted-native-and-50x100",
+    "prompt": "Create one isolated empty suit of dark blue-gray plate armor for a Knight, using the attached neutral nonsexual mannequin only as exact pose, perspective, painted-style and lighting reference. Output canvas MUST887x1774 with all upper empty space retained. Collar y620-700, shoulder pauldrons y720-800, torso chest x130-750 at y950, belt at y1300-1380, bent arms go beyond left/right edges near y1150 and forearms return near y1250, leather gauntlets at hips around x150/y1450 and x750/y1450. Cover the entire visible shoulders, torso, arms and hands with small contour margin; continue through bottom crop. Simple iron cuirass over muted burgundy padded long sleeves and a plain brown waist belt. Painted dark fantasy brushwork, upper-left light and matching palette. Output ONLY empty armor/clothing, transparent RGBA: no dummy/person/body/head/neck skin, face, hair, helmet, jewelry, weapons, symbols, writing, modern objects or background; no full portrait or product crop.\n\nCorrection prompt: Edit ONLY the new empty plate-armor clothing overlay shown in image1; image2 is the neutral game dummy registration reference, do not alter or output the dummy. Preserve 887x1774 canvas, cuirass, metal style, collar, light, wide shoulders and blank transparent top. Correct the sleeve fit: the dummy's visible forearms fill the lower left and right wedges at y1250-1550, but image1 leaves exposed dummy forearms because its underarm holes are too large. Extend the existing burgundy padded elbow sleeves and leather/metal gauntlets so the entire dummy arm silhouette is covered, including x0-180 at y1250-1500 and x700-886 at y1250-1500, with a small coverage margin. Keep hands-at-hips bend and central torso width unchanged, do not introduce a second pair of arms. Replace the oversized empty triangular spaces beside the waist with naturally folded burgundy elbow sleeve cloth where the dummy arms are located. Preserve transparency wherever the reference background remains outside the body. Clothing continues through bottom frame. Output only empty clothes/armor with no body, head, skin, person, mannequin, helmet, jewelry, weapons, symbols, text or backdrop. EXACT887x1774 transparent RGBA overlay."
+  }
+]

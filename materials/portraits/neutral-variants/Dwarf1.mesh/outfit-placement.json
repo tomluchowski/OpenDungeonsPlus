@@ -1,0 +1,35 @@
+[
+  {
+    "id": "Dwarf1.mesh",
+    "n": 1,
+    "name": "apron",
+    "build": 0,
+    "file": "outfit-1-apron-build0.png",
+    "source": "materials/portraits/generated-outfits/Dwarf1.mesh/outfit-1-apron.png",
+    "source_sha256": "e4df9cc2c4c7db5d48a0f033e3e2510255610212fc14a13b8513e87f289c2be3",
+    "source_size": [
+      887,
+      1774
+    ],
+    "canvas_registration": "canonical canvas",
+    "body_span_fit": "continuous outer sleeve sector extensions clipped to uncovered body",
+    "bottom_rows_repeated": 0,
+    "horizontal_scale": 1.225,
+    "vertical_scale": 1.1,
+    "offset": [
+      -99.78750000000004,
+      -72.00000000000006
+    ],
+    "mesh_warp": null,
+    "torso_margin": 1.1111111111111112,
+    "sleeve_warp": null,
+    "head_occlusion": {
+      "warm_neutral_skin_above_row": 820
+    },
+    "native_uncovered_body_pixels": 1944,
+    "coarse_uncovered_body_pixels": 30,
+    "coarse_body_pixels": 8091,
+    "visual_acceptance": "accepted-native-and-50x100",
+    "prompt": "Create ONE new isolated empty Dwarf clothing overlay, using the attached neutral dummy as exact registration reference. EXACT887x1774 transparent RGBA canvas, same broad stout shoulders, barrel chest, lowered arms, slight three-quarter view, coarse orange-family fantasy brushwork and upper-left light. A worn dark brown leather work apron over a closed muted olive-brown long-sleeved padded shirt, broad plain waist belt, leather wrist cuffs; no tools or symbols. Collar around y850-950, shoulders y950-1080 with sides beyond both frame edges, chest broad from x50-840 at y1100, waist belt y1500-1600, all clothing continues beyond lower crop. Cover the entire visible torso, shoulders and arms with margin even for a slightly broader stout build. ONLY empty garment pieces, no body, dummy, head, skin, face, beard, hair, helmet, jewelry, weapon, writing, symbol, modern object or background. Preserve full canvas and upper blank space, no tightly cropped product view; hand-painted game part, no photorealism."
+  }
+]
