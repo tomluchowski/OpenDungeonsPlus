@@ -1,0 +1,35 @@
+[
+  {
+    "id": "Troll.mesh-female",
+    "n": 1,
+    "name": "leather",
+    "build": 0,
+    "file": "outfit-1-leather-build0.png",
+    "source": "materials/portraits/generated-outfits/Troll.mesh-female/outfit-1-leather.png",
+    "source_sha256": "a8adb3bce4df93a583daf4b9dc61fbf9cb50aa1298053795f259fa1eed51ae13",
+    "source_size": [
+      887,
+      1774
+    ],
+    "canvas_registration": "canonical canvas",
+    "body_span_fit": "continuous outer sleeve sector extensions clipped to uncovered body",
+    "bottom_rows_repeated": 0,
+    "horizontal_scale": 1.25,
+    "vertical_scale": 1.08,
+    "offset": [
+      -110.875,
+      -57.60000000000005
+    ],
+    "mesh_warp": null,
+    "torso_margin": 1.1111111111111112,
+    "sleeve_warp": null,
+    "head_occlusion": {
+      "warm_neutral_skin_above_row": 860
+    },
+    "native_uncovered_body_pixels": 15,
+    "coarse_uncovered_body_pixels": 11,
+    "coarse_body_pixels": 6840,
+    "visual_acceptance": "accepted-native-and-50x100",
+    "prompt": "Create ONE isolated EMPTY Troll outfit overlay registered exactly to the attached stone-grey neutral dummy reference. Exact887x1774 transparentRGBA full canvas, no body rendered. Plain rugged dark brown-grey heavy leather coat over padded long sleeves, thick plain waist belt, no emblems or tools. Follow the massive stocky torso and lowered thick arms, slight three-quarter angle and upper-left light; female reference turns toward viewer LEFT, male reference toward viewer RIGHT, match attached reference exactly. Collar y880-1030, huge shoulders y850-1080 across frame sides, chest fills x0-887 y1200, belt around y1500. Cover all visible shoulders, torso and arms with outer contour fitting margin, continue beyond side and bottom crop. Coarse painted fantasy style matching stone reference, not photography. EMPTY garments only, no dummy, body, stone skin, head, face, eyes, nose, ears, hair, beard, helmet, necklace, weapon, text, symbols, modern objects or background. Retain blank upper canvas and exact coordinates, no recenter or tight crop."
+  }
+]
