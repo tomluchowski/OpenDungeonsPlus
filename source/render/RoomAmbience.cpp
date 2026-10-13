@@ -92,6 +92,10 @@ const double TILE_OCCUPIED_MARGIN = 1.0;
 const float WALL_SIDE_SHIFT = 0.45f;
 //! Distance in tiles within which an effect belongs to a dungeon heart for its beat
 const double HEART_RATE_RADIUS = 3.0;
+//! Seconds that the own dungeon heart counts as hit after its health went down, for the effects "When Hit"
+const double HEART_HIT_SECONDS = 1.2;
+//! The mesh of the dungeon heart
+static const std::string HEART_MESH = "DungeonTempleObject";
 //! A creature has to gain at least this much health between two scans for a healing effect
 const double MIN_HEAL_AMOUNT = 0.5;
 //! Seconds between two healing effects of the same creature
@@ -323,7 +327,8 @@ RoomAmbience::RoomAmbience(GameMap* gameMap, const std::string& configPath) :
     mRandom(RANDOM_SEED),
     mGeneration(0),
     mEntitiesInitialized(false),
-    mCreaturesInitialized(false)
+    mCreaturesInitialized(false),
+    mLastHeartHP(-1.0)
 {
     reloadConfig();
 }
@@ -749,6 +754,7 @@ void RoomAmbience::stopAll()
     mKnownEntities.clear();
     mKnownCreatures.clear();
     mCreaturesInitialized = false;
+    mLastHeartHP = -1.0;
     mEntitiesInitialized = false;
     mScanTimer = 0.0;
     mHeartRates.clear();
@@ -812,6 +818,8 @@ void RoomAmbience::scan()
         }
     }
 
+    // Before the objects, so that the hit pulse of the heart starts in the same scan
+    scanHeartHit();
     scanObjects(camera, cameraPosition);
     scanTiles(camera, cameraPosition, lookPoint);
     scanEntityEvents(camera, cameraPosition);
@@ -1252,6 +1260,13 @@ void RoomAmbience::scanEntityEvents(Ogre::Camera* camera, const Ogre::Vector3& c
             Change change;
             change.mEvent = "CreatureArrived";
             change.mPosition = snapshot.mPosition;
+            // A creature that appears on a tile of a crypt of its own keeper was raised there
+            Tile* arrivalTile = creature->getPositionTile();
+            if((arrivalTile != nullptr) && (arrivalTile->getTileVisual() == TileVisual::cryptRoom) &&
+               (arrivalTile->getSeat() == creature->getSeat()))
+            {
+                change.mEvent = "CryptRaised";
+            }
             changes.push_back(change);
         }
     }
@@ -1305,6 +1320,39 @@ void RoomAmbience::scanEntityEvents(Ogre::Camera* camera, const Ogre::Vector3& c
         triggerEvent(change.mEvent, change.mPosition, false, change.mVisual);
 }
 
+void RoomAmbience::scanHeartHit()
+{
+    ODClient* client = ODClient::getSingletonPtr();
+    Player* localPlayer = mGameMap->getLocalPlayer();
+    if((client == nullptr) || (localPlayer == nullptr) || (localPlayer->getSeat() == nullptr))
+        return;
+
+    // Only the health of the own heart is known to the client (the heart badge)
+    double hp = client->getHeartBadge().mHP;
+    double previous = mLastHeartHP;
+    mLastHeartHP = hp;
+    // Before the first message of the server the health is not known; a map that is still loading is no hit
+    if((hp < 0.0) || (previous < 0.0) || (hp >= previous) || (mClock <= SETTLE_SECONDS))
+        return;
+
+    const std::vector<RenderedMovableEntity*>& entities = mGameMap->getRenderedMovableEntities();
+    for(RenderedMovableEntity* entity : entities)
+    {
+        if(entity->getMeshName() != HEART_MESH)
+            continue;
+
+        const Ogre::Vector3& position = entity->getPosition();
+        int32_t tileX = static_cast<int32_t>(std::floor(position.x + 0.5f));
+        int32_t tileY = static_cast<int32_t>(std::floor(position.y + 0.5f));
+        Tile* tile = mGameMap->getTile(tileX, tileY);
+        if((tile == nullptr) || (tile->getSeat() != localPlayer->getSeat()))
+            continue;
+
+        mHitUntil[getTileKey(tileX, tileY)] = mClock + HEART_HIT_SECONDS;
+        triggerEvent("HeartHit", position, false, "dungeonTempleRoom");
+    }
+}
+
 void RoomAmbience::scanCreatureEvents()
 {
     struct Change
@@ -1347,6 +1395,8 @@ void RoomAmbience::scanCreatureEvents()
         }
 
         double hp = creature->getHP();
+        bool prisoner = creature->isInContainment();
+        Seat* creatureSeat = creature->getSeat();
         std::map<std::string, CreatureSnapshot>::iterator it = mKnownCreatures.find(key);
         if(it == mKnownCreatures.end())
         {
@@ -1354,6 +1404,8 @@ void RoomAmbience::scanCreatureEvents()
             CreatureSnapshot snapshot;
             snapshot.mHp = hp;
             snapshot.mSleeping = sleeping;
+            snapshot.mPrisoner = prisoner;
+            snapshot.mSeat = creatureSeat;
             snapshot.mEnemyInGuardRoom = enemyInGuardRoom;
             snapshot.mGeneration = mGeneration;
             mKnownCreatures.insert(std::make_pair(key, snapshot));
@@ -1379,6 +1431,20 @@ void RoomAmbience::scanCreatureEvents()
                 changes.push_back(change);
             }
 
+            if(prisoner && !snapshot.mPrisoner && (visual == "prisonRoom"))
+            {
+                change.mEvent = "PrisonerArrived";
+                changes.push_back(change);
+            }
+
+            // A creature that changes its keeper in a torture chamber has been converted
+            if((snapshot.mSeat != nullptr) && (creatureSeat != nullptr) && (snapshot.mSeat != creatureSeat) &&
+               (visual == "tortureRoom"))
+            {
+                change.mEvent = "TortureConverted";
+                changes.push_back(change);
+            }
+
             if((visual == "templeRoom") && (hp >= (snapshot.mHp + MIN_HEAL_AMOUNT)) &&
                ((mClock - snapshot.mLastHealed) >= HEAL_SPACING_SECONDS))
             {
@@ -1390,6 +1456,8 @@ void RoomAmbience::scanCreatureEvents()
 
         snapshot.mHp = hp;
         snapshot.mSleeping = sleeping;
+        snapshot.mPrisoner = prisoner;
+        snapshot.mSeat = creatureSeat;
         snapshot.mEnemyInGuardRoom = enemyInGuardRoom;
     }
 
