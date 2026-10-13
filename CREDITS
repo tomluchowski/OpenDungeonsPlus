@@ -128,6 +128,7 @@ textures/
 -> Claimed*.png
 -> ClaimedWall*.png                    Nobiax, Danimal         CC-BY-SA 3.0            http://opengameart.org/users/danimal
 -> ConcreteDirty*.png                  Sindwiller              CC-BY-SA 3.0            http://opengameart.org/content/dirty-concrete-floor-00
+-> CreatureExperience.png, CreatureRecovery.pngAI-generated              GPLv3+                  AI-generated, created for this project
 -> CreatureOverlay*.png                hwoarangmy              CC-BY-SA 3.0
 -> CreatureStunned.png                 Danimal                 CC-BY-SA 3.0
 -> CreatureRallyTroops.png             Lorc                    CC-BY-SA 3.0            http://game-icons.net/lorc/originals/rally-the-troops.html

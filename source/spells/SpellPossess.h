@@ -30,10 +30,21 @@ class InputManager;
 class SpellPossess : public Spell
 {
 public:
+    //! \brief Shows the cast preview and price for the creature closest to the hand and queues the cast request when validated.
+    //! \param gameMap The map the spell is cast on.
+    //! \param inputManager The current mouse position and buttons.
+    //! \param inputCommand Used to show the price text and to select the tile.
     static void checkSpellCast(GameMap* gameMap, const InputManager& inputManager, InputCommand& inputCommand);
+    //! \brief Server side cast: pays the price and puts the requested creature under the control of the player.
+    //! \param gameMap The map the spell is cast on.
+    //! \param player The player that casts the spell.
+    //! \param packet The cast request holding the name of the creature.
+    //! \return True if the possession started.
     static bool castSpell(GameMap* gameMap, Player* player, ODPacket& packet);
 
+    //! \brief The possession is not a saved spell, so reading it from a file is not supported and returns nullptr.
     static Spell* getSpellFromStream(GameMap* gameMap, std::istream &is);
+    //! \brief The possession is not a sent spell, so reading it from a packet is not supported and returns nullptr.
     static Spell* getSpellFromPacket(GameMap* gameMap, ODPacket &is);
 
     static const SpellType mSpellType;

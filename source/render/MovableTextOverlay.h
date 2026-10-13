@@ -48,7 +48,9 @@ private:
 
     void forceTextArea(Ogre::Real textWidth, Ogre::Real textHeight);
 
+    //! \brief Centres the caption in the forced text area and keeps it centred when it changes
     void centerCaption();
+    //! \brief Sets the factor applied to the character height and to the size of the child overlay
     void setScale(Ogre::Real scale);
 
     void displayOverlay(Ogre::Real time);
@@ -129,14 +131,21 @@ public:
 
     //! Centres the caption within its child overlay area
     void centerCaption(uint32_t childOverlayId);
+    //! \brief Sets the character height of the caption (before scaling)
     void setCaptionSize(uint32_t childOverlayId, Ogre::Real height);
+    //! \brief Draws the caption outlined with the given colour. Creates the outline on the first call.
     void setCaptionOutline(uint32_t childOverlayId, const Ogre::ColourValue& colour);
 
     void setMaterialName(uint32_t childOverlayId, const Ogre::String& materialName);
+    //! \brief Shows one cell of a texture atlas laid out in a grid with the given number of columns.
+    //! The frame number enumerates the cells row by row from the top left to the bottom right square.
+    //! The cell is shown by mapping the overlay to its u,v texture coordinates in [0..1]x[0..1].
+    //! Ignored if the frame is outside the grid.
     void setAtlasFrame(uint32_t childOverlayId, uint32_t frame, uint32_t columns);
 
     //! Displays the overlay during time seconds. If time < 0, the overlay will be always displayed
     void displayOverlay(uint32_t childOverlayId, Ogre::Real time);
+    //! \brief Whether the child overlay is currently displayed, i.e. its display time has not run out
     bool isDisplayed(uint32_t childOverlayId);
     void update(Ogre::Real timeSincelastFrame);
 
