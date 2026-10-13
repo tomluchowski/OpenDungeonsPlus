@@ -108,10 +108,15 @@ public:
     //! goes down, which lets the winners of a fight cheer.
     void noteAnimation(MovableGameEntity* entity, const std::string& clip);
 
-    //! \brief Client hook: a creature was updated by the server. oldLevel, oldMood, oldSeat and oldSeatPrison
-    //! are the values before the update. Shows the level up, the payday and the freed prisoner reactions.
-    void noteCreatureUpdate(Creature* creature, uint32_t oldLevel, uint32_t oldMood, Seat* oldSeat,
+    //! \brief Client hook: a creature was updated by the server. oldLevel, oldMood, oldHealth, oldSeat and
+    //! oldSeatPrison are the values before the update. Shows the level up, the payday, the healing, the decision to
+    //! leave and the freed prisoner reactions.
+    void noteCreatureUpdate(Creature* creature, uint32_t oldLevel, uint32_t oldMood, uint32_t oldHealth, Seat* oldSeat,
         Seat* oldSeatPrison);
+
+    //! \brief Client hook: the entity got a particle effect of this script. A creature that gets a healing, haste,
+    //! strength or defense spell shows how it takes it.
+    void noteParticleEffect(GameEntity* entity, const std::string& script);
 
     //! \brief Client hook: the keeper put the entity on the tile. Remembered for a while so that
     //! a creature taking it can show that it got a gift.
@@ -129,8 +134,9 @@ public:
     //! \brief Client hook: something happened at the position (a fight, a slap, gold falling). Creatures that
     //! stand still close by turn their head to it and show the event. Not more often than every minInterval
     //! seconds for the same kind of event. The creature exclude (if any) is not asked.
+    //! If onlyAlliedTo is given, only creatures of that seat or its allies take part.
     void noteNearbyEvent(const std::string& eventName, const Ogre::Vector3& position, const Creature* exclude,
-        double minInterval);
+        double minInterval, Seat* onlyAlliedTo = nullptr);
 
     //! \brief Client hook: the creature picks up the entity to carry it. Carrying gold is shown.
     void noteCarry(Creature* carrier, GameEntity* carried);
@@ -364,8 +370,10 @@ private:
     bool isVariantAllowed(const Creature* creature, const ReactionVariant& variant) const;
     //! \brief True if the local keeper holds the creature in the hand
     bool isInHand(const Creature* creature) const;
-    //! \brief A creature appeared on the client map: one of the keeper arrives through a portal
+    //! \brief A creature appeared on the client map: one of the keeper arrives through a portal, an enemy is spotted
     void noteCreatureAdded(Creature* creature);
+    //! \brief The creature went down: the standing creatures of its side close by pause and mourn it
+    void noteAllyDied(Creature* dead);
 
     //! \brief Looks at the moods of a few creatures at a time (round robin) and lets them show a feeling now and
     //! then. Not every creature every frame.

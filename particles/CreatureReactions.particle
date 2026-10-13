@@ -248,6 +248,40 @@ particle_system ReactionGlow
     }
 }
 
+// Soft green glow around a creature that is healed
+particle_system ReactionHeal
+{
+    material        ReactionParticleGlow
+    point_rendering false
+    particle_width  0.9
+    particle_height 0.9
+    cull_each       false
+    quota           10
+    billboard_type  point
+
+    emitter Point
+    {
+        angle               20
+        colour              0.55 1.0 0.6 1.0
+        emission_rate       7
+        time_to_live        0.9
+        direction           0 0 1
+        velocity            0.25
+        duration            1.4
+        position            0 0 0.6
+    }
+
+    affector Scaler
+    {
+        rate 0.3
+    }
+
+    affector ColourFader
+    {
+        alpha -1.0
+    }
+}
+
 // A small grey cloud that rises from the creature (failed attempt at the workbench)
 particle_system ReactionSmoke
 {

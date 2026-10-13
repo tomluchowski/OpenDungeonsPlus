@@ -18,7 +18,7 @@ JOBS = ("Fighter", "Worker")
 MOTIONS = ("hop", "shake", "squash", "spin", "turn", "look", "lookat", "sit", "lie", "startle")
 PROPS = ("juggle", "yoyo", "flip", "stack", "toss", "critter", "balance", "doodle", "shadow", "kick")
 ROOMS = ("Hatchery", "Treasury", "Portal", "Dormitory", "Library", "Workshop", "TrainingHall", "Prison", "Torture",
-         "Arena", "Temple", "Casino", "GuardRoom", "Crypt")
+         "Arena", "Temple", "Casino", "GuardRoom", "Crypt", "DungeonTemple")
 SETTINGS = ("MaxSimultaneous", "MaxCameraDistance", "GroupStaggerMin", "GroupStaggerMax", "DefaultGroup",
             "MoodInterval", "MoodPerTick", "MoodWalkingChance", "ImpatientAfter", "ProudSeconds", "BoredAfter",
             "AmbientAfter", "SitAfter", "LieAfter", "LookRadius")

@@ -168,6 +168,16 @@ const double SLAP_MEMORY = 3.0;
 const double SLAP_FALLBACK_RADIUS = 2.0;
 //! A creature slapped within this time ducks when the hand comes over it
 const double SLAP_DUCK_MEMORY = 90.0;
+//! Health stages (see Creature) a creature has to get better by in one update to count as healed
+static const uint32_t HEAL_MIN_STEPS = 2;
+//! Standing creatures this close to an ally that went down mourn it (world units)
+static const double ALLY_DEATH_RADIUS = 8.0;
+//! Seconds the mourning creatures wait (staggered) after the ally went down
+static const double ALLY_DEATH_DELAY = 1.2;
+//! Seconds a fleeing creature waits before it shows the panic
+static const double FLEE_PANIC_DELAY = 0.4;
+//! The sight of an enemy lets the standing creatures of the keeper close by react at most this often
+static const double ENEMY_SPOTTED_INTERVAL = 20.0;
 //! Creatures that are on the map when the game starts did not arrive: nothing is shown in this time
 const double ARRIVAL_QUIET_TIME = 3.0;
 //! Seconds the reactions of a picked up, a dropped and an arrived creature wait for the creature to be ready
@@ -1449,10 +1459,15 @@ void CreatureReactions::noteAnimation(MovableGameEntity* entity, const std::stri
     if((clip == "Die") || (clip == "die"))
     {
         celebrateVictory(creature, false);
+        noteAllyDied(creature);
     }
     else if(clip == "Flee")
     {
         celebrateVictory(creature, true);
+
+        // A prisoner that struggles is not fleeing
+        if(!creature->isInContainment())
+            queueReaction(creature, "FleePanic", -1.0, FLEE_PANIC_DELAY);
     }
     else if(clip == "Dig")
     {
@@ -1667,6 +1682,10 @@ std::string CreatureReactions::getOngoingEvent(const Creature* creature, const s
             return "TortureWork";
     }
 
+    // A creature that runs for its life keeps looking panicked
+    if((clip == "Flee") && !creature->isInContainment())
+        return "FleePanic";
+
     return std::string();
 }
 
@@ -1835,8 +1854,8 @@ void CreatureReactions::celebrateVictory(Creature* loser, bool fled)
     }
 }
 
-void CreatureReactions::noteCreatureUpdate(Creature* creature, uint32_t oldLevel, uint32_t oldMood, Seat* oldSeat,
-        Seat* oldSeatPrison)
+void CreatureReactions::noteCreatureUpdate(Creature* creature, uint32_t oldLevel, uint32_t oldMood,
+        uint32_t oldHealth, Seat* oldSeat, Seat* oldSeatPrison)
 {
     if((mMode == Mode::off) || !mConfigLoaded || !creature->getIsOnMap())
         return;
@@ -1860,6 +1879,27 @@ void CreatureReactions::noteCreatureUpdate(Creature* creature, uint32_t oldLevel
         {
             trigger(creature, "PrisonConverted");
         }
+    }
+    else if((oldSeatPrison != nullptr) && (creature->getSeatPrison() == nullptr))
+    {
+        // The prisoner is free again and still serves its own keeper
+        trigger(creature, "PrisonFreed");
+    }
+
+    // The creature decided to leave the dungeon
+    if(((oldMood & CreatureMoodValues::LeaveDungeon) == 0) &&
+       ((creature->getOverlayMoodValue() & CreatureMoodValues::LeaveDungeon) != 0))
+    {
+        trigger(creature, "LeaveAngry");
+    }
+
+    // The health got clearly better (the stage is 0 for unhurt). In the temple one stage is enough.
+    uint32_t health = creature->getOverlayHealthValue();
+    if(health < oldHealth)
+    {
+        uint32_t steps = oldHealth - health;
+        if((steps >= HEAL_MIN_STEPS) || ((steps >= 1) && (oldHealth >= HURT_STAGE) && (getRoomName(creature) == "Temple")))
+            trigger(creature, "Healed");
     }
 
     // A prisoner that was just put into a cell waits there. The animation that tells so may have come first.
@@ -2021,7 +2061,66 @@ void CreatureReactions::noteCreatureAdded(Creature* creature)
         Room* room = (tile != nullptr) ? tile->getCoveringRoom() : nullptr;
         if((room != nullptr) && ((room->getType() == RoomType::portal) || (room->getType() == RoomType::portalWave)))
             queueReaction(creature, "PortalArrival", DONE_WAIT_MAX, ARRIVAL_DELAY);
+
+        return;
     }
+
+    // An enemy that comes into sight: the creatures of the keeper that stand close by notice it
+    if(!creature->getSeat()->isAlliedSeat(localPlayer->getSeat()))
+    {
+        noteNearbyEvent("EnemySpotted", creature->getPosition(), creature, ENEMY_SPOTTED_INTERVAL,
+            localPlayer->getSeat());
+    }
+}
+
+void CreatureReactions::noteParticleEffect(GameEntity* entity, const std::string& script)
+{
+    if((mMode == Mode::off) || !mConfigLoaded || (entity->getObjectType() != GameEntityType::creature))
+        return;
+
+    std::string eventName;
+    if(script == "SpellCreatureHeal")
+        eventName = "Healed";
+    else if(script == "SpellCreatureHaste")
+        eventName = "SpellHaste";
+    else if(script == "SpellCreatureStrength")
+        eventName = "SpellStrength";
+    else if(script == "SpellCreatureDefense")
+        eventName = "SpellDefense";
+    else
+        return;
+
+    trigger(static_cast<Creature*>(entity), eventName);
+}
+
+void CreatureReactions::noteAllyDied(Creature* dead)
+{
+    std::vector<Creature*> mourners;
+    for(Creature* creature : mGameMap->getCreatures())
+    {
+        if((creature == dead) || !creature->getIsOnMap() || !creature->isAlive() || creature->isMoving() ||
+           creature->isInContainment())
+        {
+            continue;
+        }
+
+        if(!creature->getSeat()->isAlliedSeat(dead->getSeat()))
+            continue;
+
+        Ogre::Vector3 difference = creature->getPosition() - dead->getPosition();
+        difference.z = 0.0f;
+        if(difference.length() > ALLY_DEATH_RADIUS)
+            continue;
+
+        // Creatures that fight or do something else on their own are left alone
+        if(getCreaturePriority(creature) != ReactionPriority::none)
+            continue;
+
+        mourners.push_back(creature);
+    }
+
+    if(!mourners.empty())
+        triggerGroup("AllyDied", mourners, false, ALLY_DEATH_DELAY);
 }
 
 void CreatureReactions::noteSlapRequest(GameEntity* entity)
@@ -2134,7 +2233,7 @@ bool CreatureReactions::triggerLook(Creature* creature, const std::string& event
 }
 
 void CreatureReactions::noteNearbyEvent(const std::string& eventName, const Ogre::Vector3& position,
-        const Creature* exclude, double minInterval)
+        const Creature* exclude, double minInterval, Seat* onlyAlliedTo)
 {
     if((mMode == Mode::off) || !mConfigLoaded)
         return;
@@ -2151,6 +2250,9 @@ void CreatureReactions::noteNearbyEvent(const std::string& eventName, const Ogre
     for(Creature* creature : mGameMap->getCreatures())
     {
         if((creature == exclude) || !creature->getIsOnMap() || !creature->isAlive() || creature->isMoving())
+            continue;
+
+        if((onlyAlliedTo != nullptr) && !creature->getSeat()->isAlliedSeat(onlyAlliedTo))
             continue;
 
         Ogre::Vector3 difference = creature->getPosition() - position;
@@ -2313,6 +2415,8 @@ void CreatureReactions::examineMood(Creature* creature)
         events.push_back("MoodUpset");
     if(idle && isHurtAndThreatened(creature))
         events.push_back("MoodScared");
+    if(creature->getOverlayHealthValue() >= HURT_STAGE)
+        events.push_back(moving ? "HurtWalk" : "HurtIdle");
     if((bits & CreatureMoodValues::Hungry) != 0)
         events.push_back("MoodHungry");
     if((bits & CreatureMoodValues::Tired) != 0)
