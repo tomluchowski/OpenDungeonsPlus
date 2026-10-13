@@ -561,7 +561,11 @@ bool SettingsWindow::saveConfig()
     std::string treasuryDetailMode = (treasuryDetailItem != nullptr) ?
         std::string(treasuryDetailItem->getText().c_str()) : std::string("full");
     config.setGameValue(Config::TREASURY_DETAIL, treasuryDetailMode);
+    const TreasuryGoldMesh::Detail previousTreasuryDetail = TreasuryGoldMesh::getDetail();
     TreasuryGoldMesh::setDetail(TreasuryGoldMesh::detailFromString(treasuryDetailMode));
+    // The piles that already exist are drawn again for the new setting
+    if((previousTreasuryDetail != TreasuryGoldMesh::getDetail()) && (RenderManager::getSingletonPtr() != nullptr))
+        RenderManager::getSingleton().rrTreasuryDetailChanged();
     CEGUI::ToggleButton* bloodEffectsCheckbox = static_cast<CEGUI::ToggleButton*>(
         mRootWindow->getChild("SettingsWindow/MainTabControl/Game/GameSP/BloodEffectsCheckbox"));
     config.setGameValue(Config::BLOOD_EFFECTS,

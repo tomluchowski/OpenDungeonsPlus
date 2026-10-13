@@ -122,7 +122,7 @@ Detail getDetail()
     return currentDetail;
 }
 
-std::string prepareMesh(Ogre::SceneManager* sceneManager, const std::string& meshName)
+std::string prepareMesh(Ogre::SceneManager* sceneManager, const std::string& meshName, bool farAway)
 {
     TreasuryGoldLayer::PileShape shape;
     if(!TreasuryGoldLayer::parseMeshName(meshName, shape))
@@ -131,7 +131,7 @@ std::string prepareMesh(Ogre::SceneManager* sceneManager, const std::string& mes
     if(currentDetail == Detail::off)
         return TreasuryGoldLayer::classicMeshForLevel(shape.mLevel);
 
-    const bool reduced = (currentDetail == Detail::reduced);
+    const bool reduced = (currentDetail == Detail::reduced) || (farAway && currentDetail == Detail::full);
     const std::string name = reduced ? meshName + ReducedSuffix : meshName;
     if(!Ogre::MeshManager::getSingleton().resourceExists(name + ".mesh", "Graphics"))
         buildPileMesh(sceneManager, name + ".mesh", shape, reduced ? 2 : 6);

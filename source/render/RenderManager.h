@@ -32,6 +32,7 @@
 #include <OgreDefaultDebugDrawer.h>
 #include <cstdint>
 #include "entities/GameEntity.h"
+#include "render/TreasuryGoldBatch.h"
 
 class DraggableTileContainer;
 class GameMap;
@@ -144,6 +145,9 @@ public:
     void rrCreateRenderedMovableEntity(RenderedMovableEntity* curRenderedMovableEntity, NodeType nt = NodeType::MTILES_NODE);
     void rrDestroyRenderedMovableEntity(RenderedMovableEntity* curRenderedMovableEntity, NodeType nt = NodeType::MTILES_NODE);
     void rrUpdateEntityOpacity(RenderedMovableEntity* entity);
+    //! \brief The "Treasury detail" option changed: every pile is drawn again for the new setting, a few per frame
+    //! (see updateTreasuryRebuild).
+    void rrTreasuryDetailChanged();
     void rrCreateCreature(Creature* curCreature);
     void rrDestroyCreature(Creature* curCreature);
     void rrOrientEntityToward(MovableGameEntity* gameEntity, const Ogre::Vector3& direction);
@@ -461,6 +465,24 @@ private:
     std::vector<RoomConstructionEffect> mRoomConstructionEffects;
     uint64_t mRoomConstructionEffectNumber = 0;
 
+    //! The gold piles of this client with the node type they were created for and whether they use the reduced
+    //! mesh because they are far from the camera. The level of detail switches piles by creating their mesh again;
+    //! a change of the treasury detail option does the same for all of them.
+    struct TreasuryPileInfo
+    {
+        NodeType mNodeType;
+        bool mFar;
+    };
+    std::map<RenderedMovableEntity*, TreasuryPileInfo> mTreasuryPiles;
+    //! While a pile is created again for the level of detail: 1 reduced, 0 full (-1 when not, the distance decides)
+    int mTreasuryPileFarOverride = -1;
+    Ogre::Real mTreasuryLodTimer = 0.0f;
+    //! Piles waiting to be drawn again after the detail option changed
+    std::vector<RenderedMovableEntity*> mTreasuryRebuildQueue;
+    size_t mTreasuryRebuildIndex = 0;
+    //! The piles of a treasury are drawn as one batch per room and patch of tiles
+    TreasuryGoldBatch mTreasuryBatch;
+
     void clearCreatureCombatEffects(Creature* creature = nullptr);
     void startCreatureFeedingAnimation(Creature* creature, Ogre::Entity* entity);
     void prepareCreatureFeedingReach(CreatureFeedingAnimation& feeding);
@@ -474,6 +496,14 @@ private:
     void updateCreatureStep(Creature* creature);
     void cancelCreatureStep(Creature* creature = nullptr);
     void clearRoomConstructionEffects();
+    //! \brief Distance of a point to the camera in tiles (0 without a camera).
+    float getTreasuryCameraDistance(const Ogre::Vector3& position) const;
+    //! \brief Switches piles between the full and the reduced mesh by their distance to the camera.
+    void updateTreasuryLod(Ogre::Real timeSinceLastFrame);
+    //! \brief Draws a few of the piles queued by rrTreasuryDetailChanged again.
+    void updateTreasuryRebuild();
+    //! \brief Forgets all piles and destroys the draw batches (the scene is cleared or destroyed).
+    void clearTreasuryPiles();
 
 
     Ogre::TexturePtr m_texture;

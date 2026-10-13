@@ -18,6 +18,8 @@
 #ifndef TREASURYGOLDLAYER_H
 #define TREASURYGOLDLAYER_H
 
+#include "rooms/TreasurySettings.h"
+
 #include <cmath>
 #include <cstdlib>
 #include <string>
@@ -41,7 +43,7 @@ inline float levelHeight(int level)
         return 0.0f;
     if(level > maxLevel)
         level = maxLevel;
-    return 0.055f * static_cast<float>(level);
+    return TreasurySettings::current().levelHeight * static_cast<float>(level);
 }
 
 //! Fill step of a tile: 0 when empty, else 1..maxLevel by the share of the capacity stored.
@@ -152,6 +154,17 @@ inline float heightAt(const PileShape& shape, float u, float v)
     if(height < 0.0f)
         height = 0.0f;
     return height + 0.004f;
+}
+
+//! Level of detail by distance: whether a pile at the given distance (tiles) from the camera uses the reduced mesh.
+//! A pile that is reduced already stays so until it is clearly closer again (hysteresis), so it never flips.
+inline bool lodReducedAt(bool currentlyReduced, float distance)
+{
+    const TreasurySettings& settings = TreasurySettings::current();
+    float limit = settings.lodFarDistance;
+    if(currentlyReduced)
+        limit -= settings.lodHysteresis;
+    return distance > limit;
 }
 
 //! The pot mesh used when the treasury detail option is off (one of the four classic stacks)

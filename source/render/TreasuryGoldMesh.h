@@ -45,8 +45,9 @@ Detail getDetail();
 
 //! \brief Returns the name of the mesh to load for the given object mesh name. Names that are not
 //! pile names are returned unchanged. Pile meshes are built on demand, or replaced by the classic gold
-//! stacks when the detail is off.
-std::string prepareMesh(Ogre::SceneManager* sceneManager, const std::string& meshName);
+//! stacks when the detail is off. A pile far from the camera (farAway) uses the reduced mesh at the detail
+//! full.
+std::string prepareMesh(Ogre::SceneManager* sceneManager, const std::string& meshName, bool farAway = false);
 }
 
 #endif // TREASURYGOLDMESH_H

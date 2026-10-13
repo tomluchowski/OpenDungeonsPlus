@@ -283,6 +283,9 @@ private:
     bool loadFactions(const std::string& fileName);
     bool loadRooms(const std::string& fileName);
     bool loadTraps(const std::string& fileName);
+    //! \brief Reads config/treasury.cfg into the treasury settings. A missing file is not an error:
+    //! the treasury then uses the defaults from the code (see rooms/TreasurySettings.h).
+    void loadTreasury(const std::string& fileName);
     bool loadSpellConfig(const std::string& fileName);
     bool loadSkills(const std::string& fileName);
     bool loadTilesets(const std::string& fileName);
