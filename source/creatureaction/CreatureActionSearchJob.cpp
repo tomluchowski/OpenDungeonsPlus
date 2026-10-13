@@ -133,9 +133,14 @@ bool CreatureActionSearchJob::handleSearchJob(Creature& creature, bool forced)
         return true;
     }
 
+    // A creature does not like to work with a creature it hates. It only does when there is no
+    // other room of the kind it wants to work in
+    Room* dislikedRoom = nullptr;
+
     // We get the room we like the most. If we are on such a room, we start working if we can
     for(const CreatureRoomAffinity& affinity : creature.getDefinition()->getRoomAffinity())
     {
+        dislikedRoom = nullptr;
         // If likeness = 0, we don't consider working here
         if(affinity.getLikeness() <= 0)
             continue;
@@ -160,8 +165,15 @@ bool CreatureActionSearchJob::handleSearchJob(Creature& creature, bool forced)
             // It is the room responsibility to test if the creature is suited for working in it
             if(room->hasOpenCreatureSpot(&creature))
             {
-                creature.pushAction(Utils::make_unique<CreatureActionUseRoom>(creature, *room, forced));
-                return true;
+                if(room->hasHatedCoworker(&creature))
+                {
+                    dislikedRoom = room;
+                }
+                else
+                {
+                    creature.pushAction(Utils::make_unique<CreatureActionUseRoom>(creature, *room, forced));
+                    return true;
+                }
             }
         }
 
@@ -183,6 +195,10 @@ bool CreatureActionSearchJob::handleSearchJob(Creature& creature, bool forced)
             if((affinity.getEfficiency() > 0) && !room->hasOpenCreatureSpot(&creature))
                 continue;
 
+            // We prefer a room without a creature we hate
+            if((affinity.getEfficiency() > 0) && room->hasHatedCoworker(&creature))
+                continue;
+
             Tile* tile = room->getCoveredTile(0);
             if(!creature.getGameMap()->pathExists(&creature, myTile, tile))
                 continue;
@@ -191,7 +207,15 @@ bool CreatureActionSearchJob::handleSearchJob(Creature& creature, bool forced)
         }
 
         if(rooms.empty())
+        {
+            // No other room: we stay in the room we do not like so much
+            if(dislikedRoom != nullptr)
+            {
+                creature.pushAction(Utils::make_unique<CreatureActionUseRoom>(creature, *dislikedRoom, forced));
+                return true;
+            }
             continue;
+        }
 
         Tile* chosenTile = nullptr;
         std::list<Tile*> tilePath = creature.getGameMap()->findBestPath(&creature, myTile, rooms, chosenTile);

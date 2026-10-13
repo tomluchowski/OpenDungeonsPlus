@@ -314,6 +314,31 @@ public:
     //! killer's keeper that hit it recently (and the killer itself) fought together.
     void reportFightParticipants(Creature& killer);
 
+    //! \brief Server side. Defense added (or taken away) because of the creatures that fight next to this
+    //! one, 0 if the option is off. Added to all three defense values.
+    double getRelationshipCombatModifier() const;
+
+    //! \brief Server side. Mood points from the hated creatures of the same keeper, 0 if the option is off.
+    int32_t getRelationshipMood() const;
+
+    //! \brief Server side. True if the creature is part of a nemesis brawl.
+    inline bool isBrawling() const
+    { return !mBrawlOpponent.empty(); }
+
+    //! \brief Server side. Starts a brawl with the opponent: both fight to knock the other one out
+    //! (never to kill) until updateBrawl ends it.
+    void startBrawl(Creature& opponent);
+
+    //! \brief Server side. Checks the end conditions of the brawl (low health, interrupted, too long).
+    void updateBrawl();
+
+    //! \brief Server side. Ends the brawl of this creature and of its opponent: both calm down and the
+    //! relationship gets worse.
+    void endBrawl();
+
+    //! \brief Server side. True if the creature can start a brawl now (idle, not in a fight and not hurt).
+    bool canStartBrawl() const;
+
     //! \brief Conform: AttackableObject - Deducts a given amount of HP from this creature.
     double takeDamage(GameEntity* attacker, double absoluteDamage, double physicalDamage, double magicalDamage, double elementDamage,
         Tile *tileTakingDamage, bool ko) override;
@@ -792,6 +817,14 @@ private:
     //! \brief Creatures that recently hurt this creature (name and turn), used to find who took part
     //! in defeating it for the relationships. Only filled when the option is on.
     std::map<std::string, int64_t>  mRecentAttackers;
+
+    //! Name of the creature this one brawls with (relationships), empty if there is no brawl
+    std::string                     mBrawlOpponent;
+    int64_t                         mBrawlStartTurn = 0;
+
+    //! Combat modifier of the relationships, computed at most once per turn
+    mutable int64_t                 mCombatModifierTurn = -1;
+    mutable double                  mCombatModifier = 0.0;
 
     //! \brief If nullptr, the creature is not in prison. If not, it is in the prison of
     //! the given seat

@@ -62,6 +62,7 @@
 #include "utils/ConfigManager.h"
 #include "utils/Helper.h"
 #include "utils/LogManager.h"
+#include "utils/Random.h"
 #include "utils/ResourceManager.h"
 
 
@@ -1123,6 +1124,45 @@ void GameMap::setRelationshipsEnabled(bool enabled)
         RelationshipSettings::fromConfig(ConfigManager::getSingleton().getRelationshipsConfig()));
 }
 
+void GameMap::checkRelationshipBrawls()
+{
+    if(mCreatureRelationships == nullptr)
+        return;
+
+    const RelationshipSettings& settings = mCreatureRelationships->getSettings();
+    if((mTurnNumber % settings.mBrawlCheckIntervalTurns) != 0)
+        return;
+
+    std::vector<CreatureRelationships::Pair> pairs;
+    mCreatureRelationships->getNemesisPairs(pairs);
+    double maxDistance = static_cast<double>(settings.mBrawlMaxDistanceTiles);
+    for(size_t i = 0; i < pairs.size(); ++i)
+    {
+        Creature* creatureA = getCreature(pairs[i].first);
+        Creature* creatureB = getCreature(pairs[i].second);
+        if((creatureA == nullptr) || (creatureB == nullptr) || (creatureA->getSeat() != creatureB->getSeat()))
+            continue;
+
+        if(!creatureA->canStartBrawl() || !creatureB->canStartBrawl())
+            continue;
+
+        Tile* tileA = creatureA->getPositionTile();
+        Tile* tileB = creatureB->getPositionTile();
+        double dx = static_cast<double>(tileA->getX() - tileB->getX());
+        double dy = static_cast<double>(tileA->getY() - tileB->getY());
+        if((dx * dx + dy * dy) > (maxDistance * maxDistance))
+            continue;
+
+        if(Random::Int(0, 99) >= settings.mBrawlChancePercent)
+            continue;
+
+        if(!pathExists(creatureA, tileA, tileB))
+            continue;
+
+        creatureA->startBrawl(*creatureB);
+    }
+}
+
 void GameMap::sendRelationshipTierChanges()
 {
     if(mCreatureRelationships == nullptr)
@@ -1181,6 +1221,7 @@ void GameMap::doTurn(double timeSinceLastTurn)
     if(isServerGameMap() && (mCreatureRelationships != nullptr))
     {
         mCreatureRelationships->doTurn(mTurnNumber);
+        checkRelationshipBrawls();
         sendRelationshipTierChanges();
     }
 

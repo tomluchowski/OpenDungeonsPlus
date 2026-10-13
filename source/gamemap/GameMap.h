@@ -172,6 +172,9 @@ public:
     //! the creatures belong to.
     void sendRelationshipTierChanges();
 
+    //! \brief Server side: every few turns, nemesis pairs that are close and idle may start a brawl.
+    void checkRelationshipBrawls();
+
     //! \brief Server side. Sends every tier that is not neutral to the player of the given seat.
     void sendRelationshipTiers(Seat* seat);
 

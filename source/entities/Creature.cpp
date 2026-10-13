@@ -22,6 +22,7 @@
 #include "creatureaction/CreatureActionClaimWallTile.h"
 #include "creatureaction/CreatureActionDigTile.h"
 #include "creatureaction/CreatureActionFight.h"
+#include "creatureaction/CreatureActionFightFriendly.h"
 #include "creatureaction/CreatureActionFindHome.h"
 #include "creatureaction/CreatureActionFlee.h"
 #include "creatureaction/CreatureActionGetFee.h"
@@ -107,6 +108,8 @@
 
 
 static const Ogre::Real CANNON_MISSILE_HEIGHT = 0.3;
+//! A creature only starts a nemesis brawl if its health is this many percent above the health that stops the brawl
+static const int32_t BRAWL_START_HEALTH_MARGIN_PERCENT = 25;
 
 const int32_t Creature::NB_TURNS_BEFORE_CHECKING_TASK = 15;
 const uint32_t Creature::NB_OVERLAY_HEALTH_VALUES = 8;
@@ -1038,6 +1041,10 @@ void Creature::doUpkeep()
     mVisibleAlliedObjects        = getVisibleAlliedObjects();
     mReachableAlliedObjects      = getReachableAttackableObjects(mVisibleAlliedObjects);
 
+    // A nemesis brawl may end
+    if(!mBrawlOpponent.empty())
+        updateBrawl();
+
     // Check if we should compute mood
     if(mMoodCooldownTurns > 0)
     {
@@ -1650,7 +1657,7 @@ double Creature::getPhysicalDefense() const
     if (mWeaponR != nullptr)
         defense += mWeaponR->getPhysicalDefense();
 
-    return defense;
+    return std::max(0.0, defense + getRelationshipCombatModifier());
 }
 
 double Creature::getMagicalDefense() const
@@ -1661,7 +1668,7 @@ double Creature::getMagicalDefense() const
     if (mWeaponR != nullptr)
         defense += mWeaponR->getMagicalDefense();
 
-    return defense;
+    return std::max(0.0, defense + getRelationshipCombatModifier());
 }
 
 double Creature::getElementDefense() const
@@ -1672,7 +1679,7 @@ double Creature::getElementDefense() const
     if (mWeaponR != nullptr)
         defense += mWeaponR->getElementDefense();
 
-    return defense;
+    return std::max(0.0, defense + getRelationshipCombatModifier());
 }
 
 void Creature::checkLevelUp()
@@ -2106,6 +2113,166 @@ bool Creature::canHaveRelationships() const
         return false;
 
     return !getDefinition()->isWorker() && !isInPrison();
+}
+
+double Creature::getRelationshipCombatModifier() const
+{
+    if(!canHaveRelationships())
+        return 0.0;
+
+    GameMap* gameMap = getGameMap();
+    int64_t turn = gameMap->getTurnNumber();
+    if(mCombatModifierTurn == turn)
+        return mCombatModifier;
+
+    mCombatModifierTurn = turn;
+    mCombatModifier = 0.0;
+    // Only creatures that fight get a bonus or a penalty
+    Tile* myTile = getPositionTile();
+    if((myTile == nullptr) || !isAlive() || !isActionInList(CreatureActionType::fight))
+        return 0.0;
+
+    CreatureRelationships* relationships = gameMap->getCreatureRelationships();
+    double radius = relationships->getSettings().mCombatRadiusTiles;
+    std::vector<std::pair<std::string, int32_t> > partners;
+    relationships->getPartners(getName(), partners);
+    std::vector<std::string> nearbyFighters;
+    for(size_t i = 0; i < partners.size(); ++i)
+    {
+        Creature* partner = gameMap->getCreature(partners[i].first);
+        if((partner == nullptr) || (partner->getSeat() != getSeat()) || !partner->isAlive() || partner->isKo()
+           || !partner->getIsOnMap() || !partner->isActionInList(CreatureActionType::fight))
+        {
+            continue;
+        }
+
+        Tile* partnerTile = partner->getPositionTile();
+        if(partnerTile == nullptr)
+            continue;
+
+        double dx = static_cast<double>(partnerTile->getX() - myTile->getX());
+        double dy = static_cast<double>(partnerTile->getY() - myTile->getY());
+        if((dx * dx + dy * dy) > (radius * radius))
+            continue;
+
+        nearbyFighters.push_back(partner->getName());
+    }
+
+    mCombatModifier = relationships->combatModifier(getName(), nearbyFighters);
+    return mCombatModifier;
+}
+
+int32_t Creature::getRelationshipMood() const
+{
+    if(!canHaveRelationships())
+        return 0;
+
+    return getGameMap()->getCreatureRelationships()->moodModifier(getName());
+}
+
+bool Creature::canStartBrawl() const
+{
+    if(!canHaveRelationships() || !getIsOnMap() || !isAlive() || isKo() || isBrawling())
+        return false;
+
+    if(getPositionTile() == nullptr)
+        return false;
+
+    // Not while fighting, in the arena or the casino, and not when badly hurt
+    if(isActionInList(CreatureActionType::fight) || isActionInList(CreatureActionType::fightFriendly))
+        return false;
+
+    Room* room = getPositionTile()->getCoveringRoom();
+    if((room != nullptr) && ((room->getType() == RoomType::arena) || (room->getType() == RoomType::casino)))
+        return false;
+
+    int32_t stopPercent = getGameMap()->getCreatureRelationships()->getSettings().mBrawlStopHealthPercent;
+    return (getHP() * 100.0) > (mMaxHP * static_cast<double>(stopPercent + BRAWL_START_HEALTH_MARGIN_PERCENT));
+}
+
+void Creature::startBrawl(Creature& opponent)
+{
+    if(!canStartBrawl() || !opponent.canStartBrawl())
+        return;
+
+    int64_t turn = getGameMap()->getTurnNumber();
+    mBrawlOpponent = opponent.getName();
+    mBrawlStartTurn = turn;
+    opponent.mBrawlOpponent = getName();
+    opponent.mBrawlStartTurn = turn;
+
+    // Both fight to knock the other one out, the fight never kills
+    Creature* creatures[2] = {this, &opponent};
+    Creature* targets[2] = {&opponent, this};
+    for(int i = 0; i < 2; ++i)
+    {
+        creatures[i]->clearDestinations(EntityAnimation::idle_anim, true, true);
+        creatures[i]->clearActionQueue();
+        creatures[i]->pushAction(Utils::make_unique<CreatureActionFightFriendly>(*creatures[i], targets[i], true,
+            std::vector<Tile*>(), false));
+    }
+}
+
+void Creature::updateBrawl()
+{
+    if(mBrawlOpponent.empty())
+        return;
+
+    Creature* opponent = getGameMap()->getCreature(mBrawlOpponent);
+    CreatureRelationships* relationships = getGameMap()->getCreatureRelationships();
+    if((opponent == nullptr) || (relationships == nullptr) || (opponent->mBrawlOpponent != getName()))
+    {
+        // The opponent is gone (or has already stopped): nothing to end for it
+        mBrawlOpponent.clear();
+        return;
+    }
+
+    const RelationshipSettings& settings = relationships->getSettings();
+    double stopRatio = static_cast<double>(settings.mBrawlStopHealthPercent) / 100.0;
+    bool stop = !isAlive() || !opponent->isAlive() || isKo() || opponent->isKo()
+        || (getHP() <= (mMaxHP * stopRatio)) || (opponent->getHP() <= (opponent->mMaxHP * stopRatio))
+        || ((getGameMap()->getTurnNumber() - mBrawlStartTurn) >= settings.mBrawlMaxTurns)
+        || !isActionInList(CreatureActionType::fightFriendly);
+    if(stop)
+        endBrawl();
+}
+
+void Creature::endBrawl()
+{
+    if(mBrawlOpponent.empty())
+        return;
+
+    std::string opponentName = mBrawlOpponent;
+    mBrawlOpponent.clear();
+    Creature* opponent = getGameMap()->getCreature(opponentName);
+    CreatureRelationships* relationships = getGameMap()->getCreatureRelationships();
+
+    Creature* creatures[2] = {this, nullptr};
+    if((opponent != nullptr) && (opponent->mBrawlOpponent == getName()))
+    {
+        opponent->mBrawlOpponent.clear();
+        creatures[1] = opponent;
+    }
+
+    for(int i = 0; i < 2; ++i)
+    {
+        Creature* creature = creatures[i];
+        if((creature == nullptr) || !creature->isAlive())
+            continue;
+
+        // The fight stops (unless the creature already got something else to do)
+        if(creature->isActionInList(CreatureActionType::fightFriendly))
+        {
+            creature->clearDestinations(EntityAnimation::idle_anim, true, true);
+            creature->clearActionQueue();
+        }
+    }
+
+    if(relationships != nullptr)
+    {
+        relationships->changeValue(getName(), opponentName, relationships->getSettings().mBrawlValueChange,
+            getGameMap()->getTurnNumber());
+    }
 }
 
 void Creature::reportRelationshipEvent(RelationshipEvent event, Creature& creatureA, Creature& creatureB)
@@ -2785,6 +2952,10 @@ void Creature::slap()
         deleteYourself();
         return;
     }
+
+    // A slap stops a brawl
+    if(!mBrawlOpponent.empty())
+        endBrawl();
 
     CreatureEffectSlap* effect = new CreatureEffectSlap(
         ConfigManager::getSingleton().getSlapEffectDuration(), "");

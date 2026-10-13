@@ -88,6 +88,36 @@ struct RelationshipSettings
     //! Creatures that hit the same enemy within this number of turns took part in defeating it
     int64_t mFightParticipantTurns;
 
+    //! Two creatures fight side by side when both fight within this many tiles of each other
+    double mCombatRadiusTiles;
+    //! Defense added to every defense value of a creature that fights next to a friend / best friend
+    double mCombatBonusFriends;
+    double mCombatBonusBestFriends;
+    //! Defense taken away while a nemesis fights next to the creature
+    double mCombatPenaltyNemesis;
+
+    //! Mood points lost for each hated / nemesis creature of the same keeper
+    int32_t mMoodPenaltyHated;
+    int32_t mMoodPenaltyNemesis;
+    //! At most this many hated creatures count for the mood
+    int32_t mMoodMaxPairs;
+
+    //! Limits per creature, the weakest relationship of a tier falls back when it is exceeded.
+    //! Partners belong to the lovers tier, which is not active yet.
+    int32_t mMaxFriends;
+    int32_t mMaxPartners;
+    int32_t mMaxNemeses;
+
+    //! Nemesis brawls: how often a pair is checked, the chance for a brawl per check (percent),
+    //! the largest distance in tiles at which they notice each other, the health (percent of the
+    //! maximum) at which a brawl stops, the longest duration and the change of the value afterwards
+    int64_t mBrawlCheckIntervalTurns;
+    int32_t mBrawlChancePercent;
+    int32_t mBrawlMaxDistanceTiles;
+    int32_t mBrawlStopHealthPercent;
+    int64_t mBrawlMaxTurns;
+    int32_t mBrawlValueChange;
+
     //! Start value of a pair of creature classes (sorted pair of class names), see config
     //! entries "Racial_<ClassA>_<ClassB>".
     std::map<std::pair<std::string, std::string>, int32_t> mRacialStart;
@@ -148,6 +178,24 @@ public:
         bool loversAllowed = false) const;
     //! \brief True if the pair is at least friends.
     bool isFriend(const std::string& creatureA, const std::string& creatureB) const;
+    //! \brief True for the tier nemesis.
+    bool isNemesis(const std::string& creatureA, const std::string& creatureB) const;
+    //! \brief True for the tiers hated and nemesis.
+    bool isHated(const std::string& creatureA, const std::string& creatureB) const;
+
+    //! \brief Defense modifier of a creature that fights next to the creatures in nearbyFighters
+    //! (the caller selects them: same keeper, fighting, within the combat radius). The best bonus
+    //! of a friend counts once, a nemesis nearby takes the penalty away again.
+    double combatModifier(const std::string& creature, const std::vector<std::string>& nearbyFighters) const;
+
+    //! \brief Mood points (zero or negative) the creature gets from the creatures it hates.
+    int32_t moodModifier(const std::string& creature) const;
+
+    //! \brief Lists the creatures that have a value with the creature, with the value.
+    void getPartners(const std::string& creature, std::vector<std::pair<std::string, int32_t> >& partners) const;
+
+    //! \brief Lists the pairs of nemeses.
+    void getNemesisPairs(std::vector<Pair>& pairs) const;
 
     //! \brief Removes every pair of the creature (death, leaving, conversion).
     void removeCreature(const std::string& creature);
@@ -190,6 +238,8 @@ private:
     //! \brief Stores the value (clamped; 0 removes the pair). isEvent tells that the value came from
     //! an event, which restarts the drift idle time of the pair.
     void setValue(const Pair& pair, int32_t value, int64_t turn, bool isEvent);
+    //! \brief Lets the weakest relationship of a tier fall back while the creature has too many of it
+    void enforceLimits(const std::string& creature, int64_t turn);
     //! \brief Records a tier change of the pair if the old and the new value are in different tiers.
     void recordTierChange(const Pair& pair, int32_t oldValue, int32_t newValue);
     //! \brief Returns one value that lies in the given tier (used by clients that only know the tier).
