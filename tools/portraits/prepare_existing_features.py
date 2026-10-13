@@ -61,9 +61,11 @@ print('Prepared',sum(len(c['jobs']) for c in CAT),'existing features across',len
 if (OUT/'corrections.json').exists():
     exceptions=json.loads((OUT/'corrections.json').read_text(encoding='utf-8'))
     flagged={(r['portrait'],r['file']) for r in exceptions['entries']}
+    review_path=OUT/'individual-review.json'
+    reviewed={(r['portrait'],r['file']) for r in json.loads(review_path.read_text())['entries']} if review_path.exists() else set()
     for c in CAT:
         path=OUT/c['id']/'placement.json'
         records=json.loads(path.read_text())
         for r in records:
-            r['visual_acceptance']='needs-correction' if (c['id'],r['file']) in flagged else 'native-review-pending'
+            r['visual_acceptance']='needs-correction' if (c['id'],r['file']) in flagged else 'reviewed-local-only' if (c['id'],r['file']) in reviewed else 'native-review-pending'
         path.write_text(json.dumps(records,indent=2)+'\n',encoding='utf-8')

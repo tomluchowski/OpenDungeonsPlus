@@ -10,6 +10,14 @@ BASE_HASHES=json.loads((ROOT/'tools/portraits/feature-base-hashes.json').read_te
 ORDER=['build','hair','ears','eyes','nose','mouth','chin','scar','neck']
 report=json.loads((OUT/'corrections.json').read_text())
 flagged={(r['portrait'],r['file']) for r in report['entries']}
+review_path=OUT/'individual-review.json'
+individual=json.loads(review_path.read_text())['entries'] if review_path.exists() else []
+reviewed={(r['portrait'],r['file']) for r in individual}
+assert len(reviewed)==len(individual), 'Duplicate individual review records'
+assert flagged=={(r['portrait'],r['file']) for r in individual if r['classification']!='no-obvious-local-defect'}
+for r in individual:
+ assert r['observation'] and r['cause'] and r['required_action'], 'Incomplete individual finding'
+ assert (ROOT/r['evidence']).is_file() and (ROOT/r['composite']).is_file(), 'Missing review evidence'
 assert len(flagged)==len(report['entries'])==report['correction_count']
 assert len(CAT)==34
 count=0; source_count=0; portraits=[]
@@ -39,7 +47,7 @@ for c in CAT:
   assert source_hash==original[file]['sha256']==placement[file]['source_sha256'], str(source)+' changed'
   assert placement[file]['source']==str(source.relative_to(ROOT)).replace('\\','/')
   assert placement[file]['rect']==rectangles[slot]
-  assert placement[file]['visual_acceptance']==('needs-correction' if (identifier,file) in flagged else 'native-review-pending')
+  assert placement[file]['visual_acceptance']==('needs-correction' if (identifier,file) in flagged else 'reviewed-local-only' if (identifier,file) in reviewed else 'native-review-pending')
   with Image.open(folder/file) as patch:
    assert patch.format=='PNG' and patch.mode=='RGBA' and patch.size==tuple(rectangles[slot][2:]), str(folder/file)
    assert patch.getchannel('A').getextrema()[0]==0 and patch.getchannel('A').getbbox(), str(folder/file)+' invalid alpha'
@@ -50,7 +58,9 @@ for c in CAT:
  with Image.open(ROOT/'work/existing-feature-review'/identifier/'sheet-50x100.png') as sheet: assert sheet.size==(200,300)
  portraits.append(dict(id=identifier,patches=len(expected),corrections=sum((identifier,file) in flagged for slot,n,name,file in expected)))
 assert count==source_count==632
+if report['review_complete']:
+ assert reviewed=={(c['id'],f"{j['slot']}-{j['n']}-{j['name']}.png") for c in CAT for j in c['jobs']}, 'Incomplete individual audit'
 assert flagged <= {(c['id'],f"{j['slot']}-{j['n']}-{j['name']}.png") for c in CAT for j in c['jobs']}
-result=dict(portraits=34,patches=count,source_images_unchanged=source_count,base_portraits_unchanged=34,technical_validation='passed',correction_options=len(flagged),native_visual_acceptance='open',details=portraits)
+result=dict(portraits=34,patches=count,source_images_unchanged=source_count,base_portraits_unchanged=34,technical_validation='passed',correction_options=len(flagged),individually_reviewed_options=len(reviewed),required_regenerations=None,native_visual_acceptance='open',details=portraits)
 (OUT/'validation.json').write_text(json.dumps(result,indent=2)+'\n')
 print(json.dumps({k:v for k,v in result.items() if k!='details'},indent=2))
