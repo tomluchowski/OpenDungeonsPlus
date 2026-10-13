@@ -1,7 +1,7 @@
 """Check the Summon worker price rule and the spell costs of the three spells touched with it.
 
-Summon worker costs 1,500 per step, Call to war 10,000, Heal 5,000 and Eye of evil
-5,000, all without recharge. The worker price grows by one base price per worker
+Summon worker costs 1,400 per step, Call to war 9,200, Heal 5,400 and Eye of evil
+4,600, all without recharge. The worker price grows by one base price per worker
 above the four the heart supplies."""
 from pathlib import Path
 import re
@@ -15,10 +15,10 @@ section = config[config.rindex("[Spells]"):config.rindex("[/Spells]")]
 values = dict(re.findall(r"^\s+(\w+)\s+([\d.]+)\s*$", section, re.M))
 
 expected = {
-    "SummonWorkerNbHeart": "4", "SummonWorkerBasePrice": "1500", "SummonWorkerCooldown": "0",
-    "CallToWarPrice": "10000", "CallToWarCooldown": "0",
-    "CreatureHealPrice": "5000", "CreatureHealCooldown": "0",
-    "EyeEvilPrice": "5000", "EyeEvilCooldown": "0",
+    "SummonWorkerNbHeart": "4", "SummonWorkerBasePrice": "1400", "SummonWorkerCooldown": "0",
+    "CallToWarPrice": "9200", "CallToWarCooldown": "0",
+    "CreatureHealPrice": "5400", "CreatureHealCooldown": "0",
+    "EyeEvilPrice": "4600", "EyeEvilCooldown": "0",
 }
 for key, value in expected.items():
     assert values.get(key) == value, f"{key} is {values.get(key)}, expected {value}"
@@ -40,9 +40,9 @@ int main()
 {
     int bad = 0;
     // the heart supplies four workers: the fifth costs the base price, then 2x, 3x ...
-    const int32_t expectedPrice[][2] = {{0, 1500}, {3, 1500}, {4, 1500}, {5, 3000}, {6, 4500}, {7, 6000}};
+    const int32_t expectedPrice[][2] = {{0, 1400}, {3, 1400}, {4, 1400}, {5, 2800}, {6, 4200}, {7, 5600}};
     for(const int32_t* row : expectedPrice)
-        if(price(1500, row[0], 4) != row[1]) { std::printf("workers %d gives %d\n", row[0], price(1500, row[0], 4)); bad = 1; }
+        if(price(1400, row[0], 4) != row[1]) { std::printf("workers %d gives %d\n", row[0], price(1400, row[0], 4)); bad = 1; }
     return bad;
 }
 """
