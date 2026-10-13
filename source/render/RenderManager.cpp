@@ -40,6 +40,7 @@
 #include "render/DebugDrawer.h"
 #include "render/MovableTextOverlay.h"
 #include "render/ODFrameListener.h"
+#include "render/WeaponTrail.h"
 #include "rooms/Room.h"
 #include "utils/ConfigManager.h"
 #include "utils/Helper.h"
@@ -3020,6 +3021,8 @@ std::vector<RenderManager::CreatureCombatReaction>::iterator RenderManager::endC
 
 void RenderManager::clearCreatureCombatEffects(Creature* creature)
 {
+    WeaponTrail::removeCreature((creature != nullptr) ? creature->getName() : std::string());
+
     for(std::vector<CreatureCombatImpactEffect>::iterator it = mCreatureCombatImpactEffects.begin();
         it != mCreatureCombatImpactEffects.end();)
     {

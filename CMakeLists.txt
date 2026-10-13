@@ -413,6 +413,7 @@ set(OD_SOURCEFILES
     ${SRC}/render/CreatureReactions.cpp
     ${SRC}/render/CreatureCombatReactions.cpp
     ${SRC}/render/CreatureWeaponVisuals.cpp
+    ${SRC}/render/WeaponTrail.cpp
     ${SRC}/render/DebugDrawer.cpp    
     ${SRC}/render/Gui.cpp
     ${SRC}/render/CreaturePortrait.cpp

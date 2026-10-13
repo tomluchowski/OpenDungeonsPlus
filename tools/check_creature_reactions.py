@@ -24,7 +24,9 @@ SETTINGS = ("MaxSimultaneous", "MaxCameraDistance", "GroupStaggerMin", "GroupSta
             "AmbientAfter", "SitAfter", "LieAfter", "LookRadius", "InteractionChance", "InteractionRadius",
             "InteractionPause", "ArrowFollowsHand",
             "ArrowPullDistance", "ArrowDrawTime", "ArrowRetakeGap", "ArrowReloadTime", "ArrowHandOffset",
-            "CrossbowReloadTime", "CrossbowReloadJolt")
+            "CrossbowReloadTime", "CrossbowReloadJolt", "WeaponTrail", "WeaponTrailLife",
+            "WeaponTrailWidth", "WeaponTrailLength", "WeaponTrailColour", "WeaponTrailBrightness",
+            "WeaponTrailMinShare", "WeaponTrailMax")
 EVENT_KEYS = ("Name", "Priority", "Cooldown", "Probability", "GroupMax", "WhileWorking", "InHand", "Dying")
 VARIANT_KEYS = ("Name", "Weight", "Clip", "Fallback", "Emote", "Effect", "Motion", "Cooldown", "Probability",
                 "Creatures", "Groups", "Jobs", "Moods", "RequiresSleepNeed", "RequiresWall", "RequiresNeighbour", "LookAtRoom",

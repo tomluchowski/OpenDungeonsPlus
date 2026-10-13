@@ -85,6 +85,16 @@ CreatureReactionConfig::CreatureReactionConfig() :
     mArrowHandOffset(Ogre::Vector3::ZERO),
     mCrossbowReloadTime(1.1),
     mCrossbowReloadJolt(5.0),
+    mWeaponTrail(true),
+    mWeaponTrailLife(0.25),
+    mWeaponTrailWidth(0.12),
+    mWeaponTrailLength(2.0),
+    mWeaponTrailRed(1.0),
+    mWeaponTrailGreen(0.93),
+    mWeaponTrailBlue(0.75),
+    mWeaponTrailBrightness(0.9),
+    mWeaponTrailMinShare(0.0),
+    mWeaponTrailMax(4),
     mDefaultGroup("Fighters")
 {
 }
@@ -271,6 +281,26 @@ bool CreatureReactionConfig::loadSettings(std::istream& file)
             mCrossbowReloadTime = Helper::toDouble(words[1]);
         else if(words[0] == "CrossbowReloadJolt")
             mCrossbowReloadJolt = Helper::toDouble(words[1]);
+        else if(words[0] == "WeaponTrail")
+            mWeaponTrail = (Helper::toUInt32(words[1]) != 0);
+        else if(words[0] == "WeaponTrailLife")
+            mWeaponTrailLife = Helper::toDouble(words[1]);
+        else if(words[0] == "WeaponTrailWidth")
+            mWeaponTrailWidth = Helper::toDouble(words[1]);
+        else if(words[0] == "WeaponTrailLength")
+            mWeaponTrailLength = Helper::toDouble(words[1]);
+        else if((words[0] == "WeaponTrailColour") && (words.size() >= 4))
+        {
+            mWeaponTrailRed = Helper::toDouble(words[1]);
+            mWeaponTrailGreen = Helper::toDouble(words[2]);
+            mWeaponTrailBlue = Helper::toDouble(words[3]);
+        }
+        else if(words[0] == "WeaponTrailBrightness")
+            mWeaponTrailBrightness = Helper::toDouble(words[1]);
+        else if(words[0] == "WeaponTrailMinShare")
+            mWeaponTrailMinShare = Helper::toDouble(words[1]);
+        else if(words[0] == "WeaponTrailMax")
+            mWeaponTrailMax = Helper::toUInt32(words[1]);
         else if(words[0] == "DefaultGroup")
             mDefaultGroup = words[1];
         else
