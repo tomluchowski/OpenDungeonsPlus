@@ -120,7 +120,7 @@
             <Property name="Area" value="{{1,-232},{1,-171},{1,-202},{1,-141}}" />
             <Property name="ButtonImage" value="OpenDungeonsIcons/ObjectivesIcon" />
             <Property name="AlwaysOnTop" value="True" />
-            <Property name="TooltipText" value="Objectives (F3)" />
+            <Property name="TooltipText" value="Objectives" />
             <Property name="ClippedByParent" value="False" />
             <Property name="Visible" value="True" />
         </Window>
@@ -137,6 +137,13 @@
             <Property name="MaxSize" value="{{1,0},{1,0}}" />
             <Property name="AlwaysOnTop" value="True" />
         </Window>
+        <Window type="OD/Button" name="MiniMapZoomButton">
+            <UserString name="AllowEdgeScrolling" value="true" />
+            <Property name="Area" value="{{1,-61},{1,-52},{1,-17},{1,-8}}" />
+            <Property name="Text" value="+/-" />
+            <Property name="AlwaysOnTop" value="True" />
+            <Property name="TooltipText" value="Minimap: left-click to zoom in, right-click to zoom out; M opens the map" />
+        </Window>
         <Window type="OD/TabControl" name="MainTabControl" >
             <Property name="Area" value="{{0,0},{1,-133},{1,-200},{1,0}}" />
             <Property name="TabHeight" value="{0,35}" />
@@ -151,6 +158,8 @@
         <LayoutImport type="DefaultWindow" filename="WindowObjectives.layout" name="ObjectivesWindowImport" />
         <LayoutImport type="DefaultWindow" filename="WindowSkillTree.layout" name="SkillTreeWindowImport" />
         <LayoutImport type="DefaultWindow" filename="WindowGameOptions.layout" name="GameOptionsMenuImport" />
+        <LayoutImport type="DefaultWindow" filename="WindowUserCameras.layout" name="UserCamerasImport" />
+        <LayoutImport type="DefaultWindow" filename="WindowMap.layout" name="MapImport" />
         <LayoutImport type="DefaultWindow" filename="WindowEvent.layout" name="EventWindowImport" />
         <LayoutImport type="DefaultWindow" filename="WindowChat.layout" name="ChatWindowImport" />
         <LayoutImport type="DefaultWindow" filename="WindowHelp.layout" name="HelpWindowImport" />
