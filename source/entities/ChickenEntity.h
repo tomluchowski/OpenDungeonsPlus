@@ -100,11 +100,13 @@ public:
     //! \brief Plays a pose (see ChickenPose.h) and holds the animal still for the number of turns.
     void playPose(const std::string& pose, uint32_t turns);
 
+    //! \brief True while the animal holds a pose and stays where it is.
     inline bool isBusy() const
     { return mBusyTurns > 0; }
 
     //! \brief The hatchery tells a chick which animal to follow (the one in front of it in the line).
     void setFollowTarget(const Ogre::Vector2& target, double gap);
+    //! \brief The chick no longer follows anybody.
     void clearFollowTarget();
 
     //! \brief Hens and chicks sit still (night, full hatchery).
@@ -115,12 +117,15 @@ public:
     inline void setRoomDriven(bool driven)
     { mRoomDriven = driven; }
 
+    //! \brief The current mood of the rooster.
     inline RoosterMood getMood() const
     { return mMood; }
 
+    //! \brief Turns left of the current mood.
     inline uint32_t getMoodTurns() const
     { return mMoodTurns; }
 
+    //! \brief Sets the mood of the rooster for the given number of turns.
     inline void setMood(RoosterMood mood, uint32_t turns)
     {
         mMood = mood;
@@ -134,15 +139,19 @@ public:
             --mMoodTurns;
     }
 
+    //! \brief Turns since the rooster crowed last.
     inline uint32_t getSinceCrow() const
     { return mSinceCrow; }
 
+    //! \brief Counts one more turn since the last crow.
     inline void incrementSinceCrow()
     { ++mSinceCrow; }
 
+    //! \brief The rooster crowed just now.
     inline void resetSinceCrow()
     { mSinceCrow = 0; }
 
+    //! \brief True while the rooster sits on a coop roof.
     inline bool isOnRoof() const
     { return mOnRoof; }
 
