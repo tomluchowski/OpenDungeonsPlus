@@ -73,7 +73,8 @@ Trap::Trap(GameMap* gameMap) :
     mNbShootsBeforeDeactivation(0),
     mReloadTime(0),
     mMinDamage(0.0),
-    mMaxDamage(0.0)
+    mMaxDamage(0.0),
+    mForcedTrigger(false)
 {
 }
 
@@ -141,27 +142,51 @@ void Trap::doUpkeep()
         if(trapTileData->decreaseReloadTime())
             continue;
 
-        // A trap fizzles if its owner cannot pay the mana needed to fire
-        double manaToFire = getManaToFire();
-        if((manaToFire > 0.0) && (getSeat()->getMana() < manaToFire))
-            continue;
-
-        if(shoot(tile))
-        {
-            if(manaToFire > 0.0)
-                getSeat()->takeMana(manaToFire);
-
-            trapTileData->setReloadTime(mReloadTime);
-            if(!trapTileData->decreaseShoot())
-                deactivate(tile);
-
-            const std::vector<Seat*>& seats = tile->getSeatsWithVision();
-            trapTileData->seatsSawTriggering(seats);
-
-            for(Seat* seat : trapTileData->mSeatsVision)
-                seat->setVisibleBuildingOnTile(this, tile);
-        }
+        fireTile(tile, trapTileData);
     }
+}
+
+bool Trap::fireTile(Tile* tile, TrapTileData* trapTileData)
+{
+    // A trap fizzles if its owner cannot pay the mana needed to fire
+    double manaToFire = getManaToFire();
+    if((manaToFire > 0.0) && (getSeat()->getMana() < manaToFire))
+        return false;
+
+    if(!shoot(tile))
+        return false;
+
+    if(manaToFire > 0.0)
+        getSeat()->takeMana(manaToFire);
+
+    trapTileData->setReloadTime(mReloadTime);
+    if(!trapTileData->decreaseShoot())
+        deactivate(tile);
+
+    const std::vector<Seat*>& seats = tile->getSeatsWithVision();
+    trapTileData->seatsSawTriggering(seats);
+
+    for(Seat* seat : trapTileData->mSeatsVision)
+        seat->setVisibleBuildingOnTile(this, tile);
+
+    return true;
+}
+
+bool Trap::forceTrigger(Tile* tile)
+{
+    std::map<Tile*, TileData*>::iterator it = mTileData.find(tile);
+    if(it == mTileData.end())
+        return false;
+
+    // Only armed traps that are not reloading can be set off
+    TrapTileData* trapTileData = static_cast<TrapTileData*>(it->second);
+    if(!trapTileData->isActivated() || (trapTileData->getReloadTime() > 0))
+        return false;
+
+    mForcedTrigger = true;
+    bool fired = fireTile(tile, trapTileData);
+    mForcedTrigger = false;
+    return fired;
 }
 
 double Trap::getManaToFire() const
@@ -204,6 +229,12 @@ double Trap::getManaUpkeepPerSecond() const
             break;
         case TrapType::fireburst:
             key = "FireburstManaUpkeepPerSecond";
+            break;
+        case TrapType::trigger:
+            key = "TriggerManaUpkeepPerSecond";
+            break;
+        case TrapType::freeze:
+            key = "FreezeManaUpkeepPerSecond";
             break;
         default:
             return 0.0;

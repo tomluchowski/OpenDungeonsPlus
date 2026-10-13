@@ -788,6 +788,8 @@ int32_t TrapManager::getNeededWorkshopPointsPerTrap(TrapType trapType)
             return ConfigManager::getSingleton().getTrapConfigInt32("LightningWorkshopPointsPerTile");
         case TrapType::fireburst:
             return ConfigManager::getSingleton().getTrapConfigInt32("FireburstWorkshopPointsPerTile");
+        case TrapType::freeze:
+            return ConfigManager::getSingleton().getTrapConfigInt32("FreezeWorkshopPointsPerTile");
         case TrapType::watchBanner:
             return ConfigManager::getSingleton().getTrapConfigInt32("WatchBannerWorkshopPointsPerTile");
         case TrapType::doorWooden:
@@ -800,6 +802,8 @@ int32_t TrapManager::getNeededWorkshopPointsPerTrap(TrapType trapType)
             return ConfigManager::getSingleton().getTrapConfigInt32("BarricadeDoorPointsPerTile");
         case TrapType::alarm:
             return ConfigManager::getSingleton().getTrapConfigInt32("AlarmWorkshopPointsPerTile");
+        case TrapType::trigger:
+            return ConfigManager::getSingleton().getTrapConfigInt32("TriggerWorkshopPointsPerTile");
         case TrapType::doorSecret:
             return ConfigManager::getSingleton().getTrapConfigInt32("SecretDoorPointsPerTile");
         case TrapType::doorRuned:

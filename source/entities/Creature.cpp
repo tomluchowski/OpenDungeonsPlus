@@ -1129,6 +1129,21 @@ void Creature::doUpkeep()
             mCasinoMood = std::min(0.0, mCasinoMood + decay);
     }
 
+    // A frozen creature can neither move nor fight
+    if(isFrozen())
+    {
+        if(!mActions.empty())
+        {
+            clearActionQueue();
+            clearDestinations(EntityAnimation::idle_anim, true, true);
+        }
+        else if(isMoving())
+        {
+            clearDestinations(EntityAnimation::idle_anim, true, true);
+        }
+        return;
+    }
+
     // A chicken cannot fight, use skills or work. It only wanders around
     if(isHexenHen())
     {
@@ -3476,6 +3491,27 @@ bool Creature::isHexenHen() const
 
         const CreatureParticleEffect* creatureEffect = static_cast<const CreatureParticleEffect*>(effect);
         if((creatureEffect->mEffect->getEffectName() == "HexenHen") &&
+           (creatureEffect->mEffect->getNbTurnsEffect() > 0))
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+bool Creature::isFrozen() const
+{
+    if(!getIsOnServerMap())
+        return false;
+
+    for(const EntityParticleEffect* effect : mEntityParticleEffects)
+    {
+        if(effect->getEntityParticleEffectType() != EntityParticleEffectType::creature)
+            continue;
+
+        const CreatureParticleEffect* creatureEffect = static_cast<const CreatureParticleEffect*>(effect);
+        if((creatureEffect->mEffect->getEffectName() == "Frozen") &&
            (creatureEffect->mEffect->getNbTurnsEffect() > 0))
         {
             return true;

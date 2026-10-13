@@ -610,6 +610,27 @@ SkillManager::SkillManager() :
     def = new SkillDefTrap("TacticSkills/", "FireburstTrapButton", skill, TrapType::fireburst);
     def->mapSkill(mSkillsFamily);
     mSkills[index] = def;
+    std::vector<const Skill*> lvl6depends;
+    lvl6depends.push_back(skill);
+
+    // Lvl 7 research: the trigger trap only makes sense with other traps to set off,
+    // provisional position below the fireburst trap (research tree is full)
+    resType = SkillType::trapTrigger;
+    index = static_cast<uint32_t>(resType);
+    points = ConfigManager::getSingleton().getSkillPoints(Skills::toString(resType));
+    skill = new Skill(resType, points, lvl6depends);
+    def = new SkillDefTrap("TacticSkills/", "TriggerTrapButton", skill, TrapType::trigger);
+    def->mapSkill(mSkillsFamily);
+    mSkills[index] = def;
+
+    // The freeze trap follows the lightning trap, in the free slot of the lightning row
+    resType = SkillType::trapFreeze;
+    index = static_cast<uint32_t>(resType);
+    points = ConfigManager::getSingleton().getSkillPoints(Skills::toString(resType));
+    skill = new Skill(resType, points, lvl5depends);
+    def = new SkillDefTrap("TacticSkills/", "FreezeTrapButton", skill, TrapType::freeze);
+    def->mapSkill(mSkillsFamily);
+    mSkills[index] = def;
 
     resType = SkillType::trapWatchBanner;
     index = static_cast<uint32_t>(resType);
@@ -975,7 +996,11 @@ std::string SkillManager::getResearchDescription(SkillType type, uint32_t level)
         case SkillType::trapDoorIronbound: return "Door health: " + value(config.getTrapConfigDouble("IronboundDoorHP")) + " before Wooden door upgrades.";
         case SkillType::trapDoorSteel: return "Door health: " + value(config.getTrapConfigDouble("SteelDoorHP")) + " before Wooden door upgrades.";
         case SkillType::trapDoorBarricade: return "Barricade health: " + value(config.getTrapConfigDouble("BarricadeDoorHP")) + " before Wooden door upgrades.";
+        case SkillType::trapFreeze: return "Enemies on the tile are paralysed for " + value(config.getTrapConfigDouble("FreezeDurationTurns")) +
+            " turns; those below " + value(config.getTrapConfigDouble("FreezeShatterHpPercent")) + "% health shatter.";
         case SkillType::trapWatchBanner: return "One idle fighter stands guard on each post and returns to it after a fight.";
+        case SkillType::trapTrigger: return "Sets off every trap and door weapon of yours on the eight surrounding tiles, "
+            "and any trigger trap next to it, when an enemy steps on it. No damage.";
         case SkillType::trapDoorSecret: return "Door health: " + value(config.getTrapConfigDouble("SecretDoorHP")) +
             " before Wooden door upgrades; enemies see a wall until they see one of your creatures pass.";
         case SkillType::trapDoorRuned: return "Door health: " + value(config.getTrapConfigDouble("RunedDoorHP")) +

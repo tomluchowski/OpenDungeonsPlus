@@ -530,6 +530,10 @@ public:
     //! side, it is deduced from the active effect. On client side, from the state sent by the server
     bool isHexenHen() const;
 
+    //! \brief Returns true (server side) if the creature is paralysed by the Freeze trap. A frozen creature
+    //! can neither move nor fight
+    bool isFrozen() const;
+
     //! \brief Name of the mesh to display (the chicken mesh while the creature is a chicken)
     const std::string& getCurrentMeshName() const;
 

@@ -134,7 +134,7 @@ bool TrapGas::shoot(Tile* tile)
     std::vector<Tile*> triggerTiles;
     triggerTiles.push_back(tile);
     std::vector<GameEntity*> triggerCreatures = getGameMap()->getVisibleCreatures(triggerTiles, getSeat(), true);
-    if(triggerCreatures.empty())
+    if(triggerCreatures.empty() && !mForcedTrigger)
         return false;
 
     // The cloud hurts every creature in the area, enemies and allies

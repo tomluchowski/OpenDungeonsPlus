@@ -128,7 +128,7 @@ bool TrapAlarm::shoot(Tile* tile)
     uint32_t radius = ConfigManager::getSingleton().getTrapConfigUInt32("AlarmRadius");
     std::vector<Tile*> visibleTiles = getGameMap()->visibleTiles(tile->getX(), tile->getY(), static_cast<int>(radius));
     std::vector<GameEntity*> enemyCreatures = getGameMap()->getVisibleCreatures(visibleTiles, getSeat(), true);
-    if(enemyCreatures.empty())
+    if(enemyCreatures.empty() && !mForcedTrigger)
         return false;
 
     // The alarm only warns the owner: the "we are under attack" voice line and the zoomable fight event

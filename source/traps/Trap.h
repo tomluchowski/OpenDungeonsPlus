@@ -185,6 +185,10 @@ public:
     virtual bool shoot(Tile* tile)
     { return true; }
 
+    //! \brief Sets off the trap on the given tile without an enemy standing on it (used by trigger traps).
+    //! Returns true if the trap fired. Traps that are deactivated or reloading do not fire.
+    bool forceTrigger(Tile* tile);
+
     //! \brief Mana taken from the owner each time the trap fires. The trap does not
     //! fire while the owner has less mana than that. 0 for traps that cost no mana.
     virtual double getManaToFire() const;
@@ -247,6 +251,9 @@ protected:
 
     virtual TrapTileData* createTileData(Tile* tile) override;
 
+    //! \brief Checks the mana, shoots on the tile and updates reload, uses and visibility if the trap fired
+    bool fireTile(Tile* tile, TrapTileData* trapTileData);
+
     virtual BuildingObject* notifyActiveSpotCreated(Tile* tile);
     virtual TrapEntity* getTrapEntity(Tile* tile) = 0;
     virtual void notifyActiveSpotRemoved(Tile* tile);
@@ -255,6 +262,9 @@ protected:
     uint32_t mReloadTime;
     double mMinDamage;
     double mMaxDamage;
+
+    //! True while forceTrigger() fires the trap: pressure traps then do not need an enemy on their tile
+    bool mForcedTrigger;
 
     //! List of traps destroyed but with at least 1 player having vision. They will
     //! get removed when vision is gained by every player having seen it before destruction
