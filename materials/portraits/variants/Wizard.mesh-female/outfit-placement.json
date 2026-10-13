@@ -1,0 +1,35 @@
+[
+  {
+    "id": "Wizard.mesh-female",
+    "n": 1,
+    "name": "robe",
+    "build": 0,
+    "file": "outfit-1-robe-build0.png",
+    "source": "materials/portraits/generated-outfits/Wizard.mesh-female/outfit-1-robe.png",
+    "source_sha256": "9d7f752907b79aad665dcbee166d90aa0b786636cf9dcb7ff7d82a1ff15f0561",
+    "source_size": [
+      887,
+      1774
+    ],
+    "canvas_registration": "canonical canvas",
+    "body_span_fit": "continuous outer sleeve sector extensions clipped to uncovered body",
+    "bottom_rows_repeated": 0,
+    "horizontal_scale": 1.225,
+    "vertical_scale": 1.02,
+    "offset": [
+      -99.78750000000004,
+      -14.400000000000013
+    ],
+    "mesh_warp": null,
+    "torso_margin": 1.1111111111111112,
+    "sleeve_warp": null,
+    "head_occlusion": {
+      "warm_neutral_skin_above_row": 970
+    },
+    "native_uncovered_body_pixels": 448,
+    "coarse_uncovered_body_pixels": 8,
+    "coarse_body_pixels": 5634,
+    "visual_acceptance": "accepted-native-and-50x100",
+    "prompt": "Generate ONE new isolated EMPTY Wizard clothing layer exactly registered to this neutral dummy reference. Full887x1774 transparentRGBA canvas, large blank upper canvas retained. Plain dark muted blue-grey long-sleeved wizard robe with simple brown cloth sash, no insignia or symbols. Match slender lowered arms and narrow torso, slight three-quarter angle and upper-left warm light. Reference head is small and LOW in frame: collar y930-1060, shoulders y1010-1160, chest x150-830 at y1260, sash y1550. Cover all visible shoulders, torso and arms with fitting margin and continue beyond lower edge. Coarse fantasy brushwork matching reference, no photorealism. Only empty garment pieces; no head, body, dummy, skin, face, eyes, nose, ears, hair, beard, hat, helmet, jewelry, weapon, magic effects, writing, symbols, modern objects or background. Keep full-frame coordinates, no re-centering and no tight crop."
+  }
+]
