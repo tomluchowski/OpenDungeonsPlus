@@ -363,6 +363,7 @@ set(OD_SOURCEFILES
     ${SRC}/gamemap/TileContainer.cpp
     ${SRC}/gamemap/TileSet.cpp
 
+    ${SRC}/giftboxes/GiftBoxBonus.cpp
     ${SRC}/giftboxes/GiftBoxSkill.cpp
 
     ${SRC}/goals/Goal.cpp
