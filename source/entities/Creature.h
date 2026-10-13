@@ -733,6 +733,8 @@ private:
 
     //! \brief Counter to let the creature stay some turns after its death
     unsigned int    mDeathCounter;
+    //! \brief Server side. Turns since the champion was summoned (see handleChampionUpkeep), not saved
+    uint32_t        mChampionTurns;
     int             mJobCooldown;
 
     //! \brief At pay day, mGoldFee will be set to the creature fee and decreased when the creature gets gold
@@ -878,6 +880,17 @@ private:
 
     //! \brief Called on server side each turn when the creature is a chicken. It only wanders around
     void handleHexenHenUpkeep();
+
+    //! \brief Called on server side each turn for the champion. The cast price covers the first seconds, then the owner pays
+    //! the mana drain per second. Returns true if the champion left because the mana cannot pay it
+    bool handleChampionUpkeep();
+
+    //! \brief Idle action of the champion: walks to the nearest reachable enemy creature, or to the nearest enemy dungeon heart.
+    //! Returns true if a destination was set
+    bool handleChampionIdle();
+
+    //! \brief Removes the champion from the map (slap, or not enough mana)
+    void dismissChampion();
 };
 
 #endif // CREATURE_H

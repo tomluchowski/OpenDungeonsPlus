@@ -108,7 +108,7 @@ void SpellHexenHen::checkSpellCast(GameMap* gameMap, const InputManager& inputMa
         return;
     }
 
-    if(closestCreature->isHexenHen() || closestCreature->isInPrison())
+    if(closestCreature->isHexenHen() || closestCreature->isInPrison() || closestCreature->getDefinition()->isChampion())
     {
         std::string txt = formatCastSpell(SpellType::hexenHen, 0);
         inputCommand.displayText(Ogre::ColourValue::White, txt);
@@ -170,6 +170,12 @@ bool SpellHexenHen::castSpell(GameMap* gameMap, Player* player, ODPacket& packet
     if(creature->isHexenHen())
     {
         OD_LOG_WRN("Creature=" + creatureName + " is already a chicken");
+        return false;
+    }
+
+    if(creature->getDefinition()->isChampion())
+    {
+        OD_LOG_WRN("Creature=" + creatureName + " is a champion");
         return false;
     }
 

@@ -71,6 +71,7 @@ CreatureDefinition::CreatureDefinition(
             int32_t                 sleepHeal,
             int32_t                 turnsStunDropped) :
         mCreatureJob (job),
+        mChampion (false),
         mClassName   (className),
         mMeshName    (meshName),
         mBedMeshName (bedMeshName),
@@ -122,6 +123,7 @@ CreatureDefinition::CreatureDefinition(
 
 CreatureDefinition::CreatureDefinition(const CreatureDefinition& def) :
         mCreatureJob(def.mCreatureJob),
+        mChampion(def.mChampion),
         mClassName(def.mClassName),
         mMeshName(def.mMeshName),
         mBedMeshName(def.mBedMeshName),
@@ -302,6 +304,7 @@ ODPacket& operator<<(ODPacket& os, const CreatureDefinition* c)
     os << c->mSoundFamilyAttack;
     os << c->mSoundFamilyDie;
     os << c->mSoundFamilySlap;
+    os << c->mChampion;
     os << c->mTortureTimeToConvert;
 
     for (unsigned int i = 0; i < c->mXPTable.size(); ++i)
@@ -341,6 +344,7 @@ ODPacket& operator>>(ODPacket& is, CreatureDefinition* c)
     is >> c->mSoundFamilyAttack;
     is >> c->mSoundFamilyDie;
     is >> c->mSoundFamilySlap;
+    is >> c->mChampion;
     is >> c->mTortureTimeToConvert;
 
     for (unsigned int i = 0; i < c->mXPTable.size(); ++i)
@@ -466,6 +470,12 @@ bool CreatureDefinition::update(CreatureDefinition* creatureDef, std::stringstre
             {
                 defFile >> nextParam;
                 creatureDef->mCreatureJob = CreatureDefinition::creatureJobFromString(nextParam);
+                continue;
+            }
+            else if (nextParam == "Champion")
+            {
+                defFile >> nextParam;
+                creatureDef->mChampion = Helper::toBool(nextParam);
                 continue;
             }
             else if (nextParam == "MeshName")
@@ -752,6 +762,9 @@ void CreatureDefinition::writeCreatureDefinitionDiff(
 
     if(def1 == nullptr || (def1->mCreatureJob != def2->mCreatureJob))
         file << "    CreatureJob\t" << creatureJobToString(def2->mCreatureJob) << std::endl;
+
+    if(def1 == nullptr || (def1->mChampion != def2->mChampion))
+        file << "    Champion\t" << (def2->mChampion ? 1 : 0) << std::endl;
 
     if(def1 == nullptr || (def1->mMeshName.compare(def2->mMeshName) != 0))
         file << "    MeshName\t" << def2->mMeshName << std::endl;

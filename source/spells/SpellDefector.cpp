@@ -117,7 +117,7 @@ void SpellDefector::checkSpellCast(GameMap* gameMap, const InputManager& inputMa
         return;
     }
 
-    if(closestCreature->isInPrison())
+    if(closestCreature->isInPrison() || closestCreature->getDefinition()->isChampion())
     {
         std::string txt = formatCastSpell(SpellType::defector, 0);
         inputCommand.displayText(Ogre::ColourValue::White, txt);
@@ -177,9 +177,9 @@ bool SpellDefector::castSpell(GameMap* gameMap, Player* player, ODPacket& packet
         return false;
     }
 
-    if(creature->isInPrison())
+    if(creature->isInPrison() || creature->getDefinition()->isChampion())
     {
-        OD_LOG_WRN("Creature=" + creatureName + " is in prison");
+        OD_LOG_WRN("Creature=" + creatureName + " is in prison or a champion");
         return false;
     }
 

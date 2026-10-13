@@ -148,6 +148,7 @@ public:
     static bool update(CreatureDefinition* creatureDef, std::stringstream& defFile, const std::map<std::string, CreatureDefinition*>& defMap);
 
     inline CreatureJob          getCreatureJob  () const    { return mCreatureJob; }
+    inline bool                 isChampion      () const    { return mChampion; }
     inline const std::string&   getClassName    () const    { return mClassName; }
 
     inline const std::string&   getMeshName     () const    { return mMeshName; }
@@ -240,6 +241,9 @@ public:
 private:
     //! \brief The job of the creature (e.g. worker, fighter, ...)
     CreatureJob mCreatureJob;
+
+    //! \brief True for the summoned champion: it cannot be hurt, possessed or turned, needs no fee and charges at enemies
+    bool mChampion;
 
     //! \brief The name of the creatures class
     std::string mClassName;

@@ -62,6 +62,7 @@ void PlayerSelection::setNewSpellType(SpellType newSpellType)
     case SpellType::createGold:
     case SpellType::tremor:
     case SpellType::inferno:
+    case SpellType::summonChampion:
         mInputManager.mCreatureTypeForOutliner = SelectionEntityWanted::none;
         break;
     case SpellType::creatureWeak:

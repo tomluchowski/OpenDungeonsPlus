@@ -212,9 +212,16 @@ std::string skillTypeToPlayerVisibleString(SkillType type)
             return "The Wooden Door";
         case SkillType::spellEyeEvil:
             return "The 'Eye of evil' spell";
+        case SkillType::spellSummonChampion:
+            return "The 'Summon Champion' spell";
         default:
             return "Unknown enum value:" + Helper::toString(static_cast<int>(type));
     }
+}
+
+bool isRewardSkill(SkillType type)
+{
+    return (type == SkillType::spellSummonChampion);
 }
 }
 
