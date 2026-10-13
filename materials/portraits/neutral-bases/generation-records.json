@@ -1,6 +1,6 @@
 {
   "requirement": "Genderless featureless unclothed game dummy, no clothing/equipment/facial organs or visible sexual characteristics; catalog gender is an asset label.",
-  "completed_count": 33,
+  "completed_count": 34,
   "total": 34,
   "completed": [
     {
@@ -234,10 +234,16 @@
       "prompt": "Create ONE painted modular GAME DUMMY portrait from the reference, exactly 887x1774 pixels. A genderless featureless mannequin, NOT a person, with simple smooth continuous surface and no anatomical sex characteristics. Retain species proportions, head location and tilt, shoulders, pose, crop, reference skin/material palette, painterly brushwork, lighting and background. Replace ALL worn garments, armor, helmets, hoods, sleeves, gloves, straps, belts, jewelry and weapons with a plain smooth mannequin torso and arms. Remove ALL facial organs and contours: eyes, sockets, eyebrows, nose, mouth, teeth/tusks, ears, hair, beard, scars/paint. Blank smooth bald head, zero ear protrusions, flat neutral chest. Nonsexual character customization dummy ready for separate overlays, no seams/joints, no text, no collage, no transparency. Cultist reference: remove ALL black long hair, spiked metal helmet/crescent halo, red cloak/high collar, dark clothes, yellow lacing, belt/buckle. Plain warm muted tan genderless dummy with blank oval head at helmet center and same tilt, natural neck/shoulders and smooth flat torso. Upper body portrait cropped at waist, torso continues beyond lower edge, arms descending at sides matching original.",
       "file": "materials/portraits/neutral-bases/Cultist.mesh-female.png",
       "source": "generated/exec-5e9d2bd1-2c85-49ae-b8e3-7a3bb2a6d5ad.png"
+    },
+    {
+      "id": "Knight.mesh",
+      "status": "derived-placement-unverified",
+      "derived_from": "materials/portraits/neutral-bases/Knight.mesh-female.png",
+      "method": "Local Pillow/numpy script, no image generation: row-wise horizontal stretch about x=443 to broaden shoulders, arms and torso, same pose, head, crop and colours as the source (arms get thicker by the same factor, outer edges are cropped by the canvas). Stretch factor by row: y0-650 1.00, y800 1.15, y1100 1.17, y1250 1.18, y1450 1.14, y1774 0.96 (linear in between). Size 887x1774 unchanged. An earlier version derived from Cultist.mesh had the wrong pose and was replaced.",
+      "file": "materials/portraits/neutral-bases/Knight.mesh.png",
+      "fit_issue": "Head, scar, hair and neck options line up with the clothed reference. The build options do not cover the base's bare shoulders and upper arms, which are bulkier than the clothed shoulders; hips still flare slightly. Final fit acceptance is open.",
+      "test_candidate": "materials/portraits/neutral-bases/knight-male-gambeson-test.png (generated, grey gambeson, not used as the base)"
     }
-  ],
-  "pending": [
-    "Knight.mesh"
   ],
   "blocker": {
     "id": "Knight.mesh",
