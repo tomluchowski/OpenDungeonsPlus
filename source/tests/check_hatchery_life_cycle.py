@@ -185,6 +185,9 @@ assert 'standingPosition' in body(room_cpp, 'bool RoomHatchery::getNestStandPoin
 assert '!it->mHen.empty()' in body(room_cpp, 'void RoomHatchery::releasePendingEggs'), 'the egg waits for the hen'
 assert doUpkeep.index('updateNestTrips(hens, counts)') < doUpkeep.index('releasePendingEggs(settings)')
 assert 'HatcheryNestWalkTurns' in cfg and 'HatcheryNestArrive' in cfg
+# The walk must not delay the hatching (balance parity): the egg takes the turns since the hen started as its age
+assert '++it->mAge' in body(room_cpp, 'void RoomHatchery::releasePendingEggs') and '->setAge(it->mAge)' in room_cpp
+assert 'void setAge(' in chicken_h
 assert 'eggs.erase(eggIt)' in doUpkeep and doUpkeep.index('eggs.erase(eggIt)') < doUpkeep.index('eggPositions.push_back'),     'trampled eggs free their place'
 # The chick from a nest stands next to the coop, the nest lies in the footprint of the coop
 assert 'leaveNest(egg)' in doUpkeep and 'chick->teleport(' in body(room_cpp, 'void RoomHatchery::leaveNest')

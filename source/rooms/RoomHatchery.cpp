@@ -387,6 +387,8 @@ void RoomHatchery::releasePendingEggs(const HatcheryCycleSettings& settings)
     std::vector<PendingEgg>::iterator it = mPendingEggs.begin();
     while(it != mPendingEggs.end())
     {
+        ++it->mAge;
+
         // The hen is still on her way to the nest, she has not started to lay
         if(!it->mHen.empty())
         {
@@ -405,7 +407,7 @@ void RoomHatchery::releasePendingEggs(const HatcheryCycleSettings& settings)
         // The place must still belong to the hatchery, otherwise the egg is not laid
         Tile* spotTile = getGameMap()->getTile(Helper::round(it->mSpot.x), Helper::round(it->mSpot.y));
         if((spotTile != nullptr) && (spotTile->getCoveringRoom() == this))
-            spawnAnimal(ChickenKind::egg, it->mSpot, settings);
+            spawnAnimal(ChickenKind::egg, it->mSpot, settings)->setAge(it->mAge);
         it = mPendingEggs.erase(it);
     }
 }

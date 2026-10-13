@@ -148,7 +148,8 @@ private:
             mSpot(spot),
             mTurns(turns),
             mStand(0.0f, 0.0f),
-            mWalkTurns(0)
+            mWalkTurns(0),
+            mAge(0)
         {}
 
         Ogre::Vector3 mSpot;
@@ -159,6 +160,9 @@ private:
         std::string mHen;
         Ogre::Vector2 mStand;
         uint32_t mWalkTurns;
+        //! Turns since the hen started (walk and Lay pose). The egg takes them with it as its age, so the walk does
+        //! not make the hatching later (balance parity of the life cycle).
+        uint32_t mAge;
     };
     std::vector<PendingEgg> mPendingEggs;
     //! Turns the hatchery has been empty (no hen, chick or egg)
