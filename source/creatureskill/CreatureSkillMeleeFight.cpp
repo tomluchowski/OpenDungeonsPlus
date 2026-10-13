@@ -19,6 +19,7 @@
 
 #include "creatureskill/CreatureSkillManager.h"
 #include "entities/Creature.h"
+#include "entities/GameEntityType.h"
 #include "entities/Tile.h"
 #include "entities/Weapon.h"
 #include "gamemap/GameMap.h"
@@ -43,6 +44,12 @@ class CreatureSkillMeleeFightFactory : public CreatureSkillFactory
 
 // Register the factory
 static CreatureSkillRegister reg(new CreatureSkillMeleeFightFactory);
+
+//! Tells whether the creature carries a weapon in either hand.
+bool hasWeapon(Creature* creature)
+{
+    return creature->getWeaponL() != nullptr || creature->getWeaponR() != nullptr;
+}
 }
 
 const std::string& CreatureSkillMeleeFight::getSkillName() const
@@ -85,7 +92,14 @@ bool CreatureSkillMeleeFight::tryUseFight(GameMap& gameMap, Creature* creature, 
         magAtk *= modifier;
         eleAtk *= modifier;
     }
-    attackedObject->takeDamage(creature, 0.0, phyAtk, magAtk, eleAtk, attackedTile, ko);
+    const double damageDone = attackedObject->takeDamage(creature, 0.0,
+        phyAtk, magAtk, eleAtk, attackedTile, ko);
+    if(attackedObject->getObjectType() == GameEntityType::creature)
+    {
+        Creature* target = static_cast<Creature*>(attackedObject);
+        target->fireCombatImpact(hasWeapon(creature) && hasWeapon(target),
+            damageDone > 0.0, creature->getPosition());
+    }
     if(notifyPlayerIfHit)
         attackedObject->notifyFightPlayer(attackedTile);
 

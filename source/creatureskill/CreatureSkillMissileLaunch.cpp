@@ -66,6 +66,7 @@ bool CreatureSkillMissileLaunch::canBeUsedBy(const Creature* creature) const
     return true;
 }
 
+//! \brief Launches a missile at the attacked tile; the elemental damage channel uses the elemental base attack.
 bool CreatureSkillMissileLaunch::tryUseFight(GameMap& gameMap, Creature* creature, float range,
         GameEntity* attackedObject, Tile* attackedTile, bool ko, bool notifyPlayerIfHit) const
 {
@@ -76,9 +77,7 @@ bool CreatureSkillMissileLaunch::tryUseFight(GameMap& gameMap, Creature* creatur
         return false;
     }
 
-    Ogre::Vector3 position;
-    position.x = static_cast<Ogre::Real>(creatureTile->getX());
-    position.y = static_cast<Ogre::Real>(creatureTile->getY());
+    Ogre::Vector3 position = creature->getPosition();
     position.z = CANNON_MISSILE_HEIGHT;
     Ogre::Vector3 missileDirection(static_cast<Ogre::Real>(attackedTile->getX()),
         static_cast<Ogre::Real>(attackedTile->getY()), CANNON_MISSILE_HEIGHT);
@@ -88,7 +87,7 @@ bool CreatureSkillMissileLaunch::tryUseFight(GameMap& gameMap, Creature* creatur
     double level = static_cast<double>(creature->getLevel());
     double phyAtk = mPhyAtk + (level * mPhyAtkPerLvl);
     double magAtk = mMagAtk + (level * mMagAtkPerLvl);
-    double eleAtk = mMagAtk + (level * mEleAtkPerLvl);
+    double eleAtk = mEleAtk + (level * mEleAtkPerLvl);
     if(creature->getWeaponL() != nullptr)
     {
         phyAtk +=creature->getWeaponL()->getPhysicalDamage();
@@ -108,6 +107,9 @@ bool CreatureSkillMissileLaunch::tryUseFight(GameMap& gameMap, Creature* creatur
     missile->addToGameMap();
     missile->createMesh();
     missile->setPosition(position);
+    // The regular visibility pass already ran before this creature's upkeep.
+    // Announce the launch before the first path, not after next turn's movement.
+    missile->notifySeatsWithVision(creatureTile->getSeatsWithVision());
     // We don't want the missile to stay idle for 1 turn. Because we are in a doUpkeep context,
     // we can safely call the missile doUpkeep as we know the engine will not call it the turn
     // it has been added

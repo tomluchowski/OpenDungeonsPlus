@@ -22,6 +22,7 @@
 #define CREATURE_H
 
 #include "entities/MovableGameEntity.h"
+#include "entities/CreatureActivity.h"
 #include "eventsystem/CreatureMoved.h"
 #include "eventsystem/Subject.h"
 
@@ -187,6 +188,8 @@ public:
 
     inline CreatureMoodLevel getMoodValue() const
     { return mMoodValue; }
+
+    CreatureActivity getActivity() const;
 
     inline int32_t getNbTurnFurious() const
     { return mNbTurnFurious; }
@@ -406,6 +409,10 @@ public:
     void slap() override;
 
     void fireCreatureSound(CreatureSound sound);
+    //! \brief Tells the clients that see this creature that it was hit, so they can show the reaction.
+    //! weaponClash is true when both fighters carry weapons, bodyDamage when the hit did damage.
+    void fireCombatImpact(bool weaponClash, bool bodyDamage,
+        const Ogre::Vector3& attackerPosition);
 
     void itsPayDay();
 
@@ -732,6 +739,7 @@ private:
     //! \brief Mood value. Depending on this value, the creature will be in bad mood and
     //! might attack allied creatures or refuse to work or to go to combat
     CreatureMoodLevel               mMoodValue;
+    CreatureActivity                mActivity;
     //! \brief Mood points. Computed by the creature MoodModifiers. It is promoted to class variable for debug purposes and
     //! should not be used to check mood. If the mood is to be tested, mMoodValue should be used
     int32_t                         mMoodPoints;
@@ -807,6 +815,11 @@ private:
     void increaseHunger(double value);
 
     void computeMood();
+
+    void exportMoodToPacket(ODPacket& os, const Seat* seat) const;
+    void importMoodFromPacket(ODPacket& is);
+    void exportActivityToPacket(ODPacket& os, const Seat* seat) const;
+    void importActivityFromPacket(ODPacket& is);
 
     void computeCreatureOverlayMoodValue();
 };

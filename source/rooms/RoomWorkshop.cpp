@@ -308,7 +308,7 @@ void RoomWorkshop::doUpkeep()
     // we check that no reachable Workshop can supply the trap before starting crafting
     if(mTrapType == TrapType::nullTrapType)
     {
-        std::map<TrapType, int> neededTraps;
+        std::vector<Trap*> orderedTraps;
         Creature* worker = getGameMap()->getWorkerForPathFinding(getSeat());
         if (worker != nullptr)
         {
@@ -325,51 +325,45 @@ void RoomWorkshop::doUpkeep()
                 if(nbNeededCraftedTrap <= 0)
                     continue;
 
-                neededTraps[trap->getType()] += nbNeededCraftedTrap;
+                orderedTraps.push_back(trap);
             }
         }
 
-        if(!neededTraps.empty())
+        if(!orderedTraps.empty())
         {
-            // We check if there are enough owned reachable crafted traps
+            std::map<TrapType, int> availableTraps;
             const std::vector<RenderedMovableEntity*>& renderables = getGameMap()->getRenderedMovableEntities();
-            for(std::pair<TrapType const, int>& p : neededTraps)
+            for(RenderedMovableEntity* renderable : renderables)
             {
-                for(RenderedMovableEntity* renderable : renderables)
-                {
-                    if(renderable->getObjectType() != GameEntityType::craftedTrap)
-                        continue;
-
-                    if(renderable->getSeat() != getSeat())
-                        continue;
-
-                    // If the crafted trap is being carried, it should not be counted because
-                    // the trap it is carried to should have booked a spot
-                    if(!renderable->getIsOnMap())
-                        continue;
-
-                    CraftedTrap* craftedTrap = static_cast<CraftedTrap*>(renderable);
-                    if(craftedTrap->getTrapType() != p.first)
-                        continue;
-
-                    --p.second;
-                }
-            }
-
-            std::vector<TrapType> trapsToCraft;
-            for(std::pair<TrapType const, int>& p : neededTraps)
-            {
-                if(p.second <= 0)
+                if(renderable->getObjectType() != GameEntityType::craftedTrap)
                     continue;
 
-                trapsToCraft.push_back(p.first);
+                if(renderable->getSeat() != getSeat())
+                    continue;
+
+                // If the crafted trap is being carried, it should not be counted because
+                // the trap it is carried to should have booked a spot
+                if(!renderable->getIsOnMap())
+                    continue;
+
+                CraftedTrap* craftedTrap = static_cast<CraftedTrap*>(renderable);
+                ++availableTraps[craftedTrap->getTrapType()];
             }
 
-            // We randomly pickup the trap to craft if any
-            if(!trapsToCraft.empty())
+            // Reachable buildings retain the order in which the trap orders were added.
+            for(Trap* trap : orderedTraps)
             {
-                uint32_t index = Random::Uint(0, trapsToCraft.size() - 1);
-                mTrapType = trapsToCraft[index];
+                const TrapType trapType = trap->getType();
+                int32_t nbNeededCraftedTrap = trap->getNbNeededCraftedTrap();
+                int& nbAvailableCraftedTrap = availableTraps[trapType];
+                if(nbAvailableCraftedTrap >= nbNeededCraftedTrap)
+                {
+                    nbAvailableCraftedTrap -= nbNeededCraftedTrap;
+                    continue;
+                }
+
+                mTrapType = trapType;
+                break;
             }
         }
     }

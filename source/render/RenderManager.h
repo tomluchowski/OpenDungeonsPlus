@@ -23,8 +23,10 @@
 #define RENDERMANAGER_H
 
 #include <string>
+#include <map>
 #include <OgreSingleton.h>
 #include <OgreMath.h>
+#include <OgreSkeleton.h>
 #include <OgreDefaultDebugDrawer.h>
 #include <cstdint>
 #include "entities/GameEntity.h"
@@ -96,8 +98,12 @@ public:
     //! \brief setup the scene
     void createScene(Ogre::Viewport*);
 
+    void setViewport(Ogre::Viewport* viewport)
+    { mViewport = viewport; }
+
     //! \brief Sets/Updates the overall world lighting value with given factor.
     void setWorldAmbientLightingFactor(float lightFactor);
+    void setDynamicShadowsEnabled(bool enabled);
 
     //! \brief Set the entity's opacity
     void setEntityOpacity(Ogre::Entity* ent, float opacity);
@@ -106,6 +112,7 @@ public:
     //! moveCursor allows to move the cursor on GUI
     //!  moveWorldCoords sends the world coords where the map light is
     void moveCursor(float relX, float relY);
+    Ogre::FloatRect getHandCursorBounds(float relX, float relY) const;
     void moveWorldCoords(Ogre::Real x, Ogre::Real y);
     void entitySlapped();
 
@@ -148,6 +155,8 @@ public:
     void rrPickUpEntity(GameEntity* curEntity, Player* localPlayer);
     void rrDropHand(GameEntity* curEntity, Player* localPlayer);
     void rrRotateHand(Player* localPlayer);
+    void rrEnableHeldCreatureDisplay(bool enabled, Player* localPlayer);
+    bool isKeeperHandVisible() const { return mHandKeeperHandVisibility == 0; }
     void rrAddOutliner(Creature* creature);
     void rrRemoveOutliner(Creature* creature);
     void rrIncreaseAmbient(Creature* creature);
@@ -165,6 +174,14 @@ public:
         const std::string& particleScript);
     void rrEntityRemoveParticleEffect(GameEntity* entity, Ogre::ParticleSystem* particleSystem);
     void rrToggleHandSelectorVisibility();
+    void rrSetHandPose(bool pointing, bool digging);
+    void rrPlayDigAnimation();
+    void rrDrawTilePreview(const std::vector<Tile*>& tiles, const Ogre::ColourValue& colour);
+    void rrCreateRoomConstructionEffect(const std::vector<Tile*>& tiles);
+    //! \brief Plays the hit reaction of a creature and, depending on the flags, sparks (weaponClash)
+    //! and blood (bodyDamage); the direction of the hit comes from the attacker position.
+    void rrCreateCreatureCombatImpact(Creature* creature, bool weaponClash,
+        bool bodyDamage, const Ogre::Vector3& attackerPosition);
 
     //! \brief Toggles the creatures text overlay
     void rrSetCreaturesTextOverlay(GameMap& gameMap, bool value);
@@ -178,7 +195,7 @@ public:
     //! \brief Does requested stuff for rendering in the minimap. Each time the minimap is rendered, this function will be
     //! called once before rendering is done with postRender = false and once when it is rendered with postRender = true.
     //! That allows to hide stuff that we don't want to display in the minimap
-    void rrMinimapRendering(bool postRender);
+    void rrMinimapRendering(bool postRender, bool keepWorldLighting = false);
 
     Ogre::Light* addPointLightMenu(const std::string& name, const Ogre::Vector3& pos,
         const Ogre::ColourValue& diffuse, const Ogre::ColourValue& specular, Ogre::Real attenuationRange,
@@ -229,6 +246,7 @@ private:
     template<typename Manager> bool removeIfExists(std::string, std::string);
     //! \brief Correctly places entities in hand next to the keeper hand
     void rrOrderHand(Player* localPlayer);
+    void rrUpdateHeldCreature();
 
     //! \brief Colorize the material with the corresponding team id color.
     //! \note If the material (wall tiles only) is marked for digging, a yellow color is added
@@ -260,6 +278,97 @@ private:
     Ogre::SceneNode* mMainMenuSceneNode;
 
     Ogre::AnimationState* mHandAnimationState;
+    std::string mHandPose = "Idle";
+    Ogre::ManualObject* mHandPickaxe = nullptr;
+    Ogre::ManualObject* mTilePreview = nullptr;
+
+    //! \brief Short particle effect shown at a creature that was hit.
+    struct CreatureCombatImpactEffect
+    {
+        Creature* mCreature;
+        Ogre::SceneNode* mNode;
+        Ogre::ParticleSystem* mParticleSystem;
+        //! Seconds until the effect is destroyed.
+        Ogre::Real mRemainingTime;
+    };
+    std::vector<CreatureCombatImpactEffect> mCreatureCombatImpactEffects;
+
+    //! \brief Running hit reaction of a creature; it is played on top of the current animation.
+    struct CreatureCombatReaction
+    {
+        Creature* mCreature;
+        Ogre::Entity* mEntity;
+        Ogre::AnimationState* mAnimation;
+        //! Blend mode of the skeleton to restore when the reaction ends.
+        Ogre::SkeletonAnimationBlendMode mPreviousBlendMode;
+    };
+    std::vector<CreatureCombatReaction> mCreatureCombatReactions;
+    //! Counter that makes the names of the combat impact scene objects unique.
+    uint64_t mCreatureCombatEffectNumber = 0;
+    //! Index of the next attack variant to play, per creature, so that attacks alternate.
+    std::map<Creature*, uint32_t> mCreatureAttackVariants;
+
+    struct CreatureDropAnimation
+    {
+        Creature* mCreature;
+        Ogre::SceneNode* mNode;
+        Ogre::Vector3 mStart;
+        Ogre::Vector3 mEnd;
+        Ogre::Quaternion mStartOrientation;
+        Ogre::Quaternion mLieOrientation;
+        Ogre::Vector3 mLiePosition;
+        Ogre::Real mElapsed;
+        bool mLieOnGround;
+        bool mUseFallbackLie;
+    };
+    std::vector<CreatureDropAnimation> mCreatureDropAnimations;
+
+    struct CreatureGroundPose
+    {
+        Creature* mCreature;
+        Ogre::SceneNode* mNode;
+        Ogre::Quaternion mStandingOrientation;
+        Ogre::Real mStandingZ;
+    };
+    std::vector<CreatureGroundPose> mCreatureGroundPoses;
+
+    struct CreatureGetUpAnimation
+    {
+        Creature* mCreature;
+        Ogre::SceneNode* mNode;
+        Ogre::AnimationState* mAnimationState;
+        Ogre::Quaternion mStartOrientation;
+        Ogre::Quaternion mEndOrientation;
+        Ogre::Vector3 mStartPosition;
+        Ogre::Vector3 mEndPosition;
+        Ogre::Real mElapsed;
+        bool mUseFallback;
+    };
+    std::vector<CreatureGetUpAnimation> mCreatureGetUpAnimations;
+
+    void cancelCreatureDropAnimation(Creature* creature);
+    void cancelCreatureGetUpAnimation(Creature* creature);
+    void startCreatureGetUpAnimation(Creature* creature);
+    void restoreCreatureGroundPose(Creature* creature);
+    void setCreatureDropGroundAnimation(Creature* creature);
+    struct RoomConstructionEffect
+    {
+        std::string mNodeName;
+        std::string mParticleName;
+        Ogre::Real mRemainingTime;
+    };
+    std::vector<RoomConstructionEffect> mRoomConstructionEffects;
+    uint64_t mRoomConstructionEffectNumber = 0;
+
+    //! \brief Destroys the combat effects and reactions of the given creature, or of all creatures if null.
+    void clearCreatureCombatEffects(Creature* creature = nullptr);
+    //! \brief Destroys the effect at the iterator and returns the iterator of the following one.
+    std::vector<CreatureCombatImpactEffect>::iterator destroyCreatureCombatImpactEffect(
+        std::vector<CreatureCombatImpactEffect>::iterator it);
+    //! \brief Stops the reaction at the iterator, restores the blend mode and returns the iterator of the following one.
+    std::vector<CreatureCombatReaction>::iterator endCreatureCombatReaction(
+        std::vector<CreatureCombatReaction>::iterator it);
+    void clearRoomConstructionEffects();
 
 
     Ogre::TexturePtr m_texture;
@@ -269,11 +378,15 @@ private:
 
     //! For the keeper hand
     Ogre::SceneNode* mHandKeeperNode;
+    Ogre::SceneNode* mHeldCreatureGrip = nullptr;
+    Ogre::SceneNode* mHeldCreatureStorage = nullptr;
+    bool mHeldCreatureDisplayEnabled = false;
     Ogre::SceneNode* mDummyNode;
     Ogre::SceneNode* mHandLightNode;
     Ogre::SceneNode* mHandLightNode2;
     Ogre::Camera* mShadowCam;
     Ogre::Radian mCurrentFOVy;
+    Ogre::Real mCurrentAspectRatio;
     Ogre::Real mFactorWidth;
     Ogre::Real mFactorHeight;
 
