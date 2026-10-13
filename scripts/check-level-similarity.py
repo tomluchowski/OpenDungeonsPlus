@@ -116,12 +116,14 @@ TEXT_ACTIONS = ["message", "objective", "subobjective"]
 
 
 def run_git(args, cwd):
+    """Run git with the given arguments in cwd and return (exit code, decoded stdout)."""
     proc = subprocess.run(["git"] + args, cwd=cwd, stdout=subprocess.PIPE,
                           stderr=subprocess.PIPE)
     return proc.returncode, proc.stdout.decode("utf-8", errors="replace")
 
 
 def repository_root():
+    """Return the folder that contains the scripts folder."""
     return os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
@@ -140,7 +142,10 @@ def default_against():
 # ---------------------------------------------------------------------------------------
 
 class Level:
+    """A parsed level: tile grid, placed objects, texts and start positions."""
+
     def __init__(self, name):
+        """Create an empty level with the given file name."""
         self.name = name
         self.grid = np.zeros((1, 1), dtype=np.int8)
         self.placements = []  # (kind, x, y)
@@ -149,6 +154,7 @@ class Level:
 
 
 def to_number(text):
+    """Convert text to a float, or return None if it is not a number."""
     try:
         return float(text)
     except ValueError:
@@ -180,6 +186,7 @@ def derive_classes(types, fullness):
 
 
 def parse_level(path):
+    """Parse a level file into a Level object."""
     with open(path, "r", encoding="utf-8", errors="replace") as handle:
         lines = handle.read().split("\n")
     level = Level(os.path.basename(path))
@@ -295,6 +302,7 @@ def parse_level(path):
 
 
 def parse_config_texts(path):
+    """Return the texts of a campaign config file (the values of CONFIG_TEXT_KEYS)."""
     texts = []
     with open(path, "r", encoding="utf-8", errors="replace") as handle:
         for line in handle:
@@ -306,6 +314,7 @@ def parse_config_texts(path):
 
 
 def words_of(text):
+    """Split text into lower-case words."""
     return re.findall(r"[a-z0-9']+", text.lower())
 
 
@@ -314,13 +323,17 @@ def words_of(text):
 # ---------------------------------------------------------------------------------------
 
 class Transformed:
+    """A level grid and its marker points after a rotation, mirror and scale."""
+
     def __init__(self, grid, points, decoy):
+        """Store the transformed grid, the points per kind and the shifted decoy points."""
         self.grid = grid
         self.points = points  # kind -> array of (x, y)
         self.decoy = decoy  # the same points, each moved by a few tiles
 
 
 def transform_level(level, rotation, scale):
+    """Rotate (0-3), optionally mirror (4-7) and scale a level; return a Transformed."""
     height, width = level.grid.shape
     indices = np.arange(height * width).reshape(height, width)
     indices = np.rot90(indices, rotation % 4)
@@ -358,6 +371,7 @@ def transform_level(level, rotation, scale):
 
 
 def all_transforms(level):
+    """Return the level in all eight rotations/mirrors at every scale in SCALES."""
     result = []
     for rotation in range(8):
         for scale in SCALES:
@@ -433,13 +447,17 @@ def placements_near(candidate_points, other_points, dy, dx):
 
 
 class Metrics:
+    """The similarity numbers of one comparison: terrain, placement, near points, text run."""
+
     def __init__(self):
+        """Start with all values at zero."""
         self.terrain = 0.0
         self.placement = 0.0
         self.near = 0
         self.run = 0
 
     def merge(self, other):
+        """Keep the larger value of each metric of self and other."""
         self.terrain = max(self.terrain, other.terrain)
         self.placement = max(self.placement, other.placement)
         self.near = max(self.near, other.near)
@@ -447,6 +465,7 @@ class Metrics:
 
 
 def metrics_at(candidate, other, nonfiller, dy, dx):
+    """Return the Metrics of other shifted by (dy, dx) onto candidate."""
     result = Metrics()
     mask, expected = identical_mask(candidate.grid, other.grid, dy, dx)
     if mask is not None and nonfiller > 0:
@@ -462,6 +481,7 @@ def metrics_at(candidate, other, nonfiller, dy, dx):
 # ---------------------------------------------------------------------------------------
 
 def pool(grid, factor):
+    """Sum the weighted tile classes of a grid in factor x factor blocks (one plane per class)."""
     height, width = grid.shape
     padded_height = -(-height // factor) * factor
     padded_width = -(-width // factor) * factor
@@ -563,6 +583,7 @@ def compare_with(candidate, candidate_pool, nonfiller, transforms):
 # ---------------------------------------------------------------------------------------
 
 def build_word_index(texts):
+    """Return the word lists of the texts and an index word -> [(text number, position)]."""
     sequences = []
     index = {}
     for text in texts:
@@ -579,6 +600,7 @@ def has_content(words):
 
 
 def longest_identical_words(texts, sequences, index):
+    """Return the longest run of identical words between texts and the indexed sequences."""
     best = 0
     for text in texts:
         words = words_of(text)
@@ -685,6 +707,7 @@ def check_files(files, against):
 
 
 def default_files():
+    """Return all .level files and Campaign.cfg files below the levels folder."""
     root = os.path.join(repository_root(), "levels")
     files = []
     for directory, names, names_files in os.walk(root):
@@ -724,6 +747,7 @@ def random_cave(width, height, seed):
 
 
 def write_level(path, width, height, rows, markers, text):
+    """Write a small generated level file for the self test."""
     with open(path, "w") as handle:
         handle.write("[Info]\nName\tGenerated\nDescription\t%s\n[/Info]\n\n" % text)
         handle.write("[Tiles]\n# Map Size\n%d # MapSizeX\n%d # MapSizeY\n" % (width, height))
@@ -736,6 +760,7 @@ def write_level(path, width, height, rows, markers, text):
 
 
 def self_test():
+    """Run the checks on generated levels and return the exit code."""
     failures = []
     work = tempfile.mkdtemp(prefix="level-similarity-selftest-")
     try:
@@ -776,6 +801,7 @@ def self_test():
 
 
 def main(argv):
+    """Entry point: parse the arguments, compare the level files and return the exit code."""
     against = None
     files = []
     index = 1

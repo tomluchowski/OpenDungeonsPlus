@@ -48,8 +48,8 @@ ZERO_SHA = "0" * 40
 
 # Seconds to wait for the ref lines on stdin before the check gives up.
 STDIN_TIMEOUT_SECONDS = 5
-NO_REF_LINES_MESSAGE = ("keine Ref-Zeilen auf stdin, als Pre-Push-Hook mit Ref-Zeilen "
-                        "aufrufen")
+NO_REF_LINES_MESSAGE = ("no ref lines on stdin, call it as a pre-push hook with ref "
+                        "lines")
 
 TERMS_CONFIG_KEY = "protectedcontent.terms"
 PATH_DIRECTIVE = "path:"
@@ -116,6 +116,7 @@ PROGRESSION_SCRIPT = "check-campaign-progression.py"
 
 
 def run_git(args, cwd):
+    """Run git with the given arguments in cwd and return (exit code, decoded stdout)."""
     proc = subprocess.run(["git"] + args, cwd=cwd, stdout=subprocess.PIPE,
                           stderr=subprocess.PIPE)
     return proc.returncode, proc.stdout.decode("utf-8", errors="replace")
@@ -125,12 +126,14 @@ class WordTerm(str):
     """A term that only matches as a whole word."""
 
     def __new__(cls, text):
+        """Create the term and compile its whole-word pattern."""
         instance = str.__new__(cls, text)
         instance.pattern = re.compile(r"(?<!\w)" + re.escape(text) + r"(?!\w)")
         return instance
 
 
 def read_terms_file(path):
+    """Read the term list file and return its terms; "path:" lines fill BLOCKED_PREFIXES."""
     terms = []
     with open(path, "r", encoding="utf-8", errors="replace") as handle:
         for line in handle:
@@ -152,6 +155,7 @@ def read_terms_file(path):
 
 
 def find_terms_file(cwd):
+    """Locate the term list file named by the git config key, or return None."""
     code, relative = run_git(["config", "--get", TERMS_CONFIG_KEY], cwd)
     relative = relative.strip()
     if code != 0 or relative == "":
@@ -186,6 +190,7 @@ def find_terms(cwd, explicit_path):
 
 
 def find_term(text, terms):
+    """Return the first term that occurs in text (case-insensitive), or None."""
     lowered = text.lower()
     for term in terms:
         if isinstance(term, WordTerm):
@@ -197,10 +202,12 @@ def find_term(text, terms):
 
 
 def split_lines(text):
+    """Split text at newlines and drop the empty lines."""
     return [line for line in text.split("\n") if line != ""]
 
 
 def credits_text(tip, cwd):
+    """Return the credits file text at the given commit, or "" if there is none."""
     for name in CREDITS_NAMES:
         code, out = run_git(["show", "%s:%s" % (tip, name)], cwd)
         if code == 0:
@@ -209,6 +216,7 @@ def credits_text(tip, cwd):
 
 
 def is_covered_by_credits(path, credits):
+    """Return True if the credits text names the file, one of its folders or a matching pattern."""
     tokens = re.split(r"[\s`,;()\[\]<>\"']+", credits)
     for token in tokens:
         token = token.strip()
@@ -237,6 +245,7 @@ def find_baseline(remote_name, cwd):
 
 
 def commits_to_check(local_sha, remote_sha, remote_name, cwd):
+    """Return the commits of a pushed ref that the remote does not have yet."""
     if remote_sha != ZERO_SHA:
         code, out = run_git(["rev-list", "%s..%s" % (remote_sha, local_sha)], cwd)
         if code == 0:
@@ -277,6 +286,7 @@ def known_patch_ids(remote_sha, baseline, cwd):
 
 
 def check_commit_message(commit, terms, cwd, problems):
+    """Append a problem if the commit message contains a protected term."""
     code, message = run_git(["log", "-1", "--format=%B", commit], cwd)
     term = find_term(message, terms)
     if term is not None:
@@ -284,6 +294,7 @@ def check_commit_message(commit, terms, cwd, problems):
 
 
 def check_commit_content(commit, terms, cwd, added_files, problems):
+    """Check the files and added lines of one commit; collect added files and problems."""
     short = commit[:10]
     code, parents = run_git(["rev-list", "--parents", "-n", "1", commit], cwd)
     if len(parents.split()) > 2:
@@ -318,6 +329,7 @@ def check_commit_content(commit, terms, cwd, added_files, problems):
 
 
 def baseline_lines(baseline, path, cache, cwd):
+    """Return the set of lines a file has at the baseline commit (cached per path)."""
     if baseline is None:
         return set()
     if path not in cache:
@@ -327,6 +339,7 @@ def baseline_lines(baseline, path, cache, cwd):
 
 
 def check_tree(tip, baseline, terms, cwd, problems):
+    """Check file names, folder rules and file contents of the pushed tree against the terms."""
     code, names = run_git(["ls-tree", "-r", "--name-only", tip], cwd)
     for path in split_lines(names):
         term = find_term(path, terms)
@@ -372,6 +385,7 @@ def check_tree(tip, baseline, terms, cwd, problems):
 
 
 def check_push(ref_lines, terms, remote_name, cwd):
+    """Check all pushed refs and return the list of problems (empty if the push is fine)."""
     problems = []
     baseline = find_baseline(remote_name, cwd)
     for ref_line in ref_lines:
@@ -507,6 +521,7 @@ def check_campaign_progression(ref_lines, remote_name, cwd, problems):
 
 
 def report_and_exit(problems):
+    """Print the problems to stderr and return the failure exit code 1."""
     sys.stderr.write("Push blocked by check-protected-content:\n")
     for problem in problems:
         sys.stderr.write("  - %s\n" % problem)
@@ -516,14 +531,17 @@ def report_and_exit(problems):
 
 
 def self_test():
+    """Run the built-in scenarios in temporary repositories and return the exit code."""
     failures = []
     works = []
 
     def new_repo():
+        """Create a temporary repository with one base commit and return its helpers."""
         work = tempfile.mkdtemp(prefix="protected-selftest-")
         works.append(work)
 
         def git(*args):
+            """Run git in the temporary repository and return its stripped output."""
             proc = subprocess.run(["git"] + list(args), cwd=work, stdout=subprocess.PIPE,
                                   stderr=subprocess.PIPE)
             if proc.returncode != 0:
@@ -531,6 +549,7 @@ def self_test():
             return proc.stdout.decode().strip()
 
         def commit_files(files, message):
+            """Write the files, commit them with the message and return the commit id."""
             for name, content in files.items():
                 full = os.path.join(work, name)
                 os.makedirs(os.path.dirname(full) or work, exist_ok=True)
@@ -549,6 +568,7 @@ def self_test():
         return work, git, commit_files, base
 
     def expect(name, work, lines, terms, should_block, needle=None, absent=None):
+        """Check a push and record a failure if the result differs from the expectation."""
         problems = check_push(lines, terms, "origin", work)
         blocked = len(problems) > 0
         if blocked != should_block or (needle and not any(needle in p for p in problems)):
@@ -558,6 +578,7 @@ def self_test():
 
     def one_commit_scenario(name, files, message, terms, should_block, needle=None,
                             ref="refs/heads/topic"):
+        """Commit the given files in a fresh repository and check the resulting push."""
         work, git, commit_files, base = new_repo()
         sha = commit_files(files, message)
         expect(name, work, ["%s %s %s %s" % (ref, sha, ref, base)], terms, should_block,
@@ -678,6 +699,7 @@ def self_test():
         second = commit_files({"second.txt": "second\n"}, "second base")
 
         def fast_import_chain(ref, parent, count):
+            """Create count commits (one new file each) on ref above parent; return the tip."""
             stream = []
             for number in range(count):
                 text = "line %d" % number
@@ -788,6 +810,7 @@ def read_ref_lines(stream, timeout):
     collected = []
 
     def read_all():
+        """Read the whole stream in the reader thread and store the text in collected."""
         collected.append(stream.read())
 
     reader = threading.Thread(target=read_all)
@@ -803,6 +826,7 @@ def read_ref_lines(stream, timeout):
 
 
 def main(argv):
+    """Entry point: parse the arguments, read the ref lines from stdin and check the push."""
     terms_path = None
     positional = []
     index = 1
