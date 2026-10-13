@@ -140,14 +140,16 @@ inline float heightAt(const PileShape& shape, float u, float v)
     // 0 on the four edges, 1 in the middle
     const float bump = 16.0f * u * (1.0f - u) * v * (1.0f - v);
     const float peak = levelHeight(shape.mLevel);
-    float height = base + (peak - base) * std::sqrt(bump);
+    // The rise towards the middle starts flat at the edges (no wall-like dome), so a pile runs out on the floor
+    // and next to the piles of its neighbours without a visible tile border
+    float height = base + (peak - base) * bump * std::sqrt(bump);
 
     // A few lumps, only on fuller piles, fading out towards the edges
     if(shape.mLevel >= 3)
     {
         const float phase = 1.7f * static_cast<float>(shape.mVariant);
         const float lumps = std::sin(9.0f * u + phase) * std::sin(8.0f * v + 2.0f * phase);
-        height += 0.012f * static_cast<float>(shape.mLevel) * bump * lumps;
+        height += 0.005f * static_cast<float>(shape.mLevel) * bump * lumps;
     }
 
     // Keep the layer a hair above the floor so it never flickers against it
