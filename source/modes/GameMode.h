@@ -23,9 +23,11 @@
 #include "modes/InputCommand.h"
 #include "modes/InputBridge.h"
 #include "modes/SettingsWindow.h"
+#include "game/CreaturePanelData.h"
 
 #include "utils/ConfigManager.h"
 #include <CEGUI/EventArgs.h>
+#include <memory>
 
 namespace CEGUI
 {
@@ -33,6 +35,8 @@ class Window;
 }
 
 class Creature;
+class CreaturePanel;
+class GameEntity;
 
 enum class SpellType;
 enum class SkillType;
@@ -166,12 +170,15 @@ class GameMode final : public GameEditorModeBase, public InputCommand
 
     //! \brief Refreshed the main ui data, such as mana, gold, ...
     void refreshMainUI();
+    void refreshCreaturePanel(const CreaturePanelData& data);
 
     void selectSquaredTiles(int tileX1, int tileY1, int tileX2, int tileY2) override;
     void selectTiles(const std::vector<Tile*> tiles) override;
     void unselectAllTiles() override;
 
     void displayText(const Ogre::ColourValue& txtColour, const std::string& txt) override;
+    //! \brief Displays the text next to the pointer (for example a price) rather than in the context line.
+    void displayPointerText(const Ogre::ColourValue& txtColour, const std::string& txt) override;
 
     //! \brief Called when the skill window is displayed. This function will call the Seat to get
     //! the current skill tree and update it as the player clicks on the skill buttons by calling
@@ -193,9 +200,8 @@ class GameMode final : public GameEditorModeBase, public InputCommand
     //! \brief Called at each frame. Updates spell cooldowns.
     void refreshSpellButtonCoolDowns();
 
-    //! \brief Called at each frame. Keeps the countdown next to the mouse pointer ticking
-    //! while a spell that is still cooling down is selected.
-    void refreshSpellCooldownText();
+    //! Refresh the selected action, target preview and resource/cooldown feedback without executing it.
+    void refreshActionFeedback();
 
     Creature* getClosestCreature(Tile*);
     
@@ -220,6 +226,11 @@ protected:
     virtual bool keyReleasedNormal  (const OIS::KeyEvent &arg);
 
 private:
+    std::unique_ptr<CreaturePanel> mCreaturePanel;
+    //! \brief Small portraits of the held creatures, drawn next to the pointer.
+    std::vector<CEGUI::Window*> mHeldCreatureIcons;
+    //! \brief Creates, updates and places the held creature portraits.
+    void refreshHeldCreatureIcons();
     //! \brief Whether the pending exit confirmation should leave to the desktop
     //! rather than back to the main menu. Set by the button that opened the
     //! confirmation popup.
@@ -229,9 +240,14 @@ private:
     //! this value is based on the first marked flag tile selected.
     bool mDigSetBool;
 
-    //! \brief Whether the text next to the mouse pointer is currently a spell cooldown
-    //! countdown, and thus whether it will need replacing once the cooldown runs out.
-    bool mIsSpellCooldownDisplayed;
+    //! \brief Explanation of the current target shown in the context line.
+    std::string mActionTargetText;
+    //! \brief Whether the current action can be executed on the current target.
+    bool mActionTargetValid = false;
+    //! \brief Tiles the current action would affect, collected while checking the input.
+    std::vector<Tile*> mPreviewTiles;
+    //! \brief Tiles currently outlined in the world.
+    std::vector<Tile*> mSelectedTiles;
 
     //! \brief Index of the event in the game event queue (for zooming automatically)
     uint32_t mIndexEvent;
@@ -285,6 +301,18 @@ private:
     void checkInputCommand();
     void handlePlayerActionNone();
     void handlePlayerActionSelectTile();
+    bool toggleQuery(const CEGUI::EventArgs& e);
+    GameEntity* getQueryTarget(Tile* tile) const;
+    void handlePlayerActionQuery();
+    //! \brief Outlines the preview tiles in the world, in the colour of the target validity.
+    void updateSelectedTiles();
+    //! \brief Scale of the hand feedback (action icon, pointer text, held portraits) relative to its design size.
+    float getHandFeedbackScale() const;
+    //! \brief Stores the tile under the mouse in the input manager (-1 when the pointer is not over the map).
+    //! Returns whether the pointer hit the ground plane.
+    bool updatePointerTile(const OIS::MouseEvent& arg);
+    //! \brief Highlights the given creature and restores the previously highlighted one.
+    void setHighlightedCreature(Creature* creature);
 
     //! \brief Builds the player settings window
     void buildPlayerSettingsWindow();

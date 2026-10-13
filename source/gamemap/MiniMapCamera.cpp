@@ -123,6 +123,7 @@ MiniMapCamera::~MiniMapCamera()
     rt->removeAllListeners();
     Ogre::SceneManager* sceneManager = RenderManager::getSingleton().getSceneManager();
     sceneManager->destroyCamera(mMiniMapCam);
+    sceneManager->destroySceneNode(mMiniMapCamNode);
     Ogre::String mm("miniMapOgreTexture");
     Ogre::TextureManager::getSingletonPtr()->remove(mm,Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME);
     CEGUI::ImageManager::getSingletonPtr()->destroy("MiniMapImageset");
@@ -131,6 +132,8 @@ MiniMapCamera::~MiniMapCamera()
 
 Ogre::Vector2 MiniMapCamera::camera_2dPositionFromClick(int xx, int yy)
 {
+    mTopLeftCornerX = static_cast<int>(mMiniMapWindow->getPixelPosition().d_x);
+    mTopLeftCornerY = static_cast<int>(mMiniMapWindow->getPixelPosition().d_y);
     if(mCurCamPosX == -1)
         return Ogre::Vector2::ZERO;
 
