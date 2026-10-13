@@ -58,7 +58,7 @@
 //!           # events: killed (dies), incapacitated (dies or is knocked out), attacked (takes damage), slapped, pickedup,
 //!           # steals (takes gold), claimed (a neutral creature joins a keeper), created (the creature or a member of the party exists; counts them).
 //!           # Two more tags: Seat<id> with the event cast:<spellName> (the player cast that spell, spell type names such as callToWar) and the tag Level with the event payday.
-//!   Cond    slabs <seatId> <regionName> <kind> <op> <count>   # tiles of the region of that kind: rock (earth wall), path (dug floor), gold, gems, claimed (claimed floor), wall (reinforced wall), water, lava, impenetrable or a room name; seat -1 any owner, 0 unclaimed
+//!   Cond    slabs <seatId> <regionName> <kind> <op> <count>   # tiles of the region of that kind: rock (earth wall), path (dug floor), gold, gems, claimed (claimed floor), wall (reinforced wall), water, lava, impenetrable, manawell or a room name; seat -1 any owner, 0 unclaimed
 //!   Cond    tagged <seatId> <regionName> <op> <count>   # tiles of the region marked for digging by the seat
 //!   Cond    tagged <seatId> <regionName> all            # every diggable tile of the region is marked for digging by the seat (and there is one)
 //!   Cond    defeated <seatId>                 # the seat has lost its dungeon (its player is out of the game)
@@ -93,7 +93,7 @@
 //!   Action  gold <seatId> <amount>
 //!   Action  setflag <name> <value>
 //!   Action  addflag <name> <delta>            # adds to the flag (a negative value subtracts)
-//!   Action  terrain <x1> <y1> <x2> <y2> <kind> [<seatId>]   # changes the tiles of the rectangle: rock, path, gold, gems, claimed, wall (claimed by the seat), water, lava, impenetrable
+//!   Action  terrain <x1> <y1> <x2> <y2> <kind> [<seatId>]   # changes the tiles of the rectangle: rock, path, gold, gems, claimed, wall (claimed by the seat), water, lava, impenetrable, manawell (open ground that gives its claiming seat mana; with a seat it starts claimed, path removes it)
 //!   Action  portal <seatId> on | off          # the portals of the seat do (not) attract creatures
 //!   Action  available <seatId> <class> 1 | 0  # a creature class can (not) come to the dungeon of the seat
 //!   Action  remove <creatureName>             # the creature leaves the map
@@ -111,6 +111,7 @@
 //!   Action  countdown <seconds>               # shows a countdown on the HUD that ends without a defeat (0 removes it); a running time limit is shown instead of it
 //!   Action  wavecountdown <seconds>           # shows "Next wave in mm:ss" on the HUD, beside the other countdown; it has no effect when it ends (0 removes it)
 //!   Action  timelimit <seconds>               # the level is lost for every keeper when that many seconds have passed from now (0: removes any time limit); the remaining time is shown on the HUD
+//!   Action  terrain <x1> <y1> <x2> <y2> bridge <seatId>   # also: a wooden bridge of the seat over lava or water
 //!   State   <timesFired> <lastFiredTurn>      # written by the game, only needed in savegames
 //!   [/Trigger]
 //!   [/Triggers]

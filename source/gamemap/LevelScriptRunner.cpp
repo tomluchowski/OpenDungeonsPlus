@@ -101,6 +101,8 @@ bool isTileOfKind(const Tile* tile, const std::string& kind)
         return visual == TileVisual::lavaGround;
     if(kind == "impenetrable")
         return (visual == TileVisual::rockFull) || (visual == TileVisual::rockGround);
+    if(kind == "manawell")
+        return tile->getType() == TileType::manaWell;
     Room* room = tile->getCoveringRoom();
     if(room == nullptr)
         return false;
@@ -636,10 +638,45 @@ void makeSkillAvailable(GameMap& gameMap, const LevelScriptAction& action)
     }
 }
 
+//! Builds a wooden bridge of the seat on every lava or water tile of the rectangle (the terrain action with
+//! the kind bridge). Tiles with a building are left alone.
+void buildBridge(GameMap& gameMap, const LevelScriptAction& action)
+{
+    Player* player = gameMap.getPlayerBySeatId(action.mSeatId);
+    if(player == nullptr)
+    {
+        OD_LOG_ERR("Level script: a bridge needs the seat of a player");
+        return;
+    }
+
+    for(int32_t x = std::min(action.mX, action.mX2); x <= std::max(action.mX, action.mX2); ++x)
+    {
+        for(int32_t y = std::min(action.mY, action.mY2); y <= std::max(action.mY, action.mY2); ++y)
+        {
+            Tile* tile = gameMap.getTile(x, y);
+            if((tile == nullptr) || (tile->getCoveringBuilding() != nullptr))
+                continue;
+
+            if((tile->getType() != TileType::lava) && (tile->getType() != TileType::water))
+                continue;
+
+            std::vector<Tile*> tiles;
+            tiles.push_back(tile);
+            RoomManager::buildRoomOnTiles(&gameMap, RoomType::bridgeWooden, player, tiles, true);
+        }
+    }
+}
+
 //! Changes the tiles of the rectangle, as digging or claiming does: the tile is recomputed and
 //! sent to every seat that sees it
 void alterTerrain(GameMap& gameMap, const LevelScriptAction& action)
 {
+    if(action.mText == "bridge")
+    {
+        buildBridge(gameMap, action);
+        return;
+    }
+
     TileType type = TileType::dirt;
     double fullness = 0.0;
     bool claim = false;
@@ -672,6 +709,12 @@ void alterTerrain(GameMap& gameMap, const LevelScriptAction& action)
     {
         type = TileType::rock;
         fullness = 100.0;
+    }
+    else if(action.mText == "manawell")
+    {
+        // A mana well is open ground. With a seat it starts claimed and feeds that seat's mana
+        type = TileType::manaWell;
+        claim = (action.mSeatId >= 0);
     }
     else
     {

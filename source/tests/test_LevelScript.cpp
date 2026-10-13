@@ -710,3 +710,42 @@ BOOST_AUTO_TEST_CASE(test_terrain)
         BOOST_CHECK_MESSAGE(!invalid.importFromStream(isBad), entry);
     }
 }
+
+//! \brief The terrain action builds bridges and mana wells and the tile kind condition counts mana wells
+BOOST_AUTO_TEST_CASE(test_bridges_and_mana_wells)
+{
+    static const std::string text =
+        "Region\tRiver\t10\t10\t12\t12\n"
+        "[Trigger]\n"
+        "Name\tbridge\n"
+        "Mode\tonce\n"
+        "Cond\tslabs\t1\tRiver\tmanawell\t>=\t1\n"
+        "Action\tterrain\t10\t10\t12\t10\tbridge\t1\n"
+        "Action\tterrain\t11\t11\t11\t11\tmanawell\t1\n"
+        "Action\tterrain\t12\t12\t12\t12\tmanawell\n"
+        "[/Trigger]\n"
+        "[/Triggers]\n";
+    LevelScript script;
+    std::istringstream is(text);
+    BOOST_REQUIRE(script.importFromStream(is));
+
+    const LevelScriptTrigger& trigger = script.getTriggers()[0];
+    BOOST_REQUIRE_EQUAL(trigger.mConditions.size(), 1u);
+    BOOST_CHECK_EQUAL(trigger.mConditions[0].mName2, "manawell");
+    BOOST_REQUIRE_EQUAL(trigger.mActions.size(), 3u);
+    BOOST_CHECK_EQUAL(trigger.mActions[0].mText, "bridge");
+    BOOST_CHECK_EQUAL(trigger.mActions[0].mSeatId, 1);
+    BOOST_CHECK_EQUAL(trigger.mActions[1].mText, "manawell");
+    BOOST_CHECK_EQUAL(trigger.mActions[1].mSeatId, 1);
+    BOOST_CHECK_EQUAL(trigger.mActions[2].mSeatId, -1);
+
+    std::ostringstream os;
+    script.exportToStream(os);
+    std::string written = os.str();
+    LevelScript again;
+    std::istringstream is2(written.substr(11));
+    BOOST_REQUIRE(again.importFromStream(is2));
+    std::ostringstream os2;
+    again.exportToStream(os2);
+    BOOST_CHECK_EQUAL(os2.str(), written);
+}
