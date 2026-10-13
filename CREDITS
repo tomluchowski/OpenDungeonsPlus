@@ -77,9 +77,14 @@ multiplayer/
 
 campaign/
 -> Bonus1.level                        OD Team                 GPLv3+
+-> BoulderCourse.level                 OD Team                 GPLv3+
 -> Campaign1.level                     OD Team                 GPLv3+
 -> Campaign2.level                     OD Team                 GPLv3+
 -> Campaign3.level                     OD Team                 GPLv3+
+-> CrowshotGallery.level               OD Team                 GPLv3+
+-> SkittleCavern.level                 OD Team                 GPLv3+
+-> SwarmNight.level                    OD Team                 GPLv3+
+-> TwistingHalls.level                 OD Team                 GPLv3+
 
 skirmish/
 -> DuelToDeath.level                   OD Team                 GPLv3+

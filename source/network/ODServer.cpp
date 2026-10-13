@@ -1404,6 +1404,18 @@ bool ODServer::processClientNotifications(ODSocketClient* clientSocket)
                 client->send(packetSend);
             }
 
+            // The complete campaign Heartstone gives the keepers the Summon champion spell
+            if(Campaign::getSingleton().isActive() && Campaign::getSingleton().isHeartstoneComplete())
+            {
+                for(Seat* seat : gameMap->getSeats())
+                {
+                    if(seat->isRogueSeat() || (seat->getPlayer() == nullptr) || !seat->getPlayer()->getIsHuman())
+                        continue;
+
+                    seat->setSkillAvailability(SkillType::spellSummonChampion, true, true);
+                }
+            }
+
             for(Seat* seat : gameMap->getSeats())
             {
                 // We initialize the seats
