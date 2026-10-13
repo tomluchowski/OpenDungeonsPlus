@@ -23,9 +23,11 @@
 #include "modes/InputCommand.h"
 #include "modes/InputBridge.h"
 #include "modes/SettingsWindow.h"
+#include "game/CreaturePanelData.h"
 
 #include "utils/ConfigManager.h"
 #include <CEGUI/EventArgs.h>
+#include <memory>
 
 namespace CEGUI
 {
@@ -33,6 +35,9 @@ class Window;
 }
 
 class Creature;
+class CreaturePanel;
+class GameEntity;
+class MiniMapDrawnFull;
 
 enum class SpellType;
 enum class SkillType;
@@ -118,6 +123,7 @@ class GameMode final : public GameEditorModeBase, public InputCommand
 
     void onFrameStarted(const Ogre::FrameEvent& evt) override;
     void onFrameEnded(const Ogre::FrameEvent& evt) override;
+    void receiveEventShortNotice(EventMessage* event) override;
 
     //! \brief Called when the game mode is activated
     //! Used to call the corresponding Gui Sheet.
@@ -159,6 +165,7 @@ class GameMode final : public GameEditorModeBase, public InputCommand
     bool showOptionsWindow(const CEGUI::EventArgs& = {});
     bool hideOptionsWindow(const CEGUI::EventArgs& = {});
     bool toggleOptionsWindow(const CEGUI::EventArgs& = {});
+    bool toggleControlPanel(const CEGUI::EventArgs& = {});
 
     void toggleAllowTileDebugWindow(){ showTileDebugWindow = !showTileDebugWindow ;};
     //! \brief Refreshes the player current goals.
@@ -166,12 +173,14 @@ class GameMode final : public GameEditorModeBase, public InputCommand
 
     //! \brief Refreshed the main ui data, such as mana, gold, ...
     void refreshMainUI();
+    void refreshCreaturePanel(const CreaturePanelData& data);
 
     void selectSquaredTiles(int tileX1, int tileY1, int tileX2, int tileY2) override;
     void selectTiles(const std::vector<Tile*> tiles) override;
     void unselectAllTiles() override;
 
     void displayText(const Ogre::ColourValue& txtColour, const std::string& txt) override;
+    void displayPointerText(const Ogre::ColourValue& txtColour, const std::string& txt) override;
 
     //! \brief Called when the skill window is displayed. This function will call the Seat to get
     //! the current skill tree and update it as the player clicks on the skill buttons by calling
@@ -193,9 +202,8 @@ class GameMode final : public GameEditorModeBase, public InputCommand
     //! \brief Called at each frame. Updates spell cooldowns.
     void refreshSpellButtonCoolDowns();
 
-    //! \brief Called at each frame. Keeps the countdown next to the mouse pointer ticking
-    //! while a spell that is still cooling down is selected.
-    void refreshSpellCooldownText();
+    //! Refresh the selected action, target preview and resource/cooldown feedback without executing it.
+    void refreshActionFeedback(float elapsed);
 
     Creature* getClosestCreature(Tile*);
     
@@ -220,6 +228,44 @@ protected:
     virtual bool keyReleasedNormal  (const OIS::KeyEvent &arg);
 
 private:
+    std::unique_ptr<CreaturePanel> mCreaturePanel;
+    std::vector<CEGUI::Window*> mHeldCreatureIcons;
+    void refreshHeldCreatureIcons();
+    //! \brief Event messages stay until the player dismisses them.
+    bool shouldExpireEventMessages() const override { return false; }
+    //! \brief Opens the message window without a selected message.
+    void showEventMessages();
+    //! \brief Shows the text of the message and marks it as read.
+    //! \param raiseWindow Whether the message window is brought in front of the other windows.
+    void showEventMessage(EventMessage* message, bool raiseWindow);
+    //! \brief Removes the message and its tab and deletes the message.
+    void dismissEventMessage(EventMessage* message);
+    //! \brief Right-clicking a message tab dismisses its message.
+    bool onEventMessagesClicked(const CEGUI::EventArgs& arg);
+    //! \brief Left-clicking a message tab shows its message. The message is the user data of the tab.
+    bool onEventMessageTabClicked(const CEGUI::EventArgs& arg);
+    bool onEventCloseClicked(const CEGUI::EventArgs& arg);
+    bool onEventDismissClicked(const CEGUI::EventArgs& arg);
+    //! \brief Slides the message tabs into place, hides those that do not fit and blinks the unread ones.
+    //! \param elapsed Time since the last call in seconds.
+    void updateEventMessageIndicator(float elapsed);
+    //! \brief A pending event message and the tab that presents it in the message queue.
+    struct MessageTab
+    {
+        EventMessage* message;
+        CEGUI::Window* window;
+        //! \brief Whether the player has opened the message.
+        bool read;
+        //! \brief Left edge of the tab in queue heights, or -1 while it is not placed yet.
+        float position;
+    };
+    //! \brief The pending messages in the order received.
+    std::vector<MessageTab> mMessageTabs;
+    //! \brief The message shown in the message window, or nullptr.
+    EventMessage* mSelectedEventMessage = nullptr;
+    //! \brief Time within the blink period of the unread message tabs, in seconds.
+    float mEventMessageFlashTime = 0.0f;
+
     //! \brief Whether the pending exit confirmation should leave to the desktop
     //! rather than back to the main menu. Set by the button that opened the
     //! confirmation popup.
@@ -229,9 +275,10 @@ private:
     //! this value is based on the first marked flag tile selected.
     bool mDigSetBool;
 
-    //! \brief Whether the text next to the mouse pointer is currently a spell cooldown
-    //! countdown, and thus whether it will need replacing once the cooldown runs out.
-    bool mIsSpellCooldownDisplayed;
+    std::string mActionTargetText;
+    bool mActionTargetValid = false;
+    std::vector<Tile*> mPreviewTiles;
+    std::vector<Tile*> mSelectedTiles;
 
     //! \brief Index of the event in the game event queue (for zooming automatically)
     uint32_t mIndexEvent;
@@ -272,8 +319,23 @@ private:
     bool isMouseDownOnCEGUIWindow();
     bool isMouseWheelOnCEGUIWindow();
 
-    //! \brief Whether the keyboard keys moving camera are pressed down
-    bool directionKeyPressed;
+    void updateCameraControls(float elapsed) override;
+    bool showUserCameras(const CEGUI::EventArgs& = {});
+    bool closeUserCameras(const CEGUI::EventArgs& = {});
+    bool selectUserCamera(const CEGUI::EventArgs&);
+    bool storeUserCamera(const CEGUI::EventArgs&);
+    unsigned int mUserCameraSlot = 0;
+
+    bool toggleMap(const CEGUI::EventArgs& = {});
+    bool closeMap(const CEGUI::EventArgs& = {});
+    bool clickMap(const CEGUI::EventArgs&);
+    bool zoomMiniMap(const CEGUI::EventArgs&);
+    void updateMapDetail();
+    void focusRoom(RoomType type);
+    std::unique_ptr<MiniMapDrawnFull> mFullMap;
+    int mSavedMiniMapZoom = 0;
+    size_t mIndexPortal = 0;
+    bool mMapKeyDown = false;
 
 
     //! \brief whether to allow showing the window with debug Tile info under middlemouse button click
@@ -285,6 +347,12 @@ private:
     void checkInputCommand();
     void handlePlayerActionNone();
     void handlePlayerActionSelectTile();
+    bool toggleQuery(const CEGUI::EventArgs& e);
+    GameEntity* getQueryTarget(Tile* tile) const;
+    void handlePlayerActionQuery();
+    bool toggleSell(const CEGUI::EventArgs& e);
+    void handlePlayerActionSell();
+    void updateSelectedTiles();
 
     //! \brief Builds the player settings window
     void buildPlayerSettingsWindow();

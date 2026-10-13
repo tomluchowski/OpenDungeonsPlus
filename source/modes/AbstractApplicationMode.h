@@ -102,6 +102,7 @@ public:
 
     //! \brief Game mode specific rendering methods.
     virtual void onFrameStarted(const Ogre::FrameEvent& evt) {};
+    virtual void updateCameraControls(float elapsed) {};
     virtual void onFrameEnded(const Ogre::FrameEvent& evt) {};
 
     bool changeModeEvent(ModeManager::ModeType mode, const CEGUI::EventArgs&)
