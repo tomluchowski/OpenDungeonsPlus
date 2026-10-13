@@ -24,20 +24,81 @@
 #include <OgreSceneManager.h>
 #include <OgreVector3.h>
 
+#include <cmath>
+#include <vector>
+
 namespace TreasuryGoldMesh
 {
 namespace
 {
 const std::string PileMaterial = "TreasuryGoldPile";
 const std::string ReducedSuffix = "_r";
-// Texture repeats per tile, so the coins stay small
+// Texture repeats per tile, so the gold grain stays small
 const float TextureRepeat = 2.0f;
+// The surface of a pile is a round fan: the middle and rings of PileSectors points out to the foot of the heap.
+// The rings only reach as far as the heap, leaving the floor visible beyond its irregular edge.
+const int PileSectors = 16;
+const int FullRings = 2;
+const int ReducedRings = 1;
+// The first ring of the full fan lies at about a third of the foot radius (the heap is steepest there)
+const float RingSpread = 0.65f;
 
 Detail currentDetail = Detail::full;
 
-Ogre::Vector3 pilePoint(const TreasuryGoldLayer::PileShape& shape, float u, float v)
+//! The round surface of a pile: the points (u, v, height) and the triangles (three indices each)
+struct RoundSurface
 {
-    return Ogre::Vector3(u - 0.5f, v - 0.5f, TreasuryGoldLayer::heightAt(shape, u, v));
+    std::vector<Ogre::Vector3> mPoint;
+    std::vector<int> mIndex;
+};
+
+//! Two triangles per sector between the points starting at inner and those starting at outer (counter-clockwise
+//! seen from above)
+void addBand(RoundSurface& surface, int inner, int outer)
+{
+    for(int sector = 0; sector < PileSectors; ++sector)
+    {
+        const int next = (sector + 1) % PileSectors;
+        surface.mIndex.push_back(inner + sector);
+        surface.mIndex.push_back(outer + sector);
+        surface.mIndex.push_back(outer + next);
+        surface.mIndex.push_back(inner + sector);
+        surface.mIndex.push_back(outer + next);
+        surface.mIndex.push_back(inner + next);
+    }
+}
+
+//! Builds the round surface of the pile with the given number of rings: the middle point, a fan to the first ring
+//! and a band from ring to ring. The outer ring is the irregular foot of the heap.
+void buildRoundSurface(const TreasuryGoldLayer::PileShape& shape, int rings, RoundSurface& surface)
+{
+    surface.mPoint.clear();
+    surface.mIndex.clear();
+    surface.mPoint.push_back(Ogre::Vector3(0.5f, 0.5f, TreasuryGoldLayer::heightAt(shape, 0.5f, 0.5f)));
+    for(int ring = 1; ring <= rings; ++ring)
+    {
+        const float along = static_cast<float>(ring) / static_cast<float>(rings);
+        const float fraction = 1.0f - std::pow(1.0f - along, RingSpread);
+        for(int sector = 0; sector < PileSectors; ++sector)
+        {
+            const float angle = 6.2831853f * static_cast<float>(sector) / static_cast<float>(PileSectors);
+            const float dirU = std::cos(angle);
+            const float dirV = std::sin(angle);
+            const float reach = fraction * TreasuryGoldLayer::pileRadiusAt(shape, 0.5f + dirU, 0.5f + dirV);
+            const float u = 0.5f + dirU * reach;
+            const float v = 0.5f + dirV * reach;
+            surface.mPoint.push_back(Ogre::Vector3(u, v, TreasuryGoldLayer::heightAt(shape, u, v)));
+        }
+    }
+    // The middle fan and the bands from ring to ring
+    for(int sector = 0; sector < PileSectors; ++sector)
+    {
+        surface.mIndex.push_back(0);
+        surface.mIndex.push_back(1 + sector);
+        surface.mIndex.push_back(1 + (sector + 1) % PileSectors);
+    }
+    for(int ring = 1; ring < rings; ++ring)
+        addBand(surface, 1 + (ring - 1) * PileSectors, 1 + ring * PileSectors);
 }
 
 //! Normal of the pile surface from the neighbouring heights
@@ -51,38 +112,25 @@ Ogre::Vector3 pileNormal(const TreasuryGoldLayer::PileShape& shape, float u, flo
     return normal;
 }
 
+//! Builds the mesh of a pile with the given number of rings and stores it under the resource name.
 void buildPileMesh(Ogre::SceneManager* sceneManager, const std::string& resourceName,
-    const TreasuryGoldLayer::PileShape& shape, int divisions)
+    const TreasuryGoldLayer::PileShape& shape, int rings)
 {
     Ogre::ManualObject* object = sceneManager->createManualObject();
     object->begin(PileMaterial, Ogre::RenderOperation::OT_TRIANGLE_LIST, "Graphics");
 
-    for(int j = 0; j <= divisions; ++j)
+    RoundSurface surface;
+    buildRoundSurface(shape, rings, surface);
+    for(std::size_t i = 0; i < surface.mPoint.size(); ++i)
     {
-        for(int i = 0; i <= divisions; ++i)
-        {
-            const float u = static_cast<float>(i) / static_cast<float>(divisions);
-            const float v = static_cast<float>(j) / static_cast<float>(divisions);
-            object->position(pilePoint(shape, u, v));
-            object->normal(pileNormal(shape, u, v));
-            object->textureCoord(u * TextureRepeat, (1.0f - v) * TextureRepeat);
-        }
+        const float u = surface.mPoint[i].x;
+        const float v = surface.mPoint[i].y;
+        object->position(u - 0.5f, v - 0.5f, surface.mPoint[i].z);
+        object->normal(pileNormal(shape, u, v));
+        object->textureCoord(u * TextureRepeat, (1.0f - v) * TextureRepeat);
     }
-
-    const int row = divisions + 1;
-    for(int j = 0; j < divisions; ++j)
-    {
-        for(int i = 0; i < divisions; ++i)
-        {
-            const int a = j * row + i;
-            const int b = a + 1;
-            const int c = a + row + 1;
-            const int d = a + row;
-            // Counter-clockwise seen from above
-            object->triangle(a, b, c);
-            object->triangle(a, c, d);
-        }
-    }
+    for(std::size_t i = 0; i < surface.mIndex.size(); i += 3)
+        object->triangle(surface.mIndex[i], surface.mIndex[i + 1], surface.mIndex[i + 2]);
 
     object->end();
     object->convertToMesh(resourceName, "Graphics");
@@ -128,13 +176,11 @@ std::string prepareMesh(Ogre::SceneManager* sceneManager, const std::string& mes
     if(!TreasuryGoldLayer::parseMeshName(meshName, shape))
         return meshName;
 
-    if(currentDetail == Detail::off)
-        return TreasuryGoldLayer::classicMeshForLevel(shape.mLevel);
-
-    const bool reduced = (currentDetail == Detail::reduced) || (farAway && currentDetail == Detail::full);
+    // Off keeps the round pile surface, with the coarse mesh
+    const bool reduced = (currentDetail != Detail::full) || (farAway && currentDetail == Detail::full);
     const std::string name = reduced ? meshName + ReducedSuffix : meshName;
     if(!Ogre::MeshManager::getSingleton().resourceExists(name + ".mesh", "Graphics"))
-        buildPileMesh(sceneManager, name + ".mesh", shape, reduced ? 2 : 6);
+        buildPileMesh(sceneManager, name + ".mesh", shape, reduced ? ReducedRings : FullRings);
 
     return name;
 }

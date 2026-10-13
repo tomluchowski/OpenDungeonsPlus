@@ -223,7 +223,7 @@
                     <Window type="OD/Combobox" name="TreasuryDetail" >
                         <Property name="Area" value="{{0,160},{0,378},{0,320},{0,458}}" />
                         <Property name="ReadOnly" value="True" />
-                        <Property name="TooltipText" value="full: gold piles that fill the treasury floor. reduced: simpler piles. off: the classic small gold stacks. Applies to treasuries drawn after the change." />
+                        <Property name="TooltipText" value="full: round gold heaps with a fine surface. reduced: simpler heaps. off: the simplest heaps. A change is shown at once in the treasuries that exist." />
                     </Window>
                     <Window type="OD/Checkbox" name="BloodEffectsCheckbox" >
                         <Property name="Area" value="{{0,32},{0,250},{1,-48},{0,276}}" />

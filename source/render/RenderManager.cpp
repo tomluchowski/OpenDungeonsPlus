@@ -2044,7 +2044,7 @@ void RenderManager::updateTreasuryLod(Ogre::Real timeSinceLastFrame)
         return;
 
     mTreasuryLodTimer = 0.0f;
-    // Only the full detail has a level of detail: reduced is coarse everywhere, off draws the classic stacks
+    // Only full detail changes with distance; reduced and off use the coarse round surface everywhere
     if(TreasuryGoldMesh::getDetail() != TreasuryGoldMesh::Detail::full || mViewport == nullptr
         || mViewport->getCamera() == nullptr)
         return;
@@ -2679,7 +2679,7 @@ void RenderManager::rrCreateRenderedMovableEntity(RenderedMovableEntity* rendere
     bool isPileEntity = false;
     // True when the pile is far from the camera and uses the reduced mesh
     bool pileFar = false;
-    // Treasury gold piles are built here from their name (or swapped for the classic stacks)
+    // Treasury gold piles are built here from their name at every detail setting
     if(renderedMovableEntity->getObjectType() == GameEntityType::buildingObject)
     {
         TreasuryGoldLayer::PileShape pileShape;
