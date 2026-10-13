@@ -369,9 +369,11 @@ public:
     Tile* getCoveredTile(int index) override;
     uint32_t numCoveredTiles() const override;
 
-    //! \brief Conform: AttackableObject - Deducts a given amount of HP from this creature.
     //! \brief Share of the damage taken from the attacker: reduced when both fight inside an arena
     double getPitDamageFactor(GameEntity* attacker);
+
+    //! \brief Conform: AttackableObject - Deducts a given amount of HP from this creature. On the server it also
+    //! counts the attacked, incapacitated and killed events for the conditions of the level script.
     double takeDamage(GameEntity* attacker, double absoluteDamage, double physicalDamage, double magicalDamage, double elementDamage,
         Tile *tileTakingDamage, bool ko) override;
 
@@ -423,6 +425,7 @@ public:
     //! to prepare for the pickup (removing creature from GameMap, changing states, ...).
     //! Returns true if the creature can be picked up
     bool tryPickup(Seat* seat) override;
+    //! \brief Server side: stops the creature when it is picked up and counts the pickedup event for the level script.
     void pickup() override;
     bool tryDrop(Seat* seat, Tile* tile) override;
     void drop(const Ogre::Vector3& v) override;
@@ -474,6 +477,7 @@ public:
     virtual void notifyEntityCarryOff(const Ogre::Vector3& position) override;
 
     bool canSlap(Seat* seat) override;
+    //! \brief Server side: the creature is slapped. It also counts the slapped event for the level script.
     void slap() override;
 
     void fireCreatureSound(CreatureSound sound);
@@ -738,7 +742,8 @@ public:
     bool searchBestTargetInList(const std::vector<GameEntity*>& listObjects, const std::vector<Tile*>& tilesFilter, GameEntity*& attackedEntity,
         Tile*& attackedTile, Tile*& positionTile, CreatureSkillData*& creatureSkillData);
 
-    //! \brief Called when the creature changes seat (for example when it becomes rogue or after torture)
+    //! \brief Called when the creature changes seat (for example when it becomes rogue or after torture). A neutral
+    //! creature that joins a keeper counts as claimed for the level script.
     void changeSeat(Seat* newSeat);
 
     void stopWalking();
@@ -1063,7 +1068,8 @@ private:
     void handleHeartDefence();
 
     //! \brief A sub-function called by doTurn()
-    //! This functions will handle the creature idle action logic.
+    //! This functions will handle the creature idle action logic. A standing order of the level
+    //! script comes before the needs of the creature.
     //! \return true when another action should handled after that one.
     bool handleIdleAction();
 

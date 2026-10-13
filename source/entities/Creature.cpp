@@ -69,6 +69,8 @@
 #include "game/SkillType.h"
 #include "game/Seat.h"
 #include "gamemap/GameMap.h"
+#include "gamemap/LevelScript.h"
+#include "gamemap/LevelScriptRunner.h"
 #include "gamemap/Pathfinding.h"
 #include "gamemap/RoomObjectNavigation.h"
 #include "giftboxes/GiftBoxSkill.h"
@@ -1415,12 +1417,17 @@ bool Creature::handleIdleAction()
         }
     }
 
+    // A standing order of the level script (go to a point, attack a dungeon, wait, ...) comes first
+    if(LevelScriptRunner::doCreatureOrder(*this))
+        return false;
+
     // The champion has no needs. It charges at the enemies and waits when there is none
     if(mDefinition->isChampion())
     {
         handleChampionIdle();
         return false;
     }
+
     // A creature in the group of a possessed creature follows it. Fights are handled by the
     // prioritary actions as usual
     if(isInPossessionGroup() && followPossessionLeader())
@@ -2537,6 +2544,20 @@ double Creature::getPitDamageFactor(GameEntity* attacker)
     return ConfigManager::getSingleton().getRoomConfigDouble("ArenaDamageTakenPercent");
 }
 
+namespace
+{
+//! \brief Counts an event of the creature for the conditions of the level script (server only)
+//! \param creature The creature the event happened to
+//! \param eventName The name of the event, for example "killed" or "slapped"
+void recordScriptEvent(const Creature& creature, const std::string& eventName)
+{
+    if(!creature.getIsOnServerMap())
+        return;
+
+    creature.getGameMap()->getLevelScript().recordEvent(creature.getName(), eventName);
+}
+} // namespace
+
 double Creature::takeDamage(GameEntity* attacker, double absoluteDamage, double physicalDamage, double magicalDamage, double elementDamage,
         Tile *tileTakingDamage, bool ko)
 {
@@ -2551,6 +2572,9 @@ double Creature::takeDamage(GameEntity* attacker, double absoluteDamage, double 
     double totalDamage = (absoluteDamage + physicalDamage + magicalDamage + elementDamage) * getPitDamageFactor(attacker);
     double damageDone = std::min(mHp, totalDamage);
     mHp -= damageDone;
+    if(wasAlive && (damageDone > 0.0))
+        recordScriptEvent(*this, "attacked");
+
     if(mHp <= 0)
     {
         // A possessed creature is not knocked out, it dies and the keeper loses mana
@@ -2567,6 +2591,7 @@ double Creature::takeDamage(GameEntity* attacker, double absoluteDamage, double 
         else if(ko && !getDefinition()->isWorker())
         {
             mHp = 1.0;
+            recordScriptEvent(*this, "incapacitated");
             mKoTurnCounter = -ConfigManager::getSingleton().getNbTurnsKoCreatureAttacked();
             OD_LOG_INF("creature=" + getName() + " has been KO by " + attacker->getName());
             dropCarriedEquipment();
@@ -2581,6 +2606,11 @@ double Creature::takeDamage(GameEntity* attacker, double absoluteDamage, double 
         // The killing blow counts once for the debriefing (a KO does not get here)
         if(wasAlive && (attacker != nullptr) && (attacker->getSeat() != nullptr))
             attacker->getSeat()->recordCreatureKill(getSeat());
+        if(wasAlive)
+        {
+            recordScriptEvent(*this, "killed");
+            recordScriptEvent(*this, "incapacitated");
+        }
         fireEntityDead();
     }
 
@@ -2752,6 +2782,8 @@ void Creature::pickup()
         computeVisualDebugEntities();
 
     mIsInHand = true;
+
+    recordScriptEvent(*this, "pickedup");
 
     fireCreatureSound(CreatureSound::Pickup);
 }
@@ -3198,6 +3230,8 @@ void Creature::slap()
         dismissChampion();
         return;
     }
+
+    recordScriptEvent(*this, "slapped");
 
     CreatureEffectSlap* effect = new CreatureEffectSlap(
         ConfigManager::getSingleton().getSlapEffectDuration(), "");
@@ -4245,6 +4279,10 @@ void Creature::changeSeat(Seat* newSeat)
 {
     OD_LOG_INF("creature=" + getName() + " changes side from seatId=" + Helper::toString(getSeat()->getId()) + " to seatId=" + Helper::toString(newSeat->getId()));
     OD_ASSERT_TRUE_MSG(getSeat() != newSeat, "creature=" + getName() + ", seatId=" + Helper::toString(newSeat->getId()));
+    // A neutral creature that joins a keeper is claimed
+    if(getSeat()->isRogueSeat() && !newSeat->isRogueSeat())
+        recordScriptEvent(*this, "claimed");
+
     setSeat(newSeat);
     mMoodValue = CreatureMoodLevel::Neutral;
     mMoodPoints = 0;

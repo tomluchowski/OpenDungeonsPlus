@@ -297,6 +297,11 @@ public:
     //! otherwise
     bool isSkillDone(SkillType type) const;
 
+    //! \brief Sets how a skill is available before the game starts (skirmish Game Settings).
+    //! Not allowed skills cannot be researched, done skills are available from the start and
+    //! the others have to be researched.
+    void setSkillAvailability(SkillType type, bool allowed, bool done);
+
     uint32_t getSkillLevel(SkillType type) const;
     void setResearchLevels(const std::map<SkillType, uint32_t>& levels);
 
@@ -449,6 +454,9 @@ private:
     //! state (last tile state notified, vision last turn for this seat, vision for current turn, ...
     std::map<Tile*,TileStateNotified> mTilesStates;
     std::map<Tile*,TileStateNotified> mDraggableTilesStates;
+
+    //! \brief Tiles revealed by an outside source (like a tortured creature) with the number of turns left.
+    std::vector<std::pair<Tile*, uint32_t> > mRevealedTiles;
 
     //! \brief Tiles revealed by an outside source (like a tortured creature) with the number of turns left.
     std::vector<std::pair<Tile*, uint32_t> > mRevealedTiles;

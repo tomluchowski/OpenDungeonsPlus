@@ -68,6 +68,8 @@ template<> ODClient* Ogre::Singleton<ODClient>::msSingleton = nullptr;
 ODClient::ODClient() :
     ODSocketClient(),
     mIsPlayerConfig(false),
+    mTimeLimitSeconds(-1),
+    mWaveCountdownSeconds(-1),
     mHasLevelStatistics(false)
 {
 }
@@ -416,6 +418,8 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
         {
             int32_t nbPlayers;
             OD_ASSERT_TRUE(packetReceived >> ODApplication::turnsPerSecond);
+            mTimeLimitSeconds = -1;
+            mWaveCountdownSeconds = -1;
             mHasLevelStatistics = false;
             mLevelStatistics = LevelStatistics();
             mHeartBadge = HeartHealthRing::BadgeState();
@@ -1678,6 +1682,74 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
                 GameMode* gm = static_cast<GameMode*>(frameListener->getModeManager()->getCurrentMode());
                 gm->notifyPossessionEnded();
             }
+            break;
+        }
+
+        case ServerNotificationType::seatTeam:
+        {
+            int32_t seatId = -1;
+            int32_t teamId = -1;
+            if(!(packetReceived >> seatId >> teamId))
+            {
+                OD_LOG_ERR("Truncated seatTeam packet");
+                break;
+            }
+            Seat* seat = gameMap->getSeatById(seatId);
+            if(seat != nullptr)
+                seat->setTeamId(teamId);
+
+            break;
+        }
+
+        case ServerNotificationType::editorRegionData:
+        {
+            if(frameListener->getModeManager()->getCurrentModeType() != ModeManager::ModeType::EDITOR)
+            {
+                OD_LOG_ERR("Wrong mode " + Helper::toString(frameListener->getModeManager()->getCurrentModeType()));
+                break;
+            }
+            uint32_t nbRegions = 0;
+            if(!(packetReceived >> nbRegions))
+            {
+                OD_LOG_ERR("Truncated editorRegionData packet");
+                break;
+            }
+
+            std::vector<LevelScriptRegion> regions;
+            bool isComplete = true;
+            for(uint32_t i = 0; i < nbRegions; ++i)
+            {
+                LevelScriptRegion region;
+                if(!(packetReceived >> region.mName >> region.mX1 >> region.mY1 >> region.mX2 >> region.mY2))
+                {
+                    isComplete = false;
+                    break;
+                }
+                regions.push_back(region);
+            }
+            if(!isComplete)
+            {
+                OD_LOG_ERR("Truncated editorRegionData packet");
+                break;
+            }
+
+            EditorMode* editorMode = static_cast<EditorMode*>(frameListener->getModeManager()->getCurrentMode());
+            editorMode->setRegions(regions);
+            break;
+        }
+
+        case ServerNotificationType::timeLimit:
+        {
+            int32_t timeLimitSeconds = -1;
+            int32_t waveCountdownSeconds = -1;
+            if(!(packetReceived >> timeLimitSeconds >> waveCountdownSeconds))
+            {
+                OD_LOG_ERR("Truncated timeLimit packet");
+                break;
+            }
+
+            mTimeLimitSeconds = timeLimitSeconds;
+            mWaveCountdownSeconds = waveCountdownSeconds;
             break;
         }
 

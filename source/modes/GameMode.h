@@ -239,6 +239,10 @@ class GameMode final : public GameEditorModeBase, public InputCommand
     //! Refresh the selected action, target preview and resource/cooldown feedback without executing it.
     void refreshActionFeedback(float elapsed);
 
+    //! \brief Sets the tooltip of the time limit display: a script countdown or a time limit
+    //! \param isCountdown true for a countdown that ends without a defeat, false for a time limit
+    void updateTimeLimitTooltip(bool isCountdown);
+
     Creature* getClosestCreature(Tile*);
 
     //! \brief Called on client side when the local player takes control of a creature (possession)
@@ -295,6 +299,11 @@ private:
     //! rather than back to the main menu. Set by the button that opened the
     //! confirmation popup.
     bool mExitToDesktop = false;
+
+    //! \brief Seconds of the time limit countdown that is shown on the HUD, -1 while it is hidden
+    int32_t mTimeLimitShown = -1;
+    //! \brief Seconds of the wave countdown that is shown on the HUD, -1 while it is hidden
+    int32_t mWaveCountdownShown = -1;
 
     //! \brief Sets whether a tile must marked or unmarked for digging.
     //! this value is based on the first marked flag tile selected.

@@ -37,6 +37,9 @@ public:
 
     std::function<bool()> action() override;
 
+    //! \brief Walks to the closest treasury of an enemy seat and steals gold from it. A theft that got gold counts as
+    //! the steals event for the level script.
+    //! \param creature The thief
     static bool handleStealFreeGold(Creature& creature);
 };
 
