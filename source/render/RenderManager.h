@@ -147,6 +147,18 @@ public:
     void rrOrientEntityToward(MovableGameEntity* gameEntity, const Ogre::Vector3& direction);
     void rrPitchAroundAxis(RenderedMovableEntity* gameEntity, Ogre::Degree dd);
     void rrScaleCreature(Creature& creature);
+    //! Where a weapon model sits on a skeleton: the bone, the offset on it and the rotation of the model
+    struct WeaponMount
+    {
+        std::string mBoneName;
+        Ogre::Vector3 mOffset;
+        Ogre::Quaternion mRotation;
+    };
+    //! Finds the bone of the given hand ("L" or "R") for a weapon mesh. Returns false if the skeleton has none.
+    //! A crossbow in the right hand of a skeleton that has no Weapon_L bone (the shape of the aim pose is the
+    //! one of a bow in the left hand) is mounted on the left hand bone with the offset and roll of the bow grip.
+    static bool getWeaponMount(const Ogre::Skeleton* skeleton, const std::string& hand,
+        const std::string& meshName, WeaponMount& mount);
     void rrCreateWeapon(Creature* curCreature, const Weapon* curWeapon, const std::string& hand);
     void rrDestroyWeapon(Creature* curCreature, const Weapon* curWeapon, const std::string& hand);
     void rrCreateMapLight(MapLight* curMapLight, bool displayVisual);
