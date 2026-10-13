@@ -9,6 +9,7 @@ work. Run it from the repository root to write the images again:
 Output (all 64x64 RGBA, in materials/textures):
     CreatureEmote<Name>.png        icon in a speech bubble, shown above the creature
     ReactionParticle<Name>.png     sprite of the particle systems in particles/CreatureReactions.particle
+    CreatureProp<Name>.png         small prop shown while a creature plays (ball, coin, pebble, ...)
 
 Needs Pillow.
 """
@@ -344,6 +345,104 @@ def particle_smoke():
     return soft_disc((118, 112, 108), 1.1, 1.0)
 
 
+def prop_ball():
+    """A ball in light grey; the game tints it, so that every ball has a colour of its own."""
+    image, draw = new_canvas()
+    draw.ellipse((28, 28, 228, 228), fill=(236, 236, 236, 255), outline=OUTLINE, width=10)
+    draw.arc((56, 56, 200, 200), 200, 280, fill=WHITE, width=18)
+    draw.arc((56, 56, 200, 200), 20, 90, fill=(176, 176, 186, 255), width=14)
+    return image
+
+
+def prop_yoyo():
+    image, draw = new_canvas()
+    red = (196, 56, 56, 255)
+    draw.ellipse((28, 28, 228, 228), fill=red, outline=OUTLINE, width=10)
+    draw.ellipse((84, 84, 172, 172), fill=(240, 220, 150, 255), outline=OUTLINE, width=8)
+    draw.ellipse((112, 112, 144, 144), fill=OUTLINE)
+    return image
+
+
+def prop_coin():
+    image, draw = new_canvas()
+    coin(draw, 128, 128, 112)
+    return image
+
+
+def prop_pebble():
+    image, draw = new_canvas()
+    stone = (138, 134, 128, 255)
+    draw.polygon([(36, 150), (58, 88), (120, 56), (190, 74), (226, 132), (200, 192), (120, 210), (60, 196)],
+                 fill=stone, outline=OUTLINE)
+    draw.line([(36, 150), (58, 88), (120, 56), (190, 74), (226, 132), (200, 192), (120, 210), (60, 196), (36, 150)],
+              fill=OUTLINE, width=9, joint="curve")
+    draw.polygon([(70, 100), (118, 72), (160, 82), (110, 112)], fill=(182, 178, 170, 255))
+    return image
+
+
+def prop_beetle():
+    image, draw = new_canvas()
+    shell = (46, 70, 52, 255)
+    for side in (-1, 1):
+        for y in (96, 128, 160):
+            draw.line([(128, y), (128 + side * 88, y + (y - 128) * 0.6)], fill=OUTLINE, width=10)
+    draw.ellipse((78, 62, 178, 214), fill=shell, outline=OUTLINE, width=8)
+    draw.line([(128, 78), (128, 206)], fill=OUTLINE, width=6)
+    draw.ellipse((100, 26, 156, 78), fill=OUTLINE)
+    draw.line([(110, 32), (92, 8)], fill=OUTLINE, width=6)
+    draw.line([(146, 32), (164, 8)], fill=OUTLINE, width=6)
+    draw.arc((92, 90, 164, 150), 200, 340, fill=(130, 176, 140, 255), width=8)
+    return image
+
+
+def prop_tool():
+    """A small hammer seen from the side: a wooden handle and a heavy head."""
+    image, draw = new_canvas()
+    wood = (160, 112, 58, 255)
+    steel = (120, 128, 142, 255)
+    draw.rounded_rectangle((116, 40, 140, 232), radius=10, fill=wood, outline=OUTLINE, width=6)
+    draw.rounded_rectangle((60, 24, 196, 84), radius=12, fill=steel, outline=OUTLINE, width=6)
+    draw.line([(72, 40), (184, 40)], fill=(190, 198, 210, 255), width=8)
+    return image
+
+
+def prop_trail():
+    """A short stroke in the dust, lying flat on the ground."""
+    image, draw = new_canvas()
+    points = []
+    for i in range(0, 17):
+        t = i / 16.0
+        points.append((30 + t * 196, 128 + math.sin(t * math.pi * 2.0) * 48))
+    draw.line(points, fill=(94, 76, 58, 255), width=34, joint="curve")
+    draw.line(points, fill=(124, 104, 82, 255), width=18, joint="curve")
+    return image
+
+
+def prop_shadow():
+    """The shadow of a hand making a bird: seen on a wall, soft dark."""
+    image, draw = new_canvas()
+    dark = (24, 24, 36, 255)
+    draw.ellipse((78, 110, 158, 190), fill=dark)
+    draw.polygon([(150, 128), (236, 96), (216, 150), (160, 170)], fill=dark)
+    draw.polygon([(100, 118), (60, 42), (122, 100)], fill=dark)
+    draw.polygon([(122, 108), (112, 28), (150, 104)], fill=dark)
+    draw.polygon([(78, 150), (22, 168), (84, 178)], fill=dark)
+    draw.ellipse((196, 108, 210, 122), fill=(210, 210, 220, 255))
+    return image
+
+
+PROPS = [
+    ("Ball", prop_ball),
+    ("Yoyo", prop_yoyo),
+    ("Coin", prop_coin),
+    ("Pebble", prop_pebble),
+    ("Beetle", prop_beetle),
+    ("Tool", prop_tool),
+    ("Trail", prop_trail),
+    ("Shadow", prop_shadow),
+]
+
+
 PARTICLES = [
     ("Spark", particle_spark),
     ("Coin", particle_coin),
@@ -372,7 +471,11 @@ def main():
     for name, make in PARTICLES:
         finish(make(), os.path.join(args.out, "ReactionParticle%s.png" % name))
 
-    print("Wrote %d emote icons and %d particle textures to %s" % (len(EMOTES), len(PARTICLES), args.out))
+    for name, make in PROPS:
+        finish(make(), os.path.join(args.out, "CreatureProp%s.png" % name))
+
+    print("Wrote %d emote icons, %d particle textures and %d props to %s" % (len(EMOTES), len(PARTICLES), len(PROPS),
+                                                                             args.out))
 
 
 if __name__ == "__main__":

@@ -172,8 +172,11 @@ private:
             mWhileWorking(false),
             mLookTarget(Ogre::Vector3::ZERO),
             mHasLookTarget(false),
+            mPropHeight(1.0),
             mLateEmoteDelay(0.0),
             mLateEmoteTime(2.0),
+            mLateEffectDelay(0.0),
+            mLateEffectTime(1.0),
             mEndsWhenMoving(false)
         {}
 
@@ -212,10 +215,20 @@ private:
         Ogre::Vector3 mLookTarget;
         bool mHasLookTarget;
 
+        //! Sprite prop: the billboards live in a scene node of their own, found by name
+        ReactionProp mProp;
+        std::string mPropSetName;
+        std::string mPropNodeName;
+        double mPropHeight;
+
         //! Icon that starts later in the reaction. Empty once it is shown.
         std::string mLateEmote;
         double mLateEmoteDelay;
         double mLateEmoteTime;
+        //! Particle effect that starts later in the reaction. Empty once it is shown.
+        std::string mLateEffect;
+        double mLateEffectDelay;
+        double mLateEffectTime;
 
         //! The reaction needs the creature to stand and ends when it sets off
         bool mEndsWhenMoving;
@@ -333,11 +346,29 @@ private:
     bool findRoomTile(const Creature* creature, const std::string& roomName, Ogre::Vector3& point) const;
     //! \brief The point the variant turns to (wall, neighbour or room), false if the variant has none or it is not there
     bool findLookTarget(const Creature* creature, const ReactionVariant& variant, Ogre::Vector3& point) const;
+    //! \brief Another idle creature close by shows the event a moment later (the yawn that spreads)
+    //! \param creature The creature that shows the event first
+    //! \param eventName The event the neighbours show
+    void spreadTo(Creature* creature, const std::string& eventName);
+
     //! \brief True if the event (a victory or a level up) makes a creature proud for a while
     static bool isProudEvent(const std::string& eventName);
 
     //! \brief True if the motion needs the creature to stand where it is (it does not move the model away)
     static bool isStandingMotion(ReactionMotion::Type type);
+
+    //! \brief Creates the sprite props (balls, a coin, pebbles, ...) of a bored creature
+    //! \param reaction The running reaction that owns the props
+    //! \param creature The creature the props belong to
+    //! \param variant The variant that names the prop, its sprite, count and size
+    //! \return False if the sprite is missing or the creature has no model to attach the props to
+    bool createProps(RunningReaction& reaction, Creature* creature, const ReactionVariant& variant);
+
+    //! \brief Moves the sprites of the props of a reaction to the place of the current moment
+    void updateProps(RunningReaction& reaction, Creature* creature);
+
+    //! \brief Destroys the sprites and the scene node of the props of a reaction, if it has any
+    void removeProps(RunningReaction& reaction);
 
     //! \brief Shows the second icon (and the second effect) of the reaction when it is time
     void updateLate(RunningReaction& reaction, Creature* creature);
@@ -386,6 +417,7 @@ private:
     double mTime;
     double mTimeLastPrune;
     uint32_t mNextParticleId;
+    uint32_t mNextPropId;
 
     //! Time before the next look at the moods of a few creatures, and the creature it goes on with
     double mMoodTimer;

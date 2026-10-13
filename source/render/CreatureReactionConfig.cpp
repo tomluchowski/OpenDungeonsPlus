@@ -60,6 +60,7 @@ CreatureReactionConfig::CreatureReactionConfig() :
     mMoodWalkingChance(0.3),
     mImpatientAfter(6.0),
     mProudSeconds(25.0),
+    mBoredAfter(20.0),
     mDefaultGroup("Fighters")
 {
 }
@@ -206,6 +207,8 @@ bool CreatureReactionConfig::loadSettings(std::istream& file)
             mImpatientAfter = Helper::toDouble(words[1]);
         else if(words[0] == "ProudSeconds")
             mProudSeconds = Helper::toDouble(words[1]);
+        else if(words[0] == "BoredAfter")
+            mBoredAfter = Helper::toDouble(words[1]);
         else if(words[0] == "DefaultGroup")
             mDefaultGroup = words[1];
         else
@@ -488,6 +491,55 @@ bool CreatureReactionConfig::loadVariant(std::istream& file, ReactionVariant& va
                 variant.mLateEmoteDelay = Helper::toDouble(words[2]);
             if(words.size() >= 4)
                 variant.mLateEmoteTime = Helper::toDouble(words[3]);
+        }
+        else if(words[0] == "Prop")
+        {
+            // Prop <juggle|yoyo|flip|stack|toss|critter|balance|doodle|shadow|kick> <sprite> <count> <size> <seconds>
+            ReactionProp::Path path = ReactionProp::Path::none;
+            if(words[1] == "juggle")
+                path = ReactionProp::Path::juggle;
+            else if(words[1] == "yoyo")
+                path = ReactionProp::Path::yoyo;
+            else if(words[1] == "flip")
+                path = ReactionProp::Path::flip;
+            else if(words[1] == "stack")
+                path = ReactionProp::Path::stack;
+            else if(words[1] == "toss")
+                path = ReactionProp::Path::toss;
+            else if(words[1] == "critter")
+                path = ReactionProp::Path::critter;
+            else if(words[1] == "balance")
+                path = ReactionProp::Path::balance;
+            else if(words[1] == "doodle")
+                path = ReactionProp::Path::doodle;
+            else if(words[1] == "shadow")
+                path = ReactionProp::Path::shadow;
+            else if(words[1] == "kick")
+                path = ReactionProp::Path::kick;
+
+            if((path == ReactionProp::Path::none) || (words.size() < 6))
+            {
+                OD_LOG_ERR("Invalid creature reaction prop: " + words[1]);
+                return false;
+            }
+            variant.mProp.mPath = path;
+            variant.mProp.mSprite = words[2];
+            variant.mProp.mCount = Helper::toUInt32(words[3]);
+            variant.mProp.mSize = Helper::toDouble(words[4]);
+            variant.mProp.mSeconds = Helper::toDouble(words[5]);
+        }
+        else if(words[0] == "LateEffect")
+        {
+            // LateEffect <name> <delay> <seconds>
+            variant.mLateEffect = words[1];
+            if(words.size() >= 3)
+                variant.mLateEffectDelay = Helper::toDouble(words[2]);
+            if(words.size() >= 4)
+                variant.mLateEffectTime = Helper::toDouble(words[3]);
+        }
+        else if(words[0] == "Spreads")
+        {
+            variant.mSpreads = words[1];
         }
         else
         {

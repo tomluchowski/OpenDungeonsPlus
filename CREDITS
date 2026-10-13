@@ -507,6 +507,14 @@ materials/textures/CreatureEmoteYawn.png    OD Team                 GPLv3+      
 materials/textures/CreatureEmoteDots.png    OD Team                 GPLv3+                  Drawn from simple shapes by tools/gen_creature_reaction_art.py (script generated, original work)
 materials/textures/CreatureEmoteCloud.png   OD Team                 GPLv3+                  Drawn from simple shapes by tools/gen_creature_reaction_art.py (script generated, original work)
 materials/textures/CreatureEmoteExit.png    OD Team                 GPLv3+                  Drawn from simple shapes by tools/gen_creature_reaction_art.py (script generated, original work)
+materials/textures/CreaturePropBall.png     OD Team                 GPLv3+                  Drawn from simple shapes by tools/gen_creature_reaction_art.py (script generated, original work)
+materials/textures/CreaturePropYoyo.png     OD Team                 GPLv3+                  Drawn from simple shapes by tools/gen_creature_reaction_art.py (script generated, original work)
+materials/textures/CreaturePropCoin.png     OD Team                 GPLv3+                  Drawn from simple shapes by tools/gen_creature_reaction_art.py (script generated, original work)
+materials/textures/CreaturePropPebble.png   OD Team                 GPLv3+                  Drawn from simple shapes by tools/gen_creature_reaction_art.py (script generated, original work)
+materials/textures/CreaturePropBeetle.png   OD Team                 GPLv3+                  Drawn from simple shapes by tools/gen_creature_reaction_art.py (script generated, original work)
+materials/textures/CreaturePropTool.png     OD Team                 GPLv3+                  Drawn from simple shapes by tools/gen_creature_reaction_art.py (script generated, original work)
+materials/textures/CreaturePropTrail.png    OD Team                 GPLv3+                  Drawn from simple shapes by tools/gen_creature_reaction_art.py (script generated, original work)
+materials/textures/CreaturePropShadow.png   OD Team                 GPLv3+                  Drawn from simple shapes by tools/gen_creature_reaction_art.py (script generated, original work)
 tools/gen_creature_reaction_art.py     OD Team                 GPLv3+
 tools/check_creature_reactions.py      OD Team                 GPLv3+
 

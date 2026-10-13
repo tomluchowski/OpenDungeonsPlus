@@ -82,6 +82,53 @@ struct ReactionMotion
     double mDuration;
 };
 
+//! \brief A small sprite prop shown while the reaction plays (balls, a coin, pebbles, ...). It is a few
+//! billboards that move on a path computed from the size of the creature, and is removed when the reaction ends.
+struct ReactionProp
+{
+    enum class Path
+    {
+        none,
+        //! Balls thrown from hand to hand, now and then one falls
+        juggle,
+        //! A small toy that runs up and down
+        yoyo,
+        //! A coin thrown up and caught
+        flip,
+        //! Pebbles stacked one by one, then the tower falls
+        stack,
+        //! A pebble thrown against the wall and caught
+        toss,
+        //! A tiny critter that runs around the feet and away
+        critter,
+        //! A tool balanced on a finger
+        balance,
+        //! Marks drawn on the ground that fade out
+        doodle,
+        //! The shadow of a hand on the wall
+        shadow,
+        //! Pebbles pushed along the floor
+        kick
+    };
+
+    ReactionProp() :
+        mPath(Path::none),
+        mCount(1),
+        mSize(0.1),
+        mSeconds(0.0)
+    {}
+
+    Path mPath;
+    //! Name of the sprite: the material is CreatureProp_<name>
+    std::string mSprite;
+    //! Number of balls, pebbles, marks or kicks
+    uint32_t mCount;
+    //! Size of one sprite as a share of the height of the creature
+    double mSize;
+    //! Time the prop is shown, in seconds
+    double mSeconds;
+};
+
 //! \brief A particle effect put on the creature
 struct ReactionEffect
 {
@@ -113,7 +160,9 @@ struct ReactionVariant
         mRequiresWall(false),
         mRequiresNeighbour(false),
         mLateEmoteDelay(0.0),
-        mLateEmoteTime(2.0)
+        mLateEmoteTime(2.0),
+        mLateEffectDelay(0.0),
+        mLateEffectTime(1.0)
     {}
 
     std::string mName;
@@ -157,10 +206,21 @@ struct ReactionVariant
     //! motion 'lookat' turns to the closest tile of it. Empty if not used.
     std::string mLookAtRoom;
 
+    //! Sprite prop shown while the reaction plays
+    ReactionProp mProp;
+
     //! A second icon that starts later in the reaction (nodding off, then startled). Empty if none.
     std::string mLateEmote;
     double mLateEmoteDelay;
     double mLateEmoteTime;
+    //! A second particle effect that starts later (the tower falls, then the dust). Empty if none.
+    std::string mLateEffect;
+    double mLateEffectDelay;
+    double mLateEffectTime;
+
+    //! Name of an event another creature close by can show after this one starts (the yawn that spreads).
+    //! Empty if none.
+    std::string mSpreads;
 };
 
 //! \brief A kind of reaction (what happened to the creature) with its variants
@@ -262,6 +322,10 @@ public:
     inline double getProudSeconds() const
     { return mProudSeconds; }
 
+    //! Seconds a creature has to stand idle until it is bored
+    inline double getBoredAfter() const
+    { return mBoredAfter; }
+
 private:
     //! \brief Reads the [Settings] block up to its closing tag. Returns false if it is malformed.
     bool loadSettings(std::istream& file);
@@ -302,6 +366,9 @@ private:
 
     //! \brief Seconds a creature stays proud after a victory or a level up
     double mProudSeconds;
+
+    //! \brief Seconds a creature has to stand idle until it is bored
+    double mBoredAfter;
 
     //! \brief Group used for a creature that is in no group
     std::string mDefaultGroup;
