@@ -4689,6 +4689,9 @@ bool isPossessedBasicAttack(const CreatureSkill& skill)
     return (skill.getSkillName() == "Melee") || (skill.getSkillName() == "MissileLaunch");
 }
 
+//! \brief True if the skill is not cooling down or warming up and the creature can use it right now
+//! \param creature The possessed creature that wants to use the skill.
+//! \param skillData The state of the skill (cooldown and warmup turns left).
 bool isPossessedSkillReady(const Creature& creature, const CreatureSkillData& skillData)
 {
     return (skillData.mCooldown == 0) && (skillData.mWarmup == 0) &&

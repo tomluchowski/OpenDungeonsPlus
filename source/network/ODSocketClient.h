@@ -84,6 +84,7 @@ class ODSocketClient
         void setSupportsCreatureActivity(bool supported) { mSupportsCreatureActivity = supported; }
         bool supportsCreaturePanel() const { return mSupportsCreaturePanel; }
         void setSupportsCreaturePanel(bool supported) { mSupportsCreaturePanel = supported; }
+        //! Whether the other side sends and understands experience and attack recovery in creature data
         bool supportsCreatureProgress() const { return mSupportsCreatureProgress; }
         void setSupportsCreatureProgress(bool supported) { mSupportsCreatureProgress = supported; }
         int64_t getLastTurnAck() { return mLastTurnAck; }
@@ -164,6 +165,7 @@ class ODSocketClient
         bool mSupportsCreatureMood;
         bool mSupportsCreatureActivity;
         bool mSupportsCreaturePanel;
+        //! \brief Creature experience and attack recovery in creature packets
         bool mSupportsCreatureProgress;
 
         //! \brief the replay filename being written. Used to later optionally delete it
