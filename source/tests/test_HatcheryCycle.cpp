@@ -257,31 +257,38 @@ BOOST_AUTO_TEST_CASE(test_BalanceParity)
 
 BOOST_AUTO_TEST_CASE(test_Care)
 {
-    HatcheryCare care;
-    BOOST_CHECK(!HatcheryCycle::wellCared(care));
-    care.mClaimed = true;
-    BOOST_CHECK(!HatcheryCycle::wellCared(care));
-    care.mLit = true;
-    BOOST_CHECK(HatcheryCycle::wellCared(care));
-    care.mEnemies = true;
-    BOOST_CHECK(!HatcheryCycle::wellCared(care));
-
-    // Without care the settings stay as they are, with care the laying times get shorter
+    // The two bonuses (light 10, no enemies 15) add up, but only while all tiles are claimed
     HatcheryCycleSettings settings;
     settings.mLayMin = 8;
     settings.mLayMax = 12;
-    settings.mCareLayPercent = 25;
-    HatcheryCycleSettings plain = HatcheryCycle::withCare(settings, care);
+    HatcheryCare care;
+    BOOST_CHECK_EQUAL(HatcheryCycle::carePercent(settings, care), 0u);
+    care.mLit = true;
+    BOOST_CHECK_EQUAL(HatcheryCycle::carePercent(settings, care), 0u);
+    care.mClaimed = true;
+    BOOST_CHECK_EQUAL(HatcheryCycle::carePercent(settings, care), 25u);
+    care.mEnemies = true;
+    BOOST_CHECK_EQUAL(HatcheryCycle::carePercent(settings, care), 10u);
+    care.mLit = false;
+    BOOST_CHECK_EQUAL(HatcheryCycle::carePercent(settings, care), 0u);
+    care.mEnemies = false;
+    BOOST_CHECK_EQUAL(HatcheryCycle::carePercent(settings, care), 15u);
+
+    // Without a bonus the settings stay as they are, with care the laying times get shorter
+    HatcheryCare none;
+    HatcheryCycleSettings plain = HatcheryCycle::withCare(settings, none);
     BOOST_CHECK_EQUAL(plain.mLayMin, 8u);
     BOOST_CHECK_EQUAL(plain.mLayMax, 12u);
-    care.mEnemies = false;
+    care.mLit = true;
     HatcheryCycleSettings cared = HatcheryCycle::withCare(settings, care);
     BOOST_CHECK_EQUAL(cared.mLayMin, 6u);
     BOOST_CHECK_EQUAL(cared.mLayMax, 9u);
     BOOST_CHECK_EQUAL(cared.mHatchTurns, settings.mHatchTurns);
-    settings.mCareLayPercent = 0;
+    settings.mCareLightPercent = 0;
+    settings.mCareCalmPercent = 0;
     BOOST_CHECK_EQUAL(HatcheryCycle::withCare(settings, care).mLayMin, 8u);
-    settings.mCareLayPercent = 500;
+    settings.mCareLightPercent = 500;
+    BOOST_CHECK_EQUAL(HatcheryCycle::carePercent(settings, care), 90u);
     BOOST_CHECK(HatcheryCycle::withCare(settings, care).mLayMin >= 1u);
 
     // Eggs do not hatch while enemies stand in the hatchery

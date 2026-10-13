@@ -60,7 +60,7 @@ private:
     void collectEnemies(std::vector<Creature*>& enemies) const;
     //! True if a map light is within HatcheryCareLightRadius tiles of the hatchery.
     bool isLit() const;
-    //! Claimed by the keeper, lit and free of enemies (see HatcheryCycle::wellCared).
+    //! Claimed by the keeper, lit and free of enemies (see HatcheryCycle::carePercent).
     HatcheryCare getCare(const std::vector<Creature*>& enemies) const;
     //! Settings of the life cycle from the config, laying times scaled by the research.
     HatcheryCycleSettings getCycleSettings() const;

@@ -51,17 +51,25 @@ bool HatcheryCycle::canHatch(const HatcheryCounts& counts, bool enemiesPresent)
     return eggsMayHatch(counts) && !enemiesPresent;
 }
 
-bool HatcheryCycle::wellCared(const HatcheryCare& care)
+uint32_t HatcheryCycle::carePercent(const HatcheryCycleSettings& settings, const HatcheryCare& care)
 {
-    return care.mClaimed && care.mLit && !care.mEnemies;
+    if(!care.mClaimed)
+        return 0;
+
+    uint32_t percent = 0;
+    if(care.mLit)
+        percent += settings.mCareLightPercent;
+    if(!care.mEnemies)
+        percent += settings.mCareCalmPercent;
+    return std::min<uint32_t>(percent, 90);
 }
 
 HatcheryCycleSettings HatcheryCycle::withCare(const HatcheryCycleSettings& settings, const HatcheryCare& care)
 {
-    if(!wellCared(care))
+    uint32_t percent = carePercent(settings, care);
+    if(percent == 0)
         return settings;
 
-    uint32_t percent = std::min<uint32_t>(settings.mCareLayPercent, 90);
     return scaled(settings, (100 - percent) / 100.0);
 }
 

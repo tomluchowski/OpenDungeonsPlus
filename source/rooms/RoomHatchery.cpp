@@ -161,7 +161,8 @@ HatcheryCycleSettings RoomHatchery::getCycleSettings() const
     settings.mGrowTurns = static_cast<uint32_t>(config.getRoomConfigDoubleOrDefault("HatcheryGrowTurns", settings.mGrowTurns));
     settings.mRoosterWait = static_cast<uint32_t>(config.getRoomConfigDoubleOrDefault("HatcheryRoosterSpawnRate", settings.mRoosterWait));
     settings.mTilesPerChicken = static_cast<uint32_t>(config.getRoomConfigDoubleOrDefault("HatcheryTilesPerChicken", settings.mTilesPerChicken));
-    settings.mCareLayPercent = static_cast<uint32_t>(config.getRoomConfigDoubleOrDefault("HatcheryCareLayPercent", settings.mCareLayPercent));
+    settings.mCareLightPercent = static_cast<uint32_t>(config.getRoomConfigDoubleOrDefault("HatcheryCareLightPercent", settings.mCareLightPercent));
+    settings.mCareCalmPercent = static_cast<uint32_t>(config.getRoomConfigDoubleOrDefault("HatcheryCareCalmPercent", settings.mCareCalmPercent));
     settings.mTramplePercent = static_cast<uint32_t>(config.getRoomConfigDoubleOrDefault("HatcheryTramplePercent", settings.mTramplePercent));
 
     // The research of the hatchery shortens the waiting times

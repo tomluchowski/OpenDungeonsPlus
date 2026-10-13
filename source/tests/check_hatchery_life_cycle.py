@@ -51,9 +51,10 @@ print('hatchery life cycle checks passed')
 cycle = (root / 'source/rooms/HatcheryCycle.cpp').read_text()
 room_cpp = (root / 'source/rooms/RoomHatchery.cpp').read_text()
 cfg = (root / 'config/rooms.cfg').read_text()
-assert 'wellCared' in cycle and 'canHatch' in cycle
+assert 'carePercent' in cycle and 'canHatch' in cycle
 assert 'HatcheryCycle::withCare' in room_cpp and 'HatcheryCycle::canHatch(counts, care.mEnemies)' in room_cpp
-assert 'HatcheryCareLayPercent' in cfg and 'HatcheryCareLightRadius' in cfg
+assert 'HatcheryCareLightPercent' in cfg and 'HatcheryCareCalmPercent' in cfg and 'HatcheryCareLightRadius' in cfg
+assert 'HatcheryCareLayPercent' not in cfg
 
 # Enemies trample eggs, own creatures never eat them
 cycle_h = (root / 'source/rooms/HatcheryCycle.h').read_text()
