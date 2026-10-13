@@ -38,6 +38,7 @@ static const std::string sample =
     "[Level]\n"
     "Title=No file, ignored\n";
 
+//! \brief Levels unlock one after the other, a won level is saved and read again, and a new campaign forgets it
 BOOST_AUTO_TEST_CASE(test_sequence_and_progress)
 {
     Campaign& campaign = Campaign::getSingleton();
@@ -89,6 +90,7 @@ static const std::string sampleBonusOwnReward =
     "[Level]\nFile=campaign/Bonus.level\nTitle=Hidden\nBonus=1\n"
     "[Level]\nFile=campaign/Own.level\nTitle=Own reward\nBonus=1\nHeartstone=0\n";
 
+//! \brief A bonus level with its own reward gives no Heartstone piece when it is found
 BOOST_AUTO_TEST_CASE(test_bonus_level_without_Heartstone_piece)
 {
     Campaign& campaign = Campaign::getSingleton();
@@ -108,6 +110,7 @@ BOOST_AUTO_TEST_CASE(test_bonus_level_without_Heartstone_piece)
     BOOST_CHECK(campaign.isHeartstoneComplete());
 }
 
+//! \brief A bonus level stays hidden until a level script finds it, does not block the main levels and counts as a Heartstone piece
 BOOST_AUTO_TEST_CASE(test_bonus_levels_and_Heartstone)
 {
     Campaign& campaign = Campaign::getSingleton();
@@ -152,6 +155,7 @@ BOOST_AUTO_TEST_CASE(test_bonus_levels_and_Heartstone)
     BOOST_CHECK(campaign.isFinished());
 }
 
+//! \brief The difficulty of the campaign is chosen once, saved with the progress and reset by a new campaign
 BOOST_AUTO_TEST_CASE(test_difficulty_is_saved)
 {
     Campaign& campaign = Campaign::getSingleton();
@@ -178,6 +182,7 @@ BOOST_AUTO_TEST_CASE(test_difficulty_is_saved)
     BOOST_CHECK_EQUAL(campaign.getDifficulty(), Campaign::getDefaultDifficulty());
 }
 
+//! \brief The province and warden keys of the definition file are read and levels are found by their province
 BOOST_AUTO_TEST_CASE(test_province_keys)
 {
     Campaign& campaign = Campaign::getSingleton();
@@ -217,6 +222,7 @@ static void completeLevel(Campaign& campaign, size_t index)
     BOOST_REQUIRE(campaign.onLevelWon());
 }
 
+//! \brief Of two branch sisters one is enough to unlock the levels after them and the other stays playable
 BOOST_AUTO_TEST_CASE(test_branch_levels)
 {
     Campaign& campaign = Campaign::getSingleton();
@@ -252,6 +258,7 @@ BOOST_AUTO_TEST_CASE(test_branch_levels)
     BOOST_CHECK_EQUAL(campaign.getCurrentLevel(), 3u);
 }
 
+//! \brief The world map description and the id map give the province under a map pixel
 BOOST_AUTO_TEST_CASE(test_world_map)
 {
     CampaignWorld world;

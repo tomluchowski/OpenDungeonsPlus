@@ -28,6 +28,7 @@
 //! \brief A rectangle in pixels of the world map image.
 struct CampaignWorldRect
 {
+    //! \brief Creates an empty rectangle at the origin
     CampaignWorldRect():
         mX(0), mY(0), mWidth(0), mHeight(0)
     {
@@ -43,6 +44,7 @@ struct CampaignWorldRect
 //! which image layers show it.
 struct CampaignWorldProvince
 {
+    //! \brief Creates a province without a mask colour and without layers
     CampaignWorldProvince():
         mMaskRed(0), mMaskGreen(0), mMaskBlue(0), mLayerX(0), mLayerY(0), mLiftX(0), mLiftY(0)
     {
@@ -68,6 +70,7 @@ struct CampaignWorldProvince
 //! \brief A bonus site marker of the world map. The position is the centre of the icons.
 struct CampaignWorldSite
 {
+    //! \brief Creates a bonus site at the origin
     CampaignWorldSite():
         mX(0), mY(0)
     {
@@ -88,21 +91,28 @@ struct CampaignWorldSite
 class CampaignWorld
 {
 public:
+    //! \brief Creates an empty world: no provinces and no id map
     CampaignWorld();
 
     //! \brief Reads the JSON description. Returns false if it is invalid or has no province.
     bool importDefinition(std::istream& is);
 
+    //! \brief Width of the world map image in pixels
     int getWidth() const
     { return mWidth; }
+    //! \brief Height of the world map image in pixels
     int getHeight() const
     { return mHeight; }
+    //! \brief The provinces of the map
     const std::vector<CampaignWorldProvince>& getProvinces() const
     { return mProvinces; }
+    //! \brief The bonus sites of the map
     const std::vector<CampaignWorldSite>& getSites() const
     { return mSites; }
+    //! \brief Where the progress panel is drawn in map pixels
     const CampaignWorldRect& getProgressPanel() const
     { return mProgressPanel; }
+    //! \brief Where the title cartouche is drawn in map pixels
     const CampaignWorldRect& getTitleCartouche() const
     { return mTitleCartouche; }
 
