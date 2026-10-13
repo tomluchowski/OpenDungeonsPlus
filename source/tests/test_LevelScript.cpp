@@ -61,6 +61,7 @@ static const std::string sample =
     "Cond\tregion\t1\tGate\n"
     "Cond\tgold\t1\t>=\t500\n"
     "Cond\tmana\t1\t<=\t100\n"
+    "Cond\tkills\t1\t>=\t7\n"
     "Cond\tmined\t1\t>=\t900\n"
     "Cond\tclaimed\t1\tGate\t4\n"
     "Cond\tclaimed\t2\tGate\tall\n"
@@ -117,16 +118,17 @@ BOOST_AUTO_TEST_CASE(test_parse)
     BOOST_CHECK(watch.mActions[0].mType == LevelScriptActionType::reveal);
     BOOST_CHECK_EQUAL(watch.mActions[0].mText, "Gate");
 
-    BOOST_REQUIRE_EQUAL(watch.mConditions.size(), 6u);
+    BOOST_REQUIRE_EQUAL(watch.mConditions.size(), 7u);
     BOOST_CHECK(watch.mConditions[1].mType == LevelScriptConditionType::gold);
     BOOST_CHECK(watch.mConditions[1].mAtLeast);
     BOOST_CHECK_EQUAL(watch.mConditions[1].mNumber, 500);
     BOOST_CHECK(watch.mConditions[2].mType == LevelScriptConditionType::mana);
     BOOST_CHECK(!watch.mConditions[2].mAtLeast);
-    BOOST_CHECK(watch.mConditions[3].mType == LevelScriptConditionType::goldMined);
-    BOOST_CHECK_EQUAL(watch.mConditions[3].mNumber, 900);
-    BOOST_CHECK_EQUAL(watch.mConditions[4].mNumber, 4);
-    BOOST_CHECK_EQUAL(watch.mConditions[5].mNumber, -1);
+    BOOST_CHECK(watch.mConditions[3].mType == LevelScriptConditionType::kills);
+    BOOST_CHECK_EQUAL(watch.mConditions[3].mNumber, 7);
+    BOOST_CHECK(watch.mConditions[4].mType == LevelScriptConditionType::goldMined);
+    BOOST_CHECK_EQUAL(watch.mConditions[5].mNumber, 4);
+    BOOST_CHECK_EQUAL(watch.mConditions[6].mNumber, -1);
     BOOST_REQUIRE_EQUAL(watch.mActions.size(), 2u);
     BOOST_CHECK(watch.mActions[1].mType == LevelScriptActionType::addFlag);
     BOOST_CHECK_EQUAL(watch.mActions[1].mNumber, -2);
