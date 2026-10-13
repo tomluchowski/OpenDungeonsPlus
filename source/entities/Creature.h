@@ -751,6 +751,7 @@ public:
     inline bool isPossessed() const
     { return mPossessor != nullptr; }
 
+    //! Called on server side. The player that controls this creature, nullptr if nobody does
     inline Player* getPossessor() const
     { return mPossessor; }
 
