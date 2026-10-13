@@ -178,6 +178,7 @@ Creature::Creature(GameMap* gameMap, const CreatureDefinition* definition, Seat*
     mNbTurnFurious           (-1),
     mOverlayHealthValue      (0),
     mOverlayMoodValue        (CreatureMoodValues::Nothing),
+    mClientTileSpeedRatio    (-1.0),
     mOverlayStatus           (nullptr),
     mNeedFireRefresh         (false),
     mDropCooldown            (0),
@@ -263,6 +264,7 @@ Creature::Creature(GameMap* gameMap) :
     mNbTurnFurious           (-1),
     mOverlayHealthValue      (0),
     mOverlayMoodValue        (0),
+    mClientTileSpeedRatio    (-1.0),
     mOverlayStatus           (nullptr),
     mNeedFireRefresh         (false),
     mDropCooldown            (0),
@@ -1665,7 +1667,86 @@ double Creature::getLowHealthWalkFactor() const
     if(!isLowHealthWalking())
         return 1.0;
 
+    // A creature type can have its own factor (same limits as the global one), the global one is the default
+    if((mDefinition != nullptr) && (mDefinition->getLowHealthWalkSpeedFactor() >= 0.0))
+        return std::max(0.2, std::min(1.0, mDefinition->getLowHealthWalkSpeedFactor()));
+
     return ConfigManager::getSingleton().getLowHealthWalkSpeedFactor();
+}
+
+double Creature::getTileSpeedRatio() const
+{
+    // The same tile speed the client moves the creature with (see getMoveSpeed): no covering building on the client
+    Tile* tile = getPositionTile();
+    double groundSpeed = getMoveSpeedGround();
+    if((tile == nullptr) || (groundSpeed <= 0.0))
+        return 1.0;
+
+    double tileSpeed = tile->getHasBridge() ? groundSpeed : tile->getCreatureSpeedDefault(this);
+    if(tileSpeed <= 0.0)
+        return 1.0;
+
+    return std::max(0.2, std::min(4.0, tileSpeed / groundSpeed));
+}
+
+void Creature::updateClientPose(double timeSinceLastFrame)
+{
+    if(getAnimationStateName() != EntityAnimation::walk_anim)
+    {
+        mClientTileSpeedRatio = -1.0;
+        return;
+    }
+
+    double target = getTileSpeedRatio();
+    if(mClientTileSpeedRatio < 0.0)
+    {
+        mClientTileSpeedRatio = target;
+        return;
+    }
+
+    // The ratio changes by 4 per second at most, so a step between two tile types takes a fraction of a second
+    double maxStep = std::max(0.0, timeSinceLastFrame) * 4.0;
+    double diff = target - mClientTileSpeedRatio;
+    if(std::abs(diff) <= maxStep)
+        mClientTileSpeedRatio = target;
+    else
+        mClientTileSpeedRatio += (diff > 0.0) ? maxStep : -maxStep;
+}
+
+double Creature::getClientPoseSpeedFactor() const
+{
+    double factor = 1.0;
+    if(getAnimationStateName() == EntityAnimation::idle_anim)
+    {
+        // Hurt creatures breathe a little slower when they stand
+        if(mOverlayHealthValue >= 6)
+            factor = 0.78;
+        else if(mOverlayHealthValue == 5)
+            factor = 0.85;
+        else if(mOverlayHealthValue == 4)
+            factor = 0.92;
+    }
+    else
+    {
+        // The walk clip keeps up with the slower speed of a badly hurt creature (see getMoveSpeed)
+        factor = getLowHealthWalkFactor();
+    }
+
+    // The walk clips (Walk, WalkHurt) of a type can run faster or slower than the move speed so that the feet do
+    // not slide (WalkClipRate, WalkHurtClipRate for the clip WalkHurt). Only the shown clip, the move speed is not
+    // touched. The rate follows the clip that plays (the client switches it when the health stage crosses the threshold)
+    if((getAnimationStateName() == EntityAnimation::walk_anim) && (mDefinition != nullptr))
+    {
+        Ogre::AnimationState* clipState = getAnimationState();
+        bool playsHurtClip = (clipState != nullptr) && (clipState->getAnimationName() == EntityAnimation::walk_hurt_anim);
+        double clipRate = playsHurtClip ? mDefinition->getWalkHurtClipRate() : mDefinition->getWalkClipRate();
+        factor *= clipRate;
+
+        // The creature moves with the speed of the tile it stands on (water, lava, ...) while the clip rate is fitted
+        // to the ground speed: the clip keeps up with the ratio (the hurt factor above is already in both)
+        factor *= (mClientTileSpeedRatio >= 0.0) ? mClientTileSpeedRatio : getTileSpeedRatio();
+    }
+    return factor;
 }
 
 double Creature::getPhysicalDefense() const

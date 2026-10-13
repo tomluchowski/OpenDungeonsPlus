@@ -95,6 +95,15 @@ public:
     virtual double getAnimationSpeedFactor() const
     { return 1.0; }
 
+    //! \brief Only the clients: how fast the walk and idle clips play on screen (cosmetic, the movement
+    //! speed and every timing of the game stay as they are)
+    virtual double getClientPoseSpeedFactor() const
+    { return 1.0; }
+
+    //! \brief Only the clients: called every frame before the clip time is advanced (cosmetic blending of getClientPoseSpeedFactor)
+    virtual void updateClientPose(double timeSinceLastFrame)
+    {}
+
     //! \brief Updates the entity path, movement, and direction. Note that entities
     //! are not expected to remove themselves or other entities from the gamemap
     //! in the update function. If they do, it might lead to crashes as the gamemap
