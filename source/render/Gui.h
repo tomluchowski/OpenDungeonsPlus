@@ -24,12 +24,15 @@
 #ifndef GUI_H_
 #define GUI_H_
 
+#include <CEGUI/Event.h>
 #include <CEGUI/InputEvent.h>
+#include <CEGUI/Window.h>
 
 #include <OISMouse.h>
 
 #include <string>
 #include <map>
+#include <initializer_list>
 
 class SoundEffectsManager;
 
@@ -85,6 +88,26 @@ public:
 
     CEGUI::Window* getGuiSheet(guiSheet sheet);
 
+    //! \brief Move CEGUI rendering to another Ogre render target.
+    void setRenderTarget(Ogre::RenderTarget& renderTarget);
+
+    enum
+    {
+        MIN_UI_SCALE_PERCENT = 80,
+        MAX_UI_SCALE_PERCENT = 120
+    };
+
+    //! \brief Registers a window tree for resolution-independent scaling.
+    void registerWindowHierarchy(CEGUI::Window* window);
+
+    //! \brief Sets the user-selected UI scale and applies it immediately.
+    void setUserScalePercent(float scalePercent);
+
+    //! \brief Arranges visible gameplay actions and retains their scaled layout.
+    void arrangeRoomButtons(CEGUI::Window* rooms);
+    void arrangeTrapButtons(CEGUI::Window* traps);
+    void arrangeSpellButtons(CEGUI::Window* spells);
+
     // Access names of the GUI elements
     static const std::string ROOT;
     static const std::string DISPLAY_GOLD;
@@ -105,6 +128,8 @@ public:
     static const std::string TAB_CREATURES;
     static const std::string BUTTON_CREATURE_WORKER;
     static const std::string BUTTON_CREATURE_FIGHTER;
+    //! User string holding the long help text of a window. The tooltip itself only shows a short label.
+    static const std::string USER_STRING_CONTEXT_HELP;
     static const std::string TAB_COMBAT;
     static const std::string MM_BACKGROUND;
     static const std::string MM_WELCOME_MESSAGE;
@@ -152,9 +177,35 @@ public:
     bool playButtonClickSound(const CEGUI::EventArgs& e = {});
 
 private:
+    void arrangeActionButtons(CEGUI::Window* panel, std::initializer_list<const char*> names);
+    struct WindowScaleData
+    {
+        CEGUI::URect area;
+        CEGUI::USize minSize;
+        CEGUI::USize maxSize;
+        CEGUI::String text;
+        CEGUI::UDim tabHeight;
+        CEGUI::UDim tabTextPadding;
+        bool hasFormattedImageSize;
+        bool hasTabHeight;
+    };
+
     std::map<guiSheet, CEGUI::Window*> mSheets;
+    std::map<CEGUI::Window*, WindowScaleData> mScaledWindows;
+
+    float mUserScale;
+
+    CEGUI::Event::ScopedConnection mDisplaySizeChangedConnection;
+    CEGUI::Event::ScopedConnection mWindowDestroyedConnection;
 
     SoundEffectsManager* mSoundEffectsManager;
+
+    bool onDisplaySizeChanged(const CEGUI::EventArgs& e);
+    bool onWindowDestroyed(const CEGUI::EventArgs& e);
+    void registerWindow(CEGUI::Window* window);
+    void applyScale(const CEGUI::Sizef& displaySize);
+    void applyScale(CEGUI::Window* window, const WindowScaleData& data, float scale);
+    void updateResourceScaling(const CEGUI::Sizef& displaySize);
 };
 
 #endif // GUI_H_
