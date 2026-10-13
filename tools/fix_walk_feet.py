@@ -1020,7 +1020,8 @@ def close_track(tr, kappa, Ln, win=0.2):
 
 
 def write_xml(src_path, out_path, skel, clipname, fix):
-    text = open(src_path, encoding='utf-8').read()
+    with open(src_path, encoding='utf-8') as f:
+        text = f.read()
     m = re.search(r'<animation name="%s" length="[^"]+">' % re.escape(clipname), text)
     a = m.start()
     e = text.index('</animation>', a) + len('</animation>')
@@ -1056,7 +1057,8 @@ def write_xml(src_path, out_path, skel, clipname, fix):
             out += nt
     out += '</tracks>\n\t\t</animation>'
     new = text[:a] + out + text[e:]
-    open(out_path, 'w', encoding='utf-8', newline='\n').write(new)
+    with open(out_path, 'w', encoding='utf-8', newline='\n') as f:
+        f.write(new)
 
 
 
@@ -1114,7 +1116,8 @@ def make_carry(orig_path, new_path, out_path):
     oc = so.clips['CarryWalk']
     nw = sn.clips['Walk']
     kappa = nw.length / ow.length
-    text = open(new_path, encoding='utf-8').read()
+    with open(new_path, encoding='utf-8') as f:
+        text = f.read()
     m = re.search(r'<animation name="CarryWalk" length="[^"]+">', text)
     a = m.start()
     e = text.index('</animation>', a) + len('</animation>')
@@ -1136,7 +1139,8 @@ def make_carry(orig_path, new_path, out_path):
         out += '\t\t\t\t\t</keyframes>\n\t\t\t\t</track>'
     out += '\n\t\t\t</tracks>\n\t\t</animation>'
     new = text[:a] + out + text[e:]
-    open(out_path, 'w', encoding='utf-8', newline='\n').write(new)
+    with open(out_path, 'w', encoding='utf-8', newline='\n') as f:
+        f.write(new)
     print('CarryWalk rebuilt: %d tracks, length %.4f' % (len(oc.order), nw.length))
 
 
@@ -1194,7 +1198,8 @@ def main():
                 dropmax=float(fx['drop'].max()), verify=dict((k, v) for k, v in vf.items() if k != 'speed'),
                 feet=[dict(bone=f['units'][0]['chain'][-1], runs=[[s * fp.dt * fx['kappa'], ln * fp.dt * fx['kappa']] for (s, ln) in fp.runs])
                       for f, fp in zip(cfg['feet'], fx['A']['fps'])])
-    json.dump(meta, open(a.out + '.json', 'w'))
+    with open(a.out + '.json', 'w') as f:
+        json.dump(meta, f)
     print('kappa %.4f length %.4f' % (fx['kappa'], fx['Ln']))
     for s in fx['stats']:
         print('foot %d unit %d  err max %.4f H mean %.4f H' % s)

@@ -25,6 +25,12 @@
 #include <algorithm>
 #include <cstdint>
 
+//! \brief Lowest speed factor of the walk clips of a creature type (WalkClipRate, WalkHurtClipRate)
+static const double WALK_CLIP_RATE_MIN = 0.2;
+
+//! \brief Highest speed factor of the walk clips of a creature type (WalkClipRate, WalkHurtClipRate)
+static const double WALK_CLIP_RATE_MAX = 8.0;
+
 class CreatureBehaviour;
 class CreatureMood;
 class CreatureSkill;
@@ -199,15 +205,20 @@ public:
     //! \brief Own walk speed factor of a badly hurt creature of this type, negative when the global value applies
     inline double               getLowHealthWalkSpeedFactor () const    { return mLowHealthWalkSpeedFactor; }
     //! \brief Speed factor of the walk clips of this type on the client (1 = as authored), limited to 0.2 - 8.0
-    inline double               getWalkClipRate () const    { return std::max(0.2, std::min(8.0, mWalkClipRate)); }
+    inline double               getWalkClipRate () const    { return limitWalkClipRate(mWalkClipRate); }
     //! \brief Speed factor of the WalkHurt clip of this type on the client, limited to 0.2 - 8.0. Without an own value
     //! (key WalkHurtClipRate not set) it is the walk clip rate
     inline double               getWalkHurtClipRate () const
     {
         if(mWalkHurtClipRate < 0.0)
             return getWalkClipRate();
-        return std::max(0.2, std::min(8.0, mWalkHurtClipRate));
+        return limitWalkClipRate(mWalkHurtClipRate);
     }
+    //! \brief Limits a walk clip rate to WALK_CLIP_RATE_MIN - WALK_CLIP_RATE_MAX
+    //! \param rate The rate to limit (1 = as authored)
+    //! \return The limited rate
+    static inline double        limitWalkClipRate (double rate)
+    { return std::max(WALK_CLIP_RATE_MIN, std::min(WALK_CLIP_RATE_MAX, rate)); }
 
     double                      getXPNeededWhenLevel(unsigned int level) const;
 
