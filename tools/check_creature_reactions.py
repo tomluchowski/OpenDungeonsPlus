@@ -23,6 +23,8 @@ SETTINGS = ("MaxSimultaneous", "MaxCameraDistance", "GroupStaggerMin", "GroupSta
             "MoodInterval", "MoodPerTick", "MoodWalkingChance", "ImpatientAfter", "ProudSeconds", "BoredAfter",
             "AmbientAfter", "SitAfter", "LieAfter", "LookRadius", "InteractionChance", "InteractionRadius",
             "InteractionPause")
+RELATION_EVENTS = ("RelationFriend", "RelationBestFriend", "RelationLovers", "RelationNemesis", "RelationHated",
+                   "RelationBreakUp")
 EVENT_KEYS = ("Name", "Priority", "Cooldown", "Probability", "GroupMax", "WhileWorking", "InHand", "Dying")
 VARIANT_KEYS = ("Name", "Weight", "Clip", "Fallback", "Emote", "Effect", "Motion", "Cooldown", "Probability",
                 "Creatures", "Groups", "Jobs", "Moods", "RequiresSleepNeed", "RequiresWall", "RequiresNeighbour", "LookAtRoom",
@@ -215,6 +217,8 @@ def main():
                     error("event %s: %s must be a number" % (event["Name"], key))
                 elif key == "Probability" and not 0.0 <= float(words[1]) <= 1.0:
                     error("event %s: Probability must be between 0 and 1" % event["Name"])
+                if key in EVENT_KEYS and len(words) >= 2:
+                    event.setdefault(key, words[1])
             else:
                 error("%s outside [Event]" % key)
         else:
@@ -230,6 +234,7 @@ def main():
             if target and target[0] not in events:
                 error("event %s: Spreads names the unknown event %s" % (name, target[0]))
 
+    check_relationship_events(events, error)
     check_catalogue(events, error)
 
     default_group = None
@@ -240,6 +245,24 @@ def main():
         error("DefaultGroup %s is not a defined group" % default_group)
 
     return finish(errors, len(events))
+
+
+def check_relationship_events(events, error):
+    """The events CreatureReactions::noteRelationshipTier triggers must exist, show an emote and not spam."""
+    with open(os.path.join(ROOT, "source", "render", "CreatureReactions.cpp"), encoding="utf-8") as handle:
+        used = set(re.findall(r'"(Relation[A-Za-z]+)"', handle.read()))
+    if used != set(RELATION_EVENTS):
+        error("CreatureReactions.cpp triggers %s, expected %s" % (sorted(used), sorted(RELATION_EVENTS)))
+    for name in RELATION_EVENTS:
+        found = events.get(name)
+        if found is None:
+            error("relationship event %s is missing" % name)
+            continue
+        if float(found.get("Cooldown", "0")) < 30:
+            error("event %s: Cooldown must be at least 30 seconds" % name)
+        for found_variant in found["variants"]:
+            if "Emote" not in found_variant:
+                error("event %s: variant %s has no Emote" % (name, found_variant.get("Name", ["?"])[0]))
 
 
 def check_variant(key, words, variant, event, creatures, groups, materials, particles, error):

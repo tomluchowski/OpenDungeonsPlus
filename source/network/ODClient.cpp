@@ -702,7 +702,13 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
             if((relationships != nullptr) && (tier >= static_cast<int32_t>(RelationshipTier::nemesis))
                 && (tier <= static_cast<int32_t>(RelationshipTier::lovers)))
             {
+                RelationshipTier oldTier = relationships->tierOf(creatureA, creatureB, true);
                 relationships->setTier(creatureA, creatureB, static_cast<RelationshipTier>(tier));
+                if(!replay && (CreatureReactions::getSingletonPtr() != nullptr))
+                {
+                    CreatureReactions::getSingleton().noteRelationshipTier(gameMap->getCreature(creatureA),
+                        gameMap->getCreature(creatureB), oldTier, static_cast<RelationshipTier>(tier));
+                }
             }
             break;
         }

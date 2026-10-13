@@ -2338,6 +2338,40 @@ void CreatureReactions::noteHandDropped(Creature* creature)
     queueReaction(creature, "Dropped", DONE_WAIT_MAX, DROPPED_DELAY);
 }
 
+void CreatureReactions::noteRelationshipTier(Creature* first, Creature* second, RelationshipTier oldTier,
+        RelationshipTier newTier)
+{
+    if((mMode == Mode::off) || !mConfigLoaded || (first == nullptr) || (second == nullptr))
+        return;
+
+    const char* eventName = nullptr;
+    if(newTier == RelationshipTier::nemesis)
+        eventName = "RelationNemesis";
+    else if(newTier == RelationshipTier::hated)
+        eventName = "RelationHated";
+    else if(newTier > oldTier)
+    {
+        // Growing closer: a better tier than before (nothing when an enemy only becomes neutral)
+        if(newTier == RelationshipTier::friends)
+            eventName = "RelationFriend";
+        else if(newTier == RelationshipTier::bestFriends)
+            eventName = "RelationBestFriend";
+        else if(newTier == RelationshipTier::lovers)
+            eventName = "RelationLovers";
+    }
+    else if(oldTier >= RelationshipTier::friends)
+    {
+        // A friendship or a couple that got worse
+        eventName = "RelationBreakUp";
+    }
+
+    if(eventName == nullptr)
+        return;
+
+    trigger(first, eventName);
+    trigger(second, eventName);
+}
+
 void CreatureReactions::noteHandHover(Creature* creature)
 {
     if((mMode == Mode::off) || !mConfigLoaded || (creature == nullptr))
