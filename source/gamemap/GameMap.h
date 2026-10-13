@@ -470,7 +470,7 @@ public:
     //! \brief Smallest and largest value that the gold density and the mana regeneration can have, in percent
     static const uint32_t SKIRMISH_PERCENT_MIN = 10;
     static const uint32_t SKIRMISH_PERCENT_MAX = 500;
-    //! rief The gold density and the mana regeneration of a game without settings: unchanged
+    //! \brief The gold density and the mana regeneration of a game without settings: unchanged
     static const uint32_t SKIRMISH_PERCENT_DEFAULT = 100;
 
     //! \brief Sets the skirmish game settings, as chosen by the host
