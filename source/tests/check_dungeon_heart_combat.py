@@ -77,7 +77,7 @@ struct RoomDungeonTemple:Room {
  BuildingObject* mTempleObject=nullptr;double mHeartHP=-1;bool mCriticalWarningSent=false;
  RoomDungeonTemple(GameMap* m,Seat* s):Room(m,s){}
  INLINE_METHODS
- static const double HEART_MAX_HP;static const double HEART_HEAL_PER_SECOND;double getHeartMaxHP()const;
+ static const double HEART_MAX_HP;static const double HEART_HEAL_PER_SECOND;static const double HEART_CRITICAL_FRACTION;double getHeartMaxHP()const;
  bool canAttackHeart(Tile*,Seat*)const;double getHP(Tile*)const;
  double takeHeartDamage(GameEntity*,double,double,double,double,Tile*);
  bool removeCoveredTile(Tile*)override;void doUpkeep()override;
