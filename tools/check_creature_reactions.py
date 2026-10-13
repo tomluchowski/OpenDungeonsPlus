@@ -23,6 +23,7 @@ SETTINGS = ("MaxSimultaneous", "MaxCameraDistance", "GroupStaggerMin", "GroupSta
             "MoodInterval", "MoodPerTick", "MoodWalkingChance", "ImpatientAfter", "ProudSeconds", "BoredAfter",
             "AmbientAfter", "SitAfter", "LieAfter", "LookRadius", "InteractionChance", "InteractionRadius",
             "InteractionPause")
+DRAG_EVENTS = ("DragWounded", "DraggedGroan", "PutWoundedDown")
 EVENT_KEYS = ("Name", "Priority", "Cooldown", "Probability", "GroupMax", "WhileWorking", "InHand", "Dying")
 VARIANT_KEYS = ("Name", "Weight", "Clip", "Fallback", "Emote", "Effect", "Motion", "Cooldown", "Probability",
                 "Creatures", "Groups", "Jobs", "Moods", "RequiresSleepNeed", "RequiresWall", "RequiresNeighbour", "LookAtRoom",
@@ -230,6 +231,7 @@ def main():
             if target and target[0] not in events:
                 error("event %s: Spreads names the unknown event %s" % (name, target[0]))
 
+    check_drag_events(events, error)
     check_catalogue(events, error)
 
     default_group = None
@@ -240,6 +242,25 @@ def main():
         error("DefaultGroup %s is not a defined group" % default_group)
 
     return finish(errors, len(events))
+
+
+def check_drag_events(events, error):
+    """The worker that pulls a hurt creature by the legs and the creature that is pulled: the events that
+    WorkerReactions.cpp shows for the clips Drag and Dragged must exist and show an emote."""
+    with open(os.path.join(ROOT, "source", "render", "WorkerReactions.cpp"), encoding="utf-8") as handle:
+        text = handle.read()
+    for name in DRAG_EVENTS:
+        if '"%s"' % name not in text:
+            error("WorkerReactions.cpp does not show the drag event %s" % name)
+        found = events.get(name)
+        if found is None:
+            error("drag event %s is missing" % name)
+            continue
+        for found_variant in found["variants"]:
+            if "Emote" not in found_variant:
+                error("event %s: variant %s has no Emote" % (name, found_variant.get("Name", ["?"])[0]))
+    if "PickWounded" in text or "PickWounded" in events:
+        error("PickWounded is gone: wounded creatures are pulled, not lifted")
 
 
 def check_variant(key, words, variant, event, creatures, groups, materials, particles, error):

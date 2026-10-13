@@ -9,8 +9,6 @@ from pathlib import Path
 root = Path(__file__).resolve().parents[2]
 cfg = (root / 'config' / 'creatureReactions.cfg').read_text(encoding='utf-8')
 WORKER_CLIPS = ('PickUp', 'PutDown', 'Toss', 'Pat', 'Hammer', 'Shove', 'Panic', 'Cheer', 'Sweep', 'Sharpen', 'Lean', 'Rest')
-# Clips that only the events of later features name (the rooms and doors that put things in place)
-LATER_CLIPS = ('PutDown',)
 OLD_CLIPS = ('Idle', 'Walk', 'Attack1', 'Die', 'Dig', 'Claim', 'Drag')
 skeletons = {name: (root / 'models' / (name + '.skeleton')).read_bytes() for name in ('Dwarf1', 'Kobold')}
 
@@ -22,7 +20,7 @@ for match in re.finditer(r'\[Event\](.*?)\[/Event\]', cfg, re.S):
     for clip in clips:
         if clip in WORKER_CLIPS:
             used.add(clip)
-assert set(WORKER_CLIPS) - used <= set(LATER_CLIPS), sorted(set(WORKER_CLIPS) - used)
+assert used == set(WORKER_CLIPS), sorted(set(WORKER_CLIPS) - used)
 
 # The clips live in the worker skeletons of the worker animation changes; without them the model keeps the small
 # movement and the effect, so the skeletons are only checked where they carry the clips

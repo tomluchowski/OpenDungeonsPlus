@@ -115,6 +115,11 @@ const double TRAP_KNOCK_DELAY = 0.4;
 const double HASTY_DELAY = 1.0;
 
 const std::string GOLD_BODY_PREFIX = "WorkerGoldBody_";
+//! The clip of a worker that pulls a hurt creature backwards to its bed, and the clip of the creature that is pulled
+const std::string DRAG_CLIP = "Drag";
+const std::string DRAGGED_CLIP = "Dragged";
+//! Seconds before the worker lets go of the creature it pulled
+const double PUT_WOUNDED_DOWN_DELAY = 0.2;
 
 //! \brief Returns the random generator of the worker reactions (its own, so the game logic never sees its numbers)
 std::mt19937& workerRng()
@@ -331,7 +336,8 @@ void WorkerReactions::processLater(CreatureReactions& reactions)
     }
 }
 
-//! \brief Notes the clip a creature was told to play: deaths are remembered as loot places, claiming and weak fights are started
+//! \brief Notes the clip a creature was told to play: deaths are remembered as loot places, claiming, weak fights and the
+//! pulling of a hurt creature to its bed are started
 void WorkerReactions::noteAnimation(CreatureReactions& reactions, Creature* creature, const std::string& clip)
 {
     if(!isActive(reactions))
@@ -355,11 +361,33 @@ void WorkerReactions::noteAnimation(CreatureReactions& reactions, Creature* crea
         return;
     }
 
+    // The hurt creature that a worker pulls over the ground groans: the server sets its clip (not a reaction of
+    // its own, so this is the only place that shows it). It happens once when the pulling starts.
+    if(clip == DRAGGED_CLIP)
+    {
+        show(reactions, creature, "DraggedGroan");
+        return;
+    }
+
     if(!isWorker(creature))
         return;
 
     WorkerState& state = getState(creature->getName());
+    std::string previousClip = state.mClip;
     state.mClip = clip;
+
+    // A worker that pulls a hurt creature to its bed: it takes the legs when the clip starts, it lets go
+    // when the clip ends in the dormitory (the server walks it there and only there it stops pulling)
+    if(clip == DRAG_CLIP)
+    {
+        if(previousClip != clip)
+            show(reactions, creature, "DragWounded");
+    }
+    else if(previousClip == DRAG_CLIP)
+    {
+        if(reactions.getRoomName(creature) == "Dormitory")
+            later(reactions, creature, "PutWoundedDown", PUT_WOUNDED_DOWN_DELAY);
+    }
 
     if(clip == "Claim")
     {
