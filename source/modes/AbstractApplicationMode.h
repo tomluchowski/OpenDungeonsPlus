@@ -102,6 +102,7 @@ public:
 
     //! \brief Game mode specific rendering methods.
     virtual void onFrameStarted(const Ogre::FrameEvent& evt) {};
+    virtual void updateCameraControls(float elapsed) {};
     virtual void onFrameEnded(const Ogre::FrameEvent& evt) {};
 
     bool changeModeEvent(ModeManager::ModeType mode, const CEGUI::EventArgs&)
@@ -126,6 +127,13 @@ public:
     {}
 
 protected:
+    //! Release the foreground Windows game window to the desktop. Returns true if the key is a Windows key
+    //! (and was consumed), which is only ever the case in Windows builds.
+    bool handleDesktopKey(const OIS::KeyEvent& arg);
+
+    //! Close the frontmost visible GUI window through its existing cancel handler.
+    bool closeTopWindow();
+
     ModeManager& getModeManager()
     {
         return *mModeManager;
