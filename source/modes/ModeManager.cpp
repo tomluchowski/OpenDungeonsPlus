@@ -154,6 +154,7 @@ void ModeManager::checkModeChange()
 void ModeManager::update(const Ogre::FrameEvent& evt)
 {
     checkModeChange();
+    mInputManager.refreshSettings();
 
     // We update the current mode
     AbstractApplicationMode* currentMode = getCurrentMode();
