@@ -69,7 +69,9 @@ enum class AmbienceKind
     shake,
     //! Slowly turns an object (a cannon) toward creatures within Amount tiles and back to where it stood when none
     //! is near, at Speed degrees per second (objects only)
-    turn
+    turn,
+    //! A sound of the family given by Family: played at the event, or now and then (Every) at an object
+    sound
 };
 
 //! \brief How an effect of the kind motion moves the node of its object
@@ -105,6 +107,7 @@ struct AmbienceEffect
         mSpeed(1.0),
         mFlicker(0.0),
         mDuration(3.0),
+        mDelay(0.0),
         mEvery(10.0),
         mChance(1.0),
         mSpacing(1),
@@ -147,6 +150,10 @@ struct AmbienceEffect
     double mFlicker;
     //! Seconds a one-shot effect is kept
     double mDuration;
+    //! Sound family, as in the folders below sounds/Spatial (kind sound)
+    std::string mFamily;
+    //! Seconds after the event until the sound is played (kind sound, events only)
+    double mDelay;
     //! Average seconds between two clips (kind clip)
     double mEvery;
     //! Chance that an event effect is shown
@@ -161,7 +168,8 @@ struct AmbienceEffect
     bool mReduced;
     //! Tile targets: only tiles beside a wall
     bool mNeedWall;
-    //! Object targets: shown only to the keeper the object belongs to (the glint of a secret door must not give it away)
+    //! Shown (or heard) only by the keeper the object or the thing of the event belongs to (the glint and the sounds of a
+    //! secret door must not give it away)
     bool mOwnerOnly;
 };
 

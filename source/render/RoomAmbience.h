@@ -86,9 +86,14 @@ public:
 
     //! \brief Shows the one-shot effects of the given event at the given place.
     //! forced ignores the chance, the view test and the mode "reduced". visualName is the tile visual
-    //! (room) the event is about; empty = the one of the tile at the position. Returns the number of effects started
+    //! (room) the event is about; empty = the one of the tile at the position. owner is the seat the thing of the
+    //! event belongs to: effects with OwnerOnly are only shown to the keeper of that seat (never when the owner is
+    //! not given). Returns the number of effects started
     uint32_t triggerEvent(const std::string& eventName, const Ogre::Vector3& position, bool forced,
-        const std::string& visualName = std::string());
+        const std::string& visualName = std::string(), const Seat* owner = nullptr);
+
+    //! \brief Plays the sound of the family (a folder below sounds/Spatial) at the position
+    void playSound(const std::string& family, const Ogre::Vector3& position);
 
     //! \brief A trap or door effect sent by the server (ServerNotificationType::trapEffect).
     //! \param kind A TrapEffectKind value.
@@ -198,6 +203,22 @@ private:
         Ogre::Vector3 mPosition;
         //! The seat the creature belongs to
         Seat* mSeat;
+    };
+
+    //! \brief A sound that waits for its time (Delay of an event effect)
+    struct PendingSound
+    {
+        //! \brief Creates a sound that is due at the start
+        PendingSound() :
+            mPosition(Ogre::Vector3::ZERO), mDue(0.0)
+        {}
+
+        //! The sound family to play
+        std::string mFamily;
+        //! Where it is played
+        Ogre::Vector3 mPosition;
+        //! Clock time at which it is played
+        double mDue;
     };
 
     //! \brief A particle system of an event effect that is removed after its duration
@@ -321,6 +342,8 @@ private:
     void updateEmitters(double timeSinceLastFrame);
     //! \brief Removes the one-shot effects whose time is over
     void updateOneShots(double timeSinceLastFrame);
+    //! \brief Plays the sounds whose delay is over
+    void updatePendingSounds();
     //! \brief Moves the objects by their motions and puts back the ones that are not moved any more
     //! \brief Lets a destroyed door (the door entity of the given type on the tile, which the server is about to
     //! remove) play the clip Collapse (barricade) or Destroyed (every other door) of its skeleton on a ghost copy
@@ -416,6 +439,8 @@ private:
     std::map<std::string, double> mWreckedUntil;
     //! The remains of destroyed doors that are shown
     std::vector<Collapse> mCollapses;
+    //! Sounds that wait for their delay
+    std::vector<PendingSound> mPendingSounds;
     //! Objects that follow creatures (kind turn), per entity name
     std::map<std::string, Turret> mTurrets;
     //! Time until which a trap (key "x,y" of its tile) keeps its turn, because the server aims it for a shot
