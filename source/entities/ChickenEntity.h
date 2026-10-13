@@ -208,7 +208,9 @@ public:
     static ChickenEntity* getChickenEntityFromPacket(GameMap* gameMap, ODPacket& is);
     static std::string getChickenEntityStreamFormat();
 protected:
+    //! \brief Client side: creates the mesh and adds the scaled and tinted look of the animal.
     void createMeshLocal(NodeType nt = NodeType::MTILES_NODE) override;
+    //! \brief Client side: removes the look of the animal and then the mesh.
     void destroyMeshLocal(NodeType nt = NodeType::MTILES_NODE) override;
     void exportToStream(std::ostream& os) const override;
     bool importFromStream(std::istream& is) override;
