@@ -476,19 +476,11 @@ private:
         std::vector<Ogre::Entity*> mEntities;
         uint32_t mKey;
     };
-<<<<<<< HEAD
     std::map<std::string, NestField> mNestFields;
     //! Draws the server-provided nests by room name (a client has no Room objects of its own). A nest shows while
     //! its tile is visible to the local player and still belongs to a hatchery.
     void updateNestFields();
-=======
-    std::map<Room*, NestField> mNestFields;
-    //! Makes, updates and removes the nests of the hatcheries that have coops (roomCoops: their coop tiles). The nests
-    //! show while the hatchery has hens, chicks or eggs (roomAnimals).
-    void updateNestFields(const std::map<Room*, std::vector<Tile*> >& roomCoops,
-        const std::map<Room*, uint32_t>& roomAnimals);
     //! \brief Removes the nest entities and nodes of one hatchery.
->>>>>>> feature/hatchery-nest-field
     void destroyNestField(NestField& field);
     //! Set while a game is shown
     GameMap* mGameMap = nullptr;
