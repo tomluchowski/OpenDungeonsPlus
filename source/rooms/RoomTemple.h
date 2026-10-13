@@ -39,6 +39,8 @@ public:
     //! \param gameMap The map the temple belongs to
     RoomTemple(GameMap* gameMap);
 
+    //! \brief Returns the room type of this room, which is always the temple
+    //! \return RoomType::temple
     RoomType getType() const override
     { return mRoomType; }
 
