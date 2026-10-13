@@ -88,11 +88,12 @@ KeeperAI::KeeperAI(GameMap& gameMap, Player& player, int cooldownDefenseMin, int
              int cooldownSaveWoundedCreaturesMin, int cooldownSaveWoundedCreaturesMax,
              int cooldownLookingForRoomsMin, int cooldownLookingForRoomsMax,
              int reactionPercent, int minHpPercentToFight, int minFightersToAttack,
-             int maxTrapTiles, int maxDoors):
+             int minCreatureLevel, int maxTrapTiles, int maxDoors):
     BaseAI(gameMap, player),
     mReactionPercent(reactionPercent),
     mMinHpPercentToFight(minHpPercentToFight),
     mMinFightersToAttack(minFightersToAttack),
+    mMinCreatureLevel(minCreatureLevel),
     mMaxTrapTiles(maxTrapTiles),
     mMaxDoors(maxDoors),
     mCooldownTraps(0),
@@ -775,6 +776,23 @@ int KeeperAI::countHealthyFighters() const
     return nbFighters;
 }
 
+int KeeperAI::countWeakFighters() const
+{
+    int nbWeakFighters = 0;
+    for(Creature* creature : mGameMap.getCreaturesBySeat(mPlayer.getSeat()))
+    {
+        if(creature->getDefinition()->isWorker())
+            continue;
+        if(creature->isKo())
+            continue;
+        if(creature->getHP() < (creature->getMaxHp() * mMinHpPercentToFight / 100.0))
+            continue;
+        if(static_cast<int>(creature->getLevel()) < mMinCreatureLevel)
+            ++nbWeakFighters;
+    }
+    return nbWeakFighters;
+}
+
 Tile* KeeperAI::findEnemyTempleTile()
 {
     Tile* central = getDungeonTemple()->getCentralTile();
@@ -846,7 +864,13 @@ void KeeperAI::handleAttack()
         return;
     }
 
-    if((nbFighters < mMinFightersToAttack) || (enemyTile == nullptr))
+    // The AI attacks with more creatures than the threshold, and waits while more
+    // creatures than the minimum level number are below that level
+    if((nbFighters <= mMinFightersToAttack) || (enemyTile == nullptr))
+        return;
+
+    int nbWeakFighters = countWeakFighters();
+    if(nbWeakFighters > mMinCreatureLevel)
         return;
 
     // We need a walkable way to the enemy temple. If there is none, workers dig it first
