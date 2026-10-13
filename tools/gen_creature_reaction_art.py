@@ -153,6 +153,46 @@ def glyph_fist(draw):
     draw.rectangle((92, 146, 160, 176), fill=dark)
 
 
+def glyph_book(draw):
+    cover = (60, 98, 170, 255)
+    dark = (28, 48, 100, 255)
+    page = (250, 244, 224, 255)
+    # An open book seen from the front: two pages, a spine and a few lines of text
+    draw.polygon([(128, 62), (60, 78), (60, 158), (128, 142)], fill=page, outline=dark)
+    draw.polygon([(128, 62), (196, 78), (196, 158), (128, 142)], fill=page, outline=dark)
+    draw.line([(128, 62), (128, 142)], fill=dark, width=6)
+    draw.line([(52, 84), (52, 166), (128, 150), (204, 166), (204, 84)], fill=cover, width=10, joint="curve")
+    for i in range(3):
+        draw.line([(74, 96 + i * 16), (116, 88 + i * 16)], fill=dark, width=4)
+        draw.line([(140, 88 + i * 16), (182, 96 + i * 16)], fill=dark, width=4)
+
+
+def glyph_gear(draw):
+    steel = (110, 120, 134, 255)
+    dark = (54, 60, 72, 255)
+    centre = (128, 108)
+    # Eight teeth, then the round body and the hole in the middle
+    for i in range(8):
+        angle = i * math.pi / 4
+        tip = (centre[0] + 62 * math.cos(angle), centre[1] + 62 * math.sin(angle))
+        side = (-math.sin(angle) * 16, math.cos(angle) * 16)
+        base = (centre[0] + 36 * math.cos(angle), centre[1] + 36 * math.sin(angle))
+        draw.polygon([(base[0] - side[0], base[1] - side[1]), (tip[0] - side[0] * 0.7, tip[1] - side[1] * 0.7),
+                      (tip[0] + side[0] * 0.7, tip[1] + side[1] * 0.7), (base[0] + side[0], base[1] + side[1])],
+                     fill=steel, outline=dark)
+    draw.ellipse((centre[0] - 46, centre[1] - 46, centre[0] + 46, centre[1] + 46), fill=steel, outline=dark, width=5)
+    draw.ellipse((centre[0] - 18, centre[1] - 18, centre[0] + 18, centre[1] + 18), fill=WHITE, outline=dark, width=5)
+
+
+def glyph_smoke(draw):
+    grey = (150, 150, 158, 255)
+    dark = (88, 88, 98, 255)
+    # A small cloud of three puffs
+    for box in ((62, 96, 128, 160), (100, 62, 176, 138), (132, 96, 200, 160), (86, 104, 170, 164)):
+        draw.ellipse(box, fill=grey, outline=dark, width=4)
+    draw.ellipse((90, 94, 170, 158), fill=grey)
+
+
 EMOTES = [
     ("Exclamation", glyph_exclamation),
     ("Question", glyph_question),
@@ -165,6 +205,9 @@ EMOTES = [
     ("Note", glyph_note),
     ("Star", glyph_star),
     ("Fist", glyph_fist),
+    ("Book", glyph_book),
+    ("Gear", glyph_gear),
+    ("Smoke", glyph_smoke),
 ]
 
 
@@ -218,6 +261,14 @@ def particle_steam():
     return soft_disc((250, 244, 240), 1.1, 0.85)
 
 
+def particle_glow():
+    return soft_disc((255, 226, 130), 1.6, 0.9)
+
+
+def particle_smoke():
+    return soft_disc((118, 112, 108), 1.1, 1.0)
+
+
 PARTICLES = [
     ("Spark", particle_spark),
     ("Coin", particle_coin),
@@ -225,6 +276,8 @@ PARTICLES = [
     ("Z", particle_z),
     ("Steam", particle_steam),
     ("Ring", particle_ring),
+    ("Glow", particle_glow),
+    ("Smoke", particle_smoke),
 ]
 
 

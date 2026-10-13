@@ -328,6 +328,10 @@ bool CreatureReactionConfig::loadEvent(std::istream& file, ReactionEvent& event)
         {
             event.mGroupMax = Helper::toUInt32(words[1]);
         }
+        else if(words[0] == "WhileWorking")
+        {
+            event.mWhileWorking = toBool(words[1]);
+        }
         else
         {
             OD_LOG_WRN("Unknown creature reaction event key: " + words[0]);

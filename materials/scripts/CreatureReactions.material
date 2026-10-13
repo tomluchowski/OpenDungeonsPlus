@@ -279,3 +279,86 @@ material ReactionParticleRing
         }
     }
 }
+
+material CreatureEmote_Book
+{
+    technique
+    {
+        pass
+        {
+            scene_blend alpha_blend
+            texture_unit
+            {
+                texture CreatureEmoteBook.png
+            }
+        }
+    }
+}
+
+material CreatureEmote_Gear
+{
+    technique
+    {
+        pass
+        {
+            scene_blend alpha_blend
+            texture_unit
+            {
+                texture CreatureEmoteGear.png
+            }
+        }
+    }
+}
+
+material CreatureEmote_Smoke
+{
+    technique
+    {
+        pass
+        {
+            scene_blend alpha_blend
+            texture_unit
+            {
+                texture CreatureEmoteSmoke.png
+            }
+        }
+    }
+}
+
+material ReactionParticleGlow
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend add
+            depth_write off
+            diffuse vertexcolour
+
+            texture_unit
+            {
+                texture ReactionParticleGlow.png
+            }
+        }
+    }
+}
+
+material ReactionParticleSmoke
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_write off
+            diffuse vertexcolour
+
+            texture_unit
+            {
+                texture ReactionParticleSmoke.png
+            }
+        }
+    }
+}

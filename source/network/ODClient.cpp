@@ -479,7 +479,10 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
             entity->createMesh(nt);
             entity->restoreEntityState();
             entity->setPosition( entity->getPosition(), gameMapPointer);
-            
+
+            if((nt == NodeType::MTILES_NODE) && (CreatureReactions::getSingletonPtr() != nullptr))
+                CreatureReactions::getSingleton().noteEntityAdded(entity);
+
             break;
         }
 

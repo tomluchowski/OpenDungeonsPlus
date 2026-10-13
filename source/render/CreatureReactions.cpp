@@ -33,6 +33,7 @@
 #include "render/ODFrameListener.h"
 #include "render/RenderManager.h"
 #include "rooms/Room.h"
+#include "rooms/RoomManager.h"
 #include "rooms/RoomType.h"
 #include "utils/Helper.h"
 #include "utils/LogManager.h"
@@ -87,6 +88,15 @@ static const double TURN_MIN_LENGTH = 0.01;
 static const double TURN_PHASE = 0.25;
 //! Smallest change of the turn angle (radians) that is applied to the node
 static const double ROTATION_EPSILON = 0.00001;
+//! Seconds after its last work a creature counts as the one that finished the result of the room
+static const double ROOM_WORK_MEMORY = 20.0;
+//! The other creatures in the room react to the result after this time
+static const double ROOM_RESULT_DELAY = 0.7;
+//! Seconds between two tries to show the work reaction of a creature that does something for a while
+static const double ONGOING_MIN = 5.0;
+static const double ONGOING_MAX = 9.0;
+//! Shortest wait before the first try when a creature starts to do something for a while
+static const double ONGOING_FIRST_MIN = 2.0;
 
 //! Cosmetic dice of their own: the reactions must not draw from the generator the game logic uses
 std::mt19937& cosmeticRng()
@@ -223,7 +233,7 @@ bool CreatureReactions::isCreatureNearCamera(Creature* creature) const
     return distance <= static_cast<Ogre::Real>(mConfig.getMaxCameraDistance());
 }
 
-ReactionPriority CreatureReactions::getCreaturePriority(const Creature* creature) const
+ReactionPriority CreatureReactions::getCreaturePriority(const Creature* creature, const ReactionEvent* event) const
 {
     Ogre::AnimationState* animState = creature->getAnimationState();
     if(animState == nullptr)
@@ -232,6 +242,13 @@ ReactionPriority CreatureReactions::getCreaturePriority(const Creature* creature
     const std::string& clip = animState->getAnimationName();
     if((clip == "Die") || (clip == "die") || (clip == "Rot"))
         return ReactionPriority::death;
+
+    // The event decorates the work or sleep animation: that is what the creature is expected to do
+    if((event != nullptr) && event->mWhileWorking &&
+       (startsWith(clip, "Sleep") || (clip == "Dig") || (clip == "Claim")))
+    {
+        return ReactionPriority::none;
+    }
 
     // The work in some rooms is shown with the attack animation: that is not a fight
     if(startsWith(clip, "Attack") && isWorkingInRoom(creature))
@@ -395,7 +412,7 @@ bool CreatureReactions::trigger(Creature* creature, const std::string& eventName
         if((mRunning.size() >= mConfig.getMaxSimultaneous()) && (findRunning(creature->getName()) == nullptr))
             return false;
 
-        if(!(event->mPriority < getCreaturePriority(creature)))
+        if(!(event->mPriority < getCreaturePriority(creature, event)))
             return false;
 
         if(cosmeticRandom(0.0, 1.0) >= event->mProbability)
@@ -479,6 +496,7 @@ bool CreatureReactions::startReaction(Creature* creature, const ReactionEvent& e
     reaction.mCreatureName = creature->getName();
     reaction.mEventName = event.mName;
     reaction.mPriority = event.mPriority;
+    reaction.mWhileWorking = event.mWhileWorking;
 
     bool shown = false;
 
@@ -503,7 +521,7 @@ bool CreatureReactions::startReaction(Creature* creature, const ReactionEvent& e
     if(mMode == Mode::full)
     {
         // Tier C / B: a clip, only while the creature stands still (it must not slide while posing)
-        if(!creature->isMoving() && startClip(reaction, creature, variant))
+        if(!creature->isMoving() && !event.mWhileWorking && startClip(reaction, creature, variant))
             shown = true;
 
         for(const ReactionEffect& effect : variant.mEffects)
@@ -805,7 +823,8 @@ bool CreatureReactions::updateReaction(RunningReaction& reaction, Creature* crea
         return false;
 
     // Something more important than the reaction now happens to the creature
-    if(!(reaction.mPriority < getCreaturePriority(creature)))
+    const ReactionEvent* runningEvent = reaction.mWhileWorking ? mConfig.getEvent(reaction.mEventName) : nullptr;
+    if(!(reaction.mPriority < getCreaturePriority(creature, runningEvent)))
         return false;
 
     if(!reaction.mClip.empty())
@@ -863,6 +882,8 @@ void CreatureReactions::update(Ogre::Real timeSinceLastFrame)
 
     mTime += timeSinceLastFrame;
 
+    updateOngoing();
+
     for(std::vector<PendingReaction>::iterator it = mPending.begin(); it != mPending.end();)
     {
         it->mDelay -= timeSinceLastFrame;
@@ -876,7 +897,7 @@ void CreatureReactions::update(Ogre::Real timeSinceLastFrame)
         Creature* creature = mGameMap->getCreature(pending.mCreatureName);
         const ReactionEvent* event = mConfig.getEvent(pending.mEventName);
         if((creature != nullptr) && (event != nullptr) && !pending.mForced &&
-           !(event->mPriority < getCreaturePriority(creature)) && (pending.mWaited < PENDING_WAIT_MAX))
+           !(event->mPriority < getCreaturePriority(creature, event)) && (pending.mWaited < PENDING_WAIT_MAX))
         {
             // Still busy (for example finishing the last blow): look again in a moment
             it->mDelay = PENDING_WAIT_STEP;
@@ -936,6 +957,14 @@ void CreatureReactions::pruneCooldowns()
             ++it;
     }
 
+    for(std::map<std::string, RoomWork>::iterator it = mLastRoomWork.begin(); it != mLastRoomWork.end();)
+    {
+        if((mTime - it->second.mTime) > ROOM_WORK_MEMORY)
+            mLastRoomWork.erase(it++);
+        else
+            ++it;
+    }
+
     for(std::map<std::string, HandDrop>::iterator it = mHandDrops.begin(); it != mHandDrops.end();)
     {
         if((mTime - it->second.mTime) > HAND_DROP_MEMORY)
@@ -951,6 +980,14 @@ void CreatureReactions::noteAnimation(MovableGameEntity* entity, const std::stri
         return;
 
     Creature* creature = static_cast<Creature*>(entity);
+
+    // Something that goes on for a while is shown now and then, until the creature does something else
+    std::string ongoingEvent = getOngoingEvent(creature, clip);
+    if(ongoingEvent.empty())
+        stopOngoing(creature->getName());
+    else
+        startOngoing(creature, ongoingEvent);
+
     if((clip == "Die") || (clip == "die"))
     {
         celebrateVictory(creature, false);
@@ -965,7 +1002,238 @@ void CreatureReactions::noteAnimation(MovableGameEntity* entity, const std::stri
         // The work in some rooms is shown with the attack animation too, that is no fight
         if(!isWorkingInRoom(creature))
             mLastAttack[creature->getName()] = mTime;
+        else
+            noteRoomWork(creature);
     }
+}
+
+void CreatureReactions::noteRoomWork(Creature* creature)
+{
+    Tile* tile = creature->getPositionTile();
+    Room* room = (tile != nullptr) ? tile->getCoveringRoom() : nullptr;
+    if(room == nullptr)
+        return;
+
+    std::string eventName;
+    if(room->getType() == RoomType::library)
+        eventName = "LibraryWork";
+    else if(room->getType() == RoomType::workshop)
+        eventName = "WorkshopWork";
+    else if(room->getType() == RoomType::trainingHall)
+        eventName = "TrainingWork";
+    else
+        return;
+
+    RoomWork work;
+    work.mRoomType = room->getType();
+    work.mRoomName = room->getName();
+    work.mTime = mTime;
+    mLastRoomWork[creature->getName()] = work;
+
+    queueReaction(creature, eventName);
+}
+
+void CreatureReactions::queueReaction(Creature* creature, const std::string& eventName)
+{
+    const ReactionEvent* event = mConfig.getEvent(eventName);
+    if(event == nullptr)
+    {
+        logMissingOnce("reaction event", eventName);
+        return;
+    }
+
+    std::map<std::string, double>::const_iterator itCooldown =
+        mCooldownEnd.find(creature->getName() + "|" + eventName);
+    if((itCooldown != mCooldownEnd.end()) && (itCooldown->second > mTime))
+        return;
+
+    if(findRunning(creature->getName()) != nullptr)
+        return;
+
+    // The creature is asked once at a time, the dice are thrown when it is its turn
+    for(const PendingReaction& pending : mPending)
+    {
+        if(pending.mCreatureName == creature->getName())
+            return;
+    }
+
+    if(!isCreatureNearCamera(creature))
+        return;
+
+    PendingReaction pending;
+    pending.mCreatureName = creature->getName();
+    pending.mEventName = eventName;
+    pending.mDelay = PENDING_WAIT_STEP;
+    pending.mWaited = 0.0;
+    pending.mForced = false;
+    mPending.push_back(pending);
+}
+
+void CreatureReactions::noteEntityAdded(GameEntity* entity)
+{
+    if((mMode == Mode::off) || !mConfigLoaded)
+        return;
+
+    RoomType roomType = RoomType::nbRooms;
+    std::string resultEvent;
+    std::string othersEvent;
+    switch(entity->getObjectType())
+    {
+        case GameEntityType::skillEntity:
+            roomType = RoomType::library;
+            resultEvent = "ResearchDone";
+            othersEvent = "ResearchLookUp";
+            break;
+        case GameEntityType::craftedTrap:
+            roomType = RoomType::workshop;
+            resultEvent = "ItemCrafted";
+            othersEvent = "ItemCraftedApplause";
+            break;
+        default:
+            return;
+    }
+
+    Tile* tile = mGameMap->getTile(Helper::round(entity->getPosition().x), Helper::round(entity->getPosition().y));
+    Room* room = (tile != nullptr) ? tile->getCoveringRoom() : nullptr;
+    if((room == nullptr) || (room->getType() != roomType))
+        return;
+
+    // The creature that worked last in this room finished the result. Without such a creature
+    // (the entity was there before, for example in a loaded game) nothing is shown.
+    Creature* finisher = nullptr;
+    double newest = -1.0;
+    for(std::map<std::string, RoomWork>::const_iterator it = mLastRoomWork.begin(); it != mLastRoomWork.end(); ++it)
+    {
+        if((it->second.mRoomName != room->getName()) || ((mTime - it->second.mTime) > ROOM_WORK_MEMORY) ||
+           (it->second.mTime <= newest))
+        {
+            continue;
+        }
+
+        Creature* creature = mGameMap->getCreature(it->first);
+        if((creature == nullptr) || !creature->getIsOnMap() || !creature->isAlive())
+            continue;
+
+        finisher = creature;
+        newest = it->second.mTime;
+    }
+
+    if(finisher == nullptr)
+        return;
+
+    trigger(finisher, resultEvent);
+
+    // The others in the room notice it one after the other
+    std::vector<Creature*> others;
+    for(Creature* creature : mGameMap->getCreatures())
+    {
+        if((creature == finisher) || !creature->getIsOnMap() || !creature->isAlive())
+            continue;
+
+        Tile* creatureTile = creature->getPositionTile();
+        if((creatureTile == nullptr) || (creatureTile->getCoveringRoom() != room))
+            continue;
+
+        others.push_back(creature);
+    }
+
+    if(!others.empty())
+        triggerGroup(othersEvent, others, false, ROOM_RESULT_DELAY);
+}
+
+std::string CreatureReactions::getRoomName(const Creature* creature) const
+{
+    Tile* tile = creature->getPositionTile();
+    Room* room = (tile != nullptr) ? tile->getCoveringRoom() : nullptr;
+    if(room == nullptr)
+        return std::string();
+
+    return RoomManager::getRoomNameFromRoomType(room->getType());
+}
+
+std::string CreatureReactions::getOngoingEvent(const Creature* creature, const std::string& clip) const
+{
+    // Creatures that wait in the arena while others fight watch the bouts
+    if((clip == "Idle") && (getRoomName(creature) == "Arena"))
+        return "ArenaWork";
+
+    return std::string();
+}
+
+void CreatureReactions::startOngoing(Creature* creature, const std::string& eventName)
+{
+    std::map<std::string, OngoingWork>::iterator it = mOngoing.find(creature->getName());
+    if((it != mOngoing.end()) && (it->second.mEventName == eventName))
+        return;
+
+    OngoingWork work;
+    work.mEventName = eventName;
+    work.mSince = mTime;
+    work.mNext = mTime + cosmeticRandom(ONGOING_FIRST_MIN, ONGOING_MAX);
+    mOngoing[creature->getName()] = work;
+}
+
+void CreatureReactions::stopOngoing(const std::string& creatureName)
+{
+    mOngoing.erase(creatureName);
+}
+
+void CreatureReactions::updateOngoing()
+{
+    for(std::map<std::string, OngoingWork>::iterator it = mOngoing.begin(); it != mOngoing.end();)
+    {
+        if(mTime < it->second.mNext)
+        {
+            ++it;
+            continue;
+        }
+
+        it->second.mNext = mTime + cosmeticRandom(ONGOING_MIN, ONGOING_MAX);
+        Creature* creature = mGameMap->getCreature(it->first);
+        if((creature == nullptr) || !creature->getIsOnMap() || !creature->isAlive())
+        {
+            mOngoing.erase(it++);
+            continue;
+        }
+
+        queueReaction(creature, it->second.mEventName);
+        ++it;
+    }
+}
+
+void CreatureReactions::celebrateBout(Creature* loser)
+{
+    Tile* tile = loser->getPositionTile();
+    Room* room = (tile != nullptr) ? tile->getCoveringRoom() : nullptr;
+    if((room == nullptr) || (RoomManager::getRoomNameFromRoomType(room->getType()) != "Arena"))
+        return;
+
+    // The winners fought the loser a moment ago, the others in the arena watched
+    std::vector<Creature*> winners;
+    std::vector<Creature*> spectators;
+    for(Creature* creature : mGameMap->getCreatures())
+    {
+        if((creature == loser) || !creature->getIsOnMap() || !creature->isAlive())
+            continue;
+
+        Tile* creatureTile = creature->getPositionTile();
+        if((creatureTile == nullptr) || (creatureTile->getCoveringRoom() != room))
+            continue;
+
+        std::map<std::string, double>::const_iterator itAttack = mLastAttack.find(creature->getName());
+        bool fought = (itAttack != mLastAttack.end()) && ((mTime - itAttack->second) <= ATTACK_MEMORY) &&
+            ((creature->getPosition() - loser->getPosition()).length() <= WINNER_RADIUS);
+        if(fought)
+            winners.push_back(creature);
+        else
+            spectators.push_back(creature);
+    }
+
+    if(!winners.empty())
+        triggerGroup("Victory", winners, false, 0.8);
+
+    if(!spectators.empty())
+        triggerGroup("ArenaBoutOver", spectators, false, 1.6);
 }
 
 void CreatureReactions::celebrateVictory(Creature* loser, bool fled)
@@ -1047,7 +1315,17 @@ void CreatureReactions::noteCreatureUpdate(Creature* creature, uint32_t oldLevel
         return;
 
     if(creature->getLevel() > oldLevel)
-        trigger(creature, "LevelUp");
+    {
+        // A trainee that reached a new level shows its success with a punch into the air
+        trigger(creature, (getRoomName(creature) == "TrainingHall") ? "TrainingDone" : "LevelUp");
+    }
+
+    // A creature knocked out in the arena ends the bout
+    if(((oldMood & CreatureMoodValues::KoTemp) == 0) &&
+       ((creature->getOverlayMoodValue() & CreatureMoodValues::KoTemp) != 0))
+    {
+        celebrateBout(creature);
+    }
 
     // The fee is collected while the mood shows it. When it is over the creature is paid if it
     // stands in a treasury (that is where the gold is taken), else there was nothing to take.
@@ -1115,6 +1393,7 @@ void CreatureReactions::noteEntityRemoved(GameEntity* entity)
 void CreatureReactions::stopAll()
 {
     mPending.clear();
+    mOngoing.clear();
     for(RunningReaction& reaction : mRunning)
         endReaction(reaction, mGameMap->getCreature(reaction.mCreatureName));
 

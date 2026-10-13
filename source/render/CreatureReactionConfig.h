@@ -147,7 +147,8 @@ struct ReactionEvent
         mPriority(ReactionPriority::event),
         mCooldown(10.0),
         mProbability(1.0),
-        mGroupMax(3)
+        mGroupMax(3),
+        mWhileWorking(false)
     {}
 
     std::string mName;
@@ -158,6 +159,9 @@ struct ReactionEvent
     double mProbability;
     //! Maximum number of creatures that react when a whole group is triggered
     uint32_t mGroupMax;
+    //! The event decorates a long running work or sleep animation of the creature (sleeping, digging,
+    //! claiming): that animation does not count as busy for this event, and no clip is put over it
+    bool mWhileWorking;
     std::vector<ReactionVariant> mVariants;
 };
 

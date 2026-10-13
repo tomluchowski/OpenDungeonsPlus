@@ -213,3 +213,71 @@ particle_system ReactionLevelUp
         alpha -1.0
     }
 }
+
+// Soft glow around a book or tool that is lit up (research finished)
+particle_system ReactionGlow
+{
+    material        ReactionParticleGlow
+    point_rendering false
+    particle_width  0.9
+    particle_height 0.9
+    cull_each       false
+    quota           10
+    billboard_type  point
+
+    emitter Point
+    {
+        angle               20
+        colour              1.0 0.95 0.7 1.0
+        emission_rate       7
+        time_to_live        0.9
+        direction           0 0 1
+        velocity            0.25
+        duration            1.4
+        position            0 0 0.9
+    }
+
+    affector Scaler
+    {
+        rate 0.3
+    }
+
+    affector ColourFader
+    {
+        alpha -1.0
+    }
+}
+
+// A small grey cloud that rises from the creature (failed attempt at the workbench)
+particle_system ReactionSmoke
+{
+    material        ReactionParticleSmoke
+    point_rendering false
+    particle_width  0.4
+    particle_height 0.4
+    cull_each       false
+    quota           16
+    billboard_type  point
+
+    emitter Point
+    {
+        angle               30
+        colour              1.0 1.0 1.0 1.0
+        emission_rate       9
+        time_to_live        1.2
+        direction           0 0 1
+        velocity            0.5
+        duration            0.8
+        position            0 0 0.9
+    }
+
+    affector Scaler
+    {
+        rate 0.45
+    }
+
+    affector ColourFader
+    {
+        alpha -0.8
+    }
+}

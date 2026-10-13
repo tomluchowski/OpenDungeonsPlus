@@ -17,7 +17,7 @@ PRIORITIES = ("death", "combat", "held", "event", "work", "mood", "ambient")
 JOBS = ("Fighter", "Worker")
 MOTIONS = ("hop", "shake", "squash", "spin", "turn")
 SETTINGS = ("MaxSimultaneous", "MaxCameraDistance", "GroupStaggerMin", "GroupStaggerMax", "DefaultGroup")
-EVENT_KEYS = ("Name", "Priority", "Cooldown", "Probability", "GroupMax")
+EVENT_KEYS = ("Name", "Priority", "Cooldown", "Probability", "GroupMax", "WhileWorking")
 VARIANT_KEYS = ("Name", "Weight", "Clip", "Fallback", "Emote", "Effect", "Motion", "Cooldown", "Probability",
                 "Creatures", "Groups", "Jobs", "RequiresSleepNeed")
 
