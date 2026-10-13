@@ -138,6 +138,7 @@ void buildPileMesh(Ogre::SceneManager* sceneManager, const std::string& resource
 }
 }
 
+//! \brief Reads the detail option text ("full", "reduced" or "off"); anything else means full.
 Detail detailFromString(const std::string& text)
 {
     if(text == "reduced")
@@ -147,6 +148,7 @@ Detail detailFromString(const std::string& text)
     return Detail::full;
 }
 
+//! \brief The option text of the detail ("full", "reduced" or "off").
 const char* detailToString(Detail detail)
 {
     switch(detail)
@@ -160,11 +162,13 @@ const char* detailToString(Detail detail)
     }
 }
 
+//! \brief Sets how much of the gold layer is drawn; the piles are built with this detail from now on.
 void setDetail(Detail detail)
 {
     currentDetail = detail;
 }
 
+//! \brief The detail the gold layer is drawn with at the moment.
 Detail getDetail()
 {
     return currentDetail;
