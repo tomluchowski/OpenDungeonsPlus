@@ -27,6 +27,7 @@
 #include "gamemap/GameMap.h"
 #include "network/ODServer.h"
 #include "network/ServerNotification.h"
+#include "ODApplication.h"
 #include "rooms/RoomManager.h"
 #include "utils/ConfigManager.h"
 #include "utils/Helper.h"
@@ -108,13 +109,10 @@ class RoomPortalFactory : public RoomFactory
 static RoomRegister reg(new RoomPortalFactory);
 }
 
-static const double CLAIMED_VALUE_PER_TILE = 1.0;
-
 RoomPortal::RoomPortal(GameMap* gameMap) :
         Room(gameMap),
         mSpawnCreatureCountdown(0),
         mPortalObject(nullptr),
-        mClaimedValue(0),
         mNbCreatureMaxIncrease(0)
 {
    setMeshName("");
@@ -128,39 +126,34 @@ void RoomPortal::absorbRoom(Room *r)
         return;
     }
     RoomPortal* oldRoom = static_cast<RoomPortal*>(r);
-    mClaimedValue += oldRoom->mClaimedValue;
     // We keep the number of creatures increased by this portal
     mNbCreatureMaxIncrease = oldRoom->mNbCreatureMaxIncrease;
 
     Room::absorbRoom(r);
 }
 
-bool RoomPortal::removeCoveredTile(Tile* t)
+void RoomPortal::changeOwner(Seat* seat)
 {
-    if(mClaimedValue > CLAIMED_VALUE_PER_TILE)
-        mClaimedValue -= CLAIMED_VALUE_PER_TILE;
-
-    return Room::removeCoveredTile(t);
-}
-
-bool RoomPortal::isClaimable(Seat* seat) const
-{
-    return !getSeat()->isAlliedSeat(seat);
-}
-
-void RoomPortal::claimForSeat(Seat* seat, Tile* tile, double danceRate)
-{
-    if(mClaimedValue > danceRate)
-    {
-        mClaimedValue-= danceRate;
-        return;
-    }
-
-    mClaimedValue = static_cast<double>(numCoveredTiles());
+    // The portal stays the same object: it keeps its tiles, its mesh and the creatures
+    // it adds to the limit of whoever holds it. Taking it over starts it again for the
+    // new owner, who waits for the first creature the way a portal that has just been
+    // claimed makes everyone wait, while the old owner loses what it produced and its
+    // share of the creature limit with the portal.
+    Seat* oldSeat = getSeat();
+    mClaimHealth = 1.0;
     setSeat(seat);
 
     for(Tile* tile : mCoveredTiles)
         tile->claimTile(seat);
+
+    mSpawnCreatureCountdown = static_cast<int>(
+        ConfigManager::getSingleton().getRoomConfigDoubleOrDefault("PortalFirstSpawnSeconds", 25.0)
+        * ODApplication::turnsPerSecond);
+
+    if((oldSeat != nullptr) && !oldSeat->isAlliedSeat(seat))
+        seat->getStatistics().mRoomsCaptured++;
+
+    notifyOwnerChanged(oldSeat, seat);
 }
 
 void RoomPortal::updateActiveSpots(GameMap* gameMap)
@@ -290,7 +283,6 @@ void RoomPortal::spawnCreature()
 void RoomPortal::setupRoom(const std::string& name, Seat* seat, const std::vector<Tile*>& tiles)
 {
     Room::setupRoom(name, seat, tiles);
-    mClaimedValue = static_cast<double>(numCoveredTiles()) * CLAIMED_VALUE_PER_TILE;
     // By default, we allow some more creatures per portal
     mNbCreatureMaxIncrease = 5;
 }
@@ -299,7 +291,8 @@ void RoomPortal::exportToStream(std::ostream& os) const
 {
     Room::exportToStream(os);
 
-    os << mClaimedValue << "\t" << mNbCreatureMaxIncrease << "\n";
+    // The health is written as a number of tiles, as it always was
+    os << (mClaimHealth * static_cast<double>(numCoveredTiles())) << "\t" << mNbCreatureMaxIncrease << "\n";
 }
 
 bool RoomPortal::importFromStream(std::istream& is)
@@ -307,10 +300,14 @@ bool RoomPortal::importFromStream(std::istream& is)
     if(!Room::importFromStream(is))
         return false;
 
-    if(!(is >> mClaimedValue))
+    double claimedValue;
+    if(!(is >> claimedValue))
         return false;
     if(!(is >> mNbCreatureMaxIncrease))
         return false;
+
+    if(numCoveredTiles() > 0)
+        mClaimHealth = std::min(1.0, std::max(0.0, claimedValue / static_cast<double>(numCoveredTiles())));
 
     return true;
 }

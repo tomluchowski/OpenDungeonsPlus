@@ -75,7 +75,7 @@ public:
         destructibleOnly = 0,
         //! Workers can dance room tiles away and fighters can still destroy them.
         claimableAndDestructible = 1,
-        //! Only workers can take a room, tile by tile; fighters leave rooms alone.
+        //! Only workers can take a room, all of it at once; fighters leave rooms alone.
         claimableOnly = 2
     };
 
@@ -83,13 +83,40 @@ public:
     //! Anything unknown counts as destructibleOnly.
     static ClaimMode getClaimMode();
 
-    //! \brief Rooms can be danced away tile by tile by enemy workers, the way
-    //! bridges and traps already can, when the RoomsClaimableByEnemies switch is
-    //! set in the room configuration file. The dungeon temple is never claimable:
-    //! losing it means defeat and that path expects destruction. Bridges and
-    //! portals override this pair with their own claiming rules.
+    //! \brief Rooms can be taken over by enemy workers when the RoomsClaimableByEnemies
+    //! switch is set in the room configuration file. The whole room has one health
+    //! pool (mClaimHealth, a fraction of tiles times RoomConvertSecondsPerTile) that
+    //! every dance on any of its tiles lowers; when it is empty all the tiles change
+    //! hands at once (changeOwner). The dungeon temple is
+    //! never claimable: it can only be destroyed. Bridges override this pair with
+    //! their own claiming rules (square by square).
     virtual bool isClaimable(Seat* seat) const override;
     virtual void claimForSeat(Seat* seat, Tile* tile, double danceRate) override;
+
+    //! \brief Server only. True when the seat may not dance on the tile of this
+    //! enemy room now: a defender that is no worker stands within
+    //! RoomTakeoverGuardRadius tiles of the tile, or the seat cannot pay the price.
+    //! Every kind of room can be taken over (the dungeon temple is excluded by
+    //! isClaimable and the guards in claimForSeat and handTilesOverToSeat).
+    //! Rooms of nobody are never blocked.
+    bool isTakeoverBlocked(const Seat* seat, const Tile* tile) const;
+
+    //! \brief The gold the taker pays when the room changes hands
+    //! (RoomTakeoverCostPercent of the build cost of the tiles taken, 0 by default).
+    int32_t getTakeoverPrice() const;
+
+    //! \brief The health of the room against being taken over, 1.0 when full.
+    inline double getClaimHealth() const
+    { return mClaimHealth; }
+
+    //! \brief True when an enemy has worn the room down and its own workers can
+    //! still repair it.
+    inline bool needsClaimRepair() const
+    { return mClaimHealth < 1.0; }
+
+    //! \brief A worker of the owner dancing on the room gives claim health back,
+    //! faster than an enemy worker takes it away (RoomRepairFactor).
+    void repairClaimHealth(double danceRate);
 
     //! \brief False in the claimableOnly mode, where a room changes hands by being
     //! danced away and fighters have nothing to do with it. The dungeon temple
@@ -190,6 +217,24 @@ protected:
     //! tile takes its share of the stored gold with it. Returns the room the
     //! tile ended up in, or nullptr if no room could be created.
     Room* handTileOverToSeat(Seat* seat, Tile* tile);
+
+    //! \brief Same as handTileOverToSeat for several tiles at once. Counts as a
+    //! captured room for the claimer when this room is left without a tile.
+    Room* handTilesOverToSeat(Seat* seat, const std::vector<Tile*>& tiles);
+
+    //! \brief Called when the claim health of the room is used up. By default every
+    //! tile goes to a new room of the claiming seat, merged with the rooms of the
+    //! same type it already has next to it. A room that has to stay the same object
+    //! (the portal) overrides this.
+    virtual void changeOwner(Seat* seat);
+
+    //! \brief Tells the seat losing the room and the one getting it. The old seat is
+    //! nullptr when the room was nobody's.
+    void notifyOwnerChanged(Seat* oldSeat, Seat* newSeat);
+
+    //! \brief 1.0 when full. Not saved (a room loaded from a file starts full), except
+    //! for the portal, which keeps the value its files always had.
+    double mClaimHealth;
 
     /*! \brief Exports the headers needed to recreate the Room. It allows to extend Room as much as wanted.
      * The content of the Room will be exported by exportToPacket.

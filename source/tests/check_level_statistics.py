@@ -53,7 +53,7 @@ take_damage_kill_part = take_damage[:cut] + '    return damageDone;\n}\n'
 
 # Production statements that are one-liners inside larger functions
 capture_start = room_source.index('    // Counts as captured when the claimer takes the last tile')
-capture_end = room_source.index('    mCoveredTilesDestroyed.push_back(tile);', capture_start)
+capture_end = room_source.index('    for(Tile* tile : tiles)\n    {\n        mCoveredTilesDestroyed.push_back(tile);', capture_start)
 capture_statement = room_source[capture_start:capture_end]
 convert_line = line_with(torture_source, 'mCreaturesConverted++')
 craft_line = line_with(workshop_source, 'mItemsMade++')
@@ -535,11 +535,14 @@ assert 'return "levelStatistics";' in notification_source
 wiring_checks += 3
 
 # The one-line hooks sit in the intended place of their functions
-handover = function(room_source, 'Room* Room::handTileOverToSeat(')
+handover = function(room_source, 'Room* Room::handTilesOverToSeat(')
 assert 'mRoomsCaptured++' in handover
 assert handover.index('mCoveredTiles.erase(itTile)') < handover.index('mRoomsCaptured++') < handover.index('newRoom->mCoveredTiles.push_back(tile)')
-assert 'handTileOverToSeat(seat, tile);' in function(room_source, 'void Room::claimForSeat(')
-wiring_checks += 2
+assert 'handTilesOverToSeat(seat, tiles)' in function(room_source, 'void Room::changeOwner(')
+assert 'changeOwner(seat);' in function(room_source, 'void Room::claimForSeat(')
+assert 'handTilesOverToSeat(seat, std::vector<Tile*>(1, tile))' in function(room_source, 'Room* Room::handTileOverToSeat(')
+assert 'mRoomsCaptured++' in function(read('source/rooms/RoomPortal.cpp'), 'void RoomPortal::changeOwner(')
+wiring_checks += 5
 
 change_seat = torture_source.index('creature.changeSeat(getSeat());')
 assert change_seat < torture_source.index('mCreaturesConverted++') < torture_source.index('creature.clearActionQueue();', change_seat)
