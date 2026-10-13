@@ -39,7 +39,7 @@ config_h = read("source", "render", "RoomAmbienceConfig.h")
 config_cpp = read("source", "render", "RoomAmbienceConfig.cpp")
 kinds = re.search(r"enum class AmbienceKind\s*\{(.*?)\};", config_h, re.S).group(1)
 order = re.findall(r"^\s*(\w+),?\s*$", re.sub(r"//.*", "", kinds), re.M)
-if order[-2:] != ["beam", "projectile"]:
+if ("beam" not in order) or (order.index("projectile") != order.index("beam") + 1):
     problems.append("AmbienceKind order changed: %s" % order)
 for word in ("Beam", "Projectile", "Mesh", "Land", "From", "MaxFlights"):
     if '"%s"' % word not in config_cpp:

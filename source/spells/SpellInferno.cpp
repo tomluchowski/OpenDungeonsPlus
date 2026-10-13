@@ -139,8 +139,8 @@ bool SpellInferno::castSpell(GameMap* gameMap, Player* player, ODPacket& packet)
         if((pos == nullptr) || !SpellArea::isTileInRadius(pos, x, y, radius))
             continue;
 
-        // There is no dedicated fire particle effect yet, the explosion one is used as a placeholder
-        creature->addCreatureEffect(new CreatureEffectBurn(nbTurns, damagePerTurn, "SpellCreatureExplosion"));
+        creature->addCreatureEffect(new CreatureEffectBurn(nbTurns, damagePerTurn, "SpellCreatureInferno"));
+        fireSpellEffect(*pos, "InfernoHit", "");
     }
 
     return true;

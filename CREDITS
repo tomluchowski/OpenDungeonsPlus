@@ -497,6 +497,10 @@ tools/gen_room_ambience_art.py         OD Team                 GPLv3+
 tools/check_room_ambience.py           OD Team                 GPLv3+
 materials/textures/RoomAmbRing.png      OD Team                 GPLv3+                  Thin glowing ring drawn from gradients, lines and noise by tools/gen_spell_marks.py (script generated, original work)
 materials/textures/RoomAmbRingRunes.png  OD Team                 GPLv3+                  Double ring with tick marks drawn from gradients, lines and noise by tools/gen_spell_marks.py (script generated, original work)
+materials/textures/RoomAmbRingDust.png  OD Team                 GPLv3+                  Wide uneven dust ring drawn from gradients, lines and noise by tools/gen_spell_marks.py (script generated, original work)
+materials/textures/RoomAmbMarkScorch.png  OD Team                 GPLv3+                  Scorched floor patch drawn from gradients, lines and noise by tools/gen_spell_marks.py (script generated, original work)
+materials/textures/RoomAmbMarkCracks.png  OD Team                 GPLv3+                  Floor cracks drawn from gradients, lines and noise by tools/gen_spell_marks.py (script generated, original work)
+materials/textures/RoomAmbMarkBolt.png  OD Team                 GPLv3+                  Branching burn lines drawn from gradients, lines and noise by tools/gen_spell_marks.py (script generated, original work)
 tools/gen_spell_marks.py                OD Team                 GPLv3+
 materials/textures/SpellBolt.png                OD Team                 GPLv3+                  Lightning bolt strip (white core, blue glow) computed by tools/gen_spell_bolt.py (script generated, original work, not AI generated)
 tools/gen_spell_bolt.py                 OD Team                 GPLv3+

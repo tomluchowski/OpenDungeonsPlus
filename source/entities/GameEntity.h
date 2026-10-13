@@ -303,6 +303,12 @@ class GameEntity
     //! that they need to register to GameMap::addClientUpkeepEntity
     virtual void clientUpkeep();
 
+    //! \brief Ends the presentation-only particle effects (not the creature effects) that play the given script.
+    //! On the client they are removed at once; on the server they run out with the next upkeep.
+    //! \param script The script of the effects to end.
+    //! \return The number of effects ended
+    uint32_t endParticleEffectsByScript(const std::string& script);
+
     //! \brief Returns a list of the tiles that this object is in/covering.  For creatures and other small objects
     //! this will be a single tile, for larger objects like rooms this will be 1 or more tiles.
     virtual std::vector<Tile*> getCoveredTiles() = 0;

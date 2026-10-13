@@ -31,7 +31,7 @@ public:
     //! \param originalSeatId Id of the seat the creature belongs to before the conversion.
     //! \param newSeatId Id of the seat the creature was converted to.
     CreatureEffectDefector(int32_t nbTurnsEffect, int originalSeatId, int newSeatId) :
-        CreatureEffect(nbTurnsEffect, ""),
+        CreatureEffect(nbTurnsEffect, "SpellCreatureDefector"),
         mOriginalSeatId(originalSeatId),
         mNewSeatId(newSeatId)
     {}

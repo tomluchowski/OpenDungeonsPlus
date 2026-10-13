@@ -77,7 +77,10 @@ enum class AmbienceKind
     beam,
     //! An object (Mesh and/or particle system System as trail) that flies from From to the target in Duration seconds
     //! on an arc of height Amount (events only); Land = event raised at the target when it arrives
-    projectile
+    projectile,
+    //! A particle system that stays on the floor for Duration seconds (events only); the oldest mark is removed
+    //! when there are more than MaxMarks
+    mark
 };
 
 //! \brief How an effect of the kind motion moves the node of its object
@@ -216,6 +219,9 @@ public:
     //! \brief The most one-shot particle systems that may run at once
     uint32_t getMaxOneShots() const
     { return mMaxOneShots; }
+    //! \brief The most ground marks that may be on the floor at once
+    uint32_t getMaxMarks() const
+    { return mMaxMarks; }
     //! \brief The most bolts and flying objects that may be on their way at once
     uint32_t getMaxFlights() const
     { return mMaxFlights; }
@@ -253,6 +259,8 @@ private:
     uint32_t mMaxMotions;
     //! Most one-shot particle systems that may run at once
     uint32_t mMaxOneShots;
+    //! Most ground marks that may be on the floor at once
+    uint32_t mMaxMarks;
     //! Most bolts and flying objects that may be on their way at once
     uint32_t mMaxFlights;
     //! Distance in tiles within which a creature counts as close

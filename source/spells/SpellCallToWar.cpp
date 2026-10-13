@@ -165,6 +165,7 @@ bool SpellCallToWar::castSpell(GameMap* gameMap, Player* player, ODPacket& packe
                                 static_cast<Ogre::Real>(0.0));
     spell->createMesh();
     spell->setPosition(spawnPosition);
+    fireSpellEffect(*tile, "CallToWar", "");
 
     return true;
 }

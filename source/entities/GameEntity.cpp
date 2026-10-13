@@ -552,6 +552,33 @@ void GameEntity::clientUpkeep()
     }
 }
 
+uint32_t GameEntity::endParticleEffectsByScript(const std::string& script)
+{
+    uint32_t nbEnded = 0;
+    for(std::vector<EntityParticleEffect*>::iterator it = mEntityParticleEffects.begin(); it != mEntityParticleEffects.end();)
+    {
+        EntityParticleEffect* effect = *it;
+        if((effect->mScript != script) || (effect->getEntityParticleEffectType() != EntityParticleEffectType::basic))
+        {
+            ++it;
+            continue;
+        }
+
+        ++nbEnded;
+        if(getIsOnServerMap())
+        {
+            effect->mNbTurnsEffect = 0;
+            ++it;
+            continue;
+        }
+
+        RenderManager::getSingleton().rrEntityRemoveParticleEffect(this, effect->mParticleSystem);
+        it = mEntityParticleEffects.erase(it);
+        delete effect;
+    }
+    return nbEnded;
+}
+
 void GameEntity::restoreEntityState()
 {
     for(EntityParticleEffect* effect : mEntityParticleEffects)

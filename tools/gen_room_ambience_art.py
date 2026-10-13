@@ -122,6 +122,26 @@ def sprite_rune(path):
     finish(image, path)
 
 
+def sprite_coin(path):
+    """Gold coin seen from the front with a bright rim and a highlight."""
+    image, draw = new_canvas()
+    c = CANVAS // 2
+    draw.ellipse((c - 90, c - 90, c + 90, c + 90), fill=(150, 104, 24, 255))
+    draw.ellipse((c - 80, c - 80, c + 80, c + 80), fill=(236, 190, 52, 255))
+    draw.ellipse((c - 56, c - 56, c + 56, c + 56), outline=(184, 132, 30, 255), width=8)
+    draw.polygon([(c - 60, c - 30), (c - 24, c - 66), (c - 8, c - 56), (c - 50, c - 12)], fill=(255, 244, 170, 255))
+    finish(image, path)
+
+
+def sprite_feather(path):
+    """Small curved feather."""
+    image, draw = new_canvas()
+    draw.polygon([(60, 214), (80, 130), (130, 50), (196, 28), (180, 100), (140, 170), (84, 222)], fill=(240, 236, 226, 255),
+                 outline=(150, 140, 120, 255))
+    draw.line((62, 216, 190, 34), fill=(170, 156, 130, 255), width=5)
+    finish(image, path)
+
+
 def sprite_grain(path):
     """A few grains of seed lying together."""
     image, draw = new_canvas()
@@ -157,6 +177,8 @@ SPRITES = {
     "RoomAmbDust": sprite_dust,
     "RoomAmbWeb": sprite_web,
     "RoomAmbRune": sprite_rune,
+    "RoomAmbCoin": sprite_coin,
+    "RoomAmbFeather": sprite_feather,
     "RoomAmbGrain": sprite_grain,
     "RoomAmbSwirl": sprite_swirl,
 }

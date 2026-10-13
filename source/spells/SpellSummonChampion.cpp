@@ -36,6 +36,8 @@ const std::string SpellSummonChampionNameDisplay = "Summon champion";
 const std::string SpellSummonChampionCooldownKey = "SummonChampionCooldown";
 const std::string SpellSummonChampionCreatureClass = "Champion";
 const SpellType SpellSummonChampion::mSpellType = SpellType::summonChampion;
+//! Turns the look of the champion that was just summoned stays on it
+static const int32_t CHAMPION_AURA_TURNS = 12;
 
 namespace
 {
@@ -158,8 +160,10 @@ bool SpellSummonChampion::castSpell(GameMap* gameMap, Player* player, ODPacket& 
                                 static_cast<Ogre::Real>(tile->getY()),
                                 static_cast<Ogre::Real>(0.0));
     champion->addParticleEffect("SummonWorker", 3);
+    champion->addParticleEffect("SpellCreatureChampion", CHAMPION_AURA_TURNS);
     champion->createMesh();
     champion->setPosition(spawnPosition);
+    fireSpellEffect(*tile, "Champion", "");
 
     return true;
 }

@@ -57,6 +57,7 @@ RoomAmbienceConfig::RoomAmbienceConfig() :
     mMaxParticlesReduced(10),
     mMaxMotions(40),
     mMaxOneShots(8),
+    mMaxMarks(6),
     mMaxFlights(6),
     mOccupiedRadius(2.2),
     mReducedDistanceFactor(0.55)
@@ -191,6 +192,8 @@ bool RoomAmbienceConfig::loadSettings(std::istream& file)
             mMaxMotions = Helper::toUInt32(words[1]);
         else if(words[0] == "MaxOneShots")
             mMaxOneShots = Helper::toUInt32(words[1]);
+        else if(words[0] == "MaxMarks")
+            mMaxMarks = Helper::toUInt32(words[1]);
         else if(words[0] == "MaxFlights")
             mMaxFlights = Helper::toUInt32(words[1]);
         else if(words[0] == "OccupiedRadius")
@@ -304,6 +307,8 @@ bool RoomAmbienceConfig::loadEffect(std::istream& file)
                 effect.mKind = AmbienceKind::beam;
             else if(words[1] == "Projectile")
                 effect.mKind = AmbienceKind::projectile;
+            else if(words[1] == "Mark")
+                effect.mKind = AmbienceKind::mark;
             else
             {
                 OD_LOG_ERR("Unknown room ambience kind: " + words[1]);

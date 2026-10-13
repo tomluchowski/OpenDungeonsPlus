@@ -15,7 +15,7 @@ import re
 import sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-SETTINGS = ("ScanInterval", "MaxParticles", "MaxParticlesReduced", "MaxMotions", "MaxOneShots", "MaxFlights",
+SETTINGS = ("ScanInterval", "MaxParticles", "MaxParticlesReduced", "MaxMotions", "MaxOneShots", "MaxMarks", "MaxFlights",
             "OccupiedRadius", "ReducedDistanceFactor")
 EFFECT_KEYS = ("Name", "Target", "Match", "When", "Event", "Kind", "System", "Motion", "After", "Offset", "Axis",
                "Amount", "Speed", "Flicker", "Duration", "Chance", "Spacing", "MaxDistance", "Priority", "Reduced",
@@ -23,7 +23,7 @@ EFFECT_KEYS = ("Name", "Target", "Match", "When", "Event", "Kind", "System", "Mo
                "OwnerOnly")
 TARGETS = ("Object", "Tile", "Event")
 WHENS = ("Always", "Occupied", "Empty", "Hit", "Locked", "Reloading", "Ready")
-KINDS = ("Particle", "Motion", "Clip", "Shake", "Turn", "Sound", "Beam", "Projectile")
+KINDS = ("Particle", "Motion", "Clip", "Shake", "Turn", "Sound", "Beam", "Projectile", "Mark")
 MOTIONS = ("Sway", "Wobble", "Spin", "Bob", "Pulse", "Flicker")
 # Room tile visuals that only some builds have
 OPTIONAL_VISUALS = ("guardRoom", "templeRoom")
@@ -180,8 +180,8 @@ def check_effect(effect, where, problems, visuals, systems, mats, counts):
             problems.append("%s: event effect without Event" % where)
         else:
             counts["names"].add(effect["Event"][0])
-        if kind not in ("Particle", "Shake", "Sound", "Beam", "Projectile"):
-            problems.append("%s: event effects must be particles, shakes, sounds, beams or projectiles" % where)
+        if kind not in ("Particle", "Shake", "Mark", "Sound", "Beam", "Projectile"):
+            problems.append("%s: event effects must be particles, shakes, marks, sounds, beams or projectiles" % where)
     else:
         if "Match" not in effect:
             problems.append("%s: no Match" % where)
@@ -201,8 +201,8 @@ def check_effect(effect, where, problems, visuals, systems, mats, counts):
             problems.append("%s: a sound on an object needs Every" % where)
     elif "Family" in effect or "Delay" in effect:
         problems.append("%s: Family and Delay only belong to sounds" % where)
-    if kind in ("Shake", "Beam", "Projectile") and target != "Event":
-        problems.append("%s: shakes, beams and projectiles only work as events" % where)
+    if kind in ("Shake", "Mark", "Beam", "Projectile") and target != "Event":
+        problems.append("%s: shakes, marks, beams and projectiles only work as events" % where)
     if kind in ("Beam", "Projectile"):
         mesh = effect.get("Mesh", [None])[0]
         system = effect.get("System", [None])[0]
@@ -246,7 +246,7 @@ def check_effect(effect, where, problems, visuals, systems, mats, counts):
             problems.append("%s: shake Amount above 0.5 is too strong" % where)
         if "Duration" in effect and is_number(effect["Duration"][0]) and float(effect["Duration"][0]) > 2.0:
             problems.append("%s: shake Duration above 2 seconds" % where)
-    if kind == "Particle":
+    if kind in ("Particle", "Mark"):
         system = effect.get("System", [None])[0]
         if system is None:
             problems.append("%s: particle without System" % where)

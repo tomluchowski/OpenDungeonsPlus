@@ -1,4 +1,4 @@
-// Materials of the sprites of the production rooms. Only the rune and grain sprites that the traps also use are here for now.
+// Materials of the sprites of the production rooms. Only the sprites that the traps and spells also use (rune, grain, coin, feather) are here for now.
 
 material RoomAmbRune
 {
@@ -33,6 +33,44 @@ material RoomAmbGrain
             texture_unit
             {
                 texture RoomAmbGrain.png
+            }
+        }
+    }
+}
+
+material RoomAmbCoin
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_write off
+            diffuse vertexcolour
+
+            texture_unit
+            {
+                texture RoomAmbCoin.png
+            }
+        }
+    }
+}
+
+material RoomAmbFeather
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_write off
+            diffuse vertexcolour
+
+            texture_unit
+            {
+                texture ChickenFeather.png
             }
         }
     }

@@ -29,7 +29,7 @@ public:
     //! \brief Creates the effect.
     //! \param nbTurnsEffect How many turns the creature stays a chicken.
     CreatureEffectHexenHen(int32_t nbTurnsEffect) :
-        CreatureEffect(nbTurnsEffect, "")
+        CreatureEffect(nbTurnsEffect, "SpellCreatureHexenHen")
     {}
 
     //! \brief Creates an empty effect, to be filled from a stream.

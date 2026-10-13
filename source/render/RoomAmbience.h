@@ -119,7 +119,7 @@ public:
 
     //! \brief The number of particle systems that run now (for the console)
     inline uint32_t getNbParticleSystems() const
-    { return static_cast<uint32_t>(mEmitters.size() + mOneShots.size()); }
+    { return static_cast<uint32_t>(mEmitters.size() + mOneShots.size() + mMarks.size()); }
     //! \brief The number of objects that are moved now (for the console)
     inline uint32_t getNbMovedObjects() const
     { return static_cast<uint32_t>(mMotionNodes.size() + mTurrets.size()); }
@@ -385,7 +385,8 @@ private:
     //! \brief Flickers the running emitters and removes those that were stopped long enough
     void updateEmitters(double timeSinceLastFrame);
     //! \brief Removes the one-shot effects whose time is over
-    void updateOneShots(double timeSinceLastFrame);
+    //! \brief Ends the one-shot effects of the list whose time is over
+    void updateOneShots(std::vector<OneShot>& oneShots, double timeSinceLastFrame);
     //! \brief Plays the sounds whose delay is over
     void updatePendingSounds();
     //! \brief Moves the objects by their motions and puts back the ones that are not moved any more
@@ -474,6 +475,8 @@ private:
     std::map<std::string, Emitter> mEmitters;
     //! The running one-shot effects of events
     std::vector<OneShot> mOneShots;
+    //! Ground marks (kind mark), oldest first
+    std::vector<OneShot> mMarks;
     //! The objects that are moved, per node name
     std::map<std::string, MotionNode> mMotionNodes;
     //! When a creature was last close, per target

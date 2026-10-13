@@ -1,4 +1,4 @@
-// Materials of the spell rings (textures drawn by tools/gen_spell_marks.py) and of the lightning bolt
+// Materials of the spell rings and ground marks (textures drawn by tools/gen_spell_marks.py)
 
 material RoomAmbRing
 {
@@ -36,6 +36,82 @@ material RoomAmbRingRunes
             texture_unit
             {
                 texture RoomAmbRingRunes.png
+            }
+        }
+    }
+}
+
+material RoomAmbRingDust
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_write off
+            diffuse vertexcolour
+
+            texture_unit
+            {
+                texture RoomAmbRingDust.png
+            }
+        }
+    }
+}
+
+material RoomAmbMarkScorch
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_write off
+            diffuse vertexcolour
+
+            texture_unit
+            {
+                texture RoomAmbMarkScorch.png
+            }
+        }
+    }
+}
+
+material RoomAmbMarkCracks
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_write off
+            diffuse vertexcolour
+
+            texture_unit
+            {
+                texture RoomAmbMarkCracks.png
+            }
+        }
+    }
+}
+
+material RoomAmbMarkBolt
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_write off
+            diffuse vertexcolour
+
+            texture_unit
+            {
+                texture RoomAmbMarkBolt.png
             }
         }
     }

@@ -145,6 +145,7 @@ static double getTargetDistanceFactor(const Creature& attacker, const GameEntity
 
 const int32_t Creature::NB_TURNS_BEFORE_CHECKING_TASK = 15;
 const uint32_t Creature::NB_OVERLAY_HEALTH_VALUES = 8;
+const std::string Creature::POSSESSION_AURA_SCRIPT = "SpellCreaturePossess";
 
 CreatureParticleEffect::CreatureParticleEffect(Creature& creature, const std::string& name, const std::string& script, int32_t nbTurnsEffect,
         CreatureEffect* effect) :
@@ -3754,7 +3755,7 @@ void Creature::addCreatureEffect(CreatureEffect* effect)
     mNeedFireRefresh = true;
 }
 
-void Creature::addParticleEffect(const std::string& effectScript, uint32_t nbTurns)
+void Creature::addParticleEffect(const std::string& effectScript, int32_t nbTurns)
 {
     EntityParticleEffect* effect = new EntityParticleEffect(
         nextParticleSystemsName(), effectScript, nbTurns);
@@ -4527,6 +4528,12 @@ void Creature::endPossession()
     player->setPossessedCreatureName(std::string());
     // Whether the creature fell (dead, knocked out or gone), so the client does not have to guess it
     const bool lost = !isAlive() || isKo() || !getIsOnMap();
+    endParticleEffectsByScript(POSSESSION_AURA_SCRIPT);
+    // The aura is permanent on the clients and a refresh never removes an effect that is missing from it. The turn
+    // deletes the ended effect before the refresh of the turn is built, so the clients are told now, while the effect
+    // is still there with no turns left
+    mNeedFireRefresh = true;
+    fireCreatureRefreshIfNeeded();
 
     // The group does not follow anymore and goes back to its normal behaviour
     for(const std::string& memberName : mGroupMemberNames)

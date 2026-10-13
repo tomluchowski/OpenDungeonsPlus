@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Draws the ring textures of the spell effects (config/roomAmbienceSpellsFx.cfg).
+"""Draws the ring and ground mark textures of the spell effects (config/roomAmbienceSpells.cfg).
 
 Everything is drawn from gradients, lines and noise by this script with a fixed random seed, nothing is
 taken from another work. Run it from the repository root to write the images again:
@@ -8,7 +8,11 @@ taken from another work. Run it from the repository root to write the images aga
 
 Output (all 128x128 RGBA, in materials/textures):
     RoomAmbRing.png         thin glowing ring (area markers, white, added to the picture)
-    RoomAmbRingRunes.png    double ring with tick marks and small marks between (possession, defector)
+    RoomAmbRingRunes.png    double ring with tick marks and small marks between (summoning, possession)
+    RoomAmbRingDust.png     wide uneven ring of dust (tremor wave)
+    RoomAmbMarkScorch.png   dark scorched patch with a lighter singed edge (explosion, inferno)
+    RoomAmbMarkCracks.png   cracks running out from the middle (tremor)
+    RoomAmbMarkBolt.png     branching burn lines (lightning)
 
 Needs Pillow.
 """
@@ -94,14 +98,138 @@ def ring_runes():
     return image.resize((SIZE, SIZE), Image.LANCZOS)
 
 
+def noise_field(seed, cells=9):
+    """Smooth random values 0..1 on a grid of cells x cells, read with bilinear interpolation."""
+    rng = random.Random(seed)
+    grid = [[rng.random() for _ in range(cells + 1)] for _ in range(cells + 1)]
+
+    def sample(x, y):
+        u = (x * 0.5 + 0.5) * cells
+        v = (y * 0.5 + 0.5) * cells
+        iu = min(cells - 1, max(0, int(u)))
+        iv = min(cells - 1, max(0, int(v)))
+        fu = u - iu
+        fv = v - iv
+        top = grid[iv][iu] * (1 - fu) + grid[iv][iu + 1] * fu
+        bottom = grid[iv + 1][iu] * (1 - fu) + grid[iv + 1][iu + 1] * fu
+        return top * (1 - fv) + bottom * fv
+    return sample
+
+
+def ring_dust():
+    coarse = noise_field(5, 7)
+    fine = noise_field(9, 17)
+
+    def function(x, y, r, angle):
+        grain = 0.55 * coarse(x, y) + 0.45 * fine(x, y)
+        wobble = (coarse(y, x) - 0.5) * 0.16
+        alpha = band(r, 0.74 + wobble, 0.15) * (0.35 + 0.9 * grain)
+        return 255, 255, 255, alpha
+    return per_pixel(function)
+
+
+def mark_scorch():
+    rng = random.Random(33)
+    harmonics = [(k, rng.uniform(0.04, 0.11) / (k * 0.6), rng.uniform(0, math.tau)) for k in (2, 3, 4, 5, 7, 9)]
+    flecks = noise_field(14, 13)
+
+    def edge(angle):
+        return 0.66 + sum(a * math.sin(k * angle + p) for k, a, p in harmonics)
+
+    def function(x, y, r, angle):
+        limit = edge(angle)
+        d = r / limit
+        if d >= 1.25:
+            return 0, 0, 0, 0
+        core = 1.0 - max(0.0, min(1.0, (d - 0.55) / 0.5))
+        alpha = (1.0 - max(0.0, min(1.0, (d - 0.7) / 0.55))) * (0.78 + 0.22 * flecks(x, y))
+        # Dark in the middle, brown and thinner at the rim
+        mix = max(0.0, min(1.0, d))
+        red = int(24 + 52 * mix * mix)
+        green = int(20 + 36 * mix * mix)
+        blue = int(18 + 22 * mix * mix)
+        return red, green, blue, alpha * (0.55 + 0.45 * core) if d < 1.0 else alpha * 0.8
+    return per_pixel(function)
+
+
+def jagged(draw, rng, c, angle, length, width, color, branches, depth=0):
+    """A crack: a jagged line that gets thinner, with side branches."""
+    steps = 9
+    x, y = c
+    heading = angle
+    step_length = length / steps
+    for i in range(steps):
+        heading += rng.uniform(-0.38, 0.38)
+        nx = x + math.cos(heading) * step_length
+        ny = y + math.sin(heading) * step_length
+        w = max(1, int(width * (1.0 - i / float(steps)) ** 0.8))
+        draw.line([(x, y), (nx, ny)], fill=color, width=w)
+        if branches > 0 and i in (3, 6) and rng.random() < 0.8:
+            side = heading + rng.choice((-1, 1)) * rng.uniform(0.5, 0.9)
+            jagged(draw, rng, (nx, ny), side, length * 0.38, max(2, width * 0.55), color, branches - 1, depth + 1)
+        x, y = nx, ny
+
+
+def with_edge_fade(image):
+    """Fades the supersampled drawing towards the border of the square."""
+    pixels = image.load()
+    for py in range(CANVAS):
+        for px in range(CANVAS):
+            x = (px + 0.5) / CANVAS * 2.0 - 1.0
+            y = (py + 0.5) / CANVAS * 2.0 - 1.0
+            fade = smooth_edge(math.hypot(x, y), 0.8, 0.98)
+            red, green, blue, alpha = pixels[px, py]
+            if alpha and fade < 1.0:
+                pixels[px, py] = (red, green, blue, int(alpha * fade))
+    return image
+
+
+def mark_cracks():
+    rng = random.Random(8)
+    image = Image.new("RGBA", (CANVAS, CANVAS), (0, 0, 0, 0))
+    draw = ImageDraw.Draw(image)
+    c = (CANVAS / 2.0, CANVAS / 2.0)
+    draw.ellipse((c[0] - 34, c[1] - 34, c[0] + 34, c[1] + 34), fill=(18, 14, 12, 190))
+    count = 9
+    for i in range(count):
+        angle = i * math.tau / count + rng.uniform(-0.2, 0.2)
+        jagged(draw, rng, c, angle, rng.uniform(0.62, 0.9) * CANVAS / 2.0, 13, (16, 12, 10, 235), 2)
+    image = image.filter(ImageFilter.GaussianBlur(1.6))
+    image = with_edge_fade(image)
+    return image.resize((SIZE, SIZE), Image.LANCZOS)
+
+
+def mark_bolt():
+    rng = random.Random(61)
+    image = Image.new("RGBA", (CANVAS, CANVAS), (0, 0, 0, 0))
+    glow = Image.new("RGBA", (CANVAS, CANVAS), (0, 0, 0, 0))
+    draw = ImageDraw.Draw(image)
+    glow_draw = ImageDraw.Draw(glow)
+    c = (CANVAS / 2.0, CANVAS / 2.0)
+    glow_draw.ellipse((c[0] - 70, c[1] - 70, c[0] + 70, c[1] + 70), fill=(20, 22, 30, 120))
+    glow = glow.filter(ImageFilter.GaussianBlur(26))
+    count = 6
+    for i in range(count):
+        angle = i * math.tau / count + rng.uniform(-0.3, 0.3)
+        jagged(draw, rng, c, angle, rng.uniform(0.55, 0.85) * CANVAS / 2.0, 8, (22, 24, 34, 240), 3)
+    draw.ellipse((c[0] - 20, c[1] - 20, c[0] + 20, c[1] + 20), fill=(14, 15, 22, 235))
+    image = image.filter(ImageFilter.GaussianBlur(1.2))
+    image = Image.alpha_composite(glow, image)
+    image = with_edge_fade(image)
+    return image.resize((SIZE, SIZE), Image.LANCZOS)
+
+
 TEXTURES = (
     ("RoomAmbRing.png", ring_plain),
     ("RoomAmbRingRunes.png", ring_runes),
+    ("RoomAmbRingDust.png", ring_dust),
+    ("RoomAmbMarkScorch.png", mark_scorch),
+    ("RoomAmbMarkCracks.png", mark_cracks),
+    ("RoomAmbMarkBolt.png", mark_bolt),
 )
 
 
 def main():
-    """Writes the ring textures into materials/textures."""
     for name, function in TEXTURES:
         function().save(os.path.join(OUT, name))
         print("wrote", name)

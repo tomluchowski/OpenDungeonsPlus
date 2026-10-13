@@ -133,6 +133,9 @@ public:
 
     static const uint32_t NB_OVERLAY_HEALTH_VALUES;
 
+    //! The script of the aura of a possessed creature, which ends with the possession
+    static const std::string POSSESSION_AURA_SCRIPT;
+
     virtual GameEntityType getObjectType() const override;
 
     virtual void addToGameMap(GameMap* gameMap = nullptr) override;
@@ -586,8 +589,9 @@ public:
     //! Called on server side to add an effect (spell, slap, ...) to this creature
     void addCreatureEffect(CreatureEffect* effect);
 
-    //! Called on server side to add a finite presentation-only particle effect.
-    void addParticleEffect(const std::string& effectScript, uint32_t nbTurns);
+    //! Called on server side to add a presentation-only particle effect. A negative number of turns means
+    //! that the effect stays until something ends it (see GameEntity::endParticleEffectsByScript).
+    void addParticleEffect(const std::string& effectScript, int32_t nbTurns);
 
     bool removeCreatureEffect(CreatureEffect* effectForDeletion);
 

@@ -124,6 +124,8 @@ const double TWO_PI = 6.283185307179586;
 const double RELOAD_STATE_SECONDS = 300.0;
 //! Seconds that the reload look is kept after the server said that the trap is loaded, so that a short reload is seen at all
 const double RELOAD_FADE_OUT_SECONDS = 2.0;
+//! At least this many marks may be on the floor, whatever the configuration says
+const uint32_t MIN_MARK_LIMIT = 1;
 //! The shortest time a bolt or flying object is on its way, in seconds
 const double MIN_FLIGHT_SECONDS = 0.05;
 //! The slowest a bolt flickers, in flickers per second
@@ -576,6 +578,14 @@ void RoomAmbience::stopAll()
             destroyEmitter(emitter);
         }
 
+        for(OneShot& mark : mMarks)
+        {
+            Emitter emitter;
+            emitter.mNode = mark.mNode;
+            emitter.mSystem = mark.mSystem;
+            destroyEmitter(emitter);
+        }
+
         for(std::map<std::string, MotionNode>::iterator it = mMotionNodes.begin(); it != mMotionNodes.end(); ++it)
             restoreMotionNode(it->second);
 
@@ -591,6 +601,7 @@ void RoomAmbience::stopAll()
 
     mEmitters.clear();
     mOneShots.clear();
+    mMarks.clear();
     mCollapses.clear();
     mFlights.clear();
     mPendingSounds.clear();
@@ -625,7 +636,8 @@ void RoomAmbience::update(Ogre::Real timeSinceLastFrame)
     }
 
     updateEmitters(dt);
-    updateOneShots(dt);
+    updateOneShots(mOneShots, dt);
+    updateOneShots(mMarks, dt);
     updatePendingSounds();
     updateCollapses(dt);
     updateFlights(dt);
@@ -1391,9 +1403,9 @@ void RoomAmbience::updateEmitters(double timeSinceLastFrame)
     }
 }
 
-void RoomAmbience::updateOneShots(double timeSinceLastFrame)
+void RoomAmbience::updateOneShots(std::vector<OneShot>& oneShots, double timeSinceLastFrame)
 {
-    for(std::vector<OneShot>::iterator it = mOneShots.begin(); it != mOneShots.end();)
+    for(std::vector<OneShot>::iterator it = oneShots.begin(); it != oneShots.end();)
     {
         it->mLife -= timeSinceLastFrame;
         if(it->mLife > 0.0)
@@ -1406,7 +1418,7 @@ void RoomAmbience::updateOneShots(double timeSinceLastFrame)
         emitter.mNode = it->mNode;
         emitter.mSystem = it->mSystem;
         destroyEmitter(emitter);
-        it = mOneShots.erase(it);
+        it = oneShots.erase(it);
     }
 }
 
@@ -1564,13 +1576,15 @@ uint32_t RoomAmbience::triggerEvent(const std::string& eventName, const Ogre::Ve
         bool isShake = (effect.mKind == AmbienceKind::shake);
         bool isSound = (effect.mKind == AmbienceKind::sound);
         bool isFlight = (effect.mKind == AmbienceKind::beam) || (effect.mKind == AmbienceKind::projectile);
+        bool isMark = (effect.mKind == AmbienceKind::mark);
         if(!forced)
         {
             if(!isEffectUsable(effect) || (camera == nullptr))
                 continue;
 
-            // A shake is felt wherever the event is, as far as its own MaxDistance reaches
-            if(!isShake && !isVisibleNear(camera, cameraPosition, position, OBJECT_VISIBLE_RADIUS, getDistanceLimit(effect)))
+            // A shake is felt wherever the event is, as far as its own MaxDistance reaches; a mark must be there when
+            // the view comes by later
+            if(!isShake && !isMark && !isVisibleNear(camera, cameraPosition, position, OBJECT_VISIBLE_RADIUS, getDistanceLimit(effect)))
                 continue;
 
             if(effect.mSpacing > 1)
@@ -1587,7 +1601,7 @@ uint32_t RoomAmbience::triggerEvent(const std::string& eventName, const Ogre::Ve
                     continue;
             }
 
-            if(!isShake && !isSound && !isFlight && (mOneShots.size() >= mConfig.getMaxOneShots()))
+            if(!isShake && !isSound && !isFlight && !isMark && (mOneShots.size() >= mConfig.getMaxOneShots()))
                 continue;
         }
 
@@ -1638,7 +1652,23 @@ uint32_t RoomAmbience::triggerEvent(const std::string& eventName, const Ogre::Ve
             continue;
 
         oneShot.mLife = effect.mDuration;
-        mOneShots.push_back(oneShot);
+        if(isMark)
+        {
+            // The oldest mark makes room for the new one
+            while(mMarks.size() >= std::max<uint32_t>(MIN_MARK_LIMIT, mConfig.getMaxMarks()))
+            {
+                Emitter oldest;
+                oldest.mNode = mMarks.front().mNode;
+                oldest.mSystem = mMarks.front().mSystem;
+                destroyEmitter(oldest);
+                mMarks.erase(mMarks.begin());
+            }
+            mMarks.push_back(oneShot);
+        }
+        else
+        {
+            mOneShots.push_back(oneShot);
+        }
         ++nbStarted;
     }
 
