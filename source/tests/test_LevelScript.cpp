@@ -20,6 +20,9 @@
 
 #include "gamemap/LevelScript.h"
 
+#include <cstdlib>
+#include <fstream>
+#include <set>
 #include <sstream>
 #include <string>
 
@@ -333,6 +336,66 @@ BOOST_AUTO_TEST_CASE(test_invalid)
         std::istringstream is(text);
         BOOST_CHECK_MESSAGE(!script.importFromStream(is), text);
     }
+}
+
+//! \brief Reads the [Triggers] section of the level file named by the environment variable
+//! OD_TEST_LEVEL_FILE (the region test level). Does nothing when the variable is not set.
+BOOST_AUTO_TEST_CASE(test_region_level)
+{
+    const char* path = std::getenv("OD_TEST_LEVEL_FILE");
+    if(path == nullptr)
+        return;
+
+    std::ifstream file(path);
+    BOOST_REQUIRE(file.good());
+    std::string line;
+    bool found = false;
+    while(std::getline(file, line))
+    {
+        if(line.compare(0, 10, "[Triggers]") == 0)
+        {
+            found = true;
+            break;
+        }
+    }
+    BOOST_REQUIRE(found);
+
+    LevelScript script;
+    BOOST_REQUIRE(script.importFromStream(file));
+    BOOST_CHECK(script.getRegion("Gate") != nullptr);
+    BOOST_CHECK(script.getRegion("Home") != nullptr);
+    BOOST_CHECK(script.getRegion("Far") != nullptr);
+
+    // Every condition and action kind that the level is meant to exercise is used
+    std::set<int> conditions;
+    std::set<int> actions;
+    for(const LevelScriptTrigger& trigger : script.getTriggers())
+    {
+        for(const LevelScriptCondition& cond : trigger.mConditions)
+        {
+            conditions.insert(static_cast<int>(cond.mType));
+            // A named region has to exist
+            if(!cond.mName.empty() && ((cond.mType == LevelScriptConditionType::region) ||
+               (cond.mType == LevelScriptConditionType::claimed)))
+            {
+                BOOST_CHECK_MESSAGE(script.getRegion(cond.mName) != nullptr, cond.mName);
+            }
+        }
+        for(const LevelScriptAction& action : trigger.mActions)
+        {
+            actions.insert(static_cast<int>(action.mType));
+            if(action.mType == LevelScriptActionType::reveal)
+                BOOST_CHECK_MESSAGE(script.getRegion(action.mText) != nullptr, action.mText);
+        }
+    }
+    BOOST_CHECK(conditions.count(static_cast<int>(LevelScriptConditionType::region)) == 1);
+    BOOST_CHECK(conditions.count(static_cast<int>(LevelScriptConditionType::claimed)) == 1);
+    BOOST_CHECK(conditions.count(static_cast<int>(LevelScriptConditionType::gold)) == 1);
+    BOOST_CHECK(conditions.count(static_cast<int>(LevelScriptConditionType::kills)) == 1);
+    BOOST_CHECK(actions.count(static_cast<int>(LevelScriptActionType::reveal)) == 1);
+    BOOST_CHECK(actions.count(static_cast<int>(LevelScriptActionType::make)) == 1);
+    BOOST_CHECK(actions.count(static_cast<int>(LevelScriptActionType::timeLimit)) == 1);
+    BOOST_CHECK(actions.count(static_cast<int>(LevelScriptActionType::win)) == 1);
 }
 
 //! \brief A section with only the end tag is valid and empty

@@ -4,6 +4,7 @@ the time limit and the two HUD countdowns.
 The parser and the writer are run by check_level_script.py; this script checks that the pieces
 that need the running game are connected, so a missing hook is found without playing.
 """
+import re
 from pathlib import Path
 
 repo = Path(__file__).resolve().parents[2]
@@ -105,5 +106,15 @@ for kind in ('happyCreatures', 'angryCreatures', 'creaturesAtLevel', 'creaturesL
              'creaturesDropped', 'creaturesSlapped'):
     assert 'case LevelScriptConditionType::%s:' % kind in runner, kind
     assert 'case LevelScriptConditionType::%s:' % kind in script_cpp, kind
+
+# the region test level: a skirmish with 100 start mana, found by the level list
+level = read('levels/skirmish/TestRegionScripting.level')
+assert 'Region scripting' in level
+assert re.search(r'^mana	100$', level, re.M), 'start mana must be 100'
+section = level[level.index('[Triggers]'):level.index('[/Triggers]')]
+for word in ('Cond	pickedup', 'Cond	dropped', 'Cond	slapped', 'Cond	happy', 'Cond	lost', 'Cond	kills',
+             'Cond	claimed', 'Cond	region', 'Cond	gold', 'Action	make', 'Action	reveal',
+             'Action	timelimit', 'Action	win'):
+    assert word in section, word
 
 print('level script make and time limit wiring: ok')
