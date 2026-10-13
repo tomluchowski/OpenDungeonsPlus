@@ -18,6 +18,7 @@
 #ifndef CREATUREWEAPONVISUALS_H
 #define CREATUREWEAPONVISUALS_H
 
+#include <cstdint>
 #include <string>
 
 namespace Ogre
@@ -43,7 +44,7 @@ class GameMap;
 class CreatureWeaponVisuals
 {
 public:
-    //! \brief Handles the kinds meleeResult and missileLaunch. Returns true if the event was one of them.
+    //! \brief Handles the kinds hitResult, meleeResult and missileLaunch. Returns true if the event was one of them.
     static bool noteCosmeticEvent(CreatureReactions& reactions, const CosmeticEvent& event);
 
     //! \brief Advances the delayed reactions, the trails and the arrows
@@ -55,6 +56,38 @@ public:
     //! \brief True if the server told lately that a blow on the creature was only a glancing one or did nothing.
     //! The guessed flinch of the combat reactions is not shown then.
     static bool wasBlowSoftened(const std::string& targetName, double now);
+
+    //! \brief What the server last told about a blow or shot of a creature (event hitResult), for the looks that
+    //! follow a strong hit (a weapon trail, later). Only what the server reported, never a guess.
+    struct HitInfo
+    {
+        HitInfo() :
+            mResult(0),
+            mHealthPermille(0),
+            mStrong(false),
+            mMissile(false),
+            mTime(0.0)
+        {}
+
+        //! The CosmeticHitResult (hit, glanced, blocked, missed)
+        int32_t mResult;
+        //! The damage that was done in per mille of the maximum health of the target
+        int32_t mHealthPermille;
+        //! True for a hit that took at least the share of the health that the configuration calls strong
+        bool mStrong;
+        //! True for a shot, false for a melee blow
+        bool mMissile;
+        std::string mTarget;
+        //! Time of the event on the clock of the reactions
+        double mTime;
+    };
+
+    //! \brief The last result of a blow or shot of the attacker. False if the server told nothing about it
+    static bool getLastHit(const std::string& attackerName, HitInfo& info);
+
+    //! \brief True once the server has sent the event hitResult: the hits, the dodges and the misses are then
+    //! shown from it and not guessed from the attack animations
+    static bool hasHitEvents();
 
     //! \brief Access to the internals of CreatureReactions for the helper functions of this file. They only read
     //! the state of the reactions (time, map, mode); show() starts an event the same way the combat reactions do.

@@ -3036,6 +3036,50 @@ void Creature::fireCosmeticEvent(int32_t type, int32_t value, int32_t value2, bo
     fireCosmeticEvent(event, alliedOnly);
 }
 
+void Creature::fireHitResult(const std::string& attackerName, double damageDone, double rawDamage, bool missile)
+{
+    if(!ConfigManager::getSingleton().getHitEvents())
+        return;
+
+    // The share of the damage that got through the defense decides between a hit, a glancing blow and a blocked one
+    double share = (rawDamage > 0.0) ? damageDone / rawDamage : 0.0;
+    share = std::max(0.0, std::min(1.0, share));
+    CosmeticHitResult result = CosmeticHitResult::hit;
+    if(damageDone <= 0.0)
+        result = CosmeticHitResult::blocked;
+    else if(share < ConfigManager::getSingleton().getHitGlanceShare())
+        result = CosmeticHitResult::glanced;
+
+    // How hard it hit: the damage in per mille of the maximum health of this creature
+    double maxHp = getMaxHp();
+    double healthShare = (maxHp > 0.0) ? damageDone / maxHp : 0.0;
+    healthShare = std::max(0.0, std::min(1.0, healthShare));
+
+    CosmeticEvent event(CosmeticEventType::hitResult);
+    event.mSubject = attackerName;
+    event.mObject = getName();
+    event.mText = missile ? "missile" : "melee";
+    event.mValue = static_cast<int32_t>(result);
+    event.mValue2 = static_cast<int32_t>(healthShare * 1000.0 + 0.5);
+    event.mPosition = getPosition();
+    fireCosmeticEvent(event, false);
+}
+
+void Creature::fireHitMissed(const std::string& attackerName)
+{
+    if(!ConfigManager::getSingleton().getHitEvents())
+        return;
+
+    CosmeticEvent event(CosmeticEventType::hitResult);
+    event.mSubject = attackerName;
+    event.mObject = getName();
+    event.mText = "missile";
+    event.mValue = static_cast<int32_t>(CosmeticHitResult::missed);
+    event.mValue2 = 0;
+    event.mPosition = getPosition();
+    fireCosmeticEvent(event, false);
+}
+
 void Creature::fireArrivalEvent()
 {
     Player* player = getSeat()->getPlayer();

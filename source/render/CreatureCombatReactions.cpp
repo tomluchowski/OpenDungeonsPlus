@@ -57,7 +57,8 @@ const double STYLE_INTERVAL = 0.7;
 //! Least time between two hit reactions of one creature (light and strong ones)
 const double HIT_INTERVAL_LIGHT = 0.6;
 const double HIT_INTERVAL_STRONG = 1.0;
-//! Chance that a blow in front of a creature makes it flinch (the client cannot tell a miss from a hit)
+//! Chance that a blow in front of a creature makes it flinch (only without the hit events of the server: the client
+//! cannot tell a miss from a hit then)
 const double FLINCH_CHANCE = 0.8;
 //! Chance that a blow on a creature with a shield shows the sparks
 const double SHIELD_SPARKS_CHANCE = 0.6;
@@ -528,6 +529,29 @@ void CreatureCombatReactions::noteHealth(CreatureReactions& reactions, Creature*
     scheduleHit(reactions, creature, level, false, 0.0);
 }
 
+void CreatureCombatReactions::noteHitEvent(CreatureReactions& reactions, Creature* attacker, Creature* target,
+        bool strong, bool missile)
+{
+    if(!isActive(reactions) || (target == nullptr))
+        return;
+
+    // A shot lands when the server says so; a blow a moment into the attack animation of the attacker
+    double delay = 0.0;
+    if(!missile)
+    {
+        double clipSeconds = 1.0;
+        Ogre::AnimationState* animState = (attacker != nullptr) ? attacker->getAnimationState() : nullptr;
+        double speed = (attacker != nullptr) ? ODApplication::turnsPerSecond * attacker->getAnimationSpeedFactor() : 0.0;
+        if((animState != nullptr) && (speed > 0.1))
+            clipSeconds = static_cast<double>(animState->getLength()) / speed;
+        delay = std::max(HIT_DELAY_MIN, std::min(HIT_DELAY_MAX, clipSeconds * HIT_SHARE_OF_CLIP));
+    }
+
+    CombatState& targetState = getState(target->getName(), reactions.mTime);
+    targetState.mLastAttacked = reactions.mTime;
+    scheduleHit(reactions, target, strong ? 1 : 0, !missile && hasShield(target), delay);
+}
+
 //! \brief Gives the blows that were seen a moment ago their look and queues the hit on the creature in front
 void CreatureCombatReactions::processAttacks(CreatureReactions& reactions)
 {
@@ -582,7 +606,9 @@ void CreatureCombatReactions::processAttacks(CreatureReactions& reactions)
 
         double delay = ranged ? (0.15 + distance * HIT_DELAY_PER_UNIT) :
             std::max(HIT_DELAY_MIN, std::min(HIT_DELAY_MAX, clipSeconds * HIT_SHARE_OF_CLIP));
-        scheduleHit(reactions, target, 0, !ranged && hasShield(target), delay);
+        // With the hit events of the server the hit is shown when the server says it landed (noteHitEvent)
+        if(!CreatureWeaponVisuals::hasHitEvents())
+            scheduleHit(reactions, target, 0, !ranged && hasShield(target), delay);
     }
 }
 
@@ -620,12 +646,14 @@ void CreatureCombatReactions::processHits(CreatureReactions& reactions)
         }
         else
         {
-            // A blow in front of a creature: not every one shows (the server alone knows if it did damage)
-            if(combatRandom(0.0, 1.0) >= FLINCH_CHANCE)
+            // A blow in front of a creature: without the hit events of the server not every one shows (the server
+            // alone knows if it did damage). With them only real hits get here.
+            if(!CreatureWeaponVisuals::hasHitEvents() && (combatRandom(0.0, 1.0) >= FLINCH_CHANCE))
                 continue;
 
-            // The server told that the blow was dodged or only scraped: no flinch (a dodge is shown instead)
-            if(CreatureWeaponVisuals::wasBlowSoftened(hit.mTarget, reactions.mTime))
+            // The server told that the blow was dodged or only scraped: no flinch (a dodge is shown instead). A hit
+            // event is a real hit and always shows.
+            if(!CreatureWeaponVisuals::hasHitEvents() && CreatureWeaponVisuals::wasBlowSoftened(hit.mTarget, reactions.mTime))
                 continue;
 
             if(hit.mShield && !external && (combatRandom(0.0, 1.0) < SHIELD_SPARKS_CHANCE))

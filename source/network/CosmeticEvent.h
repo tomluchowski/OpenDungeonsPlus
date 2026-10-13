@@ -65,7 +65,31 @@ enum class CosmeticEventType : int32_t
     digFinished = 7,
     //! A creature of the keeper arrived through a portal. mSubject creature, mValue the CreatureMoodLevel
     //! the creature would have, mValue2 its mood points. Can arrive before the creature itself.
-    portalArrival = 8
+    portalArrival = 8,
+    //! (9 to 16 are kept free: other kinds of other features use them.)
+    //! What a blow or a shot of a creature really did to a creature, told when the damage was calculated (melee)
+    //! or when the missile arrived (shot). mSubject attacker, mObject target, mValue the CosmeticHitResult,
+    //! mValue2 the damage that was done in per mille of the maximum health of the target (0 to 1000, the base of
+    //! a strong hit), mText "melee" or "missile", mPosition position of the target. Sent for the target to the
+    //! keepers that see it. This only reports what the game calculated; the game has no random miss or dodge, so
+    //! the only results are those of CosmeticHitResult. For a melee blow the kind meleeResult follows it with
+    //! the old fields, for clients that do not know this kind. Older clients skip the kind, an older server
+    //! sends none.
+    hitResult = 17
+};
+
+//! \brief The result in mValue of the event hitResult
+enum class CosmeticHitResult : int32_t
+{
+    //! The blow or shot did its damage
+    hit = 0,
+    //! Only a small part of the damage got through (armor or resistance took the rest)
+    glanced = 1,
+    //! No damage at all got through (armor or resistance took all of it)
+    blocked = 2,
+    //! A shot ended without hurting the creature it was aimed at (it hit a wall or flew on, the creature moved
+    //! away). Melee blows never give this result.
+    missed = 3
 };
 
 //! \brief The data of one cosmetic event. Every kind uses the same layout on the wire, so a

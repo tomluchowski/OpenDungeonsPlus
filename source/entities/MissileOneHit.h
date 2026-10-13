@@ -44,13 +44,30 @@ public:
 
     virtual void hitTargetEntity(Tile* tile, GameEntity* entityTarget) override;
 
+    //! \brief Server side, cosmetic only. The missile was shot by this creature at that creature: the clients are
+    //! told what the shot did (event hitResult). Not saved. Without it the missile reports nothing.
+    void setShooter(const std::string& shooterName, const std::string& targetName)
+    {
+        mShooterName = shooterName;
+        mTargetName = targetName;
+    }
+
     static MissileOneHit* getMissileOneHitFromStream(GameMap* gameMap, std::istream& is);
     static MissileOneHit* getMissileOneHitFromPacket(GameMap* gameMap, ODPacket& is);
 protected:
     void exportToStream(std::ostream& os) const override;
     bool importFromStream(std::istream& is) override;
+    //! \brief Called when the shot ended: a shot at a creature that hurt nothing is reported as missed (cosmetic only)
+    virtual void missileStopped() override;
+
+    //! \brief Deals the damage of the missile and, for a shot with a shooter, tells the clients what it did
+    void hurt(Tile* tile, GameEntity* entity);
 
 private:
+    //! Cosmetic only (event hitResult), not saved: who shot, at whom, and whether the shot hurt a creature
+    std::string mShooterName;
+    std::string mTargetName;
+    bool mHasHit;
     double mPhysicalDamage;
     double mMagicalDamage;
     double mElementDamage;

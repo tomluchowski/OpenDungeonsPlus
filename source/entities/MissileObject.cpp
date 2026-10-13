@@ -214,6 +214,10 @@ void MissileObject::doUpkeep()
 
     path.push_back(Ogre::Vector2(destination.x,destination.y));
     setWalkPath(EntityAnimation::idle_anim, EntityAnimation::idle_anim, true, true, path,true);
+
+    // The missile stopped during this turn (a hit, a wall or the end of the map)
+    if(!mIsMissileAlive)
+        missileStopped();
 }
 
 bool MissileObject::computeDestination(const Ogre::Vector3& position, double moveDist, const Ogre::Vector3& direction,

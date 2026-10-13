@@ -22,8 +22,10 @@
 #include "game/Seat.h"
 #include "gamemap/GameMap.h"
 #include "network/CosmeticEvent.h"
+#include "render/CreatureCombatReactions.h"
 #include "render/CreatureReactions.h"
 #include "render/RenderManager.h"
+#include "utils/ConfigManager.h"
 #include "utils/Helper.h"
 
 #include <OgreBillboardSet.h>
@@ -80,7 +82,10 @@ const int32_t STRONG_BLOW = 800;
 const double DODGE_DELAY = 0.25;
 const double MISS_DELAY = 0.1;
 const double SOFT_MEMORY = 1.0;
+//! The last result of an attacker is remembered this long (seconds)
+const double LAST_HIT_MEMORY = 10.0;
 const uint32_t MAX_PENDING = 32;
+const uint32_t MAX_LAST_HITS = 64;
 const uint32_t MAX_TRAILS = 6;
 
 //! Weapon trail
@@ -191,6 +196,10 @@ struct Trail
 
 std::map<std::string, Shooter> sShooters;
 std::map<std::string, double> sSoftened;
+//! Last result of a blow or shot per attacker, as the server reported it (event hitResult)
+std::map<std::string, CreatureWeaponVisuals::HitInfo> sLastHits;
+//! True once the server has sent the event hitResult in this game
+bool sHitEvents = false;
 std::vector<PendingReaction> sPending;
 std::vector<Trail> sTrails;
 double sTickTimer = 0.0;
@@ -538,6 +547,10 @@ void noteBlow(CreatureReactions& reactions, const CosmeticEvent& event)
     {
         // The blow did (almost) nothing: the target is not shown flinching
         sSoftened[event.mObject] = CreatureWeaponVisuals::getTime(reactions);
+        // A server that sends hitResult drives these reactions from it
+        if(sHitEvents)
+            return;
+
         if(target != nullptr)
             queueReaction(reactions, target->getName(), (event.mValue >= 2) ? "BlowDodged" : "BlowGlanced", DODGE_DELAY);
 
@@ -549,6 +562,52 @@ void noteBlow(CreatureReactions& reactions, const CosmeticEvent& event)
 
     if((attacker != nullptr) && (event.mValue2 >= STRONG_BLOW))
         startTrail(reactions, attacker);
+}
+
+//! \brief The server reported what a blow or shot did: a hit makes the target flinch or stagger, a glancing blow
+//! or a total block shows a glance or a dodge, and the attacker of a blow that got nothing overreaches
+void noteHitResult(CreatureReactions& reactions, const CosmeticEvent& event)
+{
+    Creature* target = CreatureWeaponVisuals::getGameMap(reactions)->getCreature(event.mObject);
+    Creature* attacker = CreatureWeaponVisuals::getGameMap(reactions)->getCreature(event.mSubject);
+    double now = CreatureWeaponVisuals::getTime(reactions);
+
+    // Readable for the looks that follow a strong hit
+    CreatureWeaponVisuals::HitInfo info;
+    info.mResult = event.mValue;
+    info.mHealthPermille = event.mValue2;
+    info.mStrong = (event.mValue == static_cast<int32_t>(CosmeticHitResult::hit)) &&
+        (event.mValue2 >= static_cast<int32_t>(ConfigManager::getSingleton().getHitStrongShare() * 1000.0 + 0.5));
+    info.mMissile = (event.mText == "missile");
+    info.mTarget = event.mObject;
+    info.mTime = now;
+    if(sLastHits.size() < MAX_LAST_HITS || sLastHits.find(event.mSubject) != sLastHits.end())
+        sLastHits[event.mSubject] = info;
+
+    switch(event.mValue)
+    {
+        case static_cast<int32_t>(CosmeticHitResult::hit):
+            // The target flinches, a strong hit makes it stagger
+            if(target != nullptr)
+                CreatureCombatReactions::noteHitEvent(reactions, attacker, target, info.mStrong, info.mMissile);
+            break;
+        case static_cast<int32_t>(CosmeticHitResult::glanced):
+            sSoftened[event.mObject] = now;
+            if(target != nullptr)
+                queueReaction(reactions, target->getName(), "BlowGlanced", DODGE_DELAY);
+            break;
+        case static_cast<int32_t>(CosmeticHitResult::blocked):
+        case static_cast<int32_t>(CosmeticHitResult::missed):
+            // Nothing got through: the target gets out of the way, the attacker of a blow overreaches
+            sSoftened[event.mObject] = now;
+            if(target != nullptr)
+                queueReaction(reactions, target->getName(), "BlowDodged", info.mMissile ? 0.0 : DODGE_DELAY);
+            if((attacker != nullptr) && !info.mMissile)
+                queueReaction(reactions, attacker->getName(), "BlowMissed", MISS_DELAY);
+            break;
+        default:
+            break;
+    }
 }
 
 //! \brief Shows the delayed reactions that are due
@@ -573,6 +632,13 @@ void processPending(CreatureReactions& reactions)
 void tick(CreatureReactions& reactions)
 {
     // Forget the old results
+    for(std::map<std::string, CreatureWeaponVisuals::HitInfo>::iterator it = sLastHits.begin(); it != sLastHits.end();)
+    {
+        if((CreatureWeaponVisuals::getTime(reactions) - it->second.mTime) > LAST_HIT_MEMORY)
+            sLastHits.erase(it++);
+        else
+            ++it;
+    }
     for(std::map<std::string, double>::iterator it = sSoftened.begin(); it != sSoftened.end();)
     {
         if((CreatureWeaponVisuals::getTime(reactions) - it->second) > SOFT_MEMORY)
@@ -642,15 +708,22 @@ void tick(CreatureReactions& reactions)
 
 bool CreatureWeaponVisuals::noteCosmeticEvent(CreatureReactions& reactions, const CosmeticEvent& event)
 {
+    bool result = event.is(CosmeticEventType::hitResult);
     bool blow = event.is(CosmeticEventType::meleeResult);
     bool shot = event.is(CosmeticEventType::missileLaunch);
-    if(!blow && !shot)
+    if(!result && !blow && !shot)
         return false;
+
+    // From now on the hits, dodges and misses come from the server and are not guessed
+    if(result)
+        sHitEvents = true;
 
     if(!CreatureWeaponVisuals::isActive(reactions))
         return true;
 
-    if(blow)
+    if(result)
+        noteHitResult(reactions, event);
+    else if(blow)
         noteBlow(reactions, event);
     else
         noteShot(reactions, event);
@@ -692,8 +765,25 @@ void CreatureWeaponVisuals::stopAll(CreatureReactions& reactions)
     removeAllArrows();
     removeAllTrails();
     sSoftened.clear();
+    sLastHits.clear();
+    sHitEvents = false;
     sPending.clear();
     sTickTimer = 0.0;
+}
+
+bool CreatureWeaponVisuals::getLastHit(const std::string& attackerName, HitInfo& info)
+{
+    std::map<std::string, HitInfo>::const_iterator it = sLastHits.find(attackerName);
+    if(it == sLastHits.end())
+        return false;
+
+    info = it->second;
+    return true;
+}
+
+bool CreatureWeaponVisuals::hasHitEvents()
+{
+    return sHitEvents;
 }
 
 bool CreatureWeaponVisuals::wasBlowSoftened(const std::string& targetName, double now)

@@ -58,6 +58,9 @@ ConfigManager::ConfigManager(const std::string& configPath, const std::string& u
     mCreatureMoodFurious(-2000),
     mSlapDamagePercent(15),
     mSlapEffectDuration(15),
+    mHitEvents(true),
+    mHitGlanceShare(0.34),
+    mHitStrongShare(0.15),
     mTimePayDay(300),
     mNbTurnsFuriousMax(120),
     mMaxManaPerSeat(250000.0),
@@ -503,6 +506,27 @@ bool ConfigManager::loadGlobalGameConfig(std::stringstream& configFile)
         {
             configFile >> nextParam;
             mSlapEffectDuration = Helper::toDouble(nextParam);
+            // Not mandatory
+        }
+
+        if(nextParam == "HitEvents")
+        {
+            configFile >> nextParam;
+            mHitEvents = Helper::toInt(nextParam) != 0;
+            // Not mandatory
+        }
+
+        if(nextParam == "HitGlanceShare")
+        {
+            configFile >> nextParam;
+            mHitGlanceShare = Helper::toDouble(nextParam);
+            // Not mandatory
+        }
+
+        if(nextParam == "HitStrongShare")
+        {
+            configFile >> nextParam;
+            mHitStrongShare = Helper::toDouble(nextParam);
             // Not mandatory
         }
 

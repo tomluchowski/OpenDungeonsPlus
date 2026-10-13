@@ -113,6 +113,9 @@ bool CreatureSkillMeleeFight::tryUseFight(GameMap& gameMap, Creature* creature, 
         const double rawDamage = phyAtk + magAtk + eleAtk;
         double share = (rawDamage > 0.0) ? damageDone / rawDamage : 0.0;
         share = std::max(0.0, std::min(1.0, share));
+        // The newer kind first (hit, glancing, blocked and how hard in relation to the health); the clients that
+        // got it ignore the older kind below
+        target->fireHitResult(creature->getName(), damageDone, rawDamage, false);
         CosmeticEvent event(CosmeticEventType::meleeResult);
         event.mSubject = creature->getName();
         event.mObject = target->getName();

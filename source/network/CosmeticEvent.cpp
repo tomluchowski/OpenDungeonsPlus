@@ -20,7 +20,8 @@
 bool CosmeticEvent::isKnownType() const
 {
     return (mType >= static_cast<int32_t>(CosmeticEventType::moodStage)) &&
-           (mType <= static_cast<int32_t>(CosmeticEventType::portalArrival));
+           ((mType <= static_cast<int32_t>(CosmeticEventType::portalArrival)) ||
+            (mType == static_cast<int32_t>(CosmeticEventType::hitResult)));
 }
 
 std::string CosmeticEvent::typeString() const
@@ -45,6 +46,8 @@ std::string CosmeticEvent::typeString() const
             return "digFinished";
         case static_cast<int32_t>(CosmeticEventType::portalArrival):
             return "portalArrival";
+        case static_cast<int32_t>(CosmeticEventType::hitResult):
+            return "hitResult";
         default:
             break;
     }

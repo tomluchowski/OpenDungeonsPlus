@@ -414,6 +414,12 @@ public:
     void fireCosmeticEvent(const CosmeticEvent& event, bool alliedOnly);
     //! \brief Sends a cosmetic event of the given kind with this creature as subject
     void fireCosmeticEvent(int32_t type, int32_t value, int32_t value2, bool alliedOnly);
+    //! \brief This creature was just hit by a blow or a shot of the attacker (cosmetic event hitResult). damageDone
+    //! is what takeDamage returned and rawDamage the damage before the defense; missile tells a shot from a
+    //! melee blow. Only reports what the damage calculation gave, it changes nothing.
+    void fireHitResult(const std::string& attackerName, double damageDone, double rawDamage, bool missile);
+    //! \brief A shot of the attacker that was aimed at this creature ended without hurting it (cosmetic event hitResult)
+    void fireHitMissed(const std::string& attackerName);
     //! \brief The creature arrived through a portal: tells the keeper what mood it would have (cosmetic only)
     void fireArrivalEvent();
 

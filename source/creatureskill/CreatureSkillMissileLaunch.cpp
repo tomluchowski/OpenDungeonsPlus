@@ -19,6 +19,7 @@
 
 #include "creatureskill/CreatureSkillManager.h"
 #include "entities/Creature.h"
+#include "entities/GameEntityType.h"
 #include "entities/MissileOneHit.h"
 #include "entities/Tile.h"
 #include "entities/Weapon.h"
@@ -106,6 +107,11 @@ bool CreatureSkillMissileLaunch::tryUseFight(GameMap& gameMap, Creature* creatur
     MissileOneHit* missile = new MissileOneHit(&gameMap, creature->getSeat(), creature->getName(),
         mMissileMesh, mMissilePartScript, missileDirection, mMissileSpeed, phyAtk, magAtk, eleAtk,
         attackedObject, false, ko, notifyPlayerIfHit);
+    // The missile tells the clients what the shot did (cosmetic event hitResult)
+    std::string targetName;
+    if(attackedObject->getObjectType() == GameEntityType::creature)
+        targetName = attackedObject->getName();
+    missile->setShooter(creature->getName(), targetName);
     missile->addToGameMap();
     missile->createMesh();
     missile->setPosition(position);
