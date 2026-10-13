@@ -165,4 +165,12 @@ assert 'type == "keepminion"' in script_cpp and 'os << "keepminion' in script_cp
 assert 'takeKeptMinion(' in runner and 'KeptMinion' in campaign
 assert 'LevelScriptRunner::spawnKeptMinion(*gameMap);' in read('source/network/ODServer.cpp')
 
-print('level script make, time limit, creature events, stones, possession, kept minion and region test level wiring: ok')
+# the story test level: a skirmish that uses the story state conditions, a portal stone and a terrain change
+story = read('levels/skirmish/TestLevelScripting.level')
+assert 'Level scripting' in story
+story_section = story[story.index('[Triggers]'):story.index('[/Triggers]')]
+for word in ('Cond	alive', 'Cond	reached', 'Cond	portal', 'Cond	stone', 'Action	portal', 'Action	stonecreate',
+             'Action	terrain', 'Action	spawn'):
+    assert word in story_section, word
+
+print('level script make, time limit, creature events, stones, possession, kept minion, story test level and region test level wiring: ok')

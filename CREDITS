@@ -87,6 +87,7 @@ skirmish/
 -> ForgottenTreasures.level            OD Team                 GPLv3+
 -> StonekeepSiege.level                OD Team                 GPLv3+
 -> TestLegacy.level                    OD Team                 GPLv3+
+-> TestLevelScripting.level            OD Team                 GPLv3+
 -> TestModelsFair.level                OD Team                 GPLv3+
 -> TestRegionScripting.level           OD Team                 GPLv3+
 -> TestSingleplayerSmall.level         OD Team                 GPLv3+
