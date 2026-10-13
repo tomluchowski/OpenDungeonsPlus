@@ -57,6 +57,32 @@ static const std::vector<RoomType> wantedBuildings = {
     RoomType::crypt
 };
 
+//! \brief Range of turns between two checks of the attack state (before the reaction scaling)
+static const int ATTACK_COOLDOWN_MIN = 20;
+static const int ATTACK_COOLDOWN_MAX = 40;
+//! \brief Range of turns the AI waits after retreating before it considers a new attack
+static const int ATTACK_RETREAT_COOLDOWN_MIN = 200;
+static const int ATTACK_RETREAT_COOLDOWN_MAX = 300;
+//! \brief Range of turns the AI waits after ordering a way to the enemy dungeon to be dug
+static const int ATTACK_DIG_COOLDOWN_MIN = 100;
+static const int ATTACK_DIG_COOLDOWN_MAX = 200;
+//! \brief The AI retreats when its fighters fall below 1 / this value of the number it started with
+static const int ATTACK_RETREAT_DIVISOR = 2;
+//! \brief Range of turns between two checks of the defense spells
+static const int SPELLS_COOLDOWN_MIN = 5;
+static const int SPELLS_COOLDOWN_MAX = 10;
+//! \brief Creatures with more than this share of their health are not worth a heal
+static const double HEAL_MAX_HP_RATIO = 0.6;
+//! \brief Number of fighting creatures needed in the dungeon before a defense banner is placed
+static const int DEFENSE_BANNER_MIN_FIGHTERS = 2;
+//! \brief Range of turns between two checks for new traps and doors
+static const int TRAPS_COOLDOWN_MIN = 40;
+static const int TRAPS_COOLDOWN_MAX = 80;
+//! \brief Number of unfinished traps or doors in the workshops at which the AI orders no more
+static const int MAX_WAITING_FOR_CRAFT = 2;
+//! \brief Gold the AI keeps for rooms and repairs when it buys traps and doors
+static const int TRAPS_GOLD_RESERVE = 1500;
+
 
 KeeperAI::KeeperAI(GameMap& gameMap, Player& player, int cooldownDefenseMin, int cooldownDefenseMax,
              int cooldownSaveWoundedCreaturesMin, int cooldownSaveWoundedCreaturesMax,
@@ -792,7 +818,7 @@ void KeeperAI::handleAttack()
         --mCooldownAttack;
         return;
     }
-    mCooldownAttack = scaledCooldown(20, 40);
+    mCooldownAttack = scaledCooldown(ATTACK_COOLDOWN_MIN, ATTACK_COOLDOWN_MAX);
 
     Seat* seat = mPlayer.getSeat();
     if(!SkillManager::isSpellAvailable(SpellType::callToWar, seat))
@@ -804,12 +830,12 @@ void KeeperAI::handleAttack()
     if(mIsAttacking)
     {
         // We retreat if the enemy is gone or we lost half of the fighters we started with
-        if((enemyTile == nullptr) || ((nbFighters * 2) < mNbFightersAtAttackStart))
+        if((enemyTile == nullptr) || ((nbFighters * ATTACK_RETREAT_DIVISOR) < mNbFightersAtAttackStart))
         {
             OD_LOG_INF("AI seatId=" + Helper::toString(seat->getId()) + " retreats, fighters=" + Helper::toString(nbFighters));
             removeBanners();
             mIsAttacking = false;
-            mCooldownAttack = scaledCooldown(200, 300);
+            mCooldownAttack = scaledCooldown(ATTACK_RETREAT_COOLDOWN_MIN, ATTACK_RETREAT_COOLDOWN_MAX);
             return;
         }
 
@@ -840,7 +866,7 @@ void KeeperAI::handleAttack()
     if(!mGameMap.pathExists(fighter, fighter->getPositionTile(), enemyTile))
     {
         digWayToTile(central, enemyTile);
-        mCooldownAttack = scaledCooldown(100, 200);
+        mCooldownAttack = scaledCooldown(ATTACK_DIG_COOLDOWN_MIN, ATTACK_DIG_COOLDOWN_MAX);
         return;
     }
 
@@ -859,7 +885,7 @@ void KeeperAI::handleSpells()
         --mCooldownSpells;
         return;
     }
-    mCooldownSpells = scaledCooldown(5, 10);
+    mCooldownSpells = scaledCooldown(SPELLS_COOLDOWN_MIN, SPELLS_COOLDOWN_MAX);
 
     Seat* seat = mPlayer.getSeat();
     int32_t mana = static_cast<int32_t>(seat->getMana());
@@ -876,7 +902,7 @@ void KeeperAI::handleSpells()
             if(!creature->isActionInList(CreatureActionType::fight))
                 continue;
             // Only creatures that are really wounded are worth the mana
-            if(creature->getHP() > (creature->getMaxHp() * 0.6))
+            if(creature->getHP() > (creature->getMaxHp() * HEAL_MAX_HP_RATIO))
                 continue;
 
             Tile* pos = creature->getPositionTile();
@@ -921,7 +947,7 @@ void KeeperAI::handleSpells()
         return;
     }
 
-    if((nbFighting < 2) || !mGameMap.getSpellsBySeatAndType(seat, SpellType::callToWar).empty())
+    if((nbFighting < DEFENSE_BANNER_MIN_FIGHTERS) || !mGameMap.getSpellsBySeatAndType(seat, SpellType::callToWar).empty())
         return;
 
     // We keep enough mana for healing
@@ -978,7 +1004,7 @@ void KeeperAI::handleTraps()
         --mCooldownTraps;
         return;
     }
-    mCooldownTraps = scaledCooldown(40, 80);
+    mCooldownTraps = scaledCooldown(TRAPS_COOLDOWN_MIN, TRAPS_COOLDOWN_MAX);
 
     Seat* seat = mPlayer.getSeat();
     // Traps and doors are crafted in a workshop. Without one, nothing would be done with them
@@ -1003,11 +1029,11 @@ void KeeperAI::handleTraps()
     }
 
     // The workshop is not done with the previous ones. We do not pile up more orders
-    if(nbWaitingForCraft >= 2)
+    if(nbWaitingForCraft >= MAX_WAITING_FOR_CRAFT)
         return;
 
     // We keep some gold for rooms and repairs
-    const int goldReserve = 1500;
+    const int goldReserve = TRAPS_GOLD_RESERVE;
     int gold = seat->getGold();
 
     bool canBuildDoor = (nbDoors < mMaxDoors) && SkillManager::isTrapAvailable(TrapType::doorWooden, seat) &&
