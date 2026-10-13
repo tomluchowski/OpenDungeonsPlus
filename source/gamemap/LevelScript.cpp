@@ -319,6 +319,18 @@ bool parseCondition(const std::vector<std::string>& t, LevelScriptCondition& con
         cond.mName = t[2];
         return parseOperator(t[3], cond) && parseInt(t[4], cond.mNumber);
     }
+    if(type == "possessed")
+    {
+        cond.mType = LevelScriptConditionType::possessedInRegion;
+        if((t.size() != 4) && (t.size() != 5))
+            return false;
+
+        cond.mName = t[3];
+        if(t.size() == 5)
+            cond.mName2 = t[4];
+
+        return parseInt32(t[2], cond.mSeatId);
+    }
     if(type == "slabs")
     {
         cond.mType = LevelScriptConditionType::tileKinds;
@@ -657,6 +669,15 @@ bool parseAction(const std::string& line, const std::vector<std::string>& t, Lev
         action.mText = t[2];
         return true;
     }
+    if(type == "possess")
+    {
+        action.mType = LevelScriptActionType::possessCreature;
+        if(t.size() != 3)
+            return false;
+
+        action.mText = t[2];
+        return true;
+    }
     if(type == "remove")
     {
         action.mType = LevelScriptActionType::removeCreature;
@@ -799,6 +820,11 @@ void writeCondition(std::ostream& os, const LevelScriptCondition& c)
             break;
         case LevelScriptConditionType::boulderInRegion:
             os << "boulder\t" << c.mName << "\t" << levelScriptCompareToken(c.mCompare) << "\t" << c.mNumber;
+            break;
+        case LevelScriptConditionType::possessedInRegion:
+            os << "possessed\t" << c.mSeatId << "\t" << c.mName;
+            if(!c.mName2.empty())
+                os << "\t" << c.mName2;
             break;
         case LevelScriptConditionType::tileKinds:
             os << "slabs\t" << c.mSeatId << "\t" << c.mName << "\t" << c.mName2 << "\t" << levelScriptCompareToken(c.mCompare) << "\t" << c.mNumber;
@@ -974,6 +1000,9 @@ void writeAction(std::ostream& os, const LevelScriptAction& a)
         case LevelScriptActionType::removeCreature:
             os << "remove\t" << a.mText;
             break;
+        case LevelScriptActionType::possessCreature:
+            os << "possess\t" << a.mText;
+            break;
         case LevelScriptActionType::golfBall:
             os << "golfball\t" << a.mSeatId << "\t" << a.mX << "\t" << a.mY;
             break;
@@ -1073,6 +1102,13 @@ bool LevelScript::importFromStream(std::istream& is)
 
             timer.mRunning = (running != 0);
             mTimers[t[1]] = timer;
+        }
+        else if(key == "FreePossession")
+        {
+            if(inTrigger || (t.size() != 1))
+                return false;
+
+            mFreePossession = true;
         }
         else if(key == "PortalOff")
         {
@@ -1237,6 +1273,9 @@ void LevelScript::exportToStream(std::ostream& os) const
     for(const std::pair<const std::string, LevelScriptTimer>& timer : mTimers)
         os << "Timer\t" << timer.first << "\t" << (timer.second.mRunning ? 1 : 0) << "\t" << timer.second.mTurns << "\n";
 
+    if(mFreePossession)
+        os << "FreePossession\n";
+
     for(int32_t seatId : mPortalOff)
         os << "PortalOff\t" << seatId << "\n";
 
@@ -1310,6 +1349,7 @@ void LevelScript::clear()
     mTimers.clear();
     mEvents.clear();
     mPortalOff.clear();
+    mFreePossession = false;
     mBlocked.clear();
     mPartyMembers.clear();
     mWatched.clear();

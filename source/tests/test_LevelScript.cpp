@@ -929,3 +929,58 @@ BOOST_AUTO_TEST_CASE(test_stone_and_ball)
         BOOST_CHECK_MESSAGE(!invalid.importFromStream(isBad), entry);
     }
 }
+
+//! \brief The possessed condition and the possess action are read and written, and a level that starts
+//! with a scripted possession keeps the free possession flag through a save
+BOOST_AUTO_TEST_CASE(test_possession_script)
+{
+    static const std::string text =
+        "Region\tHole\t5\t5\t7\t7\n"
+        "[Trigger]\n"
+        "Name\tpossess\n"
+        "Mode\tonce\n"
+        "Cond\tpossessed\t1\tHole\n"
+        "Cond\tpossessed\t1\tHole\tWyvern\n"
+        "Action\tpossess\tWizard4\n"
+        "[/Trigger]\n"
+        "[/Triggers]\n";
+    LevelScript script;
+    BOOST_CHECK(!script.isFreePossession());
+    std::istringstream is(text);
+    BOOST_REQUIRE(script.importFromStream(is));
+
+    const LevelScriptTrigger& trigger = script.getTriggers()[0];
+    BOOST_REQUIRE_EQUAL(trigger.mConditions.size(), 2u);
+    BOOST_CHECK(trigger.mConditions[0].mType == LevelScriptConditionType::possessedInRegion);
+    BOOST_CHECK(trigger.mConditions[0].mName2.empty());
+    BOOST_CHECK_EQUAL(trigger.mConditions[1].mName2, "Wyvern");
+    BOOST_REQUIRE_EQUAL(trigger.mActions.size(), 1u);
+    BOOST_CHECK(trigger.mActions[0].mType == LevelScriptActionType::possessCreature);
+    BOOST_CHECK_EQUAL(trigger.mActions[0].mText, "Wizard4");
+
+    // The flag is written by the game and read again
+    script.setFreePossession(true);
+    BOOST_CHECK(!script.isEmpty());
+    std::ostringstream os;
+    script.exportToStream(os);
+    std::string written = os.str();
+    LevelScript again;
+    std::istringstream is2(written.substr(11));
+    BOOST_REQUIRE(again.importFromStream(is2));
+    BOOST_CHECK(again.isFreePossession());
+    std::ostringstream os2;
+    again.exportToStream(os2);
+    BOOST_CHECK_EQUAL(os2.str(), written);
+    again.clear();
+    BOOST_CHECK(!again.isFreePossession());
+
+    static const char* bad[] = {
+        "[Trigger]\nName\tx\nMode\tonce\nCond\tpossessed\t1\nAction\tmessage\t1\tx\n[/Trigger]\n[/Triggers]\n",
+        "[Trigger]\nName\tx\nMode\tonce\nCond\ttime\t1\nAction\tpossess\n[/Trigger]\n[/Triggers]\n"};
+    for(const char* entry : bad)
+    {
+        LevelScript invalid;
+        std::istringstream isBad(entry);
+        BOOST_CHECK_MESSAGE(!invalid.importFromStream(isBad), entry);
+    }
+}

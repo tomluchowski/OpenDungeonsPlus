@@ -149,4 +149,12 @@ assert 'isBoulderHole(' in script_cpp and 'slapFrom(' in read('source/entities/M
 assert 'slapFrom(handX, handY)' in read('source/network/ODServer.cpp')
 assert 'inputManager.mKeeperHandPos.x' in function(read('source/modes/GameMode.cpp'), 'bool GameMode::mousePressed(')
 
-print('level script make, time limit, creature events, stones and region test level wiring: ok')
+# scripted possession: the creature is possessed by the human keeper, and a level that starts with one is free of mana costs
+assert 'case LevelScriptActionType::possessCreature:' in runner and 'startPossession(' in runner
+assert 'case LevelScriptConditionType::possessedInRegion:' in runner
+assert 'type == "possess"' in script_cpp and 'type == "possessed"' in script_cpp
+assert 'key == "FreePossession"' in script_cpp and 'os << "FreePossession' in script_cpp
+assert 'isFreePossession()' in read('source/creatureaction/CreatureActionPossessed.cpp')
+assert 'script.setFreePossession(true)' in runner
+
+print('level script make, time limit, creature events, stones, possession and region test level wiring: ok')

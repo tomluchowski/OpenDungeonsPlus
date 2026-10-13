@@ -21,6 +21,8 @@
 #include "entities/CreatureDefinition.h"
 #include "game/Player.h"
 #include "game/Seat.h"
+#include "gamemap/GameMap.h"
+#include "gamemap/LevelScript.h"
 #include "ODApplication.h"
 #include "utils/ConfigManager.h"
 
@@ -52,6 +54,10 @@ bool CreatureActionPossessed::handlePossessed(Creature& creature)
     // The cast price covers the first seconds. After that the player pays each turn the share of
     // the drain per second of the creature type. The possession ends when the mana cannot pay
     // one second of it
+    // A level that starts with a scripted possession does not charge for it
+    if(creature.getGameMap()->getLevelScript().isFreePossession())
+        return false;
+
     uint32_t turns = creature.nextPossessionTurn();
     double freeSeconds = ConfigManager::getSingleton().getSpellConfigDouble("PossessFreeSeconds");
     if(static_cast<double>(turns) <= (freeSeconds * ODApplication::turnsPerSecond))

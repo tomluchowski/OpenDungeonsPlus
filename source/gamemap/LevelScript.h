@@ -35,6 +35,7 @@
 //!   [Triggers]
 //!   Flag    <name>  <value>                   # initial value of a flag (unset flags are 0)
 //!   Timer   <name> <running 0|1> <turns>      # written by the game: a timer started by an action, in game turns
+//!   FreePossession                            # written by the game: possessions of this level cost no mana
 //!   PortalOff <seatId>                        # written by the game: a seat whose portals are switched off
 //!   Block   <seatId> <class>                  # written by the game: a creature class that cannot come to the seat
 //!   Event   <tag> <eventName> <count>         # written by the game: events of creatures and parties counted so far
@@ -61,6 +62,7 @@
 //!   Cond    slabs <seatId> <regionName> <kind> <op> <count>   # tiles of the region of that kind: rock (earth wall), path (dug floor), gold, gems, claimed (claimed floor), wall (reinforced wall), water, lava, impenetrable, manawell or a room name; seat -1 any owner, 0 unclaimed
 //!   Cond    tagged <seatId> <regionName> <op> <count>   # tiles of the region marked for digging by the seat
 //!   Cond    tagged <seatId> <regionName> all            # every diggable tile of the region is marked for digging by the seat (and there is one)
+//!   Cond    possessed <seatId> <regionName> [<class>]   # a creature (of that class) that the seat possesses is in the region
 //!   Cond    boulder <regionName> <op> <count>   # rolling boulders (from boulder traps) that are inside the region right now
 //!   Cond    defeated <seatId>                 # the seat has lost its dungeon (its player is out of the game)
 //!   Cond    slaps <seatId> <op> <count>       # slaps the player of the seat has tried to do (a slap that the slap limit refuses counts too)
@@ -106,6 +108,7 @@
 //!   Action  terrain <x1> <y1> <x2> <y2> <kind> [<seatId>]   # changes the tiles of the rectangle: rock, path, gold, gems, claimed, wall (claimed by the seat), water, lava, impenetrable, manawell (open ground that gives its claiming seat mana; with a seat it starts claimed, path removes it)
 //!   Action  portal <seatId> on | off          # the portals of the seat do (not) attract creatures
 //!   Action  available <seatId> <class> 1 | 0  # a creature class can (not) come to the dungeon of the seat
+//!   Action  possess <creatureName>           # the human player takes the creature over (possession). From then on every possession of the level is free (no mana drain), the level is a possession level
 //!   Action  remove <creatureName>             # the creature leaves the map
 //!   Action  alliance <seatA> <seatB> make | break   # the seats become allies (they join one team) or the seat leaves its team
 //!   Action  generate <seatId> <class:level>   # a creature comes through a portal of the seat now
@@ -185,6 +188,7 @@ enum class LevelScriptConditionType
     creatureEvent,
     tileKinds,
     tilesTagged,
+    possessedInRegion,
     boulderInRegion,
     playerSlaps,
     roomFurniture,
@@ -218,6 +222,7 @@ enum class LevelScriptActionType
     removeCreature,
     alliance,
     generateCreature,
+    possessCreature,
     creatureOrder,
     creatureSpeed,
     roomOwner,
@@ -391,6 +396,7 @@ class LevelScript
 {
 public:
     LevelScript() :
+        mFreePossession(false),
         mWatchedValid(false),
         mTimeLimitSeconds(TIME_LIMIT_NOT_SET),
         mCountdownSeconds(COUNTDOWN_NOT_SET),
@@ -410,7 +416,7 @@ public:
 
     //! \brief True if the script holds nothing that a level file has to store.
     inline bool isEmpty() const
-    { return mTriggers.empty() && mFlags.empty() && mTimers.empty() && mEvents.empty() && mPortalOff.empty() && mBlocked.empty() && mRegions.empty() && (mTimeLimitSeconds == TIME_LIMIT_NOT_SET) && (mCountdownSeconds == COUNTDOWN_NOT_SET) && (mWaveCountdownSeconds == COUNTDOWN_NOT_SET) && mOrders.empty() && mSlaps.empty() && (mSlapLimit < 0) && mStoneCarriers.empty(); }
+    { return mTriggers.empty() && mFlags.empty() && mTimers.empty() && mEvents.empty() && !mFreePossession && mPortalOff.empty() && mBlocked.empty() && mRegions.empty() && (mTimeLimitSeconds == TIME_LIMIT_NOT_SET) && (mCountdownSeconds == COUNTDOWN_NOT_SET) && (mWaveCountdownSeconds == COUNTDOWN_NOT_SET) && mOrders.empty() && mSlaps.empty() && (mSlapLimit < 0) && mStoneCarriers.empty(); }
 
     //! \brief The triggers of the script. The caller may change them.
     inline std::vector<LevelScriptTrigger>& getTriggers()
@@ -439,6 +445,15 @@ public:
     //! \brief All timers that were started.
     inline const std::map<std::string, LevelScriptTimer>& getTimers() const
     { return mTimers; }
+
+    //! \brief True if the level starts with a possession (Action possess): it does not drain mana
+    inline bool isFreePossession() const
+    { return mFreePossession; }
+
+    //! \brief Sets whether the possession of the level is free of mana costs
+    //! \param free true to let the possession cost no mana
+    inline void setFreePossession(bool free)
+    { mFreePossession = free; }
 
     //! \brief Switches the portals of a seat off or on again (the portal action)
     //! \param seatId The seat whose portals change
@@ -581,6 +596,7 @@ private:
     std::vector<LevelScriptTrigger> mTriggers;
     std::map<std::string, int64_t> mFlags;
     std::map<std::string, LevelScriptTimer> mTimers;
+    bool mFreePossession;
     std::set<int32_t> mPortalOff;
     std::set<std::pair<int32_t, std::string> > mBlocked;
     std::map<std::pair<std::string, std::string>, int64_t> mEvents;

@@ -236,6 +236,29 @@ bool isConditionMet(GameMap& gameMap, const LevelScript& script, const LevelScri
             }
             return levelScriptCompare(numBoulders, cond.mCompare, cond.mNumber);
         }
+        case LevelScriptConditionType::possessedInRegion:
+        {
+            const LevelScriptRegion* region = script.getRegion(cond.mName);
+            if(region == nullptr)
+            {
+                OD_LOG_ERR("Level script: unknown region name=" + cond.mName);
+                return false;
+            }
+
+            for(Creature* creature : gameMap.getCreatures())
+            {
+                if(!creature->isAlive() || !creature->isPossessed() || !isSeatMatching(creature, cond.mSeatId) ||
+                   !isClassMatching(creature, cond.mName2))
+                {
+                    continue;
+                }
+
+                Tile* tile = creature->getPositionTile();
+                if((tile != nullptr) && region->contains(tile->getX(), tile->getY()))
+                    return true;
+            }
+            return false;
+        }
         case LevelScriptConditionType::tileKinds:
         case LevelScriptConditionType::tilesTagged:
         {
@@ -1154,6 +1177,18 @@ void runAction(GameMap& gameMap, LevelScript& script, const LevelScriptAction& a
         case LevelScriptActionType::removeCreature:
             removeCreature(gameMap, action.mText);
             break;
+        case LevelScriptActionType::possessCreature:
+        {
+            Creature* creature = gameMap.getCreature(action.mText);
+            if((creature != nullptr) && creature->isAlive() && !creature->isPossessed() &&
+               (creature->getSeat() != nullptr) && (creature->getSeat()->getPlayer() != nullptr) &&
+               creature->getSeat()->getPlayer()->getIsHuman())
+            {
+                script.setFreePossession(true);
+                creature->startPossession(*creature->getSeat()->getPlayer());
+            }
+            break;
+        }
         case LevelScriptActionType::golfBall:
             createGolfBall(gameMap, action);
             break;
