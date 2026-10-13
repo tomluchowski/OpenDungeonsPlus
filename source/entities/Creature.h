@@ -632,6 +632,8 @@ public:
 
     //! \brief Stuns the creature for nbTurns turns (lightning trap). A stunned creature does nothing,
     //! like a creature that was just dropped. Does nothing if the creature is dead or already KO.
+    //! Unlike stun(), which can lengthen a stun that is already running, this only starts a stun on a
+    //! creature that is not KO, sets the counter to nbTurns and also stops the walking of the creature.
     //! \param nbTurns How many turns the creature stays stunned.
     void stunForTurns(int32_t nbTurns);
 
