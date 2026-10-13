@@ -49,7 +49,20 @@ struct RoosterSettings
         mCallPercent(3),
         mCallTurns(6),
         mDayTurns(1680),
-        mNightPercent(30)
+        mNightPercent(30),
+        mCrowTurns(4),
+        mRoostDivisor(10),
+        mGuardFar(2.2),
+        mGuardNear(0.9),
+        mGuardApproachGap(1.8),
+        mCatchDistance(0.55),
+        mWalkGap(0.3),
+        mHopDistance(0.6),
+        mCallFollowGap(0.4),
+        mSnuggleGap(0.1),
+        mLeadScratchChance(3),
+        mCallScratchChance(2),
+        mFightStandFactor(0.5)
     {}
 
     //! Turns between two crows (random value in [mCrowMin, mCrowMax]).
@@ -70,6 +83,28 @@ struct RoosterSettings
     //! Turns of a whole day and the part of it (percent, at its end) that is night.
     uint32_t mDayTurns;
     uint32_t mNightPercent;
+    //! Turns a crow lasts, and the divisor of the day length that gives the turns of one sleep period (night).
+    uint32_t mCrowTurns;
+    uint32_t mRoostDivisor;
+    //! Guarding: farther than mGuardFar the rooster runs up to the creature (to mGuardApproachGap from it), between
+    //! mGuardFar and mGuardNear he puffs up and pecks, closer than mGuardNear he runs off (tiles).
+    double mGuardFar;
+    double mGuardNear;
+    double mGuardApproachGap;
+    //! Distance (tiles) at which a chasing rooster has caught the hen.
+    double mCatchDistance;
+    //! Distance (tiles) the rooster stops from his goal when he walks to a hen or a roof, and the distance from the
+    //! roof place within which he hops up at once.
+    double mWalkGap;
+    double mHopDistance;
+    //! Distance (tiles) a hen keeps to the calling rooster, and a chick to the hen at night.
+    double mCallFollowGap;
+    double mSnuggleGap;
+    //! One in N: a leading or calling rooster scratches the ground this turn.
+    uint32_t mLeadScratchChance;
+    uint32_t mCallScratchChance;
+    //! Fraction of the fighting reach at which a rooster stops in front of the other one.
+    double mFightStandFactor;
 };
 
 //! \brief What the rooster sees around him.

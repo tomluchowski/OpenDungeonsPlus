@@ -80,13 +80,13 @@ RoosterPlan HatcheryRooster::decide(const RoosterContext& context, const Rooster
     if((context.mMood != RoosterMood::crow) && newDayCrowOwed(context.mTurn, context.mCrowDay, settings))
     {
         plan.mMood = RoosterMood::crow;
-        plan.mTurns = 4;
+        plan.mTurns = settings.mCrowTurns;
         return plan;
     }
     if(isNight(context.mTurn, settings))
     {
         plan.mMood = RoosterMood::roost;
-        plan.mTurns = std::max<uint32_t>(1, settings.mDayTurns / 10);
+        plan.mTurns = std::max<uint32_t>(1, settings.mDayTurns / std::max<uint32_t>(1, settings.mRoostDivisor));
         return plan;
     }
 
@@ -106,7 +106,7 @@ RoosterPlan HatcheryRooster::decide(const RoosterContext& context, const Rooster
     if(context.mSinceCrow >= context.mCrowInterval)
     {
         plan.mMood = RoosterMood::crow;
-        plan.mTurns = 4;
+        plan.mTurns = settings.mCrowTurns;
         return plan;
     }
 

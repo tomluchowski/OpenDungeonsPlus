@@ -111,6 +111,8 @@ private:
     //! A free place next to a coop, where an animal can stand after jumping down.
     bool getGroundSpot(const Tile& coopTile, Ogre::Vector2& spot) const;
 
+    //! The rooster settings of the current upkeep (read from the config once per turn, not saved)
+    RoosterSettings mRoosterSettings;
     //! Turns until the rooster crows next
     uint32_t mCrowInterval;
     //! Number of the last day the rooster crowed for (HatcheryRooster::dayNumber), -1 until he is first seen

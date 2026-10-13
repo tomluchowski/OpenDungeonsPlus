@@ -113,3 +113,16 @@ assert enum_body.rstrip().endswith('chickenFight')
 assert 'ServerNotificationType::chickenFight' in chicken and 'ServerNotificationType::chickenFight' in client
 assert 'case ServerNotificationType::chickenFight' in (root / 'source/network/ServerNotification.cpp').read_text()
 print('hatchery rooster fight checks passed')
+# The numbers of the rooster and the flock are settings read from the config, not fixed numbers in the room code
+rooster_h = (root / 'source/rooms/HatcheryRooster.h').read_text()
+rooster_cpp = (root / 'source/rooms/HatcheryRooster.cpp').read_text()
+for member in ('mCrowTurns', 'mRoostDivisor', 'mGuardFar', 'mGuardNear', 'mGuardApproachGap', 'mCatchDistance',
+               'mWalkGap', 'mHopDistance', 'mCallFollowGap', 'mSnuggleGap', 'mLeadScratchChance',
+               'mCallScratchChance', 'mFightStandFactor'):
+    assert member in rooster_h and ('settings.' + member in room_cpp or 'Settings.' + member in room_cpp), member
+assert 'settings.mCrowTurns' in rooster_cpp and 'settings.mRoostDivisor' in rooster_cpp
+assert 'mTurns = 4;' not in rooster_cpp and '/ 10)' not in rooster_cpp
+acting = room_cpp[room_cpp.index('void RoomHatchery::actRoosterMood'):room_cpp.index('void RoomHatchery::updateRooster')]
+for number in ('2.2', '0.9', '1.8', '0.55f', 'Random::Int(1, 3)', 'Random::Int(1, 2)'):
+    assert number not in acting, number
+print('hatchery rooster settings checks passed')
