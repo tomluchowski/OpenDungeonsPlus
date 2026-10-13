@@ -214,6 +214,7 @@ public:
 
     //! \brief Hatchery animals: scale, tint and procedural motion by kind and pose
     void rrCreateChickenLook(ChickenEntity* chicken);
+    //! \brief Gives the entity back to the node of the animal and removes the look (accessories, fight links).
     void rrDestroyChickenLook(ChickenEntity* chicken);
     //! \brief The kind of the animal changed (chick grown up): new scale and tint.
     void rrUpdateChickenLook(ChickenEntity* chicken);
@@ -226,6 +227,7 @@ public:
     void rrSetChickenPose(ChickenEntity* chicken, const std::string& pose);
     //! \brief Nest with eggs or loose feathers next to a coop of the hatchery
     void rrCreateCoopDecor(BuildingObject* coop);
+    //! \brief Removes the nest and the feathers next to the coop.
     void rrDestroyCoopDecor(BuildingObject* coop);
     //! \brief Makes the procedural meshes of the hatchery (egg in straw, comb, tail, nest, feathers) if needed
     void rrEnsureChickenMesh(const std::string& meshName);
@@ -414,6 +416,8 @@ private:
     std::vector<ChickenFeatherEffect> mChickenFeatherEffects;
     uint64_t mChickenFeatherEffectNumber = 0;
 
+    //! \brief Per animal state of the look: the child node that carries scale and motion, the pose and its timers,
+    //! the rooster accessories and the fight link.
     struct ChickenLook
     {
         Ogre::SceneNode* mNode;
@@ -431,6 +435,7 @@ private:
     };
     std::map<ChickenEntity*, ChickenLook> mChickenLooks;
 
+    //! \brief Nest and loose feathers next to a coop, with the timer of the door shake.
     struct CoopDecor
     {
         Ogre::SceneNode* mNode;
@@ -514,9 +519,16 @@ private:
     void prepareCreatureFeedingReach(CreatureFeedingAnimation& feeding);
     Ogre::Vector3 updateCreatureFeedingReach(CreatureFeedingAnimation& feeding, Ogre::Real progress);
     void cancelCreatureFeedingAnimation(Creature* creature = nullptr);
+    //! \brief Starts a short feather (or egg shell) particle effect at the position.
+    //! \param position World position of the effect.
+    //! \param particleName Name of the particle template to use.
     void createChickenFeatherEffect(const Ogre::Vector3& position, const std::string& particleName = "ChickenFeathers");
+    //! \brief Moves every animal look (pose motion, fight clouds) and the coop decor for the elapsed time.
+    //! \param timeSinceLastFrame Seconds since the last frame.
     void updateChickenLooks(Ogre::Real timeSinceLastFrame);
+    //! \brief Sets scale, tint and rooster accessories of the animal for its current kind.
     void applyChickenKindLook(ChickenEntity* chicken);
+    //! \brief Forgets all animal looks and coop decors without touching the scene.
     void clearChickenLooks();
     void clearChickenFeatherEffects();
     void startCreatureSleepAnimation(Creature* creature, Ogre::Entity* entity);
