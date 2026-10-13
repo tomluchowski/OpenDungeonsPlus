@@ -57,6 +57,24 @@ const Ogre::Real DEFAULT_X_AXIS_VIEW = 25.0;
 
 const Ogre::String BACKGROUND_RECT_NAME = "BackgroundRect";
 
+//! Limits a pan speed to the range [-maxSpeed, maxSpeed].
+static void clampPanSpeed(Ogre::Real& speed, Ogre::Real maxSpeed)
+{
+    if(speed > maxSpeed)
+        speed = maxSpeed;
+    else if(speed < -maxSpeed)
+        speed = -maxSpeed;
+}
+
+//! Sets (scaled pan from the mouse edge) or adds (keyboard pan) the acceleration of one pan axis.
+static void applyPanAcceleration(Ogre::Real& acceleration, Ogre::Real newAcceleration, bool scaledPan)
+{
+    if(scaledPan)
+        acceleration = newAcceleration;
+    else
+        acceleration += newAcceleration;
+}
+
 CameraManager::CameraManager(Ogre::SceneManager* sceneManager, GameMap* gm, Ogre::RenderWindow* renderWindow) :
     mCircleMode(false),
     mCatmullSplineMode(false),
@@ -80,6 +98,7 @@ CameraManager::CameraManager(Ogre::SceneManager* sceneManager, GameMap* gm, Ogre
     mSwivelDegrees(0.0),
     mTranslateVector(Ogre::Vector3(0.0, 0.0, 0.0)),
     mTranslateVectorAccel(Ogre::Vector3(0.0, 0.0, 0.0)),
+    mTranslateMaxSpeedFactor(Ogre::Vector2(1.0, 1.0)),
     mRotateLocalVector(Ogre::Vector3(0.0, 0.0, 0.0)),
     mSceneManager(sceneManager),
     mViewport(nullptr)
@@ -241,6 +260,30 @@ void CameraManager::createViewport(Ogre::RenderWindow* renderWindow)
     OD_LOG_INF("Creating viewport...");
 }
 
+void CameraManager::setRenderWindow(Ogre::RenderWindow* renderWindow)
+{
+    Ogre::Viewport* previousViewport = mViewport;
+    Ogre::RenderTarget* previousTarget = previousViewport->getTarget();
+    Ogre::Viewport* viewport = renderWindow->addViewport(mActiveCamera,
+        previousViewport->getZOrder(), previousViewport->getLeft(), previousViewport->getTop(),
+        previousViewport->getWidth(), previousViewport->getHeight());
+    viewport->setBackgroundColour(previousViewport->getBackgroundColour());
+    viewport->setClearEveryFrame(previousViewport->getClearEveryFrame(), previousViewport->getClearBuffers());
+    viewport->setMaterialScheme(previousViewport->getMaterialScheme());
+    viewport->setOverlaysEnabled(previousViewport->getOverlaysEnabled());
+    viewport->setSkiesEnabled(previousViewport->getSkiesEnabled());
+    viewport->setShadowsEnabled(previousViewport->getShadowsEnabled());
+    viewport->setVisibilityMask(previousViewport->getVisibilityMask());
+
+    mViewport = viewport;
+    previousTarget->removeViewport(previousViewport->getZOrder());
+    if(viewport->getActualHeight() > 0)
+    {
+        mActiveCamera->setAspectRatio(static_cast<Ogre::Real>(viewport->getActualWidth())
+            / static_cast<Ogre::Real>(viewport->getActualHeight()));
+    }
+}
+
 const Ogre::Vector3& CameraManager::getActiveCameraPosition() const
 {
     return getActiveCameraNode()->getPosition();
@@ -285,6 +328,9 @@ void CameraManager::updateCameraFrameTime(const Ogre::Real frameTime)
     mTranslateVector *= static_cast<Ogre::Real>(std::max(0.0f, speed - (0.75f + (speed / mMoveSpeed))
                         * mMoveSpeedAcceleration * frameTime));
     mTranslateVector += mTranslateVectorAccel * static_cast<Ogre::Real>(frameTime * 2.0f);
+
+    clampPanSpeed(mTranslateVector.x, mMoveSpeed * mTranslateMaxSpeedFactor.x);
+    clampPanSpeed(mTranslateVector.y, mMoveSpeed * mTranslateMaxSpeedFactor.y);
 
     // If we have sped up to more than the maximum moveSpeed then rescale the
     // vector to that length. We use the squaredLength() in this calculation
@@ -615,54 +661,62 @@ void CameraManager::move(const Direction direction, double aux)
     Ogre::Real currentPitch = getActiveCameraNode()->getOrientation().getPitch().valueDegrees();
     currentPitch = std::fmod(currentPitch, 90.0f);
 
+    const bool scaledPan = aux > 0.0;
+    const Ogre::Real maxSpeedFactor = scaledPan ?
+        static_cast<Ogre::Real>(std::min(aux, 1.0)) : 1.0f;
+
     switch (direction)
     {
     case moveRight:
-        if (currentPitch <= 0.0f)
-            mTranslateVectorAccel.x += mMoveSpeedAcceleration;
-        else
-            mTranslateVectorAccel.x -= mMoveSpeedAcceleration;
+        mTranslateMaxSpeedFactor.x = maxSpeedFactor;
+        applyPanAcceleration(mTranslateVectorAccel.x, (currentPitch <= 0.0f ? 1.0f : -1.0f) * mMoveSpeedAcceleration, scaledPan);
         break;
 
     case stopRight:
         if(mTranslateVectorAccel.x >= 0)
+        {
             mTranslateVectorAccel.x = 0;
+            mTranslateMaxSpeedFactor.x = 1.0f;
+        }
         break;
 
     case moveLeft:
-        if (currentPitch <= 0.0f)
-            mTranslateVectorAccel.x -= mMoveSpeedAcceleration;
-        else
-            mTranslateVectorAccel.x += mMoveSpeedAcceleration;
+        mTranslateMaxSpeedFactor.x = maxSpeedFactor;
+        applyPanAcceleration(mTranslateVectorAccel.x, (currentPitch <= 0.0f ? -1.0f : 1.0f) * mMoveSpeedAcceleration, scaledPan);
         break;
 
     case stopLeft:
         if(mTranslateVectorAccel.x <= 0)
+        {
             mTranslateVectorAccel.x = 0;
+            mTranslateMaxSpeedFactor.x = 1.0f;
+        }
         break;
 
     case moveBackward:
-        if (currentPitch <= 0.0f)
-            mTranslateVectorAccel.y -= mMoveSpeedAcceleration;
-        else
-            mTranslateVectorAccel.y += mMoveSpeedAcceleration;
+        mTranslateMaxSpeedFactor.y = maxSpeedFactor;
+        applyPanAcceleration(mTranslateVectorAccel.y, (currentPitch <= 0.0f ? -1.0f : 1.0f) * mMoveSpeedAcceleration, scaledPan);
         break;
 
     case stopBackward:
         if(mTranslateVectorAccel.y <= 0)
+        {
             mTranslateVectorAccel.y = 0;
+            mTranslateMaxSpeedFactor.y = 1.0f;
+        }
         break;
 
     case moveForward:
-        if (currentPitch <= 0.0f)
-            mTranslateVectorAccel.y += mMoveSpeedAcceleration;
-        else
-            mTranslateVectorAccel.y -= mMoveSpeedAcceleration;
+        mTranslateMaxSpeedFactor.y = maxSpeedFactor;
+        applyPanAcceleration(mTranslateVectorAccel.y, (currentPitch <= 0.0f ? 1.0f : -1.0f) * mMoveSpeedAcceleration, scaledPan);
         break;
 
     case stopForward:
         if(mTranslateVectorAccel.y >= 0)
+        {
             mTranslateVectorAccel.y = 0;
+            mTranslateMaxSpeedFactor.y = 1.0f;
+        }
         break;
 
     case moveUp:
