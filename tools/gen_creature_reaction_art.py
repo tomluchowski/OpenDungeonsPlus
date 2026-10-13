@@ -223,6 +223,45 @@ def glyph_sack(draw):
     coin(draw, 128, 128, 28)
 
 
+def glyph_yawn(draw):
+    dark = (120, 30, 40, 255)
+    # A wide open mouth with a tongue and two small lines of effort above it
+    draw.ellipse((78, 62, 178, 168), fill=dark, outline=OUTLINE, width=6)
+    draw.ellipse((96, 118, 160, 164), fill=(226, 96, 112, 255))
+    draw.line((74, 52, 56, 38), fill=OUTLINE, width=8)
+    draw.line((182, 52, 200, 38), fill=OUTLINE, width=8)
+
+
+def glyph_dots(draw):
+    grey = (96, 96, 110, 255)
+    for x in (70, 128, 186):
+        draw.ellipse((x - 17, 120, x + 17, 154), fill=grey)
+
+
+def glyph_cloud(draw):
+    grey = (96, 100, 116, 255)
+    dark = (56, 58, 72, 255)
+    blue = (62, 148, 232, 255)
+    # A dark rain cloud with two drops
+    for box in ((58, 70, 126, 130), (96, 44, 176, 122), (134, 70, 202, 130), (80, 82, 182, 138)):
+        draw.ellipse(box, fill=grey, outline=dark, width=4)
+    draw.ellipse((88, 76, 172, 134), fill=grey)
+    for x in (96, 150):
+        draw.polygon([(x, 140), (x - 9, 160), (x + 9, 160)], fill=blue)
+        draw.ellipse((x - 9, 154, x + 9, 170), fill=blue)
+
+
+def glyph_exit(draw):
+    brown = (150, 100, 50, 255)
+    dark = (84, 52, 20, 255)
+    green = (46, 160, 84, 255)
+    # A door with an arrow that leads out of it
+    draw.rectangle((54, 46, 118, 170), fill=brown, outline=dark, width=6)
+    draw.ellipse((96, 104, 108, 116), fill=(246, 198, 44, 255))
+    draw.polygon([(132, 96), (172, 96), (172, 74), (216, 108), (172, 142), (172, 120), (132, 120)], fill=green,
+                 outline=dark)
+
+
 EMOTES = [
     ("Exclamation", glyph_exclamation),
     ("Question", glyph_question),
@@ -240,6 +279,10 @@ EMOTES = [
     ("Smoke", glyph_smoke),
     ("Chicken", glyph_chicken),
     ("Sack", glyph_sack),
+    ("Yawn", glyph_yawn),
+    ("Dots", glyph_dots),
+    ("Cloud", glyph_cloud),
+    ("Exit", glyph_exit),
 ]
 
 

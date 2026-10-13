@@ -55,6 +55,11 @@ CreatureReactionConfig::CreatureReactionConfig() :
     mMaxCameraDistance(45.0),
     mGroupStaggerMin(0.12),
     mGroupStaggerMax(0.45),
+    mMoodInterval(0.5),
+    mMoodPerTick(4),
+    mMoodWalkingChance(0.3),
+    mImpatientAfter(6.0),
+    mProudSeconds(25.0),
     mDefaultGroup("Fighters")
 {
 }
@@ -191,6 +196,16 @@ bool CreatureReactionConfig::loadSettings(std::istream& file)
             mGroupStaggerMin = Helper::toDouble(words[1]);
         else if(words[0] == "GroupStaggerMax")
             mGroupStaggerMax = Helper::toDouble(words[1]);
+        else if(words[0] == "MoodInterval")
+            mMoodInterval = Helper::toDouble(words[1]);
+        else if(words[0] == "MoodPerTick")
+            mMoodPerTick = Helper::toUInt32(words[1]);
+        else if(words[0] == "MoodWalkingChance")
+            mMoodWalkingChance = Helper::toDouble(words[1]);
+        else if(words[0] == "ImpatientAfter")
+            mImpatientAfter = Helper::toDouble(words[1]);
+        else if(words[0] == "ProudSeconds")
+            mProudSeconds = Helper::toDouble(words[1]);
         else if(words[0] == "DefaultGroup")
             mDefaultGroup = words[1];
         else
@@ -398,7 +413,7 @@ bool CreatureReactionConfig::loadVariant(std::istream& file, ReactionVariant& va
         }
         else if(words[0] == "Motion")
         {
-            // Motion <hop|shake|squash|spin|turn> <count> <amount> <seconds>
+            // Motion <hop|shake|squash|spin|turn|look|lookat|sit|startle> <count> <amount> <seconds>
             ReactionMotion::Type type = ReactionMotion::Type::none;
             if(words[1] == "hop")
                 type = ReactionMotion::Type::hop;
@@ -410,6 +425,14 @@ bool CreatureReactionConfig::loadVariant(std::istream& file, ReactionVariant& va
                 type = ReactionMotion::Type::spin;
             else if(words[1] == "turn")
                 type = ReactionMotion::Type::turn;
+            else if(words[1] == "look")
+                type = ReactionMotion::Type::look;
+            else if(words[1] == "lookat")
+                type = ReactionMotion::Type::lookat;
+            else if(words[1] == "sit")
+                type = ReactionMotion::Type::sit;
+            else if(words[1] == "startle")
+                type = ReactionMotion::Type::startle;
 
             if((type == ReactionMotion::Type::none) || (words.size() < 5))
             {
@@ -444,6 +467,27 @@ bool CreatureReactionConfig::loadVariant(std::istream& file, ReactionVariant& va
         else if(words[0] == "RequiresSleepNeed")
         {
             variant.mRequiresSleepNeed = toBool(words[1]);
+        }
+        else if(words[0] == "RequiresWall")
+        {
+            variant.mRequiresWall = toBool(words[1]);
+        }
+        else if(words[0] == "RequiresNeighbour")
+        {
+            variant.mRequiresNeighbour = toBool(words[1]);
+        }
+        else if(words[0] == "LookAtRoom")
+        {
+            variant.mLookAtRoom = words[1];
+        }
+        else if(words[0] == "LateEmote")
+        {
+            // LateEmote <name> <delay> <seconds>
+            variant.mLateEmote = words[1];
+            if(words.size() >= 3)
+                variant.mLateEmoteDelay = Helper::toDouble(words[2]);
+            if(words.size() >= 4)
+                variant.mLateEmoteTime = Helper::toDouble(words[3]);
         }
         else
         {

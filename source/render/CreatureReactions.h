@@ -169,7 +169,12 @@ private:
             mMotionLastScale(Ogre::Vector3::UNIT_SCALE),
             mMotionTurnAngle(0.0),
             mMotionTurnComputed(false),
-            mWhileWorking(false)
+            mWhileWorking(false),
+            mLookTarget(Ogre::Vector3::ZERO),
+            mHasLookTarget(false),
+            mLateEmoteDelay(0.0),
+            mLateEmoteTime(2.0),
+            mEndsWhenMoving(false)
         {}
 
         std::string mCreatureName;
@@ -202,6 +207,18 @@ private:
         bool mMotionTurnComputed;
         //! The event decorates the work animation of the creature (see ReactionEvent::mWhileWorking)
         bool mWhileWorking;
+
+        //! The point the motion 'lookat' and some props turn to (a wall, a room, a neighbour, the place of an event)
+        Ogre::Vector3 mLookTarget;
+        bool mHasLookTarget;
+
+        //! Icon that starts later in the reaction. Empty once it is shown.
+        std::string mLateEmote;
+        double mLateEmoteDelay;
+        double mLateEmoteTime;
+
+        //! The reaction needs the creature to stand and ends when it sets off
+        bool mEndsWhenMoving;
     };
 
     struct PendingReaction
@@ -298,6 +315,33 @@ private:
     //! \brief True if the creature type, group, job and sleep need allow the variant.
     bool isVariantAllowed(const Creature* creature, const ReactionVariant& variant) const;
 
+    //! \brief Looks at the moods of a few creatures at a time (round robin) and lets them show a feeling now and
+    //! then. Not every creature every frame.
+    void updateMoods(Ogre::Real timeSinceLastFrame);
+
+    //! \brief Picks the most pressing feeling of one creature (mood, hunger, pride, boredom) and shows it
+    //! \param creature The creature to look at
+    void examineMood(Creature* creature);
+
+    //! \brief True if the creature is hurt and an enemy fighter is close
+    bool isHurtAndThreatened(const Creature* creature) const;
+    //! \brief The point on the wall next to the creature, false if no wall tile is next to it
+    bool findWall(const Creature* creature, Ogre::Vector3& point) const;
+    //! \brief The position of the closest other creature, false if none is close
+    bool findNeighbour(const Creature* creature, Ogre::Vector3& point) const;
+    //! \brief The closest tile of a room of the creature's seat, false if it has none
+    bool findRoomTile(const Creature* creature, const std::string& roomName, Ogre::Vector3& point) const;
+    //! \brief The point the variant turns to (wall, neighbour or room), false if the variant has none or it is not there
+    bool findLookTarget(const Creature* creature, const ReactionVariant& variant, Ogre::Vector3& point) const;
+    //! \brief True if the event (a victory or a level up) makes a creature proud for a while
+    static bool isProudEvent(const std::string& eventName);
+
+    //! \brief True if the motion needs the creature to stand where it is (it does not move the model away)
+    static bool isStandingMotion(ReactionMotion::Type type);
+
+    //! \brief Shows the second icon (and the second effect) of the reaction when it is time
+    void updateLate(RunningReaction& reaction, Creature* creature);
+
     //! \brief Updates a running reaction. Returns false if it is over
     bool updateReaction(RunningReaction& reaction, Creature* creature, Ogre::Real timeSinceLastFrame);
     //! \brief Cleans everything a reaction has put on the creature
@@ -342,6 +386,14 @@ private:
     double mTime;
     double mTimeLastPrune;
     uint32_t mNextParticleId;
+
+    //! Time before the next look at the moods of a few creatures, and the creature it goes on with
+    double mMoodTimer;
+    size_t mMoodIndex;
+    //! Time a creature was first seen standing idle ("creature" -> mTime)
+    std::map<std::string, double> mIdleSince;
+    //! Time until a creature is proud of its victory or level up ("creature" -> mTime)
+    std::map<std::string, double> mProudUntil;
 
     //! Time before which a creature may not show a reaction of a kind again ("creature|event")
     std::map<std::string, double> mCooldownEnd;

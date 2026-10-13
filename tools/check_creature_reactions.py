@@ -15,11 +15,17 @@ import sys
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PRIORITIES = ("death", "combat", "held", "event", "work", "mood", "ambient")
 JOBS = ("Fighter", "Worker")
-MOTIONS = ("hop", "shake", "squash", "spin", "turn")
-SETTINGS = ("MaxSimultaneous", "MaxCameraDistance", "GroupStaggerMin", "GroupStaggerMax", "DefaultGroup")
+MOTIONS = ("hop", "shake", "squash", "spin", "turn", "look", "lookat", "sit", "startle")
+PROPS = ("juggle", "yoyo", "flip", "stack", "toss", "critter", "balance", "doodle", "shadow", "kick")
+ROOMS = ("Hatchery", "Treasury", "Portal", "Dormitory", "Library", "Workshop", "TrainingHall", "Prison", "Torture",
+         "Arena", "Temple", "Casino", "GuardRoom", "Crypt")
+SETTINGS = ("MaxSimultaneous", "MaxCameraDistance", "GroupStaggerMin", "GroupStaggerMax", "DefaultGroup",
+            "MoodInterval", "MoodPerTick", "MoodWalkingChance", "ImpatientAfter", "ProudSeconds", "BoredAfter",
+            "AmbientAfter", "SitAfter", "LieAfter", "LookRadius")
 EVENT_KEYS = ("Name", "Priority", "Cooldown", "Probability", "GroupMax", "WhileWorking")
 VARIANT_KEYS = ("Name", "Weight", "Clip", "Fallback", "Emote", "Effect", "Motion", "Cooldown", "Probability",
-                "Creatures", "Groups", "Jobs", "RequiresSleepNeed")
+                "Creatures", "Groups", "Jobs", "RequiresSleepNeed", "RequiresWall", "RequiresNeighbour", "LookAtRoom",
+                "LateEmote", "LateEffect", "Prop", "Spreads")
 
 
 def read_lines(path):
@@ -172,6 +178,11 @@ def main():
         error("a block, event, variant or group is not closed")
 
     check_material_lookups(error)
+    for name, found in events.items():
+        for found_variant in found["variants"]:
+            target = found_variant.get("Spreads")
+            if target and target[0] not in events:
+                error("event %s: Spreads names the unknown event %s" % (name, target[0]))
 
     default_group = None
     for words in lines:
@@ -203,18 +214,29 @@ def check_variant(key, words, variant, event, creatures, groups, materials, part
         error("%s: %s speed and range must be numbers" % (where, key))
     if key == "Fallback" and len(words) in (4,):
         error("%s: Fallback needs both start and end" % where)
-    if key == "Emote":
+    if key in ("Emote", "LateEmote"):
         if "CreatureEmote_" + words[1] not in materials:
             error("%s: no material CreatureEmote_%s" % (where, words[1]))
         elif not os.path.exists(os.path.join(ROOT, "materials", "textures", "CreatureEmote%s.png" % words[1])):
             error("%s: no texture for emote %s" % (where, words[1]))
-        if len(words) >= 3 and not is_number(words[2]):
-            error("%s: Emote time must be a number" % where)
-    if key == "Effect":
+        if not all(is_number(w) for w in words[2:]):
+            error("%s: %s times must be numbers" % (where, key))
+    if key in ("Effect", "LateEffect"):
         if words[1] not in particles:
             error("%s: no particle system %s" % (where, words[1]))
-        if len(words) >= 3 and not is_number(words[2]):
-            error("%s: Effect time must be a number" % where)
+        if not all(is_number(w) for w in words[2:]):
+            error("%s: %s times must be numbers" % (where, key))
+    if key == "Prop":
+        if len(words) != 6 or words[1] not in PROPS or not all(is_number(w) for w in words[3:]):
+            error("%s: Prop must be '<%s> <sprite> <count> <size> <seconds>'" % (where, "|".join(PROPS)))
+        elif "CreatureProp_" + words[2] not in materials:
+            error("%s: no material CreatureProp_%s" % (where, words[2]))
+        elif not os.path.exists(os.path.join(ROOT, "materials", "textures", "CreatureProp%s.png" % words[2])):
+            error("%s: no texture for prop %s" % (where, words[2]))
+    if key == "LookAtRoom" and words[1] not in ROOMS:
+        error("%s: unknown room %s" % (where, words[1]))
+    if key in ("RequiresWall", "RequiresNeighbour") and words[1] not in ("yes", "no"):
+        error("%s: %s must be yes or no" % (where, key))
     if key == "Motion" and (words[1] not in MOTIONS or len(words) < 5 or not all(is_number(w) for w in words[2:5])):
         error("%s: Motion must be '<%s> <count> <amount> <seconds>'" % (where, "|".join(MOTIONS)))
     if key == "Creatures":

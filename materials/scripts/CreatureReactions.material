@@ -392,3 +392,63 @@ material ReactionParticleSmoke
         }
     }
 }
+
+material CreatureEmote_Yawn
+{
+    technique
+    {
+        pass
+        {
+            scene_blend alpha_blend
+            texture_unit
+            {
+                texture CreatureEmoteYawn.png
+            }
+        }
+    }
+}
+
+material CreatureEmote_Dots
+{
+    technique
+    {
+        pass
+        {
+            scene_blend alpha_blend
+            texture_unit
+            {
+                texture CreatureEmoteDots.png
+            }
+        }
+    }
+}
+
+material CreatureEmote_Cloud
+{
+    technique
+    {
+        pass
+        {
+            scene_blend alpha_blend
+            texture_unit
+            {
+                texture CreatureEmoteCloud.png
+            }
+        }
+    }
+}
+
+material CreatureEmote_Exit
+{
+    technique
+    {
+        pass
+        {
+            scene_blend alpha_blend
+            texture_unit
+            {
+                texture CreatureEmoteExit.png
+            }
+        }
+    }
+}
