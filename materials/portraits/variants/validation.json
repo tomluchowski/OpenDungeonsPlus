@@ -4,18 +4,20 @@
   "source_images_unchanged": 632,
   "base_portraits_unchanged": 34,
   "technical_validation": "passed",
-  "correction_options": 422,
+  "correction_options": 553,
+  "individually_reviewed_options": 632,
+  "required_regenerations": null,
   "native_visual_acceptance": "open",
   "details": [
     {
       "id": "Kobold.mesh",
       "patches": 19,
-      "corrections": 15
+      "corrections": 18
     },
     {
       "id": "Kobold.mesh-female",
       "patches": 21,
-      "corrections": 15
+      "corrections": 18
     },
     {
       "id": "Goblin.mesh",
@@ -25,7 +27,7 @@
     {
       "id": "Goblin.mesh-female",
       "patches": 21,
-      "corrections": 15
+      "corrections": 18
     },
     {
       "id": "Orc.mesh",
@@ -35,147 +37,147 @@
     {
       "id": "Orc.mesh-female",
       "patches": 21,
-      "corrections": 15
+      "corrections": 17
     },
     {
       "id": "Dwarf1.mesh",
       "patches": 19,
-      "corrections": 12
+      "corrections": 15
     },
     {
       "id": "Dwarf1.mesh-female",
       "patches": 19,
-      "corrections": 14
+      "corrections": 16
     },
     {
       "id": "Dwarf2.mesh",
       "patches": 19,
-      "corrections": 16
+      "corrections": 18
     },
     {
       "id": "Dwarf2.mesh-female",
       "patches": 19,
-      "corrections": 16
+      "corrections": 18
     },
     {
       "id": "RunelordDwarf.mesh",
       "patches": 19,
-      "corrections": 14
+      "corrections": 18
     },
     {
       "id": "RunelordDwarf.mesh-female",
       "patches": 19,
-      "corrections": 12
+      "corrections": 16
     },
     {
       "id": "Gnome.mesh",
       "patches": 17,
-      "corrections": 12
+      "corrections": 13
     },
     {
       "id": "Gnome.mesh-female",
       "patches": 19,
-      "corrections": 12
+      "corrections": 16
     },
     {
       "id": "Adventurer.mesh",
       "patches": 21,
-      "corrections": 12
+      "corrections": 16
     },
     {
       "id": "Adventurer.mesh-female",
       "patches": 21,
-      "corrections": 12
+      "corrections": 18
     },
     {
       "id": "Monk.mesh",
       "patches": 21,
-      "corrections": 12
+      "corrections": 16
     },
     {
       "id": "Monk.mesh-female",
       "patches": 21,
-      "corrections": 12
+      "corrections": 17
     },
     {
       "id": "Defender.mesh",
       "patches": 21,
-      "corrections": 14
+      "corrections": 18
     },
     {
       "id": "Defender.mesh-female",
       "patches": 21,
-      "corrections": 14
+      "corrections": 18
     },
     {
       "id": "Wizard.mesh",
       "patches": 21,
-      "corrections": 12
+      "corrections": 19
     },
     {
       "id": "Wizard.mesh-female",
       "patches": 21,
-      "corrections": 12
+      "corrections": 21
     },
     {
       "id": "Elf.mesh-male",
       "patches": 21,
-      "corrections": 13
+      "corrections": 19
     },
     {
       "id": "Elf.mesh",
       "patches": 21,
-      "corrections": 13
+      "corrections": 19
     },
     {
       "id": "DarkElf.mesh-male",
       "patches": 21,
-      "corrections": 13
+      "corrections": 21
     },
     {
       "id": "DarkElf.mesh",
       "patches": 21,
-      "corrections": 13
+      "corrections": 21
     },
     {
       "id": "Troll.mesh",
       "patches": 19,
-      "corrections": 15
+      "corrections": 14
     },
     {
       "id": "Troll.mesh-female",
       "patches": 19,
-      "corrections": 15
+      "corrections": 16
     },
     {
       "id": "Lizardman.mesh",
       "patches": 17,
-      "corrections": 13
+      "corrections": 17
     },
     {
       "id": "Lizardman.mesh-female",
       "patches": 19,
-      "corrections": 15
+      "corrections": 18
     },
     {
       "id": "Knight.mesh",
       "patches": 9,
-      "corrections": 2
+      "corrections": 7
     },
     {
       "id": "Knight.mesh-female",
       "patches": 9,
-      "corrections": 4
+      "corrections": 9
     },
     {
       "id": "Cultist.mesh",
       "patches": 9,
-      "corrections": 4
+      "corrections": 9
     },
     {
       "id": "Cultist.mesh-female",
       "patches": 9,
-      "corrections": 4
+      "corrections": 9
     }
   ]
 }
