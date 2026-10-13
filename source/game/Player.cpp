@@ -295,6 +295,17 @@ void Player::pickUpEntity(GameEntity *entity)
 }
 
 
+unsigned int Player::getHandIndex(GameEntityType type, const std::string& name) const
+{
+    for(unsigned int index = 0; index < mObjectsInHand.size(); ++index)
+    {
+        GameEntity* entity = mObjectsInHand[index];
+        if(entity->getObjectType() == type && entity->getName() == name)
+            return index;
+    }
+    return static_cast<unsigned int>(mObjectsInHand.size());
+}
+
 bool Player::isDropHandPossible(Tile *t, unsigned int index)
 {
     // if we have a creature to drop
