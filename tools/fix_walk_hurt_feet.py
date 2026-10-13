@@ -96,7 +96,8 @@ def thin(t, T, Q, S, step):
 
 
 def write_hurt(src_path, out_path, skel, fix, ik_bones):
-    text = open(src_path, encoding='utf-8').read()
+    with open(src_path, encoding='utf-8') as f:
+        text = f.read()
     walk = skel.clips['Walk']
     L = walk.length
     tn = fix['tn']
@@ -134,7 +135,8 @@ def write_hurt(src_path, out_path, skel, fix, ik_bones):
     else:
         i = text.rindex('</animations>')
         new = text[:i] + '\t\t' + out + '\n\t' + text[i:]
-    open(out_path, 'w', encoding='utf-8', newline='\n').write(new)
+    with open(out_path, 'w', encoding='utf-8', newline='\n') as f:
+        f.write(new)
 
 
 def main():
@@ -174,7 +176,8 @@ def main():
     if isinstance(rigs, str):
         print('SKIP', a.rig, rigs)
         return 1
-    wm = json.load(open(a.walkmeta))
+    with open(a.walkmeta) as f:
+        wm = json.load(f)
     walk = skel.clips['Walk']
     runs_fix = dict((k, [tuple(r) for r in f['runs']]) for k, f in enumerate(wm['feet']))
     hurt = hurt_feet(cfg, rigs, o)
@@ -193,7 +196,8 @@ def main():
                 feet=[dict(bone=f['units'][0]['chain'][-1],
                            runs=[[s * fp.dt, ln * fp.dt] for (s, ln) in fp.runs])
                       for f, fp in zip(cfg['feet'], fx['A']['fps'])])
-    json.dump(meta, open(a.meta or (a.out + '.json'), 'w'))
+    with open(a.meta or (a.out + '.json'), 'w') as f:
+        json.dump(meta, f)
     print('WalkHurt %s length %.4f dropmax %.3f H  trims %s' % (a.rig, fx['Ln'], fx['drop'].max(),
           ' '.join('%d:%.2f' % (k, h.get('used', 1.0)) for k, h in sorted(hurt.items()))))
     vf = F.verify_fix(F.Skel(a.out), cfg, fx, CLIP)
