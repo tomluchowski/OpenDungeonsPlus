@@ -212,6 +212,7 @@ public:
     void rrDestroyDefeatRubble();
     void rrCreateCreatureCombatImpact(Creature* creature, bool weaponClash,
         bool bodyDamage, const Ogre::Vector3& attackerPosition);
+    //! \brief Gives the meal animation of a creature the chicken to eat: shows a copy of it at the given position and hides the real one.
     void rrSetFeedingChicken(Creature* creature, MovableGameEntity* chicken,
         const Ogre::Vector3& position);
 
@@ -567,10 +568,24 @@ private:
     uint64_t mRoomConstructionEffectNumber = 0;
 
     void clearCreatureCombatEffects(Creature* creature = nullptr);
+    //! \brief Starts the meal animation of a creature that eats a chicken and picks the style for its mesh.
     void startCreatureFeedingAnimation(Creature* creature, Ogre::Entity* entity);
+    //! \brief Looks up the arm, leg, head and spine bones of the feeding creature and stores their rest pose.
     void prepareCreatureFeedingReach(CreatureFeedingAnimation& feeding);
+    //! \brief Poses the body of the feeding creature for one frame of the meal.
+    //! \param progress Progress of the whole meal from 0 to 1.
+    //! \param reach How far the arms reach for the chicken (0 to 1).
+    //! \param lift How far the chicken is lifted from the ground to the hold position (0 to 1); the crouch shrinks with it.
+    //! \param release How far the hands let go of the chicken (0 to 1).
+    //! \param dip How far the head dips towards the chicken during a bite (0 to 1).
+    //! \param biteLean Extra forward lean of the spine in degrees during a bite.
+    //! \return The middle between the two hands where the chicken is gripped.
     Ogre::Vector3 updateCreatureFeedingReach(CreatureFeedingAnimation& feeding, Ogre::Real progress,
         Ogre::Real reach, Ogre::Real lift, Ogre::Real release, Ogre::Real dip, Ogre::Real biteLean);
+    //! \brief Gets the position of the mouth of the feeding creature in the space of its node.
+    //! \param height Height of the creature mesh.
+    //! \param chickenHeight Height of the chicken, used to keep the chicken in front of the jaws.
+    //! \param withoutHands True when the chicken is taken into the mouth instead of held in the hands.
     Ogre::Vector3 getCreatureFeedingMouth(const CreatureFeedingAnimation& feeding, Ogre::Real height,
         Ogre::Real chickenHeight, bool withoutHands) const;
     void cancelCreatureFeedingAnimation(Creature* creature = nullptr);

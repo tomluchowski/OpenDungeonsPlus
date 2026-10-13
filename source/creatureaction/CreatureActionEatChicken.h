@@ -35,6 +35,7 @@ public:
     CreatureActionType getType() const override
     { return CreatureActionType::eatChicken; }
 
+    //! \brief Gets the function that runs this action: the gift meal for a dropped chicken, the normal meal otherwise.
     std::function<bool()> action() override;
 
     std::string getListenerName() const override;

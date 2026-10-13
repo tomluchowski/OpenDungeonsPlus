@@ -196,10 +196,10 @@ public:
 
     void setPosition(const Ogre::Vector3& v, GameMap *gameMap = nullptr ) override;
 
-    //! \brief Gets the move speed on the current tile.
+    //! \brief Gets the move speed on the current tile, slowed down while the creature is tired.
     virtual double getMoveSpeed() const override;
 
-    //! \brief Gets the move speed on the current tile.
+    //! \brief Gets the move speed on the given tile, slowed down while the creature is tired.
     double getMoveSpeed(Tile* tile) const;
 
     //! \brief Gets the creature depending the terrain type.

@@ -705,11 +705,13 @@ struct ChickenMealSettings
     Ogre::Real mStruggleRoll;
 };
 
+//! \brief Reads one chicken meal value from the room configuration, or the default when the key is missing.
 Ogre::Real getChickenMealValue(const char* key, double defaultValue)
 {
     return static_cast<Ogre::Real>(ConfigManager::getSingleton().getRoomConfigDoubleOrDefault(key, defaultValue));
 }
 
+//! \brief Reads all chicken meal values and works out the times at which the bites and the swallow happen.
 ChickenMealSettings getChickenMealSettings()
 {
     ChickenMealSettings meal;
@@ -741,6 +743,7 @@ ChickenMealSettings getChickenMealSettings()
     return meal;
 }
 
+//! \brief Smooth step: clamps the value to 0..1 and eases it in and out.
 Ogre::Real chickenMealSmooth(Ogre::Real value)
 {
     value = std::max(static_cast<Ogre::Real>(0.0), std::min(value, static_cast<Ogre::Real>(1.0)));
