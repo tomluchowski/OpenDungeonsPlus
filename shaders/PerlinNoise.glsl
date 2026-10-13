@@ -96,12 +96,17 @@ float tileBorderFade(vec2 p) {
 }
 
 
+/* Up component of the world space normal where the world space UV start to blend in, and from
+ * which on they are used fully. */
+#define WORLD_UV_NORMAL_MIN 0.6
+#define WORLD_UV_NORMAL_FULL 0.9
+
 /* Weight (0..1) for switching from the per tile mesh UV to world space UV on upward facing
  * surfaces. The tileset rotates the tile meshes by multiples of 90 degrees and every mesh has
  * its own UV layout, so the mesh UV of two neighbouring tiles do not line up on the shared
  * border. World space UV (one texture repeat per tile, tile borders at n + 0.5) do. */
 float worldUvWeight(vec3 worldNormal) {
-    return smoothstep(0.6, 0.9, worldNormal.z);
+    return smoothstep(WORLD_UV_NORMAL_MIN, WORLD_UV_NORMAL_FULL, worldNormal.z);
 }
 
 vec2 worldTileUV(vec3 worldPos) {
