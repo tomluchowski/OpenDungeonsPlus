@@ -30,5 +30,9 @@
             <Property name="PushedImage" value="OpenDungeonsSkin/CloseButtonPressed" />
             <Property name="TooltipText" value="Back" />
         </Window>
+        <Window type="OD/MainMenuButton" name="StartSandboxButton" >
+            <Property name="Area" value="{{0.5,-80},{0,160},{0.5,100},{0,240}}" />
+            <Property name="Text" value="[image-size='w:32 h:32'][image='OpenDungeonsIcons/WavePortalButton'][vert-alignment='centre']Sandbox ..." />
+        </Window>
     </Window>
 </GUILayout>

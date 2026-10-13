@@ -137,6 +137,10 @@ std::string ClientNotification::typeString(ClientNotificationType type)
             return "askTrapProductionQueue";
         case ClientNotificationType::askMoveTrapProductionOrder:
             return "askMoveTrapProductionOrder";
+        case ClientNotificationType::askSandboxTakeHero:
+            return "askSandboxTakeHero";
+        case ClientNotificationType::askSandboxInvasion:
+            return "askSandboxInvasion";
         case ClientNotificationType::askPossessMove:
             return "askPossessMove";
         case ClientNotificationType::askPossessExit:

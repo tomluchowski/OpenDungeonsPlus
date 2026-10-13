@@ -90,6 +90,9 @@ enum class ClientNotificationType
 
     askTrapProductionQueue,
     askMoveTrapProductionOrder,
+    // Sandbox mode
+    askSandboxTakeHero, // Asks for a hero in the hand: + string className + uint32_t level
+    askSandboxInvasion, // Asks for hero waves: + bool continual (false = one wave)
     //! Possession: the direction the possessed creature should walk (Vector2, zero to stop)
     askPossessMove,
     //! Possession: the player wants to leave the possessed creature

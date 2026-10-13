@@ -19,6 +19,7 @@
 #define GAMEMAP_H
 
 #include "entities/GameEntity.h"
+#include "gamemap/SandboxMode.h"
 #include "gamemap/SelectionEntityWanted.h"
 #include "gamemap/TileContainer.h"
 #include "ai/AIManager.h"
@@ -334,6 +335,19 @@ public:
     inline void setLevelFightMusicFile(const std::string& levelFightMusicFile)
     { mMapInfoFightMusicFile = levelFightMusicFile; }
 
+    //! \brief A sandbox level has no goals to win or lose. The player builds freely and uses the
+    //! sandbox panel to call heroes.
+    inline bool isSandbox() const
+    { return mIsSandbox; }
+
+    //! \brief Marks the level as a sandbox level (read from the level file or the server packet)
+    inline void setSandbox(bool isSandbox)
+    { mIsSandbox = isSandbox; }
+
+    //! \brief The server side logic of the sandbox (hero toolbox and invasions)
+    inline SandboxMode& getSandboxMode()
+    { return mSandboxMode; }
+
     std::string getGoalsStringForPlayer(Player* player);
 
     //! \brief Loops over all the creatures and calls their individual doTurn methods,
@@ -637,6 +651,10 @@ private:
     std::string mMapInfoDescription;
     std::string mMapInfoMusicFile;
     std::string mMapInfoFightMusicFile;
+    //! \brief True for a sandbox level
+    bool mIsSandbox;
+    //! \brief The hero toolbox and invasion logic of a sandbox level
+    SandboxMode mSandboxMode;
 
     std::vector<Creature*> mCreatures;
 

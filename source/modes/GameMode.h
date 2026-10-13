@@ -154,6 +154,19 @@ class GameMode final : public GameEditorModeBase, public InputCommand
     bool hideObjectivesWindow(const CEGUI::EventArgs& = {});
     bool toggleObjectivesWindow(const CEGUI::EventArgs& = {});
 
+    //! \brief Sandbox panel: shows or hides the window
+    bool toggleSandboxWindow(const CEGUI::EventArgs& = {});
+    //! \brief Sandbox panel: hides the window
+    bool hideSandboxWindow(const CEGUI::EventArgs& = {});
+    //! \brief Sandbox panel: changes the level of the heroes (left click up, right click down)
+    bool onSandboxHeroLevelClicked(const CEGUI::EventArgs& e);
+    //! \brief Sandbox panel: asks the server for the selected hero at the chosen level in the hand
+    bool takeSandboxHero(const CEGUI::EventArgs& = {});
+    //! \brief Sandbox panel: asks the server for a single hero wave
+    bool startSandboxSingleInvasion(const CEGUI::EventArgs& = {});
+    //! \brief Sandbox panel: asks the server for all hero waves one after the other
+    bool startSandboxContinualInvasion(const CEGUI::EventArgs& = {});
+
     //! \brief Shows/hides/toggles the player settings window
     bool showPlayerSettingsWindow(const CEGUI::EventArgs& = {});
     bool togglePlayerSettingsWindow(const CEGUI::EventArgs& = {});
@@ -311,6 +324,9 @@ private:
     //! \brief The settings window.
     SettingsWindow mSettings;
     bool mReturningToSettingsNavigation = false;
+
+    //! \brief The level of the heroes taken from the sandbox hero toolbox
+    uint32_t mSandboxHeroLevel;
 
     //! \brief Skills pending (Client side). This is copied from the seat for temporary changes while the
     //! player clicks on the skill tree window

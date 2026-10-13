@@ -129,6 +129,7 @@ GameMode::GameMode(ModeManager *modeManager):
     mDigSetBool(false),
     mIndexEvent(0),
     mSettings(mRootWindow, modeManager->getGui(), false, true),
+    mSandboxHeroLevel(SandboxMode::MIN_HERO_LEVEL),
     mIsSkillWindowOpen(false),
     mIsLibraryLostShown(false),
     mCurrentSkillType(SkillType::nullSkillType),
@@ -260,6 +261,44 @@ GameMode::GameMode(ModeManager *modeManager):
         guiSheet->getChild("CasinoPayoutWindow/CasinoPayoutButton")->subscribeEvent(
             CEGUI::PushButton::EventClicked,
             CEGUI::Event::Subscriber(&GameMode::cycleCasinoPayout, this)
+)
+    );
+
+    // Sandbox panel
+    addEventConnection(
+        guiSheet->getChild("SandboxButton")->subscribeEvent(
+            CEGUI::PushButton::EventClicked,
+            CEGUI::Event::Subscriber(&GameMode::toggleSandboxWindow, this)
+        )
+    );
+    addEventConnection(
+        guiSheet->getChild("SandboxWindow")->subscribeEvent(
+            CEGUI::FrameWindow::EventCloseClicked,
+            CEGUI::Event::Subscriber(&GameMode::hideSandboxWindow, this)
+        )
+    );
+    addEventConnection(
+        guiSheet->getChild("SandboxWindow/HeroLevelButton")->subscribeEvent(
+            CEGUI::Window::EventMouseClick,
+            CEGUI::Event::Subscriber(&GameMode::onSandboxHeroLevelClicked, this)
+        )
+    );
+    addEventConnection(
+        guiSheet->getChild("SandboxWindow/TakeHeroButton")->subscribeEvent(
+            CEGUI::PushButton::EventClicked,
+            CEGUI::Event::Subscriber(&GameMode::takeSandboxHero, this)
+        )
+    );
+    addEventConnection(
+        guiSheet->getChild("SandboxWindow/SingleInvasionButton")->subscribeEvent(
+            CEGUI::PushButton::EventClicked,
+            CEGUI::Event::Subscriber(&GameMode::startSandboxSingleInvasion, this)
+        )
+    );
+    addEventConnection(
+        guiSheet->getChild("SandboxWindow/ContinualInvasionButton")->subscribeEvent(
+            CEGUI::PushButton::EventClicked,
+            CEGUI::Event::Subscriber(&GameMode::startSandboxContinualInvasion, this)
         )
     );
 
@@ -520,6 +559,7 @@ void GameMode::activate()
     mTrapProductionData = TrapProductionData{};
     mProductionRequestPending = false;
     mReturningToSettingsNavigation = false;
+    guiSheet->getChild("SandboxWindow")->hide();
     guiSheet->getChild("SettingsWindow")->hide();
     guiSheet->getChild("SettingsNavigationWindow")->setModalState(false);
     guiSheet->getChild("SettingsNavigationWindow")->hide();
@@ -541,6 +581,25 @@ void GameMode::activate()
     else
     {
         mGameMap->setGamePaused(false);
+    }
+
+    // The sandbox panel is only available in a sandbox level
+    guiSheet->getChild("SandboxButton")->setVisible(mGameMap->isSandbox());
+    if(mGameMap->isSandbox())
+    {
+        CEGUI::Listbox* heroList = static_cast<CEGUI::Listbox*>(guiSheet->getChild("SandboxWindow/HeroList"));
+        heroList->resetList();
+        const std::vector<std::string>& heroes = config.getFactionSpawnPool("Hero");
+        for(uint32_t i = 0; i < heroes.size(); ++i)
+        {
+            CEGUI::ListboxTextItem* item = new CEGUI::ListboxTextItem(heroes[i], i);
+            item->setSelectionBrushImage("OpenDungeonsSkin/SelectionBrush");
+            heroList->addItem(item);
+        }
+        if(!heroes.empty())
+            heroList->setItemSelectState(static_cast<size_t>(0), true);
+
+        guiSheet->getChild("SandboxWindow/HeroLevelButton")->setText("Hero level: " + Helper::toString(mSandboxHeroLevel));
     }
 
     // Update available options
@@ -1934,6 +1993,56 @@ void GameMode::setCasinoPayoutShown(int tileX, int tileY, uint32_t level)
     }
     mRootWindow->getChild("CasinoPayoutWindow/CasinoPayoutButton")->setText(levelText);
     mRootWindow->getChild("CasinoPayoutWindow/CasinoPayoutText")->setText(infoText);
+}
+
+bool GameMode::toggleSandboxWindow(const CEGUI::EventArgs&)
+{
+    CEGUI::Window* sandbox = mRootWindow->getChild("SandboxWindow");
+    sandbox->setVisible(!sandbox->isVisible());
+    return true;
+}
+
+bool GameMode::hideSandboxWindow(const CEGUI::EventArgs&)
+{
+    mRootWindow->getChild("SandboxWindow")->hide();
+    return true;
+}
+
+bool GameMode::onSandboxHeroLevelClicked(const CEGUI::EventArgs& e)
+{
+    const CEGUI::MouseEventArgs& mouseArgs = static_cast<const CEGUI::MouseEventArgs&>(e);
+    if((mouseArgs.button == CEGUI::LeftButton) && (mSandboxHeroLevel < SandboxMode::MAX_HERO_LEVEL))
+        ++mSandboxHeroLevel;
+    else if((mouseArgs.button == CEGUI::RightButton) && (mSandboxHeroLevel > SandboxMode::MIN_HERO_LEVEL))
+        --mSandboxHeroLevel;
+
+    mRootWindow->getChild("SandboxWindow/HeroLevelButton")->setText("Hero level: " + Helper::toString(mSandboxHeroLevel));
+    return true;
+}
+
+bool GameMode::takeSandboxHero(const CEGUI::EventArgs&)
+{
+    CEGUI::Listbox* heroList = static_cast<CEGUI::Listbox*>(mRootWindow->getChild("SandboxWindow/HeroList"));
+    CEGUI::ListboxItem* item = heroList->getFirstSelectedItem();
+    if(item == nullptr)
+        return true;
+
+    std::string className = item->getText().c_str();
+    ODClient::getSingleton().queueClientNotification(ClientNotificationType::askSandboxTakeHero,
+        className, mSandboxHeroLevel);
+    return true;
+}
+
+bool GameMode::startSandboxSingleInvasion(const CEGUI::EventArgs&)
+{
+    ODClient::getSingleton().queueClientNotification(ClientNotificationType::askSandboxInvasion, false);
+    return true;
+}
+
+bool GameMode::startSandboxContinualInvasion(const CEGUI::EventArgs&)
+{
+    ODClient::getSingleton().queueClientNotification(ClientNotificationType::askSandboxInvasion, true);
+    return true;
 }
 
 bool GameMode::showPlayerSettingsWindow(const CEGUI::EventArgs&)

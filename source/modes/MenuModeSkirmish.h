@@ -29,6 +29,9 @@ public:
     //! Used to call the corresponding Gui Sheet.
     void activate() final override;
 
+    //! \brief Set by the main menu to open the list on the sandbox levels
+    static bool sStartWithSandboxLevels;
+
     bool launchSelectedButtonPressed(const CEGUI::EventArgs&);
     bool updateDescription(const CEGUI::EventArgs& e = {});
 

@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<GUILayout version="4" >
+    <Window type="OD/FrameWindow" name="SandboxWindow" >
+        <Property name="Area" value="{{0,20},{0,60},{0,280},{0,405}}" />
+        <Property name="Text" value="Sandbox" />
+        <Property name="SizingEnabled" value="False" />
+        <Window type="OD/StaticText" name="HeroToolboxText" >
+            <Property name="Area" value="{{0,15},{0,35},{1,-15},{0,57}}" />
+            <Property name="Text" value="Hero toolbox" />
+            <Property name="FrameEnabled" value="False" />
+            <Property name="BackgroundEnabled" value="False" />
+        </Window>
+        <Window type="OD/Listbox" name="HeroList" >
+            <Property name="Area" value="{{0,15},{0,60},{1,-15},{0,200}}" />
+            <Property name="TooltipText" value="Choose a hero, then take it in your hand." />
+        </Window>
+        <Window type="OD/Button" name="HeroLevelButton" >
+            <Property name="Area" value="{{0,15},{0,208},{1,-15},{0,236}}" />
+            <Property name="Text" value="Hero level: 1" />
+            <Property name="TooltipText" value="Left click: level up. Right click: level down." />
+        </Window>
+        <Window type="OD/Button" name="TakeHeroButton" >
+            <Property name="Area" value="{{0,15},{0,242},{1,-15},{0,270}}" />
+            <Property name="Text" value="Take hero" />
+            <Property name="TooltipText" value="Take the chosen hero in your hand. Drop it anywhere in your dungeon." />
+        </Window>
+        <Window type="OD/StaticText" name="InvasionText" >
+            <Property name="Area" value="{{0,15},{0,282},{1,-15},{0,304}}" />
+            <Property name="Text" value="Hero invasion" />
+            <Property name="FrameEnabled" value="False" />
+            <Property name="BackgroundEnabled" value="False" />
+        </Window>
+        <Window type="OD/Button" name="SingleInvasionButton" >
+            <Property name="Area" value="{{0,15},{0,308},{1,-15},{0,336}}" />
+            <Property name="Text" value="Single invasion" />
+            <Property name="TooltipText" value="Send one wave of heroes. The next wave is tougher. Not possible while a wave is fighting." />
+        </Window>
+        <Window type="OD/Button" name="ContinualInvasionButton" >
+            <Property name="Area" value="{{0,15},{0,342},{1,-15},{0,370}}" />
+            <Property name="Text" value="Continual invasion" />
+            <Property name="TooltipText" value="Send wave after wave. Can you survive 10 waves?" />
+        </Window>
+    </Window>
+</GUILayout>

@@ -104,6 +104,7 @@
         <LayoutImport type="DefaultWindow" filename="WindowCasinoPayout.layout" name="CasinoPayoutWindowImport" />
         <LayoutImport type="DefaultWindow" filename="WindowSkillTree.layout" name="SkillTreeWindowImport" />
         <LayoutImport type="DefaultWindow" filename="WindowProduction.layout" name="ProductionWindowImport" />
+        <LayoutImport type="DefaultWindow" filename="WindowSandbox.layout" name="SandboxWindowImport" />
         <LayoutImport type="DefaultWindow" filename="WindowGameOptions.layout" name="GameOptionsMenuImport" />
         <LayoutImport type="DefaultWindow" filename="WindowSettingsNavigation.layout" name="SettingsNavigationImport" />
         <LayoutImport type="DefaultWindow" filename="WindowGameEvent.layout" name="EventWindowImport" />
@@ -150,6 +151,16 @@
             <Property name="TooltipText" value="Production" />
             <UserString name="AllowEdgeScrolling" value="true" />
             <UserString name="ContextHelp" value="Production: view workshop progress and change trap order priority" />
+        </Window>
+        <Window type="OD/GameTabButton" name="SandboxButton">
+            <Property name="Area" value="{{0,196},{1,-224},{0,236},{1,-184}}" />
+            <Property name="NormalImage" value="OpenDungeonsIcons/WavePortalButton" />
+            <Property name="NavigationFrame" value="True" />
+            <Property name="AlwaysOnTop" value="True" />
+            <Property name="TooltipText" value="Sandbox" />
+            <UserString name="AllowEdgeScrolling" value="true" />
+            <UserString name="ContextHelp" value="Sandbox: hero toolbox and hero invasions" />
+            <Property name="Visible" value="False" />
         </Window>
         <Window type="OD/GameTabButton" name="ResearchButton">
             <Property name="Area" value="{{0,52},{1,-224},{0,92},{1,-184}}" />
