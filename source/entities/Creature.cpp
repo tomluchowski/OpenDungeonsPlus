@@ -169,6 +169,7 @@ Creature::Creature(GameMap* gameMap, const CreatureDefinition* definition, Seat*
     mJobCooldown             (0),
     mGoldFee                 (0),
     mGoldCarried             (0),
+    mGoldCarriedNotified     (0),
     mSkillTypeDropDeath      (SkillType::nullSkillType),
     mWeaponDropDeath         ("none"),
     mStatsWindow             (nullptr),
@@ -254,6 +255,7 @@ Creature::Creature(GameMap* gameMap) :
     mJobCooldown             (0),
     mGoldFee                 (0),
     mGoldCarried             (0),
+    mGoldCarriedNotified     (0),
     mSkillTypeDropDeath      (SkillType::nullSkillType),
     mWeaponDropDeath         ("none"),
     mStatsWindow             (nullptr),
@@ -614,6 +616,8 @@ void Creature::exportToPacket(ODPacket& os, const Seat* seat) const
 
     exportMoodToPacket(os, seat);
     exportActivityToPacket(os, seat);
+    // Last field: the carried gold, shown as a sack on the thief
+    os << mGoldCarried;
 }
 
 void Creature::importFromPacket(ODPacket& is)
@@ -668,6 +672,7 @@ void Creature::importFromPacket(ODPacket& is)
 
     importMoodFromPacket(is);
     importActivityFromPacket(is);
+    OD_ASSERT_TRUE(is >> mGoldCarried);
     setupDefinition(*getGameMap(), *ConfigManager::getSingleton().getCreatureDefinitionDefaultWorker());
 }
 
@@ -1755,6 +1760,8 @@ void Creature::exportToPacketForUpdate(ODPacket& os, Seat* seat)
     os << seatPrisonId;
     exportMoodToPacket(os, seat);
     exportActivityToPacket(os, seat);
+    // Last field: the carried gold, shown as a sack on the thief
+    os << mGoldCarried;
 }
 
 void Creature::updateFromPacket(ODPacket& is)
@@ -1803,6 +1810,9 @@ void Creature::updateFromPacket(ODPacket& is)
 
     importMoodFromPacket(is);
     importActivityFromPacket(is);
+    OD_ASSERT_TRUE(is >> mGoldCarried);
+    // The thief sack follows the gold carried; the creature mesh may not exist yet
+    RenderManager::getSingleton().rrRefreshCreatureGoldSack(this);
 }
 
 void Creature::exportMoodToPacket(ODPacket& os, const Seat* seat) const
@@ -2917,6 +2927,13 @@ void Creature::fireCreatureRefreshIfNeeded()
     if(!(mActivity == activity))
     {
         mActivity = activity;
+        mNeedFireRefresh = true;
+    }
+
+    // The carried gold is sent with the update, only when the amount changed
+    if(mGoldCarried != mGoldCarriedNotified)
+    {
+        mGoldCarriedNotified = mGoldCarried;
         mNeedFireRefresh = true;
     }
 

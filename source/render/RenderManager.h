@@ -145,11 +145,13 @@ public:
     void rrCreateRenderedMovableEntity(RenderedMovableEntity* curRenderedMovableEntity, NodeType nt = NodeType::MTILES_NODE);
     void rrDestroyRenderedMovableEntity(RenderedMovableEntity* curRenderedMovableEntity, NodeType nt = NodeType::MTILES_NODE);
     void rrUpdateEntityOpacity(RenderedMovableEntity* entity);
-    //! \brief The "Treasury detail" option changed: every pile is drawn again for the new setting, a few per frame
-    //! (see updateTreasuryRebuild).
+    //! \brief The "Treasury detail" option changed: every pile and every thief sack is drawn again for the new
+    //! setting (the piles a few per frame, see updateTreasuryRebuild).
     void rrTreasuryDetailChanged();
     void rrCreateCreature(Creature* curCreature);
     void rrDestroyCreature(Creature* curCreature);
+    //! Shows, resizes or removes the sack of a thief according to the gold it carries (as sent by the server)
+    void rrRefreshCreatureGoldSack(Creature* creature);
     void rrOrientEntityToward(MovableGameEntity* gameEntity, const Ogre::Vector3& direction);
     void rrPitchAroundAxis(RenderedMovableEntity* gameEntity, Ogre::Degree dd);
     void rrScaleCreature(Creature& creature);
@@ -483,6 +485,17 @@ private:
     //! The piles of a treasury are drawn as one batch per room and patch of tiles
     TreasuryGoldBatch mTreasuryBatch;
 
+    //! A thief carrying gold shows a sack of coins, its size follows the amount the server sends
+    struct TreasuryThiefSack
+    {
+        Creature* mCreature;
+        std::string mSackName;
+        std::string mSackMesh;
+    };
+    std::vector<TreasuryThiefSack> mTreasuryThiefSacks;
+    //! Set while a game is shown; the sacks of the thieves look up the creatures of the game there
+    GameMap* mGameMap = nullptr;
+
     void clearCreatureCombatEffects(Creature* creature = nullptr);
     void startCreatureFeedingAnimation(Creature* creature, Ogre::Entity* entity);
     void prepareCreatureFeedingReach(CreatureFeedingAnimation& feeding);
@@ -502,6 +515,8 @@ private:
     void updateTreasuryLod(Ogre::Real timeSinceLastFrame);
     //! \brief Draws a few of the piles queued by rrTreasuryDetailChanged again.
     void updateTreasuryRebuild();
+    //! \brief Removes the sack that a thief carries on its back (nothing happens when it has none).
+    void removeTreasuryThiefSack(Creature* creature);
     //! \brief Forgets all piles and destroys the draw batches (the scene is cleared or destroyed).
     void clearTreasuryPiles();
 

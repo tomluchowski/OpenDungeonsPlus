@@ -32,6 +32,7 @@
 #include "entities/MovableGameEntity.h"
 #include "entities/RenderedMovableEntity.h"
 #include "entities/Tile.h"
+#include "entities/TreasuryObject.h"
 #include "entities/Weapon.h"
 #include "game/Player.h"
 #include "game/Seat.h"
@@ -41,6 +42,7 @@
 #include "render/CreatureOverlayStatus.h"
 #include "render/DebugDrawer.h"
 #include "render/MovableTextOverlay.h"
+#include "render/LooseGoldMesh.h"
 #include "render/ODFrameListener.h"
 #include "render/TreasuryGoldMesh.h"
 #include "rooms/Room.h"
@@ -889,6 +891,7 @@ void RenderManager::initGameRenderer(GameMap* gameMap)
     OD_ASSERT_TRUE(gameMap);
     OD_ASSERT_TRUE(mHandKeeperNode);
     mCreatureTextOverlayDisplayed = false;
+    mGameMap = gameMap;
 
     // Create the light which follows the single tile selection mesh
     if(mHandLight == nullptr)
@@ -1140,6 +1143,7 @@ void RenderManager::preRenderTargetUpdate(const Ogre::RenderTargetEvent& evt)
 
 void RenderManager::stopGameRenderer(GameMap* gameMap)
 {
+    mGameMap = nullptr;
     rrCancelIdleHandAnimation();
     cancelCreatureStep();
     cancelCreatureSleepAnimation();
@@ -2085,6 +2089,14 @@ void RenderManager::rrTreasuryDetailChanged()
     for(std::map<RenderedMovableEntity*, TreasuryPileInfo>::const_iterator it = mTreasuryPiles.begin();
         it != mTreasuryPiles.end(); ++it)
         mTreasuryRebuildQueue.push_back(it->first);
+
+    // The sacks of the thieves follow the option at once: they go away at off and come back otherwise
+    if(mGameMap != nullptr)
+    {
+        const std::vector<Creature*>& creatures = mGameMap->getCreatures();
+        for(Creature* creature : creatures)
+            rrRefreshCreatureGoldSack(creature);
+    }
 }
 
 void RenderManager::updateTreasuryRebuild()
@@ -2113,12 +2125,87 @@ void RenderManager::updateTreasuryRebuild()
     }
 }
 
+void RenderManager::rrRefreshCreatureGoldSack(Creature* creature)
+{
+    // Only the creatures that steal gold (every creature but the workers) show a sack
+    if(creature == nullptr || creature->getDefinition() == nullptr || creature->getDefinition()->isWorker()
+        || creature->getEntityNode() == nullptr || !creature->getIsOnMap())
+        return;
+
+    // The size follows the gold carried by the thief as the server sent it. Nothing is shown when
+    // the thief carries no gold or the treasury detail option is off.
+    std::string sackMesh;
+    if(creature->getGoldCarried() > 0)
+        sackMesh = LooseGoldMesh::prepareSack(mSceneManager, TreasuryObject::getMeshNameForGold(creature->getGoldCarried()));
+
+    for(std::vector<TreasuryThiefSack>::iterator it = mTreasuryThiefSacks.begin(); it != mTreasuryThiefSacks.end(); ++it)
+    {
+        if(it->mCreature != creature)
+            continue;
+
+        if(it->mSackMesh == sackMesh)
+            return;
+
+        removeTreasuryThiefSack(creature);
+        break;
+    }
+
+    if(sackMesh.empty())
+        return;
+
+    const std::string creatureName = creature->getOgreNamePrefix() + creature->getName();
+    if(!mSceneManager->hasEntity(creatureName))
+        return;
+
+    const std::string sackName = "TreasuryThiefSack_" + creatureName;
+    if(mSceneManager->hasEntity(sackName))
+        return;
+
+    // The sack sits on the back of the thief; it does not shrink with the creature
+    Ogre::Entity* creatureEntity = mSceneManager->getEntity(creatureName);
+    Ogre::SceneNode* sackNode = creature->getEntityNode()->createChildSceneNode(sackName + "_node");
+    sackNode->setInheritScale(false);
+    sackNode->setScale(0.7f, 0.7f, 0.7f);
+    sackNode->setPosition(Ogre::Vector3(0.0f, 0.0f, creatureEntity->getBoundingBox().getMaximum().z * 0.85f));
+    Ogre::Entity* sack = mSceneManager->createEntity(sackName, sackMesh + ".mesh");
+    sackNode->attachObject(sack);
+
+    TreasuryThiefSack thiefSack;
+    thiefSack.mCreature = creature;
+    thiefSack.mSackName = sackName;
+    thiefSack.mSackMesh = sackMesh;
+    mTreasuryThiefSacks.push_back(thiefSack);
+}
+
+void RenderManager::removeTreasuryThiefSack(Creature* creature)
+{
+    for(std::vector<TreasuryThiefSack>::iterator it = mTreasuryThiefSacks.begin(); it != mTreasuryThiefSacks.end(); ++it)
+    {
+        if(it->mCreature != creature)
+            continue;
+
+        const std::string nodeName = it->mSackName + "_node";
+        if(mSceneManager->hasEntity(it->mSackName))
+        {
+            Ogre::Entity* sack = mSceneManager->getEntity(it->mSackName);
+            sack->detachFromParent();
+            mSceneManager->destroyEntity(sack);
+        }
+        if(mSceneManager->hasSceneNode(nodeName))
+            mSceneManager->destroySceneNode(nodeName);
+        mTreasuryThiefSacks.erase(it);
+        return;
+    }
+}
+
 void RenderManager::clearTreasuryPiles()
 {
     mTreasuryBatch.clear();
     mTreasuryPiles.clear();
     mTreasuryRebuildQueue.clear();
     mTreasuryRebuildIndex = 0;
+    while(!mTreasuryThiefSacks.empty())
+        removeTreasuryThiefSack(mTreasuryThiefSacks.back().mCreature);
 }
 
 Ogre::TexturePtr RenderManager::createPerlinTexture()
@@ -2694,6 +2781,9 @@ void RenderManager::rrCreateRenderedMovableEntity(RenderedMovableEntity* rendere
         }
         meshName = TreasuryGoldMesh::prepareMesh(mSceneManager, meshName, pileFar);
     }
+    // Gold on the floor is drawn as a small coin heap
+    else if(renderedMovableEntity->getObjectType() == GameEntityType::treasuryObject)
+        meshName = LooseGoldMesh::prepareHeap(mSceneManager, meshName);
     
     std::string tempString = renderedMovableEntity->getOgreNamePrefix() + renderedMovableEntity->getName() + (static_cast<bool>(nt) ?  "" : "_dtc" );
 
@@ -2800,6 +2890,13 @@ void RenderManager::rrDestroyRenderedMovableEntity(RenderedMovableEntity* curRen
         node->detachObject(ent);
         mSceneManager->destroyEntity(ent);
     }
+    // The sack shown while a worker carries gold
+    if(mSceneManager->hasEntity(tempString + "_sack"))
+    {
+        Ogre::Entity* sack = mSceneManager->getEntity(tempString + "_sack");
+        node->detachObject(sack);
+        mSceneManager->destroyEntity(sack);
+    }
     mSceneManager->destroySceneNode(node);
     curRenderedMovableEntity->setParentSceneNode(nullptr);
     curRenderedMovableEntity->setEntityNode(nullptr);
@@ -2890,11 +2987,13 @@ void RenderManager::rrCreateCreature(Creature* curCreature)
     creatureOverlay->displayHealthOverlay(mCreatureTextOverlayDisplayed ? -1.0 : 0.0);
 
     curCreature->showOutliner();
+    rrRefreshCreatureGoldSack(curCreature);
 }
 
 void RenderManager::rrDestroyCreature(Creature* curCreature)
 {
     cancelCreatureStep(curCreature);
+    removeTreasuryThiefSack(curCreature);
     cancelCreatureSleepAnimation(curCreature);
     cancelCreatureFeedingAnimation(curCreature);
     clearCreatureCombatEffects(curCreature);
@@ -4752,6 +4851,19 @@ void RenderManager::rrCarryEntity(Creature* carrier, GameEntity* carried)
     carrierNode->addChild(carriedNode);
     // We want the carried object to be at half tile (z = 0.5)
     carriedNode->setPosition(Ogre::Vector3(0, 0, 0.5));
+
+    // Carried gold is shown as a sack with coins, its size follows the amount
+    if(carried->getObjectType() == GameEntityType::treasuryObject)
+    {
+        const std::string sackMesh = LooseGoldMesh::prepareSack(mSceneManager, carried->getMeshName());
+        const std::string sackName = carriedEnt->getName() + "_sack";
+        if(!sackMesh.empty() && !mSceneManager->hasEntity(sackName))
+        {
+            Ogre::Entity* sack = mSceneManager->createEntity(sackName, sackMesh + ".mesh");
+            carriedNode->attachObject(sack);
+            carriedEnt->setVisible(false);
+        }
+    }
 }
 
 void RenderManager::rrReleaseCarriedEntity(Creature* carrier, GameEntity* carried)
@@ -4764,6 +4876,15 @@ void RenderManager::rrReleaseCarriedEntity(Creature* carrier, GameEntity* carrie
     carried->setParentNodeDetachFlags(
         EntityParentNodeAttach::DETACH_CARRIED, false);
     carriedNode->setInheritScale(true);
+
+    const std::string sackName = carriedEnt->getName() + "_sack";
+    if(mSceneManager->hasEntity(sackName))
+    {
+        Ogre::Entity* sack = mSceneManager->getEntity(sackName);
+        carriedNode->detachObject(sack);
+        mSceneManager->destroyEntity(sack);
+        carriedEnt->setVisible(true);
+    }
 }
 
 void RenderManager::rrSetCreaturesTextOverlay(GameMap& gameMap, bool value)
