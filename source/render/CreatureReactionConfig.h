@@ -343,8 +343,12 @@ public:
     //! Seconds a creature has to stand idle until it shows small habits, sits down or lies down
     inline double getAmbientAfter() const
     { return mAmbientAfter; }
+
+    //! Seconds a creature has to stand idle until it sits down
     inline double getSitAfter() const
     { return mSitAfter; }
+
+    //! Seconds a creature has to stand idle until it lies down
     inline double getLieAfter() const
     { return mLieAfter; }
 
