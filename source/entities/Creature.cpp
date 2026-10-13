@@ -1638,6 +1638,13 @@ bool Creature::searchBestTargetInList(const std::vector<GameEntity*>& listObject
     // We try to attack creatures first
     for(GameEntity* entity : listObjects)
     {
+        // Invisible creatures cannot be seen by the enemy and are not targeted
+        if((entity->getObjectType() == GameEntityType::creature) &&
+           static_cast<Creature*>(entity)->isInvisible())
+        {
+            continue;
+        }
+
         // Strong enemy creatures are targeted first: the more threatening a creature is compared to us,
         // the closer it appears to be. Other entities are not weighted.
         double threatFactor = 1.0;
@@ -3832,6 +3839,27 @@ bool Creature::isFrozen() const
     return false;
 }
 
+bool Creature::isInvisible() const
+{
+    if(!getIsOnServerMap())
+        return false;
+
+    for(const EntityParticleEffect* effect : mEntityParticleEffects)
+    {
+        if(effect->getEntityParticleEffectType() != EntityParticleEffectType::creature)
+            continue;
+
+        const CreatureParticleEffect* creatureEffect = static_cast<const CreatureParticleEffect*>(effect);
+        if((creatureEffect->mEffect->getEffectName() == "Invisible") &&
+           (creatureEffect->mEffect->getNbTurnsEffect() > 0))
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 const std::string& Creature::getCurrentMeshName() const
 {
     static const std::string chickenMeshName = "Chicken.mesh";
@@ -4252,6 +4280,59 @@ void Creature::stopWalking()
     if(parkingBit)
         parkedBit = true;
     MovableGameEntity::stopWalking();
+}
+
+void Creature::teleportTo(Tile* tile)
+{
+    if((tile == nullptr) || !getIsOnServerMap() || !getIsOnMap())
+        return;
+
+    clearDestinations(EntityAnimation::idle_anim, true, true);
+
+    Ogre::Vector3 dest = tile->getPosition();
+    setPosition(dest);
+
+    for(Seat* seat : mSeatsWithVisionNotified)
+    {
+        if(seat->getPlayer() == nullptr)
+            continue;
+        if(!seat->getPlayer()->getIsHuman())
+            continue;
+
+        ServerNotification* serverNotification = new ServerNotification(
+            ServerNotificationType::entityTeleported, seat->getPlayer());
+        serverNotification->mPacket << getName() << dest;
+        ODServer::getSingleton().queueServerNotification(serverNotification);
+    }
+
+    if(getHasVisualDebuggingEntities())
+        computeVisualDebugEntities();
+    mNeedFireRefresh = true;
+}
+
+Tile* Creature::getWalkDestinationTile() const
+{
+    if(mWalkQueue.empty())
+        return nullptr;
+
+    const Ogre::Vector2& destination = mWalkQueue.back();
+    return getGameMap()->getTile(Helper::round(destination.x), Helper::round(destination.y));
+}
+
+bool Creature::takeCorpse()
+{
+    if(!getIsOnServerMap() || !getIsOnMap() || isAlive() || getDefinition()->isWorker())
+        return false;
+
+    // The counter is 0 until the death was handled (items dropped, owner told). Once the body is gone
+    // (it is removed from the map when the counter is over), it cannot be raised
+    uint32_t deathCounterMax = ConfigManager::getSingleton().getCreatureDeathCounter();
+    if((mDeathCounter == 0) || (mDeathCounter >= deathCounterMax))
+        return false;
+
+    // The body is removed by the next upkeep
+    mDeathCounter = deathCounterMax;
+    return true;
 }
 
 
