@@ -1067,8 +1067,8 @@ std::string SkillManager::getResearchDescription(SkillType type, uint32_t level)
             spell("SummonChampionPrice") + " mana, free for " + Helper::toString(config.getSpellConfigDouble("SummonChampionPrice") /
             config.getSpellConfigDouble("SummonChampionDrainPerSecond")) + " seconds, then " + spell("SummonChampionDrainPerSecond") +
             " mana per second. Unlocked by the complete Heartstone.";
-        case SkillType::spellPossess: return "Control one of your creatures in first person; costs " +
-            spell("PossessDrainPerSecond") + " mana per second while possessed.";
+        case SkillType::spellPossess: return "Control one of your creatures in first person; free for " +
+            spell("PossessFreeSeconds") + " seconds after the cast, then a mana drain per second that depends on the creature.";
         default: return "";
     }
 }

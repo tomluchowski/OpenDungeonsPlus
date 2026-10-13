@@ -74,6 +74,7 @@ CreatureDefinition::CreatureDefinition(
         mCombatClass (CombatBlocker),
         mFearless (false),
         mChampion (false),
+        mPossessManaCost (0.0),
         mClassName   (className),
         mMeshName    (meshName),
         mBedMeshName (bedMeshName),
@@ -128,6 +129,7 @@ CreatureDefinition::CreatureDefinition(const CreatureDefinition& def) :
         mCombatClass(def.mCombatClass),
         mFearless(def.mFearless),
         mChampion(def.mChampion),
+        mPossessManaCost(def.mPossessManaCost),
         mClassName(def.mClassName),
         mMeshName(def.mMeshName),
         mBedMeshName(def.mBedMeshName),
@@ -341,6 +343,7 @@ ODPacket& operator<<(ODPacket& os, const CreatureDefinition* c)
     os << CreatureDefinition::combatClassToString(c->mCombatClass);
     os << c->mFearless;
     os << c->mChampion;
+    os << c->mPossessManaCost;
     os << c->mTortureTimeToConvert;
 
     for (unsigned int i = 0; i < c->mXPTable.size(); ++i)
@@ -384,6 +387,7 @@ ODPacket& operator>>(ODPacket& is, CreatureDefinition* c)
     c->mCombatClass = CreatureDefinition::combatClassFromString(tempString);
     is >> c->mFearless;
     is >> c->mChampion;
+    is >> c->mPossessManaCost;
     is >> c->mTortureTimeToConvert;
 
     for (unsigned int i = 0; i < c->mXPTable.size(); ++i)
@@ -527,6 +531,12 @@ bool CreatureDefinition::update(CreatureDefinition* creatureDef, std::stringstre
             {
                 defFile >> nextParam;
                 creatureDef->mChampion = Helper::toBool(nextParam);
+                continue;
+            }
+            else if (nextParam == "PossessManaCost")
+            {
+                defFile >> nextParam;
+                creatureDef->mPossessManaCost = Helper::toDouble(nextParam);
                 continue;
             }
             else if (nextParam == "MeshName")
@@ -821,6 +831,9 @@ void CreatureDefinition::writeCreatureDefinitionDiff(
 
     if(def1 == nullptr || (def1->mChampion != def2->mChampion))
         file << "    Champion\t" << (def2->mChampion ? 1 : 0) << std::endl;
+
+    if(def1 == nullptr || (def1->mPossessManaCost != def2->mPossessManaCost))
+        file << "    PossessManaCost\t" << def2->mPossessManaCost << std::endl;
 
     if(def1 == nullptr || (def1->mMeshName.compare(def2->mMeshName) != 0))
         file << "    MeshName\t" << def2->mMeshName << std::endl;

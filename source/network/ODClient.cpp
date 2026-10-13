@@ -1651,6 +1651,36 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
             break;
         }
 
+        case ServerNotificationType::possessionStart:
+        {
+            std::string creatureName;
+            OD_ASSERT_TRUE(packetReceived >> creatureName);
+            getPlayer()->setPossessedCreatureName(creatureName);
+            frameListener->getCameraManager()->startPossession(creatureName);
+            if(frameListener->getModeManager()->getCurrentModeType() == ModeManager::ModeType::GAME)
+            {
+                GameMode* gm = static_cast<GameMode*>(frameListener->getModeManager()->getCurrentMode());
+                gm->notifyPossessionStarted();
+            }
+            break;
+        }
+
+        case ServerNotificationType::possessionEnd:
+        {
+            // Whether the creature fell (the server says so: dead, knocked out or gone). It is read to keep the
+            // packet in step; the effects that show it come later
+            bool creatureLost = false;
+            OD_ASSERT_TRUE(packetReceived >> creatureLost);
+            getPlayer()->setPossessedCreatureName(std::string());
+            frameListener->getCameraManager()->stopPossession();
+            if(frameListener->getModeManager()->getCurrentModeType() == ModeManager::ModeType::GAME)
+            {
+                GameMode* gm = static_cast<GameMode*>(frameListener->getModeManager()->getCurrentMode());
+                gm->notifyPossessionEnded();
+            }
+            break;
+        }
+
         default:
         {
             OD_LOG_ERR("Unknown server command:"

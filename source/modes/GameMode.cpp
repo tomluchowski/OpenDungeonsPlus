@@ -567,6 +567,14 @@ bool GameMode::mouseMoved(const OIS::MouseEvent &arg)
     if (!isConnected())
         return true;
 
+    // While the player controls a creature, the mouse only turns its view
+    if (isLocalPlayerPossessing())
+    {
+        ODFrameListener::getSingleton().getCameraManager()->possessionLook(
+            static_cast<Ogre::Real>(arg.state.X.rel), static_cast<Ogre::Real>(arg.state.Y.rel));
+        return true;
+    }
+
     InputManager& inputManager = mModeManager->getInputManager();
     inputManager.mCommandState = (inputManager.mLMouseDown ? InputCommandState::building : InputCommandState::infoOnly);
 
@@ -777,6 +785,17 @@ bool GameMode::mousePressed(const OIS::MouseEvent& arg, OIS::MouseButtonID id)
             log = false;
             OD_LOG_ERR("LOCAL PLAYER DOES NOT EXIST!!");
         }
+        return true;
+    }
+
+    // While the player controls a creature, the right button makes him leave it
+    if (isLocalPlayerPossessing())
+    {
+        if (id == OIS::MB_Right)
+            sendPossessionExit();
+        else if (id == OIS::MB_Left)
+            sendPossessionAttack();
+
         return true;
     }
 
@@ -1035,6 +1054,10 @@ bool GameMode::mouseReleased(const OIS::MouseEvent &arg, OIS::MouseButtonID id)
         return true;
     }
 
+    // While the player controls a creature, the left button is used for its attack only
+    if (isLocalPlayerPossessing())
+        return true;
+
     if (id != OIS::MB_Left)
         return true;
 
@@ -1125,6 +1148,8 @@ bool GameMode::keyPressedNormal(const OIS::KeyEvent &arg)
             closeMap();
         return true;
     }
+    if (isLocalPlayerPossessing() && handlePossessionKey(arg.key, true))
+        return true;
 
     switch (arg.key)
     {
@@ -1383,6 +1408,9 @@ bool GameMode::keyReleased(const OIS::KeyEvent &arg)
 bool GameMode::keyReleasedNormal(const OIS::KeyEvent &arg)
 {
     ODFrameListener& frameListener = ODFrameListener::getSingleton();
+
+    if (isLocalPlayerPossessing() && handlePossessionKey(arg.key, false))
+        return true;
 
     switch (arg.key)
     {
@@ -1735,6 +1763,8 @@ void GameMode::onFrameStarted(const Ogre::FrameEvent& evt)
         if(!heartIcon->isUserStringDefined("ContextHelp") || heartIcon->getUserString("ContextHelp") != heartText.str())
             heartIcon->setUserString("ContextHelp", heartText.str());
     }
+
+    updatePossessionInput(evt.timeSinceLastFrame);
 
     // After frameStarted, so that the countdown shown is the one just computed.
     refreshActionFeedback(evt.timeSinceLastFrame);
@@ -3359,6 +3389,180 @@ void GameMode::displayPointerText(const Ogre::ColourValue& txtColour, const std:
     TextRenderer& textRenderer = TextRenderer::getSingleton();
     textRenderer.setColor(ODApplication::POINTER_INFO_STRING, txtColour);
     textRenderer.setText(ODApplication::POINTER_INFO_STRING, txt);
+}
+
+bool GameMode::isLocalPlayerPossessing()
+{
+    Player* player = mGameMap->getLocalPlayer();
+    if (player == nullptr)
+        return false;
+
+    return player->isPossessing();
+}
+
+bool GameMode::handlePossessionKey(OIS::KeyCode key, bool pressed)
+{
+    switch (key)
+    {
+    case OIS::KC_W:
+    case OIS::KC_UP:
+        mPossessKeyForward = pressed;
+        return true;
+
+    case OIS::KC_S:
+    case OIS::KC_DOWN:
+        mPossessKeyBackward = pressed;
+        return true;
+
+    case OIS::KC_A:
+    case OIS::KC_LEFT:
+        mPossessKeyLeft = pressed;
+        return true;
+
+    case OIS::KC_D:
+    case OIS::KC_RIGHT:
+        mPossessKeyRight = pressed;
+        return true;
+
+    // The exit key. It is the same as the right mouse button
+    case OIS::KC_ESCAPE:
+        if (pressed)
+            sendPossessionExit();
+        return true;
+
+    // The creature skills (other than its attack, which is on the left mouse button)
+    case OIS::KC_1:
+        if (pressed)
+            sendPossessionSkill(0);
+        return true;
+
+    case OIS::KC_2:
+        if (pressed)
+            sendPossessionSkill(1);
+        return true;
+
+    case OIS::KC_3:
+        if (pressed)
+            sendPossessionSkill(2);
+        return true;
+
+    case OIS::KC_4:
+        if (pressed)
+            sendPossessionSkill(3);
+        return true;
+
+    // These keys move the RTS camera, which is not used while possessing
+    case OIS::KC_Q:
+    case OIS::KC_E:
+    case OIS::KC_HOME:
+    case OIS::KC_END:
+    case OIS::KC_PGUP:
+    case OIS::KC_PGDOWN:
+    case OIS::KC_T:
+    case OIS::KC_V:
+    case OIS::KC_SPACE:
+    case OIS::KC_5:
+    case OIS::KC_6:
+    case OIS::KC_7:
+    case OIS::KC_8:
+    case OIS::KC_9:
+    case OIS::KC_0:
+        return true;
+
+    default:
+        return false;
+    }
+}
+
+void GameMode::updatePossessionInput(float timeSinceLastFrame)
+{
+    if (!isLocalPlayerPossessing())
+        return;
+
+    // The movement keys are relative to where the player looks
+    Ogre::Real yaw = ODFrameListener::getSingleton().getCameraManager()->getPossessionYaw();
+    Ogre::Vector2 forward = getPossessionAim();
+    Ogre::Vector2 right(Ogre::Math::Cos(yaw), Ogre::Math::Sin(yaw));
+    Ogre::Vector2 direction = Ogre::Vector2::ZERO;
+    if (mPossessKeyForward)
+        direction += forward;
+    if (mPossessKeyBackward)
+        direction -= forward;
+    if (mPossessKeyRight)
+        direction += right;
+    if (mPossessKeyLeft)
+        direction -= right;
+
+    bool isMoving = (direction.squaredLength() > 0.0001f);
+    if (isMoving)
+        direction.normalise();
+    else
+        direction = Ogre::Vector2::ZERO;
+
+    mPossessTimeSinceSent += timeSinceLastFrame;
+
+    // The server walks the creature toward a point a few tiles away, so we have to keep sending
+    // the direction while the player moves. A stop is sent at once, a change of direction at most
+    // ten times per second.
+    bool wasMoving = (mPossessLastDirection.squaredLength() > 0.0001f);
+    bool hasChanged = (isMoving != wasMoving) || (isMoving && (direction.dotProduct(mPossessLastDirection) < 0.99f));
+    if (!hasChanged && !(isMoving && (mPossessTimeSinceSent > 0.5f)))
+        return;
+
+    if (hasChanged && isMoving && (mPossessTimeSinceSent < 0.1f))
+        return;
+
+    mPossessLastDirection = direction;
+    mPossessTimeSinceSent = 0.0f;
+    ClientNotification* clientNotification = new ClientNotification(ClientNotificationType::askPossessMove);
+    clientNotification->mPacket << direction;
+    ODClient::getSingleton().queueClientNotification(clientNotification);
+}
+
+Ogre::Vector2 GameMode::getPossessionAim()
+{
+    Ogre::Real yaw = ODFrameListener::getSingleton().getCameraManager()->getPossessionYaw();
+    return Ogre::Vector2(-Ogre::Math::Sin(yaw), Ogre::Math::Cos(yaw));
+}
+
+void GameMode::sendPossessionAttack()
+{
+    ClientNotification* clientNotification = new ClientNotification(ClientNotificationType::askPossessAttack);
+    clientNotification->mPacket << getPossessionAim();
+    ODClient::getSingleton().queueClientNotification(clientNotification);
+}
+
+void GameMode::sendPossessionSkill(uint32_t slot)
+{
+    ClientNotification* clientNotification = new ClientNotification(ClientNotificationType::askPossessSkill);
+    clientNotification->mPacket << slot << getPossessionAim();
+    ODClient::getSingleton().queueClientNotification(clientNotification);
+}
+
+void GameMode::sendPossessionExit()
+{
+    ODClient::getSingleton().queueClientNotification(ClientNotificationType::askPossessExit);
+}
+
+void GameMode::notifyPossessionStarted()
+{
+    notifyPossessionEnded();
+
+    // The spell has been cast, we do not want to cast it again
+    mPlayerSelection.setCurrentAction(SelectedAction::none);
+    unselectAllTiles();
+    TextRenderer::getSingleton().setText(ODApplication::POINTER_INFO_STRING, "");
+}
+
+void GameMode::notifyPossessionEnded()
+{
+    mPossessKeyForward = false;
+    mPossessKeyBackward = false;
+    mPossessKeyLeft = false;
+    mPossessKeyRight = false;
+    mPossessLastDirection = Ogre::Vector2::ZERO;
+    mPossessTimeSinceSent = 0.0f;
+    directionKeyPressed = false;
 }
 
 void GameMode::checkInputCommand()

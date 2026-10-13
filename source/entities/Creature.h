@@ -747,6 +747,11 @@ public:
     //! current actions are paused and replaced by the possessed action.
     void startPossession(Player& player);
 
+    //! Called on server side. Counts one more turn of the current possession and returns the
+    //! number of turns it has lasted so far.
+    inline uint32_t nextPossessionTurn()
+    { return ++mPossessionTurns; }
+
     //! Called on server side. Gives the creature back to the AI and tells the player
     //! the possession is over.
     void endPossession();
@@ -996,6 +1001,9 @@ private:
     bool mHasProgressInformation = false;
     //! \brief Used on server side. The player controlling the creature (possession), nullptr if none
     Player*                         mPossessor = nullptr;
+
+    //! \brief Used on server side. Turns the current possession has lasted (the first seconds are free)
+    uint32_t                        mPossessionTurns = 0;
 
     //! \brief Used on server side. The names of the creatures following this possessed creature
     std::vector<std::string>        mGroupMemberNames;

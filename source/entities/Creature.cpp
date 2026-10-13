@@ -2546,9 +2546,18 @@ double Creature::takeDamage(GameEntity* attacker, double absoluteDamage, double 
     mHp -= damageDone;
     if(mHp <= 0)
     {
+        // A possessed creature is not knocked out, it dies and the keeper loses mana
+        if(isPossessed())
+        {
+            if(wasAlive && (getSeat() != nullptr))
+            {
+                double manaLoss = ConfigManager::getSingleton().getSpellConfigDouble("PossessDeathManaLoss");
+                getSeat()->addMana(-manaLoss);
+            }
+        }
         // If the attacking entity is a creature and its seat is configured to KO creatures
         // instead of killing, we KO
-        if(ko && !getDefinition()->isWorker())
+        else if(ko && !getDefinition()->isWorker())
         {
             mHp = 1.0;
             mKoTurnCounter = -ConfigManager::getSingleton().getNbTurnsKoCreatureAttacked();
@@ -4181,6 +4190,10 @@ void Creature::stunForTurns(int32_t nbTurns)
 
 void Creature::fleeFromTile(Tile* fearTile, int32_t nbTurns)
 {
+    // Fear breaks the possession of the creature
+    if(isPossessed())
+        endPossession();
+
     clearDestinations(EntityAnimation::idle_anim, true, true);
     clearActionQueue();
     pushAction(Utils::make_unique<CreatureActionFlee>(*this, fearTile, nbTurns));
@@ -4403,6 +4416,7 @@ bool computePossessedDestination(const Creature& creature, const Ogre::Vector2& 
 void Creature::startPossession(Player& player)
 {
     mPossessor = &player;
+    mPossessionTurns = 0;
     player.setPossessedCreatureName(getName());
 
     // The creature stops what it is doing. Its actions are kept and will go on after the possession
@@ -4430,6 +4444,8 @@ void Creature::endPossession()
     Player* player = mPossessor;
     mPossessor = nullptr;
     player->setPossessedCreatureName(std::string());
+    // Whether the creature fell (dead, knocked out or gone), so the client does not have to guess it
+    const bool lost = !isAlive() || isKo() || !getIsOnMap();
 
     // The group does not follow anymore and goes back to its normal behaviour
     for(const std::string& memberName : mGroupMemberNames)
@@ -4456,6 +4472,7 @@ void Creature::endPossession()
 
     ServerNotification* serverNotification = new ServerNotification(
         ServerNotificationType::possessionEnd, player);
+    serverNotification->mPacket << lost;
     ODServer::getSingleton().queueServerNotification(serverNotification);
 }
 
@@ -4551,7 +4568,7 @@ bool Creature::followPossessionLeader()
 
 void Creature::possessedMove(const Ogre::Vector2& direction)
 {
-    if(!isPossessed() || !getIsOnMap())
+    if(!isPossessed() || !getIsOnMap() || isFrozen())
         return;
 
     Ogre::Vector2 position(mPosition.x, mPosition.y);
@@ -4676,7 +4693,7 @@ bool Creature::possessedFindTarget(const Ogre::Vector2& aim, const CreatureSkill
 
 void Creature::possessedAttack(const Ogre::Vector2& aim)
 {
-    if(!isPossessed() || !getIsOnMap() || !isAlive() || isKo())
+    if(!isPossessed() || !getIsOnMap() || !isAlive() || isKo() || isFrozen())
         return;
 
     // The melee attack is preferred. The ranged attack is used if no enemy is within melee range
@@ -4715,7 +4732,7 @@ void Creature::possessedAttack(const Ogre::Vector2& aim)
 
 void Creature::possessedUseSkill(uint32_t slot, const Ogre::Vector2& aim)
 {
-    if(!isPossessed() || !getIsOnMap() || !isAlive() || isKo())
+    if(!isPossessed() || !getIsOnMap() || !isAlive() || isKo() || isFrozen())
         return;
 
     uint32_t index = 0;

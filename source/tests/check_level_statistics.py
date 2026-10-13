@@ -93,6 +93,7 @@ struct Seat
     bool isAlliedSeat(const Seat* seat) const { return getTeamId() == seat->getTeamId(); }
     SeatStatistics& getStatistics() { return mStatistics; }
     void recordCreatureKill(const Seat* victimSeat);
+    void addMana(double) {}
     int mId;
     int mTeamId;
     std::string mFaction;
@@ -117,6 +118,7 @@ struct ConfigManager
 {
     static ConfigManager& getSingleton() { static ConfigManager config; return config; }
     int getNbTurnsKoCreatureAttacked() { return 5; }
+    double getSpellConfigDouble(const std::string&) { return 100.0; }
 };
 struct Creature : public GameEntity
 {
@@ -131,6 +133,7 @@ struct Creature : public GameEntity
     void computeCreatureOverlayMoodValue() {}
     void fireEntityDead() { ++mDeaths; }
     double getPitDamageFactor(GameEntity*) { return 1.0; }
+    bool isPossessed() const { return false; }
     double takeDamage(GameEntity* attacker, double absoluteDamage, double physicalDamage, double magicalDamage,
         double elementDamage, Tile* tileTakingDamage, bool ko);
     double mHp;

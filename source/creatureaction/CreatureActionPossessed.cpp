@@ -18,6 +18,7 @@
 #include "creatureaction/CreatureActionPossessed.h"
 
 #include "entities/Creature.h"
+#include "entities/CreatureDefinition.h"
 #include "game/Player.h"
 #include "game/Seat.h"
 #include "ODApplication.h"
@@ -48,10 +49,17 @@ bool CreatureActionPossessed::handlePossessed(Creature& creature)
         return false;
     }
 
-    // The player pays for the possession each turn. When there is no mana left, it ends
-    double drainPerSecond = ConfigManager::getSingleton().getSpellConfigDouble("PossessDrainPerSecond");
+    // The cast price covers the first seconds. After that the player pays each turn the share of
+    // the drain per second of the creature type. The possession ends when the mana cannot pay
+    // one second of it
+    uint32_t turns = creature.nextPossessionTurn();
+    double freeSeconds = ConfigManager::getSingleton().getSpellConfigDouble("PossessFreeSeconds");
+    if(static_cast<double>(turns) <= (freeSeconds * ODApplication::turnsPerSecond))
+        return false;
+
+    double drainPerSecond = creature.getDefinition()->getPossessManaCost();
     double drainPerTurn = drainPerSecond / ODApplication::turnsPerSecond;
-    if(!creature.getSeat()->takeMana(drainPerTurn))
+    if((creature.getSeat()->getMana() < drainPerSecond) || !creature.getSeat()->takeMana(drainPerTurn))
     {
         creature.endPossession();
         return false;

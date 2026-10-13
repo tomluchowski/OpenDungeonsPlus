@@ -166,6 +166,7 @@ public:
     inline CombatClass          getCombatClass  () const    { return mCombatClass; }
     inline bool                 isFearless      () const    { return mFearless; }
     inline bool                 isChampion      () const    { return mChampion; }
+    inline double               getPossessManaCost () const { return mPossessManaCost; }
     inline const std::string&   getClassName    () const    { return mClassName; }
 
     inline const std::string&   getMeshName     () const    { return mMeshName; }
@@ -265,6 +266,8 @@ private:
     bool mFearless;
     //! \brief True for the summoned champion: it cannot be hurt, possessed or turned, needs no fee and charges at enemies
     bool mChampion;
+    //! \brief Mana taken per second while a player possesses a creature of this definition (after the free period)
+    double mPossessManaCost;
 
     //! \brief The name of the creatures class
     std::string mClassName;
