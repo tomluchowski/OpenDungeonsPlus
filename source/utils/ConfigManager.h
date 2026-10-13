@@ -70,6 +70,8 @@ const std::string MINIMAP_TYPE = "MinimapType";
 const std::string LIGHT_FACTOR = "LightFactor";
 const std::string UI_SCALE = "UI Scale";
 const std::string BLOOD_EFFECTS = "Blood Effects";
+//! The game option that sets how many room effects are shown (full, reduced or off)
+const std::string ROOM_AMBIENCE = "RoomAmbience";
 }
 
 typedef std::map<TileVisual,std::map<int,float>> HighMap;

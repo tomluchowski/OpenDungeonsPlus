@@ -110,6 +110,18 @@
                         <Property name="MaximumValue" value="100" />
                         <Property name="ClickStepSize" value="5" />
                     </Window>
+                    <Window type="OD/StaticText" name="RoomAmbienceText" >
+                        <Property name="Area" value="{{0,32},{0,210},{0,150},{0,230}}" />
+                        <Property name="MaxSize" value="{{1,0},{1,0}}" />
+                        <Property name="Text" value="Room ambience:" />
+                        <Property name="BackgroundEnabled" value="False" />
+                        <Property name="FrameEnabled" value="False" />
+                    </Window>
+                    <Window type="OD/Combobox" name="RoomAmbience" >
+                        <Property name="Area" value="{{0,160},{0,210},{0,320},{0,290}}" />
+                        <Property name="ReadOnly" value="True" />
+                        <Property name="TooltipText" value="full: dust, glow, sparks and moving objects in the rooms. reduced: only a few of them, close to the camera. off: no room ambience." />
+                    </Window>
                 </Window>
             </Window>
             <Window type="DefaultWindow" name="Input" >
