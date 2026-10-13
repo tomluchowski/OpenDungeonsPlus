@@ -1,0 +1,33 @@
+{
+  "combinations": [
+    1,
+    2,
+    3,
+    4,
+    7,
+    8
+  ],
+  "all_options_covered": true,
+  "options": 20,
+  "face_crop": [
+    80,
+    170,
+    780,
+    1165
+  ],
+  "body_combinations": [
+    1,
+    2,
+    3,
+    4,
+    7,
+    8
+  ],
+  "body_crop": [
+    0,
+    660,
+    887,
+    1774
+  ],
+  "resampling": "none"
+}
