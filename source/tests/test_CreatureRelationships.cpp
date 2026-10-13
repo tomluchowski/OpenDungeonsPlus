@@ -855,4 +855,81 @@ BOOST_AUTO_TEST_CASE(test_LoversConfigValues)
     BOOST_CHECK_EQUAL(settings.mLoversJealousyValueLoss, 9);
 }
 
+BOOST_AUTO_TEST_CASE(test_CreatureStateSaveLoadRoundTrip)
+{
+    std::vector<RelationshipCreatureState> states;
+    RelationshipCreatureState grieving;
+    grieving.mName = "Orc1";
+    grieving.mGriefMood = -320;
+    grieving.mRageTurnsLeft = 210;
+    grieving.mRageSeatId = 3;
+    states.push_back(grieving);
+
+    RelationshipCreatureState brawling;
+    brawling.mName = "Troll2";
+    brawling.mBrawlOpponent = "Orc1";
+    brawling.mBrawlTurnsLeft = 75;
+    states.push_back(brawling);
+
+    // A creature without anything to save is not written
+    RelationshipCreatureState calm;
+    calm.mName = "Elf3";
+    states.push_back(calm);
+
+    std::ostringstream out;
+    writeRelationshipCreatureStates(out, states);
+    out << "[/RelationshipState]\n";
+
+    std::istringstream in(out.str());
+    std::vector<RelationshipCreatureState> loaded;
+    BOOST_REQUIRE(readRelationshipCreatureStates(in, loaded));
+    BOOST_REQUIRE_EQUAL(loaded.size(), 2u);
+
+    BOOST_CHECK_EQUAL(loaded[0].mName, "Orc1");
+    BOOST_CHECK_EQUAL(loaded[0].mGriefMood, -320);
+    BOOST_CHECK_EQUAL(loaded[0].mRageTurnsLeft, 210);
+    BOOST_CHECK_EQUAL(loaded[0].mRageSeatId, 3);
+    BOOST_CHECK(loaded[0].mBrawlOpponent.empty());
+    BOOST_CHECK_EQUAL(loaded[0].mBrawlTurnsLeft, 0);
+
+    BOOST_CHECK_EQUAL(loaded[1].mName, "Troll2");
+    BOOST_CHECK_EQUAL(loaded[1].mGriefMood, 0);
+    BOOST_CHECK_EQUAL(loaded[1].mRageTurnsLeft, 0);
+    BOOST_CHECK_EQUAL(loaded[1].mBrawlOpponent, "Orc1");
+    BOOST_CHECK_EQUAL(loaded[1].mBrawlTurnsLeft, 75);
+}
+
+BOOST_AUTO_TEST_CASE(test_CreatureStateOldSaveAndEmptyState)
+{
+    // Nothing to save writes nothing at all
+    std::vector<RelationshipCreatureState> states;
+    RelationshipCreatureState calm;
+    calm.mName = "Orc1";
+    states.push_back(calm);
+    std::ostringstream out;
+    writeRelationshipCreatureStates(out, states);
+    BOOST_CHECK(out.str().empty());
+
+    // An old save has no such section: the pair table loads as before and nothing else follows
+    CreatureRelationships relationships;
+    std::istringstream oldSave("Orc1\tTroll1\t60\t5\t0\n[/Relationships]\n");
+    BOOST_REQUIRE(relationships.readFromStream(oldSave, 100));
+    BOOST_CHECK_EQUAL(relationships.getValue("Orc1", "Troll1"), 60);
+    std::string rest;
+    BOOST_CHECK(!(oldSave >> rest));
+
+    // An empty section is valid and gives an empty state
+    std::vector<RelationshipCreatureState> loaded;
+    loaded.push_back(calm);
+    std::istringstream emptySection("[/RelationshipState]\n");
+    BOOST_CHECK(readRelationshipCreatureStates(emptySection, loaded));
+    BOOST_CHECK(loaded.empty());
+
+    // Broken lines and a missing end marker are refused
+    std::istringstream broken("Orc1\tabc\t0\t-1\t\t0\n[/RelationshipState]\n");
+    BOOST_CHECK(!readRelationshipCreatureStates(broken, loaded));
+    std::istringstream unfinished("Orc1\t-100\t0\t-1\t\t0\n");
+    BOOST_CHECK(!readRelationshipCreatureStates(unfinished, loaded));
+}
+
 BOOST_AUTO_TEST_SUITE_END()

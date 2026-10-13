@@ -35,6 +35,7 @@
 #include <string>
 
 enum class RelationshipEvent;
+struct RelationshipCreatureState;
 class Building;
 class Creature;
 class CreatureAction;
@@ -369,6 +370,21 @@ public:
 
     //! \brief Server side. True if the creature can start a brawl now (idle, not in a fight and not hurt).
     bool canStartBrawl() const;
+
+    //! \brief Server side. Fills state with what has to be saved of the relationships of this creature
+    //! (grief mood, rage, brawl).
+    //! \param state Receives the saved values.
+    //! \return False if there is nothing to save.
+    bool getRelationshipState(RelationshipCreatureState& state) const;
+
+    //! \brief Server side. Restores what getRelationshipState saved. A saved brawl is only resumed
+    //! when the opponent was restored too and both are able to fight again soon (see resumeBrawl).
+    //! \param state The values read from the saved game.
+    void setRelationshipState(const RelationshipCreatureState& state);
+
+    //! \brief Server side. Starts the brawl restored by setRelationshipState once both fighters can take
+    //! part, gives up after a while.
+    void resumeBrawl();
 
     //! \brief Conform: AttackableObject - Deducts a given amount of HP from this creature.
     double takeDamage(GameEntity* attacker, double absoluteDamage, double physicalDamage, double magicalDamage, double elementDamage,
@@ -853,6 +869,11 @@ private:
     std::string                     mBrawlOpponent;
     //! Turn on which the current brawl started (relationships), used to end it after the longest allowed time
     int64_t                         mBrawlStartTurn = 0;
+    //! Brawl restored from a saved game: the opponent and the turns it may still last. Starts as
+    //! soon as both creatures can fight (see resumeBrawl), empty if there is none.
+    std::string                     mBrawlResumeOpponent;
+    int64_t                         mBrawlResumeTurnsLeft = 0;
+    int64_t                         mBrawlResumeGiveUpTurn = 0;
 
     //! Combat modifier of the relationships, computed at most once per turn
     mutable int64_t                 mCombatModifierTurn = -1;

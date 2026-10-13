@@ -54,6 +54,7 @@
 
 #include <iostream>
 #include <sstream>
+#include <vector>
 #include <fstream>
 #include <string>
 
@@ -614,6 +615,28 @@ bool readGameMapFromFile(const std::string& fileName, GameMap& gameMap)
             OD_LOG_WRN("Invalid Relationships section");
             return false;
         }
+
+        if(!(levelFile >> nextParam))
+            nextParam.clear();
+    }
+
+    // Optional relationship state of the creatures (grief, rage, brawl). Only written when the option is on
+    // and there is something to save; read and dropped when the option is off.
+    if(nextParam == "[RelationshipState]")
+    {
+        std::vector<RelationshipCreatureState> states;
+        if(!readRelationshipCreatureStates(levelFile, states))
+        {
+            OD_LOG_WRN("Invalid RelationshipState section");
+            return false;
+        }
+
+        for(size_t i = 0; i < states.size(); ++i)
+        {
+            Creature* creature = gameMap.getCreature(states[i].mName);
+            if(creature != nullptr)
+                creature->setRelationshipState(states[i]);
+        }
     }
 
 
@@ -897,6 +920,22 @@ bool writeGameMapToFile(const std::string& fileName, GameMap& gameMap)
         levelFile << "\n[Relationships]\n";
         gameMap.getCreatureRelationships()->writeToStream(levelFile, gameMap.getTurnNumber());
         levelFile << "[/Relationships]" << std::endl;
+
+        std::vector<RelationshipCreatureState> states;
+        const std::vector<Creature*>& creatures = gameMap.getCreatures();
+        for(size_t i = 0; i < creatures.size(); ++i)
+        {
+            RelationshipCreatureState state;
+            if(creatures[i]->getRelationshipState(state))
+                states.push_back(state);
+        }
+
+        if(!states.empty())
+        {
+            levelFile << "\n[RelationshipState]\n";
+            writeRelationshipCreatureStates(levelFile, states);
+            levelFile << "[/RelationshipState]" << std::endl;
+        }
     }
 
     if (!levelFile.good()) {

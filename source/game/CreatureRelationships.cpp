@@ -31,6 +31,16 @@ const int32_t RelationshipSettings::VALUE_MAX = 100;
 
 namespace
 {
+    //! Saved creature states: number of tab separated fields of a line and the position of each of them
+    static const size_t STATE_FIELD_COUNT = 6;
+    static const size_t STATE_FIELD_GRIEF = 1;
+    static const size_t STATE_FIELD_RAGE_TURNS = 2;
+    static const size_t STATE_FIELD_RAGE_SEAT = 3;
+    static const size_t STATE_FIELD_BRAWL_OPPONENT = 4;
+    static const size_t STATE_FIELD_BRAWL_TURNS = 5;
+    //! A saved grief mood is limited to this many points in both directions, whatever the file says
+    static const int64_t STATE_GRIEF_LIMIT = 100000;
+
     //! Default values used when config/relationships.cfg is missing or lacks an entry
     static const int32_t DEFAULT_THRESHOLD_FRIENDS = 50;
     static const int32_t DEFAULT_THRESHOLD_BEST_FRIENDS = 80;
@@ -1110,5 +1120,75 @@ bool CreatureRelationships::readFromStream(std::istream& is, int64_t turn)
         mPairs[pair] = data;
         if(!hasFlag)
             legacy.insert(pair);
+    }
+}
+
+void writeRelationshipCreatureStates(std::ostream& os, const std::vector<RelationshipCreatureState>& states)
+{
+    for(size_t i = 0; i < states.size(); ++i)
+    {
+        const RelationshipCreatureState& state = states[i];
+        if(state.isEmpty())
+            continue;
+
+        os << state.mName << "\t" << state.mGriefMood << "\t" << std::max<int64_t>(0, state.mRageTurnsLeft) << "\t"
+           << state.mRageSeatId << "\t" << state.mBrawlOpponent << "\t" << std::max<int64_t>(0, state.mBrawlTurnsLeft)
+           << "\n";
+    }
+}
+
+bool readRelationshipCreatureStates(std::istream& is, std::vector<RelationshipCreatureState>& states)
+{
+    states.clear();
+    std::string line;
+    while(true)
+    {
+        if(!is.good())
+            return false;
+
+        std::getline(is, line);
+        if(!line.empty() && (line[line.size() - 1] == '\r'))
+            line.erase(line.size() - 1);
+
+        if(line == "[/RelationshipState]")
+            return true;
+
+        if(line.empty() || (line[0] == '#'))
+            continue;
+
+        std::vector<std::string> fields;
+        std::string::size_type start = 0;
+        while(true)
+        {
+            std::string::size_type pos = line.find('\t', start);
+            if(pos == std::string::npos)
+            {
+                fields.push_back(line.substr(start));
+                break;
+            }
+            fields.push_back(line.substr(start, pos - start));
+            start = pos + 1;
+        }
+
+        int64_t grief = 0;
+        int64_t rageTurns = 0;
+        int64_t rageSeat = 0;
+        int64_t brawlTurns = 0;
+        if((fields.size() < STATE_FIELD_COUNT) || fields[0].empty() || !parseInt(fields[STATE_FIELD_GRIEF], grief)
+           || !parseInt(fields[STATE_FIELD_RAGE_TURNS], rageTurns) || !parseInt(fields[STATE_FIELD_RAGE_SEAT], rageSeat)
+           || !parseInt(fields[STATE_FIELD_BRAWL_TURNS], brawlTurns))
+        {
+            return false;
+        }
+
+        RelationshipCreatureState state;
+        state.mName = fields[0];
+        state.mGriefMood = static_cast<int32_t>(std::max<int64_t>(-STATE_GRIEF_LIMIT,
+            std::min<int64_t>(STATE_GRIEF_LIMIT, grief)));
+        state.mRageTurnsLeft = std::max<int64_t>(0, rageTurns);
+        state.mRageSeatId = static_cast<int32_t>(rageSeat);
+        state.mBrawlOpponent = fields[STATE_FIELD_BRAWL_OPPONENT];
+        state.mBrawlTurnsLeft = std::max<int64_t>(0, brawlTurns);
+        states.push_back(state);
     }
 }

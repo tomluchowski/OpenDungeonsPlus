@@ -199,6 +199,42 @@ struct RelationshipTierChange
     RelationshipTier mNewTier;
 };
 
+//! \brief Relationship state of one creature that is not part of the pair table and has to be
+//! saved with a game: fading grief mood, rage against a seat, a running nemesis brawl. Durations
+//! are stored as the number of turns that are left, because the turn counter starts at 0 again
+//! when a game is loaded.
+struct RelationshipCreatureState
+{
+    RelationshipCreatureState() :
+        mGriefMood(0),
+        mRageTurnsLeft(0),
+        mRageSeatId(-1),
+        mBrawlTurnsLeft(0)
+    {}
+
+    //! True if there is nothing to save
+    bool isEmpty() const
+    { return (mGriefMood == 0) && (mRageTurnsLeft <= 0) && mBrawlOpponent.empty(); }
+
+    std::string mName;
+    //! Temporary mood points (negative for grief), fading each turn
+    int32_t mGriefMood;
+    //! Turns the rage after the death of a friend lasts, and the id of the seat it is against
+    int64_t mRageTurnsLeft;
+    int32_t mRageSeatId;
+    //! Name of the creature of a running brawl (empty if none) and the turns it can still last
+    std::string mBrawlOpponent;
+    int64_t mBrawlTurnsLeft;
+};
+
+//! \brief Writes one tab separated line per creature state (creature name, grief mood, rage turns
+//! left, rage seat id, brawl opponent, brawl turns left). States that are empty are skipped.
+void writeRelationshipCreatureStates(std::ostream& os, const std::vector<RelationshipCreatureState>& states);
+
+//! \brief Reads lines written by writeRelationshipCreatureStates until the line "[/RelationshipState]".
+//! \returns false if the section is invalid.
+bool readRelationshipCreatureStates(std::istream& is, std::vector<RelationshipCreatureState>& states);
+
 //! \brief Relationship values between the creatures of a game map.
 //!
 //! Owned by the game map and only created when the option is switched on. The
