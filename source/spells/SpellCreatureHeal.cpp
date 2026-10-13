@@ -267,7 +267,7 @@ bool SpellCreatureHeal::castSpell(GameMap* gameMap, Player* player, ODPacket& pa
 
     for(Tile* tile : affectedTiles)
     {
-        fireSpellSound(*tile, "Heal");
+        fireSpellEffect(*tile, "Heal", "Heal");
     }
 
     return true;

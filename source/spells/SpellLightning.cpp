@@ -177,6 +177,7 @@ bool SpellLightning::castSpell(GameMap* gameMap, Player* player, ODPacket& packe
     double damage = ConfigManager::getSingleton().getSpellConfigDouble("LightningDamage");
     creature->takeDamage(nullptr, damage, 0.0, 0.0, 0.0, pos, false);
     creature->stun(creature->getDefinition()->getTurnsStunDropped());
+    fireSpellEffect(*pos, "Lightning", "");
 
     return true;
 }

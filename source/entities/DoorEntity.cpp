@@ -165,9 +165,9 @@ void DoorEntity::setAnimationState(const std::string& state, bool loop, const Og
     // The names of the doors start with their type (DoorSteel_3_...)
     std::string typeName = getName().substr(0, getName().find('_'));
     if(state == DOOR_OPEN_STATE)
-        ambience->triggerEvent("DoorOpen", getPosition(), false, typeName, getSeat());
+        ambience->triggerEvent("DoorOpen", getPosition(), false, typeName, false, getSeat());
     else if(state == DOOR_CLOSE_STATE)
-        ambience->triggerEvent("DoorClose", getPosition(), false, typeName, getSeat());
+        ambience->triggerEvent("DoorClose", getPosition(), false, typeName, false, getSeat());
 }
 
 std::string DoorEntity::getListenerName() const

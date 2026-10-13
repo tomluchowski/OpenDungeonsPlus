@@ -1,0 +1,62 @@
+// Materials of the spell rings (textures drawn by tools/gen_spell_marks.py) and of the lightning bolt
+
+material RoomAmbRing
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            // Added to the picture, but weighted by the alpha of the texture and of the particle: plain "add" ignores the
+            // alpha, so the transparent corners (white in this texture) would show as a bright square
+            scene_blend src_alpha one
+            depth_write off
+            diffuse vertexcolour
+
+            texture_unit
+            {
+                texture RoomAmbRing.png
+            }
+        }
+    }
+}
+
+material RoomAmbRingRunes
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            // As RoomAmbRing: the alpha decides, the transparent part of the texture is not black
+            scene_blend src_alpha one
+            depth_write off
+            diffuse vertexcolour
+
+            texture_unit
+            {
+                texture RoomAmbRingRunes.png
+            }
+        }
+    }
+}
+
+// The lightning bolt mesh (models/SpellBolt.mesh, texture drawn by tools/gen_spell_bolt.py): added light
+material SpellBolt
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend src_alpha one
+            depth_write off
+            cull_hardware none
+
+            texture_unit
+            {
+                texture SpellBolt.png
+            }
+        }
+    }
+}

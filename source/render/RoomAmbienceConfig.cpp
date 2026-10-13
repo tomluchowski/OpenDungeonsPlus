@@ -57,6 +57,7 @@ RoomAmbienceConfig::RoomAmbienceConfig() :
     mMaxParticlesReduced(10),
     mMaxMotions(40),
     mMaxOneShots(8),
+    mMaxFlights(6),
     mOccupiedRadius(2.2),
     mReducedDistanceFactor(0.55)
 {
@@ -190,6 +191,8 @@ bool RoomAmbienceConfig::loadSettings(std::istream& file)
             mMaxMotions = Helper::toUInt32(words[1]);
         else if(words[0] == "MaxOneShots")
             mMaxOneShots = Helper::toUInt32(words[1]);
+        else if(words[0] == "MaxFlights")
+            mMaxFlights = Helper::toUInt32(words[1]);
         else if(words[0] == "OccupiedRadius")
             mOccupiedRadius = Helper::toDouble(words[1]);
         else if(words[0] == "ReducedDistanceFactor")
@@ -297,6 +300,10 @@ bool RoomAmbienceConfig::loadEffect(std::istream& file)
                 effect.mKind = AmbienceKind::turn;
             else if(words[1] == "Sound")
                 effect.mKind = AmbienceKind::sound;
+            else if(words[1] == "Beam")
+                effect.mKind = AmbienceKind::beam;
+            else if(words[1] == "Projectile")
+                effect.mKind = AmbienceKind::projectile;
             else
             {
                 OD_LOG_ERR("Unknown room ambience kind: " + words[1]);
@@ -306,6 +313,18 @@ bool RoomAmbienceConfig::loadEffect(std::istream& file)
         else if(key == "System")
         {
             effect.mSystem = words[1];
+        }
+        else if(key == "Mesh")
+        {
+            effect.mMesh = words[1];
+        }
+        else if(key == "Land")
+        {
+            effect.mLand = words[1];
+        }
+        else if((key == "From") && (words.size() >= 4))
+        {
+            effect.mFrom = Ogre::Vector3(Helper::toFloat(words[1]), Helper::toFloat(words[2]), Helper::toFloat(words[3]));
         }
         else if(key == "Family")
         {

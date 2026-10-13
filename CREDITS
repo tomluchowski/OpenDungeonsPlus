@@ -495,6 +495,14 @@ particles/RoomAmbience*.particle       OD Team                 GPLv3+
 materials/textures/RoomAmb*.png        OD Team                 GPLv3+                  Drawn from simple shapes and gradients by tools/gen_room_ambience_art.py (script generated, original work, not AI generated)
 tools/gen_room_ambience_art.py         OD Team                 GPLv3+
 tools/check_room_ambience.py           OD Team                 GPLv3+
+materials/textures/RoomAmbRing.png      OD Team                 GPLv3+                  Thin glowing ring drawn from gradients, lines and noise by tools/gen_spell_marks.py (script generated, original work)
+materials/textures/RoomAmbRingRunes.png  OD Team                 GPLv3+                  Double ring with tick marks drawn from gradients, lines and noise by tools/gen_spell_marks.py (script generated, original work)
+tools/gen_spell_marks.py                OD Team                 GPLv3+
+materials/textures/SpellBolt.png                OD Team                 GPLv3+                  Lightning bolt strip (white core, blue glow) computed by tools/gen_spell_bolt.py (script generated, original work, not AI generated)
+tools/gen_spell_bolt.py                 OD Team                 GPLv3+
+models/SpellBolt.mesh                   OD Team                 GPLv3+                  Zigzag lightning bolt of crossed ribbons, AI-generated with a Blender script (tools/blender-assets/spell_bolt.py, original work, material SpellBolt)
+tools/blender-assets/spell_bolt.py      OD Team                 GPLv3+
+particles/RoomAmbienceSpellsExtra.particle  OD Team             GPLv3+                  Particle scripts of the heal, haste, defense, slow, flight trail and end effects (original work, only existing sprites)
 
 =============================================================
 ==  Trap and door sounds: sounds/Spatial/Traps, Doors      ==

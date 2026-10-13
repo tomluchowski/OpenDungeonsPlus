@@ -61,6 +61,20 @@ public:
 
     static void fireSpellSound(Tile& tile, const std::string& soundFamily);
 
+    //! \brief Tells the clients that see the tile to show the cosmetic effect of the given name
+    //! (see config/roomAmbienceSpellsFx.cfg) and, if soundFamily is not empty, to play the sound of
+    //! the family "Spells/<soundFamily>". Nothing else changes in the game.
+    //! \param tile The tile the effect is shown at.
+    //! \param effectName Name of the effect; the clients raise the room ambience event "SpellFx<effectName>".
+    //! \param soundFamily Sound family below Spells/, or empty for no sound.
+    static void fireSpellEffect(Tile& tile, const std::string& effectName, const std::string& soundFamily);
+
+    //! The prefix of the sound family under which a cosmetic spell effect travels to the clients (the clients show
+    //! the effect and do not look for a sound)
+    static const std::string SPELL_EFFECT_PREFIX;
+    //! The name of the effect that makes the keeper's hand throw a spark (sent to the caster of an accepted spell)
+    static const std::string HAND_CAST_EFFECT_NAME;
+
     static std::string getSpellStreamFormat();
 
 protected:

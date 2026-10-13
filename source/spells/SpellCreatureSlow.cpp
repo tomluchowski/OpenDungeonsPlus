@@ -180,6 +180,8 @@ bool SpellCreatureSlow::castSpell(GameMap* gameMap, Player* player, ODPacket& pa
     CreatureEffectSpeedChange* effect = new CreatureEffectSpeedChange(duration, value, "SpellCreatureSlow");
     creature->addCreatureEffect(effect);
 
+    fireSpellEffect(*pos, "Slow", "");
+
     return true;
 }
 

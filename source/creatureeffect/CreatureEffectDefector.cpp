@@ -19,8 +19,10 @@
 
 #include "creatureeffect/CreatureEffectManager.h"
 #include "entities/Creature.h"
+#include "entities/Tile.h"
 #include "game/Seat.h"
 #include "gamemap/GameMap.h"
+#include "spells/Spell.h"
 #include "utils/Helper.h"
 #include "utils/LogManager.h"
 
@@ -75,7 +77,11 @@ void CreatureEffectDefector::applyEffect(Creature& creature)
         return;
     }
 
+    // The colour changes back with the new seat; the clients also show the end of the spell
+    Tile* posTile = creature.getPositionTile();
     creature.changeSeat(originalSeat);
+    if(posTile != nullptr)
+        Spell::fireSpellEffect(*posTile, "DefectorEnd", "");
 }
 
 CreatureEffectDefector* CreatureEffectDefector::load(std::istream& is)

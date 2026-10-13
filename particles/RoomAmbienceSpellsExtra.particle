@@ -1,0 +1,750 @@
+// More cosmetic effects of the spells (client side): own cast markers, travel and impact looks for the
+// healing, haste, defense and slow spells, the flight trails of the thrown spells, the ends of the
+// defector and possession spells. Started by config/roomAmbienceSpellsFx.cfg. Only existing sprites.
+
+// Healing: gold flash at the target (cast marker)
+particle_system SpFxHealMark
+{
+    material        RoomAmbGlow
+    point_rendering false
+    particle_width  1.1
+    particle_height 1.1
+    cull_each       false
+    quota           3
+    billboard_type  point
+
+    emitter Point
+    {
+        angle               0
+        colour              1 0.85 0.4 0.9
+        emission_rate       10
+        time_to_live        0.5
+        direction           0 0 1
+        velocity            0
+        position            0 0 0.7
+        duration            0.1
+    }
+
+    affector Scaler
+    {
+        rate                1.2
+    }
+
+    affector ColourFader
+    {
+        alpha               -2.0
+    }
+}
+
+// Healing: a golden ring on the floor
+particle_system SpFxHealRing
+{
+    material        RoomAmbRing
+    point_rendering false
+    particle_width  0.3
+    particle_height 0.3
+    cull_each       false
+    quota           4
+    billboard_type  perpendicular_common
+    common_direction 0 0 1
+    common_up_vector 0 1 0
+
+    emitter Point
+    {
+        angle               0
+        colour              1 0.85 0.35 0.8
+        emission_rate       6
+        time_to_live        1.1
+        direction           0 0 1
+        velocity            0
+        position            0 0 0.08
+        duration            0.3
+    }
+
+    affector Scaler
+    {
+        rate                2.4
+    }
+
+    affector ColourFader
+    {
+        alpha               -0.90909
+    }
+}
+
+// Healing: a column of golden light that rises from the floor
+particle_system SpFxHealColumn
+{
+    material        RoomAmbGlow
+    point_rendering false
+    particle_width  0.45
+    particle_height 0.45
+    cull_each       false
+    quota           28
+    billboard_type  point
+
+    emitter Box
+    {
+        angle               0
+        colour_range_start  1 0.8 0.3 0.7
+        colour_range_end    1 0.95 0.6 0.7
+        emission_rate       40
+        time_to_live        0.9
+        direction           0 0 1
+        velocity_min        1.2
+        velocity_max        1.8
+        position            0 0 0.1
+        width               0.5
+        height              0.5
+        depth               0.05
+        duration            0.9
+    }
+
+    affector Scaler
+    {
+        rate                -0.25
+    }
+
+    affector ColourFader
+    {
+        alpha               -1.1
+    }
+}
+
+// Healing: golden sparks when the healing takes hold
+particle_system SpFxHealBurst
+{
+    material        RoomAmbSpark
+    point_rendering false
+    particle_width  0.1
+    particle_height 0.1
+    cull_each       false
+    quota           24
+    billboard_type  point
+
+    emitter Point
+    {
+        angle               180
+        colour_range_start  1 0.8 0.3 1
+        colour_range_end    1 1 0.7 1
+        emission_rate       150
+        time_to_live        0.8
+        direction           0 0 1
+        velocity_min        0.6
+        velocity_max        1.6
+        position            0 0 0.6
+        duration            0.12
+    }
+
+    affector LinearForce
+    {
+        force_vector        0 0 -0.8
+        force_application   add
+    }
+
+    affector ColourFader
+    {
+        alpha               -1.25
+    }
+}
+
+// Haste: blue flash at the target (cast marker)
+particle_system SpFxHasteMark
+{
+    material        RoomAmbGlow
+    point_rendering false
+    particle_width  1.0
+    particle_height 1.0
+    cull_each       false
+    quota           3
+    billboard_type  point
+
+    emitter Point
+    {
+        angle               0
+        colour              0.45 0.8 1 0.9
+        emission_rate       10
+        time_to_live        0.4
+        direction           0 0 1
+        velocity            0
+        position            0 0 0.7
+        duration            0.1
+    }
+
+    affector Scaler
+    {
+        rate                1.6
+    }
+
+    affector ColourFader
+    {
+        alpha               -2.5
+    }
+}
+
+// Haste: a quick blue ring
+particle_system SpFxHasteRing
+{
+    material        RoomAmbRing
+    point_rendering false
+    particle_width  0.3
+    particle_height 0.3
+    cull_each       false
+    quota           4
+    billboard_type  perpendicular_common
+    common_direction 0 0 1
+    common_up_vector 0 1 0
+
+    emitter Point
+    {
+        angle               0
+        colour              0.4 0.75 1 0.8
+        emission_rate       6
+        time_to_live        0.6
+        direction           0 0 1
+        velocity            0
+        position            0 0 0.08
+        duration            0.3
+    }
+
+    affector Scaler
+    {
+        rate                4.5
+    }
+
+    affector ColourFader
+    {
+        alpha               -1.66667
+    }
+}
+
+// Haste: speed lines that fan out from the creature
+particle_system SpFxHasteStreaks
+{
+    material        RoomAmbSpark
+    point_rendering false
+    particle_width  0.05
+    particle_height 0.55
+    cull_each       false
+    quota           30
+    billboard_type  oriented_self
+
+    emitter Point
+    {
+        angle               90
+        colour_range_start  0.5 0.85 1 0.9
+        colour_range_end    0.85 1 1 0.9
+        emission_rate       200
+        time_to_live        0.4
+        direction           0 0 1
+        velocity_min        3
+        velocity_max        5.5
+        position            0 0 0.45
+        duration            0.15
+    }
+
+    affector ColourFader
+    {
+        alpha               -2.5
+    }
+}
+
+// Haste: a burst of blue sparks
+particle_system SpFxHasteBurst
+{
+    material        RoomAmbSpark
+    point_rendering false
+    particle_width  0.1
+    particle_height 0.1
+    cull_each       false
+    quota           20
+    billboard_type  point
+
+    emitter Point
+    {
+        angle               180
+        colour_range_start  0.4 0.8 1 1
+        colour_range_end    0.9 1 1 1
+        emission_rate       150
+        time_to_live        0.5
+        direction           0 0 1
+        velocity_min        1.0
+        velocity_max        2.4
+        position            0 0 0.5
+        duration            0.12
+    }
+
+    affector LinearForce
+    {
+        force_vector        0 0 0
+        force_application   add
+    }
+
+    affector ColourFader
+    {
+        alpha               -2.0
+    }
+}
+
+// Defense: grey-blue flash at the target (cast marker)
+particle_system SpFxDefenseMark
+{
+    material        RoomAmbGlow
+    point_rendering false
+    particle_width  1.0
+    particle_height 1.0
+    cull_each       false
+    quota           3
+    billboard_type  point
+
+    emitter Point
+    {
+        angle               0
+        colour              0.7 0.8 0.95 0.9
+        emission_rate       10
+        time_to_live        0.5
+        direction           0 0 1
+        velocity            0
+        position            0 0 0.7
+        duration            0.1
+    }
+
+    affector Scaler
+    {
+        rate                1.2
+    }
+
+    affector ColourFader
+    {
+        alpha               -2.0
+    }
+}
+
+// Defense: a steel-coloured ring
+particle_system SpFxDefenseRing
+{
+    material        RoomAmbRingRunes
+    point_rendering false
+    particle_width  0.3
+    particle_height 0.3
+    cull_each       false
+    quota           4
+    billboard_type  perpendicular_common
+    common_direction 0 0 1
+    common_up_vector 0 1 0
+
+    emitter Point
+    {
+        angle               0
+        colour              0.7 0.8 0.95 0.75
+        emission_rate       6
+        time_to_live        1.0
+        direction           0 0 1
+        velocity            0
+        position            0 0 0.08
+        duration            0.3
+    }
+
+    affector Scaler
+    {
+        rate                2.0
+    }
+
+    affector ColourFader
+    {
+        alpha               -1.0
+    }
+}
+
+// Defense: a glow that closes around the creature like a shell
+particle_system SpFxDefenseDome
+{
+    material        RoomAmbGlow
+    point_rendering false
+    particle_width  2.0
+    particle_height 2.0
+    cull_each       false
+    quota           3
+    billboard_type  point
+
+    emitter Point
+    {
+        angle               0
+        colour              0.65 0.75 1 0.6
+        emission_rate       10
+        time_to_live        0.9
+        direction           0 0 1
+        velocity            0
+        position            0 0 0.55
+        duration            0.1
+    }
+
+    affector Scaler
+    {
+        rate                -0.8
+    }
+
+    affector ColourFader
+    {
+        alpha               -1.11111
+    }
+}
+
+// Slow: a murky green flash at the target (cast marker)
+particle_system SpFxSlowMark
+{
+    material        RoomAmbGlow
+    point_rendering false
+    particle_width  1.0
+    particle_height 1.0
+    cull_each       false
+    quota           3
+    billboard_type  point
+
+    emitter Point
+    {
+        angle               0
+        colour              0.5 0.7 0.35 0.9
+        emission_rate       10
+        time_to_live        0.5
+        direction           0 0 1
+        velocity            0
+        position            0 0 0.7
+        duration            0.1
+    }
+
+    affector Scaler
+    {
+        rate                1.0
+    }
+
+    affector ColourFader
+    {
+        alpha               -2.0
+    }
+}
+
+// Slow: a ring that closes in on the creature
+particle_system SpFxSlowRing
+{
+    material        RoomAmbRing
+    point_rendering false
+    particle_width  2.4
+    particle_height 2.4
+    cull_each       false
+    quota           2
+    billboard_type  perpendicular_common
+    common_direction 0 0 1
+    common_up_vector 0 1 0
+
+    emitter Point
+    {
+        angle               0
+        colour              0.5 0.65 0.35 0.75
+        emission_rate       6
+        time_to_live        1.1
+        direction           0 0 1
+        velocity            0
+        position            0 0 0.08
+        duration            0.1
+    }
+
+    affector Scaler
+    {
+        rate                -2.0
+    }
+
+    affector ColourFader
+    {
+        alpha               -0.90909
+    }
+}
+
+// Slow: heavy drops that sink down
+particle_system SpFxSlowDrops
+{
+    material        RoomAmbSmoke
+    point_rendering false
+    particle_width  0.3
+    particle_height 0.3
+    cull_each       false
+    quota           16
+    billboard_type  point
+
+    emitter Box
+    {
+        angle               0
+        colour_range_start  0.4 0.55 0.3 0.5
+        colour_range_end    0.55 0.6 0.35 0.5
+        emission_rate       24
+        time_to_live        1.0
+        direction           0 0 -1
+        velocity_min        0.3
+        velocity_max        0.7
+        position            0 0 1.0
+        width               0.5
+        height              0.5
+        depth               0.1
+        duration            0.6
+    }
+
+    affector ColourFader
+    {
+        alpha               -1.0
+    }
+}
+
+// Explosion: the glowing trail of the thrown charge
+particle_system SpFxShotTrail
+{
+    material        RoomAmbGlow
+    point_rendering false
+    particle_width  0.5
+    particle_height 0.5
+    cull_each       false
+    quota           40
+    billboard_type  point
+
+    emitter Point
+    {
+        angle               20
+        colour_range_start  1 0.55 0.15 0.9
+        colour_range_end    1 0.85 0.4 0.9
+        emission_rate       110
+        time_to_live        0.35
+        direction           0 0 1
+        velocity_min        0.1
+        velocity_max        0.4
+        position            0 0 0
+    }
+
+    affector Scaler
+    {
+        rate                -0.8
+    }
+
+    affector ColourFader
+    {
+        alpha               -2.6
+    }
+}
+
+// Inferno: the flames that trail behind the falling fireball
+particle_system SpFxFlameTrail
+{
+    material        RoomAmbSmoke
+    point_rendering false
+    particle_width  0.55
+    particle_height 0.55
+    cull_each       false
+    quota           40
+    billboard_type  point
+
+    emitter Point
+    {
+        angle               25
+        colour_range_start  1 0.35 0.05 0.8
+        colour_range_end    1 0.65 0.15 0.8
+        emission_rate       100
+        time_to_live        0.45
+        direction           0 0 1
+        velocity_min        0.2
+        velocity_max        0.6
+        position            0 0 0
+    }
+
+    affector Scaler
+    {
+        rate                0.3
+    }
+
+    affector ColourFader
+    {
+        alpha               -1.8
+    }
+}
+
+// Explosion: dust thrown up where the charge lands
+particle_system SpFxLandDust
+{
+    material        RoomAmbDust
+    point_rendering false
+    particle_width  0.5
+    particle_height 0.5
+    cull_each       false
+    quota           18
+    billboard_type  point
+
+    emitter Point
+    {
+        angle               70
+        colour_range_start  0.55 0.5 0.4 0.6
+        colour_range_end    0.7 0.65 0.5 0.6
+        emission_rate       120
+        time_to_live        0.9
+        direction           0 0 1
+        velocity_min        0.8
+        velocity_max        2.0
+        position            0 0 0.1
+        duration            0.12
+    }
+
+    affector Scaler
+    {
+        rate                0.9
+    }
+
+    affector LinearForce
+    {
+        force_vector        0 0 -0.8
+        force_application   add
+    }
+
+    affector ColourFader
+    {
+        alpha               -1.1
+    }
+}
+
+// Defector end: a ring that closes in on the creature, which is back where it belongs
+particle_system SpFxTurnBackRing
+{
+    material        RoomAmbRingRunes
+    point_rendering false
+    particle_width  2.6
+    particle_height 2.6
+    cull_each       false
+    quota           2
+    billboard_type  perpendicular_common
+    common_direction 0 0 1
+    common_up_vector 0 1 0
+
+    emitter Point
+    {
+        angle               0
+        colour              0.9 0.5 0.4 0.8
+        emission_rate       6
+        time_to_live        1.1
+        direction           0 0 1
+        velocity            0
+        position            0 0 0.08
+        duration            0.1
+    }
+
+    affector Scaler
+    {
+        rate                -2.2
+    }
+
+    affector ColourFader
+    {
+        alpha               -0.90909
+    }
+}
+
+// Defector end: a flash when the creature changes sides again
+particle_system SpFxTurnBackFlash
+{
+    material        RoomAmbGlow
+    point_rendering false
+    particle_width  1.4
+    particle_height 1.4
+    cull_each       false
+    quota           3
+    billboard_type  point
+
+    emitter Point
+    {
+        angle               0
+        colour              1 0.7 0.5 0.9
+        emission_rate       10
+        time_to_live        0.6
+        direction           0 0 1
+        velocity            0
+        position            0 0 0.7
+        duration            0.1
+    }
+
+    affector Scaler
+    {
+        rate                2.0
+    }
+
+    affector ColourFader
+    {
+        alpha               -1.66667
+    }
+}
+
+// Possession lost: a red flash where the creature fell
+particle_system SpFxPossessLostFlash
+{
+    material        RoomAmbGlow
+    point_rendering false
+    particle_width  1.6
+    particle_height 1.6
+    cull_each       false
+    quota           3
+    billboard_type  point
+
+    emitter Point
+    {
+        angle               0
+        colour              1 0.3 0.25 0.9
+        emission_rate       10
+        time_to_live        0.7
+        direction           0 0 1
+        velocity            0
+        position            0 0 0.5
+        duration            0.1
+    }
+
+    affector Scaler
+    {
+        rate                2.0
+    }
+
+    affector ColourFader
+    {
+        alpha               -1.42857
+    }
+}
+
+// Possession lost: dark smoke that rises
+particle_system SpFxPossessLostSmoke
+{
+    material        RoomAmbSmoke
+    point_rendering false
+    particle_width  0.5
+    particle_height 0.5
+    cull_each       false
+    quota           16
+    billboard_type  point
+
+    emitter Box
+    {
+        angle               15
+        colour_range_start  0.25 0.1 0.35 0.6
+        colour_range_end    0.4 0.15 0.4 0.6
+        emission_rate       24
+        time_to_live        1.4
+        direction           0 0 1
+        velocity_min        0.3
+        velocity_max        0.8
+        position            0 0 0.3
+        width               0.4
+        height              0.4
+        depth               0.2
+        duration            0.5
+    }
+
+    affector Scaler
+    {
+        rate                0.4
+    }
+
+    affector ColourFader
+    {
+        alpha               -0.7
+    }
+}

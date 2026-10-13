@@ -124,6 +124,21 @@ const double TWO_PI = 6.283185307179586;
 const double RELOAD_STATE_SECONDS = 300.0;
 //! Seconds that the reload look is kept after the server said that the trap is loaded, so that a short reload is seen at all
 const double RELOAD_FADE_OUT_SECONDS = 2.0;
+//! The shortest time a bolt or flying object is on its way, in seconds
+const double MIN_FLIGHT_SECONDS = 0.05;
+//! The slowest a bolt flickers, in flickers per second
+const double MIN_BEAM_FLICKER_RATE = 1.0;
+//! The shortest length a bolt is stretched to, so that it never has zero length
+const double MIN_BEAM_LENGTH = 0.01;
+//! A bolt is drawn this thick (times its width) at the thinnest, and up to this much thicker at random, and it grows
+//! thinner as it fades
+const double BEAM_THICKNESS_MIN = 0.55;
+const double BEAM_THICKNESS_RANGE = 0.9;
+//! The arc of a projectile is a parabola: its height at the middle of the way is the height of the arc, and this
+//! factor makes the parabola 4 * progress * (1 - progress) reach 1 there
+const double ARC_PARABOLA_FACTOR = 4.0;
+//! A projectile that moved less than this (squared) since the last frame is not turned
+const float MIN_PROJECTILE_MOVE_SQUARED = 0.000001f;
 //! At most this many sounds wait for their delay at the same time
 const size_t MAX_PENDING_SOUNDS = 32;
 //! Seconds that a door counts as hit after the server sent a hit, for the effects "When Hit"
@@ -569,11 +584,15 @@ void RoomAmbience::stopAll()
 
         for(Collapse& collapse : mCollapses)
             destroyCollapse(collapse);
+
+        for(Flight& flight : mFlights)
+            destroyFlight(flight);
     }
 
     mEmitters.clear();
     mOneShots.clear();
     mCollapses.clear();
+    mFlights.clear();
     mPendingSounds.clear();
     mTurrets.clear();
     mShakeTime = 0.0;
@@ -609,6 +628,7 @@ void RoomAmbience::update(Ogre::Real timeSinceLastFrame)
     updateOneShots(dt);
     updatePendingSounds();
     updateCollapses(dt);
+    updateFlights(dt);
     updateShake(dt);
     updateMotions(dt);
     updateTurrets(dt);
@@ -1490,7 +1510,7 @@ void RoomAmbience::updateMotions(double timeSinceLastFrame)
 }
 
 uint32_t RoomAmbience::triggerEvent(const std::string& eventName, const Ogre::Vector3& position, bool forced,
-        const std::string& visualName, const Seat* owner)
+        const std::string& visualName, bool noThrottle, const Seat* owner)
 {
     if((mMode == Mode::off) || (RenderManager::getSingletonPtr() == nullptr))
         return 0;
@@ -1502,7 +1522,7 @@ uint32_t RoomAmbience::triggerEvent(const std::string& eventName, const Ogre::Ve
     if(!forced)
     {
         std::map<std::string, double>::iterator lastIt = mLastEventTime.find(eventName);
-        if((lastIt != mLastEventTime.end()) && ((mClock - lastIt->second) < EVENT_REPEAT_SECONDS))
+        if(!noThrottle && (lastIt != mLastEventTime.end()) && ((mClock - lastIt->second) < EVENT_REPEAT_SECONDS))
             return 0;
     }
 
@@ -1543,6 +1563,7 @@ uint32_t RoomAmbience::triggerEvent(const std::string& eventName, const Ogre::Ve
 
         bool isShake = (effect.mKind == AmbienceKind::shake);
         bool isSound = (effect.mKind == AmbienceKind::sound);
+        bool isFlight = (effect.mKind == AmbienceKind::beam) || (effect.mKind == AmbienceKind::projectile);
         if(!forced)
         {
             if(!isEffectUsable(effect) || (camera == nullptr))
@@ -1566,7 +1587,7 @@ uint32_t RoomAmbience::triggerEvent(const std::string& eventName, const Ogre::Ve
                     continue;
             }
 
-            if(!isShake && !isSound && (mOneShots.size() >= mConfig.getMaxOneShots()))
+            if(!isShake && !isSound && !isFlight && (mOneShots.size() >= mConfig.getMaxOneShots()))
                 continue;
         }
 
@@ -1590,6 +1611,15 @@ uint32_t RoomAmbience::triggerEvent(const std::string& eventName, const Ogre::Ve
                 playSound(effect.mFamily, position);
             }
             ++nbStarted;
+            continue;
+        }
+
+        if(isFlight)
+        {
+            uint32_t nbBefore = static_cast<uint32_t>(mFlights.size());
+            startFlight(effect, position);
+            if(mFlights.size() > nbBefore)
+                ++nbStarted;
             continue;
         }
 
@@ -1811,6 +1841,141 @@ void RoomAmbience::updateTurrets(double timeSinceLastFrame)
             effect.mSpeed * timeSinceLastFrame * DEGREES_TO_RADIANS);
         ++it;
     }
+}
+
+void RoomAmbience::startFlight(const AmbienceEffect& effect, const Ogre::Vector3& position)
+{
+    if(mFlights.size() >= mConfig.getMaxFlights())
+        return;
+
+    Ogre::SceneManager* sceneManager = RenderManager::getSingleton().getSceneManager();
+    Flight flight;
+    flight.mBeam = (effect.mKind == AmbienceKind::beam);
+    flight.mStart = position + effect.mFrom;
+    flight.mEnd = position + effect.mOffset;
+    flight.mDuration = std::max(MIN_FLIGHT_SECONDS, effect.mDuration);
+    flight.mWidth = effect.mAmount;
+    flight.mArc = flight.mBeam ? 0.0 : effect.mAmount;
+    flight.mFlickerRate = std::max(MIN_BEAM_FLICKER_RATE, effect.mSpeed);
+    flight.mLand = effect.mLand;
+
+    std::string name = "RoomAmbience_" + effect.mName + "_" + Helper::toString(++mUniqueNumber);
+    flight.mNode = sceneManager->getRootSceneNode()->createChildSceneNode(name + "_node", flight.mStart);
+    if(!effect.mMesh.empty())
+    {
+        try
+        {
+            flight.mEntity = sceneManager->createEntity(name, effect.mMesh + MESH_SUFFIX);
+        }
+        catch(const Ogre::Exception&)
+        {
+            if(mMissingSystems.insert(effect.mMesh).second)
+                OD_LOG_WRN("Room ambience: unknown mesh " + effect.mMesh);
+            sceneManager->destroySceneNode(flight.mNode);
+            return;
+        }
+        flight.mEntity->setCastShadows(false);
+        flight.mNode->attachObject(flight.mEntity);
+    }
+
+    if(!effect.mSystem.empty())
+        createParticleSystem(effect.mSystem, flight.mStart, effect.mName + "Trail", flight.mTrailNode, flight.mTrailSystem);
+
+    if((flight.mEntity == nullptr) && (flight.mTrailSystem == nullptr))
+    {
+        sceneManager->destroySceneNode(flight.mNode);
+        return;
+    }
+
+    mFlights.push_back(flight);
+}
+
+void RoomAmbience::updateFlights(double timeSinceLastFrame)
+{
+    std::vector<std::pair<std::string, Ogre::Vector3> > arrivals;
+    for(std::vector<Flight>::iterator it = mFlights.begin(); it != mFlights.end();)
+    {
+        Flight& flight = *it;
+        flight.mAge += timeSinceLastFrame;
+        if(flight.mAge >= flight.mDuration)
+        {
+            if(!flight.mLand.empty())
+                arrivals.push_back(std::make_pair(flight.mLand, flight.mEnd));
+            destroyFlight(flight);
+            it = mFlights.erase(it);
+            continue;
+        }
+
+        double progress = flight.mAge / flight.mDuration;
+        Ogre::Vector3 position = flight.mStart + (flight.mEnd - flight.mStart) * static_cast<Ogre::Real>(progress);
+        Ogre::Vector3 direction = flight.mEnd - flight.mStart;
+        if(flight.mBeam)
+        {
+            // The bolt always spans from its start to the target. The mesh runs along its y axis with length 1; it is
+            // turned around that axis and made thinner or thicker a few times a second, which makes it flicker
+            double length = std::max(MIN_BEAM_LENGTH, static_cast<double>(direction.length()));
+            direction.normalise();
+            flight.mFlickerClock += timeSinceLastFrame;
+            if((flight.mFlickerClock * flight.mFlickerRate >= 1.0) || (flight.mAge == timeSinceLastFrame))
+            {
+                flight.mFlickerClock = 0.0;
+                std::uniform_real_distribution<double> dice(0.0, 1.0);
+                double roll = dice(mRandom) * TWO_PI;
+                double thickness = (BEAM_THICKNESS_MIN + BEAM_THICKNESS_RANGE * dice(mRandom)) * flight.mWidth *
+                    std::sqrt(1.0 - progress);
+                Ogre::Quaternion turn = Ogre::Quaternion(Ogre::Radian(static_cast<Ogre::Real>(roll)), Ogre::Vector3::UNIT_Y);
+                flight.mNode->setOrientation(Ogre::Vector3::UNIT_Y.getRotationTo(direction) * turn);
+                flight.mNode->setScale(static_cast<Ogre::Real>(thickness), static_cast<Ogre::Real>(length),
+                    static_cast<Ogre::Real>(thickness));
+            }
+            flight.mNode->setPosition(flight.mStart);
+        }
+        else
+        {
+            position.z += static_cast<Ogre::Real>(flight.mArc * ARC_PARABOLA_FACTOR * progress * (1.0 - progress));
+            Ogre::Vector3 previous = flight.mNode->getPosition();
+            flight.mNode->setPosition(position);
+            Ogre::Vector3 moved = position - previous;
+            if((flight.mEntity != nullptr) && (moved.squaredLength() > MIN_PROJECTILE_MOVE_SQUARED))
+            {
+                moved.normalise();
+                flight.mNode->setOrientation(Ogre::Vector3::UNIT_Y.getRotationTo(moved));
+            }
+            if(flight.mTrailNode != nullptr)
+                flight.mTrailNode->setPosition(position);
+        }
+
+        ++it;
+    }
+
+    for(std::pair<std::string, Ogre::Vector3>& arrival : arrivals)
+        triggerEvent(arrival.first, arrival.second, false, std::string(), true);
+}
+
+void RoomAmbience::destroyFlight(Flight& flight)
+{
+    Ogre::SceneManager* sceneManager = RenderManager::getSingleton().getSceneManager();
+    if(flight.mNode != nullptr)
+        flight.mNode->detachAllObjects();
+    if(flight.mEntity != nullptr)
+        sceneManager->destroyEntity(flight.mEntity);
+    if(flight.mNode != nullptr)
+        sceneManager->destroySceneNode(flight.mNode);
+
+    Emitter trail;
+    trail.mNode = flight.mTrailNode;
+    trail.mSystem = flight.mTrailSystem;
+    destroyEmitter(trail);
+
+    flight.mNode = nullptr;
+    flight.mEntity = nullptr;
+    flight.mTrailNode = nullptr;
+    flight.mTrailSystem = nullptr;
+}
+
+void RoomAmbience::noteHandCast(const Ogre::Vector3& handPosition)
+{
+    triggerEvent("SpellFxHandCast", handPosition, false, std::string(), true);
 }
 
 void RoomAmbience::startShake(const AmbienceEffect& effect, const Ogre::Vector3& position,

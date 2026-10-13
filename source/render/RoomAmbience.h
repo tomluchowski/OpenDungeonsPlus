@@ -86,11 +86,12 @@ public:
 
     //! \brief Shows the one-shot effects of the given event at the given place.
     //! forced ignores the chance, the view test and the mode "reduced". visualName is the tile visual
-    //! (room) the event is about; empty = the one of the tile at the position. owner is the seat the thing of the
-    //! event belongs to: effects with OwnerOnly are only shown to the keeper of that seat (never when the owner is
-    //! not given). Returns the number of effects started
+    //! (room) the event is about; empty = the one of the tile at the position. noThrottle lets the same event
+    //! start again within a tenth of a second (a spell cast on several creatures at once). owner is the seat the
+    //! thing of the event belongs to: effects with OwnerOnly are only shown to the keeper of that seat (never when
+    //! the owner is not given). Returns the number of effects started
     uint32_t triggerEvent(const std::string& eventName, const Ogre::Vector3& position, bool forced,
-        const std::string& visualName = std::string(), const Seat* owner = nullptr);
+        const std::string& visualName = std::string(), bool noThrottle = false, const Seat* owner = nullptr);
 
     //! \brief Plays the sound of the family (a folder below sounds/Spatial) at the position
     void playSound(const std::string& family, const Ogre::Vector3& position);
@@ -106,6 +107,9 @@ public:
     //! The kinds reloading and ready only set the state for the effects "When Reloading" and "When Ready"; a kind
     //! that is not known is ignored.
     void notifyTrapEffect(int32_t kind, int32_t tileX, int32_t tileY, const std::string& typeName, float fraction);
+
+    //! \brief The local keeper has sent a spell cast: shows the event SpellFxHandCast at the place of the keeper's hand
+    void noteHandCast(const Ogre::Vector3& handPosition);
 
     //! \brief Moves the camera by the current shake. Called just before the frame is rendered; clearShake()
     //! takes it away again after the frame, so nothing else ever sees the shaken camera.
@@ -145,6 +149,46 @@ private:
         double mPhase;
         //! True while the last scan still wanted this emitter
         bool mSeen;
+    };
+
+    //! \brief A bolt (kind beam) or a flying object (kind projectile) on its way to the target
+    struct Flight
+    {
+        //! \brief Creates a flight that is not attached to a scene node yet
+        Flight() :
+            mNode(nullptr), mEntity(nullptr), mTrailNode(nullptr), mTrailSystem(nullptr), mBeam(false),
+            mStart(Ogre::Vector3::ZERO), mEnd(Ogre::Vector3::ZERO), mAge(0.0), mDuration(0.4), mWidth(1.0),
+            mArc(0.0), mFlickerRate(20.0), mFlickerClock(0.0)
+        {}
+
+        //! The scene node that carries the mesh
+        Ogre::SceneNode* mNode;
+        //! The mesh of the bolt or of the flying object (none for a trail only)
+        Ogre::Entity* mEntity;
+        //! The scene node of the trail
+        Ogre::SceneNode* mTrailNode;
+        //! The particle system that trails behind a projectile
+        Ogre::ParticleSystem* mTrailSystem;
+        //! True for a bolt, false for a projectile
+        bool mBeam;
+        //! Where it starts
+        Ogre::Vector3 mStart;
+        //! The target
+        Ogre::Vector3 mEnd;
+        //! Seconds since the start
+        double mAge;
+        //! Seconds it needs to arrive (a bolt stays that long)
+        double mDuration;
+        //! Width of a bolt
+        double mWidth;
+        //! Height of the arc of a projectile
+        double mArc;
+        //! Flickers per second of a bolt
+        double mFlickerRate;
+        //! Seconds since the last flicker of a bolt
+        double mFlickerClock;
+        //! Event raised at the target on arrival (projectile)
+        std::string mLand;
     };
 
     //! \brief The remains of a destroyed door, which plays the clip Collapse (barricade) or Destroyed (every other
@@ -354,6 +398,12 @@ private:
     void destroyCollapse(Collapse& collapse);
     //! \brief Lets the objects of effects of kind turn follow the creatures near them, or go back to rest
     void updateTurrets(double timeSinceLastFrame);
+    //! \brief Starts a beam or a projectile (effect kinds beam and projectile) for an event at the given place
+    void startFlight(const AmbienceEffect& effect, const Ogre::Vector3& position);
+    //! \brief Moves the bolts and flying objects on and raises the landing events of those that arrived
+    void updateFlights(double timeSinceLastFrame);
+    //! \brief Removes the scene objects of a bolt or flying object
+    void destroyFlight(Flight& flight);
     //! \brief Turns the object of a turret back to the direction it looked in when it was first seen
     void restoreTurret(const Turret& turret);
     //! \brief Lets a running view shake fade out and moves its phase on
@@ -439,6 +489,8 @@ private:
     std::map<std::string, double> mWreckedUntil;
     //! The remains of destroyed doors that are shown
     std::vector<Collapse> mCollapses;
+    //! The bolts and flying objects that are on their way
+    std::vector<Flight> mFlights;
     //! Sounds that wait for their delay
     std::vector<PendingSound> mPendingSounds;
     //! Objects that follow creatures (kind turn), per entity name

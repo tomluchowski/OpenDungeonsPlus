@@ -71,7 +71,13 @@ enum class AmbienceKind
     //! is near, at Speed degrees per second (objects only)
     turn,
     //! A sound of the family given by Family: played at the event, or now and then (Every) at an object
-    sound
+    sound,
+    //! A mesh (Mesh) that is stretched from the point From to the target for a moment and flickers: a lightning bolt
+    //! (events only). Amount = width, Speed = flickers per second, Duration in seconds
+    beam,
+    //! An object (Mesh and/or particle system System as trail) that flies from From to the target in Duration seconds
+    //! on an arc of height Amount (events only); Land = event raised at the target when it arrives
+    projectile
 };
 
 //! \brief How an effect of the kind motion moves the node of its object
@@ -107,6 +113,7 @@ struct AmbienceEffect
         mSpeed(1.0),
         mFlicker(0.0),
         mDuration(3.0),
+        mFrom(Ogre::Vector3(0.0f, 0.0f, 8.0f)),
         mDelay(0.0),
         mEvery(10.0),
         mChance(1.0),
@@ -150,6 +157,12 @@ struct AmbienceEffect
     double mFlicker;
     //! Seconds a one-shot effect is kept
     double mDuration;
+    //! Mesh name without extension (kinds beam and projectile)
+    std::string mMesh;
+    //! Event raised at the target when a projectile arrives
+    std::string mLand;
+    //! Where a beam or projectile starts, relative to the target
+    Ogre::Vector3 mFrom;
     //! Sound family, as in the folders below sounds/Spatial (kind sound)
     std::string mFamily;
     //! Seconds after the event until the sound is played (kind sound, events only)
@@ -203,6 +216,9 @@ public:
     //! \brief The most one-shot particle systems that may run at once
     uint32_t getMaxOneShots() const
     { return mMaxOneShots; }
+    //! \brief The most bolts and flying objects that may be on their way at once
+    uint32_t getMaxFlights() const
+    { return mMaxFlights; }
     //! \brief Distance in tiles within which a creature counts as close to an object or tile
     double getOccupiedRadius() const
     { return mOccupiedRadius; }
@@ -237,6 +253,8 @@ private:
     uint32_t mMaxMotions;
     //! Most one-shot particle systems that may run at once
     uint32_t mMaxOneShots;
+    //! Most bolts and flying objects that may be on their way at once
+    uint32_t mMaxFlights;
     //! Distance in tiles within which a creature counts as close
     double mOccupiedRadius;
     //! Factor that shortens the view distance in the mode reduced

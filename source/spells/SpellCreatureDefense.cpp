@@ -180,7 +180,7 @@ bool SpellCreatureDefense::castSpell(GameMap* gameMap, Player* player, ODPacket&
     CreatureEffectDefense* effect = new CreatureEffectDefense(duration, value, 0.0, 0.0, "SpellCreatureDefense");
     creature->addCreatureEffect(effect);
 
-    fireSpellSound(*pos, "Defense");
+    fireSpellEffect(*pos, "Defense", "Defense");
 
     return true;
 }

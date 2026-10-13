@@ -5062,6 +5062,15 @@ void RenderManager::rrDrawTilePreview(const std::vector<Tile*>& tiles, const Ogr
     }
 }
 
+bool RenderManager::getKeeperHandPosition(Ogre::Vector3& position) const
+{
+    if(mHandLightNode == nullptr)
+        return false;
+
+    position = mHandLightNode->getPosition();
+    return true;
+}
+
 void RenderManager::entitySlapped()
 {
     Ogre::Entity* ent = mSceneManager->getEntity("keeperHandEnt");

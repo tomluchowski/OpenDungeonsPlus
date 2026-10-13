@@ -49,6 +49,7 @@
 #include "rooms/RoomPortalWave.h"
 #include "sound/MusicPlayer.h"
 #include "sound/SoundEffectsManager.h"
+#include "spells/Spell.h"
 #include "spells/SpellType.h"
 #include "traps/Trap.h"
 #include "traps/TrapType.h"
@@ -65,6 +66,20 @@
 #include <string>
 
 template<> ODClient* Ogre::Singleton<ODClient>::msSingleton = nullptr;
+
+namespace
+{
+
+//! The room ambience events that show the end of a possession: the keeper returns, or the creature fell
+static const std::string POSSESSION_END_EVENT = "SpellFxPossessEnd";
+static const std::string POSSESSION_LOST_EVENT = "SpellFxPossessLost";
+//! The messages shown when a possession ends, and their colours
+static const std::string POSSESSION_END_TEXT = "Your mind returns to the keeper's view.";
+static const std::string POSSESSION_LOST_TEXT = "Your creature fell. Your mind is torn back to the keeper's view.";
+static const Ogre::ColourValue POSSESSION_END_COLOUR(0.75f, 0.7f, 1.0f);
+static const Ogre::ColourValue POSSESSION_LOST_COLOUR(1.0f, 0.55f, 0.5f);
+
+}
 
 ODClient::ODClient() :
     ODSocketClient(),
@@ -974,9 +989,30 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
         case ServerNotificationType::playSpatialSound:
         {
             std::string family;
-            int xPos;
-            int yPos;
+            int xPos = 0;
+            int yPos = 0;
             OD_ASSERT_TRUE(packetReceived >> family >> xPos >> yPos);
+            if(family == (Spell::SPELL_EFFECT_PREFIX + Spell::HAND_CAST_EFFECT_NAME))
+            {
+                // The server accepted a spell of this keeper: the hand throws a spark (cosmetic)
+                Ogre::Vector3 handPosition;
+                if((RoomAmbience::getSingletonPtr() != nullptr) && (RenderManager::getSingletonPtr() != nullptr) &&
+                   RenderManager::getSingleton().getKeeperHandPosition(handPosition))
+                    RoomAmbience::getSingleton().noteHandCast(handPosition);
+                break;
+            }
+            if(family.compare(0, Spell::SPELL_EFFECT_PREFIX.size(), Spell::SPELL_EFFECT_PREFIX) == 0)
+            {
+                // Cosmetic spell effect, no sound belongs to it
+                RoomAmbience* ambience = RoomAmbience::getSingletonPtr();
+                if(ambience != nullptr)
+                {
+                    Ogre::Vector3 position(static_cast<Ogre::Real>(xPos), static_cast<Ogre::Real>(yPos), 0.0f);
+                    ambience->triggerEvent("SpellFx" + family.substr(Spell::SPELL_EFFECT_PREFIX.size()), position, false,
+                        std::string(), true);
+                }
+                break;
+            }
             SoundEffectsManager::getSingleton().playSpatialSound(family, xPos, yPos);
             break;
         }
@@ -1668,16 +1704,29 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
 
         case ServerNotificationType::possessionEnd:
         {
-            // Whether the creature fell (the server says so: dead, knocked out or gone). It is read to keep the
-            // packet in step; the effects that show it come later
+            // Whether the creature fell (the server says so: dead, knocked out or gone). The creature the keeper
+            // returns from shows a short flash of light where it stands; one that fell shows another effect
             bool creatureLost = false;
             OD_ASSERT_TRUE(packetReceived >> creatureLost);
+            Creature* possessed = gameMap->getCreature(getPlayer()->getPossessedCreatureName());
+            RoomAmbience* ambience = RoomAmbience::getSingletonPtr();
+            if((possessed != nullptr) && possessed->getIsOnMap() && (ambience != nullptr))
+            {
+                Ogre::Vector3 position(static_cast<Ogre::Real>(possessed->getPosition().x),
+                    static_cast<Ogre::Real>(possessed->getPosition().y), 0.0f);
+                ambience->triggerEvent(creatureLost ? POSSESSION_LOST_EVENT : POSSESSION_END_EVENT, position, false,
+                    std::string(), true);
+            }
             getPlayer()->setPossessedCreatureName(std::string());
             frameListener->getCameraManager()->stopPossession();
             if(frameListener->getModeManager()->getCurrentModeType() == ModeManager::ModeType::GAME)
             {
                 GameMode* gm = static_cast<GameMode*>(frameListener->getModeManager()->getCurrentMode());
                 gm->notifyPossessionEnded();
+                if(creatureLost)
+                    gm->displayText(POSSESSION_LOST_COLOUR, POSSESSION_LOST_TEXT);
+                else
+                    gm->displayText(POSSESSION_END_COLOUR, POSSESSION_END_TEXT);
             }
             break;
         }

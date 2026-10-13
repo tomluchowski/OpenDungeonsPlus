@@ -222,6 +222,10 @@ bool SpellCreatureExplosion::castSpell(GameMap* gameMap, Player* player, ODPacke
     {
         CreatureEffectExplosion* effect = new CreatureEffectExplosion(duration, value, "SpellCreatureExplosion");
         creature->addCreatureEffect(effect);
+
+        Tile* tile = creature->getPositionTile();
+        if(tile != nullptr)
+            fireSpellEffect(*tile, "Explosion", "");
     }
 
     return true;
