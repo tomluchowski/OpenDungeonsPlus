@@ -239,10 +239,11 @@ public:
             case SpellType::creatureWeak: key = "CreatureWeakPrice"; break;
             case SpellType::eyeEvil: key = "EyeEvilPrice"; break;
             case SpellType::createGold: key = "CreateGoldPrice"; break;
+            case SpellType::lightning: key = "LightningPrice"; break;
             default: return "";
         }
         const std::string unit = (mSpellType == SpellType::callToWar || mSpellType == SpellType::eyeEvil ||
-            mSpellType == SpellType::createGold) ?
+            mSpellType == SpellType::createGold || mSpellType == SpellType::lightning) ?
             " mana" : " mana per creature";
         return Helper::toString(ConfigManager::getSingleton().getSpellConfigInt32(key)) + unit;
     }
@@ -399,6 +400,15 @@ SkillManager::SkillManager() :
     points = ConfigManager::getSingleton().getSkillPoints(Skills::toString(resType));
     skill = new Skill(resType, points, lvl3depends);
     def = new SkillDefRoom("AttackSkills/", "TortureButton", skill, RoomType::torture);
+    def->mapSkill(mSkillsFamily);
+    mSkills[index] = def;
+    lvl4depends.push_back(skill);
+
+    resType = SkillType::spellLightning;
+    index = static_cast<uint32_t>(resType);
+    points = ConfigManager::getSingleton().getSkillPoints(Skills::toString(resType));
+    skill = new Skill(resType, points, lvl3depends);
+    def = new SkillDefSpell("AttackSkills/", "LightningButton", skill, SpellType::lightning);
     def->mapSkill(mSkillsFamily);
     mSkills[index] = def;
     lvl4depends.push_back(skill);
@@ -800,6 +810,7 @@ std::string SkillManager::getResearchDescription(SkillType type, uint32_t level)
         case SkillType::spellCreatureWeak: return "Target strength: x" + spell("CreatureWeakValue") + ".";
         case SkillType::spellEyeEvil: return "Revealed-area lifetime: " + spell("EyeEvilNbTurns") + " turns.";
         case SkillType::spellCreateGold: return "Gold per cast: " + spell("CreateGoldValue") + ".";
+        case SkillType::spellLightning: return "Damage: " + spell("LightningDamage") + " to one enemy creature, which is stunned.";
         default: return "";
     }
 }

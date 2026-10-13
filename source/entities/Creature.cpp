@@ -3511,6 +3511,17 @@ void Creature::resetKoTurns()
     mNeedFireRefresh = true;
 }
 
+void Creature::stun(int32_t nbTurns)
+{
+    if(!isAlive() || (nbTurns <= 0) || (mKoTurnCounter < 0))
+        return;
+
+    mKoTurnCounter = std::max(mKoTurnCounter, nbTurns);
+    computeCreatureOverlayMoodValue();
+    clearActionQueue();
+    mNeedFireRefresh = true;
+}
+
 void Creature::setInJail(Room* prison)
 {
     if(prison == nullptr)

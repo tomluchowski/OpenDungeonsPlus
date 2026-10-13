@@ -212,5 +212,23 @@
                 <Property name="ProgressImage" value="OpenDungeonsSkin/SelectionBrush" />
             </Window>
         </Window>
+        <Window type="OD/GameTabButton" name="LightningButton" >
+            <Property name="Area" value="{{0,300},{0,50},{0,340},{0,90}}" />
+            <Property name="NormalImage" value="OpenDungeonsIcons/LightningButton" />
+            <Property name="TooltipText" value="Hurls a lightning bolt that damages and stuns an enemy creature. Target: enemy creature on claimed tiles" />
+            <Property name="InheritsAlpha" value="False" />
+            <Property name="Visible" value="False" />
+            <Window type="OD/ProgressBar" name="LightningButtonProgressBar" >
+                <Property name="Area" value="{{0,0},{0,0},{1,0},{1,0}}" />
+                <Property name="InheritsTooltipText" value="True" />
+                <Property name="CurrentProgress" value="0.0" />
+                <Property name="MousePassThroughEnabled" value="True" />
+                <Property name="StepSize" value="0.1" />
+                <Property name="Visible" value="False" />
+                <Property name="VerticalProgress" value="True" />
+                <Property name="Alpha" value="0.2" />
+                <Property name="ProgressImage" value="OpenDungeonsSkin/SelectionBrush" />
+            </Window>
+        </Window>
     </Window>
 </GUILayout>
