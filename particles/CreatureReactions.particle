@@ -177,3 +177,39 @@ particle_system ReactionSteam
         alpha -1.0
     }
 }
+
+// Rings of light that rise from the ground around the creature (level up)
+particle_system ReactionLevelUp
+{
+    material        ReactionParticleRing
+    point_rendering false
+    particle_width  1.1
+    particle_height 1.1
+    cull_each       false
+    quota           6
+    billboard_type  perpendicular_common
+    common_direction 0 0 1
+    common_up_vector 0 1 0
+
+    emitter Point
+    {
+        angle               0
+        colour              1.0 0.95 0.7 1.0
+        emission_rate       3.5
+        time_to_live        1.0
+        direction           0 0 1
+        velocity            1.3
+        duration            1.0
+        position            0 0 0.05
+    }
+
+    affector Scaler
+    {
+        rate -0.35
+    }
+
+    affector ColourFader
+    {
+        alpha -1.0
+    }
+}

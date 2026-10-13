@@ -727,10 +727,14 @@ Command::Result cCreatureReaction(const Command::ArgumentList_t& args, ConsoleIn
         const std::map<std::string, ReactionEvent>& events = reactions->getConfig().getEvents();
         for(std::map<std::string, ReactionEvent>::const_iterator it = events.begin(); it != events.end(); ++it)
         {
+            std::string variantNames;
+            for(const ReactionVariant& variant : it->second.mVariants)
+                variantNames += " " + variant.mName;
+
             c.print("\nEvent: " + it->first + " (" + CreatureReactionConfig::priorityToString(it->second.mPriority)
-                + ", " + Helper::toString(it->second.mVariants.size()) + " variants)");
+                + ", " + Helper::toString(it->second.mVariants.size()) + " variants):" + variantNames);
         }
-        c.print("\nUsage: reaction <event> [creature name | all | group]. Without a name, the creature under the pointer is used.");
+        c.print("\nUsage: reaction <event> [creature name | all | group] [variant]. Without a name, the creature under the pointer is used.");
         return Command::Result::SUCCESS;
     }
 
@@ -779,6 +783,11 @@ Command::Result cCreatureReaction(const Command::ArgumentList_t& args, ConsoleIn
         return Command::Result::INVALID_ARGUMENT;
     }
 
+    // A fixed variant can only be asked for single creatures, a group chooses for itself
+    std::string variantName;
+    if(args.size() >= 4)
+        variantName = args[3];
+
     if(asGroup)
     {
         reactions->triggerGroup(eventName, creatures, true);
@@ -789,7 +798,7 @@ Command::Result cCreatureReaction(const Command::ArgumentList_t& args, ConsoleIn
     uint32_t nbStarted = 0;
     for(Creature* creature : creatures)
     {
-        if(reactions->trigger(creature, eventName, true))
+        if(reactions->trigger(creature, eventName, true, variantName))
             ++nbStarted;
     }
     c.print("\nReaction " + eventName + " started on " + Helper::toString(nbStarted) + " of "

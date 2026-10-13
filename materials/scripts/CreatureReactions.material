@@ -136,6 +136,36 @@ material CreatureEmote_Note
     }
 }
 
+material CreatureEmote_Star
+{
+    technique
+    {
+        pass
+        {
+            scene_blend alpha_blend
+            texture_unit
+            {
+                texture CreatureEmoteStar.png
+            }
+        }
+    }
+}
+
+material CreatureEmote_Fist
+{
+    technique
+    {
+        pass
+        {
+            scene_blend alpha_blend
+            texture_unit
+            {
+                texture CreatureEmoteFist.png
+            }
+        }
+    }
+}
+
 material ReactionParticleSpark
 {
     technique
@@ -226,6 +256,25 @@ material ReactionParticleSteam
             texture_unit
             {
                 texture ReactionParticleSteam.png
+            }
+        }
+    }
+}
+
+material ReactionParticleRing
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend add
+            depth_write off
+            diffuse vertexcolour
+
+            texture_unit
+            {
+                texture ReactionParticleRing.png
             }
         }
     }

@@ -21,10 +21,19 @@
 #include "camera/CameraManager.h"
 #include "entities/Creature.h"
 #include "entities/CreatureDefinition.h"
+#include "entities/CreatureMoodValues.h"
+#include "entities/GameEntity.h"
+#include "entities/GameEntityType.h"
+#include "entities/MovableGameEntity.h"
+#include "entities/Tile.h"
+#include "game/Player.h"
+#include "game/Seat.h"
 #include "gamemap/GameMap.h"
 #include "render/CreatureOverlayStatus.h"
 #include "render/ODFrameListener.h"
 #include "render/RenderManager.h"
+#include "rooms/Room.h"
+#include "rooms/RoomType.h"
 #include "utils/Helper.h"
 #include "utils/LogManager.h"
 
@@ -53,10 +62,31 @@ static const std::string EMOTE_MATERIAL_PREFIX = "CreatureEmote_";
 static const std::string PARTICLE_NAME_PREFIX = "CreatureReaction_";
 //! Seconds between two runs that delete the cooldown entries that are over
 static const double PRUNE_INTERVAL = 30.0;
-//! Pi, used for the hop motion
+//! Pi, used for the hop, shake, squash and spin motions
 static const double PI_VALUE = 3.14159265358979323846;
-//! Largest height difference (in tiles) at which a creature still counts as being where the hop left it
-static const double POSITION_TOLERANCE = 0.0001;
+//! Seconds after an attack animation during which the creature counts as one of the fighters
+static const double ATTACK_MEMORY = 3.0;
+//! Creatures that attacked this close to the loser (world units) are the winners
+static const double WINNER_RADIUS = 7.0;
+//! Creatures this close to the loser can join in the cheering of the group
+static const double GROUP_RADIUS = 9.0;
+//! The same creature going down or fleeing is not celebrated again within this time
+static const double CELEBRATION_PAUSE = 10.0;
+//! Seconds a gift of the keeper is remembered
+static const double HAND_DROP_MEMORY = 120.0;
+//! Seconds a reaction waits at most for the creature to finish what it is doing
+static const double PENDING_WAIT_MAX = 3.0;
+static const double PENDING_WAIT_STEP = 0.25;
+//! Largest squared distance at which a node still counts as being where the motion left it
+static const double MOTION_UNCHANGED_SQUARED_TOLERANCE = 0.00000001;
+//! Share of the squash by which the model grows sideways while it gets lower
+static const double SQUASH_SIDE_GROWTH = 0.5;
+//! Shortest distance (world units) at which the direction to the camera or the front is used
+static const double TURN_MIN_LENGTH = 0.01;
+//! Share of the turn motion spent turning towards the camera, and again turning back
+static const double TURN_PHASE = 0.25;
+//! Smallest change of the turn angle (radians) that is applied to the node
+static const double ROTATION_EPSILON = 0.00001;
 
 //! Cosmetic dice of their own: the reactions must not draw from the generator the game logic uses
 std::mt19937& cosmeticRng()
@@ -203,6 +233,10 @@ ReactionPriority CreatureReactions::getCreaturePriority(const Creature* creature
     if((clip == "Die") || (clip == "die") || (clip == "Rot"))
         return ReactionPriority::death;
 
+    // The work in some rooms is shown with the attack animation: that is not a fight
+    if(startsWith(clip, "Attack") && isWorkingInRoom(creature))
+        return ReactionPriority::work;
+
     if(startsWith(clip, "Attack") || (clip == "CombatAttack") || (clip == "RangedAttack") ||
        (clip == "Flee") || startsWith(clip, "Cast") || (clip == "Parry") || startsWith(clip, "Hurt") ||
        (clip == "Damage") || startsWith(clip, "Throw"))
@@ -217,6 +251,21 @@ ReactionPriority CreatureReactions::getCreaturePriority(const Creature* creature
         return ReactionPriority::work;
 
     return ReactionPriority::none;
+}
+
+bool CreatureReactions::isWorkingInRoom(const Creature* creature) const
+{
+    Tile* tile = creature->getPositionTile();
+    if(tile == nullptr)
+        return false;
+
+    Room* room = tile->getCoveringRoom();
+    if(room == nullptr)
+        return false;
+
+    RoomType type = room->getType();
+    return (type == RoomType::library) || (type == RoomType::workshop) || (type == RoomType::trainingHall) ||
+        (type == RoomType::casino) || (type == RoomType::hatchery);
 }
 
 bool CreatureReactions::isVariantAllowed(const Creature* creature, const ReactionVariant& variant) const
@@ -256,8 +305,19 @@ bool CreatureReactions::isVariantAllowed(const Creature* creature, const Reactio
     return true;
 }
 
-const ReactionVariant* CreatureReactions::chooseVariant(const Creature* creature, const ReactionEvent& event) const
+const ReactionVariant* CreatureReactions::chooseVariant(const Creature* creature, const ReactionEvent& event,
+        const std::string& variantName) const
 {
+    if(!variantName.empty())
+    {
+        for(const ReactionVariant& variant : event.mVariants)
+        {
+            if(variant.mName == variantName)
+                return &variant;
+        }
+        return nullptr;
+    }
+
     std::vector<const ReactionVariant*> allowed;
     double totalWeight = 0.0;
     for(const ReactionVariant& variant : event.mVariants)
@@ -306,7 +366,8 @@ void CreatureReactions::eraseRunning(const std::string& creatureName)
     }
 }
 
-bool CreatureReactions::trigger(Creature* creature, const std::string& eventName, bool forced)
+bool CreatureReactions::trigger(Creature* creature, const std::string& eventName, bool forced,
+        const std::string& variantName)
 {
     if((mMode == Mode::off) || !mConfigLoaded || (creature == nullptr))
         return false;
@@ -341,7 +402,7 @@ bool CreatureReactions::trigger(Creature* creature, const std::string& eventName
             return false;
     }
 
-    const ReactionVariant* variant = chooseVariant(creature, *event);
+    const ReactionVariant* variant = chooseVariant(creature, *event, variantName);
     if(variant == nullptr)
         return false;
 
@@ -352,7 +413,7 @@ bool CreatureReactions::trigger(Creature* creature, const std::string& eventName
 }
 
 void CreatureReactions::triggerGroup(const std::string& eventName, const std::vector<Creature*>& creatures,
-        bool forced)
+        bool forced, double initialDelay)
 {
     if((mMode == Mode::off) || !mConfigLoaded)
         return;
@@ -380,7 +441,7 @@ void CreatureReactions::triggerGroup(const std::string& eventName, const std::ve
     std::shuffle(candidates.begin(), candidates.end(), cosmeticRng());
 
     // One starts, the others join in after a short, different delay
-    double delay = 0.0;
+    double delay = initialDelay;
     uint32_t nbReacting = 0;
     for(Creature* creature : candidates)
     {
@@ -391,6 +452,7 @@ void CreatureReactions::triggerGroup(const std::string& eventName, const std::ve
         pending.mCreatureName = creature->getName();
         pending.mEventName = eventName;
         pending.mDelay = delay;
+        pending.mWaited = 0.0;
         pending.mForced = forced;
         mPending.push_back(pending);
 
@@ -444,18 +506,26 @@ bool CreatureReactions::startReaction(Creature* creature, const ReactionEvent& e
         if(!creature->isMoving() && startClip(reaction, creature, variant))
             shown = true;
 
-        if(!variant.mEffect.empty() && addParticles(reaction, creature, variant.mEffect))
+        for(const ReactionEffect& effect : variant.mEffects)
         {
-            reaction.mDuration = std::max(reaction.mDuration, variant.mEffectTime);
-            shown = true;
+            if(addParticles(reaction, creature, effect.mName))
+            {
+                reaction.mDuration = std::max(reaction.mDuration, effect.mTime);
+                shown = true;
+            }
         }
 
         Ogre::SceneNode* node = creature->getEntityNode();
+        // Turning and squashing look wrong on a creature that walks
+        bool standingMotion = (variant.mMotion.mType == ReactionMotion::Type::spin) ||
+            (variant.mMotion.mType == ReactionMotion::Type::turn) ||
+            (variant.mMotion.mType == ReactionMotion::Type::squash);
         if((variant.mMotion.mType != ReactionMotion::Type::none) && (variant.mMotion.mDuration > 0.0) &&
-           (node != nullptr))
+           (node != nullptr) && !(standingMotion && creature->isMoving()))
         {
             reaction.mMotion = variant.mMotion;
-            reaction.mMotionLastZ = node->getPosition().z;
+            reaction.mMotionLastPosition = node->getPosition();
+            reaction.mMotionLastScale = node->getScale();
             reaction.mDuration = std::max(reaction.mDuration, variant.mMotion.mDuration);
             shown = true;
         }
@@ -603,30 +673,116 @@ void CreatureReactions::removeParticles(RunningReaction& reaction)
 
 void CreatureReactions::applyMotion(RunningReaction& reaction, Creature* creature)
 {
-    if(reaction.mMotion.mType != ReactionMotion::Type::hop)
+    const ReactionMotion& motion = reaction.mMotion;
+    if(motion.mType == ReactionMotion::Type::none)
         return;
 
     Ogre::SceneNode* node = creature->getEntityNode();
     if(node == nullptr)
         return;
 
-    double offset = 0.0;
-    if(reaction.mElapsed < reaction.mMotion.mDuration)
+    bool finished = reaction.mElapsed >= motion.mDuration;
+    double progress = finished ? 1.0 : (reaction.mElapsed / motion.mDuration);
+
+    // Whoever moves or scales the creature sets the position or scale, so what we added is lost
+    // then. We only take our own share away if the node still is the way we left it.
+    Ogre::Vector3 position = node->getPosition();
+    if((position - reaction.mMotionLastPosition).squaredLength() < MOTION_UNCHANGED_SQUARED_TOLERANCE)
+        position -= reaction.mMotionPosition;
+
+    Ogre::Vector3 scale = node->getScale();
+    if((scale - reaction.mMotionLastScale).squaredLength() < MOTION_UNCHANGED_SQUARED_TOLERANCE)
+        scale = scale / reaction.mMotionScale;
+
+    Ogre::Vector3 addedPosition = Ogre::Vector3::ZERO;
+    Ogre::Vector3 addedScale = Ogre::Vector3::UNIT_SCALE;
+    double angle = 0.0;
+    if(!finished)
     {
-        double progress = reaction.mElapsed / reaction.mMotion.mDuration;
-        offset = reaction.mMotion.mHeight * std::fabs(std::sin(PI_VALUE * reaction.mMotion.mCount * progress));
+        // The humps of the motion: 0 at the start and the end of each one, 1 in the middle
+        double wave = std::fabs(std::sin(PI_VALUE * motion.mCount * progress));
+        switch(motion.mType)
+        {
+            case ReactionMotion::Type::hop:
+                addedPosition.z = static_cast<Ogre::Real>(motion.mAmount * wave);
+                break;
+            case ReactionMotion::Type::shake:
+            {
+                // Sideways to where the creature looks, calming down towards the end
+                double swing = std::sin(2.0 * PI_VALUE * motion.mCount * progress) * (1.0 - progress);
+                addedPosition = (node->getOrientation() * Ogre::Vector3::UNIT_X) *
+                    static_cast<Ogre::Real>(motion.mAmount * swing);
+                addedPosition.z = 0.0f;
+                break;
+            }
+            case ReactionMotion::Type::squash:
+            {
+                double share = motion.mAmount * wave;
+                addedScale.x = static_cast<Ogre::Real>(1.0 + SQUASH_SIDE_GROWTH * share);
+                addedScale.y = static_cast<Ogre::Real>(1.0 + SQUASH_SIDE_GROWTH * share);
+                addedScale.z = static_cast<Ogre::Real>(1.0 - share);
+                break;
+            }
+            case ReactionMotion::Type::spin:
+            {
+                // Slow start and end
+                double eased = progress * progress * (3.0 - 2.0 * progress);
+                angle = 2.0 * PI_VALUE * motion.mCount * eased;
+                break;
+            }
+            case ReactionMotion::Type::turn:
+            {
+                if(!reaction.mMotionTurnComputed)
+                {
+                    reaction.mMotionTurnComputed = true;
+                    reaction.mMotionTurnAngle = 0.0;
+                    ODFrameListener* frameListener = ODFrameListener::getSingletonPtr();
+                    Ogre::Camera* camera = (frameListener != nullptr) ?
+                        frameListener->getCameraManager()->getActiveCamera() : nullptr;
+                    if(camera != nullptr)
+                    {
+                        Ogre::Vector3 toCamera = camera->getDerivedPosition() - node->getPosition();
+                        Ogre::Vector3 forward = node->getOrientation() * Ogre::Vector3::NEGATIVE_UNIT_Y;
+                        toCamera.z = 0.0f;
+                        forward.z = 0.0f;
+                        if((toCamera.length() > TURN_MIN_LENGTH) && (forward.length() > TURN_MIN_LENGTH))
+                        {
+                            toCamera.normalise();
+                            forward.normalise();
+                            reaction.mMotionTurnAngle = std::atan2(forward.crossProduct(toCamera).z,
+                                forward.dotProduct(toCamera));
+                        }
+                    }
+                }
+
+                // Turns in the first quarter, stays, and turns back in the last quarter
+                double envelope = 1.0;
+                if(progress < TURN_PHASE)
+                    envelope = progress / TURN_PHASE;
+                else if(progress > (1.0 - TURN_PHASE))
+                    envelope = (1.0 - progress) / TURN_PHASE;
+                envelope = envelope * envelope * (3.0 - 2.0 * envelope);
+                angle = reaction.mMotionTurnAngle * envelope;
+                break;
+            }
+            default:
+                break;
+        }
     }
 
-    // Whoever moves the creature sets its position, so what we added is lost then. We only
-    // take our own offset away if the position still is the one we left.
-    Ogre::Vector3 position = node->getPosition();
-    double baseZ = position.z;
-    if(std::fabs(position.z - reaction.mMotionLastZ) < POSITION_TOLERANCE)
-        baseZ = position.z - reaction.mMotionOffset;
+    node->setPosition(position + addedPosition);
+    node->setScale(scale * addedScale);
+    reaction.mMotionPosition = addedPosition;
+    reaction.mMotionScale = addedScale;
+    reaction.mMotionLastPosition = node->getPosition();
+    reaction.mMotionLastScale = node->getScale();
 
-    reaction.mMotionOffset = offset;
-    reaction.mMotionLastZ = baseZ + offset;
-    node->setPosition(position.x, position.y, static_cast<Ogre::Real>(reaction.mMotionLastZ));
+    double deltaAngle = angle - reaction.mMotionAngle;
+    if(std::fabs(deltaAngle) > ROTATION_EPSILON)
+        node->rotate(Ogre::Quaternion(Ogre::Radian(static_cast<Ogre::Real>(deltaAngle)), Ogre::Vector3::UNIT_Z),
+            Ogre::Node::TS_PARENT);
+
+    reaction.mMotionAngle = angle;
 }
 
 void CreatureReactions::clearMotion(RunningReaction& reaction, Creature* creature)
@@ -634,16 +790,11 @@ void CreatureReactions::clearMotion(RunningReaction& reaction, Creature* creatur
     if((reaction.mMotion.mType == ReactionMotion::Type::none) || (creature == nullptr))
         return;
 
-    Ogre::SceneNode* node = creature->getEntityNode();
-    if(node != nullptr)
-    {
-        Ogre::Vector3 position = node->getPosition();
-        if(std::fabs(position.z - reaction.mMotionLastZ) < POSITION_TOLERANCE)
-            node->setPosition(position.x, position.y, static_cast<Ogre::Real>(position.z - reaction.mMotionOffset));
-    }
+    // Past the end of the motion, so that everything it added is taken away
+    reaction.mElapsed = reaction.mMotion.mDuration;
+    applyMotion(reaction, creature);
 
     reaction.mMotion = ReactionMotion();
-    reaction.mMotionOffset = 0.0;
 }
 
 bool CreatureReactions::updateReaction(RunningReaction& reaction, Creature* creature,
@@ -681,6 +832,14 @@ bool CreatureReactions::updateReaction(RunningReaction& reaction, Creature* crea
             stopClip(reaction, creature);
     }
 
+    // Turning and squashing stop when the creature sets off
+    if(creature->isMoving() && ((reaction.mMotion.mType == ReactionMotion::Type::spin) ||
+       (reaction.mMotion.mType == ReactionMotion::Type::turn) ||
+       (reaction.mMotion.mType == ReactionMotion::Type::squash)))
+    {
+        clearMotion(reaction, creature);
+    }
+
     applyMotion(reaction, creature);
     return true;
 }
@@ -714,8 +873,19 @@ void CreatureReactions::update(Ogre::Real timeSinceLastFrame)
         }
 
         PendingReaction pending = *it;
-        it = mPending.erase(it);
         Creature* creature = mGameMap->getCreature(pending.mCreatureName);
+        const ReactionEvent* event = mConfig.getEvent(pending.mEventName);
+        if((creature != nullptr) && (event != nullptr) && !pending.mForced &&
+           !(event->mPriority < getCreaturePriority(creature)) && (pending.mWaited < PENDING_WAIT_MAX))
+        {
+            // Still busy (for example finishing the last blow): look again in a moment
+            it->mDelay = PENDING_WAIT_STEP;
+            it->mWaited += PENDING_WAIT_STEP;
+            ++it;
+            continue;
+        }
+
+        it = mPending.erase(it);
         if(creature != nullptr)
             trigger(creature, pending.mEventName, pending.mForced);
     }
@@ -748,6 +918,197 @@ void CreatureReactions::pruneCooldowns()
             mCooldownEnd.erase(it++);
         else
             ++it;
+    }
+
+    for(std::map<std::string, double>::iterator it = mLastAttack.begin(); it != mLastAttack.end();)
+    {
+        if((mTime - it->second) > ATTACK_MEMORY)
+            mLastAttack.erase(it++);
+        else
+            ++it;
+    }
+
+    for(std::map<std::string, double>::iterator it = mLastCelebration.begin(); it != mLastCelebration.end();)
+    {
+        if((mTime - it->second) > CELEBRATION_PAUSE)
+            mLastCelebration.erase(it++);
+        else
+            ++it;
+    }
+
+    for(std::map<std::string, HandDrop>::iterator it = mHandDrops.begin(); it != mHandDrops.end();)
+    {
+        if((mTime - it->second.mTime) > HAND_DROP_MEMORY)
+            mHandDrops.erase(it++);
+        else
+            ++it;
+    }
+}
+
+void CreatureReactions::noteAnimation(MovableGameEntity* entity, const std::string& clip)
+{
+    if((mMode == Mode::off) || !mConfigLoaded || (entity->getObjectType() != GameEntityType::creature))
+        return;
+
+    Creature* creature = static_cast<Creature*>(entity);
+    if((clip == "Die") || (clip == "die"))
+    {
+        celebrateVictory(creature, false);
+    }
+    else if(clip == "Flee")
+    {
+        celebrateVictory(creature, true);
+    }
+    else if(startsWith(clip, "Attack") || (clip == "CombatAttack") || (clip == "RangedAttack") ||
+            startsWith(clip, "Cast"))
+    {
+        // The work in some rooms is shown with the attack animation too, that is no fight
+        if(!isWorkingInRoom(creature))
+            mLastAttack[creature->getName()] = mTime;
+    }
+}
+
+void CreatureReactions::celebrateVictory(Creature* loser, bool fled)
+{
+    // The same creature going down or running away several times leads to one celebration
+    std::map<std::string, double>::const_iterator itLast = mLastCelebration.find(loser->getName());
+    if((itLast != mLastCelebration.end()) && ((mTime - itLast->second) < CELEBRATION_PAUSE))
+        return;
+
+    // The winners are the creatures of the other side that fought close to the loser a moment ago
+    Ogre::Vector3 position = loser->getPosition();
+    std::map<int, std::vector<Creature*> > winnersBySeat;
+    for(Creature* creature : mGameMap->getCreatures())
+    {
+        if((creature == loser) || !creature->getIsOnMap() || !creature->isAlive())
+            continue;
+
+        if(creature->getSeat()->isAlliedSeat(loser->getSeat()))
+            continue;
+
+        std::map<std::string, double>::const_iterator itAttack = mLastAttack.find(creature->getName());
+        if((itAttack == mLastAttack.end()) || ((mTime - itAttack->second) > ATTACK_MEMORY))
+            continue;
+
+        if((creature->getPosition() - position).length() > WINNER_RADIUS)
+            continue;
+
+        winnersBySeat[creature->getSeat()->getId()].push_back(creature);
+    }
+
+    if(winnersBySeat.empty())
+        return;
+
+    mLastCelebration[loser->getName()] = mTime;
+
+    for(std::map<int, std::vector<Creature*> >::iterator it = winnersBySeat.begin(); it != winnersBySeat.end(); ++it)
+    {
+        const std::vector<Creature*>& winners = it->second;
+        if(fled)
+        {
+            triggerGroup("VictoryFled", winners, false, 0.6);
+            continue;
+        }
+
+        triggerGroup("Victory", winners, false, 0.8);
+
+        // The battle is over if no fighter of the loser's side is left close by. Then the others
+        // of the winning side nearby join in the cheering.
+        Seat* winnerSeat = winners[0]->getSeat();
+        bool battleOver = true;
+        std::vector<Creature*> neighbours;
+        for(Creature* creature : mGameMap->getCreatures())
+        {
+            if((creature == loser) || !creature->getIsOnMap() || !creature->isAlive())
+                continue;
+
+            if((creature->getPosition() - position).length() > GROUP_RADIUS)
+                continue;
+
+            if(creature->getSeat()->isAlliedSeat(winnerSeat))
+            {
+                neighbours.push_back(creature);
+            }
+            else if(!creature->getDefinition()->isWorker())
+            {
+                battleOver = false;
+                break;
+            }
+        }
+
+        if(battleOver && (neighbours.size() >= 2))
+            triggerGroup("GroupVictory", neighbours, false, 1.8);
+    }
+}
+
+void CreatureReactions::noteCreatureUpdate(Creature* creature, uint32_t oldLevel, uint32_t oldMood)
+{
+    if((mMode == Mode::off) || !mConfigLoaded || !creature->getIsOnMap())
+        return;
+
+    if(creature->getLevel() > oldLevel)
+        trigger(creature, "LevelUp");
+
+    // The fee is collected while the mood shows it. When it is over the creature is paid if it
+    // stands in a treasury (that is where the gold is taken), else there was nothing to take.
+    if(((oldMood & CreatureMoodValues::GetFee) != 0) && ((creature->getOverlayMoodValue() & CreatureMoodValues::GetFee) == 0))
+    {
+        Tile* tile = creature->getPositionTile();
+        Room* room = (tile != nullptr) ? tile->getCoveringRoom() : nullptr;
+        bool paid = (room != nullptr) && (room->getType() == RoomType::treasury);
+        trigger(creature, paid ? "PaydayPaid" : "PaydayUnpaid");
+    }
+}
+
+void CreatureReactions::noteHandDrop(GameEntity* entity, Tile* tile)
+{
+    if((mMode == Mode::off) || !mConfigLoaded || (tile == nullptr))
+        return;
+
+    GameEntityType type = entity->getObjectType();
+    if((type != GameEntityType::treasuryObject) && (type != GameEntityType::chickenEntity))
+        return;
+
+    HandDrop drop;
+    drop.mType = type;
+    drop.mTileX = tile->getX();
+    drop.mTileY = tile->getY();
+    drop.mTime = mTime;
+    mHandDrops[entity->getName()] = drop;
+}
+
+void CreatureReactions::noteEntityRemoved(GameEntity* entity)
+{
+    if(mHandDrops.empty())
+        return;
+
+    std::map<std::string, HandDrop>::iterator it = mHandDrops.find(entity->getName());
+    if((it == mHandDrops.end()) || (it->second.mType != entity->getObjectType()))
+        return;
+
+    HandDrop drop = it->second;
+    mHandDrops.erase(it);
+    if((mMode == Mode::off) || (drop.mType != GameEntityType::treasuryObject) ||
+       ((mTime - drop.mTime) > HAND_DROP_MEMORY))
+    {
+        return;
+    }
+
+    // The gold the keeper dropped is gone: a fighter of the keeper standing there took it
+    Player* localPlayer = mGameMap->getLocalPlayer();
+    if(localPlayer == nullptr)
+        return;
+
+    for(Creature* creature : mGameMap->getCreatures())
+    {
+        if((creature->getSeat() != localPlayer->getSeat()) || creature->getDefinition()->isWorker())
+            continue;
+
+        Tile* tile = creature->getPositionTile();
+        if((tile == nullptr) || (tile->getX() != drop.mTileX) || (tile->getY() != drop.mTileY))
+            continue;
+
+        trigger(creature, "GoldGift");
     }
 }
 

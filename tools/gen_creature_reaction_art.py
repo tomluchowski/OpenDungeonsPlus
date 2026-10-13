@@ -129,6 +129,30 @@ def glyph_note(draw):
     draw.polygon([(124, 52), (172, 82), (166, 112), (124, 86)], fill=purple)
 
 
+def glyph_star(draw):
+    gold = (246, 190, 40, 255)
+    dark = (176, 116, 12, 255)
+    points = []
+    for i in range(10):
+        radius = 62 if i % 2 == 0 else 26
+        angle = -math.pi / 2 + i * math.pi / 5
+        points.append((128 + radius * math.cos(angle), 108 + radius * math.sin(angle)))
+    draw.polygon(points, fill=gold, outline=dark)
+    draw.line(points + [points[0]], fill=dark, width=6, joint="curve")
+
+
+def glyph_fist(draw):
+    red = (200, 52, 44, 255)
+    dark = (120, 24, 20, 255)
+    # Four fingers side by side, the thumb across them and the wrist below
+    for i in range(4):
+        x = 78 + i * 25
+        draw.rounded_rectangle((x, 48, x + 24, 108), radius=11, fill=red, outline=dark, width=4)
+    draw.rounded_rectangle((70, 90, 184, 138), radius=18, fill=red, outline=dark, width=4)
+    draw.rounded_rectangle((72, 118, 170, 150), radius=14, fill=red, outline=dark, width=4)
+    draw.rectangle((92, 146, 160, 176), fill=dark)
+
+
 EMOTES = [
     ("Exclamation", glyph_exclamation),
     ("Question", glyph_question),
@@ -139,6 +163,8 @@ EMOTES = [
     ("Sweat", glyph_sweat),
     ("Steam", glyph_steam),
     ("Note", glyph_note),
+    ("Star", glyph_star),
+    ("Fist", glyph_fist),
 ]
 
 
@@ -179,6 +205,15 @@ def particle_z():
     return image
 
 
+def particle_ring():
+    """Thin glowing ring, seen from the side as a flat ring of light."""
+    image = Image.new("RGBA", (CANVAS, CANVAS), (0, 0, 0, 0))
+    draw = ImageDraw.Draw(image)
+    for width, alpha in ((34, 70), (22, 130), (10, 255)):
+        draw.ellipse((20, 20, CANVAS - 20, CANVAS - 20), outline=(255, 244, 190, alpha), width=width)
+    return image
+
+
 def particle_steam():
     return soft_disc((250, 244, 240), 1.1, 0.85)
 
@@ -189,6 +224,7 @@ PARTICLES = [
     ("Dust", particle_dust),
     ("Z", particle_z),
     ("Steam", particle_steam),
+    ("Ring", particle_ring),
 ]
 
 

@@ -45,24 +45,44 @@ struct ReactionMotion
     enum class Type
     {
         none,
-        hop
+        //! Jumps up and down
+        hop,
+        //! Trembles sideways
+        shake,
+        //! Squashes (or, with a negative amount, stretches) the model, like bending the knees
+        squash,
+        //! Turns around its vertical axis
+        spin,
+        //! Turns towards the camera, stays for a moment and turns back
+        turn
     };
 
     //! \brief No motion: one hop of 0.2 world units that takes no time
     ReactionMotion() :
         mType(Type::none),
         mCount(1),
-        mHeight(0.2),
+        mAmount(0.2),
         mDuration(0.0)
     {}
 
     Type mType;
-    //! Number of hops
+    //! Number of hops, shakes, squashes or turns around
     uint32_t mCount;
-    //! Height of one hop, in world units
-    double mHeight;
-    //! Time to do all the hops, in seconds
+    //! Height of a hop or width of a shake in world units, share of the size for a squash
+    double mAmount;
+    //! Time to do the whole motion, in seconds
     double mDuration;
+};
+
+//! \brief A particle effect put on the creature
+struct ReactionEffect
+{
+    ReactionEffect() :
+        mTime(2.0)
+    {}
+
+    std::string mName;
+    double mTime;
 };
 
 //! \brief One way to show a reaction. A variant is shown in the highest tier that is available
@@ -79,7 +99,6 @@ struct ReactionVariant
         mFallbackStart(0.0),
         mFallbackEnd(1.0),
         mEmoteTime(2.0),
-        mEffectTime(2.0),
         mCooldown(-1.0),
         mProbability(-1.0),
         mRequiresSleepNeed(false)
@@ -99,11 +118,10 @@ struct ReactionVariant
     double mFallbackStart;
     double mFallbackEnd;
 
-    //! Tier A: icon shown above the head and particle effect on the creature. Empty if none
+    //! Tier A: icon shown above the head and particle effects on the creature. Empty if none
     std::string mEmote;
     double mEmoteTime;
-    std::string mEffect;
-    double mEffectTime;
+    std::vector<ReactionEffect> mEffects;
     ReactionMotion mMotion;
 
     //! Overrides of the values of the event, negative if the ones of the event are used

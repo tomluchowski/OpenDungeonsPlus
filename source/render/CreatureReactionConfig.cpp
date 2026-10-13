@@ -386,21 +386,35 @@ bool CreatureReactionConfig::loadVariant(std::istream& file, ReactionVariant& va
         }
         else if(words[0] == "Effect")
         {
-            variant.mEffect = words[1];
+            ReactionEffect effect;
+            effect.mName = words[1];
             if(words.size() >= 3)
-                variant.mEffectTime = Helper::toDouble(words[2]);
+                effect.mTime = Helper::toDouble(words[2]);
+            variant.mEffects.push_back(effect);
         }
         else if(words[0] == "Motion")
         {
-            // Motion hop <count> <height> <seconds>
-            if((words[1] != "hop") || (words.size() < 5))
+            // Motion <hop|shake|squash|spin|turn> <count> <amount> <seconds>
+            ReactionMotion::Type type = ReactionMotion::Type::none;
+            if(words[1] == "hop")
+                type = ReactionMotion::Type::hop;
+            else if(words[1] == "shake")
+                type = ReactionMotion::Type::shake;
+            else if(words[1] == "squash")
+                type = ReactionMotion::Type::squash;
+            else if(words[1] == "spin")
+                type = ReactionMotion::Type::spin;
+            else if(words[1] == "turn")
+                type = ReactionMotion::Type::turn;
+
+            if((type == ReactionMotion::Type::none) || (words.size() < 5))
             {
                 OD_LOG_ERR("Invalid creature reaction motion: " + words[1]);
                 return false;
             }
-            variant.mMotion.mType = ReactionMotion::Type::hop;
+            variant.mMotion.mType = type;
             variant.mMotion.mCount = Helper::toUInt32(words[2]);
-            variant.mMotion.mHeight = Helper::toDouble(words[3]);
+            variant.mMotion.mAmount = Helper::toDouble(words[3]);
             variant.mMotion.mDuration = Helper::toDouble(words[4]);
         }
         else if(words[0] == "Cooldown")

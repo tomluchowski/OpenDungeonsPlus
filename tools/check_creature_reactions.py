@@ -15,6 +15,7 @@ import sys
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PRIORITIES = ("death", "combat", "held", "event", "work", "mood", "ambient")
 JOBS = ("Fighter", "Worker")
+MOTIONS = ("hop", "shake", "squash", "spin", "turn")
 SETTINGS = ("MaxSimultaneous", "MaxCameraDistance", "GroupStaggerMin", "GroupStaggerMax", "DefaultGroup")
 EVENT_KEYS = ("Name", "Priority", "Cooldown", "Probability", "GroupMax")
 VARIANT_KEYS = ("Name", "Weight", "Clip", "Fallback", "Emote", "Effect", "Motion", "Cooldown", "Probability",
@@ -214,8 +215,8 @@ def check_variant(key, words, variant, event, creatures, groups, materials, part
             error("%s: no particle system %s" % (where, words[1]))
         if len(words) >= 3 and not is_number(words[2]):
             error("%s: Effect time must be a number" % where)
-    if key == "Motion" and (words[1] != "hop" or len(words) < 5 or not all(is_number(w) for w in words[2:5])):
-        error("%s: Motion must be 'hop <count> <height> <seconds>'" % where)
+    if key == "Motion" and (words[1] not in MOTIONS or len(words) < 5 or not all(is_number(w) for w in words[2:5])):
+        error("%s: Motion must be '<%s> <count> <amount> <seconds>'" % (where, "|".join(MOTIONS)))
     if key == "Creatures":
         for name in words[1:]:
             if name not in creatures:

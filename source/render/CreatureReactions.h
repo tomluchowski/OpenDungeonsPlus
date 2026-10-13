@@ -22,6 +22,7 @@
 
 #include <OgrePrerequisites.h>
 #include <OgreSingleton.h>
+#include <OgreVector3.h>
 
 #include <cstdint>
 #include <map>
@@ -30,7 +31,11 @@
 #include <vector>
 
 class Creature;
+class GameEntity;
 class GameMap;
+class MovableGameEntity;
+class Tile;
+enum class GameEntityType;
 
 /*! \brief Cosmetic one-shot reactions of creatures (cheering, surprise, ...), client side only.
  *
@@ -86,12 +91,32 @@ public:
     //! was started. The call can refuse: reactions are off, the creature is not seen, busy with
     //! something more important, the cooldown is running, too many reactions are running or the
     //! dice say no. forced skips all of these except the check that the creature is on the map.
-    bool trigger(Creature* creature, const std::string& eventName, bool forced = false);
+    //! If variantName is not empty, that variant of the event is shown (if the event has it)
+    //! instead of a random one.
+    bool trigger(Creature* creature, const std::string& eventName, bool forced = false,
+        const std::string& variantName = std::string());
 
     //! \brief Lets some of the creatures react to the same event, one after the other with a
-    //! short delay (for example the winners of a fight).
+    //! short delay (for example the winners of a fight). The first one starts after initialDelay
+    //! seconds.
     void triggerGroup(const std::string& eventName, const std::vector<Creature*>& creatures,
-        bool forced = false);
+        bool forced = false, double initialDelay = 0.0);
+
+    //! \brief Client hook: the entity starts to play the clip. Used to see who fights and who
+    //! goes down, which lets the winners of a fight cheer.
+    void noteAnimation(MovableGameEntity* entity, const std::string& clip);
+
+    //! \brief Client hook: a creature was updated by the server. oldLevel and oldMood are the
+    //! values before the update. Shows the level up and the payday reactions.
+    void noteCreatureUpdate(Creature* creature, uint32_t oldLevel, uint32_t oldMood);
+
+    //! \brief Client hook: the keeper put the entity on the tile. Remembered for a while so that
+    //! a creature taking it can show that it got a gift.
+    void noteHandDrop(GameEntity* entity, Tile* tile);
+
+    //! \brief Client hook: the entity is removed from the map. If it was a gift of the keeper and a
+    //! creature stands on its tile, the creature reacts.
+    void noteEntityRemoved(GameEntity* entity);
 
     //! \brief Stops all the running and waiting reactions
     void stopAll();
@@ -122,8 +147,13 @@ private:
             mClipEnd(1.0),
             mEmoteShown(false),
             mMotion(),
-            mMotionOffset(0.0),
-            mMotionLastZ(0.0)
+            mMotionPosition(Ogre::Vector3::ZERO),
+            mMotionScale(Ogre::Vector3::UNIT_SCALE),
+            mMotionAngle(0.0),
+            mMotionLastPosition(Ogre::Vector3::ZERO),
+            mMotionLastScale(Ogre::Vector3::UNIT_SCALE),
+            mMotionTurnAngle(0.0),
+            mMotionTurnComputed(false)
         {}
 
         std::string mCreatureName;
@@ -143,8 +173,17 @@ private:
         std::vector<std::string> mParticleSystems;
 
         ReactionMotion mMotion;
-        double mMotionOffset;
-        double mMotionLastZ;
+        //! What the motion added to the node, to be able to take it away again
+        Ogre::Vector3 mMotionPosition;
+        Ogre::Vector3 mMotionScale;
+        double mMotionAngle;
+        //! Where the node position and scale were after the last motion step. If they are different
+        //! the next time, someone else moved or scaled the creature and our share is not taken away.
+        Ogre::Vector3 mMotionLastPosition;
+        Ogre::Vector3 mMotionLastScale;
+        //! For the motion 'turn': the angle to the camera
+        double mMotionTurnAngle;
+        bool mMotionTurnComputed;
     };
 
     struct PendingReaction
@@ -152,7 +191,18 @@ private:
         std::string mCreatureName;
         std::string mEventName;
         double mDelay;
+        //! Time the reaction already waited for the creature to be free
+        double mWaited;
         bool mForced;
+    };
+
+    //! A gift of the keeper, remembered until a creature takes it
+    struct HandDrop
+    {
+        GameEntityType mType;
+        int mTileX;
+        int mTileY;
+        double mTime;
     };
 
     //! \brief Starts the chosen variant on the creature (clip, emote, particles, motion).
@@ -160,7 +210,13 @@ private:
     bool startReaction(Creature* creature, const ReactionEvent& event, const ReactionVariant& variant,
         bool forced);
     //! \brief Chooses a variant that fits the creature, randomly weighted. nullptr if none fits.
-    const ReactionVariant* chooseVariant(const Creature* creature, const ReactionEvent& event) const;
+    //! If variantName is not empty, only the variant of that name can be chosen.
+    const ReactionVariant* chooseVariant(const Creature* creature, const ReactionEvent& event,
+        const std::string& variantName) const;
+    //! \brief The winners cheer after the loser went down or fled
+    void celebrateVictory(Creature* loser, bool fled);
+    //! \brief True if the creature stands in a room where the work is done with the attack animation
+    bool isWorkingInRoom(const Creature* creature) const;
     //! \brief True if the creature type, group, job and sleep need allow the variant.
     bool isVariantAllowed(const Creature* creature, const ReactionVariant& variant) const;
 
@@ -176,9 +232,10 @@ private:
     bool startClip(RunningReaction& reaction, Creature* creature, const ReactionVariant& variant);
     //! \brief Stops the clip of the reaction and sets the weight of the creature's own clip back to full.
     void stopClip(RunningReaction& reaction, Creature* creature);
-    //! \brief Lifts the creature scene node by the height the procedural motion (hop) has reached now.
+    //! \brief Moves, scales or turns the creature scene node by what the procedural motion (hop, shake,
+    //! squash, spin or turn) has reached now.
     void applyMotion(RunningReaction& reaction, Creature* creature);
-    //! \brief Undoes the offset the procedural motion put on the creature scene node.
+    //! \brief Undoes the position, scale and turn the procedural motion put on the creature scene node.
     void clearMotion(RunningReaction& reaction, Creature* creature);
     //! \brief Attaches the named particle effect to the creature; returns false if it does not exist.
     bool addParticles(RunningReaction& reaction, Creature* creature, const std::string& effect);
@@ -212,6 +269,13 @@ private:
     std::vector<RunningReaction> mRunning;
     std::vector<PendingReaction> mPending;
     std::set<std::string> mLoggedMissing;
+
+    //! Time of the last attack animation of each creature ("creature" -> mTime)
+    std::map<std::string, double> mLastAttack;
+    //! Time a creature last went down or fled, to celebrate it once ("creature" -> mTime)
+    std::map<std::string, double> mLastCelebration;
+    //! Entities the keeper dropped, by name
+    std::map<std::string, HandDrop> mHandDrops;
 };
 
 #endif // CREATUREREACTIONS_H

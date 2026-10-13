@@ -25,6 +25,7 @@
 #include "game/Seat.h"
 #include "gamemap/GameMap.h"
 #include "gamemap/Pathfinding.h"
+#include "render/CreatureReactions.h"
 #include "render/RenderManager.h"
 #include "rooms/Room.h"
 #include "rooms/RoomType.h"
@@ -332,6 +333,10 @@ void Player::dropHand(Tile *t, unsigned int index)
     entity->correctDropPosition(pos);
     OD_LOG_INF("player seatId=" + Helper::toString(getSeat()->getId()) + " drop " + entity->getName() + " on tile=" + Tile::displayAsString(t));
     entity->drop(pos);
+
+    // The creature that takes what the keeper dropped can show its joy
+    if((this == mGameMap->getLocalPlayer()) && (CreatureReactions::getSingletonPtr() != nullptr))
+        CreatureReactions::getSingleton().noteHandDrop(entity, t);
 
     // If this is the result of another player dropping the creature it is currently not visible so we need to create a mesh for it
     //cout << "\nthis:  " << this << "\nme:  " << gameMap->getLocalPlayer() << endl;
