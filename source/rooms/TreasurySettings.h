@@ -55,6 +55,16 @@ struct TreasurySettings
     //! Splashes a room may show at once at the full and at the reduced detail
     int splashBudgetFull = 6;
     int splashBudgetReduced = 2;
+    //! Gold dust puffs a room may show at once at the full and at the reduced detail (0 turns the floating motes off),
+    //! seconds between two attempts to start a puff and how long a puff counts against the budget of its room
+    int dustBudgetFull = 0;
+    int dustBudgetReduced = 0;
+    float dustInterval = 0.7f;
+    float dustLifetime = 3.0f;
+    //! A keeper is rich when it holds this share of the treasury capacity and at least this much gold (dust over
+    //! its portal and its heart)
+    float portalRichShare = 0.5f;
+    int portalRichMinGold = 500;
     //! Seconds between two attempts to start a sparkle, sliding coins or rolling coins, and how long such an
     //! effect counts against the budget of its room
     float ambientInterval = 0.9f;
@@ -149,6 +159,12 @@ struct TreasurySettings
         s.pourDuration = readFloat(config, "PourDuration", s.pourDuration, 0.2f, 10.0f);
         s.splashBudgetFull = readInt(config, "SplashBudgetFull", s.splashBudgetFull, 0, 50);
         s.splashBudgetReduced = readInt(config, "SplashBudgetReduced", s.splashBudgetReduced, 0, 50);
+        s.dustBudgetFull = readInt(config, "DustBudgetFull", s.dustBudgetFull, 0, 50);
+        s.dustBudgetReduced = readInt(config, "DustBudgetReduced", s.dustBudgetReduced, 0, 50);
+        s.dustInterval = readFloat(config, "DustInterval", s.dustInterval, 0.1f, 30.0f);
+        s.dustLifetime = readFloat(config, "DustLifetime", s.dustLifetime, 0.1f, 30.0f);
+        s.portalRichShare = readFloat(config, "PortalRichShare", s.portalRichShare, 0.0f, 1.0f);
+        s.portalRichMinGold = readInt(config, "PortalRichMinGold", s.portalRichMinGold, 0, 1000000);
         s.ambientInterval = readFloat(config, "AmbientInterval", s.ambientInterval, 0.1f, 30.0f);
         s.ambientLifetime = readFloat(config, "AmbientLifetime", s.ambientLifetime, 0.1f, 30.0f);
         s.ambientBudgetFull = readInt(config, "AmbientBudgetFull", s.ambientBudgetFull, 0, 50);

@@ -19,6 +19,7 @@
 #define TREASURYCREATURERULES_H
 
 #include "render/TreasuryGoldMesh.h"
+#include "rooms/KeeperWealth.h"
 #include "rooms/TreasuryGoldLayer.h"
 #include "rooms/TreasurySettings.h"
 
@@ -162,6 +163,40 @@ inline int splashBudget(TreasuryGoldMesh::Detail detail)
         default:
             return 0;
     }
+}
+
+//! Gold dust over completely filled treasuries: seconds between two attempts to start a puff, how long a
+//! puff lives and how many puffs a room may show at once by the "Treasury detail" option
+static const float& dustInterval = TreasurySettings::current().dustInterval;
+static const float& dustLifetime = TreasurySettings::current().dustLifetime;
+
+//! Number of dust puffs one room may show at once at the given "Treasury detail" option
+inline int dustBudget(TreasuryGoldMesh::Detail detail)
+{
+    switch(detail)
+    {
+        case TreasuryGoldMesh::Detail::full:
+            return TreasurySettings::current().dustBudgetFull;
+        case TreasuryGoldMesh::Detail::reduced:
+            return TreasurySettings::current().dustBudgetReduced;
+        default:
+            return 0;
+    }
+}
+
+//! Gold dust over the portal of a rich keeper (same puffs and budget per room as the dust over full piles): the
+//! keeper is rich when the gold held reaches this share of the treasury capacity and at least the minimum amount.
+//! The dust floats this high above the floor of the portal.
+static const float& portalRichShare = TreasurySettings::current().portalRichShare;
+static const int& portalRichMinGold = TreasurySettings::current().portalRichMinGold;
+static const float portalDustHeight = 0.9f;
+//! The dungeon heart of a rich keeper uses the same rule; its dust floats this high above the heart.
+static const float heartDustHeight = 1.8f;
+
+//! True when a keeper with that gold and treasury capacity counts as rich (dust over its portal and heart)
+inline bool isRichKeeper(int gold, int goldMax)
+{
+    return KeeperWealth::tier(gold, goldMax) > 0;
 }
 
 //! Sparkles and sliding coins on the gold of rich treasuries, and the coins that roll away when gold is taken:

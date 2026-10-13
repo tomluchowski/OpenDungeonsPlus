@@ -88,6 +88,8 @@ struct FullPile
     int mLevel;
 };
 
+//! Lists the completely filled piles (the sources of the gold dust over full treasuries)
+void collectFullPiles(std::vector<FullPile>& piles);
 //! Lists the piles of at least the given level (sparkles and sliding coins need a deep pile)
 void collectPiles(std::vector<FullPile>& piles, int minLevel);
 }

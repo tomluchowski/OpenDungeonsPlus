@@ -478,6 +478,7 @@ private:
     enum class TreasuryEffectKind
     {
         splash,
+        dust,
         ambient
     };
     struct TreasuryEffect
@@ -489,6 +490,11 @@ private:
     };
     std::vector<TreasuryEffect> mTreasuryEffects;
     TreasuryCreatureRules::SplashBudget mTreasurySplashBudget;
+    //! Gold dust puffs over full treasuries use the same effect list with a budget of their own
+    TreasuryCreatureRules::SplashBudget mTreasuryDustBudget;
+    Ogre::Real mTreasuryDustTimer = 0.0f;
+    size_t mTreasuryDustCursor = 0;
+    size_t mTreasuryPortalDustCursor = 0;
     //! Sparkles, sliding coins and rolling coins on rich piles have a budget per room of their own
     TreasuryCreatureRules::SplashBudget mTreasuryAmbientBudget;
     Ogre::Real mTreasuryAmbientTimer = 0.0f;
@@ -611,6 +617,13 @@ private:
     //! in the budget of the kind. Returns whether the effect was started.
     bool createTreasuryEffect(const void* roomKey, const std::string& script, const Ogre::Vector3& position,
         TreasuryEffectKind kind = TreasuryEffectKind::splash);
+    //! \brief Now and then starts gold dust over a full pile in view, over the portals and over the heart of the
+    //! local keeper when it is rich.
+    void updateTreasuryDust(Ogre::Real timeSinceLastFrame);
+    //! \brief Starts a puff of gold dust over a portal of the local keeper when the keeper is rich.
+    void startTreasuryPortalDust();
+    //! \brief Starts a puff of gold dust over the dungeon heart of the local keeper when the keeper is rich.
+    void startTreasuryHeartDust();
     //! \brief Ends the effects whose time is over and gives their places back to the budget of their room.
     void updateTreasuryEffects(Ogre::Real timeSinceLastFrame);
     //! \brief Now and then starts sliding coins or a sparkle on a rich pile in view.

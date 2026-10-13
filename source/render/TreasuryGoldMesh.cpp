@@ -595,6 +595,11 @@ void collectPiles(std::vector<FullPile>& piles, int minLevel)
     }
 }
 
+void collectFullPiles(std::vector<FullPile>& piles)
+{
+    collectPiles(piles, TreasuryGoldLayer::maxLevel);
+}
+
 float surfaceHeight(float x, float y, int& level)
 {
     level = 0;

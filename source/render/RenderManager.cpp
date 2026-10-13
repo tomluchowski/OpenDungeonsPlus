@@ -48,6 +48,7 @@
 #include "render/TreasuryGoldMesh.h"
 #include "sound/SoundEffectsManager.h"
 #include "rooms/Room.h"
+#include "rooms/RoomType.h"
 #include "rooms/TreasuryGoldLayer.h"
 #include "utils/ConfigManager.h"
 #include "utils/Helper.h"
@@ -1773,6 +1774,7 @@ void RenderManager::updateRenderAnimations(Ogre::Real timeSinceLastFrame)
     }
     updateTreasuryEffects(timeSinceLastFrame);
     updateTreasuryPours(timeSinceLastFrame);
+    updateTreasuryDust(timeSinceLastFrame);
     updateTreasuryAmbient(timeSinceLastFrame);
     updateTreasuryPileSettles(timeSinceLastFrame);
     updateTreasuryLod(timeSinceLastFrame);
@@ -2268,7 +2270,13 @@ bool RenderManager::createTreasuryEffect(const void* roomKey, const std::string&
     TreasuryCreatureRules::SplashBudget* budget = &mTreasurySplashBudget;
     int limit = TreasuryCreatureRules::splashBudget(TreasuryGoldMesh::getDetail());
     float lifetime = TreasuryCreatureRules::splashLifetime;
-    if(kind == TreasuryEffectKind::ambient)
+    if(kind == TreasuryEffectKind::dust)
+    {
+        budget = &mTreasuryDustBudget;
+        limit = TreasuryCreatureRules::dustBudget(TreasuryGoldMesh::getDetail());
+        lifetime = TreasuryCreatureRules::dustLifetime;
+    }
+    else if(kind == TreasuryEffectKind::ambient)
     {
         budget = &mTreasuryAmbientBudget;
         limit = TreasuryCreatureRules::ambientBudget(TreasuryGoldMesh::getDetail());
@@ -2300,11 +2308,101 @@ void RenderManager::updateTreasuryEffects(Ogre::Real timeSinceLastFrame)
         }
 
         rrDestroyFreeParticleEffect(it->mName);
-        if(it->mKind == TreasuryEffectKind::ambient)
+        if(it->mKind == TreasuryEffectKind::dust)
+            mTreasuryDustBudget.release(it->mRoomKey);
+        else if(it->mKind == TreasuryEffectKind::ambient)
             mTreasuryAmbientBudget.release(it->mRoomKey);
         else
             mTreasurySplashBudget.release(it->mRoomKey);
         it = mTreasuryEffects.erase(it);
+    }
+}
+
+void RenderManager::updateTreasuryDust(Ogre::Real timeSinceLastFrame)
+{
+    mTreasuryDustTimer += timeSinceLastFrame;
+    if(mTreasuryDustTimer < TreasuryCreatureRules::dustInterval)
+        return;
+    mTreasuryDustTimer = 0.0f;
+    if(TreasuryCreatureRules::dustBudget(TreasuryGoldMesh::getDetail()) <= 0)
+        return;
+
+    startTreasuryPortalDust();
+    startTreasuryHeartDust();
+
+    std::vector<TreasuryGoldMesh::FullPile> piles;
+    TreasuryGoldMesh::collectFullPiles(piles);
+    if(piles.empty())
+        return;
+
+    // Walk on through the full piles from where the last attempt stopped; the first one in view whose
+    // room still has a free place gets a puff
+    const size_t attempts = std::min<size_t>(piles.size(), 8);
+    for(size_t i = 0; i < attempts; ++i)
+    {
+        const TreasuryGoldMesh::FullPile& pile = piles[mTreasuryDustCursor++ % piles.size()];
+        int level = 0;
+        const float height = TreasuryGoldMesh::surfaceHeight(static_cast<float>(pile.mX),
+            static_cast<float>(pile.mY), level);
+        const float offsetX = (static_cast<float>(mTreasuryEffectNumber % 7) - 3.0f) * 0.1f;
+        const float offsetY = (static_cast<float>(mTreasuryEffectNumber % 5) - 2.0f) * 0.12f;
+        if(createTreasuryEffect(pile.mRoom, "TreasuryGoldDust", Ogre::Vector3(
+            static_cast<Ogre::Real>(pile.mX) + offsetX, static_cast<Ogre::Real>(pile.mY) + offsetY,
+            height + 0.1f), TreasuryEffectKind::dust))
+            return;
+    }
+}
+
+void RenderManager::startTreasuryPortalDust()
+{
+    // The client only knows the gold of the local keeper, so only its portals show the dust
+    if(mGameMap == nullptr || mGameMap->getLocalPlayer() == nullptr)
+        return;
+
+    Seat* seat = mGameMap->getLocalPlayer()->getSeat();
+    if(seat == nullptr || !TreasuryCreatureRules::isRichKeeper(seat->getGold(), seat->getGoldMax()))
+        return;
+
+    // One puff per portal at most; the view test and the budget of the portal are in createTreasuryEffect
+    const std::vector<Room*> portals = mGameMap->getRoomsByTypeAndSeat(RoomType::portal, seat);
+    for(Room* portal : portals)
+    {
+        const std::vector<Tile*> tiles = portal->getCoveredTiles();
+        if(tiles.empty())
+            continue;
+
+        Tile* tile = tiles[mTreasuryPortalDustCursor++ % tiles.size()];
+        const float offsetX = (static_cast<float>(mTreasuryEffectNumber % 7) - 3.0f) * 0.1f;
+        const float offsetY = (static_cast<float>(mTreasuryEffectNumber % 5) - 2.0f) * 0.12f;
+        createTreasuryEffect(portal, "TreasuryGoldDust", Ogre::Vector3(
+            static_cast<Ogre::Real>(tile->getX()) + offsetX, static_cast<Ogre::Real>(tile->getY()) + offsetY,
+            TreasuryCreatureRules::portalDustHeight), TreasuryEffectKind::dust);
+    }
+}
+
+void RenderManager::startTreasuryHeartDust()
+{
+    // Same rule as for the portals: only the heart of the local keeper, and only when that keeper is rich
+    if(mGameMap == nullptr || mGameMap->getLocalPlayer() == nullptr)
+        return;
+
+    Seat* seat = mGameMap->getLocalPlayer()->getSeat();
+    if(seat == nullptr || !TreasuryCreatureRules::isRichKeeper(seat->getGold(), seat->getGoldMax()))
+        return;
+
+    // The view test and the budget of the room are in createTreasuryEffect
+    const std::vector<Room*> hearts = mGameMap->getRoomsByTypeAndSeat(RoomType::dungeonTemple, seat);
+    for(Room* heart : hearts)
+    {
+        Tile* tile = heart->getCentralTile();
+        if(tile == nullptr)
+            continue;
+
+        const float offsetX = (static_cast<float>(mTreasuryEffectNumber % 7) - 3.0f) * 0.05f;
+        const float offsetY = (static_cast<float>(mTreasuryEffectNumber % 5) - 2.0f) * 0.06f;
+        createTreasuryEffect(heart, "TreasuryHeartDust", Ogre::Vector3(
+            static_cast<Ogre::Real>(tile->getX()) + offsetX, static_cast<Ogre::Real>(tile->getY()) + offsetY,
+            TreasuryCreatureRules::heartDustHeight), TreasuryEffectKind::dust);
     }
 }
 
@@ -2765,6 +2863,7 @@ void RenderManager::clearTreasuryEffects()
         rrDestroyFreeParticleEffect(effect.mName);
     mTreasuryEffects.clear();
     mTreasurySplashBudget.clear();
+    mTreasuryDustBudget.clear();
     mTreasuryAmbientBudget.clear();
     mTreasuryLastSplash.clear();
     mTreasuryPileSettles.clear();
