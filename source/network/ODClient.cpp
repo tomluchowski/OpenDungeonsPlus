@@ -956,6 +956,14 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
             int xPos;
             int yPos;
             OD_ASSERT_TRUE(packetReceived >> family >> xPos >> yPos);
+            if(family == "HatcheryFx/EggTrample")
+            {
+                // Cosmetic effect of a trampled egg, no sound belongs to it. The numbers are the place of the egg
+                // in hundredths of a tile.
+                RenderManager::getSingleton().rrEggTrampled(Ogre::Vector3(
+                    static_cast<Ogre::Real>(xPos) / 100.0f, static_cast<Ogre::Real>(yPos) / 100.0f, 0.0f));
+                break;
+            }
             SoundEffectsManager::getSingleton().playSpatialSound(family, xPos, yPos);
             break;
         }

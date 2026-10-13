@@ -189,6 +189,9 @@ public:
     //! \brief Jumps down from a coop roof.
     void hopDown(const Ogre::Vector2& position);
 
+    //! \brief Server side: puts the animal somewhere else at once and tells the clients.
+    void teleport(const Ogre::Vector3& position);
+
     //! \brief The seat of the hatchery the animal lives in. A rooster that is dropped elsewhere runs back to
     //! the nearest hatchery of this seat.
     inline void setHomeSeat(Seat* seat)
@@ -270,9 +273,6 @@ private:
 
     //! \brief The search for the way back found nothing: no new search for HatcheryReturnRetryTurns turns.
     void failReturn();
-
-    //! \brief Server side: puts the animal somewhere else at once and tells the clients.
-    void teleport(const Ogre::Vector3& position);
 
     //! \brief Server side: one random step inside the hatchery (or around if outside).
     void wander(Tile* tile, Room* currentHatchery);

@@ -34,8 +34,12 @@
 #include "game/Seat.h"
 #include "gamemap/GameMap.h"
 #include "gamemap/RoomObjectNavigation.h"
+#include "network/ODServer.h"
+#include "network/ServerNotification.h"
+#include "rooms/HatcheryCoopHouse.h"
 #include "rooms/RoomManager.h"
 #include "utils/ConfigManager.h"
+#include "utils/Helper.h"
 #include "utils/LogManager.h"
 #include "utils/MakeUnique.h"
 #include "utils/Random.h"
@@ -256,6 +260,103 @@ ChickenEntity* RoomHatchery::spawnAnimal(ChickenKind kind, const Ogre::Vector3& 
     if(kind == ChickenKind::hen)
         chicken->setLayTimer(HatcheryCycle::layInterval(settings, Random::Uint(0, 1000)));
     return chicken;
+}
+
+bool RoomHatchery::findNestSpot(const Ogre::Vector3& henPosition, const std::vector<Ogre::Vector2>& eggPositions,
+    Ogre::Vector3& spot) const
+{
+    if(ConfigManager::getSingleton().getRoomConfigDoubleOrDefault("HatcheryNestEggs", 1.0) < 0.5)
+        return false;
+
+    // An egg counts as lying in a place when it is closer to it than this
+    const double sameRadius = ConfigManager::getSingleton().getRoomConfigDoubleOrDefault("HatcheryNestSameRadius", 0.08);
+    const float sameRadiusSquared = static_cast<float>(sameRadius * sameRadius);
+    const Ogre::Vector2 henPos(henPosition.x, henPosition.y);
+    const uint32_t slots = HatcheryCoopHouse::eggsPerNest;
+
+    // The coops are tried from the one closest to the hen to the farthest one
+    std::vector<Tile*> coops = mCentralActiveSpotTiles;
+    while(!coops.empty())
+    {
+        std::vector<Tile*>::iterator nearest = coops.begin();
+        float nearestDistance = henPos.squaredDistance(Ogre::Vector2((*nearest)->getX(), (*nearest)->getY()));
+        for(std::vector<Tile*>::iterator it = coops.begin(); it != coops.end(); ++it)
+        {
+            float distance = henPos.squaredDistance(Ogre::Vector2((*it)->getX(), (*it)->getY()));
+            if(distance < nearestDistance)
+            {
+                nearest = it;
+                nearestDistance = distance;
+            }
+        }
+        const int coopX = (*nearest)->getX();
+        const int coopY = (*nearest)->getY();
+        coops.erase(nearest);
+
+        // A place is taken when an egg lies there, or when it is not on a tile of this hatchery
+        std::vector<bool> occupied;
+        for(uint32_t nest = 0; nest < HatcheryCoopHouse::nestCount; ++nest)
+        {
+            for(uint32_t slot = 0; slot < slots; ++slot)
+            {
+                const Ogre::Vector3 place = HatcheryCoopHouse::nestEggSpotWorld(coopX, coopY, nest, slot);
+                Tile* placeTile = getGameMap()->getTile(Helper::round(place.x), Helper::round(place.y));
+                bool taken = (placeTile == nullptr) || (placeTile->getCoveringRoom() != this);
+                for(const Ogre::Vector2& eggPosition : eggPositions)
+                {
+                    if(eggPosition.squaredDistance(Ogre::Vector2(place.x, place.y)) <= sameRadiusSquared)
+                        taken = true;
+                }
+                occupied.push_back(taken);
+            }
+        }
+
+        const int32_t index = HatcheryCycle::pickNestPlace(occupied, slots);
+        if(index < 0)
+            continue;
+
+        spot = HatcheryCoopHouse::nestEggSpotWorld(coopX, coopY, static_cast<uint32_t>(index) / slots,
+            static_cast<uint32_t>(index) % slots);
+        return true;
+    }
+    return false;
+}
+
+void RoomHatchery::leaveNest(ChickenEntity* chick)
+{
+    // The nests lie inside the footprint of the coop, a chick could not walk away from there
+    const std::vector<RoomObjectPath::Obstacle> obstacles = RoomObjectNavigation::collect(*getGameMap(), 0.1f);
+    const Ogre::Vector2 position(chick->getPosition().x, chick->getPosition().y);
+    Ogre::Vector2 standing;
+    if(!RoomObjectNavigation::standingPosition(obstacles, position, standing))
+        standing = position;
+    chick->teleport(Ogre::Vector3(standing.x, standing.y, 0.0f));
+}
+
+void RoomHatchery::fireEggTrample(const ChickenEntity& egg)
+{
+    Tile* tile = egg.getPositionTile();
+    if(tile == nullptr)
+        return;
+
+    // The effect travels as a sound family with the prefix "HatcheryFx/" (like "SpellFx/"). The client shows the
+    // effect and does not look for a sound. The two numbers are the place of the egg in hundredths of a tile
+    // (the egg can lie in a nest, away from the middle of its tile).
+    const int xHundredths = static_cast<int>(std::lround(egg.getPosition().x * 100.0f));
+    const int yHundredths = static_cast<int>(std::lround(egg.getPosition().y * 100.0f));
+    const std::string effect = "HatcheryFx/EggTrample";
+    for(Seat* seat : tile->getSeatsWithVision())
+    {
+        if(seat->getPlayer() == nullptr)
+            continue;
+        if(!seat->getPlayer()->getIsHuman())
+            continue;
+
+        ServerNotification* serverNotification = new ServerNotification(
+            ServerNotificationType::playSpatialSound, seat->getPlayer());
+        serverNotification->mPacket << effect << xHundredths << yHundredths;
+        ODServer::getSingleton().queueServerNotification(serverNotification);
+    }
 }
 
 bool RoomHatchery::spawnFromCoop(ChickenKind kind, const HatcheryCycleSettings& settings, uint32_t count)
@@ -479,6 +580,7 @@ void RoomHatchery::doUpkeep()
             if((enemyPos.distance(eggPos) <= trampleRadius) &&
                HatcheryCycle::tramples(settings, true, true, Random::Uint(0, 99)) && egg->trample(enemy))
             {
+                fireEggTrample(*egg);
                 --counts.mEggs;
                 eggIt = eggs.erase(eggIt);
             }
@@ -486,6 +588,11 @@ void RoomHatchery::doUpkeep()
                 ++eggIt;
         }
     }
+
+    // Places of the eggs of the hatchery: the nests of the coops are filled place by place
+    std::vector<Ogre::Vector2> eggPositions;
+    for(ChickenEntity* egg : eggs)
+        eggPositions.push_back(Ogre::Vector2(egg->getPosition().x, egg->getPosition().y));
 
     // Hens lay eggs while the hatchery is not full
     uint32_t capacity = HatcheryCycle::capacity(mCoveredTiles.size(), mNumActiveSpots, settings);
@@ -498,7 +605,12 @@ void RoomHatchery::doUpkeep()
         if(!HatcheryCycle::canLay(counts, capacity))
             continue;
 
-        spawnAnimal(ChickenKind::egg, hen->getPosition(), settings);
+        // The hen sits down where she is, the egg lies in a free place of a coop nest (the closest coop first).
+        // Without a free nest it lies at the hen, as before.
+        Ogre::Vector3 eggSpot = hen->getPosition();
+        findNestSpot(hen->getPosition(), eggPositions, eggSpot);
+        spawnAnimal(ChickenKind::egg, eggSpot, settings);
+        eggPositions.push_back(Ogre::Vector2(eggSpot.x, eggSpot.y));
         hen->playPose(ChickenPose::lay, 2);
         ++counts.mEggs;
     }
@@ -520,6 +632,9 @@ void RoomHatchery::doUpkeep()
             }
 
             egg->setKind(ChickenKind::chick);
+            // An egg from a nest (it lies a little above the ground) hatches next to the coop
+            if(egg->getPosition().z > 0.01f)
+                leaveNest(egg);
             --counts.mEggs;
             ++counts.mChicks;
         }

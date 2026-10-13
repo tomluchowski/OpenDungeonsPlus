@@ -78,6 +78,15 @@ private:
     HatcheryCycleSettings getCycleSettings() const;
     //! Creates a hatchery animal at the given position.
     ChickenEntity* spawnAnimal(ChickenKind kind, const Ogre::Vector3& position, const HatcheryCycleSettings& settings);
+    //! A free egg place in the nests of the coops, the coop closest to the hen first. eggPositions are the places
+    //! of the eggs that lie in the hatchery. False if all nests are full (or there is no coop): the egg then lies
+    //! at the hen.
+    bool findNestSpot(const Ogre::Vector3& henPosition, const std::vector<Ogre::Vector2>& eggPositions,
+        Ogre::Vector3& spot) const;
+    //! A chick that hatched in a nest stands next to the coop (the coop itself is in its way).
+    void leaveNest(ChickenEntity* chick);
+    //! An egg is trampled: shell pieces, yolk and feathers fly where it lay (the clients show it).
+    void fireEggTrample(const ChickenEntity& egg);
     //! Lets a hen or a rooster come out of a coop. Returns false if no coop has a free place.
     bool spawnFromCoop(ChickenKind kind, const HatcheryCycleSettings& settings, uint32_t count = 1);
 

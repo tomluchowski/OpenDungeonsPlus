@@ -157,3 +157,43 @@ for key in ('HatcheryReturnPathTiles', 'HatcheryReturnSearchTiles', 'HatcheryRet
 assert 'henMayReturn' in chicken and 'failReturn()' in return_walk
 assert 'mReturnTurns' in return_walk and 'mReturnRetryTurns' in return_walk
 print('hatchery hen return checks passed')
+
+# Eggs are laid in a free place of a coop nest (closest coop first), the place rules are the pure pickNestPlace
+cycle_cpp = (root / 'source/rooms/HatcheryCycle.cpp').read_text()
+cycle_h = (root / 'source/rooms/HatcheryCycle.h').read_text()
+coop_h = (root / 'source/rooms/HatcheryCoopHouse.h').read_text()
+assert 'pickNestPlace' in cycle_h and 'int32_t HatcheryCycle::pickNestPlace' in cycle_cpp
+nest = body(room_cpp, 'bool RoomHatchery::findNestSpot')
+assert 'HatcheryCoopHouse::nestEggSpotWorld' in nest and 'HatcheryCycle::pickNestPlace' in nest
+assert 'getCoveringRoom() != this' in nest, 'a nest place outside of the hatchery is not used'
+assert 'mCentralActiveSpotTiles' in nest and 'squaredDistance' in nest, 'closest coop first'
+assert 'HatcheryNestEggs' in nest and 'HatcheryNestSameRadius' in nest
+assert 'HatcheryNestEggs' in cfg and 'HatcheryNestSameRadius' in cfg
+assert 'nestEggSpot' in coop_h and 'nestCount' in coop_h and 'eggsPerNest' in coop_h
+lay = doUpkeep[doUpkeep.index('hen->countDownLay()'):doUpkeep.index('Eggs hatch while there is a rooster')]
+assert 'findNestSpot(' in lay and 'spawnAnimal(ChickenKind::egg, eggSpot, settings)' in lay
+assert 'eggPositions.push_back' in lay, 'an egg laid this turn takes its place at once'
+assert 'HatcheryCycle::canLay(counts, capacity)' in lay, 'capacity still limits the eggs'
+assert 'ChickenPose::lay' in lay, 'the hen sits down where she is (robust variant)'
+assert 'eggs.erase(eggIt)' in doUpkeep and doUpkeep.index('eggs.erase(eggIt)') < doUpkeep.index('eggPositions.push_back'),     'trampled eggs free their place'
+# The chick from a nest stands next to the coop, the nest lies in the footprint of the coop
+assert 'leaveNest(egg)' in doUpkeep and 'chick->teleport(' in body(room_cpp, 'void RoomHatchery::leaveNest')
+assert 'standingPosition' in body(room_cpp, 'void RoomHatchery::leaveNest')
+teleport_pos = chicken_h.index('void teleport(')
+assert 'private:' not in chicken_h[chicken_h.index('void hopDown('):teleport_pos], 'teleport is public'
+# Egg save/load: the position (with the height) is saved by the entity, nothing new is saved
+assert 'mPosition.z' in body(chicken, 'void ChickenEntity::exportToStream') or 'mPosition.z' in chicken
+# Client: the egg in a nest has no straw of its own, the coop mesh has the nests
+render = (root / 'source/render/RenderManagerChickens.cpp').read_text()
+assert 'hideEggStraw' in render and 'mNestEgg' in render and 'ChickenStraw' in render
+
+# Trampling: shell pieces, yolk and feathers, shown by the clients, no new network value
+assert 'fireEggTrample(*egg)' in doUpkeep
+fx = body(room_cpp, 'void RoomHatchery::fireEggTrample')
+assert 'HatcheryFx/EggTrample' in fx and 'ServerNotificationType::playSpatialSound' in fx
+assert 'HatcheryFx/EggTrample' in client and 'rrEggTrampled' in client
+assert 'void RenderManager::rrEggTrampled' in render and '"ChickenEggTrample"' in render
+particles = (root / 'particles/ChickenEggShell.particle').read_text()
+trample = particles[particles.index('particle_system ChickenEggTrample'):]
+assert trample.count('emitter Point') == 2, 'shell emitter and yolk emitter'
+print('hatchery nest egg and trample checks passed')

@@ -381,6 +381,43 @@ BOOST_AUTO_TEST_CASE(test_Trample)
     BOOST_CHECK(HatcheryCycle::tramples(settings, true, true, 99));
 }
 
+BOOST_AUTO_TEST_CASE(test_NestPlace)
+{
+    // Two nests with three places each (as in the coop mesh)
+    std::vector<bool> occupied(6, false);
+    BOOST_CHECK_EQUAL(HatcheryCycle::pickNestPlace(occupied, 3), 0);
+
+    // The nest with the fewest eggs comes first, a free place before a full nest
+    occupied[0] = true;
+    BOOST_CHECK_EQUAL(HatcheryCycle::pickNestPlace(occupied, 3), 3);
+    occupied[3] = true;
+    BOOST_CHECK_EQUAL(HatcheryCycle::pickNestPlace(occupied, 3), 1);
+    occupied[1] = true;
+    BOOST_CHECK_EQUAL(HatcheryCycle::pickNestPlace(occupied, 3), 4);
+
+    // A nest that is full is skipped even when it comes first
+    occupied[2] = true;
+    BOOST_CHECK_EQUAL(HatcheryCycle::pickNestPlace(occupied, 3), 4);
+
+    // The gap of a picked up egg is filled again
+    occupied[4] = true;
+    occupied[5] = true;
+    BOOST_CHECK_EQUAL(HatcheryCycle::pickNestPlace(occupied, 3), -1);
+    occupied[1] = false;
+    BOOST_CHECK_EQUAL(HatcheryCycle::pickNestPlace(occupied, 3), 1);
+
+    // All places taken (or no nest at all): the egg lies on the ground
+    std::vector<bool> full(6, true);
+    BOOST_CHECK_EQUAL(HatcheryCycle::pickNestPlace(full, 3), -1);
+    BOOST_CHECK_EQUAL(HatcheryCycle::pickNestPlace(std::vector<bool>(), 3), -1);
+    BOOST_CHECK_EQUAL(HatcheryCycle::pickNestPlace(occupied, 0), -1);
+
+    // A nest where only the last place is free
+    std::vector<bool> last(3, true);
+    last[2] = false;
+    BOOST_CHECK_EQUAL(HatcheryCycle::pickNestPlace(last, 3), 2);
+}
+
 BOOST_AUTO_TEST_CASE(test_RoosterDay)
 {
     RoosterSettings settings;

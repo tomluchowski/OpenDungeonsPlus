@@ -19,6 +19,7 @@
 #define HATCHERYCYCLE_H
 
 #include <cstdint>
+#include <vector>
 
 //! \brief Timings and limits of the chicken life cycle of a hatchery, in game turns.
 struct HatcheryCycleSettings
@@ -146,6 +147,12 @@ public:
     //! Enemy creatures and heroes trample eggs. Creatures of the keeper never harm eggs, and nothing
     //! tramples hens, chicks or the rooster this way. roll is a random number in [0, 99].
     static bool tramples(const HatcheryCycleSettings& settings, bool enemyCreature, bool isEgg, uint32_t roll);
+
+    //! Place for the egg of a hen in the nests of one coop. occupied has one entry per egg place, nest after nest
+    //! (slotsPerNest places each). A nest that is not full comes before a full one, the nest with the fewest eggs
+    //! first (the first one on a tie). Returns the index of the free place, or -1 when all places are taken: the
+    //! egg then lies on a free tile of the hatchery next to the hen.
+    static int32_t pickNestPlace(const std::vector<bool>& occupied, uint32_t slotsPerNest);
 
     //! Turns until the next egg of a hen. random is any random number.
     static uint32_t layInterval(const HatcheryCycleSettings& settings, uint32_t random);
