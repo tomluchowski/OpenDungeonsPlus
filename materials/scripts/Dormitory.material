@@ -18,6 +18,7 @@ vertex_program myDormitoryVertexShader glsl
 fragment_program myDormitoryFragmentShader glsl
 {
   source Room.frag
+  preprocessor_defines DORMITORY_FLOOR=1
     default_params
     {
         param_named_auto ambientLightColour ambient_light_colour
@@ -47,18 +48,21 @@ material Dormitory //: RTSS/NormalMapping_MultiPass
                 param_named decalmap int 0
                 param_named normalmap int 1
                 param_named shadowmap int 2
+                param_named dormitoryEdge int 3
+                param_named dormitoryCorner int 4
+                param_named dormitoryBorders float4 1 1 1 1
             }            
             
             
             // We use blending, so that we can see the underlying texture.
             texture_unit decalmap
             {
-                texture Dormitory.png
+                texture Dormitory1111.png
             }
         
             texture_unit normalmap
             {
-                texture DormitoryNormal.png
+                texture Dormitory1111Normal.png
             }  
             texture_unit shadowmap
             {
@@ -67,7 +71,46 @@ material Dormitory //: RTSS/NormalMapping_MultiPass
                 filtering bilinear              
                 
             }    
+            texture_unit dormitoryEdge
+            {
+                texture Dormitory1011.png
+                tex_address_mode clamp
+            }
+            texture_unit dormitoryCorner
+            {
+                texture Dormitory1100.png
+                tex_address_mode clamp
+            }
         }
 
+    }
+}
+
+// Canonical end opens south; the passage opens north and south.
+material DormitoryEnd : Dormitory
+{
+    technique
+    {
+        pass
+        {
+            fragment_program_ref myDormitoryFragmentShader
+            {
+                param_named dormitoryBorders float4 1 0 1 1
+            }
+        }
+    }
+}
+
+material DormitoryPassage : Dormitory
+{
+    technique
+    {
+        pass
+        {
+            fragment_program_ref myDormitoryFragmentShader
+            {
+                param_named dormitoryBorders float4 1 0 1 0
+            }
+        }
     }
 }
