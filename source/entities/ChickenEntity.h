@@ -42,6 +42,10 @@ enum class ChickenKind : uint32_t
 class ChickenEntity: public RenderedMovableEntity
 {
 public:
+    //! \brief Creates an animal of the given hatchery on the server.
+    //! \param gameMap The map the animal lives on.
+    //! \param hatcheryName Name of the hatchery room the animal belongs to.
+    //! \param kind Stage of life it starts in (a hen unless an egg, chick or rooster is wanted).
     ChickenEntity(GameMap* gameMap, const std::string& hatcheryName, ChickenKind kind = ChickenKind::hen);
     ChickenEntity(GameMap* gameMap);
 
