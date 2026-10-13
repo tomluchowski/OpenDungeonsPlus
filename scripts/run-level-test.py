@@ -118,6 +118,7 @@ def run_level_with_frame_time(exe, level, seconds):
 
 
 def main():
+    """Parses the command line, runs the requested levels and exits with 0 only if all passed."""
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--exe", required=True, help="built game executable")
     parser.add_argument("--seconds", type=int, default=120, help="game time per level (default 120)")
