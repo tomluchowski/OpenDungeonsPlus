@@ -162,11 +162,17 @@ void CreaturePosts::reportRelationshipChange(int64_t turn, const std::string& cr
         return;
 
     PostCategory category = PostCategory::Nb;
+    bool wasLovers = (oldTier == RelationshipTier::lovers);
+    bool isLovers = (newTier == RelationshipTier::lovers);
     bool wasFriends = (oldTier == RelationshipTier::friends) || (oldTier == RelationshipTier::bestFriends) ||
         (oldTier == RelationshipTier::lovers);
     bool isFriends = (newTier == RelationshipTier::friends) || (newTier == RelationshipTier::bestFriends) ||
         (newTier == RelationshipTier::lovers);
-    if(isFriends && !wasFriends)
+    if(isLovers && !wasLovers)
+        category = PostCategory::Couple;
+    else if(wasLovers && !isLovers)
+        category = PostCategory::SplitUp;
+    else if(isFriends && !wasFriends)
         category = PostCategory::Friendship;
     else if(wasFriends && !isFriends)
         category = PostCategory::Breakup;

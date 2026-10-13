@@ -334,7 +334,7 @@ void collectProfileRelations(GameMap* gameMap, CreatureRelationships& relationsh
         if(partnerName.empty())
             continue;
 
-        RelationshipTier tier = relationships.tierOfValue(partner.second, true);
+        RelationshipTier tier = relationships.tierOf(name, partner.first, true);
         const char* label = nullptr;
         switch(tier)
         {

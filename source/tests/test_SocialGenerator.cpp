@@ -270,7 +270,7 @@ BOOST_AUTO_TEST_CASE(test_SocialRelationshipPosts)
     social::SocialData data;
     data.loadFromDirectory(getConfigDirectory());
     social::CreatureProfile profile = social::SocialGenerator::makeProfile(data, "Orc17", "Orc", false);
-    const char* categories[] = {"friendship", "hatred", "nemesis", "breakup"};
+    const char* categories[] = {"friendship", "hatred", "nemesis", "breakup", "couple", "splitup"};
     for(std::size_t i = 0; i < sizeof(categories) / sizeof(categories[0]); ++i)
     {
         std::string text = social::SocialGenerator::renderPost(data, profile, false, categories[i], 1, 0, "",

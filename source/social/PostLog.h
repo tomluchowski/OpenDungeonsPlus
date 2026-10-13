@@ -51,6 +51,9 @@ enum class PostCategory : uint8_t
     Hatred,
     Nemesis,
     Breakup,
+    //! Two creatures became a couple, or a couple broke up (relationship option)
+    Couple,
+    SplitUp,
     Nb
 };
 

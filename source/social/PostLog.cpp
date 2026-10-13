@@ -67,6 +67,10 @@ std::string getPostCategoryName(PostCategory category)
             return "nemesis";
         case PostCategory::Breakup:
             return "breakup";
+        case PostCategory::Couple:
+            return "couple";
+        case PostCategory::SplitUp:
+            return "splitup";
         default:
             return "";
     }
