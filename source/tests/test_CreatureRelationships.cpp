@@ -581,6 +581,7 @@ namespace
     }
 }
 
+// A pair becomes lovers only at the threshold and only with one male and one female creature; same gender, missing gender or no gender lookup stay best friends
 BOOST_AUTO_TEST_CASE(test_LoversNeedOneMaleAndOneFemale)
 {
     CreatureRelationships relationships;
@@ -624,6 +625,7 @@ BOOST_AUTO_TEST_CASE(test_LoversNeedOneMaleAndOneFemale)
     BOOST_CHECK(noLookup.tierOf("Adam", "Eve", true) == RelationshipTier::bestFriends);
 }
 
+// A creature has one partner: a weaker candidate does not replace it, a stronger one does and the old couple falls back below the threshold
 BOOST_AUTO_TEST_CASE(test_LoversLimitOnePartner)
 {
     CreatureRelationships relationships;
@@ -647,6 +649,7 @@ BOOST_AUTO_TEST_CASE(test_LoversLimitOnePartner)
     BOOST_CHECK_EQUAL(relationships.getPartner("Eve"), "");
 }
 
+// Lovers stay lovers down to the break value, break up below it (one tier change) and need the full threshold to become lovers again
 BOOST_AUTO_TEST_CASE(test_LoversBreakUpHysteresis)
 {
     CreatureRelationships relationships;
@@ -687,6 +690,7 @@ BOOST_AUTO_TEST_CASE(test_LoversBreakUpHysteresis)
     BOOST_CHECK(changes[0].mNewTier == RelationshipTier::nemesis);
 }
 
+// Drift can end a relationship: the pair keeps the lovers tier at the break value and loses it with the next drift step
 BOOST_AUTO_TEST_CASE(test_LoversBreakUpByDrift)
 {
     CreatureRelationships relationships;
@@ -715,6 +719,7 @@ BOOST_AUTO_TEST_CASE(test_LoversBreakUpByDrift)
     BOOST_CHECK(changes[0].mNewTier == RelationshipTier::friends);
 }
 
+// The lovers flag is saved and read back as stored, also without a gender lookup, and loading reports no tier changes
 BOOST_AUTO_TEST_CASE(test_LoversSaveLoadWithFlag)
 {
     CreatureRelationships relationships;
@@ -746,6 +751,7 @@ BOOST_AUTO_TEST_CASE(test_LoversSaveLoadWithFlag)
     BOOST_CHECK(changes.empty());
 }
 
+// Old saves without the flag get it from value and genders, only the stronger pair of two candidates stays lovers and a bad fifth field is rejected
 BOOST_AUTO_TEST_CASE(test_LoversLoadOldSaveWithoutFlag)
 {
     // Old saves have four fields per line: the flag is derived from the value and the genders
@@ -781,6 +787,7 @@ BOOST_AUTO_TEST_CASE(test_LoversLoadOldSaveWithoutFlag)
     BOOST_CHECK(!broken.readFromStream(saved3, 10));
 }
 
+// The client shows the lovers tier sent by the server and can set a pair back to best friends
 BOOST_AUTO_TEST_CASE(test_LoversClientTiers)
 {
     CreatureRelationships server;
@@ -801,6 +808,7 @@ BOOST_AUTO_TEST_CASE(test_LoversClientTiers)
     BOOST_CHECK(client.tierOf("Adam", "Eve", true) == RelationshipTier::bestFriends);
 }
 
+// Lovers give the strongest combat bonus (counted once) and a mood boost that ends when one of them is removed
 BOOST_AUTO_TEST_CASE(test_LoversEffects)
 {
     CreatureRelationships relationships;
@@ -828,6 +836,7 @@ BOOST_AUTO_TEST_CASE(test_LoversEffects)
     BOOST_CHECK_EQUAL(relationships.getPartner("Adam"), "");
 }
 
+// When one partner becomes friends with a third creature, the other partner loses more value towards it than an ordinary friend would
 BOOST_AUTO_TEST_CASE(test_LoversJealousy)
 {
     CreatureRelationships relationships;
@@ -846,6 +855,7 @@ BOOST_AUTO_TEST_CASE(test_LoversJealousy)
     BOOST_CHECK(settings.mLoversJealousyValueLoss > settings.mJealousyValueLoss);
 }
 
+// The lovers settings have their defaults and are read from the config
 BOOST_AUTO_TEST_CASE(test_LoversConfigValues)
 {
     RelationshipSettings defaults;
