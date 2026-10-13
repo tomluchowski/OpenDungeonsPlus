@@ -91,6 +91,7 @@ public:
     inline double getManaUpkeepPerSecond() const
     { return mManaUpkeepPerSecond; }
 
+    //! \brief The one-off mana taken (spells, trap shots) averaged over the last second, shown on the HUD.
     inline double getManaOneOffPerSecond() const
     { return mManaOneOffPerSecond; }
 
@@ -153,7 +154,7 @@ protected:
     //! \brief The mana upkeep per second of all the workers, updated in GameMap::doTurn().
     double mManaUpkeepPerSecond;
 
-    //! \brief The one-off mana taken (spells, trap shots, possession, ...) averaged over the
+    //! \brief The one-off mana taken (spells, trap shots, ...) averaged over the
     //! last second, updated in GameMap::doTurn().
     double mManaOneOffPerSecond;
 

@@ -165,6 +165,7 @@ public:
     inline CreatureJob          getCreatureJob  () const    { return mCreatureJob; }
     inline CombatClass          getCombatClass  () const    { return mCombatClass; }
     inline bool                 isFearless      () const    { return mFearless; }
+    //! \brief True for the champion definition (the creature the Summon champion spell calls).
     inline bool                 isChampion      () const    { return mChampion; }
     inline const std::string&   getClassName    () const    { return mClassName; }
 
