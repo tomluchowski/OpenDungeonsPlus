@@ -207,6 +207,8 @@ int main(){
   "without a heart there is no income, no upkeep and the mana is untouched");
 
  // Upkeep never brings the mana below 0
+ owner.mMana=0.0;owner.mNumCreaturesWorkers=100;
+ map.updateSeatMana(&owner,0.0);
  check(near(owner.mMana,0.0),"the mana stops at 0, the upkeep never makes it negative");
  owner.mNumClaimedTiles=9+100;owner.mNumCreaturesWorkers=8;
 
