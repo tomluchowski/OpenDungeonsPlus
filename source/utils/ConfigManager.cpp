@@ -1201,6 +1201,8 @@ bool ConfigManager::loadTilesets(const std::string& fileName)
             return false;
         if(!loadTilesetValues(defFile, TileVisual::tortureRoom, tileSet->configureTileValues(TileVisual::tortureRoom),*mHighMap))
             return false;
+        if(!loadTilesetValues(defFile, TileVisual::guardRoom, tileSet->configureTileValues(TileVisual::guardRoom),*mHighMap))
+            return false;
 
     }
 

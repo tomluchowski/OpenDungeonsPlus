@@ -111,7 +111,8 @@ enum class TileVisual
     prisonRoom,
     arenaRoom,
     casinoRoom,
-    tortureRoom,    
+    tortureRoom,
+    guardRoom,
     countTileVisual
 };
 
