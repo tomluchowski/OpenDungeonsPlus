@@ -61,6 +61,9 @@ ConfigManager::ConfigManager(const std::string& configPath, const std::string& u
     mHitEvents(true),
     mHitGlanceShare(0.34),
     mHitStrongShare(0.15),
+    mAttackTurnEvents(true),
+    mAttackTurnSpeed(540.0),
+    mAttackTurnMaxDelay(0.25),
     mMeleeDodgeParry(true),
     mDodgeBase(3.0),
     mDodgePerLevel(0.5),
@@ -537,6 +540,27 @@ bool ConfigManager::loadGlobalGameConfig(std::stringstream& configFile)
         {
             configFile >> nextParam;
             mHitStrongShare = Helper::toDouble(nextParam);
+            // Not mandatory
+        }
+
+        if(nextParam == "AttackTurnEvents")
+        {
+            configFile >> nextParam;
+            mAttackTurnEvents = Helper::toInt(nextParam) != 0;
+            // Not mandatory
+        }
+
+        if(nextParam == "AttackTurnSpeed")
+        {
+            configFile >> nextParam;
+            mAttackTurnSpeed = Helper::toDouble(nextParam);
+            // Not mandatory
+        }
+
+        if(nextParam == "AttackTurnMaxDelay")
+        {
+            configFile >> nextParam;
+            mAttackTurnMaxDelay = Helper::toDouble(nextParam);
             // Not mandatory
         }
 

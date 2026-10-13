@@ -75,7 +75,14 @@ enum class CosmeticEventType : int32_t
     //! those of CosmeticHitResult. For a melee blow the kind meleeResult follows it with
     //! the old fields, for clients that do not know this kind. Older clients skip the kind, an older server
     //! sends none.
-    hitResult = 17
+    hitResult = 17,
+    //! A creature starts a blow or a shot and turns to its target first. Sent just before the animation of the blow.
+    //! mSubject attacker, mObject target, mPosition the direction from the attacker to the target (length 1, height 0),
+    //! mValue and mValue2 are not used (0). The client turns the attacker smoothly with the angular speed of its
+    //! configuration and starts the strike clip when the turn is done (at the latest after the configured delay, the turn
+    //! then runs over the wind-up). Damage and its timing are decided by the server and are not touched. Older clients skip
+    //! the kind and turn as before, an older server sends none.
+    attackTurn = 18
 };
 
 //! \brief The result in mValue of the event hitResult

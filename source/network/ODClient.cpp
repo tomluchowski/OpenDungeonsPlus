@@ -821,6 +821,14 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
             if(!supportsCosmeticEvents() || !event.isKnownType())
                 break;
 
+            if(event.is(CosmeticEventType::attackTurn))
+            {
+                // The creature turns to its target before the blow that follows at once: the turn is announced
+                // for it (the animation message of the blow uses it)
+                RenderManager::getSingleton().rrNoteAttackTurn(event.mSubject, event.mPosition);
+                break;
+            }
+
             if(frameListener->getModeManager()->getCurrentModeType() == ModeManager::ModeType::GAME &&
                CreatureReactions::getSingletonPtr() != nullptr)
             {

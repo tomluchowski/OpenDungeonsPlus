@@ -2315,6 +2315,7 @@ void Creature::useAttack(CreatureSkillData& skillData, GameEntity& entityAttack,
         entityAttack.getPosition() : Ogre::Vector3(tileAttack.getX(), tileAttack.getY(), 0);
     Ogre::Vector3 walkDirection(target.x - pos.x, target.y - pos.y, 0);
     walkDirection.normalise();
+    fireAttackTurn(entityAttack.getName(), walkDirection);
     const bool ranged = skillData.mSkill->getRangeMax(this, &entityAttack) > 1.0;
     setAnimationState(ranged ? EntityAnimation::ranged_attack_anim :
         EntityAnimation::combat_attack_anim, false, walkDirection, true);
@@ -3186,6 +3187,18 @@ void Creature::fireCosmeticEvent(int32_t type, int32_t value, int32_t value2, bo
     event.mValue = value;
     event.mValue2 = value2;
     fireCosmeticEvent(event, alliedOnly);
+}
+
+void Creature::fireAttackTurn(const std::string& targetName, const Ogre::Vector3& direction)
+{
+    if(!ConfigManager::getSingleton().getAttackTurnEvents())
+        return;
+
+    CosmeticEvent event(CosmeticEventType::attackTurn);
+    event.mSubject = getName();
+    event.mObject = targetName;
+    event.mPosition = direction;
+    fireCosmeticEvent(event, false);
 }
 
 void Creature::fireHitResult(const std::string& attackerName, double damageDone, double rawDamage, bool missile)

@@ -123,6 +123,8 @@ protected:
     bool mPrevAnimationStateLoop;
 
 private:
+    //! Client: starts the clip of mPrevAnimationState on the model and tells the reactions
+    void startAnimationClip();
     void fireObjectAnimationState(const std::string& state, bool loop, const Ogre::Vector3& direction, bool playIdleWhenAnimationEnds);
     Ogre::AnimationState* mAnimationState;
     std::string mDestinationAnimationState;
@@ -131,6 +133,8 @@ private:
     Ogre::Vector3 mDestinationAnimationDirection;
     Ogre::Vector3 mWalkDirection;
     double mAnimationTime;
+    //! Client: seconds the strike clip still waits for the turn to the target (0 = nothing waits). Not saved.
+    double mBlowStartDelay;
 };
 
 

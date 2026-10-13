@@ -46,7 +46,8 @@ MovableGameEntity::MovableGameEntity(GameMap* gameMap) :
     mDestinationPlayIdleWhenAnimationEnds(false),
     mDestinationAnimationDirection(Ogre::Vector3::ZERO),
     mWalkDirection(Ogre::Vector3::ZERO),
-    mAnimationTime(0.0)
+    mAnimationTime(0.0),
+    mBlowStartDelay(0.0)
 {
 }
 
@@ -224,6 +225,9 @@ void MovableGameEntity::setAnimationState(const std::string& state, bool loop, c
     mAnimationTime = 0;
     mPrevAnimationState = state;
     mPrevAnimationStateLoop = loop;
+    // A strike clip that still waits for the turn is replaced by this state
+    mBlowStartDelay = 0.0;
+    Ogre::Real blowDelay = 0.0f;
 
     if(direction != Ogre::Vector3::ZERO)
     {
@@ -233,21 +237,47 @@ void MovableGameEntity::setAnimationState(const std::string& state, bool loop, c
         if(blow && getObjectType() == GameEntityType::creature)
         {
             mWalkDirection = direction;
-            RenderManager::getSingleton().rrOrientEntityTowardSmoothly(this, direction);
+            blowDelay = RenderManager::getSingleton().rrOrientEntityTowardSmoothly(this, direction);
         }
         else
             setWalkDirection(direction);
     }
 
-    RenderManager::getSingleton().rrSetObjectAnimationState(this, state, loop);
+    // When the server announced the turn to the target, the strike clip starts when the turn is done
+    // (see update); the clip played so far goes on until then
+    if(blowDelay > 0.0f)
+    {
+        mBlowStartDelay = blowDelay;
+        return;
+    }
+
+    startAnimationClip();
+}
+
+void MovableGameEntity::startAnimationClip()
+{
+    RenderManager::getSingleton().rrSetObjectAnimationState(this, mPrevAnimationState, mPrevAnimationStateLoop);
 
     // The reactions of the creatures (cheering winners) look at what the creatures do
     if(CreatureReactions::getSingletonPtr() != nullptr)
-        CreatureReactions::getSingleton().noteAnimation(this, state);
+        CreatureReactions::getSingleton().noteAnimation(this, mPrevAnimationState);
 }
 
 void MovableGameEntity::update(Ogre::Real timeSinceLastFrame)
 {
+    // The strike clip that waited for the turn to the target starts now (clients only; the damage was never
+    // tied to it)
+    if(mBlowStartDelay > 0.0)
+    {
+        mBlowStartDelay -= static_cast<double>(timeSinceLastFrame);
+        if(mBlowStartDelay <= 0.0)
+        {
+            mBlowStartDelay = 0.0;
+            if(mWalkQueue.empty())
+                startAnimationClip();
+        }
+    }
+
     // Advance the animation
     double addedTime = static_cast<Ogre::Real>(ODApplication::turnsPerSecond
          * static_cast<double>(timeSinceLastFrame)

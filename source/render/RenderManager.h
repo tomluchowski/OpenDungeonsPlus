@@ -146,8 +146,16 @@ public:
     void rrDestroyCreature(Creature* curCreature);
     void rrOrientEntityToward(MovableGameEntity* gameEntity, const Ogre::Vector3& direction);
 
-    //! \brief Like rrOrientEntityToward but a creature turns in a short smooth movement (clients, before a blow)
-    void rrOrientEntityTowardSmoothly(MovableGameEntity* gameEntity, const Ogre::Vector3& direction);
+    //! \brief Like rrOrientEntityToward but a creature turns in a short smooth movement (clients, before a blow).
+    //! Returns how many seconds the strike clip should wait for the turn (0 = start at once). With a turn that the
+    //! server announced (rrNoteAttackTurn) the turn runs with the configured angular speed and the clip waits for it,
+    //! but at most the configured delay; without one the turn takes a short fixed time and the clip starts at once.
+    Ogre::Real rrOrientEntityTowardSmoothly(MovableGameEntity* gameEntity, const Ogre::Vector3& direction);
+    //! \brief The server announced that the creature turns to a target before its next blow (event attackTurn). The
+    //! announcement is used by the next blow of that creature and then forgotten.
+    void rrNoteAttackTurn(const std::string& creatureName, const Ogre::Vector3& direction);
+    //! \brief Takes the announced direction of the creature (and forgets it). False if none was announced.
+    bool rrTakeAttackTurn(const std::string& creatureName, Ogre::Vector3& direction);
     void rrPitchAroundAxis(RenderedMovableEntity* gameEntity, Ogre::Degree dd);
     void rrScaleCreature(Creature& creature);
     //! Where a weapon model sits on a skeleton: the bone, the offset on it and the rotation of the model
@@ -338,6 +346,8 @@ private:
         Ogre::Real mDuration;
     };
     std::vector<CreatureTurn> mCreatureTurns;
+    //! Turns announced by the server (event attackTurn): creature name -> direction to the target
+    std::map<std::string, Ogre::Vector3> mAttackTurnNotes;
     //! \brief Advances the smooth turns of the creatures and removes the finished ones
     void updateCreatureTurns(Ogre::Real timeSinceLastFrame);
 

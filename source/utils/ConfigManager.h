@@ -149,6 +149,18 @@ public:
     inline double getHitStrongShare() const
     { return std::max(0.01, std::min(1.0, mHitStrongShare)); }
 
+    //! \brief True if the server tells the keepers that a creature turns to its target before a blow (cosmetic event attackTurn)
+    inline bool getAttackTurnEvents() const
+    { return mAttackTurnEvents; }
+
+    //! \brief Angular speed in degrees per second of the turn to the target before a blow (client, 90 - 1440)
+    inline double getAttackTurnSpeed() const
+    { return std::max(90.0, std::min(1440.0, mAttackTurnSpeed)); }
+
+    //! \brief The most seconds the strike clip waits for the turn to the target (client, 0 - 0.6, 0 = no waiting)
+    inline double getAttackTurnMaxDelay() const
+    { return std::max(0.0, std::min(0.6, mAttackTurnMaxDelay)); }
+
     //! \brief True if melee blows can be dodged or parried (decided by the server, global.cfg MeleeDodgeParry)
     inline bool getMeleeDodgeParry() const
     { return mMeleeDodgeParry; }
@@ -390,6 +402,9 @@ private:
     bool mHitEvents;
     double mHitGlanceShare;
     double mHitStrongShare;
+    bool mAttackTurnEvents;
+    double mAttackTurnSpeed;
+    double mAttackTurnMaxDelay;
     bool mMeleeDodgeParry;
     double mDodgeBase;
     double mDodgePerLevel;

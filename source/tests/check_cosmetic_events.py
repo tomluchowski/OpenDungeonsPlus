@@ -83,7 +83,7 @@ static bool oldClientProcess(int32_t cmd, ODPacket& packet, int& handled)
 int main()
 {
     // Round trip of every kind, with the sentinel behind it to prove nothing is left over or missing
-    for(int32_t type = 0; type <= 17; ++type)
+    for(int32_t type = 0; type <= 18; ++type)
     {
         // 9 to 16 are kept free for the kinds of other features (they are no kinds here)
         if((type >= 9) && (type <= 16))

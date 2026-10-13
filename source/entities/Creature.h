@@ -428,6 +428,9 @@ public:
     void fireHitResult(const std::string& attackerName, double damageDone, double rawDamage, bool missile);
     //! \brief A shot of the attacker that was aimed at this creature ended without hurting it (cosmetic event hitResult)
     void fireHitMissed(const std::string& attackerName);
+    //! \brief Server: this creature is about to strike at the target in the given direction and turns to it first
+    //! (cosmetic event attackTurn). Only reports, it changes nothing.
+    void fireAttackTurn(const std::string& targetName, const Ogre::Vector3& direction);
     //! \brief Tells the keepers who see this creature that it dodged or parried a melee blow (hitResult)
     void fireHitDefended(const std::string& attackerName, DefenceChance::Outcome outcome);
     //! \brief Server only: rolls whether this creature dodges or parries a melee blow before its damage is
