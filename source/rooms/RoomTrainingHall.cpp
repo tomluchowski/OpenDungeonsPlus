@@ -21,6 +21,7 @@
 #include "entities/Creature.h"
 #include "entities/CreatureDefinition.h"
 #include "entities/Tile.h"
+#include "game/CreatureRelationships.h"
 #include "game/Player.h"
 #include "gamemap/GameMap.h"
 #include "rooms/RoomManager.h"
@@ -405,10 +406,33 @@ bool RoomTrainingHall::useRoom(Creature& creature, bool forced)
     double expReceived = creatureRoomAffinity.getEfficiency() * ConfigManager::getSingleton().getRoomConfigDouble("TrainHallXpPerAttack");
     expReceived *= coef;
 
+    // A higher level friend training in the same room teaches the creature
+    if(getGameMap()->isRelationshipsEnabled() && creature.canHaveRelationships())
+    {
+        std::vector<std::pair<std::string, uint32_t> > trainees;
+        for(Creature* other : mCreaturesUsingRoom)
+        {
+            if((other != &creature) && (other->getSeat() == creature.getSeat()) && other->canHaveRelationships())
+                trainees.push_back(std::pair<std::string, uint32_t>(other->getName(), other->getLevel()));
+        }
+        expReceived *= getGameMap()->getCreatureRelationships()->mentoringFactor(creature.getName(),
+            creature.getLevel(), trainees);
+    }
+
     creature.receiveExp(expReceived);
     creature.jobDone(ConfigManager::getSingleton().getRoomConfigDouble("TrainHallWakefulnessPerAttack"));
     creature.setJobCooldown(Random::Uint(ConfigManager::getSingleton().getRoomConfigUInt32("TrainHallCooldownHitMin"),
         ConfigManager::getSingleton().getRoomConfigUInt32("TrainHallCooldownHitMax")));
+
+    // Creatures of the same keeper training at the same time grow closer
+    if(getGameMap()->isRelationshipsEnabled())
+    {
+        for(Creature* other : mCreaturesUsingRoom)
+        {
+            if(other != &creature)
+                Creature::reportRelationshipEvent(RelationshipEvent::trainingTogether, creature, *other);
+        }
+    }
 
     return false;
 }

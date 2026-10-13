@@ -80,6 +80,9 @@ int32_t CreatureMoodManager::computeCreatureMoodModifiers(const Creature& creatu
         moodValue += mood->computeMood(creature);
     }
 
+    // Creatures of the same keeper that it hates (only with relationships on)
+    moodValue += creature.getRelationshipMood();
+
     return moodValue;
 }
 

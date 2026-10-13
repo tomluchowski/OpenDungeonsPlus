@@ -114,7 +114,13 @@ enum class ServerNotificationType
     //! was not available before): + string creature name, string appearance token. Sent once to the
     //! human players that see the creature; clients that see it later get it with the creature data.
     //! Appended last so that no existing numeric value changes.
-    creatureAppearance
+    creatureAppearance,
+
+    //! Owner-only tier of a creature pair that changed (or the current tier, sent once when a
+    //! client joins or a game is loaded): + string creatureA, string creatureB, int32_t tier
+    //! (RelationshipTier). Only sent when the creature relationships option is on.
+    //! Appended last so that no existing numeric value changes.
+    relationshipTier
 };
 
 ODPacket& operator<<(ODPacket& os, const ServerNotificationType& nt);
