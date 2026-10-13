@@ -397,6 +397,7 @@ set(OD_SOURCEFILES
 
     ${SRC}/network/ChatEventMessage.cpp
     ${SRC}/network/ClientNotification.cpp
+    ${SRC}/network/CosmeticEvent.cpp
     ${SRC}/network/ODClient.cpp
     ${SRC}/network/ODPacket.cpp
     ${SRC}/network/ODServer.cpp

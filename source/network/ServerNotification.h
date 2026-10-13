@@ -102,7 +102,14 @@ enum class ServerNotificationType
     //! \brief Answer to the editor asking what the waves of a wave portal are
     editorPortalWaveData,
 
-    exit
+    exit,
+
+    //! A short cosmetic note that something happened (a mood change, a full treasury, a blow, a missile
+    //! launch): + a CosmeticEvent (see network/CosmeticEvent.h): int32_t kind, string subject, string object,
+    //! string text, int32_t value, int32_t value2, Vector3 position. Only sent to clients that negotiated
+    //! cosmetic events; an older client never gets it. Appended last so that no existing numeric value
+    //! changes.
+    cosmeticEvent
 };
 
 ODPacket& operator<<(ODPacket& os, const ServerNotificationType& nt);

@@ -498,6 +498,10 @@ bool CreatureReactionConfig::loadVariant(std::istream& file, ReactionVariant& va
         {
             variant.mJobs.assign(words.begin() + 1, words.end());
         }
+        else if(words[0] == "Moods")
+        {
+            variant.mMoods.assign(words.begin() + 1, words.end());
+        }
         else if(words[0] == "RequiresSleepNeed")
         {
             variant.mRequiresSleepNeed = toBool(words[1]);

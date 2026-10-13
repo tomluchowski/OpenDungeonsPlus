@@ -25,8 +25,53 @@ SETTINGS = ("MaxSimultaneous", "MaxCameraDistance", "GroupStaggerMin", "GroupSta
             "InteractionPause")
 EVENT_KEYS = ("Name", "Priority", "Cooldown", "Probability", "GroupMax", "WhileWorking", "InHand", "Dying")
 VARIANT_KEYS = ("Name", "Weight", "Clip", "Fallback", "Emote", "Effect", "Motion", "Cooldown", "Probability",
-                "Creatures", "Groups", "Jobs", "RequiresSleepNeed", "RequiresWall", "RequiresNeighbour", "LookAtRoom",
+                "Creatures", "Groups", "Jobs", "Moods", "RequiresSleepNeed", "RequiresWall", "RequiresNeighbour", "LookAtRoom",
                 "LateEmote", "LateEffect", "Prop", "Spreads")
+
+
+# Every entry of the reaction list (E events, R rooms, M moods, S meetings, A ambient) and the event(s) that show it.
+# M03 lists the variants a to n instead. E05 (the chicken gift) is added with the chickens.
+CATALOGUE = {
+    "E01": ("Victory",), "E02": ("GroupVictory",), "E03": ("LevelUp",), "E04": ("GoldGift",),
+    "E06": ("PaydayPaid", "PaydayUnpaid"), "E07": ("Slapped",), "E08": ("PickedUp",),
+    "E09": ("Dropped",), "E10": ("PortalArrival",), "E11": ("LeaveAngry",), "E12": ("Healed",),
+    "E13": ("SpellHaste", "SpellStrength", "SpellDefense"), "E14": ("PrisonFreed", "PrisonConverted"),
+    "E15": ("HurtWalk", "HurtIdle"), "E16": ("FleePanic",), "E17": ("AllyDied",), "E18": ("EnemySpotted",),
+    "E19": ("HandHover", "HandHoverDuck"), "E20": ("Death",), "E21": ("LostFight",),
+    "R01": ("LibraryWork", "ResearchDone", "ResearchLookUp"), "R02": ("WorkshopWork", "ItemCrafted", "ItemCraftedApplause"),
+    "R03": ("TrainingWork", "TrainingDone"), "R04": ("TreasuryWork", "TreasuryFull"),
+    "R05": ("HatcheryWork", "HatcheryMealDone"), "R06": ("DormitoryWork", "WakeRested"),
+    "R07": ("TempleWork", "TempleDone"), "R08": ("PrisonWork", "PrisonConverted"),
+    "R09": ("TortureWork", "TortureBroken"), "R10": ("ArenaWork", "ArenaBoutOver"),
+    "R11": ("DigWork", "DigGold"), "R12": ("ClaimWork", "ClaimDone"), "R13": ("CarryGold", "GoldDelivered"),
+    "M01": ("MoodHappy",), "M02": ("MoodContent",), "M03": ("MoodBored",), "M04": ("MoodAngry",),
+    "M05": ("MoodUpset",), "M06": ("MoodScared",), "M07": ("MoodTired",), "M08": ("MoodHungry",),
+    "M09": ("MoodGreedy",), "M10": ("MoodProud",), "M11": ("MoodImpatient",), "M12": ("MoodLeaving",),
+    "S01": ("Chat", "ChatReply"), "S02": ("GroupVictory",), "S03": ("SparPush", "SparStumble"),
+    "S04": ("LaughAtSlapped",), "S05": ("WaveAtFighter", "NodBack"), "S06": ("Grumble", "GrumbleBack"),
+    "A01": ("AmbientIdle",), "A02": ("AmbientSitDown", "AmbientLieDown"), "A03": ("AmbientHabit",),
+    "A04": ("AmbientLookFight", "AmbientLookSlap", "AmbientLookGold"),
+}
+BORED_VARIANTS = {
+    "M03a": ("JuggleBalls",), "M03b": ("YoYo",), "M03c": ("WideYawn", "YawnCovered", "DoubleYawn", "YawnSpreads"),
+    "M03d": ("TwiddleThumbs",), "M03e": ("FlipCoin",), "M03f": ("StackPebbles",), "M03g": ("DoodleInDust",),
+    "M03h": ("PebbleAtWall",), "M03i": ("PlayWithBeetle",), "M03j": ("BalanceTool",), "M03k": ("ShadowFigures",),
+    "M03l": ("NodOff",), "M03m": ("SighAtCeiling",), "M03n": ("KickPebbles",),
+}
+
+
+def check_catalogue(events, error):
+    """Every entry of the reaction list has its events, and the events of the list have the variants of the list."""
+    for entry, names in CATALOGUE.items():
+        for name in names:
+            if name not in events:
+                error("catalogue %s: event %s is missing" % (entry, name))
+    bored = events.get("MoodBored")
+    have = set(v["Name"][0] for v in bored["variants"] if "Name" in v) if bored else set()
+    for entry, names in BORED_VARIANTS.items():
+        for name in names:
+            if name not in have:
+                error("catalogue %s: MoodBored has no variant %s" % (entry, name))
 
 
 def read_lines(path):
@@ -185,6 +230,8 @@ def main():
             if target and target[0] not in events:
                 error("event %s: Spreads names the unknown event %s" % (name, target[0]))
 
+    check_catalogue(events, error)
+
     default_group = None
     for words in lines:
         if words[0] == "DefaultGroup" and len(words) >= 2:
@@ -234,6 +281,8 @@ def check_variant(key, words, variant, event, creatures, groups, materials, part
             error("%s: no material CreatureProp_%s" % (where, words[2]))
         elif not os.path.exists(os.path.join(ROOT, "materials", "textures", "CreatureProp%s.png" % words[2])):
             error("%s: no texture for prop %s" % (where, words[2]))
+    if key == "Moods" and not all(w in ("happy", "neutral", "unhappy") for w in words[1:]):
+        error("%s: Moods must be happy, neutral or unhappy" % where)
     if key == "LookAtRoom" and words[1] not in ROOMS:
         error("%s: unknown room %s" % (where, words[1]))
     if key in ("RequiresWall", "RequiresNeighbour") and words[1] not in ("yes", "no"):

@@ -50,7 +50,8 @@ class ODSocketClient
             mSource(ODSource::none),
             mPlayer(nullptr),
             mLastTurnAck(-1),
-            mPendingTimestamp(-1)
+            mPendingTimestamp(-1),
+            mSupportsCosmeticEvents(false)
         {}
 
         virtual ~ODSocketClient()
@@ -68,6 +69,9 @@ class ODSocketClient
 
         Player* getPlayer() { return mPlayer; }
         void setPlayer(Player* player) { mPlayer = player; }
+        //! Whether the client negotiated cosmetic events (see CosmeticEvent.h)
+        bool supportsCosmeticEvents() const { return mSupportsCosmeticEvents; }
+        void setSupportsCosmeticEvents(bool supported) { mSupportsCosmeticEvents = supported; }
         int64_t getLastTurnAck() { return mLastTurnAck; }
         void setLastTurnAck(int64_t lastTurnAck) { mLastTurnAck = lastTurnAck; }
         const std::string& getState() {return mState;}
@@ -130,6 +134,8 @@ class ODSocketClient
         std::ofstream mReplayOutputStream;
         ODPacket mPendingPacket;
         int32_t mPendingTimestamp;
+        //! The client agreed to receive cosmetic events
+        bool mSupportsCosmeticEvents;
 
         //! \brief the replay filename being written. Used to later optionally delete it
         //! if asked to.

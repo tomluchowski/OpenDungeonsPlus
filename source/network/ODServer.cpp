@@ -33,6 +33,7 @@
 #include "gamemap/DraggableTileContainer.h"
 #include "gamemap/MapHandler.h"
 #include "modes/ConsoleCommands.h"
+#include "network/CosmeticEvent.h"
 #include "network/ODClient.h"
 #include "network/ServerMode.h"
 #include "network/ServerNotification.h"
@@ -896,7 +897,7 @@ bool ODServer::processClientNotifications(ODSocketClient* clientSocket)
             clientSocket->setState("nick");
             // Tell the client to give us their nickname
             ODPacket packetSend;
-            packetSend << ServerNotificationType::pickNick << mServerMode;
+            packetSend << ServerNotificationType::pickNick << mServerMode << true;
             clientSocket->send(packetSend);
             break;
         }
@@ -909,6 +910,11 @@ bool ODServer::processClientNotifications(ODSocketClient* clientSocket)
             // Pick nick
             std::string clientNick;
             OD_ASSERT_TRUE(packetReceived >> clientNick);
+
+            bool cosmeticEvents = false;
+            if(!packetReceived.endOfPacket())
+                OD_ASSERT_TRUE(packetReceived >> cosmeticEvents);
+            clientSocket->setSupportsCosmeticEvents(cosmeticEvents);
 
             // NOTE : playerId 0 is reserved for inactive players and 1 is reserved for AI
             int32_t playerId = mUniqueNumberPlayer + Seat::PLAYER_ID_HUMAN_MIN;
@@ -960,6 +966,7 @@ bool ODServer::processClientNotifications(ODSocketClient* clientSocket)
 
             packetSend.clear();
             packetSend << ServerNotificationType::startGameMode << seatId << mServerMode;
+            packetSend << clientSocket->supportsCosmeticEvents();
             clientSocket->send(packetSend);
             mSeatsConfigured = true;
             break;
@@ -1234,6 +1241,7 @@ bool ODServer::processClientNotifications(ODSocketClient* clientSocket)
                 ODPacket packetSend;
                 int seatId = client->getPlayer()->getSeat()->getId();
                 packetSend << ServerNotificationType::startGameMode << seatId << mServerMode;
+                packetSend << client->supportsCosmeticEvents();
                 client->send(packetSend);
             }
 
@@ -2676,6 +2684,23 @@ void ODServer::notifyExit()
     ServerNotification* exitServerNotification = new ServerNotification(
         ServerNotificationType::exit, nullptr);
     queueServerNotification(exitServerNotification);
+}
+
+bool ODServer::supportsCosmeticEvents(Player* player)
+{
+    ODSocketClient* client = getClientFromPlayer(player);
+    return client != nullptr && client->supportsCosmeticEvents();
+}
+
+void ODServer::sendCosmeticEvent(Player* player, const CosmeticEvent& event)
+{
+    if(player == nullptr || !player->getIsHuman() || !supportsCosmeticEvents(player))
+        return;
+
+    ServerNotification* notification = new ServerNotification(
+        ServerNotificationType::cosmeticEvent, player);
+    notification->mPacket << event;
+    queueServerNotification(notification);
 }
 
 ODSocketClient* ODServer::getClientFromPlayer(Player* player)

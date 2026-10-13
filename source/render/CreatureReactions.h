@@ -31,6 +31,7 @@
 #include <string>
 #include <vector>
 
+struct CosmeticEvent;
 class Creature;
 class GameEntity;
 class GameMap;
@@ -160,6 +161,11 @@ public:
 
     //! \brief Client hook: the hand of the keeper moved over the creature
     void noteHandHover(Creature* creature);
+
+    //! \brief Client hook: the server sent a cosmetic event (only when cosmetic events were agreed on). Mood
+    //! changes, fear, waiting for work and the full treasury are shown here. The other kinds (carried gold,
+    //! melee result, missile launch, finished digging) are left to the code that shows them.
+    void noteCosmeticEvent(const CosmeticEvent& event);
 
     //! \brief Ends the running reaction of the creature and forgets the waiting ones. Needed before the creature
     //! changes its parent node and size (picked up and dropped).
@@ -372,6 +378,11 @@ private:
     bool isWorkingInRoom(const Creature* creature) const;
     //! \brief True if the creature type, group, job and sleep need allow the variant.
     bool isVariantAllowed(const Creature* creature, const ReactionVariant& variant) const;
+    //! \brief "happy", "neutral" or "unhappy": the mood of the creature as far as the client knows it. A creature
+    //! that just arrived through a portal uses the mood the server told for the arrival.
+    std::string getMoodClass(const Creature* creature) const;
+    //! \brief True if the server sends cosmetic events to this client
+    static bool hasServerEvents();
     //! \brief True if the local keeper holds the creature in the hand
     bool isInHand(const Creature* creature) const;
     //! \brief A creature appeared on the client map: one of the keeper arrives through a portal, an enemy is spotted
@@ -529,6 +540,10 @@ private:
     std::map<std::string, OngoingWork> mOngoing;
     //! The gold the creatures delivered lately ("creature" -> deliveries)
     std::map<std::string, Delivery> mDeliveries;
+    //! Time of the last gold delivery to a treasury of each creature ("creature" -> mTime)
+    std::map<std::string, double> mLastDelivery;
+    //! The mood level the server told for an arrival through a portal ("creature" -> level and time)
+    std::map<std::string, std::pair<int32_t, double> > mArrivalMoods;
 };
 
 #endif // CREATUREREACTIONS_H

@@ -60,6 +60,7 @@ bool ODSocketClient::replay(const std::string& filename)
 
 void ODSocketClient::disconnect(bool keepReplay)
 {
+    mSupportsCosmeticEvents = false;
     mPendingTimestamp = -1;
     ODSource src = mSource;
     mSource = ODSource::none;
