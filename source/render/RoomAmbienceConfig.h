@@ -52,7 +52,9 @@ enum class AmbienceWhen
     //! The target (a trap) reloads or is empty, as the server reported it
     reloading,
     //! The target (a trap) is loaded and ready, the opposite of reloading
-    ready
+    ready,
+    //! The target (the dungeon heart of the local keeper) has less health than mBelow, as the heart badge reports it
+    lowHealth
 };
 
 //! \brief What an ambience effect does when it is shown
@@ -103,6 +105,9 @@ enum class AmbienceMotion
     flicker
 };
 
+//! The health fraction below which a heart counts as low when an effect does not say (Below)
+const double DEFAULT_LOW_HEALTH_BELOW = 0.35;
+
 //! \brief One effect read from the room ambience configuration
 struct AmbienceEffect
 {
@@ -127,6 +132,7 @@ struct AmbienceEffect
         mMaxDistance(28.0),
         mPriority(5),
         mReduced(false),
+        mBelow(DEFAULT_LOW_HEALTH_BELOW),
         mNeedWall(false),
         mWallSide(false),
         mHeartRate(false),
@@ -188,6 +194,8 @@ struct AmbienceEffect
     int32_t mPriority;
     //! Kept in the mode "reduced"
     bool mReduced;
+    //! When LowHealth: the health fraction (0 to 1) of the heart under which the effect runs
+    double mBelow;
     //! Tile targets: only tiles beside a wall
     bool mNeedWall;
     //! Tile targets: the effect is moved to the edge of the tile that touches a wall (decorations look away from it)

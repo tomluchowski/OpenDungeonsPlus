@@ -473,6 +473,10 @@ private:
 
     //! \brief True if a creature was within the radius of the point at the last scan
     bool isCreatureNear(double x, double y, double radius) const;
+    //! \brief True if the dungeon heart of the local keeper at the position has less health than the given fraction
+    //! \param position Where the heart stands.
+    //! \param below The health fraction (0 to 1) under which the heart counts as low.
+    bool isLocalHeartBelow(const Ogre::Vector3& position, double below) const;
     //! \brief The heart rate factor of the heart nearest to the position (1 when no heart is near)
     double getHeartRateFactor(const Ogre::Vector3& position) const;
     //! \brief Updates and returns the state "no creature for a while" of a target

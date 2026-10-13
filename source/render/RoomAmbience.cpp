@@ -22,9 +22,11 @@
 #include "entities/GameEntityType.h"
 #include "entities/RenderedMovableEntity.h"
 #include "entities/Tile.h"
+#include "game/HeartHealthRing.h"
 #include "game/Player.h"
 #include "game/Seat.h"
 #include "gamemap/GameMap.h"
+#include "network/ODClient.h"
 #include "render/ODFrameListener.h"
 #include "render/RenderManager.h"
 #include "sound/SoundEffectsManager.h"
@@ -497,6 +499,27 @@ bool RoomAmbience::isCreatureNear(double x, double y, double radius) const
     return false;
 }
 
+bool RoomAmbience::isLocalHeartBelow(const Ogre::Vector3& position, double below) const
+{
+    ODClient* client = ODClient::getSingletonPtr();
+    Player* localPlayer = mGameMap->getLocalPlayer();
+    if((client == nullptr) || (localPlayer == nullptr) || (localPlayer->getSeat() == nullptr))
+        return false;
+
+    // Only the health of the own heart is known to the client
+    Tile* tile = mGameMap->getTile(static_cast<int32_t>(std::floor(position.x + 0.5f)),
+        static_cast<int32_t>(std::floor(position.y + 0.5f)));
+    if((tile == nullptr) || (tile->getSeat() != localPlayer->getSeat()))
+        return false;
+
+    const HeartHealthRing::BadgeState& badge = client->getHeartBadge();
+    // Before the first message of the server the health is not known
+    if(badge.mHP < 0.0)
+        return false;
+
+    return static_cast<double>(badge.mFraction) < below;
+}
+
 double RoomAmbience::getHeartRateFactor(const Ogre::Vector3& position) const
 {
     double best = 1.0;
@@ -928,6 +951,10 @@ void RoomAmbience::scanObjects(Ogre::Camera* camera, const Ogre::Vector3& camera
                     candidate.mActive = reloading;
                 else
                     candidate.mActive = !reloading;
+            }
+            else if(effect.mWhen == AmbienceWhen::lowHealth)
+            {
+                candidate.mActive = isLocalHeartBelow(position, effect.mBelow);
             }
             else
             {

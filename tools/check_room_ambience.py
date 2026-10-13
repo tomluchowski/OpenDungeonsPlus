@@ -20,9 +20,9 @@ SETTINGS = ("ScanInterval", "MaxParticles", "MaxParticlesReduced", "MaxMotions",
 EFFECT_KEYS = ("Name", "Target", "Match", "When", "Event", "Kind", "System", "Motion", "After", "Offset", "Axis",
                "Amount", "Speed", "Flicker", "Duration", "Chance", "Spacing", "MaxDistance", "Priority", "Reduced",
                "NeedWall", "Clips", "Every", "Family", "Delay", "Mesh", "Land", "From",
-               "OwnerOnly", "WallSide", "HeartRate")
+               "OwnerOnly", "WallSide", "HeartRate", "Below")
 TARGETS = ("Object", "Tile", "Event")
-WHENS = ("Always", "Occupied", "Empty", "Hit", "Locked", "Reloading", "Ready")
+WHENS = ("Always", "Occupied", "Empty", "Hit", "Locked", "Reloading", "Ready", "LowHealth")
 KINDS = ("Particle", "Motion", "Clip", "Shake", "Turn", "Sound", "Beam", "Projectile", "Mark", "Model")
 MOTIONS = ("Sway", "Wobble", "Spin", "Bob", "Pulse", "Flicker")
 # Room tile visuals that only some builds have
@@ -172,7 +172,7 @@ def check_effect(effect, where, problems, visuals, systems, mats, counts):
     when = effect.get("When", ["Always"])[0]
     if when not in WHENS:
         problems.append("%s: bad When %s" % (where, when))
-    if when in ("Hit", "Locked", "Reloading", "Ready") and target != "Object":
+    if when in ("Hit", "Locked", "Reloading", "Ready", "LowHealth") and target != "Object":
         problems.append("%s: When %s only works on objects" % (where, when))
     if target == "Event":
         counts["events"] += 1
@@ -283,7 +283,7 @@ def check_effect(effect, where, problems, visuals, systems, mats, counts):
         if not effect.get("Clips"):
             problems.append("%s: clip effect without Clips" % where)
     for key in ("After", "Amount", "Speed", "Flicker", "Duration", "Every", "Chance", "Spacing", "MaxDistance", "Priority",
-                "Delay"):
+                "Delay", "Below"):
         if key in effect and not is_number(effect[key][0]):
             problems.append("%s: %s is not a number" % (where, key))
     for key in ("Offset", "Axis", "From"):

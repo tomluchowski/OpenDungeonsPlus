@@ -80,6 +80,8 @@ bool RoomAmbienceConfig::whenFromString(const std::string& text, AmbienceWhen& w
         when = AmbienceWhen::reloading;
     else if(text == "Ready")
         when = AmbienceWhen::ready;
+    else if(text == "LowHealth")
+        when = AmbienceWhen::lowHealth;
     else
         return false;
 
@@ -409,6 +411,10 @@ bool RoomAmbienceConfig::loadEffect(std::istream& file)
         else if(key == "Reduced")
         {
             effect.mReduced = toBool(words[1]);
+        }
+        else if(key == "Below")
+        {
+            effect.mBelow = Helper::toDouble(words[1]);
         }
         else if(key == "NeedWall")
         {
