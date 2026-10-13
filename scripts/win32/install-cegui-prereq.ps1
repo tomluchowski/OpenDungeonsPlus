@@ -1,5 +1,6 @@
 $ErrorActionPreference = 'Stop'
-$taskRoot = 'C:\Users\mario\od-deps'
+. (Join-Path $PSScriptRoot 'windows-paths.ps1')
+$taskRoot = $taskDependencyRoot
 $taskCmake = "$taskRoot\tools\cmake-3.31.8-windows-x86_64\bin\cmake.exe"
 $taskPatch = Join-Path $PSScriptRoot 'patches/cegui-msvc-snprintf.patch'
 $ErrorActionPreference = 'Continue'
@@ -8,13 +9,6 @@ if ($LASTEXITCODE -ne 0) {
     Write-Output 'Applying CEGUI snprintf compatibility fix for modern MSVC'
     & git -C "$taskRoot\src\cegui" apply $taskPatch
     if ($LASTEXITCODE -ne 0) { throw 'CEGUI compatibility patch failed' }
-}
-$taskClippingPatch = Join-Path $PSScriptRoot 'patches/cegui-ogre-clipping.patch'
-& git -C "$taskRoot\src\cegui" apply --reverse --check $taskClippingPatch *> $null
-if ($LASTEXITCODE -ne 0) {
-    Write-Output 'Restoring CEGUI Ogre rendering clip regions'
-    & git -C "$taskRoot\src\cegui" apply $taskClippingPatch
-    if ($LASTEXITCODE -ne 0) { throw 'CEGUI clipping patch failed' }
 }
 $ErrorActionPreference = 'Stop'
 $taskOptions = @('-S', "$taskRoot\src\cegui", '-B', "$taskRoot\build\cegui",
@@ -33,7 +27,7 @@ $taskOptions = @('-S', "$taskRoot\src\cegui", '-B', "$taskRoot\build\cegui",
     "-DEXPAT_LIB_DBG=$taskRoot/install/lib/libexpatd.lib",
     "-DPCRE_LIB_DBG=$taskRoot/install/lib/pcred.lib",
     "-DBOOST_ROOT=$taskRoot/install", "-DBOOST_INCLUDEDIR=$taskRoot/install/include/boost-1_82",
-    '-DPYTHON_EXECUTABLE=C:/Users/mario/AppData/Local/Programs/Python/Python310/python.exe')
+    "-DPYTHON_EXECUTABLE=$taskPythonCmakeRoot/python.exe")
 Write-Output 'Configuring CEGUI'
 $ErrorActionPreference = 'Continue'
 & $taskCmake @taskOptions *> "$taskRoot\logs\cegui-configure.log"
