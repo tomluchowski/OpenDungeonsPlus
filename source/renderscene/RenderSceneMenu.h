@@ -22,6 +22,7 @@ class CameraManager;
 class RenderManager;
 class RenderSceneGroup;
 
+#include "render/MenuFlight.h"
 #include "renderscene/RenderScene.h"
 
 #include <OgrePrerequisites.h>
@@ -44,9 +45,16 @@ public:
         Ogre::Real timeSinceLastFrame);
     void readSceneMenu(const std::string& fileName);
 
+    //! Starts the flight into the menu (used after the defeat debriefing). False if one is already running.
+    bool startFlight()
+    { return mFlight.start(); }
+    bool isFlightActive() const
+    { return mFlight.isActive(); }
+
 private:
     std::vector<RenderSceneGroup*> mSceneGroups;
     RenderSceneListener* mRenderSceneListener;
+    MenuFlight mFlight;
 };
 
 #endif // RENDERSCENEMENU_H
