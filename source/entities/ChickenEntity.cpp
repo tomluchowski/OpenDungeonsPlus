@@ -41,6 +41,8 @@
 
 const int32_t NB_TURNS_OUTSIDE_HATCHERY_BEFORE_DIE = 30;
 const int32_t NB_TURNS_DIE_BEFORE_REMOVE = 5;
+//! \brief Number of tiles of a long way a chicken walks in one go before the rest is planned again.
+const size_t MAX_WALK_PATH_TILES = 30;
 
 //! \brief Creates an animal of the given hatchery in the given stage of life, with all counters at zero.
 ChickenEntity::ChickenEntity(GameMap* gameMap, const std::string& hatcheryName, ChickenKind kind) :
@@ -393,7 +395,7 @@ bool ChickenEntity::runBackToHatchery(Tile* tile)
 
     // Walk the first part of the way, the next turns go on from there
     std::vector<Ogre::Vector2> path;
-    for(std::vector<Tile*>::reverse_iterator it = reversed.rbegin(); (it != reversed.rend()) && (path.size() < 30); ++it)
+    for(std::vector<Tile*>::reverse_iterator it = reversed.rbegin(); (it != reversed.rend()) && (path.size() < MAX_WALK_PATH_TILES); ++it)
         path.push_back(Ogre::Vector2((*it)->getX(), (*it)->getY()));
     if(path.empty())
         return false;

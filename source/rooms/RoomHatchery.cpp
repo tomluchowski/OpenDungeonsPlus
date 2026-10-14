@@ -45,6 +45,27 @@ const std::string RoomHatcheryNameDisplay = "Hatchery room";
 const RoomType RoomHatchery::mRoomType = RoomType::hatchery;
 const TileVisual RoomHatchery::mRoomVisual= TileVisual::hatcheryRoom;
 
+//! \brief Distance a hen keeps from the creature that calls her.
+const double HEN_FOLLOW_CALLER_GAP = 0.4;
+//! \brief Part of the fight reach at which two fighting chickens stop when they walk up to each other.
+const double FIGHT_APPROACH_REACH_FACTOR = 0.5;
+//! \brief Distance to the coop perch at which the rooster counts as arrived and hops on the roof.
+const float ROOF_HOP_DISTANCE = 0.6f;
+//! \brief Distance at which the rooster stops when he walks to the coop perch.
+const double COOP_WALK_STOP_DISTANCE = 0.3;
+//! \brief Distance at which the rooster catches a hen and jumps on her.
+const float MOUNT_CATCH_DISTANCE = 0.55f;
+//! \brief Distance at which the rooster stops when he chases a hen.
+const double CHASE_STOP_DISTANCE = 0.3;
+//! \brief Distance to a threatening creature above which the rooster runs to it.
+const double THREAT_RUN_DISTANCE = 2.2;
+//! \brief Distance at which the rooster stops when he runs to a threatening creature.
+const double THREAT_RUN_STOP_DISTANCE = 1.8;
+//! \brief Distance to a threatening creature above which the rooster puffs up instead of running off.
+const double THREAT_PUFF_DISTANCE = 0.9;
+//! \brief Distance chicks keep from the one they follow.
+const double CHICK_FOLLOW_GAP = 0.1;
+
 
 namespace
 {
@@ -461,7 +482,7 @@ void RoomHatchery::doUpkeep()
     for(ChickenEntity* hen : hens)
     {
         if((caller != nullptr) && !hen->isBusy() && !night)
-            hen->setFollowTarget(Ogre::Vector2(caller->getPosition().x, caller->getPosition().y), 0.4);
+            hen->setFollowTarget(Ogre::Vector2(caller->getPosition().x, caller->getPosition().y), HEN_FOLLOW_CALLER_GAP);
         else
             hen->clearFollowTarget();
     }
@@ -550,9 +571,9 @@ void RoomHatchery::updateFight(std::vector<ChickenEntity*>& roosters, const Hatc
         else
         {
             if(!first->isMoving())
-                first->walkToward(secondPos, reach * 0.5, ChickenPose::chase);
+                first->walkToward(secondPos, reach * FIGHT_APPROACH_REACH_FACTOR, ChickenPose::chase);
             if(!second->isMoving())
-                second->walkToward(firstPos, reach * 0.5, ChickenPose::chase);
+                second->walkToward(firstPos, reach * FIGHT_APPROACH_REACH_FACTOR, ChickenPose::chase);
             return;
         }
     }
@@ -723,7 +744,7 @@ void RoomHatchery::roostOnRoof(ChickenEntity* rooster, const std::string& pose, 
     }
 
     const Ogre::Vector2 spot = getPerchSpot(*coopTile);
-    if(hopFromFar || (position.distance(spot) < 0.6f))
+    if(hopFromFar || (position.distance(spot) < ROOF_HOP_DISTANCE))
     {
         double roofHeight = ConfigManager::getSingleton().getRoomConfigDoubleOrDefault("HatcheryCoopRoofHeight", 0.95);
         rooster->hopToRoof(Ogre::Vector3(spot.x, spot.y, static_cast<Ogre::Real>(roofHeight)));
@@ -731,7 +752,7 @@ void RoomHatchery::roostOnRoof(ChickenEntity* rooster, const std::string& pose, 
         return;
     }
 
-    if(!rooster->isMoving() && !rooster->walkToward(spot, 0.3, ChickenPose::strut))
+    if(!rooster->isMoving() && !rooster->walkToward(spot, COOP_WALK_STOP_DISTANCE, ChickenPose::strut))
     {
         // No way to the coop: forget about the roof
         rooster->setMood(RoosterMood::strut, 0);
@@ -810,7 +831,7 @@ void RoomHatchery::actRoosterMood(ChickenEntity* rooster, const std::vector<Chic
             }
 
             // Caught: he jumps on her for a moment, feathers fly and she cackles
-            if(nearestDistance < 0.55f * 0.55f)
+            if(nearestDistance < MOUNT_CATCH_DISTANCE * MOUNT_CATCH_DISTANCE)
             {
                 rooster->playPose(ChickenPose::mount, 2);
                 target->playPose(ChickenPose::cackle, 3);
@@ -819,7 +840,7 @@ void RoomHatchery::actRoosterMood(ChickenEntity* rooster, const std::vector<Chic
                 break;
             }
 
-            if(!rooster->walkToward(Ogre::Vector2(target->getPosition().x, target->getPosition().y), 0.3, ChickenPose::chase))
+            if(!rooster->walkToward(Ogre::Vector2(target->getPosition().x, target->getPosition().y), CHASE_STOP_DISTANCE, ChickenPose::chase))
             {
                 rooster->setMood(RoosterMood::strut, 0);
                 rooster->setRoomDriven(false);
@@ -830,12 +851,12 @@ void RoomHatchery::actRoosterMood(ChickenEntity* rooster, const std::vector<Chic
         {
             // Runs to the creature, puffs up and runs off when it gets too close
             double distance = position.distance(threat);
-            if(distance > 2.2)
+            if(distance > THREAT_RUN_DISTANCE)
             {
                 if(!rooster->isMoving())
-                    rooster->walkToward(threat, 1.8, ChickenPose::strut);
+                    rooster->walkToward(threat, THREAT_RUN_STOP_DISTANCE,ChickenPose::strut);
             }
-            else if(distance > 0.9)
+            else if(distance > THREAT_PUFF_DISTANCE)
             {
                 if(!rooster->isMoving())
                     rooster->setAnimationState(ChickenPose::guard, true);
@@ -929,7 +950,7 @@ void RoomHatchery::updateChickLine(const std::vector<ChickenEntity*>& hens, cons
     if(night)
     {
         for(ChickenEntity* chick : chicks)
-            chick->setFollowTarget(leaderPos, 0.1);
+            chick->setFollowTarget(leaderPos, CHICK_FOLLOW_GAP);
         return;
     }
 
