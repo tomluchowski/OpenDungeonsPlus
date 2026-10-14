@@ -69,7 +69,8 @@ manager = read("source/game/SkillManager.cpp")
 assert "isRewardSkill" not in manager and "isRewardSkill" not in read("source/game/Seat.cpp"), "no reward-only skill"
 assert "new Skill(resType, points, summonChampionDepends)" in manager, "the champion has a research prerequisite"
 assert re.search(r"^    spellSummonChampion\s+\d+\s*$", read("config/skills.cfg"), re.M), "research cost entry"
-assert "Heartstone" not in manager and "Heartstone" not in read("gui/WindowTabSpells.layout")
+assert '" mana per second.";' in manager, "the research text ends with the drain and names no other unlock"
+assert "Unlocked by" not in manager and "Unlocked by" not in read("gui/WindowTabSpells.layout"), "no unlock text besides research"
 
 # The buttons exist in both windows, the tree node is visible so the spell can be researched
 spells_tab = ET.parse(repo / "gui/WindowTabSpells.layout").find('.//Window[@name="SummonChampionButton"]')
