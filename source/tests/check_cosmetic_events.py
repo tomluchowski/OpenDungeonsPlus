@@ -30,9 +30,8 @@ assert 'case ServerNotificationType::cosmeticEvent:' in read('source/network/Ser
 server = read('source/network/ODServer.cpp')
 client = read('source/network/ODClient.cpp')
 socket_h = read('source/network/ODSocketClient.h')
-# The offer is the second flag of pickNick behind the server mode (the first one is the live nickname flag),
-# the agreement is read only when the packet has it
-assert 'pickNick << mServerMode << true << true;' in server
+# The offer is the last flag of pickNick behind the server mode, the agreement is read only when the packet has it
+assert 'pickNick << mServerMode << true << true << true << true << true;' in server
 assert 'if(!packetReceived.endOfPacket())\n                OD_ASSERT_TRUE(packetReceived >> cosmeticEvents);' in server
 assert 'clientSocket->setSupportsCosmeticEvents(cosmeticEvents);' in server
 assert server.count('<< clientSocket->supportsCosmeticEvents();') == 1
