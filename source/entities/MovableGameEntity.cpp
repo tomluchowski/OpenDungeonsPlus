@@ -26,6 +26,7 @@
 #include "gamemap/RoomObjectNavigation.h"
 #include "network/ODServer.h"
 #include "network/ServerNotification.h"
+#include "render/CreatureReactions.h"
 #include "render/RenderManager.h"
 #include "utils/Helper.h"
 #include "utils/LogManager.h"
@@ -229,6 +230,10 @@ void MovableGameEntity::setAnimationState(const std::string& state, bool loop, c
         setWalkDirection(direction);
 
     RenderManager::getSingleton().rrSetObjectAnimationState(this, state, loop);
+
+    // The reactions of the creatures (cheering winners) look at what the creatures do
+    if(CreatureReactions::getSingletonPtr() != nullptr)
+        CreatureReactions::getSingleton().noteAnimation(this, state);
 }
 
 void MovableGameEntity::update(Ogre::Real timeSinceLastFrame)
