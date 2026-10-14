@@ -28,6 +28,7 @@
 #include "game/Seat.h"
 #include "gamemap/GameMap.h"
 #include "gamemap/Pathfinding.h"
+#include "network/CosmeticEvent.h"
 #include "rooms/Room.h"
 #include "utils/ConfigManager.h"
 #include "utils/Helper.h"
@@ -141,6 +142,13 @@ bool CreatureActionDigTile::handleDigTile(Creature& creature, Tile& tileDig, Til
         // If the tile has been dug out, move into that tile and try to continue digging.
         if (tileDig.getFullness() <= 0.0)
         {
+            CosmeticEvent event(CosmeticEventType::digFinished);
+            event.mSubject = creature.getName();
+            event.mValue = static_cast<int32_t>(tileDig.getType());
+            event.mPosition = Ogre::Vector3(static_cast<Ogre::Real>(tileDig.getX()),
+                static_cast<Ogre::Real>(tileDig.getY()), 0.0f);
+            creature.fireCosmeticEvent(event, false);
+
             creature.popAction();
             creature.receiveExp(2.5);
             creature.parkedBit = false;

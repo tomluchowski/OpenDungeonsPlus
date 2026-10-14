@@ -24,6 +24,7 @@
 #include <iosfwd>
 
 class BuildingObject;
+struct CosmeticEvent;
 class GameMap;
 class InputCommand;
 class InputManager;
@@ -210,6 +211,8 @@ public:
 
 protected:
     static void fireRoomSound(Tile& tile, const std::string& soundFamily);
+    //! \brief Sends a cosmetic event to the human players that see the tile (and negotiated cosmetic events)
+    static void fireRoomCosmeticEvent(Tile& tile, const CosmeticEvent& event);
 
     //! \brief Hands the given tiles of this room over to a room of the same type
     //! owned by the claiming seat, merging it with an adjacent room of theirs
