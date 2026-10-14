@@ -147,6 +147,26 @@ assert 'leftHand ? isLeftArmBone(boneName) : isRightArmBone(boneName)' in blow_b
 assert 'leftHand ? isLeftForearmBone(boneName) : isRightForearmBone(boneName)' in blow_bones
 attack = function_body(render, 'std::string createCreatureCombatAttack(')
 assert 'name += "L";' in attack and 'addCombatSwordBlow(blow, boneName, leftHand, armScale,' in attack
+# A mirrored clip (source name + "Left") is the source of a left-hand blow, the arm deformation is only the fallback
+assert 'const std::string MIRRORED_CLIP_SUFFIX = "Left";' in render
+assert 'leftHand && blow != COMBAT_BLOW_PLAIN && skeleton->hasAnimation(original + MIRRORED_CLIP_SUFFIX)' in attack
+assert 'sourceName += MIRRORED_CLIP_SUFFIX;' in attack and 'getAnimation(sourceName)' in attack, 'the clip is preferred'
+assert 'if(mirroredClip)' in attack and 'armScale = 1.0f;' in attack, 'TwoWeaponArmStrength is only for the fallback'
+assert 'name += "M";' in attack, 'own cache name for the mirrored clip'
+assert attack.index('mirroredClip') < attack.index('addCombatSwordBlow(blow, boneName'), 'the fallback deformation stays'
+
+# The side of the last blow is available for the weapon trail
+assert 'bool isLastBlowLeftHanded(const Creature* creature) const;' in render_h
+assert 'std::map<const Creature*, bool> mCreatureLastBlowLeft;' in render_h
+assert 'mCreatureLastBlowLeft[dropCreature] = leftHand;' in variants
+assert render.count('mCreatureLastBlowLeft.erase(curCreature);') == 1 and render.count('mCreatureLastBlowLeft.clear();') == 1
+
+# The mirrored clips exist in the skeletons of the humanoid sword/axe bearers (new clip only, Attack1 stays)
+MIRRORED = ('Adventurer', 'Cultist', 'Dwarf1', 'Dwarf2', 'Gnome', 'Goblin', 'Knight', 'Monk', 'Orc', 'RunelordDwarf')
+for skeleton in MIRRORED:
+    data = (root / 'models' / (skeleton + '.skeleton')).read_bytes()
+    for needed in (b'Attack1Left', b'Attack1', b'Weapon_L', b'Weapon_R'):
+        assert needed in data, skeleton + ' has no ' + needed.decode()
 for bone in ('arm_l', 'upper_arm.l', 'upperarm_l', 'forearm_l', 'forearm.l'):
     assert '"' + bone + '"' in render, bone
 # The weapon models stay on their own bones (the hand carries the weapon of its side)

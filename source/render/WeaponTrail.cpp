@@ -103,12 +103,20 @@ std::string weaponEntityName(const Creature* creature, const std::string& hand)
     return "Weapon_" + hand + "_" + creature->getName();
 }
 
-//! The weapon that strikes: the first one in the right or left hand that is shown and is no shield, bow or staff
+//! The weapon that strikes: the one in the hand of the blow (the left hand only when the blow was shown with the left
+//! arm, see RenderManager::isLastBlowLeftHanded, else the right), then the other one, that is shown and is no shield,
+//! bow or staff
 std::string findStrikingWeapon(const Creature* attacker)
 {
     Ogre::SceneManager* sceneManager = RenderManager::getSingleton().getSceneManager();
+    const bool leftBlow = RenderManager::getSingleton().isLastBlowLeftHanded(attacker);
     const Weapon* weapons[2] = {attacker->getWeaponR(), attacker->getWeaponL()};
     const char* hands[2] = {"R", "L"};
+    if(leftBlow)
+    {
+        std::swap(weapons[0], weapons[1]);
+        std::swap(hands[0], hands[1]);
+    }
     for(uint32_t i = 0; i < 2; ++i)
     {
         if(weapons[i] == nullptr)

@@ -83,6 +83,12 @@ assert 'for(std::vector<Trail>::iterator it = sTrails.begin(); it != sTrails.end
 find = function_body(trail, 'std::string findStrikingWeapon(')
 for word in ('shield', 'bow', 'staff', 'getWeaponR()', 'getWeaponL()'):
     assert word in find, word
+# With two attack weapons the streak follows the striking hand: the left one only after a left-hand blow, else the right
+assert 'RenderManager::getSingleton().isLastBlowLeftHanded(attacker)' in find
+assert find.index('{"R", "L"}') < find.index('if(leftBlow)') < find.index('std::swap(weapons[0], weapons[1]);')
+assert 'std::swap(hands[0], hands[1]);' in find, 'weapon and hand name swap together'
+assert 'const Weapon* weapons[2] = {attacker->getWeaponR(), attacker->getWeaponL()};' in find, 'right is the default'
+assert 'bool RenderManager::isLastBlowLeftHanded(' in render and 'it != mCreatureLastBlowLeft.end() && it->second' in render,     'no entry: right hand'
 tip = function_body(trail, 'bool getTipPosition(')
 assert 'getBoundingBox()' in tip and 'getMaximum()' in tip and 'getMinimum()' in tip and '_getDerivedPosition()' in tip
 

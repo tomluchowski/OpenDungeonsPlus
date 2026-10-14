@@ -197,6 +197,15 @@ for name in ('BlowDodged', 'BlowMissed', 'BlowParried', 'BlowDeflected'):
     assert variants >= (3 if name == 'BlowDodged' else 2), (name, variants)
 assert 'ReactionSparks' in re.search(r'Name\s+BlowParried\s*\n(.*?)\[/Event\]', reactions_cfg, re.S).group(1)
 
+# The parrying defender raises its weapon with an own clip where the skeleton has one; the sparks and the small movement stay as
+# the fall back for the creatures without it
+parried = re.search(r'Name\s+BlowParried\s*\n(.*?)\[/Event\]', reactions_cfg, re.S).group(1)
+assert parried.count('Clip    WeaponParry') == parried.count('[Variant]') >= 2
+assert 'Motion' in parried and 'Effect  ReactionSparks' in parried
+for skeleton in ('Adventurer', 'Cultist', 'Dwarf2', 'Gnome', 'Knight', 'LavaSpawn', 'Monk', 'NatureMonster', 'Orc', 'RunelordDwarf'):
+    data = (root / 'models' / (skeleton + '.skeleton')).read_bytes()
+    assert b'WeaponParry' in data and b'Idle' in data and b'Attack1' in data, skeleton
+
 
 def probe_source():
     cases = []

@@ -72,6 +72,10 @@ public:
     inline Ogre::SceneManager* getSceneManager() const
     { return mSceneManager; }
 
+    //! True if the last melee blow shown for the creature was struck with its left hand (only a creature with an
+    //! attack weapon in each hand strikes with the left; false for every other creature and before any blow)
+    bool isLastBlowLeftHanded(const Creature* creature) const;
+
     //! \brief Loop through the render requests in the queue and process them
     void updateRenderAnimations(Ogre::Real timeSinceLastFrame);
 
@@ -332,6 +336,8 @@ private:
     std::map<Creature*, uint32_t> mCreatureAttackVariants;
     //! Blows struck by a creature with a weapon in each hand, to alternate left and right (client side only)
     std::map<Creature*, uint32_t> mCreatureAttackSides;
+    //! The side of the blow shown last per creature (true: left hand), for the weapon trail
+    std::map<const Creature*, bool> mCreatureLastBlowLeft;
 
     //! A smooth turn of a creature towards its target before a blow (cosmetic, ends by itself)
     struct CreatureTurn
