@@ -60,6 +60,39 @@ enum class SkillType
     spellCreatureWeak,
     spellSummonWorker,
     spellEyeEvil,
+    spellCreateGold,
+
+    // Stronger doors. Added after the other entries to keep saved skill ids valid
+    trapDoorIronbound,
+    trapDoorSteel,
+    trapDoorBarricade,
+
+    // Added later, kept after the older entries so existing values do not change
+    trapAlarm,
+
+    // Added later, appended so that existing saves stay valid
+    roomGuardRoom,
+
+    // Added later, appended so that existing saves stay valid
+    roomTemple,
+
+    // Added later, kept after the older entries so existing values do not change
+    trapFear,
+    trapGas,
+    trapLightning,
+    trapFireburst,
+    spellLightning,
+    spellTremor,
+    trapWatchBanner,
+    trapDoorSecret,
+    trapDoorRuned,
+    spellDefector,
+    spellHexenHen,
+    spellInferno,
+    spellPossess,
+    trapTrigger,
+    trapFreeze,
+    spellSummonChampion,
 
     // This should be the last
     countSkill
@@ -80,6 +113,10 @@ namespace Skills
 
     //! \brief The skill name as seen in game events.
     std::string skillTypeToPlayerVisibleString(SkillType type);
+
+    //! \brief True for the skills that cannot be researched. A seat only gets them as a reward
+    //! (the Summon champion spell comes with the completed campaign Heartstone).
+    bool isRewardSkill(SkillType type);
 }
 
 #endif // SKILLTYPE_H
