@@ -211,6 +211,10 @@ public:
     bool canBuildingBeDestroyedBy(const Seat* seat) const;
 
     void clearTilesWithVision();
+    //! \brief Records that a human player's seat currently sees the given tile. A tile node also
+    //! removes a digging mark from a tile that can no longer be dug and is remembered as ever visited.
+    //! \param tile The tile that is seen.
+    //! \param nt Tells whether the tile belongs to the map tiles or to a draggable tile container.
     void notifyVisionOnTile(Tile* tile, NodeType nt);
     void notifyTileClaimedByEnemy(Tile* tile);
     void clearVisionForGameMap(DraggableTileContainer* dtc);
