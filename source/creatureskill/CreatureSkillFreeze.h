@@ -27,6 +27,7 @@
 class Creature;
 class GameMap;
 
+//! \brief Skill that freezes a target creature so it can neither move nor fight for a while
 class CreatureSkillFreeze : public CreatureSkill
 {
 public:
