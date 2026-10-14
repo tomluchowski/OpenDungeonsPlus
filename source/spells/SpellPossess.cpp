@@ -43,29 +43,38 @@ const SpellType SpellPossess::mSpellType = SpellType::possess;
 
 namespace
 {
+//! \brief Factory that registers the Possess spell and forwards the spell calls to SpellPossess
 class SpellPossessFactory : public SpellFactory
 {
+    //! \brief Returns the spell type of the Possess spell
     SpellType getSpellType() const override
     { return SpellPossess::mSpellType; }
 
+    //! \brief Returns the internal name of the spell
     const std::string& getName() const override
     { return SpellPossessName; }
 
+    //! \brief Returns the config key of the spell cooldown
     const std::string& getCooldownKey() const override
     { return SpellPossessCooldownKey; }
 
+    //! \brief Returns the name shown to the player
     const std::string& getNameReadable() const override
     { return SpellPossessNameDisplay; }
 
+    //! \brief Checks on the client whether the spell can be cast and prepares the input command
     virtual void checkSpellCast(GameMap* gameMap, const InputManager& inputManager, InputCommand& inputCommand) const override
     { SpellPossess::checkSpellCast(gameMap, inputManager, inputCommand); }
 
+    //! \brief Casts the spell on the server from the data in the packet
     virtual bool castSpell(GameMap* gameMap, Player* player, ODPacket& packet) const override
     { return SpellPossess::castSpell(gameMap, player, packet); }
 
+    //! \brief Creates the spell from a saved level stream
     Spell* getSpellFromStream(GameMap* gameMap, std::istream &is) const override
     { return SpellPossess::getSpellFromStream(gameMap, is); }
 
+    //! \brief Creates the spell from a network packet
     Spell* getSpellFromPacket(GameMap* gameMap, ODPacket &is) const override
     { return SpellPossess::getSpellFromPacket(gameMap, is); }
 };
