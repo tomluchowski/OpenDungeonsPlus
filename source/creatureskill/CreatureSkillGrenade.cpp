@@ -27,11 +27,14 @@ const std::string CreatureSkillGrenadeName = "Grenade";
 
 namespace
 {
+//! \brief Creates grenade skills when the configuration names "Grenade"
 class CreatureSkillGrenadeFactory : public CreatureSkillFactory
 {
+    //! \brief Creates an empty grenade skill
     CreatureSkill* createCreatureSkill() const override
     { return new CreatureSkillGrenade; }
 
+    //! \brief The skill name used in the configuration
     const std::string& getCreatureSkillName() const override
     { return CreatureSkillGrenadeName; }
 };
