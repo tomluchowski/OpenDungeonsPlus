@@ -54,8 +54,8 @@ enum class CreatureActionType
     goCallToWar, // (fighters only) When a creature goes to a call to war spell
     goDefendHeart, // (workers and scouts) While the heart defence is on, run to the seat's fighters, or to the heart while it is damaged
     watchBanner, // (fighters only) Stand guard on a watch banner
-    reloadTrap, // (worker only) Walks to a trap tile that used up its shots and arms it again
     possessed, // The creature is controlled by a player (Possess spell). Other actions are paused
+    reloadTrap, // (worker only) Walks to a trap tile that used up its shots and arms it again
     nb // Must be the last value of this enum
 };
 
