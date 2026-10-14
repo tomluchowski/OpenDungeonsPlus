@@ -165,6 +165,7 @@ class ODSocketClient
         std::ofstream mReplayOutputStream;
         ODPacket mPendingPacket;
         int32_t mPendingTimestamp;
+        //! \brief True if the peer announced that it handles nickname changes during the game.
         bool mSupportsLiveNickname;
         bool mSupportsCreatureMood;
         bool mSupportsCreatureActivity;
