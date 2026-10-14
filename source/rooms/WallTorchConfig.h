@@ -74,6 +74,7 @@ public:
     double mFlickerSpeed;
 
 private:
+    //! \brief Creates a config that holds the default values; only load() uses it before reading the file
     WallTorchConfig();
 };
 
