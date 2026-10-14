@@ -585,12 +585,8 @@ bool GameMode::mouseMoved(const OIS::MouseEvent &arg)
     // While the player controls a creature, the mouse only turns its view
     if (isLocalPlayerPossessing())
     {
-        CameraManager* possessionCamera = ODFrameListener::getSingleton().getCameraManager();
-        if(possessionCamera != nullptr)
-        {
-            possessionCamera->possessionLook(
-                static_cast<Ogre::Real>(arg.state.X.rel), static_cast<Ogre::Real>(arg.state.Y.rel));
-        }
+        ODFrameListener::getSingleton().getCameraManager()->possessionLook(
+            static_cast<Ogre::Real>(arg.state.X.rel), static_cast<Ogre::Real>(arg.state.Y.rel));
         return true;
     }
 
@@ -3529,11 +3525,7 @@ void GameMode::updatePossessionInput(float timeSinceLastFrame)
         return;
 
     // The movement keys are relative to where the player looks
-    CameraManager* cameraManager = ODFrameListener::getSingleton().getCameraManager();
-    if (cameraManager == nullptr)
-        return;
-
-    Ogre::Real yaw = cameraManager->getPossessionYaw();
+    Ogre::Real yaw = ODFrameListener::getSingleton().getCameraManager()->getPossessionYaw();
     Ogre::Vector2 forward = getPossessionAim();
     Ogre::Vector2 right(Ogre::Math::Cos(yaw), Ogre::Math::Sin(yaw));
     Ogre::Vector2 direction = Ogre::Vector2::ZERO;
@@ -3575,11 +3567,7 @@ void GameMode::updatePossessionInput(float timeSinceLastFrame)
 
 Ogre::Vector2 GameMode::getPossessionAim()
 {
-    CameraManager* cameraManager = ODFrameListener::getSingleton().getCameraManager();
-    if (cameraManager == nullptr)
-        return Ogre::Vector2::ZERO;
-
-    Ogre::Real yaw = cameraManager->getPossessionYaw();
+    Ogre::Real yaw = ODFrameListener::getSingleton().getCameraManager()->getPossessionYaw();
     return Ogre::Vector2(-Ogre::Math::Sin(yaw), Ogre::Math::Cos(yaw));
 }
 
