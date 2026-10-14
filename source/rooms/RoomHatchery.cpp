@@ -51,6 +51,27 @@ const std::string RoomHatcheryNameDisplay = "Hatchery room";
 const RoomType RoomHatchery::mRoomType = RoomType::hatchery;
 const TileVisual RoomHatchery::mRoomVisual= TileVisual::hatcheryRoom;
 
+//! \brief Distance a hen keeps from the creature that calls her.
+const double HEN_FOLLOW_CALLER_GAP = 0.4;
+//! \brief Part of the fight reach at which two fighting chickens stop when they walk up to each other.
+const double FIGHT_APPROACH_REACH_FACTOR = 0.5;
+//! \brief Distance to the coop perch at which the rooster counts as arrived and hops on the roof.
+const float ROOF_HOP_DISTANCE = 0.6f;
+//! \brief Distance at which the rooster stops when he walks to the coop perch.
+const double COOP_WALK_STOP_DISTANCE = 0.3;
+//! \brief Distance at which the rooster catches a hen and jumps on her.
+const float MOUNT_CATCH_DISTANCE = 0.55f;
+//! \brief Distance at which the rooster stops when he chases a hen.
+const double CHASE_STOP_DISTANCE = 0.3;
+//! \brief Distance to a threatening creature above which the rooster runs to it.
+const double THREAT_RUN_DISTANCE = 2.2;
+//! \brief Distance at which the rooster stops when he runs to a threatening creature.
+const double THREAT_RUN_STOP_DISTANCE = 1.8;
+//! \brief Distance to a threatening creature above which the rooster puffs up instead of running off.
+const double THREAT_PUFF_DISTANCE = 0.9;
+//! \brief Distance chicks keep from the one they follow.
+const double CHICK_FOLLOW_GAP = 0.1;
+
 
 namespace
 {
