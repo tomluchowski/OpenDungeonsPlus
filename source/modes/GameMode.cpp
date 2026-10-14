@@ -33,6 +33,7 @@
 #include "network/ChatEventMessage.h"
 #include "network/ODClient.h"
 #include "network/ODServer.h"
+#include "render/CreatureReactions.h"
 #include "render/Gui.h"
 #include "render/ODFrameListener.h"
 #include "render/RenderManager.h"
@@ -433,6 +434,10 @@ bool GameMode::mouseMoved(const OIS::MouseEvent &arg)
             }
             inputManager.mHighlightedCreature = closestCreature;
             closestCreature->maxAmbient();
+
+            // The creature notices the hand that comes over it
+            if(CreatureReactions::getSingletonPtr() != nullptr)
+                CreatureReactions::getSingleton().noteHandHover(closestCreature);
         }
     }
     else if(inputManager.mHighlightedCreature != nullptr)
@@ -680,6 +685,10 @@ bool GameMode::mousePressed(const OIS::MouseEvent& arg, OIS::MouseButtonID id)
 
             if(closestEntity != nullptr)
             {
+                // The server only confirms the slap, so the target is remembered to show how it reacts
+                if(CreatureReactions::getSingletonPtr() != nullptr)
+                    CreatureReactions::getSingleton().noteSlapRequest(closestEntity);
+
                 ODClient::getSingleton().queueClientNotification(ClientNotificationType::askSlapEntity,
                      closestEntity->getObjectType(),
                      closestEntity->getName());
