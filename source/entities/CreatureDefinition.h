@@ -82,6 +82,8 @@ public:
         Fighter,    // Sleep, eat, train and fight any enemy thing.
     };
 
+    //! \brief Creates a creature definition from the given values; the walk clip rates start at their defaults
+    //! (WalkClipRate 1.0, WalkHurtClipRate not set).
     CreatureDefinition(
             const std::string&      className   = std::string(),
             CreatureJob             job         = Fighter,
@@ -147,6 +149,9 @@ public:
     //! \brief Loads a definition from the creature definition file sub [Creature][/Creature] part
     //! \returns A creature definition if valid, nullptr otherwise.
     static CreatureDefinition* load(std::stringstream& defFile, const std::map<std::string, CreatureDefinition*>& defMap);
+    //! \brief Reads the keys of a [Creature][/Creature] part into an existing definition, including the optional
+    //! WalkClipRate and WalkHurtClipRate keys.
+    //! \returns true if the part could be read, false otherwise.
     static bool update(CreatureDefinition* creatureDef, std::stringstream& defFile, const std::map<std::string, CreatureDefinition*>& defMap);
 
     inline CreatureJob          getCreatureJob  () const    { return mCreatureJob; }
