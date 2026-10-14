@@ -19,6 +19,7 @@
 
 #include "creatureaction/CreatureAction.h"
 #include "entities/Creature.h"
+#include "entities/CreatureDefinition.h"
 #include "entities/GameEntityType.h"
 #include "entities/Tile.h"
 #include "game/SkillManager.h"
@@ -27,14 +28,17 @@
 #include "gamemap/Pathfinding.h"
 #include "render/RenderManager.h"
 #include "rooms/Room.h"
+#include "rooms/RoomDungeonTemple.h"
 #include "rooms/RoomType.h"
 #include "sound/SoundEffectsManager.h"
 #include "spells/SpellManager.h"
+#include "spells/SpellSummonWorker.h"
 #include "spells/SpellType.h"
 #include "traps/Trap.h"
 #include "network/ODPacket.h"
 #include "network/ODServer.h"
 #include "network/ServerNotification.h"
+#include "utils/ConfigManager.h"
 #include "utils/Helper.h"
 #include "utils/LogManager.h"
 #include "utils/Random.h"
@@ -74,6 +78,9 @@ Player::Player(GameMap* gameMap, int32_t id) :
     mCreatureCannotFindBed(0.0f),
     mCreatureCannotFindFood(0.0f),
     mHasLost(false),
+    mConquerorSeatId(-1),
+    mDefeatHeartTileX(-1),
+    mDefeatHeartTileY(-1),
     mSpellsCooldown(std::vector<PlayerSpellData>(static_cast<uint32_t>(SpellType::nbSpells), PlayerSpellData(0, 0.0f))),
     mWorkersActions(std::vector<uint32_t>(static_cast<uint32_t>(CreatureActionType::nb), 0))
 {
@@ -295,6 +302,17 @@ void Player::pickUpEntity(GameEntity *entity)
 }
 
 
+unsigned int Player::getHandIndex(GameEntityType type, const std::string& name) const
+{
+    for(unsigned int index = 0; index < mObjectsInHand.size(); ++index)
+    {
+        GameEntity* entity = mObjectsInHand[index];
+        if(entity->getObjectType() == type && entity->getName() == name)
+            return index;
+    }
+    return static_cast<unsigned int>(mObjectsInHand.size());
+}
+
 bool Player::isDropHandPossible(Tile *t, unsigned int index)
 {
     // if we have a creature to drop
@@ -324,15 +342,26 @@ void Player::dropHand(Tile *t, unsigned int index)
        static_cast<Ogre::Real>(t->getY()), 0);
     if(mGameMap->isServerGameMap())
     {
+        // Dropping an own worker into the heart redeems it: the worker is removed and
+        // half of its summoning price is paid back
+        if(redemWorkerInHeart(entity, t))
+            return;
+
         entity->drop(pos);
         entity->fireDropEntity(this, t);
+        if(!mGameMap->isInEditorMode() && entity->getObjectType() == GameEntityType::creature)
+        {
+            Creature* creature = static_cast<Creature*>(entity);
+            if(creature->getDefinition()->getTurnsStunDropped() > 0)
+                creature->setAnimationState(EntityAnimation::drop_anim, false,
+                    Ogre::Vector3::ZERO, false);
+        }
         return;
     }
 
     entity->correctDropPosition(pos);
     OD_LOG_INF("player seatId=" + Helper::toString(getSeat()->getId()) + " drop " + entity->getName() + " on tile=" + Tile::displayAsString(t));
     entity->drop(pos);
-
     // If this is the result of another player dropping the creature it is currently not visible so we need to create a mesh for it
     //cout << "\nthis:  " << this << "\nme:  " << gameMap->getLocalPlayer() << endl;
     //cout.flush();
@@ -343,6 +372,72 @@ void Player::dropHand(Tile *t, unsigned int index)
     }
     // Send a render request to rearrange the creatures in the hand to move them all forward 1 place
     RenderManager::getSingleton().rrDropHand(entity, this);
+}
+
+void Player::removeEntityFromHand(GameEntity* entity)
+{
+    for(unsigned int index = 0; index < mObjectsInHand.size(); ++index)
+    {
+        if(mObjectsInHand[index] != entity)
+            continue;
+        mObjectsInHand.erase(mObjectsInHand.begin() + index);
+        return;
+    }
+}
+
+bool Player::redemWorkerInHeart(GameEntity* entity, Tile* tile)
+{
+    // Only a human dropping an own worker on the tile of a living own heart redeems it.
+    // AI auto-drops and anything else is left to the regular drop.
+    if(!getIsHuman())
+        return false;
+    if(entity == nullptr || tile == nullptr)
+        return false;
+    if(entity->getObjectType() != GameEntityType::creature)
+        return false;
+
+    Creature* worker = static_cast<Creature*>(entity);
+    if(worker->getDefinition() == nullptr || !worker->getDefinition()->isWorker())
+        return false;
+    if(worker->getSeat() != getSeat())
+        return false;
+
+    RoomDungeonTemple* heart = nullptr;
+    std::vector<Room*> dungeonTemples = mGameMap->getRoomsByType(RoomType::dungeonTemple);
+    for(Room* room : dungeonTemples)
+    {
+        if(room->getSeat() != getSeat())
+            continue;
+        if(room->getHP(nullptr) <= 0.0)
+            continue;
+        RoomDungeonTemple* temple = static_cast<RoomDungeonTemple*>(room);
+        if(temple->getHeartTile() == tile)
+        {
+            heart = temple;
+            break;
+        }
+    }
+    if(heart == nullptr)
+        return false;
+
+    // Half of what summoning this worker costs at the current worker count
+    int32_t refund = static_cast<int32_t>(
+        SpellSummonWorker::getNextWorkerPriceForPlayer(mGameMap, this) / 2);
+    getSeat()->addMana(static_cast<double>(refund));
+
+    ServerNotification* serverNotification = new ServerNotification(
+        ServerNotificationType::chatServer, this);
+    serverNotification->mPacket
+        << "You redeemed your worker into " + Helper::toString(refund) + " mana"
+        << EventShortNoticeType::majorGameEvent;
+    ODServer::getSingleton().queueServerNotification(serverNotification);
+
+    // The worker is gone for every seat that saw it, including this one
+    entity->fireRemoveEntityToSeatsWithVision(mGameMap);
+    entity->removeEntityFromPositionTile();
+    entity->removeFromGameMap(mGameMap);
+    entity->deleteYourself(mGameMap, mGameMap->getNodeType());
+    return true;
 }
 
 void Player::rotateHand(Direction d)
@@ -369,6 +464,35 @@ void Player::notifyNoMoreDungeonTemple()
 
     mHasLost = true;
     OD_LOG_INF("Player seatId=" + Helper::toString(getSeat()->getId()) + " lost");
+
+    // In a single player game the remaining mana of the destroyed heart goes to the
+    // conqueror and the defeated seat is left with none
+    int numHumanPlayers = 0;
+    for(Seat* seat : mGameMap->getSeats())
+    {
+        if(seat->getPlayer() == nullptr)
+            continue;
+        if(!seat->getPlayer()->getIsHuman())
+            continue;
+        ++numHumanPlayers;
+    }
+    if(numHumanPlayers == 1 && mConquerorSeatId >= 0)
+    {
+        Seat* conquerorSeat = nullptr;
+        for(Seat* seat : mGameMap->getSeats())
+        {
+            if(seat->getId() != mConquerorSeatId)
+                continue;
+            conquerorSeat = seat;
+            break;
+        }
+        if(conquerorSeat != nullptr && conquerorSeat != getSeat())
+        {
+            double remainingMana = getSeat()->getMana();
+            getSeat()->addMana(-remainingMana);
+            conquerorSeat->addMana(remainingMana);
+        }
+    }
 
     // We check if there is still a player in the team with a dungeon temple. If yes, we notify the player he lost his dungeon
     // if no, we notify the team they lost
@@ -438,6 +562,39 @@ void Player::notifyNoMoreDungeonTemple()
             ODServer::getSingleton().queueServerNotification(serverNotification);
         }
         mGameMap->fireRelativeSound(seats, SoundRelativeKeeperStatements::AllyDefeated);
+    }
+
+    // Tell the defeated human player's client to start the defeat sequence (this player only, once)
+    if(getIsHuman())
+    {
+        ServerNotification *serverNotification = new ServerNotification(
+            ServerNotificationType::playerDefeated, this);
+        serverNotification->mPacket << mConquerorSeatId << mDefeatHeartTileX << mDefeatHeartTileY;
+        ODServer::getSingleton().queueServerNotification(serverNotification);
+
+        // Snapshot of the debriefing counters of every seat with a player (not the rogue seat)
+        std::vector<Seat*> statisticsSeats;
+        for(Seat* seat : mGameMap->getSeats())
+        {
+            if(seat->isRogueSeat() || (seat->getPlayer() == nullptr))
+                continue;
+
+            statisticsSeats.push_back(seat);
+        }
+
+        serverNotification = new ServerNotification(ServerNotificationType::levelStatistics, this);
+        int32_t elapsedSeconds = static_cast<int32_t>(mGameMap->getTurnNumber() / ODApplication::turnsPerSecond);
+        bool levelWon = false;
+        serverNotification->mPacket << elapsedSeconds << levelWon << static_cast<int32_t>(statisticsSeats.size());
+        for(Seat* seat : statisticsSeats)
+        {
+            const SeatStatistics& statistics = seat->getStatistics();
+            serverNotification->mPacket << static_cast<int32_t>(seat->getId());
+            serverNotification->mPacket << statistics.mKeepersDefeated << statistics.mCreaturesKilled
+                << statistics.mHeroesDestroyed << statistics.mRoomsCaptured << statistics.mItemsMade
+                << statistics.mCreaturesConverted;
+        }
+        ODServer::getSingleton().queueServerNotification(serverNotification);
     }
 }
 

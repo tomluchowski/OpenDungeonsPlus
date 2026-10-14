@@ -71,6 +71,7 @@ CreatureDefinition::CreatureDefinition(
             int32_t                 sleepHeal,
             int32_t                 turnsStunDropped) :
         mCreatureJob (job),
+        mChampion (false),
         mClassName   (className),
         mMeshName    (meshName),
         mBedMeshName (bedMeshName),
@@ -114,13 +115,15 @@ CreatureDefinition::CreatureDefinition(
         mSoundFamilyDrop    ("Default/Drop"),
         mSoundFamilyAttack  ("Default/Attack"),
         mSoundFamilyDie     ("Default/Die"),
-        mSoundFamilySlap    ("Default/Slap")
+        mSoundFamilySlap    ("Default/Slap"),
+        mTortureTimeToConvert (120.0)
 {
     mXPTable.assign(MAX_LEVEL - 1, 100.0);
 }
 
 CreatureDefinition::CreatureDefinition(const CreatureDefinition& def) :
         mCreatureJob(def.mCreatureJob),
+        mChampion(def.mChampion),
         mClassName(def.mClassName),
         mMeshName(def.mMeshName),
         mBedMeshName(def.mBedMeshName),
@@ -165,7 +168,8 @@ CreatureDefinition::CreatureDefinition(const CreatureDefinition& def) :
         mSoundFamilyDrop(def.mSoundFamilyDrop),
         mSoundFamilyAttack(def.mSoundFamilyAttack),
         mSoundFamilyDie(def.mSoundFamilyDie),
-        mSoundFamilySlap(def.mSoundFamilySlap)
+        mSoundFamilySlap(def.mSoundFamilySlap),
+        mTortureTimeToConvert(def.mTortureTimeToConvert)
 {
     for(const double& xp : def.mXPTable)
     {
@@ -300,6 +304,8 @@ ODPacket& operator<<(ODPacket& os, const CreatureDefinition* c)
     os << c->mSoundFamilyAttack;
     os << c->mSoundFamilyDie;
     os << c->mSoundFamilySlap;
+    os << c->mChampion;
+    os << c->mTortureTimeToConvert;
 
     for (unsigned int i = 0; i < c->mXPTable.size(); ++i)
         os << c->mXPTable[i];
@@ -338,6 +344,8 @@ ODPacket& operator>>(ODPacket& is, CreatureDefinition* c)
     is >> c->mSoundFamilyAttack;
     is >> c->mSoundFamilyDie;
     is >> c->mSoundFamilySlap;
+    is >> c->mChampion;
+    is >> c->mTortureTimeToConvert;
 
     for (unsigned int i = 0; i < c->mXPTable.size(); ++i)
     {
@@ -462,6 +470,12 @@ bool CreatureDefinition::update(CreatureDefinition* creatureDef, std::stringstre
             {
                 defFile >> nextParam;
                 creatureDef->mCreatureJob = CreatureDefinition::creatureJobFromString(nextParam);
+                continue;
+            }
+            else if (nextParam == "Champion")
+            {
+                defFile >> nextParam;
+                creatureDef->mChampion = Helper::toBool(nextParam);
                 continue;
             }
             else if (nextParam == "MeshName")
@@ -706,6 +720,12 @@ bool CreatureDefinition::update(CreatureDefinition* creatureDef, std::stringstre
                 defFile >> creatureDef->mSoundFamilySlap;
                 continue;
             }
+            else if (nextParam == "TortureTimeToConvert")
+            {
+                defFile >> nextParam;
+                creatureDef->mTortureTimeToConvert = Helper::toDouble(nextParam);
+                continue;
+            }
         }
     }
 
@@ -742,6 +762,9 @@ void CreatureDefinition::writeCreatureDefinitionDiff(
 
     if(def1 == nullptr || (def1->mCreatureJob != def2->mCreatureJob))
         file << "    CreatureJob\t" << creatureJobToString(def2->mCreatureJob) << std::endl;
+
+    if(def1 == nullptr || (def1->mChampion != def2->mChampion))
+        file << "    Champion\t" << (def2->mChampion ? 1 : 0) << std::endl;
 
     if(def1 == nullptr || (def1->mMeshName.compare(def2->mMeshName) != 0))
         file << "    MeshName\t" << def2->mMeshName << std::endl;
@@ -862,6 +885,9 @@ void CreatureDefinition::writeCreatureDefinitionDiff(
 
     if(def1 == nullptr || (def1->mSoundFamilySlap.compare(def2->mSoundFamilySlap) != 0))
         file << "    SoundFamilySlap\t" << def2->mSoundFamilySlap << std::endl;
+
+    if(def1 == nullptr || (def1->mTortureTimeToConvert != def2->mTortureTimeToConvert))
+        file << "    TortureTimeToConvert\t" << def2->mTortureTimeToConvert << std::endl;
 
     file << "    [/Stats]" << std::endl;
 
