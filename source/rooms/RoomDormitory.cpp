@@ -26,6 +26,7 @@
 #include "entities/Tile.h"
 #include "game/Player.h"
 #include "gamemap/GameMap.h"
+#include "gamemap/RoomObjectBounds.h"
 #include "rooms/RoomManager.h"
 #include "utils/ConfigManager.h"
 #include "utils/Helper.h"
@@ -259,8 +260,23 @@ void RoomDormitory::createBed(Tile* sleepTile, int x, int y, int width, int heig
     Ogre::Real xMesh = static_cast<double>(x) + (static_cast<double>(width) / 2.0) - 0.5;
     Ogre::Real yMesh = static_cast<double>(y) + (static_cast<double>(height) / 2.0) - 0.5;
     Ogre::Real zMesh = 0;
+    double visualAngle = rotationAngle;
+    Ogre::Vector2 visualScale = Ogre::Vector2::ZERO;
+    for(const RoomObjectPath::MeshBounds& bounds : RoomObjectPath::meshBounds)
+    {
+        if(c->getDefinition()->getBedMeshName() != bounds.name)
+            continue;
+        const RoomObjectPath::BedPlacement placement = RoomObjectPath::bedPlacement(bounds, x, y, width, height,
+            float(rotationAngle), c->getName());
+        xMesh = placement.x;
+        yMesh = placement.y;
+        visualAngle = placement.angle;
+        visualScale = Ogre::Vector2(placement.scale.x, placement.scale.y);
+        break;
+    }
     BuildingObject* ro = new BuildingObject(getGameMap(), *this, c->getDefinition()->getBedMeshName(),
-        sleepTile, xMesh, yMesh, zMesh, rotationAngle, false);
+        sleepTile, xMesh, yMesh, zMesh, visualAngle, false);
+    ro->setFurnitureScale(visualScale);
     addBuildingObject(sleepTile, ro);
     ro->createMesh();
     // Save the info for later...
