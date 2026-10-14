@@ -26,6 +26,7 @@
 #include "gamemap/GameMap.h"
 #include "modes/InputCommand.h"
 #include "modes/InputManager.h"
+#include "network/CosmeticEvent.h"
 #include "network/ODClient.h"
 #include "network/ODServer.h"
 #include "network/ServerNotification.h"
@@ -78,11 +79,13 @@ class RoomTreasuryFactory : public RoomFactory
             {
                 std::string txt = formatBuildRoom(RoomTreasury::mRoomType, pricePerTarget);
                 inputCommand.displayText(Ogre::ColourValue::Red, txt);
+                inputCommand.displayPointerText(Ogre::ColourValue::Red, "$" + Helper::toString(pricePerTarget));
             }
             else
             {
                 std::string txt = formatBuildRoom(RoomTreasury::mRoomType, pricePerTarget);
                 inputCommand.displayText(Ogre::ColourValue::White, txt);
+                inputCommand.displayPointerText(Ogre::ColourValue::Red, "$" + Helper::toString(pricePerTarget));
             }
             inputCommand.selectSquaredTiles(inputManager.mXPos, inputManager.mYPos, inputManager.mXPos,
                 inputManager.mYPos);
@@ -110,11 +113,13 @@ class RoomTreasuryFactory : public RoomFactory
         {
             std::string txt = formatBuildRoom(RoomTreasury::mRoomType, priceTotal);
             inputCommand.displayText(Ogre::ColourValue::Red, txt);
+            inputCommand.displayPointerText(Ogre::ColourValue::Red, "$" + Helper::toString(priceTotal));
             return;
         }
 
         std::string txt = formatBuildRoom(RoomTreasury::mRoomType, priceTotal);
         inputCommand.displayText(Ogre::ColourValue::White, txt);
+        inputCommand.displayPointerText(Ogre::ColourValue::Red, "$" + Helper::toString(priceTotal));
 
         if(inputManager.mCommandState != InputCommandState::validated)
             return;
@@ -254,7 +259,8 @@ static const int maxGoldinTile = 1000;
 
 RoomTreasury::RoomTreasury(GameMap* gameMap) :
     Room(gameMap),
-    mGoldChanged(false)
+    mGoldChanged(false),
+    mFullAnnounced(false)
 {
     setMeshName("Treasury");
 }
@@ -386,12 +392,33 @@ int RoomTreasury::depositGold(int gold, Tile *tile)
     // with vision on tile
     fireRoomSound(*tile, "Treasury/DepositGold");
 
+    // The treasury just became full: the clients may show the workers out of breath (cosmetic only)
+    if(getTotalGoldStored() >= getTotalGoldStorage())
+    {
+        if(!mFullAnnounced)
+        {
+            mFullAnnounced = true;
+            CosmeticEvent event(CosmeticEventType::treasuryFull);
+            event.mObject = getName();
+            event.mValue = getTotalGoldStored();
+            event.mValue2 = getTotalGoldStorage();
+            event.mPosition = Ogre::Vector3(static_cast<Ogre::Real>(tile->getX()),
+                static_cast<Ogre::Real>(tile->getY()), 0.0f);
+            fireRoomCosmeticEvent(*tile, event);
+        }
+    }
+    else
+    {
+        mFullAnnounced = false;
+    }
+
     return wasDeposited;
 }
 
 int RoomTreasury::withdrawGold(int gold)
 {
     mGoldChanged = true;
+    mFullAnnounced = false;
 
     int withdrawlAmount = 0;
     for (std::pair<Tile* const, TileData*>& p : mTileData)
