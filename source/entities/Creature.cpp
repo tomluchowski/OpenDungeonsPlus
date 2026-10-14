@@ -3577,7 +3577,8 @@ void Creature::fireArrivalEvent()
     event.mSubject = getName();
     event.mValue = static_cast<int32_t>(CreatureMoodManager::getCreatureMoodLevel(points));
     event.mValue2 = points;
-    ODServer::getSingleton().sendCosmeticEvent(player, event);}
+    ODServer::getSingleton().sendCosmeticEvent(player, event);
+}
 
 void Creature::itsPayDay()
 {
