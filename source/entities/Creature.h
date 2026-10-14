@@ -1068,7 +1068,7 @@ private:
     //! \brief A sub-function called by doTurn()
     //! While the seat's heart defence is on, the runners (the workers and the two cheap,
     //! fast scout creatures) drop their current job and run to the seat's fighters, or to
-    //! the heart while it is damaged.
+    //! the heart while it is damaged. A runner that is already fighting or fleeing keeps doing so.
     void handleHeartDefence();
 
     //! \brief A sub-function called by doTurn()
