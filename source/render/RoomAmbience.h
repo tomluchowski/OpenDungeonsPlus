@@ -38,6 +38,11 @@ class GameMap;
 class Seat;
 class Tile;
 
+//! \brief Default seconds a new flight (bolt or projectile) needs to arrive
+const double DEFAULT_FLIGHT_DURATION = 0.4;
+//! \brief Default flickers per second of a new bolt
+const double DEFAULT_FLIGHT_FLICKER_RATE = 20.0;
+
 /*! \brief Cosmetic life in the rooms (dust, glow, sparks, moving objects), client side only.
  *
  * Nothing here is known to the server or saved: the effects are derived from what the client map
@@ -175,8 +180,8 @@ private:
         //! \brief Creates a flight that is not attached to a scene node yet
         Flight() :
             mNode(nullptr), mEntity(nullptr), mTrailNode(nullptr), mTrailSystem(nullptr), mBeam(false),
-            mStart(Ogre::Vector3::ZERO), mEnd(Ogre::Vector3::ZERO), mAge(0.0), mDuration(0.4), mWidth(1.0),
-            mArc(0.0), mFlickerRate(20.0), mFlickerClock(0.0)
+            mStart(Ogre::Vector3::ZERO), mEnd(Ogre::Vector3::ZERO), mAge(0.0), mDuration(DEFAULT_FLIGHT_DURATION), mWidth(1.0),
+            mArc(0.0), mFlickerRate(DEFAULT_FLIGHT_FLICKER_RATE), mFlickerClock(0.0)
         {}
 
         //! The scene node that carries the mesh

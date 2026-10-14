@@ -103,6 +103,31 @@ enum class AmbienceMotion
     flicker
 };
 
+//! \brief Default seconds without a creature before an empty room effect starts
+const double DEFAULT_EFFECT_AFTER = 30.0;
+//! \brief Default amount of a motion effect
+const double DEFAULT_EFFECT_AMOUNT = 1.0;
+//! \brief Default speed of a motion effect
+const double DEFAULT_EFFECT_SPEED = 1.0;
+//! \brief Default size change of the particle billboards (0 = steady)
+const double DEFAULT_EFFECT_FLICKER = 0.0;
+//! \brief Default seconds a one-shot effect is kept
+const double DEFAULT_EFFECT_DURATION = 3.0;
+//! \brief Default height above the target from which a beam or projectile starts
+const float DEFAULT_EFFECT_FROM_HEIGHT = 8.0f;
+//! \brief Default seconds after the event until the sound is played (kind sound)
+const double DEFAULT_EFFECT_DELAY = 0.0;
+//! \brief Default average seconds between two clips
+const double DEFAULT_EFFECT_EVERY = 10.0;
+//! \brief Default chance that an event effect is shown
+const double DEFAULT_EFFECT_CHANCE = 1.0;
+//! \brief Default spacing of tile targets (every n-th tile gets the effect)
+const uint32_t DEFAULT_EFFECT_SPACING = 1;
+//! \brief Default distance to the camera up to which an effect runs
+const double DEFAULT_EFFECT_MAX_DISTANCE = 28.0;
+//! \brief Default priority of an effect when the budget is used up
+const int32_t DEFAULT_EFFECT_PRIORITY = 5;
+
 //! \brief One effect read from the room ambience configuration
 struct AmbienceEffect
 {
@@ -112,20 +137,20 @@ struct AmbienceEffect
         mWhen(AmbienceWhen::always),
         mKind(AmbienceKind::particle),
         mMotion(AmbienceMotion::sway),
-        mAfter(30.0),
+        mAfter(DEFAULT_EFFECT_AFTER),
         mOffset(Ogre::Vector3::ZERO),
         mAxis(Ogre::Vector3::UNIT_X),
-        mAmount(1.0),
-        mSpeed(1.0),
-        mFlicker(0.0),
-        mDuration(3.0),
-        mFrom(Ogre::Vector3(0.0f, 0.0f, 8.0f)),
-        mDelay(0.0),
-        mEvery(10.0),
-        mChance(1.0),
-        mSpacing(1),
-        mMaxDistance(28.0),
-        mPriority(5),
+        mAmount(DEFAULT_EFFECT_AMOUNT),
+        mSpeed(DEFAULT_EFFECT_SPEED),
+        mFlicker(DEFAULT_EFFECT_FLICKER),
+        mDuration(DEFAULT_EFFECT_DURATION),
+        mFrom(Ogre::Vector3(0.0f, 0.0f, DEFAULT_EFFECT_FROM_HEIGHT)),
+        mDelay(DEFAULT_EFFECT_DELAY),
+        mEvery(DEFAULT_EFFECT_EVERY),
+        mChance(DEFAULT_EFFECT_CHANCE),
+        mSpacing(DEFAULT_EFFECT_SPACING),
+        mMaxDistance(DEFAULT_EFFECT_MAX_DISTANCE),
+        mPriority(DEFAULT_EFFECT_PRIORITY),
         mReduced(false),
         mNeedWall(false),
         mWallSide(false),
