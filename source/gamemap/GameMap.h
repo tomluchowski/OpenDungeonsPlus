@@ -40,6 +40,7 @@
 class Building;
 class Tile;
 class Creature;
+class CreatureRelationships;
 class GameEntity;
 class Player;
 class Trap;
@@ -153,6 +154,29 @@ public:
 
     inline bool getIsFOWActivated() const
     { return mIsFOWActivated; }
+
+    //! \brief True if the creature relationships option is switched on for this game. When it
+    //! is off, nothing about relationships exists and no relationship code does anything.
+    inline bool isRelationshipsEnabled() const
+    { return mCreatureRelationships != nullptr; }
+
+    //! \brief The relationships of this game or nullptr if the option is off.
+    inline CreatureRelationships* getCreatureRelationships() const
+    { return mCreatureRelationships; }
+
+    //! \brief Switches the creature relationships option on (an empty table is created with the
+    //! values of config/relationships.cfg) or off (the table is deleted).
+    void setRelationshipsEnabled(bool enabled);
+
+    //! \brief Server side. Sends the tier changes recorded since the last call to the keepers
+    //! the creatures belong to.
+    void sendRelationshipTierChanges();
+
+    //! \brief Server side: every few turns, nemesis pairs that are close and idle may start a brawl.
+    void checkRelationshipBrawls();
+
+    //! \brief Server side. Sends every tier that is not neutral to the player of the given seat.
+    void sendRelationshipTiers(Seat* seat);
 
     //! \brief Returns a vector containing all the creatures controlled by the given seat.
     std::vector<Creature*> getCreaturesByAlliedSeat(const Seat* seat) const;
@@ -671,6 +695,9 @@ private:
 
     //! AI Handling manager
     AIManager mAiManager;
+
+    //! Relationships between the creatures. nullptr when the option is off.
+    CreatureRelationships* mCreatureRelationships;
 
     //! Map tileset
     const TileSet* mTileSet;

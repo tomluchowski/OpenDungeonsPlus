@@ -139,6 +139,8 @@ ConfigManager::ConfigManager(const std::string& configPath, const std::string& u
         exit(1);
     }
 
+    loadRelationships(configPath + "relationships.cfg");
+
     // Reserve space in any case.
     mUserConfig.resize(Config::Ctg::TOTAL);
 
@@ -968,6 +970,39 @@ bool ConfigManager::loadRooms(const std::string& fileName)
     }
 
     return true;
+}
+
+void ConfigManager::loadRelationships(const std::string& fileName)
+{
+    OD_LOG_INF("Load relationships file: " + fileName);
+    mRelationshipsConfig.clear();
+    std::stringstream defFile;
+    if(!Helper::readFile(fileName, defFile, true))
+    {
+        OD_LOG_WRN("Couldn't read " + fileName + ", using the default relationship values");
+        return;
+    }
+
+    std::string nextParam;
+    defFile >> nextParam;
+    if(nextParam != "[Relationships]")
+    {
+        OD_LOG_WRN("Invalid relationships start format. Line was " + nextParam);
+        return;
+    }
+
+    while(defFile.good())
+    {
+        if(!(defFile >> nextParam))
+            break;
+
+        if(nextParam == "[/Relationships]")
+            break;
+
+        std::string value;
+        defFile >> value;
+        mRelationshipsConfig[nextParam] = value;
+    }
 }
 
 bool ConfigManager::loadTraps(const std::string& fileName)

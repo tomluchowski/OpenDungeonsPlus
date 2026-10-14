@@ -27,6 +27,7 @@
 #include "entities/RenderedMovableEntity.h"
 #include "entities/Tile.h"
 #include "entities/Weapon.h"
+#include "game/CreatureRelationships.h"
 #include "game/Player.h"
 #include "game/Seat.h"
 #include "game/Skill.h"
@@ -41,6 +42,7 @@
 #include "network/ChatEventMessage.h"
 #include "network/CosmeticEvent.h"
 #include "network/ODPacket.h"
+#include "network/RelationshipPacket.h"
 #include "network/ServerMode.h"
 #include "network/ServerNotification.h"
 #include "render/CreatureReactions.h"
@@ -385,6 +387,8 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
             ServerMode serverMode;
             OD_ASSERT_TRUE(packetReceived >> serverMode);
 
+            gameMap->setRelationshipsEnabled(readRelationshipsFlag(packetReceived));
+
             // Older servers end the packet here; without the agreement no cosmetic event ever arrives
             bool cosmeticEvents = false;
             if(!packetReceived.endOfPacket())
@@ -682,6 +686,24 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
             OD_ASSERT_TRUE(packetReceived >> goalsString);
 
             refreshMainUI(goalsString);
+            break;
+        }
+
+        case ServerNotificationType::relationshipTier:
+        {
+            std::string creatureA;
+            std::string creatureB;
+            int32_t tier;
+            // A replay of the current tiers (sent on join or load) only fills the table: what shows a change
+            // (posts, emotes) skips it
+            bool replay;
+            OD_ASSERT_TRUE(readRelationshipTier(packetReceived, creatureA, creatureB, tier, replay));
+            CreatureRelationships* relationships = gameMap->getCreatureRelationships();
+            if((relationships != nullptr) && (tier >= static_cast<int32_t>(RelationshipTier::nemesis))
+                && (tier <= static_cast<int32_t>(RelationshipTier::lovers)))
+            {
+                relationships->setTier(creatureA, creatureB, static_cast<RelationshipTier>(tier));
+            }
             break;
         }
 

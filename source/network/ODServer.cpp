@@ -122,7 +122,8 @@ ODServer::~ODServer()
     delete mGameMap;
 }
 
-bool ODServer::startServer(const std::string& creator, const std::string& levelFilename, ServerMode mode, bool useMasterServer)
+bool ODServer::startServer(const std::string& creator, const std::string& levelFilename, ServerMode mode, bool useMasterServer,
+    bool relationships)
 {
     OD_LOG_INF("Asked to launch server with levelFilename=" + levelFilename);
 
@@ -159,6 +160,12 @@ bool ODServer::startServer(const std::string& creator, const std::string& levelF
         stopServer();
         return false;
     }
+
+    // The relationships option comes from the game setup, a saved game brings its own setting
+    if(mode == ServerMode::ModeEditor)
+        gameMap->setRelationshipsEnabled(false);
+    else if(mode != ServerMode::ModeGameLoaded)
+        gameMap->setRelationshipsEnabled(relationships);
 
     // Set up the socket to listen on the specified port
     int32_t port = getNetworkPort();
@@ -404,6 +411,13 @@ void ODServer::startNewTurn(double timeSinceLastTurn)
         seat->exportToPacketForUpdate(serverNotification->mPacket);
         serverNotification->mPacket << goals;
         ODServer::getSingleton().queueServerNotification(serverNotification);
+
+        // A client that joined or loaded gets the current relationship tiers once
+        if(!sock->getRelationshipsSynced())
+        {
+            sock->setRelationshipsSynced(true);
+            gameMap->sendRelationshipTiers(seat);
+        }
 
         // Here, the creature list is pulled. It could be possible that the creature dies before the stat window is
         // closed. So, if we cannot find the creature, we just erase it.
@@ -966,6 +980,7 @@ bool ODServer::processClientNotifications(ODSocketClient* clientSocket)
 
             packetSend.clear();
             packetSend << ServerNotificationType::startGameMode << seatId << mServerMode;
+            packetSend << gameMap->isRelationshipsEnabled();
             packetSend << clientSocket->supportsCosmeticEvents();
             clientSocket->send(packetSend);
             mSeatsConfigured = true;
@@ -1241,6 +1256,7 @@ bool ODServer::processClientNotifications(ODSocketClient* clientSocket)
                 ODPacket packetSend;
                 int seatId = client->getPlayer()->getSeat()->getId();
                 packetSend << ServerNotificationType::startGameMode << seatId << mServerMode;
+                packetSend << gameMap->isRelationshipsEnabled();
                 packetSend << client->supportsCosmeticEvents();
                 client->send(packetSend);
             }

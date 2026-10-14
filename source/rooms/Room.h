@@ -110,6 +110,10 @@ public:
     virtual Creature* getCreatureUsingRoom(unsigned index);
     virtual bool hasOpenCreatureSpot(Creature* c) { return false; }
 
+    //! \brief True if a creature of the same keeper that the creature hates works in the room
+    //! (relationships option on only).
+    bool hasHatedCoworker(Creature* c) const;
+
     //! \brief Called by the creature during its upkeep when using the room when it is ready
     //! to do something (no cooldown or no other action).
     //! Returns true if the action queue should continue to be proceeded and false otherwise

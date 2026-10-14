@@ -198,6 +198,10 @@ public:
     //! Useful for newly introduced parameters older config files do not have.
     double getRoomConfigDoubleOrDefault(const std::string& param, double defaultValue) const;
 
+    //! \brief Key/value pairs of config/relationships.cfg (empty if the file is missing).
+    const std::map<std::string, std::string>& getRelationshipsConfig() const
+    { return mRelationshipsConfig; }
+
     //! Traps configuration
     const std::string& getTrapConfigString(const std::string& param) const;
     uint32_t getTrapConfigUInt32(const std::string& param) const;
@@ -290,6 +294,9 @@ private:
     bool loadTilesets(const std::string& fileName);
     bool loadTilesetValues(std::istream& defFile, TileVisual tileVisual, std::vector<std::vector<TileSetValue>>& tileValues, std::map<TileVisual,std::map<int,float>>& highMap);
     bool loadEditorSettings(const std::string& fileName);
+    //! \brief Reads config/relationships.cfg. A missing file is not an error: the relationship
+    //! system then uses the defaults from the code.
+    void loadRelationships(const std::string& fileName);
     //! \brief Loads the user configuration values, and use default ones if it cannot do it.
     void loadUserConfig(const std::string& fileName);
 
@@ -352,6 +359,7 @@ private:
 
     std::vector<std::string> mFactions;
     std::map<const std::string, std::string> mRoomsConfig;
+    std::map<std::string, std::string> mRelationshipsConfig;
     std::map<const std::string, std::string> mTrapsConfig;
     std::map<const std::string, std::string> mSpellConfig;
     std::map<const std::string, int32_t> mSkillPoints;

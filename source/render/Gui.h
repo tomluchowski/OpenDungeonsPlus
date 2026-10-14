@@ -130,11 +130,13 @@ public:
     static const std::string SKM_BUTTON_BACK;
     static const std::string SKM_LIST_LEVEL_TYPES;
     static const std::string SKM_LIST_LEVELS;
+    static const std::string SKM_CHECK_RELATIONSHIPS;
     static const std::string MPM_TEXT_LOADING;
     static const std::string MPM_BUTTON_SERVER;
     static const std::string MPM_BUTTON_CLIENT;
     static const std::string MPM_BUTTON_BACK;
     static const std::string MPM_LIST_LEVELS;
+    static const std::string MPM_CHECK_RELATIONSHIPS;
     static const std::string MPM_EDIT_IP;
     static const std::string MPM_EDIT_NICK;
     static const std::string EDM_TEXT_LOADING;

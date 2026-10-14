@@ -22,6 +22,7 @@
 #include "entities/Creature.h"
 #include "entities/GameEntityType.h"
 #include "entities/Tile.h"
+#include "game/CreatureRelationships.h"
 #include "game/Player.h"
 #include "game/Seat.h"
 #include "gamemap/GameMap.h"
@@ -335,6 +336,21 @@ void Room::removeCreatureUsingRoom(Creature *c)
             break;
         }
     }
+}
+
+bool Room::hasHatedCoworker(Creature* c) const
+{
+    if(!c->canHaveRelationships())
+        return false;
+
+    std::vector<std::string> coworkers;
+    for(Creature* other : mCreaturesUsingRoom)
+    {
+        if((other != c) && (other->getSeat() == c->getSeat()))
+            coworkers.push_back(other->getName());
+    }
+
+    return anyHatedCoworker(*c->getGameMap()->getCreatureRelationships(), true, c->getName(), coworkers);
 }
 
 Creature* Room::getCreatureUsingRoom(unsigned index)

@@ -342,6 +342,7 @@ set(OD_SOURCEFILES
 	${SRC}/eventsystem/Subject.cpp		
 	
     ${SRC}/game/Player.cpp
+    ${SRC}/game/CreatureRelationships.cpp
     ${SRC}/game/PlayerSelection.cpp
     ${SRC}/game/Skill.cpp
     ${SRC}/game/SkillManager.cpp
