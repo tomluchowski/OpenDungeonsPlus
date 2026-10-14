@@ -37,6 +37,9 @@
 
 #include <cmath>
 
+//! \brief Seconds before a taken over portal spawns its first creature when the room config has no PortalFirstSpawnSeconds
+static const double DEFAULT_PORTAL_FIRST_SPAWN_SECONDS = 25.0;
+
 const std::string RoomPortalName = "Portal";
 const std::string RoomPortalNameDisplay = "Portal room";
 const RoomType RoomPortal::mRoomType = RoomType::portal;
@@ -148,7 +151,7 @@ void RoomPortal::changeOwner(Seat* seat)
         tile->claimTile(seat);
 
     mSpawnCreatureCountdown = static_cast<int>(
-        ConfigManager::getSingleton().getRoomConfigDoubleOrDefault("PortalFirstSpawnSeconds", 25.0)
+        ConfigManager::getSingleton().getRoomConfigDoubleOrDefault("PortalFirstSpawnSeconds", DEFAULT_PORTAL_FIRST_SPAWN_SECONDS)
         * ODApplication::turnsPerSecond);
 
     if((oldSeat != nullptr) && !oldSeat->isAlliedSeat(seat))
