@@ -108,6 +108,9 @@ const Ogre::Real RenderManager::DRAGGABLE_NODE_HEIGHT = 3.0f;
 
 const int PERLIN_NOISE_TEXTURE_SIZE =  4096;
 
+//! Number of instances per batch of the instance manager that draws the tiles marked for digging in the fog of war.
+const size_t MARKED_FOG_INSTANCES_PER_BATCH = 128;
+
 namespace
 {
 void createKeeperHandPoses(Ogre::Entity* hand)
@@ -841,7 +844,7 @@ RenderManager::RenderManager(Ogre::OverlaySystem* overlaySystem) :
     createMarkedFogMesh(mSceneManager);
     mInstanceManagerMarkedFog = mSceneManager->createInstanceManager(
         "InstanceManagerMarkedFog", "FogOfWarMarked.mesh", "Graphics",
-        Ogre::InstanceManager::HWInstancingBasic, 128, Ogre::IM_USEALL, 0);
+        Ogre::InstanceManager::HWInstancingBasic, MARKED_FOG_INSTANCES_PER_BATCH, Ogre::IM_USEALL, 0);
     mInstanceManagerMarkedFog->setNumCustomParams(1);
     mInstanceManagerMarkedFog->defragmentBatches(true);
 
@@ -4215,7 +4218,7 @@ std::string RenderManager::colourizeMaterial(const std::string& materialName, co
                 fragmentProgram->setSourceFile("Custom_color.frag");
             }
             markPass->setFragmentProgram("Custom_color", "Graphics");
-            Ogre::ColourValue markColor(0.65f, 0.45f, 1.0f, 0.5f);
+            Ogre::ColourValue markColor(Tile::DIG_MARK_COLOUR);
             markPass->getFragmentProgramParameters()->setNamedConstant("color", markColor);
             markPass->getFragmentProgramParameters()->setNamedConstant("ambient", markColor);
             markPass->setLightingEnabled(false);

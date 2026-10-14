@@ -32,7 +32,7 @@ assert 'PREVIEW_BORDER_INNER_HALF = 0.44f' in render and 'PREVIEW_TILE_HALF = 0.
 assert 'minX - PREVIEW_BORDER_INNER_HALF' in rectangle and 'maxX + PREVIEW_BORDER_INNER_HALF' in rectangle
 assert 'minX - PREVIEW_TILE_HALF' in rectangle and 'maxX + PREVIEW_TILE_HALF' in rectangle
 tile = read('source/entities/Tile.cpp')
-assert 'Ogre::Vector4(0.65f, 0.45f, 1.0f, 0.5f)' in tile
+assert 'DIG_MARK_COLOUR(0.65f, 0.45f, 1.0f, 0.5f)' in tile
 assert 'mix(texelColor, outputColor.rgb, outputColor.a)' in fog_shader
 
 # Flat marked-fog geometry is independent of tile type and exactly shares every adjacent edge.
@@ -74,5 +74,5 @@ release = game_mode[game_mode.index('void GameMode::handlePlayerActionSelectTile
 release = release[:release.index('void GameMode::resetSkillTree()')]
 assert release.index('unselectAllTiles();') < release.index('ClientNotificationType::askMarkTiles')
 assert 'markPass->setSceneBlending(Ogre::SBT_TRANSPARENT_ALPHA)' in render
-assert 'Ogre::ColourValue markColor(0.65f, 0.45f, 1.0f, 0.5f)' in render
+assert 'Ogre::ColourValue markColor(Tile::DIG_MARK_COLOUR)' in render
 print('check_unexplored_marks ok: thick outer frame, seamless flat marked fog, neutral tooltip and transparent marking')
