@@ -30,11 +30,14 @@ static const std::string CreatureEffectAreaDamageName = "AreaDamage";
 
 namespace
 {
+//! \brief Creates area damage effects when the configuration names "AreaDamage"
 class CreatureEffectAreaDamageFactory : public CreatureEffectFactory
 {
+    //! \brief Creates an empty area damage effect
     CreatureEffect* createCreatureEffect() const override
     { return new CreatureEffectAreaDamage; }
 
+    //! \brief The effect name used in the configuration
     const std::string& getCreatureEffectName() const override
     {
         return CreatureEffectAreaDamageName;

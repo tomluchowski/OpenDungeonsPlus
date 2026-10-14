@@ -27,6 +27,7 @@
 class Creature;
 class GameMap;
 
+//! \brief Skill that makes the caster invisible for a while so enemy creatures do not target it
 class CreatureSkillInvisible : public CreatureSkill
 {
 public:
