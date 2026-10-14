@@ -28,6 +28,7 @@
 #include "gamemap/GameMap.h"
 #include "modes/InputCommand.h"
 #include "modes/InputManager.h"
+#include "network/CosmeticEvent.h"
 #include "network/ODClient.h"
 #include "network/ODServer.h"
 #include "network/ServerNotification.h"
@@ -1165,6 +1166,17 @@ void Room::fireRoomSound(Tile& tile, const std::string& soundFamily)
             ServerNotificationType::playSpatialSound, seat->getPlayer());
         serverNotification->mPacket << sound << tile.getX() << tile.getY();
         ODServer::getSingleton().queueServerNotification(serverNotification);
+    }
+}
+
+void Room::fireRoomCosmeticEvent(Tile& tile, const CosmeticEvent& event)
+{
+    for(Seat* seat : tile.getSeatsWithVision())
+    {
+        if(seat->getPlayer() == nullptr || !seat->getPlayer()->getIsHuman())
+            continue;
+
+        ODServer::getSingleton().sendCosmeticEvent(seat->getPlayer(), event);
     }
 }
 

@@ -21,6 +21,8 @@
 #include <OgrePrerequisites.h>
 
 #include <cstdint>
+#include <string>
+#include <vector>
 
 class Creature;
 class MovableTextOverlay;
@@ -40,6 +42,10 @@ public:
     ~CreatureOverlayStatus();
 
     void displayHealthOverlay(Ogre::Real timeToDisplay);
+    //! \brief Shows the icon of the given material above the creature for timeToDisplay seconds
+    void showEmote(const std::string& materialName, Ogre::Real timeToDisplay);
+    //! \brief Hides the emote icon, if one was shown
+    void hideEmote();
     void update(Ogre::Real timeSincelastFrame);
     MovableTextOverlay* getMovableTextOverlay(){ return mMovableTextOverlay; }
 private:
@@ -66,6 +72,9 @@ private:
     Ogre::Real mTimeDisplayStatus;
     uint32_t mStatus;
     std::vector<uint32_t> mOverlayIds;
+    //! Overlay of the emote. It is only created when the first emote is shown
+    bool mEmoteCreated;
+    uint32_t mEmoteId;
 };
 
 #endif // CREATUREOVERLAYSTATUS_H
