@@ -21,6 +21,8 @@
 #include "Trap.h"
 #include "traps/TrapType.h"
 
+#include <cstdint>
+
 //! \brief A trap that strikes one enemy creature in range with a lightning bolt. The bolt damages and stuns it.
 class TrapLightning : public Trap
 {

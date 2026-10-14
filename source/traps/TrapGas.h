@@ -21,6 +21,8 @@
 #include "Trap.h"
 #include "traps/TrapType.h"
 
+#include <cstdint>
+
 //! \brief A pressure trap that releases a poison cloud when an enemy steps on it. Everybody in the cloud takes damage.
 class TrapGas : public Trap
 {
