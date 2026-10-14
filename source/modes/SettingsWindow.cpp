@@ -21,6 +21,7 @@
 #include "network/ODClient.h"
 #include "camera/CameraManager.h"
 #include "render/Gui.h"
+#include "render/CreatureReactions.h"
 #include "render/ODFrameListener.h"
 #include "render/RoomAmbience.h"
 #include "render/RenderManager.h"
@@ -319,6 +320,29 @@ void SettingsWindow::initConfig()
         ++cptAmbienceMode;
     }
 
+    CEGUI::Combobox* creatureReactions = static_cast<CEGUI::Combobox*>(
+            mRootWindow->getChild("SettingsWindow/MainTabControl/Game/GameSP/CreatureReactions"));
+    creatureReactions->resetList();
+    std::string reactionsCurrent = CreatureReactions::modeToString(CreatureReactions::modeFromString(
+        config.getGameValue(Config::CREATURE_REACTIONS, "full", false)));
+    std::vector<std::string> reactionModes;
+    reactionModes.push_back("full");
+    reactionModes.push_back("reduced");
+    reactionModes.push_back("off");
+    uint32_t cptReactionMode = 0;
+    for(const std::string& reactionMode : reactionModes)
+    {
+        CEGUI::ListboxTextItem* item = new CEGUI::ListboxTextItem(reactionMode, cptReactionMode);
+        item->setSelectionBrushImage(selImg);
+        creatureReactions->addItem(item);
+        if(reactionMode == reactionsCurrent)
+        {
+            creatureReactions->setText(item->getText());
+            creatureReactions->setItemSelectState(item, true);
+        }
+        ++cptReactionMode;
+    }
+
     std::string panSpeedStr = config.getInputValue(Config::PAN_SPEED, "100", false);
     float panSpeedPercent = panSpeedStr.empty() ? 100.0f : Helper::toFloat(panSpeedStr);
     setPanSpeedValue(panSpeedPercent);
@@ -567,6 +591,15 @@ bool SettingsWindow::saveConfig()
     config.setGameValue(Config::ROOM_AMBIENCE, ambienceMode);
     if(RoomAmbience::getSingletonPtr() != nullptr)
         RoomAmbience::getSingleton().setMode(RoomAmbience::modeFromString(ambienceMode));
+
+    CEGUI::Combobox* creatureReactions = static_cast<CEGUI::Combobox*>(
+            mRootWindow->getChild("SettingsWindow/MainTabControl/Game/GameSP/CreatureReactions"));
+    CEGUI::ListboxItem* creatureReactionsItem = creatureReactions->getSelectedItem();
+    std::string reactionMode = (creatureReactionsItem != nullptr) ?
+        std::string(creatureReactionsItem->getText().c_str()) : std::string("full");
+    config.setGameValue(Config::CREATURE_REACTIONS, reactionMode);
+    if(CreatureReactions::getSingletonPtr() != nullptr)
+        CreatureReactions::getSingleton().setMode(CreatureReactions::modeFromString(reactionMode));
 
     CEGUI::Slider* panSpeedSlider = static_cast<CEGUI::Slider*>(
         mRootWindow->getChild("SettingsWindow/MainTabControl/Input/InputSP/PanSpeedSlider"));

@@ -3,8 +3,8 @@
 
     python source/tests/check_trap_effect_notification.py
 
-Checks that the server notification trapEffect is the last value of the enum (so no existing value
-changes), that the packet fields are written and read in the same order, that the trap effect kinds
+Checks that the server notification trapEffect is the last value of the enum, or is followed only by
+the cosmetic event (so no existing value changes), that the packet fields are written and read in the same order, that the trap effect kinds
 only grew at the end, and that every event the client raises has a handler in the config and every
 trap event of the config is raised.
 """
@@ -27,7 +27,7 @@ header = read("source", "network", "ServerNotification.h")
 body = header[header.index("enum class ServerNotificationType"):]
 body = body[:body.index("};")]
 names = re.findall(r"^\s*([A-Za-z_]\w*)\s*,?\s*(?://.*)?$", body, re.M)
-if names[-1] != "trapEffect":
+if names[-1] != "trapEffect" and names[-2:] != ["trapEffect", "cosmeticEvent"]:
     problems.append("trapEffect is not the last server notification")
 
 if '"trapEffect"' not in read("source", "network", "ServerNotification.cpp"):

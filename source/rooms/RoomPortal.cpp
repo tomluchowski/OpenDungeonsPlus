@@ -278,6 +278,7 @@ void RoomPortal::spawnCreature()
     newCreature->addToGameMap();
     newCreature->createMesh();
     newCreature->setPosition(newCreature->getPosition());
+    newCreature->fireArrivalEvent();
 }
 
 void RoomPortal::setupRoom(const std::string& name, Seat* seat, const std::vector<Tile*>& tiles)

@@ -58,7 +58,8 @@ class ODSocketClient
             mSupportsCreatureMood(false),
             mSupportsCreatureActivity(false),
             mSupportsCreaturePanel(false),
-            mSupportsCreatureProgress(false)
+            mSupportsCreatureProgress(false),
+            mSupportsCosmeticEvents(false)
         {}
 
         virtual ~ODSocketClient()
@@ -87,6 +88,9 @@ class ODSocketClient
         //! Whether the other side sends and understands experience and attack recovery in creature data
         bool supportsCreatureProgress() const { return mSupportsCreatureProgress; }
         void setSupportsCreatureProgress(bool supported) { mSupportsCreatureProgress = supported; }
+        //! Whether the client negotiated cosmetic events (see CosmeticEvent.h)
+        bool supportsCosmeticEvents() const { return mSupportsCosmeticEvents; }
+        void setSupportsCosmeticEvents(bool supported) { mSupportsCosmeticEvents = supported; }
         int64_t getLastTurnAck() { return mLastTurnAck; }
         void setLastTurnAck(int64_t lastTurnAck) { mLastTurnAck = lastTurnAck; }
         //! \brief Heart health fraction of the last heartHealth message sent, negative if none
@@ -167,6 +171,8 @@ class ODSocketClient
         bool mSupportsCreaturePanel;
         //! \brief Creature experience and attack recovery in creature packets
         bool mSupportsCreatureProgress;
+        //! The client agreed to receive cosmetic events
+        bool mSupportsCosmeticEvents;
 
         //! \brief the replay filename being written. Used to later optionally delete it
         //! if asked to.
