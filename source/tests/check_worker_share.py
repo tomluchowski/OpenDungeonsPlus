@@ -48,12 +48,16 @@ assert 'getNbWorkersDoing(CreatureActionType::reloadTrap)' in prefs
 assert '0.2' not in prefs and '0.8' not in prefs
 share = function_body(player, 'bool Player::isWorkerReloadShareOpen()')
 assert 'WorkerShare::totalWorkers(' in share and 'WorkerShare::isReloadShareOpen(' in share
-assert 'TrapReloadWorkerSharePercent' in share and '20.0' in share
+assert 'TrapReloadWorkerSharePercent' in share and 'DEFAULT_RELOAD_WORKER_SHARE_PERCENT' in share
+assert re.search(r'DEFAULT_RELOAD_WORKER_SHARE_PERCENT = 20\.0;', player)
 assert re.search(r'^    TrapReloadWorkerSharePercent\t\d+', traps_cfg, re.M)
 
 # The limits of the header are the old ones
-assert re.search(r'percent <= 0\.2;', function_body(header, 'inline bool isCarryFirst('))
-assert re.search(r'percent > 0\.8;', function_body(header, 'inline bool isClaimWallFirst('))
+assert re.search(r'percent <= CARRY_FIRST_MAX_SHARE;', function_body(header, 'inline bool isCarryFirst('))
+assert re.search(r'percent > CLAIM_WALL_FIRST_MIN_SHARE;', function_body(header, 'inline bool isClaimWallFirst('))
+assert re.search(r'CARRY_FIRST_MAX_SHARE = 0\.2;', header)
+assert re.search(r'CLAIM_WALL_FIRST_MIN_SHARE = 0\.8;', header)
+assert re.search(r'PERCENT_DIVISOR = 100\.0;', header)
 
 if '--probe' in sys.argv:
     probe = r'''
