@@ -29,6 +29,7 @@
 class CreatureEffectAreaDamage : public CreatureEffect
 {
 public:
+    //! \brief Creates the effect with its parameters.
     CreatureEffectAreaDamage(int32_t nbTurnsEffect, int32_t tileX, int32_t tileY, double radius,
             double damagePerTurn, const std::string& particleEffectName) :
         CreatureEffect(nbTurnsEffect, particleEffectName),
@@ -38,6 +39,7 @@ public:
         mDamagePerTurn(damagePerTurn)
     {}
 
+    //! \brief Creates an empty effect that is filled by importFromStream.
     CreatureEffectAreaDamage() :
         CreatureEffect(),
         mTileX(0),
@@ -46,18 +48,23 @@ public:
         mDamagePerTurn(0.0)
     {}
 
+    //! \brief Destroys the effect.
     virtual ~CreatureEffectAreaDamage()
     {}
 
+    //! \brief Returns the name under which the effect is registered.
     virtual const std::string& getEffectName() const override;
 
+    //! \brief Writes the effect to the stream.
     virtual void exportToStream(std::ostream& os) const override;
+    //! \brief Reads the effect from the stream. Returns false if the stream is malformed.
     virtual bool importFromStream(std::istream& is) override;
 
     //! \brief Creates the effect from the stream (used when loading a saved game).
     static CreatureEffectAreaDamage* load(std::istream& is);
 
 protected:
+    //! \brief Applies the effect to the creature; called every turn while it lasts.
     virtual void applyEffect(Creature& creature) override;
 
 private:
