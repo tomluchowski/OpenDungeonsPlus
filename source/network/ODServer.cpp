@@ -911,7 +911,7 @@ bool ODServer::processClientNotifications(ODSocketClient* clientSocket)
             clientSocket->setState("nick");
             // Tell the client to give us their nickname
             ODPacket packetSend;
-            packetSend << ServerNotificationType::pickNick << mServerMode << true;
+            packetSend << ServerNotificationType::pickNick << mServerMode << true << true;
             clientSocket->send(packetSend);
             break;
         }
@@ -924,6 +924,10 @@ bool ODServer::processClientNotifications(ODSocketClient* clientSocket)
             // Pick nick
             std::string clientNick;
             OD_ASSERT_TRUE(packetReceived >> clientNick);
+            bool liveNickname = false;
+            if(!packetReceived.endOfPacket())
+                OD_ASSERT_TRUE(packetReceived >> liveNickname);
+            clientSocket->setSupportsLiveNickname(liveNickname);
 
             bool cosmeticEvents = false;
             if(!packetReceived.endOfPacket())
@@ -984,6 +988,27 @@ bool ODServer::processClientNotifications(ODSocketClient* clientSocket)
             packetSend << clientSocket->supportsCosmeticEvents();
             clientSocket->send(packetSend);
             mSeatsConfigured = true;
+            break;
+        }
+
+        case ClientNotificationType::changeNick:
+        {
+            if(mServerState != ServerState::StateGame || !clientSocket->supportsLiveNickname()
+                || clientSocket->getPlayer() == nullptr)
+                break;
+
+            std::string nickname;
+            OD_ASSERT_TRUE(packetReceived >> nickname);
+            Player* player = clientSocket->getPlayer();
+            player->setNick(nickname);
+            const int32_t playerId = player->getId();
+            ODPacket packetSend;
+            packetSend << ServerNotificationType::playerNickChanged << playerId << nickname;
+            for(ODSocketClient* client : mSockClients)
+            {
+                if(client->supportsLiveNickname())
+                    client->send(packetSend);
+            }
             break;
         }
 

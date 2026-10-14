@@ -52,6 +52,7 @@ class ODSocketClient
             mLastTurnAck(-1),
             mRelationshipsSynced(false),
             mPendingTimestamp(-1),
+            mSupportsLiveNickname(false),
             mSupportsCosmeticEvents(false)
         {}
 
@@ -70,6 +71,8 @@ class ODSocketClient
 
         Player* getPlayer() { return mPlayer; }
         void setPlayer(Player* player) { mPlayer = player; }
+        bool supportsLiveNickname() const { return mSupportsLiveNickname; }
+        void setSupportsLiveNickname(bool supported) { mSupportsLiveNickname = supported; }
         //! Whether the client negotiated cosmetic events (see CosmeticEvent.h)
         bool supportsCosmeticEvents() const { return mSupportsCosmeticEvents; }
         void setSupportsCosmeticEvents(bool supported) { mSupportsCosmeticEvents = supported; }
@@ -143,6 +146,8 @@ class ODSocketClient
         std::ofstream mReplayOutputStream;
         ODPacket mPendingPacket;
         int32_t mPendingTimestamp;
+        //! \brief True if the peer announced that it handles nickname changes during the game.
+        bool mSupportsLiveNickname;
         //! The client agreed to receive cosmetic events
         bool mSupportsCosmeticEvents;
 
@@ -152,4 +157,3 @@ class ODSocketClient
 };
 
 #endif // ODSOCKETCLIENT_H
-

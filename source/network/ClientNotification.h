@@ -79,7 +79,10 @@ enum class ClientNotificationType
     editorAskCreateMapLight,
     editorSetCreatureLevel,
     editorAskPortalWaveData,
-    editorSetPortalWaveData
+    editorSetPortalWaveData,
+
+    // Append new messages to preserve existing network and replay identifiers.
+    changeNick
 };
 
 ODPacket& operator<<(ODPacket& os, const ClientNotificationType& nt);

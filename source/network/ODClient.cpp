@@ -229,6 +229,10 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
             OD_ASSERT_TRUE(packetReceived >> serverMode);
 
             // Older servers and replays end this packet after the server mode.
+            bool liveNickname = false;
+            if(!packetReceived.endOfPacket())
+                OD_ASSERT_TRUE(packetReceived >> liveNickname);
+            setSupportsLiveNickname(liveNickname);
             bool cosmeticEvents = false;
             if(!packetReceived.endOfPacket())
                 OD_ASSERT_TRUE(packetReceived >> cosmeticEvents);
@@ -238,6 +242,8 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
             ODPacket packSend;
             const std::string& nick = gameMap->getLocalPlayerNick();
             packSend << ClientNotificationType::setNick << nick;
+            if(liveNickname || cosmeticEvents)
+                packSend << liveNickname;
             if(cosmeticEvents)
                 packSend << true;
             send(packSend);
@@ -302,6 +308,23 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
                 OD_ASSERT_TRUE(packetReceived >> nick >> id);
                 mode->addPlayer(nick, id);
                 addEventMessage(new EventMessage(nick + " is now connected."));
+            }
+            break;
+        }
+
+        case ServerNotificationType::playerNickChanged:
+        {
+            int32_t playerId;
+            std::string nickname;
+            OD_ASSERT_TRUE(packetReceived >> playerId >> nickname);
+            for(Player* player : gameMap->getPlayers())
+            {
+                if(player->getId() != playerId)
+                    continue;
+                player->setNick(nickname);
+                if(player == getPlayer())
+                    gameMap->setLocalPlayerNick(nickname);
+                break;
             }
             break;
         }
@@ -1544,6 +1567,18 @@ bool ODClient::replay(const std::string& filename)
 void ODClient::queueClientNotification(ClientNotification* n)
 {
     mClientNotificationQueue.push_back(n);
+}
+
+void ODClient::requestNicknameChange(const std::string& nickname)
+{
+    if(getSource() != ODSource::network || getPlayer() == nullptr || getPlayer()->getNick() == nickname)
+        return;
+    if(!supportsLiveNickname())
+    {
+        OD_LOG_WRN("The connected server does not support changing the current player's nickname.");
+        return;
+    }
+    queueClientNotification(ClientNotificationType::changeNick, nickname);
 }
 
 void ODClient::disconnect(bool keepReplay)
