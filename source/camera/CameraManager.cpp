@@ -21,6 +21,7 @@
 
 #include "camera/CameraManager.h"
 
+#include "entities/Creature.h"
 #include "gamemap/TileContainer.h"
 #include "sound/SoundEffectsManager.h"
 #include "camera/CullingManager.h"
@@ -85,7 +86,13 @@ CameraManager::CameraManager(Ogre::SceneManager* sceneManager, GameMap* gm, Ogre
     mTranslateMaxSpeedFactor(Ogre::Vector2(1.0, 1.0)),
     mRotateLocalVector(Ogre::Vector3(0.0, 0.0, 0.0)),
     mSceneManager(sceneManager),
-    mViewport(nullptr)
+    mViewport(nullptr),
+    mPossessing(false),
+    mPossessionYaw(0.0),
+    mPossessionPitch(0.0),
+    mSavedPosition(Ogre::Vector3::ZERO),
+    mSavedOrientation(Ogre::Quaternion::IDENTITY),
+    mSavedChildOrientation(Ogre::Quaternion::IDENTITY)
 {
     const std::string panSpeedStr = ConfigManager::getSingleton().getInputValue(Config::PAN_SPEED, "100", false);
     float panSpeedPercent = panSpeedStr.empty() ? 100.0f : Helper::toFloat(panSpeedStr);
@@ -305,6 +312,12 @@ void CameraManager::setActiveCamera(const Ogre::String& ss)
 
 void CameraManager::updateCameraFrameTime(const Ogre::Real frameTime)
 {
+    if (mPossessing)
+    {
+        updatePossessionCamera();
+        return;
+    }
+
     if (!isCameraMovingAtAll())
         return;
 
@@ -732,8 +745,101 @@ bool CameraManager::storeUserView(unsigned int slot)
     return config.saveUserConfig();
 }
 
+//! The height of the possessed creature eyes above the ground, in tile size
+const Ogre::Real POSSESSION_EYE_HEIGHT = 0.8;
+
+//! How far in front of the creature position the possession camera is, in tile size
+const Ogre::Real POSSESSION_EYE_FORWARD = 0.2;
+
+//! How many degrees the possession view turns for a pixel the mouse moves
+const Ogre::Real POSSESSION_LOOK_SPEED = 0.15;
+
+//! How far the possession view can look up or down, in degrees
+const Ogre::Real POSSESSION_MAX_PITCH = 75.0;
+
+void CameraManager::resetCameraMovement()
+{
+    mTranslateVector = Ogre::Vector3::ZERO;
+    mTranslateVectorAccel = Ogre::Vector3::ZERO;
+    mRotateLocalVector = Ogre::Vector3::ZERO;
+    mZChange = 0.0;
+    mSwivelDegrees = 0.0;
+    mCameraIsFlying = false;
+    mCameraIsRotating = false;
+    mCircleMode = false;
+    mCatmullSplineMode = false;
+}
+
+void CameraManager::startPossession(const std::string& creatureName)
+{
+    if (!mPossessing)
+    {
+        // We save the RTS camera to put it back when the possession ends
+        mSavedPosition = getActiveCameraNode()->getPosition();
+        mSavedOrientation = getActiveCameraNode()->getOrientation();
+        mSavedChildOrientation = getActiveCameraNode()->getChild(0)->getOrientation();
+    }
+
+    resetCameraMovement();
+
+    // The player starts looking where the RTS camera was looking
+    Ogre::Vector3 viewDirection = mActiveCamera->getDerivedDirection();
+    if (Ogre::Vector2(viewDirection.x, viewDirection.y).squaredLength() > 0.0001f)
+        mPossessionYaw = Ogre::Math::ATan2(-viewDirection.x, viewDirection.y).valueRadians();
+    else
+        mPossessionYaw = 0.0;
+    mPossessionPitch = 0.0;
+
+    mPossessedCreatureName = creatureName;
+    mPossessing = true;
+    updatePossessionCamera();
+}
+
+void CameraManager::stopPossession()
+{
+    if (!mPossessing)
+        return;
+
+    mPossessing = false;
+    mPossessedCreatureName.clear();
+    resetCameraMovement();
+
+    getActiveCameraNode()->setPosition(mSavedPosition);
+    getActiveCameraNode()->setOrientation(mSavedOrientation);
+    getActiveCameraNode()->getChild(0)->setOrientation(mSavedChildOrientation);
+}
+
+void CameraManager::possessionLook(Ogre::Real deltaX, Ogre::Real deltaY)
+{
+    mPossessionYaw -= Ogre::Degree(deltaX * POSSESSION_LOOK_SPEED).valueRadians();
+    mPossessionPitch -= deltaY * POSSESSION_LOOK_SPEED;
+    mPossessionPitch = std::min(std::max(mPossessionPitch, -POSSESSION_MAX_PITCH), POSSESSION_MAX_PITCH);
+}
+
+void CameraManager::updatePossessionCamera()
+{
+    Creature* creature = mGameMap->getCreature(mPossessedCreatureName);
+    if (creature == nullptr)
+        return;
+
+    // The camera is in the creature head. We use the same node layout as the RTS camera: the
+    // main node turns around the vertical axis and the child node tilts the view. A tilt of
+    // 90 degrees looks at the horizon.
+    const Ogre::Vector3& creaturePos = creature->getPosition();
+    Ogre::Vector3 position = creaturePos + Ogre::Vector3(-Ogre::Math::Sin(mPossessionYaw) * POSSESSION_EYE_FORWARD,
+        Ogre::Math::Cos(mPossessionYaw) * POSSESSION_EYE_FORWARD, POSSESSION_EYE_HEIGHT);
+    getActiveCameraNode()->setPosition(position);
+    getActiveCameraNode()->setOrientation(Ogre::Quaternion(Ogre::Radian(mPossessionYaw), Ogre::Vector3::UNIT_Z));
+    getActiveCameraNode()->getChild(0)->setOrientation(Ogre::Quaternion(Ogre::Degree(90.0 + mPossessionPitch),
+        Ogre::Vector3::UNIT_X));
+}
+
 void CameraManager::move(const Direction direction, double aux)
 {
+    // The RTS camera does not move while the player controls a creature
+    if (mPossessing)
+        return;
+
     // NOTE : The camera loses the desired sense of left, right, top, down
     // when the camera pitch is more than 90 degrees.
     // So we invert the panning in that case.

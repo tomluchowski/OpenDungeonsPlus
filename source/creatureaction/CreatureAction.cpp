@@ -101,6 +101,13 @@ std::string CreatureAction::toString(CreatureActionType actionType)
 
     case CreatureActionType::goDefendHeart:
         return "goDefendHeart";
+    case CreatureActionType::watchBanner:
+        return "watchBanner";
+
+    case CreatureActionType::reloadTrap:
+        return "reloadTrap";
+    case CreatureActionType::possessed:
+        return "possessed";
 
     default:
         assert(false);

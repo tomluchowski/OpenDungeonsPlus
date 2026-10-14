@@ -178,6 +178,10 @@ public:
     virtual bool isTileVisibleForSeat(Tile* tile, Seat* seat) const
     { return true; }
 
+    //! \brief Tells whether the given seat sees the tile as a wall instead of the building
+    virtual bool appearsAsWallForSeat(Tile* tile, Seat* seat) const
+    { return false; }
+
     virtual void notifySeatVision(Tile* tile, Seat* seat);
 
     virtual double getCreatureSpeed(const Creature* creature, Tile* tile) const;

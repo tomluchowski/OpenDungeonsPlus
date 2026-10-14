@@ -93,15 +93,15 @@ public:
     void absorbRoom(Room *r) override;
     bool removeCoveredTile(Tile* t) override;
 
-    //! Room portal is claimable by enemy seats
+    //! The hero gate cannot be claimed
     virtual bool isClaimable(Seat* seat) const override;
     virtual void claimForSeat(Seat* seat, Tile* tile, double danceRate) override;
 
-    //! Room portal cannot be destroyed
+    //! The hero gate cannot be destroyed
     virtual bool isAttackable(Tile* tile, Seat* seat) const override
     { return false; }
 
-    //! No seat can sell Room portals
+    //! No seat can sell the hero gate
     virtual bool canSeatSellBuilding(Seat* seat) const override
     { return false; }
 
@@ -162,6 +162,8 @@ private:
     //! \brief Stores the number of turns before spawning the next creature.
     uint32_t mSpawnCountdown;
     uint32_t mSearchFoeCountdown;
+    //! \brief Turn of the last "heroes are coming" message (-1 if none yet)
+    int64_t mLastHeroesComingTurn;
     uint32_t mTurnsBetween2Waves;
     BuildingObject* mPortalObject;
 
@@ -218,6 +220,9 @@ private:
     //! \brief Handles the attack, check if there is already a target and tries to reach it if so. If not,
     //! tries to find a suitable target according to target seats
     void handleAttack();
+
+    //! \brief Tells the targeted human players that heroes are coming (with a cooldown)
+    void warnHeroesComing();
 
     //! \brief Handles spawning a new wave
     void handleSpawnWave();

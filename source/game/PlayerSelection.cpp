@@ -59,10 +59,17 @@ void PlayerSelection::setNewSpellType(SpellType newSpellType)
     case SpellType::eyeEvil:
     case SpellType::callToWar:
     case SpellType::creatureExplosion:
+    case SpellType::createGold:
+    case SpellType::tremor:
+    case SpellType::inferno:
+    case SpellType::summonChampion:
         mInputManager.mCreatureTypeForOutliner = SelectionEntityWanted::none;
         break;
     case SpellType::creatureWeak:
     case SpellType::creatureSlow:
+    case SpellType::lightning:
+    case SpellType::defector:
+    case SpellType::hexenHen:
         mInputManager.mCreatureTypeForOutliner = SelectionEntityWanted::creatureAliveEnemy;
         break;
     case SpellType::creatureStrength:
@@ -72,6 +79,9 @@ void PlayerSelection::setNewSpellType(SpellType newSpellType)
         break;
     case SpellType::creatureHeal:
         mInputManager.mCreatureTypeForOutliner = SelectionEntityWanted::creatureAliveOwnedHurt;
+        break;
+    case SpellType::possess:
+        mInputManager.mCreatureTypeForOutliner = SelectionEntityWanted::creatureAliveOwned;
         break;
 
     default:

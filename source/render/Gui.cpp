@@ -60,7 +60,7 @@ const float FONT_DESIGN_HEIGHT = 600.0f;
 
 void createHandFeedbackImage()
 {
-    // Original project artwork: the reference's prohibition shape, without copied assets.
+    // Project artwork: a prohibition shape, without copied assets.
     const int size = 64;
     std::vector<unsigned char> pixels(size * size * 4, 0);
     for(int y = 0; y < size; ++y)
@@ -1123,20 +1123,25 @@ void Gui::arrangeRoomButtons(CEGUI::Window* rooms)
     rooms->getChild("DestroyRoomButton")->hide();
     arrangeActionButtons(rooms, {"DormitoryButton", "HatcheryButton", "LibraryButton", "TrainingHallButton",
         "TreasuryButton", "WorkshopButton", "CasinoButton", "PrisonButton", "WoodenBridgeButton",
-        "TortureButton", "StoneBridgeButton", "CryptButton", "ArenaButton", "GuardRoomButton"});
+        "TortureButton", "StoneBridgeButton", "CryptButton", "ArenaButton", "GuardRoomButton", "PrayerTempleButton"});
 }
 
 void Gui::arrangeTrapButtons(CEGUI::Window* traps)
 {
     traps->getChild("DestroyTrapButton")->hide();
-    arrangeActionButtons(traps, {"WoodenDoorTrapButton", "CannonButton", "SpikeTrapButton", "BoulderTrapButton"});
+    arrangeActionButtons(traps, {"WoodenDoorTrapButton", "IronboundDoorTrapButton", "SteelDoorTrapButton",
+        "BarricadeTrapButton", "SecretDoorTrapButton", "RunedDoorTrapButton", "CannonButton", "SpikeTrapButton",
+        "BoulderTrapButton", "AlarmTrapButton", "FearTrapButton", "GasTrapButton", "LightningTrapButton", "FireburstTrapButton",
+        "FreezeTrapButton", "WatchBannerTrapButton", "TriggerTrapButton"});
 }
 
 void Gui::arrangeSpellButtons(CEGUI::Window* spells)
 {
     arrangeActionButtons(spells, {"SummonWorkerButton", "CallToWarButton", "CreatureHealButton",
         "CreatureExplosionButton", "CreatureHasteButton", "CreatureDefenseButton", "CreatureSlowButton",
-        "CreatureStrengthButton", "CreatureWeakButton", "SpellEyeEvilButton"});
+        "CreatureStrengthButton", "CreatureWeakButton", "SpellEyeEvilButton", "CreateGoldButton",
+        "LightningButton", "TremorButton", "DefectorButton",
+        "HexenHenButton", "InfernoButton", "PossessButton", "SummonChampionButton"});
 }
 
 void Gui::arrangeActionButtons(CEGUI::Window* panel, std::initializer_list<const char*> names)
@@ -1375,6 +1380,7 @@ const std::string Gui::EDITOR_WATER_BUTTON = "MainTabControl/Tiles/WaterButton";
 const std::string Gui::EDITOR_ROCK_BUTTON = "MainTabControl/Tiles/RockButton";
 const std::string Gui::EDITOR_CLAIMED_BUTTON = "MainTabControl/Tiles/ClaimedButton";
 const std::string Gui::EDITOR_GEM_BUTTON = "MainTabControl/Tiles/GemButton";
+const std::string Gui::EDITOR_MANAWELL_BUTTON = "MainTabControl/Tiles/ManaWellButton";
 const std::string Gui::EDITOR_FULLNESS = "HorizontalPipe/FullnessDisplay";
 const std::string Gui::EDITOR_CURSOR_POS = "HorizontalPipe/PositionDisplay";
 const std::string Gui::EDITOR_SEAT_ID = "HorizontalPipe/SeatIdDisplay";

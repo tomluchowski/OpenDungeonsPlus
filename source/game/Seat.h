@@ -251,6 +251,8 @@ public:
     //! \brief Applies the vision granted by revealTiles. Must be called after the vision is cleared
     //! and before the visible tiles are sent.
     void applyRevealedTiles();
+    //! \brief Returns true if this seat has been notified about the given tile at least once (server side)
+    bool hasSeenTile(Tile* tile);
     void notifyVisionOnTile(Tile* tile, NodeType nt);
     void notifyTileClaimedByEnemy(Tile* tile);
     void clearVisionForGameMap(DraggableTileContainer* dtc);
@@ -404,6 +406,14 @@ private:
     //! above the free four. Server side only, not saved with the level.
     double mManaShortageSeconds;
 
+    //! \brief Mana taken in one go (spells, trap shots, other mana losses) since
+    //! the last turn. Server side only, moved into mManaOneOffWindow by GameMap::updateSeatMana.
+    double mManaOneOffPending;
+
+    //! \brief The one-off mana taken in each of the last turns covering one second, used for
+    //! the per second average shown on the HUD. Server side only.
+    std::vector<double> mManaOneOffWindow;
+
     //! \brief Seconds left until the workers above the free four pop, or a negative
     //! value while that countdown is not running. Server side only, not saved with the level.
     double mWorkerPopCountdown;
@@ -444,7 +454,10 @@ private:
     //! The second vector stores the Y position. TileStateNotified contains information about the tile
     //! state (last tile state notified, vision last turn for this seat, vision for current turn, ...
     std::map<Tile*,TileStateNotified> mTilesStates;
-    std::map<Tile*,TileStateNotified> mDraggableTilesStates;    
+    std::map<Tile*,TileStateNotified> mDraggableTilesStates;
+
+    //! \brief Tiles revealed by an outside source (like a tortured creature) with the number of turns left.
+    std::vector<std::pair<Tile*, uint32_t> > mRevealedTiles;
 
     //! \brief Tiles revealed by an outside source (like a tortured creature) with the number of turns left.
     std::vector<std::pair<Tile*, uint32_t> > mRevealedTiles;

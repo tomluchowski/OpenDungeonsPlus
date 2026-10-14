@@ -19,6 +19,8 @@
 
 #include "entities/Creature.h"
 #include "entities/Tile.h"
+#include "game/Seat.h"
+#include "rooms/Room.h"
 #include "utils/Helper.h"
 #include "utils/LogManager.h"
 
@@ -60,6 +62,16 @@ bool CreatureActionClaimGroundTile::handleCreatureActionClaimGroundTile(Creature
         }
 
         return true;
+    }
+
+    // A room of ours that an enemy has worn down is repaired by dancing on it
+    Room* room = myTile->getCoveringRoom();
+    if((room != nullptr) && (room->getSeat() == creature.getSeat()) && room->needsClaimRepair())
+    {
+        creature.setAnimationState(EntityAnimation::claim_anim);
+        room->repairClaimHealth(creature.getClaimRate());
+        creature.receiveExp(1.5 * (creature.getClaimRate() / (0.35 + 0.05 * creature.getLevel())));
+        return false;
     }
 
     // We check if the tile is still claimable

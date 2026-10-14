@@ -21,6 +21,8 @@
 
 #include "creatureaction/CreatureActionUseRoom.h"
 #include "entities/BuildingObject.h"
+#include "entities/ChickenEntity.h"
+#include "entities/CreatureDefinition.h"
 #include "entities/Creature.h"
 #include "entities/GameEntityType.h"
 #include "entities/SmallSpiderEntity.h"
@@ -32,12 +34,16 @@
 #include "modes/InputManager.h"
 #include "network/ODServer.h"
 #include "network/ServerNotification.h"
+#include "ODApplication.h"
 #include "rooms/RoomManager.h"
 #include "utils/ConfigManager.h"
 #include "utils/Helper.h"
 #include "utils/LogManager.h"
 #include "utils/MakeUnique.h"
 #include "utils/Random.h"
+
+#include <algorithm>
+#include <cmath>
 
 const std::string RoomPrisonName = "Prison";
 const std::string RoomPrisonNameDisplay = "Prison room";
@@ -273,7 +279,13 @@ void RoomPrison::doUpkeep()
     if(mCoveredTiles.empty())
         return;
 
+    feedPrisoners();
+    freePrisonersIfLiberated();
+
     // We check if we have enough room for all prisoners
+    // The configured chance is per second, doUpkeep runs once per turn
+    double overstuffChancePerSecond = ConfigManager::getSingleton().getRoomConfigDouble("PrisonOverstuffBreakChance");
+    double overstuffChancePerTurn = 1.0 - std::pow(1.0 - overstuffChancePerSecond, 1.0 / ODApplication::turnsPerSecond);
     uint32_t nbCreatures = 0;
     for(Tile* tile : mCoveredTiles)
     {
@@ -293,10 +305,12 @@ void RoomPrison::doUpkeep()
                 continue;
             }
 
-            if(nbCreatures >= mCentralActiveSpotTiles.size())
+            if(nbCreatures >= getCapacity())
             {
-                // We have more prisoner than room. We free them
-                creature->clearActionQueue();
+                // We have more prisoner than room. Each of them breaks out with
+                // the configured chance per second
+                if(Random::Double(0.0, 1.0) < overstuffChancePerTurn)
+                    creature->clearActionQueue();
                 continue;
             }
 
@@ -356,6 +370,178 @@ void RoomPrison::doUpkeep()
     }
 }
 
+void RoomPrison::feedPrisoners()
+{
+    std::vector<Creature*> prisoners;
+    std::vector<ChickenEntity*> chickens;
+    for(Tile* tile : mCoveredTiles)
+    {
+        for(GameEntity* entity : tile->getEntitiesInTile())
+        {
+            if(entity->getObjectType() == GameEntityType::chickenEntity)
+            {
+                chickens.push_back(static_cast<ChickenEntity*>(entity));
+                continue;
+            }
+
+            if(entity->getObjectType() != GameEntityType::creature)
+                continue;
+
+            Creature* creature = static_cast<Creature*>(entity);
+            if((creature->getSeatPrison() != getSeat()) || !creature->isAlive())
+                continue;
+
+            prisoners.push_back(creature);
+        }
+    }
+
+    if(prisoners.empty())
+        return;
+
+    // A chicken dropped in the prison is eaten by the prisoner nearest to it. The
+    // meal gives back the health a hatchery chicken gives.
+    for(ChickenEntity* chicken : chickens)
+    {
+        Tile* chickenTile = chicken->getPositionTile();
+        if(chickenTile == nullptr)
+            continue;
+
+        Creature* nearest = nullptr;
+        int32_t nearestDist = 0;
+        for(Creature* prisoner : prisoners)
+        {
+            Tile* prisonerTile = prisoner->getPositionTile();
+            if(prisonerTile == nullptr)
+                continue;
+
+            int32_t dx = prisonerTile->getX() - chickenTile->getX();
+            int32_t dy = prisonerTile->getY() - chickenTile->getY();
+            int32_t dist = dx * dx + dy * dy;
+            if((nearest == nullptr) || (dist < nearestDist))
+            {
+                nearest = prisoner;
+                nearestDist = dist;
+            }
+        }
+
+        if(nearest == nullptr)
+            continue;
+
+        if(!chicken->eatChicken(nearest))
+            continue;
+
+        nearest->foodEaten(ConfigManager::getSingleton().getRoomConfigDouble("HatcheryHungerPerChicken"));
+        nearest->setHP(nearest->getHP() + ConfigManager::getSingleton().getRoomConfigDouble("HatcheryHpRecoveredPerChicken"));
+        nearest->computeCreatureOverlayHealthValue();
+    }
+}
+
+bool RoomPrison::isLiberator(Creature* creature) const
+{
+    return (creature->getSeatPrison() == nullptr) &&
+           creature->isAlive() &&
+           !creature->isKo() &&
+           !creature->getDefinition()->isWorker() &&
+           !getSeat()->isAlliedSeat(creature->getSeat());
+}
+
+void RoomPrison::freePrisonersIfLiberated()
+{
+    std::vector<Creature*> prisoners;
+    std::vector<Creature*> liberators;
+    for(Tile* tile : mCoveredTiles)
+    {
+        for(GameEntity* entity : tile->getEntitiesInTile())
+        {
+            if(entity->getObjectType() != GameEntityType::creature)
+                continue;
+
+            Creature* creature = static_cast<Creature*>(entity);
+            if(creature->getSeatPrison() == getSeat())
+            {
+                prisoners.push_back(creature);
+                continue;
+            }
+
+            // An enemy creature that stands in the prison frees its comrades
+            if(isLiberator(creature))
+                liberators.push_back(creature);
+        }
+    }
+
+    // An enemy creature walking past the prison, next to its tiles, opens the
+    // door and frees the prisoners of its own type
+    std::vector<Creature*> passersBy;
+    for(Tile* tile : mCoveredTiles)
+    {
+        for(Tile* neighbor : tile->getAllNeighbors())
+        {
+            if(neighbor->getCoveringRoom() == this)
+                continue;
+
+            for(GameEntity* entity : neighbor->getEntitiesInTile())
+            {
+                if(entity->getObjectType() != GameEntityType::creature)
+                    continue;
+
+                Creature* creature = static_cast<Creature*>(entity);
+                if(!isLiberator(creature))
+                    continue;
+
+                if(std::find(passersBy.begin(), passersBy.end(), creature) == passersBy.end())
+                    passersBy.push_back(creature);
+            }
+        }
+    }
+
+    if(prisoners.empty() || (liberators.empty() && passersBy.empty()))
+        return;
+
+    uint32_t nbFreed = 0;
+    for(Creature* prisoner : prisoners)
+    {
+        bool freed = false;
+        for(Creature* liberator : liberators)
+        {
+            if(liberator->getSeat()->isAlliedSeat(prisoner->getSeat()))
+            {
+                freed = true;
+                break;
+            }
+        }
+
+        for(Creature* passerBy : passersBy)
+        {
+            if(freed)
+                break;
+
+            if((passerBy->getDefinition() == prisoner->getDefinition()) &&
+               passerBy->getSeat()->isAlliedSeat(prisoner->getSeat()))
+                freed = true;
+        }
+
+        if(!freed)
+            continue;
+
+        OD_LOG_INF("creature=" + prisoner->getName() + " freed from prison=" + getName());
+        // Ending the use of the room ends the imprisonment
+        prisoner->clearActionQueue();
+        ++nbFreed;
+    }
+
+    if((nbFreed > 0) &&
+       (getSeat()->getPlayer() != nullptr) &&
+       getSeat()->getPlayer()->getIsHuman() &&
+       !getSeat()->getPlayer()->getHasLost())
+    {
+        ServerNotification *serverNotification = new ServerNotification(
+            ServerNotificationType::chatServer, getSeat()->getPlayer());
+        std::string msg = "Jailbreak! Enemy creatures freed prisoners from your prison";
+        serverNotification->mPacket << msg << EventShortNoticeType::aboutCreatures;
+        ODServer::getSingleton().queueServerNotification(serverNotification);
+    }
+}
+
 void RoomPrison::updateActiveSpots(GameMap* gameMap)
 {
     deleteFenceMeshes();    
@@ -369,7 +555,7 @@ void RoomPrison::deleteFenceMeshes()
 {
     for (Tile* tile: mFenceTiles)
     {
-        auto it = mFencingObjects.find(tile);
+        std::map<Tile*, BuildingObject*>::iterator it = mFencingObjects.find(tile);
         if(it == mFencingObjects.end())
             continue;
 
@@ -402,14 +588,14 @@ void RoomPrison::putFenceMeshes()
         std::pair<int,int> west = std::make_pair( xx - 1, yy);
         std::pair<int,int> north = std::make_pair( xx , yy + 1);
         std::pair<int,int> south = std::make_pair( xx , yy - 1);
-        auto fenceEast = std::find(mFenceCoords.begin(), mFenceCoords.end(), east);
-        auto fenceWest = std::find(mFenceCoords.begin(), mFenceCoords.end(), west);
-        auto fenceSouth = std::find(mFenceCoords.begin(), mFenceCoords.end(), south);
-        auto fenceNorth = std::find(mFenceCoords.begin(), mFenceCoords.end(), north);
-        auto actualEast = std::find(mActualTilesCoords.begin(), mActualTilesCoords.end(), east);
-        auto actualWest = std::find(mActualTilesCoords.begin(), mActualTilesCoords.end(), west);
-        auto actualSouth = std::find(mActualTilesCoords.begin(), mActualTilesCoords.end(), south);
-        auto actualNorth = std::find(mActualTilesCoords.begin(), mActualTilesCoords.end(), north);        
+        std::vector<std::pair<int, int>>::iterator fenceEast = std::find(mFenceCoords.begin(), mFenceCoords.end(), east);
+        std::vector<std::pair<int, int>>::iterator fenceWest = std::find(mFenceCoords.begin(), mFenceCoords.end(), west);
+        std::vector<std::pair<int, int>>::iterator fenceSouth = std::find(mFenceCoords.begin(), mFenceCoords.end(), south);
+        std::vector<std::pair<int, int>>::iterator fenceNorth = std::find(mFenceCoords.begin(), mFenceCoords.end(), north);
+        std::vector<std::pair<int, int>>::iterator actualEast = std::find(mActualTilesCoords.begin(), mActualTilesCoords.end(), east);
+        std::vector<std::pair<int, int>>::iterator actualWest = std::find(mActualTilesCoords.begin(), mActualTilesCoords.end(), west);
+        std::vector<std::pair<int, int>>::iterator actualSouth = std::find(mActualTilesCoords.begin(), mActualTilesCoords.end(), south);
+        std::vector<std::pair<int, int>>::iterator actualNorth = std::find(mActualTilesCoords.begin(), mActualTilesCoords.end(), north);        
         BuildingObject* ro = nullptr;        
         if(fenceEast != mFenceCoords.end() && fenceWest !=mFenceCoords.end())
             if(actualSouth!=mActualTilesCoords.end())
@@ -563,10 +749,20 @@ bool RoomPrison::hasOpenCreatureSpot(Creature* creature)
     // We count current prisoners + prisoners on their way
     uint32_t nbCreatures = countPrisoners();
     nbCreatures += mPendingPrisoners.size();
-    if(nbCreatures >= mCentralActiveSpotTiles.size())
+    if(nbCreatures >= getCapacity())
         return false;
 
     return true;
+}
+
+uint32_t RoomPrison::getCapacity() const
+{
+    // The first inner tile holds two prisoners, every other inner tile one more.
+    // A prison without any inner tile is not functional
+    if(mActualTiles.empty())
+        return 0;
+
+    return static_cast<uint32_t>(mActualTiles.size()) + 1;
 }
 
 bool RoomPrison::addCreatureUsingRoom(Creature* creature)
@@ -631,7 +827,7 @@ void RoomPrison::notifyCarryingStateChanged(Creature* carrier, GameEntity* carri
     // We check if we were waiting for this creature
     // We release the pending prisoners before pushing the action room to make sure
     // the place is free when we add the creature
-    auto it = std::find(mPendingPrisoners.begin(), mPendingPrisoners.end(), prisonerCreature);
+    std::vector<Creature*>::iterator it = std::find(mPendingPrisoners.begin(), mPendingPrisoners.end(), prisonerCreature);
     if(it == mPendingPrisoners.end())
     {
         OD_LOG_ERR("room=" + getName() + ", unexpected creature=" + prisonerCreature->getName());
@@ -711,7 +907,9 @@ bool RoomPrison::useRoom(Creature& creature, bool forced)
 
 double RoomPrison::getCreatureSpeed(const Creature* creature, Tile* tile) const
 {
-    if( std::find(mActualTiles.begin(),mActualTiles.end(), tile ) != mActualTiles.end())
+    // Only prisoners are held back. A freed prisoner has to be able to leave
+    if((creature->getSeatPrison() == getSeat()) &&
+       (std::find(mActualTiles.begin(),mActualTiles.end(), tile ) != mActualTiles.end()))
         return 0.0;
     else
         return creature->getMoveSpeedGround();

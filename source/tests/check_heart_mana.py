@@ -54,9 +54,10 @@ struct ODPacket {std::vector<std::string> texts;std::vector<int32_t> ints;
  ODPacket& operator<<(int32_t v){ints.push_back(v);return *this;}
  ODPacket& operator<<(uint32_t){return *this;}ODPacket& operator<<(bool){return *this;}};
 struct ODApplication {static double turnsPerSecond;};double ODApplication::turnsPerSecond=4.0;
-struct ConfigManager {double maxManaPerSeat=200000.0;
+struct ConfigManager {double maxManaPerSeat=200000.0;double manaWellBonusPerTile=100.0;
  static ConfigManager& getSingleton(){static ConfigManager manager;return manager;}
- double getMaxManaPerSeat()const{return maxManaPerSeat;}};
+ double getMaxManaPerSeat()const{return maxManaPerSeat;}
+ double getManaWellBonusPerTile()const{return manaWellBonusPerTile;}};
 struct SeatStatistics {uint32_t mKeepersDefeated=0,mCreaturesKilled=0,mHeroesDestroyed=0,mRoomsCaptured=0,mItemsMade=0,mCreaturesConverted=0;};
 struct Player;
 struct GameMap;
@@ -71,7 +72,8 @@ struct Seat;
 struct Seat {
  int team;int id;Player* mPlayer=nullptr;GameMap* mGameMap=nullptr;void* mCurrentSkill=nullptr;SeatStatistics stats;
  std::vector<uint32_t> mNbRooms=std::vector<uint32_t>(static_cast<uint32_t>(RoomType::nbRooms),0);
- double mMana=0.0,mManaDelta=0.0,mManaIncomePerSecond=0.0,mManaUpkeepPerSecond=0.0;
+ double mMana=0.0,mManaDelta=0.0,mManaIncomePerSecond=0.0,mManaUpkeepPerSecond=0.0,mManaOneOffPending=0.0,mManaOneOffPerSecond=0.0;
+ std::vector<double> mManaOneOffWindow;
  double mManaShortageSeconds=0.0,mWorkerPopCountdown=-1.0;
  unsigned int mNumClaimedTiles=0;int mNumCreaturesWorkers=0;
  Seat(int t,int i):team(t),id(i){}
@@ -134,7 +136,7 @@ struct GameMap {std::vector<Room*> mRooms;std::vector<Seat*> seats;
  std::vector<Room*>& getRooms(){return mRooms;}std::vector<Seat*>& getSeats(){return seats;}
  int64_t getTurnNumber()const{return 0;}NodeType getNodeType()const{return NodeType::MTILES_NODE;}
  void fireRelativeSound(std::vector<Seat*>&,SoundRelativeKeeperStatements){}
- std::vector<Room*> getRoomsByType(RoomType type) const;void updateSeatMana(Seat* seat, double timeSinceLastTurn);
+ std::vector<Room*> getRoomsByType(RoomType type) const;void updateSeatMana(Seat* seat, uint32_t nbManaWellTiles, double timeSinceLastTurn);
  void updateSeatWorkerPop(Seat* seat, bool shortage, double timeSinceLastTurn);};
 struct SpellSummonWorker {static int32_t nextPrice;
  static int32_t getNextWorkerPriceForPlayer(GameMap*,Player*){return nextPrice;}};
@@ -189,11 +191,15 @@ int main(){
  owner.computeSeatBeginTurn();
  check(owner.getNbRooms(RoomType::dungeonTemple)==1,"the living heart counts as the seat temple");
  owner.mMana=0.0;
- map.updateSeatMana(&owner,0.0);
+ map.updateSeatMana(&owner,0,0.0);
  check(near(owner.mManaIncomePerSecond,130.0),"income is the heart plus 100 tiles, the 9 heart tiles not added");
  check(near(owner.mManaUpkeepPerSecond,28.0),"upkeep is the four workers above the free four at 7 per second");
  check(near(owner.mManaDelta,(130.0-28.0)/ODApplication::turnsPerSecond),"the delta converts the net of both to turns");
  check(near(owner.mMana,(130.0-28.0)/ODApplication::turnsPerSecond),"the accrued mana lands on the seat");
+
+ // Mana well tiles
+ map.updateSeatMana(&owner,2,0.0);
+ check(near(owner.mManaIncomePerSecond,330.0),"each mana well tile adds its bonus per second");
 
  // A seat without a heart gains nothing and loses nothing
  Seat orphan(3,9);Player orphanPlayer(&orphan,false);
@@ -202,14 +208,14 @@ int main(){
  orphan.mMana=42.0;orphan.mManaDelta=5.0;orphan.mManaIncomePerSecond=8.0;orphan.mManaUpkeepPerSecond=2.0;
  orphan.computeSeatBeginTurn();
  check(orphan.getNbRooms(RoomType::dungeonTemple)==0,"a seat without a heart has no temple");
- map.updateSeatMana(&orphan,0.0);
+ map.updateSeatMana(&orphan,0,0.0);
  check(orphan.mMana==42.0&&orphan.mManaDelta==0.0
   &&orphan.mManaIncomePerSecond==0.0&&orphan.mManaUpkeepPerSecond==0.0,
   "without a heart there is no income, no upkeep and the mana is untouched");
 
  // Upkeep never brings the mana below 0
  owner.mMana=0.0;owner.mNumCreaturesWorkers=100;
- map.updateSeatMana(&owner,0.0);
+ map.updateSeatMana(&owner,0,0.0);
  check(near(owner.mMana,0.0),"the mana stops at 0, the upkeep never makes it negative");
  owner.mNumClaimedTiles=9+100;owner.mNumCreaturesWorkers=8;
 
@@ -217,13 +223,28 @@ int main(){
  Trap trapA(&owner,25.0,2),trapB(&enemy,5.0,1);
  map.mTraps.push_back(&trapA);map.mTraps.push_back(&trapB);
  owner.mMana=0.0;
- map.updateSeatMana(&owner,0.0);
+ map.updateSeatMana(&owner,0,0.0);
  check(near(owner.mManaUpkeepPerSecond,28.0+50.0),"each armed trap tile adds its upkeep, other seats traps do not");
  map.mTraps.clear();
 
+ // One-off mana losses are averaged over the last second of turns and never counted twice
+ owner.mNumClaimedTiles=9+100;owner.mNumCreaturesWorkers=4;
+ owner.mMana=1000.0;owner.mManaOneOffPending=0.0;owner.mManaOneOffWindow.clear();
+ owner.addMana(-40.0);
+ map.updateSeatMana(&owner,0,0.0);
+ check(near(owner.mManaOneOffPerSecond,40.0),"a one-off loss shows as per second over the window");
+ check(near(owner.mMana,960.0+130.0/ODApplication::turnsPerSecond),"the one-off loss is taken once, the net is untouched");
+ for(int i=0;i<3;++i)map.updateSeatMana(&owner,0,0.0);
+ check(near(owner.mManaOneOffPerSecond,40.0),"the loss stays inside the window for one second");
+ map.updateSeatMana(&owner,0,0.0);
+ check(near(owner.mManaOneOffPerSecond,0.0),"the loss leaves the window after one second");
+ owner.addMana(5.0);
+ map.updateSeatMana(&owner,0,0.0);
+ check(near(owner.mManaOneOffPerSecond,0.0),"a gain is no one-off loss");
+
  // The stored mana has a maximum
  owner.mMana=199990.0;owner.mNumClaimedTiles=500;owner.mNumCreaturesWorkers=0;
- map.updateSeatMana(&owner,0.0);
+ map.updateSeatMana(&owner,0,0.0);
  check(near(owner.mMana,200000.0),"the stored mana is clamped at the maximum");
  owner.mNumClaimedTiles=9+100;owner.mNumCreaturesWorkers=4;
 
@@ -384,9 +405,9 @@ assert 'if(redemWorkerInHeart(entity, t))' in drop, 'the server drop must try th
 assert drop.index('redemWorkerInHeart(entity, t)') < drop.index('entity->drop(pos);'), 'redemption comes before the regular drop'
 assert 'mGameMap->isServerGameMap()' in drop, 'the redemption is a server side rule'
 misc = function(game_map, 'unsigned long int GameMap::doMiscUpkeep(')
-assert 'seat->computeSeatBeginTurn();' in misc and 'updateSeatMana(seat, timeSinceLastTurn);' in misc, 'each seat gets its mana every turn'
+assert 'seat->computeSeatBeginTurn();' in misc and 'updateSeatMana(seat, nbManaWellTiles, timeSinceLastTurn);' in misc, 'each seat gets its mana every turn'
 assert 'seat->getPlayer()->notifyNoMoreDungeonTemple();' in misc, 'a lost temple still starts the defeat path'
-assert 'void updateSeatMana(Seat* seat, double timeSinceLastTurn);' in read('source/gamemap/GameMap.h')
+assert 'void updateSeatMana(Seat* seat, uint32_t nbManaWellTiles, double timeSinceLastTurn);' in read('source/gamemap/GameMap.h')
 
 client = read('source/network/ODClient.cpp')
 assert '#include <OgreSceneNode.h>' in client, 'the scene node needs its full type'
@@ -397,13 +418,15 @@ seat_data_cpp = read('source/game/SeatData.cpp')
 assert 'mManaIncomePerSecond(0.0)' in seat_data_cpp and 'mManaUpkeepPerSecond(0.0)' in seat_data_cpp
 assert seat_data_cpp.count('mManaIncomePerSecond') == 5, 'the new fields are serialized at every site'
 assert seat_data_cpp.count('mManaUpkeepPerSecond') == 5, 'the new fields are serialized at every site'
+assert seat_data_cpp.count('mManaOneOffPerSecond') == 5, 'the one-off field is serialized at every site'
+assert 'mManaOneOffPending += mana;' in function(seat, 'bool Seat::takeMana('), 'every spell, trap and drain cost counts as one-off mana'
 
 assert 'mMaxManaPerSeat(200000.0)' in read('source/utils/ConfigManager.cpp')
 cfg_lines = [l.strip() for l in read('config/global.cfg').splitlines() if l.strip().startswith('MaxManaPerSeat')]
 assert any('200000' in l for l in cfg_lines), 'the stored maximum is 200000 in the config'
 
 game_mode = read('source/modes/GameMode.cpp')
-assert 'getManaIncomePerSecond()' in game_mode and 'getManaUpkeepPerSecond()' in game_mode, \
+assert 'getManaIncomePerSecond()' in game_mode and 'getManaUpkeepPerSecond()' in game_mode and 'getManaOneOffPerSecond()' in game_mode, \
     'the mana display shows income and upkeep per second'
 
 player_header_text = read('source/game/Player.h')

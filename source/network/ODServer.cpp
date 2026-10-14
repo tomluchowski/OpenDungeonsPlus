@@ -41,6 +41,7 @@
 #include "network/ServerMode.h"
 #include "network/ServerNotification.h"
 #include "rooms/Room.h"
+#include "rooms/RoomCasino.h"
 #include "rooms/RoomDungeonTemple.h"
 #include "rooms/RoomManager.h"
 #include "rooms/RoomPortalWave.h"
@@ -914,6 +915,7 @@ bool ODServer::processClientNotifications(ODSocketClient* clientSocket)
             std::vector<Tile*> gemTiles;
             std::vector<Tile*> waterTiles;
             std::vector<Tile*> lavaTiles;
+            std::vector<Tile*> manaWellTiles;
             
             for (int xxx = 0; xxx < mapSizeX; ++xxx)
             {
@@ -936,6 +938,9 @@ bool ODServer::processClientNotifications(ODSocketClient* clientSocket)
                             break;
                         case TileType::lava:
                             lavaTiles.push_back(tile);
+                            break;
+                        case TileType::manaWell:
+                            manaWellTiles.push_back(tile);
                             break;
                             
                         default:
@@ -977,6 +982,12 @@ bool ODServer::processClientNotifications(ODSocketClient* clientSocket)
             {
                 gameMap->tileToPacket(packet, tile);
             }
+            nb = manaWellTiles.size();
+            packet << nb;
+            for(Tile* tile : manaWellTiles)
+            {
+                gameMap->tileToPacket(packet, tile);
+            }
 
             
             clientSocket->send(packet);
@@ -991,7 +1002,7 @@ bool ODServer::processClientNotifications(ODSocketClient* clientSocket)
             clientSocket->setState("nick");
             // Tell the client to give us their nickname
             ODPacket packetSend;
-            packetSend << ServerNotificationType::pickNick << mServerMode << true << true << true << true;
+            packetSend << ServerNotificationType::pickNick << mServerMode << true << true << true << true << true;
             clientSocket->send(packetSend);
             break;
         }
@@ -1023,6 +1034,11 @@ bool ODServer::processClientNotifications(ODSocketClient* clientSocket)
             if(!packetReceived.endOfPacket())
                 OD_ASSERT_TRUE(packetReceived >> creaturePanel);
             clientSocket->setSupportsCreaturePanel(creaturePanel);
+
+            bool creatureProgress = false;
+            if(!packetReceived.endOfPacket())
+                OD_ASSERT_TRUE(packetReceived >> creatureProgress);
+            clientSocket->setSupportsCreatureProgress(creatureProgress);
 
             // NOTE : playerId 0 is reserved for inactive players and 1 is reserved for AI
             int32_t playerId = mUniqueNumberPlayer + Seat::PLAYER_ID_HUMAN_MIN;
@@ -1077,6 +1093,7 @@ bool ODServer::processClientNotifications(ODSocketClient* clientSocket)
             packetSend << clientSocket->supportsCreatureMood();
             packetSend << clientSocket->supportsCreatureActivity();
             packetSend << clientSocket->supportsCreaturePanel();
+            packetSend << clientSocket->supportsCreatureProgress();
             clientSocket->send(packetSend);
             mSeatsConfigured = true;
             break;
@@ -1450,6 +1467,7 @@ bool ODServer::processClientNotifications(ODSocketClient* clientSocket)
                 packetSend << client->supportsCreatureMood();
                 packetSend << client->supportsCreatureActivity();
                 packetSend << client->supportsCreaturePanel();
+                packetSend << client->supportsCreatureProgress();
                 client->send(packetSend);
             }
 
@@ -1795,6 +1813,78 @@ bool ODServer::processClientNotifications(ODSocketClient* clientSocket)
 
             uint32_t newCooldown = SpellManager::getSpellCooldown(spellType);
             player->setSpellCooldownTurns(spellType, newCooldown);
+            break;
+        }
+
+        case ClientNotificationType::askPossessMove:
+        {
+            Ogre::Vector2 direction;
+            OD_ASSERT_TRUE(packetReceived >> direction);
+            Player* player = clientSocket->getPlayer();
+            if(!player->isPossessing())
+                break;
+
+            Creature* creature = gameMap->getCreature(player->getPossessedCreatureName());
+            if(creature == nullptr || creature->getPossessor() != player)
+                break;
+
+            creature->possessedMove(direction);
+            break;
+        }
+
+        case ClientNotificationType::askPossessAttack:
+        {
+            Ogre::Vector2 aim;
+            OD_ASSERT_TRUE(packetReceived >> aim);
+            Player* player = clientSocket->getPlayer();
+            if(!player->isPossessing())
+                break;
+
+            Creature* creature = gameMap->getCreature(player->getPossessedCreatureName());
+            if(creature == nullptr || creature->getPossessor() != player)
+                break;
+
+            creature->possessedAttack(aim);
+            break;
+        }
+
+        case ClientNotificationType::askPossessSkill:
+        {
+            uint32_t slot;
+            Ogre::Vector2 aim;
+            OD_ASSERT_TRUE(packetReceived >> slot >> aim);
+            Player* player = clientSocket->getPlayer();
+            if(!player->isPossessing())
+                break;
+
+            Creature* creature = gameMap->getCreature(player->getPossessedCreatureName());
+            if(creature == nullptr || creature->getPossessor() != player)
+                break;
+
+            creature->possessedUseSkill(slot, aim);
+            break;
+        }
+
+        case ClientNotificationType::askPossessExit:
+        {
+            Player* player = clientSocket->getPlayer();
+            if(!player->isPossessing())
+                break;
+
+            Creature* creature = gameMap->getCreature(player->getPossessedCreatureName());
+            if(creature == nullptr || creature->getPossessor() != player)
+            {
+                // The creature is gone, we only have to tell the client
+                player->setPossessedCreatureName(std::string());
+                ServerNotification* serverNotification = new ServerNotification(
+                    ServerNotificationType::possessionEnd, player);
+                const bool lost = true;
+                serverNotification->mPacket << lost;
+                queueServerNotification(serverNotification);
+                break;
+            }
+
+            creature->endPossession();
             break;
         }
 
@@ -2889,6 +2979,39 @@ bool ODServer::processClientNotifications(ODSocketClient* clientSocket)
         }
 
         
+        case ClientNotificationType::askCasinoPayout:
+        {
+            Player* player = clientSocket->getPlayer();
+            if(player == nullptr)
+                break;
+
+            int xx = 0;
+            int yy = 0;
+            uint32_t level = 0;
+            bool isSet = false;
+            OD_ASSERT_TRUE(packetReceived >> xx >> yy >> level >> isSet);
+            Tile* tile = gameMap->getTile(xx, yy);
+            if(tile == nullptr)
+                break;
+
+            Room* room = tile->getCoveringRoom();
+            if((room == nullptr) || (room->getType() != RoomType::casino))
+                break;
+
+            // Only the owner of the casino can set the payout
+            if(room->getSeat() != player->getSeat())
+                break;
+
+            RoomCasino* roomCasino = static_cast<RoomCasino*>(room);
+            if(isSet && (level < static_cast<uint32_t>(CasinoPayout::nbValues)))
+                roomCasino->setPayout(static_cast<CasinoPayout>(level));
+
+            ServerNotification notif(ServerNotificationType::casinoPayout, player);
+            notif.mPacket << xx << yy << static_cast<uint32_t>(roomCasino->getPayout());
+            sendAsyncMsg(notif);
+            break;
+        }
+
         case ClientNotificationType::askExecuteConsoleCommand:
         {
             uint32_t nbArgs;
@@ -3056,6 +3179,12 @@ bool ODServer::supportsCreatureActivity(Player* player)
 {
     ODSocketClient* client = getClientFromPlayer(player);
     return client != nullptr && client->supportsCreatureActivity();
+}
+
+bool ODServer::supportsCreatureProgress(Player* player)
+{
+    ODSocketClient* client = getClientFromPlayer(player);
+    return client != nullptr && client->supportsCreatureProgress();
 }
 
 ODSocketClient* ODServer::getClientFromPlayer(Player* player)

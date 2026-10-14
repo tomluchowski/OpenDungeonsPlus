@@ -43,6 +43,8 @@ public:
     virtual void updateActiveSpots(GameMap* gameMap = nullptr) override;    
     bool useRoom(Creature& creature, bool forced) override;
     bool shouldStopUseIfHungrySleepy(Creature& creature, bool forced) override;
+    bool shouldNotUseIfBadMood(Creature& creature, bool forced) override
+    { return false; }
 
     std::string getListenerName() const override;
     bool notifyDead(GameEntity* entity) override;
@@ -61,7 +63,13 @@ protected:
 
     
 private:
+    //! \brief Mood points of the victor, the spectators and a creature alone in the pit
+    void updatePitMood();
+
     std::vector<Creature*> mCreaturesFighting;
+
+    //! \brief True while at least 2 creatures able to fight are in the pit. The last one standing is the victor
+    bool mFightOngoing;
 };
 
 #endif // ROOMARENA_H
