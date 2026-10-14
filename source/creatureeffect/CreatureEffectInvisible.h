@@ -27,23 +27,28 @@
 class CreatureEffectInvisible : public CreatureEffect
 {
 public:
+    //! \brief Creates the effect with its parameters.
     CreatureEffectInvisible(int32_t nbTurnsEffect) :
         CreatureEffect(nbTurnsEffect, "")
     {}
 
+    //! \brief Creates an empty effect that is filled by importFromStream.
     CreatureEffectInvisible() :
         CreatureEffect()
     {}
 
+    //! \brief Destroys the effect.
     virtual ~CreatureEffectInvisible()
     {}
 
+    //! \brief Returns the name under which the effect is registered.
     virtual const std::string& getEffectName() const override;
 
     //! \brief Creates the effect from the stream (used when loading a saved game).
     static CreatureEffectInvisible* load(std::istream& is);
 
 protected:
+    //! \brief Applies the effect to the creature; called every turn while it lasts.
     virtual void applyEffect(Creature& creature) override;
 };
 
