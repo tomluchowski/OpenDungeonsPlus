@@ -32,6 +32,17 @@
 
 #include <algorithm>
 
+//! \brief Turns of hammering needed to arm a tile again when the trap config has no TrapReloadWorkTurns
+static const double DEFAULT_RELOAD_WORK_TURNS = 12.0;
+//! \brief Turns to wait before the next try when the seat cannot pay and the trap config has no TrapReloadRetryTurns
+static const double DEFAULT_RELOAD_RETRY_TURNS = 100.0;
+//! \brief Experience given for a finished reload when the trap config has no TrapReloadExperience
+static const double DEFAULT_RELOAD_EXPERIENCE = 1.0;
+//! \brief Value of TrapReloadByWorkers when the trap config has no entry (1.0 means workers reload traps)
+static const double DEFAULT_RELOAD_BY_WORKERS = 1.0;
+//! \brief Search radius in tiles when the trap config has no TrapReloadSearchRadius
+static const double DEFAULT_RELOAD_SEARCH_RADIUS = 30.0;
+
 namespace
 {
 //! The trap that covers the tile, nullptr if there is none
@@ -108,7 +119,7 @@ bool CreatureActionReloadTrap::handleReloadTrap(Creature& creature, Tile& tileRe
     // The work: hammering and tightening until the tile is armed again
     creature.setAnimationState(EntityAnimation::dig_anim);
     ++workTurns;
-    int32_t workNeeded = static_cast<int32_t>(ConfigManager::getSingleton().getTrapConfigDoubleOrDefault("TrapReloadWorkTurns", 12.0));
+    int32_t workNeeded = static_cast<int32_t>(ConfigManager::getSingleton().getTrapConfigDoubleOrDefault("TrapReloadWorkTurns", DEFAULT_RELOAD_WORK_TURNS));
     if(workTurns < workNeeded)
         return false;
 
@@ -116,14 +127,14 @@ bool CreatureActionReloadTrap::handleReloadTrap(Creature& creature, Tile& tileRe
     int32_t price = trap->getReloadPrice();
     if((price > 0) && !creature.getGameMap()->withdrawFromTreasuries(price, creature.getSeat()))
     {
-        double retry = ConfigManager::getSingleton().getTrapConfigDoubleOrDefault("TrapReloadRetryTurns", 100.0);
+        double retry = ConfigManager::getSingleton().getTrapConfigDoubleOrDefault("TrapReloadRetryTurns", DEFAULT_RELOAD_RETRY_TURNS);
         trap->postponeReload(&tileReload, creature.getGameMap()->getTurnNumber() + static_cast<int64_t>(std::max(0.0, retry)));
         creature.popAction();
         return false;
     }
 
     trap->activate(&tileReload);
-    creature.receiveExp(ConfigManager::getSingleton().getTrapConfigDoubleOrDefault("TrapReloadExperience", 1.0));
+    creature.receiveExp(ConfigManager::getSingleton().getTrapConfigDoubleOrDefault("TrapReloadExperience", DEFAULT_RELOAD_EXPERIENCE));
     creature.popAction();
     return false;
 }
@@ -131,14 +142,14 @@ bool CreatureActionReloadTrap::handleReloadTrap(Creature& creature, Tile& tileRe
 bool CreatureActionReloadTrap::tryStart(Creature& creature)
 {
     ConfigManager& config = ConfigManager::getSingleton();
-    if(config.getTrapConfigDoubleOrDefault("TrapReloadByWorkers", 1.0) <= 0.0)
+    if(config.getTrapConfigDoubleOrDefault("TrapReloadByWorkers", DEFAULT_RELOAD_BY_WORKERS) <= 0.0)
         return false;
 
     Tile* myTile = creature.getPositionTile();
     if((myTile == nullptr) || !creature.getGameMap()->isServerGameMap())
         return false;
 
-    double radius = config.getTrapConfigDoubleOrDefault("TrapReloadSearchRadius", 30.0);
+    double radius = config.getTrapConfigDoubleOrDefault("TrapReloadSearchRadius", DEFAULT_RELOAD_SEARCH_RADIUS);
     Tile* bestTile = nullptr;
     float bestDist = 0.0f;
     for(Trap* trap : creature.getGameMap()->getTraps())

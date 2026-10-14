@@ -21,6 +21,8 @@
 #include "Trap.h"
 #include "traps/TrapType.h"
 
+#include <cstdint>
+
 //! \brief A post that shoots nothing. Guards of the owner's guard rooms patrol to it, and it calls them
 //! when it notices an enemy within its aura. Calling the guards is its "shot": the clients are told (flag flares), and
 //! the post then reloads for GuardRoomDistressSeconds (the flag hangs) until it may call again.

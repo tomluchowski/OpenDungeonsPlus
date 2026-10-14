@@ -21,6 +21,8 @@
 #include "Trap.h"
 #include "traps/TrapType.h"
 
+#include <cstdint>
+
 //! \brief A pressure trap that paralyses every enemy creature standing on its tile when it fires.
 //! Frozen creatures can neither move nor fight. A creature that is low on health when caught shatters and dies.
 class TrapFreeze : public Trap
