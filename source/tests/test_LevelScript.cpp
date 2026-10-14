@@ -435,7 +435,7 @@ BOOST_AUTO_TEST_CASE(test_story_state)
 
     BOOST_REQUIRE_EQUAL(script.getTriggers().size(), 1u);
     const LevelScriptTrigger& trigger = script.getTriggers()[0];
-    BOOST_REQUIRE_EQUAL(trigger.mConditions.size(), 12u);
+    BOOST_REQUIRE_EQUAL(trigger.mConditions.size(), 13u);
     BOOST_CHECK(trigger.mConditions[0].mType == LevelScriptConditionType::seatDefeated);
     BOOST_CHECK_EQUAL(trigger.mConditions[0].mSeatId, 4);
     BOOST_CHECK(trigger.mConditions[1].mType == LevelScriptConditionType::ownsCreature);
