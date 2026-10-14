@@ -23,6 +23,57 @@
 
 namespace AIFactory
 {
+namespace
+{
+//! Values of the easy AI level, named like the parameters of the KeeperAI constructor
+//! (cooldowns in turns, percent values in percent, counts in creatures or tiles).
+static const int EASY_COOLDOWN_DEFENSE_MIN = 30;
+static const int EASY_COOLDOWN_DEFENSE_MAX = 50;
+static const int EASY_COOLDOWN_SAVE_WOUNDED_MIN = 30;
+static const int EASY_COOLDOWN_SAVE_WOUNDED_MAX = 50;
+static const int EASY_COOLDOWN_LOOKING_FOR_ROOMS_MIN = 60;
+static const int EASY_COOLDOWN_LOOKING_FOR_ROOMS_MAX = 80;
+static const int EASY_REACTION_PERCENT = 150;
+static const int EASY_MIN_HP_PERCENT_TO_FIGHT = 25;
+static const int EASY_MIN_FIGHTERS_TO_ATTACK = 14;
+static const int EASY_MIN_CREATURE_LEVEL = 2;
+static const int EASY_MAX_TRAP_TILES = 2;
+static const int EASY_MAX_DOORS = 1;
+
+//! Values of the normal AI level, named like the parameters of the KeeperAI constructor.
+static const int NORMAL_COOLDOWN_DEFENSE_MIN = 0;
+static const int NORMAL_COOLDOWN_DEFENSE_MAX = 5;
+static const int NORMAL_COOLDOWN_SAVE_WOUNDED_MIN = 0;
+static const int NORMAL_COOLDOWN_SAVE_WOUNDED_MAX = 5;
+static const int NORMAL_COOLDOWN_LOOKING_FOR_ROOMS_MIN = 30;
+static const int NORMAL_COOLDOWN_LOOKING_FOR_ROOMS_MAX = 50;
+static const int NORMAL_REACTION_PERCENT = 100;
+static const int NORMAL_MIN_HP_PERCENT_TO_FIGHT = 20;
+static const int NORMAL_MIN_FIGHTERS_TO_ATTACK = 11;
+static const int NORMAL_MIN_CREATURE_LEVEL = 4;
+static const int NORMAL_MAX_TRAP_TILES = 5;
+static const int NORMAL_MAX_DOORS = 3;
+
+//! Values of the hard AI level, named like the parameters of the KeeperAI constructor.
+static const int HARD_COOLDOWN_DEFENSE_MIN = 0;
+static const int HARD_COOLDOWN_DEFENSE_MAX = 3;
+static const int HARD_COOLDOWN_SAVE_WOUNDED_MIN = 0;
+static const int HARD_COOLDOWN_SAVE_WOUNDED_MAX = 3;
+static const int HARD_COOLDOWN_LOOKING_FOR_ROOMS_MIN = 20;
+static const int HARD_COOLDOWN_LOOKING_FOR_ROOMS_MAX = 35;
+static const int HARD_REACTION_PERCENT = 60;
+static const int HARD_MIN_HP_PERCENT_TO_FIGHT = 12;
+static const int HARD_MIN_FIGHTERS_TO_ATTACK = 8;
+static const int HARD_MIN_CREATURE_LEVEL = 7;
+static const int HARD_MAX_TRAP_TILES = 8;
+static const int HARD_MAX_DOORS = 5;
+} // namespace
+
+//! \brief Creates the keeper AI of the given level for a player.
+//! \param gameMap The map the AI plays on.
+//! \param player The player the AI controls.
+//! \param type The AI level: easy, normal or hard.
+//! \return The new AI, or nullptr (with an error in the log) for any other AI type.
 BaseAI* createAI(GameMap& gameMap, Player& player, KeeperAIType type)
 {
     // Easy, normal and hard differ in attack threshold (minFightersToAttack), minimum creature
@@ -33,11 +84,23 @@ BaseAI* createAI(GameMap& gameMap, Player& player, KeeperAIType type)
     switch(type)
     {
         case KeeperAIType::easy:
-            return new KeeperAI(gameMap, player, 30, 50, 30, 50, 60, 80, 150, 25, 14, 2, 2, 1);
+            return new KeeperAI(gameMap, player, EASY_COOLDOWN_DEFENSE_MIN, EASY_COOLDOWN_DEFENSE_MAX,
+                EASY_COOLDOWN_SAVE_WOUNDED_MIN, EASY_COOLDOWN_SAVE_WOUNDED_MAX,
+                EASY_COOLDOWN_LOOKING_FOR_ROOMS_MIN, EASY_COOLDOWN_LOOKING_FOR_ROOMS_MAX,
+                EASY_REACTION_PERCENT, EASY_MIN_HP_PERCENT_TO_FIGHT, EASY_MIN_FIGHTERS_TO_ATTACK,
+                EASY_MIN_CREATURE_LEVEL, EASY_MAX_TRAP_TILES, EASY_MAX_DOORS);
         case KeeperAIType::normal:
-            return new KeeperAI(gameMap, player, 0, 5, 0, 5, 30, 50, 100, 20, 11, 4, 5, 3);
+            return new KeeperAI(gameMap, player, NORMAL_COOLDOWN_DEFENSE_MIN, NORMAL_COOLDOWN_DEFENSE_MAX,
+                NORMAL_COOLDOWN_SAVE_WOUNDED_MIN, NORMAL_COOLDOWN_SAVE_WOUNDED_MAX,
+                NORMAL_COOLDOWN_LOOKING_FOR_ROOMS_MIN, NORMAL_COOLDOWN_LOOKING_FOR_ROOMS_MAX,
+                NORMAL_REACTION_PERCENT, NORMAL_MIN_HP_PERCENT_TO_FIGHT, NORMAL_MIN_FIGHTERS_TO_ATTACK,
+                NORMAL_MIN_CREATURE_LEVEL, NORMAL_MAX_TRAP_TILES, NORMAL_MAX_DOORS);
         case KeeperAIType::hard:
-            return new KeeperAI(gameMap, player, 0, 3, 0, 3, 20, 35, 60, 12, 8, 7, 8, 5);
+            return new KeeperAI(gameMap, player, HARD_COOLDOWN_DEFENSE_MIN, HARD_COOLDOWN_DEFENSE_MAX,
+                HARD_COOLDOWN_SAVE_WOUNDED_MIN, HARD_COOLDOWN_SAVE_WOUNDED_MAX,
+                HARD_COOLDOWN_LOOKING_FOR_ROOMS_MIN, HARD_COOLDOWN_LOOKING_FOR_ROOMS_MAX,
+                HARD_REACTION_PERCENT, HARD_MIN_HP_PERCENT_TO_FIGHT, HARD_MIN_FIGHTERS_TO_ATTACK,
+                HARD_MIN_CREATURE_LEVEL, HARD_MAX_TRAP_TILES, HARD_MAX_DOORS);
         default:
             break;
     }
