@@ -24,26 +24,36 @@
 class CreatureMoodHatedCompany : public CreatureMood
 {
 public:
+    //! \brief Creates the modifier with empty parameters (they are read from the configuration).
     CreatureMoodHatedCompany() :
         mTurnsMax(0),
         mMoodModifier(0)
     {}
 
+    //! \brief Nothing to release.
     virtual ~CreatureMoodHatedCompany()
     {}
 
+    //! \brief The name of this modifier ("HatedCompany").
     const std::string& getModifierName() const override;
 
+    //! \brief Mood change per turn spent near a hated creature, counted up to TurnsMax turns.
     virtual int32_t computeMood(const Creature& creature) const override;
 
+    //! \brief Returns a copy of this modifier.
     inline CreatureMoodHatedCompany* clone() const override;
 
+    //! \brief Reads TurnsMax and MoodModifier, returns false if one is missing.
     virtual bool importFromStream(std::istream& is) override;
+    //! \brief Writes TurnsMax and MoodModifier.
     virtual void exportToStream(std::ostream& os) const override;
+    //! \brief Appends the column names TurnsMax and MoodModifier.
     virtual void getFormatString(std::string& format) const override;
 
 private:
+    //! \brief Number of turns near a hated creature after which the mood change stops growing
     int32_t mTurnsMax;
+    //! \brief Mood change for each of these turns
     int32_t mMoodModifier;
 };
 

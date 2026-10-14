@@ -29,29 +29,39 @@ class CreatureSkillGrenade : public CreatureSkillMissileLaunch
 {
 public:
     // Constructors
+    //! \brief Creates a grenade skill without a blast radius (it is read from the configuration).
     CreatureSkillGrenade() :
         mBlastRadius(0.0)
     {}
 
+    //! \brief Nothing to release.
     virtual ~CreatureSkillGrenade()
     {}
 
+    //! \brief The name of this skill ("Grenade").
     virtual const std::string& getSkillName() const override;
 
+    //! \brief Returns a copy of this skill.
     virtual CreatureSkillGrenade* clone() const override;
 
+    //! \brief True if the other skill is a grenade with the same parameters.
     virtual bool isEqual(const CreatureSkill& creatureSkill) const override;
 
+    //! \brief Appends the column names of the missile parameters and of the blast radius.
     virtual void getFormatString(std::string& format) const override;
+    //! \brief Writes the missile parameters and the blast radius.
     virtual void exportToStream(std::ostream& os) const override;
+    //! \brief Reads the missile parameters and the blast radius, returns false if one is missing.
     virtual bool importFromStream(std::istream& is) override;
 
 protected:
+    //! \brief Creates the exploding missile that hurts every enemy within the blast radius.
     virtual MissileOneHit* createMissile(GameMap& gameMap, Creature* creature, const Ogre::Vector3& direction,
         double phyAtk, double magAtk, double eleAtk, GameEntity* attackedObject, bool ko,
         bool notifyPlayerIfHit) const override;
 
 private:
+    //! \brief Radius in tiles around the impact where enemy creatures are hurt
     double mBlastRadius;
 };
 
