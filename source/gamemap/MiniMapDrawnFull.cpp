@@ -451,6 +451,8 @@ MiniMapDrawnFull::~MiniMapDrawnFull()
 
 Ogre::Vector2 MiniMapDrawnFull::camera_2dPositionFromClick(int xx, int yy)
 {
+    mTopLeftCornerX = static_cast<int>(mMiniMapWindow->getPixelPosition().d_x);
+    mTopLeftCornerY = static_cast<int>(mMiniMapWindow->getPixelPosition().d_y);
     Ogre::Vector2 v(0, 0);
     Ogre::Real gainX = static_cast<Ogre::Real>(mGameMap.getMapSizeX())
         / static_cast<Ogre::Real>(mWidth);

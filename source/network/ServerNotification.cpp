@@ -140,6 +140,8 @@ std::string ServerNotification::typeString(ServerNotificationType type)
             return "displayText";
         case ServerNotificationType::editorPortalWaveData:
             return "editorPortalWaveData";
+        case ServerNotificationType::playerNickChanged:
+            return "playerNickChanged";
         case ServerNotificationType::cosmeticEvent:
             return "cosmeticEvent";
         default:
