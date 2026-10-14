@@ -60,6 +60,217 @@ const std::string MeshNest = "ChickenNest";
 const std::string MeshFeathers = "ChickenLooseFeathers";
 const std::string MaterialGroup = "Graphics";
 
+//! \brief Height above the egg at which the shell pieces fly when it hatches.
+const float FEATHER_HEIGHT_HATCH_SHELL = 0.05f;
+//! \brief Height at which the shell pieces and yolk of a trampled egg start.
+const float FEATHER_HEIGHT_TRAMPLE_SHELL = 0.04f;
+//! \brief Height of the feathers of a hen that is startled by a trampled egg.
+const float FEATHER_HEIGHT_TRAMPLE_HEN = 0.1f;
+//! \brief Height of the last feather cloud between two roosters when their fight is over.
+const float FEATHER_HEIGHT_FIGHT_END_MIDDLE = 0.15f;
+//! \brief Height of the feather cloud above the rooster that lost the fight.
+const float FEATHER_HEIGHT_FIGHT_END_LOSER = 0.1f;
+//! \brief Height of the feather cloud when the rooster jumps on a hen.
+const float FEATHER_HEIGHT_MOUNT = 0.2f;
+//! \brief Height of the feather cloud when a hen cackles.
+const float FEATHER_HEIGHT_CACKLE = 0.12f;
+//! \brief Height of the feather cloud when a rooster starts to fight.
+const float FEATHER_HEIGHT_FIGHT = 0.15f;
+//! \brief Height of the feather cloud when a chicken is held in the hand.
+const float FEATHER_HEIGHT_PROTEST = 0.2f;
+//! \brief Height of the feather cloud when a hen scatters from a hungry creature.
+const float FEATHER_HEIGHT_FLEE = 0.12f;
+//! \brief Height of the feather cloud when a hen flutters.
+const float FEATHER_HEIGHT_FLUTTER = 0.1f;
+//! \brief Height of the feather cloud when an animal comes out of the coop.
+const float FEATHER_HEIGHT_EMERGE = 0.1f;
+//! \brief Seconds a coop without a door clip shakes when an animal comes out.
+const float COOP_SHAKE_SECONDS = 0.8f;
+//! \brief Height above the ground from which an egg counts as lying in a nest.
+const float NEST_EGG_MIN_HEIGHT = 0.01f;
+//! \brief Seconds of the wobble after which the shell shows its cracks.
+const float EGG_CRACK_TIME = 0.8f;
+//! \brief Factor by which the wobble of an egg grows with time.
+const float EGG_WOBBLE_RAMP = 2.5f;
+//! \brief Roll of the wobbling egg in degrees.
+const float EGG_ROLL_DEGREES = 11.0f;
+//! \brief Speed of the roll and lift of the wobbling egg.
+const float EGG_ROLL_SPEED = 17.0f;
+//! \brief Pitch of the wobbling egg in degrees.
+const float EGG_PITCH_DEGREES = 7.0f;
+//! \brief Speed of the pitch of the wobbling egg.
+const float EGG_PITCH_SPEED = 13.0f;
+//! \brief Height the wobbling egg rises.
+const float EGG_WOBBLE_LIFT = 0.004f;
+//! \brief Pitch of a strutting animal (chest out) in degrees.
+const float STRUT_PITCH_DEGREES = -8.0f;
+//! \brief Stretch of a strutting animal along its length.
+const float STRUT_STRETCH_X = 1.06f;
+//! \brief Stretch of a strutting animal in height.
+const float STRUT_STRETCH_Z = 1.05f;
+//! \brief Height of the bounce with each step of a strutting animal.
+const float STRUT_BOUNCE_LIFT = 0.012f;
+//! \brief Speed of the bounce of a strutting animal.
+const float STRUT_BOUNCE_SPEED = 9.0f;
+//! \brief Height of the hops of a running animal.
+const float RUN_HOP_LIFT = 0.022f;
+//! \brief Speed of the hops of a running animal.
+const float RUN_HOP_SPEED = 16.0f;
+//! \brief Roll of a running animal in degrees.
+const float RUN_ROLL_DEGREES = 6.0f;
+//! \brief Speed of the roll of a running animal.
+const float RUN_ROLL_SPEED = 8.0f;
+//! \brief Pitch of a running animal without a run clip (head forward) in degrees.
+const float RUN_PITCH_DEGREES = 14.0f;
+//! \brief Stretch of the wings of a running animal without a run clip.
+const float RUN_WING_STRETCH = 0.2f;
+//! \brief Speed of the wing stretch of a running animal without a run clip.
+const float RUN_WING_SPEED = 22.0f;
+//! \brief Factor by which the crow grows with time.
+const float CROW_RAMP = 4.0f;
+//! \brief Height the body rises when the rooster crows.
+const float CROW_LIFT = 0.01f;
+//! \brief Pitch of the rooster with the head thrown back in degrees.
+const float CROW_PITCH_DEGREES = -38.0f;
+//! \brief Stretch of the wings while the rooster crows.
+const float CROW_WING_STRETCH = 0.3f;
+//! \brief Speed of the wing beat while the rooster crows.
+const float CROW_WING_SPEED = 14.0f;
+//! \brief Stretch of the body in height while the rooster crows.
+const float CROW_BODY_STRETCH = 0.14f;
+//! \brief Pitch of an animal on its perch in degrees.
+const float PERCH_PITCH_DEGREES = -6.0f;
+//! \brief Size of the puffed up rooster that guards.
+const float GUARD_PUFF = 1.28f;
+//! \brief How much the puffed up guard size wobbles.
+const float GUARD_PUFF_WOBBLE = 0.03f;
+//! \brief Speed of the wobble of the guard size.
+const float GUARD_PUFF_SPEED = 20.0f;
+//! \brief Stretch of the wings of a guarding rooster.
+const float GUARD_WING_STRETCH = 0.15f;
+//! \brief Speed of the wing beat of a guarding rooster.
+const float GUARD_WING_SPEED = 18.0f;
+//! \brief Pitch of a guarding rooster between the lunges in degrees.
+const float GUARD_PITCH_DEGREES = 10.0f;
+//! \brief Extra pitch of the head lunge of a guarding rooster in degrees.
+const float GUARD_LUNGE_DEGREES = 24.0f;
+//! \brief Speed of the head lunges of a guarding rooster.
+const float GUARD_LUNGE_SPEED = 7.0f;
+//! \brief Size of a puffed up fighting rooster.
+const float FIGHT_PUFF = 1.15f;
+//! \brief How much the size of a fighting rooster wobbles.
+const float FIGHT_PUFF_WOBBLE = 0.03f;
+//! \brief Speed of the wobble of the size of a fighting rooster.
+const float FIGHT_PUFF_SPEED = 20.0f;
+//! \brief Stretch of the wings of a fighting rooster.
+const float FIGHT_WING_STRETCH = 0.2f;
+//! \brief Speed of the wing beat of a fighting rooster.
+const float FIGHT_WING_SPEED = 19.0f;
+//! \brief Base pitch of a fighting rooster in degrees.
+const float FIGHT_PITCH_DEGREES = 12.0f;
+//! \brief Extra pitch of the pecks and lunges of a fighting rooster in degrees.
+const float FIGHT_PECK_DEGREES = 16.0f;
+//! \brief Speed of the pecks and lunges of a fighting rooster.
+const float FIGHT_PECK_SPEED = 11.0f;
+//! \brief Roll of a fighting rooster in degrees.
+const float FIGHT_ROLL_DEGREES = 9.0f;
+//! \brief Speed of the roll of a fighting rooster.
+const float FIGHT_ROLL_SPEED = 7.0f;
+//! \brief Height of the little hops of a fighting rooster.
+const float FIGHT_HOP_LIFT = 0.035f;
+//! \brief Speed of the hops of a fighting rooster.
+const float FIGHT_HOP_SPEED = 8.0f;
+//! \brief Size of a puffed up animal that is held in the hand.
+const float PROTEST_PUFF = 1.25f;
+//! \brief How much the size of a held animal wobbles.
+const float PROTEST_PUFF_WOBBLE = 0.05f;
+//! \brief Speed of the wobble of the size of a held animal.
+const float PROTEST_PUFF_SPEED = 24.0f;
+//! \brief Stretch of the wings of a held animal.
+const float PROTEST_WING_STRETCH = 0.3f;
+//! \brief Speed of the wing beat of a held animal.
+const float PROTEST_WING_SPEED = 21.0f;
+//! \brief Pitch of an animal that is held in the hand in degrees.
+const float PROTEST_PITCH_DEGREES = -12.0f;
+//! \brief Roll of a held animal in degrees.
+const float PROTEST_ROLL_DEGREES = 14.0f;
+//! \brief Speed of the roll of a held animal.
+const float PROTEST_ROLL_SPEED = 22.0f;
+//! \brief Height of the kicks of a held animal.
+const float PROTEST_HOP_LIFT = 0.03f;
+//! \brief Speed of the kicks of a held animal.
+const float PROTEST_HOP_SPEED = 14.0f;
+//! \brief Base pitch of a scratching hen in degrees.
+const float SCRATCH_PITCH_DEGREES = 14.0f;
+//! \brief Extra pitch of the strokes of a scratching hen in degrees.
+const float SCRATCH_STROKE_DEGREES = 10.0f;
+//! \brief Speed of the strokes of a scratching hen.
+const float SCRATCH_STROKE_SPEED = 12.0f;
+//! \brief Height of the scratching hen while she strokes.
+const float SCRATCH_LIFT = 0.003f;
+//! \brief Speed at which a fluttering hen rises and settles.
+const float FLUTTER_RISE_SPEED = 1.4f;
+//! \brief Height a fluttering hen rises without a flutter clip.
+const float FLUTTER_LIFT = 0.14f;
+//! \brief Stretch of the wings of a fluttering hen without a flutter clip.
+const float FLUTTER_WING_STRETCH = 0.25f;
+//! \brief Speed of the wing beat of a fluttering hen without a flutter clip.
+const float FLUTTER_WING_SPEED = 30.0f;
+//! \brief Pitch of a fluttering hen without a flutter clip in degrees.
+const float FLUTTER_PITCH_DEGREES = -10.0f;
+//! \brief Seconds a laying hen without a lay clip stays squashed before she stands up.
+const float LAY_SIT_SECONDS = 1.2f;
+//! \brief Stretch of a laying hen along her length.
+const float LAY_SIT_STRETCH_X = 1.14f;
+//! \brief Stretch of a laying hen in width.
+const float LAY_SIT_STRETCH_Y = 1.1f;
+//! \brief Height of a laying hen when she sits.
+const float LAY_SIT_STRETCH_Z = 0.78f;
+//! \brief How much a sitting hen fluffs up.
+const float LAY_SIT_FLUFF = 0.03f;
+//! \brief Speed at which a sitting hen fluffs up.
+const float LAY_SIT_FLUFF_SPEED = 25.0f;
+//! \brief Height of a hen when she stands up after laying.
+const float LAY_STAND_STRETCH_Z = 1.12f;
+//! \brief Roll of a cackling hen in degrees.
+const float CACKLE_ROLL_DEGREES = 9.0f;
+//! \brief Speed of the roll of a cackling hen.
+const float CACKLE_ROLL_SPEED = 28.0f;
+//! \brief Height of the hops of a cackling hen.
+const float CACKLE_HOP_LIFT = 0.025f;
+//! \brief Speed of the hops of a cackling hen.
+const float CACKLE_HOP_SPEED = 11.0f;
+//! \brief Forward lean of the rooster on a hen in degrees.
+const float MOUNT_PITCH_DEGREES = 40.0f;
+//! \brief Height of the bounce of the rooster on a hen.
+const float MOUNT_BOUNCE_LIFT = 0.07f;
+//! \brief Speed of the bounce of the rooster on a hen.
+const float MOUNT_BOUNCE_SPEED = 8.0f;
+//! \brief Seconds after which the second burst of feathers flies when the rooster is on a hen.
+const float MOUNT_BURST_SECONDS = 0.5f;
+//! \brief Speed at which an animal grows to full size when it comes out of the coop.
+const float EMERGE_GROW_SPEED = 2.0f;
+//! \brief Size of an animal when it starts to come out of the coop (share of full size).
+const float EMERGE_START_SCALE = 0.5f;
+//! \brief Height of the hop of an animal that comes out of the coop.
+const float EMERGE_LIFT = 0.03f;
+//! \brief Speed of the bob of a walking chick.
+const float WALK_CHICK_BOB_SPEED = 14.0f;
+//! \brief Speed of the bob of a walking hen or rooster.
+const float WALK_BOB_SPEED = 9.0f;
+//! \brief Height of the bob of a walking chick.
+const float WALK_CHICK_BOB_LIFT = 0.01f;
+//! \brief Height of the bob of a walking hen or rooster.
+const float WALK_BOB_LIFT = 0.006f;
+//! \brief Pitch of the bob of a walking animal in degrees.
+const float WALK_BOB_PITCH_DEGREES = 3.0f;
+//! \brief Speed at which a standing chick peeps now and then.
+const float PEEP_SPEED = 2.1f;
+//! \brief Height of the little hop of a peeping chick.
+const float PEEP_HOP_LIFT = 0.012f;
+//! \brief Exponent that makes the peep hops short and rare.
+const float PEEP_SHARPNESS = 12.0f;
+
 //! Small deterministic random numbers so that the meshes look the same every time
 class ShapeRandom
 {
@@ -359,15 +570,15 @@ void RenderManager::rrUpdateChickenLook(ChickenEntity* chicken)
 //! \brief The egg hatched: lets the shell pieces fly.
 void RenderManager::rrChickenHatched(ChickenEntity* chicken)
 {
-    createChickenFeatherEffect(chicken->getPosition() + Ogre::Vector3(0.0f, 0.0f, 0.05f), "ChickenEggShell");
+    createChickenFeatherEffect(chicken->getPosition() + Ogre::Vector3(0.0f, 0.0f, FEATHER_HEIGHT_HATCH_SHELL), "ChickenEggShell");
 }
 
 //! \brief An egg was trampled: lets shell pieces and yolk fly and startles the feathers of a hen.
 void RenderManager::rrEggTrampled(const Ogre::Vector3& position)
 {
     // Shell pieces and yolk (one system with two emitters), and the feathers of a hen that is startled by it
-    createChickenFeatherEffect(position + Ogre::Vector3(0.0f, 0.0f, 0.04f), "ChickenEggTrample");
-    createChickenFeatherEffect(position + Ogre::Vector3(0.0f, 0.0f, 0.1f));
+    createChickenFeatherEffect(position + Ogre::Vector3(0.0f, 0.0f, FEATHER_HEIGHT_TRAMPLE_SHELL), "ChickenEggTrample");
+    createChickenFeatherEffect(position + Ogre::Vector3(0.0f, 0.0f, FEATHER_HEIGHT_TRAMPLE_HEN));
 }
 
 void RenderManager::rrSetHatcheryNests(const std::string& roomName, const std::vector<HatcheryNestField::Place>& places,
@@ -413,8 +624,8 @@ void RenderManager::rrChickenFight(ChickenEntity* first, ChickenEntity* second, 
     if(phase == 1)
     {
         const Ogre::Vector3 middle = (first->getPosition() + second->getPosition()) * 0.5f;
-        createChickenFeatherEffect(middle + Ogre::Vector3(0.0f, 0.0f, 0.15f));
-        createChickenFeatherEffect(second->getPosition() + Ogre::Vector3(0.0f, 0.0f, 0.1f));
+        createChickenFeatherEffect(middle + Ogre::Vector3(0.0f, 0.0f, FEATHER_HEIGHT_FIGHT_END_MIDDLE));
+        createChickenFeatherEffect(second->getPosition() + Ogre::Vector3(0.0f, 0.0f, FEATHER_HEIGHT_FIGHT_END_LOSER));
     }
 }
 
@@ -435,23 +646,23 @@ void RenderManager::rrSetChickenPose(ChickenEntity* chicken, const std::string& 
     const Ogre::Vector3 position = chicken->getPosition();
 
     if(pose == ChickenPose::mount)
-        createChickenFeatherEffect(position + Ogre::Vector3(0.0f, 0.0f, 0.2f));
+        createChickenFeatherEffect(position + Ogre::Vector3(0.0f, 0.0f, FEATHER_HEIGHT_MOUNT));
     else if(pose == ChickenPose::cackle)
-        createChickenFeatherEffect(position + Ogre::Vector3(0.0f, 0.0f, 0.12f));
+        createChickenFeatherEffect(position + Ogre::Vector3(0.0f, 0.0f, FEATHER_HEIGHT_CACKLE));
     else if(pose == ChickenPose::fight)
-        createChickenFeatherEffect(position + Ogre::Vector3(0.0f, 0.0f, 0.15f));
+        createChickenFeatherEffect(position + Ogre::Vector3(0.0f, 0.0f, FEATHER_HEIGHT_FIGHT));
     else if(pose == ChickenPose::protest)
-        createChickenFeatherEffect(position + Ogre::Vector3(0.0f, 0.0f, 0.2f));
+        createChickenFeatherEffect(position + Ogre::Vector3(0.0f, 0.0f, FEATHER_HEIGHT_PROTEST));
     else if((pose == ChickenPose::flee) && (chicken->getKind() == ChickenKind::hen))
     {
         // A hen scatters from a hungry creature: a few feathers fly
-        createChickenFeatherEffect(position + Ogre::Vector3(0.0f, 0.0f, 0.12f));
+        createChickenFeatherEffect(position + Ogre::Vector3(0.0f, 0.0f, FEATHER_HEIGHT_FLEE));
     }
     else if(pose == ChickenPose::flutter)
-        createChickenFeatherEffect(position + Ogre::Vector3(0.0f, 0.0f, 0.1f));
+        createChickenFeatherEffect(position + Ogre::Vector3(0.0f, 0.0f, FEATHER_HEIGHT_FLUTTER));
     else if(pose == ChickenPose::emerge)
     {
-        createChickenFeatherEffect(position + Ogre::Vector3(0.0f, 0.0f, 0.1f));
+        createChickenFeatherEffect(position + Ogre::Vector3(0.0f, 0.0f, FEATHER_HEIGHT_EMERGE));
 
         // The door of the closest coop swings
         std::map<BuildingObject*, CoopDecor>::iterator nearest = mCoopDecors.end();
@@ -475,7 +686,7 @@ void RenderManager::rrSetChickenPose(ChickenEntity* chicken, const std::string& 
                 nearest->second.mDoor->setEnabled(true);
             }
             else
-                nearest->second.mShake = 0.8f;
+                nearest->second.mShake = COOP_SHAKE_SECONDS;
         }
     }
 }
@@ -558,7 +769,7 @@ void RenderManager::updateChickenLooks(Ogre::Real timeSinceLastFrame)
         if(kind == ChickenKind::egg)
         {
             // An egg a little above the ground lies in a nest (the server puts it there)
-            if(!look.mNestEgg && (chicken->getPosition().z > 0.01f))
+            if(!look.mNestEgg && (chicken->getPosition().z > NEST_EGG_MIN_HEIGHT))
             {
                 look.mNestEgg = true;
                 hideEggStraw(look.mEntity);
@@ -568,7 +779,7 @@ void RenderManager::updateChickenLooks(Ogre::Real timeSinceLastFrame)
             if(pose == ChickenPose::wobble)
             {
                 // Shortly before it hatches the shell shows its cracks
-                if(look.mAccessories.empty() && (p > 0.8f))
+                if(look.mAccessories.empty() && (p > EGG_CRACK_TIME))
                 {
                     Ogre::Entity* cracked = mSceneManager->createEntity(
                         look.mNode->getName() + "_" + MeshEggCracked, MeshEggCracked + ".mesh");
@@ -577,10 +788,10 @@ void RenderManager::updateChickenLooks(Ogre::Real timeSinceLastFrame)
                     look.mAccessories.push_back(cracked);
                     look.mEntity->setVisible(false);
                 }
-                const Ogre::Real strength = std::min(1.0f, p * 2.5f);
-                roll = 11.0f * strength * std::sin(p * 17.0f);
-                pitch = 7.0f * strength * std::cos(p * 13.0f);
-                lift = 0.004f * strength * std::fabs(std::sin(p * 17.0f));
+                const Ogre::Real strength = std::min(1.0f, p * EGG_WOBBLE_RAMP);
+                roll = EGG_ROLL_DEGREES * strength * std::sin(p * EGG_ROLL_SPEED);
+                pitch = EGG_PITCH_DEGREES * strength * std::cos(p * EGG_PITCH_SPEED);
+                lift = EGG_WOBBLE_LIFT * strength * std::fabs(std::sin(p * EGG_ROLL_SPEED));
             }
         }
         else
@@ -589,75 +800,75 @@ void RenderManager::updateChickenLooks(Ogre::Real timeSinceLastFrame)
             if(pose == ChickenPose::strut)
             {
                 // Chest out, head up, a proud little bounce with each step
-                pitch = -8.0f;
-                stretch = Ogre::Vector3(1.06f, 1.0f, 1.05f);
-                lift = 0.012f * std::fabs(std::sin(t * 9.0f));
+                pitch = STRUT_PITCH_DEGREES;
+                stretch = Ogre::Vector3(STRUT_STRETCH_X, 1.0f, STRUT_STRETCH_Z);
+                lift = STRUT_BOUNCE_LIFT * std::fabs(std::sin(t * STRUT_BOUNCE_SPEED));
             }
             else if(pose == ChickenPose::chase || pose == ChickenPose::flee)
             {
                 if(look.mEntity->getSkeleton()->hasAnimation("Run"))
                 {
                     // The run clip leans forward and spreads the wings, only the hops are added
-                    lift = 0.022f * std::fabs(std::sin(t * 16.0f));
-                    roll = 6.0f * std::sin(t * 8.0f);
+                    lift = RUN_HOP_LIFT * std::fabs(std::sin(t * RUN_HOP_SPEED));
+                    roll = RUN_ROLL_DEGREES * std::sin(t * RUN_ROLL_SPEED);
                 }
                 else
                 {
                     // Head forward, wings out, quick hops
-                    pitch = 14.0f;
-                    stretch = Ogre::Vector3(1.0f + 0.2f * std::fabs(std::sin(t * 22.0f)), 1.0f, 1.0f);
-                    lift = 0.022f * std::fabs(std::sin(t * 16.0f));
-                    roll = 6.0f * std::sin(t * 8.0f);
+                    pitch = RUN_PITCH_DEGREES;
+                    stretch = Ogre::Vector3(1.0f + RUN_WING_STRETCH * std::fabs(std::sin(t * RUN_WING_SPEED)), 1.0f, 1.0f);
+                    lift = RUN_HOP_LIFT * std::fabs(std::sin(t * RUN_HOP_SPEED));
+                    roll = RUN_ROLL_DEGREES * std::sin(t * RUN_ROLL_SPEED);
                 }
             }
             else if(pose == ChickenPose::crow)
             {
-                const Ogre::Real strength = std::min(1.0f, p * 4.0f);
+                const Ogre::Real strength = std::min(1.0f, p * CROW_RAMP);
                 if(look.mEntity->getSkeleton()->hasAnimation("Crow"))
                 {
                     // The crow clip throws the head back and beats the wings, the body only rises a little
-                    lift = 0.01f * strength;
+                    lift = CROW_LIFT * strength;
                 }
                 else
                 {
                     // Head thrown back, the body stretches, the wings beat
-                    pitch = -38.0f * strength;
-                    stretch = Ogre::Vector3(1.0f + 0.3f * std::fabs(std::sin(t * 14.0f)) * strength, 1.0f, 1.0f + 0.14f * strength);
-                    lift = 0.01f * strength;
+                    pitch = CROW_PITCH_DEGREES * strength;
+                    stretch = Ogre::Vector3(1.0f + CROW_WING_STRETCH * std::fabs(std::sin(t * CROW_WING_SPEED)) * strength, 1.0f, 1.0f + CROW_BODY_STRETCH * strength);
+                    lift = CROW_LIFT * strength;
                 }
             }
             else if(pose == ChickenPose::perch)
-                pitch = -6.0f;
+                pitch = PERCH_PITCH_DEGREES;
             else if(pose == ChickenPose::guard)
             {
                 // Puffed up and flapping, with a lunge of the head at the creature in front of him, then back
-                const Ogre::Real puff = 1.28f + 0.03f * std::sin(t * 20.0f);
-                stretch = Ogre::Vector3(puff + 0.15f * std::fabs(std::sin(t * 18.0f)), puff, puff);
-                pitch = 10.0f + 24.0f * std::max(0.0f, std::sin(t * 7.0f));
+                const Ogre::Real puff = GUARD_PUFF + GUARD_PUFF_WOBBLE * std::sin(t * GUARD_PUFF_SPEED);
+                stretch = Ogre::Vector3(puff + GUARD_WING_STRETCH * std::fabs(std::sin(t * GUARD_WING_SPEED)), puff, puff);
+                pitch = GUARD_PITCH_DEGREES + GUARD_LUNGE_DEGREES * std::max(0.0f, std::sin(t * GUARD_LUNGE_SPEED));
             }
             else if(pose == ChickenPose::fight)
             {
                 // Puffed up, wings beating, pecking and lunging at the other rooster, little hops
-                const Ogre::Real puff = 1.15f + 0.03f * std::sin(t * 20.0f);
-                stretch = Ogre::Vector3(puff + 0.2f * std::fabs(std::sin(t * 19.0f)), puff, puff);
-                pitch = 12.0f + 16.0f * std::sin(t * 11.0f);
-                roll = 9.0f * std::sin(t * 7.0f);
-                lift = 0.035f * std::fabs(std::sin(t * 8.0f));
+                const Ogre::Real puff = FIGHT_PUFF + FIGHT_PUFF_WOBBLE * std::sin(t * FIGHT_PUFF_SPEED);
+                stretch = Ogre::Vector3(puff + FIGHT_WING_STRETCH * std::fabs(std::sin(t * FIGHT_WING_SPEED)), puff, puff);
+                pitch = FIGHT_PITCH_DEGREES + FIGHT_PECK_DEGREES * std::sin(t * FIGHT_PECK_SPEED);
+                roll = FIGHT_ROLL_DEGREES * std::sin(t * FIGHT_ROLL_SPEED);
+                lift = FIGHT_HOP_LIFT * std::fabs(std::sin(t * FIGHT_HOP_SPEED));
             }
             else if(pose == ChickenPose::protest)
             {
                 // Held in the hand: puffed up, wings beating, kicking and rolling about
-                const Ogre::Real puff = 1.25f + 0.05f * std::sin(t * 24.0f);
-                stretch = Ogre::Vector3(puff + 0.3f * std::fabs(std::sin(t * 21.0f)), puff, puff);
-                pitch = -12.0f;
-                roll = 14.0f * std::sin(t * 22.0f);
-                lift = 0.03f * std::fabs(std::sin(t * 14.0f));
+                const Ogre::Real puff = PROTEST_PUFF + PROTEST_PUFF_WOBBLE * std::sin(t * PROTEST_PUFF_SPEED);
+                stretch = Ogre::Vector3(puff + PROTEST_WING_STRETCH * std::fabs(std::sin(t * PROTEST_WING_SPEED)), puff, puff);
+                pitch = PROTEST_PITCH_DEGREES;
+                roll = PROTEST_ROLL_DEGREES * std::sin(t * PROTEST_ROLL_SPEED);
+                lift = PROTEST_HOP_LIFT * std::fabs(std::sin(t * PROTEST_HOP_SPEED));
             }
             else if(pose == ChickenPose::scratch)
             {
                 // A hen scratches the ground with quick strokes, then pecks
-                pitch = 14.0f + 10.0f * std::sin(p * 12.0f);
-                lift = 0.003f * std::fabs(std::sin(p * 12.0f));
+                pitch = SCRATCH_PITCH_DEGREES + SCRATCH_STROKE_DEGREES * std::sin(p * SCRATCH_STROKE_SPEED);
+                lift = SCRATCH_LIFT * std::fabs(std::sin(p * SCRATCH_STROKE_SPEED));
             }
             else if(pose == ChickenPose::flutter)
             {
@@ -665,10 +876,10 @@ void RenderManager::updateChickenLooks(Ogre::Real timeSinceLastFrame)
                 if(!look.mEntity->getSkeleton()->hasAnimation("Flutter"))
                 {
                     // Flaps up for a moment with the wings out and settles down again
-                    const Ogre::Real rise = std::sin(std::min(1.0f, p * 1.4f) * pi);
-                    lift = 0.14f * rise;
-                    stretch = Ogre::Vector3(1.0f + 0.25f * std::fabs(std::sin(p * 30.0f)) * rise, 1.0f, 1.0f);
-                    pitch = -10.0f * rise;
+                    const Ogre::Real rise = std::sin(std::min(1.0f, p * FLUTTER_RISE_SPEED) * pi);
+                    lift = FLUTTER_LIFT * rise;
+                    stretch = Ogre::Vector3(1.0f + FLUTTER_WING_STRETCH * std::fabs(std::sin(p * FLUTTER_WING_SPEED)) * rise, 1.0f, 1.0f);
+                    pitch = FLUTTER_PITCH_DEGREES * rise;
                 }
             }
             else if(pose == ChickenPose::lay)
@@ -678,46 +889,46 @@ void RenderManager::updateChickenLooks(Ogre::Real timeSinceLastFrame)
                 {
                     // Nothing to add
                 }
-                else if(p < 1.2f)
-                    stretch = Ogre::Vector3(1.14f, 1.1f, 0.78f + 0.03f * std::sin(p * 25.0f));
+                else if(p < LAY_SIT_SECONDS)
+                    stretch = Ogre::Vector3(LAY_SIT_STRETCH_X, LAY_SIT_STRETCH_Y, LAY_SIT_STRETCH_Z + LAY_SIT_FLUFF * std::sin(p * LAY_SIT_FLUFF_SPEED));
                 else
-                    stretch = Ogre::Vector3(1.0f, 1.0f, 1.12f);
+                    stretch = Ogre::Vector3(1.0f, 1.0f, LAY_STAND_STRETCH_Z);
             }
             else if(pose == ChickenPose::cackle)
             {
-                roll = 9.0f * std::sin(p * 28.0f);
-                lift = 0.025f * std::fabs(std::sin(p * 11.0f));
+                roll = CACKLE_ROLL_DEGREES * std::sin(p * CACKLE_ROLL_SPEED);
+                lift = CACKLE_HOP_LIFT * std::fabs(std::sin(p * CACKLE_HOP_SPEED));
             }
             else if(pose == ChickenPose::mount)
             {
                 // Leans forward and bounces on the hen, a second burst of feathers flies
-                pitch = 40.0f;
-                lift = 0.07f * std::fabs(std::sin(p * 8.0f));
-                if((look.mFeatherBursts == 0) && (p > 0.5f))
+                pitch = MOUNT_PITCH_DEGREES;
+                lift = MOUNT_BOUNCE_LIFT * std::fabs(std::sin(p * MOUNT_BOUNCE_SPEED));
+                if((look.mFeatherBursts == 0) && (p > MOUNT_BURST_SECONDS))
                 {
                     look.mFeatherBursts = 1;
-                    createChickenFeatherEffect(chicken->getPosition() + Ogre::Vector3(0.0f, 0.0f, 0.2f));
+                    createChickenFeatherEffect(chicken->getPosition() + Ogre::Vector3(0.0f, 0.0f, FEATHER_HEIGHT_MOUNT));
                 }
             }
             else if(pose == ChickenPose::emerge)
             {
                 // Pops out of the coop
-                const Ogre::Real grow = std::min(1.0f, p * 2.0f);
-                stretch = Ogre::Vector3::UNIT_SCALE * (0.5f + 0.5f * grow);
-                lift = 0.03f * std::sin(std::min(1.0f, p * 2.0f) * pi);
+                const Ogre::Real grow = std::min(1.0f, p * EMERGE_GROW_SPEED);
+                stretch = Ogre::Vector3::UNIT_SCALE * (EMERGE_START_SCALE + EMERGE_START_SCALE * grow);
+                lift = EMERGE_LIFT * std::sin(std::min(1.0f, p * EMERGE_GROW_SPEED) * pi);
             }
             else if(moving)
             {
                 // Walking: a small bob, chicks hop more
-                const Ogre::Real speed = (kind == ChickenKind::chick) ? 14.0f : 9.0f;
-                lift = ((kind == ChickenKind::chick) ? 0.01f : 0.006f) * std::fabs(std::sin(t * speed));
-                pitch = 3.0f * std::sin(t * speed);
+                const Ogre::Real speed = (kind == ChickenKind::chick) ? WALK_CHICK_BOB_SPEED : WALK_BOB_SPEED;
+                lift = ((kind == ChickenKind::chick) ? WALK_CHICK_BOB_LIFT : WALK_BOB_LIFT) * std::fabs(std::sin(t * speed));
+                pitch = WALK_BOB_PITCH_DEGREES * std::sin(t * speed);
             }
             else if(kind == ChickenKind::chick)
             {
                 // A chick peeps now and then with a little hop
-                const Ogre::Real peep = std::max(0.0f, std::sin(t * 2.1f));
-                lift = 0.012f * std::pow(peep, 12.0f);
+                const Ogre::Real peep = std::max(0.0f, std::sin(t * PEEP_SPEED));
+                lift = PEEP_HOP_LIFT * std::pow(peep, PEEP_SHARPNESS);
             }
         }
 
@@ -730,7 +941,7 @@ void RenderManager::updateChickenLooks(Ogre::Real timeSinceLastFrame)
             {
                 look.mFightTimer = 0.0f;
                 const Ogre::Vector3 middle = (chicken->getPosition() + look.mFightPartner->getPosition()) * 0.5f;
-                createChickenFeatherEffect(middle + Ogre::Vector3(0.0f, 0.0f, 0.15f));
+                createChickenFeatherEffect(middle + Ogre::Vector3(0.0f, 0.0f, FEATHER_HEIGHT_FIGHT_END_MIDDLE));
             }
         }
 
