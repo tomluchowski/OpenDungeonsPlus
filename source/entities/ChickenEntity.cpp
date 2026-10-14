@@ -62,6 +62,10 @@ const double FOLLOW_ARRIVAL_TOLERANCE = 0.3;
 const double WALK_ARRIVAL_TOLERANCE = 0.05;
 //! \brief Height above the floor from which a rooster counts as standing on a coop roof.
 const double ROOF_MIN_HEIGHT = 0.3;
+//! \brief Squared length below which the walking direction of a hen is too short to tell where she looks.
+const float MIN_WALK_DIRECTION_SQUARED = 0.000001f;
+//! \brief Number of turns the climb on a hen, the treading and the climb down last together.
+const uint32_t MOUNT_POSE_TURNS = 3;
 
 //! \brief Creates an animal of the given hatchery in the given stage of life, with all counters at zero.
 ChickenEntity::ChickenEntity(GameMap* gameMap, const std::string& hatcheryName, ChickenKind kind) :
@@ -435,13 +439,13 @@ void ChickenEntity::mountHen(ChickenEntity& hen)
 {
     // He climbs on her facing the way she looks, and the clients are told which hen it is
     Ogre::Vector3 direction = hen.getWalkDirection();
-    if(direction.squaredLength() < 0.000001f)
+    if(direction.squaredLength() < MIN_WALK_DIRECTION_SQUARED)
         direction = Ogre::Vector3::NEGATIVE_UNIT_Y;
     setWalkDirection(direction);
     mMountHenName = hen.getName();
     // The climb on the hen, the treading and the climb down last three turns together
-    hen.playPose(ChickenPose::cackle, 3);
-    playPose(ChickenPose::mount, 3);
+    hen.playPose(ChickenPose::cackle, MOUNT_POSE_TURNS);
+    playPose(ChickenPose::mount, MOUNT_POSE_TURNS);
     for(Seat* seat : mSeatsWithVisionNotified)
     {
         if(seat->getPlayer() == nullptr || !seat->getPlayer()->getIsHuman())

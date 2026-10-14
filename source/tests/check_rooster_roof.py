@@ -63,7 +63,7 @@ update = body(room, 'void RoomHatchery::updateRooster(')
 guard = 'if(rooster->isOnRoof() && (rooster->getMood() != RoosterMood::crow))'
 assert guard in update and 'climbDown(rooster);' in update[update.index(guard):update.index(guard) + 200]
 assert update.index(guard) < update.index('HatcheryRooster::decide('), 'checked before the rooster decides'
-assert 'mOnRoof = (mPosition.z > 0.3);' in chicken, 'the roof state is rebuilt after loading'
+assert 'mOnRoof = (mPosition.z > ROOF_MIN_HEIGHT);' in chicken and 'ROOF_MIN_HEIGHT = 0.3;' in chicken, 'the roof state is rebuilt after loading'
 assert chicken.count('mOnRoof = false;') >= 3, 'picked up, lost a fight and jumped down reset the roof state'
 
 # Up and down use a complete roof-flight clip and continuous client movement.

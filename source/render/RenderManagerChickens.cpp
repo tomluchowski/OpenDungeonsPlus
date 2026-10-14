@@ -475,6 +475,8 @@ static const float MOUNT_CLIMB_SECONDS = 0.4f;
 static const float MOUNT_SECONDS = 1.9f;
 //! Mating: second of the pose in which the feathers of the hen fly a second time
 static const float MOUNT_SECOND_BURST_SECONDS = 1.0f;
+//! Mating: number of feather bursts of one mating, the count that is stored once the second burst has flown
+static const unsigned int MOUNT_FEATHER_BURSTS = 2;
 //! Mating: how high he sits, as a part of the height of the ducked hen
 static const float MOUNT_HEIGHT_FACTOR = 0.85f;
 //! Mating: height factor of the hen when she is ducked under him (only drawn when the skeleton has no Duck clip)
@@ -1074,7 +1076,7 @@ void RenderManager::updateChickenLooks(Ogre::Real timeSinceLastFrame)
                     (look.mMountPartner != nullptr) && chickenClipVisible(chicken, "Tread") &&
                     chickenClipVisible(look.mMountPartner, "Duck"))
                 {
-                    look.mFeatherBursts = 2;
+                    look.mFeatherBursts = MOUNT_FEATHER_BURSTS;
                     createChickenFeatherEffect(look.mMountPartner->getPosition() + Ogre::Vector3(0.0f, 0.0f, FEATHER_HEIGHT_MOUNT),
                         featherSystem(ChickenKind::hen));
                 }

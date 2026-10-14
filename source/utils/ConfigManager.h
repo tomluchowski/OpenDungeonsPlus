@@ -139,7 +139,11 @@ public:
 
     //! \brief Factor on the walking speed of a tired creature (1 = no slowdown), limited to 0.2 - 1
     inline double getTiredWalkSpeedFactor() const
-    { return std::max(0.2, std::min(1.0, mTiredWalkSpeedFactor)); }
+    {
+        // Slowest speed factor a tired creature can be given
+        const double minTiredWalkSpeedFactor = 0.2;
+        return std::max(minTiredWalkSpeedFactor, std::min(1.0, mTiredWalkSpeedFactor));
+    }
 
     inline int64_t getTimePayDay() const
     { return mTimePayDay; }
