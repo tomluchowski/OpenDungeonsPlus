@@ -171,18 +171,19 @@ void ODFrameListener::requestRenderWindowRecreation(
     mRenderWindowRecreationPending = true;
 }
 
-void ODFrameListener::restorePreviousVideoSettings()
+void ODFrameListener::restoreVideoSettings(const std::map<std::string, std::string>& rendererOptions,
+    const std::map<std::string, std::string>& videoConfig)
 {
     Ogre::RenderSystem* renderer = Ogre::Root::getSingleton().getRenderSystem();
     std::map<std::string, std::string>::const_iterator fullscreen =
-        mPreviousRendererOptions.find(Config::FULL_SCREEN);
-    if(fullscreen != mPreviousRendererOptions.end())
+        rendererOptions.find(Config::FULL_SCREEN);
+    if(fullscreen != rendererOptions.end())
         renderer->setConfigOption(fullscreen->first, fullscreen->second);
     std::map<std::string, std::string>::const_iterator videoMode =
-        mPreviousRendererOptions.find(Config::VIDEO_MODE);
-    if(videoMode != mPreviousRendererOptions.end())
+        rendererOptions.find(Config::VIDEO_MODE);
+    if(videoMode != rendererOptions.end())
         renderer->setConfigOption(videoMode->first, videoMode->second);
-    for(const std::pair<const std::string, std::string>& option : mPreviousRendererOptions)
+    for(const std::pair<const std::string, std::string>& option : rendererOptions)
     {
         if(option.first == Config::FULL_SCREEN || option.first == Config::VIDEO_MODE)
             continue;
@@ -190,9 +191,14 @@ void ODFrameListener::restorePreviousVideoSettings()
     }
 
     ConfigManager& config = ConfigManager::getSingleton();
-    for(const std::pair<const std::string, std::string>& option : mPreviousVideoConfig)
+    for(const std::pair<const std::string, std::string>& option : videoConfig)
         config.setVideoValue(option.first, option.second);
     config.saveUserConfig();
+}
+
+void ODFrameListener::restorePreviousVideoSettings()
+{
+    restoreVideoSettings(mPreviousRendererOptions, mPreviousVideoConfig);
     mPreviousRendererOptions.clear();
     mPreviousVideoConfig.clear();
 }
