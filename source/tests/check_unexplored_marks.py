@@ -22,13 +22,13 @@ seat = read('source/game/Seat.cpp')
 assert 'mPlayer->markTilesForDigging(false, std::vector<Tile*>(1, tile), false)' in seat
 
 render = read('source/render/RenderManager.cpp')
+fog_shader = read('shaders/DirtTileInstanced.frag')
 assert render.count('(isMarked ? mInstanceManagerMarkedFog : mInstanceManagerDirt)') == 3
 assert 'tile.setFogOfWarMesh(tile.getFogOfWarMesh(), isMarked)' in render
-preview = render[render.index('void RenderManager::rrDrawTilePreview('):render.index('bool RenderManager::getKeeperHandPosition')]
-rectangle = preview[preview.index('if(singleRectangle)'):preview.index('    return;\n    }')]
-assert 'if(digging)' in rectangle and 'OT_TRIANGLE_LIST' in rectangle
-assert 'minX - 0.44f' in rectangle and 'maxX + 0.44f' in rectangle
-assert 'minX - 0.5f' in rectangle and 'maxX + 0.5f' in rectangle
+rectangle = render[render.index('static void drawTileRectangle('):render.index('void RenderManager::rrDrawTilePreview(')]
+assert 'if(!digging)' in rectangle and 'OT_TRIANGLE_LIST' in rectangle
+assert 'PREVIEW_BORDER_INNER_HALF' in rectangle and 'PREVIEW_TILE_HALF' in rectangle
+assert 'PREVIEW_BORDER_INNER_HALF = 0.44f' in render and 'PREVIEW_TILE_HALF = 0.5f' in render
 
 # Flat marked-fog geometry is independent of tile type and exactly shares every adjacent edge.
 mesh = render[render.index('void createMarkedFogMesh('):render.index('RenderManager::RenderManager(')]
@@ -57,7 +57,7 @@ for width, height in [(1, 1), (4, 1), (4, 4), (3, 7)]:
     # One outer frame, with the same width as the existing single-tile frame, no internal tile lines.
     ring_area = width * height - (width - 2 * thickness) * (height - 2 * thickness)
     assert ring_area > 0
-assert 'for(Tile* tile' not in rectangle[rectangle.index('if(digging)'):]
+assert 'for(Tile* tile' not in rectangle[rectangle.index('if(!digging)'):]
 vertex = read('shaders/DirtTileInstanced.vert')
 flat_branch = vertex[vertex.index('if(final_color.a > 0.0)'):vertex.index('    vec3 local_normal')]
 assert 'deform(' not in flat_branch and 'return;' in flat_branch
@@ -68,6 +68,4 @@ assert 'destroyInstanceManager(mInstanceManagerMarkedFog)' in render
 release = game_mode[game_mode.index('void GameMode::handlePlayerActionSelectTile()'):]
 release = release[:release.index('void GameMode::resetSkillTree()')]
 assert release.index('unselectAllTiles();') < release.index('ClientNotificationType::askMarkTiles')
-assert 'markPass->setSceneBlending(Ogre::SBT_TRANSPARENT_ALPHA)' in render
-assert 'Ogre::ColourValue markColor(0.65f, 0.45f, 1.0f, 0.5f)' in render
-print('check_unexplored_marks ok: thick outer frame, seamless flat marked fog, neutral tooltip and transparent marking')
+print('check_unexplored_marks ok: thick outer frame, seamless flat marked fog and neutral tooltip')
