@@ -164,8 +164,10 @@ int main()
         oldAnswer >> cosmetic;
     check(!cosmetic, "an old client never gets cosmetic events");
     ODPacket newAnswer;
-    newAnswer << std::string("nick") << true;
+    newAnswer << std::string("nick") << true << true;
     newAnswer >> nick;
+    bool liveNickname = false;
+    newAnswer >> liveNickname;
     if(!newAnswer.endOfPacket())
         newAnswer >> cosmetic;
     check(cosmetic, "a new client agrees");
