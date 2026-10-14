@@ -117,6 +117,10 @@ static const Ogre::Real CANNON_MISSILE_HEIGHT = 0.3;
 static const double DEFAULT_CASINO_MOOD_DECAY_PER_SECOND = 3.0;
 //! \brief Largest casino mood (positive or negative) when the room config has no CasinoMoodMax
 static const double DEFAULT_CASINO_MOOD_MAX = 1500.0;
+//! \brief Pit mood points lost per second when the room config has no PitMoodDecay
+static const double DEFAULT_PIT_MOOD_DECAY_PER_SECOND = 3.0;
+//! \brief Radius in tiles of the hated company check when the room config has no HatedCompanyRadius
+static const double DEFAULT_HATED_COMPANY_RADIUS = 5.0;
 //! \brief Number of closest targets for which a path is tried when a creature looks for a destination
 static const uint32_t MAX_PATH_CHECK_TARGET_TRIES = 5;
 
@@ -1202,7 +1206,7 @@ void Creature::doUpkeep()
     // The pit mood fades towards 0
     if(mPitMood != 0.0)
     {
-        double decay = ConfigManager::getSingleton().getRoomConfigDoubleOrDefault("PitMoodDecay", 3.0)
+        double decay = ConfigManager::getSingleton().getRoomConfigDoubleOrDefault("PitMoodDecay", DEFAULT_PIT_MOOD_DECAY_PER_SECOND)
             / ODApplication::turnsPerSecond;
         if(mPitMood > 0.0)
             mPitMood = std::max(0.0, mPitMood - decay);
@@ -3555,7 +3559,7 @@ bool Creature::isHatedCompanyNear() const
         return false;
 
     bool isGood = isGoodAligned();
-    double radius = ConfigManager::getSingleton().getRoomConfigDoubleOrDefault("HatedCompanyRadius", 5.0);
+    double radius = ConfigManager::getSingleton().getRoomConfigDoubleOrDefault("HatedCompanyRadius", DEFAULT_HATED_COMPANY_RADIUS);
     double squaredRadius = radius * radius;
     const std::vector<Creature*>& creatures = getGameMap()->getCreatures();
     for(Creature* other : creatures)
