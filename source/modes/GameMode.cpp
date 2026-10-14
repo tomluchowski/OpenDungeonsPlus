@@ -3667,7 +3667,6 @@ void GameMode::notifyPossessionEnded()
     mPossessKeyRight = false;
     mPossessLastDirection = Ogre::Vector2::ZERO;
     mPossessTimeSinceSent = 0.0f;
-    directionKeyPressed = false;
 }
 
 void GameMode::checkInputCommand()
