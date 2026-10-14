@@ -33,16 +33,20 @@ const std::string CreatureSkillHailStormName = "HailStorm";
 
 namespace
 {
+//! \brief Factory that registers an area damage skill under the given name (GasCloud or HailStorm)
 class CreatureSkillAreaDamageFactory : public CreatureSkillFactory
 {
 public:
+    //! \brief Creates a factory for the skill with the given name
     CreatureSkillAreaDamageFactory(const std::string& skillName) :
         mSkillName(skillName)
     {}
 
+    //! \brief Creates a new, empty area damage skill with the name of this factory
     CreatureSkill* createCreatureSkill() const override
     { return new CreatureSkillAreaDamage(mSkillName); }
 
+    //! \brief Returns the name under which the skill is registered
     const std::string& getCreatureSkillName() const override
     { return mSkillName; }
 
