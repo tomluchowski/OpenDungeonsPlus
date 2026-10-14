@@ -93,15 +93,15 @@ public:
     void absorbRoom(Room *r) override;
     bool removeCoveredTile(Tile* t) override;
 
-    //! The hero gate cannot be claimed
+    //! The hero portal cannot be claimed
     virtual bool isClaimable(Seat* seat) const override;
     virtual void claimForSeat(Seat* seat, Tile* tile, double danceRate) override;
 
-    //! The hero gate cannot be destroyed
+    //! The hero portal cannot be destroyed
     virtual bool isAttackable(Tile* tile, Seat* seat) const override
     { return false; }
 
-    //! No seat can sell the hero gate
+    //! No seat can sell the hero portal
     virtual bool canSeatSellBuilding(Seat* seat) const override
     { return false; }
 
