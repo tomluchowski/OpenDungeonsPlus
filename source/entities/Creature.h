@@ -30,9 +30,12 @@
 #include <Ogre.h>
 #include <CEGUI/EventArgs.h>
 
+#include <map>
 #include <memory>
 #include <string>
 
+enum class RelationshipEvent;
+struct RelationshipCreatureState;
 class Building;
 class Creature;
 class CreatureAction;
@@ -46,6 +49,8 @@ class GameMap;
 class ODPacket;
 class Room;
 class Weapon;
+
+struct CosmeticEvent;
 
 enum class CreatureActionType;
 enum class CreatureMoodLevel;
@@ -191,6 +196,25 @@ public:
     inline int32_t getNbTurnFurious() const
     { return mNbTurnFurious; }
 
+    //! \brief Number of turns the creature has been held in the hand (decreases after being dropped)
+    inline int32_t getNbTurnsInHand() const
+    { return mNbTurnsInHand; }
+
+    //! \brief Number of times the creature wanted to work but found no job (reset when it works)
+    inline int32_t getNbTurnsOutOfWork() const
+    { return mNbTurnsOutOfWork; }
+
+    //! \brief Counts one more turn in which the creature wanted to work but found no job
+    inline void increaseNbTurnsOutOfWork()
+    { ++mNbTurnsOutOfWork; }
+
+    //! \brief Resets the out-of-work counter (called when the creature finds work)
+    inline void resetNbTurnsOutOfWork()
+    { mNbTurnsOutOfWork = 0; }
+
+    //! \brief Number of slaps received during the last nbTurns turns
+    int32_t getNbRecentSlaps(int32_t nbTurns) const;
+
     void setPosition(const Ogre::Vector3& v, GameMap *gameMap = nullptr ) override;
 
     //! \brief Gets the move speed on the current tile.
@@ -300,6 +324,89 @@ public:
     Tile* getCoveredTile(int index) override;
     uint32_t numCoveredTiles() const override;
 
+    //! \brief Server side. True if the creature can take part in relationships: the option is on,
+    //! it belongs to a keeper (no hero, no neutral creature), is not a worker and not a prisoner.
+    bool canHaveRelationships() const;
+
+    //! \brief Server side. Reports a relationship event between two creatures of the same keeper. Does
+    //! nothing if the option is off or one of them cannot have relationships.
+    static void reportRelationshipEvent(RelationshipEvent event, Creature& creatureA, Creature& creatureB);
+
+    //! \brief Server side. Called when this creature was defeated: every pair of creatures of the
+    //! killer's keeper that hit it recently (and the killer itself) fought together.
+    void reportFightParticipants(Creature& killer);
+
+    //! \brief Server side. Defense added (or taken away) because of the creatures that fight next to this
+    //! one, 0 if the option is off. Added to all three defense values.
+    double getRelationshipCombatModifier() const;
+
+    //! \brief Server side. Mood points from the hated creatures of the same keeper and from relationship
+    //! events (grief, ...), 0 if the option is off.
+    int32_t getRelationshipMood() const;
+
+    //! \brief Server side. Adds mood points (negative or positive) that fade again, does nothing if the
+    //! creature cannot have relationships.
+    //! \param points The mood points to add
+    void addRelationshipMood(int32_t points);
+
+    //! \brief Server side. Called when this creature died: its friends grieve, and get a rage against
+    //! the side of the killer (may be nullptr).
+    //! \param killer The entity that dealt the killing blow
+    void reportDeathToFriends(GameEntity* killer);
+
+    //! \brief Server side. Called when this creature was slapped: its friends that see it lose mood.
+    void reportSlapToFriends();
+
+    //! Server side. Called while this creature sleeps in its bed: a friend sleeping in a bed close by
+    //! raises its mood a little.
+    void reportSleepingNextToFriends();
+
+    //! \brief Server side. Called when this creature eats: a friend that eats at the same time close by
+    //! raises its mood a little.
+    void reportEatingWithFriends();
+
+    //! Server side. Called when this creature starts to leave the dungeon unhappy: its best friend
+    //! may leave with it (chance from the settings).
+    void reportLeavingToBestFriend();
+
+    //! \brief Server side. Factor for the damage this creature deals to a creature of victimSeat: more
+    //! than 1.0 while it is enraged about the death of a friend killed by that side.
+    //! \param victimSeat The seat of the creature that is hit
+    double getRelationshipRageFactor(const Seat* victimSeat) const;
+
+    //! \brief Server side. True if the creature is part of a nemesis brawl.
+    inline bool isBrawling() const
+    { return !mBrawlOpponent.empty(); }
+
+    //! \brief Server side. Starts a brawl with the opponent: both fight to knock the other one out
+    //! (never to kill) until updateBrawl ends it.
+    void startBrawl(Creature& opponent);
+
+    //! \brief Server side. Checks the end conditions of the brawl (low health, interrupted, too long).
+    void updateBrawl();
+
+    //! \brief Server side. Ends the brawl of this creature and of its opponent: both calm down and the
+    //! relationship gets worse.
+    void endBrawl();
+
+    //! \brief Server side. True if the creature can start a brawl now (idle, not in a fight and not hurt).
+    bool canStartBrawl() const;
+
+    //! \brief Server side. Fills state with what has to be saved of the relationships of this creature
+    //! (grief mood, rage, brawl).
+    //! \param state Receives the saved values.
+    //! \return False if there is nothing to save.
+    bool getRelationshipState(RelationshipCreatureState& state) const;
+
+    //! \brief Server side. Restores what getRelationshipState saved. A saved brawl is only resumed
+    //! when the opponent was restored too and both are able to fight again soon (see resumeBrawl).
+    //! \param state The values read from the saved game.
+    void setRelationshipState(const RelationshipCreatureState& state);
+
+    //! \brief Server side. Starts the brawl restored by setRelationshipState once both fighters can take
+    //! part, gives up after a while.
+    void resumeBrawl();
+
     //! \brief Conform: AttackableObject - Deducts a given amount of HP from this creature.
     double takeDamage(GameEntity* attacker, double absoluteDamage, double physicalDamage, double magicalDamage, double elementDamage,
         Tile *tileTakingDamage, bool ko) override;
@@ -406,6 +513,14 @@ public:
     void slap() override;
 
     void fireCreatureSound(CreatureSound sound);
+
+    //! \brief Sends a cosmetic event to the human players that see the creature (and negotiated cosmetic events).
+    //! With alliedOnly, only to the keeper of the creature and its allies. It only reports, it changes nothing.
+    void fireCosmeticEvent(const CosmeticEvent& event, bool alliedOnly);
+    //! \brief Sends a cosmetic event of the given kind with this creature as subject
+    void fireCosmeticEvent(int32_t type, int32_t value, int32_t value2, bool alliedOnly);
+    //! \brief The creature arrived through a portal: tells the keeper what mood it would have (cosmetic only)
+    void fireArrivalEvent();
 
     void itsPayDay();
 
@@ -697,6 +812,8 @@ private:
     int32_t         mGoldFee;
     //! \brief Gold carried by the creature that will be dropped if it gets killed
     int32_t         mGoldCarried;
+    //! \brief Server side. The gold carried that the clients were told last (cosmetic events only, not saved)
+    int32_t         mGoldCarriedNotified;
 
     //! Skill type that will be dropped when the creature dies
     SkillType       mSkillTypeDropDeath;
@@ -775,6 +892,37 @@ private:
     //! stop during the travel (and reset to 0 when the creature is dropped in its bed).
     int32_t                         mKoTurnCounter;
 
+    //! \brief Creatures that recently hurt this creature (name and turn), used to find who took part
+    //! in defeating it for the relationships. Only filled when the option is on.
+    std::map<std::string, int64_t>  mRecentAttackers;
+
+    //! Name of the creature this one brawls with (relationships), empty if there is no brawl
+    std::string                     mBrawlOpponent;
+    //! Turn on which the current brawl started (relationships), used to end it after the longest allowed time
+    int64_t                         mBrawlStartTurn = 0;
+    //! Brawl restored from a saved game: the opponent and the turns it may still last. Starts as
+    //! soon as both creatures can fight (see resumeBrawl), empty if there is none.
+    std::string                     mBrawlResumeOpponent;
+    int64_t                         mBrawlResumeTurnsLeft = 0;
+    int64_t                         mBrawlResumeGiveUpTurn = 0;
+
+    //! Combat modifier of the relationships, computed at most once per turn
+    mutable int64_t                 mCombatModifierTurn = -1;
+    mutable double                  mCombatModifier = 0.0;
+
+    //! \brief Server side. True if a friend of the same keeper that is doing action is within maxTiles tiles,
+    //! measured between the home tiles (sleeping) or the positions.
+    //! \param action The action the friend has to do
+    //! \param maxTiles Largest distance in tiles
+    //! \param useHomeTile True to measure between the home tiles (a friend must lie in its bed), false for the positions
+    bool hasFriendDoing(CreatureActionType action, double maxTiles, bool useHomeTile) const;
+
+    //! Mood points from relationship events that fade each turn (relationships)
+    int32_t                         mRelationshipTempMood = 0;
+    //! Rage after the death of a friend: until which turn it lasts and the id of the seat it is against
+    int64_t                         mRageUntilTurn = 0;
+    int32_t                         mRageSeatId = -1;
+
     //! \brief If nullptr, the creature is not in prison. If not, it is in the prison of
     //! the given seat
     Seat*                           mSeatPrison;
@@ -787,6 +935,18 @@ private:
 
     //! \brief Counts the number of active slaps affecting the creature
     uint32_t                        mActiveSlapsCount;
+
+    //! \brief Used on server side for the mood. Turns spent in the hand (decreases when not held)
+    int32_t                         mNbTurnsInHand;
+
+    //! \brief Used on server side. True while the creature is held in the hand
+    bool                            mIsInHand;
+
+    //! \brief Used on server side for the mood. Failed job searches (reset when the creature works)
+    int32_t                         mNbTurnsOutOfWork;
+
+    //! \brief Used on server side for the mood. Turn numbers of the latest slaps
+    std::vector<int64_t>            mSlapTurns;
 
     //! \brief Skills the creature can use
     std::vector<CreatureSkillData> mSkillData;

@@ -129,7 +129,14 @@ CEGUI::Window* Gui::getGuiSheet(guiSheet sheet)
     {
         return it->second;
     }
+
     return nullptr;
+}
+
+void Gui::setRenderTarget(Ogre::RenderTarget& renderTarget)
+{
+    static_cast<CEGUI::OgreRenderer*>(CEGUI::System::getSingleton().getRenderer())
+        ->setDefaultRootRenderTarget(renderTarget);
 }
 
 bool Gui::playButtonClickSound(const CEGUI::EventArgs&)
@@ -172,12 +179,14 @@ const std::string Gui::SKM_BUTTON_LAUNCH = "LevelWindowFrame/LaunchGameButton";
 const std::string Gui::SKM_BUTTON_BACK = "LevelWindowFrame/BackButton";
 const std::string Gui::SKM_LIST_LEVEL_TYPES = "LevelWindowFrame/LevelTypeSelect";
 const std::string Gui::SKM_LIST_LEVELS = "LevelWindowFrame/LevelSelect";
+const std::string Gui::SKM_CHECK_RELATIONSHIPS = "LevelWindowFrame/RelationshipsCheckbox";
 
 const std::string Gui::MPM_TEXT_LOADING = "LoadingText";
 const std::string Gui::MPM_BUTTON_SERVER = "LevelWindowFrame/ServerButton";
 const std::string Gui::MPM_BUTTON_CLIENT = "LevelWindowFrame/ClientButton";
 const std::string Gui::MPM_BUTTON_BACK = "LevelWindowFrame/BackButton";
 const std::string Gui::MPM_LIST_LEVELS = "LevelWindowFrame/LevelSelect";
+const std::string Gui::MPM_CHECK_RELATIONSHIPS = "LevelWindowFrame/RelationshipsCheckbox";
 const std::string Gui::MPM_EDIT_IP = "LevelWindowFrame/IpEdit";
 const std::string Gui::MPM_EDIT_NICK = "LevelWindowFrame/NickEdit";
 

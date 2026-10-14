@@ -24,6 +24,7 @@
 #include <iosfwd>
 
 class BuildingObject;
+struct CosmeticEvent;
 class GameMap;
 class InputCommand;
 class InputManager;
@@ -109,6 +110,10 @@ public:
     virtual Creature* getCreatureUsingRoom(unsigned index);
     virtual bool hasOpenCreatureSpot(Creature* c) { return false; }
 
+    //! \brief True if a creature of the same keeper that the creature hates works in the room
+    //! (relationships option on only).
+    bool hasHatedCoworker(Creature* c) const;
+
     //! \brief Called by the creature during its upkeep when using the room when it is ready
     //! to do something (no cooldown or no other action).
     //! Returns true if the action queue should continue to be proceeded and false otherwise
@@ -182,6 +187,8 @@ public:
 
 protected:
     static void fireRoomSound(Tile& tile, const std::string& soundFamily);
+    //! \brief Sends a cosmetic event to the human players that see the tile (and negotiated cosmetic events)
+    static void fireRoomCosmeticEvent(Tile& tile, const CosmeticEvent& event);
 
     //! \brief Hands the given tile of this room over to a room of the same type
     //! owned by the claiming seat, merging it with an adjacent room of theirs

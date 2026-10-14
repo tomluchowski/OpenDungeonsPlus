@@ -27,6 +27,9 @@
 #include "utils/LogManager.h"
 #include "utils/MakeUnique.h"
 
+//! Turns between two checks whether a friend sleeps in a bed close by
+static const int32_t FRIEND_CHECK_INTERVAL_TURNS = 20;
+
 std::function<bool()> CreatureActionSleep::action()
 {
     return std::bind(&CreatureActionSleep::handleSleep,
@@ -70,6 +73,10 @@ bool CreatureActionSleep::handleSleep(Creature& creature, int32_t nbTurnsActive)
             RoomDormitory* dormitory = static_cast<RoomDormitory*>(roomHomeTile);
             creature.setAnimationState(EntityAnimation::sleep_anim, false, dormitory->getSleepDirection(&creature), false);
         }
+
+        // A friend in a bed close by makes the sleep more pleasant (checked now and then)
+        if((nbTurnsActive % FRIEND_CHECK_INTERVAL_TURNS) == 0)
+            creature.reportSleepingNextToFriends();
 
         // Improve wakefulness
         creature.increaseWakefulness(1.5);

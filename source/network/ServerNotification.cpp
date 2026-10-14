@@ -140,6 +140,12 @@ std::string ServerNotification::typeString(ServerNotificationType type)
             return "displayText";
         case ServerNotificationType::editorPortalWaveData:
             return "editorPortalWaveData";
+        case ServerNotificationType::playerNickChanged:
+            return "playerNickChanged";
+        case ServerNotificationType::cosmeticEvent:
+            return "cosmeticEvent";
+        case ServerNotificationType::relationshipTier:
+            return "relationshipTier";
         default:
             OD_LOG_ERR("Unknown enum for ServerNotificationType="
                 + Helper::toString(static_cast<int>(type)));

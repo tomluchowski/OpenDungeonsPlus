@@ -23,6 +23,7 @@
 #include "network/ODPacket.h"
 #include "game/Seat.h"
 #include "gamemap/GameMap.h"
+#include "gamemap/Pathfinding.h"
 #include "rooms/Room.h"
 #include "rooms/RoomType.h"
 #include "utils/Random.h"
@@ -32,6 +33,8 @@
 
 const int32_t NB_TURNS_OUTSIDE_HATCHERY_BEFORE_DIE = 30;
 const int32_t NB_TURNS_DIE_BEFORE_REMOVE = 5;
+//! Largest squared tile distance at which a creature can snatch a chicken from another one
+const int32_t SNATCH_MAX_SQUARED_DISTANCE = 1;
 
 ChickenEntity::ChickenEntity(GameMap* gameMap, const std::string& hatcheryName) :
     RenderedMovableEntity(gameMap, hatcheryName, "Chicken", 0.0f, false),
@@ -249,6 +252,46 @@ void ChickenEntity::correctEntityMovePosition(Ogre::Vector2& position)
 
     // if(position.z > 0)
     //     position.z += Random::Double(-offset, offset);
+}
+
+void ChickenEntity::setLockEat(const Creature& worker, bool lock)
+{
+    if(lock)
+    {
+        if(mLockedEat && (mLockOwner != worker.getName()))
+            mSnatchedFrom = mLockOwner;
+
+        mLockedEat = true;
+        mLockOwner = worker.getName();
+        return;
+    }
+
+    // Someone else took the chicken, it stays locked for that creature
+    if(mLockOwner != worker.getName())
+        return;
+
+    mLockedEat = false;
+    mLockOwner.clear();
+    mSnatchedFrom.clear();
+}
+
+bool ChickenEntity::canSnatch(const Creature& creature) const
+{
+    if(!mLockedEat || (mLockOwner == creature.getName()) || !getGameMap()->isRelationshipsEnabled())
+        return false;
+
+    Creature* owner = getGameMap()->getCreature(mLockOwner);
+    Tile* tileChicken = getPositionTile();
+    Tile* tileCreature = creature.getPositionTile();
+    if((owner == nullptr) || (tileChicken == nullptr) || (tileCreature == nullptr) || (owner->getPositionTile() == nullptr))
+        return false;
+
+    if(!creature.canHaveRelationships() || !owner->canHaveRelationships() || (owner->getSeat() != creature.getSeat()))
+        return false;
+
+    float distCreature = Pathfinding::squaredDistanceTile(*tileCreature, *tileChicken);
+    float distOwner = Pathfinding::squaredDistanceTile(*owner->getPositionTile(), *tileChicken);
+    return (distCreature <= SNATCH_MAX_SQUARED_DISTANCE) && (distCreature < distOwner);
 }
 
 bool ChickenEntity::eatChicken(Creature* creature)

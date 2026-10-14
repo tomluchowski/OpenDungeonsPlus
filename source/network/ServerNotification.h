@@ -102,7 +102,24 @@ enum class ServerNotificationType
     //! \brief Answer to the editor asking what the waves of a wave portal are
     editorPortalWaveData,
 
-    exit
+    exit,
+
+    // Sent only to clients that negotiated live nickname changes.
+    playerNickChanged,
+
+    //! A short cosmetic note that something happened (a mood change, a full treasury, a blow, a missile
+    //! launch): + a CosmeticEvent (see network/CosmeticEvent.h): int32_t kind, string subject, string object,
+    //! string text, int32_t value, int32_t value2, Vector3 position. Only sent to clients that negotiated
+    //! cosmetic events; an older client never gets it. Appended last so that no existing numeric value
+    //! changes.
+    cosmeticEvent,
+
+    //! Owner-only tier of a creature pair that changed (or the current tier, sent once when a
+    //! client joins or a game is loaded): + string creatureA, string creatureB, int32_t tier
+    //! (RelationshipTier), bool replay (true: replay of the current tier, no Dungeonbook post or emote).
+    //! Only sent when the creature relationships option is on.
+    //! Appended last so that no existing numeric value changes.
+    relationshipTier
 };
 
 ODPacket& operator<<(ODPacket& os, const ServerNotificationType& nt);

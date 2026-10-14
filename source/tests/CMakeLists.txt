@@ -35,6 +35,35 @@ add_boost_test(00-Goal
         ${Boost_FILESYSTEM_LIBRARY_RELEASE}
         ${Boost_SYSTEM_LIBRARY_RELEASE})
 
+add_boost_test(00-CreatureRelationships
+        SOURCES
+        test_CreatureRelationships.cpp
+        ${SRC}/game/CreatureRelationships.h
+        ${SRC}/game/CreatureRelationships.cpp
+        ${SRC}/utils/LogManager.cpp
+        ${SRC}/utils/LogSinkConsole.cpp
+        LIBRARIES
+        ${OGRE_LIBRARIES}
+        ${SFML_LIBRARIES}
+        ${Boost_FILESYSTEM_LIBRARY_RELEASE}
+        ${Boost_SYSTEM_LIBRARY_RELEASE})
+
+add_boost_test(00-RelationshipHooks
+        SOURCES
+        test_RelationshipHooks.cpp
+        ${SRC}/game/CreatureRelationships.h
+        ${SRC}/game/CreatureRelationships.cpp
+        ${SRC}/network/ODPacket.h
+        ${SRC}/network/ODPacket.cpp
+        ${SRC}/network/RelationshipPacket.h
+        ${SRC}/utils/LogManager.cpp
+        ${SRC}/utils/LogSinkConsole.cpp
+        LIBRARIES
+        ${OGRE_LIBRARIES}
+        ${SFML_LIBRARIES}
+        ${Boost_FILESYSTEM_LIBRARY_RELEASE}
+        ${Boost_SYSTEM_LIBRARY_RELEASE})
+
 add_boost_test(00-Pathfinding
         SOURCES
         test_Pathfinding.cpp)
