@@ -48,7 +48,7 @@ int errorsLogged = 0;
 namespace Helper {template<typename T> std::string toString(T v){return std::to_string(v);}}
 enum class ServerNotificationType {chatServer, playerDefeated, levelStatistics};
 enum class EventShortNoticeType {majorGameEvent};
-enum class RoomType {dungeonTemple, other, nbRooms};
+enum class RoomType {dungeonTemple, other, library, nbRooms};
 enum class SoundRelativeKeeperStatements {Lost, Defeat, AllyDefeated};
 struct ODPacket {std::vector<std::string> texts;std::vector<int32_t> ints;
  ODPacket& operator<<(const char* t){texts.push_back(t);return *this;}
