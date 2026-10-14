@@ -75,6 +75,8 @@ public:
     virtual bool tryPickup(Seat* seat) override;
     virtual void pickup() override;
     virtual bool tryDrop(Seat* seat, Tile* tile) override;
+    //! \brief Drops the chicken at the position. On the server, a hen dropped outside a hatchery gets gift
+    //! turns, in which she is offered to a creature that is not hungry.
     virtual void drop(const Ogre::Vector3& v) override;
 
     //! \brief Turns left in which this chicken, dropped by the keeper outside a hatchery, is offered to
