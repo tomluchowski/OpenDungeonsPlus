@@ -21,6 +21,8 @@
 #include "Trap.h"
 #include "traps/TrapType.h"
 
+#include <cstdint>
+
 //! \brief A hidden trap that bursts into flames when an enemy comes close. Everybody in the area takes damage.
 class TrapFireburst : public Trap
 {
