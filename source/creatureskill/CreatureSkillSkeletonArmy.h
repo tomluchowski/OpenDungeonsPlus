@@ -34,37 +34,52 @@ class CreatureSkillSkeletonArmy : public CreatureSkill
 {
 public:
     // Constructors
+    //! \brief Creates the skill with empty parameters (they are read from the configuration).
     CreatureSkillSkeletonArmy() :
         mCreatureLevelMin(0),
         mNbCreatures(0),
         mEffectDuration(0)
     {}
 
+    //! \brief Nothing to release.
     virtual ~CreatureSkillSkeletonArmy()
     {}
 
+    //! \brief The name of this skill ("SkeletonArmy").
     virtual const std::string& getSkillName() const override;
 
+    //! \brief True if the creature has reached the minimum level of the skill.
     virtual bool canBeUsedBy(const Creature* creature) const override;
 
+    //! \brief Lets temporary creatures rise around the caster, returns true if at least one was created.
     virtual bool tryUseSupport(GameMap& gameMap, Creature* creature) const override;
 
+    //! \brief Skeleton Army is not used in a fight, so this always returns false.
     virtual bool tryUseFight(GameMap& gameMap, Creature* creature, float range,
         GameEntity* attackedObject, Tile* attackedTile, bool ko, bool notifyPlayerIfHit) const override
     { return false; }
 
+    //! \brief Returns a copy of this skill.
     virtual CreatureSkillSkeletonArmy* clone() const override;
 
+    //! \brief True if the other skill is a Skeleton Army skill with the same parameters.
     virtual bool isEqual(const CreatureSkill& creatureSkill) const override;
 
+    //! \brief Appends the column names of the parameters.
     virtual void getFormatString(std::string& format) const override;
+    //! \brief Writes the parameters.
     virtual void exportToStream(std::ostream& os) const override;
+    //! \brief Reads the parameters, returns false if one is missing.
     virtual bool importFromStream(std::istream& is) override;
 
 private:
+    //! \brief Minimum level of the caster
     uint32_t mCreatureLevelMin;
+    //! \brief Number of creatures that rise by one use
     uint32_t mNbCreatures;
+    //! \brief Number of turns the summoned creatures last
     uint32_t mEffectDuration;
+    //! \brief Creature class of the summoned creatures
     std::string mCreatureClass;
 };
 
