@@ -37,6 +37,10 @@ namespace EntityAnimation
     static const std::string claim_anim = "Claim";
     static const std::string walk_anim = "Walk";
     static const std::string sleep_anim = "Sleep";
+    static const std::string drop_anim = "Drop";
+    static const std::string getup_anim = "GetUp";
+    static const std::string combat_attack_anim = "CombatAttack";
+    static const std::string ranged_attack_anim = "RangedAttack";
 };
 
 class MovableGameEntity : public GameEntity
@@ -119,6 +123,8 @@ protected:
     bool mPrevAnimationStateLoop;
 
 private:
+    //! Client: starts the clip of mPrevAnimationState on the model and tells the reactions
+    void startAnimationClip();
     void fireObjectAnimationState(const std::string& state, bool loop, const Ogre::Vector3& direction, bool playIdleWhenAnimationEnds);
     Ogre::AnimationState* mAnimationState;
     std::string mDestinationAnimationState;
@@ -127,6 +133,8 @@ private:
     Ogre::Vector3 mDestinationAnimationDirection;
     Ogre::Vector3 mWalkDirection;
     double mAnimationTime;
+    //! Client: seconds the strike clip still waits for the turn to the target (0 = nothing waits). Not saved.
+    double mBlowStartDelay;
 };
 
 

@@ -30,6 +30,7 @@
 #include "network/ODPacket.h"
 #include "network/ODServer.h"
 #include "network/ServerNotification.h"
+#include "render/CreatureReactions.h"
 #include "render/RenderManager.h"
 #include "utils/Helper.h"
 #include "utils/LogManager.h"
@@ -274,6 +275,8 @@ void GameEntity::fireDropEntity(Player* playerPicking, Tile* tile)
     // possible. If it is an AI, we queue the message because it might have been created
     // during this turn (and, thus, not exist on client side)
     int seatId = playerPicking->getSeat()->getId();
+    const GameEntityType entityType = getObjectType();
+    const std::string& entityName = getName();
     for(Seat* seat : getGameMap()->getSeats())
     {
         if(seat->getPlayer() == nullptr)
@@ -300,6 +303,7 @@ void GameEntity::fireDropEntity(Player* playerPicking, Tile* tile)
                 ServerNotificationType::entityDropped, seat->getPlayer());
             serverNotification.mPacket << seatId;
             getGameMap()->tileToPacket(serverNotification.mPacket, tile);
+            serverNotification.mPacket << entityType << entityName;
             ODServer::getSingleton().sendAsyncMsg(serverNotification);
         }
         else
@@ -308,6 +312,7 @@ void GameEntity::fireDropEntity(Player* playerPicking, Tile* tile)
                 ServerNotificationType::entityDropped, seat->getPlayer());
             serverNotification->mPacket << seatId;
             getGameMap()->tileToPacket(serverNotification->mPacket, tile);
+            serverNotification->mPacket << entityType << entityName;
             ODServer::getSingleton().queueServerNotification(serverNotification);
         }
     }
@@ -689,6 +694,9 @@ void GameEntity::updateFromPacket(ODPacket& is)
                                                                                               effect->mName, effect->mScript);
             mEntityParticleEffects.push_back(effect);
 
+            // A creature that gets a spell effect shows how it takes it
+            if(CreatureReactions::getSingletonPtr() != nullptr)
+                CreatureReactions::getSingleton().noteParticleEffect(this, effect->mScript);
 
         }
         else

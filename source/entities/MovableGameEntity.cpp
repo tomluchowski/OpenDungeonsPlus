@@ -17,12 +17,14 @@
 
 #include "entities/MovableGameEntity.h"
 
+#include "entities/GameEntityType.h"
 #include "entities/Tile.h"
 #include "game/Player.h"
 #include "game/Seat.h"
 #include "gamemap/GameMap.h"
 #include "network/ODServer.h"
 #include "network/ServerNotification.h"
+#include "render/CreatureReactions.h"
 #include "render/RenderManager.h"
 #include "utils/Helper.h"
 #include "utils/LogManager.h"
@@ -30,6 +32,11 @@
 #include "ODApplication.h"
 
 #include <OgreAnimationState.h>
+
+//! Playback speed factor of the combat attack animation, so that strikes look quick.
+const double COMBAT_ATTACK_SPEED_FACTOR = 1.35;
+//! Playback speed factor of the die animation.
+const double DIE_ANIMATION_SPEED_FACTOR = 1.15;
 
 MovableGameEntity::MovableGameEntity(GameMap* gameMap) :
     GameEntity(gameMap),
@@ -39,7 +46,8 @@ MovableGameEntity::MovableGameEntity(GameMap* gameMap) :
     mDestinationPlayIdleWhenAnimationEnds(false),
     mDestinationAnimationDirection(Ogre::Vector3::ZERO),
     mWalkDirection(Ogre::Vector3::ZERO),
-    mAnimationTime(0.0)
+    mAnimationTime(0.0),
+    mBlowStartDelay(0.0)
 {
 }
 
@@ -217,21 +225,70 @@ void MovableGameEntity::setAnimationState(const std::string& state, bool loop, c
     mAnimationTime = 0;
     mPrevAnimationState = state;
     mPrevAnimationStateLoop = loop;
+    // A strike clip that still waits for the turn is replaced by this state
+    mBlowStartDelay = 0.0;
+    Ogre::Real blowDelay = 0.0f;
 
     if(direction != Ogre::Vector3::ZERO)
-        setWalkDirection(direction);
+    {
+        // Before a blow the creature turns to its target in a short smooth movement instead of snapping round
+        const bool blow = (state == EntityAnimation::combat_attack_anim) || (state == EntityAnimation::ranged_attack_anim) ||
+            (state == EntityAnimation::attack_anim);
+        if(blow && getObjectType() == GameEntityType::creature)
+        {
+            mWalkDirection = direction;
+            blowDelay = RenderManager::getSingleton().rrOrientEntityTowardSmoothly(this, direction);
+        }
+        else
+            setWalkDirection(direction);
+    }
 
-    RenderManager::getSingleton().rrSetObjectAnimationState(this, state, loop);
+    // When the server announced the turn to the target, the strike clip starts when the turn is done
+    // (see update); the clip played so far goes on until then
+    if(blowDelay > 0.0f)
+    {
+        mBlowStartDelay = blowDelay;
+        return;
+    }
+
+    startAnimationClip();
+}
+
+void MovableGameEntity::startAnimationClip()
+{
+    RenderManager::getSingleton().rrSetObjectAnimationState(this, mPrevAnimationState, mPrevAnimationStateLoop);
+
+    // The reactions of the creatures (cheering winners) look at what the creatures do
+    if(CreatureReactions::getSingletonPtr() != nullptr)
+        CreatureReactions::getSingleton().noteAnimation(this, mPrevAnimationState);
 }
 
 void MovableGameEntity::update(Ogre::Real timeSinceLastFrame)
 {
+    // The strike clip that waited for the turn to the target starts now (clients only; the damage was never
+    // tied to it)
+    if(mBlowStartDelay > 0.0)
+    {
+        mBlowStartDelay -= static_cast<double>(timeSinceLastFrame);
+        if(mBlowStartDelay <= 0.0)
+        {
+            mBlowStartDelay = 0.0;
+            if(mWalkQueue.empty())
+                startAnimationClip();
+        }
+    }
+
     // Advance the animation
     double addedTime = static_cast<Ogre::Real>(ODApplication::turnsPerSecond
          * static_cast<double>(timeSinceLastFrame)
          * getAnimationSpeedFactor());
+    if(mPrevAnimationState == EntityAnimation::combat_attack_anim)
+        addedTime *= COMBAT_ATTACK_SPEED_FACTOR;
+    else if(mPrevAnimationState == EntityAnimation::die_anim)
+        addedTime *= DIE_ANIMATION_SPEED_FACTOR;
     mAnimationTime += addedTime;
-    if (!getIsOnServerMap() && getAnimationState() != nullptr)
+    if (!getIsOnServerMap() && getAnimationState() != nullptr &&
+        mPrevAnimationState != EntityAnimation::getup_anim)
     {
         // If the animation has stopped we set it to idle if we have to
         if(mDestinationPlayIdleWhenAnimationEnds && getAnimationState()->hasEnded())
@@ -272,7 +329,9 @@ void MovableGameEntity::update(Ogre::Real timeSinceLastFrame)
             mWalkQueue.pop_front();
             if(mWalkQueue.empty())
             {
-                // Stop walking
+                // Apply travel facing before the queued end animation can turn
+                // toward its target; do not overwrite that facing afterwards.
+                setWalkDirection(Ogre::Vector3(walkDirection.x,walkDirection.y,0));
                 stopWalking();
                 break;
             }
@@ -283,7 +342,8 @@ void MovableGameEntity::update(Ogre::Real timeSinceLastFrame)
         }
     }
 
-    setWalkDirection(Ogre::Vector3(walkDirection.x,walkDirection.y,0));
+    if(!mWalkQueue.empty())
+        setWalkDirection(Ogre::Vector3(walkDirection.x,walkDirection.y,0));
     setPosition(Ogre::Vector3(newPosition.x,newPosition.y,newPosition3f.z));
 }
 

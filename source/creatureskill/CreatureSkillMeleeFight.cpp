@@ -19,16 +19,32 @@
 
 #include "creatureskill/CreatureSkillManager.h"
 #include "entities/Creature.h"
+#include "entities/GameEntityType.h"
 #include "entities/Tile.h"
 #include "entities/Weapon.h"
 #include "gamemap/GameMap.h"
+#include "network/CosmeticEvent.h"
 #include "spells/Spell.h"
 #include "utils/Helper.h"
 #include "utils/LogManager.h"
 
+#include <algorithm>
 #include <istream>
 
 const std::string CreatureSkillMeleeFightName = "Melee";
+
+//! Share of the damage below which a blow that did damage counts as glancing
+static const double GLANCING_BLOW_SHARE = 0.34;
+//! Value of a melee result event (see CosmeticEventType::meleeResult): the blow did its damage
+static const int32_t MELEE_RESULT_HIT = 0;
+//! Value of a melee result event: only a small part of the blow got through
+static const int32_t MELEE_RESULT_GLANCING = 1;
+//! Value of a melee result event: no damage at all
+static const int32_t MELEE_RESULT_NO_DAMAGE = 2;
+//! The share of the damage is sent in per mille
+static const double PER_MILLE = 1000.0;
+//! Added before the cast to an integer so that the share is rounded to the nearest per mille
+static const double ROUND_HALF = 0.5;
 
 namespace
 {
@@ -43,6 +59,12 @@ class CreatureSkillMeleeFightFactory : public CreatureSkillFactory
 
 // Register the factory
 static CreatureSkillRegister reg(new CreatureSkillMeleeFightFactory);
+
+//! Tells whether the creature carries a weapon in either hand.
+bool hasWeapon(Creature* creature)
+{
+    return creature->getWeaponL() != nullptr || creature->getWeaponR() != nullptr;
+}
 }
 
 const std::string& CreatureSkillMeleeFight::getSkillName() const
@@ -85,7 +107,51 @@ bool CreatureSkillMeleeFight::tryUseFight(GameMap& gameMap, Creature* creature, 
         magAtk *= modifier;
         eleAtk *= modifier;
     }
-    attackedObject->takeDamage(creature, 0.0, phyAtk, magAtk, eleAtk, attackedTile, ko);
+    // The defending creature may dodge or parry the blow (the server rolls it, before the damage is calculated).
+    // The blow then does no damage; it is still made, so the animation, the warmup and the cooldown of the
+    // attacker stay as they are, and takeDamage still runs with no damage for what it records besides the damage.
+    DefenceChance::Outcome defence = DefenceChance::none;
+    if(attackedObject->getObjectType() == GameEntityType::creature)
+        defence = static_cast<Creature*>(attackedObject)->rollMeleeDefence();
+    if(defence != DefenceChance::none)
+    {
+        phyAtk = 0.0;
+        magAtk = 0.0;
+        eleAtk = 0.0;
+    }
+    const double damageDone = attackedObject->takeDamage(creature, 0.0,
+        phyAtk, magAtk, eleAtk, attackedTile, ko);
+    if(attackedObject->getObjectType() == GameEntityType::creature)
+    {
+        Creature* target = static_cast<Creature*>(attackedObject);
+        target->fireCombatImpact(hasWeapon(creature) && hasWeapon(target),
+            damageDone > 0.0, creature->getPosition());
+
+        // Tell the clients how much of the blow got through, so that they can show a hit, a glancing blow
+        // or a blow that did nothing. The game has no random miss: this only reads the damage that was
+        // already calculated, it changes neither the damage nor when it is dealt.
+        const double rawDamage = phyAtk + magAtk + eleAtk;
+        double share = (rawDamage > 0.0) ? damageDone / rawDamage : 0.0;
+        share = std::max(0.0, std::min(1.0, share));
+        // The newer kind first (hit, glancing, blocked and how hard in relation to the health); the clients that
+        // got it ignore the older kind below
+        if(defence != DefenceChance::none)
+            target->fireHitDefended(creature->getName(), defence);
+        else
+            target->fireHitResult(creature->getName(), damageDone, rawDamage, false);
+        CosmeticEvent event(CosmeticEventType::meleeResult);
+        event.mSubject = creature->getName();
+        event.mObject = target->getName();
+        if(damageDone <= 0.0)
+            event.mValue = MELEE_RESULT_NO_DAMAGE;
+        else if(share < GLANCING_BLOW_SHARE)
+            event.mValue = MELEE_RESULT_GLANCING;
+        else
+            event.mValue = MELEE_RESULT_HIT;
+        event.mValue2 = static_cast<int32_t>(share * PER_MILLE + ROUND_HALF);
+        event.mPosition = target->getPosition();
+        target->fireCosmeticEvent(event, false);
+    }
     if(notifyPlayerIfHit)
         attackedObject->notifyFightPlayer(attackedTile);
 

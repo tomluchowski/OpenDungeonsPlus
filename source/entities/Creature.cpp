@@ -37,6 +37,7 @@
 #include "creatureaction/CreatureActionSearchWallTileToClaim.h"
 #include "creatureaction/CreatureActionSleep.h"
 #include "creatureaction/CreatureActionStealFreeGold.h"
+#include "creatureaction/CreatureActionUseRoom.h"
 #include "creatureaction/CreatureActionWalkToTile.h"
 #include "creaturebehaviour/CreatureBehaviour.h"
 #include "creatureeffect/CreatureEffect.h"
@@ -45,6 +46,7 @@
 #include "creatureeffect/CreatureEffectSlap.h"
 #include "creaturemood/CreatureMood.h"
 #include "creaturemood/CreatureMoodManager.h"
+#include "creaturemood/CreatureMoodOutOfWork.h"
 #include "creatureskill/CreatureSkill.h"
 
 
@@ -68,10 +70,12 @@
 
 #include "modes/GameEditorModeConsole.h"
 
+#include "network/CosmeticEvent.h"
 #include "network/ODClient.h"
 #include "network/ODServer.h"
 #include "network/ServerNotification.h"
 #include "render/CreatureOverlayStatus.h"
+#include "render/CreatureReactions.h"
 #include "render/RenderManager.h"
 #include "rooms/RoomCrypt.h"
 #include "rooms/RoomDormitory.h"
@@ -102,6 +106,7 @@
 
 #include <cmath>
 #include <algorithm>
+#include <cctype>
 
 
 
@@ -166,13 +171,14 @@ Creature::Creature(GameMap* gameMap, const CreatureDefinition* definition, Seat*
     mJobCooldown             (0),
     mGoldFee                 (0),
     mGoldCarried             (0),
+    mGoldCarriedNotified     (0),
     mSkillTypeDropDeath      (SkillType::nullSkillType),
     mWeaponDropDeath         ("none"),
     mStatsWindow             (nullptr),
     mNbTurnsWithoutBattle    (0),
     mCarriedEntity           (nullptr),
     mMoodCooldownTurns       (0),
-    mMoodValue               (CreatureMoodLevel::Neutral),
+    mMoodValue               (gameMap->isServerGameMap() ? CreatureMoodLevel::Neutral : CreatureMoodLevel::Unknown),
     mMoodPoints              (0),
     mNbTurnFurious           (-1),
     mOverlayHealthValue      (0),
@@ -185,7 +191,10 @@ Creature::Creature(GameMap* gameMap, const CreatureDefinition* definition, Seat*
     mSeatPrison              (nullptr),
     mNbTurnsTorture          (0),
     mNbTurnsPrison           (0),
-    mActiveSlapsCount        (0)
+    mActiveSlapsCount        (0),
+    mNbTurnsInHand           (0),
+    mIsInHand                (false),
+    mNbTurnsOutOfWork        (0)
 {
     //TODO: This should be set in initialiser list in parent classes
     setSeat(seat);
@@ -251,13 +260,14 @@ Creature::Creature(GameMap* gameMap) :
     mJobCooldown             (0),
     mGoldFee                 (0),
     mGoldCarried             (0),
+    mGoldCarriedNotified     (0),
     mSkillTypeDropDeath      (SkillType::nullSkillType),
     mWeaponDropDeath         ("none"),
     mStatsWindow             (nullptr),
     mNbTurnsWithoutBattle    (0),
     mCarriedEntity           (nullptr),
     mMoodCooldownTurns       (0),
-    mMoodValue               (CreatureMoodLevel::Neutral),
+    mMoodValue               (gameMap->isServerGameMap() ? CreatureMoodLevel::Neutral : CreatureMoodLevel::Unknown),
     mMoodPoints              (0),
     mNbTurnFurious           (-1),
     mOverlayHealthValue      (0),
@@ -270,7 +280,10 @@ Creature::Creature(GameMap* gameMap) :
     mSeatPrison              (nullptr),
     mNbTurnsTorture          (0),
     mNbTurnsPrison           (0),
-    mActiveSlapsCount        (0)
+    mActiveSlapsCount        (0),
+    mNbTurnsInHand           (0),
+    mIsInHand                (false),
+    mNbTurnsOutOfWork        (0)
 {
     if(!getIsOnServerMap())
     {
@@ -328,6 +341,8 @@ void Creature::createMeshWeapons()
 
     if(mWeaponR != nullptr)
         RenderManager::getSingleton().rrCreateWeapon(this, mWeaponR, "R");
+
+    RenderManager::getSingleton().rrCreateWorkerTool(this);
 }
 
 void Creature::destroyMeshWeapons()
@@ -340,6 +355,8 @@ void Creature::destroyMeshWeapons()
 
     if(mWeaponR != nullptr)
         RenderManager::getSingleton().rrDestroyWeapon(this, mWeaponR, "R");
+
+    RenderManager::getSingleton().rrDestroyWorkerTool(this);
 }
 
 GameEntityType Creature::getObjectType() const
@@ -608,6 +625,9 @@ void Creature::exportToPacket(ODPacket& os, const Seat* seat) const
         os << mWeaponR->getName();
     else
         os << "none";
+
+    exportMoodToPacket(os, seat);
+    exportActivityToPacket(os, seat);
 }
 
 void Creature::importFromPacket(ODPacket& is)
@@ -660,6 +680,8 @@ void Creature::importFromPacket(ODPacket& is)
         }
     }
 
+    importMoodFromPacket(is);
+    importActivityFromPacket(is);
     setupDefinition(*getGameMap(), *ConfigManager::getSingleton().getCreatureDefinitionDefaultWorker());
 }
 
@@ -902,9 +924,19 @@ void Creature::doUpkeep()
         it = mEntityParticleEffects.erase(it);
     }
 
+    // The creature resents being held in the hand for long periods. The resentment fades once dropped
+    if(mIsInHand)
+        ++mNbTurnsInHand;
+    else if(mNbTurnsInHand > 0)
+        --mNbTurnsInHand;
+
     // if creature is not on map (picked up or being carried), we do nothing
     if(!getIsOnMap())
         return;
+
+    // A creature that is working is not frustrated anymore
+    if(isActionInList(CreatureActionType::useRoom))
+        mNbTurnsOutOfWork = 0;
 
     // If the creature is temporary KO, it should do nothing
     if(mKoTurnCounter > 0)
@@ -913,6 +945,9 @@ void Creature::doUpkeep()
         if(mKoTurnCounter > 0)
             return;
 
+        if(!getGameMap()->isInEditorMode())
+            setAnimationState(EntityAnimation::getup_anim, false,
+                Ogre::Vector3::ZERO, false);
         computeCreatureOverlayMoodValue();
         return;
     }
@@ -1032,6 +1067,14 @@ void Creature::doUpkeep()
     mVisibleEnemyObjects         = getVisibleEnemyObjects();
     mVisibleAlliedObjects        = getVisibleAlliedObjects();
     mReachableAlliedObjects      = getReachableAttackableObjects(mVisibleAlliedObjects);
+
+    // The clients show the gold on the body of the carrier. They are told when it changed (cosmetic only).
+    if(mGoldCarried != mGoldCarriedNotified)
+    {
+        mGoldCarriedNotified = mGoldCarried;
+        fireCosmeticEvent(static_cast<int32_t>(CosmeticEventType::carriedGold), mGoldCarried,
+            getDefinition()->getMaxGoldCarryable(), false);
+    }
 
     // Check if we should compute mood
     if(mMoodCooldownTurns > 0)
@@ -1723,6 +1766,8 @@ void Creature::exportToPacketForUpdate(ODPacket& os, Seat* seat)
         seatPrisonId = mSeatPrison->getId();
 
     os << seatPrisonId;
+    exportMoodToPacket(os, seat);
+    exportActivityToPacket(os, seat);
 }
 
 void Creature::updateFromPacket(ODPacket& is)
@@ -1730,6 +1775,11 @@ void Creature::updateFromPacket(ODPacket& is)
     MovableGameEntity::updateFromPacket(is);
 
     int seatId;
+    unsigned int oldLevel = mLevel;
+    uint32_t oldMoodValue = mOverlayMoodValue;
+    uint32_t oldHealthValue = mOverlayHealthValue;
+    Seat* oldSeat = getSeat();
+    Seat* oldSeatPrison = mSeatPrison;
     OD_ASSERT_TRUE(is >> mLevel);
     OD_ASSERT_TRUE(is >> seatId);
     OD_ASSERT_TRUE(is >> mOverlayHealthValue);
@@ -1768,6 +1818,122 @@ void Creature::updateFromPacket(ODPacket& is)
             OD_LOG_ERR("Creature " + getName() + ", wrong seatId=" + Helper::toString(seatId));
         }
     }
+
+    importMoodFromPacket(is);
+    importActivityFromPacket(is);
+    // Level up and payday are shown as cosmetic reactions of the creature
+    if(CreatureReactions::getSingletonPtr() != nullptr)
+        CreatureReactions::getSingleton().noteCreatureUpdate(this, oldLevel, oldMoodValue, oldHealthValue, oldSeat, oldSeatPrison);
+}
+
+void Creature::exportMoodToPacket(ODPacket& os, const Seat* seat) const
+{
+    if(!ODServer::getSingleton().supportsCreatureMood(seat->getPlayer()))
+        return;
+
+    int32_t mood = static_cast<int32_t>(seat->isAlliedSeat(getSeat()) ?
+        mMoodValue : CreatureMoodLevel::Unknown);
+    os << mood;
+}
+
+void Creature::importMoodFromPacket(ODPacket& is)
+{
+    mMoodValue = CreatureMoodLevel::Unknown;
+    if(!ODClient::getSingleton().supportsCreatureMood())
+        return;
+
+    int32_t mood = static_cast<int32_t>(CreatureMoodLevel::Unknown);
+    OD_ASSERT_TRUE(is >> mood);
+    if(mood < static_cast<int32_t>(CreatureMoodLevel::Unknown) ||
+       mood > static_cast<int32_t>(CreatureMoodLevel::Furious))
+    {
+        OD_LOG_ERR("Invalid creature mood=" + Helper::toString(mood));
+        return;
+    }
+    mMoodValue = static_cast<CreatureMoodLevel>(mood);
+}
+
+CreatureActivity Creature::getActivity() const
+{
+    CreatureActivity activity;
+    if(!getIsOnMap() || !isAlive() || isKo())
+        return activity;
+
+    if(!getIsOnServerMap())
+        return mActivity;
+
+    activity.known = true;
+    if(!mActions.empty())
+        activity.action = mActions.back()->getType();
+
+    for(std::vector<std::unique_ptr<CreatureAction>>::const_reverse_iterator it = mActions.rbegin(); it != mActions.rend(); ++it)
+    {
+        const CreatureActionType type = (*it)->getType();
+        if(activity.task == CreatureActionType::nb && type != CreatureActionType::walkToTile &&
+           type != CreatureActionType::parkToTile)
+            activity.task = type;
+
+        if(type != CreatureActionType::useRoom)
+            continue;
+
+        const Room* room = static_cast<const CreatureActionUseRoom*>(it->get())->getRoom();
+        if(room != nullptr)
+        {
+            activity.assignedRoom = room->getType();
+            const Tile* tile = getPositionTile();
+            activity.inAssignedRoom = tile != nullptr && tile->getCoveringRoom() == room;
+        }
+        break;
+    }
+    return activity;
+}
+
+void Creature::exportActivityToPacket(ODPacket& os, const Seat* seat) const
+{
+    if(!ODServer::getSingleton().supportsCreatureActivity(seat->getPlayer()))
+        return;
+
+    const CreatureActivity activity = seat->isAlliedSeat(getSeat()) ? getActivity() : CreatureActivity();
+    os << activity.known;
+    if(!activity.known)
+        return;
+
+    os << static_cast<int32_t>(activity.action) << static_cast<int32_t>(activity.task)
+       << static_cast<int32_t>(activity.assignedRoom) << activity.inAssignedRoom;
+}
+
+void Creature::importActivityFromPacket(ODPacket& is)
+{
+    mActivity = CreatureActivity();
+    if(!ODClient::getSingleton().supportsCreatureActivity())
+        return;
+
+    CreatureActivity activity;
+    if(!(is >> activity.known))
+    {
+        OD_LOG_ERR("Missing creature activity for " + getName());
+        return;
+    }
+    if(!activity.known)
+        return;
+
+    int32_t action, task, room;
+    if(!(is >> action >> task >> room >> activity.inAssignedRoom))
+    {
+        OD_LOG_ERR("Incomplete creature activity for " + getName());
+        return;
+    }
+    if(action < 0 || action > static_cast<int32_t>(CreatureActionType::nb) ||
+       task < 0 || task > static_cast<int32_t>(CreatureActionType::nb) ||
+       room < 0 || room >= static_cast<int32_t>(RoomType::nbRooms))
+    {
+        OD_LOG_ERR("Invalid creature activity for " + getName());
+        return;
+    }
+    activity.action = static_cast<CreatureActionType>(action);
+    activity.task = static_cast<CreatureActionType>(task);
+    activity.assignedRoom = static_cast<RoomType>(room);
+    mActivity = activity;
 }
 
 void Creature::updateTilesInSight()
@@ -2163,11 +2329,16 @@ void Creature::receiveExp(double experience)
 void Creature::useAttack(CreatureSkillData& skillData, GameEntity& entityAttack,
         Tile& tileAttack, bool ko, bool notifyPlayerIfHit)
 {
-    // Turn to face the entity we are attacking and set the animation state to Attack.
+    // Keep ranged skills visually distinct, including shots at adjacent targets.
     const Ogre::Vector3& pos = getPosition();
-    Ogre::Vector3 walkDirection(tileAttack.getX() - pos.x, tileAttack.getY() - pos.y, 0);
+    const Ogre::Vector3 target = entityAttack.getObjectType() == GameEntityType::creature ?
+        entityAttack.getPosition() : Ogre::Vector3(tileAttack.getX(), tileAttack.getY(), 0);
+    Ogre::Vector3 walkDirection(target.x - pos.x, target.y - pos.y, 0);
     walkDirection.normalise();
-    setAnimationState(EntityAnimation::attack_anim, false, walkDirection, true);
+    fireAttackTurn(entityAttack.getName(), walkDirection);
+    const bool ranged = skillData.mSkill->getRangeMax(this, &entityAttack) > 1.0;
+    setAnimationState(ranged ? EntityAnimation::ranged_attack_anim :
+        EntityAnimation::combat_attack_anim, false, walkDirection, true);
     fireCreatureSound(CreatureSound::Attack);
     setNbTurnsWithoutBattle(0);
 
@@ -2260,6 +2431,7 @@ void Creature::pickup()
     removeEntityFromPositionTile();
     clearDestinations(EntityAnimation::idle_anim, true, true);
     clearActionQueue();
+    mActivity = CreatureActivity();
 
     if(!getIsOnServerMap())
         return;
@@ -2267,7 +2439,22 @@ void Creature::pickup()
     if(getHasVisualDebuggingEntities())
         computeVisualDebugEntities();
 
+    mIsInHand = true;
+
     fireCreatureSound(CreatureSound::Pickup);
+}
+
+int32_t Creature::getNbRecentSlaps(int32_t nbTurns) const
+{
+    int64_t turnNumber = getGameMap()->getTurnNumber();
+    int32_t nbSlaps = 0;
+    for(int64_t slapTurn : mSlapTurns)
+    {
+        if(turnNumber - slapTurn <= nbTurns)
+            ++nbSlaps;
+    }
+
+    return nbSlaps;
 }
 
 bool Creature::canGoThroughTile(Tile* tile) const
@@ -2328,6 +2515,8 @@ void Creature::drop(const Ogre::Vector3& v)
         computeVisualDebugEntities();
 
     fireCreatureSound(CreatureSound::Drop);
+
+    mIsInHand = false;
 
     // The creature is temporary KO
     mKoTurnCounter = mDefinition->getTurnsStunDropped();
@@ -2687,6 +2876,12 @@ void Creature::slap()
     CreatureEffectSlap* effect = new CreatureEffectSlap(
         ConfigManager::getSingleton().getSlapEffectDuration(), "");
     addCreatureEffect(effect);
+
+    // We remember the slap to compute the mood. Only the latest ones are kept
+    mSlapTurns.push_back(getGameMap()->getTurnNumber());
+    if(mSlapTurns.size() > 10)
+        mSlapTurns.erase(mSlapTurns.begin());
+
     mHp -= mMaxHP * ConfigManager::getSingleton().getSlapDamagePercent() / 100.0;
     computeCreatureOverlayHealthValue();
 }
@@ -2755,6 +2950,13 @@ void Creature::fireRemoveEntity(Seat* seat,NodeType nt)
 
 void Creature::fireCreatureRefreshIfNeeded()
 {
+    const CreatureActivity activity = getActivity();
+    if(!(mActivity == activity))
+    {
+        mActivity = activity;
+        mNeedFireRefresh = true;
+    }
+
     if(!mNeedFireRefresh)
         return;
 
@@ -2990,6 +3192,176 @@ void Creature::fireCreatureSound(CreatureSound sound)
     }
 }
 
+void Creature::fireCombatImpact(bool weaponClash, bool bodyDamage,
+    const Ogre::Vector3& attackerPosition)
+{
+    for(Seat* seat : mSeatsWithVisionNotified)
+    {
+        if(seat->getPlayer() == nullptr || !seat->getPlayer()->getIsHuman())
+            continue;
+
+        ServerNotification* notification = new ServerNotification(
+            ServerNotificationType::creatureCombatImpact, seat->getPlayer());
+        notification->mPacket << getName() << weaponClash << bodyDamage
+            << attackerPosition;
+        ODServer::getSingleton().queueServerNotification(notification);
+    }
+}
+
+void Creature::fireCosmeticEvent(const CosmeticEvent& event, bool alliedOnly)
+{
+    for(Seat* seat : mSeatsWithVisionNotified)
+    {
+        if(seat->getPlayer() == nullptr || !seat->getPlayer()->getIsHuman())
+            continue;
+
+        if(alliedOnly && !seat->isAlliedSeat(getSeat()))
+            continue;
+
+        ODServer::getSingleton().sendCosmeticEvent(seat->getPlayer(), event);
+    }
+}
+
+void Creature::fireCosmeticEvent(int32_t type, int32_t value, int32_t value2, bool alliedOnly)
+{
+    CosmeticEvent event;
+    event.mType = type;
+    event.mSubject = getName();
+    event.mValue = value;
+    event.mValue2 = value2;
+    fireCosmeticEvent(event, alliedOnly);
+}
+
+void Creature::fireAttackTurn(const std::string& targetName, const Ogre::Vector3& direction)
+{
+    if(!ConfigManager::getSingleton().getAttackTurnEvents())
+        return;
+
+    CosmeticEvent event(CosmeticEventType::attackTurn);
+    event.mSubject = getName();
+    event.mObject = targetName;
+    event.mPosition = direction;
+    fireCosmeticEvent(event, false);
+}
+
+void Creature::fireHitResult(const std::string& attackerName, double damageDone, double rawDamage, bool missile)
+{
+    if(!ConfigManager::getSingleton().getHitEvents())
+        return;
+
+    // The share of the damage that got through the defense decides between a hit, a glancing blow and a blocked one
+    double share = (rawDamage > 0.0) ? damageDone / rawDamage : 0.0;
+    share = std::max(0.0, std::min(1.0, share));
+    CosmeticHitResult result = CosmeticHitResult::hit;
+    if(damageDone <= 0.0)
+        result = CosmeticHitResult::blocked;
+    else if(share < ConfigManager::getSingleton().getHitGlanceShare())
+        result = CosmeticHitResult::glanced;
+
+    // How hard it hit: the damage in per mille of the maximum health of this creature
+    double maxHp = getMaxHp();
+    double healthShare = (maxHp > 0.0) ? damageDone / maxHp : 0.0;
+    healthShare = std::max(0.0, std::min(1.0, healthShare));
+
+    CosmeticEvent event(CosmeticEventType::hitResult);
+    event.mSubject = attackerName;
+    event.mObject = getName();
+    event.mText = missile ? "missile" : "melee";
+    event.mValue = static_cast<int32_t>(result);
+    event.mValue2 = static_cast<int32_t>(healthShare * 1000.0 + 0.5);
+    event.mPosition = getPosition();
+    fireCosmeticEvent(event, false);
+}
+
+void Creature::fireHitMissed(const std::string& attackerName)
+{
+    if(!ConfigManager::getSingleton().getHitEvents())
+        return;
+
+    CosmeticEvent event(CosmeticEventType::hitResult);
+    event.mSubject = attackerName;
+    event.mObject = getName();
+    event.mText = "missile";
+    event.mValue = static_cast<int32_t>(CosmeticHitResult::missed);
+    event.mValue2 = 0;
+    event.mPosition = getPosition();
+    fireCosmeticEvent(event, false);
+}
+
+void Creature::fireHitDefended(const std::string& attackerName, DefenceChance::Outcome outcome)
+{
+    if(!ConfigManager::getSingleton().getHitEvents())
+        return;
+
+    if(outcome == DefenceChance::none)
+        return;
+
+    CosmeticEvent event(CosmeticEventType::hitResult);
+    event.mSubject = attackerName;
+    event.mObject = getName();
+    event.mText = "melee";
+    event.mValue = static_cast<int32_t>((outcome == DefenceChance::parried) ? CosmeticHitResult::parried : CosmeticHitResult::dodged);
+    event.mValue2 = 0;
+    event.mPosition = getPosition();
+    fireCosmeticEvent(event, false);
+}
+
+DefenceChance::Outcome Creature::rollMeleeDefence() const
+{
+    ConfigManager& config = ConfigManager::getSingleton();
+    if(!config.getMeleeDodgeParry())
+        return DefenceChance::none;
+
+    // Only a creature that can really move out of the way: alive, awake and on the map (a creature that is held
+    // in the hand of a keeper is not on the map)
+    if(!getIsOnServerMap() || !getIsOnMap() || !isAlive() || isKo())
+        return DefenceChance::none;
+
+    // A weapon that strikes parries, a shield makes the parry better; a shield alone does not parry
+    bool hasWeapon = false;
+    bool hasShield = false;
+    const Weapon* weapons[2] = {getWeaponL(), getWeaponR()};
+    for(uint32_t i = 0; i < 2; ++i)
+    {
+        if(weapons[i] == nullptr)
+            continue;
+
+        std::string mesh = weapons[i]->getMeshName();
+        std::transform(mesh.begin(), mesh.end(), mesh.begin(), ::tolower);
+        if(DefenceChance::isShieldMesh(mesh))
+            hasShield = true;
+        else if(DefenceChance::isParryWeaponMesh(mesh))
+            hasWeapon = true;
+    }
+
+    double dodge = DefenceChance::dodgeChance(getLevel(), config.getDodgeBase(), config.getDodgePerLevel(),
+        config.getDodgeMax());
+    double parry = DefenceChance::parryChance(getLevel(), hasWeapon, hasShield, config.getParryBase(),
+        config.getParryPerLevel(), config.getParryMax(), config.getParryShieldBase(),
+        config.getParryShieldPerLevel(), config.getParryShieldMax());
+
+    // Dodging is rolled first, parrying only if the creature did not dodge. The server draws the dice.
+    double dodgeRoll = Random::Double(0.0, 100.0);
+    double parryRoll = Random::Double(0.0, 100.0);
+    return DefenceChance::decide(dodge, parry, dodgeRoll, parryRoll);
+}
+
+void Creature::fireArrivalEvent()
+{
+    Player* player = getSeat()->getPlayer();
+    if(player == nullptr || !player->getIsHuman())
+        return;
+
+    // The creature has no vision yet and the portal belongs to the keeper, so the keeper is told directly.
+    // Reading the mood only adds up the modifiers, it does not change the creature.
+    int32_t points = CreatureMoodManager::computeCreatureMoodModifiers(*this);
+    CosmeticEvent event(CosmeticEventType::portalArrival);
+    event.mSubject = getName();
+    event.mValue = static_cast<int32_t>(CreatureMoodManager::getCreatureMoodLevel(points));
+    event.mValue2 = points;
+    ODServer::getSingleton().sendCosmeticEvent(player, event);
+}
+
 void Creature::itsPayDay()
 {
     // Rogue creatures do not have to be paid
@@ -3023,6 +3395,10 @@ void Creature::computeMood()
     mMoodValue = CreatureMoodManager::getCreatureMoodLevel(mMoodPoints);
     if(mMoodValue == oldMoodValue)
         return;
+
+    mNeedFireRefresh = true;
+    fireCosmeticEvent(static_cast<int32_t>(CosmeticEventType::moodStage), static_cast<int32_t>(mMoodValue),
+        static_cast<int32_t>(oldMoodValue), true);
 
     if((mMoodValue >= CreatureMoodLevel::Furious) &&
        (oldMoodValue < CreatureMoodLevel::Furious))
@@ -3397,6 +3773,7 @@ void Creature::fightCreature(Creature& creature, bool ko, bool notifyPlayerIfHit
 
 void Creature::flee()
 {
+    fireCosmeticEvent(static_cast<int32_t>(CosmeticEventType::scared), 0, 0, false);
     clearDestinations(EntityAnimation::idle_anim, true, true);
     clearActionQueue();
     pushAction(Utils::make_unique<CreatureActionFlee>(*this));
@@ -3428,6 +3805,10 @@ void Creature::changeSeat(Seat* newSeat)
     mNbTurnsTorture = 0;
     mNbTurnsPrison = 0;
     mActiveSlapsCount = 0;
+    mNbTurnsInHand = 0;
+    mIsInHand = false;
+    mNbTurnsOutOfWork = 0;
+    mSlapTurns.clear();
     clearDestinations(EntityAnimation::idle_anim, true, true);
     clearActionQueue();
     mNeedFireRefresh = true;
@@ -3471,9 +3852,4 @@ void Creature::normalizeAmbient()
     RenderManager::getSingleton().rrNormalizeAmbient(this);
 
 }
-
-
-
-
-
 

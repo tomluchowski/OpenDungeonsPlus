@@ -24,6 +24,7 @@
 #include "entities/Creature.h"
 #include "entities/CreatureDefinition.h"
 #include "entities/GameEntity.h"
+#include "entities/GameEntityType.h"
 #include "entities/MapLight.h"
 #include "entities/MovableGameEntity.h"
 #include "entities/RenderedMovableEntity.h"
@@ -34,18 +35,28 @@
 #include "gamemap/GameMap.h"
 #include "gamemap/TileSet.h"
 #include "modes/ModeManager.h"
+#include "render/CreatureCombatReactions.h"
 #include "render/CreatureOverlayStatus.h"
+#include "render/CreatureReactions.h"
 #include "render/DebugDrawer.h"
 #include "render/MovableTextOverlay.h"
 #include "render/ODFrameListener.h"
+#include "render/WeaponTrail.h"
+#include "render/TwoWeaponStrike.h"
 #include "rooms/Room.h"
 #include "utils/ConfigManager.h"
 #include "utils/Helper.h"
 #include "utils/LogManager.h"
 #include "utils/ResourceManager.h"
 
+#include <cctype>
+
 
 #include <OgreBone.h>
+#include <OgreAnimation.h>
+#include <OgreAnimationTrack.h>
+#include <OgreKeyFrame.h>
+#include <OgreManualObject.h>
 #include <OgreCamera.h>
 #include <OgreCompositorManager.h>
 #include <OgreEntity.h>
@@ -61,6 +72,7 @@
 #include <OgreShadowCameraSetupLiSPSM.h>
 #include <OgreSkeleton.h>
 #include <OgreSkeletonInstance.h>
+#include <OgreTagPoint.h>
 #include <OgreSubEntity.h>
 #include <OgreSubMesh.h>
 #include <OgreRoot.h>
@@ -74,6 +86,7 @@
 
 #include <sstream>
 #include <string>
+#include <functional>
 
 template<> RenderManager* Ogre::Singleton<RenderManager>::msSingleton = nullptr;
 
@@ -84,8 +97,24 @@ const Ogre::Real RenderManager::BLENDER_UNITS_PER_OGRE_UNIT = 10.0f;
 const Ogre::Real KEEPER_HAND_POS_Z = 20.0;
 const Ogre::Real RenderManager::KEEPER_HAND_WORLD_Z = KEEPER_HAND_POS_Z / RenderManager::BLENDER_UNITS_PER_OGRE_UNIT;
 
+//! Seconds before the creatures that stand around look at the hand that slaps again
+const double SLAP_LOOK_INTERVAL = 1.0;
+
 const Ogre::Real KEEPER_HAND_CREATURE_PICKED_OFFSET = 0.05f;
 const Ogre::Real KEEPER_HAND_CREATURE_PICKED_SCALE = 0.05f;
+const Ogre::Real CREATURE_DROP_ANIMATION_DURATION = 0.35f;
+const Ogre::Real CREATURE_GET_UP_ANIMATION_DURATION = 0.35f;
+const Ogre::Real ROOM_CONSTRUCTION_EFFECT_DURATION = 1.1f;
+const Ogre::Real CREATURE_COMBAT_IMPACT_DURATION = 0.55f;
+//! A turn of a creature to its target that is smaller than this angle (radians) is not animated
+const Ogre::Real CREATURE_TURN_MIN_ANGLE = 0.05f;
+//! Seconds of a turn without any angle and the extra seconds of a half turn (180 degrees)
+const Ogre::Real CREATURE_TURN_BASE_DURATION = 0.12f;
+const Ogre::Real CREATURE_TURN_HALF_TURN_DURATION = 0.14f;
+//! The shortest turn that follows an announced direction (seconds)
+const Ogre::Real CREATURE_TURN_MIN_ANNOUNCED_DURATION = 0.05f;
+//! A turn is given up when the orientation differs from the last one it set by more than this angle (radians)
+const Ogre::Real CREATURE_TURN_INTERRUPT_TOLERANCE = 0.02f;
 
 const Ogre::ColourValue BASE_AMBIENT_VALUE = Ogre::ColourValue(0.3f, 0.3f, 0.3f);
 
@@ -93,6 +122,619 @@ const Ogre::Real RenderManager::DRAGGABLE_NODE_HEIGHT = 3.0f;
 
 const int PERLIN_NOISE_TEXTURE_SIZE =  4096;
 
+namespace
+{
+void createKeeperHandPoses(Ogre::Entity* hand)
+{
+    Ogre::Skeleton* skeleton = hand->getMesh()->getSkeleton().get();
+    const Ogre::Animation* pickup = skeleton->getAnimation("Pickup");
+    // Reuse the existing rig's closed fingers; the index stays extended when pointing.
+    for(const std::string pose : {"Point", "Dig", "Hold"})
+    {
+        if(!skeleton->hasAnimation(pose))
+        {
+            Ogre::Animation* animation = skeleton->createAnimation(pose, 1.0f);
+            for(unsigned short b = 0; b < skeleton->getNumBones(); ++b)
+            {
+                const std::string& name = skeleton->getBone(b)->getName();
+                const bool finger = (pose != "Hold" && (name.find("Middle") == 0 || name.find("Midlle") == 0 ||
+                    name.find("Ring") == 0 || name.find("Little") == 0)) || name.find("Thumb") == 0 ||
+                    ((pose == "Dig" || pose == "Hold") && name.find("Index") == 0);
+                if(!finger || !pickup->hasNodeTrack(b))
+                    continue;
+                Ogre::TransformKeyFrame sampled(nullptr, 0);
+                pickup->getNodeTrack(b)->getInterpolatedKeyFrame(Ogre::TimeIndex(pickup->getLength() * 0.5f), &sampled);
+                Ogre::TransformKeyFrame* frame = animation->createNodeTrack(b)->createNodeKeyFrame(0);
+                frame->setRotation(sampled.getRotation());
+                frame->setTranslate(sampled.getTranslate());
+                frame->setScale(sampled.getScale());
+            }
+            if(pose == "Point")
+            {
+                Ogre::TransformKeyFrame* wrist = animation->createNodeTrack(
+                    skeleton->getBone("Hand1")->getHandle())->createNodeKeyFrame(0);
+                wrist->setRotation(Ogre::Quaternion(Ogre::Degree(-15.0f), Ogre::Vector3::UNIT_Z) *
+                    Ogre::Quaternion(Ogre::Degree(30.0f), Ogre::Vector3::UNIT_Y));
+            }
+            if(pose == "Dig")
+            {
+                // Turn the gripping wrist so the tool emerges above the thumb.
+                Ogre::TransformKeyFrame* wrist = animation->createNodeTrack(
+                    skeleton->getBone("Hand1")->getHandle())->createNodeKeyFrame(0);
+                wrist->setRotation(Ogre::Quaternion(Ogre::Degree(120.0f), Ogre::Vector3::UNIT_Y));
+            }
+        }
+        if(!hand->hasAnimationState(pose))
+            hand->getAllAnimationStates()->createAnimationState(pose, 0, 1.0f);
+    }
+    const Ogre::Real duration = 4.0f / 30.0f;
+    if(!skeleton->hasAnimation("PointTransition"))
+    {
+        Ogre::Animation* transition = skeleton->createAnimation("PointTransition", duration);
+        for(unsigned short b = 0; b < skeleton->getNumBones(); ++b)
+        {
+            Ogre::NodeAnimationTrack* track = transition->createNodeTrack(b);
+            for(int i = 0; i < 2; ++i)
+            {
+                const Ogre::Animation* pose = skeleton->getAnimation(i == 0 ? "Idle" : "Point");
+                Ogre::TransformKeyFrame* frame = track->createNodeKeyFrame(duration * i);
+                if(pose->hasNodeTrack(b))
+                {
+                    Ogre::TransformKeyFrame sampled(nullptr, 0);
+                    pose->getNodeTrack(b)->getInterpolatedKeyFrame(Ogre::TimeIndex(0), &sampled);
+                    frame->setRotation(sampled.getRotation());
+                    frame->setTranslate(sampled.getTranslate());
+                    frame->setScale(sampled.getScale());
+                }
+            }
+        }
+    }
+    if(!hand->hasAnimationState("PointTransition"))
+        hand->getAllAnimationStates()->createAnimationState("PointTransition", 0, duration);
+}
+
+void alignKeeperHandPointer(Ogre::Entity* hand, const Ogre::AnimationState* animation)
+{
+    const float weight = animation->getAnimationName() == "Point" ? 1.0f :
+        (animation->getAnimationName() == "PointTransition" ?
+            animation->getTimePosition() / animation->getLength() : 0.0f);
+    Ogre::SceneNode* model = hand->getParentSceneNode();
+    model->setPosition(Ogre::Vector3::ZERO);
+    if(weight == 0.0f)
+        return;
+
+    hand->_updateAnimation();
+    const Ogre::Bone* index = hand->getSkeleton()->getBone("Index3");
+    // Centre of the distal fingertip cap in Keeperhand.mesh, in Index3 bind space.
+    const Ogre::Vector3 tipLocal(-0.000284253f, 0.0155774f, 0.000218656f);
+    const Ogre::Vector3 tip = index->_getDerivedPosition() +
+        index->_getDerivedOrientation() * (index->_getDerivedScale() * tipLocal);
+    model->setPosition(-(model->getOrientation() * tip) * weight);
+}
+
+void createKeeperHandDigAnimation(Ogre::Entity* hand)
+{
+    Ogre::Skeleton* skeleton = hand->getMesh()->getSkeleton().get();
+    const Ogre::Real duration = 4.0f / 30.0f;
+    if(!skeleton->hasAnimation("DigSwing"))
+    {
+        const Ogre::Animation* grip = skeleton->getAnimation("Dig");
+        Ogre::Animation* swing = skeleton->createAnimation("DigSwing", duration);
+        Ogre::Bone* wrist = skeleton->getBone("Hand1");
+        const Ogre::Quaternion basis = hand->getParentSceneNode()->getOrientation() * wrist->_getDerivedOrientation();
+        for(unsigned short b = 0; b < skeleton->getNumBones(); ++b)
+        {
+            if(!grip->hasNodeTrack(b))
+                continue;
+            Ogre::TransformKeyFrame rest(nullptr, 0);
+            grip->getNodeTrack(b)->getInterpolatedKeyFrame(Ogre::TimeIndex(0), &rest);
+            Ogre::NodeAnimationTrack* track = swing->createNodeTrack(b);
+            for(int i = 0; i < 3; ++i)
+            {
+                Ogre::TransformKeyFrame* frame = track->createNodeKeyFrame(duration * i / 2.0f);
+                frame->setRotation(rest.getRotation());
+                frame->setTranslate(rest.getTranslate());
+                frame->setScale(rest.getScale());
+                // Strike downward around the wrist without opening the gripping fingers.
+                if(b == wrist->getHandle() && i == 1)
+                    frame->setRotation(basis.Inverse() * Ogre::Quaternion(Ogre::Degree(50.0f),
+                        Ogre::Vector3::UNIT_Z) * basis * rest.getRotation());
+            }
+        }
+    }
+    if(!hand->hasAnimationState("DigSwing"))
+        hand->getAllAnimationStates()->createAnimationState("DigSwing", 0, duration);
+}
+
+void addPickaxePrism(Ogre::ManualObject* mesh, const std::vector<Ogre::Vector2>& points,
+    float depth, const Ogre::ColourValue& colour, const Ogre::FloatRect& surface,
+    const Ogre::FloatRect& textureArea)
+{
+    // A small extruded polygon, in the hand rig's local units.
+    const std::function<void(float, float)> textureCoordinate = [&](float u, float v)
+    {
+        mesh->textureCoord(textureArea.left + u * textureArea.width(),
+            textureArea.top + v * textureArea.height());
+    };
+    const unsigned int count = static_cast<unsigned int>(points.size());
+    for(unsigned int i = 1; i + 1 < count; ++i)
+    {
+        for(float z : {-depth, depth})
+        {
+            for(unsigned int corner : {0u, z < 0 ? i + 1 : i, z < 0 ? i : i + 1})
+            {
+                mesh->position(points[corner].x, points[corner].y, z);
+                mesh->colour(colour);
+                textureCoordinate((points[corner].x - surface.left) / surface.width(),
+                    (points[corner].y - surface.top) / surface.height());
+            }
+        }
+    }
+    for(unsigned int i = 0; i < count; ++i)
+    {
+        const Ogre::Vector2& a = points[i];
+        const Ogre::Vector2& b = points[(i + 1) % count];
+        for(const Ogre::Vector3& vertex : {Ogre::Vector3(a.x,a.y,-depth), Ogre::Vector3(b.x,b.y,-depth),
+            Ogre::Vector3(b.x,b.y,depth), Ogre::Vector3(a.x,a.y,-depth),
+            Ogre::Vector3(b.x,b.y,depth), Ogre::Vector3(a.x,a.y,depth)})
+        {
+            mesh->position(vertex);
+            mesh->colour(Ogre::ColourValue(colour.r * 0.75f, colour.g * 0.75f, colour.b * 0.75f, colour.a));
+            // Map depth across the side rather than collapsing its UVs onto an edge.
+            const float across = (vertex.z + depth) / (2.0f * depth);
+            if(std::abs(b.y - a.y) > std::abs(b.x - a.x))
+                textureCoordinate(across, (vertex.y - surface.top) / surface.height());
+            else
+                textureCoordinate((vertex.x - surface.left) / surface.width(), across);
+        }
+    }
+}
+
+//! \brief Body type of a creature mesh; it selects the shape of the generated combat poses.
+enum class CombatMotion { humanoid, bite, crawler, heavy, flying, fluid, tentacle };
+
+//! Number of keyframe intervals sampled for a generated attack animation.
+const unsigned int COMBAT_ATTACK_KEY_COUNT = 48;
+//! Attack progress at which the wind-up ends and the strike of the source animation starts.
+const Ogre::Real COMBAT_WINDUP_END = 0.22f;
+//! Attack progress at which the strike of the source animation ends.
+const Ogre::Real COMBAT_STRIKE_END = 0.38f;
+//! Fraction of the source animation reached at the end of the wind-up.
+const Ogre::Real COMBAT_SOURCE_AT_WINDUP_END = 0.32f;
+//! Fraction of the source animation reached at the end of the strike.
+const Ogre::Real COMBAT_SOURCE_AT_STRIKE_END = 0.66f;
+//! Attack progress up to which the body is drawn back before the strike.
+const Ogre::Real COMBAT_BODY_WINDUP_END = 0.28f;
+//! Attack progress at which the forward body movement of the strike starts.
+const Ogre::Real COMBAT_BODY_STRIKE_START = 0.18f;
+//! Attack progress at which the forward body movement of the strike ends.
+const Ogre::Real COMBAT_BODY_STRIKE_END = 0.78f;
+//! Length of the forward body movement, COMBAT_BODY_STRIKE_END - COMBAT_BODY_STRIKE_START.
+const Ogre::Real COMBAT_BODY_STRIKE_LENGTH = 0.60f;
+//! Longest generated attack in seconds for heavy bodies.
+const Ogre::Real COMBAT_ATTACK_DURATION_HEAVY = 1.45f;
+//! Longest generated attack in seconds for biting and crawling bodies.
+const Ogre::Real COMBAT_ATTACK_DURATION_QUICK = 0.95f;
+//! Longest generated attack in seconds for all other bodies.
+const Ogre::Real COMBAT_ATTACK_DURATION_DEFAULT = 1.15f;
+//! Distance the whole body moves forward during the strike, per body type.
+const Ogre::Real COMBAT_REACH_BITE = 0.12f;
+const Ogre::Real COMBAT_REACH_HEAVY = 0.09f;
+const Ogre::Real COMBAT_REACH_DEFAULT = 0.055f;
+//! Distance the whole body is drawn back during the wind-up.
+const Ogre::Real COMBAT_WINDUP_DRAW_BACK = 0.025f;
+//! Vertical body movement during the strike or wind-up, per body type.
+const Ogre::Real COMBAT_FLYING_RISE = 0.04f;
+const Ogre::Real COMBAT_CRAWLER_CROUCH = 0.025f;
+const Ogre::Real COMBAT_DEFAULT_DIP = 0.012f;
+//! Rotation in degrees of the body bone: lean into the strike and back during the wind-up.
+const Ogre::Real COMBAT_BODY_STRIKE_PITCH = 7.0f;
+const Ogre::Real COMBAT_BODY_WINDUP_PITCH = 4.0f;
+//! Head pitch in degrees during the strike; biting bodies thrust the head further.
+const Ogre::Real COMBAT_HEAD_PITCH_BITE = 14.0f;
+const Ogre::Real COMBAT_HEAD_PITCH_DEFAULT = 5.0f;
+//! Jaw opening in degrees during the strike; biting and heavy bodies open wider.
+const Ogre::Real COMBAT_JAW_PITCH_WIDE = 18.0f;
+const Ogre::Real COMBAT_JAW_PITCH_DEFAULT = 6.0f;
+//! Body twist in degrees; alternate attacks twist the other way.
+const Ogre::Real COMBAT_BODY_TWIST_TENTACLE = 14.0f;
+const Ogre::Real COMBAT_BODY_TWIST_DEFAULT = 7.0f;
+//! Stretch of a fluid body along its axis during the strike and compression during the wind-up.
+const Ogre::Real COMBAT_FLUID_STRIKE_STRETCH = 0.10f;
+const Ogre::Real COMBAT_FLUID_WINDUP_SQUASH = 0.06f;
+
+//! Number of keyframe intervals sampled for a generated impact reaction.
+const unsigned int COMBAT_REACTION_KEY_COUNT = 12;
+//! Length in seconds of a generated impact reaction.
+const Ogre::Real COMBAT_REACTION_DURATION = 0.28f;
+//! Reaction progress at which the recoil is strongest.
+const Ogre::Real COMBAT_REACTION_PEAK = 0.25f;
+//! Distance the body is pushed away from the attacker when it is hit or when it guards.
+const Ogre::Real COMBAT_RECOIL_HIT = 0.045f;
+const Ogre::Real COMBAT_RECOIL_GUARD = 0.018f;
+//! Crouch of a guarding crawler.
+const Ogre::Real COMBAT_REACTION_CRAWLER_CROUCH = 0.025f;
+//! Rotation in degrees of the body bone (heavy bodies and others) and of the head when hit.
+const Ogre::Real COMBAT_REACTION_BODY_PITCH_HEAVY = 6.0f;
+const Ogre::Real COMBAT_REACTION_BODY_PITCH_DEFAULT = 11.0f;
+const Ogre::Real COMBAT_REACTION_HEAD_PITCH = 7.0f;
+//! Raise in degrees of the forearms of an armed guard.
+const Ogre::Real COMBAT_REACTION_GUARD_ARM_PITCH = -22.0f;
+//! Squash of a fluid body when hit.
+const Ogre::Real COMBAT_REACTION_FLUID_WIDEN = 0.04f;
+const Ogre::Real COMBAT_REACTION_FLUID_FLATTEN = 0.08f;
+
+//! \brief Returns the body type of the creature mesh with the given name.
+CombatMotion getCombatMotion(const std::string& mesh)
+{
+    if(mesh == "Rat.mesh" || mesh == "Lizardman.mesh") return CombatMotion::bite;
+    if(mesh == "Spider.mesh" || mesh == "Roach.mesh" || mesh == "Scarab.mesh") return CombatMotion::crawler;
+    if(mesh == "Dragon.mesh" || mesh == "Troll.mesh" || mesh == "PitDemon.mesh" ||
+       mesh == "NatureMonster.mesh" || mesh == "Kreatur.mesh") return CombatMotion::heavy;
+    if(mesh == "CaveHornet.mesh" || mesh == "Wyvern.mesh") return CombatMotion::flying;
+    if(mesh == "Slime.mesh" || mesh == "LavaSpawn.mesh") return CombatMotion::fluid;
+    if(mesh == "TentacleAlbine.mesh" || mesh == "TentacleGreen.mesh") return CombatMotion::tentacle;
+    return CombatMotion::humanoid;
+}
+
+//! \brief Returns the bone that carries the torso of the skeleton, or its first bone if none is known.
+Ogre::Bone* getCombatBodyBone(Ogre::Skeleton* skeleton)
+{
+    for(const char* name : {"TorsoUpper", "chest", "Spine_3", "spine3", "Spine3", "Spine1", "Spine",
+        "spine", "Backbone", "Body2", "body", "slime_mid", "SpineHigh", "breast", "spine.02", "Bone"})
+        if(skeleton->hasBone(name)) return skeleton->getBone(name);
+    return skeleton->getBone(0);
+}
+
+//! \brief Tells whether the lower-case bone name belongs to the head.
+bool isCombatHeadBone(const std::string& boneName)
+{
+    return boneName == "head" || boneName == "crown" || boneName == "slime_head";
+}
+
+//! \brief Tells whether the lower-case bone name belongs to the jaw.
+bool isCombatJawBone(const std::string& boneName)
+{
+    return boneName == "jaw" || boneName == "jaws" || boneName == "mouth" ||
+        boneName == "jawl" || boneName == "jawr" || boneName == "zahn_l" || boneName == "zahn_r";
+}
+
+//! \brief Returns the length in seconds of a generated attack, limited to the source animation.
+Ogre::Real getCombatAttackDuration(CombatMotion style, Ogre::Real sourceLength)
+{
+    Ogre::Real maxDuration = COMBAT_ATTACK_DURATION_DEFAULT;
+    if(style == CombatMotion::heavy)
+        maxDuration = COMBAT_ATTACK_DURATION_HEAVY;
+    else if(style == CombatMotion::bite || style == CombatMotion::crawler)
+        maxDuration = COMBAT_ATTACK_DURATION_QUICK;
+    return std::min(sourceLength, maxDuration);
+}
+
+//! \brief Returns which part (0 to 1) of the source animation is shown at the given progress (0 to 1)
+//! of a generated attack: quickly to the wind-up, through the strike, then slowly to the end.
+Ogre::Real getCombatSourceFraction(Ogre::Real progress)
+{
+    if(progress < COMBAT_WINDUP_END)
+        return progress * (COMBAT_SOURCE_AT_WINDUP_END / COMBAT_WINDUP_END);
+    if(progress < COMBAT_STRIKE_END)
+        return COMBAT_SOURCE_AT_WINDUP_END + (progress - COMBAT_WINDUP_END) *
+            ((COMBAT_SOURCE_AT_STRIKE_END - COMBAT_SOURCE_AT_WINDUP_END) / (COMBAT_STRIKE_END - COMBAT_WINDUP_END));
+    return COMBAT_SOURCE_AT_STRIKE_END + (progress - COMBAT_STRIKE_END) *
+        ((1.0f - COMBAT_SOURCE_AT_STRIKE_END) / (1.0f - COMBAT_STRIKE_END));
+}
+
+//! \brief Returns the offset of the root bone for the given draw-back and strike weights (0 to 1).
+Ogre::Vector3 getCombatRootOffset(CombatMotion style, Ogre::Real windup, Ogre::Real strike)
+{
+    Ogre::Real reach = COMBAT_REACH_DEFAULT;
+    if(style == CombatMotion::bite)
+        reach = COMBAT_REACH_BITE;
+    else if(style == CombatMotion::heavy)
+        reach = COMBAT_REACH_HEAVY;
+
+    Ogre::Vector3 offset = Ogre::Vector3::ZERO;
+    offset.y = COMBAT_WINDUP_DRAW_BACK * windup - reach * strike;
+    if(style == CombatMotion::flying)
+        offset.z = COMBAT_FLYING_RISE * strike;
+    else if(style == CombatMotion::crawler)
+        offset.z = -COMBAT_CRAWLER_CROUCH * windup;
+    else
+        offset.z = -COMBAT_DEFAULT_DIP * strike;
+    return offset;
+}
+
+//! The blows of a creature with a sword: the plain strike of the source clip, a cut from above, a cut from the side
+//! and a thrust. The three sword blows are played in turn.
+const int COMBAT_BLOW_PLAIN = 0;
+const int COMBAT_BLOW_FROM_ABOVE = 1;
+const int COMBAT_BLOW_FROM_SIDE = 2;
+const int COMBAT_BLOW_THRUST = 3;
+const unsigned int COMBAT_SWORD_BLOW_COUNT = 3;
+//! Extra movement of the sword arm, the forearm and the body (degrees) in the wind-up and in the strike of the
+//! cut from above
+const Ogre::Real COMBAT_ABOVE_ARM_WINDUP = -48.0f;
+const Ogre::Real COMBAT_ABOVE_ARM_STRIKE = 26.0f;
+const Ogre::Real COMBAT_ABOVE_FOREARM_WINDUP = -22.0f;
+const Ogre::Real COMBAT_ABOVE_FOREARM_STRIKE = 12.0f;
+const Ogre::Real COMBAT_ABOVE_BODY_WINDUP = -5.0f;
+const Ogre::Real COMBAT_ABOVE_BODY_STRIKE = 9.0f;
+//! The same for the cut from the side (twist of the arm and the body, pitch of the forearm)
+const Ogre::Real COMBAT_SIDE_ARM_WINDUP = 38.0f;
+const Ogre::Real COMBAT_SIDE_ARM_STRIKE = -58.0f;
+const Ogre::Real COMBAT_SIDE_FOREARM_STRIKE = -8.0f;
+const Ogre::Real COMBAT_SIDE_BODY_TWIST = 16.0f;
+//! The same for the thrust, and how far the whole body steps back and forward (world units)
+const Ogre::Real COMBAT_THRUST_ARM_WINDUP = 22.0f;
+const Ogre::Real COMBAT_THRUST_ARM_STRIKE = -30.0f;
+const Ogre::Real COMBAT_THRUST_FOREARM_WINDUP = 30.0f;
+const Ogre::Real COMBAT_THRUST_FOREARM_STRIKE = -38.0f;
+const Ogre::Real COMBAT_THRUST_BODY_WINDUP = 4.0f;
+const Ogre::Real COMBAT_THRUST_BODY_STRIKE = 6.0f;
+const Ogre::Real COMBAT_THRUST_STEP_BACK = 0.02f;
+const Ogre::Real COMBAT_THRUST_STEP_FORWARD = 0.04f;
+
+//! \brief Tells whether the lower-case bone name belongs to the upper arm of the sword arm.
+bool isRightArmBone(const std::string& lowerName)
+{
+    return lowerName == "arm_r" || lowerName == "upper_arm.r" || lowerName == "upperarm_r";
+}
+
+//! \brief Tells whether the lower-case bone name belongs to the forearm of the sword arm.
+bool isRightForearmBone(const std::string& lowerName)
+{
+    return lowerName == "forearm_r" || lowerName == "forearm.r";
+}
+
+//! \brief Tells whether the lower-case bone name belongs to the upper arm of the left arm.
+bool isLeftArmBone(const std::string& lowerName)
+{
+    return lowerName == "arm_l" || lowerName == "upper_arm.l" || lowerName == "upperarm_l";
+}
+
+//! \brief Tells whether the lower-case bone name belongs to the forearm of the left arm.
+bool isLeftForearmBone(const std::string& lowerName)
+{
+    return lowerName == "forearm_l" || lowerName == "forearm.l";
+}
+
+//! Name suffix of the mirrored clip of a blow (the left-hand twin of the clip, e.g. Attack1Left)
+const std::string MIRRORED_CLIP_SUFFIX = "Left";
+
+//! \brief Adds the movement of a sword blow on top of the strike of the source clip, so the sword hand still
+//! follows its own path.
+//! \param blow One of the COMBAT_BLOW_* values, COMBAT_BLOW_PLAIN adds nothing.
+//! \param leftHand True if the blow is struck with the left arm (a creature with a weapon in each hand); the cut
+//! from the side then runs the other way round.
+//! \param armScale Scales the movement of the arm and the forearm (1 is like a sword in one hand).
+//! \param isBody True for the body bone, isRoot for the root bone of the skeleton.
+//! \param pitch Pitch of the bone in degrees, increased by the blow.
+//! \param twist Twist of the bone in degrees, increased by the blow.
+//! \param offset Offset of the bone, changed by the thrust for the root bone.
+void addCombatSwordBlow(int blow, const std::string& boneName, bool leftHand, Ogre::Real armScale, bool isBody,
+    bool isRoot, Ogre::Real windup, Ogre::Real strike, Ogre::Real& pitch, Ogre::Real& twist, Ogre::Vector3& offset)
+{
+    if(blow == COMBAT_BLOW_PLAIN)
+        return;
+
+    const bool swordArm = leftHand ? isLeftArmBone(boneName) : isRightArmBone(boneName);
+    const bool swordForearm = leftHand ? isLeftForearmBone(boneName) : isRightForearmBone(boneName);
+    const Ogre::Real side = leftHand ? -1.0f : 1.0f;
+    if(blow == COMBAT_BLOW_FROM_ABOVE)
+    {
+        if(swordArm)
+            pitch += (COMBAT_ABOVE_ARM_WINDUP * windup + COMBAT_ABOVE_ARM_STRIKE * strike) * armScale;
+        if(swordForearm)
+            pitch += (COMBAT_ABOVE_FOREARM_WINDUP * windup + COMBAT_ABOVE_FOREARM_STRIKE * strike) * armScale;
+        if(isBody)
+            pitch += COMBAT_ABOVE_BODY_WINDUP * windup + COMBAT_ABOVE_BODY_STRIKE * strike;
+    }
+    else if(blow == COMBAT_BLOW_FROM_SIDE)
+    {
+        if(swordArm)
+            twist += side * (COMBAT_SIDE_ARM_WINDUP * windup + COMBAT_SIDE_ARM_STRIKE * strike) * armScale;
+        if(swordForearm)
+            pitch += COMBAT_SIDE_FOREARM_STRIKE * strike * armScale;
+        if(isBody)
+            twist += side * COMBAT_SIDE_BODY_TWIST * (strike - windup);
+    }
+    else
+    {
+        if(swordArm)
+            pitch += (COMBAT_THRUST_ARM_WINDUP * windup + COMBAT_THRUST_ARM_STRIKE * strike) * armScale;
+        if(swordForearm)
+            pitch += (COMBAT_THRUST_FOREARM_WINDUP * windup + COMBAT_THRUST_FOREARM_STRIKE * strike) * armScale;
+        if(isBody)
+            pitch += COMBAT_THRUST_BODY_WINDUP * windup + COMBAT_THRUST_BODY_STRIKE * strike;
+        if(isRoot)
+            offset.y += COMBAT_THRUST_STEP_BACK * windup - COMBAT_THRUST_STEP_FORWARD * strike;
+    }
+}
+
+//! \brief Creates (once per skeleton) a short melee attack derived from the given source animation
+//! and returns its name. Alternate attacks twist the other way.
+//! \param blow The sword blow (COMBAT_BLOW_*): a creature with a sword plays three different blows in turn,
+//! COMBAT_BLOW_PLAIN is the plain strike of the source clip.
+//! \param leftHand True if the blow is struck with the left arm (only with a sword blow, the creature carries a
+//! weapon in each hand). If the skeleton has the mirrored clip of the source (original + "Left"), that clip is the
+//! source of a left-hand blow; only without it the left arm is deformed on top of the right-hand source clip.
+//! \param armScale Scales the arm movement of the sword blow (only used for the deformation without the mirrored clip).
+std::string createCreatureCombatAttack(Ogre::Entity* entity, const std::string& original, bool alternate, int blow,
+    bool leftHand, Ogre::Real armScale)
+{
+    Ogre::Skeleton* skeleton = entity->getMesh()->getSkeleton().get();
+    if(!skeleton->hasAnimation(original)) return original;
+    const bool mirroredClip = leftHand && blow != COMBAT_BLOW_PLAIN && skeleton->hasAnimation(original + MIRRORED_CLIP_SUFFIX);
+    if(mirroredClip)
+        armScale = 1.0f;
+    std::string name = "AttackCombat_" + original;
+    if(blow != COMBAT_BLOW_PLAIN)
+    {
+        name += "_Sword" + Helper::toString(blow);
+        if(mirroredClip)
+            name += "M";
+        else if(leftHand)
+            name += "L";
+        if(armScale != 1.0f)
+            name += "S" + Helper::toString(static_cast<int>(armScale * 100.0f));
+    }
+    else if(alternate)
+        name += "_B";
+    else
+        name += "_A";
+    std::string sourceName = original;
+    if(mirroredClip)
+        sourceName += MIRRORED_CLIP_SUFFIX;
+    const Ogre::Animation* source = skeleton->getAnimation(sourceName);
+    const CombatMotion style = getCombatMotion(entity->getMesh()->getName());
+    const Ogre::Real duration = getCombatAttackDuration(style, source->getLength());
+    if(!skeleton->hasAnimation(name))
+    {
+        Ogre::Bone* body = getCombatBodyBone(skeleton);
+        Ogre::Animation* attack = skeleton->createAnimation(name, duration);
+        for(unsigned short boneIndex = 0; boneIndex < skeleton->getNumBones(); ++boneIndex)
+        {
+            Ogre::Bone* bone = skeleton->getBone(boneIndex);
+            std::string boneName = bone->getName(); Ogre::StringUtil::toLowerCase(boneName);
+            const bool head = isCombatHeadBone(boneName);
+            const bool jaw = isCombatJawBone(boneName);
+            Ogre::NodeAnimationTrack* track = attack->createNodeTrack(boneIndex);
+            for(unsigned int key = 0; key <= COMBAT_ATTACK_KEY_COUNT; ++key)
+            {
+                const Ogre::Real p = key / static_cast<Ogre::Real>(COMBAT_ATTACK_KEY_COUNT);
+                const Ogre::Real sample = getCombatSourceFraction(p);
+                const Ogre::Real windup = p < COMBAT_BODY_WINDUP_END ?
+                    Ogre::Math::Sin(Ogre::Math::PI * p / COMBAT_BODY_WINDUP_END) : 0.0f;
+                const Ogre::Real strike = p > COMBAT_BODY_STRIKE_START && p < COMBAT_BODY_STRIKE_END ?
+                    Ogre::Math::Sin(Ogre::Math::PI * (p - COMBAT_BODY_STRIKE_START) / COMBAT_BODY_STRIKE_LENGTH) : 0.0f;
+                Ogre::TransformKeyFrame pose(nullptr, 0);
+                if(source->hasNodeTrack(boneIndex))
+                    source->getNodeTrack(boneIndex)->getInterpolatedKeyFrame(Ogre::TimeIndex(sample * source->getLength()), &pose);
+                Ogre::TransformKeyFrame* frame = track->createNodeKeyFrame(p * duration);
+                Ogre::Vector3 offset = Ogre::Vector3::ZERO;
+                if(bone->getParent() == nullptr)
+                    offset = getCombatRootOffset(style, windup, strike);
+                Ogre::Real pitch = bone == body ? COMBAT_BODY_STRIKE_PITCH * strike - COMBAT_BODY_WINDUP_PITCH * windup : 0.0f;
+                if(head)
+                    pitch += (style == CombatMotion::bite ? COMBAT_HEAD_PITCH_BITE : COMBAT_HEAD_PITCH_DEFAULT) * strike;
+                if(jaw)
+                    pitch -= (style == CombatMotion::bite || style == CombatMotion::heavy ?
+                        COMBAT_JAW_PITCH_WIDE : COMBAT_JAW_PITCH_DEFAULT) * strike;
+                const Ogre::Real twistAmount = style == CombatMotion::tentacle ?
+                    COMBAT_BODY_TWIST_TENTACLE : COMBAT_BODY_TWIST_DEFAULT;
+                Ogre::Real twist = 0.0f;
+                if(bone != body)
+                    twist = 0.0f;
+                else if(alternate)
+                    twist = -twistAmount * (strike - windup);
+                else
+                    twist = twistAmount * (strike - windup);
+                addCombatSwordBlow(blow, boneName, leftHand, armScale, bone == body, bone->getParent() == nullptr,
+                    windup, strike, pitch, twist, offset);
+                const Ogre::Quaternion basis = bone->_getDerivedOrientation();
+                frame->setTranslate(pose.getTranslate() + offset);
+                Ogre::Real stretch = 0.0f;
+                if(style == CombatMotion::fluid && bone == body)
+                    stretch = COMBAT_FLUID_STRIKE_STRETCH * strike - COMBAT_FLUID_WINDUP_SQUASH * windup;
+                frame->setScale(pose.getScale() * Ogre::Vector3(1 - stretch * 0.5f, 1 - stretch * 0.5f, 1 + stretch));
+                frame->setRotation(basis.Inverse() * Ogre::Quaternion(Ogre::Degree(pitch), Ogre::Vector3::UNIT_X) *
+                    Ogre::Quaternion(Ogre::Degree(twist), Ogre::Vector3::UNIT_Z) * basis * pose.getRotation());
+            }
+        }
+    }
+    if(!entity->hasAnimationState(name)) entity->getAllAnimationStates()->createAnimationState(name, 0, duration);
+    return name;
+}
+
+//! \brief Returns which side the attacker is on: 0 for +X, 1 for -X, 2 for +Y, 3 for -Y,
+//! according to the axis along which the direction is longest.
+int getCombatRecoilSector(const Ogre::Vector3& direction)
+{
+    if(std::abs(direction.x) > std::abs(direction.y))
+        return direction.x > 0 ? 0 : 1;
+    return direction.y > 0 ? 2 : 3;
+}
+
+//! \brief Returns the unit vector of a sector from getCombatRecoilSector().
+Ogre::Vector3 getCombatRecoilAxis(int sector)
+{
+    switch(sector)
+    {
+        case 0:
+            return Ogre::Vector3::UNIT_X;
+        case 1:
+            return Ogre::Vector3::NEGATIVE_UNIT_X;
+        case 2:
+            return Ogre::Vector3::UNIT_Y;
+        default:
+            return Ogre::Vector3::NEGATIVE_UNIT_Y;
+    }
+}
+
+//! \brief Creates (once per skeleton) the short reaction to a hit coming from the given direction
+//! and returns its animation state. A guard braces instead of recoiling; an armed guard raises its forearms.
+Ogre::AnimationState* createCreatureCombatReaction(Ogre::Entity* entity, bool guard, bool armed,
+    const Ogre::Vector3& direction)
+{
+    const int sector = getCombatRecoilSector(direction);
+    const Ogre::Vector3 recoil = getCombatRecoilAxis(sector);
+    const std::string name = std::string(guard ? (armed ? "ImpactGuard" : "ImpactBrace") : "ImpactHit") + Helper::toString(sector);
+    Ogre::Skeleton* skeleton = entity->getMesh()->getSkeleton().get();
+    const Ogre::Real duration = COMBAT_REACTION_DURATION;
+    if(!skeleton->hasAnimation(name))
+    {
+        const CombatMotion style = getCombatMotion(entity->getMesh()->getName());
+        Ogre::Bone* body = getCombatBodyBone(skeleton);
+        Ogre::Animation* reaction = skeleton->createAnimation(name, duration);
+        const Ogre::Real recoilDistance = guard ? COMBAT_RECOIL_GUARD : COMBAT_RECOIL_HIT;
+        for(unsigned short index = 0; index < skeleton->getNumBones(); ++index)
+        {
+            Ogre::Bone* bone = skeleton->getBone(index);
+            std::string boneName = bone->getName(); Ogre::StringUtil::toLowerCase(boneName);
+            const bool head = isCombatHeadBone(boneName);
+            const bool arm = boneName.find("forearm") != std::string::npos || boneName.find("ellbow") != std::string::npos ||
+                boneName == "armlower.l" || boneName == "armlower.r";
+            if(bone->getParent() != nullptr && bone != body && !head && !(guard && armed && arm)) continue;
+            Ogre::NodeAnimationTrack* track = reaction->createNodeTrack(index);
+            for(unsigned int key = 0; key <= COMBAT_REACTION_KEY_COUNT; ++key)
+            {
+                const Ogre::Real p = key / static_cast<Ogre::Real>(COMBAT_REACTION_KEY_COUNT);
+                const Ogre::Real pulse = p < COMBAT_REACTION_PEAK ? p / COMBAT_REACTION_PEAK :
+                    (1.0f - p) / (1.0f - COMBAT_REACTION_PEAK);
+                Ogre::TransformKeyFrame* frame = track->createNodeKeyFrame(p * duration);
+                if(bone->getParent() == nullptr)
+                {
+                    Ogre::Real crouch = 0.0f;
+                    if(style == CombatMotion::crawler && guard)
+                        crouch = -COMBAT_REACTION_CRAWLER_CROUCH * pulse;
+                    frame->setTranslate(recoil * (recoilDistance * pulse) + Ogre::Vector3(0, 0, crouch));
+                }
+                Ogre::Real angle = 0.0f;
+                if(bone == body)
+                    angle = style == CombatMotion::heavy ? COMBAT_REACTION_BODY_PITCH_HEAVY : COMBAT_REACTION_BODY_PITCH_DEFAULT;
+                else if(head)
+                    angle = COMBAT_REACTION_HEAD_PITCH;
+                angle *= pulse;
+                const Ogre::Quaternion basis = bone->_getDerivedOrientation();
+                Ogre::Quaternion delta(Ogre::Degree(angle), Ogre::Vector3(-recoil.y, recoil.x, 0));
+                if(guard && armed && arm) delta = Ogre::Quaternion(Ogre::Degree(COMBAT_REACTION_GUARD_ARM_PITCH * pulse), Ogre::Vector3::UNIT_X);
+                if(style == CombatMotion::fluid && bone == body)
+                    frame->setScale(Ogre::Vector3(1 + COMBAT_REACTION_FLUID_WIDEN * pulse,
+                        1 + COMBAT_REACTION_FLUID_WIDEN * pulse, 1 - COMBAT_REACTION_FLUID_FLATTEN * pulse));
+                frame->setRotation(basis.Inverse() * delta * basis);
+            }
+        }
+    }
+    if(!entity->hasAnimationState(name)) entity->getAllAnimationStates()->createAnimationState(name, 0, duration);
+    return entity->getAnimationState(name);
+}
+
+bool needsCreatureDropFallback(Ogre::Entity* entity)
+{
+    return !entity->getSkeleton()->hasAnimation("Die") ||
+        entity->getMesh()->getName() == "lich.mesh" ||
+        entity->getMesh()->getName() == "Cultist.mesh";
+}
+}
 
 RenderManager::RenderManager(Ogre::OverlaySystem* overlaySystem) :
     mHandLight(nullptr),
@@ -106,6 +748,7 @@ RenderManager::RenderManager(Ogre::OverlaySystem* overlaySystem) :
     mHandLightNode(nullptr),
     mShadowCam(nullptr),
     mCurrentFOVy(0.0f),
+    mCurrentAspectRatio(0.0f),
     mFactorWidth(0.0f),
     mFactorHeight(0.0f),
     mCreatureTextOverlayDisplayed(false),
@@ -120,42 +763,7 @@ RenderManager::RenderManager(Ogre::OverlaySystem* overlaySystem) :
     // mShaderGenerator->setShaderCacheEnabled(true);
     
     mShaderGenerator->addSceneManager(mSceneManager); 
-    if(ConfigManager::getSingleton().getAudioValue(Config::SHADOWS)=="Yes")
-    {
-        mSceneManager->setShadowTechnique(Ogre::ShadowTechnique::SHADOWTYPE_TEXTURE_ADDITIVE);
-        // mSceneManager->setShadowCameraSetup(Ogre::LiSPSMShadowCameraSetup::create());
-        // mSceneManager->setShadowTextureConfig(0,1024,1024,Ogre::PixelFormat::PF_R32G32B32A32_UINT,0);
-        // mSceneManager->setShadowFarDistance(100.0);
-        // mSceneManager->setShadowDirectionalLightExtrusionDistance(500.0);
-        // mSceneManager->setShadowTextureSelfShadow(true);
-        // donno if the below should be here -- paul424 :
-        auto myIter = Ogre::MaterialManager::getSingleton().getResourceIterator();
-        while(myIter.hasMoreElements())
-        {
-            auto myPointer = myIter.peekNextValue();
-            Ogre::SharedPtr<Ogre::Material> myCastPointer = std::dynamic_pointer_cast<Ogre::Material> (myPointer);
-            Ogre::Technique* technique;
-            technique = myCastPointer->getTechnique(0);
-
-            if( technique->getPass(technique->getNumPasses() - 1)->hasFragmentProgram())
-            {
-                if(technique->getPass(technique->getNumPasses() - 1)->getFragmentProgramParameters()->hasNamedParameters())
-                {
-                    const Ogre::GpuNamedConstants& gnc = technique->getPass(technique->getNumPasses() - 1)->getFragmentProgramParameters()->getConstantDefinitions();
-                    auto it = gnc.map.find("shadowingEnabled");
-                    if(it!=  gnc.map.end())
-                        technique->getPass(technique->getNumPasses() - 1)->getFragmentProgramParameters()->setNamedConstant("shadowingEnabled",true);
-                }
-            }
-            myIter.getNext();
-        }  
-        
-    }
-    else
-    {
-        mSceneManager->setShadowTechnique(Ogre::ShadowTechnique::SHADOWTYPE_NONE);
-
-    }
+    setDynamicShadowsEnabled(ConfigManager::getSingleton().getAudioValue(Config::SHADOWS) == "Yes");
     ddd.setStatic(true);
     mSceneManager->addListener(&ddd);
     mSceneManager->addRenderQueueListener(overlaySystem);
@@ -211,8 +819,49 @@ void RenderManager::saveTexture(Ogre::TexturePtr texture, const std::string& fil
 }
 
 
+void RenderManager::setDynamicShadowsEnabled(bool enabled)
+{
+    // Custom shaders apply lighting and shadows in one pass; automatic
+    // illumination splitting removes their fragment programs on GL3Plus.
+    mSceneManager->setShadowTechnique(enabled ? Ogre::SHADOWTYPE_TEXTURE_ADDITIVE_INTEGRATED : Ogre::SHADOWTYPE_NONE);
+    // mSceneManager->setShadowCameraSetup(Ogre::LiSPSMShadowCameraSetup::create());
+    // mSceneManager->setShadowTextureConfig(0,1024,1024,Ogre::PixelFormat::PF_R32G32B32A32_UINT,0);
+    // mSceneManager->setShadowFarDistance(100.0);
+    // mSceneManager->setShadowDirectionalLightExtrusionDistance(500.0);
+    // mSceneManager->setShadowTextureSelfShadow(true);
+
+    // Include material clones and techniques created since the game started.
+    Ogre::ResourceManager::ResourceMapIterator materials = Ogre::MaterialManager::getSingleton().getResourceIterator();
+    while(materials.hasMoreElements())
+    {
+        Ogre::MaterialPtr material = std::static_pointer_cast<Ogre::Material>(materials.getNext());
+        for(unsigned short techniqueIndex = 0; techniqueIndex < material->getNumTechniques(); ++techniqueIndex)
+        {
+            Ogre::Technique* technique = material->getTechnique(techniqueIndex);
+            for(unsigned short passIndex = 0; passIndex < technique->getNumPasses(); ++passIndex)
+            {
+                Ogre::Pass* pass = technique->getPass(passIndex);
+                if(!pass->hasFragmentProgram())
+                    continue;
+                Ogre::GpuProgramParametersSharedPtr parameters = pass->getFragmentProgramParameters();
+                if(parameters->hasNamedParameters())
+                {
+                    const Ogre::GpuNamedConstants& constants = parameters->getConstantDefinitions();
+                    if(constants.map.find("shadowingEnabled") != constants.map.end())
+                        parameters->setNamedConstant("shadowingEnabled", enabled);
+                }
+            }
+        }
+    }
+}
+
 RenderManager::~RenderManager()
 {
+    clearCreatureCombatEffects();
+    mCreatureDropAnimations.clear();
+    mCreatureGroundPoses.clear();
+    mCreatureGetUpAnimations.clear();
+    clearRoomConstructionEffects();
     delete DebugDrawer::getSingletonPtr();
     mSceneManager->destroyInstanceManager(mInstanceManagerDirt);
     // mSceneManager->destroyInstanceManager(mInstanceManagerCloud);
@@ -472,8 +1121,16 @@ void RenderManager::preRenderTargetUpdate(const Ogre::RenderTargetEvent& evt)
 }
 
 
-void RenderManager::stopGameRenderer(GameMap*)
+void RenderManager::stopGameRenderer(GameMap* gameMap)
 {
+    clearCreatureCombatEffects();
+    mCreatureDropAnimations.clear();
+    mCreatureGroundPoses.clear();
+    mCreatureGetUpAnimations.clear();
+    clearRoomConstructionEffects();
+    rrEnableHeldCreatureDisplay(false, gameMap->getLocalPlayer());
+    rrDrawTilePreview({}, Ogre::ColourValue::White);
+    rrSetHandPose(false, false);
     // We do not remove the entities from mDummyEntities as it is a workaround avoiding a crash and removing
     // them can cause the crash to happen
 
@@ -519,6 +1176,7 @@ void RenderManager::createScene(Ogre::Viewport* nViewport)
 
     // Create the nodes that will follow the mouse pointer.
     Ogre::Entity* keeperHandEnt = mSceneManager->createEntity("keeperHandEnt", "Keeperhand.mesh");
+    createKeeperHandPoses(keeperHandEnt);
     keeperHandEnt->setLightMask(0);
     keeperHandEnt->setCastShadows(false);
     mHandAnimationState = keeperHandEnt->getAnimationState("Idle");
@@ -533,7 +1191,43 @@ void RenderManager::createScene(Ogre::Viewport* nViewport)
     Ogre::OverlayManager& overlayManager = Ogre::OverlayManager::getSingleton();
     Ogre::Overlay* handKeeperOverlay = overlayManager.create(keeperHandEnt->getName() + "_Ov");
     mHandKeeperNode = mSceneManager->createSceneNode(keeperHandEnt->getName() + "_node");
-    mHandKeeperNode->attachObject(keeperHandEnt);
+    Ogre::SceneNode* handModelNode = mHandKeeperNode->createChildSceneNode();
+    handModelNode->setOrientation(Ogre::Quaternion(Ogre::Degree(65.0f), Ogre::Vector3::UNIT_Z) *
+        Ogre::Quaternion(Ogre::Degree(35.0f), Ogre::Vector3::UNIT_Y));
+    handModelNode->attachObject(keeperHandEnt);
+    createKeeperHandDigAnimation(keeperHandEnt);
+    mHeldCreatureGrip = mSceneManager->createSceneNode("KeeperHeldCreatureGrip");
+    mHeldCreatureStorage = mSceneManager->createSceneNode("KeeperHeldCreatureStorage");
+    if(mHandKeeperHandVisibility == 0)
+        mHandKeeperNode->addChild(mHeldCreatureGrip);
+    mHandPickaxe = mSceneManager->createManualObject("KeeperHandPickaxe");
+    mHandPickaxe->setCastShadows(false);
+    mHandPickaxe->setRenderQueueGroup(OD_RENDER_QUEUE_ID_GUI);
+    // Use interior atlas regions from the existing wood and metal textures.
+    const Ogre::FloatRect woodArea(5.0f/128, 2.0f/128, 39.0f/128, 124.0f/128);
+    const Ogre::FloatRect metalArea(58.0f/128, 42.0f/128, 118.0f/128, 118.0f/128);
+    const Ogre::FloatRect shaftSurface(-0.006f, -0.065f, 0.006f, 0.075f);
+    const Ogre::FloatRect headSurface(-0.085f, 0.043f, 0.085f, 0.085f);
+    mHandPickaxe->begin("HandTool/Wood", Ogre::RenderOperation::OT_TRIANGLE_LIST, "Graphics");
+    addPickaxePrism(mHandPickaxe, {{-0.006f,-0.065f}, {0.006f,-0.065f}, {0.006f,0.075f}, {-0.006f,0.075f}},
+        0.005f, Ogre::ColourValue::White, shaftSurface, woodArea);
+    mHandPickaxe->end();
+    mHandPickaxe->begin("HandTool/Metal", Ogre::RenderOperation::OT_TRIANGLE_LIST, "Graphics");
+    // Convex sections retain the curved head's hollow underside when triangulated.
+    addPickaxePrism(mHandPickaxe, {{-0.085f,0.043f}, {-0.042f,0.057f}, {-0.05f,0.073f}},
+        0.008f, Ogre::ColourValue::White, headSurface, metalArea);
+    addPickaxePrism(mHandPickaxe, {{-0.042f,0.057f}, {0,0.065f}, {0,0.085f}, {-0.05f,0.073f}},
+        0.008f, Ogre::ColourValue::White, headSurface, metalArea);
+    addPickaxePrism(mHandPickaxe, {{0,0.065f}, {0.042f,0.057f}, {0.05f,0.073f}, {0,0.085f}},
+        0.008f, Ogre::ColourValue::White, headSurface, metalArea);
+    addPickaxePrism(mHandPickaxe, {{0.042f,0.057f}, {0.085f,0.043f}, {0.05f,0.073f}},
+        0.008f, Ogre::ColourValue::White, headSurface, metalArea);
+    mHandPickaxe->end();
+    // The closed fingers wrap around the shaft across the palm, below its back.
+    Ogre::TagPoint* toolGrip = keeperHandEnt->attachObjectToBone("Hand2", mHandPickaxe,
+        Ogre::Quaternion(Ogre::Degree(90.0f), Ogre::Vector3::UNIT_Z), Ogre::Vector3(0,0.030f,-0.009f));
+    toolGrip->setScale(0.6f, 0.6f, 0.6f);
+    mHandPickaxe->setVisible(false);
     mHandKeeperNode->setScale(Ogre::Vector3::UNIT_SCALE * KEEPER_HAND_POS_Z);
     mHandKeeperNode->setPosition(0.0f, 0.0f, -KEEPER_HAND_POS_Z);
     handKeeperOverlay->add3D(mHandKeeperNode);
@@ -747,13 +1441,175 @@ void RenderManager::updateRenderAnimations(Ogre::Real timeSinceLastFrame)
 {
     if(mHandAnimationState != nullptr)
     {
-        mHandAnimationState->addTime(timeSinceLastFrame);
-        if(mHandAnimationState->hasEnded())
+        const bool transition = mHandAnimationState->getAnimationName() == "PointTransition";
+        mHandAnimationState->addTime(transition && mHandPose == "Idle" ? -timeSinceLastFrame : timeSinceLastFrame);
+        if(mHandAnimationState->hasEnded() ||
+           (transition && mHandPose == "Idle" && mHandAnimationState->getTimePosition() == 0))
         {
             Ogre::Entity* ent = mSceneManager->getEntity("keeperHandEnt");
-            mHandAnimationState = setEntityAnimation(ent, "Idle", true);
+            mHandAnimationState = setEntityAnimation(ent, mHandPose, true);
+        }
+        alignKeeperHandPointer(mSceneManager->getEntity("keeperHandEnt"), mHandAnimationState);
+    }
+
+
+    for(std::vector<CreatureCombatImpactEffect>::iterator it = mCreatureCombatImpactEffects.begin();
+        it != mCreatureCombatImpactEffects.end();)
+    {
+        it->mRemainingTime -= timeSinceLastFrame;
+        if(it->mRemainingTime > 0.0f)
+        {
+            ++it;
+            continue;
+        }
+
+        it = destroyCreatureCombatImpactEffect(it);
+    }
+
+    for(std::vector<CreatureCombatReaction>::iterator it = mCreatureCombatReactions.begin();
+        it != mCreatureCombatReactions.end();)
+    {
+        it->mAnimation->addTime(timeSinceLastFrame);
+        if(it->mAnimation->getEnabled() && !it->mAnimation->hasEnded())
+        {
+            ++it;
+            continue;
+        }
+
+        it = endCreatureCombatReaction(it);
+    }
+
+    updateCreatureTurns(timeSinceLastFrame);
+
+    for(std::vector<CreatureDropAnimation>::iterator it = mCreatureDropAnimations.begin(); it != mCreatureDropAnimations.end();)
+    {
+        it->mElapsed += timeSinceLastFrame;
+        const Ogre::Real progress = std::min(
+            it->mElapsed / CREATURE_DROP_ANIMATION_DURATION, 1.0f);
+        const Ogre::Real fallingProgress = progress * progress;
+        Ogre::Vector3 position = it->mStart + (it->mEnd - it->mStart) * fallingProgress;
+        if(it->mUseFallbackLie)
+        {
+            it->mNode->setOrientation(Ogre::Quaternion::Slerp(fallingProgress,
+                it->mStartOrientation, it->mLieOrientation, true));
+            position += (it->mLiePosition - it->mEnd) * fallingProgress;
+        }
+        it->mNode->setPosition(position);
+        if(progress < 1.0f)
+        {
+            ++it;
+            continue;
+        }
+        Creature* creature = it->mCreature;
+        const bool lieOnGround = it->mLieOnGround;
+        const bool useFallbackLie = it->mUseFallbackLie;
+        Ogre::SceneNode* node = it->mNode;
+        const Ogre::Quaternion standingOrientation = it->mStartOrientation;
+        const Ogre::Real standingZ = it->mEnd.z;
+        it = mCreatureDropAnimations.erase(it);
+        if(lieOnGround)
+        {
+            if(useFallbackLie)
+                mCreatureGroundPoses.push_back({creature, node,
+                    standingOrientation, standingZ});
+            setCreatureDropGroundAnimation(creature);
         }
     }
+
+    for(std::vector<CreatureGetUpAnimation>::iterator it = mCreatureGetUpAnimations.begin(); it != mCreatureGetUpAnimations.end();)
+    {
+        it->mElapsed += timeSinceLastFrame;
+        const Ogre::Real progress = std::min(
+            it->mElapsed / CREATURE_GET_UP_ANIMATION_DURATION, 1.0f);
+        if(it->mUseFallback)
+        {
+            it->mNode->setOrientation(Ogre::Quaternion::Slerp(progress,
+                it->mStartOrientation, it->mEndOrientation, true));
+            it->mNode->setPosition(it->mStartPosition +
+                (it->mEndPosition - it->mStartPosition) * progress);
+        }
+        else if(it->mAnimationState != nullptr)
+        {
+            it->mAnimationState->setTimePosition(
+                it->mAnimationState->getLength() * (1.0f - progress));
+        }
+
+        if(progress < 1.0f)
+        {
+            ++it;
+            continue;
+        }
+
+        it->mNode->setOrientation(it->mEndOrientation);
+        it->mNode->setPosition(it->mEndPosition);
+        Creature* creature = it->mCreature;
+        it = mCreatureGetUpAnimations.erase(it);
+        creature->setAnimationState(EntityAnimation::idle_anim, true);
+    }
+
+    for(std::vector<RoomConstructionEffect>::iterator it = mRoomConstructionEffects.begin(); it != mRoomConstructionEffects.end();)
+    {
+        it->mRemainingTime -= timeSinceLastFrame;
+        if(it->mRemainingTime > 0.0f)
+        {
+            ++it;
+            continue;
+        }
+
+        if(mSceneManager->hasParticleSystem(it->mParticleName))
+        {
+            Ogre::ParticleSystem* particleSystem = mSceneManager->getParticleSystem(it->mParticleName);
+            Ogre::SceneNode* node = particleSystem->getParentSceneNode();
+            if(node != nullptr)
+                node->detachObject(particleSystem);
+            mSceneManager->destroyParticleSystem(particleSystem);
+        }
+        if(mSceneManager->hasSceneNode(it->mNodeName))
+            mSceneManager->destroySceneNode(it->mNodeName);
+        it = mRoomConstructionEffects.erase(it);
+    }
+    rrUpdateHeldCreature();
+}
+
+void RenderManager::rrCreateRoomConstructionEffect(const std::vector<Tile*>& tiles)
+{
+    for(Tile* tile : tiles)
+    {
+        if(tile == nullptr)
+            continue;
+
+        const std::string effectName = "RoomConstructionEffect_" +
+            Helper::toString(++mRoomConstructionEffectNumber);
+        const std::string nodeName = effectName + "_node";
+        const std::string particleName = effectName + "_particle";
+        Ogre::SceneNode* node = mRoomSceneNode->createChildSceneNode(nodeName,
+            Ogre::Vector3(static_cast<Ogre::Real>(tile->getX()),
+                static_cast<Ogre::Real>(tile->getY()), 0.05f));
+        Ogre::ParticleSystem* particleSystem = mSceneManager->createParticleSystem(
+            particleName, "RoomConstruction");
+        particleSystem->setVisibilityFlags(CullingType::SHOW_ALL);
+        node->attachObject(particleSystem);
+        mRoomConstructionEffects.push_back(
+            {nodeName, particleName, ROOM_CONSTRUCTION_EFFECT_DURATION});
+    }
+}
+
+void RenderManager::clearRoomConstructionEffects()
+{
+    for(const RoomConstructionEffect& effect : mRoomConstructionEffects)
+    {
+        if(mSceneManager->hasParticleSystem(effect.mParticleName))
+        {
+            Ogre::ParticleSystem* particleSystem = mSceneManager->getParticleSystem(effect.mParticleName);
+            Ogre::SceneNode* node = particleSystem->getParentSceneNode();
+            if(node != nullptr)
+                node->detachObject(particleSystem);
+            mSceneManager->destroyParticleSystem(particleSystem);
+        }
+        if(mSceneManager->hasSceneNode(effect.mNodeName))
+            mSceneManager->destroySceneNode(effect.mNodeName);
+    }
+    mRoomConstructionEffects.clear();
 }
 
 Ogre::TexturePtr RenderManager::createPerlinTexture()
@@ -1324,6 +2180,11 @@ void RenderManager::rrCreateRenderedMovableEntity(RenderedMovableEntity* rendere
     node->roll(Ogre::Degree(renderedMovableEntity->getRotationAngle()));
 
 
+    // Keep the narrow arrow shaft visible at dungeon-camera scale without
+    // lengthening the projectile or changing its gameplay collision path.
+    if(meshName == "ArrowProjectile")
+        node->setScale(3.0f, 1.0f, 3.0f);
+
     Ogre::Entity* ent = nullptr;
     if(!meshName.empty())
     {
@@ -1473,8 +2334,27 @@ void RenderManager::rrCreateCreature(Creature* curCreature)
     curCreature->showOutliner();
 }
 
+//! \brief Tells whether the last melee blow shown for the creature was struck with its left hand.
+bool RenderManager::isLastBlowLeftHanded(const Creature* creature) const
+{
+    std::map<const Creature*, bool>::const_iterator it = mCreatureLastBlowLeft.find(creature);
+    return it != mCreatureLastBlowLeft.end() && it->second;
+}
+
 void RenderManager::rrDestroyCreature(Creature* curCreature)
 {
+    clearCreatureCombatEffects(curCreature);
+    mCreatureAttackVariants.erase(curCreature);
+    mCreatureAttackSides.erase(curCreature);
+    mCreatureLastBlowLeft.erase(curCreature);
+    for(std::vector<CreatureTurn>::iterator it = mCreatureTurns.begin(); it != mCreatureTurns.end();)
+    {
+        if(it->mCreature == curCreature)
+            it = mCreatureTurns.erase(it);
+        else
+            ++it;
+    }
+    cancelCreatureDropAnimation(curCreature);
     if(curCreature->getOverlayStatus() != nullptr)
     {
         delete curCreature->getOverlayStatus();
@@ -1487,7 +2367,8 @@ void RenderManager::rrDestroyCreature(Creature* curCreature)
         Ogre::SceneNode* creatureNode = curCreature->getEntityNode();
         Ogre::Entity* ent = mSceneManager->getEntity(creatureName);
         creatureNode->detachObject(ent);
-        mCreatureSceneNode->removeChild(creatureNode);
+        if(creatureNode->getParentSceneNode() != nullptr)
+            creatureNode->getParentSceneNode()->removeChild(creatureNode);
         curCreature->setParentSceneNode(nullptr);
         curCreature->setEntityNode(nullptr);
         mSceneManager->destroyEntity(ent);
@@ -1511,6 +2392,99 @@ void RenderManager::rrOrientEntityToward(MovableGameEntity* gameEntity, const Og
     }
 }
 
+void RenderManager::rrNoteAttackTurn(const std::string& creatureName, const Ogre::Vector3& direction)
+{
+    mAttackTurnNotes[creatureName] = direction;
+}
+
+bool RenderManager::rrTakeAttackTurn(const std::string& creatureName, Ogre::Vector3& direction)
+{
+    std::map<std::string, Ogre::Vector3>::iterator it = mAttackTurnNotes.find(creatureName);
+    if(it == mAttackTurnNotes.end())
+        return false;
+
+    direction = it->second;
+    mAttackTurnNotes.erase(it);
+    return true;
+}
+
+Ogre::Real RenderManager::rrOrientEntityTowardSmoothly(MovableGameEntity* gameEntity, const Ogre::Vector3& direction)
+{
+    // A turn that the server announced (event attackTurn) aims at the announced direction and runs with the
+    // configured angular speed; without it the old short fixed turn is used
+    Ogre::Vector3 aim = direction;
+    const bool announced = rrTakeAttackTurn(gameEntity->getName(), aim);
+    Ogre::SceneNode* node = mSceneManager->getSceneNode(gameEntity->getOgreNamePrefix() + gameEntity->getName() + "_node");
+    const Ogre::Quaternion before = node->getOrientation();
+    rrOrientEntityToward(gameEntity, aim);
+    const Ogre::Quaternion after = node->getOrientation();
+    Creature* creature = static_cast<Creature*>(gameEntity);
+    for(std::vector<CreatureTurn>::iterator it = mCreatureTurns.begin(); it != mCreatureTurns.end(); ++it)
+    {
+        if(it->mCreature == creature)
+        {
+            mCreatureTurns.erase(it);
+            break;
+        }
+    }
+
+    // A creature that already faces the target is not turned
+    Ogre::Radian angle;
+    Ogre::Vector3 axis;
+    (before.Inverse() * after).ToAngleAxis(angle, axis);
+    Ogre::Real turn = angle.valueRadians();
+    if(turn > Ogre::Math::PI)
+        turn = Ogre::Math::TWO_PI - turn;
+    if(turn < CREATURE_TURN_MIN_ANGLE)
+        return 0.0f;
+
+    node->setOrientation(before);
+    Ogre::Real duration = CREATURE_TURN_BASE_DURATION + CREATURE_TURN_HALF_TURN_DURATION * turn / Ogre::Math::PI;
+    if(announced)
+    {
+        const Ogre::Real radiansPerSecond = Ogre::Degree(static_cast<Ogre::Real>(
+            ConfigManager::getSingleton().getAttackTurnSpeed())).valueRadians();
+        duration = std::max(CREATURE_TURN_MIN_ANNOUNCED_DURATION, turn / radiansPerSecond);
+    }
+    CreatureTurn entry;
+    entry.mCreature = creature;
+    entry.mNode = node;
+    entry.mFrom = before;
+    entry.mTo = after;
+    entry.mLast = before;
+    entry.mElapsed = 0.0f;
+    entry.mDuration = duration;
+    mCreatureTurns.push_back(entry);
+    if(!announced)
+        return 0.0f;
+
+    // The strike clip waits for the turn, but a long turn runs over the wind-up instead of holding the blow back
+    return std::min(duration, static_cast<Ogre::Real>(ConfigManager::getSingleton().getAttackTurnMaxDelay()));
+}
+
+void RenderManager::updateCreatureTurns(Ogre::Real timeSinceLastFrame)
+{
+    for(std::vector<CreatureTurn>::iterator it = mCreatureTurns.begin(); it != mCreatureTurns.end();)
+    {
+        // Somebody else (a reaction, a drop) set the orientation: let go and keep what they set
+        if(!it->mNode->getOrientation().equals(it->mLast, Ogre::Radian(CREATURE_TURN_INTERRUPT_TOLERANCE)))
+        {
+            it = mCreatureTurns.erase(it);
+            continue;
+        }
+
+        it->mElapsed += timeSinceLastFrame;
+        const Ogre::Real t = std::min(1.0f, it->mElapsed / it->mDuration);
+        const Ogre::Real eased = t * t * (3.0f - 2.0f * t);
+        it->mLast = Ogre::Quaternion::Slerp(eased, it->mFrom, it->mTo, true);
+        it->mNode->setOrientation(it->mLast);
+        if(t >= 1.0f)
+            it = mCreatureTurns.erase(it);
+        else
+            ++it;
+    }
+}
+
 void RenderManager::rrScaleCreature(Creature& creature)
 {
     if(creature.getEntityNode() == nullptr)
@@ -1524,30 +2498,59 @@ void RenderManager::rrScaleCreature(Creature& creature)
     creature.getEntityNode()->setScale(Ogre::Vector3::UNIT_SCALE * scaleFactor);
 }
 
+bool RenderManager::getWeaponMount(const Ogre::Skeleton* skeleton, const std::string& hand,
+    const std::string& meshName, WeaponMount& mount)
+{
+    // Rotate by -90 degrees around the x-axis from the bone's rotation.
+    Ogre::Quaternion rotationQuaternion;
+    rotationQuaternion.FromAngleAxis(Ogre::Degree(-90.0), Ogre::Vector3(1.0, 0.0, 0.0));
+
+    std::string lowerMesh = meshName;
+    for(std::string::iterator it = lowerMesh.begin(); it != lowerMesh.end(); ++it)
+        *it = static_cast<char>(std::tolower(static_cast<unsigned char>(*it)));
+
+    if((hand.compare("R") == 0) && (lowerMesh.find("crossbow") != std::string::npos) &&
+       !skeleton->hasBone("Weapon_L") && skeleton->hasBone("LeftHand"))
+    {
+        // The aim pose of the attack clip holds the weapon with the left hand. The wrist of that hand is
+        // rolled about 65 degrees further than the one of the archer with a bow, so the model is rolled back
+        // by the same amount; the offset is the mirrored one of the Weapon_R bone.
+        const Ogre::Real CROSSBOW_LEFT_OFFSET_X = 0.0162f;
+        const Ogre::Real CROSSBOW_LEFT_OFFSET_Y = 0.033f;
+        const Ogre::Real CROSSBOW_LEFT_ROLL_DEGREES = 65.0f;
+        Ogre::Quaternion roll;
+        roll.FromAngleAxis(Ogre::Degree(CROSSBOW_LEFT_ROLL_DEGREES), Ogre::Vector3(0.0, 1.0, 0.0));
+        mount.mBoneName = "LeftHand";
+        mount.mOffset = Ogre::Vector3(CROSSBOW_LEFT_OFFSET_X, CROSSBOW_LEFT_OFFSET_Y, 0.0f);
+        mount.mRotation = roll * rotationQuaternion;
+        return true;
+    }
+
+    mount.mBoneName = "Weapon_" + hand;
+    mount.mOffset = Ogre::Vector3::ZERO;
+    mount.mRotation = rotationQuaternion;
+    return skeleton->hasBone(mount.mBoneName);
+}
+
 void RenderManager::rrCreateWeapon(Creature* curCreature, const Weapon* curWeapon, const std::string& hand)
 {
     Ogre::Entity* ent = mSceneManager->getEntity(curCreature->getOgreNamePrefix() + curCreature->getName());
     std::string weaponName = curWeapon->getOgreNamePrefix() + hand;
-    if(!ent->getSkeleton()->hasBone(weaponName))
+    WeaponMount mount;
+    if(!getWeaponMount(ent->getSkeleton(), hand, curWeapon->getMeshName(), mount))
     {
         OD_LOG_WRN("Tried to add weapons to entity \"" + ent->getName() + " \" using model \"" +
                               ent->getMesh()->getName() + "\" that is missing the required bone \"" +
                               curWeapon->getOgreNamePrefix() + hand + "\"");
         return;
     }
-    Ogre::Bone* weaponBone = ent->getSkeleton()->getBone(
-                                curWeapon->getOgreNamePrefix() + hand);
+    Ogre::Bone* weaponBone = ent->getSkeleton()->getBone(mount.mBoneName);
     Ogre::Entity* weaponEntity = mSceneManager->createEntity(curWeapon->getOgreNamePrefix()
                                 + hand + "_" + curCreature->getName(),
                                 curWeapon->getMeshName());
 
-    // Rotate by -90 degrees around the x-axis from the bone's rotation.
-    Ogre::Quaternion rotationQuaternion;
-    rotationQuaternion.FromAngleAxis(Ogre::Degree(-90.0), Ogre::Vector3(1.0,
-                                    0.0, 0.0));
-
     ent->attachObjectToBone(weaponBone->getName(), weaponEntity,
-                            rotationQuaternion);
+                            mount.mRotation, mount.mOffset);
 }
 
 void RenderManager::rrDestroyWeapon(Creature* curCreature, const Weapon* curWeapon, const std::string& hand)
@@ -1559,6 +2562,54 @@ void RenderManager::rrDestroyWeapon(Creature* curCreature, const Weapon* curWeap
         weaponEntity->detachFromParent();
         mSceneManager->destroyEntity(weaponEntity);
     }
+}
+
+namespace
+{
+//! Model of the pickaxe that a dwarf worker carries on its weapon bone
+const std::string WORKER_TOOL_MESH = "DwarfPick.mesh";
+//! Name prefix of the scene entity of the worker's tool (followed by the creature name)
+const std::string WORKER_TOOL_PREFIX = "WorkerTool_";
+}
+
+//! \brief Attaches the pickaxe model to the right-hand weapon bone of a worker that has no weapon and no pick of its own.
+void RenderManager::rrCreateWorkerTool(Creature* curCreature)
+{
+    const CreatureDefinition* definition = curCreature->getDefinition();
+    if((definition == nullptr) || !definition->isWorker() || (curCreature->getWeaponR() != nullptr))
+        return;
+
+    const std::string toolName = WORKER_TOOL_PREFIX + curCreature->getName();
+    if(mSceneManager->hasEntity(toolName))
+        return;
+
+    Ogre::Entity* ent = mSceneManager->getEntity(curCreature->getOgreNamePrefix() + curCreature->getName());
+    Ogre::Skeleton* skeleton = ent->getSkeleton();
+    // The kobold has a pick in its own model; the dwarf worker has the bone for a weapon only
+    if((skeleton == nullptr) || skeleton->hasBone("Pick") || !skeleton->hasBone("Weapon_R"))
+        return;
+
+    if(!Ogre::ResourceGroupManager::getSingleton().resourceExistsInAnyGroup(WORKER_TOOL_MESH))
+        return;
+
+    WeaponMount mount;
+    if(!getWeaponMount(skeleton, "R", WORKER_TOOL_MESH, mount))
+        return;
+
+    Ogre::Entity* toolEntity = mSceneManager->createEntity(toolName, WORKER_TOOL_MESH);
+    ent->attachObjectToBone(mount.mBoneName, toolEntity, mount.mRotation, mount.mOffset);
+}
+
+//! \brief Detaches and destroys the pickaxe model of the worker, if it has one.
+void RenderManager::rrDestroyWorkerTool(Creature* curCreature)
+{
+    const std::string toolName = WORKER_TOOL_PREFIX + curCreature->getName();
+    if(!mSceneManager->hasEntity(toolName))
+        return;
+
+    Ogre::Entity* toolEntity = mSceneManager->getEntity(toolName);
+    toolEntity->detachFromParent();
+    mSceneManager->destroyEntity(toolEntity);
 }
 
 void RenderManager::rrCreateMapLight(MapLight* curMapLight, bool displayVisual)
@@ -1637,6 +2688,9 @@ void RenderManager::rrDestroyMapLightVisualIndicator(MapLight* curMapLight)
 
 void RenderManager::rrPickUpEntity(GameEntity* curEntity, Player* localPlayer)
 {
+    if(curEntity->getObjectType() == GameEntityType::creature)
+        cancelCreatureDropAnimation(static_cast<Creature*>(curEntity));
+
     Ogre::Entity* ent = mSceneManager->getEntity("keeperHandEnt");
     if(ent->hasAnimationState("Pickup"))
         mHandAnimationState = setEntityAnimation(ent, "Pickup", false);
@@ -1667,7 +2721,7 @@ void RenderManager::rrDropHand(GameEntity* curEntity, Player* localPlayer)
 
     // Detach the entity from the "hand" scene node
     Ogre::SceneNode* curEntityNode = curEntity->getEntityNode();
-    mHandKeeperNode->removeChild(curEntityNode);
+    curEntityNode->getParentSceneNode()->removeChild(curEntityNode);
 
     // We put the creature back to the default render queue
     changeRenderQueueRecursive(curEntityNode, Ogre::RenderQueueGroupID::RENDER_QUEUE_MAIN);
@@ -1676,9 +2730,24 @@ void RenderManager::rrDropHand(GameEntity* curEntity, Player* localPlayer)
     curEntity->setParentNodeDetachFlags(
         EntityParentNodeAttach::DETACH_PICKEDUP, false);
     Ogre::Vector3 position = curEntity->getPosition();
-    curEntityNode->setPosition(position);
     if(curEntity->resizeMeshAfterDrop())
         curEntityNode->scale(Ogre::Vector3::UNIT_SCALE / KEEPER_HAND_CREATURE_PICKED_SCALE);
+
+    if(!curEntity->getGameMap()->isInEditorMode() &&
+       curEntity->getObjectType() == GameEntityType::creature)
+    {
+        Ogre::Vector3 dropStart = position;
+        dropStart.z += KEEPER_HAND_WORLD_Z;
+        curEntityNode->setPosition(dropStart);
+        Creature* creature = static_cast<Creature*>(curEntity);
+        mCreatureDropAnimations.push_back({creature, curEntityNode, dropStart,
+            position, curEntityNode->getOrientation(), Ogre::Quaternion::IDENTITY,
+            position, 0.0f, false, false});
+    }
+    else
+    {
+        curEntityNode->setPosition(position);
+    }
 
     rrOrderHand(localPlayer);
 }
@@ -1690,26 +2759,79 @@ void RenderManager::rrOrderHand(Player* localPlayer)
     const std::vector<GameEntity*>& objectsInHand = localPlayer->getObjectsInHand();
     for (GameEntity* tmpEntity : objectsInHand)
     {
+        Ogre::SceneNode* node = tmpEntity->getEntityNode();
+        const bool creature = mHeldCreatureDisplayEnabled &&
+            tmpEntity->getObjectType() == GameEntityType::creature;
+        Ogre::SceneNode* parent = creature ? (i == 0 ? mHeldCreatureGrip : mHeldCreatureStorage) : mHandKeeperNode;
+        if(node->getParentSceneNode() != parent)
+        {
+            node->getParentSceneNode()->removeChild(node);
+            parent->addChild(node);
+        }
         Ogre::Vector3 pos;
         pos.x = static_cast<Ogre::Real>(i % 6 + 1) * KEEPER_HAND_CREATURE_PICKED_OFFSET;
         pos.y = static_cast<Ogre::Real>(i / 6) * KEEPER_HAND_CREATURE_PICKED_OFFSET;
         pos.z = 0;
-        tmpEntity->getEntityNode()->setPosition(pos);
+        node->setPosition(creature ? Ogre::Vector3::ZERO : pos);
         ++i;
     }
+    rrSetHandPose(mHandPose == "Point", mHandPose == "Dig");
+    rrUpdateHeldCreature();
+}
+
+void RenderManager::rrEnableHeldCreatureDisplay(bool enabled, Player* localPlayer)
+{
+    mHeldCreatureDisplayEnabled = enabled;
+    if(localPlayer != nullptr)
+        rrOrderHand(localPlayer);
+}
+
+void RenderManager::rrUpdateHeldCreature()
+{
+    if(!mHeldCreatureDisplayEnabled || mHeldCreatureGrip->numChildren() == 0)
+        return;
+
+    Ogre::SceneNode* node = static_cast<Ogre::SceneNode*>(mHeldCreatureGrip->getChild(0));
+    Ogre::Entity* creature = static_cast<Ogre::Entity*>(node->getAttachedObject(0));
+    Ogre::Entity* hand = mSceneManager->getEntity("keeperHandEnt");
+    hand->_updateAnimation();
+    creature->_updateAnimation();
+
+    Ogre::SkeletonInstance* skeleton = hand->getSkeleton();
+    Ogre::Vector3 grip = (skeleton->getBone("Index3")->_getDerivedPosition() +
+        skeleton->getBone("Thumb3")->_getDerivedPosition()) * 0.5f;
+    Ogre::SceneNode* model = hand->getParentSceneNode();
+    grip = model->getPosition() + model->getOrientation() * (model->getScale() * grip);
+
+    const Ogre::AxisAlignedBox& bounds = creature->getMesh()->getBounds();
+    Ogre::Vector3 attachment = bounds.getCenter();
+    attachment.z = bounds.getMaximum().z;
+    if(creature->hasSkeleton())
+    {
+        Ogre::SkeletonInstance* rig = creature->getSkeleton();
+        for(unsigned short b = 0; b < rig->getNumBones(); ++b)
+        {
+            Ogre::Bone* bone = rig->getBone(b);
+            std::string name = bone->getName();
+            Ogre::StringUtil::toLowerCase(name);
+            if(name == "head" || Ogre::StringUtil::endsWith(name, "_head"))
+            {
+                attachment = bone->_getDerivedPosition();
+                attachment.z = (attachment.z + bounds.getMaximum().z) * 0.5f;
+                break;
+            }
+        }
+    }
+
+    // The wrapper changes only the held view; the entity keeps its world orientation.
+    const Ogre::Quaternion orientation(Ogre::Degree(-90.0f), Ogre::Vector3::UNIT_X);
+    mHeldCreatureGrip->setOrientation(orientation * node->getOrientation().Inverse());
+    mHeldCreatureGrip->setPosition(grip - orientation * (node->getScale() * attachment));
 }
 
 void RenderManager::rrRotateHand(Player* localPlayer)
 {
-    // Loop over the creatures in our hand and redraw each of them in their new location.
-    int i = 0;
-    const std::vector<GameEntity*>& objectsInHand = localPlayer->getObjectsInHand();
-    for (GameEntity* tmpEntity : objectsInHand)
-    {
-        Ogre::SceneNode* tmpEntityNode = mSceneManager->getSceneNode(tmpEntity->getOgreNamePrefix() + tmpEntity->getName() + "_node");
-        tmpEntityNode->setPosition(static_cast<Ogre::Real>(i % 6 + 1), static_cast<Ogre::Real>(i / 6), static_cast<Ogre::Real>(0.0));
-        ++i;
-    }
+    rrOrderHand(localPlayer);
 }
 
 void RenderManager::rrPitchAroundAxis(RenderedMovableEntity* renderedmovableGameEntity, Ogre::Degree dd)
@@ -1814,6 +2936,177 @@ void RenderManager::rrSetObjectAnimationState(MovableGameEntity* curAnimatedObje
         return;
 
     std::string anim = animation;
+    Creature* dropCreature = nullptr;
+    if(curAnimatedObject->getObjectType() == GameEntityType::creature)
+        dropCreature = static_cast<Creature*>(curAnimatedObject);
+
+    if(anim == EntityAnimation::getup_anim && dropCreature != nullptr)
+    {
+        startCreatureGetUpAnimation(dropCreature);
+        return;
+    }
+
+    if(anim == EntityAnimation::ranged_attack_anim && dropCreature != nullptr)
+    {
+        // Authored ranged poses must not receive the melee strike deformation.
+        anim = EntityAnimation::attack_anim;
+        for(const char* cast : {"Cast", "CastSpell", "castMagicWeak"})
+        {
+            if(objectEntity->getSkeleton()->hasAnimation(cast))
+            {
+                anim = cast;
+                break;
+            }
+        }
+    }
+    else if(anim == EntityAnimation::combat_attack_anim && dropCreature != nullptr)
+    {
+        std::vector<std::string> attackVariants;
+        for(const char* variant : {"Attack1", "Attack2", "Attack3",
+            "AttackOneHand", "AttackTwoHands"})
+        {
+            if(objectEntity->getSkeleton()->hasAnimation(variant))
+                attackVariants.push_back(variant);
+        }
+        if(attackVariants.empty())
+            anim = EntityAnimation::attack_anim;
+        else
+        {
+            uint32_t& nextVariant = mCreatureAttackVariants[dropCreature];
+            anim = attackVariants[nextVariant % attackVariants.size()];
+            // A creature with a sword cuts from above, from the side and thrusts in turn
+            const bool humanoid = getCombatMotion(objectEntity->getMesh()->getName()) == CombatMotion::humanoid;
+            // A creature with an attack weapon in each hand strikes with the arms in turn (client side only,
+            // the counter is per creature and nothing of it reaches the server or the timing)
+            uint32_t twoWeaponMode = TwoWeaponStrike::MODE_ALTERNATE;
+            Ogre::Real twoWeaponStrength = 1.0f;
+            if(CreatureReactions::getSingletonPtr() != nullptr)
+            {
+                twoWeaponMode = CreatureReactions::getSingleton().getConfig().getTwoWeaponMode();
+                twoWeaponStrength = static_cast<Ogre::Real>(
+                    CreatureReactions::getSingleton().getConfig().getTwoWeaponArmStrength());
+            }
+            const bool twoWeapons = humanoid && (twoWeaponMode != TwoWeaponStrike::MODE_OFF) &&
+                CreatureCombatReactions::carriesTwoAttackWeapons(dropCreature);
+            int blow = COMBAT_BLOW_PLAIN;
+            if(humanoid && (twoWeapons || CreatureCombatReactions::carriesSword(dropCreature)))
+                blow = static_cast<int>(nextVariant % COMBAT_SWORD_BLOW_COUNT) + COMBAT_BLOW_FROM_ABOVE;
+            uint32_t& nextSide = mCreatureAttackSides[dropCreature];
+            const bool leftHand = twoWeapons && TwoWeaponStrike::isLeftBlow(twoWeaponMode, nextSide);
+            if(twoWeapons)
+                ++nextSide;
+            mCreatureLastBlowLeft[dropCreature] = leftHand;
+            anim = createCreatureCombatAttack(objectEntity, anim, (nextVariant % 2) != 0, blow, leftHand,
+                twoWeapons ? twoWeaponStrength : 1.0f);
+            ++nextVariant;
+        }
+    }
+
+    if(anim == EntityAnimation::die_anim && dropCreature != nullptr &&
+       needsCreatureDropFallback(objectEntity))
+    {
+        cancelCreatureDropAnimation(dropCreature);
+        Ogre::SceneNode* node = dropCreature->getEntityNode();
+        const Ogre::Vector3 position = node->getPosition();
+        const Ogre::Quaternion standingOrientation = node->getOrientation();
+        const Ogre::Quaternion lieOrientation = standingOrientation *
+            Ogre::Quaternion(Ogre::Degree(-90.0f), Ogre::Vector3::UNIT_X);
+        const Ogre::Vector3 scale = node->getScale();
+        const Ogre::AxisAlignedBox::Corners corners = objectEntity->getBoundingBox().getAllCorners();
+        Ogre::Real minZ = (lieOrientation * (scale * corners[0])).z;
+        for(unsigned int corner = 1; corner < 8; ++corner)
+        {
+            const Ogre::Real z = (lieOrientation * (scale * corners[corner])).z;
+            minZ = std::min(minZ, z);
+        }
+        Ogre::Vector3 liePosition = position;
+        liePosition.z -= minZ;
+        mCreatureDropAnimations.push_back({dropCreature, node, position,
+            position, standingOrientation, lieOrientation, liePosition,
+            0.0f, true, true});
+        Ogre::AnimationState* animState = setEntityAnimation(objectEntity,
+            EntityAnimation::idle_anim, true);
+        curAnimatedObject->setAnimationState(animState);
+        return;
+    }
+
+    if(anim == EntityAnimation::drop_anim && dropCreature != nullptr)
+    {
+        cancelCreatureGetUpAnimation(dropCreature);
+        restoreCreatureGroundPose(dropCreature);
+        for(CreatureDropAnimation& dropAnimation : mCreatureDropAnimations)
+        {
+            if(dropAnimation.mCreature != dropCreature)
+                continue;
+
+            dropAnimation.mLieOnGround = true;
+            dropAnimation.mUseFallbackLie = needsCreatureDropFallback(objectEntity);
+            if(dropAnimation.mUseFallbackLie)
+            {
+                dropAnimation.mLieOrientation = dropAnimation.mStartOrientation *
+                    Ogre::Quaternion(Ogre::Degree(-90.0f), Ogre::Vector3::UNIT_X);
+                const Ogre::Vector3 scale = dropAnimation.mNode->getScale();
+                const Ogre::AxisAlignedBox::Corners corners = objectEntity->getBoundingBox().getAllCorners();
+                Ogre::Real minZ = (dropAnimation.mLieOrientation * (scale * corners[0])).z;
+                for(unsigned int corner = 1; corner < 8; ++corner)
+                {
+                    const Ogre::Real z = (dropAnimation.mLieOrientation *
+                        (scale * corners[corner])).z;
+                    minZ = std::min(minZ, z);
+                }
+                dropAnimation.mLiePosition = dropAnimation.mEnd;
+                dropAnimation.mLiePosition.z -= minZ;
+            }
+            anim = EntityAnimation::idle_anim;
+            loop = true;
+            break;
+        }
+
+        if(anim == EntityAnimation::drop_anim)
+        {
+            if(needsCreatureDropFallback(objectEntity))
+            {
+                Ogre::SceneNode* node = dropCreature->getEntityNode();
+                const Ogre::Quaternion standingOrientation = node->getOrientation();
+                const Ogre::Quaternion lieOrientation = standingOrientation *
+                    Ogre::Quaternion(Ogre::Degree(-90.0f), Ogre::Vector3::UNIT_X);
+                const Ogre::Vector3 scale = node->getScale();
+                const Ogre::AxisAlignedBox::Corners corners = objectEntity->getBoundingBox().getAllCorners();
+                Ogre::Real minZ = (lieOrientation * (scale * corners[0])).z;
+                for(unsigned int corner = 1; corner < 8; ++corner)
+                {
+                    const Ogre::Real z = (lieOrientation * (scale * corners[corner])).z;
+                    minZ = std::min(minZ, z);
+                }
+                Ogre::Vector3 position = node->getPosition();
+                const Ogre::Real standingZ = position.z;
+                position.z -= minZ;
+                node->setOrientation(lieOrientation);
+                node->setPosition(position);
+                mCreatureGroundPoses.push_back({dropCreature, node,
+                    standingOrientation, standingZ});
+            }
+            setCreatureDropGroundAnimation(dropCreature);
+            return;
+        }
+    }
+    else if(dropCreature != nullptr)
+    {
+        cancelCreatureGetUpAnimation(dropCreature);
+        restoreCreatureGroundPose(dropCreature);
+        for(CreatureDropAnimation& dropAnimation : mCreatureDropAnimations)
+        {
+            if(dropAnimation.mCreature != dropCreature)
+                continue;
+            dropAnimation.mLieOnGround = false;
+            if(dropAnimation.mUseFallbackLie)
+            {
+                dropAnimation.mNode->setOrientation(dropAnimation.mStartOrientation);
+                dropAnimation.mUseFallbackLie = false;
+            }
+            break;
+        }
+    }
 
     // Handle the case where this entity does not have the requested animation.
     while (!objectEntity->getSkeleton()->hasAnimation(anim))
@@ -1850,6 +3143,249 @@ void RenderManager::rrSetObjectAnimationState(MovableGameEntity* curAnimatedObje
 
     Ogre::AnimationState* animState = setEntityAnimation(objectEntity, anim, loop);
     curAnimatedObject->setAnimationState(animState);
+}
+
+void RenderManager::cancelCreatureDropAnimation(Creature* creature)
+{
+    cancelCreatureGetUpAnimation(creature);
+    for(std::vector<CreatureDropAnimation>::iterator it = mCreatureDropAnimations.begin(); it != mCreatureDropAnimations.end();)
+    {
+        if(it->mCreature == creature)
+        {
+            it->mNode->setOrientation(it->mStartOrientation);
+            Ogre::Vector3 position = it->mNode->getPosition();
+            position.z = it->mEnd.z;
+            it->mNode->setPosition(position);
+            it = mCreatureDropAnimations.erase(it);
+        }
+        else
+            ++it;
+    }
+    restoreCreatureGroundPose(creature);
+}
+
+void RenderManager::cancelCreatureGetUpAnimation(Creature* creature)
+{
+    for(std::vector<CreatureGetUpAnimation>::iterator it = mCreatureGetUpAnimations.begin(); it != mCreatureGetUpAnimations.end();)
+    {
+        if(it->mCreature != creature)
+        {
+            ++it;
+            continue;
+        }
+
+        it->mNode->setOrientation(it->mEndOrientation);
+        it->mNode->setPosition(it->mEndPosition);
+        it = mCreatureGetUpAnimations.erase(it);
+    }
+}
+
+void RenderManager::startCreatureGetUpAnimation(Creature* creature)
+{
+    cancelCreatureGetUpAnimation(creature);
+    const std::string objectName = creature->getOgreNamePrefix() + creature->getName();
+    if(!mSceneManager->hasEntity(objectName))
+        return;
+
+    Ogre::Entity* objectEntity = mSceneManager->getEntity(objectName);
+    if(!objectEntity->hasSkeleton())
+        return;
+
+    Ogre::SceneNode* node = creature->getEntityNode();
+    Ogre::Quaternion startOrientation = node->getOrientation();
+    Ogre::Quaternion endOrientation = startOrientation;
+    Ogre::Vector3 startPosition = node->getPosition();
+    Ogre::Vector3 endPosition = startPosition;
+    Ogre::AnimationState* animationState = nullptr;
+    const bool useFallback = needsCreatureDropFallback(objectEntity);
+    if(useFallback)
+    {
+        bool foundGroundPose = false;
+        for(std::vector<CreatureGroundPose>::iterator it = mCreatureGroundPoses.begin(); it != mCreatureGroundPoses.end(); ++it)
+        {
+            if(it->mCreature != creature)
+                continue;
+
+            endOrientation = it->mStandingOrientation;
+            endPosition.z = it->mStandingZ;
+            mCreatureGroundPoses.erase(it);
+            foundGroundPose = true;
+            break;
+        }
+        if(!foundGroundPose)
+        {
+            creature->setAnimationState(EntityAnimation::idle_anim, true);
+            return;
+        }
+    }
+    else
+    {
+        animationState = setEntityAnimation(objectEntity,
+            EntityAnimation::die_anim, false);
+        animationState->setTimePosition(animationState->getLength());
+        creature->setAnimationState(animationState);
+    }
+
+    mCreatureGetUpAnimations.push_back({creature, node, animationState,
+        startOrientation, endOrientation, startPosition, endPosition,
+        0.0f, useFallback});
+}
+
+void RenderManager::restoreCreatureGroundPose(Creature* creature)
+{
+    for(std::vector<CreatureGroundPose>::iterator it = mCreatureGroundPoses.begin(); it != mCreatureGroundPoses.end();)
+    {
+        if(it->mCreature != creature)
+        {
+            ++it;
+            continue;
+        }
+
+        it->mNode->setOrientation(it->mStandingOrientation);
+        Ogre::Vector3 position = it->mNode->getPosition();
+        position.z = it->mStandingZ;
+        it->mNode->setPosition(position);
+        it = mCreatureGroundPoses.erase(it);
+    }
+}
+
+void RenderManager::setCreatureDropGroundAnimation(Creature* creature)
+{
+    const std::string objectName = creature->getOgreNamePrefix() + creature->getName();
+    if(!mSceneManager->hasEntity(objectName))
+        return;
+
+    Ogre::Entity* objectEntity = mSceneManager->getEntity(objectName);
+    if(!objectEntity->hasSkeleton())
+        return;
+
+    std::string animation = needsCreatureDropFallback(objectEntity) ?
+        EntityAnimation::sleep_anim : EntityAnimation::die_anim;
+    if(!objectEntity->getSkeleton()->hasAnimation(animation))
+        animation = EntityAnimation::sleep_anim;
+    if(!objectEntity->getSkeleton()->hasAnimation(animation))
+        animation = EntityAnimation::idle_anim;
+
+    Ogre::AnimationState* animationState = setEntityAnimation(objectEntity,
+        animation, animation == EntityAnimation::idle_anim);
+    creature->setAnimationState(animationState);
+}
+
+void RenderManager::rrCreateCreatureCombatImpact(Creature* creature,
+    bool weaponClash, bool bodyDamage, const Ogre::Vector3& attackerPosition)
+{
+    if(creature == nullptr || creature->getEntityNode() == nullptr)
+        return;
+
+    for(std::vector<CreatureCombatReaction>::iterator it = mCreatureCombatReactions.begin();
+        it != mCreatureCombatReactions.end();)
+    {
+        if(it->mCreature != creature)
+        {
+            ++it;
+            continue;
+        }
+        it = endCreatureCombatReaction(it);
+    }
+    Ogre::SceneNode* creatureNode = creature->getEntityNode();
+    Ogre::Entity* entity = mSceneManager->getEntity(creature->getOgreNamePrefix() + creature->getName());
+    Ogre::Vector3 localDirection = creatureNode->getOrientation().Inverse() *
+        (creature->getPosition() - attackerPosition);
+    Ogre::AnimationState* reaction = createCreatureCombatReaction(entity, !bodyDamage, weaponClash, localDirection);
+    mCreatureCombatReactions.push_back({creature, entity, reaction, entity->getSkeleton()->getBlendMode()});
+    entity->getSkeleton()->setBlendMode(Ogre::ANIMBLEND_CUMULATIVE);
+    reaction->setTimePosition(0);
+    reaction->setLoop(false);
+    reaction->setWeight(1);
+    reaction->setEnabled(true);
+
+    Ogre::Vector3 effectPosition = creature->getPosition();
+    effectPosition.z += std::max(0.12f, std::min(0.9f, entity->getBoundingBox().getSize().z * creatureNode->getScale().z * 0.45f));
+    Ogre::Vector3 impactDirection = effectPosition - attackerPosition;
+    impactDirection.z = 0.2f;
+    if(!impactDirection.isZeroLength())
+        impactDirection.normalise();
+
+    const bool bloodEnabled = bodyDamage &&
+        ConfigManager::getSingleton().getGameValue(
+            Config::BLOOD_EFFECTS, "Yes", false) == "Yes";
+    for(const std::string& particleScript : std::vector<std::string>{
+        weaponClash ? "CombatSparks" : "",
+        bloodEnabled ? "CombatBlood" : ""})
+    {
+        if(particleScript.empty())
+            continue;
+
+        const std::string effectName = "CreatureCombatImpact_" +
+            Helper::toString(++mCreatureCombatEffectNumber);
+        Ogre::SceneNode* effectNode = mCreatureSceneNode->createChildSceneNode(
+            effectName + "_node", effectPosition);
+        if(!impactDirection.isZeroLength())
+        {
+            effectNode->setOrientation(
+                Ogre::Vector3::UNIT_Y.getRotationTo(impactDirection));
+        }
+        Ogre::ParticleSystem* particleSystem = mSceneManager->createParticleSystem(
+            effectName + "_particle", particleScript);
+        particleSystem->setVisibilityFlags(CullingType::SHOW_ALL);
+        effectNode->attachObject(particleSystem);
+        mCreatureCombatImpactEffects.push_back({creature, effectNode,
+            particleSystem, CREATURE_COMBAT_IMPACT_DURATION});
+    }
+}
+
+std::vector<RenderManager::CreatureCombatImpactEffect>::iterator RenderManager::destroyCreatureCombatImpactEffect(
+    std::vector<CreatureCombatImpactEffect>::iterator it)
+{
+    if(it->mNode != nullptr && it->mParticleSystem != nullptr)
+        it->mNode->detachObject(it->mParticleSystem);
+    if(it->mParticleSystem != nullptr)
+        mSceneManager->destroyParticleSystem(it->mParticleSystem);
+    if(it->mNode != nullptr)
+        mSceneManager->destroySceneNode(it->mNode);
+    return mCreatureCombatImpactEffects.erase(it);
+}
+
+std::vector<RenderManager::CreatureCombatReaction>::iterator RenderManager::endCreatureCombatReaction(
+    std::vector<CreatureCombatReaction>::iterator it)
+{
+    it->mAnimation->setEnabled(false);
+    it->mEntity->getSkeleton()->setBlendMode(it->mPreviousBlendMode);
+    return mCreatureCombatReactions.erase(it);
+}
+
+void RenderManager::clearCreatureCombatEffects(Creature* creature)
+{
+    WeaponTrail::removeCreature((creature != nullptr) ? creature->getName() : std::string());
+
+    for(std::vector<CreatureCombatImpactEffect>::iterator it = mCreatureCombatImpactEffects.begin();
+        it != mCreatureCombatImpactEffects.end();)
+    {
+        if(creature != nullptr && it->mCreature != creature)
+        {
+            ++it;
+            continue;
+        }
+        it = destroyCreatureCombatImpactEffect(it);
+    }
+
+    for(std::vector<CreatureCombatReaction>::iterator it = mCreatureCombatReactions.begin();
+        it != mCreatureCombatReactions.end();)
+    {
+        if(creature != nullptr && it->mCreature != creature)
+        {
+            ++it;
+            continue;
+        }
+        it = endCreatureCombatReaction(it);
+    }
+    if(creature == nullptr)
+    {
+        mCreatureAttackVariants.clear();
+        mCreatureAttackSides.clear();
+        mCreatureLastBlowLeft.clear();
+        mCreatureTurns.clear();
+    }
 }
 void RenderManager::rrMoveEntity(GameEntity* entity, const Ogre::Vector3& position)
 {
@@ -2323,12 +3859,17 @@ void RenderManager::rrTemporaryDisplayCreaturesTextOverlay(Creature* creature, O
 
 void RenderManager::rrToggleHandSelectorVisibility()
 {
+    // Keep the held creature's own visibility flags intact while hiding the hand.
+    if(mHeldCreatureGrip->getParentSceneNode() != nullptr)
+        mHandKeeperNode->removeChild(mHeldCreatureGrip);
     if((mHandKeeperHandVisibility & 0x01) == 0)
         mHandKeeperHandVisibility |= 0x01;
     else
         mHandKeeperHandVisibility &= ~0x01;
 
     mHandKeeperNode->setVisible(mHandKeeperHandVisibility == 0);
+    if(mHandKeeperHandVisibility == 0)
+        mHandKeeperNode->addChild(mHeldCreatureGrip);
 }
 
 void RenderManager::setEntityOpacity(Ogre::Entity* ent, float opacity)
@@ -2425,27 +3966,92 @@ std::string RenderManager::setMaterialOpacity(const std::string& materialName, f
 void RenderManager::moveCursor(float relX, float relY)
 {
     Ogre::Camera* cam = mViewport->getCamera();
-    if(cam->getFOVy() != mCurrentFOVy)
+    if(cam->getFOVy() != mCurrentFOVy || cam->getAspectRatio() != mCurrentAspectRatio)
     {
         mCurrentFOVy = cam->getFOVy();
+        mCurrentAspectRatio = cam->getAspectRatio();
         Ogre::Radian angle = cam->getFOVy() * 0.5f;
         Ogre::Real tan = Ogre::Math::Tan(angle);
-        Ogre::Real shortestSize = KEEPER_HAND_POS_Z * tan * 2.0f;
-        Ogre::Real width = mViewport->getActualWidth();
-        Ogre::Real height = mViewport->getActualHeight();
-        if(width > height)
-        {
-            mFactorHeight = shortestSize;
-            mFactorWidth = shortestSize * width / height;
-        }
-        else
-        {
-            mFactorWidth = shortestSize;
-            mFactorHeight = shortestSize * height / width;
-        }
+        // FOVy defines the vertical extent; keep the hand aligned after resizing.
+        mFactorHeight = KEEPER_HAND_POS_Z * tan * 2.0f;
+        mFactorWidth = mFactorHeight * mCurrentAspectRatio;
     }
 
     mHandKeeperNode->setPosition(mFactorWidth * (relX - 0.5f), mFactorHeight * (0.5f - relY), -KEEPER_HAND_POS_Z);
+}
+
+Ogre::FloatRect RenderManager::getHandCursorBounds(float relX, float relY) const
+{
+    Ogre::FloatRect bounds(relX, relY, relX, relY);
+    if(mHandKeeperNode == nullptr || mHandKeeperHandVisibility != 0 || mViewport == nullptr)
+        return bounds;
+
+    Ogre::Entity* hand = mSceneManager->getEntity("keeperHandEnt");
+    const Ogre::Camera* camera = mViewport->getCamera();
+    const float height = KEEPER_HAND_POS_Z * Ogre::Math::Tan(camera->getFOVy() * 0.5f) * 2.0f;
+    const Ogre::Vector3 origin(height * camera->getAspectRatio() * (relX - 0.5f),
+        height * (0.5f - relY), -KEEPER_HAND_POS_Z);
+    const Ogre::SceneNode* model = hand->getParentSceneNode();
+    if(hand->getAnimationState("Point")->getEnabled())
+    {
+        // The mesh box includes empty space around the animated pointing pose.
+        hand->addSoftwareAnimationRequest(false);
+        try
+        {
+            hand->_updateAnimation();
+        }
+        catch(...)
+        {
+            hand->removeSoftwareAnimationRequest(false);
+            throw;
+        }
+        hand->removeSoftwareAnimationRequest(false);
+        for(unsigned int sub = 0; sub < hand->getNumSubEntities(); ++sub)
+        {
+            Ogre::SubEntity* part = hand->getSubEntity(sub);
+            if(!part->isVisible())
+                continue;
+            Ogre::VertexData* data = part->getSubMesh()->useSharedVertices ?
+                hand->_getSkelAnimVertexData() : part->_getSkelAnimVertexData();
+            const Ogre::VertexElement* element = data->vertexDeclaration->findElementBySemantic(Ogre::VES_POSITION);
+            Ogre::HardwareVertexBufferSharedPtr buffer = data->vertexBufferBinding->getBuffer(element->getSource());
+            Ogre::HardwareBufferLockGuard lock(buffer, Ogre::HardwareBuffer::HBL_READ_ONLY);
+            unsigned char* bytes = static_cast<unsigned char*>(lock.pData);
+            for(size_t i = 0; i < data->vertexCount; ++i)
+            {
+                float* vertex = nullptr;
+                element->baseVertexPointerToElement(bytes +
+                    (data->vertexStart + i) * buffer->getVertexSize(), &vertex);
+                const Ogre::Vector3 local = model->getPosition() + model->getOrientation() *
+                    (model->getScale() * Ogre::Vector3(vertex[0], vertex[1], vertex[2]));
+                const Ogre::Vector3 projected = camera->getProjectionMatrix() * (origin +
+                    mHandKeeperNode->getOrientation() * (mHandKeeperNode->getScale() * local));
+                const float x = (projected.x + 1.0f) * 0.5f;
+                const float y = (1.0f - projected.y) * 0.5f;
+                bounds.left = std::min(bounds.left, x);
+                bounds.top = std::min(bounds.top, y);
+                bounds.right = std::max(bounds.right, x);
+                bounds.bottom = std::max(bounds.bottom, y);
+            }
+        }
+        return bounds;
+    }
+    const Ogre::AxisAlignedBox::Corners corners = hand->getBoundingBox().getAllCorners();
+    for(int i = 0; i < 8; ++i)
+    {
+        // Overlay's parent already follows the world camera; use camera-local transforms.
+        const Ogre::Vector3 local = model->getPosition() +
+            model->getOrientation() * (model->getScale() * corners[i]);
+        const Ogre::Vector3 projected = camera->getProjectionMatrix() * (origin +
+            mHandKeeperNode->getOrientation() * (mHandKeeperNode->getScale() * local));
+        const float x = (projected.x + 1.0f) * 0.5f;
+        const float y = (1.0f - projected.y) * 0.5f;
+        bounds.left = std::min(bounds.left, x);
+        bounds.top = std::min(bounds.top, y);
+        bounds.right = std::max(bounds.right, x);
+        bounds.bottom = std::max(bounds.bottom, y);
+    }
+    return bounds;
 }
 
 void RenderManager::moveWorldCoords(Ogre::Real x, Ogre::Real y)
@@ -2456,11 +4062,107 @@ void RenderManager::moveWorldCoords(Ogre::Real x, Ogre::Real y)
     }
 }
 
+void RenderManager::rrSetHandPose(bool pointing, bool digging)
+{
+    const bool holding = mHeldCreatureDisplayEnabled && mHeldCreatureGrip->numChildren() != 0;
+    mHandPose = digging ? "Dig" : (pointing ? "Point" : (holding ? "Hold" : "Idle"));
+    if(mHandAnimationState != nullptr)
+    {
+        const std::string current = mHandAnimationState->getAnimationName();
+        const bool transition = current == "PointTransition";
+        const bool openOrPoint = mHandPose == "Idle" || mHandPose == "Point";
+        if(mHandAnimationState->getLoop() && current != mHandPose &&
+           (current == "Idle" || current == "Point") && openOrPoint)
+        {
+            mHandAnimationState = setEntityAnimation(mSceneManager->getEntity("keeperHandEnt"), "PointTransition", false);
+            if(current == "Point")
+                mHandAnimationState->setTimePosition(mHandAnimationState->getLength());
+        }
+        else if((mHandAnimationState->getLoop() || (transition && !openOrPoint)) && current != mHandPose)
+            mHandAnimationState = setEntityAnimation(mSceneManager->getEntity("keeperHandEnt"), mHandPose, true);
+    }
+    if(mHandPickaxe != nullptr)
+        mHandPickaxe->setVisible(mHandKeeperHandVisibility == 0 && mHandAnimationState != nullptr &&
+            ((digging && mHandAnimationState->getLoop()) || mHandAnimationState->getAnimationName() == "DigSwing"));
+}
+
+void RenderManager::rrPlayDigAnimation()
+{
+    mHandAnimationState = setEntityAnimation(mSceneManager->getEntity("keeperHandEnt"), "DigSwing", false);
+}
+
+void RenderManager::rrDrawTilePreview(const std::vector<Tile*>& tiles, const Ogre::ColourValue& colour)
+{
+    if(mTilePreview == nullptr)
+    {
+        if(tiles.empty())
+            return;
+        mTilePreview = mSceneManager->createManualObject("KeeperTilePreview");
+        mTilePreview->setDynamic(true);
+        mTilePreview->setCastShadows(false);
+        mSceneManager->getRootSceneNode()->createChildSceneNode("KeeperTilePreviewNode")->attachObject(mTilePreview);
+    }
+    mTilePreview->clear();
+    if(tiles.empty())
+        return;
+    mTilePreview->begin("debug_draw", Ogre::RenderOperation::OT_LINE_LIST, "Graphics");
+    for(Tile* tile : tiles)
+    {
+        const float x = static_cast<float>(tile->getX());
+        const float y = static_cast<float>(tile->getY());
+        float z = 0.04f;
+        if(tile->isFullTile())
+        {
+            // Use the rendered wall, including the existing unrevealed tile
+            // representation, so the outline cannot sit inside a taller mesh.
+            Ogre::MovableObject* wall = tile->getFogOfWarMesh();
+            const std::string meshName = tile->getOgreNamePrefix() + tile->getName() + "_tileMesh";
+            if(mSceneManager->hasEntity(meshName))
+                wall = mSceneManager->getEntity(meshName);
+            if(wall == nullptr)
+                continue;
+            z = wall->getWorldBoundingBox(true).getMaximum().z + 0.02f;
+        }
+        const Ogre::Vector3 corners[] = {{x-0.5f,y-0.5f,z}, {x+0.5f,y-0.5f,z},
+            {x+0.5f,y+0.5f,z}, {x-0.5f,y+0.5f,z}};
+        for(int i = 0; i < 4; ++i)
+        {
+            mTilePreview->position(corners[i]);
+            mTilePreview->colour(colour);
+            mTilePreview->position(corners[(i+1)%4]);
+            mTilePreview->colour(colour);
+            if(tile->isFullTile())
+            {
+                const Ogre::Vector3 bottom(corners[i].x, corners[i].y, 0.04f);
+                const Ogre::Vector3 nextBottom(corners[(i+1)%4].x, corners[(i+1)%4].y, 0.04f);
+                mTilePreview->position(bottom);
+                mTilePreview->colour(colour);
+                mTilePreview->position(nextBottom);
+                mTilePreview->colour(colour);
+                mTilePreview->position(bottom);
+                mTilePreview->colour(colour);
+                mTilePreview->position(corners[i]);
+                mTilePreview->colour(colour);
+            }
+        }
+    }
+    mTilePreview->end();
+}
+
 void RenderManager::entitySlapped()
 {
     Ogre::Entity* ent = mSceneManager->getEntity("keeperHandEnt");
     if(ent->hasAnimationState("Slap"))
         mHandAnimationState = setEntityAnimation(ent, "Slap", false);
+
+    // The creatures that stand around look at the hand that slaps
+    if((CreatureReactions::getSingletonPtr() != nullptr) && (mHandLightNode != nullptr))
+    {
+        // The creature that was slapped reacts, the ones around only look
+        CreatureReactions::getSingleton().noteSlapped(mHandLightNode->getPosition());
+        CreatureReactions::getSingleton().noteNearbyEvent("AmbientLookSlap", mHandLightNode->getPosition(), nullptr,
+            SLAP_LOOK_INTERVAL);
+    }
 }
 
 std::string RenderManager::rrBuildSkullFlagMaterial(const std::string& materialNameBase,
@@ -2505,12 +4207,14 @@ std::string RenderManager::rrBuildSkullFlagMaterial(const std::string& materialN
     return materialNameToUse;
 }
 
-void RenderManager::rrMinimapRendering(bool postRender)
+void RenderManager::rrMinimapRendering(bool postRender, bool keepWorldLighting)
 {
+    if(mTilePreview != nullptr)
+        mTilePreview->setVisible(postRender);
     if(mHandLight != nullptr)
         mHandLight->setVisible(postRender);
 
-    mLightSceneNode->setVisible(postRender);
+    mLightSceneNode->setVisible(postRender || keepWorldLighting);
 }
 
 void RenderManager::changeRenderQueueRecursive(Ogre::SceneNode* node, uint8_t renderQueueId)
@@ -2551,11 +4255,21 @@ Ogre::AnimationState* RenderManager::setEntityAnimation(Ogre::Entity* ent, const
                 as->setTimePosition(0);
 
             as->setLoop(loop);
+            // A creature reaction may have hidden the clip by giving it no weight
+            as->setWeight(1.0f);
             as->setEnabled(true);
             animState = as;
             continue;
         }
         as->setEnabled(false);
+    }
+
+    if(animState != nullptr && ent->getName() == "keeperHandEnt")
+    {
+        const bool tool = animation == "Dig" || animation == "DigSwing";
+        ent->setMaterialName(tool || animation == "Hold" ? "Keeperhand/ToolGrip" : "Keeperhand", "Graphics");
+        if(mHandPickaxe != nullptr)
+            mHandPickaxe->setVisible(tool && mHandKeeperHandVisibility == 0);
     }
 
     return animState;

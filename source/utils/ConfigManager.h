@@ -68,6 +68,9 @@ const std::string NICKNAME = "Nickname";
 const std::string KEEPERVOICE = "KeeperVoice";
 const std::string MINIMAP_TYPE = "MinimapType";
 const std::string LIGHT_FACTOR = "LightFactor";
+const std::string CREATURE_REACTIONS = "CreatureReactions";
+const std::string UI_SCALE = "UI Scale";
+const std::string BLOOD_EFFECTS = "Blood Effects";
 }
 
 typedef std::map<TileVisual,std::map<int,float>> HighMap;
@@ -91,7 +94,29 @@ public:
     static const std::string DEFAULT_TILESET_NAME;
     static const std::string DEFAULT_KEEPER_VOICE;
 
+    //! Lowest value of the glancing and strong hit shares
+    static const double HitShareMin;
+    //! Highest value of the glancing hit share
+    static const double HitGlanceShareMax;
+    //! Highest value of the strong hit share
+    static const double HitStrongShareMax;
+    //! Lowest and highest value of a dodge or parry chance in percent
+    static const double ChanceMin;
+    static const double ChanceMax;
+    //! Highest value of the chance in percent that every level adds
+    static const double ChancePerLevelMax;
+    //! Lowest and highest angular speed in degrees per second of the turn to the target before a blow
+    static const double AttackTurnSpeedMin;
+    static const double AttackTurnSpeedMax;
+    //! Lowest and highest number of seconds the strike clip waits for the turn to the target
+    static const double AttackTurnMaxDelayMin;
+    static const double AttackTurnMaxDelayMax;
+
     const Ogre::ColourValue& getColorFromId(const std::string& id) const;
+    //! \brief The system configuration path, with the trailing separator
+    inline const std::string& getConfigPath() const
+    { return mConfigPath; }
+
     inline const std::map<std::string, CreatureDefinition*>& getCreatureDefinitions() const
     { return mCreatureDefs; }
     const CreatureDefinition* getCreatureDefinition(const std::string& name) const;
@@ -129,6 +154,70 @@ public:
 
     inline uint32_t getSlapEffectDuration() const
     { return mSlapEffectDuration; }
+
+    //! \brief True if the server tells the keepers what a blow or shot really did (cosmetic event hitResult)
+    inline bool getHitEvents() const
+    { return mHitEvents; }
+
+    //! \brief A blow that lets through less than this share of its damage counts as glancing (0.01 - 0.9)
+    inline double getHitGlanceShare() const
+    { return std::max(HitShareMin, std::min(HitGlanceShareMax, mHitGlanceShare)); }
+
+    //! \brief A hit that takes at least this share of the maximum health of its target is a strong one (0.01 - 1)
+    inline double getHitStrongShare() const
+    { return std::max(HitShareMin, std::min(HitStrongShareMax, mHitStrongShare)); }
+
+    //! \brief True if the server tells the keepers that a creature turns to its target before a blow (cosmetic event attackTurn)
+    inline bool getAttackTurnEvents() const
+    { return mAttackTurnEvents; }
+
+    //! \brief Angular speed in degrees per second of the turn to the target before a blow (client, 90 - 1440)
+    inline double getAttackTurnSpeed() const
+    { return std::max(AttackTurnSpeedMin, std::min(AttackTurnSpeedMax, mAttackTurnSpeed)); }
+
+    //! \brief The most seconds the strike clip waits for the turn to the target (client, 0 - 0.6, 0 = no waiting)
+    inline double getAttackTurnMaxDelay() const
+    { return std::max(AttackTurnMaxDelayMin, std::min(AttackTurnMaxDelayMax, mAttackTurnMaxDelay)); }
+
+    //! \brief True if melee blows can be dodged or parried (decided by the server, global.cfg MeleeDodgeParry)
+    inline bool getMeleeDodgeParry() const
+    { return mMeleeDodgeParry; }
+
+    //! \brief Dodge chance of every creature in percent, base value (0 - 100)
+    inline double getDodgeBase() const
+    { return std::max(ChanceMin, std::min(ChanceMax, mDodgeBase)); }
+
+    //! \brief Dodge chance in percent that every level adds (0 - 10)
+    inline double getDodgePerLevel() const
+    { return std::max(ChanceMin, std::min(ChancePerLevelMax, mDodgePerLevel)); }
+
+    //! \brief Highest dodge chance in percent (0 - 100)
+    inline double getDodgeMax() const
+    { return std::max(ChanceMin, std::min(ChanceMax, mDodgeMax)); }
+
+    //! \brief Parry chance with a weapon in percent, base value (0 - 100)
+    inline double getParryBase() const
+    { return std::max(ChanceMin, std::min(ChanceMax, mParryBase)); }
+
+    //! \brief Parry chance in percent that every level adds (0 - 10)
+    inline double getParryPerLevel() const
+    { return std::max(ChanceMin, std::min(ChancePerLevelMax, mParryPerLevel)); }
+
+    //! \brief Highest parry chance with a weapon in percent (0 - 100)
+    inline double getParryMax() const
+    { return std::max(ChanceMin, std::min(ChanceMax, mParryMax)); }
+
+    //! \brief Parry chance with weapon and shield in percent, base value (0 - 100)
+    inline double getParryShieldBase() const
+    { return std::max(ChanceMin, std::min(ChanceMax, mParryShieldBase)); }
+
+    //! \brief Parry chance with weapon and shield in percent that every level adds (0 - 10)
+    inline double getParryShieldPerLevel() const
+    { return std::max(ChanceMin, std::min(ChancePerLevelMax, mParryShieldPerLevel)); }
+
+    //! \brief Highest parry chance with weapon and shield in percent (0 - 100)
+    inline double getParryShieldMax() const
+    { return std::max(ChanceMin, std::min(ChanceMax, mParryShieldMax)); }
 
     inline int64_t getTimePayDay() const
     { return mTimePayDay; }
@@ -328,6 +417,22 @@ private:
     int32_t mCreatureMoodFurious;
     double mSlapDamagePercent;
     uint32_t mSlapEffectDuration;
+    bool mHitEvents;
+    double mHitGlanceShare;
+    double mHitStrongShare;
+    bool mAttackTurnEvents;
+    double mAttackTurnSpeed;
+    double mAttackTurnMaxDelay;
+    bool mMeleeDodgeParry;
+    double mDodgeBase;
+    double mDodgePerLevel;
+    double mDodgeMax;
+    double mParryBase;
+    double mParryPerLevel;
+    double mParryMax;
+    double mParryShieldBase;
+    double mParryShieldPerLevel;
+    double mParryShieldMax;
     int64_t mTimePayDay;
     int32_t mNbTurnsFuriousMax;
     double mMaxManaPerSeat;

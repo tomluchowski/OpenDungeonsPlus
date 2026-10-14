@@ -22,6 +22,8 @@
 #define CREATURE_H
 
 #include "entities/MovableGameEntity.h"
+#include "entities/CreatureActivity.h"
+#include "entities/DefenceChance.h"
 #include "eventsystem/CreatureMoved.h"
 #include "eventsystem/Subject.h"
 
@@ -46,6 +48,8 @@ class GameMap;
 class ODPacket;
 class Room;
 class Weapon;
+
+struct CosmeticEvent;
 
 enum class CreatureActionType;
 enum class CreatureMoodLevel;
@@ -188,8 +192,29 @@ public:
     inline CreatureMoodLevel getMoodValue() const
     { return mMoodValue; }
 
+    CreatureActivity getActivity() const;
+
     inline int32_t getNbTurnFurious() const
     { return mNbTurnFurious; }
+
+    //! \brief Number of turns the creature has been held in the hand (decreases after being dropped)
+    inline int32_t getNbTurnsInHand() const
+    { return mNbTurnsInHand; }
+
+    //! \brief Number of times the creature wanted to work but found no job (reset when it works)
+    inline int32_t getNbTurnsOutOfWork() const
+    { return mNbTurnsOutOfWork; }
+
+    //! \brief Counts one more turn in which the creature wanted to work but found no job
+    inline void increaseNbTurnsOutOfWork()
+    { ++mNbTurnsOutOfWork; }
+
+    //! \brief Resets the out-of-work counter (called when the creature finds work)
+    inline void resetNbTurnsOutOfWork()
+    { mNbTurnsOutOfWork = 0; }
+
+    //! \brief Number of slaps received during the last nbTurns turns
+    int32_t getNbRecentSlaps(int32_t nbTurns) const;
 
     void setPosition(const Ogre::Vector3& v, GameMap *gameMap = nullptr ) override;
 
@@ -406,6 +431,33 @@ public:
     void slap() override;
 
     void fireCreatureSound(CreatureSound sound);
+    //! \brief Tells the clients that see this creature that it was hit, so they can show the reaction.
+    //! weaponClash is true when both fighters carry weapons, bodyDamage when the hit did damage.
+    void fireCombatImpact(bool weaponClash, bool bodyDamage,
+        const Ogre::Vector3& attackerPosition);
+
+    //! \brief Sends a cosmetic event to the human players that see the creature (and negotiated cosmetic events).
+    //! With alliedOnly, only to the keeper of the creature and its allies. It only reports, it changes nothing.
+    void fireCosmeticEvent(const CosmeticEvent& event, bool alliedOnly);
+    //! \brief Sends a cosmetic event of the given kind with this creature as subject
+    void fireCosmeticEvent(int32_t type, int32_t value, int32_t value2, bool alliedOnly);
+    //! \brief This creature was just hit by a blow or a shot of the attacker (cosmetic event hitResult). damageDone
+    //! is what takeDamage returned and rawDamage the damage before the defense; missile tells a shot from a
+    //! melee blow. Only reports what the damage calculation gave, it changes nothing.
+    void fireHitResult(const std::string& attackerName, double damageDone, double rawDamage, bool missile);
+    //! \brief A shot of the attacker that was aimed at this creature ended without hurting it (cosmetic event hitResult)
+    void fireHitMissed(const std::string& attackerName);
+    //! \brief Server: this creature is about to strike at the target in the given direction and turns to it first
+    //! (cosmetic event attackTurn). Only reports, it changes nothing.
+    void fireAttackTurn(const std::string& targetName, const Ogre::Vector3& direction);
+    //! \brief Tells the keepers who see this creature that it dodged or parried a melee blow (hitResult)
+    void fireHitDefended(const std::string& attackerName, DefenceChance::Outcome outcome);
+    //! \brief Server only: rolls whether this creature dodges or parries a melee blow before its damage is
+    //! calculated. Only a living, not knocked out creature on the map that nobody holds or drags, and that no
+    //! keeper possesses, can defend itself. Gives DefenceChance::none if MeleeDodgeParry is off.
+    DefenceChance::Outcome rollMeleeDefence() const;
+    //! \brief The creature arrived through a portal: tells the keeper what mood it would have (cosmetic only)
+    void fireArrivalEvent();
 
     void itsPayDay();
 
@@ -697,6 +749,8 @@ private:
     int32_t         mGoldFee;
     //! \brief Gold carried by the creature that will be dropped if it gets killed
     int32_t         mGoldCarried;
+    //! \brief Server side. The gold carried that the clients were told last (cosmetic events only, not saved)
+    int32_t         mGoldCarriedNotified;
 
     //! Skill type that will be dropped when the creature dies
     SkillType       mSkillTypeDropDeath;
@@ -732,6 +786,7 @@ private:
     //! \brief Mood value. Depending on this value, the creature will be in bad mood and
     //! might attack allied creatures or refuse to work or to go to combat
     CreatureMoodLevel               mMoodValue;
+    CreatureActivity                mActivity;
     //! \brief Mood points. Computed by the creature MoodModifiers. It is promoted to class variable for debug purposes and
     //! should not be used to check mood. If the mood is to be tested, mMoodValue should be used
     int32_t                         mMoodPoints;
@@ -788,6 +843,18 @@ private:
     //! \brief Counts the number of active slaps affecting the creature
     uint32_t                        mActiveSlapsCount;
 
+    //! \brief Used on server side for the mood. Turns spent in the hand (decreases when not held)
+    int32_t                         mNbTurnsInHand;
+
+    //! \brief Used on server side. True while the creature is held in the hand
+    bool                            mIsInHand;
+
+    //! \brief Used on server side for the mood. Failed job searches (reset when the creature works)
+    int32_t                         mNbTurnsOutOfWork;
+
+    //! \brief Used on server side for the mood. Turn numbers of the latest slaps
+    std::vector<int64_t>            mSlapTurns;
+
     //! \brief Skills the creature can use
     std::vector<CreatureSkillData> mSkillData;
 
@@ -807,6 +874,11 @@ private:
     void increaseHunger(double value);
 
     void computeMood();
+
+    void exportMoodToPacket(ODPacket& os, const Seat* seat) const;
+    void importMoodFromPacket(ODPacket& is);
+    void exportActivityToPacket(ODPacket& os, const Seat* seat) const;
+    void importActivityFromPacket(ODPacket& is);
 
     void computeCreatureOverlayMoodValue();
 };
