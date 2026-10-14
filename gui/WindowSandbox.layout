@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<GUILayout version="4" >
+    <Window type="OD/FrameWindow" name="SandboxWindow" >
+        <Property name="Area" value="{{0,20},{0,60},{0,280},{0,595}}" />
+        <Property name="Text" value="Sandbox" />
+        <Property name="SizingEnabled" value="False" />
+        <Window type="OD/StaticText" name="ScoreText" >
+            <Property name="Area" value="{{0,15},{0,35},{1,-15},{0,57}}" />
+            <Property name="Text" value="Score: 0" />
+            <Property name="FrameEnabled" value="False" />
+            <Property name="BackgroundEnabled" value="False" />
+            <Property name="TooltipText" value="Your score. Points come from heroes killed, land owned, gold mined, items made, creatures that arrive and creatures converted, and from the bonus objectives." />
+        </Window>
+        <Window type="OD/StaticText" name="RoomTimerText" >
+            <Property name="Area" value="{{0,15},{0,59},{1,-15},{0,81}}" />
+            <Property name="Text" value="" />
+            <Property name="FrameEnabled" value="False" />
+            <Property name="BackgroundEnabled" value="False" />
+            <Property name="TooltipText" value="The next room becomes available after this time." />
+        </Window>
+        <Window type="OD/StaticText" name="BonusText" >
+            <Property name="Area" value="{{0,15},{0,85},{1,-15},{0,170}}" />
+            <Property name="Text" value="" />
+            <Property name="FrameEnabled" value="False" />
+            <Property name="BackgroundEnabled" value="False" />
+            <Property name="HorzFormatting" value="WordWrapLeftAligned" />
+            <Property name="TooltipText" value="Bonus objectives give extra points once." />
+        </Window>
+        <Window type="OD/StaticText" name="HeroToolboxText" >
+            <Property name="Area" value="{{0,15},{0,175},{1,-15},{0,197}}" />
+            <Property name="Text" value="Hero toolbox" />
+            <Property name="FrameEnabled" value="False" />
+            <Property name="BackgroundEnabled" value="False" />
+        </Window>
+        <Window type="OD/Listbox" name="HeroList" >
+            <Property name="Area" value="{{0,15},{0,200},{1,-15},{0,340}}" />
+            <Property name="TooltipText" value="Choose a hero, then take it in your hand." />
+        </Window>
+        <Window type="OD/Button" name="HeroLevelButton" >
+            <Property name="Area" value="{{0,15},{0,348},{1,-15},{0,376}}" />
+            <Property name="Text" value="Hero level: 1" />
+            <Property name="TooltipText" value="Left click: level up. Right click: level down." />
+        </Window>
+        <Window type="OD/Button" name="TakeHeroButton" >
+            <Property name="Area" value="{{0,15},{0,382},{1,-15},{0,410}}" />
+            <Property name="Text" value="Take hero" />
+            <Property name="TooltipText" value="Take the chosen hero in your hand. Drop it anywhere in your dungeon." />
+        </Window>
+        <Window type="OD/StaticText" name="InvasionText" >
+            <Property name="Area" value="{{0,15},{0,422},{1,-15},{0,444}}" />
+            <Property name="Text" value="Hero invasion" />
+            <Property name="FrameEnabled" value="False" />
+            <Property name="BackgroundEnabled" value="False" />
+        </Window>
+        <Window type="OD/Button" name="SingleInvasionButton" >
+            <Property name="Area" value="{{0,15},{0,448},{1,-15},{0,476}}" />
+            <Property name="Text" value="Single invasion" />
+            <Property name="TooltipText" value="Send one wave of heroes. The next wave is tougher. Not possible while a wave is fighting." />
+        </Window>
+        <Window type="OD/Button" name="ContinualInvasionButton" >
+            <Property name="Area" value="{{0,15},{0,482},{1,-15},{0,510}}" />
+            <Property name="Text" value="Continual invasion" />
+            <Property name="TooltipText" value="Send wave after wave. Can you survive 10 waves?" />
+        </Window>
+    </Window>
+</GUILayout>

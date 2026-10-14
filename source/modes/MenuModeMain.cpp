@@ -25,6 +25,7 @@
 #include "render/ODFrameListener.h"
 #include "render/TextRenderer.h"
 #include "sound/MusicPlayer.h"
+#include "modes/MenuModeSkirmish.h"
 #include "utils/ConfigManager.h"
 #include "utils/LogManager.h"
 
@@ -46,6 +47,7 @@ const std::string WINDOW_SETTINGS = "SettingsSubMenuWindow";
 
 const std::string BUTTON_START_SKIRMISH = "StartSkirmishButton";
 const std::string BUTTON_LOAD_SKIRMISH = "LoadSkirmishButton";
+const std::string BUTTON_START_SANDBOX = "StartSandboxButton";
 const std::string BUTTON_MASTERSERVER_JOIN = "MasterServerJoinButton";
 const std::string BUTTON_MASTERSERVER_HOST = "MasterServerHostButton";
 const std::string BUTTON_MULTIPLAYER_JOIN = "MultiplayerServerJoinButton";
@@ -101,6 +103,12 @@ MenuModeMain::MenuModeMain(ModeManager *modeManager):
                            AbstractModeManager::ModeType::MENU_SKIRMISH);
     connectModeChangeEvent(skirmishWin->getChild(BUTTON_LOAD_SKIRMISH),
                            AbstractModeManager::ModeType::MENU_LOAD_SAVEDGAME);
+    addEventConnection(
+        skirmishWin->getChild(BUTTON_START_SANDBOX)->subscribeEvent(
+            CEGUI::PushButton::EventClicked,
+            CEGUI::Event::Subscriber(&MenuModeMain::sandboxButtonPressed, this)
+        )
+    );
 
     // Multiplayer & sub-menu events
     addEventConnection(
@@ -273,6 +281,13 @@ void MenuModeMain::showMainMenuButtons(bool visible)
 bool MenuModeMain::toggleSkirmishSubMenu(const CEGUI::EventArgs&)
 {
     return toggleSubMenu(WINDOW_SKIRMISH);
+}
+
+bool MenuModeMain::sandboxButtonPressed(const CEGUI::EventArgs& e)
+{
+    MenuModeSkirmish::sStartWithSandboxLevels = true;
+    changeModeEvent(AbstractModeManager::ModeType::MENU_SKIRMISH, e);
+    return true;
 }
 
 bool MenuModeMain::toggleMultiplayerSubMenu(const CEGUI::EventArgs&)

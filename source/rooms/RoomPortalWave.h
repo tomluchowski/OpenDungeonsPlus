@@ -111,6 +111,12 @@ public:
     //! \brief Spawns one of the available waves
     void spawnWave();
 
+    //! \brief Spawns the given creatures (class name and level) at the portal at once, whatever
+    //! the waves of the portal are. Used by the sandbox mode. The names of the creatures that
+    //! were created are added to spawnedNames.
+    void spawnCreatures(const std::vector<std::pair<std::string, uint32_t>>& creatures,
+        std::vector<std::string>& spawnedNames);
+
     virtual bool displayTileMesh() const override
     { return true; }
 
@@ -203,8 +209,9 @@ private:
     //! Returns true if a path was found to the dungeon and false otherwise
     bool findBestDiggablePath(Tile* tileStart, Tile* tileDest, Creature* creature, std::vector<Tile*>& tiles);
 
-    //! \brief Spawns a wave
-    void spawnWave(RoomPortalWaveData* roomPortalWaveData, uint32_t maxCreaturesToSpawn);
+    //! \brief Spawns a wave. If spawnedNames is not null, the names of the created creatures are added to it.
+    void spawnWave(RoomPortalWaveData* roomPortalWaveData, uint32_t maxCreaturesToSpawn,
+        std::vector<std::string>* spawnedNames = nullptr);
 
     //! \brief Marks needed tiles to try to get to some player's dungeon. Returns true if an enemy dungeon
     //! is reachable by digging and marks corresponding tiles.

@@ -22,6 +22,7 @@
 #include "entities/TreasuryObject.h"
 #include "game/Seat.h"
 #include "gamemap/GameMap.h"
+#include "gamemap/LevelScript.h"
 #include "utils/Helper.h"
 #include "utils/LogManager.h"
 
@@ -103,6 +104,9 @@ bool CreatureActionStealFreeGold::handleStealFreeGold(Creature& creature)
     {
         int gold = treasuryClosest->stealGold(creature, GOLD_STEAL);
         creature.addGoldCarried(gold);
+        if((gold > 0) && creature.getIsOnServerMap())
+            creature.getGameMap()->getLevelScript().recordEvent(creature.getName(), "steals");
+
         creature.popAction();
         return false;
     }

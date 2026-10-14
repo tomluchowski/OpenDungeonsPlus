@@ -25,6 +25,7 @@
 #include "entities/GameEntityType.h"
 #include "entities/RenderedMovableEntity.h"
 #include "entities/Tile.h"
+#include "game/SandboxProgress.h"
 #include "game/HeartHealthRing.h"
 #include "game/Player.h"
 #include "game/Skill.h"
@@ -87,6 +88,42 @@ const std::string TEXT_SEAT_ID_PREFIX = "TextSeat";
 const std::string TEXT_SEAT_PLAYER_NICKNAME_PREFIX = "TextSeatPlayerNick";
 const std::string TEXT_SEAT_TEAM_ID_PREFIX = "TextSeatTeam";
 
+//! Text colour of the time limit display (ARGB)
+static const char* const TIME_LIMIT_COLOUR = "FFF6CB62";
+//! Text colour of the time limit display during its last minute (ARGB)
+static const char* const TIME_LIMIT_WARNING_COLOUR = "FFE05A4A";
+//! From this many seconds left the time limit is shown in the warning colour
+static const int32_t TIME_LIMIT_WARNING_SECONDS = 60;
+//! Tooltip of the display while it shows a countdown that ends without a defeat
+static const char* const TIME_LIMIT_TOOLTIP_COUNTDOWN = "Time left until the next stage of the level";
+//! Tooltip of the display while it shows a time limit
+static const char* const TIME_LIMIT_TOOLTIP_LIMIT = "Time left until the level is lost";
+static const int64_t SECONDS_PER_HOUR = 3600;
+static const int64_t SECONDS_PER_MINUTE = 60;
+
+//! \brief Formats seconds as mm:ss, or h:mm:ss from one hour on. Negative values give 00:00.
+//! \param seconds The time to show
+//! \return The text shown on the countdown displays
+static std::string formatCountdownTime(int64_t seconds)
+{
+    if(seconds < 0)
+        seconds = 0;
+
+    const int64_t hours = seconds / SECONDS_PER_HOUR;
+    const int64_t minutes = (seconds / SECONDS_PER_MINUTE) % SECONDS_PER_MINUTE;
+    const int64_t rest = seconds % SECONDS_PER_MINUTE;
+    std::string result;
+    if(hours > 0)
+        result += std::to_string(hours) + ":";
+    if(minutes < 10)
+        result += "0";
+    result += std::to_string(minutes) + ":";
+    if(rest < 10)
+        result += "0";
+    result += std::to_string(rest);
+    return result;
+}
+
 const double AUTOSCROLL_EDGE_RATIO = 0.02;
 const float HAND_DROP_ALL_HOLD_DURATION = 0.35f;
 const std::string DEFEAT_EXPLOSION_EFFECT_NAME = "DefeatHeartExplosion";
@@ -143,6 +180,7 @@ GameMode::GameMode(ModeManager *modeManager):
     mDigSetBool(false),
     mIndexEvent(0),
     mSettings(mRootWindow, modeManager->getGui(), false, true),
+    mSandboxHeroLevel(SandboxMode::MIN_HERO_LEVEL),
     mIsSkillWindowOpen(false),
     mIsLibraryLostShown(false),
     mCurrentSkillType(SkillType::nullSkillType),
@@ -274,6 +312,62 @@ GameMode::GameMode(ModeManager *modeManager):
         guiSheet->getChild("CasinoPayoutWindow/CasinoPayoutButton")->subscribeEvent(
             CEGUI::PushButton::EventClicked,
             CEGUI::Event::Subscriber(&GameMode::cycleCasinoPayout, this)
+)
+    );
+
+    // Sandbox panel
+    addEventConnection(
+        guiSheet->getChild("SandboxButton")->subscribeEvent(
+            CEGUI::PushButton::EventClicked,
+            CEGUI::Event::Subscriber(&GameMode::toggleSandboxWindow, this)
+        )
+    );
+    addEventConnection(
+        guiSheet->getChild("SandboxWindow")->subscribeEvent(
+            CEGUI::FrameWindow::EventCloseClicked,
+            CEGUI::Event::Subscriber(&GameMode::hideSandboxWindow, this)
+        )
+    );
+    addEventConnection(
+        guiSheet->getChild("SandboxWindow/HeroLevelButton")->subscribeEvent(
+            CEGUI::Window::EventMouseClick,
+            CEGUI::Event::Subscriber(&GameMode::onSandboxHeroLevelClicked, this)
+        )
+    );
+    addEventConnection(
+        guiSheet->getChild("SandboxWindow/TakeHeroButton")->subscribeEvent(
+            CEGUI::PushButton::EventClicked,
+            CEGUI::Event::Subscriber(&GameMode::takeSandboxHero, this)
+        )
+    );
+    addEventConnection(
+        guiSheet->getChild("SandboxWindow/SingleInvasionButton")->subscribeEvent(
+            CEGUI::PushButton::EventClicked,
+            CEGUI::Event::Subscriber(&GameMode::startSandboxSingleInvasion, this)
+        )
+    );
+    addEventConnection(
+        guiSheet->getChild("SandboxWindow/ContinualInvasionButton")->subscribeEvent(
+            CEGUI::PushButton::EventClicked,
+            CEGUI::Event::Subscriber(&GameMode::startSandboxContinualInvasion, this)
+        )
+    );
+    addEventConnection(
+        guiSheet->getChild("SandboxRealmWindow")->subscribeEvent(
+            CEGUI::FrameWindow::EventCloseClicked,
+            CEGUI::Event::Subscriber(&GameMode::onSandboxStay, this)
+        )
+    );
+    addEventConnection(
+        guiSheet->getChild("SandboxRealmWindow/NextRealmButton")->subscribeEvent(
+            CEGUI::PushButton::EventClicked,
+            CEGUI::Event::Subscriber(&GameMode::onSandboxNextRealm, this)
+        )
+    );
+    addEventConnection(
+        guiSheet->getChild("SandboxRealmWindow/StayButton")->subscribeEvent(
+            CEGUI::PushButton::EventClicked,
+            CEGUI::Event::Subscriber(&GameMode::onSandboxStay, this)
         )
     );
 
@@ -534,6 +628,12 @@ void GameMode::activate()
     mTrapProductionData = TrapProductionData{};
     mProductionRequestPending = false;
     mReturningToSettingsNavigation = false;
+    guiSheet->getChild("SandboxWindow")->hide();
+    guiSheet->getChild("SandboxRealmWindow")->hide();
+    mSandboxScoreShown.clear();
+    mSandboxRoomShown.clear();
+    guiSheet->getChild("HorizontalPipe/SandboxScoreDisplay")->hide();
+    guiSheet->getChild("HorizontalPipe/SandboxRoomDisplay")->hide();
     guiSheet->getChild("SettingsWindow")->hide();
     guiSheet->getChild("SettingsNavigationWindow")->setModalState(false);
     guiSheet->getChild("SettingsNavigationWindow")->hide();
@@ -555,6 +655,25 @@ void GameMode::activate()
     else
     {
         mGameMap->setGamePaused(false);
+    }
+
+    // The sandbox panel is only available in a sandbox level
+    guiSheet->getChild("SandboxButton")->setVisible(mGameMap->isSandbox());
+    if(mGameMap->isSandbox())
+    {
+        CEGUI::Listbox* heroList = static_cast<CEGUI::Listbox*>(guiSheet->getChild("SandboxWindow/HeroList"));
+        heroList->resetList();
+        const std::vector<std::string>& heroes = config.getFactionSpawnPool("Hero");
+        for(uint32_t i = 0; i < heroes.size(); ++i)
+        {
+            CEGUI::ListboxTextItem* item = new CEGUI::ListboxTextItem(heroes[i], i);
+            item->setSelectionBrushImage("OpenDungeonsSkin/SelectionBrush");
+            heroList->addItem(item);
+        }
+        if(!heroes.empty())
+            heroList->setItemSelectState(static_cast<size_t>(0), true);
+
+        guiSheet->getChild("SandboxWindow/HeroLevelButton")->setText("Hero level: " + Helper::toString(mSandboxHeroLevel));
     }
 
     // Update available options
@@ -955,7 +1074,9 @@ bool GameMode::mousePressed(const OIS::MouseEvent& arg, OIS::MouseButtonID id)
             {
                 ODClient::getSingleton().queueClientNotification(ClientNotificationType::askSlapEntity,
                      closestEntity->getObjectType(),
-                     closestEntity->getName());
+                     closestEntity->getName(),
+                     inputManager.mKeeperHandPos.x,
+                     inputManager.mKeeperHandPos.y);
                 return true;
             }
         }
@@ -1783,6 +1904,54 @@ void GameMode::onFrameStarted(const Ogre::FrameEvent& evt)
     // After frameStarted, so that the countdown shown is the one just computed.
     refreshActionFeedback(evt.timeSinceLastFrame);
 
+    // The countdown of a level with a time limit (the server sends -1 when there is none)
+    CEGUI::Window* timeLimitDisplay = mRootWindow->getChild("HorizontalPipe/TimeLimitDisplay");
+    const int32_t timeLimitReceived = ODClient::getSingleton().getTimeLimitSeconds();
+    const bool isCountdown = (timeLimitReceived >= 0) && ((timeLimitReceived & GameMap::TIME_LIMIT_COUNTDOWN_FLAG) != 0);
+    int32_t timeLimitSeconds = timeLimitReceived;
+    if(isCountdown)
+        timeLimitSeconds = timeLimitReceived & ~GameMap::TIME_LIMIT_COUNTDOWN_FLAG;
+    if(timeLimitReceived < 0)
+    {
+        if(mTimeLimitShown >= 0)
+        {
+            timeLimitDisplay->hide();
+            mTimeLimitShown = -1;
+        }
+    }
+    else if(timeLimitReceived != mTimeLimitShown)
+    {
+        mTimeLimitShown = timeLimitReceived;
+        timeLimitDisplay->setText(formatCountdownTime(timeLimitSeconds));
+        // The last minute of a time limit is shown in red
+        if(!isCountdown && (timeLimitSeconds <= TIME_LIMIT_WARNING_SECONDS))
+            timeLimitDisplay->setProperty("TextColours", TIME_LIMIT_WARNING_COLOUR);
+        else
+            timeLimitDisplay->setProperty("TextColours", TIME_LIMIT_COLOUR);
+        updateTimeLimitTooltip(isCountdown);
+        timeLimitDisplay->show();
+    }
+
+    // The countdown to the next hero wave of the level script, beside the time limit
+    CEGUI::Window* waveCountdownDisplay = mRootWindow->getChild("HorizontalPipe/WaveCountdownDisplay");
+    const int32_t waveCountdownReceived = ODClient::getSingleton().getWaveCountdownSeconds();
+    if(waveCountdownReceived < 0)
+    {
+        if(mWaveCountdownShown >= 0)
+        {
+            waveCountdownDisplay->hide();
+            mWaveCountdownShown = -1;
+        }
+    }
+    else if(waveCountdownReceived != mWaveCountdownShown)
+    {
+        mWaveCountdownShown = waveCountdownReceived;
+        waveCountdownDisplay->setText("Next wave in " + formatCountdownTime(waveCountdownReceived));
+        waveCountdownDisplay->show();
+    }
+
+    updateSandboxStatus();
+
     if((mSkillCurrentCompletion.mProgressBar != nullptr) &&
        (mSkillCurrentCompletion.mCompletenessDisplayed < mSkillCurrentCompletion.mCompleteness))
     {
@@ -1948,6 +2117,146 @@ void GameMode::setCasinoPayoutShown(int tileX, int tileY, uint32_t level)
     }
     mRootWindow->getChild("CasinoPayoutWindow/CasinoPayoutButton")->setText(levelText);
     mRootWindow->getChild("CasinoPayoutWindow/CasinoPayoutText")->setText(infoText);
+}
+
+bool GameMode::toggleSandboxWindow(const CEGUI::EventArgs&)
+{
+    CEGUI::Window* sandbox = mRootWindow->getChild("SandboxWindow");
+    sandbox->setVisible(!sandbox->isVisible());
+    return true;
+}
+
+bool GameMode::hideSandboxWindow(const CEGUI::EventArgs&)
+{
+    mRootWindow->getChild("SandboxWindow")->hide();
+    return true;
+}
+
+bool GameMode::onSandboxHeroLevelClicked(const CEGUI::EventArgs& e)
+{
+    const CEGUI::MouseEventArgs& mouseArgs = static_cast<const CEGUI::MouseEventArgs&>(e);
+    if((mouseArgs.button == CEGUI::LeftButton) && (mSandboxHeroLevel < SandboxMode::MAX_HERO_LEVEL))
+        ++mSandboxHeroLevel;
+    else if((mouseArgs.button == CEGUI::RightButton) && (mSandboxHeroLevel > SandboxMode::MIN_HERO_LEVEL))
+        --mSandboxHeroLevel;
+
+    mRootWindow->getChild("SandboxWindow/HeroLevelButton")->setText("Hero level: " + Helper::toString(mSandboxHeroLevel));
+    return true;
+}
+
+bool GameMode::takeSandboxHero(const CEGUI::EventArgs&)
+{
+    CEGUI::Listbox* heroList = static_cast<CEGUI::Listbox*>(mRootWindow->getChild("SandboxWindow/HeroList"));
+    CEGUI::ListboxItem* item = heroList->getFirstSelectedItem();
+    if(item == nullptr)
+        return true;
+
+    std::string className = item->getText().c_str();
+    ODClient::getSingleton().queueClientNotification(ClientNotificationType::askSandboxTakeHero,
+        className, mSandboxHeroLevel);
+    return true;
+}
+
+bool GameMode::startSandboxSingleInvasion(const CEGUI::EventArgs&)
+{
+    ODClient::getSingleton().queueClientNotification(ClientNotificationType::askSandboxInvasion, false);
+    return true;
+}
+
+bool GameMode::startSandboxContinualInvasion(const CEGUI::EventArgs&)
+{
+    ODClient::getSingleton().queueClientNotification(ClientNotificationType::askSandboxInvasion, true);
+    return true;
+}
+
+void GameMode::updateSandboxStatus()
+{
+    if(!mGameMap->isSandbox())
+        return;
+
+    ODClient& client = ODClient::getSingleton();
+    const ODClient::SandboxStatus& status = client.getSandboxStatus();
+    if(status.mIsReceived)
+    {
+        // Score and target, on the HUD and in the sandbox window
+        std::string scoreText = "Score " + Helper::toString(status.mScore);
+        if(status.mTarget > 0)
+            scoreText += " / " + Helper::toString(status.mTarget);
+
+        if(scoreText != mSandboxScoreShown)
+        {
+            mSandboxScoreShown = scoreText;
+            CEGUI::Window* scoreDisplay = mRootWindow->getChild("HorizontalPipe/SandboxScoreDisplay");
+            scoreDisplay->setText(scoreText);
+            scoreDisplay->show();
+            mRootWindow->getChild("SandboxWindow/ScoreText")->setText(scoreText);
+            std::string bonusText;
+            for(const ODClient::SandboxBonusStatus& bonus : status.mBonuses)
+            {
+                if(!bonusText.empty())
+                    bonusText += "\n";
+
+                if(bonus.mAwarded)
+                    bonusText += "[done] " + bonus.mText;
+                else
+                    bonusText += "+" + Helper::toString(bonus.mPoints) + ": " + bonus.mText;
+            }
+            mRootWindow->getChild("SandboxWindow/BonusText")->setText(bonusText);
+        }
+
+        // The next room and the time until it becomes available
+        std::string roomText;
+        if(!status.mNextRoom.empty())
+        {
+            roomText = status.mNextRoom;
+            if(status.mSecondsLeft > 0)
+                roomText += " in " + formatCountdownTime(status.mSecondsLeft);
+        }
+
+        if(roomText != mSandboxRoomShown)
+        {
+            mSandboxRoomShown = roomText;
+            CEGUI::Window* roomDisplay = mRootWindow->getChild("HorizontalPipe/SandboxRoomDisplay");
+            roomDisplay->setText(roomText);
+            roomDisplay->setVisible(!roomText.empty());
+            mRootWindow->getChild("SandboxWindow/RoomTimerText")->setText(roomText.empty() ? "" : "Next room: " + roomText);
+        }
+    }
+
+    if(client.hasSandboxRealmComplete())
+    {
+        mSandboxNextLevel = client.getSandboxNextLevel();
+        if(!client.getSandboxRealmId().empty())
+            SandboxProgress::markCompleted(client.getSandboxRealmId());
+
+        CEGUI::Window* realmWindow = mRootWindow->getChild("SandboxRealmWindow");
+        realmWindow->getChild("RealmText")->setText(client.getSandboxRealmText());
+        // The last realm has no next one to go to
+        realmWindow->getChild("NextRealmButton")->setVisible(!mSandboxNextLevel.empty());
+        realmWindow->getChild("StayButton")->setText(mSandboxNextLevel.empty() ? "Continue" : "Stay here");
+        realmWindow->show();
+        realmWindow->moveToFront();
+        client.clearSandboxRealmComplete();
+    }
+}
+
+bool GameMode::onSandboxNextRealm(const CEGUI::EventArgs&)
+{
+    mRootWindow->getChild("SandboxRealmWindow")->hide();
+    if(mSandboxNextLevel.empty())
+        return true;
+
+    // The main menu starts the level once this mode has been left and the running server and client have been stopped
+    ODFrameListener::getSingleton().setPendingRestartLevel(ResourceManager::getSingleton().getGameDataPath()
+        + "levels/" + mSandboxNextLevel);
+    mModeManager->requestMode(AbstractModeManager::MENU_MAIN);
+    return true;
+}
+
+bool GameMode::onSandboxStay(const CEGUI::EventArgs&)
+{
+    mRootWindow->getChild("SandboxRealmWindow")->hide();
+    return true;
 }
 
 bool GameMode::showPlayerSettingsWindow(const CEGUI::EventArgs&)
@@ -3148,6 +3457,15 @@ void GameMode::refreshSpellButtonCoolDowns()
             progressBar->hide();
         }
     });
+}
+
+void GameMode::updateTimeLimitTooltip(bool isCountdown)
+{
+    CEGUI::Window* timeLimitDisplay = mRootWindow->getChild("HorizontalPipe/TimeLimitDisplay");
+    if(isCountdown)
+        timeLimitDisplay->setTooltipText(TIME_LIMIT_TOOLTIP_COUNTDOWN);
+    else
+        timeLimitDisplay->setTooltipText(TIME_LIMIT_TOOLTIP_LIMIT);
 }
 
 void GameMode::refreshActionFeedback(float elapsed)
