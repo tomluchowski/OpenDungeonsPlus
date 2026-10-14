@@ -164,6 +164,8 @@ public:
     static const uint32_t NO_FLOODFILL;
     static const std::string TILE_PREFIX;
     static const std::string TILE_SCANF;
+    //! \brief Colour (with alpha) of the marking drawn over a tile that is marked for digging.
+    static const Ogre::ColourValue DIG_MARK_COLOUR;
 
     virtual GameEntityType getObjectType() const override;
 

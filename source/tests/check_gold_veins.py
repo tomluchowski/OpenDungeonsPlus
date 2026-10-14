@@ -27,7 +27,7 @@ assert re.search(r'glitter\s*=\s*step\([^;]*\*\s*vein;', frag), 'glitter must be
 assert 'veinTime' in frag and 'step(0.90, cellRand)' in frag
 # The whole gold texture receives the transparent material overlay, including its veins.
 assert 'result = lightingTerm * texelColor;' in frag
-assert 'Ogre::ColourValue markColor(0.65f, 0.45f, 1.0f, 0.5f)' in render
+assert 'Ogre::ColourValue markColor(Tile::DIG_MARK_COLOUR)' in render
 assert 'markPass->setSceneBlending(Ogre::SBT_TRANSPARENT_ALPHA)' in render
 assert 'markPass->setDepthWriteEnabled(false)' in render
 # Output is clamped and opaque.
