@@ -1734,6 +1734,12 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
             break;
         }
 
+        case ServerNotificationType::wallTorches:
+        {
+            gameMap->updateWallTorchesFromPacket(packetReceived);
+            break;
+        }
+
         case ServerNotificationType::trapEffect:
         {
             // Cosmetic only: tells the room ambience what the trap or door on the tile just did

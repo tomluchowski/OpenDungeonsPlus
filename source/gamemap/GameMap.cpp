@@ -54,6 +54,7 @@
 #include "rooms/RoomPortal.h"
 #include "rooms/RoomTreasury.h"
 #include "rooms/RoomType.h"
+#include "rooms/WallTorchConfig.h"
 #include "spells/Spell.h"
 #include "sound/SoundEffectsManager.h"
 #include "traps/Trap.h"
@@ -212,6 +213,8 @@ GameMap::GameMap(bool isServerGameMap, NodeType nt) :
         everVisitedFlagPool(nullptr),
         mIsServerGameMap(isServerGameMap),
         mNodeType(nt),
+        mWallTorchesDirty(true),
+        mWallTorchesVersion(0),
         mLocalPlayer(nullptr),
         mLocalPlayerNick(DEFAULT_NICK),
         mTurnNumber(-1),
@@ -363,6 +366,10 @@ void GameMap::clearAll()
         resetUniqueNumbers();
         mIsFOWActivated = true;
         mTimePayDay = 0;
+        mWallTorches.clear();
+        mWallTorchesDirty = true;
+        ++mWallTorchesVersion;
+        mWallTorchesSent.clear();
 
         // We check if the different vectors are empty
         if(!mActiveObjects.empty())
@@ -1329,6 +1336,10 @@ unsigned long int GameMap::doMiscUpkeep(double timeSinceLastTurn)
     for (Seat* seat : mSeats)
         seat->sendVisibleTiles();
 
+    // The wall torches follow the tiles the seats have seen, so they are sent after the tiles
+    if(isServerGameMap())
+        updateWallTorches();
+
     // Carry out the upkeep round of all the active objects in the game.
     // Here, we work on a copy of the active objects list because they might
     // try to remove themselves which would break the iterator
@@ -2263,6 +2274,7 @@ void GameMap::addRoom(Room *r)
     }
 
     mRooms.push_back(r);
+    markWallTorchesDirty();
 }
 
 void GameMap::removeRoom(Room *r)
@@ -2278,6 +2290,7 @@ void GameMap::removeRoom(Room *r)
     }
 
     mRooms.erase(it);
+    markWallTorchesDirty();
 }
 
 std::vector<Room*> GameMap::getRoomsByType(RoomType type) const
@@ -3970,6 +3983,174 @@ float GameMap::getHeightFromTile(const Tile* tile) const
     TileVisual tv = tile->getTileVisual();
     int index = computeTileSetIndex(tile);
     return mHighMap->at(tv).at(index);
+}
+
+void GameMap::updateWallTorches()
+{
+    if(!isServerGameMap())
+        return;
+
+    if(mWallTorchesDirty)
+    {
+        mWallTorchesDirty = false;
+
+        // What the placement needs to know about each tile
+        int32_t sizeX = getMapSizeX();
+        int32_t sizeY = getMapSizeY();
+        std::vector<WallTorchTileInfo> infos(static_cast<size_t>(sizeX) * static_cast<size_t>(sizeY));
+        std::map<Room*, int32_t> roomIndices;
+        for(int32_t y = 0; y < sizeY; ++y)
+        {
+            for(int32_t x = 0; x < sizeX; ++x)
+            {
+                Tile* tile = getTile(x, y);
+                if(tile == nullptr)
+                    continue;
+
+                WallTorchTileInfo& info = infos[static_cast<size_t>(y) * static_cast<size_t>(sizeX) + static_cast<size_t>(x)];
+                Seat* tileSeat = tile->getSeat();
+                if(tile->getFullness() > 0.0)
+                {
+                    // Only a reinforced wall can carry a torch
+                    if((tileSeat != nullptr) && (tile->getTileVisual() == TileVisual::claimedFull))
+                    {
+                        info.mWallSeatId = tileSeat->getId();
+                        info.mWallTeamId = tileSeat->getTeamId();
+                    }
+                    continue;
+                }
+
+                Room* room = tile->getCoveringRoom();
+                if(room != nullptr)
+                {
+                    // The rooms are numbered by their first tile, row by row
+                    std::map<Room*, int32_t>::iterator itRoom = roomIndices.find(room);
+                    if(itRoom == roomIndices.end())
+                    {
+                        int32_t newIndex = static_cast<int32_t>(roomIndices.size());
+                        itRoom = roomIndices.insert(std::pair<Room*, int32_t>(room, newIndex)).first;
+                    }
+                    info.mRoomIndex = itRoom->second;
+                    info.mBlocked = (room->getBuildingObjects().find(tile) != room->getBuildingObjects().end());
+                }
+
+                // No torch faces water, lava, a bridge or a door
+                if((tile->getType() == TileType::water) || (tile->getType() == TileType::lava) || tile->getHasBridge())
+                    continue;
+
+                Trap* trap = tile->getCoveringTrap();
+                if((trap != nullptr) && trap->isDoor())
+                    continue;
+
+                if((tileSeat != nullptr) && tile->isClaimed())
+                    info.mOpenTeamId = tileSeat->getTeamId();
+            }
+        }
+
+        WallTorchConfig config = WallTorchConfig::load();
+        std::vector<WallTorch> placed;
+        WallTorches::compute(sizeX, sizeY, infos, config.mPlacement, placed);
+        mWallTorches.clear();
+        for(const WallTorch& torch : placed)
+            mWallTorches[WallTorches::getKey(torch.mX, torch.mY, torch.mDir, sizeX)] = torch;
+    }
+
+    int32_t sizeX = getMapSizeX();
+    for(Seat* seat : mSeats)
+    {
+        if((seat->getPlayer() == nullptr) || !seat->getPlayer()->getIsHuman())
+            continue;
+
+        // The first time (or after a reset) the seat gets the whole list
+        bool full = (mWallTorchesSent.find(seat) == mWallTorchesSent.end());
+        std::set<uint32_t>& sent = mWallTorchesSent[seat];
+
+        // Torches on tiles the seat has seen that it does not have yet
+        std::vector<const WallTorch*> added;
+        for(const std::pair<const uint32_t, WallTorch>& p : mWallTorches)
+        {
+            if(sent.find(p.first) != sent.end())
+                continue;
+
+            Tile* tile = getTile(p.second.mX, p.second.mY);
+            if((tile == nullptr) || !seat->hasSeenTile(tile))
+                continue;
+
+            added.push_back(&p.second);
+        }
+
+        // Torches the seat has that are gone. They are only taken back while the seat sees the wall,
+        // so that a change out of sight is not given away
+        std::vector<uint32_t> removed;
+        for(uint32_t key : sent)
+        {
+            if(mWallTorches.find(key) != mWallTorches.end())
+                continue;
+
+            int32_t index = static_cast<int32_t>(key / WallTorches::NB_DIRECTIONS);
+            Tile* tile = getTile(index % sizeX, index / sizeX);
+            if((tile == nullptr) || seat->hasVisionOnTile(tile))
+                removed.push_back(key);
+        }
+
+        if(!full && added.empty() && removed.empty())
+            continue;
+
+        ServerNotification* serverNotification = new ServerNotification(
+            ServerNotificationType::wallTorches, seat->getPlayer());
+        serverNotification->mPacket << full;
+        uint32_t nbRemoved = removed.size();
+        serverNotification->mPacket << nbRemoved;
+        for(uint32_t key : removed)
+        {
+            int32_t index = static_cast<int32_t>(key / WallTorches::NB_DIRECTIONS);
+            int32_t dir = static_cast<int32_t>(key % WallTorches::NB_DIRECTIONS);
+            serverNotification->mPacket << (index % sizeX) << (index / sizeX) << dir;
+            sent.erase(key);
+        }
+        uint32_t nbAdded = added.size();
+        serverNotification->mPacket << nbAdded;
+        for(const WallTorch* torch : added)
+        {
+            serverNotification->mPacket << torch->mX << torch->mY << torch->mDir << torch->mSeatId;
+            sent.insert(WallTorches::getKey(torch->mX, torch->mY, torch->mDir, sizeX));
+        }
+        ODServer::getSingleton().queueServerNotification(serverNotification);
+    }
+}
+
+void GameMap::resetWallTorchesSent(Seat* seat)
+{
+    mWallTorchesSent.erase(seat);
+}
+
+void GameMap::updateWallTorchesFromPacket(ODPacket& is)
+{
+    bool full;
+    uint32_t nbRemoved;
+    OD_ASSERT_TRUE(is >> full >> nbRemoved);
+    if(full)
+        mWallTorches.clear();
+
+    int32_t sizeX = getMapSizeX();
+    for(uint32_t i = 0; i < nbRemoved; ++i)
+    {
+        int32_t x;
+        int32_t y;
+        int32_t dir;
+        OD_ASSERT_TRUE(is >> x >> y >> dir);
+        mWallTorches.erase(WallTorches::getKey(x, y, dir, sizeX));
+    }
+
+    uint32_t nbAdded;
+    OD_ASSERT_TRUE(is >> nbAdded);
+    for(uint32_t i = 0; i < nbAdded; ++i)
+    {
+        WallTorch torch;
+        OD_ASSERT_TRUE(is >> torch.mX >> torch.mY >> torch.mDir >> torch.mSeatId);
+        mWallTorches[WallTorches::getKey(torch.mX, torch.mY, torch.mDir, sizeX)] = torch;
+    }
+    ++mWallTorchesVersion;
 }
 
 void GameMap::setLocalPlayer(Player* pp){

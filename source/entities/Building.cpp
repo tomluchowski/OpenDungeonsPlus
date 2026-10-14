@@ -86,6 +86,8 @@ void Building::addBuildingObject(Tile* targetTile, BuildingObject* obj, GameMap*
     
     // The object position has been already set in the building object constructor
     mBuildingObjects[targetTile] = obj;
+    if(getIsOnServerMap())
+        gameMap->markWallTorchesDirty();
     obj->addToGameMap(gameMap);
     obj->setPosition(obj->getPosition(),gameMap);
     if(getIsOnServerMap() && getObjectType() == GameEntityType::room)
@@ -103,6 +105,8 @@ void Building::removeBuildingObject(Tile* tile)
     obj->removeFromGameMap();
     obj->deleteYourself();
     mBuildingObjects.erase(it);
+    if(getIsOnServerMap())
+        getGameMap()->markWallTorchesDirty();
 }
 
 void Building::removeBuildingObject(BuildingObject* obj)
@@ -115,6 +119,8 @@ void Building::removeBuildingObject(BuildingObject* obj)
         obj->removeFromGameMap();
         obj->deleteYourself();
         mBuildingObjects.erase(it);
+        if(getIsOnServerMap())
+            getGameMap()->markWallTorchesDirty();
         break;
     }
 }
@@ -164,6 +170,8 @@ void Building::removeAllBuildingObjects(GameMap* gameMap)
         p.second->deleteYourself();
     }
     mBuildingObjects.clear();
+    if(getIsOnServerMap())
+        getGameMap()->markWallTorchesDirty();
 }
 
 BuildingObject* Building::getBuildingObjectFromTile(Tile* tile)

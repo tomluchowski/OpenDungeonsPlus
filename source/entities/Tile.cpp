@@ -1177,6 +1177,8 @@ void Tile::setFullness(double f)
     double oldFullness = getFullness();
 
     mFullness = f;
+    if(getIsOnServerMap())
+        getGameMap()->markWallTorchesDirty();
 
     // If the tile was marked for digging and has been dug out, unmark it and set its fullness to 0.
     if (mFullness == 0.0 && isMarkedForDiggingByAnySeat())
@@ -1273,6 +1275,8 @@ void Tile::setCoveringBuilding(Building *building)
         }
     }
     mCoveringBuilding = building;
+    if(getIsOnServerMap())
+        getGameMap()->markWallTorchesDirty();
     mIsRoom = false;
     if(getCoveringRoom() != nullptr)
     {
@@ -2118,6 +2122,9 @@ void Tile::setDirtyForAllSeats()
 {
     if(!getIsOnServerMap())
         return;
+
+    // Claiming, unclaiming and digging all end here: the wall torches may have to move
+    getGameMap()->markWallTorchesDirty();
 
     for(std::pair<Seat*, bool>& seatChanged : mTileChangedForSeats)
         seatChanged.second = true;

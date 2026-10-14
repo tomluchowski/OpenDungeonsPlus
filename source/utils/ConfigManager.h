@@ -200,6 +200,8 @@ public:
     //! logging an error when the parameter is not in the configuration file.
     //! Useful for newly introduced parameters older config files do not have.
     double getRoomConfigDoubleOrDefault(const std::string& param, double defaultValue) const;
+    //! \brief Tells whether the parameter is in the rooms configuration
+    bool hasRoomConfig(const std::string& param) const;
 
     //! Traps configuration
     const std::string& getTrapConfigString(const std::string& param) const;

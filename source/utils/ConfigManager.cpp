@@ -1573,6 +1573,11 @@ const std::string ConfigManager::getUserValue(Config::Ctg category,
     return it->second;
 }
 
+bool ConfigManager::hasRoomConfig(const std::string& param) const
+{
+    return mRoomsConfig.find(param) != mRoomsConfig.end();
+}
+
 const std::string& ConfigManager::getRoomConfigString(const std::string& param) const
 {
     auto it = mRoomsConfig.find(param);

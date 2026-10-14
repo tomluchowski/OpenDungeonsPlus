@@ -497,6 +497,8 @@ set(OD_SOURCEFILES
     ${SRC}/rooms/RoomTreasury.cpp
     ${SRC}/rooms/RoomType.cpp
     ${SRC}/rooms/RoomWorkshop.cpp
+    ${SRC}/rooms/WallTorchConfig.cpp
+    ${SRC}/rooms/WallTorches.cpp
 
     ${SRC}/sound/MusicPlayer.cpp
     ${SRC}/sound/SoundEffectsManager.cpp

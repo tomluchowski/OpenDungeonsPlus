@@ -21,6 +21,7 @@
 #include "entities/GameEntity.h"
 #include "gamemap/SelectionEntityWanted.h"
 #include "gamemap/TileContainer.h"
+#include "rooms/WallTorches.h"
 #include "ai/AIManager.h"
 
 #ifdef __MINGW32__
@@ -33,6 +34,7 @@
 #include <map>
 #include <memory>
 #include <random>
+#include <set>
 #include <string>
 
 #include <Ogre.h>
@@ -405,6 +407,34 @@ public:
      */
     void enableFloodFill();
 
+    //! \brief The wall torches. On the server this is the authoritative list the placement computed (see
+    //! WallTorches), on a client it is exactly the list the server sent to the local player (only torches
+    //! on tiles the player has seen). Keyed by WallTorches::getKey, so iteration order is stable.
+    //! The clients only show the torches; the server list is also what the lit check of a room reads.
+    const std::map<uint32_t, WallTorch>& getWallTorches() const
+    { return mWallTorches; }
+
+    //! \brief Client side. Counts the changes of getWallTorches(), so that a display can see cheaply
+    //! whether the list changed since it last read it.
+    uint32_t getWallTorchesVersion() const
+    { return mWallTorchesVersion; }
+
+    //! \brief Server side. Tells that a wall, its reinforcement, a room or a room object changed, so the
+    //! torches are computed again on the next turn.
+    void markWallTorchesDirty()
+    { mWallTorchesDirty = true; }
+
+    //! \brief Server side, once per turn. Computes the torches again if needed and sends the changes
+    //! (the whole list the first time) to each human player: only torches on tiles the player has seen.
+    void updateWallTorches();
+
+    //! \brief Server side. Makes the next updateWallTorches send the whole list to the seat again
+    //! (a client that joined or loaded).
+    void resetWallTorchesSent(Seat* seat);
+
+    //! \brief Client side. Applies a ServerNotificationType::wallTorches message to getWallTorches().
+    void updateWallTorchesFromPacket(ODPacket& is);
+
     void setLocalPlayer(Player* player);
 
     inline Player* getLocalPlayer()
@@ -605,6 +635,15 @@ private:
     
     
     NodeType mNodeType;
+
+    //! \brief See getWallTorches()
+    std::map<uint32_t, WallTorch> mWallTorches;
+    //! \brief Server side: the torches have to be computed again
+    bool mWallTorchesDirty;
+    //! \brief Client side: see getWallTorchesVersion()
+    uint32_t mWallTorchesVersion;
+    //! \brief Server side: the torches (keys) each seat has been sent
+    std::map<Seat*, std::set<uint32_t> > mWallTorchesSent;
 
     //! \brief the Local player reference. The local player will also be in the player list so this pointer
     //! should not be deleted as it will be handled like every other in the list.
