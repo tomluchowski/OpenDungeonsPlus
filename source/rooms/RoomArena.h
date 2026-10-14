@@ -43,6 +43,7 @@ public:
     virtual void updateActiveSpots(GameMap* gameMap = nullptr) override;    
     bool useRoom(Creature& creature, bool forced) override;
     bool shouldStopUseIfHungrySleepy(Creature& creature, bool forced) override;
+    //! \brief The arena is used even by a creature in a bad mood, so this always returns false.
     bool shouldNotUseIfBadMood(Creature& creature, bool forced) override
     { return false; }
 
