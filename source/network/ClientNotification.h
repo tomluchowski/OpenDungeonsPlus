@@ -51,6 +51,9 @@ enum class ClientNotificationType
     askCastSpell,
     askSetSkillTree,
     askSetPlayerSettings,
+    //! \brief Asks for the payout level of the casino on a tile and optionally sets it:
+    //! + int tileX, int tileY, uint32_t payoutLevel (a CasinoPayout value), bool isSet
+    askCasinoPayout,
 
     askSaveMap,
     askExecuteConsoleCommand,
@@ -87,6 +90,14 @@ enum class ClientNotificationType
 
     askTrapProductionQueue,
     askMoveTrapProductionOrder,
+    //! Possession: the direction the possessed creature should walk (Vector2, zero to stop)
+    askPossessMove,
+    //! Possession: the player wants to leave the possessed creature
+    askPossessExit,
+    //! Possession: left click attack, the direction the creature looks at (Vector2)
+    askPossessAttack,
+    //! Possession: use the creature skill of the given slot (uint32_t, 0 to 3) in the given direction (Vector2)
+    askPossessSkill,
     //! Editor: change or list the region markers of the level script:
     //! + int32_t operation (an EditorRegionOperation), string name, 4 int32_t (the corners, used by set only).
     //! The server always answers with editorRegionData.

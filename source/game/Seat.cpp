@@ -76,6 +76,7 @@ Seat::Seat(GameMap* gameMap) :
     mGoldMined(0),
     mAutoWorkerTimer(0.0),
     mManaShortageSeconds(0.0),
+    mManaOneOffPending(0.0),
     mWorkerPopCountdown(-1.0),
     mHeartDefenceActive(false),
     mHeartDefenceHeartDamaged(false),
@@ -271,6 +272,13 @@ void Seat::applyRevealedTiles()
     }
 }
 
+//! \brief Returns true if this seat has been notified about the given tile at least once (server side).
+//! \param tile The tile to look up
+bool Seat::hasSeenTile(Tile* tile)
+{
+    return getTileStateNotified(tile) != nullptr;
+}
+
 void Seat::clearTilesWithVision()
 {
     if(mPlayer == nullptr)
@@ -366,14 +374,19 @@ bool Seat::takeMana(double mana)
         return false;
 
     mMana -= mana;
+    mManaOneOffPending += mana;
     return true;
 }
 
 void Seat::addMana(double mana)
 {
+    double manaBefore = mMana;
     mMana += mana;
     if (mMana < 0.0)
         mMana = 0.0;
+    // A one-off loss counts for the HUD like a spell cost
+    if (mMana < manaBefore)
+        mManaOneOffPending += manaBefore - mMana;
     double maxMana = ConfigManager::getSingleton().getMaxManaPerSeat();
     if (mMana > maxMana)
         mMana = maxMana;
@@ -965,6 +978,9 @@ void Seat::computeSeatBeginTurn()
             }
             ++mNbRooms[index];
         }
+
+        if(getNbRooms(RoomType::library) > 0)
+            mHadLibrary = true;
     }
 }
 
@@ -1150,6 +1166,12 @@ bool Seat::importSeatFromStream(std::istream& is)
             mResearchLevels[type] = level;
         }
         if(!(is >> str) || str != "[/ResearchProgress]" || !(is >> str))
+            return false;
+    }
+    // Optional: the seat once owned a library (keeps the lost library rule after a load)
+    if(str == "[HadLibrary]")
+    {
+        if(!(is >> mHadLibrary) || !(is >> str))
             return false;
     }
     if(str != "[SkillNotAllowed]")
@@ -1386,6 +1408,9 @@ bool Seat::exportSeatToStream(std::ostream& os) const
     for(SkillType type : mSkillDone)
         os << Skills::toString(type) << "\t" << getSkillLevel(type) << "\n";
     os << "[/ResearchProgress]\n";
+
+    if(mHadLibrary)
+        os << "[HadLibrary]\t1\n";
 
     os << "[SkillNotAllowed]" << std::endl;
     for(SkillType type : mSkillNotAllowed)
@@ -1820,7 +1845,13 @@ void Seat::updateTileStateForSeat(Tile* tile, bool hideSeatId)
     }
     
     jj->second.mTileVisual = tile->getTileVisual();
-    
+    // A building that is still hidden from this seat looks like a wall to it
+    if((tile->getCoveringBuilding() != nullptr) &&
+       tile->getCoveringBuilding()->appearsAsWallForSeat(tile, this))
+    {
+        jj->second.mTileVisual = TileVisual::claimedFull;
+    }
+
     switch(jj->second.mTileVisual)
     {
         case TileVisual::claimedFull:
@@ -1840,6 +1871,7 @@ void Seat::updateTileStateForSeat(Tile* tile, bool hideSeatId)
         case TileVisual::casinoRoom:
         case TileVisual::tortureRoom:         
         case TileVisual::guardRoom:
+        case TileVisual::templeRoom:
             if(tile->getSeat() == nullptr)
             {
                 OD_LOG_ERR("Tile=" + Tile::displayAsString(tile));
@@ -1959,6 +1991,7 @@ void Seat::exportTileToPacket(ODPacket& os, Tile* tile,
             case TileVisual::casinoRoom:
             case TileVisual::tortureRoom:
             case TileVisual::guardRoom:
+            case TileVisual::templeRoom:
                 
                 tileSeatId = tileState.mSeatIdOwner;
                 break;
@@ -2082,6 +2115,7 @@ bool Seat::isTileDiggableForClient(Tile* tile) const
         case TileVisual::casinoRoom:
         case TileVisual::tortureRoom:        
         case TileVisual::guardRoom:
+        case TileVisual::templeRoom:
         case TileVisual::claimedGround:
         case TileVisual::dirtGround:
         case TileVisual::goldGround:
@@ -2089,6 +2123,7 @@ bool Seat::isTileDiggableForClient(Tile* tile) const
         case TileVisual::waterGround:
         case TileVisual::rockGround:
         case TileVisual::gemGround:
+        case TileVisual::manaWellGround:
         case TileVisual::rockFull:
             return false;
         case TileVisual::goldFull:

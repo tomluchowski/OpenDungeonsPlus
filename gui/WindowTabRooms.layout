@@ -128,6 +128,13 @@
             <Property name="TooltipText" value="Build a guard room" />
             <Property name="InheritsAlpha" value="False" />
         </Window>
+        <Window type="OD/GameTabButton" name="PrayerTempleButton" >
+            <Property name="Area" value="{{0,420},{0,50},{0,460},{0,90}}" />
+            <Property name="Visible" value="False" />
+            <Property name="NormalImage" value="OpenDungeonsIcons/PrayerTempleButton" />
+            <Property name="TooltipText" value="Build a temple where creatures pray" />
+            <Property name="InheritsAlpha" value="False" />
+        </Window>
         <Window type="OD/GameTabButton" name="WavePortalButton" >
             <Property name="Area" value="{{0,412},{0,62},{0,464},{0,114}}" />
             <Property name="Visible" value="False" />

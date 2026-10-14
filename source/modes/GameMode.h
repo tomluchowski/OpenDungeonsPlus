@@ -159,6 +159,17 @@ class GameMode final : public GameEditorModeBase, public InputCommand
     bool togglePlayerSettingsWindow(const CEGUI::EventArgs& = {});
     bool cancelPlayerSettings(const CEGUI::EventArgs& = {});
     bool applyPlayerSettings(const CEGUI::EventArgs& = {});
+
+    //! \brief Casino payout control, opened by clicking on one of the player's casinos
+    //! \param tile A tile of the casino the window is opened for
+    void showCasinoPayoutWindow(Tile* tile);
+    //! \brief Hides the casino payout window
+    bool hideCasinoPayoutWindow(const CEGUI::EventArgs& = {});
+    //! \brief Asks the server to switch the casino shown in the window to the next payout setting
+    bool cycleCasinoPayout(const CEGUI::EventArgs& = {});
+    //! \brief Called when the server tells the payout level of a casino. It is only shown if
+    //! it is the casino the window is open for.
+    void setCasinoPayoutShown(int tileX, int tileY, uint32_t level);
     //! \brief Synchronize settings displayed in the menu with settings in the seat
     void syncPlayerSettings();
 
@@ -233,7 +244,13 @@ class GameMode final : public GameEditorModeBase, public InputCommand
     void updateTimeLimitTooltip(bool isCountdown);
 
     Creature* getClosestCreature(Tile*);
-    
+
+    //! \brief Called on client side when the local player takes control of a creature (possession)
+    void notifyPossessionStarted();
+
+    //! \brief Called on client side when the local player is no longer in control of a creature
+    void notifyPossessionEnded();
+
 protected:
     bool onClickYesQuitMenu(const CEGUI::EventArgs& /*arg*/);
 
@@ -313,6 +330,9 @@ private:
 
     bool mIsSkillWindowOpen;
 
+    //! \brief Whether the spell buttons were last shown locked because the library was lost
+    bool mIsLibraryLostShown;
+
     SkillType mCurrentSkillType;
     float mCurrentSkillProgress;
 
@@ -372,11 +392,49 @@ private:
     bool mMapKeyDown = false;
 
 
+    //! \brief Tile of the casino whose payout window is open and the payout level shown
+    int mCasinoX;
+    int mCasinoY;
+    uint32_t mCasinoPayout;
+
     //! \brief whether to allow showing the window with debug Tile info under middlemouse button click
     bool showTileDebugWindow;
     
     const ConfigManager &config;
     
+    //! \brief Whether the local player controls a creature (possession)
+    bool isLocalPlayerPossessing();
+
+    //! \brief Handles a key press or release while the player controls a creature. Returns
+    //! true if the key was used and should not be handled as a normal game key.
+    bool handlePossessionKey(OIS::KeyCode key, bool pressed);
+
+    //! \brief Called at each frame while possessing. Sends the walk direction to the server
+    //! when it changed.
+    void updatePossessionInput(float timeSinceLastFrame);
+
+    //! \brief The direction the possessed creature looks at (unit vector on the ground plane)
+    Ogre::Vector2 getPossessionAim();
+
+    //! \brief Sends the possession attack request (left mouse button) to the server
+    void sendPossessionAttack();
+
+    //! \brief Sends the request to use the creature skill of the given slot (keys 1 to 4)
+    void sendPossessionSkill(uint32_t slot);
+
+    //! \brief Sends the possession exit request to the server
+    void sendPossessionExit();
+
+    //! \brief The movement keys held down while possessing
+    bool mPossessKeyForward = false;
+    bool mPossessKeyBackward = false;
+    bool mPossessKeyLeft = false;
+    bool mPossessKeyRight = false;
+
+    //! \brief The last walk direction sent to the server while possessing and the time since it was sent
+    Ogre::Vector2 mPossessLastDirection = Ogre::Vector2::ZERO;
+    float mPossessTimeSinceSent = 0.0f;
+
     //! \brief Called when there is a mouse input change
     void checkInputCommand();
     void handlePlayerActionNone();
@@ -400,7 +458,7 @@ private:
     void buildPlayerSettingsWindow();
 
     void updateCreatureIndicatorAlt(OIS::KeyCode key, bool pressed);
-    bool mCreatureIndicatorsVisible = false;
+    bool mCreatureIndicatorsVisible = true;
     bool mIndicatorLeftAltDown = false;
     bool mIndicatorRightAltDown = false;
 

@@ -215,6 +215,15 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
                 tile->setType(TileType::lava);
                 tile->setTileVisualIfArgNotNull(TileVisual::lavaGround);
             }
+            // Mana well
+            OD_ASSERT_TRUE(packetReceived >> nb);
+            while(nb > 0)
+            {
+                --nb;
+                Tile* tile = gameMap->tileFromPacket(packetReceived);
+                tile->setType(TileType::manaWell);
+                tile->setTileVisualIfArgNotNull(TileVisual::manaWellGround);
+            }
 
             
             gameMap->setAllFullnessAndNeighbors();
@@ -252,16 +261,23 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
                 OD_ASSERT_TRUE(packetReceived >> creaturePanel);
             setSupportsCreaturePanel(false);
 
+            bool creatureProgress = false;
+            if(!packetReceived.endOfPacket())
+                OD_ASSERT_TRUE(packetReceived >> creatureProgress);
+            setSupportsCreatureProgress(false);
+
             ODPacket packSend;
             const std::string& nick = gameMap->getLocalPlayerNick();
             packSend << ClientNotificationType::setNick << nick;
-            if(liveNickname || creatureMood || creatureActivity || creaturePanel)
+            if(liveNickname || creatureMood || creatureActivity || creaturePanel || creatureProgress)
                 packSend << liveNickname;
-            if(creatureMood || creatureActivity || creaturePanel)
+            if(creatureMood || creatureActivity || creaturePanel || creatureProgress)
                 packSend << creatureMood;
-            if(creatureActivity || creaturePanel)
+            if(creatureActivity || creaturePanel || creatureProgress)
                 packSend << creatureActivity;
-            if(creaturePanel)
+            if(creaturePanel || creatureProgress)
+                packSend << creaturePanel;
+            if(creatureProgress)
                 packSend << true;
             send(packSend);
 
@@ -479,6 +495,11 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
             if(!packetReceived.endOfPacket())
                 OD_ASSERT_TRUE(packetReceived >> creaturePanel);
             setSupportsCreaturePanel(creaturePanel);
+
+            bool creatureProgress = false;
+            if(!packetReceived.endOfPacket())
+                OD_ASSERT_TRUE(packetReceived >> creatureProgress);
+            setSupportsCreatureProgress(creatureProgress);
 
             // Now that the we have received all needed information, we can launch the requested mode
             OD_LOG_INF("Starting game map");
@@ -1603,6 +1624,23 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
 
         }
 
+        case ServerNotificationType::casinoPayout:
+        {
+            if(frameListener->getModeManager()->getCurrentModeType() != ModeManager::ModeType::GAME)
+            {
+                OD_LOG_ERR("Wrong mode " + Helper::toString(frameListener->getModeManager()->getCurrentModeType()));
+                break;
+            }
+            int xx = 0;
+            int yy = 0;
+            uint32_t level = 0;
+            OD_ASSERT_TRUE(packetReceived >> xx >> yy >> level);
+
+            GameMode* gameMode = static_cast<GameMode*>(frameListener->getModeManager()->getCurrentMode());
+            gameMode->setCasinoPayoutShown(xx, yy, level);
+            break;
+        }
+
         case ServerNotificationType::editorPortalWaveData:
         {
             if(frameListener->getModeManager()->getCurrentModeType() != ModeManager::ModeType::EDITOR)
@@ -1668,6 +1706,40 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
 
             mTimeLimitSeconds = timeLimitSeconds;
             mWaveCountdownSeconds = waveCountdownSeconds;
+            break;
+        }
+
+        case ServerNotificationType::possessionStart:
+        {
+            std::string creatureName;
+            OD_ASSERT_TRUE(packetReceived >> creatureName);
+            getPlayer()->setPossessedCreatureName(creatureName);
+            CameraManager* possessionCamera = frameListener->getCameraManager();
+            if(possessionCamera != nullptr)
+                possessionCamera->startPossession(creatureName);
+            if(frameListener->getModeManager()->getCurrentModeType() == ModeManager::ModeType::GAME)
+            {
+                GameMode* gm = static_cast<GameMode*>(frameListener->getModeManager()->getCurrentMode());
+                gm->notifyPossessionStarted();
+            }
+            break;
+        }
+
+        case ServerNotificationType::possessionEnd:
+        {
+            // Whether the creature fell (the server says so: dead, knocked out or gone). It is read to keep the
+            // packet in step, the client does not use it yet
+            bool creatureLost = false;
+            OD_ASSERT_TRUE(packetReceived >> creatureLost);
+            getPlayer()->setPossessedCreatureName(std::string());
+            CameraManager* possessionCamera = frameListener->getCameraManager();
+            if(possessionCamera != nullptr)
+                possessionCamera->stopPossession();
+            if(frameListener->getModeManager()->getCurrentModeType() == ModeManager::ModeType::GAME)
+            {
+                GameMode* gm = static_cast<GameMode*>(frameListener->getModeManager()->getCurrentMode());
+                gm->notifyPossessionEnded();
+            }
             break;
         }
 

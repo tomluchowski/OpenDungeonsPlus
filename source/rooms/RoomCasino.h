@@ -25,6 +25,18 @@ class Creature;
 class Tile;
 enum class TileVisual;
 
+//! \brief What the casino aims at. The keeper sets it per room. There are two settings:
+//! Money keeps a share of the bets and annoys the gamblers, Smiles keeps little and cheers them up.
+//! The setting is saved as a number: 0 is Money, 1 and 2 are read as Smiles.
+enum class CasinoPayout
+{
+    //! \brief Keeper keeps a large share of the bets and the gamblers get annoyed ($)
+    money,
+    //! \brief Default level, keeper keeps little or nothing and the gamblers get cheered up (smiley)
+    smiles,
+    nbValues
+};
+
 class RoomCasinoGameCreatureInfo
 {
 public:
@@ -65,6 +77,24 @@ public:
     void removeCreatureUsingRoom(Creature* creature) override;
     void absorbRoom(Room* room) override;
     bool useRoom(Creature& creature, bool forced) override;
+    //! \brief Gives the room that takes over tiles of this casino the payout set for this one
+    void splitRoom(Room& newRoom, const std::vector<Tile*>& tiles) override;
+    //! \brief Saves the room and the payout level
+    void exportToStream(std::ostream& os) const override;
+    //! \brief Loads the room and the payout level (kept at the default if the stream has none)
+    //! \return false if the stream is invalid
+    bool importFromStream(std::istream& is) override;
+
+    //! \brief The payout setting of this casino
+    inline CasinoPayout getPayout() const
+    { return mPayout; }
+
+    //! \brief Sets the payout setting of this casino
+    void setPayout(CasinoPayout payout)
+    { mPayout = payout; }
+
+    //! \brief The share of the bets the keeper keeps for the given payout level (0.0 to 1.0)
+    static double getFeeForPayout(CasinoPayout payout);
 
     static const RoomType mRoomType;
     static const TileVisual mRoomVisual;
@@ -77,6 +107,7 @@ private:
     void setCreatureWinning(Creature& creature, const Ogre::Vector3& gamePosition);
     void setCreatureLoosing(Creature& creature, const Ogre::Vector3& gamePosition);
     std::map<Tile*,RoomCasinoGame> mCreaturesSpots;
+    CasinoPayout mPayout;
 };
 
 #endif // ROOMCASINO_H

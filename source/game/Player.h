@@ -261,12 +261,29 @@ public:
     void notifyWorkerAction(Creature& worker, CreatureActionType actionType);
     void notifyWorkerStopsAction(Creature& worker, CreatureActionType actionType);
 
+    //! \brief Name of the creature the player currently possesses, empty if none.
+    //! Used on both server and client sides.
+    inline const std::string& getPossessedCreatureName() const
+    { return mPossessedCreatureName; }
+
+    //! \brief Remembers the name of the creature the player possesses, an empty name means none
+    inline void setPossessedCreatureName(const std::string& name)
+    { mPossessedCreatureName = name; }
+
+    //! \brief True if the player currently possesses a creature
+    inline bool isPossessing() const
+    { return !mPossessedCreatureName.empty(); }
+
     //! \brief Returns how many workers are doing the given action
     uint32_t getNbWorkersDoing(CreatureActionType actionType) const;
 
     //! \brief Returns a list of the actions the worker should do based on what the other workers
     //! of this seat are doing. The worker should try the actions on the given order
     std::vector<CreatureActionType> getWorkerPreferredActions(Creature& worker) const;
+
+    //! \brief Returns true if one more worker may reload a trap: the workers reloading traps stay within the
+    //! configured share (TrapReloadWorkerSharePercent) of the workers doing the listed jobs
+    bool isWorkerReloadShareOpen() const;
 
 private:
     //! \brief Shared part of the defeat: the chat messages and sounds for the player and the allies.
@@ -331,6 +348,9 @@ private:
     //! \brief Used to know what the workers are doing. That will help to change
     //! probability to choose the action to do
     std::vector<uint32_t> mWorkersActions;
+
+    //! \brief The creature the player possesses. Empty if none
+    std::string mPossessedCreatureName;
 
     //! \brief A simple mutator function to put the given entity into the player's hand,
     //! note this should NOT be called directly for creatures on the map,

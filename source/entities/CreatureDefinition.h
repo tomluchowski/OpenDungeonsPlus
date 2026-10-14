@@ -75,6 +75,19 @@ public:
         Fighter,    // Sleep, eat, train and fight any enemy thing.
     };
 
+    //! \brief The role of a creature in group fights.
+    //! Blocker: holds the position and attacks the nearest enemy.
+    //! Blitzer: storms the front line to reach the enemy support creatures.
+    //! Flanker: prefers enemy support and ranged creatures and tries to get behind the enemy.
+    //! Support: keeps its distance and supports with ranged attacks or healing.
+    enum CombatClass
+    {
+        CombatBlocker = 1,
+        CombatBlitzer,
+        CombatFlanker,
+        CombatSupport
+    };
+
     CreatureDefinition(
             const std::string&      className   = std::string(),
             CreatureJob             job         = Fighter,
@@ -126,6 +139,10 @@ public:
 
     static CreatureJob creatureJobFromString(const std::string& s);
     static std::string creatureJobToString(CreatureJob c);
+    //! \brief Converts the name of a combat class (as written in the configuration) to the enum value
+    static CombatClass combatClassFromString(const std::string& s);
+    //! \brief Converts a combat class to the name used in the configuration
+    static std::string combatClassToString(CombatClass c);
     //! \brief Writes the differences between def1 and def2 in the given file. Note that def1 can be null. In
     //! this case, every parameters in def2 will be written. def2 cannot be null.
     static void writeCreatureDefinitionDiff(
@@ -148,6 +165,12 @@ public:
     static bool update(CreatureDefinition* creatureDef, std::stringstream& defFile, const std::map<std::string, CreatureDefinition*>& defMap);
 
     inline CreatureJob          getCreatureJob  () const    { return mCreatureJob; }
+    inline CombatClass          getCombatClass  () const    { return mCombatClass; }
+    //! \brief True for creatures that are never scared by a Fear trap.
+    inline bool                 isFearless      () const    { return mFearless; }
+    //! \brief True for the champion definition (the creature the Summon champion spell calls).
+    inline bool                 isChampion      () const    { return mChampion; }
+    inline double               getPossessManaCost () const { return mPossessManaCost; }
     inline const std::string&   getClassName    () const    { return mClassName; }
 
     inline const std::string&   getMeshName     () const    { return mMeshName; }
@@ -233,9 +256,22 @@ public:
     inline const std::string& getSoundFamilySlap() const
     { return mSoundFamilySlap; }
 
+    //! \brief Seconds a captured enemy of this kind must be tortured at level 1 before it changes side
+    inline double getTortureTimeToConvert() const
+    { return mTortureTimeToConvert; }
+
 private:
     //! \brief The job of the creature (e.g. worker, fighter, ...)
     CreatureJob mCreatureJob;
+
+    //! \brief The role in group fights (default blocker)
+    CombatClass mCombatClass;
+    //! \brief True for creatures that are never scared by a Fear trap
+    bool mFearless;
+    //! \brief True for the summoned champion: it cannot be hurt, possessed or turned, needs no fee and charges at enemies
+    bool mChampion;
+    //! \brief Mana taken per second while a player possesses a creature of this definition (after the free period)
+    double mPossessManaCost;
 
     //! \brief The name of the creatures class
     std::string mClassName;
@@ -355,6 +391,9 @@ private:
     std::string mSoundFamilyAttack;
     std::string mSoundFamilyDie;
     std::string mSoundFamilySlap;
+
+    //! \brief Seconds of torture at level 1 before an enemy of this kind changes side
+    double mTortureTimeToConvert;
 
     //! \brief Loads the creature XP values for the given definition.
     static void loadXPTable(std::stringstream& defFile, CreatureDefinition* creatureDef);
