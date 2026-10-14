@@ -787,10 +787,9 @@
                     </Window>
                 </Window>
                 <Window type="OD/ImageButton" name="SummonChampionButton" >
-                    <Property name="Area" value="{{0.2,-25},{0,195},{0.2,25},{0,245}}" />
+                    <Property name="Area" value="{{0.578,-25},{0,195},{0.578,25},{0,245}}" />
                     <Property name="ButtonImage" value="OpenDungeonsIcons/SummonChampionButton" />
                     <Property name="TooltipText" value="Spell: Summon champion" />
-                    <Property name="Visible" value="False" />
                     <Window type="OD/ProgressBar" name="SummonChampionButtonProgressBar" >
                         <Property name="Area" value="{{0.0,-20},{0.0,0},{1.0,20},{1.0,0}}" />
                         <Property name="InheritsTooltipText" value="True" />
@@ -800,7 +799,7 @@
                         <Property name="Visible" value="False" />
                         <Property name="VerticalProgress" value="True" />
                         <Property name="Alpha" value="0.2" />
-                        <Property name="ProgressImage" value="OpenDungeonsSkin/ProgressBarLitSegment" />
+                        <Property name="ProgressImage" value="OpenDungeonsSkin/SelectionBrush" />
                         <Property name="ReversedProgress" value="True" />
                     </Window>
                 </Window>
