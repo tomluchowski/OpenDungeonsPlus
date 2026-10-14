@@ -31,11 +31,14 @@ const std::string CreatureSkillDrainName = "Drain";
 
 namespace
 {
+//! \brief Creates drain skills when the configuration names "Drain"
 class CreatureSkillDrainFactory : public CreatureSkillFactory
 {
+    //! \brief Creates an empty drain skill
     CreatureSkill* createCreatureSkill() const override
     { return new CreatureSkillDrain; }
 
+    //! \brief The skill name used in the configuration
     const std::string& getCreatureSkillName() const override
     { return CreatureSkillDrainName; }
 };
