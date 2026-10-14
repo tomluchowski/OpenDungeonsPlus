@@ -216,6 +216,9 @@ static const std::string sampleBranch =
     "[Level]\nFile=b.level\nProvince=T09B\nBranch=T09A\n"
     "[Level]\nFile=n.level\nProvince=T10\n";
 
+//! \brief Starts the level with the given index and wins it, so the levels after it unlock.
+//! \param campaign The campaign that runs the level.
+//! \param index Index of the level in the campaign definition.
 static void completeLevel(Campaign& campaign, size_t index)
 {
     campaign.startLevel(index);
