@@ -44,6 +44,21 @@
 #include <istream>
 #include <ostream>
 
+//! \brief Value of RoomsClaimableByEnemies when the room config has no entry (1.0: claimable and destructible)
+static const double DEFAULT_ROOMS_CLAIMABLE_BY_ENEMIES = 1.0;
+//! \brief Share (percent) of the build cost paid for a room taken over when the room config has no RoomTakeoverCostPercent
+static const double DEFAULT_ROOM_TAKEOVER_COST_PERCENT = 0.0;
+//! \brief Radius in tiles in which a defender keeps workers off a room when the room config has no RoomTakeoverGuardRadius
+static const double DEFAULT_ROOM_TAKEOVER_GUARD_RADIUS = 5.0;
+//! \brief Seconds per tile to take over a room nobody owns when the room config has no RoomConvertNeutralSecondsPerTile
+static const double DEFAULT_ROOM_CONVERT_NEUTRAL_SECONDS_PER_TILE = 0.5;
+//! \brief Seconds per tile to take over an enemy room when the room config has no RoomConvertSecondsPerTile
+static const double DEFAULT_ROOM_CONVERT_SECONDS_PER_TILE = 2.5;
+//! \brief Claim rate of the reference worker when the room config has no RoomConvertClaimRate
+static const double DEFAULT_ROOM_CONVERT_CLAIM_RATE = 0.42;
+//! \brief How much faster a room is repaired than taken over when the room config has no RoomRepairFactor
+static const double DEFAULT_ROOM_REPAIR_FACTOR = 5.0;
+
 Room::Room(GameMap* gameMap):
     Building(gameMap),
     mClaimHealth(1.0),
@@ -59,7 +74,7 @@ GameEntityType Room::getObjectType() const
 Room::ClaimMode Room::getClaimMode()
 {
     ConfigManager& config = ConfigManager::getSingleton();
-    double mode = config.getRoomConfigDoubleOrDefault("RoomsClaimableByEnemies", 1.0);
+    double mode = config.getRoomConfigDoubleOrDefault("RoomsClaimableByEnemies", DEFAULT_ROOMS_CLAIMABLE_BY_ENEMIES);
     if(mode == 1.0)
         return ClaimMode::claimableAndDestructible;
     if(mode == 2.0)
@@ -84,7 +99,7 @@ int32_t Room::getTakeoverPrice() const
 
     // Every room changes hands as a whole, a bridge too
     uint32_t nbTiles = static_cast<uint32_t>(numCoveredTiles());
-    double percent = ConfigManager::getSingleton().getRoomConfigDoubleOrDefault("RoomTakeoverCostPercent", 0.0);
+    double percent = ConfigManager::getSingleton().getRoomConfigDoubleOrDefault("RoomTakeoverCostPercent", DEFAULT_ROOM_TAKEOVER_COST_PERCENT);
     return RoomClaim::takeoverPrice(RoomManager::costPerTile(getType()), nbTiles, percent);
 }
 
@@ -97,7 +112,7 @@ bool Room::isTakeoverBlocked(const Seat* seat, const Tile* tile) const
     ConfigManager& config = ConfigManager::getSingleton();
     // A room is only taken while nobody defends it: a fighter of the owner (or of its
     // allies) that is up and about close to the tile keeps the workers off
-    double guardRadius = config.getRoomConfigDoubleOrDefault("RoomTakeoverGuardRadius", 5.0);
+    double guardRadius = config.getRoomConfigDoubleOrDefault("RoomTakeoverGuardRadius", DEFAULT_ROOM_TAKEOVER_GUARD_RADIUS);
     if(guardRadius > 0.0)
     {
         for(Creature* creature : gameMap->getCreatures())
@@ -141,10 +156,10 @@ void Room::claimForSeat(Seat* seat, Tile* tile, double danceRate)
     // A room nobody owns is taken five times faster than an enemy one
     double secondsPerTile;
     if(getSeat()->isRogueSeat())
-        secondsPerTile = config.getRoomConfigDoubleOrDefault("RoomConvertNeutralSecondsPerTile", 0.5);
+        secondsPerTile = config.getRoomConfigDoubleOrDefault("RoomConvertNeutralSecondsPerTile", DEFAULT_ROOM_CONVERT_NEUTRAL_SECONDS_PER_TILE);
     else
-        secondsPerTile = config.getRoomConfigDoubleOrDefault("RoomConvertSecondsPerTile", 2.5);
-    double referenceClaimRate = config.getRoomConfigDoubleOrDefault("RoomConvertClaimRate", 0.42);
+        secondsPerTile = config.getRoomConfigDoubleOrDefault("RoomConvertSecondsPerTile", DEFAULT_ROOM_CONVERT_SECONDS_PER_TILE);
+    double referenceClaimRate = config.getRoomConfigDoubleOrDefault("RoomConvertClaimRate", DEFAULT_ROOM_CONVERT_CLAIM_RATE);
 
     // The pool of the room is its number of tiles times the duration of one tile (RoomClaim::takeoverSeconds).
     // It is kept as a fraction and the size is read at every dance, so a room that grows or shrinks
@@ -169,9 +184,9 @@ void Room::claimForSeat(Seat* seat, Tile* tile, double danceRate)
 void Room::repairClaimHealth(double danceRate)
 {
     ConfigManager& config = ConfigManager::getSingleton();
-    double secondsPerTile = config.getRoomConfigDoubleOrDefault("RoomConvertSecondsPerTile", 2.5);
-    double referenceClaimRate = config.getRoomConfigDoubleOrDefault("RoomConvertClaimRate", 0.42);
-    double repairFactor = config.getRoomConfigDoubleOrDefault("RoomRepairFactor", 5.0);
+    double secondsPerTile = config.getRoomConfigDoubleOrDefault("RoomConvertSecondsPerTile", DEFAULT_ROOM_CONVERT_SECONDS_PER_TILE);
+    double referenceClaimRate = config.getRoomConfigDoubleOrDefault("RoomConvertClaimRate", DEFAULT_ROOM_CONVERT_CLAIM_RATE);
+    double repairFactor = config.getRoomConfigDoubleOrDefault("RoomRepairFactor", DEFAULT_ROOM_REPAIR_FACTOR);
 
     mClaimHealth += RoomClaim::healthRepairedPerDance(danceRate, referenceClaimRate, secondsPerTile,
         ODApplication::turnsPerSecond, static_cast<uint32_t>(numCoveredTiles()), repairFactor);
