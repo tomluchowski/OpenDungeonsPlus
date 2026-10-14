@@ -2551,6 +2551,8 @@ Ogre::AnimationState* RenderManager::setEntityAnimation(Ogre::Entity* ent, const
                 as->setTimePosition(0);
 
             as->setLoop(loop);
+            // A creature reaction may have hidden the clip by giving it no weight
+            as->setWeight(1.0f);
             as->setEnabled(true);
             animState = as;
             continue;
