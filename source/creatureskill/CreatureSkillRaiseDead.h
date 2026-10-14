@@ -35,6 +35,7 @@ class CreatureSkillRaiseDead : public CreatureSkill
 {
 public:
     // Constructors
+    //! \brief Creates the skill with empty parameters (they are read from the configuration).
     CreatureSkillRaiseDead() :
         mCreatureLevelMin(0),
         mRangeMax(0.0),
@@ -42,32 +43,47 @@ public:
         mEffectDuration(0)
     {}
 
+    //! \brief Nothing to release.
     virtual ~CreatureSkillRaiseDead()
     {}
 
+    //! \brief The name of this skill ("RaiseDead").
     virtual const std::string& getSkillName() const override;
 
+    //! \brief True if the creature has reached the minimum level of the skill.
     virtual bool canBeUsedBy(const Creature* creature) const override;
 
+    //! \brief Raises the dead bodies in range as temporary creatures, returns true if at least one was raised.
     virtual bool tryUseSupport(GameMap& gameMap, Creature* creature) const override;
 
+    //! \brief Raise Dead is not used in a fight, so this always returns false.
     virtual bool tryUseFight(GameMap& gameMap, Creature* creature, float range,
         GameEntity* attackedObject, Tile* attackedTile, bool ko, bool notifyPlayerIfHit) const override
     { return false; }
 
+    //! \brief Returns a copy of this skill.
     virtual CreatureSkillRaiseDead* clone() const override;
 
+    //! \brief True if the other skill is a Raise Dead skill with the same parameters.
     virtual bool isEqual(const CreatureSkill& creatureSkill) const override;
 
+    //! \brief Appends the column names of the parameters.
     virtual void getFormatString(std::string& format) const override;
+    //! \brief Writes the parameters.
     virtual void exportToStream(std::ostream& os) const override;
+    //! \brief Reads the parameters, returns false if one is missing.
     virtual bool importFromStream(std::istream& is) override;
 
 private:
+    //! \brief Minimum level of the caster
     uint32_t mCreatureLevelMin;
+    //! \brief Distance in tiles around the caster within which bodies are raised
     double mRangeMax;
+    //! \brief Maximum number of bodies raised by one use
     uint32_t mMaxRaised;
+    //! \brief Number of turns the raised creatures last
     uint32_t mEffectDuration;
+    //! \brief Creature class of the raised creatures
     std::string mCreatureClass;
 };
 
