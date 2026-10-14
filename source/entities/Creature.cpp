@@ -228,8 +228,11 @@ Creature::Creature(GameMap* gameMap, const CreatureDefinition* definition, Seat*
     mNbTurnsTorture          (0),
     mNbTurnsPrison           (0),
     mActiveSlapsCount        (0),
+    mNbTurnsInHand           (0),
+    mIsInHand                (false),
     mIsBeingDragged          (false),
-    mWoundedCarryNextTurn    (0)
+    mWoundedCarryNextTurn    (0),
+    mNbTurnsOutOfWork        (0)
 {
     //TODO: This should be set in initialiser list in parent classes
     setSeat(seat);
@@ -318,8 +321,11 @@ Creature::Creature(GameMap* gameMap) :
     mNbTurnsTorture          (0),
     mNbTurnsPrison           (0),
     mActiveSlapsCount        (0),
+    mNbTurnsInHand           (0),
+    mIsInHand                (false),
     mIsBeingDragged          (false),
-    mWoundedCarryNextTurn    (0)
+    mWoundedCarryNextTurn    (0),
+    mNbTurnsOutOfWork        (0)
 {
     if(!getIsOnServerMap())
     {
@@ -956,9 +962,19 @@ void Creature::doUpkeep()
         it = mEntityParticleEffects.erase(it);
     }
 
+    // The creature resents being held in the hand for long periods. The resentment fades once dropped
+    if(mIsInHand)
+        ++mNbTurnsInHand;
+    else if(mNbTurnsInHand > 0)
+        --mNbTurnsInHand;
+
     // if creature is not on map (picked up or being carried), we do nothing
     if(!getIsOnMap())
         return;
+
+    // A creature that is working is not frustrated anymore
+    if(isActionInList(CreatureActionType::useRoom))
+        mNbTurnsOutOfWork = 0;
 
     // If the creature is temporary KO, it should do nothing
     if(mKoTurnCounter > 0)
@@ -2604,7 +2620,22 @@ void Creature::pickup()
     if(getHasVisualDebuggingEntities())
         computeVisualDebugEntities();
 
+    mIsInHand = true;
+
     fireCreatureSound(CreatureSound::Pickup);
+}
+
+int32_t Creature::getNbRecentSlaps(int32_t nbTurns) const
+{
+    int64_t turnNumber = getGameMap()->getTurnNumber();
+    int32_t nbSlaps = 0;
+    for(int64_t slapTurn : mSlapTurns)
+    {
+        if(turnNumber - slapTurn <= nbTurns)
+            ++nbSlaps;
+    }
+
+    return nbSlaps;
 }
 
 bool Creature::canGoThroughTile(Tile* tile) const
@@ -2665,6 +2696,8 @@ void Creature::drop(const Ogre::Vector3& v)
         computeVisualDebugEntities();
 
     fireCreatureSound(CreatureSound::Drop);
+
+    mIsInHand = false;
 
     // The creature is temporary KO
     mKoTurnCounter = mDefinition->getTurnsStunDropped();
@@ -3199,6 +3232,12 @@ void Creature::slap()
     CreatureEffectSlap* effect = new CreatureEffectSlap(
         ConfigManager::getSingleton().getSlapEffectDuration(), "");
     addCreatureEffect(effect);
+
+    // We remember the slap to compute the mood. Only the latest ones are kept
+    mSlapTurns.push_back(getGameMap()->getTurnNumber());
+    if(mSlapTurns.size() > 10)
+        mSlapTurns.erase(mSlapTurns.begin());
+
     mHp -= mMaxHP * ConfigManager::getSingleton().getSlapDamagePercent() / 100.0;
     computeCreatureOverlayHealthValue();
 }
@@ -4023,6 +4062,10 @@ void Creature::changeSeat(Seat* newSeat)
     mNbTurnsTorture = 0;
     mNbTurnsPrison = 0;
     mActiveSlapsCount = 0;
+    mNbTurnsInHand = 0;
+    mIsInHand = false;
+    mNbTurnsOutOfWork = 0;
+    mSlapTurns.clear();
     clearDestinations(EntityAnimation::idle_anim, true, true);
     clearActionQueue();
     mNeedFireRefresh = true;
