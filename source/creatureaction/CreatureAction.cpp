@@ -99,6 +99,9 @@ std::string CreatureAction::toString(CreatureActionType actionType)
     case CreatureActionType::goCallToWar:
         return "goCallToWar";
 
+    case CreatureActionType::goDefendHeart:
+        return "goDefendHeart";
+
     default:
         assert(false);
         break;

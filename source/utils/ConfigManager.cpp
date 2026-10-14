@@ -22,6 +22,7 @@
 #include "entities/Weapon.h"
 #include "game/Skill.h"
 #include "gamemap/TileSet.h"
+#include "rooms/TreasurySettings.h"
 #include "spawnconditions/SpawnCondition.h"
 #include "utils/Helper.h"
 #include "utils/LogManager.h"
@@ -58,9 +59,11 @@ ConfigManager::ConfigManager(const std::string& configPath, const std::string& u
     mCreatureMoodFurious(-2000),
     mSlapDamagePercent(15),
     mSlapEffectDuration(15),
+    mLowHealthWalkSpeedFactor(0.7),
+    mLowHealthWalkThresholdPercent(50.0),
     mTimePayDay(300),
     mNbTurnsFuriousMax(120),
-    mMaxManaPerSeat(250000.0),
+    mMaxManaPerSeat(200000.0),
     mClaimingWallPenalty(0.8),
     mDigCoefGold(5.0),
     mDigCoefGem(1.0),
@@ -138,6 +141,8 @@ ConfigManager::ConfigManager(const std::string& configPath, const std::string& u
         OD_LOG_ERR("Couldn't read loadEditorSettings");
         exit(1);
     }
+
+    loadTreasury(configPath + "treasury.cfg");
 
     // Reserve space in any case.
     mUserConfig.resize(Config::Ctg::TOTAL);
@@ -503,6 +508,20 @@ bool ConfigManager::loadGlobalGameConfig(std::stringstream& configFile)
         {
             configFile >> nextParam;
             mSlapEffectDuration = Helper::toDouble(nextParam);
+            // Not mandatory
+        }
+
+        if(nextParam == "LowHealthWalkSpeedFactor")
+        {
+            configFile >> nextParam;
+            mLowHealthWalkSpeedFactor = Helper::toDouble(nextParam);
+            // Not mandatory
+        }
+
+        if(nextParam == "LowHealthWalkThresholdPercent")
+        {
+            configFile >> nextParam;
+            mLowHealthWalkThresholdPercent = Helper::toDouble(nextParam);
             // Not mandatory
         }
 
@@ -968,6 +987,40 @@ bool ConfigManager::loadRooms(const std::string& fileName)
     }
 
     return true;
+}
+
+void ConfigManager::loadTreasury(const std::string& fileName)
+{
+    OD_LOG_INF("Load treasury file: " + fileName);
+    std::stringstream defFile;
+    if(!Helper::readFile(fileName, defFile, true))
+    {
+        OD_LOG_WRN("Couldn't read " + fileName + ", using the default treasury values");
+        return;
+    }
+
+    std::string nextParam;
+    defFile >> nextParam;
+    if(nextParam != "[Treasury]")
+    {
+        OD_LOG_WRN("Invalid treasury start format. Line was " + nextParam);
+        return;
+    }
+
+    std::map<std::string, std::string> values;
+    while(defFile.good())
+    {
+        if(!(defFile >> nextParam))
+            break;
+
+        if(nextParam == "[/Treasury]")
+            break;
+
+        std::string value;
+        defFile >> value;
+        values[nextParam] = value;
+    }
+    TreasurySettings::current() = TreasurySettings::fromConfig(values);
 }
 
 bool ConfigManager::loadTraps(const std::string& fileName)
@@ -1963,4 +2016,6 @@ void ConfigManager::loadDefaultValuesForUserConfig(void)
     setGameValue("LightFactor",	"100");
     setGameValue("MinimapType",	"MiniMapDrawn");
     setGameValue("Nickname", "Player");
+    setGameValue("UI Scale", "100");
+    setGameValue("Blood Effects", "Yes");
 }

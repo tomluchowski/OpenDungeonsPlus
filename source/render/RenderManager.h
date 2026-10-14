@@ -22,12 +22,18 @@
 #ifndef RENDERMANAGER_H
 #define RENDERMANAGER_H
 
+#include <set>
+
 #include <string>
+#include <map>
 #include <OgreSingleton.h>
 #include <OgreMath.h>
+#include <OgreSkeleton.h>
 #include <OgreDefaultDebugDrawer.h>
 #include <cstdint>
 #include "entities/GameEntity.h"
+#include "render/TreasuryCreatureRules.h"
+#include "render/TreasuryGoldBatch.h"
 
 class DraggableTileContainer;
 class GameMap;
@@ -96,8 +102,12 @@ public:
     //! \brief setup the scene
     void createScene(Ogre::Viewport*);
 
+    void setViewport(Ogre::Viewport* viewport)
+    { mViewport = viewport; }
+
     //! \brief Sets/Updates the overall world lighting value with given factor.
     void setWorldAmbientLightingFactor(float lightFactor);
+    void setDynamicShadowsEnabled(bool enabled);
 
     //! \brief Set the entity's opacity
     void setEntityOpacity(Ogre::Entity* ent, float opacity);
@@ -106,6 +116,7 @@ public:
     //! moveCursor allows to move the cursor on GUI
     //!  moveWorldCoords sends the world coords where the map light is
     void moveCursor(float relX, float relY);
+    Ogre::FloatRect getHandCursorBounds(float relX, float relY) const;
     void moveWorldCoords(Ogre::Real x, Ogre::Real y);
     void entitySlapped();
 
@@ -135,8 +146,13 @@ public:
     void rrCreateRenderedMovableEntity(RenderedMovableEntity* curRenderedMovableEntity, NodeType nt = NodeType::MTILES_NODE);
     void rrDestroyRenderedMovableEntity(RenderedMovableEntity* curRenderedMovableEntity, NodeType nt = NodeType::MTILES_NODE);
     void rrUpdateEntityOpacity(RenderedMovableEntity* entity);
+    //! \brief The "Treasury detail" option changed: every pile, floor gold heap and thief sack is drawn again for the
+    //! new setting (the piles and heaps a few per frame, see updateTreasuryRebuild).
+    void rrTreasuryDetailChanged();
     void rrCreateCreature(Creature* curCreature);
     void rrDestroyCreature(Creature* curCreature);
+    //! Shows, resizes or removes the sack of a thief according to the gold it carries (as sent by the server)
+    void rrRefreshCreatureGoldSack(Creature* creature);
     void rrOrientEntityToward(MovableGameEntity* gameEntity, const Ogre::Vector3& direction);
     void rrPitchAroundAxis(RenderedMovableEntity* gameEntity, Ogre::Degree dd);
     void rrScaleCreature(Creature& creature);
@@ -148,6 +164,8 @@ public:
     void rrPickUpEntity(GameEntity* curEntity, Player* localPlayer);
     void rrDropHand(GameEntity* curEntity, Player* localPlayer);
     void rrRotateHand(Player* localPlayer);
+    void rrEnableHeldCreatureDisplay(bool enabled, Player* localPlayer);
+    bool isKeeperHandVisible() const { return mHandKeeperHandVisibility == 0; }
     void rrAddOutliner(Creature* creature);
     void rrRemoveOutliner(Creature* creature);
     void rrIncreaseAmbient(Creature* creature);
@@ -156,15 +174,57 @@ public:
     void rrDestroyCreatureVisualDebug(Creature* curCreature, Tile* curTile);
     void rrCreateSeatVisionVisualDebug(int seatId, Tile* tile);
     void rrDestroySeatVisionVisualDebug(int seatId, Tile* tile);
+    //! \brief Plays the given animation on the entity of an animated object; a walking carrier uses the
+    //! carrying walk clip when its skeleton has one. Does nothing for entities that are missing or have no skeleton.
+    //! \param loop True if the animation is repeated.
     void rrSetObjectAnimationState(MovableGameEntity* curAnimatedObject, const std::string& animation, bool loop);
     void rrMoveEntity(GameEntity* entity, const Ogre::Vector3& position);
+    //! A worker poured gold onto the treasury tile (x, y): coins fall onto the top of the pile
+    void rrTreasuryDeposit(GameMap* gameMap, int x, int y);
     void rrMoveMapLightFlicker(MapLight* mapLight, const Ogre::Vector3& position);
+    //! \brief Attaches the carried entity to the carrier at half tile height. A carrier that is already
+    //! walking switches to the carrying walk clip.
     void rrCarryEntity(Creature* carrier, GameEntity* carried);
+    //! \brief Detaches the carried entity from the carrier. A carrier that is still walking switches back
+    //! to the plain walk clip.
     void rrReleaseCarriedEntity(Creature* carrier, GameEntity* carried);
     Ogre::ParticleSystem* rrEntityAddParticleEffect(GameEntity* entity, const std::string& particleName,
         const std::string& particleScript);
     void rrEntityRemoveParticleEffect(GameEntity* entity, Ogre::ParticleSystem* particleSystem);
     void rrToggleHandSelectorVisibility();
+    void rrSetHandPose(bool pointing, bool digging, bool building = false);
+    void rrPlayBuildAnimation();
+    bool rrPlayIdleHandAnimation();
+    bool rrIsIdleHandAnimationPlaying() const;
+    void rrCancelIdleHandAnimation();
+    void rrPlayDigAnimation();
+    void rrDrawTilePreview(const std::vector<Tile*>& tiles, const Ogre::ColourValue& colour, bool construction = false);
+    void rrCreateRoomConstructionEffect(const std::vector<Tile*>& tiles);
+
+    //! \brief Creates a free-standing particle effect that stays until rrDestroyFreeParticleEffect().
+    //! \param colour If not null, the colour of every emitter of the script is set to it.
+    void rrCreateFreeParticleEffect(const std::string& effectName, const std::string& particleScript,
+        const Ogre::Vector3& position, const Ogre::ColourValue* colour);
+    void rrMoveFreeParticleEffect(const std::string& effectName, const Ogre::Vector3& position);
+    void rrDestroyFreeParticleEffect(const std::string& effectName);
+    //! Client-only copy of the dungeon heart for the defeat sequence (the server has already removed the
+    //! real heart object), placed like the real one: DungeonTempleObject mesh on the floor, no turn, scale 1.
+    //! Its materials are clones, so that its core can glow without changing other hearts.
+    void rrCreateDefeatHeart(const Ogre::Vector3& position);
+    //! Moves and scales the copy; glow 0 is its normal look, 1 the hottest red
+    void rrUpdateDefeatHeart(const Ogre::Vector3& position, Ogre::Real scale, Ogre::Real glow);
+    void rrDestroyDefeatHeart();
+    //! Creates count rubble pieces of the burst heart (a small procedural shard mesh with the heart's
+    //! own shell material), one scene node each, hidden until they are first moved
+    void rrCreateDefeatRubble(size_t count);
+    //! Places rubble piece index; rotation holds the degrees around the x, y and z axes
+    void rrMoveDefeatRubblePiece(size_t index, const Ogre::Vector3& position, const Ogre::Vector3& rotation,
+        const Ogre::Vector3& scale);
+    void rrDestroyDefeatRubble();
+    void rrCreateCreatureCombatImpact(Creature* creature, bool weaponClash,
+        bool bodyDamage, const Ogre::Vector3& attackerPosition);
+    void rrSetFeedingChicken(Creature* creature, MovableGameEntity* chicken,
+        const Ogre::Vector3& position);
 
     //! \brief Toggles the creatures text overlay
     void rrSetCreaturesTextOverlay(GameMap& gameMap, bool value);
@@ -178,7 +238,7 @@ public:
     //! \brief Does requested stuff for rendering in the minimap. Each time the minimap is rendered, this function will be
     //! called once before rendering is done with postRender = false and once when it is rendered with postRender = true.
     //! That allows to hide stuff that we don't want to display in the minimap
-    void rrMinimapRendering(bool postRender);
+    void rrMinimapRendering(bool postRender, bool keepWorldLighting = false);
 
     Ogre::Light* addPointLightMenu(const std::string& name, const Ogre::Vector3& pos,
         const Ogre::ColourValue& diffuse, const Ogre::ColourValue& specular, Ogre::Real attenuationRange,
@@ -229,6 +289,7 @@ private:
     template<typename Manager> bool removeIfExists(std::string, std::string);
     //! \brief Correctly places entities in hand next to the keeper hand
     void rrOrderHand(Player* localPlayer);
+    void rrUpdateHeldCreature();
 
     //! \brief Colorize the material with the corresponding team id color.
     //! \note If the material (wall tiles only) is marked for digging, a yellow color is added
@@ -260,6 +321,354 @@ private:
     Ogre::SceneNode* mMainMenuSceneNode;
 
     Ogre::AnimationState* mHandAnimationState;
+    std::string mHandPose = "Idle";
+    Ogre::ManualObject* mHandPickaxe = nullptr;
+    Ogre::Entity* mHandHammer = nullptr;
+    Ogre::ManualObject* mHandIdleProp = nullptr;
+    Ogre::Vector3 mHammerStrikePoint = Ogre::Vector3::ZERO;
+    Ogre::ManualObject* mTilePreview = nullptr;
+
+    struct CreatureCombatImpactEffect
+    {
+        Creature* mCreature;
+        Ogre::SceneNode* mNode;
+        Ogre::ParticleSystem* mParticleSystem;
+        Ogre::Real mRemainingTime;
+    };
+    std::vector<CreatureCombatImpactEffect> mCreatureCombatImpactEffects;
+
+    struct CreatureCombatReaction
+    {
+        Creature* mCreature;
+        Ogre::Entity* mEntity;
+        Ogre::AnimationState* mAnimation;
+        Ogre::SkeletonAnimationBlendMode mPreviousBlendMode;
+    };
+    std::vector<CreatureCombatReaction> mCreatureCombatReactions;
+    uint64_t mCreatureCombatEffectNumber = 0;
+    std::map<Creature*, uint32_t> mCreatureAttackVariants;
+
+    enum class CreatureFeedingStyle
+    {
+        peck,
+        lunge,
+        heavy,
+        humanoid,
+        magical,
+        coil
+    };
+
+    struct CreatureFeedingBone
+    {
+        Ogre::Bone* mBone;
+        Ogre::Vector3 mPosition;
+        Ogre::Quaternion mOrientation;
+        bool mWasManual;
+        Ogre::Bone* mDriver = nullptr;
+        Ogre::Vector3 mScale = Ogre::Vector3::UNIT_SCALE;
+    };
+    struct CreatureFeedingLimb
+    {
+        Ogre::Bone* mUpper;
+        Ogre::Bone* mLower;
+        Ogre::Bone* mTip;
+        Ogre::Vector3 mTipOffset;
+        Ogre::Vector3 mRestTip;
+        Ogre::Vector3 mGripOffset = Ogre::Vector3::ZERO;
+    };
+    struct CreatureFeedingAnimation
+    {
+        Creature* mCreature;
+        Ogre::SceneNode* mNode;
+        Ogre::Entity* mEntity;
+        Ogre::Vector3 mBasePosition;
+        Ogre::Quaternion mBaseOrientation;
+        Ogre::Vector3 mBaseScale;
+        Ogre::Real mElapsed;
+        CreatureFeedingStyle mStyle;
+        Ogre::AnimationState* mAnimation;
+        Ogre::SceneNode* mChickenNode;
+        Ogre::Entity* mChickenEntity;
+        Ogre::Vector3 mChickenStart;
+        Ogre::Vector3 mChickenScale;
+        Ogre::Bone* mHead;
+        unsigned int mFeatherBursts;
+        std::vector<CreatureFeedingBone> mReachBones;
+        std::vector<Ogre::Bone*> mRoots;
+        Ogre::Bone* mSpine = nullptr;
+        CreatureFeedingLimb mArms[2] = {};
+        CreatureFeedingLimb mLegs[2] = {};
+    };
+    std::vector<CreatureFeedingAnimation> mCreatureFeedingAnimations;
+
+    struct ChickenFeatherEffect
+    {
+        Ogre::SceneNode* mNode;
+        Ogre::ParticleSystem* mParticleSystem;
+        Ogre::Real mRemainingTime;
+    };
+    std::vector<ChickenFeatherEffect> mChickenFeatherEffects;
+    uint64_t mChickenFeatherEffectNumber = 0;
+
+    //! \brief State of a creature that lies down in a bed or sleeps in it.
+    struct CreatureSleepAnimation
+    {
+        Creature* mCreature;
+        Ogre::Entity* mEntity;
+        Ogre::SceneNode* mNode;
+        Ogre::Vector3 mBaseScale;
+        Ogre::AnimationState* mAnimation;
+        //! Seconds since the creature started to lie down.
+        Ogre::Real mElapsed;
+        //! True if the mesh has its own sleep entry animation, false if one is generated.
+        bool mNativeEntry;
+        //! Position and orientation of the node before sleeping and when lying in the bed.
+        Ogre::Vector3 mBasePosition, mRestPosition;
+        Ogre::Quaternion mBaseOrientation, mRestOrientation;
+    };
+    std::vector<CreatureSleepAnimation> mCreatureSleepAnimations;
+    std::set<Creature*> mSteppingCreatures;
+
+    struct CreatureDropAnimation
+    {
+        Creature* mCreature;
+        Ogre::SceneNode* mNode;
+        Ogre::Vector3 mStart;
+        Ogre::Vector3 mEnd;
+        Ogre::Quaternion mStartOrientation;
+        Ogre::Quaternion mLieOrientation;
+        Ogre::Vector3 mLiePosition;
+        Ogre::Real mElapsed;
+        bool mLieOnGround;
+        bool mUseFallbackLie;
+    };
+    std::vector<CreatureDropAnimation> mCreatureDropAnimations;
+
+    struct CreatureGroundPose
+    {
+        Creature* mCreature;
+        Ogre::SceneNode* mNode;
+        Ogre::Quaternion mStandingOrientation;
+        Ogre::Real mStandingZ;
+    };
+    std::vector<CreatureGroundPose> mCreatureGroundPoses;
+
+    struct CreatureGetUpAnimation
+    {
+        Creature* mCreature;
+        Ogre::SceneNode* mNode;
+        Ogre::AnimationState* mAnimationState;
+        Ogre::Quaternion mStartOrientation;
+        Ogre::Quaternion mEndOrientation;
+        Ogre::Vector3 mStartPosition;
+        Ogre::Vector3 mEndPosition;
+        Ogre::Real mElapsed;
+        bool mUseFallback;
+    };
+    std::vector<CreatureGetUpAnimation> mCreatureGetUpAnimations;
+
+    void cancelCreatureDropAnimation(Creature* creature);
+    void cancelCreatureGetUpAnimation(Creature* creature);
+    void startCreatureGetUpAnimation(Creature* creature);
+    void restoreCreatureGroundPose(Creature* creature);
+    void setCreatureDropGroundAnimation(Creature* creature);
+    struct RoomConstructionEffect
+    {
+        std::string mNodeName;
+        std::string mParticleName;
+        Ogre::Real mRemainingTime;
+    };
+    std::vector<RoomConstructionEffect> mRoomConstructionEffects;
+    uint64_t mRoomConstructionEffectNumber = 0;
+
+    //! The kinds of treasury effect; each has a budget per room of its own
+    enum class TreasuryEffectKind
+    {
+        splash,
+        dust,
+        ambient
+    };
+    struct TreasuryEffect
+    {
+        std::string mName;
+        Ogre::Real mRemaining;
+        const void* mRoomKey;
+        TreasuryEffectKind mKind;
+    };
+    std::vector<TreasuryEffect> mTreasuryEffects;
+    TreasuryCreatureRules::SplashBudget mTreasurySplashBudget;
+    //! Gold dust puffs over full treasuries use the same effect list with a budget of their own
+    TreasuryCreatureRules::SplashBudget mTreasuryDustBudget;
+    Ogre::Real mTreasuryDustTimer = 0.0f;
+    size_t mTreasuryDustCursor = 0;
+    size_t mTreasuryPortalDustCursor = 0;
+    //! Sparkles, sliding coins and rolling coins on rich piles have a budget per room of their own
+    TreasuryCreatureRules::SplashBudget mTreasuryAmbientBudget;
+    Ogre::Real mTreasuryAmbientTimer = 0.0f;
+    size_t mTreasuryAmbientCursor = 0;
+    //! Where a creature last splashed coins, to space the splashes along its way
+    std::map<Creature*, Ogre::Vector2> mTreasuryLastSplash;
+    int mTreasuryEffectNumber = 0;
+
+    //! A worker pouring its gold out on top of a pile (procedural climb and tilt of the render node)
+    struct TreasuryPour
+    {
+        Creature* mCreature;
+        Ogre::Real mElapsed;
+        int mLevel;
+        float mRise;
+        Ogre::Quaternion mTilt;
+        //! Skeleton clips of the worker (climb and pour); null when the mesh has none (procedural motion)
+        Ogre::Entity* mEntity;
+        Ogre::AnimationState* mClip;
+        int mPhase;
+    };
+    std::vector<TreasuryPour> mTreasuryPours;
+
+    //! The gold piles of this client with the node type they were created for and whether they use the reduced
+    //! mesh because they are far from the camera. The level of detail switches piles by creating their mesh again;
+    //! a change of the treasury detail option does the same for all of them.
+    struct TreasuryPileInfo
+    {
+        NodeType mNodeType;
+        bool mFar;
+    };
+    std::map<RenderedMovableEntity*, TreasuryPileInfo> mTreasuryPiles;
+    //! While a pile is created again for the level of detail: 1 reduced, 0 full (-1 when not, the distance decides)
+    int mTreasuryPileFarOverride = -1;
+    Ogre::Real mTreasuryLodTimer = 0.0f;
+    //! Piles (true) and floor gold heaps (false) waiting to be drawn again after the detail option changed
+    std::vector<std::pair<RenderedMovableEntity*, bool> > mTreasuryRebuildQueue;
+    size_t mTreasuryRebuildIndex = 0;
+    //! The piles of a treasury are drawn as one batch per room and patch of tiles
+    TreasuryGoldBatch mTreasuryBatch;
+
+    //! A pile that grows or sinks: its node settles to the new height over a short time
+    struct TreasuryPileSettle
+    {
+        std::string mEntityName;
+        Ogre::SceneNode* mNode;
+        Ogre::Real mElapsed;
+        float mFrom;
+        bool mTaken;
+        //! True when the taken pile does not dip as a whole but shows a local dent (see TreasuryPileDent)
+        bool mLocalDent;
+    };
+    std::vector<TreasuryPileSettle> mTreasuryPileSettles;
+    //! The dent where gold was taken: while it lasts a dynamic copy of the pile is drawn in place of its entity
+    //! (the entity is detached from its node and does not take part in the room batch), and given back afterwards
+    struct TreasuryPileDent
+    {
+        std::string mEntityName;
+        std::string mOgreName;
+        Ogre::SceneNode* mNode;
+        Ogre::Entity* mEntity;
+        Ogre::ManualObject* mObject;
+        std::string mMeshName;
+        float mU;
+        float mV;
+        Ogre::Real mElapsed;
+    };
+    std::vector<TreasuryPileDent> mTreasuryPileDents;
+    int mTreasuryDentNumber = 0;
+    //! An object standing in the gold of a treasury, drawn partly buried: only its node is lifted by mCurrent
+    struct TreasuryBuriedObject
+    {
+        float mHeight;
+        float mCurrent;
+        float mTarget;
+    };
+    std::map<RenderedMovableEntity*, TreasuryBuriedObject> mTreasuryBuriedObjects;
+
+    //! A thief carrying gold shows a sack of coins, its size follows the amount the server sends
+    struct TreasuryThiefSack
+    {
+        Creature* mCreature;
+        std::string mSackName;
+        std::string mSackMesh;
+    };
+    std::vector<TreasuryThiefSack> mTreasuryThiefSacks;
+    //! Set while a game is shown; the sacks of the thieves look up the creatures of the game there
+    GameMap* mGameMap = nullptr;
+
+    void clearCreatureCombatEffects(Creature* creature = nullptr);
+    void startCreatureFeedingAnimation(Creature* creature, Ogre::Entity* entity);
+    void prepareCreatureFeedingReach(CreatureFeedingAnimation& feeding);
+    Ogre::Vector3 updateCreatureFeedingReach(CreatureFeedingAnimation& feeding, Ogre::Real progress);
+    void cancelCreatureFeedingAnimation(Creature* creature = nullptr);
+    void createChickenFeatherEffect(const Ogre::Vector3& position);
+    void clearChickenFeatherEffects();
+    //! \brief Starts the movement of the creature into its bed.
+    void startCreatureSleepAnimation(Creature* creature, Ogre::Entity* entity);
+    //! \brief Finds the nearest bed and computes where the creature has to lie on it.
+    void fitCreatureToBed(CreatureSleepAnimation& sleeping);
+    //! \brief Ends the sleep animation of the given creature, or of all creatures if null,
+    //! and restores position, orientation and scale.
+    void cancelCreatureSleepAnimation(Creature* creature = nullptr);
+    void updateCreatureStep(Creature* creature);
+    void cancelCreatureStep(Creature* creature = nullptr);
+    void clearRoomConstructionEffects();
+    //! \brief The creatures on the tile follow the gold of its pile (a pile was created or removed there).
+    void refreshCreaturesOnTile(Tile* tile);
+    //! \brief A creature walked on deep gold: splashes coins and clinks after every step of the given length.
+    void treasuryCreatureStep(Creature* creature, const Ogre::Vector3& position, float surfaceHeight, int level);
+    //! \brief The worker standing on the tile climbs the pile and tips its gold out (only what is in view).
+    void startTreasuryPour(Tile* tile, int level);
+    //! \brief Moves the pouring workers (clips or procedural climb and tilt).
+    void updateTreasuryPours(Ogre::Real timeSinceLastFrame);
+    //! \brief Ends the pour of the creature (of every creature without a creature) and straightens it up.
+    void cancelTreasuryPour(Creature* creature);
+    //! \brief The extra height of the pouring worker above the gold of its tile (0 when it does not pour).
+    float getTreasuryPourRise(Creature* creature) const;
+    //! \brief Starts an effect of the given kind at the position, when it is in view and its room still has a place
+    //! in the budget of the kind. Returns whether the effect was started.
+    bool createTreasuryEffect(const void* roomKey, const std::string& script, const Ogre::Vector3& position,
+        TreasuryEffectKind kind = TreasuryEffectKind::splash);
+    //! \brief Now and then starts gold dust over a full pile in view, over the portals and over the heart of the
+    //! local keeper when it is rich.
+    void updateTreasuryDust(Ogre::Real timeSinceLastFrame);
+    //! \brief Starts a puff of gold dust over a portal of the local keeper when the keeper is rich.
+    void startTreasuryPortalDust();
+    //! \brief Starts a puff of gold dust over the dungeon heart of the local keeper when the keeper is rich.
+    void startTreasuryHeartDust();
+    //! \brief Ends the effects whose time is over and gives their places back to the budget of their room.
+    void updateTreasuryEffects(Ogre::Real timeSinceLastFrame);
+    //! \brief Now and then starts sliding coins or a sparkle on a rich pile in view.
+    void updateTreasuryAmbient(Ogre::Real timeSinceLastFrame);
+    //! \brief A pile of a tile was created with another level than before: it settles to its new height, and a taken
+    //! pile gets a dent and throws coins.
+    void startTreasuryPileChange(Ogre::SceneNode* node, const std::string& entityName, Tile* tile, int oldLevel,
+        int newLevel, Ogre::Entity* entity, const std::string& pileMeshName);
+    //! \brief Lets the local dents of the piles that lose gold form and fill up again.
+    void updateTreasuryDents(Ogre::Real timeSinceLastFrame);
+    //! \brief Ends the dent of the pile: its entity is drawn again, the dynamic copy is destroyed.
+    void finishTreasuryDent(const std::string& entityName);
+    //! \brief Lets the piles that grow or sink settle to their new height.
+    void updateTreasuryPileSettles(Ogre::Real timeSinceLastFrame);
+    //! \brief Ends the settling of the pile at once (the entity of the pile goes away).
+    void cancelTreasuryPileSettle(const std::string& entityName);
+    //! \brief True while the pile of that entity settles to a new height.
+    bool isTreasuryPileSettling(const std::string& entityName) const;
+    //! \brief Lists an object (or gold) standing in the gold of a treasury; it is drawn partly buried.
+    void registerBuriedObject(RenderedMovableEntity* entity, float objectHeight);
+    //! \brief The pile of the tile changed: the objects standing on it follow its new height.
+    void refreshBuriedObjectsOnTile(Tile* tile);
+    //! \brief Lets the objects standing in the gold sink or rise smoothly to their depth.
+    void updateTreasuryBuriedObjects(Ogre::Real timeSinceLastFrame);
+    //! \brief The height by which the node of the object is lifted so that it stands partly buried in the gold of
+    //! its tile (0 when it is not listed or is carried). With settleAtOnce the object takes that height at once.
+    float getBuriedLift(RenderedMovableEntity* entity, bool settleAtOnce);
+    //! \brief Distance of a point to the camera in tiles (0 without a camera).
+    float getTreasuryCameraDistance(const Ogre::Vector3& position) const;
+    //! \brief Switches piles between the full and the reduced mesh by their distance to the camera.
+    void updateTreasuryLod(Ogre::Real timeSinceLastFrame);
+    //! \brief Draws a few of the piles queued by rrTreasuryDetailChanged again.
+    void updateTreasuryRebuild();
+    //! \brief Removes the sack that a thief carries on its back (nothing happens when it has none).
+    void removeTreasuryThiefSack(Creature* creature);
+    //! \brief Forgets the effects, the piles, the buried objects and the sacks and destroys the draw batches (the
+    //! scene is cleared or destroyed).
+    void clearTreasuryEffects();
 
 
     Ogre::TexturePtr m_texture;
@@ -269,11 +678,15 @@ private:
 
     //! For the keeper hand
     Ogre::SceneNode* mHandKeeperNode;
+    Ogre::SceneNode* mHeldCreatureGrip = nullptr;
+    Ogre::SceneNode* mHeldCreatureStorage = nullptr;
+    bool mHeldCreatureDisplayEnabled = false;
     Ogre::SceneNode* mDummyNode;
     Ogre::SceneNode* mHandLightNode;
     Ogre::SceneNode* mHandLightNode2;
     Ogre::Camera* mShadowCam;
     Ogre::Radian mCurrentFOVy;
+    Ogre::Real mCurrentAspectRatio;
     Ogre::Real mFactorWidth;
     Ogre::Real mFactorHeight;
 

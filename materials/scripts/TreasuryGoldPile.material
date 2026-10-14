@@ -1,0 +1,39 @@
+// Gold layer of the treasuries (meshes built at run time by source/render/TreasuryGoldMesh.cpp)
+// Metal look from the lights only: no emissive term and a moderate specular, so the coins stay readable
+material TreasuryGoldPile
+{
+    receive_shadows on
+
+    technique
+    {
+        pass
+        {
+            ambient 0.65 0.55 0.3 1.0
+            diffuse 0.78 0.64 0.34 1.0
+            specular 0.35 0.3 0.14 1.0 28.0
+
+            texture_unit
+            {
+                texture TreasuryGoldPile.png
+                tex_address_mode wrap
+                filtering trilinear
+            }
+        }
+    }
+}
+
+// Single coins, gems and spilled coins on the gold layer: no texture, the colour comes from the vertices
+material TreasuryGoldDetail
+{
+    receive_shadows on
+
+    technique
+    {
+        pass
+        {
+            ambient vertexcolour
+            diffuse vertexcolour
+            specular 0.5 0.42 0.2 1.0 40.0
+        }
+    }
+}

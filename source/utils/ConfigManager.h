@@ -24,6 +24,7 @@
 #include <boost/filesystem.hpp>
 #include <boost/circular_buffer.hpp>
 
+#include <algorithm>
 #include <cstdint>
 
 
@@ -68,7 +69,22 @@ const std::string NICKNAME = "Nickname";
 const std::string KEEPERVOICE = "KeeperVoice";
 const std::string MINIMAP_TYPE = "MinimapType";
 const std::string LIGHT_FACTOR = "LightFactor";
+const std::string UI_SCALE = "UI Scale";
+const std::string BLOOD_EFFECTS = "Blood Effects";
+const std::string TREASURY_DETAIL = "TreasuryDetail";
 }
+
+//! \brief Lowest walk speed factor of a badly hurt creature (1 = no slowdown), also used for the per type factor
+static const double LOW_HEALTH_WALK_SPEED_FACTOR_MIN = 0.2;
+
+//! \brief Highest walk speed factor of a badly hurt creature (1 = no slowdown)
+static const double LOW_HEALTH_WALK_SPEED_FACTOR_MAX = 1.0;
+
+//! \brief Lowest health percent that can be set as the limit below which a creature is badly hurt
+static const double LOW_HEALTH_WALK_THRESHOLD_PERCENT_MIN = 1.0;
+
+//! \brief Percent value of the full health, highest limit of the threshold below which a creature is badly hurt
+static const double FULL_HEALTH_PERCENT = 100.0;
 
 typedef std::map<TileVisual,std::map<int,float>> HighMap;
 
@@ -129,6 +145,20 @@ public:
 
     inline uint32_t getSlapEffectDuration() const
     { return mSlapEffectDuration; }
+
+    //! \brief Limits a walk speed factor of a badly hurt creature to LOW_HEALTH_WALK_SPEED_FACTOR_MIN - LOW_HEALTH_WALK_SPEED_FACTOR_MAX
+    //! \param factor The factor to limit (1 = no slowdown)
+    //! \return The limited factor
+    static inline double limitLowHealthWalkSpeedFactor(double factor)
+    { return std::max(LOW_HEALTH_WALK_SPEED_FACTOR_MIN, std::min(LOW_HEALTH_WALK_SPEED_FACTOR_MAX, factor)); }
+
+    //! \brief Factor on the walking speed of a badly hurt creature (1 = no slowdown), limited to 0.2 - 1
+    inline double getLowHealthWalkSpeedFactor() const
+    { return limitLowHealthWalkSpeedFactor(mLowHealthWalkSpeedFactor); }
+
+    //! \brief A creature with less than this percent of its health is badly hurt and walks slower, limited to 1 - 100
+    inline double getLowHealthWalkThresholdPercent() const
+    { return std::max(LOW_HEALTH_WALK_THRESHOLD_PERCENT_MIN, std::min(FULL_HEALTH_PERCENT, mLowHealthWalkThresholdPercent)); }
 
     inline int64_t getTimePayDay() const
     { return mTimePayDay; }
@@ -280,6 +310,9 @@ private:
     bool loadFactions(const std::string& fileName);
     bool loadRooms(const std::string& fileName);
     bool loadTraps(const std::string& fileName);
+    //! \brief Reads config/treasury.cfg into the treasury settings. A missing file is not an error:
+    //! the treasury then uses the defaults from the code (see rooms/TreasurySettings.h).
+    void loadTreasury(const std::string& fileName);
     bool loadSpellConfig(const std::string& fileName);
     bool loadSkills(const std::string& fileName);
     bool loadTilesets(const std::string& fileName);
@@ -328,6 +361,8 @@ private:
     int32_t mCreatureMoodFurious;
     double mSlapDamagePercent;
     uint32_t mSlapEffectDuration;
+    double mLowHealthWalkSpeedFactor;
+    double mLowHealthWalkThresholdPercent;
     int64_t mTimePayDay;
     int32_t mNbTurnsFuriousMax;
     double mMaxManaPerSeat;
