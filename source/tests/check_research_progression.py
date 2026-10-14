@@ -46,6 +46,10 @@ decode = function(client, "case ServerNotificationType::skillsDone:")
 decode = decode[decode.index("{") + 1:-1].replace("            break;", "            return true;")
 request = function(server, "case ClientNotificationType::askSetSkillTree:")
 request = request[request.index("{") + 1:-1].replace("            break;", "            return true;")
+# Fixed number of researchable skills this branch registers in the catalog: the SkillManager constructor
+# registers 50 skills and one of them (Summon champion) is a reward skill, so 49 can be researched.
+# Update it by hand when a branch adds or removes a researchable skill.
+nb_research = 49
 
 probe = r'''
 #include "game/Skill.h"
@@ -150,8 +154,9 @@ int main(int argc,char** argv){try {
     while(std::getline(config,line)){std::istringstream row(line);std::string key;int points;
         if(row>>key>>points && key[0]!='#')ConfigManager::getSingleton().points[key]=points;}
     std::vector<SkillType> all;
-    for(uint32_t i=1;i<static_cast<uint32_t>(SkillType::countSkill);++i)all.push_back(static_cast<SkillType>(i));
-    check(all.size()==27,"all 27 current research entries");
+    for(uint32_t i=1;i<static_cast<uint32_t>(SkillType::countSkill);++i)
+        if(!Skills::isRewardSkill(static_cast<SkillType>(i)) && SkillManager::getSkill(static_cast<SkillType>(i))!=nullptr)all.push_back(static_cast<SkillType>(i));
+    check(all.size()==NBRESEARCH,"all NBRESEARCH current research entries");
     for(SkillType type:all){
         const Skill* skill=SkillManager::getSkill(type);check(skill!=nullptr,"catalog completeness");
         const int base=skill->getNeededSkillPoints();
@@ -238,7 +243,7 @@ int main(int argc,char** argv){try {
     std::cout<<"CHECKS="<<checks<<" FAILURES=0\n";
 }catch(const std::exception& e){std::cerr<<"CHECK "<<checks<<": "<<e.what()<<"\n";return 1;}}
 '''
-for key, value in {"DEFINITIONS": definitions, "LOAD": load, "SAVE": save,
+for key, value in {"NBRESEARCH": str(nb_research), "DEFINITIONS": definitions, "LOAD": load, "SAVE": save,
                    "DECODE": decode, "REQUEST": request}.items():
     probe = probe.replace(key, value)
 
