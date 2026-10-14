@@ -39,6 +39,9 @@ const SpellType SpellSummonChampion::mSpellType = SpellType::summonChampion;
 //! Turns the look of the champion that was just summoned stays on it
 static const int32_t CHAMPION_AURA_TURNS = 12;
 
+//! \brief Number of turns the summon particle effect stays on the new champion
+static const int32_t SUMMON_EFFECT_NB_TURNS = 3;
+
 namespace
 {
 class SpellSummonChampionFactory : public SpellFactory
@@ -159,7 +162,7 @@ bool SpellSummonChampion::castSpell(GameMap* gameMap, Player* player, ODPacket& 
     Ogre::Vector3 spawnPosition(static_cast<Ogre::Real>(tile->getX()),
                                 static_cast<Ogre::Real>(tile->getY()),
                                 static_cast<Ogre::Real>(0.0));
-    champion->addParticleEffect("SummonWorker", 3);
+    champion->addParticleEffect("SummonWorker", SUMMON_EFFECT_NB_TURNS);
     champion->addParticleEffect("SpellCreatureChampion", CHAMPION_AURA_TURNS);
     champion->createMesh();
     champion->setPosition(spawnPosition);
