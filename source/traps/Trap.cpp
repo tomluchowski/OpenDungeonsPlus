@@ -73,7 +73,8 @@ Trap::Trap(GameMap* gameMap) :
     mNbShootsBeforeDeactivation(0),
     mReloadTime(0),
     mMinDamage(0.0),
-    mMaxDamage(0.0)
+    mMaxDamage(0.0),
+    mForcedTrigger(false)
 {
 }
 
@@ -141,19 +142,115 @@ void Trap::doUpkeep()
         if(trapTileData->decreaseReloadTime())
             continue;
 
-        if(shoot(tile))
-        {
-            trapTileData->setReloadTime(mReloadTime);
-            if(!trapTileData->decreaseShoot())
-                deactivate(tile);
-
-            const std::vector<Seat*>& seats = tile->getSeatsWithVision();
-            trapTileData->seatsSawTriggering(seats);
-
-            for(Seat* seat : trapTileData->mSeatsVision)
-                seat->setVisibleBuildingOnTile(this, tile);
-        }
+        fireTile(tile, trapTileData);
     }
+}
+
+bool Trap::fireTile(Tile* tile, TrapTileData* trapTileData)
+{
+    // A trap fizzles if its owner cannot pay the mana needed to fire
+    double manaToFire = getManaToFire();
+    if((manaToFire > 0.0) && (getSeat()->getMana() < manaToFire))
+        return false;
+
+    if(!shoot(tile))
+        return false;
+
+    if(manaToFire > 0.0)
+        getSeat()->takeMana(manaToFire);
+
+    trapTileData->setReloadTime(mReloadTime);
+    if(!trapTileData->decreaseShoot())
+        deactivate(tile);
+
+    const std::vector<Seat*>& seats = tile->getSeatsWithVision();
+    trapTileData->seatsSawTriggering(seats);
+
+    for(Seat* seat : trapTileData->mSeatsVision)
+        seat->setVisibleBuildingOnTile(this, tile);
+
+    return true;
+}
+
+bool Trap::forceTrigger(Tile* tile)
+{
+    std::map<Tile*, TileData*>::iterator it = mTileData.find(tile);
+    if(it == mTileData.end())
+        return false;
+
+    // Only armed traps that are not reloading can be set off
+    TrapTileData* trapTileData = static_cast<TrapTileData*>(it->second);
+    if(!trapTileData->isActivated() || (trapTileData->getReloadTime() > 0))
+        return false;
+
+    mForcedTrigger = true;
+    bool fired = fireTile(tile, trapTileData);
+    mForcedTrigger = false;
+    return fired;
+}
+
+double Trap::getManaToFire() const
+{
+    switch(getType())
+    {
+        case TrapType::cannon:
+            return ConfigManager::getSingleton().getTrapConfigDouble("CannonManaToFire");
+        case TrapType::lightning:
+            return ConfigManager::getSingleton().getTrapConfigDouble("LightningManaToFire");
+        case TrapType::fireburst:
+            return ConfigManager::getSingleton().getTrapConfigDouble("FireburstManaToFire");
+        default:
+            return 0.0;
+    }
+}
+
+double Trap::getManaUpkeepPerSecond() const
+{
+    const char* key = nullptr;
+    switch(getType())
+    {
+        case TrapType::cannon:
+            key = "CannonManaUpkeepPerSecond";
+            break;
+        case TrapType::spike:
+            key = "SpikeManaUpkeepPerSecond";
+            break;
+        case TrapType::boulder:
+            key = "BoulderManaUpkeepPerSecond";
+            break;
+        case TrapType::alarm:
+            key = "AlarmManaUpkeepPerSecond";
+            break;
+        case TrapType::gas:
+            key = "GasManaUpkeepPerSecond";
+            break;
+        case TrapType::lightning:
+            key = "LightningManaUpkeepPerSecond";
+            break;
+        case TrapType::fireburst:
+            key = "FireburstManaUpkeepPerSecond";
+            break;
+        case TrapType::trigger:
+            key = "TriggerManaUpkeepPerSecond";
+            break;
+        case TrapType::freeze:
+            key = "FreezeManaUpkeepPerSecond";
+            break;
+        default:
+            return 0.0;
+    }
+    return ConfigManager::getSingleton().getTrapConfigDouble(key);
+}
+
+uint32_t Trap::getNbActivatedTiles() const
+{
+    uint32_t nbActivated = 0;
+    for(Tile* tile : mCoveredTiles)
+    {
+        if(isActivated(tile))
+            ++nbActivated;
+    }
+    return nbActivated;
 }
 
 int32_t Trap::getNbNeededCraftedTrap() const
@@ -302,7 +399,7 @@ void Trap::setupTrap(const std::string& name, Seat* seat, const std::vector<Tile
         mCoveredTiles.push_back(tile);
         TrapTileData* trapTileData = createTileData(tile);
         mTileData[tile] = trapTileData;
-        trapTileData->mHP = DEFAULT_TILE_HP;
+        trapTileData->mHP = getDefaultTileHP();
         trapTileData->setReloadTime(mReloadTime);
         // Allied seats with the creator do see the trap from the start
         trapTileData->seatsSawTriggering(alliedSeats);
@@ -504,7 +601,7 @@ bool Trap::importTileDataFromStream(std::istream& is, Tile* tile, TileData* tile
     if(is.eof())
     {
         // Default initialization
-        trapTileData->mHP = DEFAULT_TILE_HP;
+        trapTileData->mHP = getDefaultTileHP();
         mCoveredTiles.push_back(tile);
         tile->setCoveringBuilding(this);
         if(isTrapActiv != 0)
