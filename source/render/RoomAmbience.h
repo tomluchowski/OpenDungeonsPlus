@@ -35,6 +35,8 @@
 #include <vector>
 
 class GameMap;
+class MovableGameEntity;
+class RenderedMovableEntity;
 class Seat;
 class Tile;
 
@@ -91,9 +93,11 @@ public:
     //! (room) the event is about; empty = the one of the tile at the position. noThrottle lets the same event
     //! start again within a tenth of a second (a spell cast on several creatures at once). owner is the seat the
     //! thing of the event belongs to: effects with OwnerOnly are only shown to the keeper of that seat (never when
-    //! the owner is not given). Returns the number of effects started
+    //! the owner is not given). creatureName is the creature the event is about (empty = none); only the effects of
+    //! kind CreatureClip use it. Returns the number of effects started
     uint32_t triggerEvent(const std::string& eventName, const Ogre::Vector3& position, bool forced,
-        const std::string& visualName = std::string(), bool noThrottle = false, const Seat* owner = nullptr);
+        const std::string& visualName = std::string(), bool noThrottle = false, const Seat* owner = nullptr,
+        const std::string& creatureName = std::string());
 
     //! \brief Plays the sound of the family (a folder below sounds/Spatial) at the position
     void playSound(const std::string& family, const Ogre::Vector3& position);
@@ -426,6 +430,15 @@ private:
     void reconcile();
     //! \brief Plays the clips of the objects whose time has come
     void playClips();
+    //! \brief Lets an object that loops the clip of the effect (kind clip with Loop) finish on the last pose of the clip,
+    //! which is its pose at rest
+    void stopLoopClip(RenderedMovableEntity* entity, const AmbienceEffect& effect);
+    //! \brief Plays the clip of an event effect (kind clip) once on the nearest object of Object within Amount tiles of
+    //! the position; false when there is none or it has no such clip
+    bool playEventClip(const AmbienceEffect& effect, const Ogre::Vector3& position);
+    //! \brief Plays the clip of an event effect (kind creatureClip) once on the creature; false when it is on its way,
+    //! unknown or has no such clip
+    bool playCreatureClip(const AmbienceEffect& effect, const std::string& creatureName);
     //! \brief Flickers the running emitters and removes those that were stopped long enough
     void updateEmitters(double timeSinceLastFrame);
     //! \brief Removes the one-shot effects whose time is over
@@ -478,6 +491,10 @@ private:
 
     //! \brief True if a creature was within the radius of the point at the last scan
     bool isCreatureNear(double x, double y, double radius) const;
+    //! \brief True if a creature that sleeps was within the radius of the point at the last scan
+    bool isSleeperNear(double x, double y, double radius) const;
+    //! \brief True if the skeleton of the entity has the clip (remembered per mesh, so a missing clip costs nothing)
+    bool hasClip(MovableGameEntity* entity, const std::string& clip);
     //! \brief True if the dungeon heart of the local keeper at the position has less health than the given fraction
     //! \param position Where the heart stands.
     //! \param below The health fraction (0 to 1) under which the heart counts as low.
@@ -582,6 +599,8 @@ private:
 
     //! Positions of the creatures on the map at the last scan
     std::vector<Ogre::Vector3> mCreaturePositions;
+    //! Positions of the creatures that sleep at the last scan
+    std::vector<Ogre::Vector3> mSleeperPositions;
     //! The places where particle effects could be shown, found by the last scan
     std::vector<Candidate> mParticleCandidates;
     //! The objects that could be moved, found by the last scan
@@ -590,6 +609,10 @@ private:
     std::vector<Candidate> mClipCandidates;
     //! Time at which an object plays its next clip (kind clip)
     std::map<std::string, double> mClipTimers;
+    //! Time until which an object plays a clip of an event (a bed that wakes up) and must not be restarted by a looping clip
+    std::map<std::string, double> mClipHoldUntil;
+    //! Clips that a mesh has (key "mesh|clip"), so that the skeleton is asked only once
+    std::map<std::string, bool> mClipKnown;
     //! How fast the dungeon hearts beat, found at the last scan
     std::vector<HeartRate> mHeartRates;
     //! Moments that are read from what the client already knows (heart rate)

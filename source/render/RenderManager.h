@@ -176,6 +176,9 @@ public:
     void rrCreateSeatVisionVisualDebug(int seatId, Tile* tile);
     void rrDestroySeatVisionVisualDebug(int seatId, Tile* tile);
     void rrSetObjectAnimationState(MovableGameEntity* curAnimatedObject, const std::string& animation, bool loop);
+    //! \brief True when the skeleton of the entity has a clip of that name (false without skeleton or entity)
+    //! \param entityFound Set to whether the entity is drawn; an answer for an entity that is not can change later
+    bool rrHasObjectClip(MovableGameEntity* animatedObject, const std::string& clip, bool& entityFound);
     void rrMoveEntity(GameEntity* entity, const Ogre::Vector3& position);
     void rrMoveMapLightFlicker(MapLight* mapLight, const Ogre::Vector3& position);
     void rrCarryEntity(Creature* carrier, GameEntity* carried);

@@ -3226,6 +3226,17 @@ void RenderManager::rrDestroySeatVisionVisualDebug(int seatId, Tile* tile)
     }
 }
 
+bool RenderManager::rrHasObjectClip(MovableGameEntity* animatedObject, const std::string& clip, bool& entityFound)
+{
+    std::string objectName = animatedObject->getOgreNamePrefix() + animatedObject->getName();
+    entityFound = mSceneManager->hasEntity(objectName);
+    if(!entityFound)
+        return false;
+
+    Ogre::Entity* objectEntity = mSceneManager->getEntity(objectName);
+    return objectEntity->hasSkeleton() && objectEntity->getSkeleton()->hasAnimation(clip);
+}
+
 void RenderManager::rrSetObjectAnimationState(MovableGameEntity* curAnimatedObject, const std::string& animation, bool loop)
 {
     std::string objectName = curAnimatedObject->getOgreNamePrefix()

@@ -56,7 +56,9 @@ enum class AmbienceWhen
     //! The target (the dungeon heart of the local keeper) has less health than mBelow, as the heart badge reports it
     lowHealth,
     //! The target was used while it was in view and has been empty for mAfter seconds (a bed that was slept in)
-    vacated
+    vacated,
+    //! A creature that sleeps is close to the target (a bed with a sleeper in it)
+    sleeping
 };
 
 //! \brief What an ambience effect does when it is shown
@@ -87,7 +89,10 @@ enum class AmbienceKind
     projectile,
     //! A particle system that stays on the floor for Duration seconds (events only); the oldest mark is removed
     //! when there are more than MaxMarks
-    mark
+    mark,
+    //! Events only: plays a clip of Clips once on the creature the event is about (the stretch of a creature that woke);
+    //! nothing happens when the creature has no such clip
+    creatureClip
 };
 
 //! \brief How an effect of the kind motion moves the node of its object
@@ -118,6 +123,7 @@ struct AmbienceEffect
         mTarget(AmbienceTarget::object),
         mWhen(AmbienceWhen::always),
         mKind(AmbienceKind::particle),
+        mLoop(false),
         mMotion(AmbienceMotion::sway),
         mAfter(30.0),
         mOffset(Ogre::Vector3::ZERO),
@@ -157,6 +163,11 @@ struct AmbienceEffect
     std::string mSystem;
     //! Clips to choose from (kind clip)
     std::vector<std::string> mClips;
+    //! Event clips: mesh names (* as first or last character as wildcard) of the objects that play the clip, the nearest
+    //! one within Amount tiles of the event is used
+    std::vector<std::string> mObjects;
+    //! Object clips: the clip runs in a loop as long as the condition holds (and stops at its last pose when it ends)
+    bool mLoop;
     //! How the object is moved (kind motion)
     AmbienceMotion mMotion;
     //! Seconds without a creature before an empty room effect starts
