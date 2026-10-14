@@ -102,7 +102,26 @@ enum class ServerNotificationType
     //! \brief Answer to the editor asking what the waves of a wave portal are
     editorPortalWaveData,
 
-    exit
+    exit,
+
+    // Sent only to clients that negotiated live nickname changes.
+    playerNickChanged,
+
+    // Owner-only aggregate counts, sent only after creature-panel negotiation.
+    creaturePanel,
+
+    //! The server assigned a Dungeonbook appearance to a creature after it spawned (the portrait manifest
+    //! was not available before): + string creature name, string appearance token. Sent once to the
+    //! human players that see the creature; clients that see it later get it with the creature data.
+    //! Appended last so that no existing numeric value changes.
+    creatureAppearance,
+
+    //! Owner-only tier of a creature pair that changed (or the current tier, sent once when a
+    //! client joins or a game is loaded): + string creatureA, string creatureB, int32_t tier
+    //! (RelationshipTier), bool replay (true: replay of the current tier, no Dungeonbook post or emote).
+    //! Only sent when the creature relationships option is on.
+    //! Appended last so that no existing numeric value changes.
+    relationshipTier
 };
 
 ODPacket& operator<<(ODPacket& os, const ServerNotificationType& nt);

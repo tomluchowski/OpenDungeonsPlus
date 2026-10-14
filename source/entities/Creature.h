@@ -22,17 +22,22 @@
 #define CREATURE_H
 
 #include "entities/MovableGameEntity.h"
+#include "entities/CreatureActivity.h"
 #include "eventsystem/CreatureMoved.h"
 #include "eventsystem/Subject.h"
+#include "game/CreatureAppearance.h"
 
 
 #include <Ogre.h>
 #include <Ogre.h>
 #include <CEGUI/EventArgs.h>
 
+#include <map>
 #include <memory>
 #include <string>
 
+enum class RelationshipEvent;
+struct RelationshipCreatureState;
 class Building;
 class Creature;
 class CreatureAction;
@@ -54,6 +59,12 @@ enum class SkillType;
 namespace CEGUI
 {
 class Window;
+}
+
+namespace social
+{
+enum class PostCategory : uint8_t;
+struct CreatureSnapshot;
 }
 
 namespace Ogre
@@ -142,6 +153,30 @@ public:
     void destroyStatsWindow();
     bool CloseStatsWindow(const CEGUI::EventArgs& /*e*/);
     void updateStatsWindow(const std::string& txt);
+    bool ProfileTabClicked(const CEGUI::EventArgs& /*e*/);
+    bool StatsTabClicked(const CEGUI::EventArgs& /*e*/);
+    bool BookTabClicked(const CEGUI::EventArgs& /*e*/);
+    //! \brief A friend or foe name of the card was clicked: opens the Dungeonbook with that creature.
+    bool ProfileLinkClicked(const CEGUI::EventArgs& e);
+    //! \brief Fills a profile page (gui/WindowCreatureProfilePage.layout) with the social profile of the
+    //! creature. Used by the creature card and by the Dungeonbook. The names in the friends and foe rows are
+    //! buttons (FriendLink0, FriendLink1, FoeLink) carrying the creature name in the user string "Creature"; the
+    //! caller decides what a click does. Returns the bottom edge of the page content in design pixels.
+    float fillProfilePage(CEGUI::Window* page);
+
+    //! \brief Gender of the creature ("Female", "Male" or empty), derived from its name and class. Same
+    //! value as the profile gender shown on the client, so it can be used on the server.
+    std::string getGender() const;
+
+    //! \brief Dungeonbook appearance (catalog id plus chosen option per slot). Chosen once on the server
+    //! when the creature spawns (or derived from the name for old saves) and never changed afterwards.
+    //! Empty for creatures without a catalog id or while no manifest exists.
+    const CreatureAppearance& getAppearance() const
+    { return mAppearance; }
+
+    //! \brief Client side. Takes over the appearance the server sent in the creature message of
+    //! ServerNotificationType::creatureAppearance. Ignored on the server.
+    void setAppearanceFromServer(const CreatureAppearance& appearance);
     std::string getStatsText();
 
     //! \brief Get the level of the object
@@ -187,6 +222,14 @@ public:
 
     inline CreatureMoodLevel getMoodValue() const
     { return mMoodValue; }
+
+    CreatureActivity getActivity() const;
+
+    double getExperienceProgress() const;
+    uint32_t getAttackRecoveryTurns() const { return mAttackRecoveryTurns; }
+    uint32_t getAttackRecoveryDuration() const { return mAttackRecoveryDuration; }
+    uint32_t getAttackRecoverySerial() const { return mAttackRecoverySerial; }
+    bool hasProgressInformation() const { return mHasProgressInformation; }
 
     inline int32_t getNbTurnFurious() const
     { return mNbTurnFurious; }
@@ -299,6 +342,89 @@ public:
     std::vector<Tile*> getCoveredTiles() override;
     Tile* getCoveredTile(int index) override;
     uint32_t numCoveredTiles() const override;
+
+    //! \brief Server side. True if the creature can take part in relationships: the option is on,
+    //! it belongs to a keeper (no hero, no neutral creature), is not a worker and not a prisoner.
+    bool canHaveRelationships() const;
+
+    //! \brief Server side. Reports a relationship event between two creatures of the same keeper. Does
+    //! nothing if the option is off or one of them cannot have relationships.
+    static void reportRelationshipEvent(RelationshipEvent event, Creature& creatureA, Creature& creatureB);
+
+    //! \brief Server side. Called when this creature was defeated: every pair of creatures of the
+    //! killer's keeper that hit it recently (and the killer itself) fought together.
+    void reportFightParticipants(Creature& killer);
+
+    //! \brief Server side. Defense added (or taken away) because of the creatures that fight next to this
+    //! one, 0 if the option is off. Added to all three defense values.
+    double getRelationshipCombatModifier() const;
+
+    //! \brief Server side. Mood points from the hated creatures of the same keeper and from relationship
+    //! events (grief, ...), 0 if the option is off.
+    int32_t getRelationshipMood() const;
+
+    //! \brief Server side. Adds mood points (negative or positive) that fade again, does nothing if the
+    //! creature cannot have relationships.
+    //! \param points The mood points to add
+    void addRelationshipMood(int32_t points);
+
+    //! \brief Server side. Called when this creature died: its friends grieve, and get a rage against
+    //! the side of the killer (may be nullptr).
+    //! \param killer The entity that dealt the killing blow
+    void reportDeathToFriends(GameEntity* killer);
+
+    //! \brief Server side. Called when this creature was slapped: its friends that see it lose mood.
+    void reportSlapToFriends();
+
+    //! Server side. Called while this creature sleeps in its bed: a friend sleeping in a bed close by
+    //! raises its mood a little.
+    void reportSleepingNextToFriends();
+
+    //! \brief Server side. Called when this creature eats: a friend that eats at the same time close by
+    //! raises its mood a little.
+    void reportEatingWithFriends();
+
+    //! Server side. Called when this creature starts to leave the dungeon unhappy: its best friend
+    //! may leave with it (chance from the settings).
+    void reportLeavingToBestFriend();
+
+    //! \brief Server side. Factor for the damage this creature deals to a creature of victimSeat: more
+    //! than 1.0 while it is enraged about the death of a friend killed by that side.
+    //! \param victimSeat The seat of the creature that is hit
+    double getRelationshipRageFactor(const Seat* victimSeat) const;
+
+    //! \brief Server side. True if the creature is part of a nemesis brawl.
+    inline bool isBrawling() const
+    { return !mBrawlOpponent.empty(); }
+
+    //! \brief Server side. Starts a brawl with the opponent: both fight to knock the other one out
+    //! (never to kill) until updateBrawl ends it.
+    void startBrawl(Creature& opponent);
+
+    //! \brief Server side. Checks the end conditions of the brawl (low health, interrupted, too long).
+    void updateBrawl();
+
+    //! \brief Server side. Ends the brawl of this creature and of its opponent: both calm down and the
+    //! relationship gets worse.
+    void endBrawl();
+
+    //! \brief Server side. True if the creature can start a brawl now (idle, not in a fight and not hurt).
+    bool canStartBrawl() const;
+
+    //! \brief Server side. Fills state with what has to be saved of the relationships of this creature
+    //! (grief mood, rage, brawl).
+    //! \param state Receives the saved values.
+    //! \return False if there is nothing to save.
+    bool getRelationshipState(RelationshipCreatureState& state) const;
+
+    //! \brief Server side. Restores what getRelationshipState saved. A saved brawl is only resumed
+    //! when the opponent was restored too and both are able to fight again soon (see resumeBrawl).
+    //! \param state The values read from the saved game.
+    void setRelationshipState(const RelationshipCreatureState& state);
+
+    //! \brief Server side. Starts the brawl restored by setRelationshipState once both fighters can take
+    //! part, gives up after a while.
+    void resumeBrawl();
 
     //! \brief Conform: AttackableObject - Deducts a given amount of HP from this creature.
     double takeDamage(GameEntity* attacker, double absoluteDamage, double physicalDamage, double magicalDamage, double elementDamage,
@@ -467,6 +593,15 @@ public:
     inline uint32_t getOverlayMoodValue() const
     { return mOverlayMoodValue; }
 
+    //! \brief Called on the client when the creature was added to or is about to be removed
+    //! from the game map, updates the roster version of the creature profiles and, for a
+    //! creature of the local player, adds an arrival or a leaving/death post to the feed.
+    void socialCreatureAdded();
+    void socialCreatureRemoved();
+
+    //! \brief Adds a post of this category to the feed if the creature belongs to the local player.
+    void socialEvent(social::PostCategory category);
+
     inline int32_t getNbTurnsWithoutBattle() const
     { return mNbTurnsWithoutBattle; }
 
@@ -500,6 +635,16 @@ public:
     //! This is normally called by the constructor, but creatures loaded from the map files
     //! use a different constructor, and this is then called by the gameMap when other details have been loaded.
     void setupDefinition(GameMap& dtc, const CreatureDefinition& defaultWorkerCreatureDefinition);
+
+    //! \brief Server side. Chooses the Dungeonbook appearance: random on the first spawn (no duplicate among
+    //! the creatures of the same seat), stable from the name for loaded creatures that have none, and
+    //! replaces options that no longer exist. Does nothing without catalog id or manifest.
+    void assignAppearance(bool firstSpawn);
+
+    //! \brief Server side, called from doUpkeep while the creature has no appearance. Tries again every
+    //! few turns (the manifest may be available now), and sends a new appearance once to the clients
+    //! that already know the creature.
+    void retryAppearance();
 
     //! Called on server side to add an effect (spell, slap, ...) to this creature
     void addCreatureEffect(CreatureEffect* effect);
@@ -666,6 +811,17 @@ private:
     //! Class name of the creature. The CreatureDefinition will be set from this name
     //! when the creature will be initialized
     std::string     mDefinitionString;
+    //! \brief Dungeonbook appearance, see getAppearance()
+    CreatureAppearance mAppearance;
+    //! \brief Server side. Upkeeps left until the next try to assign a missing appearance
+    uint32_t mAppearanceRetryTurns = 0;
+    //! True once the appearance was checked against a valid manifest (server). A creature loaded or spawned without
+    //! a manifest is checked as soon as one exists, see retryAppearance.
+    bool mAppearanceValidated = false;
+    //! True if no catalog id exists for this creature (the plan: no appearance). It is not looked at again until the
+    //! catalog generation of the registry changes.
+    bool mAppearanceNoCatalog = false;
+    uint32_t mAppearanceNoCatalogGeneration = 0;
     //! \brief Pointer to the struct holding the general type of the creature with its values
     const CreatureDefinition* mDefinition;
 
@@ -704,6 +860,15 @@ private:
     //! Weapon that will be dropped when the creature dies
     std::string     mWeaponDropDeath;
 
+    //! \brief Shows the stats page (true) or the profile page (false) of the creature card.
+    void showStatsPage(bool stats);
+    //! \brief Fills the profile page of the creature card.
+    void refreshProfilePage();
+
+    //! \brief True if the creature belongs to the local player and the feed is running.
+    bool isSocialFeedSource() const;
+    void fillSocialSnapshot(social::CreatureSnapshot& snapshot) const;
+
     CEGUI::Window*  mStatsWindow;
     int32_t         mNbTurnsWithoutBattle;
 
@@ -732,6 +897,7 @@ private:
     //! \brief Mood value. Depending on this value, the creature will be in bad mood and
     //! might attack allied creatures or refuse to work or to go to combat
     CreatureMoodLevel               mMoodValue;
+    CreatureActivity                mActivity;
     //! \brief Mood points. Computed by the creature MoodModifiers. It is promoted to class variable for debug purposes and
     //! should not be used to check mood. If the mood is to be tested, mMoodValue should be used
     int32_t                         mMoodPoints;
@@ -775,6 +941,37 @@ private:
     //! stop during the travel (and reset to 0 when the creature is dropped in its bed).
     int32_t                         mKoTurnCounter;
 
+    //! \brief Creatures that recently hurt this creature (name and turn), used to find who took part
+    //! in defeating it for the relationships. Only filled when the option is on.
+    std::map<std::string, int64_t>  mRecentAttackers;
+
+    //! Name of the creature this one brawls with (relationships), empty if there is no brawl
+    std::string                     mBrawlOpponent;
+    //! Turn on which the current brawl started (relationships), used to end it after the longest allowed time
+    int64_t                         mBrawlStartTurn = 0;
+    //! Brawl restored from a saved game: the opponent and the turns it may still last. Starts as
+    //! soon as both creatures can fight (see resumeBrawl), empty if there is none.
+    std::string                     mBrawlResumeOpponent;
+    int64_t                         mBrawlResumeTurnsLeft = 0;
+    int64_t                         mBrawlResumeGiveUpTurn = 0;
+
+    //! Combat modifier of the relationships, computed at most once per turn
+    mutable int64_t                 mCombatModifierTurn = -1;
+    mutable double                  mCombatModifier = 0.0;
+
+    //! \brief Server side. True if a friend of the same keeper that is doing action is within maxTiles tiles,
+    //! measured between the home tiles (sleeping) or the positions.
+    //! \param action The action the friend has to do
+    //! \param maxTiles Largest distance in tiles
+    //! \param useHomeTile True to measure between the home tiles (a friend must lie in its bed), false for the positions
+    bool hasFriendDoing(CreatureActionType action, double maxTiles, bool useHomeTile) const;
+
+    //! Mood points from relationship events that fade each turn (relationships)
+    int32_t                         mRelationshipTempMood = 0;
+    //! Rage after the death of a friend: until which turn it lasts and the id of the seat it is against
+    int64_t                         mRageUntilTurn = 0;
+    int32_t                         mRageSeatId = -1;
+
     //! \brief If nullptr, the creature is not in prison. If not, it is in the prison of
     //! the given seat
     Seat*                           mSeatPrison;
@@ -790,6 +987,12 @@ private:
 
     //! \brief Skills the creature can use
     std::vector<CreatureSkillData> mSkillData;
+
+    uint32_t mAttackRecoveryTurns = 0;
+    uint32_t mAttackRecoveryDuration = 0;
+    uint32_t mAttackRecoverySerial = 0;
+    double mExperienceProgress = 0.0;
+    bool mHasProgressInformation = false;
 
     //! \brief A sub-function called by doTurn()
     //! This one checks if there is something prioritary to do (like fighting). If it is the case,
@@ -807,6 +1010,13 @@ private:
     void increaseHunger(double value);
 
     void computeMood();
+
+    void exportMoodToPacket(ODPacket& os, const Seat* seat) const;
+    void importMoodFromPacket(ODPacket& is);
+    void exportActivityToPacket(ODPacket& os, const Seat* seat) const;
+    void importActivityFromPacket(ODPacket& is);
+    void exportProgressToPacket(ODPacket& os, const Seat* seat) const;
+    void importProgressFromPacket(ODPacket& is);
 
     void computeCreatureOverlayMoodValue();
 };

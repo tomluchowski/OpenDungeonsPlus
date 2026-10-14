@@ -41,8 +41,15 @@
                 <Property name="ForceVertScrollbar" value="True" />
                 <Property name="Sort" value="True" />
             </Window>
+            <Window type="OD/Checkbox" name="RelationshipsCheckbox" >
+                <Property name="Area" value="{{0.5,0},{0,40},{1,-15},{0,64}}" />
+                <Property name="Text" value="Creature relationships" />
+                <Property name="TooltipText" value="Creatures of the same keeper form friendships and rivalries" />
+                <Property name="MaxSize" value="{{1,0},{1,0}}" />
+                <Property name="Selected" value="True" />
+            </Window>
             <Window type="OD/StaticText" name="MapDescriptionText" >
-                <Property name="Area" value="{{0.5,0},{0,40},{1,-15},{0.7,0}}" />
+                <Property name="Area" value="{{0.5,0},{0,70},{1,-15},{0.7,0}}" />
                 <Property name="MaxSize" value="{{1,0},{1,0}}" />
                 <Property name="FrameEnabled" value="False" />
                 <Property name="HorzFormatting" value="WordWrapLeftAligned" />

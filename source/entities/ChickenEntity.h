@@ -58,8 +58,19 @@ public:
     inline bool getLockEat(const Creature& worker) const
     { return mLockedEat; }
 
-    inline void setLockEat(const Creature& worker, bool lock)
-    { mLockedEat = lock; }
+    //! \brief Locks the chicken for the creature or releases it. Only the creature that holds the lock
+    //! can release it. Taking the lock from another creature is remembered for the relationships
+    //! (see getSnatchedFrom).
+    void setLockEat(const Creature& worker, bool lock);
+
+    //! \brief Relationships option only: true if the creature may take away this chicken from the
+    //! creature of the same keeper that locked it, because it is right next to the chicken and
+    //! closer to it than the one that locked it.
+    bool canSnatch(const Creature& creature) const;
+
+    //! \brief Name of the creature that lost the chicken to the one that ate it, empty if nobody did.
+    inline const std::string& getSnatchedFrom() const
+    { return mSnatchedFrom; }
 
     static ChickenEntity* getChickenEntityFromStream(GameMap* gameMap, std::istream& is);
     static ChickenEntity* getChickenEntityFromPacket(GameMap* gameMap, ODPacket& is);
@@ -80,6 +91,10 @@ private:
     int32_t mNbTurnDie;
     bool mIsSlapped;
     bool mLockedEat;
+    //! Name of the creature that holds the lock on this chicken, empty while it is not locked
+    std::string mLockOwner;
+    //! Name of the creature that lost the lock on this chicken to another one, empty if nobody did
+    std::string mSnatchedFrom;
 
     void addTileToListIfPossible(int x, int y, Room* currentHatchery, std::vector<Tile*>& possibleTileMove);
 };

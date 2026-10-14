@@ -25,6 +25,7 @@
 #include "entities/Tile.h"
 #include "entities/Weapon.h"
 #include "game/Player.h"
+#include "game/CreaturePanelData.h"
 #include "game/Skill.h"
 #include "game/SkillManager.h"
 #include "game/SkillType.h"
@@ -121,7 +122,8 @@ ODServer::~ODServer()
     delete mGameMap;
 }
 
-bool ODServer::startServer(const std::string& creator, const std::string& levelFilename, ServerMode mode, bool useMasterServer)
+bool ODServer::startServer(const std::string& creator, const std::string& levelFilename, ServerMode mode, bool useMasterServer,
+    bool relationships)
 {
     OD_LOG_INF("Asked to launch server with levelFilename=" + levelFilename);
 
@@ -158,6 +160,12 @@ bool ODServer::startServer(const std::string& creator, const std::string& levelF
         stopServer();
         return false;
     }
+
+    // The relationships option comes from the game setup, a saved game brings its own setting
+    if(mode == ServerMode::ModeEditor)
+        gameMap->setRelationshipsEnabled(false);
+    else if(mode != ServerMode::ModeGameLoaded)
+        gameMap->setRelationshipsEnabled(relationships);
 
     // Set up the socket to listen on the specified port
     int32_t port = getNetworkPort();
@@ -404,6 +412,13 @@ void ODServer::startNewTurn(double timeSinceLastTurn)
         serverNotification->mPacket << goals;
         ODServer::getSingleton().queueServerNotification(serverNotification);
 
+        // A client that joined or loaded gets the current relationship tiers once
+        if(!sock->getRelationshipsSynced())
+        {
+            sock->setRelationshipsSynced(true);
+            gameMap->sendRelationshipTiers(seat);
+        }
+
         // Here, the creature list is pulled. It could be possible that the creature dies before the stat window is
         // closed. So, if we cannot find the creature, we just erase it.
         std::vector<std::string>& creatures = mCreaturesInfoWanted[sock];
@@ -470,6 +485,27 @@ void ODServer::startNewTurn(double timeSinceLastTurn)
 
     gameMap->fireRefreshEntities();
     gameMap->processDeletionQueues();
+    if(mServerMode != ServerMode::ModeEditor)
+    {
+        for(ODSocketClient* socket : mSockClients)
+        {
+            if(!socket->supportsCreaturePanel())
+                continue;
+            Player* player = socket->getPlayer();
+            CreaturePanelData data;
+            for(Creature* creature : gameMap->getCreaturesBySeat(player->getSeat()))
+            {
+                const CreatureDefinition* definition = creature->getDefinition();
+                CreaturePanelCounts& counts = data[definition->getClassName()];
+                if(creature->getIsOnMap())
+                    addCreaturePanelCounts(counts, creature->getActivity(),
+                        creature->getMoodValue(), definition->isWorker());
+            }
+            ServerNotification* panel = new ServerNotification(ServerNotificationType::creaturePanel, player);
+            exportCreaturePanelData(panel->mPacket, data);
+            queueServerNotification(panel);
+        }
+    }
 }
 
 void ODServer::serverThread()
@@ -896,7 +932,7 @@ bool ODServer::processClientNotifications(ODSocketClient* clientSocket)
             clientSocket->setState("nick");
             // Tell the client to give us their nickname
             ODPacket packetSend;
-            packetSend << ServerNotificationType::pickNick << mServerMode;
+            packetSend << ServerNotificationType::pickNick << mServerMode << true << true << true << true << true;
             clientSocket->send(packetSend);
             break;
         }
@@ -909,6 +945,30 @@ bool ODServer::processClientNotifications(ODSocketClient* clientSocket)
             // Pick nick
             std::string clientNick;
             OD_ASSERT_TRUE(packetReceived >> clientNick);
+            bool liveNickname = false;
+            if(!packetReceived.endOfPacket())
+                OD_ASSERT_TRUE(packetReceived >> liveNickname);
+            clientSocket->setSupportsLiveNickname(liveNickname);
+
+            bool creatureMood = false;
+            if(!packetReceived.endOfPacket())
+                OD_ASSERT_TRUE(packetReceived >> creatureMood);
+            clientSocket->setSupportsCreatureMood(creatureMood);
+
+            bool creatureActivity = false;
+            if(!packetReceived.endOfPacket())
+                OD_ASSERT_TRUE(packetReceived >> creatureActivity);
+            clientSocket->setSupportsCreatureActivity(creatureActivity);
+
+            bool creaturePanel = false;
+            if(!packetReceived.endOfPacket())
+                OD_ASSERT_TRUE(packetReceived >> creaturePanel);
+            clientSocket->setSupportsCreaturePanel(creaturePanel);
+
+            bool creatureProgress = false;
+            if(!packetReceived.endOfPacket())
+                OD_ASSERT_TRUE(packetReceived >> creatureProgress);
+            clientSocket->setSupportsCreatureProgress(creatureProgress);
 
             // NOTE : playerId 0 is reserved for inactive players and 1 is reserved for AI
             int32_t playerId = mUniqueNumberPlayer + Seat::PLAYER_ID_HUMAN_MIN;
@@ -960,8 +1020,34 @@ bool ODServer::processClientNotifications(ODSocketClient* clientSocket)
 
             packetSend.clear();
             packetSend << ServerNotificationType::startGameMode << seatId << mServerMode;
+            packetSend << clientSocket->supportsCreatureMood();
+            packetSend << clientSocket->supportsCreatureActivity();
+            packetSend << clientSocket->supportsCreaturePanel();
+            packetSend << clientSocket->supportsCreatureProgress();
+            packetSend << gameMap->isRelationshipsEnabled();
             clientSocket->send(packetSend);
             mSeatsConfigured = true;
+            break;
+        }
+
+        case ClientNotificationType::changeNick:
+        {
+            if(mServerState != ServerState::StateGame || !clientSocket->supportsLiveNickname()
+                || clientSocket->getPlayer() == nullptr)
+                break;
+
+            std::string nickname;
+            OD_ASSERT_TRUE(packetReceived >> nickname);
+            Player* player = clientSocket->getPlayer();
+            player->setNick(nickname);
+            const int32_t playerId = player->getId();
+            ODPacket packetSend;
+            packetSend << ServerNotificationType::playerNickChanged << playerId << nickname;
+            for(ODSocketClient* client : mSockClients)
+            {
+                if(client->supportsLiveNickname())
+                    client->send(packetSend);
+            }
             break;
         }
 
@@ -1234,6 +1320,11 @@ bool ODServer::processClientNotifications(ODSocketClient* clientSocket)
                 ODPacket packetSend;
                 int seatId = client->getPlayer()->getSeat()->getId();
                 packetSend << ServerNotificationType::startGameMode << seatId << mServerMode;
+                packetSend << client->supportsCreatureMood();
+                packetSend << client->supportsCreatureActivity();
+                packetSend << client->supportsCreaturePanel();
+                packetSend << client->supportsCreatureProgress();
+                packetSend << gameMap->isRelationshipsEnabled();
                 client->send(packetSend);
             }
 
@@ -2676,6 +2767,24 @@ void ODServer::notifyExit()
     ServerNotification* exitServerNotification = new ServerNotification(
         ServerNotificationType::exit, nullptr);
     queueServerNotification(exitServerNotification);
+}
+
+bool ODServer::supportsCreatureMood(Player* player)
+{
+    ODSocketClient* client = getClientFromPlayer(player);
+    return client != nullptr && client->supportsCreatureMood();
+}
+
+bool ODServer::supportsCreatureActivity(Player* player)
+{
+    ODSocketClient* client = getClientFromPlayer(player);
+    return client != nullptr && client->supportsCreatureActivity();
+}
+
+bool ODServer::supportsCreatureProgress(Player* player)
+{
+    ODSocketClient* client = getClientFromPlayer(player);
+    return client != nullptr && client->supportsCreatureProgress();
 }
 
 ODSocketClient* ODServer::getClientFromPlayer(Player* player)

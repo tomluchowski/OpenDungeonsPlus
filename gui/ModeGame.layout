@@ -100,6 +100,14 @@
             <Property name="ClippedByParent" value="False" />
             <Property name="Visible" value="True" />
         </Window>
+        <Window type="OD/ImageButton" name="SocialButton" >
+            <Property name="Area" value="{{1,-79},{0,5},{1,-54},{0,30}}" />
+            <Property name="ButtonImage" value="OpenDungeonsIcons/CreaturesIcon" />
+            <Property name="AlwaysOnTop" value="True" />
+            <Property name="TooltipText" value="Dungeonbook (B)" />
+            <Property name="ClippedByParent" value="False" />
+            <Property name="Visible" value="True" />
+        </Window>
         <Window type="OD/ImageButton" name="OptionsButton" >
             <Property name="Area" value="{{1,-27},{0,5},{1,-2},{0,30}}" />
             <Property name="ButtonImage" value="OpenDungeonsIcons/OptionsIcon" />
@@ -116,7 +124,14 @@
             <Property name="ClippedByParent" value="False" />
             <Property name="Visible" value="True" />
         </Window>
-        <Window type="OD/ImageButton" name="ObjectivesButton" >
+            <Window type="OD/GameTabButton" name="QueryButton" >
+            <UserString name="AllowEdgeScrolling" value="true" />
+            <Property name="Area" value="{{0,8},{1,-184},{0,52},{1,-140}}" />
+            <Property name="NormalImage" value="OpenDungeonsIcons/HelpIcon" />
+            <Property name="AlwaysOnTop" value="True" />
+            <Property name="TooltipText" value="Query: select, then click a creature to view its information" />
+        </Window>
+    <Window type="OD/ImageButton" name="ObjectivesButton" >
             <Property name="Area" value="{{1,-232},{1,-171},{1,-202},{1,-141}}" />
             <Property name="ButtonImage" value="OpenDungeonsIcons/ObjectivesIcon" />
             <Property name="AlwaysOnTop" value="True" />
@@ -138,7 +153,7 @@
             <Property name="AlwaysOnTop" value="True" />
         </Window>
         <Window type="OD/TabControl" name="MainTabControl" >
-            <Property name="Area" value="{{0,0},{1,-133},{1,-200},{1,0}}" />
+            <Property name="Area" value="{{0,0},{1,-184},{1,-200},{1,0}}" />
             <Property name="TabHeight" value="{0,35}" />
             <Property name="RiseOnClickEnabled" value="False" />
             <LayoutImport type="DefaultWindow" filename="WindowTabRooms.layout" name="RoomsImport" />
@@ -150,6 +165,7 @@
         <LayoutImport type="DefaultWindow" filename="WindowPlayerSettings.layout" name="PlayerSettingsWindowImport" />
         <LayoutImport type="DefaultWindow" filename="WindowObjectives.layout" name="ObjectivesWindowImport" />
         <LayoutImport type="DefaultWindow" filename="WindowSkillTree.layout" name="SkillTreeWindowImport" />
+        <LayoutImport type="DefaultWindow" filename="WindowSocial.layout" name="SocialWindowImport" />
         <LayoutImport type="DefaultWindow" filename="WindowGameOptions.layout" name="GameOptionsMenuImport" />
         <LayoutImport type="DefaultWindow" filename="WindowEvent.layout" name="EventWindowImport" />
         <LayoutImport type="DefaultWindow" filename="WindowChat.layout" name="ChatWindowImport" />

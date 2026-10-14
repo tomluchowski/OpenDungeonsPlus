@@ -27,7 +27,9 @@
 #include "entities/RenderedMovableEntity.h"
 #include "entities/Tile.h"
 #include "entities/Weapon.h"
+#include "game/CreatureRelationships.h"
 #include "game/Player.h"
+#include "game/CreaturePanelData.h"
 #include "game/Seat.h"
 #include "game/Skill.h"
 #include "game/SkillType.h"
@@ -40,11 +42,15 @@
 #include "modes/ModeManager.h"
 #include "network/ChatEventMessage.h"
 #include "network/ODPacket.h"
+#include "network/RelationshipPacket.h"
 #include "network/ServerMode.h"
 #include "network/ServerNotification.h"
 #include "render/ODFrameListener.h"
 #include "render/RenderManager.h"
 #include "rooms/RoomPortalWave.h"
+#include "social/CreaturePosts.h"
+#include "social/PostLog.h"
+#include "social/SocialProfileCache.h"
 #include "sound/MusicPlayer.h"
 #include "sound/SoundEffectsManager.h"
 #include "spells/SpellType.h"
@@ -61,6 +67,30 @@
 #include <string>
 
 template<> ODClient* Ogre::Singleton<ODClient>::msSingleton = nullptr;
+
+namespace
+{
+//! \brief Dungeonbook post for a tier change of two creatures of the local player.
+void reportRelationshipPost(GameMap* gameMap, const std::string& creatureA, const std::string& creatureB,
+    RelationshipTier oldTier, RelationshipTier newTier)
+{
+    if(!social::PostLog::getSingleton().isActive())
+        return;
+
+    Creature* a = gameMap->getCreature(creatureA);
+    Creature* b = gameMap->getCreature(creatureB);
+    if((a == nullptr) || (b == nullptr))
+        return;
+
+    social::SocialProfileCache& cache = social::SocialProfileCache::getSingleton();
+    const std::string& classA = a->getDefinition()->getClassName();
+    const std::string& classB = b->getDefinition()->getClassName();
+    std::string nameA = cache.getProfile(creatureA, classA, false).getFullName();
+    std::string nameB = cache.getProfile(creatureB, classB, false).getFullName();
+    social::CreaturePosts::reportRelationshipChange(gameMap->getTurnNumber(), creatureA, classA, nameA,
+        creatureB, classB, nameB, oldTier, newTier);
+}
+}
 
 ODClient::ODClient() :
     ODSocketClient(),
@@ -224,9 +254,46 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
             ServerMode serverMode;
             OD_ASSERT_TRUE(packetReceived >> serverMode);
 
+            // Older servers and replays end this packet after the server mode.
+            bool liveNickname = false;
+            if(!packetReceived.endOfPacket())
+                OD_ASSERT_TRUE(packetReceived >> liveNickname);
+            setSupportsLiveNickname(liveNickname);
+
+            bool creatureMood = false;
+            if(!packetReceived.endOfPacket())
+                OD_ASSERT_TRUE(packetReceived >> creatureMood);
+            // Payload extensions start only after the server confirms this client's agreement.
+            setSupportsCreatureMood(false);
+
+            bool creatureActivity = false;
+            if(!packetReceived.endOfPacket())
+                OD_ASSERT_TRUE(packetReceived >> creatureActivity);
+            setSupportsCreatureActivity(false);
+
+            bool creaturePanel = false;
+            if(!packetReceived.endOfPacket())
+                OD_ASSERT_TRUE(packetReceived >> creaturePanel);
+            setSupportsCreaturePanel(false);
+
+            bool creatureProgress = false;
+            if(!packetReceived.endOfPacket())
+                OD_ASSERT_TRUE(packetReceived >> creatureProgress);
+            setSupportsCreatureProgress(false);
+
             ODPacket packSend;
             const std::string& nick = gameMap->getLocalPlayerNick();
             packSend << ClientNotificationType::setNick << nick;
+            if(liveNickname || creatureMood || creatureActivity || creaturePanel || creatureProgress)
+                packSend << liveNickname;
+            if(creatureMood || creatureActivity || creaturePanel || creatureProgress)
+                packSend << creatureMood;
+            if(creatureActivity || creaturePanel || creatureProgress)
+                packSend << creatureActivity;
+            if(creaturePanel || creatureProgress)
+                packSend << creaturePanel;
+            if(creatureProgress)
+                packSend << true;
             send(packSend);
 
             // We can proceed to configure seat level
@@ -289,6 +356,23 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
                 OD_ASSERT_TRUE(packetReceived >> nick >> id);
                 mode->addPlayer(nick, id);
                 addEventMessage(new EventMessage(nick + " is now connected."));
+            }
+            break;
+        }
+
+        case ServerNotificationType::playerNickChanged:
+        {
+            int32_t playerId;
+            std::string nickname;
+            OD_ASSERT_TRUE(packetReceived >> playerId >> nickname);
+            for(Player* player : gameMap->getPlayers())
+            {
+                if(player->getId() != playerId)
+                    continue;
+                player->setNick(nickname);
+                if(player == getPlayer())
+                    gameMap->setLocalPlayerNick(nickname);
+                break;
             }
             break;
         }
@@ -373,6 +457,29 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
 
             ServerMode serverMode;
             OD_ASSERT_TRUE(packetReceived >> serverMode);
+
+            // Replays also need the per-client agreement, not just the server's offer.
+            bool creatureMood = false;
+            if(!packetReceived.endOfPacket())
+                OD_ASSERT_TRUE(packetReceived >> creatureMood);
+            setSupportsCreatureMood(creatureMood);
+
+            bool creatureActivity = false;
+            if(!packetReceived.endOfPacket())
+                OD_ASSERT_TRUE(packetReceived >> creatureActivity);
+            setSupportsCreatureActivity(creatureActivity);
+
+            bool creaturePanel = false;
+            if(!packetReceived.endOfPacket())
+                OD_ASSERT_TRUE(packetReceived >> creaturePanel);
+            setSupportsCreaturePanel(creaturePanel);
+
+            bool creatureProgress = false;
+            if(!packetReceived.endOfPacket())
+                OD_ASSERT_TRUE(packetReceived >> creatureProgress);
+            setSupportsCreatureProgress(creatureProgress);
+
+            gameMap->setRelationshipsEnabled(readRelationshipsFlag(packetReceived));
 
             // Now that the we have received all needed information, we can launch the requested mode
             OD_LOG_INF("Starting game map");
@@ -478,7 +585,10 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
             entity->createMesh(nt);
             entity->restoreEntityState();
             entity->setPosition( entity->getPosition(), gameMapPointer);
-            
+
+            if(entity->getObjectType() == GameEntityType::creature)
+                static_cast<Creature*>(entity)->socialCreatureAdded();
+
             break;
         }
 
@@ -501,6 +611,9 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
                 OD_LOG_ERR("entityType=" + Helper::toString(static_cast<int32_t>(entityType)) + ", entityName=" + entityName);
                 break;
             }
+
+            if(entity->getObjectType() == GameEntityType::creature)
+                static_cast<Creature*>(entity)->socialCreatureRemoved();
 
             entity->removeEntityFromPositionTile(gameMapPointer);
             entity->removeFromGameMap(gameMapPointer);
@@ -588,6 +701,8 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
             }
 
             tempPlayer->pickUpEntity(entity);
+            if(entity->getObjectType() == GameEntityType::creature)
+                static_cast<Creature*>(entity)->socialEvent(social::PostCategory::PickedUp);
             break;
         }
 
@@ -659,6 +774,52 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
             OD_ASSERT_TRUE(packetReceived >> goalsString);
 
             refreshMainUI(goalsString);
+            break;
+        }
+
+        case ServerNotificationType::creaturePanel:
+        {
+            CreaturePanelData data;
+            if(!supportsCreaturePanel() || !importCreaturePanelData(packetReceived, data))
+            {
+                OD_LOG_ERR("Invalid creature panel snapshot");
+                return false;
+            }
+            if(frameListener->getModeManager()->getCurrentModeType() == ModeManager::GAME)
+                static_cast<GameMode*>(frameListener->getModeManager()->getCurrentMode())->refreshCreaturePanel(data);
+            break;
+        }
+
+        case ServerNotificationType::creatureAppearance:
+        {
+            std::string creatureName;
+            std::string appearanceToken;
+            OD_ASSERT_TRUE(packetReceived >> creatureName >> appearanceToken);
+            Creature* creature = gameMap->getCreature(creatureName);
+            CreatureAppearance appearance;
+            if(creature != nullptr && CreatureAppearanceLogic::fromToken(appearanceToken, appearance))
+                creature->setAppearanceFromServer(appearance);
+            break;
+        }
+
+        case ServerNotificationType::relationshipTier:
+        {
+            std::string creatureA;
+            std::string creatureB;
+            int32_t tier;
+            // A replay of the current tiers (sent on join or load) only fills the table: what shows a change
+            // (posts, emotes) skips it
+            bool replay;
+            OD_ASSERT_TRUE(readRelationshipTier(packetReceived, creatureA, creatureB, tier, replay));
+            CreatureRelationships* relationships = gameMap->getCreatureRelationships();
+            if((relationships != nullptr) && (tier >= static_cast<int32_t>(RelationshipTier::nemesis))
+                && (tier <= static_cast<int32_t>(RelationshipTier::lovers)))
+            {
+                RelationshipTier oldTier = relationships->tierOf(creatureA, creatureB, true);
+                relationships->setTier(creatureA, creatureB, static_cast<RelationshipTier>(tier));
+                if(!replay)
+                    reportRelationshipPost(gameMap, creatureA, creatureB, oldTier, static_cast<RelationshipTier>(tier));
+            }
             break;
         }
 
@@ -1465,6 +1626,18 @@ bool ODClient::replay(const std::string& filename)
 void ODClient::queueClientNotification(ClientNotification* n)
 {
     mClientNotificationQueue.push_back(n);
+}
+
+void ODClient::requestNicknameChange(const std::string& nickname)
+{
+    if(getSource() != ODSource::network || getPlayer() == nullptr || getPlayer()->getNick() == nickname)
+        return;
+    if(!supportsLiveNickname())
+    {
+        OD_LOG_WRN("The connected server does not support changing the current player's nickname.");
+        return;
+    }
+    queueClientNotification(ClientNotificationType::changeNick, nickname);
 }
 
 void ODClient::disconnect(bool keepReplay)

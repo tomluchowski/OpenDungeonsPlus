@@ -76,11 +76,19 @@ class ODServer: public Ogre::Singleton<ODServer>,
     inline ServerMode getServerMode() const
     { return mServerMode; }
 
-    bool startServer(const std::string& creator, const std::string& levelFilename, ServerMode mode, bool useMasterServer);
+    //! \brief relationships is the game setup option "Creature relationships". It is ignored in editor
+    //! mode and when a saved game is loaded (the save knows its own setting).
+    bool startServer(const std::string& creator, const std::string& levelFilename, ServerMode mode, bool useMasterServer,
+        bool relationships = true);
     void stopServer() override;
 
     //! \brief Adds a server notification to the server notification queue. The message will be sent to the concerned player
     void queueServerNotification(ServerNotification* n);
+
+    //! Whether the recipient negotiated full mood in creature snapshots and updates.
+    bool supportsCreatureMood(Player* player);
+    bool supportsCreatureActivity(Player* player);
+    bool supportsCreatureProgress(Player* player);
 
     //! \brief Sends an asynchronous message to the concerned player. This function should be used really carefully as it can easily
     //! make the game crash by sending messages in an unexpected order (changing the state of an entity that was not created, for example).

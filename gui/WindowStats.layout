@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<GUILayout version="4" >
+    <Window type="OD/FrameWindow" name="StatsWindow" >
+        <Property name="Area" value="{{0.5,-270},{0.5,-245},{0.5,270},{0.5,245}}" />
+        <Property name="SizingEnabled" value="False" />
+        <Window type="OD/StaticText" name="TextDisplay" >
+            <Property name="Area" value="{{0.0,20},{0.0,34},{1.0,-20},{1.0,-22}}" />
+            <Property name="FrameEnabled" value="False" />
+            <Property name="BackgroundEnabled" value="False" />
+            <Property name="Font" value="MedievalSharp-8" />
+            <Property name="VertFormatting" value="TopAligned" />
+            <Property name="HorzFormatting" value="WordWrapLeftAligned" />
+        </Window>
+    </Window>
+</GUILayout>

@@ -50,7 +50,13 @@ class ODSocketClient
             mSource(ODSource::none),
             mPlayer(nullptr),
             mLastTurnAck(-1),
-            mPendingTimestamp(-1)
+            mRelationshipsSynced(false),
+            mPendingTimestamp(-1),
+            mSupportsLiveNickname(false),
+            mSupportsCreatureMood(false),
+            mSupportsCreatureActivity(false),
+            mSupportsCreaturePanel(false),
+            mSupportsCreatureProgress(false)
         {}
 
         virtual ~ODSocketClient()
@@ -68,8 +74,24 @@ class ODSocketClient
 
         Player* getPlayer() { return mPlayer; }
         void setPlayer(Player* player) { mPlayer = player; }
+        bool supportsLiveNickname() const { return mSupportsLiveNickname; }
+        void setSupportsLiveNickname(bool supported) { mSupportsLiveNickname = supported; }
+        bool supportsCreatureMood() const { return mSupportsCreatureMood; }
+        void setSupportsCreatureMood(bool supported) { mSupportsCreatureMood = supported; }
+        bool supportsCreatureActivity() const { return mSupportsCreatureActivity; }
+        void setSupportsCreatureActivity(bool supported) { mSupportsCreatureActivity = supported; }
+        bool supportsCreaturePanel() const { return mSupportsCreaturePanel; }
+        void setSupportsCreaturePanel(bool supported) { mSupportsCreaturePanel = supported; }
+        bool supportsCreatureProgress() const { return mSupportsCreatureProgress; }
+        void setSupportsCreatureProgress(bool supported) { mSupportsCreatureProgress = supported; }
         int64_t getLastTurnAck() { return mLastTurnAck; }
         void setLastTurnAck(int64_t lastTurnAck) { mLastTurnAck = lastTurnAck; }
+        //! \brief Tells whether the client already got the current relationship tiers from the server
+        //! \return True once the tiers were received
+        bool getRelationshipsSynced() const { return mRelationshipsSynced; }
+        //! \brief Remembers whether the client got the current relationship tiers from the server
+        //! \param synced True once the tiers were received
+        void setRelationshipsSynced(bool synced) { mRelationshipsSynced = synced; }
         const std::string& getState() {return mState;}
         bool isDataAvailable(int miliseconds=5);
         int32_t getGameTimeMillis()
@@ -123,6 +145,8 @@ class ODSocketClient
         sf::TcpSocket mSockClient;
         Player* mPlayer;
         int64_t mLastTurnAck;
+        //! True once the client got the current relationship tiers
+        bool mRelationshipsSynced;
         std::string mState;
 
 
@@ -131,10 +155,16 @@ class ODSocketClient
         ODPacket mPendingPacket;
         int32_t mPendingTimestamp;
 
+        //! \brief True if the peer announced that it handles nickname changes during the game.
+        bool mSupportsLiveNickname;
+        bool mSupportsCreatureMood;
+        bool mSupportsCreatureActivity;
+        bool mSupportsCreaturePanel;
+        bool mSupportsCreatureProgress;
+
         //! \brief the replay filename being written. Used to later optionally delete it
         //! if asked to.
         std::string mOutputReplayFilename;
 };
 
 #endif // ODSOCKETCLIENT_H
-
