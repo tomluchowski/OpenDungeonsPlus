@@ -32,6 +32,10 @@ class ODPacket;
 enum class GiftBoxType
 {
     skill,
+    mana,
+    gold,
+    revealMap,
+    levelUp,
     nbTypes
 };
 std::ostream& operator<<(std::ostream& os, const GiftBoxType& type);
@@ -42,6 +46,8 @@ class GiftBoxEntity: public RenderedMovableEntity
 public:
     GiftBoxEntity(GameMap* gameMap, const std::string& baseName, const std::string& meshName, GiftBoxType type);
     GiftBoxEntity(GameMap* gameMap);
+    //! \brief Used when the type is already known, for example when loading a level
+    GiftBoxEntity(GameMap* gameMap, GiftBoxType type);
 
     virtual GameEntityType getObjectType() const override;
 
@@ -56,6 +62,10 @@ public:
     //! we don't want to make a difference
     virtual void applyEffect()
     {}
+
+    //! \brief Returns the type of this gift box
+    inline GiftBoxType getGiftBoxType() const
+    { return mGiftBoxType; }
 
     static GiftBoxEntity* getGiftBoxEntityFromStream(GameMap* gameMap, std::istream& is);
     static GiftBoxEntity* getGiftBoxEntityFromPacket(GameMap* gameMap, ODPacket& is);
