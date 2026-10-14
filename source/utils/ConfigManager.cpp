@@ -46,6 +46,7 @@ const double ConfigManager::ChanceMax = 100.0;
 const double ConfigManager::ChancePerLevelMax = 10.0;
 const double ConfigManager::AttackTurnSpeedMin = 90.0;
 const double ConfigManager::AttackTurnSpeedMax = 1440.0;
+const double ConfigManager::AttackTurnMaxDelayMin = 0.0;
 const double ConfigManager::AttackTurnMaxDelayMax = 0.6;
 
 namespace
