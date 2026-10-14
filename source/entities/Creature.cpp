@@ -128,6 +128,10 @@ static const double DEFAULT_HATED_COMPANY_RADIUS = 5.0;
 static const int POSSESSION_GROUP_MAX_SQUARED_DISTANCE = 9;
 //! \brief Distance in tiles below which a target is too close for the aim direction check of a possession skill
 static const Ogre::Real POSSESSION_AIM_MIN_DISTANCE = 0.5;
+//! \brief Squared length below which a possession move direction counts as no movement
+static const Ogre::Real POSSESSION_MIN_DIRECTION_SQUARED_LENGTH = 0.0001f;
+//! \brief Squared length below which a possession aim direction counts as no aim
+static const Ogre::Real POSSESSION_MIN_AIM_SQUARED_LENGTH = 0.0001f;
 //! \brief Number of closest targets for which a path is tried when a creature looks for a destination
 static const uint32_t MAX_PATH_CHECK_TARGET_TRIES = 5;
 
@@ -4591,7 +4595,7 @@ void Creature::possessedMove(const Ogre::Vector2& direction)
     Ogre::Vector2 position(mPosition.x, mPosition.y);
     Ogre::Vector2 destination = position;
     bool canMove = false;
-    if(direction.squaredLength() > 0.0001f)
+    if(direction.squaredLength() > POSSESSION_MIN_DIRECTION_SQUARED_LENGTH)
     {
         Ogre::Vector2 dir = direction;
         dir.normalise();
@@ -4644,7 +4648,7 @@ bool Creature::possessedFindTarget(const Ogre::Vector2& aim, const CreatureSkill
     if(myTile == nullptr)
         return false;
 
-    if(aim.squaredLength() < 0.0001f)
+    if(aim.squaredLength() < POSSESSION_MIN_AIM_SQUARED_LENGTH)
         return false;
 
     Ogre::Vector2 aimDir = aim;
