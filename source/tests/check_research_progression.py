@@ -132,7 +132,7 @@ struct Seat {
     const std::vector<SkillType>& getSkillDone()const{return mSkillDone;}
     const std::vector<SkillType>& getSkillPending()const{return mSkillPending;}
     const std::vector<SkillType>& getSkillNotAllowed()const{return mSkillNotAllowed;}
-    bool addSkill(SkillType);bool isSkillDone(SkillType)const;uint32_t getSkillLevel(SkillType)const;
+    bool addSkill(SkillType,bool=true);bool isSkillDone(SkillType)const;uint32_t getSkillLevel(SkillType)const;
     void setResearchLevels(const std::map<SkillType,uint32_t>&);
     void completeResearch(SkillType);void addSkillPoints(int32_t);void setNextSkill(SkillType);
     void setSkillsDone(const std::vector<SkillType>&);void setSkillTree(const std::vector<SkillType>&);
