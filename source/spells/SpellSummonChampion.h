@@ -28,7 +28,7 @@ class Seat;
 
 //! \brief Summons the champion, a unique creature that cannot be hurt and charges at the enemies.
 //! The cast price covers the first seconds, after that the owner pays a mana drain per second
-//! (see Creature::handleChampionUpkeep). The spell is unlocked by the campaign Heartstone.
+//! (see Creature::handleChampionUpkeep). The spell is unlocked by skill research.
 class SpellSummonChampion : public Spell
 {
 public:
