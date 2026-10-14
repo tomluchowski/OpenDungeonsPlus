@@ -51,7 +51,7 @@ def config_value(key):
     return match.group(1) if match else '0'
 
 
-# Configuration: the reference behaviour is the default
+# Configuration: the default behaviour
 check(config_value('RoomsClaimableByEnemies') == '1', 'RoomsClaimableByEnemies must be 1 (claimable and destructible)')
 check(config_value('RoomConvertSecondsPerTile') == '2.5', 'an enemy room takes 2.5 seconds per tile')
 check(config_value('RoomConvertNeutralSecondsPerTile') == '0.5', 'a neutral room takes 0.5 seconds per tile')
@@ -63,7 +63,7 @@ check(config_value('RoomRepairFactor') == '5.0', 'an own worker repairs 5 times 
 check(config_value('PortalFirstSpawnSeconds') == '25', 'the first creature of a taken over portal comes after 25 seconds')
 check('"RoomsClaimableByEnemies", DEFAULT_ROOMS_CLAIMABLE_BY_ENEMIES)' in room_source
       and 'static const double DEFAULT_ROOMS_CLAIMABLE_BY_ENEMIES = 1.0;' in room_source,
-      'without the setting the reference behaviour applies')
+      'without the setting the default behaviour applies')
 turns_per_second = re.search(r'double ODApplication::turnsPerSecond = ([0-9.]+);', read('source/ODApplication.cpp')).group(1)
 
 # Wiring
@@ -74,7 +74,7 @@ check('isClaimable' not in portal_header and 'isClaimable' not in portal_source,
       'the portal follows the rule of Room::isClaimable and has no override of its own')
 check('isAttackable' in portal_header and 'return false;' in portal_header[portal_header.index('isAttackable'):][:160],
       'the portal can still not be destroyed')
-check('return false' in function(wave_source, 'bool RoomPortalWave::isClaimable('), 'the hero gate is still not claimable')
+check('return false' in function(wave_source, 'bool RoomPortalWave::isClaimable('), 'the hero portal is still not claimable')
 
 claim = function(room_source, 'void Room::claimForSeat(')
 check('RoomConvertNeutralSecondsPerTile' in claim and 'RoomConvertSecondsPerTile' in claim and 'isRogueSeat()' in claim,
