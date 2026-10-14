@@ -30,6 +30,19 @@ enum class TrapType
     spike,
     boulder,
     doorWooden,
+    doorIronbound,
+    doorSteel,
+    doorBarricade,
+    alarm,
+    fear,
+    gas,
+    lightning,
+    fireburst,
+    watchBanner,
+    doorSecret,
+    doorRuned,
+    trigger,
+    freeze,
     nbTraps     // Must be the last in this enum
 };
 
