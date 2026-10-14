@@ -26,11 +26,14 @@ static const std::string CreatureMoodSlappedName = "Slapped";
 
 namespace
 {
+//! \brief Factory that creates CreatureMoodSlapped objects from the mood configuration.
 class CreatureMoodSlappedFactory : public CreatureMoodFactory
 {
+    //! \brief Creates a new CreatureMoodSlapped with default values.
     CreatureMood* createCreatureMood() const override
     { return new CreatureMoodSlapped; }
 
+    //! \brief Returns the configuration name of this modifier.
     const std::string& getCreatureMoodName() const override
     {
         return CreatureMoodSlappedName;
@@ -41,11 +44,13 @@ class CreatureMoodSlappedFactory : public CreatureMoodFactory
 static CreatureMoodRegister reg(new CreatureMoodSlappedFactory);
 }
 
+//! \brief Returns the name under which this modifier is listed in the mood configuration.
 const std::string& CreatureMoodSlapped::getModifierName() const
 {
     return CreatureMoodSlappedName;
 }
 
+//! \brief Returns the mood change per slap received during the last DurationTurns turns (at most MaxSlaps slaps).
 int32_t CreatureMoodSlapped::computeMood(const Creature& creature) const
 {
     int32_t nbSlaps = creature.getNbRecentSlaps(mDurationTurns);
@@ -53,11 +58,13 @@ int32_t CreatureMoodSlapped::computeMood(const Creature& creature) const
     return nbSlaps * mMoodModifier;
 }
 
+//! \brief Returns a copy of this modifier.
 CreatureMoodSlapped* CreatureMoodSlapped::clone() const
 {
     return new CreatureMoodSlapped(*this);
 }
 
+//! \brief Reads the modifier parameters from the configuration stream; returns false if a value is missing.
 bool CreatureMoodSlapped::importFromStream(std::istream& is)
 {
     if(!CreatureMood::importFromStream(is))
@@ -73,6 +80,7 @@ bool CreatureMoodSlapped::importFromStream(std::istream& is)
     return true;
 }
 
+//! \brief Writes the modifier parameters to the stream.
 void CreatureMoodSlapped::exportToStream(std::ostream& os) const
 {
     CreatureMood::exportToStream(os);
@@ -81,6 +89,7 @@ void CreatureMoodSlapped::exportToStream(std::ostream& os) const
     os << "\t" << mMoodModifier;
 }
 
+//! \brief Appends the names of the modifier parameters to the format string.
 void CreatureMoodSlapped::getFormatString(std::string& format) const
 {
     CreatureMood::getFormatString(format);
