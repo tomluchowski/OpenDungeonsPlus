@@ -26,11 +26,14 @@ static const std::string CreatureMoodHatedCompanyName = "HatedCompany";
 
 namespace
 {
+//! \brief Creates hated company modifiers when the configuration names "HatedCompany"
 class CreatureMoodHatedCompanyFactory : public CreatureMoodFactory
 {
+    //! \brief Creates an empty hated company modifier
     CreatureMood* createCreatureMood() const override
     { return new CreatureMoodHatedCompany; }
 
+    //! \brief The modifier name used in the configuration
     const std::string& getCreatureMoodName() const override
     {
         return CreatureMoodHatedCompanyName;
