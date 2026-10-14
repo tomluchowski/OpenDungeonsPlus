@@ -138,6 +138,8 @@ struct GameMap {bool editor=false;int fights=0,sounds=0;std::vector<Room*> mRoom
  std::vector<Room*> getRoomsByType(RoomType type) const;unsigned int numRoomsByTypeAndSeat(RoomType type, const Seat* seat) const;};
 int Room::roomSounds=0;
 bool g_removeAllowed=true;int g_removeAsked=0;
+int g_rewards=0;
+void giveDestroyedHeartReward(GameMap*,Seat*,Seat*,Tile*){++g_rewards;}
 struct BuildingObject:GameEntity {Tile* tile;BuildingObject(Tile* t):GameEntity(nullptr),tile(t){}
  BuildingObject(GameMap*,Room&,const std::string&,Tile* t,double,double,double,double,bool):GameEntity(nullptr),tile(t){}
  Tile* getPositionTile(){return tile;}
@@ -203,6 +205,7 @@ int main(){
  GameEntity attacker(&enemy);
  check(heart.takeHeartDamage(&attacker,99999,0,0,0,&centre)==10000,"lethal blow clamped to the heart health (10000, whatever the number of tiles)");
  check(heart.dead==1&&heart.getHP(nullptr)==0,"heart death fires once");
+ check(g_rewards==1,"the destroying keeper gets the heart reward once");
  owner.computeSeatBeginTurn();
  check(owner.getNbRooms(RoomType::dungeonTemple)==0,"seat has no temple as soon as the heart is dead");
  check(map.getRoomsByType(RoomType::dungeonTemple).empty()&&map.numRoomsByTypeAndSeat(RoomType::dungeonTemple,&owner)==0,"dead heart is invisible to temple queries");
