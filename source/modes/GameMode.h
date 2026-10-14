@@ -171,6 +171,7 @@ class GameMode final : public GameEditorModeBase, public InputCommand
     void updateSandboxStatus();
     //! \brief The prompt after a completed realm: leave for the next realm, or stay in this one
     bool onSandboxNextRealm(const CEGUI::EventArgs& = {});
+    //! \brief Stays in the current realm: closes the realm prompt window and keeps playing.
     bool onSandboxStay(const CEGUI::EventArgs& = {});
 
     //! \brief Shows/hides/toggles the player settings window
