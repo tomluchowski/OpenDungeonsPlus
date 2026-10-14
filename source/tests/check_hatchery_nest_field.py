@@ -260,7 +260,7 @@ assert 'coopMinX = -0.203275' in header and 'coopMaxX = 0.796725' in header
 assert 'coopMinY = -0.4;' in header and 'coopMaxY = 0.4;' in header
 assert '{"ChickenCoop", -.203275f, -.4f, .796725f, .4f}' in bounds
 for number in ('2166136261u', '16777619u', '2246822519u', '3266489917u', 'h >> 15', 'h >> 13', 'h >> 16',
-               '% 81u', '(h >> 8)', '(h >> 16)', 'h % 360u', 'rounds = 6', '100u + attempt', 'rounds = 8'):
+               'jitterSteps = 81u', 'jitterOffset = 40', 'jitterUnitsPerTile = 100.0', '(h >> 8)', '(h >> 16)', 'h % 360u', 'rounds = 6', '100u + attempt', 'rounds = 8'):
     assert number in header, number
 assert 'static const double eggHeight = 0.03;' in header and 'eggHeight' in room_cpp
 # the header has no dependency on the game map or the engine, so the unit test can use it alone

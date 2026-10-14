@@ -79,6 +79,20 @@ const float FEATHER_HEIGHT_FLUTTER = 0.1f;
 const float FEATHER_HEIGHT_EMERGE = 0.1f;
 //! \brief Seconds a coop without a door clip shakes when an animal comes out.
 const float COOP_SHAKE_SECONDS = 0.8f;
+//! \brief Largest distance in tiles at which a coop counts as the one a chicken comes out of.
+const float COOP_DOOR_SEARCH_DISTANCE = 4.0f;
+//! \brief Seconds before the coop decorations are checked for the first time.
+const float COOP_DECOR_START_SECONDS = 10.0f;
+//! \brief Seconds between two checks of the coop decorations.
+const float COOP_DECOR_CHECK_SECONDS = 1.5f;
+//! \brief Strength of the swing of the coop door while the coop shakes.
+const float COOP_DOOR_SWING_STRENGTH = 3.0f;
+//! \brief Speed of the swing of the coop door while the coop shakes.
+const float COOP_DOOR_SWING_SPEED = 40.0f;
+//! \brief Number of different phase offsets the idle motion of the chickens cycles through.
+const uint32_t LOOK_PHASE_COUNT = 97;
+//! \brief Step of the phase offset between two chickens.
+const float LOOK_PHASE_STEP = 0.37f;
 //! \brief Height above the ground from which an egg counts as lying in a nest.
 const float NEST_EGG_MIN_HEIGHT = 0.01f;
 //! \brief Seconds of the wobble after which the shell shows its cracks.
@@ -522,7 +536,7 @@ void RenderManager::rrCreateChickenLook(ChickenEntity* chicken)
     look.mEntity = entity;
     look.mTime = 0.0f;
     look.mPoseTime = 0.0f;
-    look.mPhase = static_cast<Ogre::Real>(++mChickenLookNumber % 97) * 0.37f;
+    look.mPhase = static_cast<Ogre::Real>(++mChickenLookNumber % LOOK_PHASE_COUNT) * LOOK_PHASE_STEP;
     look.mFeatherBursts = 0;
     look.mEmergeFeathersPending = false;
     look.mCoopDoorReplayPending = false;
@@ -738,7 +752,7 @@ void RenderManager::rrSetChickenPose(ChickenEntity* chicken, const std::string& 
         look.mCoopExitWalking = false;
         // The door of the closest coop swings
         std::map<BuildingObject*, CoopDecor>::iterator nearest = mCoopDecors.end();
-        Ogre::Real nearestDistance = 4.0f;
+        Ogre::Real nearestDistance = COOP_DOOR_SEARCH_DISTANCE;
         for(std::map<BuildingObject*, CoopDecor>::iterator coop = mCoopDecors.begin(); coop != mCoopDecors.end(); ++coop)
         {
             Ogre::Real distance = coop->first->getPosition().squaredDistance(position);
@@ -790,7 +804,7 @@ void RenderManager::rrCreateCoopDecor(BuildingObject* coop)
     decor.mNode = node->createChildSceneNode(name + "_node", Ogre::Vector3(COOP_DOOR_OFFSET, 0.0f, 0.0f));
     mCoopDecors[coop] = decor;
     // The first check is done at once
-    mCoopDecorTimer = 10.0f;
+    mCoopDecorTimer = COOP_DECOR_START_SECONDS;
 }
 
 //! \brief Removes the nest and the feathers next to the coop.
@@ -1142,7 +1156,7 @@ void RenderManager::updateChickenLooks(Ogre::Real timeSinceLastFrame)
     // Coops: a shaking door. The straw nests of the hatchery are drawn from
     // the places the server sent (see updateNestFields).
     mCoopDecorTimer += timeSinceLastFrame;
-    const bool check = mCoopDecorTimer >= 1.5f;
+    const bool check = mCoopDecorTimer >= COOP_DECOR_CHECK_SECONDS;
     if(check)
         mCoopDecorTimer = 0.0f;
     for(std::map<BuildingObject*, CoopDecor>::iterator it = mCoopDecors.begin(); it != mCoopDecors.end(); ++it)
@@ -1170,7 +1184,7 @@ void RenderManager::updateChickenLooks(Ogre::Real timeSinceLastFrame)
         if(decor.mShake > 0.0f)
         {
             decor.mShake = std::max(0.0f, decor.mShake - timeSinceLastFrame);
-            const Ogre::Real swing = 3.0f * decor.mShake * std::sin(decor.mShake * 40.0f);
+            const Ogre::Real swing = COOP_DOOR_SWING_STRENGTH * decor.mShake * std::sin(decor.mShake * COOP_DOOR_SWING_SPEED);
             node->setOrientation(base * Ogre::Quaternion(Ogre::Degree(swing), Ogre::Vector3::UNIT_X));
         }
         else if(decor.mShake == 0.0f)

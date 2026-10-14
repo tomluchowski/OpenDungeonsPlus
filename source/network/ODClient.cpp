@@ -65,6 +65,9 @@
 
 #include <string>
 
+//! \brief Number of position units per tile in the place of a trampled egg that the server sends (hundredths of a tile).
+static const float EGG_HUNDREDTHS_PER_TILE = 100.0f;
+
 template<> ODClient* Ogre::Singleton<ODClient>::msSingleton = nullptr;
 
 ODClient::ODClient() :
@@ -964,7 +967,7 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
                 // Cosmetic effect of a trampled egg, no sound belongs to it. The numbers are the place of the egg
                 // in hundredths of a tile.
                 RenderManager::getSingleton().rrEggTrampled(Ogre::Vector3(
-                    static_cast<Ogre::Real>(xPos) / 100.0f, static_cast<Ogre::Real>(yPos) / 100.0f, 0.0f));
+                    static_cast<Ogre::Real>(xPos) / EGG_HUNDREDTHS_PER_TILE, static_cast<Ogre::Real>(yPos) / EGG_HUNDREDTHS_PER_TILE, 0.0f));
                 break;
             }
             SoundEffectsManager::getSingleton().playSpatialSound(family, xPos, yPos);
