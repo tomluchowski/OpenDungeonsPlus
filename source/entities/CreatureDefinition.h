@@ -170,6 +170,7 @@ public:
     inline bool                 isFearless      () const    { return mFearless; }
     //! \brief True for the champion definition (the creature the Summon champion spell calls).
     inline bool                 isChampion      () const    { return mChampion; }
+    //! \brief Mana taken per second while a player possesses a creature of this definition (after the free period).
     inline double               getPossessManaCost () const { return mPossessManaCost; }
     inline const std::string&   getClassName    () const    { return mClassName; }
 
