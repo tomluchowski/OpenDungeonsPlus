@@ -19,10 +19,12 @@
 
 #include "creatureskill/CreatureSkillManager.h"
 #include "entities/Creature.h"
+#include "entities/GameEntityType.h"
 #include "entities/MissileOneHit.h"
 #include "entities/Tile.h"
 #include "entities/Weapon.h"
 #include "gamemap/GameMap.h"
+#include "network/CosmeticEvent.h"
 #include "spells/Spell.h"
 #include "utils/Helper.h"
 #include "utils/LogManager.h"
@@ -105,9 +107,24 @@ bool CreatureSkillMissileLaunch::tryUseFight(GameMap& gameMap, Creature* creatur
     MissileOneHit* missile = new MissileOneHit(&gameMap, creature->getSeat(), creature->getName(),
         mMissileMesh, mMissilePartScript, missileDirection, mMissileSpeed, phyAtk, magAtk, eleAtk,
         attackedObject, false, ko, notifyPlayerIfHit);
+    // The missile tells the clients what the shot did (cosmetic event hitResult)
+    std::string targetName;
+    if(attackedObject->getObjectType() == GameEntityType::creature)
+        targetName = attackedObject->getName();
+    missile->setShooter(creature->getName(), targetName);
     missile->addToGameMap();
     missile->createMesh();
     missile->setPosition(position);
+    // Tell the clients who shot what (cosmetic only: they can draw the bow or the cast). The name is taken
+    // before the first upkeep because the missile may hit and vanish in it.
+    CosmeticEvent launchEvent(CosmeticEventType::missileLaunch);
+    launchEvent.mSubject = creature->getName();
+    launchEvent.mObject = missile->getName();
+    launchEvent.mText = mMissileMesh;
+    launchEvent.mValue = attackedTile->getX();
+    launchEvent.mValue2 = attackedTile->getY();
+    launchEvent.mPosition = position;
+    creature->fireCosmeticEvent(launchEvent, false);
     // We don't want the missile to stay idle for 1 turn. Because we are in a doUpkeep context,
     // we can safely call the missile doUpkeep as we know the engine will not call it the turn
     // it has been added

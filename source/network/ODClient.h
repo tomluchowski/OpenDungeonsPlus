@@ -58,6 +58,10 @@ class ODClient: public Ogre::Singleton<ODClient>,
     //! \brief Adds a client notification to the client notification queue.
     void queueClientNotification(ClientNotification* n);
 
+    //! \brief Asks the server to rename the local player. Does nothing if the nickname is unchanged,
+    //! the client is not connected over the network or the server does not support it.
+    void requestNicknameChange(const std::string& nickname);
+
     /*! \brief Adds a client notification to the client notification queue.
      *  \param type The type of the notification
      *  \param args The arguments that are to be piped into the notification.

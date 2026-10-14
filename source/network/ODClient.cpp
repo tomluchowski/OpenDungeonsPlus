@@ -39,9 +39,11 @@
 #include "modes/MenuModeConfigureSeats.h"
 #include "modes/ModeManager.h"
 #include "network/ChatEventMessage.h"
+#include "network/CosmeticEvent.h"
 #include "network/ODPacket.h"
 #include "network/ServerMode.h"
 #include "network/ServerNotification.h"
+#include "render/CreatureReactions.h"
 #include "render/ODFrameListener.h"
 #include "render/RenderManager.h"
 #include "rooms/RoomPortalWave.h"
@@ -224,9 +226,24 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
             ServerMode serverMode;
             OD_ASSERT_TRUE(packetReceived >> serverMode);
 
+            // Older servers and replays end this packet after the server mode.
+            bool liveNickname = false;
+            if(!packetReceived.endOfPacket())
+                OD_ASSERT_TRUE(packetReceived >> liveNickname);
+            setSupportsLiveNickname(liveNickname);
+            bool cosmeticEvents = false;
+            if(!packetReceived.endOfPacket())
+                OD_ASSERT_TRUE(packetReceived >> cosmeticEvents);
+            // The events start only after the server confirms this client's agreement.
+            setSupportsCosmeticEvents(false);
+
             ODPacket packSend;
             const std::string& nick = gameMap->getLocalPlayerNick();
             packSend << ClientNotificationType::setNick << nick;
+            if(liveNickname || cosmeticEvents)
+                packSend << liveNickname;
+            if(cosmeticEvents)
+                packSend << true;
             send(packSend);
 
             // We can proceed to configure seat level
@@ -289,6 +306,23 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
                 OD_ASSERT_TRUE(packetReceived >> nick >> id);
                 mode->addPlayer(nick, id);
                 addEventMessage(new EventMessage(nick + " is now connected."));
+            }
+            break;
+        }
+
+        case ServerNotificationType::playerNickChanged:
+        {
+            int32_t playerId;
+            std::string nickname;
+            OD_ASSERT_TRUE(packetReceived >> playerId >> nickname);
+            for(Player* player : gameMap->getPlayers())
+            {
+                if(player->getId() != playerId)
+                    continue;
+                player->setNick(nickname);
+                if(player == getPlayer())
+                    gameMap->setLocalPlayerNick(nickname);
+                break;
             }
             break;
         }
@@ -373,6 +407,12 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
 
             ServerMode serverMode;
             OD_ASSERT_TRUE(packetReceived >> serverMode);
+
+            // Older servers end the packet here; without the agreement no cosmetic event ever arrives
+            bool cosmeticEvents = false;
+            if(!packetReceived.endOfPacket())
+                OD_ASSERT_TRUE(packetReceived >> cosmeticEvents);
+            setSupportsCosmeticEvents(cosmeticEvents);
 
             // Now that the we have received all needed information, we can launch the requested mode
             OD_LOG_INF("Starting game map");
@@ -478,7 +518,10 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
             entity->createMesh(nt);
             entity->restoreEntityState();
             entity->setPosition( entity->getPosition(), gameMapPointer);
-            
+
+            if((nt == NodeType::MTILES_NODE) && (CreatureReactions::getSingletonPtr() != nullptr))
+                CreatureReactions::getSingleton().noteEntityAdded(entity);
+
             break;
         }
 
@@ -501,6 +544,9 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
                 OD_LOG_ERR("entityType=" + Helper::toString(static_cast<int32_t>(entityType)) + ", entityName=" + entityName);
                 break;
             }
+
+            if(CreatureReactions::getSingletonPtr() != nullptr)
+                CreatureReactions::getSingleton().noteEntityRemoved(entity);
 
             entity->removeEntityFromPositionTile(gameMapPointer);
             entity->removeFromGameMap(gameMapPointer);
@@ -659,6 +705,28 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
             OD_ASSERT_TRUE(packetReceived >> goalsString);
 
             refreshMainUI(goalsString);
+            break;
+        }
+
+        case ServerNotificationType::cosmeticEvent:
+        {
+            CosmeticEvent event;
+            if(!(packetReceived >> event))
+            {
+                OD_LOG_ERR("Truncated cosmetic event");
+                break;
+            }
+
+            // Only shown when the agreement was made. A kind that a newer server knows is skipped: every
+            // kind has the same layout, so nothing is lost in the packet.
+            if(!supportsCosmeticEvents() || !event.isKnownType())
+                break;
+
+            if(frameListener->getModeManager()->getCurrentModeType() == ModeManager::ModeType::GAME &&
+               CreatureReactions::getSingletonPtr() != nullptr)
+            {
+                CreatureReactions::getSingleton().noteCosmeticEvent(event);
+            }
             break;
         }
 
@@ -1215,6 +1283,9 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
             carried->removeEntityFromPositionTile();
 
             RenderManager::getSingleton().rrCarryEntity(carrier, carried);
+
+            if(CreatureReactions::getSingletonPtr() != nullptr)
+                CreatureReactions::getSingleton().noteCarry(carrier, carried);
             break;
         }
 
@@ -1241,6 +1312,9 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
 
             RenderManager::getSingleton().rrReleaseCarriedEntity(carrier, carried);
             carried->setPosition(pos);
+
+            if(CreatureReactions::getSingletonPtr() != nullptr)
+                CreatureReactions::getSingleton().noteRelease(carrier, carried);
             break;
         }
 
@@ -1465,6 +1539,18 @@ bool ODClient::replay(const std::string& filename)
 void ODClient::queueClientNotification(ClientNotification* n)
 {
     mClientNotificationQueue.push_back(n);
+}
+
+void ODClient::requestNicknameChange(const std::string& nickname)
+{
+    if(getSource() != ODSource::network || getPlayer() == nullptr || getPlayer()->getNick() == nickname)
+        return;
+    if(!supportsLiveNickname())
+    {
+        OD_LOG_WRN("The connected server does not support changing the current player's nickname.");
+        return;
+    }
+    queueClientNotification(ClientNotificationType::changeNick, nickname);
 }
 
 void ODClient::disconnect(bool keepReplay)

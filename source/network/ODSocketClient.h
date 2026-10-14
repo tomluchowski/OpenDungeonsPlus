@@ -50,7 +50,9 @@ class ODSocketClient
             mSource(ODSource::none),
             mPlayer(nullptr),
             mLastTurnAck(-1),
-            mPendingTimestamp(-1)
+            mPendingTimestamp(-1),
+            mSupportsLiveNickname(false),
+            mSupportsCosmeticEvents(false)
         {}
 
         virtual ~ODSocketClient()
@@ -68,6 +70,12 @@ class ODSocketClient
 
         Player* getPlayer() { return mPlayer; }
         void setPlayer(Player* player) { mPlayer = player; }
+        bool supportsLiveNickname() const { return mSupportsLiveNickname; }
+        void setSupportsLiveNickname(bool supported) { mSupportsLiveNickname = supported; }
+        //! Whether the client negotiated cosmetic events (see CosmeticEvent.h)
+        bool supportsCosmeticEvents() const { return mSupportsCosmeticEvents; }
+        //! \brief Records whether the client negotiated cosmetic events (see CosmeticEvent.h)
+        void setSupportsCosmeticEvents(bool supported) { mSupportsCosmeticEvents = supported; }
         int64_t getLastTurnAck() { return mLastTurnAck; }
         void setLastTurnAck(int64_t lastTurnAck) { mLastTurnAck = lastTurnAck; }
         const std::string& getState() {return mState;}
@@ -130,6 +138,10 @@ class ODSocketClient
         std::ofstream mReplayOutputStream;
         ODPacket mPendingPacket;
         int32_t mPendingTimestamp;
+        //! \brief True if the peer announced that it handles nickname changes during the game.
+        bool mSupportsLiveNickname;
+        //! The client agreed to receive cosmetic events
+        bool mSupportsCosmeticEvents;
 
         //! \brief the replay filename being written. Used to later optionally delete it
         //! if asked to.
@@ -137,4 +149,3 @@ class ODSocketClient
 };
 
 #endif // ODSOCKETCLIENT_H
-
