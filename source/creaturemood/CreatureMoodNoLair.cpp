@@ -26,11 +26,14 @@ static const std::string CreatureMoodNoLairName = "NoLair";
 
 namespace
 {
+//! \brief Factory that creates CreatureMoodNoLair objects from the mood configuration.
 class CreatureMoodNoLairFactory : public CreatureMoodFactory
 {
+    //! \brief Creates a new CreatureMoodNoLair with default values.
     CreatureMood* createCreatureMood() const override
     { return new CreatureMoodNoLair; }
 
+    //! \brief Returns the configuration name of this modifier.
     const std::string& getCreatureMoodName() const override
     {
         return CreatureMoodNoLairName;
@@ -41,11 +44,13 @@ class CreatureMoodNoLairFactory : public CreatureMoodFactory
 static CreatureMoodRegister reg(new CreatureMoodNoLairFactory);
 }
 
+//! \brief Returns the name under which this modifier is listed in the mood configuration.
 const std::string& CreatureMoodNoLair::getModifierName() const
 {
     return CreatureMoodNoLairName;
 }
 
+//! \brief Returns the mood change while the creature has no home tile, otherwise 0.
 int32_t CreatureMoodNoLair::computeMood(const Creature& creature) const
 {
     if(creature.getHomeTile() != nullptr)
@@ -54,11 +59,13 @@ int32_t CreatureMoodNoLair::computeMood(const Creature& creature) const
     return mMoodModifier;
 }
 
+//! \brief Returns a copy of this modifier.
 CreatureMoodNoLair* CreatureMoodNoLair::clone() const
 {
     return new CreatureMoodNoLair(*this);
 }
 
+//! \brief Reads the modifier parameters from the configuration stream; returns false if a value is missing.
 bool CreatureMoodNoLair::importFromStream(std::istream& is)
 {
     if(!CreatureMood::importFromStream(is))
@@ -70,12 +77,14 @@ bool CreatureMoodNoLair::importFromStream(std::istream& is)
     return true;
 }
 
+//! \brief Writes the modifier parameters to the stream.
 void CreatureMoodNoLair::exportToStream(std::ostream& os) const
 {
     CreatureMood::exportToStream(os);
     os << "\t" << mMoodModifier;
 }
 
+//! \brief Appends the names of the modifier parameters to the format string.
 void CreatureMoodNoLair::getFormatString(std::string& format) const
 {
     CreatureMood::getFormatString(format);

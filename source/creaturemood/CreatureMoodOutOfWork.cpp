@@ -26,11 +26,14 @@ static const std::string CreatureMoodOutOfWorkName = "OutOfWork";
 
 namespace
 {
+//! \brief Factory that creates CreatureMoodOutOfWork objects from the mood configuration.
 class CreatureMoodOutOfWorkFactory : public CreatureMoodFactory
 {
+    //! \brief Creates a new CreatureMoodOutOfWork with default values.
     CreatureMood* createCreatureMood() const override
     { return new CreatureMoodOutOfWork; }
 
+    //! \brief Returns the configuration name of this modifier.
     const std::string& getCreatureMoodName() const override
     {
         return CreatureMoodOutOfWorkName;
@@ -41,11 +44,13 @@ class CreatureMoodOutOfWorkFactory : public CreatureMoodFactory
 static CreatureMoodRegister reg(new CreatureMoodOutOfWorkFactory);
 }
 
+//! \brief Returns the name under which this modifier is listed in the mood configuration.
 const std::string& CreatureMoodOutOfWork::getModifierName() const
 {
     return CreatureMoodOutOfWorkName;
 }
 
+//! \brief Returns the mood change for the turns the creature found no job beyond TurnsMin (counted up to TurnsMax turns).
 int32_t CreatureMoodOutOfWork::computeMood(const Creature& creature) const
 {
     int32_t turns = creature.getNbTurnsOutOfWork();
@@ -56,11 +61,13 @@ int32_t CreatureMoodOutOfWork::computeMood(const Creature& creature) const
     return turns * mMoodModifier;
 }
 
+//! \brief Returns a copy of this modifier.
 CreatureMoodOutOfWork* CreatureMoodOutOfWork::clone() const
 {
     return new CreatureMoodOutOfWork(*this);
 }
 
+//! \brief Reads the modifier parameters from the configuration stream; returns false if a value is missing.
 bool CreatureMoodOutOfWork::importFromStream(std::istream& is)
 {
     if(!CreatureMood::importFromStream(is))
@@ -76,6 +83,7 @@ bool CreatureMoodOutOfWork::importFromStream(std::istream& is)
     return true;
 }
 
+//! \brief Writes the modifier parameters to the stream.
 void CreatureMoodOutOfWork::exportToStream(std::ostream& os) const
 {
     CreatureMood::exportToStream(os);
@@ -84,6 +92,7 @@ void CreatureMoodOutOfWork::exportToStream(std::ostream& os) const
     os << "\t" << mMoodModifier;
 }
 
+//! \brief Appends the names of the modifier parameters to the format string.
 void CreatureMoodOutOfWork::getFormatString(std::string& format) const
 {
     CreatureMood::getFormatString(format);
