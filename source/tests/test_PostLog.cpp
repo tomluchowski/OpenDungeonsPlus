@@ -186,6 +186,7 @@ BOOST_AUTO_TEST_CASE(test_variant_is_reproducible)
     BOOST_CHECK_EQUAL(first.getPosts().back().mVariant, second.getPosts().back().mVariant);
 }
 
+// A relationship post keeps the name of the other creature and every relationship category has its name
 BOOST_AUTO_TEST_CASE(test_relationship_post_keeps_other_name)
 {
     PostLog log;

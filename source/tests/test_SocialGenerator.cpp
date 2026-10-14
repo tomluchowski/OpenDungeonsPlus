@@ -265,6 +265,7 @@ BOOST_AUTO_TEST_CASE(test_SocialMoodAndPosts)
         social::SocialGenerator::postTemplate(data, "Orc17", "Orc", false, "eat", 3));
 }
 
+// Every relationship post category renders a non-empty text that contains the other creature name
 BOOST_AUTO_TEST_CASE(test_SocialRelationshipPosts)
 {
     social::SocialData data;
