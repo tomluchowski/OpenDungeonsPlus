@@ -68,6 +68,7 @@ enum class SandboxBonusKind
 //! \brief An objective that gives extra points once, as the two sub-objectives of a realm do
 struct SandboxBonus
 {
+    //! \brief Creates an unawarded bonus of the first kind (slaps) with a zero count and zero points.
     SandboxBonus() :
         mKind(SandboxBonusKind::slaps),
         mCount(0),

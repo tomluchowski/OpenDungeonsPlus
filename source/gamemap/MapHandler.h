@@ -28,6 +28,7 @@ enum class GameEntityType;
 //! \brief A small structure storing level info for the player
 struct LevelInfo
 {
+    //! \brief Creates empty level info that is not a sandbox level.
     LevelInfo() :
         mIsSandbox(false)
     {}
