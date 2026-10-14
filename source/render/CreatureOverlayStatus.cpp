@@ -31,6 +31,11 @@
 
 const std::string CREATURE_OVERLAY_STATUS_PREFIX = "CreatureOverlayStatus_";
 
+//! Character height of the overlay that shows the emote of a reaction
+static const Ogre::Real EMOTE_CHAR_HEIGHT = 16;
+//! Width and height in pixels of the area of the emote picture
+static const Ogre::Real EMOTE_SIZE = 32;
+
 enum class CreatureOverlays
 {
     health,
@@ -49,7 +54,9 @@ CreatureOverlayStatus::CreatureOverlayStatus(Creature* creature, Ogre::Entity* e
     mLevel(0),
     mTimeDisplayStatus(0),
     mStatus(0),
-    mOverlayIds(std::vector<uint32_t>(static_cast<uint32_t>(CreatureOverlays::nbCreatureOverlays), 0))
+    mOverlayIds(std::vector<uint32_t>(static_cast<uint32_t>(CreatureOverlays::nbCreatureOverlays), 0)),
+    mEmoteCreated(false),
+    mEmoteId(0)
 {
     mMovableTextOverlay = new MovableTextOverlay(creature->getName(),
         ent, cam);
@@ -98,6 +105,31 @@ void CreatureOverlayStatus::displayHealthOverlay(Ogre::Real timeToDisplay)
 {
     uint32_t healthId = mOverlayIds[static_cast<uint32_t>(CreatureOverlays::health)];
     mMovableTextOverlay->displayOverlay(healthId, timeToDisplay);
+}
+
+void CreatureOverlayStatus::showEmote(const std::string& materialName, Ogre::Real timeToDisplay)
+{
+    if(!mEmoteCreated)
+    {
+        // The material is given at once: it has to be a valid one when the overlay is created
+        mEmoteId = mMovableTextOverlay->createChildOverlay("MedievalSharp", EMOTE_CHAR_HEIGHT, Ogre::ColourValue::White, materialName);
+        mMovableTextOverlay->forceTextArea(mEmoteId, EMOTE_SIZE, EMOTE_SIZE);
+        mEmoteCreated = true;
+    }
+    else
+    {
+        mMovableTextOverlay->setMaterialName(mEmoteId, materialName);
+    }
+
+    mMovableTextOverlay->displayOverlay(mEmoteId, timeToDisplay);
+}
+
+void CreatureOverlayStatus::hideEmote()
+{
+    if(!mEmoteCreated)
+        return;
+
+    mMovableTextOverlay->displayOverlay(mEmoteId, 0);
 }
 
 void CreatureOverlayStatus::updateHealth()

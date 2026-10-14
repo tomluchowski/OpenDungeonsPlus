@@ -26,13 +26,14 @@ def read(*parts):
 
 problems = []
 
-# 1. No new network message: trapEffect is still the last value (the spell effects use the sound message)
+# 1. No new network message of the spell effects: trapEffect is still the last value, except for the
+# cosmetic event that the creature reactions append after it (the spell effects use the sound message)
 header = read("source", "network", "ServerNotification.h")
 body = header[header.index("enum class ServerNotificationType"):]
 body = body[:body.index("};")]
 names = re.findall(r"^\s*([A-Za-z_]\w*)\s*,?\s*(?://.*)?$", body, re.M)
-if names[-1] != "trapEffect":
-    problems.append("trapEffect is not the last server notification")
+if names[names.index("trapEffect") + 1:] not in ([], ["cosmeticEvent"], ["wallTorches"], ["cosmeticEvent", "wallTorches"]):
+    problems.append("trapEffect is followed by a server notification other than the cosmetic event and the wall torches")
 
 # 2. Beam and projectile are wired
 config_h = read("source", "render", "RoomAmbienceConfig.h")

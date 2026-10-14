@@ -49,6 +49,8 @@ class Player;
 class Room;
 class Weapon;
 
+struct CosmeticEvent;
+
 enum class CreatureActionType;
 enum class CreatureMoodLevel;
 enum class SkillType;
@@ -485,6 +487,14 @@ public:
     void fireChickenFeeding(const std::string& chickenName,
         const Ogre::Vector3& chickenPosition);
 
+    //! \brief Sends a cosmetic event to the human players that see the creature (and negotiated cosmetic events).
+    //! With alliedOnly, only to the keeper of the creature and its allies. It only reports, it changes nothing.
+    void fireCosmeticEvent(const CosmeticEvent& event, bool alliedOnly);
+    //! \brief Sends a cosmetic event of the given kind with this creature as subject
+    void fireCosmeticEvent(int32_t type, int32_t value, int32_t value2, bool alliedOnly);
+    //! \brief The creature arrived through a portal: tells the keeper what mood it would have (cosmetic only)
+    void fireArrivalEvent();
+
     void itsPayDay();
 
     inline const std::vector<Tile*>& getVisibleTiles() const
@@ -895,6 +905,8 @@ private:
     int32_t         mGoldFee;
     //! \brief Gold carried by the creature that will be dropped if it gets killed
     int32_t         mGoldCarried;
+    //! \brief Server side. The gold carried that the clients were told last (cosmetic events only, not saved)
+    int32_t         mGoldCarriedNotified;
 
     //! Skill type that will be dropped when the creature dies
     SkillType       mSkillTypeDropDeath;
