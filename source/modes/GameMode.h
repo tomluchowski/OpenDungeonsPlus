@@ -355,7 +355,11 @@ private:
     
     //! \brief Called when there is a mouse input change
     void checkInputCommand();
+    //! \brief Handles the hover when no action is selected: unexplored tiles get a dig hint, otherwise
+    //! the closest pickable entity or the wall or ground under the pointer is described.
     void handlePlayerActionNone();
+    //! \brief Handles the dig-mark selection drag: previews the diggable tiles and, once validated,
+    //! asks the server to mark or unmark them for digging.
     void handlePlayerActionSelectTile();
     bool toggleQuery(const CEGUI::EventArgs& e);
     GameEntity* getQueryTarget(Tile* tile) const;

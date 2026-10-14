@@ -64,7 +64,11 @@ namespace RTShader {
 class RenderManager: public Ogre::Singleton<RenderManager>, Ogre::RenderTargetListener
 {
 public:
+    //! \brief Creates the render manager and its instance managers, including the one for tiles
+    //! shown as marked for digging in the fog of war.
+    //! \param overlaySystem The overlay system used for the on-screen overlays.
     RenderManager(Ogre::OverlaySystem* overlaySystem);
+    //! \brief Destroys the render manager and its instance managers.
     ~RenderManager();
 
     Ogre::Light* mHandLight;
