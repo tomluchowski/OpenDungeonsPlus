@@ -121,6 +121,9 @@ static const double ONGOING_MIN = 5.0;
 static const double ONGOING_MAX = 9.0;
 //! Shortest wait before the first try when a creature starts to do something for a while
 static const double ONGOING_FIRST_MIN = 2.0;
+//! Juggling balls: laps per second of the balls and the progress after which the first ball is dropped
+static const double JUGGLE_LAPS_PER_SECOND = 0.75;
+static const double JUGGLE_DROP_PROGRESS = 0.78;
 //! Prefix of the material of a prop sprite (the prop name follows)
 static const std::string PROP_MATERIAL_PREFIX = "CreatureProp_";
 //! Prefix of the scene name of a prop sprite a reaction creates (a counter follows)
@@ -2988,13 +2991,13 @@ void CreatureReactions::updateProps(RunningReaction& reaction, Creature* creatur
             case ReactionProp::Path::juggle:
             {
                 // Balls go round from hand to hand; in the end the first one is dropped
-                double angle = 2.0 * PI_VALUE * (0.75 * time + index / count);
+                double angle = 2.0 * PI_VALUE * (JUGGLE_LAPS_PER_SECOND * time + index / count);
                 double sideways = 0.2 * std::cos(angle);
                 double up = 0.5 + 0.3 * std::fabs(std::sin(angle));
-                if((i == 0) && (progress > 0.78))
+                if((i == 0) && (progress > JUGGLE_DROP_PROGRESS))
                 {
-                    double dropAngle = 2.0 * PI_VALUE * 0.75 * 0.78 * seconds;
-                    double fall = (progress - 0.78) * seconds;
+                    double dropAngle = 2.0 * PI_VALUE * JUGGLE_LAPS_PER_SECOND * JUGGLE_DROP_PROGRESS * seconds;
+                    double fall = (progress - JUGGLE_DROP_PROGRESS) * seconds;
                     sideways = 0.2 * std::cos(dropAngle) + 0.15 * fall;
                     up = std::max(0.03, 0.5 + 0.3 * std::fabs(std::sin(dropAngle)) - 2.5 * fall * fall);
                 }

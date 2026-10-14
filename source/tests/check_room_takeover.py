@@ -34,7 +34,10 @@ defaults = {'RoomTakeoverGuardRadius': '5', 'RoomTakeoverCostPercent': '0'}
 for key, value in defaults.items():
     assert re.search(r'^\s+' + key + r'\s+' + value + r'\s*$', rooms_cfg, re.M), key
     assert re.search(r'^\s+# ' + key + r'\s', rooms_cfg, re.M), key + ' is not documented'
-    assert '"' + key + '", ' + value + '.0)' in room, key + ' needs the same default in the source'
+    constant = {'RoomTakeoverGuardRadius': 'DEFAULT_ROOM_TAKEOVER_GUARD_RADIUS',
+                'RoomTakeoverCostPercent': 'DEFAULT_ROOM_TAKEOVER_COST_PERCENT'}[key]
+    assert '"' + key + '", ' + constant + ')' in room, key + ' is read with its named default'
+    assert 'static const double ' + constant + ' = ' + value + '.0;' in room, key + ' needs the same default in the source'
 
 # Server decides; rooms of nobody, the client and the heart are not touched by the new rules
 blocked = function_body(room, 'bool Room::isTakeoverBlocked(')
