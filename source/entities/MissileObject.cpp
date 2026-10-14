@@ -19,6 +19,7 @@
 
 #include "entities/Building.h"
 #include "entities/GameEntityType.h"
+#include "entities/MissileBlast.h"
 #include "entities/MissileBoulder.h"
 #include "entities/MissileOneHit.h"
 #include "entities/Tile.h"
@@ -91,6 +92,8 @@ void MissileObject::doUpkeep()
         deleteYourself();
         return;
     }
+
+    updateDirection();
 
     // We check if a creature is in our way. We start by taking the tile we will be on
     Ogre::Vector3 position3f = getPosition();
@@ -363,6 +366,11 @@ MissileObject* MissileObject::getMissileObjectFromStream(GameMap* gameMap, std::
             obj = MissileBoulder::getMissileBoulderFromStream(gameMap, is);
             break;
         }
+        case MissileObjectType::blast:
+        {
+            obj = MissileBlast::getMissileBlastFromStream(gameMap, is);
+            break;
+        }
         default:
             OD_LOG_ERR("Unknown enum value : " + Helper::toString(
                 static_cast<int>(type)));
@@ -386,6 +394,11 @@ MissileObject* MissileObject::getMissileObjectFromPacket(GameMap* gameMap, ODPac
         case MissileObjectType::boulder:
         {
             obj = MissileBoulder::getMissileBoulderFromPacket(gameMap, is);
+            break;
+        }
+        case MissileObjectType::blast:
+        {
+            obj = MissileBlast::getMissileBlastFromPacket(gameMap, is);
             break;
         }
         default:

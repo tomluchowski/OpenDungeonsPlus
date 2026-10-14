@@ -230,11 +230,12 @@ bool RoomLibrary::hasOpenCreatureSpot(Creature* c)
     if(!getSeat()->isSkilling())
         return false;
 
-    // We accept all creatures as soon as there are free active spots
-    uint32_t nbItems = countSkillItemsOnRoom();
-    if(nbItems >= (getNumActiveSpots() - mCreaturesSpots.size()))
+    // The stored items have their own places, independent of the researchers. When
+    // every place is taken, the library is full and nobody can research
+    if(checkIfAvailableSpot() == nullptr)
         return false;
 
+    // We accept all creatures as soon as there are free active spots
     return !mUnusedSpots.empty();
 }
 
@@ -320,10 +321,9 @@ void RoomLibrary::doUpkeep()
         return;
     }
 
-    uint32_t nbItems = countSkillItemsOnRoom();
-    if(nbItems > (getNumActiveSpots() - mCreaturesSpots.size()))
+    if(checkIfAvailableSpot() == nullptr)
     {
-        // There is no available space. We remove a creature working here if there is one.
+        // There is no available space for items. We remove a creature working here if there is one.
         // If there is none, it means the library is full
         if(mCreaturesSpots.empty())
             return;
@@ -399,14 +399,13 @@ bool RoomLibrary::useRoom(Creature& creature, bool forced)
     if(mSkillPoints < skillEntityPoints)
         return false;
 
-    mSkillPoints -= skillEntityPoints;
-    // We check if there is an empty tile to release the skillEntity
+    // We check if there is an empty tile to release the skillEntity. If the library
+    // is full, the points wait until a place is free again
     Tile* spawnTile = checkIfAvailableSpot();
     if(spawnTile == nullptr)
-    {
-        OD_LOG_ERR("room=" + getName());
         return false;
-    }
+
+    mSkillPoints -= skillEntityPoints;
 
     SkillEntity* skillEntity = new SkillEntity(getGameMap(), getName(), skillEntityPoints);
     skillEntity->setSeat(getSeat());
@@ -416,17 +415,6 @@ bool RoomLibrary::useRoom(Creature& creature, bool forced)
     skillEntity->setPosition(spawnPosition);
 
     return false;
-}
-
-uint32_t RoomLibrary::countSkillItemsOnRoom()
-{
-    uint32_t nbItems = 0;
-    for(Tile* t : mCoveredTiles)
-    {
-        nbItems += t->countEntitiesOnTile(GameEntityType::skillEntity);
-    }
-
-    return nbItems;
 }
 
 Tile* RoomLibrary::checkIfAvailableSpot()

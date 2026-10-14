@@ -208,10 +208,40 @@ std::string skillTypeToPlayerVisibleString(SkillType type)
             return "The Cannon Trap";
         case SkillType::trapSpike:
             return "The Spike Trap";
+        case SkillType::trapAlarm:
+            return "The Alarm Trap";
+        case SkillType::trapFear:
+            return "The Fear Trap";
+        case SkillType::trapGas:
+            return "The Gas Trap";
+        case SkillType::trapLightning:
+            return "The Lightning Trap";
+        case SkillType::trapFireburst:
+            return "The Fireburst Trap";
+        case SkillType::trapWatchBanner:
+            return "The Watch Banner";
+        case SkillType::trapTrigger:
+            return "The Trigger Trap";
+        case SkillType::trapFreeze:
+            return "The Freeze Trap";
         case SkillType::trapDoorWooden:
             return "The Wooden Door";
+        case SkillType::trapDoorIronbound:
+            return "The Ironbound Door";
+        case SkillType::trapDoorSteel:
+            return "The Steel Door";
+        case SkillType::trapDoorBarricade:
+            return "The Barricade";
+        case SkillType::trapDoorSecret:
+            return "The Secret Door";
+        case SkillType::trapDoorRuned:
+            return "The Runed Door";
         case SkillType::spellEyeEvil:
             return "The 'Eye of evil' spell";
+        case SkillType::spellSummonChampion:
+            return "The 'Summon Champion' spell";
+        case SkillType::spellPossess:
+            return "The 'Possess' spell";
         default:
             return "Unknown enum value:" + Helper::toString(static_cast<int>(type));
     }

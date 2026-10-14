@@ -53,7 +53,7 @@ take_damage_kill_part = take_damage[:cut] + '    return damageDone;\n}\n'
 
 # Production statements that are one-liners inside larger functions
 capture_start = room_source.index('    // Counts as captured when the claimer takes the last tile')
-capture_end = room_source.index('    mCoveredTilesDestroyed.push_back(tile);', capture_start)
+capture_end = room_source.index('    for(Tile* tile : tiles)\n    {\n        mCoveredTilesDestroyed.push_back(tile);', capture_start)
 capture_statement = room_source[capture_start:capture_end]
 convert_line = line_with(torture_source, 'mCreaturesConverted++')
 craft_line = line_with(workshop_source, 'mItemsMade++')
@@ -93,6 +93,7 @@ struct Seat
     bool isAlliedSeat(const Seat* seat) const { return getTeamId() == seat->getTeamId(); }
     SeatStatistics& getStatistics() { return mStatistics; }
     void recordCreatureKill(const Seat* victimSeat);
+    void addMana(double) {}
     int mId;
     int mTeamId;
     std::string mFaction;
@@ -110,12 +111,14 @@ struct GameEntity
 struct CreatureDefinition
 {
     bool isWorker() const { return mWorker; }
+    bool isChampion() const { return false; }
     bool mWorker = false;
 };
 struct ConfigManager
 {
     static ConfigManager& getSingleton() { static ConfigManager config; return config; }
     int getNbTurnsKoCreatureAttacked() { return 5; }
+    double getSpellConfigDouble(const std::string&) { return 100.0; }
 };
 struct Creature : public GameEntity
 {
@@ -129,6 +132,8 @@ struct Creature : public GameEntity
     void computeCreatureOverlayHealthValue() {}
     void computeCreatureOverlayMoodValue() {}
     void fireEntityDead() { ++mDeaths; }
+    double getPitDamageFactor(GameEntity*) { return 1.0; }
+    bool isPossessed() const { return false; }
     double takeDamage(GameEntity* attacker, double absoluteDamage, double physicalDamage, double magicalDamage,
         double elementDamage, Tile* tileTakingDamage, bool ko);
     double mHp;
@@ -532,11 +537,16 @@ assert 'return "levelStatistics";' in notification_source
 wiring_checks += 3
 
 # The one-line hooks sit in the intended place of their functions
-handover = function(room_source, 'Room* Room::handTileOverToSeat(')
+handover = function(room_source, 'Room* Room::handTilesOverToSeat(')
 assert 'mRoomsCaptured++' in handover
 assert handover.index('mCoveredTiles.erase(itTile)') < handover.index('mRoomsCaptured++') < handover.index('newRoom->mCoveredTiles.push_back(tile)')
-assert 'handTileOverToSeat(seat, tile);' in function(room_source, 'void Room::claimForSeat(')
-wiring_checks += 2
+assert 'handTilesOverToSeat(seat, tiles)' in function(room_source, 'void Room::changeOwner(')
+assert 'changeOwner(seat);' in function(room_source, 'void Room::claimForSeat(')
+# A bridge no longer has a square by square hand over: it is taken as a whole through Room::claimForSeat
+assert 'Room::claimForSeat(seat, tile, danceRate)' in function(read('source/rooms/RoomBridge.cpp'), 'void RoomBridge::claimForSeat(')
+assert 'handTileOverToSeat' not in room_source
+assert 'mRoomsCaptured++' in function(read('source/rooms/RoomPortal.cpp'), 'void RoomPortal::changeOwner(')
+wiring_checks += 5
 
 change_seat = torture_source.index('creature.changeSeat(getSeat());')
 assert change_seat < torture_source.index('mCreaturesConverted++') < torture_source.index('creature.clearActionQueue();', change_seat)

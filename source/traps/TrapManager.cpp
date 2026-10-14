@@ -782,8 +782,34 @@ int32_t TrapManager::getNeededWorkshopPointsPerTrap(TrapType trapType)
             return ConfigManager::getSingleton().getTrapConfigInt32("SpikeWorkshopPointsPerTile");
         case TrapType::boulder:
             return ConfigManager::getSingleton().getTrapConfigInt32("BoulderWorkshopPointsPerTile");
+        case TrapType::fear:
+            return ConfigManager::getSingleton().getTrapConfigInt32("FearWorkshopPointsPerTile");
+        case TrapType::gas:
+            return ConfigManager::getSingleton().getTrapConfigInt32("GasWorkshopPointsPerTile");
+        case TrapType::lightning:
+            return ConfigManager::getSingleton().getTrapConfigInt32("LightningWorkshopPointsPerTile");
+        case TrapType::fireburst:
+            return ConfigManager::getSingleton().getTrapConfigInt32("FireburstWorkshopPointsPerTile");
+        case TrapType::freeze:
+            return ConfigManager::getSingleton().getTrapConfigInt32("FreezeWorkshopPointsPerTile");
+        case TrapType::watchBanner:
+            return ConfigManager::getSingleton().getTrapConfigInt32("WatchBannerWorkshopPointsPerTile");
         case TrapType::doorWooden:
             return ConfigManager::getSingleton().getTrapConfigInt32("WoodenDoorPointsPerTile");
+        case TrapType::doorIronbound:
+            return ConfigManager::getSingleton().getTrapConfigInt32("IronboundDoorPointsPerTile");
+        case TrapType::doorSteel:
+            return ConfigManager::getSingleton().getTrapConfigInt32("SteelDoorPointsPerTile");
+        case TrapType::doorBarricade:
+            return ConfigManager::getSingleton().getTrapConfigInt32("BarricadeDoorPointsPerTile");
+        case TrapType::alarm:
+            return ConfigManager::getSingleton().getTrapConfigInt32("AlarmWorkshopPointsPerTile");
+        case TrapType::trigger:
+            return ConfigManager::getSingleton().getTrapConfigInt32("TriggerWorkshopPointsPerTile");
+        case TrapType::doorSecret:
+            return ConfigManager::getSingleton().getTrapConfigInt32("SecretDoorPointsPerTile");
+        case TrapType::doorRuned:
+            return ConfigManager::getSingleton().getTrapConfigInt32("RunedDoorPointsPerTile");
         default:
             OD_LOG_ERR("Asked for wrong trap type=" + getTrapNameFromTrapType(trapType));
             break;

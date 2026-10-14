@@ -1309,7 +1309,14 @@ bool Tile::isGroundClaimable(Seat* seat) const
         return false;
 
     if(getCoveringBuilding() != nullptr)
-        return getCoveringBuilding()->isClaimable(seat);
+    {
+        if(!getCoveringBuilding()->isClaimable(seat))
+            return false;
+
+        // An enemy room is not taken while it is guarded or too dear for the taker
+        Room* room = getCoveringRoom();
+        return (room == nullptr) || !room->isTakeoverBlocked(seat, this);
+    }
 
     if(mType != TileType::dirt && mType != TileType::gold && mType != TileType::manaWell)
         return false;
@@ -1548,11 +1555,37 @@ void Tile::removeEntity(GameEntity *entity)
 
 void Tile::claimForSeat(Seat* seat, double nDanceRate)
 {
+    // The tile of a dungeon heart is never danced on, not even as plain ground
+    Room* heartRoom = getCoveringRoom();
+    if((heartRoom != nullptr) && (heartRoom->getType() == RoomType::dungeonTemple))
+    {
+        OD_LOG_WRN("Tile=" + displayAsString(this) + " belongs to a dungeon temple and cannot be claimed");
+        return;
+    }
+
     // If there is a claimable building, we claim it
     if((getCoveringBuilding() != nullptr) &&
         (getCoveringBuilding()->isClaimable(seat)))
     {
+        // The server decides: a guarded room is not worn down, and the taker pays
+        // for a room once it changes hands
+        Room* room = getCoveringRoom();
+        int32_t takeoverPrice = 0;
+        if(room != nullptr)
+        {
+            if(room->isTakeoverBlocked(seat, this))
+                return;
+
+            takeoverPrice = room->getTakeoverPrice();
+        }
+
+        Seat* ownerBefore = getCoveringBuilding()->getSeat();
         getCoveringBuilding()->claimForSeat(seat, this, nDanceRate);
+        if((takeoverPrice > 0) && (getCoveringBuilding() != nullptr) &&
+           (getCoveringBuilding()->getSeat() != ownerBefore))
+        {
+            getGameMap()->withdrawFromTreasuries(takeoverPrice, seat);
+        }
         return;
     }
 
@@ -1594,6 +1627,15 @@ void Tile::claimTile(Seat* seat)
     // Claim the tile.
     OD_LOG_INF(getGameMap()->serverStr() + "Tile=" + displayAsString(this)
         + " claimed by seat=" + Seat::displayAsString(seat));
+
+    // The server never lets a dungeon heart tile change owner
+    Room* heartRoom = getCoveringRoom();
+    if(getGameMap()->isServerGameMap() && (heartRoom != nullptr) &&
+       (heartRoom->getType() == RoomType::dungeonTemple) && (heartRoom->getSeat() != seat))
+    {
+        OD_LOG_WRN("Tile=" + displayAsString(this) + " belongs to a dungeon temple and cannot be claimed by seat=" + Seat::displayAsString(seat));
+        return;
+    }
 
     // We need this because if we are a client, the tile may be from a non allied seat
     setSeat(seat);

@@ -24,6 +24,7 @@
 #include "entities/Tile.h"
 #include "game/SkillManager.h"
 #include "game/Seat.h"
+#include "game/WorkerShare.h"
 #include "gamemap/GameMap.h"
 #include "gamemap/Pathfinding.h"
 #include "render/RenderManager.h"
@@ -51,6 +52,9 @@ const float BATTLE_TIME_COUNT = 10.0f;
 //! \brief Minimum distance to consider that a new event of the same type is in another place
 //! Note that the distance is squared (100 would mean 10 tiles)
 const int MIN_DIST_EVENT_SQUARED = 100;
+
+//! \brief Share (percent) of the counted workers that may reload traps when the trap config has no TrapReloadWorkerSharePercent
+static const double DEFAULT_RELOAD_WORKER_SHARE_PERCENT = 20.0;
 
 //! \brief The number of seconds the local player will not be notified again if the skill queue is empty
 const float NO_RESEARCH_TIME_COUNT = 60.0f;
@@ -1035,23 +1039,22 @@ std::vector<CreatureActionType> Player::getWorkerPreferredActions(Creature& work
     uint32_t nbWorkersClaimingGround = getNbWorkersDoing(CreatureActionType::searchGroundTileToClaim);
     uint32_t nbWorkersClaimingWall = getNbWorkersDoing(CreatureActionType::searchWallTileToClaim);
     uint32_t nbWorkersCarrying = getNbWorkersDoing(CreatureActionType::searchEntityToCarry);
+    // Workers reloading traps are counted in the total (own share, see isWorkerReloadShareOpen)
+    uint32_t nbWorkersReloading = getNbWorkersDoing(CreatureActionType::reloadTrap);
     // For the total number of workers, we consider only those doing something in the wanted list (and not
     // the ones fighting or having nothing to do) + the one we are considering
-    uint32_t nbWorkersTotal = nbWorkersDigging + nbWorkersClaimingGround
-            + nbWorkersClaimingWall + nbWorkersCarrying + 1;
+    uint32_t nbWorkersTotal = WorkerShare::totalWorkers(nbWorkersDigging, nbWorkersClaimingGround,
+            nbWorkersClaimingWall, nbWorkersCarrying, nbWorkersReloading);
 
-    double percent;
     bool isCarryAdded = false;
-    percent = static_cast<double>(nbWorkersCarrying) / static_cast<double>(nbWorkersTotal);
-    if(percent <= 0.2)
+    if(WorkerShare::isCarryFirst(nbWorkersCarrying, nbWorkersTotal))
     {
         isCarryAdded = true;
         ret.push_back(CreatureActionType::searchEntityToCarry);
     }
 
     bool isClaimWallAdded = false;
-    percent = static_cast<double>(nbWorkersDigging + nbWorkersClaimingGround) / static_cast<double>(nbWorkersTotal);
-    if(percent > 0.8)
+    if(WorkerShare::isClaimWallFirst(nbWorkersDigging, nbWorkersClaimingGround, nbWorkersTotal))
     {
         isClaimWallAdded = true;
         ret.push_back(CreatureActionType::searchWallTileToClaim);
@@ -1080,4 +1083,18 @@ std::vector<CreatureActionType> Player::getWorkerPreferredActions(Creature& work
         ret.push_back(CreatureActionType::searchEntityToCarry);
 
     return ret;
+}
+
+bool Player::isWorkerReloadShareOpen() const
+{
+    // Same counting as in getWorkerPreferredActions: the workers reloading traps may be at most the
+    // configured share (default 20%) of the workers doing the listed jobs + the one we are considering
+    uint32_t nbWorkersReloading = getNbWorkersDoing(CreatureActionType::reloadTrap);
+    uint32_t nbWorkersTotal = WorkerShare::totalWorkers(getNbWorkersDoing(CreatureActionType::searchTileToDig),
+            getNbWorkersDoing(CreatureActionType::searchGroundTileToClaim),
+            getNbWorkersDoing(CreatureActionType::searchWallTileToClaim),
+            getNbWorkersDoing(CreatureActionType::searchEntityToCarry), nbWorkersReloading);
+
+    double share = ConfigManager::getSingleton().getTrapConfigDoubleOrDefault("TrapReloadWorkerSharePercent", DEFAULT_RELOAD_WORKER_SHARE_PERCENT);
+    return WorkerShare::isReloadShareOpen(nbWorkersReloading, nbWorkersTotal, share);
 }
