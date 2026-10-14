@@ -70,7 +70,7 @@ struct SeatStatistics
     uint32_t mGoldTilesMined;
     //! \brief Creatures that came through a portal of this seat (sandbox score only)
     uint32_t mCreaturesEntered;
-    //! rief Times a trap of this seat fired (sandbox bonus objectives only)
+    //! \brief Times a trap of this seat fired (sandbox bonus objectives only)
     uint32_t mTrapsFired;
 };
 
