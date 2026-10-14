@@ -24,6 +24,13 @@
 //! game state so that they can be checked on their own (see source/tests/check_worker_share.py).
 namespace WorkerShare
 {
+    //! \brief Carrying is tried first as long as the carrying share of the counted workers is at most this
+    static const double CARRY_FIRST_MAX_SHARE = 0.2;
+    //! \brief Claiming walls is tried first when the digging and ground claiming share is above this
+    static const double CLAIM_WALL_FIRST_MIN_SHARE = 0.8;
+    //! \brief Divisor that turns a share given in percent into a fraction
+    static const double PERCENT_DIVISOR = 100.0;
+
     //! \brief The workers that count for the shares: those doing one of the listed jobs
     //! (digging, claiming ground, claiming walls, carrying, reloading traps) plus the one
     //! that is choosing a job.
@@ -37,7 +44,7 @@ namespace WorkerShare
     inline bool isCarryFirst(uint32_t nbCarrying, uint32_t nbTotal)
     {
         double percent = static_cast<double>(nbCarrying) / static_cast<double>(nbTotal);
-        return percent <= 0.2;
+        return percent <= CARRY_FIRST_MAX_SHARE;
     }
 
     //! \brief Claiming walls is tried first when more than 80% of the counted workers dig or
@@ -45,7 +52,7 @@ namespace WorkerShare
     inline bool isClaimWallFirst(uint32_t nbDigging, uint32_t nbClaimingGround, uint32_t nbTotal)
     {
         double percent = static_cast<double>(nbDigging + nbClaimingGround) / static_cast<double>(nbTotal);
-        return percent > 0.8;
+        return percent > CLAIM_WALL_FIRST_MIN_SHARE;
     }
 
     //! \brief Whether one more worker may reload a trap: the first one always may, then the
@@ -56,7 +63,7 @@ namespace WorkerShare
             return true;
 
         double percent = static_cast<double>(nbReloading) / static_cast<double>(nbTotal);
-        return percent <= sharePercent / 100.0;
+        return percent <= sharePercent / PERCENT_DIVISOR;
     }
 }
 
