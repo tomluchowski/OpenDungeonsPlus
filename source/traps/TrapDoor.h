@@ -26,20 +26,31 @@ class DoorEntity;
 class TrapDoor : public Trap
 {
 public:
-    TrapDoor(GameMap* gameMap);
+    //! \brief Creates a door of the given type.
+    //! \param doorType One of the door trap types (wooden, ironbound, steel, barricade, secret or runed).
+    TrapDoor(GameMap* gameMap, TrapType doorType);
 
     static const std::string ANIMATION_OPEN;
     static const std::string ANIMATION_CLOSE;
 
+    //! \brief The type of this door.
     const TrapType getType() const override
-    { return TrapType::doorWooden; }
+    { return mDoorType; }
+
+    //! \brief Health given to each tile of a newly built door, depending on the door type.
+    double getDefaultTileHP() const override;
 
     bool isDoor() const override
     { return true; }
 
-    // We return true to make sure every creature with vision on the door tile can see it
-    bool shoot(Tile* tile) override
-    { return true; }
+    //! \brief Doors return true to make sure every creature with vision on the door tile can see it.
+    //! A secret door is only seen when a creature of its owner stands on it. A runed door also burns
+    //! the enemies standing on it and then has to recharge.
+    bool shoot(Tile* tile) override;
+
+    //! \brief The runed door pays its mana itself when it fires (see shoot), not on every upkeep.
+    double getManaToFire() const override
+    { return 0.0; }
 
     void doUpkeep() override;
 
@@ -63,23 +74,29 @@ public:
 
     bool permitsVision(Tile* tile) override;
 
+    //! \brief A secret door looks like a wall to every seat that has not seen a creature of the owner
+    //! (or of an ally) pass through it. All other doors are always seen as doors.
+    bool appearsAsWallForSeat(Tile* tile, Seat* seat) const override;
+
     //! Returns true if tiles North and South (or east and west) are suitable to have a door on the
     //! given tile
     static bool canDoorBeOnTile(GameMap* gameMap, Tile* tile);
 
     static bool buildTrapOnTile(GameMap* gameMap, Player* player, Tile* tile);
 
-    static const TrapType mTrapType;
-
 protected:
     void exportToStream(std::ostream& os) const override;
     bool importFromStream(std::istream& is) override;
 
 private:
+    //! \brief Type of this door (wooden, ironbound, steel, barricade, secret or runed)
+    TrapType mDoorType;
     //! \brief Wanted state for the door (changes when the player slaps the door)
     bool mIsLocked;
     //! \brief Current state of the door
     bool mIsLockedState;
+    //! \brief Turns left before a runed door can fire again
+    uint32_t mFireCooldownTurns;
 
     void changeDoorState(DoorEntity* doorEntity, Tile* tile, bool locked);
 };

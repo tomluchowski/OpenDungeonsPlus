@@ -137,6 +137,14 @@ std::string ClientNotification::typeString(ClientNotificationType type)
             return "askTrapProductionQueue";
         case ClientNotificationType::askMoveTrapProductionOrder:
             return "askMoveTrapProductionOrder";
+        case ClientNotificationType::askPossessMove:
+            return "askPossessMove";
+        case ClientNotificationType::askPossessExit:
+            return "askPossessExit";
+        case ClientNotificationType::askPossessAttack:
+            return "askPossessAttack";
+        case ClientNotificationType::askPossessSkill:
+            return "askPossessSkill";
         case ClientNotificationType::editorRegionEdit:
             return "editorRegionEdit";
         default:

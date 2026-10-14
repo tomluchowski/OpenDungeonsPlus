@@ -257,9 +257,11 @@ set(OD_SOURCEFILES
     ${SRC}/creatureaction/CreatureActionGetFee.cpp
     ${SRC}/creatureaction/CreatureActionGoCallToWar.cpp
     ${SRC}/creatureaction/CreatureActionGoDefendHeart.cpp
+    ${SRC}/creatureaction/CreatureActionWatchBanner.cpp
     ${SRC}/creatureaction/CreatureActionGrabEntity.cpp
     ${SRC}/creatureaction/CreatureActionLeaveDungeon.cpp
     ${SRC}/creatureaction/CreatureActionParkToTile.cpp
+    ${SRC}/creatureaction/CreatureActionReloadTrap.cpp
     ${SRC}/creatureaction/CreatureActionSearchEntityToCarry.cpp
     ${SRC}/creatureaction/CreatureActionSearchFood.cpp
     ${SRC}/creatureaction/CreatureActionSearchGroundTileToClaim.cpp
@@ -270,30 +272,46 @@ set(OD_SOURCEFILES
     ${SRC}/creatureaction/CreatureActionStealFreeGold.cpp
     ${SRC}/creatureaction/CreatureActionUseRoom.cpp
     ${SRC}/creatureaction/CreatureActionWalkToTile.cpp
+    ${SRC}/creatureaction/CreatureActionPossessed.cpp
 
     ${SRC}/creaturebehaviour/CreatureBehaviour.cpp
     ${SRC}/creaturebehaviour/CreatureBehaviourAttackEnemy.cpp
     ${SRC}/creaturebehaviour/CreatureBehaviourEngageNaturalEnemy.cpp
+    ${SRC}/creaturebehaviour/CreatureBehaviourFleeWhenOutmatched.cpp
     ${SRC}/creaturebehaviour/CreatureBehaviourFleeWhenWeak.cpp
     ${SRC}/creaturebehaviour/CreatureBehaviourLeaveDungeonWhenFurious.cpp
     ${SRC}/creaturebehaviour/CreatureBehaviourManager.cpp
 
     ${SRC}/creatureeffect/CreatureEffect.cpp
+    ${SRC}/creatureeffect/CreatureEffectBurn.cpp
+    ${SRC}/creatureeffect/CreatureEffectDefector.cpp
     ${SRC}/creatureeffect/CreatureEffectDefense.cpp
     ${SRC}/creatureeffect/CreatureEffectDigTile.cpp
     ${SRC}/creatureeffect/CreatureEffectExplosion.cpp
+    ${SRC}/creatureeffect/CreatureEffectFrozen.cpp
     ${SRC}/creatureeffect/CreatureEffectHeal.cpp
+    ${SRC}/creatureeffect/CreatureEffectHexenHen.cpp
+    ${SRC}/creatureeffect/CreatureEffectInvisible.cpp
     ${SRC}/creatureeffect/CreatureEffectManager.cpp
     ${SRC}/creatureeffect/CreatureEffectSlap.cpp
     ${SRC}/creatureeffect/CreatureEffectSpeedChange.cpp
     ${SRC}/creatureeffect/CreatureEffectStrengthChange.cpp
+    ${SRC}/creatureeffect/CreatureEffectAreaDamage.cpp
+    ${SRC}/creatureeffect/CreatureEffectTemporary.cpp
 
     ${SRC}/creaturemood/CreatureMood.cpp
     ${SRC}/creaturemood/CreatureMoodWakefulness.cpp
     ${SRC}/creaturemood/CreatureMoodCreature.cpp
     ${SRC}/creaturemood/CreatureMoodFee.cpp
     ${SRC}/creaturemood/CreatureMoodHunger.cpp
+    ${SRC}/creaturemood/CreatureMoodHeldInHand.cpp
     ${SRC}/creaturemood/CreatureMoodHpLoss.cpp
+    ${SRC}/creaturemood/CreatureMoodNoLair.cpp
+    ${SRC}/creaturemood/CreatureMoodOutOfWork.cpp
+    ${SRC}/creaturemood/CreatureMoodSlapped.cpp
+    ${SRC}/creaturemood/CreatureMoodTortured.cpp
+    ${SRC}/creaturemood/CreatureMoodRested.cpp
+    ${SRC}/creaturemood/CreatureMoodHatedCompany.cpp
     ${SRC}/creaturemood/CreatureMoodManager.cpp
     ${SRC}/creaturemood/CreatureMoodTurnsWithoutFight.cpp
 
@@ -306,8 +324,19 @@ set(OD_SOURCEFILES
     ${SRC}/creatureskill/CreatureSkillMeleeFight.cpp
     ${SRC}/creatureskill/CreatureSkillMissileLaunch.cpp
     ${SRC}/creatureskill/CreatureSkillSlow.cpp
+    ${SRC}/creatureskill/CreatureSkillFreeze.cpp
+    ${SRC}/creatureskill/CreatureSkillDrain.cpp
+    ${SRC}/creatureskill/CreatureSkillInvisible.cpp
     ${SRC}/creatureskill/CreatureSkillStrengthSelf.cpp
     ${SRC}/creatureskill/CreatureSkillWeak.cpp
+    ${SRC}/creatureskill/CreatureSkillWhirlwind.cpp
+    ${SRC}/creatureskill/CreatureSkillTeleport.cpp
+    ${SRC}/creatureskill/CreatureSkillAreaDamage.cpp
+    ${SRC}/creatureskill/CreatureSkillGuidedBolt.cpp
+    ${SRC}/creatureskill/CreatureSkillGrenade.cpp
+    ${SRC}/creatureskill/CreatureSkillSummon.cpp
+    ${SRC}/creatureskill/CreatureSkillRaiseDead.cpp
+    ${SRC}/creatureskill/CreatureSkillSkeletonArmy.cpp
 
     ${SRC}/entities/Building.cpp
     ${SRC}/entities/BuildingObject.cpp
@@ -322,6 +351,7 @@ set(OD_SOURCEFILES
     ${SRC}/entities/GiftBoxEntity.cpp
     ${SRC}/entities/MapLight.cpp
     ${SRC}/entities/MissileBoulder.cpp
+    ${SRC}/entities/MissileBlast.cpp
     ${SRC}/entities/MissileObject.cpp
     ${SRC}/entities/MissileOneHit.cpp
     ${SRC}/entities/MovableGameEntity.cpp
@@ -476,7 +506,9 @@ set(OD_SOURCEFILES
     ${SRC}/spawnconditions/SpawnConditionRoom.cpp
 
     ${SRC}/spells/Spell.cpp
+    ${SRC}/spells/SpellArea.cpp
     ${SRC}/spells/SpellCallToWar.cpp
+    ${SRC}/spells/SpellCreateGold.cpp
     ${SRC}/spells/SpellCreatureDefense.cpp
     ${SRC}/spells/SpellCreatureExplosion.cpp
     ${SRC}/spells/SpellCreatureHaste.cpp
@@ -484,18 +516,33 @@ set(OD_SOURCEFILES
     ${SRC}/spells/SpellCreatureSlow.cpp
     ${SRC}/spells/SpellCreatureStrength.cpp
     ${SRC}/spells/SpellCreatureWeak.cpp
+    ${SRC}/spells/SpellDefector.cpp
     ${SRC}/spells/SpellEyeEvil.cpp
+    ${SRC}/spells/SpellHexenHen.cpp
+    ${SRC}/spells/SpellInferno.cpp
+    ${SRC}/spells/SpellLightning.cpp
+    ${SRC}/spells/SpellPossess.cpp
     ${SRC}/spells/SpellManager.cpp
+    ${SRC}/spells/SpellSummonChampion.cpp
     ${SRC}/spells/SpellSummonWorker.cpp
+    ${SRC}/spells/SpellTremor.cpp
     ${SRC}/spells/SpellType.cpp
 
     ${SRC}/traps/Trap.cpp
+    ${SRC}/traps/TrapAlarm.cpp
     ${SRC}/traps/TrapBoulder.cpp
     ${SRC}/traps/TrapCannon.cpp
     ${SRC}/traps/TrapDoor.cpp
+    ${SRC}/traps/TrapFear.cpp
+    ${SRC}/traps/TrapFireburst.cpp
+    ${SRC}/traps/TrapFreeze.cpp
+    ${SRC}/traps/TrapGas.cpp
+    ${SRC}/traps/TrapLightning.cpp
     ${SRC}/traps/TrapManager.cpp
     ${SRC}/traps/TrapSpike.cpp
+    ${SRC}/traps/TrapTrigger.cpp
     ${SRC}/traps/TrapType.cpp
+    ${SRC}/traps/TrapWatchBanner.cpp
 
     ${SRC}/utils/ConfigManager.cpp
     ${SRC}/utils/FrameRateLimiter.cpp

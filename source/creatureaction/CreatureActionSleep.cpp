@@ -73,6 +73,9 @@ bool CreatureActionSleep::handleSleep(Creature& creature, int32_t nbTurnsActive)
             creature.setAnimationState(EntityAnimation::sleep_anim, false, dormitory->getSleepDirection(&creature), false);
         }
 
+        // Sleeping in the lair relieves the mood
+        creature.markRested();
+
         // Improve wakefulness
         Room* sleepingRoom = creature.getHomeTile()->getCoveringRoom();
         const Seat* sleepingSeat = sleepingRoom == nullptr ? nullptr : sleepingRoom->getSeat();

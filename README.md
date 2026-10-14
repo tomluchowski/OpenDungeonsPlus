@@ -40,7 +40,9 @@ Creatures route through usable gaps around solid room furniture, including corne
 
 The hand holds a pointer-aligned hammer while building rooms, traps and doors; an eligible build request reuses the digging hand angle and strike movement.
 
-Press Alt to toggle creature health and needs indicators on or off.
+Creature health and needs indicators are visible by default; press Alt to toggle
+them, and zoom in to enlarge their level, experience and attack-recovery display.
+Depleted health segments disappear so creatures remain visible through the gaps.
 
 After thirty seconds without input, the empty hand randomly checks a wristwatch or plays with a yo-yo while retaining its normal angle; the index finger follows each yo-yo pull, and any input immediately returns the hand to the current action.
 

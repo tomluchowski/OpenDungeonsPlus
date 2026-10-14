@@ -133,7 +133,7 @@ bool TrapSpike::shoot(Tile* tile)
     std::vector<Tile*> visibleTiles;
     visibleTiles.push_back(tile);
     std::vector<GameEntity*> enemyCreatures = getGameMap()->getVisibleCreatures(visibleTiles, getSeat(), true);
-    if(enemyCreatures.empty())
+    if(enemyCreatures.empty() && !mForcedTrigger)
         return false;
 
     RenderedMovableEntity* spike = getBuildingObjectFromTile(tile);

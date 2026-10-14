@@ -60,7 +60,7 @@ const float FONT_DESIGN_HEIGHT = 600.0f;
 
 void createHandFeedbackImage()
 {
-    // Original project artwork: the reference's prohibition shape, without copied assets.
+    // Project artwork: a prohibition shape, without copied assets.
     const int size = 64;
     std::vector<unsigned char> pixels(size * size * 4, 0);
     for(int y = 0; y < size; ++y)
@@ -1129,14 +1129,19 @@ void Gui::arrangeRoomButtons(CEGUI::Window* rooms)
 void Gui::arrangeTrapButtons(CEGUI::Window* traps)
 {
     traps->getChild("DestroyTrapButton")->hide();
-    arrangeActionButtons(traps, {"WoodenDoorTrapButton", "CannonButton", "SpikeTrapButton", "BoulderTrapButton"});
+    arrangeActionButtons(traps, {"WoodenDoorTrapButton", "IronboundDoorTrapButton", "SteelDoorTrapButton",
+        "BarricadeTrapButton", "SecretDoorTrapButton", "RunedDoorTrapButton", "CannonButton", "SpikeTrapButton",
+        "BoulderTrapButton", "AlarmTrapButton", "FearTrapButton", "GasTrapButton", "LightningTrapButton", "FireburstTrapButton",
+        "FreezeTrapButton", "WatchBannerTrapButton", "TriggerTrapButton"});
 }
 
 void Gui::arrangeSpellButtons(CEGUI::Window* spells)
 {
     arrangeActionButtons(spells, {"SummonWorkerButton", "CallToWarButton", "CreatureHealButton",
         "CreatureExplosionButton", "CreatureHasteButton", "CreatureDefenseButton", "CreatureSlowButton",
-        "CreatureStrengthButton", "CreatureWeakButton", "SpellEyeEvilButton"});
+        "CreatureStrengthButton", "CreatureWeakButton", "SpellEyeEvilButton", "CreateGoldButton",
+        "LightningButton", "TremorButton", "DefectorButton",
+        "HexenHenButton", "InfernoButton", "PossessButton", "SummonChampionButton"});
 }
 
 void Gui::arrangeActionButtons(CEGUI::Window* panel, std::initializer_list<const char*> names)

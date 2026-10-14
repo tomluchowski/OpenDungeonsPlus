@@ -136,6 +136,20 @@ const std::string DEFEAT_FIRST_SUBTITLE = "Your dungeon heart has been destroyed
 const std::string DEFEAT_SECOND_SUBTITLE = "That's it for today. Until next time.";
 const std::string DEFEAT_DEBRIEFING_ELAPSED = "Time elapsed: ";
 
+//! \brief Skill slots sent to the server when the possession keys 1 to 4 are pressed
+const uint32_t POSSESSION_SKILL_SLOT_FIRST = 0;
+const uint32_t POSSESSION_SKILL_SLOT_SECOND = 1;
+const uint32_t POSSESSION_SKILL_SLOT_THIRD = 2;
+const uint32_t POSSESSION_SKILL_SLOT_FOURTH = 3;
+//! \brief Squared length below which the possession movement direction counts as "not moving"
+const float POSSESSION_MIN_DIRECTION_SQUARED_LENGTH = 0.0001f;
+//! \brief Dot product of the old and the new movement direction below which the direction counts as changed
+const float POSSESSION_DIRECTION_CHANGE_DOT = 0.99f;
+//! \brief Seconds after which the current movement direction is sent again while the player keeps moving
+const float POSSESSION_MOVE_RESEND_SECONDS = 0.5f;
+//! \brief Minimum seconds between two sent changes of the movement direction
+const float POSSESSION_MOVE_MIN_SEND_SECONDS = 0.1f;
+
 static double getAutoscrollIntensity(int mousePosition, int screenSize, bool minimumEdge)
 {
     if(screenSize <= 1)
@@ -166,6 +180,7 @@ GameMode::GameMode(ModeManager *modeManager):
     mIndexEvent(0),
     mSettings(mRootWindow, modeManager->getGui(), false, true),
     mIsSkillWindowOpen(false),
+    mIsLibraryLostShown(false),
     mCurrentSkillType(SkillType::nullSkillType),
     mCurrentSkillProgress(0.0),
     mPreviousMousePosition(MouseMoveEvent{0, 0}),
@@ -602,6 +617,18 @@ bool GameMode::mouseMoved(const OIS::MouseEvent &arg)
     if (!isConnected())
         return true;
 
+    // While the player controls a creature, the mouse only turns its view
+    if (isLocalPlayerPossessing())
+    {
+        CameraManager* possessionCamera = ODFrameListener::getSingleton().getCameraManager();
+        if(possessionCamera != nullptr)
+        {
+            possessionCamera->possessionLook(
+                static_cast<Ogre::Real>(arg.state.X.rel), static_cast<Ogre::Real>(arg.state.Y.rel));
+        }
+        return true;
+    }
+
     InputManager& inputManager = mModeManager->getInputManager();
     inputManager.mCommandState = (inputManager.mLMouseDown ? InputCommandState::building : InputCommandState::infoOnly);
 
@@ -812,6 +839,17 @@ bool GameMode::mousePressed(const OIS::MouseEvent& arg, OIS::MouseButtonID id)
             log = false;
             OD_LOG_ERR("LOCAL PLAYER DOES NOT EXIST!!");
         }
+        return true;
+    }
+
+    // While the player controls a creature, the right button makes him leave it
+    if (isLocalPlayerPossessing())
+    {
+        if (id == OIS::MB_Right)
+            sendPossessionExit();
+        else if (id == OIS::MB_Left)
+            sendPossessionAttack();
+
         return true;
     }
 
@@ -1070,6 +1108,10 @@ bool GameMode::mouseReleased(const OIS::MouseEvent &arg, OIS::MouseButtonID id)
         return true;
     }
 
+    // While the player controls a creature, the left button is used for its attack only
+    if (isLocalPlayerPossessing())
+        return true;
+
     if (id != OIS::MB_Left)
         return true;
 
@@ -1160,6 +1202,8 @@ bool GameMode::keyPressedNormal(const OIS::KeyEvent &arg)
             closeMap();
         return true;
     }
+    if (isLocalPlayerPossessing() && handlePossessionKey(arg.key, true))
+        return true;
 
     switch (arg.key)
     {
@@ -1368,10 +1412,10 @@ void GameMode::refreshMainUI()
     // the net of both
     tempSS.str("");
     tempSS << "+" << static_cast<long>(mySeat->getManaIncomePerSecond())
-        << " / -" << static_cast<long>(mySeat->getManaUpkeepPerSecond());
+        << " / -" << static_cast<long>(mySeat->getManaUpkeepPerSecond() + mySeat->getManaOneOffPerSecond());
     widget->getChild("Change")->setText(tempSS.str());
     widget->getChild("Change")->setProperty("TextColours",
-        mySeat->getManaIncomePerSecond() >= mySeat->getManaUpkeepPerSecond() ? "FF7FE3A6" : "FFFF4848");
+        mySeat->getManaIncomePerSecond() >= mySeat->getManaUpkeepPerSecond() + mySeat->getManaOneOffPerSecond() ? "FF7FE3A6" : "FFFF4848");
     unsigned int workers = 0;
     unsigned int fighters = 0;
     for(Creature* creature : mGameMap->getCreaturesBySeat(mySeat))
@@ -1418,6 +1462,9 @@ bool GameMode::keyReleased(const OIS::KeyEvent &arg)
 bool GameMode::keyReleasedNormal(const OIS::KeyEvent &arg)
 {
     ODFrameListener& frameListener = ODFrameListener::getSingleton();
+
+    if (isLocalPlayerPossessing() && handlePossessionKey(arg.key, false))
+        return true;
 
     switch (arg.key)
     {
@@ -1770,6 +1817,8 @@ void GameMode::onFrameStarted(const Ogre::FrameEvent& evt)
         if(!heartIcon->isUserStringDefined("ContextHelp") || heartIcon->getUserString("ContextHelp") != heartText.str())
             heartIcon->setUserString("ContextHelp", heartText.str());
     }
+
+    updatePossessionInput(evt.timeSinceLastFrame);
 
     // After frameStarted, so that the countdown shown is the one just computed.
     refreshActionFeedback(evt.timeSinceLastFrame);
@@ -3080,12 +3129,16 @@ void GameMode::refreshSkillButtonState(const std::string& skillButtonName, const
         skillProgressBar->hide();
     }
     guiSheet->getChild(castButtonName)->setVisible(level > 0 || !isAllowed);
+    const bool isLockedByLibrary = SkillManager::isLockedByLostLibrary(resType, localPlayerSeat);
+    guiSheet->getChild(castButtonName)->setEnabled(!isLockedByLibrary);
     const std::string levelText = level == 0 ? "0" : (level == 1 ? "I" : (level == 2 ? "II" : "III"));
     skillButton->setText(levelText + (queueNumber > 0 ? "\n" + Helper::toString(queueNumber) : ""));
     std::string description = Skills::skillTypeToPlayerVisibleString(resType) + " - level " +
         Helper::toString(level) + "/3";
     if(!isAllowed)
         description += "\nUnavailable on this map.";
+    else if(isLockedByLibrary)
+        description += "\nCannot be cast: the library was lost.";
     else if(level >= 3)
         description += "\nMaximum level. " + SkillManager::getResearchDescription(resType, level);
     else
@@ -3113,6 +3166,13 @@ void GameMode::refreshGuiSkill(bool forceRefresh)
        ((mCurrentSkillType != curResType) ||
         (mCurrentSkillProgress != curSkillProgress)))
     {
+        forceRefresh = true;
+    }
+
+    // Losing or regaining the library locks or unlocks the spells
+    if(mIsLibraryLostShown != localPlayerSeat->isLibraryLost())
+    {
+        mIsLibraryLostShown = localPlayerSeat->isLibraryLost();
         forceRefresh = true;
     }
 
@@ -3437,6 +3497,189 @@ void GameMode::displayPointerText(const Ogre::ColourValue& txtColour, const std:
     TextRenderer& textRenderer = TextRenderer::getSingleton();
     textRenderer.setColor(ODApplication::POINTER_INFO_STRING, txtColour);
     textRenderer.setText(ODApplication::POINTER_INFO_STRING, txt);
+}
+
+bool GameMode::isLocalPlayerPossessing()
+{
+    Player* player = mGameMap->getLocalPlayer();
+    if (player == nullptr)
+        return false;
+
+    return player->isPossessing();
+}
+
+bool GameMode::handlePossessionKey(OIS::KeyCode key, bool pressed)
+{
+    switch (key)
+    {
+    case OIS::KC_W:
+    case OIS::KC_UP:
+        mPossessKeyForward = pressed;
+        return true;
+
+    case OIS::KC_S:
+    case OIS::KC_DOWN:
+        mPossessKeyBackward = pressed;
+        return true;
+
+    case OIS::KC_A:
+    case OIS::KC_LEFT:
+        mPossessKeyLeft = pressed;
+        return true;
+
+    case OIS::KC_D:
+    case OIS::KC_RIGHT:
+        mPossessKeyRight = pressed;
+        return true;
+
+    // The exit key. It is the same as the right mouse button
+    case OIS::KC_ESCAPE:
+        if (pressed)
+            sendPossessionExit();
+        return true;
+
+    // The creature skills (other than its attack, which is on the left mouse button)
+    case OIS::KC_1:
+        if (pressed)
+            sendPossessionSkill(POSSESSION_SKILL_SLOT_FIRST);
+        return true;
+
+    case OIS::KC_2:
+        if (pressed)
+            sendPossessionSkill(POSSESSION_SKILL_SLOT_SECOND);
+        return true;
+
+    case OIS::KC_3:
+        if (pressed)
+            sendPossessionSkill(POSSESSION_SKILL_SLOT_THIRD);
+        return true;
+
+    case OIS::KC_4:
+        if (pressed)
+            sendPossessionSkill(POSSESSION_SKILL_SLOT_FOURTH);
+        return true;
+
+    // These keys move the RTS camera, which is not used while possessing
+    case OIS::KC_Q:
+    case OIS::KC_E:
+    case OIS::KC_HOME:
+    case OIS::KC_END:
+    case OIS::KC_PGUP:
+    case OIS::KC_PGDOWN:
+    case OIS::KC_T:
+    case OIS::KC_V:
+    case OIS::KC_SPACE:
+    case OIS::KC_5:
+    case OIS::KC_6:
+    case OIS::KC_7:
+    case OIS::KC_8:
+    case OIS::KC_9:
+    case OIS::KC_0:
+        return true;
+
+    default:
+        return false;
+    }
+}
+
+void GameMode::updatePossessionInput(float timeSinceLastFrame)
+{
+    if (!isLocalPlayerPossessing())
+        return;
+
+    // The movement keys are relative to where the player looks
+    CameraManager* cameraManager = ODFrameListener::getSingleton().getCameraManager();
+    if (cameraManager == nullptr)
+        return;
+
+    Ogre::Real yaw = cameraManager->getPossessionYaw();
+    Ogre::Vector2 forward = getPossessionAim();
+    Ogre::Vector2 right(Ogre::Math::Cos(yaw), Ogre::Math::Sin(yaw));
+    Ogre::Vector2 direction = Ogre::Vector2::ZERO;
+    if (mPossessKeyForward)
+        direction += forward;
+    if (mPossessKeyBackward)
+        direction -= forward;
+    if (mPossessKeyRight)
+        direction += right;
+    if (mPossessKeyLeft)
+        direction -= right;
+
+    bool isMoving = (direction.squaredLength() > POSSESSION_MIN_DIRECTION_SQUARED_LENGTH);
+    if (isMoving)
+        direction.normalise();
+    else
+        direction = Ogre::Vector2::ZERO;
+
+    mPossessTimeSinceSent += timeSinceLastFrame;
+
+    // The server walks the creature toward a point a few tiles away, so we have to keep sending
+    // the direction while the player moves. A stop is sent at once, a change of direction at most
+    // ten times per second.
+    bool wasMoving = (mPossessLastDirection.squaredLength() > POSSESSION_MIN_DIRECTION_SQUARED_LENGTH);
+    bool hasChanged = (isMoving != wasMoving) ||
+        (isMoving && (direction.dotProduct(mPossessLastDirection) < POSSESSION_DIRECTION_CHANGE_DOT));
+    if (!hasChanged && !(isMoving && (mPossessTimeSinceSent > POSSESSION_MOVE_RESEND_SECONDS)))
+        return;
+
+    if (hasChanged && isMoving && (mPossessTimeSinceSent < POSSESSION_MOVE_MIN_SEND_SECONDS))
+        return;
+
+    mPossessLastDirection = direction;
+    mPossessTimeSinceSent = 0.0f;
+    ClientNotification* clientNotification = new ClientNotification(ClientNotificationType::askPossessMove);
+    clientNotification->mPacket << direction;
+    ODClient::getSingleton().queueClientNotification(clientNotification);
+}
+
+Ogre::Vector2 GameMode::getPossessionAim()
+{
+    CameraManager* cameraManager = ODFrameListener::getSingleton().getCameraManager();
+    if (cameraManager == nullptr)
+        return Ogre::Vector2::ZERO;
+
+    Ogre::Real yaw = cameraManager->getPossessionYaw();
+    return Ogre::Vector2(-Ogre::Math::Sin(yaw), Ogre::Math::Cos(yaw));
+}
+
+void GameMode::sendPossessionAttack()
+{
+    ClientNotification* clientNotification = new ClientNotification(ClientNotificationType::askPossessAttack);
+    clientNotification->mPacket << getPossessionAim();
+    ODClient::getSingleton().queueClientNotification(clientNotification);
+}
+
+void GameMode::sendPossessionSkill(uint32_t slot)
+{
+    ClientNotification* clientNotification = new ClientNotification(ClientNotificationType::askPossessSkill);
+    clientNotification->mPacket << slot << getPossessionAim();
+    ODClient::getSingleton().queueClientNotification(clientNotification);
+}
+
+void GameMode::sendPossessionExit()
+{
+    ODClient::getSingleton().queueClientNotification(ClientNotificationType::askPossessExit);
+}
+
+void GameMode::notifyPossessionStarted()
+{
+    notifyPossessionEnded();
+
+    // The spell has been cast, we do not want to cast it again
+    mPlayerSelection.setCurrentAction(SelectedAction::none);
+    unselectAllTiles();
+    TextRenderer::getSingleton().setText(ODApplication::POINTER_INFO_STRING, "");
+}
+
+void GameMode::notifyPossessionEnded()
+{
+    mPossessKeyForward = false;
+    mPossessKeyBackward = false;
+    mPossessKeyLeft = false;
+    mPossessKeyRight = false;
+    mPossessLastDirection = Ogre::Vector2::ZERO;
+    mPossessTimeSinceSent = 0.0f;
+    directionKeyPressed = false;
 }
 
 void GameMode::checkInputCommand()

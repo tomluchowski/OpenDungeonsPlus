@@ -21,6 +21,7 @@
 #include "rooms/Room.h"
 #include "rooms/RoomType.h"
 
+#include <cstdint>
 #include <map>
 
 class Creature;
@@ -29,7 +30,8 @@ enum class TileVisual;
 
 //! \brief A room where fighters stand guard. Each guard keeps to its own tile of the room
 //! and only leaves it when it is hungry, sleepy, has to get its fee or has to fight. Enemies
-//! seen by a guard are attacked through the normal creature behaviour.
+//! seen by a guard are attacked through the normal creature behaviour. After a while on duty a
+//! guard patrols to a watch banner of its keeper and stays there for some time.
 class RoomGuardRoom: public Room
 {
 public:
@@ -44,7 +46,8 @@ public:
     bool hasOpenCreatureSpot(Creature* c) override;
     //! \brief Frees the post of the creature when it stops using the room.
     void removeCreatureUsingRoom(Creature* c) override;
-    //! \brief One duty turn of a guard: it walks to its post and stands there watching.
+    //! \brief One duty turn of a guard: it walks to its post and stands there watching. After a while on
+    //! duty it patrols to a free watch banner instead.
     //! \return Always false, the guard never continues with other room actions in the same turn.
     bool useRoom(Creature& creature, bool forced) override;
 
@@ -56,6 +59,8 @@ private:
     Tile* getPostForCreature(Creature& creature);
 
     std::map<Creature*, Tile*> mGuardPosts;
+    //! \brief Turn from which a guard patrols to a watch banner
+    std::map<Creature*, int64_t> mNextPatrolTurn;
 };
 
 #endif // ROOMGUARDROOM_H
