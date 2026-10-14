@@ -20,6 +20,9 @@
 
 #include "creatureeffect/CreatureEffect.h"
 
+#include <cstdint>
+#include <string>
+
 //! \brief Marks a creature that is paralysed by the Freeze trap. While the effect is active,
 //! the creature can neither move nor fight (see Creature::isFrozen).
 class CreatureEffectFrozen : public CreatureEffect
