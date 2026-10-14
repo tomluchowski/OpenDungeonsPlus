@@ -21,6 +21,9 @@
 #include "spells/Spell.h"
 #include "spells/SpellType.h"
 
+#include <vector>
+
+class Creature;
 class GameMap;
 class InputCommand;
 class InputManager;
@@ -30,6 +33,8 @@ class SpellCreatureHeal : public Spell
 public:
     static void checkSpellCast(GameMap* gameMap, const InputManager& inputManager, InputCommand& inputCommand);
     static bool castSpell(GameMap* gameMap, Player* player, ODPacket& packet);
+    //! \brief Server side: heals the given creatures (as many as the mana allows). Used by the AI too.
+    static bool castSpellOnCreatures(GameMap* gameMap, Player* player, std::vector<Creature*>& creatures);
 
     static Spell* getSpellFromStream(GameMap* gameMap, std::istream &is);
     static Spell* getSpellFromPacket(GameMap* gameMap, ODPacket &is);

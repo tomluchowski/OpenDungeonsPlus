@@ -232,6 +232,11 @@ bool SpellCreatureHeal::castSpell(GameMap* gameMap, Player* player, ODPacket& pa
     if(creatures.empty())
         return false;
 
+    return castSpellOnCreatures(gameMap, player, creatures);
+}
+
+bool SpellCreatureHeal::castSpellOnCreatures(GameMap* gameMap, Player* player, std::vector<Creature*>& creatures)
+{
     int32_t pricePerTarget = ConfigManager::getSingleton().getSpellConfigInt32("CreatureHealPrice");
     int32_t playerMana = static_cast<int32_t>(player->getSeat()->getMana());
     uint32_t nbTargets = std::min(static_cast<uint32_t>(playerMana / pricePerTarget), static_cast<uint32_t>(creatures.size()));

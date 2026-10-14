@@ -25,12 +25,19 @@ namespace AIFactory
 {
 BaseAI* createAI(GameMap& gameMap, Player& player, KeeperAIType type)
 {
+    // Easy, normal and hard differ in attack threshold (minFightersToAttack), minimum creature
+    // level for an attack, retreat health (minHpPercentToFight), reaction scale, cooldowns and
+    // trap and door counts. The harder the level, the earlier and the stronger it attacks.
+    //   attack with more than N creatures: 14 / 11 / 8;
+    //   minimum creature level for an attack: 2 / 4 / 7; retreat at health percent: 25 / 20 / 12.
     switch(type)
     {
         case KeeperAIType::easy:
-            return new KeeperAI(gameMap, player, 30, 50, 30, 50, 60, 80);
+            return new KeeperAI(gameMap, player, 30, 50, 30, 50, 60, 80, 150, 25, 14, 2, 2, 1);
         case KeeperAIType::normal:
-            return new KeeperAI(gameMap, player, 0, 5, 0, 5, 30, 50);
+            return new KeeperAI(gameMap, player, 0, 5, 0, 5, 30, 50, 100, 20, 11, 4, 5, 3);
+        case KeeperAIType::hard:
+            return new KeeperAI(gameMap, player, 0, 3, 0, 3, 20, 35, 60, 12, 8, 7, 8, 5);
         default:
             break;
     }

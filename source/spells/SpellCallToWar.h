@@ -24,6 +24,7 @@
 class GameMap;
 class InputCommand;
 class InputManager;
+class Tile;
 
 class SpellCallToWar : public Spell
 {
@@ -40,6 +41,8 @@ public:
 
     static void checkSpellCast(GameMap* gameMap, const InputManager& inputManager, InputCommand& inputCommand);
     static bool castSpell(GameMap* gameMap, Player* player, ODPacket& packet);
+    //! \brief Pays the mana and places a call to war banner on the given tile (server side, also used by the AI)
+    static bool castSpellOnTile(GameMap* gameMap, Player* player, Tile* tile);
 
     static Spell* getSpellFromStream(GameMap* gameMap, std::istream &is);
     static Spell* getSpellFromPacket(GameMap* gameMap, ODPacket &is);
