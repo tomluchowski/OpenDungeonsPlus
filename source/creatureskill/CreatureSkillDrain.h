@@ -27,6 +27,7 @@
 class Creature;
 class GameMap;
 
+//! \brief Skill that drains a percentage of the target's health and heals the caster by the same amount
 class CreatureSkillDrain : public CreatureSkill
 {
 public:
