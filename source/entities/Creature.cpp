@@ -122,6 +122,10 @@ static const double DEFAULT_CASINO_MOOD_MAX = 1500.0;
 static const double DEFAULT_PIT_MOOD_DECAY_PER_SECOND = 3.0;
 //! \brief Radius in tiles of the hated company check when the room config has no HatedCompanyRadius
 static const double DEFAULT_HATED_COMPANY_RADIUS = 5.0;
+//! \brief Squared distance in tiles (3 tiles) up to which a creature in a possession group stays where it is instead of walking to the leader
+static const int POSSESSION_GROUP_MAX_SQUARED_DISTANCE = 9;
+//! \brief Distance in tiles below which a target is too close for the aim direction check of a possession skill
+static const Ogre::Real POSSESSION_AIM_MIN_DISTANCE = 0.5;
 //! \brief Number of closest targets for which a path is tried when a creature looks for a destination
 static const uint32_t MAX_PATH_CHECK_TARGET_TRIES = 5;
 
@@ -4559,7 +4563,7 @@ bool Creature::followPossessionLeader()
         return true;
 
     // The creature stays around the leader. If it is further than 3 tiles, it walks to him
-    if(Pathfinding::squaredDistanceTile(*myTile, *leaderTile) <= 9)
+    if(Pathfinding::squaredDistanceTile(*myTile, *leaderTile) <= POSSESSION_GROUP_MAX_SQUARED_DISTANCE)
         return true;
 
     if(!getGameMap()->pathExists(this, myTile, leaderTile))
@@ -4683,7 +4687,7 @@ bool Creature::possessedFindTarget(const Ogre::Vector2& aim, const CreatureSkill
 
             Ogre::Vector2 toTile(tile->getX() - mPosition.x, tile->getY() - mPosition.y);
             Ogre::Real dist = toTile.length();
-            if(dist > 0.5f)
+            if(dist > POSSESSION_AIM_MIN_DISTANCE)
             {
                 toTile /= dist;
                 if(toTile.dotProduct(aimDir) < minCos)

@@ -855,7 +855,7 @@
                     </Window>
                 </Window>
                 <Window type="OD/ImageButton" name="SummonChampionButton" >
-                    <Property name="Area" value="{{0.578,-25},{0,195},{0.578,25},{0,245}}" />
+                    <Property name="Area" value="{{0.5,-25},{0,255},{0.5,25},{0,305}}" />
                     <Property name="ButtonImage" value="OpenDungeonsIcons/SummonChampionButton" />
                     <Property name="TooltipText" value="Spell: Summon champion" />
                     <Window type="OD/ProgressBar" name="SummonChampionButtonProgressBar" >
