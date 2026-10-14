@@ -368,6 +368,7 @@ struct LevelScriptTrigger
 //! \brief The standing order of a creature, given by an order action (the AI of the creature carries it out)
 struct LevelScriptOrder
 {
+    //! \brief Creates an empty order: no seat set (-1) and index 0.
     LevelScriptOrder() :
         mSeatId(-1),
         mIndex(0)
