@@ -61,7 +61,9 @@ check(config_value('RoomConvertClaimRate') == worker_claim,
       'RoomConvertClaimRate must be the claim rate of the worker (' + worker_claim + ')')
 check(config_value('RoomRepairFactor') == '5.0', 'an own worker repairs 5 times faster than an enemy wears down (20000 against 4000)')
 check(config_value('PortalFirstSpawnSeconds') == '25', 'the first creature of a taken over portal comes after 25 seconds')
-check('"RoomsClaimableByEnemies", 1.0)' in room_source, 'without the setting the reference behaviour applies')
+check('"RoomsClaimableByEnemies", DEFAULT_ROOMS_CLAIMABLE_BY_ENEMIES)' in room_source
+      and 'static const double DEFAULT_ROOMS_CLAIMABLE_BY_ENEMIES = 1.0;' in room_source,
+      'without the setting the reference behaviour applies')
 turns_per_second = re.search(r'double ODApplication::turnsPerSecond = ([0-9.]+);', read('source/ODApplication.cpp')).group(1)
 
 # Wiring
