@@ -757,11 +757,13 @@ SkillManager::SkillManager() :
     mSkills[index] = def;
     lvl4depends.push_back(skill);
 
-    // Not researchable: the campaign Heartstone unlocks it. It has no dependency and no node in the skill tree window
+    // The champion is researched like the other spells. PLACEHOLDER (balance decision still open): the
+    // prerequisite is the whole level 3 spell row, the cost is the spellSummonChampion entry in skills.cfg
     resType = SkillType::spellSummonChampion;
     index = static_cast<uint32_t>(resType);
     points = ConfigManager::getSingleton().getSkillPoints(Skills::toString(resType));
-    skill = new Skill(resType, points, emptyDepends);
+    const std::vector<const Skill*>& summonChampionDepends = lvl3depends;
+    skill = new Skill(resType, points, summonChampionDepends);
     def = new SkillDefSpell("MagicSkills/", "SummonChampionButton", skill, SpellType::summonChampion);
     def->mapSkill(mSkillsFamily);
     mSkills[index] = def;
@@ -807,8 +809,7 @@ bool SkillManager::isSpellAvailable(SpellType type, const Seat* seat)
     SkillType resType = family.at(index);
     // The spells researched in a library cannot be cast while that library is lost.
     // Summoning a worker needs no research, so it stays.
-    // Reward skills (Summon champion) are unlocked by the Heartstone, not researched, so they stay too.
-    if(seat->isLibraryLost() && (type != SpellType::summonWorker) && !Skills::isRewardSkill(resType))
+    if(seat->isLibraryLost() && (type != SpellType::summonWorker))
         return false;
 
     return seat->isSkillDone(resType);
@@ -816,7 +817,7 @@ bool SkillManager::isSpellAvailable(SpellType type, const Seat* seat)
 
 bool SkillManager::isLockedByLostLibrary(SkillType type, const Seat* seat)
 {
-    if(!seat->isLibraryLost() || (type == SkillType::spellSummonWorker) || Skills::isRewardSkill(type))
+    if(!seat->isLibraryLost() || (type == SkillType::spellSummonWorker))
         return false;
 
     for(const SkillDef* skill : getSkillManager().mSkills)
@@ -850,8 +851,6 @@ bool SkillManager::isAllSkillsDoneForSeat(const Seat* seat)
     for(const SkillDef* skill : getSkillManager().mSkills)
     {
         if(skill == nullptr)
-            continue;
-        if(Skills::isRewardSkill(skill->mSkill->getType()))
             continue;
         if(seat->getSkillLevel(skill->mSkill->getType()) >= 3)
             continue;
@@ -1012,7 +1011,7 @@ std::string SkillManager::getResearchDescription(SkillType type, uint32_t level)
         case SkillType::spellSummonChampion: return "Summons one champion that cannot be hurt and charges at the enemies. Costs " +
             spell("SummonChampionPrice") + " mana, free for " + Helper::toString(config.getSpellConfigDouble("SummonChampionPrice") /
             config.getSpellConfigDouble("SummonChampionDrainPerSecond")) + " seconds, then " + spell("SummonChampionDrainPerSecond") +
-            " mana per second. Unlocked by the complete Heartstone.";
+            " mana per second.";
         default: return "";
     }
 }
@@ -1034,8 +1033,6 @@ void SkillManager::buildRandomPendingSkillsForSeat(std::vector<SkillType>& skill
             continue;
 
         SkillType resType = skill->mSkill->getType();
-        if(Skills::isRewardSkill(resType))
-            continue;
         // We do not consider skills already pending or done
         if(seat->getSkillLevel(resType) >= 3 || std::find(skills.begin(), skills.end(), resType) != skills.end())
             continue;
