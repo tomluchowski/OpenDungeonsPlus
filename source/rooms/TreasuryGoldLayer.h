@@ -66,6 +66,7 @@ inline int levelForGold(int gold, int capacity)
 //! remain in mesh names so existing room updates and saved pile objects keep their format.
 struct PileShape
 {
+    //! \brief Creates an empty pile shape: level 0, variant 0, not on the ring, all corner levels 0.
     PileShape() :
         mLevel(0),
         mVariant(0),
