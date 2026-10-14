@@ -169,7 +169,7 @@ bool Trap::fireTile(Tile* tile, TrapTileData* trapTileData)
     if(manaToFire > 0.0)
         getSeat()->takeMana(manaToFire);
 
-    // A door reports its own effects, so only the other traps report here
+    // Doors do not report trap effects here
     if(!isDoor())
         fireTrapEffect(TrapEffectKind::fired, tile, 1.0);
 
