@@ -106,6 +106,7 @@ void addHeap(Ogre::ManualObject* object, const Ogre::Vector3& centre, float radi
     }
 }
 
+//! Builds the mesh of a coin heap of the given size and registers it under the resource name
 void buildHeapMesh(Ogre::SceneManager* sceneManager, const std::string& resourceName, int size)
 {
     Ogre::ManualObject* object = sceneManager->createManualObject();
@@ -137,16 +138,19 @@ const ProfilePoint SackProfile[ProfileCount] =
 };
 const int SackSectors = 10;
 
+//! Radius of a gold sack of the given size, in tile units
 float sackRadius(int size)
 {
     return 0.07f + 0.025f * static_cast<float>(size);
 }
 
+//! Height of a gold sack of the given size, in tile units
 float sackHeight(int size)
 {
     return 0.14f + 0.04f * static_cast<float>(size);
 }
 
+//! Builds the mesh of a gold sack of the given size, with the coins above its mouth, and registers it under the resource name
 void buildSackMesh(Ogre::SceneManager* sceneManager, const std::string& resourceName, int size)
 {
     const float radius = sackRadius(size);

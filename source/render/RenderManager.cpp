@@ -2322,6 +2322,45 @@ void RenderManager::updateTreasuryEffects(Ogre::Real timeSinceLastFrame)
     }
 }
 
+namespace
+{
+//! Most full piles tried per update when a dust or ambient effect looks for a free place
+const size_t TreasuryEffectMaxAttempts = 8;
+//! Grid of small offsets that spreads the dust puffs around a point: columns, rows and the cell that stays centred
+const unsigned int DustSpreadColumns = 7;
+const unsigned int DustSpreadRows = 5;
+const float DustSpreadCentreX = 3.0f;
+const float DustSpreadCentreY = 2.0f;
+//! Offset per grid cell of a dust puff on a pile or a portal
+const float DustSpreadStepX = 0.1f;
+const float DustSpreadStepY = 0.12f;
+//! Offset per grid cell of a dust puff at the heart
+const float HeartDustSpreadStepX = 0.05f;
+const float HeartDustSpreadStepY = 0.06f;
+//! Height of a dust puff above the surface of a pile
+const float PileDustHeightOffset = 0.1f;
+//! Every n-th ambient effect is a coin slide, the others sparkle
+const unsigned int AmbientSlideEvery = 3;
+//! Grid of small offsets that spreads the ambient effects around a pile
+const unsigned int AmbientSpreadColumns = 5;
+const unsigned int AmbientSpreadRows = 3;
+const float AmbientSpreadCentreX = 2.0f;
+const float AmbientSpreadCentreY = 1.0f;
+const float AmbientSpreadStepX = 0.08f;
+const float AmbientSpreadStepY = 0.1f;
+//! Height of a coin slide and of a sparkle above the surface of a pile
+const float CoinSlideHeightOffset = 0.02f;
+const float GlintHeightOffset = 0.05f;
+//! Dent position on a pile in texture space: centre, lowest value and range of the random part
+const float DentCentre = 0.5f;
+const float DentMin = 0.3f;
+const float DentSpan = 0.4f;
+//! Tile coordinate factors and seed offset that vary the random dent position
+const int DentHashFactorU = 31;
+const int DentHashFactorV = 17;
+const int DentHashSeedOffsetV = 7;
+}
+
 void RenderManager::updateTreasuryDust(Ogre::Real timeSinceLastFrame)
 {
     mTreasuryDustTimer += timeSinceLastFrame;
@@ -2341,18 +2380,18 @@ void RenderManager::updateTreasuryDust(Ogre::Real timeSinceLastFrame)
 
     // Walk on through the full piles from where the last attempt stopped; the first one in view whose
     // room still has a free place gets a puff
-    const size_t attempts = std::min<size_t>(piles.size(), 8);
+    const size_t attempts = std::min<size_t>(piles.size(), TreasuryEffectMaxAttempts);
     for(size_t i = 0; i < attempts; ++i)
     {
         const TreasuryGoldMesh::FullPile& pile = piles[mTreasuryDustCursor++ % piles.size()];
         int level = 0;
         const float height = TreasuryGoldMesh::surfaceHeight(static_cast<float>(pile.mX),
             static_cast<float>(pile.mY), level);
-        const float offsetX = (static_cast<float>(mTreasuryEffectNumber % 7) - 3.0f) * 0.1f;
-        const float offsetY = (static_cast<float>(mTreasuryEffectNumber % 5) - 2.0f) * 0.12f;
+        const float offsetX = (static_cast<float>(mTreasuryEffectNumber % DustSpreadColumns) - DustSpreadCentreX) * DustSpreadStepX;
+        const float offsetY = (static_cast<float>(mTreasuryEffectNumber % DustSpreadRows) - DustSpreadCentreY) * DustSpreadStepY;
         if(createTreasuryEffect(pile.mRoom, "TreasuryGoldDust", Ogre::Vector3(
             static_cast<Ogre::Real>(pile.mX) + offsetX, static_cast<Ogre::Real>(pile.mY) + offsetY,
-            height + 0.1f), TreasuryEffectKind::dust))
+            height + PileDustHeightOffset), TreasuryEffectKind::dust))
             return;
     }
 }
@@ -2376,8 +2415,8 @@ void RenderManager::startTreasuryPortalDust()
             continue;
 
         Tile* tile = tiles[mTreasuryPortalDustCursor++ % tiles.size()];
-        const float offsetX = (static_cast<float>(mTreasuryEffectNumber % 7) - 3.0f) * 0.1f;
-        const float offsetY = (static_cast<float>(mTreasuryEffectNumber % 5) - 2.0f) * 0.12f;
+        const float offsetX = (static_cast<float>(mTreasuryEffectNumber % DustSpreadColumns) - DustSpreadCentreX) * DustSpreadStepX;
+        const float offsetY = (static_cast<float>(mTreasuryEffectNumber % DustSpreadRows) - DustSpreadCentreY) * DustSpreadStepY;
         createTreasuryEffect(portal, "TreasuryGoldDust", Ogre::Vector3(
             static_cast<Ogre::Real>(tile->getX()) + offsetX, static_cast<Ogre::Real>(tile->getY()) + offsetY,
             TreasuryCreatureRules::portalDustHeight), TreasuryEffectKind::dust);
@@ -2402,8 +2441,8 @@ void RenderManager::startTreasuryHeartDust()
         if(tile == nullptr)
             continue;
 
-        const float offsetX = (static_cast<float>(mTreasuryEffectNumber % 7) - 3.0f) * 0.05f;
-        const float offsetY = (static_cast<float>(mTreasuryEffectNumber % 5) - 2.0f) * 0.06f;
+        const float offsetX = (static_cast<float>(mTreasuryEffectNumber % DustSpreadColumns) - DustSpreadCentreX) * HeartDustSpreadStepX;
+        const float offsetY = (static_cast<float>(mTreasuryEffectNumber % DustSpreadRows) - DustSpreadCentreY) * HeartDustSpreadStepY;
         createTreasuryEffect(heart, "TreasuryHeartDust", Ogre::Vector3(
             static_cast<Ogre::Real>(tile->getX()) + offsetX, static_cast<Ogre::Real>(tile->getY()) + offsetY,
             TreasuryCreatureRules::heartDustHeight), TreasuryEffectKind::dust);
@@ -2426,8 +2465,8 @@ void RenderManager::updateTreasuryAmbient(Ogre::Real timeSinceLastFrame)
 
     // Now and then a few coins slide down a slope, otherwise the gold and the gems sparkle. The first pile in
     // view whose room still has a free place gets the effect.
-    const bool slide = (mTreasuryEffectNumber % 3) == 0;
-    const size_t attempts = std::min<size_t>(piles.size(), 8);
+    const bool slide = (mTreasuryEffectNumber % AmbientSlideEvery) == 0;
+    const size_t attempts = std::min<size_t>(piles.size(), TreasuryEffectMaxAttempts);
     for(size_t i = 0; i < attempts; ++i)
     {
         const TreasuryGoldMesh::FullPile& pile = piles[mTreasuryAmbientCursor++ % piles.size()];
@@ -2437,12 +2476,12 @@ void RenderManager::updateTreasuryAmbient(Ogre::Real timeSinceLastFrame)
         int level = 0;
         const float height = TreasuryGoldMesh::surfaceHeight(static_cast<float>(pile.mX),
             static_cast<float>(pile.mY), level);
-        const float offsetX = (static_cast<float>(mTreasuryAmbientCursor % 5) - 2.0f) * 0.08f;
-        const float offsetY = (static_cast<float>(mTreasuryAmbientCursor % 3) - 1.0f) * 0.1f;
+        const float offsetX = (static_cast<float>(mTreasuryAmbientCursor % AmbientSpreadColumns) - AmbientSpreadCentreX) * AmbientSpreadStepX;
+        const float offsetY = (static_cast<float>(mTreasuryAmbientCursor % AmbientSpreadRows) - AmbientSpreadCentreY) * AmbientSpreadStepY;
         const std::string script = slide ? "TreasuryCoinSlide" : "TreasuryGlint";
         if(createTreasuryEffect(pile.mRoom, script, Ogre::Vector3(
             static_cast<Ogre::Real>(pile.mX) + offsetX, static_cast<Ogre::Real>(pile.mY) + offsetY,
-            height + (slide ? 0.02f : 0.05f)), TreasuryEffectKind::ambient))
+            height + (slide ? CoinSlideHeightOffset : GlintHeightOffset)), TreasuryEffectKind::ambient))
             return;
     }
 }
@@ -2464,14 +2503,14 @@ void RenderManager::startTreasuryPileChange(Ogre::SceneNode* node, const std::st
 
     // At the full detail a taken pile gets a local dent (a bowl that forms where the gold was taken and fills up
     // again) instead of dipping as a whole. The dent is drawn by a dynamic copy of the pile.
-    float dentU = 0.5f;
-    float dentV = 0.5f;
+    float dentU = DentCentre;
+    float dentV = DentCentre;
     Ogre::ManualObject* dentObject = nullptr;
     if(taken && entity != nullptr && newLevel > 0 && TreasuryCreatureRules::dentLocalDepth > 0.0f)
     {
         ++mTreasuryDentNumber;
-        dentU = 0.3f + 0.4f * TreasuryGoldLayer::hash01(tile->getX() * 31 + tile->getY(), mTreasuryDentNumber);
-        dentV = 0.3f + 0.4f * TreasuryGoldLayer::hash01(tile->getY() * 17 + tile->getX(), mTreasuryDentNumber + 7);
+        dentU = DentMin + DentSpan * TreasuryGoldLayer::hash01(tile->getX() * DentHashFactorU + tile->getY(), mTreasuryDentNumber);
+        dentV = DentMin + DentSpan * TreasuryGoldLayer::hash01(tile->getY() * DentHashFactorV + tile->getX(), mTreasuryDentNumber + DentHashSeedOffsetV);
         dentObject = TreasuryGoldMesh::createDentedPile(mSceneManager, pileMeshName, dentU, dentV,
             TreasuryCreatureRules::dentRadius);
     }
