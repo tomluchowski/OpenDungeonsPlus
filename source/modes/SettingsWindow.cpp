@@ -22,6 +22,7 @@
 #include "camera/CameraManager.h"
 #include "render/Gui.h"
 #include "render/ODFrameListener.h"
+#include "render/RoomAmbience.h"
 #include "render/RenderManager.h"
 #include "utils/ConfigManager.h"
 #include "utils/LogManager.h"
@@ -295,6 +296,28 @@ void SettingsWindow::initConfig()
         mRootWindow->getChild("SettingsWindow/MainTabControl/Game/GameSP/BloodEffectsCheckbox"));
     bloodEffectsCheckbox->setSelected(
         config.getGameValue(Config::BLOOD_EFFECTS, "Yes", false) == "Yes");
+    CEGUI::Combobox* roomAmbience = static_cast<CEGUI::Combobox*>(
+            mRootWindow->getChild("SettingsWindow/MainTabControl/Game/GameSP/RoomAmbience"));
+    roomAmbience->resetList();
+    std::string ambienceCurrent = RoomAmbience::modeToString(RoomAmbience::modeFromString(
+        config.getGameValue(Config::ROOM_AMBIENCE, "full", false)));
+    std::vector<std::string> ambienceModes;
+    ambienceModes.push_back("full");
+    ambienceModes.push_back("reduced");
+    ambienceModes.push_back("off");
+    uint32_t cptAmbienceMode = 0;
+    for(const std::string& ambienceMode : ambienceModes)
+    {
+        CEGUI::ListboxTextItem* item = new CEGUI::ListboxTextItem(ambienceMode, cptAmbienceMode);
+        item->setSelectionBrushImage(selImg);
+        roomAmbience->addItem(item);
+        if(ambienceMode == ambienceCurrent)
+        {
+            roomAmbience->setText(item->getText());
+            roomAmbience->setItemSelectState(item, true);
+        }
+        ++cptAmbienceMode;
+    }
 
     std::string panSpeedStr = config.getInputValue(Config::PAN_SPEED, "100", false);
     float panSpeedPercent = panSpeedStr.empty() ? 100.0f : Helper::toFloat(panSpeedStr);
@@ -536,6 +559,14 @@ bool SettingsWindow::saveConfig()
         mRootWindow->getChild("SettingsWindow/MainTabControl/Game/GameSP/BloodEffectsCheckbox"));
     config.setGameValue(Config::BLOOD_EFFECTS,
         bloodEffectsCheckbox->isSelected() ? "Yes" : "No");
+    CEGUI::Combobox* roomAmbience = static_cast<CEGUI::Combobox*>(
+            mRootWindow->getChild("SettingsWindow/MainTabControl/Game/GameSP/RoomAmbience"));
+    CEGUI::ListboxItem* roomAmbienceItem = roomAmbience->getSelectedItem();
+    std::string ambienceMode = (roomAmbienceItem != nullptr) ?
+        std::string(roomAmbienceItem->getText().c_str()) : std::string("full");
+    config.setGameValue(Config::ROOM_AMBIENCE, ambienceMode);
+    if(RoomAmbience::getSingletonPtr() != nullptr)
+        RoomAmbience::getSingleton().setMode(RoomAmbience::modeFromString(ambienceMode));
 
     CEGUI::Slider* panSpeedSlider = static_cast<CEGUI::Slider*>(
         mRootWindow->getChild("SettingsWindow/MainTabControl/Input/InputSP/PanSpeedSlider"));

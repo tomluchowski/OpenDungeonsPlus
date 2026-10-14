@@ -32,6 +32,9 @@ const std::string CreatureSkillWhirlwindName = "Whirlwind";
 
 namespace
 {
+//! \brief The smallest squared horizontal distance between caster and target that still gives a usable push direction
+static const float MIN_PUSH_SQUARED_LENGTH = 0.0001f;
+
 class CreatureSkillWhirlwindFactory : public CreatureSkillFactory
 {
     CreatureSkill* createCreatureSkill() const override
@@ -84,7 +87,7 @@ bool CreatureSkillWhirlwind::tryUseFight(GameMap& gameMap, Creature* creature, f
     // The wind blows away from the caster
     Ogre::Vector3 direction = attackedCreature->getPosition() - creature->getPosition();
     direction.z = 0.0f;
-    if(direction.squaredLength() < 0.0001f)
+    if(direction.squaredLength() < MIN_PUSH_SQUARED_LENGTH)
         return false;
 
     direction.normalise();
