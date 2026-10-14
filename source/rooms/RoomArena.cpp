@@ -16,13 +16,18 @@
  */
 
 #include "rooms/RoomArena.h"
+#include "ODApplication.h"
+#include "game/SkillManager.h"
+#include "game/SkillType.h"
 
 #include "creatureaction/CreatureAction.h"
 #include "creatureaction/CreatureActionFightFriendly.h"
 #include "entities/BuildingObject.h"
 #include "entities/Creature.h"
+#include "entities/CreatureDefinition.h"
 #include "entities/Tile.h"
 #include "game/Player.h"
+#include "game/Seat.h"
 #include "gamemap/GameMap.h"
 #include "gamemap/Pathfinding.h"
 #include "rooms/RoomManager.h"
@@ -119,8 +124,12 @@ static RoomRegister reg(new RoomArenaFactory);
 
 static const Ogre::Real OFFSET_DUMMY = 0.3;
 
+//! \brief Radius in tiles in which a creature counts as spectator of a pit fight when the room config has no PitSpectatorRadius
+static const double DEFAULT_PIT_SPECTATOR_RADIUS = 4.0;
+
 RoomArena::RoomArena(GameMap* gameMap) :
-    FencedRoom(gameMap)
+    FencedRoom(gameMap),
+    mFightOngoing(false)
 {
     setMeshName("Room");
 }
@@ -145,8 +154,13 @@ bool RoomArena::hasOpenCreatureSpot(Creature* c)
     if(mCreaturesFighting.size() >= mActualTiles.size())
         return false;
 
+    // Enemy creatures (prisoners) can be dropped whatever their level
+    if(!getSeat()->isAlliedSeat(c->getSeat()))
+        return true;
+
     // We allow using arena only if level is not too high
-    if (c->getLevel() >= ConfigManager::getSingleton().getRoomConfigUInt32("ArenaMaxTrainingLevel"))
+    if (c->getLevel() >= std::min(static_cast<double>(MAX_LEVEL), std::round(SkillManager::getResearchValue(
+        getSeat(), SkillType::roomArena, ConfigManager::getSingleton().getRoomConfigUInt32("ArenaMaxTrainingLevel")))))
         return false;
 
     return true;
@@ -201,9 +215,34 @@ void RoomArena::doUpkeep()
     // for(Creature* creature : creatures)
     //     creature->clearActionQueue();
 
+    updatePitMood();
+
     // If less than 2 creatures, nothing to do
     if(mCreaturesFighting.size() < 2)
         return;
+
+    // The last enemy standing is knocked out so that the workers can carry it to a prison
+    for(Creature* creature : mCreaturesFighting)
+    {
+        if(getSeat()->isAlliedSeat(creature->getSeat()))
+            continue;
+
+        if(creature->getKoTurnCounter() != 0)
+            continue;
+
+        bool alone = true;
+        for(Creature* other : mCreaturesFighting)
+        {
+            if((other != creature) && (other->getKoTurnCounter() >= 0))
+            {
+                alone = false;
+                break;
+            }
+        }
+
+        if(alone)
+            creature->knockOutToDeath();
+    }
 
     // Each creature not already fighting should look for the closest one and fight it
     for(Creature* creature : mCreaturesFighting)
@@ -249,11 +288,80 @@ void RoomArena::doUpkeep()
             continue;
         }
 
+        // Allies try to knock each other out. A fight against an enemy is to the death
+        bool koOpponent = creature->getSeat()->isAlliedSeat(closestOpponent->getSeat());
+
         // We don't notify player fight when in the arena
-        creature->pushAction(Utils::make_unique<CreatureActionFightFriendly>(*creature, closestOpponent, true, getCoveredTiles(), false));
+        creature->pushAction(Utils::make_unique<CreatureActionFightFriendly>(*creature, closestOpponent, koOpponent, getCoveredTiles(), false));
     }
 }
 
+
+void RoomArena::updatePitMood()
+{
+    ConfigManager& config = ConfigManager::getSingleton();
+
+    // A creature alone in the pit is annoyed (negative mood points per second)
+    if(mCreaturesFighting.size() == 1)
+    {
+        double solitary = config.getRoomConfigDoubleOrDefault("PitMoodSolitary", 0.0);
+        mCreaturesFighting[0]->addPitMood(solitary / ODApplication::turnsPerSecond);
+    }
+
+    uint32_t nbActive = 0;
+    Creature* lastActive = nullptr;
+    for(Creature* creature : mCreaturesFighting)
+    {
+        if(creature->isKo())
+            continue;
+
+        ++nbActive;
+        lastActive = creature;
+    }
+
+    if(nbActive >= 2)
+    {
+        mFightOngoing = true;
+
+        // Creatures of the owner watching the fight are cheered up
+        double spectator = config.getRoomConfigDoubleOrDefault("PitMoodSpectator", 0.0);
+        double radius = config.getRoomConfigDoubleOrDefault("PitSpectatorRadius", DEFAULT_PIT_SPECTATOR_RADIUS);
+        double squaredRadius = radius * radius;
+        double moodPerTurn = spectator / ODApplication::turnsPerSecond;
+        const std::vector<Creature*>& creatures = getGameMap()->getCreatures();
+        for(Creature* creature : creatures)
+        {
+            if(!creature->isAlive() || !creature->getIsOnMap() || creature->isKo() || creature->getDefinition()->isWorker())
+                continue;
+
+            if(!getSeat()->isAlliedSeat(creature->getSeat()))
+                continue;
+
+            if(std::find(mCreaturesFighting.begin(), mCreaturesFighting.end(), creature) != mCreaturesFighting.end())
+                continue;
+
+            Tile* tileCreature = creature->getPositionTile();
+            if(tileCreature == nullptr)
+                continue;
+
+            for(Tile* tile : mCoveredTiles)
+            {
+                if(Pathfinding::squaredDistanceTile(*tileCreature, *tile) > squaredRadius)
+                    continue;
+
+                creature->addPitMood(moodPerTurn);
+                break;
+            }
+        }
+    }
+    else if(mFightOngoing)
+    {
+        // The fight is over, the last creature standing is proud of itself
+        mFightOngoing = false;
+        if(lastActive != nullptr)
+            lastActive->addPitMood(config.getRoomConfigDoubleOrDefault("PitMoodVictor", 0.0));
+    }
+}
 
 void RoomArena::updateActiveSpots(GameMap* gameMap)
 {
@@ -404,4 +512,3 @@ bool RoomArena::notifyDropped(GameEntity* entity)
     OD_LOG_ERR("name=" + getName() + ", entity=" + entity->getName());
     return true;
 }
-

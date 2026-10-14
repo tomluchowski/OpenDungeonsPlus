@@ -29,6 +29,8 @@
 #include "gamemap/GameMap.h"
 #include "render/ODFrameListener.h"
 
+#include <cmath>
+
 #include <OgrePrerequisites.h>
 #include <OgreSceneNode.h>
 #include <OgreTextureManager.h>
@@ -68,7 +70,7 @@ MiniMapDrawn::MiniMapDrawn(CEGUI::Window* miniMapWindow) :
     CEGUI::Texture& miniMapTextureGui = static_cast<CEGUI::OgreRenderer*>(CEGUI::System::getSingletonPtr()
                                             ->getRenderer())->createTexture("miniMapTextureGui", mMiniMapOgreTexture);
 
-    CEGUI::BasicImage& imageset = dynamic_cast<CEGUI::BasicImage&>(CEGUI::ImageManager::getSingletonPtr()->create("BasicImage", "MiniMapImageset"));
+    CEGUI::BasicImage& imageset = MiniMap::createMiniMapImage(mMiniMapWindow);
     imageset.setArea(CEGUI::Rectf(CEGUI::Vector2f(0.0, 0.0),
                                       CEGUI::Size<float>(
                                           static_cast<float>(mWidth), static_cast<float>(mHeight)
@@ -96,22 +98,24 @@ MiniMapDrawn::~MiniMapDrawn()
 
 Ogre::Vector2 MiniMapDrawn::camera_2dPositionFromClick(int xx, int yy)
 {
+    mTopLeftCornerX = static_cast<int>(mMiniMapWindow->getPixelPosition().d_x);
+    mTopLeftCornerY = static_cast<int>(mMiniMapWindow->getPixelPosition().d_y);
     Ogre::Real mm, nn, oo, pp;
     // Compute move and normalise
-    mm = (xx - mTopLeftCornerX) / static_cast<double>(mWidth) - 0.5;
-    nn = (yy - mTopLeftCornerY) / static_cast<double>(mHeight) - 0.5;
+    const CEGUI::Sizef displaySize = mMiniMapWindow->getPixelSize();
+    mm = (xx - mTopLeftCornerX) / static_cast<double>(displaySize.d_width) - 0.5;
+    nn = (yy - mTopLeftCornerY) / static_cast<double>(displaySize.d_height) - 0.5;
     // Applying rotation
     oo = nn * mSinRotation + mm * mCosRotation;
     pp = nn * mCosRotation - mm * mSinRotation;
     // Apply result to camera
-    mCamera_2dPosition.x += static_cast<Ogre::Real>(oo * mWidth / mGrainSize);
-    mCamera_2dPosition.y -= static_cast<Ogre::Real>(pp * mHeight / mGrainSize);
-
-    return mCamera_2dPosition;
+    return mCamera_2dPosition + Ogre::Vector2(oo * mWidth / mGrainSize,
+        -pp * mHeight / mGrainSize) * getZoomScale();
 }
 
 void MiniMapDrawn::update(Ogre::Real timeSinceLastFrame, const std::vector<Ogre::Vector3>& cornerTiles)
 {
+    mAnimationTime = std::fmod(mAnimationTime + timeSinceLastFrame, 2.0f);
     Ogre::Vector3 vv = mCameraManager.getCameraViewTarget();
     double rotation = mCameraManager.getActiveCameraNode()->getOrientation().getRoll().valueRadians();
     mCamera_2dPosition = Ogre::Vector2(vv.x, vv.y);
@@ -125,8 +129,8 @@ void MiniMapDrawn::update(Ogre::Real timeSinceLastFrame, const std::vector<Ogre:
              jj >= 0; ++nn, jj -= mGrainSize)
         {
             // Applying rotation
-            int oo = mCamera_2dPosition.x + static_cast<int>((mm - mCamera_2dPosition.x) * mCosRotation - (nn - mCamera_2dPosition.y) * mSinRotation);
-            int pp = mCamera_2dPosition.y + static_cast<int>((mm - mCamera_2dPosition.x) * mSinRotation + (nn - mCamera_2dPosition.y) * mCosRotation);
+            int oo = mCamera_2dPosition.x + static_cast<int>(((mm - mCamera_2dPosition.x) * mCosRotation - (nn - mCamera_2dPosition.y) * mSinRotation) * getZoomScale());
+            int pp = mCamera_2dPosition.y + static_cast<int>(((mm - mCamera_2dPosition.x) * mSinRotation + (nn - mCamera_2dPosition.y) * mCosRotation) * getZoomScale());
 
             /*FIXME: even if we use a THREE byte pixel format (PF_R8G8B8),
              * for some reason it only works if we have FOUR increments
@@ -140,105 +144,11 @@ void MiniMapDrawn::update(Ogre::Real timeSinceLastFrame, const std::vector<Ogre:
                 continue;
             }
 
-            if(tile->getHasFogOfWar())
-            {
-                
-                drawPixel(ii,jj, 100, 100, 100);
-                continue;
-            }
-            if (tile->getMarkedForDigging(mGameMap.getLocalPlayer()))
-            {
-                drawPixel(ii, jj, 0xFF, 0xA8, 0x00);
-                continue;
-            }
-
-            switch (tile->getTileVisual())
-            {
-                case TileVisual::claimedGround:
-                {
-                    Seat* tempSeat = tile->getSeat();
-                    if (tempSeat != nullptr)
-                    {
-                        Ogre::ColourValue color = tempSeat->getColorValue();
-                        drawPixel(ii, jj, color.r*200.0, color.g*200.0, color.b*200.0);
-                    }
-                    else
-                    {
-                        drawPixel(ii, jj, 0x5C, 0x37, 0x1B);
-                    }
-                    break;
-                }
-
-                case TileVisual::claimedFull:
-                {
-                    Seat* tempSeat = tile->getSeat();
-                    if (tempSeat != nullptr)
-                    {
-                        Ogre::ColourValue color = tempSeat->getColorValue();
-                        drawPixel(ii, jj, color.r*255.0, color.g*255.0, color.b*255.0);
-                    }
-                    else
-                    {
-                        drawPixel(ii, jj, 0x86, 0x50, 0x28);
-                    }
-                    break;
-                }
-
-                case TileVisual::waterGround:
-                    drawPixel(ii, jj, 0x21, 0x36, 0x7A);
-                    break;
-
-                case TileVisual::lavaGround:
-                    drawPixel(ii, jj, 0xB2, 0x22, 0x22);
-                    break;
-
-                case TileVisual::dirtGround:
-                    drawPixel(ii, jj, 0x3B, 0x1D, 0x08);
-                    break;
-
-                case TileVisual::dirtFull:
-                    drawPixel(ii, jj, 0x5B, 0x2D, 0x0C);
-                    break;
-
-                case TileVisual::rockGround:
-                    drawPixel(ii, jj, 0x30, 0x30, 0x30);
-                    break;
-
-                case TileVisual::rockFull:
-                    drawPixel(ii, jj, 0x41, 0x41, 0x41);
-                    break;
-
-                case TileVisual::goldGround:
-                    drawPixel(ii, jj, 0x3B, 0x1D, 0x08);
-                    break;
-
-                case TileVisual::goldFull:
-                    drawPixel(ii, jj, 0xB5, 0xB3, 0x2F);
-                    break;
-
-                case TileVisual::nullTileVisual:
-                    drawPixel(ii, jj, 0x00, 0x00, 0x00);
-                    break;
-
-                default:
-                    drawPixel(ii,jj,0x00,0xFF,0x7F);
-                    break;
-            }
+            const TileColour colour = colourFromTile(*tile, *mGameMap.getLocalPlayer()->getSeat(),
+                static_cast<unsigned int>(mAnimationTime * 2.0f));
+            drawPixel(ii, jj, colour.colour.r * 255.0f, colour.colour.g * 255.0f, colour.colour.b * 255.0f);
         }
     }
-
-    // Draw creatures on map.
-    // std::vector<Creature*>::iterator updatedCreatureIndex = mGameMap->creatures.begin();
-    // for(; updatedCreatureIndex < mGameMap->creatures.end(); ++updatedCreatureIndex)
-    // {
-    //     if((*updatedCreatureIndex)->getIsOnMap())
-    //     {
-    //         double  ii = (*updatedCreatureIndex)->getPosition().x;
-    //         double  jj = (*updatedCreatureIndex)->getPosition().y;
-
-    //         drawPixel(ii, jj, 0x94, 0x0, 0x94);
-    //     }
-    // }
 
     auto output = mPixelBuffer->lock(mPixelBox, Ogre::HardwareBuffer::HBL_NORMAL);
 
@@ -256,4 +166,6 @@ void MiniMapDrawn::update(Ogre::Real timeSinceLastFrame, const std::vector<Ogre:
     }
 
     mPixelBuffer->unlock();
+    updateMapOverlay(mMiniMapWindow, mGameMap, mCamera_2dPosition,
+        Ogre::Vector2(mWidth, mHeight) * (getZoomScale() / mGrainSize), rotation, cornerTiles);
 }
