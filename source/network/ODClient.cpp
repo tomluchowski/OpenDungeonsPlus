@@ -1658,7 +1658,9 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
             std::string creatureName;
             OD_ASSERT_TRUE(packetReceived >> creatureName);
             getPlayer()->setPossessedCreatureName(creatureName);
-            frameListener->getCameraManager()->startPossession(creatureName);
+            CameraManager* possessionCamera = frameListener->getCameraManager();
+            if(possessionCamera != nullptr)
+                possessionCamera->startPossession(creatureName);
             if(frameListener->getModeManager()->getCurrentModeType() == ModeManager::ModeType::GAME)
             {
                 GameMode* gm = static_cast<GameMode*>(frameListener->getModeManager()->getCurrentMode());
@@ -1670,11 +1672,13 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
         case ServerNotificationType::possessionEnd:
         {
             // Whether the creature fell (the server says so: dead, knocked out or gone). It is read to keep the
-            // packet in step; the effects that show it come later
+            // packet in step, the client does not use it yet
             bool creatureLost = false;
             OD_ASSERT_TRUE(packetReceived >> creatureLost);
             getPlayer()->setPossessedCreatureName(std::string());
-            frameListener->getCameraManager()->stopPossession();
+            CameraManager* possessionCamera = frameListener->getCameraManager();
+            if(possessionCamera != nullptr)
+                possessionCamera->stopPossession();
             if(frameListener->getModeManager()->getCurrentModeType() == ModeManager::ModeType::GAME)
             {
                 GameMode* gm = static_cast<GameMode*>(frameListener->getModeManager()->getCurrentMode());

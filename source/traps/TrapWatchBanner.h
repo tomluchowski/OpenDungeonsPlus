@@ -21,6 +21,8 @@
 #include "Trap.h"
 #include "traps/TrapType.h"
 
+#include <cstdint>
+
 //! \brief A post that never fires. Guards of the owner's guard rooms patrol to it, and it calls them
 //! when it notices an enemy within its aura.
 class TrapWatchBanner : public Trap
