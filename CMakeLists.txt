@@ -16,7 +16,7 @@ endif()
 # Project version
 set(OD_MAJOR_VERSION 0)
 set(OD_MINOR_VERSION 7)
-set(OD_PATCH_LEVEL   1)
+set(OD_PATCH_LEVEL   3)
 
 # Set the project version ready to be used in the code.
 if(NOT MSVC)
@@ -256,9 +256,12 @@ set(OD_SOURCEFILES
     ${SRC}/creatureaction/CreatureActionFlee.cpp
     ${SRC}/creatureaction/CreatureActionGetFee.cpp
     ${SRC}/creatureaction/CreatureActionGoCallToWar.cpp
+    ${SRC}/creatureaction/CreatureActionGoDefendHeart.cpp
+    ${SRC}/creatureaction/CreatureActionWatchBanner.cpp
     ${SRC}/creatureaction/CreatureActionGrabEntity.cpp
     ${SRC}/creatureaction/CreatureActionLeaveDungeon.cpp
     ${SRC}/creatureaction/CreatureActionParkToTile.cpp
+    ${SRC}/creatureaction/CreatureActionReloadTrap.cpp
     ${SRC}/creatureaction/CreatureActionSearchEntityToCarry.cpp
     ${SRC}/creatureaction/CreatureActionSearchFood.cpp
     ${SRC}/creatureaction/CreatureActionSearchGroundTileToClaim.cpp
@@ -273,15 +276,20 @@ set(OD_SOURCEFILES
     ${SRC}/creaturebehaviour/CreatureBehaviour.cpp
     ${SRC}/creaturebehaviour/CreatureBehaviourAttackEnemy.cpp
     ${SRC}/creaturebehaviour/CreatureBehaviourEngageNaturalEnemy.cpp
+    ${SRC}/creaturebehaviour/CreatureBehaviourFleeWhenOutmatched.cpp
     ${SRC}/creaturebehaviour/CreatureBehaviourFleeWhenWeak.cpp
     ${SRC}/creaturebehaviour/CreatureBehaviourLeaveDungeonWhenFurious.cpp
     ${SRC}/creaturebehaviour/CreatureBehaviourManager.cpp
 
     ${SRC}/creatureeffect/CreatureEffect.cpp
+    ${SRC}/creatureeffect/CreatureEffectBurn.cpp
+    ${SRC}/creatureeffect/CreatureEffectDefector.cpp
     ${SRC}/creatureeffect/CreatureEffectDefense.cpp
     ${SRC}/creatureeffect/CreatureEffectDigTile.cpp
     ${SRC}/creatureeffect/CreatureEffectExplosion.cpp
+    ${SRC}/creatureeffect/CreatureEffectFrozen.cpp
     ${SRC}/creatureeffect/CreatureEffectHeal.cpp
+    ${SRC}/creatureeffect/CreatureEffectHexenHen.cpp
     ${SRC}/creatureeffect/CreatureEffectManager.cpp
     ${SRC}/creatureeffect/CreatureEffectSlap.cpp
     ${SRC}/creatureeffect/CreatureEffectSpeedChange.cpp
@@ -292,7 +300,13 @@ set(OD_SOURCEFILES
     ${SRC}/creaturemood/CreatureMoodCreature.cpp
     ${SRC}/creaturemood/CreatureMoodFee.cpp
     ${SRC}/creaturemood/CreatureMoodHunger.cpp
+    ${SRC}/creaturemood/CreatureMoodHeldInHand.cpp
     ${SRC}/creaturemood/CreatureMoodHpLoss.cpp
+    ${SRC}/creaturemood/CreatureMoodNoLair.cpp
+    ${SRC}/creaturemood/CreatureMoodOutOfWork.cpp
+    ${SRC}/creaturemood/CreatureMoodSlapped.cpp
+    ${SRC}/creaturemood/CreatureMoodTortured.cpp
+    ${SRC}/creaturemood/CreatureMoodRested.cpp
     ${SRC}/creaturemood/CreatureMoodManager.cpp
     ${SRC}/creaturemood/CreatureMoodTurnsWithoutFight.cpp
 
@@ -342,6 +356,8 @@ set(OD_SOURCEFILES
 	${SRC}/eventsystem/Subject.cpp		
 	
     ${SRC}/game/Player.cpp
+    ${SRC}/game/CreaturePanelData.cpp
+    ${SRC}/game/TrapProductionData.cpp
     ${SRC}/game/PlayerSelection.cpp
     ${SRC}/game/Skill.cpp
     ${SRC}/game/SkillManager.cpp
@@ -351,6 +367,7 @@ set(OD_SOURCEFILES
 
     ${SRC}/gamemap/DraggableTileContainer.cpp
     ${SRC}/gamemap/GameMap.cpp
+    ${SRC}/gamemap/RoomObjectNavigation.cpp
     ${SRC}/gamemap/MapHandler.cpp
     ${SRC}/gamemap/MiniMap.cpp
     ${SRC}/gamemap/MiniMapDrawn.cpp
@@ -359,6 +376,7 @@ set(OD_SOURCEFILES
     ${SRC}/gamemap/TileContainer.cpp
     ${SRC}/gamemap/TileSet.cpp
 
+    ${SRC}/giftboxes/GiftBoxBonus.cpp
     ${SRC}/giftboxes/GiftBoxSkill.cpp
 
     ${SRC}/goals/Goal.cpp
@@ -376,6 +394,7 @@ set(OD_SOURCEFILES
     ${SRC}/modes/ConsoleInterface.cpp
     ${SRC}/modes/EditorMode.cpp
     ${SRC}/modes/GameMode.cpp
+    ${SRC}/modes/InputCommand.cpp
     ${SRC}/modes/GameEditorModeBase.cpp
     ${SRC}/modes/GameEditorModeConsole.cpp
     ${SRC}/modes/InputBridge.cpp
@@ -408,6 +427,8 @@ set(OD_SOURCEFILES
     ${SRC}/render/CreatureOverlayStatus.cpp
     ${SRC}/render/DebugDrawer.cpp    
     ${SRC}/render/Gui.cpp
+    ${SRC}/render/CreaturePortrait.cpp
+    ${SRC}/render/CreaturePanel.cpp
     ${SRC}/render/MovableTextOverlay.cpp
     ${SRC}/render/ODFrameListener.cpp
     ${SRC}/render/RenderManager.cpp
@@ -450,6 +471,8 @@ set(OD_SOURCEFILES
     ${SRC}/rooms/RoomPortalWave.cpp
     ${SRC}/rooms/RoomPrison.cpp
     ${SRC}/rooms/RoomTorture.cpp
+    ${SRC}/rooms/RoomGuardRoom.cpp
+    ${SRC}/rooms/RoomTemple.cpp
     ${SRC}/rooms/RoomTrainingHall.cpp
     ${SRC}/rooms/RoomTreasury.cpp
     ${SRC}/rooms/RoomType.cpp
@@ -464,7 +487,9 @@ set(OD_SOURCEFILES
     ${SRC}/spawnconditions/SpawnConditionRoom.cpp
 
     ${SRC}/spells/Spell.cpp
+    ${SRC}/spells/SpellArea.cpp
     ${SRC}/spells/SpellCallToWar.cpp
+    ${SRC}/spells/SpellCreateGold.cpp
     ${SRC}/spells/SpellCreatureDefense.cpp
     ${SRC}/spells/SpellCreatureExplosion.cpp
     ${SRC}/spells/SpellCreatureHaste.cpp
@@ -472,18 +497,32 @@ set(OD_SOURCEFILES
     ${SRC}/spells/SpellCreatureSlow.cpp
     ${SRC}/spells/SpellCreatureStrength.cpp
     ${SRC}/spells/SpellCreatureWeak.cpp
+    ${SRC}/spells/SpellDefector.cpp
     ${SRC}/spells/SpellEyeEvil.cpp
+    ${SRC}/spells/SpellHexenHen.cpp
+    ${SRC}/spells/SpellInferno.cpp
+    ${SRC}/spells/SpellLightning.cpp
     ${SRC}/spells/SpellManager.cpp
+    ${SRC}/spells/SpellSummonChampion.cpp
     ${SRC}/spells/SpellSummonWorker.cpp
+    ${SRC}/spells/SpellTremor.cpp
     ${SRC}/spells/SpellType.cpp
 
     ${SRC}/traps/Trap.cpp
+    ${SRC}/traps/TrapAlarm.cpp
     ${SRC}/traps/TrapBoulder.cpp
     ${SRC}/traps/TrapCannon.cpp
     ${SRC}/traps/TrapDoor.cpp
+    ${SRC}/traps/TrapFear.cpp
+    ${SRC}/traps/TrapFireburst.cpp
+    ${SRC}/traps/TrapFreeze.cpp
+    ${SRC}/traps/TrapGas.cpp
+    ${SRC}/traps/TrapLightning.cpp
     ${SRC}/traps/TrapManager.cpp
     ${SRC}/traps/TrapSpike.cpp
+    ${SRC}/traps/TrapTrigger.cpp
     ${SRC}/traps/TrapType.cpp
+    ${SRC}/traps/TrapWatchBanner.cpp
 
     ${SRC}/utils/ConfigManager.cpp
     ${SRC}/utils/FrameRateLimiter.cpp
@@ -514,6 +553,9 @@ ENDIF ()
 # Adds the Windows icon resource file when building on windows.
 IF (WIN32)
     SET(OD_SOURCEFILES ${OD_SOURCEFILES} ${CMAKE_SOURCE_DIR}/dist/icon.rc)
+    IF (MSVC)
+        SET(OD_SOURCEFILES ${OD_SOURCEFILES} ${CMAKE_SOURCE_DIR}/dist/opendungeons.manifest)
+    ENDIF ()
 ENDIF ()
 
 ##################################
@@ -569,7 +611,7 @@ if(WIN32 AND ${OGRE_FOUND})
 
     find_package(Boost REQUIRED COMPONENTS ${OD_BOOST_COMPONENTS})
     if(Boost_FOUND)
-        set(OD_BOOST_LIB_DIRS  ${Boost_INCLUDE_DIRS}/stage/lib)
+        set(OD_BOOST_LIB_DIRS  ${Boost_LIBRARY_DIRS})
         set(OD_BOOST_INCLUDE_DIRS ${Boost_INCLUDE_DIRS})
     endif()
 else()
@@ -660,6 +702,12 @@ target_link_libraries(
 )
 
 target_link_libraries(opendungeons-plus pybind11::embed)
+
+if(MSVC AND PYTHON_DEBUG_LIBRARY AND NOT PYTHON_IS_DEBUG)
+    # Keep pybind11's headers consistent with the selected debug Python library.
+    # Python's Windows header defines Py_DEBUG without a value as well.
+    target_compile_definitions(${PROJECT_BINARY_NAME} PRIVATE "$<$<CONFIG:Debug>:Py_DEBUG=>")
+endif()
 
 # Set linker options in MSVC
 if(WIN32 AND MSVC)
@@ -962,4 +1010,3 @@ elseif(WIN32)
     install(FILES ${EXT_LIBS}
             DESTINATION ${OD_BIN_PATH})
 endif()
-

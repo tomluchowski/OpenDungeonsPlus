@@ -16,7 +16,9 @@
  */
 
 #include "entities/Creature.h"
+#include "entities/CreatureProgression.h"
 
+#include "ODApplication.h"
 #include "creatureaction/CreatureAction.h"
 #include "creatureaction/CreatureActionClaimGroundTile.h"
 #include "creatureaction/CreatureActionClaimWallTile.h"
@@ -26,9 +28,11 @@
 #include "creatureaction/CreatureActionFlee.h"
 #include "creatureaction/CreatureActionGetFee.h"
 #include "creatureaction/CreatureActionGoCallToWar.h"
+#include "creatureaction/CreatureActionGoDefendHeart.h"
 #include "creatureaction/CreatureActionGrabEntity.h"
 #include "creatureaction/CreatureActionLeaveDungeon.h"
 #include "creatureaction/CreatureActionParkToTile.h"
+#include "creatureaction/CreatureActionReloadTrap.h"
 #include "creatureaction/CreatureActionSearchEntityToCarry.h"
 #include "creatureaction/CreatureActionSearchFood.h"
 #include "creatureaction/CreatureActionSearchGroundTileToClaim.h"
@@ -37,6 +41,7 @@
 #include "creatureaction/CreatureActionSearchWallTileToClaim.h"
 #include "creatureaction/CreatureActionSleep.h"
 #include "creatureaction/CreatureActionStealFreeGold.h"
+#include "creatureaction/CreatureActionUseRoom.h"
 #include "creatureaction/CreatureActionWalkToTile.h"
 #include "creaturebehaviour/CreatureBehaviour.h"
 #include "creatureeffect/CreatureEffect.h"
@@ -64,6 +69,7 @@
 #include "game/Seat.h"
 #include "gamemap/GameMap.h"
 #include "gamemap/Pathfinding.h"
+#include "gamemap/RoomObjectNavigation.h"
 #include "giftboxes/GiftBoxSkill.h"
 
 #include "modes/GameEditorModeConsole.h"
@@ -106,6 +112,38 @@
 
 
 static const Ogre::Real CANNON_MISSILE_HEIGHT = 0.3;
+
+//! \brief Casino mood points lost per second when the room config has no CasinoMoodDecay
+static const double DEFAULT_CASINO_MOOD_DECAY_PER_SECOND = 3.0;
+//! \brief Largest casino mood (positive or negative) when the room config has no CasinoMoodMax
+static const double DEFAULT_CASINO_MOOD_MAX = 1500.0;
+//! \brief Number of closest targets for which a path is tried when a creature looks for a destination
+static const uint32_t MAX_PATH_CHECK_TARGET_TRIES = 5;
+
+// Target selection by combat class: the distance to an enemy support creature is multiplied by this
+// factor for blitzers and flankers, so they prefer it over closer enemies
+static const double COMBAT_CLASS_SUPPORT_TARGET_FACTOR = 0.5;
+
+//! \brief Returns the factor applied to the squared distance of a potential target. Lower means preferred.
+//! Blockers and support creatures attack the nearest enemy. Blitzers and flankers prefer enemy support creatures.
+static double getTargetDistanceFactor(const Creature& attacker, const GameEntity& target)
+{
+    if(target.getObjectType() != GameEntityType::creature)
+        return 1.0;
+
+    const CreatureDefinition::CombatClass attackerClass = attacker.getDefinition()->getCombatClass();
+    if((attackerClass != CreatureDefinition::CombatBlitzer) && (attackerClass != CreatureDefinition::CombatFlanker))
+        return 1.0;
+
+    const Creature& targetCreature = static_cast<const Creature&>(target);
+    if(targetCreature.getDefinition()->isWorker())
+        return 1.0;
+
+    if(targetCreature.getDefinition()->getCombatClass() == CreatureDefinition::CombatSupport)
+        return COMBAT_CLASS_SUPPORT_TARGET_FACTOR;
+
+    return 1.0;
+}
 
 const int32_t Creature::NB_TURNS_BEFORE_CHECKING_TASK = 15;
 const uint32_t Creature::NB_OVERLAY_HEALTH_VALUES = 8;
@@ -163,6 +201,7 @@ Creature::Creature(GameMap* gameMap, const CreatureDefinition* definition, Seat*
     mDigRate                 (0.0),
     mClaimRate               (0.0),
     mDeathCounter            (0),
+    mChampionTurns           (0),
     mJobCooldown             (0),
     mGoldFee                 (0),
     mGoldCarried             (0),
@@ -170,10 +209,12 @@ Creature::Creature(GameMap* gameMap, const CreatureDefinition* definition, Seat*
     mWeaponDropDeath         ("none"),
     mStatsWindow             (nullptr),
     mNbTurnsWithoutBattle    (0),
+    mCasinoMood              (0.0),
     mCarriedEntity           (nullptr),
     mMoodCooldownTurns       (0),
-    mMoodValue               (CreatureMoodLevel::Neutral),
+    mMoodValue               (gameMap->isServerGameMap() ? CreatureMoodLevel::Neutral : CreatureMoodLevel::Unknown),
     mMoodPoints              (0),
+    mPrayerRelief            (0),
     mNbTurnFurious           (-1),
     mOverlayHealthValue      (0),
     mOverlayMoodValue        (CreatureMoodValues::Nothing),
@@ -185,7 +226,16 @@ Creature::Creature(GameMap* gameMap, const CreatureDefinition* definition, Seat*
     mSeatPrison              (nullptr),
     mNbTurnsTorture          (0),
     mNbTurnsPrison           (0),
-    mActiveSlapsCount        (0)
+    mActiveSlapsCount        (0),
+    mIsHexenHen              (false),
+    mHexenHenMeshShown       (false),
+    mNbTurnsInHand           (0),
+    mIsInHand                (false),
+    mNbTurnsOutOfWork        (0),
+    mNbTurnsTortureMood      (0),
+    mNbTurnsRested           (0),
+    mTorturedThisTurn        (false),
+    mRestedThisTurn          (false)
 {
     //TODO: This should be set in initialiser list in parent classes
     setSeat(seat);
@@ -248,6 +298,7 @@ Creature::Creature(GameMap* gameMap) :
     mDigRate                 (0.0),
     mClaimRate               (0.0),
     mDeathCounter            (0),
+    mChampionTurns           (0),
     mJobCooldown             (0),
     mGoldFee                 (0),
     mGoldCarried             (0),
@@ -255,10 +306,12 @@ Creature::Creature(GameMap* gameMap) :
     mWeaponDropDeath         ("none"),
     mStatsWindow             (nullptr),
     mNbTurnsWithoutBattle    (0),
+    mCasinoMood              (0.0),
     mCarriedEntity           (nullptr),
     mMoodCooldownTurns       (0),
-    mMoodValue               (CreatureMoodLevel::Neutral),
+    mMoodValue               (gameMap->isServerGameMap() ? CreatureMoodLevel::Neutral : CreatureMoodLevel::Unknown),
     mMoodPoints              (0),
+    mPrayerRelief            (0),
     mNbTurnFurious           (-1),
     mOverlayHealthValue      (0),
     mOverlayMoodValue        (0),
@@ -270,7 +323,16 @@ Creature::Creature(GameMap* gameMap) :
     mSeatPrison              (nullptr),
     mNbTurnsTorture          (0),
     mNbTurnsPrison           (0),
-    mActiveSlapsCount        (0)
+    mActiveSlapsCount        (0),
+    mIsHexenHen              (false),
+    mHexenHenMeshShown       (false),
+    mNbTurnsInHand           (0),
+    mIsInHand                (false),
+    mNbTurnsOutOfWork        (0),
+    mNbTurnsTortureMood      (0),
+    mNbTurnsRested           (0),
+    mTorturedThisTurn        (false),
+    mRestedThisTurn          (false)
 {
     if(!getIsOnServerMap())
     {
@@ -298,6 +360,7 @@ void Creature::createMeshLocal(NodeType nt)
     MovableGameEntity::createMeshLocal(nt);
     if(!getIsOnServerMap())
     {
+        mHexenHenMeshShown = isHexenHen();
         RenderManager::getSingleton().rrCreateCreature(this);
 
         // By default, we set the creature in idle state
@@ -323,6 +386,9 @@ void Creature::createMeshWeapons()
     if(getIsOnServerMap())
         return;
 
+    if(mHexenHenMeshShown)
+        return;
+
     if(mWeaponL != nullptr)
         RenderManager::getSingleton().rrCreateWeapon(this, mWeaponL, "L");
 
@@ -333,6 +399,9 @@ void Creature::createMeshWeapons()
 void Creature::destroyMeshWeapons()
 {
     if(getIsOnServerMap())
+        return;
+
+    if(mHexenHenMeshShown)
         return;
 
     if(mWeaponL != nullptr)
@@ -529,16 +598,16 @@ void Creature::buildStats()
     if (multiplier <= 0.0)
         return;
 
-    mMaxHP += mDefinition->getHpPerLevel() * multiplier;
+    mMaxHP = CreatureProgression::stat(mMaxHP, mDefinition->getHpPerLevel(), mLevel);
     mDigRate += mDefinition->getDigRatePerLevel() * multiplier;
     mClaimRate += mDefinition->getClaimRatePerLevel() * multiplier;
     mGroundSpeed += mDefinition->getGroundSpeedPerLevel() * multiplier;
     mWaterSpeed += mDefinition->getWaterSpeedPerLevel() * multiplier;
     mLavaSpeed += mDefinition->getLavaSpeedPerLevel() * multiplier;
 
-    mPhysicalDefense += mDefinition->getPhysicalDefPerLevel() * multiplier;
-    mMagicalDefense += mDefinition->getMagicalDefPerLevel() * multiplier;
-    mElementDefense += mDefinition->getElementDefPerLevel() * multiplier;
+    mPhysicalDefense = CreatureProgression::stat(mPhysicalDefense, mDefinition->getPhysicalDefPerLevel(), mLevel);
+    mMagicalDefense = CreatureProgression::stat(mMagicalDefense, mDefinition->getMagicalDefPerLevel(), mLevel);
+    mElementDefense = CreatureProgression::stat(mElementDefense, mDefinition->getElementDefPerLevel(), mLevel);
 }
 
 Creature* Creature::getCreatureFromStream(GameMap* gameMap, std::istream& is)
@@ -608,6 +677,11 @@ void Creature::exportToPacket(ODPacket& os, const Seat* seat) const
         os << mWeaponR->getName();
     else
         os << "none";
+
+    os << isHexenHen();
+    exportMoodToPacket(os, seat);
+    exportActivityToPacket(os, seat);
+    exportProgressToPacket(os, seat);
 }
 
 void Creature::importFromPacket(ODPacket& is)
@@ -660,6 +734,10 @@ void Creature::importFromPacket(ODPacket& is)
         }
     }
 
+    OD_ASSERT_TRUE(is >> mIsHexenHen);
+    importMoodFromPacket(is);
+    importActivityFromPacket(is);
+    importProgressFromPacket(is);
     setupDefinition(*getGameMap(), *ConfigManager::getSingleton().getCreatureDefinitionDefaultWorker());
 }
 
@@ -779,10 +857,13 @@ void Creature::computeVisibleTiles()
 void Creature::setLevel(unsigned int level)
 {
     // Reset XP once the level has been acquired.
-    mLevel = std::min(MAX_LEVEL, level);
+    mLevel = std::max(1u, std::min(MAX_LEVEL, level));
     mExp = 0.0;
 
+    const double previousMaxHP = mMaxHP;
     buildStats();
+    if(mHp > 0.0 && previousMaxHP > 0.0)
+        mHp = std::min(mMaxHP, mHp * mMaxHP / previousMaxHP);
 
     mNeedFireRefresh = true;
 }
@@ -902,9 +983,36 @@ void Creature::doUpkeep()
         it = mEntityParticleEffects.erase(it);
     }
 
+    // The creature resents being held in the hand for long periods. The resentment fades once dropped
+    if(mIsInHand)
+        ++mNbTurnsInHand;
+    else if(mNbTurnsInHand > 0)
+        --mNbTurnsInHand;
+
+    // Torture weighs on the mood while it lasts, sleeping in the lair relieves it. Both fade afterwards
+    if(mTorturedThisTurn)
+        ++mNbTurnsTortureMood;
+    else if(mNbTurnsTortureMood > 0)
+        --mNbTurnsTortureMood;
+
+    if(mRestedThisTurn)
+        ++mNbTurnsRested;
+    else if(mNbTurnsRested > 0)
+        --mNbTurnsRested;
+
+    mTorturedThisTurn = false;
+    mRestedThisTurn = false;
+
     // if creature is not on map (picked up or being carried), we do nothing
     if(!getIsOnMap())
         return;
+
+    // The champion costs mana and leaves when the owner cannot pay it
+    if(getDefinition()->isChampion() && handleChampionUpkeep())
+        return;
+    // A creature that is working is not frustrated anymore
+    if(isActionInList(CreatureActionType::useRoom))
+        mNbTurnsOutOfWork = 0;
 
     // If the creature is temporary KO, it should do nothing
     if(mKoTurnCounter > 0)
@@ -913,6 +1021,9 @@ void Creature::doUpkeep()
         if(mKoTurnCounter > 0)
             return;
 
+        if(!getGameMap()->isInEditorMode())
+            setAnimationState(EntityAnimation::getup_anim, false,
+                Ogre::Vector3::ZERO, false);
         computeCreatureOverlayMoodValue();
         return;
     }
@@ -1033,6 +1144,14 @@ void Creature::doUpkeep()
     mVisibleAlliedObjects        = getVisibleAlliedObjects();
     mReachableAlliedObjects      = getReachableAttackableObjects(mVisibleAlliedObjects);
 
+    // The relief from praying fades
+    if(mPrayerRelief > 0)
+    {
+        mPrayerRelief -= ConfigManager::getSingleton().getRoomConfigInt32("TemplePrayerReliefDecayPerTurn");
+        if(mPrayerRelief < 0)
+            mPrayerRelief = 0;
+    }
+
     // Check if we should compute mood
     if(mMoodCooldownTurns > 0)
     {
@@ -1070,7 +1189,45 @@ void Creature::doUpkeep()
 
     ++mNbTurnsWithoutBattle;
 
+    // The casino mood fades towards 0
+    if(mCasinoMood != 0.0)
+    {
+        double decay = ConfigManager::getSingleton().getRoomConfigDoubleOrDefault("CasinoMoodDecay", DEFAULT_CASINO_MOOD_DECAY_PER_SECOND)
+            / ODApplication::turnsPerSecond;
+        if(mCasinoMood > 0.0)
+            mCasinoMood = std::max(0.0, mCasinoMood - decay);
+        else
+            mCasinoMood = std::min(0.0, mCasinoMood + decay);
+    }
+
+    // A frozen creature can neither move nor fight
+    if(isFrozen())
+    {
+        if(!mActions.empty())
+        {
+            clearActionQueue();
+            clearDestinations(EntityAnimation::idle_anim, true, true);
+        }
+        else if(isMoving())
+        {
+            clearDestinations(EntityAnimation::idle_anim, true, true);
+        }
+        return;
+    }
+
+    // A chicken cannot fight, use skills or work. It only wanders around
+    if(isHexenHen())
+    {
+        handleHexenHenUpkeep();
+        return;
+    }
+
     bool isWarmUp = false;
+    if(mAttackRecoveryTurns > 0)
+    {
+        --mAttackRecoveryTurns;
+        mNeedFireRefresh = true;
+    }
     // We use creature skills if we can
     for(CreatureSkillData& skillData : mSkillData)
     {
@@ -1104,6 +1261,7 @@ void Creature::doUpkeep()
         return;
 
     decidePrioritaryAction();
+    handleHeartDefence();
 
     // The loopback variable allows creatures to begin processing a new
     // action immediately after some other action happens.
@@ -1156,12 +1314,38 @@ void Creature::decidePrioritaryAction()
     }
 }
 
+void Creature::handleHeartDefence()
+{
+    if(!getDefinition()->isHeartDefenceRunner())
+        return;
+
+    Seat* seat = getSeat();
+    if(seat == nullptr || !seat->getHeartDefenceActive())
+        return;
+
+    if(isActionInList(CreatureActionType::goDefendHeart))
+        return;
+
+    // Existing combat and retreat decisions take priority over gathering at the defence point.
+    if(isActionInList(CreatureActionType::fight) || isActionInList(CreatureActionType::flee))
+        return;
+
+    // The heart defence is on: drop the current job and run to the defence point
+    clearActionQueue();
+    pushAction(Utils::make_unique<CreatureActionGoDefendHeart>(*this));
+}
+
 bool Creature::handleIdleAction()
 {
     setAnimationState(EntityAnimation::idle_anim);
 
     if (mDefinition->isWorker())
     {
+        // A trap of the keeper that used up its shots is armed again before the other jobs
+        if(!hasActionBeenTried(CreatureActionType::reloadTrap) && getSeat()->getPlayer()->isWorkerReloadShareOpen() &&
+           CreatureActionReloadTrap::tryStart(*this))
+            return true;
+
         // Decide what to do
         std::vector<CreatureActionType> workerActions = getSeat()->getPlayer()->getWorkerPreferredActions(*this);
         for(CreatureActionType actionType : workerActions)
@@ -1188,6 +1372,13 @@ bool Creature::handleIdleAction()
                     break;
             }
         }
+    }
+
+    // The champion has no needs. It charges at the enemies and waits when there is none
+    if(mDefinition->isChampion())
+    {
+        handleChampionIdle();
+        return false;
     }
 
     // We check if we are looking for our fee
@@ -1376,7 +1567,8 @@ bool Creature::handleIdleAction()
     if(setDestination(tileDest))
         return false;
 
-    return true;
+    // Retry failed wandering next turn, not repeatedly in this upkeep.
+    return false;
 }
 
 bool Creature::searchBestTargetInList(const std::vector<GameEntity*>& listObjects, const std::vector<Tile*>& tilesFilter, GameEntity*& attackedEntity,
@@ -1395,22 +1587,33 @@ bool Creature::searchBestTargetInList(const std::vector<GameEntity*>& listObject
     Tile* tileAttack = nullptr;
     CreatureSkillData* skillData = nullptr;
     Tile* tilePosition = nullptr;
-    int closestDist = -1;
+    // Distance to the target, divided by its threat factor and weighted by its combat class (see below)
+    double closestDistWeighted = -1.0;
+    double ownThreat = getThreat();
     // We try to attack creatures first
     for(GameEntity* entity : listObjects)
     {
+        // Strong enemy creatures are targeted first: the more threatening a creature is compared to us,
+        // the closer it appears to be. Other entities are not weighted.
+        double threatFactor = 1.0;
+        if((entity->getObjectType() == GameEntityType::creature) && (ownThreat > 0.0))
+        {
+            threatFactor = static_cast<Creature*>(entity)->getThreat() / ownThreat;
+            threatFactor = std::max(0.5, std::min(2.0, threatFactor));
+        }
+
         GameEntity* entityAttackCheck = nullptr;
         Tile* tileAttackCheck = nullptr;
         CreatureSkillData* skillDataCheck = nullptr;
-        int closestDistCheck = closestDist;
-        // We check if this creature is closer than the other one (if any)
+        int closestDistCheck = -1;
+        // We check the closest tile of this entity
         std::vector<Tile*> coveredTiles = entity->getCoveredTiles();
         for(Tile* tile : coveredTiles)
         {
             if(std::find(mVisibleTiles.begin(), mVisibleTiles.end(), tile) == mVisibleTiles.end())
                 continue;
 
-            int dist = Pathfinding::squaredDistanceTile(*tile, *myTile);
+            int dist = static_cast<int>(Pathfinding::squaredDistanceTile(*tile, *myTile) / threatFactor);
             if((closestDistCheck != -1) && (dist >= closestDistCheck))
                 continue;
 
@@ -1423,6 +1626,11 @@ bool Creature::searchBestTargetInList(const std::vector<GameEntity*>& listObject
         }
 
         if((entityAttackCheck == nullptr) || (tileAttackCheck == nullptr))
+            continue;
+
+        // We check if this entity is closer than the other one (if any), weighted by the combat class
+        double closestDistCheckWeighted = static_cast<double>(closestDistCheck) * getTargetDistanceFactor(*this, *entityAttackCheck);
+        if((closestDistWeighted >= 0.0) && (closestDistCheckWeighted >= closestDistWeighted))
             continue;
 
         // We check if we are supposed to flee from this entity
@@ -1456,14 +1664,11 @@ bool Creature::searchBestTargetInList(const std::vector<GameEntity*>& listObject
         if(rangeTarget <= (skillRangeMax * skillRangeMax))
         {
              // We can attack
-             if((closestDist == -1) || (rangeTarget < closestDist))
-             {
-                tilePosition = myTile;
-                entityAttack = entityAttackCheck;
-                tileAttack = tileAttackCheck;
-                skillData = skillDataCheck;
-                closestDist = rangeTarget;
-             }
+             tilePosition = myTile;
+             entityAttack = entityAttackCheck;
+             tileAttack = tileAttackCheck;
+             skillData = skillDataCheck;
+             closestDistWeighted = closestDistCheckWeighted;
              continue;
         }
 
@@ -1500,6 +1705,17 @@ bool Creature::searchBestTargetInList(const std::vector<GameEntity*>& listObject
             // We compute a score for each tile. We will choose the best one. Note that we try to be as close as possible
             // from the fightIdleDist but by walking the less possible. We need to find a compromise
             int scoreAttack = std::abs(skillRangeMaxIntSquared - distFoeTmp) * 2 + distAttackTmp;
+            // Support creatures keep their distance, flankers prefer to get behind the target
+            CreatureDefinition::CombatClass combatClass = getDefinition()->getCombatClass();
+            if((combatClass == CreatureDefinition::CombatSupport) && (distFoeTmp < skillRangeMaxIntSquared))
+                scoreAttack += (skillRangeMaxIntSquared - distFoeTmp) * 2;
+            else if(combatClass == CreatureDefinition::CombatFlanker)
+            {
+                int behindTarget = (tile->getX() - tileAttackCheck->getX()) * (myTile->getX() - tileAttackCheck->getX()) +
+                    (tile->getY() - tileAttackCheck->getY()) * (myTile->getY() - tileAttackCheck->getY());
+                if(behindTarget < 0)
+                    scoreAttack /= 2;
+            }
             if((bestScoreAttack != -1) && (bestScoreAttack <= scoreAttack))
                 continue;
 
@@ -1509,7 +1725,7 @@ bool Creature::searchBestTargetInList(const std::vector<GameEntity*>& listObject
             entityAttack = entityAttackCheck;
             tileAttack = tileAttackCheck;
             skillData = skillDataCheck;
-            closestDist = closestDistCheck;
+            closestDistWeighted = closestDistCheckWeighted;
             // We don't break because there might be a better spot
         }
     }
@@ -1672,23 +1888,22 @@ double Creature::getElementDefense() const
 
 void Creature::checkLevelUp()
 {
-    if (getLevel() >= MAX_LEVEL)
-        return;
-
-    // Check the returned value.
-    double newXP = mDefinition->getXPNeededWhenLevel(getLevel());
-
-    // An error occurred
-    if (newXP <= 0.0)
+    while(getLevel() < MAX_LEVEL)
     {
-        OD_LOG_ERR("creature=" + getName() + ", newXP=" + Helper::toString(newXP));
-        return;
+        const double newXP = mDefinition->getXPNeededWhenLevel(getLevel());
+        if(!std::isfinite(newXP) || newXP <= 0.0)
+        {
+            OD_LOG_ERR("creature=" + getName() + ", newXP=" + Helper::toString(newXP));
+            return;
+        }
+        if(mExp < newXP)
+            return;
+
+        const double remainingXP = mExp - newXP;
+        setLevel(mLevel + 1);
+        mExp = remainingXP;
     }
-
-    if (mExp < newXP)
-        return;
-
-    setLevel(mLevel + 1);
+    mExp = 0.0;
 }
 
 void Creature::exportToPacketForUpdate(ODPacket& os, Seat* seat) 
@@ -1723,6 +1938,10 @@ void Creature::exportToPacketForUpdate(ODPacket& os, Seat* seat)
         seatPrisonId = mSeatPrison->getId();
 
     os << seatPrisonId;
+    os << isHexenHen();
+    exportMoodToPacket(os, seat);
+    exportActivityToPacket(os, seat);
+    exportProgressToPacket(os, seat);
 }
 
 void Creature::updateFromPacket(ODPacket& is)
@@ -1768,6 +1987,161 @@ void Creature::updateFromPacket(ODPacket& is)
             OD_LOG_ERR("Creature " + getName() + ", wrong seatId=" + Helper::toString(seatId));
         }
     }
+
+    OD_ASSERT_TRUE(is >> mIsHexenHen);
+    updateHexenHenMesh();
+
+    importMoodFromPacket(is);
+    importActivityFromPacket(is);
+    importProgressFromPacket(is);
+}
+
+double Creature::getExperienceProgress() const
+{
+    if(!getIsOnServerMap())
+        return mExperienceProgress;
+    if(mLevel >= MAX_LEVEL)
+        return 1.0;
+    const double needed = mDefinition->getXPNeededWhenLevel(mLevel);
+    return needed > 0.0 ? std::max(0.0, std::min(1.0, mExp / needed)) : 0.0;
+}
+
+void Creature::exportProgressToPacket(ODPacket& os, const Seat* seat) const
+{
+    if(!ODServer::getSingleton().supportsCreatureProgress(seat->getPlayer()))
+        return;
+    os << getExperienceProgress() << mAttackRecoveryTurns << mAttackRecoveryDuration
+       << mAttackRecoverySerial;
+}
+
+void Creature::importProgressFromPacket(ODPacket& is)
+{
+    mHasProgressInformation = false;
+    if(!ODClient::getSingleton().supportsCreatureProgress())
+        return;
+    double experience;
+    uint32_t remaining, duration, serial;
+    OD_ASSERT_TRUE(is >> experience >> remaining >> duration >> serial);
+    if(!std::isfinite(experience) || experience < 0.0 || experience > 1.0 || remaining > duration)
+    {
+        OD_LOG_ERR("Invalid creature progress for " + getName());
+        return;
+    }
+    mExperienceProgress = experience;
+    mAttackRecoveryTurns = remaining;
+    mAttackRecoveryDuration = duration;
+    mAttackRecoverySerial = serial;
+    mHasProgressInformation = true;
+}
+
+void Creature::exportMoodToPacket(ODPacket& os, const Seat* seat) const
+{
+    if(!ODServer::getSingleton().supportsCreatureMood(seat->getPlayer()))
+        return;
+
+    int32_t mood = static_cast<int32_t>(seat->isAlliedSeat(getSeat()) ?
+        mMoodValue : CreatureMoodLevel::Unknown);
+    os << mood;
+}
+
+void Creature::importMoodFromPacket(ODPacket& is)
+{
+    mMoodValue = CreatureMoodLevel::Unknown;
+    if(!ODClient::getSingleton().supportsCreatureMood())
+        return;
+
+    int32_t mood = static_cast<int32_t>(CreatureMoodLevel::Unknown);
+    OD_ASSERT_TRUE(is >> mood);
+    if(mood < static_cast<int32_t>(CreatureMoodLevel::Unknown) ||
+       mood > static_cast<int32_t>(CreatureMoodLevel::Furious))
+    {
+        OD_LOG_ERR("Invalid creature mood=" + Helper::toString(mood));
+        return;
+    }
+    mMoodValue = static_cast<CreatureMoodLevel>(mood);
+}
+
+CreatureActivity Creature::getActivity() const
+{
+    CreatureActivity activity;
+    if(!getIsOnMap() || !isAlive() || isKo())
+        return activity;
+
+    if(!getIsOnServerMap())
+        return mActivity;
+
+    activity.known = true;
+    if(!mActions.empty())
+        activity.action = mActions.back()->getType();
+
+    for(std::vector<std::unique_ptr<CreatureAction>>::const_reverse_iterator it = mActions.rbegin(); it != mActions.rend(); ++it)
+    {
+        const CreatureActionType type = (*it)->getType();
+        if(activity.task == CreatureActionType::nb && type != CreatureActionType::walkToTile &&
+           type != CreatureActionType::parkToTile)
+            activity.task = type;
+
+        if(type != CreatureActionType::useRoom)
+            continue;
+
+        const Room* room = static_cast<const CreatureActionUseRoom*>(it->get())->getRoom();
+        if(room != nullptr)
+        {
+            activity.assignedRoom = room->getType();
+            const Tile* tile = getPositionTile();
+            activity.inAssignedRoom = tile != nullptr && tile->getCoveringRoom() == room;
+        }
+        break;
+    }
+    return activity;
+}
+
+void Creature::exportActivityToPacket(ODPacket& os, const Seat* seat) const
+{
+    if(!ODServer::getSingleton().supportsCreatureActivity(seat->getPlayer()))
+        return;
+
+    const CreatureActivity activity = seat->isAlliedSeat(getSeat()) ? getActivity() : CreatureActivity();
+    os << activity.known;
+    if(!activity.known)
+        return;
+
+    os << static_cast<int32_t>(activity.action) << static_cast<int32_t>(activity.task)
+       << static_cast<int32_t>(activity.assignedRoom) << activity.inAssignedRoom;
+}
+
+void Creature::importActivityFromPacket(ODPacket& is)
+{
+    mActivity = CreatureActivity();
+    if(!ODClient::getSingleton().supportsCreatureActivity())
+        return;
+
+    CreatureActivity activity;
+    if(!(is >> activity.known))
+    {
+        OD_LOG_ERR("Missing creature activity for " + getName());
+        return;
+    }
+    if(!activity.known)
+        return;
+
+    int32_t action, task, room;
+    if(!(is >> action >> task >> room >> activity.inAssignedRoom))
+    {
+        OD_LOG_ERR("Incomplete creature activity for " + getName());
+        return;
+    }
+    if(action < 0 || action > static_cast<int32_t>(CreatureActionType::nb) ||
+       task < 0 || task > static_cast<int32_t>(CreatureActionType::nb) ||
+       room < 0 || room >= static_cast<int32_t>(RoomType::nbRooms))
+    {
+        OD_LOG_ERR("Invalid creature activity for " + getName());
+        return;
+    }
+    activity.action = static_cast<CreatureActionType>(action);
+    activity.task = static_cast<CreatureActionType>(task);
+    activity.assignedRoom = static_cast<RoomType>(room);
+    mActivity = activity;
 }
 
 void Creature::updateTilesInSight()
@@ -2095,7 +2469,11 @@ std::string Creature::getStatsText()
 double Creature::takeDamage(GameEntity* attacker, double absoluteDamage, double physicalDamage, double magicalDamage, double elementDamage,
         Tile *tileTakingDamage, bool ko)
 {
+    bool wasAlive = isAlive();
     mNbTurnsWithoutBattle = 0;
+    // The champion cannot be hurt
+    if(getDefinition()->isChampion())
+        return 0.0;
     physicalDamage = std::max(physicalDamage - getPhysicalDefense(), 0.0);
     magicalDamage = std::max(magicalDamage - getMagicalDefense(), 0.0);
     elementDamage = std::max(elementDamage - getElementDefense(), 0.0);
@@ -2118,7 +2496,12 @@ double Creature::takeDamage(GameEntity* attacker, double absoluteDamage, double 
     computeCreatureOverlayMoodValue();
 
     if(!isAlive())
+    {
+        // The killing blow counts once for the debriefing (a KO does not get here)
+        if(wasAlive && (attacker != nullptr) && (attacker->getSeat() != nullptr))
+            attacker->getSeat()->recordCreatureKill(getSeat());
         fireEntityDead();
+    }
 
     if(!getIsOnServerMap())
         return damageDone;
@@ -2154,20 +2537,25 @@ double Creature::takeDamage(GameEntity* attacker, double absoluteDamage, double 
 
 void Creature::receiveExp(double experience)
 {
-    if (experience < 0)
+    if (!std::isfinite(experience) || experience < 0 || mLevel >= MAX_LEVEL)
         return;
 
     mExp += experience;
+    mNeedFireRefresh = true;
 }
 
 void Creature::useAttack(CreatureSkillData& skillData, GameEntity& entityAttack,
         Tile& tileAttack, bool ko, bool notifyPlayerIfHit)
 {
-    // Turn to face the entity we are attacking and set the animation state to Attack.
+    // Keep ranged skills visually distinct, including shots at adjacent targets.
     const Ogre::Vector3& pos = getPosition();
-    Ogre::Vector3 walkDirection(tileAttack.getX() - pos.x, tileAttack.getY() - pos.y, 0);
+    const Ogre::Vector3 target = entityAttack.getObjectType() == GameEntityType::creature ?
+        entityAttack.getPosition() : Ogre::Vector3(tileAttack.getX(), tileAttack.getY(), 0);
+    Ogre::Vector3 walkDirection(target.x - pos.x, target.y - pos.y, 0);
     walkDirection.normalise();
-    setAnimationState(EntityAnimation::attack_anim, false, walkDirection, true);
+    const bool ranged = skillData.mSkill->getRangeMax(this, &entityAttack) > 1.0;
+    setAnimationState(ranged ? EntityAnimation::ranged_attack_anim :
+        EntityAnimation::combat_attack_anim, false, walkDirection, true);
     fireCreatureSound(CreatureSound::Attack);
     setNbTurnsWithoutBattle(0);
 
@@ -2180,6 +2568,12 @@ void Creature::useAttack(CreatureSkillData& skillData, GameEntity& entityAttack,
         &entityAttack, &tileAttack, ko, notifyPlayerIfHit);
     skillData.mWarmup = skillData.mSkill->getWarmupNbTurns();
     skillData.mCooldown = skillData.mSkill->getCooldownNbTurns();
+
+    // Both timers count down together; either can postpone the next attack.
+    mAttackRecoveryDuration = std::max(skillData.mWarmup, skillData.mCooldown);
+    mAttackRecoveryTurns = mAttackRecoveryDuration;
+    ++mAttackRecoverySerial;
+    mNeedFireRefresh = true;
 
     // Fighting is tiring
     decreaseWakefulness(0.5);
@@ -2251,6 +2645,10 @@ bool Creature::tryPickup(Seat* seat)
     if(isKo())
         return false;
 
+    // The champion cannot be held in the hand
+    if(getDefinition()->isChampion())
+        return false;
+
     return true;
 }
 
@@ -2260,6 +2658,7 @@ void Creature::pickup()
     removeEntityFromPositionTile();
     clearDestinations(EntityAnimation::idle_anim, true, true);
     clearActionQueue();
+    mActivity = CreatureActivity();
 
     if(!getIsOnServerMap())
         return;
@@ -2267,7 +2666,22 @@ void Creature::pickup()
     if(getHasVisualDebuggingEntities())
         computeVisualDebugEntities();
 
+    mIsInHand = true;
+
     fireCreatureSound(CreatureSound::Pickup);
+}
+
+int32_t Creature::getNbRecentSlaps(int32_t nbTurns) const
+{
+    int64_t turnNumber = getGameMap()->getTurnNumber();
+    int32_t nbSlaps = 0;
+    for(int64_t slapTurn : mSlapTurns)
+    {
+        if(turnNumber - slapTurn <= nbTurns)
+            ++nbSlaps;
+    }
+
+    return nbSlaps;
 }
 
 bool Creature::canGoThroughTile(Tile* tile) const
@@ -2321,6 +2735,7 @@ void Creature::drop(const Ogre::Vector3& v)
     if(!getIsOnServerMap())
     {
         mDropCooldown = 2;
+        updateHexenHenMesh();
         return;
     }
 
@@ -2328,6 +2743,8 @@ void Creature::drop(const Ogre::Vector3& v)
         computeVisualDebugEntities();
 
     fireCreatureSound(CreatureSound::Drop);
+
+    mIsInHand = false;
 
     // The creature is temporary KO
     mKoTurnCounter = mDefinition->getTurnsStunDropped();
@@ -2518,6 +2935,8 @@ bool Creature::setDestination(Tile* tile)
     std::vector<Ogre::Vector2> path;
     tileToVector2(result, path, true, 0.0);
     setWalkPath(EntityAnimation::walk_anim, EntityAnimation::idle_anim, true, true, path,true);
+    if(!isMoving() && posTile != tile)
+        return false;
     pushAction(Utils::make_unique<CreatureActionWalkToTile>(*this));
     return true;
 }
@@ -2684,9 +3103,22 @@ void Creature::slap()
         return;
     }
 
+    // A slap sends the champion away
+    if(getDefinition()->isChampion())
+    {
+        dismissChampion();
+        return;
+    }
+
     CreatureEffectSlap* effect = new CreatureEffectSlap(
         ConfigManager::getSingleton().getSlapEffectDuration(), "");
     addCreatureEffect(effect);
+
+    // We remember the slap to compute the mood. Only the latest ones are kept
+    mSlapTurns.push_back(getGameMap()->getTurnNumber());
+    if(mSlapTurns.size() > 10)
+        mSlapTurns.erase(mSlapTurns.begin());
+
     mHp -= mMaxHP * ConfigManager::getSingleton().getSlapDamagePercent() / 100.0;
     computeCreatureOverlayHealthValue();
 }
@@ -2755,6 +3187,13 @@ void Creature::fireRemoveEntity(Seat* seat,NodeType nt)
 
 void Creature::fireCreatureRefreshIfNeeded()
 {
+    const CreatureActivity activity = getActivity();
+    if(!(mActivity == activity))
+    {
+        mActivity = activity;
+        mNeedFireRefresh = true;
+    }
+
     if(!mNeedFireRefresh)
         return;
 
@@ -2990,6 +3429,37 @@ void Creature::fireCreatureSound(CreatureSound sound)
     }
 }
 
+void Creature::fireCombatImpact(bool weaponClash, bool bodyDamage,
+    const Ogre::Vector3& attackerPosition)
+{
+    for(Seat* seat : mSeatsWithVisionNotified)
+    {
+        if(seat->getPlayer() == nullptr || !seat->getPlayer()->getIsHuman())
+            continue;
+
+        ServerNotification* notification = new ServerNotification(
+            ServerNotificationType::creatureCombatImpact, seat->getPlayer());
+        notification->mPacket << getName() << weaponClash << bodyDamage
+            << attackerPosition;
+        ODServer::getSingleton().queueServerNotification(notification);
+    }
+}
+
+void Creature::fireChickenFeeding(const std::string& chickenName,
+    const Ogre::Vector3& chickenPosition)
+{
+    for(Seat* seat : mSeatsWithVisionNotified)
+    {
+        if(seat->getPlayer() == nullptr || !seat->getPlayer()->getIsHuman())
+            continue;
+
+        ServerNotification* notification = new ServerNotification(
+            ServerNotificationType::creatureChickenFeeding, seat->getPlayer());
+        notification->mPacket << getName() << chickenName << chickenPosition;
+        ODServer::getSingleton().queueServerNotification(notification);
+    }
+}
+
 void Creature::itsPayDay()
 {
     // Rogue creatures do not have to be paid
@@ -3015,6 +3485,17 @@ void Creature::decreaseWakefulness(double value)
     mWakefulness = std::max(0.0, mWakefulness - value);
 }
 
+void Creature::addCasinoMood(double points)
+{
+    double maxPoints = ConfigManager::getSingleton().getRoomConfigDoubleOrDefault("CasinoMoodMax", DEFAULT_CASINO_MOOD_MAX);
+    mCasinoMood = std::max(-maxPoints, std::min(maxPoints, mCasinoMood + points));
+}
+
+void Creature::addPrayerRelief(int32_t relief, int32_t maxRelief)
+{
+    mPrayerRelief = std::min(mPrayerRelief + relief, maxRelief);
+}
+
 void Creature::computeMood()
 {
     mMoodPoints = CreatureMoodManager::computeCreatureMoodModifiers(*this);
@@ -3023,6 +3504,8 @@ void Creature::computeMood()
     mMoodValue = CreatureMoodManager::getCreatureMoodLevel(mMoodPoints);
     if(mMoodValue == oldMoodValue)
         return;
+
+    mNeedFireRefresh = true;
 
     if((mMoodValue >= CreatureMoodLevel::Furious) &&
        (oldMoodValue < CreatureMoodLevel::Furious))
@@ -3156,6 +3639,120 @@ bool Creature::removeCreatureEffect(CreatureEffect* effectForDeletion)
     return false;
 }
 
+bool Creature::isDefector() const
+{
+    for(const EntityParticleEffect* effect : mEntityParticleEffects)
+    {
+        if(effect->getEntityParticleEffectType() != EntityParticleEffectType::creature)
+            continue;
+
+        const CreatureParticleEffect* creatureEffect = static_cast<const CreatureParticleEffect*>(effect);
+        if((creatureEffect->mEffect->getEffectName() == "Defector") &&
+           (creatureEffect->mEffect->getNbTurnsEffect() > 0))
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+bool Creature::isHexenHen() const
+{
+    if(!getIsOnServerMap())
+        return mIsHexenHen;
+
+    for(const EntityParticleEffect* effect : mEntityParticleEffects)
+    {
+        if(effect->getEntityParticleEffectType() != EntityParticleEffectType::creature)
+            continue;
+
+        const CreatureParticleEffect* creatureEffect = static_cast<const CreatureParticleEffect*>(effect);
+        if((creatureEffect->mEffect->getEffectName() == "HexenHen") &&
+           (creatureEffect->mEffect->getNbTurnsEffect() > 0))
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+bool Creature::isFrozen() const
+{
+    if(!getIsOnServerMap())
+        return false;
+
+    for(const EntityParticleEffect* effect : mEntityParticleEffects)
+    {
+        if(effect->getEntityParticleEffectType() != EntityParticleEffectType::creature)
+            continue;
+
+        const CreatureParticleEffect* creatureEffect = static_cast<const CreatureParticleEffect*>(effect);
+        if((creatureEffect->mEffect->getEffectName() == "Frozen") &&
+           (creatureEffect->mEffect->getNbTurnsEffect() > 0))
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+const std::string& Creature::getCurrentMeshName() const
+{
+    static const std::string chickenMeshName = "Chicken.mesh";
+    if(isHexenHen())
+        return chickenMeshName;
+
+    return getDefinition()->getMeshName();
+}
+
+void Creature::updateHexenHenMesh()
+{
+    if(getIsOnServerMap() || !isMeshExisting() || !getIsOnMap())
+        return;
+
+    if(mHexenHenMeshShown == mIsHexenHen)
+        return;
+
+    destroyMeshWeapons();
+    mHexenHenMeshShown = mIsHexenHen;
+    RenderManager::getSingleton().rrChangeCreatureMesh(this);
+    createMeshWeapons();
+    RenderManager::getSingleton().rrScaleCreature(*this);
+}
+
+void Creature::handleHexenHenUpkeep()
+{
+    if(!mActions.empty())
+    {
+        clearActionQueue();
+        clearDestinations(EntityAnimation::idle_anim, true, true);
+    }
+
+    if(isMoving())
+        return;
+
+    if(Random::Int(0, 3) != 0)
+        return;
+
+    Tile* myTile = getPositionTile();
+    if(myTile == nullptr)
+        return;
+
+    Tile* destTile = getGameMap()->getTile(myTile->getX() + Random::Int(-2, 2), myTile->getY() + Random::Int(-2, 2));
+    if((destTile == nullptr) || (destTile == myTile) || !canGoThroughTile(destTile))
+        return;
+
+    std::list<Tile*> tempPath = getGameMap()->path(this, destTile);
+    if(tempPath.empty())
+        return;
+
+    std::vector<Ogre::Vector2> path;
+    tileToVector2(tempPath, path, true, 0.0);
+    setWalkPath(EntityAnimation::walk_anim, EntityAnimation::idle_anim, true, true, path, true);
+}
 
 bool Creature::isHurt() const
 {
@@ -3212,7 +3809,7 @@ void Creature::correctEntityMovePosition(Ogre::Vector2& position)
     //     position.z += Random::Double(-offset, offset);
 }
 
-void Creature::checkWalkPathValid()
+void Creature::checkWalkPathValid(bool includeWalkDistortion)
 {
     bool stop = false;
     for(const Ogre::Vector2& dest : mWalkQueue)
@@ -3230,6 +3827,10 @@ void Creature::checkWalkPathValid()
             break;
         }
     }
+
+    if(!stop && getIsOnServerMap())
+        stop = RoomObjectNavigation::blocked(*this,
+            std::vector<Ogre::Vector2>(mWalkQueue.begin(), mWalkQueue.end()), includeWalkDistortion);
 
     if(!stop)
         return;
@@ -3269,6 +3870,17 @@ void Creature::resetKoTurns()
     mNeedFireRefresh = true;
 }
 
+void Creature::stun(int32_t nbTurns)
+{
+    if(!isAlive() || (nbTurns <= 0) || (mKoTurnCounter < 0))
+        return;
+
+    mKoTurnCounter = std::max(mKoTurnCounter, nbTurns);
+    computeCreatureOverlayMoodValue();
+    clearActionQueue();
+    mNeedFireRefresh = true;
+}
+
 void Creature::setInJail(Room* prison)
 {
     if(prison == nullptr)
@@ -3289,9 +3901,27 @@ void Creature::setInJail(Room* prison)
     mNeedFireRefresh = true;
 }
 
+double Creature::getThreat() const
+{
+    // Threat multiplier in percent for the levels 1 to 10. Above level 10 the last
+    // step of the table (100 percent per level) is continued.
+    static const double THREAT_PERCENT_BY_LEVEL[10] = {100.0, 125.0, 150.0, 175.0, 200.0, 225.0, 250.0, 300.0, 400.0, 500.0};
+    unsigned int level = (mLevel < 1) ? 1 : mLevel;
+    double percent;
+    if(level <= 10)
+        percent = THREAT_PERCENT_BY_LEVEL[level - 1];
+    else
+        percent = THREAT_PERCENT_BY_LEVEL[9] + 100.0 * static_cast<double>(level - 10);
+
+    return mHp * percent / 100.0;
+}
+
 bool Creature::isDangerous(const Creature* creature, int distance) const
 {
     if(getDefinition()->isWorker())
+        return false;
+
+    if(isHexenHen())
         return false;
 
     return true;
@@ -3402,6 +4032,25 @@ void Creature::flee()
     pushAction(Utils::make_unique<CreatureActionFlee>(*this));
 }
 
+void Creature::stunForTurns(int32_t nbTurns)
+{
+    // Only living creatures that are not already KO can be stunned
+    if(!isAlive() || (mKoTurnCounter != 0))
+        return;
+
+    clearDestinations(EntityAnimation::idle_anim, true, true);
+    clearActionQueue();
+    mKoTurnCounter = nbTurns;
+    computeCreatureOverlayMoodValue();
+}
+
+void Creature::fleeFromTile(Tile* fearTile, int32_t nbTurns)
+{
+    clearDestinations(EntityAnimation::idle_anim, true, true);
+    clearActionQueue();
+    pushAction(Utils::make_unique<CreatureActionFlee>(*this, fearTile, nbTurns));
+}
+
 void Creature::sleep()
 {
     clearDestinations(EntityAnimation::idle_anim, true, true);
@@ -3423,11 +4072,21 @@ void Creature::changeSeat(Seat* newSeat)
     setSeat(newSeat);
     mMoodValue = CreatureMoodLevel::Neutral;
     mMoodPoints = 0;
+    mPrayerRelief = 0;
     mWakefulness = 100;
     mHunger = 0;
     mNbTurnsTorture = 0;
     mNbTurnsPrison = 0;
     mActiveSlapsCount = 0;
+    mCasinoMood = 0.0;
+    mNbTurnsInHand = 0;
+    mIsInHand = false;
+    mNbTurnsOutOfWork = 0;
+    mNbTurnsTortureMood = 0;
+    mNbTurnsRested = 0;
+    mTorturedThisTurn = false;
+    mRestedThisTurn = false;
+    mSlapTurns.clear();
     clearDestinations(EntityAnimation::idle_anim, true, true);
     clearActionQueue();
     mNeedFireRefresh = true;
@@ -3472,8 +4131,110 @@ void Creature::normalizeAmbient()
 
 }
 
+bool Creature::handleChampionUpkeep()
+{
+    ++mChampionTurns;
 
+    // The cast price covers the first seconds (price divided by the drain per second). After that
+    // the owner pays each turn the share of the drain per second and the champion leaves when the
+    // mana cannot pay one second of it
+    double price = ConfigManager::getSingleton().getSpellConfigDouble("SummonChampionPrice");
+    double drainPerSecond = ConfigManager::getSingleton().getSpellConfigDouble("SummonChampionDrainPerSecond");
+    if(drainPerSecond <= 0.0)
+        return false;
 
+    double freeSeconds = price / drainPerSecond;
+    if(static_cast<double>(mChampionTurns) <= (freeSeconds * ODApplication::turnsPerSecond))
+        return false;
 
+    double drainPerTurn = drainPerSecond / ODApplication::turnsPerSecond;
+    if((getSeat()->getMana() < drainPerSecond) || !getSeat()->takeMana(drainPerTurn))
+    {
+        dismissChampion();
+        return true;
+    }
 
+    return false;
+}
 
+bool Creature::handleChampionIdle()
+{
+    Tile* myTile = getPositionTile();
+    if(myTile == nullptr)
+        return false;
+
+    // Enemy creatures first, the nearest reachable one. The dungeon hearts of the enemies come after
+    std::vector<std::pair<int, Tile*>> targets;
+    for(Creature* creature : getGameMap()->getCreatures())
+    {
+        if(creature->getSeat()->isAlliedSeat(getSeat()) || !creature->isAlive() || !creature->getIsOnMap() ||
+           creature->isInPrison())
+        {
+            continue;
+        }
+
+        Tile* tile = creature->getPositionTile();
+        if(tile == nullptr)
+            continue;
+
+        int distX = tile->getX() - myTile->getX();
+        int distY = tile->getY() - myTile->getY();
+        targets.push_back(std::make_pair(distX * distX + distY * distY, tile));
+    }
+    std::sort(targets.begin(), targets.end());
+
+    std::vector<std::pair<int, Tile*>> heartTargets;
+    for(Room* heart : getGameMap()->getRoomsByType(RoomType::dungeonTemple))
+    {
+        if(heart->getSeat()->isAlliedSeat(getSeat()))
+            continue;
+
+        std::vector<Tile*> heartTiles = heart->getCoveredTiles();
+        if(heartTiles.empty())
+            continue;
+
+        int distX = heartTiles.front()->getX() - myTile->getX();
+        int distY = heartTiles.front()->getY() - myTile->getY();
+        heartTargets.push_back(std::make_pair(distX * distX + distY * distY, heartTiles.front()));
+    }
+    std::sort(heartTargets.begin(), heartTargets.end());
+    targets.insert(targets.end(), heartTargets.begin(), heartTargets.end());
+
+    // The path check is costly, so only the closest few targets are tried
+    uint32_t nbTries = 0;
+    for(const std::pair<int, Tile*>& target : targets)
+    {
+        if(nbTries >= MAX_PATH_CHECK_TARGET_TRIES)
+            break;
+        ++nbTries;
+
+        if(!getGameMap()->pathExists(this, myTile, target.second))
+            continue;
+
+        if(setDestination(target.second))
+            return true;
+    }
+
+    return false;
+}
+
+void Creature::dismissChampion()
+{
+    if(!getIsOnServerMap())
+        return;
+
+    OD_LOG_INF("The champion " + getName() + " leaves");
+    if((getSeat()->getPlayer() != nullptr) && getSeat()->getPlayer()->getIsHuman() &&
+       !getSeat()->getPlayer()->getHasLost())
+    {
+        ServerNotification* serverNotification = new ServerNotification(
+            ServerNotificationType::chatServer, getSeat()->getPlayer());
+        std::string msg = "The champion leaves your dungeon";
+        serverNotification->mPacket << msg << EventShortNoticeType::aboutCreatures;
+        ODServer::getSingleton().queueServerNotification(serverNotification);
+    }
+
+    clearDestinations(EntityAnimation::idle_anim, true, true);
+    removeFromGameMap();
+    deleteYourself();
+}
