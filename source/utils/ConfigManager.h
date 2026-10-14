@@ -92,6 +92,18 @@ public:
     static const std::string DEFAULT_TILESET_NAME;
     static const std::string DEFAULT_KEEPER_VOICE;
 
+    //! Lowest value of the glancing and strong hit shares
+    static const double HitShareMin;
+    //! Highest value of the glancing hit share
+    static const double HitGlanceShareMax;
+    //! Highest value of the strong hit share
+    static const double HitStrongShareMax;
+    //! Lowest and highest value of a dodge or parry chance in percent
+    static const double ChanceMin;
+    static const double ChanceMax;
+    //! Highest value of the chance in percent that every level adds
+    static const double ChancePerLevelMax;
+
     const Ogre::ColourValue& getColorFromId(const std::string& id) const;
     //! \brief The system configuration path, with the trailing separator
     inline const std::string& getConfigPath() const
@@ -141,11 +153,11 @@ public:
 
     //! \brief A blow that lets through less than this share of its damage counts as glancing (0.01 - 0.9)
     inline double getHitGlanceShare() const
-    { return std::max(0.01, std::min(0.9, mHitGlanceShare)); }
+    { return std::max(HitShareMin, std::min(HitGlanceShareMax, mHitGlanceShare)); }
 
     //! \brief A hit that takes at least this share of the maximum health of its target is a strong one (0.01 - 1)
     inline double getHitStrongShare() const
-    { return std::max(0.01, std::min(1.0, mHitStrongShare)); }
+    { return std::max(HitShareMin, std::min(HitStrongShareMax, mHitStrongShare)); }
 
     //! \brief True if melee blows can be dodged or parried (decided by the server, global.cfg MeleeDodgeParry)
     inline bool getMeleeDodgeParry() const
@@ -153,39 +165,39 @@ public:
 
     //! \brief Dodge chance of every creature in percent, base value (0 - 100)
     inline double getDodgeBase() const
-    { return std::max(0.0, std::min(100.0, mDodgeBase)); }
+    { return std::max(ChanceMin, std::min(ChanceMax, mDodgeBase)); }
 
     //! \brief Dodge chance in percent that every level adds (0 - 10)
     inline double getDodgePerLevel() const
-    { return std::max(0.0, std::min(10.0, mDodgePerLevel)); }
+    { return std::max(ChanceMin, std::min(ChancePerLevelMax, mDodgePerLevel)); }
 
     //! \brief Highest dodge chance in percent (0 - 100)
     inline double getDodgeMax() const
-    { return std::max(0.0, std::min(100.0, mDodgeMax)); }
+    { return std::max(ChanceMin, std::min(ChanceMax, mDodgeMax)); }
 
     //! \brief Parry chance with a weapon in percent, base value (0 - 100)
     inline double getParryBase() const
-    { return std::max(0.0, std::min(100.0, mParryBase)); }
+    { return std::max(ChanceMin, std::min(ChanceMax, mParryBase)); }
 
     //! \brief Parry chance in percent that every level adds (0 - 10)
     inline double getParryPerLevel() const
-    { return std::max(0.0, std::min(10.0, mParryPerLevel)); }
+    { return std::max(ChanceMin, std::min(ChancePerLevelMax, mParryPerLevel)); }
 
     //! \brief Highest parry chance with a weapon in percent (0 - 100)
     inline double getParryMax() const
-    { return std::max(0.0, std::min(100.0, mParryMax)); }
+    { return std::max(ChanceMin, std::min(ChanceMax, mParryMax)); }
 
     //! \brief Parry chance with weapon and shield in percent, base value (0 - 100)
     inline double getParryShieldBase() const
-    { return std::max(0.0, std::min(100.0, mParryShieldBase)); }
+    { return std::max(ChanceMin, std::min(ChanceMax, mParryShieldBase)); }
 
     //! \brief Parry chance with weapon and shield in percent that every level adds (0 - 10)
     inline double getParryShieldPerLevel() const
-    { return std::max(0.0, std::min(10.0, mParryShieldPerLevel)); }
+    { return std::max(ChanceMin, std::min(ChancePerLevelMax, mParryShieldPerLevel)); }
 
     //! \brief Highest parry chance with weapon and shield in percent (0 - 100)
     inline double getParryShieldMax() const
-    { return std::max(0.0, std::min(100.0, mParryShieldMax)); }
+    { return std::max(ChanceMin, std::min(ChanceMax, mParryShieldMax)); }
 
     inline int64_t getTimePayDay() const
     { return mTimePayDay; }

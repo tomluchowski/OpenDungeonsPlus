@@ -96,6 +96,17 @@ const double DROP_DELAY = 0.3;
 const double WEAPON_GRAVITY = 14.0;
 const double WEAPON_LIE_TIME = 4.5;
 const double WEAPON_VANISH_TIME = 0.7;
+//! Slowest animation speed (turns per second) for which the length of an attack clip in seconds is worked out
+const double ATTACK_SPEED_MIN = 0.1;
+//! A weapon that was drawn less than this long ago is not cut off by the look of a blow
+const double WEAPON_DRAW_PROTECT_SECONDS = 0.45;
+//! Time a shot needs at least before it lands, however close the target is
+const double HIT_DELAY_SHOT_BASE = 0.15;
+//! A dropped weapon lands up to this far (world units) aside of the hand in both directions
+const double FALLEN_SCATTER = 0.3;
+//! Lowest drop height (world units) for which the fall time is worked out, and the fall time used below it
+const double FALLEN_DROP_MIN_HEIGHT = 0.05;
+const double FALLEN_FALL_TIME_SHORT = 0.15;
 //! At most this many reactions run when a combat reaction is added (they are cheap, but a big fight has many)
 const uint32_t MAX_RUNNING = 12;
 const uint32_t MAX_PENDING = 64;
@@ -542,7 +553,7 @@ void CreatureCombatReactions::noteHitEvent(CreatureReactions& reactions, Creatur
         double clipSeconds = 1.0;
         Ogre::AnimationState* animState = (attacker != nullptr) ? attacker->getAnimationState() : nullptr;
         double speed = (attacker != nullptr) ? ODApplication::turnsPerSecond * attacker->getAnimationSpeedFactor() : 0.0;
-        if((animState != nullptr) && (speed > 0.1))
+        if((animState != nullptr) && (speed > ATTACK_SPEED_MIN))
             clipSeconds = static_cast<double>(animState->getLength()) / speed;
         delay = std::max(HIT_DELAY_MIN, std::min(HIT_DELAY_MAX, clipSeconds * HIT_SHARE_OF_CLIP));
     }
@@ -580,7 +591,7 @@ void CreatureCombatReactions::processAttacks(CreatureReactions& reactions)
         double clipSeconds = 1.0;
         Ogre::AnimationState* animState = attacker->getAnimationState();
         double speed = ODApplication::turnsPerSecond * attacker->getAnimationSpeedFactor();
-        if((animState != nullptr) && (speed > 0.1))
+        if((animState != nullptr) && (speed > ATTACK_SPEED_MIN))
             clipSeconds = static_cast<double>(animState->getLength()) / speed;
 
         CombatState& state = getState(attacker->getName(), reactions.mTime);
@@ -590,7 +601,7 @@ void CreatureCombatReactions::processAttacks(CreatureReactions& reactions)
         {
             // The weapon that was just drawn is not cut off
             CreatureReactions::RunningReaction* running = reactions.findRunning(attacker->getName());
-            if((running == nullptr) || (running->mEventName != "WeaponDraw") || (running->mElapsed > 0.45))
+            if((running == nullptr) || (running->mEventName != "WeaponDraw") || (running->mElapsed > WEAPON_DRAW_PROTECT_SECONDS))
             {
                 if(show(reactions, attacker, chooseAttackEvent(reactions, attacker, ranged)))
                     state.mNextStyle = reactions.mTime + STYLE_INTERVAL;
@@ -604,7 +615,7 @@ void CreatureCombatReactions::processAttacks(CreatureReactions& reactions)
         targetState.mLastAttacked = reactions.mTime;
         draw(reactions, target, true);
 
-        double delay = ranged ? (0.15 + distance * HIT_DELAY_PER_UNIT) :
+        double delay = ranged ? (HIT_DELAY_SHOT_BASE + distance * HIT_DELAY_PER_UNIT) :
             std::max(HIT_DELAY_MIN, std::min(HIT_DELAY_MAX, clipSeconds * HIT_SHARE_OF_CLIP));
         // With the hit events of the server the hit is shown when the server says it landed (noteHitEvent)
         if(!CreatureWeaponVisuals::hasHitEvents())
@@ -740,11 +751,12 @@ void CreatureCombatReactions::processDrops(CreatureReactions& reactions)
             double halfThickness = 0.5 * static_cast<double>(thinnest) *
                 static_cast<double>(std::min(fallen.mScale.x, std::min(fallen.mScale.y, fallen.mScale.z)));
             fallen.mEndCenter = Ogre::Vector3(
-                fallen.mStartCenter.x + static_cast<Ogre::Real>(combatRandom(-0.3, 0.3)),
-                fallen.mStartCenter.y + static_cast<Ogre::Real>(combatRandom(-0.3, 0.3)),
+                fallen.mStartCenter.x + static_cast<Ogre::Real>(combatRandom(-FALLEN_SCATTER, FALLEN_SCATTER)),
+                fallen.mStartCenter.y + static_cast<Ogre::Real>(combatRandom(-FALLEN_SCATTER, FALLEN_SCATTER)),
                 static_cast<Ogre::Real>(floorHeight + halfThickness));
             double dropHeight = static_cast<double>(fallen.mStartCenter.z - fallen.mEndCenter.z);
-            fallen.mFallTime = (dropHeight > 0.05) ? std::sqrt(2.0 * dropHeight / WEAPON_GRAVITY) : 0.15;
+            fallen.mFallTime = (dropHeight > FALLEN_DROP_MIN_HEIGHT) ?
+                std::sqrt(2.0 * dropHeight / WEAPON_GRAVITY) : FALLEN_FALL_TIME_SHORT;
 
             // The model leaves the hand and moves to a node of its own in the same place
             weaponEntity->detachFromParent();
