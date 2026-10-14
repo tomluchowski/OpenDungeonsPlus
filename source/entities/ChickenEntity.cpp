@@ -46,6 +46,12 @@
 
 const int32_t NB_TURNS_OUTSIDE_HATCHERY_BEFORE_DIE = 30;
 const int32_t NB_TURNS_DIE_BEFORE_REMOVE = 5;
+//! \brief Extra distance beyond the follow gap within which a following chicken counts as arrived and waits.
+const double FOLLOW_ARRIVAL_TOLERANCE = 0.3;
+//! \brief Extra distance beyond the stop distance within which a walking chicken counts as already there.
+const double WALK_ARRIVAL_TOLERANCE = 0.05;
+//! \brief Height above the floor from which a rooster counts as standing on a coop roof.
+const double ROOF_MIN_HEIGHT = 0.3;
 
 //! \brief Creates an animal of the given hatchery in the given stage of life, with all counters at zero.
 ChickenEntity::ChickenEntity(GameMap* gameMap, const std::string& hatcheryName, ChickenKind kind) :
@@ -256,7 +262,7 @@ void ChickenEntity::doUpkeep()
             return;
 
         // Close enough: wait there (a hen pecks at the food)
-        if(Ogre::Vector2(getPosition().x, getPosition().y).distance(mFollowTarget) <= mFollowGap + 0.3)
+        if(Ogre::Vector2(getPosition().x, getPosition().y).distance(mFollowTarget) <= mFollowGap + FOLLOW_ARRIVAL_TOLERANCE)
         {
             if(mKind == ChickenKind::hen)
                 setAnimationState("Pick", true);
@@ -334,7 +340,7 @@ bool ChickenEntity::walkToward(const Ogre::Vector2& target, double stopDistance,
     const Ogre::Vector2 start(getPosition().x, getPosition().y);
     Ogre::Vector2 delta = target - start;
     double dist = delta.length();
-    if(dist <= stopDistance + 0.05)
+    if(dist <= stopDistance + WALK_ARRIVAL_TOLERANCE)
         return false;
 
     Ogre::Vector2 point = target;
@@ -855,7 +861,7 @@ bool ChickenEntity::importFromStream(std::istream& is)
         return false;
 
     // A rooster saved on a coop roof is still there
-    mOnRoof = (mPosition.z > 0.3);
+    mOnRoof = (mPosition.z > ROOF_MIN_HEIGHT);
 
     // Saves written before the life cycle end here: those chickens are hens
     uint32_t kind = 0;
