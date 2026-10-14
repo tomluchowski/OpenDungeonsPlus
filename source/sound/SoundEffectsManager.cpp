@@ -26,6 +26,16 @@
 
 #include <OgreQuaternion.h>
 
+namespace
+{
+//! \brief Volume of a positioned loop (the same as the other spatial sounds)
+const float SPATIAL_LOOP_VOLUME = 100.0f;
+//! \brief Attenuation of a positioned loop (the same as the other spatial sounds)
+const float SPATIAL_LOOP_ATTENUATION = 3.0f;
+//! \brief Distance within which a positioned loop plays at full volume (the same as the other spatial sounds)
+const float SPATIAL_LOOP_MIN_DISTANCE = 3.0f;
+}
+
 // class GameSound
 GameSound::GameSound(const std::string& filename, bool spatialSound):
     mSound(nullptr),
@@ -246,9 +256,9 @@ uint32_t SoundEffectsManager::startSpatialLoop(const std::string& family,
     sf::Sound* sound = new sf::Sound();
     sound->setBuffer(*buffer);
     sound->setLoop(true);
-    sound->setVolume(100.0f);
-    sound->setAttenuation(3.0f);
-    sound->setMinDistance(3.0f);
+    sound->setVolume(SPATIAL_LOOP_VOLUME);
+    sound->setAttenuation(SPATIAL_LOOP_ATTENUATION);
+    sound->setMinDistance(SPATIAL_LOOP_MIN_DISTANCE);
     sound->setPosition(XPos, YPos, height);
     sound->play();
 

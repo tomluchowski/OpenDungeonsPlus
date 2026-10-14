@@ -26,6 +26,23 @@
 
 namespace
 {
+//! Smallest value of the placement settings (divisor, spacing, distance)
+const uint32_t MIN_PLACEMENT_VALUE = 1;
+//! Smallest number of torches with light or sound
+const uint32_t MIN_LIGHT_COUNT = 0;
+//! Smallest range of the torch light in tiles
+const double MIN_LIGHT_RADIUS = 0.5;
+//! Largest range of the torch light in tiles
+const double MAX_LIGHT_RADIUS = 64.0;
+//! Smallest value of the colour parts, the intensity, the flicker strength and the flicker speed
+const double MIN_FRACTION = 0.0;
+//! Largest value of the colour parts and the flicker strength
+const double MAX_FRACTION = 1.0;
+//! Largest intensity of the torch light
+const double MAX_LIGHT_INTENSITY = 10.0;
+//! Largest speed of the torch flicker
+const double MAX_FLICKER_SPEED = 20.0;
+
 //! Reads a value of the rooms configuration. A missing key gives the default and is logged once.
 double readValue(const std::string& key, double defaultValue)
 {
@@ -42,6 +59,7 @@ double readValue(const std::string& key, double defaultValue)
     return config.getRoomConfigDouble(key);
 }
 
+//! Reads a count of the rooms configuration. A missing key gives the default, a value below minValue gives minValue.
 uint32_t readCount(const std::string& key, uint32_t defaultValue, uint32_t minValue)
 {
     double value = readValue(key, static_cast<double>(defaultValue));
@@ -51,41 +69,43 @@ uint32_t readCount(const std::string& key, uint32_t defaultValue, uint32_t minVa
     return static_cast<uint32_t>(value);
 }
 
+//! Reads a value of the rooms configuration and keeps it between minValue and maxValue. A missing key gives the default.
 double readClamped(const std::string& key, double defaultValue, double minValue, double maxValue)
 {
     return std::max(minValue, std::min(maxValue, readValue(key, defaultValue)));
 }
 }
 
+//! \brief Creates the configuration with the default values (the same as in config/rooms.cfg)
 WallTorchConfig::WallTorchConfig() :
-    mActiveLights(4),
-    mActiveLightsReduced(2),
-    mSoundLoops(4),
-    mLightRadius(6.0),
-    mLightColorR(1.0),
-    mLightColorG(0.62),
-    mLightColorB(0.28),
-    mLightIntensity(1.0),
-    mFlickerStrength(0.25),
-    mFlickerSpeed(2.3)
+    mActiveLights(DEFAULT_TORCH_ACTIVE_LIGHTS),
+    mActiveLightsReduced(DEFAULT_TORCH_ACTIVE_LIGHTS_REDUCED),
+    mSoundLoops(DEFAULT_TORCH_SOUND_LOOPS),
+    mLightRadius(DEFAULT_TORCH_LIGHT_RADIUS),
+    mLightColorR(DEFAULT_TORCH_LIGHT_COLOR_R),
+    mLightColorG(DEFAULT_TORCH_LIGHT_COLOR_G),
+    mLightColorB(DEFAULT_TORCH_LIGHT_COLOR_B),
+    mLightIntensity(DEFAULT_TORCH_LIGHT_INTENSITY),
+    mFlickerStrength(DEFAULT_TORCH_FLICKER_STRENGTH),
+    mFlickerSpeed(DEFAULT_TORCH_FLICKER_SPEED)
 {
 }
 
 WallTorchConfig WallTorchConfig::load()
 {
     WallTorchConfig result;
-    result.mPlacement.mRoomSideDivisor = readCount("WallTorchRoomSideDivisor", 4, 1);
-    result.mPlacement.mCorridorSpacing = readCount("WallTorchCorridorSpacing", 4, 1);
-    result.mPlacement.mMinDistance = readCount("WallTorchMinDistance", 3, 1);
-    result.mActiveLights = readCount("WallTorchActiveLights", 4, 0);
-    result.mActiveLightsReduced = readCount("WallTorchActiveLightsReduced", 2, 0);
-    result.mSoundLoops = readCount("WallTorchSoundLoops", 4, 0);
-    result.mLightRadius = readClamped("WallTorchLightRadius", 6.0, 0.5, 64.0);
-    result.mLightColorR = readClamped("WallTorchLightColorR", 1.0, 0.0, 1.0);
-    result.mLightColorG = readClamped("WallTorchLightColorG", 0.62, 0.0, 1.0);
-    result.mLightColorB = readClamped("WallTorchLightColorB", 0.28, 0.0, 1.0);
-    result.mLightIntensity = readClamped("WallTorchLightIntensity", 1.0, 0.0, 10.0);
-    result.mFlickerStrength = readClamped("WallTorchFlickerStrength", 0.25, 0.0, 1.0);
-    result.mFlickerSpeed = readClamped("WallTorchFlickerSpeed", 2.3, 0.0, 20.0);
+    result.mPlacement.mRoomSideDivisor = readCount("WallTorchRoomSideDivisor", DEFAULT_TORCH_ROOM_SIDE_DIVISOR, MIN_PLACEMENT_VALUE);
+    result.mPlacement.mCorridorSpacing = readCount("WallTorchCorridorSpacing", DEFAULT_TORCH_CORRIDOR_SPACING, MIN_PLACEMENT_VALUE);
+    result.mPlacement.mMinDistance = readCount("WallTorchMinDistance", DEFAULT_TORCH_MIN_DISTANCE, MIN_PLACEMENT_VALUE);
+    result.mActiveLights = readCount("WallTorchActiveLights", DEFAULT_TORCH_ACTIVE_LIGHTS, MIN_LIGHT_COUNT);
+    result.mActiveLightsReduced = readCount("WallTorchActiveLightsReduced", DEFAULT_TORCH_ACTIVE_LIGHTS_REDUCED, MIN_LIGHT_COUNT);
+    result.mSoundLoops = readCount("WallTorchSoundLoops", DEFAULT_TORCH_SOUND_LOOPS, MIN_LIGHT_COUNT);
+    result.mLightRadius = readClamped("WallTorchLightRadius", DEFAULT_TORCH_LIGHT_RADIUS, MIN_LIGHT_RADIUS, MAX_LIGHT_RADIUS);
+    result.mLightColorR = readClamped("WallTorchLightColorR", DEFAULT_TORCH_LIGHT_COLOR_R, MIN_FRACTION, MAX_FRACTION);
+    result.mLightColorG = readClamped("WallTorchLightColorG", DEFAULT_TORCH_LIGHT_COLOR_G, MIN_FRACTION, MAX_FRACTION);
+    result.mLightColorB = readClamped("WallTorchLightColorB", DEFAULT_TORCH_LIGHT_COLOR_B, MIN_FRACTION, MAX_FRACTION);
+    result.mLightIntensity = readClamped("WallTorchLightIntensity", DEFAULT_TORCH_LIGHT_INTENSITY, MIN_FRACTION, MAX_LIGHT_INTENSITY);
+    result.mFlickerStrength = readClamped("WallTorchFlickerStrength", DEFAULT_TORCH_FLICKER_STRENGTH, MIN_FRACTION, MAX_FRACTION);
+    result.mFlickerSpeed = readClamped("WallTorchFlickerSpeed", DEFAULT_TORCH_FLICKER_SPEED, MIN_FRACTION, MAX_FLICKER_SPEED);
     return result;
 }

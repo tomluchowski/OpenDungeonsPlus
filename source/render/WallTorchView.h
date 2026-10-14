@@ -19,6 +19,7 @@
 #define WALLTORCHVIEW_H
 
 #include "render/WallTorchSpot.h"
+#include "rooms/WallTorchConfig.h"
 
 #include <OgrePrerequisites.h>
 #include <OgreVector3.h>
@@ -103,9 +104,13 @@ private:
 
     struct Settings
     {
+        //! \brief Creates the settings with the default values of the wall torch configuration
         Settings() :
-            mActiveLights(4), mActiveLightsReduced(2), mSoundLoops(4), mRange(6.0), mIntensity(1.0),
-            mColourR(1.0), mColourG(0.62), mColourB(0.28), mFlickerStrength(0.25), mFlickerSpeed(2.3)
+            mActiveLights(DEFAULT_TORCH_ACTIVE_LIGHTS), mActiveLightsReduced(DEFAULT_TORCH_ACTIVE_LIGHTS_REDUCED),
+            mSoundLoops(DEFAULT_TORCH_SOUND_LOOPS), mRange(DEFAULT_TORCH_LIGHT_RADIUS),
+            mIntensity(DEFAULT_TORCH_LIGHT_INTENSITY), mColourR(DEFAULT_TORCH_LIGHT_COLOR_R),
+            mColourG(DEFAULT_TORCH_LIGHT_COLOR_G), mColourB(DEFAULT_TORCH_LIGHT_COLOR_B),
+            mFlickerStrength(DEFAULT_TORCH_FLICKER_STRENGTH), mFlickerSpeed(DEFAULT_TORCH_FLICKER_SPEED)
         {}
 
         uint32_t mActiveLights;

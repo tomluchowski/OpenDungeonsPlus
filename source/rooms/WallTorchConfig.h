@@ -22,6 +22,27 @@
 
 #include <cstdint>
 
+//! \brief Default number of torches nearest to the camera that cast real light
+const uint32_t DEFAULT_TORCH_ACTIVE_LIGHTS = 4;
+//! \brief Default number of torches that cast real light with the reduced effects setting
+const uint32_t DEFAULT_TORCH_ACTIVE_LIGHTS_REDUCED = 2;
+//! \brief Default number of torches nearest to the camera that play the crackling loop
+const uint32_t DEFAULT_TORCH_SOUND_LOOPS = 4;
+//! \brief Default range of the torch light in tiles
+const double DEFAULT_TORCH_LIGHT_RADIUS = 6.0;
+//! \brief Default red part of the torch light colour
+const double DEFAULT_TORCH_LIGHT_COLOR_R = 1.0;
+//! \brief Default green part of the torch light colour
+const double DEFAULT_TORCH_LIGHT_COLOR_G = 0.62;
+//! \brief Default blue part of the torch light colour
+const double DEFAULT_TORCH_LIGHT_COLOR_B = 0.28;
+//! \brief Default intensity of the torch light
+const double DEFAULT_TORCH_LIGHT_INTENSITY = 1.0;
+//! \brief Default strength of the torch flicker
+const double DEFAULT_TORCH_FLICKER_STRENGTH = 0.25;
+//! \brief Default speed of the torch flicker
+const double DEFAULT_TORCH_FLICKER_SPEED = 2.3;
+
 //! \brief The values of the wall torches in config/rooms.cfg. A key that is missing gets its default (the
 //! same as in that file) and is logged once.
 //! The placement values are used by the server only. The light values are only read by the client.

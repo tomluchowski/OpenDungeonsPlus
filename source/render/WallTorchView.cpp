@@ -56,6 +56,18 @@ const double WALL_SURFACE_OFFSET = 0.55;
 //! How far in front of the wall the light hangs and how high
 const double LIGHT_FRONT_OFFSET = 0.3;
 const double LIGHT_HEIGHT = 1.6;
+//! Constant part of the light fall-off (same shape as the room lights)
+const float LIGHT_ATTENUATION_CONSTANT = 1.0f;
+//! Linear part of the light fall-off, divided by the range
+const double LIGHT_ATTENUATION_LINEAR = 0.54;
+//! Quadratic part of the light fall-off, divided by the squared range
+const double LIGHT_ATTENUATION_QUADRATIC = 1.15;
+//! The camera looks down at the floor only when its direction points down further than this
+const float LOOK_DOWN_MIN_DIRECTION_Z = -0.05f;
+//! Half size of the box around a torch that is tested against the view of the camera
+const float VISIBILITY_BOX_EXTENT = 1.5f;
+//! Height of the middle of that box
+const float VISIBILITY_BOX_HEIGHT = 1.4f;
 //! Sound family of the crackling loop, played at the flame
 const char* const LOOP_FAMILY = "Rooms/Torch/Loop";
 
@@ -312,8 +324,9 @@ void WallTorchView::createLight(Torch& torch, const std::string& name)
     torch.mLight->setSpecularColour(Ogre::ColourValue::Black);
     // Same fall-off shape as the room lights, stretched to the configured range
     double range = mSettings.mRange;
-    torch.mLight->setAttenuation(static_cast<Ogre::Real>(range), 1.0f, static_cast<Ogre::Real>(0.54 / range),
-        static_cast<Ogre::Real>(1.15 / (range * range)));
+    torch.mLight->setAttenuation(static_cast<Ogre::Real>(range), LIGHT_ATTENUATION_CONSTANT,
+        static_cast<Ogre::Real>(LIGHT_ATTENUATION_LINEAR / range),
+        static_cast<Ogre::Real>(LIGHT_ATTENUATION_QUADRATIC / (range * range)));
     torch.mLight->setDiffuseColour(Ogre::ColourValue(static_cast<float>(mSettings.mColourR * mSettings.mIntensity),
         static_cast<float>(mSettings.mColourG * mSettings.mIntensity), static_cast<float>(mSettings.mColourB * mSettings.mIntensity)));
     torch.mLightNode = RenderManager::getSingleton().getLightSceneNode()->createChildSceneNode(name + "_node", torch.mLightPosition);
@@ -373,7 +386,7 @@ void WallTorchView::refresh(Mode mode, Ogre::Camera* camera)
     Ogre::Vector3 cameraPosition = camera->getDerivedPosition();
     Ogre::Vector3 direction = camera->getDerivedDirection();
     Ogre::Vector3 lookPoint = cameraPosition;
-    if(direction.z < -0.05f)
+    if(direction.z < LOOK_DOWN_MIN_DIRECTION_Z)
         lookPoint = cameraPosition + direction * (cameraPosition.z / -direction.z);
 
     double distanceFactor = 1.0;
@@ -396,9 +409,9 @@ void WallTorchView::refresh(Mode mode, Ogre::Camera* camera)
         torch.mShown = false;
         if(torch.mDistance <= SHOW_DISTANCE * distanceFactor)
         {
-            Ogre::Vector3 extent(1.5f, 1.5f, 1.5f);
+            Ogre::Vector3 extent(VISIBILITY_BOX_EXTENT, VISIBILITY_BOX_EXTENT, VISIBILITY_BOX_EXTENT);
             Ogre::Vector3 center = torch.mPosition;
-            center.z = 1.4f;
+            center.z = VISIBILITY_BOX_HEIGHT;
             torch.mShown = (torch.mDistance <= ALWAYS_SHOWN_DISTANCE) ||
                 camera->isVisible(Ogre::AxisAlignedBox(center - extent, center + extent));
         }
