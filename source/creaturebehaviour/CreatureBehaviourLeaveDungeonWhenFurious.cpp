@@ -57,6 +57,8 @@ bool CreatureBehaviourLeaveDungeonWhenFurious::processBehaviour(Creature& creatu
     {
         OD_LOG_INF("creature=" + creature.getName() + " wants to leave its dungeon");
         creature.leaveDungeon();
+        // The best friend may follow (only with relationships on)
+        creature.reportLeavingToBestFriend();
     }
 
     // If the creature is furious, it does nothing else

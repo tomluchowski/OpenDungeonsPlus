@@ -27,6 +27,7 @@
 #include "entities/RenderedMovableEntity.h"
 #include "entities/Tile.h"
 #include "entities/Weapon.h"
+#include "game/CreatureRelationships.h"
 #include "game/Player.h"
 #include "game/Seat.h"
 #include "game/Skill.h"
@@ -40,6 +41,7 @@
 #include "modes/ModeManager.h"
 #include "network/ChatEventMessage.h"
 #include "network/ODPacket.h"
+#include "network/RelationshipPacket.h"
 #include "network/ServerMode.h"
 #include "network/ServerNotification.h"
 #include "render/ODFrameListener.h"
@@ -224,9 +226,17 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
             ServerMode serverMode;
             OD_ASSERT_TRUE(packetReceived >> serverMode);
 
+            // Older servers and replays end this packet after the server mode.
+            bool liveNickname = false;
+            if(!packetReceived.endOfPacket())
+                OD_ASSERT_TRUE(packetReceived >> liveNickname);
+            setSupportsLiveNickname(liveNickname);
+
             ODPacket packSend;
             const std::string& nick = gameMap->getLocalPlayerNick();
             packSend << ClientNotificationType::setNick << nick;
+            if(liveNickname)
+                packSend << true;
             send(packSend);
 
             // We can proceed to configure seat level
@@ -289,6 +299,23 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
                 OD_ASSERT_TRUE(packetReceived >> nick >> id);
                 mode->addPlayer(nick, id);
                 addEventMessage(new EventMessage(nick + " is now connected."));
+            }
+            break;
+        }
+
+        case ServerNotificationType::playerNickChanged:
+        {
+            int32_t playerId;
+            std::string nickname;
+            OD_ASSERT_TRUE(packetReceived >> playerId >> nickname);
+            for(Player* player : gameMap->getPlayers())
+            {
+                if(player->getId() != playerId)
+                    continue;
+                player->setNick(nickname);
+                if(player == getPlayer())
+                    gameMap->setLocalPlayerNick(nickname);
+                break;
             }
             break;
         }
@@ -373,6 +400,8 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
 
             ServerMode serverMode;
             OD_ASSERT_TRUE(packetReceived >> serverMode);
+
+            gameMap->setRelationshipsEnabled(readRelationshipsFlag(packetReceived));
 
             // Now that the we have received all needed information, we can launch the requested mode
             OD_LOG_INF("Starting game map");
@@ -659,6 +688,24 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
             OD_ASSERT_TRUE(packetReceived >> goalsString);
 
             refreshMainUI(goalsString);
+            break;
+        }
+
+        case ServerNotificationType::relationshipTier:
+        {
+            std::string creatureA;
+            std::string creatureB;
+            int32_t tier;
+            // A replay of the current tiers (sent on join or load) only fills the table: what shows a change
+            // (posts, emotes) skips it
+            bool replay;
+            OD_ASSERT_TRUE(readRelationshipTier(packetReceived, creatureA, creatureB, tier, replay));
+            CreatureRelationships* relationships = gameMap->getCreatureRelationships();
+            if((relationships != nullptr) && (tier >= static_cast<int32_t>(RelationshipTier::nemesis))
+                && (tier <= static_cast<int32_t>(RelationshipTier::lovers)))
+            {
+                relationships->setTier(creatureA, creatureB, static_cast<RelationshipTier>(tier));
+            }
             break;
         }
 
@@ -1465,6 +1512,18 @@ bool ODClient::replay(const std::string& filename)
 void ODClient::queueClientNotification(ClientNotification* n)
 {
     mClientNotificationQueue.push_back(n);
+}
+
+void ODClient::requestNicknameChange(const std::string& nickname)
+{
+    if(getSource() != ODSource::network || getPlayer() == nullptr || getPlayer()->getNick() == nickname)
+        return;
+    if(!supportsLiveNickname())
+    {
+        OD_LOG_WRN("The connected server does not support changing the current player's nickname.");
+        return;
+    }
+    queueClientNotification(ClientNotificationType::changeNick, nickname);
 }
 
 void ODClient::disconnect(bool keepReplay)
