@@ -46,8 +46,6 @@
 
 const int32_t NB_TURNS_OUTSIDE_HATCHERY_BEFORE_DIE = 30;
 const int32_t NB_TURNS_DIE_BEFORE_REMOVE = 5;
-//! \brief Number of tiles of a long way a chicken walks in one go before the rest is planned again.
-const size_t MAX_WALK_PATH_TILES = 30;
 
 //! \brief Creates an animal of the given hatchery in the given stage of life, with all counters at zero.
 ChickenEntity::ChickenEntity(GameMap* gameMap, const std::string& hatcheryName, ChickenKind kind) :
