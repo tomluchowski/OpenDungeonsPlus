@@ -156,6 +156,37 @@ void Trap::doUpkeep()
     }
 }
 
+double Trap::getManaUpkeepPerSecond() const
+{
+    const char* key = nullptr;
+    switch(getType())
+    {
+        case TrapType::cannon:
+            key = "CannonManaUpkeepPerSecond";
+            break;
+        case TrapType::spike:
+            key = "SpikeManaUpkeepPerSecond";
+            break;
+        case TrapType::boulder:
+            key = "BoulderManaUpkeepPerSecond";
+            break;
+        default:
+            return 0.0;
+    }
+    return ConfigManager::getSingleton().getTrapConfigDouble(key);
+}
+
+uint32_t Trap::getNbActivatedTiles() const
+{
+    uint32_t nbActivated = 0;
+    for(Tile* tile : mCoveredTiles)
+    {
+        if(isActivated(tile))
+            ++nbActivated;
+    }
+    return nbActivated;
+}
+
 int32_t Trap::getNbNeededCraftedTrap() const
 {
     int32_t nbNeededCraftedTrap = 0;

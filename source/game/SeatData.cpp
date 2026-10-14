@@ -31,6 +31,8 @@ SeatData::SeatData() :
     mTeamId(-1),
     mMana(1000),
     mManaDelta(0),
+    mManaIncomePerSecond(0.0),
+    mManaUpkeepPerSecond(0.0),
     mStartingX(0),
     mStartingY(0),
     mNumCreaturesFighters(0),
@@ -41,6 +43,7 @@ SeatData::SeatData() :
     mGold(0),
     mGoldMax(0),
     mNbRooms(std::vector<uint32_t>(static_cast<uint32_t>(RoomType::nbRooms), 0)),
+    mHadLibrary(false),
     mCurrentSkillType(SkillType::nullSkillType),
     mCurrentSkillProgress(0.0f)
 {
@@ -71,6 +74,11 @@ uint32_t SeatData::getNbRooms(RoomType roomType) const
     return mNbRooms.at(index);
 }
 
+bool SeatData::isLibraryLost() const
+{
+    return mHadLibrary && (getNbRooms(RoomType::library) == 0);
+}
+
 bool SeatData::importFromPacketForUpdate(ODPacket& is)
 {
     // We only refresh data that changes over time (gold, mana, ...)
@@ -78,6 +86,8 @@ bool SeatData::importFromPacketForUpdate(ODPacket& is)
     OD_ASSERT_TRUE(is >> mGoldMax);
     OD_ASSERT_TRUE(is >> mMana);
     OD_ASSERT_TRUE(is >> mManaDelta);
+    OD_ASSERT_TRUE(is >> mManaIncomePerSecond);
+    OD_ASSERT_TRUE(is >> mManaUpkeepPerSecond);
     OD_ASSERT_TRUE(is >> mNumClaimedTiles);
     OD_ASSERT_TRUE(is >> mNumCreaturesFighters);
     OD_ASSERT_TRUE(is >> mNumCreaturesFightersMax);
@@ -95,6 +105,7 @@ bool SeatData::importFromPacketForUpdate(ODPacket& is)
     }
     OD_ASSERT_TRUE(is >> mCurrentSkillType);
     OD_ASSERT_TRUE(is >> mCurrentSkillProgress);
+    OD_ASSERT_TRUE(is >> mHadLibrary);
     return true;
 }
 
@@ -104,6 +115,8 @@ void SeatData::exportToPacketForUpdate(ODPacket& os) const
     os << mGoldMax;
     os << mMana;
     os << mManaDelta;
+    os << mManaIncomePerSecond;
+    os << mManaUpkeepPerSecond;
     os << mNumClaimedTiles;
     os << mNumCreaturesFighters;
     os << mNumCreaturesFightersMax;
@@ -116,7 +129,7 @@ void SeatData::exportToPacketForUpdate(ODPacket& os) const
 
     os << mCurrentSkillType;
     os << mCurrentSkillProgress;
-
+    os << mHadLibrary;
 }
 
 void SeatData::exportToPacket(ODPacket& os) const
@@ -125,7 +138,7 @@ void SeatData::exportToPacket(ODPacket& os) const
        << mStartingY;
     os << mColorId;
     os << mGold << mGoldMax;
-    os << mMana << mManaDelta << mNumClaimedTiles;
+    os << mMana << mManaDelta << mManaIncomePerSecond << mManaUpkeepPerSecond << mNumClaimedTiles;
     os << mNumCreaturesFighters << mNumCreaturesFightersMax;
     os << mNumCreaturesWorkers;
     os << mHasGoalsChanged;
@@ -153,7 +166,7 @@ bool SeatData::importFromPacket(ODPacket& is)
     is >> mFaction >> mStartingX >> mStartingY;
     is >> mColorId;
     is >> mGold >> mGoldMax;
-    is >> mMana >> mManaDelta >> mNumClaimedTiles;
+    is >> mMana >> mManaDelta >> mManaIncomePerSecond >> mManaUpkeepPerSecond >> mNumClaimedTiles;
     is >> mNumCreaturesFighters >> mNumCreaturesFightersMax;
     is >> mNumCreaturesWorkers;
     is >> mHasGoalsChanged;

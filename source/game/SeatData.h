@@ -85,6 +85,12 @@ public:
     inline double getManaDelta() const
     { return mManaDelta; }
 
+    inline double getManaIncomePerSecond() const
+    { return mManaIncomePerSecond; }
+
+    inline double getManaUpkeepPerSecond() const
+    { return mManaUpkeepPerSecond; }
+
     inline int getNumCreaturesFighters() const
     { return mNumCreaturesFighters; }
 
@@ -95,6 +101,11 @@ public:
     { return mNumCreaturesWorkers; }
 
     uint32_t getNbRooms(RoomType roomType) const;
+
+    //! \brief True when the seat once had a library and has none left, for example
+    //! because an enemy took it over. The spells researched there cannot be used
+    //! until a library is owned again.
+    bool isLibraryLost() const;
 
     inline const std::string& getPlayerType() const
     { return mPlayerType; }
@@ -133,6 +144,12 @@ protected:
     //! \brief The amount of 'keeper mana' the player gains/loses per turn, updated in GameMap::doTurn().
     double mManaDelta;
 
+    //! \brief The mana income per second (heart plus tiles), updated in GameMap::doTurn().
+    double mManaIncomePerSecond;
+
+    //! \brief The mana upkeep per second of all the workers, updated in GameMap::doTurn().
+    double mManaUpkeepPerSecond;
+
     //! \brief The starting camera location (in tile coordinates) of this seat.
     int mStartingX;
     int mStartingY;
@@ -162,6 +179,10 @@ protected:
     //! \brief The number of rooms the player owns (room index being room type).
     //! Useful to display the first free tile on client side for example
     std::vector<uint32_t> mNbRooms;
+
+    //! \brief True once the seat has owned a library. Set on server side, sent to the clients
+    //! with the other changing data.
+    bool mHadLibrary;
 
     //! \brief Skills not allowed. Used on server side only
     std::vector<SkillType> mSkillNotAllowed;
