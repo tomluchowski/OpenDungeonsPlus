@@ -1659,9 +1659,7 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
             std::string creatureName;
             OD_ASSERT_TRUE(packetReceived >> creatureName);
             getPlayer()->setPossessedCreatureName(creatureName);
-            CameraManager* possessionCamera = frameListener->getCameraManager();
-            if(possessionCamera != nullptr)
-                possessionCamera->startPossession(creatureName);
+            frameListener->getCameraManager()->startPossession(creatureName);
             if(frameListener->getModeManager()->getCurrentModeType() == ModeManager::ModeType::GAME)
             {
                 GameMode* gm = static_cast<GameMode*>(frameListener->getModeManager()->getCurrentMode());
@@ -1677,9 +1675,7 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
             bool creatureLost = false;
             OD_ASSERT_TRUE(packetReceived >> creatureLost);
             getPlayer()->setPossessedCreatureName(std::string());
-            CameraManager* possessionCamera = frameListener->getCameraManager();
-            if(possessionCamera != nullptr)
-                possessionCamera->stopPossession();
+            frameListener->getCameraManager()->stopPossession();
             if(frameListener->getModeManager()->getCurrentModeType() == ModeManager::ModeType::GAME)
             {
                 GameMode* gm = static_cast<GameMode*>(frameListener->getModeManager()->getCurrentMode());
