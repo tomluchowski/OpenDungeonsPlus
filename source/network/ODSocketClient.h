@@ -75,6 +75,7 @@ class ODSocketClient
         void setSupportsLiveNickname(bool supported) { mSupportsLiveNickname = supported; }
         //! Whether the client negotiated cosmetic events (see CosmeticEvent.h)
         bool supportsCosmeticEvents() const { return mSupportsCosmeticEvents; }
+        //! \brief Records whether the client negotiated cosmetic events (see CosmeticEvent.h)
         void setSupportsCosmeticEvents(bool supported) { mSupportsCosmeticEvents = supported; }
         int64_t getLastTurnAck() { return mLastTurnAck; }
         void setLastTurnAck(int64_t lastTurnAck) { mLastTurnAck = lastTurnAck; }

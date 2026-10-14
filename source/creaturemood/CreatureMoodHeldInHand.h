@@ -24,23 +24,31 @@
 class CreatureMoodHeldInHand : public CreatureMood
 {
 public:
+    //! \brief Creates the modifier with all values set to zero.
     CreatureMoodHeldInHand() :
         mTurnsMin(0),
         mTurnsMax(0),
         mMoodModifier(0)
     {}
 
+    //! \brief Destroys the modifier.
     virtual ~CreatureMoodHeldInHand()
     {}
 
+    //! \brief Returns the name under which this modifier is listed in the mood configuration.
     const std::string& getModifierName() const override;
 
+    //! \brief Returns the mood change for the turns the creature stayed in the hand beyond TurnsMin (counted up to TurnsMax turns).
     virtual int32_t computeMood(const Creature& creature) const override;
 
+    //! \brief Returns a copy of this modifier.
     inline CreatureMoodHeldInHand* clone() const override;
 
+    //! \brief Reads the modifier parameters from the configuration stream; returns false if a value is missing.
     virtual bool importFromStream(std::istream& is) override;
+    //! \brief Writes the modifier parameters to the stream.
     virtual void exportToStream(std::ostream& os) const override;
+    //! \brief Appends the names of the modifier parameters to the format string.
     virtual void getFormatString(std::string& format) const override;
 
 private:
