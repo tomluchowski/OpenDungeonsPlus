@@ -41,6 +41,7 @@
 
 
 class ChatMessage;
+class CreatureReactions;
 class GameMap;
 class Gui;
 class MovableTextOverlay;
@@ -239,6 +240,7 @@ private:
     Gui*                 mGui;
 
     std::unique_ptr<GameMap>       mGameMap;
+    std::unique_ptr<CreatureReactions> mCreatureReactions;
     //! The cosmetic life in the rooms (client side only)
     std::unique_ptr<RoomAmbience>  mRoomAmbience;
     std::unique_ptr<ModeManager>   mModeManager;

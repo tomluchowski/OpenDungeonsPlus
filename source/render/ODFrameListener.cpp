@@ -35,6 +35,7 @@
 #include "network/ODClient.h"
 #include "render/DebugDrawer.h"
 #include "render/CreatureOverlayStatus.h"
+#include "render/CreatureReactions.h"
 #include "render/MovableTextOverlay.h"
 #include "render/Gui.h"
 #include "render/RenderManager.h"
@@ -43,8 +44,8 @@
 #include "renderscene/RenderSceneMenu.h"
 #include "sound/MusicPlayer.h"
 #include "sound/SoundEffectsManager.h"
-#include "utils/Helper.h"
 #include "utils/ConfigManager.h"
+#include "utils/Helper.h"
 #include "utils/LogManager.h"
 #include "utils/MakeUnique.h"
 
@@ -91,6 +92,7 @@ ODFrameListener::ODFrameListener(const std::string& mainSceneFileName, Ogre::Ren
     mGui(gui),
     mRenderManager(RenderManager::getSingletonPtr()),
     mGameMap(Utils::make_unique<GameMap>(false)),
+    mCreatureReactions(Utils::make_unique<CreatureReactions>(mGameMap.get(), ConfigManager::getSingleton().getConfigPath())),
     mRoomAmbience(Utils::make_unique<RoomAmbience>(mGameMap.get(), ConfigManager::getSingleton().getConfigPath())),
     mModeManager(Utils::make_unique<ModeManager>(renderWindow, gui)),
     mMainScene(Utils::make_unique<RenderSceneMenu>()),
@@ -106,6 +108,8 @@ ODFrameListener::ODFrameListener(const std::string& mainSceneFileName, Ogre::Ren
 {
     OD_LOG_INF("Creating frame listener...");
 
+    mCreatureReactions->setMode(CreatureReactions::modeFromString(
+        ConfigManager::getSingleton().getGameValue(Config::CREATURE_REACTIONS, "full", false)));
     mRoomAmbience->setMode(RoomAmbience::modeFromString(
         ConfigManager::getSingleton().getGameValue(Config::ROOM_AMBIENCE, "full", false)));
 
@@ -363,6 +367,9 @@ void ODFrameListener::updateAnimations(Ogre::Real timeSinceLastFrame)
 
     mGameMap->updateAnimations(timeSinceLastFrame);
 
+    // Cosmetic creature reactions. Like the animations, they stand still while the game is paused.
+    if(!mGameMap->getGamePaused())
+        mCreatureReactions->update(timeSinceLastFrame);
     // Cosmetic life in the rooms. Like the animations, it stands still while the game is paused.
     if(!mGameMap->getGamePaused())
         mRoomAmbience->update(timeSinceLastFrame);
@@ -590,6 +597,7 @@ void ODFrameListener::initGameRenderer()
 
 void ODFrameListener::stopGameRenderer()
 {
+    mCreatureReactions->stopAll();
     mRoomAmbience->stopAll();
     mRenderManager->stopGameRenderer(mGameMap.get());
 }

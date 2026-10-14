@@ -24,6 +24,7 @@
 #include <OgreSingleton.h>
 
 class ServerNotification;
+struct CosmeticEvent;
 class GameMap;
 class DraggableTileContainer;
 
@@ -91,6 +92,12 @@ class ODServer: public Ogre::Singleton<ODServer>,
     bool supportsCreatureActivity(Player* player);
     //! Whether the recipient negotiated experience and attack recovery in creature snapshots and updates.
     bool supportsCreatureProgress(Player* player);
+    //! Whether the recipient negotiated cosmetic events (see CosmeticEvent.h)
+    bool supportsCosmeticEvents(Player* player);
+
+    //! \brief Queues a cosmetic event for the player. Nothing is sent if the player is not human or did not
+    //! negotiate cosmetic events, so an older client never sees one.
+    void sendCosmeticEvent(Player* player, const CosmeticEvent& event);
 
     //! \brief Sends an asynchronous message to the concerned player. This function should be used really carefully as it can easily
     //! make the game crash by sending messages in an unexpected order (changing the state of an entity that was not created, for example).
