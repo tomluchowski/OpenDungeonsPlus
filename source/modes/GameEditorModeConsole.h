@@ -52,8 +52,10 @@ class GameEditorModeConsole : public Ogre::Singleton<GameEditorModeConsole>, pub
     friend struct my_stream;
 public:
 
+    //! \brief Creates the console and a fresh script scope; the Python runtime itself is owned by the application
     GameEditorModeConsole(ModeManager*);
 
+    //! \brief Stops the interpreter thread and restores the Python state saved when the console was created
     ~GameEditorModeConsole();
 
     bool keyPressed(const OIS::KeyEvent &arg);
@@ -65,22 +67,26 @@ public:
     bool isFreshlyEnabled();
     void printToConsole(const std::string& text);
     
+    //! \brief Stops the interpreter thread; the application keeps the main thread GIL released meanwhile
     void stopInterpreterThread();
     void startInterpreterThread();
 
     ConsoleInterface mConsoleInterface;        
     ModeManager* mModeManager;
     void run_line(const std::string& code, pybind11::object scope);
+    //! \brief Runs a level script body in the script scope of this console
     void run_script(std::string script_code, std::vector<int>);
 
     static std::unordered_map<std::string, std::multimap<std::vector<int>,std::string>> scriptRegister;
 
     
 private:
-    std::unique_ptr<pybind11::gil_scoped_release> mMainThreadGilRelease;
-    
-    pybind11::scoped_interpreter guard;
+    //! \brief Globals of the game: a module of its own that replaces __main__ while the console exists
+    pybind11::object mScriptScope;
+    //! \brief Python state (modules, path, streams, builtins) saved at construction and restored at destruction
+    pybind11::object mScriptState;
     // Thread loop for executing Python commands
+    //! \brief Executes queued commands under the GIL in the script scope until the thread is stopped
     void interpreterLoop();
 
     // === Python interpreter thread ===

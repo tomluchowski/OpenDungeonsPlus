@@ -76,11 +76,18 @@ class ODServer: public Ogre::Singleton<ODServer>,
     inline ServerMode getServerMode() const
     { return mServerMode; }
 
+    //! \brief Loads the level and starts the server. Level files whose dungeon heart does not cover
+    //! 25 tiles (5x5) are refused; savegames and the editor may still load older hearts.
+    //! \return true when the server is running.
     bool startServer(const std::string& creator, const std::string& levelFilename, ServerMode mode, bool useMasterServer);
     void stopServer() override;
 
     //! \brief Adds a server notification to the server notification queue. The message will be sent to the concerned player
     void queueServerNotification(ServerNotification* n);
+
+    //! Whether the recipient negotiated full mood in creature snapshots and updates.
+    bool supportsCreatureMood(Player* player);
+    bool supportsCreatureActivity(Player* player);
 
     //! \brief Sends an asynchronous message to the concerned player. This function should be used really carefully as it can easily
     //! make the game crash by sending messages in an unexpected order (changing the state of an entity that was not created, for example).
@@ -100,6 +107,7 @@ class ODServer: public Ogre::Singleton<ODServer>,
 protected:
     ODSocketClient* notifyNewConnection(sf::TcpListener& sockListener) override;
     bool notifyClientMessage(ODSocketClient *sock) override;
+    //! \brief Runs the game turns of the server. The length of a turn follows the game speed of the game settings
     void serverThread() override;
 
 private:
@@ -153,6 +161,8 @@ private:
     //! \brief Sends the packet to the given player. If player is nullptr, the packet is sent to every connected player
     void sendMsg(Player* player, ODPacket& packet);
 
+    //! \brief Sends the seat choices and the skirmish game settings (gold density, mana regeneration,
+    //! maximum creatures, creature class limits and skill availability) to every client
     void fireSeatConfigurationRefresh();
 
     //! \brief Handles console command. player is the player that launched the command

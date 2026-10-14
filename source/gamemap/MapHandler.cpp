@@ -20,6 +20,7 @@
 #include "creaturemood/CreatureMoodManager.h"
 #include "eventsystem/CreatureMoved.h"
 #include "gamemap/GameMap.h"
+#include "gamemap/LevelScript.h"
 #include "game/Seat.h"
 #include "goals/Goal.h"
 #include "goals/GoalLoading.h"
@@ -51,6 +52,7 @@
 
 #include "ODApplication.h"
 
+#include <algorithm>
 #include <iostream>
 #include <sstream>
 #include <fstream>
@@ -76,12 +78,13 @@ bool readGameMapFromFile(const std::string& fileName, GameMap& gameMap)
     // Read in the version number from the level file
 
     // std::vector CreatureMoved::alreadyVisited also depends on map Size : 
-    CreatureMoved::alreadyVisited.resize(mapSizeX*mapSizeY, false);
+    CreatureMoved::alreadyVisited.assign(mapSizeX*mapSizeY, false);
+    GameEditorModeConsole::scriptRegister.clear();
     /// int CreatureMoved::GAME_MAP_WIDTH also depends on map Size:
     CreatureMoved::GAME_MAP_WIDTH = mapSizeX;
     
     levelFile >> nextParam;
-    if (nextParam.compare(ODApplication::VERSIONSTRING) != 0)
+    if (nextParam.compare(ODApplication::VERSIONSTRING) != 0 && nextParam != "OpenDungeons_Version:0.7.1" && nextParam != "OpenDungeons_Version:0.7.2")
     {
         OD_LOG_WRN("Attempting to load a file produced by a different version of OpenDungeons, filename="
             + fileName + ", file version=" + nextParam + ", odversion=" + ODApplication::VERSION);
@@ -581,7 +584,19 @@ bool readGameMapFromFile(const std::string& fileName, GameMap& gameMap)
             }
            
             GameEditorModeConsole::scriptRegister[actionName].insert(make_pair(auxVector, script_body.str())); // std::make_pair(auxF,  script_body.str()));
-            
+
+        }
+
+        levelFile >> nextParam;
+    }
+
+    // Optional level triggers and their state. Older levels do not have this section.
+    if(nextParam == "[Triggers]")
+    {
+        if(!gameMap.getLevelScript().importFromStream(levelFile))
+        {
+            OD_LOG_WRN("Invalid Triggers section");
+            return false;
         }
     }
 
@@ -727,7 +742,9 @@ bool writeGameMapToFile(const std::string& fileName, GameMap& gameMap)
     levelFile << "[/Rooms]" << std::endl;
 
     std::vector<Trap*> traps = gameMap.getTraps();
-    std::sort(traps.begin(), traps.end(), Trap::sortForMapSave);
+    // Gameplay saves retain the order used to schedule workshop production.
+    if(gameMap.isInEditorMode())
+        std::sort(traps.begin(), traps.end(), Trap::sortForMapSave);
 
     // Write out the traps to the file
     levelFile << "\n[Traps]\n";
@@ -856,6 +873,18 @@ bool writeGameMapToFile(const std::string& fileName, GameMap& gameMap)
     }
     levelFile << "[/Chickens]" << std::endl;
 
+    if(!gameMap.getLevelScript().isEmpty())
+    {
+        levelFile << "\n";
+        // The turn counter starts at 0 again when the game is loaded, so a time limit is
+        // written as the time that is left
+        LevelScript script = gameMap.getLevelScript();
+        int64_t elapsedSeconds = static_cast<int64_t>(static_cast<double>(std::max<int64_t>(0, gameMap.getTurnNumber()))
+            / ODApplication::turnsPerSecond);
+        script.rebaseTimeLimit(elapsedSeconds);
+        script.exportToStream(levelFile);
+    }
+
     if (!levelFile.good()) {
         OD_LOG_WRN("Unexpected failure on file: " + fileName);
         return false;
@@ -875,7 +904,7 @@ bool getMapInfo(const std::string& fileName, LevelInfo& levelInfo)
     std::string nextParam;
     // Read in the version number from the level file
     levelFile >> nextParam;
-    if (nextParam.compare(ODApplication::VERSIONSTRING) != 0)
+    if (nextParam.compare(ODApplication::VERSIONSTRING) != 0 && nextParam != "OpenDungeons_Version:0.7.1" && nextParam != "OpenDungeons_Version:0.7.2")
         return false;
 
     levelFile >> nextParam;

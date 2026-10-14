@@ -37,6 +37,11 @@ namespace EntityAnimation
     static const std::string claim_anim = "Claim";
     static const std::string walk_anim = "Walk";
     static const std::string sleep_anim = "Sleep";
+    static const std::string drop_anim = "Drop";
+    static const std::string getup_anim = "GetUp";
+    static const std::string combat_attack_anim = "CombatAttack";
+    static const std::string ranged_attack_anim = "RangedAttack";
+    static const std::string eat_chicken_anim = "EatChicken";
 };
 
 class MovableGameEntity : public GameEntity
@@ -90,11 +95,14 @@ public:
     //! \brief Updates the entity path, movement, and direction. Note that entities
     //! are not expected to remove themselves or other entities from the gamemap
     //! in the update function. If they do, it might lead to crashes as the gamemap
-    //! will iterate the movable entities vector
+    //! will iterate the movable entities vector. On the clients, the animation and the walking
+    //! follow the game speed of the game settings.
     //! \param timeSinceLastFrame the elapsed time since last displayed frame in seconds.
     virtual void update(Ogre::Real timeSinceLastFrame);
 
     void setWalkDirection(const Ogre::Vector3& direction);
+    const Ogre::Vector3& getWalkDirection() const
+    { return mWalkDirection; }
 
     virtual void setPosition(const Ogre::Vector3& v, GameMap *gameMap = nullptr ) override;
 
