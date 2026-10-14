@@ -52,6 +52,21 @@
 namespace
 {
 
+//! \brief Scale that turns a ratio into percent (creature health condition)
+static const double PERCENT_SCALE = 100.0;
+
+//! \brief Fullness of a solid tile in percent
+static const double TILE_FULLNESS_SOLID = 100.0;
+
+//! \brief Amount of gold a creature steals at once when its definition gives none
+static const int32_t DEFAULT_STEAL_GOLD_AMOUNT = 200;
+
+//! \brief Distance in tiles inside which a creature counts as near the heart and stays to fight
+static const int32_t NEAR_HEART_DISTANCE = 4;
+
+//! \brief Distance in tiles inside which a creature counts as arrived at the tile it walks to
+static const int32_t ARRIVED_DISTANCE = 2;
+
 //! \brief Converts level seconds to game turns.
 int64_t secondsToTurns(int64_t seconds)
 {
@@ -355,7 +370,7 @@ bool isConditionMet(GameMap& gameMap, const LevelScript& script, const LevelScri
             if((creature == nullptr) || !creature->isAlive() || (creature->getMaxHp() <= 0.0))
                 return false;
 
-            int64_t percent = static_cast<int64_t>(100.0 * creature->getHP() / creature->getMaxHp());
+            int64_t percent = static_cast<int64_t>(PERCENT_SCALE * creature->getHP() / creature->getMaxHp());
             return levelScriptCompare(percent, cond.mCompare, cond.mNumber);
         }
         case LevelScriptConditionType::spellKnown:
@@ -681,25 +696,25 @@ void alterTerrain(GameMap& gameMap, const LevelScriptAction& action)
     double fullness = 0.0;
     bool claim = false;
     if(action.mText == "rock")
-        fullness = 100.0;
+        fullness = TILE_FULLNESS_SOLID;
     else if(action.mText == "path")
         fullness = 0.0;
     else if(action.mText == "claimed")
         claim = true;
     else if(action.mText == "wall")
     {
-        fullness = 100.0;
+        fullness = TILE_FULLNESS_SOLID;
         claim = true;
     }
     else if(action.mText == "gold")
     {
         type = TileType::gold;
-        fullness = 100.0;
+        fullness = TILE_FULLNESS_SOLID;
     }
     else if(action.mText == "gems")
     {
         type = TileType::gem;
-        fullness = 100.0;
+        fullness = TILE_FULLNESS_SOLID;
     }
     else if(action.mText == "water")
         type = TileType::water;
@@ -708,7 +723,7 @@ void alterTerrain(GameMap& gameMap, const LevelScriptAction& action)
     else if(action.mText == "impenetrable")
     {
         type = TileType::rock;
-        fullness = 100.0;
+        fullness = TILE_FULLNESS_SOLID;
     }
     else if(action.mText == "manawell")
     {
@@ -1159,7 +1174,7 @@ bool LevelScriptRunner::doCreatureOrder(Creature& creature)
         // Near the heart the creature stays and fights what comes
         for(Tile* tile : tiles)
         {
-            if(isNear(myTile, tile, 4))
+            if(isNear(myTile, tile, NEAR_HEART_DISTANCE))
                 return true;
         }
 
@@ -1196,7 +1211,7 @@ bool LevelScriptRunner::doCreatureOrder(Creature& creature)
             return false;
 
         Tile* target = nearest->getPositionTile();
-        if(isNear(myTile, target, 2) || !gameMap->pathExists(&creature, myTile, target))
+        if(isNear(myTile, target, ARRIVED_DISTANCE) || !gameMap->pathExists(&creature, myTile, target))
             return false;
 
         return walkToTile(creature, target);
@@ -1225,7 +1240,7 @@ bool LevelScriptRunner::doCreatureOrder(Creature& creature)
         {
             int32_t amount = static_cast<int32_t>(creature.getDefinition()->getStealGold());
             if(amount <= 0)
-                amount = 200;
+                amount = DEFAULT_STEAL_GOLD_AMOUNT;
 
             int32_t gold = room->withdrawGold(amount);
             creature.addGoldCarried(gold);
