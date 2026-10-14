@@ -18,16 +18,14 @@ body = notification_h[notification_h.index('enum class ServerNotificationType'):
 body = body[:body.index('};')]
 names = [m.group(1) for m in re.finditer(r'^\s*(\w+),?\s*(?://.*)?$', body, re.MULTILINE)
          if m.group(1) not in ('enum', 'class')]
-# The new kind is appended behind trapEffect, the last kind before it: no existing number moves
-position = names.index('cosmeticEvent')
-assert names.count('cosmeticEvent') == 1 and names[position - 1] == 'trapEffect', names[position - 2:position + 2]
+# The new kind sits before trapEffect, which stays the last value: no existing number moves
+assert names[-3:] == ['possessionEnd', 'cosmeticEvent', 'trapEffect'], names[-4:]
 assert 'case ServerNotificationType::cosmeticEvent:' in read('source/network/ServerNotification.cpp')
 
 server = read('source/network/ODServer.cpp')
 client = read('source/network/ODClient.cpp')
 socket_h = read('source/network/ODSocketClient.h')
-# The offer is the flags of pickNick behind the server mode (the cosmetic events are the last of six),
-# the agreement is read only when the packet has it
+# The offer is the sixth flag of pickNick, the agreement is read only when the packet has it
 assert 'pickNick << mServerMode << true << true << true << true << true << true;' in server
 assert 'if(!packetReceived.endOfPacket())\n                OD_ASSERT_TRUE(packetReceived >> cosmeticEvents);' in server
 assert 'clientSocket->setSupportsCosmeticEvents(cosmeticEvents);' in server
@@ -146,23 +144,24 @@ int main()
     stream2 >> cmd;
     check(oldClientProcess(cmd, stream2, handled) && handled == 1, "old client goes on with the next message");
 
-    // Negotiation: an old server ends the offer after the server mode, an old client ends its answer after the nick
+    // Negotiation: an old server ends the offer after five flags, an old client ends its answer after five flags
     ODPacket oldOffer;
-    bool offered = false;
-    if(!oldOffer.endOfPacket())
-        oldOffer >> offered;
-    check(!offered, "a client does not agree to what an old server does not offer");
+    oldOffer << true << true << true << true << true;
+    bool flags[6] = {false, false, false, false, false, false};
+    for(int i = 0; i < 6; ++i)
+        if(!oldOffer.endOfPacket())
+            oldOffer >> flags[i];
+    check(flags[4] && !flags[5], "a client does not agree to what an old server does not offer");
     ODPacket oldAnswer;
-    oldAnswer << std::string("nick");
-    std::string nick;
-    oldAnswer >> nick;
+    oldAnswer << true << true << true << true << true;
     bool cosmetic = false;
+    for(int i = 0; i < 5; ++i) { bool dummy; oldAnswer >> dummy; }
     if(!oldAnswer.endOfPacket())
         oldAnswer >> cosmetic;
     check(!cosmetic, "an old client never gets cosmetic events");
     ODPacket newAnswer;
-    newAnswer << std::string("nick") << true;
-    newAnswer >> nick;
+    newAnswer << true << true << true << true << true << true;
+    for(int i = 0; i < 5; ++i) { bool dummy; newAnswer >> dummy; }
     if(!newAnswer.endOfPacket())
         newAnswer >> cosmetic;
     check(cosmetic, "a new client agrees");
