@@ -34,11 +34,17 @@ const std::string CreatureSkillTeleportName = "Teleport";
 
 namespace
 {
+//! \brief Divisor that turns the danger percentage of the creature definition into a fraction
+static const double PERCENT_DIVISOR = 100.0;
+
+//! \brief Factory that registers the Teleport skill so it can be created by its name
 class CreatureSkillTeleportFactory : public CreatureSkillFactory
 {
+    //! \brief Creates a new, empty Teleport skill
     CreatureSkill* createCreatureSkill() const override
     { return new CreatureSkillTeleport; }
 
+    //! \brief Returns the name under which the Teleport skill is registered
     const std::string& getCreatureSkillName() const override
     { return CreatureSkillTeleportName; }
 };
@@ -56,6 +62,7 @@ Tile* getHeartTile(GameMap& gameMap, Creature* creature)
     return hearts[0]->getCoveredTile(0);
 }
 
+//! \brief Returns the squared distance in tiles between the two tiles
 double squaredDistance(const Tile* tile1, const Tile* tile2)
 {
     double dx = static_cast<double>(tile1->getX() - tile2->getX());
@@ -102,7 +109,7 @@ bool CreatureSkillTeleport::tryUseSupport(GameMap& gameMap, Creature* creature) 
     // In danger (low health and enemies in sight), the creature jumps to the dungeon heart
     // (the const version returns the enemies seen during this turn upkeep)
     const Creature* constCreature = creature;
-    bool isInDanger = (creature->getHP() <= (creature->getMaxHp() * mDangerPercent / 100.0)) &&
+    bool isInDanger = (creature->getHP() <= (creature->getMaxHp() * mDangerPercent / PERCENT_DIVISOR)) &&
         !constCreature->getVisibleEnemyObjects().empty();
     if(isInDanger)
     {
