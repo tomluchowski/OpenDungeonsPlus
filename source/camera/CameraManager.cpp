@@ -757,12 +757,6 @@ const Ogre::Real POSSESSION_LOOK_SPEED = 0.15;
 //! How far the possession view can look up or down, in degrees
 const Ogre::Real POSSESSION_MAX_PITCH = 75.0;
 
-//! The smallest squared horizontal length of the RTS view direction that still gives a usable start yaw
-const Ogre::Real POSSESSION_MIN_VIEW_SQUARED_LENGTH = 0.0001f;
-
-//! The tilt in degrees of the camera child node that looks at the horizon
-const Ogre::Real POSSESSION_HORIZON_TILT_DEGREES = 90.0;
-
 void CameraManager::resetCameraMovement()
 {
     mTranslateVector = Ogre::Vector3::ZERO;
@@ -790,7 +784,7 @@ void CameraManager::startPossession(const std::string& creatureName)
 
     // The player starts looking where the RTS camera was looking
     Ogre::Vector3 viewDirection = mActiveCamera->getDerivedDirection();
-    if (Ogre::Vector2(viewDirection.x, viewDirection.y).squaredLength() > POSSESSION_MIN_VIEW_SQUARED_LENGTH)
+    if (Ogre::Vector2(viewDirection.x, viewDirection.y).squaredLength() > 0.0001f)
         mPossessionYaw = Ogre::Math::ATan2(-viewDirection.x, viewDirection.y).valueRadians();
     else
         mPossessionYaw = 0.0;
@@ -836,7 +830,7 @@ void CameraManager::updatePossessionCamera()
         Ogre::Math::Cos(mPossessionYaw) * POSSESSION_EYE_FORWARD, POSSESSION_EYE_HEIGHT);
     getActiveCameraNode()->setPosition(position);
     getActiveCameraNode()->setOrientation(Ogre::Quaternion(Ogre::Radian(mPossessionYaw), Ogre::Vector3::UNIT_Z));
-    getActiveCameraNode()->getChild(0)->setOrientation(Ogre::Quaternion(Ogre::Degree(POSSESSION_HORIZON_TILT_DEGREES + mPossessionPitch),
+    getActiveCameraNode()->getChild(0)->setOrientation(Ogre::Quaternion(Ogre::Degree(90.0 + mPossessionPitch),
         Ogre::Vector3::UNIT_X));
 }
 

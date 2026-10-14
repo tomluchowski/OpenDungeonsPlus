@@ -41,17 +41,13 @@ public:
     //! \brief Creates an empty missile that is filled by importFromStream or importFromPacket
     MissileBlast(GameMap* gameMap);
 
-    //! \brief Returns the type used to identify this missile in saved games and packets.
     virtual MissileObjectType getMissileType() const override
     { return MissileObjectType::blast; }
 
-    //! \brief Called when the missile hits a wall; returns true if it continues in nextDirection, false if it is destroyed.
     virtual bool wallHitNextDirection(const Ogre::Vector3& actDirection, Tile* tile, Ogre::Vector3& nextDirection) override;
 
-    //! \brief Called when the missile hits a creature; returns true if the missile continues, false if it is destroyed.
     virtual bool hitCreature(Tile* tile, GameEntity* entity) override;
 
-    //! \brief Called when the missile hits the entity it was aimed at; the missile is destroyed afterwards.
     virtual void hitTargetEntity(Tile* tile, GameEntity* entityTarget) override;
 
     //! \brief Creates a missile from the saved game stream
@@ -60,12 +56,9 @@ public:
     static MissileBlast* getMissileBlastFromPacket(GameMap* gameMap, ODPacket& is);
 
 protected:
-    //! \brief Turns the missile toward its target (if it follows one) every turn.
     virtual void updateDirection() override;
 
-    //! \brief Writes the missile to the stream.
     void exportToStream(std::ostream& os) const override;
-    //! \brief Reads the missile from the stream. Returns false if the stream is malformed.
     bool importFromStream(std::istream& is) override;
 
 private:
