@@ -21,6 +21,8 @@
 #include "Trap.h"
 #include "traps/TrapType.h"
 
+#include <cstdint>
+
 //! \brief A trap that scares the enemy creatures in sight and makes them run away. It deals no damage.
 class TrapFear : public Trap
 {
