@@ -35,9 +35,6 @@ public:
     void activate() final override;
 
 private:
-    //! \brief Starts the level that was registered as pending (for example by the level test mode)
-    void restartPendingLevel();
-
     //! \brief The Settings window
     SettingsWindow mSettings;
 

@@ -21,17 +21,12 @@
 
 #include "ODApplication.h"
 #include "gamemap/GameMap.h"
-#include "network/ODClient.h"
-#include "network/ODServer.h"
-#include "network/ServerMode.h"
 #include "render/Gui.h"
 #include "render/ODFrameListener.h"
 #include "render/TextRenderer.h"
 #include "sound/MusicPlayer.h"
 #include "utils/ConfigManager.h"
 #include "utils/LogManager.h"
-#include "utils/ResourceManager.h"
-#include "utils/RunLevelTest.h"
 
 #include <CEGUI/widgets/PushButton.h>
 
@@ -163,44 +158,6 @@ void MenuModeMain::activate()
 
     ODFrameListener::getSingleton().stopGameRenderer();
     ODFrameListener::getSingleton().createMainMenuScene();
-
-    restartPendingLevel();
-}
-
-void MenuModeMain::restartPendingLevel()
-{
-    const std::string level = ODFrameListener::getSingleton().getPendingRestartLevel();
-    if(level.empty())
-        return;
-
-    ODFrameListener::getSingleton().setPendingRestartLevel(std::string());
-
-    // Set the player name if valid. (Will use the defaut one if not.)
-    std::string configNickname = ConfigManager::getSingleton().getGameValue(Config::NICKNAME, std::string(), false);
-    if(!configNickname.empty())
-        ODFrameListener::getSingleton().getClientGameMap()->setLocalPlayerNick(configNickname);
-
-    // In single player mode, we act as a server
-    const std::string& nickname = ODFrameListener::getSingleton().getClientGameMap()->getLocalPlayerNick();
-    if(!ODServer::getSingleton().startServer(nickname, level, ServerMode::ModeGameSinglePlayer, false))
-    {
-        OD_LOG_ERR("Could not restart the level " + level);
-        if(RunLevelTest::isActive())
-            RunLevelTest::fail(RunLevelTest::codeLoadError, "load error: the level could not be started");
-        return;
-    }
-
-    int port = ODServer::getSingleton().getNetworkPort();
-    uint32_t timeout = ConfigManager::getSingleton().getClientConnectionTimeout();
-    std::string replayFilename = ResourceManager::getSingleton().getReplayDataPath()
-        + ResourceManager::getSingleton().buildReplayFilename();
-    if(!ODClient::getSingleton().connect("localhost", port, timeout, replayFilename))
-    {
-        OD_LOG_ERR("Could not connect to the server to restart the level " + level);
-        if(RunLevelTest::isActive())
-            RunLevelTest::fail(RunLevelTest::codeLoadError, "load error: could not connect to the local server");
-        ODServer::getSingleton().stopServer();
-    }
 }
 
 void MenuModeMain::connectModeChangeEvent(const std::string& buttonName, AbstractModeManager::ModeType mode)
