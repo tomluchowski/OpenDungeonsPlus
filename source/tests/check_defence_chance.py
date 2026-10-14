@@ -96,18 +96,27 @@ for keyword in ('shield', 'bow', 'staff', 'wand'):
 global_cfg = read('config/global.cfg')
 config_cpp = read('source/utils/ConfigManager.cpp')
 config_h = read('source/utils/ConfigManager.h')
-KEYS = (('DodgeBase', '3', 'mDodgeBase(3.0)', 100), ('DodgePerLevel', '0.5', 'mDodgePerLevel(0.5)', 10),
-        ('DodgeMax', '15', 'mDodgeMax(15.0)', 100), ('ParryBase', '3', 'mParryBase(3.0)', 100),
-        ('ParryPerLevel', '0.5', 'mParryPerLevel(0.5)', 10), ('ParryMax', '15', 'mParryMax(15.0)', 100),
-        ('ParryShieldBase', '6', 'mParryShieldBase(6.0)', 100), ('ParryShieldPerLevel', '1', 'mParryShieldPerLevel(1.0)', 10),
-        ('ParryShieldMax', '25', 'mParryShieldMax(25.0)', 100))
+KEYS = (('DodgeBase', '3', 'mDodgeBase(DEFAULT_DODGE_BASE)', 100), ('DodgePerLevel', '0.5', 'mDodgePerLevel(DEFAULT_DODGE_PER_LEVEL)', 10),
+        ('DodgeMax', '15', 'mDodgeMax(DEFAULT_DODGE_MAX)', 100), ('ParryBase', '3', 'mParryBase(DEFAULT_PARRY_BASE)', 100),
+        ('ParryPerLevel', '0.5', 'mParryPerLevel(DEFAULT_PARRY_PER_LEVEL)', 10), ('ParryMax', '15', 'mParryMax(DEFAULT_PARRY_MAX)', 100),
+        ('ParryShieldBase', '6', 'mParryShieldBase(DEFAULT_PARRY_SHIELD_BASE)', 100),
+        ('ParryShieldPerLevel', '1', 'mParryShieldPerLevel(DEFAULT_PARRY_SHIELD_PER_LEVEL)', 10),
+        ('ParryShieldMax', '25', 'mParryShieldMax(DEFAULT_PARRY_SHIELD_MAX)', 100))
+# The named defaults and limits keep the numbers they had before they got names
+for name, value in (('DEFAULT_DODGE_BASE', '3.0'), ('DEFAULT_DODGE_PER_LEVEL', '0.5'), ('DEFAULT_DODGE_MAX', '15.0'),
+                    ('DEFAULT_PARRY_BASE', '3.0'), ('DEFAULT_PARRY_PER_LEVEL', '0.5'), ('DEFAULT_PARRY_MAX', '15.0'),
+                    ('DEFAULT_PARRY_SHIELD_BASE', '6.0'), ('DEFAULT_PARRY_SHIELD_PER_LEVEL', '1.0'),
+                    ('DEFAULT_PARRY_SHIELD_MAX', '25.0'), ('ConfigManager::ChanceMin', '0.0'),
+                    ('ConfigManager::ChanceMax', '100.0'), ('ConfigManager::ChancePerLevelMax', '10.0')):
+    assert re.search(re.escape(name) + r' = ' + re.escape(value) + ';', config_cpp), name
 assert re.search(r'^# .*\n(?:# .*\n)?\s+MeleeDodgeParry\t1\s*$', global_cfg, re.M), 'MeleeDodgeParry'
 assert 'nextParam == "MeleeDodgeParry"' in config_cpp and 'mMeleeDodgeParry(true)' in config_cpp
 assert 'inline bool getMeleeDodgeParry() const' in config_h
 for key, value, member, limit in KEYS:
     assert re.search(r'^\s+' + key + r'\t' + re.escape(value) + r'\s*$', global_cfg, re.M), key
     assert 'nextParam == "' + key + '"' in config_cpp and member in config_cpp, key
-    assert 'std::max(0.0, std::min(%d.0, m%s))' % (limit, key) in config_h, key
+    limit_name = 'ChanceMax' if limit == 100 else 'ChancePerLevelMax'
+    assert 'std::max(ChanceMin, std::min(%s, m%s))' % (limit_name, key) in config_h, key
     assert 'inline double get' + key + '() const' in config_h, key
 
 # ---------------------------------------------------------------------------------------------------------------
