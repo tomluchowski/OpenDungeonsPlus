@@ -55,7 +55,7 @@ void main() {
     
     FragPos = P;
     
-    vec4 P_prim = inverse(worldMatrix) * vec4(P, 1.0);
+    vec4 P_prim = inverse(worldMatrix) * P4;
     VertexPos = lightMatrix * P_prim;
  
  

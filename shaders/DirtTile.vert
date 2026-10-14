@@ -20,7 +20,6 @@ out vec2 out_UV0;
 out vec2 out_UV1;
 
 out vec3 FragPos;
-out vec4 VertexPos;
 
  
 out mat3 TBN;
@@ -62,7 +61,6 @@ void main() {
  
     gl_Position = projectionMatrix * viewMatrix * vec4(P, 1.0);
     FragPos = P;
-    VertexPos = lightMatrix * vec4(P, 1.0);
  
     out_UV0 = mix(uv_0, worldUV, uvWeight);
     out_UV1 = mix(uv_1, worldUV, uvWeight);

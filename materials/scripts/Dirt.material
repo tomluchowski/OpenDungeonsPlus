@@ -10,7 +10,6 @@ vertex_program myDirtTileVertexShader glsl
         param_named_auto worldMatrix world_matrix
         param_named_auto projectionMatrix projection_matrix          
         param_named_auto viewMatrix view_matrix
-        param_named_auto lightMatrix texture_viewproj_matrix 0
     }
   
 }
@@ -29,7 +28,6 @@ fragment_program myDirtTileFragmentShader glsl
         param_named_auto firstLightCastsShadows light_casts_shadows 0
         param_named_auto cameraPosition camera_position
         param_named_auto diffuseSurface surface_diffuse_colour
-        param_named shadowingEnabled bool false
     }
 }
 
@@ -50,8 +48,7 @@ material Dirt //: RTSS/NormalMapping_MultiPass
             fragment_program_ref myDirtTileFragmentShader
             { 
                 param_named decalmap int 0
-                param_named normalmap int 1
-                param_named shadowmap int 2
+                param_named normalmap int 1     
             }            
             
             
@@ -64,13 +61,6 @@ material Dirt //: RTSS/NormalMapping_MultiPass
             texture_unit normalmap
             {
                 texture DirtNormal.png               
-            }
-            texture_unit shadowmap
-            {
-                content_type shadow
-                tex_address_mode border
-                tex_border_colour 1 1 1 1
-                filtering bilinear
             }
         }
 

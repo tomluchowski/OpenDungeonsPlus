@@ -1,6 +1,5 @@
 #version 330  core
 #extension GL_ARB_shading_language_include : enable
-#include "ShadowMapping.glsl"
 #include "LocalLighting.glsl"
 #define epsilon 0.00001
 
@@ -29,10 +28,15 @@ void main (void)
     Normal =  normalize(TBN * Normal); 
     
     vec4 shadow = vec4(1.0, 1.0, 1.0,1.0);
+    vec4 tmpVertexPos = VertexPos;
     
     // compute shadowmap
-    if(shadowingEnabled)
-        shadow = vec4(sampleShadow(shadowmap, VertexPos));
+    if(shadowingEnabled){
+		if(tmpVertexPos.z > epsilon ){
+		    tmpVertexPos /= tmpVertexPos.w;
+		    shadow = texture(shadowmap, tmpVertexPos.xy); 
+		}
+    }
     
     
     
