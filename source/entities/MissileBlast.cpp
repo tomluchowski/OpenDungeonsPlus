@@ -28,6 +28,9 @@
 #include <iostream>
 #include <vector>
 
+//! \brief The smallest squared horizontal distance to the target that still gives a usable direction
+static const float MIN_TARGET_SQUARED_LENGTH = 0.0001f;
+
 MissileBlast::MissileBlast(GameMap* gameMap, Seat* seat, const std::string& senderName, const std::string& meshName,
         const std::string& particleScript, const Ogre::Vector3& direction, double speed, double physicalDamage, double magicalDamage,
         double elementDamage, GameEntity* entityTarget, bool damageAllies, bool koEnemyCreature, bool notifyPlayerIfHit,
@@ -90,7 +93,7 @@ void MissileBlast::updateDirection()
 
     Ogre::Vector3 direction = target->getPosition() - getPosition();
     direction.z = 0.0f;
-    if(direction.squaredLength() < 0.0001f)
+    if(direction.squaredLength() < MIN_TARGET_SQUARED_LENGTH)
         return;
 
     direction.normalise();
