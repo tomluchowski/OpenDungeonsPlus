@@ -202,9 +202,48 @@ assert 'ReactionSparks' in re.search(r'Name\s+BlowParried\s*\n(.*?)\[/Event\]', 
 parried = re.search(r'Name\s+BlowParried\s*\n(.*?)\[/Event\]', reactions_cfg, re.S).group(1)
 assert parried.count('Clip    WeaponParry') == parried.count('[Variant]') >= 2
 assert 'Motion' in parried and 'Effect  ReactionSparks' in parried
-for skeleton in ('Adventurer', 'Cultist', 'Dwarf2', 'Gnome', 'Knight', 'LavaSpawn', 'Monk', 'NatureMonster', 'Orc', 'RunelordDwarf'):
+for skeleton in ('Adventurer', 'Cultist', 'Dwarf2', 'Gnome', 'Goblin', 'Knight', 'LavaSpawn', 'Monk', 'NatureMonster', 'Orc', 'RunelordDwarf'):
     data = (root / 'models' / (skeleton + '.skeleton')).read_bytes()
     assert b'WeaponParry' in data and b'Idle' in data and b'Attack1' in data, skeleton
+
+# The Goblin carries a short sword in the right hand (visual and parry only: the equipment adds no damage and no defence).
+# Its mesh name is classified like the code does: client weaponKind and server isShieldMesh / isParryWeaponMesh
+def mirror_weapon_kind(mesh):
+    mesh = mesh.lower()
+    for kind, words in (('Shield', ('shield',)), ('Bow', ('bow',)), ('Axe', ('axe',)), ('Hammer', ('hammer', 'mace')),
+                        ('Spear', ('spear', 'lance', 'pike')), ('Dagger', ('dagger', 'knife')), ('Staff', ('staff', 'wand'))):
+        if any(word in mesh for word in words):
+            return kind
+    return 'Sword'
+
+
+def mirror_is_parry_weapon(mesh):
+    mesh = mesh.lower()
+    return not ('shield' in mesh or 'bow' in mesh or 'staff' in mesh or 'wand' in mesh)
+
+
+combat = read('source/render/CreatureCombatReactions.cpp')
+kind_body = function_body(combat, 'std::string weaponKind(const Weapon* weapon)')
+for word in ('shield', 'bow', 'axe', 'hammer', 'mace', 'spear', 'lance', 'pike', 'dagger', 'knife', 'staff', 'wand'):
+    assert 'contains(mesh, "' + word + '")' in kind_body, word
+creatures_cfg = read('config/creatures.cfg')
+goblin = re.search(r'\[Creature\]\s*\n\s+Name\s+Goblin\s*\n(.*?)\[/Creature\]', creatures_cfg, re.S).group(1)
+assert re.search(r'^\s+WeaponSpawnR\s+ShortSword\s*$', goblin, re.M)
+assert not re.search(r'^\s+WeaponSpawnL\s+(?!none)\S+', goblin, re.M)
+equipment = re.search(r'\[Equipment\]\s*\n\s+Name\s+ShortSword\s*\n(.*?)\[/Equipment\]', read('config/equipments.cfg'), re.S).group(1)
+sword_mesh = re.search(r'MeshName\s+(\S+)', equipment).group(1)
+assert sword_mesh == 'ShortSword.mesh'
+assert mirror_weapon_kind(sword_mesh) == 'Sword'
+assert mirror_is_parry_weapon(sword_mesh)
+# no shield, so the parry chance is the weapon one: level 1 and level 10 as in the table above
+assert abs(parry_chance(1, mirror_is_parry_weapon(sword_mesh), False, *PARRY, *SHIELD) - 3.5) < 1e-9
+assert abs(parry_chance(10, mirror_is_parry_weapon(sword_mesh), False, *PARRY, *SHIELD) - 8.0) < 1e-9
+for stat in ('PhysicalDamage', 'MagicalDamage', 'ElementDamage', 'PhysicalDefense', 'MagicalDefense', 'ElementDefense'):
+    assert re.search(r'^\s+' + stat + r'\s+0\s*$', equipment, re.M), stat
+assert (root / 'models' / 'ShortSword.mesh').is_file()
+assert (root / 'materials' / 'scripts' / 'ShortSword.material').is_file()
+assert (root / 'materials' / 'textures' / 'ShortSwordSurface.png').is_file()
+assert 'texture ShortSwordSurface.png' in read('materials/scripts/ShortSword.material')
 
 
 def probe_source():
