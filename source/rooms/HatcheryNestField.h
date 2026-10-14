@@ -45,6 +45,13 @@ namespace HatcheryNestField
     //! clients know that the egg lies in a nest.
     static const double eggHeight = 0.03;
 
+    //! Number of steps of the hash based offset of a nest or feather place inside its tile.
+    static const uint32_t jitterSteps = 81u;
+    //! Steps subtracted from the hash based offset, so that it is centred on the middle of the tile.
+    static const int jitterOffset = 40;
+    //! Number of offset steps that make up one tile.
+    static const double jitterUnitsPerTile = 100.0;
+
     //! Footprint of a coop around the center of its tile (the coops are not turned): the same numbers as the entry of
     //! the coop mesh in the table of the room object bounds. The ramp is on the side of the maximum x.
     static const double coopMinX = -0.203275;
@@ -273,8 +280,8 @@ namespace HatcheryNestField
                 const uint32_t h = it->first;
                 const int tileX = it->second.first;
                 const int tileY = it->second.second;
-                const double x = tileX + (static_cast<int>((h >> 8) % 81u) - 40) / 100.0;
-                const double y = tileY + (static_cast<int>((h >> 16) % 81u) - 40) / 100.0;
+                const double x = tileX + (static_cast<int>((h >> 8) % jitterSteps) - jitterOffset) / jitterUnitsPerTile;
+                const double y = tileY + (static_cast<int>((h >> 16) % jitterSteps) - jitterOffset) / jitterUnitsPerTile;
                 if(placeIsFree(x, y, tileX, tileY, roomTiles, coops, entrances, places, settings))
                     places.push_back(Place(x, y, static_cast<double>(h % 360u)));
             }
@@ -322,8 +329,8 @@ namespace HatcheryNestField
                 const uint32_t h = it->first;
                 const int tileX = it->second.first;
                 const int tileY = it->second.second;
-                const double x = tileX + (static_cast<int>((h >> 8) % 81u) - 40) / 100.0;
-                const double y = tileY + (static_cast<int>((h >> 16) % 81u) - 40) / 100.0;
+                const double x = tileX + (static_cast<int>((h >> 8) % jitterSteps) - jitterOffset) / jitterUnitsPerTile;
+                const double y = tileY + (static_cast<int>((h >> 16) % jitterSteps) - jitterOffset) / jitterUnitsPerTile;
                 if(!placeIsFree(x, y, tileX, tileY, roomTiles, coops, entrances, nests, nestSettings))
                     continue;
 

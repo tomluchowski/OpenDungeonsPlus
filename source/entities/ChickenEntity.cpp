@@ -46,6 +46,10 @@
 
 const int32_t NB_TURNS_OUTSIDE_HATCHERY_BEFORE_DIE = 30;
 const int32_t NB_TURNS_DIE_BEFORE_REMOVE = 5;
+//! \brief Upper bound (inclusive) of a percent roll (0 to 99).
+const uint32_t PERCENT_ROLL_MAX = 99;
+//! \brief Clearance in tiles around room objects that a chicken keeps when it plans a walk.
+const float OBSTACLE_CLEARANCE = 0.1f;
 //! \brief Extra distance beyond the follow gap within which a following chicken counts as arrived and waits.
 const double FOLLOW_ARRIVAL_TOLERANCE = 0.3;
 //! \brief Extra distance beyond the stop distance within which a walking chicken counts as already there.
@@ -280,7 +284,7 @@ void ChickenEntity::wander(Room* currentHatchery)
     // Short pauses: the animal pecks instead of walking
     const uint32_t pausePercent = static_cast<uint32_t>(
         ConfigManager::getSingleton().getRoomConfigDoubleOrDefault("HatcheryWanderPausePercent", 50.0));
-    if(Random::Uint(0, 99) < pausePercent)
+    if(Random::Uint(0, PERCENT_ROLL_MAX) < pausePercent)
     {
         setAnimationState("Pick");
         return;
@@ -355,7 +359,7 @@ bool ChickenEntity::walkToward(const Ogre::Vector2& target, double stopDistance,
     if((currentTile->getCoveringRoom() != nullptr) && (targetTile->getCoveringRoom() != currentTile->getCoveringRoom()))
         return false;
 
-    const std::vector<RoomObjectPath::Obstacle> obstacles = RoomObjectNavigation::collect(*getGameMap(), 0.1f);
+    const std::vector<RoomObjectPath::Obstacle> obstacles = RoomObjectNavigation::collect(*getGameMap(), OBSTACLE_CLEARANCE);
     if(!RoomObjectPath::clearSegment(obstacles, start, point, true))
         return false;
 

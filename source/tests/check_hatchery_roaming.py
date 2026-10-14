@@ -58,7 +58,7 @@ assert 'pickFreePoint(away)' in guard and 'mCoveredTiles[' not in guard
 # Hens do not gather at the calling rooster any more
 assert 'caller' not in room and 'mCallFollowGap' not in room + rooster_h and 'CallFollowGap' not in config
 hen_follow = [line for line in room.splitlines() if 'hen->setFollowTarget(' in line]
-assert hen_follow == ['                hen->setFollowTarget(it->mStand, 0.1);'], 'only the nest walk of a hen sets a follow target'
+assert hen_follow == ['                hen->setFollowTarget(it->mStand, EGG_FOLLOW_GAP);'], 'only the nest walk of a hen sets a follow target'
 
 # The rooster does not call: no call mood, no settings, no config keys; chicks do not follow a crow
 mood_enum = re.search(r'enum class RoosterMood[^}]*\}', rooster_h).group(0)
