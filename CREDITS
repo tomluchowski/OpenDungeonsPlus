@@ -543,7 +543,6 @@ materials/textures/CreaturePropTrail.png    OD Team                 GPLv3+      
 materials/textures/CreaturePropShadow.png   OD Team                 GPLv3+                  Drawn from simple shapes by tools/gen_creature_reaction_art.py (script generated, original work)
 tools/gen_creature_reaction_art.py     OD Team                 GPLv3+
 tools/check_creature_reactions.py      OD Team                 GPLv3+
-tools/gen_worker_sounds.py            OD Team                 GPLv3+
 tools/check_worker_extras.py            OD Team                 GPLv3+
 
 ================================
