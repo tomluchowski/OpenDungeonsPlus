@@ -104,6 +104,9 @@ enum class ServerNotificationType
 
     exit,
 
+    // Sent only to clients that negotiated live nickname changes.
+    playerNickChanged,
+
     //! Owner-only tier of a creature pair that changed (or the current tier, sent once when a
     //! client joins or a game is loaded): + string creatureA, string creatureB, int32_t tier
     //! (RelationshipTier), bool replay (true: replay of the current tier, no Dungeonbook post or emote).

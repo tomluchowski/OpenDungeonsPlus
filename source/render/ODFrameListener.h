@@ -36,6 +36,7 @@
 #include <OgreWindowEventUtilities.h>
 
 #include <memory>
+#include <map>
 #include <vector>
 
 
@@ -152,6 +153,19 @@ public:
     inline Ogre::RenderWindow* getRenderWindow()
     { return mWindow; }
 
+    //! \brief Asks to move the game to a new render window at the end of the current frame.
+    //! The given previous values are restored if the new window cannot be created.
+    void requestRenderWindowRecreation(
+        const std::map<std::string, std::string>& previousRendererOptions,
+        const std::map<std::string, std::string>& previousVideoConfig);
+
+    //! \brief Sets the given renderer options and video config values back and saves the user config.
+    static void restoreVideoSettings(const std::map<std::string, std::string>& rendererOptions,
+        const std::map<std::string, std::string>& videoConfig);
+
+    //! \brief Release window-dependent objects before ODApplication destroys the primary window.
+    void prepareRenderWindowShutdown();
+
     inline bool getIsMainMenuCreated()
     { return mIsMainMenuCreated; }
 
@@ -215,6 +229,21 @@ private:
     //! \brief The Ogre render window reference. Don't delete it.
     Ogre::RenderWindow* mWindow;
 
+    //! \brief The first window owns the main OpenGL context and remains alive as an anchor.
+    Ogre::RenderWindow* mPrimaryWindow;
+
+    //! \brief True when requestRenderWindowRecreation was called and the window is not replaced yet.
+    bool mRenderWindowRecreationPending;
+
+    //! \brief Counter that gives each replacement render window a unique name.
+    uint32_t mRenderWindowSequence;
+
+    //! \brief Renderer option values to restore if the pending window recreation fails.
+    std::map<std::string, std::string> mPreviousRendererOptions;
+
+    //! \brief Video config values to restore if the pending window recreation fails.
+    std::map<std::string, std::string> mPreviousVideoConfig;
+
     //! \brief Foreign reference to gui.
     Gui*                 mGui;
 
@@ -240,6 +269,12 @@ private:
 
     //! \brief Actually exit application
     void exitApplication();
+
+    //! \brief Replaces the render window if a recreation was requested; restores the old one on failure.
+    void applyPendingRenderWindowRecreation();
+
+    //! \brief Restores the stored previous video settings and forgets them.
+    void restorePreviousVideoSettings();
 
     //! \brief Updates server-turn independent creature animation, audio, and overall rendering.
     void updateAnimations(Ogre::Real timeSinceLastFrame);

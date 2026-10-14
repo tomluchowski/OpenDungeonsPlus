@@ -51,7 +51,8 @@ class ODSocketClient
             mPlayer(nullptr),
             mLastTurnAck(-1),
             mRelationshipsSynced(false),
-            mPendingTimestamp(-1)
+            mPendingTimestamp(-1),
+            mSupportsLiveNickname(false)
         {}
 
         virtual ~ODSocketClient()
@@ -69,6 +70,8 @@ class ODSocketClient
 
         Player* getPlayer() { return mPlayer; }
         void setPlayer(Player* player) { mPlayer = player; }
+        bool supportsLiveNickname() const { return mSupportsLiveNickname; }
+        void setSupportsLiveNickname(bool supported) { mSupportsLiveNickname = supported; }
         int64_t getLastTurnAck() { return mLastTurnAck; }
         void setLastTurnAck(int64_t lastTurnAck) { mLastTurnAck = lastTurnAck; }
         //! \brief Tells whether the client already got the current relationship tiers from the server
@@ -140,10 +143,12 @@ class ODSocketClient
         ODPacket mPendingPacket;
         int32_t mPendingTimestamp;
 
+        //! \brief True if the peer announced that it handles nickname changes during the game.
+        bool mSupportsLiveNickname;
+
         //! \brief the replay filename being written. Used to later optionally delete it
         //! if asked to.
         std::string mOutputReplayFilename;
 };
 
 #endif // ODSOCKETCLIENT_H
-
