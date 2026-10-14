@@ -202,9 +202,11 @@ public:
     inline int32_t getNbTurnsOutOfWork() const
     { return mNbTurnsOutOfWork; }
 
+    //! \brief Counts one more turn in which the creature wanted to work but found no job
     inline void increaseNbTurnsOutOfWork()
     { ++mNbTurnsOutOfWork; }
 
+    //! \brief Resets the out-of-work counter (called when the creature finds work)
     inline void resetNbTurnsOutOfWork()
     { mNbTurnsOutOfWork = 0; }
 
