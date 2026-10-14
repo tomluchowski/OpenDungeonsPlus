@@ -115,6 +115,8 @@ static const Ogre::Real CANNON_MISSILE_HEIGHT = 0.3;
 static const double DEFAULT_CASINO_MOOD_DECAY_PER_SECOND = 3.0;
 //! \brief Largest casino mood (positive or negative) when the room config has no CasinoMoodMax
 static const double DEFAULT_CASINO_MOOD_MAX = 1500.0;
+//! \brief Number of closest targets for which a path is tried when a creature looks for a destination
+static const uint32_t MAX_PATH_CHECK_TARGET_TRIES = 5;
 
 const int32_t Creature::NB_TURNS_BEFORE_CHECKING_TASK = 15;
 const uint32_t Creature::NB_OVERLAY_HEALTH_VALUES = 8;
@@ -3952,7 +3954,7 @@ bool Creature::handleChampionIdle()
     uint32_t nbTries = 0;
     for(const std::pair<int, Tile*>& target : targets)
     {
-        if(nbTries >= 5)
+        if(nbTries >= MAX_PATH_CHECK_TARGET_TRIES)
             break;
         ++nbTries;
 
