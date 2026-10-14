@@ -132,6 +132,11 @@ public:
     inline bool isRogueSeat() const
     { return mId == 0; }
 
+    //! \brief The neutral seat and the hero seats do not pay mana when their traps fire: their traps are part
+    //! of the level and these seats have no mana income
+    inline bool isTrapManaFree() const
+    { return isRogueSeat() || (getFaction() == "Hero"); }
+
     inline SeatStatistics& getStatistics()
     { return mStatistics; }
 

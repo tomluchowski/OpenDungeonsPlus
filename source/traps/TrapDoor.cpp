@@ -410,7 +410,7 @@ bool TrapDoor::shoot(Tile* tile)
         return true;
 
     // The runed door does not fire if its owner cannot pay the mana
-    double manaToFire = ConfigManager::getSingleton().getTrapConfigDouble("RunedDoorManaToFire");
+    double manaToFire = getSeat()->isTrapManaFree() ? 0.0 : ConfigManager::getSingleton().getTrapConfigDouble("RunedDoorManaToFire");
     if(!getSeat()->takeMana(manaToFire))
         return true;
 
