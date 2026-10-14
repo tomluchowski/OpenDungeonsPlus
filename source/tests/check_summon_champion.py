@@ -1,8 +1,8 @@
 """Check the Summon champion spell and the champion creature.
 
 The spell costs 108,000 mana and the champion then costs 2,250 mana per second after a free period of
-price / drain = 48 seconds. The champion is the only creature that cannot be hurt. The spell is
-unlocked by skill research."""
+price / drain = 48 seconds. The champion is the only creature that cannot be hurt. The spell is not
+researchable, the complete campaign Heartstone unlocks it."""
 from pathlib import Path
 import re
 import xml.etree.ElementTree as ET
@@ -59,23 +59,21 @@ assert "isChampion()" in pickup[:pickup.index("void Creature::pickup()")], "no p
 for spell in ("SpellDefector", "SpellHexenHen"):
     assert "isChampion()" in read(f"source/spells/{spell}.cpp"), f"{spell} skips the champion"
 
-# The spell and the unlock through skill research
+# The spell, the reward skill and the unlock
 cast = read("source/spells/SpellSummonChampion.cpp")
 assert "hasChampion(gameMap, player->getSeat())" in cast, "one champion per seat"
 assert "takeMana(price)" in cast
 assert "summonChampion" in read("source/spells/SpellType.h")
-assert "spellSummonChampion" in read("source/game/SkillType.cpp")
+skill_type = read("source/game/SkillType.cpp")
+assert "isRewardSkill" in skill_type and "spellSummonChampion" in skill_type
 manager = read("source/game/SkillManager.cpp")
-assert "isRewardSkill" not in manager and "isRewardSkill" not in read("source/game/Seat.cpp"), "no reward-only skill"
-assert "new Skill(resType, points, summonChampionDepends)" in manager, "the champion has a research prerequisite"
-assert re.search(r"^    spellSummonChampion\s+\d+\s*$", read("config/skills.cfg"), re.M), "research cost entry"
-assert '" mana per second.";' in manager, "the research text ends with the drain and names no other unlock"
-assert "Unlocked by" not in manager and "Unlocked by" not in read("gui/WindowTabSpells.layout"), "no unlock text besides research"
+assert manager.count("isRewardSkill") >= 2, "random and all-done research skip the reward skill"
+assert "isRewardSkill" in read("source/game/Seat.cpp"), "the server refuses to queue it"
 
-# The buttons exist in both windows, the tree node is visible so the spell can be researched
+# The buttons exist in both windows, the tree node stays hidden
 spells_tab = ET.parse(repo / "gui/WindowTabSpells.layout").find('.//Window[@name="SummonChampionButton"]')
 assert spells_tab is not None
 tree = ET.parse(repo / "gui/WindowSkillTree.layout").find('.//Window[@name="SummonChampionButton"]')
-assert tree.find('Property[@name="Visible"]') is None, "the tree node is shown"
+assert tree.find('Property[@name="Visible"]').get("value") == "False", "no tree node for a reward"
 assert '"SummonChampionButton"' in read("source/render/Gui.cpp")
 print("summon champion checks passed")
