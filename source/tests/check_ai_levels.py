@@ -7,6 +7,9 @@ import re
 repo = Path(__file__).resolve().parents[2]
 src = (repo / "source/ai/AIFactory.cpp").read_text(encoding="utf-8")
 
+# The constructor arguments are named constants: "static const int NAME = value;"
+constants = dict(re.findall(r"static const int (\w+) = (\d+);", src))
+
 expected = {
     "easy": ("150", "25", "14", "2"),
     "normal": ("100", "20", "11", "4"),
@@ -18,6 +21,7 @@ for level, (reaction, retreat, attack, minLevel) in expected.items():
     args = [a.strip() for a in m.group(1).split(",")]
     # gameMap, player, 6 cooldowns, reaction, retreat HP percent, attack threshold, min level, traps, doors
     assert len(args) == 14, f"{level}: unexpected argument count {len(args)}"
+    args = [constants.get(a, a) for a in args]
     assert args[8:12] == [reaction, retreat, attack, minLevel], \
         f"{level}: reaction/retreat/attack is {args[8:12]}, expected {[reaction, retreat, attack, minLevel]}"
 
