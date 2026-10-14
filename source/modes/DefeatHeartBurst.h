@@ -30,6 +30,12 @@ namespace DefeatHeartBurstSettings
     const float BURST_TIME = 0.8f;
     //! Largest sideways offset of the shaking heart, reached just before the burst
     const float SHAKE_AMPLITUDE = 0.07f;
+    //! Shake cycles per second along x and y; they differ so that the heart does not shake on a line
+    const float SHAKE_X_FREQUENCY = 13.0f;
+    const float SHAKE_Y_FREQUENCY = 17.0f;
+    //! Pulse and glow flicker cycles per second
+    const float PULSE_FREQUENCY = 6.0f;
+    const float FLICKER_FREQUENCY = 9.0f;
     //! Largest extra size of the pulsing heart (0.08 is 8 percent), reached just before the burst
     const float PULSE_AMPLITUDE = 0.08f;
     //! Height above the floor where the burst effects start (the heart mesh is about 2.5 high)
@@ -83,6 +89,8 @@ struct DefeatRubblePose
 namespace DefeatHeartBurst
 {
     const float PI = 3.14159265f;
+    //! Angle in radians between neighbouring seeds of a sunflower layout (the golden angle)
+    const float GOLDEN_ANGLE = 2.39996f;
 
     //! 0 at the start, rising linearly to 1 at the burst, 0 outside of that time
     inline float heartRampAt(float t)
@@ -101,22 +109,22 @@ namespace DefeatHeartBurst
 
     //! Sideways offset of the shaking heart; the shaking grows until the burst
     inline float heartShakeXAt(float t)
-    { return DefeatHeartBurstSettings::SHAKE_AMPLITUDE * heartRampAt(t) * std::sin(2.0f * PI * 13.0f * t); }
+    { return DefeatHeartBurstSettings::SHAKE_AMPLITUDE * heartRampAt(t) * std::sin(2.0f * PI * DefeatHeartBurstSettings::SHAKE_X_FREQUENCY * t); }
 
     inline float heartShakeYAt(float t)
-    { return DefeatHeartBurstSettings::SHAKE_AMPLITUDE * heartRampAt(t) * std::sin(2.0f * PI * 17.0f * t + 1.3f); }
+    { return DefeatHeartBurstSettings::SHAKE_AMPLITUDE * heartRampAt(t) * std::sin(2.0f * PI * DefeatHeartBurstSettings::SHAKE_Y_FREQUENCY * t + 1.3f); }
 
     //! Size factor of the pulsing heart, between 1 and 1 + PULSE_AMPLITUDE
     inline float heartPulseScaleAt(float t)
     {
-        const float wave = 0.5f + 0.5f * std::sin(2.0f * PI * 6.0f * t);
+        const float wave = 0.5f + 0.5f * std::sin(2.0f * PI * DefeatHeartBurstSettings::PULSE_FREQUENCY * t);
         return 1.0f + DefeatHeartBurstSettings::PULSE_AMPLITUDE * heartRampAt(t) * wave;
     }
 
     //! How hot the heart glows, between 0 (its normal look) and 1; it flickers and grows until the burst
     inline float heartGlowAt(float t)
     {
-        const float flicker = 0.6f + 0.4f * std::sin(2.0f * PI * 9.0f * t);
+        const float flicker = 0.6f + 0.4f * std::sin(2.0f * PI * DefeatHeartBurstSettings::FLICKER_FREQUENCY * t);
         return heartRampAt(t) * flicker;
     }
 
@@ -139,7 +147,7 @@ namespace DefeatHeartBurst
             DefeatRubblePiece piece;
             const float spread = std::sqrt((static_cast<float>(i) + 0.5f) / static_cast<float>(count));
             const float radius = DefeatHeartBurstSettings::RUBBLE_RADIUS * spread * (0.8f + 0.2f * nextRandom(state));
-            const float angle = 2.39996f * static_cast<float>(i) + 0.5f * (nextRandom(state) - 0.5f);
+            const float angle = GOLDEN_ANGLE * static_cast<float>(i) + 0.5f * (nextRandom(state) - 0.5f);
             // 1 in the middle of the pile, 0 at its border
             const float middle = 1.0f - radius / DefeatHeartBurstSettings::RUBBLE_RADIUS;
             piece.restX = radius * std::cos(angle);
