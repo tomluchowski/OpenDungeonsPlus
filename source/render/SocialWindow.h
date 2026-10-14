@@ -96,10 +96,13 @@ private:
 
     GameMap& mGameMap;
     CEGUI::Window* mWindow;
+    //! Which creatures the list shows
     CreatureFilter mFilter;
+    //! True if the feed only shows the posts of the selected creature
     bool mSelectedOnly;
     //! True while the list is rebuilt, selection events are ignored then
     bool mRebuildingList;
+    //! Name of the selected creature, empty if none is selected
     std::string mSelectedCreature;
     //! Creature names of the list items, indexed by the item id
     std::vector<std::string> mListedCreatures;
@@ -109,11 +112,17 @@ private:
     CEGUI::Window* mProfilePage;
     //! Click subscriptions of the friend and foe names of the profile page
     std::vector<CEGUI::Event::Connection> mLinkConnections;
+    //! Roster version of the post log the list was built for
     uint32_t mShownRosterVersion;
+    //! Post version of the post log the feed was built for
     uint32_t mShownPostVersion;
+    //! Seconds since update() last checked for changes
     float mSinceRefreshCheck;
+    //! Seconds since the feed was last rebuilt
     float mSinceFeedRebuild;
+    //! Post version of the post log the profile was built for
     uint32_t mShownProfilePostVersion;
+    //! Seconds since the profile was last refreshed
     float mSinceProfileRefresh;
 };
 

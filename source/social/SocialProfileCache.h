@@ -80,6 +80,7 @@ private:
     std::map<std::string, CreatureProfile> mProfiles;
     //! Full names handed out so far, kept unique between the cached profiles
     std::set<std::string> mUsedNames;
+    //! Friends and foe by creature name
     std::map<std::string, FriendsAndFoe> mFriends;
     std::set<std::string> mLoggedUnmappedClasses;
 };

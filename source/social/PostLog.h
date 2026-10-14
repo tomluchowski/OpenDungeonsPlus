@@ -150,11 +150,16 @@ public:
 private:
     int64_t secondsToTurns(uint32_t seconds) const;
 
+    //! True between start() and stop()
     bool mActive;
+    //! Posts of earlier turns are ignored
     int64_t mEnabledFromTurn;
     double mTurnsPerSecond;
+    //! See getVersion()
     uint32_t mVersion;
+    //! See getRosterVersion()
     uint32_t mRosterVersion;
+    //! The posts, oldest first
     std::deque<Post> mPosts;
     //! Turn of the last post per creature and category
     std::map<std::string, int64_t> mLastPostTurns;
@@ -162,6 +167,7 @@ private:
     std::map<std::string, std::deque<int64_t> > mCreaturePostTurns;
     //! Turns of the recent posts of all creatures
     std::deque<int64_t> mGlobalPostTurns;
+    //! Renders the text of a post, nullptr if not set
     PostTextFunction mTextFunction;
     //! Texts of the last posts
     std::deque<std::string> mRecentTexts;

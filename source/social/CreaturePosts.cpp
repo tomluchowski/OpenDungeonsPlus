@@ -141,8 +141,8 @@ void CreaturePosts::reportUpdate(int64_t turn, const std::string& creature, cons
     if(!before.mActivity.known || !after.mActivity.known)
         return;
 
-    int32_t oldRoom;
-    int32_t newRoom;
+    int32_t oldRoom = 0;
+    int32_t newRoom = 0;
     PostCategory oldCategory = getActivityCategory(before.mActivity, oldRoom);
     PostCategory newCategory = getActivityCategory(after.mActivity, newRoom);
     if((newCategory == PostCategory::Nb) || ((newCategory == oldCategory) && (newRoom == oldRoom)))

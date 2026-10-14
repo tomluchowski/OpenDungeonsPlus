@@ -25,6 +25,14 @@
 namespace social
 {
 
+namespace
+{
+//! Turns that share one text variant of a creature and category
+const int64_t POST_VARIANT_PERIOD_TURNS = 600;
+//! How often another variant is tried while the text was posted a moment ago
+const uint32_t POST_VARIANT_MAX_TRIES = 16;
+}
+
 std::string getPostCategoryName(PostCategory category)
 {
     switch(category)
@@ -165,7 +173,7 @@ bool PostLog::addPost(int64_t turn, const std::string& creature, const std::stri
     mGlobalPostTurns.push_back(turn);
 
     std::ostringstream variantStream;
-    variantStream << creature << "|" << getPostCategoryName(category) << "|" << (turn / 600);
+    variantStream << creature << "|" << getPostCategoryName(category) << "|" << (turn / POST_VARIANT_PERIOD_TURNS);
 
     Post post;
     post.mTurn = turn;
@@ -180,7 +188,7 @@ bool PostLog::addPost(int64_t turn, const std::string& creature, const std::stri
     {
         // Another variant if the text was posted a moment ago (a few tries, then it is accepted)
         std::string text = mTextFunction(post);
-        for(uint32_t tries = 0; (tries < 16) && !text.empty() &&
+        for(uint32_t tries = 0; (tries < POST_VARIANT_MAX_TRIES) && !text.empty() &&
             (std::find(mRecentTexts.begin(), mRecentTexts.end(), text) != mRecentTexts.end()); ++tries)
         {
             ++post.mVariant;

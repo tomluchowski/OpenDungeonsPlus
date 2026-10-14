@@ -61,6 +61,16 @@ const float REFRESH_CHECK_INTERVAL = 0.25f;
 //! The relative times of the feed are refreshed at least this often while the window is open
 const float FEED_TIME_REFRESH_INTERVAL = 5.0f;
 
+//! Caption of the filter button for the unfiltered list
+const char* const FILTER_LABEL_ALL = "Show: all creatures";
+//! Posts younger than this many seconds are shown as "just now"
+const double AGE_JUST_NOW_SECONDS = 10.0;
+const double SECONDS_PER_MINUTE = 60.0;
+const double SECONDS_PER_HOUR = 3600.0;
+//! Colours of the caption of the active and of the inactive tab (ARGB)
+const char* const TAB_COLOUR_ACTIVE = "FFF2C860";
+const char* const TAB_COLOUR_INACTIVE = "FFF0E2C0";
+
 const char* const FEED_NAME_COLOUR = "[colour='FFF2C860']";
 const char* const FEED_TIME_COLOUR = "[colour='FFB8AC90']";
 const char* const FEED_TEXT_COLOUR = "[colour='FFE8DCC0']";
@@ -94,14 +104,14 @@ std::string formatAge(int64_t turns)
 {
     double seconds = static_cast<double>(turns) / ODApplication::turnsPerSecond;
     std::ostringstream stream;
-    if(seconds < 10.0)
+    if(seconds < AGE_JUST_NOW_SECONDS)
         stream << "just now";
-    else if(seconds < 60.0)
+    else if(seconds < SECONDS_PER_MINUTE)
         stream << static_cast<int32_t>(seconds) << " sec ago";
-    else if(seconds < 3600.0)
-        stream << static_cast<int32_t>(seconds / 60.0) << " min ago";
+    else if(seconds < SECONDS_PER_HOUR)
+        stream << static_cast<int32_t>(seconds / SECONDS_PER_MINUTE) << " min ago";
     else
-        stream << static_cast<int32_t>(seconds / 3600.0) << " h ago";
+        stream << static_cast<int32_t>(seconds / SECONDS_PER_HOUR) << " h ago";
     return stream.str();
 }
 
@@ -196,7 +206,7 @@ void SocialWindow::setTabState(CEGUI::Window* tab, const std::string& label, boo
 {
     // A bare '[' starts a CEGUI markup tag and would swallow the caption
     tab->setText(active ? "\\[ " + label + " ]" : label);
-    tab->setProperty("NormalTextColour", active ? "FFF2C860" : "FFF0E2C0");
+    tab->setProperty("NormalTextColour", active ? TAB_COLOUR_ACTIVE : TAB_COLOUR_INACTIVE);
 }
 
 bool SocialWindow::isVisible() const
@@ -217,7 +227,7 @@ void SocialWindow::show()
 void SocialWindow::showCreature(const std::string& creatureName)
 {
     mFilter = CreatureFilter::All;
-    mWindow->getChild("FilterButton")->setText("Show: all creatures");
+    mWindow->getChild("FilterButton")->setText(FILTER_LABEL_ALL);
     mSelectedCreature = creatureName;
     mProfileTab = true;
     show();
@@ -277,7 +287,7 @@ bool SocialWindow::onCloseClicked(const CEGUI::EventArgs& /*e*/)
 
 bool SocialWindow::onFilterClicked(const CEGUI::EventArgs& /*e*/)
 {
-    const char* label = "Show: all creatures";
+    const char* label = FILTER_LABEL_ALL;
     switch(mFilter)
     {
         case CreatureFilter::All:
@@ -357,7 +367,7 @@ void SocialWindow::selectCreature(const std::string& creatureName)
        (std::find(mListedCreatures.begin(), mListedCreatures.end(), creatureName) == mListedCreatures.end()))
     {
         mFilter = CreatureFilter::All;
-        mWindow->getChild("FilterButton")->setText("Show: all creatures");
+        mWindow->getChild("FilterButton")->setText(FILTER_LABEL_ALL);
     }
     mSelectedCreature = creatureName;
     rebuildCreatureList();
