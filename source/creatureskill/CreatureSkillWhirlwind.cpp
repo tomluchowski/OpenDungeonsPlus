@@ -35,11 +35,14 @@ namespace
 //! \brief The smallest squared horizontal distance between caster and target that still gives a usable push direction
 static const float MIN_PUSH_SQUARED_LENGTH = 0.0001f;
 
+//! \brief Creates whirlwind skills when the configuration names "Whirlwind"
 class CreatureSkillWhirlwindFactory : public CreatureSkillFactory
 {
+    //! \brief Creates an empty whirlwind skill
     CreatureSkill* createCreatureSkill() const override
     { return new CreatureSkillWhirlwind; }
 
+    //! \brief The skill name used in the configuration
     const std::string& getCreatureSkillName() const override
     { return CreatureSkillWhirlwindName; }
 };
