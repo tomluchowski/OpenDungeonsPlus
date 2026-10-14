@@ -33,7 +33,8 @@ assert 'batchChunkSize' not in rules and 'batchChunkIndex' not in rules
 assert 'batchChunkSize' not in batch and 'batchChunkIndex' not in batch
 assert 'typedef const void* ChunkKey;' in batch_h and 'tuple' not in batch_h
 assert 'member.mKey = roomKey;' in batch and 'int tileX' not in batch_h
-assert 'setOrigin(Ogre::Vector3(-500.0f, -500.0f, -500.0f))' in batch
+assert 'BATCH_REGION_ORIGIN = -500.0f;' in batch and 'BATCH_REGION_SIZE = 1000.0f;' in batch
+assert 'setOrigin(Ogre::Vector3(BATCH_REGION_ORIGIN, BATCH_REGION_ORIGIN, BATCH_REGION_ORIGIN))' in batch
 assert 'batchRebuildInterval' in batch and 'mSinceRebuild' in batch
 
 # Dirty flag per room: add, settle end and removal of a batched pile mark only their own room.

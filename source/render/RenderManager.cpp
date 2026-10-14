@@ -2063,6 +2063,15 @@ void RenderManager::clearRoomConstructionEffects()
     mRoomConstructionEffects.clear();
 }
 
+//! Height above the pile surface at which the coin splash, pour and roll effects start.
+static const float TreasuryCoinEffectHeightOffset = 0.02f;
+//! Centre of the tile in dent texture space, subtracted from a dent position to get the offset on the tile.
+static const float TreasuryDentTileCentre = 0.5f;
+//! Scale of the gold sack a treasure thief carries.
+static const float TreasuryThiefSackScale = 0.7f;
+//! Height of the carried gold sack as a factor of the creature's bounding box height.
+static const float TreasuryThiefSackHeightFactor = 0.85f;
+
 void RenderManager::refreshCreaturesOnTile(Tile* tile)
 {
     if(tile == nullptr)
@@ -2101,7 +2110,7 @@ void RenderManager::treasuryCreatureStep(Creature* creature, const Ogre::Vector3
     Tile* tile = creature->getPositionTile();
     const void* roomKey = (tile != nullptr && tile->getCoveringRoom() != nullptr) ?
         static_cast<const void*>(tile->getCoveringRoom()) : static_cast<const void*>(tile);
-    if(!createTreasuryEffect(roomKey, "TreasuryCoinSplash", Ogre::Vector3(position.x, position.y, surfaceHeight + 0.02f)))
+    if(!createTreasuryEffect(roomKey, "TreasuryCoinSplash", Ogre::Vector3(position.x, position.y, surfaceHeight + TreasuryCoinEffectHeightOffset)))
         return;
 
     if(SoundEffectsManager::getSingletonPtr() != nullptr)
@@ -2120,7 +2129,7 @@ void RenderManager::rrTreasuryDeposit(GameMap* gameMap, int x, int y)
     const void* roomKey = (tile != nullptr && tile->getCoveringRoom() != nullptr) ?
         static_cast<const void*>(tile->getCoveringRoom()) : static_cast<const void*>(tile);
     createTreasuryEffect(roomKey, "TreasuryCoinPour",
-        Ogre::Vector3(static_cast<Ogre::Real>(x), static_cast<Ogre::Real>(y), height + 0.02f));
+        Ogre::Vector3(static_cast<Ogre::Real>(x), static_cast<Ogre::Real>(y), height + TreasuryCoinEffectHeightOffset));
     startTreasuryPour(tile, level);
 }
 
@@ -2551,7 +2560,8 @@ void RenderManager::startTreasuryPileChange(Ogre::SceneNode* node, const std::st
     const void* roomKey = tile->getCoveringRoom() != nullptr ?
         static_cast<const void*>(tile->getCoveringRoom()) : static_cast<const void*>(tile);
     if(createTreasuryEffect(roomKey, "TreasuryCoinRoll",
-        Ogre::Vector3(position.x + dentU - 0.5f, position.y + dentV - 0.5f, height + 0.02f),
+        Ogre::Vector3(position.x + dentU - TreasuryDentTileCentre, position.y + dentV - TreasuryDentTileCentre,
+            height + TreasuryCoinEffectHeightOffset),
         TreasuryEffectKind::ambient) && SoundEffectsManager::getSingletonPtr() != nullptr)
         SoundEffectsManager::getSingleton().playSpatialSound("Rooms/Treasury/CoinStep", position.x, position.y);
 }
@@ -2867,8 +2877,9 @@ void RenderManager::rrRefreshCreatureGoldSack(Creature* creature)
     Ogre::Entity* creatureEntity = mSceneManager->getEntity(creatureName);
     Ogre::SceneNode* sackNode = creature->getEntityNode()->createChildSceneNode(sackName + "_node");
     sackNode->setInheritScale(false);
-    sackNode->setScale(0.7f, 0.7f, 0.7f);
-    sackNode->setPosition(Ogre::Vector3(0.0f, 0.0f, creatureEntity->getBoundingBox().getMaximum().z * 0.85f));
+    sackNode->setScale(TreasuryThiefSackScale, TreasuryThiefSackScale, TreasuryThiefSackScale);
+    sackNode->setPosition(Ogre::Vector3(0.0f, 0.0f,
+        creatureEntity->getBoundingBox().getMaximum().z * TreasuryThiefSackHeightFactor));
     Ogre::Entity* sack = mSceneManager->createEntity(sackName, sackMesh + ".mesh");
     sackNode->attachObject(sack);
 

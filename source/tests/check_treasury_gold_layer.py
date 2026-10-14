@@ -34,7 +34,7 @@ assert (repo / 'materials/textures/TreasuryGoldPile.png').exists()
 assert 'TreasuryGoldPile.png' in read('CREDITS')
 assert 'TreasuryGoldMesh.cpp' in read('CMakeLists.txt')
 assert 'addBand(surface, 1 + (rings - 1) * PileSectors, 1 + rings * PileSectors)' not in mesh
-assert 'buildRoundSurface(shape, rings, roundSurface)' in mesh
+assert 'buildRoundSurface(shape, divisions, dent, roundSurface)' in mesh
 # The classic stack names stay for free gold on the floor; room storage always uses round piles.
 assert 'GoldstackLv1' in read('source/entities/TreasuryObject.cpp')
 

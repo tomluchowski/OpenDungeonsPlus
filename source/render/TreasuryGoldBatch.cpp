@@ -29,6 +29,11 @@
 #include <utility>
 #include <vector>
 
+//! Origin of the single static geometry region of a room; the region spans from here over the whole map.
+static const float BATCH_REGION_ORIGIN = -500.0f;
+//! Edge length of the static geometry region of a room, larger than any room.
+static const float BATCH_REGION_SIZE = 1000.0f;
+
 void TreasuryGoldBatch::addPile(Ogre::SceneManager* sceneManager, const std::string& entityName,
     const void* roomKey, Ogre::Entity* entity, Ogre::SceneNode* node, bool settling)
 {
@@ -141,8 +146,8 @@ void TreasuryGoldBatch::rebuild(Chunk& chunk)
         const std::string name = "TreasuryGoldBatch_" + Helper::toString(++mGeometryNumber);
         chunk.mGeometry = mSceneManager->createStaticGeometry(name);
         // One region per room: the region is larger than any room, so the room is drawn as one batch
-        chunk.mGeometry->setOrigin(Ogre::Vector3(-500.0f, -500.0f, -500.0f));
-        chunk.mGeometry->setRegionDimensions(Ogre::Vector3(1000.0f, 1000.0f, 1000.0f));
+        chunk.mGeometry->setOrigin(Ogre::Vector3(BATCH_REGION_ORIGIN, BATCH_REGION_ORIGIN, BATCH_REGION_ORIGIN));
+        chunk.mGeometry->setRegionDimensions(Ogre::Vector3(BATCH_REGION_SIZE, BATCH_REGION_SIZE, BATCH_REGION_SIZE));
     }
 
     chunk.mGeometry->reset();
