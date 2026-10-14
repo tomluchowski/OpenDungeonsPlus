@@ -550,10 +550,12 @@ probe = (probe.replace('RULES_HEADER', rules.as_posix())
 enum_body = notification_header[notification_header.index('enum class ServerNotificationType'):]
 enum_body = enum_body[:enum_body.index('};')]
 enumerators = re.findall(r'^\s*([A-Za-z_]\w*)\s*,?\s*(?://.*)?$', enum_body, re.M)
-# trapEffect, cosmeticEvent and wallTorches are the last enumerators; heartHealth, levelStatistics and playerDefeated sit before them
-assert enumerators[-1] == 'wallTorches' and enumerators[-2] == 'cosmeticEvent' and enumerators[-3] == 'trapEffect' and enumerators[-7] == 'heartHealth', enumerators[-8:]
+enumerators = [name for name in enumerators if name not in ('trapEffect', 'cosmeticEvent')]
+# wallTorches sits behind possessionEnd and in front of the values that are moved to the end (cosmeticEvent, trapEffect)
+assert enumerators[-1] == 'wallTorches' and enumerators[-2] == 'possessionEnd' and enumerators[-3] == 'possessionStart', enumerators[-4:]
 assert enumerators.count('wallTorches') == 1
-assert enumerators[-8] == 'levelStatistics' and enumerators[-9] == 'playerDefeated'
+assert enumerators[-4] == 'casinoPayout' and enumerators[-5] == 'heartHealth', enumerators[-6:]
+assert enumerators[-6] == 'levelStatistics' and enumerators[-7] == 'playerDefeated'
 assert enumerators.count('heartHealth') == 1
 assert 'case ServerNotificationType::heartHealth:\n            return "heartHealth";' in notification_source
 case = client[client.index('case ServerNotificationType::heartHealth:'):]

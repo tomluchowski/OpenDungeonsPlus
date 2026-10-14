@@ -150,26 +150,25 @@ enum class ServerNotificationType
     possessionStart,
     //! The player no longer possesses a creature: + bool lost (the creature fell: dead, knocked out or gone)
     possessionEnd,
-    //! Presentation-only effect of a trap or door, sent to the human seats that see the tile:
-    //! + int32_t kind (TrapEffectKind), int32_t tileX, int32_t tileY, string type name of the trap or door
-    //! (e.g. Alarm, DoorSteel), float health fraction (0 to 1, doors only, else 1).
-    //! Appended last so that no existing numeric value changes.
-    trapEffect,
-
-    //! A short cosmetic note that something happened (a mood change, a full treasury, a blow, a missile
-    //! launch): + a CosmeticEvent (see network/CosmeticEvent.h): int32_t kind, string subject, string object,
-    //! string text, int32_t value, int32_t value2, Vector3 position. Only sent to clients that negotiated
-    //! cosmetic events; an older client never gets it. Appended after trapEffect so that no existing
-    //! numeric value changes.
-    cosmeticEvent,
-
     //! The wall torches the receiving player may see (see GameMap::getWallTorches): + bool full (true: the
     //! list replaces all torches), uint32_t number of removed torches, then per torch int32_t x, int32_t y,
     //! int32_t direction; uint32_t number of added torches, then per torch int32_t x, int32_t y,
     //! int32_t direction (WallTorches::getDirX/getDirY: where the open tile is, seen from the wall),
     //! int32_t seatId of the wall owner. Sent once when a client joins or loads (the whole list) and when
-    //! the torches or the tiles the player sees change. Appended last so that no existing numeric value changes.
-    wallTorches
+    //! the torches or the tiles the player sees change. Inserted before cosmeticEvent; trapEffect stays the
+    //! last value.
+    wallTorches,
+    //! A short cosmetic note that something happened (a mood change, a full treasury, a blow, a missile
+    //! launch): + a CosmeticEvent (see network/CosmeticEvent.h): int32_t kind, string subject, string object,
+    //! string text, int32_t value, int32_t value2, Vector3 position. Only sent to clients that negotiated
+    //! cosmetic events; an older client never gets it. Inserted before trapEffect, which stays the last
+    //! value.
+    cosmeticEvent,
+    //! Presentation-only effect of a trap or door, sent to the human seats that see the tile:
+    //! + int32_t kind (TrapEffectKind), int32_t tileX, int32_t tileY, string type name of the trap or door
+    //! (e.g. Alarm, DoorSteel), float health fraction (0 to 1, doors only, else 1).
+    //! Appended last so that no existing numeric value changes.
+    trapEffect
 };
 
 ODPacket& operator<<(ODPacket& os, const ServerNotificationType& nt);

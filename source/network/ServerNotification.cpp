@@ -166,10 +166,10 @@ std::string ServerNotification::typeString(ServerNotificationType type)
             return "possessionEnd";
         case ServerNotificationType::trapEffect:
             return "trapEffect";
-        case ServerNotificationType::cosmeticEvent:
-            return "cosmeticEvent";
         case ServerNotificationType::wallTorches:
             return "wallTorches";
+        case ServerNotificationType::cosmeticEvent:
+            return "cosmeticEvent";
         default:
             OD_LOG_ERR("Unknown enum for ServerNotificationType="
                 + Helper::toString(static_cast<int>(type)));
