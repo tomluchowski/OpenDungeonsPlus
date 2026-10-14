@@ -553,13 +553,23 @@ public:
 
     //! Creatures that carry a portal stone (it drops where they die)
     void addStoneCarrier(const std::string& creatureName);
+
+    //! \brief Removes a creature from the stone carriers and forgets its last known tile.
+    //! \param creatureName Name of the creature; nothing happens if it is not a carrier.
     void removeStoneCarrier(const std::string& creatureName);
 
+    //! \brief The names of all creatures that carry a portal stone.
     inline const std::set<std::string>& getStoneCarriers() const
     { return mStoneCarriers; }
 
     //! The last tile a stone carrier was seen on (not saved)
     void setStoneCarrierTile(const std::string& creatureName, int32_t x, int32_t y);
+
+    //! \brief Reads the last tile a stone carrier was seen on.
+    //! \param creatureName Name of the stone carrier.
+    //! \param x Receives the tile x coordinate when a tile is known.
+    //! \param y Receives the tile y coordinate when a tile is known.
+    //! \return True if a tile is known for that creature, false otherwise.
     bool getStoneCarrierTile(const std::string& creatureName, int32_t& x, int32_t& y) const;
 
     static const int64_t TIME_LIMIT_NOT_SET = -1;
