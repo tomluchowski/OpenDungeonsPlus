@@ -39,6 +39,7 @@ const double HOLD_STILL_SECONDS = 12.0;
 //! \brief Flee state of one chicken: the turns left until the next hop and the hops done in a row.
 struct State
 {
+    //! \brief Starts with no cooldown and no hops done.
     State() :
         mCooldownTurns(0),
         mHopsInRow(0)

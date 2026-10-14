@@ -32,6 +32,7 @@ enum class RoosterMood : uint32_t
 //! \brief Times and chances for the rooster, read from the config.
 struct RoosterSettings
 {
+    //! \brief Sets the built-in default times, chances and day length of the rooster.
     RoosterSettings() :
         mCrowMin(40),
         mCrowMax(90),
@@ -79,6 +80,7 @@ struct RoosterSettings
 //! \brief What the rooster sees around him.
 struct RoosterContext
 {
+    //! \brief Starts with the strut mood and nothing seen around the rooster.
     RoosterContext() :
         mTurn(0),
         mMood(RoosterMood::strut),

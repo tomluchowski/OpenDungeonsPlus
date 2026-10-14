@@ -55,6 +55,7 @@ namespace HatcheryNestField
     //! \brief Distances and counts that decide where the nests go (see compute).
     struct Settings
     {
+        //! \brief Sets the built-in default distances and counts for placing nests.
         Settings() :
             mTilesPerNest(3),
             mMaxNests(16),
@@ -108,12 +109,14 @@ namespace HatcheryNestField
     //! A nest: the middle in the world (tiles) and a turn in degrees (for the look only).
     struct Place
     {
+        //! \brief Creates a nest at the origin with no turn.
         Place() :
             mX(0.0),
             mY(0.0),
             mAngle(0.0)
         {}
 
+        //! \brief Creates a nest in the middle (x, y) in tiles with a turn of angle degrees.
         Place(double x, double y, double angle) :
             mX(x),
             mY(y),

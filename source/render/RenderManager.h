@@ -478,6 +478,7 @@ private:
     //! The nest places the server sent, by room name (the clients compute nothing). mVersion counts the messages.
     struct ServerNests
     {
+        //! \brief Starts with version 0 and no places.
         ServerNests() :
             mVersion(0)
         {}
