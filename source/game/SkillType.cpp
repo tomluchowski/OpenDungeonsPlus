@@ -226,6 +226,11 @@ std::string skillTypeToPlayerVisibleString(SkillType type)
             return "Unknown enum value:" + Helper::toString(static_cast<int>(type));
     }
 }
+
+bool isRewardSkill(SkillType type)
+{
+    return (type == SkillType::spellSummonChampion);
+}
 }
 
 ODPacket& operator<<(ODPacket& os, const SkillType& type)
