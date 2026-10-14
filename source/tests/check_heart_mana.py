@@ -130,7 +130,7 @@ struct RoomDungeonTemple:Room {
  double getHP(Tile*)const override{return mHeartHP;}
  Tile* getHeartTile() const;
 };
-struct GameMap {std::vector<Room*> mRooms;std::vector<Seat*> seats;
+struct GameMap {std::vector<Room*> mRooms;std::vector<Seat*> seats;uint32_t mManaRegenerationPercent=100;
  std::vector<Trap*> mTraps;std::vector<Creature*> mCreatures;
  std::vector<Trap*>& getTraps(){return mTraps;}
  std::vector<Room*>& getRooms(){return mRooms;}std::vector<Seat*>& getSeats(){return seats;}
@@ -197,9 +197,13 @@ int main(){
  check(near(owner.mManaDelta,(130.0-28.0)/ODApplication::turnsPerSecond),"the delta converts the net of both to turns");
  check(near(owner.mMana,(130.0-28.0)/ODApplication::turnsPerSecond),"the accrued mana lands on the seat");
 
- // Mana well tiles
+ // Mana well tiles and the mana regeneration setting
  map.updateSeatMana(&owner,2,0.0);
  check(near(owner.mManaIncomePerSecond,330.0),"each mana well tile adds its bonus per second");
+ map.mManaRegenerationPercent=50;
+ map.updateSeatMana(&owner,0,0.0);
+ check(near(owner.mManaIncomePerSecond,65.0),"the mana regeneration setting scales the income");
+ map.mManaRegenerationPercent=100;
 
  // A seat without a heart gains nothing and loses nothing
  Seat orphan(3,9);Player orphanPlayer(&orphan,false);
