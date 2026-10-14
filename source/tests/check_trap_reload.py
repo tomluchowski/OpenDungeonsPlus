@@ -54,8 +54,14 @@ for trap_type, prefix in type_keys.items():
     assert re.search(r'^    ' + key + r'\t\d+', traps_cfg, re.M), key + ' not set'
     assert 'case TrapType::' + trap_type + ':' in price, trap_type + ' not priced'
     assert re.search(r'getTrapConfigDoubleOrDefault\("' + key + '", defaultPrice\)', price), key + ' not read'
-# Every trap type that has a shot count in the configuration has a reload price
-for prefix in re.findall(r'^    (\w+)NbShootsBeforeDeactivation\t', traps_cfg, re.M):
+# Every trap type that has a shot count in the configuration has a reload price. The list of trap types with a
+# shot count is fixed for this branch (counted once in the configuration: 10 types); update it by hand when
+# a branch adds or removes one.
+shot_count_prefixes = ['Alarm', 'Boulder', 'Cannon', 'Fear', 'Fireburst', 'Freeze', 'Gas', 'Lightning', 'Spike',
+                       'Trigger']
+found_prefixes = re.findall(r'^    (\w+)NbShootsBeforeDeactivation\t', traps_cfg, re.M)
+assert sorted(found_prefixes) == shot_count_prefixes, 'the trap types with a shot count differ from the expected list'
+for prefix in shot_count_prefixes:
     assert re.search(r'^    ' + prefix + r'ReloadCost\t\d+', traps_cfg, re.M), prefix + ' has no reload price'
 
 # Reloading counts in the worker share rules: counted by the action, part of the total, own share, gate in the idle choice

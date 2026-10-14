@@ -20,8 +20,9 @@ def function(path, signature):
 
 game = (repo / 'source/modes/GameMode.cpp').read_text()
 game_header = (repo / 'source/modes/GameMode.h').read_text()
-visibility_default = re.search(r'bool mCreatureIndicatorsVisible = (true|false);', game_header).group(1)
-assert visibility_default == 'true', 'new gameplay starts with creature indicators visible'
+# Fixed expected value: new gameplay starts with the creature indicators visible
+visibility_default = 'true'
+assert 'bool mCreatureIndicatorsVisible = ' + visibility_default + ';' in game_header, 'new gameplay starts with creature indicators visible'
 activation = function('source/modes/GameMode.cpp', 'void GameMode::activate()')
 assert 'mCreatureIndicatorsVisible);' in activation
 for key in ('LMENU', 'RMENU'):
