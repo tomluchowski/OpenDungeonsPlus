@@ -109,6 +109,9 @@ class ODClient: public Ogre::Singleton<ODClient>,
 
     
  protected:
+    //! \brief Handles one notification from the server and applies it to the client game state. For the carry
+    //! and release notifications it also flags the carrier as carrying or not carrying on the client.
+    //! \return true if the notification was processed.
     bool processMessage(ServerNotificationType cmd, ODPacket& packetReceived) override;
     void playerDisconnected() override;
 

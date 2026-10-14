@@ -174,12 +174,19 @@ public:
     void rrDestroyCreatureVisualDebug(Creature* curCreature, Tile* curTile);
     void rrCreateSeatVisionVisualDebug(int seatId, Tile* tile);
     void rrDestroySeatVisionVisualDebug(int seatId, Tile* tile);
+    //! \brief Plays the given animation on the entity of an animated object; a walking carrier uses the
+    //! carrying walk clip when its skeleton has one. Does nothing for entities that are missing or have no skeleton.
+    //! \param loop True if the animation is repeated.
     void rrSetObjectAnimationState(MovableGameEntity* curAnimatedObject, const std::string& animation, bool loop);
     void rrMoveEntity(GameEntity* entity, const Ogre::Vector3& position);
     //! A worker poured gold onto the treasury tile (x, y): coins fall onto the top of the pile
     void rrTreasuryDeposit(GameMap* gameMap, int x, int y);
     void rrMoveMapLightFlicker(MapLight* mapLight, const Ogre::Vector3& position);
+    //! \brief Attaches the carried entity to the carrier at half tile height. A carrier that is already
+    //! walking switches to the carrying walk clip.
     void rrCarryEntity(Creature* carrier, GameEntity* carried);
+    //! \brief Detaches the carried entity from the carrier. A carrier that is still walking switches back
+    //! to the plain walk clip.
     void rrReleaseCarriedEntity(Creature* carrier, GameEntity* carried);
     Ogre::ParticleSystem* rrEntityAddParticleEffect(GameEntity* entity, const std::string& particleName,
         const std::string& particleScript);
