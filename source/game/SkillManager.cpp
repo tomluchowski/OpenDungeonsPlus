@@ -715,7 +715,8 @@ bool SkillManager::isSpellAvailable(SpellType type, const Seat* seat)
     SkillType resType = family.at(index);
     // The spells researched in a library cannot be cast while that library is lost.
     // Summoning a worker needs no research, so it stays.
-    if(seat->isLibraryLost() && (type != SpellType::summonWorker))
+    // Reward skills (Summon champion) are unlocked by the Heartstone, not researched, so they stay too.
+    if(seat->isLibraryLost() && (type != SpellType::summonWorker) && !Skills::isRewardSkill(resType))
         return false;
 
     return seat->isSkillDone(resType);
@@ -723,7 +724,7 @@ bool SkillManager::isSpellAvailable(SpellType type, const Seat* seat)
 
 bool SkillManager::isLockedByLostLibrary(SkillType type, const Seat* seat)
 {
-    if(!seat->isLibraryLost() || (type == SkillType::spellSummonWorker))
+    if(!seat->isLibraryLost() || (type == SkillType::spellSummonWorker) || Skills::isRewardSkill(type))
         return false;
 
     for(const SkillDef* skill : getSkillManager().mSkills)
