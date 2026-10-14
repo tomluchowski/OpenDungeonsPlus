@@ -6,8 +6,8 @@ another work. Run it from the repository root to write the images again:
 
     python tools/gen_room_effects_art.py
 
-Output (all 64x64 RGBA, in materials/textures): RoomAmbFlame, RoomAmbGear, RoomAmbRat, RoomAmbRatL,
-RoomAmbRumple and RoomAmbSoftRing, used by particles/RoomAmbienceDeferred.particle.
+Output (all 64x64 RGBA, in materials/textures): RoomAmbFlame, RoomAmbBracket, RoomAmbGear, RoomAmbRat,
+RoomAmbRatL, RoomAmbRumple and RoomAmbSoftRing, used by particles/RoomAmbienceDeferred.particle.
 
 Needs Pillow. The helpers are the ones of tools/gen_room_ambience_art.py.
 """
@@ -43,6 +43,25 @@ def sprite_flame(path):
             right.append((c + width, y))
         draw.polygon(left + right[::-1], fill=color)
     image = image.filter(ImageFilter.GaussianBlur(6))
+    finish(image, path)
+
+
+def sprite_bracket(path):
+    """An iron wall bracket with an unlit torch head, seen from the front (alpha blended)."""
+    image, draw = new_canvas()
+    c = CANVAS // 2
+    # wooden stick
+    draw.polygon([(c - 15, 90), (c + 15, 90), (c + 11, 238), (c - 11, 238)], fill=(92, 62, 36, 255))
+    draw.line((c - 6, 96, c - 4, 230), fill=(132, 94, 58, 255), width=5)
+    # torch head wrapped in rags
+    draw.ellipse((c - 30, 40, c + 30, 110), fill=(60, 44, 32, 255))
+    draw.ellipse((c - 22, 48, c + 6, 84), fill=(88, 66, 48, 255))
+    # iron band and bracket
+    draw.rectangle((c - 22, 150, c + 22, 172), fill=(58, 60, 66, 255))
+    draw.line((c - 22, 152, c + 22, 152), fill=(130, 134, 142, 255), width=3)
+    draw.rectangle((c - 40, 196, c + 40, 214), fill=(58, 60, 66, 255))
+    draw.line((c - 40, 198, c + 40, 198), fill=(130, 134, 142, 255), width=3)
+    image = image.filter(ImageFilter.GaussianBlur(1.2))
     finish(image, path)
 
 
@@ -146,6 +165,7 @@ def sprite_ring(path):
 
 SPRITES = {
     "RoomAmbFlame": sprite_flame,
+    "RoomAmbBracket": sprite_bracket,
     "RoomAmbGear": sprite_gear,
     "RoomAmbRat": sprite_rat,
     "RoomAmbRatL": sprite_rat_left,

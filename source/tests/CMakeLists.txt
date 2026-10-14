@@ -39,6 +39,12 @@ add_boost_test(00-Pathfinding
         SOURCES
         test_Pathfinding.cpp)
 
+add_boost_test(00-WallTorches
+        SOURCES
+        test_WallTorches.cpp
+        ${SRC}/rooms/WallTorches.h
+        ${SRC}/rooms/WallTorches.cpp)
+
 add_boost_test(aa-LaunchGame
         SOURCES
         ${SRC}/tests/mocks/ODClientTest.cpp

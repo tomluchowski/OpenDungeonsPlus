@@ -58,6 +58,7 @@ public:
     //! \brief Removes every particle system and light. The spots are kept
     void stopAll();
 
+    //! \brief Number of torches that currently cast a real light
     inline uint32_t getNbLights() const
     { return mNbLights; }
 
@@ -119,17 +120,27 @@ private:
         double mFlickerSpeed;
     };
 
+    //! \brief Reads the torch settings once (WallTorchConfig)
     void loadSettings();
+    //! \brief Chooses which torches are shown and which of them get a light, from their distance to the camera
     void refresh(Mode mode, Ogre::Camera* camera);
+    //! \brief Creates particle system number index of the torch (flame, smoke) beside the holder
     void createPart(Torch& torch, uint32_t index, const std::string& name);
     //! Creates the bracket model; false if the mesh cannot be loaded
     bool createModel(Torch& torch, const std::string& name);
+    //! \brief Removes one particle system of a torch
     void destroyPart(Part& part);
+    //! \brief Gives the torch a real flickering light
     void createLight(Torch& torch, const std::string& name);
+    //! \brief Removes the light of the torch
     void destroyLight(Torch& torch);
+    //! \brief Starts the crackling loop at the torch
     void startSound(Torch& torch);
+    //! \brief Stops the crackling loop at the torch
     void stopSound(Torch& torch);
+    //! \brief Lets the lights flicker
     void animate();
+    //! \brief Removes everything that belongs to the torch: parts, light and sound
     void destroyTorch(Torch& torch);
 
     std::map<uint64_t, Torch> mTorches;

@@ -82,8 +82,9 @@ class WallTorches
 public:
     static const int32_t NB_DIRECTIONS = 4;
 
-    //! \brief Direction 0: +y, 1: -y, 2: +x, 3: -x
+    //! \brief X step of a direction. Direction 0: +y, 1: -y, 2: +x, 3: -x
     static int32_t getDirX(int32_t dir);
+    //! \brief Y step of the direction (see getDirX)
     static int32_t getDirY(int32_t dir);
 
     //! \brief Number that identifies a torch (wall tile and side); equal torches have equal keys
