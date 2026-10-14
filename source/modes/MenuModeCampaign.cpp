@@ -78,6 +78,22 @@ const float SITE_HIT_RADIUS = 40.0f;
 const float TOOLTIP_WIDTH = 400.0f;
 const float TOOLTIP_HEIGHT = 140.0f;
 const float TOOLTIP_OFFSET = 96.0f;
+//! Aspect ratio (width to height) of the campaign map art
+const float MAP_ASPECT_RATIO = 1.6f;
+//! Percent value of a completely finished campaign and its factor to a bar fraction
+const int PERCENT_FULL = 100;
+const float PERCENT_FULL_FLOAT = 100.0f;
+//! Layout of the progress texts and bar inside the progress panel, as fractions of its width and height
+const float PROGRESS_LEFT = 0.04f;
+const float PROGRESS_TEXT_WIDTH = 0.92f;
+const float PROGRESS_TEXT_HEIGHT = 0.70f;
+const float PROGRESS_BAR_TOP = 0.74f;
+const float PROGRESS_BAR_WIDTH = 0.74f;
+const float PROGRESS_BAR_HEIGHT = 0.20f;
+const float PROGRESS_PERCENT_LEFT = 0.80f;
+const float PROGRESS_PERCENT_TOP = 0.68f;
+const float PROGRESS_PERCENT_WIDTH = 0.16f;
+const float PROGRESS_PERCENT_HEIGHT = 0.32f;
 
 //! Reads and decodes a PNG file into RGBA bytes. Returns false if it cannot be read.
 bool decodeImage(const std::string& path, int& width, int& height, std::vector<uint8_t>& rgba)
@@ -157,7 +173,7 @@ MenuModeCampaign::MenuModeCampaign(ModeManager* modeManager):
     map->setHorizontalAlignment(CEGUI::HA_CENTRE);
     map->setVerticalAlignment(CEGUI::VA_CENTRE);
     map->setAspectMode(CEGUI::AM_SHRINK);
-    map->setAspectRatio(1.6f);
+    map->setAspectRatio(MAP_ASPECT_RATIO);
     addEventConnection(
         map->subscribeEvent(
             CEGUI::Window::EventMouseMove,
@@ -505,15 +521,15 @@ void MenuModeCampaign::fillMap()
     }
     int provinceTotal = static_cast<int>(provinces.size());
     int siteTotal = static_cast<int>(sites.size());
-    int percent = (provinceTotal > 0) ? (conquered * 100 / provinceTotal) : 0;
+    int percent = (provinceTotal > 0) ? (conquered * PERCENT_FULL / provinceTotal) : 0;
 
     const CampaignWorldRect& panel = mWorld.getProgressPanel();
     float panelX = static_cast<float>(panel.mX);
     float panelY = static_cast<float>(panel.mY);
     float panelWidth = static_cast<float>(panel.mWidth);
     float panelHeight = static_cast<float>(panel.mHeight);
-    CEGUI::Window* progress = createMapWindow("OD/StaticText", "ProgressText", panelX + panelWidth * 0.04f,
-        panelY, panelWidth * 0.92f, panelHeight * 0.70f);
+    CEGUI::Window* progress = createMapWindow("OD/StaticText", "ProgressText", panelX + panelWidth * PROGRESS_LEFT,
+        panelY, panelWidth * PROGRESS_TEXT_WIDTH, panelHeight * PROGRESS_TEXT_HEIGHT);
     progress->setProperty("FrameEnabled", "False");
     progress->setProperty("BackgroundEnabled", "False");
     progress->setProperty("Font", "MedievalSharp-6");
@@ -524,12 +540,13 @@ void MenuModeCampaign::fillMap()
         + " provinces conquered\n" + Helper::toString(static_cast<int>(campaign.getHeartstonePieces())) + " / "
         + Helper::toString(siteTotal) + " hidden sites");
 
-    CEGUI::Window* bar = createMapWindow("OD/ProgressBar", "ProgressBar", panelX + panelWidth * 0.04f,
-        panelY + panelHeight * 0.74f, panelWidth * 0.74f, panelHeight * 0.20f);
-    static_cast<CEGUI::ProgressBar*>(bar)->setProgress(static_cast<float>(percent) / 100.0f);
+    CEGUI::Window* bar = createMapWindow("OD/ProgressBar", "ProgressBar", panelX + panelWidth * PROGRESS_LEFT,
+        panelY + panelHeight * PROGRESS_BAR_TOP, panelWidth * PROGRESS_BAR_WIDTH, panelHeight * PROGRESS_BAR_HEIGHT);
+    static_cast<CEGUI::ProgressBar*>(bar)->setProgress(static_cast<float>(percent) / PERCENT_FULL_FLOAT);
 
-    CEGUI::Window* percentText = createMapWindow("OD/StaticText", "ProgressPercent", panelX + panelWidth * 0.80f,
-        panelY + panelHeight * 0.68f, panelWidth * 0.16f, panelHeight * 0.32f);
+    CEGUI::Window* percentText = createMapWindow("OD/StaticText", "ProgressPercent",
+        panelX + panelWidth * PROGRESS_PERCENT_LEFT, panelY + panelHeight * PROGRESS_PERCENT_TOP,
+        panelWidth * PROGRESS_PERCENT_WIDTH, panelHeight * PROGRESS_PERCENT_HEIGHT);
     percentText->setProperty("FrameEnabled", "False");
     percentText->setProperty("BackgroundEnabled", "False");
     percentText->setProperty("Font", "MedievalSharp-6");
