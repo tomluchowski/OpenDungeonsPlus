@@ -154,7 +154,14 @@ enum class ServerNotificationType
     //! + int32_t kind (TrapEffectKind), int32_t tileX, int32_t tileY, string type name of the trap or door
     //! (e.g. Alarm, DoorSteel), float health fraction (0 to 1, doors only, else 1).
     //! Appended last so that no existing numeric value changes.
-    trapEffect
+    trapEffect,
+
+    //! A short cosmetic note that something happened (a mood change, a full treasury, a blow, a missile
+    //! launch): + a CosmeticEvent (see network/CosmeticEvent.h): int32_t kind, string subject, string object,
+    //! string text, int32_t value, int32_t value2, Vector3 position. Only sent to clients that negotiated
+    //! cosmetic events; an older client never gets it. Appended last so that no existing numeric value
+    //! changes.
+    cosmeticEvent
 };
 
 ODPacket& operator<<(ODPacket& os, const ServerNotificationType& nt);
