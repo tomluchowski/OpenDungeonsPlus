@@ -55,6 +55,7 @@
 const uint32_t Tile::NO_FLOODFILL = 0;
 const std::string Tile::TILE_PREFIX = "Tile_";
 const std::string Tile::TILE_SCANF = TILE_PREFIX + "%i_%i";
+const Ogre::ColourValue Tile::DIG_MARK_COLOUR(0.65f, 0.45f, 1.0f, 0.5f);
 
 Tile::Tile(GameMap* gameMap, int x, int y, TileType type, double fullness) :
     GameEntity(gameMap, "", "", nullptr),
@@ -157,6 +158,11 @@ bool Tile::isDiggable(const Seat* seat) const
         default:
             break;
     }
+
+    // The client knows nothing about a tile it has never seen: it is an unexplored wall that can be marked.
+    // The server decides with its own state whether the mark is accepted.
+    if(mTileVisual == TileVisual::nullTileVisual && !mEverVisible && !getGameMap()->isServerGameMap())
+        return true;
 
     // Should be claimed tile
     if(mTileVisual != TileVisual::claimedFull)
@@ -480,7 +486,11 @@ void Tile::setMarkedForDigging(bool ss, const Player *pp)
     /* If we are trying to mark a tile that is not dirt or gold
      * or is already dug out, ignore the request.
      */
-    if (ss && !isDiggable(pp->getSeat()))
+    const bool unexplored = pp->getIsHuman() &&
+        (getGameMap()->isServerGameMap() ?
+            !getGameMap()->everVisitedFlagPool[getX()][getY()][pp->getSeat()->getId()] :
+            (!getEverVisible() || getHasFogOfWar()));
+    if (ss && !unexplored && !isDiggable(pp->getSeat()))
         return;
 
     // If the tile was already in the given state, we can return
@@ -509,6 +519,7 @@ bool Tile::isMarkedForDiggingByAnySeat()
 void Tile::addPlayerMarkingTile(const Player *p)
 {
     mPlayersMarkingTile.push_back(p);
+    fireTileStateChanged();
 }
 
 void Tile::removePlayerMarkingTile(const Player *p)
@@ -518,6 +529,7 @@ void Tile::removePlayerMarkingTile(const Player *p)
         return;
 
     mPlayersMarkingTile.erase(it);
+    fireTileStateChanged();
 }
 
 void Tile::addNeighbor(Tile *n)
@@ -2448,6 +2460,7 @@ Creature* Tile::getClosestCreature(SelectionEntityWanted se)
 
 void Tile::setLocalPlayerHasVision(bool localPlayerHasVision)
 {
+    const bool visionChanged = mLocalPlayerHasVision != localPlayerHasVision;
     bool mEverVisibleOld = mEverVisible;
     
     mEverVisible = mEverVisible || localPlayerHasVision;
@@ -2464,7 +2477,8 @@ void Tile::setLocalPlayerHasVision(bool localPlayerHasVision)
     }
 
     mLocalPlayerHasVision = localPlayerHasVision;
-
+    if(visionChanged)
+        fireTileStateChanged();
 }
 
 
@@ -2473,7 +2487,7 @@ void Tile::setFogOfWarMesh(Ogre::InstancedEntity* instancedEntity, bool isMarked
     mFogOfWarDirtMesh = instancedEntity;
     if(mFogOfWarDirtMesh!=nullptr)
         if(isMarked)
-            mFogOfWarDirtMesh->setCustomParam(0, Ogre::Vector4(1.0f, 1.0f, 0.0f, 1.0f)); // Yellow color
+            mFogOfWarDirtMesh->setCustomParam(0, Ogre::Vector4(DIG_MARK_COLOUR.r, DIG_MARK_COLOUR.g, DIG_MARK_COLOUR.b, DIG_MARK_COLOUR.a));
         else
             mFogOfWarDirtMesh->setCustomParam(0, Ogre::Vector4(1.0f, 1.0f, 0.0f, 0.0f)); // 0 in alpha sygnalize the shader to use the orginal color from the texture
 }

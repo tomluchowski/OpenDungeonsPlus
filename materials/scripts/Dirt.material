@@ -20,9 +20,12 @@ fragment_program myDirtTileFragmentShader glsl
     default_params
     {
         param_named_auto ambientLightColour ambient_light_colour
-        param_named_auto lightDiffuseColour light_diffuse_colour 0.0 
-        param_named_auto lightSpecularColour light_specular_colour 0.0 
-        param_named_auto lightPos light_position  0.0 0.0 0.0 0.0
+        param_named_auto lightDiffuseColour light_diffuse_colour_array 8
+        param_named_auto lightSpecularColour light_specular_colour_array 8
+        param_named_auto lightPos light_position_array 8
+        param_named_auto lightAttenuation light_attenuation_array 8
+        param_named_auto lightCount light_count
+        param_named_auto firstLightCastsShadows light_casts_shadows 0
         param_named_auto cameraPosition camera_position
         param_named_auto diffuseSurface surface_diffuse_colour
     }
@@ -58,6 +61,42 @@ material Dirt //: RTSS/NormalMapping_MultiPass
             texture_unit normalmap
             {
                 texture DirtNormal.png               
+            }
+        }
+
+    }
+}
+
+// Earth wall (dirtFull): darker, cooler rock texture; the unclaimed floor keeps the Dirt material
+material DirtWall //: RTSS/NormalMapping_MultiPass
+{
+    
+    technique
+    {
+
+        pass 
+        {
+
+            vertex_program_ref myDirtTileVertexShader
+            {
+                
+            }
+            fragment_program_ref myDirtTileFragmentShader
+            { 
+                param_named decalmap int 0
+                param_named normalmap int 1     
+            }            
+            
+            
+            // We use blending, so that we can see the underlying texture.
+            texture_unit decalmap
+            {
+                texture DirtWall.png
+                
+            }
+            texture_unit normalmap
+            {
+                texture DirtWallNormal.png               
             }
         }
 

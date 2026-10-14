@@ -28,6 +28,7 @@
 #include <vector>
 #include <iosfwd>
 #include <cstdint>
+#include <map>
 
 class Building;
 class ConfigManager;
@@ -210,6 +211,10 @@ public:
     bool canBuildingBeDestroyedBy(const Seat* seat) const;
 
     void clearTilesWithVision();
+    //! \brief Records that a human player's seat currently sees the given tile. A tile node also
+    //! removes a digging mark from a tile that can no longer be dug and is remembered as ever visited.
+    //! \param tile The tile that is seen.
+    //! \param nt Tells whether the tile belongs to the map tiles or to a draggable tile container.
     void notifyVisionOnTile(Tile* tile, NodeType nt);
     void notifyTileClaimedByEnemy(Tile* tile);
     void clearVisionForGameMap(DraggableTileContainer* dtc);
@@ -254,6 +259,9 @@ public:
     //! \brief Returns true if the given SkillType is already done for this player. False
     //! otherwise
     bool isSkillDone(SkillType type) const;
+
+    uint32_t getSkillLevel(SkillType type) const;
+    void setResearchLevels(const std::map<SkillType, uint32_t>& levels);
 
     //! \brief Called when the skill entity reaches its destination. From there, the
     //! skilled thing is available
@@ -402,6 +410,8 @@ private:
     //! \brief Skills already done. This is used on both client and server side and should be updated
     std::vector<SkillType> mSkillDone;
 
+    std::map<SkillType, uint32_t> mResearchLevels;
+
     //! \brief Skills pending. Used on both client and server side and should be updated.
     std::vector<SkillType> mSkillPending;
 
@@ -417,6 +427,7 @@ private:
     //! list in empty, mCurrentSkill will be set to null
     //! researchedType is the currently researched type if any (nullSkillType if none)
     void setNextSkill(SkillType researchedType);
+    void completeResearch(SkillType type);
 
     //! Fills mTilesStateLoaded with the tiles of the given tileVisual is the given istream.
     //! Returns 0 if the seat end tile has been reached, 1 if the read success and -1 if there is an error

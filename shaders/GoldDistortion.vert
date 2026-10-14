@@ -23,8 +23,11 @@ out mat3 TBN;
 float freq = 3.1415;  
  
 vec3 deform(vec3 pos) {
-    pos.x += perlin(pos.x,pos.y);
-    pos.y += perlin(pos.y,pos.x);
+    // The noise displacement fades out towards the tile borders (at n + 0.5) so that shared
+    // border edges stay straight and identical for neighbouring tile meshes.
+    float fade = tileBorderFade(pos.xy);
+    pos.x += fade * perlin(pos.x,pos.y);
+    pos.y += fade * perlin(pos.y,pos.x);
     pos.z =  ( pos.z -height)* ((1 + sin(pos.x + 2*pos.y ) * freq)/12.0) + pos.z;
     return pos;
 }
@@ -35,6 +38,12 @@ void main() {
     vec3 P = (worldMatrix * position).xyz;
     vec3 T = normalize(vec3(worldMatrix * vec4(tangent, 0.0)));
     vec3 B = normalize(vec3(worldMatrix * vec4(cross(tangent, normal), 0.0))); 
+
+    // upward facing surfaces use world space UV so the texture continues across tile borders
+    float uvWeight = worldUvWeight(normalize(mat3(worldMatrix) * normal));
+    vec2 worldUV = worldTileUV(P);
+    T = normalize(mix(T, vec3(1.0, 0.0, 0.0), uvWeight));
+    B = normalize(mix(B, vec3(0.0, -1.0, 0.0), uvWeight));
  
     // apply deformation
     vec3 PT = deform(P + T);
@@ -50,6 +59,6 @@ void main() {
     gl_Position = projectionMatrix * viewMatrix * vec4(P, 1.0);
     FragPos = P;
  
-    out_UV0 = uv_0;
-    out_UV1 = uv_1;
+    out_UV0 = mix(uv_0, worldUV, uvWeight);
+    out_UV1 = mix(uv_1, worldUV, uvWeight);
 }  
