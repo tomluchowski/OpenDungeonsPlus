@@ -21,6 +21,8 @@
 
 #include "creatureeffect/CreatureEffect.h"
 
+#include <string>
+
 //! \brief A zone of damage around a tile (gas cloud, hail storm). The effect sits on the caster
 //! and, every turn while it lasts, hurts every enemy creature of the caster that stands within
 //! the radius of the tile. The zone ends when the effect runs out or when the caster dies.

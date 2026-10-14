@@ -19,6 +19,8 @@
 #define CREATUREEFFECTINVISIBLE_H
 
 #include "creatureeffect/CreatureEffect.h"
+
+#include <string>
 //! \brief Marks a creature made invisible by the Invisible skill. While the effect is active,
 //! enemy creatures do not target it (see Creature::isInvisible).
 //! the creature can neither move nor fight (see Creature::isInvisible).
