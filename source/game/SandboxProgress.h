@@ -39,6 +39,8 @@ namespace SandboxProgress
         return boost::filesystem::path(levelFile).stem().string();
     }
 
+    //! \brief Reads the progress file and lists the realms that are completed.
+    //! \return The file names (without extension) of the completed realms; empty if there is no progress file.
     inline std::set<std::string> loadCompleted()
     {
         std::set<std::string> completed;
@@ -55,6 +57,8 @@ namespace SandboxProgress
         return completed;
     }
 
+    //! \brief Adds a realm to the progress file; nothing is written if it is listed already.
+    //! \param levelFile The level file of the realm that was completed (folder and extension are removed).
     inline void markCompleted(const std::string& levelFile)
     {
         std::set<std::string> completed = loadCompleted();

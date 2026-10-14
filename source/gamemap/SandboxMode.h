@@ -140,6 +140,7 @@ public:
     //! \brief Tells if the given seat belongs to the hero faction
     static bool isHeroSeat(const Seat* seat);
 
+    //! \brief The current score of the sandbox, never below 0
     inline int32_t getScore() const
     { return mScore; }
 
@@ -155,9 +156,11 @@ public:
     inline const std::string& getNextLevel() const
     { return mNextLevel; }
 
+    //! \brief The bonus objectives of the level, with the information if each one is awarded already
     inline const std::vector<SandboxBonus>& getBonuses() const
     { return mBonuses; }
 
+    //! \brief True once the score stayed at the target for a moment and the realm is complete
     inline bool isRealmComplete() const
     { return mIsRealmComplete; }
 
@@ -213,6 +216,8 @@ private:
     uint32_t mSentBonusMask;
     std::string mSentNextRoom;
 
+    //! \brief The first seat of the hero faction
+    //! \return The seat, or nullptr if the map has no hero seat
     Seat* getHeroSeat() const;
     //! \brief The seats of the human keepers
     std::vector<Seat*> getKeeperSeats() const;
@@ -224,16 +229,24 @@ private:
     void updateScore(const std::vector<Seat*>& keeperSeats);
     //! \brief Awards the bonus objectives that are reached
     void updateBonuses(const std::vector<Seat*>& keeperSeats);
+    //! \brief Tells if the objective of a bonus is fulfilled by the given keeper seat
+    //! \param bonus The bonus objective to test
+    //! \param seat The keeper seat whose statistics, rooms and creatures are checked
     bool isBonusReached(const SandboxBonus& bonus, const Seat* seat) const;
     //! \brief Tells the realm is complete once the score stayed at the target for a moment
     void updateRealmComplete();
     //! \brief Sends the score and the room timer to the clients when they changed
     void sendStatus();
+    //! \brief The awarded bonuses as a bit mask: bit n is set if the bonus with index n is awarded
+    //! (only the first 32 bonuses fit into the mask)
     uint32_t getBonusMask() const;
     //! \brief Launches the given wave. Returns false if it could not be launched.
     bool launchWave(uint32_t waveNumber);
     //! \brief Sends a message to every human player
     void sendMessage(const std::string& message) const;
+    //! \brief Sends a message to one player
+    //! \param player The player who gets the message
+    //! \param message The text of the message
     void sendMessage(Player* player, const std::string& message) const;
 };
 

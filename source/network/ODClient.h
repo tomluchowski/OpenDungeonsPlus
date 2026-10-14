@@ -123,6 +123,7 @@ class ODClient: public Ogre::Singleton<ODClient>,
         std::vector<SandboxBonusStatus> mBonuses;
     };
 
+    //! \brief The score, room timer and bonus objectives of the sandbox as the server last told them
     inline const SandboxStatus& getSandboxStatus() const
     { return mSandboxStatus; }
 
@@ -130,15 +131,19 @@ class ODClient: public Ogre::Singleton<ODClient>,
     inline bool hasSandboxRealmComplete() const
     { return mHasSandboxRealmComplete; }
 
+    //! \brief The name of the realm that was completed, as the server told it
     inline const std::string& getSandboxRealmId() const
     { return mSandboxRealmId; }
 
+    //! \brief The level file of the realm that follows the completed one, empty if there is none
     inline const std::string& getSandboxNextLevel() const
     { return mSandboxNextLevel; }
 
+    //! \brief The text the server sends with the completion of the realm
     inline const std::string& getSandboxRealmText() const
     { return mSandboxRealmText; }
 
+    //! \brief Marks the completion of the realm as taken by the GUI
     inline void clearSandboxRealmComplete()
     { mHasSandboxRealmComplete = false; }
 
