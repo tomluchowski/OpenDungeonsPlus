@@ -32,11 +32,14 @@ const std::string CreatureSkillRaiseDeadName = "RaiseDead";
 
 namespace
 {
+//! \brief Creates Raise Dead skills when the configuration names "RaiseDead"
 class CreatureSkillRaiseDeadFactory : public CreatureSkillFactory
 {
+    //! \brief Creates an empty Raise Dead skill
     CreatureSkill* createCreatureSkill() const override
     { return new CreatureSkillRaiseDead; }
 
+    //! \brief The skill name used in the configuration
     const std::string& getCreatureSkillName() const override
     { return CreatureSkillRaiseDeadName; }
 };
