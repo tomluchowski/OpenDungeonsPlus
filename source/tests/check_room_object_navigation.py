@@ -337,7 +337,7 @@ probe = probe.replace('PACKED_BEDS', r'''
   std::vector<BuildingObject> beds(9);
   for(int y=4;y<=6;++y)for(int x=4;x<=6;++x){
    auto* tile=packed.getTile(x,y);tile->walkable=true;tile->room=&dormitory;
-   auto& bed=beds[(y-4)*3+x-4];bed.mesh="ImpBed";bed.pos={float(x),float(y),0};
+   auto& bed=beds[(y-4)*3+x-4];bed.mesh="WorkerBed";bed.pos={float(x),float(y),0};
    placeBed(bed,x,y,1,1,0,"Creature"+std::to_string((y-4)*3+x-4));
    dormitory.objects[tile]=&bed;
   }
@@ -368,7 +368,7 @@ probe = probe.replace('PACKED_BEDS', r'''
  {
   struct BedLayout{const char* name;int width,height;};
   const BedLayout layouts[]={
-   {"Bed",1,2},{"ImpBed",1,1},{"GoblinBed",1,1},{"SpiderBed",1,1},
+   {"Bed",1,2},{"WorkerBed",1,1},{"GoblinBed",1,1},{"SpiderBed",1,1},
    {"TentacleBed",1,1},{"KnightCoffin",1,2},{"StoneCoffin",1,2},
    {"LizardmanBed",1,2},{"OrcBed",1,2},{"RangerBed",1,2},
    {"DragonBed",2,2},{"TrollBed",2,2}
@@ -431,7 +431,7 @@ probe = probe.replace('ROOM_LAYOUTS', r'''
   for(int i:{2,3,7,8})packed.getTile(vertical?5:i,vertical?i:5)->walkable=true;
   std::vector<BuildingObject> beds(9);
   for(int y=0;y<3;++y)for(int x=0;x<3;++x){
-   auto& bed=beds[y*3+x];bed.mesh="ImpBed";
+   auto& bed=beds[y*3+x];bed.mesh="WorkerBed";
    placeBed(bed,4+x,4+y,1,1,0,"Creature"+std::to_string(y*3+x));dormitory.objects[packed.getTile(4+x,4+y)]=&bed;
   }
   Creature walker{&packed};walker.mesh="Rat.mesh";walker.level=2;
@@ -450,7 +450,7 @@ probe = probe.replace('ROOM_LAYOUTS', r'''
   for(int x:{2,3,7,8})packed.getTile(x,5)->walkable=true;
   std::vector<BuildingObject> beds(9);
   for(int y=0;y<3;++y)for(int x=0;x<3;++x){
-   auto& bed=beds[y*3+x];bed.mesh=lowNest?"GoblinBed":"ImpBed";
+   auto& bed=beds[y*3+x];bed.mesh=lowNest?"GoblinBed":"WorkerBed";
    placeBed(bed,4+x,4+y,1,1,0,"Creature"+std::to_string(y*3+x));dormitory.objects[packed.getTile(4+x,4+y)]=&bed;
   }
   Creature walker{&packed};walker.level=30;walker.pos={reverse?8.f:2.f,5,0};
@@ -471,7 +471,7 @@ probe = probe.replace('ROOM_LAYOUTS', r'''
   packed.rooms={&dormitory};for(auto& tile:packed.tiles)tile.room=&dormitory;
   std::vector<BuildingObject> beds(9);
   for(int y=0;y<3;++y)for(int x=0;x<3;++x){
-   auto& bed=beds[y*3+x];bed.mesh=lowNest?"GoblinBed":"ImpBed";
+   auto& bed=beds[y*3+x];bed.mesh=lowNest?"GoblinBed":"WorkerBed";
    placeBed(bed,4+x,4+y,1,1,0,"Creature"+std::to_string(y*3+x));
    dormitory.objects[packed.getTile(4+x,4+y)]=&bed;
   }

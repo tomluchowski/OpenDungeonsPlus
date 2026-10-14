@@ -38,7 +38,7 @@ static const MeshBounds meshBounds[] = {
     {"GoldstackLv3", -.331379f, -.301391f, .290679f, .182552f},
     {"GoldstackLv4", -.331379f, -.301391f, .290679f, .282221f},
     {"Grindstone", -.329974f, -.215496f, .329974f, .371096f},
-    {"ImpBed", -.42f, -.42f, .42f, .42f},
+    {"WorkerBed", -.42f, -.42f, .42f, .42f},
     {"KnightCoffin", -.254848f, -.627449f, .517051f, .632155f},
     {"KnightStatue", -.293943f, -.32853f, .295722f, .325329f},
     {"KnightStatue2", -.323145f, -.358743f, .332038f, .367767f},
