@@ -164,6 +164,8 @@ public:
     static const uint32_t NO_FLOODFILL;
     static const std::string TILE_PREFIX;
     static const std::string TILE_SCANF;
+    //! \brief Colour (with alpha) of the marking drawn over a tile that is marked for digging.
+    static const Ogre::ColourValue DIG_MARK_COLOUR;
 
     virtual GameEntityType getObjectType() const override;
 
@@ -221,6 +223,10 @@ public:
     }
 
 
+    //! \brief Stores the instanced fog-of-war dirt mesh of this tile and sets its colour parameter:
+    //! the violet digging-mark tint when isMarked is true, otherwise the plain texture colour.
+    //! \param instancedEntity The instanced entity to use, or nullptr to clear it.
+    //! \param isMarked True if the tile is shown as marked for digging.
     void setFogOfWarMesh(Ogre::InstancedEntity* instancedEntity, bool isMarked);
 
     inline  Ogre::InstancedEntity* getFogOfWarMesh() const 
@@ -258,7 +264,10 @@ public:
 
     inline void setEverVisible(bool s)
     {
+        if(mEverVisible == s)
+            return;
         mEverVisible = s;
+        fireTileStateChanged();
     }
 
     

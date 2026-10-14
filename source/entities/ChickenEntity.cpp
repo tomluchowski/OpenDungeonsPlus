@@ -23,6 +23,7 @@
 #include "network/ODPacket.h"
 #include "game/Seat.h"
 #include "gamemap/GameMap.h"
+#include "gamemap/RoomObjectNavigation.h"
 #include "rooms/Room.h"
 #include "rooms/RoomType.h"
 #include "utils/Random.h"
@@ -136,12 +137,25 @@ void ChickenEntity::doUpkeep()
     if(possibleTileMove.empty())
         return;
 
-    uint32_t indexTile = Random::Uint(0, possibleTileMove.size() - 1);
-    Tile* tileDest = possibleTileMove[indexTile];
-    Ogre::Vector2 v (static_cast<Ogre::Real>(tileDest->getX()), static_cast<Ogre::Real>(tileDest->getY()));
+    const std::vector<RoomObjectPath::Obstacle> obstacles = RoomObjectNavigation::collect(*getGameMap(), 0.1f);
+    const Ogre::Vector2 start(getPosition().x, getPosition().y);
+    std::vector<Ogre::Vector2> positions;
+    for(Tile* candidate : possibleTileMove)
+    {
+        Ogre::Vector2 point;
+        if(RoomObjectNavigation::standingPosition(obstacles,
+            Ogre::Vector2(candidate->getX(), candidate->getY()), point) &&
+            RoomObjectPath::clearSegment(obstacles, start, point, true))
+            positions.push_back(point);
+    }
+    if(positions.empty())
+        return;
+    const Ogre::Vector2 v = positions[Random::Uint(0, positions.size() - 1)];
     std::vector<Ogre::Vector2> path;
     path.push_back(v);
-    setWalkPath(EntityAnimation::walk_anim, EntityAnimation::idle_anim, true, true, path,true);
+    const bool distortion = RoomObjectPath::clearSegment(
+        RoomObjectNavigation::collect(*getGameMap(), 0.525f), start, v);
+    setWalkPath(EntityAnimation::walk_anim, EntityAnimation::idle_anim, true, true, path, distortion);
 }
 
 void ChickenEntity::addTileToListIfPossible(int x, int y, Room* currentHatchery, std::vector<Tile*>& possibleTileMove)
