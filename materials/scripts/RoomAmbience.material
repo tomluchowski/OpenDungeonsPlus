@@ -1,0 +1,96 @@
+// Materials of the room ambience sprites (see particles/RoomAmbience.particle). Sprites are drawn by tools/gen_room_ambience_art.py.
+
+material RoomAmbSpark
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend add
+            depth_write off
+            diffuse vertexcolour
+
+            texture_unit
+            {
+                texture RoomAmbSpark.png
+            }
+        }
+    }
+}
+
+material RoomAmbGlow
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend add
+            depth_write off
+            diffuse vertexcolour
+
+            texture_unit
+            {
+                texture RoomAmbGlow.png
+            }
+        }
+    }
+}
+
+material RoomAmbSmoke
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_write off
+            diffuse vertexcolour
+
+            texture_unit
+            {
+                texture RoomAmbSmoke.png
+            }
+        }
+    }
+}
+
+material RoomAmbDust
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_write off
+            diffuse vertexcolour
+
+            texture_unit
+            {
+                texture RoomAmbDust.png
+            }
+        }
+    }
+}
+
+material RoomAmbWeb
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_write off
+            diffuse vertexcolour
+
+            texture_unit
+            {
+                texture RoomAmbWeb.png
+            }
+        }
+    }
+}
