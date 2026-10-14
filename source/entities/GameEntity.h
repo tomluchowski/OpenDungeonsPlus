@@ -63,6 +63,7 @@ enum class EntityCarryType
 {
     notCarryable,
     corpse,
+    woundedCreature,
     skillEntity,
     craftedTrap,
     giftBox,

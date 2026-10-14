@@ -1,0 +1,3 @@
+<Imageset autoScaled="true" imagefile="ODHudSurface.png" name="ODHudSurface" nativeHorzRes="1024" nativeVertRes="768" version="2">
+    <Image height="887" name="Stone" width="1774" xPos="0" yPos="0" />
+</Imageset>
