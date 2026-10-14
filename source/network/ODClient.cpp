@@ -873,8 +873,7 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
                 mLevelStatistics = statistics;
                 mHasLevelStatistics = true;
                 // A won campaign level shows its numbers in the campaign menu
-                if(statistics.mLevelWon && (gameMap->getLocalPlayer() != nullptr)
-                   && (gameMap->getLocalPlayer()->getSeat() != nullptr))
+                if(statistics.mLevelWon && (gameMap->getLocalPlayer() != nullptr))
                 {
                     Campaign::getSingleton().setLevelSummary(
                         debriefingSeatSummary(statistics, gameMap->getLocalPlayer()->getSeat()->getId()));
