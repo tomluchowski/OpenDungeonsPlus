@@ -25,6 +25,7 @@
 #include "entities/Tile.h"
 #include "entities/Weapon.h"
 #include "game/Player.h"
+#include "game/CreaturePanelData.h"
 #include "game/Skill.h"
 #include "game/SkillManager.h"
 #include "game/SkillType.h"
@@ -471,6 +472,27 @@ void ODServer::startNewTurn(double timeSinceLastTurn)
 
     gameMap->fireRefreshEntities();
     gameMap->processDeletionQueues();
+    if(mServerMode != ServerMode::ModeEditor)
+    {
+        for(ODSocketClient* socket : mSockClients)
+        {
+            if(!socket->supportsCreaturePanel())
+                continue;
+            Player* player = socket->getPlayer();
+            CreaturePanelData data;
+            for(Creature* creature : gameMap->getCreaturesBySeat(player->getSeat()))
+            {
+                const CreatureDefinition* definition = creature->getDefinition();
+                CreaturePanelCounts& counts = data[definition->getClassName()];
+                if(creature->getIsOnMap())
+                    addCreaturePanelCounts(counts, creature->getActivity(),
+                        creature->getMoodValue(), definition->isWorker());
+            }
+            ServerNotification* panel = new ServerNotification(ServerNotificationType::creaturePanel, player);
+            exportCreaturePanelData(panel->mPacket, data);
+            queueServerNotification(panel);
+        }
+    }
 }
 
 void ODServer::serverThread()
@@ -897,7 +919,7 @@ bool ODServer::processClientNotifications(ODSocketClient* clientSocket)
             clientSocket->setState("nick");
             // Tell the client to give us their nickname
             ODPacket packetSend;
-            packetSend << ServerNotificationType::pickNick << mServerMode << true;
+            packetSend << ServerNotificationType::pickNick << mServerMode << true << true << true << true << true;
             clientSocket->send(packetSend);
             break;
         }
@@ -910,6 +932,25 @@ bool ODServer::processClientNotifications(ODSocketClient* clientSocket)
             // Pick nick
             std::string clientNick;
             OD_ASSERT_TRUE(packetReceived >> clientNick);
+            bool liveNickname = false;
+            if(!packetReceived.endOfPacket())
+                OD_ASSERT_TRUE(packetReceived >> liveNickname);
+            clientSocket->setSupportsLiveNickname(liveNickname);
+
+            bool creatureMood = false;
+            if(!packetReceived.endOfPacket())
+                OD_ASSERT_TRUE(packetReceived >> creatureMood);
+            clientSocket->setSupportsCreatureMood(creatureMood);
+
+            bool creatureActivity = false;
+            if(!packetReceived.endOfPacket())
+                OD_ASSERT_TRUE(packetReceived >> creatureActivity);
+            clientSocket->setSupportsCreatureActivity(creatureActivity);
+
+            bool creaturePanel = false;
+            if(!packetReceived.endOfPacket())
+                OD_ASSERT_TRUE(packetReceived >> creaturePanel);
+            clientSocket->setSupportsCreaturePanel(creaturePanel);
 
             bool cosmeticEvents = false;
             if(!packetReceived.endOfPacket())
@@ -966,9 +1007,33 @@ bool ODServer::processClientNotifications(ODSocketClient* clientSocket)
 
             packetSend.clear();
             packetSend << ServerNotificationType::startGameMode << seatId << mServerMode;
+            packetSend << clientSocket->supportsCreatureMood();
+            packetSend << clientSocket->supportsCreatureActivity();
+            packetSend << clientSocket->supportsCreaturePanel();
             packetSend << clientSocket->supportsCosmeticEvents();
             clientSocket->send(packetSend);
             mSeatsConfigured = true;
+            break;
+        }
+
+        case ClientNotificationType::changeNick:
+        {
+            if(mServerState != ServerState::StateGame || !clientSocket->supportsLiveNickname()
+                || clientSocket->getPlayer() == nullptr)
+                break;
+
+            std::string nickname;
+            OD_ASSERT_TRUE(packetReceived >> nickname);
+            Player* player = clientSocket->getPlayer();
+            player->setNick(nickname);
+            const int32_t playerId = player->getId();
+            ODPacket packetSend;
+            packetSend << ServerNotificationType::playerNickChanged << playerId << nickname;
+            for(ODSocketClient* client : mSockClients)
+            {
+                if(client->supportsLiveNickname())
+                    client->send(packetSend);
+            }
             break;
         }
 
@@ -1241,6 +1306,9 @@ bool ODServer::processClientNotifications(ODSocketClient* clientSocket)
                 ODPacket packetSend;
                 int seatId = client->getPlayer()->getSeat()->getId();
                 packetSend << ServerNotificationType::startGameMode << seatId << mServerMode;
+                packetSend << client->supportsCreatureMood();
+                packetSend << client->supportsCreatureActivity();
+                packetSend << client->supportsCreaturePanel();
                 packetSend << client->supportsCosmeticEvents();
                 client->send(packetSend);
             }
@@ -1313,14 +1381,84 @@ bool ODServer::processClientNotifications(ODSocketClient* clientSocket)
                     + " send wrong tile");
                 break;
             }
-            if(!player->isDropHandPossible(tile, 0))
+            unsigned int index = 0;
+            // Old clients identify only the tile. New clients identify the held object too.
+            if(!packetReceived.endOfPacket())
+            {
+                int32_t entityType;
+                std::string entityName;
+                if(!(packetReceived >> entityType >> entityName))
+                {
+                    OD_LOG_ERR("Incomplete hand drop identity");
+                    break;
+                }
+                index = player->getHandIndex(static_cast<GameEntityType>(entityType), entityName);
+            }
+            if(!player->isDropHandPossible(tile, index))
             {
                 OD_LOG_ERR("player seatId=" + Helper::toString(player->getSeat()->getId())
                     + " could not drop entity in hand on tile "
                     + Tile::displayAsString(tile));
                 break;
             }
-            player->dropHand(tile, 0);
+            player->dropHand(tile, index);
+            break;
+        }
+
+        case ClientNotificationType::askHandDropAll:
+        {
+            Player* player = clientSocket->getPlayer();
+            Tile* tile = gameMap->tileFromPacket(packetReceived);
+            uint32_t count = 0;
+            if(tile == nullptr || !(packetReceived >> count) || count <= 1 ||
+               count != player->numCreaturesInHand())
+            {
+                OD_LOG_ERR("Invalid drop-all request");
+                break;
+            }
+
+            std::vector<GameEntity*> creatures;
+            bool valid = true;
+            for(uint32_t i = 0; i < count; ++i)
+            {
+                int32_t entityType;
+                std::string entityName;
+                if(!(packetReceived >> entityType >> entityName) ||
+                   static_cast<GameEntityType>(entityType) != GameEntityType::creature)
+                {
+                    valid = false;
+                    break;
+                }
+
+                const unsigned int index = player->getHandIndex(
+                    static_cast<GameEntityType>(entityType), entityName);
+                if(index >= player->numObjectsInHand() || !player->isDropHandPossible(tile, index))
+                {
+                    valid = false;
+                    break;
+                }
+
+                GameEntity* entity = player->getObjectsInHand()[index];
+                if(std::find(creatures.begin(), creatures.end(), entity) != creatures.end())
+                {
+                    valid = false;
+                    break;
+                }
+                creatures.push_back(entity);
+            }
+
+            if(!valid || !packetReceived.endOfPacket() || creatures.size() != count)
+            {
+                OD_LOG_ERR("Rejected drop-all request");
+                break;
+            }
+
+            for(GameEntity* entity : creatures)
+            {
+                const unsigned int index = player->getHandIndex(
+                    entity->getObjectType(), entity->getName());
+                player->dropHand(tile, index);
+            }
             break;
         }
 
@@ -2684,6 +2822,18 @@ void ODServer::notifyExit()
     ServerNotification* exitServerNotification = new ServerNotification(
         ServerNotificationType::exit, nullptr);
     queueServerNotification(exitServerNotification);
+}
+
+bool ODServer::supportsCreatureMood(Player* player)
+{
+    ODSocketClient* client = getClientFromPlayer(player);
+    return client != nullptr && client->supportsCreatureMood();
+}
+
+bool ODServer::supportsCreatureActivity(Player* player)
+{
+    ODSocketClient* client = getClientFromPlayer(player);
+    return client != nullptr && client->supportsCreatureActivity();
 }
 
 bool ODServer::supportsCosmeticEvents(Player* player)

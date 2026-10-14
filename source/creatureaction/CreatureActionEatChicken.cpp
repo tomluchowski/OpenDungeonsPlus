@@ -107,7 +107,11 @@ bool CreatureActionEatChicken::handleEatChicken(Creature& creature, ChickenEntit
     }
 
     // We can eat the chicken
-    chicken->eatChicken(&creature);
+    if(!chicken->eatChicken(&creature))
+    {
+        creature.popAction();
+        return false;
+    }
     creature.foodEaten(ConfigManager::getSingleton().getRoomConfigDouble("HatcheryHungerPerChicken"));
     creature.setJobCooldown(Random::Int(ConfigManager::getSingleton().getRoomConfigUInt32("HatcheryCooldownChickenMin"),
         ConfigManager::getSingleton().getRoomConfigUInt32("HatcheryCooldownChickenMax")));
@@ -115,7 +119,11 @@ bool CreatureActionEatChicken::handleEatChicken(Creature& creature, ChickenEntit
     creature.computeCreatureOverlayHealthValue();
     Ogre::Vector3 walkDirection = Ogre::Vector3(chickenTile->getX(), chickenTile->getY(), 0) - creature.getPosition();
     walkDirection.normalise();
-    creature.setAnimationState(EntityAnimation::attack_anim, false, walkDirection);
+    // Stop any remaining client interpolation before attaching the consumed chicken.
+    creature.clearDestinations(EntityAnimation::eat_chicken_anim, false, false);
+    creature.setAnimationState(EntityAnimation::eat_chicken_anim, false,
+        walkDirection, false);
+    creature.fireChickenFeeding(chicken->getName(), chicken->getPosition());
     return false;
 }
 

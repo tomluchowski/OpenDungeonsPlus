@@ -22,7 +22,14 @@
 
 #include <string>
 #include <iosfwd>
+#include <algorithm>
 #include <cstdint>
+
+//! \brief Lowest speed factor of the walk clips of a creature type (WalkClipRate, WalkHurtClipRate)
+static const double WALK_CLIP_RATE_MIN = 0.2;
+
+//! \brief Highest speed factor of the walk clips of a creature type (WalkClipRate, WalkHurtClipRate)
+static const double WALK_CLIP_RATE_MAX = 8.0;
 
 class CreatureBehaviour;
 class CreatureMood;
@@ -195,6 +202,23 @@ public:
     inline double               getSleepHeal () const           { return mSleepHeal; }
 
     inline int32_t              getTurnsStunDropped () const    { return mTurnsStunDropped; }
+    //! \brief Own walk speed factor of a badly hurt creature of this type, negative when the global value applies
+    inline double               getLowHealthWalkSpeedFactor () const    { return mLowHealthWalkSpeedFactor; }
+    //! \brief Speed factor of the walk clips of this type on the client (1 = as authored), limited to 0.2 - 8.0
+    inline double               getWalkClipRate () const    { return limitWalkClipRate(mWalkClipRate); }
+    //! \brief Speed factor of the WalkHurt clip of this type on the client, limited to 0.2 - 8.0. Without an own value
+    //! (key WalkHurtClipRate not set) it is the walk clip rate
+    inline double               getWalkHurtClipRate () const
+    {
+        if(mWalkHurtClipRate < 0.0)
+            return getWalkClipRate();
+        return limitWalkClipRate(mWalkHurtClipRate);
+    }
+    //! \brief Limits a walk clip rate to WALK_CLIP_RATE_MIN - WALK_CLIP_RATE_MAX
+    //! \param rate The rate to limit (1 = as authored)
+    //! \return The limited rate
+    static inline double        limitWalkClipRate (double rate)
+    { return std::max(WALK_CLIP_RATE_MIN, std::min(WALK_CLIP_RATE_MAX, rate)); }
 
     double                      getXPNeededWhenLevel(unsigned int level) const;
 
@@ -319,6 +343,18 @@ private:
 
     //! \brief Number of turns the creature will stay stunned after being dropped
     int32_t mTurnsStunDropped;
+
+    //! \brief Optional (LowHealthWalkSpeedFactor): negative means the value of global.cfg is used
+    double mLowHealthWalkSpeedFactor;
+
+    //! \brief Optional (WalkClipRate): speed factor of the Walk clip on the client (and of WalkHurt when
+    //! WalkHurtClipRate is not set), so that the feet of a creature type do not slide. Cosmetic: the move speed does not
+    //! change. 1 when not set
+    double mWalkClipRate;
+
+    //! \brief Optional (WalkHurtClipRate): speed factor of the WalkHurt clip only, matching its own stride length.
+    //! Negative when not set, then mWalkClipRate is used
+    double mWalkHurtClipRate;
 
     //! \brief Weapons a creature should spawn with ("none" if no weapon)
     std::string mWeaponSpawnL;

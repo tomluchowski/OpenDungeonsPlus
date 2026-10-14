@@ -22,6 +22,7 @@
 #define CREATURE_H
 
 #include "entities/MovableGameEntity.h"
+#include "entities/CreatureActivity.h"
 #include "eventsystem/CreatureMoved.h"
 #include "eventsystem/Subject.h"
 
@@ -133,6 +134,35 @@ public:
 
     static const uint32_t NB_OVERLAY_HEALTH_VALUES;
 
+    //! \brief Defaults of the dormitory settings for carrying and pulling hurt creatures to their bed. They are used
+    //! when the key is missing in the room config (the name of each key is the one without the _DEFAULT suffix).
+    //! Number of turns a pulled creature may take to slide into its bed (DormitoryWoundedDragLayTurns)
+    static const double WOUNDED_DRAG_LAY_TURNS_DEFAULT;
+    //! Radius in tiles around a hurt creature in which a hostile creature stops the carrying (DormitoryWoundedCarryEnemyRadius)
+    static const double WOUNDED_CARRY_ENEMY_RADIUS_DEFAULT;
+    //! Number of turns after which a worker gives up pulling (DormitoryWoundedCarryMaxTurns)
+    static const double WOUNDED_CARRY_MAX_TURNS_DEFAULT;
+    //! Distance in tiles at which the worker lets go of a creature that is left behind (DormitoryWoundedDragMaxDistance)
+    static const double WOUNDED_DRAG_MAX_DISTANCE_DEFAULT;
+    //! Distance in tiles the pulled creature keeps behind the worker (DormitoryWoundedDragGap)
+    static const double WOUNDED_DRAG_GAP_DEFAULT;
+    //! Speed factor of the pulled creature against a worker, so that it can follow (DormitoryWoundedDragFollowSpeedFactor)
+    static const double WOUNDED_DRAG_FOLLOW_SPEED_FACTOR_DEFAULT;
+    //! Speed factor of a worker that pulls a creature (DormitoryWoundedDragWorkerSpeedFactor)
+    static const double WOUNDED_DRAG_WORKER_SPEED_FACTOR_DEFAULT;
+    //! Radius in tiles in which a worker looks for a hurt creature (DormitoryWoundedCarryRadius)
+    static const double WOUNDED_CARRY_RADIUS_DEFAULT;
+    //! Priority against the other things a worker can carry (DormitoryWoundedCarryPriority)
+    static const double WOUNDED_CARRY_PRIORITY_DEFAULT;
+    //! Percent of health below which a creature is hurt enough to be carried (DormitoryWoundedCarryHpPercent)
+    static const double WOUNDED_CARRY_HP_PERCENT_DEFAULT;
+    //! Whether a creature knocked out for a while may be carried, 1 = yes (DormitoryWoundedCarryTempKo)
+    static const double WOUNDED_CARRY_TEMP_KO_DEFAULT;
+    //! Number of turns before a creature can be pulled again (DormitoryWoundedCarryCooldown)
+    static const double WOUNDED_CARRY_COOLDOWN_DEFAULT;
+    //! Factor that turns a fraction into percent
+    static const double PERCENT_FACTOR;
+
     virtual GameEntityType getObjectType() const override;
 
     virtual void addToGameMap(GameMap* gameMap = nullptr) override;
@@ -190,6 +220,8 @@ public:
     inline CreatureMoodLevel getMoodValue() const
     { return mMoodValue; }
 
+    CreatureActivity getActivity() const;
+
     inline int32_t getNbTurnFurious() const
     { return mNbTurnFurious; }
 
@@ -200,6 +232,22 @@ public:
 
     //! \brief Gets the move speed on the current tile.
     double getMoveSpeed(Tile* tile) const;
+
+    //! \brief Factor on the walking speed that comes from the health of the creature (1 for a creature that is not
+    //! badly hurt). Uses the health stage that server and clients both know, so both move it at the same speed
+    double getLowHealthWalkFactor() const;
+
+    //! \brief True if a creature with this health stage counts as badly hurt for walking (the stage test of
+    //! getLowHealthWalkFactor, without the factor). The client shows the clip WalkHurt for it
+    static bool isLowHealthWalkStage(uint32_t healthStage);
+
+    //! \brief True if this creature is badly hurt for walking (see isLowHealthWalkStage)
+    bool isLowHealthWalking() const
+    { return isLowHealthWalkStage(mOverlayHealthValue); }
+
+    //! \brief Share of its normal speed a worker walks at while it pulls a hurt creature (from the room
+    //! configuration, between 0.1 and 1)
+    static double getDragWorkerSpeedFactor();
 
     //! \brief Gets the creature depending the terrain type.
     inline double getMoveSpeedGround() const
@@ -374,6 +422,16 @@ public:
     virtual double getAnimationSpeedFactor() const override
     { return mSpeedModifier; }
 
+    //! \brief Walk clips keep up with the slower speed of badly hurt creatures and with the clip rate of the type,
+    //! hurt creatures breathe a little slower when standing (clients only)
+    virtual double getClientPoseSpeedFactor() const override;
+
+    //! \brief Clients only: blends the tile speed ratio of the walk clips (see mClientTileSpeedRatio)
+    virtual void updateClientPose(double timeSinceLastFrame) override;
+
+    //! \brief Speed of the tile under the creature divided by its ground speed (1 when unknown), client side, no hurt factor
+    double getTileSpeedRatio() const;
+
     inline void jobDone(double val)
     {
         mWakefulness -= val;
@@ -404,10 +462,47 @@ public:
     virtual void notifyEntityCarryOn(Creature* carrier) override;
     virtual void notifyEntityCarryOff(const Ogre::Vector3& position) override;
 
+    //! \brief Server side. True if the creature is hurt enough to be pulled to its bed by a worker:
+    //! alive, own bed in a dormitory, not standing on it, hit points below the configured share,
+    //! no fight or flight going on, no hostile creature close, not in jail, not a worker and not
+    //! on cooldown after the last time. The worker and the distance are not considered here.
+    bool isWoundedForBedCarry() const;
+
+    //! \brief Server side. True if the creature is knocked out to death and a worker may pull it to its
+    //! bed: alive, own bed in a dormitory of its seat, no hostile creature close, not in jail and
+    //! not a worker. Without an own bed it is not moved at all.
+    bool isKoToDeathForBedPull() const;
+
+    //! \brief True if the creature owns a bed (home tile) in a dormitory of its seat
+    bool hasOwnBedInDormitory() const;
+
+    //! \brief Server side. True while a worker pulls this creature over the ground
+    inline bool isBeingDragged() const
+    { return mIsBeingDragged; }
+
+    //! \brief Server side. A worker starts pulling this creature by the legs: it stops what it did, stays on the
+    //! map and lies on the ground (clip dragged_anim). It moves with the paths the worker gives it.
+    void notifyDragStart();
+
+    //! \brief Server side. The worker stopped pulling (arrived, gave up, the creature died or was picked up):
+    //! starts the pause before it can be pulled again
+    void notifyDragEnd();
+
+    //! \brief Server side. Walks the worker to the tile with the clip of a worker that pulls somebody (drag_anim)
+    //! and without queuing a walk action, so the caller keeps its turn. Returns false if there is no way.
+    bool setDragDestination(Tile* tile);
+
+    //! \brief Server side. True if a living creature of a seat that is not allied is within the radius (tiles)
+    bool isHostileNear(double radius) const;
+
     bool canSlap(Seat* seat) override;
     void slap() override;
 
     void fireCreatureSound(CreatureSound sound);
+    void fireCombatImpact(bool weaponClash, bool bodyDamage,
+        const Ogre::Vector3& attackerPosition);
+    void fireChickenFeeding(const std::string& chickenName,
+        const Ogre::Vector3& chickenPosition);
 
     //! \brief Sends a cosmetic event to the human players that see the creature (and negotiated cosmetic events).
     //! With alliedOnly, only to the keeper of the creature and its allies. It only reports, it changes nothing.
@@ -485,6 +580,14 @@ public:
 
     inline GameEntity* getCarriedEntity() const
     { return mCarriedEntity; }
+
+    //! \brief Client side only: true while the carry message of the server is in effect for this creature
+    inline bool getClientCarrying() const
+    { return mClientCarrying; }
+
+    //! \brief Client side only: set by the carry and release messages
+    inline void setClientCarrying(bool carrying)
+    { mClientCarrying = carrying; }
 
     void carryEntity(GameEntity* carriedEntity);
 
@@ -737,6 +840,9 @@ private:
 
     GameEntity*                     mCarriedEntity;
 
+    //! \brief Client side only: the creature carries something (set by the carry and release messages)
+    bool                            mClientCarrying;
+
     //! \brief The mood do not have to be computed at every turn. This cooldown will
     //! count how many turns the creature should wait before computing it
     int32_t                         mMoodCooldownTurns;
@@ -744,6 +850,7 @@ private:
     //! \brief Mood value. Depending on this value, the creature will be in bad mood and
     //! might attack allied creatures or refuse to work or to go to combat
     CreatureMoodLevel               mMoodValue;
+    CreatureActivity                mActivity;
     //! \brief Mood points. Computed by the creature MoodModifiers. It is promoted to class variable for debug purposes and
     //! should not be used to check mood. If the mood is to be tested, mMoodValue should be used
     int32_t                         mMoodPoints;
@@ -757,6 +864,11 @@ private:
 
     //! \brief Represents the mood of the creature. It is a bit array
     uint32_t                        mOverlayMoodValue;
+
+    //! \brief Clients only (cosmetic): ratio between the speed of the tile the creature walks on and its ground speed,
+    //! blended over a short time when the tile changes, so that the walk clips keep up with the real ground speed. Negative
+    //! while no walk clip plays (the next value is taken over without blending)
+    double                          mClientTileSpeedRatio;
 
     //! Used by the renderer to save this entity's overlay. It is its responsibility
     //! to allocate/delete this pointer
@@ -783,8 +895,9 @@ private:
     //! reaches 0.
     //! If < 0, the creature is KO to death. The counter will increase each turn and
     //! if it reaches 0, the creature will die.
-    //! While KO to death, if a kobold carries the creature to its bed, the counter will
-    //! stop during the travel (and reset to 0 when the creature is dropped in its bed).
+    //! While KO to death, a worker pulls the creature over the ground to its own bed (it stays on
+    //! the map, so the counter keeps running during the way) and the counter is reset to 0 when
+    //! the creature reaches its bed.
     int32_t                         mKoTurnCounter;
 
     //! \brief If nullptr, the creature is not in prison. If not, it is in the prison of
@@ -799,6 +912,12 @@ private:
 
     //! \brief Counts the number of active slaps affecting the creature
     uint32_t                        mActiveSlapsCount;
+
+    //! \brief Used on server side. True while a worker pulls the creature to its bed (not saved: actions are not saved)
+    bool                            mIsBeingDragged;
+
+    //! \brief Used on server side. No worker pulls the creature to its bed again before this turn (not saved)
+    int64_t                         mWoundedCarryNextTurn;
 
     //! \brief Skills the creature can use
     std::vector<CreatureSkillData> mSkillData;
@@ -819,6 +938,11 @@ private:
     void increaseHunger(double value);
 
     void computeMood();
+
+    void exportMoodToPacket(ODPacket& os, const Seat* seat) const;
+    void importMoodFromPacket(ODPacket& is);
+    void exportActivityToPacket(ODPacket& os, const Seat* seat) const;
+    void importActivityFromPacket(ODPacket& is);
 
     void computeCreatureOverlayMoodValue();
 };
