@@ -609,7 +609,13 @@ std::string createCreatureCombatAttack(Ogre::Entity* entity, const std::string& 
                         COMBAT_JAW_PITCH_WIDE : COMBAT_JAW_PITCH_DEFAULT) * strike;
                 const Ogre::Real twistAmount = style == CombatMotion::tentacle ?
                     COMBAT_BODY_TWIST_TENTACLE : COMBAT_BODY_TWIST_DEFAULT;
-                Ogre::Real twist = bone == body ? (alternate ? -1.0f : 1.0f) * twistAmount * (strike - windup) : 0.0f;
+                Ogre::Real twist = 0.0f;
+                if(bone != body)
+                    twist = 0.0f;
+                else if(alternate)
+                    twist = -twistAmount * (strike - windup);
+                else
+                    twist = twistAmount * (strike - windup);
                 addCombatSwordBlow(blow, boneName, leftHand, armScale, bone == body, bone->getParent() == nullptr,
                     windup, strike, pitch, twist, offset);
                 const Ogre::Quaternion basis = bone->_getDerivedOrientation();

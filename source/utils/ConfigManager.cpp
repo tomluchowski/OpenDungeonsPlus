@@ -44,6 +44,9 @@ const double ConfigManager::HitStrongShareMax = 1.0;
 const double ConfigManager::ChanceMin = 0.0;
 const double ConfigManager::ChanceMax = 100.0;
 const double ConfigManager::ChancePerLevelMax = 10.0;
+const double ConfigManager::AttackTurnSpeedMin = 90.0;
+const double ConfigManager::AttackTurnSpeedMax = 1440.0;
+const double ConfigManager::AttackTurnMaxDelayMax = 0.6;
 
 namespace
 {
@@ -63,6 +66,10 @@ static const double DEFAULT_PARRY_MAX = 15.0;
 static const double DEFAULT_PARRY_SHIELD_BASE = 6.0;
 static const double DEFAULT_PARRY_SHIELD_PER_LEVEL = 1.0;
 static const double DEFAULT_PARRY_SHIELD_MAX = 25.0;
+//! Default angular speed in degrees per second of the turn to the target before a blow
+static const double DEFAULT_ATTACK_TURN_SPEED = 540.0;
+//! Default most seconds the strike clip waits for the turn to the target
+static const double DEFAULT_ATTACK_TURN_MAX_DELAY = 0.25;
 }
 
 const std::string ConfigManager::DefaultWorkerCreatureDefinition = "DefaultWorker";
@@ -89,8 +96,8 @@ ConfigManager::ConfigManager(const std::string& configPath, const std::string& u
     mHitGlanceShare(DEFAULT_HIT_GLANCE_SHARE),
     mHitStrongShare(DEFAULT_HIT_STRONG_SHARE),
     mAttackTurnEvents(true),
-    mAttackTurnSpeed(540.0),
-    mAttackTurnMaxDelay(0.25),
+    mAttackTurnSpeed(DEFAULT_ATTACK_TURN_SPEED),
+    mAttackTurnMaxDelay(DEFAULT_ATTACK_TURN_MAX_DELAY),
     mMeleeDodgeParry(true),
     mDodgeBase(DEFAULT_DODGE_BASE),
     mDodgePerLevel(DEFAULT_DODGE_PER_LEVEL),

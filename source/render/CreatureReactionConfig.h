@@ -429,13 +429,19 @@ public:
     inline double getWeaponTrailLength() const
     { return std::max(0.1, std::min(10.0, mWeaponTrailLength)); }
 
-    //! Colour of the streak (red, green, blue, each 0 to 1) and its brightness at the start (0 to 1)
+    //! Red part of the colour of the streak (0 to 1)
     inline double getWeaponTrailRed() const
     { return std::max(0.0, std::min(1.0, mWeaponTrailRed)); }
+
+    //! Green part of the colour of the streak (0 to 1)
     inline double getWeaponTrailGreen() const
     { return std::max(0.0, std::min(1.0, mWeaponTrailGreen)); }
+
+    //! Blue part of the colour of the streak (0 to 1)
     inline double getWeaponTrailBlue() const
     { return std::max(0.0, std::min(1.0, mWeaponTrailBlue)); }
+
+    //! Brightness of the streak at the start (0 to 1)
     inline double getWeaponTrailBrightness() const
     { return std::max(0.0, std::min(1.0, mWeaponTrailBrightness)); }
 

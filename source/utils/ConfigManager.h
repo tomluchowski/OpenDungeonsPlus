@@ -105,6 +105,11 @@ public:
     static const double ChanceMax;
     //! Highest value of the chance in percent that every level adds
     static const double ChancePerLevelMax;
+    //! Lowest and highest angular speed in degrees per second of the turn to the target before a blow
+    static const double AttackTurnSpeedMin;
+    static const double AttackTurnSpeedMax;
+    //! Highest number of seconds the strike clip waits for the turn to the target
+    static const double AttackTurnMaxDelayMax;
 
     const Ogre::ColourValue& getColorFromId(const std::string& id) const;
     //! \brief The system configuration path, with the trailing separator
@@ -167,11 +172,11 @@ public:
 
     //! \brief Angular speed in degrees per second of the turn to the target before a blow (client, 90 - 1440)
     inline double getAttackTurnSpeed() const
-    { return std::max(90.0, std::min(1440.0, mAttackTurnSpeed)); }
+    { return std::max(AttackTurnSpeedMin, std::min(AttackTurnSpeedMax, mAttackTurnSpeed)); }
 
     //! \brief The most seconds the strike clip waits for the turn to the target (client, 0 - 0.6, 0 = no waiting)
     inline double getAttackTurnMaxDelay() const
-    { return std::max(0.0, std::min(0.6, mAttackTurnMaxDelay)); }
+    { return std::max(ChanceMin, std::min(AttackTurnMaxDelayMax, mAttackTurnMaxDelay)); }
 
     //! \brief True if melee blows can be dodged or parried (decided by the server, global.cfg MeleeDodgeParry)
     inline bool getMeleeDodgeParry() const
