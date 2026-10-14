@@ -19,6 +19,7 @@
 
 #include "entities/Building.h"
 #include "entities/Creature.h"
+#include "entities/GameEntityType.h"
 #include "entities/Tile.h"
 #include "utils/ConfigManager.h"
 #include "utils/Helper.h"
