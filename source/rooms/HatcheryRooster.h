@@ -29,6 +29,9 @@ enum class RoosterMood : uint32_t
     guard   //! Defends the flock against a threat
 };
 
+//! \brief Default for one in how many turns a chick of the hatchery peeps.
+const uint32_t DEFAULT_CHICK_PEEP_CHANCE = 12;
+
 //! \brief Times and chances for the rooster, read from the config.
 struct RoosterSettings
 {
@@ -47,7 +50,7 @@ struct RoosterSettings
         mWalkGap(0.3),
         mHopDistance(0.6),
         mFightStandFactor(0.5),
-        mChickPeepChance(12)
+        mChickPeepChance(DEFAULT_CHICK_PEEP_CHANCE)
     {}
 
     //! Turns between two crows (random value in [mCrowMin, mCrowMax]).
