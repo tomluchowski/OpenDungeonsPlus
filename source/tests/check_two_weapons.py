@@ -167,7 +167,8 @@ for key in ('TwoWeaponMode', 'TwoWeaponArmStrength'):
     assert '"' + key + '"' in read('source/render/CreatureReactionConfig.cpp'), key + ' not read'
     assert '"' + key + '"' in read('tools/check_creature_reactions.py'), key + ' not allowed by the format check'
 config_cpp = read('source/render/CreatureReactionConfig.cpp')
-assert 'mTwoWeaponMode(1)' in config_cpp and 'mTwoWeaponArmStrength(1.0)' in config_cpp
+assert 'mTwoWeaponMode(DEFAULT_TWO_WEAPON_MODE)' in config_cpp and 'mTwoWeaponArmStrength(DEFAULT_TWO_WEAPON_ARM_STRENGTH)' in config_cpp
+assert 'DEFAULT_TWO_WEAPON_MODE = 1;' in config_cpp and 'DEFAULT_TWO_WEAPON_ARM_STRENGTH = 1.0;' in config_cpp
 
 if '--probe' in sys.argv:
     probe = r'''

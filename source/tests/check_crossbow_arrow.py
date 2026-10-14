@@ -28,15 +28,21 @@ tool = read('tools/check_creature_reactions.py')
 
 # 1. Settings: cfg value, cfg header text, parser, default, getter, check script
 KEYS = {
-    'ArrowFollowsHand': ('mArrowFollowsHand(true)', 'getArrowFollowsHand'),
-    'ArrowPullDistance': ('mArrowPullDistance(0.12)', 'getArrowPullDistance'),
-    'ArrowDrawTime': ('mArrowDrawTime(1.6)', 'getArrowDrawTime'),
-    'ArrowRetakeGap': ('mArrowRetakeGap(0.3)', 'getArrowRetakeGap'),
-    'ArrowReloadTime': ('mArrowReloadTime(0.45)', 'getArrowReloadTime'),
+    'ArrowFollowsHand': ('mArrowFollowsHand(DEFAULT_ARROW_FOLLOWS_HAND)', 'getArrowFollowsHand'),
+    'ArrowPullDistance': ('mArrowPullDistance(DEFAULT_ARROW_PULL_DISTANCE)', 'getArrowPullDistance'),
+    'ArrowDrawTime': ('mArrowDrawTime(DEFAULT_ARROW_DRAW_TIME)', 'getArrowDrawTime'),
+    'ArrowRetakeGap': ('mArrowRetakeGap(DEFAULT_ARROW_RETAKE_GAP)', 'getArrowRetakeGap'),
+    'ArrowReloadTime': ('mArrowReloadTime(DEFAULT_ARROW_RELOAD_TIME)', 'getArrowReloadTime'),
     'ArrowHandOffset': ('mArrowHandOffset(Ogre::Vector3::ZERO)', 'getArrowHandOffset'),
-    'CrossbowReloadTime': ('mCrossbowReloadTime(1.1)', 'getCrossbowReloadTime'),
-    'CrossbowReloadJolt': ('mCrossbowReloadJolt(5.0)', 'getCrossbowReloadJolt'),
+    'CrossbowReloadTime': ('mCrossbowReloadTime(DEFAULT_CROSSBOW_RELOAD_TIME)', 'getCrossbowReloadTime'),
+    'CrossbowReloadJolt': ('mCrossbowReloadJolt(DEFAULT_CROSSBOW_RELOAD_JOLT)', 'getCrossbowReloadJolt'),
 }
+# The named defaults keep the numbers the defaults had before they got names
+for constant, value in (('DEFAULT_ARROW_FOLLOWS_HAND', 'true'), ('DEFAULT_ARROW_PULL_DISTANCE', '0.12'),
+                        ('DEFAULT_ARROW_DRAW_TIME', '1.6'), ('DEFAULT_ARROW_RETAKE_GAP', '0.3'),
+                        ('DEFAULT_ARROW_RELOAD_TIME', '0.45'), ('DEFAULT_CROSSBOW_RELOAD_TIME', '1.1'),
+                        ('DEFAULT_CROSSBOW_RELOAD_JOLT', '5.0')):
+    assert re.search(constant + r' = ' + re.escape(value) + ';', config_cpp), constant
 settings_start = cfg.rindex('[Settings]')
 settings = cfg[settings_start:cfg.index('[/Settings]', settings_start)]
 header = cfg[:settings_start]

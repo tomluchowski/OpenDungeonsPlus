@@ -41,10 +41,16 @@ glow = glow[:glow.index('\n}\n')]
 assert 'scene_blend add' in glow and 'depth_write off' in glow and 'diffuse vertexcolour' in glow
 
 # Config: documented, set, read with a default and limits, accepted by the format check
-keys = {'WeaponTrail': 'mWeaponTrail(true)', 'WeaponTrailLife': 'mWeaponTrailLife(0.25)',
-        'WeaponTrailWidth': 'mWeaponTrailWidth(0.12)', 'WeaponTrailLength': 'mWeaponTrailLength(2.0)',
-        'WeaponTrailColour': 'mWeaponTrailRed(1.0)', 'WeaponTrailBrightness': 'mWeaponTrailBrightness(0.9)',
-        'WeaponTrailMinShare': 'mWeaponTrailMinShare(0.0)', 'WeaponTrailMax': 'mWeaponTrailMax(4)'}
+keys = {'WeaponTrail': 'mWeaponTrail(DEFAULT_WEAPON_TRAIL)', 'WeaponTrailLife': 'mWeaponTrailLife(DEFAULT_WEAPON_TRAIL_LIFE)',
+        'WeaponTrailWidth': 'mWeaponTrailWidth(DEFAULT_WEAPON_TRAIL_WIDTH)', 'WeaponTrailLength': 'mWeaponTrailLength(DEFAULT_WEAPON_TRAIL_LENGTH)',
+        'WeaponTrailColour': 'mWeaponTrailRed(DEFAULT_WEAPON_TRAIL_RED)', 'WeaponTrailBrightness': 'mWeaponTrailBrightness(DEFAULT_WEAPON_TRAIL_BRIGHTNESS)',
+        'WeaponTrailMinShare': 'mWeaponTrailMinShare(DEFAULT_WEAPON_TRAIL_MIN_SHARE)', 'WeaponTrailMax': 'mWeaponTrailMax(DEFAULT_WEAPON_TRAIL_MAX)'}
+# The named defaults keep the numbers the defaults had before they got names
+for constant, value in (('DEFAULT_WEAPON_TRAIL', 'true'), ('DEFAULT_WEAPON_TRAIL_LIFE', '0.25'), ('DEFAULT_WEAPON_TRAIL_WIDTH', '0.12'),
+                        ('DEFAULT_WEAPON_TRAIL_LENGTH', '2.0'), ('DEFAULT_WEAPON_TRAIL_RED', '1.0'),
+                        ('DEFAULT_WEAPON_TRAIL_BRIGHTNESS', '0.9'), ('DEFAULT_WEAPON_TRAIL_MIN_SHARE', '0.0'),
+                        ('DEFAULT_WEAPON_TRAIL_MAX', '4')):
+    assert re.search(constant + r' = ' + re.escape(value) + ';', config_cpp), constant
 for key, default in keys.items():
     assert re.search(r'^#   ' + key + r'\s', cfg, re.M), key + ' not documented'
     assert re.search(r'^    ' + key + r'\s+[\d.]', cfg, re.M), key + ' not set'
