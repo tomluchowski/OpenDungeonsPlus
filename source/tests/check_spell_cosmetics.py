@@ -45,7 +45,7 @@ config_h = read("source", "render", "RoomAmbienceConfig.h")
 config_cpp = read("source", "render", "RoomAmbienceConfig.cpp")
 kinds = re.search(r"enum class AmbienceKind\s*\{(.*?)\};", config_h, re.S).group(1)
 order = re.findall(r"^\s*(\w+),?\s*$", re.sub(r"//.*", "", kinds), re.M)
-if order[-3:] != ["beam", "projectile", "mark"]:
+if order[-3:] != ["beam", "projectile", "mark"] and order[-4:] != ["beam", "projectile", "mark", "creatureClip"]:
     problems.append("AmbienceKind order changed: %s" % order)
 if 'words[1] == "Mark"' not in config_cpp or "AmbienceKind::mark" not in config_cpp or '"MaxMarks"' not in config_cpp:
     problems.append("Mark and MaxMarks are not read from the config")

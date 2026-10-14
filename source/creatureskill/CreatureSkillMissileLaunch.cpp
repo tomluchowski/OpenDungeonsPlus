@@ -24,6 +24,7 @@
 #include "entities/Tile.h"
 #include "entities/Weapon.h"
 #include "gamemap/GameMap.h"
+#include "network/CosmeticEvent.h"
 #include "spells/Spell.h"
 #include "utils/Helper.h"
 #include "utils/LogManager.h"
@@ -109,6 +110,16 @@ bool CreatureSkillMissileLaunch::tryUseFight(GameMap& gameMap, Creature* creatur
     // The regular visibility pass already ran before this creature's upkeep.
     // Announce the launch before the first path, not after next turn's movement.
     missile->notifySeatsWithVision(creatureTile->getSeatsWithVision());
+    // Tell the clients who shot what (cosmetic only: they can draw the bow or the cast). The name is taken
+    // before the first upkeep because the missile may hit and vanish in it.
+    CosmeticEvent launchEvent(CosmeticEventType::missileLaunch);
+    launchEvent.mSubject = creature->getName();
+    launchEvent.mObject = missile->getName();
+    launchEvent.mText = mMissileMesh;
+    launchEvent.mValue = attackedTile->getX();
+    launchEvent.mValue2 = attackedTile->getY();
+    launchEvent.mPosition = position;
+    creature->fireCosmeticEvent(launchEvent, false);
     // We don't want the missile to stay idle for 1 turn. Because we are in a doUpkeep context,
     // we can safely call the missile doUpkeep as we know the engine will not call it the turn
     // it has been added

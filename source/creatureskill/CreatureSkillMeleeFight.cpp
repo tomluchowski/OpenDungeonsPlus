@@ -24,13 +24,28 @@
 #include "entities/Tile.h"
 #include "entities/Weapon.h"
 #include "gamemap/GameMap.h"
+#include "network/CosmeticEvent.h"
 #include "spells/Spell.h"
 #include "utils/Helper.h"
 #include "utils/LogManager.h"
 
+#include <algorithm>
 #include <istream>
 
 const std::string CreatureSkillMeleeFightName = "Melee";
+
+//! Share of the damage below which a blow that did damage counts as glancing
+static const double GLANCING_BLOW_SHARE = 0.34;
+//! Value of a melee result event (see CosmeticEventType::meleeResult): the blow did its damage
+static const int32_t MELEE_RESULT_HIT = 0;
+//! Value of a melee result event: only a small part of the blow got through
+static const int32_t MELEE_RESULT_GLANCING = 1;
+//! Value of a melee result event: no damage at all
+static const int32_t MELEE_RESULT_NO_DAMAGE = 2;
+//! The share of the damage is sent in per mille
+static const double PER_MILLE = 1000.0;
+//! Added before the cast to an integer so that the share is rounded to the nearest per mille
+static const double ROUND_HALF = 0.5;
 
 namespace
 {
@@ -98,6 +113,25 @@ bool CreatureSkillMeleeFight::tryUseFight(GameMap& gameMap, Creature* creature, 
             target->getWeaponR() != nullptr;
         target->fireCombatImpact(attackerArmed && targetArmed,
             damageDone > 0.0, creature->getPosition());
+
+        // Tell the clients how much of the blow got through, so that they can show a hit, a glancing blow
+        // or a blow that did nothing. The game has no random miss: this only reads the damage that was
+        // already calculated, it changes neither the damage nor when it is dealt.
+        const double rawDamage = phyAtk + magAtk + eleAtk;
+        double share = (rawDamage > 0.0) ? damageDone / rawDamage : 0.0;
+        share = std::max(0.0, std::min(1.0, share));
+        CosmeticEvent event(CosmeticEventType::meleeResult);
+        event.mSubject = creature->getName();
+        event.mObject = target->getName();
+        if(damageDone <= 0.0)
+            event.mValue = MELEE_RESULT_NO_DAMAGE;
+        else if(share < GLANCING_BLOW_SHARE)
+            event.mValue = MELEE_RESULT_GLANCING;
+        else
+            event.mValue = MELEE_RESULT_HIT;
+        event.mValue2 = static_cast<int32_t>(share * PER_MILLE + ROUND_HALF);
+        event.mPosition = target->getPosition();
+        target->fireCosmeticEvent(event, false);
     }
     if(notifyPlayerIfHit)
         attackedObject->notifyFightPlayer(attackedTile);
