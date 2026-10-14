@@ -110,7 +110,7 @@ assert 'ChickenKind::hen' in body(chicken, 'void ChickenEntity::doUpkeep')
 # The two fighting roosters are partners of each other in the client until the fight is over (the pose shows the fight)
 assert 'rrChickenFight' in looks and 'ChickenPose::fight' in looks
 # The rooster guarding the flock lunges with his head, the rooster in the hand protests (pose and look)
-assert 'std::sin(t * 7.0f)' in body(looks, 'void RenderManager::updateChickenLooks')
+assert 'std::sin(t * GUARD_LUNGE_SPEED)' in body(looks, 'void RenderManager::updateChickenLooks')
 assert 'ChickenPose::protest' in body(chicken, 'void ChickenEntity::pickup') and 'protest)' in pose
 assert 'ChickenPose::protest' in looks
 # Feathers only fly for actions that can be seen: no loose feathers at the coops, none without a visible clip
@@ -161,7 +161,7 @@ assert 'ChickenCoopHouse.mesh' in credits and 'ChickenCoopHouse.skeleton' in cre
 # The door of the coop swings with the animal that comes out, the old mesh shakes as before
 assert 'mDoor' in looks and 'HatcheryCoopHouse::doorClip' in body(looks, 'void RenderManager::rrCreateCoopDecor')
 assert 'mDoor->setEnabled(true)' in body(looks, 'void RenderManager::rrSetChickenPose')
-assert 'mShake = 0.8f' in body(looks, 'void RenderManager::rrSetChickenPose')
+assert 'mShake = COOP_SHAKE_SECONDS' in body(looks, 'void RenderManager::rrSetChickenPose')
 assert 'mDoor->addTime' in body(looks, 'void RenderManager::updateChickenLooks')
 assert 'mNest' not in body(looks, 'void RenderManager::rrDestroyCoopDecor'), 'the nests belong to the hatchery, not to a coop'
 # Hen clips: used when the skeleton has them, procedural motion stays as fallback
@@ -190,7 +190,7 @@ assert 'featherSystem(' in looks and 'CHICKEN_FEATHER_EFFECT_DURATION' in (root 
 assert 'ChickenFeather.png' in credits and 'gen_chicken_feather.py' in credits and 'clips Duck, Mount, Tread, Dismount' in credits
 assert 'ChickenPose::isOneShotClip(clip)' in hook and 'hasAnimation(clip)' in hook
 assert 'hasAnimation("Lay")' in looks and 'hasAnimation("Flutter")' in looks
-assert 'stretch = Ogre::Vector3(1.14f, 1.1f' in looks and 'lift = 0.14f * rise' in looks
+assert 'stretch = Ogre::Vector3(LAY_SIT_STRETCH_X, LAY_SIT_STRETCH_Y' in looks and 'lift = FLUTTER_LIFT * rise' in looks
 for name in ('hen_lay_flutter.py', 'coop_house.py'):
     assert (root / 'tools/blender-assets' / name).exists(), name
 # Lay and Flutter keep their translations in the parent frame (the frame fix tool says why ogre_fix must not touch them)
