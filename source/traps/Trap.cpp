@@ -41,6 +41,11 @@
 #include <istream>
 #include <ostream>
 
+//! \brief Value of TrapReloadByWorkers when the trap config has no entry (1.0 means workers reload traps)
+static const double DEFAULT_RELOAD_BY_WORKERS = 1.0;
+//! \brief Reload price of a trap type without an own entry when the trap config has no TrapReloadCostDefault
+static const double DEFAULT_RELOAD_COST = 150.0;
+
 void TrapTileData::fireSeatsSawTriggering()
 {
     if(mTrapEntity == nullptr)
@@ -397,7 +402,7 @@ bool Trap::canBeReloadedByWorker(Tile* tile, const Creature* worker) const
     if(isDoor() || !getGameMap()->isServerGameMap() || getGameMap()->isInEditorMode())
         return false;
 
-    if(ConfigManager::getSingleton().getTrapConfigDoubleOrDefault("TrapReloadByWorkers", 1.0) <= 0.0)
+    if(ConfigManager::getSingleton().getTrapConfigDoubleOrDefault("TrapReloadByWorkers", DEFAULT_RELOAD_BY_WORKERS) <= 0.0)
         return false;
 
     if(std::find(mCoveredTiles.begin(), mCoveredTiles.end(), tile) == mCoveredTiles.end())
@@ -455,7 +460,7 @@ int32_t Trap::getReloadPrice() const
 {
     // Price per trap type (<Trap>ReloadCost), a type without an entry pays TrapReloadCostDefault
     ConfigManager& config = ConfigManager::getSingleton();
-    double defaultPrice = config.getTrapConfigDoubleOrDefault("TrapReloadCostDefault", 150.0);
+    double defaultPrice = config.getTrapConfigDoubleOrDefault("TrapReloadCostDefault", DEFAULT_RELOAD_COST);
     double price = defaultPrice;
     switch(getType())
     {
