@@ -16,6 +16,8 @@
  */
 
 #include "rooms/RoomHatchery.h"
+#include "game/SkillManager.h"
+#include "game/SkillType.h"
 
 #include "creatureaction/CreatureActionEatChicken.h"
 #include "creatureaction/CreatureActionSearchFood.h"
@@ -26,6 +28,7 @@
 #include "game/Player.h"
 #include "game/Seat.h"
 #include "gamemap/GameMap.h"
+#include "gamemap/RoomObjectNavigation.h"
 #include "rooms/RoomManager.h"
 #include "utils/ConfigManager.h"
 #include "utils/LogManager.h"
@@ -165,17 +168,22 @@ void RoomHatchery::doUpkeep()
 
     // Chickens have been eaten. We check when we will spawn another one
     ++mSpawnChickenCooldown;
-    if(mSpawnChickenCooldown < ConfigManager::getSingleton().getRoomConfigUInt32("HatcheryChickenSpawnRate"))
+    if(mSpawnChickenCooldown < std::max(1.0, std::round(SkillManager::getResearchValue(
+        getSeat(), SkillType::roomHatchery, ConfigManager::getSingleton().getRoomConfigUInt32("HatcheryChickenSpawnRate")))))
         return;
 
     // We spawn 1 chicken per chicken coop (until chickens are maxed)
+    const std::vector<RoomObjectPath::Obstacle> obstacles = RoomObjectNavigation::collect(*getGameMap(), 0.1f);
     for(Tile* chickenCoopTile : mCentralActiveSpotTiles)
     {
+        Ogre::Vector2 freePosition;
+        if(!RoomObjectNavigation::standingPosition(obstacles,
+            Ogre::Vector2(chickenCoopTile->getX(), chickenCoopTile->getY()), freePosition))
+            continue;
         ChickenEntity* chicken = new ChickenEntity(getGameMap(), getName());
         chicken->addToGameMap();
         chicken->createMesh();
-        Ogre::Vector3 spawnPosition(static_cast<Ogre::Real>(chickenCoopTile->getX()),
-                                    static_cast<Ogre::Real>(chickenCoopTile->getY()), 0.0f);
+        Ogre::Vector3 spawnPosition(freePosition.x, freePosition.y, 0.0f);
         chicken->setPosition(spawnPosition);
         ++nbChickens;
         if(nbChickens >= mNumActiveSpots)

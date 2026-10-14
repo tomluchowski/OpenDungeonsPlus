@@ -82,6 +82,13 @@ void TextRenderer::setColor(const std::string& ID, const Ogre::ColourValue& colo
         textBox->setColour(color);
 }
 
+void TextRenderer::setCharacterHeight(const std::string& ID, Ogre::Real height)
+{
+    Ogre::OverlayElement* textBox = mOverlayMgr->getOverlayElement(ID);
+    if (textBox != nullptr)
+        textBox->setParameter("char_height", Helper::toString(height));
+}
+
 void TextRenderer::moveText(const std::string& ID, Ogre::Real left, Ogre::Real top)
 {
     Ogre::OverlayElement* textBox = mPanel->getChild(ID);
