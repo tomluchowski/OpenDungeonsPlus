@@ -1954,7 +1954,6 @@ void Creature::updateFromPacket(ODPacket& is)
     Seat* oldSeatPrison = mSeatPrison;
     OD_ASSERT_TRUE(is >> mLevel);
     OD_ASSERT_TRUE(is >> seatId);
-    uint32_t oldHealthValue = mOverlayHealthValue;
     OD_ASSERT_TRUE(is >> mOverlayHealthValue);
     OD_ASSERT_TRUE(is >> mOverlayMoodValue);
     OD_ASSERT_TRUE(is >> mGroundSpeed);
