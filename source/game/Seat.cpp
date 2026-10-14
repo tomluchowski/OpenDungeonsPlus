@@ -44,6 +44,7 @@
 #include "utils/LogManager.h"
 #include "utils/Random.h"
 
+#include <algorithm>
 #include <istream>
 #include <ostream>
 
@@ -224,6 +225,32 @@ bool Seat::canBuildingBeDestroyedBy(const Seat* seat) const
 void Seat::addAlliedSeat(Seat* seat)
 {
     mAlliedSeats.push_back(seat);
+}
+
+//! \brief Gives this seat vision on the given tiles for the given number of turns (server side).
+//! \param tiles The tiles to reveal
+//! \param turns For how many turns the tiles stay visible
+void Seat::revealTiles(const std::vector<Tile*>& tiles, uint32_t turns)
+{
+    for(Tile* tile : tiles)
+        mRevealedTiles.push_back(std::pair<Tile*, uint32_t>(tile, turns));
+}
+
+//! \brief Applies the vision granted by revealTiles and counts the remaining turns down.
+void Seat::applyRevealedTiles()
+{
+    std::vector<std::pair<Tile*, uint32_t> >::iterator it = mRevealedTiles.begin();
+    while(it != mRevealedTiles.end())
+    {
+        it->first->notifyVision(this);
+        if(it->second <= 1)
+            it = mRevealedTiles.erase(it);
+        else
+        {
+            --it->second;
+            ++it;
+        }
+    }
 }
 
 void Seat::clearTilesWithVision()
@@ -1419,6 +1446,17 @@ bool Seat::addSkill(SkillType type)
     }
 
     return true;
+}
+
+void Seat::setSkillAvailability(SkillType type, bool allowed, bool done)
+{
+    mSkillDone.erase(std::remove(mSkillDone.begin(), mSkillDone.end(), type), mSkillDone.end());
+    mSkillNotAllowed.erase(std::remove(mSkillNotAllowed.begin(), mSkillNotAllowed.end(), type), mSkillNotAllowed.end());
+    mSkillPending.erase(std::remove(mSkillPending.begin(), mSkillPending.end(), type), mSkillPending.end());
+    if(!allowed)
+        mSkillNotAllowed.push_back(type);
+    else if(done)
+        mSkillDone.push_back(type);
 }
 
 bool Seat::isSkillDone(SkillType type) const

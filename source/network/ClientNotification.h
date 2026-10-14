@@ -79,7 +79,22 @@ enum class ClientNotificationType
     editorAskCreateMapLight,
     editorSetCreatureLevel,
     editorAskPortalWaveData,
-    editorSetPortalWaveData
+    editorSetPortalWaveData,
+    //! Editor: change or list the region markers of the level script:
+    //! + int32_t operation (an EditorRegionOperation), string name, 4 int32_t (the corners, used by set only).
+    //! The server always answers with editorRegionData.
+    editorRegionEdit
+};
+
+//! \brief What an editorRegionEdit message asks the server to do with the region markers of the level script.
+enum class EditorRegionOperation
+{
+    //! Only send the list of the region markers.
+    list,
+    //! Create the region with that name, or move it to the given corners if it exists.
+    set,
+    //! Remove the region with that name.
+    remove
 };
 
 ODPacket& operator<<(ODPacket& os, const ClientNotificationType& nt);

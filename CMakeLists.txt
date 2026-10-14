@@ -351,6 +351,8 @@ set(OD_SOURCEFILES
 
     ${SRC}/gamemap/DraggableTileContainer.cpp
     ${SRC}/gamemap/GameMap.cpp
+    ${SRC}/gamemap/LevelScript.cpp
+    ${SRC}/gamemap/LevelScriptRunner.cpp
     ${SRC}/gamemap/MapHandler.cpp
     ${SRC}/gamemap/MiniMap.cpp
     ${SRC}/gamemap/MiniMapDrawn.cpp
