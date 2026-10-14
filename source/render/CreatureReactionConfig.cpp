@@ -35,6 +35,33 @@ static const double DEFAULT_GROUP_STAGGER_MIN = 0.12;
 //! Default longest delay in seconds between the reactions of the creatures of one group
 static const double DEFAULT_GROUP_STAGGER_MAX = 0.45;
 
+//! Default seconds between two mood checks of a creature
+static const double DEFAULT_MOOD_INTERVAL = 0.5;
+//! Default number of creatures looked at in each mood check
+static const uint32_t DEFAULT_MOOD_PER_TICK = 4;
+//! Default chance that a walking creature shows a mood
+static const double DEFAULT_MOOD_WALKING_CHANCE = 0.3;
+//! Default seconds of standing idle until a creature is impatient
+static const double DEFAULT_IMPATIENT_AFTER = 6.0;
+//! Default seconds a creature stays proud after a victory or a level up
+static const double DEFAULT_PROUD_SECONDS = 25.0;
+//! Default seconds of standing idle until a creature is bored
+static const double DEFAULT_BORED_AFTER = 20.0;
+//! Default seconds of standing idle until a creature shows small habits
+static const double DEFAULT_AMBIENT_AFTER = 3.0;
+//! Default seconds of standing idle until a creature sits down
+static const double DEFAULT_SIT_AFTER = 45.0;
+//! Default seconds of standing idle until a creature lies down
+static const double DEFAULT_LIE_AFTER = 100.0;
+//! Default distance in world units within which creatures turn their head to an event
+static const double DEFAULT_LOOK_RADIUS = 12.0;
+//! Default chance that two creatures that meet show a short interaction
+static const double DEFAULT_INTERACTION_CHANCE = 0.05;
+//! Default distance in world units within which creatures that meet interact
+static const double DEFAULT_INTERACTION_RADIUS = 3.5;
+//! Default seconds a creature pauses after an interaction
+static const double DEFAULT_INTERACTION_PAUSE = 5.0;
+
 //! \brief Reads the next not empty line and splits it in words. Returns false at the end of the file
 bool readWords(std::istream& file, std::vector<std::string>& words)
 {
@@ -64,19 +91,19 @@ CreatureReactionConfig::CreatureReactionConfig() :
     mMaxCameraDistance(DEFAULT_MAX_CAMERA_DISTANCE),
     mGroupStaggerMin(DEFAULT_GROUP_STAGGER_MIN),
     mGroupStaggerMax(DEFAULT_GROUP_STAGGER_MAX),
-    mMoodInterval(0.5),
-    mMoodPerTick(4),
-    mMoodWalkingChance(0.3),
-    mImpatientAfter(6.0),
-    mProudSeconds(25.0),
-    mBoredAfter(20.0),
-    mAmbientAfter(3.0),
-    mSitAfter(45.0),
-    mLieAfter(100.0),
-    mLookRadius(12.0),
-    mInteractionChance(0.05),
-    mInteractionRadius(3.5),
-    mInteractionPause(5.0),
+    mMoodInterval(DEFAULT_MOOD_INTERVAL),
+    mMoodPerTick(DEFAULT_MOOD_PER_TICK),
+    mMoodWalkingChance(DEFAULT_MOOD_WALKING_CHANCE),
+    mImpatientAfter(DEFAULT_IMPATIENT_AFTER),
+    mProudSeconds(DEFAULT_PROUD_SECONDS),
+    mBoredAfter(DEFAULT_BORED_AFTER),
+    mAmbientAfter(DEFAULT_AMBIENT_AFTER),
+    mSitAfter(DEFAULT_SIT_AFTER),
+    mLieAfter(DEFAULT_LIE_AFTER),
+    mLookRadius(DEFAULT_LOOK_RADIUS),
+    mInteractionChance(DEFAULT_INTERACTION_CHANCE),
+    mInteractionRadius(DEFAULT_INTERACTION_RADIUS),
+    mInteractionPause(DEFAULT_INTERACTION_PAUSE),
     mDefaultGroup("Fighters")
 {
 }
