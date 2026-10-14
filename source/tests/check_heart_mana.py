@@ -68,6 +68,7 @@ struct ODServer {std::vector<ServerNotification*> queue;
  void queueServerNotification(ServerNotification* n){queue.push_back(n);}};
 struct Tile{int x=3,y=4;Tile(){}Tile(int xi,int yi):x(xi),y(yi){}
  int getX()const{return x;}int getY()const{return y;}};
+struct Goal {const std::string& getName()const{static const std::string name;return name;}};
 struct Seat;
 struct Seat {
  int team;int id;Player* mPlayer=nullptr;GameMap* mGameMap=nullptr;void* mCurrentSkill=nullptr;SeatStatistics stats;
@@ -81,6 +82,7 @@ struct Seat {
  SeatStatistics& getStatistics(){return stats;}Player* getPlayer(){return mPlayer;}int getId()const{return id;}
  bool isRogueSeat()const{return id==0;}bool isAlliedSeat(Seat* s){return s&&team==s->team;}
  double getMana()const{return mMana;}void addMana(double mana);
+ unsigned int numCompletedGoals(){return 0;}Goal* getCompletedGoal(unsigned int){return nullptr;}
  unsigned int getNumClaimedTiles()const{return mNumClaimedTiles;}
  int getNumCreaturesWorkers()const{return mNumCreaturesWorkers;}
  void computeSeatBeginTurn();uint32_t getNbRooms(RoomType roomType) const;};
