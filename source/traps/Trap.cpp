@@ -141,8 +141,16 @@ void Trap::doUpkeep()
         if(trapTileData->decreaseReloadTime())
             continue;
 
+        // A trap fizzles if its owner cannot pay the mana needed to fire
+        double manaToFire = getManaToFire();
+        if((manaToFire > 0.0) && (getSeat()->getMana() < manaToFire))
+            continue;
+
         if(shoot(tile))
         {
+            if(manaToFire > 0.0)
+                getSeat()->takeMana(manaToFire);
+
             trapTileData->setReloadTime(mReloadTime);
             if(!trapTileData->decreaseShoot())
                 deactivate(tile);
@@ -154,6 +162,64 @@ void Trap::doUpkeep()
                 seat->setVisibleBuildingOnTile(this, tile);
         }
     }
+}
+
+double Trap::getManaToFire() const
+{
+    switch(getType())
+    {
+        case TrapType::cannon:
+            return ConfigManager::getSingleton().getTrapConfigDouble("CannonManaToFire");
+        case TrapType::lightning:
+            return ConfigManager::getSingleton().getTrapConfigDouble("LightningManaToFire");
+        case TrapType::fireburst:
+            return ConfigManager::getSingleton().getTrapConfigDouble("FireburstManaToFire");
+        default:
+            return 0.0;
+    }
+}
+
+double Trap::getManaUpkeepPerSecond() const
+{
+    const char* key = nullptr;
+    switch(getType())
+    {
+        case TrapType::cannon:
+            key = "CannonManaUpkeepPerSecond";
+            break;
+        case TrapType::spike:
+            key = "SpikeManaUpkeepPerSecond";
+            break;
+        case TrapType::boulder:
+            key = "BoulderManaUpkeepPerSecond";
+            break;
+        case TrapType::alarm:
+            key = "AlarmManaUpkeepPerSecond";
+            break;
+        case TrapType::gas:
+            key = "GasManaUpkeepPerSecond";
+            break;
+        case TrapType::lightning:
+            key = "LightningManaUpkeepPerSecond";
+            break;
+        case TrapType::fireburst:
+            key = "FireburstManaUpkeepPerSecond";
+            break;
+        default:
+            return 0.0;
+    }
+    return ConfigManager::getSingleton().getTrapConfigDouble(key);
+}
+
+uint32_t Trap::getNbActivatedTiles() const
+{
+    uint32_t nbActivated = 0;
+    for(Tile* tile : mCoveredTiles)
+    {
+        if(isActivated(tile))
+            ++nbActivated;
+    }
+    return nbActivated;
 }
 
 int32_t Trap::getNbNeededCraftedTrap() const
@@ -302,7 +368,7 @@ void Trap::setupTrap(const std::string& name, Seat* seat, const std::vector<Tile
         mCoveredTiles.push_back(tile);
         TrapTileData* trapTileData = createTileData(tile);
         mTileData[tile] = trapTileData;
-        trapTileData->mHP = DEFAULT_TILE_HP;
+        trapTileData->mHP = getDefaultTileHP();
         trapTileData->setReloadTime(mReloadTime);
         // Allied seats with the creator do see the trap from the start
         trapTileData->seatsSawTriggering(alliedSeats);
@@ -504,7 +570,7 @@ bool Trap::importTileDataFromStream(std::istream& is, Tile* tile, TileData* tile
     if(is.eof())
     {
         // Default initialization
-        trapTileData->mHP = DEFAULT_TILE_HP;
+        trapTileData->mHP = getDefaultTileHP();
         mCoveredTiles.push_back(tile);
         tile->setCoveringBuilding(this);
         if(isTrapActiv != 0)
