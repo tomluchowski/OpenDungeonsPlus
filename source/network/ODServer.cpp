@@ -2677,6 +2677,11 @@ void ODServer::stopServer()
     mGameMap->clearAll();
 }
 
+const std::string& ODServer::getLevelFilename() const
+{
+    return mGameMap->getLevelFileName();
+}
+
 void ODServer::notifyExit()
 {
     while(!mServerNotificationQueue.empty())
