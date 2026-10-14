@@ -50,10 +50,13 @@
 #include "utils/LogManager.h"
 #include "utils/MasterServer.h"
 #include "utils/ResourceManager.h"
+#include "utils/RunLevelTest.h"
 #include "ODApplication.h"
 
 #include <SFML/Network.hpp>
 #include <SFML/System.hpp>
+
+#include <chrono>
 
 #include <boost/algorithm/string/join.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
@@ -172,6 +175,9 @@ bool ODServer::startServer(const std::string& creator, const std::string& levelF
     int mId = 0 ;
     for(Seat* seat : gameMap->getSeats())
     {
+        // The rogue seat has no client to tell, sending to its player logged an error at every level start
+        if(seat->isRogueSeat())
+            continue;
 
         ServerNotification *serverNotification = new ServerNotification(
             ServerNotificationType::restoreEverVisitedTiles, seat->getPlayer());
@@ -453,8 +459,12 @@ void ODServer::startNewTurn(double timeSinceLastTurn)
         case ServerMode::ModeGameMultiPlayer:
         case ServerMode::ModeGameLoaded:
         {
+            std::chrono::steady_clock::time_point turnStart = std::chrono::steady_clock::now();
             gameMap->doTurn(timeSinceLastTurn);
             gameMap->doPlayerAITurn(timeSinceLastTurn);
+            if(RunLevelTest::isActive())
+                RunLevelTest::onServerTurnTime(std::chrono::duration_cast<std::chrono::microseconds>(
+                    std::chrono::steady_clock::now() - turnStart).count());
             break;
         }
         case ServerMode::ModeEditor:
@@ -470,6 +480,8 @@ void ODServer::startNewTurn(double timeSinceLastTurn)
 
     gameMap->fireRefreshEntities();
     gameMap->processDeletionQueues();
+    if(RunLevelTest::isActive())
+        RunLevelTest::onServerTurn(*gameMap);
 }
 
 void ODServer::serverThread()
@@ -2663,6 +2675,11 @@ void ODServer::stopServer()
         mServerNotificationQueue.pop_front();
     }
     mGameMap->clearAll();
+}
+
+const std::string& ODServer::getLevelFilename() const
+{
+    return mGameMap->getLevelFileName();
 }
 
 void ODServer::notifyExit()

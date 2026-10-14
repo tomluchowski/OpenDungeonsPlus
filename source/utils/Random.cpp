@@ -72,6 +72,11 @@ void initialize()
     myRandomSeed = static_cast<unsigned long>(std::time(0));
 }
 
+void setSeed(unsigned long seed)
+{
+    myRandomSeed = seed;
+}
+
 double Double(double min, double max)
 {
     if (min > max)

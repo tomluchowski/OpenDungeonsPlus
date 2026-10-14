@@ -94,6 +94,15 @@ public:
     inline bool isExitRequested() const
     { return mExitRequested; }
 
+    //! \brief Level that the main menu starts again as soon as it is shown. Empty when
+    //! nothing is pending. Set by the level test mode.
+    inline const std::string& getPendingRestartLevel() const
+    { return mPendingRestartLevel; }
+
+    //! \brief Sets the level that the main menu starts as soon as it is shown (empty string clears it).
+    inline void setPendingRestartLevel(const std::string& level)
+    { mPendingRestartLevel = level; }
+
     inline float getEventMaxTimeDisplay() const
     { return mEventMaxTimeDisplay; }
 
@@ -230,6 +239,9 @@ private:
 
     //! \brief To see if the frameListener wants to exit
     bool mExitRequested;
+
+    //! \brief See getPendingRestartLevel()
+    std::string mPendingRestartLevel;
 
     //! \brief The Camera manager
     CameraManager mCameraManager;

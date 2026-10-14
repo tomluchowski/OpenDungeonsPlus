@@ -45,6 +45,7 @@
 #include "utils/Helper.h"
 #include "utils/LogManager.h"
 #include "utils/MakeUnique.h"
+#include "utils/RunLevelTest.h"
 
 #include <OgreCamera.h>
 #include <OgreRenderWindow.h>
@@ -98,6 +99,9 @@ ODFrameListener::ODFrameListener(const std::string& mainSceneFileName, Ogre::Ren
 {
     OD_LOG_INF("Creating frame listener...");
 
+    // Frame time measurements of a level test run without the frame rate cap
+    if(RunLevelTest::isActive() && std::getenv("OD_RUN_LEVEL_UNCAPPED") != nullptr)
+        mFpsLimiter.setFrameRate(1000);
     mRenderManager->createScene(mCameraManager.getViewport());
 
     mRenderManager->getSceneManager()->addRenderQueueListener(this);
@@ -187,6 +191,7 @@ bool ODFrameListener::frameRenderingQueued(const Ogre::FrameEvent& evt)
 
     // Sleep to limit the framerate to the max value
     mFpsLimiter.sleepIfEarly();
+    RunLevelTest::recordFrame(evt.timeSinceLastFrame);
     
 
     CEGUI::System::getSingleton().injectTimePulse(evt.timeSinceLastFrame);
@@ -259,6 +264,8 @@ bool ODFrameListener::frameEnded(const Ogre::FrameEvent& evt)
 
 bool ODFrameListener::frameStarted(const Ogre::FrameEvent& evt)
 {
+    if(RunLevelTest::isActive())
+        RunLevelTest::onFrame(evt.timeSinceLastFrame);
     AbstractApplicationMode* currentMode = mModeManager->getCurrentMode();
     if(currentMode)
         currentMode->onFrameStarted(evt);

@@ -37,6 +37,7 @@
 #include "utils/LogSinkOgre.h"
 #include "utils/Random.h"
 #include "utils/ResourceManager.h"
+#include "utils/RunLevelTest.h"
 
 #include <OgreLogManager.h>
 #include <OgreRenderWindow.h>
@@ -60,6 +61,7 @@
 #endif /* OGRE_PLATFORM == OGRE_PLATFORM_WIN32 */
 #endif /* OD_USE_SFML_WINDOW */
 
+#include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
 
 #include <string>
@@ -80,10 +82,35 @@ void ODApplication::startGame(boost::program_options::variables_map& options)
     logMgr.setLevel(resMgr.getLogLevel());
 
 
-    if(resMgr.isServerMode())
-        startServer();
-    else
-        startClient();
+    try
+    {
+        if(!resMgr.getRunLevel().empty())
+        {
+            boost::filesystem::path levelPath = boost::filesystem::absolute(boost::filesystem::path(resMgr.getRunLevel()));
+            RunLevelTest::configure(levelPath.generic_string(), resMgr.getRunLevelSeconds(), resMgr.getRunLevelSeed());
+            if(resMgr.getRunLevelSeconds() <= 0)
+                RunLevelTest::fail(RunLevelTest::codeUsage, "usage error: --seconds must be greater than 0");
+            else if(!boost::filesystem::exists(levelPath))
+                RunLevelTest::fail(RunLevelTest::codeLoadError, "load error: level file not found");
+            else
+            {
+                startClient();
+                if(!RunLevelTest::isFinished())
+                    RunLevelTest::fail(RunLevelTest::codeRunError, "run error: the game ended without a result");
+            }
+        }
+        else if(resMgr.isServerMode())
+            startServer();
+        else
+            startClient();
+    }
+    catch(const std::exception& error)
+    {
+        // Preserve the exception before the log manager is destroyed and main
+        // displays its Windows error dialog.
+        OD_LOG_ERR("Unhandled exception: " + std::string(error.what()));
+        throw;
+    }
 }
 
 void ODApplication::startServer()
@@ -235,7 +262,7 @@ void ODApplication::startClient()
     HWND hwnd;
     renderWindow->getCustomAttribute("WINDOW", static_cast<void*>(&hwnd));
     HINSTANCE hInst = static_cast<HINSTANCE>(GetModuleHandle(nullptr));
-    SetClassLong(hwnd, GCL_HICON, reinterpret_cast<LONG>(LoadIcon(hInst, MAKEINTRESOURCE(IDI_ICON1))));
+    SetClassLongPtr(hwnd, GCLP_HICON, reinterpret_cast<LONG_PTR>(LoadIcon(hInst, MAKEINTRESOURCE(IDI_ICON1))));
 #endif
 
     //Initialise RTshader system
@@ -277,7 +304,11 @@ void ODApplication::startClient()
         renderWindow, &overlaySystem, &gui);
 
     ogreRoot.addFrameListener(&frameListener);
-    
+
+    // Automated level load test: the main menu starts this level as soon as it opens
+    if(RunLevelTest::isActive())
+        frameListener.setPendingRestartLevel(RunLevelTest::getLevelFile());
+
 #ifdef OD_USE_SFML_WINDOW
     bool running = true;
     while(running)
@@ -299,10 +330,13 @@ void ODApplication::startClient()
                 frameListener.getModeManager()->getInputManager().handleSFMLEvent(event);
             }
         }
+        if(RunLevelTest::isFinished())
+            frameListener.requestExit();
         sfmlWindow.clear();
         // If renderOneFrame returns false, it indicates that an exit has been requested
         running = ogreRoot.renderOneFrame();
         sfmlWindow.display();
+        RunLevelTest::onFrameRendered(*renderWindow);
     }
 #else /* OD_USE_SFML_WINDOW */
     // NOTE: Ogre::Root::startRendering() does not pump window events (Ogre::Bites does
@@ -314,6 +348,9 @@ void ODApplication::startClient()
     {
         Ogre::WindowEventUtilities::messagePump();
 
+        if(RunLevelTest::isFinished())
+            frameListener.requestExit();
+
         // Closing the window destroys the mode manager from within the pump above, so
         // bail out here rather than rendering a frame that would still use it.
         if (frameListener.isExitRequested())
@@ -322,6 +359,7 @@ void ODApplication::startClient()
         // renderOneFrame() returns false once an exit has been requested.
         if (!ogreRoot.renderOneFrame())
             break;
+        RunLevelTest::onFrameRendered(*renderWindow);
     }
 #endif /* OD_USE_SFML_WINDOW */
 

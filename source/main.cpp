@@ -30,6 +30,7 @@
 #endif
 
 #include "utils/ResourceManager.h"
+#include "utils/RunLevelTest.h"
 #include "utils/StackTracePrint.h"
 #include "ODApplication.h"
 
@@ -88,6 +89,8 @@ int main(int argc, char** argv)
     }
     catch (CEGUI::Exception& e)
     {
+        if(RunLevelTest::isActive())
+            return RunLevelTest::reportException(e.what());
 #if OGRE_PLATFORM == OGRE_PLATFORM_WIN32
         MessageBox(0, e.what(), "An exception has occurred!", MB_OK | MB_ICONERROR | MB_TASKMODAL);
 #else
@@ -96,6 +99,8 @@ int main(int argc, char** argv)
     }
     catch (Ogre::Exception& e)
     {
+        if(RunLevelTest::isActive())
+            return RunLevelTest::reportException(e.what());
 #if OGRE_PLATFORM == OGRE_PLATFORM_WIN32
         MessageBox(0, e.what(), "An exception has occurred!", MB_OK | MB_ICONERROR | MB_TASKMODAL);
 #else
@@ -104,6 +109,8 @@ int main(int argc, char** argv)
     }
     catch (...)
     {
+        if(RunLevelTest::isActive())
+            return RunLevelTest::reportException("unknown exception");
 #if OGRE_PLATFORM == OGRE_PLATFORM_WIN32
         MessageBox(0, "Unkown Exception", "An unkownn exception has occurred!", MB_OK | MB_ICONERROR | MB_TASKMODAL);
 #else
@@ -111,5 +118,5 @@ int main(int argc, char** argv)
 #endif
     }
 
-    return 0;
+    return RunLevelTest::getExitCode();
 }
