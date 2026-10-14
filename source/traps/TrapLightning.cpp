@@ -32,6 +32,9 @@ const std::string TrapLightningName = "Lightning";
 const std::string TrapLightningNameDisplay = "Lightning trap";
 const TrapType TrapLightning::mTrapType = TrapType::lightning;
 
+//! \brief Damage factor applied when the bolt hits a target standing in water
+static const double WATER_DAMAGE_FACTOR = 2.0;
+
 namespace
 {
 class TrapLightningFactory : public TrapFactory
@@ -143,7 +146,7 @@ bool TrapLightning::shoot(Tile* tile)
     // Water conducts the bolt: the damage doubles for a target standing in water
     double damage = Random::Double(mMinDamage, mMaxDamage);
     if((targetTile != nullptr) && (targetTile->getType() == TileType::water))
-        damage *= 2.0;
+        damage *= WATER_DAMAGE_FACTOR;
 
     target->takeDamage(this, 0.0, 0.0, 0.0, damage, targetTile, false);
     target->notifyFightPlayer(targetTile);
