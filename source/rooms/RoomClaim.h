@@ -28,6 +28,9 @@
 //! can be checked on their own (see source/tests/check_room_capture.py).
 namespace RoomClaim
 {
+    //! \brief Divisor that turns a share given in percent into a fraction
+    static const double PERCENT_DIVISOR = 100.0;
+
     //! \brief Whether a worker of another seat may take the room over. The
     //! dungeon heart is the one room with an exception: it can only be destroyed.
     inline bool isClaimableBy(bool claimingEnabled, bool isAllied, bool isDungeonHeart)
@@ -63,7 +66,7 @@ namespace RoomClaim
         if((costPerTile <= 0) || (numTiles == 0) || (percent <= 0.0))
             return 0;
 
-        return static_cast<int32_t>(static_cast<double>(costPerTile) * static_cast<double>(numTiles) * percent / 100.0);
+        return static_cast<int32_t>(static_cast<double>(costPerTile) * static_cast<double>(numTiles) * percent / PERCENT_DIVISOR);
     }
 
     //! \brief How many seconds a worker whose claim rate equals the reference claim rate
