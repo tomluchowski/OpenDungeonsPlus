@@ -18,15 +18,17 @@ body = notification_h[notification_h.index('enum class ServerNotificationType'):
 body = body[:body.index('};')]
 names = [m.group(1) for m in re.finditer(r'^\s*(\w+),?\s*(?://.*)?$', body, re.MULTILINE)
          if m.group(1) not in ('enum', 'class')]
-# The new kind is appended last, exit stays in front of it: no existing number moves
-assert names[-1] == 'cosmeticEvent' and names[-2] == 'exit', names[-3:]
+# The new kind is appended behind trapEffect, the last kind before it: no existing number moves
+position = names.index('cosmeticEvent')
+assert names.count('cosmeticEvent') == 1 and names[position - 1] == 'trapEffect', names[position - 2:position + 2]
 assert 'case ServerNotificationType::cosmeticEvent:' in read('source/network/ServerNotification.cpp')
 
 server = read('source/network/ODServer.cpp')
 client = read('source/network/ODClient.cpp')
 socket_h = read('source/network/ODSocketClient.h')
-# The offer is the flag of pickNick behind the server mode, the agreement is read only when the packet has it
-assert 'pickNick << mServerMode << true;' in server
+# The offer is the flags of pickNick behind the server mode (the cosmetic events are the last of six),
+# the agreement is read only when the packet has it
+assert 'pickNick << mServerMode << true << true << true << true << true << true;' in server
 assert 'if(!packetReceived.endOfPacket())\n                OD_ASSERT_TRUE(packetReceived >> cosmeticEvents);' in server
 assert 'clientSocket->setSupportsCosmeticEvents(cosmeticEvents);' in server
 assert server.count('<< clientSocket->supportsCosmeticEvents();') == 1
