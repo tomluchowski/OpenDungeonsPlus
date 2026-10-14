@@ -1,5 +1,6 @@
 #version 330  core
 #extension GL_ARB_shading_language_include : enable
+#include "ShadowMapping.glsl"
 #include "LocalLighting.glsl"
 
 
@@ -32,15 +33,10 @@ void main (void)
     
     
     vec4 shadow = vec4(1.0, 1.0, 1.0,1.0);
-    vec4 tmpVertexPos = VertexPos;
     
     // compute shadowmap
-    if(shadowingEnabled){
-		if(tmpVertexPos.z > 0 ){
-		    tmpVertexPos /= tmpVertexPos.w;
-		    shadow = texture(shadowmap, tmpVertexPos.xy); 
-		}
-    }
+    if(shadowingEnabled)
+        shadow = vec4(sampleShadow(shadowmap, VertexPos));
     
     vec3 result;
         

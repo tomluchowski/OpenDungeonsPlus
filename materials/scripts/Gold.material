@@ -9,6 +9,7 @@ vertex_program myVertexShader glsl
         param_named_auto projectionMatrix projection_matrix
         param_named_auto viewMatrix view_matrix
         param_named_auto worldMatrix world_matrix
+        param_named_auto lightMatrix texture_viewproj_matrix 0
         param_named height float 0.0
     }
   
@@ -27,6 +28,7 @@ fragment_program myFragmentShader glsl
         param_named_auto lightCount light_count
         param_named_auto firstLightCastsShadows light_casts_shadows 0
         param_named_auto cameraPosition camera_position
+        param_named shadowingEnabled bool false
         param_named_auto veinTime time_0_x 600
         param_named veinGain float 1.0
     }
@@ -51,6 +53,7 @@ material Gold //: RTSS/NormalMapping_MultiPass
             { 
                 param_named decalmap int 0
                 param_named normalmap int 1
+                param_named shadowmap int 2
             }
  
             texture_unit 
@@ -62,6 +65,13 @@ material Gold //: RTSS/NormalMapping_MultiPass
             {
                 texture GoldNormal.png
 
+            }
+            texture_unit shadowmap
+            {
+                content_type shadow
+                tex_address_mode border
+                tex_border_colour 1 1 1 1
+                filtering bilinear
             }
             
             

@@ -55,5 +55,5 @@ void main() {
  
     out_UV0 = uv0;
     out_UV1 = uv1;
-    VertexPos = lightMatrix * position;
+    VertexPos = lightMatrix * inverse(worldMatrix) * vec4(P, 1.0);
 }  

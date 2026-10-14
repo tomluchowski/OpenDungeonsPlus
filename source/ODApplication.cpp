@@ -65,6 +65,7 @@
 #include <string>
 #include <sstream>
 #include <fstream>
+#include <exception>
 
 void ODApplication::startGame(boost::program_options::variables_map& options)
 {
@@ -80,10 +81,20 @@ void ODApplication::startGame(boost::program_options::variables_map& options)
     logMgr.setLevel(resMgr.getLogLevel());
 
 
-    if(resMgr.isServerMode())
-        startServer();
-    else
-        startClient();
+    try
+    {
+        if(resMgr.isServerMode())
+            startServer();
+        else
+            startClient();
+    }
+    catch(const std::exception& error)
+    {
+        // Preserve the exception before the log manager is destroyed and main
+        // displays its Windows error dialog.
+        OD_LOG_ERR("Unhandled exception: " + std::string(error.what()));
+        throw;
+    }
 }
 
 void ODApplication::startServer()
