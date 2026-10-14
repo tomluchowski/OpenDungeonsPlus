@@ -18,8 +18,13 @@ body = notification_h[notification_h.index('enum class ServerNotificationType'):
 body = body[:body.index('};')]
 names = [m.group(1) for m in re.finditer(r'^\s*(\w+),?\s*(?://.*)?$', body, re.MULTILINE)
          if m.group(1) not in ('enum', 'class')]
-# The new kind is appended last, exit stays in front of it: no existing number moves
-assert names[-1] == 'cosmeticEvent' and names[-2] == 'exit', names[-3:]
+# The new kind comes behind exit and behind the kinds of the other features that sit between them, in the same
+# order as the main line, and is never moved in front of an existing kind: no existing number moves
+known_order = ['exit', 'playerNickChanged', 'creaturePanel', 'roomConstructionEffect', 'creatureCombatImpact',
+               'creatureChickenFeeding', 'cosmeticEvent', 'relationshipTier']
+present = [name for name in names if name in known_order]
+assert present == [name for name in known_order if name in names], present
+assert 'exit' in names and 'cosmeticEvent' in names and names.index('exit') < names.index('cosmeticEvent'), names[-3:]
 assert 'case ServerNotificationType::cosmeticEvent:' in read('source/network/ServerNotification.cpp')
 
 server = read('source/network/ODServer.cpp')
