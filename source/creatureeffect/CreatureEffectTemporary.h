@@ -21,6 +21,8 @@
 
 #include "creatureeffect/CreatureEffect.h"
 
+#include <string>
+
 //! \brief Marks a creature that only exists for a while (the skeletons of Raise Dead and Skeleton Army).
 //! When the effect runs out, the creature falls apart: it dies.
 class CreatureEffectTemporary : public CreatureEffect

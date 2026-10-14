@@ -137,6 +137,20 @@ const std::string DEFEAT_FIRST_SUBTITLE = "Your dungeon heart has been destroyed
 const std::string DEFEAT_SECOND_SUBTITLE = "That's it for today. Until next time.";
 const std::string DEFEAT_DEBRIEFING_ELAPSED = "Time elapsed: ";
 
+//! \brief Skill slots sent to the server when the possession keys 1 to 4 are pressed
+const uint32_t POSSESSION_SKILL_SLOT_FIRST = 0;
+const uint32_t POSSESSION_SKILL_SLOT_SECOND = 1;
+const uint32_t POSSESSION_SKILL_SLOT_THIRD = 2;
+const uint32_t POSSESSION_SKILL_SLOT_FOURTH = 3;
+//! \brief Squared length below which the possession movement direction counts as "not moving"
+const float POSSESSION_MIN_DIRECTION_SQUARED_LENGTH = 0.0001f;
+//! \brief Dot product of the old and the new movement direction below which the direction counts as changed
+const float POSSESSION_DIRECTION_CHANGE_DOT = 0.99f;
+//! \brief Seconds after which the current movement direction is sent again while the player keeps moving
+const float POSSESSION_MOVE_RESEND_SECONDS = 0.5f;
+//! \brief Minimum seconds between two sent changes of the movement direction
+const float POSSESSION_MOVE_MIN_SEND_SECONDS = 0.1f;
+
 static double getAutoscrollIntensity(int mousePosition, int screenSize, bool minimumEdge)
 {
     if(screenSize <= 1)
@@ -689,8 +703,12 @@ bool GameMode::mouseMoved(const OIS::MouseEvent &arg)
     // While the player controls a creature, the mouse only turns its view
     if (isLocalPlayerPossessing())
     {
-        ODFrameListener::getSingleton().getCameraManager()->possessionLook(
-            static_cast<Ogre::Real>(arg.state.X.rel), static_cast<Ogre::Real>(arg.state.Y.rel));
+        CameraManager* possessionCamera = ODFrameListener::getSingleton().getCameraManager();
+        if(possessionCamera != nullptr)
+        {
+            possessionCamera->possessionLook(
+                static_cast<Ogre::Real>(arg.state.X.rel), static_cast<Ogre::Real>(arg.state.Y.rel));
+        }
         return true;
     }
 
@@ -3750,22 +3768,22 @@ bool GameMode::handlePossessionKey(OIS::KeyCode key, bool pressed)
     // The creature skills (other than its attack, which is on the left mouse button)
     case OIS::KC_1:
         if (pressed)
-            sendPossessionSkill(0);
+            sendPossessionSkill(POSSESSION_SKILL_SLOT_FIRST);
         return true;
 
     case OIS::KC_2:
         if (pressed)
-            sendPossessionSkill(1);
+            sendPossessionSkill(POSSESSION_SKILL_SLOT_SECOND);
         return true;
 
     case OIS::KC_3:
         if (pressed)
-            sendPossessionSkill(2);
+            sendPossessionSkill(POSSESSION_SKILL_SLOT_THIRD);
         return true;
 
     case OIS::KC_4:
         if (pressed)
-            sendPossessionSkill(3);
+            sendPossessionSkill(POSSESSION_SKILL_SLOT_FOURTH);
         return true;
 
     // These keys move the RTS camera, which is not used while possessing
@@ -3797,7 +3815,11 @@ void GameMode::updatePossessionInput(float timeSinceLastFrame)
         return;
 
     // The movement keys are relative to where the player looks
-    Ogre::Real yaw = ODFrameListener::getSingleton().getCameraManager()->getPossessionYaw();
+    CameraManager* cameraManager = ODFrameListener::getSingleton().getCameraManager();
+    if (cameraManager == nullptr)
+        return;
+
+    Ogre::Real yaw = cameraManager->getPossessionYaw();
     Ogre::Vector2 forward = getPossessionAim();
     Ogre::Vector2 right(Ogre::Math::Cos(yaw), Ogre::Math::Sin(yaw));
     Ogre::Vector2 direction = Ogre::Vector2::ZERO;
@@ -3810,7 +3832,7 @@ void GameMode::updatePossessionInput(float timeSinceLastFrame)
     if (mPossessKeyLeft)
         direction -= right;
 
-    bool isMoving = (direction.squaredLength() > 0.0001f);
+    bool isMoving = (direction.squaredLength() > POSSESSION_MIN_DIRECTION_SQUARED_LENGTH);
     if (isMoving)
         direction.normalise();
     else
@@ -3821,12 +3843,13 @@ void GameMode::updatePossessionInput(float timeSinceLastFrame)
     // The server walks the creature toward a point a few tiles away, so we have to keep sending
     // the direction while the player moves. A stop is sent at once, a change of direction at most
     // ten times per second.
-    bool wasMoving = (mPossessLastDirection.squaredLength() > 0.0001f);
-    bool hasChanged = (isMoving != wasMoving) || (isMoving && (direction.dotProduct(mPossessLastDirection) < 0.99f));
-    if (!hasChanged && !(isMoving && (mPossessTimeSinceSent > 0.5f)))
+    bool wasMoving = (mPossessLastDirection.squaredLength() > POSSESSION_MIN_DIRECTION_SQUARED_LENGTH);
+    bool hasChanged = (isMoving != wasMoving) ||
+        (isMoving && (direction.dotProduct(mPossessLastDirection) < POSSESSION_DIRECTION_CHANGE_DOT));
+    if (!hasChanged && !(isMoving && (mPossessTimeSinceSent > POSSESSION_MOVE_RESEND_SECONDS)))
         return;
 
-    if (hasChanged && isMoving && (mPossessTimeSinceSent < 0.1f))
+    if (hasChanged && isMoving && (mPossessTimeSinceSent < POSSESSION_MOVE_MIN_SEND_SECONDS))
         return;
 
     mPossessLastDirection = direction;
@@ -3838,7 +3861,11 @@ void GameMode::updatePossessionInput(float timeSinceLastFrame)
 
 Ogre::Vector2 GameMode::getPossessionAim()
 {
-    Ogre::Real yaw = ODFrameListener::getSingleton().getCameraManager()->getPossessionYaw();
+    CameraManager* cameraManager = ODFrameListener::getSingleton().getCameraManager();
+    if (cameraManager == nullptr)
+        return Ogre::Vector2::ZERO;
+
+    Ogre::Real yaw = cameraManager->getPossessionYaw();
     return Ogre::Vector2(-Ogre::Math::Sin(yaw), Ogre::Math::Cos(yaw));
 }
 
