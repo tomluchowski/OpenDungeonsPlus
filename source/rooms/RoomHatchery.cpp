@@ -45,6 +45,20 @@ const std::string RoomHatcheryNameDisplay = "Hatchery room";
 const RoomType RoomHatchery::mRoomType = RoomType::hatchery;
 const TileVisual RoomHatchery::mRoomVisual= TileVisual::hatcheryRoom;
 
+//! \brief Upper bound of the random roll that decides which of two fighting roosters wins.
+const uint32_t FIGHT_WINNER_ROLL_MAX = 1000;
+//! \brief Number of turns a short pose (emerge, lay, crow, lead, mount) lasts.
+const uint32_t POSE_TURNS_SHORT = 2;
+//! \brief Number of turns a long pose (fight, crow after a fight, cackle) lasts.
+const uint32_t POSE_TURNS_LONG = 3;
+//! \brief Fight notification phase sent when a fight starts.
+const uint32_t FIGHT_PHASE_START = 0;
+//! \brief Fight notification phase sent when a fight ends with a winner.
+const uint32_t FIGHT_PHASE_END = 1;
+//! \brief Fight notification phase sent when a fight is aborted because a fighter is gone.
+const uint32_t FIGHT_PHASE_ABORT = 2;
+//! \brief Default distance in tiles at which two fighting roosters start to brawl.
+const double DEFAULT_FIGHT_REACH = 1.0;
 //! \brief Distance a hen keeps from the creature that calls her.
 const double HEN_FOLLOW_CALLER_GAP = 0.4;
 //! \brief Part of the fight reach at which two fighting chickens stop when they walk up to each other.
@@ -263,7 +277,7 @@ bool RoomHatchery::spawnFromCoop(ChickenKind kind, const HatcheryCycleSettings& 
             continue;
 
         ChickenEntity* animal = spawnAnimal(kind, Ogre::Vector3(freePosition.x, freePosition.y, 0.0f), settings);
-        animal->playPose(ChickenPose::emerge, 2);
+        animal->playPose(ChickenPose::emerge, POSE_TURNS_SHORT);
         return true;
     }
     return false;
@@ -415,7 +429,7 @@ void RoomHatchery::doUpkeep()
             continue;
 
         spawnAnimal(ChickenKind::egg, hen->getPosition(), settings);
-        hen->playPose(ChickenPose::lay, 2);
+        hen->playPose(ChickenPose::lay, POSE_TURNS_SHORT);
         ++counts.mEggs;
     }
 
@@ -542,7 +556,7 @@ void RoomHatchery::updateFight(std::vector<ChickenEntity*>& roosters, const Hatc
         mFightActive = true;
         mFightFirst = first->getName();
         mFightSecond = second->getName();
-        mFightFirstWins = (HatcheryCycle::fightWinner(Random::Uint(0, 1000)) == 0);
+        mFightFirstWins = (HatcheryCycle::fightWinner(Random::Uint(0, FIGHT_WINNER_ROLL_MAX)) == 0);
         mFightBrawling = false;
         mFightApproach = 0;
         mFightTurnsLeft = std::max<uint32_t>(1, settings.mFightTurns);
@@ -556,10 +570,10 @@ void RoomHatchery::updateFight(std::vector<ChickenEntity*>& roosters, const Hatc
             fighter->setMood(RoosterMood::strut, 0);
             climbDown(fighter);
         }
-        first->notifyFight(mFightSecond, 0);
+        first->notifyFight(mFightSecond, FIGHT_PHASE_START);
     }
 
-    const double reach = ConfigManager::getSingleton().getRoomConfigDoubleOrDefault("HatcheryFightReach", 1.0);
+    const double reach = ConfigManager::getSingleton().getRoomConfigDoubleOrDefault("HatcheryFightReach", DEFAULT_FIGHT_REACH);
     const Ogre::Vector2 firstPos(first->getPosition().x, first->getPosition().y);
     const Ogre::Vector2 secondPos(second->getPosition().x, second->getPosition().y);
     if(!mFightBrawling)
@@ -580,9 +594,9 @@ void RoomHatchery::updateFight(std::vector<ChickenEntity*>& roosters, const Hatc
 
     // They brawl: wings beating, pecking, puffed up. The client adds the clouds of feathers.
     if(!first->isBusy())
-        first->playPose(ChickenPose::fight, 3);
+        first->playPose(ChickenPose::fight, POSE_TURNS_LONG);
     if(!second->isBusy())
-        second->playPose(ChickenPose::fight, 3);
+        second->playPose(ChickenPose::fight, POSE_TURNS_LONG);
     if(mFightTurnsLeft > 0)
         --mFightTurnsLeft;
     if(mFightTurnsLeft > 0)
@@ -617,13 +631,13 @@ void RoomHatchery::endFight(ChickenEntity* first, ChickenEntity* second, bool fi
         }
         ChickenEntity* sender = (first != nullptr) ? first : second;
         if(sender != nullptr)
-            sender->notifyFight((sender == first) ? mFightSecond : mFightFirst, 2);
+            sender->notifyFight((sender == first) ? mFightSecond : mFightFirst, FIGHT_PHASE_ABORT);
         return;
     }
 
     ChickenEntity* winner = mFightFirstWins ? first : second;
     ChickenEntity* loser = mFightFirstWins ? second : first;
-    winner->notifyFight(loser->getName(), 1);
+    winner->notifyFight(loser->getName(), FIGHT_PHASE_END);
     if(loser->loseFight() && (counts.mRoosters > 0))
         --counts.mRoosters;
 
@@ -632,7 +646,7 @@ void RoomHatchery::endFight(ChickenEntity* first, ChickenEntity* second, bool fi
     winner->setRoomDriven(false);
     winner->setMood(RoosterMood::strut, 0);
     winner->resetSinceCrow();
-    winner->playPose(ChickenPose::crow, 3);
+    winner->playPose(ChickenPose::crow, POSE_TURNS_LONG);
 }
 
 RoosterSettings RoomHatchery::getRoosterSettings() const
@@ -795,17 +809,17 @@ void RoomHatchery::actRoosterMood(ChickenEntity* rooster, const std::vector<Chic
         case RoosterMood::crow:
             // He crows from the roof when it is close
             roostOnRoof(rooster, ChickenPose::crow, true);
-            rooster->playPose(ChickenPose::crow, 2);
+            rooster->playPose(ChickenPose::crow, POSE_TURNS_SHORT);
             break;
         case RoosterMood::lead:
             // Scratches the ground now and then, the chicks come along
             if(!rooster->isMoving() && (Random::Int(1, 3) == 1))
-                rooster->playPose(ChickenPose::lead, 2);
+                rooster->playPose(ChickenPose::lead, POSE_TURNS_SHORT);
             break;
         case RoosterMood::call:
             // Scratches the ground while the hens and chicks gather around him
             if(!rooster->isMoving() && (Random::Int(1, 2) == 1))
-                rooster->playPose(ChickenPose::lead, 2);
+                rooster->playPose(ChickenPose::lead, POSE_TURNS_SHORT);
             break;
         case RoosterMood::chase:
         {
@@ -833,8 +847,8 @@ void RoomHatchery::actRoosterMood(ChickenEntity* rooster, const std::vector<Chic
             // Caught: he jumps on her for a moment, feathers fly and she cackles
             if(nearestDistance < MOUNT_CATCH_DISTANCE * MOUNT_CATCH_DISTANCE)
             {
-                rooster->playPose(ChickenPose::mount, 2);
-                target->playPose(ChickenPose::cackle, 3);
+                rooster->playPose(ChickenPose::mount, POSE_TURNS_SHORT);
+                target->playPose(ChickenPose::cackle, POSE_TURNS_LONG);
                 rooster->setMood(RoosterMood::strut, 0);
                 rooster->setRoomDriven(false);
                 break;
