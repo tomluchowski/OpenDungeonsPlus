@@ -18,6 +18,8 @@
 #include "entities/MissileOneHit.h"
 
 #include "entities/Building.h"
+#include "entities/Creature.h"
+#include "entities/GameEntityType.h"
 #include "gamemap/GameMap.h"
 #include "network/ODPacket.h"
 #include "utils/LogManager.h"
@@ -29,6 +31,7 @@ MissileOneHit::MissileOneHit(GameMap* gameMap, Seat* seat, const std::string& se
         const std::string& particleScript, const Ogre::Vector3& direction, double speed, double physicalDamage, double magicalDamage,
         double elementDamage, GameEntity* entityTarget, bool damageAllies, bool koEnemyCreature, bool notifyPlayerIfHit) :
     MissileObject(gameMap, seat, senderName, meshName, direction, speed, entityTarget, damageAllies, koEnemyCreature),
+    mHasHit(false),
     mPhysicalDamage(physicalDamage),
     mMagicalDamage(magicalDamage),
     mElementDamage(elementDamage),
@@ -43,6 +46,7 @@ MissileOneHit::MissileOneHit(GameMap* gameMap, Seat* seat, const std::string& se
 
 MissileOneHit::MissileOneHit(GameMap* gameMap) :
     MissileObject(gameMap),
+    mHasHit(false),
     mPhysicalDamage(0.0),
     mMagicalDamage(0.0),
     mElementDamage(0.0),
@@ -52,7 +56,7 @@ MissileOneHit::MissileOneHit(GameMap* gameMap) :
 
 bool MissileOneHit::hitCreature(Tile* tile, GameEntity* entity)
 {
-    entity->takeDamage(this, 0.0, mPhysicalDamage, mMagicalDamage, mElementDamage, tile, getKoEnemyCreature());
+    hurt(tile, entity);
     if(mNotifyPlayerIfHit)
         entity->notifyFightPlayer(tile);
 
@@ -61,9 +65,36 @@ bool MissileOneHit::hitCreature(Tile* tile, GameEntity* entity)
 
 void MissileOneHit::hitTargetEntity(Tile* tile, GameEntity* entityTarget)
 {
-    entityTarget->takeDamage(this, 0.0, mPhysicalDamage, mMagicalDamage, mElementDamage, tile, getKoEnemyCreature());
+    hurt(tile, entityTarget);
     if(mNotifyPlayerIfHit)
         entityTarget->notifyFightPlayer(tile);
+}
+
+void MissileOneHit::hurt(Tile* tile, GameEntity* entity)
+{
+    double damageDone = entity->takeDamage(this, 0.0, mPhysicalDamage, mMagicalDamage, mElementDamage, tile,
+        getKoEnemyCreature());
+    mHasHit = true;
+
+    // Tell the clients what the shot did (cosmetic only, the damage above is already done)
+    if(!mShooterName.empty() && (entity->getObjectType() == GameEntityType::creature))
+    {
+        Creature* creature = static_cast<Creature*>(entity);
+        creature->fireHitResult(mShooterName, damageDone, mPhysicalDamage + mMagicalDamage + mElementDamage, true);
+    }
+}
+
+void MissileOneHit::missileStopped()
+{
+    // A shot at a creature that ended without hurting anything: it hit a wall or the creature was gone from the tile
+    if(mHasHit || mShooterName.empty() || mTargetName.empty())
+        return;
+
+    Creature* target = getGameMap()->getCreature(mTargetName);
+    if((target == nullptr) || !target->isAlive() || !target->getIsOnMap())
+        return;
+
+    target->fireHitMissed(mShooterName);
 }
 
 MissileOneHit* MissileOneHit::getMissileOneHitFromStream(GameMap* gameMap, std::istream& is)

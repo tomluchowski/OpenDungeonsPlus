@@ -38,6 +38,41 @@ const std::string ConfigManager::DEFAULT_TILESET_NAME = "Default";
 
 const std::string ConfigManager::DEFAULT_KEEPER_VOICE = "Default";
 
+const double ConfigManager::HitShareMin = 0.01;
+const double ConfigManager::HitGlanceShareMax = 0.9;
+const double ConfigManager::HitStrongShareMax = 1.0;
+const double ConfigManager::ChanceMin = 0.0;
+const double ConfigManager::ChanceMax = 100.0;
+const double ConfigManager::ChancePerLevelMax = 10.0;
+const double ConfigManager::AttackTurnSpeedMin = 90.0;
+const double ConfigManager::AttackTurnSpeedMax = 1440.0;
+const double ConfigManager::AttackTurnMaxDelayMin = 0.0;
+const double ConfigManager::AttackTurnMaxDelayMax = 0.6;
+
+namespace
+{
+//! Default share of the damage below which a blow counts as glancing
+static const double DEFAULT_HIT_GLANCE_SHARE = 0.34;
+//! Default share of the maximum health of the target from which a hit counts as strong
+static const double DEFAULT_HIT_STRONG_SHARE = 0.15;
+//! Default dodge chance in percent: base value, gain per level and highest value
+static const double DEFAULT_DODGE_BASE = 3.0;
+static const double DEFAULT_DODGE_PER_LEVEL = 0.5;
+static const double DEFAULT_DODGE_MAX = 15.0;
+//! Default parry chance with a weapon in percent: base value, gain per level and highest value
+static const double DEFAULT_PARRY_BASE = 3.0;
+static const double DEFAULT_PARRY_PER_LEVEL = 0.5;
+static const double DEFAULT_PARRY_MAX = 15.0;
+//! Default parry chance with weapon and shield in percent: base value, gain per level and highest value
+static const double DEFAULT_PARRY_SHIELD_BASE = 6.0;
+static const double DEFAULT_PARRY_SHIELD_PER_LEVEL = 1.0;
+static const double DEFAULT_PARRY_SHIELD_MAX = 25.0;
+//! Default angular speed in degrees per second of the turn to the target before a blow
+static const double DEFAULT_ATTACK_TURN_SPEED = 540.0;
+//! Default most seconds the strike clip waits for the turn to the target
+static const double DEFAULT_ATTACK_TURN_MAX_DELAY = 0.25;
+}
+
 const std::string ConfigManager::DefaultWorkerCreatureDefinition = "DefaultWorker";
 
 template<> ConfigManager* Ogre::Singleton<ConfigManager>::msSingleton = nullptr;
@@ -58,6 +93,22 @@ ConfigManager::ConfigManager(const std::string& configPath, const std::string& u
     mCreatureMoodFurious(-2000),
     mSlapDamagePercent(15),
     mSlapEffectDuration(15),
+    mHitEvents(true),
+    mHitGlanceShare(DEFAULT_HIT_GLANCE_SHARE),
+    mHitStrongShare(DEFAULT_HIT_STRONG_SHARE),
+    mAttackTurnEvents(true),
+    mAttackTurnSpeed(DEFAULT_ATTACK_TURN_SPEED),
+    mAttackTurnMaxDelay(DEFAULT_ATTACK_TURN_MAX_DELAY),
+    mMeleeDodgeParry(true),
+    mDodgeBase(DEFAULT_DODGE_BASE),
+    mDodgePerLevel(DEFAULT_DODGE_PER_LEVEL),
+    mDodgeMax(DEFAULT_DODGE_MAX),
+    mParryBase(DEFAULT_PARRY_BASE),
+    mParryPerLevel(DEFAULT_PARRY_PER_LEVEL),
+    mParryMax(DEFAULT_PARRY_MAX),
+    mParryShieldBase(DEFAULT_PARRY_SHIELD_BASE),
+    mParryShieldPerLevel(DEFAULT_PARRY_SHIELD_PER_LEVEL),
+    mParryShieldMax(DEFAULT_PARRY_SHIELD_MAX),
     mTimePayDay(300),
     mNbTurnsFuriousMax(120),
     mMaxManaPerSeat(250000.0),
@@ -503,6 +554,118 @@ bool ConfigManager::loadGlobalGameConfig(std::stringstream& configFile)
         {
             configFile >> nextParam;
             mSlapEffectDuration = Helper::toDouble(nextParam);
+            // Not mandatory
+        }
+
+        if(nextParam == "HitEvents")
+        {
+            configFile >> nextParam;
+            mHitEvents = Helper::toInt(nextParam) != 0;
+            // Not mandatory
+        }
+
+        if(nextParam == "HitGlanceShare")
+        {
+            configFile >> nextParam;
+            mHitGlanceShare = Helper::toDouble(nextParam);
+            // Not mandatory
+        }
+
+        if(nextParam == "HitStrongShare")
+        {
+            configFile >> nextParam;
+            mHitStrongShare = Helper::toDouble(nextParam);
+            // Not mandatory
+        }
+
+        if(nextParam == "AttackTurnEvents")
+        {
+            configFile >> nextParam;
+            mAttackTurnEvents = Helper::toInt(nextParam) != 0;
+            // Not mandatory
+        }
+
+        if(nextParam == "AttackTurnSpeed")
+        {
+            configFile >> nextParam;
+            mAttackTurnSpeed = Helper::toDouble(nextParam);
+            // Not mandatory
+        }
+
+        if(nextParam == "AttackTurnMaxDelay")
+        {
+            configFile >> nextParam;
+            mAttackTurnMaxDelay = Helper::toDouble(nextParam);
+            // Not mandatory
+        }
+
+        if(nextParam == "MeleeDodgeParry")
+        {
+            configFile >> nextParam;
+            mMeleeDodgeParry = Helper::toInt(nextParam) != 0;
+            // Not mandatory
+        }
+
+        if(nextParam == "DodgeBase")
+        {
+            configFile >> nextParam;
+            mDodgeBase = Helper::toDouble(nextParam);
+            // Not mandatory
+        }
+
+        if(nextParam == "DodgePerLevel")
+        {
+            configFile >> nextParam;
+            mDodgePerLevel = Helper::toDouble(nextParam);
+            // Not mandatory
+        }
+
+        if(nextParam == "DodgeMax")
+        {
+            configFile >> nextParam;
+            mDodgeMax = Helper::toDouble(nextParam);
+            // Not mandatory
+        }
+
+        if(nextParam == "ParryBase")
+        {
+            configFile >> nextParam;
+            mParryBase = Helper::toDouble(nextParam);
+            // Not mandatory
+        }
+
+        if(nextParam == "ParryPerLevel")
+        {
+            configFile >> nextParam;
+            mParryPerLevel = Helper::toDouble(nextParam);
+            // Not mandatory
+        }
+
+        if(nextParam == "ParryMax")
+        {
+            configFile >> nextParam;
+            mParryMax = Helper::toDouble(nextParam);
+            // Not mandatory
+        }
+
+        if(nextParam == "ParryShieldBase")
+        {
+            configFile >> nextParam;
+            mParryShieldBase = Helper::toDouble(nextParam);
+            // Not mandatory
+        }
+
+        if(nextParam == "ParryShieldPerLevel")
+        {
+            configFile >> nextParam;
+            mParryShieldPerLevel = Helper::toDouble(nextParam);
+            // Not mandatory
+        }
+
+        if(nextParam == "ParryShieldMax")
+        {
+            configFile >> nextParam;
+            mParryShieldMax = Helper::toDouble(nextParam);
             // Not mandatory
         }
 
@@ -1963,4 +2126,6 @@ void ConfigManager::loadDefaultValuesForUserConfig(void)
     setGameValue("LightFactor",	"100");
     setGameValue("MinimapType",	"MiniMapDrawn");
     setGameValue("Nickname", "Player");
+    setGameValue("UI Scale", "100");
+    setGameValue("Blood Effects", "Yes");
 }

@@ -95,6 +95,10 @@ public:
     static MissileObject* getMissileObjectFromStream(GameMap* gameMap, std::istream& is);
     static MissileObject* getMissileObjectFromPacket(GameMap* gameMap, ODPacket& is);
 protected:
+    //! \brief Called once when the missile stopped while moving (after a hit as well). Nothing by default
+    virtual void missileStopped()
+    {}
+
     virtual void exportHeadersToStream(std::ostream& os) const override;
     virtual void exportHeadersToPacket(ODPacket& os) const override;
     void exportToStream(std::ostream& os) const override;
