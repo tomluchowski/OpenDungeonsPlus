@@ -1231,6 +1231,8 @@ bool Seat::importSeatFromStream(std::istream& is)
             // Completed unlocks can have their next upgrade queued.
             if(getSkillLevel(type) >= 3)
                 break;
+            if(Skills::isRewardSkill(type))
+                break;
             if(std::find(mSkillNotAllowed.begin(), mSkillNotAllowed.end(), type) != mSkillNotAllowed.end())
                 break;
             if(std::find(mSkillPending.begin(), mSkillPending.end(), type) != mSkillPending.end())
@@ -1763,6 +1765,8 @@ void Seat::setSkillTree(const std::vector<SkillType>& skills)
         for(SkillType skillType : skills)
         {
             if(getSkillLevel(skillType) >= 3 || std::find(seen.begin(), seen.end(), skillType) != seen.end())
+                return;
+            if(Skills::isRewardSkill(skillType))
                 return;
             seen.push_back(skillType);
             // We check if the skill is allowed
