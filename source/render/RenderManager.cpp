@@ -44,6 +44,7 @@
 #include "render/DebugDrawer.h"
 #include "render/MovableTextOverlay.h"
 #include "render/ODFrameListener.h"
+#include "rooms/HatcheryCoopHouse.h"
 #include "rooms/Room.h"
 #include "utils/ConfigManager.h"
 #include "utils/Helper.h"
