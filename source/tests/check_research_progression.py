@@ -47,9 +47,9 @@ decode = decode[decode.index("{") + 1:-1].replace("            break;", "       
 request = function(server, "case ClientNotificationType::askSetSkillTree:")
 request = request[request.index("{") + 1:-1].replace("            break;", "            return true;")
 # Fixed number of researchable skills this branch registers in the catalog: the SkillManager constructor
-# registers 48 skills and one of them (Summon champion) is a reward skill, so 47 can be researched.
+# registers 49 skills and one of them (Summon champion) is a reward skill, so 48 can be researched.
 # Update it by hand when a branch adds or removes a researchable skill.
-nb_research = 47
+nb_research = 48
 
 probe = r'''
 #include "game/Skill.h"
