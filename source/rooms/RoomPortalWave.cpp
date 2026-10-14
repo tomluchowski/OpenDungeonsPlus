@@ -198,13 +198,13 @@ bool RoomPortalWave::removeCoveredTile(Tile* t)
 
 bool RoomPortalWave::isClaimable(Seat* seat) const
 {
-    // The hero gate is a permanent part of the map. Nobody can claim it.
+    // The hero portal is a permanent part of the map. Nobody can claim it.
     return false;
 }
 
 void RoomPortalWave::claimForSeat(Seat* seat, Tile* tile, double danceRate)
 {
-    // The hero gate cannot be claimed, see isClaimable
+    // The hero portal cannot be claimed, see isClaimable
 }
 
 void RoomPortalWave::updateActiveSpots(GameMap* gameMap)
@@ -253,7 +253,7 @@ void RoomPortalWave::updatePortalPosition()
     if (centralTile == nullptr)
         return;
 
-    // The hero gate reuses the portal model until it gets a model of its own
+    // The hero portal reuses the portal model until it gets a model of its own
     mPortalObject = new PersistentObject(getGameMap(), *this, "PortalObject",
         centralTile, 0.0, false, 1.0f, "Idle", true);
     addBuildingObject(centralTile, mPortalObject);
