@@ -109,6 +109,14 @@ const double FALLEN_SCATTER = 0.3;
 //! Lowest drop height (world units) for which the fall time is worked out, and the fall time used below it
 const double FALLEN_DROP_MIN_HEIGHT = 0.05;
 const double FALLEN_FALL_TIME_SHORT = 0.15;
+//! Fall time (seconds) a fallen weapon starts with before the real fall time is worked out
+const double FALLEN_FALL_TIME_DEFAULT = 0.2;
+//! A facing direction (flat length) shorter than this counts as no direction, so no target in front is searched
+const float FORWARD_LENGTH_MIN = 0.01f;
+//! Targets closer than this (world units) are taken as in front without the facing check
+const double FRONT_CHECK_MIN_DISTANCE = 0.5;
+//! The vanishing weapon never shrinks below this share of its size
+const double WEAPON_VANISH_MIN_SHARE = 0.01;
 //! At most this many reactions run when a combat reaction is added (they are cheap, but a big fight has many)
 const uint32_t MAX_RUNNING = 12;
 const uint32_t MAX_PENDING = 64;
@@ -283,7 +291,7 @@ struct FallenWeapon
 {
     FallenWeapon() :
         mElapsed(0.0),
-        mFallTime(0.2),
+        mFallTime(FALLEN_FALL_TIME_DEFAULT),
         mScale(Ogre::Vector3::UNIT_SCALE),
         mLocalCenter(Ogre::Vector3::ZERO),
         mStartCenter(Ogre::Vector3::ZERO),
@@ -382,7 +390,7 @@ bool CreatureCombatReactions::findTarget(CreatureReactions& reactions, Creature*
 
     Ogre::Vector3 forward = node->getOrientation() * Ogre::Vector3::NEGATIVE_UNIT_Y;
     forward.z = 0.0f;
-    if(forward.length() < 0.01f)
+    if(forward.length() < FORWARD_LENGTH_MIN)
         return false;
 
     forward.normalise();
@@ -404,7 +412,7 @@ bool CreatureCombatReactions::findTarget(CreatureReactions& reactions, Creature*
             continue;
 
         // The creature has to be in front of the attacker
-        if(length > 0.5)
+        if(length > FRONT_CHECK_MIN_DISTANCE)
         {
             Ogre::Vector3 direction = difference / static_cast<Ogre::Real>(length);
             if(forward.dotProduct(direction) < FRONT_COSINE)
@@ -843,7 +851,7 @@ void CreatureCombatReactions::updateFallen(CreatureReactions& reactions, double 
         if(fallen.mElapsed > vanishStart)
         {
             double remaining = 1.0 - (fallen.mElapsed - vanishStart) / WEAPON_VANISH_TIME;
-            scale = scale * static_cast<Ogre::Real>(std::max(0.01, remaining));
+            scale = scale * static_cast<Ogre::Real>(std::max(WEAPON_VANISH_MIN_SHARE, remaining));
         }
 
         node->setOrientation(orientation);
