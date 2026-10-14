@@ -32,11 +32,14 @@ const std::string CreatureSkillFreezeName = "Freeze";
 
 namespace
 {
+//! \brief Creates freeze skills when the configuration names "Freeze"
 class CreatureSkillFreezeFactory : public CreatureSkillFactory
 {
+    //! \brief Creates an empty freeze skill
     CreatureSkill* createCreatureSkill() const override
     { return new CreatureSkillFreeze; }
 
+    //! \brief The skill name used in the configuration
     const std::string& getCreatureSkillName() const override
     { return CreatureSkillFreezeName; }
 };
