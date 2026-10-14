@@ -124,6 +124,9 @@ static RoomRegister reg(new RoomArenaFactory);
 
 static const Ogre::Real OFFSET_DUMMY = 0.3;
 
+//! \brief Radius in tiles in which a creature counts as spectator of a pit fight when the room config has no PitSpectatorRadius
+static const double DEFAULT_PIT_SPECTATOR_RADIUS = 4.0;
+
 RoomArena::RoomArena(GameMap* gameMap) :
     FencedRoom(gameMap),
     mFightOngoing(false)
@@ -322,7 +325,7 @@ void RoomArena::updatePitMood()
 
         // Creatures of the owner watching the fight are cheered up
         double spectator = config.getRoomConfigDoubleOrDefault("PitMoodSpectator", 0.0);
-        double radius = config.getRoomConfigDoubleOrDefault("PitSpectatorRadius", 4.0);
+        double radius = config.getRoomConfigDoubleOrDefault("PitSpectatorRadius", DEFAULT_PIT_SPECTATOR_RADIUS);
         double squaredRadius = radius * radius;
         double moodPerTurn = spectator / ODApplication::turnsPerSecond;
         const std::vector<Creature*>& creatures = getGameMap()->getCreatures();
