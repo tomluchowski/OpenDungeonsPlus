@@ -81,6 +81,12 @@ const double BOW_STRING_Z = -0.09;
 const double CROSSBOW_RAIL_Z = -0.05;
 const double CROSSBOW_RAIL_X = 0.025;
 const double ARROW_TAIL_Y = 0.265;
+//! Number of mount bone names tried on each side when a weapon looks for the bone of the other hand
+const uint32_t WEAPON_BONE_CANDIDATES = 7;
+//! Pi, for the half wave of the crossbow jolt
+const double PI_VALUE = 3.14159265358979323846;
+//! An arrow or bolt that has grown less than this share of its length stays hidden
+const double ARROW_VISIBLE_MIN_SHARE = 0.02;
 
 //! A blow with this share (per mille) of the damage or more is a strong one
 const int32_t STRONG_BLOW = 800;
@@ -284,10 +290,10 @@ std::string findPullHandBone(const Ogre::Skeleton* skeleton, const std::string& 
         return std::string();
 
     // The weapon bone of the other side sits at the grip of the hand and is tried first
-    const char* candidatesRight[] = {"Weapon_R", "RightHand", "Hand_R", "hand.R", "Hand.R", "RightFinger", "Finger_R"};
-    const char* candidatesLeft[] = {"Weapon_L", "LeftHand", "Hand_L", "hand.L", "Hand.L", "LeftFinger", "Finger_L"};
+    const char* candidatesRight[WEAPON_BONE_CANDIDATES] = {"Weapon_R", "RightHand", "Hand_R", "hand.R", "Hand.R", "RightFinger", "Finger_R"};
+    const char* candidatesLeft[WEAPON_BONE_CANDIDATES] = {"Weapon_L", "LeftHand", "Hand_L", "hand.L", "Hand.L", "LeftFinger", "Finger_L"};
     const char** candidates = weaponLeft ? candidatesRight : candidatesLeft;
-    for(uint32_t i = 0; i < 7; ++i)
+    for(uint32_t i = 0; i < WEAPON_BONE_CANDIDATES; ++i)
     {
         if(skeleton->hasBone(candidates[i]))
             return candidates[i];
@@ -510,7 +516,7 @@ void placeArrow(CreatureReactions& reactions, Shooter& shooter)
            (arrived >= BOLT_ON_RAIL_SHARE) && (arrived < 1.0))
         {
             double phase = (arrived - BOLT_ON_RAIL_SHARE) / (1.0 - BOLT_ON_RAIL_SHARE);
-            double angle = config.getCrossbowReloadJolt() * std::sin(phase * 3.14159265358979);
+            double angle = config.getCrossbowReloadJolt() * std::sin(phase * PI_VALUE);
             Ogre::Quaternion tilt(Ogre::Degree(static_cast<Ogre::Real>(angle)), Ogre::Vector3::UNIT_X);
             weaponTag->setOrientation(shooter.mMountRotation * tilt);
             shooter.mWeaponTilted = true;
@@ -560,7 +566,7 @@ void placeArrow(CreatureReactions& reactions, Shooter& shooter)
     Ogre::Real length = static_cast<Ogre::Real>(lengthScale * shown);
     Ogre::Real width = static_cast<Ogre::Real>(ARROW_WIDTH_FACTOR) * length;
     tagPoint->setScale(width, length, width);
-    arrow->setVisible(shown > 0.02);
+    arrow->setVisible(shown > ARROW_VISIBLE_MIN_SHARE);
 }
 
 //! \brief Removes the arrows of all archers

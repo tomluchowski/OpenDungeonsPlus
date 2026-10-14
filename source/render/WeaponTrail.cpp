@@ -44,9 +44,12 @@ namespace WeaponTrail
 {
 namespace
 {
-//! The streak follows the tip from this long before the blow lands until this long after it
+//! The streak follows the tip from this long before the blow lands
 const double SWING_LEAD = 0.2;
+//! The streak follows the tip until this long after the blow lands
 const double SWING_LAG = 0.08;
+//! The width of a streak point that has fully faded is this share of the full width
+const double TRAIL_WIDTH_MIN_SHARE = 0.3;
 //! Points of the path kept at most (the billboard chain has this many elements)
 const uint32_t MAX_POINTS = 20;
 //! Tip moves shorter than this (world units) between two frames are not added
@@ -205,7 +208,7 @@ void fillChain(Ogre::BillboardChain* chain, const Trail& trail, const CreatureRe
             static_cast<Ogre::Real>(config.getWeaponTrailBlue() * value), static_cast<Ogre::Real>(value));
         Ogre::Real texCoord = static_cast<Ogre::Real>(i) / static_cast<Ogre::Real>(count - 1);
         chain->addChainElement(0, Ogre::BillboardChain::Element(point.mPosition,
-            static_cast<Ogre::Real>(width * (0.3 + 0.7 * fade)), texCoord, colour, Ogre::Quaternion::IDENTITY));
+            static_cast<Ogre::Real>(width * (TRAIL_WIDTH_MIN_SHARE + (1.0 - TRAIL_WIDTH_MIN_SHARE) * fade)), texCoord, colour, Ogre::Quaternion::IDENTITY));
     }
 }
 

@@ -35,6 +35,62 @@ static const double DEFAULT_GROUP_STAGGER_MIN = 0.12;
 //! Default longest delay in seconds between the reactions of the creatures of one group
 static const double DEFAULT_GROUP_STAGGER_MAX = 0.45;
 
+//! Default seconds between two mood checks of a creature
+static const double DEFAULT_MOOD_INTERVAL = 0.5;
+//! Default number of creatures looked at in each mood check
+static const uint32_t DEFAULT_MOOD_PER_TICK = 4;
+//! Default chance that a walking creature shows a mood
+static const double DEFAULT_MOOD_WALKING_CHANCE = 0.3;
+//! Default seconds of standing idle until a creature is impatient
+static const double DEFAULT_IMPATIENT_AFTER = 6.0;
+//! Default seconds a creature stays proud after a victory or a level up
+static const double DEFAULT_PROUD_SECONDS = 25.0;
+//! Default seconds of standing idle until a creature is bored
+static const double DEFAULT_BORED_AFTER = 20.0;
+//! Default seconds of standing idle until a creature shows small habits
+static const double DEFAULT_AMBIENT_AFTER = 3.0;
+//! Default seconds of standing idle until a creature sits down
+static const double DEFAULT_SIT_AFTER = 45.0;
+//! Default seconds of standing idle until a creature lies down
+static const double DEFAULT_LIE_AFTER = 100.0;
+//! Default distance in world units within which creatures turn their head to an event
+static const double DEFAULT_LOOK_RADIUS = 12.0;
+//! Default chance that two creatures that meet show a short interaction
+static const double DEFAULT_INTERACTION_CHANCE = 0.05;
+//! Default distance in world units within which creatures that meet interact
+static const double DEFAULT_INTERACTION_RADIUS = 3.5;
+//! Default seconds a creature pauses after an interaction
+static const double DEFAULT_INTERACTION_PAUSE = 5.0;
+
+//! Default arm of the blow of a creature with an attack weapon in each hand (TwoWeaponStrike::MODE_*)
+static const uint32_t DEFAULT_TWO_WEAPON_MODE = 1;
+//! Default strength of the arm movement of the blows of a creature with two weapons
+static const double DEFAULT_TWO_WEAPON_ARM_STRENGTH = 1.0;
+//! Default for the arrow following the pulling hand
+static const bool DEFAULT_ARROW_FOLLOWS_HAND = true;
+//! Default distance the pulling hand moves back and seconds of drawing, retaking and reloading
+static const double DEFAULT_ARROW_PULL_DISTANCE = 0.12;
+static const double DEFAULT_ARROW_DRAW_TIME = 1.6;
+static const double DEFAULT_ARROW_RETAKE_GAP = 0.3;
+static const double DEFAULT_ARROW_RELOAD_TIME = 0.45;
+//! Default seconds of the crossbow reload and degrees the crossbow tips when the string is cocked
+static const double DEFAULT_CROSSBOW_RELOAD_TIME = 1.1;
+static const double DEFAULT_CROSSBOW_RELOAD_JOLT = 5.0;
+//! Default for the streak along the weapon tip of a strong melee blow
+static const bool DEFAULT_WEAPON_TRAIL = true;
+//! Default seconds until the streak has faded, its width, and the longest path of the weapon tip it shows
+static const double DEFAULT_WEAPON_TRAIL_LIFE = 0.25;
+static const double DEFAULT_WEAPON_TRAIL_WIDTH = 0.12;
+static const double DEFAULT_WEAPON_TRAIL_LENGTH = 2.0;
+//! Default colour of the streak and its brightness at the start
+static const double DEFAULT_WEAPON_TRAIL_RED = 1.0;
+static const double DEFAULT_WEAPON_TRAIL_GREEN = 0.93;
+static const double DEFAULT_WEAPON_TRAIL_BLUE = 0.75;
+static const double DEFAULT_WEAPON_TRAIL_BRIGHTNESS = 0.9;
+//! Default smallest damage share of a blow that gets a streak, and most streaks at the same time
+static const double DEFAULT_WEAPON_TRAIL_MIN_SHARE = 0.0;
+static const uint32_t DEFAULT_WEAPON_TRAIL_MAX = 4;
+
 //! \brief Reads the next not empty line and splits it in words. Returns false at the end of the file
 bool readWords(std::istream& file, std::vector<std::string>& words)
 {
@@ -64,39 +120,39 @@ CreatureReactionConfig::CreatureReactionConfig() :
     mMaxCameraDistance(DEFAULT_MAX_CAMERA_DISTANCE),
     mGroupStaggerMin(DEFAULT_GROUP_STAGGER_MIN),
     mGroupStaggerMax(DEFAULT_GROUP_STAGGER_MAX),
-    mMoodInterval(0.5),
-    mMoodPerTick(4),
-    mMoodWalkingChance(0.3),
-    mImpatientAfter(6.0),
-    mProudSeconds(25.0),
-    mBoredAfter(20.0),
-    mAmbientAfter(3.0),
-    mSitAfter(45.0),
-    mLieAfter(100.0),
-    mLookRadius(12.0),
-    mInteractionChance(0.05),
-    mInteractionRadius(3.5),
-    mInteractionPause(5.0),
-    mTwoWeaponMode(1),
-    mTwoWeaponArmStrength(1.0),
-    mArrowFollowsHand(true),
-    mArrowPullDistance(0.12),
-    mArrowDrawTime(1.6),
-    mArrowRetakeGap(0.3),
-    mArrowReloadTime(0.45),
+    mMoodInterval(DEFAULT_MOOD_INTERVAL),
+    mMoodPerTick(DEFAULT_MOOD_PER_TICK),
+    mMoodWalkingChance(DEFAULT_MOOD_WALKING_CHANCE),
+    mImpatientAfter(DEFAULT_IMPATIENT_AFTER),
+    mProudSeconds(DEFAULT_PROUD_SECONDS),
+    mBoredAfter(DEFAULT_BORED_AFTER),
+    mAmbientAfter(DEFAULT_AMBIENT_AFTER),
+    mSitAfter(DEFAULT_SIT_AFTER),
+    mLieAfter(DEFAULT_LIE_AFTER),
+    mLookRadius(DEFAULT_LOOK_RADIUS),
+    mInteractionChance(DEFAULT_INTERACTION_CHANCE),
+    mInteractionRadius(DEFAULT_INTERACTION_RADIUS),
+    mInteractionPause(DEFAULT_INTERACTION_PAUSE),
+    mTwoWeaponMode(DEFAULT_TWO_WEAPON_MODE),
+    mTwoWeaponArmStrength(DEFAULT_TWO_WEAPON_ARM_STRENGTH),
+    mArrowFollowsHand(DEFAULT_ARROW_FOLLOWS_HAND),
+    mArrowPullDistance(DEFAULT_ARROW_PULL_DISTANCE),
+    mArrowDrawTime(DEFAULT_ARROW_DRAW_TIME),
+    mArrowRetakeGap(DEFAULT_ARROW_RETAKE_GAP),
+    mArrowReloadTime(DEFAULT_ARROW_RELOAD_TIME),
     mArrowHandOffset(Ogre::Vector3::ZERO),
-    mCrossbowReloadTime(1.1),
-    mCrossbowReloadJolt(5.0),
-    mWeaponTrail(true),
-    mWeaponTrailLife(0.25),
-    mWeaponTrailWidth(0.12),
-    mWeaponTrailLength(2.0),
-    mWeaponTrailRed(1.0),
-    mWeaponTrailGreen(0.93),
-    mWeaponTrailBlue(0.75),
-    mWeaponTrailBrightness(0.9),
-    mWeaponTrailMinShare(0.0),
-    mWeaponTrailMax(4),
+    mCrossbowReloadTime(DEFAULT_CROSSBOW_RELOAD_TIME),
+    mCrossbowReloadJolt(DEFAULT_CROSSBOW_RELOAD_JOLT),
+    mWeaponTrail(DEFAULT_WEAPON_TRAIL),
+    mWeaponTrailLife(DEFAULT_WEAPON_TRAIL_LIFE),
+    mWeaponTrailWidth(DEFAULT_WEAPON_TRAIL_WIDTH),
+    mWeaponTrailLength(DEFAULT_WEAPON_TRAIL_LENGTH),
+    mWeaponTrailRed(DEFAULT_WEAPON_TRAIL_RED),
+    mWeaponTrailGreen(DEFAULT_WEAPON_TRAIL_GREEN),
+    mWeaponTrailBlue(DEFAULT_WEAPON_TRAIL_BLUE),
+    mWeaponTrailBrightness(DEFAULT_WEAPON_TRAIL_BRIGHTNESS),
+    mWeaponTrailMinShare(DEFAULT_WEAPON_TRAIL_MIN_SHARE),
+    mWeaponTrailMax(DEFAULT_WEAPON_TRAIL_MAX),
     mDefaultGroup("Fighters")
 {
 }
