@@ -1,7 +1,7 @@
 OpenDungeons_Version:0.7.1  # The version of OpenDungeons which created this file (for compatibility reasons).
 [Info]
 Name	\[Test\] Creature showcase
-Description	One hall per room type and a line-up of every creature type, so that every type stands next to every room.
+Description	One hall per room type and a line-up of every creature type, for checking creature reactions and room effects.
 Music	Searching_yd.ogg
 FightMusic	TheDarkAmulet_MP.ogg
 Sandbox	1

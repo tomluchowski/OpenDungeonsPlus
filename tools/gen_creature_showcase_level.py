@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Writes levels/skirmish/TestCreatureShowcase.level (run from the repository root).
 
-A test map with one claimed 7x7 hall per room type
+A test map for the creature reactions and the room effects: one claimed 7x7 hall per room type
 (the portal takes 3x3 in the middle), corridors between them, and in every hall one creature of
 every creature type from config/creatures.cfg, so that every type stands next to every room.
 """
@@ -84,7 +84,7 @@ def main():
     out = []
     out.append("OpenDungeons_Version:0.7.1  # The version of OpenDungeons which created this file (for compatibility reasons).\n")
     out.append("[Info]\nName\t\\[Test\\] Creature showcase\n"
-               "Description\tOne hall per room type and a line-up of every creature type, so that every type stands next to every room.\n"
+               "Description\tOne hall per room type and a line-up of every creature type, for checking creature reactions and room effects.\n"
                "Music\tSearching_yd.ogg\nFightMusic\tTheDarkAmulet_MP.ogg\nSandbox\t1\n[/Info]\n")
     out.append("[Seats]\n[Seat]\nseatId\t1\nteamId\t1\nplayer\tHuman\nfaction\tKeeper\nstartingX\t%d\nstartingY\t%d\n"
                "colorId\t1\ngold\t5000\ngoldMined\t100\nmana\t100\n[SkillDone]\n%s\n[/SkillDone]\n[SkillNotAllowed]\n"
