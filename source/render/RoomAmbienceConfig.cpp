@@ -45,6 +45,8 @@ const uint32_t DEFAULT_MAX_FLIGHTS = 6;
 const double DEFAULT_OCCUPIED_RADIUS = 2.2;
 //! \brief Default factor that shortens the view distance of every effect in the mode reduced
 const double DEFAULT_REDUCED_DISTANCE_FACTOR = 0.55;
+//! \brief The smallest squared length of a motion axis that can still be normalised
+const float MIN_AXIS_SQUARED_LENGTH = 0.0001f;
 
 //! \brief Reads the next not empty line and splits it in words. Returns false at the end of the file
 bool readWords(std::istream& file, std::vector<std::string>& words)
@@ -386,7 +388,7 @@ bool RoomAmbienceConfig::loadEffect(std::istream& file)
         else if((key == "Axis") && (words.size() >= 4))
         {
             effect.mAxis = Ogre::Vector3(Helper::toFloat(words[1]), Helper::toFloat(words[2]), Helper::toFloat(words[3]));
-            if(effect.mAxis.squaredLength() > 0.0001f)
+            if(effect.mAxis.squaredLength() > MIN_AXIS_SQUARED_LENGTH)
                 effect.mAxis.normalise();
             else
                 effect.mAxis = Ogre::Vector3::UNIT_X;
