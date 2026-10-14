@@ -20,11 +20,23 @@
 
 #include "creatureaction/CreatureAction.h"
 
+class Tile;
+
 class CreatureActionFlee : public CreatureAction
 {
 public:
     CreatureActionFlee(Creature& creature) :
-        CreatureAction(creature)
+        CreatureAction(creature),
+        mFearTile(nullptr),
+        mFearTurns(0)
+    {}
+
+    //! \brief Flee from a scary tile (fear trap). The creature runs away from the tile
+    //! for nbTurns turns, even if no enemy is visible.
+    CreatureActionFlee(Creature& creature, Tile* fearTile, int32_t nbTurns) :
+        CreatureAction(creature),
+        mFearTile(fearTile),
+        mFearTurns(nbTurns)
     {}
 
     virtual ~CreatureActionFlee()
@@ -33,9 +45,20 @@ public:
     CreatureActionType getType() const override
     { return CreatureActionType::flee; }
 
+    //! \brief Returns the function that makes the creature run away, from the fear tile if there is one
     std::function<bool()> action() override;
 
+    //! \brief Runs the creature away from visible enemies for nbTurns turns
+    //! \return True when the flight is over and the action was removed, false while the creature keeps running
     static bool handleFlee(Creature& creature, int32_t nbTurns);
+
+    //! \brief Runs the creature away from the fear tile for fearTurns turns, even if no enemy is visible
+    //! \return True when the flight is over and the action was removed, false while the creature keeps running
+    static bool handleFear(Creature& creature, int32_t nbTurns, int32_t fearTurns, Tile* fearTile);
+
+private:
+    Tile* mFearTile;
+    int32_t mFearTurns;
 };
 
 #endif // CREATUREACTIONFLEE_H
