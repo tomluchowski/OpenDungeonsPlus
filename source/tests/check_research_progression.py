@@ -5,7 +5,6 @@ World/UI services are fixtures; research methods and wire codec are production c
 """
 from pathlib import Path
 import os
-import re
 import subprocess
 import tempfile
 
@@ -47,12 +46,10 @@ decode = function(client, "case ServerNotificationType::skillsDone:")
 decode = decode[decode.index("{") + 1:-1].replace("            break;", "            return true;")
 request = function(server, "case ClientNotificationType::askSetSkillTree:")
 request = request[request.index("{") + 1:-1].replace("            break;", "            return true;")
-# Number of researchable skills this branch registers in the catalog: every "resType = SkillType::x"
-# in the SkillManager constructor, minus the reward skills that cannot be researched.
-type_source = (root / "source/game/SkillType.cpp").read_text(encoding="utf-8")
-reward_skills = set(re.findall(r"type == SkillType::(\w+)", function(type_source, "bool isRewardSkill(")))
-registered_skills = set(re.findall(r"resType = SkillType::(\w+)", function(manager, "SkillManager::SkillManager()")))
-nb_research = len(registered_skills - reward_skills)
+# Fixed number of researchable skills this branch registers in the catalog: the SkillManager constructor
+# registers 45 skills and one of them (Summon champion) is a reward skill, so 44 can be researched.
+# Update it by hand when a branch adds or removes a researchable skill.
+nb_research = 44
 
 probe = r'''
 #include "game/Skill.h"
