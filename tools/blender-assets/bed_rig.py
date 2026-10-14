@@ -25,7 +25,7 @@ import wake_preview as wp
 # vertices are taken from the large horizontal faces); lift: scale of the throw; mode: "center" = weights fall off from the middle outwards, "rim" = the ring of posts moves (palisade bed)
 CONFIG = {
     "Bed": {"mats": ["Blanket"]},
-    "ImpBed": {"mats": ["ImpBedBlanket"]},
+    "WorkerBed": {"mats": ["WorkerBedBlanket"]},
     "SpiderBed": {"mats": ["SpiderBedSilk"], "lift": 0.45},
     "AdventurerBed": {"style": "pad"},
     "GoblinBed": {"style": "pad"},
