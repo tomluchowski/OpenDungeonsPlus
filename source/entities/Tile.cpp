@@ -158,6 +158,11 @@ bool Tile::isDiggable(const Seat* seat) const
             break;
     }
 
+    // The client knows nothing about a tile it has never seen: it is an unexplored wall that can be marked.
+    // The server decides with its own state whether the mark is accepted.
+    if(mTileVisual == TileVisual::nullTileVisual && !mEverVisible && !getGameMap()->isServerGameMap())
+        return true;
+
     // Should be claimed tile
     if(mTileVisual != TileVisual::claimedFull)
     {
@@ -480,7 +485,11 @@ void Tile::setMarkedForDigging(bool ss, const Player *pp)
     /* If we are trying to mark a tile that is not dirt or gold
      * or is already dug out, ignore the request.
      */
-    if (ss && !isDiggable(pp->getSeat()))
+    const bool unexplored = pp->getIsHuman() &&
+        (getGameMap()->isServerGameMap() ?
+            !getGameMap()->everVisitedFlagPool[getX()][getY()][pp->getSeat()->getId()] :
+            (!getEverVisible() || getHasFogOfWar()));
+    if (ss && !unexplored && !isDiggable(pp->getSeat()))
         return;
 
     // If the tile was already in the given state, we can return
@@ -509,6 +518,7 @@ bool Tile::isMarkedForDiggingByAnySeat()
 void Tile::addPlayerMarkingTile(const Player *p)
 {
     mPlayersMarkingTile.push_back(p);
+    fireTileStateChanged();
 }
 
 void Tile::removePlayerMarkingTile(const Player *p)
@@ -518,6 +528,7 @@ void Tile::removePlayerMarkingTile(const Player *p)
         return;
 
     mPlayersMarkingTile.erase(it);
+    fireTileStateChanged();
 }
 
 void Tile::addNeighbor(Tile *n)
@@ -2448,6 +2459,7 @@ Creature* Tile::getClosestCreature(SelectionEntityWanted se)
 
 void Tile::setLocalPlayerHasVision(bool localPlayerHasVision)
 {
+    const bool visionChanged = mLocalPlayerHasVision != localPlayerHasVision;
     bool mEverVisibleOld = mEverVisible;
     
     mEverVisible = mEverVisible || localPlayerHasVision;
@@ -2464,7 +2476,8 @@ void Tile::setLocalPlayerHasVision(bool localPlayerHasVision)
     }
 
     mLocalPlayerHasVision = localPlayerHasVision;
-
+    if(visionChanged)
+        fireTileStateChanged();
 }
 
 

@@ -30,6 +30,8 @@
 #include "spells/SpellType.h"
 #include "spells/SpellManager.h"
 #include "utils/ConfigManager.h"
+#include "game/SkillManager.h"
+#include "game/SkillType.h"
 #include "utils/Helper.h"
 #include "utils/LogManager.h"
 
@@ -76,30 +78,22 @@ void SpellSummonWorker::checkSpellCast(GameMap* gameMap, const InputManager& inp
     Player* player = gameMap->getLocalPlayer();
     int32_t playerMana = static_cast<int32_t>(player->getSeat()->getMana());
 
-    if(inputManager.mCommandState == InputCommandState::infoOnly)
-    {
-        int32_t price = getNextWorkerPriceForPlayer(gameMap, player);
-        if(playerMana < price)
-        {
-            std::string txt = formatCastSpell(SpellType::summonWorker, price);
-            inputCommand.displayText(Ogre::ColourValue::Red, txt);
-        }
-        else
-        {
-            std::string txt = formatCastSpell(SpellType::summonWorker, price);
-            inputCommand.displayText(Ogre::ColourValue::White, txt);
-        }
-        inputCommand.selectSquaredTiles(inputManager.mXPos, inputManager.mYPos, inputManager.mXPos, inputManager.mYPos);
-        return;
-    }
-
     std::vector<GameEntity*> targets;
     gameMap->playerSelects(targets, inputManager.mXPos, inputManager.mYPos, inputManager.mLStartDragX,
         inputManager.mLStartDragY, SelectionTileAllowed::groundClaimedAllied, SelectionEntityWanted::tiles, player);
 
+    if(targets.empty())
+    {
+        inputCommand.unselectAllTiles();
+        inputCommand.displayText(Ogre::ColourValue::Red, "Summon workers on your claimed ground.");
+        return;
+    }
+
     int32_t nbFreeWorkers = ConfigManager::getSingleton().getSpellConfigInt32("SummonWorkerNbFree");
     int32_t nbWorkers = player->getSeat()->getNumCreaturesWorkers();
-    int32_t pricePerWorker = ConfigManager::getSingleton().getSpellConfigInt32("SummonWorkerBasePrice");
+    int32_t pricePerWorker = static_cast<int32_t>(std::round(SkillManager::getResearchValue(
+        player->getSeat(), SkillType::spellSummonWorker,
+        ConfigManager::getSingleton().getSpellConfigInt32("SummonWorkerBasePrice"))));
     if(nbWorkers > nbFreeWorkers)
         pricePerWorker *= std::pow(2, nbWorkers - nbFreeWorkers);
 
@@ -136,10 +130,17 @@ void SpellSummonWorker::checkSpellCast(GameMap* gameMap, const InputManager& inp
         pricePerWorker *= 2;
     }
 
-    if(inputManager.mCommandState == InputCommandState::building)
+    if(tiles.empty())
     {
-        std::string txt = formatCastSpell(SpellType::summonWorker, priceTotal);
-        inputCommand.displayText(Ogre::ColourValue::White, txt);
+        inputCommand.unselectAllTiles();
+        inputCommand.displayText(Ogre::ColourValue::Red, "Not enough mana. " +
+            formatCastSpell(SpellType::summonWorker, getNextWorkerPriceForPlayer(gameMap, player)));
+        return;
+    }
+    inputCommand.displayText(Ogre::ColourValue::White, formatCastSpell(SpellType::summonWorker, priceTotal));
+
+    if(inputManager.mCommandState != InputCommandState::validated)
+    {
         inputCommand.selectTiles(tiles);
         return;
     }
@@ -189,7 +190,9 @@ bool SpellSummonWorker::summonWorkersOnTiles(GameMap* gameMap, Player* player, c
 
     int32_t nbFreeWorkers = ConfigManager::getSingleton().getSpellConfigInt32("SummonWorkerNbFree");
     int32_t nbWorkers = player->getSeat()->getNumCreaturesWorkers();
-    int32_t pricePerWorker = ConfigManager::getSingleton().getSpellConfigInt32("SummonWorkerBasePrice");
+    int32_t pricePerWorker = static_cast<int32_t>(std::round(SkillManager::getResearchValue(
+        player->getSeat(), SkillType::spellSummonWorker,
+        ConfigManager::getSingleton().getSpellConfigInt32("SummonWorkerBasePrice"))));
     if(nbWorkers > nbFreeWorkers)
         pricePerWorker *= std::pow(2, nbWorkers - nbFreeWorkers);
 
@@ -243,7 +246,9 @@ int32_t SpellSummonWorker::getNextWorkerPriceForPlayer(GameMap* gameMap, Player*
     if(nbWorkers < nbFreeWorkers)
         return 0;
 
-    int32_t price = ConfigManager::getSingleton().getSpellConfigInt32("SummonWorkerBasePrice");
+    int32_t price = static_cast<int32_t>(std::round(SkillManager::getResearchValue(
+        player->getSeat(), SkillType::spellSummonWorker,
+        ConfigManager::getSingleton().getSpellConfigInt32("SummonWorkerBasePrice"))));
     price *= std::pow(2, nbWorkers - nbFreeWorkers);
 
     return price;
