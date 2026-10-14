@@ -40,10 +40,12 @@ enum class WallTorchSide
  */
 struct WallTorchSpot
 {
+    //! \brief Creates a spot on the tile (0, 0) facing north
     WallTorchSpot() :
         mX(0), mY(0), mSide(WallTorchSide::north)
     {}
 
+    //! \brief Creates a spot for the wall tile (x, y) whose torch faces the given side
     WallTorchSpot(int32_t x, int32_t y, WallTorchSide side) :
         mX(x), mY(y), mSide(side)
     {}

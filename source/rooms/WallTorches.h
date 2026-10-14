@@ -37,6 +37,7 @@ struct WallTorch
 //! \brief What the placement needs to know about one tile. The server fills it from the map.
 struct WallTorchTileInfo
 {
+    //! \brief Creates the info of a tile that is neither a wall nor part of a room nor open
     WallTorchTileInfo() :
         mWallSeatId(-1),
         mWallTeamId(-1),

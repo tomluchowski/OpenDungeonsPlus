@@ -53,6 +53,12 @@ const double ALWAYS_SHOWN_DISTANCE = 3.0;
 const double LIGHT_DISTANCE = 30.0;
 //! Distance from the middle of the wall tile to the surface of the wall
 const double WALL_SURFACE_OFFSET = 0.55;
+//! Seed of the random numbers that give every torch its own flicker phase
+const uint32_t RANDOM_SEED = 54321;
+//! A torch that moved less than this (in tiles) counts as the same torch and is kept
+const float SAME_POSITION_DISTANCE = 0.01f;
+//! Rate of the second sine wave of the flicker, relative to the first one (same value as in the room ambience)
+const double FLICKER_SECOND_WAVE_RATE = 1.7;
 //! How far in front of the wall the light hangs and how high
 const double LIGHT_FRONT_OFFSET = 0.3;
 const double LIGHT_HEIGHT = 1.6;
@@ -78,7 +84,7 @@ const double MODEL_HEIGHT = 0.85;
 const double FLAME_WALL_OFFSET = 0.194;
 
 //! The parts of a torch: bracket, flame, smoke
-const uint32_t NB_PARTS = 3;
+const uint32_t NB_PARTS = WallTorchView::NB_TORCH_PARTS;
 const char* const PART_SYSTEMS[NB_PARTS] = {"RoomAmbTorchBracket", "RoomAmbTorchFlame", "RoomAmbTorchSmoke"};
 const double PART_HEIGHTS[NB_PARTS] = {1.25, 1.4, 1.4};
 const double PART_DISTANCES[NB_PARTS] = {16.0, 16.0, 12.0};
@@ -88,16 +94,19 @@ const uint32_t NB_REDUCED_PARTS = 2;
 const double PART_FLICKER_FACTORS[NB_PARTS] = {0.0, 1.0, 0.0};
 const double PART_SPEED_FACTORS[NB_PARTS] = {0.0, 1.0, 0.0};
 
+//! \brief Packs the tile coordinates of a wall into one number that identifies the torch
 uint64_t makeKey(int32_t x, int32_t y)
 {
     return (static_cast<uint64_t>(static_cast<uint32_t>(x)) << 32) | static_cast<uint64_t>(static_cast<uint32_t>(y));
 }
 
+//! \brief Returns the key of a torch as text (x_y), used to name its scene nodes and lights
 std::string keyToString(uint64_t key)
 {
     return Helper::toString(key >> 32) + "_" + Helper::toString(key & 0xFFFFFFFFu);
 }
 
+//! \brief Returns the horizontal unit vector that points from the wall out of the given side
 Ogre::Vector3 sideToDirection(WallTorchSide side)
 {
     switch(side)
@@ -116,10 +125,12 @@ Ogre::Vector3 sideToDirection(WallTorchSide side)
 //! Sorts indices by the distance stored for them
 struct NearerTorch
 {
+    //! \brief Creates the comparison for the given distances (indexed like the sorted indices)
     NearerTorch(const std::vector<double>& distances) :
         mDistances(distances)
     {}
 
+    //! \brief Returns true if the torch with index a is nearer to the camera than the one with index b
     bool operator()(uint32_t a, uint32_t b) const
     { return mDistances[a] < mDistances[b]; }
 
@@ -128,6 +139,7 @@ struct NearerTorch
 
 } // namespace
 
+//! \brief Creates the view without any torch; the settings are read when the first torches arrive
 WallTorchView::WallTorchView() :
     mSettingsLoaded(false),
     mClock(0.0),
@@ -135,7 +147,7 @@ WallTorchView::WallTorchView() :
     mUniqueNumber(0),
     mNbLights(0),
     mLastMode(Mode::full),
-    mRandom(54321)
+    mRandom(RANDOM_SEED)
 {
 }
 
@@ -197,7 +209,7 @@ void WallTorchView::setSpots(const std::vector<WallTorchSpot>& spots)
         std::map<uint64_t, Torch>::iterator it = mTorches.find(key);
         if(it != mTorches.end())
         {
-            if((it->second.mPosition - position).length() < 0.01f)
+            if((it->second.mPosition - position).length() < SAME_POSITION_DISTANCE)
             {
                 kept.insert(std::make_pair(key, it->second));
                 mTorches.erase(it);
@@ -503,7 +515,7 @@ void WallTorchView::animate()
                 continue;
 
             double rate = TWO_PI * mSettings.mFlickerSpeed * PART_SPEED_FACTORS[i] * mClock;
-            double noise = 0.5 * (std::sin(rate + torch.mPhase) + std::sin(1.7 * rate + 2.0 * torch.mPhase));
+            double noise = 0.5 * (std::sin(rate + torch.mPhase) + std::sin(FLICKER_SECOND_WAVE_RATE * rate + 2.0 * torch.mPhase));
             double factor = 1.0 + mSettings.mFlickerStrength * PART_FLICKER_FACTORS[i] * noise;
             part.mSystem->setDefaultDimensions(static_cast<Ogre::Real>(part.mBaseWidth * factor),
                 static_cast<Ogre::Real>(part.mBaseHeight * factor));
@@ -512,7 +524,7 @@ void WallTorchView::animate()
         if(torch.mLight != nullptr)
         {
             double rate = TWO_PI * mSettings.mFlickerSpeed * mClock;
-            double noise = 0.5 * (std::sin(rate + torch.mPhase) + std::sin(1.7 * rate + 2.0 * torch.mPhase));
+            double noise = 0.5 * (std::sin(rate + torch.mPhase) + std::sin(FLICKER_SECOND_WAVE_RATE * rate + 2.0 * torch.mPhase));
             double factor = mSettings.mIntensity * std::max(0.0, 1.0 + mSettings.mFlickerStrength * noise);
             torch.mLight->setDiffuseColour(Ogre::ColourValue(static_cast<float>(mSettings.mColourR * factor),
                 static_cast<float>(mSettings.mColourG * factor), static_cast<float>(mSettings.mColourB * factor)));

@@ -48,6 +48,10 @@ public:
         off
     };
 
+    //! The parts of a torch: bracket, flame, smoke
+    static const uint32_t NB_TORCH_PARTS = 3;
+
+    //! \brief Creates the view without any torch; the settings are read when the first torches arrive
     WallTorchView();
 
     //! \brief Replaces the shown torches by the given list
@@ -66,6 +70,7 @@ public:
 private:
     struct Part
     {
+        //! \brief Creates a part that has no scene node, particle system or model yet
         Part() :
             mNode(nullptr), mSystem(nullptr), mEntity(nullptr), mBaseWidth(1.0), mBaseHeight(1.0)
         {}
@@ -80,6 +85,7 @@ private:
 
     struct Torch
     {
+        //! \brief Creates a torch that is not shown and has no parts, light or sound yet
         Torch() :
             mPosition(Ogre::Vector3::ZERO), mDirection(Ogre::Vector3::ZERO), mLightPosition(Ogre::Vector3::ZERO), mPhase(0.0), mDistance(0.0), mShown(false),
             mLightNode(nullptr), mLight(nullptr), mSoundHandle(0)
@@ -95,7 +101,7 @@ private:
         double mDistance;
         bool mShown;
         //! Bracket, flame, smoke (an unused part has no node)
-        Part mParts[3];
+        Part mParts[NB_TORCH_PARTS];
         Ogre::SceneNode* mLightNode;
         Ogre::Light* mLight;
         //! Handle of the running crackling loop, 0 if none

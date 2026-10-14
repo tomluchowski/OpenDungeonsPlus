@@ -65,9 +65,13 @@ void splitRuns(const std::vector<TilePos>& ordered, int32_t dir, std::vector<Til
     }
 }
 
+//! \brief Collects the torches of one map: it walks the tiles, looks for walls that may carry a torch and
+//! appends the chosen torches to the output list
 class WallTorchPlacer
 {
 public:
+    //! \brief Creates the placer for a map of sizeX * sizeY tiles (tiles are stored row by row). The chosen
+    //! torches are appended to out
     WallTorchPlacer(int32_t sizeX, int32_t sizeY, const std::vector<WallTorchTileInfo>& tiles,
             const WallTorchPlacement& placement, std::vector<WallTorch>& out) :
         mSizeX(sizeX),
@@ -77,13 +81,17 @@ public:
         mOut(out)
     {}
 
+    //! \brief Places the torches on the walls around the rooms, side by side of every room
     void placeRooms();
+    //! \brief Places the torches on the walls of the straight runs outside of rooms
     void placeCorridors();
 
 private:
+    //! \brief Returns the info of the tile, nullptr if the position is outside of the map
     const WallTorchTileInfo* getTile(int32_t x, int32_t y) const;
     //! Tells whether a torch may hang on the wall behind the open tile front when it faces dir
     bool canHang(const TilePos& front, int32_t dir) const;
+    //! \brief Tells whether the wall tile is at least the minimum distance away from every torch placed so far
     bool isFarEnough(int32_t x, int32_t y) const;
     //! Tries the wanted index of the run first, then alternately the next ones to the right and to the left
     void placeNear(const TileRun& run, int32_t dir, uint32_t wanted);
