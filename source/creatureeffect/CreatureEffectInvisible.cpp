@@ -24,11 +24,14 @@ static const std::string CreatureEffectInvisibleName = "Invisible";
 
 namespace
 {
+//! \brief Creates invisible effects when the configuration names "Invisible"
 class CreatureEffectInvisibleFactory : public CreatureEffectFactory
 {
+    //! \brief Creates an empty invisible effect
     CreatureEffect* createCreatureEffect() const override
     { return new CreatureEffectInvisible; }
 
+    //! \brief The effect name used in the configuration
     const std::string& getCreatureEffectName() const override
     {
         return CreatureEffectInvisibleName;

@@ -25,11 +25,14 @@ const std::string CreatureSkillGuidedBoltName = "GuidedBolt";
 
 namespace
 {
+//! \brief Creates guided bolt skills when the configuration names "GuidedBolt"
 class CreatureSkillGuidedBoltFactory : public CreatureSkillFactory
 {
+    //! \brief Creates an empty guided bolt skill
     CreatureSkill* createCreatureSkill() const override
     { return new CreatureSkillGuidedBolt; }
 
+    //! \brief The skill name used in the configuration
     const std::string& getCreatureSkillName() const override
     { return CreatureSkillGuidedBoltName; }
 };
