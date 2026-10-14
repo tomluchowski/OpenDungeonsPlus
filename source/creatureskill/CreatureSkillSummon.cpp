@@ -27,6 +27,9 @@
 #include "utils/ConfigManager.h"
 #include "utils/LogManager.h"
 
+//! \brief Number of turns the summon particle effect stays on a summoned creature
+static const int32_t SUMMON_EFFECT_NB_TURNS = 3;
+
 namespace CreatureSkillSummon
 {
 Creature* summonTemporaryCreature(GameMap& gameMap, const Creature& caster, const std::string& creatureClass,
@@ -48,7 +51,7 @@ Creature* summonTemporaryCreature(GameMap& gameMap, const Creature& caster, cons
                                 static_cast<Ogre::Real>(tile->getY()),
                                 static_cast<Ogre::Real>(0.0));
     // There is no dedicated summon effect yet, the one of the Summon worker spell is used as a placeholder
-    summoned->addParticleEffect("SummonWorker", 3);
+    summoned->addParticleEffect("SummonWorker", SUMMON_EFFECT_NB_TURNS);
     summoned->createMesh();
     summoned->setPosition(spawnPosition);
     summoned->addCreatureEffect(new CreatureEffectTemporary(nbTurns));
