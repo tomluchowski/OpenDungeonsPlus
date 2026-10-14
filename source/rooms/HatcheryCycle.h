@@ -24,6 +24,7 @@
 //! \brief Timings and limits of the chicken life cycle of a hatchery, in game turns.
 struct HatcheryCycleSettings
 {
+    //! \brief Sets the built-in default timings and limits of the chicken life cycle.
     HatcheryCycleSettings() :
         mLayMin(3),
         mLayMax(7),
@@ -76,6 +77,7 @@ struct HatcheryCycleSettings
 //! \brief How well the keeper looks after a hatchery.
 struct HatcheryCare
 {
+    //! \brief Starts with no care at all: not claimed, not lit, no enemies.
     HatcheryCare() :
         mClaimed(false),
         mLit(false),
@@ -93,6 +95,7 @@ struct HatcheryCare
 //! \brief Number of animals of a hatchery per kind.
 struct HatcheryCounts
 {
+    //! \brief Starts with zero hens, chicks, eggs and roosters.
     HatcheryCounts() :
         mHens(0),
         mChicks(0),
