@@ -757,14 +757,14 @@ public:
 
     void stopWalking();
 
-    //! brief Server side. Moves the creature to the given tile at once, without walking, and tells the
+    //! \brief Server side. Moves the creature to the given tile at once, without walking, and tells the
     //! players that see it. The creature stops walking, its actions are left as they are
     void teleportTo(Tile* tile);
 
-    //! brief Server side. Returns the tile the creature is walking to, nullptr if it does not walk
+    //! \brief Server side. Returns the tile the creature is walking to, nullptr if it does not walk
     Tile* getWalkDestinationTile() const;
 
-    //! brief Server side. Takes the dead body of this creature so it cannot be used again (Raise Dead).
+    //! \brief Server side. Takes the dead body of this creature so it cannot be used again (Raise Dead).
     //! Returns false if the creature is not a body that is still lying on the map or if it is a worker
     bool takeCorpse();
     

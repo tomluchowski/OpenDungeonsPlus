@@ -26,11 +26,14 @@ static const std::string CreatureEffectTemporaryName = "Temporary";
 
 namespace
 {
+//! \brief Creates temporary effects when a saved effect is named "Temporary"
 class CreatureEffectTemporaryFactory : public CreatureEffectFactory
 {
+    //! \brief Creates an empty temporary effect
     CreatureEffect* createCreatureEffect() const override
     { return new CreatureEffectTemporary; }
 
+    //! \brief The effect name used in saved data
     const std::string& getCreatureEffectName() const override
     {
         return CreatureEffectTemporaryName;

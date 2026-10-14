@@ -32,11 +32,14 @@ const std::string CreatureSkillSkeletonArmyName = "SkeletonArmy";
 
 namespace
 {
+//! \brief Creates Skeleton Army skills when the configuration names "SkeletonArmy"
 class CreatureSkillSkeletonArmyFactory : public CreatureSkillFactory
 {
+    //! \brief Creates an empty Skeleton Army skill
     CreatureSkill* createCreatureSkill() const override
     { return new CreatureSkillSkeletonArmy; }
 
+    //! \brief The skill name used in the configuration
     const std::string& getCreatureSkillName() const override
     { return CreatureSkillSkeletonArmyName; }
 };
