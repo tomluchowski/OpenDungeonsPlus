@@ -27,6 +27,25 @@
 namespace
 {
 
+//! \brief Default seconds between two scans of the visible rooms and objects
+const double DEFAULT_SCAN_INTERVAL = 0.4;
+//! \brief Default limit of looping particle systems running at once
+const uint32_t DEFAULT_MAX_PARTICLES = 48;
+//! \brief Default limit of looping particle systems running at once in the mode reduced
+const uint32_t DEFAULT_MAX_PARTICLES_REDUCED = 10;
+//! \brief Default limit of objects moved by motions at once
+const uint32_t DEFAULT_MAX_MOTIONS = 40;
+//! \brief Default limit of one-shot particle systems running at once
+const uint32_t DEFAULT_MAX_ONE_SHOTS = 8;
+//! \brief Default limit of ground marks that may be on the floor at once
+const uint32_t DEFAULT_MAX_MARKS = 6;
+//! \brief Default limit of bolts and flying objects that may be on their way at once
+const uint32_t DEFAULT_MAX_FLIGHTS = 6;
+//! \brief Default distance in tiles within which a creature counts as close to an object or tile
+const double DEFAULT_OCCUPIED_RADIUS = 2.2;
+//! \brief Default factor that shortens the view distance of every effect in the mode reduced
+const double DEFAULT_REDUCED_DISTANCE_FACTOR = 0.55;
+
 //! \brief Reads the next not empty line and splits it in words. Returns false at the end of the file
 bool readWords(std::istream& file, std::vector<std::string>& words)
 {
@@ -52,15 +71,15 @@ bool toBool(const std::string& text)
 } // namespace
 
 RoomAmbienceConfig::RoomAmbienceConfig() :
-    mScanInterval(0.4),
-    mMaxParticles(48),
-    mMaxParticlesReduced(10),
-    mMaxMotions(40),
-    mMaxOneShots(8),
-    mMaxMarks(6),
-    mMaxFlights(6),
-    mOccupiedRadius(2.2),
-    mReducedDistanceFactor(0.55)
+    mScanInterval(DEFAULT_SCAN_INTERVAL),
+    mMaxParticles(DEFAULT_MAX_PARTICLES),
+    mMaxParticlesReduced(DEFAULT_MAX_PARTICLES_REDUCED),
+    mMaxMotions(DEFAULT_MAX_MOTIONS),
+    mMaxOneShots(DEFAULT_MAX_ONE_SHOTS),
+    mMaxMarks(DEFAULT_MAX_MARKS),
+    mMaxFlights(DEFAULT_MAX_FLIGHTS),
+    mOccupiedRadius(DEFAULT_OCCUPIED_RADIUS),
+    mReducedDistanceFactor(DEFAULT_REDUCED_DISTANCE_FACTOR)
 {
 }
 
