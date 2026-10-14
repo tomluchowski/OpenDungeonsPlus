@@ -30,11 +30,14 @@ const std::string CreatureSkillInvisibleName = "Invisible";
 
 namespace
 {
+//! \brief Creates invisible skills when the configuration names "Invisible"
 class CreatureSkillInvisibleFactory : public CreatureSkillFactory
 {
+    //! \brief Creates an empty invisible skill
     CreatureSkill* createCreatureSkill() const override
     { return new CreatureSkillInvisible; }
 
+    //! \brief The skill name used in the configuration
     const std::string& getCreatureSkillName() const override
     { return CreatureSkillInvisibleName; }
 };
