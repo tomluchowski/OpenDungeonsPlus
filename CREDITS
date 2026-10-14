@@ -677,6 +677,7 @@ materials/scripts/DoorTypes.material   OD Team                 GPLv3+
 tools/gen_door_textures.py             OD Team                 GPLv3+
 tools/blender-assets/door_meshes.py    OD Team                 GPLv3+
 tools/blender-assets/door_skeletons.py OD Team                 GPLv3+
+tools/blender-assets/door_blend_sync.py OD Team                GPLv3+
 
 =============================================================
 ==  Own trap models                                        ==
