@@ -55,6 +55,36 @@ static const float pourClimbEnd = 0.3f;
 static const float pourDescendStart = 0.85f;
 //! Clip time kept free at the end of a clip so that it never counts as ended before the phase changes
 static const float pourClipMargin = 0.1f;
+//! \brief Extra height in tiles per pile level that a pouring worker climbs above the gold surface.
+static const float pourRiseHeightPerLevel = 0.035f;
+//! \brief Share of the pour time (0..1) at which the worker has tipped over the heap completely.
+static const float pourTipEnd = 0.5f;
+//! \brief Forward lean in radians of a worker that tips over the heap (negative leans forward).
+static const float pourTipLean = -0.5f;
+//! \brief Full circle in radians, used for the rocking and the swaying while pouring.
+static const float pourFullCircle = 6.2831853f;
+//! \brief Number of rocking swings of a pouring worker while the coins run out.
+static const float pourRockCycles = 3.0f;
+//! \brief Size in radians of the rocking of a pouring worker.
+static const float pourRockAmplitude = 0.07f;
+//! \brief Share of the pour time (0..1) at which the rocking starts and at which it has built up fully.
+static const float pourRockStart = 0.45f;
+static const float pourRockFull = 0.55f;
+//! \brief Share of the pour time (0..1) at which the rocking starts to fade and at which it has faded out.
+static const float pourRockFadeStart = 0.8f;
+static const float pourRockFadeEnd = 0.9f;
+//! \brief Number of swings of the sideways sway while the worker climbs.
+static const float pourSwayCycles = 6.0f;
+//! \brief Size in radians of the sideways sway while the worker climbs.
+static const float pourSwayAmplitude = 0.12f;
+//! \brief Share of the pour time (0..1) at which the sway of the climb up has built up fully.
+static const float pourSwayUpEnd = 0.1f;
+//! \brief Share of the pour time (0..1) at which the sway of the climb up has faded out.
+static const float pourSwayUpFadeEnd = 0.4f;
+//! \brief Share of the pour time (0..1) at which the sway of the climb down has built up fully.
+static const float pourSwayDownEnd = 0.9f;
+//! \brief Share of the pour time (0..1) at which the sway of the climb down starts to fade.
+static const float pourSwayDownFadeStart = 0.97f;
 
 //! A smooth ramp from 0 at edgeStart to 1 at edgeEnd (cubic, flat at both ends)
 inline float smoothStep(float edgeStart, float edgeEnd, float t)
@@ -71,9 +101,9 @@ inline float smoothStep(float edgeStart, float edgeEnd, float t)
 //! top of the heap, held while pouring, then down again. Higher piles are climbed higher.
 inline float pourRise(float t, int level)
 {
-    const float amplitude = 0.035f * static_cast<float>(level < 0 ? 0 : level);
+    const float amplitude = pourRiseHeightPerLevel * static_cast<float>(level < 0 ? 0 : level);
     const float progress = t / pourDuration;
-    return amplitude * (smoothStep(0.0f, 0.3f, progress) - smoothStep(0.85f, 1.0f, progress));
+    return amplitude * (smoothStep(0.0f, pourClimbEnd, progress) - smoothStep(pourDescendStart, 1.0f, progress));
 }
 
 //! Forward lean (radians, negative leans forward) of a pouring worker: tips over the heap, rocks a little
@@ -81,19 +111,20 @@ inline float pourRise(float t, int level)
 inline float pourLean(float t)
 {
     const float progress = t / pourDuration;
-    const float tip = smoothStep(0.3f, 0.5f, progress) - smoothStep(0.85f, 1.0f, progress);
-    const float rock = std::sin(progress * 6.2831853f * 3.0f) * 0.07f * smoothStep(0.45f, 0.55f, progress)
-        * (1.0f - smoothStep(0.8f, 0.9f, progress));
-    return -0.5f * tip + rock;
+    const float tip = smoothStep(pourClimbEnd, pourTipEnd, progress) - smoothStep(pourDescendStart, 1.0f, progress);
+    const float rock = std::sin(progress * pourFullCircle * pourRockCycles) * pourRockAmplitude
+        * smoothStep(pourRockStart, pourRockFull, progress)
+        * (1.0f - smoothStep(pourRockFadeStart, pourRockFadeEnd, progress));
+    return pourTipLean * tip + rock;
 }
 
 //! Sideways sway (radians) of the climb: the worker wobbles while it scrambles up and down the heap
 inline float pourSway(float t)
 {
     const float progress = t / pourDuration;
-    const float climbing = smoothStep(0.0f, 0.1f, progress) * (1.0f - smoothStep(0.3f, 0.4f, progress))
-        + smoothStep(0.85f, 0.9f, progress) * (1.0f - smoothStep(0.97f, 1.0f, progress));
-    return std::sin(progress * 6.2831853f * 6.0f) * 0.12f * climbing;
+    const float climbing = smoothStep(0.0f, pourSwayUpEnd, progress) * (1.0f - smoothStep(pourClimbEnd, pourSwayUpFadeEnd, progress))
+        + smoothStep(pourDescendStart, pourSwayDownEnd, progress) * (1.0f - smoothStep(pourSwayDownFadeStart, 1.0f, progress));
+    return std::sin(progress * pourFullCircle * pourSwayCycles) * pourSwayAmplitude * climbing;
 }
 
 //! Phase of the delivery clip at time t (seconds): 0 climb up, 1 pour, 2 climb down (the climb clip backwards)

@@ -88,6 +88,20 @@ struct PileShape
 
 static const int variantCount = 4;
 static const char* const meshNamePrefix = "TreasuryGold_";
+//! \brief Number of characters after the prefix of a pile mesh name: level, '_', four corners, '_' and the variant.
+static const size_t meshNameSuffixLength = 8;
+//! \brief Number of characters after the prefix of a ring pile mesh name (the suffix and the 'R' of the ring).
+static const size_t ringMeshNameSuffixLength = 9;
+//! \brief Factor of the x coordinate of a tile that picks the lumpy variant of a pile, so neighbouring piles differ.
+static const int variantHashX = 7;
+//! \brief Factor of the y coordinate of a tile that picks the lumpy variant of a pile, so neighbouring piles differ.
+static const int variantHashY = 13;
+//! \brief Fill step of the pile that the classic stack "GoldstackLv1" stands for.
+static const int classicStackLevel1 = 2;
+//! \brief Fill step of the pile that the classic stack "GoldstackLv2" stands for.
+static const int classicStackLevel2 = 4;
+//! \brief Fill step of the pile that the classic stack "GoldstackLv3" stands for.
+static const int classicStackLevel3 = 6;
 
 //! Mesh name of a pile shape, e.g. "TreasuryGold_5_5577_2"
 inline std::string meshName(const PileShape& shape)
@@ -110,8 +124,8 @@ inline bool parseMeshName(const std::string& name, PileShape& shape)
     const std::string prefix = meshNamePrefix;
     // prefix + level + '_' + four corners + '_' + variant
     // A ring pile has an 'R' after the variant
-    const bool ring = name.size() == prefix.size() + 9 && name[name.size() - 1] == 'R';
-    if((name.size() != prefix.size() + 8 && !ring) || name.compare(0, prefix.size(), prefix) != 0)
+    const bool ring = name.size() == prefix.size() + ringMeshNameSuffixLength && name[name.size() - 1] == 'R';
+    if((name.size() != prefix.size() + meshNameSuffixLength && !ring) || name.compare(0, prefix.size(), prefix) != 0)
         return false;
     const char* text = name.c_str() + prefix.size();
     if(text[1] != '_' || text[6] != '_')
@@ -139,7 +153,7 @@ inline PileShape ringPileShape(int x, int y, const int (&around)[3][3])
 {
     PileShape shape;
     shape.mLevel = around[1][1];
-    shape.mVariant = (x * 7 + y * 13) % variantCount;
+    shape.mVariant = (x * variantHashX + y * variantHashY) % variantCount;
     shape.mRing = true;
     // North is towards +y: north, east, south, west
     const int sideX[4] = {0, 1, 0, -1};
@@ -293,11 +307,11 @@ inline int levelForClassicName(const std::string& name)
     switch(name[prefix.size()])
     {
         case '1':
-            return 2;
+            return classicStackLevel1;
         case '2':
-            return 4;
+            return classicStackLevel2;
         case '3':
-            return 6;
+            return classicStackLevel3;
         case '4':
             return maxLevel;
         default:

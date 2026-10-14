@@ -2556,7 +2556,8 @@ void RenderManager::startTreasuryPileChange(Ogre::SceneNode* node, const std::st
 
     // Taking gold leaves a dent, and coins roll away from it
     int level = 0;
-    const float height = TreasuryGoldMesh::surfaceHeight(position.x + dentU - 0.5f, position.y + dentV - 0.5f, level);
+    const float height = TreasuryGoldMesh::surfaceHeight(position.x + dentU - TreasuryDentTileCentre,
+        position.y + dentV - TreasuryDentTileCentre, level);
     const void* roomKey = tile->getCoveringRoom() != nullptr ?
         static_cast<const void*>(tile->getCoveringRoom()) : static_cast<const void*>(tile);
     if(createTreasuryEffect(roomKey, "TreasuryCoinRoll",

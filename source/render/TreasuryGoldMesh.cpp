@@ -564,7 +564,7 @@ std::string pileNameForClassicStack(const std::string& meshName, float x, float 
     const std::pair<int, int> tile = tileOf(x, y);
     TreasuryGoldLayer::PileShape shape;
     shape.mLevel = level;
-    shape.mVariant = (tile.first * 7 + tile.second * 13) % TreasuryGoldLayer::variantCount;
+    shape.mVariant = (tile.first * TreasuryGoldLayer::variantHashX + tile.second * TreasuryGoldLayer::variantHashY) % TreasuryGoldLayer::variantCount;
     return TreasuryGoldLayer::meshName(shape);
 }
 
