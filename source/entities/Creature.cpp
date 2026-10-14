@@ -120,6 +120,8 @@ static const double DEFAULT_CASINO_MOOD_DECAY_PER_SECOND = 3.0;
 static const double DEFAULT_CASINO_MOOD_MAX = 1500.0;
 //! \brief Pit mood points lost per second when the room config has no PitMoodDecay
 static const double DEFAULT_PIT_MOOD_DECAY_PER_SECOND = 3.0;
+//! \brief Largest pit mood (positive or negative) when the room config has no PitMoodMax
+static const double DEFAULT_PIT_MOOD_MAX = 1500.0;
 //! \brief Radius in tiles of the hated company check when the room config has no HatedCompanyRadius
 static const double DEFAULT_HATED_COMPANY_RADIUS = 5.0;
 //! \brief Squared distance in tiles (3 tiles) up to which a creature in a possession group stays where it is instead of walking to the leader
@@ -3590,7 +3592,7 @@ void Creature::addCasinoMood(double points)
 
 void Creature::addPitMood(double points)
 {
-    double maxPoints = ConfigManager::getSingleton().getRoomConfigDoubleOrDefault("PitMoodMax", 1500.0);
+    double maxPoints = ConfigManager::getSingleton().getRoomConfigDoubleOrDefault("PitMoodMax", DEFAULT_PIT_MOOD_MAX);
     mPitMood = std::max(-maxPoints, std::min(maxPoints, mPitMood + points));
 }
 
