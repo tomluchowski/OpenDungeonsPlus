@@ -92,11 +92,16 @@ for stream_function in ('exportToStream', 'importFromStream', 'exportToPacket', 
 assert 'getIsOnServerMap()' in state.split('mBlowStartDelay = 0.0;')[0]
 
 # Configuration: documented in global.cfg, read with a default, limited
-for key, default, member in (('AttackTurnEvents', '1', 'mAttackTurnEvents(true)'), ('AttackTurnSpeed', '540', 'mAttackTurnSpeed(540.0)'),
-                             ('AttackTurnMaxDelay', '0.25', 'mAttackTurnMaxDelay(0.25)')):
+for key, default, member in (('AttackTurnEvents', '1', 'mAttackTurnEvents(true)'), ('AttackTurnSpeed', '540', 'mAttackTurnSpeed(DEFAULT_ATTACK_TURN_SPEED)'),
+                             ('AttackTurnMaxDelay', '0.25', 'mAttackTurnMaxDelay(DEFAULT_ATTACK_TURN_MAX_DELAY)')):
     assert re.search(r'^# .*\n(?:# .*\n)?\s+' + key + r'\t' + re.escape(default) + r'\s*$', global_cfg, re.M), key
     assert 'nextParam == "' + key + '"' in config_cpp, key
     assert member in config_cpp, key
-assert 'std::max(90.0, std::min(1440.0, mAttackTurnSpeed))' in config_h
-assert 'std::max(0.0, std::min(0.6, mAttackTurnMaxDelay))' in config_h
+assert 'std::max(AttackTurnSpeedMin, std::min(AttackTurnSpeedMax, mAttackTurnSpeed))' in config_h
+assert 'std::max(AttackTurnMaxDelayMin, std::min(AttackTurnMaxDelayMax, mAttackTurnMaxDelay))' in config_h
+# The named values keep the numbers the defaults and limits had before they got names
+for name, value in (('DEFAULT_ATTACK_TURN_SPEED', '540.0'), ('DEFAULT_ATTACK_TURN_MAX_DELAY', '0.25'),
+                    ('ConfigManager::AttackTurnSpeedMin', '90.0'), ('ConfigManager::AttackTurnSpeedMax', '1440.0'),
+                    ('ConfigManager::AttackTurnMaxDelayMin', '0.0'), ('ConfigManager::AttackTurnMaxDelayMax', '0.6')):
+    assert re.search(re.escape(name) + r' = ' + re.escape(value) + ';', config_cpp), name
 print('check_attack_turn: ok')

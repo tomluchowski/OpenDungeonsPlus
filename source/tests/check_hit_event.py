@@ -96,13 +96,18 @@ assert '!supportsCosmeticEvents() || !event.isKnownType()' in client
 assert 'CosmeticEventType::hitResult' not in client, 'the generic handler takes it'
 
 # Configuration: documented in global.cfg, read with a default, limited
-for key, default, member in (('HitEvents', '1', 'mHitEvents(true)'), ('HitGlanceShare', '0.34', 'mHitGlanceShare(0.34)'),
-                             ('HitStrongShare', '0.15', 'mHitStrongShare(0.15)')):
+for key, default, member in (('HitEvents', '1', 'mHitEvents(true)'), ('HitGlanceShare', '0.34', 'mHitGlanceShare(DEFAULT_HIT_GLANCE_SHARE)'),
+                             ('HitStrongShare', '0.15', 'mHitStrongShare(DEFAULT_HIT_STRONG_SHARE)')):
     assert re.search(r'^# .*\n(?:# .*\n)?\s+' + key + r'\t' + re.escape(default) + r'\s*$', global_cfg, re.M), key
     assert 'nextParam == "' + key + '"' in config_cpp, key
     assert member in config_cpp, key
-assert 'std::max(0.01, std::min(0.9, mHitGlanceShare))' in config_h
-assert 'std::max(0.01, std::min(1.0, mHitStrongShare))' in config_h
+assert 'std::max(HitShareMin, std::min(HitGlanceShareMax, mHitGlanceShare))' in config_h
+assert 'std::max(HitShareMin, std::min(HitStrongShareMax, mHitStrongShare))' in config_h
+# The named defaults and limits keep the numbers they had before they got names
+for name, value in (('DEFAULT_HIT_GLANCE_SHARE', '0.34'), ('DEFAULT_HIT_STRONG_SHARE', '0.15'),
+                    ('ConfigManager::HitShareMin', '0.01'), ('ConfigManager::HitGlanceShareMax', '0.9'),
+                    ('ConfigManager::HitStrongShareMax', '1.0')):
+    assert re.search(re.escape(name) + r' = ' + re.escape(value) + ';', config_cpp), name
 
 # Client: the hits, dodges, glancing blows and misses show only from the event once the server sends it
 handler = function_body(visuals, 'bool CreatureWeaponVisuals::noteCosmeticEvent(')
