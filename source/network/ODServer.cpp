@@ -31,6 +31,7 @@
 #include "game/Seat.h"
 #include "gamemap/GameMap.h"
 #include "gamemap/DraggableTileContainer.h"
+#include "gamemap/LevelScript.h"
 #include "gamemap/MapHandler.h"
 #include "modes/ConsoleCommands.h"
 #include "network/ODClient.h"
@@ -476,10 +477,11 @@ void ODServer::serverThread()
 {
     GameMap* gameMap = mGameMap;
     sf::Clock clock;
-    double turnLengthMs = 1000.0 / ODApplication::turnsPerSecond;
     bool isClientConnected = true;
     while(isConnected() && isClientConnected)
     {
+        // The game speed setting changes the real time length of a turn
+        double turnLengthMs = 1000.0 / (ODApplication::turnsPerSecond * gameMap->getGameSpeedFactor());
         // doTask should return after the length of 1 turn even if their are communications. When
         // it returns, we can launch next turn.
         doTask(static_cast<int32_t>(turnLengthMs));
@@ -592,7 +594,7 @@ void ODServer::serverThread()
         // to wait for server. If server is in advance, he might send commands before the
         // creatures arrive at their destination. That could result in weird issues like
         // creatures going through walls.
-        startNewTurn(static_cast<double>(clock.restart().asSeconds()) * 0.95);
+        startNewTurn(static_cast<double>(clock.restart().asSeconds()) * 0.95 * gameMap->getGameSpeedFactor());
 
         processServerNotifications();
     }
@@ -1085,6 +1087,78 @@ bool ODServer::processClientNotifications(ODSocketClient* clientSocket)
                 }
                 seat->setConfigTeamId(teamId);
             }
+
+            // The skirmish game settings follow the seats. A setting the page has not shown yet is not
+            // chosen: the value of the server is kept
+            uint32_t goldDensityPercent = GameMap::SKIRMISH_SETTING_UNCHOSEN;
+            uint32_t manaRegenerationPercent = GameMap::SKIRMISH_SETTING_UNCHOSEN;
+            uint32_t maxCreaturesSetting = GameMap::SKIRMISH_SETTING_UNCHOSEN;
+            uint32_t gameSpeedPercent = GameMap::SKIRMISH_SETTING_UNCHOSEN;
+            uint32_t gameDurationMinutes = GameMap::SKIRMISH_SETTING_UNCHOSEN;
+            uint32_t fogOfWar = GameMap::SKIRMISH_SETTING_UNCHOSEN;
+            uint32_t nbCreatureLimits = 0;
+            bool isSettingsPacketValid = static_cast<bool>(packetReceived >> goldDensityPercent
+                >> manaRegenerationPercent >> maxCreaturesSetting >> gameSpeedPercent >> gameDurationMinutes
+                >> fogOfWar >> nbCreatureLimits);
+            std::vector<std::pair<std::string, uint32_t> > creatureLimits;
+            for(uint32_t i = 0; isSettingsPacketValid && (i < nbCreatureLimits); ++i)
+            {
+                std::string className;
+                uint32_t limit = GameMap::SKIRMISH_SETTING_UNCHOSEN;
+                isSettingsPacketValid = static_cast<bool>(packetReceived >> className >> limit);
+                if(isSettingsPacketValid)
+                    creatureLimits.push_back(std::pair<std::string, uint32_t>(className, limit));
+            }
+            uint32_t nbSkillStates = 0;
+            isSettingsPacketValid = isSettingsPacketValid && static_cast<bool>(packetReceived >> nbSkillStates);
+            std::vector<std::pair<uint32_t, uint32_t> > skillStates;
+            for(uint32_t i = 0; isSettingsPacketValid && (i < nbSkillStates); ++i)
+            {
+                uint32_t skillType = 0;
+                uint32_t skillState = 0;
+                isSettingsPacketValid = static_cast<bool>(packetReceived >> skillType >> skillState);
+                if(isSettingsPacketValid)
+                    skillStates.push_back(std::pair<uint32_t, uint32_t>(skillType, skillState));
+            }
+
+            if(isSettingsPacketValid)
+            {
+                if(goldDensityPercent == GameMap::SKIRMISH_SETTING_UNCHOSEN)
+                    goldDensityPercent = gameMap->getGoldDensityPercent();
+                if(manaRegenerationPercent == GameMap::SKIRMISH_SETTING_UNCHOSEN)
+                    manaRegenerationPercent = gameMap->getManaRegenerationPercent();
+                if(maxCreaturesSetting == GameMap::SKIRMISH_SETTING_UNCHOSEN)
+                    maxCreaturesSetting = gameMap->getMaxCreaturesSetting();
+                gameMap->setSkirmishSettings(goldDensityPercent, manaRegenerationPercent, maxCreaturesSetting);
+
+                if(gameSpeedPercent == GameMap::SKIRMISH_SETTING_UNCHOSEN)
+                    gameSpeedPercent = gameMap->getGameSpeedPercent();
+                if(gameDurationMinutes == GameMap::SKIRMISH_SETTING_UNCHOSEN)
+                    gameDurationMinutes = gameMap->getGameDurationMinutes();
+                if(fogOfWar == GameMap::SKIRMISH_SETTING_UNCHOSEN)
+                    fogOfWar = gameMap->getIsFOWActivated() ? 1 : 0;
+                gameMap->setGameRules(gameSpeedPercent, gameDurationMinutes, fogOfWar != 0);
+
+                for(const std::pair<std::string, uint32_t>& creatureLimit : creatureLimits)
+                {
+                    if(creatureLimit.second != GameMap::SKIRMISH_SETTING_UNCHOSEN)
+                        gameMap->setCreatureClassLimit(creatureLimit.first, creatureLimit.second);
+                }
+                for(const std::pair<uint32_t, uint32_t>& skillState : skillStates)
+                {
+                    if(skillState.second > static_cast<uint32_t>(GameMap::SkirmishItemState::needsResearch))
+                        continue;
+                    if(skillState.first >= static_cast<uint32_t>(SkillType::countSkill))
+                        continue;
+
+                    gameMap->setSkirmishSkillState(static_cast<SkillType>(skillState.first),
+                        static_cast<GameMap::SkirmishItemState>(skillState.second));
+                }
+            }
+            else
+            {
+                OD_LOG_ERR("Truncated seat configuration packet: the skirmish game settings are ignored");
+            }
             fireSeatConfigurationRefresh();
             break;
         }
@@ -1237,6 +1311,8 @@ bool ODServer::processClientNotifications(ODSocketClient* clientSocket)
                 client->send(packetSend);
             }
 
+            // The Game Settings page can change what each seat may build, cast or research
+            gameMap->applySkirmishSkillStates();
             for(Seat* seat : gameMap->getSeats())
             {
                 // We initialize the seats
@@ -2502,6 +2578,42 @@ bool ODServer::processClientNotifications(ODSocketClient* clientSocket)
             break;
         }
 
+        case ClientNotificationType::editorRegionEdit:
+        {
+            if(mServerMode != ServerMode::ModeEditor)
+            {
+                OD_LOG_ERR("Received editor command while wrong mode=" + Helper::toString(static_cast<int>(mServerMode)));
+                break;
+            }
+            Player* player = clientSocket->getPlayer();
+            int32_t operation = 0;
+            std::string regionName;
+            int32_t x1 = 0;
+            int32_t y1 = 0;
+            int32_t x2 = 0;
+            int32_t y2 = 0;
+            if(!(packetReceived >> operation >> regionName >> x1 >> y1 >> x2 >> y2))
+            {
+                OD_LOG_ERR("Truncated editorRegionEdit packet");
+                break;
+            }
+
+            // The markers belong to the level script, which is saved from the server side
+            LevelScript& levelScript = gameMap->getLevelScript();
+            if(operation == static_cast<int32_t>(EditorRegionOperation::set))
+                levelScript.setRegion(LevelScriptRegion(regionName, x1, y1, x2, y2));
+            else if(operation == static_cast<int32_t>(EditorRegionOperation::remove))
+                levelScript.removeRegion(regionName);
+
+            ServerNotification notif(ServerNotificationType::editorRegionData, player);
+            notif.mPacket << static_cast<uint32_t>(levelScript.getRegions().size());
+            for(const LevelScriptRegion& region : levelScript.getRegions())
+                notif.mPacket << region.mName << region.mX1 << region.mY1 << region.mX2 << region.mY2;
+
+            sendAsyncMsg(notif);
+            break;
+        }
+
         case ClientNotificationType::askSetSkillTree:
         {
             Player* player = clientSocket->getPlayer();
@@ -2756,6 +2868,29 @@ void ODServer::fireSeatConfigurationRefresh()
             packetSend << teamId;
         }
     }
+    packetSend << mGameMap->getGoldDensityPercent() << mGameMap->getManaRegenerationPercent()
+        << mGameMap->getMaxCreaturesSetting();
+    packetSend << mGameMap->getGameSpeedPercent() << mGameMap->getGameDurationMinutes()
+        << static_cast<uint32_t>(mGameMap->getIsFOWActivated() ? 1 : 0);
+
+    // The limit of each fighter class
+    std::vector<const CreatureDefinition*> fighterDefs;
+    for(const std::pair<const std::string, CreatureDefinition*>& def : ConfigManager::getSingleton().getCreatureDefinitions())
+    {
+        if(!def.second->isWorker())
+            fighterDefs.push_back(def.second);
+    }
+    uint32_t nbCreatureLimits = static_cast<uint32_t>(fighterDefs.size());
+    packetSend << nbCreatureLimits;
+    for(const CreatureDefinition* def : fighterDefs)
+        packetSend << def->getClassName() << mGameMap->getCreatureClassLimit(def->getClassName());
+
+    // The availability of each skill. Index 0 is nullSkillType, it is no skill
+    const std::vector<GameMap::SkirmishItemState>& skillStates = mGameMap->getSkirmishSkillStates();
+    uint32_t nbSkillStates = static_cast<uint32_t>(SkillType::countSkill) - 1;
+    packetSend << nbSkillStates;
+    for(uint32_t i = 1; i < static_cast<uint32_t>(SkillType::countSkill); ++i)
+        packetSend << i << static_cast<uint32_t>(skillStates[i]);
     sendMsg(nullptr, packetSend);
 }
 

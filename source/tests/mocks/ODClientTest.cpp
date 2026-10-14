@@ -217,6 +217,36 @@ bool ODClientTest::processMessage(ServerNotificationType cmd, ODPacket& packetRe
                 }
             }
 
+            // Skirmish game settings follow the seats
+            uint32_t goldDensityPercent = 0;
+            uint32_t manaRegenerationPercent = 0;
+            uint32_t maxCreaturesSetting = 0;
+            BOOST_CHECK(packetReceived >> goldDensityPercent);
+            BOOST_CHECK(packetReceived >> manaRegenerationPercent);
+            BOOST_CHECK(packetReceived >> maxCreaturesSetting);
+            uint32_t gameSpeedPercent = 0;
+            uint32_t gameDurationMinutes = 0;
+            uint32_t fogOfWar = 0;
+            BOOST_CHECK(packetReceived >> gameSpeedPercent);
+            BOOST_CHECK(packetReceived >> gameDurationMinutes);
+            BOOST_CHECK(packetReceived >> fogOfWar);
+            uint32_t nbCreatureLimits = 0;
+            BOOST_CHECK(packetReceived >> nbCreatureLimits);
+            for(uint32_t i = 0; i < nbCreatureLimits; ++i)
+            {
+                std::string className;
+                uint32_t limit = 0;
+                BOOST_CHECK(packetReceived >> className >> limit);
+            }
+            uint32_t nbSkillStates = 0;
+            BOOST_CHECK(packetReceived >> nbSkillStates);
+            for(uint32_t i = 0; i < nbSkillStates; ++i)
+            {
+                uint32_t skillType = 0;
+                uint32_t skillState = 0;
+                BOOST_CHECK(packetReceived >> skillType >> skillState);
+            }
+
             if(isConfigured)
             {
                 // If we are configured, we can launch the game
@@ -239,6 +269,11 @@ bool ODClientTest::processMessage(ServerNotificationType cmd, ODPacket& packetRe
                 packSend << true << player.mPlayerId;
                 packSend << true << player.mWantedTeamId;
             }
+            // Gold density, mana regeneration, maximum creatures, game speed, game duration, fog of war,
+            // no creature limits and no skill states
+            packSend << static_cast<uint32_t>(100) << static_cast<uint32_t>(100) << static_cast<uint32_t>(0)
+                << static_cast<uint32_t>(100) << static_cast<uint32_t>(0) << static_cast<uint32_t>(1)
+                << static_cast<uint32_t>(0) << static_cast<uint32_t>(0);
             send(packSend);
             return true;
         }

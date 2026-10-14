@@ -193,7 +193,8 @@ public:
 
     void setDraggableMapSize(int x, int y);
     
-    //! \brief Returns the next fighter creature class to spawn.
+    //! \brief Returns the next fighter creature class to spawn. Classes that reached the limit set in the
+    //! skirmish game settings are skipped.
     const CreatureDefinition* getNextFighterClassToSpawn(const GameMap& gameMap, const ConfigManager& configManager );
 
     //! \brief Returns the first (default) worker class definition.
@@ -210,6 +211,11 @@ public:
     bool canBuildingBeDestroyedBy(const Seat* seat) const;
 
     void clearTilesWithVision();
+    //! \brief Gives this seat vision on the given tiles for the given number of turns (server side).
+    void revealTiles(const std::vector<Tile*>& tiles, uint32_t turns);
+    //! \brief Applies the vision granted by revealTiles. Must be called after the vision is cleared
+    //! and before the visible tiles are sent.
+    void applyRevealedTiles();
     void notifyVisionOnTile(Tile* tile, NodeType nt);
     void notifyTileClaimedByEnemy(Tile* tile);
     void clearVisionForGameMap(DraggableTileContainer* dtc);
@@ -254,6 +260,11 @@ public:
     //! \brief Returns true if the given SkillType is already done for this player. False
     //! otherwise
     bool isSkillDone(SkillType type) const;
+
+    //! \brief Sets how a skill is available before the game starts (skirmish Game Settings).
+    //! Not allowed skills cannot be researched, done skills are available from the start and
+    //! the others have to be researched.
+    void setSkillAvailability(SkillType type, bool allowed, bool done);
 
     //! \brief Called when the skill entity reaches its destination. From there, the
     //! skilled thing is available
@@ -372,6 +383,9 @@ private:
     //! state (last tile state notified, vision last turn for this seat, vision for current turn, ...
     std::map<Tile*,TileStateNotified> mTilesStates;
     std::map<Tile*,TileStateNotified> mDraggableTilesStates;    
+
+    //! \brief Tiles revealed by an outside source (like a tortured creature) with the number of turns left.
+    std::vector<std::pair<Tile*, uint32_t> > mRevealedTiles;
 
     //! \brief The notified state of the tile, whether it belongs to the game map or to the
     //! draggable container, or nullptr if it belongs to neither. Never inserts anything:

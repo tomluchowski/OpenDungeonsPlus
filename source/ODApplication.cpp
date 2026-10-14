@@ -65,6 +65,7 @@
 #include <string>
 #include <sstream>
 #include <fstream>
+#include <pybind11/embed.h>
 
 void ODApplication::startGame(boost::program_options::variables_map& options)
 {
@@ -235,7 +236,7 @@ void ODApplication::startClient()
     HWND hwnd;
     renderWindow->getCustomAttribute("WINDOW", static_cast<void*>(&hwnd));
     HINSTANCE hInst = static_cast<HINSTANCE>(GetModuleHandle(nullptr));
-    SetClassLong(hwnd, GCL_HICON, reinterpret_cast<LONG>(LoadIcon(hInst, MAKEINTRESOURCE(IDI_ICON1))));
+    SetClassLongPtr(hwnd, GCLP_HICON, reinterpret_cast<LONG_PTR>(LoadIcon(hInst, MAKEINTRESOURCE(IDI_ICON1))));
 #endif
 
     //Initialise RTshader system
@@ -259,6 +260,10 @@ void ODApplication::startClient()
 
     MusicPlayer musicPlayer(resMgr.getMusicPath(), resMgr.listAllMusicFiles());
     SoundEffectsManager soundEffectsManager;
+
+    // Keep Python alive across game-mode changes; consoles own only their game state.
+    pybind11::scoped_interpreter pythonInterpreter;
+    pybind11::gil_scoped_release pythonMainThreadRelease;
 
     ODServer server;
     ODClient client;

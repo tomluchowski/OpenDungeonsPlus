@@ -100,6 +100,7 @@ class ODServer: public Ogre::Singleton<ODServer>,
 protected:
     ODSocketClient* notifyNewConnection(sf::TcpListener& sockListener) override;
     bool notifyClientMessage(ODSocketClient *sock) override;
+    //! \brief Runs the game turns of the server. The length of a turn follows the game speed of the game settings
     void serverThread() override;
 
 private:
@@ -153,6 +154,8 @@ private:
     //! \brief Sends the packet to the given player. If player is nullptr, the packet is sent to every connected player
     void sendMsg(Player* player, ODPacket& packet);
 
+    //! \brief Sends the seat choices and the skirmish game settings (gold density, mana regeneration,
+    //! maximum creatures, creature class limits and skill availability) to every client
     void fireSeatConfigurationRefresh();
 
     //! \brief Handles console command. player is the player that launched the command

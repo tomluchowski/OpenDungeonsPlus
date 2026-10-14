@@ -45,6 +45,7 @@ class Player;
 class Trap;
 class Seat;
 class Goal;
+class LevelScript;
 class MapLight;
 class MovableGameEntity;
 class CreatureDefinition;
@@ -61,6 +62,7 @@ enum class GameEntityType;
 enum class FloodFillType;
 enum class KeeperAIType;
 enum class RoomType;
+enum class SkillType;
 enum class SpellType;
 enum class TrapType;
 enum class TileVisual;
@@ -94,6 +96,9 @@ friend class RenderManager;
 friend class ODServer;
     
 public:
+    //! \brief Creates an empty game map with an empty level script.
+    //! \param isServerGameMap True for the map of the server, false for the one of a client.
+    //! \param nt The kind of tile node the map uses.
     GameMap(bool isServerGameMap, NodeType nt = NodeType::MTILES_NODE);
     virtual ~GameMap();
 
@@ -301,6 +306,11 @@ public:
     { return mGoalsForAllSeats; }
     void clearGoalsForAllSeats();
 
+    //! \brief The triggers and actions of the level ([Triggers] section of the level file)
+    LevelScript& getLevelScript();
+    //! \brief Read-only access to the triggers and actions of the level, for code that does not change the script
+    const LevelScript& getLevelScript() const;
+
     bool withdrawFromTreasuries(int gold, Seat* seat);
 
     inline const std::string& getLevelFileName() const
@@ -453,6 +463,124 @@ public:
 
     uint32_t getMaxNumberCreatures(Seat* seat) const;
 
+    //! \brief Skirmish game settings, chosen by the host in the seat configuration. They are
+    //! only used on the server game map. The percentages scale the base value (100 = unchanged).
+    //! \return The share of the normal gold that a worker gets when it digs gold, in percent
+    inline uint32_t getGoldDensityPercent() const
+    { return mGoldDensityPercent; }
+
+    //! \brief The share of the normal mana income of a seat, in percent
+    inline uint32_t getManaRegenerationPercent() const
+    { return mManaRegenerationPercent; }
+
+    //! \brief 0 means that the default from the configuration is used
+    inline uint32_t getMaxCreaturesSetting() const
+    { return mMaxCreaturesSetting; }
+
+    //! \brief Smallest and largest value that the gold density and the mana regeneration can have, in percent
+    static const uint32_t SKIRMISH_PERCENT_MIN = 10;
+    static const uint32_t SKIRMISH_PERCENT_MAX = 500;
+    //! \brief The gold density and the mana regeneration of a game without settings: unchanged
+    static const uint32_t SKIRMISH_PERCENT_DEFAULT = 100;
+
+    //! \brief Sets the skirmish game settings, as chosen by the host
+    //! \param goldDensityPercent Gold density in percent, kept between SKIRMISH_PERCENT_MIN and SKIRMISH_PERCENT_MAX
+    //! \param manaRegenerationPercent Mana regeneration in percent, kept in the same range
+    //! \param maxCreaturesSetting Maximum number of creatures of a seat, 0 for the default of the configuration
+    void setSkirmishSettings(uint32_t goldDensityPercent, uint32_t manaRegenerationPercent,
+        uint32_t maxCreaturesSetting);
+
+    //! \brief Availability of a room, spell, trap or door in a skirmish game (Game Settings page)
+    enum class SkirmishItemState : uint32_t
+    {
+        notAvailable,
+        availableAtStart,
+        needsResearch,
+        //! Only used in the packets: the page has not chosen a value, the server value is kept
+        unchosen
+    };
+
+    //! \brief Highest limit that can be set for one creature type. It means no limit
+    static const uint32_t SKIRMISH_CREATURE_LIMIT_NONE = 32;
+
+    //! \brief Sent instead of a setting that the Game Settings page has not shown yet
+    static const uint32_t SKIRMISH_SETTING_UNCHOSEN = 0xFFFFFFFF;
+
+    //! \brief Maximum number of creatures of the given class a seat may own.
+    //! SKIRMISH_CREATURE_LIMIT_NONE if unlimited
+    uint32_t getCreatureClassLimit(const std::string& className) const;
+
+    //! \brief Smallest, largest and default game speed, in percent of the default turn rate
+    static const uint32_t SKIRMISH_SPEED_MIN = 25;
+    static const uint32_t SKIRMISH_SPEED_MAX = 400;
+    static const uint32_t SKIRMISH_SPEED_DEFAULT = 100;
+
+    //! \brief Longest game duration that can be set, in minutes
+    static const uint32_t SKIRMISH_DURATION_MAX = 9999;
+
+    //! \brief Game speed is a percentage of the default turn rate
+    inline uint32_t getGameSpeedPercent() const
+    { return mGameSpeedPercent; }
+
+    //! \brief The factor applied to the real time speed of the game (1.0 = default speed)
+    inline double getGameSpeedFactor() const
+    { return static_cast<double>(mGameSpeedPercent) / static_cast<double>(SKIRMISH_SPEED_DEFAULT); }
+
+    //! \brief The game duration in minutes of game time, 0 means no limit
+    inline uint32_t getGameDurationMinutes() const
+    { return mGameDurationMinutes; }
+
+    //! \brief Sets the rules chosen on the Game Settings page
+    //! \param gameSpeedPercent Game speed in percent, kept between SKIRMISH_SPEED_MIN and SKIRMISH_SPEED_MAX
+    //! \param gameDurationMinutes Game duration in minutes of game time, 0 for no limit
+    //! \param fogOfWar True if the fog of war is on
+    void setGameRules(uint32_t gameSpeedPercent, uint32_t gameDurationMinutes, bool fogOfWar);
+
+    //! \brief Sets the maximum number of creatures of the given class a seat may own
+    //! \param className The class name of the creature definition
+    //! \param limit The new limit. SKIRMISH_CREATURE_LIMIT_NONE or more removes the limit
+    void setCreatureClassLimit(const std::string& className, uint32_t limit);
+
+    //! \brief The state of every skill chosen on the Game Settings page. The index is the SkillType. It is
+    //! filled from the level the first time it is needed.
+    const std::vector<SkirmishItemState>& getSkirmishSkillStates();
+
+    //! \brief Sets the state of one skill chosen on the Game Settings page
+    //! \param type The skill to change. Invalid skill types are ignored
+    //! \param state The new state. The state unchosen is ignored
+    void setSkirmishSkillState(SkillType type, SkirmishItemState state);
+
+    //! \brief Applies the states that differ from the level to every seat. To be called before the seats are initialized.
+    void applySkirmishSkillStates();
+
+    //! \brief Called on the server each turn: sends the time limit and the countdowns of the level script to the
+    //! players and makes every keeper lose once a time limit of the level script or the game duration of the
+    //! skirmish settings has run out. The limit of the level script wins over the game duration.
+    void checkGameDuration();
+
+    //! \brief Level script action: the time runs out after that many seconds from now, for every
+    //! keeper (0 removes any time limit). Server only.
+    //! \param seconds Level seconds from now until the time is up
+    void setScriptTimeLimit(int64_t seconds);
+
+    //! \brief Level script action: shows a HUD countdown of that many seconds from now. It has no
+    //! effect when it ends (0 removes it). Server only.
+    //! \param seconds Level seconds from now until the countdown ends
+    void setScriptCountdown(int64_t seconds);
+
+    //! \brief Level script action: shows the HUD wave countdown of that many seconds from now. It has no
+    //! effect when it ends (0 removes it). Server only.
+    //! \param seconds Level seconds from now until the wave countdown ends
+    void setScriptWaveCountdown(int64_t seconds);
+
+    //! Added to the seconds that sendTimeLimit sends when they are a countdown, not a time limit
+    static const int32_t TIME_LIMIT_COUNTDOWN_FLAG = 0x40000000;
+
+    //! \brief Tells the human players how many seconds are left (-1: there is no time limit), and the
+    //! wave countdown that checkGameDuration set. Nothing is sent when both are the same as last time.
+    //! \param remainingSeconds Seconds left, with TIME_LIMIT_COUNTDOWN_FLAG added for a countdown
+    void sendTimeLimit(int32_t remainingSeconds);
+
     void logFloodFileTiles();
     void consoleSetCreatureDestination(const std::string& creatureName, int x, int y);
     void consoleToggleCreatureVisualDebug(const std::string& creatureName);
@@ -600,6 +728,15 @@ private:
     
     NodeType mNodeType;
 
+    uint32_t mGoldDensityPercent;
+    uint32_t mManaRegenerationPercent;
+    uint32_t mMaxCreaturesSetting;
+    uint32_t mGameSpeedPercent;
+    uint32_t mGameDurationMinutes;
+    std::map<std::string, uint32_t> mCreatureClassLimits;
+    std::vector<SkirmishItemState> mSkirmishSkillStates;
+    std::vector<SkirmishItemState> mSkirmishSkillStatesLevel;
+
     //! \brief the Local player reference. The local player will also be in the player list so this pointer
     //! should not be deleted as it will be handled like every other in the list.
     Player* mLocalPlayer;
@@ -653,6 +790,18 @@ private:
 
     //! \brief Common player goals
     std::vector<std::unique_ptr<Goal>> mGoalsForAllSeats;
+
+    //! \brief Level triggers and their state (flags, triggers already fired)
+    std::unique_ptr<LevelScript> mLevelScript;
+
+    //! \brief True once the end of the time limit has been announced and the keepers have lost
+    bool mGameDurationAnnounced;
+    //! \brief Last remaining time sent to the players, -1 when none was sent or there is no limit
+    int32_t mTimeLimitSentSeconds;
+    //! \brief Last wave countdown sent to the players (with the time limit), -1 when none was sent or none is shown
+    int32_t mWaveCountdownSentSeconds;
+    //! \brief The wave countdown that the next sendTimeLimit sends, -1 when none is shown
+    int32_t mWaveCountdownToSend;
 
     //! \brief Tells whether the map color flood filling is enabled.
     bool mFloodFillEnabled;
