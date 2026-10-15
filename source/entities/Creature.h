@@ -22,6 +22,7 @@
 #define CREATURE_H
 
 #include "entities/MovableGameEntity.h"
+#include "entities/CreatureActivity.h"
 #include "eventsystem/CreatureMoved.h"
 #include "eventsystem/Subject.h"
 
@@ -188,15 +189,17 @@ public:
     inline CreatureMoodLevel getMoodValue() const
     { return mMoodValue; }
 
+    CreatureActivity getActivity() const;
+
     inline int32_t getNbTurnFurious() const
     { return mNbTurnFurious; }
 
     void setPosition(const Ogre::Vector3& v, GameMap *gameMap = nullptr ) override;
 
-    //! \brief Gets the move speed on the current tile.
+    //! \brief Gets the move speed on the current tile, slowed down while the creature is tired.
     virtual double getMoveSpeed() const override;
 
-    //! \brief Gets the move speed on the current tile.
+    //! \brief Gets the move speed on the given tile, slowed down while the creature is tired.
     double getMoveSpeed(Tile* tile) const;
 
     //! \brief Gets the creature depending the terrain type.
@@ -395,6 +398,16 @@ public:
             mHunger = 0.0;
     }
 
+    //! \brief Sets the hunger (0 = full, 100 = starving), server side
+    inline void setHunger(double val)
+    {
+        mHunger = val;
+        if(mHunger < 0.0)
+            mHunger = 0.0;
+        else if(mHunger > 100.0)
+            mHunger = 100.0;
+    }
+
     //! \brief Tells whether the creature can go through the given tile.
     bool canGoThroughTile(Tile* tile) const;
 
@@ -406,6 +419,10 @@ public:
     void slap() override;
 
     void fireCreatureSound(CreatureSound sound);
+    void fireCombatImpact(bool weaponClash, bool bodyDamage,
+        const Ogre::Vector3& attackerPosition);
+    void fireChickenFeeding(const std::string& chickenName,
+        const Ogre::Vector3& chickenPosition);
 
     void itsPayDay();
 
@@ -535,8 +552,10 @@ public:
 
     //! Checks if the creature current walk path is still valid. This will be called if tiles passability changes (for
     //! example if a door is closed)
-    void checkWalkPathValid();
+    void checkWalkPathValid(bool includeWalkDistortion = false);
 
+    //! \brief True if the creature is tired: on the server when its wakefulness is at or below the configured
+    //! limit, on the client when the mood bit Tired is set.
     bool isTired() const;
 
     bool isHungry() const;
@@ -732,6 +751,7 @@ private:
     //! \brief Mood value. Depending on this value, the creature will be in bad mood and
     //! might attack allied creatures or refuse to work or to go to combat
     CreatureMoodLevel               mMoodValue;
+    CreatureActivity                mActivity;
     //! \brief Mood points. Computed by the creature MoodModifiers. It is promoted to class variable for debug purposes and
     //! should not be used to check mood. If the mood is to be tested, mMoodValue should be used
     int32_t                         mMoodPoints;
@@ -797,6 +817,12 @@ private:
     void decidePrioritaryAction();
 
     //! \brief A sub-function called by doTurn()
+    //! While the seat's heart defence is on, the runners (the workers and the two cheap,
+    //! fast scout creatures) drop their current job and run to the seat's fighters, or to
+    //! the heart while it is damaged. A runner that is already fighting or fleeing keeps doing so.
+    void handleHeartDefence();
+
+    //! \brief A sub-function called by doTurn()
     //! This functions will handle the creature idle action logic.
     //! \return true when another action should handled after that one.
     bool handleIdleAction();
@@ -807,6 +833,11 @@ private:
     void increaseHunger(double value);
 
     void computeMood();
+
+    void exportMoodToPacket(ODPacket& os, const Seat* seat) const;
+    void importMoodFromPacket(ODPacket& is);
+    void exportActivityToPacket(ODPacket& os, const Seat* seat) const;
+    void importActivityFromPacket(ODPacket& is);
 
     void computeCreatureOverlayMoodValue();
 };

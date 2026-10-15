@@ -1,0 +1,44 @@
+// Materials of the heart burst in the defeat sequence (particles/HeartExplosion*.particle).
+
+// Soft round glow, added to the scene: the colour comes from the particles
+material DefeatFireball
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend add
+            depth_write off
+            diffuse vertexcolour
+
+            texture_unit
+            {
+                texture DefeatFireball.png
+                tex_address_mode clamp
+            }
+        }
+    }
+}
+
+// Dark smoke puffs, blended over the scene; the 3 by 5 frames of Smoke15Frames.png are animated by the
+// particle script
+material DefeatSmoke
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_write off
+            diffuse vertexcolour
+
+            texture_unit
+            {
+                texture Smoke15Frames.png
+                tex_address_mode clamp
+            }
+        }
+    }
+}

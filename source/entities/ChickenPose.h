@@ -1,0 +1,104 @@
+/*
+ *  Copyright (C) 2011-2016  OpenDungeons Team
+ *
+ *  This program is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#ifndef CHICKENPOSE_H
+#define CHICKENPOSE_H
+
+#include <string>
+
+//! \brief Names of the poses of hatchery animals. The server sends them as animation names, the
+//! client plays a skeleton animation and adds the procedural motion for the pose.
+namespace ChickenPose
+{
+    static const std::string strut = "Strut";
+    static const std::string chase = "Chase";
+    static const std::string flee = "Flee";
+    static const std::string mount = "Mount";
+    static const std::string cackle = "Cackle";
+    static const std::string perch = "Perch";
+    static const std::string crow = "Crow";
+    static const std::string guard = "Guard";
+    static const std::string lay = "Lay";
+    static const std::string wobble = "Wobble";
+    static const std::string emerge = "Emerge";
+    static const std::string fight = "Fight";
+    static const std::string protest = "Protest";
+    static const std::string scratch = "Scratch";
+    static const std::string flutter = "Flutter";
+    static const std::string roofFlight = "RoofFlight";
+
+    //! \brief Clip of the chick breaking out of the egg, played once by the client when the egg hatches (not a pose).
+    static const std::string hatchClip = "Hatch";
+
+    //! \brief True if the name is one of the poses above.
+    inline bool isPose(const std::string& name)
+    {
+        return (name == strut) || (name == chase) || (name == flee) || (name == mount) ||
+            (name == cackle) || (name == perch) || (name == crow) || (name == guard) ||
+            (name == lay) || (name == wobble) ||
+            (name == emerge) || (name == fight) || (name == protest) || (name == scratch) || (name == flutter) ||
+            (name == roofFlight);
+    }
+
+    //! \brief True if the pose is a way of walking.
+    inline bool isWalkPose(const std::string& name)
+    {
+        return (name == strut) || (name == chase) || (name == flee);
+    }
+
+    //! \brief The skeleton animation that is played for a pose ("Walk" or "Idle").
+    inline std::string skeletonAnimation(const std::string& name)
+    {
+        return isWalkPose(name) ? "Walk" : "Idle";
+    }
+
+    //! \brief True for the clips that play once ("Lay", "Flutter", "Mount", "Dismount", "Duck", "RoofFlight"); "Tread" loops.
+    inline bool isOneShotClip(const std::string& clip)
+    {
+        return (clip == "Lay") || (clip == "Flutter") || (clip == "Mount") || (clip == "Dismount") || (clip == "Duck") ||
+            (clip == "RoofFlight");
+    }
+
+    //! \brief The own clip of the hatchery skeleton for an animation name of the server ("Crow", "Run", "Peep", "Lay", "Flutter", "RoofFlight", "Mount" or "Duck"),
+    //! empty if the walk or idle clip is right. A chick peeps while it stands.
+    inline std::string skeletonClip(const std::string& name, bool isChick)
+    {
+        if(name == crow)
+            return "Crow";
+        // A hen laying sits down, fluffs up and stands up again, a flutter is a short flap up
+        if(name == lay)
+            return "Lay";
+        if(name == flutter)
+            return "Flutter";
+        // The rooster flies to or from a coop roof: crouch, take-off, wing strokes and landing in one clip
+        if(name == roofFlight)
+            return "RoofFlight";
+        // The rooster climbs on the hen (Mount), treads and beats his wings (Tread, looped) and climbs down
+        // (Dismount); the client switches the three by the time of the pose (1.9 s). The hen ducks under him for as long
+        if(name == mount)
+            return "Mount";
+        if(name == cackle)
+            return "Duck";
+        if((name == chase) || (name == flee))
+            return "Run";
+        if(isChick && (name == "Idle"))
+            return "Peep";
+        return std::string();
+    }
+}
+
+#endif // CHICKENPOSE_H

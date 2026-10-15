@@ -1,0 +1,21 @@
+// A feather that tumbles down: the grey feather texture is tinted with the particle colour (the plumage)
+material ChickenFeathers
+{
+    receive_shadows off
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_write off
+            diffuse vertexcolour
+
+            texture_unit
+            {
+                texture ChickenFeather.png
+                tex_address_mode clamp
+            }
+        }
+    }
+}

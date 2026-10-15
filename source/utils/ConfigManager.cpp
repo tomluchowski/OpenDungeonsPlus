@@ -58,9 +58,11 @@ ConfigManager::ConfigManager(const std::string& configPath, const std::string& u
     mCreatureMoodFurious(-2000),
     mSlapDamagePercent(15),
     mSlapEffectDuration(15),
+    mTiredWakefulness(20.0),
+    mTiredWalkSpeedFactor(0.8),
     mTimePayDay(300),
     mNbTurnsFuriousMax(120),
-    mMaxManaPerSeat(250000.0),
+    mMaxManaPerSeat(200000.0),
     mClaimingWallPenalty(0.8),
     mDigCoefGold(5.0),
     mDigCoefGem(1.0),
@@ -503,6 +505,20 @@ bool ConfigManager::loadGlobalGameConfig(std::stringstream& configFile)
         {
             configFile >> nextParam;
             mSlapEffectDuration = Helper::toDouble(nextParam);
+            // Not mandatory
+        }
+
+        if(nextParam == "TiredWakefulness")
+        {
+            configFile >> nextParam;
+            mTiredWakefulness = Helper::toDouble(nextParam);
+            // Not mandatory
+        }
+
+        if(nextParam == "TiredWalkSpeedFactor")
+        {
+            configFile >> nextParam;
+            mTiredWalkSpeedFactor = Helper::toDouble(nextParam);
             // Not mandatory
         }
 
@@ -1963,4 +1979,6 @@ void ConfigManager::loadDefaultValuesForUserConfig(void)
     setGameValue("LightFactor",	"100");
     setGameValue("MinimapType",	"MiniMapDrawn");
     setGameValue("Nickname", "Player");
+    setGameValue("UI Scale", "100");
+    setGameValue("Blood Effects", "Yes");
 }
