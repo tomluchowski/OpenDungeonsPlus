@@ -22,18 +22,27 @@
 #ifndef RENDERMANAGER_H
 #define RENDERMANAGER_H
 
+#include <set>
+
 #include <string>
+#include <map>
 #include <OgreSingleton.h>
 #include <OgreMath.h>
+#include <OgreSkeleton.h>
 #include <OgreDefaultDebugDrawer.h>
 #include <cstdint>
 #include "entities/GameEntity.h"
+#include "rooms/HatcheryNestField.h"
+#include <OgreVector2.h>
 
 class DraggableTileContainer;
 class GameMap;
 class Building;
+class BuildingObject;
+class ChickenEntity;
 class Seat;
 class Tile;
+class Room;
 class GameEntity;
 class MovableGameEntity;
 class MapLight;
@@ -96,8 +105,12 @@ public:
     //! \brief setup the scene
     void createScene(Ogre::Viewport*);
 
+    void setViewport(Ogre::Viewport* viewport)
+    { mViewport = viewport; }
+
     //! \brief Sets/Updates the overall world lighting value with given factor.
     void setWorldAmbientLightingFactor(float lightFactor);
+    void setDynamicShadowsEnabled(bool enabled);
 
     //! \brief Set the entity's opacity
     void setEntityOpacity(Ogre::Entity* ent, float opacity);
@@ -106,6 +119,7 @@ public:
     //! moveCursor allows to move the cursor on GUI
     //!  moveWorldCoords sends the world coords where the map light is
     void moveCursor(float relX, float relY);
+    Ogre::FloatRect getHandCursorBounds(float relX, float relY) const;
     void moveWorldCoords(Ogre::Real x, Ogre::Real y);
     void entitySlapped();
 
@@ -148,6 +162,8 @@ public:
     void rrPickUpEntity(GameEntity* curEntity, Player* localPlayer);
     void rrDropHand(GameEntity* curEntity, Player* localPlayer);
     void rrRotateHand(Player* localPlayer);
+    void rrEnableHeldCreatureDisplay(bool enabled, Player* localPlayer);
+    bool isKeeperHandVisible() const { return mHandKeeperHandVisibility == 0; }
     void rrAddOutliner(Creature* creature);
     void rrRemoveOutliner(Creature* creature);
     void rrIncreaseAmbient(Creature* creature);
@@ -165,6 +181,65 @@ public:
         const std::string& particleScript);
     void rrEntityRemoveParticleEffect(GameEntity* entity, Ogre::ParticleSystem* particleSystem);
     void rrToggleHandSelectorVisibility();
+    void rrSetHandPose(bool pointing, bool digging, bool building = false);
+    void rrPlayBuildAnimation();
+    bool rrPlayIdleHandAnimation();
+    bool rrIsIdleHandAnimationPlaying() const;
+    void rrCancelIdleHandAnimation();
+    void rrPlayDigAnimation();
+    void rrDrawTilePreview(const std::vector<Tile*>& tiles, const Ogre::ColourValue& colour, bool construction = false);
+    void rrCreateRoomConstructionEffect(const std::vector<Tile*>& tiles);
+
+    //! \brief Creates a free-standing particle effect that stays until rrDestroyFreeParticleEffect().
+    //! \param colour If not null, the colour of every emitter of the script is set to it.
+    void rrCreateFreeParticleEffect(const std::string& effectName, const std::string& particleScript,
+        const Ogre::Vector3& position, const Ogre::ColourValue* colour);
+    void rrMoveFreeParticleEffect(const std::string& effectName, const Ogre::Vector3& position);
+    void rrDestroyFreeParticleEffect(const std::string& effectName);
+    //! Client-only copy of the dungeon heart for the defeat sequence (the server has already removed the
+    //! real heart object), placed like the real one: DungeonTempleObject mesh on the floor, no turn, scale 1.
+    //! Its materials are clones, so that its core can glow without changing other hearts.
+    void rrCreateDefeatHeart(const Ogre::Vector3& position);
+    //! Moves and scales the copy; glow 0 is its normal look, 1 the hottest red
+    void rrUpdateDefeatHeart(const Ogre::Vector3& position, Ogre::Real scale, Ogre::Real glow);
+    void rrDestroyDefeatHeart();
+    //! Creates count rubble pieces of the burst heart (a small procedural shard mesh with the heart's
+    //! own shell material), one scene node each, hidden until they are first moved
+    void rrCreateDefeatRubble(size_t count);
+    //! Places rubble piece index; rotation holds the degrees around the x, y and z axes
+    void rrMoveDefeatRubblePiece(size_t index, const Ogre::Vector3& position, const Ogre::Vector3& rotation,
+        const Ogre::Vector3& scale);
+    void rrDestroyDefeatRubble();
+    void rrCreateCreatureCombatImpact(Creature* creature, bool weaponClash,
+        bool bodyDamage, const Ogre::Vector3& attackerPosition);
+    void rrSetFeedingChicken(Creature* creature, MovableGameEntity* chicken,
+        const Ogre::Vector3& position);
+
+    //! \brief Hatchery animals: scale, tint and procedural motion by kind and pose
+    void rrCreateChickenLook(ChickenEntity* chicken);
+    //! \brief Gives the entity back to the node of the animal and removes the look (accessories, fight links).
+    void rrDestroyChickenLook(ChickenEntity* chicken);
+    //! \brief The kind of the animal changed (chick grown up): new scale and tint.
+    void rrUpdateChickenLook(ChickenEntity* chicken);
+    //! \brief The egg hatched: shell pieces fly.
+    void rrChickenHatched(ChickenEntity* chicken);
+    //! \brief An egg was trampled at the position: shell pieces and yolk fly, a few feathers of a startled hen.
+    void rrEggTrampled(const Ogre::Vector3& position);
+    //! \brief Two roosters fight (phase as in ServerNotificationType::chickenFight): while they brawl, feather
+    //! clouds fly between them at the configured interval, when it is over a last cloud flies.
+    void rrChickenFight(ChickenEntity* first, ChickenEntity* second, uint32_t phase);
+    //! \brief The server set a pose (see ChickenPose.h), an empty pose is the normal walking and idling.
+    void rrSetChickenPose(ChickenEntity* chicken, const std::string& pose);
+    //! \brief The server sent the nest places and the places of the loose feathers of a hatchery (by room name); the
+    //! nests are drawn at the places. An empty list of nests means that the hatchery is gone.
+    void rrSetHatcheryNests(const std::string& roomName, const std::vector<HatcheryNestField::Place>& places,
+        const std::vector<HatcheryNestField::Place>& feathers);
+    //! \brief Loose feathers next to a coop of the hatchery (the straw nests lie scattered over the hatchery, see updateNestFields)
+    void rrCreateCoopDecor(BuildingObject* coop);
+    //! \brief Removes the nest and the feathers next to the coop.
+    void rrDestroyCoopDecor(BuildingObject* coop);
+    //! \brief Makes the procedural meshes of the hatchery (egg in straw, comb, tail, feathers) if needed
+    void rrEnsureChickenMesh(const std::string& meshName);
 
     //! \brief Toggles the creatures text overlay
     void rrSetCreaturesTextOverlay(GameMap& gameMap, bool value);
@@ -178,7 +253,7 @@ public:
     //! \brief Does requested stuff for rendering in the minimap. Each time the minimap is rendered, this function will be
     //! called once before rendering is done with postRender = false and once when it is rendered with postRender = true.
     //! That allows to hide stuff that we don't want to display in the minimap
-    void rrMinimapRendering(bool postRender);
+    void rrMinimapRendering(bool postRender, bool keepWorldLighting = false);
 
     Ogre::Light* addPointLightMenu(const std::string& name, const Ogre::Vector3& pos,
         const Ogre::ColourValue& diffuse, const Ogre::ColourValue& specular, Ogre::Real attenuationRange,
@@ -229,6 +304,7 @@ private:
     template<typename Manager> bool removeIfExists(std::string, std::string);
     //! \brief Correctly places entities in hand next to the keeper hand
     void rrOrderHand(Player* localPlayer);
+    void rrUpdateHeldCreature();
 
     //! \brief Colorize the material with the corresponding team id color.
     //! \note If the material (wall tiles only) is marked for digging, a yellow color is added
@@ -260,6 +336,248 @@ private:
     Ogre::SceneNode* mMainMenuSceneNode;
 
     Ogre::AnimationState* mHandAnimationState;
+    std::string mHandPose = "Idle";
+    Ogre::ManualObject* mHandPickaxe = nullptr;
+    Ogre::Entity* mHandHammer = nullptr;
+    Ogre::ManualObject* mHandIdleProp = nullptr;
+    Ogre::Vector3 mHammerStrikePoint = Ogre::Vector3::ZERO;
+    Ogre::ManualObject* mTilePreview = nullptr;
+
+    struct CreatureCombatImpactEffect
+    {
+        Creature* mCreature;
+        Ogre::SceneNode* mNode;
+        Ogre::ParticleSystem* mParticleSystem;
+        Ogre::Real mRemainingTime;
+    };
+    std::vector<CreatureCombatImpactEffect> mCreatureCombatImpactEffects;
+
+    struct CreatureCombatReaction
+    {
+        Creature* mCreature;
+        Ogre::Entity* mEntity;
+        Ogre::AnimationState* mAnimation;
+        Ogre::SkeletonAnimationBlendMode mPreviousBlendMode;
+    };
+    std::vector<CreatureCombatReaction> mCreatureCombatReactions;
+    uint64_t mCreatureCombatEffectNumber = 0;
+    std::map<Creature*, uint32_t> mCreatureAttackVariants;
+
+    enum class CreatureFeedingStyle
+    {
+        peck,
+        lunge,
+        heavy,
+        humanoid,
+        magical,
+        coil
+    };
+
+    struct CreatureFeedingBone
+    {
+        Ogre::Bone* mBone;
+        Ogre::Vector3 mPosition;
+        Ogre::Quaternion mOrientation;
+        bool mWasManual;
+        Ogre::Bone* mDriver = nullptr;
+        Ogre::Vector3 mScale = Ogre::Vector3::UNIT_SCALE;
+    };
+    struct CreatureFeedingLimb
+    {
+        Ogre::Bone* mUpper;
+        Ogre::Bone* mLower;
+        Ogre::Bone* mTip;
+        Ogre::Vector3 mTipOffset;
+        Ogre::Vector3 mRestTip;
+        Ogre::Vector3 mGripOffset = Ogre::Vector3::ZERO;
+    };
+    struct CreatureFeedingAnimation
+    {
+        Creature* mCreature;
+        Ogre::SceneNode* mNode;
+        Ogre::Entity* mEntity;
+        Ogre::Vector3 mBasePosition;
+        Ogre::Quaternion mBaseOrientation;
+        Ogre::Vector3 mBaseScale;
+        Ogre::Real mElapsed;
+        CreatureFeedingStyle mStyle;
+        Ogre::AnimationState* mAnimation;
+        Ogre::SceneNode* mChickenNode;
+        Ogre::Entity* mChickenEntity;
+        Ogre::Vector3 mChickenStart;
+        Ogre::Vector3 mChickenScale;
+        Ogre::Bone* mHead;
+        unsigned int mFeatherBursts;
+        std::vector<CreatureFeedingBone> mReachBones;
+        std::vector<Ogre::Bone*> mRoots;
+        Ogre::Bone* mSpine = nullptr;
+        CreatureFeedingLimb mArms[2] = {};
+        CreatureFeedingLimb mLegs[2] = {};
+    };
+    std::vector<CreatureFeedingAnimation> mCreatureFeedingAnimations;
+
+    struct ChickenFeatherEffect
+    {
+        Ogre::SceneNode* mNode;
+        Ogre::ParticleSystem* mParticleSystem;
+        Ogre::Real mRemainingTime;
+    };
+    std::vector<ChickenFeatherEffect> mChickenFeatherEffects;
+    uint64_t mChickenFeatherEffectNumber = 0;
+
+    //! \brief Per animal state of the look: the child node that carries scale and motion, the pose and its timers,
+    //! the rooster accessories and the fight link.
+    struct ChickenLook
+    {
+        Ogre::SceneNode* mNode;
+        Ogre::Entity* mEntity;
+        std::vector<Ogre::Entity*> mAccessories;
+        std::string mPose;
+        Ogre::Real mTime;
+        Ogre::Real mPoseTime;
+        Ogre::Real mPhase;
+        int mFeatherBursts;
+        //! The rooster this one fights (set by the server event), the first of the two makes the feather clouds
+        ChickenEntity* mFightPartner;
+        bool mFightLeader;
+        Ogre::Real mFightTimer;
+        //! The egg lies in a nest of a coop: its own straw is hidden, the nest has straw
+        bool mNestEgg;
+    };
+    std::map<ChickenEntity*, ChickenLook> mChickenLooks;
+
+    //! \brief Nest and loose feathers next to a coop, with the timer of the door shake.
+    struct CoopDecor
+    {
+        Ogre::SceneNode* mNode;
+        Ogre::Entity* mFeathers;
+        Ogre::Real mShake;
+        //! The door clip of the coop mesh, null for the old coop mesh (the coop shakes then)
+        Ogre::AnimationState* mDoor;
+    };
+    std::map<BuildingObject*, CoopDecor> mCoopDecors;
+    //! The nest places the server sent, by room name (the clients compute nothing). mVersion counts the messages.
+    struct ServerNests
+    {
+        //! \brief Starts with version 0 and no places.
+        ServerNests() :
+            mVersion(0)
+        {}
+
+        std::vector<HatcheryNestField::Place> mPlaces;
+        std::vector<HatcheryNestField::Place> mFeathers;
+        uint32_t mVersion;
+    };
+    std::map<std::string, ServerNests> mServerNests;
+    //! The straw nests of one hatchery (one entity each, at the places the server sent). mKey is the version of
+    //! the places they were made for.
+    struct NestField
+    {
+        std::vector<Ogre::SceneNode*> mNodes;
+        std::vector<Ogre::Entity*> mEntities;
+        uint32_t mKey;
+    };
+    std::map<std::string, NestField> mNestFields;
+    //! Draws the server-provided nests by room name (a client has no Room objects of its own). A nest shows while
+    //! its tile is visible to the local player and still belongs to a hatchery.
+    void updateNestFields();
+    //! \brief Removes the nest entities and nodes of one hatchery.
+    void destroyNestField(NestField& field);
+    //! Set while a game is shown
+    GameMap* mGameMap = nullptr;
+    Ogre::Real mCoopDecorTimer = 0.0f;
+    uint64_t mChickenLookNumber = 0;
+
+    struct CreatureSleepAnimation
+    {
+        Creature* mCreature;
+        Ogre::Entity* mEntity;
+        Ogre::SceneNode* mNode;
+        Ogre::Vector3 mBaseScale;
+        Ogre::AnimationState* mAnimation;
+        Ogre::Real mElapsed;
+        bool mNativeEntry;
+        Ogre::Vector3 mBasePosition, mRestPosition;
+        Ogre::Quaternion mBaseOrientation, mRestOrientation;
+    };
+    std::vector<CreatureSleepAnimation> mCreatureSleepAnimations;
+    std::set<Creature*> mSteppingCreatures;
+
+    struct CreatureDropAnimation
+    {
+        Creature* mCreature;
+        Ogre::SceneNode* mNode;
+        Ogre::Vector3 mStart;
+        Ogre::Vector3 mEnd;
+        Ogre::Quaternion mStartOrientation;
+        Ogre::Quaternion mLieOrientation;
+        Ogre::Vector3 mLiePosition;
+        Ogre::Real mElapsed;
+        bool mLieOnGround;
+        bool mUseFallbackLie;
+    };
+    std::vector<CreatureDropAnimation> mCreatureDropAnimations;
+
+    struct CreatureGroundPose
+    {
+        Creature* mCreature;
+        Ogre::SceneNode* mNode;
+        Ogre::Quaternion mStandingOrientation;
+        Ogre::Real mStandingZ;
+    };
+    std::vector<CreatureGroundPose> mCreatureGroundPoses;
+
+    struct CreatureGetUpAnimation
+    {
+        Creature* mCreature;
+        Ogre::SceneNode* mNode;
+        Ogre::AnimationState* mAnimationState;
+        Ogre::Quaternion mStartOrientation;
+        Ogre::Quaternion mEndOrientation;
+        Ogre::Vector3 mStartPosition;
+        Ogre::Vector3 mEndPosition;
+        Ogre::Real mElapsed;
+        bool mUseFallback;
+    };
+    std::vector<CreatureGetUpAnimation> mCreatureGetUpAnimations;
+
+    void cancelCreatureDropAnimation(Creature* creature);
+    void cancelCreatureGetUpAnimation(Creature* creature);
+    void startCreatureGetUpAnimation(Creature* creature);
+    void restoreCreatureGroundPose(Creature* creature);
+    void setCreatureDropGroundAnimation(Creature* creature);
+    struct RoomConstructionEffect
+    {
+        std::string mNodeName;
+        std::string mParticleName;
+        Ogre::Real mRemainingTime;
+    };
+    std::vector<RoomConstructionEffect> mRoomConstructionEffects;
+    uint64_t mRoomConstructionEffectNumber = 0;
+
+    void clearCreatureCombatEffects(Creature* creature = nullptr);
+    void startCreatureFeedingAnimation(Creature* creature, Ogre::Entity* entity);
+    void prepareCreatureFeedingReach(CreatureFeedingAnimation& feeding);
+    Ogre::Vector3 updateCreatureFeedingReach(CreatureFeedingAnimation& feeding, Ogre::Real progress);
+    void cancelCreatureFeedingAnimation(Creature* creature = nullptr);
+    //! \brief Starts a short feather (or egg shell) particle effect at the position.
+    //! \param position World position of the effect.
+    //! \param particleName Name of the particle template to use.
+    void createChickenFeatherEffect(const Ogre::Vector3& position, const std::string& particleName = "ChickenFeathers");
+    //! \brief Moves every animal look (pose motion, fight clouds) and the coop decor for the elapsed time.
+    //! \param timeSinceLastFrame Seconds since the last frame.
+    void updateChickenLooks(Ogre::Real timeSinceLastFrame);
+    //! \brief Sets scale, tint and rooster accessories of the animal for its current kind.
+    void applyChickenKindLook(ChickenEntity* chicken);
+    //! \brief Forgets all animal looks and coop decors without touching the scene.
+    void clearChickenLooks();
+    void clearChickenFeatherEffects();
+    void startCreatureSleepAnimation(Creature* creature, Ogre::Entity* entity);
+    void fitCreatureToBed(CreatureSleepAnimation& sleeping);
+    void cancelCreatureSleepAnimation(Creature* creature = nullptr);
+    void updateCreatureStep(Creature* creature);
+    void cancelCreatureStep(Creature* creature = nullptr);
+    void clearRoomConstructionEffects();
 
 
     Ogre::TexturePtr m_texture;
@@ -269,11 +587,15 @@ private:
 
     //! For the keeper hand
     Ogre::SceneNode* mHandKeeperNode;
+    Ogre::SceneNode* mHeldCreatureGrip = nullptr;
+    Ogre::SceneNode* mHeldCreatureStorage = nullptr;
+    bool mHeldCreatureDisplayEnabled = false;
     Ogre::SceneNode* mDummyNode;
     Ogre::SceneNode* mHandLightNode;
     Ogre::SceneNode* mHandLightNode2;
     Ogre::Camera* mShadowCam;
     Ogre::Radian mCurrentFOVy;
+    Ogre::Real mCurrentAspectRatio;
     Ogre::Real mFactorWidth;
     Ogre::Real mFactorHeight;
 
