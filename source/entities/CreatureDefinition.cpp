@@ -72,6 +72,7 @@ CreatureDefinition::CreatureDefinition(
             int32_t                 turnsStunDropped) :
         mCreatureJob (job),
         mCombatClass (CombatBlocker),
+        mStealGold (0),
         mFearless (false),
         mChampion (false),
         mPossessManaCost (0.0),
@@ -127,6 +128,7 @@ CreatureDefinition::CreatureDefinition(
 CreatureDefinition::CreatureDefinition(const CreatureDefinition& def) :
         mCreatureJob(def.mCreatureJob),
         mCombatClass(def.mCombatClass),
+        mStealGold(def.mStealGold),
         mFearless(def.mFearless),
         mChampion(def.mChampion),
         mPossessManaCost(def.mPossessManaCost),
@@ -341,6 +343,7 @@ ODPacket& operator<<(ODPacket& os, const CreatureDefinition* c)
     os << c->mSoundFamilyDie;
     os << c->mSoundFamilySlap;
     os << CreatureDefinition::combatClassToString(c->mCombatClass);
+    os << c->mStealGold;
     os << c->mFearless;
     os << c->mChampion;
     os << c->mPossessManaCost;
@@ -385,6 +388,7 @@ ODPacket& operator>>(ODPacket& is, CreatureDefinition* c)
     is >> c->mSoundFamilySlap;
     is >> tempString;
     c->mCombatClass = CreatureDefinition::combatClassFromString(tempString);
+    is >> c->mStealGold;
     is >> c->mFearless;
     is >> c->mChampion;
     is >> c->mPossessManaCost;
@@ -521,6 +525,10 @@ bool CreatureDefinition::update(CreatureDefinition* creatureDef, std::stringstre
                 creatureDef->mCombatClass = CreatureDefinition::combatClassFromString(nextParam);
                 continue;
             }
+            else if (nextParam == "StealGold")
+            {
+                defFile >> nextParam;
+                creatureDef->mStealGold = Helper::toInt(nextParam);
             else if (nextParam == "Fearless")
             {
                 defFile >> nextParam;
@@ -834,6 +842,9 @@ void CreatureDefinition::writeCreatureDefinitionDiff(
 
     if(def1 == nullptr || (def1->mPossessManaCost != def2->mPossessManaCost))
         file << "    PossessManaCost\t" << def2->mPossessManaCost << std::endl;
+
+    if(def1 == nullptr || (def1->mStealGold != def2->mStealGold))
+        file << "    StealGold\t" << def2->mStealGold << std::endl;
 
     if(def1 == nullptr || (def1->mMeshName.compare(def2->mMeshName) != 0))
         file << "    MeshName\t" << def2->mMeshName << std::endl;
