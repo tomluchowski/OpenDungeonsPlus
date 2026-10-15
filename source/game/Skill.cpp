@@ -30,6 +30,16 @@ Skill::Skill(SkillType type, int32_t neededSkillPoints, const std::vector<const 
 {
 }
 
+int32_t Skill::getNeededSkillPoints(uint32_t level) const
+{
+    if(level <= 1)
+        return mNeededSkillPoints;
+    int32_t base = mNeededSkillPoints;
+    if(base == 0)
+        base = (mType == SkillType::roomLibrary || mType == SkillType::spellSummonWorker) ? 150 : 100;
+    return base * (level == 2 ? 2 : 4);
+}
+
 bool Skill::canBeSkilled(const std::vector<SkillType>& skillsDone) const
 {
     for(const Skill* skill : mSkillDepends)

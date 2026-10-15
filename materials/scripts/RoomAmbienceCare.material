@@ -1,0 +1,20 @@
+// Materials of the sprites of the care rooms (see particles/RoomAmbienceCare.particle).
+
+material RoomAmbZ
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_write off
+            diffuse vertexcolour
+
+            texture_unit
+            {
+                texture RoomAmbZ.png
+            }
+        }
+    }
+}

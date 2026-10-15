@@ -128,12 +128,14 @@ textures/
 -> Claimed*.png
 -> ClaimedWall*.png                    Nobiax, Danimal         CC-BY-SA 3.0            http://opengameart.org/users/danimal
 -> ConcreteDirty*.png                  Sindwiller              CC-BY-SA 3.0            http://opengameart.org/content/dirty-concrete-floor-00
+-> CreatureExperience.png, CreatureRecovery.png    AI-generated           GPLv3+                  AI-generated, created for this project
 -> CreatureOverlay*.png                hwoarangmy              CC-BY-SA 3.0
 -> CreatureStunned.png                 Danimal                 CC-BY-SA 3.0
 -> CreatureRallyTroops.png             Lorc                    CC-BY-SA 3.0            http://game-icons.net/lorc/originals/rally-the-troops.html
 -> Crossbow.png                        Lamoot                  CC-BY 3.0               http://opengameart.org/content/low-poly-crossbow
 -> Crypt*.png                          Yughues                 CC0                     http://forum.freegamedev.net/viewtopic.php?p=60771#p60771
 -> Cultist*.png                        Danimal,Dread Knight,Katarzyna Zalecka                 CC-BY-SA 3.0                     http://opengameart.org/content/dark-priest
+-> DefeatFireball.png                  AI-generated            GPLv3+                  AI-generated, created for this project
 -> Defender*.png                       Anthony Myers           CC-BY 3.0               http://forum.freegamedev.net/viewtopic.php?p=61450#p61450
 -> Dirt*.png
 -> Dojo*.png
@@ -377,6 +379,7 @@ Troll.*                                Dm3d                    CC-BY-SA 3.0     
 TrollBed.mesh                          Eugeneloza              CC0                     http://forum.freegamedev.net/viewtopic.php?f=38&t=5866&p=62444#p62444
 TrollRock.mesh                         Dm3d                    CC-BY-SA 3.0            http://opengameart.org/content/rock-golem
 WarBanner.*                            Danimal, Atmostatic     CC-BY 3.0               https://github.com/OpenDungeons/OpenDungeons/pull/838#issuecomment-118964220
+WarBanner.skeleton (clip Droop)        OD Team                 GPLv3+                  Still pose of the watch banner while it reloads (the cloth hangs plumb), AI-generated with a script (tools/blender-assets/banner_droop_clip.py, computed from the bind pose, original work)
 Water*                                 Skorpio                 CC-BY-SA 3.0, GPLv3+
 WeaponShield1.mesh                     YD, Danimal             CC-BY 3.0               http://opengameart.org/users/yd
 WeaponShield2.mesh                     YD, Rshackleford, Danimal CC-BY 3.0             http://opengameart.org/users/rshackleford
@@ -481,6 +484,240 @@ Relative/Default/Keeper/WeAreUnderAttack/
 
 Relative/KeeperGroan/Keeper/Lost
 -> OD_voice_keeper(groan)_defeat*.ogg            eugeneloza    CC-BY-SA 3.0            http://opengameart.org/content/voice-acting-sketch-open-dungeons
+
+=======================================================
+==  Spell effect sounds: sounds/Spatial/Spells/      ==
+=======================================================
+
+Name                                   Author                  License                 Source URL
+------------------------------------------------------------------------------------------------------------------------
+sounds/Spatial/Spells/CallToWarCast/FxCallToWarCast01.ogg                             rubberduck    CC0                    https://opengameart.org/content/80-cc0-creture-sfx-2 (Real recordings of a voice (roar_05 mixed with human_03); cut, faded, mono, volume adjusted)
+sounds/Spatial/Spells/ChampionCast/FxChampionCast01.ogg                               rubberduck    CC0                    https://opengameart.org/content/80-cc0-rpg-sfx and https://opengameart.org/content/80-cc0-creture-sfx-2 (Real recordings (blade_01, blade_03 and a voice, human_07, in sequence); cut, faded, mono, volume adjusted)
+sounds/Spatial/Spells/DefectorCast/FxDefectorCast01.ogg                               rubberduck    CC0                    https://opengameart.org/content/80-cc0-creature-sfx and https://opengameart.org/content/80-cc0-creture-sfx-2 (Real recordings of a voice (alien_02 mixed with misc_09); cut, faded, mono, volume adjusted)
+sounds/Spatial/Spells/DefenseCast/FxDefenseCast01.ogg                                 rubberduck    CC0                    https://opengameart.org/content/80-cc0-rpg-sfx and https://opengameart.org/content/100-cc0-metal-and-wood-sfx (Real recordings of metal (metal_03 mixed with metal_hit_03); cut, faded, mono, volume adjusted)
+sounds/Spatial/Spells/ExplosionCast/FxExplosionCast01.ogg                             rubberduck    CC0                    https://opengameart.org/content/25-cc0-bang-firework-sfx (Real recording (fw_02, firework launch); cut, faded, mono, volume adjusted)
+sounds/Spatial/Spells/EyeEvilCast/FxEyeEvilCast01.ogg                                 rubberduck    CC0                    https://opengameart.org/content/80-cc0-creature-sfx and https://opengameart.org/content/80-cc0-creture-sfx-2 (Real recordings of a voice (ooh mixed with weird_06); cut, faded, mono, volume adjusted)
+sounds/Spatial/Spells/GoldCast/FxGoldCast01.ogg                                       StarNinjas    CC0                    https://opengameart.org/content/12-coin-sound-effects (Real recording of coins in the hand (coin.2, coin.6 and coin.10 in sequence); cut, faded, mono, volume adjusted)
+sounds/Spatial/Spells/HasteCast/FxHasteCast01.ogg                                     qubodup       CC0                    https://opengameart.org/content/swish-bamboo-stick-weapon-swhoshes (Real recording (swosh-13, bamboo stick swung in the air); cut, faded, mono, volume adjusted)
+sounds/Spatial/Spells/HealCast/FxHealCast01.ogg                                       Membeth       CC0                    https://commons.wikimedia.org/wiki/File:Windglockenspiel.Koshi.ogg (Real recording of wind chimes; cut, faded, mono, volume adjusted)
+sounds/Spatial/Spells/HexenHenCast/FxHexenHenCast01.ogg Nokia ST                CC-BY-SA 3.0            Real recording "Voice of Poland chicken" by Nokia ST (CC-BY-SA 3.0, https://commons.wikimedia.org/wiki/File:Voice_of_Poland_chicken.ogg); cut, filtered; pitch raised with a fast tremolo so the spell sounds like an excited hen, normalised to the level of the previous file, converted to mono Ogg Vorbis. Attribution: Nokia ST, Wikimedia Commons, CC BY-SA 3.0
+sounds/Spatial/Spells/InfernoCast/FxInfernoCast01.ogg                      qubodup                 CC0             https://opengameart.org/content/flare-ignition (real recording "ignition.flac; matchstick ignition recording"; cut, faded, mono, volume adjusted)
+sounds/Spatial/Spells/LightningCast/FxLightningCast01.ogg                  BMacZero                CC0             https://opengameart.org/content/electricity-sound-effects-0 (real recording "spark.wav"; cut, faded, mono, volume adjusted)
+sounds/Spatial/Spells/PossessCast/FxPossessCast01.ogg                      qubodup                 CC0             https://opengameart.org/content/ghost-monster-voice-moaning-growling (real recording "qubodup-GhostMoan01"; cut, faded, mono, volume adjusted)
+sounds/Spatial/Spells/SlowCast/FxSlowCast01.ogg                            Darsycho                CC0             https://opengameart.org/content/big-scary-troll-sounds (real recording "troll-roars"; cut, faded, mono, volume adjusted)
+sounds/Spatial/Spells/StrengthCast/FxStrengthCast01.ogg                    StarNinjas              CC0             https://opengameart.org/content/16-monster-growls (real recording "monster.10; made with the mouth"; cut, faded, mono, volume adjusted)
+sounds/Spatial/Spells/SummonWorkerCast/FxSummonWorkerCast01.ogg            rubberduck              CC0             https://opengameart.org/content/100-cc0-sfx (real recording "bell_01"; cut, faded, mono, volume adjusted)
+sounds/Spatial/Spells/TremorCast/FxTremorCast01.ogg                        mieki256                CC0             https://opengameart.org/content/earthquake-and-open-sesame (real recording "shake.flac"; cut, faded, mono, volume adjusted)
+sounds/Spatial/Spells/WeakCast/FxWeakCast01.ogg                            rubberduck              CC0             https://opengameart.org/content/80-cc0-rpg-sfx (real recording "creature_die_01.ogg"; cut, faded, mono, volume adjusted)
+sounds/Spatial/Spells/DefectorEnd/FxDefectorEnd01.ogg                                 rubberduck    CC0                    https://opengameart.org/content/80-cc0-rpg-sfx (Real recording (chain_03); cut, faded, mono, volume adjusted)
+sounds/Spatial/Spells/HexenHenEnd/FxHexenHenEnd01.ogg Nokia ST                CC-BY-SA 3.0            Real recording "Voice of Poland chicken" by Nokia ST (CC-BY-SA 3.0, https://commons.wikimedia.org/wiki/File:Voice_of_Poland_chicken.ogg); cut, filtered; pitch lowered and faded out so the spell ends in a sinking cluck, normalised to the level of the previous file, converted to mono Ogg Vorbis. Attribution: Nokia ST, Wikimedia Commons, CC BY-SA 3.0
+sounds/Spatial/Spells/ExplosionImpact/FxExplosionImpact01.ogg                         rubberduck    CC0                    https://opengameart.org/content/25-cc0-bang-firework-sfx (Real recordings (bang_06 and bang_10 mixed with a short offset); cut, faded, mono, volume adjusted)
+sounds/Spatial/Spells/LightningImpact/FxLightningImpact01.ogg              rubberduck              CC0             https://opengameart.org/content/100-cc0-sfx-2 (real recording "sfx100v2_thunder_01.ogg"; cut, faded, mono, volume adjusted)
+sounds/Spatial/Spells/TremorImpact/FxTremorImpact01.ogg                    rubberduck              CC0             https://opengameart.org/content/80-cc0-rpg-sfx (real recording "stones_03.ogg"; cut, faded, mono, volume adjusted)
+sounds/Spatial/Spells/InfernoImpact/FxInfernoImpact01.ogg                  rubberduck              CC0             https://opengameart.org/content/25-cc0-bang-firework-sfx (real recording "bang_03.ogg"; cut, faded, mono, volume adjusted)
+sounds/Spatial/Spells/GoldImpact/FxGoldImpact01.ogg                                   rubberduck, StarNinjas  CC0                    https://opengameart.org/content/80-cc0-rpg-sfx and https://opengameart.org/content/12-coin-sound-effects (Real recordings of coins (item_coins_04 mixed with coin.7); cut, faded, mono, volume adjusted)
+sounds/Spatial/Spells/HealImpact/FxHealImpact01.ogg                                   Valera N. Trubin  CC-BY 4.0              https://commons.wikimedia.org/wiki/File:The_sound_of_a_singing_bowl.wav (Real recording of a singing bowl; cut, faded, mono, volume adjusted)
+sounds/Spatial/Spells/HasteImpact/FxHasteImpact01.ogg                                 qubodup       CC0                    https://opengameart.org/content/swish-bamboo-stick-weapon-swhoshes (Real recording (swosh-06, bamboo stick swung in the air); cut, faded, mono, volume adjusted)
+sounds/Spatial/Spells/PossessEnd/FxPossessEnd01.ogg                        qubodup                 CC0             https://opengameart.org/content/ghost-monster-voice-moaning-growling (real recording "qubodup-GhostMoan05"; cut, faded, mono, volume adjusted)
+
+=============================================================
+==  Trap and door sounds: sounds/Spatial/Traps, Doors      ==
+=============================================================
+
+Name                                   Author                  License                 Source URL
+------------------------------------------------------------------------------------------------------------------------
+sounds/Spatial/Doors/Door/Sold/FxDoorSold01.ogg                                        StarNinjas   CC0                     https://opengameart.org/content/12-coin-sound-effects (Real recording of coins in the hand (coin.3.ogg and coin.12.ogg mixed with a short offset); cut, faded, mono, volume adjusted)
+sounds/Spatial/Doors/Barricade/Break/FxBarricadeBreak01.ogg                            rubberduck   CC0                     https://opengameart.org/content/100-cc0-metal-and-wood-sfx (Real recording (wood_breaking_02.ogg); cut, faded, mono, volume adjusted)
+sounds/Spatial/Doors/Barricade/Hit/FxBarricadeHit01.ogg                                Independent.nu (submitted by qubodup) CC0                     https://opengameart.org/content/35-wooden-crackshitsdestructions (Real recording (impactwood14); cut, faded, mono, volume adjusted)
+sounds/Spatial/Doors/Ironbound/Break/FxIronboundBreak01.ogg                            Independent.nu (submitted by qubodup) CC0                     https://opengameart.org/content/35-wooden-crackshitsdestructions (Real recording (crack01); cut, faded, mono, volume adjusted)
+sounds/Spatial/Doors/Ironbound/Close/FxIronboundClose01.ogg                            qubodup      CC0                     https://opengameart.org/content/door-open-door-close-set (Real recording (qubodup-DoorClose03.ogg); cut, faded, mono, volume adjusted)
+sounds/Spatial/Doors/Ironbound/Hit/FxIronboundHit01.ogg                                rubberduck   CC0                     https://opengameart.org/content/100-cc0-sfx-2 (Real recording (sfx100v2_wood_hit_03.ogg); cut, faded, mono, volume adjusted)
+sounds/Spatial/Doors/Ironbound/Open/FxIronboundOpen01.ogg                              qubodup      CC0                     https://opengameart.org/content/door-open-door-close-set (Real recording (qubodup-DoorOpen03.ogg); cut, faded, mono, volume adjusted)
+sounds/Spatial/Doors/Runed/Break/FxRunedBreak01.ogg                                    rubberduck   CC0                     https://opengameart.org/content/100-cc0-metal-and-wood-sfx (Real recording (metal_falling_02.ogg); cut, faded, mono, volume adjusted)
+sounds/Spatial/Doors/Runed/Close/FxRunedClose01.ogg                                    qubodup      CC0                     https://opengameart.org/content/door-open-door-close-set (Real recording (qubodup-DoorClose05.ogg); cut, faded, mono, volume adjusted)
+sounds/Spatial/Doors/Runed/Hit/FxRunedHit01.ogg                                        rubberduck   CC0                     https://opengameart.org/content/100-cc0-sfx-2 (Real recording (sfx100v2_metal_hit_01.ogg); cut, faded, mono, volume adjusted)
+sounds/Spatial/Doors/Runed/Open/FxRunedOpen01.ogg                                      qubodup      CC0                     https://opengameart.org/content/door-open-door-close-set (Real recording (qubodup-DoorOpen04.ogg); cut, faded, mono, volume adjusted)
+sounds/Spatial/Doors/Secret/Break/FxSecretBreak01.ogg                                  rubberduck   CC0                     https://opengameart.org/content/100-cc0-sfx-2 (Real recording (sfx100v2_stones_03.ogg); cut, faded, mono, volume adjusted)
+sounds/Spatial/Doors/Secret/Close/FxSecretClose01.ogg                                  rubberduck   CC0                     https://opengameart.org/content/100-cc0-sfx (Real recording (door_02.ogg); cut, faded, mono, volume adjusted)
+sounds/Spatial/Doors/Secret/Hit/FxSecretHit01.ogg                                      rubberduck   CC0                     https://opengameart.org/content/100-cc0-sfx-2 (Real recording (sfx100v2_stones_01.ogg); cut, faded, mono, volume adjusted)
+sounds/Spatial/Doors/Secret/Open/FxSecretOpen01.ogg                                    rubberduck   CC0                     https://opengameart.org/content/100-cc0-sfx (Real recording (door_01.ogg); cut, faded, mono, volume adjusted)
+sounds/Spatial/Doors/Steel/Break/FxSteelBreak01.ogg                                    rubberduck   CC0                     https://opengameart.org/content/100-cc0-metal-and-wood-sfx (Real recording (metal_falling_01.ogg); cut, faded, mono, volume adjusted)
+sounds/Spatial/Doors/Steel/Close/FxSteelClose01.ogg                                    rubberduck   CC0                     https://opengameart.org/content/100-cc0-metal-and-wood-sfx (Real recording (metal_close_01.ogg); cut, faded, mono, volume adjusted)
+sounds/Spatial/Doors/Steel/Hit/FxSteelHit01.ogg                                        rubberduck   CC0                     https://opengameart.org/content/100-cc0-metal-and-wood-sfx (Real recording (metal_hit_02.ogg); cut, faded, mono, volume adjusted)
+sounds/Spatial/Doors/Steel/Open/FxSteelOpen01.ogg                                      themightyglider CC0                     https://opengameart.org/content/iron-door (Real recording (iron_door_0.ogg); cut, faded, mono, volume adjusted)
+sounds/Spatial/Doors/Wooden/Break/FxWoodenBreak01.ogg                                  rubberduck   CC0                     https://opengameart.org/content/100-cc0-metal-and-wood-sfx (Real recording (wood_breaking_01.ogg); cut, faded, mono, volume adjusted)
+sounds/Spatial/Doors/Wooden/Close/FxWoodenClose01.ogg                                  qubodup      CC0                     https://opengameart.org/content/door-open-door-close-set (Real recording (qubodup-DoorClose07.ogg); cut, faded, mono, volume adjusted)
+sounds/Spatial/Doors/Wooden/Hit/FxWoodenHit01.ogg                                      rubberduck   CC0                     https://opengameart.org/content/100-cc0-metal-and-wood-sfx (Real recording (wood_hit_03.ogg); cut, faded, mono, volume adjusted)
+sounds/Spatial/Doors/Wooden/Open/FxWoodenOpen01.ogg                                    qubodup      CC0                     https://opengameart.org/content/door-open-door-close-set (Real recording (qubodup-DoorOpen05.ogg); cut, faded, mono, volume adjusted)
+sounds/Spatial/Traps/Alarm/Fire/FxAlarmFire01.ogg                                     qubodup  CC0  https://commons.wikimedia.org/wiki/File:Bell-ring.flac (three bell strikes mixed, cut/faded/volume adjusted, converted to mono Ogg Vorbis; not AI generated)
+sounds/Spatial/Traps/Alarm/Idle/FxAlarmIdle01.ogg                                     Hazmat Harry  CC0  https://opengameart.org/content/metal-impact-sounds (bing1.wav, cut/faded/volume adjusted, converted to mono Ogg Vorbis; not AI generated)
+sounds/Spatial/Traps/Alarm/Reload/FxAlarmReload01.ogg                                 Barina  CC0  https://opengameart.org/content/100-cc0-metal-and-wood-sfx (lock_open_01.ogg, cut/faded/volume adjusted, converted to mono Ogg Vorbis; not AI generated)
+sounds/Spatial/Traps/Boulder/Fire/FxBoulderFire01.ogg                                 spookymodem  CC-BY 3.0  https://opengameart.org/content/falling-rock (cut, cut/faded/volume adjusted, converted to mono Ogg Vorbis; not AI generated)
+sounds/Spatial/Traps/Boulder/Idle/FxBoulderIdle01.ogg                                 bretbernhoft  CC0  https://opengameart.org/content/rumbling-sound-effects (rumbling19_0.wav, 2.5 s cut, cut/faded/volume adjusted, converted to mono Ogg Vorbis; not AI generated)
+sounds/Spatial/Traps/Boulder/Reload/FxBoulderReload01.ogg                             yosoychiro  CC0  https://opengameart.org/content/moving-boulder (move_boulder_0.ogg, cut/faded/volume adjusted, converted to mono Ogg Vorbis; not AI generated)
+sounds/Spatial/Traps/Cannon/Idle/FxCannonIdle01.ogg                                   Department64 (recording), AntumDeluge (submitter)  CC0  https://opengameart.org/content/tree-creaking (cut, cut/faded/volume adjusted, converted to mono Ogg Vorbis; not AI generated)
+sounds/Spatial/Traps/Cannon/Reload/FxCannonReload01.ogg                               CG Goldn  CC0  https://opengameart.org/content/mechanical-sounds (clank1.wav, cut/faded/volume adjusted, converted to mono Ogg Vorbis; not AI generated)
+sounds/Spatial/Traps/Fear/Fire/FxFearFire01.ogg                                       farcodev  CC-BY 3.0  https://opengameart.org/content/horror-sound-effects-library (Scream_Male_00.mp3, cut/faded/volume adjusted, converted to mono Ogg Vorbis; not AI generated)
+sounds/Spatial/Traps/Fear/Idle/FxFearIdle01.ogg                                       thatstoopcforme  CC0  https://opengameart.org/content/ghostly-humming (2.5 s cut, cut/faded/volume adjusted, converted to mono Ogg Vorbis; not AI generated)
+sounds/Spatial/Traps/Fear/Reload/FxFearReload01.ogg                                   Pixel Processor  CC0  https://opengameart.org/content/ghost-breath (cut, cut/faded/volume adjusted, converted to mono Ogg Vorbis; not AI generated)
+sounds/Spatial/Traps/Fireburst/Fire/FxFireburstFire01.ogg                             frances (from a qubodup recording)  CC0  https://opengameart.org/content/catching-fire (cut/faded/volume adjusted, converted to mono Ogg Vorbis; not AI generated)
+sounds/Spatial/Traps/Fireburst/Idle/FxFireburstIdle01.ogg                             Stoner Games  CC0  https://opengameart.org/content/fire-crackling (cut, cut/faded/volume adjusted, converted to mono Ogg Vorbis; not AI generated)
+sounds/Spatial/Traps/Fireburst/Reload/FxFireburstReload01.ogg                         StarNinjas  CC0  https://opengameart.org/content/fireplace-sound-loop (1.5 s cut, cut/faded/volume adjusted, converted to mono Ogg Vorbis; not AI generated)
+sounds/Spatial/Traps/Freeze/Fire/FxFreezeFire01.ogg                                   Chris_M_The_Game_Dude  CC0  https://opengameart.org/content/ice-breakingshattering (LedasLuzta.ogg, cut/faded/volume adjusted, converted to mono Ogg Vorbis; not AI generated)
+sounds/Spatial/Traps/Freeze/Idle/FxFreezeIdle01.ogg                                   Tvabutzku1234  CC0  https://commons.wikimedia.org/wiki/File:Howling_wind.ogg (2.5 s cut, cut/faded/volume adjusted, converted to mono Ogg Vorbis; not AI generated)
+sounds/Spatial/Traps/Freeze/Reload/FxFreezeReload01.ogg                               Chris_M_The_Game_Dude  CC0  https://opengameart.org/content/ice-breakingshattering (LedasLuzta4.ogg, cut/faded/volume adjusted, converted to mono Ogg Vorbis; not AI generated)
+sounds/Spatial/Traps/Gas/Fire/FxGasFire01.ogg                                         XilliX  CC0  https://opengameart.org/content/steam-release-sounds (steam hisses Marker #1, cut/faded/volume adjusted, converted to mono Ogg Vorbis; not AI generated)
+sounds/Spatial/Traps/Gas/Idle/FxGasIdle01.ogg                                         Snabisch  CC-BY 3.0  https://opengameart.org/content/metalsteam (cut/faded/volume adjusted, converted to mono Ogg Vorbis; not AI generated)
+sounds/Spatial/Traps/Gas/Reload/FxGasReload01.ogg                                     XilliX  CC0  https://opengameart.org/content/steam-release-sounds (steam hisses Marker #3, cut/faded/volume adjusted, converted to mono Ogg Vorbis; not AI generated)
+sounds/Spatial/Traps/Lightning/Fire/FxLightningFire01.ogg                             BMacZero  CC0  https://opengameart.org/content/electricity-sound-effects-0 (spark.wav, cut/faded/volume adjusted, converted to mono Ogg Vorbis; not AI generated)
+sounds/Spatial/Traps/Lightning/Crackle/FxLightningCrackle01.ogg                       BMacZero  CC0  https://opengameart.org/content/electricity-sound-effects-0 (continuousspark.wav, a real recording of a small Tesla generator; the 0.22 s clip repeated five times, cut, faded, volume adjusted, converted to mono Ogg Vorbis; not AI generated)
+sounds/Spatial/Traps/Lightning/Idle/FxLightningIdle01.ogg                             BMacZero  CC0  https://opengameart.org/content/electricity-sound-effects-0 (continuousspark.wav, three repeats mixed, cut/faded/volume adjusted, converted to mono Ogg Vorbis; not AI generated)
+sounds/Spatial/Traps/Lightning/Reload/FxLightningReload01.ogg                         Snabisch  CC0  https://opengameart.org/content/sfx-circuit-breaker (switch on.wav, cut/faded/volume adjusted, converted to mono Ogg Vorbis; not AI generated)
+sounds/Spatial/Traps/Spike/Fire/FxSpikeFire01.ogg                                     farcodev  CC-BY 3.0  https://opengameart.org/content/horror-sound-effects-library (Stab_Knife_00.mp3, cut/faded/volume adjusted, converted to mono Ogg Vorbis; not AI generated)
+sounds/Spatial/Traps/Spike/Idle/FxSpikeIdle01.ogg                                     Barina  CC0  https://opengameart.org/content/100-cc0-metal-and-wood-sfx (metal_spring_01.ogg, cut/faded/volume adjusted, converted to mono Ogg Vorbis; not AI generated)
+sounds/Spatial/Traps/Spike/Reload/FxSpikeReload01.ogg                                 farcodev  CC-BY 3.0  https://opengameart.org/content/horror-sound-effects-library (Gate_Open_00.mp3, cut/faded/volume adjusted, converted to mono Ogg Vorbis; not AI generated)
+sounds/Spatial/Traps/Trap/Sold/FxTrapSold01.ogg                                       StarNinjas  CC0  https://opengameart.org/content/12-coin-sound-effects (coin.8.ogg, cut/faded/volume adjusted, converted to mono Ogg Vorbis; not AI generated)
+sounds/Spatial/Traps/Trigger/Fire/FxTriggerFire01.ogg                                 CG Goldn  CC0  https://opengameart.org/content/mechanical-sounds (squeakyclick1.wav, cut/faded/volume adjusted, converted to mono Ogg Vorbis; not AI generated)
+sounds/Spatial/Traps/Trigger/Idle/FxTriggerIdle01.ogg                                 CG Goldn  CC0  https://opengameart.org/content/mechanical-sounds (rattle1.wav, cut/faded/volume adjusted, converted to mono Ogg Vorbis; not AI generated)
+sounds/Spatial/Traps/Trigger/Reload/FxTriggerReload01.ogg                             sinny  CC0  https://opengameart.org/content/small-metal-clasp-open-close-switching (cut/faded/volume adjusted, converted to mono Ogg Vorbis; not AI generated)
+sounds/Spatial/Traps/WatchBanner/Fire/FxWatchBannerFire01.ogg                         Joachim_Berger  CC-BY 3.0  https://opengameart.org/content/cloth-swing-sounds (1.7 s cut, cut/faded/volume adjusted, converted to mono Ogg Vorbis; not AI generated)
+sounds/Spatial/Traps/WatchBanner/Idle/FxWatchBannerIdle01.ogg                         Joachim_Berger  CC-BY 3.0  https://opengameart.org/content/cloth-swing-sounds (2 s cut of a quiet section, cut/faded/volume adjusted, converted to mono Ogg Vorbis; not AI generated)
+
+=============================================================
+==  Room sounds: sounds/Spatial/Rooms                      ==
+=============================================================
+
+Name                                   Author                  License                 Source URL
+------------------------------------------------------------------------------------------------------------------------
+sounds/Spatial/Rooms/Casino/Win/FxCasinoWin01.ogg                                     StarNinjas       CC0        https://opengameart.org/content/12-coin-sound-effects (Real recording of coins in the hand (coin.1, coin.6, coin.8, coin.2 and coin.4 mixed with short offsets); cut, faded, mono, volume adjusted)
+sounds/Spatial/Rooms/Casino/Loss/FxCasinoLoss01.ogg                                   bluszcz          CC-BY 3.0  https://opengameart.org/content/aww-scream (Real voice recordings (aw03, aw04 and aw01 mixed with short offsets); cut, faded, mono, volume adjusted). Attribution: bluszcz, OpenGameArt
+sounds/Spatial/Rooms/Arena/Cheer/FxArenaCheer01.ogg                                   Gregor Quendel   CC-BY 4.0  https://opengameart.org/content/free-crowd-cheering-sounds (Real recording "Strong cheering - II - Short", mixed with the CC0 recording https://opengameart.org/content/applause-in-a-large-hall-or-church by eXpl0it3r); cut, faded, mono, volume adjusted. Attribution: Gregor Quendel, www.gregorquendel.com
+sounds/Spatial/Rooms/Prison/Clang/FxPrisonClang01.ogg                                 rubberduck       CC0        https://opengameart.org/content/80-cc0-rpg-sfx (Real recordings (metal_02, metal_01 and metal_03 mixed with short offsets); cut, faded, mono, volume adjusted)
+sounds/Spatial/Rooms/Torture/Shackles/FxTortureShackles01.ogg                         rubberduck       CC0        https://opengameart.org/content/80-cc0-rpg-sfx (Real recordings (chain_03, chain_01 and chain_02 mixed with short offsets); cut, faded, mono, volume adjusted)
+sounds/Spatial/Rooms/Crypt/Raise/FxCryptRaise01.ogg                                   rubberduck, Nocturnal_Vanguard CC0        https://opengameart.org/content/80-cc0-rpg-sfx (Real stone recordings item_stone_03, stones_03, stones_02) mixed with a real voice recording from https://opengameart.org/content/oooooooooooooo; cut, faded, mono, volume adjusted
+sounds/Spatial/Rooms/WavePortal/Surge/FxWavePortalSurge01.ogg                         InspectorJ       CC-BY 3.0  https://opengameart.org/content/thunder-very-close-rain-01 (Real field recording of a close thunder strike); cut, faded, mono, volume adjusted. Attribution: InspectorJ, OpenGameArt
+sounds/Spatial/Rooms/Heart/Hit/FxHeartHit01.ogg                                       Independent.nu   CC0        https://opengameart.org/content/heartbeat-single-sound (Real recording of a heartbeat, submitted by qubodup); cut, faded, mono, volume adjusted
+sounds/Spatial/Rooms/Temple/Gong/Gong01.ogg                                       Stephan (PDSounds)  CC0        https://commons.wikimedia.org/wiki/File:Gong_or_bell_vibrant_(short).ogg (Real recording of a gong by Stephan, CC0 1.0); cut, faded, mono, volume adjusted
+
+=============================================================
+==  Door models and textures of the door types              ==
+=============================================================
+
+Name                                   Author                  License                 Source URL
+------------------------------------------------------------------------------------------------------------------------
+models/DoorIronbound.mesh              Danimal, OD Team        CC-BY-SA 3.0           Derived from WoodenDoor.mesh (http://opengameart.org/users/danimal) with added iron bands, built in Blender by script, own skeleton DoorIronbound.skeleton
+models/DoorSteel.mesh                  Danimal, OD Team        CC-BY-SA 3.0           Derived from WoodenDoor.mesh with steel trim, built in Blender by script
+models/DoorBarricade.mesh              Danimal, OD Team        CC-BY-SA 3.0           Derived from WoodenDoor.mesh (frame) with new planks and braces, built in Blender by script
+models/DoorSecret.mesh                 Danimal, OD Team        CC-BY-SA 3.0           Derived from WoodenDoor.mesh (two slabs without the frame), built in Blender by script
+models/DoorRune.mesh                   Danimal, OD Team        CC-BY-SA 3.0           Derived from WoodenDoor.mesh with rune plates, built in Blender by script
+models/DoorIronbound.skeleton          OD Team                 GPLv3+                  Own skeleton of DoorIronbound.mesh with the clips Open, Close and Destroyed (heavy swing with a slow start, sag and a shake of the frame), generated by tools/blender-assets/door_skeletons.py (script generated, original work, AI-assisted: script written with an AI assistant)
+models/DoorSteel.skeleton              OD Team                 GPLv3+                  Own skeleton of DoorSteel.mesh with the clips Open, Close and Destroyed (the leaves slide into the wall and stop with a thud), generated by tools/blender-assets/door_skeletons.py (script generated, original work, AI-assisted: script written with an AI assistant)
+models/DoorSecret.skeleton             OD Team                 GPLv3+                  Own skeleton of DoorSecret.mesh with the clips Open, Close and Destroyed (the wall slabs grind aside and sink), generated by tools/blender-assets/door_skeletons.py (script generated, original work, AI-assisted: script written with an AI assistant)
+models/DoorRune.skeleton               OD Team                 GPLv3+                  Own skeleton of DoorRune.mesh with the clips Open, Close and Destroyed (the runes flare and the leaves dissolve), generated by tools/blender-assets/door_skeletons.py (script generated, original work, AI-assisted: script written with an AI assistant)
+models/DoorBarricade.skeleton          OD Team                 GPLv3+                  Own skeleton of DoorBarricade.mesh with the clips Collapse and Destroyed (every board and both posts fall into a heap (Collapse)), generated by tools/blender-assets/door_skeletons.py (script generated, original work, AI-assisted: script written with an AI assistant)
+models/WoodenDoor.skeleton             Danimal, OD Team        CC-BY-SA 3.0            WoodenDoor.skeleton of Danimal plus the new clip Collapse (barricade falls into a heap), built in Blender by script
+models/Cannon.skeleton                 OD Team                 GPLv3+                  Two-bone rig of Cannon.mesh (barrel and base) with the clip Triggered (recoil), built in Blender by script, original work; Cannon.mesh is now skinned to it
+materials/textures/DoorIronboundWood.png  Nobiax, Danimal, OD Team  CC-BY-SA 3.0       WoodenDoor.png made darker by tools/gen_door_textures.py (script generated)
+materials/textures/DoorMetal.png       OD Team                 GPLv3+                  Drawn from noise and lines by tools/gen_door_textures.py (script generated, original work)
+materials/textures/DoorSteel.png       OD Team                 GPLv3+                  Drawn from noise and lines by tools/gen_door_textures.py (script generated, original work)
+materials/textures/DoorBarricade.png   OD Team                 GPLv3+                  Drawn from noise and lines by tools/gen_door_textures.py (script generated, original work)
+materials/textures/DoorSecret.png      OD Team                 GPLv3+                  Drawn from noise and lines by tools/gen_door_textures.py (script generated, original work)
+materials/textures/DoorRune.png        OD Team                 GPLv3+                  Drawn from noise and lines by tools/gen_door_textures.py (script generated, original work)
+materials/textures/DoorRuneGlow.png    OD Team                 GPLv3+                  Drawn from lines and blur by tools/gen_door_textures.py (script generated, original work)
+materials/scripts/DoorTypes.material   OD Team                 GPLv3+
+tools/gen_door_textures.py             OD Team                 GPLv3+
+tools/blender-assets/door_meshes.py    OD Team                 GPLv3+
+tools/blender-assets/door_skeletons.py OD Team                 GPLv3+
+tools/blender-assets/door_blend_sync.py OD Team                GPLv3+
+
+=============================================================
+==  Own trap models                                        ==
+=============================================================
+
+Name                                   Author                  License                 Source URL
+------------------------------------------------------------------------------------------------------------------------
+models/AlarmTrap.mesh                  OD Team                 GPLv3+                  Bell and warning lamps on a plate, built in Blender by tools/blender-assets/trap_meshes.py (script generated, original work)
+models/FearTrap.mesh                   OD Team                 GPLv3+                  Skull with glowing eyes on a dark plate, built in Blender by tools/blender-assets/trap_meshes.py (script generated, original work)
+models/GasTrap.mesh                    OD Team                 GPLv3+                  Barred vent with a pipe stub, built in Blender by tools/blender-assets/trap_meshes.py (script generated, original work)
+models/LightningTrap.mesh              OD Team                 GPLv3+                  Rod with copper coils and insulators, built in Blender by tools/blender-assets/trap_meshes.py (script generated, original work)
+models/FireburstTrap.mesh              OD Team                 GPLv3+                  Iron grate over embers, built in Blender by tools/blender-assets/trap_meshes.py (script generated, original work)
+models/FrostTrap.mesh                  OD Team                 GPLv3+                  Ice crystals on a frosted plate, built in Blender by tools/blender-assets/trap_meshes.py (script generated, original work)
+models/TriggerTrap.mesh                OD Team                 GPLv3+                  Rune slab, built in Blender by tools/blender-assets/trap_meshes.py (script generated, original work)
+materials/scripts/TrapTypes.material   OD Team                 GPLv3+                  Plain colour materials of the own trap models, written by tools/blender-assets/trap_meshes.py
+tools/blender-assets/trap_meshes.py    OD Team                 GPLv3+
+tools/blender-assets/trap_preview.py   OD Team                 GPLv3+
+source/tests/check_trap_meshes.py      OD Team                 GPLv3+
+
+=======================================================
+==  Creature reactions: icons, particles, tools      ==
+=======================================================
+
+Name                                   Author                  License                 Source URL
+------------------------------------------------------------------------------------------------------------------------
+config/creatureReactions.cfg           OD Team                 GPLv3+
+materials/scripts/CreatureReactions.material   OD Team        GPLv3+
+particles/CreatureReactions.particle   OD Team                 GPLv3+
+materials/textures/CreatureEmote*.png  OD Team                 GPLv3+                  Drawn from simple shapes by tools/gen_creature_reaction_art.py (script generated, original work)
+materials/textures/ReactionParticle*.png  OD Team              GPLv3+                  Drawn from simple shapes by tools/gen_creature_reaction_art.py (script generated, original work)
+materials/textures/CreatureEmoteStar.png  OD Team              GPLv3+                  Drawn from simple shapes by tools/gen_creature_reaction_art.py (script generated, original work)
+materials/textures/CreatureEmoteFist.png  OD Team              GPLv3+                  Drawn from simple shapes by tools/gen_creature_reaction_art.py (script generated, original work)
+materials/textures/ReactionParticleRing.png  OD Team           GPLv3+                  Drawn from simple shapes by tools/gen_creature_reaction_art.py (script generated, original work)
+materials/textures/CreatureEmoteBook.png  OD Team              GPLv3+                  Drawn from simple shapes by tools/gen_creature_reaction_art.py (script generated, original work)
+materials/textures/CreatureEmoteGear.png  OD Team              GPLv3+                  Drawn from simple shapes by tools/gen_creature_reaction_art.py (script generated, original work)
+materials/textures/CreatureEmoteSmoke.png  OD Team             GPLv3+                  Drawn from simple shapes by tools/gen_creature_reaction_art.py (script generated, original work)
+materials/textures/ReactionParticleGlow.png  OD Team           GPLv3+                  Drawn from simple shapes by tools/gen_creature_reaction_art.py (script generated, original work)
+materials/textures/ReactionParticleSmoke.png  OD Team          GPLv3+                  Drawn from simple shapes by tools/gen_creature_reaction_art.py (script generated, original work)
+materials/textures/CreatureEmoteChicken.png  OD Team           GPLv3+                  Drawn from simple shapes by tools/gen_creature_reaction_art.py (script generated, original work)
+materials/textures/CreatureEmoteSack.png  OD Team              GPLv3+                  Drawn from simple shapes by tools/gen_creature_reaction_art.py (script generated, original work)
+materials/textures/CreatureEmoteYawn.png    OD Team                 GPLv3+                  Drawn from simple shapes by tools/gen_creature_reaction_art.py (script generated, original work)
+materials/textures/CreatureEmoteDots.png    OD Team                 GPLv3+                  Drawn from simple shapes by tools/gen_creature_reaction_art.py (script generated, original work)
+materials/textures/CreatureEmoteCloud.png   OD Team                 GPLv3+                  Drawn from simple shapes by tools/gen_creature_reaction_art.py (script generated, original work)
+materials/textures/CreatureEmoteExit.png    OD Team                 GPLv3+                  Drawn from simple shapes by tools/gen_creature_reaction_art.py (script generated, original work)
+materials/textures/CreaturePropBall.png     OD Team                 GPLv3+                  Drawn from simple shapes by tools/gen_creature_reaction_art.py (script generated, original work)
+materials/textures/CreaturePropYoyo.png     OD Team                 GPLv3+                  Drawn from simple shapes by tools/gen_creature_reaction_art.py (script generated, original work)
+materials/textures/CreaturePropCoin.png     OD Team                 GPLv3+                  Drawn from simple shapes by tools/gen_creature_reaction_art.py (script generated, original work)
+materials/textures/CreaturePropPebble.png   OD Team                 GPLv3+                  Drawn from simple shapes by tools/gen_creature_reaction_art.py (script generated, original work)
+materials/textures/CreaturePropBeetle.png   OD Team                 GPLv3+                  Drawn from simple shapes by tools/gen_creature_reaction_art.py (script generated, original work)
+materials/textures/CreaturePropTool.png     OD Team                 GPLv3+                  Drawn from simple shapes by tools/gen_creature_reaction_art.py (script generated, original work)
+materials/textures/CreaturePropTrail.png    OD Team                 GPLv3+                  Drawn from simple shapes by tools/gen_creature_reaction_art.py (script generated, original work)
+materials/textures/CreaturePropShadow.png   OD Team                 GPLv3+                  Drawn from simple shapes by tools/gen_creature_reaction_art.py (script generated, original work)
+tools/gen_creature_reaction_art.py     OD Team                 GPLv3+
+tools/check_creature_reactions.py      OD Team                 GPLv3+
+
+=======================================================
+==  Room ambience: effects, sprites, tools           ==
+=======================================================
+
+Name                                   Author                  License                 Source URL
+------------------------------------------------------------------------------------------------------------------------
+config/roomAmbience*.cfg               OD Team                 GPLv3+
+materials/scripts/RoomAmbience*.material   OD Team            GPLv3+
+particles/RoomAmbience*.particle       OD Team                 GPLv3+
+materials/textures/RoomAmb*.png        OD Team                 GPLv3+                  Drawn from simple shapes and gradients by tools/gen_room_ambience_art.py (script generated, original work, not AI generated)
+tools/gen_room_ambience_art.py         OD Team                 GPLv3+
+tools/check_room_ambience.py           OD Team                 GPLv3+
+models/WallTools.mesh                   OD Team                 GPLv3+        Own work: tools hanging on a wall peg, modelled in Blender from primitive boxes and prisms
+models/WeaponRack.mesh                  OD Team                 GPLv3+        Own work: weapon rack with swords, spear and axe, modelled in Blender from primitive boxes and prisms
+models/ArenaBanner.mesh                 OD Team                 GPLv3+        Own work: banner on a rod, modelled in Blender from primitive boxes and strips
+models/GraveMound.mesh                  OD Team                 GPLv3+        Own work: heap of soil, modelled in Blender from rings and boxes
+materials/scripts/RoomDecor.material    OD Team                 GPLv3+
+materials/textures/RoomDecorSurface.png OD Team                 GPLv3+        Generated by tools/gen_room_decor_texture.py (script generated, original work)
+tools/gen_room_decor_texture.py         OD Team                 GPLv3+
+materials/textures/RoomAmbFlame.png, RoomAmbGear.png, RoomAmbRat.png, RoomAmbRatL.png, RoomAmbRumple.png, RoomAmbSoftRing.png   OD Team   GPLv3+   Drawn from simple shapes and gradients by tools/gen_room_effects_art.py (script generated, original work)
+tools/gen_room_effects_art.py          OD Team                 GPLv3+
+materials/textures/RoomAmbRing.png      OD Team                 GPLv3+                  Thin glowing ring drawn from gradients, lines and noise by tools/gen_spell_marks.py (script generated, original work)
+materials/textures/RoomAmbRingRunes.png  OD Team                 GPLv3+                  Double ring with tick marks drawn from gradients, lines and noise by tools/gen_spell_marks.py (script generated, original work)
+materials/textures/RoomAmbRingDust.png  OD Team                 GPLv3+                  Wide uneven dust ring drawn from gradients, lines and noise by tools/gen_spell_marks.py (script generated, original work)
+materials/textures/RoomAmbMarkScorch.png  OD Team                 GPLv3+                  Scorched floor patch drawn from gradients, lines and noise by tools/gen_spell_marks.py (script generated, original work)
+materials/textures/RoomAmbMarkCracks.png  OD Team                 GPLv3+                  Floor cracks drawn from gradients, lines and noise by tools/gen_spell_marks.py (script generated, original work)
+materials/textures/RoomAmbMarkBolt.png  OD Team                 GPLv3+                  Branching burn lines drawn from gradients, lines and noise by tools/gen_spell_marks.py (script generated, original work)
+tools/gen_spell_marks.py                OD Team                 GPLv3+
+materials/textures/SpellBolt.png                OD Team                 GPLv3+                  Lightning bolt strip (white core, blue glow) computed by tools/gen_spell_bolt.py (script generated, original work, not AI generated)
+tools/gen_spell_bolt.py                 OD Team                 GPLv3+
+models/SpellBolt.mesh                   OD Team                 GPLv3+                  Zigzag lightning bolt of crossed ribbons, AI-generated with a Blender script (tools/blender-assets/spell_bolt.py, original work, material SpellBolt)
+tools/blender-assets/spell_bolt.py      OD Team                 GPLv3+
+tools/blender-assets/banner_droop_clip.py  OD Team             GPLv3+
+particles/RoomAmbienceSpellsExtra.particle  OD Team             GPLv3+                  Particle scripts of the heal, haste, defense, slow, flight trail and end effects (original work, only existing sprites)
 
 ================================
 ==  Distribution data: dist/  ==

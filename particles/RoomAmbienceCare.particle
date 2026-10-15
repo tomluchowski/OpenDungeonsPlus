@@ -1,0 +1,477 @@
+// Effects of the care rooms: dormitory, temple, prison, torture room, crypt and arena
+// (see config/roomAmbienceCare.cfg). Fire, smoke, steam and spark systems are shared with
+// particles/RoomAmbienceProduction.particle.
+
+// ---- Dormitory ----
+
+// A soft pool of warm light on the floor, like a dimmed lantern
+particle_system RoomAmbLanternPool
+{
+    material        RoomAmbGlow
+    point_rendering false
+    particle_width  1.9
+    particle_height 1.9
+    cull_each       false
+    quota           1
+    billboard_type  perpendicular_common
+    common_direction 0 0 1
+    common_up_vector 0 1 0
+
+    emitter Point
+    {
+        angle               0
+        colour              1.0 0.72 0.32 0.16
+        emission_rate       2
+        time_to_live        100000
+        direction           0 0 1
+        velocity            0
+        position            0 0 0.03
+    }
+}
+
+// Z over a sleeping creature
+particle_system RoomAmbSleepZ
+{
+    material        RoomAmbZ
+    point_rendering false
+    particle_width  0.16
+    particle_height 0.16
+    cull_each       false
+    quota           4
+    billboard_type  point
+
+    emitter Point
+    {
+        angle               25
+        colour              1.0 1.0 1.0 0.0
+        emission_rate       0.7
+        time_to_live        2.6
+        direction           0 0 1
+        velocity_min        0.22
+        velocity_max        0.4
+    }
+
+    affector ColourInterpolator
+    {
+        time0   0
+        colour0 1.0 1.0 1.0 0.0
+        time1   0.3
+        colour1 1.0 1.0 1.0 0.9
+        time2   1
+        colour2 1.0 1.0 1.0 0.0
+    }
+
+    affector Scaler
+    {
+        rate    0.05
+    }
+
+    affector DirectionRandomiser
+    {
+        randomness  0.15
+        scope       0.5
+        keep_velocity true
+    }
+}
+
+// ---- Temple ----
+
+// Thin incense smoke
+particle_system RoomAmbIncense
+{
+    material        RoomAmbSmoke
+    point_rendering false
+    particle_width  0.14
+    particle_height 0.14
+    cull_each       false
+    quota           12
+    billboard_type  point
+
+    emitter Point
+    {
+        angle               12
+        colour_range_start  0.9 0.9 0.82 0.25
+        colour_range_end    0.95 0.95 0.9 0.3
+        emission_rate       2.2
+        time_to_live        5
+        direction           0 0 1
+        velocity_min        0.28
+        velocity_max        0.5
+    }
+
+    affector Scaler
+    {
+        rate    0.14
+    }
+
+    affector ColourFader
+    {
+        alpha   -0.06
+    }
+
+    affector DirectionRandomiser
+    {
+        randomness  0.35
+        scope       0.5
+        keep_velocity true
+    }
+}
+
+// A soft shaft of light falling from above
+particle_system RoomAmbHolyRay
+{
+    material        RoomAmbGlow
+    point_rendering false
+    particle_width  0.8
+    particle_height 2.6
+    cull_each       false
+    quota           1
+    billboard_type  oriented_common
+    common_direction 0 0 1
+    billboard_origin bottom_center
+
+    emitter Point
+    {
+        angle               0
+        colour              1.0 0.95 0.7 0.17
+        emission_rate       2
+        time_to_live        100000
+        direction           0 0 1
+        velocity            0
+    }
+}
+
+// A rune on the floor that pulses slowly
+particle_system RoomAmbFloorRune
+{
+    material        RoomAmbRune
+    point_rendering false
+    particle_width  1.0
+    particle_height 1.0
+    cull_each       false
+    quota           1
+    billboard_type  perpendicular_common
+    common_direction 0 0 1
+    common_up_vector 0 1 0
+
+    emitter Point
+    {
+        angle               0
+        colour              1.0 0.9 0.55 0.55
+        emission_rate       2
+        time_to_live        100000
+        direction           0 0 1
+        velocity            0
+        position            0 0 0.03
+    }
+}
+
+// Golden specks rising around a praying creature
+particle_system RoomAmbPrayMotes
+{
+    material        RoomAmbSpark
+    point_rendering false
+    particle_width  0.1
+    particle_height 0.1
+    cull_each       false
+    quota           12
+    billboard_type  point
+
+    emitter Box
+    {
+        angle               20
+        colour              1.0 0.9 0.5 0.0
+        emission_rate       4
+        time_to_live        2.2
+        direction           0 0 1
+        velocity_min        0.25
+        velocity_max        0.6
+        width               0.9
+        height              0.9
+        depth               0.1
+    }
+
+    affector ColourInterpolator
+    {
+        time0   0
+        colour0 1.0 0.9 0.5 0.0
+        time1   0.35
+        colour1 1.0 0.9 0.5 0.9
+        time2   1
+        colour2 1.0 0.9 0.5 0.0
+    }
+}
+
+// ---- Prison ----
+
+// A drop falling from the ceiling
+particle_system RoomAmbDrip
+{
+    material        RoomAmbDrop
+    point_rendering false
+    particle_width  0.05
+    particle_height 0.05
+    cull_each       false
+    quota           3
+    billboard_type  point
+
+    emitter Point
+    {
+        angle               0
+        colour              1.0 1.0 1.0 0.9
+        emission_rate       0.4
+        time_to_live        0.75
+        direction           0 0 -1
+        velocity            0.2
+        position            0 0 1.7
+    }
+
+    affector LinearForce
+    {
+        force_vector        0 0 -5
+        force_application   add
+    }
+}
+
+// Flies buzzing over a dirty corner
+particle_system RoomAmbFlies
+{
+    material        RoomAmbDust
+    point_rendering false
+    particle_width  0.035
+    particle_height 0.035
+    cull_each       false
+    quota           6
+    billboard_type  point
+
+    emitter Box
+    {
+        angle               180
+        colour              0.08 0.07 0.06 0.9
+        emission_rate       1.6
+        time_to_live        4
+        direction           1 0 0
+        velocity_min        0.3
+        velocity_max        0.7
+        position            0 0 0.5
+        width               0.4
+        height              0.4
+        depth               0.3
+    }
+
+    affector DirectionRandomiser
+    {
+        randomness  3.0
+        scope       1.0
+        keep_velocity true
+    }
+}
+
+// A faint red glint in the eyes of a skull
+particle_system RoomAmbSkullGlint
+{
+    material        RoomAmbGlow
+    point_rendering false
+    particle_width  0.2
+    particle_height 0.2
+    cull_each       false
+    quota           1
+    billboard_type  point
+
+    emitter Point
+    {
+        angle               0
+        colour              1.0 0.15 0.1 0.7
+        emission_rate       2
+        time_to_live        100000
+        direction           0 0 1
+        velocity            0
+    }
+}
+
+// ---- Torture room ----
+
+// Cold glints on chains
+particle_system RoomAmbIronGlint
+{
+    material        RoomAmbSpark
+    point_rendering false
+    particle_width  0.16
+    particle_height 0.16
+    cull_each       false
+    quota           3
+    billboard_type  point
+
+    emitter Box
+    {
+        angle               0
+        colour              0.8 0.88 1.0 0.0
+        emission_rate       0.5
+        time_to_live        0.8
+        direction           0 0 1
+        velocity            0
+        position            0 0 0.6
+        width               0.9
+        height              0.9
+        depth               0.5
+    }
+
+    affector ColourInterpolator
+    {
+        time0   0
+        colour0 0.8 0.88 1.0 0.0
+        time1   0.4
+        colour1 0.85 0.92 1.0 1.0
+        time2   1
+        colour2 0.8 0.88 1.0 0.0
+    }
+}
+
+// ---- Crypt ----
+
+// Mist lying low over the floor
+particle_system RoomAmbMist
+{
+    material        RoomAmbSmoke
+    point_rendering false
+    particle_width  1.1
+    particle_height 1.1
+    cull_each       false
+    quota           5
+    billboard_type  point
+
+    emitter Box
+    {
+        angle               90
+        colour              0.6 0.78 0.66 0.0
+        emission_rate       0.8
+        time_to_live        6
+        direction           1 0 0
+        velocity_min        0.03
+        velocity_max        0.1
+        position            0 0 0.12
+        width               1.0
+        height              1.0
+        depth               0.05
+    }
+
+    affector ColourInterpolator
+    {
+        time0   0
+        colour0 0.6 0.78 0.66 0.0
+        time1   0.5
+        colour1 0.6 0.78 0.66 0.22
+        time2   1
+        colour2 0.6 0.78 0.66 0.0
+    }
+
+    affector Scaler
+    {
+        rate    0.08
+    }
+}
+
+// A grave light
+particle_system RoomAmbGraveLight
+{
+    material        RoomAmbGlow
+    point_rendering false
+    particle_width  0.5
+    particle_height 0.5
+    cull_each       false
+    quota           1
+    billboard_type  point
+
+    emitter Point
+    {
+        angle               0
+        colour              0.4 1.0 0.55 0.6
+        emission_rate       2
+        time_to_live        100000
+        direction           0 0 1
+        velocity            0
+    }
+}
+
+// A pale light rising from a grave
+particle_system RoomAmbWisp
+{
+    material        RoomAmbGlow
+    point_rendering false
+    particle_width  0.3
+    particle_height 0.3
+    cull_each       false
+    quota           5
+    billboard_type  point
+
+    emitter Box
+    {
+        angle               25
+        colour              0.5 1.0 0.65 0.0
+        emission_rate       1.2
+        time_to_live        2.6
+        direction           0 0 1
+        velocity_min        0.3
+        velocity_max        0.55
+        width               0.4
+        height              0.4
+        depth               0.05
+    }
+
+    affector ColourInterpolator
+    {
+        time0   0
+        colour0 0.5 1.0 0.65 0.0
+        time1   0.4
+        colour1 0.5 1.0 0.65 0.6
+        time2   1
+        colour2 0.5 1.0 0.65 0.0
+    }
+
+    affector DirectionRandomiser
+    {
+        randomness  0.4
+        scope       0.5
+        keep_velocity true
+    }
+}
+
+// ---- Arena ----
+
+// Sand dust lifted by feet
+particle_system RoomAmbArenaDust
+{
+    material        RoomAmbSmoke
+    point_rendering false
+    particle_width  0.35
+    particle_height 0.35
+    cull_each       false
+    quota           8
+    billboard_type  point
+
+    emitter Box
+    {
+        angle               90
+        colour_range_start  0.8 0.7 0.5 0.28
+        colour_range_end    0.88 0.78 0.58 0.32
+        emission_rate       1.6
+        time_to_live        2
+        direction           0 0 1
+        velocity_min        0.05
+        velocity_max        0.25
+        position            0 0 0.05
+        width               1.0
+        height              1.0
+        depth               0.05
+    }
+
+    affector Scaler
+    {
+        rate    0.3
+    }
+
+    affector ColourFader
+    {
+        alpha   -0.15
+    }
+}

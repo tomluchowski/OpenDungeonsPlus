@@ -42,6 +42,11 @@ public:
     bool canSlap(Seat* seat) override;
     void slap() override;
 
+    //! \brief On the client, tells the room ambience that the door opens or closes (a sound and no more)
+    virtual void setAnimationState(const std::string& state, bool loop = true,
+        const Ogre::Vector3& direction = Ogre::Vector3::ZERO, bool playIdleWhenAnimationEnds = true) override;
+    using MovableGameEntity::setAnimationState;
+
     std::string getListenerName() const override;
     bool notifyDead(GameEntity* entity) override;
     bool notifyRemovedFromGameMap(GameEntity* entity) override;

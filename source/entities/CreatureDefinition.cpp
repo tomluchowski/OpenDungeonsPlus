@@ -71,6 +71,10 @@ CreatureDefinition::CreatureDefinition(
             int32_t                 sleepHeal,
             int32_t                 turnsStunDropped) :
         mCreatureJob (job),
+        mCombatClass (CombatBlocker),
+        mFearless (false),
+        mChampion (false),
+        mPossessManaCost (0.0),
         mClassName   (className),
         mMeshName    (meshName),
         mBedMeshName (bedMeshName),
@@ -114,13 +118,18 @@ CreatureDefinition::CreatureDefinition(
         mSoundFamilyDrop    ("Default/Drop"),
         mSoundFamilyAttack  ("Default/Attack"),
         mSoundFamilyDie     ("Default/Die"),
-        mSoundFamilySlap    ("Default/Slap")
+        mSoundFamilySlap    ("Default/Slap"),
+        mTortureTimeToConvert (120.0)
 {
     mXPTable.assign(MAX_LEVEL - 1, 100.0);
 }
 
 CreatureDefinition::CreatureDefinition(const CreatureDefinition& def) :
         mCreatureJob(def.mCreatureJob),
+        mCombatClass(def.mCombatClass),
+        mFearless(def.mFearless),
+        mChampion(def.mChampion),
+        mPossessManaCost(def.mPossessManaCost),
         mClassName(def.mClassName),
         mMeshName(def.mMeshName),
         mBedMeshName(def.mBedMeshName),
@@ -165,7 +174,8 @@ CreatureDefinition::CreatureDefinition(const CreatureDefinition& def) :
         mSoundFamilyDrop(def.mSoundFamilyDrop),
         mSoundFamilyAttack(def.mSoundFamilyAttack),
         mSoundFamilyDie(def.mSoundFamilyDie),
-        mSoundFamilySlap(def.mSoundFamilySlap)
+        mSoundFamilySlap(def.mSoundFamilySlap),
+        mTortureTimeToConvert(def.mTortureTimeToConvert)
 {
     for(const double& xp : def.mXPTable)
     {
@@ -248,6 +258,36 @@ CreatureDefinition::CreatureJob CreatureDefinition::creatureJobFromString(const 
     return Fighter;
 }
 
+CreatureDefinition::CombatClass CreatureDefinition::combatClassFromString(const std::string& s)
+{
+    if (s.compare("Blitzer") == 0)
+        return CombatBlitzer;
+    if (s.compare("Flanker") == 0)
+        return CombatFlanker;
+    if (s.compare("Support") == 0)
+        return CombatSupport;
+
+    // Use Blocker as a default value
+    return CombatBlocker;
+}
+
+std::string CreatureDefinition::combatClassToString(CombatClass c)
+{
+    switch (c)
+    {
+    case CombatBlitzer:
+        return "Blitzer";
+    case CombatFlanker:
+        return "Flanker";
+    case CombatSupport:
+        return "Support";
+
+    default:
+    case CombatBlocker:
+        return "Blocker";
+    }
+}
+
 std::string CreatureDefinition::creatureJobToString(CreatureJob c)
 {
     switch (c)
@@ -300,6 +340,11 @@ ODPacket& operator<<(ODPacket& os, const CreatureDefinition* c)
     os << c->mSoundFamilyAttack;
     os << c->mSoundFamilyDie;
     os << c->mSoundFamilySlap;
+    os << CreatureDefinition::combatClassToString(c->mCombatClass);
+    os << c->mFearless;
+    os << c->mChampion;
+    os << c->mPossessManaCost;
+    os << c->mTortureTimeToConvert;
 
     for (unsigned int i = 0; i < c->mXPTable.size(); ++i)
         os << c->mXPTable[i];
@@ -338,6 +383,12 @@ ODPacket& operator>>(ODPacket& is, CreatureDefinition* c)
     is >> c->mSoundFamilyAttack;
     is >> c->mSoundFamilyDie;
     is >> c->mSoundFamilySlap;
+    is >> tempString;
+    c->mCombatClass = CreatureDefinition::combatClassFromString(tempString);
+    is >> c->mFearless;
+    is >> c->mChampion;
+    is >> c->mPossessManaCost;
+    is >> c->mTortureTimeToConvert;
 
     for (unsigned int i = 0; i < c->mXPTable.size(); ++i)
     {
@@ -462,6 +513,30 @@ bool CreatureDefinition::update(CreatureDefinition* creatureDef, std::stringstre
             {
                 defFile >> nextParam;
                 creatureDef->mCreatureJob = CreatureDefinition::creatureJobFromString(nextParam);
+                continue;
+            }
+            else if (nextParam == "CombatClass")
+            {
+                defFile >> nextParam;
+                creatureDef->mCombatClass = CreatureDefinition::combatClassFromString(nextParam);
+                continue;
+            }
+            else if (nextParam == "Fearless")
+            {
+                defFile >> nextParam;
+                creatureDef->mFearless = Helper::toBool(nextParam);
+                continue;
+            }
+            else if (nextParam == "Champion")
+            {
+                defFile >> nextParam;
+                creatureDef->mChampion = Helper::toBool(nextParam);
+                continue;
+            }
+            else if (nextParam == "PossessManaCost")
+            {
+                defFile >> nextParam;
+                creatureDef->mPossessManaCost = Helper::toDouble(nextParam);
                 continue;
             }
             else if (nextParam == "MeshName")
@@ -706,6 +781,12 @@ bool CreatureDefinition::update(CreatureDefinition* creatureDef, std::stringstre
                 defFile >> creatureDef->mSoundFamilySlap;
                 continue;
             }
+            else if (nextParam == "TortureTimeToConvert")
+            {
+                defFile >> nextParam;
+                creatureDef->mTortureTimeToConvert = Helper::toDouble(nextParam);
+                continue;
+            }
         }
     }
 
@@ -742,6 +823,17 @@ void CreatureDefinition::writeCreatureDefinitionDiff(
 
     if(def1 == nullptr || (def1->mCreatureJob != def2->mCreatureJob))
         file << "    CreatureJob\t" << creatureJobToString(def2->mCreatureJob) << std::endl;
+
+    if(def1 == nullptr || (def1->mCombatClass != def2->mCombatClass))
+        file << "    CombatClass\t" << combatClassToString(def2->mCombatClass) << std::endl;
+    if(def1 == nullptr || (def1->mFearless != def2->mFearless))
+        file << "    Fearless\t" << (def2->mFearless ? 1 : 0) << std::endl;
+
+    if(def1 == nullptr || (def1->mChampion != def2->mChampion))
+        file << "    Champion\t" << (def2->mChampion ? 1 : 0) << std::endl;
+
+    if(def1 == nullptr || (def1->mPossessManaCost != def2->mPossessManaCost))
+        file << "    PossessManaCost\t" << def2->mPossessManaCost << std::endl;
 
     if(def1 == nullptr || (def1->mMeshName.compare(def2->mMeshName) != 0))
         file << "    MeshName\t" << def2->mMeshName << std::endl;
@@ -862,6 +954,9 @@ void CreatureDefinition::writeCreatureDefinitionDiff(
 
     if(def1 == nullptr || (def1->mSoundFamilySlap.compare(def2->mSoundFamilySlap) != 0))
         file << "    SoundFamilySlap\t" << def2->mSoundFamilySlap << std::endl;
+
+    if(def1 == nullptr || (def1->mTortureTimeToConvert != def2->mTortureTimeToConvert))
+        file << "    TortureTimeToConvert\t" << def2->mTortureTimeToConvert << std::endl;
 
     file << "    [/Stats]" << std::endl;
 

@@ -2207,16 +2207,32 @@ MineNGold	50
 [Rooms]
 # typeRoom	name	seatId	numTiles		Subsequent Lines: tileX	tileY
 [Room]
-1	DungeonTemple1	1	9
+1	DungeonTemple1	1	25
+35	3
+35	4
+35	5
+35	6
+35	7
+36	3
 36	4
 36	5
 36	6
+36	7
+37	3
 37	4
 37	5
 37	6
+37	7
+38	3
 38	4
 38	5
 38	6
+38	7
+39	3
+39	4
+39	5
+39	6
+39	7
 [/Room]
 [Room]
 4	Portal2	1	9
@@ -2232,16 +2248,32 @@ MineNGold	50
 9	5
 [/Room]
 [Room]
-1	DungeonTemple3	2	9
+1	DungeonTemple3	2	25
+66	45
+66	46
+66	47
+66	48
+66	49
+67	45
 67	46
 67	47
 67	48
+67	49
+68	45
 68	46
 68	47
 68	48
+68	49
+69	45
 69	46
 69	47
 69	48
+69	49
+70	45
+70	46
+70	47
+70	48
+70	49
 [/Room]
 [Room]
 4	Portal4	2	9
@@ -2257,16 +2289,32 @@ MineNGold	50
 9	5
 [/Room]
 [Room]
-1	DungeonTemple5	3	9
+1	DungeonTemple5	3	25
+3	43
+3	44
+3	45
+3	46
+3	47
+4	43
 4	44
 4	45
 4	46
+4	47
+5	43
 5	44
 5	45
 5	46
+5	47
+6	43
 6	44
 6	45
 6	46
+6	47
+7	43
+7	44
+7	45
+7	46
+7	47
 [/Room]
 [Room]
 4	Portal6	3	9

@@ -71,7 +71,7 @@ bool CreatureSkillDefenseSelf::tryUseSupport(GameMap& gameMap, Creature* creatur
 
     for(Tile* tile : creature->getCoveredTiles())
     {
-        Spell::fireSpellSound(*tile, "Defense");
+        Spell::fireSpellEffect(*tile, "Defense", "DefenseCast");
     }
 
     return true;

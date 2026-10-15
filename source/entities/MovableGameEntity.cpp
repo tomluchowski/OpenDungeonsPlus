@@ -17,12 +17,16 @@
 
 #include "entities/MovableGameEntity.h"
 
+#include "entities/GameEntityType.h"
+#include "entities/Creature.h"
 #include "entities/Tile.h"
 #include "game/Player.h"
 #include "game/Seat.h"
 #include "gamemap/GameMap.h"
+#include "gamemap/RoomObjectNavigation.h"
 #include "network/ODServer.h"
 #include "network/ServerNotification.h"
+#include "render/CreatureReactions.h"
 #include "render/RenderManager.h"
 #include "utils/Helper.h"
 #include "utils/LogManager.h"
@@ -85,16 +89,20 @@ void MovableGameEntity::tileToVector2(const std::list<Tile*>& tiles, std::vector
 void MovableGameEntity::setWalkPath(const std::string& walkAnim, const std::string& endAnim, bool loopEndAnim,
                                     bool playIdleWhenAnimationEnds, const std::vector<Ogre::Vector2>& path, bool walkDistortion)
 {
+    std::vector<Ogre::Vector2> walkPath = path;
+    if(getIsOnServerMap() && getObjectType() == GameEntityType::creature &&
+        RoomObjectNavigation::refine(static_cast<Creature&>(*this), walkPath))
+        walkDistortion = false;
     mWalkQueue.clear();
     // We set the animation after clearing mWalkQueue and before filling it to be
     // sure it is empty when we set it
-    if(!path.empty())
+    if(!walkPath.empty())
         setAnimationState(walkAnim);
 
-    for(const Ogre::Vector2& dest : path)
+    for(const Ogre::Vector2& dest : walkPath)
         mWalkQueue.push_back(Ogre::Vector2(dest.x,dest.y));
 
-    if(path.empty())
+    if(walkPath.empty())
     {
         setAnimationState(endAnim, loopEndAnim, Ogre::Vector3::ZERO, playIdleWhenAnimationEnds);
     }
@@ -222,6 +230,10 @@ void MovableGameEntity::setAnimationState(const std::string& state, bool loop, c
         setWalkDirection(direction);
 
     RenderManager::getSingleton().rrSetObjectAnimationState(this, state, loop);
+
+    // The reactions of the creatures (cheering winners) look at what the creatures do
+    if(CreatureReactions::getSingletonPtr() != nullptr)
+        CreatureReactions::getSingleton().noteAnimation(this, state);
 }
 
 void MovableGameEntity::update(Ogre::Real timeSinceLastFrame)
@@ -230,8 +242,16 @@ void MovableGameEntity::update(Ogre::Real timeSinceLastFrame)
     double addedTime = static_cast<Ogre::Real>(ODApplication::turnsPerSecond
          * static_cast<double>(timeSinceLastFrame)
          * getAnimationSpeedFactor());
+    if(mPrevAnimationState == EntityAnimation::combat_attack_anim)
+        addedTime *= 1.35;
+    else if(mPrevAnimationState == EntityAnimation::die_anim)
+        addedTime *= 1.15;
     mAnimationTime += addedTime;
-    if (!getIsOnServerMap() && getAnimationState() != nullptr)
+    if (!getIsOnServerMap() && getAnimationState() != nullptr &&
+        mPrevAnimationState != EntityAnimation::getup_anim &&
+        mPrevAnimationState != EntityAnimation::eat_chicken_anim &&
+        !(mPrevAnimationState == EntityAnimation::sleep_anim &&
+          getObjectType() == GameEntityType::creature))
     {
         // If the animation has stopped we set it to idle if we have to
         if(mDestinationPlayIdleWhenAnimationEnds && getAnimationState()->hasEnded())
@@ -272,7 +292,9 @@ void MovableGameEntity::update(Ogre::Real timeSinceLastFrame)
             mWalkQueue.pop_front();
             if(mWalkQueue.empty())
             {
-                // Stop walking
+                // Apply travel facing before the queued end animation can turn
+                // toward its target; do not overwrite that facing afterwards.
+                setWalkDirection(Ogre::Vector3(walkDirection.x,walkDirection.y,0));
                 stopWalking();
                 break;
             }
@@ -283,7 +305,8 @@ void MovableGameEntity::update(Ogre::Real timeSinceLastFrame)
         }
     }
 
-    setWalkDirection(Ogre::Vector3(walkDirection.x,walkDirection.y,0));
+    if(!mWalkQueue.empty())
+        setWalkDirection(Ogre::Vector3(walkDirection.x,walkDirection.y,0));
     setPosition(Ogre::Vector3(newPosition.x,newPosition.y,newPosition3f.z));
 }
 
