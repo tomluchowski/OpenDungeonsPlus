@@ -22,6 +22,7 @@
 #define CREATURE_H
 
 #include "entities/MovableGameEntity.h"
+#include "entities/CreatureActivity.h"
 #include "eventsystem/CreatureMoved.h"
 #include "eventsystem/Subject.h"
 
@@ -44,6 +45,7 @@ class CreatureSkill;
 class DraggableTileContainer;
 class GameMap;
 class ODPacket;
+class Player;
 class Room;
 class Weapon;
 
@@ -161,6 +163,10 @@ public:
     inline double getHP() const
     { return mHp; }
 
+    //! \brief Rough combat strength used for fear and target priority. It grows with
+    //! the current health and the level.
+    double getThreat() const;
+
     //! \brief Gets the current dig rate
     inline double getDigRate() const
     { return mDigRate; }
@@ -188,8 +194,71 @@ public:
     inline CreatureMoodLevel getMoodValue() const
     { return mMoodValue; }
 
+    CreatureActivity getActivity() const;
+
+    //! \brief Experience gathered towards the next level, between 0 and 1 (1 at the maximum level)
+    double getExperienceProgress() const;
+    //! \brief Turns left until the creature can attack again
+    uint32_t getAttackRecoveryTurns() const { return mAttackRecoveryTurns; }
+    //! \brief Turns the recovery after the last attack lasts in total
+    uint32_t getAttackRecoveryDuration() const { return mAttackRecoveryDuration; }
+    //! \brief Counter increased at every attack, so that a client can tell two attacks with the same
+    //! remaining turns apart
+    uint32_t getAttackRecoverySerial() const { return mAttackRecoverySerial; }
+    //! \brief Whether experience and attack recovery were received from the server. Only a client sets it,
+    //! and only if the server sent them.
+    bool hasProgressInformation() const { return mHasProgressInformation; }
+
     inline int32_t getNbTurnFurious() const
     { return mNbTurnFurious; }
+
+    //! \brief Number of turns the creature has been held in the hand (decreases after being dropped)
+    inline int32_t getNbTurnsInHand() const
+    { return mNbTurnsInHand; }
+
+    //! \brief Number of times the creature wanted to work but found no job (reset when it works)
+    inline int32_t getNbTurnsOutOfWork() const
+    { return mNbTurnsOutOfWork; }
+
+    //! \brief Counts one more turn in which the creature wanted to work but found no job
+    inline void increaseNbTurnsOutOfWork()
+    { ++mNbTurnsOutOfWork; }
+
+    //! \brief Forgets the turns without a job, called when the creature works again
+    inline void resetNbTurnsOutOfWork()
+    { mNbTurnsOutOfWork = 0; }
+
+    //! \brief Number of turns of torture still weighing on the mood (fades after the torture stops)
+    inline int32_t getNbTurnsTortureMood() const
+    { return mNbTurnsTortureMood; }
+
+    //! \brief Number of turns of sleep in the lair still relieving the mood (fades after waking up)
+    inline int32_t getNbTurnsRested() const
+    { return mNbTurnsRested; }
+
+    //! \brief Number of turns spent near a creature of the opposite alignment, fading after leaving it
+    inline int32_t getNbTurnsHatedCompany() const
+    { return mNbTurnsHatedCompany; }
+
+    //! \brief Good creatures are the ones of the hero faction, all others are evil
+    bool isGoodAligned() const;
+
+    //! \brief True if a creature of the opposite alignment of an allied seat is close
+    bool isHatedCompanyNear() const;
+
+    //! \brief Mood points the arena gave to the creature (positive) or took from it (negative). Fades over time
+    inline double getPitMood() const
+    { return mPitMood; }
+
+    //! \brief Changes the pit mood points. They are limited by the PitMoodMax room setting
+    void addPitMood(double points);
+
+    //! \brief Called on server side each turn the creature sleeps in its lair
+    inline void markRested()
+    { mRestedThisTurn = true; }
+
+    //! \brief Number of slaps received during the last nbTurns turns
+    int32_t getNbRecentSlaps(int32_t nbTurns) const;
 
     void setPosition(const Ogre::Vector3& v, GameMap *gameMap = nullptr ) override;
 
@@ -300,7 +369,11 @@ public:
     Tile* getCoveredTile(int index) override;
     uint32_t numCoveredTiles() const override;
 
-    //! \brief Conform: AttackableObject - Deducts a given amount of HP from this creature.
+    //! \brief Share of the damage taken from the attacker: reduced when both fight inside an arena
+    double getPitDamageFactor(GameEntity* attacker);
+
+    //! \brief Conform: AttackableObject - Deducts a given amount of HP from this creature. On the server it also
+    //! counts the attacked, incapacitated and killed events for the conditions of the level script.
     double takeDamage(GameEntity* attacker, double absoluteDamage, double physicalDamage, double magicalDamage, double elementDamage,
         Tile *tileTakingDamage, bool ko) override;
 
@@ -352,6 +425,7 @@ public:
     //! to prepare for the pickup (removing creature from GameMap, changing states, ...).
     //! Returns true if the creature can be picked up
     bool tryPickup(Seat* seat) override;
+    //! \brief Server side: stops the creature when it is picked up and counts the pickedup event for the level script.
     void pickup() override;
     bool tryDrop(Seat* seat, Tile* tile) override;
     void drop(const Ogre::Vector3& v) override;
@@ -403,9 +477,14 @@ public:
     virtual void notifyEntityCarryOff(const Ogre::Vector3& position) override;
 
     bool canSlap(Seat* seat) override;
+    //! \brief Server side: the creature is slapped. It also counts the slapped event for the level script.
     void slap() override;
 
     void fireCreatureSound(CreatureSound sound);
+    void fireCombatImpact(bool weaponClash, bool bodyDamage,
+        const Ogre::Vector3& attackerPosition);
+    void fireChickenFeeding(const std::string& chickenName,
+        const Ogre::Vector3& chickenPosition);
 
     void itsPayDay();
 
@@ -473,6 +552,13 @@ public:
     inline void setNbTurnsWithoutBattle(int32_t nbTurnsWithoutBattle)
     { mNbTurnsWithoutBattle = nbTurnsWithoutBattle; }
 
+    //! \brief Mood points the casino gave to the creature (positive) or took from it (negative). Fades over time
+    inline double getCasinoMood() const
+    { return mCasinoMood; }
+
+    //! \brief Changes the casino mood points. They are limited by the CasinoMoodMax room setting
+    void addCasinoMood(double points);
+
     inline GameEntity* getCarriedEntity() const
     { return mCarriedEntity; }
 
@@ -509,6 +595,31 @@ public:
 
     bool removeCreatureEffect(CreatureEffect* effectForDeletion);
 
+    //! \brief Returns true (server side) if the creature is temporarily converted by the Defector spell
+    bool isDefector() const;
+
+    //! \brief Returns true if the creature is temporarily turned into a chicken by the Hexen Hen spell. On server
+    //! side, it is deduced from the active effect. On client side, from the state sent by the server
+    bool isHexenHen() const;
+
+    //! \brief Returns true (server side) if the creature is paralysed by the Freeze trap. A frozen creature
+    //! can neither move nor fight
+    bool isFrozen() const;
+
+    //! \brief Returns true (server side) if the creature is made invisible by the Invisible skill.
+    //! Enemy creatures do not target an invisible creature
+    bool isInvisible() const;
+
+    //! \brief Name of the mesh to display (the chicken mesh while the creature is a chicken)
+    const std::string& getCurrentMeshName() const;
+
+    //! \brief Called on server side to tell that something changed that needs to be sent to the clients
+    void requestRefresh()
+    { mNeedFireRefresh = true; }
+
+    //! \brief Called on client side. Replaces the displayed mesh if the chicken state changed
+    void updateHexenHenMesh();
+
     //!\brief Returns true if the creature has an active slap effect
     bool hasSlapEffect() const
     { return mActiveSlapsCount > 0; }
@@ -535,13 +646,21 @@ public:
 
     //! Checks if the creature current walk path is still valid. This will be called if tiles passability changes (for
     //! example if a door is closed)
-    void checkWalkPathValid();
+    void checkWalkPathValid(bool includeWalkDistortion = false);
 
     bool isTired() const;
 
     bool isHungry() const;
 
     void resetKoTurns();
+
+    //! \brief Knocks the creature down for the given number of turns (server side). Does nothing if dead or KO.
+    //! \param nbTurns How many turns the creature stays knocked down; values of zero or less are ignored.
+    void stun(int32_t nbTurns);
+
+    //! \brief Knocks the creature out so that it can be carried away (used when
+    //! the last enemy standing in an arena has won its fights)
+    void knockOutToDeath();
 
     //! \brief Called when the creature is set in jail by dropping or brought by
     //! a worker. if prison is nullptr, the creature is freed
@@ -553,11 +672,21 @@ public:
     inline bool isInContainment() const
     { return (mSeatPrison != nullptr); }
 
+    //! \brief Mood relief the creature got from praying in a temple. It fades over time
+    inline int32_t getPrayerRelief() const
+    { return mPrayerRelief; }
+
+    //! \brief Adds relief from praying, up to maxRelief
+    void addPrayerRelief(int32_t relief, int32_t maxRelief);
+
     inline int32_t getNbTurnsTorture() const
     { return mNbTurnsTorture; }
 
     inline void increaseTurnsTorture()
-    { ++mNbTurnsTorture; }
+    {
+        ++mNbTurnsTorture;
+        mTorturedThisTurn = true;
+    }
 
     inline int32_t getNbTurnsPrison() const
     { return mNbTurnsPrison; }
@@ -584,6 +713,15 @@ public:
 
     void flee();
 
+    //! \brief Stuns the creature for nbTurns turns (lightning trap). A stunned creature does nothing,
+    //! like a creature that was just dropped. Does nothing if the creature is dead or already KO.
+    //! Unlike stun(), which can lengthen a stun that is already running, this only starts a stun on a
+    //! creature that is not KO, sets the counter to nbTurns and also stops the walking of the creature.
+    //! \param nbTurns How many turns the creature stays stunned.
+    void stunForTurns(int32_t nbTurns);
+    //! \brief Makes the creature run away from fearTile for nbTurns turns (fear trap)
+    void fleeFromTile(Tile* fearTile, int32_t nbTurns);
+
     void sleep();
 
     void leaveDungeon();
@@ -604,10 +742,22 @@ public:
     bool searchBestTargetInList(const std::vector<GameEntity*>& listObjects, const std::vector<Tile*>& tilesFilter, GameEntity*& attackedEntity,
         Tile*& attackedTile, Tile*& positionTile, CreatureSkillData*& creatureSkillData);
 
-    //! \brief Called when the creature changes seat (for example when it becomes rogue or after torture)
+    //! \brief Called when the creature changes seat (for example when it becomes rogue or after torture). A neutral
+    //! creature that joins a keeper counts as claimed for the level script.
     void changeSeat(Seat* newSeat);
 
     void stopWalking();
+
+    //! \brief Server side. Moves the creature to the given tile at once, without walking, and tells the
+    //! players that see it. The creature stops walking, its actions are left as they are
+    void teleportTo(Tile* tile);
+
+    //! \brief Server side. Returns the tile the creature is walking to, nullptr if it does not walk
+    Tile* getWalkDestinationTile() const;
+
+    //! \brief Server side. Takes the dead body of this creature so it cannot be used again (Raise Dead).
+    //! Returns false if the creature is not a body that is still lying on the map or if it is a worker
+    bool takeCorpse();
     
     void showOutliner();
 
@@ -616,7 +766,54 @@ public:
     void maxAmbient();
 
     void normalizeAmbient();
-    
+
+    //! Called on server side. True if a player controls this creature (possession)
+    inline bool isPossessed() const
+    { return mPossessor != nullptr; }
+
+    //! Called on server side. The player that controls this creature, nullptr if nobody does
+    inline Player* getPossessor() const
+    { return mPossessor; }
+
+    //! Called on server side. Puts the creature under the control of the given player. Its
+    //! current actions are paused and replaced by the possessed action.
+    void startPossession(Player& player);
+
+    //! Called on server side. Counts one more turn of the current possession and returns the
+    //! number of turns it has lasted so far.
+    inline uint32_t nextPossessionTurn()
+    { return ++mPossessionTurns; }
+
+    //! Called on server side. Gives the creature back to the AI and tells the player
+    //! the possession is over.
+    void endPossession();
+
+    //! Called on server side. Makes the possessed creature walk in the given direction (world
+    //! x/y, does not need to be normalized). A zero vector makes it stop.
+    void possessedMove(const Ogre::Vector2& direction);
+
+    //! Called on server side. The left mouse button attack of the possessed creature: it uses
+    //! its melee or ranged attack on the enemy in front of it (aim is the view direction on
+    //! the ground plane). Same range, damage and cooldown as in a normal fight.
+    void possessedAttack(const Ogre::Vector2& aim);
+
+    //! Called on server side. Uses the creature skill (other than melee and ranged attack) of
+    //! the given slot (0 is the first one the creature can use). Skills that need a target
+    //! use the enemy in front of the creature.
+    void possessedUseSkill(uint32_t slot, const Ogre::Vector2& aim);
+
+    //! Called on server side. True if the creature follows a possessed leader (possession group)
+    inline bool isInPossessionGroup() const
+    { return !mGroupLeaderName.empty(); }
+
+    //! Called on server side. Puts the creature in the possession group of the given leader.
+    //! It leaves what it was doing and follows the leader until the group is released.
+    void joinPossessionGroup(const std::string& leaderName);
+
+    //! Called on server side. The creature leaves the possession group and goes back to its
+    //! normal behaviour.
+    void leavePossessionGroup();
+
 protected:
     virtual void exportToPacket(ODPacket& os, const Seat* seat) const override;
     virtual void importFromPacket(ODPacket& is) override;
@@ -691,6 +888,8 @@ private:
 
     //! \brief Counter to let the creature stay some turns after its death
     unsigned int    mDeathCounter;
+    //! \brief Server side. Turns since the champion was summoned (see handleChampionUpkeep), not saved
+    uint32_t        mChampionTurns;
     int             mJobCooldown;
 
     //! \brief At pay day, mGoldFee will be set to the creature fee and decreased when the creature gets gold
@@ -706,6 +905,9 @@ private:
 
     CEGUI::Window*  mStatsWindow;
     int32_t         mNbTurnsWithoutBattle;
+
+    //! \brief Used on server side for the mood. Set by the casino, fades by CasinoMoodDecay per second
+    double          mCasinoMood;
 
     //! \brief Every tiles within the creature sight radius, used for common actions.
     std::vector<Tile*>              mTilesWithinSightRadius;
@@ -732,9 +934,13 @@ private:
     //! \brief Mood value. Depending on this value, the creature will be in bad mood and
     //! might attack allied creatures or refuse to work or to go to combat
     CreatureMoodLevel               mMoodValue;
+    CreatureActivity                mActivity;
     //! \brief Mood points. Computed by the creature MoodModifiers. It is promoted to class variable for debug purposes and
     //! should not be used to check mood. If the mood is to be tested, mMoodValue should be used
     int32_t                         mMoodPoints;
+
+    //! \brief Mood points gained by praying in a temple. They fade every turn
+    int32_t                         mPrayerRelief;
 
     //! \brief Counts turns the creature is furious. If it stays like this for too long, it will become rogue
     int32_t                         mNbTurnFurious;
@@ -788,8 +994,67 @@ private:
     //! \brief Counts the number of active slaps affecting the creature
     uint32_t                        mActiveSlapsCount;
 
+    //! \brief Used on client side. True if the server told us that the creature is a chicken
+    bool                            mIsHexenHen;
+
+    //! \brief Used on client side. True if the mesh currently displayed is the chicken one
+    bool                            mHexenHenMeshShown;
+    //! \brief Used on server side for the mood. Turns spent in the hand (decreases when not held)
+    int32_t                         mNbTurnsInHand;
+
+    //! \brief Used on server side. True while the creature is held in the hand
+    bool                            mIsInHand;
+
+    //! \brief Used on server side for the mood. Failed job searches (reset when the creature works)
+    int32_t                         mNbTurnsOutOfWork;
+
+    //! \brief Used on server side for the mood. Turns of torture and of rest, growing while it lasts and fading afterwards
+    int32_t                         mNbTurnsTortureMood;
+    int32_t                         mNbTurnsRested;
+    bool                            mTorturedThisTurn;
+    bool                            mRestedThisTurn;
+
+    //! \brief Used on server side for the mood. Turns spent near a creature of the opposite alignment
+    int32_t                         mNbTurnsHatedCompany;
+
+    //! \brief Used on server side for the mood. Set by the arena, fades by PitMoodDecay per second
+    double                          mPitMood;
+
+    //! \brief Used on server side for the mood. Turn numbers of the latest slaps
+    std::vector<int64_t>            mSlapTurns;
+
     //! \brief Skills the creature can use
     std::vector<CreatureSkillData> mSkillData;
+
+    uint32_t mAttackRecoveryTurns = 0;
+    uint32_t mAttackRecoveryDuration = 0;
+    uint32_t mAttackRecoverySerial = 0;
+    double mExperienceProgress = 0.0;
+    bool mHasProgressInformation = false;
+    //! \brief Used on server side. The player controlling the creature (possession), nullptr if none
+    Player*                         mPossessor = nullptr;
+
+    //! \brief Used on server side. Turns the current possession has lasted (the first seconds are free)
+    uint32_t                        mPossessionTurns = 0;
+
+    //! \brief Used on server side. The names of the creatures following this possessed creature
+    std::vector<std::string>        mGroupMemberNames;
+
+    //! \brief Used on server side. The name of the possessed creature this creature follows, empty if none
+    std::string                     mGroupLeaderName;
+
+    //! \brief Used on server side by the possession. Picks the nearby fighting creatures of the
+    //! possessor and makes them follow this creature
+    void formPossessionGroup();
+
+    //! \brief Used on server side by the possession group. Makes the creature walk to the leader if
+    //! it is too far away. Returns true if the creature has to wait for the leader (nothing else to do)
+    bool followPossessionLeader();
+
+    //! \brief Used on server side by the possession. Searches the enemy in front of the creature
+    //! (view direction aim) the given skill can reach. Returns true if one is found.
+    bool possessedFindTarget(const Ogre::Vector2& aim, const CreatureSkillData& skillData,
+        GameEntity*& entityAttack, Tile*& tileAttack);
 
     //! \brief A sub-function called by doTurn()
     //! This one checks if there is something prioritary to do (like fighting). If it is the case,
@@ -797,7 +1062,14 @@ private:
     void decidePrioritaryAction();
 
     //! \brief A sub-function called by doTurn()
-    //! This functions will handle the creature idle action logic.
+    //! While the seat's heart defence is on, the runners (the workers and the two cheap,
+    //! fast scout creatures) drop their current job and run to the seat's fighters, or to
+    //! the heart while it is damaged. A runner that is already fighting or fleeing keeps doing so.
+    void handleHeartDefence();
+
+    //! \brief A sub-function called by doTurn()
+    //! This functions will handle the creature idle action logic. A standing order of the level
+    //! script comes before the needs of the creature.
     //! \return true when another action should handled after that one.
     bool handleIdleAction();
 
@@ -808,7 +1080,30 @@ private:
 
     void computeMood();
 
+    void exportMoodToPacket(ODPacket& os, const Seat* seat) const;
+    void importMoodFromPacket(ODPacket& is);
+    void exportActivityToPacket(ODPacket& os, const Seat* seat) const;
+    void importActivityFromPacket(ODPacket& is);
+    //! \brief Writes the experience progress and the attack recovery of the creature to the packet
+    void exportProgressToPacket(ODPacket& os, const Seat* seat) const;
+    //! \brief Reads the experience progress and the attack recovery written by exportProgressToPacket
+    void importProgressFromPacket(ODPacket& is);
+
     void computeCreatureOverlayMoodValue();
+
+    //! \brief Called on server side each turn when the creature is a chicken. It only wanders around
+    void handleHexenHenUpkeep();
+
+    //! \brief Called on server side each turn for the champion. The cast price covers the first seconds, then the owner pays
+    //! the mana drain per second. Returns true if the champion left because the mana cannot pay it
+    bool handleChampionUpkeep();
+
+    //! \brief Idle action of the champion: walks to the nearest reachable enemy creature, or to the nearest enemy dungeon heart.
+    //! Returns true if a destination was set
+    bool handleChampionIdle();
+
+    //! \brief Removes the champion from the map (slap, or not enough mana)
+    void dismissChampion();
 };
 
 #endif // CREATURE_H

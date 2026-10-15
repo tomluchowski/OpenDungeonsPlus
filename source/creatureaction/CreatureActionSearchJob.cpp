@@ -206,6 +206,16 @@ bool CreatureActionSearchJob::handleSearchJob(Creature& creature, bool forced)
         return false;
     }
 
+    // We found no job. If the creature wanted to work, it gets frustrated
+    for(const CreatureRoomAffinity& affinity : creature.getDefinition()->getRoomAffinity())
+    {
+        if((affinity.getLikeness() > 0) && (affinity.getEfficiency() > 0))
+        {
+            creature.increaseNbTurnsOutOfWork();
+            break;
+        }
+    }
+
     // Default action
     creature.popAction();
     return true;
