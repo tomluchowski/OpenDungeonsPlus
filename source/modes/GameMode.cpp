@@ -161,6 +161,15 @@ static bool blocksEdgeScrolling(CEGUI::Window* window)
     return true;
 }
 
+//! \brief Font of the research level counter under a node of the research tree
+const std::string SKILL_BADGE_FONT_NORMAL = "MedievalSharp-10";
+//! \brief Smaller font of the research level counter, used where the nodes of a row are close together
+const std::string SKILL_BADGE_FONT_SMALL = "MedievalSharp-8";
+//! \brief Free space in pixels that the counter text needs on top of its width before it counts as fitting below a node
+const float SKILL_BADGE_NODE_GAP = 16.0f;
+//! \brief Horizontal padding in pixels added to the counter text width to get the width of the counter window
+const float SKILL_BADGE_WIDTH_PADDING = 8.0f;
+
 GameMode::GameMode(ModeManager *modeManager):
     GameEditorModeBase(modeManager, ModeManager::GAME, modeManager->getGui().getGuiSheet(Gui::guiSheet::inGameMenu)),
     mDigSetBool(false),
@@ -3135,11 +3144,11 @@ void GameMode::refreshSkillConnections()
             // The nodes of a wide row are close together: use the smaller font when the
             // counter would otherwise touch the counter of the neighbouring node.
             const float nodePitch = width * parent->getPixelSize().d_width;
-            CEGUI::Font* badgeFont = &CEGUI::FontManager::getSingleton().get("MedievalSharp-10");
-            if(badgeFont->getTextExtent("3/3") + 16.0f > nodePitch)
-                badgeFont = &CEGUI::FontManager::getSingleton().get("MedievalSharp-8");
+            CEGUI::Font* badgeFont = &CEGUI::FontManager::getSingleton().get(SKILL_BADGE_FONT_NORMAL);
+            if(badgeFont->getTextExtent("3/3") + SKILL_BADGE_NODE_GAP > nodePitch)
+                badgeFont = &CEGUI::FontManager::getSingleton().get(SKILL_BADGE_FONT_SMALL);
             badge->setFont(badgeFont);
-            const float badgeWidth = badge->getFont()->getTextExtent("3/3") + 8.0f;
+            const float badgeWidth = badge->getFont()->getTextExtent("3/3") + SKILL_BADGE_WIDTH_PADDING;
             const float badgeHeight = badge->getFont()->getLineSpacing() + 2.0f;
             badge->setArea(CEGUI::UVector2(CEGUI::UDim(.5f, -badgeWidth * .5f), CEGUI::UDim(1, 0)),
                 CEGUI::USize(CEGUI::UDim(0, badgeWidth), CEGUI::UDim(0, badgeHeight)));

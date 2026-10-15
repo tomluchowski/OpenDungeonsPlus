@@ -57,6 +57,7 @@ probe = r'''
 #include <functional>
 #include <iostream>
 #include <map>
+const std::string SKILL_BADGE_FONT_NORMAL="MedievalSharp-10";const std::string SKILL_BADGE_FONT_SMALL="MedievalSharp-8";const float SKILL_BADGE_NODE_GAP=16.0f;const float SKILL_BADGE_WIDTH_PADDING=8.0f;
 namespace Helper {template<class T>std::string toString(T v){return std::to_string(v);}}
 struct CreatureDefinition {std::string getMeshName()const{return "Kobold.mesh";}};
 const CEGUI::Image& getCreatureHandIconImage(const std::string&){return CEGUI::ImageManager::getSingleton().get("OpenDungeonsIcons/WorkerButton");}

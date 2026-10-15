@@ -244,6 +244,9 @@ protected:
     //! \brief The different Game Options Menu handlers.
     //! showQuitMenuFromOptions asks for confirmation before leaving the game to the main menu.
     bool showQuitMenuFromOptions(const CEGUI::EventArgs& e = {});
+    //! \brief Options menu handler that marks the exit as a level restart (not a quit) and opens the exit confirmation popup
+    //! \param e CEGUI event arguments, not used
+    //! \return true, the event was handled
     bool showRestartLevelFromOptions(const CEGUI::EventArgs& e = {});
     //! \brief Asks for confirmation before the application is closed.
     bool showExitApplicationFromOptions(const CEGUI::EventArgs& e = {});
