@@ -28,6 +28,7 @@
 #include <vector>
 #include <iosfwd>
 #include <cstdint>
+#include <map>
 
 class Building;
 class ConfigManager;
@@ -255,6 +256,9 @@ public:
     //! otherwise
     bool isSkillDone(SkillType type) const;
 
+    uint32_t getSkillLevel(SkillType type) const;
+    void setResearchLevels(const std::map<SkillType, uint32_t>& levels);
+
     //! \brief Called when the skill entity reaches its destination. From there, the
     //! skilled thing is available
     //! Returns true if the type was inserted and false otherwise
@@ -402,6 +406,8 @@ private:
     //! \brief Skills already done. This is used on both client and server side and should be updated
     std::vector<SkillType> mSkillDone;
 
+    std::map<SkillType, uint32_t> mResearchLevels;
+
     //! \brief Skills pending. Used on both client and server side and should be updated.
     std::vector<SkillType> mSkillPending;
 
@@ -417,6 +423,7 @@ private:
     //! list in empty, mCurrentSkill will be set to null
     //! researchedType is the currently researched type if any (nullSkillType if none)
     void setNextSkill(SkillType researchedType);
+    void completeResearch(SkillType type);
 
     //! Fills mTilesStateLoaded with the tiles of the given tileVisual is the given istream.
     //! Returns 0 if the seat end tile has been reached, 1 if the read success and -1 if there is an error

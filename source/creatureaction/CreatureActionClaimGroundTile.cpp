@@ -54,7 +54,10 @@ bool CreatureActionClaimGroundTile::handleCreatureActionClaimGroundTile(Creature
     if(myTile != &tileClaim)
     {
         if(!creature.setDestination(&tileClaim))
+        {
             creature.popAction();
+            return false;
+        }
 
         return true;
     }
