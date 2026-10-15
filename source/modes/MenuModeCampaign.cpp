@@ -59,10 +59,18 @@ const std::string CMP_MAP = "CampaignWindowFrame/CampaignMap";
 const std::string CMP_BRIEFING = "CampaignWindowFrame/BriefingPanel";
 const std::string CMP_BRIEFING_TEXT = "CampaignWindowFrame/BriefingPanel/BriefingText";
 static const std::string CMP_BRIEFING_IMAGE = "CampaignWindowFrame/BriefingPanel/BriefingImage";
-static const std::string BRIEFING_PREVIEW_PANEL_AREA = "{{0.5,-336},{0.5,-340},{0.5,336},{0.5,340}}";
-static const std::string BRIEFING_TEXT_PANEL_AREA = "{{0.5,-300},{0.5,-210},{0.5,300},{0.5,210}}";
-static const std::string BRIEFING_PREVIEW_TEXT_AREA = "{{0,16},{0,392},{1,-16},{1,-72}}";
-static const std::string BRIEFING_TEXT_AREA = "{{0,16},{0,16},{1,-16},{1,-72}}";
+static const CEGUI::URect BRIEFING_PREVIEW_PANEL_AREA(
+    CEGUI::UDim(0.5f, -336), CEGUI::UDim(0.5f, -352),
+    CEGUI::UDim(0.5f, 336), CEGUI::UDim(0.5f, 352));
+static const CEGUI::URect BRIEFING_TEXT_PANEL_AREA(
+    CEGUI::UDim(0.5f, -300), CEGUI::UDim(0.5f, -210),
+    CEGUI::UDim(0.5f, 300), CEGUI::UDim(0.5f, 210));
+static const CEGUI::URect BRIEFING_PREVIEW_TEXT_AREA(
+    CEGUI::UDim(0, 16), CEGUI::UDim(0, 392),
+    CEGUI::UDim(1, -16), CEGUI::UDim(1, -72));
+static const CEGUI::URect BRIEFING_TEXT_AREA(
+    CEGUI::UDim(0, 16), CEGUI::UDim(0, 16),
+    CEGUI::UDim(1, -16), CEGUI::UDim(1, -72));
 const std::string CMP_BRIEFING_START = "CampaignWindowFrame/BriefingPanel/BriefingStartButton";
 const std::string CMP_BRIEFING_CLOSE = "CampaignWindowFrame/BriefingPanel/BriefingCloseButton";
 
@@ -787,20 +795,21 @@ void MenuModeCampaign::showDebriefing()
     mBriefingLevel = Campaign::getSingleton().getNumLevels();
 }
 
-//! \brief Fits the panel and text around a visible preview, or restores the text-only layout.
+//! \brief Keeps the preview and text-only areas registered for resolution and UI scaling.
 void MenuModeCampaign::setBriefingPreviewVisible(bool visible)
 {
-    CEGUI::Window* sheet = getModeManager().getGui().getGuiSheet(Gui::guiSheet::campaignMenu);
+    Gui& gui = getModeManager().getGui();
+    CEGUI::Window* sheet = gui.getGuiSheet(Gui::guiSheet::campaignMenu);
     sheet->getChild(CMP_BRIEFING_IMAGE)->setVisible(visible);
     if(visible)
     {
-        sheet->getChild(CMP_BRIEFING)->setProperty("Area", BRIEFING_PREVIEW_PANEL_AREA);
-        sheet->getChild(CMP_BRIEFING_TEXT)->setProperty("Area", BRIEFING_PREVIEW_TEXT_AREA);
+        gui.setScaledArea(sheet->getChild(CMP_BRIEFING), BRIEFING_PREVIEW_PANEL_AREA);
+        gui.setScaledArea(sheet->getChild(CMP_BRIEFING_TEXT), BRIEFING_PREVIEW_TEXT_AREA);
     }
     else
     {
-        sheet->getChild(CMP_BRIEFING)->setProperty("Area", BRIEFING_TEXT_PANEL_AREA);
-        sheet->getChild(CMP_BRIEFING_TEXT)->setProperty("Area", BRIEFING_TEXT_AREA);
+        gui.setScaledArea(sheet->getChild(CMP_BRIEFING), BRIEFING_TEXT_PANEL_AREA);
+        gui.setScaledArea(sheet->getChild(CMP_BRIEFING_TEXT), BRIEFING_TEXT_AREA);
     }
 }
 
