@@ -18,17 +18,14 @@
 #include "creatureaction/CreatureActionStealFreeGold.h"
 
 #include "entities/Creature.h"
+#include "entities/CreatureDefinition.h"
 #include "entities/Tile.h"
 #include "entities/TreasuryObject.h"
 #include "game/Seat.h"
 #include "gamemap/GameMap.h"
+#include "gamemap/LevelScript.h"
 #include "utils/Helper.h"
 #include "utils/LogManager.h"
-
-// ATM, we use an hardcoded value for creatures stealing gold. Later, we might
-// want to add something in the creature parameters or at least increase value
-// for high tier/level creatures
-const int GOLD_STEAL = 500;
 
 std::function<bool()> CreatureActionStealFreeGold::action()
 {
@@ -101,8 +98,11 @@ bool CreatureActionStealFreeGold::handleStealFreeGold(Creature& creature)
 
     if(myTile == treasuryTile)
     {
-        int gold = treasuryClosest->stealGold(creature, GOLD_STEAL);
+        int gold = treasuryClosest->stealGold(creature, creature.getDefinition()->getStealGold());
         creature.addGoldCarried(gold);
+        if((gold > 0) && creature.getIsOnServerMap())
+            creature.getGameMap()->getLevelScript().recordEvent(creature.getName(), "steals");
+
         creature.popAction();
         return false;
     }

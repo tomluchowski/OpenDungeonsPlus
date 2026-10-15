@@ -20,6 +20,8 @@
 
 #include "network/ODSocketClient.h"
 #include "network/ClientNotification.h"
+#include "game/HeartHealthRing.h"
+#include "game/LevelStatistics.h"
 
 #include <OgreSingleton.h>
 
@@ -58,6 +60,8 @@ class ODClient: public Ogre::Singleton<ODClient>,
     //! \brief Adds a client notification to the client notification queue.
     void queueClientNotification(ClientNotification* n);
 
+    void requestNicknameChange(const std::string& nickname);
+
     /*! \brief Adds a client notification to the client notification queue.
      *  \param type The type of the notification
      *  \param args The arguments that are to be piped into the notification.
@@ -85,12 +89,32 @@ class ODClient: public Ogre::Singleton<ODClient>,
     inline bool getIsPlayerConfig() const
     { return mIsPlayerConfig; }
 
+    //! @brief True once the debriefing counters of the lost level have been received
+    inline bool hasLevelStatistics() const
+    { return mHasLevelStatistics; }
+
+    inline const LevelStatistics& getLevelStatistics() const
+    { return mLevelStatistics; }
+
+    //! \brief What the heart health ring of the top-left badge has to show
+    inline HeartHealthRing::BadgeState& getHeartBadge()
+    { return mHeartBadge; }
+
     inline void pause()
     { mGameClock.pause(); }
 
 
     inline void resume()
     { mGameClock.start(); }
+
+    //! \brief Seconds left until the level is lost, -1 if there is no time limit. A countdown that ends
+    //! without a defeat has GameMap::TIME_LIMIT_COUNTDOWN_FLAG added.
+    inline int32_t getTimeLimitSeconds() const
+    { return mTimeLimitSeconds; }
+
+    //! \brief Seconds left until the next hero wave of a level script, -1 if none is shown
+    inline int32_t getWaveCountdownSeconds() const
+    { return mWaveCountdownSeconds; }
 
     
  protected:
@@ -111,6 +135,18 @@ class ODClient: public Ogre::Singleton<ODClient>,
 
     // true if the server told us we are allowed to configure the game. False otherwise
     bool mIsPlayerConfig;
+
+    //! \brief Last time limit received with timeLimit, -1 when there is none
+    int32_t mTimeLimitSeconds;
+    //! \brief Last wave countdown received with timeLimit, -1 when none is shown
+    int32_t mWaveCountdownSeconds;
+
+    // Debriefing counters sent by the server after playerDefeated
+    bool mHasLevelStatistics;
+    LevelStatistics mLevelStatistics;
+
+    // Heart health received with heartHealth
+    HeartHealthRing::BadgeState mHeartBadge;
 
 };
 
