@@ -21,6 +21,7 @@
 #include "game/Seat.h"
 #include "gamemap/GameMap.h"
 #include "network/ODPacket.h"
+#include "render/RoomAmbience.h"
 #include "traps/Trap.h"
 #include "traps/TrapDoor.h"
 #include "traps/TrapManager.h"
@@ -28,6 +29,10 @@
 #include "utils/LogManager.h"
 
 #include <iostream>
+
+//! The animation states of a door that opens and closes (clips of the door skeleton)
+static const std::string DOOR_OPEN_STATE = "Open";
+static const std::string DOOR_CLOSE_STATE = "Close";
 
 DoorEntity::DoorEntity(GameMap* gameMap, Building& building, const std::string& meshName,
         Tile* tile, Ogre::Real rotationAngle, bool hideCoveredTile, float opacity,
@@ -142,6 +147,27 @@ DoorEntity* DoorEntity::getDoorEntityFromPacket(GameMap* gameMap, ODPacket& is)
 {
     DoorEntity* obj = new DoorEntity(gameMap);
     return obj;
+}
+
+void DoorEntity::setAnimationState(const std::string& state, bool loop, const Ogre::Vector3& direction,
+        bool playIdleWhenAnimationEnds)
+{
+    // The state the door had before; empty while the door is only being set up
+    bool changed = !getIsOnServerMap() && !mPrevAnimationState.empty() && (state != mPrevAnimationState);
+    MovableGameEntity::setAnimationState(state, loop, direction, playIdleWhenAnimationEnds);
+    if(!changed)
+        return;
+
+    RoomAmbience* ambience = RoomAmbience::getSingletonPtr();
+    if(ambience == nullptr)
+        return;
+
+    // The names of the doors start with their type (DoorSteel_3_...)
+    std::string typeName = getName().substr(0, getName().find('_'));
+    if(state == DOOR_OPEN_STATE)
+        ambience->triggerEvent("DoorOpen", getPosition(), false, typeName, getSeat());
+    else if(state == DOOR_CLOSE_STATE)
+        ambience->triggerEvent("DoorClose", getPosition(), false, typeName, getSeat());
 }
 
 std::string DoorEntity::getListenerName() const
