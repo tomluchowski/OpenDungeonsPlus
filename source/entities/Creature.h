@@ -22,6 +22,7 @@
 #define CREATURE_H
 
 #include "entities/MovableGameEntity.h"
+#include "entities/CreatureActivity.h"
 #include "eventsystem/CreatureMoved.h"
 #include "eventsystem/Subject.h"
 
@@ -188,6 +189,8 @@ public:
     inline CreatureMoodLevel getMoodValue() const
     { return mMoodValue; }
 
+    CreatureActivity getActivity() const;
+
     inline int32_t getNbTurnFurious() const
     { return mNbTurnFurious; }
 
@@ -198,6 +201,18 @@ public:
 
     //! \brief Gets the move speed on the current tile.
     double getMoveSpeed(Tile* tile) const;
+
+    //! \brief Factor on the walking speed that comes from the health of the creature (1 for a creature that is not
+    //! badly hurt). Uses the health stage that server and clients both know, so both move it at the same speed
+    double getLowHealthWalkFactor() const;
+
+    //! \brief True if a creature with this health stage counts as badly hurt for walking (the stage test of
+    //! getLowHealthWalkFactor, without the factor). The client shows the clip WalkHurt for it
+    static bool isLowHealthWalkStage(uint32_t healthStage);
+
+    //! \brief True if this creature is badly hurt for walking (see isLowHealthWalkStage)
+    bool isLowHealthWalking() const
+    { return isLowHealthWalkStage(mOverlayHealthValue); }
 
     //! \brief Gets the creature depending the terrain type.
     inline double getMoveSpeedGround() const
@@ -372,6 +387,16 @@ public:
     virtual double getAnimationSpeedFactor() const override
     { return mSpeedModifier; }
 
+    //! \brief Walk clips keep up with the slower speed of badly hurt creatures and with the clip rate of the type,
+    //! hurt creatures breathe a little slower when standing (clients only)
+    virtual double getClientPoseSpeedFactor() const override;
+
+    //! \brief Clients only: blends the tile speed ratio of the walk clips (see mClientTileSpeedRatio)
+    virtual void updateClientPose(double timeSinceLastFrame) override;
+
+    //! \brief Speed of the tile under the creature divided by its ground speed (1 when unknown), client side, no hurt factor
+    double getTileSpeedRatio() const;
+
     inline void jobDone(double val)
     {
         mWakefulness -= val;
@@ -406,6 +431,10 @@ public:
     void slap() override;
 
     void fireCreatureSound(CreatureSound sound);
+    void fireCombatImpact(bool weaponClash, bool bodyDamage,
+        const Ogre::Vector3& attackerPosition);
+    void fireChickenFeeding(const std::string& chickenName,
+        const Ogre::Vector3& chickenPosition);
 
     void itsPayDay();
 
@@ -732,6 +761,7 @@ private:
     //! \brief Mood value. Depending on this value, the creature will be in bad mood and
     //! might attack allied creatures or refuse to work or to go to combat
     CreatureMoodLevel               mMoodValue;
+    CreatureActivity                mActivity;
     //! \brief Mood points. Computed by the creature MoodModifiers. It is promoted to class variable for debug purposes and
     //! should not be used to check mood. If the mood is to be tested, mMoodValue should be used
     int32_t                         mMoodPoints;
@@ -745,6 +775,11 @@ private:
 
     //! \brief Represents the mood of the creature. It is a bit array
     uint32_t                        mOverlayMoodValue;
+
+    //! \brief Clients only (cosmetic): ratio between the speed of the tile the creature walks on and its ground speed,
+    //! blended over a short time when the tile changes, so that the walk clips keep up with the real ground speed. Negative
+    //! while no walk clip plays (the next value is taken over without blending)
+    double                          mClientTileSpeedRatio;
 
     //! Used by the renderer to save this entity's overlay. It is its responsibility
     //! to allocate/delete this pointer
@@ -807,6 +842,11 @@ private:
     void increaseHunger(double value);
 
     void computeMood();
+
+    void exportMoodToPacket(ODPacket& os, const Seat* seat) const;
+    void importMoodFromPacket(ODPacket& is);
+    void exportActivityToPacket(ODPacket& os, const Seat* seat) const;
+    void importActivityFromPacket(ODPacket& is);
 
     void computeCreatureOverlayMoodValue();
 };

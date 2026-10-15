@@ -17,6 +17,7 @@
 
 #include "entities/MovableGameEntity.h"
 
+#include "entities/GameEntityType.h"
 #include "entities/Tile.h"
 #include "game/Player.h"
 #include "game/Seat.h"
@@ -230,14 +231,28 @@ void MovableGameEntity::update(Ogre::Real timeSinceLastFrame)
     double addedTime = static_cast<Ogre::Real>(ODApplication::turnsPerSecond
          * static_cast<double>(timeSinceLastFrame)
          * getAnimationSpeedFactor());
+    if(mPrevAnimationState == EntityAnimation::combat_attack_anim)
+        addedTime *= 1.35;
+    else if(mPrevAnimationState == EntityAnimation::die_anim)
+        addedTime *= 1.15;
     mAnimationTime += addedTime;
-    if (!getIsOnServerMap() && getAnimationState() != nullptr)
+    if (!getIsOnServerMap() && getAnimationState() != nullptr &&
+        mPrevAnimationState != EntityAnimation::getup_anim &&
+        mPrevAnimationState != EntityAnimation::eat_chicken_anim &&
+        !(mPrevAnimationState == EntityAnimation::sleep_anim &&
+          getObjectType() == GameEntityType::creature))
     {
         // If the animation has stopped we set it to idle if we have to
         if(mDestinationPlayIdleWhenAnimationEnds && getAnimationState()->hasEnded())
             RenderManager::getSingleton().rrSetObjectAnimationState(this, EntityAnimation::idle_anim, true);
         else
-            getAnimationState()->addTime(static_cast<Ogre::Real>(addedTime));
+        {
+            double shownTime = addedTime;
+            updateClientPose(static_cast<double>(timeSinceLastFrame));
+            if(mPrevAnimationState == EntityAnimation::walk_anim || mPrevAnimationState == EntityAnimation::idle_anim)
+                shownTime *= getClientPoseSpeedFactor();
+            getAnimationState()->addTime(static_cast<Ogre::Real>(shownTime));
+        }
     }
 
     if (mWalkQueue.empty())
@@ -272,7 +287,9 @@ void MovableGameEntity::update(Ogre::Real timeSinceLastFrame)
             mWalkQueue.pop_front();
             if(mWalkQueue.empty())
             {
-                // Stop walking
+                // Apply travel facing before the queued end animation can turn
+                // toward its target; do not overwrite that facing afterwards.
+                setWalkDirection(Ogre::Vector3(walkDirection.x,walkDirection.y,0));
                 stopWalking();
                 break;
             }
@@ -283,7 +300,8 @@ void MovableGameEntity::update(Ogre::Real timeSinceLastFrame)
         }
     }
 
-    setWalkDirection(Ogre::Vector3(walkDirection.x,walkDirection.y,0));
+    if(!mWalkQueue.empty())
+        setWalkDirection(Ogre::Vector3(walkDirection.x,walkDirection.y,0));
     setPosition(Ogre::Vector3(newPosition.x,newPosition.y,newPosition3f.z));
 }
 
