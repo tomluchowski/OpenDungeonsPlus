@@ -85,6 +85,12 @@ public:
     inline double getManaDelta() const
     { return mManaDelta; }
 
+    inline double getManaIncomePerSecond() const
+    { return mManaIncomePerSecond; }
+
+    inline double getManaUpkeepPerSecond() const
+    { return mManaUpkeepPerSecond; }
+
     inline int getNumCreaturesFighters() const
     { return mNumCreaturesFighters; }
 
@@ -132,6 +138,12 @@ protected:
 
     //! \brief The amount of 'keeper mana' the player gains/loses per turn, updated in GameMap::doTurn().
     double mManaDelta;
+
+    //! \brief The mana income per second (heart plus tiles), updated in GameMap::doTurn().
+    double mManaIncomePerSecond;
+
+    //! \brief The mana upkeep per second of all the workers, updated in GameMap::doTurn().
+    double mManaUpkeepPerSecond;
 
     //! \brief The starting camera location (in tile coordinates) of this seat.
     int mStartingX;

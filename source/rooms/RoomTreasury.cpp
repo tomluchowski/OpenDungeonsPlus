@@ -16,6 +16,8 @@
  */
 
 #include "rooms/RoomTreasury.h"
+#include "game/SkillManager.h"
+#include "game/SkillType.h"
 
 #include "entities/BuildingObject.h"
 #include "entities/GameEntityType.h"
@@ -70,6 +72,13 @@ class RoomTreasuryFactory : public RoomFactory
         int32_t playerGold = static_cast<int32_t>(player->getSeat()->getGold());
         if(inputManager.mCommandState == InputCommandState::infoOnly)
         {
+            Tile* tile = gameMap->getTile(inputManager.mXPos, inputManager.mYPos);
+            if(tile == nullptr || !tile->isBuildableUpon(player->getSeat()))
+            {
+                inputCommand.unselectAllTiles();
+                inputCommand.displayTileBuildFailure(tile, player->getSeat());
+                return;
+            }
             // First treasury tile is free
             if(nbTreasuries <= 0)
                 pricePerTarget = 0;
@@ -78,11 +87,13 @@ class RoomTreasuryFactory : public RoomFactory
             {
                 std::string txt = formatBuildRoom(RoomTreasury::mRoomType, pricePerTarget);
                 inputCommand.displayText(Ogre::ColourValue::Red, txt);
+                inputCommand.displayPointerText(Ogre::ColourValue::Red, "$" + Helper::toString(pricePerTarget));
             }
             else
             {
                 std::string txt = formatBuildRoom(RoomTreasury::mRoomType, pricePerTarget);
                 inputCommand.displayText(Ogre::ColourValue::White, txt);
+                inputCommand.displayPointerText(Ogre::ColourValue::Red, "$" + Helper::toString(pricePerTarget));
             }
             inputCommand.selectSquaredTiles(inputManager.mXPos, inputManager.mYPos, inputManager.mXPos,
                 inputManager.mYPos);
@@ -96,8 +107,8 @@ class RoomTreasuryFactory : public RoomFactory
 
         if(buildableTiles.empty())
         {
-            std::string txt = formatBuildRoom(RoomTreasury::mRoomType, 0);
-            inputCommand.displayText(Ogre::ColourValue::White, txt);
+            inputCommand.displayTileBuildFailure(gameMap->getTile(inputManager.mXPos, inputManager.mYPos),
+                player->getSeat());
             return;
         }
 
@@ -110,11 +121,13 @@ class RoomTreasuryFactory : public RoomFactory
         {
             std::string txt = formatBuildRoom(RoomTreasury::mRoomType, priceTotal);
             inputCommand.displayText(Ogre::ColourValue::Red, txt);
+            inputCommand.displayPointerText(Ogre::ColourValue::Red, "$" + Helper::toString(priceTotal));
             return;
         }
 
         std::string txt = formatBuildRoom(RoomTreasury::mRoomType, priceTotal);
         inputCommand.displayText(Ogre::ColourValue::White, txt);
+        inputCommand.displayPointerText(Ogre::ColourValue::Red, "$" + Helper::toString(priceTotal));
 
         if(inputManager.mCommandState != InputCommandState::validated)
             return;
@@ -329,7 +342,12 @@ void RoomTreasury::splitRoom(Room& newRoom, const std::vector<Tile*>& tiles)
 
 int RoomTreasury::getTotalGoldStorage() const
 {
-    return numCoveredTiles() * maxGoldinTile;
+    return numCoveredTiles() * getGoldCapacityPerTile();
+}
+
+int RoomTreasury::getGoldCapacityPerTile() const
+{
+    return static_cast<int>(SkillManager::getResearchValue(getSeat(), SkillType::roomTreasury, maxGoldinTile));
 }
 
 int RoomTreasury::getTotalGoldStored() const
@@ -351,7 +369,7 @@ int RoomTreasury::depositGold(int gold, Tile *tile)
 
     // Start by trying to deposit the gold in the requested tile.
     RoomTreasuryTileData* roomTreasuryTileData = static_cast<RoomTreasuryTileData*>(mTileData[tile]);
-    emptySpace = maxGoldinTile - roomTreasuryTileData->mGoldInTile;
+    emptySpace = std::max(0, getGoldCapacityPerTile() - roomTreasuryTileData->mGoldInTile);
     goldDeposited = std::min(emptySpace, goldToDeposit);
     roomTreasuryTileData->mGoldInTile += goldDeposited;
     goldToDeposit -= goldDeposited;
@@ -367,7 +385,7 @@ int RoomTreasury::depositGold(int gold, Tile *tile)
 
         // Store as much gold as we can in this tile.
         RoomTreasuryTileData* roomTreasuryTileData = static_cast<RoomTreasuryTileData*>(p.second);
-        emptySpace = maxGoldinTile - roomTreasuryTileData->mGoldInTile;
+        emptySpace = std::max(0, getGoldCapacityPerTile() - roomTreasuryTileData->mGoldInTile);
         goldDeposited = std::min(emptySpace, goldToDeposit);
         roomTreasuryTileData->mGoldInTile += goldDeposited;
         goldToDeposit -= goldDeposited;
@@ -420,7 +438,8 @@ int RoomTreasury::withdrawGold(int gold)
 void RoomTreasury::updateMeshesForTile(Tile* tile, RoomTreasuryTileData* roomTreasuryTileData)
 {
     int gold = roomTreasuryTileData->mGoldInTile;
-    OD_ASSERT_TRUE_MSG(gold <= maxGoldinTile, "room=" + getName() + ", gold=" + Helper::toString(gold));
+    // Capturing an upgraded treasury must preserve gold above the new owner's capacity.
+    OD_ASSERT_TRUE_MSG(gold >= 0, "room=" + getName() + ", gold=" + Helper::toString(gold));
 
     // If the tile was and is empty, nothing to do
     if(roomTreasuryTileData->mMeshOfTile.empty() && (gold == 0))
