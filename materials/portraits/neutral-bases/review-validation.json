@@ -1,0 +1,23 @@
+{
+  "saved_bases": 33,
+  "bases_identical_to_generator_outputs": 33,
+  "dimension_ready": 31,
+  "dimension_exceptions": {
+    "Kobold.mesh": [
+      887,
+      1773
+    ],
+    "RunelordDwarf.mesh-female": [
+      887,
+      1773
+    ]
+  },
+  "records": 632,
+  "feature_source_hashes_verified": 632,
+  "reviewed_options": 623,
+  "deferred_options": 9,
+  "evidence_paths_verified": 623,
+  "visual_acceptance": "open",
+  "confirmed_regenerations": 0,
+  "final_regeneration_count": null
+}

@@ -1,0 +1,18 @@
+[
+  {
+    "id": "Kobold.mesh",
+    "file": "materials/portraits/neutral-bases/Kobold.mesh.png",
+    "original_sha256": "ab765fc676dc6b111ef2396958677631dce35c72bf4ed9dccf87c8f0ac0a6250",
+    "fixed_sha256": "b28f2e677105b61d4943b837e77013f7e37d2452cf6f57d2339dc01b1b85d7cf",
+    "original_backup": "materials/portraits/neutral-bases/Kobold.mesh.original-1773.png",
+    "operation": "Repeat final row without rescaling or changing any original pixel"
+  },
+  {
+    "id": "RunelordDwarf.mesh-female",
+    "file": "materials/portraits/neutral-bases/RunelordDwarf.mesh-female.png",
+    "original_sha256": "36fe87a51f06ddf44c246d172cfd10e474f7dea9b76b2d5021c2dc507602ba39",
+    "fixed_sha256": "8ba9ef5629cf7f73cbe248aa274a35c011e56efcd6947c75f32f192ca6e6b9ac",
+    "original_backup": "materials/portraits/neutral-bases/RunelordDwarf.mesh-female.original-1773.png",
+    "operation": "Repeat final row without rescaling or changing any original pixel"
+  }
+]

@@ -46,6 +46,11 @@ private:
     
     void updateHealth();
     void updateStatus(Ogre::Real timeSincelastFrame);
+    void updateProgress(Ogre::Real timeSincelastFrame);
+
+    uint32_t mRecoveryTurns = 0;
+    uint32_t mRecoverySerial = 0;
+    Ogre::Real mRecoveryElapsed = 0.0f;
 
     bool mVisible;
     Creature* mCreature;
