@@ -47,6 +47,8 @@ public:
     //! \brief Change the text color
     void setColor(const std::string& ID, const Ogre::ColourValue& color);
 
+    void setCharacterHeight(const std::string& ID, Ogre::Real height);
+
     void moveText(const std::string& ID, Ogre::Real left, Ogre::Real top);
 
 private:

@@ -16,8 +16,13 @@
  */
 
 #include "rooms/RoomLibrary.h"
+#include "game/SkillManager.h"
+#include "game/SkillType.h"
 
 #include "entities/BuildingObject.h"
+#include "gamemap/RoomObjectNavigation.h"
+#include "creatureaction/CreatureActionWalkToTile.h"
+#include "utils/MakeUnique.h"
 #include "entities/Creature.h"
 #include "entities/CreatureDefinition.h"
 #include "entities/GameEntityType.h"
@@ -225,11 +230,12 @@ bool RoomLibrary::hasOpenCreatureSpot(Creature* c)
     if(!getSeat()->isSkilling())
         return false;
 
-    // We accept all creatures as soon as there are free active spots
-    uint32_t nbItems = countSkillItemsOnRoom();
-    if(nbItems >= (getNumActiveSpots() - mCreaturesSpots.size()))
+    // The stored items have their own places, independent of the researchers. When
+    // every place is taken, the library is full and nobody can research
+    if(checkIfAvailableSpot() == nullptr)
         return false;
 
+    // We accept all creatures as soon as there are free active spots
     return !mUnusedSpots.empty();
 }
 
@@ -315,10 +321,9 @@ void RoomLibrary::doUpkeep()
         return;
     }
 
-    uint32_t nbItems = countSkillItemsOnRoom();
-    if(nbItems > (getNumActiveSpots() - mCreaturesSpots.size()))
+    if(checkIfAvailableSpot() == nullptr)
     {
-        // There is no available space. We remove a creature working here if there is one.
+        // There is no available space for items. We remove a creature working here if there is one.
         // If there is none, it means the library is full
         if(mCreaturesSpots.empty())
             return;
@@ -360,17 +365,16 @@ bool RoomLibrary::useRoom(Creature& creature, bool forced)
         OD_LOG_ERR("unexpected null building object");
         return false;
     }
-    // We consider that the creature is in the good place if it is in the expected tile and not moving
-    Tile* expectedDest = getGameMap()->getTile(Helper::round(wantedX), Helper::round(wantedY));
-    if(expectedDest == nullptr)
+    std::vector<Ogre::Vector2> approach;
+    if(!RoomObjectNavigation::workApproach(creature, *ro, {wantedX, wantedY}, {0, 0}, approach))
     {
-        OD_LOG_ERR("room=" + getName() + ", creature=" + creature.getName());
+        creature.popAction();
         return false;
     }
-
-    if(tileCreature != expectedDest)
+    if(!approach.empty())
     {
-        creature.setDestination(expectedDest);
+        creature.setWalkPath(EntityAnimation::walk_anim, EntityAnimation::idle_anim, true, true, approach, false);
+        creature.pushAction(Utils::make_unique<CreatureActionWalkToTile>(creature));
         return false;
     }
 
@@ -384,7 +388,8 @@ bool RoomLibrary::useRoom(Creature& creature, bool forced)
     OD_ASSERT_TRUE_MSG(creatureRoomAffinity.getRoomType() == getType(), "name=" + getName() + ", creature=" + creature.getName()
         + ", creatureRoomAffinityType=" + Helper::toString(static_cast<int>(creatureRoomAffinity.getRoomType())));
 
-    int32_t pointsEarned = static_cast<int32_t>(creatureRoomAffinity.getEfficiency() * ConfigManager::getSingleton().getRoomConfigDouble("LibraryPointsPerWork"));
+    int32_t pointsEarned = static_cast<int32_t>(creatureRoomAffinity.getEfficiency() * SkillManager::getResearchValue(
+        getSeat(), SkillType::roomLibrary, ConfigManager::getSingleton().getRoomConfigDouble("LibraryPointsPerWork")));
     creature.jobDone(ConfigManager::getSingleton().getRoomConfigDouble("LibraryWakefulnessPerWork"));
     creature.setJobCooldown(Random::Uint(ConfigManager::getSingleton().getRoomConfigUInt32("LibraryCooldownWorkMin"),
         ConfigManager::getSingleton().getRoomConfigUInt32("LibraryCooldownWorkMax")));
@@ -394,14 +399,13 @@ bool RoomLibrary::useRoom(Creature& creature, bool forced)
     if(mSkillPoints < skillEntityPoints)
         return false;
 
-    mSkillPoints -= skillEntityPoints;
-    // We check if there is an empty tile to release the skillEntity
+    // We check if there is an empty tile to release the skillEntity. If the library
+    // is full, the points wait until a place is free again
     Tile* spawnTile = checkIfAvailableSpot();
     if(spawnTile == nullptr)
-    {
-        OD_LOG_ERR("room=" + getName());
         return false;
-    }
+
+    mSkillPoints -= skillEntityPoints;
 
     SkillEntity* skillEntity = new SkillEntity(getGameMap(), getName(), skillEntityPoints);
     skillEntity->setSeat(getSeat());
@@ -411,17 +415,6 @@ bool RoomLibrary::useRoom(Creature& creature, bool forced)
     skillEntity->setPosition(spawnPosition);
 
     return false;
-}
-
-uint32_t RoomLibrary::countSkillItemsOnRoom()
-{
-    uint32_t nbItems = 0;
-    for(Tile* t : mCoveredTiles)
-    {
-        nbItems += t->countEntitiesOnTile(GameEntityType::skillEntity);
-    }
-
-    return nbItems;
 }
 
 Tile* RoomLibrary::checkIfAvailableSpot()

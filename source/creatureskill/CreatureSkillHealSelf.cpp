@@ -69,7 +69,7 @@ bool CreatureSkillHealSelf::tryUseSupport(GameMap& gameMap, Creature* creature) 
 
     for(Tile* tile : creature->getCoveredTiles())
     {
-        Spell::fireSpellSound(*tile, "Heal");
+        Spell::fireSpellEffect(*tile, "Heal", "HealCast");
     }
 
     return true;

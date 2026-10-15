@@ -16,6 +16,8 @@
  */
 
 #include "rooms/RoomBridge.h"
+#include "game/SkillManager.h"
+#include "game/SkillType.h"
 
 #include "entities/Creature.h"
 #include "entities/Tile.h"
@@ -29,6 +31,8 @@
 #include "utils/Helper.h"
 #include "utils/LogManager.h"
 
+#include <algorithm>
+
 void BridgeRoomFactory::checkBuildBridge(RoomType type, GameMap* gameMap, Seat* seat, const InputManager& inputManager,
     InputCommand& inputCommand, const std::vector<TileVisual>& allowedTilesVisual, bool isEditor) const
 {
@@ -40,21 +44,8 @@ void BridgeRoomFactory::checkBuildBridge(RoomType type, GameMap* gameMap, Seat* 
 
     int32_t pricePerTarget = RoomManager::costPerTile(type);
     int32_t playerGold = static_cast<int32_t>(seat->getGold());
-    if(inputManager.mCommandState == InputCommandState::infoOnly)
+    if(isEditor && inputManager.mCommandState == InputCommandState::infoOnly)
     {
-        if(!isEditor)
-        {
-            if(playerGold < pricePerTarget)
-            {
-                std::string txt = formatBuildRoom(type, pricePerTarget);
-                inputCommand.displayText(Ogre::ColourValue::Red, txt);
-            }
-            else
-            {
-                std::string txt = formatBuildRoom(type, pricePerTarget);
-                inputCommand.displayText(Ogre::ColourValue::White, txt);
-            }
-        }
         inputCommand.selectSquaredTiles(inputManager.mXPos, inputManager.mYPos, inputManager.mXPos,
             inputManager.mYPos);
         return;
@@ -154,15 +145,23 @@ void BridgeRoomFactory::checkBuildBridge(RoomType type, GameMap* gameMap, Seat* 
         buildableTiles.insert(buildableTiles.end(), tmpTiles.begin(), tmpTiles.end());
     }
 
-    if(inputManager.mCommandState == InputCommandState::building)
+    if(inputManager.mCommandState != InputCommandState::validated)
         inputCommand.selectTiles(buildableTiles);
 
     if(buildableTiles.empty())
     {
         if(!isEditor)
         {
-            std::string txt = formatBuildRoom(type, 0);
-            inputCommand.displayText(Ogre::ColourValue::White, txt);
+            Tile* tile = gameMap->getTile(inputManager.mXPos, inputManager.mYPos);
+            if(tile == nullptr)
+                inputCommand.displayText(Ogre::ColourValue::Red, "Point at a tile inside the map.");
+            else if(tile->getHasBridge())
+                inputCommand.displayText(Ogre::ColourValue::Red, "A bridge already occupies this tile.");
+            else if(std::find(allowedTilesVisual.begin(), allowedTilesVisual.end(), tile->getTileVisual()) == allowedTilesVisual.end())
+                inputCommand.displayText(Ogre::ColourValue::Red, allowedTilesVisual.size() == 1 ?
+                    "A wooden bridge needs water." : "A stone bridge needs water or lava.");
+            else
+                inputCommand.displayText(Ogre::ColourValue::Red, "Connect the bridge to your claimed ground.");
         }
         return;
     }
@@ -173,12 +172,14 @@ void BridgeRoomFactory::checkBuildBridge(RoomType type, GameMap* gameMap, Seat* 
         if(playerGold < priceTotal)
         {
             std::string txt = formatBuildRoom(type, priceTotal);
-            inputCommand.displayText(Ogre::ColourValue::Red, txt);
+            inputCommand.displayText(Ogre::ColourValue::Red, "Not enough gold. " + txt);
+            inputCommand.displayPointerText(Ogre::ColourValue::Red, "$" + Helper::toString(priceTotal));
             return;
         }
 
         std::string txt = formatBuildRoom(type, priceTotal);
         inputCommand.displayText(Ogre::ColourValue::White, txt);
+        inputCommand.displayPointerText(Ogre::ColourValue::Red, "$" + Helper::toString(priceTotal));
     }
 
     if(inputManager.mCommandState != InputCommandState::validated)
@@ -267,8 +268,7 @@ bool BridgeRoomFactory::readBridgeFromPacket(std::vector<Tile*>& tiles, GameMap*
 }
 
 RoomBridge::RoomBridge(GameMap* gameMap) :
-    Room(gameMap),
-    mClaimedValue(0)
+    Room(gameMap)
 {
 }
 
@@ -284,23 +284,6 @@ void RoomBridge::restoreInitialEntityState()
 {
     Room::restoreInitialEntityState();
 
-    // The stream keeps one claim value for the whole bridge: share it out evenly
-    // over the tiles, which is exact for a fresh bridge and an approximation for
-    // a save made while an enemy worker was part way through a tile.
-    uint32_t nbTiles = numCoveredTiles();
-    if(nbTiles > 0)
-    {
-        double claimedValuePerTile = mClaimedValue / static_cast<double>(nbTiles);
-        for(Tile* tile : mCoveredTiles)
-        {
-            std::map<Tile*, TileData*>::iterator it = mTileData.find(tile);
-            if(it == mTileData.end())
-                continue;
-
-            it->second->mClaimedValue = claimedValuePerTile;
-        }
-    }
-
     for(Seat* s : getGameMap()->getSeats())
         updateFloodFillPathCreated(s, getCoveredTiles());
 }
@@ -309,16 +292,9 @@ void RoomBridge::exportToStream(std::ostream& os) const
 {
     Room::exportToStream(os);
 
-    double claimedValue = 0.0;
-    for(Tile* tile : mCoveredTiles)
-    {
-        std::map<Tile*, TileData*>::const_iterator it = mTileData.find(tile);
-        if(it == mTileData.end())
-            continue;
-
-        claimedValue += it->second->mClaimedValue;
-    }
-    os << claimedValue << "\n";
+    // The takeover pool is written as a number of tiles (the sum of the claim values of the
+    // squares, as the files always had it), so older versions read it unchanged
+    os << (mClaimHealth * static_cast<double>(numCoveredTiles())) << "\n";
 }
 
 bool RoomBridge::importFromStream(std::istream& is)
@@ -326,8 +302,14 @@ bool RoomBridge::importFromStream(std::istream& is)
     if(!Room::importFromStream(is))
         return false;
 
-    if(!(is >> mClaimedValue))
+    double claimedValue;
+    if(!(is >> claimedValue))
         return false;
+
+    // Older files kept one claim value per square, summed up: the share of the whole bridge is the same
+    // number divided by the squares (exact for an untouched bridge)
+    if(numCoveredTiles() > 0)
+        mClaimHealth = std::min(1.0, std::max(0.0, claimedValue / static_cast<double>(numCoveredTiles())));
 
     return true;
 }
@@ -350,23 +332,12 @@ bool RoomBridge::isClaimable(Seat* seat) const
 
 void RoomBridge::claimForSeat(Seat* seat, Tile* tile, double danceRate)
 {
-    // The dance only counts against the tile being danced on, so a bridge is
-    // taken square by square, not all at once from one square.
-    std::map<Tile*, TileData*>::iterator it = mTileData.find(tile);
-    if(it == mTileData.end())
-    {
-        OD_LOG_ERR("bridge=" + getName() + ", tile=" + Tile::displayAsString(tile));
-        return;
-    }
-
-    TileData* tileData = it->second;
-    if(tileData->mClaimedValue > danceRate)
-    {
-        tileData->mClaimedValue -= danceRate;
-        return;
-    }
-
-    handTileOverToSeat(seat, tile);
+    const SkillType research = getType() == RoomType::bridgeStone ?
+        SkillType::roomBridgeStone : SkillType::roomBridgeWooden;
+    danceRate /= SkillManager::getResearchValue(getSeat(), research, 1.0);
+    // A dance on any square lowers the pool of the whole bridge (squares x RoomConvertSecondsPerTile)
+    // and all squares change hands together when it is empty, like in every other room.
+    Room::claimForSeat(seat, tile, danceRate);
 }
 
 double RoomBridge::getCreatureSpeed(const Creature* creature, Tile* tile) const

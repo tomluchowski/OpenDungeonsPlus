@@ -1,6 +1,7 @@
 #include "modes/ConsoleCommands.h"
 
 #include "entities/Creature.h"
+#include "entities/Tile.h"
 #include "game/Player.h"
 #include "game/Seat.h"
 #include "gamemap/GameMap.h"
@@ -14,8 +15,10 @@
 #include "network/ClientNotification.h"
 #include "network/ODClient.h"
 #include "network/ODServer.h"
+#include "render/CreatureReactions.h"
 #include "render/ODFrameListener.h"
 #include "render/RenderManager.h"
+#include "render/RoomAmbience.h"
 #include "rooms/Room.h"
 #include "utils/ConfigManager.h"
 #include "utils/Helper.h"
@@ -33,6 +36,7 @@
 #include <pybind11/embed.h>
 #include <pybind11/stl.h>
 #include <functional>
+#include <set>
 
  
 
@@ -131,6 +135,8 @@ const std::string HELPMESSAGE =
         "\n\tseatvisdebug - Turns on visual debugging for a given seat."
         "\n\tsetcreaturedest - Sets the creature destination/"
         "\n\tlistmeshanims - Lists all the animations for the given mesh."
+        "\n\troomambience - Room ambience: roomambience list, reload, mode <full|reduced|off>, <event> [x y]."
+        "\n\treaction - Shows a creature reaction: reaction <event> [creature|all|group], reaction list, reaction reload."
         "\n\ttriggercompositor - Starts the given Ogre Compositor."
         "\n\tcatmullspline - Triggers the catmullspline camera movement type."
         "\n\tcirclearound - Triggers the circle camera movement type."
@@ -707,6 +713,174 @@ Command::Result cListMeshAnims(const Command::ArgumentList_t& args, ConsoleInter
     return Command::Result::SUCCESS;
 }
 
+//! \brief Console command roomambience: lists the effects, reloads the configuration, sets the mode or starts an event at a tile
+Command::Result cRoomAmbience(const Command::ArgumentList_t& args, ConsoleInterface& c, AbstractModeManager&)
+{
+    RoomAmbience* ambience = RoomAmbience::getSingletonPtr();
+    if(ambience == nullptr)
+    {
+        c.print("\nRoom ambience is not available");
+        return Command::Result::FAILED;
+    }
+
+    if((args.size() < 2) || (args[1] == "list"))
+    {
+        c.print("\nRoom ambience mode: " + RoomAmbience::modeToString(ambience->getMode())
+            + ", particle systems: " + Helper::toString(ambience->getNbParticleSystems())
+            + ", moved objects: " + Helper::toString(ambience->getNbMovedObjects()));
+        std::set<std::string> events;
+        const std::vector<AmbienceEffect>& effects = ambience->getConfig().getEffects();
+        for(const AmbienceEffect& effect : effects)
+        {
+            if(effect.mTarget == AmbienceTarget::event)
+                events.insert(effect.mEvent);
+        }
+        c.print("\nEffects: " + Helper::toString(effects.size()));
+        for(const std::string& eventName : events)
+            c.print("\nEvent: " + eventName);
+        c.print("\nUsage: roomambience <event> [x y]. Without coordinates, the tile under the pointer is used.");
+        return Command::Result::SUCCESS;
+    }
+
+    if(args[1] == "reload")
+    {
+        bool loaded = ambience->reloadConfig();
+        c.print(loaded ? "\nRoom ambience reloaded" : "\nRoom ambience could not be loaded, see the log");
+        return loaded ? Command::Result::SUCCESS : Command::Result::FAILED;
+    }
+
+    if(args[1] == "mode")
+    {
+        if(args.size() < 3)
+        {
+            c.print("\nERROR : Give full, reduced or off.");
+            return Command::Result::INVALID_ARGUMENT;
+        }
+
+        ambience->setMode(RoomAmbience::modeFromString(args[2]));
+        c.print("\nRoom ambience mode: " + RoomAmbience::modeToString(ambience->getMode()));
+        return Command::Result::SUCCESS;
+    }
+
+    GameMap* gameMap = ODFrameListener::getSingleton().getClientGameMap();
+    int x = InputManager::getSingleton().mXPos;
+    int y = InputManager::getSingleton().mYPos;
+    if(args.size() >= 4)
+    {
+        x = Helper::toInt(args[2]);
+        y = Helper::toInt(args[3]);
+    }
+
+    Tile* tile = gameMap->getTile(x, y);
+    if(tile == nullptr)
+    {
+        c.print("\nERROR : No tile at " + Helper::toString(x) + "," + Helper::toString(y));
+        return Command::Result::INVALID_ARGUMENT;
+    }
+
+    uint32_t nbStarted = ambience->triggerEvent(args[1], tile->getPosition(), true);
+    c.print("\nRoom ambience event " + args[1] + " started " + Helper::toString(nbStarted) + " effects at "
+        + Helper::toString(x) + "," + Helper::toString(y));
+    return Command::Result::SUCCESS;
+}
+
+//! \brief Console command "reaction": lists the reaction events, reloads the file or shows an event on a
+//! creature (the one under the pointer, a named one, all visible ones or as a staggered group).
+Command::Result cCreatureReaction(const Command::ArgumentList_t& args, ConsoleInterface& c, AbstractModeManager&)
+{
+    CreatureReactions* reactions = CreatureReactions::getSingletonPtr();
+    if(reactions == nullptr)
+    {
+        c.print("\nCreature reactions are not available");
+        return Command::Result::FAILED;
+    }
+
+    if((args.size() < 2) || (args[1] == "list"))
+    {
+        c.print("\nCreature reactions mode: " + CreatureReactions::modeToString(reactions->getMode())
+            + ", running: " + Helper::toString(reactions->getNbRunning()));
+        const std::map<std::string, ReactionEvent>& events = reactions->getConfig().getEvents();
+        for(std::map<std::string, ReactionEvent>::const_iterator it = events.begin(); it != events.end(); ++it)
+        {
+            std::string variantNames;
+            for(const ReactionVariant& variant : it->second.mVariants)
+                variantNames += " " + variant.mName;
+
+            c.print("\nEvent: " + it->first + " (" + CreatureReactionConfig::priorityToString(it->second.mPriority)
+                + ", " + Helper::toString(it->second.mVariants.size()) + " variants):" + variantNames);
+        }
+        c.print("\nUsage: reaction <event> [creature name | all | group] [variant]. Without a name, the creature under the pointer is used.");
+        return Command::Result::SUCCESS;
+    }
+
+    if(args[1] == "reload")
+    {
+        bool loaded = reactions->reloadConfig();
+        c.print(loaded ? "\nCreature reactions reloaded" : "\nCreature reactions could not be loaded, see the log");
+        return loaded ? Command::Result::SUCCESS : Command::Result::FAILED;
+    }
+
+    const std::string& eventName = args[1];
+    if(reactions->getConfig().getEvent(eventName) == nullptr)
+    {
+        c.print("\nERROR : Unknown reaction event " + eventName + ". Type reaction list.");
+        return Command::Result::INVALID_ARGUMENT;
+    }
+
+    GameMap* gameMap = ODFrameListener::getSingleton().getClientGameMap();
+    bool asGroup = (args.size() >= 3) && (args[2] == "group");
+    std::vector<Creature*> creatures;
+    if((args.size() >= 3) && ((args[2] == "all") || asGroup))
+    {
+        for(Creature* creature : gameMap->getCreatures())
+        {
+            if(reactions->isCreatureNearCamera(creature))
+                creatures.push_back(creature);
+        }
+    }
+    else if(args.size() >= 3)
+    {
+        Creature* creature = gameMap->getCreature(args[2]);
+        if(creature == nullptr)
+        {
+            c.print("\nERROR : Unknown creature " + args[2]);
+            return Command::Result::INVALID_ARGUMENT;
+        }
+        creatures.push_back(creature);
+    }
+    else if(InputManager::getSingleton().mHighlightedCreature != nullptr)
+    {
+        creatures.push_back(InputManager::getSingleton().mHighlightedCreature);
+    }
+    else
+    {
+        c.print("\nERROR : No creature under the pointer. Give a creature name, all or group.");
+        return Command::Result::INVALID_ARGUMENT;
+    }
+
+    // A fixed variant can only be asked for single creatures, a group chooses for itself
+    std::string variantName;
+    if(args.size() >= 4)
+        variantName = args[3];
+
+    if(asGroup)
+    {
+        reactions->triggerGroup(eventName, creatures, true);
+        c.print("\nGroup reaction " + eventName + " asked for " + Helper::toString(creatures.size()) + " creatures");
+        return Command::Result::SUCCESS;
+    }
+
+    uint32_t nbStarted = 0;
+    for(Creature* creature : creatures)
+    {
+        if(reactions->trigger(creature, eventName, true, variantName))
+            ++nbStarted;
+    }
+    c.print("\nReaction " + eventName + " started on " + Helper::toString(nbStarted) + " of "
+        + Helper::toString(creatures.size()) + " creatures");
+    return Command::Result::SUCCESS;
+}
+
 Command::Result cSetLogLevel(const Command::ArgumentList_t& args, ConsoleInterface& c, AbstractModeManager&)
 {
     if(args.size() < 2)
@@ -896,6 +1070,14 @@ namespace ConsoleCommands
                          Command::cStubServer,
                          {AbstractModeManager::ModeType::GAME, AbstractModeManager::ModeType::EDITOR });
  
+        cl.addCommand("roomambience",
+                         cRoomAmbience,
+                         Command::cStubServer,
+                         {AbstractModeManager::ModeType::GAME});
+        cl.addCommand("reaction",
+                         cCreatureReaction,
+                         Command::cStubServer,
+                         {AbstractModeManager::ModeType::GAME});
         cl.addCommand("printentities",
                          cPrintEntities,
                          Command::cStubServer,
