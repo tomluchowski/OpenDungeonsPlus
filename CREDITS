@@ -130,6 +130,7 @@ textures/
 -> ConcreteDirty*.png                  Sindwiller              CC-BY-SA 3.0            http://opengameart.org/content/dirty-concrete-floor-00
 -> CreatureOverlay*.png                hwoarangmy              CC-BY-SA 3.0
 -> CreatureStunned.png                 Danimal                 CC-BY-SA 3.0
+-> CreatureExperience.png, CreatureRecovery.png  AI-generated  GPLv3+  AI-generated, created for this project
 -> CreatureRallyTroops.png             Lorc                    CC-BY-SA 3.0            http://game-icons.net/lorc/originals/rally-the-troops.html
 -> Crossbow.png                        Lamoot                  CC-BY 3.0               http://opengameart.org/content/low-poly-crossbow
 -> Crypt*.png                          Yughues                 CC0                     http://forum.freegamedev.net/viewtopic.php?p=60771#p60771
@@ -189,6 +190,7 @@ textures/
 -> Podium*.png
 -> Portal{,Normal}.png                 Yughues                 CC0                     http://opengameart.org/users/yughues
 -> PortalVortex.png
+-> portrait-*.mesh-{female,male}.png   AI-generated with Codex  GPLv3+                  AI-generated from the project's own model exports and existing portraits, prompts in materials/portraits/
 -> RangerBed*.png                      PantherOne              CC0                     http://opengameart.org/content/tent-pack
 -> Rat*.png                            CDmir                   CC0                     http://opengameart.org/content/evil-giant-rat
 -> Roach*.png                          Danimal, Atmostatic     CC-BY-SA 3.0            http://opengameart.org/content/roach-game-ready-and-animated
@@ -492,3 +494,26 @@ icon.rc                                OD Team                 GPLv3+
 logo.svg                               Svenskmand              CC-BY-SA 3.0
 OD-Logo.ico                            Svenskmand              CC-BY-SA 3.0
 opendungeons.appdata.xml               OD Team                 GPLv3+
+
+====================================================
+== Portrait feature assets: materials/portraits/  ==
+====================================================
+
+materials/portraits/generated-features/ AI-generated with Codex  GPLv3+                  AI-generated isolated feature assets based on this project's portraits; exact prompts and source provenance are recorded in each portrait folder; original generator outputs preserved.
+materials/portraits/variants/Kobold.mesh*/*.png  AI-generated with Codex  GPLv3+  AI-generated source features; resized and positioned only from materials/portraits/generated-features/; originals preserved.
+materials/portraits/variants/Goblin.mesh*/*.png  AI-generated with Codex  GPLv3+  AI-generated source features; resized and positioned only from materials/portraits/generated-features/; originals preserved.
+materials/portraits/variants/Orc.mesh*/*.png  AI-generated with Codex  GPLv3+  AI-generated source features; resized and positioned only from materials/portraits/generated-features/; originals preserved.
+materials/portraits/variants/Dwarf1.mesh*/*.png  AI-generated with Codex  GPLv3+  AI-generated source features; resized and positioned only from materials/portraits/generated-features/; originals preserved.
+materials/portraits/variants/Dwarf2.mesh*/*.png  AI-generated with Codex  GPLv3+  AI-generated source features; resized and positioned only from materials/portraits/generated-features/; originals preserved.
+materials/portraits/variants/RunelordDwarf.mesh*/*.png  AI-generated with Codex  GPLv3+  AI-generated source features; resized and positioned only from materials/portraits/generated-features/; originals preserved.
+materials/portraits/variants/Gnome.mesh*/*.png  AI-generated with Codex  GPLv3+  AI-generated source features; resized and positioned only from materials/portraits/generated-features/; originals preserved.
+materials/portraits/variants/Adventurer.mesh*/*.png  AI-generated with Codex  GPLv3+  AI-generated source features; resized and positioned only from materials/portraits/generated-features/; originals preserved.
+materials/portraits/variants/Monk.mesh*/*.png  AI-generated with Codex  GPLv3+  AI-generated source features; resized and positioned only from materials/portraits/generated-features/; originals preserved.
+materials/portraits/variants/Defender.mesh*/*.png  AI-generated with Codex  GPLv3+  AI-generated source features; resized and positioned only from materials/portraits/generated-features/; originals preserved.
+materials/portraits/variants/Wizard.mesh*/*.png  AI-generated with Codex  GPLv3+  AI-generated source features; resized and positioned only from materials/portraits/generated-features/; originals preserved.
+materials/portraits/variants/Elf.mesh*/*.png  AI-generated with Codex  GPLv3+  AI-generated source features; resized and positioned only from materials/portraits/generated-features/; originals preserved.
+materials/portraits/variants/DarkElf.mesh*/*.png  AI-generated with Codex  GPLv3+  AI-generated source features; resized and positioned only from materials/portraits/generated-features/; originals preserved.
+materials/portraits/variants/Troll.mesh*/*.png  AI-generated with Codex  GPLv3+  AI-generated source features; resized and positioned only from materials/portraits/generated-features/; originals preserved.
+materials/portraits/variants/Lizardman.mesh*/*.png  AI-generated with Codex  GPLv3+  AI-generated source features; resized and positioned only from materials/portraits/generated-features/; originals preserved.
+materials/portraits/variants/Knight.mesh*/*.png  AI-generated with Codex  GPLv3+  AI-generated source features; resized and positioned only from materials/portraits/generated-features/; originals preserved.
+materials/portraits/variants/Cultist.mesh*/*.png  AI-generated with Codex  GPLv3+  AI-generated source features; resized and positioned only from materials/portraits/generated-features/; originals preserved.

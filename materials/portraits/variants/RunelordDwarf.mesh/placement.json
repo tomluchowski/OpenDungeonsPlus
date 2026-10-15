@@ -1,0 +1,344 @@
+[
+  {
+    "method": "visible-alpha-v2",
+    "file": "build-1-slim.png",
+    "source": "materials/portraits/generated-features/RunelordDwarf.mesh/build-1-slim.png",
+    "source_sha256": "742b7669b80e16e56d9da5ba4fb640e0c5817cc5971082b735e62ac0914cd470",
+    "rect": [
+      0,
+      880,
+      887,
+      894
+    ],
+    "scale": 0.6984251968503937,
+    "offset": [
+      -92.89055118110237,
+      84.16811023622046
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "build-2-sturdy.png",
+    "source": "materials/portraits/generated-features/RunelordDwarf.mesh/build-2-sturdy.png",
+    "source_sha256": "a2f4802d23f653ceee8defbabaa48ce167c4c594dd4dd03b824c53c674d9c5e0",
+    "rect": [
+      0,
+      880,
+      887,
+      894
+    ],
+    "scale": 0.6362984218077475,
+    "offset": [
+      -2.545193687231047,
+      80.81025824964128
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "hair-1-swept.png",
+    "source": "materials/portraits/generated-features/RunelordDwarf.mesh/hair-1-swept.png",
+    "source_sha256": "8add5274e0fb826bd8f0f81796be2798ea902e2456dc5877c17b7c14e96cdfb7",
+    "rect": [
+      100,
+      530,
+      680,
+      790
+    ],
+    "scale": 0.4835820895522388,
+    "offset": [
+      -32.35820895522388,
+      -68.6268656716418
+    ],
+    "visual_acceptance": "native-review-pending"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "hair-2-waves.png",
+    "source": "materials/portraits/generated-features/RunelordDwarf.mesh/hair-2-waves.png",
+    "source_sha256": "36d7d7d9ff401d571c38db86bb3ef4ef33acd390a15c638a9cd53a5e2d65ca6d",
+    "rect": [
+      100,
+      530,
+      680,
+      790
+    ],
+    "scale": 0.5409015025041736,
+    "offset": [
+      -75.95325542570944,
+      -59.726210350584296
+    ],
+    "visual_acceptance": "native-review-pending"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "eyes-1-narrow.png",
+    "source": "materials/portraits/generated-features/RunelordDwarf.mesh/eyes-1-narrow.png",
+    "source_sha256": "636375c4ceee0abb46b5adcdf65f86f4404d5565f47f33a7a55035f2c8774b33",
+    "rect": [
+      290,
+      465,
+      320,
+      160
+    ],
+    "scale": 0.1927710843373494,
+    "offset": [
+      -49.73493975903615,
+      5.012048192771079
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "eyes-2-round.png",
+    "source": "materials/portraits/generated-features/RunelordDwarf.mesh/eyes-2-round.png",
+    "source_sha256": "9601c5d773e9bfbe49a80f1df0ddf4255a737274f2fe8031e330533e3cfc3b7f",
+    "rect": [
+      290,
+      465,
+      320,
+      160
+    ],
+    "scale": 0.18947368421052632,
+    "offset": [
+      -45.95789473684211,
+      5.726315789473684
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "eyes-3-eyepatch.png",
+    "source": "materials/portraits/generated-features/RunelordDwarf.mesh/eyes-3-eyepatch.png",
+    "source_sha256": "c3e35fc8cfd7fdc44a12c054723a0a1f1769c9f6603b0c14ffe5f70e340adc24",
+    "rect": [
+      290,
+      465,
+      320,
+      160
+    ],
+    "scale": 0.2251759186864738,
+    "offset": [
+      -40.744331508991394,
+      -23.91868647380766
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "nose-1-crooked.png",
+    "source": "materials/portraits/generated-features/RunelordDwarf.mesh/nose-1-crooked.png",
+    "source_sha256": "5d8c2aa69b143f4a5ae923b46bdb2c3d32a73d1713c2fbd01d46174195f02b74",
+    "rect": [
+      400,
+      527,
+      170,
+      145
+    ],
+    "scale": 0.15804195804195803,
+    "offset": [
+      -36.37622377622377,
+      -6.125874125874116
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "nose-2-broad.png",
+    "source": "materials/portraits/generated-features/RunelordDwarf.mesh/nose-2-broad.png",
+    "source_sha256": "8c6784b76b4504f20f307dbdffda99cba0c745f2998e01c7a17424fe2f2aae71",
+    "rect": [
+      400,
+      527,
+      170,
+      145
+    ],
+    "scale": 0.1377245508982036,
+    "offset": [
+      -20.221556886227546,
+      3.08682634730539
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "mouth-1-teeth.png",
+    "source": "materials/portraits/generated-features/RunelordDwarf.mesh/mouth-1-teeth.png",
+    "source_sha256": "50f900ac1cd4c640105a2d2496a47a26805de621d9d367d63b3b85b20c1feb38",
+    "rect": [
+      340,
+      587,
+      300,
+      115
+    ],
+    "scale": 0.12828438948995363,
+    "offset": [
+      36.019319938176196,
+      -0.29211746522411275
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "mouth-2-grin.png",
+    "source": "materials/portraits/generated-features/RunelordDwarf.mesh/mouth-2-grin.png",
+    "source_sha256": "6133d0da231d1eb98cca31b4f2e047975d4d3d25316e96469db2462c9995babe",
+    "rect": [
+      340,
+      587,
+      300,
+      115
+    ],
+    "scale": 0.13050314465408805,
+    "offset": [
+      33.72169811320755,
+      -1.2264150943396217
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "mouth-3-cigar.png",
+    "source": "materials/portraits/generated-features/RunelordDwarf.mesh/mouth-3-cigar.png",
+    "source_sha256": "1a4d941fcc5759b6ce49b561dff40f239fcb5814e50970c6f29b27d18c3a50e1",
+    "rect": [
+      340,
+      587,
+      300,
+      115
+    ],
+    "scale": 0.16370808678500987,
+    "offset": [
+      0.8619329388560075,
+      -15.759368836291912
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "chin-1-forked.png",
+    "source": "materials/portraits/generated-features/RunelordDwarf.mesh/chin-1-forked.png",
+    "source_sha256": "5760cfed6c87054d9cad9109bb5ec9daa2e49d0a78ae461e05a6730bb7287efc",
+    "rect": [
+      230,
+      630,
+      410,
+      520
+    ],
+    "scale": 0.4421052631578947,
+    "offset": [
+      -67.5578947368421,
+      -19.85263157894736
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "chin-2-braided.png",
+    "source": "materials/portraits/generated-features/RunelordDwarf.mesh/chin-2-braided.png",
+    "source_sha256": "88a1258257be32cd4c9718e73a227f007bb08e04067193529f9699d49cbf0029",
+    "rect": [
+      230,
+      630,
+      410,
+      520
+    ],
+    "scale": 0.37462834489593655,
+    "offset": [
+      -22.961347869177402,
+      18.73934588701687
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "scar-1-diagonal.png",
+    "source": "materials/portraits/generated-features/RunelordDwarf.mesh/scar-1-diagonal.png",
+    "source_sha256": "66ba54d05a942c937f1b87c1ae0cbcb53200939eb9748a36dd73e56d6d86ab44",
+    "rect": [
+      280,
+      580,
+      170,
+      130
+    ],
+    "scale": 0.08820882088208822,
+    "offset": [
+      26.78217821782178,
+      9.384338433843377
+    ],
+    "visual_acceptance": "native-review-pending"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "scar-2-scratches.png",
+    "source": "materials/portraits/generated-features/RunelordDwarf.mesh/scar-2-scratches.png",
+    "source_sha256": "f82ebecdebb8fc5246781948a4ebbe45982d8cf485ac3f814f532d237d9e2576",
+    "rect": [
+      280,
+      580,
+      170,
+      130
+    ],
+    "scale": 0.10594594594594595,
+    "offset": [
+      5.116756756756757,
+      9.749189189189188
+    ],
+    "visual_acceptance": "native-review-pending"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "scar-3-warpaint.png",
+    "source": "materials/portraits/generated-features/RunelordDwarf.mesh/scar-3-warpaint.png",
+    "source_sha256": "d1890a33322b076666b105221c70c140d299903726641cb922f554d741fc7cbd",
+    "rect": [
+      280,
+      580,
+      170,
+      130
+    ],
+    "scale": 0.10675381263616558,
+    "offset": [
+      1.7320261437908506,
+      11.40958605664488
+    ],
+    "visual_acceptance": "native-review-pending"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "neck-1-teeth.png",
+    "source": "materials/portraits/generated-features/RunelordDwarf.mesh/neck-1-teeth.png",
+    "source_sha256": "0bc035c11ef2ae7dded5b8f1f1dedd2325914e437c66fe8f170cd37df19e66c8",
+    "rect": [
+      300,
+      805,
+      380,
+      210
+    ],
+    "scale": 0.20342857142857143,
+    "offset": [
+      33.461714285714294,
+      2.9805714285714284
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "neck-2-torque.png",
+    "source": "materials/portraits/generated-features/RunelordDwarf.mesh/neck-2-torque.png",
+    "source_sha256": "dea40d9f8246939bcf5b1efb0d963b021926cb7da17587d201243d79dcd5c80c",
+    "rect": [
+      300,
+      805,
+      380,
+      210
+    ],
+    "scale": 0.22849807445442877,
+    "offset": [
+      13.485237483953767,
+      -13.70474967907574
+    ],
+    "visual_acceptance": "needs-correction"
+  }
+]

@@ -1,0 +1,164 @@
+[
+  {
+    "method": "visible-alpha-v2",
+    "file": "build-1-slim.png",
+    "source": "materials/portraits/generated-features/Cultist.mesh/build-1-slim.png",
+    "source_sha256": "95d63e89daaa61ba31c6794f1b6a054a1d54171e685168460f34145b23e1f1d0",
+    "rect": [
+      0,
+      930,
+      887,
+      844
+    ],
+    "scale": 0.7009966777408638,
+    "offset": [
+      41.47840531561462,
+      -63.79069767441861
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "build-2-sturdy.png",
+    "source": "materials/portraits/generated-features/Cultist.mesh/build-2-sturdy.png",
+    "source_sha256": "a4c9a1c6fb80013d8bd67a1578ec4306df3e6cdbdb26ccb2e30ced0b462354cb",
+    "rect": [
+      0,
+      930,
+      887,
+      844
+    ],
+    "scale": 0.655096011816839,
+    "offset": [
+      -5.240768094534712,
+      33.200516986706106
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "hair-1-swept.png",
+    "source": "materials/portraits/generated-features/Cultist.mesh/hair-1-swept.png",
+    "source_sha256": "ea0d6ea3ac8502139351e3ad54ba9998ef5c03590ac661cd7e63fbba046f5d98",
+    "rect": [
+      120,
+      640,
+      660,
+      970
+    ],
+    "scale": 0.8092783505154639,
+    "offset": [
+      -191.17525773195877,
+      -238.11340206185568
+    ],
+    "visual_acceptance": "native-review-pending"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "hair-2-waves.png",
+    "source": "materials/portraits/generated-features/Cultist.mesh/hair-2-waves.png",
+    "source_sha256": "718a964e38a8673c29c12eea0208ca2d11b86054eb080b4ada97f5f5f39a8742",
+    "rect": [
+      120,
+      640,
+      660,
+      970
+    ],
+    "scale": 0.533106960950764,
+    "offset": [
+      -144.99830220713073,
+      -68.23089983022072
+    ],
+    "visual_acceptance": "native-review-pending"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "scar-1-diagonal.png",
+    "source": "materials/portraits/generated-features/Cultist.mesh/scar-1-diagonal.png",
+    "source_sha256": "bfb76b87d3e34e7ff290034c6640a01e115985d11539022a04676d28d28bda93",
+    "rect": [
+      300,
+      465,
+      220,
+      280
+    ],
+    "scale": 0.18725099601593626,
+    "offset": [
+      -30.06374501992032,
+      42.81673306772909
+    ],
+    "visual_acceptance": "native-review-pending"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "scar-2-scratches.png",
+    "source": "materials/portraits/generated-features/Cultist.mesh/scar-2-scratches.png",
+    "source_sha256": "9f57e8a1bf5f70a82268ef06c05fef76b639db9b73c3864373c6ab47df720ff7",
+    "rect": [
+      300,
+      465,
+      220,
+      280
+    ],
+    "scale": 0.19301848049281314,
+    "offset": [
+      -18.357289527720738,
+      18.687885010266935
+    ],
+    "visual_acceptance": "native-review-pending"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "scar-3-warpaint.png",
+    "source": "materials/portraits/generated-features/Cultist.mesh/scar-3-warpaint.png",
+    "source_sha256": "aaf468b637aad259dde7722157455e795e41d9ada6480bce6e70c30797ab95ae",
+    "rect": [
+      300,
+      465,
+      220,
+      280
+    ],
+    "scale": 0.22262118491921004,
+    "offset": [
+      -33.14542190305206,
+      -0.6965888689407542
+    ],
+    "visual_acceptance": "native-review-pending"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "neck-1-teeth.png",
+    "source": "materials/portraits/generated-features/Cultist.mesh/neck-1-teeth.png",
+    "source_sha256": "2b5697f593f2b8fe642f191ad0952a963c6ae2b84a4215478aa02835ba4db8e7",
+    "rect": [
+      230,
+      850,
+      450,
+      300
+    ],
+    "scale": 0.37122557726465366,
+    "offset": [
+      -61.214920071047956,
+      -44.3365896980462
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "neck-2-torque.png",
+    "source": "materials/portraits/generated-features/Cultist.mesh/neck-2-torque.png",
+    "source_sha256": "0ed44c9d7ec72a4d481849bf7c6e3e1f66cc5c6f1aa7eeb28a8b2c0db3aa0b91",
+    "rect": [
+      230,
+      850,
+      450,
+      300
+    ],
+    "scale": 0.3066764490095378,
+    "offset": [
+      -10.680851063829788,
+      -10.698459280997803
+    ],
+    "visual_acceptance": "needs-correction"
+  }
+]

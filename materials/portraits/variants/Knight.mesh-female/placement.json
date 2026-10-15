@@ -1,0 +1,164 @@
+[
+  {
+    "method": "visible-alpha-v2",
+    "file": "build-1-slim.png",
+    "source": "materials/portraits/generated-features/Knight.mesh-female/build-1-slim.png",
+    "source_sha256": "e185d74d223f19bbb9d106999080945e3c91abc6b17b89d32828685fa9963be4",
+    "rect": [
+      0,
+      590,
+      887,
+      1184
+    ],
+    "scale": 0.7568259385665529,
+    "offset": [
+      -25.7320819112628,
+      90.60281569965872
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "build-2-sturdy.png",
+    "source": "materials/portraits/generated-features/Knight.mesh-female/build-2-sturdy.png",
+    "source_sha256": "a2082c67e67f3181dbbc57e8097d8b358f7e0fb6c08d319ef8ba4abddb06c249",
+    "rect": [
+      0,
+      590,
+      887,
+      1184
+    ],
+    "scale": 0.6164002779708131,
+    "offset": [
+      -30.20361362056984,
+      270.8554551772064
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "hair-1-swept.png",
+    "source": "materials/portraits/generated-features/Knight.mesh-female/hair-1-swept.png",
+    "source_sha256": "3b942b6b54d67c741bd8ea42380f427d8d8e49966d48e4e02e7c51797799eb83",
+    "rect": [
+      120,
+      590,
+      650,
+      700
+    ],
+    "scale": 0.794344473007712,
+    "offset": [
+      -347.0154241645244,
+      -131.74807197943443
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "hair-2-waves.png",
+    "source": "materials/portraits/generated-features/Knight.mesh-female/hair-2-waves.png",
+    "source_sha256": "bef8b723631ff9cb0219d647fa09f1f11a27d983723e195256934ba65108aecb",
+    "rect": [
+      120,
+      590,
+      650,
+      700
+    ],
+    "scale": 0.665948275862069,
+    "offset": [
+      -277.6831896551724,
+      -45.26724137931034
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "scar-1-diagonal.png",
+    "source": "materials/portraits/generated-features/Knight.mesh-female/scar-1-diagonal.png",
+    "source_sha256": "4e335d0774cfab2b251f0198adb73c1c5f349d7772a99b96e08684ea97dee7bd",
+    "rect": [
+      290,
+      280,
+      250,
+      230
+    ],
+    "scale": 0.28407460545193686,
+    "offset": [
+      -103.39598278335724,
+      -34.281205164992826
+    ],
+    "visual_acceptance": "native-review-pending"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "scar-2-scratches.png",
+    "source": "materials/portraits/generated-features/Knight.mesh-female/scar-2-scratches.png",
+    "source_sha256": "c034f025c7ca3c46978c35a527a51b1d9305fe80c8398e934f7348c23cd21383",
+    "rect": [
+      290,
+      280,
+      250,
+      230
+    ],
+    "scale": 0.21267454350161116,
+    "offset": [
+      -55.13533834586465,
+      4.515574650912997
+    ],
+    "visual_acceptance": "native-review-pending"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "scar-3-warpaint.png",
+    "source": "materials/portraits/generated-features/Knight.mesh-female/scar-3-warpaint.png",
+    "source_sha256": "0dbc4322ae54c7c031341cd220ab21da952885135ad7259b0a2560a16f16bceb",
+    "rect": [
+      290,
+      280,
+      250,
+      230
+    ],
+    "scale": 0.21336206896551724,
+    "offset": [
+      -25.846982758620683,
+      -15.150862068965516
+    ],
+    "visual_acceptance": "native-review-pending"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "neck-1-teeth.png",
+    "source": "materials/portraits/generated-features/Knight.mesh-female/neck-1-teeth.png",
+    "source_sha256": "4d0bc4b82f01cb81e68980367bd12c502763a5d848722cf42fda71c994e7be01",
+    "rect": [
+      210,
+      695,
+      450,
+      260
+    ],
+    "scale": 0.2695035460992908,
+    "offset": [
+      16.943262411347533,
+      -8.25531914893617
+    ],
+    "visual_acceptance": "native-review-pending"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "neck-2-torque.png",
+    "source": "materials/portraits/generated-features/Knight.mesh-female/neck-2-torque.png",
+    "source_sha256": "55d0aeeed67d7e16398078b872fc02246fb72c89261855de37bed9579870775f",
+    "rect": [
+      210,
+      695,
+      450,
+      260
+    ],
+    "scale": 0.3114754098360656,
+    "offset": [
+      -51.27868852459018,
+      -7.983606557377051
+    ],
+    "visual_acceptance": "native-review-pending"
+  }
+]
