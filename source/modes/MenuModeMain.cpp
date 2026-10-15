@@ -192,6 +192,21 @@ bool MenuModeMain::toggleSettings(const CEGUI::EventArgs&)
     return true;
 }
 
+bool MenuModeMain::goBack(const CEGUI::EventArgs&)
+{
+    CEGUI::Window* mainWin = getModeManager().getGui().getGuiSheet(Gui::mainMenu);
+    for(const std::string& name : {WINDOW_SKIRMISH, WINDOW_MULTIPLAYER, WINDOW_EDITOR})
+    {
+        CEGUI::Window* window = mainWin->getChild(name);
+        if(window->isVisible())
+        {
+            window->hide();
+            break;
+        }
+    }
+    return true;
+}
+
 bool MenuModeMain::toggleSkirmishSubMenu(const CEGUI::EventArgs&)
 {
     CEGUI::Window* mainWin = getModeManager().getGui().getGuiSheet(Gui::mainMenu);

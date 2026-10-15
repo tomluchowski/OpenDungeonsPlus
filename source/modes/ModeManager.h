@@ -55,6 +55,8 @@ public:
 
     //! \brief Request to load the previous mode type.
     void requestPreviousMode();
+    //! \brief Request to leave the current mode and launch the given saved game.
+    void requestSavedGame(const std::string& filename);
 
     InputManager& getInputManager()
     { return mInputManager; }
@@ -83,6 +85,9 @@ private:
     //! \brief Tells whether the current mode should be kept in history
     //! when changing from the current mode.
     bool mStoreCurrentModeAtChange;
+
+    //! \brief Saved game that the next load menu launches right away, empty if none.
+    std::string mRequestedSavedGame;
 
     //! \brief Actually change the mode if needed
     void checkModeChange();

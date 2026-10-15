@@ -341,11 +341,6 @@ EditorMode::EditorMode(ModeManager* modeManager):
             CEGUI::Event::Subscriber(&EditorMode::toggleOptionsWindow, this)
     ));
     addEventConnection(
-        mRootWindow->getChild("EditorOptionsWindow")->subscribeEvent(
-            CEGUI::FrameWindow::EventCloseClicked,
-            CEGUI::Event::Subscriber(&EditorMode::toggleOptionsWindow, this)
-    ));    
-    addEventConnection(
         mRootWindow->getChild("EditorOptionsWindow/SaveLevelButton")
         ->subscribeEvent(
             CEGUI::Window::EventMouseClick,
@@ -1497,8 +1492,13 @@ bool EditorMode::hidePortalWaveWindow(const CEGUI::EventArgs& /*arg*/)
 bool EditorMode::keyPressed(const OIS::KeyEvent &arg)
 {
     // Inject key to the gui currently displayed
-    CEGUI::System::getSingleton().getDefaultGUIContext().injectKeyDown(static_cast<CEGUI::Key::Scan>(arg.key));
+    const bool guiHandledKey = CEGUI::System::getSingleton().getDefaultGUIContext().injectKeyDown(
+        static_cast<CEGUI::Key::Scan>(arg.key));
     CEGUI::System::getSingleton().getDefaultGUIContext().injectChar(arg.text);
+
+    if(arg.key == OIS::KC_ESCAPE && mCurrentInputMode != InputModeConsole &&
+       mCurrentInputMode != InputModeChat && (guiHandledKey || closeTopWindow()))
+        return true;
 
     if (mCurrentInputMode == InputModeChat || mCurrentInputMode == InputModeSave || mCurrentInputMode == InputModeLoad || mCurrentInputMode == InputModeNew)
         return true;
@@ -1962,6 +1962,7 @@ bool EditorMode::onSaveButtonClickFromOptions(const CEGUI::EventArgs& /*arg*/)
         // Send a message to the server telling it we want to drop the creature
         ClientNotification *clientNotification = new ClientNotification(
             ClientNotificationType::askSaveMap);
+        clientNotification->mPacket << std::string() << std::string();
         ODClient::getSingleton().queueClientNotification(clientNotification);
     }
     mModifiedMapBit = false;
@@ -2068,7 +2069,8 @@ bool EditorMode::quickSavePopUpMenu(const CEGUI::EventArgs& /*arg*/)
     if(ODClient::getSingleton().isConnected())
     {
         // Send a message to the server telling it we want to drop the creature
-        ODClient::getSingleton().queueClientNotification(ClientNotificationType::askSaveMap);
+        ODClient::getSingleton().queueClientNotification(ClientNotificationType::askSaveMap,
+            std::string(), std::string());
     }
     mModifiedMapBit = false;
     return true;

@@ -34,6 +34,10 @@ public:
     //! Used to call the corresponding Gui Sheet.
     void activate() final override;
 
+    //! \brief Escape in the main menu: closes the open sub menu (skirmish, multiplayer or editor)
+    //! instead of leaving the menu.
+    bool goBack(const CEGUI::EventArgs& e = {}) override;
+
 private:
     //! \brief The Settings window
     SettingsWindow mSettings;

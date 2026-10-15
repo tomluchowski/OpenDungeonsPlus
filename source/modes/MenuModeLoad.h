@@ -23,7 +23,10 @@
 class MenuModeLoad: public AbstractApplicationMode
 {
 public:
-    MenuModeLoad(ModeManager*);
+    //! \param inGame True if the browser is opened on top of a running game instead of from the main menu.
+    //! \param savedGame If not empty, this saved game is launched right after activation.
+    MenuModeLoad(ModeManager*, bool inGame = false, const std::string& savedGame = {});
+    ~MenuModeLoad() override;
 
     //! \brief Called when the game mode is activated
     //! Used to call the corresponding Gui Sheet.
@@ -32,8 +35,22 @@ public:
     bool launchSelectedButtonPressed(const CEGUI::EventArgs&);
     bool deleteSelectedButtonPressed(const CEGUI::EventArgs&);
     bool updateDescription(const CEGUI::EventArgs&);
+    //! \brief Leaves the browser: back to the previous menu, or back to the game when opened in game.
+    bool closeBrowser(const CEGUI::EventArgs& = {});
+    //! \brief True while the browser is shown on top of a running game.
+    bool isOpenInGame() const { return mInGame && mOpen; }
 
 private:
+    //! \brief Starts a local server with the given saved game and connects to it.
+    bool launchSavedGame(const std::string& level);
+    //! \brief Whether the browser is used on top of a running game.
+    bool mInGame;
+    //! \brief Whether the in-game browser is currently shown.
+    bool mOpen = false;
+    //! \brief Whether the game was already paused when the in-game browser was opened.
+    bool mWasPaused = false;
+    //! \brief Saved game to launch right after activation, empty if none.
+    std::string mSavedGame;
     std::vector<std::string> mFilesList;
 };
 
