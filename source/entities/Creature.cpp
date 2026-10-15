@@ -2707,14 +2707,6 @@ float Creature::fillProfilePage(CEGUI::Window* page)
     }
     page->getChild("QuirksText")->setVisible(!quirks.empty());
     page->getChild("QuirksText")->setText(quirks);
-    // Remarks that match the parts of the picture, only for the composed picture
-    std::string quirks;
-    if(appearanceImage != nullptr)
-    {
-        quirks = DungeonbookQuirkLogic::formatRemarks(getCreatureAppearanceRemarks(getName(), mAppearance));
-    }
-    page->getChild("QuirksText")->setVisible(!quirks.empty());
-    page->getChild("QuirksText")->setText(quirks);
 
     // Health is shown as the same stage the creature overlay uses, the client has no exact value
     CEGUI::ProgressBar* healthBar = static_cast<CEGUI::ProgressBar*>(page->getChild("HealthBar"));
