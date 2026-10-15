@@ -70,13 +70,6 @@ protected:
 
     virtual void updateFloodFillPathCreated(Seat* seat, const std::vector<Tile*>& tiles);
     virtual void updateFloodFillTileRemoved(Seat* seat, Tile* tile) = 0;
-
-private:
-    //! \brief The stream format keeps one claim value for the whole bridge, so old
-    //! saves and level files load unchanged. It is read into this field and shared
-    //! out over the tiles in restoreInitialEntityState(); the live value is per
-    //! tile, in BridgeTileData.
-    double mClaimedValue;
 };
 
 #endif // ROOMBRIDGE_H

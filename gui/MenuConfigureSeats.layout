@@ -13,6 +13,7 @@
             <Property name="BackgroundEnabled" value="False" />
         </Window>
         <Window type="OD/StaticImage" name="WelcomeBanner" >
+            <Property name="Visible" value="False" />
             <Property name="Area" value="{{0.5,-320},{0,52},{0.5,320},{0,191}}" />
             <Property name="Image" value="ODLogo/Logo" />
             <Property name="MaxSize" value="{{1,0},{1,0}}" />
@@ -20,9 +21,9 @@
             <Property name="BackgroundEnabled" value="False" />
         </Window>
         <Window type="OD/FrameWindow" name="ListPlayers" >
-            <Property name="Area" value="{{0.5,-500},{0.5,-180},{0.5,500},{0.5,240}}" />
+            <Property name="Area" value="{{0.5,-500},{0.5,-210},{0.5,500},{0.5,270}}" />
             <Property name="Text" value="Please configure players..." />
-            <Property name="MinSize" value="{{0,630},{0,420}}" />
+            <Property name="MinSize" value="{{0,630},{0,480}}" />
             <Property name="AlwaysOnTop" value="True" />
             <Window type="OD/StaticText" name="GameChatText" >
                 <Property name="Area" value="{{0,20},{0,40},{0.3,0},{1,-145}}" />
@@ -62,12 +63,151 @@
                <Property name="BackgroundEnabled" value="False" />
             </Window>
             <Window type="OD/MainMenuButton" name="BackButton" >
-                <Property name="Area" value="{{0.5,-170},{1,-100},{0.5,-10},{1,-20}}" />
+                <Property name="Area" value="{{0.5,-260},{1,-100},{0.5,-100},{1,-20}}" />
                 <Property name="Text" value="Back" />
             </Window>
+            <Window type="OD/MainMenuButton" name="GameSettingsButton" >
+                <Property name="Area" value="{{0.5,-80},{1,-100},{0.5,80},{1,-20}}" />
+                <Property name="Text" value="Game settings" />
+            </Window>
             <Window type="OD/MainMenuButton" name="LaunchGameButton" >
-                <Property name="Area" value="{{0.5,10},{1,-100},{0.5,170},{1,-20}}" />
+                <Property name="Area" value="{{0.5,100},{1,-100},{0.5,260},{1,-20}}" />
                 <Property name="Text" value="Start Game" />
+            </Window>
+        </Window>
+        <Window type="OD/FrameWindow" name="GameSettingsWindow" >
+            <Property name="Area" value="{{0.5,-320},{0.5,-230},{0.5,320},{0.5,230}}" />
+            <Property name="Text" value="Game settings" />
+            <Property name="MaxSize" value="{{1,0},{1,0}}" />
+            <Property name="SizingEnabled" value="False" />
+            <Property name="AlwaysOnTop" value="True" />
+            <Property name="Visible" value="False" />
+            <Window type="OD/Button" name="CloseSettingsButton" >
+                <Property name="Area" value="{{0.5,-80},{1,-70},{0.5,80},{1,-20}}" />
+                <Property name="Text" value="Close" />
+            </Window>
+            <Window type="OD/TabControl" name="SettingsTabs" >
+                <Property name="Area" value="{{0,10},{0,32},{1,-10},{1,-100}}" />
+                <Property name="TabHeight" value="{0,30}" />
+                <Property name="RiseOnClickEnabled" value="False" />
+                <Window type="DefaultWindow" name="General" >
+                    <Property name="Area" value="{{0,0},{0,0},{1,0},{1,0}}" />
+                    <Property name="Text" value="General" />
+                    <Property name="MaxSize" value="{{1,0},{1,0}}" />
+                    <Property name="RiseOnClickEnabled" value="False" />
+                    <Window type="OD/StaticText" name="TextGoldDensity" >
+                        <Property name="Area" value="{{0,20},{0,14},{0,300},{0,42}}" />
+                        <Property name="Text" value="Gold density" />
+                        <Property name="FrameEnabled" value="False" />
+                        <Property name="BackgroundEnabled" value="False" />
+                    </Window>
+                    <Window type="OD/Combobox" name="ComboGoldDensity" >
+                        <Property name="Area" value="{{0,320},{0,14},{0,560},{0,114}}" />
+                        <Property name="ReadOnly" value="True" />
+                    </Window>
+                    <Window type="OD/StaticText" name="TextManaRegeneration" >
+                        <Property name="Area" value="{{0,20},{0,54},{0,300},{0,82}}" />
+                        <Property name="Text" value="Mana regeneration" />
+                        <Property name="FrameEnabled" value="False" />
+                        <Property name="BackgroundEnabled" value="False" />
+                    </Window>
+                    <Window type="OD/Combobox" name="ComboManaRegeneration" >
+                        <Property name="Area" value="{{0,320},{0,54},{0,560},{0,154}}" />
+                        <Property name="ReadOnly" value="True" />
+                    </Window>
+                    <Window type="OD/StaticText" name="TextHeartDestroyed" >
+                        <Property name="Area" value="{{0,20},{0,94},{0,300},{0,122}}" />
+                        <Property name="Text" value="Dungeon heart destroyed" />
+                        <Property name="FrameEnabled" value="False" />
+                        <Property name="BackgroundEnabled" value="False" />
+                    </Window>
+                    <Window type="OD/Combobox" name="ComboHeartDestroyed" >
+                        <Property name="Area" value="{{0,320},{0,94},{0,560},{0,204}}" />
+                        <Property name="ReadOnly" value="True" />
+                    </Window>
+                    <Window type="OD/StaticText" name="TextFogOfWar" >
+                        <Property name="Area" value="{{0,20},{0,134},{0,300},{0,162}}" />
+                        <Property name="Text" value="Fog of war" />
+                        <Property name="FrameEnabled" value="False" />
+                        <Property name="BackgroundEnabled" value="False" />
+                    </Window>
+                    <Window type="OD/Combobox" name="ComboFogOfWar" >
+                        <Property name="Area" value="{{0,320},{0,134},{0,560},{0,234}}" />
+                        <Property name="ReadOnly" value="True" />
+                    </Window>
+                    <Window type="OD/StaticText" name="TextMaxCreatures" >
+                        <Property name="Area" value="{{0,20},{0,174},{0,300},{0,202}}" />
+                        <Property name="Text" value="Max creatures" />
+                        <Property name="FrameEnabled" value="False" />
+                        <Property name="BackgroundEnabled" value="False" />
+                    </Window>
+                    <Window type="OD/Spinner" name="SpinMaxCreatures" >
+                        <Property name="Area" value="{{0,320},{0,174},{0,440},{0,202}}" />
+                    </Window>
+                    <Window type="OD/StaticText" name="TextGameSpeed" >
+                        <Property name="Area" value="{{0,20},{0,214},{0,300},{0,242}}" />
+                        <Property name="Text" value="Game speed (%)" />
+                        <Property name="FrameEnabled" value="False" />
+                        <Property name="BackgroundEnabled" value="False" />
+                    </Window>
+                    <Window type="OD/Spinner" name="SpinGameSpeed" >
+                        <Property name="Area" value="{{0,320},{0,214},{0,440},{0,242}}" />
+                    </Window>
+                    <Window type="OD/StaticText" name="TextGameDuration" >
+                        <Property name="Area" value="{{0,20},{0,254},{0,300},{0,282}}" />
+                        <Property name="Text" value="Game duration (minutes, 0 = no limit)" />
+                        <Property name="FrameEnabled" value="False" />
+                        <Property name="BackgroundEnabled" value="False" />
+                    </Window>
+                    <Window type="OD/Spinner" name="SpinGameDuration" >
+                        <Property name="Area" value="{{0,320},{0,254},{0,440},{0,282}}" />
+                    </Window>
+                </Window>
+                <Window type="DefaultWindow" name="Creatures" >
+                    <Property name="Area" value="{{0,0},{0,0},{1,0},{1,0}}" />
+                    <Property name="Text" value="Creatures" />
+                    <Property name="MaxSize" value="{{1,0},{1,0}}" />
+                    <Property name="RiseOnClickEnabled" value="False" />
+                    <Window type="OD/ScrollablePane" name="CreaturesSP" >
+                        <Property name="Area" value="{{0,0},{0,10},{1,0},{1,-5}}" />
+                    </Window>
+                </Window>
+                <Window type="DefaultWindow" name="Rooms" >
+                    <Property name="Area" value="{{0,0},{0,0},{1,0},{1,0}}" />
+                    <Property name="Text" value="Rooms" />
+                    <Property name="MaxSize" value="{{1,0},{1,0}}" />
+                    <Property name="RiseOnClickEnabled" value="False" />
+                    <Window type="OD/ScrollablePane" name="RoomsSP" >
+                        <Property name="Area" value="{{0,0},{0,10},{1,0},{1,-5}}" />
+                    </Window>
+                </Window>
+                <Window type="DefaultWindow" name="Spells" >
+                    <Property name="Area" value="{{0,0},{0,0},{1,0},{1,0}}" />
+                    <Property name="Text" value="Spells" />
+                    <Property name="MaxSize" value="{{1,0},{1,0}}" />
+                    <Property name="RiseOnClickEnabled" value="False" />
+                    <Window type="OD/ScrollablePane" name="SpellsSP" >
+                        <Property name="Area" value="{{0,0},{0,10},{1,0},{1,-5}}" />
+                    </Window>
+                </Window>
+                <Window type="DefaultWindow" name="Traps" >
+                    <Property name="Area" value="{{0,0},{0,0},{1,0},{1,0}}" />
+                    <Property name="Text" value="Traps" />
+                    <Property name="MaxSize" value="{{1,0},{1,0}}" />
+                    <Property name="RiseOnClickEnabled" value="False" />
+                    <Window type="OD/ScrollablePane" name="TrapsSP" >
+                        <Property name="Area" value="{{0,0},{0,10},{1,0},{1,-5}}" />
+                    </Window>
+                </Window>
+                <Window type="DefaultWindow" name="Doors" >
+                    <Property name="Area" value="{{0,0},{0,0},{1,0},{1,0}}" />
+                    <Property name="Text" value="Doors" />
+                    <Property name="MaxSize" value="{{1,0},{1,0}}" />
+                    <Property name="RiseOnClickEnabled" value="False" />
+                    <Window type="OD/ScrollablePane" name="DoorsSP" >
+                        <Property name="Area" value="{{0,0},{0,10},{1,0},{1,-5}}" />
+                    </Window>
+                </Window>
             </Window>
         </Window>
     </Window>

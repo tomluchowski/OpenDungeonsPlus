@@ -32,6 +32,9 @@ public:
     CreatureActionType getType() const override
     { return CreatureActionType::useRoom; }
 
+    Room* getRoom() const
+    { return mRoom; }
+
     std::function<bool()> action() override;
 
     std::string getListenerName() const override;

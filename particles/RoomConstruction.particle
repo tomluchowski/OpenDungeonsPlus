@@ -1,0 +1,36 @@
+particle_system RoomConstruction
+{
+    material        RoomConstruction
+    point_rendering false
+    particle_width  0.18
+    particle_height 0.28
+    cull_each       false
+    quota           64
+    billboard_type  point
+
+    emitter Box
+    {
+        angle               40
+        colour_range_start  0.55 0.25 1.0 1.0
+        colour_range_end    0.15 0.75 1.0 1.0
+        emission_rate       180
+        time_to_live        0.72
+        direction           0 0 1
+        velocity            1.2
+        duration            0.28
+        width               0.85
+        height              0.85
+        depth               0.18
+    }
+
+    affector LinearForce
+    {
+        force_vector      0 0 0.75
+        force_application add
+    }
+
+    affector ColourFader
+    {
+        alpha -1.35
+    }
+}
