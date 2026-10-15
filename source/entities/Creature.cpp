@@ -37,6 +37,7 @@
 #include "creatureaction/CreatureActionSearchWallTileToClaim.h"
 #include "creatureaction/CreatureActionSleep.h"
 #include "creatureaction/CreatureActionStealFreeGold.h"
+#include "creatureaction/CreatureActionUseRoom.h"
 #include "creatureaction/CreatureActionWalkToTile.h"
 #include "creaturebehaviour/CreatureBehaviour.h"
 #include "creatureeffect/CreatureEffect.h"
@@ -107,6 +108,28 @@
 
 static const Ogre::Real CANNON_MISSILE_HEIGHT = 0.3;
 
+//! \brief Tolerance that keeps a health border that falls exactly on a stage in the lower stage (see isLowHealthWalkStage)
+static const double HEALTH_STAGE_ROUNDING_TOLERANCE = 0.000001;
+
+//! \brief Lowest ratio between the speed of the tile under a creature and its ground speed (see getTileSpeedRatio)
+static const double TILE_SPEED_RATIO_MIN = 0.2;
+
+//! \brief Highest ratio between the speed of the tile under a creature and its ground speed (see getTileSpeedRatio)
+static const double TILE_SPEED_RATIO_MAX = 4.0;
+
+//! \brief Most the shown tile speed ratio of the walk clips changes per second (see updateClientPose)
+static const double TILE_SPEED_RATIO_MAX_CHANGE_PER_SECOND = 4.0;
+
+//! \brief Health stages (see mOverlayHealthValue) from which a standing creature breathes slower, from the worst to the lightest
+static const uint32_t IDLE_BREATH_STAGE_HEAVY = 6;
+static const uint32_t IDLE_BREATH_STAGE_MEDIUM = 5;
+static const uint32_t IDLE_BREATH_STAGE_LIGHT = 4;
+
+//! \brief Speed factors of the idle clip of a hurt creature in the stages IDLE_BREATH_STAGE_HEAVY, _MEDIUM and _LIGHT
+static const double IDLE_BREATH_FACTOR_HEAVY = 0.78;
+static const double IDLE_BREATH_FACTOR_MEDIUM = 0.85;
+static const double IDLE_BREATH_FACTOR_LIGHT = 0.92;
+
 const int32_t Creature::NB_TURNS_BEFORE_CHECKING_TASK = 15;
 const uint32_t Creature::NB_OVERLAY_HEALTH_VALUES = 8;
 
@@ -171,12 +194,14 @@ Creature::Creature(GameMap* gameMap, const CreatureDefinition* definition, Seat*
     mStatsWindow             (nullptr),
     mNbTurnsWithoutBattle    (0),
     mCarriedEntity           (nullptr),
+    mClientCarrying          (false),
     mMoodCooldownTurns       (0),
-    mMoodValue               (CreatureMoodLevel::Neutral),
+    mMoodValue               (gameMap->isServerGameMap() ? CreatureMoodLevel::Neutral : CreatureMoodLevel::Unknown),
     mMoodPoints              (0),
     mNbTurnFurious           (-1),
     mOverlayHealthValue      (0),
     mOverlayMoodValue        (CreatureMoodValues::Nothing),
+    mClientTileSpeedRatio    (-1.0),
     mOverlayStatus           (nullptr),
     mNeedFireRefresh         (false),
     mDropCooldown            (0),
@@ -256,12 +281,14 @@ Creature::Creature(GameMap* gameMap) :
     mStatsWindow             (nullptr),
     mNbTurnsWithoutBattle    (0),
     mCarriedEntity           (nullptr),
+    mClientCarrying          (false),
     mMoodCooldownTurns       (0),
-    mMoodValue               (CreatureMoodLevel::Neutral),
+    mMoodValue               (gameMap->isServerGameMap() ? CreatureMoodLevel::Neutral : CreatureMoodLevel::Unknown),
     mMoodPoints              (0),
     mNbTurnFurious           (-1),
     mOverlayHealthValue      (0),
     mOverlayMoodValue        (0),
+    mClientTileSpeedRatio    (-1.0),
     mOverlayStatus           (nullptr),
     mNeedFireRefresh         (false),
     mDropCooldown            (0),
@@ -608,6 +635,9 @@ void Creature::exportToPacket(ODPacket& os, const Seat* seat) const
         os << mWeaponR->getName();
     else
         os << "none";
+
+    exportMoodToPacket(os, seat);
+    exportActivityToPacket(os, seat);
 }
 
 void Creature::importFromPacket(ODPacket& is)
@@ -660,6 +690,8 @@ void Creature::importFromPacket(ODPacket& is)
         }
     }
 
+    importMoodFromPacket(is);
+    importActivityFromPacket(is);
     setupDefinition(*getGameMap(), *ConfigManager::getSingleton().getCreatureDefinitionDefaultWorker());
 }
 
@@ -913,6 +945,9 @@ void Creature::doUpkeep()
         if(mKoTurnCounter > 0)
             return;
 
+        if(!getGameMap()->isInEditorMode())
+            setAnimationState(EntityAnimation::getup_anim, false,
+                Ogre::Vector3::ZERO, false);
         computeCreatureOverlayMoodValue();
         return;
     }
@@ -1620,21 +1655,123 @@ double Creature::getMoveSpeed(Tile* tile) const
         return 1.0;
     }
 
+    // A badly hurt creature limps along: it moves slower (see getLowHealthWalkFactor)
+    double hurtFactor = getLowHealthWalkFactor();
+
     if(getIsOnServerMap())
     {
         // Check if the covering building allows this creature to go through
         if(tile->getCoveringBuilding() != nullptr)
-            return tile->getCoveringBuilding()->getCreatureSpeed(this, tile);
+            return tile->getCoveringBuilding()->getCreatureSpeed(this, tile) * hurtFactor;
         else
-            return tile->getCreatureSpeedDefault(this);
+            return tile->getCreatureSpeedDefault(this) * hurtFactor;
     }
     else
     {
         if(tile->getHasBridge())
-            return getMoveSpeedGround();
+            return getMoveSpeedGround() * hurtFactor;
         else
-            return tile->getCreatureSpeedDefault(this);
+            return tile->getCreatureSpeedDefault(this) * hurtFactor;
     }
+}
+
+bool Creature::isLowHealthWalkStage(uint32_t healthStage)
+{
+    // The health stage (0 = unhurt, 1 to 6 = lost a sixth more each, 7 = no health left) is known on the
+    // server and on the clients. Stage s means the health is below 100 * (1 - (s - 1) / 6) percent, so
+    // a creature is badly hurt from the first stage that lies completely below the configured percent
+    const double nbSteps = static_cast<double>(NB_OVERLAY_HEALTH_VALUES - 2);
+    double thresholdPercent = ConfigManager::getSingleton().getLowHealthWalkThresholdPercent();
+    double firstStage = std::ceil((FULL_HEALTH_PERCENT - thresholdPercent) / FULL_HEALTH_PERCENT * nbSteps
+        - HEALTH_STAGE_ROUNDING_TOLERANCE) + 1.0;
+    return static_cast<double>(healthStage) >= firstStage;
+}
+
+double Creature::getLowHealthWalkFactor() const
+{
+    if(!isLowHealthWalking())
+        return 1.0;
+
+    // A creature type can have its own factor (same limits as the global one), the global one is the default
+    if((mDefinition != nullptr) && (mDefinition->getLowHealthWalkSpeedFactor() >= 0.0))
+        return ConfigManager::limitLowHealthWalkSpeedFactor(mDefinition->getLowHealthWalkSpeedFactor());
+
+    return ConfigManager::getSingleton().getLowHealthWalkSpeedFactor();
+}
+
+double Creature::getTileSpeedRatio() const
+{
+    // The same tile speed the client moves the creature with (see getMoveSpeed): no covering building on the client
+    Tile* tile = getPositionTile();
+    double groundSpeed = getMoveSpeedGround();
+    if((tile == nullptr) || (groundSpeed <= 0.0))
+        return 1.0;
+
+    double tileSpeed = tile->getHasBridge() ? groundSpeed : tile->getCreatureSpeedDefault(this);
+    if(tileSpeed <= 0.0)
+        return 1.0;
+
+    return std::max(TILE_SPEED_RATIO_MIN, std::min(TILE_SPEED_RATIO_MAX, tileSpeed / groundSpeed));
+}
+
+void Creature::updateClientPose(double timeSinceLastFrame)
+{
+    if(getAnimationStateName() != EntityAnimation::walk_anim)
+    {
+        mClientTileSpeedRatio = -1.0;
+        return;
+    }
+
+    double target = getTileSpeedRatio();
+    if(mClientTileSpeedRatio < 0.0)
+    {
+        mClientTileSpeedRatio = target;
+        return;
+    }
+
+    // The ratio changes by 4 per second at most, so a step between two tile types takes a fraction of a second
+    double maxStep = std::max(0.0, timeSinceLastFrame) * TILE_SPEED_RATIO_MAX_CHANGE_PER_SECOND;
+    double diff = target - mClientTileSpeedRatio;
+    if(std::abs(diff) <= maxStep)
+        mClientTileSpeedRatio = target;
+    else
+        mClientTileSpeedRatio += (diff > 0.0) ? maxStep : -maxStep;
+}
+
+double Creature::getClientPoseSpeedFactor() const
+{
+    double factor = 1.0;
+    if(getAnimationStateName() == EntityAnimation::idle_anim)
+    {
+        // Hurt creatures breathe a little slower when they stand
+        if(mOverlayHealthValue >= IDLE_BREATH_STAGE_HEAVY)
+            factor = IDLE_BREATH_FACTOR_HEAVY;
+        else if(mOverlayHealthValue == IDLE_BREATH_STAGE_MEDIUM)
+            factor = IDLE_BREATH_FACTOR_MEDIUM;
+        else if(mOverlayHealthValue == IDLE_BREATH_STAGE_LIGHT)
+            factor = IDLE_BREATH_FACTOR_LIGHT;
+    }
+    else
+    {
+        // The walk clip keeps up with the slower speed of a badly hurt creature (see getMoveSpeed)
+        factor = getLowHealthWalkFactor();
+    }
+
+    // The walk clips (Walk, WalkHurt) of a type can run faster or slower than the move speed so that the feet do
+    // not slide (WalkClipRate, WalkHurtClipRate for the clip WalkHurt). Only the shown clip, the move speed is not
+    // touched. The rate follows the clip that plays (the client switches it when the health stage crosses the threshold)
+    if((getAnimationStateName() == EntityAnimation::walk_anim) && (mDefinition != nullptr))
+    {
+        Ogre::AnimationState* clipState = getAnimationState();
+        bool playsHurtClip = (clipState != nullptr) && (clipState->getAnimationName() == EntityAnimation::walk_hurt_anim);
+        double clipRate = playsHurtClip ? mDefinition->getWalkHurtClipRate() : mDefinition->getWalkClipRate();
+        factor *= clipRate;
+
+        // The creature moves with the speed of the tile it stands on (water, lava, ...) while the clip rate is fitted
+        // to the ground speed: the clip keeps up with the ratio (the hurt factor above is already in both)
+        factor *= (mClientTileSpeedRatio >= 0.0) ? mClientTileSpeedRatio : getTileSpeedRatio();
+    }
+    return factor;
 }
 
 double Creature::getPhysicalDefense() const
@@ -1723,6 +1860,8 @@ void Creature::exportToPacketForUpdate(ODPacket& os, Seat* seat)
         seatPrisonId = mSeatPrison->getId();
 
     os << seatPrisonId;
+    exportMoodToPacket(os, seat);
+    exportActivityToPacket(os, seat);
 }
 
 void Creature::updateFromPacket(ODPacket& is)
@@ -1732,12 +1871,21 @@ void Creature::updateFromPacket(ODPacket& is)
     int seatId;
     OD_ASSERT_TRUE(is >> mLevel);
     OD_ASSERT_TRUE(is >> seatId);
+    uint32_t oldHealthValue = mOverlayHealthValue;
     OD_ASSERT_TRUE(is >> mOverlayHealthValue);
     OD_ASSERT_TRUE(is >> mOverlayMoodValue);
     OD_ASSERT_TRUE(is >> mGroundSpeed);
     OD_ASSERT_TRUE(is >> mWaterSpeed);
     OD_ASSERT_TRUE(is >> mLavaSpeed);
     OD_ASSERT_TRUE(is >> mSpeedModifier);
+
+    // A creature that walks changes between the walk clip and the hurt walk clip when it becomes badly hurt or
+    // recovers (the clip is chosen in RenderManager::rrSetObjectAnimationState)
+    if(!getIsOnServerMap() && getIsOnMap() && (getAnimationStateName() == EntityAnimation::walk_anim) &&
+       (isLowHealthWalkStage(oldHealthValue) != isLowHealthWalking()))
+    {
+        RenderManager::getSingleton().rrSetObjectAnimationState(this, EntityAnimation::walk_anim, true);
+    }
 
     // We do not scale the creature if it is picked up (because it is already not at its normal size). It will be
     // resized anyway when dropped
@@ -1768,6 +1916,119 @@ void Creature::updateFromPacket(ODPacket& is)
             OD_LOG_ERR("Creature " + getName() + ", wrong seatId=" + Helper::toString(seatId));
         }
     }
+
+    importMoodFromPacket(is);
+    importActivityFromPacket(is);
+}
+
+void Creature::exportMoodToPacket(ODPacket& os, const Seat* seat) const
+{
+    if(!ODServer::getSingleton().supportsCreatureMood(seat->getPlayer()))
+        return;
+
+    int32_t mood = static_cast<int32_t>(seat->isAlliedSeat(getSeat()) ?
+        mMoodValue : CreatureMoodLevel::Unknown);
+    os << mood;
+}
+
+void Creature::importMoodFromPacket(ODPacket& is)
+{
+    mMoodValue = CreatureMoodLevel::Unknown;
+    if(!ODClient::getSingleton().supportsCreatureMood())
+        return;
+
+    int32_t mood = static_cast<int32_t>(CreatureMoodLevel::Unknown);
+    OD_ASSERT_TRUE(is >> mood);
+    if(mood < static_cast<int32_t>(CreatureMoodLevel::Unknown) ||
+       mood > static_cast<int32_t>(CreatureMoodLevel::Furious))
+    {
+        OD_LOG_ERR("Invalid creature mood=" + Helper::toString(mood));
+        return;
+    }
+    mMoodValue = static_cast<CreatureMoodLevel>(mood);
+}
+
+CreatureActivity Creature::getActivity() const
+{
+    CreatureActivity activity;
+    if(!getIsOnMap() || !isAlive() || isKo())
+        return activity;
+
+    if(!getIsOnServerMap())
+        return mActivity;
+
+    activity.known = true;
+    if(!mActions.empty())
+        activity.action = mActions.back()->getType();
+
+    for(std::vector<std::unique_ptr<CreatureAction>>::const_reverse_iterator it = mActions.rbegin(); it != mActions.rend(); ++it)
+    {
+        const CreatureActionType type = (*it)->getType();
+        if(activity.task == CreatureActionType::nb && type != CreatureActionType::walkToTile &&
+           type != CreatureActionType::parkToTile)
+            activity.task = type;
+
+        if(type != CreatureActionType::useRoom)
+            continue;
+
+        const Room* room = static_cast<const CreatureActionUseRoom*>(it->get())->getRoom();
+        if(room != nullptr)
+        {
+            activity.assignedRoom = room->getType();
+            const Tile* tile = getPositionTile();
+            activity.inAssignedRoom = tile != nullptr && tile->getCoveringRoom() == room;
+        }
+        break;
+    }
+    return activity;
+}
+
+void Creature::exportActivityToPacket(ODPacket& os, const Seat* seat) const
+{
+    if(!ODServer::getSingleton().supportsCreatureActivity(seat->getPlayer()))
+        return;
+
+    const CreatureActivity activity = seat->isAlliedSeat(getSeat()) ? getActivity() : CreatureActivity();
+    os << activity.known;
+    if(!activity.known)
+        return;
+
+    os << static_cast<int32_t>(activity.action) << static_cast<int32_t>(activity.task)
+       << static_cast<int32_t>(activity.assignedRoom) << activity.inAssignedRoom;
+}
+
+void Creature::importActivityFromPacket(ODPacket& is)
+{
+    mActivity = CreatureActivity();
+    if(!ODClient::getSingleton().supportsCreatureActivity())
+        return;
+
+    CreatureActivity activity;
+    if(!(is >> activity.known))
+    {
+        OD_LOG_ERR("Missing creature activity for " + getName());
+        return;
+    }
+    if(!activity.known)
+        return;
+
+    int32_t action, task, room;
+    if(!(is >> action >> task >> room >> activity.inAssignedRoom))
+    {
+        OD_LOG_ERR("Incomplete creature activity for " + getName());
+        return;
+    }
+    if(action < 0 || action > static_cast<int32_t>(CreatureActionType::nb) ||
+       task < 0 || task > static_cast<int32_t>(CreatureActionType::nb) ||
+       room < 0 || room >= static_cast<int32_t>(RoomType::nbRooms))
+    {
+        OD_LOG_ERR("Invalid creature activity for " + getName());
+        return;
+    }
+    activity.action = static_cast<CreatureActionType>(action);
+    activity.task = static_cast<CreatureActionType>(task);
+    activity.assignedRoom = static_cast<RoomType>(room);
+    mActivity = activity;
 }
 
 void Creature::updateTilesInSight()
@@ -2163,11 +2424,15 @@ void Creature::receiveExp(double experience)
 void Creature::useAttack(CreatureSkillData& skillData, GameEntity& entityAttack,
         Tile& tileAttack, bool ko, bool notifyPlayerIfHit)
 {
-    // Turn to face the entity we are attacking and set the animation state to Attack.
+    // Keep ranged skills visually distinct, including shots at adjacent targets.
     const Ogre::Vector3& pos = getPosition();
-    Ogre::Vector3 walkDirection(tileAttack.getX() - pos.x, tileAttack.getY() - pos.y, 0);
+    const Ogre::Vector3 target = entityAttack.getObjectType() == GameEntityType::creature ?
+        entityAttack.getPosition() : Ogre::Vector3(tileAttack.getX(), tileAttack.getY(), 0);
+    Ogre::Vector3 walkDirection(target.x - pos.x, target.y - pos.y, 0);
     walkDirection.normalise();
-    setAnimationState(EntityAnimation::attack_anim, false, walkDirection, true);
+    const bool ranged = skillData.mSkill->getRangeMax(this, &entityAttack) > 1.0;
+    setAnimationState(ranged ? EntityAnimation::ranged_attack_anim :
+        EntityAnimation::combat_attack_anim, false, walkDirection, true);
     fireCreatureSound(CreatureSound::Attack);
     setNbTurnsWithoutBattle(0);
 
@@ -2260,6 +2525,7 @@ void Creature::pickup()
     removeEntityFromPositionTile();
     clearDestinations(EntityAnimation::idle_anim, true, true);
     clearActionQueue();
+    mActivity = CreatureActivity();
 
     if(!getIsOnServerMap())
         return;
@@ -2755,6 +3021,13 @@ void Creature::fireRemoveEntity(Seat* seat,NodeType nt)
 
 void Creature::fireCreatureRefreshIfNeeded()
 {
+    const CreatureActivity activity = getActivity();
+    if(!(mActivity == activity))
+    {
+        mActivity = activity;
+        mNeedFireRefresh = true;
+    }
+
     if(!mNeedFireRefresh)
         return;
 
@@ -2990,6 +3263,37 @@ void Creature::fireCreatureSound(CreatureSound sound)
     }
 }
 
+void Creature::fireCombatImpact(bool weaponClash, bool bodyDamage,
+    const Ogre::Vector3& attackerPosition)
+{
+    for(Seat* seat : mSeatsWithVisionNotified)
+    {
+        if(seat->getPlayer() == nullptr || !seat->getPlayer()->getIsHuman())
+            continue;
+
+        ServerNotification* notification = new ServerNotification(
+            ServerNotificationType::creatureCombatImpact, seat->getPlayer());
+        notification->mPacket << getName() << weaponClash << bodyDamage
+            << attackerPosition;
+        ODServer::getSingleton().queueServerNotification(notification);
+    }
+}
+
+void Creature::fireChickenFeeding(const std::string& chickenName,
+    const Ogre::Vector3& chickenPosition)
+{
+    for(Seat* seat : mSeatsWithVisionNotified)
+    {
+        if(seat->getPlayer() == nullptr || !seat->getPlayer()->getIsHuman())
+            continue;
+
+        ServerNotification* notification = new ServerNotification(
+            ServerNotificationType::creatureChickenFeeding, seat->getPlayer());
+        notification->mPacket << getName() << chickenName << chickenPosition;
+        ODServer::getSingleton().queueServerNotification(notification);
+    }
+}
+
 void Creature::itsPayDay()
 {
     // Rogue creatures do not have to be paid
@@ -3023,6 +3327,8 @@ void Creature::computeMood()
     mMoodValue = CreatureMoodManager::getCreatureMoodLevel(mMoodPoints);
     if(mMoodValue == oldMoodValue)
         return;
+
+    mNeedFireRefresh = true;
 
     if((mMoodValue >= CreatureMoodLevel::Furious) &&
        (oldMoodValue < CreatureMoodLevel::Furious))
@@ -3471,9 +3777,3 @@ void Creature::normalizeAmbient()
     RenderManager::getSingleton().rrNormalizeAmbient(this);
 
 }
-
-
-
-
-
-
