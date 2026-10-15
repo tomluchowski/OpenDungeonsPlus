@@ -139,6 +139,12 @@ public:
     //! \brief Sets the character height of the caption (before scaling)
     void setCaptionSize(uint32_t childOverlayId, Ogre::Real height);
     //! \brief Draws the caption outlined with the given colour. Creates the outline on the first call.
+    //! The outline is made of four copies of the caption (same font, same size, same text) in the given
+    //! colour, placed behind the caption and shifted by a fraction of a pixel to the left, right, up and
+    //! down. The copies peek out around the glyphs on every side, which looks like an outline. A single
+    //! shifted copy would only give a shadow on one side, so four are needed.
+    //! \param childOverlayId The child overlay whose caption gets the outline
+    //! \param colour The colour of the outline copies; the caption itself keeps its own colour
     void setCaptionOutline(uint32_t childOverlayId, const Ogre::ColourValue& colour);
 
     void setMaterialName(uint32_t childOverlayId, const Ogre::String& materialName);
