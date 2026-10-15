@@ -33,6 +33,7 @@ class Window;
 }
 
 class Creature;
+class MiniMapDrawnFull;
 
 enum class SpellType;
 enum class SkillType;
@@ -272,8 +273,34 @@ private:
     bool isMouseDownOnCEGUIWindow();
     bool isMouseWheelOnCEGUIWindow();
 
-    //! \brief Whether the keyboard keys moving camera are pressed down
-    bool directionKeyPressed;
+    void updateCameraControls(float elapsed) override;
+    bool showUserCameras(const CEGUI::EventArgs& = {});
+    bool closeUserCameras(const CEGUI::EventArgs& = {});
+    bool selectUserCamera(const CEGUI::EventArgs&);
+    bool storeUserCamera(const CEGUI::EventArgs&);
+    unsigned int mUserCameraSlot = 0;
+
+    //! \brief Opens the full map window, or closes it when it is already open.
+    bool toggleMap(const CEGUI::EventArgs& = {});
+    //! \brief Closes the full map window and restores the regular minimap.
+    bool closeMap(const CEGUI::EventArgs& = {});
+    //! \brief Left click on the full map moves the camera there, right click closes the map.
+    bool clickMap(const CEGUI::EventArgs&);
+    //! \brief Left click on the minimap zoom button zooms in, right click zooms out.
+    bool zoomMiniMap(const CEGUI::EventArgs&);
+    //! \brief Shows a detail view of the map area under the mouse cursor while the full map is open.
+    void updateMapDetail();
+    //! \brief Moves the camera to a room of the given type owned by the local player.
+    //! Portals are cycled through, other types focus the first room found.
+    void focusRoom(RoomType type);
+    //! \brief The full map shown while the map window is open, nullptr otherwise.
+    std::unique_ptr<MiniMapDrawnFull> mFullMap;
+    //! \brief Zoom level of the minimap before the map window was opened.
+    int mSavedMiniMapZoom = 0;
+    //! \brief Index of the portal the camera moved to last.
+    size_t mIndexPortal = 0;
+    //! \brief True while the map key is held, so that key repeat does not toggle the map again.
+    bool mMapKeyDown = false;
 
 
     //! \brief whether to allow showing the window with debug Tile info under middlemouse button click
