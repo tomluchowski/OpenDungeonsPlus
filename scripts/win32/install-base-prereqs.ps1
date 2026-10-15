@@ -1,7 +1,8 @@
 param([string[]]$Only)
 
 $ErrorActionPreference = 'Stop'
-$taskRoot = 'C:\Users\mario\od-deps'
+. (Join-Path $PSScriptRoot 'windows-paths.ps1')
+$taskRoot = $taskDependencyRoot
 $taskCmake = "$taskRoot\tools\cmake-3.31.8-windows-x86_64\bin\cmake.exe"
 $taskPrefix = "$taskRoot\install"
 
@@ -10,7 +11,7 @@ $taskPackages = @(
     @{ Name = 'ois'; Source = 'ois'; Options = @('-DOIS_BUILD_DEMOS=OFF', '-DOIS_BUILD_SHARED_LIBS=ON') },
     @{ Name = 'sfml'; Source = 'sfml'; Options = @('-DSFML_BUILD_EXAMPLES=OFF', '-DSFML_BUILD_DOC=OFF') },
     @{ Name = 'freetype'; Source = 'freetype'; Options = @('-DFT_DISABLE_ZLIB=ON', '-DFT_DISABLE_BZIP2=ON', '-DFT_DISABLE_PNG=ON', '-DFT_DISABLE_HARFBUZZ=ON', '-DFT_DISABLE_BROTLI=ON') },
-    @{ Name = 'pybind11'; Source = 'pybind11'; Options = @('-DPYBIND11_TEST=OFF', '-DPYBIND11_INSTALL=ON', '-DPYTHON_EXECUTABLE=C:/Users/mario/AppData/Local/Programs/Python/Python310/python.exe') },
+    @{ Name = 'pybind11'; Source = 'pybind11'; Options = @('-DPYBIND11_TEST=OFF', '-DPYBIND11_INSTALL=ON', "-DPYTHON_EXECUTABLE=$taskPythonCmakeRoot/python.exe") },
     @{ Name = 'pcre'; Source = 'pcre-8.45'; Options = @('-DPCRE_BUILD_TESTS=OFF', '-DPCRE_BUILD_PCREGREP=OFF', '-DPCRE_BUILD_PCRECPP=OFF', '-DPCRE_SUPPORT_UTF=ON', '-DPCRE_SUPPORT_UNICODE_PROPERTIES=ON') }
 )
 
