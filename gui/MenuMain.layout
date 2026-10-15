@@ -2,7 +2,7 @@
 
 <GUILayout version="4" >
     <Window type="DefaultWindow" name="Root" >
-        <Property name="Area" value="{{0,40},{0,10},{1,-40},{1,-10}}" />
+        <Property name="Area" value="{{0,0},{0,0},{1,0},{1,0}}" />
         <Property name="MaxSize" value="{{1,0},{1,0}}" />
         <Window type="OD/StaticImage" name="WelcomeBanner" >
             <Property name="Area" value="{{0.5,-320},{0,52},{0.5,320},{0,191}}" />

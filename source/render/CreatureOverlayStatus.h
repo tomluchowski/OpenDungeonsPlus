@@ -46,6 +46,15 @@ private:
     
     void updateHealth();
     void updateStatus(Ogre::Real timeSincelastFrame);
+    //! \brief Updates the experience ring and the attack recovery clock from the values the
+    //! creature received. The clock advances between two server turns.
+    void updateProgress(Ogre::Real timeSincelastFrame);
+
+    //! The recovery turns and attack serial of the creature when the clock was last restarted
+    uint32_t mRecoveryTurns = 0;
+    uint32_t mRecoverySerial = 0;
+    //! Seconds since the clock was restarted, used to move it between two turns
+    Ogre::Real mRecoveryElapsed = 0.0f;
 
     bool mVisible;
     Creature* mCreature;

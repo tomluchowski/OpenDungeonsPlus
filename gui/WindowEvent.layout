@@ -2,9 +2,10 @@
 
 <GUILayout version="4" >
     <Window type="OD/StaticText" name="GameEventText" >
-        <Property name="Area" value="{{0.0,430},{0.0,35},{0.0,830},{0.0,160}}" />
-        <Property name="FrameEnabled" value="False" />
-        <Property name="BackgroundEnabled" value="False" />
+            <Property name="Visible" value="False" />
+        <Property name="Area" value="{{0,452},{1,-410},{1,-8},{1,-188}}" />
+        <Property name="FrameEnabled" value="True" />
+        <Property name="BackgroundEnabled" value="True" />
         <Property name="VertFormatting" value="TopAligned" />
         <Property name="HorzFormatting" value="WordWrapLeftAligned" />
         <Property name="VertScrollbar" value="True" />

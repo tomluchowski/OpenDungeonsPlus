@@ -101,6 +101,9 @@ public:
 
     static void connectGuiButtons(GameEditorModeBase* mode, CEGUI::Window* rootWindow, PlayerSelection& playerSelection);
 
+    //! Return the action-bar button corresponding to the current room, trap or spell.
+    static std::string getSelectedButton(const PlayerSelection& playerSelection);
+
 private:
     //! \brief Allowed skills
     std::vector<const SkillDef*> mSkills;
