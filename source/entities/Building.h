@@ -106,7 +106,9 @@ public:
     bool canBuildingBeRemoved();
 
     void removeAllBuildingObjects(GameMap* gameMap = nullptr);
-    Tile* getCentralTile();
+    const std::map<Tile*, BuildingObject*>& getBuildingObjects() const
+    { return mBuildingObjects; }
+    Tile* getCentralTile() const;
 
     virtual bool isClaimable(Seat* seat) const
     { return false; }
@@ -175,6 +177,10 @@ public:
 
     virtual bool isTileVisibleForSeat(Tile* tile, Seat* seat) const
     { return true; }
+
+    //! \brief Tells whether the given seat sees the tile as a wall instead of the building
+    virtual bool appearsAsWallForSeat(Tile* tile, Seat* seat) const
+    { return false; }
 
     virtual void notifySeatVision(Tile* tile, Seat* seat);
 

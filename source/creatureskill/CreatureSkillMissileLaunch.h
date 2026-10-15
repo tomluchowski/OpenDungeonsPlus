@@ -19,6 +19,7 @@
 #define CREATURESKILLMISSILELAUNCH_H
 
 #include "creatureskill/CreatureSkill.h"
+#include "entities/MissileOneHit.h"
 
 #include <cstdint>
 #include <iosfwd>
@@ -67,7 +68,12 @@ public:
     virtual void exportToStream(std::ostream& os) const override;
     virtual bool importFromStream(std::istream& is) override;
 
-private:
+protected:
+    //! \brief Creates the missile to launch. Skills based on MissileLaunch override it to launch another kind of missile
+    virtual MissileOneHit* createMissile(GameMap& gameMap, Creature* creature, const Ogre::Vector3& direction,
+        double phyAtk, double magAtk, double eleAtk, GameEntity* attackedObject, bool ko,
+        bool notifyPlayerIfHit) const;
+
     double mRangeMax;
     double mRangePerLvl;
     uint32_t mCreatureLevelMin;
