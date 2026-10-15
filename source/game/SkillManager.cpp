@@ -735,3 +735,52 @@ void SkillManager::connectGuiButtons(GameEditorModeBase* mode, CEGUI::Window* ro
         skill->connectGuiButtons(mode, rootWindow, playerSelection);
     }
 }
+
+std::string SkillManager::getSelectedButton(const PlayerSelection& playerSelection)
+{
+    SkillFamily family;
+    uint32_t type;
+    switch(playerSelection.getCurrentAction())
+    {
+        case SelectedAction::buildRoom:
+            family = SkillFamily::rooms;
+            type = static_cast<uint32_t>(playerSelection.getNewRoomType());
+            break;
+        case SelectedAction::buildTrap:
+            family = SkillFamily::traps;
+            type = static_cast<uint32_t>(playerSelection.getNewTrapType());
+            break;
+        case SelectedAction::castSpell:
+            family = SkillFamily::spells;
+            type = static_cast<uint32_t>(playerSelection.getNewSpellType());
+            break;
+        case SelectedAction::destroyRoom:
+            return Gui::BUTTON_DESTROY_ROOM;
+        case SelectedAction::destroyTrap:
+            return Gui::BUTTON_DESTROY_TRAP;
+        case SelectedAction::queryEntity:
+            return "QueryButton";
+        case SelectedAction::sellBuilding:
+            return "SellButton";
+        default:
+            return "";
+    }
+
+    const std::vector<SkillType>& skills = getSkillManager().mSkillsFamily.at(static_cast<uint32_t>(family));
+    if(type >= skills.size() || skills[type] == SkillType::nullSkillType)
+        return "";
+    const SkillDef* skill = getSkillManager().mSkills.at(static_cast<uint32_t>(skills[type]));
+    return skill->getGuiPath() + skill->mButtonName;
+}
+
+void SkillManager::listAllRooms(const std::function<void(RoomType, const std::string&)>& func)
+{
+    for(const SkillDef* skill : getSkillManager().mSkills)
+    {
+        if(skill == nullptr || skill->getSkillFamily() != SkillFamily::rooms)
+            continue;
+
+        const SkillDefRoom* room = static_cast<const SkillDefRoom*>(skill);
+        func(room->mRoomType, room->getGuiPath() + room->mButtonName);
+    }
+}

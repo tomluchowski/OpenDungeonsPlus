@@ -57,33 +57,16 @@ void RoomFactory::checkBuildRoomDefault(GameMap* gameMap, RoomType type, const I
     Player* player = gameMap->getLocalPlayer();
     int32_t pricePerTarget = RoomManager::costPerTile(type);
     int32_t playerGold = static_cast<int32_t>(player->getSeat()->getGold());
-    if(inputManager.mCommandState == InputCommandState::infoOnly)
-    {
-        if(playerGold < pricePerTarget)
-        {
-            std::string txt = formatBuildRoom(type, pricePerTarget);
-            inputCommand.displayText(Ogre::ColourValue::Red, txt);
-        }
-        else
-        {
-            std::string txt = formatBuildRoom(type, pricePerTarget);
-            inputCommand.displayText(Ogre::ColourValue::White, txt);
-        }
-        inputCommand.selectSquaredTiles(inputManager.mXPos, inputManager.mYPos, inputManager.mXPos,
-            inputManager.mYPos);
-        return;
-    }
-
     std::vector<Tile*> buildableTiles = gameMap->getBuildableTilesForPlayerInArea(inputManager.mXPos,
         inputManager.mYPos, inputManager.mLStartDragX, inputManager.mLStartDragY, player);
 
-    if(inputManager.mCommandState == InputCommandState::building)
+    if(inputManager.mCommandState != InputCommandState::validated)
         inputCommand.selectTiles(buildableTiles);
 
     if(buildableTiles.empty())
     {
-        std::string txt = formatBuildRoom(type, 0);
-        inputCommand.displayText(Ogre::ColourValue::White, txt);
+        inputCommand.displayTileBuildFailure(gameMap->getTile(inputManager.mXPos, inputManager.mYPos),
+            player->getSeat());
         return;
     }
 
@@ -91,12 +74,14 @@ void RoomFactory::checkBuildRoomDefault(GameMap* gameMap, RoomType type, const I
     if(playerGold < priceTotal)
     {
         std::string txt = formatBuildRoom(type, priceTotal);
-        inputCommand.displayText(Ogre::ColourValue::Red, txt);
+        inputCommand.displayText(Ogre::ColourValue::Red, "Not enough gold. " + txt);
+        inputCommand.displayPointerText(Ogre::ColourValue::Red, "$" + Helper::toString(priceTotal));
         return;
     }
 
     std::string txt = formatBuildRoom(type, priceTotal);
     inputCommand.displayText(Ogre::ColourValue::White, txt);
+    inputCommand.displayPointerText(Ogre::ColourValue::Red, "$" + Helper::toString(priceTotal));
 
     if(inputManager.mCommandState != InputCommandState::validated)
         return;
@@ -513,36 +498,23 @@ RoomType RoomManager::getRoomTypeFromRoomName(const std::string& name)
 
 void RoomManager::checkSellRoomTiles(GameMap* gameMap, const InputManager& inputManager, InputCommand& inputCommand)
 {
-    Player* player = gameMap->getLocalPlayer();
-    if(inputManager.mCommandState == InputCommandState::infoOnly)
-    {
-        // We do not differentiate between room and trap (because there is no way to know on client side).
-        // Note that price = 0 doesn't mean that the building is not a room
-        Tile* tile = gameMap->getTile(inputManager.mXPos, inputManager.mYPos);
-        if((tile == nullptr) || (!tile->getIsRoom()) || (tile->getSeat() != player->getSeat()))
-        {
-            std::string txt = formatSellRoom(0);
-            inputCommand.displayText(Ogre::ColourValue::White, txt);
-            inputCommand.selectSquaredTiles(inputManager.mXPos, inputManager.mYPos, inputManager.mXPos, inputManager.mYPos);
-            return;
-        }
-
-        uint32_t price = tile->getRefundPriceRoom();
-        std::string txt = formatSellRoom(price);
-        inputCommand.displayText(Ogre::ColourValue::White, txt);
-        std::vector<Tile*> tiles;
-        tiles.push_back(tile);
-        inputCommand.selectTiles(tiles);
-        return;
-    }
-
-    std::vector<Tile*> sellTiles;
     std::vector<Tile*> tiles = gameMap->rectangularRegion(inputManager.mXPos,
         inputManager.mYPos, inputManager.mLStartDragX, inputManager.mLStartDragY);
+    checkSellRoomTiles(gameMap, inputManager, inputCommand, tiles);
+}
+
+void RoomManager::checkSellRoomTiles(GameMap* gameMap, const InputManager& inputManager, InputCommand& inputCommand,
+    const std::vector<Tile*>& tiles)
+{
+    Player* player = gameMap->getLocalPlayer();
+    std::vector<Tile*> sellTiles;
     uint32_t priceTotal = 0;
     for(Tile* tile : tiles)
     {
         if(!tile->getIsRoom())
+            continue;
+
+        if(tile->getTileVisual() == TileVisual::portalRoom || tile->getTileVisual() == TileVisual::portalWaveRoom)
             continue;
 
         if(tile->getSeat() != player->getSeat())
@@ -552,11 +524,22 @@ void RoomManager::checkSellRoomTiles(GameMap* gameMap, const InputManager& input
         priceTotal += tile->getRefundPriceRoom();
     }
 
-    if(inputManager.mCommandState == InputCommandState::building)
+    if(sellTiles.empty())
+    {
+        inputCommand.unselectAllTiles();
+        Tile* tile = gameMap->getTile(inputManager.mXPos, inputManager.mYPos);
+        if(tile != nullptr && (tile->getTileVisual() == TileVisual::portalRoom || tile->getTileVisual() == TileVisual::portalWaveRoom))
+            inputCommand.displayText(Ogre::ColourValue::Red, "Portals cannot be sold.");
+        else
+            inputCommand.displayText(Ogre::ColourValue::Red, "Select a room owned by you to sell.");
+        return;
+    }
+
+    inputCommand.displayText(Ogre::ColourValue::White, formatSellRoom(priceTotal));
+
+    if(inputManager.mCommandState != InputCommandState::validated)
     {
         inputCommand.selectTiles(sellTiles);
-        std::string txt = formatSellRoom(priceTotal);
-        inputCommand.displayText(Ogre::ColourValue::White, txt);
         return;
     }
 

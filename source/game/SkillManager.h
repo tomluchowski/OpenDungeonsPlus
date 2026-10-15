@@ -92,6 +92,11 @@ public:
     static void listAllSkills(const std::function<void(const std::string&, const std::string&,
         const std::string&, SkillType)>& func);
 
+    //! \brief Lists all the room skills and calls the given function for each one with parameters:
+    //! - The room type
+    //! - Gui use button name
+    static void listAllRooms(const std::function<void(RoomType, const std::string&)>& func);
+
     //! \brief Lists all the skills and calls the given function for each one with parameters:
     //! - SpellType
     //! - Gui use button progressbar name
@@ -100,6 +105,9 @@ public:
     static void connectSkills(GameMode* mode, CEGUI::Window* rootWindow);
 
     static void connectGuiButtons(GameEditorModeBase* mode, CEGUI::Window* rootWindow, PlayerSelection& playerSelection);
+
+    //! Return the action-bar button corresponding to the current room, trap or spell.
+    static std::string getSelectedButton(const PlayerSelection& playerSelection);
 
 private:
     //! \brief Allowed skills
