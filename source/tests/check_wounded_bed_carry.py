@@ -237,6 +237,6 @@ assert 'if(mIsBeingDragged && (mKoTurnCounter == 0) && isAlive())' in creature
 assert creature.index('if(mIsBeingDragged && (mKoTurnCounter == 0) && isAlive())') < creature.index('// If the counter reaches 0, the creature is dead')
 assert 'resetKoTurns' not in carry and 'resetKoTurns' not in function_body(creature, 'void Creature::notifyDragStart(')
 assert 'isAtBed' in notify and notify.index('if(!isAtBed)') < notify.index('creature->resetKoTurns();')
-assert 'getKoTurnCounter() < 0' in drag and 'isAlive()' in drag
+assert 'getKoTurnCounter() < 0' in stop and 'isAlive()' in drag
 
 print('wounded bed pulling: ok')
