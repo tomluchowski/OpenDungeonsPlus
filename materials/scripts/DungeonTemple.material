@@ -1,4 +1,7 @@
 // DungeonTemple
+
+// The inner sphere of the temple. Its outer one is in Sphere.material, which
+// gives that one the owning seat's colour.
 material Sphere2
 {
     receive_shadows off
@@ -10,22 +13,6 @@ material Sphere2
             diffuse 0.0 0.4 0.8 1.0
             specular 0.5 0.5 0.5 1.0 12.5
             emissive 0.0 0.4 0.9 1.0
-        }
-    }
-}
-
-material Sphere
-{
-    receive_shadows on
-    technique
-    {
-        pass
-        {
-            ambient 0.0 0.0 0.0 1.0
-            diffuse 0.7 0.25 0.0 1.0
-            specular 0.0 0.0 0.0 1.0 12.5
-            emissive 0.95 0.35 0.0 1.0
-
         }
     }
 }

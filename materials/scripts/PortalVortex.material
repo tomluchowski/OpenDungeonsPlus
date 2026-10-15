@@ -1,4 +1,28 @@
 // Keeper portal
+
+vertex_program myPortalVortexVertexShader glsl
+{
+  source Simple.vert
+    default_params
+    {
+        param_named_auto projectionMatrix projection_matrix
+        param_named_auto viewMatrix view_matrix
+        param_named_auto worldMatrix world_matrix
+    }
+
+}
+
+fragment_program myPortalVortexFragmentShader glsl
+{
+  source SeatColorTexture.frag
+    default_params
+    {
+        // The vortex texture is white, so this colour is the one it shows. A
+        // portal with no owner keeps the red it always had.
+        param_named seatColor float4 0.6 0.0 0.0 1.0
+    }
+}
+
 material PortalVortex
 {
     receive_shadows on
@@ -6,20 +30,23 @@ material PortalVortex
     {
         pass
         {
-            ambient 0.3 0 0 1.0
-            diffuse 0.3 0.0 0.0 1.0
-            specular 0.3 0.0 0.0 0.5 1.0
-            emissive 0.3 0.0 0.0 1.0
             scene_blend alpha_blend
             depth_write off
             cull_hardware none
             cull_software none
-            texture_unit
+            vertex_program_ref myPortalVortexVertexShader
+            {
+
+            }
+            fragment_program_ref myPortalVortexFragmentShader
+            {
+                param_named decalmap int 0
+            }
+            texture_unit decalmap
             {
                 texture PortalVortex.png
                 tex_address_mode wrap
                 filtering trilinear
-                colour_op alpha_blend
             }
         }
     }
