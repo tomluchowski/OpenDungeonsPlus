@@ -47,9 +47,12 @@
 #include "render/CreaturePortrait.h"
 #include "render/ODFrameListener.h"
 #include "render/RenderManager.h"
+#include "render/SocialWindow.h"
 #include "render/TextRenderer.h"
 #include "rooms/Room.h"
 #include "rooms/RoomCasino.h"
+#include "social/PostLog.h"
+#include "social/SocialProfileCache.h"
 #include "rooms/RoomManager.h"
 #include "rooms/RoomType.h"
 #include "sound/MusicPlayer.h"
@@ -174,6 +177,14 @@ static bool blocksEdgeScrolling(CEGUI::Window* window)
     }
     return true;
 }
+//! \brief The pointer movement in pixels up to which a middle button press and release is a click, not a camera rotation
+//! (measured from where the button went down, scaled with the display height, so that the hand jitter of a
+//! click on a high resolution screen does not count as a drag)
+const float MIDDLE_CLICK_MAX_DRAG = 6.0f;
+//! \brief A creature is picked by a middle click if the pointer ray passes it within this distance (in tiles)
+const float MIDDLE_CLICK_PICK_RADIUS = 0.7f;
+//! \brief Height above the floor at which the pointer ray is checked against creatures and other entities
+const float MIDDLE_CLICK_BODY_HEIGHT = 0.4f;
 
 GameMode::GameMode(ModeManager *modeManager):
     GameEditorModeBase(modeManager, ModeManager::GAME, modeManager->getGui().getGuiSheet(Gui::guiSheet::inGameMenu)),
@@ -188,6 +199,10 @@ GameMode::GameMode(ModeManager *modeManager):
     mCasinoX(-1),
     mCasinoY(-1),
     mCasinoPayout(static_cast<uint32_t>(CasinoPayout::smiles)),
+    mMiddleDragDistance(0.0f),
+    directionKeyPressed(false),
+    mMiddlePressX(0.0f),
+    mMiddlePressY(0.0f),
     showTileDebugWindow(false),
     config(ConfigManager::getSingleton())
 {
@@ -486,6 +501,23 @@ GameMode::GameMode(ModeManager *modeManager):
     }
     mCreaturePanel.reset(new CreaturePanel(*mGameMap, modeManager->getGui(),
         mRootWindow->getChild(Gui::TAB_CREATURES)));
+
+    // Dungeonbook: creature list and post feed
+    mSocialWindow.reset(new SocialWindow(mRootWindow, *mGameMap));
+    addEventConnection(mRootWindow->getChild("SocialButton")->subscribeEvent(
+        CEGUI::PushButton::EventClicked, CEGUI::Event::Subscriber(&GameMode::toggleSocialWindow, this)));
+    addEventConnection(mRootWindow->getChild("SocialWindow")->subscribeEvent(
+        CEGUI::FrameWindow::EventCloseClicked, CEGUI::Event::Subscriber(&SocialWindow::onCloseClicked, mSocialWindow.get())));
+    addEventConnection(mRootWindow->getChild("SocialWindow/FilterButton")->subscribeEvent(
+        CEGUI::PushButton::EventClicked, CEGUI::Event::Subscriber(&SocialWindow::onFilterClicked, mSocialWindow.get())));
+    addEventConnection(mRootWindow->getChild("SocialWindow/FeedPane/FeedModeButton")->subscribeEvent(
+        CEGUI::PushButton::EventClicked, CEGUI::Event::Subscriber(&SocialWindow::onFeedModeClicked, mSocialWindow.get())));
+    addEventConnection(mRootWindow->getChild("SocialWindow/FeedTab")->subscribeEvent(
+        CEGUI::PushButton::EventClicked, CEGUI::Event::Subscriber(&SocialWindow::onFeedTabClicked, mSocialWindow.get())));
+    addEventConnection(mRootWindow->getChild("SocialWindow/ProfileTab")->subscribeEvent(
+        CEGUI::PushButton::EventClicked, CEGUI::Event::Subscriber(&SocialWindow::onProfileTabClicked, mSocialWindow.get())));
+    addEventConnection(mRootWindow->getChild("SocialWindow/CreatureList")->subscribeEvent(
+        CEGUI::Listbox::EventSelectionChanged, CEGUI::Event::Subscriber(&SocialWindow::onSelectionChanged, mSocialWindow.get())));
 }
 
 GameMode::~GameMode()
@@ -509,6 +541,9 @@ GameMode::~GameMode()
         CEGUI::WindowManager::getSingleton().destroyWindow(icon);
     // Remove tile listeners before the base destructor clears the game map.
     mFullMap.reset();
+    // The feed and the profiles belong to this game only
+    social::PostLog::getSingleton().stop();
+    social::SocialProfileCache::getSingleton().clear();
     CEGUI::ToggleButton* checkBox =
         dynamic_cast<CEGUI::ToggleButton*>(
             mRootWindow->getChild(
@@ -571,6 +606,9 @@ void GameMode::activate()
     mTrapProductionData = TrapProductionData{};
     mProductionRequestPending = false;
     mReturningToSettingsNavigation = false;
+    mSocialWindow->hide();
+    social::PostLog::getSingleton().start(mGameMap->getTurnNumber(), ODApplication::turnsPerSecond);
+    social::PostLog::getSingleton().setTextFunction(&SocialWindow::renderPostTextForLog);
     guiSheet->getChild("SettingsWindow")->hide();
     guiSheet->getChild("SettingsNavigationWindow")->setModalState(false);
     guiSheet->getChild("SettingsNavigationWindow")->hide();
@@ -628,6 +666,13 @@ bool GameMode::mouseMoved(const OIS::MouseEvent &arg)
 
     InputManager& inputManager = mModeManager->getInputManager();
     inputManager.mCommandState = (inputManager.mLMouseDown ? InputCommandState::building : InputCommandState::infoOnly);
+
+    if(inputManager.mMMouseDown)
+    {
+        float dragX = static_cast<float>(mouseEvent.x) - mMiddlePressX;
+        float dragY = static_cast<float>(mouseEvent.y) - mMiddlePressY;
+        mMiddleDragDistance = std::max(mMiddleDragDistance, std::sqrt(dragX * dragX + dragY * dragY));
+    }
 
     if(!cameraInputBlocked() && !blocksEdgeScrolling(
         CEGUI::System::getSingleton().getDefaultGUIContext().getWindowContainingMouse()))
@@ -802,6 +847,67 @@ void GameMode::sendPendingHandDropRequest(bool dropAllCreatures)
     mModeManager->getInputManager().mCommandState = previousState;
 }
 
+void GameMode::openStatsWindowUnderPointer(const OIS::MouseEvent& arg)
+{
+    InputManager& inputManager = mModeManager->getInputManager();
+
+    if(mGameMap->getGamePaused())
+        return;
+
+    // The pointer ray is checked against the bodies of the entities. Intersecting it with a plane at a fixed
+    // height misses a creature that is clicked on its body, because the ray reaches that plane in front of it.
+    const CEGUI::Vector2f mouse = CEGUI::System::getSingleton().getDefaultGUIContext().getMouseCursor().getPosition();
+    const Ogre::Ray ray = ODFrameListener::getSingleton().getCameraManager()->getActiveCamera()->getCameraToViewportRay(
+        mouse.d_x / arg.state.width, mouse.d_y / arg.state.height);
+    if(ray.getDirection().z >= 0)
+        return;
+
+    // The tiles the ray crosses between the floor and above the creatures
+    std::vector<Tile*> tiles;
+    for(int step = 0; step <= 6; ++step)
+    {
+        const Ogre::Vector3 point = ray.getPoint((ray.getOrigin().z - 0.25f * static_cast<float>(step)) / -ray.getDirection().z);
+        Tile* tile = mGameMap->getTile(Helper::round(point.x), Helper::round(point.y));
+        if((tile != nullptr) && (std::find(tiles.begin(), tiles.end(), tile) == tiles.end()))
+            tiles.push_back(tile);
+    }
+
+    GameEntity* closestEntity = nullptr;
+    float closestDist = MIDDLE_CLICK_PICK_RADIUS;
+    for(Tile* tile : tiles)
+    {
+        std::vector<GameEntity*> entities;
+        tile->fillWithEntities(entities, SelectionEntityWanted::any, mGameMap->getLocalPlayer());
+        for(GameEntity* entity : entities)
+        {
+            if(!entity->canDisplayStatsWindow(mGameMap->getLocalPlayer()->getSeat()))
+                continue;
+
+            Ogre::Vector3 body = entity->getPosition();
+            body.z += MIDDLE_CLICK_BODY_HEIGHT;
+            const float dist = ray.getDirection().crossProduct(body - ray.getOrigin()).length();
+            if(dist >= closestDist)
+                continue;
+
+            closestDist = dist;
+            closestEntity = entity;
+        }
+    }
+
+    if(closestEntity != nullptr)
+    {
+        closestEntity->createStatsWindow();
+        return;
+    }
+
+    if(showTileDebugWindow)
+    {
+        Tile* tileClicked = mGameMap->getTile(inputManager.mXPos, inputManager.mYPos);
+        if(tileClicked != nullptr)
+            tileClicked->createStatsWindow();
+    }
+}
+
 bool GameMode::mousePressed(const OIS::MouseEvent& arg, OIS::MouseButtonID id)
 {
     resetIdleHand();
@@ -893,7 +999,12 @@ bool GameMode::mousePressed(const OIS::MouseEvent& arg, OIS::MouseButtonID id)
     // The player should be able to move the mouse even if not clicking on a tile. Because of that, we set
     // mMMouseDown before checking which tile is clicked
     if (id == OIS::MB_Middle)
+    {
         inputManager.mMMouseDown = true;
+        mMiddleDragDistance = 0.0f;
+        mMiddlePressX = static_cast<float>(arg.state.X.abs);
+        mMiddlePressY = static_cast<float>(arg.state.Y.abs);
+    }
 
     Tile* tileClicked = mGameMap->getTile(inputManager.mXPos, inputManager.mYPos);
     if(tileClicked == nullptr)
@@ -909,18 +1020,10 @@ bool GameMode::mousePressed(const OIS::MouseEvent& arg, OIS::MouseButtonID id)
         return true;
     }
 
+    // The stats window opens when the middle button is released without the pointer having moved,
+    // so that rotating the camera over creatures does not open windows (see mouseReleased)
     if (id == OIS::MB_Middle)
-    {
-        GameEntity* closestEntity = getQueryTarget(tileClicked);
-        if(closestEntity == nullptr)
-        {
-            if(showTileDebugWindow)
-                tileClicked->createStatsWindow();
-        }
-        else
-            closestEntity->createStatsWindow();
         return true;
-    }
 
     // Right mouse button down
     if (id == OIS::MB_Right)
@@ -1090,9 +1193,15 @@ bool GameMode::mouseReleased(const OIS::MouseEvent &arg, OIS::MouseButtonID id)
 
     if(id == OIS::MB_Middle)
     {
+        // A middle click that did not move is a request for the stats window. mMMouseDown is only set when
+        // the press was on the map, so a press on a GUI window never gets here as a click
+        float maxDrag = MIDDLE_CLICK_MAX_DRAG * std::max(1.0f, static_cast<float>(arg.state.height) / 1080.0f);
+        bool isClick = inputManager.mMMouseDown && (mMiddleDragDistance <= maxDrag);
         inputManager.mMMouseDown = false;
         ODFrameListener::getSingleton().moveCamera(CameraManager::zeroRandomRotateX, 0.0);
         ODFrameListener::getSingleton().moveCamera(CameraManager::zeroRandomRotateY, 0.0);
+        if(isClick && isConnected() && (mGameMap->getLocalPlayer() != nullptr))
+            openStatsWindowUnderPointer(arg);
     }
 
     // Right mouse button up
@@ -1248,6 +1357,10 @@ bool GameMode::keyPressedNormal(const OIS::KeyEvent &arg)
     case OIS::KC_GRAVE:
     case OIS::KC_F12:
         enterConsole();
+        break;
+
+    case OIS::KC_B:
+        toggleSocialWindow();
         break;
 
     case OIS::KC_H:
@@ -1801,6 +1914,7 @@ void GameMode::onFrameStarted(const Ogre::FrameEvent& evt)
     }
     player->frameStarted(evt.timeSinceLastFrame);
     mCreaturePanel->update();
+    mSocialWindow->update(evt.timeSinceLastFrame);
 
     HeartHealthRing::BadgeState& heartBadge = ODClient::getSingleton().getHeartBadge();
     heartBadge.update(evt.timeSinceLastFrame);
@@ -2040,6 +2154,29 @@ void GameMode::setCasinoPayoutShown(int tileX, int tileY, uint32_t level)
     }
     mRootWindow->getChild("CasinoPayoutWindow/CasinoPayoutButton")->setText(levelText);
     mRootWindow->getChild("CasinoPayoutWindow/CasinoPayoutText")->setText(infoText);
+}
+
+bool GameMode::toggleSocialWindow(const CEGUI::EventArgs&)
+{
+    if(mGameMap->getLocalPlayer() == nullptr)
+        return true;
+
+    if(mSocialWindow->isVisible())
+    {
+        mSocialWindow->hide();
+        return true;
+    }
+
+    mSocialWindow->show();
+    return true;
+}
+
+void GameMode::showSocialWindow(const std::string& selectedCreature)
+{
+    if(mGameMap->getLocalPlayer() == nullptr)
+        return;
+
+    mSocialWindow->showCreature(selectedCreature);
 }
 
 bool GameMode::showPlayerSettingsWindow(const CEGUI::EventArgs&)
@@ -2977,12 +3114,13 @@ void GameMode::setHelpWindowText()
         << "  - Views: F1 isometric, F2 top down, F3 oblique; F4-F6 user cameras." << std::endl
         << "  - Define user cameras in Options; H focuses the dungeon heart; P cycles portals; F focuses fights." << std::endl
         << "  - M opens the map: left-click to move there, right-click or M to close; V cycles views." << std::endl
-        << "  - Minimap +/-: left-click to zoom in, right-click to zoom out." << std::endl << std::endl;
+        << "  - Minimap +/-: left-click to zoom in, right-click to zoom out." << std::endl
+        << "  - B opens the Dungeonbook: creature profiles and the posts of your minions." << std::endl << std::endl;
     txt << formatTitleOn << "Keeper hand controls" << formatTitleOff << std::endl
         << "Use your hand wisely to keep all minions under control and let your dungeon thrive!" << std::endl
         << "  - Mouse left click: Select an action, Confirm an action." << std::endl
         << "  - Mouse right click: Unselect an action, Slap a creature (grin)." << std::endl
-        << "  - Mouse middle click (on a creature): Show debugging information." << std::endl
+        << "  - Mouse middle click (on a creature): Show the creature profile." << std::endl
         << "You can select multiple tiles for some actions by left clicking and dragging the mouse." << std::endl << std::endl;
     txt << formatTitleOn << "Basic workflow" << formatTitleOff << std::endl
         << "As an overlord of the underworld, your evil plan is to build a strong dungeon and to crush your neighbours."

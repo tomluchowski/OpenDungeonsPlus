@@ -452,10 +452,17 @@ set(OD_SOURCEFILES
     ${SRC}/render/Gui.cpp
     ${SRC}/render/CreaturePortrait.cpp
     ${SRC}/render/CreaturePanel.cpp
+    ${SRC}/render/SocialWindow.cpp
     ${SRC}/render/MovableTextOverlay.cpp
     ${SRC}/render/ODFrameListener.cpp
     ${SRC}/render/RenderManager.cpp
     ${SRC}/render/TextRenderer.cpp
+
+    ${SRC}/social/CreaturePosts.cpp
+    ${SRC}/social/PostLog.cpp
+    ${SRC}/social/SocialData.cpp
+    ${SRC}/social/SocialGenerator.cpp
+    ${SRC}/social/SocialProfileCache.cpp
 
     ${SRC}/renderscene/RenderScene.cpp
     ${SRC}/renderscene/RenderSceneAddEntity.cpp

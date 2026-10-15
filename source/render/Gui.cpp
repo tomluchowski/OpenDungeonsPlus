@@ -44,6 +44,7 @@
 #include <CEGUI/widgets/ScrollablePane.h>
 #include <CEGUI/widgets/ScrolledContainer.h>
 #include <CEGUI/widgets/Tooltip.h>
+#include <CEGUI/widgets/Scrollbar.h>
 #include <CEGUI/Event.h>
 
 #include <algorithm>
@@ -854,6 +855,9 @@ bool shouldScaleImage(const CEGUI::String& ceguiName)
         || name.compare(0, 7, "ODLogo/") == 0;
 }
 
+//! \brief Scales the w: and h: values of every [image-size='...'] tag in a CEGUI formatted text by the given factor.
+//! The numbers are read with a std::istringstream (rather than atof) so that an empty or malformed value is detected and
+//! the tag is left untouched instead of silently becoming 0. Scaled values are rounded and at least 1.
 std::string scaleFormattedImageSizes(const CEGUI::String& ceguiText, float scale)
 {
     std::string text(ceguiText.c_str());
@@ -1109,6 +1113,272 @@ void Gui::registerWindow(CEGUI::Window* window)
         registerWindow(window->getChildAtIdx(i));
 }
 
+CEGUI::Window* Gui::createInfoWindow(const std::string& name)
+{
+    CEGUI::WindowManager& wmgr = CEGUI::WindowManager::getSingleton();
+    CEGUI::Window* window = wmgr.loadLayoutFromFile("WindowStats.layout");
+    window->setName(name);
+    registerWindowHierarchy(window);
+    return window;
+}
+
+CEGUI::Window* Gui::createCreatureProfileWindow(const std::string& name)
+{
+    CEGUI::WindowManager& wmgr = CEGUI::WindowManager::getSingleton();
+    CEGUI::Window* window = wmgr.loadLayoutFromFile("WindowCreatureProfile.layout");
+    window->setName(name);
+    registerWindowHierarchy(window);
+    return window;
+}
+
+CEGUI::Window* Gui::createCreatureProfilePage(CEGUI::Window* holder)
+{
+    CEGUI::WindowManager& wmgr = CEGUI::WindowManager::getSingleton();
+    CEGUI::Window* page = wmgr.loadLayoutFromFile("WindowCreatureProfilePage.layout");
+    page->setName("Content");
+    holder->addChild(page);
+    registerWindowHierarchy(page);
+    page->getChild("ProfileScrollbar")->subscribeEvent(CEGUI::Scrollbar::EventScrollPositionChanged,
+        CEGUI::Event::Subscriber(&Gui::onProfileScrolled, this));
+
+    // The rows pass the mouse wheel on to the page, which scrolls (only while its scrollbar is shown)
+    for(std::size_t i = 0; i < page->getChildCount(); ++i)
+        page->getChildAtIdx(i)->setMouseInputPropagationEnabled(true);
+
+    page->subscribeEvent(CEGUI::Window::EventMouseWheel, CEGUI::Event::Subscriber(&Gui::onProfileWheel, this));
+    return page;
+}
+
+namespace
+{
+//! Top edge of the first flowing row of the profile page (design pixels, matches WindowCreatureProfilePage.layout)
+const float PROFILE_FLOW_TOP = 174.0f;
+//! Width of the "Friends:" and "Foe:" labels when links follow them, and where the links start
+const float PROFILE_LABEL_WIDTH = 88.0f;
+const float PROFILE_LINK_LEFT = 92.0f;
+const float PROFILE_ROW_GAP = 4.0f;
+const float PROFILE_LINE_PADDING = 4.0f;
+//! Distance of the rows of the profile page from the left and the right edge (design pixels)
+const float PROFILE_SIDE_MARGIN = 16.0f;
+//! Height of one text line if the window has no font (design pixels)
+const float PROFILE_FALLBACK_LINE_HEIGHT = 16.0f;
+//! Part of the window width the text of a row may use before it wraps
+const float PROFILE_TEXT_WIDTH_FACTOR = 0.96f;
+//! Number of rows with a label and links (friends, foe) and the most windows in such a row (label and two links)
+const std::size_t PROFILE_LINK_ROWS = 2;
+const std::size_t PROFILE_LINK_ROW_WINDOWS = 3;
+//! Scroll step of the profile page (design pixels), about two lines
+const float PROFILE_SCROLL_STEP = 28.0f;
+//! Tolerance (design pixels) before the rows count as higher than the page
+const float PROFILE_OVERFLOW_TOLERANCE = 0.5f;
+//! Names of the rows that flow from top to bottom and so change their position when the texts change
+const char* const PROFILE_FLOW_ROWS[] = {"BioText", "LikesText", "DislikesText", "FriendsLabel",
+    "FriendLink0", "FriendLink1", "FoeLabel", "FoeLink", "StatusText", "LatestText"};
+const std::size_t PROFILE_FLOW_ROW_COUNT = sizeof(PROFILE_FLOW_ROWS) / sizeof(PROFILE_FLOW_ROWS[0]);
+
+//! \brief Number of lines the text needs when it is wrapped at the given pixel width
+std::size_t countWrappedLines(const CEGUI::Font* font, const std::string& text, float width)
+{
+    std::size_t lines = 1;
+    float lineWidth = 0.0f;
+    const float spaceWidth = font->getTextExtent(" ");
+    std::string::size_type pos = 0;
+    while(pos <= text.size())
+    {
+        std::string::size_type end = text.find_first_of(" \n", pos);
+        if(end == std::string::npos)
+            end = text.size();
+
+        const float wordWidth = font->getTextExtent(text.substr(pos, end - pos));
+        if((lineWidth > 0.0f) && (lineWidth + spaceWidth + wordWidth > width))
+        {
+            ++lines;
+            lineWidth = wordWidth;
+        }
+        else
+        {
+            lineWidth += ((lineWidth > 0.0f) ? spaceWidth : 0.0f) + wordWidth;
+        }
+        if((end < text.size()) && (text[end] == '\n'))
+        {
+            ++lines;
+            lineWidth = 0.0f;
+        }
+        pos = end + 1;
+    }
+    return lines;
+}
+
+//! \brief Height in design pixels of the given number of text lines of the window
+float getProfileLinesHeight(const CEGUI::Window* window, std::size_t lines, float scale)
+{
+    const CEGUI::Font* font = window->getFont();
+    if(font == nullptr)
+        return PROFILE_LINE_PADDING + PROFILE_FALLBACK_LINE_HEIGHT * static_cast<float>(lines);
+
+    return font->getLineSpacing() * static_cast<float>(lines) / scale + PROFILE_LINE_PADDING;
+}
+}
+
+float Gui::layoutProfileTextRow(CEGUI::Window* window, float y, float scale)
+{
+    if(!window->isVisible())
+        return y;
+
+    const CEGUI::Font* font = window->getFont();
+    const float width = window->getPixelSize().d_width * PROFILE_TEXT_WIDTH_FACTOR;
+    const std::size_t lines = (font == nullptr) ? 1 :
+        countWrappedLines(font, std::string(window->getText().c_str()), width);
+    const float height = getProfileLinesHeight(window, lines, scale);
+    setScaledArea(window, CEGUI::URect(CEGUI::UDim(0, PROFILE_SIDE_MARGIN), CEGUI::UDim(0, y),
+        CEGUI::UDim(1, -PROFILE_SIDE_MARGIN), CEGUI::UDim(0, y + height)));
+    return y + height + PROFILE_ROW_GAP;
+}
+
+float Gui::layoutCreatureProfilePage(CEGUI::Window* page)
+{
+    const float scale = getLayoutScale();
+    float y = PROFILE_FLOW_TOP;
+
+    // Bio, likes and dislikes, then the rows with friends and foe, then status and latest post
+    const char* const textRowsBefore[] = {"BioText", "LikesText", "DislikesText"};
+    const char* const textRowsAfter[] = {"StatusText", "LatestText"};
+    const char* const linkRows[PROFILE_LINK_ROWS][PROFILE_LINK_ROW_WINDOWS] = {{"FriendsLabel", "FriendLink0", "FriendLink1"}, {"FoeLabel", "FoeLink", nullptr}};
+
+    for(std::size_t i = 0; i < 3; ++i)
+        y = layoutProfileTextRow(page->getChild(textRowsBefore[i]), y, scale);
+
+    for(std::size_t row = 0; row < PROFILE_LINK_ROWS; ++row)
+    {
+        CEGUI::Window* label = page->getChild(linkRows[row][0]);
+        if(!label->isVisible())
+            continue;
+
+        // The label shares its line with the first link, further links follow below
+        const float lineHeight = getProfileLinesHeight(label, 1, scale);
+        float linkY = y;
+        for(std::size_t i = 1; (i < PROFILE_LINK_ROW_WINDOWS) && (linkRows[row][i] != nullptr); ++i)
+        {
+            CEGUI::Window* link = page->getChild(linkRows[row][i]);
+            if(!link->isVisible())
+                continue;
+
+            setScaledArea(link, CEGUI::URect(CEGUI::UDim(0, PROFILE_LINK_LEFT), CEGUI::UDim(0, linkY),
+                CEGUI::UDim(1, -PROFILE_SIDE_MARGIN), CEGUI::UDim(0, linkY + lineHeight)));
+            linkY += lineHeight;
+        }
+        const bool hasLinks = (linkY > y);
+        setScaledArea(label, CEGUI::URect(CEGUI::UDim(0, PROFILE_SIDE_MARGIN), CEGUI::UDim(0, y),
+            hasLinks ? CEGUI::UDim(0, PROFILE_LABEL_WIDTH) : CEGUI::UDim(1, -PROFILE_SIDE_MARGIN),
+            CEGUI::UDim(0, y + lineHeight)));
+        y = std::max(y + lineHeight, linkY) + PROFILE_ROW_GAP;
+    }
+
+    for(std::size_t i = 0; i < 2; ++i)
+        y = layoutProfileTextRow(page->getChild(textRowsAfter[i]), y, scale);
+
+    // Remember where every row sits without scrolling. The rows laid out above are fresh, the rows of the
+    // header (portrait to experience bar) are never moved by the layout and are noted once.
+    for(std::size_t i = 0; i < page->getChildCount(); ++i)
+    {
+        CEGUI::Window* child = page->getChildAtIdx(i);
+        if(child->getName() == "ProfileScrollbar")
+            continue;
+
+        bool isFlowRow = false;
+        for(std::size_t k = 0; k < PROFILE_FLOW_ROW_COUNT; ++k)
+            isFlowRow = isFlowRow || (child->getName() == PROFILE_FLOW_ROWS[k]);
+
+        std::map<CEGUI::Window*, WindowScaleData>::const_iterator data = mScaledWindows.find(child);
+        if((data != mScaledWindows.end()) && (isFlowRow || (mProfileBaseAreas.find(child) == mProfileBaseAreas.end())))
+            mProfileBaseAreas[child] = data->second.area;
+    }
+
+    // Everything is visible as long as the content fits the page; otherwise the page scrolls and a scrollbar
+    // appears, so no row is ever cut off without a way to reach it
+    CEGUI::Window* bar = page->getChild("ProfileScrollbar");
+    const float viewport = page->getPixelSize().d_height / scale;
+    const bool overflow = (y > viewport + PROFILE_OVERFLOW_TOLERANCE);
+    float offset = 0.0f;
+    if(overflow)
+    {
+        CEGUI::Scrollbar* scrollbar = static_cast<CEGUI::Scrollbar*>(bar);
+        offset = std::max(0.0f, std::min(scrollbar->getScrollPosition(), y - viewport));
+        // Setting the position below must not scroll the rows a second time through onProfileScrolled
+        page->setUserString("ProfileScrolling", "true");
+        scrollbar->setDocumentSize(y);
+        scrollbar->setPageSize(viewport);
+        scrollbar->setStepSize(PROFILE_SCROLL_STEP);
+        scrollbar->setScrollPosition(offset);
+        page->setUserString("ProfileScrolling", "false");
+    }
+    bar->setVisible(overflow);
+    applyProfileScroll(page, offset);
+
+    // The caller puts what follows the profile below the visible part
+    return overflow ? viewport : y;
+}
+
+void Gui::applyProfileScroll(CEGUI::Window* page, float offset)
+{
+    for(std::map<CEGUI::Window*, CEGUI::URect>::const_iterator it = mProfileBaseAreas.begin();
+        it != mProfileBaseAreas.end(); ++it)
+    {
+        if(it->first->getParent() != page)
+            continue;
+
+        CEGUI::URect area = it->second;
+        area.d_min.d_y.d_offset -= offset;
+        area.d_max.d_y.d_offset -= offset;
+        setScaledArea(it->first, area);
+    }
+}
+
+bool Gui::onProfileWheel(const CEGUI::EventArgs& e)
+{
+    const CEGUI::MouseEventArgs& args = static_cast<const CEGUI::MouseEventArgs&>(e);
+    CEGUI::Window* page = args.window;
+    while((page != nullptr) && !page->isChild("ProfileScrollbar"))
+        page = page->getParent();
+
+    if(page == nullptr)
+        return false;
+
+    CEGUI::Scrollbar* scrollbar = static_cast<CEGUI::Scrollbar*>(page->getChild("ProfileScrollbar"));
+    if(!scrollbar->isVisible())
+        return false;
+
+    scrollbar->setScrollPosition(scrollbar->getScrollPosition() - args.wheelChange * PROFILE_SCROLL_STEP);
+    return true;
+}
+
+bool Gui::onProfileScrolled(const CEGUI::EventArgs& e)
+{
+    const CEGUI::WindowEventArgs& args = static_cast<const CEGUI::WindowEventArgs&>(e);
+    CEGUI::Window* page = args.window->getParent();
+    if((page == nullptr) ||
+       (page->isUserStringDefined("ProfileScrolling") && (page->getUserString("ProfileScrolling") == "true")))
+        return true;
+
+    applyProfileScroll(page, static_cast<CEGUI::Scrollbar*>(args.window)->getScrollPosition());
+    return true;
+}
+
+void Gui::setScaledArea(CEGUI::Window* window, const CEGUI::URect& designArea)
+{
+    std::map<CEGUI::Window*, WindowScaleData>::iterator it = mScaledWindows.find(window);
+    if(it != mScaledWindows.end())
+        it->second.area = designArea;
+
+    window->setArea(scaleRect(designArea, getLayoutScale()));
+}
+
+float Gui::getLayoutScale() const
+{
+    const CEGUI::Sizef displaySize = CEGUI::System::getSingleton().getRenderer()->getDisplaySize();
+    return std::min(displaySize.d_width / LAYOUT_DESIGN_WIDTH, displaySize.d_height / LAYOUT_DESIGN_HEIGHT) * mUserScale;
+}
+
 void Gui::setUserScalePercent(float scalePercent)
 {
     if(scalePercent != scalePercent)
@@ -1185,6 +1455,7 @@ bool Gui::onWindowDestroyed(const CEGUI::EventArgs& e)
 {
     const CEGUI::WindowEventArgs& windowEvent = static_cast<const CEGUI::WindowEventArgs&>(e);
     mScaledWindows.erase(windowEvent.window);
+    mProfileBaseAreas.erase(windowEvent.window);
     return true;
 }
 

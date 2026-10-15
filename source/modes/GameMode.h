@@ -47,6 +47,7 @@ class CreaturePanel;
 class GameEntity;
 class MiniMapDrawnFull;
 class MenuModeLoad;
+class SocialWindow;
 
 enum class SpellType;
 enum class SkillType;
@@ -153,6 +154,12 @@ class GameMode final : public GameEditorModeBase, public InputCommand
     bool showObjectivesWindow(const CEGUI::EventArgs& = {});
     bool hideObjectivesWindow(const CEGUI::EventArgs& = {});
     bool toggleObjectivesWindow(const CEGUI::EventArgs& = {});
+
+    //! \brief Shows/toggles the Dungeonbook (creature list and post feed) and closes it again
+    bool toggleSocialWindow(const CEGUI::EventArgs& = {});
+    //! \brief Shows the Dungeonbook above the other windows with the creature selected, used by the
+    //! creature card (the card stays open)
+    void showSocialWindow(const std::string& selectedCreature);
 
     //! \brief Shows/hides/toggles the player settings window
     bool showPlayerSettingsWindow(const CEGUI::EventArgs& = {});
@@ -296,6 +303,7 @@ private:
     float mEventMessageFlashTime = 0.0f;
 
     std::unique_ptr<MenuModeLoad> mLoadMenu;
+    std::unique_ptr<SocialWindow> mSocialWindow;
     //! \brief Whether the pending exit confirmation should leave to the desktop
     //! rather than back to the main menu. Set by the button that opened the
     //! confirmation popup.
@@ -341,6 +349,15 @@ private:
     std::vector<int> mSeatIds;
 
     MouseMoveEvent mPreviousMousePosition;
+
+    //! \brief Pointer movement in pixels since the middle button was pressed. A middle click that moved
+    //! is a camera rotation and must not open a stats window.
+    float mMiddleDragDistance;
+    float mMiddlePressX;
+    float mMiddlePressY;
+
+    //! \brief Opens the stats window of the entity under the pointer (or the tile debug window if enabled)
+    void openStatsWindowUnderPointer(const OIS::MouseEvent& arg);
 
     //! \brief Set the help window (quite long) text.
     void setHelpWindowText();

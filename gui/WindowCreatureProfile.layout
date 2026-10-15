@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<GUILayout version="4" >
+    <Window type="OD/FrameWindow" name="CreatureProfileWindow" >
+        <Property name="Area" value="{{0.5,-270},{0.5,-252},{0.5,270},{0.5,252}}" />
+        <Property name="SizingEnabled" value="False" />
+        <Window type="DefaultWindow" name="ProfilePage" >
+            <Property name="Area" value="{{0.0,0},{0.0,34},{1.0,0},{1.0,-56}}" />
+        </Window>
+        <Window type="OD/StaticText" name="StatsText" >
+            <Property name="Area" value="{{0.0,20},{0.0,34},{1.0,-20},{1.0,-56}}" />
+            <Property name="Visible" value="False" />
+            <Property name="FrameEnabled" value="False" />
+            <Property name="BackgroundEnabled" value="False" />
+            <Property name="Font" value="MedievalSharp-8" />
+            <Property name="VertFormatting" value="TopAligned" />
+            <Property name="HorzFormatting" value="WordWrapLeftAligned" />
+        </Window>
+        <Window type="OD/Button" name="ProfileTab" >
+            <Property name="Area" value="{{0.5,-190},{1.0,-48},{0.5,-70},{1.0,-16}}" />
+            <Property name="Text" value="Profile" />
+            <Property name="TooltipText" value="Social profile of this creature" />
+        </Window>
+        <Window type="OD/Button" name="StatsTab" >
+            <Property name="Area" value="{{0.5,-60},{1.0,-48},{0.5,60},{1.0,-16}}" />
+            <Property name="Text" value="Stats" />
+            <Property name="TooltipText" value="Detailed statistics of this creature" />
+        </Window>
+        <Window type="OD/Button" name="BookTab" >
+            <Property name="Area" value="{{0.5,70},{1.0,-48},{0.5,190},{1.0,-16}}" />
+            <Property name="Text" value="Dungeonbook" />
+            <Property name="TooltipText" value="Open the Dungeonbook with this creature selected" />
+        </Window>
+    </Window>
+</GUILayout>
