@@ -104,6 +104,7 @@ textures/
 -> *.png                               Titus Tscharntke        CC0                     http://www.burningwell.org/ - photo sources for textures
 -> AdventurerBed.png                   PantherOne              CC0                     http://opengameart.org/content/tent-pack
 -> Adventurer.png
+-> portrait-*.mesh.png                 AI-generated            GPLv3+                  Illustrated creature portraits, see materials/portraits/README.md
 -> Anvil*.png                          Daniel74, Nobiax        CC0                     http://forum.freegamedev.net/viewtopic.php?p=59714#p59714
 -> Arena*.png                          Yughues, qubodup        CC0                     http://forum.freegamedev.net/viewtopic.php?p=60771#p60771, http://opengameart.org/content/bloody-scratched-skin
 -> BasicAxe                            YD                      CC0                     http://opengameart.org/content/low-poly-axe
