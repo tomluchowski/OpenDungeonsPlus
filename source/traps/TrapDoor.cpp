@@ -76,51 +76,33 @@ class TrapDoorFactory : public TrapFactory
 
         int32_t pricePerTarget = TrapManager::costPerTile(type);
         int32_t playerGold = static_cast<int32_t>(player->getSeat()->getGold());
-        if(inputManager.mCommandState == InputCommandState::infoOnly)
-        {
-            if(playerGold < pricePerTarget)
-            {
-                std::string txt = formatBuildTrap(type, pricePerTarget);
-                inputCommand.displayText(Ogre::ColourValue::Red, txt);
-            }
-            else
-            {
-                std::string txt = formatBuildTrap(type, pricePerTarget);
-                inputCommand.displayText(Ogre::ColourValue::White, txt);
-            }
-            inputCommand.selectSquaredTiles(inputManager.mXPos, inputManager.mYPos, inputManager.mXPos,
-                inputManager.mYPos);
-            return;
-        }
+        if(inputManager.mCommandState != InputCommandState::validated)
+            inputCommand.selectSquaredTiles(inputManager.mXPos, inputManager.mYPos,
+                inputManager.mXPos, inputManager.mYPos);
 
-        if(inputManager.mCommandState == InputCommandState::building)
+        if(!tile->isBuildableUpon(player->getSeat()))
         {
-            std::vector<Tile*> tiles;
-            tiles.push_back(tile);
-            inputCommand.selectTiles(tiles);
-            if(!tile->isBuildableUpon(player->getSeat()) ||
-               !TrapDoor::canDoorBeOnTile(gameMap, tile))
-            {
-                inputCommand.displayText(Ogre::ColourValue::Red, "Cannot place door on this tile");
-            }
-            else if(playerGold < pricePerTarget)
-            {
-                std::string txt = formatBuildTrap(type, pricePerTarget);
-                inputCommand.displayText(Ogre::ColourValue::Red, txt);
-            }
-            else
-            {
-                std::string txt = formatBuildTrap(type, pricePerTarget);
-                inputCommand.displayText(Ogre::ColourValue::White, txt);
-            }
+            inputCommand.displayTileBuildFailure(tile, player->getSeat());
+            inputCommand.displayPointerText(Ogre::ColourValue::Red, Helper::toString(pricePerTarget));
             return;
         }
-
-        if(!tile->isBuildableUpon(player->getSeat()) ||
-           !TrapDoor::canDoorBeOnTile(gameMap, tile))
+        if(!TrapDoor::canDoorBeOnTile(gameMap, tile))
         {
+            inputCommand.displayText(Ogre::ColourValue::Red, "A door needs walls on two opposite sides.");
+            inputCommand.displayPointerText(Ogre::ColourValue::Red, Helper::toString(pricePerTarget));
             return;
         }
+        if(playerGold < pricePerTarget)
+        {
+            inputCommand.displayText(Ogre::ColourValue::Red,
+                "Not enough gold. " + formatBuildTrap(type, pricePerTarget));
+            inputCommand.displayPointerText(Ogre::ColourValue::Red, Helper::toString(pricePerTarget));
+            return;
+        }
+        inputCommand.displayText(Ogre::ColourValue::White, formatBuildTrap(type, pricePerTarget));
+        inputCommand.displayPointerText(Ogre::ColourValue::Red, Helper::toString(pricePerTarget));
+        if(inputManager.mCommandState != InputCommandState::validated)
+            return;
 
         ClientNotification *clientNotification = TrapManager::createTrapClientNotification(type);
         gameMap->tileToPacket(clientNotification->mPacket, tile);
