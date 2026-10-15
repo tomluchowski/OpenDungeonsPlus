@@ -16,12 +16,19 @@
  */
 
 #include "rooms/RoomTrainingHall.h"
+#include "game/SkillManager.h"
+#include "game/SkillType.h"
 
+#include "ODApplication.h"
 #include "entities/BuildingObject.h"
+#include "gamemap/RoomObjectNavigation.h"
+#include "creatureaction/CreatureActionWalkToTile.h"
+#include "utils/MakeUnique.h"
 #include "entities/Creature.h"
 #include "entities/CreatureDefinition.h"
 #include "entities/Tile.h"
 #include "game/Player.h"
+#include "game/Seat.h"
 #include "gamemap/GameMap.h"
 #include "rooms/RoomManager.h"
 #include "utils/ConfigManager.h"
@@ -123,7 +130,8 @@ static const Ogre::Real OFFSET_DUMMY = 0.3;
 
 RoomTrainingHall::RoomTrainingHall(GameMap* gameMap) :
     Room(gameMap),
-    nbTurnsNoChangeDummies(0)
+    nbTurnsNoChangeDummies(0),
+    mTrainingGoldDue(0.0)
 {
     setMeshName("Dojo");
 }
@@ -281,6 +289,10 @@ bool RoomTrainingHall::hasOpenCreatureSpot(Creature* c)
     if (c->getLevel() >= ConfigManager::getSingleton().getRoomConfigUInt32("TrainHallMaxTrainingLevel"))
         return false;
 
+    // Training costs gold, so nobody trains when the treasury is empty
+    if(getSeat()->getGold() <= 0)
+        return false;
+
     // We accept all creatures as soon as there are free dummies
     return mUnusedDummies.size() > 0;
 }
@@ -347,6 +359,35 @@ void RoomTrainingHall::doUpkeep()
     if (mCoveredTiles.empty())
         return;
 
+    // Every creature in training costs gold for each second. When the treasury cannot pay, the
+    // training stops until there is gold again
+    if(!mCreaturesUsingRoom.empty())
+    {
+        double costPerSecond = ConfigManager::getSingleton().getRoomConfigDouble("TrainHallCostPerSecond");
+        mTrainingGoldDue += costPerSecond * static_cast<double>(mCreaturesUsingRoom.size())
+            / ODApplication::turnsPerSecond;
+        int32_t goldDue = static_cast<int32_t>(mTrainingGoldDue);
+        if(goldDue > 0)
+        {
+            if(getGameMap()->withdrawFromTreasuries(goldDue, getSeat()))
+            {
+                mTrainingGoldDue -= static_cast<double>(goldDue);
+            }
+            else
+            {
+                mTrainingGoldDue = 0.0;
+                // clearActionQueue releases the creature from the room, so we work on a copy
+                std::vector<Creature*> creatures = mCreaturesUsingRoom;
+                for(Creature* creature : creatures)
+                    creature->clearActionQueue();
+            }
+        }
+    }
+    else
+    {
+        mTrainingGoldDue = 0.0;
+    }
+
     // We add a probability to change dummies so that creatures do not use the same during too much time
     if(mCreaturesDummies.size() > 0 && Random::Int(50,150) < ++nbTurnsNoChangeDummies)
         refreshCreaturesDummies();
@@ -378,17 +419,16 @@ bool RoomTrainingHall::useRoom(Creature& creature, bool forced)
         OD_LOG_ERR("unexpected null building object");
         return false;
     }
-    // We consider that the creature is in the good place if it is in the expected tile and not moving
-    Tile* expectedDest = getGameMap()->getTile(Helper::round(wantedX), Helper::round(wantedY));
-    if(expectedDest == nullptr)
+    std::vector<Ogre::Vector2> approach;
+    if(!RoomObjectNavigation::workApproach(creature, *ro, {wantedX, wantedY}, {0, 0}, approach))
     {
-        OD_LOG_ERR("room=" + getName() + ", creature=" + creature.getName());
+        creature.popAction();
         return false;
     }
-
-    if(tileCreature != expectedDest)
+    if(!approach.empty())
     {
-        creature.setDestination(expectedDest);
+        creature.setWalkPath(EntityAnimation::walk_anim, EntityAnimation::idle_anim, true, true, approach, false);
+        creature.pushAction(Utils::make_unique<CreatureActionWalkToTile>(creature));
         return false;
     }
 
@@ -402,7 +442,8 @@ bool RoomTrainingHall::useRoom(Creature& creature, bool forced)
 
     // We add a bonus per wall active spots
     double coef = 1.0 + static_cast<double>(mNumActiveSpots - mCentralActiveSpotTiles.size()) * ConfigManager::getSingleton().getRoomConfigDouble("TrainHallBonusWallActiveSpot");
-    double expReceived = creatureRoomAffinity.getEfficiency() * ConfigManager::getSingleton().getRoomConfigDouble("TrainHallXpPerAttack");
+    double expReceived = creatureRoomAffinity.getEfficiency() * SkillManager::getResearchValue(
+        getSeat(), SkillType::roomTrainingHall, ConfigManager::getSingleton().getRoomConfigDouble("TrainHallXpPerAttack"));
     expReceived *= coef;
 
     creature.receiveExp(expReceived);
