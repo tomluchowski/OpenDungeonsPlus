@@ -1,0 +1,30 @@
+vertex_program ChickenFeatherVertex glsl
+{
+    source ChickenFeather.vert
+    default_params
+    {
+        param_named_auto worldViewProj worldviewproj_matrix
+    }
+}
+
+fragment_program ChickenFeatherFragment glsl
+{
+    source ChickenFeather.frag
+}
+
+material ChickenFeathers
+{
+    receive_shadows off
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_write off
+            diffuse vertexcolour
+            vertex_program_ref ChickenFeatherVertex {}
+            fragment_program_ref ChickenFeatherFragment {}
+        }
+    }
+}
