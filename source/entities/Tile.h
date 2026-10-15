@@ -64,6 +64,7 @@ enum class TileType
     water = 4,
     lava = 5,
     gem = 6,
+    manaWell = 7,
     countTileType
 };
 
@@ -111,7 +112,10 @@ enum class TileVisual
     prisonRoom,
     arenaRoom,
     casinoRoom,
-    tortureRoom,    
+    tortureRoom,
+    guardRoom,
+    manaWellGround,
+    templeRoom,
     countTileVisual
 };
 
@@ -258,7 +262,10 @@ public:
 
     inline void setEverVisible(bool s)
     {
+        if(mEverVisible == s)
+            return;
         mEverVisible = s;
+        fireTileStateChanged();
     }
 
     
@@ -345,6 +352,8 @@ public:
 
     void claimForSeat(Seat* seat, double nDanceRate);
     void claimTile(Seat* seat);
+    //! \brief Makes the tile be sent again to every seat that sees it
+    void setDirtyForAllSeats();
     void unclaimTile();
     double digOut(double digRate);
 
@@ -646,8 +655,6 @@ private:
      */
     inline void setFullnessValue(double f)
     { mFullness = f; }
-
-    void setDirtyForAllSeats();
 
     //! \brief Vector with the number of workers digging the tile. The index corresponds
     //! to the index in mNeighbors
