@@ -96,8 +96,15 @@ public:
     //! \brief setup the scene
     void createScene(Ogre::Viewport*);
 
+    //! \brief Sets the viewport whose camera positions the keeper hand, after the camera viewport moved to a new window
+    void setViewport(Ogre::Viewport* viewport)
+    { mViewport = viewport; }
+
     //! \brief Sets/Updates the overall world lighting value with given factor.
     void setWorldAmbientLightingFactor(float lightFactor);
+    //! \brief Switches the dynamic shadows on or off for the scene and for all materials, including the
+    //! ones created after the game started
+    void setDynamicShadowsEnabled(bool enabled);
 
     //! \brief Set the entity's opacity
     void setEntityOpacity(Ogre::Entity* ent, float opacity);
@@ -172,7 +179,9 @@ public:
     //! \brief Toggles the creatures text overlay
     void rrTemporaryDisplayCreaturesTextOverlay(Creature* creature, Ogre::Real timeToDisplay);
 
-    std::string rrBuildSkullFlagMaterial(const std::string& materialNameBase,
+    //! \brief Returns the name of a copy of the given material that is tinted with the given colour.
+    //! The copy is created on the first request and reused afterwards.
+    std::string rrBuildTintedMaterial(const std::string& materialNameBase,
         const Ogre::ColourValue& color);
 
     //! \brief Does requested stuff for rendering in the minimap. Each time the minimap is rendered, this function will be
@@ -274,6 +283,8 @@ private:
     Ogre::SceneNode* mHandLightNode2;
     Ogre::Camera* mShadowCam;
     Ogre::Radian mCurrentFOVy;
+    //! \brief Aspect ratio of the camera when mFactorWidth and mFactorHeight were computed
+    Ogre::Real mCurrentAspectRatio;
     Ogre::Real mFactorWidth;
     Ogre::Real mFactorHeight;
 

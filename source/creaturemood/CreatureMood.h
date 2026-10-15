@@ -31,7 +31,9 @@ enum class CreatureMoodLevel
     Neutral,
     Upset,
     Angry,
-    Furious
+    Furious,
+    //! \brief The mood is not known on this side, e.g. on a client for creatures of other seats
+    Unknown = -1
 };
 
 class CreatureMood

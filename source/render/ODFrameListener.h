@@ -36,6 +36,7 @@
 #include <OgreWindowEventUtilities.h>
 
 #include <memory>
+#include <map>
 #include <vector>
 
 
@@ -152,6 +153,21 @@ public:
     inline Ogre::RenderWindow* getRenderWindow()
     { return mWindow; }
 
+    //! \brief Asks to replace the render window at the end of the current frame, because a video option
+    //! changed that cannot be applied to the open window. The previous values are used to go back to the
+    //! old settings if the new window cannot be created.
+    void requestRenderWindowRecreation(
+        const std::map<std::string, std::string>& previousRendererOptions,
+        const std::map<std::string, std::string>& previousVideoConfig);
+
+    //! \brief Sets the given renderer options and video configuration values again and saves the user config.
+    //! Used to undo video settings that could not be applied.
+    void restoreVideoSettings(const std::map<std::string, std::string>& rendererOptions,
+        const std::map<std::string, std::string>& videoConfig);
+
+    //! \brief Release window-dependent objects before ODApplication destroys the primary window.
+    void prepareRenderWindowShutdown();
+
     inline bool getIsMainMenuCreated()
     { return mIsMainMenuCreated; }
 
@@ -215,6 +231,18 @@ private:
     //! \brief The Ogre render window reference. Don't delete it.
     Ogre::RenderWindow* mWindow;
 
+    //! \brief The first window owns the main OpenGL context and remains alive as an anchor.
+    Ogre::RenderWindow* mPrimaryWindow;
+
+    //! \brief Whether applyPendingRenderWindowRecreation() has to replace the render window
+    bool mRenderWindowRecreationPending;
+    //! \brief Counter giving every replacement render window a unique name
+    uint32_t mRenderWindowSequence;
+    //! \brief Renderer option values from before the pending recreation, restored if it fails
+    std::map<std::string, std::string> mPreviousRendererOptions;
+    //! \brief Video configuration values from before the pending recreation, restored if it fails
+    std::map<std::string, std::string> mPreviousVideoConfig;
+
     //! \brief Foreign reference to gui.
     Gui*                 mGui;
 
@@ -240,6 +268,12 @@ private:
 
     //! \brief Actually exit application
     void exitApplication();
+
+    //! \brief Replaces the render window if a recreation was requested, moving the GUI, the camera
+    //! viewport and the input to the new window. Goes back to the old window and settings on failure.
+    void applyPendingRenderWindowRecreation();
+    //! \brief Restores the settings saved by requestRenderWindowRecreation()
+    void restorePreviousVideoSettings();
 
     //! \brief Updates server-turn independent creature animation, audio, and overall rendering.
     void updateAnimations(Ogre::Real timeSinceLastFrame);

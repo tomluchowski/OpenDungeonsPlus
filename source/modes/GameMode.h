@@ -23,9 +23,11 @@
 #include "modes/InputCommand.h"
 #include "modes/InputBridge.h"
 #include "modes/SettingsWindow.h"
+#include "game/CreaturePanelData.h"
 
 #include "utils/ConfigManager.h"
 #include <CEGUI/EventArgs.h>
+#include <memory>
 
 namespace CEGUI
 {
@@ -33,6 +35,8 @@ class Window;
 }
 
 class Creature;
+class CreaturePanel;
+class GameEntity;
 
 enum class SpellType;
 enum class SkillType;
@@ -166,6 +170,8 @@ class GameMode final : public GameEditorModeBase, public InputCommand
 
     //! \brief Refreshed the main ui data, such as mana, gold, ...
     void refreshMainUI();
+    //! \brief Passes the latest creature counts received from the server to the creature panel
+    void refreshCreaturePanel(const CreaturePanelData& data);
 
     void selectSquaredTiles(int tileX1, int tileY1, int tileX2, int tileY2) override;
     void selectTiles(const std::vector<Tile*> tiles) override;
@@ -220,6 +226,8 @@ protected:
     virtual bool keyReleasedNormal  (const OIS::KeyEvent &arg);
 
 private:
+    //! \brief The population panel in the creatures tab
+    std::unique_ptr<CreaturePanel> mCreaturePanel;
     //! \brief Whether the pending exit confirmation should leave to the desktop
     //! rather than back to the main menu. Set by the button that opened the
     //! confirmation popup.
@@ -285,10 +293,30 @@ private:
     void checkInputCommand();
     void handlePlayerActionNone();
     void handlePlayerActionSelectTile();
+    //! \brief Button handler: switches the query mode (SelectedAction::queryEntity) on or off.
+    //! While it is on, the next click shows information about the pointed entity instead of
+    //! selecting tiles. Does nothing when not connected or while the game is paused.
+    bool toggleQuery(const CEGUI::EventArgs& e);
+    //! \brief Returns the entity on the given tile that can show a stats window and is nearest to
+    //! the keeper hand position, or nullptr if there is none (or the tile is null).
+    //! Used by the query mode and by the middle mouse button.
+    GameEntity* getQueryTarget(Tile* tile) const;
+    //! \brief Handles the query mode in checkInputCommand(): shows the name of the entity under the
+    //! pointer and, once the click is validated, opens its stats window.
+    void handlePlayerActionQuery();
 
     //! \brief Builds the player settings window
     void buildPlayerSettingsWindow();
 
+    //! \brief Tracks the Alt keys and toggles the creature indicators on each new Alt press.
+    //! Key repeats and overlapping left/right Alt presses count as one held interval.
+    void updateCreatureIndicatorAlt(OIS::KeyCode key, bool pressed);
+    //! \brief Whether the health and need indicators above the creatures are shown
+    bool mCreatureIndicatorsVisible = true;
+    //! \brief Whether the left Alt key is currently held, as far as the indicator toggle knows
+    bool mIndicatorLeftAltDown = false;
+    //! \brief Whether the right Alt key is currently held, as far as the indicator toggle knows
+    bool mIndicatorRightAltDown = false;
 };
 
 #endif // GAMEMODE_H

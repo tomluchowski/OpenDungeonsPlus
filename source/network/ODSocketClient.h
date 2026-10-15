@@ -50,7 +50,12 @@ class ODSocketClient
             mSource(ODSource::none),
             mPlayer(nullptr),
             mLastTurnAck(-1),
-            mPendingTimestamp(-1)
+            mPendingTimestamp(-1),
+            mSupportsLiveNickname(false),
+            mSupportsCreatureMood(false),
+            mSupportsCreatureActivity(false),
+            mSupportsCreaturePanel(false),
+            mSupportsCreatureProgress(false)
         {}
 
         virtual ~ODSocketClient()
@@ -68,6 +73,17 @@ class ODSocketClient
 
         Player* getPlayer() { return mPlayer; }
         void setPlayer(Player* player) { mPlayer = player; }
+        bool supportsLiveNickname() const { return mSupportsLiveNickname; }
+        void setSupportsLiveNickname(bool supported) { mSupportsLiveNickname = supported; }
+        bool supportsCreatureMood() const { return mSupportsCreatureMood; }
+        void setSupportsCreatureMood(bool supported) { mSupportsCreatureMood = supported; }
+        bool supportsCreatureActivity() const { return mSupportsCreatureActivity; }
+        void setSupportsCreatureActivity(bool supported) { mSupportsCreatureActivity = supported; }
+        bool supportsCreaturePanel() const { return mSupportsCreaturePanel; }
+        void setSupportsCreaturePanel(bool supported) { mSupportsCreaturePanel = supported; }
+        //! Whether the other side sends and understands experience and attack recovery in creature data
+        bool supportsCreatureProgress() const { return mSupportsCreatureProgress; }
+        void setSupportsCreatureProgress(bool supported) { mSupportsCreatureProgress = supported; }
         int64_t getLastTurnAck() { return mLastTurnAck; }
         void setLastTurnAck(int64_t lastTurnAck) { mLastTurnAck = lastTurnAck; }
         const std::string& getState() {return mState;}
@@ -130,6 +146,19 @@ class ODSocketClient
         std::ofstream mReplayOutputStream;
         ODPacket mPendingPacket;
         int32_t mPendingTimestamp;
+        // The other side agreed to the optional protocol extensions below. They are negotiated when the
+        // nickname is exchanged and reset on disconnect, so older peers keep working.
+
+        //! \brief Nickname changes during the game
+        bool mSupportsLiveNickname;
+        //! \brief Creature mood in creature packets
+        bool mSupportsCreatureMood;
+        //! \brief Creature activity in creature packets
+        bool mSupportsCreatureActivity;
+        //! \brief Creature count snapshots for the creature panel
+        bool mSupportsCreaturePanel;
+        //! \brief Creature experience and attack recovery in creature packets
+        bool mSupportsCreatureProgress;
 
         //! \brief the replay filename being written. Used to later optionally delete it
         //! if asked to.
@@ -137,4 +166,3 @@ class ODSocketClient
 };
 
 #endif // ODSOCKETCLIENT_H
-

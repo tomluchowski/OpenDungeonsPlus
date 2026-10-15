@@ -342,6 +342,7 @@ set(OD_SOURCEFILES
 	${SRC}/eventsystem/Subject.cpp		
 	
     ${SRC}/game/Player.cpp
+    ${SRC}/game/CreaturePanelData.cpp
     ${SRC}/game/PlayerSelection.cpp
     ${SRC}/game/Skill.cpp
     ${SRC}/game/SkillManager.cpp
@@ -408,6 +409,8 @@ set(OD_SOURCEFILES
     ${SRC}/render/CreatureOverlayStatus.cpp
     ${SRC}/render/DebugDrawer.cpp    
     ${SRC}/render/Gui.cpp
+    ${SRC}/render/CreaturePortrait.cpp
+    ${SRC}/render/CreaturePanel.cpp
     ${SRC}/render/MovableTextOverlay.cpp
     ${SRC}/render/ODFrameListener.cpp
     ${SRC}/render/RenderManager.cpp
@@ -514,6 +517,9 @@ ENDIF ()
 # Adds the Windows icon resource file when building on windows.
 IF (WIN32)
     SET(OD_SOURCEFILES ${OD_SOURCEFILES} ${CMAKE_SOURCE_DIR}/dist/icon.rc)
+    IF (MSVC)
+        SET(OD_SOURCEFILES ${OD_SOURCEFILES} ${CMAKE_SOURCE_DIR}/dist/opendungeons.manifest)
+    ENDIF ()
 ENDIF ()
 
 ##################################
@@ -569,7 +575,7 @@ if(WIN32 AND ${OGRE_FOUND})
 
     find_package(Boost REQUIRED COMPONENTS ${OD_BOOST_COMPONENTS})
     if(Boost_FOUND)
-        set(OD_BOOST_LIB_DIRS  ${Boost_INCLUDE_DIRS}/stage/lib)
+        set(OD_BOOST_LIB_DIRS  ${Boost_LIBRARY_DIRS})
         set(OD_BOOST_INCLUDE_DIRS ${Boost_INCLUDE_DIRS})
     endif()
 else()
@@ -660,6 +666,12 @@ target_link_libraries(
 )
 
 target_link_libraries(opendungeons-plus pybind11::embed)
+
+if(MSVC AND PYTHON_DEBUG_LIBRARY AND NOT PYTHON_IS_DEBUG)
+    # Keep pybind11's headers consistent with the selected debug Python library.
+    # Python's Windows header defines Py_DEBUG without a value as well.
+    target_compile_definitions(${PROJECT_BINARY_NAME} PRIVATE "$<$<CONFIG:Debug>:Py_DEBUG=>")
+endif()
 
 # Set linker options in MSVC
 if(WIN32 AND MSVC)
@@ -962,4 +974,3 @@ elseif(WIN32)
     install(FILES ${EXT_LIBS}
             DESTINATION ${OD_BIN_PATH})
 endif()
-
