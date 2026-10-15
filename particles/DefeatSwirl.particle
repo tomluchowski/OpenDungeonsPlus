@@ -1,0 +1,48 @@
+// Swirl of the defeat sequence. The sequence sets the emitter colour to the conqueror's seat colour
+// at runtime and moves the node across the floor, so this script has no colour of its own.
+// It stays low (below about 0.7): the defeat camera (height 2, pitch 60) sees only about 1 above the floor a few
+// tiles behind the heart, so a rising column left the picture. It fades by colour, because alpha has no effect
+// with the additive material.
+particle_system DefeatSwirl
+{
+    material        CombatSparks
+    point_rendering false
+    particle_width  0.45
+    particle_height 0.45
+    cull_each       false
+    quota           400
+    billboard_type  point
+
+    emitter Ring
+    {
+        angle               60
+        colour_range_start  1.0 1.0 1.0 1.0
+        colour_range_end    1.0 1.0 1.0 1.0
+        emission_rate       160
+        time_to_live_min    0.8
+        time_to_live_max    1.4
+        direction           0 0 1
+        velocity_min        0.2
+        velocity_max        0.6
+        width               2.0
+        height              2.0
+        // Without a depth Ogre uses 100: the ring would spread over 100 units up and down
+        depth               0.1
+        inner_width         0.7
+        inner_height        0.7
+    }
+
+    affector DirectionRandomiser
+    {
+        randomness      4
+        scope           1
+        keep_velocity   true
+    }
+
+    affector ColourFader
+    {
+        red   -0.7
+        green -0.7
+        blue  -0.7
+    }
+}

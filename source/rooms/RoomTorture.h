@@ -76,6 +76,9 @@ protected:
     bool importFromStream(std::istream& is) override;
 
 private:
+    //! \brief A tortured enemy creature that is about to die gives away one room of its owner that was not seen yet.
+    void revealEnemyInformation(Creature& creature);
+
     std::map<Tile*,RoomTortureCreatureInfo> mCreaturesSpots;
     std::vector<std::string> mPrisonersLoad;
 };

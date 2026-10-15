@@ -1,0 +1,33 @@
+// Effects of the last gaps: here only the spark at the keeper's hand (see config/roomAmbienceFixEffects.cfg).
+
+// ---- Keeper's hand ----
+
+// A small spark where the hand casts a spell
+particle_system RoomAmbHandCastSpark
+{
+    material        RoomAmbSpark
+    point_rendering false
+    particle_width  0.1
+    particle_height 0.1
+    cull_each       false
+    quota           16
+    billboard_type  point
+
+    emitter Point
+    {
+        angle               180
+        colour_range_start  1.0 0.9 0.55 1.0
+        colour_range_end    0.8 0.9 1.0 1.0
+        emission_rate       90
+        time_to_live        0.5
+        direction           0 0 1
+        velocity_min        0.4
+        velocity_max        1.1
+        duration            0.1
+    }
+
+    affector ColourFader
+    {
+        alpha   -1.8
+    }
+}

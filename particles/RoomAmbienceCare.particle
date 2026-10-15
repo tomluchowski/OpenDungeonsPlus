@@ -1,0 +1,37 @@
+// Effects of the care rooms. Only the glints that the iron-bound door also uses are here for now.
+
+// Cold glints on chains
+particle_system RoomAmbIronGlint
+{
+    material        RoomAmbSpark
+    point_rendering false
+    particle_width  0.16
+    particle_height 0.16
+    cull_each       false
+    quota           3
+    billboard_type  point
+
+    emitter Box
+    {
+        angle               0
+        colour              0.8 0.88 1.0 0.0
+        emission_rate       0.5
+        time_to_live        0.8
+        direction           0 0 1
+        velocity            0
+        position            0 0 0.6
+        width               0.9
+        height              0.9
+        depth               0.5
+    }
+
+    affector ColourInterpolator
+    {
+        time0   0
+        colour0 0.8 0.88 1.0 0.0
+        time1   0.4
+        colour1 0.85 0.92 1.0 1.0
+        time2   1
+        colour2 0.8 0.88 1.0 0.0
+    }
+}

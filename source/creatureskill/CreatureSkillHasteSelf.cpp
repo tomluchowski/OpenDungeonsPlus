@@ -66,7 +66,7 @@ bool CreatureSkillHasteSelf::tryUseSupport(GameMap& gameMap, Creature* creature)
 
     for(Tile* tile : creature->getCoveredTiles())
     {
-        Spell::fireSpellSound(*tile, "Haste");
+        Spell::fireSpellEffect(*tile, "Haste", "HasteCast");
     }
 
     return true;
