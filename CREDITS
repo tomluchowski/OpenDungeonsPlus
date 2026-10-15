@@ -75,6 +75,17 @@ multiplayer/
 -> TheBridge.level                     OD Team                 GPLv3+
 -> UnitTest.level                      OD Team                 GPLv3+
 
+campaign/
+-> Bonus1.level                        OD Team                 GPLv3+
+-> BoulderCourse.level                 OD Team                 GPLv3+
+-> Campaign1.level                     OD Team                 GPLv3+
+-> Campaign2.level                     OD Team                 GPLv3+
+-> Campaign3.level                     OD Team                 GPLv3+
+-> CrowshotGallery.level               OD Team                 GPLv3+
+-> SkittleCavern.level                 OD Team                 GPLv3+
+-> SwarmNight.level                    OD Team                 GPLv3+
+-> TwistingHalls.level                 OD Team                 GPLv3+
+
 skirmish/
 -> DuelToDeath.level                   OD Team                 GPLv3+
 -> FallingKeeper.level                 OD Team                 GPLv3+
@@ -82,6 +93,7 @@ skirmish/
 -> StonekeepSiege.level                OD Team                 GPLv3+
 -> TestLegacy.level                    OD Team                 GPLv3+
 -> TestModelsFair.level                OD Team                 GPLv3+
+-> TestRegionScripting.level           OD Team                 GPLv3+
 -> TestSingleplayerSmall.level         OD Team                 GPLv3+
 -> TestSingleplayerSmallEmpty.level    OD Team                 GPLv3+
 -> TestSingleplayerSmallPassability.level OD Team              GPLv3+
@@ -128,12 +140,14 @@ textures/
 -> Claimed*.png
 -> ClaimedWall*.png                    Nobiax, Danimal         CC-BY-SA 3.0            http://opengameart.org/users/danimal
 -> ConcreteDirty*.png                  Sindwiller              CC-BY-SA 3.0            http://opengameart.org/content/dirty-concrete-floor-00
+-> CreatureExperience.png, CreatureRecovery.png    AI-generated           GPLv3+                  AI-generated, created for this project
 -> CreatureOverlay*.png                hwoarangmy              CC-BY-SA 3.0
 -> CreatureStunned.png                 Danimal                 CC-BY-SA 3.0
 -> CreatureRallyTroops.png             Lorc                    CC-BY-SA 3.0            http://game-icons.net/lorc/originals/rally-the-troops.html
 -> Crossbow.png                        Lamoot                  CC-BY 3.0               http://opengameart.org/content/low-poly-crossbow
 -> Crypt*.png                          Yughues                 CC0                     http://forum.freegamedev.net/viewtopic.php?p=60771#p60771
 -> Cultist*.png                        Danimal,Dread Knight,Katarzyna Zalecka                 CC-BY-SA 3.0                     http://opengameart.org/content/dark-priest
+-> DefeatFireball.png                  AI-generated            GPLv3+                  AI-generated, created for this project
 -> Defender*.png                       Anthony Myers           CC-BY 3.0               http://forum.freegamedev.net/viewtopic.php?p=61450#p61450
 -> Dirt*.png
 -> Dojo*.png
@@ -492,3 +506,134 @@ icon.rc                                OD Team                 GPLv3+
 logo.svg                               Svenskmand              CC-BY-SA 3.0
 OD-Logo.ico                            Svenskmand              CC-BY-SA 3.0
 opendungeons.appdata.xml               OD Team                 GPLv3+
+
+
+===================================
+==  Hollowmark campaign artwork  ==
+===================================
+
+gui/campaign/campaign-world.json    AI-generated for this project, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/sites/B01_done.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/sites/B01_found.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/sites/B01_hidden.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/sites/B02_done.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/sites/B02_found.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/sites/B02_hidden.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/sites/B03_done.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/sites/B03_found.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/sites/B03_hidden.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/sites/B04_done.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/sites/B04_found.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/sites/B04_hidden.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/sites/B05_done.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/sites/B05_found.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/sites/B05_hidden.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/world_idmap.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+tools/artwork/campaign-map/PROMPTS.md    AI-generated for this project, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+tools/artwork/campaign-map/validate_world.py    AI-generated for this project, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/world_base.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/preview_states.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/provinces/T01_available.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/provinces/T01_conquered.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/provinces/T01_lift.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/provinces/T01_locked.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/provinces/T02_available.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/provinces/T02_conquered.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/provinces/T02_lift.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/provinces/T02_locked.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/provinces/T03_available.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/provinces/T03_conquered.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/provinces/T03_lift.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/provinces/T03_locked.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/provinces/T04_available.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/provinces/T04_conquered.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/provinces/T04_lift.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/provinces/T04_locked.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/provinces/T05_available.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/provinces/T05_conquered.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/provinces/T05_lift.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/provinces/T05_locked.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/provinces/T06_available.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/provinces/T06_conquered.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/provinces/T06_lift.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/provinces/T06_locked.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/provinces/T07_available.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/provinces/T07_conquered.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/provinces/T07_lift.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/provinces/T07_locked.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/provinces/T08_available.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/provinces/T08_conquered.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/provinces/T08_lift.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/provinces/T08_locked.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/provinces/T09A_available.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/provinces/T09A_conquered.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/provinces/T09A_lift.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/provinces/T09A_locked.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/provinces/T09B_available.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/provinces/T09B_conquered.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/provinces/T09B_lift.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/provinces/T09B_locked.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/provinces/T10_available.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/provinces/T10_conquered.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/provinces/T10_lift.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/provinces/T10_locked.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/provinces/T11_available.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/provinces/T11_conquered.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/provinces/T11_lift.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/provinces/T11_locked.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/provinces/T12_available.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/provinces/T12_conquered.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/provinces/T12_lift.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/provinces/T12_locked.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/provinces/T13_available.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/provinces/T13_conquered.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/provinces/T13_lift.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/provinces/T13_locked.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/provinces/T14_available.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/provinces/T14_conquered.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/provinces/T14_lift.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/provinces/T14_locked.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/provinces/T15_available.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/provinces/T15_conquered.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/provinces/T15_lift.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/provinces/T15_locked.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/provinces/T16_available.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/provinces/T16_conquered.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/provinces/T16_lift.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/provinces/T16_locked.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/provinces/T17_available.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/provinces/T17_conquered.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/provinces/T17_lift.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/provinces/T17_locked.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/provinces/T18A_available.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/provinces/T18A_conquered.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/provinces/T18A_lift.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/provinces/T18A_locked.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/provinces/T18B_available.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/provinces/T18B_conquered.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/provinces/T18B_lift.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/provinces/T18B_locked.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/provinces/T19_available.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/provinces/T19_conquered.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/provinces/T19_lift.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/provinces/T19_locked.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/provinces/T20_available.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/provinces/T20_conquered.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/provinces/T20_lift.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/provinces/T20_locked.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/provinces/T21_available.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/provinces/T21_conquered.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/provinces/T21_lift.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/provinces/T21_locked.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/provinces/T22_available.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/provinces/T22_conquered.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/provinces/T22_lift.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/provinces/T22_locked.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/provinces/T23_available.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/provinces/T23_conquered.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/provinces/T23_lift.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/provinces/T23_locked.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/provinces/T24_available.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/provinces/T24_conquered.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/provinces/T24_lift.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+gui/campaign/provinces/T24_locked.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md

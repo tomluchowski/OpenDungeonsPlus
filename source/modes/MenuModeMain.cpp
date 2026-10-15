@@ -20,6 +20,8 @@
 #include "modes/ModeManager.h"
 
 #include "ODApplication.h"
+#include "game/Campaign.h"
+#include "modes/MenuModeCampaign.h"
 #include "gamemap/GameMap.h"
 #include "render/Gui.h"
 #include "render/ODFrameListener.h"
@@ -31,6 +33,7 @@
 #include <CEGUI/widgets/PushButton.h>
 
 // Main buttons
+const std::string BUTTON_CAMPAIGN = "StartCampaignButton";
 const std::string BUTTON_SKIRMISH = "StartSkirmishButton";
 const std::string BUTTON_START_REPLAY = "StartReplayButton";
 const std::string BUTTON_MAPEDITOR = "MapEditorButton";
@@ -39,10 +42,16 @@ const std::string BUTTON_SETTINGS = "SettingsButton";
 const std::string BUTTON_QUIT = "QuitButton";
 
 // Sub-menus windows & buttons
+const std::string WINDOW_CAMPAIGN = "CampaignSubMenuWindow";
 const std::string WINDOW_SKIRMISH = "SkirmishSubMenuWindow";
 const std::string WINDOW_MULTIPLAYER = "MultiplayerSubMenuWindow";
 const std::string WINDOW_EDITOR = "EditorSubMenuWindow";
+const std::string WINDOW_SETTINGS = "SettingsSubMenuWindow";
 
+const std::string BUTTON_NEW_CAMPAIGN = "NewCampaignButton";
+const std::string BUTTON_CONTINUE_CAMPAIGN = "ContinueCampaignButton";
+const std::string BUTTON_NEW_CAMPAIGN_CONFIRM = "NewCampaignConfirmButton";
+const std::string TEXT_NEW_CAMPAIGN_CONFIRM = "NewCampaignConfirmText";
 const std::string BUTTON_START_SKIRMISH = "StartSkirmishButton";
 const std::string BUTTON_LOAD_SKIRMISH = "LoadSkirmishButton";
 const std::string BUTTON_MASTERSERVER_JOIN = "MasterServerJoinButton";
@@ -71,7 +80,7 @@ public:
 
 MenuModeMain::MenuModeMain(ModeManager *modeManager):
     AbstractApplicationMode(modeManager, ModeManager::MENU_MAIN),
-    mSettings(SettingsWindow(getModeManager().getGui().getGuiSheet(Gui::mainMenu)))
+    mSettings(getModeManager().getGui().getGuiSheet(Gui::mainMenu), modeManager->getGui(), true)
 {
     CEGUI::Window* rootWin = getModeManager().getGui().getGuiSheet(Gui::mainMenu);
     OD_ASSERT_TRUE(rootWin != nullptr);
@@ -86,6 +95,30 @@ MenuModeMain::MenuModeMain(ModeManager *modeManager):
             CEGUI::Event::Subscriber(&MenuModeMain::toggleSettings, this)
         )
     );
+
+    // Campaign & sub-menu events
+    addEventConnection(
+        rootWin->getChild(BUTTON_CAMPAIGN)->subscribeEvent(
+            CEGUI::PushButton::EventClicked,
+            CEGUI::Event::Subscriber(&MenuModeMain::toggleCampaignSubMenu, this)
+        )
+    );
+    CEGUI::Window* campaignWin = rootWin->getChild(WINDOW_CAMPAIGN);
+    OD_ASSERT_TRUE(campaignWin != nullptr);
+    addEventConnection(
+        campaignWin->getChild(BUTTON_NEW_CAMPAIGN)->subscribeEvent(
+            CEGUI::PushButton::EventClicked,
+            CEGUI::Event::Subscriber(&MenuModeMain::newCampaignPressed, this)
+        )
+    );
+    addEventConnection(
+        campaignWin->getChild(BUTTON_NEW_CAMPAIGN_CONFIRM)->subscribeEvent(
+            CEGUI::PushButton::EventClicked,
+            CEGUI::Event::Subscriber(&MenuModeMain::newCampaignConfirmed, this)
+        )
+    );
+    connectModeChangeEvent(campaignWin->getChild(BUTTON_CONTINUE_CAMPAIGN),
+                           AbstractModeManager::ModeType::MENU_CAMPAIGN);
 
     // Skirmish & sub-menu events
     addEventConnection(
@@ -132,6 +165,22 @@ MenuModeMain::MenuModeMain(ModeManager *modeManager):
                            AbstractModeManager::ModeType::MENU_EDITOR_NEW);
     connectModeChangeEvent(editorWin->getChild(BUTTON_EDITOR_LOAD),
                            AbstractModeManager::ModeType::MENU_EDITOR_LOAD);
+
+    for(const std::string& page : {std::string("Video"), std::string("Audio"), std::string("Input"), std::string("Game")})
+        addEventConnection(rootWin->getChild(WINDOW_SETTINGS + "/" + page + "Button")->subscribeEvent(
+            CEGUI::PushButton::EventClicked,
+            CEGUI::Event::Subscriber([this, page](const CEGUI::EventArgs&) { return openSettingsPage(page); })));
+    addEventConnection(rootWin->getChild("SettingsWindow")->subscribeEvent(
+        CEGUI::Window::EventHidden,
+        CEGUI::Event::Subscriber(&MenuModeMain::settingsPageClosed, this)));
+
+    for(const std::string& name : {WINDOW_CAMPAIGN, WINDOW_SKIRMISH, WINDOW_MULTIPLAYER, WINDOW_EDITOR, WINDOW_SETTINGS})
+        addEventConnection(
+            rootWin->getChild(name + "/BackButton")->subscribeEvent(
+                CEGUI::PushButton::EventClicked,
+                CEGUI::Event::Subscriber(&MenuModeMain::goBack, this)
+            )
+        );
 }
 
 void MenuModeMain::activate()
@@ -141,9 +190,29 @@ void MenuModeMain::activate()
     CEGUI::Window* window = getModeManager().getGui().getGuiSheet(Gui::mainMenu);
     OD_ASSERT_TRUE(window != nullptr);
 
+    window->getChild(WINDOW_CAMPAIGN)->hide();
+    showNewCampaignConfirm(false);
     window->getChild(WINDOW_SKIRMISH)->hide();
     window->getChild(WINDOW_MULTIPLAYER)->hide();
     window->getChild(WINDOW_EDITOR)->hide();
+    window->getChild(WINDOW_SETTINGS)->hide();
+    mSettingsPageOpen = false;
+    mSkirmishSubMenuPending = false;
+    showMainMenuButtons(true);
+    // Coming from the defeat debriefing: fly into the menu, then go on in the skirmish sub-menu
+    if(getModeManager().consumeSkirmishSubMenuRequest())
+    {
+        mSkirmishSubMenuPending = true;
+        showMainMenuButtons(false);
+    }
+
+    // Reaching the main menu ends the campaign flow. The campaign buttons
+    // depend on the campaign definition and the saved progress.
+    Campaign::getSingleton().stopCampaign();
+    bool campaignAvailable = MenuModeCampaign::loadCampaign();
+    window->getChild(BUTTON_CAMPAIGN)->setDisabled(!campaignAvailable);
+    window->getChild(WINDOW_CAMPAIGN)->getChild(BUTTON_CONTINUE_CAMPAIGN)->setDisabled(
+        !Campaign::getSingleton().hasProgress());
 
     giveFocus();
 
@@ -158,6 +227,19 @@ void MenuModeMain::activate()
 
     ODFrameListener::getSingleton().stopGameRenderer();
     ODFrameListener::getSingleton().createMainMenuScene();
+    if(mSkirmishSubMenuPending)
+        ODFrameListener::getSingleton().startMainMenuFlight();
+}
+
+void MenuModeMain::onFrameStarted(const Ogre::FrameEvent& /*evt*/)
+{
+    if(!mSkirmishSubMenuPending)
+        return;
+    if(ODFrameListener::getSingleton().isMainMenuFlightActive())
+        return;
+
+    mSkirmishSubMenuPending = false;
+    toggleSubMenu(WINDOW_SKIRMISH);
 }
 
 void MenuModeMain::connectModeChangeEvent(const std::string& buttonName, AbstractModeManager::ModeType mode)
@@ -185,45 +267,109 @@ bool MenuModeMain::quitButtonPressed(const CEGUI::EventArgs&)
 
 bool MenuModeMain::toggleSettings(const CEGUI::EventArgs&)
 {
-    if (mSettings.isVisible())
-        mSettings.onCancelSettings();
-    else
-        mSettings.show();
+    return toggleSubMenu(WINDOW_SETTINGS);
+}
+
+bool MenuModeMain::openSettingsPage(const std::string& name)
+{
+    getModeManager().getGui().getGuiSheet(Gui::mainMenu)->getChild(WINDOW_SETTINGS)->hide();
+    mSettingsPageOpen = true;
+    mSettings.showPage(name);
     return true;
+}
+
+bool MenuModeMain::settingsPageClosed(const CEGUI::EventArgs&)
+{
+    if(mSettingsPageOpen)
+    {
+        mSettingsPageOpen = false;
+        getModeManager().getGui().getGuiSheet(Gui::mainMenu)->getChild(WINDOW_SETTINGS)->show();
+    }
+    return true;
+}
+
+bool MenuModeMain::goBack(const CEGUI::EventArgs&)
+{
+    CEGUI::Window* mainWin = getModeManager().getGui().getGuiSheet(Gui::mainMenu);
+    for(const std::string& name : {WINDOW_CAMPAIGN, WINDOW_SKIRMISH, WINDOW_MULTIPLAYER, WINDOW_EDITOR, WINDOW_SETTINGS})
+    {
+        CEGUI::Window* window = mainWin->getChild(name);
+        if(window->isVisible())
+        {
+            window->hide();
+            showNewCampaignConfirm(false);
+            showMainMenuButtons(true);
+            break;
+        }
+    }
+    return true;
+}
+
+void MenuModeMain::showMainMenuButtons(bool visible)
+{
+    CEGUI::Window* mainWin = getModeManager().getGui().getGuiSheet(Gui::mainMenu);
+    for(const std::string& name : {std::string("StartCampaignButton"), BUTTON_SKIRMISH,
+        BUTTON_MULTIPLAYER, BUTTON_START_REPLAY, BUTTON_MAPEDITOR, BUTTON_SETTINGS, BUTTON_QUIT})
+        mainWin->getChild(name)->setVisible(visible);
+}
+
+bool MenuModeMain::toggleCampaignSubMenu(const CEGUI::EventArgs&)
+{
+    return toggleSubMenu(WINDOW_CAMPAIGN);
+}
+
+bool MenuModeMain::newCampaignPressed(const CEGUI::EventArgs& e)
+{
+    // A new campaign has to be confirmed: the cross (back) returns
+    // to the previous screen and the tick starts it. Without saved progress there is
+    // nothing to lose, so it starts at once.
+    if(Campaign::getSingleton().hasProgress())
+    {
+        showNewCampaignConfirm(true);
+        return true;
+    }
+    return newCampaignConfirmed(e);
+}
+
+bool MenuModeMain::newCampaignConfirmed(const CEGUI::EventArgs& e)
+{
+    // A new campaign forgets the saved progress
+    Campaign::getSingleton().resetProgress();
+    changeModeEvent(AbstractModeManager::ModeType::MENU_CAMPAIGN, e);
+    return true;
+}
+
+void MenuModeMain::showNewCampaignConfirm(bool visible)
+{
+    CEGUI::Window* campaignWin = getModeManager().getGui().getGuiSheet(Gui::mainMenu)->getChild(WINDOW_CAMPAIGN);
+    campaignWin->getChild(BUTTON_NEW_CAMPAIGN)->setVisible(!visible);
+    campaignWin->getChild(BUTTON_CONTINUE_CAMPAIGN)->setVisible(!visible);
+    campaignWin->getChild(TEXT_NEW_CAMPAIGN_CONFIRM)->setVisible(visible);
+    campaignWin->getChild(BUTTON_NEW_CAMPAIGN_CONFIRM)->setVisible(visible);
 }
 
 bool MenuModeMain::toggleSkirmishSubMenu(const CEGUI::EventArgs&)
 {
-    CEGUI::Window* mainWin = getModeManager().getGui().getGuiSheet(Gui::mainMenu);
-    OD_ASSERT_TRUE(mainWin);
-    CEGUI::Window* window = mainWin->getChild(WINDOW_SKIRMISH);
-    OD_ASSERT_TRUE(window);
-    window->setVisible(!window->isVisible());
-    mainWin->getChild(WINDOW_MULTIPLAYER)->hide();
-    mainWin->getChild(WINDOW_EDITOR)->hide();
-    return true;
+    return toggleSubMenu(WINDOW_SKIRMISH);
 }
 
 bool MenuModeMain::toggleMultiplayerSubMenu(const CEGUI::EventArgs&)
 {
-    CEGUI::Window* mainWin = getModeManager().getGui().getGuiSheet(Gui::mainMenu);
-    OD_ASSERT_TRUE(mainWin);
-    CEGUI::Window* window = mainWin->getChild(WINDOW_MULTIPLAYER);
-    OD_ASSERT_TRUE(window);
-    window->setVisible(!window->isVisible());
-    mainWin->getChild(WINDOW_SKIRMISH)->hide();
-    mainWin->getChild(WINDOW_EDITOR)->hide();
-    return true;
+    return toggleSubMenu(WINDOW_MULTIPLAYER);
 }
 
 bool MenuModeMain::toggleEditorSubMenu(const CEGUI::EventArgs&)
 {
+    return toggleSubMenu(WINDOW_EDITOR);
+}
+
+bool MenuModeMain::toggleSubMenu(const std::string& name)
+{
     CEGUI::Window* mainWin = getModeManager().getGui().getGuiSheet(Gui::mainMenu);
     OD_ASSERT_TRUE(mainWin);
-    CEGUI::Window* window = mainWin->getChild(WINDOW_EDITOR);
-    OD_ASSERT_TRUE(window);
-    window->setVisible(!window->isVisible());
-    mainWin->getChild(WINDOW_MULTIPLAYER)->hide();
-    mainWin->getChild(WINDOW_SKIRMISH)->hide();
+    const bool visible = !mainWin->getChild(name)->isVisible();
+    for(const std::string& other : {WINDOW_CAMPAIGN, WINDOW_SKIRMISH, WINDOW_MULTIPLAYER, WINDOW_EDITOR, WINDOW_SETTINGS})
+        mainWin->getChild(other)->setVisible(visible && other == name);
+    showMainMenuButtons(!visible);
     return true;
 }

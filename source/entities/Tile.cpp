@@ -26,6 +26,7 @@
 #include "game/Seat.h"
 #include "gamemap/GameMap.h"
 #include "gamemap/Pathfinding.h"
+#include "gamemap/RoomObjectBounds.h"
 #include "network/ODClient.h"
 #include "network/ODPacket.h"
 #include "network/ClientNotification.h"
@@ -141,6 +142,8 @@ bool Tile::isDiggable(const Seat* seat) const
         case TileVisual::arenaRoom:
         case TileVisual::casinoRoom:
         case TileVisual::tortureRoom:        
+        case TileVisual::guardRoom:
+        case TileVisual::templeRoom:
         case TileVisual::claimedGround:
         case TileVisual::dirtGround:
         case TileVisual::goldGround:
@@ -148,6 +151,7 @@ bool Tile::isDiggable(const Seat* seat) const
         case TileVisual::waterGround:
         case TileVisual::rockGround:
         case TileVisual::gemGround:
+        case TileVisual::manaWellGround:
         case TileVisual::rockFull:
             return false;
         case TileVisual::goldFull:
@@ -349,6 +353,10 @@ std::string Tile::tileTypeToString(TileType t)
 
         case TileType::gem:
             return "Gem";
+
+        case TileType::manaWell:
+            return "ManaWell";
+
         default:
             return "Unknown tile type=" + Helper::toString(static_cast<uint32_t>(t));
     }
@@ -394,6 +402,9 @@ std::string Tile::tileVisualToString(TileVisual tileVisual)
         case TileVisual::gemFull:
             return "gemFull";
 
+        case TileVisual::manaWellGround:
+            return "manaWellGround";
+
         case TileVisual::claimedFull:
             return "claimedFull";
 
@@ -438,6 +449,12 @@ std::string Tile::tileVisualToString(TileVisual tileVisual)
 
         case TileVisual::tortureRoom:
             return "tortureRoom";
+
+        case TileVisual::guardRoom:
+            return "guardRoom";
+
+        case TileVisual::templeRoom:
+            return "templeRoom";
   
             
         default:
@@ -509,6 +526,7 @@ bool Tile::isMarkedForDiggingByAnySeat()
 void Tile::addPlayerMarkingTile(const Player *p)
 {
     mPlayersMarkingTile.push_back(p);
+    fireTileStateChanged();
 }
 
 void Tile::removePlayerMarkingTile(const Player *p)
@@ -518,6 +536,7 @@ void Tile::removePlayerMarkingTile(const Player *p)
         return;
 
     mPlayersMarkingTile.erase(it);
+    fireTileStateChanged();
 }
 
 void Tile::addNeighbor(Tile *n)
@@ -608,6 +627,7 @@ bool Tile::isFloodFillPossible(Seat* seat, FloodFillType type) const
         case TileType::dirt:
         case TileType::gold:
         case TileType::rock:
+        case TileType::manaWell:
         {
             switch(type)
             {
@@ -829,6 +849,8 @@ bool Tile::isClaimed() const
             case TileVisual::arenaRoom:
             case TileVisual::casinoRoom:
             case TileVisual::tortureRoom:  
+            case TileVisual::guardRoom:
+            case TileVisual::templeRoom:
                 return true;
         }
         
@@ -964,6 +986,12 @@ void Tile::computeTileVisual()
                            case RoomType::torture: 
                                mTileVisual = TileVisual::tortureRoom;
                                return;
+                           case RoomType::guardRoom:
+                               mTileVisual = TileVisual::guardRoom;
+                               return;
+                           case RoomType::temple:
+                               mTileVisual = TileVisual::templeRoom;
+                               return;
                            default:
                                OD_LOG_ERR("Computing tile visual for unknown room type tile=" + Tile::displayAsString(this) + ", TileType=" + roomTypeToString(getCoveringRoom()->getType()));
                                mTileVisual = TileVisual::nullTileVisual;
@@ -1040,6 +1068,12 @@ void Tile::computeTileVisual()
                            case RoomType::torture: 
                                mTileVisual = TileVisual::tortureRoom;
                                return;
+                           case RoomType::guardRoom:
+                               mTileVisual = TileVisual::guardRoom;
+                               return;
+                           case RoomType::temple:
+                               mTileVisual = TileVisual::templeRoom;
+                               return;
                            default:
                                OD_LOG_ERR("Computing tile visual for unknown room type tile=" + Tile::displayAsString(this) + ", TileType=" + roomTypeToString(getCoveringRoom()->getType()));
                                mTileVisual = TileVisual::nullTileVisual;
@@ -1063,6 +1097,14 @@ void Tile::computeTileVisual()
                 mTileVisual = TileVisual::gemFull;
             else
                 mTileVisual = TileVisual::gemGround;
+            return;
+
+        case TileType::manaWell:
+            // A mana well is always ground. Once claimed, it looks like any claimed ground
+            if(isClaimed())
+                mTileVisual = TileVisual::claimedGround;
+            else
+                mTileVisual = TileVisual::manaWellGround;
             return;
             
         default:
@@ -1181,8 +1223,34 @@ bool Tile::isBuildableUpon(Seat* seat) const
         return false;
     if(getIsBuilding())
         return false;
+    // Nothing can be built on a mana well
+    if(mType == TileType::manaWell)
+        return false;
     if(!isClaimedForSeat(seat))
         return false;
+
+    // The heart mesh extends beyond its room tiles. Protect that visible
+    // footprint on both client and server without blocking navigation.
+    if(!getGameMap()->isInEditorMode())
+    {
+        for(RenderedMovableEntity* object : getGameMap()->getRenderedMovableEntities())
+        {
+            if(object->getMeshName() != "DungeonTempleObject")
+                continue;
+            for(const RoomObjectPath::MeshBounds& bounds : RoomObjectPath::meshBounds)
+            {
+                if(object->getMeshName() != bounds.name)
+                    continue;
+                const Ogre::Vector3 position = object->getPosition();
+                if(getX() + 0.5f > position.x + bounds.minX &&
+                    getX() - 0.5f < position.x + bounds.maxX &&
+                    getY() + 0.5f > position.y + bounds.minY &&
+                    getY() - 0.5f < position.y + bounds.maxY)
+                    return false;
+                break;
+            }
+        }
+    }
 
     return true;
 }
@@ -1241,9 +1309,16 @@ bool Tile::isGroundClaimable(Seat* seat) const
         return false;
 
     if(getCoveringBuilding() != nullptr)
-        return getCoveringBuilding()->isClaimable(seat);
+    {
+        if(!getCoveringBuilding()->isClaimable(seat))
+            return false;
 
-    if(mType != TileType::dirt && mType != TileType::gold)
+        // An enemy room is not taken while it is guarded or too dear for the taker
+        Room* room = getCoveringRoom();
+        return (room == nullptr) || !room->isTakeoverBlocked(seat, this);
+    }
+
+    if(mType != TileType::dirt && mType != TileType::gold && mType != TileType::manaWell)
         return false;
 
     if(isClaimedForSeat(seat))
@@ -1356,6 +1431,7 @@ void Tile::loadFromLine(const std::string& line, Tile *t)
     {
         case TileType::water:
         case TileType::lava:
+        case TileType::manaWell:
             fullness = 0.0;
             break;
 
@@ -1369,7 +1445,7 @@ void Tile::loadFromLine(const std::string& line, Tile *t)
     // We allow to set seat if the tile is dirt (full or not) or if it is gold (ground only)
     if(elems.size() >= 5)
     {
-        if(tileType == TileType::dirt)
+        if((tileType == TileType::dirt) || (tileType == TileType::manaWell))
         {
             shouldSetSeat = true;
         }
@@ -1479,11 +1555,37 @@ void Tile::removeEntity(GameEntity *entity)
 
 void Tile::claimForSeat(Seat* seat, double nDanceRate)
 {
+    // The tile of a dungeon heart is never danced on, not even as plain ground
+    Room* heartRoom = getCoveringRoom();
+    if((heartRoom != nullptr) && (heartRoom->getType() == RoomType::dungeonTemple))
+    {
+        OD_LOG_WRN("Tile=" + displayAsString(this) + " belongs to a dungeon temple and cannot be claimed");
+        return;
+    }
+
     // If there is a claimable building, we claim it
     if((getCoveringBuilding() != nullptr) &&
         (getCoveringBuilding()->isClaimable(seat)))
     {
+        // The server decides: a guarded room is not worn down, and the taker pays
+        // for a room once it changes hands
+        Room* room = getCoveringRoom();
+        int32_t takeoverPrice = 0;
+        if(room != nullptr)
+        {
+            if(room->isTakeoverBlocked(seat, this))
+                return;
+
+            takeoverPrice = room->getTakeoverPrice();
+        }
+
+        Seat* ownerBefore = getCoveringBuilding()->getSeat();
         getCoveringBuilding()->claimForSeat(seat, this, nDanceRate);
+        if((takeoverPrice > 0) && (getCoveringBuilding() != nullptr) &&
+           (getCoveringBuilding()->getSeat() != ownerBefore))
+        {
+            getGameMap()->withdrawFromTreasuries(takeoverPrice, seat);
+        }
         return;
     }
 
@@ -1525,6 +1627,15 @@ void Tile::claimTile(Seat* seat)
     // Claim the tile.
     OD_LOG_INF(getGameMap()->serverStr() + "Tile=" + displayAsString(this)
         + " claimed by seat=" + Seat::displayAsString(seat));
+
+    // The server never lets a dungeon heart tile change owner
+    Room* heartRoom = getCoveringRoom();
+    if(getGameMap()->isServerGameMap() && (heartRoom != nullptr) &&
+       (heartRoom->getType() == RoomType::dungeonTemple) && (heartRoom->getSeat() != seat))
+    {
+        OD_LOG_WRN("Tile=" + displayAsString(this) + " belongs to a dungeon temple and cannot be claimed by seat=" + Seat::displayAsString(seat));
+        return;
+    }
 
     // We need this because if we are a client, the tile may be from a non allied seat
     setSeat(seat);
@@ -2108,9 +2219,12 @@ double Tile::getCreatureSpeedDefault(const Creature* creature) const
         case TileVisual::arenaRoom:
         case TileVisual::casinoRoom:
         case TileVisual::tortureRoom:        
+        case TileVisual::guardRoom:
+        case TileVisual::templeRoom:
         case TileVisual::dirtGround:
         case TileVisual::goldGround:
         case TileVisual::rockGround:
+        case TileVisual::manaWellGround:
         case TileVisual::claimedGround:
             return creature->getMoveSpeedGround();
         case TileVisual::waterGround:
@@ -2448,6 +2562,7 @@ Creature* Tile::getClosestCreature(SelectionEntityWanted se)
 
 void Tile::setLocalPlayerHasVision(bool localPlayerHasVision)
 {
+    const bool visionChanged = mLocalPlayerHasVision != localPlayerHasVision;
     bool mEverVisibleOld = mEverVisible;
     
     mEverVisible = mEverVisible || localPlayerHasVision;
@@ -2464,7 +2579,8 @@ void Tile::setLocalPlayerHasVision(bool localPlayerHasVision)
     }
 
     mLocalPlayerHasVision = localPlayerHasVision;
-
+    if(visionChanged)
+        fireTileStateChanged();
 }
 
 
