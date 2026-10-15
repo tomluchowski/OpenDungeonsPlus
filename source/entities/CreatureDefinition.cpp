@@ -529,6 +529,8 @@ bool CreatureDefinition::update(CreatureDefinition* creatureDef, std::stringstre
             {
                 defFile >> nextParam;
                 creatureDef->mStealGold = Helper::toInt(nextParam);
+                continue;
+            }
             else if (nextParam == "Fearless")
             {
                 defFile >> nextParam;
