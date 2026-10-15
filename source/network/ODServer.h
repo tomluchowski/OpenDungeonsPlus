@@ -24,6 +24,7 @@
 #include <OgreSingleton.h>
 
 class ServerNotification;
+struct CosmeticEvent;
 class GameMap;
 class DraggableTileContainer;
 
@@ -76,11 +77,27 @@ class ODServer: public Ogre::Singleton<ODServer>,
     inline ServerMode getServerMode() const
     { return mServerMode; }
 
+    //! \brief Loads the level and starts the server. Level files whose dungeon heart does not cover
+    //! 25 tiles (5x5) are refused; savegames and the editor may still load older hearts.
+    //! \return true when the server is running.
     bool startServer(const std::string& creator, const std::string& levelFilename, ServerMode mode, bool useMasterServer);
     void stopServer() override;
 
     //! \brief Adds a server notification to the server notification queue. The message will be sent to the concerned player
     void queueServerNotification(ServerNotification* n);
+
+    //! Whether the recipient negotiated full mood in creature snapshots and updates.
+    bool supportsCreatureMood(Player* player);
+    //! Whether the recipient negotiated the creature activity in creature snapshots and updates.
+    bool supportsCreatureActivity(Player* player);
+    //! Whether the recipient negotiated experience and attack recovery in creature snapshots and updates.
+    bool supportsCreatureProgress(Player* player);
+    //! Whether the recipient negotiated cosmetic events (see CosmeticEvent.h)
+    bool supportsCosmeticEvents(Player* player);
+
+    //! \brief Queues a cosmetic event for the player. Nothing is sent if the player is not human or did not
+    //! negotiate cosmetic events, so an older client never sees one.
+    void sendCosmeticEvent(Player* player, const CosmeticEvent& event);
 
     //! \brief Sends an asynchronous message to the concerned player. This function should be used really carefully as it can easily
     //! make the game crash by sending messages in an unexpected order (changing the state of an entity that was not created, for example).

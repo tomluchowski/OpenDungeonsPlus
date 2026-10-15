@@ -21,6 +21,7 @@
 #include "entities/GameEntity.h"
 #include "gamemap/SelectionEntityWanted.h"
 #include "gamemap/TileContainer.h"
+#include "rooms/WallTorches.h"
 #include "ai/AIManager.h"
 
 #ifdef __MINGW32__
@@ -33,6 +34,7 @@
 #include <map>
 #include <memory>
 #include <random>
+#include <set>
 #include <string>
 
 #include <Ogre.h>
@@ -243,6 +245,7 @@ public:
     void removeTrap(Trap *t);
     inline const std::vector<Trap*>& getTraps() const
     { return mTraps; }
+    bool moveTrapProductionOrder(Seat* seat, const std::string& name, bool earlier);
 
     //! \brief Map Lights related functions.
     void clearMapLights();
@@ -372,6 +375,11 @@ public:
     //! \note Returns a path for the given creature to the given destination.
     std::list<Tile*> path(const Creature* creature, Tile* destination, bool throughDiggableTiles = false);
 
+    //! \brief The tile a runner of the seat moves to during the heart defence: the heart
+    //! tile while the heart is damaged, otherwise the nearest allied fighter, and the
+    //! heart tile when there is no fighter to rally.
+    Tile* getHeartDefenceTargetTile(Creature& runner, Seat* seat);
+
     //! \brief Loops over the visibleTiles and returns any creature/room/trap in those tiles allied with the given seat
     //! (or if enemyForce is true, is not allied)
     std::vector<GameEntity*> getVisibleForce(const std::vector<Tile*>& visibleTiles, Seat* seat, bool enemyForce);
@@ -398,6 +406,34 @@ public:
      * whole map since the passabilities may have changed since the flood filling was disabled.
      */
     void enableFloodFill();
+
+    //! \brief The wall torches. On the server this is the authoritative list the placement computed (see
+    //! WallTorches), on a client it is exactly the list the server sent to the local player (only torches
+    //! on tiles the player has seen). Keyed by WallTorches::getKey, so iteration order is stable.
+    //! The clients only show the torches; the server list is also what the lit check of a room reads.
+    const std::map<uint32_t, WallTorch>& getWallTorches() const
+    { return mWallTorches; }
+
+    //! \brief Client side. Counts the changes of getWallTorches(), so that a display can see cheaply
+    //! whether the list changed since it last read it.
+    uint32_t getWallTorchesVersion() const
+    { return mWallTorchesVersion; }
+
+    //! \brief Server side. Tells that a wall, its reinforcement, a room or a room object changed, so the
+    //! torches are computed again on the next turn.
+    void markWallTorchesDirty()
+    { mWallTorchesDirty = true; }
+
+    //! \brief Server side, once per turn. Computes the torches again if needed and sends the changes
+    //! (the whole list the first time) to each human player: only torches on tiles the player has seen.
+    void updateWallTorches();
+
+    //! \brief Server side. Makes the next updateWallTorches send the whole list to the seat again
+    //! (a client that joined or loaded).
+    void resetWallTorchesSent(Seat* seat);
+
+    //! \brief Client side. Applies a ServerNotificationType::wallTorches message to getWallTorches().
+    void updateWallTorchesFromPacket(ODPacket& is);
 
     void setLocalPlayer(Player* player);
 
@@ -600,6 +636,15 @@ private:
     
     NodeType mNodeType;
 
+    //! \brief See getWallTorches()
+    std::map<uint32_t, WallTorch> mWallTorches;
+    //! \brief Server side: the torches have to be computed again
+    bool mWallTorchesDirty;
+    //! \brief Client side: see getWallTorchesVersion()
+    uint32_t mWallTorchesVersion;
+    //! \brief Server side: the torches (keys) each seat has been sent
+    std::map<Seat*, std::set<uint32_t> > mWallTorchesSent;
+
     //! \brief the Local player reference. The local player will also be in the player list so this pointer
     //! should not be deleted as it will be handled like every other in the list.
     Player* mLocalPlayer;
@@ -683,6 +728,27 @@ private:
     //! \brief Updates different entities states.
     //! Updates active objects (creatures, rooms, ...), goals, count each team Workers, gold, mana and claimed tiles
     unsigned long int doMiscUpkeep(double timeSinceLastTurn);
+
+    //! \brief Applies the per-second mana income and worker upkeep of one seat for the current
+    //! turn. A seat without a living dungeon heart gains and spends nothing.
+    //! \param nbManaWellTiles Number of mana well tiles the seat has claimed.
+    //! \param timeSinceLastTurn Seconds since the previous turn, used by the worker countdown.
+    void updateSeatMana(Seat* seat, uint32_t nbManaWellTiles, double timeSinceLastTurn);
+
+    //! \brief Pops the workers above the free four when the seat's mana stays too low to
+    //! pay their upkeep: after a period of shortage a countdown starts, and when it ends
+    //! with the shortage still there, every worker above the free four is lost.
+    //! \param shortage True if the mana could not pay the upkeep this turn.
+    void updateSeatWorkerPop(Seat* seat, bool shortage, double timeSinceLastTurn);
+
+    //! \brief Creates a worker at the dungeon heart of one seat, one every few seconds,
+    //! until the seat has four workers. A seat without a living dungeon heart creates none.
+    void updateSeatAutoWorkers(Seat* seat, double timeSinceLastTurn);
+
+    //! \brief Checks each turn whether an enemy creature is within range of the seat's
+    //! living heart. While one is, the seat's runners defend the heart. The alarm call
+    //! sounds once, when the defence starts, not the combat music.
+    void updateSeatHeartDefense(Seat* seat);
 
     //! \brief Resets the unique numbers
     void resetUniqueNumbers();

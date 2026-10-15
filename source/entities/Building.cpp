@@ -18,6 +18,8 @@
 #include "entities/Building.h"
 
 #include "entities/BuildingObject.h"
+#include "entities/Creature.h"
+#include "entities/GameEntityType.h"
 #include "entities/RenderedMovableEntity.h"
 #include "entities/Tile.h"
 #include "game/Player.h"
@@ -84,8 +86,13 @@ void Building::addBuildingObject(Tile* targetTile, BuildingObject* obj, GameMap*
     
     // The object position has been already set in the building object constructor
     mBuildingObjects[targetTile] = obj;
+    if(getIsOnServerMap())
+        gameMap->markWallTorchesDirty();
     obj->addToGameMap(gameMap);
     obj->setPosition(obj->getPosition(),gameMap);
+    if(getIsOnServerMap() && getObjectType() == GameEntityType::room)
+        for(Creature* creature : gameMap->getCreatures())
+            creature->checkWalkPathValid(true);
 }
 
 void Building::removeBuildingObject(Tile* tile)
@@ -98,6 +105,8 @@ void Building::removeBuildingObject(Tile* tile)
     obj->removeFromGameMap();
     obj->deleteYourself();
     mBuildingObjects.erase(it);
+    if(getIsOnServerMap())
+        getGameMap()->markWallTorchesDirty();
 }
 
 void Building::removeBuildingObject(BuildingObject* obj)
@@ -110,6 +119,8 @@ void Building::removeBuildingObject(BuildingObject* obj)
         obj->removeFromGameMap();
         obj->deleteYourself();
         mBuildingObjects.erase(it);
+        if(getIsOnServerMap())
+            getGameMap()->markWallTorchesDirty();
         break;
     }
 }
@@ -159,6 +170,8 @@ void Building::removeAllBuildingObjects(GameMap* gameMap)
         p.second->deleteYourself();
     }
     mBuildingObjects.clear();
+    if(getIsOnServerMap())
+        getGameMap()->markWallTorchesDirty();
 }
 
 BuildingObject* Building::getBuildingObjectFromTile(Tile* tile)
@@ -171,7 +184,7 @@ BuildingObject* Building::getBuildingObjectFromTile(Tile* tile)
     return obj;
 }
 
-Tile* Building::getCentralTile()
+Tile* Building::getCentralTile() const
 {
     if (mCoveredTiles.empty() && mCoveredTilesDestroyed.empty())
         return nullptr;

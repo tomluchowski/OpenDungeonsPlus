@@ -1,0 +1,20 @@
+// Materials of the sprites of the heart, portal, bridges, doors and traps (see particles/RoomAmbienceCoreObjects.particle).
+
+material RoomAmbSwirl
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend add
+            depth_write off
+            diffuse vertexcolour
+
+            texture_unit
+            {
+                texture RoomAmbSwirl.png
+            }
+        }
+    }
+}

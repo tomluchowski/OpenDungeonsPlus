@@ -1,0 +1,534 @@
+// Room ambience: the last effects of rooms, traps, doors and the keeper's hand (hit heart, wave portal, crypt,
+// prison, torture chamber, cannon, rune door, hand cast). Format: see particles/RoomAmbience.particle.
+// Only the materials of the other files are used, nothing new is drawn.
+
+// ---- Dungeon heart: hit ----
+
+// A fountain of hot sparks thrown out of the heart when it is hit
+particle_system RoomAmbHeartHitBurst
+{
+    material        RoomAmbSpark
+    point_rendering false
+    particle_width  0.16
+    particle_height 0.16
+    cull_each       false
+    quota           64
+    billboard_type  point
+
+    emitter Point
+    {
+        angle               75
+        colour_range_start  1.0 0.3 0.2 1.0
+        colour_range_end    1.0 0.85 0.5 1.0
+        emission_rate       260
+        time_to_live        0.9
+        direction           0 0 1
+        velocity_min        1.8
+        velocity_max        4.2
+        duration            0.15
+    }
+
+    affector LinearForce
+    {
+        force_vector        0 0 -5
+        force_application   add
+    }
+
+    affector ColourFader
+    {
+        alpha   -1.1
+    }
+}
+
+// ---- Wave portal ----
+
+// Dust that rumbles up from the floor of the rift now and then
+particle_system RoomAmbWaveRumble
+{
+    material        RoomAmbSmoke
+    point_rendering false
+    particle_width  0.36
+    particle_height 0.36
+    cull_each       false
+    quota           24
+    billboard_type  point
+
+    emitter Box
+    {
+        angle               35
+        colour_range_start  0.45 0.3 0.28 0.5
+        colour_range_end    0.6 0.42 0.36 0.55
+        emission_rate       18
+        time_to_live        2.2
+        direction           0 0 1
+        velocity_min        0.25
+        velocity_max        0.7
+        position            0 0 0.1
+        duration            0.9
+        repeat_delay_min    2.5
+        repeat_delay_max    5.0
+        width               1.6
+        height              1.6
+        depth               0.05
+    }
+
+    affector Scaler
+    {
+        rate    0.45
+    }
+
+    affector ColourFader
+    {
+        alpha   -0.22
+    }
+}
+
+// A surge of red-white light when a wave appears
+particle_system RoomAmbWaveSurgeLight
+{
+    material        RoomAmbGlow
+    point_rendering false
+    particle_width  3.4
+    particle_height 3.4
+    cull_each       false
+    quota           3
+    billboard_type  point
+
+    emitter Point
+    {
+        angle               0
+        colour              1.0 0.55 0.4 0.9
+        emission_rate       20
+        time_to_live        1.1
+        direction           0 0 1
+        velocity            0
+        position            0 0 0.7
+        duration            0.1
+    }
+
+    affector Scaler
+    {
+        rate    2.2
+    }
+
+    affector ColourFader
+    {
+        alpha   -0.85
+    }
+}
+
+// The shockwave on the floor, wider and faster than the portal's ring
+particle_system RoomAmbWaveShockRing
+{
+    material        RoomAmbRingDust
+    point_rendering false
+    particle_width  0.6
+    particle_height 0.6
+    cull_each       false
+    quota           4
+    billboard_type  perpendicular_common
+    common_direction 0 0 1
+    common_up_vector 0 1 0
+
+    emitter Point
+    {
+        angle               0
+        colour              0.9 0.45 0.4 0.75
+        emission_rate       8
+        time_to_live        1.1
+        direction           0 0 1
+        velocity            0
+        position            0 0 0.08
+        duration            0.25
+    }
+
+    affector Scaler
+    {
+        rate                9
+    }
+
+    affector ColourFader
+    {
+        alpha               -0.7
+    }
+}
+
+// ---- Crypt: raising ----
+
+// The ground heaves: earth and dust pushed up
+particle_system RoomAmbCryptEarth
+{
+    material        RoomAmbSmoke
+    point_rendering false
+    particle_width  0.4
+    particle_height 0.4
+    cull_each       false
+    quota           40
+    billboard_type  point
+
+    emitter Box
+    {
+        angle               40
+        colour_range_start  0.35 0.26 0.18 0.6
+        colour_range_end    0.5 0.38 0.26 0.65
+        emission_rate       40
+        time_to_live        1.8
+        direction           0 0 1
+        velocity_min        0.3
+        velocity_max        0.9
+        position            0 0 0.05
+        duration            0.9
+        width               0.8
+        height              0.8
+        depth               0.05
+    }
+
+    affector Scaler
+    {
+        rate    0.5
+    }
+
+    affector LinearForce
+    {
+        force_vector        0 0 -0.4
+        force_application   add
+    }
+
+    affector ColourFader
+    {
+        alpha   -0.35
+    }
+}
+
+// Clods of earth thrown aside
+particle_system RoomAmbCryptClods
+{
+    material        RoomAmbGrain
+    point_rendering false
+    particle_width  0.16
+    particle_height 0.16
+    cull_each       false
+    quota           16
+    billboard_type  point
+
+    emitter Point
+    {
+        angle               60
+        colour_range_start  0.45 0.34 0.24 1.0
+        colour_range_end    0.6 0.46 0.32 1.0
+        emission_rate       60
+        time_to_live        0.9
+        direction           0 0 1
+        velocity_min        1.0
+        velocity_max        2.2
+        position            0 0 0.1
+        duration            0.2
+    }
+
+    affector LinearForce
+    {
+        force_vector        0 0 -6
+        force_application   add
+    }
+
+    affector ColourFader
+    {
+        alpha   -0.9
+    }
+}
+
+// Pale green spirit light that rises out of the ground and fades
+particle_system RoomAmbCryptSpirit
+{
+    material        RoomAmbGlow
+    point_rendering false
+    particle_width  0.9
+    particle_height 0.9
+    cull_each       false
+    quota           10
+    billboard_type  point
+
+    emitter Point
+    {
+        angle               8
+        colour              0.55 1.0 0.7 0.0
+        emission_rate       7
+        time_to_live        2.2
+        direction           0 0 1
+        velocity_min        0.5
+        velocity_max        0.9
+        position            0 0 0.2
+        duration            1.0
+    }
+
+    affector ColourInterpolator
+    {
+        time0   0
+        colour0 0.55 1.0 0.7 0.0
+        time1   0.3
+        colour1 0.55 1.0 0.7 0.7
+        time2   1
+        colour2 0.55 1.0 0.7 0.0
+    }
+
+    affector Scaler
+    {
+        rate    -0.25
+    }
+}
+
+// ---- Torture chamber: conversion ----
+
+// A cold white flash
+particle_system RoomAmbTortureFlash
+{
+    material        RoomAmbGlow
+    point_rendering false
+    particle_width  2.2
+    particle_height 2.2
+    cull_each       false
+    quota           2
+    billboard_type  point
+
+    emitter Point
+    {
+        angle               0
+        colour              0.85 0.9 1.0 0.95
+        emission_rate       20
+        time_to_live        0.6
+        direction           0 0 1
+        velocity            0
+        position            0 0 1.0
+        duration            0.08
+    }
+
+    affector ColourFader
+    {
+        alpha   -1.4
+    }
+}
+
+// Iron links of broken shackles that fall to the floor
+particle_system RoomAmbTortureLinks
+{
+    material        RoomAmbCoin
+    point_rendering false
+    particle_width  0.14
+    particle_height 0.14
+    cull_each       false
+    quota           14
+    billboard_type  point
+
+    emitter Box
+    {
+        angle               15
+        colour_range_start  0.55 0.58 0.66 1.0
+        colour_range_end    0.75 0.78 0.85 1.0
+        emission_rate       28
+        time_to_live        1.2
+        direction           0 0 -1
+        velocity_min        0.3
+        velocity_max        1.0
+        position            0 0 1.3
+        duration            0.5
+        width               0.5
+        height              0.5
+        depth               0.05
+    }
+
+    affector LinearForce
+    {
+        force_vector        0 0 -6
+        force_application   add
+    }
+
+    affector Rotator
+    {
+        rotation_speed_range_start  -240
+        rotation_speed_range_end    240
+        rotation_range_start        0
+        rotation_range_end          360
+    }
+
+    affector ColourFader
+    {
+        alpha   -0.8
+    }
+}
+
+// ---- Cannon ----
+
+// Fire at the muzzle
+particle_system RoomAmbCannonMuzzle
+{
+    material        RoomAmbGlow
+    point_rendering false
+    particle_width  1.5
+    particle_height 1.5
+    cull_each       false
+    quota           3
+    billboard_type  point
+
+    emitter Point
+    {
+        angle               0
+        colour              1.0 0.7 0.25 0.95
+        emission_rate       24
+        time_to_live        0.4
+        direction           0 0 1
+        velocity            0
+        position            0 0 0.55
+        duration            0.08
+    }
+
+    affector ColourFader
+    {
+        alpha   -2.2
+    }
+}
+
+// A ring of smoke that grows out of the muzzle
+particle_system RoomAmbCannonSmokeRing
+{
+    material        RoomAmbRingDust
+    point_rendering false
+    particle_width  0.3
+    particle_height 0.3
+    cull_each       false
+    quota           3
+    billboard_type  perpendicular_common
+    common_direction 0 0 1
+    common_up_vector 0 1 0
+
+    emitter Point
+    {
+        angle               0
+        colour              0.6 0.6 0.6 0.7
+        emission_rate       6
+        time_to_live        1.3
+        direction           0 0 1
+        velocity            0.35
+        position            0 0 0.6
+        duration            0.2
+    }
+
+    affector Scaler
+    {
+        rate                3.4
+    }
+
+    affector ColourFader
+    {
+        alpha               -0.55
+    }
+}
+
+// ---- Rune door: damage ----
+
+// Cracks that run across the runes
+particle_system RoomAmbDoorRuneCracks
+{
+    material        RoomAmbMarkCracks
+    point_rendering false
+    particle_width  0.9
+    particle_height 0.9
+    cull_each       false
+    quota           4
+    billboard_type  point
+
+    emitter Point
+    {
+        angle               0
+        colour              0.65 0.75 1.0 0.0
+        emission_rate       8
+        time_to_live        1.6
+        direction           0 0 1
+        velocity            0
+        position            0 0 0.55
+        duration            0.3
+    }
+
+    affector ColourInterpolator
+    {
+        time0   0
+        colour0 0.65 0.75 1.0 0.0
+        time1   0.15
+        colour1 0.65 0.75 1.0 0.85
+        time2   0.5
+        colour2 0.65 0.75 1.0 0.5
+        time3   1
+        colour3 0.65 0.75 1.0 0.0
+    }
+}
+
+// Runes that flicker on and off, with sparks falling away
+particle_system RoomAmbDoorRuneFlicker
+{
+    material        RoomAmbRune
+    point_rendering false
+    particle_width  0.7
+    particle_height 0.7
+    cull_each       false
+    quota           6
+    billboard_type  point
+
+    emitter Point
+    {
+        angle               0
+        colour              0.6 0.75 1.0 0.0
+        emission_rate       5
+        time_to_live        1.5
+        direction           0 0 1
+        velocity            0
+        position            0 0 0.55
+        duration            0.35
+    }
+
+    affector ColourInterpolator
+    {
+        time0   0
+        colour0 0.6 0.75 1.0 0.0
+        time1   0.12
+        colour1 0.6 0.75 1.0 0.9
+        time2   0.25
+        colour2 0.6 0.75 1.0 0.1
+        time3   0.4
+        colour3 0.6 0.75 1.0 0.8
+        time4   0.55
+        colour4 0.6 0.75 1.0 0.0
+        time5   0.7
+        colour5 0.6 0.75 1.0 0.5
+    }
+}
+
+// ---- Keeper's hand ----
+
+// A small spark where the hand casts a spell
+particle_system RoomAmbHandCastSpark
+{
+    material        RoomAmbSpark
+    point_rendering false
+    particle_width  0.1
+    particle_height 0.1
+    cull_each       false
+    quota           16
+    billboard_type  point
+
+    emitter Point
+    {
+        angle               180
+        colour_range_start  1.0 0.9 0.55 1.0
+        colour_range_end    0.8 0.9 1.0 1.0
+        emission_rate       90
+        time_to_live        0.5
+        direction           0 0 1
+        velocity_min        0.4
+        velocity_max        1.1
+        duration            0.1
+    }
+
+    affector ColourFader
+    {
+        alpha   -1.8
+    }
+}

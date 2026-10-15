@@ -21,6 +21,8 @@
 #include <OgrePrerequisites.h>
 
 #include <cstdint>
+#include <string>
+#include <vector>
 
 class Creature;
 class MovableTextOverlay;
@@ -40,12 +42,26 @@ public:
     ~CreatureOverlayStatus();
 
     void displayHealthOverlay(Ogre::Real timeToDisplay);
+    //! \brief Shows the icon of the given material above the creature for timeToDisplay seconds
+    void showEmote(const std::string& materialName, Ogre::Real timeToDisplay);
+    //! \brief Hides the emote icon, if one was shown
+    void hideEmote();
     void update(Ogre::Real timeSincelastFrame);
     MovableTextOverlay* getMovableTextOverlay(){ return mMovableTextOverlay; }
 private:
     
     void updateHealth();
     void updateStatus(Ogre::Real timeSincelastFrame);
+    //! \brief Updates the experience ring and the attack recovery display
+    void updateProgress(Ogre::Real timeSincelastFrame);
+
+    //! \brief Recovery turns left, as last read from the creature
+    uint32_t mRecoveryTurns = 0;
+    //! \brief Attack counter, as last read from the creature
+    uint32_t mRecoverySerial = 0;
+    //! \brief Seconds since mRecoveryTurns or mRecoverySerial changed, used to move the recovery
+    //! display smoothly between two turns
+    Ogre::Real mRecoveryElapsed = 0.0f;
 
     bool mVisible;
     Creature* mCreature;
@@ -56,6 +72,9 @@ private:
     Ogre::Real mTimeDisplayStatus;
     uint32_t mStatus;
     std::vector<uint32_t> mOverlayIds;
+    //! Overlay of the emote. It is only created when the first emote is shown
+    bool mEmoteCreated;
+    uint32_t mEmoteId;
 };
 
 #endif // CREATUREOVERLAYSTATUS_H

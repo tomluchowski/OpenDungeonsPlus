@@ -49,10 +49,12 @@
 #include "render/CreatureOverlayStatus.h"
 #include "render/ODFrameListener.h"
 #include "rooms/Room.h"
+#include "rooms/RoomDungeonTemple.h"
 #include "rooms/RoomManager.h"
 #include "rooms/RoomPortal.h"
 #include "rooms/RoomTreasury.h"
 #include "rooms/RoomType.h"
+#include "rooms/WallTorchConfig.h"
 #include "spells/Spell.h"
 #include "sound/SoundEffectsManager.h"
 #include "traps/Trap.h"
@@ -63,6 +65,7 @@
 #include "utils/LogManager.h"
 #include "utils/ResourceManager.h"
 
+#include "ODApplication.h"
 
 #include <OgreAxisAlignedBox.h>
 #include <OgreEntity.h>
@@ -81,6 +84,54 @@
 const std::string DEFAULT_NICK = "You";
 
 using namespace std;
+
+namespace
+{
+//! Mana the dungeon heart produces on its own, per second.
+const double MANA_HEART_INCOME_PER_SECOND = 30.0;
+//! The tile part of the mana income is capped: one mana per second per claimed
+//! tile, up to this many tiles.
+const double MANA_INCOME_TILES_CAP = 500.0;
+//! Mana each worker above the free ones costs to keep, per second.
+const double MANA_WORKER_UPKEEP_PER_SECOND = 7.0;
+
+//! Workers a seat holds before its living heart stops creating more. The heart sustains
+//! these workers on its own, only the ones above them are paid from the mana reserves.
+const int AUTO_WORKERS_TARGET = 4;
+//! Seconds the mana has to stay too low to pay the upkeep before the workers above the
+//! free ones are doomed.
+const double WORKER_MANA_EVALUATION_SECONDS = 10.0;
+//! Seconds the doomed workers have left, if the mana is still too low when it ends they pop.
+const double WORKER_POP_COUNTDOWN_SECONDS = 10.0;
+//! Seconds the living dungeon heart waits between two workers it creates.
+const double AUTO_WORKER_INTERVAL_SECONDS = 5.0;
+
+//! \brief Squared distance within which an enemy creature triggers the heart defence.
+const int HEART_DEFENCE_RANGE_SQUARED = 7 * 7;
+
+//! \brief Mana a seat gains per second: the heart plus one per claimed tile,
+//! the tile part capped. The tiles of the heart area are not counted again.
+double manaIncomePerSecond(unsigned int numClaimedTiles, unsigned int numHeartTiles)
+{
+    const unsigned int tiles = numClaimedTiles > numHeartTiles
+        ? numClaimedTiles - numHeartTiles
+        : 0;
+    double tilesIncome = static_cast<double>(tiles);
+    if (tilesIncome > MANA_INCOME_TILES_CAP)
+        tilesIncome = MANA_INCOME_TILES_CAP;
+    return MANA_HEART_INCOME_PER_SECOND + tilesIncome;
+}
+
+//! \brief Mana per second the workers of a seat cost together. The first four are free.
+double manaUpkeepPerSecond(unsigned int numWorkers)
+{
+    if(numWorkers <= static_cast<unsigned int>(AUTO_WORKERS_TARGET))
+        return 0.0;
+
+    return static_cast<double>(numWorkers - static_cast<unsigned int>(AUTO_WORKERS_TARGET))
+        * MANA_WORKER_UPKEEP_PER_SECOND;
+}
+}
 
 /*! \brief A helper class for the A* search in the GameMap::path function.
 *
@@ -162,6 +213,8 @@ GameMap::GameMap(bool isServerGameMap, NodeType nt) :
         everVisitedFlagPool(nullptr),
         mIsServerGameMap(isServerGameMap),
         mNodeType(nt),
+        mWallTorchesDirty(true),
+        mWallTorchesVersion(0),
         mLocalPlayer(nullptr),
         mLocalPlayerNick(DEFAULT_NICK),
         mTurnNumber(-1),
@@ -313,6 +366,10 @@ void GameMap::clearAll()
         resetUniqueNumbers();
         mIsFOWActivated = true;
         mTimePayDay = 0;
+        mWallTorches.clear();
+        mWallTorchesDirty = true;
+        ++mWallTorchesVersion;
+        mWallTorchesSent.clear();
 
         // We check if the different vectors are empty
         if(!mActiveObjects.empty())
@@ -1248,6 +1305,25 @@ unsigned long int GameMap::doMiscUpkeep(double timeSinceLastTurn)
         spell->computeVisibleTiles();
     }
 
+    // Tiles revealed by game events (like a tortured creature) stay visible for their number of turns
+    for (Seat* seat : mSeats)
+        seat->applyRevealedTiles();
+
+    // Seats that got the whole map revealed (gift box) see every tile
+    for (Seat* seat : mSeats)
+    {
+        if(!seat->isMapRevealed())
+            continue;
+
+        for (int jj = 0; jj < getMapSizeY(); ++jj)
+        {
+            for (int ii = 0; ii < getMapSizeX(); ++ii)
+            {
+                getTile(ii,jj)->notifyVision(seat);
+            }
+        }
+    }
+
     for (Seat* seat : mSeats)
     {
         if(!seat->getIsDebuggingVision())
@@ -1260,12 +1336,30 @@ unsigned long int GameMap::doMiscUpkeep(double timeSinceLastTurn)
     for (Seat* seat : mSeats)
         seat->sendVisibleTiles();
 
+    // The wall torches follow the tiles the seats have seen, so they are sent after the tiles
+    if(isServerGameMap())
+        updateWallTorches();
+
     // Carry out the upkeep round of all the active objects in the game.
     // Here, we work on a copy of the active objects list because they might
     // try to remove themselves which would break the iterator
     std::vector<GameEntity*> activeObjects = mActiveObjects;
     for(GameEntity* ge : activeObjects)
         ge->doUpkeep();
+
+    // Count the mana well tiles owned by each seat. They give extra mana each turn
+    std::map<Seat*, uint32_t> nbManaWellTilesPerSeat;
+    for (int jj = 0; jj < getMapSizeY(); ++jj)
+    {
+        for (int ii = 0; ii < getMapSizeX(); ++ii)
+        {
+            Tile* vaultTile = getTile(ii,jj);
+            if((vaultTile->getType() != TileType::manaWell) || !vaultTile->isClaimed())
+                continue;
+
+            ++nbManaWellTilesPerSeat[vaultTile->getSeat()];
+        }
+    }
 
     // Carry out the upkeep round for each seat. This means recomputing how much gold is
     // available in their treasuries, how much mana they gain/lose during this turn, etc.
@@ -1279,17 +1373,15 @@ unsigned long int GameMap::doMiscUpkeep(double timeSinceLastTurn)
         // Add the amount of mana this seat accrued this turn if the player has a dungeon temple
         if(seat->getNbRooms(RoomType::dungeonTemple) == 0)
         {
-            seat->mManaDelta = 0;
             seat->getPlayer()->notifyNoMoreDungeonTemple();
         }
-        else
-        {
-            seat->mManaDelta = 50 + seat->getNumClaimedTiles();
-            seat->mMana += seat->mManaDelta;
-            double maxMana = ConfigManager::getSingleton().getMaxManaPerSeat();
-            if (seat->mMana > maxMana)
-                seat->mMana = maxMana;
-        }
+        uint32_t nbManaWellTiles = 0;
+        std::map<Seat*, uint32_t>::const_iterator itVault = nbManaWellTilesPerSeat.find(seat);
+        if(itVault != nbManaWellTilesPerSeat.end())
+            nbManaWellTiles = itVault->second;
+        updateSeatMana(seat, nbManaWellTiles, timeSinceLastTurn);
+        updateSeatAutoWorkers(seat, timeSinceLastTurn);
+        updateSeatHeartDefense(seat);
 
         // Update the count on how much gold is available in all of the treasuries claimed by the given seat.
         seat->mGold = 0;
@@ -1327,6 +1419,316 @@ unsigned long int GameMap::doMiscUpkeep(double timeSinceLastTurn)
 
     timeTaken = stopwatch.getMicroseconds();
     return timeTaken;
+}
+
+void GameMap::updateSeatMana(Seat* seat, uint32_t nbManaWellTiles, double timeSinceLastTurn)
+{
+    // The one-off mana taken this turn joins the turns of the last second, the HUD shows their
+    // average per second. The mana itself was already reduced where it was taken.
+    seat->mManaOneOffWindow.push_back(seat->mManaOneOffPending);
+    seat->mManaOneOffPending = 0.0;
+    size_t windowTurns = static_cast<size_t>(ODApplication::turnsPerSecond + 0.5);
+    if (windowTurns < 1)
+        windowTurns = 1;
+    while (seat->mManaOneOffWindow.size() > windowTurns)
+        seat->mManaOneOffWindow.erase(seat->mManaOneOffWindow.begin());
+    double oneOffInWindow = 0.0;
+    for (size_t i = 0; i < seat->mManaOneOffWindow.size(); ++i)
+        oneOffInWindow += seat->mManaOneOffWindow[i];
+    seat->mManaOneOffPerSecond = oneOffInWindow * ODApplication::turnsPerSecond
+        / static_cast<double>(windowTurns);
+
+    if (seat->getNbRooms(RoomType::dungeonTemple) == 0)
+    {
+        seat->mManaDelta = 0.0;
+        seat->mManaIncomePerSecond = 0.0;
+        seat->mManaUpkeepPerSecond = 0.0;
+        return;
+    }
+
+    // The tiles of the heart area are part of the heart income and not counted again
+    unsigned int numHeartTiles = 0;
+    for (Room* room : getRooms())
+    {
+        if (room->getSeat() != seat)
+            continue;
+        if (room->getType() != RoomType::dungeonTemple)
+            continue;
+        if (room->getHP(nullptr) <= 0.0)
+            continue;
+        numHeartTiles += room->numCoveredTiles();
+    }
+
+    // Each claimed mana well tile adds its bonus on top of the claimed tile income
+    seat->mManaIncomePerSecond = manaIncomePerSecond(seat->getNumClaimedTiles(), numHeartTiles)
+        + nbManaWellTiles * ConfigManager::getSingleton().getManaWellBonusPerTile();
+    // The armed traps keep draining mana as well
+    double trapUpkeepPerSecond = 0.0;
+    for (Trap* trap : getTraps())
+    {
+        if (trap->getSeat() != seat)
+            continue;
+        trapUpkeepPerSecond += trap->getManaUpkeepPerSecond() * trap->getNbActivatedTiles();
+    }
+    seat->mManaUpkeepPerSecond = manaUpkeepPerSecond(seat->getNumCreaturesWorkers()) + trapUpkeepPerSecond;
+    seat->mManaDelta = (seat->mManaIncomePerSecond - seat->mManaUpkeepPerSecond)
+        / ODApplication::turnsPerSecond;
+
+    seat->mMana += seat->mManaDelta;
+
+    // Upkeep never brings the mana below 0, running dry is what makes the workers pop
+    bool shortage = false;
+    if (seat->mMana < 0.0)
+    {
+        seat->mMana = 0.0;
+        shortage = true;
+    }
+    updateSeatWorkerPop(seat, shortage, timeSinceLastTurn);
+    const double maxMana = ConfigManager::getSingleton().getMaxManaPerSeat();
+    if (seat->mMana > maxMana)
+        seat->mMana = maxMana;
+}
+
+void GameMap::updateSeatWorkerPop(Seat* seat, bool shortage, double timeSinceLastTurn)
+{
+    if (!shortage || seat->getNumCreaturesWorkers() <= AUTO_WORKERS_TARGET)
+    {
+        // The mana covers the upkeep again or there is nothing left to pop
+        seat->mManaShortageSeconds = 0.0;
+        seat->mWorkerPopCountdown = -1.0;
+        return;
+    }
+
+    if (seat->mWorkerPopCountdown < 0.0)
+    {
+        seat->mManaShortageSeconds += timeSinceLastTurn;
+        if (seat->mManaShortageSeconds >= WORKER_MANA_EVALUATION_SECONDS)
+            seat->mWorkerPopCountdown = WORKER_POP_COUNTDOWN_SECONDS;
+        return;
+    }
+
+    seat->mWorkerPopCountdown -= timeSinceLastTurn;
+    if (seat->mWorkerPopCountdown > 0.0)
+        return;
+
+    // Every worker above the free four is lost
+    int numToPop = seat->getNumCreaturesWorkers() - AUTO_WORKERS_TARGET;
+    std::vector<Creature*> workers;
+    for (Creature* creature : mCreatures)
+    {
+        if (numToPop <= 0)
+            break;
+        if (creature->getSeat() != seat || !creature->isAlive())
+            continue;
+        if (!creature->getDefinition()->isWorker())
+            continue;
+        workers.push_back(creature);
+        --numToPop;
+    }
+    for (Creature* worker : workers)
+    {
+        worker->fireRemoveEntityToSeatsWithVision(this);
+        worker->removeEntityFromPositionTile();
+        worker->removeFromGameMap(this);
+        worker->deleteYourself(this, getNodeType());
+    }
+
+    if (seat->getPlayer() != nullptr)
+    {
+        ServerNotification* serverNotification = new ServerNotification(
+            ServerNotificationType::chatServer, seat->getPlayer());
+        serverNotification->mPacket
+            << "Your workers vanished because the mana ran out"
+            << EventShortNoticeType::majorGameEvent;
+        ODServer::getSingleton().queueServerNotification(serverNotification);
+    }
+
+    seat->mManaShortageSeconds = 0.0;
+    seat->mWorkerPopCountdown = -1.0;
+}
+
+void GameMap::updateSeatAutoWorkers(Seat* seat, double timeSinceLastTurn)
+{
+    if (seat->getNumCreaturesWorkers() >= AUTO_WORKERS_TARGET)
+    {
+        // At the target the heart is done creating and the clock starts over
+        seat->mAutoWorkerTimer = 0.0;
+        return;
+    }
+
+    // Only a living heart creates workers
+    Room* heartRoom = nullptr;
+    for (Room* room : getRooms())
+    {
+        if (room->getSeat() != seat)
+            continue;
+        if (room->getType() != RoomType::dungeonTemple)
+            continue;
+        if (room->getHP(nullptr) <= 0.0)
+            continue;
+        heartRoom = room;
+        break;
+    }
+    if (heartRoom == nullptr)
+    {
+        seat->mAutoWorkerTimer = 0.0;
+        return;
+    }
+
+    Tile* heartTile = static_cast<RoomDungeonTemple*>(heartRoom)->getHeartTile();
+    const CreatureDefinition* classToSpawn = seat->getWorkerClassToSpawn();
+    if (heartTile == nullptr || classToSpawn == nullptr)
+    {
+        seat->mAutoWorkerTimer = 0.0;
+        return;
+    }
+
+    seat->mAutoWorkerTimer += timeSinceLastTurn;
+    while (seat->mAutoWorkerTimer >= AUTO_WORKER_INTERVAL_SECONDS
+        && seat->getNumCreaturesWorkers() < AUTO_WORKERS_TARGET)
+    {
+        seat->mAutoWorkerTimer -= AUTO_WORKER_INTERVAL_SECONDS;
+        Creature* newCreature = new Creature(this, classToSpawn, seat);
+        newCreature->addToGameMap();
+        Ogre::Vector3 spawnPosition(static_cast<Ogre::Real>(heartTile->getX()),
+                                    static_cast<Ogre::Real>(heartTile->getY()),
+                                    static_cast<Ogre::Real>(0.0));
+        newCreature->addParticleEffect("SummonWorker", 3);
+        newCreature->createMesh();
+        newCreature->setPosition(spawnPosition);
+        ++seat->mNumCreaturesWorkers;
+    }
+}
+
+void GameMap::updateSeatHeartDefense(Seat* seat)
+{
+    // Only a living heart is defended
+    Room* heartRoom = nullptr;
+    for (Room* room : getRooms())
+    {
+        if (room->getSeat() != seat)
+            continue;
+        if (room->getType() != RoomType::dungeonTemple)
+            continue;
+        if (room->getHP(nullptr) <= 0.0)
+            continue;
+        heartRoom = room;
+        break;
+    }
+
+    Tile* heartTile = heartRoom != nullptr
+        ? static_cast<RoomDungeonTemple*>(heartRoom)->getHeartTile()
+        : nullptr;
+    if (heartRoom == nullptr || heartTile == nullptr)
+    {
+        // No living heart: no defence, and a running defence ends
+        seat->mHeartDefenceActive = false;
+        seat->mHeartDefenceHeartDamaged = false;
+        return;
+    }
+
+    // The nearest living enemy creature in range of the heart
+    Tile* nearestEnemyTile = nullptr;
+    int nearestDistanceSquared = HEART_DEFENCE_RANGE_SQUARED + 1;
+    for (Creature* creature : getCreatures())
+    {
+        if (creature == nullptr)
+            continue;
+        if (creature->getSeat() == nullptr || seat->isAlliedSeat(creature->getSeat()))
+            continue;
+        if (!creature->isAlive() || !creature->getIsOnMap())
+            continue;
+        Tile* creatureTile = creature->getPositionTile();
+        if (creatureTile == nullptr)
+            continue;
+        const int distanceSquared = Pathfinding::squaredDistanceTile(*heartTile, *creatureTile);
+        if (distanceSquared < nearestDistanceSquared)
+        {
+            nearestDistanceSquared = distanceSquared;
+            nearestEnemyTile = creatureTile;
+        }
+    }
+
+    if (nearestEnemyTile == nullptr)
+    {
+        // No enemy in range: everyone returns to normal work
+        seat->mHeartDefenceActive = false;
+        seat->mHeartDefenceHeartDamaged = false;
+        return;
+    }
+
+    // While an enemy is in range, a damaged heart takes the runners to itself
+    seat->mHeartDefenceHeartDamaged =
+        heartRoom->getHP(nullptr) < static_cast<RoomDungeonTemple*>(heartRoom)->getHeartMaxHP();
+
+    if (!seat->mHeartDefenceActive)
+    {
+        // The defence starts: the alarm call sounds, not the combat music
+        seat->mHeartDefenceActive = true;
+        Player* owner = seat->getPlayer();
+        if (owner != nullptr && owner->getIsHuman() && !owner->getHasLost())
+        {
+            std::vector<Seat*> seats;
+            seats.push_back(seat);
+            fireRelativeSound(seats, SoundRelativeKeeperStatements::WeAreUnderAttack);
+        }
+    }
+}
+
+Tile* GameMap::getHeartDefenceTargetTile(Creature& runner, Seat* seat)
+{
+    Room* heartRoom = nullptr;
+    for (Room* room : getRooms())
+    {
+        if (room->getSeat() != seat)
+            continue;
+        if (room->getType() != RoomType::dungeonTemple)
+            continue;
+        if (room->getHP(nullptr) <= 0.0)
+            continue;
+        heartRoom = room;
+        break;
+    }
+    Tile* heartTile = heartRoom != nullptr
+        ? static_cast<RoomDungeonTemple*>(heartRoom)->getHeartTile()
+        : nullptr;
+    if (heartTile == nullptr)
+        return nullptr;
+
+    // A damaged heart takes the runners; otherwise they rally the nearest fighter
+    Tile* runnerTile = runner.getPositionTile();
+    if (!seat->getHeartDefenceHeartDamaged() && runnerTile != nullptr)
+    {
+        Tile* nearestFighterTile = nullptr;
+        bool foundFighter = false;
+        int nearestDistanceSquared = 0;
+        for (Creature* creature : getCreatures())
+        {
+            if (creature == nullptr || creature == &runner)
+                continue;
+            if (creature->getSeat() == nullptr || !seat->isAlliedSeat(creature->getSeat()))
+                continue;
+            if (!creature->isAlive() || !creature->getIsOnMap())
+                continue;
+            if (creature->getDefinition()->isHeartDefenceRunner())
+                continue; // fighters only
+            Tile* fighterTile = creature->getPositionTile();
+            if (fighterTile == nullptr)
+                continue;
+            const int distanceSquared = Pathfinding::squaredDistanceTile(*runnerTile, *fighterTile);
+            if (!foundFighter || distanceSquared < nearestDistanceSquared)
+            {
+                foundFighter = true;
+                nearestDistanceSquared = distanceSquared;
+                nearestFighterTile = fighterTile;
+            }
+        }
+        if (nearestFighterTile != nullptr)
+            return nearestFighterTile;
+    }
+
+    // No fighter to rally, or the heart is damaged: hold the heart
+    return heartTile;
 }
 
 void GameMap::updateAnimations(Ogre::Real timeSinceLastFrame)
@@ -1773,6 +2175,13 @@ std::vector<GameEntity*> GameMap::getVisibleForce(const std::vector<Tile*>& visi
         if(enemyForce)
         {
             tile->fillWithEntities(returnList, SelectionEntityWanted::creatureAliveEnemyAttackable, seat->getPlayer());
+            for(GameEntity* entity : tile->getEntitiesInTile())
+            {
+                if(entity->getObjectType() == GameEntityType::persistentObject
+                    && entity->isAttackable(tile, seat)
+                    && std::find(returnList.begin(), returnList.end(), entity) == returnList.end())
+                    returnList.push_back(entity);
+            }
             Building* building = tile->getCoveringBuilding();
             if((building != nullptr) &&
                (!building->getSeat()->isAlliedSeat(seat)) &&
@@ -1867,6 +2276,7 @@ void GameMap::addRoom(Room *r)
     }
 
     mRooms.push_back(r);
+    markWallTorchesDirty();
 }
 
 void GameMap::removeRoom(Room *r)
@@ -1882,6 +2292,7 @@ void GameMap::removeRoom(Room *r)
     }
 
     mRooms.erase(it);
+    markWallTorchesDirty();
 }
 
 std::vector<Room*> GameMap::getRoomsByType(RoomType type) const
@@ -2027,6 +2438,32 @@ void GameMap::addTrap(Trap *trap)
         + Helper::toString(nbTiles) + ", seatId=" + Helper::toString(trap->getSeat()->getId()));
 
     mTraps.push_back(trap);
+}
+
+bool GameMap::moveTrapProductionOrder(Seat* seat, const std::string& name, bool earlier)
+{
+    if(seat == nullptr || !isServerGameMap() || isInEditorMode())
+        return false;
+    std::vector<Trap*>::iterator selected = std::find_if(mTraps.begin(), mTraps.end(), [&](Trap* trap)
+    {
+        return trap->getName() == name && trap->getSeat() == seat &&
+            trap->getNbNeededCraftedTrap() > 0;
+    });
+    if(selected == mTraps.end())
+        return false;
+    std::vector<Trap*>::iterator adjacent = selected;
+    while(earlier ? adjacent != mTraps.begin() : adjacent + 1 != mTraps.end())
+    {
+        if(earlier)
+            --adjacent;
+        else
+            ++adjacent;
+        if((*adjacent)->getSeat() != seat || (*adjacent)->getNbNeededCraftedTrap() <= 0)
+            continue;
+        std::iter_swap(selected, adjacent);
+        return true;
+    }
+    return false;
 }
 
 void GameMap::removeTrap(Trap *t)
@@ -2225,6 +2662,7 @@ bool GameMap::doFloodFill(Seat* seat, Tile* tile)
             case TileType::dirt:
             case TileType::gold:
             case TileType::rock:           
+            case TileType::manaWell:
             {
                 hasChanged |= tile->updateFloodFillFromTile(seat, FloodFillType::ground, neigh);
                 hasChanged |= tile->updateFloodFillFromTile(seat, FloodFillType::groundWater, neigh);
@@ -2421,6 +2859,7 @@ void GameMap::enableFloodFill()
                 {
                     if(((tile->getType() == TileType::dirt) ||
                         (tile->getType() == TileType::gold) ||
+                        (tile->getType() == TileType::manaWell) ||
                         (tile->getType() == TileType::rock)) &&
                        (tile->getFloodFillValue(rogueSeat, FloodFillType::ground) == Tile::NO_FLOODFILL))
                     {
@@ -3546,6 +3985,174 @@ float GameMap::getHeightFromTile(const Tile* tile) const
     TileVisual tv = tile->getTileVisual();
     int index = computeTileSetIndex(tile);
     return mHighMap->at(tv).at(index);
+}
+
+void GameMap::updateWallTorches()
+{
+    if(!isServerGameMap())
+        return;
+
+    if(mWallTorchesDirty)
+    {
+        mWallTorchesDirty = false;
+
+        // What the placement needs to know about each tile
+        int32_t sizeX = getMapSizeX();
+        int32_t sizeY = getMapSizeY();
+        std::vector<WallTorchTileInfo> infos(static_cast<size_t>(sizeX) * static_cast<size_t>(sizeY));
+        std::map<Room*, int32_t> roomIndices;
+        for(int32_t y = 0; y < sizeY; ++y)
+        {
+            for(int32_t x = 0; x < sizeX; ++x)
+            {
+                Tile* tile = getTile(x, y);
+                if(tile == nullptr)
+                    continue;
+
+                WallTorchTileInfo& info = infos[static_cast<size_t>(y) * static_cast<size_t>(sizeX) + static_cast<size_t>(x)];
+                Seat* tileSeat = tile->getSeat();
+                if(tile->getFullness() > 0.0)
+                {
+                    // Only a reinforced wall can carry a torch
+                    if((tileSeat != nullptr) && (tile->getTileVisual() == TileVisual::claimedFull))
+                    {
+                        info.mWallSeatId = tileSeat->getId();
+                        info.mWallTeamId = tileSeat->getTeamId();
+                    }
+                    continue;
+                }
+
+                Room* room = tile->getCoveringRoom();
+                if(room != nullptr)
+                {
+                    // The rooms are numbered by their first tile, row by row
+                    std::map<Room*, int32_t>::iterator itRoom = roomIndices.find(room);
+                    if(itRoom == roomIndices.end())
+                    {
+                        int32_t newIndex = static_cast<int32_t>(roomIndices.size());
+                        itRoom = roomIndices.insert(std::pair<Room*, int32_t>(room, newIndex)).first;
+                    }
+                    info.mRoomIndex = itRoom->second;
+                    info.mBlocked = (room->getBuildingObjects().find(tile) != room->getBuildingObjects().end());
+                }
+
+                // No torch faces water, lava, a bridge or a door
+                if((tile->getType() == TileType::water) || (tile->getType() == TileType::lava) || tile->getHasBridge())
+                    continue;
+
+                Trap* trap = tile->getCoveringTrap();
+                if((trap != nullptr) && trap->isDoor())
+                    continue;
+
+                if((tileSeat != nullptr) && tile->isClaimed())
+                    info.mOpenTeamId = tileSeat->getTeamId();
+            }
+        }
+
+        WallTorchConfig config = WallTorchConfig::load();
+        std::vector<WallTorch> placed;
+        WallTorches::compute(sizeX, sizeY, infos, config.mPlacement, placed);
+        mWallTorches.clear();
+        for(const WallTorch& torch : placed)
+            mWallTorches[WallTorches::getKey(torch.mX, torch.mY, torch.mDir, sizeX)] = torch;
+    }
+
+    int32_t sizeX = getMapSizeX();
+    for(Seat* seat : mSeats)
+    {
+        if((seat->getPlayer() == nullptr) || !seat->getPlayer()->getIsHuman())
+            continue;
+
+        // The first time (or after a reset) the seat gets the whole list
+        bool full = (mWallTorchesSent.find(seat) == mWallTorchesSent.end());
+        std::set<uint32_t>& sent = mWallTorchesSent[seat];
+
+        // Torches on tiles the seat has seen that it does not have yet
+        std::vector<const WallTorch*> added;
+        for(const std::pair<const uint32_t, WallTorch>& p : mWallTorches)
+        {
+            if(sent.find(p.first) != sent.end())
+                continue;
+
+            Tile* tile = getTile(p.second.mX, p.second.mY);
+            if((tile == nullptr) || !seat->hasSeenTile(tile))
+                continue;
+
+            added.push_back(&p.second);
+        }
+
+        // Torches the seat has that are gone. They are only taken back while the seat sees the wall,
+        // so that a change out of sight is not given away
+        std::vector<uint32_t> removed;
+        for(uint32_t key : sent)
+        {
+            if(mWallTorches.find(key) != mWallTorches.end())
+                continue;
+
+            int32_t index = static_cast<int32_t>(key / WallTorches::NB_DIRECTIONS);
+            Tile* tile = getTile(index % sizeX, index / sizeX);
+            if((tile == nullptr) || seat->hasVisionOnTile(tile))
+                removed.push_back(key);
+        }
+
+        if(!full && added.empty() && removed.empty())
+            continue;
+
+        ServerNotification* serverNotification = new ServerNotification(
+            ServerNotificationType::wallTorches, seat->getPlayer());
+        serverNotification->mPacket << full;
+        uint32_t nbRemoved = removed.size();
+        serverNotification->mPacket << nbRemoved;
+        for(uint32_t key : removed)
+        {
+            int32_t index = static_cast<int32_t>(key / WallTorches::NB_DIRECTIONS);
+            int32_t dir = static_cast<int32_t>(key % WallTorches::NB_DIRECTIONS);
+            serverNotification->mPacket << (index % sizeX) << (index / sizeX) << dir;
+            sent.erase(key);
+        }
+        uint32_t nbAdded = added.size();
+        serverNotification->mPacket << nbAdded;
+        for(const WallTorch* torch : added)
+        {
+            serverNotification->mPacket << torch->mX << torch->mY << torch->mDir << torch->mSeatId;
+            sent.insert(WallTorches::getKey(torch->mX, torch->mY, torch->mDir, sizeX));
+        }
+        ODServer::getSingleton().queueServerNotification(serverNotification);
+    }
+}
+
+void GameMap::resetWallTorchesSent(Seat* seat)
+{
+    mWallTorchesSent.erase(seat);
+}
+
+void GameMap::updateWallTorchesFromPacket(ODPacket& is)
+{
+    bool full;
+    uint32_t nbRemoved;
+    OD_ASSERT_TRUE(is >> full >> nbRemoved);
+    if(full)
+        mWallTorches.clear();
+
+    int32_t sizeX = getMapSizeX();
+    for(uint32_t i = 0; i < nbRemoved; ++i)
+    {
+        int32_t x;
+        int32_t y;
+        int32_t dir;
+        OD_ASSERT_TRUE(is >> x >> y >> dir);
+        mWallTorches.erase(WallTorches::getKey(x, y, dir, sizeX));
+    }
+
+    uint32_t nbAdded;
+    OD_ASSERT_TRUE(is >> nbAdded);
+    for(uint32_t i = 0; i < nbAdded; ++i)
+    {
+        WallTorch torch;
+        OD_ASSERT_TRUE(is >> torch.mX >> torch.mY >> torch.mDir >> torch.mSeatId);
+        mWallTorches[WallTorches::getKey(torch.mX, torch.mY, torch.mDir, sizeX)] = torch;
+    }
+    ++mWallTorchesVersion;
 }
 
 void GameMap::setLocalPlayer(Player* pp){

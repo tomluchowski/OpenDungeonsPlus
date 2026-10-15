@@ -89,6 +89,10 @@ public:
     const std::string& getFilename() const
     { return mFilename; }
 
+    //! \brief The sample data (nullptr if the file could not be loaded). Needed to start looping channels.
+    const sf::SoundBuffer* getBuffer() const
+    { return mSoundBuffer; }
+
 private:
     //! \brief The Main sound object
     sf::Sound* mSound;
@@ -120,6 +124,13 @@ public:
     void playSpatialSound(const std::string& family,
         float XPos, float YPos, float height = TILE_ZPOS);
 
+    //! \brief Starts a looping spatial sound at the given position, with the same attenuation as the
+    //! other spatial sounds. Returns a handle for stopSpatialLoop, or 0 if the family has no sound.
+    uint32_t startSpatialLoop(const std::string& family, float XPos, float YPos, float height = TILE_ZPOS);
+
+    //! \brief Stops and frees a loop started with startSpatialLoop. Unknown handles (and 0) are ignored.
+    void stopSpatialLoop(uint32_t handle);
+
     //! \brief Proxy used for sounds that aren't spatial and can be heard everywhere.
     void playRelativeSound(const std::string& family);
 
@@ -133,6 +144,11 @@ private:
     //! are read when launching the game by browsing the sound directory
     //! \note the GameSound here are handled by the game sound cache.
     std::map<std::string, std::vector<GameSound*>> mRelativeSounds;
+
+    //! \brief The running loops (see startSpatialLoop). They only borrow the buffers of the sound cache.
+    std::map<uint32_t, sf::Sound*> mSpatialLoops;
+
+    uint32_t mNextLoopHandle;
 
     //! \brief The sound cache, containing the sound references, used by game entities.
     //! \brief The GameSounds here must be deleted at destruction.

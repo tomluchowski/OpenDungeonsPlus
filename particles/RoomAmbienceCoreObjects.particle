@@ -1,0 +1,463 @@
+// Effects of the dungeon heart, the portal, bridges, doors and traps
+// (see config/roomAmbienceCoreObjects.cfg).
+
+// ---- Dungeon heart ----
+
+// The red glow around the heart; the game lets it beat
+particle_system RoomAmbHeartGlow
+{
+    material        RoomAmbGlow
+    point_rendering false
+    particle_width  2.4
+    particle_height 2.4
+    cull_each       false
+    quota           1
+    billboard_type  point
+
+    emitter Point
+    {
+        angle               0
+        colour              1.0 0.2 0.25 0.45
+        emission_rate       2
+        time_to_live        100000
+        direction           0 0 1
+        velocity            0
+    }
+}
+
+// Sparks rising from the heart
+particle_system RoomAmbHeartSparks
+{
+    material        RoomAmbSpark
+    point_rendering false
+    particle_width  0.09
+    particle_height 0.09
+    cull_each       false
+    quota           14
+    billboard_type  point
+
+    emitter Box
+    {
+        angle               30
+        colour_range_start  1.0 0.25 0.2 1.0
+        colour_range_end    1.0 0.55 0.3 1.0
+        emission_rate       5
+        time_to_live        1.9
+        direction           0 0 1
+        velocity_min        0.45
+        velocity_max        1.2
+        width               0.8
+        height              0.8
+        depth               0.1
+    }
+
+    affector ColourFader
+    {
+        alpha   -0.5
+    }
+
+    affector DirectionRandomiser
+    {
+        randomness  0.4
+        scope       0.5
+        keep_velocity true
+    }
+}
+
+// A glowing vein in the floor beside the heart; the game lets it beat in time
+particle_system RoomAmbHeartVein
+{
+    material        RoomAmbGlow
+    point_rendering false
+    particle_width  1.7
+    particle_height 1.7
+    cull_each       false
+    quota           1
+    billboard_type  perpendicular_common
+    common_direction 0 0 1
+    common_up_vector 0 1 0
+
+    emitter Point
+    {
+        angle               0
+        colour              1.0 0.15 0.2 0.3
+        emission_rate       2
+        time_to_live        100000
+        direction           0 0 1
+        velocity            0
+        position            0 0 0.03
+    }
+}
+
+// A burst of sparks now and then while someone stands by the heart
+particle_system RoomAmbHeartFlare
+{
+    material        RoomAmbSpark
+    point_rendering false
+    particle_width  0.12
+    particle_height 0.12
+    cull_each       false
+    quota           30
+    billboard_type  point
+
+    emitter Point
+    {
+        angle               80
+        colour_range_start  1.0 0.3 0.25 1.0
+        colour_range_end    1.0 0.7 0.4 1.0
+        emission_rate       80
+        time_to_live        1.1
+        direction           0 0 1
+        velocity_min        0.8
+        velocity_max        2.2
+        position            0 0 1.4
+        duration            0.25
+        repeat_delay_min    1.2
+        repeat_delay_max    2.8
+    }
+
+    affector LinearForce
+    {
+        force_vector        0 0 -2.5
+        force_application   add
+    }
+
+    affector ColourFader
+    {
+        alpha   -0.9
+    }
+}
+
+// ---- Portal ----
+
+// The swirl of the portal, lying flat and turning
+particle_system RoomAmbPortalSwirl
+{
+    material        RoomAmbSwirl
+    point_rendering false
+    particle_width  2.5
+    particle_height 2.5
+    cull_each       false
+    quota           1
+    billboard_type  perpendicular_common
+    common_direction 0 0 1
+    common_up_vector 0 1 0
+
+    emitter Point
+    {
+        angle               0
+        colour              0.6 0.45 1.0 0.7
+        emission_rate       2
+        time_to_live        100000
+        direction           0 0 1
+        velocity            0
+        position            0 0 0.12
+    }
+
+    affector Rotator
+    {
+        rotation_speed_range_start  70
+        rotation_speed_range_end    70
+        rotation_range_start        0
+        rotation_range_end          0
+    }
+}
+
+// The light that the portal throws on the floor around it
+particle_system RoomAmbPortalGlow
+{
+    material        RoomAmbGlow
+    point_rendering false
+    particle_width  3.4
+    particle_height 3.4
+    cull_each       false
+    quota           1
+    billboard_type  perpendicular_common
+    common_direction 0 0 1
+    common_up_vector 0 1 0
+
+    emitter Point
+    {
+        angle               0
+        colour              0.45 0.4 1.0 0.28
+        emission_rate       2
+        time_to_live        100000
+        direction           0 0 1
+        velocity            0
+        position            0 0 0.06
+    }
+}
+
+// Sparks of light flying up from the portal
+particle_system RoomAmbPortalSparks
+{
+    material        RoomAmbSpark
+    point_rendering false
+    particle_width  0.1
+    particle_height 0.1
+    cull_each       false
+    quota           16
+    billboard_type  point
+
+    emitter Ring
+    {
+        angle               15
+        colour_range_start  0.65 0.55 1.0 1.0
+        colour_range_end    0.85 0.8 1.0 1.0
+        emission_rate       6
+        time_to_live        1.9
+        direction           0 0 1
+        velocity_min        0.4
+        velocity_max        0.9
+        position            0 0 0.15
+        width               2.0
+        height              2.0
+        inner_width         0.6
+        inner_height        0.6
+        depth               0.05
+    }
+
+    affector ColourFader
+    {
+        alpha   -0.5
+    }
+
+    affector DirectionRandomiser
+    {
+        randomness  0.3
+        scope       0.5
+        keep_velocity true
+    }
+}
+
+// A creature arrives: a flash of light
+particle_system RoomAmbPortalFlash
+{
+    material        RoomAmbGlow
+    point_rendering false
+    particle_width  2.2
+    particle_height 2.2
+    cull_each       false
+    quota           2
+    billboard_type  point
+
+    emitter Point
+    {
+        angle               0
+        colour              0.8 0.75 1.0 0.85
+        emission_rate       20
+        time_to_live        0.8
+        direction           0 0 1
+        velocity            0
+        position            0 0 0.6
+        duration            0.08
+    }
+
+    affector ColourFader
+    {
+        alpha   -1.1
+    }
+}
+
+// ---- Bridges ----
+
+// A pool of orange light on the floor, like the glow of lava below
+particle_system RoomAmbLavaPool
+{
+    material        RoomAmbGlow
+    point_rendering false
+    particle_width  1.5
+    particle_height 1.5
+    cull_each       false
+    quota           1
+    billboard_type  perpendicular_common
+    common_direction 0 0 1
+    common_up_vector 0 1 0
+
+    emitter Point
+    {
+        angle               0
+        colour              1.0 0.45 0.1 0.25
+        emission_rate       2
+        time_to_live        100000
+        direction           0 0 1
+        velocity            0
+        position            0 0 0.05
+    }
+}
+
+// Embers rising over lava
+particle_system RoomAmbLavaEmbers
+{
+    material        RoomAmbSpark
+    point_rendering false
+    particle_width  0.07
+    particle_height 0.07
+    cull_each       false
+    quota           10
+    billboard_type  point
+
+    emitter Box
+    {
+        angle               25
+        colour_range_start  1.0 0.5 0.12 1.0
+        colour_range_end    1.0 0.78 0.3 1.0
+        emission_rate       2.5
+        time_to_live        2.2
+        direction           0 0 1
+        velocity_min        0.3
+        velocity_max        0.8
+        position            0 0 0.1
+        width               1.0
+        height              1.0
+        depth               0.05
+    }
+
+    affector ColourFader
+    {
+        alpha   -0.45
+    }
+
+    affector DirectionRandomiser
+    {
+        randomness  0.4
+        scope       0.5
+        keep_velocity true
+    }
+}
+
+// Light glittering on water
+particle_system RoomAmbWaterGlint
+{
+    material        RoomAmbSpark
+    point_rendering false
+    particle_width  0.15
+    particle_height 0.15
+    cull_each       false
+    quota           4
+    billboard_type  point
+
+    emitter Box
+    {
+        angle               0
+        colour              0.7 0.9 1.0 0.0
+        emission_rate       1.2
+        time_to_live        0.9
+        direction           0 0 1
+        velocity            0
+        position            0 0 0.08
+        width               1.0
+        height              1.0
+        depth               0.02
+    }
+
+    affector ColourInterpolator
+    {
+        time0   0
+        colour0 0.7 0.9 1.0 0.0
+        time1   0.4
+        colour1 0.8 0.95 1.0 1.0
+        time2   1
+        colour2 0.7 0.9 1.0 0.0
+    }
+}
+
+// Mist over water
+particle_system RoomAmbWaterMist
+{
+    material        RoomAmbSmoke
+    point_rendering false
+    particle_width  1.0
+    particle_height 1.0
+    cull_each       false
+    quota           4
+    billboard_type  point
+
+    emitter Box
+    {
+        angle               90
+        colour              0.75 0.85 0.95 0.0
+        emission_rate       0.7
+        time_to_live        6
+        direction           1 0 0
+        velocity_min        0.03
+        velocity_max        0.08
+        position            0 0 0.15
+        width               1.0
+        height              1.0
+        depth               0.05
+    }
+
+    affector ColourInterpolator
+    {
+        time0   0
+        colour0 0.75 0.85 0.95 0.0
+        time1   0.5
+        colour1 0.75 0.85 0.95 0.18
+        time2   1
+        colour2 0.75 0.85 0.95 0.0
+    }
+
+    affector Scaler
+    {
+        rate    0.08
+    }
+}
+
+// Grey flecks of stone falling off a bridge now and then
+particle_system RoomAmbPebbleFall
+{
+    material        RoomAmbDust
+    point_rendering false
+    particle_width  0.05
+    particle_height 0.05
+    cull_each       false
+    quota           4
+    billboard_type  point
+
+    emitter Box
+    {
+        angle               30
+        colour_range_start  0.45 0.43 0.4 1.0
+        colour_range_end    0.6 0.58 0.55 1.0
+        emission_rate       0.4
+        time_to_live        0.9
+        direction           0 0 -1
+        velocity_min        0.05
+        velocity_max        0.2
+        position            0 0 0.1
+        width               0.9
+        height              0.9
+        depth               0.02
+    }
+
+    affector LinearForce
+    {
+        force_vector        0 0 -3
+        force_application   add
+    }
+}
+
+// ---- Doors and traps ----
+
+// A small red light of a trap that is ready
+particle_system RoomAmbArmedGlow
+{
+    material        RoomAmbGlow
+    point_rendering false
+    particle_width  0.22
+    particle_height 0.22
+    cull_each       false
+    quota           1
+    billboard_type  point
+
+    emitter Point
+    {
+        angle               0
+        colour              1.0 0.3 0.12 0.6
+        emission_rate       2
+        time_to_live        100000
+        direction           0 0 1
+        velocity            0
+    }
+}

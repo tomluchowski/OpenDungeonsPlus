@@ -1,0 +1,20 @@
+// Weapon rack, wall tools, arena banner and grave mound of the room ambience
+import RTSS/PerPixel_SinglePass from "RTShaderSystem.material"
+material RoomDecor : RTSS/PerPixel_SinglePass
+{
+    technique
+    {
+        pass
+        {
+            ambient 1.0 1.0 1.0 1.0
+            diffuse 1.0 1.0 1.0 1.0
+            specular 0.2 0.2 0.2 1.0 12.0
+            emissive 0.0 0.0 0.0 0.0
+
+            texture_unit
+            {
+                texture RoomDecorSurface.png
+            }
+        }
+    }
+}
