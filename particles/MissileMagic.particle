@@ -3,32 +3,33 @@ particle_system MissileMagic
 {
     material MissileMagic
     point_rendering            false
-    particle_width             1
-    particle_height            1
+    particle_width             0.34
+    particle_height            0.34
     cull_each                  false
-    quota                      1000
-    emit_emitter_quota         10
+    quota                      64
     billboard_type             point
 
-    emitter Box
+    emitter Point
     {
-        angle                   180
-        colour                  0 0 1
-        emission_rate           100
-        time_to_live            0.3
-        direction               0 1 0
-        velocity                2
-        duration                0.1
-        repeat_delay            0.2
-        width           1
-        height          1
-        depth           0
+        angle                   0
+        colour                  1 1 1 1
+        emission_rate           120
+        time_to_live            0.16
+        velocity                0
     }
 
-    // Make em float downwards
-    affector LinearForce
+    affector ColourInterpolator
     {
-        force_vector            0 -1 0
-        force_application       add
+        time0                   0
+        colour0                 1 1 1 1
+        time1                   0.3
+        colour1                 1 0.65 0.25 0.85
+        time2                   1
+        colour2                 0.5 0.08 0.01 0
+    }
+
+    affector Scaler
+    {
+        rate                    -1.2
     }
 }
