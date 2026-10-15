@@ -15,12 +15,38 @@ of development.
 Future versions will have an in-game tutorial, but for now, you can use the
 following resources to learn the basic gameplay concepts:
 
-- In-game help screen, toggled with the F1 key
+- In-game help screen, available through Options
 - Video tutorial (version 0.5.0): https://www.youtube.com/watch?v=P4MClQUdb0E
 - Wiki page: https://github.com/OpenDungeons/OpenDungeons/wiki/Gameplay
 
 You can play singleplayer levels using the Skirmish menu, or host/join a
 multiplayer game by using the corresponding menus.
+
+Use Load Game in the game options, or F8 while hosting a local game, to open
+the saved-game browser; Back preserves the current game until another save is
+selected. Loaded single-player saves resume their stored side without a new
+seat-selection step. Long save descriptions can be scrolled.
+
+Creature combat uses model-specific attacks, directional impact reactions, visible fireballs and arrows, with an optional blood-effects setting.
+
+Creatures reach for and carry chicken meals using their available limb rigs, with brief feather effects and cleanup when eating is interrupted.
+
+Creatures settle into their beds, align with the mattress and restore their ground pose and facing when waking or interrupted.
+Use Production beside the minimap or in Options to inspect owned trap orders and workshop progress, and move pending orders up or down in the production priority.
+
+Research rooms, traps and spells through three levels in the skill tree; grey,
+silver and gold states show progress, prerequisite paths show dependencies, and
+completed upgrades, research points and the selected order are retained in saves.
+
+Creatures route through usable gaps around solid room furniture, including corner-aligned beds, without treating other creatures as route blockers.
+
+The hand holds a pointer-aligned hammer while building rooms, traps and doors; an eligible build request reuses the digging hand angle and strike movement.
+
+Creature health and needs indicators are visible by default; press Alt to toggle
+them, and zoom in to enlarge their level, experience and attack-recovery display.
+Depleted health segments disappear so creatures remain visible through the gaps.
+
+After thirty seconds without input, the empty hand randomly checks a wristwatch or plays with a yo-yo while retaining its normal angle; the index finger follows each yo-yo pull, and any input immediately returns the hand to the current action.
 
 ### Be part of the community
 

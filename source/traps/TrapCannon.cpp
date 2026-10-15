@@ -16,6 +16,8 @@
  */
 
 #include "traps/TrapCannon.h"
+#include "game/SkillManager.h"
+#include "game/SkillType.h"
 
 #include "entities/Tile.h"
 #include "entities/TrapEntity.h"
@@ -162,7 +164,9 @@ bool TrapCannon::shoot(Tile* tile)
     direction.normalise();
     MissileOneHit* missile = new MissileOneHit(getGameMap(), getSeat(), getName(), "Cannonball",
         "", direction, ConfigManager::getSingleton().getTrapConfigDouble("CannonSpeed"),
-        Random::Double(mMinDamage, mMaxDamage), 0.0, 0.0, nullptr, false, false, true);
+        Random::Double(SkillManager::getResearchValue(getSeat(), SkillType::trapCannon, mMinDamage),
+            SkillManager::getResearchValue(getSeat(), SkillType::trapCannon, mMaxDamage)),
+        0.0, 0.0, nullptr, false, false, true);
     missile->addToGameMap();
     missile->createMesh();
     missile->setPosition(position);

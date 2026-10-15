@@ -33,11 +33,13 @@ public:
     virtual ~Skill()
     {}
 
-    inline int32_t getNeededSkillPoints() const
-    { return mNeededSkillPoints; }
+    int32_t getNeededSkillPoints(uint32_t level = 1) const;
 
     inline SkillType getType() const
     { return mType; }
+
+    const std::vector<const Skill*>& getDependencies() const
+    { return mSkillDepends; }
 
     bool canBeSkilled(const std::vector<SkillType>& skillsDone) const;
 

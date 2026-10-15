@@ -1,0 +1,17 @@
+// Selection frame of a marked tile: warm gold and ember instead of the blue of the water surface it was drawn with
+material SquareSelector
+{
+    receive_shadows off
+    technique
+    {
+        pass
+        {
+            ambient 0.0 0.0 0.0 0.9
+            diffuse 0.0 0.0 0.0 0.9
+            specular 0.0 0.0 0.0 0.0 2.0
+            emissive 1.0 0.70 0.22 0.9
+            scene_blend alpha_blend
+            depth_write off
+        }
+    }
+}

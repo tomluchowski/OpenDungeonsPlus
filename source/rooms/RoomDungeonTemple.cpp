@@ -17,16 +17,27 @@
 
 #include "rooms/RoomDungeonTemple.h"
 
+#include "game/Player.h"
 #include "game/Seat.h"
 #include "gamemap/GameMap.h"
 #include "entities/Creature.h"
+#include "entities/CreatureDefinition.h"
 #include "entities/GameEntityType.h"
 #include "entities/GiftBoxEntity.h"
 #include "entities/PersistentObject.h"
 #include "entities/SkillEntity.h"
 #include "entities/Tile.h"
+#include "ODApplication.h"
+#include "network/ODPacket.h"
+#include "network/ODServer.h"
+#include "network/ServerNotification.h"
 #include "rooms/RoomManager.h"
 #include "utils/LogManager.h"
+
+#include <algorithm>
+#include <cmath>
+#include <istream>
+#include <ostream>
 
 const std::string RoomDungeonTempleName = "DungeonTemple";
 const std::string RoomDungeonTempleNameDisplay = "Dungeon temple room";
@@ -35,6 +46,36 @@ const TileVisual RoomDungeonTemple::mRoomVisual = TileVisual::dungeonTempleRoom;
 
 namespace
 {
+class DungeonHeartObject : public PersistentObject
+{
+public:
+    DungeonHeartObject(GameMap* gameMap, RoomDungeonTemple& room, Tile* tile) :
+        PersistentObject(gameMap, room, "DungeonTempleObject", tile, 0.0, false),
+        mRoom(room)
+    {
+        setSeat(room.getSeat());
+    }
+
+    bool isAttackable(Tile* tile, Seat* seat) const override
+    { return mRoom.canAttackHeart(tile, seat); }
+
+    double getHP(Tile* tile) const override
+    { return mRoom.getHP(nullptr); }
+
+    double takeDamage(GameEntity* attacker, double absoluteDamage, double physicalDamage,
+        double magicalDamage, double elementDamage, Tile* tile, bool ko) override
+    {
+        const double damage = mRoom.takeHeartDamage(attacker, absoluteDamage,
+            physicalDamage, magicalDamage, elementDamage, tile);
+        if(damage > 0.0 && getHP(nullptr) <= 0.0)
+            fireEntityDead();
+        return damage;
+    }
+
+private:
+    RoomDungeonTemple& mRoom;
+};
+
 class RoomDungeonTempleFactory : public RoomFactory
 {
     TileVisual getVisualType() const override
@@ -100,11 +141,173 @@ class RoomDungeonTempleFactory : public RoomFactory
 static RoomRegister reg(new RoomDungeonTempleFactory);
 }
 
+const double RoomDungeonTemple::HEART_MAX_HP = 10000.0;
+const double RoomDungeonTemple::HEART_HEAL_PER_SECOND = 2.5;
+
 RoomDungeonTemple::RoomDungeonTemple(GameMap* gameMap) :
     Room(gameMap),
-    mTempleObject(nullptr)
+    mTempleObject(nullptr),
+    mHeartHP(-1.0),
+    mCriticalWarningSent(false)
 {
     setMeshName("DungeonTemple");
+}
+
+double RoomDungeonTemple::getHP(Tile* tile) const
+{
+    return mHeartHP < 0.0 ? getHeartMaxHP() : mHeartHP;
+}
+
+double RoomDungeonTemple::getHeartMaxHP() const
+{
+    return HEART_MAX_HP;
+}
+
+double RoomDungeonTemple::getHeartHealthFraction() const
+{
+    const double maxHP = getHeartMaxHP();
+    if(maxHP <= 0.0)
+        return 0.0;
+    return std::max(0.0, std::min(1.0, getHP(nullptr) / maxHP));
+}
+
+bool RoomDungeonTemple::canAttackHeart(Tile* tile, Seat* seat) const
+{
+    return seat != nullptr && getSeat() != nullptr && !getSeat()->isAlliedSeat(seat)
+        && mTempleObject != nullptr && tile == mTempleObject->getPositionTile()
+        && getHP(nullptr) > 0.0;
+}
+
+double RoomDungeonTemple::takeHeartDamage(GameEntity* attacker, double absoluteDamage,
+    double physicalDamage, double magicalDamage, double elementDamage,
+    Tile* tileTakingDamage)
+{
+    if(attacker == nullptr || !canAttackHeart(tileTakingDamage, attacker->getSeat()))
+        return 0.0;
+    // Only fighters damage an enemy heart; workers leave it alone
+    if(attacker->getObjectType() == GameEntityType::creature
+        && static_cast<Creature*>(attacker)->getDefinition()->isWorker())
+        return 0.0;
+
+    if(mHeartHP < 0.0)
+        mHeartHP = getHeartMaxHP();
+    const double damage = std::max(0.0, absoluteDamage)
+        + std::max(0.0, physicalDamage - getPhysicalDefense())
+        + std::max(0.0, magicalDamage - getMagicalDefense())
+        + std::max(0.0, elementDamage - getElementDefense());
+    const double damageDone = std::min(mHeartHP, damage);
+    mHeartHP -= damageDone;
+    if(mHeartHP <= 0.0)
+    {
+        // The heart object is removed shortly after death: keep what the defeat notification needs on the owner.
+        attacker->getSeat()->getStatistics().mKeepersDefeated++;
+        Player* owner = getSeat()->getPlayer();
+        if(owner != nullptr)
+        {
+            Tile* heartTile = mTempleObject->getPositionTile();
+            owner->recordHeartDestroyed(attacker->getSeat()->getId(),
+                heartTile != nullptr ? heartTile->getX() : -1,
+                heartTile != nullptr ? heartTile->getY() : -1);
+        }
+        fireEntityDead();
+    }
+    else if(!mCriticalWarningSent && !getGameMap()->isInEditorMode()
+        && mHeartHP <= 0.11 * getHeartMaxHP())
+    {
+        // Warn the owner once, at the first hit after the heart is already at or
+        // below 11 % of its durability. The killing hit sends nothing (defeat handles it).
+        mCriticalWarningSent = true;
+        Player* owner = getSeat()->getPlayer();
+        if(owner != nullptr && owner->getIsHuman() && !owner->getHasLost())
+        {
+            ServerNotification* serverNotification = new ServerNotification(
+                ServerNotificationType::chatServer, owner);
+            serverNotification->mPacket << "Your dungeon heart is in critical condition!"
+                << EventShortNoticeType::majorGameEvent;
+            ODServer::getSingleton().queueServerNotification(serverNotification);
+        }
+    }
+    if(getSeat()->getPlayer() != nullptr)
+        getGameMap()->playerIsFighting(getSeat()->getPlayer(), tileTakingDamage);
+    return damageDone;
+}
+
+bool RoomDungeonTemple::removeCoveredTile(Tile* tile)
+{
+    // The floor of a heart is never released in game mode, not even when the heart is
+    // destroyed: the platform stays as a ruin (see doUpkeep).
+    if(!getGameMap()->isInEditorMode())
+        return false;
+    return Room::removeCoveredTile(tile);
+}
+
+void RoomDungeonTemple::doUpkeep()
+{
+    if(getHP(nullptr) <= 0.0 && mTempleObject != nullptr && mTempleObject->notifyRemoveAsked())
+    {
+        // The heart is destroyed: only the heart object is released. The floor tiles stay
+        // covered by this room as an inert ruin, so the platform keeps its look. The room
+        // no longer counts as a dungeon temple because getHP() is 0 (see
+        // GameMap::getRoomsByType and Seat::computeSeatBeginTurn), which starts the
+        // existing last-temple defeat path.
+        removeAllBuildingObjects();
+        mTempleObject = nullptr;
+    }
+    // A living heart heals up to its maximum; a destroyed one (0) never does
+    if(mHeartHP > 0.0 && mHeartHP < getHeartMaxHP())
+    {
+        mHeartHP = std::min(getHeartMaxHP(),
+            mHeartHP + HEART_HEAL_PER_SECOND / ODApplication::turnsPerSecond);
+        // Healing above the critical level re-arms the warning for the next drop below it
+        if(mHeartHP > 0.11 * getHeartMaxHP())
+            mCriticalWarningSent = false;
+    }
+    Room::doUpkeep();
+}
+
+void RoomDungeonTemple::exportToStream(std::ostream& os) const
+{
+    Room::exportToStream(os);
+    if(!getGameMap()->isInEditorMode())
+        os << "HeartHealth10000 " << getHP(nullptr) << '\n';
+}
+
+bool RoomDungeonTemple::importFromStream(std::istream& is)
+{
+    if(!Room::importFromStream(is))
+        return false;
+    // Old maps and saves have no room-level health record: their heart starts
+    // undamaged, without interpreting the following room as health.
+    mHeartHP = getHeartMaxHP();
+    is >> std::ws;
+    if(is.peek() == 'H')
+    {
+        std::string marker;
+        double value;
+        if(!(is >> marker >> value) || !std::isfinite(value) || value < 0.0)
+            return false;
+        if(marker == "HeartHealth10000")
+            mHeartHP = std::min(value, getHeartMaxHP());
+        else if(marker == "HeartHealth")
+        {
+            // Saves from when the heart had 10000 health per room tile: keep the same share of
+            // the fixed maximum.
+            const double oldMaxHP = 10000.0 * static_cast<double>(numCoveredTiles());
+            mHeartHP = oldMaxHP > 0.0
+                ? std::min(1.0, value / oldMaxHP) * getHeartMaxHP() : 0.0;
+        }
+        else if(marker == "HeartHP")
+        {
+            // Saves written before the heart had its own health: the value was measured against
+            // the durability of the floor tiles. Keep the same share of the new maximum.
+            const double floorDurability = Building::getHP(nullptr);
+            mHeartHP = floorDurability > 0.0
+                ? std::min(1.0, value / floorDurability) * getHeartMaxHP() : 0.0;
+        }
+        else
+            return false;
+    }
+    return true;
 }
 
 void RoomDungeonTemple::updateActiveSpots(GameMap* gameMap)
@@ -119,7 +322,8 @@ void RoomDungeonTemple::updateActiveSpots(GameMap* gameMap)
         updateTemplePosition();
     else
     {
-        if(mTempleObject == nullptr)
+        // A destroyed heart (ruin) has no temple object and must not get a new one
+        if(mTempleObject == nullptr && getHP(nullptr) > 0.0)
         {
             // We check if the temple already exists (that can happen if it has
             // been restored after restoring a saved game)
@@ -157,7 +361,7 @@ void RoomDungeonTemple::updateTemplePosition()
     if (centralTile == nullptr)
         return;
 
-    mTempleObject = new PersistentObject(getGameMap(), *this, "DungeonTempleObject", centralTile, 0.0, false);
+    mTempleObject = new DungeonHeartObject(getGameMap(), *this, centralTile);
     addBuildingObject(centralTile, mTempleObject);
 }
 
@@ -233,6 +437,13 @@ void RoomDungeonTemple::notifyCarryingStateChanged(Creature* carrier, GameEntity
 
 void RoomDungeonTemple::restoreInitialEntityState()
 {
+    // A destroyed heart (ruin) has no temple object, only its floor has to be restored
+    if(mTempleObject == nullptr && getHP(nullptr) <= 0.0)
+    {
+        Room::restoreInitialEntityState();
+        return;
+    }
+
     // We need to use seats with vision before calling Room::restoreInitialEntityState
     // because it will empty the list
     if(mTempleObject == nullptr)
