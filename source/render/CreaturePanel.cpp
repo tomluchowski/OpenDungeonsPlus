@@ -59,6 +59,7 @@ void prepareCount(CEGUI::Window* window)
     window->setProperty("BackgroundEnabled", "False");
     window->setProperty("HorzFormatting", "CentreAligned");
     window->setProperty("VertFormatting", "CentreAligned");
+    window->setProperty("TextColours", "FFF0E2C0");
     window->setText("0");
 }
 

@@ -20,6 +20,8 @@
  */
 
 #include "render/RenderManager.h"
+#include "render/GroundShadowCameraSetup.h"
+
 #include "gamemap/RoomObjectBounds.h"
 #include "gamemap/RoomObjectStep.h"
 
@@ -82,6 +84,8 @@
 #include <Overlay/OgreOverlayManager.h>
 #include <Overlay/OgreOverlaySystem.h>
 #include <RTShaderSystem/OgreShaderGenerator.h>
+#include <RTShaderSystem/OgreShaderRenderState.h>
+#include <RTShaderSystem/OgreShaderExIntegratedPSSM3.h>
 
 #include <sstream>
 #include <string>
@@ -834,11 +838,38 @@ void RenderManager::setDynamicShadowsEnabled(bool enabled)
     // Custom shaders apply lighting and shadows in one pass; automatic
     // illumination splitting removes their fragment programs on GL3Plus.
     mSceneManager->setShadowTechnique(enabled ? Ogre::SHADOWTYPE_TEXTURE_ADDITIVE_INTEGRATED : Ogre::SHADOWTYPE_NONE);
-    // mSceneManager->setShadowCameraSetup(Ogre::LiSPSMShadowCameraSetup::create());
-    // mSceneManager->setShadowTextureConfig(0,1024,1024,Ogre::PixelFormat::PF_R32G32B32A32_UINT,0);
-    // mSceneManager->setShadowFarDistance(100.0);
-    // mSceneManager->setShadowDirectionalLightExtrusionDistance(500.0);
-    // mSceneManager->setShadowTextureSelfShadow(true);
+    if(enabled)
+    {
+        mSceneManager->setShadowTexturePixelFormat(Ogre::PF_DEPTH24_STENCIL8);
+        mSceneManager->setShadowCameraSetup(Ogre::ShadowCameraSetupPtr(new GroundShadowCameraSetup()));
+    }
+
+    // Fixed-function materials also need a receiver when Ogre generates their
+    // shaders: integrated shadows do not add a separate receiver pass.
+    Ogre::RTShader::RenderState* renderState =
+        mShaderGenerator->getRenderState(Ogre::RTShader::ShaderGenerator::DEFAULT_SCHEME_NAME);
+#if OGRE_VERSION_MAJOR >= 13
+    const Ogre::RTShader::SubRenderStateList& subStates = renderState->getSubRenderStates();
+#else
+    const Ogre::RTShader::SubRenderStateList& subStates = renderState->getTemplateSubRenderStateList();
+#endif
+    Ogre::RTShader::SubRenderState* shadowState = nullptr;
+    for(Ogre::RTShader::SubRenderState* subState : subStates)
+    {
+        if(subState->getType() == Ogre::RTShader::SRS_INTEGRATED_PSSM3)
+            shadowState = subState;
+    }
+    if(enabled && shadowState == nullptr)
+        renderState->addTemplateSubRenderState(mShaderGenerator->createSubRenderState(Ogre::RTShader::SRS_INTEGRATED_PSSM3));
+    else if(!enabled && shadowState != nullptr)
+    {
+#if OGRE_VERSION_MAJOR >= 13
+        renderState->removeSubRenderState(shadowState);
+#else
+        renderState->removeTemplateSubRenderState(shadowState);
+#endif
+    }
+    mShaderGenerator->invalidateScheme(Ogre::RTShader::ShaderGenerator::DEFAULT_SCHEME_NAME);
 
     // Include material clones and techniques created since the game started.
     Ogre::ResourceManager::ResourceMapIterator materials = Ogre::MaterialManager::getSingleton().getResourceIterator();
@@ -858,7 +889,15 @@ void RenderManager::setDynamicShadowsEnabled(bool enabled)
                 {
                     const Ogre::GpuNamedConstants& constants = parameters->getConstantDefinitions();
                     if(constants.map.find("shadowingEnabled") != constants.map.end())
-                        parameters->setNamedConstant("shadowingEnabled", enabled);
+                    {
+                        bool hasShadowTexture = false;
+                        for(unsigned short unit = 0; unit < pass->getNumTextureUnitStates(); ++unit)
+                        {
+                            if(pass->getTextureUnitState(unit)->getContentType() == Ogre::TextureUnitState::CONTENT_SHADOW)
+                                hasShadowTexture = true;
+                        }
+                        parameters->setNamedConstant("shadowingEnabled", enabled && hasShadowTexture);
+                    }
                 }
             }
         }
@@ -2197,10 +2236,72 @@ void RenderManager::setupFogMaterial(Ogre::TexturePtr myTexture)
 
 
 
+void RenderManager::rrRefreshRoomLight(const Tile& tile, bool removing)
+{
+    // Share a light across a small patch, rather than allocating one per tile.
+    const int patchSize = 3;
+    const int originX = tile.getX() / patchSize * patchSize;
+    const int originY = tile.getY() / patchSize * patchSize;
+    const std::string name = "RoomLight_" + Helper::toString(originX) + "_" + Helper::toString(originY);
+    Ogre::Vector3 position = Ogre::Vector3::ZERO;
+    int count = 0;
+    for(int x = originX; x < originX + patchSize; ++x)
+    {
+        for(int y = originY; y < originY + patchSize; ++y)
+        {
+            Tile* candidate = tile.getGameMap()->getTile(x, y);
+            if(candidate == nullptr || (removing && candidate == &tile) ||
+               candidate->getEntityNode() == nullptr || !candidate->getLocalPlayerHasVision())
+                continue;
+            TileVisual visual = candidate->getTileVisual();
+            if(visual < TileVisual::dungeonTempleRoom || visual >= TileVisual::countTileVisual)
+                continue;
+            position += Ogre::Vector3(static_cast<Ogre::Real>(x), static_cast<Ogre::Real>(y), 0.0f);
+            ++count;
+        }
+    }
+
+    if(count == 0)
+    {
+        if(mSceneManager->hasLight(name))
+        {
+            Ogre::Light* light = mSceneManager->getLight(name);
+            Ogre::SceneNode* node = light->getParentSceneNode();
+            node->detachObject(light);
+            mSceneManager->destroyLight(light);
+            mSceneManager->destroySceneNode(node);
+        }
+        return;
+    }
+
+    Ogre::Light* light;
+    if(mSceneManager->hasLight(name))
+        light = mSceneManager->getLight(name);
+    else
+    {
+        light = mSceneManager->createLight(name);
+        light->setType(Ogre::Light::LT_POINT);
+        light->setCastShadows(false);
+        // A local room fill complements the existing cursor and authored lights.
+        light->setAttenuation(6.0f, 1.0f, 0.09f, 0.032f);
+        light->setSpecularColour(Ogre::ColourValue::Black);
+        Ogre::SceneNode* node = mLightSceneNode->createChildSceneNode(name + "_node");
+        node->attachObject(light);
+    }
+    position /= static_cast<Ogre::Real>(count);
+    position.z = 3.0f;
+    light->getParentSceneNode()->setPosition(position);
+    const Ogre::Real density = static_cast<Ogre::Real>(count) / (patchSize * patchSize);
+    light->setDiffuseColour(Ogre::ColourValue(0.9f, 0.8f, 0.6f) * (0.55f * density));
+}
+
 void RenderManager::rrRefreshTile(Tile& tile, GameMap& draggableTileContainer, const Player& localPlayer, NodeType nt)
 {
     if (tile.getEntityNode() == nullptr)
         return;
+
+    if(nt == NodeType::MTILES_NODE)
+        rrRefreshRoomLight(tile);
 
     std::string tileName = tile.getOgreNamePrefix() + tile.getName();
     std::string meshName;
@@ -2466,6 +2567,9 @@ void RenderManager::rrDestroyTile(Tile& tile, NodeType nt)
     if (tile.getEntityNode() == nullptr)
         return;
 
+    if(nt == NodeType::MTILES_NODE)
+        rrRefreshRoomLight(tile, true);
+
     std::string tileName = tile.getOgreNamePrefix() + tile.getName();
     std::string selectorName = tileName + "_selection_indicator";
     if(mSceneManager->hasEntity(selectorName))
@@ -2532,6 +2636,7 @@ void RenderManager::rrTemporalMarkTile(Tile* curTile)
     {
         std::string tileNodeName = tileName + "_node";
         ent = mSceneMgr->createEntity(selectorName, "SquareSelector.mesh");
+        ent->setMaterialName("SquareSelector");
         ent->setLightMask(0);
         ent->setCastShadows(false);
         Ogre::SceneNode* tileNode = mSceneManager->getSceneNode(tileNodeName);

@@ -218,6 +218,9 @@ class GameMode final : public GameEditorModeBase, public InputCommand
     bool toggleOptionsWindow(const CEGUI::EventArgs& = {});
     bool closeOptionsWindow(const CEGUI::EventArgs& = {});
     bool showEndGameFromOptions(const CEGUI::EventArgs& = {});
+    //! \brief Switches the options window between its two pages: the normal options or the end game page
+    //! (quit to menu, exit to desktop, restart level, back).
+    //! \param endGame True to show the end game page, false to show the normal options page.
     void setOptionsPage(bool endGame);
     bool toggleControlPanel(const CEGUI::EventArgs& = {});
 
@@ -252,6 +255,9 @@ class GameMode final : public GameEditorModeBase, public InputCommand
     //! if a skill is done) and, if yes, refreshes accordingly.
     //! \param forceRefresh Refresh the gui even if no changes was declared by the local player Seat.
     void refreshGuiSkill(bool forceRefresh = false);
+    //! \brief Lays out the skill tree buttons in rows by dependency depth, draws the connections
+    //! between dependent skills and sizes the level counter of each button to fit its row.
+    void refreshSkillConnections();
 
     //! \brief Called at each frame. Updates spell cooldowns.
     void refreshSpellButtonCoolDowns();
@@ -272,10 +278,18 @@ class GameMode final : public GameEditorModeBase, public InputCommand
     void notifyPossessionEnded();
 
 protected:
+    //! \brief Handles the confirmation popup: restarts the level, exits to the desktop or leaves to the
+    //! main menu, depending on what was asked for before the popup was shown.
     bool onClickYesQuitMenu(const CEGUI::EventArgs& /*arg*/);
 
-    //! \brief The different Game Options Menu handlers
+    //! \brief The different Game Options Menu handlers.
+    //! showQuitMenuFromOptions asks for confirmation before leaving the game to the main menu.
     bool showQuitMenuFromOptions(const CEGUI::EventArgs& e = {});
+    //! \brief Options menu handler that marks the exit as a level restart (not a quit) and opens the exit confirmation popup
+    //! \param e CEGUI event arguments, not used
+    //! \return true, the event was handled
+    bool showRestartLevelFromOptions(const CEGUI::EventArgs& e = {});
+    //! \brief Asks for confirmation before the application is closed.
     bool showExitApplicationFromOptions(const CEGUI::EventArgs& e = {});
     bool showObjectivesFromOptions(const CEGUI::EventArgs& e = {});
     bool showSkillFromOptions(const CEGUI::EventArgs& e = {});
@@ -320,6 +334,9 @@ private:
     //! confirmation popup.
     bool mExitToDesktop = false;
 
+    //! \brief Whether the pending confirmation popup restarts the level rather than
+    //! leaving the game. Set by the button that opened the confirmation popup.
+    bool mRestartLevel = false;
     //! \brief Seconds of the time limit countdown that is shown on the HUD, -1 while it is hidden
     int32_t mTimeLimitShown = -1;
     //! \brief Seconds of the wave countdown that is shown on the HUD, -1 while it is hidden
@@ -377,6 +394,7 @@ private:
     void handleMouseWheel(const MouseWheelEvent& arg);
 
     //! \brief Set the state of the given skill button accordingly to the skill type given.
+    //! The cast button is shown only once the skill has been researched at least to level 1.
     //! \note: Called by refreshGuiSkill() for each skillType.
     void refreshSkillButtonState(const std::string& skillButton, const std::string& castButton,
         const std::string& skillProgressBar, SkillType resType);

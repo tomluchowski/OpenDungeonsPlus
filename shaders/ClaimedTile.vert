@@ -53,7 +53,7 @@ void main() {
  
     gl_Position = projectionMatrix * viewMatrix * vec4(P, 1.0);
     FragPos = P;
-    vec4 P_prim = inverse(worldMatrix) * P4;
+    vec4 P_prim = inverse(worldMatrix) * vec4(P, 1.0);
     VertexPos = lightMatrix * P_prim;    
  
     out_UV0 = uv_0;

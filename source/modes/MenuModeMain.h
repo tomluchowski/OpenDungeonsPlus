@@ -31,7 +31,8 @@ public:
     {}
 
     //! \brief Called when the game mode is activated
-    //! Used to call the corresponding Gui Sheet.
+    //! Used to call the corresponding Gui Sheet, and to start a level again if a restart was requested
+    //! from the game.
     void activate() final override;
 
     //! \brief Opens the skirmish sub-menu once the flight into the menu (after the defeat debriefing) ended
@@ -40,6 +41,9 @@ public:
     bool goBack(const CEGUI::EventArgs& e = {}) override;
 
 private:
+    //! \brief Starts the level again if the in-game "Restart Level" button asked for it
+    void restartPendingLevel();
+
     //! \brief The Settings window
     SettingsWindow mSettings;
     bool mSettingsPageOpen = false;
