@@ -518,7 +518,8 @@ def m_door(c):
 # ---------------------------------------------------------------------------------------------
 # Spells
 # ---------------------------------------------------------------------------------------------
-def m_worker_imp(c):
+# Summon worker spell emblem: a worker head with ember eyes inside a gold ring of twelve ticks.
+def m_worker_emblem(c):
     c.add(c.ring(0, 0.0, 0.62, 0.018), GOLD_DARK, z=0.03, bevel=0.018, base=0.05)
     for k in range(12):
         a = deg(30 * k)
@@ -1280,7 +1281,7 @@ ICONS = {
     "RunedDoorTrapButton": _slot(m_door_magic, "trap"),
     "DestroyTrapButton": _slot(m_destroy_trap, "trap"),
     # spells
-    "SummonWorkerButton": _slot(m_worker_imp, "spell"),
+    "SummonWorkerButton": _slot(m_worker_emblem, "spell"),
     "CallToWarButton": _slot(m_call_to_war, "spell"),
     "CreatureHealButton": _slot(m_heal, "spell"),
     "CreatureExplosionButton": _slot(m_explosion, "spell"),
