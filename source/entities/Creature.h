@@ -22,6 +22,7 @@
 #define CREATURE_H
 
 #include "entities/MovableGameEntity.h"
+#include "entities/CreatureActivity.h"
 #include "eventsystem/CreatureMoved.h"
 #include "eventsystem/Subject.h"
 
@@ -161,6 +162,10 @@ public:
     inline double getHP() const
     { return mHp; }
 
+    //! \brief Rough combat strength used for fear and target priority. It grows with
+    //! the current health and the level.
+    double getThreat() const;
+
     //! \brief Gets the current dig rate
     inline double getDigRate() const
     { return mDigRate; }
@@ -188,8 +193,45 @@ public:
     inline CreatureMoodLevel getMoodValue() const
     { return mMoodValue; }
 
+    CreatureActivity getActivity() const;
+
+    double getExperienceProgress() const;
+    uint32_t getAttackRecoveryTurns() const { return mAttackRecoveryTurns; }
+    uint32_t getAttackRecoveryDuration() const { return mAttackRecoveryDuration; }
+    uint32_t getAttackRecoverySerial() const { return mAttackRecoverySerial; }
+    bool hasProgressInformation() const { return mHasProgressInformation; }
+
     inline int32_t getNbTurnFurious() const
     { return mNbTurnFurious; }
+
+    //! \brief Number of turns the creature has been held in the hand (decreases after being dropped)
+    inline int32_t getNbTurnsInHand() const
+    { return mNbTurnsInHand; }
+
+    //! \brief Number of times the creature wanted to work but found no job (reset when it works)
+    inline int32_t getNbTurnsOutOfWork() const
+    { return mNbTurnsOutOfWork; }
+
+    inline void increaseNbTurnsOutOfWork()
+    { ++mNbTurnsOutOfWork; }
+
+    inline void resetNbTurnsOutOfWork()
+    { mNbTurnsOutOfWork = 0; }
+
+    //! \brief Number of turns of torture still weighing on the mood (fades after the torture stops)
+    inline int32_t getNbTurnsTortureMood() const
+    { return mNbTurnsTortureMood; }
+
+    //! \brief Number of turns of sleep in the lair still relieving the mood (fades after waking up)
+    inline int32_t getNbTurnsRested() const
+    { return mNbTurnsRested; }
+
+    //! \brief Called on server side each turn the creature sleeps in its lair
+    inline void markRested()
+    { mRestedThisTurn = true; }
+
+    //! \brief Number of slaps received during the last nbTurns turns
+    int32_t getNbRecentSlaps(int32_t nbTurns) const;
 
     void setPosition(const Ogre::Vector3& v, GameMap *gameMap = nullptr ) override;
 
@@ -406,6 +448,10 @@ public:
     void slap() override;
 
     void fireCreatureSound(CreatureSound sound);
+    void fireCombatImpact(bool weaponClash, bool bodyDamage,
+        const Ogre::Vector3& attackerPosition);
+    void fireChickenFeeding(const std::string& chickenName,
+        const Ogre::Vector3& chickenPosition);
 
     void itsPayDay();
 
@@ -535,7 +581,7 @@ public:
 
     //! Checks if the creature current walk path is still valid. This will be called if tiles passability changes (for
     //! example if a door is closed)
-    void checkWalkPathValid();
+    void checkWalkPathValid(bool includeWalkDistortion = false);
 
     bool isTired() const;
 
@@ -557,7 +603,10 @@ public:
     { return mNbTurnsTorture; }
 
     inline void increaseTurnsTorture()
-    { ++mNbTurnsTorture; }
+    {
+        ++mNbTurnsTorture;
+        mTorturedThisTurn = true;
+    }
 
     inline int32_t getNbTurnsPrison() const
     { return mNbTurnsPrison; }
@@ -583,6 +632,9 @@ public:
     void fightCreature(Creature& creature, bool ko, bool notifyPlayerIfHit);
 
     void flee();
+
+    //! \brief Makes the creature run away from fearTile for nbTurns turns (fear trap)
+    void fleeFromTile(Tile* fearTile, int32_t nbTurns);
 
     void sleep();
 
@@ -732,6 +784,7 @@ private:
     //! \brief Mood value. Depending on this value, the creature will be in bad mood and
     //! might attack allied creatures or refuse to work or to go to combat
     CreatureMoodLevel               mMoodValue;
+    CreatureActivity                mActivity;
     //! \brief Mood points. Computed by the creature MoodModifiers. It is promoted to class variable for debug purposes and
     //! should not be used to check mood. If the mood is to be tested, mMoodValue should be used
     int32_t                         mMoodPoints;
@@ -788,8 +841,32 @@ private:
     //! \brief Counts the number of active slaps affecting the creature
     uint32_t                        mActiveSlapsCount;
 
+    //! \brief Used on server side for the mood. Turns spent in the hand (decreases when not held)
+    int32_t                         mNbTurnsInHand;
+
+    //! \brief Used on server side. True while the creature is held in the hand
+    bool                            mIsInHand;
+
+    //! \brief Used on server side for the mood. Failed job searches (reset when the creature works)
+    int32_t                         mNbTurnsOutOfWork;
+
+    //! \brief Used on server side for the mood. Turns of torture and of rest, growing while it lasts and fading afterwards
+    int32_t                         mNbTurnsTortureMood;
+    int32_t                         mNbTurnsRested;
+    bool                            mTorturedThisTurn;
+    bool                            mRestedThisTurn;
+
+    //! \brief Used on server side for the mood. Turn numbers of the latest slaps
+    std::vector<int64_t>            mSlapTurns;
+
     //! \brief Skills the creature can use
     std::vector<CreatureSkillData> mSkillData;
+
+    uint32_t mAttackRecoveryTurns = 0;
+    uint32_t mAttackRecoveryDuration = 0;
+    uint32_t mAttackRecoverySerial = 0;
+    double mExperienceProgress = 0.0;
+    bool mHasProgressInformation = false;
 
     //! \brief A sub-function called by doTurn()
     //! This one checks if there is something prioritary to do (like fighting). If it is the case,
@@ -807,6 +884,13 @@ private:
     void increaseHunger(double value);
 
     void computeMood();
+
+    void exportMoodToPacket(ODPacket& os, const Seat* seat) const;
+    void importMoodFromPacket(ODPacket& is);
+    void exportActivityToPacket(ODPacket& os, const Seat* seat) const;
+    void importActivityFromPacket(ODPacket& is);
+    void exportProgressToPacket(ODPacket& os, const Seat* seat) const;
+    void importProgressFromPacket(ODPacket& is);
 
     void computeCreatureOverlayMoodValue();
 };
