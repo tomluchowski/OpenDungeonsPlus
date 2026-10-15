@@ -2,17 +2,16 @@
 
 <GUILayout version="4" >
     <Window type="OD/FrameWindow" name="SkillTreeWindow" >
-        <Property name="Area" value="{{0.5,-305},{0.5,-220},{0.5,305},{0.5,220}}" />
+        <Property name="Area" value="{{0.5,-380},{0.5,-320},{0.5,380},{0.5,320}}" />
         <Property name="Text" value="Skill Tree" />
         <Property name="SizingEnabled" value="False" />
         <Window type="OD/StaticImage" name="Skills" >
-            <Property name="Area" value="{{0,20},{0,35},{1,-20},{1,-108}}" />
+            <Property name="Area" value="{{0,20},{0,38},{1,-20},{1,-64}}" />
             <Property name="MaxSize" value="{{1,0},{1,0}}" />
             <Window type="OD/StaticImage" name="AttackSkills" >
-                <Property name="Area" value="{{0,10},{0,10},{0,190},{1,-10}}" />
+                <Property name="Area" value="{{0,4},{0,4},{0.3333,-4},{1,-4}}" />
                 <Property name="MaxSize" value="{{1,0},{1,0}}" />
-                <Property name="FrameColours" value="tl:FFFF0000 tr:FFFF0000 bl:FFFFFFFF br:FFFFFFFF" />
-                <Window type="OD/ImageButton" name="TrainingHallButton" >
+                <Window type="OD/ResearchButton" name="TrainingHallButton" >
                     <Property name="Area" value="{{0.3,-25},{0,15},{0.3,25},{0,65}}" />
                     <Property name="ButtonImage" value="OpenDungeonsIcons/TrainingHallButton" />
                     <Property name="TooltipText" value="Room: Training Hall" />
@@ -25,11 +24,11 @@
                         <Property name="Visible" value="False" />
                         <Property name="VerticalProgress" value="True" />
                         <Property name="Alpha" value="0.2" />
-                        <Property name="ProgressImage" value="OpenDungeonsSkin/SelectionBrush" />
+                        <Property name="ProgressImage" value="OpenDungeonsSkin/ProgressBarLitSegment" />
                         <Property name="ReversedProgress" value="True" />
                     </Window>
                 </Window>
-                <Window type="OD/ImageButton" name="WoodenBridgeButton" >
+                <Window type="OD/ResearchButton" name="WoodenBridgeButton" >
                     <Property name="Area" value="{{0.7,-25},{0,15},{0.7,25},{0,65}}" />
                     <Property name="ButtonImage" value="OpenDungeonsIcons/WoodenBridgeButton" />
                     <Property name="TooltipText" value="Room: Wooden bridge" />
@@ -42,11 +41,11 @@
                         <Property name="Visible" value="False" />
                         <Property name="VerticalProgress" value="True" />
                         <Property name="Alpha" value="0.2" />
-                        <Property name="ProgressImage" value="OpenDungeonsSkin/SelectionBrush" />
+                        <Property name="ProgressImage" value="OpenDungeonsSkin/ProgressBarLitSegment" />
                         <Property name="ReversedProgress" value="True" />
                     </Window>
                 </Window>
-                <Window type="OD/ImageButton" name="CallToWarButton" >
+                <Window type="OD/ResearchButton" name="CallToWarButton" >
                     <Property name="Area" value="{{0.2,-25},{0,75},{0.2,25},{0,125}}" />
                     <Property name="ButtonImage" value="OpenDungeonsIcons/CallToWarButton" />
                     <Property name="TooltipText" value="Spell: Call to War" />
@@ -59,11 +58,11 @@
                         <Property name="Visible" value="False" />
                         <Property name="VerticalProgress" value="True" />
                         <Property name="Alpha" value="0.2" />
-                        <Property name="ProgressImage" value="OpenDungeonsSkin/SelectionBrush" />
+                        <Property name="ProgressImage" value="OpenDungeonsSkin/ProgressBarLitSegment" />
                         <Property name="ReversedProgress" value="True" />
                     </Window>
                 </Window>
-                <Window type="OD/ImageButton" name="CreatureExplosionButton" >
+                <Window type="OD/ResearchButton" name="CreatureExplosionButton" >
                     <Property name="Area" value="{{0.5,-25},{0,75},{0.5,25},{0,125}}" />
                     <Property name="ButtonImage" value="OpenDungeonsIcons/CreatureExplosionButton" />
                     <Property name="TooltipText" value="Spell: Creature Explosion" />
@@ -76,11 +75,11 @@
                         <Property name="Visible" value="False" />
                         <Property name="VerticalProgress" value="True" />
                         <Property name="Alpha" value="0.2" />
-                        <Property name="ProgressImage" value="OpenDungeonsSkin/SelectionBrush" />
+                        <Property name="ProgressImage" value="OpenDungeonsSkin/ProgressBarLitSegment" />
                         <Property name="ReversedProgress" value="True" />
                     </Window>
                 </Window>
-                <Window type="OD/ImageButton" name="PrisonButton" >
+                <Window type="OD/ResearchButton" name="PrisonButton" >
                     <Property name="Area" value="{{0.8,-25},{0,75},{0.8,25},{0,125}}" />
                     <Property name="ButtonImage" value="OpenDungeonsIcons/PrisonButton" />
                     <Property name="TooltipText" value="Room: Prison" />
@@ -93,11 +92,11 @@
                         <Property name="Visible" value="False" />
                         <Property name="VerticalProgress" value="True" />
                         <Property name="Alpha" value="0.2" />
-                        <Property name="ProgressImage" value="OpenDungeonsSkin/SelectionBrush" />
+                        <Property name="ProgressImage" value="OpenDungeonsSkin/ProgressBarLitSegment" />
                         <Property name="ReversedProgress" value="True" />
                     </Window>
                 </Window>
-                <Window type="OD/ImageButton" name="StoneBridgeButton" >
+                <Window type="OD/ResearchButton" name="StoneBridgeButton" >
                     <Property name="Area" value="{{0.2,-25},{0,135},{0.2,25},{0,185}}" />
                     <Property name="ButtonImage" value="OpenDungeonsIcons/StoneBridgeButton" />
                     <Property name="TooltipText" value="Room: Stone bridge" />
@@ -110,11 +109,11 @@
                         <Property name="Visible" value="False" />
                         <Property name="VerticalProgress" value="True" />
                         <Property name="Alpha" value="0.2" />
-                        <Property name="ProgressImage" value="OpenDungeonsSkin/SelectionBrush" />
+                        <Property name="ProgressImage" value="OpenDungeonsSkin/ProgressBarLitSegment" />
                         <Property name="ReversedProgress" value="True" />
                     </Window>
                 </Window>
-                <Window type="OD/ImageButton" name="ArenaButton" >
+                <Window type="OD/ResearchButton" name="ArenaButton" >
                     <Property name="Area" value="{{0.5,-25},{0,135},{0.5,25},{0,185}}" />
                     <Property name="ButtonImage" value="OpenDungeonsIcons/ArenaButton" />
                     <Property name="TooltipText" value="Room: Arena" />
@@ -127,11 +126,11 @@
                         <Property name="Visible" value="False" />
                         <Property name="VerticalProgress" value="True" />
                         <Property name="Alpha" value="0.2" />
-                        <Property name="ProgressImage" value="OpenDungeonsSkin/SelectionBrush" />
+                        <Property name="ProgressImage" value="OpenDungeonsSkin/ProgressBarLitSegment" />
                         <Property name="ReversedProgress" value="True" />
                     </Window>
                 </Window>
-                <Window type="OD/ImageButton" name="CasinoButton" >
+                <Window type="OD/ResearchButton" name="CasinoButton" >
                     <Property name="Area" value="{{0.8,-25},{0,135},{0.8,25},{0,185}}" />
                     <Property name="ButtonImage" value="OpenDungeonsIcons/CasinoButton" />
                     <Property name="TooltipText" value="Room: Casino" />
@@ -144,11 +143,11 @@
                         <Property name="Visible" value="False" />
                         <Property name="VerticalProgress" value="True" />
                         <Property name="Alpha" value="0.2" />
-                        <Property name="ProgressImage" value="OpenDungeonsSkin/SelectionBrush" />
+                        <Property name="ProgressImage" value="OpenDungeonsSkin/ProgressBarLitSegment" />
                         <Property name="ReversedProgress" value="True" />
                     </Window>
                 </Window>
-                <Window type="OD/ImageButton" name="TortureButton" >
+                <Window type="OD/ResearchButton" name="TortureButton" >
                     <Property name="Area" value="{{0.5,-25},{0,195},{0.5,25},{0,245}}" />
                     <Property name="ButtonImage" value="OpenDungeonsIcons/TortureButton" />
                     <Property name="TooltipText" value="Room: Torture" />
@@ -161,11 +160,11 @@
                         <Property name="Visible" value="False" />
                         <Property name="VerticalProgress" value="True" />
                         <Property name="Alpha" value="0.2" />
-                        <Property name="ProgressImage" value="OpenDungeonsSkin/SelectionBrush" />
+                        <Property name="ProgressImage" value="OpenDungeonsSkin/ProgressBarLitSegment" />
                         <Property name="ReversedProgress" value="True" />
                     </Window>
                 </Window>
-                <Window type="OD/ImageButton" name="LightningButton" >
+                <Window type="OD/ResearchButton" name="LightningButton" >
                     <Property name="Area" value="{{0.2,-25},{0,195},{0.2,25},{0,245}}" />
                     <Property name="ButtonImage" value="OpenDungeonsIcons/LightningButton" />
                     <Property name="TooltipText" value="Spell: Lightning" />
@@ -182,7 +181,7 @@
                         <Property name="ReversedProgress" value="True" />
                     </Window>
                 </Window>
-                <Window type="OD/ImageButton" name="TremorButton" >
+                <Window type="OD/ResearchButton" name="TremorButton" >
                     <Property name="Area" value="{{0.8,-25},{0,195},{0.8,25},{0,245}}" />
                     <Property name="ButtonImage" value="OpenDungeonsIcons/TremorButton" />
                     <Property name="TooltipText" value="Spell: Tremor" />
@@ -201,9 +200,9 @@
                 </Window>
             </Window>
             <Window type="OD/StaticImage" name="TacticSkills" >
-                <Property name="Area" value="{{0,195},{0,10},{0,375},{1,-10}}" />
+                <Property name="Area" value="{{0.3333,4},{0,4},{0.6667,-4},{1,-4}}" />
                 <Property name="MaxSize" value="{{1,0},{1,0}}" />
-                <Window type="OD/ImageButton" name="TreasuryButton" >
+                <Window type="OD/ResearchButton" name="TreasuryButton" >
                     <Property name="Area" value="{{0.2,-25},{0,15},{0.2,25},{0,65}}" />
                     <Property name="ButtonImage" value="OpenDungeonsIcons/TreasuryButton" />
                     <Property name="TooltipText" value="Room: Treasury" />
@@ -216,11 +215,11 @@
                         <Property name="Visible" value="False" />
                         <Property name="VerticalProgress" value="True" />
                         <Property name="Alpha" value="0.2" />
-                        <Property name="ProgressImage" value="OpenDungeonsSkin/SelectionBrush" />
+                        <Property name="ProgressImage" value="OpenDungeonsSkin/ProgressBarLitSegment" />
                         <Property name="ReversedProgress" value="True" />
                     </Window>
                 </Window>
-                <Window type="OD/ImageButton" name="HatcheryButton" >
+                <Window type="OD/ResearchButton" name="HatcheryButton" >
                     <Property name="Area" value="{{0.5,-25},{0,15},{0.5,25},{0,65}}" />
                     <Property name="ButtonImage" value="OpenDungeonsIcons/HatcheryButton" />
                     <Property name="TooltipText" value="Room: Hatchery" />
@@ -233,11 +232,11 @@
                         <Property name="Visible" value="False" />
                         <Property name="VerticalProgress" value="True" />
                         <Property name="Alpha" value="0.2" />
-                        <Property name="ProgressImage" value="OpenDungeonsSkin/SelectionBrush" />
+                        <Property name="ProgressImage" value="OpenDungeonsSkin/ProgressBarLitSegment" />
                         <Property name="ReversedProgress" value="True" />
                     </Window>
                 </Window>
-                <Window type="OD/ImageButton" name="DormitoryButton" >
+                <Window type="OD/ResearchButton" name="DormitoryButton" >
                     <Property name="Area" value="{{0.8,-25},{0,15},{0.8,25},{0,65}}" />
                     <Property name="ButtonImage" value="OpenDungeonsIcons/DormitoryButton" />
                     <Property name="TooltipText" value="Room: Dormitory" />
@@ -250,11 +249,11 @@
                         <Property name="Visible" value="False" />
                         <Property name="VerticalProgress" value="True" />
                         <Property name="Alpha" value="0.2" />
-                        <Property name="ProgressImage" value="OpenDungeonsSkin/SelectionBrush" />
+                        <Property name="ProgressImage" value="OpenDungeonsSkin/ProgressBarLitSegment" />
                         <Property name="ReversedProgress" value="True" />
                     </Window>
                 </Window>
-                <Window type="OD/ImageButton" name="WorkshopButton" >
+                <Window type="OD/ResearchButton" name="WorkshopButton" >
                     <Property name="Area" value="{{0.2,-25},{0,75},{0.2,25},{0,125}}" />
                     <Property name="ButtonImage" value="OpenDungeonsIcons/WorkshopButton" />
                     <Property name="TooltipText" value="Room: Workshop" />
@@ -267,11 +266,11 @@
                         <Property name="Visible" value="False" />
                         <Property name="VerticalProgress" value="True" />
                         <Property name="Alpha" value="0.2" />
-                        <Property name="ProgressImage" value="OpenDungeonsSkin/SelectionBrush" />
+                        <Property name="ProgressImage" value="OpenDungeonsSkin/ProgressBarLitSegment" />
                         <Property name="ReversedProgress" value="True" />
                     </Window>
                 </Window>
-                <Window type="OD/ImageButton" name="GuardRoomButton" >
+                <Window type="OD/ResearchButton" name="GuardRoomButton" >
                     <Property name="Area" value="{{0.5,-25},{0,75},{0.5,25},{0,125}}" />
                     <Property name="ButtonImage" value="OpenDungeonsIcons/GuardRoomButton" />
                     <Property name="TooltipText" value="Room: Guard room" />
@@ -288,7 +287,7 @@
                         <Property name="ReversedProgress" value="True" />
                     </Window>
                 </Window>
-                <Window type="OD/ImageButton" name="WoodenDoorTrapButton" >
+                <Window type="OD/ResearchButton" name="WoodenDoorTrapButton" >
                     <Property name="Area" value="{{0.8,-25},{0,75},{0.8,25},{0,125}}" />
                     <Property name="ButtonImage" value="OpenDungeonsIcons/WoodenDoorTrapButton" />
                     <Property name="TooltipText" value="Trap: Wooden door" />
@@ -301,11 +300,11 @@
                         <Property name="Visible" value="False" />
                         <Property name="VerticalProgress" value="True" />
                         <Property name="Alpha" value="0.2" />
-                        <Property name="ProgressImage" value="OpenDungeonsSkin/SelectionBrush" />
+                        <Property name="ProgressImage" value="OpenDungeonsSkin/ProgressBarLitSegment" />
                         <Property name="ReversedProgress" value="True" />
                     </Window>
                 </Window>
-                <Window type="OD/ImageButton" name="CannonButton" >
+                <Window type="OD/ResearchButton" name="CannonButton" >
                     <Property name="Area" value="{{0.11,-25},{0,135},{0.11,25},{0,185}}" />
                     <Property name="ButtonImage" value="OpenDungeonsIcons/CannonButton" />
                     <Property name="TooltipText" value="Trap: Cannon" />
@@ -318,11 +317,11 @@
                         <Property name="Visible" value="False" />
                         <Property name="VerticalProgress" value="True" />
                         <Property name="Alpha" value="0.2" />
-                        <Property name="ProgressImage" value="OpenDungeonsSkin/SelectionBrush" />
+                        <Property name="ProgressImage" value="OpenDungeonsSkin/ProgressBarLitSegment" />
                         <Property name="ReversedProgress" value="True" />
                     </Window>
                 </Window>
-                <Window type="OD/ImageButton" name="SpikeTrapButton" >
+                <Window type="OD/ResearchButton" name="SpikeTrapButton" >
                     <Property name="Area" value="{{0.305,-25},{0,135},{0.305,25},{0,185}}" />
                     <Property name="ButtonImage" value="OpenDungeonsIcons/SpikeTrapButton" />
                     <Property name="TooltipText" value="Trap: Spike trap" />
@@ -335,11 +334,11 @@
                         <Property name="Visible" value="False" />
                         <Property name="VerticalProgress" value="True" />
                         <Property name="Alpha" value="0.2" />
-                        <Property name="ProgressImage" value="OpenDungeonsSkin/SelectionBrush" />
+                        <Property name="ProgressImage" value="OpenDungeonsSkin/ProgressBarLitSegment" />
                         <Property name="ReversedProgress" value="True" />
                     </Window>
                 </Window>
-                <Window type="OD/ImageButton" name="BoulderTrapButton" >
+                <Window type="OD/ResearchButton" name="BoulderTrapButton" >
                     <Property name="Area" value="{{0.266,-25},{0,195},{0.266,25},{0,245}}" />
                     <Property name="ButtonImage" value="OpenDungeonsIcons/BoulderTrapButton" />
                     <Property name="TooltipText" value="Trap: Boulder trap" />
@@ -352,11 +351,11 @@
                         <Property name="Visible" value="False" />
                         <Property name="VerticalProgress" value="True" />
                         <Property name="Alpha" value="0.2" />
-                        <Property name="ProgressImage" value="OpenDungeonsSkin/SelectionBrush" />
+                        <Property name="ProgressImage" value="OpenDungeonsSkin/ProgressBarLitSegment" />
                         <Property name="ReversedProgress" value="True" />
                     </Window>
                 </Window>
-                <Window type="OD/ImageButton" name="IronboundDoorTrapButton" >
+                <Window type="OD/ResearchButton" name="IronboundDoorTrapButton" >
                     <Property name="Area" value="{{0.5,-25},{0,135},{0.5,25},{0,185}}" />
                     <Property name="ButtonImage" value="OpenDungeonsIcons/IronboundDoorTrapButton" />
                     <Property name="TooltipText" value="Trap: Ironbound door" />
@@ -373,7 +372,7 @@
                         <Property name="ReversedProgress" value="True" />
                     </Window>
                 </Window>
-                <Window type="OD/ImageButton" name="SteelDoorTrapButton" >
+                <Window type="OD/ResearchButton" name="SteelDoorTrapButton" >
                     <Property name="Area" value="{{0.578,-25},{0,195},{0.578,25},{0,245}}" />
                     <Property name="ButtonImage" value="OpenDungeonsIcons/SteelDoorTrapButton" />
                     <Property name="TooltipText" value="Trap: Steel door" />
@@ -390,7 +389,7 @@
                         <Property name="ReversedProgress" value="True" />
                     </Window>
                 </Window>
-                <Window type="OD/ImageButton" name="BarricadeTrapButton" >
+                <Window type="OD/ResearchButton" name="BarricadeTrapButton" >
                     <Property name="Area" value="{{0.695,-25},{0,135},{0.695,25},{0,185}}" />
                     <Property name="ButtonImage" value="OpenDungeonsIcons/BarricadeTrapButton" />
                     <Property name="TooltipText" value="Trap: Barricade" />
@@ -407,7 +406,7 @@
                         <Property name="ReversedProgress" value="True" />
                     </Window>
                 </Window>
-                <Window type="OD/ImageButton" name="SecretDoorTrapButton" >
+                <Window type="OD/ResearchButton" name="SecretDoorTrapButton" >
                     <Property name="Area" value="{{0.89,-25},{0,135},{0.89,25},{0,185}}" />
                     <Property name="ButtonImage" value="OpenDungeonsIcons/SecretDoorTrapButton" />
                     <Property name="TooltipText" value="Trap: Secret door" />
@@ -424,7 +423,7 @@
                         <Property name="ReversedProgress" value="True" />
                     </Window>
                 </Window>
-                <Window type="OD/ImageButton" name="RunedDoorTrapButton" >
+                <Window type="OD/ResearchButton" name="RunedDoorTrapButton" >
                     <Property name="Area" value="{{0.8,-25},{0,255},{0.8,25},{0,305}}" />
                     <Property name="ButtonImage" value="OpenDungeonsIcons/RunedDoorTrapButton" />
                     <Property name="TooltipText" value="Trap: Runed door" />
@@ -441,7 +440,7 @@
                         <Property name="ReversedProgress" value="True" />
                     </Window>
                 </Window>
-                <Window type="OD/ImageButton" name="AlarmTrapButton" >
+                <Window type="OD/ResearchButton" name="AlarmTrapButton" >
                     <Property name="Area" value="{{0.11,-25},{0,195},{0.11,25},{0,245}}" />
                     <Property name="ButtonImage" value="OpenDungeonsIcons/AlarmTrapButton" />
                     <Property name="TooltipText" value="Trap: Alarm trap" />
@@ -458,7 +457,7 @@
                         <Property name="ReversedProgress" value="True" />
                     </Window>
                 </Window>
-                <Window type="OD/ImageButton" name="FearTrapButton" >
+                <Window type="OD/ResearchButton" name="FearTrapButton" >
                     <Property name="Area" value="{{0.422,-25},{0,195},{0.422,25},{0,245}}" />
                     <Property name="ButtonImage" value="OpenDungeonsIcons/FearTrapButton" />
                     <Property name="TooltipText" value="Trap: Fear trap" />
@@ -475,7 +474,7 @@
                         <Property name="ReversedProgress" value="True" />
                     </Window>
                 </Window>
-                <Window type="OD/ImageButton" name="GasTrapButton" >
+                <Window type="OD/ResearchButton" name="GasTrapButton" >
                     <Property name="Area" value="{{0.734,-25},{0,195},{0.734,25},{0,245}}" />
                     <Property name="ButtonImage" value="OpenDungeonsIcons/GasTrapButton" />
                     <Property name="TooltipText" value="Trap: Gas trap" />
@@ -492,7 +491,7 @@
                         <Property name="ReversedProgress" value="True" />
                     </Window>
                 </Window>
-                <Window type="OD/ImageButton" name="LightningTrapButton" >
+                <Window type="OD/ResearchButton" name="LightningTrapButton" >
                     <Property name="Area" value="{{0.5,-25},{0,255},{0.5,25},{0,305}}" />
                     <Property name="ButtonImage" value="OpenDungeonsIcons/LightningTrapButton" />
                     <Property name="TooltipText" value="Trap: Lightning trap" />
@@ -509,7 +508,7 @@
                         <Property name="ReversedProgress" value="True" />
                     </Window>
                 </Window>
-                <Window type="OD/ImageButton" name="FireburstTrapButton" >
+                <Window type="OD/ResearchButton" name="FireburstTrapButton" >
                     <Property name="Area" value="{{0.5,-25},{0,315},{0.5,25},{0,365}}" />
                     <Property name="ButtonImage" value="OpenDungeonsIcons/FireburstTrapButton" />
                     <Property name="TooltipText" value="Trap: Fireburst trap" />
@@ -526,7 +525,7 @@
                         <Property name="ReversedProgress" value="True" />
                     </Window>
                 </Window>
-                <Window type="OD/ImageButton" name="WatchBannerTrapButton" >
+                <Window type="OD/ResearchButton" name="WatchBannerTrapButton" >
                     <Property name="Area" value="{{0.89,-25},{0,195},{0.89,25},{0,245}}" />
                     <Property name="ButtonImage" value="OpenDungeonsIcons/WatchBannerTrapButton" />
                     <Property name="TooltipText" value="Trap: Watch banner" />
@@ -543,7 +542,7 @@
                         <Property name="ReversedProgress" value="True" />
                     </Window>
                 </Window>
-                <Window type="OD/ImageButton" name="FreezeTrapButton" >
+                <Window type="OD/ResearchButton" name="FreezeTrapButton" >
                     <Property name="Area" value="{{0.8,-25},{0,315},{0.8,25},{0,365}}" />
                     <Property name="ButtonImage" value="OpenDungeonsIcons/FreezeTrapButton" />
                     <Property name="TooltipText" value="Trap: Freeze trap" />
@@ -560,7 +559,7 @@
                         <Property name="ReversedProgress" value="True" />
                     </Window>
                 </Window>
-                <Window type="OD/ImageButton" name="TriggerTrapButton" >
+                <Window type="OD/ResearchButton" name="TriggerTrapButton" >
                     <Property name="Area" value="{{0.5,-25},{0,375},{0.5,25},{0,425}}" />
                     <Property name="ButtonImage" value="OpenDungeonsIcons/TriggerTrapButton" />
                     <Property name="TooltipText" value="Trap: Trigger trap" />
@@ -577,7 +576,7 @@
                         <Property name="ReversedProgress" value="True" />
                     </Window>
                 </Window>
-                <Window type="OD/ImageButton" name="DefectorButton" >
+                <Window type="OD/ResearchButton" name="DefectorButton" >
                     <Property name="Area" value="{{0.2,-25},{0,255},{0.2,25},{0,305}}" />
                     <Property name="ButtonImage" value="OpenDungeonsIcons/DefectorButton" />
                     <Property name="TooltipText" value="Spell: Defector" />
@@ -594,7 +593,7 @@
                         <Property name="ReversedProgress" value="True" />
                     </Window>
                 </Window>
-                <Window type="OD/ImageButton" name="HexenHenButton" >
+                <Window type="OD/ResearchButton" name="HexenHenButton" >
                     <Property name="Area" value="{{0.2,-25},{0,315},{0.2,25},{0,365}}" />
                     <Property name="ButtonImage" value="OpenDungeonsIcons/HexenHenButton" />
                     <Property name="TooltipText" value="Spell: Hexen Hen" />
@@ -613,10 +612,9 @@
                 </Window>
             </Window>
             <Window type="OD/StaticImage" name="MagicSkills" >
-                <Property name="Area" value="{{0,380},{0,10},{0,560},{1,-10}}" />
+                <Property name="Area" value="{{0.6667,4},{0,4},{1,-4},{1,-4}}" />
                 <Property name="MaxSize" value="{{1,0},{1,0}}" />
-                <Property name="FrameColours" value="tl:FF0000FF tr:FF0000FF bl:FFFFFFFF br:FFFFFFFF" />
-                <Window type="OD/ImageButton" name="SummonWorkerButton" >
+                <Window type="OD/ResearchButton" name="SummonWorkerButton" >
                     <Property name="Area" value="{{0.3,-25},{0,15},{0.3,25},{0,65}}" />
                     <Property name="ButtonImage" value="OpenDungeonsIcons/SummonWorkerButton" />
                     <Property name="TooltipText" value="Spell: Summon Worker" />
@@ -629,11 +627,11 @@
                         <Property name="Visible" value="False" />
                         <Property name="VerticalProgress" value="True" />
                         <Property name="Alpha" value="0.2" />
-                        <Property name="ProgressImage" value="OpenDungeonsSkin/SelectionBrush" />
+                        <Property name="ProgressImage" value="OpenDungeonsSkin/ProgressBarLitSegment" />
                         <Property name="ReversedProgress" value="True" />
                     </Window>
                 </Window>
-                <Window type="OD/ImageButton" name="LibraryButton" >
+                <Window type="OD/ResearchButton" name="LibraryButton" >
                     <Property name="Area" value="{{0.7,-25},{0,15},{0.7,25},{0,65}}" />
                     <Property name="ButtonImage" value="OpenDungeonsIcons/LibraryButton" />
                     <Property name="TooltipText" value="Room: Library" />
@@ -646,11 +644,11 @@
                         <Property name="Visible" value="False" />
                         <Property name="VerticalProgress" value="True" />
                         <Property name="Alpha" value="0.2" />
-                        <Property name="ProgressImage" value="OpenDungeonsSkin/SelectionBrush" />
+                        <Property name="ProgressImage" value="OpenDungeonsSkin/ProgressBarLitSegment" />
                         <Property name="ReversedProgress" value="True" />
                     </Window>
                 </Window>
-                <Window type="OD/ImageButton" name="CryptButton" >
+                <Window type="OD/ResearchButton" name="CryptButton" >
                     <Property name="Area" value="{{0.2,-25},{0,75},{0.2,25},{0,125}}" />
                     <Property name="ButtonImage" value="OpenDungeonsIcons/CryptButton" />
                     <Property name="TooltipText" value="Room: Crypt" />
@@ -663,11 +661,11 @@
                         <Property name="Visible" value="False" />
                         <Property name="VerticalProgress" value="True" />
                         <Property name="Alpha" value="0.2" />
-                        <Property name="ProgressImage" value="OpenDungeonsSkin/SelectionBrush" />
+                        <Property name="ProgressImage" value="OpenDungeonsSkin/ProgressBarLitSegment" />
                         <Property name="ReversedProgress" value="True" />
                     </Window>
                 </Window>
-                <Window type="OD/ImageButton" name="CreatureHealButton" >
+                <Window type="OD/ResearchButton" name="CreatureHealButton" >
                     <Property name="Area" value="{{0.5,-25},{0,75},{0.5,25},{0,125}}" />
                     <Property name="ButtonImage" value="OpenDungeonsIcons/CreatureHealButton" />
                     <Property name="TooltipText" value="Spell: Creature Heal" />
@@ -680,11 +678,11 @@
                         <Property name="Visible" value="False" />
                         <Property name="VerticalProgress" value="True" />
                         <Property name="Alpha" value="0.2" />
-                        <Property name="ProgressImage" value="OpenDungeonsSkin/SelectionBrush" />
+                        <Property name="ProgressImage" value="OpenDungeonsSkin/ProgressBarLitSegment" />
                         <Property name="ReversedProgress" value="True" />
                     </Window>
                 </Window>
-                <Window type="OD/ImageButton" name="SpellEyeEvilButton" >
+                <Window type="OD/ResearchButton" name="SpellEyeEvilButton" >
                     <Property name="Area" value="{{0.8,-25},{0,75},{0.8,25},{0,125}}" />
                     <Property name="ButtonImage" value="OpenDungeonsIcons/SpellEyeEvilButton" />
                     <Property name="TooltipText" value="Spell: Temporary gives vision on tiles" />
@@ -697,11 +695,11 @@
                         <Property name="Visible" value="False" />
                         <Property name="VerticalProgress" value="True" />
                         <Property name="Alpha" value="0.2" />
-                        <Property name="ProgressImage" value="OpenDungeonsSkin/SelectionBrush" />
+                        <Property name="ProgressImage" value="OpenDungeonsSkin/ProgressBarLitSegment" />
                         <Property name="ReversedProgress" value="True" />
                     </Window>
                 </Window>
-                <Window type="OD/ImageButton" name="CreatureHasteButton" >
+                <Window type="OD/ResearchButton" name="CreatureHasteButton" >
                     <Property name="Area" value="{{0.2,-25},{0,135},{0.2,25},{0,185}}" />
                     <Property name="ButtonImage" value="OpenDungeonsIcons/CreatureHasteButton" />
                     <Property name="TooltipText" value="Spell: Haste creature" />
@@ -714,11 +712,11 @@
                         <Property name="Visible" value="False" />
                         <Property name="VerticalProgress" value="True" />
                         <Property name="Alpha" value="0.2" />
-                        <Property name="ProgressImage" value="OpenDungeonsSkin/SelectionBrush" />
+                        <Property name="ProgressImage" value="OpenDungeonsSkin/ProgressBarLitSegment" />
                         <Property name="ReversedProgress" value="True" />
                     </Window>
                 </Window>
-                <Window type="OD/ImageButton" name="CreatureDefenseButton" >
+                <Window type="OD/ResearchButton" name="CreatureDefenseButton" >
                     <Property name="Area" value="{{0.5,-25},{0,135},{0.5,25},{0,185}}" />
                     <Property name="ButtonImage" value="OpenDungeonsIcons/CreatureDefenseButton" />
                     <Property name="TooltipText" value="Spell: Increase defense creature" />
@@ -731,11 +729,11 @@
                         <Property name="Visible" value="False" />
                         <Property name="VerticalProgress" value="True" />
                         <Property name="Alpha" value="0.2" />
-                        <Property name="ProgressImage" value="OpenDungeonsSkin/SelectionBrush" />
+                        <Property name="ProgressImage" value="OpenDungeonsSkin/ProgressBarLitSegment" />
                         <Property name="ReversedProgress" value="True" />
                     </Window>
                 </Window>
-                <Window type="OD/ImageButton" name="CreatureSlowButton" >
+                <Window type="OD/ResearchButton" name="CreatureSlowButton" >
                     <Property name="Area" value="{{0.8,-25},{0,135},{0.8,25},{0,185}}" />
                     <Property name="ButtonImage" value="OpenDungeonsIcons/CreatureSlowButton" />
                     <Property name="TooltipText" value="Spell: Decrease creature speed" />
@@ -748,11 +746,11 @@
                         <Property name="Visible" value="False" />
                         <Property name="VerticalProgress" value="True" />
                         <Property name="Alpha" value="0.2" />
-                        <Property name="ProgressImage" value="OpenDungeonsSkin/SelectionBrush" />
+                        <Property name="ProgressImage" value="OpenDungeonsSkin/ProgressBarLitSegment" />
                         <Property name="ReversedProgress" value="True" />
                     </Window>
                 </Window>
-                <Window type="OD/ImageButton" name="CreatureStrengthButton" >
+                <Window type="OD/ResearchButton" name="CreatureStrengthButton" >
                     <Property name="Area" value="{{0.11,-25},{0,195},{0.11,25},{0,245}}" />
                     <Property name="ButtonImage" value="OpenDungeonsIcons/CreatureStrengthButton" />
                     <Property name="TooltipText" value="Spell: Increase creature strength" />
@@ -765,11 +763,11 @@
                         <Property name="Visible" value="False" />
                         <Property name="VerticalProgress" value="True" />
                         <Property name="Alpha" value="0.2" />
-                        <Property name="ProgressImage" value="OpenDungeonsSkin/SelectionBrush" />
+                        <Property name="ProgressImage" value="OpenDungeonsSkin/ProgressBarLitSegment" />
                         <Property name="ReversedProgress" value="True" />
                     </Window>
                 </Window>
-                <Window type="OD/ImageButton" name="CreatureWeakButton" >
+                <Window type="OD/ResearchButton" name="CreatureWeakButton" >
                     <Property name="Area" value="{{0.734,-25},{0,195},{0.734,25},{0,245}}" />
                     <Property name="ButtonImage" value="OpenDungeonsIcons/CreatureWeakButton" />
                     <Property name="TooltipText" value="Spell: Decrease creature strength" />
@@ -782,11 +780,11 @@
                         <Property name="Visible" value="False" />
                         <Property name="VerticalProgress" value="True" />
                         <Property name="Alpha" value="0.2" />
-                        <Property name="ProgressImage" value="OpenDungeonsSkin/SelectionBrush" />
+                        <Property name="ProgressImage" value="OpenDungeonsSkin/ProgressBarLitSegment" />
                         <Property name="ReversedProgress" value="True" />
                     </Window>
                 </Window>
-                <Window type="OD/ImageButton" name="CreateGoldButton" >
+                <Window type="OD/ResearchButton" name="CreateGoldButton" >
                     <Property name="Area" value="{{0.266,-25},{0,195},{0.266,25},{0,245}}" />
                     <Property name="ButtonImage" value="OpenDungeonsIcons/CreateGoldButton" />
                     <Property name="TooltipText" value="Spell: Create Gold" />
@@ -803,7 +801,7 @@
                         <Property name="ReversedProgress" value="True" />
                     </Window>
                 </Window>
-                <Window type="OD/ImageButton" name="PrayerTempleButton" >
+                <Window type="OD/ResearchButton" name="PrayerTempleButton" >
                     <Property name="Area" value="{{0.89,-25},{0,195},{0.89,25},{0,245}}" />
                     <Property name="ButtonImage" value="OpenDungeonsIcons/PrayerTempleButton" />
                     <Property name="TooltipText" value="Room: Temple" />
@@ -820,7 +818,7 @@
                         <Property name="ReversedProgress" value="True" />
                     </Window>
                 </Window>
-                <Window type="OD/ImageButton" name="InfernoButton" >
+                <Window type="OD/ResearchButton" name="InfernoButton" >
                     <Property name="Area" value="{{0.422,-25},{0,195},{0.422,25},{0,245}}" />
                     <Property name="ButtonImage" value="OpenDungeonsIcons/InfernoButton" />
                     <Property name="TooltipText" value="Spell: Inferno" />
@@ -837,7 +835,7 @@
                         <Property name="ReversedProgress" value="True" />
                     </Window>
                 </Window>
-                <Window type="OD/ImageButton" name="PossessButton" >
+                <Window type="OD/ResearchButton" name="PossessButton" >
                     <Property name="Area" value="{{0.578,-25},{0,195},{0.578,25},{0,245}}" />
                     <Property name="ButtonImage" value="OpenDungeonsIcons/PossessButton" />
                     <Property name="TooltipText" value="Spell: Possess a creature" />
@@ -854,7 +852,7 @@
                         <Property name="ReversedProgress" value="True" />
                     </Window>
                 </Window>
-                <Window type="OD/ImageButton" name="SummonChampionButton" >
+                <Window type="OD/ResearchButton" name="SummonChampionButton" >
                     <Property name="Area" value="{{0.2,-25},{0,195},{0.2,25},{0,245}}" />
                     <Property name="ButtonImage" value="OpenDungeonsIcons/SummonChampionButton" />
                     <Property name="TooltipText" value="Spell: Summon champion" />
@@ -885,14 +883,14 @@
             <Property name="TooltipText" value="Unselect all pending skills in the tree" />
         </Window>
         <Window type="OD/MenuSymbolButton" name="CancelButton" >
-            <Property name="Area" value="{{1,-176},{1,-92.8},{1,-99.2},{1,-16}}" />
-            <Property name="NormalImage" value="OpenDungeonsSkin/CloseButtonNormal" />
-            <Property name="HoverImage" value="OpenDungeonsSkin/CloseButtonNormal" />
-            <Property name="PushedImage" value="OpenDungeonsSkin/CloseButtonNormal" />
+            <Property name="Area" value="{{1,-100},{1,-46},{1,-62},{1,-8}}" />
+            <Property name="NormalImage" value="OpenDungeonsIcons/AbortIcon" />
+            <Property name="HoverImage" value="OpenDungeonsIcons/AbortIcon" />
+            <Property name="PushedImage" value="OpenDungeonsIcons/AbortIcon" />
             <Property name="TooltipText" value="Do not save modifications to the skill tree" />
         </Window>
         <Window type="OD/MenuSymbolButton" name="ApplyButton" >
-            <Property name="Area" value="{{1,-92.8},{1,-92.8},{1,-16},{1,-16}}" />
+            <Property name="Area" value="{{1,-54},{1,-46},{1,-16},{1,-8}}" />
             <Property name="NormalImage" value="OpenDungeonsIcons/CheckIcon" />
             <Property name="HoverImage" value="OpenDungeonsIcons/CheckIcon" />
             <Property name="PushedImage" value="OpenDungeonsIcons/CheckIcon" />

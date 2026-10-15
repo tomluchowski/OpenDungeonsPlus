@@ -42,31 +42,7 @@ function New-HealthRing([int]$healthState, [string]$path) {
     $bitmap.Dispose()
 }
 
-function New-UnhappyIcon([string]$path) {
-    $bitmap = New-Object System.Drawing.Bitmap 32, 32,
-        ([System.Drawing.Imaging.PixelFormat]::Format32bppArgb)
-    $graphics = [System.Drawing.Graphics]::FromImage($bitmap)
-    $graphics.SmoothingMode = [System.Drawing.Drawing2D.SmoothingMode]::AntiAlias
-    $graphics.Clear([System.Drawing.Color]::Transparent)
-    $faceBrush = New-Object System.Drawing.SolidBrush ([System.Drawing.Color]::White)
-    $inkBrush = New-Object System.Drawing.SolidBrush ([System.Drawing.Color]::Black)
-    $inkPen = New-Object System.Drawing.Pen ([System.Drawing.Color]::Black), 2
-    $graphics.FillEllipse($faceBrush, 1, 1, 29, 29)
-    $graphics.DrawEllipse($inkPen, 1, 1, 29, 29)
-    $graphics.FillEllipse($inkBrush, 9, 10, 3, 4)
-    $graphics.FillEllipse($inkBrush, 20, 10, 3, 4)
-    $graphics.DrawArc($inkPen, 9, 17, 14, 9, 200, 140)
-    $bitmap.Save($path, [System.Drawing.Imaging.ImageFormat]::Png)
-    $inkPen.Dispose()
-    $inkBrush.Dispose()
-    $faceBrush.Dispose()
-    $graphics.Dispose()
-    $bitmap.Dispose()
-}
-
 for($state = 0; $state -lt 8; ++$state) {
     New-HealthRing $state (Join-Path $outputPath "CreatureOverlay$state.png")
 }
-New-UnhappyIcon (Join-Path $outputPath 'CreatureUnhappy.png')
-
-Write-Output "Generated eight segmented health rings and one unhappy status icon in $outputPath"
+Write-Output "Generated eight segmented health rings in $outputPath; mood artwork is packaged separately."
