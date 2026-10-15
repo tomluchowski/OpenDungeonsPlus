@@ -122,6 +122,9 @@ class ODPacket
          */
         operator bool() const;
 
+        bool endOfPacket() const
+        { return mPacket.endOfPacket(); }
+
         /*! \brief Clears the packet. After calling Clear, the packet should
          * be empty.
          */
@@ -158,4 +161,3 @@ class ODPacket
 };
 
 #endif // ODPACKET_H
-
