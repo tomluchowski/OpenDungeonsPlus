@@ -1,0 +1,34 @@
+particle_system CombatBlood
+{
+    material        CombatBlood
+    particle_width  0.11
+    particle_height 0.17
+    cull_each       false
+    quota           18
+    billboard_type  oriented_self
+
+    emitter Point
+    {
+        angle               22
+        colour_range_start  0.68 0.025 0.018 0.78
+        colour_range_end    0.28 0.008 0.006 0.62
+        emission_rate       105
+        time_to_live_min    0.24
+        time_to_live_max    0.44
+        direction           0 1 0.12
+        velocity_min        0.65
+        velocity_max        1.35
+        duration            0.075
+    }
+
+    affector LinearForce
+    {
+        force_vector      0 0 -3.2
+        force_application add
+    }
+
+    affector ColourFader
+    {
+        alpha -1.7
+    }
+}

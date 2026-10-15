@@ -19,8 +19,19 @@
 
 #include "entities/Creature.h"
 #include "entities/Tile.h"
+#include "game/Seat.h"
+#include "rooms/Room.h"
 #include "utils/Helper.h"
 #include "utils/LogManager.h"
+
+//! \brief Experience gained for claiming or repairing: factor applied to the claim rate divided by the level divisor
+static const double CLAIM_EXP_FACTOR = 1.5;
+
+//! \brief Base of the level divisor of the claim experience
+static const double CLAIM_EXP_DIVISOR_BASE = 0.35;
+
+//! \brief Part of the level divisor of the claim experience that grows with each creature level
+static const double CLAIM_EXP_DIVISOR_PER_LEVEL = 0.05;
 
 CreatureActionClaimGroundTile::CreatureActionClaimGroundTile(Creature& creature, Tile& tileClaim) :
     CreatureAction(creature),
@@ -54,9 +65,23 @@ bool CreatureActionClaimGroundTile::handleCreatureActionClaimGroundTile(Creature
     if(myTile != &tileClaim)
     {
         if(!creature.setDestination(&tileClaim))
+        {
             creature.popAction();
+            return false;
+        }
 
         return true;
+    }
+
+    // A room of ours that an enemy has worn down is repaired by dancing on it
+    Room* room = myTile->getCoveringRoom();
+    if((room != nullptr) && (room->getSeat() == creature.getSeat()) && room->needsClaimRepair())
+    {
+        creature.setAnimationState(EntityAnimation::claim_anim);
+        room->repairClaimHealth(creature.getClaimRate());
+        creature.receiveExp(CLAIM_EXP_FACTOR * (creature.getClaimRate() /
+            (CLAIM_EXP_DIVISOR_BASE + CLAIM_EXP_DIVISOR_PER_LEVEL * creature.getLevel())));
+        return false;
     }
 
     // We check if the tile is still claimable
@@ -68,7 +93,8 @@ bool CreatureActionClaimGroundTile::handleCreatureActionClaimGroundTile(Creature
 
     creature.setAnimationState(EntityAnimation::claim_anim);
     myTile->claimForSeat(creature.getSeat(), creature.getClaimRate());
-    creature.receiveExp(1.5 * (creature.getClaimRate() / (0.35 + 0.05 * creature.getLevel())));
+    creature.receiveExp(CLAIM_EXP_FACTOR * (creature.getClaimRate() /
+        (CLAIM_EXP_DIVISOR_BASE + CLAIM_EXP_DIVISOR_PER_LEVEL * creature.getLevel())));
 
     // Since we danced on a tile we are done for this turn
     return false;
