@@ -20,6 +20,7 @@
 
 #include "entities/NodeType.h"
 #include "game/SeatData.h"
+#include "game/SeatStatistics.h"
 
 
 #include <Ogre.h>
@@ -28,6 +29,7 @@
 #include <vector>
 #include <iosfwd>
 #include <cstdint>
+#include <map>
 
 class Building;
 class ConfigManager;
@@ -129,6 +131,16 @@ public:
 
     inline bool isRogueSeat() const
     { return mId == 0; }
+
+    inline SeatStatistics& getStatistics()
+    { return mStatistics; }
+
+    inline const SeatStatistics& getStatistics() const
+    { return mStatistics; }
+
+    //! \brief Counts a creature of victimSeat killed on behalf of this seat: nothing if the seats are
+    //! allied, a hero if the victim seat plays the Hero faction, a creature otherwise.
+    void recordCreatureKill(const Seat* victimSeat);
 
     inline uint32_t getTeamIndex() const
     { return mTeamIndex; }
@@ -255,6 +267,9 @@ public:
     //! otherwise
     bool isSkillDone(SkillType type) const;
 
+    uint32_t getSkillLevel(SkillType type) const;
+    void setResearchLevels(const std::map<SkillType, uint32_t>& levels);
+
     //! \brief Called when the skill entity reaches its destination. From there, the
     //! skilled thing is available
     //! Returns true if the type was inserted and false otherwise
@@ -341,6 +356,9 @@ private:
     //! \brief The player sitting on this seat
     Player* mPlayer;
 
+    //! \brief Counters shown in the level debriefing (server side, not saved)
+    SeatStatistics mStatistics;
+
     //! \brief The total amount of gold coins mined by workers under this seat's control.
     int mGoldMined;
 
@@ -402,6 +420,8 @@ private:
     //! \brief Skills already done. This is used on both client and server side and should be updated
     std::vector<SkillType> mSkillDone;
 
+    std::map<SkillType, uint32_t> mResearchLevels;
+
     //! \brief Skills pending. Used on both client and server side and should be updated.
     std::vector<SkillType> mSkillPending;
 
@@ -417,6 +437,7 @@ private:
     //! list in empty, mCurrentSkill will be set to null
     //! researchedType is the currently researched type if any (nullSkillType if none)
     void setNextSkill(SkillType researchedType);
+    void completeResearch(SkillType type);
 
     //! Fills mTilesStateLoaded with the tiles of the given tileVisual is the given istream.
     //! Returns 0 if the seat end tile has been reached, 1 if the read success and -1 if there is an error

@@ -2,10 +2,10 @@
 
     <WidgetLook name="OD/Button">
         <Property name="WantsMultiClickEvents" value="False" />
-        <PropertyDefinition initialValue="FFFFFFFF" name="NormalTextColour" redrawOnWrite="true" />
-        <PropertyDefinition initialValue="FFFFFFFF" name="HoverTextColour" redrawOnWrite="true" />
-        <PropertyDefinition initialValue="FFFFFFFF" name="PushedTextColour" redrawOnWrite="true" />
-        <PropertyDefinition initialValue="FF7F7F7F" name="DisabledTextColour" redrawOnWrite="true" />
+        <PropertyDefinition initialValue="FFF0E2C0" name="NormalTextColour" redrawOnWrite="true" />
+        <PropertyDefinition initialValue="FFFFD37A" name="HoverTextColour" redrawOnWrite="true" />
+        <PropertyDefinition initialValue="FFFFE9A8" name="PushedTextColour" redrawOnWrite="true" />
+        <PropertyDefinition initialValue="FF8C7B62" name="DisabledTextColour" redrawOnWrite="true" />
         <PropertyDefinition initialValue="CentreAligned" name="VertLabelFormatting" />
         <PropertyDefinition initialValue="CentreAligned" name="HorzLabelFormatting" />
         <PropertyDefinition initialValue="" name="NormalImage" redrawOnWrite="true" />
@@ -162,10 +162,10 @@
 
     <WidgetLook name="OD/MainMenuButton">
         <Property name="WantsMultiClickEvents" value="False" />
-        <PropertyDefinition initialValue="FFFFFFFF" name="NormalTextColour" redrawOnWrite="true" />
-        <PropertyDefinition initialValue="FFFFFFFF" name="HoverTextColour" redrawOnWrite="true" />
-        <PropertyDefinition initialValue="FFFFFFFF" name="PushedTextColour" redrawOnWrite="true" />
-        <PropertyDefinition initialValue="FF7F7F7F" name="DisabledTextColour" redrawOnWrite="true" />
+        <PropertyDefinition initialValue="FFF0E2C0" name="NormalTextColour" redrawOnWrite="true" />
+        <PropertyDefinition initialValue="FFFFD37A" name="HoverTextColour" redrawOnWrite="true" />
+        <PropertyDefinition initialValue="FFFFE9A8" name="PushedTextColour" redrawOnWrite="true" />
+        <PropertyDefinition initialValue="FF8C7B62" name="DisabledTextColour" redrawOnWrite="true" />
         <PropertyDefinition initialValue="CentreAligned" name="VertLabelFormatting" />
         <PropertyDefinition initialValue="CentreAligned" name="HorzLabelFormatting" />
         <PropertyDefinition initialValue="" name="NormalImage" redrawOnWrite="true" />
@@ -322,10 +322,10 @@
 
     <WidgetLook name="OD/InvisibleButton">
         <Property name="WantsMultiClickEvents" value="False" />
-        <PropertyDefinition initialValue="FFFFFFFF" name="NormalTextColour" redrawOnWrite="true" />
-        <PropertyDefinition initialValue="FFFFFFFF" name="HoverTextColour" redrawOnWrite="true" />
-        <PropertyDefinition initialValue="FFFFFFFF" name="PushedTextColour" redrawOnWrite="true" />
-        <PropertyDefinition initialValue="FF7F7F7F" name="DisabledTextColour" redrawOnWrite="true" />
+        <PropertyDefinition initialValue="FFF0E2C0" name="NormalTextColour" redrawOnWrite="true" />
+        <PropertyDefinition initialValue="FFFFD37A" name="HoverTextColour" redrawOnWrite="true" />
+        <PropertyDefinition initialValue="FFFFE9A8" name="PushedTextColour" redrawOnWrite="true" />
+        <PropertyDefinition initialValue="FF8C7B62" name="DisabledTextColour" redrawOnWrite="true" />
         <PropertyDefinition initialValue="CentreAligned" name="VertLabelFormatting" />
         <PropertyDefinition initialValue="CentreAligned" name="HorzLabelFormatting" />
         <PropertyDefinition initialValue="" name="NormalImage" redrawOnWrite="true" />
@@ -456,10 +456,10 @@
 
     <WidgetLook name="OD/RadioButton">
         <Property name="WantsMultiClickEvents" value="False" />
-        <PropertyDefinition initialValue="FFFFFFFF" name="NormalTextColour" redrawOnWrite="true" />
-        <PropertyDefinition initialValue="FFFFFFFF" name="HoverTextColour" redrawOnWrite="true" />
-        <PropertyDefinition initialValue="FFFFFFFF" name="PushedTextColour" redrawOnWrite="true" />
-        <PropertyDefinition initialValue="FF7F7F7F" name="DisabledTextColour" redrawOnWrite="true" />
+        <PropertyDefinition initialValue="FFF0E2C0" name="NormalTextColour" redrawOnWrite="true" />
+        <PropertyDefinition initialValue="FFFFD37A" name="HoverTextColour" redrawOnWrite="true" />
+        <PropertyDefinition initialValue="FFFFE9A8" name="PushedTextColour" redrawOnWrite="true" />
+        <PropertyDefinition initialValue="FF8C7B62" name="DisabledTextColour" redrawOnWrite="true" />
         <PropertyDefinition initialValue="" name="InitialImage" redrawOnWrite="true" />
         <ImagerySection name="label">
             <TextComponent>
@@ -578,10 +578,10 @@
 
     <WidgetLook name="OD/Checkbox">
         <Property name="WantsMultiClickEvents" value="False" />
-        <PropertyDefinition initialValue="FFFFFFFF" name="NormalTextColour" redrawOnWrite="true" />
-        <PropertyDefinition initialValue="FFFFFFFF" name="HoverTextColour" redrawOnWrite="true" />
-        <PropertyDefinition initialValue="FFFFFFFF" name="PushedTextColour" redrawOnWrite="true" />
-        <PropertyDefinition initialValue="FF7F7F7F" name="DisabledTextColour" redrawOnWrite="true" />
+        <PropertyDefinition initialValue="FFF0E2C0" name="NormalTextColour" redrawOnWrite="true" />
+        <PropertyDefinition initialValue="FFFFD37A" name="HoverTextColour" redrawOnWrite="true" />
+        <PropertyDefinition initialValue="FFFFE9A8" name="PushedTextColour" redrawOnWrite="true" />
+        <PropertyDefinition initialValue="FF8C7B62" name="DisabledTextColour" redrawOnWrite="true" />
         <ImagerySection name="label">
             <TextComponent>
                 <Area>
@@ -698,10 +698,10 @@
     </WidgetLook>
 
     <WidgetLook name="OD/Editbox">
-        <PropertyDefinition initialValue="FFFFFFFF" name="NormalTextColour" redrawOnWrite="true" />
+        <PropertyDefinition initialValue="FFF0E2C0" name="NormalTextColour" redrawOnWrite="true" />
         <PropertyDefinition initialValue="FF000000" name="SelectedTextColour" redrawOnWrite="true" />
-        <PropertyDefinition initialValue="FF607FFF" name="ActiveSelectionColour" redrawOnWrite="true" />
-        <PropertyDefinition initialValue="FF808080" name="InactiveSelectionColour" redrawOnWrite="true" />
+        <PropertyDefinition initialValue="FFD8A040" name="ActiveSelectionColour" redrawOnWrite="true" />
+        <PropertyDefinition initialValue="FF7A6448" name="InactiveSelectionColour" redrawOnWrite="true" />
         <Property name="MouseCursorImage" value="OpenDungeonsSkin/MouseTextBar" />
         <NamedArea name="TextArea">
             <Area>
@@ -790,7 +790,7 @@
     </WidgetLook>
 
     <WidgetLook name="OD/Titlebar">
-        <PropertyDefinition initialValue="FFFFFFFF" name="CaptionColour" redrawOnWrite="true" />
+        <PropertyDefinition initialValue="FFF6D690" name="CaptionColour" redrawOnWrite="true" />
         <ImagerySection name="main">
             <ImageryComponent>
                 <Area>
@@ -905,7 +905,7 @@
     </WidgetLook>
 
     <WidgetLook name="OD/FrameWindow">
-        <PropertyLinkDefinition initialValue="FFFFFFFF" name="CaptionColour" targetProperty="CaptionColour" widget="__auto_titlebar__" />
+        <PropertyLinkDefinition initialValue="FFF6D690" name="CaptionColour" targetProperty="CaptionColour" widget="__auto_titlebar__" />
         <PropertyLinkDefinition name="TitlebarFont" targetProperty="Font" widget="__auto_titlebar__" />
         <Property name="NSSizingCursorImage" value="OpenDungeonsSkin/MouseNoSoCursor" />
         <Property name="EWSizingCursorImage" value="OpenDungeonsSkin/MouseEsWeCursor" />
@@ -1317,7 +1317,7 @@
                     <Dim type="Height"><UnifiedDim scale="0.5" type="Height" /></Dim>
                 </Area>
                 <Image name="OpenDungeonsSkin/SelectionBrush" />
-                <Colours bottomLeft="FF00FF00" bottomRight="FF00FF00" topLeft="FF00FF00" topRight="FF00FF00" />
+                <Colours bottomLeft="FF3CBE6E" bottomRight="FF3CBE6E" topLeft="FF3CBE6E" topRight="FF3CBE6E" />
                 <VertFormat type="Tiled" />
                 <HorzFormat type="Stretched" />
             </ImageryComponent>
@@ -1329,7 +1329,7 @@
                     <Dim type="Height"><UnifiedDim scale="0.3" type="Height" /></Dim>
                 </Area>
                 <Image name="OpenDungeonsSkin/SelectionBrush" />
-                <Colours bottomLeft="FFFFFF00" bottomRight="FFFFFF00" topLeft="FFFFFF00" topRight="FFFFFF00" />
+                <Colours bottomLeft="FFF0C060" bottomRight="FFF0C060" topLeft="FFF0C060" topRight="FFF0C060" />
                 <VertFormat type="Tiled" />
                 <HorzFormat type="Stretched" />
             </ImageryComponent>
@@ -1341,7 +1341,7 @@
                     <Dim type="Height"><UnifiedDim scale="0.2" type="Height" /></Dim>
                 </Area>
                 <Image name="OpenDungeonsSkin/SelectionBrush" />
-                <Colours bottomLeft="FFFF0000" bottomRight="FFFF0000" topLeft="FFFF0000" topRight="FFFF0000" />
+                <Colours bottomLeft="FFD24A1E" bottomRight="FFD24A1E" topLeft="FFD24A1E" topRight="FFD24A1E" />
                 <VertFormat type="Tiled" />
                 <HorzFormat type="Stretched" />
             </ImageryComponent>
@@ -2198,10 +2198,10 @@
     </WidgetLook>
 
     <WidgetLook name="OD/ComboEditbox">
-        <PropertyDefinition initialValue="FFFFFFFF" name="NormalTextColour" redrawOnWrite="true" />
+        <PropertyDefinition initialValue="FFF0E2C0" name="NormalTextColour" redrawOnWrite="true" />
         <PropertyDefinition initialValue="FF000000" name="SelectedTextColour" redrawOnWrite="true" />
-        <PropertyDefinition initialValue="FF607FFF" name="ActiveSelectionColour" redrawOnWrite="true" />
-        <PropertyDefinition initialValue="FF808080" name="InactiveSelectionColour" redrawOnWrite="true" />
+        <PropertyDefinition initialValue="FFD8A040" name="ActiveSelectionColour" redrawOnWrite="true" />
+        <PropertyDefinition initialValue="FF7A6448" name="InactiveSelectionColour" redrawOnWrite="true" />
         <Property name="MouseCursorImage" value="OpenDungeonsSkin/MouseArrow" />
         <NamedArea name="TextArea">
             <Area>
@@ -2290,10 +2290,10 @@
 
     <WidgetLook name="OD/ComboBoxButton">
         <Property name="WantsMultiClickEvents" value="False" />
-        <PropertyDefinition initialValue="FFFFFFFF" name="NormalTextColour" redrawOnWrite="true" />
-        <PropertyDefinition initialValue="FFFFFFFF" name="HoverTextColour" redrawOnWrite="true" />
-        <PropertyDefinition initialValue="FFFFFFFF" name="PushedTextColour" redrawOnWrite="true" />
-        <PropertyDefinition initialValue="FF7F7F7F" name="DisabledTextColour" redrawOnWrite="true" />
+        <PropertyDefinition initialValue="FFF0E2C0" name="NormalTextColour" redrawOnWrite="true" />
+        <PropertyDefinition initialValue="FFFFD37A" name="HoverTextColour" redrawOnWrite="true" />
+        <PropertyDefinition initialValue="FFFFE9A8" name="PushedTextColour" redrawOnWrite="true" />
+        <PropertyDefinition initialValue="FF8C7B62" name="DisabledTextColour" redrawOnWrite="true" />
         <PropertyDefinition initialValue="CentreAligned" name="VertLabelFormatting" />
         <PropertyDefinition initialValue="CentreAligned" name="HorzLabelFormatting" />
         <PropertyDefinition initialValue="" name="NormalImage" redrawOnWrite="true" />
@@ -2450,10 +2450,10 @@
 
 
     <WidgetLook name="OD/Combobox">
-        <PropertyLinkDefinition initialValue="FFFFFFFF" name="NormalEditTextColour" targetProperty="NormalTextColour" widget="__auto_editbox__" />
+        <PropertyLinkDefinition initialValue="FFF0E2C0" name="NormalEditTextColour" targetProperty="NormalTextColour" widget="__auto_editbox__" />
         <PropertyLinkDefinition initialValue="FF000000" name="SelectedEditTextColour" targetProperty="SelectedTextColour" widget="__auto_editbox__" />
-        <PropertyLinkDefinition initialValue="FF6060FF" name="ActiveEditSelectionColour" targetProperty="ActiveSelectionColour" widget="__auto_editbox__" />
-        <PropertyLinkDefinition initialValue="FF808080" name="InactiveEditSelectionColour" targetProperty="InactiveSelectionColour" widget="__auto_editbox__" />
+        <PropertyLinkDefinition initialValue="FFD8A040" name="ActiveEditSelectionColour" targetProperty="ActiveSelectionColour" widget="__auto_editbox__" />
+        <PropertyLinkDefinition initialValue="FF7A6448" name="InactiveEditSelectionColour" targetProperty="InactiveSelectionColour" widget="__auto_editbox__" />
         <Child nameSuffix="__auto_editbox__" type="OD/ComboEditbox">
             <Area>
                 <Dim type="LeftEdge"><AbsoluteDim value="0" /></Dim>
@@ -2693,6 +2693,7 @@
         <PropertyDefinition initialValue="tl:FFFFFFFF tr:FFFFFFFF bl:FFFFFFFF br:FFFFFFFF" name="BackgroundColours" redrawOnWrite="true" />
         <Property name="FrameEnabled" value="True" />
         <Property name="BackgroundEnabled" value="True" />
+        <Property name="TextColours" value="FFE8DCC0" />
         <NamedArea name="WithFrameTextRenderArea">
             <Area>
                 <Dim type="LeftEdge"><ImageDim dimension="Width" name="OpenDungeonsSkin/StaticLeft" /></Dim>
@@ -3190,10 +3191,10 @@
     </WidgetLook>
 
     <WidgetLook name="OD/MultiLineEditbox">
-        <PropertyDefinition initialValue="FFFFFFFF" name="NormalTextColour" redrawOnWrite="true" />
+        <PropertyDefinition initialValue="FFF0E2C0" name="NormalTextColour" redrawOnWrite="true" />
         <PropertyDefinition initialValue="FF000000" name="SelectedTextColour" redrawOnWrite="true" />
-        <PropertyDefinition initialValue="FF607FFF" name="ActiveSelectionColour" redrawOnWrite="true" />
-        <PropertyDefinition initialValue="FF808080" name="InactiveSelectionColour" redrawOnWrite="true" />
+        <PropertyDefinition initialValue="FFD8A040" name="ActiveSelectionColour" redrawOnWrite="true" />
+        <PropertyDefinition initialValue="FF7A6448" name="InactiveSelectionColour" redrawOnWrite="true" />
         <PropertyDefinition redrawOnWrite="true" initialValue="tl:00FF0000 tr:00FF0000 bl:00FF0000 br:00FF0000" type="ColourRect" name="ImageColours"/>
         <Property name="MouseCursorImage" value="OpenDungeonsSkin/MouseTextBar" />
         <Property name="SelectionBrushImage" value="OpenDungeonsSkin/SelectionBrush" />
@@ -3389,7 +3390,7 @@
                         </OperatorDim>
                     </Dim>
                 </Area>
-                <Colours bottomLeft="FFFFFFFF" bottomRight="FFFFFFFF" topLeft="FFFFFFFF" topRight="FFFFFFFF" />
+                <Colours bottomLeft="FFF0E2C0" bottomRight="FFF0E2C0" topLeft="FFF0E2C0" topRight="FFF0E2C0" />
                 <VertFormat type="CentreAligned" />
                 <HorzFormat type="CentreAligned" />
             </TextComponent>
@@ -3484,11 +3485,28 @@
     </WidgetLook>
 
     <WidgetLook name="OD/TabButton">
-        <PropertyDefinition initialValue="FFC0C0C0" name="NormalTextColour" redrawOnWrite="true" />
-        <PropertyDefinition initialValue="FFE0E0E0" name="HoverTextColour" redrawOnWrite="true" />
-        <PropertyDefinition initialValue="FFFFFFFF" name="PushedTextColour" redrawOnWrite="true" />
-        <PropertyDefinition initialValue="FFE0E0E0" name="SelectedTextColour" redrawOnWrite="true" />
-        <PropertyDefinition initialValue="FF7F7F7F" name="DisabledTextColour" redrawOnWrite="true" />
+        <PropertyDefinition name="NavigationFrame" type="bool" initialValue="False" redrawOnWrite="true" />
+        <PropertyDefinition name="NavigationColour" initialValue="FFD0794A" redrawOnWrite="true" />
+        <PropertyDefinition name="NavigationImage" initialValue="" redrawOnWrite="true" />
+        <PropertyDefinition name="VertImageFormatting" initialValue="Stretched" redrawOnWrite="true" />
+        <PropertyDefinition name="HorzImageFormatting" initialValue="Stretched" redrawOnWrite="true" />
+        <PropertyDefinition initialValue="FFCDB994" name="NormalTextColour" redrawOnWrite="true" />
+        <PropertyDefinition initialValue="FFFFE2A8" name="HoverTextColour" redrawOnWrite="true" />
+        <PropertyDefinition initialValue="FFFFE9A8" name="PushedTextColour" redrawOnWrite="true" />
+        <PropertyDefinition initialValue="FFFFE2A8" name="SelectedTextColour" redrawOnWrite="true" />
+        <PropertyDefinition initialValue="FF8C7B62" name="DisabledTextColour" redrawOnWrite="true" />
+        <ImagerySection name="navigation_icon">
+            <ImageryComponent>
+                <Area>
+                    <Dim type="LeftEdge"><UnifiedDim scale="0.04" type="Width" /></Dim>
+                    <Dim type="TopEdge"><UnifiedDim scale="0.04" type="Height" /></Dim>
+                    <Dim type="Width"><UnifiedDim scale="0.92" type="Width" /></Dim>
+                    <Dim type="Height"><UnifiedDim scale="0.92" type="Height" /></Dim>
+                </Area>
+                <ImageProperty name="NavigationImage" />
+                <VertFormat type="Stretched" /><HorzFormat type="Stretched" />
+            </ImageryComponent>
+        </ImagerySection>
         <ImagerySection name="label">
             <TextComponent>
                 <Area>
@@ -3607,84 +3625,172 @@
         </ImagerySection>
         <StateImagery name="TopNormal">
             <Layer>
-                <Section section="top_normal" />
-                <Section section="label">
+                <Section look="OD/GameTabButton" section="background" controlProperty="NavigationFrame" controlValue="true">
+                    <ColourProperty name="NavigationColour" />
+                </Section>
+                <Section look="OD/GameTabButton" section="navigation_frame" controlProperty="NavigationFrame" controlValue="true" />
+                <Section section="top_normal" controlProperty="NavigationFrame" controlValue="false" />
+                <Section section="label" controlProperty="NavigationFrame" controlValue="false">
+                    <ColourProperty name="NormalTextColour" />
+                </Section>
+                <Section section="navigation_icon" controlProperty="NavigationFrame" controlValue="true">
                     <ColourProperty name="NormalTextColour" />
                 </Section>
             </Layer>
         </StateImagery>
         <StateImagery name="BottomNormal">
             <Layer>
-                <Section section="bot_normal" />
-                <Section section="label">
+                <Section look="OD/GameTabButton" section="background" controlProperty="NavigationFrame" controlValue="true">
+                    <ColourProperty name="NavigationColour" />
+                </Section>
+                <Section look="OD/GameTabButton" section="navigation_frame" controlProperty="NavigationFrame" controlValue="true" />
+                <Section section="bot_normal" controlProperty="NavigationFrame" controlValue="false" />
+                <Section section="label" controlProperty="NavigationFrame" controlValue="false">
+                    <ColourProperty name="NormalTextColour" />
+                </Section>
+                <Section section="navigation_icon" controlProperty="NavigationFrame" controlValue="true">
                     <ColourProperty name="NormalTextColour" />
                 </Section>
             </Layer>
         </StateImagery>
         <StateImagery name="TopHover">
             <Layer>
-                <Section section="top_hover" />
-                <Section section="label">
+                <Section look="OD/GameTabButton" section="background" controlProperty="NavigationFrame" controlValue="true">
+                    <ColourProperty name="NavigationColour" />
+                </Section>
+                <Section look="OD/GameTabButton" section="navigation_frame" controlProperty="NavigationFrame" controlValue="true" />
+                <Section section="top_hover" controlProperty="NavigationFrame" controlValue="false" />
+                <Section section="label" controlProperty="NavigationFrame" controlValue="false">
+                    <ColourProperty name="HoverTextColour" />
+                </Section>
+                <Section section="navigation_icon" controlProperty="NavigationFrame" controlValue="true">
                     <ColourProperty name="HoverTextColour" />
                 </Section>
             </Layer>
         </StateImagery>
         <StateImagery name="BottomHover">
             <Layer>
-                <Section section="bot_hover" />
-                <Section section="label">
+                <Section look="OD/GameTabButton" section="background" controlProperty="NavigationFrame" controlValue="true">
+                    <ColourProperty name="NavigationColour" />
+                </Section>
+                <Section look="OD/GameTabButton" section="navigation_frame" controlProperty="NavigationFrame" controlValue="true" />
+                <Section section="bot_hover" controlProperty="NavigationFrame" controlValue="false" />
+                <Section section="label" controlProperty="NavigationFrame" controlValue="false">
+                    <ColourProperty name="HoverTextColour" />
+                </Section>
+                <Section section="navigation_icon" controlProperty="NavigationFrame" controlValue="true">
                     <ColourProperty name="HoverTextColour" />
                 </Section>
             </Layer>
         </StateImagery>
+        <ImagerySection name="navigation_selected">
+            <ImageryComponent>
+                <Area>
+                    <Dim type="LeftEdge"><AbsoluteDim value="3" /></Dim>
+                    <Dim type="TopEdge"><AbsoluteDim value="3" /></Dim>
+                    <Dim type="RightEdge"><UnifiedDim scale="1" offset="-3" type="Width" /></Dim>
+                    <Dim type="BottomEdge"><UnifiedDim scale="1" offset="-3" type="Height" /></Dim>
+                </Area>
+                <Image name="OpenDungeonsSkin/ButtonPushedEffect" />
+                <VertFormat type="Stretched" /><HorzFormat type="Stretched" />
+            </ImageryComponent>
+        </ImagerySection>
         <StateImagery name="TopSelected">
             <Layer>
-                <Section section="top_selected" />
-                <Section section="label">
+                <Section look="OD/GameTabButton" section="background" controlProperty="NavigationFrame" controlValue="true">
+                    <ColourProperty name="NavigationColour" />
+                </Section>
+                <Section section="navigation_selected" controlProperty="NavigationFrame" controlValue="true" />
+                <Section look="OD/GameTabButton" section="navigation_frame" controlProperty="NavigationFrame" controlValue="true">
+                    <Colours topLeft="FFFFDF85" topRight="FFFFDF85" bottomLeft="FFC29A44" bottomRight="FFC29A44" />
+                </Section>
+                <Section section="top_selected" controlProperty="NavigationFrame" controlValue="false" />
+                <Section section="label" controlProperty="NavigationFrame" controlValue="false">
+                    <ColourProperty name="SelectedTextColour" />
+                </Section>
+                <Section section="navigation_icon" controlProperty="NavigationFrame" controlValue="true">
                     <ColourProperty name="SelectedTextColour" />
                 </Section>
             </Layer>
         </StateImagery>
         <StateImagery name="BottomSelected">
             <Layer>
-                <Section section="bot_selected" />
-                <Section section="label">
+                <Section look="OD/GameTabButton" section="background" controlProperty="NavigationFrame" controlValue="true">
+                    <ColourProperty name="NavigationColour" />
+                </Section>
+                <Section section="navigation_selected" controlProperty="NavigationFrame" controlValue="true" />
+                <Section look="OD/GameTabButton" section="navigation_frame" controlProperty="NavigationFrame" controlValue="true">
+                    <Colours topLeft="FFFFDF85" topRight="FFFFDF85" bottomLeft="FFC29A44" bottomRight="FFC29A44" />
+                </Section>
+                <Section section="bot_selected" controlProperty="NavigationFrame" controlValue="false" />
+                <Section section="label" controlProperty="NavigationFrame" controlValue="false">
+                    <ColourProperty name="SelectedTextColour" />
+                </Section>
+                <Section section="navigation_icon" controlProperty="NavigationFrame" controlValue="true">
                     <ColourProperty name="SelectedTextColour" />
                 </Section>
             </Layer>
         </StateImagery>
         <StateImagery name="TopPushed">
             <Layer>
-                <Section section="top_normal" />
-                <Section section="label">
+                <Section look="OD/GameTabButton" section="background" controlProperty="NavigationFrame" controlValue="true">
+                    <ColourProperty name="NavigationColour" />
+                </Section>
+                <Section look="OD/GameTabButton" section="navigation_frame" controlProperty="NavigationFrame" controlValue="true" />
+                <Section section="top_normal" controlProperty="NavigationFrame" controlValue="false" />
+                <Section section="label" controlProperty="NavigationFrame" controlValue="false">
+                    <ColourProperty name="PushedTextColour" />
+                </Section>
+                <Section section="navigation_icon" controlProperty="NavigationFrame" controlValue="true">
                     <ColourProperty name="PushedTextColour" />
                 </Section>
             </Layer>
         </StateImagery>
         <StateImagery name="BottomPushed">
             <Layer>
-                <Section section="bot_normal" />
-                <Section section="label">
+                <Section look="OD/GameTabButton" section="background" controlProperty="NavigationFrame" controlValue="true">
+                    <ColourProperty name="NavigationColour" />
+                </Section>
+                <Section look="OD/GameTabButton" section="navigation_frame" controlProperty="NavigationFrame" controlValue="true" />
+                <Section section="bot_normal" controlProperty="NavigationFrame" controlValue="false" />
+                <Section section="label" controlProperty="NavigationFrame" controlValue="false">
+                    <ColourProperty name="PushedTextColour" />
+                </Section>
+                <Section section="navigation_icon" controlProperty="NavigationFrame" controlValue="true">
                     <ColourProperty name="PushedTextColour" />
                 </Section>
             </Layer>
         </StateImagery>
         <StateImagery name="TopDisabled">
             <Layer>
-                <Section section="top_normal">
+                <Section look="OD/GameTabButton" section="background" controlProperty="NavigationFrame" controlValue="true">
+                    <ColourProperty name="NavigationColour" />
+                </Section>
+                <Section look="OD/GameTabButton" section="navigation_frame" controlProperty="NavigationFrame" controlValue="true" />
+                <Section section="top_normal" controlProperty="NavigationFrame" controlValue="false">
                     <Colours bottomLeft="FF7F7F7F" bottomRight="FF7F7F7F" topLeft="FF7F7F7F" topRight="FF7F7F7F" />
                 </Section>
-                <Section section="label">
+                <Section section="label" controlProperty="NavigationFrame" controlValue="false">
+                    <ColourProperty name="DisabledTextColour" />
+                </Section>
+                <Section section="navigation_icon" controlProperty="NavigationFrame" controlValue="true">
                     <ColourProperty name="DisabledTextColour" />
                 </Section>
             </Layer>
         </StateImagery>
         <StateImagery name="BottomDisabled">
             <Layer>
-                <Section section="bot_normal">
+                <Section look="OD/GameTabButton" section="background" controlProperty="NavigationFrame" controlValue="true">
+                    <ColourProperty name="NavigationColour" />
+                </Section>
+                <Section look="OD/GameTabButton" section="navigation_frame" controlProperty="NavigationFrame" controlValue="true" />
+                <Section section="bot_normal" controlProperty="NavigationFrame" controlValue="false">
                     <Colours bottomLeft="FF7F7F7F" bottomRight="FF7F7F7F" topLeft="FF7F7F7F" topRight="FF7F7F7F" />
                 </Section>
-                <Section section="label">
+                <Section section="label" controlProperty="NavigationFrame" controlValue="false">
+                    <ColourProperty name="DisabledTextColour" />
+                </Section>
+                <Section section="navigation_icon" controlProperty="NavigationFrame" controlValue="true">
                     <ColourProperty name="DisabledTextColour" />
                 </Section>
             </Layer>
@@ -3692,6 +3798,7 @@
     </WidgetLook>
 
     <WidgetLook name="OD/TabContentPane">
+        <PropertyDefinition name="NavigationFrame" type="bool" initialValue="False" redrawOnWrite="true" />
         <PropertyDefinition initialValue="0" layoutOnWrite="true" name="EnableTop" redrawOnWrite="true" />
         <PropertyDefinition initialValue="0" layoutOnWrite="true" name="EnableBottom" redrawOnWrite="true" />
         <ImagerySection name="normal">
@@ -3719,16 +3826,27 @@
                 <Image component="Background" name="OpenDungeonsSkin/TabContentPaneMiddle" />
             </FrameComponent>
         </ImagerySection>
+        <ImagerySection name="navigation_background">
+            <ImageryComponent>
+                <Image name="ODHudSurface/Stone" />
+                <Colours topLeft="FFE0C4A0" topRight="FFD8BC98" bottomLeft="FFC8AC88" bottomRight="FFC0A480" />
+                <VertFormat type="Tiled" /><HorzFormat type="Tiled" />
+            </ImageryComponent>
+        </ImagerySection>
         <StateImagery name="Enabled">
             <Layer>
-                <Section section="normal" />
+                <Section section="normal" controlProperty="NavigationFrame" controlValue="false" />
+                <Section section="navigation_background" controlProperty="NavigationFrame" controlValue="true" />
+                <Section look="OD/GameTabButton" section="navigation_frame" controlProperty="NavigationFrame" controlValue="true" />
             </Layer>
         </StateImagery>
         <StateImagery name="Disabled">
             <Layer>
-                <Section section="normal">
+                <Section section="normal" controlProperty="NavigationFrame" controlValue="false">
                     <Colours bottomLeft="507F7F7F" bottomRight="507F7F7F" topLeft="507F7F7F" topRight="507F7F7F" />
                 </Section>
+                <Section section="navigation_background" controlProperty="NavigationFrame" controlValue="true" />
+                <Section look="OD/GameTabButton" section="navigation_frame" controlProperty="NavigationFrame" controlValue="true" />
             </Layer>
         </StateImagery>
     </WidgetLook>
@@ -3840,8 +3958,8 @@
     </WidgetLook>
 
     <WidgetLook name="OD/MenuItem">
-        <PropertyDefinition initialValue="FFFFFFFF" name="NormalTextColour" redrawOnWrite="true" />
-        <PropertyDefinition initialValue="FF7F7F7F" name="DisabledTextColour" redrawOnWrite="true" />
+        <PropertyDefinition initialValue="FFF0E2C0" name="NormalTextColour" redrawOnWrite="true" />
+        <PropertyDefinition initialValue="FF8C7B62" name="DisabledTextColour" redrawOnWrite="true" />
         <PropertyDefinition initialValue="FFFFFFFF" name="HoverColour" redrawOnWrite="true" />
         <PropertyDefinition initialValue="FFFFFFFF" name="PushedColour" redrawOnWrite="true" />
         <PropertyDefinition initialValue="FFFFFFFF" name="OpenedColour" redrawOnWrite="true" />
@@ -4209,10 +4327,10 @@
 
     <WidgetLook name="OD/ImageButton">
         <Property name="WantsMultiClickEvents" value="False" />
-        <PropertyDefinition initialValue="FFFFFFFF" name="NormalTextColour" redrawOnWrite="true" />
-        <PropertyDefinition initialValue="FFFFFFFF" name="HoverTextColour" redrawOnWrite="true" />
-        <PropertyDefinition initialValue="FFFFFFFF" name="PushedTextColour" redrawOnWrite="true" />
-        <PropertyDefinition initialValue="FF7F7F7F" name="DisabledTextColour" redrawOnWrite="true" />
+        <PropertyDefinition initialValue="FFF0E2C0" name="NormalTextColour" redrawOnWrite="true" />
+        <PropertyDefinition initialValue="FFFFD37A" name="HoverTextColour" redrawOnWrite="true" />
+        <PropertyDefinition initialValue="FFFFE9A8" name="PushedTextColour" redrawOnWrite="true" />
+        <PropertyDefinition initialValue="FF8C7B62" name="DisabledTextColour" redrawOnWrite="true" />
         <PropertyDefinition initialValue="CentreAligned" name="VertLabelFormatting" />
         <PropertyDefinition initialValue="CentreAligned" name="HorzLabelFormatting" />
         <PropertyDefinition initialValue="" name="ButtonImage" redrawOnWrite="true" />
@@ -4431,12 +4549,33 @@
         </StateImagery>
     </WidgetLook>
 
+    <WidgetLook name="OD/ResearchButton" inherits="OD/ImageButton">
+        <PropertyDefinition name="ResearchLevelColour" initialValue="00FFFFFF" redrawOnWrite="true" />
+        <PropertyDefinition name="ResearchTileImage" initialValue="OpenDungeonsSkin/ResearchTileLocked" redrawOnWrite="true" />
+        <ImagerySection name="research">
+            <ImageryComponent><Area><Dim type="LeftEdge"><UnifiedDim scale="0" type="Width" /></Dim><Dim type="TopEdge"><UnifiedDim scale="0" type="Height" /></Dim><Dim type="Width"><UnifiedDim scale="1" type="Width" /></Dim><Dim type="Height"><UnifiedDim scale="1" type="Height" /></Dim></Area><ImageProperty name="ResearchTileImage" /><VertFormat type="Stretched" /><HorzFormat type="Stretched" /></ImageryComponent>
+            <ImageryComponent><Area><Dim type="LeftEdge"><UnifiedDim scale="0.1" type="Width" /></Dim><Dim type="TopEdge"><UnifiedDim scale="0.1" type="Height" /></Dim><Dim type="Width"><UnifiedDim scale="0.8" type="Width" /></Dim><Dim type="Height"><UnifiedDim scale="0.8" type="Height" /></Dim></Area><ImageProperty name="ButtonImage" /><ColourRectProperty name="ButtonImageColour" /><VertFormat type="Stretched" /><HorzFormat type="Stretched" /></ImageryComponent>
+            <ImageryComponent><Area><Dim type="LeftEdge"><UnifiedDim scale="0" type="Width" /></Dim><Dim type="TopEdge"><UnifiedDim scale="0" type="Height" /></Dim><Dim type="Width"><UnifiedDim scale="1" type="Width" /></Dim><Dim type="Height"><UnifiedDim scale="0.05" type="Height" /></Dim></Area><Image name="OpenDungeonsSkin/SelectionBrush" /><ColourRectProperty name="ResearchLevelColour" /><VertFormat type="Stretched" /><HorzFormat type="Stretched" /></ImageryComponent>
+            <ImageryComponent><Area><Dim type="LeftEdge"><UnifiedDim scale="0" type="Width" /></Dim><Dim type="TopEdge"><UnifiedDim scale="0.95" type="Height" /></Dim><Dim type="Width"><UnifiedDim scale="1" type="Width" /></Dim><Dim type="Height"><UnifiedDim scale="0.05" type="Height" /></Dim></Area><Image name="OpenDungeonsSkin/SelectionBrush" /><ColourRectProperty name="ResearchLevelColour" /><VertFormat type="Stretched" /><HorzFormat type="Stretched" /></ImageryComponent>
+            <ImageryComponent><Area><Dim type="LeftEdge"><UnifiedDim scale="0" type="Width" /></Dim><Dim type="TopEdge"><UnifiedDim scale="0.05" type="Height" /></Dim><Dim type="Width"><UnifiedDim scale="0.05" type="Width" /></Dim><Dim type="Height"><UnifiedDim scale="0.9" type="Height" /></Dim></Area><Image name="OpenDungeonsSkin/SelectionBrush" /><ColourRectProperty name="ResearchLevelColour" /><VertFormat type="Stretched" /><HorzFormat type="Stretched" /></ImageryComponent>
+            <ImageryComponent><Area><Dim type="LeftEdge"><UnifiedDim scale="0.95" type="Width" /></Dim><Dim type="TopEdge"><UnifiedDim scale="0.05" type="Height" /></Dim><Dim type="Width"><UnifiedDim scale="0.05" type="Width" /></Dim><Dim type="Height"><UnifiedDim scale="0.9" type="Height" /></Dim></Area><Image name="OpenDungeonsSkin/SelectionBrush" /><ColourRectProperty name="ResearchLevelColour" /><VertFormat type="Stretched" /><HorzFormat type="Stretched" /></ImageryComponent>
+            <ImageryComponent><Area><Dim type="LeftEdge"><UnifiedDim scale="0.7" type="Width" /></Dim><Dim type="TopEdge"><UnifiedDim scale="0.7" type="Height" /></Dim><Dim type="Width"><UnifiedDim scale="0.27" type="Width" /></Dim><Dim type="Height"><UnifiedDim scale="0.27" type="Height" /></Dim></Area><ImageProperty name="StateImage" /><ColourRectProperty name="StateImageColour" /><VertFormat type="Stretched" /><HorzFormat type="Stretched" /></ImageryComponent>
+        </ImagerySection>
+        <ImagerySection name="research_hover">
+            <ImageryComponent><Area><Dim type="LeftEdge"><UnifiedDim scale="0" type="Width" /></Dim><Dim type="TopEdge"><UnifiedDim scale="0" type="Height" /></Dim><Dim type="Width"><UnifiedDim scale="1" type="Width" /></Dim><Dim type="Height"><UnifiedDim scale="1" type="Height" /></Dim></Area><Image name="OpenDungeonsSkin/ResearchTileFocus" /><Colours topLeft="FFFFFFFF" topRight="FFFFFFFF" bottomLeft="FFFFFFFF" bottomRight="FFFFFFFF" /><VertFormat type="Stretched" /><HorzFormat type="Stretched" /></ImageryComponent>
+        </ImagerySection>
+        <StateImagery name="Normal"><Layer><Section section="research" /></Layer></StateImagery>
+        <StateImagery name="Hover"><Layer><Section section="research" /><Section section="research_hover" /></Layer></StateImagery>
+        <StateImagery name="Pushed"><Layer><Section section="research" /><Section section="research_hover" /></Layer></StateImagery>
+        <StateImagery name="PushedOff"><Layer><Section section="research" /><Section section="research_hover" /></Layer></StateImagery>
+        <StateImagery name="Disabled"><Layer><Section section="research" /></Layer></StateImagery>
+    </WidgetLook>
     <WidgetLook name="OD/IconButton">
         <Property name="WantsMultiClickEvents" value="False" />
-        <PropertyDefinition initialValue="FFFFFFFF" name="NormalTextColour" redrawOnWrite="true" />
-        <PropertyDefinition initialValue="FFFFFFFF" name="HoverTextColour" redrawOnWrite="true" />
-        <PropertyDefinition initialValue="FFFFFFFF" name="PushedTextColour" redrawOnWrite="true" />
-        <PropertyDefinition initialValue="FF7F7F7F" name="DisabledTextColour" redrawOnWrite="true" />
+        <PropertyDefinition initialValue="FFF0E2C0" name="NormalTextColour" redrawOnWrite="true" />
+        <PropertyDefinition initialValue="FFFFD37A" name="HoverTextColour" redrawOnWrite="true" />
+        <PropertyDefinition initialValue="FFFFE9A8" name="PushedTextColour" redrawOnWrite="true" />
+        <PropertyDefinition initialValue="FF8C7B62" name="DisabledTextColour" redrawOnWrite="true" />
         <PropertyDefinition initialValue="CentreAligned" name="VertLabelFormatting" />
         <PropertyDefinition initialValue="CentreAligned" name="HorzLabelFormatting" />
         <PropertyDefinition initialValue="" name="IconImage" redrawOnWrite="true" />
@@ -4618,6 +4757,8 @@
     </WidgetLook>
 
     <WidgetLook name="OD/GameTabButton">
+        <PropertyDefinition name="NavigationFrame" type="bool" initialValue="False" redrawOnWrite="true" />
+        <PropertyDefinition name="NavigationColour" initialValue="FFFFFFFF" redrawOnWrite="true" />
         <Property name="WantsMultiClickEvents" value="False" />
         <PropertyDefinition initialValue="" name="NormalImage" redrawOnWrite="true" />
         <PropertyDefinition initialValue="OpenDungeonsSkin/ButtonHoverEffect" name="HoverImage" redrawOnWrite="true" />
@@ -4625,6 +4766,7 @@
         <PropertyDefinition initialValue="OpenDungeonsSkin/ButtonDisabledEffect" name="DisabledImage" redrawOnWrite="true" />
         <PropertyDefinition initialValue="Stretched" name="VertImageFormatting" redrawOnWrite="true" />
         <PropertyDefinition initialValue="Stretched" name="HorzImageFormatting" redrawOnWrite="true" />
+        <PropertyDefinition initialValue="00FFFFFF" name="SelectionColour" redrawOnWrite="true" />
         <ImagerySection name="background">
             <ImageryComponent>
                 <Area>
@@ -4650,6 +4792,24 @@
                 <VertFormatProperty name="VertImageFormatting" />
                 <HorzFormatProperty name="HorzImageFormatting" />
             </ImageryComponent>
+        </ImagerySection>
+        <ImagerySection name="navigation_frame">
+            <FrameComponent>
+                <Area>
+                    <Dim type="LeftEdge"><AbsoluteDim value="0" /></Dim>
+                    <Dim type="TopEdge"><AbsoluteDim value="0" /></Dim>
+                    <Dim type="Width"><UnifiedDim scale="1" type="Width" /></Dim>
+                    <Dim type="Height"><UnifiedDim scale="1" type="Height" /></Dim>
+                </Area>
+                <Image component="TopLeftCorner" name="OpenDungeonsSkin/ButtonTopLeftNormal" />
+                <Image component="TopRightCorner" name="OpenDungeonsSkin/ButtonTopRightNormal" />
+                <Image component="BottomLeftCorner" name="OpenDungeonsSkin/ButtonBottomLeftNormal" />
+                <Image component="BottomRightCorner" name="OpenDungeonsSkin/ButtonBottomRightNormal" />
+                <Image component="LeftEdge" name="OpenDungeonsSkin/ButtonLeftNormal" />
+                <Image component="RightEdge" name="OpenDungeonsSkin/ButtonRightNormal" />
+                <Image component="TopEdge" name="OpenDungeonsSkin/ButtonTopNormal" />
+                <Image component="BottomEdge" name="OpenDungeonsSkin/ButtonBottomNormal" />
+            </FrameComponent>
         </ImagerySection>
         <ImagerySection name="frame">
             <ImageryComponent>
@@ -4703,75 +4863,772 @@
                 <HorzFormatProperty name="HorzImageFormatting" />
             </ImageryComponent>
         </ImagerySection>
+        <ImagerySection name="selected">
+            <ImageryComponent>
+                <Area>
+                    <Dim type="LeftEdge"><AbsoluteDim value="0" /></Dim>
+                    <Dim type="TopEdge"><AbsoluteDim value="0" /></Dim>
+                    <Dim type="Width"><UnifiedDim scale="1" type="Width" /></Dim>
+                    <Dim type="Height"><UnifiedDim scale="1" type="Height" /></Dim>
+                </Area>
+                <Image name="OpenDungeonsSkin/ButtonHoverEffect" />
+                <ColourRectProperty name="SelectionColour" />
+                <VertFormatProperty name="VertImageFormatting" />
+                <HorzFormatProperty name="HorzImageFormatting" />
+            </ImageryComponent>
+        </ImagerySection>
         <StateImagery name="Normal">
             <Layer priority="0">
-                <Section section="background" />
+                <Section section="background" controlProperty="NavigationFrame" controlValue="false" />
+                <Section section="background" controlProperty="NavigationFrame" controlValue="true">
+                    <ColourProperty name="NavigationColour" />
+                </Section>
             </Layer>
             <Layer priority="1">
                 <Section section="normal" />
             </Layer>
             <Layer priority="2">
-                <Section section="frame" />
+                <Section section="frame" controlProperty="NavigationFrame" controlValue="false" />
+                <Section section="navigation_frame" controlProperty="NavigationFrame" controlValue="true" />
+            </Layer>
+            <Layer priority="4">
+                <Section section="selected" />
             </Layer>
         </StateImagery>
         <StateImagery name="Hover">
             <Layer priority="0">
-                <Section section="background" />
+                <Section section="background" controlProperty="NavigationFrame" controlValue="false" />
+                <Section section="background" controlProperty="NavigationFrame" controlValue="true">
+                    <ColourProperty name="NavigationColour" />
+                </Section>
             </Layer>
             <Layer priority="1">
                 <Section section="normal" />
             </Layer>
             <Layer priority="2">
-                <Section section="frame" />
+                <Section section="frame" controlProperty="NavigationFrame" controlValue="false" />
+                <Section section="navigation_frame" controlProperty="NavigationFrame" controlValue="true" />
             </Layer>
             <Layer priority="3">
                 <Section section="hover" />
+            </Layer>
+            <Layer priority="4">
+                <Section section="selected" />
             </Layer>
         </StateImagery>
         <StateImagery name="Pushed">
             <Layer priority="0">
-                <Section section="background" />
+                <Section section="background" controlProperty="NavigationFrame" controlValue="false" />
+                <Section section="background" controlProperty="NavigationFrame" controlValue="true">
+                    <ColourProperty name="NavigationColour" />
+                </Section>
             </Layer>
             <Layer priority="1">
                 <Section section="normal" />
             </Layer>
             <Layer priority="2">
-                <Section section="frame" />
+                <Section section="frame" controlProperty="NavigationFrame" controlValue="false" />
+                <Section section="navigation_frame" controlProperty="NavigationFrame" controlValue="true" />
             </Layer>
             <Layer priority="3">
                 <Section section="pushed" />
             </Layer>
+            <Layer priority="4">
+                <Section section="selected" />
+            </Layer>
         </StateImagery>
         <StateImagery name="PushedOff">
             <Layer priority="0">
-                <Section section="background" />
+                <Section section="background" controlProperty="NavigationFrame" controlValue="false" />
+                <Section section="background" controlProperty="NavigationFrame" controlValue="true">
+                    <ColourProperty name="NavigationColour" />
+                </Section>
             </Layer>
             <Layer priority="1">
                 <Section section="normal" />
             </Layer>
             <Layer priority="2">
-                <Section section="frame" />
+                <Section section="frame" controlProperty="NavigationFrame" controlValue="false" />
+                <Section section="navigation_frame" controlProperty="NavigationFrame" controlValue="true" />
             </Layer>
             <Layer priority="3">
                 <Section section="hover" />
             </Layer>
+            <Layer priority="4">
+                <Section section="selected" />
+            </Layer>
         </StateImagery>
         <StateImagery name="Disabled">
             <Layer priority="0">
-                <Section section="background" />
+                <Section section="background" controlProperty="NavigationFrame" controlValue="false" />
+                <Section section="background" controlProperty="NavigationFrame" controlValue="true">
+                    <ColourProperty name="NavigationColour" />
+                </Section>
             </Layer>
             <Layer priority="1">
                 <Section section="normal" />
             </Layer>
             <Layer priority="2">
-                <Section section="frame" />
+                <Section section="frame" controlProperty="NavigationFrame" controlValue="false" />
+                <Section section="navigation_frame" controlProperty="NavigationFrame" controlValue="true" />
             </Layer>
             <Layer priority="3">
                 <Section section="disabled" />
             </Layer>
+            <Layer priority="4">
+                <Section section="selected" />
+            </Layer>
         </StateImagery>
     </WidgetLook>
 
+    <WidgetLook name="OD/ResourceDisplay" inherits="OD/StaticText">
+        <NamedArea name="WithFrameTextRenderArea">
+            <Area>
+                <Dim type="LeftEdge"><UnifiedDim scale="0.33" type="LeftEdge" /></Dim>
+                <Dim type="TopEdge"><ImageDim dimension="Height" name="OpenDungeonsSkin/StaticTop" /></Dim>
+                <Dim type="RightEdge"><UnifiedDim scale="0.92" type="RightEdge" /></Dim>
+                <Dim type="BottomEdge"><OperatorDim op="Subtract"><UnifiedDim scale="1" type="BottomEdge" /><ImageDim dimension="Height" name="OpenDungeonsSkin/StaticBottom" /></OperatorDim></Dim>
+            </Area>
+        </NamedArea>
+        <ImagerySection name="inset">
+            <ImageryComponent>
+                <Area>
+                    <Dim type="LeftEdge"><ImageDim name="OpenDungeonsSkin/ButtonLeftNormal" dimension="Width" /></Dim>
+                    <Dim type="TopEdge"><ImageDim name="OpenDungeonsSkin/ButtonTopNormal" dimension="Height" /></Dim>
+                    <Dim type="RightEdge"><OperatorDim op="Subtract"><UnifiedDim scale="1" type="RightEdge" /><ImageDim name="OpenDungeonsSkin/ButtonRightNormal" dimension="Width" /></OperatorDim></Dim>
+                    <Dim type="BottomEdge"><OperatorDim op="Subtract"><UnifiedDim scale="1" type="BottomEdge" /><ImageDim name="OpenDungeonsSkin/ButtonBottomNormal" dimension="Height" /></OperatorDim></Dim>
+                </Area>
+                <Image name="OpenDungeonsSkin/SelectionBrush" />
+                <Colours topLeft="FF2E2117" topRight="FF221810" bottomLeft="FF120C08" bottomRight="FF0C0806" />
+                <VertFormat type="Stretched" /><HorzFormat type="Stretched" />
+            </ImageryComponent>
+        </ImagerySection>
+        <StateImagery name="EnabledFrame"><Layer><Section look="OD/GameTabButton" section="navigation_frame"><Colours topLeft="FFC98F55" topRight="FFA9703F" bottomLeft="FF8A5A32" bottomRight="FF6E4626" /></Section></Layer></StateImagery>
+        <StateImagery name="DisabledFrame"><Layer><Section look="OD/GameTabButton" section="navigation_frame"><Colours topLeft="FFC98F55" topRight="FFA9703F" bottomLeft="FF8A5A32" bottomRight="FF6E4626" /></Section></Layer></StateImagery>
+        <StateImagery name="WithFrameEnabledBackground"><Layer><Section section="inset" /></Layer></StateImagery>
+        <StateImagery name="WithFrameDisabledBackground"><Layer><Section section="inset" /></Layer></StateImagery>
+    </WidgetLook>
+    <WidgetLook name="OD/MiniMapCornerButton" inherits="OD/GameTabButton">
+        <PropertyDefinition name="CornerBackground" initialValue="" redrawOnWrite="true" />
+        <PropertyDefinition name="CornerHoverBackground" initialValue="" redrawOnWrite="true" />
+        <PropertyDefinition name="CornerPushedBackground" initialValue="" redrawOnWrite="true" />
+        <PropertyDefinition name="CornerIconArea" initialValue="{{0.09,0},{0.09,0},{0.52,0},{0.52,0}}" redrawOnWrite="true" />
+        <ImagerySection name="corner">
+            <ImageryComponent>
+                <Area>
+                    <Dim type="LeftEdge"><AbsoluteDim value="0" /></Dim>
+                    <Dim type="TopEdge"><AbsoluteDim value="0" /></Dim>
+                    <Dim type="Width"><UnifiedDim scale="1" type="Width" /></Dim>
+                    <Dim type="Height"><UnifiedDim scale="1" type="Height" /></Dim>
+                </Area>
+                <ImageProperty name="CornerBackground" />
+                <VertFormat type="Stretched" />
+                <HorzFormat type="Stretched" />
+            </ImageryComponent>
+        </ImagerySection>
+        <ImagerySection name="corner_hover">
+            <ImageryComponent>
+                <Area>
+                    <Dim type="LeftEdge"><AbsoluteDim value="0" /></Dim>
+                    <Dim type="TopEdge"><AbsoluteDim value="0" /></Dim>
+                    <Dim type="Width"><UnifiedDim scale="1" type="Width" /></Dim>
+                    <Dim type="Height"><UnifiedDim scale="1" type="Height" /></Dim>
+                </Area>
+                <ImageProperty name="CornerHoverBackground" />
+                <VertFormat type="Stretched" />
+                <HorzFormat type="Stretched" />
+            </ImageryComponent>
+        </ImagerySection>
+        <ImagerySection name="corner_pushed">
+            <ImageryComponent>
+                <Area>
+                    <Dim type="LeftEdge"><AbsoluteDim value="0" /></Dim>
+                    <Dim type="TopEdge"><AbsoluteDim value="0" /></Dim>
+                    <Dim type="Width"><UnifiedDim scale="1" type="Width" /></Dim>
+                    <Dim type="Height"><UnifiedDim scale="1" type="Height" /></Dim>
+                </Area>
+                <ImageProperty name="CornerPushedBackground" />
+                <VertFormat type="Stretched" />
+                <HorzFormat type="Stretched" />
+            </ImageryComponent>
+        </ImagerySection>
+        <ImagerySection name="corner_symbol">
+            <ImageryComponent>
+                <Area><AreaProperty name="CornerIconArea" /></Area>
+                <ImageProperty name="NormalImage" />
+                <VertFormat type="Stretched" />
+                <HorzFormat type="Stretched" />
+            </ImageryComponent>
+        </ImagerySection>
+        <StateImagery name="Normal">
+            <Layer><Section section="corner" /><Section section="corner_symbol" /></Layer>
+        </StateImagery>
+        <StateImagery name="Hover">
+            <Layer>
+                <Section section="corner_hover" />
+                <Section section="corner_symbol"><Colours topLeft="FFFFEBC0" topRight="FFFFEBC0" bottomLeft="FFFFEBC0" bottomRight="FFFFEBC0" /></Section>
+            </Layer>
+        </StateImagery>
+        <StateImagery name="Pushed">
+            <Layer>
+                <Section section="corner_pushed" />
+                <Section section="corner_symbol"><Colours topLeft="FFBBBBBB" topRight="FFBBBBBB" bottomLeft="FFBBBBBB" bottomRight="FFBBBBBB" /></Section>
+            </Layer>
+        </StateImagery>
+        <StateImagery name="PushedOff">
+            <Layer><Section section="corner" /><Section section="corner_symbol" /></Layer>
+        </StateImagery>
+        <StateImagery name="Disabled">
+            <Layer>
+                <Section section="corner"><Colours topLeft="FF666666" topRight="FF666666" bottomLeft="FF666666" bottomRight="FF666666" /></Section>
+                <Section section="corner_symbol"><Colours topLeft="FF666666" topRight="FF666666" bottomLeft="FF666666" bottomRight="FF666666" /></Section>
+            </Layer>
+        </StateImagery>
+    </WidgetLook>
+    <WidgetLook name="OD/MenuDescription" inherits="OD/StaticText">
+        <Child nameSuffix="__auto_vscrollbar__" type="OD/MenuScrollbar">
+            <Area>
+                <Dim type="LeftEdge"><AbsoluteDim value="0" /></Dim>
+                <Dim type="TopEdge"><AbsoluteDim value="0" /></Dim>
+                <Dim type="Width"><OperatorDim op="Multiply"><ImageDim name="OpenDungeonsSkin/MiniVertScrollThumbNormal" dimension="Width" /><AbsoluteDim value="1.5" /></OperatorDim></Dim>
+                <Dim type="Height"><UnifiedDim scale="1" type="Height" /></Dim>
+            </Area>
+            <HorzAlignment type="RightAligned" />
+        </Child>
+    </WidgetLook>
+    <WidgetLook name="OD/GameNavigationButton" inherits="OD/InvisibleButton">
+        <Property name="Font" value="MedievalSharp-10" />
+        <Property name="NormalTextColour" value="FFFFFFFF" />
+        <Property name="HoverTextColour" value="FFFFAC00" />
+        <Property name="PushedTextColour" value="FFFFAC00" />
+        <Property name="HorzLabelFormatting" value="LeftAligned" />
+    </WidgetLook>
+    <WidgetLook name="OD/GameNavigationFooter" inherits="OD/GameNavigationButton">
+        <ImagerySection name="label">
+            <TextComponent>
+                <Area>
+                    <Dim type="LeftEdge"><UnifiedDim scale="1.4" type="Height" /></Dim>
+                    <Dim type="TopEdge"><AbsoluteDim value="0" /></Dim>
+                    <Dim type="RightEdge"><UnifiedDim scale="1" type="RightEdge" /></Dim>
+                    <Dim type="Height"><UnifiedDim scale="1" type="Height" /></Dim>
+                </Area>
+                <VertFormatProperty name="VertLabelFormatting" />
+                <HorzFormatProperty name="HorzLabelFormatting" />
+            </TextComponent>
+        </ImagerySection>
+        <StateImagery name="Normal"><Layer><Section section="label"><ColourProperty name="NormalTextColour" /></Section></Layer></StateImagery>
+        <StateImagery name="Hover"><Layer><Section section="label"><ColourProperty name="HoverTextColour" /></Section></Layer></StateImagery>
+        <StateImagery name="Pushed"><Layer><Section section="label"><ColourProperty name="PushedTextColour" /></Section></Layer></StateImagery>
+        <StateImagery name="PushedOff"><Layer><Section section="label"><ColourProperty name="HoverTextColour" /></Section></Layer></StateImagery>
+        <StateImagery name="Disabled"><Layer><Section section="label"><ColourProperty name="DisabledTextColour" /></Section></Layer></StateImagery>
+    </WidgetLook>
+    <WidgetLook name="OD/MenuTextButton" inherits="OD/InvisibleButton">
+        <Property name="NormalTextColour" value="FFD8C9A4" />
+        <ImagerySection name="glow">
+            <TextComponent>
+                <Area>
+                    <Dim type="LeftEdge"><OperatorDim op="Multiply"><FontDim type="LineSpacing" /><AbsoluteDim value="-0.100" /></OperatorDim></Dim>
+                    <Dim type="TopEdge"><OperatorDim op="Multiply"><FontDim type="LineSpacing" /><AbsoluteDim value="-0.100" /></OperatorDim></Dim>
+                    <Dim type="Width"><UnifiedDim scale="1" type="Width" /></Dim>
+                    <Dim type="Height"><UnifiedDim scale="1" type="Height" /></Dim>
+                </Area>
+                <Colours topLeft="0CFFFFFF" topRight="0CFFFFFF" bottomLeft="0CFFFFFF" bottomRight="0CFFFFFF" />
+                <VertFormat type="CentreAligned" />
+                <HorzFormat type="CentreAligned" />
+            </TextComponent>
+            <TextComponent>
+                <Area>
+                    <Dim type="LeftEdge"><OperatorDim op="Multiply"><FontDim type="LineSpacing" /><AbsoluteDim value="0.000" /></OperatorDim></Dim>
+                    <Dim type="TopEdge"><OperatorDim op="Multiply"><FontDim type="LineSpacing" /><AbsoluteDim value="-0.100" /></OperatorDim></Dim>
+                    <Dim type="Width"><UnifiedDim scale="1" type="Width" /></Dim>
+                    <Dim type="Height"><UnifiedDim scale="1" type="Height" /></Dim>
+                </Area>
+                <Colours topLeft="0CFFFFFF" topRight="0CFFFFFF" bottomLeft="0CFFFFFF" bottomRight="0CFFFFFF" />
+                <VertFormat type="CentreAligned" />
+                <HorzFormat type="CentreAligned" />
+            </TextComponent>
+            <TextComponent>
+                <Area>
+                    <Dim type="LeftEdge"><OperatorDim op="Multiply"><FontDim type="LineSpacing" /><AbsoluteDim value="0.100" /></OperatorDim></Dim>
+                    <Dim type="TopEdge"><OperatorDim op="Multiply"><FontDim type="LineSpacing" /><AbsoluteDim value="-0.100" /></OperatorDim></Dim>
+                    <Dim type="Width"><UnifiedDim scale="1" type="Width" /></Dim>
+                    <Dim type="Height"><UnifiedDim scale="1" type="Height" /></Dim>
+                </Area>
+                <Colours topLeft="0CFFFFFF" topRight="0CFFFFFF" bottomLeft="0CFFFFFF" bottomRight="0CFFFFFF" />
+                <VertFormat type="CentreAligned" />
+                <HorzFormat type="CentreAligned" />
+            </TextComponent>
+            <TextComponent>
+                <Area>
+                    <Dim type="LeftEdge"><OperatorDim op="Multiply"><FontDim type="LineSpacing" /><AbsoluteDim value="-0.100" /></OperatorDim></Dim>
+                    <Dim type="TopEdge"><OperatorDim op="Multiply"><FontDim type="LineSpacing" /><AbsoluteDim value="0.000" /></OperatorDim></Dim>
+                    <Dim type="Width"><UnifiedDim scale="1" type="Width" /></Dim>
+                    <Dim type="Height"><UnifiedDim scale="1" type="Height" /></Dim>
+                </Area>
+                <Colours topLeft="0CFFFFFF" topRight="0CFFFFFF" bottomLeft="0CFFFFFF" bottomRight="0CFFFFFF" />
+                <VertFormat type="CentreAligned" />
+                <HorzFormat type="CentreAligned" />
+            </TextComponent>
+            <TextComponent>
+                <Area>
+                    <Dim type="LeftEdge"><OperatorDim op="Multiply"><FontDim type="LineSpacing" /><AbsoluteDim value="0.100" /></OperatorDim></Dim>
+                    <Dim type="TopEdge"><OperatorDim op="Multiply"><FontDim type="LineSpacing" /><AbsoluteDim value="0.000" /></OperatorDim></Dim>
+                    <Dim type="Width"><UnifiedDim scale="1" type="Width" /></Dim>
+                    <Dim type="Height"><UnifiedDim scale="1" type="Height" /></Dim>
+                </Area>
+                <Colours topLeft="0CFFFFFF" topRight="0CFFFFFF" bottomLeft="0CFFFFFF" bottomRight="0CFFFFFF" />
+                <VertFormat type="CentreAligned" />
+                <HorzFormat type="CentreAligned" />
+            </TextComponent>
+            <TextComponent>
+                <Area>
+                    <Dim type="LeftEdge"><OperatorDim op="Multiply"><FontDim type="LineSpacing" /><AbsoluteDim value="-0.100" /></OperatorDim></Dim>
+                    <Dim type="TopEdge"><OperatorDim op="Multiply"><FontDim type="LineSpacing" /><AbsoluteDim value="0.100" /></OperatorDim></Dim>
+                    <Dim type="Width"><UnifiedDim scale="1" type="Width" /></Dim>
+                    <Dim type="Height"><UnifiedDim scale="1" type="Height" /></Dim>
+                </Area>
+                <Colours topLeft="0CFFFFFF" topRight="0CFFFFFF" bottomLeft="0CFFFFFF" bottomRight="0CFFFFFF" />
+                <VertFormat type="CentreAligned" />
+                <HorzFormat type="CentreAligned" />
+            </TextComponent>
+            <TextComponent>
+                <Area>
+                    <Dim type="LeftEdge"><OperatorDim op="Multiply"><FontDim type="LineSpacing" /><AbsoluteDim value="0.000" /></OperatorDim></Dim>
+                    <Dim type="TopEdge"><OperatorDim op="Multiply"><FontDim type="LineSpacing" /><AbsoluteDim value="0.100" /></OperatorDim></Dim>
+                    <Dim type="Width"><UnifiedDim scale="1" type="Width" /></Dim>
+                    <Dim type="Height"><UnifiedDim scale="1" type="Height" /></Dim>
+                </Area>
+                <Colours topLeft="0CFFFFFF" topRight="0CFFFFFF" bottomLeft="0CFFFFFF" bottomRight="0CFFFFFF" />
+                <VertFormat type="CentreAligned" />
+                <HorzFormat type="CentreAligned" />
+            </TextComponent>
+            <TextComponent>
+                <Area>
+                    <Dim type="LeftEdge"><OperatorDim op="Multiply"><FontDim type="LineSpacing" /><AbsoluteDim value="0.100" /></OperatorDim></Dim>
+                    <Dim type="TopEdge"><OperatorDim op="Multiply"><FontDim type="LineSpacing" /><AbsoluteDim value="0.100" /></OperatorDim></Dim>
+                    <Dim type="Width"><UnifiedDim scale="1" type="Width" /></Dim>
+                    <Dim type="Height"><UnifiedDim scale="1" type="Height" /></Dim>
+                </Area>
+                <Colours topLeft="0CFFFFFF" topRight="0CFFFFFF" bottomLeft="0CFFFFFF" bottomRight="0CFFFFFF" />
+                <VertFormat type="CentreAligned" />
+                <HorzFormat type="CentreAligned" />
+            </TextComponent>
+            <TextComponent>
+                <Area>
+                    <Dim type="LeftEdge"><OperatorDim op="Multiply"><FontDim type="LineSpacing" /><AbsoluteDim value="-0.045" /></OperatorDim></Dim>
+                    <Dim type="TopEdge"><OperatorDim op="Multiply"><FontDim type="LineSpacing" /><AbsoluteDim value="-0.045" /></OperatorDim></Dim>
+                    <Dim type="Width"><UnifiedDim scale="1" type="Width" /></Dim>
+                    <Dim type="Height"><UnifiedDim scale="1" type="Height" /></Dim>
+                </Area>
+                <Colours topLeft="28FFFFFF" topRight="28FFFFFF" bottomLeft="28FFFFFF" bottomRight="28FFFFFF" />
+                <VertFormat type="CentreAligned" />
+                <HorzFormat type="CentreAligned" />
+            </TextComponent>
+            <TextComponent>
+                <Area>
+                    <Dim type="LeftEdge"><OperatorDim op="Multiply"><FontDim type="LineSpacing" /><AbsoluteDim value="0.000" /></OperatorDim></Dim>
+                    <Dim type="TopEdge"><OperatorDim op="Multiply"><FontDim type="LineSpacing" /><AbsoluteDim value="-0.045" /></OperatorDim></Dim>
+                    <Dim type="Width"><UnifiedDim scale="1" type="Width" /></Dim>
+                    <Dim type="Height"><UnifiedDim scale="1" type="Height" /></Dim>
+                </Area>
+                <Colours topLeft="28FFFFFF" topRight="28FFFFFF" bottomLeft="28FFFFFF" bottomRight="28FFFFFF" />
+                <VertFormat type="CentreAligned" />
+                <HorzFormat type="CentreAligned" />
+            </TextComponent>
+            <TextComponent>
+                <Area>
+                    <Dim type="LeftEdge"><OperatorDim op="Multiply"><FontDim type="LineSpacing" /><AbsoluteDim value="0.045" /></OperatorDim></Dim>
+                    <Dim type="TopEdge"><OperatorDim op="Multiply"><FontDim type="LineSpacing" /><AbsoluteDim value="-0.045" /></OperatorDim></Dim>
+                    <Dim type="Width"><UnifiedDim scale="1" type="Width" /></Dim>
+                    <Dim type="Height"><UnifiedDim scale="1" type="Height" /></Dim>
+                </Area>
+                <Colours topLeft="28FFFFFF" topRight="28FFFFFF" bottomLeft="28FFFFFF" bottomRight="28FFFFFF" />
+                <VertFormat type="CentreAligned" />
+                <HorzFormat type="CentreAligned" />
+            </TextComponent>
+            <TextComponent>
+                <Area>
+                    <Dim type="LeftEdge"><OperatorDim op="Multiply"><FontDim type="LineSpacing" /><AbsoluteDim value="-0.045" /></OperatorDim></Dim>
+                    <Dim type="TopEdge"><OperatorDim op="Multiply"><FontDim type="LineSpacing" /><AbsoluteDim value="0.000" /></OperatorDim></Dim>
+                    <Dim type="Width"><UnifiedDim scale="1" type="Width" /></Dim>
+                    <Dim type="Height"><UnifiedDim scale="1" type="Height" /></Dim>
+                </Area>
+                <Colours topLeft="28FFFFFF" topRight="28FFFFFF" bottomLeft="28FFFFFF" bottomRight="28FFFFFF" />
+                <VertFormat type="CentreAligned" />
+                <HorzFormat type="CentreAligned" />
+            </TextComponent>
+            <TextComponent>
+                <Area>
+                    <Dim type="LeftEdge"><OperatorDim op="Multiply"><FontDim type="LineSpacing" /><AbsoluteDim value="0.045" /></OperatorDim></Dim>
+                    <Dim type="TopEdge"><OperatorDim op="Multiply"><FontDim type="LineSpacing" /><AbsoluteDim value="0.000" /></OperatorDim></Dim>
+                    <Dim type="Width"><UnifiedDim scale="1" type="Width" /></Dim>
+                    <Dim type="Height"><UnifiedDim scale="1" type="Height" /></Dim>
+                </Area>
+                <Colours topLeft="28FFFFFF" topRight="28FFFFFF" bottomLeft="28FFFFFF" bottomRight="28FFFFFF" />
+                <VertFormat type="CentreAligned" />
+                <HorzFormat type="CentreAligned" />
+            </TextComponent>
+            <TextComponent>
+                <Area>
+                    <Dim type="LeftEdge"><OperatorDim op="Multiply"><FontDim type="LineSpacing" /><AbsoluteDim value="-0.045" /></OperatorDim></Dim>
+                    <Dim type="TopEdge"><OperatorDim op="Multiply"><FontDim type="LineSpacing" /><AbsoluteDim value="0.045" /></OperatorDim></Dim>
+                    <Dim type="Width"><UnifiedDim scale="1" type="Width" /></Dim>
+                    <Dim type="Height"><UnifiedDim scale="1" type="Height" /></Dim>
+                </Area>
+                <Colours topLeft="28FFFFFF" topRight="28FFFFFF" bottomLeft="28FFFFFF" bottomRight="28FFFFFF" />
+                <VertFormat type="CentreAligned" />
+                <HorzFormat type="CentreAligned" />
+            </TextComponent>
+            <TextComponent>
+                <Area>
+                    <Dim type="LeftEdge"><OperatorDim op="Multiply"><FontDim type="LineSpacing" /><AbsoluteDim value="0.000" /></OperatorDim></Dim>
+                    <Dim type="TopEdge"><OperatorDim op="Multiply"><FontDim type="LineSpacing" /><AbsoluteDim value="0.045" /></OperatorDim></Dim>
+                    <Dim type="Width"><UnifiedDim scale="1" type="Width" /></Dim>
+                    <Dim type="Height"><UnifiedDim scale="1" type="Height" /></Dim>
+                </Area>
+                <Colours topLeft="28FFFFFF" topRight="28FFFFFF" bottomLeft="28FFFFFF" bottomRight="28FFFFFF" />
+                <VertFormat type="CentreAligned" />
+                <HorzFormat type="CentreAligned" />
+            </TextComponent>
+            <TextComponent>
+                <Area>
+                    <Dim type="LeftEdge"><OperatorDim op="Multiply"><FontDim type="LineSpacing" /><AbsoluteDim value="0.045" /></OperatorDim></Dim>
+                    <Dim type="TopEdge"><OperatorDim op="Multiply"><FontDim type="LineSpacing" /><AbsoluteDim value="0.045" /></OperatorDim></Dim>
+                    <Dim type="Width"><UnifiedDim scale="1" type="Width" /></Dim>
+                    <Dim type="Height"><UnifiedDim scale="1" type="Height" /></Dim>
+                </Area>
+                <Colours topLeft="28FFFFFF" topRight="28FFFFFF" bottomLeft="28FFFFFF" bottomRight="28FFFFFF" />
+                <VertFormat type="CentreAligned" />
+                <HorzFormat type="CentreAligned" />
+            </TextComponent>
+        </ImagerySection>
+        <StateImagery name="Hover">
+            <Layer>
+                <Section section="glow"><Colours topLeft="FFFFAC00" topRight="FFFFAC00" bottomLeft="FFFFAC00" bottomRight="FFFFAC00" /></Section>
+                <Section section="label"><ColourProperty name="HoverTextColour" /></Section>
+            </Layer>
+        </StateImagery>
+        <StateImagery name="Pushed">
+            <Layer>
+                <Section section="glow"><Colours topLeft="FFFFAC00" topRight="FFFFAC00" bottomLeft="FFFFAC00" bottomRight="FFFFAC00" /></Section>
+                <Section section="label"><ColourProperty name="PushedTextColour" /></Section>
+            </Layer>
+        </StateImagery>
+    </WidgetLook>
+    <WidgetLook name="OD/MenuTitle" inherits="OD/StaticText">
+        <Property name="FrameEnabled" value="False" />
+        <Property name="BackgroundEnabled" value="False" />
+        <Property name="HorzFormatting" value="CentreAligned" />
+        <Property name="VertFormatting" value="CentreAligned" />
+        <Property name="TextColours" value="tl:FFE9841C tr:FFE9841C bl:FFE9841C br:FFE9841C" />
+        <StateImagery name="Enabled">
+            <Layer>
+                <Section look="OD/MenuTextButton" section="glow"><Colours topLeft="FFC62A06" topRight="FFC62A06" bottomLeft="FFC62A06" bottomRight="FFC62A06" /></Section>
+            </Layer>
+        </StateImagery>
+    </WidgetLook>
+    <WidgetLook name="OD/MenuPageWindow" inherits="OD/FrameWindow">
+        <Property name="FrameEnabled" value="False" />
+        <Property name="TitlebarEnabled" value="False" />
+        <Property name="CloseButtonEnabled" value="False" />
+        <StateImagery name="ActiveNoTitleNoFrame" />
+        <StateImagery name="InactiveNoTitleNoFrame" />
+        <StateImagery name="DisabledNoTitleNoFrame" />
+    </WidgetLook>
+    <WidgetLook name="OD/GameSettingsWindow" inherits="OD/MenuPageWindow">
+        <ImagerySection name="backdrop">
+            <ImageryComponent>
+                <Area>
+                    <Dim type="LeftEdge"><AbsoluteDim value="0" /></Dim>
+                    <Dim type="TopEdge"><AbsoluteDim value="0" /></Dim>
+                    <Dim type="RightEdge"><UnifiedDim scale="1" type="RightEdge" /></Dim>
+                    <Dim type="BottomEdge"><UnifiedDim scale="1" type="BottomEdge" /></Dim>
+                </Area>
+                <Image name="OpenDungeonsSkin/SelectionBrush" />
+                <Colours topLeft="E6120C08" topRight="E6120C08" bottomLeft="E6120C08" bottomRight="E6120C08" />
+                <VertFormat type="Stretched" /><HorzFormat type="Stretched" />
+            </ImageryComponent>
+        </ImagerySection>
+        <StateImagery name="ActiveNoTitleNoFrame"><Layer><Section section="backdrop" /></Layer></StateImagery>
+        <StateImagery name="InactiveNoTitleNoFrame"><Layer><Section section="backdrop" /></Layer></StateImagery>
+        <StateImagery name="DisabledNoTitleNoFrame"><Layer><Section section="backdrop" /></Layer></StateImagery>
+    </WidgetLook>
+    <WidgetLook name="OD/MenuPageContent" inherits="OD/TabContentPane">
+        <StateImagery name="Enabled" />
+        <StateImagery name="Disabled" />
+    </WidgetLook>
+
+    <WidgetLook name="OD/MenuScrollbarThumb" inherits="OD/VerticalScrollbarThumb" />
+
+    <WidgetLook name="OD/MenuScrollbar" inherits="OD/VerticalScrollbar">
+        <StateImagery name="Enabled"><Layer><Section section="main" /></Layer></StateImagery>
+        <StateImagery name="Disabled"><Layer><Section section="main" /></Layer></StateImagery>
+        <Child nameSuffix="__auto_thumb__" type="OD/MenuScrollbarThumb">
+            <Area>
+                <Dim type="LeftEdge"><AbsoluteDim value="2" /></Dim>
+                <Dim type="TopEdge"><AbsoluteDim value="0" /></Dim>
+                <Dim type="Width"><UnifiedDim scale="1" offset="-4" type="Width" /></Dim>
+                <Dim type="Height"><UnifiedDim scale="0.1" type="Height" /></Dim>
+            </Area>
+            <Property name="MinSize" value="{{0,0},{0,25}}" />
+        </Child>
+        <ImagerySection name="main"><FrameComponent>
+                <Area>
+                    <Dim type="LeftEdge"><AbsoluteDim value="0" /></Dim>
+                    <Dim type="TopEdge"><AbsoluteDim value="0" /></Dim>
+                    <Dim type="Width"><UnifiedDim scale="1" type="Width" /></Dim>
+                    <Dim type="Height"><UnifiedDim scale="1" type="Height" /></Dim>
+                </Area>
+                <Image component="TopLeftCorner" name="OpenDungeonsSkin/VerticalSliderTopLeft" />
+                <Image component="TopRightCorner" name="OpenDungeonsSkin/VerticalSliderTopRight" />
+                <Image component="BottomLeftCorner" name="OpenDungeonsSkin/VerticalSliderBottomLeft" />
+                <Image component="BottomRightCorner" name="OpenDungeonsSkin/VerticalSliderBottomRight" />
+                <Image component="LeftEdge" name="OpenDungeonsSkin/VerticalSliderLeft" />
+                <Image component="RightEdge" name="OpenDungeonsSkin/VerticalSliderRight" />
+                <Image component="BottomEdge" name="OpenDungeonsSkin/VerticalSliderBottom" />
+                <Image component="TopEdge" name="OpenDungeonsSkin/VerticalSliderTop" />
+
+            </FrameComponent>
+            </ImagerySection>
+    </WidgetLook>
+
+    <WidgetLook name="OD/MenuScrollablePane" inherits="OD/ScrollablePane">
+        <Child nameSuffix="__auto_vscrollbar__" type="OD/MenuScrollbar">
+            <Area>
+                <Dim type="LeftEdge"><AbsoluteDim value="0" /></Dim>
+                <Dim type="TopEdge"><AbsoluteDim value="0" /></Dim>
+                <Dim type="Width"><OperatorDim op="Multiply"><ImageDim name="OpenDungeonsSkin/MiniVertScrollThumbNormal" dimension="Width" /><AbsoluteDim value="1.5" /></OperatorDim></Dim>
+                <Dim type="Height"><UnifiedDim scale="1" offset="-12" type="Height" /></Dim>
+            </Area>
+            <HorzAlignment type="RightAligned" />
+        </Child>
+    </WidgetLook>
+    <WidgetLook name="OD/MenuListbox" inherits="OD/Listbox">
+        <Child nameSuffix="__auto_vscrollbar__" type="OD/MenuScrollbar">
+            <Area>
+                <Dim type="LeftEdge"><AbsoluteDim value="-14" /></Dim>
+                <Dim type="TopEdge"><AbsoluteDim value="14" /></Dim>
+                <Dim type="Width"><OperatorDim op="Multiply"><ImageDim name="OpenDungeonsSkin/MiniVertScrollThumbNormal" dimension="Width" /><AbsoluteDim value="1.5" /></OperatorDim></Dim>
+                <Dim type="Height"><UnifiedDim scale="1" offset="-28" type="Height" /></Dim>
+            </Area>
+            <HorzAlignment type="RightAligned" />
+        </Child>
+        <NamedArea name="ItemRenderingArea"><Area>
+            <Dim type="LeftEdge"><AbsoluteDim value="26" /></Dim>
+            <Dim type="TopEdge"><AbsoluteDim value="16" /></Dim>
+            <Dim type="RightEdge"><UnifiedDim scale="1" offset="-16" type="RightEdge" /></Dim>
+            <Dim type="BottomEdge"><UnifiedDim scale="1" offset="-16" type="BottomEdge" /></Dim>
+        </Area></NamedArea>
+        <NamedArea name="ItemRenderingAreaHScroll"><Area>
+            <Dim type="LeftEdge"><AbsoluteDim value="26" /></Dim>
+            <Dim type="TopEdge"><AbsoluteDim value="16" /></Dim>
+            <Dim type="RightEdge"><UnifiedDim scale="1" offset="-16" type="RightEdge" /></Dim>
+            <Dim type="BottomEdge"><OperatorDim op="Subtract"><UnifiedDim scale="1" offset="-16" type="BottomEdge" /><WidgetDim dimension="Height" widget="__auto_hscrollbar__" /></OperatorDim></Dim>
+        </Area></NamedArea>
+        <NamedArea name="ItemRenderingAreaVScroll"><Area>
+            <Dim type="LeftEdge"><AbsoluteDim value="26" /></Dim>
+            <Dim type="TopEdge"><AbsoluteDim value="16" /></Dim>
+            <Dim type="RightEdge"><OperatorDim op="Subtract"><UnifiedDim scale="1" offset="-16" type="RightEdge" /><WidgetDim dimension="Width" widget="__auto_vscrollbar__" /></OperatorDim></Dim>
+            <Dim type="BottomEdge"><UnifiedDim scale="1" offset="-16" type="BottomEdge" /></Dim>
+        </Area></NamedArea>
+        <NamedArea name="ItemRenderingAreaHVScroll"><Area>
+            <Dim type="LeftEdge"><AbsoluteDim value="26" /></Dim>
+            <Dim type="TopEdge"><AbsoluteDim value="16" /></Dim>
+            <Dim type="RightEdge"><OperatorDim op="Subtract"><UnifiedDim scale="1" offset="-16" type="RightEdge" /><WidgetDim dimension="Width" widget="__auto_vscrollbar__" /></OperatorDim></Dim>
+            <Dim type="BottomEdge"><OperatorDim op="Subtract"><UnifiedDim scale="1" offset="-16" type="BottomEdge" /><WidgetDim dimension="Height" widget="__auto_hscrollbar__" /></OperatorDim></Dim>
+        </Area></NamedArea>
+        <StateImagery name="Enabled"><Layer><Section look="OD/Listbox" section="main" /></Layer></StateImagery>
+        <StateImagery name="Disabled"><Layer><Section look="OD/Listbox" section="main"><Colours topLeft="FF7F7F7F" topRight="FF7F7F7F" bottomLeft="FF7F7F7F" bottomRight="FF7F7F7F" /></Section></Layer></StateImagery>
+    </WidgetLook>
+    <WidgetLook name="OD/MenuMultiColumnList" inherits="OD/MultiColumnList">
+        <Child nameSuffix="__auto_vscrollbar__" type="OD/MenuScrollbar">
+            <Area>
+                <Dim type="LeftEdge"><AbsoluteDim value="0" /></Dim>
+                <Dim type="TopEdge"><WidgetDim dimension="BottomEdge" widget="__auto_listheader__" /></Dim>
+                <Dim type="Width"><OperatorDim op="Multiply"><ImageDim dimension="Width" name="OpenDungeonsSkin/MiniVertScrollThumbNormal" /><AbsoluteDim value="1.5" /></OperatorDim></Dim>
+                <Dim type="BottomEdge"><UnifiedDim scale="1" offset="-12" type="BottomEdge" /></Dim>
+            </Area>
+            <HorzAlignment type="RightAligned" />
+        </Child>
+        <StateImagery name="Enabled"><Layer><Section look="OD/MultiColumnList" section="main" /></Layer></StateImagery>
+        <StateImagery name="Disabled"><Layer><Section look="OD/MultiColumnList" section="main"><Colours topLeft="FF7F7F7F" topRight="FF7F7F7F" bottomLeft="FF7F7F7F" bottomRight="FF7F7F7F" /></Section></Layer></StateImagery>
+    </WidgetLook>
+
+    <!-- A symbol button sits on a forged iron plate like the corner buttons of the minimap: normal, hover as ember, pressed sunk in. -->
+    <WidgetLook name="OD/MenuSymbolButton" inherits="OD/InvisibleButton">
+        <ImagerySection name="plate_normal"><FrameComponent>
+                <Area>
+                    <Dim type="LeftEdge"><AbsoluteDim value="0" /></Dim>
+                    <Dim type="TopEdge"><AbsoluteDim value="0" /></Dim>
+                    <Dim type="Width"><UnifiedDim scale="1" type="Width" /></Dim>
+                    <Dim type="Height"><UnifiedDim scale="1" type="Height" /></Dim>
+                </Area>
+                <Image component="TopLeftCorner" name="OpenDungeonsSkin/ButtonTopLeftNormal" />
+                <Image component="TopRightCorner" name="OpenDungeonsSkin/ButtonTopRightNormal" />
+                <Image component="BottomLeftCorner" name="OpenDungeonsSkin/ButtonBottomLeftNormal" />
+                <Image component="BottomRightCorner" name="OpenDungeonsSkin/ButtonBottomRightNormal" />
+                <Image component="LeftEdge" name="OpenDungeonsSkin/ButtonLeftNormal" />
+                <Image component="RightEdge" name="OpenDungeonsSkin/ButtonRightNormal" />
+                <Image component="BottomEdge" name="OpenDungeonsSkin/ButtonBottomNormal" />
+                <Image component="TopEdge" name="OpenDungeonsSkin/ButtonTopNormal" />
+                <Image component="Background" name="OpenDungeonsSkin/ButtonMiddleNormal" />
+            </FrameComponent></ImagerySection>
+        <ImagerySection name="plate_hover"><FrameComponent>
+                <Area>
+                    <Dim type="LeftEdge"><AbsoluteDim value="0" /></Dim>
+                    <Dim type="TopEdge"><AbsoluteDim value="0" /></Dim>
+                    <Dim type="Width"><UnifiedDim scale="1" type="Width" /></Dim>
+                    <Dim type="Height"><UnifiedDim scale="1" type="Height" /></Dim>
+                </Area>
+                <Image component="TopLeftCorner" name="OpenDungeonsSkin/ButtonTopLeftHighlight" />
+                <Image component="TopRightCorner" name="OpenDungeonsSkin/ButtonTopRightHighlight" />
+                <Image component="BottomLeftCorner" name="OpenDungeonsSkin/ButtonBottomLeftHighlight" />
+                <Image component="BottomRightCorner" name="OpenDungeonsSkin/ButtonBottomRightHighlight" />
+                <Image component="LeftEdge" name="OpenDungeonsSkin/ButtonLeftHighlight" />
+                <Image component="RightEdge" name="OpenDungeonsSkin/ButtonRightHighlight" />
+                <Image component="BottomEdge" name="OpenDungeonsSkin/ButtonBottomHighlight" />
+                <Image component="TopEdge" name="OpenDungeonsSkin/ButtonTopHighlight" />
+                <Image component="Background" name="OpenDungeonsSkin/ButtonMiddleHighlight" />
+            </FrameComponent></ImagerySection>
+        <ImagerySection name="plate_pushed"><FrameComponent>
+                <Area>
+                    <Dim type="LeftEdge"><AbsoluteDim value="0" /></Dim>
+                    <Dim type="TopEdge"><AbsoluteDim value="0" /></Dim>
+                    <Dim type="Width"><UnifiedDim scale="1" type="Width" /></Dim>
+                    <Dim type="Height"><UnifiedDim scale="1" type="Height" /></Dim>
+                </Area>
+                <Image component="TopLeftCorner" name="OpenDungeonsSkin/ButtonTopLeftPushed" />
+                <Image component="TopRightCorner" name="OpenDungeonsSkin/ButtonTopRightPushed" />
+                <Image component="BottomLeftCorner" name="OpenDungeonsSkin/ButtonBottomLeftPushed" />
+                <Image component="BottomRightCorner" name="OpenDungeonsSkin/ButtonBottomRightPushed" />
+                <Image component="LeftEdge" name="OpenDungeonsSkin/ButtonLeftPushed" />
+                <Image component="RightEdge" name="OpenDungeonsSkin/ButtonRightPushed" />
+                <Image component="BottomEdge" name="OpenDungeonsSkin/ButtonBottomPushed" />
+                <Image component="TopEdge" name="OpenDungeonsSkin/ButtonTopPushed" />
+                <Image component="Background" name="OpenDungeonsSkin/ButtonMiddlePushed" />
+            </FrameComponent></ImagerySection>
+        <ImagerySection name="symbol_normal"><ImageryComponent>
+                <Area>
+                    <Dim type="LeftEdge"><UnifiedDim scale="0.17" offset="0" type="Width" /></Dim>
+                    <Dim type="TopEdge"><UnifiedDim scale="0.17" offset="0" type="Height" /></Dim>
+                    <Dim type="Width"><UnifiedDim scale="0.66" type="Width" /></Dim>
+                    <Dim type="Height"><UnifiedDim scale="0.66" type="Height" /></Dim>
+                </Area>
+                <ImageProperty name="NormalImage" />
+                <VertFormat type="Stretched" /><HorzFormat type="Stretched" />
+            </ImageryComponent></ImagerySection>
+        <ImagerySection name="symbol_hover"><ImageryComponent>
+                <Area>
+                    <Dim type="LeftEdge"><UnifiedDim scale="0.17" offset="0" type="Width" /></Dim>
+                    <Dim type="TopEdge"><UnifiedDim scale="0.17" offset="0" type="Height" /></Dim>
+                    <Dim type="Width"><UnifiedDim scale="0.66" type="Width" /></Dim>
+                    <Dim type="Height"><UnifiedDim scale="0.66" type="Height" /></Dim>
+                </Area>
+                <ImageProperty name="HoverImage" />
+                <VertFormat type="Stretched" /><HorzFormat type="Stretched" />
+            </ImageryComponent></ImagerySection>
+        <ImagerySection name="symbol_pushed"><ImageryComponent>
+                <Area>
+                    <Dim type="LeftEdge"><UnifiedDim scale="0.17" offset="1" type="Width" /></Dim>
+                    <Dim type="TopEdge"><UnifiedDim scale="0.17" offset="1" type="Height" /></Dim>
+                    <Dim type="Width"><UnifiedDim scale="0.66" type="Width" /></Dim>
+                    <Dim type="Height"><UnifiedDim scale="0.66" type="Height" /></Dim>
+                </Area>
+                <ImageProperty name="PushedImage" />
+                <VertFormat type="Stretched" /><HorzFormat type="Stretched" />
+            </ImageryComponent></ImagerySection>
+        <StateImagery name="Normal"><Layer><Section section="plate_normal" /><Section section="symbol_normal" /></Layer></StateImagery>
+        <StateImagery name="Hover"><Layer><Section section="plate_hover" /><Section section="symbol_hover" /></Layer></StateImagery>
+        <StateImagery name="Pushed"><Layer><Section section="plate_pushed" /><Section section="symbol_pushed" /></Layer></StateImagery>
+        <StateImagery name="PushedOff"><Layer><Section section="plate_hover" /><Section section="symbol_hover" /></Layer></StateImagery>
+        <StateImagery name="Disabled"><Layer><Section section="plate_normal"><Colours topLeft="FF7F7F7F" topRight="FF7F7F7F" bottomLeft="FF7F7F7F" bottomRight="FF7F7F7F" /></Section><Section section="symbol_normal"><Colours topLeft="FF7F7F7F" topRight="FF7F7F7F" bottomLeft="FF7F7F7F" bottomRight="FF7F7F7F" /></Section></Layer></StateImagery>
+    </WidgetLook>
+
+    <!-- Message panel of the game: the forged window frame with rivets and one even stone inset, without a title bar. -->
+    <WidgetLook name="OD/EventPanel" inherits="OD/StaticText">
+        <NamedArea name="WithFrameTextRenderArea">
+            <Area>
+                <Dim type="LeftEdge"><AbsoluteDim value="10" /></Dim>
+                <Dim type="TopEdge"><AbsoluteDim value="10" /></Dim>
+                <Dim type="RightEdge"><OperatorDim op="Subtract"><UnifiedDim scale="1" type="RightEdge" /><AbsoluteDim value="10" /></OperatorDim></Dim>
+                <Dim type="BottomEdge"><OperatorDim op="Subtract"><UnifiedDim scale="1" type="BottomEdge" /><AbsoluteDim value="10" /></OperatorDim></Dim>
+            </Area>
+        </NamedArea>
+        <NamedArea name="WithFrameTextRenderAreaVScroll">
+            <Area>
+                <Dim type="LeftEdge"><AbsoluteDim value="10" /></Dim>
+                <Dim type="TopEdge"><AbsoluteDim value="10" /></Dim>
+                <Dim type="RightEdge"><OperatorDim op="Subtract"><UnifiedDim scale="1" type="RightEdge" /><WidgetDim dimension="Width" widget="__auto_vscrollbar__" /></OperatorDim></Dim>
+                <Dim type="BottomEdge"><OperatorDim op="Subtract"><UnifiedDim scale="1" type="BottomEdge" /><AbsoluteDim value="10" /></OperatorDim></Dim>
+            </Area>
+        </NamedArea>
+        <ImagerySection name="forged_frame">
+            <FrameComponent>
+                <Area>
+                    <Dim type="LeftEdge"><AbsoluteDim value="0" /></Dim>
+                    <Dim type="TopEdge"><AbsoluteDim value="0" /></Dim>
+                    <Dim type="Width"><UnifiedDim scale="1" type="Width" /></Dim>
+                    <Dim type="Height"><UnifiedDim scale="1" type="Height" /></Dim>
+                </Area>
+                <Image component="TopLeftCorner" name="OpenDungeonsSkin/WindowTopLeft" />
+                <Image component="TopRightCorner" name="OpenDungeonsSkin/WindowTopRight" />
+                <Image component="BottomLeftCorner" name="OpenDungeonsSkin/WindowBottomLeft" />
+                <Image component="BottomRightCorner" name="OpenDungeonsSkin/WindowBottomRight" />
+                <Image component="LeftEdge" name="OpenDungeonsSkin/WindowLeftEdge" />
+                <Image component="RightEdge" name="OpenDungeonsSkin/WindowRightEdge" />
+                <Image component="TopEdge" name="OpenDungeonsSkin/WindowTopEdge" />
+                <Image component="BottomEdge" name="OpenDungeonsSkin/WindowBottomEdge" />
+                <Image component="Background" name="OpenDungeonsSkin/ClientBrush" />
+                <VertFormat type="Tiled" />
+                <HorzFormat type="Tiled" />
+            </FrameComponent>
+        </ImagerySection>
+        <StateImagery name="EnabledFrame"><Layer><Section section="forged_frame" /></Layer></StateImagery>
+        <StateImagery name="DisabledFrame"><Layer><Section section="forged_frame"><Colours topLeft="FF7F7F7F" topRight="FF7F7F7F" bottomLeft="FF7F7F7F" bottomRight="FF7F7F7F" /></Section></Layer></StateImagery>
+        <StateImagery name="WithFrameEnabledBackground" />
+        <StateImagery name="WithFrameDisabledBackground" />
+    </WidgetLook>
+
+    <WidgetLook name="OD/SettingsSliderThumb" inherits="OD/HorizontalSliderThumb">
+        <ImagerySection name="grip"><ImageryComponent>
+            <Image name="OpenDungeonsSkin/SelectionBrush" />
+            <VertFormat type="Stretched" /><HorzFormat type="Stretched" />
+        </ImageryComponent></ImagerySection>
+        <StateImagery name="Normal"><Layer><Section section="grip"><Colours topLeft="FFFFFFFF" topRight="FFFFFFFF" bottomLeft="FFFFFFFF" bottomRight="FFFFFFFF" /></Section></Layer></StateImagery>
+        <StateImagery name="Hover"><Layer><Section section="grip" /></Layer></StateImagery>
+        <StateImagery name="Pushed"><Layer><Section section="grip" /></Layer></StateImagery>
+        <StateImagery name="Disabled"><Layer><Section section="grip"><Colours topLeft="FF777777" topRight="FF777777" bottomLeft="FF777777" bottomRight="FF777777" /></Section></Layer></StateImagery>
+    </WidgetLook>
+    <WidgetLook name="OD/SettingsSlider" inherits="OD/HorizontalSlider">
+        <Property name="VerticalSlider" value="False" />
+        <Child nameSuffix="__auto_thumb__" type="OD/SettingsSliderThumb">
+            <Area>
+                <Dim type="LeftEdge"><AbsoluteDim value="0" /></Dim>
+                <Dim type="TopEdge"><AbsoluteDim value="0" /></Dim>
+                <Dim type="Width"><ImageDim dimension="Width" name="OpenDungeonsSkin/MiniVertScrollThumbNormal" /></Dim>
+                <Dim type="Height"><UnifiedDim scale="1" type="Height" /></Dim>
+            </Area>
+        </Child>
+        <ImagerySection name="track"><FrameComponent>
+                <Area>
+                    <Dim type="LeftEdge"><AbsoluteDim value="0" /></Dim>
+                    <Dim type="TopEdge"><AbsoluteDim value="0" /></Dim>
+                    <Dim type="Width"><UnifiedDim scale="1" type="Width" /></Dim>
+                    <Dim type="Height"><UnifiedDim scale="1" type="Height" /></Dim>
+                </Area>
+                <Image component="TopLeftCorner" name="OpenDungeonsSkin/HorizontalSliderTopLeft" />
+                <Image component="TopRightCorner" name="OpenDungeonsSkin/HorizontalSliderTopRight" />
+                <Image component="BottomLeftCorner" name="OpenDungeonsSkin/HorizontalSliderBottomLeft" />
+                <Image component="BottomRightCorner" name="OpenDungeonsSkin/HorizontalSliderBottomRight" />
+                <Image component="LeftEdge" name="OpenDungeonsSkin/HorizontalSliderLeft" />
+                <Image component="RightEdge" name="OpenDungeonsSkin/HorizontalSliderRight" />
+                <Image component="BottomEdge" name="OpenDungeonsSkin/HorizontalSliderBottom" />
+                <Image component="TopEdge" name="OpenDungeonsSkin/HorizontalSliderTop" />
+                </FrameComponent>
+            </ImagerySection>
+        <StateImagery name="Enabled"><Layer><Section section="track" /></Layer></StateImagery>
+        <StateImagery name="Disabled"><Layer><Section section="track" /></Layer></StateImagery>
+    </WidgetLook>
     <WidgetLook name="OD/CommunityPanel" inherits="OD/FrameWindow">
         <Property name="FrameEnabled" value="False" />
         <Property name="TitlebarEnabled" value="False" />

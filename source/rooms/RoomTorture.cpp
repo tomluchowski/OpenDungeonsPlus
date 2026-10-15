@@ -16,6 +16,8 @@
  */
 
 #include "rooms/RoomTorture.h"
+#include "game/SkillManager.h"
+#include "game/SkillType.h"
 
 #include "creatureaction/CreatureActionUseRoom.h"
 #include "entities/BuildingObject.h"
@@ -338,10 +340,12 @@ bool RoomTorture::useRoom(Creature& creature, bool forced)
         p.second.mIsReady = true;
 
         if((getSeat() != creature.getSeat()) &&
-           (Random::Double(0.0, 1.0) <= config.getRoomConfigDouble("TortureRallyPercent")))
+           (Random::Double(0.0, 1.0) <= std::min(1.0, SkillManager::getResearchValue(
+               getSeat(), SkillType::roomTorture, config.getRoomConfigDouble("TortureRallyPercent")))))
         {
             // The creature changes side
             creature.changeSeat(getSeat());
+            getSeat()->getStatistics().mCreaturesConverted++;
             creature.clearActionQueue();
 
             // We return false because we don't want to choose an action before a next complete turn
