@@ -8,8 +8,7 @@
         <Window type="OD/StaticImage" name="HorizontalPipe" >
             <UserString name="AllowEdgeScrolling" value="true" />
             <Property name="Area" value="{{0,0},{0,0},{1,0},{0,48}}" />
-            <Property name="Image" value="OpenDungeonsSkin/HorizontalPipe" />
-            <Property name="ImageColours" value="FFB98B56" />
+            <Property name="Image" value="OpenDungeonsSkin/ForgedBar" />
             <Property name="MaxSize" value="{{1,0},{1,0}}" />
             <Property name="FrameEnabled" value="False" />
             <Property name="BackgroundEnabled" value="False" />
@@ -187,8 +186,7 @@
             <Property name="RiseOnClickEnabled" value="False" />
             <Window type="OD/StaticImage" name="Rail">
                 <Property name="Area" value="{{0,0},{0.12,0},{1,0},{0.88,0}}" />
-                <Property name="Image" value="OpenDungeonsSkin/HorizontalPipe" />
-                <Property name="ImageColours" value="FFB98B56" />
+                <Property name="Image" value="OpenDungeonsSkin/ForgedBar" />
                 <Property name="HorzFormatting" value="Tiled" />
                 <Property name="FrameEnabled" value="False" />
                 <Property name="BackgroundEnabled" value="False" />

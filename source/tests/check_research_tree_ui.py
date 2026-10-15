@@ -109,6 +109,10 @@ int main(int argc,char** argv){try{
    check(badge->isVisible()&&badge->isMousePassThroughEnabled()&&!badge->isClippedByParent(),"badge visible below icon without intercepting clicks");
    check(b->getProperty("ButtonImageColour")== (level==0?"FF666666":"FFFFFFFF"),"unresearched icons are greyed and researched icons retain colour");
    check(b->getProperty("ResearchLevelColour")== (level==3?"FFFFC947":level==2?"FFC98A4A":"00FFFFFF"),"level has no, bronze or gold frame");
+   {const std::string st=b->getUserString("ResearchState").c_str();
+    const std::string want=st=="Researching"?"OpenDungeonsSkin/ResearchTileWorking":st=="Queued"?"OpenDungeonsSkin/ResearchTileQueued":level>0?"OpenDungeonsSkin/ResearchTileLearned":"OpenDungeonsSkin/ResearchTileLocked";
+    check(b->getProperty("ResearchTileImage")==CEGUI::String(want),"node state shows as a material tile, not a flat colour square");
+    check(!b->isPropertyPresent("ResearchBackgroundColour"),"no flat state colour behind the icon");}
    check(b->isDisabled()==(level==3),"max-level selection rule preserved");
    check(root->getChild(cast)->isVisible()==(level>0),"unlocked actions stay available during upgrades");
    check(b->getUserString("ResearchDetails").find(level==3?"Maximum level":"Queue position: 2")!=CEGUI::String::npos,"queue and level information remains accessible");
@@ -122,7 +126,7 @@ int main(int argc,char** argv){try{
     auto* line=parent->getChild("ResearchLink_"+std::to_string(int(dependency->type))+"_"+std::to_string(int(p.first))+"_"+std::to_string(part));
     check(line->isMousePassThroughEnabled(),"connections do not intercept clicks");
     check(line->getPixelSize().d_width>0&&line->getPixelSize().d_height>0,"each immediate edge has positive geometry");
-    check(line->getProperty("ImageColours").find(level>0?"FFD28B54":"FF6A5A46")!=CEGUI::String::npos,"permanent paths reflect actual prerequisite completion");
+    check(line->getProperty("ImageColours").find(level>0?"FFE8862E":"FF6E5232")!=CEGUI::String::npos,"permanent paths reflect actual prerequisite completion");
    }
   }
   system.getDefaultGUIContext().draw();
@@ -139,7 +143,7 @@ int main(int argc,char** argv){try{
    for(auto* dependency:p.second.parents)for(int part=0;part<3;++part){
     auto* line=parent->getChild("ResearchLink_"+std::to_string(int(dependency->type))+"_"+std::to_string(int(p.first))+"_"+std::to_string(part));
     bool ready=part==0?map.player.seat.getSkillLevel(dependency->type)>0:complete;
-    check(line->getProperty("ImageColours").find(ready?"FFD28B54":"FF6A5A46")!=CEGUI::String::npos,"shared bus unlocks only when ALL prerequisites are complete");
+    check(line->getProperty("ImageColours").find(ready?"FFE8862E":"FF6E5232")!=CEGUI::String::npos,"shared bus unlocks only when ALL prerequisites are complete");
    }
   }
  }
@@ -168,7 +172,7 @@ int main(int argc,char** argv){try{
    auto* bar=static_cast<CEGUI::ProgressBar*>(button->getChild(button->getName()+"ProgressBar"));
    check(bar->getUnclippedOuterRect().get().bottom()<=label.top(),"level count never covers current progress");
    if(p.first==SkillType::roomTrainingHall){
-    check(button->getProperty("ResearchBackgroundColour")=="FFB76A23","active node highlighted");
+    check(button->getProperty("ResearchTileImage")=="OpenDungeonsSkin/ResearchTileWorking","active node highlighted");
     check(bar->isVisible()&&bar->getProgress()==.5f&&bar->getAlpha()==1,"real progress visible on active node");}
    for(auto* dep:p.second.parents)for(int part=0;part<3;++part){auto* line=parent->getChild("ResearchLink_"+std::to_string(int(dep->type))+"_"+std::to_string(int(p.first))+"_"+std::to_string(part));
     check(line->isVisible(),"all prerequisite paths stay visible without hover");
@@ -184,10 +188,7 @@ int main(int argc,char** argv){try{
 }catch(const std::exception& e){std::cerr<<e.what()<<'\n';return 1;}}
 '''.replace('METHODS', function('void GameMode::refreshSkillButtonState(')+'\n'+function('void GameMode::refreshSkillConnections(')).replace('INITIALIZERS', initializers).replace('NAMES', skill_names[names_start:names_end])
 if args.render:
-    native = (repo / 'source/render/Gui.cpp').read_text()
-    icon_methods = native[native.index('void shadeNavigationIcon('):native.index('void createNavigationImages(')]
     probe = probe.replace('#include <CEGUI/RendererModules/Null/Renderer.h>', '#include <CEGUI/RendererModules/Ogre/Renderer.h>\n#include <CEGUI/BasicImage.h>\n#include <Ogre.h>\n#include <OgreRenderTexture.h>\n#include <OgreHardwarePixelBuffer.h>\n#include <RTShaderSystem/OgreShaderGenerator.h>\n#include <Bites/OgreSGTechniqueResolverListener.h>')
-    probe = probe.replace('int main(int argc,char** argv)', icon_methods + '\nint main(int argc,char** argv)')
     probe = probe.replace('auto& renderer=CEGUI::NullRenderer::create();renderer.setDisplaySize(CEGUI::Sizef(1920,1200));', r'''
  ogre.loadPlugin(std::string(argv[2])+"/bin/RenderSystem_GL3Plus");
  auto* renderSystem=ogre.getAvailableRenderers().front();ogre.setRenderSystem(renderSystem);
@@ -205,8 +206,6 @@ if args.render:
  window->addViewport(camera)->setBackgroundColour(Ogre::ColourValue(.02f,.03f,.04f));
  auto& renderer=CEGUI::OgreRenderer::create(*window);renderer.setFrameControlExecutionEnabled(false);
  renderer.setDisplaySize(CEGUI::Sizef(1920,1200));''')
-    probe = probe.replace('CEGUI::SchemeManager::getSingleton().createFromFile("ODSkin.scheme");',
-                          'CEGUI::SchemeManager::getSingleton().createFromFile("ODSkin.scheme");colourNavigationAtlas();createSummonWorkerIcon();')
     probe = probe.replace(' windows.destroyWindow(root);', r'''
  renderer.setDisplaySize(CEGUI::Sizef(1280,960));
  auto fonts=CEGUI::FontManager::getSingleton().getIterator();

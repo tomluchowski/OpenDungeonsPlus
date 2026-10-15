@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <GUILayout version="4">
-    <Window type="OD/StaticText" name="GameEventText">
+    <Window type="OD/EventPanel" name="GameEventText">
         <Property name="Visible" value="False" />
         <Property name="Area" value="{{0.668,-373},{1,-309},{0.668,279},{1,-193}}" />
         <Property name="FrameEnabled" value="True" />
