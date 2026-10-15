@@ -30,9 +30,25 @@
 #include "gamemap/MapHandler.h"
 #include "utils/ConfigManager.h"
 #include "utils/ResourceManager.h"
+#include "game/SandboxProgress.h"
 
 #include <CEGUI/CEGUI.h>
 #include "boost/filesystem.hpp"
+
+#include <algorithm>
+#include <map>
+#include <set>
+
+bool MenuModeSkirmish::sStartWithSandboxLevels = false;
+
+//! \brief The index of the level type listing the sandbox levels
+static const size_t LEVEL_TYPE_SANDBOX = 4;
+
+//! \brief Orders two level files by their file name, whatever the folder
+static bool compareLevelFileNames(const std::string& first, const std::string& second)
+{
+    return boost::filesystem::path(first).filename().string() < boost::filesystem::path(second).filename().string();
+}
 
 MenuModeSkirmish::MenuModeSkirmish(ModeManager* modeManager):
     AbstractApplicationMode(modeManager, ModeManager::MENU_SKIRMISH)
@@ -57,6 +73,10 @@ MenuModeSkirmish::MenuModeSkirmish(ModeManager* modeManager):
     levelTypeCb->addItem(item);
 
     item = new CEGUI::ListboxTextItem("Custom Multiplayer Levels", 3);
+    item->setSelectionBrushImage(selImg);
+    levelTypeCb->addItem(item);
+
+    item = new CEGUI::ListboxTextItem("Sandbox Levels", static_cast<uint32_t>(LEVEL_TYPE_SANDBOX));
     item->setSelectionBrushImage(selImg);
     levelTypeCb->addItem(item);
 
@@ -118,7 +138,12 @@ void MenuModeSkirmish::activate()
     // Select skirmish
     CEGUI::Combobox* levelTypeCb = static_cast<CEGUI::Combobox*>(getModeManager().getGui().
                                        getGuiSheet(Gui::skirmishMenu)->getChild(Gui::SKM_LIST_LEVEL_TYPES));
-    levelTypeCb->setItemSelectState(static_cast<size_t>(0), true);
+    if(sStartWithSandboxLevels)
+        levelTypeCb->setItemSelectState(LEVEL_TYPE_SANDBOX, true);
+    else
+        levelTypeCb->setItemSelectState(static_cast<size_t>(0), true);
+
+    sStartWithSandboxLevels = false;
     updateFilesList();
 
     // Set the player name if valid. (Will use the defaut one if not.)
@@ -142,6 +167,7 @@ bool MenuModeSkirmish::updateFilesList(const CEGUI::EventArgs&)
     levelSelectList->resetList();
 
     std::string levelPath;
+    std::vector<std::string> levelFiles;
     size_t selection = levelTypeCb->getItemIndex(levelTypeCb->getSelectedItem());
     switch (selection)
     {
@@ -158,34 +184,77 @@ bool MenuModeSkirmish::updateFilesList(const CEGUI::EventArgs&)
         case 3:
             levelPath = ResourceManager::getSingleton().getUserLevelPathMultiplayer();
             break;
+        case LEVEL_TYPE_SANDBOX:
+            levelPath = ResourceManager::getSingleton().getGameLevelPathSkirmish();
+            Helper::fillFilesList(ResourceManager::getSingleton().getUserLevelPathSkirmish(),
+                levelFiles, MapHandler::LEVEL_EXTENSION);
+            break;
     }
 
-    if(Helper::fillFilesList(levelPath, mFilesList, MapHandler::LEVEL_EXTENSION))
+    Helper::fillFilesList(levelPath, levelFiles, MapHandler::LEVEL_EXTENSION);
+
+    // The realms of the sandbox are listed in the order of their file names
+    // A realm is open once the realm before it (the one that names it as its next realm) is complete
+    std::map<std::string, std::string> realmPredecessors;
+    std::set<std::string> completedRealms;
+    if(selection == LEVEL_TYPE_SANDBOX)
     {
-        for (uint32_t n = 0; n < mFilesList.size(); ++n)
+        std::sort(levelFiles.begin(), levelFiles.end(), compareLevelFileNames);
+        completedRealms = SandboxProgress::loadCompleted();
+        for (uint32_t n = 0; n < levelFiles.size(); ++n)
         {
-            std::string filename = mFilesList[n];
-
-            LevelInfo levelInfo;
-            std::string mapName;
-            std::string mapDescription;
-            if(MapHandler::getMapInfo(filename, levelInfo))
+            LevelInfo realmInfo;
+            if(MapHandler::getMapInfo(levelFiles[n], realmInfo) && !realmInfo.mSandboxRealm.empty() &&
+               !realmInfo.mSandboxNext.empty())
             {
-                mapName = levelInfo.mLevelName;
-                mapDescription = levelInfo.mLevelDescription;
+                realmPredecessors[SandboxProgress::getLevelStem(realmInfo.mSandboxNext)] = realmInfo.mSandboxRealm;
             }
-            else
-            {
-                mapName = "invalid map";
-                mapDescription = "invalid map";
-            }
-
-            mDescriptionList.push_back(mapDescription);
-            CEGUI::ListboxTextItem* item = new CEGUI::ListboxTextItem(mapName);
-            item->setID(n);
-            item->setSelectionBrushImage("OpenDungeonsSkin/SelectionBrush");
-            levelSelectList->addItem(item);
         }
+    }
+
+    for (uint32_t n = 0; n < levelFiles.size(); ++n)
+    {
+        std::string filename = levelFiles[n];
+
+        LevelInfo levelInfo;
+        std::string mapName;
+        std::string mapDescription;
+        bool isLocked = false;
+        if(MapHandler::getMapInfo(filename, levelInfo))
+        {
+            mapName = levelInfo.mLevelName;
+            mapDescription = levelInfo.mLevelDescription;
+
+            // Sandbox levels are only listed with the sandbox levels
+            if(levelInfo.mIsSandbox != (selection == LEVEL_TYPE_SANDBOX))
+                continue;
+
+            std::map<std::string, std::string>::const_iterator predecessor = realmPredecessors.find(levelInfo.mSandboxRealm);
+            if(!levelInfo.mSandboxRealm.empty() && (predecessor != realmPredecessors.end()) &&
+               (completedRealms.find(predecessor->second) == completedRealms.end()))
+            {
+                isLocked = true;
+                mapName += " (locked)";
+                mapDescription = "Complete the realm before this one to open it.";
+            }
+        }
+        else
+        {
+            if(selection == LEVEL_TYPE_SANDBOX)
+                continue;
+
+            mapName = "invalid map";
+            mapDescription = "invalid map";
+        }
+
+        uint32_t id = static_cast<uint32_t>(mFilesList.size());
+        mFilesList.push_back(filename);
+        mDescriptionList.push_back(mapDescription);
+        CEGUI::ListboxTextItem* item = new CEGUI::ListboxTextItem(mapName);
+        item->setID(id);
+        item->setSelectionBrushImage("OpenDungeonsSkin/SelectionBrush");
+        item->setDisabled(isLocked);
+        levelSelectList->addItem(item);
     }
 
     updateDescription();

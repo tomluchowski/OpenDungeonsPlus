@@ -21,12 +21,17 @@
 
 #include "ODApplication.h"
 #include "gamemap/GameMap.h"
+#include "network/ODClient.h"
+#include "network/ODServer.h"
+#include "network/ServerMode.h"
 #include "render/Gui.h"
 #include "render/ODFrameListener.h"
 #include "render/TextRenderer.h"
 #include "sound/MusicPlayer.h"
+#include "modes/MenuModeSkirmish.h"
 #include "utils/ConfigManager.h"
 #include "utils/LogManager.h"
+#include "utils/ResourceManager.h"
 
 #include <CEGUI/widgets/PushButton.h>
 
@@ -42,9 +47,11 @@ const std::string BUTTON_QUIT = "QuitButton";
 const std::string WINDOW_SKIRMISH = "SkirmishSubMenuWindow";
 const std::string WINDOW_MULTIPLAYER = "MultiplayerSubMenuWindow";
 const std::string WINDOW_EDITOR = "EditorSubMenuWindow";
+const std::string WINDOW_SETTINGS = "SettingsSubMenuWindow";
 
 const std::string BUTTON_START_SKIRMISH = "StartSkirmishButton";
 const std::string BUTTON_LOAD_SKIRMISH = "LoadSkirmishButton";
+const std::string BUTTON_START_SANDBOX = "StartSandboxButton";
 const std::string BUTTON_MASTERSERVER_JOIN = "MasterServerJoinButton";
 const std::string BUTTON_MASTERSERVER_HOST = "MasterServerHostButton";
 const std::string BUTTON_MULTIPLAYER_JOIN = "MultiplayerServerJoinButton";
@@ -71,7 +78,7 @@ public:
 
 MenuModeMain::MenuModeMain(ModeManager *modeManager):
     AbstractApplicationMode(modeManager, ModeManager::MENU_MAIN),
-    mSettings(SettingsWindow(getModeManager().getGui().getGuiSheet(Gui::mainMenu)))
+    mSettings(getModeManager().getGui().getGuiSheet(Gui::mainMenu), modeManager->getGui(), true)
 {
     CEGUI::Window* rootWin = getModeManager().getGui().getGuiSheet(Gui::mainMenu);
     OD_ASSERT_TRUE(rootWin != nullptr);
@@ -100,6 +107,12 @@ MenuModeMain::MenuModeMain(ModeManager *modeManager):
                            AbstractModeManager::ModeType::MENU_SKIRMISH);
     connectModeChangeEvent(skirmishWin->getChild(BUTTON_LOAD_SKIRMISH),
                            AbstractModeManager::ModeType::MENU_LOAD_SAVEDGAME);
+    addEventConnection(
+        skirmishWin->getChild(BUTTON_START_SANDBOX)->subscribeEvent(
+            CEGUI::PushButton::EventClicked,
+            CEGUI::Event::Subscriber(&MenuModeMain::sandboxButtonPressed, this)
+        )
+    );
 
     // Multiplayer & sub-menu events
     addEventConnection(
@@ -132,6 +145,22 @@ MenuModeMain::MenuModeMain(ModeManager *modeManager):
                            AbstractModeManager::ModeType::MENU_EDITOR_NEW);
     connectModeChangeEvent(editorWin->getChild(BUTTON_EDITOR_LOAD),
                            AbstractModeManager::ModeType::MENU_EDITOR_LOAD);
+
+    for(const std::string& page : {std::string("Video"), std::string("Audio"), std::string("Input"), std::string("Game")})
+        addEventConnection(rootWin->getChild(WINDOW_SETTINGS + "/" + page + "Button")->subscribeEvent(
+            CEGUI::PushButton::EventClicked,
+            CEGUI::Event::Subscriber([this, page](const CEGUI::EventArgs&) { return openSettingsPage(page); })));
+    addEventConnection(rootWin->getChild("SettingsWindow")->subscribeEvent(
+        CEGUI::Window::EventHidden,
+        CEGUI::Event::Subscriber(&MenuModeMain::settingsPageClosed, this)));
+
+    for(const std::string& name : {WINDOW_SKIRMISH, WINDOW_MULTIPLAYER, WINDOW_EDITOR, WINDOW_SETTINGS})
+        addEventConnection(
+            rootWin->getChild(name + "/BackButton")->subscribeEvent(
+                CEGUI::PushButton::EventClicked,
+                CEGUI::Event::Subscriber(&MenuModeMain::goBack, this)
+            )
+        );
 }
 
 void MenuModeMain::activate()
@@ -144,6 +173,16 @@ void MenuModeMain::activate()
     window->getChild(WINDOW_SKIRMISH)->hide();
     window->getChild(WINDOW_MULTIPLAYER)->hide();
     window->getChild(WINDOW_EDITOR)->hide();
+    window->getChild(WINDOW_SETTINGS)->hide();
+    mSettingsPageOpen = false;
+    mSkirmishSubMenuPending = false;
+    showMainMenuButtons(true);
+    // Coming from the defeat debriefing: fly into the menu, then go on in the skirmish sub-menu
+    if(getModeManager().consumeSkirmishSubMenuRequest())
+    {
+        mSkirmishSubMenuPending = true;
+        showMainMenuButtons(false);
+    }
 
     giveFocus();
 
@@ -158,6 +197,55 @@ void MenuModeMain::activate()
 
     ODFrameListener::getSingleton().stopGameRenderer();
     ODFrameListener::getSingleton().createMainMenuScene();
+    if(mSkirmishSubMenuPending)
+        ODFrameListener::getSingleton().startMainMenuFlight();
+
+    restartPendingLevel();
+}
+
+void MenuModeMain::onFrameStarted(const Ogre::FrameEvent& /*evt*/)
+{
+    if(!mSkirmishSubMenuPending)
+        return;
+    if(ODFrameListener::getSingleton().isMainMenuFlightActive())
+        return;
+
+    mSkirmishSubMenuPending = false;
+    toggleSubMenu(WINDOW_SKIRMISH);
+}
+
+//! \brief Starts the level named by the pending restart request, if any, as a single player game.
+//! The request is cleared first so the level is started only once.
+void MenuModeMain::restartPendingLevel()
+{
+    const std::string level = ODFrameListener::getSingleton().getPendingRestartLevel();
+    if(level.empty())
+        return;
+
+    ODFrameListener::getSingleton().setPendingRestartLevel(std::string());
+
+    // Set the player name if valid. (Will use the defaut one if not.)
+    std::string configNickname = ConfigManager::getSingleton().getGameValue(Config::NICKNAME, std::string(), false);
+    if(!configNickname.empty())
+        ODFrameListener::getSingleton().getClientGameMap()->setLocalPlayerNick(configNickname);
+
+    // In single player mode, we act as a server
+    const std::string& nickname = ODFrameListener::getSingleton().getClientGameMap()->getLocalPlayerNick();
+    if(!ODServer::getSingleton().startServer(nickname, level, ServerMode::ModeGameSinglePlayer, false))
+    {
+        OD_LOG_ERR("Could not restart the level " + level);
+        return;
+    }
+
+    int port = ODServer::getSingleton().getNetworkPort();
+    uint32_t timeout = ConfigManager::getSingleton().getClientConnectionTimeout();
+    std::string replayFilename = ResourceManager::getSingleton().getReplayDataPath()
+        + ResourceManager::getSingleton().buildReplayFilename();
+    if(!ODClient::getSingleton().connect("localhost", port, timeout, replayFilename))
+    {
+        OD_LOG_ERR("Could not connect to the server to restart the level " + level);
+        ODServer::getSingleton().stopServer();
+    }
 }
 
 void MenuModeMain::connectModeChangeEvent(const std::string& buttonName, AbstractModeManager::ModeType mode)
@@ -185,45 +273,80 @@ bool MenuModeMain::quitButtonPressed(const CEGUI::EventArgs&)
 
 bool MenuModeMain::toggleSettings(const CEGUI::EventArgs&)
 {
-    if (mSettings.isVisible())
-        mSettings.onCancelSettings();
-    else
-        mSettings.show();
+    return toggleSubMenu(WINDOW_SETTINGS);
+}
+
+bool MenuModeMain::openSettingsPage(const std::string& name)
+{
+    getModeManager().getGui().getGuiSheet(Gui::mainMenu)->getChild(WINDOW_SETTINGS)->hide();
+    mSettingsPageOpen = true;
+    mSettings.showPage(name);
     return true;
+}
+
+bool MenuModeMain::settingsPageClosed(const CEGUI::EventArgs&)
+{
+    if(mSettingsPageOpen)
+    {
+        mSettingsPageOpen = false;
+        getModeManager().getGui().getGuiSheet(Gui::mainMenu)->getChild(WINDOW_SETTINGS)->show();
+    }
+    return true;
+}
+
+bool MenuModeMain::goBack(const CEGUI::EventArgs&)
+{
+    CEGUI::Window* mainWin = getModeManager().getGui().getGuiSheet(Gui::mainMenu);
+    for(const std::string& name : {WINDOW_SKIRMISH, WINDOW_MULTIPLAYER, WINDOW_EDITOR, WINDOW_SETTINGS})
+    {
+        CEGUI::Window* window = mainWin->getChild(name);
+        if(window->isVisible())
+        {
+            window->hide();
+            showMainMenuButtons(true);
+            break;
+        }
+    }
+    return true;
+}
+
+void MenuModeMain::showMainMenuButtons(bool visible)
+{
+    CEGUI::Window* mainWin = getModeManager().getGui().getGuiSheet(Gui::mainMenu);
+    for(const std::string& name : {std::string("StartCampaignButton"), BUTTON_SKIRMISH,
+        BUTTON_MULTIPLAYER, BUTTON_START_REPLAY, BUTTON_MAPEDITOR, BUTTON_SETTINGS, BUTTON_QUIT})
+        mainWin->getChild(name)->setVisible(visible);
 }
 
 bool MenuModeMain::toggleSkirmishSubMenu(const CEGUI::EventArgs&)
 {
-    CEGUI::Window* mainWin = getModeManager().getGui().getGuiSheet(Gui::mainMenu);
-    OD_ASSERT_TRUE(mainWin);
-    CEGUI::Window* window = mainWin->getChild(WINDOW_SKIRMISH);
-    OD_ASSERT_TRUE(window);
-    window->setVisible(!window->isVisible());
-    mainWin->getChild(WINDOW_MULTIPLAYER)->hide();
-    mainWin->getChild(WINDOW_EDITOR)->hide();
+    return toggleSubMenu(WINDOW_SKIRMISH);
+}
+
+bool MenuModeMain::sandboxButtonPressed(const CEGUI::EventArgs& e)
+{
+    MenuModeSkirmish::sStartWithSandboxLevels = true;
+    changeModeEvent(AbstractModeManager::ModeType::MENU_SKIRMISH, e);
     return true;
 }
 
 bool MenuModeMain::toggleMultiplayerSubMenu(const CEGUI::EventArgs&)
 {
-    CEGUI::Window* mainWin = getModeManager().getGui().getGuiSheet(Gui::mainMenu);
-    OD_ASSERT_TRUE(mainWin);
-    CEGUI::Window* window = mainWin->getChild(WINDOW_MULTIPLAYER);
-    OD_ASSERT_TRUE(window);
-    window->setVisible(!window->isVisible());
-    mainWin->getChild(WINDOW_SKIRMISH)->hide();
-    mainWin->getChild(WINDOW_EDITOR)->hide();
-    return true;
+    return toggleSubMenu(WINDOW_MULTIPLAYER);
 }
 
 bool MenuModeMain::toggleEditorSubMenu(const CEGUI::EventArgs&)
 {
+    return toggleSubMenu(WINDOW_EDITOR);
+}
+
+bool MenuModeMain::toggleSubMenu(const std::string& name)
+{
     CEGUI::Window* mainWin = getModeManager().getGui().getGuiSheet(Gui::mainMenu);
     OD_ASSERT_TRUE(mainWin);
-    CEGUI::Window* window = mainWin->getChild(WINDOW_EDITOR);
-    OD_ASSERT_TRUE(window);
-    window->setVisible(!window->isVisible());
-    mainWin->getChild(WINDOW_MULTIPLAYER)->hide();
-    mainWin->getChild(WINDOW_SKIRMISH)->hide();
+    const bool visible = !mainWin->getChild(name)->isVisible();
+    for(const std::string& other : {WINDOW_SKIRMISH, WINDOW_MULTIPLAYER, WINDOW_EDITOR, WINDOW_SETTINGS})
+        mainWin->getChild(other)->setVisible(visible && other == name);
+    showMainMenuButtons(!visible);
     return true;
 }

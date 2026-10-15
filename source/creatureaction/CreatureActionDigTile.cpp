@@ -91,6 +91,7 @@ bool CreatureActionDigTile::handleDigTile(Creature& creature, Tile& tileDig, Til
         {
             OD_LOG_ERR("creature=" + creature.getName() + ", myTile=" + Tile::displayAsString(myTile) + ", tileDig=" + Tile::displayAsString(&tileDig) + ", tilePos=" + Tile::displayAsString(&tilePos));
             creature.popAction();
+            return false;
         }
         return true;
     }
@@ -119,6 +120,9 @@ bool CreatureActionDigTile::handleDigTile(Creature& creature, Tile& tileDig, Til
                 double tempDouble = digCoefGold * amountDug;
                 creature.addGoldCarried(static_cast<int>(tempDouble));
                 creature.getSeat()->addGoldMined(static_cast<int>(tempDouble));
+                if(tileDig.getFullness() <= 0.0)
+                    ++creature.getSeat()->getStatistics().mGoldTilesMined;
+
                 // Receive experience for digging gold
                 creature.receiveExp(creature.getDigRate() / 20.0);
                 break;

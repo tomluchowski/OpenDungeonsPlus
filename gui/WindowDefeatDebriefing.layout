@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<GUILayout version="4" >
+    <Window type="DefaultWindow" name="DefeatDebriefing" >
+        <Property name="Area" value="{{0,0},{0,0},{1,0},{1,0}}" />
+        <Property name="AlwaysOnTop" value="True" />
+        <Window type="OD/StaticImage" name="Background" >
+            <Property name="Area" value="{{0,0},{0,0},{1,0},{1,0}}" />
+            <Property name="Image" value="ODHudSurface/Stone" />
+            <Property name="ImageColours" value="FFC8C4BE" />
+            <Property name="HorzFormatting" value="Tiled" />
+            <Property name="VertFormatting" value="Tiled" />
+            <Property name="FrameEnabled" value="False" />
+            <Property name="BackgroundEnabled" value="False" />
+            <Property name="RiseOnClickEnabled" value="False" />
+        </Window>
+        <Window type="OD/StaticImage" name="Panel" >
+            <Property name="Area" value="{{0.5,-320},{0.5,-240},{0.5,320},{0.5,240}}" />
+            <Property name="Image" value="ODHudSurface/Stone" />
+            <Property name="ImageColours" value="FF807A72" />
+            <Property name="HorzFormatting" value="Tiled" />
+            <Property name="VertFormatting" value="Tiled" />
+            <Property name="FrameEnabled" value="True" />
+            <Property name="BackgroundEnabled" value="False" />
+            <Window type="OD/StaticText" name="Title" >
+                <Property name="Area" value="{{0,20},{0,14},{1,-20},{0,54}}" />
+                <Property name="Text" value="Mission debriefing" />
+                <Property name="Font" value="MedievalSharp-20" />
+                <Property name="FrameEnabled" value="False" />
+                <Property name="BackgroundEnabled" value="False" />
+                <Property name="HorzFormatting" value="CentreAligned" />
+                <Property name="VertFormatting" value="CentreAligned" />
+            </Window>
+            <Window type="OD/StaticText" name="PlayerName" >
+                <Property name="Area" value="{{0,20},{0,58},{1,-20},{0,88}}" />
+                <Property name="Text" value="" />
+                <Property name="Font" value="MedievalSharp-12" />
+                <Property name="FrameEnabled" value="False" />
+                <Property name="BackgroundEnabled" value="False" />
+                <Property name="HorzFormatting" value="CentreAligned" />
+                <Property name="VertFormatting" value="CentreAligned" />
+            </Window>
+            <Window type="OD/StaticText" name="Outcome" >
+                <Property name="Area" value="{{0,40},{0,100},{1,-40},{0,126}}" />
+                <Property name="Text" value="" />
+                <Property name="Font" value="MedievalSharp-12" />
+                <Property name="FrameEnabled" value="False" />
+                <Property name="BackgroundEnabled" value="False" />
+                <Property name="HorzFormatting" value="LeftAligned" />
+                <Property name="VertFormatting" value="CentreAligned" />
+            </Window>
+            <Window type="OD/StaticText" name="Elapsed" >
+                <Property name="Area" value="{{0,40},{0,130},{1,-40},{0,156}}" />
+                <Property name="Text" value="" />
+                <Property name="Font" value="MedievalSharp-12" />
+                <Property name="FrameEnabled" value="False" />
+                <Property name="BackgroundEnabled" value="False" />
+                <Property name="HorzFormatting" value="LeftAligned" />
+                <Property name="VertFormatting" value="CentreAligned" />
+            </Window>
+            <Window type="OD/MenuScrollablePane" name="StatisticsArea" >
+                <Property name="Visible" value="False" />
+                <Property name="ContentPaneAutoSized" value="False" />
+                <Property name="Area" value="{{0,40},{0,168},{1,-40},{1,-100}}" />
+            </Window>
+            <Window type="OD/MenuSymbolButton" name="ConfirmButton" >
+                <Property name="Area" value="{{1,-92.8},{1,-92.8},{1,-16},{1,-16}}" />
+                <Property name="Text" value="" />
+                <Property name="NormalImage" value="OpenDungeonsIcons/CheckIcon" />
+                <Property name="HoverImage" value="OpenDungeonsIcons/CheckIcon" />
+                <Property name="PushedImage" value="OpenDungeonsIcons/CheckIcon" />
+                <Property name="TooltipText" value="Back to the main menu" />
+            </Window>
+        </Window>
+    </Window>
+</GUILayout>

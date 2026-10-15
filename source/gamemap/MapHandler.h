@@ -28,7 +28,9 @@ enum class GameEntityType;
 //! \brief A small structure storing level info for the player
 struct LevelInfo
 {
-    LevelInfo()
+    //! \brief Creates empty level info that is not a sandbox level.
+    LevelInfo() :
+        mIsSandbox(false)
     {}
 
     //! \brief The level visible name
@@ -36,12 +38,27 @@ struct LevelInfo
 
     //! \brief The level description, player's slot, size, ...
     std::string mLevelDescription;
+
+    //! \brief True for a sandbox level (no goals, hero toolbox and invasions)
+    bool mIsSandbox;
+
+    //! \brief The name of a sandbox realm (empty for a sandbox level that is not one) and the level file of the realm after it
+    std::string mSandboxRealm;
+    std::string mSandboxNext;
 };
 
 namespace MapHandler
 {
+    //! \brief Loads a level or saved game file into the game map, including the optional [Triggers] section.
+    //! \param fileName The level file to read.
+    //! \param gameMap The game map to fill.
+    //! \return False if the file or one of its sections is invalid.
     bool readGameMapFromFile(const std::string& fileName, GameMap& gameMap);
 
+    //! \brief Writes the game map to a level file, including the [Triggers] section if the level has a script.
+    //! \param fileName The level file to write.
+    //! \param gameMap The game map to save.
+    //! \return False if the file could not be written.
     bool writeGameMapToFile(const std::string& fileName, GameMap& gameMap);
 
     bool readGameEntity(GameMap& gameMap, const std::string& item, GameEntityType type, std::stringstream& levelFile);
