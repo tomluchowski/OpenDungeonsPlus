@@ -143,11 +143,14 @@ public:
 };
 
 static const double CLAIMED_VALUE_PER_TILE = 1.0;
+//! About 30 seconds at 1.4 turns per second
+static const int64_t HEROES_COMING_COOLDOWN_TURNS = 42;
 
 RoomPortalWave::RoomPortalWave(GameMap* gameMap) :
         Room(gameMap),
         mSpawnCountdown(0),
         mSearchFoeCountdown(0),
+        mLastHeroesComingTurn(-1),
         mTurnsBetween2Waves(0),
         mPortalObject(nullptr),
         mClaimedValue(0),
@@ -195,20 +198,13 @@ bool RoomPortalWave::removeCoveredTile(Tile* t)
 
 bool RoomPortalWave::isClaimable(Seat* seat) const
 {
-    return !getSeat()->isAlliedSeat(seat);
+    // The hero portal is a permanent part of the map. Nobody can claim it.
+    return false;
 }
 
 void RoomPortalWave::claimForSeat(Seat* seat, Tile* tile, double danceRate)
 {
-    if(mClaimedValue > danceRate)
-    {
-        mClaimedValue-= danceRate;
-        return;
-    }
-
-    // In the case of RoomPortalWave, when it is claimed, it is destroyed
-    for(std::pair<Tile* const, TileData*>& p : mTileData)
-        p.second->mHP = 0.0;
+    // The hero portal cannot be claimed, see isClaimable
 }
 
 void RoomPortalWave::updateActiveSpots(GameMap* gameMap)
@@ -231,7 +227,7 @@ void RoomPortalWave::updateActiveSpots(GameMap* gameMap)
                 updatePortalPosition();
             else
             {
-                for(auto& p : mBuildingObjects)
+                for(std::pair<Tile* const, BuildingObject*>& p : mBuildingObjects)
                 {
                     if(p.second == nullptr)
                         continue;
@@ -257,10 +253,10 @@ void RoomPortalWave::updatePortalPosition()
     if (centralTile == nullptr)
         return;
 
-    mPortalObject = new PersistentObject(getGameMap(), *this, "KnightCoffin", centralTile, 0.0, false);
+    // The hero portal reuses the portal model until it gets a model of its own
+    mPortalObject = new PersistentObject(getGameMap(), *this, "PortalObject",
+        centralTile, 0.0, false, 1.0f, "Idle", true);
     addBuildingObject(centralTile, mPortalObject);
-
-    mPortalObject->setAnimationState("Idle");
 }
 
 void RoomPortalWave::destroyMeshLocal(NodeType nt)
@@ -352,6 +348,7 @@ void RoomPortalWave::spawnWave(RoomPortalWaveData* roomPortalWaveData, uint32_t 
     Ogre::Vector3 spawnPosition(xPos, yPos, 0.0f);
 
     // Create the wave
+    uint32_t nbSpawned = 0;
     for(const std::pair<std::string, uint32_t>& p : roomPortalWaveData->mSpawnCreatureClassName)
     {
         if(maxCreaturesToSpawn <= 0)
@@ -377,6 +374,34 @@ void RoomPortalWave::spawnWave(RoomPortalWaveData* roomPortalWaveData, uint32_t 
         newCreature->setPosition(newCreature->getPosition());
 
         --maxCreaturesToSpawn;
+        ++nbSpawned;
+    }
+
+    if(nbSpawned > 0)
+        warnHeroesComing();
+}
+
+void RoomPortalWave::warnHeroesComing()
+{
+    int64_t curTurn = getGameMap()->getTurnNumber();
+    if((mLastHeroesComingTurn >= 0) &&
+       (curTurn - mLastHeroesComingTurn < HEROES_COMING_COOLDOWN_TURNS))
+    {
+        return;
+    }
+
+    mLastHeroesComingTurn = curTurn;
+    for(Seat* seat : mTargetSeats)
+    {
+        Player* player = seat->getPlayer();
+        if((player == nullptr) || !player->getIsHuman() || player->getHasLost())
+            continue;
+
+        ServerNotification* serverNotification = new ServerNotification(
+            ServerNotificationType::chatServer, player);
+        std::string msg = "Heroes are coming!";
+        serverNotification->mPacket << msg << EventShortNoticeType::majorGameEvent;
+        ODServer::getSingleton().queueServerNotification(serverNotification);
     }
 }
 
@@ -436,7 +461,7 @@ void RoomPortalWave::handleSpawnWave()
 {
     // We start by checking that the spawnable wave list is up to date
     int64_t curTurn = getGameMap()->getTurnNumber();
-    for(auto it = mRoomPortalWaveDataSpawnable.begin(); it != mRoomPortalWaveDataSpawnable.end();)
+    for(std::vector<RoomPortalWaveData*>::iterator it = mRoomPortalWaveDataSpawnable.begin(); it != mRoomPortalWaveDataSpawnable.end();)
     {
         RoomPortalWaveData* roomPortalWaveData = *it;
         if(roomPortalWaveData->mSpawnTurnMin > curTurn)
@@ -459,7 +484,7 @@ void RoomPortalWave::handleSpawnWave()
     }
 
     // Now we check in the not spawnable list if a wave is available
-    for(auto it = mRoomPortalWaveDataNotSpawnable.begin(); it != mRoomPortalWaveDataNotSpawnable.end();)
+    for(std::vector<RoomPortalWaveData*>::iterator it = mRoomPortalWaveDataNotSpawnable.begin(); it != mRoomPortalWaveDataNotSpawnable.end();)
     {
         RoomPortalWaveData* roomPortalWaveData = *it;
         if(roomPortalWaveData->mSpawnTurnMin > curTurn)
@@ -798,7 +823,7 @@ bool RoomPortalWave::handleSearchFoe()
         if(!getGameMap()->pathExists(creature, tileStart, tile))
             continue;
 
-        auto it = tileDungeons.begin();
+        std::vector<std::pair<Tile*,Ogre::Real>>::iterator it = tileDungeons.begin();
         Ogre::Real templeDist = Pathfinding::squaredDistanceTile(*tileStart, *tile);
         while(it != tileDungeons.end())
         {
@@ -918,7 +943,7 @@ bool RoomPortalWave::handleDigging()
         if(tile == nullptr)
             continue;
 
-        auto it = tileDungeons.begin();
+        std::vector<std::pair<Room*,Ogre::Real>>::iterator it = tileDungeons.begin();
         Ogre::Real templeDist = Pathfinding::squaredDistanceTile(*tileStart, *tile);
         while(it != tileDungeons.end())
         {
@@ -995,7 +1020,7 @@ bool RoomPortalWave::findBestDiggablePath(Tile* tileStart, Tile* tileDest, Creat
             // We reach the end of the map.
             // We try the last blocking tile we found in the other direction (if any)
             lastTileBlocked = nullptr;
-            for(auto it = blockingTiles.rbegin(); it != blockingTiles.rend(); ++it)
+            for(std::vector<TileSearch>::reverse_iterator it = blockingTiles.rbegin(); it != blockingTiles.rend(); ++it)
             {
                 TileSearch& tileSearch = *it;
                 if(tileSearch.mRotationClockWise &&
