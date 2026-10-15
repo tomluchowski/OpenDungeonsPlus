@@ -538,6 +538,7 @@ opendungeons.appdata.xml               OD Team                 GPLv3+
 ==  Hollowmark campaign artwork  ==
 ===================================
 
+gui/campaign/previews/*.png            AI-generated with Codex  GPLv3+                  AI-generated for this project (Codex, 2026-10), see "Hollowmark campaign artwork" below; 31 painted chapter scenes, prompts and identity references in materials/campaign-previews/*.md
 gui/campaign/campaign-world.json    AI-generated for this project, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
 gui/campaign/sites/B01_done.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
 gui/campaign/sites/B01_found.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md

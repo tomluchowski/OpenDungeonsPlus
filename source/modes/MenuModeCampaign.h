@@ -101,10 +101,12 @@ private:
     void updateLift(float elapsed);
     //! \brief Shows the tooltip of the province or bonus site under the mouse, or hides it when there is none
     void updateTooltip(const CEGUI::Vector2f& position, size_t province, size_t site);
-    //! \brief Opens the briefing of a level that can be played
+    //! \brief Shows the level briefing and its preview when available.
     void showBriefing(size_t level);
-    //! \brief Opens the debriefing of the level that was played last
+    //! \brief Shows the last level result without a preview.
     void showDebriefing();
+    //! \brief Shows or hides the preview and selects the matching panel and text areas.
+    void setBriefingPreviewVisible(bool visible);
     //! \brief Closes the briefing or debriefing panel
     void hideBriefing();
     //! \brief Starts the server and the client for a campaign level

@@ -41,6 +41,8 @@ struct CampaignLevel
     std::string mTitle;
     std::string mBriefing;
     std::string mDebriefing;
+    //! \brief Optional briefing image path relative to gui/campaign; empty means text only.
+    std::string mPreview;
     //! A bonus (secret) level does not block the main sequence. Finding one
     //! gives a piece of the Heartstone.
     bool mBonus;
@@ -67,6 +69,7 @@ struct CampaignLevel
 //!   Title=Some title
 //!   Briefing=Text shown before the level. "\n" starts a new line.
 //!   Debriefing=Text shown after the level was won.
+//!   Preview=previews/T01.png (optional) briefing image relative to gui/campaign.
 //!   Bonus=1 (optional) marks a bonus level.
 //!   Heartstone=0 (optional) a bonus level that is not a piece of the Heartstone.
 //!   Province=T01 (optional) the province or bonus site of the level on the

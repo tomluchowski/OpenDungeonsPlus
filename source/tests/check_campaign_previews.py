@@ -1,0 +1,172 @@
+#!/usr/bin/env python3
+"""Check campaign preview assets without compiling or starting the game.
+
+Run with --self-test to exercise malformed assets entirely in memory.
+"""
+import argparse
+from io import BytesIO
+from pathlib import Path
+import struct
+import sys
+import xml.etree.ElementTree as ET
+import zlib
+
+from PIL import Image
+
+EXPECTED_LEVELS = 31
+PREVIEW_WIDTH = 640
+PREVIEW_HEIGHT = 360
+MAX_PREVIEW_BYTES = 400 * 1024
+PNG_SIGNATURE = bytes((137, 80, 78, 71, 13, 10, 26, 10))
+
+
+# Read level fields while ignoring commented section markers and retaining empty levels.
+def read_levels(definition):
+    levels = []
+    definition = "\n".join(line for line in definition.splitlines() if not line.lstrip().startswith("#"))
+    for section in definition.split("[Level]")[1:]:
+        fields = {}
+        for line in section.splitlines():
+            line = line.strip()
+            if line.startswith("[/Level]"):
+                break
+            if "=" in line and not line.startswith("#"):
+                key, value = line.split("=", 1)
+                fields[key.strip()] = value.strip()
+        levels.append(fields)
+    return levels
+
+
+# Reject non-PNG, damaged, oversized or incorrectly sized previews, including undecodable pixels.
+def png_errors(data):
+    errors = []
+    if len(data) > MAX_PREVIEW_BYTES:
+        errors.append("exceeds 400 KB")
+    if not data.startswith(PNG_SIGNATURE):
+        return errors + ["not a PNG"]
+    position = len(PNG_SIGNATURE)
+    chunk_types = []
+    compressed = bytearray()
+    while position < len(data):
+        if position + 12 > len(data):
+            return errors + ["truncated PNG chunk"]
+        length = struct.unpack_from(">I", data, position)[0]
+        end = position + 12 + length
+        if end > len(data):
+            return errors + ["truncated PNG chunk"]
+        kind = data[position + 4:position + 8]
+        payload = data[position + 8:end - 4]
+        crc = struct.unpack_from(">I", data, end - 4)[0]
+        if zlib.crc32(kind + payload) & 0xffffffff != crc:
+            errors.append("invalid PNG checksum")
+        if not chunk_types and kind != b"IHDR":
+            errors.append("PNG does not start with IHDR")
+        if kind == b"IHDR":
+            if length != 13:
+                errors.append("invalid PNG header")
+            elif struct.unpack_from(">II", payload) != (PREVIEW_WIDTH, PREVIEW_HEIGHT):
+                errors.append("must be 640 x 360")
+        if kind == b"IDAT":
+            compressed.extend(payload)
+        chunk_types.append(kind)
+        position = end
+        if kind == b"IEND":
+            if length or position != len(data):
+                errors.append("invalid PNG ending")
+            break
+    if chunk_types.count(b"IHDR") != 1 or not chunk_types or chunk_types[-1] != b"IEND":
+        errors.append("missing PNG header or ending")
+    if not compressed:
+        errors.append("missing PNG image data")
+    else:
+        try:
+            with Image.open(BytesIO(data)) as image:
+                image.verify()
+            with Image.open(BytesIO(data)) as image:
+                image.load()
+        except (OSError, SyntaxError, ValueError):
+            errors.append("invalid PNG image data")
+    return errors
+
+
+# Validate every configured preview and the briefing image window.
+def check_repository(root):
+    failures = []
+    levels = read_levels((root / "levels/campaign/Campaign.cfg").read_text(encoding="utf-8"))
+    if len(levels) != EXPECTED_LEVELS:
+        failures.append("campaign must contain 31 levels")
+    art = (root / "gui/campaign").resolve()
+    for index, fields in enumerate(levels, 1):
+        province = fields.get("Province", "level " + str(index))
+        preview = fields.get("Preview", "")
+        if not preview:
+            failures.append(province + ": missing Preview")
+            continue
+        image = (art / preview).resolve()
+        if not image.is_relative_to(art):
+            failures.append(province + ": Preview must stay inside gui/campaign")
+        elif not image.is_file():
+            failures.append(province + ": missing image " + preview)
+        else:
+            failures.extend(province + ": " + error for error in png_errors(image.read_bytes()))
+        if not (root / "materials/campaign-previews" / (province + ".md")).is_file():
+            failures.append(province + ": missing image specification")
+    layout = ET.fromstring((root / "gui/MenuCampaign.layout").read_text(encoding="utf-8"))
+    if not any(window.get("name") == "BriefingImage" and window.get("type") == "OD/StaticImage"
+               for window in layout.iter("Window")):
+        failures.append("layout is missing the OD/StaticImage BriefingImage window")
+    return failures
+
+
+# Build a PNG chunk only for transient, in-memory checker regression tests.
+def test_chunk(kind, payload):
+    return struct.pack(">I", len(payload)) + kind + payload + struct.pack(">I", zlib.crc32(kind + payload) & 0xffffffff)
+
+
+# Check asset failures and level parsing, including commented markers and missing fields.
+def self_test():
+    header = struct.pack(">IIBBBBB", PREVIEW_WIDTH, PREVIEW_HEIGHT, 8, 2, 0, 0, 0)
+    pixels = (bytes(1 + PREVIEW_WIDTH * 3)) * PREVIEW_HEIGHT
+    png = PNG_SIGNATURE + test_chunk(b"IHDR", header) + test_chunk(b"IDAT", zlib.compress(pixels)) + test_chunk(b"IEND", b"")
+    assert not png_errors(png), "valid PNG rejected"
+    assert "not a PNG" in png_errors(b"not an image")
+    assert "truncated PNG chunk" in png_errors(png[:-1])
+    wrong_header = struct.pack(">IIBBBBB", PREVIEW_WIDTH - 1, PREVIEW_HEIGHT, 8, 2, 0, 0, 0)
+    wrong_size = PNG_SIGNATURE + test_chunk(b"IHDR", wrong_header) + png[len(PNG_SIGNATURE) + 25:]
+    assert "must be 640 x 360" in png_errors(wrong_size)
+    assert "exceeds 400 KB" in png_errors(png + bytes(MAX_PREVIEW_BYTES))
+    damaged = bytearray(png)
+    damaged[len(PNG_SIGNATURE) + 8] ^= 1
+    assert "invalid PNG checksum" in png_errors(damaged)
+    bad_pixels = PNG_SIGNATURE + test_chunk(b"IHDR", header) + test_chunk(b"IDAT", b"broken") + test_chunk(b"IEND", b"")
+    assert "invalid PNG image data" in png_errors(bad_pixels)
+    short_pixels = PNG_SIGNATURE + test_chunk(b"IHDR", header) + test_chunk(b"IDAT", zlib.compress(b"x")) + test_chunk(b"IEND", b"")
+    assert "invalid PNG image data" in png_errors(short_pixels)
+    assert read_levels("[Level]\nProvince=T01\nPreview=previews/T01.png\n[/Level]\n") == [{"Province": "T01", "Preview": "previews/T01.png"}]
+    assert read_levels("# [Level] starts each campaign entry.\n[Level]\nProvince=T01\nPreview=previews/T01.png\n[/Level]\n") == [{"Province": "T01", "Preview": "previews/T01.png"}]
+    assert read_levels("[Level]\n[/Level]\n") == [{}], "empty real level hidden"
+    print("campaign preview checker self-tests passed")
+
+
+# Select in-memory tests or validate the current checkout with a failing exit on omissions.
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--self-test", action="store_true")
+    args = parser.parse_args()
+    if args.self_test:
+        self_test()
+        return 0
+    try:
+        failures = check_repository(Path(__file__).resolve().parents[2])
+    except (OSError, ET.ParseError) as error:
+        print(str(error))
+        return 1
+    if failures:
+        print("\n".join(failures))
+        return 1
+    print("campaign preview checks passed")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

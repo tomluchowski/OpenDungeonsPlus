@@ -58,6 +58,11 @@ const std::string CMP_BUTTON_BACK = "CampaignWindowFrame/BackButton";
 const std::string CMP_MAP = "CampaignWindowFrame/CampaignMap";
 const std::string CMP_BRIEFING = "CampaignWindowFrame/BriefingPanel";
 const std::string CMP_BRIEFING_TEXT = "CampaignWindowFrame/BriefingPanel/BriefingText";
+static const std::string CMP_BRIEFING_IMAGE = "CampaignWindowFrame/BriefingPanel/BriefingImage";
+static const std::string BRIEFING_PREVIEW_PANEL_AREA = "{{0.5,-336},{0.5,-340},{0.5,336},{0.5,340}}";
+static const std::string BRIEFING_TEXT_PANEL_AREA = "{{0.5,-300},{0.5,-210},{0.5,300},{0.5,210}}";
+static const std::string BRIEFING_PREVIEW_TEXT_AREA = "{{0,16},{0,392},{1,-16},{1,-72}}";
+static const std::string BRIEFING_TEXT_AREA = "{{0,16},{0,16},{1,-16},{1,-72}}";
 const std::string CMP_BRIEFING_START = "CampaignWindowFrame/BriefingPanel/BriefingStartButton";
 const std::string CMP_BRIEFING_CLOSE = "CampaignWindowFrame/BriefingPanel/BriefingCloseButton";
 
@@ -752,11 +757,18 @@ bool MenuModeCampaign::mapClicked(const CEGUI::EventArgs& e)
     return true;
 }
 
+//! \brief Shows a level briefing with its optional preview, falling back to the text-only layout.
 void MenuModeCampaign::showBriefing(size_t level)
 {
     Campaign& campaign = Campaign::getSingleton();
     CEGUI::Window* sheet = getModeManager().getGui().getGuiSheet(Gui::guiSheet::campaignMenu);
     const CampaignLevel& campaignLevel = campaign.getLevel(level);
+    CEGUI::Image* image = nullptr;
+    if(!campaignLevel.mPreview.empty())
+        image = loadWorldImage(campaignLevel.mPreview);
+    setBriefingPreviewVisible(image != nullptr);
+    if(image != nullptr)
+        sheet->getChild(CMP_BRIEFING_IMAGE)->setProperty("Image", WORLD_IMAGE_PREFIX + campaignLevel.mPreview);
     std::string text = "Briefing - " + campaignLevel.mTitle + "\n\n" + campaignLevel.mBriefing;
     sheet->getChild(CMP_BRIEFING_TEXT)->setText(reinterpret_cast<const CEGUI::utf8*>(text.c_str()));
     sheet->getChild(CMP_BRIEFING_START)->setVisible(true);
@@ -764,13 +776,32 @@ void MenuModeCampaign::showBriefing(size_t level)
     mBriefingLevel = level;
 }
 
+//! \brief Shows the last level result using the original text-only panel.
 void MenuModeCampaign::showDebriefing()
 {
     CEGUI::Window* sheet = getModeManager().getGui().getGuiSheet(Gui::guiSheet::campaignMenu);
+    setBriefingPreviewVisible(false);
     sheet->getChild(CMP_BRIEFING_TEXT)->setText(reinterpret_cast<const CEGUI::utf8*>(mResultText.c_str()));
     sheet->getChild(CMP_BRIEFING_START)->setVisible(false);
     sheet->getChild(CMP_BRIEFING)->setVisible(true);
     mBriefingLevel = Campaign::getSingleton().getNumLevels();
+}
+
+//! \brief Fits the panel and text around a visible preview, or restores the text-only layout.
+void MenuModeCampaign::setBriefingPreviewVisible(bool visible)
+{
+    CEGUI::Window* sheet = getModeManager().getGui().getGuiSheet(Gui::guiSheet::campaignMenu);
+    sheet->getChild(CMP_BRIEFING_IMAGE)->setVisible(visible);
+    if(visible)
+    {
+        sheet->getChild(CMP_BRIEFING)->setProperty("Area", BRIEFING_PREVIEW_PANEL_AREA);
+        sheet->getChild(CMP_BRIEFING_TEXT)->setProperty("Area", BRIEFING_PREVIEW_TEXT_AREA);
+    }
+    else
+    {
+        sheet->getChild(CMP_BRIEFING)->setProperty("Area", BRIEFING_TEXT_PANEL_AREA);
+        sheet->getChild(CMP_BRIEFING_TEXT)->setProperty("Area", BRIEFING_TEXT_AREA);
+    }
 }
 
 void MenuModeCampaign::hideBriefing()
