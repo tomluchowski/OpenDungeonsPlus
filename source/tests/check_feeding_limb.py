@@ -14,6 +14,22 @@ probe = r'''
 #include <cmath>
 #include <iostream>
 #include <stdexcept>
+//! \brief Probe stub of the configuration manager: every room value falls back to its default.
+class ConfigManager
+{
+public:
+    //! \brief Returns the stub instance used by the extracted production code.
+    static ConfigManager& getSingleton()
+    {
+        static ConfigManager instance;
+        return instance;
+    }
+    //! \brief Returns the default because the probe has no room configuration.
+    double getRoomConfigDoubleOrDefault(const char* key, double defaultValue) const
+    {
+        return defaultValue;
+    }
+};
 SOLVER
 int checks = 0;
 void check(bool value, const char* message)
