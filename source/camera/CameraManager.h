@@ -31,6 +31,7 @@
 
 #include <cstdint>
 #include <set>
+#include <string>
 #include <vector>
 
 class TileContainer;
@@ -107,6 +108,7 @@ public:
     Ogre::Vector3 getCameraViewTarget() const;
 
     void onMiniMapClick(Ogre::Vector2 cc);
+    void jumpToViewTarget(const Ogre::Vector2& pos);
 
     /** \brief Starts the camera moving towards a destination position,
      *  it will stop moving when it gets there.
@@ -130,6 +132,15 @@ public:
     *  movement (if moving in oppsite direction before)
     */
     void move(const Direction direction, double aux = 0.0);
+
+    //! Continuous input is sampled once per frame, independent of key repeat.
+    void setControls(const Ogre::Vector2& pan, Ogre::Real zoom, Ogre::Real swivel, bool fast);
+    //! Pointer motion and wheel steps are distances, not persistent velocities.
+    void zoomBy(Ogre::Real distance);
+    void orbitBy(Ogre::Real swivel, Ogre::Real pitch);
+    void adjustUserView(Ogre::Real roll, Ogre::Real yaw, Ogre::Real pitch);
+    void loadUserView(unsigned int slot);
+    bool storeUserView(unsigned int slot);
 
     void createCameraNode(const std::string& name);
 
@@ -163,6 +174,9 @@ public:
     Ogre::Viewport* getViewport()
     { return mViewport; }
 
+    //! \brief Move the main camera viewport to another render window.
+    void setRenderWindow(Ogre::RenderWindow* renderWindow);
+
     void resetHCSNodes(int nodeValue)
     {
         mXHCS.resetNodes(nodeValue);
@@ -183,6 +197,25 @@ public:
     //! \brief Calls the next default view in the ViewModes enum order.
     void setNextDefaultView();
 
+    //! \brief Puts the camera in the eyes of the creature with the given name (possession).
+    //! The RTS camera position and orientation are saved to be restored by stopPossession.
+    void startPossession(const std::string& creatureName);
+
+    //! \brief Gives the camera back to the RTS view, as it was before startPossession.
+    void stopPossession();
+
+    //! \brief True while the camera looks through the eyes of a possessed creature
+    inline bool isPossessing() const
+    { return mPossessing; }
+
+    //! \brief Turns the possession view according to the mouse movement (in pixels)
+    void possessionLook(Ogre::Real deltaX, Ogre::Real deltaY);
+
+    //! \brief The direction the possessed creature looks at on the ground plane, in radians.
+    //! 0 means looking along the Y axis and a positive angle turns toward the negative X axis.
+    inline Ogre::Real getPossessionYaw() const
+    { return mPossessionYaw; }
+
 private:
     //! \brief The distance from the camera to the ground point it looks at, for a
     //! camera at the given height. Zero if the camera is not looking downwards.
@@ -191,6 +224,7 @@ private:
     //! \brief Moves the position so that the ground point the camera looks at from it
     //! stays within the map.
     void clampToMap(Ogre::Vector3& position) const;
+    void setViewOrientation(const Ogre::Quaternion& root, const Ogre::Quaternion& tilt);
 
     //! \brief HermiteCatmullSpline members for each axices.
     HermiteCatmullSpline mXHCS;
@@ -245,6 +279,9 @@ private:
     Ogre::Vector3   mTranslateVector;
     Ogre::Vector3   mTranslateVectorAccel;
 
+    //! \brief Maximum pan speed per axis, used to scale mouse-edge scrolling.
+    Ogre::Vector2   mTranslateMaxSpeedFactor;
+
     //! \brief The X-axis rotation vector, tilting the point of view (look down or up).
     Ogre::Vector3   mRotateLocalVector;
 
@@ -253,6 +290,12 @@ private:
 
     //! \brief setup the viewport
     void createViewport(Ogre::RenderWindow* renderWindow);
+
+    //! \brief Places the camera on the possessed creature, according to the possession look angles
+    void updatePossessionCamera();
+
+    //! \brief Stops every camera movement of the RTS view
+    void resetCameraMovement();
 
     // //! \brief save the current active camera position and orientation
     // bool saveCameraHistory(unsigned int);
@@ -269,6 +312,25 @@ private:
     //! \brief User-tunable multiplier on the keyboard/autoscroll pan speed
     //! (1.0 keeps the historic speed). Set from the settings window.
     Ogre::Real mPanSpeedFactor;
+    Ogre::Real mFastPanFactor = 1.0f;
+    Ogre::Real mControlZoom = 0.0f;
+    Ogre::Real mControlSwivel = 0.0f;
+
+    //! \brief True while the camera is in the eyes of a possessed creature
+    bool mPossessing;
+
+    //! \brief The name of the possessed creature
+    std::string mPossessedCreatureName;
+
+    //! \brief The possession look direction. Yaw in radians (0 looks along the Y axis, positive
+    //! turns toward -X), pitch in degrees (0 horizontal, positive looks up)
+    Ogre::Real mPossessionYaw;
+    Ogre::Real mPossessionPitch;
+
+    //! \brief The RTS camera state saved when the possession starts
+    Ogre::Vector3 mSavedPosition;
+    Ogre::Quaternion mSavedOrientation;
+    Ogre::Quaternion mSavedChildOrientation;
 };
 
 #endif // CAMERAMANAGER_H_

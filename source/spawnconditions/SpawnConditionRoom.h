@@ -26,10 +26,12 @@ class SpawnConditionRoom : public SpawnCondition
 {
 public:
     // Constructors
-    SpawnConditionRoom(RoomType roomType, int32_t nbActiveSpotsMin, int32_t pointsPerAdditionalActiveSpots) :
+    //! \brief countTiles counts the covered tiles of the rooms instead of their active spots
+    SpawnConditionRoom(RoomType roomType, int32_t nbActiveSpotsMin, int32_t pointsPerAdditionalActiveSpots, bool countTiles = false) :
         mRoomType(roomType),
         mNbActiveSpotsMin(nbActiveSpotsMin),
-        mPointsPerAdditionalActiveSpots(pointsPerAdditionalActiveSpots)
+        mPointsPerAdditionalActiveSpots(pointsPerAdditionalActiveSpots),
+        mCountTiles(countTiles)
     {}
 
     virtual ~SpawnConditionRoom() {}
@@ -42,6 +44,7 @@ private:
     RoomType mRoomType;
     int32_t mNbActiveSpotsMin;
     int32_t mPointsPerAdditionalActiveSpots;
+    bool mCountTiles;
 };
 
 #endif // SPAWNCONDITIONROOM_H
