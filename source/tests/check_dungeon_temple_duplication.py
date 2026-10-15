@@ -54,7 +54,7 @@ struct GameMap {bool editor=false,server=true;int created=0;
  Tile* getTile(int x,int y){auto it=tiles.find({x,y});return it==tiles.end()?nullptr:&it->second;}
  std::string nextUniqueNameRoom(int){return "split";}};
 struct Room {
- GameMap* map;bool temple=false;std::vector<Tile*> mCoveredTiles,mCoveredTilesDestroyed;
+ GameMap* map;bool temple=false;double mClaimHealth=1.0;std::vector<Tile*> mCoveredTiles,mCoveredTilesDestroyed;
  std::map<Tile*,TileData*> mTileData;std::map<Tile*,BuildingObject*> mBuildingObjects;
  std::vector<Creature*> mCreaturesUsingRoom;
  Room(GameMap* m):map(m){}virtual ~Room(){for(auto& p:mTileData)delete p.second;removeAllBuildingObjects();}
