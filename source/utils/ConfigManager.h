@@ -68,6 +68,8 @@ const std::string NICKNAME = "Nickname";
 const std::string KEEPERVOICE = "KeeperVoice";
 const std::string MINIMAP_TYPE = "MinimapType";
 const std::string LIGHT_FACTOR = "LightFactor";
+const std::string UI_SCALE = "UI Scale";
+const std::string BLOOD_EFFECTS = "Blood Effects";
 }
 
 typedef std::map<TileVisual,std::map<int,float>> HighMap;
@@ -148,6 +150,10 @@ public:
     inline double getMaxManaPerSeat() const
     { return mMaxManaPerSeat; }
 
+    //! \brief Returns the extra mana per second each claimed mana well tile gives its owner
+    inline double getManaWellBonusPerTile() const
+    { return mManaWellBonusPerTile; }
+
     inline double getClaimingWallPenalty() const
     { return mClaimingWallPenalty; }
 
@@ -162,6 +168,9 @@ public:
 
     inline int32_t getNbTurnsKoCreatureAttacked() const
     { return mNbTurnsKoCreatureAttacked; }
+
+    inline const std::string& getConfigPath() const
+    { return mConfigPath; }
 
     inline const std::string& getMainMenuMusic() const
     { return mMainMenuMusic; }
@@ -198,6 +207,9 @@ public:
     uint32_t getTrapConfigUInt32(const std::string& param) const;
     int32_t getTrapConfigInt32(const std::string& param) const;
     double getTrapConfigDouble(const std::string& param) const;
+    //! \brief Same as getTrapConfigDouble but returns defaultValue instead of
+    //! logging an error when the parameter is not in the configuration file.
+    double getTrapConfigDoubleOrDefault(const std::string& param, double defaultValue) const;
 
     //! Spells configuration
     const std::string& getSpellConfigString(const std::string& param) const;
@@ -331,6 +343,8 @@ private:
     int64_t mTimePayDay;
     int32_t mNbTurnsFuriousMax;
     double mMaxManaPerSeat;
+    //! \brief Extra mana per second for each claimed mana well tile
+    double mManaWellBonusPerTile;
     double mClaimingWallPenalty;
     double mDigCoefGold;
     double mDigCoefGem;

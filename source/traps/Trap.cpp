@@ -41,6 +41,11 @@
 #include <istream>
 #include <ostream>
 
+//! \brief Value of TrapReloadByWorkers when the trap config has no entry (1.0 means workers reload traps)
+static const double DEFAULT_RELOAD_BY_WORKERS = 1.0;
+//! \brief Reload price of a trap type without an own entry when the trap config has no TrapReloadCostDefault
+static const double DEFAULT_RELOAD_COST = 150.0;
+
 void TrapTileData::fireSeatsSawTriggering()
 {
     if(mTrapEntity == nullptr)
@@ -73,7 +78,8 @@ Trap::Trap(GameMap* gameMap) :
     mNbShootsBeforeDeactivation(0),
     mReloadTime(0),
     mMinDamage(0.0),
-    mMaxDamage(0.0)
+    mMaxDamage(0.0),
+    mForcedTrigger(false)
 {
 }
 
@@ -141,19 +147,124 @@ void Trap::doUpkeep()
         if(trapTileData->decreaseReloadTime())
             continue;
 
-        if(shoot(tile))
-        {
-            trapTileData->setReloadTime(mReloadTime);
-            if(!trapTileData->decreaseShoot())
-                deactivate(tile);
-
-            const std::vector<Seat*>& seats = tile->getSeatsWithVision();
-            trapTileData->seatsSawTriggering(seats);
-
-            for(Seat* seat : trapTileData->mSeatsVision)
-                seat->setVisibleBuildingOnTile(this, tile);
-        }
+        fireTile(tile, trapTileData);
     }
+}
+
+bool Trap::fireTile(Tile* tile, TrapTileData* trapTileData)
+{
+    // A trap fizzles if its owner cannot pay the mana needed to fire
+    double manaToFire = getSeat()->isTrapManaFree() ? 0.0 : getManaToFire();
+    if((manaToFire > 0.0) && (getSeat()->getMana() < manaToFire))
+        return false;
+
+    if(!shoot(tile))
+        return false;
+
+    if(manaToFire > 0.0)
+        getSeat()->takeMana(manaToFire);
+
+    trapTileData->setReloadTime(mReloadTime);
+    if(!trapTileData->decreaseShoot())
+    {
+        // All shots used up: only a new load (crafted trap or a worker) arms the tile again
+        trapTileData->setExhausted(true);
+        deactivate(tile);
+    }
+
+    const std::vector<Seat*>& seats = tile->getSeatsWithVision();
+    trapTileData->seatsSawTriggering(seats);
+
+    for(Seat* seat : trapTileData->mSeatsVision)
+        seat->setVisibleBuildingOnTile(this, tile);
+
+    return true;
+}
+
+bool Trap::forceTrigger(Tile* tile)
+{
+    std::map<Tile*, TileData*>::iterator it = mTileData.find(tile);
+    if(it == mTileData.end())
+        return false;
+
+    // Only armed traps that are not reloading can be set off
+    TrapTileData* trapTileData = static_cast<TrapTileData*>(it->second);
+    if(!trapTileData->isActivated() || (trapTileData->getReloadTime() > 0))
+        return false;
+
+    mForcedTrigger = true;
+    bool fired = fireTile(tile, trapTileData);
+    mForcedTrigger = false;
+    return fired;
+}
+
+double Trap::getManaToFire() const
+{
+    switch(getType())
+    {
+        case TrapType::cannon:
+            return ConfigManager::getSingleton().getTrapConfigDouble("CannonManaToFire");
+        case TrapType::fear:
+            return ConfigManager::getSingleton().getTrapConfigDouble("FearManaToFire");
+        case TrapType::lightning:
+            return ConfigManager::getSingleton().getTrapConfigDouble("LightningManaToFire");
+        case TrapType::fireburst:
+            return ConfigManager::getSingleton().getTrapConfigDouble("FireburstManaToFire");
+        default:
+            return 0.0;
+    }
+}
+
+double Trap::getManaUpkeepPerSecond() const
+{
+    const char* key = nullptr;
+    switch(getType())
+    {
+        case TrapType::cannon:
+            key = "CannonManaUpkeepPerSecond";
+            break;
+        case TrapType::spike:
+            key = "SpikeManaUpkeepPerSecond";
+            break;
+        case TrapType::boulder:
+            key = "BoulderManaUpkeepPerSecond";
+            break;
+        case TrapType::alarm:
+            key = "AlarmManaUpkeepPerSecond";
+            break;
+        case TrapType::fear:
+            key = "FearManaUpkeepPerSecond";
+            break;
+        case TrapType::gas:
+            key = "GasManaUpkeepPerSecond";
+            break;
+        case TrapType::lightning:
+            key = "LightningManaUpkeepPerSecond";
+            break;
+        case TrapType::fireburst:
+            key = "FireburstManaUpkeepPerSecond";
+            break;
+        case TrapType::trigger:
+            key = "TriggerManaUpkeepPerSecond";
+            break;
+        case TrapType::freeze:
+            key = "FreezeManaUpkeepPerSecond";
+            break;
+        default:
+            return 0.0;
+    }
+    return ConfigManager::getSingleton().getTrapConfigDouble(key);
+}
+
+uint32_t Trap::getNbActivatedTiles() const
+{
+    uint32_t nbActivated = 0;
+    for(Tile* tile : mCoveredTiles)
+    {
+        if(isActivated(tile))
+            ++nbActivated;
+    }
+    return nbActivated;
 }
 
 int32_t Trap::getNbNeededCraftedTrap() const
@@ -255,6 +366,7 @@ void Trap::activate(Tile* tile)
 
     TrapTileData* trapTileData = static_cast<TrapTileData*>(mTileData[tile]);
     trapTileData->setActivated(true);
+    trapTileData->setExhausted(false);
     trapTileData->setNbShootsBeforeDeactivation(mNbShootsBeforeDeactivation);
     trapTileData->setReloadTime(0);
 
@@ -290,6 +402,113 @@ bool Trap::isActivated(Tile* tile) const
     return trapTileData->isActivated();
 }
 
+bool Trap::canBeReloadedByWorker(Tile* tile, const Creature* worker) const
+{
+    if(isDoor() || !getGameMap()->isServerGameMap() || getGameMap()->isInEditorMode())
+        return false;
+
+    if(ConfigManager::getSingleton().getTrapConfigDoubleOrDefault("TrapReloadByWorkers", DEFAULT_RELOAD_BY_WORKERS) <= 0.0)
+        return false;
+
+    if(std::find(mCoveredTiles.begin(), mCoveredTiles.end(), tile) == mCoveredTiles.end())
+        return false;
+
+    std::map<Tile*, TileData*>::const_iterator it = mTileData.find(tile);
+    if(it == mTileData.end())
+        return false;
+
+    const TrapTileData* trapTileData = static_cast<const TrapTileData*>(it->second);
+    if(trapTileData->mHP <= 0.0)
+        return false;
+
+    // Only a tile that really used up its shots is reloaded, a newly placed trap waits for its crafted trap
+    if(!trapTileData->isExhausted() || trapTileData->isActivated())
+        return false;
+
+    if(trapTileData->getCarriedCraftedTrap() != nullptr)
+        return false;
+
+    if((trapTileData->getReloadWorker() != nullptr) && (trapTileData->getReloadWorker() != worker))
+        return false;
+
+    return getGameMap()->getTurnNumber() >= trapTileData->getReloadNextTurn();
+}
+
+Creature* Trap::getReloadWorker(Tile* tile) const
+{
+    std::map<Tile*, TileData*>::const_iterator it = mTileData.find(tile);
+    if(it == mTileData.end())
+        return nullptr;
+
+    return static_cast<TrapTileData*>(it->second)->getReloadWorker();
+}
+
+void Trap::setReloadWorker(Tile* tile, Creature* worker)
+{
+    std::map<Tile*, TileData*>::iterator it = mTileData.find(tile);
+    if(it == mTileData.end())
+        return;
+
+    static_cast<TrapTileData*>(it->second)->setReloadWorker(worker);
+}
+
+void Trap::postponeReload(Tile* tile, int64_t untilTurn)
+{
+    std::map<Tile*, TileData*>::iterator it = mTileData.find(tile);
+    if(it == mTileData.end())
+        return;
+
+    static_cast<TrapTileData*>(it->second)->setReloadNextTurn(untilTurn);
+}
+
+int32_t Trap::getReloadPrice() const
+{
+    // Price per trap type (<Trap>ReloadCost), a type without an entry pays TrapReloadCostDefault
+    ConfigManager& config = ConfigManager::getSingleton();
+    double defaultPrice = config.getTrapConfigDoubleOrDefault("TrapReloadCostDefault", DEFAULT_RELOAD_COST);
+    double price = defaultPrice;
+    switch(getType())
+    {
+        case TrapType::cannon:
+            price = config.getTrapConfigDoubleOrDefault("CannonReloadCost", defaultPrice);
+            break;
+        case TrapType::spike:
+            price = config.getTrapConfigDoubleOrDefault("SpikeReloadCost", defaultPrice);
+            break;
+        case TrapType::boulder:
+            price = config.getTrapConfigDoubleOrDefault("BoulderReloadCost", defaultPrice);
+            break;
+        case TrapType::fear:
+            price = config.getTrapConfigDoubleOrDefault("FearReloadCost", defaultPrice);
+            break;
+        case TrapType::gas:
+            price = config.getTrapConfigDoubleOrDefault("GasReloadCost", defaultPrice);
+            break;
+        case TrapType::lightning:
+            price = config.getTrapConfigDoubleOrDefault("LightningReloadCost", defaultPrice);
+            break;
+        case TrapType::fireburst:
+            price = config.getTrapConfigDoubleOrDefault("FireburstReloadCost", defaultPrice);
+            break;
+        case TrapType::freeze:
+            price = config.getTrapConfigDoubleOrDefault("FreezeReloadCost", defaultPrice);
+            break;
+        case TrapType::watchBanner:
+            price = config.getTrapConfigDoubleOrDefault("WatchBannerReloadCost", defaultPrice);
+            break;
+        case TrapType::alarm:
+            price = config.getTrapConfigDoubleOrDefault("AlarmReloadCost", defaultPrice);
+            break;
+        case TrapType::trigger:
+            price = config.getTrapConfigDoubleOrDefault("TriggerReloadCost", defaultPrice);
+            break;
+        default:
+            break;
+    }
+
+    return static_cast<int32_t>(std::max(0.0, price));
+}
+
 void Trap::setupTrap(const std::string& name, Seat* seat, const std::vector<Tile*>& tiles)
 {
     setIsOnMap(true);
@@ -302,7 +521,7 @@ void Trap::setupTrap(const std::string& name, Seat* seat, const std::vector<Tile
         mCoveredTiles.push_back(tile);
         TrapTileData* trapTileData = createTileData(tile);
         mTileData[tile] = trapTileData;
-        trapTileData->mHP = DEFAULT_TILE_HP;
+        trapTileData->mHP = getDefaultTileHP();
         trapTileData->setReloadTime(mReloadTime);
         // Allied seats with the creator do see the trap from the start
         trapTileData->seatsSawTriggering(alliedSeats);
@@ -492,6 +711,9 @@ void Trap::exportTileDataToStream(std::ostream& os, Tile* tile, TileData* tileDa
     os << "\t" << nbSeatsVision;
     for(Seat* seat : seatsToSave)
         os << "\t" << seat->getId();
+
+    // Appended later: whether the tile used up its shots (old saves end before it)
+    os << "\t" << (trapTileData->isExhausted() ? 1 : 0);
 }
 
 bool Trap::importTileDataFromStream(std::istream& is, Tile* tile, TileData* tileData)
@@ -504,7 +726,7 @@ bool Trap::importTileDataFromStream(std::istream& is, Tile* tile, TileData* tile
     if(is.eof())
     {
         // Default initialization
-        trapTileData->mHP = DEFAULT_TILE_HP;
+        trapTileData->mHP = getDefaultTileHP();
         mCoveredTiles.push_back(tile);
         tile->setCoveringBuilding(this);
         if(isTrapActiv != 0)
@@ -562,6 +784,11 @@ bool Trap::importTileDataFromStream(std::istream& is, Tile* tile, TileData* tile
         }
         trapTileData->seatSawTriggering(seat);
     }
+
+    // Optional: saves from before the worker reload end here
+    int exhausted;
+    if((is >> exhausted) && (exhausted != 0) && !trapTileData->isActivated())
+        trapTileData->setExhausted(true);
 
     return true;
 }

@@ -1,0 +1,59 @@
+vertex_program CombatImpactVertex glsl
+{
+    source CombatImpact.vert
+    default_params
+    {
+        param_named_auto worldViewProj worldviewproj_matrix
+    }
+}
+
+fragment_program CombatBloodFragment glsl
+{
+    source CombatBlood.frag
+    default_params
+    {
+        param_named flareMap int 0
+    }
+}
+
+material CombatSparks
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend add
+            depth_write off
+            diffuse vertexcolour
+
+            texture_unit
+            {
+                texture Flare.png
+            }
+        }
+    }
+}
+
+material CombatBlood
+{
+    receive_shadows off
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_write off
+            diffuse vertexcolour
+
+            vertex_program_ref CombatImpactVertex {}
+            fragment_program_ref CombatBloodFragment {}
+
+            texture_unit
+            {
+                texture Flare.png
+            }
+        }
+    }
+}

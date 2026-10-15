@@ -6,6 +6,23 @@ add_boost_test(00-Random
         ${SRC}/utils/Random.h
         ${SRC}/utils/Random.cpp)
 
+add_boost_test(00-SocialGenerator
+        SOURCES
+        test_SocialGenerator.cpp
+        ${SRC}/social/CreatureProfile.h
+        ${SRC}/social/SocialRng.h
+        ${SRC}/social/SocialData.h
+        ${SRC}/social/SocialData.cpp
+        ${SRC}/social/SocialGenerator.h
+        ${SRC}/social/SocialGenerator.cpp)
+
+add_boost_test(00-PostLog
+        SOURCES
+        test_PostLog.cpp
+        ${SRC}/social/SocialRng.h
+        ${SRC}/social/PostLog.h
+        ${SRC}/social/PostLog.cpp)
+
 add_boost_test(00-ODPacket
         SOURCES
         test_ODPacket.cpp
@@ -34,6 +51,19 @@ add_boost_test(00-Goal
         ${SFML_LIBRARIES}
         ${Boost_FILESYSTEM_LIBRARY_RELEASE}
         ${Boost_SYSTEM_LIBRARY_RELEASE})
+
+add_boost_test(00-LevelScript
+        SOURCES
+        test_LevelScript.cpp
+        ${SRC}/gamemap/LevelScript.h
+        ${SRC}/gamemap/LevelScript.cpp)
+
+add_boost_test(00-Campaign
+        SOURCES
+        test_Campaign.cpp
+        ${SRC}/game/Campaign.h
+        ${SRC}/game/Campaign.cpp
+        ${SRC}/game/CampaignWorld.cpp)
 
 add_boost_test(00-Pathfinding
         SOURCES
