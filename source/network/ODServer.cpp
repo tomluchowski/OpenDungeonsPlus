@@ -24,7 +24,10 @@
 #include "entities/MapLight.h"
 #include "entities/Tile.h"
 #include "entities/Weapon.h"
+#include "game/HeartHealthRing.h"
 #include "game/Player.h"
+#include "game/CreaturePanelData.h"
+#include "game/TrapProductionData.h"
 #include "game/Skill.h"
 #include "game/SkillManager.h"
 #include "game/SkillType.h"
@@ -37,8 +40,10 @@
 #include "network/ServerMode.h"
 #include "network/ServerNotification.h"
 #include "rooms/Room.h"
+#include "rooms/RoomDungeonTemple.h"
 #include "rooms/RoomManager.h"
 #include "rooms/RoomPortalWave.h"
+#include "rooms/RoomWorkshop.h"
 #include "rooms/RoomType.h"
 #include "spells/SpellManager.h"
 #include "spells/SpellType.h"
@@ -70,6 +75,50 @@ static const int32_t MASTER_SERVER_STATUS_FINISHED = 2;
 
 namespace
 {
+    //! \brief Tells a human player about the health of its dungeon heart when the fraction changed
+    //! by at least one percentage point since the last message, when the heart is destroyed,
+    //! and once when the game starts or is loaded (nothing was sent to this client yet). A drop
+    //! since the last message means the heart is under attack. A change of the whole HP alone
+    //! (healing) is sent at most once per second.
+    void notifyHeartHealth(GameMap* gameMap, ODSocketClient* sock, Player* player)
+    {
+        if(!player->getIsHuman() || player->getSeat() == nullptr)
+            return;
+
+        Room* heart = nullptr;
+        for(Room* room : gameMap->getRooms())
+        {
+            if(room->getType() == RoomType::dungeonTemple && room->getSeat() == player->getSeat())
+            {
+                heart = room;
+                break;
+            }
+        }
+        if(heart == nullptr)
+            return;
+
+        RoomDungeonTemple* temple = static_cast<RoomDungeonTemple*>(heart);
+        const float fraction = static_cast<float>(temple->getHeartHealthFraction());
+        const double heartHP = std::floor(temple->getHP(nullptr));
+        const float lastSent = sock->getHeartHealthSent();
+        // The ring only needs a message per percentage point (or on destruction), the tooltip shows
+        // the exact HP: a message that only carries a new whole HP is sent at most once per second
+        const int64_t turn = gameMap->getTurnNumber();
+        const bool hpDue = heartHP != sock->getHeartHPSent()
+            && HeartHealthRing::isHpMessageDue(turn - sock->getHeartMessageTurn(), ODApplication::turnsPerSecond);
+        if(!HeartHealthRing::shouldNotify(lastSent, fraction) && !hpDue)
+            return;
+
+        const bool underAttack = lastSent >= 0.0f && fraction < lastSent;
+        ServerNotification* serverNotification = new ServerNotification(
+            ServerNotificationType::heartHealth, player);
+        serverNotification->mPacket << fraction << underAttack << heartHP << temple->getHeartMaxHP();
+        ODServer::getSingleton().queueServerNotification(serverNotification);
+        sock->setHeartHealthSent(fraction);
+        sock->setHeartHPSent(heartHP);
+        sock->setHeartMessageTurn(turn);
+    }
+
     //! \brief Gives a creature the level the editor asked for. Levelling raises the maximum
     //! HP without healing, which is what we want in game but not here: a creature placed in
     //! a level is expected to start it in full health.
@@ -404,6 +453,8 @@ void ODServer::startNewTurn(double timeSinceLastTurn)
         serverNotification->mPacket << goals;
         ODServer::getSingleton().queueServerNotification(serverNotification);
 
+        notifyHeartHealth(gameMap, sock, player);
+
         // Here, the creature list is pulled. It could be possible that the creature dies before the stat window is
         // closed. So, if we cannot find the creature, we just erase it.
         std::vector<std::string>& creatures = mCreaturesInfoWanted[sock];
@@ -470,6 +521,27 @@ void ODServer::startNewTurn(double timeSinceLastTurn)
 
     gameMap->fireRefreshEntities();
     gameMap->processDeletionQueues();
+    if(mServerMode != ServerMode::ModeEditor)
+    {
+        for(ODSocketClient* socket : mSockClients)
+        {
+            if(!socket->supportsCreaturePanel())
+                continue;
+            Player* player = socket->getPlayer();
+            CreaturePanelData data;
+            for(Creature* creature : gameMap->getCreaturesBySeat(player->getSeat()))
+            {
+                const CreatureDefinition* definition = creature->getDefinition();
+                CreaturePanelCounts& counts = data[definition->getClassName()];
+                if(creature->getIsOnMap())
+                    addCreaturePanelCounts(counts, creature->getActivity(),
+                        creature->getMoodValue(), definition->isWorker());
+            }
+            ServerNotification* panel = new ServerNotification(ServerNotificationType::creaturePanel, player);
+            exportCreaturePanelData(panel->mPacket, data);
+            queueServerNotification(panel);
+        }
+    }
 }
 
 void ODServer::serverThread()
@@ -896,7 +968,7 @@ bool ODServer::processClientNotifications(ODSocketClient* clientSocket)
             clientSocket->setState("nick");
             // Tell the client to give us their nickname
             ODPacket packetSend;
-            packetSend << ServerNotificationType::pickNick << mServerMode;
+            packetSend << ServerNotificationType::pickNick << mServerMode << true << true << true << true << true;
             clientSocket->send(packetSend);
             break;
         }
@@ -909,6 +981,30 @@ bool ODServer::processClientNotifications(ODSocketClient* clientSocket)
             // Pick nick
             std::string clientNick;
             OD_ASSERT_TRUE(packetReceived >> clientNick);
+            bool liveNickname = false;
+            if(!packetReceived.endOfPacket())
+                OD_ASSERT_TRUE(packetReceived >> liveNickname);
+            clientSocket->setSupportsLiveNickname(liveNickname);
+
+            bool creatureMood = false;
+            if(!packetReceived.endOfPacket())
+                OD_ASSERT_TRUE(packetReceived >> creatureMood);
+            clientSocket->setSupportsCreatureMood(creatureMood);
+
+            bool creatureActivity = false;
+            if(!packetReceived.endOfPacket())
+                OD_ASSERT_TRUE(packetReceived >> creatureActivity);
+            clientSocket->setSupportsCreatureActivity(creatureActivity);
+
+            bool creaturePanel = false;
+            if(!packetReceived.endOfPacket())
+                OD_ASSERT_TRUE(packetReceived >> creaturePanel);
+            clientSocket->setSupportsCreaturePanel(creaturePanel);
+
+            bool creatureProgress = false;
+            if(!packetReceived.endOfPacket())
+                OD_ASSERT_TRUE(packetReceived >> creatureProgress);
+            clientSocket->setSupportsCreatureProgress(creatureProgress);
 
             // NOTE : playerId 0 is reserved for inactive players and 1 is reserved for AI
             int32_t playerId = mUniqueNumberPlayer + Seat::PLAYER_ID_HUMAN_MIN;
@@ -960,8 +1056,33 @@ bool ODServer::processClientNotifications(ODSocketClient* clientSocket)
 
             packetSend.clear();
             packetSend << ServerNotificationType::startGameMode << seatId << mServerMode;
+            packetSend << clientSocket->supportsCreatureMood();
+            packetSend << clientSocket->supportsCreatureActivity();
+            packetSend << clientSocket->supportsCreaturePanel();
+            packetSend << clientSocket->supportsCreatureProgress();
             clientSocket->send(packetSend);
             mSeatsConfigured = true;
+            break;
+        }
+
+        case ClientNotificationType::changeNick:
+        {
+            if(mServerState != ServerState::StateGame || !clientSocket->supportsLiveNickname()
+                || clientSocket->getPlayer() == nullptr)
+                break;
+
+            std::string nickname;
+            OD_ASSERT_TRUE(packetReceived >> nickname);
+            Player* player = clientSocket->getPlayer();
+            player->setNick(nickname);
+            const int32_t playerId = player->getId();
+            ODPacket packetSend;
+            packetSend << ServerNotificationType::playerNickChanged << playerId << nickname;
+            for(ODSocketClient* client : mSockClients)
+            {
+                if(client->supportsLiveNickname())
+                    client->send(packetSend);
+            }
             break;
         }
 
@@ -1234,6 +1355,10 @@ bool ODServer::processClientNotifications(ODSocketClient* clientSocket)
                 ODPacket packetSend;
                 int seatId = client->getPlayer()->getSeat()->getId();
                 packetSend << ServerNotificationType::startGameMode << seatId << mServerMode;
+                packetSend << client->supportsCreatureMood();
+                packetSend << client->supportsCreatureActivity();
+                packetSend << client->supportsCreaturePanel();
+                packetSend << client->supportsCreatureProgress();
                 client->send(packetSend);
             }
 
@@ -1305,14 +1430,84 @@ bool ODServer::processClientNotifications(ODSocketClient* clientSocket)
                     + " send wrong tile");
                 break;
             }
-            if(!player->isDropHandPossible(tile, 0))
+            unsigned int index = 0;
+            // Old clients identify only the tile. New clients identify the held object too.
+            if(!packetReceived.endOfPacket())
+            {
+                int32_t entityType;
+                std::string entityName;
+                if(!(packetReceived >> entityType >> entityName))
+                {
+                    OD_LOG_ERR("Incomplete hand drop identity");
+                    break;
+                }
+                index = player->getHandIndex(static_cast<GameEntityType>(entityType), entityName);
+            }
+            if(!player->isDropHandPossible(tile, index))
             {
                 OD_LOG_ERR("player seatId=" + Helper::toString(player->getSeat()->getId())
                     + " could not drop entity in hand on tile "
                     + Tile::displayAsString(tile));
                 break;
             }
-            player->dropHand(tile, 0);
+            player->dropHand(tile, index);
+            break;
+        }
+
+        case ClientNotificationType::askHandDropAll:
+        {
+            Player* player = clientSocket->getPlayer();
+            Tile* tile = gameMap->tileFromPacket(packetReceived);
+            uint32_t count = 0;
+            if(tile == nullptr || !(packetReceived >> count) || count <= 1 ||
+               count != player->numCreaturesInHand())
+            {
+                OD_LOG_ERR("Invalid drop-all request");
+                break;
+            }
+
+            std::vector<GameEntity*> creatures;
+            bool valid = true;
+            for(uint32_t i = 0; i < count; ++i)
+            {
+                int32_t entityType;
+                std::string entityName;
+                if(!(packetReceived >> entityType >> entityName) ||
+                   static_cast<GameEntityType>(entityType) != GameEntityType::creature)
+                {
+                    valid = false;
+                    break;
+                }
+
+                const unsigned int index = player->getHandIndex(
+                    static_cast<GameEntityType>(entityType), entityName);
+                if(index >= player->numObjectsInHand() || !player->isDropHandPossible(tile, index))
+                {
+                    valid = false;
+                    break;
+                }
+
+                GameEntity* entity = player->getObjectsInHand()[index];
+                if(std::find(creatures.begin(), creatures.end(), entity) != creatures.end())
+                {
+                    valid = false;
+                    break;
+                }
+                creatures.push_back(entity);
+            }
+
+            if(!valid || !packetReceived.endOfPacket() || creatures.size() != count)
+            {
+                OD_LOG_ERR("Rejected drop-all request");
+                break;
+            }
+
+            for(GameEntity* entity : creatures)
+            {
+                const unsigned int index = player->getHandIndex(
+                    entity->getObjectType(), entity->getName());
+                player->dropHand(tile, index);
+            }
             break;
         }
 
@@ -2507,16 +2702,60 @@ bool ODServer::processClientNotifications(ODSocketClient* clientSocket)
             Player* player = clientSocket->getPlayer();
             uint32_t nbItems;
             OD_ASSERT_TRUE(packetReceived >> nbItems);
+            if(nbItems >= static_cast<uint32_t>(SkillType::countSkill))
+                return false;
             std::vector<SkillType> skills;
+            bool stale = false;
             while(nbItems > 0)
             {
                 nbItems--;
                 SkillType skill;
-                OD_ASSERT_TRUE(packetReceived >> skill);
+                uint32_t level;
+                if(!(packetReceived >> skill >> level) || skill <= SkillType::nullSkillType ||
+                   skill >= SkillType::countSkill || level < 1 || level > 3)
+                    return false;
+                stale = stale || level != player->getSeat()->getSkillLevel(skill) + 1;
                 skills.push_back(skill);
             }
 
-            player->getSeat()->setSkillTree(skills);
+            player->getSeat()->setSkillTree(stale ? player->getSeat()->getSkillPending() : skills);
+            break;
+        }
+
+        case ClientNotificationType::askTrapProductionQueue:
+        case ClientNotificationType::askMoveTrapProductionOrder:
+        {
+            Player* player = clientSocket->getPlayer();
+            if(player == nullptr || player->getSeat() == nullptr || gameMap->isInEditorMode())
+                break;
+            Seat* seat = player->getSeat();
+            if(clientCommand == ClientNotificationType::askMoveTrapProductionOrder)
+            {
+                std::string name;
+                bool earlier;
+                if(!(packetReceived >> name >> earlier))
+                    return false;
+                gameMap->moveTrapProductionOrder(seat, name, earlier);
+            }
+            TrapProductionData data;
+            for(Trap* trap : gameMap->getTraps())
+            {
+                if(trap->getSeat() != seat || trap->getNbNeededCraftedTrap() <= 0)
+                    continue;
+                data.orders.push_back({trap->getName(), trap->getType(), trap->getNbNeededCraftedTrap()});
+            }
+            for(Room* room : gameMap->getRoomsByTypeAndSeat(RoomType::workshop, seat))
+            {
+                RoomWorkshop* workshop = static_cast<RoomWorkshop*>(room);
+                const TrapType trapType = workshop->getCurrentProductionType();
+                const int32_t required = trapType == TrapType::nullTrapType ? 0 :
+                    TrapManager::getNeededWorkshopPointsPerTrap(trapType);
+                data.workshops.push_back({workshop->getName(), trapType,
+                    workshop->getProductionPoints(), required});
+            }
+            ServerNotification* reply = new ServerNotification(ServerNotificationType::trapProductionQueue, player);
+            exportTrapProductionData(reply->mPacket, data);
+            queueServerNotification(reply);
             break;
         }
 
@@ -2676,6 +2915,24 @@ void ODServer::notifyExit()
     ServerNotification* exitServerNotification = new ServerNotification(
         ServerNotificationType::exit, nullptr);
     queueServerNotification(exitServerNotification);
+}
+
+bool ODServer::supportsCreatureMood(Player* player)
+{
+    ODSocketClient* client = getClientFromPlayer(player);
+    return client != nullptr && client->supportsCreatureMood();
+}
+
+bool ODServer::supportsCreatureActivity(Player* player)
+{
+    ODSocketClient* client = getClientFromPlayer(player);
+    return client != nullptr && client->supportsCreatureActivity();
+}
+
+bool ODServer::supportsCreatureProgress(Player* player)
+{
+    ODSocketClient* client = getClientFromPlayer(player);
+    return client != nullptr && client->supportsCreatureProgress();
 }
 
 ODSocketClient* ODServer::getClientFromPlayer(Player* player)

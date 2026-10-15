@@ -16,8 +16,13 @@
  */
 
 #include "rooms/RoomLibrary.h"
+#include "game/SkillManager.h"
+#include "game/SkillType.h"
 
 #include "entities/BuildingObject.h"
+#include "gamemap/RoomObjectNavigation.h"
+#include "creatureaction/CreatureActionWalkToTile.h"
+#include "utils/MakeUnique.h"
 #include "entities/Creature.h"
 #include "entities/CreatureDefinition.h"
 #include "entities/GameEntityType.h"
@@ -360,17 +365,16 @@ bool RoomLibrary::useRoom(Creature& creature, bool forced)
         OD_LOG_ERR("unexpected null building object");
         return false;
     }
-    // We consider that the creature is in the good place if it is in the expected tile and not moving
-    Tile* expectedDest = getGameMap()->getTile(Helper::round(wantedX), Helper::round(wantedY));
-    if(expectedDest == nullptr)
+    std::vector<Ogre::Vector2> approach;
+    if(!RoomObjectNavigation::workApproach(creature, *ro, {wantedX, wantedY}, {0, 0}, approach))
     {
-        OD_LOG_ERR("room=" + getName() + ", creature=" + creature.getName());
+        creature.popAction();
         return false;
     }
-
-    if(tileCreature != expectedDest)
+    if(!approach.empty())
     {
-        creature.setDestination(expectedDest);
+        creature.setWalkPath(EntityAnimation::walk_anim, EntityAnimation::idle_anim, true, true, approach, false);
+        creature.pushAction(Utils::make_unique<CreatureActionWalkToTile>(creature));
         return false;
     }
 
@@ -384,7 +388,8 @@ bool RoomLibrary::useRoom(Creature& creature, bool forced)
     OD_ASSERT_TRUE_MSG(creatureRoomAffinity.getRoomType() == getType(), "name=" + getName() + ", creature=" + creature.getName()
         + ", creatureRoomAffinityType=" + Helper::toString(static_cast<int>(creatureRoomAffinity.getRoomType())));
 
-    int32_t pointsEarned = static_cast<int32_t>(creatureRoomAffinity.getEfficiency() * ConfigManager::getSingleton().getRoomConfigDouble("LibraryPointsPerWork"));
+    int32_t pointsEarned = static_cast<int32_t>(creatureRoomAffinity.getEfficiency() * SkillManager::getResearchValue(
+        getSeat(), SkillType::roomLibrary, ConfigManager::getSingleton().getRoomConfigDouble("LibraryPointsPerWork")));
     creature.jobDone(ConfigManager::getSingleton().getRoomConfigDouble("LibraryWakefulnessPerWork"));
     creature.setJobCooldown(Random::Uint(ConfigManager::getSingleton().getRoomConfigUInt32("LibraryCooldownWorkMin"),
         ConfigManager::getSingleton().getRoomConfigUInt32("LibraryCooldownWorkMax")));
