@@ -283,6 +283,11 @@ public:
     //! \param timeSinceLastFrame the elapsed time since last displayed frame in seconds.
     virtual void update(Ogre::Real timeSinceLastFrame) override;
 
+    //! \brief Walks to the tile next to a wall tile and parks a fifth of a tile towards the wall, so that a digging
+    //! worker stands well in front of the wall and not half inside it.
+    //! \param wallTile the wall tile the creature works on.
+    //! \param nTile the neighbouring tile the creature walks to first.
+    //! \return false if a tile is missing or the creature has no position tile, true once the walk and the parking action are set.
     bool parkToWallTile(Tile* wallTile, Tile* nTile);
     
     bool setDestination(Tile* tile);
