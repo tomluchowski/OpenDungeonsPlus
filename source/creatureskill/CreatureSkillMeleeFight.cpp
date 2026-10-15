@@ -19,6 +19,8 @@
 
 #include "creatureskill/CreatureSkillManager.h"
 #include "entities/Creature.h"
+#include "entities/CreatureProgression.h"
+#include "entities/GameEntityType.h"
 #include "entities/Tile.h"
 #include "entities/Weapon.h"
 #include "gamemap/GameMap.h"
@@ -61,10 +63,10 @@ bool CreatureSkillMeleeFight::canBeUsedBy(const Creature* creature) const
 bool CreatureSkillMeleeFight::tryUseFight(GameMap& gameMap, Creature* creature, float range,
         GameEntity* attackedObject, Tile* attackedTile, bool ko, bool notifyPlayerIfHit) const
 {
-    double level = static_cast<double>(creature->getLevel());
-    double phyAtk = mPhyAtk + (level * mPhyAtkPerLvl);
-    double magAtk = mMagAtk + (level * mMagAtkPerLvl);
-    double eleAtk = mEleAtk + (level * mEleAtkPerLvl);
+    const uint32_t level = creature->getLevel();
+    double phyAtk = CreatureProgression::stat(mPhyAtk + mPhyAtkPerLvl, mPhyAtkPerLvl, level);
+    double magAtk = CreatureProgression::stat(mMagAtk + mMagAtkPerLvl, mMagAtkPerLvl, level);
+    double eleAtk = CreatureProgression::stat(mEleAtk + mEleAtkPerLvl, mEleAtkPerLvl, level);
     if(creature->getWeaponL() != nullptr)
     {
         phyAtk +=creature->getWeaponL()->getPhysicalDamage();
@@ -85,7 +87,18 @@ bool CreatureSkillMeleeFight::tryUseFight(GameMap& gameMap, Creature* creature, 
         magAtk *= modifier;
         eleAtk *= modifier;
     }
-    attackedObject->takeDamage(creature, 0.0, phyAtk, magAtk, eleAtk, attackedTile, ko);
+    const double damageDone = attackedObject->takeDamage(creature, 0.0,
+        phyAtk, magAtk, eleAtk, attackedTile, ko);
+    if(attackedObject->getObjectType() == GameEntityType::creature)
+    {
+        Creature* target = static_cast<Creature*>(attackedObject);
+        const bool attackerArmed = creature->getWeaponL() != nullptr ||
+            creature->getWeaponR() != nullptr;
+        const bool targetArmed = target->getWeaponL() != nullptr ||
+            target->getWeaponR() != nullptr;
+        target->fireCombatImpact(attackerArmed && targetArmed,
+            damageDone > 0.0, creature->getPosition());
+    }
     if(notifyPlayerIfHit)
         attackedObject->notifyFightPlayer(attackedTile);
 

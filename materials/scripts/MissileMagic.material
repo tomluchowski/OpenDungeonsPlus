@@ -1,19 +1,35 @@
-// Missile particle material file
+vertex_program MissileFireVertex glsl
+{
+    source CombatImpact.vert
+    default_params
+    {
+        param_named_auto worldViewProj worldviewproj_matrix
+    }
+}
+
+fragment_program MissileFireFragment glsl
+{
+    source MissileFire.frag
+    default_params
+    {
+        param_named_auto fireTime time 1.0
+    }
+}
+
 material MissileMagic
 {
+    receive_shadows off
     technique
     {
         pass
         {
             lighting off
-            scene_blend add
+            scene_blend alpha_blend
             depth_write off
             diffuse vertexcolour
 
-            texture_unit
-            {
-                texture Flare.png
-            }
+            vertex_program_ref MissileFireVertex {}
+            fragment_program_ref MissileFireFragment {}
         }
     }
 }
