@@ -65,6 +65,8 @@
 #include <string>
 #include <sstream>
 #include <fstream>
+#include <exception>
+#include <pybind11/embed.h>
 
 void ODApplication::startGame(boost::program_options::variables_map& options)
 {
@@ -80,10 +82,20 @@ void ODApplication::startGame(boost::program_options::variables_map& options)
     logMgr.setLevel(resMgr.getLogLevel());
 
 
-    if(resMgr.isServerMode())
-        startServer();
-    else
-        startClient();
+    try
+    {
+        if(resMgr.isServerMode())
+            startServer();
+        else
+            startClient();
+    }
+    catch(const std::exception& error)
+    {
+        // Preserve the exception before the log manager is destroyed and main
+        // displays its Windows error dialog.
+        OD_LOG_ERR("Unhandled exception: " + std::string(error.what()));
+        throw;
+    }
 }
 
 void ODApplication::startServer()
@@ -161,7 +173,7 @@ void ODApplication::startClient()
         std::stringstream ss(videoMode);
         // Ignore the x in the middle
         char ignore;
-        ss >> w >> ignore >> h >> h;
+        ss >> w >> ignore >> h;
 
         w = std::max(w, MIN_WIDTH);
         h = std::max(h, MIN_HEIGHT);
@@ -210,11 +222,7 @@ void ODApplication::startClient()
     
     ogreRoot.initialise(false);
 
-    Ogre::NameValuePairList misc;
-    misc["FSAA"] = "0";
-    misc["vsync"] = "true";
-
-    // You can also later load these from config or allow command-line override
+    Ogre::NameValuePairList misc = ogreRoot.getRenderSystem()->getRenderWindowDescription().miscParams;
 
     OD_LOG_INF("Creating window: with resolution " + Helper::toString(w) + " " + Helper::toString(h));
     
@@ -235,7 +243,7 @@ void ODApplication::startClient()
     HWND hwnd;
     renderWindow->getCustomAttribute("WINDOW", static_cast<void*>(&hwnd));
     HINSTANCE hInst = static_cast<HINSTANCE>(GetModuleHandle(nullptr));
-    SetClassLong(hwnd, GCL_HICON, reinterpret_cast<LONG>(LoadIcon(hInst, MAKEINTRESOURCE(IDI_ICON1))));
+    SetClassLongPtr(hwnd, GCLP_HICON, reinterpret_cast<LONG_PTR>(LoadIcon(hInst, MAKEINTRESOURCE(IDI_ICON1))));
 #endif
 
     //Initialise RTshader system
@@ -259,6 +267,10 @@ void ODApplication::startClient()
 
     MusicPlayer musicPlayer(resMgr.getMusicPath(), resMgr.listAllMusicFiles());
     SoundEffectsManager soundEffectsManager;
+
+    // Keep Python alive across game-mode changes; consoles own only their game state.
+    pybind11::scoped_interpreter pythonInterpreter;
+    pybind11::gil_scoped_release pythonMainThreadRelease;
 
     ODServer server;
     ODClient client;
@@ -333,6 +345,7 @@ void ODApplication::startClient()
     Ogre::MaterialManager::getSingleton().removeListener(sgListener);
     delete sgListener;
     Ogre::RTShader::ShaderGenerator::destroy();
+    frameListener.prepareRenderWindowShutdown();
     ogreRoot.destroyRenderTarget(renderWindow);
 }
 

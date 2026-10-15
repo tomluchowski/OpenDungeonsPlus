@@ -19,6 +19,7 @@
 #define GAMEMAP_H
 
 #include "entities/GameEntity.h"
+#include "gamemap/SandboxMode.h"
 #include "gamemap/SelectionEntityWanted.h"
 #include "gamemap/TileContainer.h"
 #include "ai/AIManager.h"
@@ -45,6 +46,7 @@ class Player;
 class Trap;
 class Seat;
 class Goal;
+class LevelScript;
 class MapLight;
 class MovableGameEntity;
 class CreatureDefinition;
@@ -94,6 +96,9 @@ friend class RenderManager;
 friend class ODServer;
     
 public:
+    //! \brief Creates an empty game map with an empty level script.
+    //! \param isServerGameMap True for the map of the server, false for the one of a client.
+    //! \param nt The kind of tile node the map uses.
     GameMap(bool isServerGameMap, NodeType nt = NodeType::MTILES_NODE);
     virtual ~GameMap();
 
@@ -243,6 +248,7 @@ public:
     void removeTrap(Trap *t);
     inline const std::vector<Trap*>& getTraps() const
     { return mTraps; }
+    bool moveTrapProductionOrder(Seat* seat, const std::string& name, bool earlier);
 
     //! \brief Map Lights related functions.
     void clearMapLights();
@@ -301,6 +307,11 @@ public:
     { return mGoalsForAllSeats; }
     void clearGoalsForAllSeats();
 
+    //! \brief The triggers and actions of the level ([Triggers] section of the level file)
+    LevelScript& getLevelScript();
+    //! \brief Read-only access to the triggers and actions of the level, for code that does not change the script
+    const LevelScript& getLevelScript() const;
+
     bool withdrawFromTreasuries(int gold, Seat* seat);
 
     inline const std::string& getLevelFileName() const
@@ -332,6 +343,19 @@ public:
 
     inline void setLevelFightMusicFile(const std::string& levelFightMusicFile)
     { mMapInfoFightMusicFile = levelFightMusicFile; }
+
+    //! \brief A sandbox level has no goals to win or lose. The player builds freely and uses the
+    //! sandbox panel to call heroes.
+    inline bool isSandbox() const
+    { return mIsSandbox; }
+
+    //! \brief Marks the level as a sandbox level (read from the level file or the server packet)
+    inline void setSandbox(bool isSandbox)
+    { mIsSandbox = isSandbox; }
+
+    //! \brief The server side logic of the sandbox (hero toolbox and invasions)
+    inline SandboxMode& getSandboxMode()
+    { return mSandboxMode; }
 
     std::string getGoalsStringForPlayer(Player* player);
 
@@ -371,6 +395,11 @@ public:
     std::list<Tile*> path(Tile *t1, Tile *t2, const Creature* creature, Seat* seat, bool throughDiggableTiles = false);
     //! \note Returns a path for the given creature to the given destination.
     std::list<Tile*> path(const Creature* creature, Tile* destination, bool throughDiggableTiles = false);
+
+    //! \brief The tile a runner of the seat moves to during the heart defence: the heart
+    //! tile while the heart is damaged, otherwise the nearest allied fighter, and the
+    //! heart tile when there is no fighter to rally.
+    Tile* getHeartDefenceTargetTile(Creature& runner, Seat* seat);
 
     //! \brief Loops over the visibleTiles and returns any creature/room/trap in those tiles allied with the given seat
     //! (or if enemyForce is true, is not allied)
@@ -452,6 +481,33 @@ public:
     Creature* getWorkerForPathFinding(Seat* seat);
 
     uint32_t getMaxNumberCreatures(Seat* seat) const;
+
+    //! \brief Called on the server each turn: sends the time limit and the countdowns of the level script to the
+    //! players and makes every keeper lose once a time limit of the level script has run out
+    void checkGameDuration();
+
+    //! \brief Level script action: the time runs out after that many seconds from now, for every
+    //! keeper (0 removes any time limit). Server only.
+    //! \param seconds Level seconds from now until the time is up
+    void setScriptTimeLimit(int64_t seconds);
+
+    //! \brief Level script action: shows a HUD countdown of that many seconds from now. It has no
+    //! effect when it ends (0 removes it). Server only.
+    //! \param seconds Level seconds from now until the countdown ends
+    void setScriptCountdown(int64_t seconds);
+
+    //! \brief Level script action: shows the HUD wave countdown of that many seconds from now. It has no
+    //! effect when it ends (0 removes it). Server only.
+    //! \param seconds Level seconds from now until the wave countdown ends
+    void setScriptWaveCountdown(int64_t seconds);
+
+    //! Added to the seconds that sendTimeLimit sends when they are a countdown, not a time limit
+    static const int32_t TIME_LIMIT_COUNTDOWN_FLAG = 0x40000000;
+
+    //! \brief Tells the human players how many seconds are left (-1: there is no time limit), and the
+    //! wave countdown that checkGameDuration set. Nothing is sent when both are the same as last time.
+    //! \param remainingSeconds Seconds left, with TIME_LIMIT_COUNTDOWN_FLAG added for a countdown
+    void sendTimeLimit(int32_t remainingSeconds);
 
     void logFloodFileTiles();
     void consoleSetCreatureDestination(const std::string& creatureName, int x, int y);
@@ -631,6 +687,10 @@ private:
     std::string mMapInfoDescription;
     std::string mMapInfoMusicFile;
     std::string mMapInfoFightMusicFile;
+    //! \brief True for a sandbox level
+    bool mIsSandbox;
+    //! \brief The hero toolbox and invasion logic of a sandbox level
+    SandboxMode mSandboxMode;
 
     std::vector<Creature*> mCreatures;
 
@@ -653,6 +713,18 @@ private:
 
     //! \brief Common player goals
     std::vector<std::unique_ptr<Goal>> mGoalsForAllSeats;
+
+    //! \brief Level triggers and their state (flags, triggers already fired)
+    std::unique_ptr<LevelScript> mLevelScript;
+
+    //! \brief True once the end of the time limit has been announced and the keepers have lost
+    bool mGameDurationAnnounced;
+    //! \brief Last remaining time sent to the players, -1 when none was sent or there is no limit
+    int32_t mTimeLimitSentSeconds;
+    //! \brief Last wave countdown sent to the players (with the time limit), -1 when none was sent or none is shown
+    int32_t mWaveCountdownSentSeconds;
+    //! \brief The wave countdown that the next sendTimeLimit sends, -1 when none is shown
+    int32_t mWaveCountdownToSend;
 
     //! \brief Tells whether the map color flood filling is enabled.
     bool mFloodFillEnabled;
@@ -681,8 +753,30 @@ private:
     // random number generator for Tile's faces
     std::mt19937 generator;   
     //! \brief Updates different entities states.
-    //! Updates active objects (creatures, rooms, ...), goals, count each team Workers, gold, mana and claimed tiles
+    //! Updates active objects (creatures, rooms, ...), goals, count each team Workers, gold, mana and claimed tiles.
+    //! Every pay day it counts the payday event for the level script.
     unsigned long int doMiscUpkeep(double timeSinceLastTurn);
+
+    //! \brief Applies the per-second mana income and worker upkeep of one seat for the current
+    //! turn. A seat without a living dungeon heart gains and spends nothing.
+    //! \param nbManaWellTiles Number of mana well tiles the seat has claimed.
+    //! \param timeSinceLastTurn Seconds since the previous turn, used by the worker countdown.
+    void updateSeatMana(Seat* seat, uint32_t nbManaWellTiles, double timeSinceLastTurn);
+
+    //! \brief Pops the workers above the free four when the seat's mana stays too low to
+    //! pay their upkeep: after a period of shortage a countdown starts, and when it ends
+    //! with the shortage still there, every worker above the free four is lost.
+    //! \param shortage True if the mana could not pay the upkeep this turn.
+    void updateSeatWorkerPop(Seat* seat, bool shortage, double timeSinceLastTurn);
+
+    //! \brief Creates a worker at the dungeon heart of one seat, one every few seconds,
+    //! until the seat has four workers. A seat without a living dungeon heart creates none.
+    void updateSeatAutoWorkers(Seat* seat, double timeSinceLastTurn);
+
+    //! \brief Checks each turn whether an enemy creature is within range of the seat's
+    //! living heart. While one is, the seat's runners defend the heart. The alarm call
+    //! sounds once, when the defence starts, not the combat music.
+    void updateSeatHeartDefense(Seat* seat);
 
     //! \brief Resets the unique numbers
     void resetUniqueNumbers();

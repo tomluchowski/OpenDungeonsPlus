@@ -20,10 +20,14 @@
 
 #include "network/ODSocketClient.h"
 #include "network/ClientNotification.h"
+#include "game/HeartHealthRing.h"
+#include "game/LevelStatistics.h"
 
 #include <OgreSingleton.h>
 
 #include <deque>
+#include <string>
+#include <vector>
 
 class GameMap;
 class ODPacket;
@@ -58,6 +62,8 @@ class ODClient: public Ogre::Singleton<ODClient>,
     //! \brief Adds a client notification to the client notification queue.
     void queueClientNotification(ClientNotification* n);
 
+    void requestNicknameChange(const std::string& nickname);
+
     /*! \brief Adds a client notification to the client notification queue.
      *  \param type The type of the notification
      *  \param args The arguments that are to be piped into the notification.
@@ -85,12 +91,77 @@ class ODClient: public Ogre::Singleton<ODClient>,
     inline bool getIsPlayerConfig() const
     { return mIsPlayerConfig; }
 
+    //! @brief True once the debriefing counters of the lost level have been received
+    inline bool hasLevelStatistics() const
+    { return mHasLevelStatistics; }
+
+    inline const LevelStatistics& getLevelStatistics() const
+    { return mLevelStatistics; }
+
+    //! \brief What the heart health ring of the top-left badge has to show
+    inline HeartHealthRing::BadgeState& getHeartBadge()
+    { return mHeartBadge; }
+
+    //! \brief A bonus objective of a sandbox realm as the server last told it
+    struct SandboxBonusStatus
+    {
+        std::string mText;
+        int32_t mPoints = 0;
+        bool mAwarded = false;
+    };
+
+    //! \brief Score and room timer of a sandbox level as the server last told it
+    struct SandboxStatus
+    {
+        bool mIsReceived = false;
+        int32_t mScore = 0;
+        //! \brief 0 if the level has no target score
+        int32_t mTarget = 0;
+        //! \brief Name of the next room that becomes available, empty if there is none
+        std::string mNextRoom;
+        int32_t mSecondsLeft = 0;
+        std::vector<SandboxBonusStatus> mBonuses;
+    };
+
+    //! \brief The score, room timer and bonus objectives of the sandbox as the server last told them
+    inline const SandboxStatus& getSandboxStatus() const
+    { return mSandboxStatus; }
+
+    //! \brief True from the moment the server tells that the sandbox realm is complete, until the GUI took it
+    inline bool hasSandboxRealmComplete() const
+    { return mHasSandboxRealmComplete; }
+
+    //! \brief The name of the realm that was completed, as the server told it
+    inline const std::string& getSandboxRealmId() const
+    { return mSandboxRealmId; }
+
+    //! \brief The level file of the realm that follows the completed one, empty if there is none
+    inline const std::string& getSandboxNextLevel() const
+    { return mSandboxNextLevel; }
+
+    //! \brief The text the server sends with the completion of the realm
+    inline const std::string& getSandboxRealmText() const
+    { return mSandboxRealmText; }
+
+    //! \brief Marks the completion of the realm as taken by the GUI
+    inline void clearSandboxRealmComplete()
+    { mHasSandboxRealmComplete = false; }
+
     inline void pause()
     { mGameClock.pause(); }
 
 
     inline void resume()
     { mGameClock.start(); }
+
+    //! \brief Seconds left until the level is lost, -1 if there is no time limit. A countdown that ends
+    //! without a defeat has GameMap::TIME_LIMIT_COUNTDOWN_FLAG added.
+    inline int32_t getTimeLimitSeconds() const
+    { return mTimeLimitSeconds; }
+
+    //! \brief Seconds left until the next hero wave of a level script, -1 if none is shown
+    inline int32_t getWaveCountdownSeconds() const
+    { return mWaveCountdownSeconds; }
 
     
  protected:
@@ -111,6 +182,25 @@ class ODClient: public Ogre::Singleton<ODClient>,
 
     // true if the server told us we are allowed to configure the game. False otherwise
     bool mIsPlayerConfig;
+
+    //! \brief Last time limit received with timeLimit, -1 when there is none
+    int32_t mTimeLimitSeconds;
+    //! \brief Last wave countdown received with timeLimit, -1 when none is shown
+    int32_t mWaveCountdownSeconds;
+
+    // Debriefing counters sent by the server after playerDefeated
+    bool mHasLevelStatistics;
+    LevelStatistics mLevelStatistics;
+
+    // Heart health received with heartHealth
+    HeartHealthRing::BadgeState mHeartBadge;
+
+    // Received with sandboxStatus and sandboxRealmComplete
+    SandboxStatus mSandboxStatus;
+    bool mHasSandboxRealmComplete;
+    std::string mSandboxRealmId;
+    std::string mSandboxNextLevel;
+    std::string mSandboxRealmText;
 
 };
 
