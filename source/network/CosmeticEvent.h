@@ -65,7 +65,10 @@ enum class CosmeticEventType : int32_t
     digFinished = 7,
     //! A creature of the keeper arrived through a portal. mSubject creature, mValue the CreatureMoodLevel
     //! the creature would have, mValue2 its mood points. Can arrive before the creature itself.
-    portalArrival = 8
+    portalArrival = 8,
+    //! A chicken of a hatchery hopped away from a hungry creature that came to eat it. mSubject chicken,
+    //! mObject the creature, mPosition where the chicken was. The hop itself is the normal chicken movement.
+    chickenFlee = 9
 };
 
 //! \brief The data of one cosmetic event. Every kind uses the same layout on the wire, so a
