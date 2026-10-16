@@ -978,7 +978,7 @@ bool ConfigManager::loadRooms(const std::string& fileName)
         if (nextParam == "[/Rooms]")
             break;
 
-        defFile >> mRoomsConfig[nextParam];
+        defFile >> mRoomsConfig[NameAliases::resolve(nextParam)];
     }
 
     return true;

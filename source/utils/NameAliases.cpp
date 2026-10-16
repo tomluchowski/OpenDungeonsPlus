@@ -60,6 +60,7 @@ const AliasEntry ALIASES[] =
     { 0xa6a9ead8659e219dULL, "trapDoorRuned" },
     { 0x979dc0f5d17eadfdULL, "trapWatchBanner" },
     { 0x6bfc6edafe8335dcULL, "ManaWellBonusPerTile" },
+    { 0x72e77dd3320fce48ULL, "RoomConvertClaimRate" },
 };
 }
 

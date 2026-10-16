@@ -22,7 +22,7 @@ assert "14695981039346656037ULL" in alias_src and "1099511628211ULL" in alias_sr
 assert "std::tolower" in alias_src, "names are not lowercased before hashing"
 
 table = {int(h, 16): n for h, n in re.findall(r'\{\s*0x([0-9a-f]{16})ULL,\s*"([A-Za-z0-9]+)"\s*\}', alias_src)}
-assert len(table) >= 27, f"alias table has {len(table)} entries"
+assert len(table) >= 28, f"alias table has {len(table)} entries"
 
 # Old names from fragments
 a, b, c, d, e = "Turn" + "coat", "Chi" + "cken", "Guard" + "Post", "Bra" + "ced", "Ma" + "gic"
@@ -43,6 +43,7 @@ cases["trapDoor" + d] = "trapDoorIronbound"
 cases["trapDoor" + e] = "trapDoorRuned"
 cases["trap" + c] = "trapWatchBanner"
 cases[v + "BonusPerTile"] = "ManaWellBonusPerTile"
+cases["RoomConvert" + "Refer" + "ence" + "ClaimRate"] = "RoomConvertClaimRate"
 
 for old, new in cases.items():
     # lookup is case-insensitive
@@ -66,6 +67,8 @@ for key in ("WatchBannerCostPerTile", "IronboundDoorHP", "RunedDoorDamage"):
 for key in ("spellDefector", "spellHexenHen", "trapWatchBanner", "trapDoorIronbound", "trapDoorRuned"):
     assert re.search(r"^\s+%s\t" % key, skills, re.M), f"skills.cfg lacks {key}"
 assert re.search(r"^\s+ManaWellBonusPerTile\t", glob, re.M), "global.cfg lacks ManaWellBonusPerTile"
+rooms = (repo / "config/rooms.cfg").read_text(encoding="utf-8")
+assert re.search(r"^\s+RoomConvertClaimRate\t", rooms, re.M), "rooms.cfg lacks RoomConvertClaimRate"
 
 # Parse points
 def count(path, text):
@@ -73,7 +76,7 @@ def count(path, text):
 
 assert count("source/creatureeffect/CreatureEffectManager.cpp", "NameAliases::resolve(") == 1
 assert count("source/game/SkillType.cpp", "NameAliases::resolve(") == 1
-assert count("source/utils/ConfigManager.cpp", "NameAliases::resolve(") == 4
+assert count("source/utils/ConfigManager.cpp", "NameAliases::resolve(") == 5
 assert "utils/NameAliases.cpp" in (repo / "CMakeLists.txt").read_text(encoding="utf-8")
 assert (repo / "docs/development/NAME-ALIASES.md").is_file()
 
