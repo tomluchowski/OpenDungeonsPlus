@@ -41,6 +41,7 @@
 #include "network/ChatEventMessage.h"
 #include "network/ODClient.h"
 #include "network/ODServer.h"
+#include "render/CreatureReactions.h"
 #include "render/Gui.h"
 #include "render/CreaturePanel.h"
 #include "render/CreaturePortrait.h"
@@ -919,6 +920,10 @@ bool GameMode::mousePressed(const OIS::MouseEvent& arg, OIS::MouseButtonID id)
 
             if(closestEntity != nullptr)
             {
+                // The server only confirms the slap, so the target is remembered to show how it reacts
+                if(CreatureReactions::getSingletonPtr() != nullptr)
+                    CreatureReactions::getSingleton().noteSlapRequest(closestEntity);
+
                 ODClient::getSingleton().queueClientNotification(ClientNotificationType::askSlapEntity,
                      closestEntity->getObjectType(),
                      closestEntity->getName());

@@ -164,6 +164,8 @@ std::string ServerNotification::typeString(ServerNotificationType type)
             return "possessionStart";
         case ServerNotificationType::possessionEnd:
             return "possessionEnd";
+        case ServerNotificationType::cosmeticEvent:
+            return "cosmeticEvent";
         case ServerNotificationType::trapEffect:
             return "trapEffect";
         default:

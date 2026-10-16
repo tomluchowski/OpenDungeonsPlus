@@ -20,6 +20,7 @@
 #include "gamemap/MiniMap.h"
 #include "network/ODClient.h"
 #include "camera/CameraManager.h"
+#include "render/CreatureReactions.h"
 #include "render/Gui.h"
 #include "render/ODFrameListener.h"
 #include "render/RenderManager.h"
@@ -46,6 +47,16 @@
 #include <map>
 #include <sstream>
 #include <functional>
+#include <stdexcept>
+
+namespace
+{
+//! \brief Names of the renderer options that do not need a new render window when changed.
+const std::string OPTION_VSYNC_INTERVAL = "VSync Interval";
+const std::string OPTION_REVERSED_Z_BUFFER = "Reversed Z-Buffer";
+const std::string OPTION_SEPARATE_SHADER_OBJECTS = "Separate Shader Objects";
+const std::string OPTION_DEBUG_LAYER = "Debug Layer";
+}
 
 SettingsWindow::SettingsWindow(CEGUI::Window* rootWindow, Gui& gui, bool menuPages, bool gamePage):
     mSettingsWindow(nullptr),
@@ -291,6 +302,29 @@ void SettingsWindow::initConfig()
     float lightFactor = lightStr.empty() ? 0.0f : Helper::toFloat(lightStr);
     setLightFactorValue(lightFactor);
 
+    CEGUI::Combobox* creatureReactions = static_cast<CEGUI::Combobox*>(
+            mRootWindow->getChild("SettingsWindow/MainTabControl/Game/GameSP/CreatureReactions"));
+    creatureReactions->resetList();
+    std::string reactionsCurrent = CreatureReactions::modeToString(CreatureReactions::modeFromString(
+        config.getGameValue(Config::CREATURE_REACTIONS, "full", false)));
+    std::vector<std::string> reactionModes;
+    reactionModes.push_back("full");
+    reactionModes.push_back("reduced");
+    reactionModes.push_back("off");
+    uint32_t cptReactionMode = 0;
+    for(const std::string& reactionMode : reactionModes)
+    {
+        CEGUI::ListboxTextItem* item = new CEGUI::ListboxTextItem(reactionMode, cptReactionMode);
+        item->setSelectionBrushImage(selImg);
+        creatureReactions->addItem(item);
+        if(reactionMode == reactionsCurrent)
+        {
+            creatureReactions->setText(item->getText());
+            creatureReactions->setItemSelectState(item, true);
+        }
+        ++cptReactionMode;
+    }
+
     CEGUI::ToggleButton* bloodEffectsCheckbox = static_cast<CEGUI::ToggleButton*>(
         mRootWindow->getChild("SettingsWindow/MainTabControl/Game/GameSP/BloodEffectsCheckbox"));
     bloodEffectsCheckbox->setSelected(
@@ -532,6 +566,15 @@ bool SettingsWindow::saveConfig()
             mRootWindow->getChild("SettingsWindow/MainTabControl/Game/GameSP/LightSlider"));
     config.setGameValue(Config::LIGHT_FACTOR, Helper::toString(lightSlider->getCurrentValue()));
 
+    CEGUI::Combobox* creatureReactions = static_cast<CEGUI::Combobox*>(
+            mRootWindow->getChild("SettingsWindow/MainTabControl/Game/GameSP/CreatureReactions"));
+    CEGUI::ListboxItem* creatureReactionsItem = creatureReactions->getSelectedItem();
+    std::string reactionMode = (creatureReactionsItem != nullptr) ?
+        std::string(creatureReactionsItem->getText().c_str()) : std::string("full");
+    config.setGameValue(Config::CREATURE_REACTIONS, reactionMode);
+    if(CreatureReactions::getSingletonPtr() != nullptr)
+        CreatureReactions::getSingleton().setMode(CreatureReactions::modeFromString(reactionMode));
+
     CEGUI::ToggleButton* bloodEffectsCheckbox = static_cast<CEGUI::ToggleButton*>(
         mRootWindow->getChild("SettingsWindow/MainTabControl/Game/GameSP/BloodEffectsCheckbox"));
     config.setGameValue(Config::BLOOD_EFFECTS,
@@ -618,9 +661,9 @@ bool SettingsWindow::saveConfig()
             resizeRenderWindow = true;
             continue;
         }
-        if(selected.first != Config::VSYNC && selected.first != "VSync Interval"
-            && selected.first != "Reversed Z-Buffer"
-            && selected.first != "Separate Shader Objects" && selected.first != "Debug Layer")
+        if(selected.first != Config::VSYNC && selected.first != OPTION_VSYNC_INTERVAL
+            && selected.first != OPTION_REVERSED_Z_BUFFER
+            && selected.first != OPTION_SEPARATE_SHADER_OBJECTS && selected.first != OPTION_DEBUG_LAYER)
         {
             recreateRenderWindow = true;
         }
@@ -667,30 +710,14 @@ bool SettingsWindow::saveConfig()
                 frameListener.windowResized(window);
             }
             window->setVSyncInterval(static_cast<unsigned int>(Helper::toInt(
-                config.getVideoValue("VSync Interval", "1", false))));
+                config.getVideoValue(OPTION_VSYNC_INTERVAL, "1", false))));
             window->setVSyncEnabled(vsCheckBox->isSelected());
         }
     }
     catch(const std::exception& error)
     {
         OD_LOG_ERR("Could not apply video settings: " + std::string(error.what()));
-        std::map<std::string, std::string>::const_iterator fullscreen =
-            previousRendererOptions.find(Config::FULL_SCREEN);
-        if(fullscreen != previousRendererOptions.end())
-            renderer->setConfigOption(fullscreen->first, fullscreen->second);
-        std::map<std::string, std::string>::const_iterator videoMode =
-            previousRendererOptions.find(Config::VIDEO_MODE);
-        if(videoMode != previousRendererOptions.end())
-            renderer->setConfigOption(videoMode->first, videoMode->second);
-        for(const std::pair<const std::string, std::string>& option : previousRendererOptions)
-        {
-            if(option.first == Config::FULL_SCREEN || option.first == Config::VIDEO_MODE)
-                continue;
-            renderer->setConfigOption(option.first, option.second);
-        }
-        for(const std::pair<const std::string, std::string>& option : previousVideoConfig)
-            config.setVideoValue(option.first, option.second);
-        config.saveUserConfig();
+        ODFrameListener::restoreVideoSettings(previousRendererOptions, previousVideoConfig);
         initConfig();
         return false;
     }

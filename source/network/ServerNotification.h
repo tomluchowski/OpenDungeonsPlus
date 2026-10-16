@@ -150,6 +150,11 @@ enum class ServerNotificationType
     possessionStart,
     //! The player no longer possesses a creature: + bool lost (the creature fell: dead, knocked out or gone)
     possessionEnd,
+    //! A short cosmetic note that something happened (a mood change, a full treasury, a blow, a missile
+    //! launch): + a CosmeticEvent (see network/CosmeticEvent.h): int32_t kind, string subject, string object,
+    //! string text, int32_t value, int32_t value2, Vector3 position. Only sent to clients that negotiated
+    //! cosmetic events; an older client never gets it. Inserted before trapEffect.
+    cosmeticEvent,
     //! Presentation-only effect of a trap or door, sent to the human seats that see the tile:
     //! + int32_t kind (TrapEffectKind), int32_t tileX, int32_t tileY, string type name of the trap or door
     //! (e.g. Alarm, DoorSteel), float health fraction (0 to 1, doors only, else 1).

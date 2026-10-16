@@ -35,6 +35,7 @@
 #include "network/ODClient.h"
 #include "render/DebugDrawer.h"
 #include "render/CreatureOverlayStatus.h"
+#include "render/CreatureReactions.h"
 #include "render/MovableTextOverlay.h"
 #include "render/Gui.h"
 #include "render/RenderManager.h"
@@ -42,6 +43,7 @@
 #include "renderscene/RenderSceneMenu.h"
 #include "sound/MusicPlayer.h"
 #include "sound/SoundEffectsManager.h"
+#include "utils/ConfigManager.h"
 #include "utils/Helper.h"
 #include "utils/ConfigManager.h"
 #include "utils/LogManager.h"
@@ -90,6 +92,7 @@ ODFrameListener::ODFrameListener(const std::string& mainSceneFileName, Ogre::Ren
     mGui(gui),
     mRenderManager(RenderManager::getSingletonPtr()),
     mGameMap(Utils::make_unique<GameMap>(false)),
+    mCreatureReactions(Utils::make_unique<CreatureReactions>(mGameMap.get(), ConfigManager::getSingleton().getConfigPath())),
     mModeManager(Utils::make_unique<ModeManager>(renderWindow, gui)),
     mMainScene(Utils::make_unique<RenderSceneMenu>()),
     mShowDebugInfo(false),
@@ -103,6 +106,9 @@ ODFrameListener::ODFrameListener(const std::string& mainSceneFileName, Ogre::Ren
     currentMinutes(0)    
 {
     OD_LOG_INF("Creating frame listener...");
+
+    mCreatureReactions->setMode(CreatureReactions::modeFromString(
+        ConfigManager::getSingleton().getGameValue(Config::CREATURE_REACTIONS, "full", false)));
 
     mRenderManager->createScene(mCameraManager.getViewport());
 
@@ -171,18 +177,19 @@ void ODFrameListener::requestRenderWindowRecreation(
     mRenderWindowRecreationPending = true;
 }
 
-void ODFrameListener::restorePreviousVideoSettings()
+void ODFrameListener::restoreVideoSettings(const std::map<std::string, std::string>& rendererOptions,
+    const std::map<std::string, std::string>& videoConfig)
 {
     Ogre::RenderSystem* renderer = Ogre::Root::getSingleton().getRenderSystem();
     std::map<std::string, std::string>::const_iterator fullscreen =
-        mPreviousRendererOptions.find(Config::FULL_SCREEN);
-    if(fullscreen != mPreviousRendererOptions.end())
+        rendererOptions.find(Config::FULL_SCREEN);
+    if(fullscreen != rendererOptions.end())
         renderer->setConfigOption(fullscreen->first, fullscreen->second);
     std::map<std::string, std::string>::const_iterator videoMode =
-        mPreviousRendererOptions.find(Config::VIDEO_MODE);
-    if(videoMode != mPreviousRendererOptions.end())
+        rendererOptions.find(Config::VIDEO_MODE);
+    if(videoMode != rendererOptions.end())
         renderer->setConfigOption(videoMode->first, videoMode->second);
-    for(const std::pair<const std::string, std::string>& option : mPreviousRendererOptions)
+    for(const std::pair<const std::string, std::string>& option : rendererOptions)
     {
         if(option.first == Config::FULL_SCREEN || option.first == Config::VIDEO_MODE)
             continue;
@@ -190,9 +197,14 @@ void ODFrameListener::restorePreviousVideoSettings()
     }
 
     ConfigManager& config = ConfigManager::getSingleton();
-    for(const std::pair<const std::string, std::string>& option : mPreviousVideoConfig)
+    for(const std::pair<const std::string, std::string>& option : videoConfig)
         config.setVideoValue(option.first, option.second);
     config.saveUserConfig();
+}
+
+void ODFrameListener::restorePreviousVideoSettings()
+{
+    restoreVideoSettings(mPreviousRendererOptions, mPreviousVideoConfig);
     mPreviousRendererOptions.clear();
     mPreviousVideoConfig.clear();
 }
@@ -357,6 +369,10 @@ void ODFrameListener::updateAnimations(Ogre::Real timeSinceLastFrame)
     mGameMap->processDeletionQueues();
 
     mGameMap->updateAnimations(timeSinceLastFrame);
+
+    // Cosmetic creature reactions. Like the animations, they stand still while the game is paused.
+    if(!mGameMap->getGamePaused())
+        mCreatureReactions->update(timeSinceLastFrame);
 }
 
 bool ODFrameListener::frameRenderingQueued(const Ogre::FrameEvent& evt)
@@ -578,6 +594,7 @@ void ODFrameListener::initGameRenderer()
 
 void ODFrameListener::stopGameRenderer()
 {
+    mCreatureReactions->stopAll();
     mRenderManager->stopGameRenderer(mGameMap.get());
 }
 
