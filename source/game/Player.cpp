@@ -21,6 +21,7 @@
 #include "entities/Creature.h"
 #include "entities/GameEntityType.h"
 #include "entities/Tile.h"
+#include "entities/TreasuryObject.h"
 #include "game/SkillManager.h"
 #include "game/Seat.h"
 #include "gamemap/GameMap.h"
@@ -324,6 +325,9 @@ void Player::dropHand(Tile *t, unsigned int index)
        static_cast<Ogre::Real>(t->getY()), 0);
     if(mGameMap->isServerGameMap())
     {
+        if(entity->getObjectType() == GameEntityType::treasuryObject)
+            static_cast<TreasuryObject*>(entity)->setDropSeat(getSeat());
+
         entity->drop(pos);
         entity->fireDropEntity(this, t);
         return;

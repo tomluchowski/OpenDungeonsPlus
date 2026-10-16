@@ -17,9 +17,12 @@
 
 #include "entities/TreasuryObject.h"
 
+#include "entities/Creature.h"
 #include "entities/GameEntityType.h"
 #include "entities/Tile.h"
+#include "game/Player.h"
 #include "game/Seat.h"
+#include "gamemap/SelectionEntityWanted.h"
 #include "gamemap/GameMap.h"
 #include "network/ODPacket.h"
 #include "rooms/Room.h"
@@ -32,15 +35,41 @@
 TreasuryObject::TreasuryObject(GameMap* gameMap, int goldValue) :
     RenderedMovableEntity(gameMap, "Treasury_", getMeshNameForGold(goldValue), 0.0f, false),
     mGoldValue(goldValue),
-    mHasGoldValueChanged(false)
+    mHasGoldValueChanged(false),
+    mDropSeat(nullptr),
+    mDroppedByHand(false)
 {
 }
 
 TreasuryObject::TreasuryObject(GameMap* gameMap) :
     RenderedMovableEntity(gameMap),
     mGoldValue(0),
-    mHasGoldValueChanged(false)
+    mHasGoldValueChanged(false),
+    mDropSeat(nullptr),
+    mDroppedByHand(false)
 {
+}
+
+//! \brief Returns the own living creature on the tile that is owed a wage (the one owed the
+//! most), or nullptr
+static Creature* getTreatTarget(Tile* tile, Seat* seat)
+{
+    if((seat == nullptr) || (seat->getPlayer() == nullptr) || seat->isRogueSeat())
+        return nullptr;
+
+    std::vector<GameEntity*> entities;
+    tile->fillWithEntities(entities, SelectionEntityWanted::creatureAliveOwned, seat->getPlayer());
+    Creature* target = nullptr;
+    for(GameEntity* entity : entities)
+    {
+        Creature* creature = static_cast<Creature*>(entity);
+        if(creature->getGoldFee() <= 0)
+            continue;
+
+        if((target == nullptr) || (creature->getGoldFee() > target->getGoldFee()))
+            target = creature;
+    }
+    return target;
 }
 
 GameEntityType TreasuryObject::getObjectType() const
@@ -70,6 +99,29 @@ void TreasuryObject::doUpkeep()
 
     if(!getIsOnMap())
         return;
+
+    if(mDroppedByHand)
+    {
+        mDroppedByHand = false;
+        Tile* dropTile = getPositionTile();
+        if(dropTile != nullptr)
+        {
+            // Gold dropped on an own creature pays its wage owed until the next pay day.
+            // Only the gold needed is used, the rest stays here as a normal pile.
+            Creature* target = getTreatTarget(dropTile, mDropSeat);
+            if(target != nullptr)
+            {
+                mGoldValue -= target->receiveTreat(mGoldValue);
+                mHasGoldValueChanged = true;
+                if(mGoldValue <= 0)
+                {
+                    removeFromGameMap();
+                    deleteYourself();
+                    return;
+                }
+            }
+        }
+    }
 
     // We check if we are on a tile where there is a treasury room. If so, we add gold there
     Tile* tile = getPositionTile();
@@ -164,11 +216,21 @@ bool TreasuryObject::tryDrop(Seat* seat, Tile* tile)
     if(!seat->hasVisionOnTile(tile))
         return false;
 
+    // Gold can be dropped on an own creature as a treat
+    if(getTreatTarget(tile, seat) != nullptr)
+        return true;
+
     // Otherwise, we allow to drop an object only on allied claimed tiles
     if(tile->isClaimedForSeat(seat))
         return true;
 
     return false;
+}
+
+void TreasuryObject::drop(const Ogre::Vector3& v)
+{
+    RenderedMovableEntity::drop(v);
+    mDroppedByHand = true;
 }
 
 void TreasuryObject::addEntityToPositionTile(GameMap* gameMap)
