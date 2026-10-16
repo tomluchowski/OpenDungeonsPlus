@@ -212,6 +212,10 @@ std::string skillTypeToPlayerVisibleString(SkillType type)
             return "The Wooden Door";
         case SkillType::spellEyeEvil:
             return "The 'Eye of evil' spell";
+        case SkillType::spellTremor:
+            return "The 'Tremor' Spell";
+        case SkillType::spellInferno:
+            return "The 'Inferno' Spell";
         default:
             return "Unknown enum value:" + Helper::toString(static_cast<int>(type));
     }
