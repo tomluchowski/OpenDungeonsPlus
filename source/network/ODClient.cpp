@@ -929,6 +929,19 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
             }
 
             if(frameListener->getModeManager()->getCurrentModeType() == ModeManager::ModeType::GAME &&
+               event.is(CosmeticEventType::casinoResult) && (RoomAmbience::getSingletonPtr() != nullptr))
+            {
+                // A game of the casino ended: the coins at the winner, the grey smoke and the groan at the loser
+                Ogre::Vector3 loserPosition = event.mPosition;
+                Creature* loser = gameMap->getCreature(event.mObject);
+                if(loser != nullptr)
+                    loserPosition = loser->getPosition();
+
+                RoomAmbience::getSingleton().triggerEvent("CasinoWin", event.mPosition, false, "casinoRoom");
+                RoomAmbience::getSingleton().triggerEvent("CasinoLoss", loserPosition, false, "casinoRoom");
+            }
+
+            if(frameListener->getModeManager()->getCurrentModeType() == ModeManager::ModeType::GAME &&
                CreatureReactions::getSingletonPtr() != nullptr)
             {
                 CreatureReactions::getSingleton().noteCosmeticEvent(event);
