@@ -212,6 +212,10 @@ std::string skillTypeToPlayerVisibleString(SkillType type)
             return "The Wooden Door";
         case SkillType::spellEyeEvil:
             return "The 'Eye of evil' spell";
+        case SkillType::spellCreateGold:
+            return "The 'Create Gold' Spell";
+        case SkillType::spellLightning:
+            return "The 'Lightning' Spell";
         case SkillType::spellTremor:
             return "The 'Tremor' Spell";
         case SkillType::spellInferno:
