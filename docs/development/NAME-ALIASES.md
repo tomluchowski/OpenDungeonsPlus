@@ -29,7 +29,8 @@ It is called at the points where such names are parsed:
 
 - `CreatureEffectManager::load` (effect names stored with creatures),
 - `Skills::fromString` (skill names in levels, savegames and level scripts),
-- `ConfigManager` (keys of the game, room, spell, trap and skill config).
+- `ConfigManager` (keys of the game, room, spell, trap and skill config),
+- `Seat::readTilesVisualInitialStates` (tile visual tags in the seat block of savegames).
 
 Shipped levels and configs use the current names directly, so the alias path is only taken for
 older data. Tileset files are not covered: their material names are shipped with the game.

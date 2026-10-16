@@ -22,7 +22,7 @@ assert "14695981039346656037ULL" in alias_src and "1099511628211ULL" in alias_sr
 assert "std::tolower" in alias_src, "names are not lowercased before hashing"
 
 table = {int(h, 16): n for h, n in re.findall(r'\{\s*0x([0-9a-f]{16})ULL,\s*"([A-Za-z0-9]+)"\s*\}', alias_src)}
-assert len(table) >= 28, f"alias table has {len(table)} entries"
+assert len(table) >= 29, f"alias table has {len(table)} entries"
 
 # Old names from fragments
 a, b, c, d, e = "Turn" + "coat", "Chi" + "cken", "Guard" + "Post", "Bra" + "ced", "Ma" + "gic"
@@ -44,6 +44,7 @@ cases["trapDoor" + e] = "trapDoorRuned"
 cases["trap" + c] = "trapWatchBanner"
 cases[v + "BonusPerTile"] = "ManaWellBonusPerTile"
 cases["RoomConvert" + "Refer" + "ence" + "ClaimRate"] = "RoomConvertClaimRate"
+cases[v + "Ground"] = "manaWellGround"
 
 for old, new in cases.items():
     # lookup is case-insensitive
@@ -77,6 +78,26 @@ def count(path, text):
 assert count("source/creatureeffect/CreatureEffectManager.cpp", "NameAliases::resolve(") == 1
 assert count("source/game/SkillType.cpp", "NameAliases::resolve(") == 1
 assert count("source/utils/ConfigManager.cpp", "NameAliases::resolve(") == 5
+# Seat block of an older savegame: the tile visual tags are read through the alias table, written with the new name
+seat_src = (repo / "source/game/Seat.cpp").read_text(encoding="utf-8")
+assert seat_src.count("resolveTileVisualTag(") == 3, "Seat tile visual tags are not resolved"
+assert 'os << "[" + Tile::tileVisualToString(tileVisual) + "]"' in seat_src, "tags are written with the current name"
+
+
+def resolve_tag(tag):
+    # same rule as resolveTileVisualTag in Seat.cpp
+    if len(tag) < 3 or tag[0] != "[" or tag[-1] != "]":
+        return tag
+    end = tag[1] == "/"
+    name = tag[2:-1] if end else tag[1:-1]
+    return ("[/" if end else "[") + table.get(fnv(name), name) + "]"
+
+
+old_seat = " ".join(["[%sGround]", "12", "13", "1", "[/%sGround]", "[dirtGround]", "[/dirtGround]", "[/Seat]"]) % (v[0].lower() + v[1:], v[0].lower() + v[1:])
+tags = [resolve_tag(t) for t in old_seat.split()]
+assert tags[0] == "[manaWellGround]" and tags[4] == "[/manaWellGround]", tags
+assert tags[5:] == ["[dirtGround]", "[/dirtGround]", "[/Seat]"], "other tags must stay unchanged"
+
 assert "utils/NameAliases.cpp" in (repo / "CMakeLists.txt").read_text(encoding="utf-8")
 assert (repo / "docs/development/NAME-ALIASES.md").is_file()
 
