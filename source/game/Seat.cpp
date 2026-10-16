@@ -19,6 +19,7 @@
 
 #include "ai/KeeperAIType.h"
 #include "entities/Building.h"
+#include "entities/Creature.h"
 #include "entities/CreatureDefinition.h"
 #include "entities/GameEntityType.h"
 #include "entities/Tile.h"
@@ -44,6 +45,7 @@
 #include "utils/LogManager.h"
 #include "utils/Random.h"
 
+#include <algorithm>
 #include <istream>
 #include <ostream>
 
@@ -1421,6 +1423,17 @@ bool Seat::addSkill(SkillType type)
     return true;
 }
 
+void Seat::setSkillAvailability(SkillType type, bool allowed, bool done)
+{
+    mSkillDone.erase(std::remove(mSkillDone.begin(), mSkillDone.end(), type), mSkillDone.end());
+    mSkillNotAllowed.erase(std::remove(mSkillNotAllowed.begin(), mSkillNotAllowed.end(), type), mSkillNotAllowed.end());
+    mSkillPending.erase(std::remove(mSkillPending.begin(), mSkillPending.end(), type), mSkillPending.end());
+    if(!allowed)
+        mSkillNotAllowed.push_back(type);
+    else if(done)
+        mSkillDone.push_back(type);
+}
+
 bool Seat::isSkillDone(SkillType type) const
 {
     for(SkillType skillDone : mSkillDone)
@@ -1978,6 +1991,20 @@ const CreatureDefinition* Seat::getNextFighterClassToSpawn(const GameMap& gameMa
         // Only check for fighter creatures.
         if (!def.first || def.first->isWorker())
             continue;
+
+        // The skirmish settings can limit the number of creatures of one class
+        const uint32_t classLimit = gameMap.getCreatureClassLimit(def.first->getClassName());
+        if(classLimit < GameMap::SKIRMISH_CREATURE_LIMIT_NONE)
+        {
+            uint32_t nbCreaturesOfClass = 0;
+            for(const Creature* creature : gameMap.getCreatures())
+            {
+                if((creature->getSeat() == this) && (creature->getDefinition()->getClassName() == def.first->getClassName()) && creature->isAlive())
+                    ++nbCreaturesOfClass;
+            }
+            if(nbCreaturesOfClass >= classLimit)
+                continue;
+        }
 
         const std::vector<const SpawnCondition*>& conditions = configManager.getCreatureSpawnConditions(def.first);
         int32_t nbPointsConditions = 0;
