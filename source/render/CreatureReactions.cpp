@@ -2399,6 +2399,20 @@ void CreatureReactions::noteCosmeticEvent(const CosmeticEvent& event)
         return;
     }
 
+    if(event.is(CosmeticEventType::casinoResult))
+    {
+        // The winner cheers over the coins, the loser slumps; the effects of the table are shown by the room ambience
+        Creature* winner = mGameMap->getCreature(event.mSubject);
+        if((winner != nullptr) && winner->getIsOnMap() && winner->isAlive())
+            queueReaction(winner, "CasinoWin", DONE_WAIT_MAX, 0.4);
+
+        Creature* loser = mGameMap->getCreature(event.mObject);
+        if((loser != nullptr) && loser->getIsOnMap() && loser->isAlive())
+            queueReaction(loser, "CasinoLoss", DONE_WAIT_MAX, 0.6);
+
+        return;
+    }
+
     // The rest is about the creatures of the local keeper
     Creature* creature = mGameMap->getCreature(event.mSubject);
     if((creature == nullptr) || (creature->getSeat() != localPlayer->getSeat()))
