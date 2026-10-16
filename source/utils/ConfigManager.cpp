@@ -25,6 +25,7 @@
 #include "spawnconditions/SpawnCondition.h"
 #include "utils/Helper.h"
 #include "utils/LogManager.h"
+#include "utils/NameAliases.h"
 
 #include <boost/dynamic_bitset.hpp>
 #include <OgreRoot.h>
@@ -460,6 +461,8 @@ bool ConfigManager::loadGlobalGameConfig(std::stringstream& configFile)
 
         if(nextParam == "[/GameConfig]")
             break;
+
+        nextParam = NameAliases::resolve(nextParam);
 
         if(nextParam == "NetworkPort")
         {
@@ -1008,7 +1011,7 @@ bool ConfigManager::loadTraps(const std::string& fileName)
         if (nextParam == "[/Traps]")
             break;
 
-        defFile >> mTrapsConfig[nextParam];
+        defFile >> mTrapsConfig[NameAliases::resolve(nextParam)];
     }
 
     return true;
@@ -1041,7 +1044,7 @@ bool ConfigManager::loadSpellConfig(const std::string& fileName)
         if (nextParam == "[/Spells]")
             break;
 
-        defFile >> mSpellConfig[nextParam];
+        defFile >> mSpellConfig[NameAliases::resolve(nextParam)];
     }
 
     return true;
@@ -1074,7 +1077,7 @@ bool ConfigManager::loadSkills(const std::string& fileName)
         if (nextParam == "[/Skills]")
             break;
 
-        defFile >> mSkillPoints[nextParam];
+        defFile >> mSkillPoints[NameAliases::resolve(nextParam)];
     }
     return true;
 }

@@ -550,6 +550,7 @@ set(OD_SOURCEFILES
     ${SRC}/utils/LogSinkFile.cpp
     ${SRC}/utils/LogSinkOgre.cpp
     ${SRC}/utils/MasterServer.cpp
+    ${SRC}/utils/NameAliases.cpp
     ${SRC}/utils/Random.cpp
     ${SRC}/utils/ResourceManager.cpp
     ${SRC}/utils/VectorInt64.cpp

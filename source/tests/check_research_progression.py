@@ -255,7 +255,7 @@ with tempfile.TemporaryDirectory(prefix="research-progression-") as directory:
     subprocess.run([
         "cl", "/nologo", "/EHsc", "/MD", "/std:c++14",
         f"/I{root / 'source'}", f"/I{prefix / 'include'}", f"/I{prefix / 'include/OGRE'}",
-        str(cpp), str(root / "source/network/ODPacket.cpp"), str(root / "source/game/SkillType.cpp"),
+        str(cpp), str(root / "source/network/ODPacket.cpp"), str(root / "source/game/SkillType.cpp"), str(root / "source/utils/NameAliases.cpp"),
         f"/Fe:{executable}", "/link", f"/LIBPATH:{prefix / 'lib'}",
         "OgreMain.lib", "sfml-network.lib", "sfml-system.lib"
     ], cwd=work, check=True)

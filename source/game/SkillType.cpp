@@ -19,12 +19,14 @@
 
 #include "network/ODPacket.h"
 #include "utils/Helper.h"
+#include "utils/NameAliases.h"
 
 namespace Skills
 {
 
-SkillType fromString(const std::string& type)
+SkillType fromString(const std::string& typeName)
 {
+    const std::string type = NameAliases::resolve(typeName);
     for(uint32_t i = 0; i < static_cast<uint32_t>(SkillType::countSkill); ++i)
     {
         SkillType skillType = static_cast<SkillType>(i);

@@ -440,7 +440,7 @@ BuildingObject* RoomArena::notifyActiveSpotCreated(ActiveSpotPlace place, Tile* 
 
 bool RoomArena::shouldStopUseIfHungrySleepy(Creature& creature, bool forced)
 {
-    // the creature cannot leave itself the combat pit
+    // the creature cannot leave itself the arena
     return false;
 }
 

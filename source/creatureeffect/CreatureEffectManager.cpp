@@ -20,6 +20,7 @@
 #include "creatureeffect/CreatureEffect.h"
 #include "utils/Helper.h"
 #include "utils/LogManager.h"
+#include "utils/NameAliases.h"
 
 #include <istream>
 #include <vector>
@@ -59,6 +60,7 @@ CreatureEffect* CreatureEffectManager::load(std::istream& defFile)
     std::vector<const CreatureEffectFactory*>& factories = getFactories();
     std::string nextParam;
     OD_ASSERT_TRUE(defFile >> nextParam);
+    nextParam = NameAliases::resolve(nextParam);
     const CreatureEffectFactory* factoryToUse = nullptr;
     for(const CreatureEffectFactory* factory : factories)
     {
