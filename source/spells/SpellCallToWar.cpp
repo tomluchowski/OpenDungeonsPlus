@@ -152,6 +152,11 @@ bool SpellCallToWar::castSpell(GameMap* gameMap, Player* player, ODPacket& packe
     if(tile == nullptr)
         return false;
 
+    return castSpellOnTile(gameMap, player, tile);
+}
+
+bool SpellCallToWar::castSpellOnTile(GameMap* gameMap, Player* player, Tile* tile)
+{
     int32_t playerMana = static_cast<int32_t>(player->getSeat()->getMana());
     int32_t manaCost = ConfigManager::getSingleton().getSpellConfigInt32("CallToWarPrice");
     if(playerMana < manaCost)
