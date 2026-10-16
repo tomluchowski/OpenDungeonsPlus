@@ -165,6 +165,7 @@ GameMap::GameMap(bool isServerGameMap, NodeType nt) :
         mLocalPlayer(nullptr),
         mLocalPlayerNick(DEFAULT_NICK),
         mTurnNumber(-1),
+        mSavedTurnNumber(0),
         mIsPaused(false),
         mTimePayDay(0),
         mFloodFillEnabled(false),
@@ -310,6 +311,7 @@ void GameMap::clearAll()
 
         mLocalPlayerNick = DEFAULT_NICK;
         mTurnNumber = -1;
+        mSavedTurnNumber = 0;
         resetUniqueNumbers();
         mIsFOWActivated = true;
         mTimePayDay = 0;

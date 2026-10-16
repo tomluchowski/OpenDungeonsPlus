@@ -521,7 +521,12 @@ void RoomPortalWave::exportToStream(std::ostream& os) const
         }
     }
 
-    os << mClaimedValue << "\t" << mTurnsBetween2Waves << "\t" << mStrategy << "\t" << mRangeTilesAttack << "\t" << teams << "\n";
+    os << mClaimedValue << "\t" << mTurnsBetween2Waves << "\t" << mStrategy << "\t" << mRangeTilesAttack << "\t" << teams;
+    // How far the portal is into waiting for its next wave. A level starts at 0, so it is
+    // only written for a game that was running, which keeps level files as they were.
+    if(mSpawnCountdown > 0)
+        os << "\t" << mSpawnCountdown;
+    os << "\n";
     os << "[Waves]" << "\n";
     for(RoomPortalWaveData* roomPortalWaveData : mRoomPortalWaveDataNotSpawnable)
     {
@@ -587,6 +592,13 @@ bool RoomPortalWave::importFromStream(std::istream& is)
     std::string str;
     if(!(is >> str))
         return false;
+    // A saved game carries how far the portal was into waiting for its next wave
+    if(str != "[Waves]")
+    {
+        mSpawnCountdown = Helper::toUInt32(str);
+        if(!(is >> str))
+            return false;
+    }
     if(str != "[Waves]")
     {
         OD_LOG_ERR("RoomPortalWave=" + getName() + ", str=" + str);

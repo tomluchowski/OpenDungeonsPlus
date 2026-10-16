@@ -551,14 +551,16 @@ void ODServer::serverThread()
                 }
 
                 // Every client is connected and ready, we can launch the game
-                // Send turn 0 to init the map
+                // Send the first turn to init the map. A new level starts at turn 0, a saved
+                // game goes on from the turn it was saved at.
+                int64_t firstTurn = gameMap->getSavedTurnNumber();
                 ServerNotification* serverNotification = new ServerNotification(
                     ServerNotificationType::turnStarted, nullptr);
-                serverNotification->mPacket << static_cast<int64_t>(0);
+                serverNotification->mPacket << firstTurn;
                 queueServerNotification(serverNotification);
 
-                OD_LOG_INF("Server ready, starting game");
-                gameMap->setTurnNumber(0);
+                OD_LOG_INF("Server ready, starting game at turn " + Helper::toString(firstTurn));
+                gameMap->setTurnNumber(firstTurn);
                 gameMap->setGamePaused(false);
 
                 // In editor mode, we give vision on all the gamemap tiles
