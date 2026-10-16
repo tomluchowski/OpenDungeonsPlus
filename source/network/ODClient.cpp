@@ -922,6 +922,13 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
                 break;
 
             if(frameListener->getModeManager()->getCurrentModeType() == ModeManager::ModeType::GAME &&
+               event.is(CosmeticEventType::chickenFlee) && (RoomAmbience::getSingletonPtr() != nullptr))
+            {
+                // The chicken really hops: feathers, dust and a cluck where it was
+                RoomAmbience::getSingleton().triggerEvent("ChickenFlee", event.mPosition, false);
+            }
+
+            if(frameListener->getModeManager()->getCurrentModeType() == ModeManager::ModeType::GAME &&
                CreatureReactions::getSingletonPtr() != nullptr)
             {
                 CreatureReactions::getSingleton().noteCosmeticEvent(event);
