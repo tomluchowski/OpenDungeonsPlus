@@ -110,8 +110,9 @@ textures/
 -> BasicHammer                         YD                      CC0                     http://opengameart.org/content/hammer
 -> BasicShield                         YD                      CC0                     http://opengameart.org/content/shield-sword
 -> Basicsword                          YD                      CC0                     http://opengameart.org/content/shield-sword
--> BedBlanket.png
--> BedWood.png
+-> BedBlanket.png                   OD Plus project     CC0                     tools/room-objects/generate_beds.py (original, procedural)
+-> BedWood.png                      OD Plus project     CC0                     tools/room-objects/generate_beds.py (original, procedural)
+-> BedLinen.png                     OD Plus project     CC0                     tools/room-objects/generate_beds.py (original, procedural)
 -> Black.png                           Public domain, too simple to be licensed
 -> Bookcase*.png
 -> Bookshelf*.png
@@ -122,7 +123,7 @@ textures/
 -> CasinoPokerTale.png                 Danimal                 CC-BY-SA 3.0            http://opengameart.org/users/danimal
 -> Cavehornet*.png                     Skorpio                 CC-BY-SA 3.0, GPLv3+
 -> CelticCross*.png                    Yughues                 CC0                     http://forum.freegamedev.net/viewtopic.php?p=60771#p60771
--> ChickenCoop*.png                    Dm3d                    CC-BY-SA 3.0            http://opengameart.org/content/chicken-coop
+-> ChickenCoop*.png                    Dm3d                    CC-BY-SA 3.0            http://opengameart.org/content/chicken-coop (ChickenCoop.png recoloured by tools/room-objects/restyle_chicken_coop.py)
 -> Chicken.png
 -> Chimney*.png                        Daniel74, Nobiax        CC0                     http://forum.freegamedev.net/viewtopic.php?p=59775#p59775
 -> Claimed*.png
@@ -168,7 +169,7 @@ textures/
 -> Hammock*.png                        Luke.RUSTLTD, Nobiax    CC0                     http://forum.freegamedev.net/viewtopic.php?p=59983#p59983
 -> Hasteflare.png                      Lorc, OD Team           CC-BY-SA 3.0            http://game-icons.net/lorc/originals/sprint.html + Own made flare
 -> Heartflare.png                      Lorc, OD Team           CC-BY-SA 3.0            http://game-icons.net/lorc/originals/glass-heart.html + Own made flare
--> ImpBed*.png                         Nobiax CC0 and J. W. Bjerk (magic circle) CC-BY3 or GPL3 - http://opengameart.org/content/painterly-spell-icons-part-3 - http://opengameart.org/users/yughues
+-> ImpBed.png                       OD Plus project     CC0                     tools/room-objects/generate_beds.py (original, procedural)
 -> Keeperhand*.png
 -> Knight.png
 -> KnightStatue.png                    Yughues                 CC0                     http://forum.freegamedev.net/viewtopic.php?p=60771#p6071
@@ -203,7 +204,7 @@ textures/
 -> Slowflare.png                       Lorc, OD Team           CC-BY-SA 3.0            http://game-icons.net/lorc/originals/snail.html + Own made flare
 -> SmallSpider.png                     Skorpio                 CC-BY-SA 3.0            http://forum.freegamedev.net/viewtopic.php?p=60887#p60851
 -> Spider{,Normal}.png                 DennisH2010             CC-BY 3.0               http://www.blendswap.com/blends/view/26798
--> SpiderBed*.png                      Eugeneloza, Nobiax      CC0                     http://forum.freegamedev.net/viewtopic.php?p=60089#p60089
+-> SpiderBed.png                    OD Plus project     CC0                     tools/room-objects/generate_beds.py (original, procedural)
 -> Spiketrap.png                       P0ss, Danimal           CC-BY 3.0               http://opengameart.org/content/spyke-trap-low-poly
 -> Staff.png
 -> starsedit.jpg                       European Space Agency, edited by tomluchowski  CC-BY 4.0 - https://commons.wikimedia.org/wiki/File:Starsinthesky.jpg
@@ -306,7 +307,7 @@ GoldstackLv*.mesh                      Danimal                 CC-BY-SA 3.0     
 Grimoire.*                             Danimal                 CC-BY-SA 3.0            http://opengameart.org/users/danimal
 Grindstone.mesh                        Daniel74                CC0                     http://forum.freegamedev.net/viewtopic.php?p=59775#p59775
 Hammock.mesh                           eugeneloza              CC0                     http://forum.freegamedev.net/viewtopic.php?p=59983#p59983
-ImpBed.mesh                            eugeneloza              CC0                     http://forum.freegamedev.net/viewtopic.php?p=60275#p60275
+ImpBed.mesh                         OD Plus project     CC0                     tools/room-objects/generate_beds.py (original, procedural)
 Keeperhand.*                           Skorpio                 CC-BY-SA 3.0, GPLv3+
 Knight.*                               surt                    CC0                     http://opengameart.org/forumtopic/cc0-scraps
 KnightCoffin.mesh                      YD                      CC0                     http://forum.freegamedev.net/viewtopic.php?p=60771#p60771
@@ -347,7 +348,7 @@ Skull.mesh                             Atmostatic              CC-BY-SA 3.0     
 Slime.*                                Grefuntor, D3dm         CC-BY 3.0, CC-BY-SA 3.0, GPL 2.0+ - http://opengameart.org/content/slime-mold
 SmallSpider.*                          Skorpio                 CC-BY-SA 3.0            http://forum.freegamedev.net/viewtopic.php?p=60887#p60851
 Spider.*                               DennisH2010, Danimal    CC-BY 3.0               http://www.blendswap.com/blends/view/26798 - http://forum.freegamedev.net/viewtopic.php?p=60530#p60530
-SpiderBed.mesh                         Eugeneloza              CC0                     http://forum.freegamedev.net/viewtopic.php?p=60089#p60089
+SpiderBed.mesh                      OD Plus project     CC0                     tools/room-objects/generate_beds.py (original, procedural)
 Spiketrap.*                            Danimal                 CC-BY 3.0               http://opengameart.org/content/spyke-trap-low-poly
 SquareSelector.mesh                    OD Team                 CC-BY-SA 3.0            http://forum.freegamedev.net/viewtopic.php?p=59066#p59066
 Staff.*                                Skorpio                 CC-BY-SA 3.0, GPLv3+
