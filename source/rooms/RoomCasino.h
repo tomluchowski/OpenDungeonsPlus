@@ -106,6 +106,8 @@ protected:
 private:
     void setCreatureWinning(Creature& creature, const Ogre::Vector3& gamePosition);
     void setCreatureLoosing(Creature& creature, const Ogre::Vector3& gamePosition);
+    //! Tells the keepers who see the winner that a game ended (cosmetic event, the clients show the win and the loss)
+    void sendGameResult(Creature& winner, Creature& loser);
     std::map<Tile*,RoomCasinoGame> mCreaturesSpots;
     CasinoPayout mPayout;
 };

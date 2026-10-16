@@ -35,6 +35,8 @@
 #include "game/Seat.h"
 #include "gamemap/GameMap.h"
 #include "gamemap/Pathfinding.h"
+#include "network/CosmeticEvent.h"
+#include "network/ODServer.h"
 #include "rooms/RoomManager.h"
 #include "utils/ConfigManager.h"
 #include "utils/Helper.h"
@@ -512,12 +514,14 @@ void RoomCasino::doUpkeep()
             setCreatureWinning(*p.second.mCreature1.mCreature, ro->getPosition());
             setCreatureLoosing(*p.second.mCreature2.mCreature, ro->getPosition());
             p.second.mCreature1.mCreature->addGoldCarried(totalBet);
+            sendGameResult(*p.second.mCreature1.mCreature, *p.second.mCreature2.mCreature);
         }
         else
         {
             setCreatureWinning(*p.second.mCreature2.mCreature, ro->getPosition());
             setCreatureLoosing(*p.second.mCreature1.mCreature, ro->getPosition());
             p.second.mCreature2.mCreature->addGoldCarried(totalBet);
+            sendGameResult(*p.second.mCreature2.mCreature, *p.second.mCreature1.mCreature);
         }
     }
 }
@@ -652,4 +656,23 @@ void RoomCasino::setCreatureLoosing(Creature& creature, const Ogre::Vector3& gam
     Ogre::Vector3 walkDirection(gamePosition.x - creature.getPosition().x, gamePosition.y - creature.getPosition().y, static_cast<Ogre::Real>(0));
     walkDirection.normalise();
     creature.setAnimationState(EntityAnimation::idle_anim, false, walkDirection);
+}
+
+void RoomCasino::sendGameResult(Creature& winner, Creature& loser)
+{
+    Tile* tile = winner.getPositionTile();
+    if(tile == nullptr)
+        return;
+
+    CosmeticEvent event(CosmeticEventType::casinoResult);
+    event.mSubject = winner.getName();
+    event.mObject = loser.getName();
+    event.mPosition = winner.getPosition();
+    for(Seat* seat : tile->getSeatsWithVision())
+    {
+        if((seat->getPlayer() == nullptr) || !seat->getPlayer()->getIsHuman())
+            continue;
+
+        ODServer::getSingleton().sendCosmeticEvent(seat->getPlayer(), event);
+    }
 }
