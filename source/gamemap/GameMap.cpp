@@ -2046,7 +2046,12 @@ bool GameMap::withdrawFromTreasuries(int gold, Seat* seat)
 {
     // Check to see if there is enough gold available in all of the treasuries owned by the given seat.
     if (seat->getGold() < gold)
+    {
+        if(seat->getPlayer() != nullptr)
+            seat->getPlayer()->notifyNotEnoughGold();
+
         return false;
+    }
 
     // Loop over the treasuries withdrawing gold until the full amount has been withdrawn.
     int goldStillNeeded = gold;
