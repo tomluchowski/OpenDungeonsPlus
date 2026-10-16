@@ -1,0 +1,2 @@
+# Levels that fail scripts/check-campaign-opening.py today: known, to be fixed.
+# They report FAIL but keep the exit code at 0. Remove an entry when its level is corrected.
