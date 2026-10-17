@@ -470,6 +470,20 @@ public:
             mGoldFee = 0;
     }
 
+    //! \brief Gold given by the player. It pays the whole wage owed until the next pay day
+    //! (clearing the pay day annoyance). Never more than the wage owed is used and there is
+    //! no credit. Returns the gold that was used, the rest is left to the caller.
+    int32_t receiveTreat(int32_t gold)
+    {
+        int32_t used = (gold < mGoldFee) ? gold : mGoldFee;
+        if(used <= 0)
+            return 0;
+
+        mGoldFee = 0;
+        mMoodCooldownTurns = 0;
+        return used;
+    }
+
     inline int32_t getGoldCarried() const
     { return mGoldCarried; }
 

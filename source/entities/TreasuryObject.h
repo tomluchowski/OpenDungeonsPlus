@@ -40,6 +40,12 @@ public:
 
     virtual bool tryPickup(Seat* seat) override;
     virtual bool tryDrop(Seat* seat, Tile* tile) override;
+    virtual void drop(const Ogre::Vector3& v) override;
+
+    //! \brief Sets the seat of the player who dropped this gold from the hand. If an own
+    //! creature owed a wage is on the tile, the gold pays that wage during the next upkeep.
+    void setDropSeat(Seat* seat)
+    { mDropSeat = seat; }
     void mergeGold(TreasuryObject* obj);
 
     //! \brief Called when a creature tries to steal gold. value represents
@@ -68,6 +74,8 @@ protected:
 private:
     int mGoldValue;
     bool mHasGoldValueChanged;
+    Seat* mDropSeat;
+    bool mDroppedByHand;
 };
 
 #endif // TREASURYOBJECT_H
