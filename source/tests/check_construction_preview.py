@@ -101,7 +101,7 @@ with tempfile.TemporaryDirectory(prefix='odp-construction-preview-') as director
 
 game = (repo / 'source/modes/GameMode.cpp').read_text()
 update = game.split('void GameMode::updateSelectedTiles()', 1)[1].split('void GameMode::unselectAllTiles()', 1)[0]
-assert update.count('rrDrawTilePreview(outlineTiles, colour, building || roomDemolition, digging, rectangle)') == 2
+assert update.count('rrDrawTilePreview(outlineTiles, colour, building || (roomDemolition && !rectangle), digging, rectangle)') == 2
 assert 'inputManager.mLStartDragX, inputManager.mLStartDragY' in update
 assert 'SelectedAction::sellBuilding' in update and 'SelectedAction::destroyRoom' in update and 'SelectedAction::destroyTrap' in update
 assert 'SelectedAction::buildRoom' in update and 'SelectedAction::buildTrap' in update

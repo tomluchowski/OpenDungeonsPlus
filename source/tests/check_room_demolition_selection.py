@@ -21,7 +21,7 @@ first = rooms.index(signature)
 second = rooms.index(signature, first + 1)
 preview = function(game, 'void GameMode::updateSelectedTiles()')
 flags = preview[preview.index('    const bool building'):preview.index('    if(!mActionTargetValid')]
-assert preview.count('colour, building || roomDemolition, digging, rectangle)') == 2
+assert preview.count('colour, building || (roomDemolition && !rectangle), digging, rectangle)') == 2
 probe = r'''
 #include <algorithm>
 #include <iostream>

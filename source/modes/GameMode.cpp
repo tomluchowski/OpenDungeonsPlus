@@ -2773,16 +2773,17 @@ void GameMode::updateSelectedTiles()
         outlineTiles = mGameMap->rectangularRegion(inputManager.mXPos, inputManager.mYPos,
             inputManager.mLStartDragX, inputManager.mLStartDragY);
     }
+    // Rectangle demolition retains its existing line; filled construction borders apply to room building.
     if(mPreviewTiles == mSelectedTiles)
     {
-        RenderManager::getSingleton().rrDrawTilePreview(outlineTiles, colour, building || roomDemolition, digging, rectangle);
+        RenderManager::getSingleton().rrDrawTilePreview(outlineTiles, colour, building || (roomDemolition && !rectangle), digging, rectangle);
         return;
     }
     Player* player = mGameMap->getLocalPlayer();
     for(Tile* tile : mSelectedTiles)
         tile->setSelected(false, player);
     mSelectedTiles = mPreviewTiles;
-    RenderManager::getSingleton().rrDrawTilePreview(outlineTiles, colour, building || roomDemolition, digging, rectangle);
+    RenderManager::getSingleton().rrDrawTilePreview(outlineTiles, colour, building || (roomDemolition && !rectangle), digging, rectangle);
 }
 
 void GameMode::unselectAllTiles()
