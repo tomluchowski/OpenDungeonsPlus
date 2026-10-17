@@ -1284,18 +1284,11 @@ void RenderManager::rrDetachEntity(GameEntity* entity , bool really_do )
     // this is ad hoc solution:
 
     Ogre::SceneNode* entityNode = entity->getEntityNode();
-    Ogre::SceneNode* parentNode = entity->getParentSceneNode(); 
-    //OD_LOG_INF("Removing Child: "  + Helper::toString(entityNode->getPosition().x) + " " + Helper::toString(entityNode->getPosition().y));
-    OD_ASSERT_TRUE(entityNode!=nullptr);    
-    if(entityNode!=nullptr && really_do)
-      {
-	// if ( entityNode->getParent() != parentNode)
-	//   {
-	//     OD_LOG_ERR("CRITICAL: node not found");
-	//     exit(0);
-	//   }
-	entity->getParentSceneNode()->removeChild(entityNode);    
-      }
+    Ogre::SceneNode* parentNode = entity->getParentSceneNode();
+    OD_ASSERT_TRUE(entityNode!=nullptr);
+    // The node may already be detached (or not attached yet), only remove it from its own parent
+    if(entityNode!=nullptr && really_do && parentNode!=nullptr && entityNode->getParent() == parentNode)
+        parentNode->removeChild(entityNode);
 }
 
 void RenderManager::rrAttachEntity(GameEntity* entity)
@@ -1305,9 +1298,18 @@ void RenderManager::rrAttachEntity(GameEntity* entity)
     // this is ad hoc solution:
 
     Ogre::SceneNode* entityNode = entity->getEntityNode();
-    OD_ASSERT_TRUE(entityNode!=nullptr);    
-    if(entityNode!=nullptr) 
-        entity->getParentSceneNode()->addChild(entityNode);
+    OD_ASSERT_TRUE(entityNode!=nullptr);
+    if(entityNode==nullptr)
+        return;
+
+    Ogre::SceneNode* parentNode = entity->getParentSceneNode();
+    // The node can still hang below its parent (created while hidden or detached without removal),
+    // adding it a second time makes Ogre throw
+    if(entityNode->getParent() == parentNode)
+        return;
+    if(entityNode->getParent() != nullptr)
+        entityNode->getParent()->removeChild(entityNode);
+    parentNode->addChild(entityNode);
 }
 
 void RenderManager::rrCreateRenderedMovableEntity(RenderedMovableEntity* renderedMovableEntity, NodeType nt)
