@@ -2295,8 +2295,17 @@ void RenderManager::rrCarryEntity(Creature* carrier, GameEntity* carried)
         EntityParentNodeAttach::DETACH_CARRIED, true);
     carriedNode->setInheritScale(false);
     carrierNode->addChild(carriedNode);
-    // We want the carried object to be at half tile (z = 0.5)
-    carriedNode->setPosition(Ogre::Vector3(0, 0, 0.5));
+    // The carried object rests with its lowest point on the highest point of the carrier. A fixed
+    // height of half a tile floated above small carriers and sank into tall ones.
+    const Ogre::Real carrierScale = carrierNode->_getDerivedScale().z;
+    const Ogre::Real carriedScale = carriedNode->getScale().z;
+    Ogre::Real carrySpotZ = 0.5;
+    if(carrierScale > 0.0)
+    {
+        carrySpotZ = (carrierEnt->getBoundingBox().getMaximum().z * carrierScale -
+            carriedEnt->getBoundingBox().getMinimum().z * carriedScale) / carrierScale;
+    }
+    carriedNode->setPosition(Ogre::Vector3(0, 0, carrySpotZ));
 }
 
 void RenderManager::rrReleaseCarriedEntity(Creature* carrier, GameEntity* carried)
