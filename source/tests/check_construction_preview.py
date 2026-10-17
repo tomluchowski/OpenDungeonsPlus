@@ -38,6 +38,7 @@ struct Tile {int x,y;bool full;int getX(){return x;}int getY(){return y;}bool is
 struct RenderManager {Ogre::SceneManager* mSceneManager;Ogre::ManualObject* mTilePreview=nullptr;
  void rrDrawTilePreview(const std::vector<Tile*>&,const Ogre::ColourValue&,bool=false,bool=false,bool=false);};
 METHOD
+//! \brief Checks emitted preview geometry and identical construction and digging frame widths.
 int main(){int checks=0,failures=0;auto check=[&](bool pass,const char* label){++checks;if(!pass){++failures;std::cout<<"FAIL "<<label<<'\n';}};
  Ogre::SceneManager scene;RenderManager render{&scene};Tile floor{3,4,false},wall{5,6,true},other{4,4,false};
  render.rrDrawTilePreview({}, {1,1,1}, true);check(!render.mTilePreview,"empty selection allocates nothing");
@@ -74,7 +75,14 @@ int main(){int checks=0,failures=0;auto check=[&](bool pass,const char* label){+
  render.rrDrawTilePreview({&wall,&wall},{.35f,.3f,1},false,true);
  check(scene.object.sections[1].points.size()==240,"drag selection frames every selected wall");
  render.rrDrawTilePreview({&floor,&wall,&other},{.35f,.3f,1},true,false,true);
- check(scene.object.sections.size()==1,"drag outline is one rectangle");
+ check(scene.object.sections.size()==2,"drag outline includes the filled frame");
+ check(scene.object.sections[1].points.size()==24,"drag outline has four filled edge bands");
+ const std::vector<Ogre::Vector3> roomFrame=scene.object.sections[1].points;
+ render.rrDrawTilePreview({&floor,&wall,&other},{.35f,.3f,1},false,true,true);
+ for(size_t i=0;i<roomFrame.size();++i){
+  const Ogre::Vector3& a=roomFrame[i];const Ogre::Vector3& b=scene.object.sections[1].points[i];
+  check(a.x==b.x&&a.y==b.y&&a.z==b.z,"room and digging rectangle frames match exactly");
+ }
  check(scene.object.sections[0].points.size()==8,"drag outline has four edges");
  check(scene.object.sections[0].points[0].x==2.5f&&scene.object.sections[0].points[0].y==3.5f,
   "drag outline begins at full selection minimum");

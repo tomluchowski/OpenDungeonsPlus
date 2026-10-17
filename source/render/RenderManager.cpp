@@ -4762,9 +4762,10 @@ static void addPreviewBorderBand(Ogre::ManualObject* object, const Ogre::Vector3
 //! \param sceneManager The scene manager holding the rendered tile meshes.
 //! \param tiles The tiles to enclose. Must not be empty.
 //! \param colour Colour of the outline.
+//! \param construction Also draws the thick filled border of a room construction selection.
 //! \param digging Also draws the thick filled border of a digging selection.
 static void drawTileRectangle(Ogre::ManualObject* tilePreview, Ogre::SceneManager* sceneManager,
-        const std::vector<Tile*>& tiles, const Ogre::ColourValue& colour, bool digging)
+        const std::vector<Tile*>& tiles, const Ogre::ColourValue& colour, bool construction, bool digging)
 {
     int minX = tiles.front()->getX();
     int maxX = minX;
@@ -4797,7 +4798,7 @@ static void drawTileRectangle(Ogre::ManualObject* tilePreview, Ogre::SceneManage
         tilePreview->colour(colour);
     }
     tilePreview->end();
-    if(!digging)
+    if(!construction && !digging)
         return;
     const Ogre::Vector3 inner[] = {
         Ogre::Vector3(minX - PREVIEW_BORDER_INNER_HALF, minY - PREVIEW_BORDER_INNER_HALF, z),
@@ -4814,7 +4815,7 @@ static void drawTileRectangle(Ogre::ManualObject* tilePreview, Ogre::SceneManage
     tilePreview->end();
 }
 
-//! \brief Draws the tile selection preview.
+//! \brief Draws the tile selection preview, sharing the filled frame width for construction and digging.
 //! \param tiles The selected tiles. An empty list removes the preview.
 //! \param colour Colour of the borders.
 //! \param construction Also draws the filled border of building floors.
@@ -4837,7 +4838,7 @@ void RenderManager::rrDrawTilePreview(const std::vector<Tile*>& tiles, const Ogr
         return;
     if(singleRectangle)
     {
-        drawTileRectangle(mTilePreview, mSceneManager, tiles, colour, digging);
+        drawTileRectangle(mTilePreview, mSceneManager, tiles, colour, construction, digging);
         return;
     }
     mTilePreview->begin("debug_draw", Ogre::RenderOperation::OT_LINE_LIST, "Graphics");
