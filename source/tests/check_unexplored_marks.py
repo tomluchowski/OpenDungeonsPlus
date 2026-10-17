@@ -26,7 +26,7 @@ fog_shader = read('shaders/DirtTileInstanced.frag')
 assert render.count('(isMarked ? mInstanceManagerMarkedFog : mInstanceManagerDirt)') == 3
 assert 'tile.setFogOfWarMesh(tile.getFogOfWarMesh(), isMarked)' in render
 rectangle = render[render.index('static void drawTileRectangle('):render.index('void RenderManager::rrDrawTilePreview(')]
-assert 'if(!digging)' in rectangle and 'OT_TRIANGLE_LIST' in rectangle
+assert 'if(!construction && !digging)' in rectangle and 'OT_TRIANGLE_LIST' in rectangle
 assert 'PREVIEW_BORDER_INNER_HALF' in rectangle and 'PREVIEW_TILE_HALF' in rectangle
 assert 'PREVIEW_BORDER_INNER_HALF = 0.44f' in render and 'PREVIEW_TILE_HALF = 0.5f' in render
 assert 'minX - PREVIEW_BORDER_INNER_HALF' in rectangle and 'maxX + PREVIEW_BORDER_INNER_HALF' in rectangle
@@ -62,7 +62,7 @@ for width, height in [(1, 1), (4, 1), (4, 4), (3, 7)]:
     # One outer frame, with the same width as the existing single-tile frame, no internal tile lines.
     ring_area = width * height - (width - 2 * thickness) * (height - 2 * thickness)
     assert ring_area > 0
-assert 'for(Tile* tile' not in rectangle[rectangle.index('if(!digging)'):]
+assert 'for(Tile* tile' not in rectangle[rectangle.index('if(!construction && !digging)'):]
 vertex = read('shaders/DirtTileInstanced.vert')
 flat_branch = vertex[vertex.index('if(final_color.a > 0.0)'):vertex.index('    vec3 local_normal')]
 assert 'deform(' not in flat_branch and 'return;' in flat_branch
