@@ -38,12 +38,14 @@
 #include "network/ServerNotification.h"
 #include "ODApplication.h"
 #include "rooms/Room.h"
+#include "rooms/FencedRoom.h"
 #include "rooms/RoomManager.h"
 #include "rooms/RoomType.h"
 #include "spells/Spell.h"
 #include "spells/SpellCallToWar.h"
 #include "spells/SpellType.h"
 #include "traps/Trap.h"
+#include "traps/TrapDoor.h"
 #include "traps/TrapManager.h"
 #include "traps/TrapType.h"
 #include "utils/ConfigManager.h"
@@ -54,6 +56,7 @@
 #include <algorithm>
 #include <cstdlib>
 #include <list>
+#include <set>
 #include <vector>
 
 namespace
@@ -139,11 +142,71 @@ bool isClassMatching(const Creature* creature, const std::string& className)
     return className.empty() || (creature->getDefinition()->getClassName() == className);
 }
 
+//! Presentation-only ground checks use actual built surfaces rather than diggable-path heuristics.
+//! \brief Checks an open dry surface, physical doors and arena fences without requiring any living creature.
+bool isDryGroundPassable(Seat* seat, Tile* start, Tile* tile)
+{
+    if(seat == nullptr || tile == nullptr || tile->getFullness() != 0.0)
+        return false;
+    if((tile->getType() == TileType::water || tile->getType() == TileType::lava) && !tile->getHasBridge())
+        return false;
+    Trap* trap = tile->getCoveringTrap();
+    if(trap != nullptr && trap->isDoor())
+    {
+        if(trap->appearsAsWallForSeat(tile, seat) || !static_cast<TrapDoor*>(trap)->isGroundPassageOpen(tile))
+            return false;
+    }
+    Room* room = tile->getCoveringRoom();
+    if(room != nullptr)
+    {
+        if(room->getType() == RoomType::arena)
+        {
+            const std::vector<Tile*>& interior = static_cast<FencedRoom*>(room)->getActualRoomTiles();
+            if(std::find(interior.begin(), interior.end(), tile) != interior.end() &&
+               std::find(interior.begin(), interior.end(), start) == interior.end())
+                return false;
+        }
+        return true;
+    }
+    // These are the ordinary dry surfaces accepted by Tile::getCreatureSpeedDefault.
+    return tile->getType() == TileType::dirt || tile->getType() == TileType::gold ||
+        tile->getType() == TileType::rock || tile->getType() == TileType::manaWell;
+}
+
+//! \brief Finds actual cardinal ground connectivity; no digging, damage, swimming or flying is assumed.
+bool areGroundPointsConnected(GameMap& gameMap, const LevelScriptCondition& cond)
+{
+    Seat* seat = gameMap.getSeatById(cond.mSeatId);
+    Tile* start = gameMap.getTile(cond.mX1, cond.mY1);
+    Tile* end = gameMap.getTile(cond.mX2, cond.mY2);
+    if(!isDryGroundPassable(seat, start, start) || !isDryGroundPassable(seat, start, end))
+        return false;
+    std::set<Tile*> visited;
+    std::vector<Tile*> pending;
+    visited.insert(start);
+    pending.push_back(start);
+    for(size_t index = 0; index < pending.size(); ++index)
+    {
+        Tile* tile = pending[index];
+        if(tile == end)
+            return true;
+        for(Tile* neighbor : tile->getAllNeighbors())
+        {
+            if(visited.count(neighbor) != 0 || !isDryGroundPassable(seat, start, neighbor))
+                continue;
+            visited.insert(neighbor);
+            pending.push_back(neighbor);
+        }
+    }
+    return false;
+}
+
 //! \brief Evaluates one condition of a trigger against the game state.
 //! \param gameMap The server game map.
 //! \param script The level script (flags, timers, regions).
 //! \param cond The condition to test.
 //! \return True if the condition holds now.
+//! \brief Evaluates gameplay conditions and read-only objective presentation predicates.
 bool isConditionMet(GameMap& gameMap, const LevelScript& script, const LevelScriptCondition& cond)
 {
     switch(cond.mType)
@@ -207,6 +270,82 @@ bool isConditionMet(GameMap& gameMap, const LevelScript& script, const LevelScri
                 return false;
             }
             return levelScriptCompare(static_cast<int64_t>(seat->getNbRooms(roomType)), cond.mCompare, cond.mNumber);
+        }
+        case LevelScriptConditionType::creaturesAtHeart:
+        {
+            int64_t count = 0;
+            for(Creature* creature : gameMap.getCreatures())
+            {
+                if(!creature->isAlive() || !creature->getIsOnMap() || !isSeatMatching(creature, cond.mSeatId))
+                    continue;
+                Tile* tile = creature->getPositionTile();
+                if(tile == nullptr)
+                    continue;
+                Room* room = tile->getCoveringRoom();
+                if(room != nullptr && room->getType() == RoomType::dungeonTemple && room->getSeat() != nullptr &&
+                   room->getSeat()->getId() == cond.mSeatId)
+                    ++count;
+            }
+            return levelScriptCompare(count, cond.mCompare, cond.mNumber);
+        }
+        case LevelScriptConditionType::objectiveState:
+            return static_cast<int64_t>(script.getObjectiveState(cond.mSeatId, cond.mName)) == cond.mNumber;
+        case LevelScriptConditionType::groundConnected:
+            return areGroundPointsConnected(gameMap, cond);
+        case LevelScriptConditionType::roomFootprintClaimed:
+        {
+            Seat* seat = gameMap.getSeatById(cond.mSeatId);
+            if(seat == nullptr)
+                return false;
+            for(int32_t x = std::min(cond.mX1, cond.mX2); x <= std::max(cond.mX1, cond.mX2); ++x)
+            {
+                for(int32_t y = std::min(cond.mY1, cond.mY2); y <= std::max(cond.mY1, cond.mY2); ++y)
+                {
+                    Tile* tile = gameMap.getTile(x, y);
+                    if(tile == nullptr || tile->getFullness() != 0.0 || tile->getSeat() != seat ||
+                       tile->getClaimedPercentage() < 1.0 || !tile->isClaimedForSeat(seat))
+                        return false;
+                    Room* room = tile->getCoveringRoom();
+                    if(room == nullptr || room->getSeat() != seat)
+                        return false;
+                }
+            }
+            return true;
+        }
+        case LevelScriptConditionType::trapGone:
+            return gameMap.getTrapByName(cond.mName) == nullptr;
+        case LevelScriptConditionType::minedInRegion:
+            return script.getRegion(cond.mName) != nullptr &&
+                levelScriptCompare(script.getGoldMinedInRegion(cond.mSeatId, cond.mName), cond.mCompare, cond.mNumber);
+        case LevelScriptConditionType::killedInRegion:
+            return script.wasCreatureKilledInRegion(cond.mName, cond.mName2);
+        case LevelScriptConditionType::spawnCleared:
+            return script.areSpawnsCleared(cond.mName, cond.mNumber, cond.mSeatId);
+        case LevelScriptConditionType::triggerFired:
+            for(const LevelScriptTrigger& trigger : script.getTriggers())
+            {
+                if(trigger.mName == cond.mName)
+                    return (trigger.mTimesFired > 0) == (cond.mNumber != 0);
+            }
+            return false;
+        case LevelScriptConditionType::goalMet:
+        {
+            Seat* seat = gameMap.getSeatById(cond.mSeatId);
+            if(seat == nullptr)
+                return false;
+            for(unsigned int i = 0; i < seat->numUncompleteGoals(); ++i)
+            {
+                Goal* goal = seat->getUncompleteGoal(i);
+                if(goal->getName() == cond.mName && !goal->isFailed(*seat, gameMap) && goal->isMet(*seat, gameMap))
+                    return true;
+            }
+            for(unsigned int i = 0; i < seat->numCompletedGoals(); ++i)
+            {
+                Goal* goal = seat->getCompletedGoal(i);
+                if(goal->getName() == cond.mName && !goal->isFailed(*seat, gameMap) && goal->isMet(*seat, gameMap))
+                    return true;
+            }
+            return false;
         }
         case LevelScriptConditionType::goal:
         {
@@ -645,7 +784,9 @@ void sendMessage(GameMap& gameMap, int32_t seatId, const std::string& text)
 
 //! \brief Creates the creatures of a spawn action on its tile and, if the action names a target seat,
 //! sends them to that dungeon with a call to war.
-void spawnCreatures(GameMap& gameMap, const LevelScriptAction& action)
+//! \brief Spawns the existing group unchanged and optionally observes actual instances for a goal condition.
+void spawnCreatures(GameMap& gameMap, const LevelScriptAction& action,
+    const std::string& sourceTrigger = "", int64_t sourceAction = -1)
 {
     Seat* seat = gameMap.getSeatById(action.mSeatId);
     if(seat == nullptr)
@@ -692,6 +833,8 @@ void spawnCreatures(GameMap& gameMap, const LevelScriptAction& action)
             + ", name=" + newCreature->getName() + ", seatId=" + Helper::toString(seat->getId()));
 
         newCreature->addToGameMap();
+        if(!sourceTrigger.empty())
+            gameMap.getLevelScript().observeSpawn(sourceTrigger, sourceAction, newCreature->getName());
         if(!action.mParty.empty())
             gameMap.getLevelScript().addPartyMember(action.mParty, newCreature->getName());
 
@@ -1144,18 +1287,28 @@ void removeCreature(GameMap& gameMap, const std::string& name)
 }
 
 //! \brief Carries out one action of a trigger that fired.
-void runAction(GameMap& gameMap, LevelScript& script, const LevelScriptAction& action)
+//! \brief Executes a script action, including explicit presentation updates for identified goals.
+void runAction(GameMap& gameMap, LevelScript& script, const LevelScriptAction& action,
+    const std::string& sourceTrigger, int64_t sourceAction)
 {
     switch(action.mType)
     {
         case LevelScriptActionType::message:
             sendMessage(gameMap, action.mSeatId, action.mText);
             break;
+        case LevelScriptActionType::hint:
+            sendMessage(gameMap, action.mSeatId, "Hint: " + action.mText);
+            break;
         case LevelScriptActionType::objective:
             sendMessage(gameMap, action.mSeatId, "Objective: " + action.mText);
             break;
+        case LevelScriptActionType::objectiveState:
+            for(Player* player : getTargetPlayers(gameMap, action.mSeatId))
+                script.setObjectiveState(player->getSeat()->getId(), action.mObjectiveId,
+                    static_cast<LevelScriptObjectiveState>(action.mNumber));
+            break;
         case LevelScriptActionType::spawn:
-            spawnCreatures(gameMap, action);
+            spawnCreatures(gameMap, action, sourceTrigger, sourceAction);
             break;
         case LevelScriptActionType::gold:
         {
@@ -1302,6 +1455,7 @@ void LevelScriptRunner::spawnKeptMinion(GameMap& gameMap)
     }
 }
 
+//! \brief Runs existing triggers in order and passes stable source identities to presentation observers.
 void LevelScriptRunner::doTurn(GameMap& gameMap)
 {
     LevelScript& script = gameMap.getLevelScript();
@@ -1335,8 +1489,12 @@ void LevelScriptRunner::doTurn(GameMap& gameMap)
         OD_LOG_INF("Level script trigger fired: " + trigger.mName);
         ++trigger.mTimesFired;
         trigger.mLastFiredTurn = turn;
+        int64_t actionIndex = 0;
         for(const LevelScriptAction& action : trigger.mActions)
-            runAction(gameMap, script, action);
+        {
+            runAction(gameMap, script, action, trigger.mName, actionIndex);
+            ++actionIndex;
+        }
     }
 }
 

@@ -3493,12 +3493,20 @@ Name	intro
 Mode	once
 Cond	time	3
 Action	message	-1	A rival keeper is after the same treasure. Claim it first.
-Action	objective	-1	Destroy the rival keeper and keep your dungeon heart alive.
+Action	objectiveid	-1	campaign2-o01	Defeat the rival keeper; protect your heart.
 [/Trigger]
 [Trigger]
 Name	hint
 Mode	once
 Cond	time	180
 Action	message	-1	Build a Treasury and a Training Room before the rival gets strong.
+[/Trigger]
+
+[Trigger]
+Name	goalClassicComplete
+Mode	once
+Cond	goalmet	1	KillAllEnemies
+Cond	goalmet	1	ProtectDungeonTemple
+Action	objectivestate	-1	campaign2-o01	reached
 [/Trigger]
 [/Triggers]

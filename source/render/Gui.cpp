@@ -844,11 +844,13 @@ CEGUI::USize scaleSize(const CEGUI::USize& size, float scale)
     return scaled;
 }
 
+//! \brief Applies display and user scaling to the registered GUI image families.
 bool shouldScaleImage(const CEGUI::String& ceguiName)
 {
     const std::string name(ceguiName.c_str());
     return name.compare(0, 17, "OpenDungeonsSkin/") == 0
         || name.compare(0, 18, "OpenDungeonsIcons/") == 0
+        || name.compare(0, 11, "GoalStatus/") == 0
         || name.compare(0, 17, "ODMainMenuButton/") == 0
         || name.compare(0, 13, "ODHudSurface/") == 0
         || name.compare(0, 7, "ODLogo/") == 0;

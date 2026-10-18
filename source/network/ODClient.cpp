@@ -88,6 +88,7 @@ void ODClient::playerDisconnected()
     // TODO : try to reconnect to the server
 }
 
+//! \brief Dispatches validated server packets to the active game or menu presentation.
 bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceived)
 {
     ODFrameListener* frameListener = ODFrameListener::getSingletonPtr();
@@ -1715,6 +1716,15 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
 
             EditorMode* editorMode = static_cast<EditorMode*>(frameListener->getModeManager()->getCurrentMode());
             editorMode->setRegions(regions);
+            break;
+        }
+
+        case ServerNotificationType::campaignVictory:
+        {
+            std::string goalsDisplay;
+            OD_ASSERT_TRUE(packetReceived >> goalsDisplay);
+            if(frameListener->getModeManager()->getCurrentModeType() == ModeManager::GAME)
+                static_cast<GameMode*>(frameListener->getModeManager()->getCurrentMode())->showCampaignVictory(goalsDisplay);
             break;
         }
 
