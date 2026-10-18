@@ -106,6 +106,12 @@ bool CreatureSkillMeleeFight::tryUseFight(GameMap& gameMap, Creature* creature, 
     if(attackedObject->getObjectType() == GameEntityType::creature)
     {
         Creature* target = static_cast<Creature*>(attackedObject);
+        const bool attackerArmed = creature->getWeaponL() != nullptr ||
+            creature->getWeaponR() != nullptr;
+        const bool targetArmed = target->getWeaponL() != nullptr ||
+            target->getWeaponR() != nullptr;
+        target->fireCombatImpact(attackerArmed && targetArmed,
+            damageDone > 0.0, creature->getPosition());
 
         // Tell the clients how much of the blow got through, so that they can show a hit, a glancing blow
         // or a blow that did nothing. The game has no random miss: this only reads the damage that was

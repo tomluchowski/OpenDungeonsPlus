@@ -21,6 +21,7 @@
 #include "network/ODClient.h"
 #include "camera/CameraManager.h"
 #include "render/CreatureReactions.h"
+#include "render/Gui.h"
 #include "render/ODFrameListener.h"
 #include "render/RenderManager.h"
 #include "utils/ConfigManager.h"
@@ -44,6 +45,8 @@
 #include <algorithm>
 #include <exception>
 #include <map>
+#include <sstream>
+#include <functional>
 #include <stdexcept>
 
 namespace
@@ -55,10 +58,11 @@ const std::string OPTION_SEPARATE_SHADER_OBJECTS = "Separate Shader Objects";
 const std::string OPTION_DEBUG_LAYER = "Debug Layer";
 }
 
-SettingsWindow::SettingsWindow(CEGUI::Window* rootWindow):
+SettingsWindow::SettingsWindow(CEGUI::Window* rootWindow, Gui& gui, bool menuPages, bool gamePage):
     mSettingsWindow(nullptr),
     mApplyWindow(nullptr),
-    mRootWindow(rootWindow)
+    mRootWindow(rootWindow),
+    mGui(gui)
 {
     if (rootWindow == nullptr)
     {
@@ -75,6 +79,57 @@ SettingsWindow::SettingsWindow(CEGUI::Window* rootWindow):
     }
     rootWindow->addChild(mSettingsWindow);
     mSettingsWindow->hide();
+    if(menuPages)
+    {
+        mSettingsWindow->setLookNFeel("OD/MenuPageWindow");
+        mSettingsWindow->setArea(CEGUI::URect(CEGUI::UDim(0.5f, -400), CEGUI::UDim(0.5f, -60),
+            CEGUI::UDim(0.5f, 400), CEGUI::UDim(1, -16)));
+        CEGUI::TabControl* tabs = static_cast<CEGUI::TabControl*>(mSettingsWindow->getChild("MainTabControl"));
+        tabs->setTabHeight(CEGUI::UDim(0, 0));
+        tabs->setArea(CEGUI::URect(CEGUI::UDim(0, 10), CEGUI::UDim(0, 72),
+            CEGUI::UDim(1, -10), CEGUI::UDim(1, -108)));
+        tabs->getChild("__auto_TabPane__")->setLookNFeel("OD/MenuPageContent");
+        for(const char* page : {"Video", "Audio", "Input", "Game"})
+            tabs->getChild(std::string(page) + "/" + page + "SP")->setUserString("TrimLeadingSpace", "true");
+        CEGUI::Window* title = wmgr->createWindow("OD/MenuTitle", "PageTitle");
+        title->setFont("MedievalSharp-20");
+        title->setArea(CEGUI::URect(CEGUI::UDim(0, 0), CEGUI::UDim(0, 0),
+            CEGUI::UDim(1, 0), CEGUI::UDim(0, 60)));
+        title->setMousePassThroughEnabled(true);
+        mSettingsWindow->addChild(title);
+    }
+    else if(gamePage)
+    {
+        mSettingsWindow->setLookNFeel("OD/GameSettingsWindow");
+        mSettingsWindow->setArea(CEGUI::URect(CEGUI::UDim(0, 0), CEGUI::UDim(0, 64),
+            CEGUI::UDim(1, 0), CEGUI::UDim(1, -192)));
+        CEGUI::TabControl* tabs = static_cast<CEGUI::TabControl*>(mSettingsWindow->getChild("MainTabControl"));
+        tabs->setArea(CEGUI::URect(CEGUI::UDim(0, 8), CEGUI::UDim(0, 64),
+            CEGUI::UDim(1, -8), CEGUI::UDim(1, -108)));
+        tabs->getChild("__auto_TabPane__")->setLookNFeel("OD/MenuPageContent");
+        CEGUI::Window* title = wmgr->createWindow("OD/StaticText", "PageTitle");
+        title->setFont("MedievalSharp-20");
+        title->setProperty("FrameEnabled", "False");
+        title->setProperty("BackgroundEnabled", "False");
+        title->setArea(CEGUI::URect(CEGUI::UDim(0, 8), CEGUI::UDim(0, 8),
+            CEGUI::UDim(1, -8), CEGUI::UDim(0, 48)));
+        title->setMousePassThroughEnabled(true);
+        mSettingsWindow->addChild(title);
+        std::function<bool(const CEGUI::EventArgs&)> updateTitle = [tabs, title](const CEGUI::EventArgs&)
+        {
+            const CEGUI::String& name = tabs->getTabContentsAtIndex(tabs->getSelectedTabIndex())->getName();
+            title->setText(name == "Video" ? "Graphics Options" : name == "Audio" ? "Sound Options" :
+                name == "Input" ? "Control Options" : "Game Options");
+            return true;
+        };
+        addEventConnection(tabs->subscribeEvent(CEGUI::TabControl::EventSelectionChanged,
+            CEGUI::Event::Subscriber(updateTitle)));
+        updateTitle(CEGUI::EventArgs());
+        tabs->getChild("Audio/AudioSP/MusicText")->setArea(CEGUI::URect(
+            CEGUI::UDim(0.5f, 32), CEGUI::UDim(0, 40), CEGUI::UDim(1, -48), CEGUI::UDim(0, 66)));
+        tabs->getChild("Audio/AudioSP/MusicSlider")->setArea(CEGUI::URect(
+            CEGUI::UDim(0.5f, 32), CEGUI::UDim(0, 78), CEGUI::UDim(1, -48), CEGUI::UDim(0, 104)));
+    }
 
     mApplyWindow = wmgr->loadLayoutFromFile("WindowApplyChanges.layout");
     if (mApplyWindow == nullptr)
@@ -156,7 +211,15 @@ SettingsWindow::SettingsWindow(CEGUI::Window* rootWindow):
         )
     );
 
+    addEventConnection(
+        mSettingsWindow->getChild("MainTabControl/Video/VideoSP/UIScaleCombobox")->subscribeEvent(
+            CEGUI::Combobox::EventListSelectionAccepted,
+            CEGUI::Event::Subscriber(&SettingsWindow::onUiScaleChanged, this)
+        )
+    );
+
     initConfig();
+    mGui.registerWindowHierarchy(mApplyWindow);
 }
 
 SettingsWindow::~SettingsWindow()
@@ -261,6 +324,10 @@ void SettingsWindow::initConfig()
         }
         ++cptReactionMode;
     }
+    CEGUI::ToggleButton* bloodEffectsCheckbox = static_cast<CEGUI::ToggleButton*>(
+        mRootWindow->getChild("SettingsWindow/MainTabControl/Game/GameSP/BloodEffectsCheckbox"));
+    bloodEffectsCheckbox->setSelected(
+        config.getGameValue(Config::BLOOD_EFFECTS, "Yes", false) == "Yes");
 
     std::string panSpeedStr = config.getInputValue(Config::PAN_SPEED, "100", false);
     float panSpeedPercent = panSpeedStr.empty() ? 100.0f : Helper::toFloat(panSpeedStr);
@@ -365,6 +432,32 @@ void SettingsWindow::initConfig()
         vsCheckBox->setSelected((vsync.currentValue == "Yes"));
     }
 
+    CEGUI::Combobox* uiScaleCb = static_cast<CEGUI::Combobox*>(
+        mRootWindow->getChild("SettingsWindow/MainTabControl/Video/VideoSP/UIScaleCombobox"));
+    uiScaleCb->setReadOnly(true);
+    uiScaleCb->resetList();
+    int configuredUiScale = 100;
+    std::istringstream uiScaleParser(config.getGameValue(Config::UI_SCALE, "100", false));
+    if(!(uiScaleParser >> configuredUiScale))
+        configuredUiScale = 100;
+    configuredUiScale = std::max(static_cast<int>(Gui::MIN_UI_SCALE_PERCENT),
+        std::min(static_cast<int>(Gui::MAX_UI_SCALE_PERCENT), configuredUiScale));
+    configuredUiScale = (configuredUiScale + 5) / 10 * 10;
+    for(uint32_t uiScale = Gui::MIN_UI_SCALE_PERCENT;
+        uiScale <= Gui::MAX_UI_SCALE_PERCENT; uiScale += 10)
+    {
+        CEGUI::ListboxTextItem* item = new CEGUI::ListboxTextItem(
+            Helper::toString(uiScale) + "%", uiScale);
+        item->setSelectionBrushImage(selImg);
+        uiScaleCb->addItem(item);
+        if(static_cast<int>(uiScale) == configuredUiScale)
+        {
+            uiScaleCb->setItemSelectState(item, true);
+            uiScaleCb->setText(item->getText());
+        }
+    }
+    mGui.setUserScalePercent(static_cast<float>(configuredUiScale));
+
     //! First of all, clear up the previously created windows.
     CEGUI::WindowManager& winMgr = CEGUI::WindowManager::getSingleton();
     CEGUI::Window* parentWindow = mSettingsWindow->getChild("MainTabControl/Video/VideoSP/");
@@ -404,13 +497,13 @@ void SettingsWindow::initConfig()
 
         // The text next to the combobox
         CEGUI::DefaultWindow* videoCbText = static_cast<CEGUI::DefaultWindow*>(videoTab->createChild("OD/StaticText", optionName + "_Text"));
-        videoCbText->setArea(CEGUI::UDim(0, 20), CEGUI::UDim(0, 155 + offset), CEGUI::UDim(0.4, 0), CEGUI::UDim(0, 30));
+        videoCbText->setArea(CEGUI::UDim(0, 20), CEGUI::UDim(0, 238 + offset), CEGUI::UDim(0.4, 0), CEGUI::UDim(0, 34));
         videoCbText->setText(optionName + ": ");
         videoCbText->setProperty("FrameEnabled", "False");
         videoCbText->setProperty("BackgroundEnabled", "False");
 
         CEGUI::Combobox* videoCb = static_cast<CEGUI::Combobox*>(videoTab->createChild("OD/Combobox", optionName));
-        videoCb->setArea(CEGUI::UDim(0.5, 0), CEGUI::UDim(0, 160 + offset), CEGUI::UDim(0.5, -20),
+        videoCb->setArea(CEGUI::UDim(0.45, 0), CEGUI::UDim(0, 238 + offset), CEGUI::UDim(0.55, -48),
                          CEGUI::UDim(0, config.possibleValues.size() * 17 + 30));
         videoCb->setReadOnly(true);
         videoCb->setSortingEnabled(true);
@@ -434,8 +527,10 @@ void SettingsWindow::initConfig()
             }
             ++cbIndex;
         }
-        offset += 30;
+        offset += 40;
     }
+
+    mGui.registerWindowHierarchy(mSettingsWindow);
 }
 
 bool SettingsWindow::saveConfig()
@@ -478,6 +573,10 @@ bool SettingsWindow::saveConfig()
     config.setGameValue(Config::CREATURE_REACTIONS, reactionMode);
     if(CreatureReactions::getSingletonPtr() != nullptr)
         CreatureReactions::getSingleton().setMode(CreatureReactions::modeFromString(reactionMode));
+    CEGUI::ToggleButton* bloodEffectsCheckbox = static_cast<CEGUI::ToggleButton*>(
+        mRootWindow->getChild("SettingsWindow/MainTabControl/Game/GameSP/BloodEffectsCheckbox"));
+    config.setGameValue(Config::BLOOD_EFFECTS,
+        bloodEffectsCheckbox->isSelected() ? "Yes" : "No");
 
     CEGUI::Slider* panSpeedSlider = static_cast<CEGUI::Slider*>(
         mRootWindow->getChild("SettingsWindow/MainTabControl/Input/InputSP/PanSpeedSlider"));
@@ -501,6 +600,12 @@ bool SettingsWindow::saveConfig()
     CEGUI::Slider* volumeSlider = static_cast<CEGUI::Slider*>(
             mRootWindow->getChild("SettingsWindow/MainTabControl/Audio/AudioSP/MusicSlider"));
     config.setAudioValue(Config::MUSIC_VOLUME, Helper::toString(volumeSlider->getCurrentValue()));
+
+    CEGUI::Combobox* uiScaleCb = static_cast<CEGUI::Combobox*>(
+        mRootWindow->getChild("SettingsWindow/MainTabControl/Video/VideoSP/UIScaleCombobox"));
+    CEGUI::ListboxItem* uiScaleItem = uiScaleCb->getSelectedItem();
+    if(uiScaleItem != nullptr)
+        config.setGameValue(Config::UI_SCALE, Helper::toString(uiScaleItem->getID()));
 
     CEGUI::ToggleButton* dynamicShadowsCheckBox = static_cast<CEGUI::ToggleButton*>(
         mRootWindow->getChild("SettingsWindow/MainTabControl/Video/VideoSP/DynamicShadowsCheckbox"));
@@ -629,6 +734,15 @@ void SettingsWindow::show()
     }
 }
 
+void SettingsWindow::showPage(const std::string& name)
+{
+    show();
+    static_cast<CEGUI::TabControl*>(mSettingsWindow->getChild("MainTabControl"))->setSelectedTab(name);
+    mSettingsWindow->setText(name == "Video" ? "Graphics Options" :
+        name == "Audio" ? "Sound Options" : name == "Input" ? "Control Options" : "Game Options");
+    mSettingsWindow->getChild("PageTitle")->setText(mSettingsWindow->getText());
+}
+
 void SettingsWindow::hide()
 {
     if (mSettingsWindow)
@@ -718,6 +832,16 @@ bool SettingsWindow::onMusicVolumeChanged(const CEGUI::EventArgs&)
     CEGUI::Slider* volumeSlider = static_cast<CEGUI::Slider*>(
         mRootWindow->getChild("SettingsWindow/MainTabControl/Audio/AudioSP/MusicSlider"));
     setMusicVolumeValue(volumeSlider->getCurrentValue());
+    return true;
+}
+
+bool SettingsWindow::onUiScaleChanged(const CEGUI::EventArgs&)
+{
+    CEGUI::Combobox* uiScaleCb = static_cast<CEGUI::Combobox*>(
+        mRootWindow->getChild("SettingsWindow/MainTabControl/Video/VideoSP/UIScaleCombobox"));
+    CEGUI::ListboxItem* selectedItem = uiScaleCb->getSelectedItem();
+    if(selectedItem != nullptr)
+        mGui.setUserScalePercent(static_cast<float>(selectedItem->getID()));
     return true;
 }
 

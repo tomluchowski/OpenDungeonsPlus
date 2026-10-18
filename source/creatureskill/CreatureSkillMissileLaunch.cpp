@@ -77,9 +77,7 @@ bool CreatureSkillMissileLaunch::tryUseFight(GameMap& gameMap, Creature* creatur
         return false;
     }
 
-    Ogre::Vector3 position;
-    position.x = static_cast<Ogre::Real>(creatureTile->getX());
-    position.y = static_cast<Ogre::Real>(creatureTile->getY());
+    Ogre::Vector3 position = creature->getPosition();
     position.z = CANNON_MISSILE_HEIGHT;
     Ogre::Vector3 missileDirection(static_cast<Ogre::Real>(attackedTile->getX()),
         static_cast<Ogre::Real>(attackedTile->getY()), CANNON_MISSILE_HEIGHT);
@@ -109,6 +107,9 @@ bool CreatureSkillMissileLaunch::tryUseFight(GameMap& gameMap, Creature* creatur
     missile->addToGameMap();
     missile->createMesh();
     missile->setPosition(position);
+    // The regular visibility pass already ran before this creature's upkeep.
+    // Announce the launch before the first path, not after next turn's movement.
+    missile->notifySeatsWithVision(creatureTile->getSeatsWithVision());
     // Tell the clients who shot what (cosmetic only: they can draw the bow or the cast). The name is taken
     // before the first upkeep because the missile may hit and vanish in it.
     CosmeticEvent launchEvent(CosmeticEventType::missileLaunch);

@@ -52,6 +52,9 @@ class ODSocketClient
             mLastTurnAck(-1),
             mPendingTimestamp(-1),
             mSupportsLiveNickname(false),
+            mSupportsCreatureMood(false),
+            mSupportsCreatureActivity(false),
+            mSupportsCreaturePanel(false),
             mSupportsCosmeticEvents(false)
         {}
 
@@ -72,6 +75,12 @@ class ODSocketClient
         void setPlayer(Player* player) { mPlayer = player; }
         bool supportsLiveNickname() const { return mSupportsLiveNickname; }
         void setSupportsLiveNickname(bool supported) { mSupportsLiveNickname = supported; }
+        bool supportsCreatureMood() const { return mSupportsCreatureMood; }
+        void setSupportsCreatureMood(bool supported) { mSupportsCreatureMood = supported; }
+        bool supportsCreatureActivity() const { return mSupportsCreatureActivity; }
+        void setSupportsCreatureActivity(bool supported) { mSupportsCreatureActivity = supported; }
+        bool supportsCreaturePanel() const { return mSupportsCreaturePanel; }
+        void setSupportsCreaturePanel(bool supported) { mSupportsCreaturePanel = supported; }
         //! Whether the client negotiated cosmetic events (see CosmeticEvent.h)
         bool supportsCosmeticEvents() const { return mSupportsCosmeticEvents; }
         //! \brief Records whether the client negotiated cosmetic events (see CosmeticEvent.h)
@@ -140,6 +149,9 @@ class ODSocketClient
         int32_t mPendingTimestamp;
         //! \brief True if the peer announced that it handles nickname changes during the game.
         bool mSupportsLiveNickname;
+        bool mSupportsCreatureMood;
+        bool mSupportsCreatureActivity;
+        bool mSupportsCreaturePanel;
         //! The client agreed to receive cosmetic events
         bool mSupportsCosmeticEvents;
 

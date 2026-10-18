@@ -28,6 +28,7 @@
 #include "entities/Tile.h"
 #include "entities/Weapon.h"
 #include "game/Player.h"
+#include "game/CreaturePanelData.h"
 #include "game/Seat.h"
 #include "game/Skill.h"
 #include "game/SkillType.h"
@@ -237,11 +238,33 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
             // The events start only after the server confirms this client's agreement.
             setSupportsCosmeticEvents(false);
 
+            bool creatureMood = false;
+            if(!packetReceived.endOfPacket())
+                OD_ASSERT_TRUE(packetReceived >> creatureMood);
+            // Payload extensions start only after the server confirms this client's agreement.
+            setSupportsCreatureMood(false);
+
+            bool creatureActivity = false;
+            if(!packetReceived.endOfPacket())
+                OD_ASSERT_TRUE(packetReceived >> creatureActivity);
+            setSupportsCreatureActivity(false);
+
+            bool creaturePanel = false;
+            if(!packetReceived.endOfPacket())
+                OD_ASSERT_TRUE(packetReceived >> creaturePanel);
+            setSupportsCreaturePanel(false);
+
             ODPacket packSend;
             const std::string& nick = gameMap->getLocalPlayerNick();
             packSend << ClientNotificationType::setNick << nick;
-            if(liveNickname || cosmeticEvents)
+            if(liveNickname || creatureMood || creatureActivity || creaturePanel || cosmeticEvents)
                 packSend << liveNickname;
+            if(creatureMood || creatureActivity || creaturePanel || cosmeticEvents)
+                packSend << creatureMood;
+            if(creatureActivity || creaturePanel || cosmeticEvents)
+                packSend << creatureActivity;
+            if(creaturePanel || cosmeticEvents)
+                packSend << creaturePanel;
             if(cosmeticEvents)
                 packSend << true;
             send(packSend);
@@ -251,9 +274,39 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
             {
                 case ServerMode::ModeGameSinglePlayer:
                 case ServerMode::ModeGameMultiPlayer:
-                case ServerMode::ModeGameLoaded:
                     frameListener->getModeManager()->requestMode(AbstractModeManager::MENU_CONFIGURE_SEATS);
                     break;
+                case ServerMode::ModeGameLoaded:
+                {
+                    // A saved skirmish already fixes its human side, faction and team.
+                    bool fixedSeats = getSource() != ODSource::file;
+                    uint32_t humanSeats = 0;
+                    for(Seat* seat : gameMap->getSeats())
+                    {
+                        if(seat->isRogueSeat())
+                            continue;
+                        if(seat->getPlayerType() == Seat::PLAYER_TYPE_HUMAN)
+                            ++humanSeats;
+                        else if(seat->getPlayerType() != Seat::PLAYER_TYPE_AI &&
+                                seat->getPlayerType() != Seat::PLAYER_TYPE_INACTIVE)
+                            fixedSeats = false;
+                        if(seat->getAvailableTeamIds().size() != 1 ||
+                           seat->getFaction() == Seat::PLAYER_FACTION_CHOICE)
+                            fixedSeats = false;
+                    }
+                    if(fixedSeats && humanSeats == 1)
+                    {
+                        ODPacket ready;
+                        ready << ClientNotificationType::readyForSeatConfiguration;
+                        send(ready);
+                        ODPacket start;
+                        start << ClientNotificationType::seatConfigurationSet;
+                        send(start);
+                    }
+                    else
+                        frameListener->getModeManager()->requestMode(AbstractModeManager::MENU_CONFIGURE_SEATS);
+                    break;
+                }
                 case ServerMode::ModeEditor:
                     break;
                 default:
@@ -290,6 +343,8 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
        
         case ServerNotificationType::addPlayers:
         {
+            if(frameListener->getModeManager()->getCurrentModeType() == ModeManager::MENU_LOAD_SAVEDGAME)
+                break;
             if(frameListener->getModeManager()->getCurrentModeType() != ModeManager::ModeType::MENU_CONFIGURE_SEATS)
             {
                 OD_LOG_ERR("Wrong mode " + Helper::toString(frameListener->getModeManager()->getCurrentModeType()));
@@ -407,6 +462,22 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
 
             ServerMode serverMode;
             OD_ASSERT_TRUE(packetReceived >> serverMode);
+
+            // Replays also need the per-client agreement, not just the server's offer.
+            bool creatureMood = false;
+            if(!packetReceived.endOfPacket())
+                OD_ASSERT_TRUE(packetReceived >> creatureMood);
+            setSupportsCreatureMood(creatureMood);
+
+            bool creatureActivity = false;
+            if(!packetReceived.endOfPacket())
+                OD_ASSERT_TRUE(packetReceived >> creatureActivity);
+            setSupportsCreatureActivity(creatureActivity);
+
+            bool creaturePanel = false;
+            if(!packetReceived.endOfPacket())
+                OD_ASSERT_TRUE(packetReceived >> creaturePanel);
+            setSupportsCreaturePanel(creaturePanel);
 
             // Older servers end the packet here; without the agreement no cosmetic event ever arrives
             bool cosmeticEvents = false;
@@ -651,7 +722,21 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
             if(tile == nullptr)
                 break;
 
-            gameMap->getLocalPlayer()->dropHand(tile);
+            unsigned int index = 0;
+            // A reply may arrive after another local rotation or pickup.
+            if(!packetReceived.endOfPacket())
+            {
+                int32_t entityType;
+                std::string entityName;
+                if(!(packetReceived >> entityType >> entityName))
+                {
+                    OD_LOG_ERR("Incomplete dropped entity identity");
+                    break;
+                }
+                index = gameMap->getLocalPlayer()->getHandIndex(
+                    static_cast<GameEntityType>(entityType), entityName);
+            }
+            gameMap->getLocalPlayer()->dropHand(tile, index);
             break;
         }
         case ServerNotificationType::entityTeleported:
@@ -705,6 +790,19 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
             OD_ASSERT_TRUE(packetReceived >> goalsString);
 
             refreshMainUI(goalsString);
+            break;
+        }
+
+        case ServerNotificationType::creaturePanel:
+        {
+            CreaturePanelData data;
+            if(!supportsCreaturePanel() || !importCreaturePanelData(packetReceived, data))
+            {
+                OD_LOG_ERR("Invalid creature panel snapshot");
+                return false;
+            }
+            if(frameListener->getModeManager()->getCurrentModeType() == ModeManager::GAME)
+                static_cast<GameMode*>(frameListener->getModeManager()->getCurrentMode())->refreshCreaturePanel(data);
             break;
         }
 
@@ -1025,6 +1123,58 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
             // OD_LOG_INF("now refreshing the bordering tiles of ....");
             gameMapPointer->refreshBorderingTilesOf(tiles, nt);
 	    // OD_LOG_INF("refreshing the bordering tiles of ... ended");
+            break;
+        }
+
+        case ServerNotificationType::roomConstructionEffect:
+        {
+            uint32_t nbTiles;
+            OD_ASSERT_TRUE(packetReceived >> nbTiles);
+            std::vector<Tile*> tiles;
+            while(nbTiles > 0)
+            {
+                --nbTiles;
+                Tile* tile = gameMap->tileFromPacket(packetReceived);
+                if(tile != nullptr)
+                    tiles.push_back(tile);
+            }
+
+            if(frameListener->getModeManager()->getCurrentModeType() == ModeManager::ModeType::GAME)
+                RenderManager::getSingleton().rrCreateRoomConstructionEffect(tiles);
+            break;
+        }
+
+        case ServerNotificationType::creatureChickenFeeding:
+        {
+            std::string creatureName;
+            std::string chickenName;
+            Ogre::Vector3 chickenPosition;
+            OD_ASSERT_TRUE(packetReceived >> creatureName >> chickenName >> chickenPosition);
+            Creature* creature = gameMap->getCreature(creatureName);
+            if(creature != nullptr &&
+               frameListener->getModeManager()->getCurrentModeType() == ModeManager::ModeType::GAME)
+            {
+                RenderManager::getSingleton().rrSetFeedingChicken(creature,
+                    gameMap->getAnimatedObject(chickenName), chickenPosition);
+            }
+            break;
+        }
+
+        case ServerNotificationType::creatureCombatImpact:
+        {
+            std::string creatureName;
+            bool weaponClash;
+            bool bodyDamage;
+            Ogre::Vector3 attackerPosition;
+            OD_ASSERT_TRUE(packetReceived >> creatureName >> weaponClash
+                >> bodyDamage >> attackerPosition);
+            Creature* creature = gameMap->getCreature(creatureName);
+            if(creature != nullptr &&
+               frameListener->getModeManager()->getCurrentModeType() == ModeManager::ModeType::GAME)
+            {
+                RenderManager::getSingleton().rrCreateCreatureCombatImpact(
+                    creature, weaponClash, bodyDamage, attackerPosition);
+            }
             break;
         }
         

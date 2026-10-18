@@ -24,6 +24,9 @@
 
 
 #include <vector>
+#include <string>
+
+class Gui;
 
 //! \brief This class is creating a setting window gui child to the current gui context
 //! and populates its widgets with the current game, video, audio values.
@@ -34,11 +37,13 @@ public:
     //! \brief Settings window constructor
     //! \param rootWindow The main CEGUI window used as background to the current mode.
     //! Used to load and later show the settings window.
-    SettingsWindow(CEGUI::Window* rootWindow);
+    SettingsWindow(CEGUI::Window* rootWindow, Gui& gui, bool menuPages = false, bool gamePage = false);
 
     ~SettingsWindow();
 
     void show();
+
+    void showPage(const std::string& name);
 
     void hide();
 
@@ -64,6 +69,8 @@ private:
 
     //! \brief The root window.
     CEGUI::Window* mRootWindow;
+
+    Gui& mGui;
 
     //! \brief The temporary video comboboxes and texts created depending on the video settings.
     std::vector<CEGUI::Window*> mCustomVideoComboBoxes;
@@ -99,6 +106,9 @@ private:
     //! \brief Called when changing the ambient light factor value.
     bool onLightFactorChanged(const CEGUI::EventArgs&);
     bool onPanSpeedChanged(const CEGUI::EventArgs&);
+
+    //! \brief Applies the selected UI scale immediately.
+    bool onUiScaleChanged(const CEGUI::EventArgs&);
 
     //! \brief Set the volume value in the ambient light factor setting text and slider.
     void setLightFactorValue(float lightFactor);

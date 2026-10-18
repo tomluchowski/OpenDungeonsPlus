@@ -34,6 +34,7 @@
 
 #include <Ogre.h>
 
+#include <CEGUI/widgets/FrameWindow.h>
 #include <CEGUI/widgets/PushButton.h>
 #include <CEGUI/widgets/Scrollbar.h>
 
@@ -179,15 +180,47 @@ void GameEditorModeBase::connectGuiAction(const std::string& buttonName, Abstrac
     );
 }
 
+bool GameEditorModeBase::cameraInputBlocked()
+{
+    if(mCurrentInputMode != InputModeNormal || !isConnected() ||
+        !ODFrameListener::getSingleton().getRenderWindow()->isActive())
+        return true;
+    for(size_t i = 0; i < mRootWindow->getChildCount(); ++i)
+    {
+        CEGUI::Window* child = mRootWindow->getChildAtIdx(i);
+        if(child->isVisible() && dynamic_cast<CEGUI::FrameWindow*>(child) != nullptr)
+            return true;
+    }
+    return false;
+}
+
 bool GameEditorModeBase::onMinimapClick(const CEGUI::EventArgs& arg)
 {
     const CEGUI::MouseEventArgs& mouseEvt = static_cast<const CEGUI::MouseEventArgs&>(arg);
+    if(getModeType() == ModeManager::GAME &&
+        (mouseEvt.button != CEGUI::LeftButton || cameraInputBlocked()))
+        return true;
+
+    CEGUI::Window* mapWindow = mRootWindow->getChild(Gui::MINIMAP);
+    if(mapWindow->isUserStringDefined("Circular") && mapWindow->getUserString("Circular") == "true")
+    {
+        const CEGUI::Rectf area = mapWindow->getUnclippedOuterRect().get();
+        if(area.getWidth() <= 0.0f || area.getHeight() <= 0.0f)
+            return true;
+        const float x = 2.0f * (mouseEvt.position.d_x - area.left()) / area.getWidth() - 1.0f;
+        const float y = 2.0f * (mouseEvt.position.d_y - area.top()) / area.getHeight() - 1.0f;
+        if(x * x + y * y > 1.0f)
+            return true;
+    }
 
     ODFrameListener& frameListener = ODFrameListener::getSingleton();
 
     Ogre::Vector2 cc = mMiniMap->camera_2dPositionFromClick(static_cast<int>(mouseEvt.position.d_x),
         static_cast<int>(mouseEvt.position.d_y));
-    frameListener.getCameraManager()->onMiniMapClick(cc);
+    if(getModeType() == ModeManager::GAME)
+        frameListener.getCameraManager()->jumpToViewTarget(cc);
+    else
+        frameListener.getCameraManager()->onMiniMapClick(cc);
 
     return true;
 }
@@ -255,7 +288,7 @@ void GameEditorModeBase::updateMessages(Ogre::Real update_time)
     for (auto it = mEventMessages.begin(); it != mEventMessages.end();)
     {
         EventMessage* event = *it;
-        if (event->isMessageTooOld(maxChatTimeDisplay))
+        if (shouldExpireEventMessages() && event->isMessageTooOld(maxChatTimeDisplay))
         {
             delete event;
             it = mEventMessages.erase(it);
