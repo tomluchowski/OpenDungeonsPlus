@@ -28,6 +28,7 @@ assert 'resetProgress()' in confirmed
 defeat = game[game.index('bool GameMode::onClickDefeatDebriefingConfirm('):game.index('bool GameMode::onClickYesQuitMenu(')]
 assert 'Campaign::getSingleton().isActive()' in defeat
 assert 'MENU_CAMPAIGN' in defeat and 'requestMainMenuWithSkirmishSubMenu()' in defeat
+game_map = read('source/gamemap/GameMap.cpp')
 # A bonus level can opt out of the Heartstone pieces with its own reward.
 assert 'key == "Heartstone"' in read('source/game/Campaign.cpp')
 # Victory keeps its authoritative goal list and saves progress before notifying the client.
