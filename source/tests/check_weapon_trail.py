@@ -28,7 +28,7 @@ config_cpp = read('source/render/CreatureReactionConfig.cpp')
 cfg = read('config/creatureReactions.cfg')
 checker = read('tools/check_creature_reactions.py')
 
-# New files in the build, no new asset (the existing additive glow material is used)
+# New files in the build, no new asset (the existing alpha-weighted additive glow material is used)
 assert '${SRC}/render/WeaponTrail.cpp' in read('CMakeLists.txt')
 for name in ('noteStrongBlow', 'update', 'removeCreature', 'stopAll'):
     assert re.search(r'\b' + name + r'\(', trail_h), name + ' not declared'
@@ -38,7 +38,7 @@ assert re.search(r'^material ' + material + r'\s*$', read('materials/scripts/Cre
 glow = read('materials/scripts/CreatureReactions.material')
 glow = glow[glow.index('material ' + material):]
 glow = glow[:glow.index('\n}\n')]
-assert 'scene_blend add' in glow and 'depth_write off' in glow and 'diffuse vertexcolour' in glow
+assert 'scene_blend src_alpha one' in glow and 'depth_write off' in glow and 'diffuse vertexcolour' in glow
 
 # Config: documented, set, read with a default and limits, accepted by the format check
 keys = {'WeaponTrail': 'mWeaponTrail(DEFAULT_WEAPON_TRAIL)', 'WeaponTrailLife': 'mWeaponTrailLife(DEFAULT_WEAPON_TRAIL_LIFE)',
