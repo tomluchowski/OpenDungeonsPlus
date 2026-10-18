@@ -48,6 +48,8 @@ namespace
 {
     //! Real time allowed for the game to start (level load and connection)
     const int32_t LOAD_LIMIT_SECONDS = 90;
+    //! Directory identifying campaign maps in the existing level test input.
+    const std::string CAMPAIGN_DIRECTORY = "campaign";
 
     std::atomic<bool> sActive(false);
     std::atomic<bool> sFinished(false);
@@ -225,6 +227,7 @@ void RunLevelTest::recordFrame(float seconds)
     sFrameMicros.fetch_add(static_cast<uint64_t>(seconds * 1000000.0f));
 }
 
+//! \brief Checks loading, registered goals and the existing timed victory probe on server turns.
 void RunLevelTest::onServerTurn(GameMap& gameMap)
 {
     if(sFinished.load())
@@ -261,6 +264,18 @@ void RunLevelTest::onServerTurn(GameMap& gameMap)
     {
         fail(codeRunError, "run error: no human player in the game");
         return;
+    }
+
+    if(firstTurn && boost::filesystem::path(sLevelFile).parent_path().filename().string() == CAMPAIGN_DIRECTORY)
+    {
+        const unsigned int goalCount = humanSeat->numUncompleteGoals()
+            + humanSeat->numCompletedGoals() + humanSeat->numFailedGoals();
+        if(goalCount == 0)
+        {
+            fail(codeLoadError, "load error: no registered goals for the human seat");
+            return;
+        }
+        std::cout << "GOALS registered=" << goalCount << std::endl;
     }
 
     std::string played = Helper::toString(static_cast<int64_t>(turn / ODApplication::turnsPerSecond)) + " s game time";
