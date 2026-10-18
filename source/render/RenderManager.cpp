@@ -97,6 +97,8 @@ const Ogre::Real CREATURE_DROP_ANIMATION_DURATION = 0.35f;
 const Ogre::Real CREATURE_GET_UP_ANIMATION_DURATION = 0.35f;
 //! Existing bed-settling duration, also used to return naturally to the stored standing pose.
 static const Ogre::Real CREATURE_SLEEP_TRANSITION_DURATION = 1.2f;
+//! Reuse the hand's short four-frame pose blend when entering a native wake clip.
+static const Ogre::Real CREATURE_WAKE_BLEND_DURATION = 4.0f / 30.0f;
 const Ogre::Real ROOM_CONSTRUCTION_EFFECT_DURATION = 1.1f;
 const Ogre::Real CREATURE_COMBAT_IMPACT_DURATION = 0.55f;
 
@@ -1301,6 +1303,18 @@ void RenderManager::updateRenderAnimations(Ogre::Real timeSinceLastFrame)
         if(sleeping.mWaking)
         {
             sleeping.mElapsed += timeSinceLastFrame;
+            if(sleeping.mWakeFromAnimation != nullptr)
+            {
+                const Ogre::Real phase = std::min(sleeping.mElapsed / CREATURE_WAKE_BLEND_DURATION, 1.0f);
+                const Ogre::Real weight = phase * phase * (3.0f - 2.0f * phase);
+                sleeping.mWakeFromAnimation->setWeight(1.0f - weight);
+                sleeping.mAnimation->setWeight(weight);
+                if(phase >= 1.0f)
+                {
+                    sleeping.mWakeFromAnimation->setEnabled(false);
+                    sleeping.mWakeFromAnimation = nullptr;
+                }
+            }
             const Ogre::Real progress = std::min(sleeping.mElapsed / CREATURE_SLEEP_TRANSITION_DURATION, 1.0f);
             const Ogre::Real blend = progress * progress * (3.0f - 2.0f * progress);
             sleeping.mAnimation->setTimePosition(sleeping.mReverseWake ?
@@ -3500,7 +3514,7 @@ void RenderManager::startCreatureSleepAnimation(Creature* creature, Ogre::Entity
     Ogre::SceneNode* node = creature->getEntityNode();
     CreatureSleepAnimation sleeping = {creature, entity, node, node->getScale(),
         animation, 0.0f, nativeEntry, node->getPosition(), node->getPosition(),
-        node->getOrientation(), node->getOrientation(), false, false, 0.0f, node->getScale()};
+        node->getOrientation(), node->getOrientation(), false, false, 0.0f, node->getScale(), nullptr};
     mCreatureSleepAnimations.push_back(sleeping);
 }
 
@@ -3538,10 +3552,18 @@ bool RenderManager::startCreatureWakeAnimation(Creature* creature, Ogre::Entity*
             !entity->hasAnimationState(clip);
         if(sleeping.mReverseWake)
             clip = entity->hasAnimationState("Sleep_Start") ? "Sleep_Start" : "SettleToSleep";
+        Ogre::AnimationState* previousAnimation = sleeping.mAnimation;
         sleeping.mAnimation = setEntityAnimation(entity, clip, false);
         sleeping.mWakeStartTime = (clip == previousClip) ? previousTime : sleeping.mAnimation->getLength();
         if(sleeping.mReverseWake)
             sleeping.mAnimation->setTimePosition(sleeping.mWakeStartTime);
+        if(previousAnimation != sleeping.mAnimation)
+        {
+            sleeping.mWakeFromAnimation = previousAnimation;
+            previousAnimation->setWeight(1.0f);
+            previousAnimation->setEnabled(true);
+            sleeping.mAnimation->setWeight(0.0f);
+        }
         creature->setAnimationState(sleeping.mAnimation);
         return true;
     }
@@ -3593,6 +3615,7 @@ void RenderManager::fitCreatureToBed(CreatureSleepAnimation& sleeping)
     }
 }
 
+//! \brief Restores the standing transform and releases a retained native sleep-to-wake blend.
 void RenderManager::cancelCreatureSleepAnimation(Creature* creature)
 {
     for(std::vector<CreatureSleepAnimation>::iterator it = mCreatureSleepAnimations.begin(); it != mCreatureSleepAnimations.end();)
@@ -3605,6 +3628,11 @@ void RenderManager::cancelCreatureSleepAnimation(Creature* creature)
         it->mNode->setScale(it->mBaseScale);
         it->mNode->setPosition(it->mBasePosition);
         it->mNode->setOrientation(it->mBaseOrientation);
+        if(it->mWakeFromAnimation != nullptr)
+        {
+            it->mWakeFromAnimation->setEnabled(false);
+            it->mAnimation->setWeight(1.0f);
+        }
         it = mCreatureSleepAnimations.erase(it);
     }
 }
