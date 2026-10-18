@@ -166,25 +166,27 @@ File: `levels/campaign/Cinderhollow.level`.
 | --- | --- | --- |
 | [Goals] | `KillAllEnemies	NULL` | yes |
 | [Goals] | `ProtectDungeonTemple	NULL` | yes |
-| Script line 5088 | `Action	objectiveid	1	cinderhollow-o01	Hold your dungeon heart until dawn, then destroy the rival keeper.` | yes |
-| Script line 5089 | `Action	objectiveid	1	cinderhollow-o02	Mine the western and southern seams before the first wave.` | yes |
-| Script line 5090 | `Action	objectiveid	1	cinderhollow-o03	Break all three hero waves at your heart.` | yes |
-| Script line 5091 | `Action	objectiveid	1	cinderhollow-o04	After dawn, cross the lava bridge to the crater.` | yes |
-| Script line 5176 | `Action	objectiveid	1	cinderhollow-o05	Destroy the rival keeper in the north-east crater.` | yes |
-| Script line 5187 | `Action	win	1` | yes |
-| Script line 5193 | `Cond	goal	1	KillAllEnemies` | yes |
-| Script line 5197 | `Action	win	1` | yes |
-| Script line 5222 | `Action	win	1` | yes |
-| Trigger `rivalHeartDown` | `Action	objectivestate	1	cinderhollow-o01	reached`; conditions: `Cond	time	1800; Cond	goal	1	KillAllEnemies` | yes |
+| Script line 5090 | `Action	objectiveid	1	cinderhollow-o01	Hold your dungeon heart until dawn, then destroy the rival keeper.` | yes |
+| Script line 5091 | `Action	objectiveid	1	cinderhollow-o02	Fully mine the western and southern starting seams.` | yes |
+| Script line 5092 | `Action	objectiveid	1	cinderhollow-o03	Break all three hero waves at your heart.` | yes |
+| Script line 5093 | `Action	objectiveid	1	cinderhollow-o04	After dawn, cross the lava bridge to the crater.` | yes |
+| Script line 5178 | `Action	objectiveid	1	cinderhollow-o05	Destroy the rival keeper in the north-east crater.` | yes |
+| Script line 5196 | `Action	win	1` | yes |
+| Script line 5202 | `Cond	goal	1	KillAllEnemies` | yes |
+| Script line 5210 | `Cond	goal	1	KillAllEnemies` | yes |
+| Script line 5213 | `Action	win	1` | yes |
+| Script line 5245 | `Action	win	1` | yes |
+| Trigger `goalBothFiniteSeamsMined` | `Action	objectivestate	1	cinderhollow-o02	reached`; conditions: `Cond	slabs	-1	GoalWestGoldSeam	gold	==	0; Cond	slabs	-1	GoalSouthGoldSeam	gold	==	0` | yes |
+| Trigger `goalHeartSafe1BeforeRivalHeartDown` | `Action	objectivestate	1	cinderhollow-o01	reached`; conditions: `Cond	time	1800; Cond	goal	1	KillAllEnemies; Cond	goalmet	1	ProtectDungeonTemple` | yes |
 | Trigger `rivalHeartDown` | `Action	objectivestate	1	cinderhollow-o05	reached`; conditions: `Cond	time	1800; Cond	goal	1	KillAllEnemies` | yes |
-| Trigger `rivalHeartFalls` | `Action	objectivestate	1	cinderhollow-o01	reached`; conditions: `Cond	time	1800; Cond	defeated	2` | yes |
+| Trigger `goalHeartSafe1BeforeRivalHeartFalls` | `Action	objectivestate	1	cinderhollow-o01	reached`; conditions: `Cond	time	1800; Cond	defeated	2; Cond	goalmet	1	ProtectDungeonTemple` | yes |
 | Trigger `rivalHeartFalls` | `Action	objectivestate	1	cinderhollow-o05	reached`; conditions: `Cond	time	1800; Cond	defeated	2` | yes |
 | Trigger `goalCraterAfterBridge` | `Action	objectivestate	1	cinderhollow-o04	reached`; conditions: `Cond	flag	goalDawnBridgeCrossed	1; Cond	region	1	RivalCrater` | yes |
 | Trigger `goalThreeWavesDefeatedAtHeart` | `Action	objectivestate	1	cinderhollow-o03	reached`; conditions: `Cond	spawncleared	waveOne	2	atheart	1; Cond	spawncleared	waveTwo	2	atheart	1; Cond	spawncleared	waveThree	2	atheart	1; Cond	spawncleared	waveThree	3	atheart	1` | yes |
-| Objective mapping | objective has no completing trigger: cinderhollow-o02: Mine the western and southern seams before the first wave. | no: requires design decision |
-| Open requirement `cinderhollow-o02`: Mine the western and southern seams before the first wave. | Candidates/conditions: `GoldHollow: no matching existing trigger; WestRoad: no matching existing trigger`; missing: The named western and southern seams have no exact required extents or mined quantity, while the first wave starts at420 seconds. Proposal/question: Which western/southern gold tiles count, and is any gold from each seam sufficient or must both be exhausted? Recommend retaining the exact420-second deadline and explicitly named existing seam areas. | open |
+| Trigger `goalHeartLost1` | `Action	objectivestate	1	cinderhollow-o01	failed`; conditions: `Cond	room	1	DungeonTemple	==	0` | yes |
 | Briefing | Mine the seams and defend your heart until dawn. | no: ProtectDungeonTemple checks survival; mining is not required |
 | Briefing | Then cross the lava bridge and destroy the rival heart. | no: enemy temple elimination is checked; bridge crossing is not an independent goal |
+Mario's explicit criterion for cinderhollow-o02: fully mine all 16 original finite gold fields x5..6/y55..58 and x30..33/y72..73. No deadline or first-wave failure applies; this approved criterion overrides the unchanged objective prose mentioning the first wave.
 
 ## Coldwell
 
@@ -420,16 +422,18 @@ File: `levels/campaign/Lanternhill.level`.
 | Script line 3066 | `Action	objectiveid	1	lanternhill-o01	Destroy the heart of the rival keeper in the north.` | yes |
 | Script line 3067 | `Action	objectiveid	1	lanternhill-o02	Dig through the earth plugs to open the ring road.` | yes |
 | Script line 3068 | `Action	objectiveid	1	lanternhill-o03	Hold your own heart against the hill patrols.` | yes |
-| Script line 3196 | `Action	win	1` | yes |
-| Script line 3201 | `Cond	goal	1	KillAllEnemies` | yes |
-| Script line 3205 | `Action	win	1` | yes |
+| Script line 3202 | `Action	win	1` | yes |
+| Script line 3207 | `Cond	goal	1	KillAllEnemies` | yes |
+| Script line 3214 | `Cond	goal	1	KillAllEnemies` | yes |
+| Script line 3217 | `Action	win	1` | yes |
+| Trigger `goalRingGroundPathOpened` | `Action	objectivestate	1	lanternhill-o02	reached`; conditions: `Cond	groundconnected	1	13	57	40	22` | yes |
+| Trigger `goalHeartSafe3BeforeRivalHeartDown` | `Action	objectivestate	1	lanternhill-o03	reached`; conditions: `Cond	goal	1	KillAllEnemies; Cond	goalmet	1	ProtectDungeonTemple` | yes |
 | Trigger `rivalHeartDown` | `Action	objectivestate	1	lanternhill-o01	reached`; conditions: `Cond	goal	1	KillAllEnemies` | yes |
-| Trigger `rivalHeartDown` | `Action	objectivestate	1	lanternhill-o03	reached`; conditions: `Cond	goal	1	KillAllEnemies` | yes |
-| Objective mapping | objective has no completing trigger: lanternhill-o02: Dig through the earth plugs to open the ring road. | no: requires design decision |
-| Open requirement `lanternhill-o02`: Dig through the earth plugs to open the ring road. | Candidates/conditions: `none: no matching existing trigger`; missing: Several different full-earth plugs exist and are bypassable; no existing region or trigger identifies which plural plugs this text requires. Proposal/question: Which exact tile coordinates are the required earth plugs? Recommend explicitly identifying those existing tiles; never treat all full dirt in Ring as mandatory digging. | open |
+| Trigger `goalHeartLost3` | `Action	objectivestate	1	lanternhill-o03	failed`; conditions: `Cond	room	1	DungeonTemple	==	0` | yes |
 | Briefing | Mine the seams, dig through the ring road's earth plugs and withstand the kingdom's patrols. | no: mining and digging the plugs are not independent goals |
 | Briefing | Destroy the northern rival heart beneath Ines Vale's lamps. | yes: KillAllEnemies includes the northern rival temple |
 | Briefing | A pale stone hidden in the hill may reveal another optional trial when carried home. | no: optional stone discovery is not required to win |
+lanternhill-o02 requires an actual current dry worker path from (13,57) to (40,22), including legal alternative digging routes; no fixed plug subset is required.
 
 ## Mirewatch
 
@@ -444,15 +448,24 @@ File: `levels/campaign/Mirewatch.level`.
 | Script line 5737 | `Action	objectiveid	1	mirewatch-o03	Take the towers on the way, one by one.` | yes |
 | Script line 5767 | `Action	objectiveid	1	mirewatch-o04	Possess a creature and scout the north-west tower for the marsh road.` | yes |
 | Script line 5827 | `Action	objectiveid	1	mirewatch-o05	Enter the warden's tower and kill Mora Fenwick.` | yes |
-| Script line 5908 | `Action	win	1` | yes |
+| Script line 5922 | `Action	win	1` | yes |
+| Trigger `goalNineTowerRoomsClaimed` | `Action	objectivestate	1	mirewatch-o03	reached`; conditions: `Cond	roomclaimed	1	44	106	47	107; Cond	roomclaimed	1	86	110	88	111; Cond	roomclaimed	1	24	78	26	79; Cond	roomclaimed	1	74	82	78	84; Cond	roomclaimed	1	20	44	22	45; Cond	roomclaimed	1	68	50	69	52; Cond	roomclaimed	1	44	24	47	25; Cond	roomclaimed	1	94	22	97	23; Cond	roomclaimed	1	99	18	101	19` | yes |
 | Trigger `watcherSlain` | `Action	objectivestate	1	mirewatch-o01	reached`; conditions: `Cond	time	5; Cond	creatures	2	<=	0` | yes |
 | Trigger `watcherSlain` | `Action	objectivestate	1	mirewatch-o05	reached`; conditions: `Cond	time	5; Cond	creatures	2	<=	0` | yes |
 | Trigger `scoutTowerC` | `Action	objectivestate	1	mirewatch-o04	reached`; conditions: `Cond	possessed	1	TowerC` | yes |
-| Objective mapping | objective has no completing trigger: mirewatch-o03: Take the towers on the way, one by one. | no: requires design decision |
-| Open requirement `mirewatch-o03`: Take the towers on the way, one by one. | Candidates/conditions: `towerA: Cond	region	1	TowerA; towerB: Cond	region	1	TowerB; towerC: Cond	region	1	TowerC; towerD: Cond	region	1	TowerD; towerE: Cond	region	1	TowerE; towerF: Cond	region	1	TowerF; towerG: Cond	region	1	TowerG; wardenSeen: Cond	region	1	TowerH`; missing: All eight tower regions are known, but taking a tower can mean mere entry or clearing and occupying it; no fixed visit order is stated. Proposal/question: Should a tower count after own presence and zero enemies in its region? Recommend that cleared occupation for all eight, without inventing a fixed branch order. | open |
 | Briefing | You have only workers, so dig and build before crossing the black-water causeways. | no: digging/building order is not a winning condition |
 | Briefing | Take the towers and secure both sealed approaches to Mora Fenwick's last tower. | no: all tower ownership and both approaches are not independent winning goals |
 | Briefing | Kill the watcher and bring this chosen barrier down. | yes: KillAllEnemies includes the watcher |
+mirewatch-o03 requires complete worker claim and current room ownership on the nine original room masks, exactly 69 fields; broad tower regions and visits do not qualify.
+Original room `GuardRoom1`: type 17, owner 3, rectangle (44, 106, 47, 107), 8 fields.
+Original room `GuardRoom2`: type 17, owner 3, rectangle (86, 110, 88, 111), 6 fields.
+Original room `Library1`: type 7, owner 3, rectangle (24, 78, 26, 79), 6 fields.
+Original room `Arena1`: type 14, owner 3, rectangle (74, 82, 78, 84), 15 fields.
+Original room `Library2`: type 7, owner 3, rectangle (20, 44, 22, 45), 6 fields.
+Original room `Prison1`: type 11, owner 3, rectangle (68, 50, 69, 52), 6 fields.
+Original room `Workshop1`: type 5, owner 3, rectangle (44, 24, 47, 25), 8 fields.
+Original room `GuardRoom3`: type 17, owner 2, rectangle (94, 22, 97, 23), 8 fields.
+Original room `Workshop2`: type 5, owner 2, rectangle (99, 18, 101, 19), 6 fields.
 
 ## Mossgate
 

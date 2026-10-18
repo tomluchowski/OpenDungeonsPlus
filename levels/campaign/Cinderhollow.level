@@ -5080,13 +5080,15 @@ Region	EastGateZone	62	42	78	60
 Region	NorthRoad	28	6	42	20
 Region	RivalCrater	44	10	66	32
 Region	EastShelf	60	26	72	40
+Region	GoalWestGoldSeam	5	55	6	58
+Region	GoalSouthGoldSeam	30	72	33	73
 [Trigger]
 Name	firstLight
 Mode	once
 Cond	time	3
 Action	message	1	Pell Ashgrove has sent for the soldiers of the kingdom, master. They will come down into the hollow in three waves, and a rival keeper has taken the crater rim in the north-east.
 Action	objectiveid	1	cinderhollow-o01	Hold your dungeon heart until dawn, then destroy the rival keeper.
-Action	objectiveid	1	cinderhollow-o02	Mine the western and southern seams before the first wave.
+Action	objectiveid	1	cinderhollow-o02	Fully mine the western and southern starting seams.
 Action	objectiveid	1	cinderhollow-o03	Break all three hero waves at your heart.
 Action	objectiveid	1	cinderhollow-o04	After dawn, cross the lava bridge to the crater.
 [/Trigger]
@@ -5179,6 +5181,13 @@ Action	spawn	2	55	25	1	Troll:4	Orc:4	LavaSpawn:3	PitDemon:3	Goblin:3
 Action	timelimit	1800
 [/Trigger]
 [Trigger]
+Name	goalBothFiniteSeamsMined
+Mode	once
+Cond	slabs	-1	GoalWestGoldSeam	gold	==	0
+Cond	slabs	-1	GoalSouthGoldSeam	gold	==	0
+Action	objectivestate	1	cinderhollow-o02	reached
+[/Trigger]
+[Trigger]
 Name	rivalFalls
 Mode	once
 Cond	time	1800
@@ -5187,12 +5196,19 @@ Action	message	1	The rival keeper is dead and his heart is cold. Cinderhollow is
 Action	win	1
 [/Trigger]
 [Trigger]
+Name	goalHeartSafe1BeforeRivalHeartDown
+Mode	once
+Cond	time	1800
+Cond	goal	1	KillAllEnemies
+Cond	goalmet	1	ProtectDungeonTemple
+Action	objectivestate	1	cinderhollow-o01	reached
+[/Trigger]
+[Trigger]
 Name	rivalHeartDown
 Mode	once
 Cond	time	1800
 Cond	goal	1	KillAllEnemies
 Action	message	1	The rival keeper is dead and his heart is cold. Cinderhollow is quiet.
-Action	objectivestate	1	cinderhollow-o01	reached
 Action	objectivestate	1	cinderhollow-o05	reached
 Action	win	1
 [/Trigger]
@@ -5212,12 +5228,19 @@ Action	message	1	The lava lake has sunk with the dawn and a stone causeway rises
 Action	terrain	55	31	55	34	bridge	1
 [/Trigger]
 [Trigger]
+Name	goalHeartSafe1BeforeRivalHeartFalls
+Mode	once
+Cond	time	1800
+Cond	defeated	2
+Cond	goalmet	1	ProtectDungeonTemple
+Action	objectivestate	1	cinderhollow-o01	reached
+[/Trigger]
+[Trigger]
 Name	rivalHeartFalls
 Mode	once
 Cond	time	1800
 Cond	defeated	2
 Action	message	1	The rival heart is shattered and the crater is silent. Cinderhollow is yours.
-Action	objectivestate	1	cinderhollow-o01	reached
 Action	objectivestate	1	cinderhollow-o05	reached
 Action	win	1
 [/Trigger]
@@ -5267,5 +5290,11 @@ Cond	spawncleared	waveTwo	2	atheart	1
 Cond	spawncleared	waveThree	2	atheart	1
 Cond	spawncleared	waveThree	3	atheart	1
 Action	objectivestate	1	cinderhollow-o03	reached
+[/Trigger]
+[Trigger]
+Name	goalHeartLost1
+Mode	once
+Cond	room	1	DungeonTemple	==	0
+Action	objectivestate	1	cinderhollow-o01	failed
 [/Trigger]
 [/Triggers]

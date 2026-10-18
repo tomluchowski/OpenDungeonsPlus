@@ -5898,6 +5898,20 @@ Action	message	1	The last of the watch is on the march.
 Action	spawn	3	47	98	1	Knight:4	Knight:4	Elf:4	Monk:4	Dwarf2:3	Adventurer:3
 [/Trigger]
 [Trigger]
+Name	goalNineTowerRoomsClaimed
+Mode	once
+Cond	roomclaimed	1	44	106	47	107
+Cond	roomclaimed	1	86	110	88	111
+Cond	roomclaimed	1	24	78	26	79
+Cond	roomclaimed	1	74	82	78	84
+Cond	roomclaimed	1	20	44	22	45
+Cond	roomclaimed	1	68	50	69	52
+Cond	roomclaimed	1	44	24	47	25
+Cond	roomclaimed	1	94	22	97	23
+Cond	roomclaimed	1	99	18	101	19
+Action	objectivestate	1	mirewatch-o03	reached
+[/Trigger]
+[Trigger]
 Name	watcherSlain
 Mode	once
 Cond	time	5
