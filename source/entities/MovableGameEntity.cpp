@@ -265,6 +265,10 @@ void MovableGameEntity::startAnimationClip()
 
 void MovableGameEntity::update(Ogre::Real timeSinceLastFrame)
 {
+    // On the server, the elapsed time already is game time. On the clients, the game speed setting
+    // changes how fast the game time runs compared to the real time
+    const double gameSpeedFactor = getIsOnServerMap() ? 1.0 : getGameMap()->getGameSpeedFactor();
+
     // The strike clip that waited for the turn to the target starts now (clients only; the damage was never
     // tied to it)
     if(mBlowStartDelay > 0.0)
@@ -280,7 +284,7 @@ void MovableGameEntity::update(Ogre::Real timeSinceLastFrame)
 
     // Advance the animation
     double addedTime = static_cast<Ogre::Real>(ODApplication::turnsPerSecond
-         * static_cast<double>(timeSinceLastFrame)
+         * static_cast<double>(timeSinceLastFrame) * gameSpeedFactor
          * getAnimationSpeedFactor());
     if(mPrevAnimationState == EntityAnimation::combat_attack_anim)
         addedTime *= COMBAT_ATTACK_SPEED_FACTOR;
@@ -306,7 +310,7 @@ void MovableGameEntity::update(Ogre::Real timeSinceLastFrame)
     // If this happens to become a problem, resyncing mechanisms will be needed.
     double moveDist = ODApplication::turnsPerSecond
                       * getMoveSpeed()
-                      * timeSinceLastFrame;
+                      * timeSinceLastFrame * gameSpeedFactor;
     Ogre::Vector3 newPosition3f = getPosition();    
     Ogre::Vector2 newPosition = Ogre::Vector2(newPosition3f.x,newPosition3f.y);
     Ogre::Vector2 nextDest = mWalkQueue.front();
