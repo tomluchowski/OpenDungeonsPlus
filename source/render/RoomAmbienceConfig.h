@@ -67,20 +67,20 @@ enum class AmbienceKind
     //! A short shake of the view (events only): Amount = strength in world units, Speed = shakes per second,
     //! Duration in seconds, MaxDistance = distance of the event from the middle of the view beyond which it is not felt
     shake,
+    //! A particle system that stays on the floor for Duration seconds (events only); the oldest mark is removed
+    //! when there are more than MaxMarks
+    mark,
+    //! A sound of the family given by Family: played at the event, or now and then (Every) at an object
+    sound,
     //! Slowly turns an object (a cannon) toward creatures within Amount tiles and back to where it stood when none
     //! is near, at Speed degrees per second (objects only)
     turn,
-    //! A sound of the family given by Family: played at the event, or now and then (Every) at an object
-    sound,
     //! A mesh (Mesh) that is stretched from the point From to the target for a moment and flickers: a lightning bolt
     //! (events only). Amount = width, Speed = flickers per second, Duration in seconds
     beam,
     //! An object (Mesh and/or particle system System as trail) that flies from From to the target in Duration seconds
     //! on an arc of height Amount (events only); Land = event raised at the target when it arrives
-    projectile,
-    //! A particle system that stays on the floor for Duration seconds (events only); the oldest mark is removed
-    //! when there are more than MaxMarks
-    mark
+    projectile
 };
 
 //! \brief How an effect of the kind motion moves the node of its object
