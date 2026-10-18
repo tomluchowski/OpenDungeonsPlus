@@ -203,6 +203,10 @@ class GameMode final : public GameEditorModeBase, public InputCommand
     //! while a spell that is still cooling down is selected.
     void refreshSpellCooldownText();
 
+    //! \brief Writes the text next to the mouse pointer again, so that the price it shows
+    //! follows the gold and mana the server just sent without needing a mouse move.
+    void refreshPointerInfoText();
+
     Creature* getClosestCreature(Tile*);
     
 protected:

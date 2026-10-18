@@ -1049,6 +1049,10 @@ void GameMode::refreshMainUI()
     }
     guiSheet->getChild(Gui::BUTTON_CREATURE_WORKER + "/Count")->setText(Helper::toString(workers));
     guiSheet->getChild(Gui::BUTTON_CREATURE_FIGHTER + "/Count")->setText(Helper::toString(fighters));
+
+    // The price next to the mouse pointer is computed from this same seat, so it is stale
+    // as well until it is written again.
+    refreshPointerInfoText();
 }
 
 void GameMode::refreshCreaturePanel(const CreaturePanelData& data)
@@ -1767,6 +1771,46 @@ void GameMode::refreshSpellCooldownText()
         return;
 
     SpellManager::checkSpellCast(mGameMap, mPlayerSelection.getNewSpellType(), inputManager, *this);
+}
+
+void GameMode::refreshPointerInfoText()
+{
+    // checkInputCommand() writes the text next to the pointer, and it only runs when the
+    // mouse moves or a button is pressed. The prices it shows, and whether it shows them in
+    // red because the seat cannot afford them, come from the seat the server last sent: after
+    // summoning a worker (each worker owned doubles the price of the next one) or spending
+    // gold, the figure next to a still pointer kept the value it had before the purchase and
+    // only caught up once the player jiggled the mouse. So write it again whenever new seat
+    // data arrives.
+    switch(mPlayerSelection.getCurrentAction())
+    {
+        // Those are the actions that put a price next to the pointer.
+        case SelectedAction::buildRoom:
+        case SelectedAction::buildTrap:
+        case SelectedAction::castSpell:
+            break;
+        default:
+            return;
+    }
+
+    // While the selected spell is cooling down, the countdown owns the text (see
+    // refreshSpellCooldownText()).
+    if(mIsSpellCooldownDisplayed)
+        return;
+
+    // Once the player has clicked, the command state stays at validated until the mouse is
+    // moved again, and checkInputCommand() carries the command out in that state instead of
+    // describing it: asking it again as it stands would build or cast a second time. What
+    // belongs next to a pointer that has finished its click is what the pointed tile would
+    // cost, which is the infoOnly state the next mouse move will set anyway.
+    InputManager& inputManager = mModeManager->getInputManager();
+    InputCommandState commandState = inputManager.mCommandState;
+    if(commandState == InputCommandState::validated)
+        inputManager.mCommandState = InputCommandState::infoOnly;
+
+    checkInputCommand();
+
+    inputManager.mCommandState = commandState;
 }
 
 void GameMode::selectSquaredTiles(int tileX1, int tileY1, int tileX2, int tileY2)
