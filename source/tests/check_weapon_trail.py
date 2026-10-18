@@ -70,8 +70,14 @@ assert 'return;' in note[note.index('getLastHit'):note.index('getLastHit') + 120
 assert '!info.mStrong || info.mMissile' in note
 assert 'getWeaponTrailMinShare()' in note and 'info.mHealthPermille' in note
 hook = function_body(combat, 'void CreatureCombatReactions::noteHitEvent(')
-assert 'if(strong && !missile)' in hook and 'WeaponTrail::noteStrongBlow(reactions, attacker, delay);' in hook
-assert 'WeaponTrail::noteStrongBlow(' not in combat.replace(hook, ''), 'only the hit event starts a streak'
+assert 'strong ? 1 : 0' in hook and 'missile ? nullptr : attacker' in hook
+# The queued confirmed hit starts its streak at actual contact, including killing blows.
+contact = function_body(combat, 'void CreatureCombatReactions::processHits(')
+assert '!attacker->hasReachedAnimationContact(HIT_SHARE_OF_CLIP)' in contact
+assert '(hit.mLevel > 0) && !hit.mAttacker.empty()' in contact
+assert 'WeaponTrail::noteStrongBlow(reactions, attacker, 0.0);' in contact
+assert contact.index('WeaponTrail::noteStrongBlow(') < contact.index('!target->isAlive()')
+assert 'WeaponTrail::noteStrongBlow(' not in combat.replace(contact, ''), 'only a queued hit starts a streak'
 # Nothing starts from a guess: no flinch chance, no meleeResult, no health step
 assert 'FLINCH_CHANCE' not in trail and 'meleeResult' not in trail and 'noteHealth' not in trail
 

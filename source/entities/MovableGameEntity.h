@@ -43,6 +43,7 @@ namespace EntityAnimation
     static const std::string ranged_attack_anim = "RangedAttack";
 };
 
+//! \brief Moves and animates an entity while keeping deferred strikes synchronized with its displayed pose.
 class MovableGameEntity : public GameEntity
 {
 public:
@@ -91,11 +92,16 @@ public:
     virtual double getAnimationSpeedFactor() const
     { return 1.0; }
 
+    //! \brief True once the current strike reaches the contact fraction, or its animation was interrupted.
+    //! A strike waiting for its facing turn has not reached contact yet.
+    bool hasReachedAnimationContact(double share) const;
+
     //! \brief Updates the entity path, movement, and direction. Note that entities
     //! are not expected to remove themselves or other entities from the gamemap
     //! in the update function. If they do, it might lead to crashes as the gamemap
     //! will iterate the movable entities vector
     //! \param timeSinceLastFrame the elapsed time since last displayed frame in seconds.
+    //! Deferred strikes use the same game-time scale as movement and skeletal clips.
     virtual void update(Ogre::Real timeSinceLastFrame);
 
     void setWalkDirection(const Ogre::Vector3& direction);

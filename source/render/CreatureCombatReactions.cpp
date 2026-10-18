@@ -17,7 +17,6 @@
 
 #include "render/CreatureCombatReactions.h"
 
-#include "ODApplication.h"
 #include "creatureskill/CreatureSkill.h"
 #include "entities/Creature.h"
 #include "entities/CreatureDefinition.h"
@@ -68,8 +67,6 @@ const double SHIELD_SPARKS_CHANCE = 0.6;
 const double SHIELD_BASH_CHANCE = 0.2;
 //! The blow hits when this share of the attack animation has run (the damage itself is done by the server)
 const double HIT_SHARE_OF_CLIP = 0.45;
-const double HIT_DELAY_MIN = 0.12;
-const double HIT_DELAY_MAX = 0.6;
 //! A shot needs this much more time for each world unit it flies
 const double HIT_DELAY_PER_UNIT = 0.07;
 //! Reach of a blow in melee and of a shot, and the distance from which a creature with a shot counts as shooting
@@ -270,10 +267,12 @@ struct PendingAttack
     std::string mClip;
 };
 
-//! A creature that is hit: after a moment (the blow lands) it shows how hard it was
+//! A creature that is hit: its attacker's contact phase or a delay determines when it shows the impact.
 struct PendingHit
 {
     std::string mTarget;
+    //! Melee attacker whose displayed clip must reach contact; empty for already landed shots and health events.
+    std::string mAttacker;
     double mDue;
     uint32_t mLevel;
     bool mShield;
@@ -460,8 +459,9 @@ std::string CreatureCombatReactions::chooseAttackEvent(const CreatureReactions& 
 
 //! \brief Queues a hit reaction of the target (level 0 light, 1 and 2 strong) for the moment the blow lands;
 //! a blow that is already on its way to the same target only gets stronger
+//! \brief Queues a visible hit and optionally ties it to the attacker's actual strike phase.
 void CreatureCombatReactions::scheduleHit(CreatureReactions& reactions, Creature* target, uint32_t level, bool shield,
-        double delay)
+        double delay, Creature* attacker)
 {
     for(PendingHit& hit : sHits)
     {
@@ -470,6 +470,8 @@ void CreatureCombatReactions::scheduleHit(CreatureReactions& reactions, Creature
             // The blow that is on its way gets stronger
             hit.mLevel = std::max(hit.mLevel, level);
             hit.mShield = hit.mShield && shield;
+            if(hit.mAttacker.empty() && (attacker != nullptr))
+                hit.mAttacker = attacker->getName();
             return;
         }
     }
@@ -479,6 +481,7 @@ void CreatureCombatReactions::scheduleHit(CreatureReactions& reactions, Creature
 
     PendingHit hit;
     hit.mTarget = target->getName();
+    hit.mAttacker = (attacker != nullptr) ? attacker->getName() : std::string();
     hit.mDue = reactions.mTime + delay;
     hit.mLevel = level;
     hit.mShield = shield;
@@ -565,34 +568,23 @@ void CreatureCombatReactions::noteHealth(CreatureReactions& reactions, Creature*
     scheduleHit(reactions, creature, level, false, 0.0);
 }
 
+//! \brief Shows server-confirmed melee hits at displayed contact and already landed shots immediately.
 void CreatureCombatReactions::noteHitEvent(CreatureReactions& reactions, Creature* attacker, Creature* target,
         bool strong, bool missile)
 {
     if(!isActive(reactions) || (target == nullptr))
         return;
 
-    // A shot lands when the server says so; a blow a moment into the attack animation of the attacker
-    double delay = 0.0;
-    if(!missile)
-    {
-        double clipSeconds = 1.0;
-        Ogre::AnimationState* animState = (attacker != nullptr) ? attacker->getAnimationState() : nullptr;
-        double speed = (attacker != nullptr) ? ODApplication::turnsPerSecond * attacker->getAnimationSpeedFactor() : 0.0;
-        if((animState != nullptr) && (speed > ATTACK_SPEED_MIN))
-            clipSeconds = static_cast<double>(animState->getLength()) / speed;
-        delay = std::max(HIT_DELAY_MIN, std::min(HIT_DELAY_MAX, clipSeconds * HIT_SHARE_OF_CLIP));
-    }
+    // A shot lands when the server says so; a blow waits for its displayed contact phase.
 
     CombatState& targetState = getState(target->getName(), reactions.mTime);
     targetState.mLastAttacked = reactions.mTime;
-    scheduleHit(reactions, target, strong ? 1 : 0, !missile && hasShield(target), delay);
-
-    // A strong blow of a weapon leaves a short streak along the blade
-    if(strong && !missile)
-        WeaponTrail::noteStrongBlow(reactions, attacker, delay);
+    scheduleHit(reactions, target, strong ? 1 : 0, !missile && hasShield(target), 0.0,
+        missile ? nullptr : attacker);
 }
 
 //! \brief Gives the blows that were seen a moment ago their look and queues the hit on the creature in front
+//! \brief Chooses attack looks and lets legacy melee reactions follow their displayed contact phase.
 void CreatureCombatReactions::processAttacks(CreatureReactions& reactions)
 {
     for(std::vector<PendingAttack>::iterator it = sAttacks.begin(); it != sAttacks.end();)
@@ -616,12 +608,7 @@ void CreatureCombatReactions::processAttacks(CreatureReactions& reactions)
         bool found = findTarget(reactions, attacker, shooter ? SHOT_RANGE : MELEE_RANGE, target, distance);
         bool ranged = shooter && found && (distance > SHOT_MIN_DISTANCE);
 
-        // How long the blow takes, for the moment it lands
-        double clipSeconds = 1.0;
-        Ogre::AnimationState* animState = attacker->getAnimationState();
-        double speed = ODApplication::turnsPerSecond * attacker->getAnimationSpeedFactor();
-        if((animState != nullptr) && (speed > ATTACK_SPEED_MIN))
-            clipSeconds = static_cast<double>(animState->getLength()) / speed;
+        // The displayed melee clip supplies its own contact phase when the queued hit is processed.
 
         CombatState& state = getState(attacker->getName(), reactions.mTime);
 
@@ -644,19 +631,27 @@ void CreatureCombatReactions::processAttacks(CreatureReactions& reactions)
         targetState.mLastAttacked = reactions.mTime;
         draw(reactions, target, true);
 
-        double delay = ranged ? (HIT_DELAY_SHOT_BASE + distance * HIT_DELAY_PER_UNIT) :
-            std::max(HIT_DELAY_MIN, std::min(HIT_DELAY_MAX, clipSeconds * HIT_SHARE_OF_CLIP));
+        double delay = ranged ? (HIT_DELAY_SHOT_BASE + distance * HIT_DELAY_PER_UNIT) : 0.0;
         // With the hit events of the server the hit is shown when the server says it landed (noteHitEvent)
         if(!CreatureWeaponVisuals::hasHitEvents())
-            scheduleHit(reactions, target, 0, !ranged && hasShield(target), delay);
+            scheduleHit(reactions, target, 0, !ranged && hasShield(target), delay, ranged ? nullptr : attacker);
     }
 }
 
 //! \brief Shows the hit reactions whose blow has landed
+//! \brief Waits for real melee contact before showing a hit or its server-confirmed strong weapon trail.
 void CreatureCombatReactions::processHits(CreatureReactions& reactions)
 {
     for(std::vector<PendingHit>::iterator it = sHits.begin(); it != sHits.end();)
     {
+        Creature* attacker = reactions.mGameMap->getCreature(it->mAttacker);
+        if((attacker != nullptr) && attacker->isAlive() && attacker->getIsOnMap() &&
+           !attacker->hasReachedAnimationContact(HIT_SHARE_OF_CLIP))
+        {
+            ++it;
+            continue;
+        }
+
         if(it->mDue > reactions.mTime)
         {
             ++it;
@@ -665,6 +660,10 @@ void CreatureCombatReactions::processHits(CreatureReactions& reactions)
 
         PendingHit hit = *it;
         it = sHits.erase(it);
+
+        // A strong blow of a weapon leaves a short streak along the blade, including a killing blow.
+        if((hit.mLevel > 0) && !hit.mAttacker.empty() && (attacker != nullptr))
+            WeaponTrail::noteStrongBlow(reactions, attacker, 0.0);
 
         Creature* target = reactions.mGameMap->getCreature(hit.mTarget);
         if((target == nullptr) || !target->isAlive() || !target->getIsOnMap())

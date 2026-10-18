@@ -80,7 +80,8 @@ assert 'blowDelay = RenderManager::getSingleton().rrOrientEntityTowardSmoothly(t
 assert 'mBlowStartDelay = 0.0;' in state and state.index('mBlowStartDelay = 0.0;') < state.index('blowDelay = RenderManager')
 assert state.index('mBlowStartDelay = blowDelay;') < state.index('startAnimationClip();')
 update = function_body(movable, 'void MovableGameEntity::update(')
-assert 'mBlowStartDelay -= static_cast<double>(timeSinceLastFrame);' in update and 'startAnimationClip();' in update
+# The turn and the deferred strike must use the same game-time scale.
+assert 'mBlowStartDelay -= static_cast<double>(timeSinceLastFrame) * gameSpeedFactor;' in update and 'startAnimationClip();' in update
 assert 'if(mWalkQueue.empty())' in update.split('startAnimationClip();')[0].split('mBlowStartDelay = 0.0;')[1]
 start = function_body(movable, 'void MovableGameEntity::startAnimationClip()')
 assert 'rrSetObjectAnimationState(this, mPrevAnimationState, mPrevAnimationStateLoop)' in start and 'noteAnimation(this, mPrevAnimationState)' in start

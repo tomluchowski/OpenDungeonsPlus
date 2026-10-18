@@ -263,6 +263,22 @@ void MovableGameEntity::startAnimationClip()
         CreatureReactions::getSingleton().noteAnimation(this, mPrevAnimationState);
 }
 
+//! \brief Checks the actual strike phase instead of estimating it from a different animation's length.
+bool MovableGameEntity::hasReachedAnimationContact(double share) const
+{
+    if(mBlowStartDelay > 0.0)
+        return false;
+
+    if((mAnimationState == nullptr) ||
+       ((mPrevAnimationState != EntityAnimation::combat_attack_anim) &&
+        (mPrevAnimationState.find("Attack") != 0)))
+        return true;
+
+    return mAnimationState->hasEnded() ||
+        (mAnimationState->getTimePosition() >= mAnimationState->getLength() * share);
+}
+
+//! \brief Advances movement, clips and deferred strikes using the same game-time scale.
 void MovableGameEntity::update(Ogre::Real timeSinceLastFrame)
 {
     // On the server, the elapsed time already is game time. On the clients, the game speed setting
@@ -273,7 +289,7 @@ void MovableGameEntity::update(Ogre::Real timeSinceLastFrame)
     // tied to it)
     if(mBlowStartDelay > 0.0)
     {
-        mBlowStartDelay -= static_cast<double>(timeSinceLastFrame);
+        mBlowStartDelay -= static_cast<double>(timeSinceLastFrame) * gameSpeedFactor;
         if(mBlowStartDelay <= 0.0)
         {
             mBlowStartDelay = 0.0;
