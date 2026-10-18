@@ -74,6 +74,9 @@ public:
     inline Ogre::SceneManager* getSceneManager() const
     { return mSceneManager; }
 
+    //! \brief True during logical sleep and its visible transition back to standing.
+    bool rrIsCreatureSleeping(const Creature* creature) const;
+
     //! \brief Loop through the render requests in the queue and process them
     void updateRenderAnimations(Ogre::Real timeSinceLastFrame);
 

@@ -4023,6 +4023,19 @@ void RenderManager::startCreatureSleepAnimation(Creature* creature, Ogre::Entity
     mCreatureSleepAnimations.push_back(sleeping);
 }
 
+//! \brief Keeps room occupancy true until the visible wake transition has completed.
+bool RenderManager::rrIsCreatureSleeping(const Creature* creature) const
+{
+    if(creature == nullptr)
+        return false;
+    if(creature->getAnimationStateName() == EntityAnimation::sleep_anim)
+        return true;
+    for(const CreatureSleepAnimation& sleeping : mCreatureSleepAnimations)
+        if(sleeping.mCreature == creature)
+            return true;
+    return false;
+}
+
 void RenderManager::fitCreatureToBed(CreatureSleepAnimation& sleeping)
 {
     // Resolve after final walk positioning, which follows the sleep-entry event.
