@@ -190,13 +190,16 @@ public:
     static bool creatureNeedsSleep(const Creature* creature);
 
 private:
+    //! \brief Holds a cosmetic overlay, its independent clip phase and its reversible scene offsets.
     struct RunningReaction
     {
+        //! \brief Initializes the overlay clock, clip range and reversible pose state.
         RunningReaction() :
             mPriority(ReactionPriority::event),
             mElapsed(0.0),
             mDuration(0.0),
             mClipSpeed(1.0),
+            mClipStart(0.0),
             mClipEnd(1.0),
             mEmoteShown(false),
             mMotion(),
@@ -230,6 +233,8 @@ private:
 
         std::string mClip;
         double mClipSpeed;
+        //! Fraction where the clip starts, used to blend into a fallback segment correctly.
+        double mClipStart;
         //! Fraction of the clip length where the clip is stopped
         double mClipEnd;
         //! Name of the clip the creature was playing when the reaction started
@@ -465,13 +470,16 @@ private:
     ReactionPriority getCreaturePriority(const Creature* creature, const ReactionEvent* event = nullptr) const;
 
     //! \brief Plays the clip of the variant on the creature; returns false if no clip could be used.
+    //! \brief Starts the reaction clip without deriving its lifetime from a fixed playback speed.
     bool startClip(RunningReaction& reaction, Creature* creature, const ReactionVariant& variant);
     //! \brief Stops the clip of the reaction and sets the weight of the creature's own clip back to full.
+    //! \brief Removes an overlay while keeping a clip enabled if gameplay now uses it as its base.
     void stopClip(RunningReaction& reaction, Creature* creature);
     //! \brief Moves, scales or turns the creature scene node by what the procedural motion (hop, shake,
     //! squash, spin or turn) has reached now.
     void applyMotion(RunningReaction& reaction, Creature* creature);
     //! \brief Undoes the position, scale and turn the procedural motion put on the creature scene node.
+    //! \brief Removes the pose offset while preserving the reaction clock.
     void clearMotion(RunningReaction& reaction, Creature* creature);
     //! \brief Attaches the named particle effect to the creature; returns false if it does not exist.
     bool addParticles(RunningReaction& reaction, Creature* creature, const std::string& effect);
