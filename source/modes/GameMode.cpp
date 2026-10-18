@@ -523,33 +523,6 @@ bool GameMode::mouseMoved(const OIS::MouseEvent &arg)
     if(tileClicked == nullptr)
         return true;
 
-    Creature* closestCreature = tileClicked->getClosestCreature(inputManager.mCreatureTypeForOutliner);
-
-
-    
-    
-    if(closestCreature != nullptr)
-    {
-        if(closestCreature != inputManager.mHighlightedCreature)
-        {
-            if(inputManager.mHighlightedCreature != nullptr)
-            {
-                inputManager.mHighlightedCreature->normalizeAmbient();
-            }
-            inputManager.mHighlightedCreature = closestCreature;
-            closestCreature->maxAmbient();
-
-            // The creature notices the hand that comes over it
-            if(CreatureReactions::getSingletonPtr() != nullptr)
-                CreatureReactions::getSingleton().noteHandHover(closestCreature);
-        }
-    }
-    else if(inputManager.mHighlightedCreature != nullptr)
-    {
-        inputManager.mHighlightedCreature->normalizeAmbient();
-        inputManager.mHighlightedCreature = nullptr;
-
-    }
     inputManager.mXPos = tileClicked->getX();
     inputManager.mYPos = tileClicked->getY();
     if (!inputManager.mLMouseDown)
