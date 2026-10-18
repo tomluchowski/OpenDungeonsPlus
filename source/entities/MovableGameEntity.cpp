@@ -38,6 +38,7 @@ const double COMBAT_ATTACK_SPEED_FACTOR = 1.35;
 //! Playback speed factor of the die animation.
 const double DIE_ANIMATION_SPEED_FACTOR = 1.15;
 
+//! \brief Initializes movement and client-side animation request tracking.
 MovableGameEntity::MovableGameEntity(GameMap* gameMap) :
     GameEntity(gameMap),
     mAnimationState(nullptr),
@@ -47,7 +48,8 @@ MovableGameEntity::MovableGameEntity(GameMap* gameMap) :
     mDestinationAnimationDirection(Ogre::Vector3::ZERO),
     mWalkDirection(Ogre::Vector3::ZERO),
     mAnimationTime(0.0),
-    mBlowStartDelay(0.0)
+    mBlowStartDelay(0.0),
+    mAnimationSequence(0)
 {
 }
 
@@ -159,6 +161,7 @@ void MovableGameEntity::clearDestinations(const std::string& animation, bool loo
     }
 }
 
+//! \brief Activates the queued end animation without turning it into a new visual request.
 void MovableGameEntity::stopWalking()
 {
     // Set the animation state of this object to the state that was set for it to enter into after it reaches it's destination.
@@ -168,7 +171,9 @@ void MovableGameEntity::stopWalking()
     if(mDestinationAnimationDirection == Ogre::Vector3::ZERO)
         mDestinationAnimationDirection = mWalkDirection;
 
+    const uint64_t animationSequence = mAnimationSequence;
     setAnimationState(mDestinationAnimationState, mDestinationAnimationLoop, mDestinationAnimationDirection, mDestinationPlayIdleWhenAnimationEnds);
+    mAnimationSequence = animationSequence;
 
     // We reset the destination state
     mDestinationAnimationState.clear();
@@ -185,6 +190,7 @@ void MovableGameEntity::setWalkDirection(const Ogre::Vector3& direction)
     RenderManager::getSingleton().rrOrientEntityToward(this, direction);
 }
 
+//! \brief Records a distinct visual request before starting or queuing its animation.
 void MovableGameEntity::setAnimationState(const std::string& state, bool loop, const Ogre::Vector3& direction, bool playIdleWhenAnimationEnds)
 {
     // Ignore the command if the command is exactly the same and looped. Otherwise, we accept
@@ -196,6 +202,8 @@ void MovableGameEntity::setAnimationState(const std::string& state, bool loop, c
     {
         return;
     }
+
+    ++mAnimationSequence;
 
     // On server side, we update the entity
     if(getIsOnServerMap())
@@ -266,6 +274,9 @@ void MovableGameEntity::startAnimationClip()
 //! \brief Checks the actual strike phase instead of estimating it from a different animation's length.
 bool MovableGameEntity::hasReachedAnimationContact(double share) const
 {
+    if(!mWalkQueue.empty() && ((mDestinationAnimationState == EntityAnimation::combat_attack_anim) ||
+       (mDestinationAnimationState.find("Attack") == 0)))
+        return false;
     if(mBlowStartDelay > 0.0)
         return false;
 

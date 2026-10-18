@@ -267,12 +267,13 @@ struct PendingAttack
     std::string mClip;
 };
 
-//! A creature that is hit: its attacker's contact phase or a delay determines when it shows the impact.
+//! \brief A pending impact tied to one attack request or to an already landed shot or health event.
 struct PendingHit
 {
     std::string mTarget;
     //! Melee attacker whose displayed clip must reach contact; empty for already landed shots and health events.
     std::string mAttacker;
+    uint64_t mAnimationSequence;
     double mDue;
     uint32_t mLevel;
     bool mShield;
@@ -463,15 +464,17 @@ std::string CreatureCombatReactions::chooseAttackEvent(const CreatureReactions& 
 void CreatureCombatReactions::scheduleHit(CreatureReactions& reactions, Creature* target, uint32_t level, bool shield,
         double delay, Creature* attacker)
 {
+    const std::string attackerName = (attacker != nullptr) ? attacker->getName() : std::string();
+    const uint64_t animationSequence = (attacker != nullptr) ? attacker->getAnimationSequence() : 0;
     for(PendingHit& hit : sHits)
     {
-        if(hit.mTarget == target->getName())
+        if((hit.mTarget == target->getName()) && (hit.mAttacker == attackerName) &&
+           (hit.mAnimationSequence == animationSequence))
         {
             // The blow that is on its way gets stronger
             hit.mLevel = std::max(hit.mLevel, level);
             hit.mShield = hit.mShield && shield;
-            if(hit.mAttacker.empty() && (attacker != nullptr))
-                hit.mAttacker = attacker->getName();
+            hit.mDue = std::min(hit.mDue, reactions.mTime + delay);
             return;
         }
     }
@@ -481,7 +484,8 @@ void CreatureCombatReactions::scheduleHit(CreatureReactions& reactions, Creature
 
     PendingHit hit;
     hit.mTarget = target->getName();
-    hit.mAttacker = (attacker != nullptr) ? attacker->getName() : std::string();
+    hit.mAttacker = attackerName;
+    hit.mAnimationSequence = animationSequence;
     hit.mDue = reactions.mTime + delay;
     hit.mLevel = level;
     hit.mShield = shield;
@@ -645,6 +649,11 @@ void CreatureCombatReactions::processHits(CreatureReactions& reactions)
     for(std::vector<PendingHit>::iterator it = sHits.begin(); it != sHits.end();)
     {
         Creature* attacker = reactions.mGameMap->getCreature(it->mAttacker);
+        if((attacker != nullptr) && (it->mAnimationSequence != attacker->getAnimationSequence()))
+        {
+            it = sHits.erase(it);
+            continue;
+        }
         if((attacker != nullptr) && attacker->isAlive() && attacker->getIsOnMap() &&
            !attacker->hasReachedAnimationContact(HIT_SHARE_OF_CLIP))
         {

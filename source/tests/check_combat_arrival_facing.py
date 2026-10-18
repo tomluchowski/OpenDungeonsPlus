@@ -14,16 +14,20 @@ probe = r'''
 #include <functional>
 #include <string>
 #include <iostream>
+#include <cstdint>
 namespace ODApplication {const float turnsPerSecond=1;}
+//! \brief Supplies movement dependencies while production code activates the queued animation.
 struct MovableGameEntity {
  Ogre::Vector3 position{0,0,0},mWalkDirection{0,-1,0},mDestinationAnimationDirection;
  std::deque<Ogre::Vector2> mWalkQueue;
  std::string mDestinationAnimationState,animation;
  bool mDestinationAnimationLoop=false,mDestinationPlayIdleWhenAnimationEnds=true;
+ uint64_t mAnimationSequence=0;
  float getMoveSpeed(){return 1;} const Ogre::Vector3& getPosition(){return position;}
  void setPosition(const Ogre::Vector3& p){position=p;}
  void setWalkDirection(const Ogre::Vector3& d){mWalkDirection=d;}
- void setAnimationState(const std::string& s,bool,const Ogre::Vector3& d,bool){animation=s;if(d!=Ogre::Vector3::ZERO)setWalkDirection(d);}
+ //! \brief Simulates a new visual request so queued activation must preserve its existing identity.
+ void setAnimationState(const std::string& s,bool,const Ogre::Vector3& d,bool){++mAnimationSequence;animation=s;if(d!=Ogre::Vector3::ZERO)setWalkDirection(d);}
  void update(Ogre::Real timeSinceLastFrame);void stopWalking();
 };
 void MovableGameEntity::update(Ogre::Real timeSinceLastFrame){MOVEMENT
@@ -33,6 +37,7 @@ int main(){int checks=0,failures=0;std::function<void(bool,const char*)> check=[
  for(float dt:{1.f,2.f})for(bool directed:{false,true}){
   MovableGameEntity c;c.mWalkQueue={{0,-.25f},{.25f,-.25f}};
   c.mDestinationAnimationState=state;
+  c.mAnimationSequence=42;
   c.mDestinationAnimationDirection=directed?Ogre::Vector3::UNIT_Y:Ogre::Vector3::ZERO;
   c.update(dt);
   check(c.mWalkQueue.empty(),"final waypoint consumed");
@@ -40,6 +45,7 @@ int main(){int checks=0,failures=0;std::function<void(bool,const char*)> check=[
   check(c.animation==state,"queued end animation starts");
   check(c.mWalkDirection==(directed?Ogre::Vector3::UNIT_Y:Ogre::Vector3::UNIT_X),"arrival retains requested facing or final travel heading");
   check(c.mDestinationAnimationState.empty(),"queued state clears");
+  check(c.mAnimationSequence==42,"queued activation retains its request identity");
  }
  MovableGameEntity moving;moving.mWalkQueue={{0,-1}};moving.mDestinationAnimationState="CombatAttack";
  moving.mDestinationAnimationDirection=Ogre::Vector3::UNIT_X;moving.update(.25f);

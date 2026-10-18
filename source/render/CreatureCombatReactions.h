@@ -77,14 +77,14 @@ private:
     //! \brief Returns the reaction that gives the blow its look, chosen by the weapon of the attacker and by ranged or not
     static std::string chooseAttackEvent(const CreatureReactions& reactions, const Creature* attacker, bool ranged);
     //! \brief Queues a hit reaction of the target (level 0 light, 1 and 2 strong) for the moment the blow lands
-    //! \brief Queues a hit, tracking the actual melee contact phase when an attacker is supplied.
+    //! \brief Queues a hit for one melee request, keeping already landed shots independent of waiting strikes.
     static void scheduleHit(CreatureReactions& reactions, Creature* target, uint32_t level, bool shield, double delay,
         Creature* attacker = nullptr);
     //! \brief Gives the blows that were seen a moment ago their look and queues the hit on the creature in front
     //! \brief Chooses attack looks and schedules legacy hits without changing server damage.
     static void processAttacks(CreatureReactions& reactions);
     //! \brief Shows the hit reactions whose blow has landed
-    //! \brief Shows queued hits after their delay and the attacker's actual contact phase.
+    //! \brief Shows queued hits at their contact phase and discards superseded visual attack requests.
     static void processHits(CreatureReactions& reactions);
     //! \brief Lets the weapons of the creatures that died fall to the floor
     static void processDrops(CreatureReactions& reactions);
