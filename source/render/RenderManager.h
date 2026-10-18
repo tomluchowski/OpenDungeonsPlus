@@ -499,8 +499,6 @@ private:
     void updateNestFields();
     //! \brief Removes the nest entities and nodes of one hatchery.
     void destroyNestField(NestField& field);
-    //! Set while a game is shown
-    GameMap* mGameMap = nullptr;
     Ogre::Real mCoopDecorTimer = 0.0f;
     uint64_t mChickenLookNumber = 0;
 
