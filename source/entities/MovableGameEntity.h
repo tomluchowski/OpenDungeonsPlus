@@ -37,6 +37,11 @@ namespace EntityAnimation
     static const std::string claim_anim = "Claim";
     static const std::string walk_anim = "Walk";
     static const std::string sleep_anim = "Sleep";
+    static const std::string drop_anim = "Drop";
+    static const std::string getup_anim = "GetUp";
+    static const std::string combat_attack_anim = "CombatAttack";
+    static const std::string ranged_attack_anim = "RangedAttack";
+    static const std::string eat_chicken_anim = "EatChicken";
 };
 
 class MovableGameEntity : public GameEntity
@@ -103,6 +108,10 @@ public:
 
     inline Ogre::AnimationState* getAnimationState() const
     { return mAnimationState; }
+
+    //! \brief Name of the animation the entity was last told to play (empty if none yet)
+    inline const std::string& getAnimationStateName() const
+    { return mPrevAnimationState; }
 
     virtual void restoreEntityState() override;
 
