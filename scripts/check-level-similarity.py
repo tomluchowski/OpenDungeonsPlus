@@ -4,6 +4,8 @@
 The folder (default: ..\\OpenDungeonsPlus-private next to the main working tree) is never
 part of the repository. If it does not exist the check is skipped and the exit code is 0,
 so clones without it stay green. This script contains no level data.
+Saved worktrees of this repository are excluded by their shared Git metadata pointer;
+external comparison sources and all match thresholds remain unchanged.
 
 For every checked level the terrain is compared with every level found in the folder at
 the best alignment. The search covers shifts, mirroring, the four 90 degree rotations and
@@ -623,12 +625,37 @@ def longest_identical_words(texts, sequences, index):
 # Driver
 # ---------------------------------------------------------------------------------------
 
+# Identify only copies whose Git pointer belongs to this repository's shared worktree metadata.
+def is_own_worktree_snapshot(directory, common):
+    """Recognise a saved worktree of this repository by its shared Git metadata pointer."""
+    marker = os.path.join(directory, ".git")
+    if common is None or not os.path.isfile(marker):
+        return False
+    try:
+        with open(marker, "r", encoding="utf-8") as handle:
+            pointer = handle.readline().strip()
+    except (OSError, UnicodeError):
+        return False
+    if not pointer.startswith("gitdir: "):
+        return False
+    target = os.path.normcase(os.path.realpath(os.path.join(directory, pointer[8:])))
+    own_worktrees = os.path.normcase(os.path.realpath(os.path.join(common, "worktrees")))
+    return target.startswith(own_worktrees + os.sep)
+
+
+# Preserve all external comparison data while keeping this repository's saved worktrees out of the source set.
 def collect_sources(against):
-    """Level files and config files below the folder, without rework folders."""
+    """Collect comparison sources, excluding rework data and saved worktrees of this repository."""
     levels = []
     configs = []
     seen = set()
+    root = repository_root()
+    code, out = run_git(["rev-parse", "--git-common-dir"], root)
+    common = os.path.realpath(os.path.join(root, out.strip())) if code == 0 else None
     for directory, names, files in os.walk(against):
+        if is_own_worktree_snapshot(directory, common):
+            names[:] = []
+            continue
         names[:] = sorted(name for name in names if name != "rework")
         for name in sorted(files):
             if not (name.endswith(".level") or name == "Campaign.cfg"):
@@ -759,6 +786,7 @@ def write_level(path, width, height, rows, markers, text):
         handle.write("[/Traps]\n")
 
 
+# Check transformed-copy rejection, unrelated-map acceptance and the saved-worktree boundary.
 def self_test():
     """Run the checks on generated levels and return the exit code."""
     failures = []
@@ -772,6 +800,31 @@ def self_test():
         os.makedirs(against)
         write_level(os.path.join(against, "source.level"), width, height, source_rows, markers,
                     "The first generated cave of the test series.")
+
+        # Own saved worktrees are not comparison sources; unrelated Git pointers must remain eligible.
+        code, out = run_git(["rev-parse", "--git-common-dir"], repository_root())
+        assert code == 0
+        common = os.path.realpath(os.path.join(repository_root(), out.strip()))
+        snapshot = os.path.join(against, "saved-worktree")
+        os.makedirs(snapshot)
+        with open(os.path.join(snapshot, ".git"), "w") as handle:
+            handle.write("gitdir: " + os.path.join(common, "worktrees", "removed-snapshot") + "\n")
+        saved = os.path.join(snapshot, "saved.level")
+        write_level(saved, width, height, source_rows, markers,
+                    "A saved worktree with a distinct file checksum.")
+        assert is_own_worktree_snapshot(snapshot, common)
+        sources, configs = collect_sources(against)
+        assert sources == [os.path.join(against, "source.level")] and not configs
+        with open(os.path.join(snapshot, ".git"), "w") as handle:
+            handle.write("gitdir: " + os.path.join(common, "worktrees-other", "external") + "\n")
+        assert not is_own_worktree_snapshot(snapshot, common)
+        sources, configs = collect_sources(against)
+        assert saved in sources, "An unrelated Git pointer must not hide a comparison source"
+        with open(os.path.join(snapshot, ".git"), "w") as handle:
+            handle.write("not a Git pointer\n")
+        assert not is_own_worktree_snapshot(snapshot, common)
+        with open(os.path.join(snapshot, ".git"), "w") as handle:
+            handle.write("gitdir: " + os.path.join(common, "worktrees", "removed-snapshot") + "\n")
 
         # the same map mirrored and shifted by three tiles in a larger map
         shifted_rows = [(width - 1 - x + 3, y + 3, t, f) for x, y, t, f in source_rows]
