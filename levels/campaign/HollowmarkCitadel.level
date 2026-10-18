@@ -5670,9 +5670,9 @@ Name	siege
 Mode	once
 Cond	time	3
 Action	message	1	The capital, master. High King Castellan sits on his throne at the top of three walled courts, and the heroes of the whole kingdom are marching to defend him.
-Action	objective	1	Kill High King Castellan on his throne.
-Action	objective	1	Break through the three courts; the upper gates are sealed and open when the towers of each court have fallen.
-Action	objective	1	Survive the heroes who will not stop coming.
+Action	objectiveid	1	hollowmarkcitadel-o01	Kill King Castellan on his throne.
+Action	objectiveid	1	hollowmarkcitadel-o02	Cross all three courts; take towers to open upper gates.
+Action	objectiveid	1	hollowmarkcitadel-o03	Survive the hero attacks.
 [/Trigger]
 [Trigger]
 Name	campHeld
@@ -6053,11 +6053,52 @@ Action	message	1	The royal guard has left the great court.
 Action	spawn	4	13	65	1	Knight:6	Knight:6	Knight:5	Elf:6	Monk:5	Dwarf2:5	Adventurer:5
 [/Trigger]
 [Trigger]
+Name	goalHeartSafe3BeforeKingDead
+Mode	once
+Cond	time	5
+Cond	alive	CastellanKing	0
+Cond	goalmet	1	ProtectDungeonTemple
+Action	objectivestate	1	hollowmarkcitadel-o03	reached
+[/Trigger]
+[Trigger]
+Name	goalCourt1
+Mode	once
+Cond	region	1	GateCourt
+Action	setflag	goalCourt1	1
+[/Trigger]
+[Trigger]
+Name	goalCourt2
+Mode	once
+Cond	region	1	GreatCourt
+Cond	flag	goalCourt1	1
+Cond	flag	lowerWest	1
+Cond	flag	lowerEast	1
+Action	setflag	goalCourt2	1
+[/Trigger]
+[Trigger]
+Name	goalCourt3
+Mode	once
+Cond	region	1	ThroneHall
+Cond	flag	goalCourt2	1
+Cond	flag	upperWest	1
+Cond	flag	upperEast	1
+Action	setflag	goalCourt3	1
+Action	objectivestate	1	hollowmarkcitadel-o02	reached
+[/Trigger]
+
+[Trigger]
+Name	goalHeartLost3
+Mode	once
+Cond	room	1	DungeonTemple	==	0
+Action	objectivestate	1	hollowmarkcitadel-o03	failed
+[/Trigger]
+[Trigger]
 Name	kingDead
 Mode	once
 Cond	time	5
 Cond	alive	CastellanKing	0
 Action	message	1	High King Castellan is dead and the throne of Hollowmark is empty. The kingdom is yours.
+Action	objectivestate	1	hollowmarkcitadel-o01	reached
 Action	win	1
 [/Trigger]
 [Trigger]
@@ -6164,4 +6205,5 @@ Action	terrain	13	29	15	29	path
 Action	terrain	102	29	103	29	path
 Action	setflag	gate3Open	1
 [/Trigger]
+
 [/Triggers]

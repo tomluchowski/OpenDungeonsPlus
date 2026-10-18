@@ -3274,13 +3274,17 @@ Region	Approach	70	3	90	28
 Region	Hold	73	5	89	21
 Region	EastHollow	80	30	90	42
 Region	ExitRoad	60	55	64	58
+Region	GoalOutsideHold01	0	0	72	75
+Region	GoalOutsideHold02	90	0	91	75
+Region	GoalOutsideHold03	73	0	89	4
+Region	GoalOutsideHold04	73	22	89	75
 [Trigger]
 Name	smoulder
 Mode	once
 Cond	time	3
 Action	message	1	The Ashcombe valley still smokes from an old fire, master, and Warden Liesl Ashby has mounted her wagons to flee over the northern pass. You have most of an hour before she is gone.
-Action	objective	1	Kill Warden Liesl Ashby before she escapes the valley.
-Action	objective	1	Cross the ash basin and find the northern hold.
+Action	objectiveid	1	ashcombe-o01	Kill Ashby before she escapes.
+Action	objectiveid	1	ashcombe-o02	Cross the ash basin to the northern hold.
 Action	order	wait	2	-	LieslAshby
 [/Trigger]
 [Trigger]
@@ -3310,7 +3314,7 @@ Mode	once
 Cond	region	1	Approach
 Action	message	1	Her wagons are being loaded! Ashby will leave the hold in five minutes and run for the south road.
 Action	spawn	3	76	22	1	Knight:2	Elf:2	Adventurer:2	Monk:2
-Action	objective	1	Break into the hold before the wagons leave, or catch Ashby on the road.
+Action	objectiveid	1	ashcombe-o03	Enter the hold early, or kill the fleeing Ashby.
 Action	setflag	fleeing	1
 Action	timer	wagonClock	0
 [/Trigger]
@@ -3320,6 +3324,7 @@ Mode	once
 Cond	region	1	Hold
 Action	message	1	You are in her hold. Ashby is somewhere in the great hall, and her best are with her.
 Action	spawn	3	80	12	1	Knight:3	Knight:2	Monk:2	Dwarf2:2
+Action	objectivestate	1	ashcombe-o02	reached
 [/Trigger]
 [Trigger]
 Name	firstEmber
@@ -3360,10 +3365,82 @@ Action	order	goto	2	82,18;83,24;84,30;87,36;84,45;81,49;78,52;75,55;63,56	LieslA
 Action	speed	run	LieslAshby
 [/Trigger]
 [Trigger]
+Name	goalHoldBeforeDeparture
+Mode	once
+Cond	trigger	wagonLeaves	0
+Cond	region	1	Hold
+Cond	objective	1	ashcombe-o03	open
+Action	objectivestate	1	ashcombe-o03	reached
+[/Trigger]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[Trigger]
+Name	goalHoldOrRoadMissed
+Mode	once
+Cond	reached	LieslAshby	region	ExitRoad
+Cond	objective	1	ashcombe-o03	open
+Action	objectivestate	1	ashcombe-o03	failed
+[/Trigger]
+[Trigger]
+Name	goalOutsideHoldDeath01
+Mode	once
+Cond	trigger	wagonLeaves
+Cond	killedin	LieslAshby	GoalOutsideHold01
+Cond	objective	1	ashcombe-o03	open
+Action	objectivestate	1	ashcombe-o03	reached
+[/Trigger]
+[Trigger]
+Name	goalOutsideHoldDeath02
+Mode	once
+Cond	trigger	wagonLeaves
+Cond	killedin	LieslAshby	GoalOutsideHold02
+Cond	objective	1	ashcombe-o03	open
+Action	objectivestate	1	ashcombe-o03	reached
+[/Trigger]
+[Trigger]
+Name	goalOutsideHoldDeath03
+Mode	once
+Cond	trigger	wagonLeaves
+Cond	killedin	LieslAshby	GoalOutsideHold03
+Cond	objective	1	ashcombe-o03	open
+Action	objectivestate	1	ashcombe-o03	reached
+[/Trigger]
+[Trigger]
+Name	goalOutsideHoldDeath04
+Mode	once
+Cond	trigger	wagonLeaves
+Cond	killedin	LieslAshby	GoalOutsideHold04
+Cond	objective	1	ashcombe-o03	open
+Action	objectivestate	1	ashcombe-o03	reached
+[/Trigger]
+[Trigger]
 Name	wardenEscaped
 Mode	once
 Cond	reached	LieslAshby	region	ExitRoad
 Action	message	1	Ashby has reached the south road and her wagons are gone. Ashcombe is lost.
+Action	objectivestate	1	ashcombe-o01	failed
 Action	lose	1
 [/Trigger]
 [Trigger]
@@ -3371,6 +3448,7 @@ Name	wardenDown
 Mode	once
 Cond	event	LieslAshby	killed
 Action	message	1	Liesl Ashby has fallen before her wagons could leave. The ashes of Ashcombe are yours.
+Action	objectivestate	1	ashcombe-o01	reached
 Action	win	1
 [/Trigger]
 [/Triggers]

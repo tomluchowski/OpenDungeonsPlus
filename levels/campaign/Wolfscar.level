@@ -4642,9 +4642,9 @@ Name	hunt
 Mode	once
 Cond	time	3
 Action	message	1	Wolfscar is a forest cut by two ravines, master, and four hunter keepers have claimed its corners. They dislike each other less than they dislike you, so expect their packs to join.
-Action	objective	1	Destroy the heart of every rival keeper.
-Action	objective	1	Cross the south ravine by one of the stone bridges.
-Action	objective	1	Keep your own heart alive.
+Action	objectiveid	1	wolfscar-o01	Destroy every rival keeper's heart.
+Action	objectiveid	1	wolfscar-o02	Cross the south ravine by a stone bridge.
+Action	objectiveid	1	wolfscar-o03	Protect your heart.
 Action	portal	4	off
 Action	portal	5	off
 [/Trigger]
@@ -4656,6 +4656,7 @@ Action	message	1	Past the first ravine the trees close in. Two of the hunters li
 Action	reveal	1	Wolfden
 Action	reveal	1	WestHold
 Action	reveal	1	EastHold
+Action	objectivestate	1	wolfscar-o02	reached
 [/Trigger]
 [Trigger]
 Name	denSeen
@@ -4755,6 +4756,19 @@ Action	message	1	The last hunters are coming for your heart.
 Action	spawn	4	52	50	1	Troll:4	Troll:3	Orc:4	Spider:3	Goblin:3
 [/Trigger]
 [Trigger]
+Name	goalHeartSafe3BeforeHuntersGoneGoal
+Mode	once
+Cond	goal	1	KillAllEnemies
+Cond	goalmet	1	ProtectDungeonTemple
+Action	objectivestate	1	wolfscar-o03	reached
+[/Trigger]
+[Trigger]
+Name	goalHeartLost3
+Mode	once
+Cond	room	1	DungeonTemple	==	0
+Action	objectivestate	1	wolfscar-o03	failed
+[/Trigger]
+[Trigger]
 Name	huntersGone
 Mode	once
 Cond	defeated	2
@@ -4762,6 +4776,7 @@ Cond	defeated	3
 Cond	defeated	4
 Cond	defeated	5
 Action	message	1	The last hunter is dead and the forest of Wolfscar is silent. It is yours.
+Action	objectivestate	1	wolfscar-o01	reached
 Action	win	1
 [/Trigger]
 [Trigger]
@@ -4769,6 +4784,7 @@ Name	huntersGoneGoal
 Mode	once
 Cond	goal	1	KillAllEnemies
 Action	message	1	The last hunter is dead and the forest of Wolfscar is silent. It is yours.
+Action	objectivestate	1	wolfscar-o01	reached
 Action	win	1
 [/Trigger]
 [Trigger]
@@ -4798,4 +4814,5 @@ Cond	slabs	1	Wolfden	claimed	>=	20
 Action	message	1	Your claim on the den has opened a spring of mana in the middle of it. Claim it and your spells come faster.
 Action	terrain	30	51	30	51	manawell
 [/Trigger]
+
 [/Triggers]

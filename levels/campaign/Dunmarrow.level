@@ -3305,6 +3305,28 @@ ProtectDungeonTemple	NULL
 75	90	1	0
 75	91	1	0
 75	92	1	0
+75	93	1	100
+75	94	1	100
+75	95	1	100
+75	96	1	100
+75	97	1	100
+75	98	1	100
+75	99	1	100
+75	100	1	100
+75	101	1	100
+75	102	1	100
+75	103	1	100
+75	104	1	100
+75	105	1	100
+75	106	1	100
+75	107	1	100
+75	108	1	100
+75	109	1	100
+75	110	1	100
+75	111	1	100
+75	112	1	100
+75	113	1	100
+75	114	1	100
 75	115	1	100
 75	116	1	100
 75	117	1	100
@@ -3880,8 +3902,8 @@ Name	wind
 Mode	once
 Cond	time	3
 Action	message	1	Dunmarrow is a sea of sand over old barrows, master. Warden Ysolde Dunn has seen your banners and is packing her camp in the far north-west. Catch her before she is gone.
-Action	objective	1	Kill Warden Ysolde Dunn before she escapes through the old shaft.
-Action	objective	1	Find the old tunnels under the dunes.
+Action	objectiveid	1	dunmarrow-o01	Kill Ysolde Dunn before she escapes.
+Action	objectiveid	1	dunmarrow-o02	Find the tunnels beneath the dunes.
 Action	order	wait	2	-	YsoldeDunn
 [/Trigger]
 [Trigger]
@@ -3906,6 +3928,7 @@ Cond	region	1	Barrows
 Action	message	1	The central barrows are wide open under the sand. Her scouts have been through here.
 Action	reveal	1	Tomb
 Action	reveal	1	HighDunes
+Action	objectivestate	1	dunmarrow-o02	reached
 [/Trigger]
 [Trigger]
 Name	tombOpened
@@ -3920,7 +3943,7 @@ Cond	region	1	HighDunes
 Action	message	1	From these dunes you can see her camp. The wagons are loaded and she is leaving within the quarter hour!
 Action	spawn	2	50	38	1	Knight:2	Elf:2	Adventurer:2	Monk:2
 Action	reveal	1	NorthDunes
-Action	objective	1	Reach the camp before the wagons leave.
+Action	objectiveid	1	dunmarrow-o03	Reach the camp before the wagons leave.
 Action	setflag	wagons	1
 Action	timer	wagonClock	0
 [/Trigger]
@@ -3988,13 +4011,39 @@ Name	wardenEscaped
 Mode	once
 Cond	reached	YsoldeDunn	region	ExitShaft
 Action	message	1	Dunn has slipped down the old shaft and her wagons are gone. Dunmarrow is lost.
+Action	objectivestate	1	dunmarrow-o01	failed
 Action	lose	1
+[/Trigger]
+[Trigger]
+Name	goalCampBeforeLoading
+Mode	once
+Cond	flag	wagons	0
+Cond	region	1	Camp
+Action	objectivestate	1	dunmarrow-o03	reached
+Action	setflag	goalCampArrived	1
+[/Trigger]
+[Trigger]
+Name	goalCampBeforeDeparture
+Mode	once
+Cond	flag	wagons	1
+Cond	timer	wagonClock	<	900
+Cond	region	1	Camp
+Action	objectivestate	1	dunmarrow-o03	reached
+Action	setflag	goalCampArrived	1
+[/Trigger]
+[Trigger]
+Name	goalCampMissed
+Mode	once
+Cond	trigger	wagonLeaves
+Cond	flag	goalCampArrived	0
+Action	objectivestate	1	dunmarrow-o03	failed
 [/Trigger]
 [Trigger]
 Name	wardenCaught
 Mode	once
 Cond	event	YsoldeDunn	killed
 Action	message	1	Ysolde Dunn is dead in the sand and her wagons are still. Dunmarrow is yours.
+Action	objectivestate	1	dunmarrow-o01	reached
 Action	win	1
 [/Trigger]
 [Trigger]
@@ -4004,4 +4053,5 @@ Cond	claimed	1	Oasis	40
 Action	message	1	The oasis is ours. A wandering spider has smelled the water and comes to serve you.
 Action	generate	1	Spider:1
 [/Trigger]
+
 [/Triggers]

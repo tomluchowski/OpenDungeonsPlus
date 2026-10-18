@@ -5080,15 +5080,17 @@ Region	EastGateZone	62	42	78	60
 Region	NorthRoad	28	6	42	20
 Region	RivalCrater	44	10	66	32
 Region	EastShelf	60	26	72	40
+Region	GoalWestGoldSeam	5	55	6	58
+Region	GoalSouthGoldSeam	30	72	33	73
 [Trigger]
 Name	firstLight
 Mode	once
 Cond	time	3
 Action	message	1	Pell Ashgrove has sent for the soldiers of the kingdom, master. They will come down into the hollow in three waves, and a rival keeper has taken the crater rim in the north-east.
-Action	objective	1	Hold your dungeon heart until dawn, then destroy the rival keeper.
-Action	objective	1	Mine the western and southern seams before the first wave.
-Action	objective	1	Break all three hero waves at your heart.
-Action	objective	1	After dawn, cross the lava bridge to the crater.
+Action	objectiveid	1	cinderhollow-o01	Survive until dawn, then defeat the rival keeper.
+Action	objectiveid	1	cinderhollow-o02	Empty both starting gold seams: west and south.
+Action	objectiveid	1	cinderhollow-o03	Defeat all three waves at your heart.
+Action	objectiveid	1	cinderhollow-o04	After dawn, cross the lava bridge to the crater.
 [/Trigger]
 [Trigger]
 Name	westRoad
@@ -5173,10 +5175,78 @@ Name	dawn
 Mode	once
 Cond	time	1800
 Action	message	1	Dawn has come and the waves are spent. The rival keeper is stirring in the crater: destroy him before the hollow wakes again.
-Action	objective	1	Destroy the rival keeper in the north-east crater.
+Action	objectiveid	1	cinderhollow-o05	Destroy the heart in the north-east crater.
 Action	gold	1	600
 Action	spawn	2	55	25	1	Troll:4	Orc:4	LavaSpawn:3	PitDemon:3	Goblin:3
 Action	timelimit	1800
+[/Trigger]
+[Trigger]
+Name	goalBothFiniteSeamsMined
+Mode	once
+Cond	slabs	-1	GoalWestGoldSeam	gold	==	0
+Cond	slabs	-1	GoalSouthGoldSeam	gold	==	0
+Action	objectivestate	1	cinderhollow-o02	reached
+[/Trigger]
+[Trigger]
+Name	goalHeartSafe1BeforeRivalHeartDown
+Mode	once
+Cond	time	1800
+Cond	goal	1	KillAllEnemies
+Cond	goalmet	1	ProtectDungeonTemple
+Action	objectivestate	1	cinderhollow-o01	reached
+[/Trigger]
+[Trigger]
+Name	goalHeartSafe1BeforeRivalHeartFalls
+Mode	once
+Cond	time	1800
+Cond	defeated	2
+Cond	goalmet	1	ProtectDungeonTemple
+Action	objectivestate	1	cinderhollow-o01	reached
+[/Trigger]
+[Trigger]
+Name	goalDawnBridgeApproach
+Mode	once
+Cond	trigger	lavaBridge
+Cond	region	1	55	35	55	35
+Action	setflag	goalDawnBridgeApproached	1
+[/Trigger]
+[Trigger]
+Name	goalDawnBridge
+Mode	once
+Cond	flag	goalDawnBridgeApproached	1
+Cond	region	1	55	31	55	34
+Action	setflag	goalDawnBridgeWalked	1
+[/Trigger]
+[Trigger]
+Name	goalDawnBridgeCrossed
+Mode	once
+Cond	flag	goalDawnBridgeWalked	1
+Cond	region	1	55	30	55	30
+Action	setflag	goalDawnBridgeCrossed	1
+[/Trigger]
+
+[Trigger]
+Name	goalCraterAfterBridge
+Mode	once
+Cond	flag	goalDawnBridgeCrossed	1
+Cond	region	1	RivalCrater
+Action	objectivestate	1	cinderhollow-o04	reached
+[/Trigger]
+
+[Trigger]
+Name	goalThreeWavesDefeatedAtHeart
+Mode	once
+Cond	spawncleared	waveOne	2	atheart	1
+Cond	spawncleared	waveTwo	2	atheart	1
+Cond	spawncleared	waveThree	2	atheart	1
+Cond	spawncleared	waveThree	3	atheart	1
+Action	objectivestate	1	cinderhollow-o03	reached
+[/Trigger]
+[Trigger]
+Name	goalHeartLost1
+Mode	once
+Cond	room	1	DungeonTemple	==	0
+Action	objectivestate	1	cinderhollow-o01	failed
 [/Trigger]
 [Trigger]
 Name	rivalFalls
@@ -5192,6 +5262,7 @@ Mode	once
 Cond	time	1800
 Cond	goal	1	KillAllEnemies
 Action	message	1	The rival keeper is dead and his heart is cold. Cinderhollow is quiet.
+Action	objectivestate	1	cinderhollow-o05	reached
 Action	win	1
 [/Trigger]
 [Trigger]
@@ -5215,6 +5286,7 @@ Mode	once
 Cond	time	1800
 Cond	defeated	2
 Action	message	1	The rival heart is shattered and the crater is silent. Cinderhollow is yours.
+Action	objectivestate	1	cinderhollow-o05	reached
 Action	win	1
 [/Trigger]
 [Trigger]
@@ -5224,4 +5296,5 @@ Cond	slabs	-1	GoldHollow	gold	<=	0
 Action	message	1	The last gold of the seam is out and the rock behind it sweats mana. A spring has opened in the hollow.
 Action	terrain	30	55	30	55	manawell
 [/Trigger]
+
 [/Triggers]

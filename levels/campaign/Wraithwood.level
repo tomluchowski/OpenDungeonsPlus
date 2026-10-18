@@ -4769,9 +4769,9 @@ Name	mist
 Mode	once
 Cond	time	3
 Action	message	1	Master, Wraithwood is a forest of grey trunks and drifting fog, and Witch-Warden Elowen Ash has bound a rival keeper to her cause. Their two hearts lie at opposite corners of the wood.
-Action	objective	1	Destroy the heart of the witch-warden in the north-west.
-Action	objective	1	Destroy the heart of the rival keeper in the north-east.
-Action	objective	1	Hold your own heart against the heroes of the kingdom.
+Action	objectiveid	1	wraithwood-o01	Destroy the witch-warden's heart in the north-west.
+Action	objectiveid	1	wraithwood-o02	Destroy the rival heart in the north-east.
+Action	objectiveid	1	wraithwood-o03	Defend your heart against the kingdom's heroes.
 [/Trigger]
 [Trigger]
 Name	westGlade
@@ -4830,6 +4830,19 @@ Cond	mined	1	>=	4000
 Action	message	1	The wood's seams are paying. The heroes will not wait for you to finish building.
 [/Trigger]
 [Trigger]
+Name	goalHeartSafe3BeforeBothFallGoal
+Mode	once
+Cond	goal	1	KillAllEnemies
+Cond	goalmet	1	ProtectDungeonTemple
+Action	objectivestate	1	wraithwood-o03	reached
+[/Trigger]
+[Trigger]
+Name	goalHeartLost3
+Mode	once
+Cond	room	1	DungeonTemple	==	0
+Action	objectivestate	1	wraithwood-o03	failed
+[/Trigger]
+[Trigger]
 Name	bothFall
 Mode	once
 Cond	time	5
@@ -4843,6 +4856,8 @@ Name	bothFallGoal
 Mode	once
 Cond	goal	1	KillAllEnemies
 Action	message	1	The witch-warden and the rival keeper are both dead and the fog lifts from Wraithwood. The wood is yours.
+Action	objectivestate	1	wraithwood-o01	reached
+Action	objectivestate	1	wraithwood-o02	reached
 Action	win	1
 [/Trigger]
 [Trigger]
@@ -4852,4 +4867,5 @@ Cond	slabs	1	WestGlade	claimed	>=	40
 Action	message	1	The west glade is yours, master, and the fog over its middle has thinned to a spring of mana. Claim it with a worker.
 Action	terrain	17	52	17	52	manawell
 [/Trigger]
+
 [/Triggers]
