@@ -9,12 +9,12 @@ import odp_fk as fk
 from mathutils import Quaternion
 from hatchery_clips import X, Y, Z, HIP, SHOULDER, NECK, HEADP, bump, wings, ease
 
-# The server shows the Lay pose for HatcheryLayShowTurns turns (config/rooms.cfg, 2) and a turn takes
-# 1 / ODApplication::turnsPerSecond (1.4) seconds; the pose length is pinned by the balance parity test, so the clip
+# The server shows the Lay pose for HatcheryLayShowTurns turns (config/rooms.cfg, 7) and a turn takes
+# 1 / ODApplication::turnsPerSecond (1.4) seconds; playback advances 1.4 clip units per second, so the clip
 # is made exactly as long as the pose and ends with the stand-up complete instead of being cut off
-LAY_SHOW_TURNS = 2
+LAY_SHOW_TURNS = 7
 TURNS_PER_SECOND = 1.4
-LAY_LENGTH = LAY_SHOW_TURNS / TURNS_PER_SECOND
+LAY_LENGTH = LAY_SHOW_TURNS
 
 TAIL_L = "TailFeather_L"
 TAIL_R = "TailFeather_R"
