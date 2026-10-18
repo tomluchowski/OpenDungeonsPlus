@@ -212,7 +212,7 @@ assert 'const bool arrived = distance <= arrive;' in trips
 assert 'mWalked >' not in trips and 'it->mSpot = hen->getPosition()' not in trips
 assert lay.index('hen->countDownLay()') < lay.index('hen->setLayTimer') < lay.index('if(planned->mDue)')
 assert 'hen->setLayTimer' not in body(room_cpp, 'void RoomHatchery::releasePendingEggs'), 'arrival cannot reset the established interval a second time'
-assert 'setAge(eggAge - settings.mHatchTurns)' in doUpkeep and 'chicks.push_back(egg)' in doUpkeep
+assert 'setAge(eggAge - hatchTurns)' in doUpkeep and 'chicks.push_back(egg)' in doUpkeep
 assert 'void setAge' in chicken_h or 'inline void setAge' in chicken_h
 assert 'eggs.erase(eggIt)' in doUpkeep and doUpkeep.index('eggs.erase(eggIt)') < doUpkeep.index('eggPositions.push_back'),     'trampled eggs free their place'
 # The chick from a nest (and a hen that sat in a coop) stands on the ground at a free spot next to where it is
@@ -292,3 +292,33 @@ for turn in range(1, 13):
         assert timer == 2
 assert resets == [1, 6, 10]
 print('hatchery original due-time interval start preserved across late arrival')
+assert 'it->mTurns = settings.mLayShowTurns;' not in trips
+assert 'std::max<uint32_t>(2, it->mTurns)' in trips
+
+# Current cadence contract: room area, immediate nest dispatch, one draw per saved stage, adults only.
+capacity_body = body(cycle_cpp, 'uint32_t HatcheryCycle::capacity')
+assert 'nbTiles / tilesPerChicken' in capacity_body and 'nbCoops' not in capacity_body
+assert 'counts.mHens == 0' in body(cycle_cpp, 'bool HatcheryCycle::needCoopHen')
+assert 'std::min<uint32_t>(1, capacity)' in body(cycle_cpp, 'uint32_t HatcheryCycle::coopHenCount')
+assert 'capacity - counts.population()' in doUpkeep
+reservation = doUpkeep[doUpkeep.index('PendingEgg plan('):doUpkeep.index('// Hens with a planned egg')]
+assert 'stageDuration(settings.mLayShowTurns' in reservation
+assert 'plan.mDue = true' in reservation and 'plan.mStarted = true' in reservation
+assert '++counts.mEggs' in reservation
+assert 'stageDuration(settings.mHatchTurns' in doUpkeep and 'stageDuration(settings.mGrowTurns' in doUpkeep
+assert 'mStageDuration' in body(chicken, 'void ChickenEntity::exportToStream')
+assert 'if(is >> stageDuration)' in body(chicken, 'bool ChickenEntity::importFromStream')
+assert 'mStageDuration = 0' in body(chicken, 'void ChickenEntity::setKind')
+mount = body(chicken, 'void ChickenEntity::mountHen')
+assert 'mKind != ChickenKind::rooster' in mount and 'hen.getKind() != ChickenKind::hen' in mount
+assert '!isFree()' in mount and '!hen.isFree()' in mount
+mood = body(room_cpp, 'void RoomHatchery::actRoosterMood')
+assert 'hen->getKind() != ChickenKind::hen' in mood and 'isOnNestTrip(*hen)' in mood
+# Interpreted integer boundary fixture mirrors the explicit whole-turn interval, not C++ execution.
+import math
+for nominal in (1, 7, 42, 84):
+    low, high = math.ceil(nominal * .8), math.floor(nominal * 1.2)
+    durations = {low + draw % (high - low + 1) for draw in range(10000)}
+    assert min(durations) * 100 >= nominal * 80 and max(durations) * 100 <= nominal * 120
+    assert durations == set(range(low, high + 1))
+print('room-only capacity, immediate nest dispatch, persisted jitter and adult mating source contracts passed')
