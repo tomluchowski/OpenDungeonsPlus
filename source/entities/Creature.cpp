@@ -712,6 +712,10 @@ void Creature::setPosition(const Ogre::Vector3& v, GameMap *gameMap )
                     }
                     inputManager.mHighlightedCreature = closestCreature;
                     closestCreature->maxAmbient();
+
+                    // The creature notices the hand that comes over it
+                    if(CreatureReactions::getSingletonPtr() != nullptr)
+                        CreatureReactions::getSingleton().noteHandHover(closestCreature);
                 }
             }
         }
