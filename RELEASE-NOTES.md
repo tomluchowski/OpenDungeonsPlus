@@ -8,6 +8,11 @@ our repository at https://github.com/OpenDungeons/OpenDungeons
 
 ### Unreleased
 
+* Give hens five seconds to lay, eggs thirty seconds to hatch and chicks sixty seconds to grow at normal game speed; preserve each full life stage instead of aging it on its creation turn, intentionally slowing food production.
+* Keep a wizard's equipped left-hand item and the defender's held idle pose from snapping at their loop boundaries.
+* Close additional visible idle, fleeing and running loop seams while preserving their durations.
+* Give every creature body type articulated rest poses with grounded transitions, supported hands, folded wings, attached equipment and subtle breathing, preserving configured reaction durations and strengths.
+* Keep hit reactions tied to their original attack, including strikes queued behind movement, without delaying landed shots behind a different attacker.
 * Keep creature poses and room reactions aligned with pause and game speed, let slowed reaction clips finish, preserve sleeping occupancy, and keep cosmetic wake-up stretches from replacing important actions.
 * Align mating birds after stopping their paths, show melee reactions at the displayed strike contact, and animate wall-torch flames as rising, fading tongues instead of a stationary image.
 * Give hens and roosters complete articulated flight feathers, close visible movement-loop seams in chickens, hornets and small spiders, and blend cosmetic reactions and normal waking back into their base poses.
