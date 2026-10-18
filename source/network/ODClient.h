@@ -118,6 +118,7 @@ class ODClient: public Ogre::Singleton<ODClient>,
 
     
  protected:
+    //! \brief Applies a server notification, including the saved campaign victory result.
     bool processMessage(ServerNotificationType cmd, ODPacket& packetReceived) override;
     void playerDisconnected() override;
 

@@ -34,6 +34,7 @@
 //!
 //!   [Triggers]
 //!   Flag    <name>  <value>                   # initial value of a flag (unset flags are 0)
+//!   ObjectiveState <seatId> <id> open|reached|failed   # saved presentation state for an identified objective
 //!   Timer   <name> <running 0|1> <turns>      # written by the game: a timer started by an action, in game turns
 //!   FreePossession                            # written by the game: possessions of this level cost no mana
 //!   PortalOff <seatId>                        # written by the game: a seat whose portals are switched off
@@ -101,6 +102,8 @@
 //! only had >= and <=).
 //!   Action  message <seatId> <text>           # seat -1: every human player
 //!   Action  objective <seatId> <text>
+//!   Action  objectiveid <seatId> <id> <text>   # tracked objective, initially open; legacy objective stays valid
+//!   Action  objectivestate <seatId> <id> reached|failed   # explicit presentation status, not a winning condition
 //!   Action  spawn <seatId> <x> <y> <targetSeatId> [party=<tag>] <class:level>[@<name>] [...]   # the tag names the group for event conditions, a name is the creature name (if no creature has it)
 //!   Action  gold <seatId> <amount>
 //!   Action  setflag <name> <value>
@@ -201,6 +204,17 @@ enum class LevelScriptConditionType
     stoneInRegion
 };
 
+//! \brief Explicit presentation state of one identified script objective.
+enum class LevelScriptObjectiveState
+{
+    open,
+    reached,
+    failed
+};
+
+//! \brief Returns the stable stream and display spelling of an objective state.
+const char* levelScriptObjectiveStateName(LevelScriptObjectiveState state);
+
 //! \brief The kinds of actions a trigger can run (see the format above).
 enum class LevelScriptActionType
 {
@@ -233,7 +247,8 @@ enum class LevelScriptActionType
     golfBall,
     stoneCreate,
     stoneAttach,
-    keepMinion
+    keepMinion,
+    objectiveState
 };
 
 //! \brief One condition of a trigger. The fields that are used depend on the type.
@@ -274,6 +289,7 @@ struct LevelScriptCondition
 };
 
 //! \brief One action of a trigger. The fields that are used depend on the type.
+//! \brief One script action, with an optional stable ID for objective descriptions and state updates.
 struct LevelScriptAction
 {
     //! \brief Creates a message action with every value zero or "no seat".
@@ -298,11 +314,13 @@ struct LevelScriptAction
     //! \brief spawn: seat whose dungeon the spawned group attacks (-1: none)
     int32_t mTargetSeatId;
     //! \brief Gold amount (gold), flag value (setflag), amount added to a flag (addflag) or
-    //! seconds (timeLimit)
+    //! seconds (timeLimit), or the LevelScriptObjectiveState value (objectiveState)
     int64_t mNumber;
     //! \brief Message text (message, objective), flag name (setflag), timer name (timer), region name (reveal),
     //! level file (discoverLevel) or skill type name (make)
     std::string mText;
+    //! \brief Stable objective ID; empty for legacy objective text without individual tracking.
+    std::string mObjectiveId;
     //! \brief spawn: creature class name and level
     std::vector<std::pair<std::string, uint32_t> > mCreatures;
     //! \brief spawn: name of each creature of mCreatures (empty: the game chooses one)
@@ -398,6 +416,7 @@ struct LevelScriptTimer
 };
 
 //! \brief The level script of a game map: the triggers, regions, flags and timers of a level.
+//! \brief Holds trigger definitions and saved runtime state, including identified objective states.
 class LevelScript
 {
 public:
@@ -420,9 +439,16 @@ public:
     //! \brief Removes everything the script holds and resets the runtime values.
     void clear();
 
+    //! \brief Returns the explicitly recorded state; an untouched identified objective is open.
+    LevelScriptObjectiveState getObjectiveState(int32_t seatId, const std::string& id) const;
+
+    //! \brief Records the explicit presentation state for one seat and objective ID.
+    void setObjectiveState(int32_t seatId, const std::string& id, LevelScriptObjectiveState state);
+
     //! \brief True if the script holds nothing that a level file has to store.
+    //! \brief True when neither script definitions nor persistent runtime state exist.
     inline bool isEmpty() const
-    { return mTriggers.empty() && mFlags.empty() && mTimers.empty() && mEvents.empty() && !mFreePossession && mPortalOff.empty() && mBlocked.empty() && mRegions.empty() && (mTimeLimitSeconds == TIME_LIMIT_NOT_SET) && (mCountdownSeconds == COUNTDOWN_NOT_SET) && (mWaveCountdownSeconds == COUNTDOWN_NOT_SET) && mOrders.empty() && mSlaps.empty() && (mSlapLimit < 0) && mStoneCarriers.empty(); }
+    { return mTriggers.empty() && mFlags.empty() && mTimers.empty() && mEvents.empty() && mObjectiveStates.empty() && !mFreePossession && mPortalOff.empty() && mBlocked.empty() && mRegions.empty() && (mTimeLimitSeconds == TIME_LIMIT_NOT_SET) && (mCountdownSeconds == COUNTDOWN_NOT_SET) && (mWaveCountdownSeconds == COUNTDOWN_NOT_SET) && mOrders.empty() && mSlaps.empty() && (mSlapLimit < 0) && mStoneCarriers.empty(); }
 
     //! \brief The triggers of the script. The caller may change them.
     inline std::vector<LevelScriptTrigger>& getTriggers()
@@ -609,6 +635,7 @@ public:
     void rebaseTimeLimit(int64_t elapsedSeconds);
 
 private:
+    std::map<std::pair<int32_t, std::string>, LevelScriptObjectiveState> mObjectiveStates;
     std::vector<LevelScriptTrigger> mTriggers;
     std::map<std::string, int64_t> mFlags;
     std::map<std::string, LevelScriptTimer> mTimers;

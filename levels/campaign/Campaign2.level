@@ -3493,7 +3493,7 @@ Name	intro
 Mode	once
 Cond	time	3
 Action	message	-1	A rival keeper is after the same treasure. Claim it first.
-Action	objective	-1	Destroy the rival keeper and keep your dungeon heart alive.
+Action	objectiveid	-1	campaign2-o01	Destroy the rival keeper and keep your dungeon heart alive.
 [/Trigger]
 [Trigger]
 Name	hint

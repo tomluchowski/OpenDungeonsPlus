@@ -166,6 +166,15 @@
             <Property name="TooltipText" value="Sell" />
             <UserString name="ContextHelp" value="Sell: select, then click a room tile, trap or door" />
         </Window>
+        <Window type="OD/GameTabButton" name="GoalsButton">
+            <Property name="Area" value="{{0,4},{1,-224},{0,44},{1,-184}}" />
+            <Property name="NormalImage" value="OpenDungeonsIcons/ObjectivesIcon" />
+            <Property name="NavigationFrame" value="True" />
+            <Property name="AlwaysOnTop" value="True" />
+            <Property name="TooltipText" value="Goals" />
+            <UserString name="AllowEdgeScrolling" value="true" />
+            <UserString name="ContextHelp" value="Goals: show or hide the level objectives" />
+        </Window>
         <Window type="OD/GameTabButton" name="ProductionButton">
             <Property name="Area" value="{{0,100},{1,-224},{0,140},{1,-184}}" />
             <Property name="NormalImage" value="OpenDungeonsIcons/HammerAnvilIcon" />

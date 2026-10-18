@@ -1144,6 +1144,7 @@ void removeCreature(GameMap& gameMap, const std::string& name)
 }
 
 //! \brief Carries out one action of a trigger that fired.
+//! \brief Executes a script action, including explicit presentation updates for identified goals.
 void runAction(GameMap& gameMap, LevelScript& script, const LevelScriptAction& action)
 {
     switch(action.mType)
@@ -1153,6 +1154,11 @@ void runAction(GameMap& gameMap, LevelScript& script, const LevelScriptAction& a
             break;
         case LevelScriptActionType::objective:
             sendMessage(gameMap, action.mSeatId, "Objective: " + action.mText);
+            break;
+        case LevelScriptActionType::objectiveState:
+            for(Player* player : getTargetPlayers(gameMap, action.mSeatId))
+                script.setObjectiveState(player->getSeat()->getId(), action.mObjectiveId,
+                    static_cast<LevelScriptObjectiveState>(action.mNumber));
             break;
         case LevelScriptActionType::spawn:
             spawnCreatures(gameMap, action);

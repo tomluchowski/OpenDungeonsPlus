@@ -26,6 +26,68 @@
 #include <sstream>
 #include <string>
 
+//! \brief Checks identified objectives, explicit seat state, legacy syntax and saved-state round trips.
+BOOST_AUTO_TEST_CASE(identified_objective_state_round_trip)
+{
+    const std::string text =
+        "[Trigger]\nName goals\nMode once\nCond time 0\n"
+        "Action objective 1 Keep the old text\n"
+        "Action objectiveid 1 heart Hold the heart\n"
+        "Action objectivestate 1 heart reached\n"
+        "Action objectivestate 2 heart failed\n"
+        "[/Trigger]\n[/Triggers]\n";
+    LevelScript script;
+    std::istringstream input(text);
+    BOOST_REQUIRE(script.importFromStream(input));
+    const std::vector<LevelScriptAction>& actions = script.getTriggers()[0].mActions;
+    BOOST_CHECK(actions[0].mObjectiveId.empty());
+    BOOST_CHECK_EQUAL(actions[0].mText, "Keep the old text");
+    BOOST_CHECK_EQUAL(actions[1].mObjectiveId, "heart");
+    BOOST_CHECK_EQUAL(actions[1].mText, "Hold the heart");
+    BOOST_CHECK(actions[2].mType == LevelScriptActionType::objectiveState);
+    BOOST_CHECK(script.getObjectiveState(1, "heart") == LevelScriptObjectiveState::open);
+    script.setObjectiveState(1, "heart", LevelScriptObjectiveState::reached);
+    script.setObjectiveState(2, "heart", LevelScriptObjectiveState::failed);
+    BOOST_CHECK(script.getObjectiveState(1, "heart") == LevelScriptObjectiveState::reached);
+    BOOST_CHECK(script.getObjectiveState(2, "heart") == LevelScriptObjectiveState::failed);
+    BOOST_CHECK(script.getObjectiveState(3, "heart") == LevelScriptObjectiveState::open);
+    std::ostringstream output;
+    script.exportToStream(output);
+    BOOST_CHECK(output.str().find("Action\tobjective\t1\tKeep the old text") != std::string::npos);
+    BOOST_CHECK(output.str().find("Action\tobjectiveid\t1\theart\tHold the heart") != std::string::npos);
+    LevelScript loaded;
+    std::istringstream saved(output.str().substr(output.str().find('\n') + 1));
+    BOOST_REQUIRE(loaded.importFromStream(saved));
+    BOOST_CHECK(loaded.getObjectiveState(1, "heart") == LevelScriptObjectiveState::reached);
+    BOOST_CHECK(loaded.getObjectiveState(2, "heart") == LevelScriptObjectiveState::failed);
+    std::ostringstream again;
+    loaded.exportToStream(again);
+    BOOST_CHECK_EQUAL(output.str(), again.str());
+    loaded.clear();
+    BOOST_CHECK(loaded.isEmpty());
+    BOOST_CHECK(loaded.getObjectiveState(1, "heart") == LevelScriptObjectiveState::open);
+}
+
+//! \brief Rejects malformed IDs and state words without changing legacy objective parsing.
+BOOST_AUTO_TEST_CASE(identified_objective_invalid_state)
+{
+    const char* actions[] = {
+        "Action objectiveid 1 heart", "Action objectivestate 1 heart maybe",
+        "Action objectivestate 1 heart open", "Action objectivestate 1 heart",
+        "Action objectiveid bad heart Text"
+    };
+    for(const char* action : actions)
+    {
+        LevelScript script;
+        std::istringstream input(std::string("[Trigger]\nName x\nMode once\nCond time 0\n") +
+            action + "\n[/Trigger]\n[/Triggers]\n");
+        BOOST_CHECK(!script.importFromStream(input));
+    }
+    LevelScript script;
+    std::istringstream input("ObjectiveState 1 heart maybe\n[/Triggers]\n");
+    BOOST_CHECK(!script.importFromStream(input));
+}
+
 //! \brief A [Triggers] section (without the opening tag) that uses every kind of line of the model
 static const std::string sample =
     "# comment\n"

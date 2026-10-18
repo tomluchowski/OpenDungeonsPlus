@@ -2741,11 +2741,14 @@ void GameMap::checkGameDuration()
     }
 }
 
+//! \brief Records a seat victory once and opens the campaign result after saving its progress.
 void GameMap::addWinningSeat(Seat *s)
 {
     // Make sure the seat has not already been added.
     if(std::find(mWinningSeats.begin(), mWinningSeats.end(), s) != mWinningSeats.end())
         return;
+
+    mWinningSeats.push_back(s);
 
     Player* player = getPlayerBySeat(s);
     if (player && player->getIsHuman())
@@ -2762,9 +2765,8 @@ void GameMap::addWinningSeat(Seat *s)
         if(Campaign::getSingleton().onLevelWon())
         {
             ServerNotification* campaignNotification = new ServerNotification(
-                ServerNotificationType::chatServer, player);
-            campaignNotification->mPacket << "Campaign progress saved. Open the menu and quit to see the debriefing."
-                << EventShortNoticeType::majorGameEvent;
+                ServerNotificationType::campaignVictory, player);
+            campaignNotification->mPacket << getGoalsStringForPlayer(player);
             ODServer::getSingleton().queueServerNotification(campaignNotification);
         }
     }
@@ -2773,7 +2775,6 @@ void GameMap::addWinningSeat(Seat *s)
     seats.push_back(s);
     fireRelativeSound(seats, SoundRelativeKeeperStatements::Victory);
 
-    mWinningSeats.push_back(s);
 }
 
 bool GameMap::seatIsAWinner(Seat *s) const
@@ -3207,6 +3208,7 @@ std::vector<Tile*> GameMap::getBuildableTilesForPlayerInArea(int x1, int y1, int
     return tiles;
 }
 
+//! \brief Formats every authoritative goal state without hiding the list after victory.
 std::string GameMap::getGoalsStringForPlayer(Player* player)
 {
     bool playerIsAWinner = seatIsAWinner(player->getSeat());
@@ -3219,9 +3221,9 @@ std::string GameMap::getGoalsStringForPlayer(Player* player)
 
     if (playerIsAWinner)
     {
-        tempSS << "Congratulations, you have completed this level.";
+        tempSS << "Congratulations, you have completed this level.\n\n";
     }
-    else if (seat->numFailedGoals() > 0)
+    if (seat->numFailedGoals() > 0)
     {
         // Loop over the list of completed goals for the seat we are sitting in an print them.
         tempSS << formatTitleOn << "Failed Goals:\n" << formatTitleOff
@@ -3229,7 +3231,7 @@ std::string GameMap::getGoalsStringForPlayer(Player* player)
         for (unsigned int i = 0; i < seat->numFailedGoals(); ++i)
         {
             Goal *tempGoal = seat->getFailedGoal(i);
-            tempSS << tempGoal->getFailedMessage(*seat) << "\n";
+            tempSS << "Failed: " << tempGoal->getFailedMessage(*seat) << "\n";
         }
     }
 
@@ -3240,7 +3242,7 @@ std::string GameMap::getGoalsStringForPlayer(Player* player)
         for (unsigned int i = 0; i < seat->numUncompleteGoals(); ++i)
         {
             Goal *tempGoal = seat->getUncompleteGoal(i);
-            tempSS << tempGoal->getDescription(*seat) << "\n";
+            tempSS << "Open: " << tempGoal->getDescription(*seat) << "\n";
         }
     }
 
@@ -3251,8 +3253,43 @@ std::string GameMap::getGoalsStringForPlayer(Player* player)
         for (unsigned int i = 0; i < seat->numCompletedGoals(); ++i)
         {
             Goal *tempGoal = seat->getCompletedGoal(i);
-            tempSS << tempGoal->getSuccessMessage(*seat) << "\n";
+            tempSS << "Reached: " << tempGoal->getSuccessMessage(*seat) << "\n";
         }
+    }
+
+    std::vector<std::string> scriptObjectives;
+    std::vector<std::string> scriptObjectiveIds;
+    const LevelScript& script = getLevelScript();
+    for(const LevelScriptTrigger& trigger : script.getTriggers())
+    {
+        for(const LevelScriptAction& action : trigger.mActions)
+        {
+            if(action.mType != LevelScriptActionType::objective ||
+               (action.mSeatId >= 0 && action.mSeatId != seat->getId()) ||
+               (action.mObjectiveId.empty()
+                   ? std::find(scriptObjectives.begin(), scriptObjectives.end(), action.mText) != scriptObjectives.end()
+                   : std::find(scriptObjectiveIds.begin(), scriptObjectiveIds.end(), action.mObjectiveId) != scriptObjectiveIds.end()))
+                continue;
+            scriptObjectiveIds.push_back(action.mObjectiveId);
+            if(action.mObjectiveId.empty())
+                scriptObjectives.push_back(action.mText);
+            else
+            {
+                const LevelScriptObjectiveState state = script.getObjectiveState(seat->getId(), action.mObjectiveId);
+                std::string stateText = "Open";
+                if(state == LevelScriptObjectiveState::reached)
+                    stateText = "Reached";
+                else if(state == LevelScriptObjectiveState::failed)
+                    stateText = "Failed";
+                scriptObjectives.push_back(stateText + " (" + action.mObjectiveId + "): " + action.mText);
+            }
+        }
+    }
+    if(!scriptObjectives.empty())
+    {
+        tempSS << "\n" << formatTitleOn << "Script objectives:" << formatTitleOff << "\n\n";
+        for(const std::string& objective : scriptObjectives)
+            tempSS << objective << "\n";
     }
 
     return tempSS.str();
