@@ -186,6 +186,7 @@ const float MIDDLE_CLICK_PICK_RADIUS = 0.7f;
 //! \brief Height above the floor at which the pointer ray is checked against creatures and other entities
 const float MIDDLE_CLICK_BODY_HEIGHT = 0.4f;
 
+//! \brief Connects game controls, including both entry points to the existing objectives window.
 GameMode::GameMode(ModeManager *modeManager):
     GameEditorModeBase(modeManager, ModeManager::GAME, modeManager->getGui().getGuiSheet(Gui::guiSheet::inGameMenu)),
     mDigSetBool(false),
@@ -302,6 +303,12 @@ GameMode::GameMode(ModeManager *modeManager):
     );
 
     //Objectives window
+    addEventConnection(
+        guiSheet->getChild("GoalsButton")->subscribeEvent(
+            CEGUI::PushButton::EventClicked,
+            CEGUI::Event::Subscriber(&GameMode::toggleObjectivesWindow, this)
+        )
+    );
     addEventConnection(
         guiSheet->getChild("ObjectivesButton")->subscribeEvent(
             CEGUI::PushButton::EventClicked,
@@ -2050,6 +2057,26 @@ void GameMode::notifyGuiAction(GuiAction guiAction)
     }
 }
 
+//! \brief Opens the result window once for the local campaign winner.
+void GameMode::showCampaignVictory(const std::string& goalsDisplay)
+{
+    if(!Campaign::getSingleton().isActive() || mDefeatDebriefing != nullptr)
+        return;
+    refreshPlayerGoals(goalsDisplay);
+    showObjectivesWindow();
+    showDefeatDebriefing();
+}
+
+//! \brief Uses the ordinary campaign exit after acknowledging the saved victory.
+bool GameMode::onClickCampaignVictoryConfirm(const CEGUI::EventArgs&)
+{
+    if(mDefeatDebriefing == nullptr || !mDefeatDebriefing->isVisible())
+        return true;
+    mDefeatDebriefing->hide();
+    mModeManager->requestMode(AbstractModeManager::MENU_CAMPAIGN);
+    return true;
+}
+
 bool GameMode::onClickDefeatDebriefingConfirm(const CEGUI::EventArgs& /*arg*/)
 {
     if(!mDefeatSequence.confirmDebriefing())
@@ -2656,6 +2683,7 @@ void GameMode::onDefeatSequenceFinished()
     showDefeatDebriefing();
 }
 
+//! \brief Shows the existing result window for defeat or an acknowledged campaign victory.
 void GameMode::showDefeatDebriefing()
 {
     mDefeatDebriefing = CEGUI::WindowManager::getSingleton().loadLayoutFromFile("WindowDefeatDebriefing.layout");
@@ -2677,7 +2705,9 @@ void GameMode::showDefeatDebriefing()
     addEventConnection(
         mDefeatDebriefing->getChild("Panel/ConfirmButton")->subscribeEvent(
             CEGUI::PushButton::EventClicked,
-            CEGUI::Event::Subscriber(&GameMode::onClickDefeatDebriefingConfirm, this)
+            debriefingLevelWon(hasStatistics, statistics, false) && Campaign::getSingleton().isActive()
+                ? CEGUI::Event::Subscriber(&GameMode::onClickCampaignVictoryConfirm, this)
+                : CEGUI::Event::Subscriber(&GameMode::onClickDefeatDebriefingConfirm, this)
         )
     );
 

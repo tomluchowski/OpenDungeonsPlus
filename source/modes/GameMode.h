@@ -89,6 +89,7 @@ public:
 class GameMode final : public GameEditorModeBase, public InputCommand
 {
  public:
+    //! \brief Connects the in-game controls and existing objectives window to the mode manager.
     GameMode(ModeManager*);
 
     virtual ~GameMode();
@@ -198,6 +199,12 @@ class GameMode final : public GameEditorModeBase, public InputCommand
     //! \brief Called once when the defeat sequence has run to its end (the screen is black).
     //! Opens the debriefing window on the black screen.
     void onDefeatSequenceFinished();
+
+    //! \brief Shows the victory result after the server saved campaign progress.
+    void showCampaignVictory(const std::string& goalsDisplay);
+
+    //! \brief Returns to the campaign map after the player acknowledges victory.
+    bool onClickCampaignVictoryConfirm(const CEGUI::EventArgs&);
 
     //! \brief Shows/hides/toggles the options window
     bool showOptionsWindow(const CEGUI::EventArgs& = {});
@@ -486,7 +493,7 @@ private:
     void cutCameraToHeart(const Ogre::Vector3& heartPosition);
     void createDefeatWindows();
     void destroyDefeatWindows();
-    //! Loads the debriefing window (summary lines, confirm button) and shows the pointer again
+    //! \brief Loads the defeat or campaign victory result (summary lines and confirm button) and shows the pointer.
     void showDefeatDebriefing();
     //! Fills the hidden statistics area of the debriefing with the rows and shows it (nothing for no rows)
     void fillDefeatStatistics(const std::vector<DebriefingTableRow>& rows);

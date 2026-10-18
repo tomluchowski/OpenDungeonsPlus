@@ -166,6 +166,8 @@ public:
     void showDefeatDebriefing();
     void fillDefeatStatistics(const std::vector<DebriefingTableRow>& rows);
     bool onClickDefeatDebriefingConfirm(const CEGUI::EventArgs& arg);
+    //! \brief Returns campaign winners to the campaign map after confirmation.
+    bool onClickCampaignVictoryConfirm(const CEGUI::EventArgs& arg);
     std::vector<CEGUI::Event::Connection> mEventConnections;
     DefeatSequence mDefeatSequence;
     CEGUI::Window* mDefeatTint = nullptr;
@@ -189,6 +191,7 @@ public:
 @@SHOW@@
 @@FILL@@
 @@CONFIRM@@
+@@CAMPAIGN_CONFIRM@@
 
 class StubImageCodec : public CEGUI::ImageCodec
 {
@@ -416,6 +419,7 @@ for marker, text in (
         ('@@SHOW@@', function(game_mode, 'void GameMode::showDefeatDebriefing(')),
         ('@@FILL@@', function(game_mode, 'void GameMode::fillDefeatStatistics(')),
         ('@@CONFIRM@@', function(game_mode, 'bool GameMode::onClickDefeatDebriefingConfirm(')),
+        ('@@CAMPAIGN_CONFIRM@@', function(game_mode, 'bool GameMode::onClickCampaignVictoryConfirm(')),
         ('@@GUI@@', (repo / 'gui').as_posix() + '/'),
         ('@@FONTS@@', (repo / 'gui/fonts').as_posix() + '/')):
     assert marker in probe, marker

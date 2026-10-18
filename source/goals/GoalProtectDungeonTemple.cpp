@@ -44,9 +44,10 @@ bool GoalProtectDungeonTemple::isFailed(const Seat& s, const GameMap& gameMap)
     return !isMet(s, gameMap);
 }
 
+//! \brief Describes the objective as a short player-facing instruction.
 std::string GoalProtectDungeonTemple::getDescription(const Seat&)
 {
-    return "Protect your dungeon temple.";
+    return "Protect your heart.";
 }
 
 std::string GoalProtectDungeonTemple::getSuccessMessage(const Seat&)

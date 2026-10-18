@@ -550,6 +550,10 @@ probe = (probe.replace('RULES_HEADER', rules.as_posix())
 enum_body = notification_header[notification_header.index('enum class ServerNotificationType'):]
 enum_body = enum_body[:enum_body.index('};')]
 enumerators = re.findall(r'^\s*([A-Za-z_]\w*)\s*,?\s*(?://.*)?$', enum_body, re.M)
+# Campaign victory appends one value after the historical tail without changing existing ordinals.
+assert enumerators[-4:] == ['editorRegionData', 'trapEffect', 'timeLimit', 'campaignVictory'], enumerators[-4:]
+assert enumerators.count('campaignVictory') == 1
+enumerators = enumerators[:-1]
 assert enumerators[-1] == 'timeLimit' and enumerators[-2] == 'trapEffect' and enumerators[-3] == 'editorRegionData', enumerators[-4:]
 assert enumerators[-7] == 'heartHealth', enumerators[-8:]
 assert enumerators[-8] == 'levelStatistics' and enumerators[-9] == 'playerDefeated'
