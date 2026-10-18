@@ -155,6 +155,10 @@ bool parseOrderJob(const std::string& job)
     return (job == "killplayer") || (job == "goto") || (job == "killcreatures") || (job == "wait") || (job == "stealgold");
 }
 
+//! \brief Parses the saved spelling of one explicit objective state.
+bool parseObjectiveState(const std::string& text, LevelScriptObjectiveState& state);
+
+//! \brief Parses gameplay conditions and read-only goal presentation predicates.
 //! \brief Reads a Cond line.
 //! \param t The tokens of the line, t[0] is "Cond".
 //! \param cond The condition to fill.
@@ -279,9 +283,73 @@ bool parseCondition(const std::vector<std::string>& t, LevelScriptCondition& con
 
         return parseInt32(t[2], cond.mSeatId) && parseInt(t[4], cond.mNumber);
     }
-    if(type == "goal")
+    if(type == "minedregion")
+    {
+        if(t.size() != 6 || !parseInt32(t[2], cond.mSeatId) || cond.mSeatId < 0 ||
+           !parseOperator(t[4], cond) || !parseInt(t[5], cond.mNumber) || cond.mNumber < 0)
+            return false;
+        cond.mType = LevelScriptConditionType::minedInRegion;
+        cond.mName = t[3];
+        return true;
+    }
+    if(type == "killedin")
+    {
+        if(t.size() != 4)
+            return false;
+        cond.mType = LevelScriptConditionType::killedInRegion;
+        cond.mName = t[2];
+        cond.mName2 = t[3];
+        return true;
+    }
+    if(type == "trapgone")
+    {
+        if(t.size() != 3)
+            return false;
+        cond.mType = LevelScriptConditionType::trapGone;
+        cond.mName = t[2];
+        return true;
+    }
+    if(type == "spawncleared")
+    {
+        if((t.size() != 4 && t.size() != 6) || !parseInt(t[3], cond.mNumber) || cond.mNumber < 0)
+            return false;
+        cond.mType = LevelScriptConditionType::spawnCleared;
+        cond.mName = t[2];
+        if(t.size() == 6)
+            return t[4] == "atheart" && parseInt32(t[5], cond.mSeatId) && cond.mSeatId >= 0;
+        return true;
+    }
+    if(type == "trigger")
+    {
+        if(t.size() != 3 && t.size() != 4)
+            return false;
+        cond.mType = LevelScriptConditionType::triggerFired;
+        cond.mName = t[2];
+        cond.mNumber = 1;
+        return t.size() == 3 || (parseInt(t[3], cond.mNumber) && (cond.mNumber == 0 || cond.mNumber == 1));
+    }
+    if(type == "objective")
+    {
+        LevelScriptObjectiveState state = LevelScriptObjectiveState::open;
+        if(t.size() != 5 || !parseInt32(t[2], cond.mSeatId) || cond.mSeatId < 0 ||
+           !parseObjectiveState(t[4], state))
+            return false;
+        cond.mType = LevelScriptConditionType::objectiveState;
+        cond.mName = t[3];
+        cond.mNumber = static_cast<int64_t>(state);
+        return true;
+    }
+    if(type == "creaturesatheart")
+    {
+        cond.mType = LevelScriptConditionType::creaturesAtHeart;
+        return t.size() == 5 && parseInt32(t[2], cond.mSeatId) && cond.mSeatId >= 0 &&
+            parseOperator(t[3], cond) && parseInt(t[4], cond.mNumber) && cond.mNumber >= 0;
+    }
+    if(type == "goal" || type == "goalmet")
     {
         cond.mType = LevelScriptConditionType::goal;
+        if(type == "goalmet")
+            cond.mType = LevelScriptConditionType::goalMet;
         if(t.size() != 4)
             return false;
 
@@ -533,6 +601,14 @@ bool parseAction(const std::string& line, const std::vector<std::string>& t, Lev
         action.mObjectiveId = t[3];
         action.mNumber = static_cast<int64_t>(state);
         return !action.mObjectiveId.empty();
+    }
+    if(type == "hint")
+    {
+        if(t.size() < 4 || !parseInt32(t[2], action.mSeatId))
+            return false;
+        action.mType = LevelScriptActionType::hint;
+        action.mText = restOfLine(line, 3);
+        return !action.mText.empty();
     }
     if((type == "message") || (type == "objective"))
     {
@@ -811,6 +887,7 @@ bool parseAction(const std::string& line, const std::vector<std::string>& t, Lev
 }
 
 //! \brief Writes a condition as one Cond line.
+//! \brief Writes gameplay and presentation condition syntax without changing legacy meanings.
 void writeCondition(std::ostream& os, const LevelScriptCondition& c)
 {
     os << "Cond\t";
@@ -918,6 +995,36 @@ void writeCondition(std::ostream& os, const LevelScriptCondition& c)
         case LevelScriptConditionType::goal:
             os << "goal\t" << c.mSeatId << "\t" << c.mName;
             break;
+        case LevelScriptConditionType::goalMet:
+            os << "goalmet\t" << c.mSeatId << "\t" << c.mName;
+            break;
+        case LevelScriptConditionType::trapGone:
+            os << "trapgone\t" << c.mName;
+            break;
+        case LevelScriptConditionType::minedInRegion:
+            os << "minedregion\t" << c.mSeatId << "\t" << c.mName << "\t"
+               << levelScriptCompareToken(c.mCompare) << "\t" << c.mNumber;
+            break;
+        case LevelScriptConditionType::killedInRegion:
+            os << "killedin\t" << c.mName << "\t" << c.mName2;
+            break;
+        case LevelScriptConditionType::spawnCleared:
+            os << "spawncleared\t" << c.mName << "\t" << c.mNumber;
+            if(c.mSeatId >= 0)
+                os << "\tatheart\t" << c.mSeatId;
+            break;
+        case LevelScriptConditionType::triggerFired:
+            os << "trigger\t" << c.mName;
+            if(c.mNumber == 0)
+                os << "\t0";
+            break;
+        case LevelScriptConditionType::objectiveState:
+            os << "objective\t" << c.mSeatId << "\t" << c.mName << "\t"
+               << levelScriptObjectiveStateName(static_cast<LevelScriptObjectiveState>(c.mNumber));
+            break;
+        case LevelScriptConditionType::creaturesAtHeart:
+            os << "creaturesatheart\t" << c.mSeatId << "\t" << levelScriptCompareToken(c.mCompare) << "\t" << c.mNumber;
+            break;
         case LevelScriptConditionType::flag:
             if((c.mCompare == LevelScriptCompare::equal) && c.mName2.empty())
             {
@@ -988,6 +1095,9 @@ void writeAction(std::ostream& os, const LevelScriptAction& a)
     {
         case LevelScriptActionType::message:
             os << "message\t" << a.mSeatId << "\t" << a.mText;
+            break;
+        case LevelScriptActionType::hint:
+            os << "hint\t" << a.mSeatId << "\t" << a.mText;
             break;
         case LevelScriptActionType::objective:
             if(a.mObjectiveId.empty())
@@ -1139,6 +1249,118 @@ void LevelScript::setObjectiveState(int32_t seatId, const std::string& id, Level
     mObjectiveStates[std::make_pair(seatId, id)] = state;
 }
 
+//! \brief Tracks an actual spawn only when an objective condition names its source action.
+void LevelScript::observeSpawn(const std::string& trigger, int64_t actionIndex, const std::string& creatureName)
+{
+    bool watched = false;
+    for(const LevelScriptTrigger& item : mTriggers)
+    {
+        for(const LevelScriptCondition& cond : item.mConditions)
+        {
+            if(cond.mType == LevelScriptConditionType::spawnCleared && cond.mName == trigger && cond.mNumber == actionIndex)
+                watched = true;
+        }
+    }
+    if(!watched)
+        return;
+    LevelScriptSpawnObservation observation;
+    observation.mTrigger = trigger;
+    observation.mActionIndex = actionIndex;
+    observation.mCreatureName = creatureName;
+    mSpawnObservations.push_back(observation);
+}
+
+//! \brief Marks the latest living instance of this name without confusing a later reused name.
+void LevelScript::observeSpawnDeath(const std::string& creatureName, int32_t templeSeat)
+{
+    for(std::vector<LevelScriptSpawnObservation>::reverse_iterator it = mSpawnObservations.rbegin();
+        it != mSpawnObservations.rend(); ++it)
+    {
+        if(it->mCreatureName == creatureName && !it->mKilled)
+        {
+            it->mKilled = true;
+            it->mDeathTempleSeat = templeSeat;
+            return;
+        }
+    }
+}
+
+//! \brief Requires at least one observed instance and every actual instance to have the required death location.
+bool LevelScript::areSpawnsCleared(const std::string& trigger, int64_t actionIndex, int32_t templeSeat) const
+{
+    bool found = false;
+    for(const LevelScriptSpawnObservation& observation : mSpawnObservations)
+    {
+        if(observation.mTrigger != trigger || observation.mActionIndex != actionIndex)
+            continue;
+        found = true;
+        if(!observation.mKilled || (templeSeat >= 0 && observation.mDeathTempleSeat != templeSeat))
+            return false;
+    }
+    return found;
+}
+
+//! \brief Observes exact credited amounts only for a region explicitly named by a presentation condition.
+void LevelScript::observeGoldMined(int32_t seatId, int32_t x, int32_t y, int64_t amount)
+{
+    if(amount <= 0)
+        return;
+    for(const LevelScriptTrigger& trigger : mTriggers)
+    {
+        for(const LevelScriptCondition& cond : trigger.mConditions)
+        {
+            if(cond.mType != LevelScriptConditionType::minedInRegion || cond.mSeatId != seatId)
+                continue;
+            const LevelScriptRegion* region = getRegion(cond.mName);
+            if(region != nullptr && region->contains(x, y))
+            {
+                mMinedGold[seatId][std::make_pair(x, y)] += amount;
+                return;
+            }
+        }
+    }
+}
+
+//! \brief Sums actual credited mining gold inside the named region without guessing tile yield.
+int64_t LevelScript::getGoldMinedInRegion(int32_t seatId, const std::string& regionName) const
+{
+    const LevelScriptRegion* region = getRegion(regionName);
+    std::map<int32_t, std::map<std::pair<int32_t, int32_t>, int64_t> >::const_iterator seat = mMinedGold.find(seatId);
+    if(region == nullptr || seat == mMinedGold.end())
+        return 0;
+    int64_t amount = 0;
+    for(const std::pair<const std::pair<int32_t, int32_t>, int64_t>& tile : seat->second)
+    {
+        if(region->contains(tile.first.first, tile.first.second))
+            amount += tile.second;
+    }
+    return amount;
+}
+
+//! \brief Records a named creature's real death position only when a killedin condition watches it.
+void LevelScript::observeCreatureDeath(const std::string& creatureName, int32_t x, int32_t y)
+{
+    for(const LevelScriptTrigger& trigger : mTriggers)
+    {
+        for(const LevelScriptCondition& cond : trigger.mConditions)
+        {
+            if(cond.mType == LevelScriptConditionType::killedInRegion && cond.mName == creatureName)
+            {
+                mCreatureDeathTiles[creatureName] = std::make_pair(x, y);
+                return;
+            }
+        }
+    }
+}
+
+//! \brief Checks the actual saved death position rather than the creature's last-known live region.
+bool LevelScript::wasCreatureKilledInRegion(const std::string& creatureName, const std::string& regionName) const
+{
+    const LevelScriptRegion* region = getRegion(regionName);
+    std::map<std::string, std::pair<int32_t, int32_t> >::const_iterator death = mCreatureDeathTiles.find(creatureName);
+    return region != nullptr && death != mCreatureDeathTiles.end() && region->contains(death->second.first, death->second.second);
+}
+
 //! \brief Reads legacy definitions and optional persisted per-seat objective states.
 bool LevelScript::importFromStream(std::istream& is)
 {
@@ -1178,7 +1400,40 @@ bool LevelScript::importFromStream(std::istream& is)
 
         std::vector<std::string> t = split(line);
         const std::string& key = t[0];
-        if(key == "ObjectiveState")
+        if(key == "MinedGold")
+        {
+            int32_t seatId = -1;
+            int32_t x = -1;
+            int32_t y = -1;
+            int64_t amount = 0;
+            if(inTrigger || t.size() != 5 || !parseInt32(t[1], seatId) || seatId < 0 ||
+               !parseInt32(t[2], x) || x < 0 || !parseInt32(t[3], y) || y < 0 ||
+               !parseInt(t[4], amount) || amount <= 0)
+                return false;
+            mMinedGold[seatId][std::make_pair(x, y)] += amount;
+        }
+        else if(key == "DeathTile")
+        {
+            int32_t x = -1;
+            int32_t y = -1;
+            if(inTrigger || t.size() != 4 || !parseInt32(t[2], x) || x < 0 || !parseInt32(t[3], y) || y < 0)
+                return false;
+            mCreatureDeathTiles[t[1]] = std::make_pair(x, y);
+        }
+        else if(key == "SpawnObservation")
+        {
+            LevelScriptSpawnObservation observation;
+            int64_t killed = 0;
+            if(inTrigger || t.size() != 6 || !parseInt(t[2], observation.mActionIndex) || observation.mActionIndex < 0 ||
+               !parseInt(t[4], killed) || (killed != 0 && killed != 1) || !parseInt32(t[5], observation.mDeathTempleSeat) ||
+               observation.mDeathTempleSeat < -1 || (killed == 0 && observation.mDeathTempleSeat != -1))
+                return false;
+            observation.mTrigger = t[1];
+            observation.mCreatureName = t[3];
+            observation.mKilled = killed != 0;
+            mSpawnObservations.push_back(observation);
+        }
+        else if(key == "ObjectiveState")
         {
             int32_t seatId = -1;
             LevelScriptObjectiveState state = LevelScriptObjectiveState::open;
@@ -1370,6 +1625,16 @@ bool LevelScript::importFromStream(std::istream& is)
 void LevelScript::exportToStream(std::ostream& os) const
 {
     os << "[Triggers]\n";
+    for(const std::pair<const int32_t, std::map<std::pair<int32_t, int32_t>, int64_t> >& seat : mMinedGold)
+    {
+        for(const std::pair<const std::pair<int32_t, int32_t>, int64_t>& tile : seat.second)
+            os << "MinedGold\t" << seat.first << "\t" << tile.first.first << "\t" << tile.first.second << "\t" << tile.second << "\n";
+    }
+    for(const std::pair<const std::string, std::pair<int32_t, int32_t> >& death : mCreatureDeathTiles)
+        os << "DeathTile\t" << death.first << "\t" << death.second.first << "\t" << death.second.second << "\n";
+    for(const LevelScriptSpawnObservation& observation : mSpawnObservations)
+        os << "SpawnObservation\t" << observation.mTrigger << "\t" << observation.mActionIndex << "\t"
+           << observation.mCreatureName << "\t" << (observation.mKilled ? 1 : 0) << "\t" << observation.mDeathTempleSeat << "\n";
     for(const std::pair<const std::pair<int32_t, std::string>, LevelScriptObjectiveState>& objective : mObjectiveStates)
         os << "ObjectiveState\t" << objective.first.first << "\t" << objective.first.second << "\t"
            << levelScriptObjectiveStateName(objective.second) << "\n";
@@ -1452,6 +1717,9 @@ void LevelScript::exportToStream(std::ostream& os) const
 void LevelScript::clear()
 {
     mObjectiveStates.clear();
+    mSpawnObservations.clear();
+    mMinedGold.clear();
+    mCreatureDeathTiles.clear();
     mTriggers.clear();
     mFlags.clear();
     mTimers.clear();

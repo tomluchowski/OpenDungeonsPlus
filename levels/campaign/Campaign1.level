@@ -2297,4 +2297,12 @@ Mode	once
 Cond	time	60
 Action	discover	campaign/Bonus1.level
 [/Trigger]
+
+[Trigger]
+Name	goalClassicComplete
+Mode	once
+Cond	goalmet	1	KillAllEnemies
+Cond	goalmet	1	ProtectDungeonTemple
+Action	objectivestate	-1	campaign1-o01	reached
+[/Trigger]
 [/Triggers]

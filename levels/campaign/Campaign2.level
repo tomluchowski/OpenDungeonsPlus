@@ -3501,4 +3501,12 @@ Mode	once
 Cond	time	180
 Action	message	-1	Build a Treasury and a Training Room before the rival gets strong.
 [/Trigger]
+
+[Trigger]
+Name	goalClassicComplete
+Mode	once
+Cond	goalmet	1	KillAllEnemies
+Cond	goalmet	1	ProtectDungeonTemple
+Action	objectivestate	-1	campaign2-o01	reached
+[/Trigger]
 [/Triggers]

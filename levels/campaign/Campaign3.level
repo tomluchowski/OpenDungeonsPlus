@@ -8176,4 +8176,12 @@ Mode	once
 Cond	time	300
 Action	message	-1	Heroes will try to steal gold from both of you. Guard your treasury.
 [/Trigger]
+
+[Trigger]
+Name	goalClassicComplete
+Mode	once
+Cond	goalmet	1	KillAllEnemies
+Cond	goalmet	1	ProtectDungeonTemple
+Action	objectivestate	-1	campaign3-o01	reached
+[/Trigger]
 [/Triggers]

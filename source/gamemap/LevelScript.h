@@ -35,6 +35,9 @@
 //!   [Triggers]
 //!   Flag    <name>  <value>                   # initial value of a flag (unset flags are 0)
 //!   ObjectiveState <seatId> <id> open|reached|failed   # saved presentation state for an identified objective
+//!   SpawnObservation <trigger> <actionIndex> <creatureName> <killed 0|1> <deathTempleSeat>   # saved exact spawn/death observation; temple -1 means outside a temple
+//!   MinedGold <seatId> <x> <y> <creditedGold>    # sparse actual gold credited from a watched source tile
+//!   DeathTile <creatureName> <x> <y>           # actual death tile of a named creature watched by killedin
 //!   Timer   <name> <running 0|1> <turns>      # written by the game: a timer started by an action, in game turns
 //!   FreePossession                            # written by the game: possessions of this level cost no mana
 //!   PortalOff <seatId>                        # written by the game: a seat whose portals are switched off
@@ -94,6 +97,14 @@
 //!   Cond    slapped <seatId> >= | <= <count>    # times a creature of the seat was slapped
 //!   Cond    claimed <seatId> <regionName> <count> | all   # tiles of the region claimed by the seat
 //!   Cond    goal <seatId> <goalName>          # seat completed a goal with that name
+//!   Cond    goalmet <seatId> <goalName>       # a registered goal is met now, without waiting for the completed-goal cache
+//!   Cond    objective <seatId> <id> open|reached|failed   # exact state of an identified objective
+//!   Cond    trigger <name> [0|1]             # existing trigger has (1, default) or has not (0) fired
+//!   Cond    trapgone <name>                  # a trap originally declared by the level no longer exists
+//!   Cond    spawncleared <trigger> <actionIndex> [atheart <seatId>]   # every actual spawn instance was killed, optionally on the seat's exact temple tiles
+//!   Cond    minedregion <seatId> <region> <op> <goldAmount>   # actual credited mining gold from tiles of that region
+//!   Cond    killedin <creatureName> <region>   # actual recorded death position is within that region
+//!   Cond    creaturesatheart <seatId> <op> <count>   # own living creatures on tiles of the seat's dungeon temple
 //!   Cond    flag <name> <value>               # flag has exactly that value
 //!   Cond    flag <name> <op> <value>          # op is == != < <= > >=; value may be @<otherFlag>
 //!   Cond    timer <name> <op> <seconds>       # a timer started by "Action timer" has run that long (a timer that was never started counts 0)
@@ -102,6 +113,7 @@
 //! only had >= and <=).
 //!   Action  message <seatId> <text>           # seat -1: every human player
 //!   Action  objective <seatId> <text>
+//!   Action  hint <seatId> <text>             # advice with no ID, state or completion tick
 //!   Action  objectiveid <seatId> <id> <text>   # tracked objective, initially open; legacy objective stays valid
 //!   Action  objectivestate <seatId> <id> reached|failed   # explicit presentation status, not a winning condition
 //!   Action  spawn <seatId> <x> <y> <targetSeatId> [party=<tag>] <class:level>[@<name>] [...]   # the tag names the group for event conditions, a name is the creature name (if no creature has it)
@@ -201,7 +213,15 @@ enum class LevelScriptConditionType
     portalActive,
     creatureAlive,
     creatureReached,
-    stoneInRegion
+    stoneInRegion,
+    objectiveState,
+    goalMet,
+    creaturesAtHeart,
+    triggerFired,
+    trapGone,
+    spawnCleared,
+    minedInRegion,
+    killedInRegion
 };
 
 //! \brief Explicit presentation state of one identified script objective.
@@ -248,7 +268,8 @@ enum class LevelScriptActionType
     stoneCreate,
     stoneAttach,
     keepMinion,
-    objectiveState
+    objectiveState,
+    hint
 };
 
 //! \brief One condition of a trigger. The fields that are used depend on the type.
@@ -278,9 +299,11 @@ struct LevelScriptCondition
     //! The same comparison with all the operators (mAtLeast is true when it is atLeast)
     LevelScriptCompare mCompare;
     //! \brief Seconds (time), count (creatures, room, claimed, -1 for all of the region),
-    //! amount (gold, mana, goldMined), count (kills and the creature conditions) or value (flag)
+    //! amount (gold, mana, goldMined), count (kills and the creature conditions), value (flag),
+    //! or the exact LevelScriptObjectiveState value (objectiveState).
     int64_t mNumber;
-    //! \brief Room name (room), goal name (goal), flag name (flag) or, for region, the
+    //! \brief Room name (room), goal name (goal/goalMet), objective ID (objectiveState),
+    //! trigger name (triggerFired), flag name (flag) or, for region, the
     //! name of a region of the script (empty when the rectangle is given by mX1 to mY2)
     std::string mName;
     //! The flag a flag condition compares with (empty when it compares with mNumber), or the creature class
@@ -316,7 +339,7 @@ struct LevelScriptAction
     //! \brief Gold amount (gold), flag value (setflag), amount added to a flag (addflag) or
     //! seconds (timeLimit), or the LevelScriptObjectiveState value (objectiveState)
     int64_t mNumber;
-    //! \brief Message text (message, objective), flag name (setflag), timer name (timer), region name (reveal),
+    //! \brief Message text (message, objective, hint), flag name (setflag), timer name (timer), region name (reveal),
     //! level file (discoverLevel) or skill type name (make)
     std::string mText;
     //! \brief Stable objective ID; empty for legacy objective text without individual tracking.
@@ -415,6 +438,18 @@ struct LevelScriptTimer
     int64_t mTurns;
 };
 
+//! \brief Saved identity and death location of one actual instance created by a script spawn action.
+struct LevelScriptSpawnObservation
+{
+    //! \brief Initializes an alive spawn observation without attributing a death location.
+    LevelScriptSpawnObservation() : mActionIndex(0), mKilled(false), mDeathTempleSeat(-1) {}
+    std::string mTrigger;
+    int64_t mActionIndex;
+    std::string mCreatureName;
+    bool mKilled;
+    int32_t mDeathTempleSeat;
+};
+
 //! \brief The level script of a game map: the triggers, regions, flags and timers of a level.
 //! \brief Holds trigger definitions and saved runtime state, including identified objective states.
 class LevelScript
@@ -445,10 +480,27 @@ public:
     //! \brief Records the explicit presentation state for one seat and objective ID.
     void setObjectiveState(int32_t seatId, const std::string& id, LevelScriptObjectiveState state);
 
+    //! \brief Observes an actual spawn instance without changing its name, party or behaviour.
+    void observeSpawn(const std::string& trigger, int64_t actionIndex, const std::string& creatureName);
+    //! \brief Records the latest living instance's death; templeSeat is -1 outside a temple.
+    void observeSpawnDeath(const std::string& creatureName, int32_t templeSeat);
+    //! \brief True when the source action spawned creatures and every observed instance was killed.
+    //! \param templeSeat -1 permits any death location; otherwise each death must be on that seat's temple.
+    bool areSpawnsCleared(const std::string& trigger, int64_t actionIndex, int32_t templeSeat) const;
+
+    //! \brief Observes actual credited mining gold at a tile for explicitly watched regions only.
+    void observeGoldMined(int32_t seatId, int32_t x, int32_t y, int64_t amount);
+    //! \brief Returns credited gold mined by this seat from the named region's tiles.
+    int64_t getGoldMinedInRegion(int32_t seatId, const std::string& regionName) const;
+    //! \brief Saves the actual death tile of a named creature watched by killedin conditions.
+    void observeCreatureDeath(const std::string& creatureName, int32_t x, int32_t y);
+    //! \brief True only when a recorded actual death lies inside the named region.
+    bool wasCreatureKilledInRegion(const std::string& creatureName, const std::string& regionName) const;
+
     //! \brief True if the script holds nothing that a level file has to store.
     //! \brief True when neither script definitions nor persistent runtime state exist.
     inline bool isEmpty() const
-    { return mTriggers.empty() && mFlags.empty() && mTimers.empty() && mEvents.empty() && mObjectiveStates.empty() && !mFreePossession && mPortalOff.empty() && mBlocked.empty() && mRegions.empty() && (mTimeLimitSeconds == TIME_LIMIT_NOT_SET) && (mCountdownSeconds == COUNTDOWN_NOT_SET) && (mWaveCountdownSeconds == COUNTDOWN_NOT_SET) && mOrders.empty() && mSlaps.empty() && (mSlapLimit < 0) && mStoneCarriers.empty(); }
+    { return mTriggers.empty() && mFlags.empty() && mTimers.empty() && mEvents.empty() && mObjectiveStates.empty() && mSpawnObservations.empty() && mMinedGold.empty() && mCreatureDeathTiles.empty() && !mFreePossession && mPortalOff.empty() && mBlocked.empty() && mRegions.empty() && (mTimeLimitSeconds == TIME_LIMIT_NOT_SET) && (mCountdownSeconds == COUNTDOWN_NOT_SET) && (mWaveCountdownSeconds == COUNTDOWN_NOT_SET) && mOrders.empty() && mSlaps.empty() && (mSlapLimit < 0) && mStoneCarriers.empty(); }
 
     //! \brief The triggers of the script. The caller may change them.
     inline std::vector<LevelScriptTrigger>& getTriggers()
@@ -636,6 +688,9 @@ public:
 
 private:
     std::map<std::pair<int32_t, std::string>, LevelScriptObjectiveState> mObjectiveStates;
+    std::vector<LevelScriptSpawnObservation> mSpawnObservations;
+    std::map<int32_t, std::map<std::pair<int32_t, int32_t>, int64_t> > mMinedGold;
+    std::map<std::string, std::pair<int32_t, int32_t> > mCreatureDeathTiles;
     std::vector<LevelScriptTrigger> mTriggers;
     std::map<std::string, int64_t> mFlags;
     std::map<std::string, LevelScriptTimer> mTimers;

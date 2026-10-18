@@ -3264,14 +3264,16 @@ std::string GameMap::getGoalsStringForPlayer(Player* player)
     {
         for(const LevelScriptAction& action : trigger.mActions)
         {
-            if(action.mType != LevelScriptActionType::objective ||
+            if((action.mType != LevelScriptActionType::objective && action.mType != LevelScriptActionType::hint) ||
                (action.mSeatId >= 0 && action.mSeatId != seat->getId()) ||
                (action.mObjectiveId.empty()
                    ? std::find(scriptObjectives.begin(), scriptObjectives.end(), action.mText) != scriptObjectives.end()
                    : std::find(scriptObjectiveIds.begin(), scriptObjectiveIds.end(), action.mObjectiveId) != scriptObjectiveIds.end()))
                 continue;
             scriptObjectiveIds.push_back(action.mObjectiveId);
-            if(action.mObjectiveId.empty())
+            if(action.mType == LevelScriptActionType::hint)
+                scriptObjectives.push_back("Hint: " + action.mText);
+            else if(action.mObjectiveId.empty())
                 scriptObjectives.push_back(action.mText);
             else
             {
