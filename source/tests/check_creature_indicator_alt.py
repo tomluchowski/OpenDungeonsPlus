@@ -47,8 +47,9 @@ struct ChildOverlay {
  void displayOverlay(float);void update(float);bool isDisplayed();
 };
 CHILD_METHODS
+//! \brief Provides separate health, status and emote children for overlay clock regression checks.
 struct MovableTextOverlay {
- std::vector<ChildOverlay> mChildOverlays=std::vector<ChildOverlay>(2);bool visible=false;
+ std::vector<ChildOverlay> mChildOverlays=std::vector<ChildOverlay>(3);bool visible=false;
  void displayOverlay(uint32_t,float);bool isDisplayed(uint32_t);
  void setVisible(bool value){visible=value;}
  void update(float dt){for(auto& child:mChildOverlays)child.update(dt);}
@@ -56,19 +57,35 @@ struct MovableTextOverlay {
 MOVABLE_METHODS
 enum class CreatureOverlays { health,status };
 struct CreatureOverlayStatus;
+struct Creature;
+//! \brief Supplies creature lists and a controllable game clock to the production overlay methods.
+struct GameMap {
+ std::vector<Creature*> creatures;double speed=1.0;
+ //! \brief Returns the creatures whose indicator request is being tested.
+ const std::vector<Creature*>& getCreatures(){return creatures;}
+ //! \brief Returns the selected game-to-real-time ratio.
+ double getGameSpeedFactor() const{return speed;}
+};
+//! \brief Supplies the creature properties used by the production overlay methods.
 struct Creature {
  bool onMap=true,alive=true;CreatureOverlayStatus* overlay=nullptr;
+ GameMap* map=nullptr;
+ //! \brief Returns the map that owns this test creature's game clock.
+ GameMap* getGameMap(){return map;}
  bool getIsOnMap(){return onMap;}bool isAlive(){return alive;}
  CreatureOverlayStatus* getOverlayStatus(){return overlay;}
 };
+//! \brief Hosts production overlay methods with isolated display and game-clock state.
 struct CreatureOverlayStatus {
  Creature* mCreature;MovableTextOverlay* mMovableTextOverlay;
  std::vector<uint32_t> mOverlayIds{0,1};
+ bool mEmoteCreated=false;float mEmoteRemaining=0;uint32_t mEmoteId=2;
+ //! \brief Hides an emote using the production lifetime cleanup method.
+ void hideEmote();
  void updateHealth(){}void updateProgress(float){}void updateStatus(float){mMovableTextOverlay->displayOverlay(1,-1);}
  void displayHealthOverlay(float);void update(float);
 };
 STATUS_METHODS
-struct GameMap { std::vector<Creature*> creatures;const std::vector<Creature*>& getCreatures(){return creatures;} };
 struct RenderManager { bool mCreatureTextOverlayDisplayed=false;void rrSetCreaturesTextOverlay(GameMap&,bool);
  static RenderManager* instance;static RenderManager& getSingleton(){return *instance;} };
 RenderManager* RenderManager::instance=nullptr;
@@ -88,7 +105,7 @@ struct GameMode { GameMap* mGameMap;bool mCreatureIndicatorsVisible=VISIBILITY_D
 TOGGLE_METHOD
 int main(){int checks=0,failures=0;const auto check=[&](bool value,const char* why){++checks;if(!value){++failures;std::cerr<<why<<'\n';}};
  Creature c;MovableTextOverlay display;CreatureOverlayStatus overlay{&c,&display};c.overlay=&overlay;
- Creature notRendered;GameMap map{{&c,&notRendered}};RenderManager renderer;Keyboard keys;
+ Creature notRendered;GameMap map{{&c,&notRendered}};c.map=&map;RenderManager renderer;Keyboard keys;
  for(bool left:{false,true})for(bool right:{false,true}){
   sf::Keyboard::keys[sf::Keyboard::LAlt]=left;sf::Keyboard::keys[sf::Keyboard::RAlt]=right;keys.backend.held=left||right;
   const bool alt=keys.isModifierDown(OIS::Keyboard::Alt);
@@ -139,6 +156,13 @@ int main(){int checks=0,failures=0;const auto check=[&](bool value,const char* w
  mode.updateCreatureIndicatorAlt(OIS::KC_LMENU,false);
  mode.updateCreatureIndicatorAlt(OIS::KC_LMENU,true);
  check(!mode.mCreatureIndicatorsVisible,"missed-release recovery permits next press");
+ // Reaction emotes follow game time while the temporary hover request keeps real time.
+ overlay.mEmoteCreated=true;overlay.mEmoteRemaining=2.0f;display.displayOverlay(2,-1);
+ map.speed=0.5;overlay.displayHealthOverlay(.5f);overlay.update(1.0f);
+ check(overlay.mEmoteRemaining==1.5f&&display.isDisplayed(2),"slow game retains reaction emote");
+ check(!display.isDisplayed(0),"hover still expires in real time");
+ overlay.update(0);check(overlay.mEmoteRemaining==1.5f,"pause preserves emote lifetime");
+ map.speed=2.0;overlay.update(.75f);check(!display.isDisplayed(2),"fast game expires reaction emote at game-time end");
  std::cout<<"CHECKS="<<checks<<" FAILURES="<<failures<<'\n';return failures?1:0;}
 '''
 probe = probe.replace('CHILD_METHODS', '\n'.join(function('source/render/MovableTextOverlay.cpp', name)
@@ -146,7 +170,8 @@ probe = probe.replace('CHILD_METHODS', '\n'.join(function('source/render/Movable
 probe = probe.replace('MOVABLE_METHODS', '\n'.join(function('source/render/MovableTextOverlay.cpp', name)
     for name in ('void MovableTextOverlay::displayOverlay(', 'bool MovableTextOverlay::isDisplayed(')))
 probe = probe.replace('STATUS_METHODS', '\n'.join(function('source/render/CreatureOverlayStatus.cpp', name)
-    for name in ('void CreatureOverlayStatus::displayHealthOverlay(', 'void CreatureOverlayStatus::update(')))
+    for name in ('void CreatureOverlayStatus::displayHealthOverlay(', 'void CreatureOverlayStatus::hideEmote(',
+                 'void CreatureOverlayStatus::update(')))
 probe = probe.replace('RENDER_METHOD', function('source/render/RenderManager.cpp', 'void RenderManager::rrSetCreaturesTextOverlay('))
 probe = probe.replace('KEYBOARD_METHOD', function('source/modes/Keyboard.cpp', 'bool Keyboard::isModifierDown('))
 probe = probe.replace('TOGGLE_METHOD', function('source/modes/GameMode.cpp', 'void GameMode::updateCreatureIndicatorAlt('))

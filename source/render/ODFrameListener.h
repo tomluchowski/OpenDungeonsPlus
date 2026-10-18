@@ -285,6 +285,7 @@ private:
     void restorePreviousVideoSettings();
 
     //! \brief Updates server-turn independent creature animation, audio, and overall rendering.
+    //! \brief Advances interface time normally and world effects in unpaused game time.
     void updateAnimations(Ogre::Real timeSinceLastFrame);
 
     //! \brief Reads the main scene definition

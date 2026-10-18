@@ -362,7 +362,8 @@ material ReactionParticleGlow
         pass
         {
             lighting off
-            scene_blend add
+            // Apply the texture falloff and particle alpha fade before adding the glow.
+            scene_blend src_alpha one
             depth_write off
             diffuse vertexcolour
 
