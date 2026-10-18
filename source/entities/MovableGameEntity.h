@@ -42,6 +42,7 @@ namespace EntityAnimation
     static const std::string getup_anim = "GetUp";
     static const std::string combat_attack_anim = "CombatAttack";
     static const std::string ranged_attack_anim = "RangedAttack";
+    static const std::string eat_chicken_anim = "EatChicken";
 };
 
 //! \brief Moves and animates an entity while keeping deferred strikes synchronized with its displayed pose.
@@ -121,6 +122,10 @@ public:
 
     inline Ogre::AnimationState* getAnimationState() const
     { return mAnimationState; }
+
+    //! \brief Name of the animation the entity was last told to play (empty if none yet)
+    inline const std::string& getAnimationStateName() const
+    { return mPrevAnimationState; }
 
     virtual void restoreEntityState() override;
 

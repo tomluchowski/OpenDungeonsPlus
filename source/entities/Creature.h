@@ -435,6 +435,8 @@ public:
     //! weaponClash is true when both fighters carry weapons, bodyDamage when the hit did damage.
     void fireCombatImpact(bool weaponClash, bool bodyDamage,
         const Ogre::Vector3& attackerPosition);
+    void fireChickenFeeding(const std::string& chickenName,
+        const Ogre::Vector3& chickenPosition);
 
     //! \brief Sends a cosmetic event to the human players that see the creature (and negotiated cosmetic events).
     //! With alliedOnly, only to the keeper of the creature and its allies. It only reports, it changes nothing.

@@ -18,6 +18,7 @@
 #include "entities/MovableGameEntity.h"
 
 #include "entities/GameEntityType.h"
+#include "entities/Creature.h"
 #include "entities/Tile.h"
 #include "game/Player.h"
 #include "game/Seat.h"
@@ -319,7 +320,10 @@ void MovableGameEntity::update(Ogre::Real timeSinceLastFrame)
         addedTime *= DIE_ANIMATION_SPEED_FACTOR;
     mAnimationTime += addedTime;
     if (!getIsOnServerMap() && getAnimationState() != nullptr &&
-        mPrevAnimationState != EntityAnimation::getup_anim)
+        mPrevAnimationState != EntityAnimation::getup_anim &&
+        mPrevAnimationState != EntityAnimation::eat_chicken_anim &&
+        !((getObjectType() == GameEntityType::creature) &&
+          RenderManager::getSingleton().rrIsCreatureSleeping(static_cast<Creature*>(this))))
     {
         // If the animation has stopped we set it to idle if we have to
         if(mDestinationPlayIdleWhenAnimationEnds && getAnimationState()->hasEnded())

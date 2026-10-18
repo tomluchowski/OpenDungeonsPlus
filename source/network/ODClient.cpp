@@ -1154,6 +1154,22 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
             break;
         }
 
+        case ServerNotificationType::creatureChickenFeeding:
+        {
+            std::string creatureName;
+            std::string chickenName;
+            Ogre::Vector3 chickenPosition;
+            OD_ASSERT_TRUE(packetReceived >> creatureName >> chickenName >> chickenPosition);
+            Creature* creature = gameMap->getCreature(creatureName);
+            if(creature != nullptr &&
+               frameListener->getModeManager()->getCurrentModeType() == ModeManager::ModeType::GAME)
+            {
+                RenderManager::getSingleton().rrSetFeedingChicken(creature,
+                    gameMap->getAnimatedObject(chickenName), chickenPosition);
+            }
+            break;
+        }
+
         case ServerNotificationType::creatureCombatImpact:
         {
             std::string creatureName;

@@ -148,6 +148,8 @@ std::string ServerNotification::typeString(ServerNotificationType type)
             return "roomConstructionEffect";
         case ServerNotificationType::creatureCombatImpact:
             return "creatureCombatImpact";
+        case ServerNotificationType::creatureChickenFeeding:
+            return "creatureChickenFeeding";
         case ServerNotificationType::cosmeticEvent:
             return "cosmeticEvent";
         default:
