@@ -19,6 +19,7 @@
 
 #include "entities/Creature.h"
 #include "game/Seat.h"
+#include "gamemap/GameMap.h"
 #include "render/MovableTextOverlay.h"
 #include "render/RenderManager.h"
 #include "utils/Helper.h"
