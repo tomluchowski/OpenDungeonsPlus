@@ -728,8 +728,8 @@ Name	dayBreak
 Mode	once
 Cond	time	2
 Action	message	1	Master, the rock around your heart is soft. Send the workers into the walls and bring out the gold.
-Action	objectiveid	1	mossgate-o01	Strike down Reeve Tobin Marsh in his village hall.
-Action	objectiveid	1	mossgate-o02	First, mine 60 gold from the walls around your heart.
+Action	objectiveid	1	mossgate-o01	Kill Tobin Marsh in the village hall.
+Action	objectiveid	1	mossgate-o02	Mine 60 gold near your heart.
 [/Trigger]
 [Trigger]
 Name	firstGold
@@ -746,7 +746,7 @@ Mode	once
 Cond	claimed	1	Meadow	18
 Action	message	1	The meadow cave is ours. Two cave roads lead to the village now, one over the moss and one past the old stones.
 Action	reveal	1	Yard
-Action	objectiveid	1	mossgate-o04	Defeat the watch post in the village yard.
+Action	objectiveid	1	mossgate-o04	Clear the village watch post.
 Action	objectivestate	1	mossgate-o03	reached
 [/Trigger]
 [Trigger]
@@ -764,7 +764,7 @@ Cond	flag	yardAlarm	1
 Cond	kills	1	>=	3
 Action	message	1	The yard is quiet. Only the reeve and his hall are left.
 Action	reveal	1	Hall
-Action	objectiveid	1	mossgate-o05	Enter the hall and slay the reeve.
+Action	objectiveid	1	mossgate-o05	Enter the hall and kill Tobin Marsh.
 [/Trigger]
 [Trigger]
 Name	firstRelief

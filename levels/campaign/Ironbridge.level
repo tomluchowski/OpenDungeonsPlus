@@ -4233,8 +4233,8 @@ Name	forge
 Mode	once
 Cond	time	3
 Action	message	1	Ironbridge forges the arms of the kingdom, master, and it does it between three rifts of molten rock. Every crossing is a stone bridge, and every bridgehead is guarded. Warden Gareth Fenn has a good deal of time, so use yours well.
-Action	objectiveid	1	ironbridge-o01	Destroy the heart of the rival keeper in the north-east hold.
-Action	objectiveid	1	ironbridge-o02	Cross the three rifts by the bridges.
+Action	objectiveid	1	ironbridge-o01	Destroy the heart in the north-east hold.
+Action	objectiveid	1	ironbridge-o02	Cross all three rifts by their bridges.
 Action	timelimit	5400
 [/Trigger]
 [Trigger]
@@ -4272,7 +4272,7 @@ Mode	once
 Cond	region	1	RollingYard
 Action	message	1	The third rift is wide and its bridges are narrow. The rival keeper has put his best on the far side.
 Action	reveal	1	RivalGate
-Action	objectiveid	1	ironbridge-o04	Break through the gate of the rival hold.
+Action	objectiveid	1	ironbridge-o04	Break through the rival hold's gate.
 Action	objectivestate	1	ironbridge-o03	reached
 [/Trigger]
 [Trigger]

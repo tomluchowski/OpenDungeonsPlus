@@ -3902,8 +3902,8 @@ Name	wind
 Mode	once
 Cond	time	3
 Action	message	1	Dunmarrow is a sea of sand over old barrows, master. Warden Ysolde Dunn has seen your banners and is packing her camp in the far north-west. Catch her before she is gone.
-Action	objectiveid	1	dunmarrow-o01	Kill Warden Ysolde Dunn before she escapes through the old shaft.
-Action	objectiveid	1	dunmarrow-o02	Find the old tunnels under the dunes.
+Action	objectiveid	1	dunmarrow-o01	Kill Ysolde Dunn before she escapes.
+Action	objectiveid	1	dunmarrow-o02	Find the tunnels beneath the dunes.
 Action	order	wait	2	-	YsoldeDunn
 [/Trigger]
 [Trigger]

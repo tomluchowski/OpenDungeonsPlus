@@ -3811,9 +3811,9 @@ Name	tolling
 Mode	once
 Cond	time	3
 Action	message	1	Bellwick stands over its own dead, master. The abbey bells call the faithful to arms, and Abbot Lorens Bell keeps an undead keeper in the undercroft to bring the sleepers up.
-Action	objectiveid	1	bellwick-o01	Destroy the heart of the undead keeper in the north undercroft.
+Action	objectiveid	1	bellwick-o01	Destroy the keeper's heart in the north undercroft.
 Action	hint	1	Hold the nave against the faithful.
-Action	objectiveid	1	bellwick-o03	Hold out until the two north gates of the nave are unsealed.
+Action	objectiveid	1	bellwick-o03	Survive until both north gates open.
 Action	portal	2	off
 [/Trigger]
 [Trigger]
@@ -3823,7 +3823,7 @@ Cond	claimed	1	SouthYard	40
 Action	message	1	The south yard is held. The long nave begins here and the abbey knows you are at the door.
 Action	reveal	1	Nave
 Action	reveal	1	Refectory
-Action	objectiveid	1	bellwick-o04	Walk the nave to the transept.
+Action	objectiveid	1	bellwick-o04	Reach the transept through the nave.
 [/Trigger]
 [Trigger]
 Name	naveEntered

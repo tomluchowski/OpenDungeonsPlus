@@ -1359,8 +1359,8 @@ Name	ferns
 Mode	once
 Cond	time	3
 Action	message	1	My lord, Brackenford is rich in gold and thin in soldiers. You have gold to spend, so spend it on rooms.
-Action	objectiveid	1	brackenford-o01	Destroy Warden Elsa Brack and take her keep.
-Action	objectiveid	1	brackenford-o02	Lay out a dormitory for your creatures.
+Action	objectiveid	1	brackenford-o01	Kill Elsa Brack and take her keep.
+Action	objectiveid	1	brackenford-o02	Build a dormitory.
 [/Trigger]
 [Trigger]
 Name	bedsReady
@@ -1460,7 +1460,7 @@ Cond	kills	1	>=	4
 Action	message	1	The landing is clear. The village and the keep lie behind it.
 Action	reveal	1	Village
 Action	reveal	1	Keep
-Action	objectiveid	1	brackenford-o06	Fight your way to the keep and slay the warden.
+Action	objectiveid	1	brackenford-o06	Enter the keep and kill Elsa Brack.
 [/Trigger]
 [Trigger]
 Name	firstFolk

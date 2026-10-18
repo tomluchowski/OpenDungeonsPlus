@@ -3283,8 +3283,8 @@ Name	smoulder
 Mode	once
 Cond	time	3
 Action	message	1	The Ashcombe valley still smokes from an old fire, master, and Warden Liesl Ashby has mounted her wagons to flee over the northern pass. You have most of an hour before she is gone.
-Action	objectiveid	1	ashcombe-o01	Kill Warden Liesl Ashby before she escapes the valley.
-Action	objectiveid	1	ashcombe-o02	Cross the ash basin and find the northern hold.
+Action	objectiveid	1	ashcombe-o01	Kill Ashby before she escapes.
+Action	objectiveid	1	ashcombe-o02	Cross the ash basin to the northern hold.
 Action	order	wait	2	-	LieslAshby
 [/Trigger]
 [Trigger]
@@ -3314,7 +3314,7 @@ Mode	once
 Cond	region	1	Approach
 Action	message	1	Her wagons are being loaded! Ashby will leave the hold in five minutes and run for the south road.
 Action	spawn	3	76	22	1	Knight:2	Elf:2	Adventurer:2	Monk:2
-Action	objectiveid	1	ashcombe-o03	Break into the hold before the wagons leave, or catch Ashby on the road.
+Action	objectiveid	1	ashcombe-o03	Enter the hold early, or kill the fleeing Ashby.
 Action	setflag	fleeing	1
 Action	timer	wagonClock	0
 [/Trigger]

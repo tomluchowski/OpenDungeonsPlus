@@ -3063,9 +3063,9 @@ Name	dusk
 Mode	once
 Cond	time	3
 Action	message	1	Lanternhill is a hill that never goes dark, master. Its caves are lit from the ring road to the roots, and Lamplighter Ines Vale has set a rival keeper in the northern hall to keep them burning.
-Action	objectiveid	1	lanternhill-o01	Destroy the heart of the rival keeper in the north.
-Action	objectiveid	1	lanternhill-o02	Dig through the earth plugs to open the ring road.
-Action	objectiveid	1	lanternhill-o03	Hold your own heart against the hill patrols.
+Action	objectiveid	1	lanternhill-o01	Destroy the northern keeper's heart.
+Action	objectiveid	1	lanternhill-o02	Dig a dry path from your start to the ring road.
+Action	objectiveid	1	lanternhill-o03	Defend your heart against the hill patrols.
 [/Trigger]
 [Trigger]
 Name	ringEntered

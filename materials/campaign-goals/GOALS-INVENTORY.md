@@ -15,9 +15,9 @@ File: `levels/campaign/Ashcombe.level`.
 | --- | --- | --- |
 | [Goals] | `KillAllEnemies	NULL` | yes |
 | [Goals] | `ProtectDungeonTemple	NULL` | yes |
-| Script line 3286 | `Action	objectiveid	1	ashcombe-o01	Kill Warden Liesl Ashby before she escapes the valley.` | yes |
-| Script line 3287 | `Action	objectiveid	1	ashcombe-o02	Cross the ash basin and find the northern hold.` | yes |
-| Script line 3317 | `Action	objectiveid	1	ashcombe-o03	Break into the hold before the wagons leave, or catch Ashby on the road.` | yes |
+| Script line 3286 | `Action	objectiveid	1	ashcombe-o01	Kill Ashby before she escapes.` | yes |
+| Script line 3287 | `Action	objectiveid	1	ashcombe-o02	Cross the ash basin to the northern hold.` | yes |
+| Script line 3317 | `Action	objectiveid	1	ashcombe-o03	Enter the hold early, or kill the fleeing Ashby.` | yes |
 | Script line 3452 | `Action	win	1` | yes |
 | Trigger `holdBreached` | `Action	objectivestate	1	ashcombe-o02	reached`; conditions: `Cond	region	1	Hold` | yes |
 | Trigger `goalHoldBeforeDeparture` | `Action	objectivestate	1	ashcombe-o03	reached`; conditions: `Cond	trigger	wagonLeaves	0; Cond	region	1	Hold; Cond	objective	1	ashcombe-o03	open` | yes |
@@ -39,10 +39,10 @@ File: `levels/campaign/Bellwick.level`.
 | --- | --- | --- |
 | [Goals] | `KillAllEnemies	NULL` | yes |
 | [Goals] | `ProtectDungeonTemple	NULL` | yes |
-| Script line 3814 | `Action	objectiveid	1	bellwick-o01	Destroy the heart of the undead keeper in the north undercroft.` | yes |
+| Script line 3814 | `Action	objectiveid	1	bellwick-o01	Destroy the keeper's heart in the north undercroft.` | yes |
 | Advisory hint line 3815 | `Action	hint	1	Hold the nave against the faithful.` | not an objective; no state required |
-| Script line 3816 | `Action	objectiveid	1	bellwick-o03	Hold out until the two north gates of the nave are unsealed.` | yes |
-| Script line 3826 | `Action	objectiveid	1	bellwick-o04	Walk the nave to the transept.` | yes |
+| Script line 3816 | `Action	objectiveid	1	bellwick-o03	Survive until both north gates open.` | yes |
+| Script line 3826 | `Action	objectiveid	1	bellwick-o04	Reach the transept through the nave.` | yes |
 | Script line 3951 | `Action	win	1` | yes |
 | Script line 3956 | `Cond	goal	1	KillAllEnemies` | yes |
 | Script line 3959 | `Action	win	1` | yes |
@@ -76,7 +76,7 @@ File: `levels/campaign/BoulderCourse.level`.
 | Source | Exact requirement | Match |
 | --- | --- | --- |
 | [Goals] | `ProtectDungeonTemple	NULL` | yes |
-| Script line 1431 | `Action	objectiveid	1	bouldercourse-o01	Roll all four boulders into their cups with the slaps you have.` | yes |
+| Script line 1431 | `Action	objectiveid	1	bouldercourse-o01	Slap all four boulders into their cups.` | yes |
 | Script line 1476 | `Action	win	1` | yes |
 | Trigger `courseDone` | `Action	objectivestate	1	bouldercourse-o01	reached`; conditions: `Cond	boulder	CupA	>=	1; Cond	boulder	CupB	>=	1; Cond	boulder	CupC	>=	1; Cond	boulder	CupD	>=	1` | yes |
 | Briefing | Roll every ball into its cup before the shift bell; this optional trial rewards one of four Heartstone fragments. | yes: courseDone checks all four cups; the timeout trigger limits the trial |
@@ -89,12 +89,12 @@ File: `levels/campaign/Brackenford.level`.
 | --- | --- | --- |
 | [Goals] | `KillAllEnemies	NULL` | yes |
 | [Goals] | `ProtectDungeonTemple	NULL` | yes |
-| Script line 1362 | `Action	objectiveid	1	brackenford-o01	Destroy Warden Elsa Brack and take her keep.` | yes |
-| Script line 1363 | `Action	objectiveid	1	brackenford-o02	Lay out a dormitory for your creatures.` | yes |
+| Script line 1362 | `Action	objectiveid	1	brackenford-o01	Kill Elsa Brack and take her keep.` | yes |
+| Script line 1363 | `Action	objectiveid	1	brackenford-o02	Build a dormitory.` | yes |
 | Script line 1370 | `Action	objectiveid	1	brackenford-o03	Build a hatchery.` | yes |
 | Script line 1379 | `Action	objectiveid	1	brackenford-o04	Claim the fern grove.` | yes |
 | Script line 1389 | `Action	objectiveid	1	brackenford-o05	Cross the ford and clear the landing yard.` | yes |
-| Script line 1463 | `Action	objectiveid	1	brackenford-o06	Fight your way to the keep and slay the warden.` | yes |
+| Script line 1463 | `Action	objectiveid	1	brackenford-o06	Enter the keep and kill Elsa Brack.` | yes |
 | Script line 1487 | `Action	win	1` | yes |
 | Trigger `bedsReady` | `Action	objectivestate	1	brackenford-o02	reached`; conditions: `Cond	room	1	Dormitory	1` | yes |
 | Trigger `larderReady` | `Action	objectivestate	1	brackenford-o03	reached`; conditions: `Cond	room	1	Hatchery	1` | yes |
@@ -113,7 +113,7 @@ File: `levels/campaign/Campaign1.level` (not listed in Campaign.cfg).
 | --- | --- | --- |
 | [Goals] | `KillAllEnemies	NULL` | yes |
 | [Goals] | `ProtectDungeonTemple	NULL` | yes |
-| Script line 2286 | `Action	objectiveid	-1	campaign1-o01	Kill all enemies and keep your dungeon heart alive.` | yes |
+| Script line 2286 | `Action	objectiveid	-1	campaign1-o01	Defeat all enemies; protect your heart.` | yes |
 | Trigger `goalClassicComplete` | `Action	objectivestate	-1	campaign1-o01	reached`; conditions: `Cond	goalmet	1	KillAllEnemies; Cond	goalmet	1	ProtectDungeonTemple` | yes |
 
 ## Campaign2
@@ -124,7 +124,7 @@ File: `levels/campaign/Campaign2.level` (not listed in Campaign.cfg).
 | --- | --- | --- |
 | [Goals] | `KillAllEnemies	NULL` | yes |
 | [Goals] | `ProtectDungeonTemple	NULL` | yes |
-| Script line 3496 | `Action	objectiveid	-1	campaign2-o01	Destroy the rival keeper and keep your dungeon heart alive.` | yes |
+| Script line 3496 | `Action	objectiveid	-1	campaign2-o01	Defeat the rival keeper; protect your heart.` | yes |
 | Trigger `goalClassicComplete` | `Action	objectivestate	-1	campaign2-o01	reached`; conditions: `Cond	goalmet	1	KillAllEnemies; Cond	goalmet	1	ProtectDungeonTemple` | yes |
 
 ## Campaign3
@@ -135,7 +135,7 @@ File: `levels/campaign/Campaign3.level` (not listed in Campaign.cfg).
 | --- | --- | --- |
 | [Goals] | `KillAllEnemies	NULL` | yes |
 | [Goals] | `ProtectDungeonTemple	NULL` | yes |
-| Script line 8171 | `Action	objectiveid	-1	campaign3-o01	Destroy the rival keeper and keep your dungeon heart alive.` | yes |
+| Script line 8171 | `Action	objectiveid	-1	campaign3-o01	Defeat the rival keeper; protect your heart.` | yes |
 | Trigger `goalClassicComplete` | `Action	objectivestate	-1	campaign3-o01	reached`; conditions: `Cond	goalmet	1	KillAllEnemies; Cond	goalmet	1	ProtectDungeonTemple` | yes |
 
 ## Cinderhollow
@@ -146,11 +146,11 @@ File: `levels/campaign/Cinderhollow.level`.
 | --- | --- | --- |
 | [Goals] | `KillAllEnemies	NULL` | yes |
 | [Goals] | `ProtectDungeonTemple	NULL` | yes |
-| Script line 5090 | `Action	objectiveid	1	cinderhollow-o01	Hold your dungeon heart until dawn, then destroy the rival keeper.` | yes |
-| Script line 5091 | `Action	objectiveid	1	cinderhollow-o02	Fully mine the western and southern starting seams.` | yes |
-| Script line 5092 | `Action	objectiveid	1	cinderhollow-o03	Break all three hero waves at your heart.` | yes |
+| Script line 5090 | `Action	objectiveid	1	cinderhollow-o01	Survive until dawn, then defeat the rival keeper.` | yes |
+| Script line 5091 | `Action	objectiveid	1	cinderhollow-o02	Empty both starting gold seams: west and south.` | yes |
+| Script line 5092 | `Action	objectiveid	1	cinderhollow-o03	Defeat all three waves at your heart.` | yes |
 | Script line 5093 | `Action	objectiveid	1	cinderhollow-o04	After dawn, cross the lava bridge to the crater.` | yes |
-| Script line 5178 | `Action	objectiveid	1	cinderhollow-o05	Destroy the rival keeper in the north-east crater.` | yes |
+| Script line 5178 | `Action	objectiveid	1	cinderhollow-o05	Destroy the heart in the north-east crater.` | yes |
 | Script line 5194 | `Cond	goal	1	KillAllEnemies` | yes |
 | Script line 5257 | `Action	win	1` | yes |
 | Script line 5263 | `Cond	goal	1	KillAllEnemies` | yes |
@@ -176,10 +176,10 @@ File: `levels/campaign/Coldwell.level`.
 | --- | --- | --- |
 | [Goals] | `KillAllEnemies	NULL` | yes |
 | [Goals] | `ProtectDungeonTemple	NULL` | yes |
-| Script line 1392 | `Action	objectiveid	1	coldwell-o01	Slay Warden Hugo Cole in the keep hall.` | yes |
-| Script line 1393 | `Action	objectiveid	1	coldwell-o02	Reach the well plaza and find the gold below it.` | yes |
-| Script line 1401 | `Action	objectiveid	1	coldwell-o03	Dig out 600 gold from the block under the plaza.` | yes |
-| Script line 1416 | `Action	objectiveid	1	coldwell-o04	Break the north gate of the keep.` | yes |
+| Script line 1392 | `Action	objectiveid	1	coldwell-o01	Kill Hugo Cole in the keep hall.` | yes |
+| Script line 1393 | `Action	objectiveid	1	coldwell-o02	Reach the well plaza and its gold deposit.` | yes |
+| Script line 1401 | `Action	objectiveid	1	coldwell-o03	Mine 600 gold beneath the plaza.` | yes |
+| Script line 1416 | `Action	objectiveid	1	coldwell-o04	Break the keep's north gate.` | yes |
 | Script line 1464 | `Action	win	1` | yes |
 | Trigger `plazaReached` | `Action	objectivestate	1	coldwell-o02	reached`; conditions: `Cond	region	1	Plaza` | yes |
 | Trigger `goalUndercroft600` | `Action	objectivestate	1	coldwell-o03	reached`; conditions: `Cond	minedregion	1	Undercroft	>=	600` | yes |
@@ -195,7 +195,7 @@ File: `levels/campaign/CrowshotGallery.level`.
 | Source | Exact requirement | Match |
 | --- | --- | --- |
 | [Goals] | `ProtectDungeonTemple	NULL` | yes |
-| Script line 945 | `Action	objectiveid	1	crowshotgallery-o01	Shoot down every hornet over the lava lake before time runs out.` | yes |
+| Script line 945 | `Action	objectiveid	1	crowshotgallery-o01	Shoot every hornet before time runs out.` | yes |
 | Script line 989 | `Action	win	1` | yes |
 | Trigger `galleryClear` | `Action	objectivestate	1	crowshotgallery-o01	reached`; conditions: `Cond	flag	flock3	1; Cond	creatures	2	<=	0` | yes |
 | Briefing | Possess a shooter and destroy every hornet before time expires to earn this optional trial's Heartstone fragment. | no: galleryClear checks the flock; possession is not a separate winning condition |
@@ -208,8 +208,8 @@ File: `levels/campaign/Dunmarrow.level`.
 | --- | --- | --- |
 | [Goals] | `KillAllEnemies	NULL` | yes |
 | [Goals] | `ProtectDungeonTemple	NULL` | yes |
-| Script line 3883 | `Action	objectiveid	1	dunmarrow-o01	Kill Warden Ysolde Dunn before she escapes through the old shaft.` | yes |
-| Script line 3884 | `Action	objectiveid	1	dunmarrow-o02	Find the old tunnels under the dunes.` | yes |
+| Script line 3883 | `Action	objectiveid	1	dunmarrow-o01	Kill Ysolde Dunn before she escapes.` | yes |
+| Script line 3884 | `Action	objectiveid	1	dunmarrow-o02	Find the tunnels beneath the dunes.` | yes |
 | Script line 3924 | `Action	objectiveid	1	dunmarrow-o03	Reach the camp before the wagons leave.` | yes |
 | Script line 4025 | `Action	win	1` | yes |
 | Trigger `barrowsEntered` | `Action	objectivestate	1	dunmarrow-o02	reached`; conditions: `Cond	region	1	Barrows` | yes |
@@ -228,11 +228,11 @@ File: `levels/campaign/Ebonrook.level`.
 | --- | --- | --- |
 | [Goals] | `KillAllEnemies	NULL` | yes |
 | [Goals] | `ProtectDungeonTemple	NULL` | yes |
-| Script line 5370 | `Action	objectiveid	1	ebonrook-o01	Kill Warden Sabine Rook in the roots of the south-west.` | yes |
+| Script line 5370 | `Action	objectiveid	1	ebonrook-o01	Kill Sabine Rook in the south-west roots.` | yes |
 | Script line 5371 | `Action	objectiveid	1	ebonrook-o02	Cross the river by the north bridges.` | yes |
-| Advisory hint line 5372 | `Action	hint	1	Your gold is gone: mine, and feed your army from the glades.` | not an objective; no state required |
-| Script line 5422 | `Action	objectiveid	1	ebonrook-o04	Possess a creature and walk it into the southern hollow.` | yes |
-| Script line 5452 | `Action	objectiveid	1	ebonrook-o05	Strike down Sabine Rook.` | yes |
+| Advisory hint line 5372 | `Action	hint	1	Mine gold; feed your army from the glades.` | not an objective; no state required |
+| Script line 5422 | `Action	objectiveid	1	ebonrook-o04	Possess a creature; enter the southern hollow.` | yes |
+| Script line 5452 | `Action	objectiveid	1	ebonrook-o05	Kill Sabine Rook.` | yes |
 | Script line 5624 | `Action	win	1` | yes |
 | Trigger `crossed` | `Action	objectivestate	1	ebonrook-o02	reached`; conditions: `Cond	region	1	SouthHub` | yes |
 | Trigger `wardenSlain` | `Action	objectivestate	1	ebonrook-o01	reached`; conditions: `Cond	time	5; Cond	creatures	2	<=	0` | yes |
@@ -249,11 +249,11 @@ File: `levels/campaign/Goldspire.level`.
 | --- | --- | --- |
 | [Goals] | `KillAllEnemies	NULL` | yes |
 | [Goals] | `ProtectDungeonTemple	NULL` | yes |
-| Script line 3120 | `Action	objectiveid	1	goldspire-o01	Kill Treasurer Alaric Penn in the core of the spire.` | yes |
-| Advisory hint line 3121 | `Action	hint	1	Dig gold and build a force of your own, the quarry is poor.` | not an objective; no state required |
+| Script line 3120 | `Action	objectiveid	1	goldspire-o01	Kill Alaric Penn inside the spire.` | yes |
+| Advisory hint line 3121 | `Action	hint	1	Mine gold and build an army.` | not an objective; no state required |
 | Script line 3122 | `Action	objectiveid	1	goldspire-o03	Take the low town below the spire.` | yes |
-| Script line 3151 | `Action	objectiveid	1	goldspire-o04	Wait for the south gate to open, then break through onto the outer ring.` | yes |
-| Script line 3211 | `Action	objectiveid	1	goldspire-o05	Strike down Alaric Penn.` | yes |
+| Script line 3151 | `Action	objectiveid	1	goldspire-o04	Enter the outer ring after the south gate opens.` | yes |
+| Script line 3211 | `Action	objectiveid	1	goldspire-o05	Kill Alaric Penn.` | yes |
 | Script line 3319 | `Action	win	1` | yes |
 | Trigger `lowTown` | `Action	objectivestate	1	goldspire-o03	reached`; conditions: `Cond	claimed	1	LowTown	40` | yes |
 | Trigger `onRing` | `Action	objectivestate	1	goldspire-o04	reached`; conditions: `Cond	region	1	OuterRing` | yes |
@@ -270,10 +270,10 @@ File: `levels/campaign/Greywater.level`.
 | --- | --- | --- |
 | [Goals] | `KillAllEnemies	NULL` | yes |
 | [Goals] | `ProtectDungeonTemple	NULL` | yes |
-| Script line 2939 | `Action	objectiveid	1	greywater-o01	Kill Warden Corwin Gray in the river hall in the north.` | yes |
+| Script line 2939 | `Action	objectiveid	1	greywater-o01	Kill Corwin Gray in the northern river hall.` | yes |
 | Script line 2940 | `Action	objectiveid	1	greywater-o02	Mine 600 gold from the cave walls.` | yes |
-| Script line 2941 | `Action	objectiveid	1	greywater-o03	Keep your dungeon heart alive.` | yes |
-| Script line 2966 | `Action	objectiveid	1	greywater-o04	Cross the river and look at the besieged dungeon.` | yes |
+| Script line 2941 | `Action	objectiveid	1	greywater-o03	Protect your heart.` | yes |
+| Script line 2966 | `Action	objectiveid	1	greywater-o04	Cross the river to the besieged dungeon.` | yes |
 | Script line 3052 | `Action	win	1` | yes |
 | Trigger `firstCoin` | `Action	objectivestate	1	greywater-o02	reached`; conditions: `Cond	mined	1	>=	600` | yes |
 | Trigger `siegeSeen` | `Action	objectivestate	1	greywater-o04	reached`; conditions: `Cond	region	1	Siege` | yes |
@@ -291,13 +291,13 @@ File: `levels/campaign/Highcairn.level`.
 | --- | --- | --- |
 | [Goals] | `KillAllEnemies	NULL` | yes |
 | [Goals] | `ProtectDungeonTemple	NULL` | yes |
-| Script line 2842 | `Action	objectiveid	1	highcairn-o01	Kill Warden Hilde Cairn in the mountain hold.` | yes |
-| Script line 2843 | `Action	objectiveid	1	highcairn-o02	Climb the terraces, one switchback at a time.` | yes |
-| Script line 2844 | `Action	objectiveid	1	highcairn-o03	Keep your heart standing against the cairn patrols.` | yes |
-| Script line 2892 | `Action	objectiveid	1	highcairn-o04	Break into the hold and strike down the warden.` | yes |
-| Script line 2908 | `Action	objectiveid	1	highcairn-o05	Bring the cairn spirit with the pale stone to your dungeon heart.` | yes |
+| Script line 2842 | `Action	objectiveid	1	highcairn-o01	Kill Hilde Cairn in the mountain hold.` | yes |
+| Script line 2843 | `Action	objectiveid	1	highcairn-o02	Climb the terraces in order.` | yes |
+| Script line 2844 | `Action	objectiveid	1	highcairn-o03	Defend your heart against the patrols.` | yes |
+| Script line 2892 | `Action	objectiveid	1	highcairn-o04	Enter the hold and kill Hilde Cairn.` | yes |
+| Script line 2908 | `Action	objectiveid	1	highcairn-o05	Bring the cairn spirit to your heart.` | yes |
 | Script line 3052 | `Action	win	1` | yes |
-| Script line 3084 | `Action	objectiveid	1	highcairn-o06	Take the key from the captain of the terrace watch to break the seal of the hold.` | yes |
+| Script line 3084 | `Action	objectiveid	1	highcairn-o06	Kill the watch captain; take the key to the hold.` | yes |
 | Trigger `stoneHome` | `Action	objectivestate	1	highcairn-o05	reached`; conditions: `Cond	reached	CairnBearer	heart	1` | yes |
 | Trigger `stoneHome2` | `Action	objectivestate	1	highcairn-o05	reached`; conditions: `Cond	reached	CairnBearer2	heart	1` | yes |
 | Trigger `goalHeartSafe3BeforeWardenSlain` | `Action	objectivestate	1	highcairn-o03	reached`; conditions: `Cond	time	5; Cond	creatures	2	<=	0; Cond	goalmet	1	ProtectDungeonTemple` | yes |
@@ -317,10 +317,10 @@ File: `levels/campaign/HollinFen.level`.
 | --- | --- | --- |
 | [Goals] | `KillAllEnemies	NULL` | yes |
 | [Goals] | `ProtectDungeonTemple	NULL` | yes |
-| Script line 3424 | `Action	objectiveid	1	hollinfen-o01	Kill Sister Agathe Hollin in the convent chapel.` | yes |
-| Script line 3425 | `Action	objectiveid	1	hollinfen-o02	Hold your heart against the convent patrols.` | yes |
-| Script line 3452 | `Action	objectiveid	1	hollinfen-o03	Break through the west gate of the convent ward.` | yes |
-| Script line 3461 | `Action	objectiveid	1	hollinfen-o04	Reach the chapel and strike down the warden.` | yes |
+| Script line 3424 | `Action	objectiveid	1	hollinfen-o01	Kill Agathe Hollin in the convent chapel.` | yes |
+| Script line 3425 | `Action	objectiveid	1	hollinfen-o02	Defend your heart against convent patrols.` | yes |
+| Script line 3452 | `Action	objectiveid	1	hollinfen-o03	Break through the convent's west gate.` | yes |
+| Script line 3461 | `Action	objectiveid	1	hollinfen-o04	Reach the chapel and kill Agathe Hollin.` | yes |
 | Script line 3570 | `Action	win	1` | yes |
 | Trigger `wardEntered` | `Action	objectivestate	1	hollinfen-o03	reached`; conditions: `Cond	region	1	Ward` | yes |
 | Trigger `goalHeartSafe2BeforeWardenSlain` | `Action	objectivestate	1	hollinfen-o02	reached`; conditions: `Cond	time	5; Cond	creatures	2	<=	0; Cond	goalmet	1	ProtectDungeonTemple` | yes |
@@ -337,9 +337,9 @@ File: `levels/campaign/HollowmarkCitadel.level`.
 | Source | Exact requirement | Match |
 | --- | --- | --- |
 | [Goals] | `ProtectDungeonTemple	NULL` | yes |
-| Script line 5673 | `Action	objectiveid	1	hollowmarkcitadel-o01	Kill High King Castellan on his throne.` | yes |
-| Script line 5674 | `Action	objectiveid	1	hollowmarkcitadel-o02	Break through the three courts; the upper gates are sealed and open when the towers of each court have fallen.` | yes |
-| Script line 5675 | `Action	objectiveid	1	hollowmarkcitadel-o03	Survive the heroes who will not stop coming.` | yes |
+| Script line 5673 | `Action	objectiveid	1	hollowmarkcitadel-o01	Kill King Castellan on his throne.` | yes |
+| Script line 5674 | `Action	objectiveid	1	hollowmarkcitadel-o02	Take each court's towers to open all three gates.` | yes |
+| Script line 5675 | `Action	objectiveid	1	hollowmarkcitadel-o03	Survive the hero attacks.` | yes |
 | Script line 6102 | `Action	win	1` | yes |
 | Trigger `goalHeartSafe3BeforeKingDead` | `Action	objectivestate	1	hollowmarkcitadel-o03	reached`; conditions: `Cond	time	5; Cond	alive	CastellanKing	0; Cond	goalmet	1	ProtectDungeonTemple` | yes |
 | Trigger `goalCourt3` | `Action	objectivestate	1	hollowmarkcitadel-o02	reached`; conditions: `Cond	region	1	ThroneHall; Cond	flag	goalCourt2	1; Cond	flag	upperWest	1; Cond	flag	upperEast	1` | yes |
@@ -356,10 +356,10 @@ File: `levels/campaign/Ironbridge.level`.
 | --- | --- | --- |
 | [Goals] | `KillAllEnemies	NULL` | yes |
 | [Goals] | `ProtectDungeonTemple	NULL` | yes |
-| Script line 4236 | `Action	objectiveid	1	ironbridge-o01	Destroy the heart of the rival keeper in the north-east hold.` | yes |
-| Script line 4237 | `Action	objectiveid	1	ironbridge-o02	Cross the three rifts by the bridges.` | yes |
+| Script line 4236 | `Action	objectiveid	1	ironbridge-o01	Destroy the heart in the north-east hold.` | yes |
+| Script line 4237 | `Action	objectiveid	1	ironbridge-o02	Cross all three rifts by their bridges.` | yes |
 | Script line 4254 | `Action	objectiveid	1	ironbridge-o03	Cross the second rift.` | yes |
-| Script line 4275 | `Action	objectiveid	1	ironbridge-o04	Break through the gate of the rival hold.` | yes |
+| Script line 4275 | `Action	objectiveid	1	ironbridge-o04	Break through the rival hold's gate.` | yes |
 | Script line 4529 | `Action	win	1` | yes |
 | Script line 4534 | `Cond	goal	1	KillAllEnemies` | yes |
 | Script line 4537 | `Action	win	1` | yes |
@@ -379,9 +379,9 @@ File: `levels/campaign/Kingsfall.level`.
 | Source | Exact requirement | Match |
 | --- | --- | --- |
 | [Goals] | `ProtectDungeonTemple	NULL` | yes |
-| Script line 3836 | `Action	objectiveid	1	kingsfall-o01	Capture or convert Falconer Edda, Huntsman Brann and Squire Wick. A champion who joins you is announced.` | yes |
+| Script line 3836 | `Action	objectiveid	1	kingsfall-o01	Capture or convert Edda, Brann and Wick.` | yes |
 | Script line 3837 | `Action	objectiveid	1	kingsfall-o02	Defeat Prince Aurel and his court.` | yes |
-| Script line 3838 | `Action	objectiveid	1	kingsfall-o03	Keep an army of at least twelve creatures at your heart.` | yes |
+| Script line 3838 | `Action	objectiveid	1	kingsfall-o03	Gather at least 12 creatures at your heart.` | yes |
 | Script line 4047 | `Action	win	1` | yes |
 | Script line 4102 | `Action	win	1` | yes |
 | Trigger `goalArmyAtHeart` | `Action	objectivestate	1	kingsfall-o03	reached`; conditions: `Cond	creaturesatheart	1	>=	12` | yes |
@@ -399,9 +399,9 @@ File: `levels/campaign/Lanternhill.level`.
 | --- | --- | --- |
 | [Goals] | `KillAllEnemies	NULL` | yes |
 | [Goals] | `ProtectDungeonTemple	NULL` | yes |
-| Script line 3066 | `Action	objectiveid	1	lanternhill-o01	Destroy the heart of the rival keeper in the north.` | yes |
-| Script line 3067 | `Action	objectiveid	1	lanternhill-o02	Dig through the earth plugs to open the ring road.` | yes |
-| Script line 3068 | `Action	objectiveid	1	lanternhill-o03	Hold your own heart against the hill patrols.` | yes |
+| Script line 3066 | `Action	objectiveid	1	lanternhill-o01	Destroy the northern keeper's heart.` | yes |
+| Script line 3067 | `Action	objectiveid	1	lanternhill-o02	Dig a dry path from your start to the ring road.` | yes |
+| Script line 3068 | `Action	objectiveid	1	lanternhill-o03	Defend your heart against the hill patrols.` | yes |
 | Script line 3199 | `Cond	goal	1	KillAllEnemies` | yes |
 | Script line 3215 | `Action	win	1` | yes |
 | Script line 3220 | `Cond	goal	1	KillAllEnemies` | yes |
@@ -423,11 +423,11 @@ File: `levels/campaign/Mirewatch.level`.
 | --- | --- | --- |
 | [Goals] | `KillAllEnemies	NULL` | yes |
 | [Goals] | `ProtectDungeonTemple	NULL` | yes |
-| Script line 5735 | `Action	objectiveid	1	mirewatch-o01	Kill Watcher Mora Fenwick in her tower, in the north-east.` | yes |
-| Advisory hint line 5736 | `Action	hint	1	You have only workers: dig, claim and build before you march.` | not an objective; no state required |
-| Script line 5737 | `Action	objectiveid	1	mirewatch-o03	Take the towers on the way, one by one.` | yes |
-| Script line 5767 | `Action	objectiveid	1	mirewatch-o04	Possess a creature and scout the north-west tower for the marsh road.` | yes |
-| Script line 5827 | `Action	objectiveid	1	mirewatch-o05	Enter the warden's tower and kill Mora Fenwick.` | yes |
+| Script line 5735 | `Action	objectiveid	1	mirewatch-o01	Kill Mora Fenwick in the north-east tower.` | yes |
+| Advisory hint line 5736 | `Action	hint	1	Dig, claim and build before marching.` | not an objective; no state required |
+| Script line 5737 | `Action	objectiveid	1	mirewatch-o03	Claim every room in all eight towers.` | yes |
+| Script line 5767 | `Action	objectiveid	1	mirewatch-o04	Possess a creature; scout the north-west tower.` | yes |
+| Script line 5827 | `Action	objectiveid	1	mirewatch-o05	Enter Mora Fenwick's tower and kill her.` | yes |
 | Script line 5922 | `Action	win	1` | yes |
 | Trigger `goalNineTowerRoomsClaimed` | `Action	objectivestate	1	mirewatch-o03	reached`; conditions: `Cond	roomclaimed	1	44	106	47	107; Cond	roomclaimed	1	86	110	88	111; Cond	roomclaimed	1	24	78	26	79; Cond	roomclaimed	1	74	82	78	84; Cond	roomclaimed	1	20	44	22	45; Cond	roomclaimed	1	68	50	69	52; Cond	roomclaimed	1	44	24	47	25; Cond	roomclaimed	1	94	22	97	23; Cond	roomclaimed	1	99	18	101	19` | yes |
 | Trigger `watcherSlain` | `Action	objectivestate	1	mirewatch-o01	reached`; conditions: `Cond	time	5; Cond	creatures	2	<=	0` | yes |
@@ -455,11 +455,11 @@ File: `levels/campaign/Mossgate.level`.
 | --- | --- | --- |
 | [Goals] | `KillAllEnemies	NULL` | yes |
 | [Goals] | `ProtectDungeonTemple	NULL` | yes |
-| Script line 731 | `Action	objectiveid	1	mossgate-o01	Strike down Reeve Tobin Marsh in his village hall.` | yes |
-| Script line 732 | `Action	objectiveid	1	mossgate-o02	First, mine 60 gold from the walls around your heart.` | yes |
+| Script line 731 | `Action	objectiveid	1	mossgate-o01	Kill Tobin Marsh in the village hall.` | yes |
+| Script line 732 | `Action	objectiveid	1	mossgate-o02	Mine 60 gold near your heart.` | yes |
 | Script line 739 | `Action	objectiveid	1	mossgate-o03	Claim the meadow cave west of the gate.` | yes |
-| Script line 749 | `Action	objectiveid	1	mossgate-o04	Defeat the watch post in the village yard.` | yes |
-| Script line 767 | `Action	objectiveid	1	mossgate-o05	Enter the hall and slay the reeve.` | yes |
+| Script line 749 | `Action	objectiveid	1	mossgate-o04	Clear the village watch post.` | yes |
+| Script line 767 | `Action	objectiveid	1	mossgate-o05	Enter the hall and kill Tobin Marsh.` | yes |
 | Script line 799 | `Action	win	1` | yes |
 | Trigger `firstGold` | `Action	objectivestate	1	mossgate-o02	reached`; conditions: `Cond	mined	1	>=	60` | yes |
 | Trigger `meadowOurs` | `Action	objectivestate	1	mossgate-o03	reached`; conditions: `Cond	claimed	1	Meadow	18` | yes |
@@ -477,11 +477,11 @@ File: `levels/campaign/Ravensledge.level`.
 | --- | --- | --- |
 | [Goals] | `KillAllEnemies	NULL` | yes |
 | [Goals] | `ProtectDungeonTemple	NULL` | yes |
-| Script line 2190 | `Action	objectiveid	1	ravensledge-o01	Slay Captain Osric Vane in the keep on the highest shelf.` | yes |
-| Script line 2191 | `Action	objectiveid	1	ravensledge-o02	Cross the lower chasm and take the middle shelf.` | yes |
-| Script line 2206 | `Action	objectiveid	1	ravensledge-o03	Claim 80 tiles of the middle shelf.` | yes |
-| Script line 2214 | `Action	objectiveid	1	ravensledge-o04	Cross the upper chasm and break into the yard.` | yes |
-| Script line 2225 | `Action	objectiveid	1	ravensledge-o05	Break the inner gate to the keep.` | yes |
+| Script line 2190 | `Action	objectiveid	1	ravensledge-o01	Kill Osric Vane in the highest keep.` | yes |
+| Script line 2191 | `Action	objectiveid	1	ravensledge-o02	Cross the lower chasm to the middle shelf.` | yes |
+| Script line 2206 | `Action	objectiveid	1	ravensledge-o03	Claim 80 tiles on the middle shelf.` | yes |
+| Script line 2214 | `Action	objectiveid	1	ravensledge-o04	Cross the upper chasm into the yard.` | yes |
+| Script line 2225 | `Action	objectiveid	1	ravensledge-o05	Break the keep's inner gate.` | yes |
 | Script line 2269 | `Action	win	1` | yes |
 | Trigger `shelfHeld` | `Action	objectivestate	1	ravensledge-o02	reached`; conditions: `Cond	claimed	1	Shelf	80` | yes |
 | Trigger `shelfHeld` | `Action	objectivestate	1	ravensledge-o03	reached`; conditions: `Cond	claimed	1	Shelf	80` | yes |
@@ -499,11 +499,11 @@ File: `levels/campaign/Saltmere.level`.
 | --- | --- | --- |
 | [Goals] | `KillAllEnemies	NULL` | yes |
 | [Goals] | `ProtectDungeonTemple	NULL` | yes |
-| Script line 3086 | `Action	objectiveid	1	saltmere-o01	Kill Admiral Bram Seward in the port at the southern end.` | yes |
+| Script line 3086 | `Action	objectiveid	1	saltmere-o01	Kill Bram Seward in the southern port.` | yes |
 | Script line 3087 | `Action	objectiveid	1	saltmere-o02	Mine 800 gold from the salt walls.` | yes |
-| Script line 3088 | `Action	objectiveid	1	saltmere-o03	Keep your dungeon heart alive.` | yes |
-| Script line 3131 | `Action	objectiveid	1	saltmere-o04	Break open the gates of the port.` | yes |
-| Script line 3141 | `Action	objectiveid	1	saltmere-o05	Find the admiral in the harbour hall.` | yes |
+| Script line 3088 | `Action	objectiveid	1	saltmere-o03	Protect your heart.` | yes |
+| Script line 3131 | `Action	objectiveid	1	saltmere-o04	Break through the port gates.` | yes |
+| Script line 3141 | `Action	objectiveid	1	saltmere-o05	Find Bram Seward in the harbour hall.` | yes |
 | Script line 3231 | `Action	win	1` | yes |
 | Trigger `firstSalt` | `Action	objectivestate	1	saltmere-o02	reached`; conditions: `Cond	mined	1	>=	800` | yes |
 | Trigger `flatHeld` | `Action	objectivestate	1	saltmere-o04	reached`; conditions: `Cond	claimed	1	SouthFlat	50` | yes |
@@ -524,9 +524,9 @@ File: `levels/campaign/Silverdeep.level`.
 | --- | --- | --- |
 | [Goals] | `KillAllEnemies	NULL` | yes |
 | [Goals] | `ProtectDungeonTemple	NULL` | yes |
-| Script line 4539 | `Action	objectiveid	1	silverdeep-o01	Destroy the heart of every rival keeper.` | yes |
-| Script line 4540 | `Action	objectiveid	1	silverdeep-o02	Cross the three lakes by the wooden spans.` | yes |
-| Advisory hint line 4541 | `Action	hint	1	You have no gold: mine the silver first.` | not an objective; no state required |
+| Script line 4539 | `Action	objectiveid	1	silverdeep-o01	Destroy every rival keeper's heart.` | yes |
+| Script line 4540 | `Action	objectiveid	1	silverdeep-o02	Cross all three lakes by the wooden bridges.` | yes |
+| Advisory hint line 4541 | `Action	hint	1	Mine silver first.` | not an objective; no state required |
 | Script line 4842 | `Action	win	1` | yes |
 | Script line 4847 | `Cond	goal	1	KillAllEnemies` | yes |
 | Script line 4850 | `Action	win	1` | yes |
@@ -542,7 +542,7 @@ File: `levels/campaign/SkittleCavern.level`.
 | Source | Exact requirement | Match |
 | --- | --- | --- |
 | [Goals] | `ProtectDungeonTemple	NULL` | yes |
-| Script line 988 | `Action	objectiveid	1	skittlecavern-o01	Knock down all ten standing guards before time runs out.` | yes |
+| Script line 988 | `Action	objectiveid	1	skittlecavern-o01	Knock down all ten guards before time runs out.` | yes |
 | Script line 1048 | `Action	win	1` | yes |
 | Trigger `laneCleared` | `Action	objectivestate	1	skittlecavern-o01	reached`; conditions: `Cond	flag	lanesOpened	>=	4; Cond	time	5; Cond	creatures	2	<=	0` | yes |
 | Briefing | Roll the boulders through every guard before time expires to earn this optional trial's Heartstone fragment. | no: laneCleared checks opened lanes and no remaining guards, not whether boulders killed them |
@@ -555,9 +555,9 @@ File: `levels/campaign/Stormhaven.level`.
 | --- | --- | --- |
 | [Goals] | `KillAllEnemies	NULL` | yes |
 | [Goals] | `ProtectDungeonTemple	NULL` | yes |
-| Script line 4025 | `Action	objectiveid	1	stormhaven-o01	Destroy the heart of every rival keeper.` | yes |
-| Script line 4026 | `Action	objectiveid	1	stormhaven-o02	Cross the inlet by the stone spans.` | yes |
-| Script line 4027 | `Action	objectiveid	1	stormhaven-o03	Do not let the keepers join their strength against you.` | yes |
+| Script line 4025 | `Action	objectiveid	1	stormhaven-o01	Destroy every rival keeper's heart.` | yes |
+| Script line 4026 | `Action	objectiveid	1	stormhaven-o02	Cross the inlet by the stone bridges.` | yes |
+| Script line 4027 | `Action	objectiveid	1	stormhaven-o03	Prevent the keepers from joining forces.` | yes |
 | Script line 4265 | `Action	win	1` | yes |
 | Script line 4270 | `Cond	goal	1	KillAllEnemies` | yes |
 | Script line 4273 | `Action	win	1` | yes |
@@ -577,8 +577,8 @@ File: `levels/campaign/SwarmNight.level`.
 | Source | Exact requirement | Match |
 | --- | --- | --- |
 | [Goals] | `ProtectDungeonTemple	NULL` | yes |
-| Script line 1483 | `Action	objectiveid	1	swarmnight-o01	Survive the swarm for thirteen minutes.` | yes |
-| Script line 1484 | `Action	objectiveid	1	swarmnight-o02	Keep your heart standing.` | yes |
+| Script line 1483 | `Action	objectiveid	1	swarmnight-o01	Survive the swarm for 13 minutes.` | yes |
+| Script line 1484 | `Action	objectiveid	1	swarmnight-o02	Protect your heart.` | yes |
 | Script line 1599 | `Action	win	1` | yes |
 | Trigger `goalHeartSafe1BeforeDawn` | `Action	objectivestate	1	swarmnight-o01	reached`; conditions: `Cond	time	780; Cond	goalmet	1	ProtectDungeonTemple` | yes |
 | Trigger `goalHeartSafe2BeforeDawn` | `Action	objectivestate	1	swarmnight-o02	reached`; conditions: `Cond	time	780; Cond	goalmet	1	ProtectDungeonTemple` | yes |
@@ -595,9 +595,9 @@ File: `levels/campaign/Thornreach.level`.
 | --- | --- | --- |
 | [Goals] | `KillAllEnemies	NULL` | yes |
 | [Goals] | `ProtectDungeonTemple	NULL` | yes |
-| Script line 5931 | `Action	objectiveid	1	thornreach-o01	Destroy every rival keeper.` | yes |
-| Advisory hint line 5932 | `Action	hint	1	Dig and burn a path through the thorn maze.` | not an objective; no state required |
-| Script line 5933 | `Action	objectiveid	1	thornreach-o03	Keep your heart alive while the keepers trade blows.` | yes |
+| Script line 5931 | `Action	objectiveid	1	thornreach-o01	Defeat every rival keeper.` | yes |
+| Advisory hint line 5932 | `Action	hint	1	Dig and burn through the thorn maze.` | not an objective; no state required |
+| Script line 5933 | `Action	objectiveid	1	thornreach-o03	Protect your heart while the keepers fight.` | yes |
 | Script line 6056 | `Cond	goal	1	KillAllEnemies` | yes |
 | Script line 6075 | `Action	win	1` | yes |
 | Script line 6080 | `Cond	goal	1	KillAllEnemies` | yes |
@@ -615,12 +615,12 @@ File: `levels/campaign/Tinmoor.level`.
 | --- | --- | --- |
 | [Goals] | `KillAllEnemies	NULL` | yes |
 | [Goals] | `ProtectDungeonTemple	NULL` | yes |
-| Script line 1710 | `Action	objectiveid	1	tinmoor-o01	Kill Warden Merrin Tay in her chamber at the top of the mine.` | yes |
+| Script line 1710 | `Action	objectiveid	1	tinmoor-o01	Kill Merrin Tay at the top of the mine.` | yes |
 | Script line 1711 | `Action	objectiveid	1	tinmoor-o02	Mine 900 gold from the tin seams.` | yes |
-| Script line 1719 | `Action	objectiveid	1	tinmoor-o03	Break the lower watch post in the east gallery.` | yes |
-| Script line 1737 | `Action	objectiveid	1	tinmoor-o04	Break the upper watch post below the warden.` | yes |
+| Script line 1719 | `Action	objectiveid	1	tinmoor-o03	Clear the lower watch post in the east gallery.` | yes |
+| Script line 1737 | `Action	objectiveid	1	tinmoor-o04	Clear the upper watch post below Merrin Tay.` | yes |
 | Script line 1819 | `Action	win	1` | yes |
-| Script line 1825 | `Action	objectiveid	1	tinmoor-o05	Possess a creature and walk it through the seams to see where the miners dig.` | yes |
+| Script line 1825 | `Action	objectiveid	1	tinmoor-o05	Possess a creature; scout the miners' tunnels.` | yes |
 | Trigger `seamsFilled` | `Action	objectivestate	1	tinmoor-o02	reached`; conditions: `Cond	mined	1	>=	900` | yes |
 | Trigger `goalPostACleared` | `Action	objectivestate	1	tinmoor-o03	reached`; conditions: `Cond	event	PostAWatch1	killed; Cond	event	PostAWatch2	killed; Cond	spawncleared	postAEntered	1` | yes |
 | Trigger `goalPostBCleared` | `Action	objectivestate	1	tinmoor-o04	reached`; conditions: `Cond	event	PostBWatch1	killed; Cond	event	PostBWatch2	killed; Cond	spawncleared	postBEntered	1` | yes |
@@ -636,7 +636,7 @@ File: `levels/campaign/TwistingHalls.level`.
 | Source | Exact requirement | Match |
 | --- | --- | --- |
 | [Goals] | `ProtectDungeonTemple	NULL` | yes |
-| Script line 3178 | `Action	objectiveid	1	twistinghalls-o01	Bring a creature to the exit hall in the north-east before time runs out.` | yes |
+| Script line 3178 | `Action	objectiveid	1	twistinghalls-o01	Reach the north-east exit before time runs out.` | yes |
 | Script line 3202 | `Action	win	1` | yes |
 | Trigger `hallReached` | `Action	objectivestate	1	twistinghalls-o01	reached`; conditions: `Cond	region	1	ExitHall` | yes |
 | Briefing | Possess your own creature and reach the north-east exit before time runs out to earn this optional trial's Heartstone fragment. | no: hallReached checks region presence; it does not independently require possession |
@@ -649,9 +649,9 @@ File: `levels/campaign/VarnsCrossing.level`.
 | --- | --- | --- |
 | [Goals] | `KillAllEnemies	NULL` | yes |
 | [Goals] | `ProtectDungeonTemple	NULL` | yes |
-| Script line 4448 | `Action	objectiveid	1	varnscrossing-o01	Destroy both rival keepers.` | yes |
-| Script line 4449 | `Action	objectiveid	1	varnscrossing-o02	Hold the keep and your heart against the stream of heroes.` | yes |
-| Script line 4450 | `Action	objectiveid	1	varnscrossing-o03	Claim your quarter, then take the lava-ringed fortress at the crossing.` | yes |
+| Script line 4448 | `Action	objectiveid	1	varnscrossing-o01	Defeat both rival keepers.` | yes |
+| Script line 4449 | `Action	objectiveid	1	varnscrossing-o02	Defend the keep and your heart against heroes.` | yes |
+| Script line 4450 | `Action	objectiveid	1	varnscrossing-o03	Claim your quarter, then take the lava-ringed fortress.` | yes |
 | Script line 4755 | `Cond	goal	1	KillAllEnemies` | yes |
 | Script line 4781 | `Action	win	1` | yes |
 | Script line 4786 | `Cond	goal	1	KillAllEnemies` | yes |
@@ -670,9 +670,9 @@ File: `levels/campaign/Wolfscar.level`.
 | --- | --- | --- |
 | [Goals] | `KillAllEnemies	NULL` | yes |
 | [Goals] | `ProtectDungeonTemple	NULL` | yes |
-| Script line 4645 | `Action	objectiveid	1	wolfscar-o01	Destroy the heart of every rival keeper.` | yes |
-| Script line 4646 | `Action	objectiveid	1	wolfscar-o02	Cross the south ravine by one of the stone bridges.` | yes |
-| Script line 4647 | `Action	objectiveid	1	wolfscar-o03	Keep your own heart alive.` | yes |
+| Script line 4645 | `Action	objectiveid	1	wolfscar-o01	Destroy every rival keeper's heart.` | yes |
+| Script line 4646 | `Action	objectiveid	1	wolfscar-o02	Cross the south ravine by a stone bridge.` | yes |
+| Script line 4647 | `Action	objectiveid	1	wolfscar-o03	Protect your heart.` | yes |
 | Script line 4761 | `Cond	goal	1	KillAllEnemies` | yes |
 | Script line 4780 | `Action	win	1` | yes |
 | Script line 4785 | `Cond	goal	1	KillAllEnemies` | yes |
@@ -692,9 +692,9 @@ File: `levels/campaign/Wraithwood.level`.
 | --- | --- | --- |
 | [Goals] | `KillAllEnemies	NULL` | yes |
 | [Goals] | `ProtectDungeonTemple	NULL` | yes |
-| Script line 4772 | `Action	objectiveid	1	wraithwood-o01	Destroy the heart of the witch-warden in the north-west.` | yes |
-| Script line 4773 | `Action	objectiveid	1	wraithwood-o02	Destroy the heart of the rival keeper in the north-east.` | yes |
-| Script line 4774 | `Action	objectiveid	1	wraithwood-o03	Hold your own heart against the heroes of the kingdom.` | yes |
+| Script line 4772 | `Action	objectiveid	1	wraithwood-o01	Destroy the witch-warden's heart in the north-west.` | yes |
+| Script line 4773 | `Action	objectiveid	1	wraithwood-o02	Destroy the rival heart in the north-east.` | yes |
+| Script line 4774 | `Action	objectiveid	1	wraithwood-o03	Defend your heart against the kingdom's heroes.` | yes |
 | Script line 4835 | `Cond	goal	1	KillAllEnemies` | yes |
 | Script line 4852 | `Action	win	1` | yes |
 | Script line 4857 | `Cond	goal	1	KillAllEnemies` | yes |

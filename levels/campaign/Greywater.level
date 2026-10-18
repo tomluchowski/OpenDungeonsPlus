@@ -2936,9 +2936,9 @@ Name	lowTide
 Mode	once
 Cond	time	3
 Action	message	1	Greywater lies on an underground river, master, and its warden trades with dwarves and sells iron to anyone with coin. You have no coin, so dig for it first.
-Action	objectiveid	1	greywater-o01	Kill Warden Corwin Gray in the river hall in the north.
+Action	objectiveid	1	greywater-o01	Kill Corwin Gray in the northern river hall.
 Action	objectiveid	1	greywater-o02	Mine 600 gold from the cave walls.
-Action	objectiveid	1	greywater-o03	Keep your dungeon heart alive.
+Action	objectiveid	1	greywater-o03	Protect your heart.
 Action	portal	0	off
 [/Trigger]
 [Trigger]
@@ -2963,7 +2963,7 @@ Cond	region	1	SouthLanding
 Action	message	1	Across the water another keeper holds a dungeon of his own, and the Greywater heroes are laying siege to it. If he falls, they will turn on you.
 Action	reveal	1	Siege
 Action	reveal	1	RivalHeart
-Action	objectiveid	1	greywater-o04	Cross the river and look at the besieged dungeon.
+Action	objectiveid	1	greywater-o04	Cross the river to the besieged dungeon.
 [/Trigger]
 [Trigger]
 Name	siegeSeen

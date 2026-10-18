@@ -1707,7 +1707,7 @@ Name	shiftBell
 Mode	once
 Cond	time	3
 Action	message	1	The Tinmoor miners know every shaft and every seam, my lord, and the warden sits behind two of their watch posts. You have little gold, so start with the seams.
-Action	objectiveid	1	tinmoor-o01	Kill Warden Merrin Tay in her chamber at the top of the mine.
+Action	objectiveid	1	tinmoor-o01	Kill Merrin Tay at the top of the mine.
 Action	objectiveid	1	tinmoor-o02	Mine 900 gold from the tin seams.
 [/Trigger]
 [Trigger]
@@ -1716,7 +1716,7 @@ Mode	once
 Cond	mined	1	>=	900
 Action	message	1	That is a good haul. Doors will keep the miners off your back.
 Action	reveal	1	PostA
-Action	objectiveid	1	tinmoor-o03	Break the lower watch post in the east gallery.
+Action	objectiveid	1	tinmoor-o03	Clear the lower watch post in the east gallery.
 Action	objectivestate	1	tinmoor-o02	reached
 [/Trigger]
 [Trigger]
@@ -1734,7 +1734,7 @@ Cond	flag	postAAlarm	1
 Cond	kills	1	>=	7
 Action	message	1	The lower post is silent. A lift shaft leads up to the second one.
 Action	reveal	1	PostB
-Action	objectiveid	1	tinmoor-o04	Break the upper watch post below the warden.
+Action	objectiveid	1	tinmoor-o04	Clear the upper watch post below Merrin Tay.
 [/Trigger]
 [Trigger]
 Name	postBEntered
@@ -1822,7 +1822,7 @@ Action	win	1
 Name	scoutOrder
 Mode	once
 Cond	time	90
-Action	objectiveid	1	tinmoor-o05	Possess a creature and walk it through the seams to see where the miners dig.
+Action	objectiveid	1	tinmoor-o05	Possess a creature; scout the miners' tunnels.
 [/Trigger]
 [Trigger]
 Name	scoutSeams

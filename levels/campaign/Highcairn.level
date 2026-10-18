@@ -2839,9 +2839,9 @@ Name	ascent
 Mode	once
 Cond	time	3
 Action	message	1	Highcairn is a mountain of old graves, master, and Warden Hilde Cairn has made her hold at the top of it. Four terraces and three switchbacks lie between you and her.
-Action	objectiveid	1	highcairn-o01	Kill Warden Hilde Cairn in the mountain hold.
-Action	objectiveid	1	highcairn-o02	Climb the terraces, one switchback at a time.
-Action	objectiveid	1	highcairn-o03	Keep your heart standing against the cairn patrols.
+Action	objectiveid	1	highcairn-o01	Kill Hilde Cairn in the mountain hold.
+Action	objectiveid	1	highcairn-o02	Climb the terraces in order.
+Action	objectiveid	1	highcairn-o03	Defend your heart against the patrols.
 [/Trigger]
 [Trigger]
 Name	firstSeams
@@ -2889,7 +2889,7 @@ Action	message	1	The last terrace. The hold lies behind a stopped passage. The w
 Action	reveal	1	Hold
 Action	reveal	1	Basin
 Action	spawn	3	36	14	1	Knight:3	Dwarf2:3	Monk:3	Elf:3
-Action	objectiveid	1	highcairn-o04	Break into the hold and strike down the warden.
+Action	objectiveid	1	highcairn-o04	Enter the hold and kill Hilde Cairn.
 [/Trigger]
 [Trigger]
 Name	cairnStone
@@ -2905,7 +2905,7 @@ Action	message	1	A cairn at the end of the third terrace has been bricked in, an
 Action	spawn	1	5	22	1	Spider:3@CairnBearer
 Action	stoneattach	CairnBearer
 Action	setflag	bearerOut	1
-Action	objectiveid	1	highcairn-o05	Bring the cairn spirit with the pale stone to your dungeon heart.
+Action	objectiveid	1	highcairn-o05	Bring the cairn spirit to your heart.
 [/Trigger]
 [Trigger]
 Name	stoneHome
@@ -3081,7 +3081,7 @@ Action	setflag	holdOpen	1
 Name	holdKeyHint
 Mode	once
 Cond	region	1	Terrace4
-Action	objectiveid	1	highcairn-o06	Take the key from the captain of the terrace watch to break the seal of the hold.
+Action	objectiveid	1	highcairn-o06	Kill the watch captain; take the key to the hold.
 [/Trigger]
 
 [/Triggers]

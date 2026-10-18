@@ -3833,9 +3833,9 @@ Name	hunt
 Mode	once
 Cond	time	3
 Action	message	1	Kingsfall, master, where Prince Aurel hunts and where he has made his stand. His champions are Falconer Edda, Huntsman Brann and Squire Wick, and a keeper who wants the crown must take them alive.
-Action	objectiveid	1	kingsfall-o01	Capture or convert Falconer Edda, Huntsman Brann and Squire Wick. A champion who joins you is announced.
+Action	objectiveid	1	kingsfall-o01	Capture or convert Edda, Brann and Wick.
 Action	objectiveid	1	kingsfall-o02	Defeat Prince Aurel and his court.
-Action	objectiveid	1	kingsfall-o03	Keep an army of at least twelve creatures at your heart.
+Action	objectiveid	1	kingsfall-o03	Gather at least 12 creatures at your heart.
 [/Trigger]
 [Trigger]
 Name	hollowHeld

@@ -5928,9 +5928,9 @@ Name	briar
 Mode	once
 Cond	time	3
 Action	message	1	Thornreach has walled itself in thorn, master, and the hedge maze in the middle is the only road between the five halls. Four keepers have made camps at the corners of the province and warden Cassia Thorne holds the court.
-Action	objectiveid	1	thornreach-o01	Destroy every rival keeper.
-Action	hint	1	Dig and burn a path through the thorn maze.
-Action	objectiveid	1	thornreach-o03	Keep your heart alive while the keepers trade blows.
+Action	objectiveid	1	thornreach-o01	Defeat every rival keeper.
+Action	hint	1	Dig and burn through the thorn maze.
+Action	objectiveid	1	thornreach-o03	Protect your heart while the keepers fight.
 [/Trigger]
 [Trigger]
 Name	hedgeA

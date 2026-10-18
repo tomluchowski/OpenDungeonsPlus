@@ -4445,9 +4445,9 @@ Name	arrival
 Mode	once
 Cond	time	3
 Action	message	1	Master, Varn holds the crossing of the two great roads, and two keepers have come to take it before you. The heroes of the kingdom will not stop marching while any of you stands.
-Action	objectiveid	1	varnscrossing-o01	Destroy both rival keepers.
-Action	objectiveid	1	varnscrossing-o02	Hold the keep and your heart against the stream of heroes.
-Action	objectiveid	1	varnscrossing-o03	Claim your quarter, then take the lava-ringed fortress at the crossing.
+Action	objectiveid	1	varnscrossing-o01	Defeat both rival keepers.
+Action	objectiveid	1	varnscrossing-o02	Defend the keep and your heart against heroes.
+Action	objectiveid	1	varnscrossing-o03	Claim your quarter, then take the lava-ringed fortress.
 Action	portal	1	off
 [/Trigger]
 [Trigger]

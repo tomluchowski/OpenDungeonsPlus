@@ -4642,9 +4642,9 @@ Name	hunt
 Mode	once
 Cond	time	3
 Action	message	1	Wolfscar is a forest cut by two ravines, master, and four hunter keepers have claimed its corners. They dislike each other less than they dislike you, so expect their packs to join.
-Action	objectiveid	1	wolfscar-o01	Destroy the heart of every rival keeper.
-Action	objectiveid	1	wolfscar-o02	Cross the south ravine by one of the stone bridges.
-Action	objectiveid	1	wolfscar-o03	Keep your own heart alive.
+Action	objectiveid	1	wolfscar-o01	Destroy every rival keeper's heart.
+Action	objectiveid	1	wolfscar-o02	Cross the south ravine by a stone bridge.
+Action	objectiveid	1	wolfscar-o03	Protect your heart.
 Action	portal	4	off
 Action	portal	5	off
 [/Trigger]

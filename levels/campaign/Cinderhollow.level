@@ -5087,9 +5087,9 @@ Name	firstLight
 Mode	once
 Cond	time	3
 Action	message	1	Pell Ashgrove has sent for the soldiers of the kingdom, master. They will come down into the hollow in three waves, and a rival keeper has taken the crater rim in the north-east.
-Action	objectiveid	1	cinderhollow-o01	Hold your dungeon heart until dawn, then destroy the rival keeper.
-Action	objectiveid	1	cinderhollow-o02	Fully mine the western and southern starting seams.
-Action	objectiveid	1	cinderhollow-o03	Break all three hero waves at your heart.
+Action	objectiveid	1	cinderhollow-o01	Survive until dawn, then defeat the rival keeper.
+Action	objectiveid	1	cinderhollow-o02	Empty both starting gold seams: west and south.
+Action	objectiveid	1	cinderhollow-o03	Defeat all three waves at your heart.
 Action	objectiveid	1	cinderhollow-o04	After dawn, cross the lava bridge to the crater.
 [/Trigger]
 [Trigger]
@@ -5175,7 +5175,7 @@ Name	dawn
 Mode	once
 Cond	time	1800
 Action	message	1	Dawn has come and the waves are spent. The rival keeper is stirring in the crater: destroy him before the hollow wakes again.
-Action	objectiveid	1	cinderhollow-o05	Destroy the rival keeper in the north-east crater.
+Action	objectiveid	1	cinderhollow-o05	Destroy the heart in the north-east crater.
 Action	gold	1	600
 Action	spawn	2	55	25	1	Troll:4	Orc:4	LavaSpawn:3	PitDemon:3	Goblin:3
 Action	timelimit	1800
