@@ -79,15 +79,15 @@ static const CEGUI::URect BRIEFING_TEXT_AREA(
     CEGUI::UDim(1, -16), CEGUI::UDim(1, -72));
 static const CEGUI::URect BRIEFING_PREVIEW_STORY_AREA(
     CEGUI::UDim(0, 16), CEGUI::UDim(0, 392),
-    CEGUI::UDim(0.5f, -8), CEGUI::UDim(1, -72));
+    CEGUI::UDim(0.4f, -8), CEGUI::UDim(1, -72));
 static const CEGUI::URect BRIEFING_PREVIEW_GOALS_AREA(
-    CEGUI::UDim(0.5f, 8), CEGUI::UDim(0, 392),
+    CEGUI::UDim(0.4f, 8), CEGUI::UDim(0, 392),
     CEGUI::UDim(1, -16), CEGUI::UDim(1, -72));
 static const CEGUI::URect BRIEFING_STORY_AREA(
     CEGUI::UDim(0, 16), CEGUI::UDim(0, 16),
-    CEGUI::UDim(0.5f, -8), CEGUI::UDim(1, -72));
+    CEGUI::UDim(0.4f, -8), CEGUI::UDim(1, -72));
 static const CEGUI::URect BRIEFING_GOALS_AREA(
-    CEGUI::UDim(0.5f, 8), CEGUI::UDim(0, 16),
+    CEGUI::UDim(0.4f, 8), CEGUI::UDim(0, 16),
     CEGUI::UDim(1, -16), CEGUI::UDim(1, -72));
 const std::string CMP_BRIEFING_START = "CampaignWindowFrame/BriefingPanel/BriefingStartButton";
 const std::string CMP_BRIEFING_CLOSE = "CampaignWindowFrame/BriefingPanel/BriefingCloseButton";
@@ -195,7 +195,7 @@ bool readBriefingGoals(const std::string& path, std::string& descriptions)
         std::unique_ptr<Goal> goal = Goals::loadGoalFromStream(token, level);
         if(goal == nullptr)
             return false;
-        descriptions += "\n\nOpen: " + goal->getDescription(player);
+        descriptions += "\n- " + goal->getDescription(player);
     }
     if(token != "[/Goals]")
         return false;
@@ -216,13 +216,10 @@ bool readBriefingGoals(const std::string& path, std::string& descriptions)
                     continue;
                 if(action.mType == LevelScriptActionType::hint)
                 {
-                    descriptions += "\n\nHint: " + action.mText;
+                    descriptions += "\nHint: " + action.mText;
                     continue;
                 }
-                descriptions += "\n\nOpen";
-                if(!action.mObjectiveId.empty())
-                    descriptions += " (" + action.mObjectiveId + ")";
-                descriptions += ": " + action.mText;
+                descriptions += "\n- " + action.mText;
             }
         }
         break;
