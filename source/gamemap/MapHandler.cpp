@@ -151,6 +151,15 @@ bool readGameMapFromFile(const std::string& fileName, GameMap& gameMap)
             OD_LOG_INF("TileSet: " + tileSet);
             continue;
         }
+
+        param = "TurnNumber\t";
+        if (nextParam.compare(0, param.size(), param) == 0)
+        {
+            int64_t turnNumber = Helper::toInt(nextParam.substr(param.size()));
+            gameMap.setSavedTurnNumber(turnNumber);
+            OD_LOG_INF("Saved at turn: " + Helper::toString(turnNumber));
+            continue;
+        }
     }
 
     levelFile >> nextParam;
@@ -652,6 +661,10 @@ bool writeGameMapToFile(const std::string& fileName, GameMap& gameMap)
         levelFile << "FightMusic\t" << gameMap.getLevelFightMusicFile() << std::endl;
     if(!gameMap.getTileSetName().empty())
         levelFile << "TileSet\t" << gameMap.getTileSetName() << std::endl;
+    // A game being saved goes on from its current turn when it is loaded again. The editor
+    // counts turns too, but a level it writes has to start from the beginning.
+    if(!gameMap.isInEditorMode() && (gameMap.getTurnNumber() > 0))
+        levelFile << "TurnNumber\t" << gameMap.getTurnNumber() << std::endl;
 
     levelFile << "[/Info]" << std::endl;
 

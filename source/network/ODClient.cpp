@@ -591,6 +591,9 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
             OD_LOG_INF("Client (" + getPlayer()->getNick() + ") received turnStarted="
                 + boost::lexical_cast<std::string>(turnNum));
 
+            // The first turn is not always 0: a saved game goes on from the turn it was
+            // saved at. Until it arrives, the map is at turn -1.
+            bool isFirstTurn = (gameMap->getTurnNumber() == -1);
             gameMap->clientUpKeep(turnNum);
             // TODO maybe we should call clientUpKeep also for draggableTileContainer
             
@@ -602,7 +605,7 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
 
             // For the first turn, we stop processing events because we want the gamemap to
             // be initialized
-            if(turnNum == 0)
+            if(isFirstTurn)
                 return false;
 
             break;
