@@ -201,7 +201,6 @@ GameMode::GameMode(ModeManager *modeManager):
     mCasinoY(-1),
     mCasinoPayout(static_cast<uint32_t>(CasinoPayout::smiles)),
     mMiddleDragDistance(0.0f),
-    directionKeyPressed(false),
     mMiddlePressX(0.0f),
     mMiddlePressY(0.0f),
     showTileDebugWindow(false),
