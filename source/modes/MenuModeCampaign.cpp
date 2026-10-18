@@ -174,7 +174,7 @@ bool readBriefingSeat(std::istream& level, Seat& player)
     return false;
 }
 
-//! \brief Reads the initial open goal descriptions and identified script objectives using the gameplay parsers.
+//! \brief Reads initial open goals, identified objectives and untracked advice using the gameplay parsers.
 //! \return True when level goal metadata was read; no game state or script action is executed.
 bool readBriefingGoals(const std::string& path, std::string& descriptions)
 {
@@ -211,9 +211,14 @@ bool readBriefingGoals(const std::string& path, std::string& descriptions)
         {
             for(const LevelScriptAction& action : trigger.mActions)
             {
-                if(action.mType != LevelScriptActionType::objective ||
+                if((action.mType != LevelScriptActionType::objective && action.mType != LevelScriptActionType::hint) ||
                    (action.mSeatId >= 0 && action.mSeatId != player.getId()))
                     continue;
+                if(action.mType == LevelScriptActionType::hint)
+                {
+                    descriptions += "\n\nHint: " + action.mText;
+                    continue;
+                }
                 descriptions += "\n\nOpen";
                 if(!action.mObjectiveId.empty())
                     descriptions += " (" + action.mObjectiveId + ")";
