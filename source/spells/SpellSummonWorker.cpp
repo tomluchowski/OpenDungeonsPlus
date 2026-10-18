@@ -69,6 +69,35 @@ class SpellSummonWorkerFactory : public SpellFactory
 
 // Register the factory
 static SpellRegister reg(new SpellSummonWorkerFactory);
+
+//! \brief How many workers the seat is taken to own when the next one is priced.
+//! Seat::getNumCreaturesWorkers() is only recomputed once per turn, in GameMap::doTurn(), so it
+//! does not know about the workers summoned since, and the price of a worker doubles with every
+//! worker already owned: clicking several times within one turn used to buy every one of them at
+//! the price of the first, and to hand out the free quota over and over. Counting the creatures
+//! on the map sees those workers straight away, but it can also miss one (a knocked out worker
+//! gives no vision, so the client is told to drop it from its map), hence the larger of the two.
+int32_t getNbWorkersForSeat(GameMap* gameMap, const Seat* seat)
+{
+    int32_t nbWorkers = 0;
+    for(const Creature* creature : gameMap->getCreatures())
+    {
+        if(creature->getSeat() != seat)
+            continue;
+        if(!creature->isAlive())
+            continue;
+        if(!creature->getDefinition()->isWorker())
+            continue;
+
+        ++nbWorkers;
+    }
+
+    int32_t nbWorkersSeat = static_cast<int32_t>(seat->getNumCreaturesWorkers());
+    if(nbWorkersSeat > nbWorkers)
+        return nbWorkersSeat;
+
+    return nbWorkers;
+}
 }
 
 void SpellSummonWorker::checkSpellCast(GameMap* gameMap, const InputManager& inputManager, InputCommand& inputCommand)
@@ -98,7 +127,7 @@ void SpellSummonWorker::checkSpellCast(GameMap* gameMap, const InputManager& inp
         inputManager.mLStartDragY, SelectionTileAllowed::groundClaimedAllied, SelectionEntityWanted::tiles, player);
 
     int32_t nbFreeWorkers = ConfigManager::getSingleton().getSpellConfigInt32("SummonWorkerNbFree");
-    int32_t nbWorkers = player->getSeat()->getNumCreaturesWorkers();
+    int32_t nbWorkers = getNbWorkersForSeat(gameMap, player->getSeat());
     int32_t pricePerWorker = ConfigManager::getSingleton().getSpellConfigInt32("SummonWorkerBasePrice");
     if(nbWorkers > nbFreeWorkers)
         pricePerWorker *= std::pow(2, nbWorkers - nbFreeWorkers);
@@ -188,7 +217,7 @@ bool SpellSummonWorker::summonWorkersOnTiles(GameMap* gameMap, Player* player, c
     }
 
     int32_t nbFreeWorkers = ConfigManager::getSingleton().getSpellConfigInt32("SummonWorkerNbFree");
-    int32_t nbWorkers = player->getSeat()->getNumCreaturesWorkers();
+    int32_t nbWorkers = getNbWorkersForSeat(gameMap, player->getSeat());
     int32_t pricePerWorker = ConfigManager::getSingleton().getSpellConfigInt32("SummonWorkerBasePrice");
     if(nbWorkers > nbFreeWorkers)
         pricePerWorker *= std::pow(2, nbWorkers - nbFreeWorkers);
@@ -238,7 +267,7 @@ bool SpellSummonWorker::summonWorkersOnTiles(GameMap* gameMap, Player* player, c
 
 int32_t SpellSummonWorker::getNextWorkerPriceForPlayer(GameMap* gameMap, Player* player)
 {
-    int32_t nbWorkers = player->getSeat()->getNumCreaturesWorkers();
+    int32_t nbWorkers = getNbWorkersForSeat(gameMap, player->getSeat());
     int32_t nbFreeWorkers = ConfigManager::getSingleton().getSpellConfigInt32("SummonWorkerNbFree");
     if(nbWorkers < nbFreeWorkers)
         return 0;
