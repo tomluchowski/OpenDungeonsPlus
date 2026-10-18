@@ -6,6 +6,39 @@ OpenDungeons since version 0.4.7, in reverse chronological order.
 The numbers preceded by a hash (e.g. #9) reference GitHub issue numbers on
 our repository at https://github.com/OpenDungeons/OpenDungeons
 
+### Unreleased
+
+* Give hens five seconds to lay, eggs thirty seconds to hatch and chicks sixty seconds to grow at normal game speed; preserve each full life stage instead of aging it on its creation turn, intentionally slowing food production.
+* Keep a wizard's equipped left-hand item and the defender's held idle pose from snapping at their loop boundaries.
+* Close additional visible idle, fleeing and running loop seams while preserving their durations.
+* Give every creature body type articulated rest poses with grounded transitions, supported hands, folded wings, attached equipment and subtle breathing, preserving configured reaction durations and strengths.
+* Keep hit reactions tied to their original attack, including strikes queued behind movement, without delaying landed shots behind a different attacker.
+* Keep creature poses and room reactions aligned with pause and game speed, let slowed reaction clips finish, preserve sleeping occupancy, and keep cosmetic wake-up stretches from replacing important actions.
+* Align mating birds after stopping their paths, show melee reactions at the displayed strike contact, and animate wall-torch flames as rising, fading tongues instead of a stationary image.
+* Give hens and roosters complete articulated flight feathers, close visible movement-loop seams in chickens, hornets and small spiders, and blend cosmetic reactions and normal waking back into their base poses.
+* Level scripts gained the conditions portal, alive, reached and stone (portal state, named creatures, reaching a region or a heart, portal stones on the ground); existing levels load unchanged
+* Leave transparent gaps for depleted creature health segments so they no longer obscure creature details
+* Fixed list selection in the menu so a click selects the row under the pointer instead of the row above it
+
+### Version 0.7.3 - 20 September 2026
+
+**Highlights:**
+
+* Added a self-contained Windows x64 release package
+* Added scalable gameplay interfaces, contextual controls and improved navigation
+* Added creature panels, health and needs indicators, and level-aware selection
+* Improved creature combat, projectiles, sleeping, feeding and room-object navigation
+* Added animated hand tools, construction feedback and interruptible idle effects
+* Improved room lighting, dynamic shadows, claimed terrain and the main-menu presentation
+
+**General:**
+
+* Added camera presets, full-map navigation and room cycling
+* Added research progression and persistent workshop production priorities
+* Improved dormitory layouts, bed traversal and room borders
+* Improved Windows startup, resource configuration, shutdown and Release performance
+* Fixed projectile collisions, legacy save loading and several interface regressions
+
 ### Version 0.7.1 - 24 Aug 2016
 
 **Highlights:**
