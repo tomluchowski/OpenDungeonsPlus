@@ -151,6 +151,7 @@ def load():
     }
 
 
+# Remove each wake-clip safeguard, including movement in the combined priority guard.
 def mutations():
     """One thing is taken away from the texts each; the check must go red for every one."""
     def swap(key, old, new):
@@ -165,7 +166,7 @@ def mutations():
         ("not included", swap("main", "Include roomAmbienceWakeClips.cfg", "")),
         ("checker does not know the kind", swap("checker", "CreatureClip", "Creature_Clip")),
         ("clip guard", swap("source", "if(!hasClip(nearest, clip))", "if(false)")),
-        ("walking creature", swap("source", "creature->isMoving())\n        return false;", "false)\n        return false;")),
+        ("walking creature", swap("source", "creature->isKo() || creature->isMoving() ||", "creature->isKo() || false ||")),
         ("server code", swap("source", "bool RoomAmbience::playCreatureClip(", "bool RoomAmbience::playCreatureClip(ODServer* server, ")),
     ]
 

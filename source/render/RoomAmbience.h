@@ -418,6 +418,7 @@ private:
     //! \brief Sorts the effects of the configuration by tile visual, object and event, so that a scan finds them quickly
     void buildIndex();
     //! \brief Looks at what the camera sees and starts or stops the effects of the objects, tiles and events there
+    //! \brief Collects visible effects and occupants using their logical animation states.
     void scan();
     //! \brief Finds the objects near the camera that have effects and collects the candidates for them
     void scanObjects(Ogre::Camera* camera, const Ogre::Vector3& cameraPosition);
@@ -428,6 +429,7 @@ private:
     //! \brief Raises the events of creatures: one that wakes in a dormitory (CreatureWoke), an enemy that enters a guard
     //! room (EnemyEntered), a new prisoner (PrisonerArrived), one that changes its keeper in a torture chamber
     //! (TortureConverted) and one that is healed in a temple (CreatureHealed)
+    //! \brief Detects creature events using logical sleep states rather than rendered clip names.
     void scanCreatureEvents();
     //! \brief Raises the event HeartHit and starts the state "When Hit" of the own dungeon heart when its health went down
     void scanHeartHit();
@@ -443,6 +445,7 @@ private:
     bool playEventClip(const AmbienceEffect& effect, const Ogre::Vector3& position);
     //! \brief Plays the clip of an event effect (kind creatureClip) once on the creature; false when it is on its way,
     //! unknown or has no such clip
+    //! \brief Plays an ambient clip only on an idle creature that is alive and conscious.
     bool playCreatureClip(const AmbienceEffect& effect, const std::string& creatureName);
     //! \brief Flickers the running emitters and removes those that were stopped long enough
     void updateEmitters(double timeSinceLastFrame);
