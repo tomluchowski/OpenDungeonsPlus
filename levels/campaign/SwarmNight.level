@@ -1564,13 +1564,39 @@ Cond	gold	1	>=	2000
 Action	message	1	A heavy purse. The swarm will not care, so spend it.
 [/Trigger]
 [Trigger]
+Name	goalHeartSafe1BeforeDawn
+Mode	once
+Cond	time	780
+Cond	goalmet	1	ProtectDungeonTemple
+Action	objectivestate	1	swarmnight-o01	reached
+[/Trigger]
+[Trigger]
+Name	goalHeartSafe2BeforeDawn
+Mode	once
+Cond	time	780
+Cond	goalmet	1	ProtectDungeonTemple
+Action	objectivestate	1	swarmnight-o02	reached
+[/Trigger]
+[Trigger]
 Name	dawn
 Mode	once
 Cond	time	780
 Action	message	1	The first light touches the roads and the swarm melts away. Your heart still beats, and your strongest fighter is willing to follow you.
 Action	keepminion	1
-Action	objectivestate	1	swarmnight-o01	reached
-Action	objectivestate	1	swarmnight-o02	reached
 Action	win	1
+[/Trigger]
+
+[Trigger]
+Name	goalHeartLost1
+Mode	once
+Cond	room	1	DungeonTemple	==	0
+Action	objectivestate	1	swarmnight-o01	failed
+[/Trigger]
+
+[Trigger]
+Name	goalHeartLost2
+Mode	once
+Cond	room	1	DungeonTemple	==	0
+Action	objectivestate	1	swarmnight-o02	failed
 [/Trigger]
 [/Triggers]
