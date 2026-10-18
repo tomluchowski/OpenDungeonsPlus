@@ -455,6 +455,7 @@ set(OD_SOURCEFILES
     ${SRC}/render/RoomAmbienceExtras.cpp
     ${SRC}/render/ODFrameListener.cpp
     ${SRC}/render/RenderManager.cpp
+    ${SRC}/render/RenderManagerChickens.cpp
     ${SRC}/render/TextRenderer.cpp
 
     ${SRC}/renderscene/RenderScene.cpp
@@ -478,6 +479,8 @@ set(OD_SOURCEFILES
     ${SRC}/renderscene/RenderSceneWait.cpp
     
     ${SRC}/rooms/FencedRoom.cpp
+    ${SRC}/rooms/HatcheryCycle.cpp
+    ${SRC}/rooms/HatcheryRooster.cpp
     ${SRC}/rooms/Room.cpp
     ${SRC}/rooms/RoomArena.cpp
     ${SRC}/rooms/RoomBridge.cpp

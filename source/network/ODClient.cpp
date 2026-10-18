@@ -18,6 +18,7 @@
 #include "network/ODClient.h"
 #include "camera/CullingManager.h"
 #include "entities/Building.h"
+#include "entities/ChickenEntity.h"
 #include "entities/Creature.h"
 #include "entities/Creature.h"
 #include "entities/CreatureDefinition.h"
@@ -48,6 +49,7 @@
 #include "render/ODFrameListener.h"
 #include "render/RenderManager.h"
 #include "render/RoomAmbience.h"
+#include "rooms/HatcheryNestField.h"
 #include "rooms/RoomPortalWave.h"
 #include "sound/MusicPlayer.h"
 #include "sound/SoundEffectsManager.h"
@@ -66,6 +68,9 @@
 #include <boost/lexical_cast.hpp>
 
 #include <string>
+
+//! \brief Number of position units per tile in the place of a trampled egg that the server sends (hundredths of a tile).
+static const float EGG_HUNDREDTHS_PER_TILE = 100.0f;
 
 template<> ODClient* Ogre::Singleton<ODClient>::msSingleton = nullptr;
 
@@ -922,6 +927,26 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
                 break;
 
             if(frameListener->getModeManager()->getCurrentModeType() == ModeManager::ModeType::GAME &&
+               event.is(CosmeticEventType::chickenFlee) && (RoomAmbience::getSingletonPtr() != nullptr))
+            {
+                // The chicken really hops: feathers, dust and a cluck where it was
+                RoomAmbience::getSingleton().triggerEvent("ChickenFlee", event.mPosition, false);
+            }
+
+            if(frameListener->getModeManager()->getCurrentModeType() == ModeManager::ModeType::GAME &&
+               event.is(CosmeticEventType::casinoResult) && (RoomAmbience::getSingletonPtr() != nullptr))
+            {
+                // A game of the casino ended: the coins at the winner, the grey smoke and the groan at the loser
+                Ogre::Vector3 loserPosition = event.mPosition;
+                Creature* loser = gameMap->getCreature(event.mObject);
+                if(loser != nullptr)
+                    loserPosition = loser->getPosition();
+
+                RoomAmbience::getSingleton().triggerEvent("CasinoWin", event.mPosition, false, "casinoRoom");
+                RoomAmbience::getSingleton().triggerEvent("CasinoLoss", loserPosition, false, "casinoRoom");
+            }
+
+            if(frameListener->getModeManager()->getCurrentModeType() == ModeManager::ModeType::GAME &&
                CreatureReactions::getSingletonPtr() != nullptr)
             {
                 CreatureReactions::getSingleton().noteCosmeticEvent(event);
@@ -1056,6 +1081,14 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
                     ambience->triggerEvent("SpellFx" + family.substr(Spell::SPELL_EFFECT_PREFIX.size()), position, false,
                         std::string(), true);
                 }
+                break;
+            }
+            if(family == "HatcheryFx/EggTrample")
+            {
+                // Cosmetic effect of a trampled egg, no sound belongs to it. The numbers are the place of the egg
+                // in hundredths of a tile.
+                RenderManager::getSingleton().rrEggTrampled(Ogre::Vector3(
+                    static_cast<Ogre::Real>(xPos) / EGG_HUNDREDTHS_PER_TILE, static_cast<Ogre::Real>(yPos) / EGG_HUNDREDTHS_PER_TILE, 0.0f));
                 break;
             }
             SoundEffectsManager::getSingleton().playSpatialSound(family, xPos, yPos);
@@ -1291,6 +1324,67 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
             {
                 RenderManager::getSingleton().rrSetFeedingChicken(creature,
                     gameMap->getAnimatedObject(chickenName), chickenPosition);
+            }
+            break;
+        }
+
+        case ServerNotificationType::chickenKindChanged:
+        {
+            std::string chickenName;
+            uint32_t kind;
+            OD_ASSERT_TRUE(packetReceived >> chickenName >> kind);
+            GameEntity* entity = gameMap->getEntityFromTypeAndName(GameEntityType::chickenEntity, chickenName);
+            if((entity != nullptr) && (entity->getObjectType() == GameEntityType::chickenEntity) &&
+               (kind <= static_cast<uint32_t>(ChickenKind::egg)))
+            {
+                static_cast<ChickenEntity*>(entity)->setKindFromServer(static_cast<ChickenKind>(kind));
+            }
+            break;
+        }
+
+        case ServerNotificationType::hatcheryNests:
+        {
+            std::string roomName;
+            uint32_t count;
+            OD_ASSERT_TRUE(packetReceived >> roomName >> count);
+            std::vector<HatcheryNestField::Place> places;
+            for(uint32_t i = 0; i < count; ++i)
+            {
+                float x;
+                float y;
+                float angle;
+                OD_ASSERT_TRUE(packetReceived >> x >> y >> angle);
+                places.push_back(HatcheryNestField::Place(x, y, angle));
+            }
+            uint32_t featherCount;
+            OD_ASSERT_TRUE(packetReceived >> featherCount);
+            std::vector<HatcheryNestField::Place> feathers;
+            for(uint32_t i = 0; i < featherCount; ++i)
+            {
+                float x;
+                float y;
+                float angle;
+                OD_ASSERT_TRUE(packetReceived >> x >> y >> angle);
+                feathers.push_back(HatcheryNestField::Place(x, y, angle));
+            }
+            RenderManager::getSingleton().rrSetHatcheryNests(roomName, places, feathers);
+            break;
+        }
+
+        case ServerNotificationType::chickenFight:
+        {
+            std::string firstName;
+            std::string secondName;
+            uint32_t phase;
+            OD_ASSERT_TRUE(packetReceived >> firstName >> secondName >> phase);
+            GameEntity* first = gameMap->getEntityFromTypeAndName(GameEntityType::chickenEntity, firstName);
+            GameEntity* second = gameMap->getEntityFromTypeAndName(GameEntityType::chickenEntity, secondName);
+            if((first != nullptr) && (second != nullptr) &&
+               (first->getObjectType() == GameEntityType::chickenEntity) &&
+               (second->getObjectType() == GameEntityType::chickenEntity))
+            {
+                RenderManager::getSingleton().rrChickenFight(static_cast<ChickenEntity*>(first),
+                    static_cast<ChickenEntity*>(second), phase);
             }
             break;
         }

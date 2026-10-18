@@ -32,12 +32,17 @@
 #include <OgreDefaultDebugDrawer.h>
 #include <cstdint>
 #include "entities/GameEntity.h"
+#include "rooms/HatcheryNestField.h"
+#include <OgreVector2.h>
 
 class DraggableTileContainer;
 class GameMap;
 class Building;
+class BuildingObject;
+class ChickenEntity;
 class Seat;
 class Tile;
+class Room;
 class GameEntity;
 class MovableGameEntity;
 class MapLight;
@@ -226,6 +231,32 @@ public:
     void rrSetFeedingChicken(Creature* creature, MovableGameEntity* chicken,
         const Ogre::Vector3& position);
 
+    //! \brief Hatchery animals: scale, tint and procedural motion by kind and pose
+    void rrCreateChickenLook(ChickenEntity* chicken);
+    //! \brief Gives the entity back to the node of the animal and removes the look (accessories, fight links).
+    void rrDestroyChickenLook(ChickenEntity* chicken);
+    //! \brief The kind of the animal changed (chick grown up): new scale and tint.
+    void rrUpdateChickenLook(ChickenEntity* chicken);
+    //! \brief The egg hatched: shell pieces fly.
+    void rrChickenHatched(ChickenEntity* chicken);
+    //! \brief An egg was trampled at the position: shell pieces and yolk fly, a few feathers of a startled hen.
+    void rrEggTrampled(const Ogre::Vector3& position);
+    //! \brief Two roosters fight (phase as in ServerNotificationType::chickenFight): while they brawl, feather
+    //! clouds fly between them at the configured interval, when it is over a last cloud flies.
+    void rrChickenFight(ChickenEntity* first, ChickenEntity* second, uint32_t phase);
+    //! \brief The server set a pose (see ChickenPose.h), an empty pose is the normal walking and idling.
+    void rrSetChickenPose(ChickenEntity* chicken, const std::string& pose);
+    //! \brief The server sent the nest places and the places of the loose feathers of a hatchery (by room name); the
+    //! nests are drawn at the places. An empty list of nests means that the hatchery is gone.
+    void rrSetHatcheryNests(const std::string& roomName, const std::vector<HatcheryNestField::Place>& places,
+        const std::vector<HatcheryNestField::Place>& feathers);
+    //! \brief Loose feathers next to a coop of the hatchery (the straw nests lie scattered over the hatchery, see updateNestFields)
+    void rrCreateCoopDecor(BuildingObject* coop);
+    //! \brief Removes the nest and the feathers next to the coop.
+    void rrDestroyCoopDecor(BuildingObject* coop);
+    //! \brief Makes the procedural meshes of the hatchery (egg in straw, comb, tail, feathers) if needed
+    void rrEnsureChickenMesh(const std::string& meshName);
+
     //! \brief Toggles the creatures text overlay
     void rrSetCreaturesTextOverlay(GameMap& gameMap, bool value);
 
@@ -410,6 +441,69 @@ private:
     std::vector<ChickenFeatherEffect> mChickenFeatherEffects;
     uint64_t mChickenFeatherEffectNumber = 0;
 
+    //! \brief Per animal state of the look: the child node that carries scale and motion, the pose and its timers,
+    //! the rooster accessories and the fight link.
+    struct ChickenLook
+    {
+        Ogre::SceneNode* mNode;
+        Ogre::Entity* mEntity;
+        std::vector<Ogre::Entity*> mAccessories;
+        std::string mPose;
+        Ogre::Real mTime;
+        Ogre::Real mPoseTime;
+        Ogre::Real mPhase;
+        int mFeatherBursts;
+        //! The rooster this one fights (set by the server event), the first of the two makes the feather clouds
+        ChickenEntity* mFightPartner;
+        bool mFightLeader;
+        Ogre::Real mFightTimer;
+        //! The egg lies in a nest of a coop: its own straw is hidden, the nest has straw
+        bool mNestEgg;
+    };
+    std::map<ChickenEntity*, ChickenLook> mChickenLooks;
+
+    //! \brief Nest and loose feathers next to a coop, with the timer of the door shake.
+    struct CoopDecor
+    {
+        Ogre::SceneNode* mNode;
+        Ogre::Entity* mFeathers;
+        Ogre::Real mShake;
+        //! The door clip of the coop mesh, null for the old coop mesh (the coop shakes then)
+        Ogre::AnimationState* mDoor;
+    };
+    std::map<BuildingObject*, CoopDecor> mCoopDecors;
+    //! The nest places the server sent, by room name (the clients compute nothing). mVersion counts the messages.
+    struct ServerNests
+    {
+        //! \brief Starts with version 0 and no places.
+        ServerNests() :
+            mVersion(0)
+        {}
+
+        std::vector<HatcheryNestField::Place> mPlaces;
+        std::vector<HatcheryNestField::Place> mFeathers;
+        uint32_t mVersion;
+    };
+    std::map<std::string, ServerNests> mServerNests;
+    //! The straw nests of one hatchery (one entity each, at the places the server sent). mKey is the version of
+    //! the places they were made for.
+    struct NestField
+    {
+        std::vector<Ogre::SceneNode*> mNodes;
+        std::vector<Ogre::Entity*> mEntities;
+        uint32_t mKey;
+    };
+    std::map<std::string, NestField> mNestFields;
+    //! Draws the server-provided nests by room name (a client has no Room objects of its own). A nest shows while
+    //! its tile is visible to the local player and still belongs to a hatchery.
+    void updateNestFields();
+    //! \brief Removes the nest entities and nodes of one hatchery.
+    void destroyNestField(NestField& field);
+    //! Set while a game is shown
+    GameMap* mGameMap = nullptr;
+    Ogre::Real mCoopDecorTimer = 0.0f;
+    uint64_t mChickenLookNumber = 0;
+
     //! \brief State of a creature that lies down in a bed or sleeps in it.
     //! \brief Keeps bed alignment and reversible sleep-entry/wake pose state for one creature.
     struct CreatureSleepAnimation
@@ -496,7 +590,17 @@ private:
     void prepareCreatureFeedingReach(CreatureFeedingAnimation& feeding);
     Ogre::Vector3 updateCreatureFeedingReach(CreatureFeedingAnimation& feeding, Ogre::Real progress);
     void cancelCreatureFeedingAnimation(Creature* creature = nullptr);
-    void createChickenFeatherEffect(const Ogre::Vector3& position);
+    //! \brief Starts a short feather (or egg shell) particle effect at the position.
+    //! \param position World position of the effect.
+    //! \param particleName Name of the particle template to use.
+    void createChickenFeatherEffect(const Ogre::Vector3& position, const std::string& particleName = "ChickenFeathers");
+    //! \brief Moves every animal look (pose motion, fight clouds) and the coop decor for the elapsed time.
+    //! \param timeSinceLastFrame Seconds since the last frame.
+    void updateChickenLooks(Ogre::Real timeSinceLastFrame);
+    //! \brief Sets scale, tint and rooster accessories of the animal for its current kind.
+    void applyChickenKindLook(ChickenEntity* chicken);
+    //! \brief Forgets all animal looks and coop decors without touching the scene.
+    void clearChickenLooks();
     void clearChickenFeatherEffects();
     //! \brief Starts the movement of the creature into its bed.
     //! \brief Starts an authored or generated sleep-entry pose and stores its standing transform.
