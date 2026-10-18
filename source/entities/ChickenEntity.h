@@ -42,6 +42,7 @@ enum class ChickenKind : uint32_t
     egg
 };
 
+//! \brief Manages a hatchery animal's movement, poses, life stage and synchronized interactions.
 class ChickenEntity: public RenderedMovableEntity
 {
 public:
@@ -157,6 +158,7 @@ public:
 
     //! \brief Server side: the rooster climbs on the hen: both play their mounting poses and the clients are told
     //! which hen it is, so that the animation fits the pair.
+    //! \brief Stops both birds and announces mating poses with the same facing direction.
     void mountHen(ChickenEntity& hen);
     //! \brief The name of the hen the rooster mounts (empty when he does not).
     const std::string& getMountHenName() const

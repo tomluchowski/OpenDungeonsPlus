@@ -12,7 +12,9 @@ chicken = (root / 'source/entities/ChickenEntity.cpp').read_text()
 room = (root / 'source/rooms/RoomHatchery.cpp').read_text()
 looks = (root / 'source/render/RenderManagerChickens.cpp').read_text()
 client = (root / 'source/network/ODClient.cpp').read_text()
-for token in ('direction = hen.getWalkDirection()', 'setWalkDirection(direction)',
+for token in ('direction = hen.getWalkDirection()',
+              'hen.setAnimationState(ChickenPose::cackle, true, direction, false)',
+              'setAnimationState(ChickenPose::mount, true, direction, false)',
               'hen.playPose(ChickenPose::cackle, MOUNT_POSE_TURNS)', 'MOUNT_POSE_TURNS = 3;', 'mMountHenName = hen.getName()',
               'notification->mPacket << getName() << hen.getName()', 'is >> mMountHenName'):
     assert token in chicken, token
