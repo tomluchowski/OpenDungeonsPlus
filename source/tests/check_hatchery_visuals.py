@@ -216,12 +216,12 @@ if shutil.which('OgreXMLConverter') is not None:
     assert abs(min(lay_hip) + 0.05) < 0.002, min(lay_hip)
     assert abs(max(flutter_root) - 0.075) < 0.002, max(flutter_root)
     assert max(abs(v) for v in frame_fix.track_values(skeleton_xml, 'Lay', 'Hip', 'y')) < 0.002
-    # The Lay clip is as long as the Lay pose of the server (HatcheryLayShowTurns turns of 1 / turnsPerSecond seconds)
+    # Playback advances turnsPerSecond clip units per second, matching the server's laying turns.
     import re
     show_turns = max(2, int(re.search(r'^\s*HatcheryLayShowTurns\s+(\d+)', config, re.M).group(1)))
     turns_per_second = float(re.search(r'turnsPerSecond = ([0-9.]+);', (root / 'source/ODApplication.cpp').read_text()).group(1))
     lay = [a for a in skeleton_xml.find('animations').findall('animation') if a.get('name') == 'Lay'][0]
-    assert abs(float(lay.get('length')) - show_turns / turns_per_second) < 0.01, lay.get('length')
+    assert abs(float(lay.get('length')) / turns_per_second - show_turns / turns_per_second) < 0.01, lay.get('length')
     last_times = set()
     for track in lay.find('tracks').findall('track'):
         last_times.add(round(float(track.find('keyframes').findall('keyframe')[-1].get('time')), 3))
