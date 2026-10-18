@@ -4689,7 +4689,140 @@ void RenderManager::rrPlayDigAnimation()
     mHandAnimationState = setEntityAnimation(mSceneManager->getEntity("keeperHandEnt"), "DigSwing", false);
 }
 
-void RenderManager::rrDrawTilePreview(const std::vector<Tile*>& tiles, const Ogre::ColourValue& colour, bool construction)
+// The side frames of a selected wall are scaled outwards around the tile centre
+// so they do not flicker on the wall surface.
+static const float WALL_FRAME_OUTWARD_SCALE = 1.01f;
+// The side frame starts just above the floor.
+static const float WALL_FRAME_BOTTOM = 0.04f;
+// Inset of the inner edge of the side frame: along the wall edge, above the
+// bottom and below the top border.
+static const float WALL_FRAME_INSET_ALONG = 0.06f;
+static const float WALL_FRAME_INSET_BOTTOM = 0.10f;
+static const float WALL_FRAME_INSET_TOP = 0.06f;
+// Lift of the borders above the top of the rendered wall.
+static const float WALL_BORDER_LIFT = 0.02f;
+
+//! \brief Gets the height at which the preview border of a full tile is drawn.
+//! \param sceneManager The scene manager holding the rendered tile mesh.
+//! \param tile The full tile. The revealed tile mesh is used, or else the fog of war mesh.
+//! \param height Receives the top of the rendered wall plus WALL_BORDER_LIFT.
+//! \return false if the tile has no mesh, in which case height is not modified.
+static bool getWallPreviewHeight(Ogre::SceneManager* sceneManager, Tile* tile, float& height)
+{
+    Ogre::MovableObject* wall = tile->getFogOfWarMesh();
+    const std::string meshName = tile->getOgreNamePrefix() + tile->getName() + "_tileMesh";
+    if(sceneManager->hasEntity(meshName))
+        wall = sceneManager->getEntity(meshName);
+    if(wall == nullptr)
+        return false;
+    height = wall->getWorldBoundingBox(true).getMaximum().z + WALL_BORDER_LIFT;
+    return true;
+}
+
+//! \brief Gets a point on the side frame of a wall edge, moved outwards around the tile centre.
+//! \param centreX X coordinate of the tile centre.
+//! \param centreY Y coordinate of the tile centre.
+//! \param start Start corner of the edge on the wall top.
+//! \param end End corner of the edge on the wall top.
+//! \param along Position on the edge, 0 at start and 1 at end.
+//! \param height Height of the point.
+static Ogre::Vector3 getWallFramePoint(float centreX, float centreY, const Ogre::Vector3& start,
+        const Ogre::Vector3& end, float along, float height)
+{
+    return Ogre::Vector3(centreX + WALL_FRAME_OUTWARD_SCALE * (start.x - centreX + along * (end.x - start.x)),
+        centreY + WALL_FRAME_OUTWARD_SCALE * (start.y - centreY + along * (end.y - start.y)), height);
+}
+
+// Lowest height of the preview borders: just above the floor.
+static const float PREVIEW_FLOOR_HEIGHT = 0.04f;
+// Half width of a tile and of the inner edge of its filled preview border.
+static const float PREVIEW_TILE_HALF = 0.5f;
+static const float PREVIEW_BORDER_INNER_HALF = 0.44f;
+
+//! \brief Adds the filled border band along one edge of a preview frame (two triangles).
+//! \param object The manual object, which must be inside a triangle list section.
+//! \param outerStart Start corner of the edge on the outer rim.
+//! \param outerEnd End corner of the edge on the outer rim.
+//! \param innerEnd End corner of the edge on the inner rim.
+//! \param innerStart Start corner of the edge on the inner rim.
+//! \param colour Colour of the band.
+static void addPreviewBorderBand(Ogre::ManualObject* object, const Ogre::Vector3& outerStart,
+        const Ogre::Vector3& outerEnd, const Ogre::Vector3& innerEnd, const Ogre::Vector3& innerStart,
+        const Ogre::ColourValue& colour)
+{
+    for(const Ogre::Vector3& point : {outerStart, outerEnd, innerEnd, outerStart, innerEnd, innerStart})
+    {
+        object->position(point);
+        object->colour(colour);
+    }
+}
+
+//! \brief Draws one outline around the bounding rectangle of the given tiles.
+//! \param tilePreview The manual object of the preview, already cleared.
+//! \param sceneManager The scene manager holding the rendered tile meshes.
+//! \param tiles The tiles to enclose. Must not be empty.
+//! \param colour Colour of the outline.
+//! \param construction Also draws the thick filled border of a room construction selection.
+//! \param digging Also draws the thick filled border of a digging selection.
+static void drawTileRectangle(Ogre::ManualObject* tilePreview, Ogre::SceneManager* sceneManager,
+        const std::vector<Tile*>& tiles, const Ogre::ColourValue& colour, bool construction, bool digging)
+{
+    int minX = tiles.front()->getX();
+    int maxX = minX;
+    int minY = tiles.front()->getY();
+    int maxY = minY;
+    float z = PREVIEW_FLOOR_HEIGHT;
+    for(Tile* tile : tiles)
+    {
+        minX = std::min(minX, tile->getX());
+        maxX = std::max(maxX, tile->getX());
+        minY = std::min(minY, tile->getY());
+        maxY = std::max(maxY, tile->getY());
+        // The outline rises above the tallest rendered surface, including unexplored tiles.
+        float height = 0.0f;
+        if(getWallPreviewHeight(sceneManager, tile, height))
+            z = std::max(z, height);
+    }
+    const Ogre::Vector3 outer[] = {
+        Ogre::Vector3(minX - PREVIEW_TILE_HALF, minY - PREVIEW_TILE_HALF, z),
+        Ogre::Vector3(maxX + PREVIEW_TILE_HALF, minY - PREVIEW_TILE_HALF, z),
+        Ogre::Vector3(maxX + PREVIEW_TILE_HALF, maxY + PREVIEW_TILE_HALF, z),
+        Ogre::Vector3(minX - PREVIEW_TILE_HALF, maxY + PREVIEW_TILE_HALF, z)
+    };
+    tilePreview->begin("debug_draw", Ogre::RenderOperation::OT_LINE_LIST, "Graphics");
+    for(int i = 0; i < 4; ++i)
+    {
+        tilePreview->position(outer[i]);
+        tilePreview->colour(colour);
+        tilePreview->position(outer[(i + 1) % 4]);
+        tilePreview->colour(colour);
+    }
+    tilePreview->end();
+    if(!construction && !digging)
+        return;
+    const Ogre::Vector3 inner[] = {
+        Ogre::Vector3(minX - PREVIEW_BORDER_INNER_HALF, minY - PREVIEW_BORDER_INNER_HALF, z),
+        Ogre::Vector3(maxX + PREVIEW_BORDER_INNER_HALF, minY - PREVIEW_BORDER_INNER_HALF, z),
+        Ogre::Vector3(maxX + PREVIEW_BORDER_INNER_HALF, maxY + PREVIEW_BORDER_INNER_HALF, z),
+        Ogre::Vector3(minX - PREVIEW_BORDER_INNER_HALF, maxY + PREVIEW_BORDER_INNER_HALF, z)
+    };
+    tilePreview->begin("debug_draw", Ogre::RenderOperation::OT_TRIANGLE_LIST, "Graphics");
+    for(int i = 0; i < 4; ++i)
+    {
+        const int next = (i + 1) % 4;
+        addPreviewBorderBand(tilePreview, outer[i], outer[next], inner[next], inner[i], colour);
+    }
+    tilePreview->end();
+}
+
+//! \brief Draws the tile selection preview, sharing the filled frame width for construction and digging.
+//! \param tiles The selected tiles. An empty list removes the preview.
+//! \param colour Colour of the borders.
+//! \param construction Also draws the filled border of building floors.
+//! \param digging Also draws the filled borders of selected walls (digging selection).
+//! \param singleRectangle Draws one outline around all given tiles instead of one frame per tile
+//!        (the rectangle of a drag selection).
+void RenderManager::rrDrawTilePreview(const std::vector<Tile*>& tiles, const Ogre::ColourValue& colour, bool construction, bool digging, bool singleRectangle)
 {
     if(mTilePreview == nullptr)
     {
@@ -4703,24 +4836,21 @@ void RenderManager::rrDrawTilePreview(const std::vector<Tile*>& tiles, const Ogr
     mTilePreview->clear();
     if(tiles.empty())
         return;
+    if(singleRectangle)
+    {
+        drawTileRectangle(mTilePreview, mSceneManager, tiles, colour, construction, digging);
+        return;
+    }
     mTilePreview->begin("debug_draw", Ogre::RenderOperation::OT_LINE_LIST, "Graphics");
     for(Tile* tile : tiles)
     {
         const float x = static_cast<float>(tile->getX());
         const float y = static_cast<float>(tile->getY());
         float z = 0.04f;
-        if(tile->isFullTile())
-        {
-            // Use the rendered wall, including the existing unrevealed tile
-            // representation, so the outline cannot sit inside a taller mesh.
-            Ogre::MovableObject* wall = tile->getFogOfWarMesh();
-            const std::string meshName = tile->getOgreNamePrefix() + tile->getName() + "_tileMesh";
-            if(mSceneManager->hasEntity(meshName))
-                wall = mSceneManager->getEntity(meshName);
-            if(wall == nullptr)
-                continue;
-            z = wall->getWorldBoundingBox(true).getMaximum().z + 0.02f;
-        }
+        // Use the rendered wall, including the existing unrevealed tile
+        // representation, so the outline cannot sit inside a taller mesh.
+        if(tile->isFullTile() && !getWallPreviewHeight(mSceneManager, tile, z))
+            continue;
         const Ogre::Vector3 corners[] = {{x-0.5f,y-0.5f,z}, {x+0.5f,y-0.5f,z},
             {x+0.5f,y+0.5f,z}, {x-0.5f,y+0.5f,z}};
         for(int i = 0; i < 4; ++i)
@@ -4745,26 +4875,47 @@ void RenderManager::rrDrawTilePreview(const std::vector<Tile*>& tiles, const Ogr
         }
     }
     mTilePreview->end();
-    if(construction)
+    if(construction || digging)
     {
         mTilePreview->begin("debug_draw", Ogre::RenderOperation::OT_TRIANGLE_LIST, "Graphics");
         for(Tile* tile : tiles)
         {
-            if(tile->isFullTile())
+            if(tile->isFullTile() && !digging)
                 continue;
             const float x = static_cast<float>(tile->getX());
             const float y = static_cast<float>(tile->getY());
-            const Ogre::Vector3 outer[] = {{x-0.5f,y-0.5f,0.045f}, {x+0.5f,y-0.5f,0.045f},
-                {x+0.5f,y+0.5f,0.045f}, {x-0.5f,y+0.5f,0.045f}};
-            const Ogre::Vector3 inner[] = {{x-0.44f,y-0.44f,0.045f}, {x+0.44f,y-0.44f,0.045f},
-                {x+0.44f,y+0.44f,0.045f}, {x-0.44f,y+0.44f,0.045f}};
+            float z = 0.045f;
+            if(tile->isFullTile() && !getWallPreviewHeight(mSceneManager, tile, z))
+                continue;
+            const Ogre::Vector3 outer[] = {{x-0.5f,y-0.5f,z}, {x+0.5f,y-0.5f,z},
+                {x+0.5f,y+0.5f,z}, {x-0.5f,y+0.5f,z}};
+            const Ogre::Vector3 inner[] = {{x-0.44f,y-0.44f,z}, {x+0.44f,y-0.44f,z},
+                {x+0.44f,y+0.44f,z}, {x-0.44f,y+0.44f,z}};
             for(int i = 0; i < 4; ++i)
             {
                 const int next = (i + 1) % 4;
-                for(const Ogre::Vector3& point : {outer[i], outer[next], inner[next], outer[i], inner[next], inner[i]})
+                addPreviewBorderBand(mTilePreview, outer[i], outer[next], inner[next], inner[i], colour);
+                if(!tile->isFullTile())
+                    continue;
+                // Offset side frames just outside the wall to avoid surface flicker.
+                const Ogre::Vector3 face[] = {
+                    getWallFramePoint(x, y, outer[i], outer[next], 0.0f, WALL_FRAME_BOTTOM),
+                    getWallFramePoint(x, y, outer[i], outer[next], 1.0f, WALL_FRAME_BOTTOM),
+                    getWallFramePoint(x, y, outer[i], outer[next], 1.0f, z),
+                    getWallFramePoint(x, y, outer[i], outer[next], 0.0f, z)};
+                const Ogre::Vector3 inset[] = {
+                    getWallFramePoint(x, y, outer[i], outer[next], WALL_FRAME_INSET_ALONG, WALL_FRAME_INSET_BOTTOM),
+                    getWallFramePoint(x, y, outer[i], outer[next], 1.0f - WALL_FRAME_INSET_ALONG, WALL_FRAME_INSET_BOTTOM),
+                    getWallFramePoint(x, y, outer[i], outer[next], 1.0f - WALL_FRAME_INSET_ALONG, z - WALL_FRAME_INSET_TOP),
+                    getWallFramePoint(x, y, outer[i], outer[next], WALL_FRAME_INSET_ALONG, z - WALL_FRAME_INSET_TOP)};
+                for(int edge = 0; edge < 4; ++edge)
                 {
-                    mTilePreview->position(point);
-                    mTilePreview->colour(colour);
+                    const int end = (edge + 1) % 4;
+                    for(const Ogre::Vector3& vertex : {face[edge], face[end], inset[end], face[edge], inset[end], inset[edge]})
+                    {
+                        mTilePreview->position(vertex);
+                        mTilePreview->colour(colour);
+                    }
                 }
             }
         }

@@ -2737,6 +2737,8 @@ void GameMode::selectTiles(const std::vector<Tile*> tiles)
     mPreviewTiles = tiles;
 }
 
+//! \brief Redraws the border of the selected tiles. Area actions (dig selection, rooms, removal and
+//! selling) show one outline around the whole dragged rectangle, the other actions one frame per tile.
 void GameMode::updateSelectedTiles()
 {
     const bool building = mPlayerSelection.getCurrentAction() == SelectedAction::buildRoom ||
@@ -2753,20 +2755,34 @@ void GameMode::updateSelectedTiles()
     }
     const bool roomDemolition = mPlayerSelection.getCurrentAction() == SelectedAction::destroyRoom ||
         (mPlayerSelection.getCurrentAction() == SelectedAction::sellBuilding && previewHasRoom);
+    const bool digging = mPlayerSelection.getCurrentAction() == SelectedAction::none ||
+        mPlayerSelection.getCurrentAction() == SelectedAction::selectTile;
+    const bool rectangle = mPlayerSelection.getCurrentAction() == SelectedAction::selectTile ||
+        mPlayerSelection.getCurrentAction() == SelectedAction::buildRoom ||
+        mPlayerSelection.getCurrentAction() == SelectedAction::destroyRoom ||
+        mPlayerSelection.getCurrentAction() == SelectedAction::destroyTrap ||
+        mPlayerSelection.getCurrentAction() == SelectedAction::sellBuilding;
     if(!mActionTargetValid && !building)
         mPreviewTiles.clear();
     const Ogre::ColourValue colour = mActionTargetValid ? Ogre::ColourValue(0.35f, 0.3f, 1.0f) :
         Ogre::ColourValue(1.0f, 0.15f, 0.1f);
+    const InputManager& inputManager = mModeManager->getInputManager();
+    std::vector<Tile*> outlineTiles = mPreviewTiles;
+    if(rectangle && inputManager.mLMouseDown)
+    {
+        outlineTiles = mGameMap->rectangularRegion(inputManager.mXPos, inputManager.mYPos,
+            inputManager.mLStartDragX, inputManager.mLStartDragY);
+    }
     if(mPreviewTiles == mSelectedTiles)
     {
-        RenderManager::getSingleton().rrDrawTilePreview(mSelectedTiles, colour, building || roomDemolition);
+        RenderManager::getSingleton().rrDrawTilePreview(outlineTiles, colour, building || roomDemolition, digging, rectangle);
         return;
     }
     Player* player = mGameMap->getLocalPlayer();
     for(Tile* tile : mSelectedTiles)
         tile->setSelected(false, player);
     mSelectedTiles = mPreviewTiles;
-    RenderManager::getSingleton().rrDrawTilePreview(mSelectedTiles, colour, building || roomDemolition);
+    RenderManager::getSingleton().rrDrawTilePreview(outlineTiles, colour, building || roomDemolition, digging, rectangle);
 }
 
 void GameMode::unselectAllTiles()
