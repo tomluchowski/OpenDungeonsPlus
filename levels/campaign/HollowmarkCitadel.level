@@ -5671,7 +5671,7 @@ Mode	once
 Cond	time	3
 Action	message	1	The capital, master. High King Castellan sits on his throne at the top of three walled courts, and the heroes of the whole kingdom are marching to defend him.
 Action	objectiveid	1	hollowmarkcitadel-o01	Kill King Castellan on his throne.
-Action	objectiveid	1	hollowmarkcitadel-o02	Take each court's towers to open all three gates.
+Action	objectiveid	1	hollowmarkcitadel-o02	Cross all three courts; take towers to open upper gates.
 Action	objectiveid	1	hollowmarkcitadel-o03	Survive the hero attacks.
 [/Trigger]
 [Trigger]

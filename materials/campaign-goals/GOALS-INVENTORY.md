@@ -338,7 +338,7 @@ File: `levels/campaign/HollowmarkCitadel.level`.
 | --- | --- | --- |
 | [Goals] | `ProtectDungeonTemple	NULL` | yes |
 | Script line 5673 | `Action	objectiveid	1	hollowmarkcitadel-o01	Kill King Castellan on his throne.` | yes |
-| Script line 5674 | `Action	objectiveid	1	hollowmarkcitadel-o02	Take each court's towers to open all three gates.` | yes |
+| Script line 5674 | `Action	objectiveid	1	hollowmarkcitadel-o02	Cross all three courts; take towers to open upper gates.` | yes |
 | Script line 5675 | `Action	objectiveid	1	hollowmarkcitadel-o03	Survive the hero attacks.` | yes |
 | Script line 6102 | `Action	win	1` | yes |
 | Trigger `goalHeartSafe3BeforeKingDead` | `Action	objectivestate	1	hollowmarkcitadel-o03	reached`; conditions: `Cond	time	5; Cond	alive	CastellanKing	0; Cond	goalmet	1	ProtectDungeonTemple` | yes |
