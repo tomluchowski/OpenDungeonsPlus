@@ -8,6 +8,9 @@ our repository at https://github.com/OpenDungeons/OpenDungeons
 
 ### Unreleased
 
+* Keep creature poses and room reactions aligned with pause and game speed, let slowed reaction clips finish, preserve sleeping occupancy, and keep cosmetic wake-up stretches from replacing important actions.
+* Align mating birds after stopping their paths, show melee reactions at the displayed strike contact, and animate wall-torch flames as rising, fading tongues instead of a stationary image.
+* Give hens and roosters complete articulated flight feathers, close visible movement-loop seams in chickens, hornets and small spiders, and blend cosmetic reactions and normal waking back into their base poses.
 * Level scripts gained the conditions portal, alive, reached and stone (portal state, named creatures, reaching a region or a heart, portal stones on the ground); existing levels load unchanged
 * Leave transparent gaps for depleted creature health segments so they no longer obscure creature details
 * Fixed list selection in the menu so a click selects the row under the pointer instead of the row above it
