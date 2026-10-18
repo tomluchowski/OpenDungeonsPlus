@@ -58,30 +58,7 @@ BRIEFING_MATCH = {
 # None is an unresolved mapping, deliberately reported as an error instead of inferred at victory.
 OBJECTIVE_TRIGGERS = {'Ashcombe': [('wardenDown',),
               ('holdBreached',),
-              ('goalHoldBeforeDeparture',
-               'goalRoadCatch01',
-               'goalRoadCatch02',
-               'goalRoadCatch03',
-               'goalRoadCatch04',
-               'goalRoadCatch05',
-               'goalRoadCatch06',
-               'goalRoadCatch07',
-               'goalRoadCatch08',
-               'goalRoadCatch09',
-               'goalRoadCatch10',
-               'goalRoadCatch11',
-               'goalRoadCatch12',
-               'goalRoadCatch13',
-               'goalRoadCatch14',
-               'goalRoadCatch15',
-               'goalRoadCatch16',
-               'goalRoadCatch17',
-               'goalRoadCatch18',
-               'goalRoadCatch19',
-               'goalRoadCatch20',
-               'goalRoadCatch21',
-               'goalRoadCatch22',
-               'goalRoadCatch23')],
+              ('goalHoldBeforeDeparture', 'goalOutsideHoldDeath01', 'goalOutsideHoldDeath02', 'goalOutsideHoldDeath03', 'goalOutsideHoldDeath04')],
  'Bellwick': [('keeperHeartDown',), None, ('naveGatesKills', 'naveGatesLate'), ('transept',)],
  'BoulderCourse': [('courseDone',)],
  'Brackenford': [('wardenGone',),
@@ -149,23 +126,12 @@ OBJECTIVE_TRIGGERS = {'Ashcombe': [('wardenDown',),
               ('goalHeartSafe3BeforeHuntersGoneGoal',)],
  'Wraithwood': [('bothFallGoal',), ('bothFallGoal',), ('goalHeartSafe3BeforeBothFallGoal',)]}
 HINT_IDS = frozenset(['bellwick-o02', 'ebonrook-o03', 'goldspire-o02', 'mirewatch-o02', 'silverdeep-o03', 'thornreach-o02'])
-# A proven positive mask does not establish exhaustive coverage of dynamic waypoint movement.
-OBJECTIVE_COVERAGE_PENDING = {
-    "ashcombe-o03": "road alternative has101 verified floor tiles, but Chebyshev-one waypoint skipping may use additional floor; exhaustive road coverage is not established",
-}
+# All mapped alternatives have explicit approved completion criteria.
+OBJECTIVE_COVERAGE_PENDING = {}
 
 # Individually reviewed non-matches: candidate triggers, missing requirement and proposed decision.
 # Candidates are never treated as completions without an explicit design decision.
-OBJECTIVE_REVIEW = {'ashcombe-o03': ('goalHoldBeforeDeparture, goalRoadCatch01..23',
-                  'Hold-before-departure is exact. The road death alternative checks101 verified dry floor '
-                  'tiles outside Hold, represented by23 narrow rectangles, and requires departure plus a '
-                  'stored killedin event. The mask is the union of shortest four-neighbour paths between '
-                  'authored escape waypoints; Chebyshev-one waypoint skipping leaves exhaustive dynamic-road '
-                  'coverage unproven.',
-                  'Keep this objective partial until the road domain is explicitly defined or exhaustive '
-                  'dynamic-route coverage is established; never substitute generic Trail or a bounding '
-                  'rectangle.'),
- 'bellwick-o02': ('naveGatesKills, naveGatesLate',
+OBJECTIVE_REVIEW = {'bellwick-o02': ('naveGatesKills, naveGatesLate',
                   'Neither checks the end of the faithful attacks; later waves continue.',
                   'Use the existing gate-opening milestone only if holding the nave is meant to end there; '
                   'should that milestone complete this text?'),
@@ -303,30 +269,11 @@ OBJECTIVE_REVIEW = {'ashcombe-o03': ('goalHoldBeforeDeparture, goalRoadCatch01..
 
 # Fixed fingerprints of the reviewed existing conditions; never recalculated as expectations.
 OBJECTIVE_CONDITIONS = {'Ashcombe/goalHoldBeforeDeparture': '776b58a0778ede6f329bf9703c105074745fe0c1d7b273766e3e2fb052d95454',
+ 'Ashcombe/goalOutsideHoldDeath01': '4b55b1bcd3b6c124c1baca2e1ea3f32f638e21b5b6ab26bc3d2e6e7d3a76c958',
+ 'Ashcombe/goalOutsideHoldDeath02': 'b0439d62b1fa95ea3b184ed79bd2e3197ef01165510a41fe5b8a824123f49c63',
+ 'Ashcombe/goalOutsideHoldDeath03': '47121a958cf69f7b9a61bca91df8955391839b666ff65501520458af0c8cf7f7',
+ 'Ashcombe/goalOutsideHoldDeath04': '74ece0097d1767e87ccf3f06f08682c2d4d55a952b3cb37c06f51e09d4a16ab4',
  'Ashcombe/goalHoldOrRoadMissed': '6b50aa8f09f86e56c7383895f34b7b828306cbfa792e8aaf22af95b105e6708a',
- 'Ashcombe/goalRoadCatch01': '9d6bdbf104b8cb8b75a29807132a334b688271b6e63b85eefaa870679b6ff49f',
- 'Ashcombe/goalRoadCatch02': '7fa941ce9e4f225d2775d5ddc8f7fa09831ba4b37f2aef2b146696d99b8ec5b9',
- 'Ashcombe/goalRoadCatch03': 'd55c16b588a12a07fbe799b3b7cd8a7bffd3f23fb330116c0f4e90215eb5f83c',
- 'Ashcombe/goalRoadCatch04': '51188b657313d597208e0e14dd977ecdd5015b1cf7fcdd8ce38fe16ed9c01731',
- 'Ashcombe/goalRoadCatch05': '4a418368d2be57af97ccc6ac2f5b71f92481bffb250d9dd00dc9da79a776832d',
- 'Ashcombe/goalRoadCatch06': '1cbb33c12afdd0054b7e36b38420c3f77a167a5d0f747acdc735758bfc65f1c6',
- 'Ashcombe/goalRoadCatch07': '942298fa653a1e883939112887913492dafc0a780351ba01eaeccffd4e204ffe',
- 'Ashcombe/goalRoadCatch08': 'eb2d1f720a475267ba8438c625f42425c5833f2adba773a78a699a58fd8094ef',
- 'Ashcombe/goalRoadCatch09': '76752c3b3c3a2ca7d06cb8cc6bfbaf4e805486c34caf746f7fba4ecc9e03df17',
- 'Ashcombe/goalRoadCatch10': 'e3221c50ed68ebfc4613cb03d230335ee17ed351e441fbec32b6e416a3abebc3',
- 'Ashcombe/goalRoadCatch11': 'c9cf336292ae11f105f10caa3fb66d0bdc214ed32e7533858ce4c1ff575c5a0f',
- 'Ashcombe/goalRoadCatch12': '5e7ed6191331e8281c575ea436076b4266a38c465e3215f7f10a43236442d896',
- 'Ashcombe/goalRoadCatch13': '27de079fa517720460b0c80551921faf975faa1fedb12b09286f7ea6a4d74354',
- 'Ashcombe/goalRoadCatch14': 'bf8f2e3b930c840a1a23a1ab01280680f752ff3f1287c34e9c454d6d99c70077',
- 'Ashcombe/goalRoadCatch15': '23286f9d3edf25148d4afff68358b9155999c61ad4ea7a5b729d5c46bb9221f4',
- 'Ashcombe/goalRoadCatch16': '7c95cbefba5fa1ece631f1bb8297ff32924b3be5a49f52f90cd974f9d765e1e5',
- 'Ashcombe/goalRoadCatch17': '9017a43f3723644712509a13e92c06918b5caf6ceac3cf6dd43ee6abf0e76b78',
- 'Ashcombe/goalRoadCatch18': 'bc4e96a00d30680d20bc8eb951251f48052579fe1dc1cbffbc36e91772cb28f1',
- 'Ashcombe/goalRoadCatch19': 'e57f462a20087bea563df3ae317eec611a93281dc3dab12e3378ca47121a71c3',
- 'Ashcombe/goalRoadCatch20': '783f13c1a67139406d2776b6a0c8d876f2d107b1aba83d985360f9a2670c4480',
- 'Ashcombe/goalRoadCatch21': '5d831e7e0f7672353e2021990dd889e6f62fda28b0e82c6b04e55c436a2169aa',
- 'Ashcombe/goalRoadCatch22': '2db9466c5d12e823f6ec015ba1e4226dc13ec86b9c821a36c4cabdefcab5fb7d',
- 'Ashcombe/goalRoadCatch23': 'dcdfdb999b249c023a17026306993fe3e5e9a4a6b5d1a3f075468c1909996f33',
  'Ashcombe/holdBreached': 'bae0a393bc01e08ad3ae0b95d56ee971dc346396388423a3d0c019f97ff58aaf',
  'Ashcombe/wardenDown': '9099b47ed59d017b8ca6cede9c74e2bbfe5d91a9ee0d4ee005dbbf423926927f',
  'Ashcombe/wardenEscaped': '56e37df8874d71b952e4aff8e246d5568afc363fa678dde537ce5b53d3bb0604',
@@ -772,6 +719,25 @@ def check_level(level):
     return errors
 
 
+# Prove the four death regions are exactly the map complement of the original Hold.
+def ashcombe_outside_errors(text):
+    expected = ((0, 0, 72, 75), (90, 0, 91, 75), (73, 0, 89, 4), (73, 22, 89, 75))
+    errors = []
+    if "Region\tHold\t73\t5\t89\t21" not in text.splitlines():
+        errors.append("original Hold bounds differ")
+    if not re.search(r"\[Tiles\]\s*# Map Size\s*92 # MapSizeX\s*76 # MapSizeY", text):
+        errors.append("original Ashcombe map bounds differ")
+    for index, rect in enumerate(expected, 1):
+        row = "Region\tGoalOutsideHold%02d\t%s" % (index, "\t".join(map(str, rect)))
+        if row not in text.splitlines():
+            errors.append("outside-Hold death region differs: %d" % index)
+    departure = next((block for block in re.findall(r"\[Trigger\](.*?)\[/Trigger\]", text, re.S)
+                      if "Name\twagonLeaves\n" in block), "")
+    if "Cond\talive\tLieslAshby" not in departure:
+        errors.append("departure must require Ashby alive to exclude earlier death")
+    return errors
+
+
 # Keep the approved finite seams fixed, so moved regions cannot silently weaken completion.
 def cinder_seam_errors(level):
     errors = []
@@ -961,8 +927,10 @@ def inventory(root):
             sentences = re.split(r"(?<=[.!?])\s+", entry.get("Briefing", "").replace("\\n", " "))
             for index, match in BRIEFING_MATCH[path.stem].items():
                 result.append("| Briefing | " + cell(sentences[index - 1].strip()) + " | " + match + " |")
+        if path.stem == "Ashcombe":
+            result.append("Approved ashcombe-o03 alternative: Ashby is killed after wagonLeaves fired, outside original Hold (73..89,5..21). Four disjoint rectangles cover the entire map complement. Original wagonLeaves requires Ashby alive, so an earlier death cannot satisfy departure; walking through the area never satisfies killedin. Hold-before-departure remains unchanged.")
         if path.stem == "Cinderhollow":
-            result.append("Mario's explicit criterion for cinderhollow-o02: fully mine all 16 original finite gold fields x5..6/y55..58 and x30..33/y72..73. No deadline or first-wave failure applies; this approved criterion overrides the unchanged objective prose mentioning the first wave.")
+            result.append("Mario's explicit criterion for cinderhollow-o02: fully mine all 16 original finite gold fields x5..6/y55..58 and x30..33/y72..73. The approved objective text requires complete depletion of both finite veins; no deadline or first-wave failure applies.")
         elif path.stem == "Lanternhill":
             result.append("lanternhill-o02 requires an actual current dry worker path from (13,57) to (40,22), including legal alternative digging routes; no fixed plug subset is required.")
         elif path.stem == "Mirewatch":
@@ -1088,6 +1056,19 @@ def self_test(root):
         original_map = (root / ("levels/campaign/" + filename + ".level")).read_text(encoding="utf-8")
         assert needle in original_map
         assert any("conditions differ" in error for error in objective_errors(original_map.replace(needle, replacement), filename))
+    ash = (root / "levels/campaign/Ashcombe.level").read_text(encoding="utf-8")
+    assert not ashcombe_outside_errors(ash)
+    masks = [tuple(map(int, row.split()[2:])) for row in ash.splitlines() if row.startswith("Region\tGoalOutsideHold")]
+    outside = {(x, y) for x1, y1, x2, y2 in masks for x in range(x1, x2 + 1) for y in range(y1, y2 + 1)}
+    hold = {(x, y) for x in range(73, 90) for y in range(5, 22)}
+    assert outside == {(x, y) for x in range(92) for y in range(76)} - hold
+    assert not outside & hold, "no death inside Hold may satisfy the outside alternative"
+    assert sum((x2-x1+1)*(y2-y1+1) for x1,y1,x2,y2 in masks) == len(outside)
+    for mutation in (ash.replace("Cond\tkilledin\tLieslAshby\tGoalOutsideHold01", "Cond\tregion\t1\tGoalOutsideHold01"),
+                     ash.replace("Cond\ttrigger\twagonLeaves\nCond\tkilledin", "Cond\ttrigger\twagonLeaves\t0\nCond\tkilledin")):
+        assert any("conditions differ" in error for error in objective_errors(mutation, "Ashcombe")), "visits and pre-departure death cannot replace killed-after-departure"
+    assert ashcombe_outside_errors(ash.replace("Cond\talive\tLieslAshby\n", ""))
+    assert ashcombe_outside_errors(ash.replace("GoalOutsideHold01\t0\t0\t72\t75", "GoalOutsideHold01\t0\t0\t73\t75"))
     print("campaign playability self-test passed")
 
 
@@ -1117,6 +1098,8 @@ def main():
                 raise ValueError("missing/invalid campaign level path")
             level = parse_level(path_level.read_text(encoding="utf-8"))
             failures.extend(name + ": " + error for error in check_level(level))
+            if path_level.stem == "Ashcombe":
+                failures.extend(name + ": " + error for error in ashcombe_outside_errors(level["text"]))
             if path_level.stem == "Cinderhollow":
                 failures.extend(name + ": " + error for error in cinder_seam_errors(level))
             if path_level.stem == "Mirewatch":
