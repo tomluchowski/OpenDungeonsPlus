@@ -3625,6 +3625,8 @@ std::vector<RenderManager::CreatureCombatReaction>::iterator RenderManager::endC
     it->mAnimation->setEnabled(false);
     it->mEntity->getSkeleton()->setBlendMode(it->mPreviousBlendMode);
     return mCreatureCombatReactions.erase(it);
+}
+
 void RenderManager::startCreatureFeedingAnimation(Creature* creature, Ogre::Entity* entity)
 {
     cancelCreatureDropAnimation(creature);
