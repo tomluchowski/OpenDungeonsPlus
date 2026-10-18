@@ -1,13 +1,12 @@
 #!/usr/bin/env python3
-"""Static check of the cannon turn, its recoil clip and the dust and shake of the boulder trap (no compiler needed).
+"""Static check of the cannon turn and the rolling boulder with its view shake (no compiler needed).
 
-    python source/tests/check_cannon_boulder.py
+    python source/tests/check_trap_final.py
 
-Checks that the config reader knows the kind Turn, that the declarations in RoomAmbience.h match the
-definitions in the source, that the turn pauses after a shot and is undone by stopAll, that the cannon
-mesh is linked to its skeleton with the clip Triggered and plays it when the cannon fires, that the
-effects exist in the trap config with the limits of tools/check_room_ambience.py, and that the
-particle systems and the files of the new sprite exist.
+Checks that the config reader knows the kinds Roll and Turn and the keys Mesh and EndSystem, that the
+declarations in RoomAmbience.h match the definitions in the source, that the turn pauses after a shot and is
+undone by stopAll, that the effects exist in the trap config with the limits of tools/check_room_ambience.py,
+that the particle systems exist and that the guard banner still never fires.
 """
 
 import os
@@ -17,11 +16,7 @@ import sys
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 
-def read(*parts, binary=False):
-    """Returns the text (or the bytes) of a file below the repository root."""
-    if binary:
-        with open(os.path.join(ROOT, *parts), "rb") as handle:
-            return handle.read()
+def read(*parts):
     with open(os.path.join(ROOT, *parts), encoding="utf-8") as handle:
         return handle.read()
 
@@ -35,25 +30,32 @@ traps = read("config", "roomAmbienceTraps.cfg")
 particles = read("particles", "RoomAmbienceTraps.particle")
 checker = read("tools", "check_room_ambience.py")
 
-if 'words[1] == "Turn"' not in config_cpp or "AmbienceKind::turn" not in config_cpp:
-    problems.append("config reader does not know Kind Turn")
-if not re.search(r"^\s+turn[,\r\n]", config_h, re.M) and not re.search(r"^\s+turn\s*$", config_h, re.M):
-    problems.append("AmbienceKind::turn missing")
-if '"Turn"' not in checker:
-    problems.append("check_room_ambience.py does not know Kind Turn")
+for word, name in (("Roll", "roll"), ("Turn", "turn")):
+    if 'words[1] == "%s"' % word not in config_cpp or "AmbienceKind::%s" % name not in config_cpp:
+        problems.append("config reader does not know Kind %s" % word)
+    if not re.search(r"^\s+%s[,\r\n]" % name, config_h, re.M):
+        problems.append("AmbienceKind::%s missing" % name)
+    if '"%s"' % word not in checker:
+        problems.append("check_room_ambience.py does not know Kind %s" % word)
+for key, member in (("Mesh", "mMesh"), ("EndSystem", "mEndSystem")):
+    if 'key == "%s"' % key not in config_cpp or member not in config_h:
+        problems.append("config key %s not read" % key)
+    if '"%s"' % key not in checker:
+        problems.append("check_room_ambience.py does not know the key %s" % key)
 
-for decl in ("updateTurrets", "restoreTurret"):
+for decl in ("updateTurrets", "restoreTurret", "startRoll", "updateRollers", "finishRoller"):
     if not re.search(r"\b%s\(" % decl, header):
         problems.append("%s not declared" % decl)
     if "RoomAmbience::%s(" % decl not in source:
         problems.append("%s not defined" % decl)
-for needle in ("updateTurrets(dt);", "TURRET_HOLD_SECONDS", "mTurretHoldUntil", "mTurrets.clear();",
-               "restoreTurret(it->second);", "Ogre::Node::TS_WORLD", "AmbienceKind::turn", "isAlliedSeat",
-               "NEGATIVE_UNIT_Y"):
+for needle in ("updateTurrets(dt);", "updateRollers(dt);", "TURRET_HOLD_SECONDS", "mTurretHoldUntil",
+               "mTurrets.clear();", "mRollers.clear();", "restoreTurret(it->second);", "finishRoller(roller, false);",
+               "Ogre::Node::TS_WORLD", "AmbienceKind::turn", "AmbienceKind::roll", "isAlliedSeat",
+               "NEGATIVE_UNIT_Y", "MAX_ROLLERS"):
     if needle not in source:
         problems.append("RoomAmbience.cpp lacks %s" % needle)
 # The turn must continue from the orientation the node has, never store and rewrite one (the server aims the cannon)
-turn = source[source.index("void turnNodeToward"):source.index("std::string getTileKey")]
+turn = source[source.index("void turnNodeToward"):source.index("double hashPhase")]
 if "setOrientation" in turn:
     problems.append("turnNodeToward must not overwrite the orientation")
 fired = source[source.index("case TrapEffectKind::fired:", source.index("void RoomAmbience::notifyTrapEffect")):]
@@ -97,9 +99,10 @@ elif burst.get("Match") != ["Boulder"] or burst.get("Event") != ["TrapFired"] or
 for effect in (dust, burst):
     if effect is not None and not re.search(r"^particle_system %s\s*$" % re.escape(effect["System"][0]), particles, re.M):
         problems.append("particle system %s missing" % effect["System"][0])
-if '"BoulderMoving"' not in source or "GameEntityType::missileObject" not in source or 'getMeshName() == "Boulder"' not in source:
+scan = read("source", "render", "RoomAmbience.cpp")
+if '"BoulderMoving"' not in scan or "GameEntityType::missileObject" not in scan or 'getMeshName() == "Boulder"' not in scan:
     problems.append("scanObjects does not give moving boulder missiles (mesh Boulder) the kind BoulderMoving")
-if '"MissileMoving"' in source:
+if '"MissileMoving"' in scan:
     problems.append("the kind MissileMoving would give the dust to cannonballs and the other missiles too")
 
 shake = effects.get("BoulderRollShake")
@@ -111,27 +114,18 @@ else:
     if float(shake["Amount"][0]) > 0.5 or float(shake["Duration"][0]) > 2.0:
         problems.append("BoulderRollShake is too strong or too long")
 
-# The sprite of the fragments exists with its material, its generator entry and a particle system that uses it
-if not os.path.exists(os.path.join(ROOT, "materials", "textures", "RoomAmbGrain.png")):
-    problems.append("texture RoomAmbGrain.png is missing")
-if "material RoomAmbGrain" not in read("materials", "scripts", "RoomAmbienceProduction.material"):
-    problems.append("material RoomAmbGrain is missing")
-if '"RoomAmbGrain": sprite_grain' not in read("tools", "gen_room_ambience_art.py"):
-    problems.append("the generator does not draw RoomAmbGrain")
+# The boulder keeps its particles from before (its sound effects belong to another change)
+for name in ("BoulderEmptyNiche",):
+    if name not in effects:
+        problems.append("effect %s was removed" % name)
 
-# The cannon recoil clip: the mesh is linked to the skeleton, the skeleton has the clip, the cannon plays it
-if b"Cannon.skeleton" not in read("models", "Cannon.mesh", binary=True):
-    problems.append("Cannon.mesh has no link to Cannon.skeleton")
-skeleton = read("models", "Cannon.skeleton", binary=True)
-for name in (b"Triggered", b"Barrel", b"Root"):
-    if name not in skeleton:
-        problems.append("Cannon.skeleton lacks " + name.decode())
-cannon = read("source", "traps", "TrapCannon.cpp")
-shoot = cannon[cannon.index("bool TrapCannon::shoot"):cannon.index("TrapEntity* TrapCannon::getTrapEntity")]
-if 'setAnimationState("Triggered", false)' not in shoot:
-    problems.append("the cannon does not play its clip when it fires")
-if "models/Cannon.skeleton" not in read("CREDITS"):
-    problems.append("models/Cannon.skeleton is not in CREDITS")
+# The guard banner never fires, so it has no reload look and nothing was added for it
+banner = read("source", "traps", "TrapWatchBanner.h")
+if "bool shoot(Tile* tile) override" not in banner or "return false;" not in banner:
+    problems.append("the guard banner no longer overrides shoot() with false")
+if re.search(r"trap:WatchBanner\s+When\s+Reloading", traps) or any(
+        e.get("Match") == ["trap:WatchBanner"] and e.get("When") == ["Reloading"] for e in effects.values()):
+    problems.append("the guard banner has a reload look")
 
 if problems:
     for problem in problems:

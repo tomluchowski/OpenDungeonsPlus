@@ -68,8 +68,32 @@
                     <Property name="VerticalAlignment" value="Top" />
                 </Window>
             </Window>
-
-
+            <Window type="OD/StaticText" name="WaveCountdownDisplay" >
+                <Property name="Visible" value="False" />
+                <Property name="Area" value="{{0.5,-320},{0,6},{0.5,-110},{0,42}}" />
+                <Property name="Text" value="" />
+                <Property name="Font" value="MedievalSharp-13" />
+                <Property name="TextColours" value="FFF6CB62" />
+                <Property name="TooltipText" value="Time left until the next hero wave" />
+                <Property name="HorzFormatting" value="CentreAligned" />
+                <Property name="VertFormatting" value="CentreAligned" />
+                <Property name="FrameEnabled" value="False" />
+                <Property name="BackgroundEnabled" value="False" />
+                <Property name="MaxSize" value="{{1,0},{1,0}}" />
+            </Window>
+            <Window type="OD/StaticText" name="TimeLimitDisplay" >
+                <Property name="Visible" value="False" />
+                <Property name="Area" value="{{0.5,-100},{0,6},{0.5,100},{0,42}}" />
+                <Property name="Text" value="" />
+                <Property name="Font" value="MedievalSharp-20" />
+                <Property name="TextColours" value="FFF6CB62" />
+                <Property name="TooltipText" value="Time left until the level is lost" />
+                <Property name="HorzFormatting" value="CentreAligned" />
+                <Property name="VertFormatting" value="CentreAligned" />
+                <Property name="FrameEnabled" value="False" />
+                <Property name="BackgroundEnabled" value="False" />
+                <Property name="MaxSize" value="{{1,0},{1,0}}" />
+            </Window>
         </Window>
 
 
@@ -141,6 +165,15 @@
             <Property name="AlwaysOnTop" value="True" />
             <Property name="TooltipText" value="Sell" />
             <UserString name="ContextHelp" value="Sell: select, then click a room tile, trap or door" />
+        </Window>
+        <Window type="OD/GameTabButton" name="GoalsButton">
+            <Property name="Area" value="{{0,4},{1,-224},{0,44},{1,-184}}" />
+            <Property name="NormalImage" value="OpenDungeonsIcons/ObjectivesIcon" />
+            <Property name="NavigationFrame" value="True" />
+            <Property name="AlwaysOnTop" value="True" />
+            <Property name="TooltipText" value="Goals" />
+            <UserString name="AllowEdgeScrolling" value="true" />
+            <UserString name="ContextHelp" value="Goals: show or hide the level objectives" />
         </Window>
         <Window type="OD/GameTabButton" name="ProductionButton">
             <Property name="Area" value="{{0,100},{1,-224},{0,140},{1,-184}}" />

@@ -1547,7 +1547,7 @@ particle_system RoomAmbTriggerDim
     }
 }
 
-// Dust kicked up behind a boulder that rolls through the dungeon (follows the boulder)
+// Dust kicked up behind a boulder that rolls through the dungeon (kind roll, follows the boulder)
 particle_system RoomAmbBoulderTrail
 {
     material        RoomAmbSmoke
@@ -1584,7 +1584,7 @@ particle_system RoomAmbBoulderTrail
     }
 }
 
-// Chunks and dust in the niche when the boulder trap launches its boulder
+// Chunks and dust where a rolling boulder breaks up
 particle_system RoomAmbBoulderBreak
 {
     material        RoomAmbGrain

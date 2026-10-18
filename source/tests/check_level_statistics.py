@@ -300,6 +300,8 @@ kills_probe = (kills_probe.replace('KILL_METHOD', kill_method)
 # Probe 2: the real Player::notifyNoMoreDungeonTemple packet content and order.
 # ---------------------------------------------------------------------------
 notify_method = function(player_source, 'void Player::notifyNoMoreDungeonTemple(')
+notify_method += function(player_source, 'void Player::notifyDefeat(')
+notify_method += function(player_source, 'void Player::sendLevelStatistics(')
 
 notify_probe = r'''
 #include <cstdint>
@@ -361,6 +363,8 @@ struct Player
     Seat* getSeat() { return mSeat; }
     bool getIsHuman() const { return mIsHuman; }
     void notifyNoMoreDungeonTemple();
+    void notifyDefeat(bool hasTeamLost);
+    void sendLevelStatistics(bool levelWon);
     Seat* mSeat;
     bool mIsHuman;
     bool mHasLost;
@@ -528,7 +532,7 @@ wiring_checks = 0
 
 enum_body = notification_header[notification_header.index('enum class ServerNotificationType'):]
 enum_body = enum_body[:enum_body.index('};')]
-assert 'levelStatistics,' in enum_body and enum_body.rstrip().endswith('trapEffect')
+assert 'levelStatistics,' in enum_body and enum_body.rstrip().endswith('campaignVictory')
 assert enum_body.index('levelStatistics') < enum_body.index('heartHealth') < enum_body.index('trapEffect')
 assert enum_body.index('playerDefeated') < enum_body.index('levelStatistics')
 assert 'return "levelStatistics";' in notification_source

@@ -176,6 +176,14 @@ public:
     //! \brief Clears all creatures that a player might have in his hand
     void notifyNoMoreDungeonTemple();
 
+    //! \brief Called on the server when a time limit has run out: this player loses without a destroyed heart
+    //! and the whole team loses with the player.
+    void notifyTimeUp();
+
+    //! \brief Sends the debriefing counters of every seat with a player to this (human) player.
+    //! Server side only. levelWon tells how the level ended for this player.
+    void sendLevelStatistics(bool levelWon);
+
     inline bool getIsHuman() const
     { return mIsHuman; }
 
@@ -282,6 +290,10 @@ public:
     bool isWorkerReloadShareOpen() const;
 
 private:
+    //! \brief Shared part of the defeat: the chat messages and sounds for the player and the allies.
+    //! \param hasTeamLost true when no dungeon temple of the team is left, so the whole team has lost
+    void notifyDefeat(bool hasTeamLost);
+
     //! \brief Player ID is only used during seat configuration phase
     //! During the game, one should use the seat ID to identify a player because
     //! every AI player has an id = 0.

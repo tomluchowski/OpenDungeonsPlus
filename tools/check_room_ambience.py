@@ -19,11 +19,11 @@ SETTINGS = ("ScanInterval", "MaxParticles", "MaxParticlesReduced", "MaxMotions",
             "OccupiedRadius", "ReducedDistanceFactor")
 EFFECT_KEYS = ("Name", "Target", "Match", "When", "Event", "Kind", "System", "Motion", "After", "Offset", "Axis",
                "Amount", "Speed", "Flicker", "Duration", "Chance", "Spacing", "MaxDistance", "Priority", "Reduced",
-               "NeedWall", "Clips", "Every", "Family", "Delay", "Mesh", "Land", "From",
+               "NeedWall", "Clips", "Every", "Family", "Delay", "Mesh", "EndSystem", "Land", "From",
                "OwnerOnly")
 TARGETS = ("Object", "Tile", "Event")
 WHENS = ("Always", "Occupied", "Empty", "Hit", "Locked", "Reloading", "Ready")
-KINDS = ("Particle", "Motion", "Clip", "Shake", "Turn", "Sound", "Beam", "Projectile", "Mark")
+KINDS = ("Particle", "Motion", "Clip", "Shake", "Roll", "Turn", "Sound", "Beam", "Projectile", "Mark")
 MOTIONS = ("Sway", "Wobble", "Spin", "Bob", "Pulse", "Flicker")
 # Room tile visuals that only some builds have
 OPTIONAL_VISUALS = ("guardRoom", "templeRoom")
@@ -180,8 +180,8 @@ def check_effect(effect, where, problems, visuals, systems, mats, counts):
             problems.append("%s: event effect without Event" % where)
         else:
             counts["names"].add(effect["Event"][0])
-        if kind not in ("Particle", "Shake", "Mark", "Sound", "Beam", "Projectile"):
-            problems.append("%s: event effects must be particles, shakes, marks, sounds, beams or projectiles" % where)
+        if kind not in ("Particle", "Shake", "Mark", "Sound", "Roll", "Beam", "Projectile"):
+            problems.append("%s: event effects must be particles, shakes, marks, sounds, rolls, beams or projectiles" % where)
     else:
         if "Match" not in effect:
             problems.append("%s: no Match" % where)
@@ -230,14 +230,8 @@ def check_effect(effect, where, problems, visuals, systems, mats, counts):
             counts["lands"].append((where, effect["Land"][0]))
         if kind == "Beam" and "Land" in effect:
             problems.append("%s: only projectiles have Land" % where)
-    elif "Land" in effect or "From" in effect or "Mesh" in effect:
-        problems.append("%s: Mesh, Land and From only belong to beams and projectiles" % where)
-    if kind == "Turn":
-        if target != "Object":
-            problems.append("%s: turns only work on objects" % where)
-        for key in ("Amount", "Speed"):
-            if key not in effect:
-                problems.append("%s: turn without %s" % (where, key))
+    elif "Land" in effect or "From" in effect or ("Mesh" in effect and kind != "Roll"):
+        problems.append("%s: Mesh, Land and From only belong to beams and projectiles (Mesh also to rolls)" % where)
     if kind == "Shake":
         for key in ("Amount", "Duration", "Speed", "MaxDistance"):
             if key not in effect:
@@ -246,6 +240,36 @@ def check_effect(effect, where, problems, visuals, systems, mats, counts):
             problems.append("%s: shake Amount above 0.5 is too strong" % where)
         if "Duration" in effect and is_number(effect["Duration"][0]) and float(effect["Duration"][0]) > 2.0:
             problems.append("%s: shake Duration above 2 seconds" % where)
+    if kind == "Roll":
+        if target != "Event":
+            problems.append("%s: rolls only work as events" % where)
+        mesh = effect.get("Mesh", [None])[0]
+        if mesh is None or not mesh_exists(mesh):
+            problems.append("%s: roll without an existing Mesh (%s)" % (where, mesh))
+        for key in ("Amount", "Speed", "Duration", "System", "EndSystem"):
+            if key not in effect:
+                problems.append("%s: roll without %s" % (where, key))
+        if "Amount" in effect and is_number(effect["Amount"][0]) and float(effect["Amount"][0]) > 6.0:
+            problems.append("%s: roll Amount above 6 tiles" % where)
+        if "Duration" in effect and is_number(effect["Duration"][0]) and float(effect["Duration"][0]) > 3.0:
+            problems.append("%s: roll Duration above 3 seconds" % where)
+        for key in ("System", "EndSystem"):
+            name_ = effect.get(key, [None])[0]
+            if name_ is not None:
+                if name_ not in systems:
+                    problems.append("%s: unknown particle system %s" % (where, name_))
+                elif systems[name_] not in mats:
+                    problems.append("%s: particle system %s uses unknown material %s" % (where, name_, systems[name_]))
+    elif kind == "Turn":
+        if target != "Object":
+            problems.append("%s: turns only work on objects" % where)
+        for key in ("Amount", "Speed"):
+            if key not in effect:
+                problems.append("%s: turn without %s" % (where, key))
+        if "Speed" in effect and is_number(effect["Speed"][0]) and not 0.0 < float(effect["Speed"][0]) <= 90.0:
+            problems.append("%s: turn Speed must be above 0 and at most 90 degrees per second" % where)
+        if "Amount" in effect and is_number(effect["Amount"][0]) and not 0.0 < float(effect["Amount"][0]) <= 14.0:
+            problems.append("%s: turn range (Amount) must be above 0 and at most 14 tiles" % where)
     if kind in ("Particle", "Mark"):
         system = effect.get("System", [None])[0]
         if system is None:

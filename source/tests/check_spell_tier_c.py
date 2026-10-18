@@ -23,20 +23,20 @@ def read(*parts):
 
 problems = []
 
-# 1. Existing network values keep their order: trapEffect is the last value.
+# 1. Existing network values keep their order: only timeLimit and campaignVictory follow trapEffect.
 header = read("source", "network", "ServerNotification.h")
 body = header[header.index("enum class ServerNotificationType"):]
 body = body[:body.index("};")]
 names = re.findall(r"^\s*([A-Za-z_]\w*)\s*,?\s*(?://.*)?$", body, re.M)
-if names[-1] != "trapEffect":
-    problems.append("trapEffect is not the last server notification")
+if names[-3:] != ["trapEffect", "timeLimit", "campaignVictory"]:
+    problems.append("trapEffect is not followed by exactly timeLimit and campaignVictory")
 
 # 2. Config kinds
 config_h = read("source", "render", "RoomAmbienceConfig.h")
 config_cpp = read("source", "render", "RoomAmbienceConfig.cpp")
 kinds = re.search(r"enum class AmbienceKind\s*\{(.*?)\};", config_h, re.S).group(1)
 order = re.findall(r"^\s*(\w+),?\s*$", re.sub(r"//.*", "", kinds), re.M)
-if order != ["particle", "motion", "clip", "shake", "mark", "sound", "turn", "beam", "projectile"]:
+if order != ["particle", "motion", "clip", "shake", "mark", "sound", "roll", "turn", "beam", "projectile"]:
     problems.append("AmbienceKind values changed: %s" % order)
 for word, name in (("Shake", "shake"), ("Mark", "mark")):
     if 'words[1] == "%s"' % word not in config_cpp or "AmbienceKind::%s" % name not in config_cpp:

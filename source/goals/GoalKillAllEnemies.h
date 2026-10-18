@@ -29,6 +29,7 @@ public:
 
     // Inherited functions
     bool isMet(const Seat& s, const GameMap& gameMap);
+    //! \brief Describes the objective as a short player-facing instruction.
     std::string getDescription(const Seat&);
     std::string getSuccessMessage(const Seat&);
     std::string getFailedMessage(const Seat&);

@@ -35,6 +35,19 @@ add_boost_test(00-Goal
         ${Boost_FILESYSTEM_LIBRARY_RELEASE}
         ${Boost_SYSTEM_LIBRARY_RELEASE})
 
+add_boost_test(00-LevelScript
+        SOURCES
+        test_LevelScript.cpp
+        ${SRC}/gamemap/LevelScript.h
+        ${SRC}/gamemap/LevelScript.cpp)
+
+add_boost_test(00-Campaign
+        SOURCES
+        test_Campaign.cpp
+        ${SRC}/game/Campaign.h
+        ${SRC}/game/Campaign.cpp
+        ${SRC}/game/CampaignWorld.cpp)
+
 add_boost_test(00-Pathfinding
         SOURCES
         test_Pathfinding.cpp)

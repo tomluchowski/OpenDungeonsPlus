@@ -352,6 +352,7 @@ set(OD_SOURCEFILES
     ${SRC}/entities/MapLight.cpp
     ${SRC}/entities/MissileBoulder.cpp
     ${SRC}/entities/MissileBlast.cpp
+    ${SRC}/entities/MissileStone.cpp
     ${SRC}/entities/MissileObject.cpp
     ${SRC}/entities/MissileOneHit.cpp
     ${SRC}/entities/MovableGameEntity.cpp
@@ -373,6 +374,8 @@ set(OD_SOURCEFILES
 	${SRC}/eventsystem/Subject.cpp		
 	
     ${SRC}/game/Player.cpp
+    ${SRC}/game/Campaign.cpp
+    ${SRC}/game/CampaignWorld.cpp
     ${SRC}/game/CreaturePanelData.cpp
     ${SRC}/game/TrapProductionData.cpp
     ${SRC}/game/PlayerSelection.cpp
@@ -384,6 +387,8 @@ set(OD_SOURCEFILES
 
     ${SRC}/gamemap/DraggableTileContainer.cpp
     ${SRC}/gamemap/GameMap.cpp
+    ${SRC}/gamemap/LevelScript.cpp
+    ${SRC}/gamemap/LevelScriptRunner.cpp
     ${SRC}/gamemap/RoomObjectNavigation.cpp
     ${SRC}/gamemap/MapHandler.cpp
     ${SRC}/gamemap/MiniMap.cpp
@@ -417,6 +422,7 @@ set(OD_SOURCEFILES
     ${SRC}/modes/InputBridge.cpp
     ${SRC}/modes/InputManager.cpp
     ${SRC}/modes/Keyboard.cpp
+    ${SRC}/modes/MenuModeCampaign.cpp
     ${SRC}/modes/MenuModeMain.cpp
     ${SRC}/modes/MenuModeConfigureSeats.cpp
     ${SRC}/modes/MenuModeEditorLoad.cpp

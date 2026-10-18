@@ -28,6 +28,7 @@ ServerNotification::ServerNotification(ServerNotificationType type,
     mPacket << type;
 }
 
+//! \brief Returns the diagnostic name of a server notification, including campaign victory.
 std::string ServerNotification::typeString(ServerNotificationType type)
 {
     switch(type)
@@ -140,6 +141,14 @@ std::string ServerNotification::typeString(ServerNotificationType type)
             return "displayText";
         case ServerNotificationType::editorPortalWaveData:
             return "editorPortalWaveData";
+        case ServerNotificationType::seatTeam:
+            return "seatTeam";
+        case ServerNotificationType::editorRegionData:
+            return "editorRegionData";
+        case ServerNotificationType::timeLimit:
+            return "timeLimit";
+        case ServerNotificationType::campaignVictory:
+            return "campaignVictory";
         case ServerNotificationType::playerNickChanged:
             return "playerNickChanged";
         case ServerNotificationType::creaturePanel:

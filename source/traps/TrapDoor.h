@@ -72,6 +72,10 @@ public:
 
     double getCreatureSpeed(const Creature* creature, Tile* tile) const override;
 
+    //! \brief True only when ordinary ground passage needs no door destruction; attack-path exceptions are excluded.
+    bool isGroundPassageOpen(Tile* tile) const
+    { return !isActivated(tile) || (!mIsLocked && !mIsLockedState); }
+
     bool permitsVision(Tile* tile) override;
 
     //! \brief A secret door looks like a wall to every seat that has not seen a creature of the owner

@@ -844,11 +844,13 @@ CEGUI::USize scaleSize(const CEGUI::USize& size, float scale)
     return scaled;
 }
 
+//! \brief Applies display and user scaling to the registered GUI image families.
 bool shouldScaleImage(const CEGUI::String& ceguiName)
 {
     const std::string name(ceguiName.c_str());
     return name.compare(0, 17, "OpenDungeonsSkin/") == 0
         || name.compare(0, 18, "OpenDungeonsIcons/") == 0
+        || name.compare(0, 11, "GoalStatus/") == 0
         || name.compare(0, 17, "ODMainMenuButton/") == 0
         || name.compare(0, 13, "ODHudSurface/") == 0
         || name.compare(0, 7, "ODLogo/") == 0;
@@ -987,6 +989,7 @@ Gui::Gui(SoundEffectsManager* soundEffectsManager, const std::string& ceguiLogFi
     mSheets[advertisment] = wmgr->loadLayoutFromFile("Advertisment.layout");
     mSheets[mainMenu] = wmgr->loadLayoutFromFile("MenuMain.layout");
     mSheets[skirmishMenu] = wmgr->loadLayoutFromFile("MenuSkirmish.layout");
+    mSheets[campaignMenu] = wmgr->loadLayoutFromFile("MenuCampaign.layout");
     mSheets[multiplayerClientMenu] = wmgr->loadLayoutFromFile("MenuMultiplayerClient.layout");
     mSheets[multiplayerServerMenu] = wmgr->loadLayoutFromFile("MenuMultiplayerServer.layout");
     mSheets[multiMasterServerJoinMenu] = wmgr->loadLayoutFromFile("MenuMasterServerJoin.layout");
@@ -1012,6 +1015,7 @@ Gui::Gui(SoundEffectsManager* soundEffectsManager, const std::string& ceguiLogFi
     // Set the game version
     mSheets[mainMenu]->getChild("VersionText")->setText(ODApplication::VERSION);
     mSheets[skirmishMenu]->getChild("VersionText")->setText(ODApplication::VERSION);
+    mSheets[campaignMenu]->getChild("VersionText")->setText(ODApplication::VERSION);
     mSheets[multiplayerServerMenu]->getChild("VersionText")->setText(ODApplication::VERSION);
     mSheets[multiplayerClientMenu]->getChild("VersionText")->setText(ODApplication::VERSION);
     mSheets[editorNewMenu]->getChild("VersionText")->setText(ODApplication::VERSION);

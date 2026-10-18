@@ -19,6 +19,7 @@
 #define DEBRIEFINGTABLE_H
 
 #include "game/LevelStatistics.h"
+#include "modes/DefeatSequence.h"
 
 #include <cstdint>
 #include <string>
@@ -150,6 +151,27 @@ inline int64_t debriefingSeconds(bool hasStatistics, const LevelStatistics& stat
 inline std::string debriefingOutcomeText(bool levelWon)
 {
     return levelWon ? "Level won: Yes" : "Level won: No";
+}
+
+//! \brief The numbers of one seat as lines of text, for a debriefing without the table
+//! (the campaign menu): the outcome, the time and one line per row of the table.
+inline std::string debriefingSeatSummary(const LevelStatistics& statistics, int32_t seatId)
+{
+    std::string text = debriefingOutcomeText(statistics.mLevelWon) + "\nTime: "
+        + formatDebriefingTime(statistics.mElapsedSeconds);
+    for(size_t seat = 0; seat < statistics.mSeats.size(); ++seat)
+    {
+        if(statistics.mSeats[seat].mSeatId != seatId)
+            continue;
+
+        for(size_t row = 0; row < DebriefingTableSettings::ROW_COUNT; ++row)
+        {
+            text += "\n" + std::string(debriefingTableLabel(row)) + ": "
+                + std::to_string(debriefingTableValue(statistics.mSeats[seat], row));
+        }
+        break;
+    }
+    return text;
 }
 
 #endif // DEBRIEFINGTABLE_H

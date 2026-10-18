@@ -47,7 +47,6 @@
 #include <cmath>
 #include <functional>
 #include <random>
-#include <utility>
 
 template<> RoomAmbience* Ogre::Singleton<RoomAmbience>::msSingleton = nullptr;
 
@@ -117,6 +116,12 @@ static const std::string BRIDGE_PREFIX = "bridge:";
 static const std::string TRAP_PREFIX = "trap:";
 //! The end of a mesh file name
 static const std::string MESH_SUFFIX = ".mesh";
+//! Rolling objects (kind roll) alive at the same time
+const size_t MAX_ROLLERS = 3;
+//! How long the barrel of a cannon keeps the aim of the server after a shot
+const double TURRET_HOLD_SECONDS = 1.5;
+//! Creatures farther away than this (tiles) from a trap are not looked for when a rolling object picks its way
+const double ROLL_AIM_RADIUS = 8.0;
 //! A full turn in radians
 const double TWO_PI = 6.283185307179586;
 //! Seconds that a trap counts as reloading after the server sent the start of the reload; the long time only
@@ -161,17 +166,6 @@ static const std::string COLLAPSE_CLIP = "Collapse";
 static const std::string DESTROYED_CLIP = "Destroyed";
 //! The state of the animation of a door that is closed
 static const std::string DOOR_CLOSED_STATE = "Close";
-//! How long the barrel of a cannon keeps the aim of the server after a shot, in seconds
-const double TURRET_HOLD_SECONDS = 1.5;
-//! A direction whose flat parts add up to less than this is no direction to turn toward
-const float MIN_TURN_DIRECTION = 0.001f;
-//! A turn that is less than this many radians off the wanted direction is finished
-const double TURN_DONE_RADIANS = 0.005;
-//! Half a turn in radians
-const double HALF_TURN = 3.141592653589793;
-//! A rest direction or a way to a creature with a smaller squared length than this is not used
-const float MIN_AIM_LENGTH_SQUARED = 0.01f;
-const float MIN_REST_LENGTH_SQUARED = 0.0001f;
 //! Shakes per second of a view shake before the first one has started
 const double DEFAULT_SHAKE_SPEED = 12.0;
 //! The shortest time a view shake runs, in seconds
@@ -195,32 +189,6 @@ Ogre::Vector3 getLookPoint(const Ogre::Vector3& cameraPosition, const Ogre::Vect
         lookPoint = cameraPosition + direction * (cameraPosition.z / -direction.z);
 
     return lookPoint;
-}
-
-//! \brief Turns the node about the vertical axis toward the flat direction wanted, by at most maxRadians.
-//! The front of a node is its -Y direction (as in RenderManager::rrOrientEntityToward). It always turns from
-//! the orientation the node has now, so an orientation the server gave it in the meantime is simply continued from.
-void turnNodeToward(Ogre::SceneNode* node, const Ogre::Vector3& wanted, double maxRadians)
-{
-    Ogre::Vector3 front = node->getOrientation() * Ogre::Vector3::NEGATIVE_UNIT_Y;
-    if((std::fabs(front.x) + std::fabs(front.y) < MIN_TURN_DIRECTION) ||
-       (std::fabs(wanted.x) + std::fabs(wanted.y) < MIN_TURN_DIRECTION))
-    {
-        return;
-    }
-
-    double delta = std::atan2(static_cast<double>(wanted.y), static_cast<double>(wanted.x)) -
-        std::atan2(static_cast<double>(front.y), static_cast<double>(front.x));
-    while(delta > HALF_TURN)
-        delta -= TWO_PI;
-    while(delta < -HALF_TURN)
-        delta += TWO_PI;
-
-    if(std::fabs(delta) < TURN_DONE_RADIANS)
-        return;
-
-    double step = std::max(-maxRadians, std::min(maxRadians, delta));
-    node->rotate(Ogre::Quaternion(Ogre::Radian(static_cast<Ogre::Real>(step)), Ogre::Vector3::UNIT_Z), Ogre::Node::TS_WORLD);
 }
 
 //! \brief The key "x,y" under which the state of a trap on a tile is kept
@@ -254,6 +222,29 @@ bool matchesPattern(const std::string& pattern, const std::string& name)
     }
 
     return pattern == name;
+}
+
+//! Turns the node about the vertical axis toward the flat direction wanted, by at most maxRadians. The front of a
+//! node is its -Y direction (as in RenderManager::rrOrientEntityToward). It always turns from the orientation the
+//! node has now, so an orientation the server gave it in the meantime is simply continued from.
+void turnNodeToward(Ogre::SceneNode* node, const Ogre::Vector3& wanted, double maxRadians)
+{
+    Ogre::Vector3 front = node->getOrientation() * Ogre::Vector3::NEGATIVE_UNIT_Y;
+    if((std::fabs(front.x) + std::fabs(front.y) < 0.001f) || (std::fabs(wanted.x) + std::fabs(wanted.y) < 0.001f))
+        return;
+
+    double delta = std::atan2(static_cast<double>(wanted.y), static_cast<double>(wanted.x)) -
+        std::atan2(static_cast<double>(front.y), static_cast<double>(front.x));
+    while(delta > 3.141592653589793)
+        delta -= 6.283185307179586;
+    while(delta < -3.141592653589793)
+        delta += 6.283185307179586;
+
+    if(std::fabs(delta) < 0.005)
+        return;
+
+    double step = std::max(-maxRadians, std::min(maxRadians, delta));
+    node->rotate(Ogre::Quaternion(Ogre::Radian(static_cast<Ogre::Real>(step)), Ogre::Vector3::UNIT_Z), Ogre::Node::TS_WORLD);
 }
 
 //! \brief A stable start phase (0 to 2 pi) derived from a text, so that equal objects do not move together
@@ -592,6 +583,9 @@ void RoomAmbience::stopAll()
         for(std::map<std::string, Turret>::iterator it = mTurrets.begin(); it != mTurrets.end(); ++it)
             restoreTurret(it->second);
 
+        for(Roller& roller : mRollers)
+            finishRoller(roller, false);
+
         for(Collapse& collapse : mCollapses)
             destroyCollapse(collapse);
 
@@ -606,6 +600,7 @@ void RoomAmbience::stopAll()
     mFlights.clear();
     mPendingSounds.clear();
     mTurrets.clear();
+    mRollers.clear();
     mShakeTime = 0.0;
     clearShake();
     mMotionNodes.clear();
@@ -644,6 +639,7 @@ void RoomAmbience::update(Ogre::Real timeSinceLastFrame)
     updateShake(dt);
     updateMotions(dt);
     updateTurrets(dt);
+    updateRollers(dt);
 }
 
 void RoomAmbience::scan()
@@ -776,7 +772,7 @@ void RoomAmbience::scanObjects(Ogre::Camera* camera, const Ogre::Vector3& camera
                     turret.mNodeName = entity->getEntityNode()->getName();
                     Ogre::Vector3 front = entity->getEntityNode()->getOrientation() * Ogre::Vector3::NEGATIVE_UNIT_Y;
                     front.z = 0.0f;
-                    if(front.squaredLength() > MIN_REST_LENGTH_SQUARED)
+                    if(front.squaredLength() > 0.0001f)
                         turret.mRestFront = front;
                     turretIt = mTurrets.insert(std::make_pair(entity->getName(), turret)).first;
                 }
@@ -1647,6 +1643,13 @@ uint32_t RoomAmbience::triggerEvent(const std::string& eventName, const Ogre::Ve
             continue;
         }
 
+        if(effect.mKind == AmbienceKind::roll)
+        {
+            if(startRoll(effect, index, position))
+                ++nbStarted;
+            continue;
+        }
+
         OneShot oneShot;
         if(!createParticleSystem(effect.mSystem, position + effect.mOffset, effect.mName, oneShot.mNode, oneShot.mSystem))
             continue;
@@ -1824,7 +1827,9 @@ void RoomAmbience::updateTurrets(double timeSinceLastFrame)
         }
 
         const AmbienceEffect& effect = effects[turret.mEffect];
-        std::map<std::string, double>::const_iterator holdIt = mTurretHoldUntil.find(getPositionKey(turret.mPosition));
+        std::string key = Helper::toString(static_cast<int32_t>(std::floor(turret.mPosition.x + 0.5f))) + "," +
+            Helper::toString(static_cast<int32_t>(std::floor(turret.mPosition.y + 0.5f)));
+        std::map<std::string, double>::const_iterator holdIt = mTurretHoldUntil.find(key);
         if((holdIt != mTurretHoldUntil.end()) && (holdIt->second > mClock))
         {
             ++it;
@@ -1863,14 +1868,163 @@ void RoomAmbience::updateTurrets(double timeSinceLastFrame)
         if(chosen != nullptr)
         {
             Ogre::Vector3 toCreature(chosen->mPosition.x - turret.mPosition.x, chosen->mPosition.y - turret.mPosition.y, 0.0f);
-            if(toCreature.squaredLength() > MIN_AIM_LENGTH_SQUARED)
+            if(toCreature.squaredLength() > 0.01f)
                 wanted = toCreature;
         }
 
         turnNodeToward(sceneManager->getSceneNode(turret.mNodeName), wanted,
-            effect.mSpeed * timeSinceLastFrame * DEGREES_TO_RADIANS);
+            effect.mSpeed * timeSinceLastFrame * 0.017453292519943295);
         ++it;
     }
+}
+
+bool RoomAmbience::startRoll(const AmbienceEffect& effect, uint32_t effectIndex, const Ogre::Vector3& position)
+{
+    if(effect.mMesh.empty() || (mRollers.size() >= MAX_ROLLERS))
+        return false;
+
+    Ogre::SceneManager* sceneManager = RenderManager::getSingleton().getSceneManager();
+    std::string name = "RoomAmbience_Roll_" + Helper::toString(++mUniqueNumber);
+    Ogre::Entity* entity = nullptr;
+    try
+    {
+        entity = sceneManager->createEntity(name, effect.mMesh + ".mesh");
+    }
+    catch(const Ogre::Exception&)
+    {
+        if(mMissingSystems.insert(effect.mMesh).second)
+            OD_LOG_WRN("Room ambience: unknown mesh " + effect.mMesh);
+        return false;
+    }
+
+    // It rolls toward the nearest creature close to its place, otherwise in a random one of the four directions
+    Ogre::Vector3 direction = Ogre::Vector3::ZERO;
+    double best = ROLL_AIM_RADIUS * ROLL_AIM_RADIUS;
+    for(const CreatureSpot& spot : mCreatureSpots)
+    {
+        double dx = static_cast<double>(spot.mPosition.x - position.x);
+        double dy = static_cast<double>(spot.mPosition.y - position.y);
+        double distanceSquared = dx * dx + dy * dy;
+        if((distanceSquared > 0.01) && (distanceSquared < best))
+        {
+            best = distanceSquared;
+            direction = Ogre::Vector3(static_cast<Ogre::Real>(dx), static_cast<Ogre::Real>(dy), 0.0f);
+        }
+    }
+
+    if(direction.squaredLength() < 0.01f)
+    {
+        std::uniform_int_distribution<int> quarter(0, 3);
+        double angle = quarter(mRandom) * 1.5707963267948966;
+        direction = Ogre::Vector3(static_cast<Ogre::Real>(std::cos(angle)), static_cast<Ogre::Real>(std::sin(angle)), 0.0f);
+    }
+    direction.normalise();
+
+    Roller roller;
+    roller.mEffect = effectIndex;
+    roller.mStart = position + effect.mOffset;
+    roller.mDirection = direction;
+    roller.mEntity = entity;
+    roller.mNode = sceneManager->getRootSceneNode()->createChildSceneNode(name + "_node", roller.mStart);
+    roller.mNode->attachObject(entity);
+    if(!effect.mSystem.empty())
+    {
+        Ogre::Vector3 floorPosition(roller.mStart.x, roller.mStart.y, position.z + 0.05f);
+        if(!createParticleSystem(effect.mSystem, floorPosition, effect.mName, roller.mTrailNode, roller.mTrail))
+        {
+            roller.mTrailNode = nullptr;
+            roller.mTrail = nullptr;
+        }
+    }
+
+    mRollers.push_back(roller);
+    return true;
+}
+
+void RoomAmbience::updateRollers(double timeSinceLastFrame)
+{
+    const std::vector<AmbienceEffect>& effects = mConfig.getEffects();
+    for(std::vector<Roller>::iterator it = mRollers.begin(); it != mRollers.end();)
+    {
+        Roller& roller = *it;
+        if(roller.mEffect >= effects.size())
+        {
+            finishRoller(roller, false);
+            it = mRollers.erase(it);
+            continue;
+        }
+
+        const AmbienceEffect& effect = effects[roller.mEffect];
+        roller.mAge += timeSinceLastFrame;
+        double total = std::max(0.1, effect.mDuration);
+        double progress = std::min(1.0, roller.mAge / total);
+        Ogre::Vector3 position = roller.mStart + roller.mDirection * static_cast<Ogre::Real>(effect.mAmount * progress);
+        roller.mNode->setPosition(position);
+        // It rolls forward: the axis is horizontal and across the direction
+        Ogre::Vector3 axis = Ogre::Vector3::UNIT_Z.crossProduct(roller.mDirection);
+        roller.mNode->setOrientation(Ogre::Quaternion(Ogre::Degree(static_cast<Ogre::Real>(effect.mSpeed * roller.mAge)), axis));
+        if(roller.mTrailNode != nullptr)
+            roller.mTrailNode->setPosition(Ogre::Vector3(position.x, position.y, roller.mTrailNode->getPosition().z));
+
+        if(progress >= 1.0)
+        {
+            finishRoller(roller, true);
+            it = mRollers.erase(it);
+            continue;
+        }
+
+        ++it;
+    }
+}
+
+void RoomAmbience::finishRoller(Roller& roller, bool leaveEffects)
+{
+    Ogre::SceneManager* sceneManager = RenderManager::getSingleton().getSceneManager();
+    const std::vector<AmbienceEffect>& effects = mConfig.getEffects();
+    Ogre::Vector3 position = (roller.mNode != nullptr) ? roller.mNode->getPosition() : roller.mStart;
+    if(roller.mTrail != nullptr)
+    {
+        if(leaveEffects)
+        {
+            // No new dust, the last of it settles
+            roller.mTrail->setEmitting(false);
+            OneShot trail;
+            trail.mNode = roller.mTrailNode;
+            trail.mSystem = roller.mTrail;
+            trail.mLife = 1.5;
+            mOneShots.push_back(trail);
+        }
+        else
+        {
+            Emitter emitter;
+            emitter.mNode = roller.mTrailNode;
+            emitter.mSystem = roller.mTrail;
+            destroyEmitter(emitter);
+        }
+    }
+
+    if(leaveEffects && (roller.mEffect < effects.size()) && !effects[roller.mEffect].mEndSystem.empty())
+    {
+        OneShot fragments;
+        if(createParticleSystem(effects[roller.mEffect].mEndSystem, position, effects[roller.mEffect].mName,
+            fragments.mNode, fragments.mSystem))
+        {
+            fragments.mLife = 2.5;
+            mOneShots.push_back(fragments);
+        }
+    }
+
+    if(roller.mNode != nullptr)
+        roller.mNode->detachAllObjects();
+    if(roller.mEntity != nullptr)
+        sceneManager->destroyEntity(roller.mEntity);
+    if(roller.mNode != nullptr)
+        sceneManager->destroySceneNode(roller.mNode);
+
+    roller.mNode = nullptr;
+    roller.mEntity = nullptr;
+    roller.mTrailNode = nullptr;
+    roller.mTrail = nullptr;
 }
 
 void RoomAmbience::startFlight(const AmbienceEffect& effect, const Ogre::Vector3& position)
@@ -2092,7 +2246,7 @@ void RoomAmbience::notifyTrapEffect(int32_t kind, int32_t tileX, int32_t tileY, 
     {
         case TrapEffectKind::fired:
             // The server has just aimed the trap at its target: the barrel is not turned away for a moment
-            mTurretHoldUntil[getTileKey(tileX, tileY)] = mClock + TURRET_HOLD_SECONDS;
+            mTurretHoldUntil[Helper::toString(tileX) + "," + Helper::toString(tileY)] = mClock + TURRET_HOLD_SECONDS;
             triggerEvent("TrapFired", position, false, typeName);
             break;
         case TrapEffectKind::linked:
