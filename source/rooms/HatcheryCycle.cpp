@@ -23,10 +23,18 @@
 //! \brief Number of steps into which the fraction of a lay interval is divided when it is rounded up by chance.
 static const uint32_t ROUNDING_STEPS = 1000;
 
-uint32_t HatcheryCycle::capacity(uint32_t nbTiles, uint32_t nbCoops, const HatcheryCycleSettings& settings)
+namespace
+{
+static const uint32_t STAGE_MIN_PERCENT = 80;
+static const uint32_t STAGE_MAX_PERCENT = 120;
+static const uint32_t WHOLE_PERCENT = 100;
+}
+
+//! \brief Limits hens, chicks and eggs by room area, independently of decorative coop count.
+uint32_t HatcheryCycle::capacity(uint32_t nbTiles, uint32_t, const HatcheryCycleSettings& settings)
 {
     uint32_t tilesPerChicken = std::max<uint32_t>(1, settings.mTilesPerChicken);
-    return std::min(nbCoops, nbTiles / tilesPerChicken);
+    return nbTiles / tilesPerChicken;
 }
 
 bool HatcheryCycle::canLay(const HatcheryCounts& counts, uint32_t capacity)
@@ -39,15 +47,17 @@ bool HatcheryCycle::eggsMayHatch(const HatcheryCounts& counts)
     return counts.mRoosters > 0;
 }
 
+//! \brief Requests a replacement adult hen from a coop when no adult hen remains.
 bool HatcheryCycle::needCoopHen(const HatcheryCounts& counts, uint32_t nbCoops)
 {
-    return (nbCoops > 0) && (counts.population() == 0);
+    return (nbCoops > 0) && (counts.mHens == 0);
 }
 
+//! \brief Seeds one hen by default, respecting an explicitly configured batch and available capacity.
 uint32_t HatcheryCycle::coopHenCount(const HatcheryCycleSettings& settings, uint32_t capacity)
 {
-    uint32_t count = (settings.mCoopBatch == 0) ? capacity : std::min(settings.mCoopBatch, capacity);
-    return std::max<uint32_t>(1, count);
+    uint32_t count = (settings.mCoopBatch == 0) ? std::min<uint32_t>(1, capacity) : std::min(settings.mCoopBatch, capacity);
+    return count;
 }
 
 bool HatcheryCycle::needCoopRooster(const HatcheryCounts& counts, uint32_t nbCoops)
@@ -168,6 +178,18 @@ uint32_t HatcheryCycle::layInterval(const HatcheryCycleSettings& settings, uint3
     // The fraction decides by chance whether the time is rounded up, so the average time is exact
     const bool roundUp = static_cast<double>((random / span) % ROUNDING_STEPS) < (value - whole) * ROUNDING_STEPS;
     return std::max<uint32_t>(1, whole + (roundUp ? 1 : 0));
+}
+
+//! \brief Chooses one bounded whole-turn duration for a life stage without changing its nominal setting.
+uint32_t HatcheryCycle::stageDuration(uint32_t nominalTurns, uint32_t random)
+{
+    if(nominalTurns == 0)
+        return 0;
+    const uint32_t minimum = static_cast<uint32_t>(std::ceil(nominalTurns *
+        static_cast<double>(STAGE_MIN_PERCENT) / WHOLE_PERCENT));
+    const uint32_t maximum = static_cast<uint32_t>(std::floor(nominalTurns *
+        static_cast<double>(STAGE_MAX_PERCENT) / WHOLE_PERCENT));
+    return minimum + random % (maximum - minimum + 1);
 }
 
 HatcheryCycleSettings HatcheryCycle::scaled(const HatcheryCycleSettings& settings, double factor)

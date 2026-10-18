@@ -64,7 +64,7 @@ struct HatcheryCycleSettings
     uint32_t mCareCalmPercent;
     //! Chance (percent per turn) that an enemy creature next to an egg tramples it.
     uint32_t mTramplePercent;
-    //! Hens that come out of the coops together once the wait is over (0 = one hen per coop, as many as the capacity allows).
+    //! Replacement hens after the wait when no adult hen remains (0 = one initial hen, limited by free room capacity).
     uint32_t mCoopBatch;
     //! Turns two roosters of one hatchery fight once they stand face to face.
     uint32_t mFightTurns;
@@ -117,7 +117,7 @@ struct HatcheryCounts
 class HatcheryCycle
 {
 public:
-    //! Maximum of hens + chicks + eggs: limited by the number of coops and by the size of the hatchery.
+    //! \brief Limits hens, chicks and eggs by room area; nbCoops is retained for existing callers and ignored.
     static uint32_t capacity(uint32_t nbTiles, uint32_t nbCoops, const HatcheryCycleSettings& settings);
 
     //! A hen lays an egg only while the hatchery is not full.
@@ -126,10 +126,10 @@ public:
     //! Eggs only hatch while the hatchery has a rooster.
     static bool eggsMayHatch(const HatcheryCounts& counts);
 
-    //! A hen comes out of a coop only when there is no hen, chick or egg at all.
+    //! \brief Requests a coop fallback when no adult hen remains.
     static bool needCoopHen(const HatcheryCounts& counts, uint32_t nbCoops);
 
-    //! Number of hens that come out of the coops when the wait of an empty hatchery is over: one per coop.
+    //! \brief Returns one initial hen by default, or the configured batch, within available capacity.
     static uint32_t coopHenCount(const HatcheryCycleSettings& settings, uint32_t capacity);
 
     //! A rooster comes out of a coop only when the hatchery has a coop and no rooster.
@@ -180,6 +180,11 @@ public:
     //! Turns until the next egg of a hen. random is any random number (the game draws it from 0 to 999999: the low
     //! part picks the time in [mLayMin, mLayMax], the rest decides how the fraction of mLayFactor is rounded).
     static uint32_t layInterval(const HatcheryCycleSettings& settings, uint32_t random);
+
+    //! \brief Draws a life-stage duration within twenty percent of its nominal turns, rounded inward to whole turns.
+    //! \param nominalTurns Configured laying, incubation or growth duration; zero stays zero.
+    //! \param random Server-drawn random value used once when the stage starts.
+    static uint32_t stageDuration(uint32_t nominalTurns, uint32_t random);
 
     //! Copy of the settings where the laying times are multiplied by factor (research).
     static HatcheryCycleSettings scaled(const HatcheryCycleSettings& settings, double factor);

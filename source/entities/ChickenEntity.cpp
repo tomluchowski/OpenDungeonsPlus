@@ -74,6 +74,7 @@ ChickenEntity::ChickenEntity(GameMap* gameMap, const std::string& hatcheryName, 
     mKind(kind),
     mNbTurnLay(0),
     mAge(0),
+    mStageDuration(0),
     mBusyTurns(0),
     mLeavingCoop(false),
     mCoopDoor(Ogre::Vector2::ZERO),
@@ -106,12 +107,14 @@ ChickenEntity::ChickenEntity(GameMap* gameMap, const std::string& hatcheryName, 
 {
 }
 
+//! \brief Initializes animal state and an unset per-stage duration.
 ChickenEntity::ChickenEntity(GameMap* gameMap) :
     RenderedMovableEntity(gameMap),
     mChickenState(ChickenState::free),
     mKind(ChickenKind::hen),
     mNbTurnLay(0),
     mAge(0),
+    mStageDuration(0),
     mBusyTurns(0),
     mLeavingCoop(false),
     mCoopDoor(Ogre::Vector2::ZERO),
@@ -435,9 +438,12 @@ void ChickenEntity::playPose(const std::string& pose, uint32_t turns)
     clearDestinations(pose, true, false);
 }
 
+//! \brief Synchronizes mating poses only for a free adult hen and a free rooster.
 //! \brief Stops both birds before synchronizing their mating poses and facing direction.
 void ChickenEntity::mountHen(ChickenEntity& hen)
 {
+    if(!isFree() || mKind != ChickenKind::rooster || !hen.isFree() || hen.getKind() != ChickenKind::hen)
+        return;
     // He climbs on her facing the way she looks, and the clients are told which hen it is
     Ogre::Vector3 direction = hen.getWalkDirection();
     if(direction.squaredLength() < MIN_WALK_DIRECTION_SQUARED)
@@ -915,6 +921,7 @@ void ChickenEntity::correctEntityMovePosition(Ogre::Vector2& position)
     //     position.z += Random::Double(-offset, offset);
 }
 
+//! \brief Changes life stage and clears its individual age and duration before notifying clients.
 void ChickenEntity::setKind(ChickenKind kind)
 {
     if(mKind == kind)
@@ -922,6 +929,7 @@ void ChickenEntity::setKind(ChickenKind kind)
 
     mKind = kind;
     mAge = 0;
+    mStageDuration = 0;
     setMeshName(getMeshNameForKind(kind));
     if(!getIsOnServerMap())
         return;
@@ -1151,6 +1159,7 @@ void ChickenEntity::importFromPacket(ODPacket& is)
     OD_ASSERT_TRUE(is >> mMountHenName);
 }
 
+//! \brief Writes the animal and its individual stage duration as a backward-compatible trailing field.
 void ChickenEntity::exportToStream(std::ostream& os) const
 {
     RenderedMovableEntity::exportToStream(os);
@@ -1160,9 +1169,10 @@ void ChickenEntity::exportToStream(std::ostream& os) const
     os << mGiftTurns << "\t";
     // Appended later: the way out of the coop (saves without it load with the animal outside)
     os << mLeavingCoop << "\t" << mCoopExit.x << "\t" << mCoopExit.y << "\t"
-       << mCoopDoor.x << "\t" << mCoopDoor.y << "\t";
+       << mCoopDoor.x << "\t" << mCoopDoor.y << "\t" << mStageDuration << "\t";
 }
 
+//! \brief Loads old and new animal records; legacy stages choose their duration on their next upkeep.
 bool ChickenEntity::importFromStream(std::istream& is)
 {
     if(!RenderedMovableEntity::importFromStream(is))
@@ -1215,16 +1225,22 @@ bool ChickenEntity::importFromStream(std::istream& is)
     else
         is.clear();
 
+    uint32_t stageDuration = 0;
+    if(is >> stageDuration)
+        mStageDuration = stageDuration;
+    else
+        is.clear();
     return true;
 }
 
+//! \brief Describes the trailing optional stage-duration field alongside existing animal save fields.
 std::string ChickenEntity::getChickenEntityStreamFormat()
 {
     std::string format = RenderedMovableEntity::getRenderedMovableEntityStreamFormat();
     if(!format.empty())
         format += "\t";
 
-    format += "PosX\tPosY\tPosZ\tKind\tLayTimer\tAge\tGiftTurns\tLeavingCoop\tCoopExitX\tCoopExitY\tCoopDoorX\tCoopDoorY";
+    format += "PosX\tPosY\tPosZ\tKind\tLayTimer\tAge\tGiftTurns\tLeavingCoop\tCoopExitX\tCoopExitY\tCoopDoorX\tCoopDoorY\tStageDuration";
 
     return format;
 }

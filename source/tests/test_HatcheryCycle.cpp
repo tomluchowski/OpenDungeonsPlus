@@ -31,19 +31,20 @@
 #include <vector>
 
 //! The number of animals a hatchery holds follows its tiles and the tiles-per-animal setting, and never exceeds the room size.
+//! \brief Room area limits population independently of coop count.
 BOOST_AUTO_TEST_CASE(test_Capacity)
 {
     HatcheryCycleSettings settings;
-    BOOST_CHECK_EQUAL(HatcheryCycle::capacity(9, 3, settings), 3u);
+    BOOST_CHECK_EQUAL(HatcheryCycle::capacity(9, 3, settings), 9u);
     BOOST_CHECK_EQUAL(HatcheryCycle::capacity(2, 3, settings), 2u);
-    BOOST_CHECK_EQUAL(HatcheryCycle::capacity(9, 0, settings), 0u);
+    BOOST_CHECK_EQUAL(HatcheryCycle::capacity(9, 0, settings), 9u);
     settings.mTilesPerChicken = 4;
     BOOST_CHECK_EQUAL(HatcheryCycle::capacity(9, 3, settings), 2u);
     settings.mTilesPerChicken = 0;
-    BOOST_CHECK_EQUAL(HatcheryCycle::capacity(9, 3, settings), 3u);
+    BOOST_CHECK_EQUAL(HatcheryCycle::capacity(9, 3, settings), 9u);
 }
 
-//! The coop supplies a hen or a rooster only while the hatchery lacks one (an egg or a chick already counts as a hen source), eggs may hatch only with a rooster present, and a full hatchery stops laying.
+//! \brief Adult hen fallback is independent of eggs and chicks, while all reserve capacity.
 BOOST_AUTO_TEST_CASE(test_Rules)
 {
     HatcheryCounts counts;
@@ -53,9 +54,9 @@ BOOST_AUTO_TEST_CASE(test_Rules)
     BOOST_CHECK(!HatcheryCycle::needCoopRooster(counts, 0));
     BOOST_CHECK(!HatcheryCycle::eggsMayHatch(counts));
 
-    // An egg or a chick is a source: no hen from the coop. The rooster does not count.
+    // Eggs and chicks do not replace the missing adult hen. The rooster does not count.
     counts.mEggs = 1;
-    BOOST_CHECK(!HatcheryCycle::needCoopHen(counts, 2));
+    BOOST_CHECK(HatcheryCycle::needCoopHen(counts, 2));
     counts.mEggs = 0;
     counts.mRoosters = 1;
     BOOST_CHECK(HatcheryCycle::needCoopHen(counts, 2));
@@ -121,13 +122,13 @@ BOOST_AUTO_TEST_CASE(test_RoosterFight)
     BOOST_CHECK(settings.mFightApproachTurns > 0u);
 }
 
-//! One hen per coop comes out by default (at least one), and a batch limit caps the number of hens in one go.
+//! \brief Default initial seeding adds one hen and never exceeds available room capacity.
 BOOST_AUTO_TEST_CASE(test_CoopHenCount)
 {
     HatcheryCycleSettings settings;
-    // By default one hen per coop comes out, at least one
-    BOOST_CHECK_EQUAL(HatcheryCycle::coopHenCount(settings, 3), 3u);
-    BOOST_CHECK_EQUAL(HatcheryCycle::coopHenCount(settings, 0), 1u);
+    // The default is one initial hen; an explicitly configured batch still applies.
+    BOOST_CHECK_EQUAL(HatcheryCycle::coopHenCount(settings, 3), 1u);
+    BOOST_CHECK_EQUAL(HatcheryCycle::coopHenCount(settings, 0), 0u);
     settings.mCoopBatch = 2;
     BOOST_CHECK_EQUAL(HatcheryCycle::coopHenCount(settings, 3), 2u);
     BOOST_CHECK_EQUAL(HatcheryCycle::coopHenCount(settings, 1), 1u);
@@ -972,4 +973,20 @@ BOOST_AUTO_TEST_CASE(test_RoosterCrowTimer)
     context.mMoodTurns = 2;
     BOOST_CHECK(HatcheryRooster::decide(context, settings).mMood == RoosterMood::crow);
     BOOST_CHECK_EQUAL(HatcheryRooster::decide(context, settings).mTurns, 2u);
+}
+
+//! \brief Every life-stage draw stays inside its twenty-percent whole-turn interval.
+BOOST_AUTO_TEST_CASE(test_StageDuration)
+{
+    const uint32_t stages[] = {7, 42, 84};
+    BOOST_CHECK_EQUAL(HatcheryCycle::stageDuration(0, 999), 0u);
+    for(uint32_t stage : stages)
+    {
+        for(uint32_t draw = 0; draw < 10000; ++draw)
+        {
+            const uint32_t duration = HatcheryCycle::stageDuration(stage, draw);
+            BOOST_CHECK_GE(duration * 100, stage * 80);
+            BOOST_CHECK_LE(duration * 100, stage * 120);
+        }
+    }
 }

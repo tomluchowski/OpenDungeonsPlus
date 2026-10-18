@@ -30,6 +30,7 @@ class Creature;
 class Player;
 enum class TileVisual;
 
+//! \brief Manages room-limited hatchery animals, nest visits and coop fallback spawning.
 class RoomHatchery: public Room
 {
 public:
@@ -41,6 +42,7 @@ public:
     RoomType getType() const override
     { return mRoomType; }
 
+    //! \brief Updates room-limited population, nest visits and individual life-stage timers.
     void doUpkeep() override;
     //! \brief Tells the clients that the hatchery is gone (an empty list of nests) before the room is removed.
     void removeFromGameMap(GameMap* gameMap = nullptr) override;
@@ -114,6 +116,7 @@ private:
     //! Settings of the life cycle from the config, laying times scaled by the research.
     HatcheryCycleSettings getCycleSettings() const;
     //! Creates a hatchery animal at the given position.
+    //! \brief Creates an animal and initializes its individually randomized life-stage duration.
     ChickenEntity* spawnAnimal(ChickenKind kind, const Ogre::Vector3& position, const HatcheryCycleSettings& settings);
     //! Server side. The entrances of a hatchery with the given tiles: the tiles that lie next to (not diagonal) a
     //! walkable tile (fullness 0: door, corridor, other room) that is not one of the given tiles. A door of the given
@@ -153,8 +156,8 @@ private:
     struct PendingEgg;
     //! The planned egg of a hen (set off or not), nullptr if she has none.
     PendingEgg* findPendingEgg(const ChickenEntity& hen);
-    //! Hens with a planned egg: one sets off when the turns left until the egg are as many as the walk and the Lay
-    //! pose, waits at the nest until the pose has to start, and sits down. A hen that is gone loses an egg that is not
+    //! Hens with a planned egg immediately walk to the reserved nest and show the complete randomized laying
+    //! pose after arriving. A hen that is gone loses an egg that is not
     //! laid yet, an egg whose laying pose started still appears.
     void updateNestTrips(const std::vector<ChickenEntity*>& hens, const HatcheryCycleSettings& settings);
     //! Lets a hen or a rooster come out of a coop. Returns false if no coop has a free place.
@@ -176,6 +179,7 @@ private:
     //! \brief Starts the mood the rules chose: sets it on the rooster and prepares the move (down from the roof, crow timer).
     void beginRoosterMood(ChickenEntity* rooster, const RoosterPlan& plan);
     //! \brief Does one turn of the current mood: walks, chases, guards against the threat position or plays a pose.
+    //! \brief Selects rooster activities, allowing mating only with free adult hens.
     void actRoosterMood(ChickenEntity* rooster, const std::vector<ChickenEntity*>& hens,
         const RoosterSettings& settings, const Ogre::Vector2& threat);
     //! Sits the rooster on the roof of the nearest coop with the pose: he walks to the ground next to the coop,
@@ -202,11 +206,9 @@ private:
     RoosterSettings mRoosterSettings;
     //! Turns until the rooster crows next
     uint32_t mCrowInterval;
-    //! An egg that a hen is going to lay. The egg is laid when the laying timer of the hen runs out (it is due then,
-    //! counts as an egg for the capacity; once laying has started it is saved in "HatcheryNestLays"). Before that:
-    //! she chose the place in a nest, sets off when the turns left are as many as the walk and the Lay pose, waits at the
-    //! nest and shows herself sitting (Lay pose) for HatcheryLayShowTurns turns, so that the egg appears just when the
-    //! timer runs out when possible. A late hen waits until actual arrival; incubation starts when the egg appears.
+    //! \brief A reserved egg counts toward room capacity immediately. Its hen walks to the nest and performs
+    //! her individually timed laying pose after arrival; incubation starts only when the egg appears.
+    //! Reservations are saved in "HatcheryNestLays".
     struct PendingEgg
     {
         PendingEgg(const Ogre::Vector3& spot, uint32_t turns) :
@@ -237,7 +239,7 @@ private:
         //! She has set off / sits and shows herself laying.
         bool mStarted;
         bool mPosing;
-        //! The laying timer has run out: the egg exists for the capacity. mLate counts the turns since then.
+        //! The egg reserves capacity; mLate records waiting turns for legacy reservations.
         bool mDue;
         uint32_t mLate;
     };

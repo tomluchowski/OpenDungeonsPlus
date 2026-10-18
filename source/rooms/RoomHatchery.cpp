@@ -359,6 +359,7 @@ HatcheryCycleSettings RoomHatchery::getCycleSettings() const
     return HatcheryCycle::scaled(settings, factor);
 }
 
+//! \brief Creates an animal and draws its individual incubation or growth duration once on the server.
 ChickenEntity* RoomHatchery::spawnAnimal(ChickenKind kind, const Ogre::Vector3& position, const HatcheryCycleSettings& settings)
 {
     ChickenEntity* chicken = new ChickenEntity(getGameMap(), getName(), kind);
@@ -367,6 +368,10 @@ ChickenEntity* RoomHatchery::spawnAnimal(ChickenKind kind, const Ogre::Vector3& 
     chicken->setPosition(position);
     if(kind == ChickenKind::hen)
         chicken->setLayTimer(HatcheryCycle::layInterval(settings, Random::Uint(0, LAY_INTERVAL_ROLL_MAX)));
+    else if(kind == ChickenKind::egg)
+        chicken->setStageDuration(HatcheryCycle::stageDuration(settings.mHatchTurns, Random::Uint(0, 999999)));
+    else if(kind == ChickenKind::chick)
+        chicken->setStageDuration(HatcheryCycle::stageDuration(settings.mGrowTurns, Random::Uint(0, 999999)));
     return chicken;
 }
 
@@ -664,6 +669,7 @@ RoomHatchery::PendingEgg* RoomHatchery::findPendingEgg(const ChickenEntity& hen)
     return nullptr;
 }
 
+//! \brief Guides free hens to reserved nests and waits their individual laying duration after arrival.
 void RoomHatchery::updateNestTrips(const std::vector<ChickenEntity*>& hens, const HatcheryCycleSettings& settings)
 {
     // The hen has arrived when she is this close to the place next to the nest
@@ -761,10 +767,10 @@ void RoomHatchery::updateNestTrips(const std::vector<ChickenEntity*>& hens, cons
 
         // She sits down and shows herself laying until the egg lies in the nest
         hen->clearFollowTarget();
-        hen->playPose(ChickenPose::lay, std::max<uint32_t>(POSE_TURNS_SHORT, settings.mLayShowTurns));
+        hen->playPose(ChickenPose::lay, std::max<uint32_t>(2, it->mTurns));
         fireAnimalSound(*hen, "Hatchery/Cluck");
         it->mPosing = true;
-        it->mTurns = (settings.mLayShowTurns > 0) ? settings.mLayShowTurns - 1 : 0;
+        // The reservation already holds this egg's single randomized laying duration.
         ++it;
     }
 }
@@ -1115,6 +1121,7 @@ HatcheryCare RoomHatchery::getCare(const std::vector<Creature*>& enemies) const
     return care;
 }
 
+//! \brief Fills free nests within capacity and ages each individually timed life stage after its creation turn.
 void RoomHatchery::doUpkeep()
 {
     Room::doUpkeep();
@@ -1215,20 +1222,23 @@ void RoomHatchery::doUpkeep()
     uint32_t capacity = HatcheryCycle::capacity(mCoveredTiles.size(), mNumActiveSpots, settings);
     for(ChickenEntity* hen : hens)
     {
-        if(hen->isLeavingCoop() || (findPendingEgg(*hen) != nullptr) || !HatcheryCycle::canLay(counts, capacity))
+        if(hen->isLeavingCoop() || hen->isBusy() || hen->isScattering() ||
+           findPendingEgg(*hen) != nullptr || !HatcheryCycle::canLay(counts, capacity))
             continue;
         Ogre::Vector3 eggSpot;
         Ogre::Vector2 standing;
         if(!findNestSpot(hen->getPosition(), eggPositions, eggSpot) || !getNestStandPoint(eggSpot, standing))
             continue;
         eggPositions.push_back(Ogre::Vector2(eggSpot.x, eggSpot.y));
-        PendingEgg plan(eggSpot, settings.mLayShowTurns);
+        PendingEgg plan(eggSpot, HatcheryCycle::stageDuration(settings.mLayShowTurns, Random::Uint(0, 999999)));
         plan.mHen = hen->getName();
         plan.mStand = standing;
         plan.mWalk = nestWalkTurns(*hen, standing);
         plan.mNest = true;
-        plan.mDue = false;
+        plan.mDue = true;
+        plan.mStarted = true;
         mPendingEggs.push_back(plan);
+        ++counts.mEggs;
     }
 
     // Hens with a planned egg set off for the nest, wait there and sit down
@@ -1280,11 +1290,14 @@ void RoomHatchery::doUpkeep()
             if(isEnemyOnEggTile(*egg, enemies))
                 continue;
 
+            if(egg->getStageDuration() == 0)
+                egg->setStageDuration(HatcheryCycle::stageDuration(settings.mHatchTurns, Random::Uint(0, 999999)));
+            const uint32_t hatchTurns = egg->getStageDuration();
             const uint32_t eggAge = egg->incrementAge();
-            if(eggAge < settings.mHatchTurns)
+            if(eggAge < hatchTurns)
             {
                 // The egg wobbles shortly before it hatches
-                if(egg->getAge() + 1 == settings.mHatchTurns)
+                if(egg->getAge() + 1 == hatchTurns)
                     egg->playPose(ChickenPose::wobble, 0);
                 continue;
             }
@@ -1292,7 +1305,8 @@ void RoomHatchery::doUpkeep()
             fireAnimalSound(*egg, "Hatchery/EggCrack");
             egg->setKind(ChickenKind::chick);
             // A late egg hatches with the age it would have had, the chick grows on time
-            egg->setAge(eggAge - settings.mHatchTurns);
+            egg->setAge(eggAge - hatchTurns);
+            egg->setStageDuration(HatcheryCycle::stageDuration(settings.mGrowTurns, Random::Uint(0, 999999)));
             chicks.push_back(egg);
             // An egg from a nest (it lies a little above the ground): the chick stands on the ground there
             if(egg->getPosition().z > NEST_EGG_MIN_HEIGHT)
@@ -1305,7 +1319,9 @@ void RoomHatchery::doUpkeep()
     // Chicks grow up
     for(ChickenEntity* chick : chicks)
     {
-        if(chick->incrementAge() < settings.mGrowTurns)
+        if(chick->getStageDuration() == 0)
+            chick->setStageDuration(HatcheryCycle::stageDuration(settings.mGrowTurns, Random::Uint(0, 999999)));
+        if(chick->incrementAge() < chick->getStageDuration())
             continue;
 
         chick->setKind(ChickenKind::hen);
@@ -1338,12 +1354,12 @@ void RoomHatchery::doUpkeep()
             hen->clearFollowTarget();
     }
 
-    // Coops are the last resort: only when there is no hen, chick or egg at all
-    if(HatcheryCycle::needCoopHen(counts, mNumActiveSpots))
+    // Coops provide a replacement only when no adult hen remains; eggs and chicks still reserve room capacity.
+    if(HatcheryCycle::needCoopHen(counts, mNumActiveSpots) && HatcheryCycle::canLay(counts, capacity))
     {
         ++mCoopHenWait;
         if((mCoopHenWait >= settings.mCoopWait) &&
-           spawnFromCoop(ChickenKind::hen, settings, HatcheryCycle::coopHenCount(settings, capacity)))
+           spawnFromCoop(ChickenKind::hen, settings, HatcheryCycle::coopHenCount(settings, capacity - counts.population())))
             mCoopHenWait = 0;
     }
     else
@@ -1681,6 +1697,7 @@ void RoomHatchery::beginRoosterMood(ChickenEntity* rooster, const RoosterPlan& p
     }
 }
 
+//! \brief Performs rooster behaviours, selecting only free adult hens outside reserved nest trips for mating.
 void RoomHatchery::actRoosterMood(ChickenEntity* rooster, const std::vector<ChickenEntity*>& hens,
     const RoosterSettings& settings, const Ogre::Vector2& threat)
 {
@@ -1700,7 +1717,7 @@ void RoomHatchery::actRoosterMood(ChickenEntity* rooster, const std::vector<Chic
             float nearestDistance = 0.0f;
             for(ChickenEntity* hen : hens)
             {
-                if(hen->isBusy())
+                if(!hen->isFree() || hen->getKind() != ChickenKind::hen || hen->isBusy() || isOnNestTrip(*hen))
                     continue;
 
                 float distance = position.squaredDistance(Ogre::Vector2(hen->getPosition().x, hen->getPosition().y));
