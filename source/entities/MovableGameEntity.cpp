@@ -18,6 +18,7 @@
 #include "entities/MovableGameEntity.h"
 
 #include "entities/GameEntityType.h"
+#include "entities/Creature.h"
 #include "entities/Tile.h"
 #include "game/Player.h"
 #include "game/Seat.h"
