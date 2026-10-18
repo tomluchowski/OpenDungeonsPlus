@@ -155,7 +155,6 @@ enum class ServerNotificationType
     possessionEnd,
     //! Answer to editorRegionEdit, all the region markers of the level script:
     //! + uint32_t count, then per region: string name and 4 int32_t (the corners).
-    //! Inserted before trapEffect; trapEffect and timeLimit stay the last values.
     editorRegionData,
     //! Presentation-only effect of a trap or door, sent to the human seats that see the tile:
     //! + int32_t kind (TrapEffectKind), int32_t tileX, int32_t tileY, string type name of the trap or door
