@@ -34,6 +34,7 @@ namespace Ogre
     class Camera;
 }
 
+//! \brief Displays creature status and keeps reaction emote lifetimes in game time.
 class CreatureOverlayStatus
 {
 public:
@@ -42,10 +43,12 @@ public:
     ~CreatureOverlayStatus();
 
     void displayHealthOverlay(Ogre::Real timeToDisplay);
-    //! \brief Shows the icon of the given material above the creature for timeToDisplay seconds
+    //! \brief Shows the icon of the given material for timeToDisplay game seconds; negative means persistent.
     void showEmote(const std::string& materialName, Ogre::Real timeToDisplay);
     //! \brief Hides the emote icon, if one was shown
+    //! \brief Hides the reaction icon and clears its game-time lifetime.
     void hideEmote();
+    //! \brief Updates interface overlays in real time and reaction icon lifetimes in game time.
     void update(Ogre::Real timeSincelastFrame);
     MovableTextOverlay* getMovableTextOverlay(){ return mMovableTextOverlay; }
 private:
@@ -65,6 +68,8 @@ private:
     //! Overlay of the emote. It is only created when the first emote is shown
     bool mEmoteCreated;
     uint32_t mEmoteId;
+    //! Remaining game seconds; interface hover and health-overlay timers keep their own real-time clock.
+    Ogre::Real mEmoteRemaining = 0.0f;
 };
 
 #endif // CREATUREOVERLAYSTATUS_H
