@@ -19,6 +19,10 @@
 
 #include "ai/KeeperAIType.h"
 #include "game/Campaign.h"
+#include "game/Seat.h"
+#include "gamemap/LevelScript.h"
+#include "goals/Goal.h"
+#include "goals/GoalLoading.h"
 #include "gamemap/GameMap.h"
 #include "modes/ModeManager.h"
 #include "network/ODClient.h"
@@ -45,6 +49,7 @@
 #include <cctype>
 #include <fstream>
 #include <iterator>
+#include <sstream>
 
 namespace
 {
@@ -59,6 +64,7 @@ const std::string CMP_MAP = "CampaignWindowFrame/CampaignMap";
 const std::string CMP_BRIEFING = "CampaignWindowFrame/BriefingPanel";
 const std::string CMP_BRIEFING_TEXT = "CampaignWindowFrame/BriefingPanel/BriefingText";
 static const std::string CMP_BRIEFING_IMAGE = "CampaignWindowFrame/BriefingPanel/BriefingImage";
+const std::string CMP_BRIEFING_GOALS = "CampaignWindowFrame/BriefingPanel/BriefingGoals";
 static const CEGUI::URect BRIEFING_PREVIEW_PANEL_AREA(
     CEGUI::UDim(0.5f, -336), CEGUI::UDim(0.5f, -352),
     CEGUI::UDim(0.5f, 336), CEGUI::UDim(0.5f, 352));
@@ -70,6 +76,18 @@ static const CEGUI::URect BRIEFING_PREVIEW_TEXT_AREA(
     CEGUI::UDim(1, -16), CEGUI::UDim(1, -72));
 static const CEGUI::URect BRIEFING_TEXT_AREA(
     CEGUI::UDim(0, 16), CEGUI::UDim(0, 16),
+    CEGUI::UDim(1, -16), CEGUI::UDim(1, -72));
+static const CEGUI::URect BRIEFING_PREVIEW_STORY_AREA(
+    CEGUI::UDim(0, 16), CEGUI::UDim(0, 392),
+    CEGUI::UDim(0.5f, -8), CEGUI::UDim(1, -72));
+static const CEGUI::URect BRIEFING_PREVIEW_GOALS_AREA(
+    CEGUI::UDim(0.5f, 8), CEGUI::UDim(0, 392),
+    CEGUI::UDim(1, -16), CEGUI::UDim(1, -72));
+static const CEGUI::URect BRIEFING_STORY_AREA(
+    CEGUI::UDim(0, 16), CEGUI::UDim(0, 16),
+    CEGUI::UDim(0.5f, -8), CEGUI::UDim(1, -72));
+static const CEGUI::URect BRIEFING_GOALS_AREA(
+    CEGUI::UDim(0.5f, 8), CEGUI::UDim(0, 16),
     CEGUI::UDim(1, -16), CEGUI::UDim(1, -72));
 const std::string CMP_BRIEFING_START = "CampaignWindowFrame/BriefingPanel/BriefingStartButton";
 const std::string CMP_BRIEFING_CLOSE = "CampaignWindowFrame/BriefingPanel/BriefingCloseButton";
@@ -107,6 +125,105 @@ const float PROGRESS_PERCENT_LEFT = 0.80f;
 const float PROGRESS_PERCENT_TOP = 0.68f;
 const float PROGRESS_PERCENT_WIDTH = 0.16f;
 const float PROGRESS_PERCENT_HEIGHT = 0.32f;
+
+//! \brief Reads the human seat's initial goal context, without loading entities or modifying a map.
+//! \return True when a human seat was found and the seats section is complete.
+bool readBriefingSeat(std::istream& level, Seat& player)
+{
+    std::string token;
+    while((level >> token) && token != "[Seats]")
+    {}
+    bool foundPlayer = false;
+    while(level >> token)
+    {
+        if(token == "[/Seats]")
+            return foundPlayer;
+        if(token != "[Seat]")
+            return false;
+        std::string line;
+        std::string playerType;
+        int seatId = -1;
+        int goldMined = 0;
+        bool seatClosed = false;
+        while(std::getline(level, line))
+        {
+            std::istringstream fields(line);
+            std::string key;
+            fields >> key;
+            if(key == "[/Seat]")
+            {
+                seatClosed = true;
+                break;
+            }
+            if(key == "seatId")
+                fields >> seatId;
+            else if(key == "player")
+                fields >> playerType;
+            else if(key == "goldMined")
+                fields >> goldMined;
+        }
+        if(!seatClosed)
+            return false;
+        if(playerType == Seat::PLAYER_TYPE_HUMAN && !foundPlayer)
+        {
+            player.setId(seatId);
+            player.addGoldMined(goldMined);
+            foundPlayer = true;
+        }
+    }
+    return false;
+}
+
+//! \brief Reads the initial open goal descriptions and identified script objectives using the gameplay parsers.
+//! \return True when level goal metadata was read; no game state or script action is executed.
+bool readBriefingGoals(const std::string& path, std::string& descriptions)
+{
+    std::stringstream level;
+    if(!Helper::readFile(path, level, true))
+        return false;
+    Seat player(nullptr);
+    if(!readBriefingSeat(level, player))
+        return false;
+    std::string token;
+    if(!(level >> token) || token != "[Goals]")
+        return false;
+    descriptions = "Goals:";
+    while(level >> token)
+    {
+        if(token == "[/Goals]")
+            break;
+        std::unique_ptr<Goal> goal = Goals::loadGoalFromStream(token, level);
+        if(goal == nullptr)
+            return false;
+        descriptions += "\n\nOpen: " + goal->getDescription(player);
+    }
+    if(token != "[/Goals]")
+        return false;
+    while(level >> token)
+    {
+        if(token != "[Triggers]")
+            continue;
+        LevelScript script;
+        if(!script.importFromStream(level))
+            return false;
+        const std::vector<LevelScriptTrigger>& triggers = script.getTriggers();
+        for(const LevelScriptTrigger& trigger : triggers)
+        {
+            for(const LevelScriptAction& action : trigger.mActions)
+            {
+                if(action.mType != LevelScriptActionType::objective ||
+                   (action.mSeatId >= 0 && action.mSeatId != player.getId()))
+                    continue;
+                descriptions += "\n\nOpen";
+                if(!action.mObjectiveId.empty())
+                    descriptions += " (" + action.mObjectiveId + ")";
+                descriptions += ": " + action.mText;
+            }
+        }
+        break;
+    }
+    return true;
+}
 
 //! Reads and decodes a PNG file into RGBA bytes. Returns false if it cannot be read.
 bool decodeImage(const std::string& path, int& width, int& height, std::vector<uint8_t>& rgba)
@@ -765,7 +882,7 @@ bool MenuModeCampaign::mapClicked(const CEGUI::EventArgs& e)
     return true;
 }
 
-//! \brief Shows a level briefing with its optional preview, falling back to the text-only layout.
+//! \brief Shows the unchanged story beside the actual goals and optional preview of the selected level.
 void MenuModeCampaign::showBriefing(size_t level)
 {
     Campaign& campaign = Campaign::getSingleton();
@@ -779,23 +896,38 @@ void MenuModeCampaign::showBriefing(size_t level)
         sheet->getChild(CMP_BRIEFING_IMAGE)->setProperty("Image", WORLD_IMAGE_PREFIX + campaignLevel.mPreview);
     std::string text = "Briefing - " + campaignLevel.mTitle + "\n\n" + campaignLevel.mBriefing;
     sheet->getChild(CMP_BRIEFING_TEXT)->setText(reinterpret_cast<const CEGUI::utf8*>(text.c_str()));
+    std::string goals;
+    const std::string path = ResourceManager::getSingleton().getGameDataPath() + "levels/" + campaignLevel.mFile;
+    if(!readBriefingGoals(path, goals))
+    {
+        OD_LOG_ERR("Could not read campaign briefing goals from " + path);
+        goals = "Goals: Could not read level goals.";
+    }
+    Gui& gui = getModeManager().getGui();
+    gui.setScaledArea(sheet->getChild(CMP_BRIEFING_TEXT), image != nullptr ?
+        BRIEFING_PREVIEW_STORY_AREA : BRIEFING_STORY_AREA);
+    gui.setScaledArea(sheet->getChild(CMP_BRIEFING_GOALS), image != nullptr ?
+        BRIEFING_PREVIEW_GOALS_AREA : BRIEFING_GOALS_AREA);
+    sheet->getChild(CMP_BRIEFING_GOALS)->setText(reinterpret_cast<const CEGUI::utf8*>(goals.c_str()));
+    sheet->getChild(CMP_BRIEFING_GOALS)->setVisible(true);
     sheet->getChild(CMP_BRIEFING_START)->setVisible(true);
     sheet->getChild(CMP_BRIEFING)->setVisible(true);
     mBriefingLevel = level;
 }
 
-//! \brief Shows the last level result using the original text-only panel.
+//! \brief Shows the last level result in the full-width text-only panel without a goal preview.
 void MenuModeCampaign::showDebriefing()
 {
     CEGUI::Window* sheet = getModeManager().getGui().getGuiSheet(Gui::guiSheet::campaignMenu);
     setBriefingPreviewVisible(false);
+    sheet->getChild(CMP_BRIEFING_GOALS)->setVisible(false);
     sheet->getChild(CMP_BRIEFING_TEXT)->setText(reinterpret_cast<const CEGUI::utf8*>(mResultText.c_str()));
     sheet->getChild(CMP_BRIEFING_START)->setVisible(false);
     sheet->getChild(CMP_BRIEFING)->setVisible(true);
     mBriefingLevel = Campaign::getSingleton().getNumLevels();
 }
 
-//! \brief Keeps the preview and text-only areas registered for resolution and UI scaling.
+//! \brief Registers scaled panel and text areas around the preview, or restores the text-only layout.
 void MenuModeCampaign::setBriefingPreviewVisible(bool visible)
 {
     Gui& gui = getModeManager().getGui();

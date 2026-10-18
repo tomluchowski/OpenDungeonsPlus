@@ -6,6 +6,7 @@ Run with --self-test to exercise malformed assets entirely in memory.
 import argparse
 from io import BytesIO
 from pathlib import Path
+import re
 import struct
 import sys
 import re
@@ -91,57 +92,77 @@ def png_errors(data):
     return errors
 
 
-# Resolve a layout rectangle using the same offset scaling as the GUI.
-def layout_rectangle(window, width, height, scale):
-    area = next(prop.get("value") for prop in window.findall("Property") if prop.get("name") == "Area")
-    dimensions = re.findall(r"\{([^,{}]+),([^{}]+)\}", area)
-    return [float(relative) * parent + float(offset) * scale
-            for (relative, offset), parent in zip(dimensions, (width, height, width, height))]
+# Resolve a design rectangle after the same offset scaling used by Gui.
+def scaled_rectangle(values, parent, scale):
+    return tuple(values[index * 2] * parent[index % 2] + values[index * 2 + 1] * scale
+                 for index in range(4))
 
 
-# Catch the mixed scaled/unscaled runtime areas and overlapping briefing content.
+# Validate image, story and goals against actual layout and registered runtime areas.
 def briefing_layout_errors(layout, mode, gui):
     errors = []
-    names = ("BriefingPanel", "BriefingImage", "BriefingText", "BriefingStartButton", "BriefingCloseButton")
     windows = {window.get("name"): window for window in layout.iter("Window")}
-    if any(name not in windows for name in names):
-        return ["missing briefing layout window"]
-    properties = {prop.get("name"): prop.get("value") for prop in windows["BriefingImage"].findall("Property")}
-    if properties.get("AspectMode") != "Shrink" or abs(float(properties.get("AspectRatio", "0"))
-                                                      - PREVIEW_WIDTH / PREVIEW_HEIGHT) > LAYOUT_TOLERANCE:
+    required = ("BriefingPanel", "BriefingImage", "BriefingText", "BriefingGoals",
+                "BriefingStartButton", "BriefingCloseButton")
+    if any(name not in windows for name in required):
+        return ["briefing is missing an image, story, goals or button window"]
+    properties = {name: {prop.get("name"): prop.get("value") for prop in windows[name].findall("Property")}
+                  for name in required}
+    if properties["BriefingImage"].get("AspectMode") != "Shrink" or abs(
+            float(properties["BriefingImage"].get("AspectRatio", "0")) - 16 / 9) > 0.000001:
         errors.append("briefing preview must preserve its 16:9 aspect ratio")
+    if any(properties[name].get("VertScrollbar") != "True" for name in ("BriefingText", "BriefingGoals")):
+        errors.append("briefing story and goals must remain scrollable")
     helper = mode.split("void MenuModeCampaign::setBriefingPreviewVisible", 1)[-1].split(
         "void MenuModeCampaign::hideBriefing", 1)[0]
     if helper.count("gui.setScaledArea(") != 4 or 'setProperty("Area"' in helper:
-        errors.append("briefing areas must retain registered GUI scaling in both display modes")
-    if "void Gui::setScaledArea(" not in gui or "it->second.area = designArea;" not in gui:
-        errors.append("GUI must retain updated design areas when the resolution changes")
-    design_width = float(re.search(r"LAYOUT_DESIGN_WIDTH\s*=\s*([\d.]+)f", gui).group(1))
-    design_height = float(re.search(r"LAYOUT_DESIGN_HEIGHT\s*=\s*([\d.]+)f", gui).group(1))
+        errors.append("briefing runtime areas must use registered GUI scaling")
+    if "void Gui::setScaledArea" not in gui or "it->second.area = designArea" not in gui:
+        errors.append("briefing scaling must retain registered design areas")
+    if any(reference not in mode for reference in ("Goals::loadGoalFromStream", "goal->getDescription(player)",
+                                                    "script.importFromStream(level)", "LevelScriptActionType::objective",
+                                                    "action.mObjectiveId", 'descriptions += "\\n\\nOpen"')):
+        errors.append("briefing must read actual goal descriptions and parsed script objectives")
+    number = r"-?\d+(?:\.\d+)?"
+    areas = {name: [float(value) for value in re.findall(number, properties[name]["Area"])] for name in required}
+    runtime = {}
+    for name in ("BRIEFING_PREVIEW_PANEL_AREA", "BRIEFING_TEXT_PANEL_AREA", "BRIEFING_PREVIEW_STORY_AREA",
+                 "BRIEFING_PREVIEW_GOALS_AREA", "BRIEFING_STORY_AREA", "BRIEFING_GOALS_AREA", "BRIEFING_TEXT_AREA"):
+        match = re.search(r"CEGUI::URect " + name + r"\((.*?)\);", mode, re.S)
+        if match is None:
+            return errors + ["briefing is missing registered design area " + name]
+        runtime[name] = [float(value) for value in re.findall(number, match[1])]
+        if len(runtime[name]) != 8:
+            return errors + ["briefing design area cannot be read: " + name]
     for width, height in ((1280, 720), (1920, 1080)):
+        design_width = float(re.search(r"LAYOUT_DESIGN_WIDTH = ([0-9.]+)f", gui)[1])
+        design_height = float(re.search(r"LAYOUT_DESIGN_HEIGHT = ([0-9.]+)f", gui)[1])
         scale = min(width / design_width, height / design_height)
-        panel = layout_rectangle(windows["BriefingPanel"], width, height, scale)
-        panel_width, panel_height = panel[2] - panel[0], panel[3] - panel[1]
-        if panel[0] < 0 or panel[1] < 0 or panel[2] > width or panel[3] > height:
-            errors.append(str(width) + "x" + str(height) + ": briefing panel outside viewport")
-        rectangles = {name: layout_rectangle(windows[name], panel_width, panel_height, scale)
-                      for name in names[1:]}
-        image = rectangles["BriefingImage"]
-        text = rectangles["BriefingText"]
-        buttons = (rectangles["BriefingStartButton"], rectangles["BriefingCloseButton"])
-        if image[3] > text[1] or text[3] > min(button[1] for button in buttons):
-            errors.append(str(width) + "x" + str(height) + ": briefing content overlaps")
-        if abs((image[2] - image[0]) / (image[3] - image[1])
-               - PREVIEW_WIDTH / PREVIEW_HEIGHT) > LAYOUT_TOLERANCE:
-            errors.append(str(width) + "x" + str(height) + ": preview area is not 16:9")
-        for rectangle in rectangles.values():
-            if (rectangle[0] < 0 or rectangle[1] < 0 or rectangle[2] > panel_width
-                    or rectangle[3] > panel_height):
-                errors.append(str(width) + "x" + str(height) + ": briefing child outside panel")
+        for preview in (True, False):
+            panel = scaled_rectangle(runtime["BRIEFING_PREVIEW_PANEL_AREA" if preview else "BRIEFING_TEXT_PANEL_AREA"],
+                                     (width, height), scale)
+            size = (panel[2] - panel[0], panel[3] - panel[1])
+            story = scaled_rectangle(runtime["BRIEFING_PREVIEW_STORY_AREA" if preview else "BRIEFING_STORY_AREA"], size, scale)
+            goals = scaled_rectangle(runtime["BRIEFING_PREVIEW_GOALS_AREA" if preview else "BRIEFING_GOALS_AREA"], size, scale)
+            buttons = [scaled_rectangle(areas[name], size, scale) for name in required[-2:]]
+            rectangles = [story, goals] + buttons
+            invalid = not (0 <= panel[0] < panel[2] <= width and 0 <= panel[1] < panel[3] <= height)
+            invalid |= story[2] >= goals[0] or max(story[3], goals[3]) >= min(button[1] for button in buttons)
+            if preview:
+                image = scaled_rectangle(areas["BriefingImage"], size, scale)
+                rectangles.append(image)
+                invalid |= image[3] >= min(story[1], goals[1])
+                invalid |= abs((image[2] - image[0]) / (image[3] - image[1]) - 16 / 9) > 0.000001
+                invalid |= any(areas[xml_name] != runtime[cpp_name] for xml_name, cpp_name in (
+                    ("BriefingPanel", "BRIEFING_PREVIEW_PANEL_AREA"),
+                    ("BriefingText", "BRIEFING_PREVIEW_STORY_AREA"), ("BriefingGoals", "BRIEFING_PREVIEW_GOALS_AREA")))
+            invalid |= any(not (0 <= rect[0] < rect[2] <= size[0] and 0 <= rect[1] < rect[3] <= size[1]) for rect in rectangles)
+            if invalid:
+                errors.append(f"briefing image/story/goals/buttons overlap or exceed bounds at {width}x{height} (preview={preview})")
     return errors
 
 
-# Validate configured assets and the aspect-safe, non-overlapping briefing layout.
+# Validate every configured preview and the briefing image window.
 def check_repository(root):
     failures = []
     levels = read_levels((root / "levels/campaign/Campaign.cfg").read_text(encoding="utf-8"))
@@ -168,8 +189,8 @@ def check_repository(root):
                for window in layout.iter("Window")):
         failures.append("layout is missing the OD/StaticImage BriefingImage window")
     failures.extend(briefing_layout_errors(layout,
-                    (root / "source/modes/MenuModeCampaign.cpp").read_text(encoding="utf-8"),
-                    (root / "source/render/Gui.cpp").read_text(encoding="utf-8")))
+        (root / "source/modes/MenuModeCampaign.cpp").read_text(encoding="utf-8"),
+        (root / "source/render/Gui.cpp").read_text(encoding="utf-8")))
     return failures
 
 
@@ -201,18 +222,20 @@ def self_test():
     assert read_levels("# [Level] starts each campaign entry.\n[Level]\nProvince=T01\nPreview=previews/T01.png\n[/Level]\n") == [{"Province": "T01", "Preview": "previews/T01.png"}]
     assert read_levels("[Level]\n[/Level]\n") == [{}], "empty real level hidden"
     root = Path(__file__).resolve().parents[2]
-    layout = ET.fromstring((root / "gui/MenuCampaign.layout").read_text(encoding="utf-8"))
+    layout_text = (root / "gui/MenuCampaign.layout").read_text(encoding="utf-8")
     mode = (root / "source/modes/MenuModeCampaign.cpp").read_text(encoding="utf-8")
     gui = (root / "source/render/Gui.cpp").read_text(encoding="utf-8")
-    assert not briefing_layout_errors(layout, mode, gui), "current briefing geometry rejected"
-    assert briefing_layout_errors(layout, mode.replace("gui.setScaledArea(", "window.setProperty("), gui), \
-        "unscaled runtime areas accepted"
-    for window in layout.iter("Window"):
-        if window.get("name") == "BriefingImage":
-            for prop in window.findall("Property"):
-                if prop.get("name") == "Area":
-                    prop.set("value", "{{0,16},{0,16},{1,-16},{0,600}}")
-    assert briefing_layout_errors(layout, mode, gui), "overlapping, distorted preview accepted"
+    assert not briefing_layout_errors(ET.fromstring(layout_text), mode, gui)
+    overlap = layout_text.replace("{{0.5,8},{0,392},{1,-16},{1,-72}}", "{{0,16},{0,392},{1,-16},{1,-72}}")
+    assert briefing_layout_errors(ET.fromstring(overlap), mode, gui), "overlapping goals accepted"
+    distortion = layout_text.replace('name="AspectRatio" value="1.77777778"', 'name="AspectRatio" value="1"')
+    assert briefing_layout_errors(ET.fromstring(distortion), mode, gui), "distorted image accepted"
+    missing_id = mode.replace("action.mObjectiveId", "action.mText")
+    assert briefing_layout_errors(ET.fromstring(layout_text), missing_id, gui), "missing script objective IDs accepted"
+    unscaled = mode.replace("gui.setScaledArea(", "window->setArea(")
+    assert briefing_layout_errors(ET.fromstring(layout_text), unscaled, gui), "unscaled runtime area accepted"
+    runtime_overlap = mode.replace("CEGUI::UDim(0.5f, -8)", "CEGUI::UDim(1, -16)")
+    assert briefing_layout_errors(ET.fromstring(layout_text), runtime_overlap, gui), "overlapping runtime story accepted"
     print("campaign preview checker self-tests passed")
 
 
