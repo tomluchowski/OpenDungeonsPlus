@@ -906,7 +906,7 @@ private:
     //! \brief Gold carried by the creature that will be dropped if it gets killed
     int32_t         mGoldCarried;
     //! \brief Server side. The gold carried that the clients were told last (cosmetic events only, not saved)
-    int32_t         mGoldCarriedNotified;
+    int32_t         mGoldCarriedCosmeticNotified;
 
     //! Skill type that will be dropped when the creature dies
     SkillType       mSkillTypeDropDeath;

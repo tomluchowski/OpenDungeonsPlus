@@ -443,6 +443,12 @@ Spatial/Game/ClaimTile/
 Spatial/Game/RocksFalling/
 -> RocksFalling*.ogg                   Svenskmand              CC-BY-SA 3.0
 
+Spatial/Rooms/Hatchery/Cluck/
+-> Cluck*.ogg                          OD Team                 GPLv3+                  Synthesised by tools/gen_room_effects_sound.py from sine waves (script generated, original work, not AI generated)
+
+Spatial/Rooms/Hatchery/RoosterCrow/
+-> RoosterCrow*.ogg                    OD Team                 GPLv3+                  Synthesised from sine waves and noise (script generated, original work, not AI generated)
+
 Spatial/Rooms/Treasury/DepositGold/
 -> DepositGold*.ogg                    jalastram               CC-BY 3.0               http://opengameart.org/content/coins-sounds
 
