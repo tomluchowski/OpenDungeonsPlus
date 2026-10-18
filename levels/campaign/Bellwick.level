@@ -3811,9 +3811,9 @@ Name	tolling
 Mode	once
 Cond	time	3
 Action	message	1	Bellwick stands over its own dead, master. The abbey bells call the faithful to arms, and Abbot Lorens Bell keeps an undead keeper in the undercroft to bring the sleepers up.
-Action	objective	1	Destroy the heart of the undead keeper in the north undercroft.
-Action	objective	1	Hold the nave against the faithful.
-Action	objective	1	Hold out until the two north gates of the nave are unsealed.
+Action	objectiveid	1	bellwick-o01	Destroy the heart of the undead keeper in the north undercroft.
+Action	objectiveid	1	bellwick-o02	Hold the nave against the faithful.
+Action	objectiveid	1	bellwick-o03	Hold out until the two north gates of the nave are unsealed.
 Action	portal	2	off
 [/Trigger]
 [Trigger]
@@ -3823,7 +3823,7 @@ Cond	claimed	1	SouthYard	40
 Action	message	1	The south yard is held. The long nave begins here and the abbey knows you are at the door.
 Action	reveal	1	Nave
 Action	reveal	1	Refectory
-Action	objective	1	Walk the nave to the transept.
+Action	objectiveid	1	bellwick-o04	Walk the nave to the transept.
 [/Trigger]
 [Trigger]
 Name	naveEntered
@@ -3849,6 +3849,7 @@ Action	reveal	1	EastCloister
 Action	reveal	1	Scriptorium
 Action	spawn	3	7	62	1	Knight:3	Monk:3	Elf:2	Adventurer:2
 Action	spawn	3	56	62	1	Knight:3	Monk:3	Dwarf2:2	Adventurer:2
+Action	objectivestate	1	bellwick-o04	reached
 [/Trigger]
 [Trigger]
 Name	kills1
@@ -3954,6 +3955,7 @@ Name	keeperHeartDown
 Mode	once
 Cond	goal	1	KillAllEnemies
 Action	message	1	The undead keeper is dust and the bells hang silent. Bellwick is yours.
+Action	objectivestate	1	bellwick-o01	reached
 Action	win	1
 [/Trigger]
 [Trigger]
@@ -3966,6 +3968,7 @@ Action	terrain	24	29	26	31	path
 Action	terrain	48	29	48	31	path
 Action	setflag	gatesOpen	1
 Action	portal	2	on
+Action	objectivestate	1	bellwick-o03	reached
 [/Trigger]
 [Trigger]
 Name	naveGatesLate
@@ -3977,6 +3980,7 @@ Action	terrain	24	29	26	31	path
 Action	terrain	48	29	48	31	path
 Action	setflag	gatesOpen	1
 Action	portal	2	on
+Action	objectivestate	1	bellwick-o03	reached
 [/Trigger]
 [Trigger]
 Name	cryptWell

@@ -2936,9 +2936,9 @@ Name	lowTide
 Mode	once
 Cond	time	3
 Action	message	1	Greywater lies on an underground river, master, and its warden trades with dwarves and sells iron to anyone with coin. You have no coin, so dig for it first.
-Action	objective	1	Kill Warden Corwin Gray in the river hall in the north.
-Action	objective	1	Mine 600 gold from the cave walls.
-Action	objective	1	Keep your dungeon heart alive.
+Action	objectiveid	1	greywater-o01	Kill Warden Corwin Gray in the river hall in the north.
+Action	objectiveid	1	greywater-o02	Mine 600 gold from the cave walls.
+Action	objectiveid	1	greywater-o03	Keep your dungeon heart alive.
 Action	portal	0	off
 [/Trigger]
 [Trigger]
@@ -2948,6 +2948,7 @@ Cond	mined	1	>=	600
 Action	message	1	That is a start. Two goblins heard the clink and want to join you. A bridge crossing is open south of the dungeon.
 Action	spawn	1	15	74	1	Goblin:1	Goblin:1	Spider:1
 Action	reveal	1	SouthLanding
+Action	objectivestate	1	greywater-o02	reached
 [/Trigger]
 [Trigger]
 Name	quarryClaimed
@@ -2962,7 +2963,7 @@ Cond	region	1	SouthLanding
 Action	message	1	Across the water another keeper holds a dungeon of his own, and the Greywater heroes are laying siege to it. If he falls, they will turn on you.
 Action	reveal	1	Siege
 Action	reveal	1	RivalHeart
-Action	objective	1	Cross the river and look at the besieged dungeon.
+Action	objectiveid	1	greywater-o04	Cross the river and look at the besieged dungeon.
 [/Trigger]
 [Trigger]
 Name	siegeSeen
@@ -2970,6 +2971,7 @@ Mode	once
 Cond	region	1	Siege
 Action	message	1	The besiegers are thin. Strike them from behind and the rival will have to deal with you, not them.
 Action	spawn	3	36	30	2	Knight:2	Adventurer:2	Adventurer:2
+Action	objectivestate	1	greywater-o04	reached
 [/Trigger]
 [Trigger]
 Name	midBankHeld
@@ -3033,6 +3035,8 @@ Name	wardenFalls
 Mode	once
 Cond	event	CorwinGray	killed
 Action	message	1	Corwin Gray is dead and the river belongs to you. The dwarves will want new terms.
+Action	objectivestate	1	greywater-o01	reached
+Action	objectivestate	1	greywater-o03	reached
 Action	win	1
 [/Trigger]
 [Trigger]

@@ -3083,9 +3083,9 @@ Name	tide
 Mode	once
 Cond	time	3
 Action	message	1	Saltmere is a string of salt flats and lagoons, master, and at the bottom of the map sits the port where Admiral Bram Seward keeps his fleet. You start with a dungeon but no coin.
-Action	objective	1	Kill Admiral Bram Seward in the port at the southern end.
-Action	objective	1	Mine 800 gold from the salt walls.
-Action	objective	1	Keep your dungeon heart alive.
+Action	objectiveid	1	saltmere-o01	Kill Admiral Bram Seward in the port at the southern end.
+Action	objectiveid	1	saltmere-o02	Mine 800 gold from the salt walls.
+Action	objectiveid	1	saltmere-o03	Keep your dungeon heart alive.
 Action	portal	0	off
 [/Trigger]
 [Trigger]
@@ -3094,6 +3094,7 @@ Mode	once
 Cond	mined	1	>=	800
 Action	message	1	The salt walls pay well. Orcs from the dry caves have heard of it.
 Action	spawn	1	16	13	1	Orc:2	Goblin:2
+Action	objectivestate	1	saltmere-o02	reached
 [/Trigger]
 [Trigger]
 Name	ventsReached
@@ -3127,8 +3128,9 @@ Action	terrain	40	78	41	78	path
 Action	terrain	48	78	49	78	path
 Action	setflag	portGatesOpen	1
 Action	portal	0	on
-Action	objective	1	Break open the gates of the port.
+Action	objectiveid	1	saltmere-o04	Break open the gates of the port.
 Action	generate	1	Spider:1
+Action	objectivestate	1	saltmere-o04	reached
 [/Trigger]
 [Trigger]
 Name	portEntered
@@ -3136,7 +3138,7 @@ Mode	once
 Cond	region	1	Port
 Action	message	1	Horns sound over the water. Seward has called every deckhand ashore.
 Action	spawn	3	40	84	1	Knight:3	Knight:2	Dwarf2:2	Monk:2	Adventurer:2
-Action	objective	1	Find the admiral in the harbour hall.
+Action	objectiveid	1	saltmere-o05	Find the admiral in the harbour hall.
 [/Trigger]
 [Trigger]
 Name	coveSeen
@@ -3204,12 +3206,16 @@ Action	terrain	40	78	41	78	path
 Action	terrain	48	78	49	78	path
 Action	setflag	portGatesOpen	1
 Action	portal	0	on
+Action	objectivestate	1	saltmere-o04	reached
 [/Trigger]
 [Trigger]
 Name	admiralFalls
 Mode	once
 Cond	event	BramSeward	killed
 Action	message	1	Admiral Bram Seward is dead and his fleet is without a flag. Saltmere is yours.
+Action	objectivestate	1	saltmere-o01	reached
+Action	objectivestate	1	saltmere-o03	reached
+Action	objectivestate	1	saltmere-o05	reached
 Action	win	1
 [/Trigger]
 [Trigger]

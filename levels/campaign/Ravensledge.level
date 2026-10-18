@@ -2187,8 +2187,8 @@ Name	firstCall
 Mode	once
 Cond	time	3
 Action	message	1	The Ravensledge fort sits on three cliff shelves, my lord, and the chasms between them have only a few crossings. Captain Osric Vane keeps archers on every ledge.
-Action	objective	1	Slay Captain Osric Vane in the keep on the highest shelf.
-Action	objective	1	Cross the lower chasm and take the middle shelf.
+Action	objectiveid	1	ravensledge-o01	Slay Captain Osric Vane in the keep on the highest shelf.
+Action	objectiveid	1	ravensledge-o02	Cross the lower chasm and take the middle shelf.
 [/Trigger]
 [Trigger]
 Name	purseFilled
@@ -2203,7 +2203,7 @@ Cond	region	1	Shelf
 Action	message	1	You are over the first chasm. The upper bridges are watched, so make the shelf your own before you cross.
 Action	reveal	1	WestLanding
 Action	reveal	1	EastLanding
-Action	objective	1	Claim 80 tiles of the middle shelf.
+Action	objectiveid	1	ravensledge-o03	Claim 80 tiles of the middle shelf.
 [/Trigger]
 [Trigger]
 Name	shelfHeld
@@ -2211,7 +2211,9 @@ Mode	once
 Cond	claimed	1	Shelf	80
 Action	message	1	The shelf is yours. Now bring something sturdy across the upper bridge.
 Action	reveal	1	Yard
-Action	objective	1	Cross the upper chasm and break into the yard.
+Action	objectiveid	1	ravensledge-o04	Cross the upper chasm and break into the yard.
+Action	objectivestate	1	ravensledge-o02	reached
+Action	objectivestate	1	ravensledge-o03	reached
 [/Trigger]
 [Trigger]
 Name	yardEntered
@@ -2220,7 +2222,8 @@ Cond	region	1	Yard
 Action	message	1	The yard bell is ringing. Vane has sent his sentries down to meet you.
 Action	spawn	3	30	15	1	Knight:2	Elf:2	Adventurer:2	Monk:2
 Action	reveal	1	Keep
-Action	objective	1	Break the inner gate to the keep.
+Action	objectiveid	1	ravensledge-o05	Break the inner gate to the keep.
+Action	objectivestate	1	ravensledge-o04	reached
 [/Trigger]
 [Trigger]
 Name	flankSeen
@@ -2256,6 +2259,7 @@ Mode	once
 Cond	time	5
 Cond	creatures	2	<=	0
 Action	message	1	Captain Vane has fallen and the ravens have left the ledge. Ravensledge is yours.
+Action	objectivestate	1	ravensledge-o01	reached
 Action	win	1
 [/Trigger]
 [Trigger]

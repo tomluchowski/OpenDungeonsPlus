@@ -4536,9 +4536,9 @@ Name	descent
 Mode	once
 Cond	time	3
 Action	message	1	Silverdeep, master, the richest mines of the kingdom. Warden Dorian Silt has let three keepers dig his seams and now they are digging each other.
-Action	objective	1	Destroy the heart of every rival keeper.
-Action	objective	1	Cross the three lakes by the wooden spans.
-Action	objective	1	You have no gold: mine the silver first.
+Action	objectiveid	1	silverdeep-o01	Destroy the heart of every rival keeper.
+Action	objectiveid	1	silverdeep-o02	Cross the three lakes by the wooden spans.
+Action	objectiveid	1	silverdeep-o03	You have no gold: mine the silver first.
 Action	portal	1	off
 [/Trigger]
 [Trigger]
@@ -4778,6 +4778,7 @@ Name	silverWonGoal
 Mode	once
 Cond	goal	1	KillAllEnemies
 Action	message	1	The last rival lies dead beside his silver. Silverdeep answers to you.
+Action	objectivestate	1	silverdeep-o01	reached
 Action	win	1
 [/Trigger]
 [Trigger]

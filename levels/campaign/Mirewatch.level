@@ -5732,9 +5732,9 @@ Name	dusk
 Mode	once
 Cond	time	3
 Action	message	1	The mire is awake, master. Watcher Mora Fenwick has eight towers in the marsh and she sleeps in the last of them, behind sealed ground.
-Action	objective	1	Kill Watcher Mora Fenwick in her tower, in the north-east.
-Action	objective	1	You have only workers: dig, claim and build before you march.
-Action	objective	1	Take the towers on the way, one by one.
+Action	objectiveid	1	mirewatch-o01	Kill Watcher Mora Fenwick in her tower, in the north-east.
+Action	objectiveid	1	mirewatch-o02	You have only workers: dig, claim and build before you march.
+Action	objectiveid	1	mirewatch-o03	Take the towers on the way, one by one.
 Action	portal	1	off
 [/Trigger]
 [Trigger]
@@ -5764,7 +5764,7 @@ Action	reveal	1	TowerB
 Action	reveal	1	TowerC
 Action	gold	1	500
 Action	spawn	3	47	98	1	Knight:2	Elf:2	Adventurer:2
-Action	objective	1	Possess a creature and scout the north-west tower for the marsh road.
+Action	objectiveid	1	mirewatch-o04	Possess a creature and scout the north-west tower for the marsh road.
 [/Trigger]
 [Trigger]
 Name	towerB
@@ -5824,7 +5824,7 @@ Cond	flag	eastHeld	1
 Cond	flag	northHeld	1
 Action	message	1	Both approaches to the warden are in your hands. The stone doors grind open. Go in and finish the watch.
 Action	reveal	1	TowerH
-Action	objective	1	Enter the warden's tower and kill Mora Fenwick.
+Action	objectiveid	1	mirewatch-o05	Enter the warden's tower and kill Mora Fenwick.
 Action	spawn	3	61	47	1	Knight:4	Knight:4	Elf:4	Monk:3	Dwarf2:3
 [/Trigger]
 [Trigger]
@@ -5903,6 +5903,8 @@ Mode	once
 Cond	time	5
 Cond	creatures	2	<=	0
 Action	message	1	Mora Fenwick is dead and the beacon fires have gone out. Mirewatch is yours.
+Action	objectivestate	1	mirewatch-o01	reached
+Action	objectivestate	1	mirewatch-o05	reached
 Action	win	1
 [/Trigger]
 [Trigger]
@@ -5945,5 +5947,6 @@ Cond	possessed	1	TowerC
 Action	message	1	Your scout looks down from the north-west tower. The road beyond is clear, and a drowned cache is yours.
 Action	reveal	1	TowerE
 Action	gold	1	400
+Action	objectivestate	1	mirewatch-o04	reached
 [/Trigger]
 [/Triggers]

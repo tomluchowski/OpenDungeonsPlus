@@ -4233,8 +4233,8 @@ Name	forge
 Mode	once
 Cond	time	3
 Action	message	1	Ironbridge forges the arms of the kingdom, master, and it does it between three rifts of molten rock. Every crossing is a stone bridge, and every bridgehead is guarded. Warden Gareth Fenn has a good deal of time, so use yours well.
-Action	objective	1	Destroy the heart of the rival keeper in the north-east hold.
-Action	objective	1	Cross the three rifts by the bridges.
+Action	objectiveid	1	ironbridge-o01	Destroy the heart of the rival keeper in the north-east hold.
+Action	objectiveid	1	ironbridge-o02	Cross the three rifts by the bridges.
 Action	timelimit	5400
 [/Trigger]
 [Trigger]
@@ -4251,7 +4251,7 @@ Cond	region	1	Foundry
 Action	message	1	The foundry still has its furnaces lit. A rival keeper holds the far bank of the second rift and he is building bridges, too.
 Action	reveal	1	CoalStore
 Action	reveal	1	RollingYard
-Action	objective	1	Cross the second rift.
+Action	objectiveid	1	ironbridge-o03	Cross the second rift.
 [/Trigger]
 [Trigger]
 Name	smithyReached
@@ -4272,7 +4272,8 @@ Mode	once
 Cond	region	1	RollingYard
 Action	message	1	The third rift is wide and its bridges are narrow. The rival keeper has put his best on the far side.
 Action	reveal	1	RivalGate
-Action	objective	1	Break through the gate of the rival hold.
+Action	objectiveid	1	ironbridge-o04	Break through the gate of the rival hold.
+Action	objectivestate	1	ironbridge-o03	reached
 [/Trigger]
 [Trigger]
 Name	gateReached
@@ -4356,6 +4357,7 @@ Name	rivalFalls
 Mode	once
 Cond	defeated	2
 Action	message	1	The rival keeper is gone and his heart is dark. The forges of Ironbridge are yours.
+Action	objectivestate	1	ironbridge-o01	reached
 Action	win	1
 [/Trigger]
 [Trigger]
@@ -4363,6 +4365,7 @@ Name	rivalHeartDown
 Mode	once
 Cond	goal	1	KillAllEnemies
 Action	message	1	The rival keeper is gone and his heart is dark. The forges of Ironbridge are yours.
+Action	objectivestate	1	ironbridge-o01	reached
 Action	win	1
 [/Trigger]
 [/Triggers]

@@ -5367,9 +5367,9 @@ Name	nightfall
 Mode	once
 Cond	time	3
 Action	message	1	Ebonrook is a black wood that keeps its own night, master. Warden Sabine Rook has hidden herself among the roots in the south and the rooks carry word of every move you make.
-Action	objective	1	Kill Warden Sabine Rook in the roots of the south-west.
-Action	objective	1	Cross the river by the north bridges.
-Action	objective	1	Your gold is gone: mine, and feed your army from the glades.
+Action	objectiveid	1	ebonrook-o01	Kill Warden Sabine Rook in the roots of the south-west.
+Action	objectiveid	1	ebonrook-o02	Cross the river by the north bridges.
+Action	objectiveid	1	ebonrook-o03	Your gold is gone: mine, and feed your army from the glades.
 Action	portal	1	off
 [/Trigger]
 [Trigger]
@@ -5419,11 +5419,12 @@ Name	crossed
 Mode	once
 Cond	region	1	SouthHub
 Action	message	1	The river is behind you. The south has three more glades and the way to the nest is sealed with stone in two places. Possess one of your creatures and walk it into the southern hollow, and the rooks will lose the south road.
-Action	objective	1	Possess a creature and walk it into the southern hollow.
+Action	objectiveid	1	ebonrook-o04	Possess a creature and walk it into the southern hollow.
 Action	reveal	1	SouthWest
 Action	reveal	1	SouthEast
 Action	reveal	1	Hollow
 Action	spawn	3	63	79	1	Knight:4	Elf:3	Monk:3	Dwarf2:3
+Action	objectivestate	1	ebonrook-o02	reached
 [/Trigger]
 [Trigger]
 Name	hollowSeen
@@ -5448,7 +5449,7 @@ Name	rootsSeen
 Mode	once
 Cond	region	1	Roots
 Action	message	1	The roots of the black wood. Sabine Rook is here and she is awake.
-Action	objective	1	Strike down Sabine Rook.
+Action	objectiveid	1	ebonrook-o05	Strike down Sabine Rook.
 Action	spawn	2	38	98	1	Knight:5	Elf:4	Monk:4	Dwarf2:4
 [/Trigger]
 [Trigger]
@@ -5618,6 +5619,8 @@ Mode	once
 Cond	time	5
 Cond	creatures	2	<=	0
 Action	message	1	Sabine Rook is dead and the rooks fly south. Ebonrook is yours.
+Action	objectivestate	1	ebonrook-o01	reached
+Action	objectivestate	1	ebonrook-o05	reached
 Action	win	1
 [/Trigger]
 [Trigger]
@@ -5680,5 +5683,6 @@ Cond	possessed	1	Hollow
 Action	message	1	Your possessed scout stands in the southern hollow. The rooks see it and pull back from the south road, and a cache of coin lies open.
 Action	terrain	44	97	46	98	path
 Action	gold	1	600
+Action	objectivestate	1	ebonrook-o04	reached
 [/Trigger]
 [/Triggers]

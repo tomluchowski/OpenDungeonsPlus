@@ -3421,8 +3421,8 @@ Name	reedCall
 Mode	once
 Cond	time	3
 Action	message	1	Hollin Fen is a bog of holly thickets, master, and its convent has more soldiers than nuns. Sister Agathe Hollin keeps every door shut and sends out patrols without rest.
-Action	objective	1	Kill Sister Agathe Hollin in the convent chapel.
-Action	objective	1	Hold your heart against the convent patrols.
+Action	objectiveid	1	hollinfen-o01	Kill Sister Agathe Hollin in the convent chapel.
+Action	objectiveid	1	hollinfen-o02	Hold your heart against the convent patrols.
 [/Trigger]
 [Trigger]
 Name	fenEntered
@@ -3449,7 +3449,7 @@ Mode	once
 Cond	claimed	1	Causeway	40
 Action	message	1	The causeway cave is yours and the convent west gate is within reach.
 Action	reveal	1	Ward
-Action	objective	1	Break through the west gate of the convent ward.
+Action	objectiveid	1	hollinfen-o03	Break through the west gate of the convent ward.
 [/Trigger]
 [Trigger]
 Name	wardEntered
@@ -3458,7 +3458,8 @@ Cond	region	1	Ward
 Action	message	1	Every bell in the convent is tolling. Sister Agathe has called out her whole guard.
 Action	spawn	3	56	56	1	Knight:3	Knight:2	Elf:2	Monk:2	Adventurer:2
 Action	reveal	1	Chapel
-Action	objective	1	Reach the chapel and strike down the warden.
+Action	objectiveid	1	hollinfen-o04	Reach the chapel and strike down the warden.
+Action	objectivestate	1	hollinfen-o03	reached
 [/Trigger]
 [Trigger]
 Name	hollowFound
@@ -3550,6 +3551,9 @@ Mode	once
 Cond	time	5
 Cond	creatures	2	<=	0
 Action	message	1	Sister Agathe Hollin lies dead in her chapel, and the bells are silent. Hollin Fen is yours.
+Action	objectivestate	1	hollinfen-o01	reached
+Action	objectivestate	1	hollinfen-o02	reached
+Action	objectivestate	1	hollinfen-o04	reached
 Action	win	1
 [/Trigger]
 [/Triggers]

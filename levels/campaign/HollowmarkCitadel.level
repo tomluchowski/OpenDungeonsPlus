@@ -5670,9 +5670,9 @@ Name	siege
 Mode	once
 Cond	time	3
 Action	message	1	The capital, master. High King Castellan sits on his throne at the top of three walled courts, and the heroes of the whole kingdom are marching to defend him.
-Action	objective	1	Kill High King Castellan on his throne.
-Action	objective	1	Break through the three courts; the upper gates are sealed and open when the towers of each court have fallen.
-Action	objective	1	Survive the heroes who will not stop coming.
+Action	objectiveid	1	hollowmarkcitadel-o01	Kill High King Castellan on his throne.
+Action	objectiveid	1	hollowmarkcitadel-o02	Break through the three courts; the upper gates are sealed and open when the towers of each court have fallen.
+Action	objectiveid	1	hollowmarkcitadel-o03	Survive the heroes who will not stop coming.
 [/Trigger]
 [Trigger]
 Name	campHeld
@@ -6058,6 +6058,8 @@ Mode	once
 Cond	time	5
 Cond	alive	CastellanKing	0
 Action	message	1	High King Castellan is dead and the throne of Hollowmark is empty. The kingdom is yours.
+Action	objectivestate	1	hollowmarkcitadel-o01	reached
+Action	objectivestate	1	hollowmarkcitadel-o03	reached
 Action	win	1
 [/Trigger]
 [Trigger]

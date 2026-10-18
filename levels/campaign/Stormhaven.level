@@ -4022,9 +4022,9 @@ Name	landfall
 Mode	once
 Cond	time	3
 Action	message	1	The storm is breaking on Stormhaven, master. Captain Ivo Strand lets four keepers share his coast, and each thinks the harbour is his alone.
-Action	objective	1	Destroy the heart of every rival keeper.
-Action	objective	1	Cross the inlet by the stone spans.
-Action	objective	1	Do not let the keepers join their strength against you.
+Action	objectiveid	1	stormhaven-o01	Destroy the heart of every rival keeper.
+Action	objectiveid	1	stormhaven-o02	Cross the inlet by the stone spans.
+Action	objectiveid	1	stormhaven-o03	Do not let the keepers join their strength against you.
 Action	portal	2	off
 Action	portal	3	off
 [/Trigger]
@@ -4180,6 +4180,7 @@ Name	stormEndsGoal
 Mode	once
 Cond	goal	1	KillAllEnemies
 Action	message	1	The last keeper is dead and the harbour lies calm. Stormhaven answers to you.
+Action	objectivestate	1	stormhaven-o01	reached
 Action	win	1
 [/Trigger]
 [Trigger]

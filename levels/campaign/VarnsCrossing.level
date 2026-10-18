@@ -4445,9 +4445,9 @@ Name	arrival
 Mode	once
 Cond	time	3
 Action	message	1	Master, Varn holds the crossing of the two great roads, and two keepers have come to take it before you. The heroes of the kingdom will not stop marching while any of you stands.
-Action	objective	1	Destroy both rival keepers.
-Action	objective	1	Hold the keep and your heart against the stream of heroes.
-Action	objective	1	Claim your quarter, then take the lava-ringed fortress at the crossing.
+Action	objectiveid	1	varnscrossing-o01	Destroy both rival keepers.
+Action	objectiveid	1	varnscrossing-o02	Hold the keep and your heart against the stream of heroes.
+Action	objectiveid	1	varnscrossing-o03	Claim your quarter, then take the lava-ringed fortress at the crossing.
 Action	portal	1	off
 [/Trigger]
 [Trigger]
@@ -4765,6 +4765,8 @@ Mode	once
 Cond	goal	1	KillAllEnemies
 Action	message	1	Both keepers lie dead and the great roads are quiet. Varn has lost his crossing.
 Action	discover	campaign/SwarmNight.level
+Action	objectivestate	1	varnscrossing-o01	reached
+Action	objectivestate	1	varnscrossing-o02	reached
 Action	win	1
 [/Trigger]
 [Trigger]

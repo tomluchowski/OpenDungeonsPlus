@@ -1707,8 +1707,8 @@ Name	shiftBell
 Mode	once
 Cond	time	3
 Action	message	1	The Tinmoor miners know every shaft and every seam, my lord, and the warden sits behind two of their watch posts. You have little gold, so start with the seams.
-Action	objective	1	Kill Warden Merrin Tay in her chamber at the top of the mine.
-Action	objective	1	Mine 900 gold from the tin seams.
+Action	objectiveid	1	tinmoor-o01	Kill Warden Merrin Tay in her chamber at the top of the mine.
+Action	objectiveid	1	tinmoor-o02	Mine 900 gold from the tin seams.
 [/Trigger]
 [Trigger]
 Name	seamsFilled
@@ -1716,7 +1716,8 @@ Mode	once
 Cond	mined	1	>=	900
 Action	message	1	That is a good haul. Doors will keep the miners off your back.
 Action	reveal	1	PostA
-Action	objective	1	Break the lower watch post in the east gallery.
+Action	objectiveid	1	tinmoor-o03	Break the lower watch post in the east gallery.
+Action	objectivestate	1	tinmoor-o02	reached
 [/Trigger]
 [Trigger]
 Name	postAEntered
@@ -1733,7 +1734,8 @@ Cond	flag	postAAlarm	1
 Cond	kills	1	>=	7
 Action	message	1	The lower post is silent. A lift shaft leads up to the second one.
 Action	reveal	1	PostB
-Action	objective	1	Break the upper watch post below the warden.
+Action	objectiveid	1	tinmoor-o04	Break the upper watch post below the warden.
+Action	objectivestate	1	tinmoor-o03	reached
 [/Trigger]
 [Trigger]
 Name	postBEntered
@@ -1798,13 +1800,14 @@ Mode	once
 Cond	time	5
 Cond	creatures	2	<=	0
 Action	message	1	Merrin Tay is dead. The seams of Tinmoor are yours to work.
+Action	objectivestate	1	tinmoor-o01	reached
 Action	win	1
 [/Trigger]
 [Trigger]
 Name	scoutOrder
 Mode	once
 Cond	time	90
-Action	objective	1	Possess a creature and walk it through the seams to see where the miners dig.
+Action	objectiveid	1	tinmoor-o05	Possess a creature and walk it through the seams to see where the miners dig.
 [/Trigger]
 [Trigger]
 Name	scoutSeams
@@ -1812,5 +1815,6 @@ Mode	once
 Cond	possessed	1	Seams
 Action	message	1	Through your creature's eyes the seams lie open, and a miners' cache falls to you.
 Action	gold	1	400
+Action	objectivestate	1	tinmoor-o05	reached
 [/Trigger]
 [/Triggers]

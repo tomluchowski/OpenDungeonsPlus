@@ -1359,15 +1359,16 @@ Name	ferns
 Mode	once
 Cond	time	3
 Action	message	1	My lord, Brackenford is rich in gold and thin in soldiers. You have gold to spend, so spend it on rooms.
-Action	objective	1	Destroy Warden Elsa Brack and take her keep.
-Action	objective	1	Lay out a dormitory for your creatures.
+Action	objectiveid	1	brackenford-o01	Destroy Warden Elsa Brack and take her keep.
+Action	objectiveid	1	brackenford-o02	Lay out a dormitory for your creatures.
 [/Trigger]
 [Trigger]
 Name	bedsReady
 Mode	once
 Cond	room	1	Dormitory	1
 Action	message	1	Beds at last. The creatures from the old portal will want food as well.
-Action	objective	1	Build a hatchery.
+Action	objectiveid	1	brackenford-o03	Build a hatchery.
+Action	objectivestate	1	brackenford-o02	reached
 [/Trigger]
 [Trigger]
 Name	larderReady
@@ -1375,7 +1376,8 @@ Mode	once
 Cond	room	1	Hatchery	1
 Action	message	1	The larder is stocked. Now take the fern grove east of here and make it yours.
 Action	gold	1	400
-Action	objective	1	Claim the fern grove.
+Action	objectiveid	1	brackenford-o04	Claim the fern grove.
+Action	objectivestate	1	brackenford-o03	reached
 [/Trigger]
 [Trigger]
 Name	groveClaimed
@@ -1384,8 +1386,9 @@ Cond	claimed	1	Grove	22
 Action	message	1	Two goblins have heard about your grove and want a share. Let them stay.
 Action	spawn	1	12	28	-1	Goblin:2	Goblin:2
 Action	reveal	1	Landing
-Action	objective	1	Cross the ford and clear the landing yard.
+Action	objectiveid	1	brackenford-o05	Cross the ford and clear the landing yard.
 Action	generate	1	Goblin:1
+Action	objectivestate	1	brackenford-o04	reached
 [/Trigger]
 [Trigger]
 Name	landingSeen
@@ -1403,7 +1406,8 @@ Cond	kills	1	>=	4
 Action	message	1	The landing is clear. The village and the keep lie behind it.
 Action	reveal	1	Village
 Action	reveal	1	Keep
-Action	objective	1	Fight your way to the keep and slay the warden.
+Action	objectiveid	1	brackenford-o06	Fight your way to the keep and slay the warden.
+Action	objectivestate	1	brackenford-o05	reached
 [/Trigger]
 [Trigger]
 Name	firstFolk
@@ -1425,6 +1429,8 @@ Mode	once
 Cond	time	5
 Cond	creatures	2	<=	0
 Action	message	1	Warden Brack is dead. The ford folk are laying down their tools.
+Action	objectivestate	1	brackenford-o01	reached
+Action	objectivestate	1	brackenford-o06	reached
 Action	win	1
 [/Trigger]
 [/Triggers]

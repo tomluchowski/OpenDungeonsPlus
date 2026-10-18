@@ -4769,9 +4769,9 @@ Name	mist
 Mode	once
 Cond	time	3
 Action	message	1	Master, Wraithwood is a forest of grey trunks and drifting fog, and Witch-Warden Elowen Ash has bound a rival keeper to her cause. Their two hearts lie at opposite corners of the wood.
-Action	objective	1	Destroy the heart of the witch-warden in the north-west.
-Action	objective	1	Destroy the heart of the rival keeper in the north-east.
-Action	objective	1	Hold your own heart against the heroes of the kingdom.
+Action	objectiveid	1	wraithwood-o01	Destroy the heart of the witch-warden in the north-west.
+Action	objectiveid	1	wraithwood-o02	Destroy the heart of the rival keeper in the north-east.
+Action	objectiveid	1	wraithwood-o03	Hold your own heart against the heroes of the kingdom.
 [/Trigger]
 [Trigger]
 Name	westGlade
@@ -4843,6 +4843,9 @@ Name	bothFallGoal
 Mode	once
 Cond	goal	1	KillAllEnemies
 Action	message	1	The witch-warden and the rival keeper are both dead and the fog lifts from Wraithwood. The wood is yours.
+Action	objectivestate	1	wraithwood-o01	reached
+Action	objectivestate	1	wraithwood-o02	reached
+Action	objectivestate	1	wraithwood-o03	reached
 Action	win	1
 [/Trigger]
 [Trigger]

@@ -1389,8 +1389,8 @@ Name	firstFrost
 Mode	once
 Cond	time	3
 Action	message	1	Master, Coldwell drinks from one old well, and the springs say something lies beneath it. The warden keeps his keep shut tight.
-Action	objective	1	Slay Warden Hugo Cole in the keep hall.
-Action	objective	1	Reach the well plaza and find the gold below it.
+Action	objectiveid	1	coldwell-o01	Slay Warden Hugo Cole in the keep hall.
+Action	objectiveid	1	coldwell-o02	Reach the well plaza and find the gold below it.
 [/Trigger]
 [Trigger]
 Name	plazaReached
@@ -1398,7 +1398,8 @@ Mode	once
 Cond	region	1	Plaza
 Action	message	1	Here is the well. The rock south of it glints: that is gold, a whole block of it.
 Action	reveal	1	Undercroft
-Action	objective	1	Dig out 600 gold from the block under the plaza.
+Action	objectiveid	1	coldwell-o03	Dig out 600 gold from the block under the plaza.
+Action	objectivestate	1	coldwell-o02	reached
 [/Trigger]
 [Trigger]
 Name	wellEmptied
@@ -1406,7 +1407,8 @@ Mode	once
 Cond	mined	1	>=	600
 Action	message	1	The block is yours. Now you can afford a proper army.
 Action	reveal	1	Court
-Action	objective	1	Break the north gate of the keep.
+Action	objectiveid	1	coldwell-o04	Break the north gate of the keep.
+Action	objectivestate	1	coldwell-o03	reached
 [/Trigger]
 [Trigger]
 Name	townHeld
@@ -1424,6 +1426,7 @@ Action	message	1	The keep has sounded its horn. Guards are running from the hall
 Action	reveal	1	Hall
 Action	spawn	3	46	42	1	Knight:2	Adventurer:2	Adventurer:2
 Action	setflag	keepAlarmed	1
+Action	objectivestate	1	coldwell-o04	reached
 [/Trigger]
 [Trigger]
 Name	firstDrill
@@ -1452,6 +1455,7 @@ Mode	once
 Cond	time	5
 Cond	creatures	2	<=	0
 Action	message	1	Warden Cole is dead and the gates stand open. Coldwell is yours.
+Action	objectivestate	1	coldwell-o01	reached
 Action	win	1
 [/Trigger]
 [/Triggers]

@@ -3117,9 +3117,9 @@ Name	rising
 Mode	once
 Cond	time	3
 Action	message	1	Goldspire stands over the plateau like a coin on its edge, master. Treasurer Alaric Penn counts the kingdom's tax in its core and soldiers pour out of its gates day and night.
-Action	objective	1	Kill Treasurer Alaric Penn in the core of the spire.
-Action	objective	1	Dig gold and build a force of your own, the quarry is poor.
-Action	objective	1	Take the low town below the spire.
+Action	objectiveid	1	goldspire-o01	Kill Treasurer Alaric Penn in the core of the spire.
+Action	objectiveid	1	goldspire-o02	Dig gold and build a force of your own, the quarry is poor.
+Action	objectiveid	1	goldspire-o03	Take the low town below the spire.
 Action	portal	1	off
 [/Trigger]
 [Trigger]
@@ -3148,7 +3148,8 @@ Action	message	1	The low town is yours. The spire has taken notice and the first
 Action	setflag	southHeld	1
 Action	reveal	1	SouthGate
 Action	reveal	1	OuterRing
-Action	objective	1	Wait for the south gate to open, then break through onto the outer ring.
+Action	objectiveid	1	goldspire-o04	Wait for the south gate to open, then break through onto the outer ring.
+Action	objectivestate	1	goldspire-o03	reached
 [/Trigger]
 [Trigger]
 Name	yardSeen
@@ -3177,6 +3178,7 @@ Action	reveal	1	NorthEastWing
 Action	reveal	1	EastWing
 Action	reveal	1	MidRing
 Action	reveal	1	Ledge
+Action	objectivestate	1	goldspire-o04	reached
 [/Trigger]
 [Trigger]
 Name	wingSeen
@@ -3206,7 +3208,7 @@ Name	coreSeen
 Mode	once
 Cond	region	1	Core
 Action	message	1	The core of the spire. The treasurer is at his table, and his guards are rising.
-Action	objective	1	Strike down Alaric Penn.
+Action	objectiveid	1	goldspire-o05	Strike down Alaric Penn.
 [/Trigger]
 [Trigger]
 Name	alertFollowup
@@ -3312,6 +3314,8 @@ Mode	once
 Cond	time	5
 Cond	creatures	2	<=	0
 Action	message	1	Alaric Penn lies dead on his own coin. Goldspire is yours.
+Action	objectivestate	1	goldspire-o01	reached
+Action	objectivestate	1	goldspire-o05	reached
 Action	win	1
 [/Trigger]
 [Trigger]

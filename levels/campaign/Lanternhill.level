@@ -3063,9 +3063,9 @@ Name	dusk
 Mode	once
 Cond	time	3
 Action	message	1	Lanternhill is a hill that never goes dark, master. Its caves are lit from the ring road to the roots, and Lamplighter Ines Vale has set a rival keeper in the northern hall to keep them burning.
-Action	objective	1	Destroy the heart of the rival keeper in the north.
-Action	objective	1	Dig through the earth plugs to open the ring road.
-Action	objective	1	Hold your own heart against the hill patrols.
+Action	objectiveid	1	lanternhill-o01	Destroy the heart of the rival keeper in the north.
+Action	objectiveid	1	lanternhill-o02	Dig through the earth plugs to open the ring road.
+Action	objectiveid	1	lanternhill-o03	Hold your own heart against the hill patrols.
 [/Trigger]
 [Trigger]
 Name	ringEntered
@@ -3200,6 +3200,8 @@ Name	rivalHeartDown
 Mode	once
 Cond	goal	1	KillAllEnemies
 Action	message	1	The rival keeper is dead and his heart is cold. The lamps of Lanternhill burn for you now.
+Action	objectivestate	1	lanternhill-o01	reached
+Action	objectivestate	1	lanternhill-o03	reached
 Action	win	1
 [/Trigger]
 [/Triggers]
