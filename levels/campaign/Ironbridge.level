@@ -4368,4 +4368,174 @@ Action	message	1	The rival keeper is gone and his heart is dark. The forges of I
 Action	objectivestate	1	ironbridge-o01	reached
 Action	win	1
 [/Trigger]
+
+
+[Trigger]
+Name	goalIronbridgeSpan1Path1Before
+Mode	once
+Cond	region	1	35	20	35	21
+Action	setflag	goalIronbridgeSpan1Path1Before	1
+[/Trigger]
+[Trigger]
+Name	goalIronbridgeSpan1Path1On
+Mode	once
+Cond	region	1	36	20	39	21
+Cond	flag	goalIronbridgeSpan1Path1Before	1
+Action	setflag	goalIronbridgeSpan1Path1On	1
+[/Trigger]
+[Trigger]
+Name	goalIronbridgeSpan1Path1After
+Mode	once
+Cond	region	1	40	20	40	21
+Cond	flag	goalIronbridgeSpan1Path1On	1
+Action	setflag	goalIronbridgeCross1	1
+[/Trigger]
+[Trigger]
+Name	goalIronbridgeSpan1Path2Before
+Mode	once
+Cond	region	1	35	46	35	46
+Action	setflag	goalIronbridgeSpan1Path2Before	1
+[/Trigger]
+[Trigger]
+Name	goalIronbridgeSpan1Path2On
+Mode	once
+Cond	region	1	36	46	39	46
+Cond	flag	goalIronbridgeSpan1Path2Before	1
+Action	setflag	goalIronbridgeSpan1Path2On	1
+[/Trigger]
+[Trigger]
+Name	goalIronbridgeSpan1Path2After
+Mode	once
+Cond	region	1	40	46	40	46
+Cond	flag	goalIronbridgeSpan1Path2On	1
+Action	setflag	goalIronbridgeCross1	1
+[/Trigger]
+[Trigger]
+Name	goalIronbridgeSpan2Path1Before
+Mode	once
+Cond	region	1	61	12	61	12
+Cond	flag	goalIronbridgeCross1	1
+Action	setflag	goalIronbridgeSpan2Path1Before	1
+[/Trigger]
+[Trigger]
+Name	goalIronbridgeSpan2Path1On
+Mode	once
+Cond	region	1	62	12	65	12
+Cond	flag	goalIronbridgeSpan2Path1Before	1
+Action	setflag	goalIronbridgeSpan2Path1On	1
+[/Trigger]
+[Trigger]
+Name	goalIronbridgeSpan2Path1After
+Mode	once
+Cond	region	1	66	12	66	12
+Cond	flag	goalIronbridgeSpan2Path1On	1
+Action	setflag	goalIronbridgeCross2	1
+[/Trigger]
+[Trigger]
+Name	goalIronbridgeSpan2Path2Before
+Mode	once
+Cond	region	1	61	34	61	35
+Cond	flag	goalIronbridgeCross1	1
+Action	setflag	goalIronbridgeSpan2Path2Before	1
+[/Trigger]
+[Trigger]
+Name	goalIronbridgeSpan2Path2On
+Mode	once
+Cond	region	1	62	34	65	35
+Cond	flag	goalIronbridgeSpan2Path2Before	1
+Action	setflag	goalIronbridgeSpan2Path2On	1
+[/Trigger]
+[Trigger]
+Name	goalIronbridgeSpan2Path2After
+Mode	once
+Cond	region	1	66	34	66	35
+Cond	flag	goalIronbridgeSpan2Path2On	1
+Action	setflag	goalIronbridgeCross2	1
+[/Trigger]
+[Trigger]
+Name	goalIronbridgeSpan2Path3Before
+Mode	once
+Cond	region	1	61	54	61	54
+Cond	flag	goalIronbridgeCross1	1
+Action	setflag	goalIronbridgeSpan2Path3Before	1
+[/Trigger]
+[Trigger]
+Name	goalIronbridgeSpan2Path3On
+Mode	once
+Cond	region	1	62	54	65	54
+Cond	flag	goalIronbridgeSpan2Path3Before	1
+Action	setflag	goalIronbridgeSpan2Path3On	1
+[/Trigger]
+[Trigger]
+Name	goalIronbridgeSpan2Path3After
+Mode	once
+Cond	region	1	66	54	66	54
+Cond	flag	goalIronbridgeSpan2Path3On	1
+Action	setflag	goalIronbridgeCross2	1
+[/Trigger]
+[Trigger]
+Name	goalIronbridgeSpan3Path1Before
+Mode	once
+Cond	region	1	87	26	87	27
+Cond	flag	goalIronbridgeCross2	1
+Action	setflag	goalIronbridgeSpan3Path1Before	1
+[/Trigger]
+[Trigger]
+Name	goalIronbridgeSpan3Path1On
+Mode	once
+Cond	region	1	88	26	91	27
+Cond	flag	goalIronbridgeSpan3Path1Before	1
+Action	setflag	goalIronbridgeSpan3Path1On	1
+[/Trigger]
+[Trigger]
+Name	goalIronbridgeSpan3Path1After
+Mode	once
+Cond	region	1	92	26	92	27
+Cond	flag	goalIronbridgeSpan3Path1On	1
+Action	setflag	goalIronbridgeCross3	1
+[/Trigger]
+[Trigger]
+Name	goalIronbridgeSpan3Path2Before
+Mode	once
+Cond	region	1	87	48	87	48
+Cond	flag	goalIronbridgeCross2	1
+Action	setflag	goalIronbridgeSpan3Path2Before	1
+[/Trigger]
+[Trigger]
+Name	goalIronbridgeSpan3Path2On
+Mode	once
+Cond	region	1	88	48	91	48
+Cond	flag	goalIronbridgeSpan3Path2Before	1
+Action	setflag	goalIronbridgeSpan3Path2On	1
+[/Trigger]
+[Trigger]
+Name	goalIronbridgeSpan3Path2After
+Mode	once
+Cond	region	1	92	48	92	48
+Cond	flag	goalIronbridgeSpan3Path2On	1
+Action	setflag	goalIronbridgeCross3	1
+[/Trigger]
+[Trigger]
+Name	goalIronbridgeAllSpans
+Mode	once
+Cond	flag	goalIronbridgeCross1	1
+Cond	flag	goalIronbridgeCross2	1
+Cond	flag	goalIronbridgeCross3	1
+Action	objectivestate	1	ironbridge-o02	reached
+[/Trigger]
+
+[Trigger]
+Name	goalRivalGateNorth
+Mode	once
+Cond	trapgone	DoorWooden8
+Cond	region	1	94	26	94	26
+Action	objectivestate	1	ironbridge-o04	reached
+[/Trigger]
+[Trigger]
+Name	goalRivalGateSouth
+Mode	once
+Cond	trapgone	DoorWooden9
+Cond	region	1	94	27	94	27
+Action	objectivestate	1	ironbridge-o04	reached
+[/Trigger]
 [/Triggers]

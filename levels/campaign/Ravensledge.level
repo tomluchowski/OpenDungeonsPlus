@@ -2269,4 +2269,11 @@ Cond	health	OsricVane	<	40
 Action	message	1	The captain is hurt. The fort's last guards are rushing to the keep.
 Action	spawn	3	30	8	1	Knight:2	Monk:2
 [/Trigger]
+
+[Trigger]
+Name	goalInnerKeepEntered
+Mode	once
+Cond	trapgone	DoorWooden1
+Action	objectivestate	1	ravensledge-o05	reached
+[/Trigger]
 [/Triggers]

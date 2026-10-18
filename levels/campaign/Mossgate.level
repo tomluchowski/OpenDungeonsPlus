@@ -765,7 +765,6 @@ Cond	kills	1	>=	3
 Action	message	1	The yard is quiet. Only the reeve and his hall are left.
 Action	reveal	1	Hall
 Action	objectiveid	1	mossgate-o05	Enter the hall and slay the reeve.
-Action	objectivestate	1	mossgate-o04	reached
 [/Trigger]
 [Trigger]
 Name	firstRelief
@@ -797,5 +796,14 @@ Mode	once
 Cond	health	ReeveMarsh	<	40
 Action	message	1	The reeve is bleeding and calling for the last of his watch.
 Action	spawn	3	8	6	1	Adventurer:1	Adventurer:1
+[/Trigger]
+
+[Trigger]
+Name	goalWatchPostCleared
+Mode	once
+Cond	event	PostWatch1	killed
+Cond	event	PostWatch2	killed
+Cond	spawncleared	postStirs	1
+Action	objectivestate	1	mossgate-o04	reached
 [/Trigger]
 [/Triggers]

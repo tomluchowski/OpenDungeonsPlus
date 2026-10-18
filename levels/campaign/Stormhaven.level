@@ -4165,6 +4165,48 @@ Action	message	1	The east quay has thrown its last guard against you.
 Action	spawn	5	37	71	1	Troll:4	Troll:3	Orc:4	Goblin:3
 [/Trigger]
 [Trigger]
+Name	goalPactFormedQuayEntered
+Mode	once
+Cond	trigger	quayEntered
+Cond	objective	1	stormhaven-o03	open
+Action	objectivestate	1	stormhaven-o03	failed
+[/Trigger]
+
+[Trigger]
+Name	goalPactFormedDockEntered
+Mode	once
+Cond	trigger	dockEntered
+Cond	objective	1	stormhaven-o03	open
+Action	objectivestate	1	stormhaven-o03	failed
+[/Trigger]
+
+[Trigger]
+Name	goalPactFormedTideTurns
+Mode	once
+Cond	trigger	tideTurns
+Cond	objective	1	stormhaven-o03	open
+Action	objectivestate	1	stormhaven-o03	failed
+[/Trigger]
+
+[Trigger]
+Name	goalPactFormedTideTurns2
+Mode	once
+Cond	trigger	tideTurns2
+Cond	objective	1	stormhaven-o03	open
+Action	objectivestate	1	stormhaven-o03	failed
+[/Trigger]
+
+[Trigger]
+Name	goalPactsPrevented
+Mode	once
+Cond	goalmet	1	KillAllEnemies
+Cond	trigger	quayEntered	0
+Cond	trigger	dockEntered	0
+Cond	trigger	tideTurns	0
+Cond	trigger	tideTurns2	0
+Action	objectivestate	1	stormhaven-o03	reached
+[/Trigger]
+[Trigger]
 Name	stormEnds
 Mode	once
 Cond	time	5
@@ -4206,5 +4248,53 @@ Cond	time	1500
 Action	message	1	The northern keepers have thrown their portals open and are calling every recruit in the harbour.
 Action	portal	2	on
 Action	portal	3	on
+[/Trigger]
+
+[Trigger]
+Name	goalStormhavenSpan1Before
+Mode	once
+Cond	region	1	35	70	35	71
+Action	setflag	goalStormhavenSpan1Before	1
+[/Trigger]
+[Trigger]
+Name	goalStormhavenSpan1On
+Mode	once
+Cond	region	1	30	70	34	71
+Cond	flag	goalStormhavenSpan1Before	1
+Action	setflag	goalStormhavenSpan1On	1
+[/Trigger]
+[Trigger]
+Name	goalStormhavenSpan1After
+Mode	once
+Cond	region	1	29	70	29	71
+Cond	flag	goalStormhavenSpan1On	1
+Action	setflag	goalStormhavenSpan1After	1
+[/Trigger]
+[Trigger]
+Name	goalStormhavenSpan2Before
+Mode	once
+Cond	region	1	29	33	29	34
+Action	setflag	goalStormhavenSpan2Before	1
+[/Trigger]
+[Trigger]
+Name	goalStormhavenSpan2On
+Mode	once
+Cond	region	1	30	33	34	34
+Cond	flag	goalStormhavenSpan2Before	1
+Action	setflag	goalStormhavenSpan2On	1
+[/Trigger]
+[Trigger]
+Name	goalStormhavenSpan2After
+Mode	once
+Cond	region	1	35	33	35	34
+Cond	flag	goalStormhavenSpan2On	1
+Action	setflag	goalStormhavenSpan2After	1
+[/Trigger]
+[Trigger]
+Name	goalStormhavenBothSpans
+Mode	once
+Cond	flag	goalStormhavenSpan1After	1
+Cond	flag	goalStormhavenSpan2After	1
+Action	objectivestate	1	stormhaven-o02	reached
 [/Trigger]
 [/Triggers]

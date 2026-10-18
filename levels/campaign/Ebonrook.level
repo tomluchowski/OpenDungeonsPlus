@@ -5369,7 +5369,7 @@ Cond	time	3
 Action	message	1	Ebonrook is a black wood that keeps its own night, master. Warden Sabine Rook has hidden herself among the roots in the south and the rooks carry word of every move you make.
 Action	objectiveid	1	ebonrook-o01	Kill Warden Sabine Rook in the roots of the south-west.
 Action	objectiveid	1	ebonrook-o02	Cross the river by the north bridges.
-Action	objectiveid	1	ebonrook-o03	Your gold is gone: mine, and feed your army from the glades.
+Action	hint	1	Your gold is gone: mine, and feed your army from the glades.
 Action	portal	1	off
 [/Trigger]
 [Trigger]

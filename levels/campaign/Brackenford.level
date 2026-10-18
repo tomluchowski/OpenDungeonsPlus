@@ -1399,6 +1399,60 @@ Action	spawn	3	36	23	1	Adventurer:1	Adventurer:1
 Action	setflag	fordRaised	1
 [/Trigger]
 [Trigger]
+Name	goalFordWest1
+Mode	once
+Cond	region	1	24	22	24	22
+Action	setflag	goalFordApproached	1
+[/Trigger]
+
+[Trigger]
+Name	goalFordWest2
+Mode	once
+Cond	region	1	24	23	24	23
+Action	setflag	goalFordApproached	1
+[/Trigger]
+
+[Trigger]
+Name	goalFordWest3
+Mode	once
+Cond	region	1	23	24	23	24
+Action	setflag	goalFordApproached	1
+[/Trigger]
+
+[Trigger]
+Name	goalFordEast1
+Mode	once
+Cond	flag	goalFordApproached	1
+Cond	region	1	30	22	30	22
+Action	setflag	goalFordCrossed	1
+[/Trigger]
+
+[Trigger]
+Name	goalFordEast2
+Mode	once
+Cond	flag	goalFordApproached	1
+Cond	region	1	30	23	30	23
+Action	setflag	goalFordCrossed	1
+[/Trigger]
+
+[Trigger]
+Name	goalFordEast3
+Mode	once
+Cond	flag	goalFordApproached	1
+Cond	region	1	29	24	29	24
+Action	setflag	goalFordCrossed	1
+[/Trigger]
+
+[Trigger]
+Name	goalLandingCleared
+Mode	once
+Cond	flag	goalFordCrossed	1
+Cond	event	FordGuard1	killed
+Cond	event	FordGuard2	killed
+Cond	spawncleared	landingSeen	1
+Action	objectivestate	1	brackenford-o05	reached
+[/Trigger]
+[Trigger]
 Name	villageOpen
 Mode	once
 Cond	flag	fordRaised	1
@@ -1407,7 +1461,6 @@ Action	message	1	The landing is clear. The village and the keep lie behind it.
 Action	reveal	1	Village
 Action	reveal	1	Keep
 Action	objectiveid	1	brackenford-o06	Fight your way to the keep and slay the warden.
-Action	objectivestate	1	brackenford-o05	reached
 [/Trigger]
 [Trigger]
 Name	firstFolk

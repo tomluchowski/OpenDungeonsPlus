@@ -4029,4 +4029,29 @@ Cond	claimed	1	Oasis	40
 Action	message	1	The oasis is ours. A wandering spider has smelled the water and comes to serve you.
 Action	generate	1	Spider:1
 [/Trigger]
+
+[Trigger]
+Name	goalCampBeforeLoading
+Mode	once
+Cond	flag	wagons	0
+Cond	region	1	Camp
+Action	objectivestate	1	dunmarrow-o03	reached
+Action	setflag	goalCampArrived	1
+[/Trigger]
+[Trigger]
+Name	goalCampBeforeDeparture
+Mode	once
+Cond	flag	wagons	1
+Cond	timer	wagonClock	<	900
+Cond	region	1	Camp
+Action	objectivestate	1	dunmarrow-o03	reached
+Action	setflag	goalCampArrived	1
+[/Trigger]
+[Trigger]
+Name	goalCampMissed
+Mode	once
+Cond	trigger	wagonLeaves
+Cond	flag	goalCampArrived	0
+Action	objectivestate	1	dunmarrow-o03	failed
+[/Trigger]
 [/Triggers]

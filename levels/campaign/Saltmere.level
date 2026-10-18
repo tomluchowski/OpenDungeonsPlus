@@ -3209,12 +3209,18 @@ Action	portal	0	on
 Action	objectivestate	1	saltmere-o04	reached
 [/Trigger]
 [Trigger]
+Name	goalHeartSafe3BeforeAdmiralFalls
+Mode	once
+Cond	event	BramSeward	killed
+Cond	goalmet	1	ProtectDungeonTemple
+Action	objectivestate	1	saltmere-o03	reached
+[/Trigger]
+[Trigger]
 Name	admiralFalls
 Mode	once
 Cond	event	BramSeward	killed
 Action	message	1	Admiral Bram Seward is dead and his fleet is without a flag. Saltmere is yours.
 Action	objectivestate	1	saltmere-o01	reached
-Action	objectivestate	1	saltmere-o03	reached
 Action	objectivestate	1	saltmere-o05	reached
 Action	win	1
 [/Trigger]
@@ -3224,5 +3230,12 @@ Mode	once
 Cond	health	BramSeward	<	40
 Action	message	1	The admiral is wounded, and the harbour watch is closing around him.
 Action	spawn	3	47	85	1	Knight:3	Monk:2
+[/Trigger]
+
+[Trigger]
+Name	goalHeartLost3
+Mode	once
+Cond	room	1	DungeonTemple	==	0
+Action	objectivestate	1	saltmere-o03	failed
 [/Trigger]
 [/Triggers]

@@ -3031,12 +3031,18 @@ Action	setflag	sluiceOpen	1
 Action	portal	0	on
 [/Trigger]
 [Trigger]
+Name	goalHeartSafe3BeforeWardenFalls
+Mode	once
+Cond	event	CorwinGray	killed
+Cond	goalmet	1	ProtectDungeonTemple
+Action	objectivestate	1	greywater-o03	reached
+[/Trigger]
+[Trigger]
 Name	wardenFalls
 Mode	once
 Cond	event	CorwinGray	killed
 Action	message	1	Corwin Gray is dead and the river belongs to you. The dwarves will want new terms.
 Action	objectivestate	1	greywater-o01	reached
-Action	objectivestate	1	greywater-o03	reached
 Action	win	1
 [/Trigger]
 [Trigger]
@@ -3055,5 +3061,12 @@ Action	message	1	The sluice warden is down and the key he wore lies in the dust.
 Action	terrain	38	17	42	17	path
 Action	setflag	sluiceOpen	1
 Action	portal	0	on
+[/Trigger]
+
+[Trigger]
+Name	goalHeartLost3
+Mode	once
+Cond	room	1	DungeonTemple	==	0
+Action	objectivestate	1	greywater-o03	failed
 [/Trigger]
 [/Triggers]

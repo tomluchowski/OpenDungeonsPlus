@@ -3546,14 +3546,28 @@ Action	message	1	The convent is emptying its barracks.
 Action	spawn	3	42	42	1	Knight:4	Knight:3	Elf:3	Elf:3	Monk:3	Adventurer:3
 [/Trigger]
 [Trigger]
+Name	goalHeartSafe2BeforeWardenSlain
+Mode	once
+Cond	time	5
+Cond	creatures	2	<=	0
+Cond	goalmet	1	ProtectDungeonTemple
+Action	objectivestate	1	hollinfen-o02	reached
+[/Trigger]
+[Trigger]
 Name	wardenSlain
 Mode	once
 Cond	time	5
 Cond	creatures	2	<=	0
 Action	message	1	Sister Agathe Hollin lies dead in her chapel, and the bells are silent. Hollin Fen is yours.
 Action	objectivestate	1	hollinfen-o01	reached
-Action	objectivestate	1	hollinfen-o02	reached
 Action	objectivestate	1	hollinfen-o04	reached
 Action	win	1
+[/Trigger]
+
+[Trigger]
+Name	goalHeartLost2
+Mode	once
+Cond	room	1	DungeonTemple	==	0
+Action	objectivestate	1	hollinfen-o02	failed
 [/Trigger]
 [/Triggers]

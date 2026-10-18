@@ -5228,4 +5228,44 @@ Cond	slabs	-1	GoldHollow	gold	<=	0
 Action	message	1	The last gold of the seam is out and the rock behind it sweats mana. A spring has opened in the hollow.
 Action	terrain	30	55	30	55	manawell
 [/Trigger]
+
+[Trigger]
+Name	goalDawnBridge
+Mode	once
+Cond	flag	goalDawnBridgeApproached	1
+Cond	region	1	55	31	55	34
+Action	setflag	goalDawnBridgeWalked	1
+[/Trigger]
+[Trigger]
+Name	goalCraterAfterBridge
+Mode	once
+Cond	flag	goalDawnBridgeCrossed	1
+Cond	region	1	RivalCrater
+Action	objectivestate	1	cinderhollow-o04	reached
+[/Trigger]
+
+[Trigger]
+Name	goalDawnBridgeApproach
+Mode	once
+Cond	trigger	lavaBridge
+Cond	region	1	55	35	55	35
+Action	setflag	goalDawnBridgeApproached	1
+[/Trigger]
+[Trigger]
+Name	goalDawnBridgeCrossed
+Mode	once
+Cond	flag	goalDawnBridgeWalked	1
+Cond	region	1	55	30	55	30
+Action	setflag	goalDawnBridgeCrossed	1
+[/Trigger]
+
+[Trigger]
+Name	goalThreeWavesDefeatedAtHeart
+Mode	once
+Cond	spawncleared	waveOne	2	atheart	1
+Cond	spawncleared	waveTwo	2	atheart	1
+Cond	spawncleared	waveThree	2	atheart	1
+Cond	spawncleared	waveThree	3	atheart	1
+Action	objectivestate	1	cinderhollow-o03	reached
+[/Trigger]
 [/Triggers]

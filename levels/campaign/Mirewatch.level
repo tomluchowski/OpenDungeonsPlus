@@ -5733,7 +5733,7 @@ Mode	once
 Cond	time	3
 Action	message	1	The mire is awake, master. Watcher Mora Fenwick has eight towers in the marsh and she sleeps in the last of them, behind sealed ground.
 Action	objectiveid	1	mirewatch-o01	Kill Watcher Mora Fenwick in her tower, in the north-east.
-Action	objectiveid	1	mirewatch-o02	You have only workers: dig, claim and build before you march.
+Action	hint	1	You have only workers: dig, claim and build before you march.
 Action	objectiveid	1	mirewatch-o03	Take the towers on the way, one by one.
 Action	portal	1	off
 [/Trigger]

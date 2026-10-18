@@ -3118,7 +3118,7 @@ Mode	once
 Cond	time	3
 Action	message	1	Goldspire stands over the plateau like a coin on its edge, master. Treasurer Alaric Penn counts the kingdom's tax in its core and soldiers pour out of its gates day and night.
 Action	objectiveid	1	goldspire-o01	Kill Treasurer Alaric Penn in the core of the spire.
-Action	objectiveid	1	goldspire-o02	Dig gold and build a force of your own, the quarry is poor.
+Action	hint	1	Dig gold and build a force of your own, the quarry is poor.
 Action	objectiveid	1	goldspire-o03	Take the low town below the spire.
 Action	portal	1	off
 [/Trigger]

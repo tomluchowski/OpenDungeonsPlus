@@ -1402,13 +1402,18 @@ Action	objectiveid	1	coldwell-o03	Dig out 600 gold from the block under the plaz
 Action	objectivestate	1	coldwell-o02	reached
 [/Trigger]
 [Trigger]
+Name	goalUndercroft600
+Mode	once
+Cond	minedregion	1	Undercroft	>=	600
+Action	objectivestate	1	coldwell-o03	reached
+[/Trigger]
+[Trigger]
 Name	wellEmptied
 Mode	once
 Cond	mined	1	>=	600
 Action	message	1	The block is yours. Now you can afford a proper army.
 Action	reveal	1	Court
 Action	objectiveid	1	coldwell-o04	Break the north gate of the keep.
-Action	objectivestate	1	coldwell-o03	reached
 [/Trigger]
 [Trigger]
 Name	townHeld

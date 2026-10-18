@@ -72,7 +72,10 @@ def main():
     for level in levels:
         if game_is_running(executable):
             raise RuntimeError('Close the running game before campaign load probes')
-        command = [str(executable), '--run-level', str(level), '--seconds', '1']
+        app_data = args.output.resolve() / level.stem
+        app_data.mkdir(parents=True, exist_ok=True)
+        command = [str(executable), '--run-level', str(level), '--seconds', '1',
+                   '--appData', str(app_data)]
         try:
             result = subprocess.run(command, cwd=executable.parent,
                                     stdin=subprocess.DEVNULL, capture_output=True,

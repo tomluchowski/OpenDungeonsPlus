@@ -4767,12 +4767,18 @@ Action	objectivestate	1	wolfscar-o01	reached
 Action	win	1
 [/Trigger]
 [Trigger]
+Name	goalHeartSafe3BeforeHuntersGoneGoal
+Mode	once
+Cond	goal	1	KillAllEnemies
+Cond	goalmet	1	ProtectDungeonTemple
+Action	objectivestate	1	wolfscar-o03	reached
+[/Trigger]
+[Trigger]
 Name	huntersGoneGoal
 Mode	once
 Cond	goal	1	KillAllEnemies
 Action	message	1	The last hunter is dead and the forest of Wolfscar is silent. It is yours.
 Action	objectivestate	1	wolfscar-o01	reached
-Action	objectivestate	1	wolfscar-o03	reached
 Action	win	1
 [/Trigger]
 [Trigger]
@@ -4801,5 +4807,12 @@ Mode	once
 Cond	slabs	1	Wolfden	claimed	>=	20
 Action	message	1	Your claim on the den has opened a spring of mana in the middle of it. Claim it and your spells come faster.
 Action	terrain	30	51	30	51	manawell
+[/Trigger]
+
+[Trigger]
+Name	goalHeartLost3
+Mode	once
+Cond	room	1	DungeonTemple	==	0
+Action	objectivestate	1	wolfscar-o03	failed
 [/Trigger]
 [/Triggers]

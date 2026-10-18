@@ -2999,13 +2999,20 @@ Action	message	1	The last of the cairn guard marches down.
 Action	spawn	3	62	21	1	Knight:4	Knight:4	Elf:4	Monk:4	Dwarf2:3	Adventurer:3
 [/Trigger]
 [Trigger]
+Name	goalHeartSafe3BeforeWardenSlain
+Mode	once
+Cond	time	5
+Cond	creatures	2	<=	0
+Cond	goalmet	1	ProtectDungeonTemple
+Action	objectivestate	1	highcairn-o03	reached
+[/Trigger]
+[Trigger]
 Name	wardenSlain
 Mode	once
 Cond	time	5
 Cond	creatures	2	<=	0
 Action	message	1	Warden Hilde Cairn lies dead among her own stones. Highcairn is yours.
 Action	objectivestate	1	highcairn-o01	reached
-Action	objectivestate	1	highcairn-o03	reached
 Action	objectivestate	1	highcairn-o04	reached
 Action	win	1
 [/Trigger]
@@ -3040,5 +3047,41 @@ Name	holdKeyHint
 Mode	once
 Cond	region	1	Terrace4
 Action	objectiveid	1	highcairn-o06	Take the key from the captain of the terrace watch to break the seal of the hold.
+[/Trigger]
+
+[Trigger]
+Name	goalTerrace1
+Mode	once
+Cond	region	1	Terrace1
+Action	setflag	goalTerrace1	1
+[/Trigger]
+[Trigger]
+Name	goalTerrace2
+Mode	once
+Cond	region	1	Terrace2
+Cond	flag	goalTerrace1	1
+Action	setflag	goalTerrace2	1
+[/Trigger]
+[Trigger]
+Name	goalTerrace3
+Mode	once
+Cond	region	1	Terrace3
+Cond	flag	goalTerrace2	1
+Action	setflag	goalTerrace3	1
+[/Trigger]
+[Trigger]
+Name	goalTerrace4
+Mode	once
+Cond	region	1	Terrace4
+Cond	flag	goalTerrace3	1
+Action	setflag	goalTerrace4	1
+Action	objectivestate	1	highcairn-o02	reached
+[/Trigger]
+
+[Trigger]
+Name	goalHeartLost3
+Mode	once
+Cond	room	1	DungeonTemple	==	0
+Action	objectivestate	1	highcairn-o03	failed
 [/Trigger]
 [/Triggers]

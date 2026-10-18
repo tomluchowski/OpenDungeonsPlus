@@ -4538,7 +4538,7 @@ Cond	time	3
 Action	message	1	Silverdeep, master, the richest mines of the kingdom. Warden Dorian Silt has let three keepers dig his seams and now they are digging each other.
 Action	objectiveid	1	silverdeep-o01	Destroy the heart of every rival keeper.
 Action	objectiveid	1	silverdeep-o02	Cross the three lakes by the wooden spans.
-Action	objectiveid	1	silverdeep-o03	You have no gold: mine the silver first.
+Action	hint	1	You have no gold: mine the silver first.
 Action	portal	1	off
 [/Trigger]
 [Trigger]
@@ -4876,5 +4876,74 @@ Cond	time	3300
 Action	message	1	The warden has sent his crew to break the vault seal from inside. A shaft opens to the south.
 Action	terrain	80	90	80	96	path
 Action	setflag	vaultOpen	1
+[/Trigger]
+
+[Trigger]
+Name	goalSilverdeepSpan1Path1Before
+Mode	once
+Cond	region	1	43	29	43	31
+Action	setflag	goalSilverdeepSpan1Path1Before	1
+[/Trigger]
+[Trigger]
+Name	goalSilverdeepSpan1Path1On
+Mode	once
+Cond	region	1	22	29	42	31
+Cond	flag	goalSilverdeepSpan1Path1Before	1
+Action	setflag	goalSilverdeepSpan1Path1On	1
+[/Trigger]
+[Trigger]
+Name	goalSilverdeepSpan1Path1After
+Mode	once
+Cond	region	1	21	29	21	31
+Cond	flag	goalSilverdeepSpan1Path1On	1
+Action	setflag	goalSilverdeepCross1	1
+[/Trigger]
+[Trigger]
+Name	goalSilverdeepSpan2Path1Before
+Mode	once
+Cond	region	1	56	49	57	49
+Action	setflag	goalSilverdeepSpan2Path1Before	1
+[/Trigger]
+[Trigger]
+Name	goalSilverdeepSpan2Path1On
+Mode	once
+Cond	region	1	56	50	57	66
+Cond	flag	goalSilverdeepSpan2Path1Before	1
+Action	setflag	goalSilverdeepSpan2Path1On	1
+[/Trigger]
+[Trigger]
+Name	goalSilverdeepSpan2Path1After
+Mode	once
+Cond	region	1	56	67	57	67
+Cond	flag	goalSilverdeepSpan2Path1On	1
+Action	setflag	goalSilverdeepCross2	1
+[/Trigger]
+[Trigger]
+Name	goalSilverdeepSpan3Path1Before
+Mode	once
+Cond	region	1	41	86	41	87
+Action	setflag	goalSilverdeepSpan3Path1Before	1
+[/Trigger]
+[Trigger]
+Name	goalSilverdeepSpan3Path1On
+Mode	once
+Cond	region	1	20	86	40	87
+Cond	flag	goalSilverdeepSpan3Path1Before	1
+Action	setflag	goalSilverdeepSpan3Path1On	1
+[/Trigger]
+[Trigger]
+Name	goalSilverdeepSpan3Path1After
+Mode	once
+Cond	region	1	19	86	19	87
+Cond	flag	goalSilverdeepSpan3Path1On	1
+Action	setflag	goalSilverdeepCross3	1
+[/Trigger]
+[Trigger]
+Name	goalSilverdeepAllSpans
+Mode	once
+Cond	flag	goalSilverdeepCross1	1
+Cond	flag	goalSilverdeepCross2	1
+Cond	flag	goalSilverdeepCross3	1
+Action	objectivestate	1	silverdeep-o02	reached
 [/Trigger]
 [/Triggers]

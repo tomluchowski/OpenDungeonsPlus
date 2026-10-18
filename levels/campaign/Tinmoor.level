@@ -1735,7 +1735,6 @@ Cond	kills	1	>=	7
 Action	message	1	The lower post is silent. A lift shaft leads up to the second one.
 Action	reveal	1	PostB
 Action	objectiveid	1	tinmoor-o04	Break the upper watch post below the warden.
-Action	objectivestate	1	tinmoor-o03	reached
 [/Trigger]
 [Trigger]
 Name	postBEntered
@@ -1816,5 +1815,22 @@ Cond	possessed	1	Seams
 Action	message	1	Through your creature's eyes the seams lie open, and a miners' cache falls to you.
 Action	gold	1	400
 Action	objectivestate	1	tinmoor-o05	reached
+[/Trigger]
+
+[Trigger]
+Name	goalPostACleared
+Mode	once
+Cond	event	PostAWatch1	killed
+Cond	event	PostAWatch2	killed
+Cond	spawncleared	postAEntered	1
+Action	objectivestate	1	tinmoor-o03	reached
+[/Trigger]
+[Trigger]
+Name	goalPostBCleared
+Mode	once
+Cond	event	PostBWatch1	killed
+Cond	event	PostBWatch2	killed
+Cond	spawncleared	postBEntered	1
+Action	objectivestate	1	tinmoor-o04	reached
 [/Trigger]
 [/Triggers]
