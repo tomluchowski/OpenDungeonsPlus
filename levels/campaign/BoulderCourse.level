@@ -1428,7 +1428,7 @@ Name	openingRound
 Mode	once
 Cond	time	3
 Action	message	1	An old crew once rolled stone balls down these galleries to test their aim, and the course still stands. Four balls wait at the tees; roll each of them into its cup before the shift bell.
-Action	objective	1	Roll all four boulders into their cups with the slaps you have.
+Action	objectiveid	1	bouldercourse-o01	Roll all four boulders into their cups with the slaps you have.
 Action	slaplimit	80
 Action	timelimit	600
 Action	reveal	1	LaneA
@@ -1472,6 +1472,7 @@ Cond	boulder	CupB	>=	1
 Cond	boulder	CupC	>=	1
 Cond	boulder	CupD	>=	1
 Action	message	1	All four boulders lie in their cups. The old course is cleared and the heart answers with a shard.
+Action	objectivestate	1	bouldercourse-o01	reached
 Action	win	1
 [/Trigger]
 [/Triggers]

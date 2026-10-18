@@ -985,7 +985,7 @@ Name	openingRound
 Mode	once
 Cond	time	3
 Action	message	1	A vaulted cavern holds four long lanes with old boulder traps in them, and stone-faced guards stand in the lanes like skittles as soon as the earth plugs are opened. Dig into each lane and let the boulders roll.
-Action	objective	1	Knock down all ten standing guards before time runs out.
+Action	objectiveid	1	skittlecavern-o01	Knock down all ten standing guards before time runs out.
 Action	timelimit	540
 [/Trigger]
 [Trigger]
@@ -1044,6 +1044,7 @@ Cond	flag	lanesOpened	>=	4
 Cond	time	5
 Cond	creatures	2	<=	0
 Action	message	1	The last guard has fallen and the lanes lie quiet. The heart gives you a shard.
+Action	objectivestate	1	skittlecavern-o01	reached
 Action	win	1
 [/Trigger]
 [/Triggers]
