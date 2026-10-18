@@ -1,0 +1,110 @@
+// Materials of the hatchery extras: egg, straw, rooster comb and tail, loose feathers, egg shell pieces.
+// Plain colours, no textures; the shapes are made in code (RenderManagerChickens.cpp).
+
+material ChickenEgg
+{
+    receive_shadows on
+    technique
+    {
+        pass
+        {
+            cull_hardware none
+            cull_software none
+            ambient 0.9 0.84 0.7 1.0
+            diffuse 0.92 0.86 0.72 1.0
+            specular 0.25 0.25 0.22 1.0 18
+        }
+    }
+}
+
+material ChickenStraw
+{
+    receive_shadows on
+    technique
+    {
+        pass
+        {
+            cull_hardware none
+            cull_software none
+            ambient 0.8 0.64 0.3 1.0
+            diffuse 0.85 0.68 0.32 1.0
+        }
+    }
+}
+
+material ChickenRoosterComb
+{
+    receive_shadows on
+    technique
+    {
+        pass
+        {
+            cull_hardware none
+            cull_software none
+            ambient 0.75 0.08 0.08 1.0
+            diffuse 0.85 0.1 0.1 1.0
+            specular 0.3 0.1 0.1 1.0 12
+        }
+    }
+}
+
+material ChickenRoosterTail
+{
+    receive_shadows on
+    technique
+    {
+        pass
+        {
+            cull_hardware none
+            cull_software none
+            ambient 0.12 0.32 0.28 1.0
+            diffuse 0.15 0.42 0.36 1.0
+            specular 0.5 0.4 0.2 1.0 30
+        }
+    }
+}
+
+material ChickenFeatherDecor
+{
+    receive_shadows off
+    technique
+    {
+        pass
+        {
+            cull_hardware none
+            cull_software none
+            ambient 0.85 0.8 0.7 1.0
+            diffuse 0.9 0.85 0.75 1.0
+        }
+    }
+}
+
+material ChickenEggInside
+{
+    receive_shadows on
+    technique
+    {
+        pass
+        {
+            cull_hardware none
+            cull_software none
+            ambient 0.55 0.38 0.12 1.0
+            diffuse 0.62 0.42 0.14 1.0
+        }
+    }
+}
+
+material ChickenEggShell
+{
+    technique
+    {
+        pass
+        {
+            lighting off
+            scene_blend alpha_blend
+            depth_write off
+            ambient vertexcolour
+            diffuse vertexcolour
+        }
+    }
+}

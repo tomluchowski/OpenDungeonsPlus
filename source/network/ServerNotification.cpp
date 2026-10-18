@@ -150,6 +150,10 @@ std::string ServerNotification::typeString(ServerNotificationType type)
             return "creatureCombatImpact";
         case ServerNotificationType::creatureChickenFeeding:
             return "creatureChickenFeeding";
+        case ServerNotificationType::chickenKindChanged:
+            return "chickenKindChanged";
+        case ServerNotificationType::chickenFight:
+            return "chickenFight";
         case ServerNotificationType::trapProductionQueue:
             return "trapProductionQueue";
         case ServerNotificationType::playerDefeated:
@@ -168,6 +172,8 @@ std::string ServerNotification::typeString(ServerNotificationType type)
             return "trapEffect";
         case ServerNotificationType::cosmeticEvent:
             return "cosmeticEvent";
+        case ServerNotificationType::hatcheryNests:
+            return "hatcheryNests";
         default:
             OD_LOG_ERR("Unknown enum for ServerNotificationType="
                 + Helper::toString(static_cast<int>(type)));
