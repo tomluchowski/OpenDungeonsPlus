@@ -477,6 +477,8 @@ private:
 
     //! \brief True if the creatures are currently displaying their text overlay
     bool mCreatureTextOverlayDisplayed;
+    //! Set while a game is shown; the portal dust looks up the portals of the local keeper there
+    GameMap* mGameMap = nullptr;
 
     //! Bit array to allow to display tile hand (= 0) or not (!= 0)
     uint32_t mHandKeeperHandVisibility;
