@@ -421,6 +421,10 @@ public:
     //! not running.
     void updateCreatureOverlays(Ogre::Real timeSinceLastFrame);
 
+    //! \brief The factor applied to the real time speed of the game (1.0 = default speed)
+    inline double getGameSpeedFactor() const
+    { return static_cast<double>(mGameSpeedPercent) / 100.0; }
+
     inline int64_t getTurnNumber() const
     { return mTurnNumber; }
 
@@ -599,6 +603,8 @@ private:
     
     
     NodeType mNodeType;
+
+    uint32_t mGameSpeedPercent;
 
     //! \brief the Local player reference. The local player will also be in the player list so this pointer
     //! should not be deleted as it will be handled like every other in the list.

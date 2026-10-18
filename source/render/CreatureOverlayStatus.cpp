@@ -19,6 +19,7 @@
 
 #include "entities/Creature.h"
 #include "game/Seat.h"
+#include "gamemap/GameMap.h"
 #include "render/MovableTextOverlay.h"
 #include "render/RenderManager.h"
 #include "utils/Helper.h"
@@ -84,6 +85,7 @@ void CreatureOverlayStatus::displayHealthOverlay(Ogre::Real timeToDisplay)
     mMovableTextOverlay->displayOverlay(healthId, timeToDisplay);
 }
 
+//! \brief Shows a reaction icon whose lifetime follows the reaction's game-time clock.
 void CreatureOverlayStatus::showEmote(const std::string& materialName, Ogre::Real timeToDisplay)
 {
     if(!mEmoteCreated)
@@ -98,14 +100,17 @@ void CreatureOverlayStatus::showEmote(const std::string& materialName, Ogre::Rea
         mMovableTextOverlay->setMaterialName(mEmoteId, materialName);
     }
 
-    mMovableTextOverlay->displayOverlay(mEmoteId, timeToDisplay);
+    mEmoteRemaining = timeToDisplay;
+    mMovableTextOverlay->displayOverlay(mEmoteId, timeToDisplay > 0.0f ? -1.0f : timeToDisplay);
 }
 
+//! \brief Hides the reaction icon and clears its remaining game-time lifetime.
 void CreatureOverlayStatus::hideEmote()
 {
     if(!mEmoteCreated)
         return;
 
+    mEmoteRemaining = 0.0f;
     mMovableTextOverlay->displayOverlay(mEmoteId, 0);
 }
 
@@ -208,6 +213,7 @@ void CreatureOverlayStatus::updateStatus(Ogre::Real timeSincelastFrame)
     mMovableTextOverlay->displayOverlay(statusId, -1);
 }
 
+//! \brief Keeps interface overlay clocks independent while expiring reaction icons in game time.
 void CreatureOverlayStatus::update(Ogre::Real timeSincelastFrame)
 {
     // If the creature is not on map, we do not display the overlays. Neither do we over a
@@ -224,5 +230,11 @@ void CreatureOverlayStatus::update(Ogre::Real timeSincelastFrame)
     if(timeSincelastFrame > 0.0)
         updateStatus(timeSincelastFrame);
 
+    if(mEmoteCreated && (mEmoteRemaining > 0.0f))
+    {
+        mEmoteRemaining -= timeSincelastFrame * static_cast<Ogre::Real>(mCreature->getGameMap()->getGameSpeedFactor());
+        if(mEmoteRemaining <= 0.0f)
+            hideEmote();
+    }
     mMovableTextOverlay->update(timeSincelastFrame);
 }
