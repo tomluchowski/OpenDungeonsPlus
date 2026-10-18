@@ -10,6 +10,7 @@
     <Font filename="LiberationSans-20.font" name="LiberationSans-20" />
     <Font filename="MedievalSharp-10.font" name="MedievalSharp-10" />
     <Font filename="MedievalSharp-12.font" name="MedievalSharp-12" />
+    <Font filename="MedievalSharp-20.font" name="MedievalSharp-20" />
     <LookNFeel filename="OD.looknfeel" />
     <WindowRendererSet filename="CEGUICoreWindowRendererSet" />
     <FalagardMapping lookNFeel="OD/Button" renderer="Core/Button" targetType="CEGUI/PushButton" windowType="OD/Button" />
