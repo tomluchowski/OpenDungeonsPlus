@@ -93,8 +93,8 @@ OBJECTIVE_TRIGGERS = {'Ashcombe': [('wardenDown',),
  'Campaign1': [('goalClassicComplete',)],
  'Campaign2': [('goalClassicComplete',)],
  'Campaign3': [('goalClassicComplete',)],
- 'Cinderhollow': [('rivalHeartDown', 'rivalHeartFalls'),
-                  None,
+ 'Cinderhollow': [('goalHeartSafe1BeforeRivalHeartDown', 'goalHeartSafe1BeforeRivalHeartFalls'),
+                  ('goalBothFiniteSeamsMined',),
                   ('goalThreeWavesDefeatedAtHeart',),
                   ('goalCraterAfterBridge',),
                   ('rivalHeartDown', 'rivalHeartFalls')],
@@ -117,10 +117,14 @@ OBJECTIVE_TRIGGERS = {'Ashcombe': [('wardenDown',),
                 ('yardReached',),
                 ('goalRivalGateNorth', 'goalRivalGateSouth')],
  'Kingsfall': [('collectWin',), ('courtTaken', 'collectWin'), ('goalArmyAtHeart',)],
- 'Lanternhill': [('rivalHeartDown',), None, ('rivalHeartDown',)],
- 'Mirewatch': [('watcherSlain',), None, None, ('scoutTowerC',), ('watcherSlain',)],
+ 'Lanternhill': [('rivalHeartDown',), ('goalRingGroundPathOpened',), ('goalHeartSafe3BeforeRivalHeartDown',)],
+ 'Mirewatch': [('watcherSlain',), None, ('goalNineTowerRoomsClaimed',), ('scoutTowerC',), ('watcherSlain',)],
  'Mossgate': [('reeveFalls',), ('firstGold',), ('meadowOurs',), ('goalWatchPostCleared',), ('reeveFalls',)],
- 'Ravensledge': [('captainDown',), ('shelfHeld',), ('shelfHeld',), ('yardEntered',), ('goalInnerKeepEntered',)],
+ 'Ravensledge': [('captainDown',),
+                 ('shelfHeld',),
+                 ('shelfHeld',),
+                 ('yardEntered',),
+                 ('goalInnerKeepEntered',)],
  'Saltmere': [('admiralFalls',),
               ('firstSalt',),
               ('goalHeartSafe3BeforeAdmiralFalls',),
@@ -131,10 +135,18 @@ OBJECTIVE_TRIGGERS = {'Ashcombe': [('wardenDown',),
  'Stormhaven': [('stormEndsGoal',), ('goalStormhavenBothSpans',), ('goalPactsPrevented',)],
  'SwarmNight': [('goalHeartSafe1BeforeDawn',), ('goalHeartSafe2BeforeDawn',)],
  'Thornreach': [('keepersGoneGoal',), None, ('goalHeartSafe3BeforeKeepersGoneGoal',)],
- 'Tinmoor': [('wardenDown',), ('seamsFilled',), ('goalPostACleared',), ('goalPostBCleared',), ('scoutSeams',)],
+ 'Tinmoor': [('wardenDown',),
+             ('seamsFilled',),
+             ('goalPostACleared',),
+             ('goalPostBCleared',),
+             ('scoutSeams',)],
  'TwistingHalls': [('hallReached',)],
- 'VarnsCrossing': [('crossingHeldGoal',), ('goalHeartSafe2BeforeCrossingHeldGoal',), ('goalQuarterThenFortress',)],
- 'Wolfscar': [('huntersGone', 'huntersGoneGoal'), ('southCrossed',), ('goalHeartSafe3BeforeHuntersGoneGoal',)],
+ 'VarnsCrossing': [('crossingHeldGoal',),
+                   ('goalHeartSafe2BeforeCrossingHeldGoal',),
+                   ('goalQuarterThenFortress',)],
+ 'Wolfscar': [('huntersGone', 'huntersGoneGoal'),
+              ('southCrossed',),
+              ('goalHeartSafe3BeforeHuntersGoneGoal',)],
  'Wraithwood': [('bothFallGoal',), ('bothFallGoal',), ('goalHeartSafe3BeforeBothFallGoal',)]}
 HINT_IDS = frozenset(['bellwick-o02', 'ebonrook-o03', 'goldspire-o02', 'mirewatch-o02', 'silverdeep-o03', 'thornreach-o02'])
 # A proven positive mask does not establish exhaustive coverage of dynamic waypoint movement.
@@ -338,6 +350,7 @@ OBJECTIVE_CONDITIONS = {'Ashcombe/goalHoldBeforeDeparture': '776b58a0778ede6f329
  'Campaign1/goalClassicComplete': '96473efcffb5efb40af72300b603f80aa89d0b62b4c4954fa2a7546f63e5581c',
  'Campaign2/goalClassicComplete': '96473efcffb5efb40af72300b603f80aa89d0b62b4c4954fa2a7546f63e5581c',
  'Campaign3/goalClassicComplete': '96473efcffb5efb40af72300b603f80aa89d0b62b4c4954fa2a7546f63e5581c',
+ 'Cinderhollow/goalBothFiniteSeamsMined': 'e62a2ec0adbe02d135469b88e1deb7dd4b92295ec84231fb8055c4f7eddc87e3',
  'Cinderhollow/goalCraterAfterBridge': '21fdcb397f1ea56cea9e66f4b260c7383dc924ec44f362220a6fcd2acd9cc678',
  'Cinderhollow/goalDawnBridge': '31bfa776f2fabb75b9c400e4c14449f2a23ae0ccb9c090599b354d62c37237b5',
  'Cinderhollow/goalDawnBridgeApproach': '7b7cc92553db0a630d9d8eeb64e9163000ea576ebde2679543af1f26f4ca5e02',
@@ -420,7 +433,9 @@ OBJECTIVE_CONDITIONS = {'Ashcombe/goalHoldBeforeDeparture': '776b58a0778ede6f329
  'Kingsfall/collectWin': '248ae73a6216d7d671e187040748d230b66ca878354543dcd4139d5ead708d53',
  'Kingsfall/courtTaken': '71e02274670b0b0e5cf5cf93d4ec3f43036487e9d3972f95314d7d52de10cb1d',
  'Kingsfall/goalArmyAtHeart': '7c8a4ba84f0d124e4800c8880845249ba6320cf154888bea68bebff9d7718d8e',
+ 'Lanternhill/goalRingGroundPathOpened': 'aa3d2a4caeaed837e5a0e80db31473d02090c14136c8df98937757f61389f0fc',
  'Lanternhill/rivalHeartDown': '2a99324afebb946debdf455a762b0a3397ab53239aff6aa5c15a82d7ca0af1e6',
+ 'Mirewatch/goalNineTowerRoomsClaimed': '84658f831313f77f8aac25816f828b1f3a0d8c541d2776dda77ccf139a4c215f',
  'Mirewatch/scoutTowerC': '47716bb4d4cf382a3c8361ed7ea924e83aec55ebe50a73512cced36d5cfa45b6',
  'Mirewatch/watcherSlain': '64247d08b33c60aecb9970aaa61cad974015e18496b97341fb463acf439130ca',
  'Mossgate/firstGold': '4bb67357526e67e6cebc76c5f68d3724d44496fa4fa0af3b661369e6a7822232',
@@ -489,7 +504,26 @@ OBJECTIVE_CONDITIONS = {'Ashcombe/goalHoldBeforeDeparture': '776b58a0778ede6f329
  'Wolfscar/southCrossed': 'a8f87a6499f3f4999683baba47d5c312ff9e89caf3a9af1f46bd762a6510941b',
  'Wraithwood/bothFallGoal': '2a99324afebb946debdf455a762b0a3397ab53239aff6aa5c15a82d7ca0af1e6',
  'Wraithwood/goalHeartLost3': '65883912aaee2758fba63138f970f145b041ff9190c5a9b5c207577321079e3e',
- 'Wraithwood/goalHeartSafe3BeforeBothFallGoal': 'f70d95a26645ff48ff76d89a9f3b38d12dd2439cd3004c3c25249ef2caf53e5d'}
+ 'Wraithwood/goalHeartSafe3BeforeBothFallGoal': 'f70d95a26645ff48ff76d89a9f3b38d12dd2439cd3004c3c25249ef2caf53e5d',
+ 'Cinderhollow/goalHeartSafe1BeforeRivalHeartFalls': '72261b6e1a897402c27c01d339a576268aa58939eb72e41de9c88b8e29c2f812',
+ 'Cinderhollow/goalHeartSafe1BeforeRivalHeartDown': 'b6d7002c1fcffaa18185d177955b81f6f612ba6e22c7356b448792085c34f3ec',
+ 'Cinderhollow/goalHeartLost1': '65883912aaee2758fba63138f970f145b041ff9190c5a9b5c207577321079e3e',
+ 'Lanternhill/goalHeartSafe3BeforeRivalHeartDown': 'f70d95a26645ff48ff76d89a9f3b38d12dd2439cd3004c3c25249ef2caf53e5d',
+ 'Lanternhill/goalHeartLost3': '65883912aaee2758fba63138f970f145b041ff9190c5a9b5c207577321079e3e'}
+
+# Fixed original enemy-room footprints: name, type, original owner, inclusive rectangle, tile count.
+MIREWATCH_ROOMS = (('GuardRoom1', 17, 3, (44, 106, 47, 107), 8),
+ ('GuardRoom2', 17, 3, (86, 110, 88, 111), 6),
+ ('Library1', 7, 3, (24, 78, 26, 79), 6),
+ ('Arena1', 14, 3, (74, 82, 78, 84), 15),
+ ('Library2', 7, 3, (20, 44, 22, 45), 6),
+ ('Prison1', 11, 3, (68, 50, 69, 52), 6),
+ ('Workshop1', 5, 3, (44, 24, 47, 25), 8),
+ ('GuardRoom3', 17, 2, (94, 22, 97, 23), 8),
+ ('Workshop2', 5, 2, (99, 18, 101, 19), 6))
+CINDER_SEAMS = ((5, 55, 6, 58), (30, 72, 33, 73))
+LANTERN_CONNECTION = (13, 57, 40, 22)
+
 
 # Return nonempty source lines with comments removed and original line numbers retained.
 def lines(text):
@@ -738,6 +772,51 @@ def check_level(level):
     return errors
 
 
+# Keep the approved finite seams fixed, so moved regions cannot silently weaken completion.
+def cinder_seam_errors(level):
+    errors = []
+    for name, rect in zip(("GoalWestGoldSeam", "GoalSouthGoldSeam"), CINDER_SEAMS):
+        fields = tuple(map(str, rect))
+        expected = "Region\t" + name + "\t" + "\t".join(fields)
+        if expected not in level["text"].splitlines():
+            errors.append("approved gold seam region differs: " + name)
+        x1, y1, x2, y2 = rect
+        for x in range(x1, x2 + 1):
+            for y in range(y1, y2 + 1):
+                if level["tiles"].get((x, y)) != (2, 100.0, None):
+                    errors.append("approved finite full-gold tile differs: %d,%d" % (x, y))
+    return errors
+
+
+# Check every fixed tower room tile for eventual worker access and enemy-room claimability.
+def mirewatch_errors(level):
+    errors = []
+    configured_modes = re.findall(r"^\s*RoomsClaimableByEnemies\s+(\S+)", (ROOT / "config/rooms.cfg").read_text(encoding="utf-8"), re.M)
+    if configured_modes != ["1"]:
+        errors.append("room takeover configuration differs from reviewed claimable mode 1")
+    area, _ = reachable(timed_openings(level))
+    human = level["human"]
+    actual = {name: (kind, owner, set(tiles)) for kind, name, owner, tiles in level["rooms"]}
+    total = 0
+    for name, kind, owner, (x1, y1, x2, y2), count in MIREWATCH_ROOMS:
+        expected = {(x, y) for x in range(x1, x2 + 1) for y in range(y1, y2 + 1)}
+        total += len(expected)
+        if len(expected) != count or actual.get(name) != (kind, owner, expected):
+            errors.append("tower room original footprint/type/owner differs: " + name)
+        room = actual.get(name)
+        for tile in sorted(expected):
+            if tile not in area:
+                errors.append("tower room tile unreachable: %s %s" % (name, tile))
+            ground = level["tiles"].get(tile)
+            # RoomClaim rejects allied rooms and temples; the reviewed global mode above is claimable.
+            if (ground is None or ground[1] != 0 or room is None or room[0] == 1
+                    or level["seats"][room[1]]["teamId"] == level["seats"][human]["teamId"]):
+                errors.append("tower room tile not worker-claimable: %s %s" % (name, tile))
+    if total != 69:
+        errors.append("expected exactly 69 fixed tower room tiles")
+    return errors
+
+
 # Validate explicit objective identities and only the individually mapped completion triggers.
 def objective_errors(text, level_name):
     declarations, states, errors = {}, {}, []
@@ -882,6 +961,16 @@ def inventory(root):
             sentences = re.split(r"(?<=[.!?])\s+", entry.get("Briefing", "").replace("\\n", " "))
             for index, match in BRIEFING_MATCH[path.stem].items():
                 result.append("| Briefing | " + cell(sentences[index - 1].strip()) + " | " + match + " |")
+        if path.stem == "Cinderhollow":
+            result.append("Mario's explicit criterion for cinderhollow-o02: fully mine all 16 original finite gold fields x5..6/y55..58 and x30..33/y72..73. No deadline or first-wave failure applies; this approved criterion overrides the unchanged objective prose mentioning the first wave.")
+        elif path.stem == "Lanternhill":
+            result.append("lanternhill-o02 requires an actual current dry worker path from (13,57) to (40,22), including legal alternative digging routes; no fixed plug subset is required.")
+        elif path.stem == "Mirewatch":
+            result.append("mirewatch-o03 requires complete worker claim and current room ownership on the nine original room masks, exactly 69 fields; broad tower regions and visits do not qualify.")
+            for room_name, kind, owner, rect, count in MIREWATCH_ROOMS:
+                result.append("Original room `%s`: type %d, owner %d, rectangle %s, %d fields." % (room_name, kind, owner, rect, count))
+            for error in mirewatch_errors(parse_level(text)):
+                result.append("Static tower validation failure: " + error)
         result.append("")
     return "\n".join(result)
 
@@ -967,6 +1056,38 @@ def self_test(root):
     assert not objective_errors(coldwell, "Coldwell"), "under-plaza mining must have an exact source"
     wrong_source = coldwell.replace("minedregion\t1\tUndercroft", "minedregion\t1\tMissingRegion")
     assert any("unknown presentation region" in error for error in objective_errors(wrong_source, "Coldwell"))
+    cinder = parse_level((root / "levels/campaign/Cinderhollow.level").read_text(encoding="utf-8"))
+    assert not cinder_seam_errors(cinder)
+    cinder["tiles"][5, 55] = (6, 100.0, None)
+    assert cinder_seam_errors(cinder), "infinite gem cannot replace the approved finite gold"
+    mire_text = (root / "levels/campaign/Mirewatch.level").read_text(encoding="utf-8")
+    mire = parse_level(mire_text)
+    assert not mirewatch_errors(mire), "all 69 original tower room fields must be reachable and claimable"
+    for mutation in ("sealed", "full", "allied", "missing"):
+        bad = parse_level(mire_text)
+        target = (44, 106)
+        if mutation == "sealed":
+            for tile in neighbours(target):
+                bad["tiles"][tile] = (3, 100.0, None)
+        elif mutation == "full":
+            bad["tiles"][target] = (1, 100.0, None)
+        elif mutation == "allied":
+            bad["seats"][3]["teamId"] = bad["seats"][1]["teamId"]
+        else:
+            bad["rooms"] = [room for room in bad["rooms"] if room[1] != "GuardRoom1"]
+        errors = mirewatch_errors(bad)
+        assert errors, "required room mutation must fail: " + mutation
+        if mutation == "sealed":
+            assert any("tile unreachable: GuardRoom1 (44, 106)" in error for error in errors)
+        if mutation == "full":
+            assert any("not worker-claimable: GuardRoom1 (44, 106)" in error for error in errors)
+    for filename, needle, replacement in (
+            ("Cinderhollow", "slabs\t-1\tGoalWestGoldSeam\tgold\t==\t0", "slabs\t-1\tGoalWestGoldSeam\tgold\t>=\t0"),
+            ("Lanternhill", "groundconnected\t1\t13\t57\t40\t22", "groundconnected\t1\t13\t57\t39\t22"),
+            ("Mirewatch", "roomclaimed\t1\t44\t106\t47\t107", "roomclaimed\t1\t44\t106\t46\t107")):
+        original_map = (root / ("levels/campaign/" + filename + ".level")).read_text(encoding="utf-8")
+        assert needle in original_map
+        assert any("conditions differ" in error for error in objective_errors(original_map.replace(needle, replacement), filename))
     print("campaign playability self-test passed")
 
 
@@ -996,6 +1117,10 @@ def main():
                 raise ValueError("missing/invalid campaign level path")
             level = parse_level(path_level.read_text(encoding="utf-8"))
             failures.extend(name + ": " + error for error in check_level(level))
+            if path_level.stem == "Cinderhollow":
+                failures.extend(name + ": " + error for error in cinder_seam_errors(level))
+            if path_level.stem == "Mirewatch":
+                failures.extend(name + ": " + error for error in mirewatch_errors(level))
             failures.extend(name + ": " + error for error in objective_errors(level["text"], path_level.stem))
         except (ValueError, IndexError, KeyError, OSError) as error:
             failures.append(name + ": " + str(error))
